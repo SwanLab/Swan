@@ -29,6 +29,10 @@ classdef DesignVariable < handle
         function updateOld(obj)
             obj.funOld = obj.fun.copy();
         end
+
+        function dX = computeIncrement(obj)
+            dX = obj.fun-obj.funOld;
+        end
         
         function norm = computeL2normIncrement(obj)
            incFun = obj.fun-obj.funOld;

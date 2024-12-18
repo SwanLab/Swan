@@ -1,0 +1,1 @@
+etaMax = etaCte*(1+gk)

@@ -6,20 +6,27 @@ classdef OptimizerNullSpace < Optimizer
 
     properties (Access = private)
         lineSearchTrials
-        tol = 1e-5
+        tol = 1e-8
         hasConverged
         acceptableStep
         hasFinished
         mOld
         meritNew
+        meritOld
         meritGradient
+        DxJ
+        Dxg
         eta
+        etaMin
         etaMax
+        etaMaxMin
         lG
         lJ
         etaNorm
+        etaNormMin
         gJFlowRatio
         predictedTau
+        firstEstimation
     end
 
     methods (Access = public) 
@@ -36,6 +43,9 @@ classdef OptimizerNullSpace < Optimizer
             obj.hasFinished  = false;
             obj.printOptimizerVariable();
             obj.updateMonitoring();
+            obj.computeNullSpaceFlow();
+            obj.computeRangeSpaceFlow();
+            obj.firstEstimation = false;
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
@@ -57,11 +67,20 @@ classdef OptimizerNullSpace < Optimizer
             obj.eta            = 0;
             obj.lG             = 0;
             obj.lJ             = 0;
-            obj.etaMax         = 0;
             obj.etaNorm        = cParams.etaNorm;
-            obj.gJFlowRatio    = cParams.gJFlowRatio;
+            obj.etaNormMin     = cParams.etaNormMin; % !!!
+
+            % Important parameters %%%%
+            obj.etaMin         = 1e-6; % Just in case the null space flow is too small. May be analogous with Florian's n0 parameter in the future
+            obj.etaMax         = cParams.etaMax; % For density can be Inf; for level-set this is adjusted with the density case, but we can increase it a bit
+            obj.etaMaxMin      = cParams.etaMaxMin; % 'only TUNING' for level-set, in the end etaMax decreases until etaMaxMin; for density this 'only TUNING' is equivalent to tauMax
+            obj.gJFlowRatio    = cParams.gJFlowRatio; % Robust parameter
+            %%%%%%
+
             obj.hasConverged   = false;
             obj.nIter          = 0;
+            obj.meritOld       = 1e6;
+            obj.firstEstimation = true;
             obj.createMonitoring(cParams);
         end
 
@@ -81,11 +100,11 @@ classdef OptimizerNullSpace < Optimizer
             for i = 1:nSFCost
                 chCost{i} = 'plot';
             end
-            chartTypes = [{'plot'},chCost,chConstr,{'logy'},chConstr,{'bar','bar','plot','plot','plot','plot','plot','plot'}];
+            chartTypes = [{'plot'},chCost,chConstr,{'logy'},chConstr,{'bar','bar','plot','logy','plot','plot','plot','plot'}];
             switch class(obj.designVariable)
                 case 'LevelSet'
-                    titles = [titles;{'Theta';'Alpha';'Beta'}];
-                    chartTypes = [chartTypes,{'plot','plot','plot'}];
+                    titles = [titles;{'Theta';'Alpha';'Beta';'Mean constr'}];
+                    chartTypes = [chartTypes,{'plot','plot','plot','plot'}];
             end
             s.shallDisplay = cParams.monitoring;
             s.maxNColumns  = 6;
@@ -108,9 +127,9 @@ classdef OptimizerNullSpace < Optimizer
             switch class(obj.designVariable)
                 case 'LevelSet'
                     if obj.nIter == 0
-                        data = [data;0;0;0];
+                        data = [data;0;0;0;obj.constraint.gMean];
                     else
-                        data = [data;obj.primalUpdater.Theta;obj.primalUpdater.Alpha;obj.primalUpdater.Beta];
+                        data = [data;obj.primalUpdater.Theta;obj.primalUpdater.Alpha;obj.primalUpdater.Beta;obj.constraint.gMean];
                     end
             end
             obj.monitoring.update(obj.nIter,num2cell(data));
@@ -119,9 +138,9 @@ classdef OptimizerNullSpace < Optimizer
 
         function updateEtaParameter(obj)
             vgJ     = obj.gJFlowRatio;
-            DxJ     = obj.computeNullSpaceFlow();
-            Dxg     = obj.computeRangeSpaceFlow();
-            obj.eta = min(vgJ*DxJ/Dxg,obj.etaMax);
+            l2DxJ   = norm(obj.DxJ);
+            l2Dxg   = norm(obj.Dxg);
+            obj.eta = max(min(vgJ*l2DxJ/l2Dxg,obj.etaMax),obj.etaMin);
             obj.updateMonitoringMultipliers();
         end
 
@@ -133,16 +152,41 @@ classdef OptimizerNullSpace < Optimizer
             obj.lJ = -1*((Dg'*Dg)\Dg')*DJ;
         end
 
-        function DxJ = computeNullSpaceFlow(obj)
-            DJ  = obj.cost.gradient;
-            Dg  = obj.constraint.gradient;
-            DxJ = norm(DJ-(Dg*(((Dg'*Dg)\Dg')*DJ)));
+        function computeNullSpaceFlow(obj)
+            DJ     = obj.cost.gradient;
+            [~,Dg] = obj.computeActiveConstraintsGradient();
+            if isempty(Dg)
+                obj.DxJ = DJ;
+            else
+                obj.DxJ = DJ-(Dg*(((Dg'*Dg)\Dg')*DJ));
+            end
         end
 
-        function Dxg = computeRangeSpaceFlow(obj)
-            g   = obj.constraint.value;
-            Dg  = obj.constraint.gradient;
-            Dxg = norm(Dg*((Dg'*Dg)\g));
+        function computeRangeSpaceFlow(obj)
+            [g,Dg] = obj.computeActiveConstraintsGradient();
+            if isempty(Dg)
+                obj.Dxg = zeros(size(obj.DxJ));
+            else
+                obj.Dxg = Dg*((Dg'*Dg)\g);
+            end
+        end
+
+        function [actg,actDg] = computeActiveConstraintsGradient(obj)
+            l   = obj.dualVariable.fun.fValues;
+            gCases = obj.constraintCase;
+            active = false(length(gCases),1);
+            for i = 1:length(gCases)
+                switch gCases{i}
+                    case 'EQUALITY'
+                        active(i) = 1;
+                    case 'INEQUALITY'
+                        if l(i)>1e-6 || obj.firstEstimation
+                            active(i) = 1;
+                        end
+                end
+            end
+            actg   = obj.constraint.value(active);
+            actDg  = obj.constraint.gradient(:,active);
         end
 
         function prepareFirstIter(obj)
@@ -160,6 +204,8 @@ classdef OptimizerNullSpace < Optimizer
             obj.lineSearchTrials = 0;
             obj.dualUpdater.update(obj.eta,obj.primalUpdater);
             obj.mOld = obj.computeMeritFunction();
+            obj.computeNullSpaceFlow();
+            obj.computeRangeSpaceFlow();
             obj.computeMeritGradient();
             obj.calculateInitialStep();
             while ~obj.acceptableStep
@@ -175,7 +221,7 @@ classdef OptimizerNullSpace < Optimizer
                 factor = 1000;
                 obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
             else
-                factor = 3;
+                factor = 1.02;
                 obj.primalUpdater.increaseStepLength(factor);
             end
         end
@@ -200,12 +246,12 @@ classdef OptimizerNullSpace < Optimizer
             x    = obj.designVariable.fun.fValues;
             g    = obj.constraint.value;
             etaN = obj.obtainTrustRegion();
-            if mNew < obj.mOld && norm(x-x0)/norm(x0) < etaN
+            if mNew <= obj.mOld+1e-3  &&  norm(x-x0)/norm(x0) < etaN
                 obj.predictedTau   = (1-g/g0)/obj.eta;
                 obj.acceptableStep = true;
                 obj.meritNew       = mNew;
                 obj.dualUpdater.updateOld();
-                obj.updateEtaMax();
+                obj.updateEtaMax(g,g0);
             elseif obj.primalUpdater.isTooSmall()
                 warning('Convergence could not be achieved (step length too small)')
                 obj.predictedTau   = (1-g/g0)/obj.eta;
@@ -220,30 +266,56 @@ classdef OptimizerNullSpace < Optimizer
             end
         end
 
-        function updateEtaMax(obj)
+        function updateEtaMax(obj,g,g0)
             switch class(obj.primalUpdater)
                 case 'SLERP'
-                    %                     phi = obj.designVariable.fun;
-                    %                     quad = Quadrature.create(phi.mesh,'QUADRATIC');
-                    %                     dV = phi.mesh.computeDvolume(quad);
-                    %                     chiBall=obj.designVariable.computeBallCharacteristicFunction(quad);
-                    %                     intBall = sum(dV.*chiBall,"all");
-                    %                     gk = LagrangianFunction.create(phi.mesh,1,'P1');
-                    %                     gk.fValues = obj.meritGradient;
-                    %                     gkL2 = sqrt(Norm.computeL2(phi.mesh,gk));
-                    %                     k  = obj.primalUpdater.tau;
-                    %                     t  = obj.primalUpdater.Theta;
-                    %                     obj.etaMax = intBall*gkL2*sin(t)/sin(k*t); % ak or not ak?
-%                     theta      = obj.primalUpdater.Theta;
-%                     k          = obj.primalUpdater.tau;
-%                     b          = obj.primalUpdater.Beta;
-%                     a          = obj.primalUpdater.Alpha;
-                    obj.etaMax = Inf;
+%                     active = not(obj.checkIndividualConstraint());
+%                     g = g.*active;
+%                     if min(g.*g0)<-1e-10
+%                         obj.etaMax  = obj.etaMax/2;
+%                         obj.etaNorm = max(obj.etaNorm/1.02,0.001);
+%                     elseif min(g.*g0)>1e-10
+%                         obj.etaMax = obj.etaMax*1.2;
+%                     end
+%                     dPsi = obj.designVariable.computeIncrement();
+%                     s.fValues = obj.meritGradient;
+%                     s.mesh = obj.designVariable.fun.mesh;
+%                     s.order = 'P1';
+%                     TD = LagrangianFunction(s);
+%                     TDn = TD.normalize('L2');
+%                     s.operation = @(xV) dPsi.evaluate(xV)./TDn.evaluate(xV);
+%                     tFun = DomainFunction(s);
+%                     tNorm = Norm.computeL2(obj.designVariable.fun.mesh,tFun);
+%                     obj.etaMax = sqrt(tNorm);
+
+                    % if obj.constraint.gMean < 1e-3
+                    %     obj.etaMax = max(obj.etaMax/1.2,obj.etaMaxMin);
+                    % end
+
+                    [actg,~] = obj.computeActiveConstraintsGradient();
+                    isAlmostFeasible  = norm(actg) < 0.01;
+                    isAlmostOptimal   = obj.primalUpdater.Theta < 0.15;
+                    if isAlmostFeasible && isAlmostOptimal
+                        obj.etaMax  = max(obj.etaMax/1.05,obj.etaMaxMin);
+                        obj.etaNorm = max(obj.etaNorm/1.1,obj.etaNormMin);
+                    end
+
                 case 'HAMILTON-JACOBI'
                     obj.etaMax = Inf; % Not verified
                 otherwise
                     t          = obj.primalUpdater.tau;
                     obj.etaMax = 1/t;
+            end
+        end
+
+        function areAcceptable = checkIndividualConstraint(obj)
+            for i = 1:length(obj.constraint.value)
+                switch obj.constraintCase{i}
+                    case {'EQUALITY'}
+                        areAcceptable(i,1) = abs(obj.constraint.value(i)) < obj.tol;
+                    case {'INEQUALITY'}
+                        areAcceptable(i,1) = obj.constraint.value(i) < -1e-2;
+                end
             end
         end
 
@@ -271,12 +343,13 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function obj = checkConvergence(obj)
-            if abs(obj.meritNew - obj.mOld) < obj.tol && obj.checkConstraint()
+            if abs(obj.meritNew - obj.meritOld) < obj.tol && obj.checkConstraint()
                 obj.hasConverged = true;
                 if obj.primalUpdater.isTooSmall()
                     obj.primalUpdater.tau = 1;
                 end
             end
+            obj.meritOld = obj.meritNew;
         end
 
         function updateIterInfo(obj)

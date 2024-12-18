@@ -109,42 +109,53 @@ classdef Optimizer < handle
         function obtainGIF(obj)
             %set(0,'DefaultFigureVisible','off');
 
-            gifName = 'testingGIF';
+
+
+
+
+
+            gifName = 'NullSLERPResults/TopOpt/MBBBeam/DensityComparison/gJ2_V0d2';
+
+
+
+
+
+
+
             deltaTime = 0.01;
-            m = obj.designVariable.mesh;
+            m = obj.designVariable.fun.mesh;
             xmin = min(m.coord(:,1));
             xmax = max(m.coord(:,1));
             ymin = min(m.coord(:,2));
             ymax = max(m.coord(:,2));
 
-            f = obj.designVariable.value;
+            f = obj.designVariable.fun.fValues;
             switch obj.designVariable.type
                 case 'LevelSet'
                     uMesh = obj.designVariable.getUnfittedMesh();
                     uMesh.compute(f);
-                    figure
+                    gifFig = figure;
                     uMesh.plotStructureInColor('black');
-                    hold on
                 case 'Density'
                     p1.mesh    = m;
                     p1.fValues = f;
                     p1.order   = 'P1';
                     RhoNodal   = LagrangianFunction(p1);
-                    q = Quadrature.set(m.type);
-                    q.computeQuadrature('CONSTANT');
+                    q = Quadrature.create(m,0);
                     xV = q.posgp;
                     RhoElem = squeeze(RhoNodal.evaluate(xV));
 
-                    figHandle = figure;
+                    gifFig = figure;
                     axis off
                     axis equal
-                    axes = figHandle.Children;
+                    axes = gifFig.Children;
                     patchHandle = patch(axes,'Faces',m.connec,'Vertices',m.coord,...
                         'EdgeColor','none','LineStyle','none','FaceLighting','none' ,'AmbientStrength', .75);
                     set(axes,'ALim',[0, 1],'XTick',[],'YTick',[]);
                     set(patchHandle,'FaceVertexAlphaData',RhoElem,'FaceAlpha','flat');
             end
-            fig = gcf;
+            hold on
+            fig = gifFig;
             fig.CurrentAxes.XLim = [xmin xmax];
             fig.CurrentAxes.YLim = [ymin ymax];
             axis([xmin xmax ymin ymax])
@@ -158,7 +169,7 @@ classdef Optimizer < handle
             else
                 imwrite(A,map,gifname,"gif","WriteMode","append","DelayTime",deltaTime);
             end
-            close gcf
+            close(gifFig);
 
             %set(0,'DefaultFigureVisible','on');
         end
