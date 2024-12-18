@@ -66,24 +66,24 @@ classdef OptimizerNullSpace < Optimizer
             obj.maxIter         = cParams.maxIter;
             obj.lG              = 0;
             obj.lJ              = 0;
-            obj.etaNorm         = cParams.etaNorm;
-            obj.etaNormMin      = cParams.etaNormMin;
             obj.gJFlowRatio     = cParams.gJFlowRatio;
             obj.hasConverged    = false;
             obj.nIter           = 0;
             obj.meritOld        = 1e6;
             obj.firstEstimation = true;
+            obj.etaNorm         = cParams.etaNorm;
             obj.eta             = 0;
             obj.etaMin          = 1e-6;
-            obj.initEtaMax(cParams);
+            obj.initOtherParameters(cParams);
             obj.createMonitoring(cParams);
         end
 
-        function initEtaMax(obj,cParams)
+        function initOtherParameters(obj,cParams)
             switch class(obj.designVariable)
                 case 'LevelSet'
-                    obj.etaMax    = cParams.etaMax;
-                    obj.etaMaxMin = cParams.etaMaxMin;
+                    obj.etaMax     = cParams.etaMax;
+                    obj.etaMaxMin  = cParams.etaMaxMin;
+                    obj.etaNormMin = cParams.etaNormMin;
                 otherwise
                     obj.etaMax = inf;
             end

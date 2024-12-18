@@ -196,7 +196,10 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
             s.constraintCase = {'INEQUALITY','EQUALITY'};
             s.primal         = 'SLERP';
             s.etaNorm        = 0.02;
+            s.etaNormMin     = 0.02;
             s.gJFlowRatio    = 1;
+            s.etaMax         = 1;
+            s.etaMaxMin      = 0.01;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

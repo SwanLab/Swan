@@ -185,6 +185,7 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             s.lb             = 0;
             s.etaNorm        = 0.01;
             s.gJFlowRatio    = 2;
+            s.tauMax         = 1000;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

@@ -184,6 +184,7 @@ classdef TopOptTestTutorialMicro < handle
             s.lb             = -inf;
             s.etaNorm        = 0.02;
             s.gJFlowRatio    = 0.2;
+            s.tauMax         = 1000;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
