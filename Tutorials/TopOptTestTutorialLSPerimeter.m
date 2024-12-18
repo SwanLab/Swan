@@ -134,7 +134,10 @@ classdef TopOptTestTutorialLSPerimeter < handle
             s.volumeTarget   = 0.85;
             s.primal         = 'SLERP';
             s.etaNorm        = 0.02;
+            s.etaNormMin     = 0.02;
             s.gJFlowRatio    = 5;
+            s.etaMax         = 1;
+            s.etaMaxMin      = 0.01;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
