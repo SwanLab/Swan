@@ -112,7 +112,8 @@ classdef ProblemSolver < handle
                 case strcmp(obj.type, 'REDUCED') && strcmp(obj.mode, 'DISP')
                     dofs = 1:size(stiffness,1);
                     free_dofs = setdiff(dofs, bcs.dirichlet_dofs);
-                    LHS = stiffness(free_dofs, free_dofs);
+                    %LHS = stiffness(free_dofs, free_dofs);
+                    LHS = @(u) obj.applyReducedStiffness(stiffness,free_dofs,u)
                 case strcmp(obj.type, 'MONOLITHIC') && strcmp(obj.mode, 'FLUC')
                     CtDir = bcapp.computeLinearConditionsMatrix('Dirac');
                     CtPer = bcapp.computeLinearPeriodicConditionsMatrix();
@@ -136,6 +137,15 @@ classdef ProblemSolver < handle
                     LHS = [A_II, A_IP; A_PI, A_PP];
             end
 
+        end
+
+        function applyReducedStiffness(obj,stiffness,free_dofs,uFree)
+            u(free_dofs) = uFree;
+            bcs   = obj.boundaryConditions;
+            u(bcs.dirichlet_dofs) = bcs.dirichlet_vals;            
+          %  uFree = u(free_dofs);
+            Fint  = stiffness(u);
+            Fint  = Fint(free_dofs,1);
         end
 
         function RHS = assembleRHS(obj,cParams)
