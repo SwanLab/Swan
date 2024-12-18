@@ -140,13 +140,34 @@ classdef ElasticProblem < handle
             end
         end
 
-
         function u = computeDisplacement(obj)
-            s.stiffness = obj.stiffness;
+            %s.stiffness = obj.stiffness;
+            u    = @(uValues) obj.createCGDispl(uValues);
+            e    = @(uValues) SymGrad(u(uValues)); % Com fer-ho handle?
+            sig  = @(uValues) DDP(obj.material,e(uValues));
+            fInt = obj.computeInternalForces(sig);
+            s.stiffness = fInt;
+
+
+
             s.forces    = obj.forces;
             [u,~]       = obj.problemSolver.solve(s);           
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             obj.uFun.setFValues(uSplit);
+        end
+
+        function u = createCGDispl(obj,uValues)
+            u = copy(obj.uFun);
+            u.setFValues(uValues);
+        end
+
+        function fInt = computeInternalForces(obj,sig)
+            s.type = 'ShapeSymmetricDerivative';
+            s.mesh = obj.mesh;
+            s.quadratureOrder = 3;
+            int    = RHSintegrator.create(s);
+            test   = obj.uFun;
+            fInt   = @(uValues) int.compute(sig(uValues),test);
         end
 
         function computeStrain(obj)
