@@ -1,4 +1,4 @@
-classdef TopOptTestTutorial3DDensity < handle
+classdef TopOptTestTutorial3DDensityTimeComparison < handle
 
     properties (Access = private)
         mesh
@@ -16,7 +16,7 @@ classdef TopOptTestTutorial3DDensity < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorial3DDensity()
+        function obj = TopOptTestTutorial3DDensityTimeComparison()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -145,16 +145,12 @@ classdef TopOptTestTutorial3DDensity < handle
         end
 
         function M = createMassMatrix(obj)
-%             s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
-%             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-%             s.mesh  = obj.mesh;
-%             s.type  = 'MassMatrix';
-%             LHS = LHSintegrator.create(s);
-%             M = LHS.compute;     
-
-            n = obj.mesh.nnodes;
-            h = obj.mesh.computeMinCellSize();
-            M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
+            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.mesh  = obj.mesh;
+            s.type  = 'MassMatrix';
+            LHS = LHSintegrator.create(s);
+            M = LHS.compute;     
         end
 
         function createConstraint(obj)
@@ -170,19 +166,23 @@ classdef TopOptTestTutorial3DDensity < handle
         end
 
         function createOptimizer(obj)
-            s.monitoring     = true;
-            s.cost           = obj.cost;
-            s.constraint     = obj.constraint;
-            s.designVariable = obj.designVariable;
-            s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 3;
-            s.tolerance      = 1e-8;
-            s.constraintCase = 'EQUALITY';
-            s.ub             = 1;
-            s.lb             = 0;
-            opt = OptimizerMMA(s);
-            opt.solveProblem();
-            obj.optimizer = opt;
+              s.monitoring     = true;
+              s.cost           = obj.cost;
+              s.constraint     = obj.constraint;
+              s.designVariable = obj.designVariable;
+              s.dualVariable   = obj.dualVariable;
+              s.maxIter        = 30;
+              s.tolerance      = 1e-8;
+              s.constraintCase = {'EQUALITY'};
+              s.primal         = 'PROJECTED GRADIENT';
+              s.ub             = 1;
+              s.lb             = 0;
+              s.etaNorm        = 0.001;
+              s.gJFlowRatio    = 1;
+              s.tauMax         = 1000;
+              opt = OptimizerNullSpace(s);
+              opt.solveProblem();
+              obj.optimizer = opt;
         end
 
         function bc = createBoundaryConditions(obj)
