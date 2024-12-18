@@ -190,14 +190,14 @@ classdef MultimaterialTesting < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1;
+            s.maxIter        = 3;
             s.tolerance      = 1e-8;
             s.constraintCase = repmat({'EQUALITY'},[3,1]);
             s.primal         = 'SLERP';
             s.ub             = inf;
             s.lb             = -inf;
             s.etaNorm        = inf;
-            s.gJFlowRatio    = 2;
+            s.gJFlowRatio    = 0.02;
             obj.optimizer    = OptimizerNullSpace(s);
         end
 
