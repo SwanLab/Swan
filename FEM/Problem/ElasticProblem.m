@@ -148,12 +148,12 @@ classdef ElasticProblem < handle
         end
 
         function u = computeDisplacement(obj)
-            s.stiffness = @(u) obj.stiffness*u;
-            % u    = @(uValues) obj.createCGDispl(uValues);
-            % e    = @(uValues) SymGrad(u(uValues)); % Com fer-ho handle?
-            % sig  = @(uValues) DDP(obj.material,e(uValues));
-            % fInt = obj.computeInternalForces(sig);
-            % s.stiffness = fInt;
+            %s.stiffness = @(u) obj.stiffness*u;
+             u    = @(uValues) obj.createCGDispl(uValues);
+             e    = @(uValues) SymGrad(u(uValues)); % Com fer-ho handle?
+             sig  = @(uValues) DDP(obj.material,e(uValues));
+             fInt = obj.computeInternalForces(sig);
+             s.stiffness = fInt;
 
 
 

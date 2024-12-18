@@ -86,6 +86,7 @@ classdef LagrangianFunction < FeFunction
             nElem     = size(obj.mesh.connec, 1);            
             iDof      = (0:nNode-1)*obj.ndimf + 1;
             node      = (obj.dofConnec(:, iDof) - 1) / nDimF + 1;
+            %node = obj.dofConnec;
             fAll      = obj.fValues(node(:), :);
             fReshaped = reshape(fAll, nElem, nNode, nDimF);
             fVals     = permute(fReshaped, [3, 2, 1]);            

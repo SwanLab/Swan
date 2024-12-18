@@ -85,7 +85,6 @@ classdef ProblemSolver < handle
 
         function LHS = assembleLHS(obj,cParams)
             stiffness = cParams.stiffness;
-            forces    = cParams.forces;
             bcapp = obj.BCApplier;
             bcs   = obj.boundaryConditions;
             hasPeriodic = ~isequal(bcs.periodic_leader, []);
@@ -154,7 +153,6 @@ classdef ProblemSolver < handle
         end
 
         function RHS = assembleRHS(obj,cParams)
-            stiffness = cParams.stiffness;
             forces    = cParams.forces;
             bcapp = obj.BCApplier;
             bcs   = obj.boundaryConditions;
