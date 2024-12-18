@@ -59,10 +59,10 @@ x0               = [1;0];
 s.type           = "NullSpace";
 s.ub             = inf;
 s.lb             = -inf;
-s.maxIter        = 2000; % - - 206 inf
+s.maxIter        = 2000;
 s.constraintCase = {'EQUALITY'};
-s.etaNorm        = 0.01;
-s.gJFlowRatio    = 8;
+s.etaNorm        = 0.005;
+s.gJFlowRatio    = 4;
 
 cParams.cost         = cost;
 cParams.constraint   = constraint;
@@ -174,47 +174,6 @@ s.maxIter        = 400;
 s.constraintCase = {'INEQUALITY'};
 s.etaNorm        = 0.02;
 s.gJFlowRatio    = 4;
-
-cParams.cost         = cost;
-cParams.constraint   = constraint;
-cParams.initialGuess = x0;
-cParams.settings     = s;
-cParams.printingPath = true;
-problem              = AcademicProblem(cParams);
-
-problem.compute();
-xStar = problem.result;
-
-
-%% Test case 3 Paper NullSpaceSLERP
-
-close all;
-clear;
-
-% Min problem
-cost.cF = @(x) (x(1)+3).^2+x(2).^2;
-cost.gF = @(x) [2*(x(1)+3); 2*(x(2))];
-
-constraint.cF{1} = @(x) -x(1).^2+x(2);
-constraint.gF{1} = @(x) [-2*x(1); 1];
-
-constraint.cF{2} = @(x) -x(1)-x(2)-2;
-constraint.gF{2} = @(x) [-1; -1];
-
-% Solution
-
-
-
-% Setting up
-x0               = [3;3];
-s.type           = "NullSpace";
-s.ub             = [4;4];
-s.lb             = [-4;1];
-s.maxIter        = 400;
-s.constraintCase = {'INEQUALITY','INEQUALITY'};
-s.etaNorm        = 1;
-s.tauMax         = Inf;
-s.gJFlowRatio    = 1;
 
 cParams.cost         = cost;
 cParams.constraint   = constraint;

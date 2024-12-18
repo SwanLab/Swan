@@ -3,9 +3,6 @@ classdef Constraint < handle
     properties (Access = public)
         value
         gradient
-
-        gOld
-        gMean
     end
 
     properties (Access = private)
@@ -37,13 +34,6 @@ classdef Constraint < handle
             obj.value    = jV;
             obj.gradient = obj.Msmooth*djV;
 %             obj.gradient = djV;
-
-            obj.gOld = [obj.gOld,mean(jV)];
-            if length(obj.gOld)<=50
-                obj.gMean = mean(obj.gOld);
-            else
-                obj.gMean = mean(obj.gOld(end-50:end));
-            end
         end
 
         function nF = obtainNumberFields(obj)

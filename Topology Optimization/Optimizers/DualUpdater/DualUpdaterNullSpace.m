@@ -18,7 +18,7 @@ classdef DualUpdaterNullSpace < handle
             obj.init(cParams);
             obj.defineConstraintCases();
             obj.computeDualProblemOptions();
-            %obj.createPrimalUpdater();
+            obj.createPrimalUpdater();
         end
 
         function defineConstraintCases(obj)
