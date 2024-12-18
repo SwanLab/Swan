@@ -1,4 +1,4 @@
-classdef EIFEMtesting < handle
+classdef testingLevelSet < handle
 
     properties (Access = public)
 
@@ -9,7 +9,6 @@ classdef EIFEMtesting < handle
         bcApplier
         LHS
         RHS
-
         fileNameEIFEM
         tolSameNode
 
@@ -22,7 +21,7 @@ classdef EIFEMtesting < handle
 
     methods (Access = public)
 
-        function obj = EIFEMtesting()
+        function obj = testingLevelSet()
             close all
             obj.init()
 
