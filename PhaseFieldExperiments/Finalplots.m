@@ -115,8 +115,78 @@ fontsize(gcf,25,'points')
 lg =legend('Analytical','Circle (Volume)','Circle (Length)','Square (Volume)','Square (Length)');
 lg.Layout.Tile = 'East';
 
-%% Force displacement plots (after loading all outputs)
+%% Force displacement plots (after loading all outputs in output{})
+t = tiledlayout(1,2);
+nexttile
+hold on
+plot(output{1}.displacement.value,output{1}.reaction,'Color','#000000','LineWidth',1.5)
+plot(output{2}.displacement.value,output{2}.reaction,'Color','#D95319','LineWidth',1.5)
+plot(output{3}.displacement.value,output{3}.reaction,'Color','#0072BD','LineWidth',1.5)
+xlabel('Displacement [mm]')
+xlim([0 0.025])
+ylabel('Force [kN]')
+ylim([0 2.75])
+title('AT1 - Length')
+
+nexttile
+hold on
+plot(output{4}.displacement.value,output{4}.reaction,'Color','#000000','LineWidth',1.5)
+plot(output{5}.displacement.value,output{5}.reaction,'Color','#D95319','LineWidth',1.5)
+plot(output{6}.displacement.value,output{6}.reaction,'Color','#0072BD','LineWidth',1.5)
+xlabel('Displacement [mm]')
+xlim([0 0.04])
+ylabel('Force [kN]')
+ylim([0 2.75])
+title('AT2 - Volume')
+
+fontsize(gcf,25,'points')
+lg =legend('Analytical','Circle','Square');
+lg.Layout.Tile = 'East';
+
+
 
 %% Damage displacement plots
+t = tiledlayout(1,2);
+nexttile
+hold on
+plot(output{1}.displacement.value,output{1}.damage.maxValue,'Color','#000000','LineWidth',1.5)
+plot(output{2}.displacement.value,output{2}.damage.maxValue,'Color','#D95319','LineWidth',1.5)
+plot(output{3}.displacement.value,output{3}.damage.maxValue,'Color','#0072BD','LineWidth',1.5)
+xlabel('Displacement [mm]')
+xlim([0 0.025])
+ylabel("Damage "+char(632)+" [-]")
+ylim([0 1])
+title('AT1 - Length')
 
-%% Damage fields
+nexttile
+hold on
+plot(output{4}.displacement.value,output{4}.damage.maxValue,'Color','#000000','LineWidth',1.5)
+plot(output{5}.displacement.value,output{5}.damage.maxValue,'Color','#D95319','LineWidth',1.5)
+plot(output{6}.displacement.value,output{6}.damage.maxValue,'Color','#0072BD','LineWidth',1.5)
+xlabel('Displacement [mm]')
+xlim([0 0.04])
+ylabel("Damage "+char(632)+" [-]")
+ylim([0 1])
+title('AT2 - Volume')
+
+fontsize(gcf,25,'points')
+lg =legend('Analytical','Circle','Square');
+lg.Layout.Tile = 'East';
+
+%% Damage SEN plots
+t = tiledlayout(2,3);
+nexttile
+output{1}.displacement.value,output{1}.damage.field
+title('Analytical')
+nexttile
+output{2}.displacement.value,output{2}.damage.field
+title('Circle')
+nexttile
+output{3}.displacement.value,output{3}.damage.field
+title('Square')
+nexttile
+output{4}.displacement.value,output{4}.damage.field
+nexttile
+output{5}.displacement.value,output{5}.damage.field
+nexttile
+output{6}.displacement.value,output{6}.damage.field
