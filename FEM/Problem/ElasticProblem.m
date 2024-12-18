@@ -13,6 +13,7 @@ classdef ElasticProblem < handle
 
         stiffness
         lhs
+        rhs
         solverType, solverMode, solverCase
         scale
         
@@ -33,7 +34,8 @@ classdef ElasticProblem < handle
             obj.createDisplacementFun();
             obj.createBCApplier();
             obj.createSolver();
-            obj.createStiffnessMatrix();            
+            obj.createStiffnessMatrix(); 
+            obj.createInternalForces();
         end
 
         function solve(obj)
@@ -149,10 +151,7 @@ classdef ElasticProblem < handle
 
         function u = computeDisplacement(obj)
             %s.stiffness = @(u) obj.stiffness*u;
-             u    = @(uValues) obj.createCGDispl(uValues);
-             e    = @(uValues) SymGrad(u(uValues)); % Com fer-ho handle?
-             sig  = @(uValues) DDP(obj.material,e(uValues));
-             fInt = obj.computeInternalForces(sig);
+             fInt = @(u) obj.computeInternalForces(u);
              s.stiffness = fInt;
 
 
@@ -169,13 +168,19 @@ classdef ElasticProblem < handle
             u.setFValues(uValues);
         end
 
-        function fInt = computeInternalForces(obj,sig)
+        function createInternalForces(obj)
             s.type = 'ShapeSymmetricDerivative';
             s.mesh = obj.mesh;
             s.quadratureOrder = 3;
-            int    = RHSintegrator.create(s);
-            test   = obj.uFun;
-            fInt   = @(uValues) int.compute(sig(uValues),test);
+            s.test  = obj.uFun;
+            obj.rhs = RHSintegrator.create(s);
+        end
+
+        function fInt = computeInternalForces(obj,u)
+            uF   = obj.createCGDispl(u);
+            e    = SymGrad(uF); 
+            sig  = DDP(obj.material,e);               
+            fInt = obj.rhs.compute(sig);
         end
 
         function computeStrain(obj)
