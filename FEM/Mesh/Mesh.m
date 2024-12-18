@@ -12,18 +12,20 @@ classdef Mesh < handle
         nnodes
         nnodeElem
 
-        coordElem % remove (xFE)
+       % remove (xFE)
         interpolation
 
         edges
         faces
         boundaryNodes
         boundaryElements
+        coordElem
     end
 
     properties (Access = private)
         xVOld
         dVOld
+        
     end    
 
     properties (Access = protected)
@@ -167,6 +169,23 @@ classdef Mesh < handle
                     axis equal
             end
         end
+
+        function plotAllNodes(obj)
+            nodes = 1:obj.nnodes;
+            obj.plotNodes(nodes,'blue')
+        end
+
+        function plotNodes(obj,indeces,colorValue)
+            ind(:,1) = indeces;
+            b = num2str(ind);
+            c = cellstr(b);
+            dx = 0.01; dy = 0.01;
+            x = obj.coord(ind,1)';
+            y = obj.coord(ind,2)';
+            t = text(x+dx,y+dy,c);
+            set(t,'Color',colorValue)
+        end
+
 
         function bMesh = createBoundaryMesh(obj)
             if isempty(obj.boundaryNodes) || isempty(obj.boundaryElements)
@@ -338,7 +357,7 @@ classdef Mesh < handle
 
         function computeElementCoordinates(obj)
             obj.computeCoordFEfunction();
-            obj.coordElem = obj.xFE.getFvaluesDisc();
+            obj.coordElem = obj.xFE.getFvaluesByElem();
         end
 
         function computeCoordFEfunction(obj)
