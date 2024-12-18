@@ -1,1 +1,0 @@
-etaMax = theta_k / ||psik1 - psik||_inf(?)
