@@ -12,6 +12,7 @@ classdef ElasticProblem < handle
         boundaryConditions, bcApplier
 
         stiffness
+        lhs
         solverType, solverMode, solverCase
         scale
         
@@ -32,10 +33,11 @@ classdef ElasticProblem < handle
             obj.createDisplacementFun();
             obj.createBCApplier();
             obj.createSolver();
+            obj.createStiffnessMatrix();            
         end
 
         function solve(obj)
-            obj.computeStiffnessMatrix();
+            obj.computeStiffnessMatrix();                        
             obj.computeForces();
             obj.computeDisplacement();
             obj.computeStrain();
@@ -110,15 +112,20 @@ classdef ElasticProblem < handle
             obj.problemSolver    = ProblemSolver(s);
         end
 
-        function computeStiffnessMatrix(obj)           
+        function createStiffnessMatrix(obj)           
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
             s.test     = obj.uFun;
             s.trial    = obj.uFun;
-            s.material = obj.material;
+            s.material = [];%obj.material;
             s.quadratureOrder = 2;
-            lhs = LHSintegrator.create(s);
-            obj.stiffness = lhs.compute();
+            lhsInt = LHSintegrator.create(s);
+            obj.lhs = lhsInt;
+        end
+
+        function computeStiffnessMatrix(obj)
+            mat = obj.material;
+            obj.stiffness = obj.lhs.compute(mat);
         end
 
         function computeForces(obj)
@@ -171,18 +178,11 @@ classdef ElasticProblem < handle
         end
 
         function computeStrain(obj)
-            quad = Quadrature.create(obj.mesh, 2);
-            xV = quad.posgp;
             obj.strainFun = SymGrad(obj.uFun);
-%             strFun = strFun.obtainVoigtFormat();
-            obj.strain = obj.strainFun.evaluate(xV);
         end
 
         function computeStress(obj)
-            quad = Quadrature.create(obj.mesh, 2);
-            xV = quad.posgp;
-            obj.stressFun = DDP(obj.material, obj.strainFun);
-            obj.stress = obj.stressFun.evaluate(xV);
+             obj.stressFun = DDP(obj.material, obj.strainFun);
         end
 
     end
