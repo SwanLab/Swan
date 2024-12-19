@@ -1,18 +1,20 @@
 classdef LHSintegrator_StiffnessElastic < LHSintegrator
 
     properties (Access = private)
-        material
+        B
     end
 
     methods (Access = public)
 
         function obj = LHSintegrator_StiffnessElastic(cParams)
             obj@LHSintegrator(cParams)
-            obj.material = cParams.material;
+            xV   = obj.quadrature.posgp;
+            dNdx = obj.test.evaluateCartesianDerivatives(xV);
+            obj.B    = obj.computeB(dNdx);                  
         end
 
-        function LHS = compute(obj)
-            lhs = obj.computeElementalLHS();
+        function LHS = compute(obj,material)
+            lhs = obj.computeElementalLHS(material);
             LHS = obj.assembleMatrix(lhs);
         end
 
@@ -20,17 +22,15 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
 
     methods (Access = protected)
 
-        function lhs = computeElementalLHS(obj)
-            xV   = obj.quadrature.posgp;
-            dNdx = obj.test.evaluateCartesianDerivatives(xV);
-            B    = obj.computeB(dNdx);            
+        function lhs = computeElementalLHS(obj,material)
+            xV   = obj.quadrature.posgp;           
             dV   = obj.mesh.computeDvolume(obj.quadrature);
             dV   = permute(dV,[3, 4, 2, 1]);
-            Cmat = obj.material.evaluate(xV);
+            Cmat = material.evaluate(xV);
             Cmat = permute(Cmat,[1 2 4 3]);
-            Bt   = permute(B,[2 1 3 4]);
+            Bt   = permute(obj.B,[2 1 3 4]);
             BtC  = pagemtimes(Bt, Cmat);
-            BtCB = pagemtimes(BtC, B);
+            BtCB = pagemtimes(BtC, obj.B);
             lhs  = sum(BtCB .* dV, 4);
         end
 
