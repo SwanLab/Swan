@@ -13,12 +13,12 @@ classdef TestingContinuumDamage < handle
     methods (Access = public)
 
         function obj = TestingContinuumDamage(cParams)
-            obj.mesh      = obj.createMesh(cParams.mesh);
-            obj.bc        = obj.defineBoundaryConditions(cParams.bc);
-            obj.material  = obj.createMaterial(cParams.material);
+            obj.mesh         = obj.createMesh(cParams.mesh);
+            obj.bc           = obj.defineBoundaryConditions(cParams.bc);
+            obj.material     = obj.createMaterial(cParams.material);
             obj.solverParams = cParams.solver;
-
-
+            obj.H            = cParams.H;
+            obj.r0           = cParams.r0;
         end
 
         function data = compute(obj)

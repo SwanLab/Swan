@@ -21,7 +21,7 @@ classdef ShFunc_ContinuumDamage < handle
         function res = computeResidual(obj,quadOrder,u,r,bc)
             fExt = bc.pointloadFun;
             Fext = obj.externalWork.computeGradient(u,fExt,quadOrder);
-            Fint = obj.internalDamage.computeJacobian(quadOrder,u,r);
+            Fint = obj.internalDamage.computeResidual(quadOrder,u,r);
             res = Fint - Fext;
 
         end

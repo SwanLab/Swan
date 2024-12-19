@@ -35,11 +35,11 @@ classdef ContinuumDamageComputer < handle
 
                 bc = obj.boundaryConditions.nextStep(i);
                 fExt = bc.pointloadFun;
-                u.fValues = obj.updateInitialDisplacement(bc,u);
+                u.setFValues(obj.updateInitialDisplacement(bc,u));
 
                 residu = 1; residuVec = [];
 
-                r = obj.functional.getROld;
+                r = obj.functional.getROld();
 
                 Dres = obj.functional.computeDerivativeResidual(obj.quadOrder,u,r);
                 Res  = obj.functional.computeResidual(obj.quadOrder,u,r,bc);
@@ -48,15 +48,15 @@ classdef ContinuumDamageComputer < handle
                 while (residu >= obj.tolerance)
                     [uNew,uNewVec] = obj.computeU(Dres,Res,u,bc);
                                                           
-                    u.fValues = uNew;
+                    u.setFValues(uNew);
                     r = obj.functional.computeDamageEvolutionParam(u);
-                   
-                    residu = norm(Res)/residu0;
+                    
+                    Dres = obj.functional.computeDerivativeResidual(obj.quadOrder,u,r);
+                    Res  = obj.functional.computeResidual(obj.quadOrder,u,r,bc);
+
+                    residu = norm(Res(bc.free_dofs))/residu0;
                     residuVec(end+1) = residu/residu0;
-                    
-                    Dres = obj.functional.compute(obj.quadOrder,u,r);
-                    Res  = obj.functional.computeJacobian(obj.quadOrder,u,bc,r);
-                    
+
                     fprintf('Error: %d | %d \n',residu,uNewVec(6));%.evaluate([0;0]));
                 end
                 obj.functional.setROld(r);

@@ -67,20 +67,22 @@ classdef IsotropicElasticMaterial < Material
         end
     end
     methods (Access = public)
-            function mu = createShear(obj)
+            function mu = createShear(obj,mesh)
             E  = @(xV) obj.young.evaluate(xV);
             nu = @(xV) obj.poisson.evaluate(xV);
             s.operation = @(xV) obj.computeMuFromYoungAndPoisson(E(xV),nu(xV));
             s.ndimf = size(E,1);
+            s.mesh = mesh;
             mu = DomainFunction(s);
         end
 
-        function k = createBulk(obj)
+        function k = createBulk(obj,mesh)
             E  = @(xV) obj.young.evaluate(xV);
             nu = @(xV) obj.poisson.evaluate(xV);
             N  = obj.ndim;
             s.operation  = @(xV) obj.computeKappaFromYoungAndPoisson(E(xV),nu(xV),N);
             s.ndimf = size(E,1);
+            s.mesh = mesh;
             k = DomainFunction(s);
         end
 

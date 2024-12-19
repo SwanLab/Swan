@@ -79,8 +79,9 @@ classdef ShFunc_ElasticDamage < handle
 
         function d = computeDamage(obj,r)
             q = obj.computeHardening();
-            s.operation = @(xV) 1-(q.evaluate(r.evaluate(xV),obj.r0.evaluate(xV))./(r.evaluate(xV)));
+            s.operation = @(xV) 1-(q(r.evaluate(xV),obj.r0.evaluate(xV))./(r.evaluate(xV)));
             s.ndimf = 1;
+            s.mesh  = obj.mesh;
             d = DomainFunction(s);
 
         end
@@ -89,7 +90,7 @@ classdef ShFunc_ElasticDamage < handle
             obj.rOld = r;        
         end
         
-        function r = getROld (obj)
+        function r = getROld(obj)
             r = obj.rOld;
         end
     end
@@ -105,9 +106,7 @@ classdef ShFunc_ElasticDamage < handle
         end
 
         function q = computeHardening(obj)
-            s.operation = @(r,r0) r0 + obj.H *(r-r0);
-            s.ndimf = 1;
-            q = DomainFunction(s);
+            q = @(r,r0) r0 + obj.H *(r-r0);
         end 
       
     end

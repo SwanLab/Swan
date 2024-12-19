@@ -1,4 +1,4 @@
-classdef ConstantFunction < L2Function
+classdef ConstantFunction < L2Function & matlab.mixin.Copyable
     
     properties (GetAccess = public, SetAccess = private)
         constant

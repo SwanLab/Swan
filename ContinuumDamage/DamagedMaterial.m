@@ -47,17 +47,17 @@ classdef DamagedMaterial < handle
             sIso.poisson = ConstantFunction.create(cParams.nu,obj.mesh);
             mat = Isotropic2dElasticMaterial(sIso);
         end
+
         function g = computeDegradationFun (obj,d)
-            
             s.operation = @(xV) obj.degradation(d.evaluate(xV));
             s.ndimf = 1;
+            s.mesh  = obj.mesh;
             g = DomainFunction(s);
         end
-        
                 
         function mat = createDegradedMaterial(obj,fun)
-            mu    = obj.baseMaterial.createShear();
-            kappa = obj.baseMaterial.createBulk();
+            mu    = obj.baseMaterial.createShear(obj.mesh);
+            kappa = obj.baseMaterial.createBulk(obj.mesh);
             degM  = fun.*mu;
             degK  = fun.*kappa;
             s.shear = degM;
