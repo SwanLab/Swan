@@ -65,7 +65,7 @@ classdef ComplianceFunctional < handle
             % Bulk compliance:
             divu  = Divergence(u);
             dbC   = DDP(kappa,DDP(divu,divu));
-            bC    = Integrator.compute(dbC,obj.mesh,'QUADRATIC');
+            bC    = Integrator.compute(dbC,obj.mesh,2);
             bC    = obj.computeNonDimensionalValue(bC);
             obj.bulkValue = bC;
 
@@ -74,7 +74,7 @@ classdef ComplianceFunctional < handle
             D   = Voigt(Deviatoric(e));
             A   = VoigtDeviatorNormMaterial(obj.mesh);
             dsC = DDP(mu,DDP(D,DDP(A,D)));
-            sC  = Integrator.compute(dsC,obj.mesh,'QUADRATIC');
+            sC  = Integrator.compute(dsC,obj.mesh,2);
             sC  = obj.computeNonDimensionalValue(sC);
             obj.shearValue = sC;
         end

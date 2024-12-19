@@ -111,7 +111,7 @@ classdef OptimizerMMA < Optimizer
         function computeGrayMeasure(obj)
             xFun = obj.designVariable.fun;
             dInt = xFun.*(1-xFun);
-            int  = Integrator.compute(dInt,xFun.mesh,'QUADRATIC');
+            int  = Integrator.compute(dInt,xFun.mesh,2);
             obj.grayMeasure = int;
         end
 
