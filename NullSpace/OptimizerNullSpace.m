@@ -245,6 +245,14 @@ classdef OptimizerNullSpace < Optimizer
             if obj.nIter == 0
                 factor = 50;
                 obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
+            elseif obj.nIter == 1
+                switch class(obj.designVariable)
+                    case 'LevelSet'
+                        obj.primalUpdater.tau = 1e-6;
+                    otherwise
+                        factor = 1.01;
+                        obj.primalUpdater.increaseStepLength(factor);
+                end
             else
                 %factor = 3;
                 factor = 1.01;

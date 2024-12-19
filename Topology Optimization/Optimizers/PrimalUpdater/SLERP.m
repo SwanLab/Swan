@@ -85,7 +85,7 @@ classdef SLERP < handle
                 V       = obj.computeVolumeFromTau(g,ls);
                 delta   = abs(V-1);
                 cond1   = delta<=1e-10;
-                cond2   = delta>=0.05;
+                cond2   = delta>=0.01;
             end
         end
 
