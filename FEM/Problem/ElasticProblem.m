@@ -150,8 +150,8 @@ classdef ElasticProblem < handle
         end
 
         function u = computeDisplacement(obj)
-            s.stiffness = @(u) obj.stiffness*u;
-            %s.stiffness = obj.stiffness;
+            %s.stiffness = @(u) obj.stiffness*u;
+            s.stiffness = obj.stiffness;
             % fInt = @(u) obj.computeInternalForces(u);
             % s.stiffness = fInt;
 
