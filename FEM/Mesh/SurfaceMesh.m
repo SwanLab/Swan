@@ -43,17 +43,37 @@ classdef SurfaceMesh < Mesh
             n = obj.computeNormalVectors(J);
         end
 
-        function n = getNormals(obj) % only 
-            quad = Quadrature.set(obj.type);
-            quad.computeQuadrature('CONSTANT');
-            % g = obj.geometry;
+        function n = getNormals(obj) 
+            quad = Quadrature.create(obj,0);
             n = obj.computeNormals(quad.posgp);
         end
-        
-        function plot(obj) %Black
+
+        function plotSolidColor(obj,color)
+            faceColor = color;
+            faceAlpha = 1;
+            edgeAlpha = 0;
+            obj.plotSpecific(faceColor,faceAlpha,edgeAlpha)
+        end    
+
+        function plot(obj) 
             faceColor = "red";
             faceAlpha = 0.3;
             edgeAlpha = 0.5;
+            obj.plotSpecific(faceColor,faceAlpha,edgeAlpha)
+        end
+
+        function m = provideExtrudedMesh(obj, height)
+            s.unfittedMesh = obj;
+            s.height       = height;
+            me = MeshExtruder(s);
+            m = me.extrude();
+        end
+        
+    end
+    
+    methods (Access = private)
+
+        function plotSpecific(obj,faceColor,faceAlpha,edgeAlpha)
             if size(obj.connec,2) == 3 && size(obj.coord,2) == 3
                 x = obj.coord(:,1);
                 y = obj.coord(:,2);
@@ -74,18 +94,7 @@ classdef SurfaceMesh < Mesh
                 axis('equal');
                 hold on
             end
-        end
-
-        function m = provideExtrudedMesh(obj, height)
-            s.unfittedMesh = obj;
-            s.height       = height;
-            me = MeshExtruder(s);
-            m = me.extrude();
-        end
-        
-    end
-    
-    methods (Access = private)
+        end        
         
         function normalVector = computeNormalVectors(obj,J)
             nDimGlo = size(J,2);

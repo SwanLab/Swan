@@ -17,7 +17,7 @@ classdef AcademicProblemPathComputer < handle
         end
 
         function compute(obj,values)
-            if obj.printingPath && size(values,1) == 2
+            if obj.printingPath && size(values,1) == 2 % Just f(x,y) problems
                 x     = values(1,:);
                 y     = values(2,:);
                 [X,Y] = obj.setMeshGrid(x,y);
@@ -77,7 +77,7 @@ classdef AcademicProblemPathComputer < handle
             vx = values(1,:);
             vy = values(2,:);
             plot(vx(1),vy(1),"o",'MarkerSize',10,'MarkerFaceColor','red');
-            plot(vx(2:end-1),vy(2:end-1),'-k','linewidth',1);
+            plot(vx,vy,'-k','linewidth',1);
             plot(vx(end),vy(end),"p",'MarkerSize',10,'MarkerFaceColor','red');
             nConst = length(obj.constraint);
             leg = "J";

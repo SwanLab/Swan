@@ -18,7 +18,12 @@ classdef DirichletCondition < BoundaryCondition
         
         function obj = DirichletCondition(mesh, s)
             % P1
-            fun = LagrangianFunction.create(mesh, mesh.ndim,'P1'); % not necessarily mesh.ndim
+            if isfield(s,'ndim')
+                ndim = s.ndim;
+            else
+                ndim = mesh.ndim;
+            end
+            fun = LagrangianFunction.create(mesh, ndim,'P1');         
             % pl_dofs = find(s.domain(mesh.coord));
             % eval_values = s.value(mesh.coord);
             % fun.fValues(pl_dofs,s.direction) = eval_values(pl_dofs);
@@ -35,7 +40,12 @@ classdef DirichletCondition < BoundaryCondition
 
         function dofs = getDofs(obj)
             ndimf = obj.fun.ndimf;
-            nodes = find(obj.domain(obj.mesh.coord));
+            nodesLog = obj.domain(obj.mesh.coord);
+            if islogical(nodesLog)
+                nodes = find(nodesLog);
+            else
+                nodes = nodesLog;
+            end            
             dofs = ndimf*(nodes - 1) + obj.direction;
             dofs = dofs(:);
         end
@@ -45,6 +55,7 @@ classdef DirichletCondition < BoundaryCondition
             vals = obj.fun.fValues(dofs, obj.direction);
             v = vals(:);
         end
+
 
         function Ct = computeLinearConditionsMatrix(obj)
             % dir_dofs = sort(dirich.getDofs());
@@ -63,5 +74,8 @@ classdef DirichletCondition < BoundaryCondition
         end
         
     end
+
+  
+    
     
 end

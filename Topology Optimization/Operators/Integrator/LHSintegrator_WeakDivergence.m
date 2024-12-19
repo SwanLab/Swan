@@ -64,9 +64,11 @@ classdef LHSintegrator_WeakDivergence < handle
         end
 
         function createQuadrature(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('QUADRATIC'); % ehhh
-            obj.quadrature = q;
+            orderTr = obj.trial.getOrderNum();
+            orderTe = obj.test.getOrderNum();
+            order = orderTr + orderTe;
+            quad = Quadrature.create(obj.mesh,order);
+            obj.quadrature = quad;
         end
 
         function LHS = assembleMatrix(obj, lhs)

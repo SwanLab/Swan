@@ -3,42 +3,67 @@ classdef SLERP < handle
     properties (Access = public)
         tau
         Theta
+        Alpha
+        Beta
         boxConstraints
     end
 
     properties (Access = private)
         mesh
         volume
-        filter
     end
 
     methods (Access = public)
         function obj = SLERP(cParams)
             obj.init(cParams);
-            obj.createFilter();
         end
 
-        function phi = update(obj,g,phi)   
-            y = obj.computeRegularizedDensity(phi);
-            phiF   = phi.fun;
-            gF     = obj.createP1Function(g);
-            gN     = gF.normalize('L2');
-            phiN   = phiF.normalize('L2');
-            theta  = obj.computeTheta(phiN,gN);
-            obj.Theta = theta;
-            phiNew = obj.computeNewLevelSet(phiN,gN,theta);
+        function phi = update(obj,g,phi)
+            ls                = phi.obtainVariableInCell();
+            phiN              = obj.normalizeLevelSets(ls);
+            gN                = obj.createNormalizedGradient(ls,g);
+            theta             = obj.computeThetaNorm(phiN,gN);
+            obj.Theta         = theta;
+            [phiNvals,gNvals] = obj.computePhiAndGradientValues(phiN,gN);
+            phiNew            = obj.computeNewLevelSet(phiNvals,gNvals,theta);
             phi.update(phiNew);
-            x = obj.computeRegularizedDensity(phi);
-            obj.updateBoundsMultipliers(x,y,g,phiNew);
+            obj.updateBoundsMultipliers(phi.fun);
         end
 
         function computeFirstStepLength(obj,g,ls,~)
-            V0 = obj.volume.computeFunctionAndGradient(ls);
+            [lsClass,gClass] = obj.getLevelSetAndGradientForVolume(ls,g);
+            V0 = obj.volume.computeFunctionAndGradient(lsClass);
             if abs(V0-1) <= 1e-10
-                obj.computeLineSearchInBounds(g,ls);
+                obj.computeLineSearchInBounds(gClass,lsClass);
             else
-                obj.tau = 1;
+                obj.tau = 0.1;
             end
+        end
+
+        function is = isTooSmall(obj)
+            is = obj.tau < 1e-10;
+        end
+
+        function increaseStepLength(obj,f)
+            obj.tau = min(f*obj.tau,1);
+        end
+
+        function decreaseStepLength(obj)
+            obj.tau = obj.tau/2;
+        end
+    end
+
+    methods (Access = private)
+
+        function init(obj,cParams)
+            obj.mesh = cParams.mesh;
+            obj.createVolumeFunctional();
+        end
+
+        function createVolumeFunctional(obj)
+            s.mesh         = obj.mesh;
+            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
+            obj.volume     = VolumeFunctional(s);
         end
 
         function computeLineSearchInBounds(obj,g,ls)
@@ -82,83 +107,76 @@ classdef SLERP < handle
             V     = obj.volume.computeFunctionAndGradient(lsAux);
         end
 
-        function is = isTooSmall(obj)
-            is = obj.tau < 1e-10;
-        end
-
-        function increaseStepLength(obj,f)
-            obj.tau = min(f*obj.tau,1);
-        end
-
-        function decreaseStepLength(obj)
-            obj.tau = obj.tau/2;
-        end
-    end
-
-    methods (Access = private)
-
-        function init(obj,cParams)
-            obj.mesh = cParams.mesh;
-            obj.createVolumeFunctional();
-        end
-
-        function createFilter(obj)
-            s.filterType = 'LUMP';
-            s.mesh       = obj.mesh;
-            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-            obj.filter   = Filter.create(s);
-        end
-
-        function createVolumeFunctional(obj)
-            s.mesh         = obj.mesh;
-            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            obj.volume     = VolumeFunctional(s);
-        end
-
-        function f = createP1Function(obj,fV)
-            s.mesh    = obj.mesh;
-            s.fValues = fV;
-            s.order   = 'P1';
-            f         = LagrangianFunction(s);
+        function fN = createNormalizedGradient(obj,ls,fV)
+            s.mesh  = obj.mesh;
+            s.order = 'P1';
+            nLS     = length(ls);
+            fV      = reshape(fV,[],nLS);
+            fN      = cell(nLS,1);
+            for i = 1:nLS
+                s.fValues = fV(:,i);
+                f         = LagrangianFunction(s);
+                fN{i}     = f.normalize('L2');
+            end
         end
 
         function t = computeTheta(obj,phi,g)
-            m = obj.mesh;
+            m    = obj.mesh;
             phiG = ScalarProduct.computeL2(m,phi,g);
-            t = max(acos(phiG),1e-14);
+            t    = max(acos(phiG),1e-14);
         end
 
-        function p = computeNewLevelSet(obj,phi,g,theta)
+        function t = computeThetaNorm(obj,phiN,gN)
+            t = 0;
+            for i = 1:length(phiN)
+                ti = obj.computeTheta(phiN{i},gN{i});
+                t  = norm([t,ti]);
+            end
+        end
+
+        function p = computeNewLevelSet(obj,pN,gN,theta)
             k  = obj.tau;
             t  = theta;
-            pN = phi.fValues;
-            gN = g.fValues;
             a  = sin((1-k)*t)/sin(t);
             b  = sin(k*t)/sin(t);
             p  = a*pN + b*gN;
+            obj.Alpha = a;
+            obj.Beta  = b;
         end
 
-        function rhoe = computeRegularizedDensity(obj,phi)
-            charFun = phi.obtainDomainFunction();
-            rhoe    = obj.filter.compute(charFun,'QUADRATIC');
+        function updateBoundsMultipliers(obj,xF)
+            x                         = xF.fValues;
+            obj.boxConstraints.lUB    = zeros(size(x));
+            obj.boxConstraints.lLB    = zeros(size(x));
+            obj.boxConstraints.refTau = 1;
         end
 
-        function updateBoundsMultipliers(obj,xF,yF,g,phi)
-            x       = xF.fValues;
-            y       = yF.fValues;
-            t       = sum(abs(y-x))/sum(abs(g));
-            isUBAct = phi<0 & g<0;
-            isLBAct = phi>0 & g>0;
-            lUB     = y-t*g-x;
-            lLB     = x+t*g-y;
+    end
 
-            lUB(~isUBAct | lUB<0)     = 0;
-            lLB(~isLBAct | lLB<0)     = 0;
-            obj.boxConstraints.lUB    = 0; % lUB
-            obj.boxConstraints.lLB    = 0; % lLB
-            obj.boxConstraints.refTau = t;
+    methods (Static, Access = private)
+        function [lsClass,gClass] = getLevelSetAndGradientForVolume(ls,g)
+            lsC     = ls.obtainVariableInCell();
+            lsClass = lsC{1};
+            n       = length(lsClass.fun.fValues);
+            gClass  = g(1:n);
         end
 
+        function phiN = normalizeLevelSets(ls)
+            nLS   = length(ls);
+            phiN  = cell(nLS,1);
+            for i = 1:nLS
+                phiN{i} = ls{i}.fun.normalize('L2');
+            end
+        end
+
+        function [phiNv,gNv] = computePhiAndGradientValues(phiN,gN)
+            phiNv = [];
+            gNv   = [];
+            for i = 1:length(phiN)
+                phiNv = [phiNv;phiN{i}.fValues];
+                gNv   = [gNv;gN{i}.fValues];
+            end
+        end
     end
 
 end

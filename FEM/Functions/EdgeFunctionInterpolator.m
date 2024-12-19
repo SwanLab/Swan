@@ -41,11 +41,10 @@ classdef EdgeFunctionInterpolator < handle
         
         function fE = interpolateInMiddleEdge(obj)
             m = obj.edgeMesh;
-            q = Quadrature.set(m.type);
-            q.computeQuadrature('CONSTANT');
+            q = Quadrature.create(m,1);
             xV = q.posgp;
             f  = obj.fInEdge;
-            fE = squeeze(f.evaluate(xV));            
+            fE = squeezeParticular(f.evaluate(xV),2);            
         end
         
     end

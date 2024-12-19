@@ -59,8 +59,7 @@ classdef RHSIntegratorUnfitted < handle
         function createQuadratureInnerCut(obj)
             if ~isempty(obj.unfittedMesh.innerCutMesh)
                 m = obj.unfittedMesh.innerCutMesh.mesh;
-                q = Quadrature.set(m.type);
-                q.computeQuadrature(obj.quadType);
+                q = Quadrature.create(m,obj.quadType);
                 obj.innerCutQuad = q;
             end
         end
@@ -68,8 +67,7 @@ classdef RHSIntegratorUnfitted < handle
         function createQuadratureBoundaryCut(obj)
             if ~isempty(obj.unfittedMesh.boundaryCutMesh)
                 m = obj.unfittedMesh.boundaryCutMesh.mesh;
-                q = Quadrature.set(m.type);
-                q.computeQuadrature(obj.quadType);
+                q = Quadrature.create(m,obj.quadType);
                 obj.boundCutQuad = q;
             end
         end
@@ -90,8 +88,8 @@ classdef RHSIntegratorUnfitted < handle
                 fInner    = uFun.innerMeshFunction;
                 testLoc   = LagrangianFunction.create(iMesh.mesh,test.ndimf,test.order);
                 intLoc    = obj.innerIntegrator.compute(fInner,testLoc);
-                dofG      = test.computeDofConnectivity()';
-                dofL      = testLoc.computeDofConnectivity()';
+                dofG      = test.getDofConnec();
+                dofL      = testLoc.getDofConnec();
                 l2g(dofL) = dofG(fullCells,:);
                 int(l2g)  = intLoc;
             end
@@ -179,7 +177,7 @@ classdef RHSIntegratorUnfitted < handle
 
         function f = assembleIntegrand(test,rhsElem)
             integrand = rhsElem;
-            connec    = test.computeDofConnectivity()';
+            connec    = test.getDofConnec();
             ndofs     = max(max(connec));
             nDofElem  = size(connec,2);
             f         = zeros(ndofs,1);

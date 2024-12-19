@@ -38,8 +38,6 @@ classdef IsotropicElasticMaterial < Material
             else
                 mu = obj.shear.evaluate(xV);
                 k  = obj.bulk.evaluate(xV); 
-                mu = squeezeParticular(mu,1);
-                k  = squeezeParticular(k,1);
             end
         end
 

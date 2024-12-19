@@ -1,9 +1,6 @@
 classdef Projector < handle
 
-    properties (Access = protected)
-        mesh
-        connec
-    end
+  
 
     methods (Static, Access = public)
 
@@ -19,14 +16,11 @@ classdef Projector < handle
         function ord = determineQuadratureOrder(fun)
             switch class(fun)
                 case 'L2Function'
-                    ord = 'QUADRATIC';
+                    ord = 2;
                 case 'FEFunction'
-%                     ord = 'LINEAR';
-                    ord = 'QUADRATIC'; % needed to project P1 to P1D
-                case 'FGaussDiscontinuousFunction'
-                    ord = fun.getQuadratureOrder;
+                    ord = 2; % needed to project P1 to P1D             
                 otherwise
-                    ord = 'QUADRATIC';
+                    ord = 3;
             end
         end
 
@@ -34,10 +28,6 @@ classdef Projector < handle
 
     methods (Access = protected)
 
-        function init(obj, cParams)
-            obj.mesh   = cParams.mesh;
-            obj.connec = cParams.mesh.connec;
-        end
 
     end
 

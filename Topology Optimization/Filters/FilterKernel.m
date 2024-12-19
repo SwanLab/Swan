@@ -26,7 +26,7 @@ classdef FilterKernel < handle
             xReg = LagrangianFunction.create(obj.mesh, 1, obj.trial.order);
             obj.computeRHS(fun,quadType);
             obj.solveFilter();
-            xReg.fValues = obj.trial.fValues;
+            xReg.setFValues(obj.trial.fValues);
         end
 
     end
@@ -47,7 +47,7 @@ classdef FilterKernel < handle
             s.mesh            = obj.mesh;
             s.test            = obj.test;
             s.trial           = obj.trial;
-            s.quadratureOrder = 'QUADRATICMASS';
+            s.quadratureOrder = 2;
             LHS               = LHSintegrator.create(s);
             obj.massMatrix    = LHS.compute();
         end 
@@ -75,8 +75,8 @@ classdef FilterKernel < handle
         end
 
         function locSM = createLocalSupportMatrix(obj,elems)
-            connecTrial  = obj.trial.getConnec()';
-            connecTest   = obj.test.getConnec()';
+            connecTrial  = obj.trial.getDofConnec()';
+            connecTest   = obj.test.getDofConnec()';
             nDofsTest    = max(max(connecTest));%obj.test.nDofs;
             nDofsField   = max(max(connecTrial));%obj.trial.nDofs;
             nDofElemTest = size(connecTest,1);
@@ -115,7 +115,7 @@ classdef FilterKernel < handle
             LHS = Iki*M;
             LHS = obj.lumpMatrix(LHS);
             xRk = (Iki*rhs)./LHS;
-            obj.trial.fValues = xRk;
+            obj.trial.setFValues(xRk);
         end
 
     end

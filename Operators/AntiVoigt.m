@@ -6,6 +6,7 @@ function dom = AntiVoigt(A)
         case 6
             s.ndimf = 9;
     end
+    s.mesh = A.mesh;
     dom = DomainFunction(s);
 end
 
@@ -25,10 +26,10 @@ function AntiVoigtA = applyAntiVoigt2D(vecA)
     nElem = size(vecA,3);
     AntiVoigtA = zeros(2,2,nPoints,nElem);
 
-    AntiVoigtA(1,1,:,:) = vecA(1,:,:,:);
-    AntiVoigtA(1,2,:,:) = vecA(3,:,:,:)./2;
-    AntiVoigtA(2,1,:,:) = vecA(3,:,:,:)./2;
-    AntiVoigtA(2,2,:,:) = vecA(2,:,:,:);
+    AntiVoigtA(1,1,:,:) = vecA(1,:,:);
+    AntiVoigtA(1,2,:,:) = vecA(3,:,:)./2;
+    AntiVoigtA(2,1,:,:) = vecA(3,:,:)./2;
+    AntiVoigtA(2,2,:,:) = vecA(2,:,:);
 end
 
 function AntiVoigtA = applyAntiVoigt3D(vecA)

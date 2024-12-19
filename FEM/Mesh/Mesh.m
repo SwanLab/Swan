@@ -12,14 +12,21 @@ classdef Mesh < handle
         nnodes
         nnodeElem
 
-        coordElem % remove (xFE)
+       % remove (xFE)
         interpolation
 
         edges
         faces
         boundaryNodes
         boundaryElements
+        coordElem
     end
+
+    properties (Access = private)
+        xVOld
+        dVOld
+        
+    end    
 
     properties (Access = protected)
         xFE
@@ -37,6 +44,12 @@ classdef Mesh < handle
                 case 'Volume'
                     obj = VolumeMesh(s);
             end
+        end
+        
+        function obj = createFromGiD(filename)
+            reader = FemInputReader_GiD();
+            a = reader.read(filename);
+            obj = a.mesh;
         end
 
     end
@@ -57,8 +70,7 @@ classdef Mesh < handle
         end
 
         function xV = computeBaricenter(obj)
-            q = Quadrature.set(obj.type);
-            q.computeQuadrature('CONSTANT');
+            q = Quadrature.create(obj, 0);
             xV = q.posgp;
             xV = squeeze(obj.xFE.evaluate(xV));
         end
@@ -98,16 +110,14 @@ classdef Mesh < handle
         end
 
         function q = computeElementQuality(obj) % check for 3d
-            quad = Quadrature.set(obj.type);
-            quad.computeQuadrature('LINEAR');
+            quad = Quadrature.create(obj, 1);
             volume = obj.computeDvolume(quad)';
             L = obj.computeSquarePerimeter();
             q = 4*sqrt(3)*volume./L;
         end
 
         function v = computeVolume(obj) % computeMeasure
-            quad = Quadrature.set(obj.type);
-            quad.computeQuadrature('LINEAR');
+            quad = Quadrature.create(obj,2);
             v = obj.computeDvolume(quad);
             v = sum(v(:));
         end
@@ -160,6 +170,23 @@ classdef Mesh < handle
             end
         end
 
+        function plotAllNodes(obj)
+            nodes = 1:obj.nnodes;
+            obj.plotNodes(nodes,'blue')
+        end
+
+        function plotNodes(obj,indeces,colorValue)
+            ind(:,1) = indeces;
+            b = num2str(ind);
+            c = cellstr(b);
+            dx = 0.01; dy = 0.01;
+            x = obj.coord(ind,1)';
+            y = obj.coord(ind,2)';
+            t = text(x+dx,y+dy,c);
+            set(t,'Color',colorValue)
+        end
+
+
         function bMesh = createBoundaryMesh(obj)
             if isempty(obj.boundaryNodes) || isempty(obj.boundaryElements)
                 s.backgroundMesh = obj;
@@ -188,12 +215,10 @@ classdef Mesh < handle
             cV  = obj.edges.computeConnectedVertex(vertex);
         end
 
-        function m = remesh(obj,nLevels) % only tri mesh
+        function mF = remesh(obj) % only tri mesh
             % for quad, QuadToTriMeshConverter
-            s.mesh = obj;
-            s.nLevels = nLevels;
-            r = Remesher(s);
-            m = r.compute();
+            mC = obj;
+            mF = Remesher.compute(mC);
         end
 
         function exportSTL(obj)
@@ -209,23 +234,19 @@ classdef Mesh < handle
         end
 
         function dV = computeDvolume(obj,quad)
-            w = reshape(quad.weigp,[quad.ngaus 1]);
-            dVolume = w.*obj.computeJacobianDeterminant(quad.posgp);
-            dV = reshape(dVolume, [quad.ngaus, obj.nelem]);
+            xV = quad.posgp;
+            if ~isequal(xV,obj.xVOld)
+                w = reshape(quad.weigp,[quad.ngaus 1]);
+                dVolume = w.*obj.computeJacobianDeterminant(quad.posgp);
+                dV = reshape(dVolume, [quad.ngaus, obj.nelem]);
+                obj.dVOld = dV;
+                obj.xVOld = xV;
+            else
+                dV = obj.dVOld;
+            end
         end
 
         %% Remove
-
-        function mD = createDiscontinuousMesh(obj) % P1D
-            ndims = size(obj.coord, 2);
-            nNodesDisc = obj.nnodeElem*obj.nelem;
-            nodesDisc  = 1:nNodesDisc;
-            connecDisc = reshape(nodesDisc,obj.nnodeElem,obj.nelem)';
-            coordD = reshape(obj.xFE.fValues, [ndims, nNodesDisc])';
-            s.connec = connecDisc;
-            s.coord  = coordD;
-            mD = Mesh.create(s);
-        end
 
         function [m, l2g] = createSingleBoundaryMesh(obj)
             % To BoundaryMesh
@@ -270,13 +291,30 @@ classdef Mesh < handle
                     m = Mesh.create(s);
                     l2g(newNodes(:)) = l2gBound(validNodes);
                 otherwise
-                    error('Cannot yet get boundary submesh for 3D')
+                    validNodes = find(domain(obj.coord));
+                    validElems = find(sum(ismember(obj.connec, validNodes),2) == obj.nnodeElem); % == 2 because line
+                    coord_valid  = obj.coord(validNodes, :);
+                    connec_valid = obj.connec(validElems,:);
+                    % connecGlobal = l2gBound(connec_valid);
+                    
+                    newNodes = (1:size(coord_valid,1))';
+                    boundary2local(validNodes) = newNodes;
+                    newConnec = boundary2local(connec_valid);
+                    
+                    s.connec = newConnec;
+                    s.coord = coord_valid;
+                    s.kFace = -1;
+                    
+                    m = Mesh.create(s);
+                    l2g(newNodes(:)) = validNodes;
+
+%                     error('Cannot yet get boundary submesh for 3D')
             end
         end
 
     end
 
-    methods (Access = protected)
+    methods (Access = public) % ?????????
 
         function J = computeJacobian(obj,xV)
             nDimGlo  = size(obj.coordElem,1);
@@ -287,10 +325,10 @@ classdef Mesh < handle
             J = zeros(nDimElem,nDimGlo,nPoints,nElem);
             for iDimGlo = 1:nDimGlo
                 for iDimElem = 1:nDimElem
-                        dShapeIK = squeezeParticular(dShapes(iDimElem,:,:),1)';
-                        xKJ = squeezeParticular(obj.coordElem(iDimGlo,:,:),1);
-                        jacIJ    = dShapeIK*xKJ;
-                        J(iDimElem,iDimGlo,:,:) = squeezeParticular(J(iDimElem,iDimGlo,:,:),[1 2]) + jacIJ;
+                    dShapeIK = squeezeParticular(dShapes(iDimElem,:,:),1)';
+                    xKJ = squeezeParticular(obj.coordElem(iDimGlo,:,:),1);
+                    jacIJ    = dShapeIK*xKJ;
+                    J(iDimElem,iDimGlo,:,:) = squeezeParticular(J(iDimElem,iDimGlo,:,:),[1 2]) + jacIJ;
                 end
             end
         end
@@ -319,15 +357,15 @@ classdef Mesh < handle
 
         function computeElementCoordinates(obj)
             obj.computeCoordFEfunction();
-            obj.coordElem = obj.xFE.fValues;
+            obj.coordElem = obj.xFE.getFvaluesByElem();
         end
 
         function computeCoordFEfunction(obj)
             s.mesh    = obj;
             s.order   = 'P1';
             s.fValues = obj.coord;
-            coordP1 = LagrangianFunction(s);
-            obj.xFE = coordP1.project('P1D');
+            coordP1   = LagrangianFunction(s);
+            obj.xFE = coordP1.project('P1D');             
         end
 
         function L = computeSquarePerimeter(obj)

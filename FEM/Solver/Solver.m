@@ -16,7 +16,7 @@ classdef Solver < handle
                     % error('Not implemented yet')
                     stype = GMRES_Iterative_Solver();
 
-                case 'rMINRES'
+                case 'CG'
                     stype = CGsolver();
 
                 case 'Nonlinear'

@@ -10,10 +10,10 @@ classdef InterpolationFactory < handle
                     obj = [];
                 case 'LINE'
                     switch order
+                        case 'CONSTANT'
+                            obj = Line_Constant(cParams);                        
                         case 'LINEAR'
                             obj = Line_Linear(cParams);
-                        case 'CONSTANT'
-                            obj = Line_Constant(cParams);
                         case 'QUADRATIC'
                             obj = Line_Quadratic(cParams);
                         case 'CUBIC'
@@ -31,6 +31,10 @@ classdef InterpolationFactory < handle
                             obj = Triangle_Quadratic(cParams);
                         case 'CUBIC'
                             obj = Triangle_Cubic(cParams);
+                        case 'RaviartThomas'
+                            obj = Triangle_RaviartThomas(cParams);
+                        case 'Nedelec'
+                            obj = Triangle_Nedelec(cParams);
                         otherwise
                             error('Invalid order for element TRIANGLE.');
                     end
@@ -58,6 +62,10 @@ classdef InterpolationFactory < handle
                             obj = Tetrahedra_Quadratic(cParams);
                         case 'CUBIC'
                             obj = Tetrahedra_Cubic(cParams);
+                        case 'RaviartThomas'
+                            obj = Tetrahedra_RaviartThomas(cParams);
+                        case 'Nedelec'
+                            obj = Tetrahedra_Nedelec(cParams);
                         otherwise
                             error('Invalid order for element TETRAHEDRA.');
                     end

@@ -43,7 +43,7 @@ classdef Hexahedra_Quadratic < Interpolation
                 +0   +0   +0];
         end
 
-        function shape = computeShapeFunctions(obj,xV)
+        function shape = evaluateShapeFunctions(obj,xV)
             ngaus = size(xV,2);
             nelem = size(xV,3);
             shape = zeros(obj.nnode,ngaus,nelem);
@@ -80,7 +80,7 @@ classdef Hexahedra_Quadratic < Interpolation
             shape(27,:,:) = s.^2.*t.^2+s.^2.*u.^2+t.^2.*u.^2-s.^2-t.^2-u.^2-s.^2.*t.^2.*u.^2+1.0;
         end
 
-        function deriv = computeShapeDerivatives(obj,xV)
+        function deriv = evaluateShapeDerivatives(obj,xV)
             ngaus = size(xV,2);
             nelem = size(xV,3);
             deriv = zeros(obj.ndime,obj.nnode,ngaus,nelem);

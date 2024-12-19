@@ -19,7 +19,7 @@ classdef VolumeFunctional < handle
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             xD  = x.obtainDomainFunction();
-            J  = obj.computeFunction(xD);
+            J  = obj.computeFunction(xD{1});
             dJ = obj.computeGradient(xD);
         end
     end
@@ -31,8 +31,7 @@ classdef VolumeFunctional < handle
         end
 
         function createQuadrature(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
+            quad = Quadrature.create(obj.mesh,2);
             obj.quadrature = quad;
         end
 

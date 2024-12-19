@@ -20,11 +20,11 @@ classdef FilterLump < handle
             s.feFunType  = class(obj.trial);
             s.mesh       = obj.mesh;
             s.ndimf      = 1;
-            xFun         = LagrangianFunction.create(s.mesh, s.ndimf, obj.trial.order);
+            xFun         = copy(obj.trial);%LagrangianFunction.create(s.mesh, s.ndimf, obj.trial.order);
             lhs          = obj.LHS;
             rhs          = obj.computeRHS(x, quadType);
             xProj        = rhs./lhs;
-            xFun.fValues = xProj;
+            xFun.setFValues(xProj);
         end
 
     end
@@ -41,7 +41,7 @@ classdef FilterLump < handle
             s.mesh            = obj.mesh;
             s.test            = obj.trial;
             s.trial           = obj.trial;
-            s.quadratureOrder = 'QUADRATIC';
+            s.quadratureOrder = 2;
             s.type            = 'MassMatrix';
             int               = LHSintegrator.create(s);
             lhs               = int.compute();

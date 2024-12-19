@@ -27,7 +27,8 @@ classdef ShiftingFunctionComputer < handle
             u = reshape(u,obj.mesh.nnodeElem,[]); 
             s.mesh = obj.mesh;
             s.fValues(1,:,:) = u;
-            sF = P1DiscontinuousFunction(s);
+            s.order = 'P1D';
+            sF = LagrangianFunction(s);
         end
         
     end
@@ -51,8 +52,8 @@ classdef ShiftingFunctionComputer < handle
         function K = computeStiffnessMatrix(obj)
             s.mesh  = obj.mesh;
             s.type  = 'StiffnessMatrix';
-            s.test  = P1DiscontinuousFunction.create(obj.mesh, 1);
-            s.trial = P1DiscontinuousFunction.create(obj.mesh, 1);
+            s.test  = LagrangianFunction.create(obj.mesh,1,'P1D');
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1D');
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
         end
@@ -61,7 +62,7 @@ classdef ShiftingFunctionComputer < handle
             q = Quadrature.set(obj.mesh.type);
             q.computeQuadrature('QUADRATIC');
             cG = obj.corrector.evaluateGradient(q.posgp);
-            test = P1DiscontinuousFunction.create(obj.mesh,1);
+            test = LagrangianFunction.create(obj.mesh,1,'P1D');
             s.mesh = obj.meshDisc;
             s.type = 'ShapeDerivative';
             s.quadratureOrder = 'QUADRATIC';

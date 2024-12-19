@@ -34,7 +34,7 @@ classdef LHSintegratorMassBoundaryMass < handle
             s.mesh  = obj.mesh;
             s.test  = obj.test;
             s.trial = obj.trial;
-            s.quadratureOrder = 'QUADRATICMASS';
+            s.quadratureOrder = 2;
             LHS     = LHSintegrator.create(s);
             obj.M   = LHS.compute();
         end
@@ -42,7 +42,7 @@ classdef LHSintegratorMassBoundaryMass < handle
         function computeBoundaryMassMatrix(obj)
             s.type  = 'BoundaryMassMatrix';
             s.mesh  = obj.mesh;
-            s.quadratureOrder = 'QUADRATICMASS';
+            s.quadratureOrder = 2;
             LHS     = LHSintegrator.create(s);
             obj.Mr  = LHS.compute();
         end

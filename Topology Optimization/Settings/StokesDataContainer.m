@@ -16,7 +16,6 @@ classdef StokesDataContainer < AbstractSettings
         bc
         mesh
         material
-        ngaus
     end
     
     methods (Access = public)
@@ -35,7 +34,6 @@ classdef StokesDataContainer < AbstractSettings
         function init(obj)
             if ~isempty(obj.fileName)
                 obj.readFemInputFile();
-                obj.getNgaus();
                 obj.createMaterial();
             end
         end
@@ -66,12 +64,6 @@ classdef StokesDataContainer < AbstractSettings
             mat = Material.create(s);
             mat.compute();
             obj.material = mat;
-        end
-
-        function getNgaus(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
-            obj.ngaus = quad.ngaus;
         end
 
     end

@@ -21,8 +21,7 @@ classdef RHSintegrator < handle
 %         end
 
         function createQuadrature(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature(obj.quadratureOrder);
+            q = Quadrature.create(obj.mesh, obj.quadratureOrder);
             obj.quadrature = q;
         end
 
@@ -30,7 +29,7 @@ classdef RHSintegrator < handle
             if isfield(cParams, 'quadratureOrder')
                 obj.quadratureOrder = cParams.quadratureOrder;
             else
-                obj.quadratureOrder = 'LINEAR';
+                obj.quadratureOrder = 2;
             end
         end
 
