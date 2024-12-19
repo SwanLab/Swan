@@ -15,7 +15,7 @@ classdef ComplianceFromConstiutiveTensor < handle
             obj.createQuadrature();
         end
 
-        function [u,J,dJ] = computeFunctionAndGradient(obj,C,dC)
+        function [J,dJ] = computeFunctionAndGradient(obj,C,dC)
             u  = obj.computeStateVariable(C);
             J  = obj.computeFunction(C,u);
             dJ = obj.computeGradient(dC,u);

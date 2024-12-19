@@ -33,6 +33,7 @@ classdef OptimizerMMA < Optimizer
         historicalVariables
         KKTnorm
         grayMeasure
+        physicalProblem
     end
     
     methods (Access = public)
@@ -98,10 +99,11 @@ classdef OptimizerMMA < Optimizer
     methods (Access = private)
         
         function updateMonitoring(obj)
+            [bulk,shear] = obj.physicalProblem.computeBulkShearEnergies();
             obj.computeGrayMeasure();
             data = obj.cost.value;
             data = [data;obj.cost.getFields(':')];
-            data = [data;obj.cost.bulkValue;obj.cost.shearValue];
+            data = [data;bulk;shear];
             data = [data;obj.constraint.value];
             data = [data;obj.designVariable.computeL2normIncrement();obj.grayMeasure];
             obj.monitoring.update(obj.nIter,num2cell(data));
@@ -120,6 +122,7 @@ classdef OptimizerMMA < Optimizer
             obj.lowerBound   = cParams.lb;
             obj.hasConverged = false;
             obj.kkttol       = obj.tolerance;
+            obj.physicalProblem = cParams.physicalProblem;
             obj.createMonitoring(cParams);
         end
 

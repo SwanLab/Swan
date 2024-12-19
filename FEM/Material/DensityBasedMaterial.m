@@ -40,8 +40,8 @@ classdef DensityBasedMaterial < handle
         end
 
         function [mu,kappa] = obtainShearBulk(obj)
-            mI  = obj.materialInterpolator;
-            rho = obj.density;
+            mI     = obj.materialInterpolator;
+            rho    = obj.density;
             [mu,kappa] = mI.computeConsitutiveTensor(rho);
         end
         

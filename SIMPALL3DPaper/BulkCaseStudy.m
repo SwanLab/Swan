@@ -5,6 +5,7 @@ classdef BulkCaseStudy < handle
         filter
         designVariable
         materialInterpolator
+        material
         physicalProblem
         compliance
         volume
@@ -22,6 +23,7 @@ classdef BulkCaseStudy < handle
             obj.createDesignVariable();
             obj.createFilter();
             obj.createMaterialInterpolator();
+            obj.createMaterial();
             obj.createElasticProblem();
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
@@ -88,20 +90,20 @@ classdef BulkCaseStudy < handle
             obj.materialInterpolator = m;
         end
 
-        function m = createMaterial(obj)
+        function createMaterial(obj)
             f = obj.designVariable.fun;
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '3D';
             s.mesh                 = obj.mesh;
-            m = Material.create(s);
+            obj.material = Material.create(s);
         end
 
         function createElasticProblem(obj)
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
-            s.material = obj.createMaterial();
+            s.material = obj.material;
             s.dim = '3D';
             s.boundaryConditions = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
@@ -122,7 +124,7 @@ classdef BulkCaseStudy < handle
             s.mesh                        = obj.mesh;
             s.filter                      = obj.filter;
             s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
-            s.material                    = obj.createMaterial();
+            s.material                    = obj.material;
             c = ComplianceFunctional(s);
             obj.compliance = c;
         end
@@ -167,12 +169,13 @@ classdef BulkCaseStudy < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 10000;
+            s.maxIter        = 10;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.ub             = 1;
             s.lb             = 0;
             s.primal         = 'PROJECTED GRADIENT';
+            s.physicalProblem = obj.physicalProblem;
             opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;

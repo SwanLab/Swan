@@ -25,6 +25,8 @@ classdef ElasticProblem < handle
     properties (Access = protected)
         mesh 
         material  
+        matRho
+        initEnergy
     end
 
     methods (Access = public)
@@ -42,12 +44,23 @@ classdef ElasticProblem < handle
             obj.computeStiffnessMatrix();                        
             obj.computeForces();
             obj.computeDisplacement();
+            obj.computeInitialEnergy();
             obj.computeStrain();
             obj.computeStress();
         end
 
         function updateMaterial(obj, mat)
             obj.material = mat;
+        end
+
+        function [bulk,shear] = computeBulkShearEnergies(obj)
+            u          = obj.uFun;
+            [mu,kappa] = obj.matRho.obtainShearBulk();
+            c          = obj.initEnergy;
+            dbC   = VolumetricElasticEnergyDensity(u,kappa);
+            bulk  = Integrator.compute(dbC,obj.mesh,2)/c;
+            dsC   = DeviatoricElasticEnergyDensity(u,mu);
+            shear = Integrator.compute(dsC,obj.mesh,2)/c;
         end
        
         function print(obj, filename, software)
@@ -74,13 +87,24 @@ classdef ElasticProblem < handle
 
         function init(obj, cParams)
             obj.mesh        = cParams.mesh;
-            obj.material    = cParams.material;
+            %obj.material    = cParams.material;
+            obj.matRho      = cParams.material;
             obj.scale       = cParams.scale;
             obj.mesh        = cParams.mesh;
             obj.solverType  = cParams.solverType;
             obj.solverMode  = cParams.solverMode;
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.solverCase  = cParams.solverCase;
+        end
+
+        function computeInitialEnergy(obj)
+            if isempty(obj.initEnergy)
+                u           = obj.uFun;
+                C           = obj.matRho.obtainTensor();
+                dCompliance = ElasticEnergyDensity(C,u);
+                c           = Integrator.compute(dCompliance,obj.mesh,2);
+                obj.initEnergy = c;
+            end
         end
 
         function createDisplacementFun(obj)
