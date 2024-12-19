@@ -49,8 +49,26 @@ classdef OrientedMappingComputer < handle
             nnode = obj.mesh.nnodeElem;
             nElem = obj.mesh.nelem;
             isCoh = false(nnode,nElem);
-            a1D   = obj.orientation{1}.project('P1D'); 
-            a1    = a1D.getFvaluesDisc();
+            
+            %a1D   = obj.orientation{1}.project('P1D',obj.mesh); 
+            a1D   = Project(obj.orientation{1},'P1D'); 
+
+            % %s.trial = LagrangianFunction.create(obj.mesh,obj.orientation{1}.ndimf,'P1D');            
+            % %s.trial = LagrangianFunction.create(obj.mesh,obj.orientation{1}.ndimf,'P1');
+            % s.filterType   = 'PDE';
+            % s.mesh         = obj.mesh;
+            % s.boundaryType = 'Neumann';
+            % s.metric       = 'Isotropy';
+            % filter          = Filter.create(s);
+            % epsilon    = 8*obj.mesh.computeMeanCellSize();
+            % filter.updateEpsilon(epsilon);            
+            % a1D = filter.compute(obj.orientation{1},2);
+
+
+            %a1D   = obj.orientation{1}.project('P1',obj.mesh); 
+           
+           % a1D   = a1D.project('P1D'); 
+            a1    = a1D.getFvaluesByElem();
             aN1   = squeeze(a1(:,1,:));
             for iNode = 1:nnode
                 aNi    = squeeze(a1(:,iNode,:));
@@ -59,7 +77,8 @@ classdef OrientedMappingComputer < handle
             end
             s.fValues = isCoh(:);
             s.mesh    = obj.mesh;
-            isCF      = P1DiscontinuousFunction(s);            
+            s.order   = 'P1D';
+            isCF = LagrangianFunction(s); 
             obj.isCoherent = isCF;
         end
 
@@ -71,7 +90,7 @@ classdef OrientedMappingComputer < handle
             connecD   = obj.isCoherent.getDofConnec();
             isCo = obj.isCoherent;
             sC = sparse(nnodeD*nElemD,nnodesC);
-            fV = isCo.getFvaluesDisc();
+            fV = isCo.getFvaluesByElem();
             for iNode = 1:nnodeD
                 isC  = squeeze(fV(1,iNode,:));
                 cond = obj.computeConformalMapCondition(isC);
@@ -100,14 +119,12 @@ classdef OrientedMappingComputer < handle
         end    
 
         function computeDilatedOrientationVector(obj)
-            s.fValues = exp(obj.dilation.fValues);
-            s.mesh    = obj.mesh;
-            s.order   = 'P1';
-            er = LagrangianFunction(s);
+            er = exp(obj.dilation);
             for iDim = 1:obj.mesh.ndim
                 b  = obj.orientation{iDim};
-                Curl(b).project('P1D',obj.mesh).plot()
                 dO = er.*b;
+             %   d00 = dO.project('P1',obj.mesh);
+             %   Curl(d00).project('P1D',obj.mesh).plot()
                 obj.dilatedOrientation{iDim} = dO;
             end
         end            
@@ -133,7 +150,7 @@ classdef OrientedMappingComputer < handle
         end
 
         function computeMappingWithSingularities(obj)
-            psiTs = P1DiscontinuousFunction.sum(obj.phiMapping,obj.totalCorrector);
+            psiTs = obj.phiMapping + obj.totalCorrector;
             obj.phi = psiTs;
         end        
         

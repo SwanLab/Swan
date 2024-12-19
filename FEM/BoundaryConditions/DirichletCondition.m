@@ -56,6 +56,7 @@ classdef DirichletCondition < BoundaryCondition
             v = vals(:);
         end
 
+
         function Ct = computeLinearConditionsMatrix(obj)
             % dir_dofs = sort(dirich.getDofs());
             dir_dofs = obj.getDofs();
@@ -73,5 +74,8 @@ classdef DirichletCondition < BoundaryCondition
         end
         
     end
+
+  
+    
     
 end

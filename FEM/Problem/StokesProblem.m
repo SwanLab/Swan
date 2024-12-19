@@ -66,8 +66,8 @@ classdef StokesProblem < handle
             end
             fullx = obj.boundaryConditions.reducedToFullVector(x);
             vars = obj.separateVariables(fullx);
-            obj.velocityFun.fValues = obj.splitVelocity(vars.u);
-            obj.pressureFun.fValues = vars.p(:,end);
+            obj.velocityFun.setFValues(obj.splitVelocity(vars.u));
+            obj.pressureFun.setFValues(vars.p(:,end));
         end
        
         function print(obj, filename, software)

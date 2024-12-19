@@ -12,7 +12,8 @@ classdef VolumeConstraintWithBound < handle
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             xD         = x.density;
             [J,dJv]    = obj.volume.computeFunctionAndGradient(xD);
-            dJ.fValues = [dJv.fValues;0];
+            dJ.fValues = [dJv{1}.fValues;0];
+            dJ         = {dJ};
         end
     end
 

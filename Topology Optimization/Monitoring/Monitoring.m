@@ -29,15 +29,16 @@ classdef Monitoring < handle
             for i = 1:nPlots
                 obj.figures{i}.refresh();
             end      
+            drawnow;
         end
     end
 
     methods (Access = private)
         function init(obj,cParams)
-            obj.shallDisplay = cParams.shallDisplay;
-            obj.maxNColumns  = cParams.maxNColumns;
-            obj.titles       = cParams.titles;
-            obj.chartTypes   = cParams.chartTypes;
+            obj.shallDisplay  = cParams.shallDisplay;
+            obj.maxNColumns   = cParams.maxNColumns;
+            obj.titles        = cParams.titles;
+            obj.chartTypes    = cParams.chartTypes;
         end
 
         function [nRow,nColumn] = computeNumberRowsColumns(obj)
@@ -56,6 +57,7 @@ classdef Monitoring < handle
                 for i = 1:nPlots
                     sDisp.title     = obj.titles{i};
                     sDisp.chartType = obj.chartTypes{i};
+                    sDisp.figureIdx = length(findobj('Type','Figure'));
                     if sDisp.chartType == "multiplot"
                         sDisp.legend = cParams.legends{idxMultiBar};
                         idxMultiBar = idxMultiBar+1;

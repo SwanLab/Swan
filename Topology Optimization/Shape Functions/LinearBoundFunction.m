@@ -5,6 +5,7 @@ classdef LinearBoundFunction < handle
             J               = x.bound;
             dJ.fValues      = zeros(length(x.fun.fValues),1);
             dJ.fValues(end) = 1;
+            dJ              = {dJ};
         end
 
         function title = getTitleToPlot()
