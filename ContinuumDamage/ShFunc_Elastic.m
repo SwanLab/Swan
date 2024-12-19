@@ -1,4 +1,4 @@
-classdef shFunc_Elastic < handle
+classdef ShFunc_Elastic < handle
     
     properties (Access = private)
         material

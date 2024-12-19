@@ -1,89 +1,59 @@
 classdef ShFunc_ContinuumDamage < handle
 
-    properties (GetAccess = public,SetAccess = private)
-        r
-    end
-    properties (Access = private)
-        material
-        mesh
-
+   properties (Access = private)
         internalDamage
         internalElastic
         externalWork
-        
-        H
     end
 
     methods (Access = public)
 
         function obj = ShFunc_ContinuumDamage(cParams)
-            obj.init(cParams);
-            obj.createFunctionals();
-            obj.setInitialDamage();
+            obj.createFunctionals(cParams);
         end
 
-        function totalEnergy = computeTotalEnergyDamage (obj, quadOrder, u,fext)
-            internalEnergy = obj.internalDamage.computeFunction(quadOrder,u,obj.r);
+        function totalEnergy = computeEnergy(obj,quadOrder,u,r,fext)
+            internalEnergy = obj.internalDamage.computeFunction(quadOrder,u,r);
             externalEnergy = obj.externalWork.computeFunction(u,fext,quadOrder);
             totalEnergy = internalEnergy - externalEnergy;
         end
 
-        function totalEnergy = computeTotalEnergy (obj, quadOrder, u,fext)
-            internalEnergy = obj.internalElastic.computeFunction(quadOrder,u);
-            externalEnergy = obj.externalWork.computeFunction(u,fext,quadOrder);
-            totalEnergy = internalEnergy - externalEnergy;
-        end
-
-        function F = computeJacobian(obj,quadOrder,u,bc,r)
+        function res = computeResidual(obj,quadOrder,u,r,bc)
             fExt = bc.pointloadFun;
             Fext = obj.externalWork.computeGradient(u,fExt,quadOrder);
             Fint = obj.internalDamage.computeJacobian(quadOrder,u,r);
-            F = Fint - Fext;
+            res = Fint - Fext;
 
         end
 
-        function H = computeHessian(obj,quadOrder,u,r)
-            H = obj.internalDamage.computeHessian(quadOrder,u,r);
+        function dRes = computeDerivativeResidual(obj,quadOrder,u,r)
+            dRes = obj.internalDamage.computeDerivativeResidual(quadOrder,u,r);
         end
 
-        function updateInternalVariableR(obj,uNew)
-            obj.r = obj.internalDamage.updateDamage(obj.r,uNew);
-        end
-        function r = updateInternalVariableRAndReturnValue(obj,uNew)
-            r = obj.internalDamage.updateDamage(obj.r,uNew);
-        end
-        
-        function d = computeDamage (obj)
-            d = obj.internalDamage.computeDamage(obj.r);
-        end
-        function setInternalVariableR(obj,r)
-            obj.r = r;
+        function r = computeDamageEvolutionParam(obj,u)
+            r = obj.internalDamage.computeDamageEvolutionParam(u);
         end
 
+        function setROld(obj,r)
+            obj.internalDamage.setROld(r);
+        end
 
-    end
+        function r = getROld (obj)
+            r = obj.internalDamage.getROld();
+        end
+
+        function d = computeDamage(obj,r)
+            d = obj.internalDamage.computeDamage(r);
+        end
+   end
 
     methods (Access = private)
 
-        function init (obj,cParams)
-            obj.material = cParams.material;
-            obj.mesh = cParams.mesh;
-            obj.r = cParams.r0;
-            obj.H = cParams.H;
+        function createFunctionals(obj,cParams)
+            obj.internalDamage = ShFunc_ElasticDamage(cParams);
+            %obj.internalElastic = ShFunc_Elastic(s);
+            obj.externalWork = ShFunc_ExternalWork2(cParams);
         end
 
-        function createFunctionals(obj)
-            s.mesh     = obj.mesh;
-            s.material = obj.material;
-            s.H = obj.H;
-            s.r0 = obj.r;
-
-            obj.internalDamage = shFunc_ElasticDamage(s);
-            obj.internalElastic = shFunc_Elastic(s);
-            obj.externalWork = shFunc_ExternalWork2(s);
-        end
-        function setInitialDamage(obj)
-            obj.r = ConstantFunction.create(obj.r,obj.mesh);
-        end
     end
 end

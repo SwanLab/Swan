@@ -1,4 +1,4 @@
-classdef shFunc_ExternalWork2 < handle
+classdef ShFunc_ExternalWork2 < handle
 
    properties (Access = private)
        mesh
@@ -6,9 +6,8 @@ classdef shFunc_ExternalWork2 < handle
      
    methods (Access = public)
       
-       function obj = shFunc_ExternalWork2(cParams)
+       function obj = ShFunc_ExternalWork2(cParams)
            obj.init(cParams);
-          
        end
       
        function F = computeFunction(obj,u,fExt,quadOrder)

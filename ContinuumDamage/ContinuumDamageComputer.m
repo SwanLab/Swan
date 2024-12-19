@@ -12,9 +12,8 @@ classdef ContinuumDamageComputer < handle
         tolerance = 1e-8
         quadOrder
 
-
-        H = 0.1
-        r0 = 1/sqrt(6) %revisar com es calcula (depen de les bc)
+        H
+        r0
 
         elasticFun
         externalWorkFun
@@ -30,7 +29,7 @@ classdef ContinuumDamageComputer < handle
 
         function data = compute(obj)
             u = LagrangianFunction.create(obj.mesh,2,'P1');
-
+            
             for i = 1:obj.boundaryConditions.ValueSetLenght
                 fprintf('Step: %d ',i);fprintf('/ %d \n',obj.boundaryConditions.ValueSetLenght);
 
@@ -40,32 +39,29 @@ classdef ContinuumDamageComputer < handle
 
                 residu = 1; residuVec = [];
 
-                r = obj.functional.r;
+                r = obj.functional.getROld;
 
-                Dres = obj.functional.computeHessian(obj.quadOrder,u,r);
-                Res  = obj.functional.computeJacobian(obj.quadOrder,u,bc,r);
+                Dres = obj.functional.computeDerivativeResidual(obj.quadOrder,u,r);
+                Res  = obj.functional.computeResidual(obj.quadOrder,u,r,bc);
                 residu0 = norm(Res);
                 
                 while (residu >= obj.tolerance)
-
                     [uNew,uNewVec] = obj.computeU(Dres,Res,u,bc);
                                                           
                     u.fValues = uNew;
-                    r = obj.functional.updateInternalVariableRAndReturnValue(u);
+                    r = obj.functional.computeDamageEvolutionParam(u);
                    
                     residu = norm(Res)/residu0;
                     residuVec(end+1) = residu/residu0;
                     
-                    Dres = obj.functional.computeHessian(obj.quadOrder,u,r);
+                    Dres = obj.functional.compute(obj.quadOrder,u,r);
                     Res  = obj.functional.computeJacobian(obj.quadOrder,u,bc,r);
-
                     
                     fprintf('Error: %d | %d \n',residu,uNewVec(6));%.evaluate([0;0]));
-                    
                 end
-                obj.functional.setInternalVariableR(r);
+                obj.functional.setROld(r);
                 %fprintf('r  = %d \n',r.evaluate([0;0]));
-                energy = obj.functional.computeTotalEnergyDamage(obj.quadOrder,u,fExt);
+                energy = obj.functional.computeEnergy(obj.quadOrder,u,r,fExt);
 
                 data.displacement.value(i)  = obj.boundaryConditions.bcValueSet(i);
                 data.totalEnergy(i) = energy;
@@ -89,6 +85,8 @@ classdef ContinuumDamageComputer < handle
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.material  = cParams.material;
             obj.solverParams = cParams.solver; 
+            obj.H = cParams.H;
+            obj.r0 = ConstantFunction.create(cParams.r0,obj.mesh);
         end
 
         function createFunctionals(obj)

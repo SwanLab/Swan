@@ -6,6 +6,8 @@ classdef TestingContinuumDamage < handle
         material
         solverParams
 
+        H
+        r0
     end
 
     methods (Access = public)
@@ -24,6 +26,8 @@ classdef TestingContinuumDamage < handle
             sComp.boundaryConditions = obj.bc;
             sComp.material = obj.material;
             sComp.solver = obj.solverParams;
+            sComp.H = obj.H;
+            sComp.r0 = obj.r0;
 
             comp = ContinuumDamageComputer(sComp);
             data = comp.compute();

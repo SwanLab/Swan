@@ -13,7 +13,7 @@ cParams.material.E = 210;
 cParams.material.nu = 0.3;
 
 cParams.bc.bcType = 'displacementTraction'; %'FORCE'
-cParams.bc.bcValueSet = [0.02,0.021];
+cParams.bc.bcValueSet = [0.02];
 
 
 cParams.solver.type = 'Elastic';
@@ -24,6 +24,8 @@ cParams.solver.solverCase = 'DIRECT';
 cParams.solver.scale = 'MACRO';
 
 cParams.tol = 1e-10;
+cParams.H = 0.5;
+cParams.r0 = 1/sqrt(6);
 
 tester = TestingContinuumDamage(cParams);
 data = tester.compute();
