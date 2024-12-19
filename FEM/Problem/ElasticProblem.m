@@ -12,6 +12,7 @@ classdef ElasticProblem < handle
         boundaryConditions, bcApplier
 
         stiffness
+        lhs
         solverType, solverMode, solverCase
         scale
         
@@ -32,6 +33,7 @@ classdef ElasticProblem < handle
             obj.createDisplacementFun();
             obj.createBCApplier();
             obj.createSolver();
+            obj.createStiffnessMatrix();
         end
 
         function solve(obj)
@@ -109,16 +111,18 @@ classdef ElasticProblem < handle
             s.BCApplier          = obj.bcApplier;
             obj.problemSolver    = ProblemSolver(s);
         end
-
-        function computeStiffnessMatrix(obj)           
+        function createStiffnessMatrix(obj)           
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
             s.test     = obj.uFun;
             s.trial    = obj.uFun;
-            s.material = obj.material;
             s.quadratureOrder = 2;
-            lhs = LHSintegrator.create(s);
-            obj.stiffness = lhs.compute();
+            obj.lhs = LHSintegrator.create(s);
+        end
+
+        function computeStiffnessMatrix(obj)           
+            mat = obj.material;
+            obj.stiffness = obj.lhs.compute(mat);
         end
 
         function computeForces(obj)
