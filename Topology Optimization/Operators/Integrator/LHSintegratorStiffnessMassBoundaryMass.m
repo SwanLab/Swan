@@ -21,8 +21,9 @@ classdef LHSintegratorStiffnessMassBoundaryMass < handle
         end
 
         function LHS = compute(obj, epsilon)
-            lump = sum(obj.M + epsilon*obj.Mr,2);
-            LHS  = epsilon^2*obj.K + diag(lump);
+            LHS = epsilon^2*obj.K + obj.M + epsilon*obj.Mr;
+            %lump = sum(obj.M + epsilon*obj.Mr,2);
+            %LHS  = epsilon^2*obj.K + diag(lump);
         end
 
     end
