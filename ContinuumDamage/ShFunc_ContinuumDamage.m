@@ -1,5 +1,4 @@
-
-classdef shFunc_ContinuumDamage < handle
+classdef ShFunc_ContinuumDamage < handle
 
     properties (GetAccess = public,SetAccess = private)
         r
@@ -17,7 +16,7 @@ classdef shFunc_ContinuumDamage < handle
 
     methods (Access = public)
 
-        function obj = shFunc_ContinuumDamage(cParams)
+        function obj = ShFunc_ContinuumDamage(cParams)
             obj.init(cParams);
             obj.createFunctionals();
             obj.setInitialDamage();

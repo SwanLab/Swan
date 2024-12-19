@@ -38,7 +38,7 @@ classdef shFunc_ElasticDamage < handle
             Cdamage = obj.material.obtainTensor(d);
 
             epsi = SymGrad(u);
-            b = DDP(epsi,Cdamage);
+            sigma = DDP(epsi,Cdamage);
             
             S.type = 'ShapeSymmetricDerivative';
             S.quadratureOrder=quadOrder;
@@ -48,7 +48,7 @@ classdef shFunc_ElasticDamage < handle
             
             rhs = RHSintegrator.create(S);
             
-            jacobian = rhs.compute(b,test);
+            jacobian = rhs.compute(sigma,test);
             
         end
         
@@ -80,7 +80,6 @@ classdef shFunc_ElasticDamage < handle
             tauEpsi = power(DDP(DDP(epsi,C),epsi),0.5);
          
             if tauEpsi <= rIn
-
                 rOut = rIn;
             else
                 rOut = tauEpsi;

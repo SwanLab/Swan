@@ -42,21 +42,22 @@ classdef ContinuumDamageComputer < handle
 
                 r = obj.functional.r;
 
-                LHS = obj.functional.computeHessian(obj.quadOrder,u,r);
-                RHS = obj.functional.computeJacobian(obj.quadOrder,u,bc,r);
+                Dres = obj.functional.computeHessian(obj.quadOrder,u,r);
+                Res  = obj.functional.computeJacobian(obj.quadOrder,u,bc,r);
+                residu0 = norm(Res);
                 
                 while (residu >= obj.tolerance)
 
-                    [uNew,uNewVec] = obj.computeU(LHS,RHS,u,bc);
+                    [uNew,uNewVec] = obj.computeU(Dres,Res,u,bc);
                                                           
                     u.fValues = uNew;
                     r = obj.functional.updateInternalVariableRAndReturnValue(u);
                    
-                    residu = norm(LHS*uNewVec-RHS);
-                    residuVec(end+1) = residu;
+                    residu = norm(Res)/residu0;
+                    residuVec(end+1) = residu/residu0;
                     
-                    LHS = obj.functional.computeHessian(obj.quadOrder,u,r);
-                    RHS = obj.functional.computeJacobian(obj.quadOrder,u,bc,r);
+                    Dres = obj.functional.computeHessian(obj.quadOrder,u,r);
+                    Res  = obj.functional.computeJacobian(obj.quadOrder,u,bc,r);
 
                     
                     fprintf('Error: %d | %d \n',residu,uNewVec(6));%.evaluate([0;0]));
@@ -72,7 +73,7 @@ classdef ContinuumDamageComputer < handle
                 damageFun = damageDomainFun.project('P1D',obj.mesh);
                 data.damage.maxValue(i)  = max(damageFun.fValues);
                 data.damage.minValue(i)  = min(damageFun.fValues);
-                data.reaction(i)  = -obj.computeTotalReaction(LHS,uNewVec);
+                data.reaction(i)  = -obj.computeTotalReaction(Dres,uNewVec);
             end
             data.displacement.field = u;
             data.damage.field = damageFun;
@@ -96,7 +97,7 @@ classdef ContinuumDamageComputer < handle
             s.H = obj.H;
             s.r0 = obj.r0;
 
-            obj.functional = shFunc_ContinuumDamage(s);
+            obj.functional = ShFunc_ContinuumDamage(s);
         end
 
         function u = updateInitialDisplacement(obj,bc,uOld)
