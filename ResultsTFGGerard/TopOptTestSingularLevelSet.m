@@ -232,8 +232,8 @@ classdef TopOptTestSingularLevelSet < handle
              s.primal         = 'SLERP';
              s.etaNorm        = 0.002; %HI HAVIA 0.01 (Igual per això donava error?)
              s.gJFlowRatio    = 0.35;    %major=complirconstraintrapid    menor=prioritzarminimitzarcost
-             s.etaMax         = 1;
-             s.etaMaxMin      = 0.01;
+             s.etaMax         = 4e-6;
+             s.etaMaxMin      = 1e-6;
              s.etaNormMin     = s.etaNorm;
              opt = OptimizerNullSpace(s);
              opt.solveProblem();
