@@ -38,7 +38,7 @@ classdef ContinuumDamageComputer < handle
                 fExt = bc.pointloadFun;
                 u.fValues = obj.updateInitialDisplacement(bc,u);
 
-                error = 1; residu = 1;residuVec = [];
+                residu = 1; residuVec = [];
 
                 r = obj.functional.r;
 
@@ -59,11 +59,11 @@ classdef ContinuumDamageComputer < handle
                     RHS = obj.functional.computeJacobian(obj.quadOrder,u,bc,r);
 
                     
-                    fprintf('Error: %d \n',residu);%.evaluate([0;0]));
+                    fprintf('Error: %d | %d \n',residu,uNewVec(6));%.evaluate([0;0]));
                     
                 end
                 obj.functional.setInternalVariableR(r);
-
+                %fprintf('r  = %d \n',r.evaluate([0;0]));
                 energy = obj.functional.computeTotalEnergyDamage(obj.quadOrder,u,fExt);
 
                 data.displacement.value(i)  = obj.boundaryConditions.bcValueSet(i);

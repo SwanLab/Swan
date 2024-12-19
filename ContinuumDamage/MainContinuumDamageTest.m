@@ -13,7 +13,7 @@ cParams.material.E = 210;
 cParams.material.nu = 0.3;
 
 cParams.bc.bcType = 'displacementTraction'; %'FORCE'
-cParams.bc.bcValueSet = [1e-10:1e-2:0.2];
+cParams.bc.bcValueSet = [0.02,0.021];
 
 
 cParams.solver.type = 'Elastic';
