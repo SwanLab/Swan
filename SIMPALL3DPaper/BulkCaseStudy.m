@@ -45,7 +45,7 @@ classdef BulkCaseStudy < handle
         end
 
         function createDesignVariable(obj)
-            s.type             = 'Custom';
+            s.type             = 'Full';
             g                  = GeometricalFunction(s);
             lsFun              = g.computeLevelSetFunction(obj.mesh);
             s.mesh             = obj.mesh;
@@ -94,6 +94,7 @@ classdef BulkCaseStudy < handle
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '3D';
+            s.mesh                 = obj.mesh;
             m = Material.create(s);
         end
 
@@ -106,6 +107,7 @@ classdef BulkCaseStudy < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
+            s.solverCase = 'CG';
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end

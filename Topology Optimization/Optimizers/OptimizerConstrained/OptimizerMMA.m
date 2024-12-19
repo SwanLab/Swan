@@ -137,7 +137,7 @@ classdef OptimizerMMA < Optimizer
             for i = 1:nSFCost
                 chCost{i} = 'plot';
             end
-            chartTypes = [{'plot'},chCost,{'plot'},{'plot'},chConstr,{'log'},{'plot'}];
+            chartTypes = [{'plot'},chCost,{'plot'},{'plot'},chConstr,{'logy'},{'plot'}];
                 s.shallDisplay = cParams.monitoring;
             s.maxNColumns  = 5;
             s.titles       = titles;
