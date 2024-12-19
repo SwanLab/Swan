@@ -41,11 +41,10 @@ classdef TopOptTestTutorial3DDensity < handle
         end
 
         function createMesh(obj)
-            obj.mesh = HexaMesh(6,1,1,120,20,20);
+            obj.mesh = HexaMesh(2,1,1,20,20,20);
         end
 
         function createDesignVariable(obj)
-            % Density:
             s.fHandle = @(x) ones(size(x(1,:,:)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
@@ -56,8 +55,6 @@ classdef TopOptTestTutorial3DDensity < handle
             s.plotting = false;
             dens    = DesignVariable.create(s);
             obj.designVariable = dens;
-
-            % LevelSet:
         end
 
         function createFilter(obj)
@@ -93,11 +90,12 @@ classdef TopOptTestTutorial3DDensity < handle
         function m = createMaterial(obj)
             x = obj.designVariable;
             f = x.obtainDomainFunction();
-            f = f.project('P1');            
+            f = f{1}.project('P1');            
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '3D';
+            s.mesh                 = obj.mesh;
             m = Material.create(s);
         end
 
@@ -110,7 +108,7 @@ classdef TopOptTestTutorial3DDensity < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'rMINRES'; % DIRECT
+            s.solverCase = 'CG';
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -147,6 +145,13 @@ classdef TopOptTestTutorial3DDensity < handle
         end
 
         function M = createMassMatrix(obj)
+%             s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
+%             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+%             s.mesh  = obj.mesh;
+%             s.type  = 'MassMatrix';
+%             LHS = LHSintegrator.create(s);
+%             M = LHS.compute;     
+
             n = obj.mesh.nnodes;
             h = obj.mesh.computeMinCellSize();
             M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
@@ -170,26 +175,22 @@ classdef TopOptTestTutorial3DDensity < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 500;
-            s.tolerance      = 1e-8; 
-            s.constraintCase = {'EQUALITY'};
-            s.primal         = 'PROJECTED GRADIENT'; 
+            s.maxIter        = 3;
+            s.tolerance      = 1e-8;
+            s.constraintCase = 'EQUALITY';
             s.ub             = 1;
             s.lb             = 0;
-            s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 2; 
-            opt = OptimizerNullSpace(s);
+            opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
-            obj.designVariable.fun.print('Density_3D_2'); %Guarda la simulació automàticament per poder veure-la després a paraview
         end
 
         function bc = createBoundaryConditions(obj)
             xMax = max(obj.mesh.coord(:,1));
             yMax = max(obj.mesh.coord(:,2));
             zMax = max(obj.mesh.coord(:,3));
-            isDir   = @(coor)  coor(:,1)==0;
-            isForce = @(coor)  coor(:,1)==xMax & coor(:,2)>=0.4*yMax & coor(:,2)<=0.6*yMax & coor(:,3)>=0.4*zMax & coor(:,3)<=0.6*zMax;
+            isDir   = @(coor)  abs(coor(:,1))==0;
+            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax & abs(coor(:,3))>=0.3*zMax & abs(coor(:,3))<=0.7*zMax);
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2,3];

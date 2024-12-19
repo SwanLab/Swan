@@ -26,4 +26,4 @@ filterConstraintSettings = {f3};
 plotting = true;
 printing = false;
 monitoring = false;
-maxiter = 3;
+maxiter = 5;

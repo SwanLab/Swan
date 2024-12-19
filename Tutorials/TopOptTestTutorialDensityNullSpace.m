@@ -42,7 +42,7 @@ classdef TopOptTestTutorialDensityNullSpace < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,2,100); % (x0,xend,div X)
+            x1      = linspace(0,2,100);
             x2      = linspace(0,1,50);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
@@ -101,6 +101,7 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '2D';
+            s.mesh                 = obj.mesh;
             m = Material.create(s);
         end
 
@@ -176,45 +177,33 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 300;
+            s.maxIter        = 3;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
             s.ub             = 1;
             s.lb             = 0;
-            s.etaNorm        = 0.05; % Percentatge de màxim canvi design variable
-            s.gJFlowRatio    = 0.5; % 2=constraint té el doble de prioritat que min. cost; 0.5=cost té el doble d'importancia q constraint
+            s.etaNorm        = 0.01;
+            s.gJFlowRatio    = 2;
+            s.tauMax         = 1000;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
-            obj.designVariable.print('Density_Bridge'); %Guarda la simulació automàticament per poder veure-la després a paraview
         end
 
         function bc = createBoundaryConditions(obj)
-%...
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
+            isDir   = @(coor)  abs(coor(:,1))==0;
+            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
 
-            isDir1   = @(coor)  abs(coor(:,1))==0; % is Dirichlet1 = on els desplaçaments estan imposats
-            %isDir2   = @(coor)  abs(coor(:,1))==0; % is Dirichlet2 = on els desplaçaments estan imposats
-
-            isForce1 = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax); % isForce1 = força
-            %isForce2 = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax); % isForce2 = força
-
-
-            sDir{1}.domain    = @(coor) isDir1(coor);
+            sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2];
             sDir{1}.value     = 0;
 
-%             sDir{2}.domain    = @(coor) isDir2(coor);
-%             sDir{2}.direction = [1,2];
-%             sDir{2}.value     = 0;
-
-            sPL{1}.domain    = @(coor) isForce1(coor);
+            sPL{1}.domain    = @(coor) isForce(coor);
             sPL{1}.direction = 2;
             sPL{1}.value     = -1;
-
-%...
 
             dirichletFun = [];
             for i = 1:numel(sDir)

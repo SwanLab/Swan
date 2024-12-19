@@ -36,7 +36,7 @@ classdef SLERP < handle
             if abs(V0-1) <= 1e-10
                 obj.computeLineSearchInBounds(gClass,lsClass);
             else
-                obj.tau = 1;
+                obj.tau = 0.1;
             end
         end
 
