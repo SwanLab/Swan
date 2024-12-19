@@ -3,8 +3,11 @@ classdef ShFunc_ElasticDamage < handle
     properties (Access = private)
         material
         mesh
+        test
+        rhs
         r0
         H
+        quadOrder
     end
     
     properties (Access = private)
@@ -17,48 +20,34 @@ classdef ShFunc_ElasticDamage < handle
             obj.init(cParams)
         end
         
-        function energy = computeFunction(obj,quadOrder,u,r)
-            
+        function energy = computeFunction(obj,u,r)            
             d = obj.computeDamage(r);
-
-            Cdamage = obj.material.obtainTensor(d);
-           
-            epsi = SymGrad(u);
-            funct = DDP(DDP(epsi,Cdamage),epsi);
-            energy = 0.5*(Integrator.compute(funct,obj.mesh,quadOrder));
-       
+            C = obj.material.obtainTensor(d);           
+            e  = SymGrad(u);
+            s  = DDP(e,C);
+            en = DDP(s,e);
+            int = Integrator.compute(en,obj.mesh,obj.quadOrder);
+            energy = 0.5*int;       
         end
         
-        function res = computeResidual (obj,quadOrder,u,r)
+        function res = computeResidual(obj,u,r)
             
             d = obj.computeDamage(r);
-            Cdamage = obj.material.obtainTensor(d);
-
-            epsi = SymGrad(u);
-            b = DDP(epsi,Cdamage);
-            
-            S.type = 'ShapeSymmetricDerivative';
-            S.quadratureOrder=quadOrder;
-            S.mesh = obj.mesh;
-            
-            test = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
-            
-            rhs = RHSintegrator.create(S);
-            
-            res = rhs.compute(b,test);
-            
+            C = obj.material.obtainTensor(d);
+            e = SymGrad(u);
+            s = DDP(e,C);
+            res = obj.rhs.compute(s,obj.test);            
         end
         
         function dRes = computeDerivativeResidual (obj,quadOrder,u,r)
-            test = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
             d = obj.computeDamage(r);
 
             S.type = 'ElasticStiffnessMatrix';
             S.quadratureOrder = quadOrder;
             S.mesh = obj.mesh;
             S.material = obj.material.obtainTensor(d);
-            S.test = test;
-            S.trial = test;        
+            S.test  = obj.test;
+            S.trial = obj.test;        
             
             lhs = LHSintegrator.create(S);            
             dRes = lhs.compute();
@@ -98,11 +87,23 @@ classdef ShFunc_ElasticDamage < handle
     methods (Access = private)
         
         function init(obj,cParams)
+            obj.quadOrder = 2;
             obj.material = cParams.material;
             obj.mesh = cParams.mesh;
             obj.r0 = cParams.r0;
             obj.rOld = copy(obj.r0);
             obj.H = cParams.H;
+        end
+
+        function createTest(obj)           
+            obj.test = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);           
+        end
+
+        function createRHSintegrator(obj)
+            s.type = 'ShapeSymmetricDerivative';
+            s.quadratureOrder= obj.quadOrder;
+            s.mesh = obj.mesh;             
+            obj.rhs = RHSintegrator.create(s);
         end
 
         function q = computeHardening(obj)

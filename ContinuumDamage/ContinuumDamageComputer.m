@@ -17,7 +17,7 @@ classdef ContinuumDamageComputer < handle
 
         elasticFun
         externalWorkFun
-        functional
+        elasticity
     end
 
     methods (Access = public)
@@ -34,38 +34,33 @@ classdef ContinuumDamageComputer < handle
                 fprintf('Step: %d ',i);fprintf('/ %d \n',obj.boundaryConditions.ValueSetLenght);
 
                 bc = obj.boundaryConditions.nextStep(i);
-                fExt = bc.pointloadFun;
                 u.setFValues(obj.updateInitialDisplacement(bc,u));
 
                 residu = 1; residuVec = [];
-
-                r = obj.functional.getROld();
-
-                Dres = obj.functional.computeDerivativeResidual(obj.quadOrder,u,r);
-                Res  = obj.functional.computeResidual(obj.quadOrder,u,r,bc);
+              
+                Res  = obj.elasticity.computeResidual(obj.quadOrder,u,r,bc);                
+                Dres = obj.elasticity.computeDerivativeResidual(obj.quadOrder,u,r);
                 residu0 = norm(Res);
                 
                 while (residu >= obj.tolerance)
                     [uNew,uNewVec] = obj.computeU(Dres,Res,u,bc);
                                                           
                     u.setFValues(uNew);
-                    r = obj.functional.computeDamageEvolutionParam(u);
+                    obj.elasticity.computeDamageEvolutionParam(u);
                     
-                    Dres = obj.functional.computeDerivativeResidual(obj.quadOrder,u,r);
-                    Res  = obj.functional.computeResidual(obj.quadOrder,u,r,bc);
+                    Res  = obj.elasticity.computeResidual(u,bc);                    
+                    Dres = obj.elasticity.computeDerivativeResidual(u,bc);
 
                     residu = norm(Res(bc.free_dofs))/residu0;
                     residuVec(end+1) = residu/residu0;
 
                     fprintf('Error: %d | %d \n',residu,uNewVec(6));%.evaluate([0;0]));
                 end
-                obj.functional.setROld(r);
+                obj.elasticity.setROld(r);
                 %fprintf('r  = %d \n',r.evaluate([0;0]));
-                energy = obj.functional.computeEnergy(obj.quadOrder,u,r,fExt);
 
                 data.displacement.value(i)  = obj.boundaryConditions.bcValueSet(i);
-                data.totalEnergy(i) = energy;
-                damageDomainFun = obj.functional.computeDamage();
+                damageDomainFun = obj.elasticity.computeDamage();
                 damageFun = damageDomainFun.project('P1D',obj.mesh);
                 data.damage.maxValue(i)  = max(damageFun.fValues);
                 data.damage.minValue(i)  = min(damageFun.fValues);
@@ -94,8 +89,7 @@ classdef ContinuumDamageComputer < handle
             s.material = obj.material;
             s.H = obj.H;
             s.r0 = obj.r0;
-
-            obj.functional = ShFunc_ContinuumDamage(s);
+            obj.elasticity = ShFunc_ContinuumDamage(s);
         end
 
         function u = updateInitialDisplacement(obj,bc,uOld)
