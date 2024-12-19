@@ -115,8 +115,8 @@ classdef ProblemSolver < handle
                 case strcmp(obj.type, 'REDUCED') && strcmp(obj.mode, 'DISP')
                     dofs = 1:obj.ndofs;
                     free_dofs = setdiff(dofs, bcs.dirichlet_dofs);
-                    %LHS = stiffness(free_dofs, free_dofs);
-                    LHS = @(u) obj.applyReducedStiffness(stiffness,free_dofs,u);
+                    LHS = stiffness(free_dofs, free_dofs);
+                    %LHS = @(u) obj.applyReducedStiffness(stiffness,free_dofs,u);
                 case strcmp(obj.type, 'MONOLITHIC') && strcmp(obj.mode, 'FLUC')
                     CtDir = bcapp.computeLinearConditionsMatrix('Dirac');
                     CtPer = bcapp.computeLinearPeriodicConditionsMatrix();
