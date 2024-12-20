@@ -1,7 +1,8 @@
 classdef OrientedMappingComputer < handle
 
     properties (Access = private)  
-        orientation        
+        orientation    
+        orientationA
         isCoherent        
         interpolator    
         dilation        
@@ -26,7 +27,8 @@ classdef OrientedMappingComputer < handle
             obj.dilation              = obj.computeDilation();
             obj.dilatedOrientation    = obj.computeDilatedOrientationVector();            
             b1 = obj.orientation{1};
-            obj.isCoherent            = obj.computeIsOrientationCoherent(b1);
+            a1 = obj.orientationA{1};
+            obj.isCoherent            = obj.computeIsOrientationCoherent(a1);
             obj.interpolator          = obj.computeInterpolator();
             obj.phiMapping            = obj.computeMappings();
             obj.totalCorrector        = obj.computeTotalCorrector(b1);
@@ -38,9 +40,23 @@ classdef OrientedMappingComputer < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.mesh        = cParams.mesh;
-            obj.orientation = cParams.orientation; %%importnat since regul need P1
+            obj.mesh         = cParams.mesh;
+            obj.orientation  = cParams.orientation; 
+            obj.orientationA{1} = obj.computeOrientationA();
         end
+
+        function aF = computeOrientationA(obj)
+            b1 = obj.orientation{1};
+            beta = atan2(b1.fValues(:,2),b1.fValues(:,1));
+            al = beta/2;
+            a = [cos(al), sin(al)];
+            s.fValues = a;
+            s.mesh    = obj.mesh;
+            s.order   = 'P1D';
+            aF = LagrangianFunction(s);              
+        end
+
+
 
         function isCF = computeIsOrientationCoherent(obj,a1)
 
