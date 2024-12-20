@@ -11,6 +11,7 @@ classdef FilterPDE < handle
         problemLHS
         LHS
         RHS
+        solver
         % bc
     end
 
@@ -20,13 +21,13 @@ classdef FilterPDE < handle
             % obj.computeBoundaryConditions(cParams);
             obj.createProblemLHS(cParams);
             obj.computeLHS();
+            obj.createSolver();
         end
 
         function xF = compute(obj,fun,quadType)
-            xF = LagrangianFunction.create(obj.mesh, fun.ndimf, obj.trial.order);
             obj.computeRHS(fun,quadType);
             obj.solveFilter();
-            xF.setFValues(obj.trial.fValues);
+            xF = copy(obj.trial);
         end
 
         function obj = updateEpsilon(obj,epsilon)
@@ -87,10 +88,13 @@ classdef FilterPDE < handle
             obj.RHS    = rhsR;
         end
 
-        function solveFilter(obj)
+        function createSolver(obj)
             s.type = 'DIRECT';
-            solver = Solver.create(s);
-            x      = solver.solve(obj.LHS,obj.RHS);
+            obj.solver = Solver.create(s);
+        end
+
+        function solveFilter(obj)
+            x      = obj.solver.solve(obj.LHS,obj.RHS);
             % xR     = obj.bc.reducedToFullVector(x);
             xR = x; % its the same
             obj.trial.setFValues(reshape(xR',obj.trial.ndimf,[])');
