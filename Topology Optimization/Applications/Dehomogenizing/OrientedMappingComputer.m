@@ -42,7 +42,7 @@ classdef OrientedMappingComputer < handle
             obj.orientation = cParams.orientation; %%importnat since regul need P1
         end
 
-        function isCF = computeIsOrientationCoherent(obj,b1)
+        function isCF = computeIsOrientationCoherent(obj,a1)
 
             % s.filterType = 'LUMP';
             % s.mesh  = obj.mesh;
@@ -56,13 +56,13 @@ classdef OrientedMappingComputer < handle
             
       %      a1.setFValues(u.project(a1.fValues))
 
-            b1   = b1.getFvaluesByElem();
-            bN1   = squeeze(b1(:,1,:));            
+            a1    = a1.getFvaluesByElem();
+            aN1   = squeeze(a1(:,1,:));            
             isCoh = false(obj.mesh.nnodeElem,obj.mesh.nelem);
             for iNode = 1:obj.mesh.nnodeElem
-                bNi    = squeeze(b1(:,iNode,:));
-                bN1bNI = dot(bN1,bNi);
-                isCoh(iNode,:) = (bN1bNI)>0;
+                aNi    = squeeze(a1(:,iNode,:));
+                aN1aNI = dot(aN1,aNi);
+                isCoh(iNode,:) = (aN1aNI)>0;
             end
             s.fValues = isCoh(:);
             s.mesh    = obj.mesh;

@@ -52,7 +52,7 @@ classdef SmallTest < handle
 
         function f = createOrientationField(obj,fV)
             fD = obj.createP1DiscontinousOrientation(fV);
-            f = obj.computeDoubleAngleOrientation(fD);            
+            f  = obj.computeDoubleAngleOrientation(fD);            
             f  = obj.computeOppositeSignInLeftPart(f);
         end
 
