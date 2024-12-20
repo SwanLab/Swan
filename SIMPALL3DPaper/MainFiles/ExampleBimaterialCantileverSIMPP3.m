@@ -1,4 +1,4 @@
-classdef ExampleNormalCantileverSIMPP3 < handle
+classdef ExampleBimaterialCantileverSIMPP3 < handle
 
     properties (Access = private)
         mesh
@@ -17,7 +17,7 @@ classdef ExampleNormalCantileverSIMPP3 < handle
 
     methods (Access = public)
 
-        function obj = ExampleNormalCantileverSIMPP3()
+        function obj = ExampleBimaterialCantileverSIMPP3()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -33,8 +33,8 @@ classdef ExampleNormalCantileverSIMPP3 < handle
             obj.createDualVariable();
             obj.createOptimizer();
 
-            saveas(gcf,'SIMPALL3DPaper/MatVoidCase/MonitoringNormalCantileverSIMPP3.fig');
-            obj.designVariable.fun.print('SIMPALL3DPaper/MatVoidCase/NormalCantileverSIMPP3');
+            saveas(gcf,'SIMPALL3DPaper/BimaterialCase/MonitoringBimaterialCantileverSIMPP3.fig');
+            obj.designVariable.fun.print('SIMPALL3DPaper/BimaterialCase/BimaterialCantileverSIMPP3');
         end
 
     end
@@ -71,15 +71,15 @@ classdef ExampleNormalCantileverSIMPP3 < handle
         end
 
         function createMaterialInterpolator(obj)
-            E0   = 1e-3;
-            nu0  = 1/3;
+            E0   = ;
+            nu0  = ;
             ndim = obj.mesh.ndim;
             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
             matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
 
 
-            E1  = 1;
-            nu1 = 0.49;
+            E1  = ;
+            nu1 = ;
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 

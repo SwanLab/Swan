@@ -1,4 +1,4 @@
-classdef ExampleNormalCantileverSIMPP3 < handle
+classdef ExampleNormalCantileverSIMPALL < handle
 
     properties (Access = private)
         mesh
@@ -17,7 +17,7 @@ classdef ExampleNormalCantileverSIMPP3 < handle
 
     methods (Access = public)
 
-        function obj = ExampleNormalCantileverSIMPP3()
+        function obj = ExampleNormalCantileverSIMPALL()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -33,8 +33,8 @@ classdef ExampleNormalCantileverSIMPP3 < handle
             obj.createDualVariable();
             obj.createOptimizer();
 
-            saveas(gcf,'SIMPALL3DPaper/MatVoidCase/MonitoringNormalCantileverSIMPP3.fig');
-            obj.designVariable.fun.print('SIMPALL3DPaper/MatVoidCase/NormalCantileverSIMPP3');
+            saveas(gcf,'SIMPALL3DPaper/MatVoidCase/MonitoringNormalCantileverSIMPALL.fig');
+            obj.designVariable.fun.print('SIMPALL3DPaper/MatVoidCase/NormalCantileverSIMPALL');
         end
 
     end
@@ -83,7 +83,7 @@ classdef ExampleNormalCantileverSIMPP3 < handle
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
-            s.interpolation  = 'SIMP_P3';
+            s.interpolation  = 'SIMPALL';
             s.dim            = '3D';
             s.matA = matA;
             s.matB = matB;
