@@ -159,7 +159,7 @@ classdef PhaseFieldComputer < handle
                     stop = true;
                 end
 
-                if i==lastStep+5
+                if i==lastStep+10
                     noFullyBroken = false;
                 end
                 i = i + 1;
