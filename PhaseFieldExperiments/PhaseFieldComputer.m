@@ -89,7 +89,9 @@ classdef PhaseFieldComputer < handle
                                 phiIter = phiIter + 1;
                                 obj.monitor.update(phiIter,{[],[],[],[],[],[],[tau]})
                                 s.tauArray(end+1) = tau;
-                                tau = 10*tau;
+                                if tau<=1e10
+                                    tau = 10*tau;
+                                end
                                 phi = phiProposed;
                                 costOldPhi = costPhi;
                                 costFun(1,end+1) = costPhi;

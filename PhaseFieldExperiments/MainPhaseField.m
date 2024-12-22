@@ -28,7 +28,7 @@ s.benchmark.N = 10;
 % SEN Traction
 s.benchmark.type.mesh = 'SENtraction';
 s.benchmark.type.bc = 'displacementTraction';
-s.benchmark.bcValues = [0:1e-5:5e-3,5.001e-3:1e-6:1e-1]; %HOMOG AREA
+s.benchmark.bcValues = [1e-10:1e-5:5e-3,5.001e-3:1e-6:1e-1]; %HOMOG AREA
 s.matInfo.E  = 210;
 s.matInfo.nu = 0.3;
 s.matInfo.Gc = 2.7e-3;
@@ -69,11 +69,11 @@ s.l0 = 0.01;
 % s.matInfo.Gc = 95*10e-6*100;
 % s.l0 = 5;
 
-s.matInfo.matType = 'PhaseFieldHomog';%'PhaseFieldHomog';  %'PhaseFieldAnalytic'
-s.matInfo.fileName = 'CircleMicroDamagePerimeter'; %'IsoMicroDamage','Circle/Square+MicroDamage+Area/Perimeter'
+s.matInfo.matType = 'PhaseFieldAnalytic';%'PhaseFieldHomog';  %'PhaseFieldAnalytic'
+s.matInfo.fileName = 'CircleMicroDamageArea'; %'IsoMicroDamage','Circle/Square+MicroDamage+Area/Perimeter'
 s.matInfo.degradation = 'PhaseFieldDegradation';
 s.dissipInfo.type = 'PhaseFieldDissipationAT';
-s.dissipInfo.pExp = 2;
+s.dissipInfo.pExp = 1;
 s.solverType = 'Gradient'; %'Newton'
 
 %% RUN
@@ -81,6 +81,6 @@ tester = TestingPhaseField(s);
 outputData = tester.compute();
 outputData.inputParameters = s;
 save("/home/gerard/Documents/GitHub/Swan/PhaseFieldExperiments/ResultsOctober/SENtraction/" + ...
-      "SENtraction_CircleArea_GradientX.mat","outputData") %ACTIVATE TO SAVE DATA!
+      "SENtraction_AT1_GradientX.mat","outputData") %ACTIVATE TO SAVE DATA!
 
 PhaseFieldPlotter(outputData);
