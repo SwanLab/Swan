@@ -31,7 +31,7 @@ classdef OrientedMappingComputer < handle
             obj.isCoherent            = obj.computeIsOrientationCoherent(a1);
             obj.interpolator          = obj.computeInterpolator();
             obj.phiMapping            = obj.computeMappings();
-            obj.totalCorrector        = obj.computeTotalCorrector(b1);
+            obj.totalCorrector        = obj.computeTotalCorrector(a1);
             dCoord                    = obj.phiMapping + obj.totalCorrector;
         end
         
@@ -42,12 +42,12 @@ classdef OrientedMappingComputer < handle
         function init(obj,cParams)
             obj.mesh         = cParams.mesh;
             obj.orientation  = cParams.orientation; 
-            obj.orientationA{1} = obj.computeOrientationA();
+            obj.orientationA{1} = obj.computeOrientationA1(obj.orientation{1});
+            obj.orientationA{2} = obj.computeOrientationA2(obj.orientation{1});
         end
 
-        function aF = computeOrientationA(obj)
-            b1 = obj.orientation{1};
-            beta = atan2(b1.fValues(:,2),b1.fValues(:,1));
+        function aF = computeOrientationA1(obj,b)
+            beta = atan2(b.fValues(:,2),b.fValues(:,1));
             al = beta/2;
             a = [cos(al), sin(al)];
             s.fValues = a;
@@ -56,22 +56,17 @@ classdef OrientedMappingComputer < handle
             aF = LagrangianFunction(s);              
         end
 
-
+        function aF = computeOrientationA2(obj,b)
+            beta = atan2(b.fValues(:,2),b.fValues(:,1));
+            al = beta/2;
+            a = [-sin(al), cos(al)];
+            s.fValues = a;
+            s.mesh    = obj.mesh;
+            s.order   = 'P1D';
+            aF = LagrangianFunction(s);              
+        end        
 
         function isCF = computeIsOrientationCoherent(obj,a1)
-
-            % s.filterType = 'LUMP';
-            % s.mesh  = obj.mesh;
-            % s.trial = LagrangianFunction.create(obj.mesh,a1.ndimf,'P1');
-            % f = Filter.create(s);
-            % a1 = f.compute(a1,2);
-
-
-      %      a1   = project(a1,'P1'); 
-       %     u = UnitBallProjector([]);
-            
-      %      a1.setFValues(u.project(a1.fValues))
-
             a1    = a1.getFvaluesByElem();
             aN1   = squeeze(a1(:,1,:));            
             isCoh = false(obj.mesh.nnodeElem,obj.mesh.nelem);
@@ -123,7 +118,7 @@ classdef OrientedMappingComputer < handle
         end          
 
         function d = computeDilation(obj)
-            s.orientationVector = obj.orientation;
+            s.orientationVector = obj.orientationA;
             s.mesh              = obj.mesh;
             dC = DilationComputer(s);
             d  = dC.compute();
@@ -133,8 +128,8 @@ classdef OrientedMappingComputer < handle
             er = exp(obj.dilation);
             d = cell(obj.mesh.ndim,1);
             for iDim = 1:obj.mesh.ndim
-                b  = obj.orientation{iDim};
-                d{iDim} = er.*b;
+                a  = obj.orientationA{iDim};
+                d{iDim} = er.*a;
             end
         end            
 

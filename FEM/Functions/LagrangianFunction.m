@@ -171,6 +171,30 @@ classdef LagrangianFunction < FeFunction
             end
         end
 
+        function plotContour(obj) % 2D domains only
+            switch obj.getOrderTextual(obj.order)
+                case 'LINEAR'
+                    figure()
+                    connecP = obj.getDofConnecByVector();
+                    for iDim = 1:obj.ndimf                                                
+                        subplot(1,obj.ndimf,iDim);
+                        coordP  = obj.getDofFieldByVector(iDim,obj.dofCoord);                                                
+                        x  = coordP(:,1);
+                        y  = coordP(:,2);
+                        z  = double(obj.fValues(:,iDim));
+                        tricontour(connecP,x,y,z,30);
+                        view(0,90)
+                        %colorbar
+                       % shading interp
+                      %  a.EdgeColor = [0 0 0];
+                        title(['dim = ', num2str(iDim)]);
+                    end
+                otherwise
+                    f = obj.project('P1D');
+                    f.plot()
+            end
+        end        
+
         function plotVector(obj,varargin) %only for linear
             if size(varargin, 1) == 1, n = varargin{1}; else, n = 2; end
             figure();

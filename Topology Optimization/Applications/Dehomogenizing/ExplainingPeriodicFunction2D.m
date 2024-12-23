@@ -23,8 +23,7 @@ classdef ExplainingPeriodicFunction2D < handle
         function obj = ExplainingPeriodicFunction2D()
             obj.init();
             obj.createMesh();
-            obj.createAngle();
-            obj.createOrientation();
+            obj.createOrientations();
             obj.dehomogenize();
         end
 
@@ -33,15 +32,15 @@ classdef ExplainingPeriodicFunction2D < handle
     methods (Access = private)
 
         function init(obj)
-            obj.meshSize = 0.032;
-            obj.nCells   = [11 11; 21 21];
+            obj.meshSize = 0.025;
+            obj.nCells   = [10 10; 20 20];
             obj.xmin = 0;
             obj.xmax = 2;
             obj.ymin = 0;
             obj.ymax = 1;
             %obj.widthH = 0.4;
-            obj.widthH = 0.8;
-            obj.widthW = 0.8;
+            obj.widthH = 0.85;
+            obj.widthW = 0.85;
         end
 
         function createMesh(obj)
@@ -59,55 +58,48 @@ classdef ExplainingPeriodicFunction2D < handle
             obj.mesh = m;
         end
 
-        function createAngle(obj)
-            s.fHandle = @(x) obj.createAlphaValues(x);
-            s.mesh    = obj.mesh;
-            s.ndimf   = 1;
-            a         = AnalyticalFunction(s);
-           
-
-             % s.filterType = 'LUMP';
-             % s.mesh  = obj.mesh;
-             % s.trial = LagrangianFunction.create(obj.mesh,a.ndimf,'P1');
-             % f = Filter.create(s);
-             % a = f.compute(a,2);
-
-            obj.alpha = a;%project(a,'P1');%a             
-        end
-
-        function f = createAlphaValues(obj,x)
-            x1 = x(1,:,:);
-            x2 = x(2,:,:);
+        function createOrientations(obj)
+            coord = obj.mesh.coord;
+            x1 = coord(:,1);
+            x2 = coord(:,2);
             x10 = (max(x1(:))+min(x1(:)))/2;
-            x20 = 0;            
-            f = atan2(x2-x20 +0.5*(max(x2(:))),x1-x10);
-            isLeft = x1 < (min(x1(:))+ max(x1(:)))/2;
-            f(isLeft) = f(isLeft) + pi;
+            x20 = -0.5*max(x2(:));                                    
+            r = sqrt((x1-x10).^2+(x2-x20).^2);
+            fR = obj.normalize([(x1-x10)./r,(x2-x20)./r]);            
+            fT = obj.normalize([-(x2-x20)./r,(x1-x10)./r]);
+            obj.orientation{1} = obj.createOrientationField(fR);
+            obj.orientation{2} = obj.createOrientationField(fT);
+        end 
+
+        function fN = normalize(obj,f)
+            fN = f./vecnorm(f,2,2);
         end
 
-        function createOrientation(obj)
-            nDim = obj.mesh.ndim;
-            for iDim = 1:nDim
-                s.operation = @(xV) obj.createOrientationFunction(iDim,xV);
-                s.ndimf     = 2;
-                s.mesh      = obj.mesh;
-                aF = DomainFunction(s);     
-
-                %better change the sign than adding 180degrees
-                obj.orientation{iDim} = aF;
-            end
+        function f = createOrientationField(obj,fV)
+            fD = obj.createP1DiscontinousOrientation(fV);
+            f  = obj.computeAngleOrientation(fD);            
         end
 
-        function or = createOrientationFunction(obj,iDim,xV)
-            alphaV = obj.alpha.evaluate(xV);
-            if iDim == 1                
-                or(1,:,:) = cos(alphaV);
-                or(2,:,:) = sin(alphaV);
-            else
-                alphaV = obj.alpha.evaluate(xV);
-                or(1,:,:) = -sin(alphaV);
-                or(2,:,:) = cos(alphaV);
-            end
+     function fS = computeAngleOrientation(obj,f)
+            aV = f.fValues;
+            aV1 = aV(:,1);
+            aV2 = aV(:,2);
+            fN(:,1) = aV1.^2-aV2.^2;
+            fN(:,2) = 2*aV1.*aV2;
+            s.fValues = fN;
+            s.mesh    = obj.mesh;
+            s.order   = 'P1D';
+            s.ndimf   = 2;
+            fS = LagrangianFunction(s);            
+        end
+
+        function aF = createP1DiscontinousOrientation(obj,fV)
+            s.fValues = fV;
+            s.mesh    = obj.mesh;
+            s.order   = 'P1';
+            s.ndimf   = 2;
+            aF = LagrangianFunction(s);
+            aF = project(aF,'P1D');
         end
 
         function plotOrientation(obj)            

@@ -65,8 +65,8 @@ classdef SmallTest < handle
             x10 = (max(x1(:))+min(x1(:)))/2;
             x20 = -0.5*max(x2(:));                                    
             r = sqrt((x1-x10).^2+(x2-x20).^2);
-            fR = obj.normalize([x1-x10./r,x2-x20./r]);            
-            fT = obj.normalize([-(x2-x20)./r,x1-x10./r]);
+            fR = obj.normalize([(x1-x10)./r,(x2-x20)./r]);            
+            fT = obj.normalize([-(x2-x20)./r,(x1-x10)./r]);
             obj.orientation{1} = obj.createOrientationField(fR);
             obj.orientation{2} = obj.createOrientationField(fT);
         end 
@@ -78,7 +78,6 @@ classdef SmallTest < handle
         function f = createOrientationField(obj,fV)
             fD = obj.createP1DiscontinousOrientation(fV);
             f  = obj.computeAngleOrientation(fD);            
-          %  f  = obj.computeOppositeSignInLeftPart(f);
         end
 
         function fS = computeAngleOrientation(obj,f)
@@ -103,31 +102,7 @@ classdef SmallTest < handle
             aF = project(aF,'P1D');
         end
 
-        function fS = computeOppositeSignInLeftPart(obj,fS)
-            fElem = fS.getFvaluesByElem;
-            fSElem = fElem;
-            isLeft = obj.isLeft;
-            fSElem(:,:,isLeft) = -fElem(:,:,isLeft);           
-            connec = fS.getDofConnec;
-            for iNode = 1:3
-                iDof = (iNode-1)*fS.ndimf+1;
-                node = (connec(:,iDof)-1)/fS.ndimf+1;
-                fV(node,:) = squeeze(fSElem(:,iNode,:))';
-            end
-            s.fValues = fV;
-            s.mesh    = obj.mesh;
-            s.order   = 'P1D';
-            s.ndimf   = 2;
-            fS = LagrangianFunction(s);
-        end
-
-        function itIs = isLeft(obj)
-            coord= obj.mesh.computeBaricenter();
-            x1 = coord(:,1);
-            x2 = coord(:,2);
-            itIs = x1 < (min(x1(:))+ max(x1(:)))/2;
-        end
-        
+       
         function createOrientedMapping(obj)
             s.mesh = obj.mesh;
             s.orientation = obj.orientation;
