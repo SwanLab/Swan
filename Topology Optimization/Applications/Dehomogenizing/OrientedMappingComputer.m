@@ -1,7 +1,7 @@
 classdef OrientedMappingComputer < handle
 
     properties (Access = private)  
-        orientation    
+        orientationB    
         orientationA
         isCoherent        
         interpolator    
@@ -26,7 +26,6 @@ classdef OrientedMappingComputer < handle
         function dCoord = computeDeformedCoordinates(obj)
             obj.dilation              = obj.computeDilation();
             obj.dilatedOrientation    = obj.computeDilatedOrientationVector();            
-            b1 = obj.orientation{1};
             a1 = obj.orientationA{1};
             obj.isCoherent            = obj.computeIsOrientationCoherent(a1);
             obj.interpolator          = obj.computeInterpolator();
@@ -40,10 +39,10 @@ classdef OrientedMappingComputer < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.mesh         = cParams.mesh;
-            obj.orientation  = cParams.orientation; 
-            obj.orientationA{1} = obj.computeOrientationA1(obj.orientation{1});
-            obj.orientationA{2} = obj.computeOrientationA2(obj.orientation{1});
+            obj.mesh            = cParams.mesh;
+            obj.orientationB    = cParams.orientation; 
+            obj.orientationA{1} = obj.computeOrientationA1(obj.orientationB{1});
+            obj.orientationA{2} = obj.computeOrientationA2(obj.orientationB{1});
         end
 
         function aF = computeOrientationA1(obj,b)

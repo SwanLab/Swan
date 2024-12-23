@@ -148,52 +148,16 @@ classdef LagrangianFunction < FeFunction
         end
 
         function plot(obj) % 2D domains only
-            switch obj.getOrderTextual(obj.order)
-                case 'LINEAR'
-                    figure()
-                    connecP = obj.getDofConnecByVector();
-                    for iDim = 1:obj.ndimf                                                
-                        subplot(1,obj.ndimf,iDim);
-                        coordP  = obj.getDofFieldByVector(iDim,obj.dofCoord);                                                
-                        x  = coordP(:,1);
-                        y  = coordP(:,2);
-                        z  = double(obj.fValues(:,iDim));
-                        a = trisurf(connecP,x,y,z);
-                        view(0,90)
-                        %colorbar
-                        shading interp
-                        a.EdgeColor = [0 0 0];
-                        title(['dim = ', num2str(iDim)]);
-                    end
-                otherwise
-                    f = obj.project('P1D');
-                    f.plot()
-            end
+            plotFun = @(tri,x,y,z,iDim) obj.plotF(tri,x,y,z,iDim);
+            plotF = @() obj.plot();
+            obj.generalPlot(plotFun,plotF)
         end
 
         function plotContour(obj) % 2D domains only
-            switch obj.getOrderTextual(obj.order)
-                case 'LINEAR'
-                    figure()
-                    connecP = obj.getDofConnecByVector();
-                    for iDim = 1:obj.ndimf                                                
-                        subplot(1,obj.ndimf,iDim);
-                        coordP  = obj.getDofFieldByVector(iDim,obj.dofCoord);                                                
-                        x  = coordP(:,1);
-                        y  = coordP(:,2);
-                        z  = double(obj.fValues(:,iDim));
-                        tricontour(connecP,x,y,z,30);
-                        view(0,90)
-                        %colorbar
-                       % shading interp
-                      %  a.EdgeColor = [0 0 0];
-                        title(['dim = ', num2str(iDim)]);
-                    end
-                otherwise
-                    f = obj.project('P1D');
-                    f.plot()
-            end
-        end        
+           plotFun  = @(tri,x,y,z,iDim) obj.plotContourF(tri,x,y,z,iDim);
+           plotC    = @() obj.plotContour();
+           obj.generalPlot(plotFun,plotC)
+        end           
 
         function plotVector(obj,varargin) %only for linear
             if size(varargin, 1) == 1, n = varargin{1}; else, n = 2; end
@@ -499,6 +463,43 @@ classdef LagrangianFunction < FeFunction
                     fM(rows,iStre) = fV(iStre,iGaus,:);
                 end
             end
+        end
+
+        function plotF(obj,tri,x,y,z,iDim)
+            a = trisurf(tri,x,y,z);
+            view(0,90)
+            %colorbar
+            shading interp
+            a.EdgeColor = [0 0 0];
+            title(['dim = ', num2str(iDim)]);
+        end
+
+        function plotContourF(obj,tri,x,y,z,iDim) % 2D domains only
+            [~,a] = tricontour(tri,x,y,z,30);
+            view(0,90)
+            set(a,'LineWidth',5);
+            view(0,90)
+            colorbar
+            title(['dim = ', num2str(iDim)]);
+        end           
+
+        function generalPlot(obj,plotFun,plotD)
+            switch obj.getOrderTextual(obj.order)
+                case 'LINEAR'
+                    figure()
+                    connecP  = obj.getDofConnecByVector();
+                    for iDim = 1:obj.ndimf                                                
+                        subplot(1,obj.ndimf,iDim);
+                        coordP  = obj.getDofFieldByVector(iDim,obj.dofCoord);                                                
+                        x  = coordP(:,1);
+                        y  = coordP(:,2);
+                        z  = double(obj.fValues(:,iDim));
+                        plotFun(connecP,x,y,z,iDim);
+                    end
+                otherwise
+                    f = obj.project('P1D');
+                    plotD(f);
+            end            
         end
 
     end
