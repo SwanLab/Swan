@@ -29,7 +29,8 @@ classdef MappingComputer < handle
         
             uF = LagrangianFunction(s);     
 
-             uF = project(abs(uF),'P1D');
+            uF = project(abs(uF),'P1D');            
+
             uFf = uF.getVectorFields();
             uFf{1} = uFf{1} - Mean(uFf{1},2);
             uFf{2} = uFf{2} - Mean(uFf{2},2);
@@ -38,6 +39,8 @@ classdef MappingComputer < handle
             s.fValues(:,2) = uFf{2}.fValues;
             s.order   ='P1D';                                  
             uF = LagrangianFunction(s);             
+
+   
         end
         %% 
 
