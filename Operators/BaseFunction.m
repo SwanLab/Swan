@@ -38,6 +38,11 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             p1D.plot();
         end    
 
+        function plotContour(obj)
+            p1D = project(obj,'P1D');
+            p1D.plotContour();
+        end            
+
         function plotVector(obj,varargin)
             if size(varargin, 1) == 1, n = varargin{1}; else, n = 2; end
             p1D = project(obj,'P1D');            
@@ -117,51 +122,66 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
         function r = uminus(a)
             aOp = BaseFunction.computeOperation(a);
             s.operation = @(xV) -aOp(xV);
-            s.mesh = a.mesh;
+            s.ndimf = a.ndimf;            
+            s.mesh  = a.mesh;
             r = DomainFunction(s);
         end
 
         function r = power(a,b)
             aOp = BaseFunction.computeOperation(a);
             s.operation = @(xV) aOp(xV).^b;
-            s.mesh = a.mesh;
+            s.ndimf = a.ndimf;            
+            s.mesh  = a.mesh;
             r = DomainFunction(s);
         end
 
         function r = norm(a,b)
             aOp = BaseFunction.computeOperation(a);
             s.operation = @(xV) pagenorm(aOp(xV),b);
-            s.mesh = a.mesh;
+            s.ndimf = a.ndimf;            
+            s.mesh  = a.mesh;
             r = DomainFunction(s);
         end
 
         function r = log(a)
             aOp = BaseFunction.computeOperation(a);
             s.operation = @(xV) log(aOp(xV));
-            s.mesh = a.mesh;
+            s.ndimf = a.ndimf;
+            s.mesh  = a.mesh;
             r = DomainFunction(s);
         end
 
         function r = exp(a)
             aOp = BaseFunction.computeOperation(a);
             s.operation = @(xV) exp(aOp(xV));
-            s.mesh = a.mesh;
+            s.ndimf = a.ndimf;            
+            s.mesh  = a.mesh;
             r = DomainFunction(s);
         end
 
         function r = cos(a)
             aOp = BaseFunction.computeOperation(a);
             s.operation = @(xV) cos(aOp(xV));
-            s.mesh = a.mesh;
+            s.ndimf = a.ndimf;            
+            s.mesh  = a.mesh;
             r = DomainFunction(s);
         end        
 
         function r = sin(a)
             aOp = BaseFunction.computeOperation(a);
             s.operation = @(xV) sin(aOp(xV));
+            s.ndimf = a.ndimf;            
+            s.mesh  = a.mesh;
+            r = DomainFunction(s);
+        end 
+
+        function r = abs(a)
+            aOp = BaseFunction.computeOperation(a);
+            s.operation = @(xV) abs(aOp(xV));
+            s.ndimf = a.ndimf;                        
             s.mesh = a.mesh;
             r = DomainFunction(s);
-        end                
+        end          
 
         function r = trace(a)
             aOp = BaseFunction.computeOperation(a);

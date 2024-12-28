@@ -9,7 +9,7 @@ classdef Dehomogenizer < handle
     properties (Access = private)
         cellLevelSetParams
         nCells
-        orientation
+        orientationA
         mesh
         remesher
     end
@@ -49,7 +49,7 @@ classdef Dehomogenizer < handle
 
         function init(obj,cParams)
             obj.nCells             = cParams.nCells;
-            obj.orientation        = cParams.orientation;
+            obj.orientationA       = cParams.orientationA;
             obj.cellLevelSetParams = cParams.cellLevelSetParams;
             obj.mesh               = cParams.mesh;
         end
@@ -63,8 +63,8 @@ classdef Dehomogenizer < handle
         end            
 
         function o = computeOrientedMappingComputer(obj)
-            s.orientation = obj.orientation;
-            s.mesh        = obj.mesh;
+            s.orientationA = obj.orientationA;
+            s.mesh         = obj.mesh;
             o = OrientedMappingComputer(s);
         end
 

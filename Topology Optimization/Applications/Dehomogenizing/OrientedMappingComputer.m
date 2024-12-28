@@ -1,7 +1,6 @@
 classdef OrientedMappingComputer < handle
 
-    properties (Access = private)  
-        orientationB    
+    properties (Access = private)      
         orientationA
         isCoherent        
         interpolator    
@@ -40,30 +39,8 @@ classdef OrientedMappingComputer < handle
         
         function init(obj,cParams)
             obj.mesh            = cParams.mesh;
-            obj.orientationB    = cParams.orientation; 
-            obj.orientationA{1} = obj.computeOrientationA1(obj.orientationB{1});
-            obj.orientationA{2} = obj.computeOrientationA2(obj.orientationB{1});
+            obj.orientationA    = cParams.orientationA; 
         end
-
-        function aF = computeOrientationA1(obj,b)
-            beta = atan2(b.fValues(:,2),b.fValues(:,1));
-            al = beta/2;
-            a = [cos(al), sin(al)];
-            s.fValues = a;
-            s.mesh    = obj.mesh;
-            s.order   = 'P1D';
-            aF = LagrangianFunction(s);              
-        end
-
-        function aF = computeOrientationA2(obj,b)
-            beta = atan2(b.fValues(:,2),b.fValues(:,1));
-            al = beta/2;
-            a = [-sin(al), cos(al)];
-            s.fValues = a;
-            s.mesh    = obj.mesh;
-            s.order   = 'P1D';
-            aF = LagrangianFunction(s);              
-        end        
 
         function isCF = computeIsOrientationCoherent(obj,a1)
             a1    = a1.getFvaluesByElem();
