@@ -170,8 +170,8 @@ classdef LagrangianFunction < FeFunction
             quiver(x, y, fX, fY, 'AutoScale', 'on', 'LineWidth', 1.5);              
             axis equal;  
             box on;     
-           % xlim([min(x), max(x)]);
-           % ylim([min(y), max(y)]);
+            xlim([min(x), max(x)]);
+            ylim([min(y), max(y)]);            
         end
 
         function fV = getDofFieldByVector(obj,dimf,field)   

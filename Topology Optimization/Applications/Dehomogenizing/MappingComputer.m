@@ -16,16 +16,17 @@ classdef MappingComputer < handle
 
         function uF = compute(obj)
             LHS = obj.computeStiffnessMatrix();
+            In  = obj.interpolator;
             for iDim = 1:obj.mesh.ndim
                 RHS = obj.computeRHS(iDim);
                 uC  = obj.solveSystem(LHS,RHS);
-                uC  = reshape(uC,obj.mesh.nnodeElem,[]);
-                uV(iDim,:,:) = uC;
+                uC  = In*uC;                          
+                uV(iDim,:,:) = reshape(uC,obj.mesh.nnodeElem,[]);
             end
             s.mesh    = obj.mesh;
             s.fValues = reshape(uV,obj.mesh.ndim,[])';
-            s.order    ='P1D';
-            uF = LagrangianFunction(s);
+            s.order   ='P1D';                                  
+            uF = LagrangianFunction(s);            
         end
 
     end
@@ -65,9 +66,7 @@ classdef MappingComputer < handle
             LHS = In'*LHS*In;
             a.type = 'DIRECT';
             s = Solver.create(a);
-            u = s.solve(LHS,RHS);
-            u = In*u;            
-            u = u(1:end);            
+            u = s.solve(LHS,RHS);  
         end
 
     end
