@@ -31,7 +31,7 @@ classdef OrientedMappingComputer < handle
             obj.phiMapping            = obj.computeMappings();
             plotIsoLines(obj.phiMapping)
             obj.totalCorrector        = obj.computeTotalCorrector(a1);
-            dCoord                    = obj.phiMapping + obj.totalCorrector;
+            dCoord                    = obj.phiMapping;% + obj.totalCorrector;
         end
         
     end

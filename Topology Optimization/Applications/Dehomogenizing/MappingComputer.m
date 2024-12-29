@@ -20,23 +20,36 @@ classdef MappingComputer < handle
             for iDim = 1:obj.mesh.ndim
                 RHS = obj.computeRHS(iDim);
                 uC  = obj.solveSaddleSystem(LHS,RHS);
-                uC  = In*uC;                          
-                uV(iDim,:,:) = reshape(uC,obj.mesh.nnodeElem,[]);
+                uD  = In*uC;                          
+                uV(iDim,:,:) = reshape(uD,obj.mesh.nnodeElem,[]);
+                uCF(:,iDim) = uC;
             end
+
+            % 
+            s.mesh    = obj.mesh;
+            s.fValues = uCF;
+            s.order   ='P1';                                          
+            uFC = LagrangianFunction(s);    
+
+             s.mesh    = obj.mesh;
+             s.fValues = abs(uFC.fValues);
+             s.order   ='P1';                                  
+             uFC = LagrangianFunction(s);             
+
             s.mesh    = obj.mesh;
             s.fValues = reshape(uV,obj.mesh.ndim,[])';
             s.order   ='P1D';                                          
             uF = LagrangianFunction(s);     
 
             
-            % 
-            % uF = project(abs(uF),'P1D');     
-            % s.mesh    = obj.mesh;
-            % s.fValues = abs(uF.fValues);
-            % s.order   ='P1D';                                  
-            % uF = LagrangianFunction(s);  
-            % 
-            % 
+
+            uF = project(abs(uF),'P1D');     
+            s.mesh    = obj.mesh;
+            s.fValues = abs(uF.fValues);
+            s.order   ='P1D';                                  
+            uF = LagrangianFunction(s);  
+
+
             % uFf = uF.getVectorFields();
             % uFf{1} = uFf{1} - Mean(uFf{1},2);
             % uFf{2} = uFf{2} - Mean(uFf{2},2);
@@ -45,8 +58,8 @@ classdef MappingComputer < handle
             %  s.fValues(:,2) = uFf{2}.fValues;
             %  s.order   ='P1D';
             %  uF = LagrangianFunction(s);
-
-  
+            % 
+            % 
          
              % 
              % 
