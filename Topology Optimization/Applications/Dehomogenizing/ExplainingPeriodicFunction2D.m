@@ -34,7 +34,7 @@ classdef ExplainingPeriodicFunction2D < handle
 
         function init(obj)
             obj.meshSize = 0.03;
-            obj.nCells   = [10 10; 20 20];
+            obj.nCells   = repmat(linspace(10,20,5),2,1)';
             obj.xmin = 0;
             obj.xmax = 2;
             obj.ymin = 0;
@@ -51,7 +51,7 @@ classdef ExplainingPeriodicFunction2D < handle
             [X,Y] = meshgrid(xv,yv);
             s.coord(:,1) = X(:);
             s.coord(:,2) = Y(:);
-            [F,V] = mesh2tri(X,Y,zeros(size(X)),'f');
+            [F,V] = mesh2tri(X,Y,zeros(size(X)),'x');
             s.coord  = V(:,1:2);
             s.connec = F;
 
@@ -63,7 +63,7 @@ classdef ExplainingPeriodicFunction2D < handle
             coord = obj.mesh.coord;
             x1 = coord(:,1);
             x2 = coord(:,2);
-            x10 = (max(x1(:))+min(x1(:)))/2;
+            x10 = (max(x1(:))+min(x1(:)))/2+0.5;
             x20 = -0.1*max(x2(:));                                    
             r = sqrt((x1-x10).^2+(x2-x20).^2);
             fR = obj.normalize([(x1-x10)./r,(x2-x20)./r]);            
@@ -169,7 +169,7 @@ classdef ExplainingPeriodicFunction2D < handle
             s.nCells             = obj.nCells;
             s.cellLevelSetParams = obj.createLevelSetCellParams();
             s.mesh               = obj.mesh;
-            %s.orientationA       = obj.orientationA;
+        %  s.orientationA      = obj.orientationA;
             s.orientationA       = obj.createOrientationAfromB(); 
             d = Dehomogenizer(s);
             ls = d.compute();

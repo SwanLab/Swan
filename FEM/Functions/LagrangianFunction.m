@@ -153,11 +153,30 @@ classdef LagrangianFunction < FeFunction
             obj.generalPlot(plotFun,plotF)
         end
 
-        function plotContour(obj) % 2D domains only
-           plotFun  = @(tri,x,y,z,iDim) obj.plotContourF(tri,x,y,z,iDim);
+        function plotContour(obj,varargin) % 2D domains only
+        if size(varargin, 1) == 1, nC = varargin{1}; else, nC = 30; end            
+           plotFun  = @(tri,x,y,z,iDim) obj.plotContourF(tri,x,y,z,iDim,nC);
            plotC    = @() obj.plotContour();
            obj.generalPlot(plotFun,plotC)
-        end           
+        end     
+
+        function plotIsoLines(obj,varargin) % 2D domains only 
+            if size(varargin, 1) == 1, nC = varargin{1}; else, nC = 16; end  
+            figure()
+            connecP  = obj.getDofConnecByVector();
+            for iDim = 1:obj.ndimf
+                coordP  = obj.getDofFieldByVector(iDim,obj.dofCoord);
+                x  = coordP(:,1);
+                y  = coordP(:,2);
+                z  = double(obj.fValues(:,iDim));
+                [~,h] = tricontour(connecP,x,y,z,nC);
+                view(0,90)            
+                set(h,'LineWidth',2);
+                set(h, 'EdgeColor', 'k');
+                view(0,90)
+                hold on
+            end
+        end
 
         function plotVector(obj,varargin) %only for linear
             if size(varargin, 1) == 1, n = varargin{1}; else, n = 2; end
@@ -487,14 +506,22 @@ classdef LagrangianFunction < FeFunction
             title(['dim = ', num2str(iDim)]);
         end
 
-        function plotContourF(obj,tri,x,y,z,iDim) % 2D domains only
-            [~,a] = tricontour(tri,x,y,z,30);
+        function plotContourF(obj,tri,x,y,z,iDim,nC) % 2D domains only                       
+            [c,h] = tricontour(tri,x,y,z,nC);
+            view(0,90)            
+            set(h,'LineWidth',5);
             view(0,90)
-            set(a,'LineWidth',5);
-            view(0,90)
-            colorbar
-            title(['dim = ', num2str(iDim)]);
-        end           
+            %colorbar
+            title(['dim = ', num2str(iDim)]);            
+            c = reshape(c,2,4,[]);   
+            nP = size(c,3);
+            c2 = c(:,:,(2*nP/nC):end);
+            c3 = reshape(c2,2,[]);
+            %clabel([],h,'LabelSpacing',72,'Color','b','FontWeight','bold');            
+            clabel(c3);            
+        end      
+
+
 
         function generalPlot(obj,plotFun,plotD)
             switch obj.getOrderTextual(obj.order)

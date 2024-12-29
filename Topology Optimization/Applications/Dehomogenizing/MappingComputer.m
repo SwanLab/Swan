@@ -19,28 +19,37 @@ classdef MappingComputer < handle
             In  = obj.interpolator;
             for iDim = 1:obj.mesh.ndim
                 RHS = obj.computeRHS(iDim);
-                uC  = obj.solveSystem(LHS,RHS);
+                uC  = obj.solveSaddleSystem(LHS,RHS);
                 uC  = In*uC;                          
                 uV(iDim,:,:) = reshape(uC,obj.mesh.nnodeElem,[]);
             end
             s.mesh    = obj.mesh;
             s.fValues = reshape(uV,obj.mesh.ndim,[])';
-            s.order   ='P1D';                                  
-        
+            s.order   ='P1D';                                          
             uF = LagrangianFunction(s);     
 
-            uF = project(abs(uF),'P1D');            
+            
+            % 
+            % uF = project(abs(uF),'P1D');     
+            % s.mesh    = obj.mesh;
+            % s.fValues = abs(uF.fValues);
+            % s.order   ='P1D';                                  
+            % uF = LagrangianFunction(s);  
+            % 
+            % 
+            % uFf = uF.getVectorFields();
+            % uFf{1} = uFf{1} - Mean(uFf{1},2);
+            % uFf{2} = uFf{2} - Mean(uFf{2},2);
+            %  s.mesh    = obj.mesh;
+            %  s.fValues(:,1) = uFf{1}.fValues;
+            %  s.fValues(:,2) = uFf{2}.fValues;
+            %  s.order   ='P1D';
+            %  uF = LagrangianFunction(s);
 
-            uFf = uF.getVectorFields();
-            uFf{1} = uFf{1} - Mean(uFf{1},2);
-            uFf{2} = uFf{2} - Mean(uFf{2},2);
-            s.mesh    = obj.mesh;
-            s.fValues(:,1) = uFf{1}.fValues;
-            s.fValues(:,2) = uFf{2}.fValues;
-            s.order   ='P1D';                                  
-            uF = LagrangianFunction(s);             
-
-   
+  
+         
+             % 
+             % 
         end
         %% 
 
@@ -76,20 +85,28 @@ classdef MappingComputer < handle
             RHS = In'*rhsV;          
         end
 
-        function u = solveSystem(obj,LHS,RHS)
+        function u = solveSaddleSystem(obj,LHS,RHS)
+            M = obj.createMassMatrix();
+            eta = 0.01;
             In = obj.interpolator;            
-            LHS = In'*LHS*In;
-
-            I = ones(size(LHS,1),1);
-            LHS = [LHS,I;I',0];  
-            RHS = [RHS;0];
-
-
+            LHS = In'*LHS*In+eta*In'*M*In;
+          %  I = ones(size(LHS,1),1);
+          %  LHS = [LHS,I;I',0];  
+          %  RHS = [RHS;0];
             a.type = 'DIRECT';
             s = Solver.create(a);
-            u = s.solve(LHS,RHS);  
-           
-            u = u(1:end-1);
+            u = s.solve(LHS,RHS);             
+          %  u = u(1:end-1);
+        end
+
+        function M = createMassMatrix(obj)
+            s.type            = 'MassMatrix';
+            s.mesh            = obj.mesh;
+            s.test            = obj.testFunction;% LagrangianFunction.create(obj.mesh,1,'P1');
+            s.trial           = obj.testFunction;%LagrangianFunction.create(obj.mesh,1,'P1');
+            s.quadratureOrder = 2;
+            LHS               = LHSintegrator.create(s);
+            M = LHS.compute();
         end
 
     end
