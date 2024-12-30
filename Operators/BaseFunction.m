@@ -31,7 +31,12 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             s.projectorType = target;
             proj = Projector.create(s);
             fun = proj.project(obj);
-        end       
+        end   
+
+        function print(obj,varargin)
+            p1D = project(obj,'P1D');
+            p1D.print(varargin)
+        end
 
         function plot(obj)
             p1D = project(obj,'P1D');
