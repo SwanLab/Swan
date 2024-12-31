@@ -148,8 +148,8 @@ classdef LevelSetPeriodicAndOriented < handle
     methods (Access = private, Static)
 
         function f = periodicFunction(y)
-         %   f = abs(cos(1*pi*(y))).^2;           
-            %f = abs(cos(pi*(y)));           
+            %f = ((cos(1*pi*(y)))).^2;           
+            %f = (cos(pi*(y)));           
             f = (y - floor(y));
         end
 

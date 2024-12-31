@@ -1,9 +1,5 @@
 classdef BaseFunction < handle & matlab.mixin.Copyable
 
-    properties (Access = public)
-
-    end
-
     properties (GetAccess = protected, SetAccess = protected)
        fxVOld
        xVOldfV
@@ -54,6 +50,12 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             plotVector(p1D,n);
         end             
 
+        function v = L2norm(obj,varargin)   
+            if size(varargin, 1) == 1, qOrder = varargin{1}; else, qOrder = 2; end            
+            int = Integrator.compute(obj.*obj,obj.mesh,qOrder);
+            v   = sqrt(int);
+        end                
+
         function r = ctranspose(a)
             aOp = BaseFunction.computeOperation(a);
             s.operation = @(xV) pagetranspose(aOp(xV));
@@ -62,27 +64,80 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
         end
 
         function r = plus(a,b)
-            aOp = BaseFunction.computeOperation(a);
-            bOp = BaseFunction.computeOperation(b);
-            s.operation = @(xV) aOp(xV) + bOp(xV);
-            if isa(a,'BaseFunction')
-                s.mesh = a.mesh;
+            if isa(a, 'LagrangianFunction') && isa(b, 'LagrangianFunction') && isequal(a.order,b.order)
+                if isa(a, 'LagrangianFunction')
+                    res = copy(a);
+                    val1 = a.fValues;
+                    fEv1 = a.fxVOld;
+                else
+                    val1 = a;
+                    fEv1 = a;
+                end
+                if isa(b, 'LagrangianFunction')
+                    res = copy(b);
+                    val2 = b.fValues;
+                    fEv2 = b.fxVOld;
+                else
+                    val2 = b;
+                    fEv2 = b;
+                end
+                if ~isempty(fEv1) && ~isempty(fEv2)
+                    res.fxVOld = fEv1 + fEv2;
+                else
+                    res.fxVOld = [];
+                end
+                res.fValues = val1 + val2;
+                r = res;
             else
-                s.mesh = b.mesh;
+                aOp = BaseFunction.computeOperation(a);
+                bOp = BaseFunction.computeOperation(b);
+                s.operation = @(xV) aOp(xV) + bOp(xV);
+                if isa(a,'BaseFunction')
+                    s.mesh = a.mesh;
+                else
+                    s.mesh = b.mesh;
+                end
+                r = DomainFunction(s);
             end
-            r = DomainFunction(s);
+
         end
 
         function r = minus(a,b)
-            aOp = BaseFunction.computeOperation(a);
-            bOp = BaseFunction.computeOperation(b);
-            s.operation = @(xV) aOp(xV) - bOp(xV);
-            if isa(a,'BaseFunction')
-                s.mesh = a.mesh;
+            if isa(a, 'LagrangianFunction') && isa(b, 'LagrangianFunction') && isequal(a.order,b.order)
+                if isa(a, 'LagrangianFunction')
+                    res = copy(a);
+                    val1 = a.fValues;
+                    fEv1 = a.fxVOld;
+                else
+                    val1 = a;
+                    fEv1 = a;
+                end
+                if isa(b, 'LagrangianFunction')
+                    res = copy(b);
+                    val2 = b.fValues;
+                    fEv2 = b.fxVOld;
+                else
+                    val2 = b;
+                    fEv2 = b;
+                end
+                if ~isempty(fEv1) && ~isempty(fEv2)
+                    res.fxVOld = fEv1 - fEv2;
+                else
+                    res.fxVOld = [];
+                end
+                res.fValues = val1 - val2;
+                r = res;
             else
-                s.mesh = b.mesh;
+                aOp = BaseFunction.computeOperation(a);
+                bOp = BaseFunction.computeOperation(b);
+                s.operation = @(xV) aOp(xV) - bOp(xV);
+                if isa(a,'BaseFunction')
+                    s.mesh = a.mesh;
+                else
+                    s.mesh = b.mesh;
+                end
+                r = DomainFunction(s);
             end
-            r = DomainFunction(s);
         end
 
         function r = times(a,b)
@@ -202,6 +257,7 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             s.mesh = f1.mesh;
             f = DomainFunction(s);
         end
+
 
     end
 

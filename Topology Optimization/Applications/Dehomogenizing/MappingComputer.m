@@ -32,20 +32,19 @@ classdef MappingComputer < handle
             uFC = LagrangianFunction(s);    
 
              s.mesh    = obj.mesh;
-             s.fValues = abs(uFC.fValues);
+             s.fValues = (uFC.fValues);
              s.order   ='P1';                                  
              uFC = LagrangianFunction(s);             
 
+          
             s.mesh    = obj.mesh;
             s.fValues = reshape(uV,obj.mesh.ndim,[])';
             s.order   ='P1D';                                          
-            uF = LagrangianFunction(s);     
+            uF = LagrangianFunction(s);                
 
-            
-
-            uF = project(abs(uF),'P1D');     
+             
             s.mesh    = obj.mesh;
-            s.fValues = abs(uF.fValues);
+            s.fValues = (uF.fValues);
             s.order   ='P1D';                                  
             uF = LagrangianFunction(s);  
 
@@ -60,9 +59,13 @@ classdef MappingComputer < handle
             %  uF = LagrangianFunction(s);
             % 
             % 
-         
+            dif = uFC-uF;
+            I   = ConstantFunction.create(1,obj.mesh);
+            a = L2norm(dif)/L2norm(I);
+            
              % 
              % 
+     %       uF = uFC;
         end
         %% 
 

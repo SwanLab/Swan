@@ -249,11 +249,6 @@ classdef LagrangianFunction < FeFunction
             end
         end
 
-        function v = computeL2norm(obj)            
-            int = Integrator.compute(obj.*obj,obj.mesh,2);
-            v   = sqrt(int);
-        end
-
         function f = createOrthogonalVector(obj) %only in 2D and vector
             f = copy(obj);
             f.fxVOld = [];
@@ -330,31 +325,31 @@ classdef LagrangianFunction < FeFunction
             s = res;
         end
 
-        function s = minus(a,b)
-            if isa(a, 'LagrangianFunction')
-                res = copy(a);
-                val1 = a.fValues;
-                fEv1 = a.fxVOld;
-            else
-                val1 = a;
-                fEv1 = a;
-            end
-            if isa(b, 'LagrangianFunction')
-                res = copy(b);
-                val2 = b.fValues;
-                fEv2 = b.fxVOld;
-            else
-                val2 = b;
-                fEv2 = b;
-            end
-            if ~isempty(fEv1) && ~isempty(fEv2)
-                res.fxVOld = fEv1 - fEv2;
-            else
-                res.fxVOld = [];
-            end
-            res.fValues = val1 - val2;
-            s = res;
-        end
+        % function s = minus(a,b)
+        %     if isa(a, 'LagrangianFunction')
+        %         res = copy(a);
+        %         val1 = a.fValues;
+        %         fEv1 = a.fxVOld;
+        %     else
+        %         val1 = a;
+        %         fEv1 = a;
+        %     end
+        %     if isa(b, 'LagrangianFunction')
+        %         res = copy(b);
+        %         val2 = b.fValues;
+        %         fEv2 = b.fxVOld;
+        %     else
+        %         val2 = b;
+        %         fEv2 = b;
+        %     end
+        %     if ~isempty(fEv1) && ~isempty(fEv2)
+        %         res.fxVOld = fEv1 - fEv2;
+        %     else
+        %         res.fxVOld = [];
+        %     end
+        %     res.fValues = val1 - val2;
+        %     s = res;
+        % end
 
         
 

@@ -1,12 +1,11 @@
-classdef ConstantFunction < L2Function
+classdef ConstantFunction < BaseFunction
     
     properties (GetAccess = public, SetAccess = private)
         constant
     end
 
-    properties
+    properties (Access = private)
         fHandle
-        ndimf
     end
     
     
@@ -16,10 +15,6 @@ classdef ConstantFunction < L2Function
             obj.init(cParams)
         end
 
-        function fxV = evaluate(obj,xV)
-            fxV = obj.fHandle(xV);
-        end
-        
     end
     
     methods (Access = public, Static)
@@ -32,6 +27,14 @@ classdef ConstantFunction < L2Function
                 obj = ConstantFunction(s);
             end
     end
+
+    methods (Access = protected)
+
+        function fxV = evaluateNew(obj, xV)
+            fxV = obj.fHandle(xV);
+        end        
+
+    end    
 
     methods (Access = private)
 
