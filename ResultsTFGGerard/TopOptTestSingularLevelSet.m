@@ -232,8 +232,8 @@ classdef TopOptTestSingularLevelSet < handle
              s.primal         = 'SLERP';
              s.etaNorm        = 0.002; %HI HAVIA 0.01 (Igual per això donava error?)
              s.gJFlowRatio    = 0.35;    %major=complirconstraintrapid    menor=prioritzarminimitzarcost
-             s.etaMax         = 4e-6;
-             s.etaMaxMin      = 1e-6;
+             s.etaMax         = 0.01;
+             s.etaMaxMin      = 0.01;
              s.etaNormMin     = s.etaNorm;
              opt = OptimizerNullSpace(s);
              opt.solveProblem();
@@ -284,6 +284,8 @@ classdef TopOptTestSingularLevelSet < handle
             femReader = FemInputReader_GiD();
             s         = femReader.read(obj.filename);
             sPL       = obj.computeCondition(s.pointload);
+            sPLPointL = sPL(1);
+            sPL       = sPLPointL;
             sDir      = obj.computeCondition(s.dirichlet);
 
             dirichletFun = [];
