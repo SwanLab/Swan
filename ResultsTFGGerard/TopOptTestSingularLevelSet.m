@@ -230,7 +230,7 @@ classdef TopOptTestSingularLevelSet < handle
              s.tolerance      = 1e-12;
              s.constraintCase = {'EQUALITY'};
              s.primal         = 'SLERP';
-             s.etaNorm        = 0.002; %HI HAVIA 0.01 (Igual per això donava error?)
+             s.etaNorm        = inf; % NO TOCAR EN AQUEST ARXIU
              s.gJFlowRatio    = 0.35;    %major=complirconstraintrapid    menor=prioritzarminimitzarcost
              s.etaMax         = 0.01;
              s.etaMaxMin      = 0.01;
@@ -284,7 +284,7 @@ classdef TopOptTestSingularLevelSet < handle
             femReader = FemInputReader_GiD();
             s         = femReader.read(obj.filename);
             sPL       = obj.computeCondition(s.pointload);
-            sPLPointL = sPL(1);
+            sPLPointL = sPL(2:3);
             sPL       = sPLPointL;
             sDir      = obj.computeCondition(s.dirichlet);
 

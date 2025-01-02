@@ -15,13 +15,14 @@ classdef CGsolver < handle
             obj.prepareProblem(A);
             tol = 1e-5;
             maxit = 15000;
+
             % Density
             L = ichol(A);
             x = pcg(A,b,tol,maxit,L,L',obj.x0);
 
             % LevelSet de moment..
-            %L = ichol(A);
             %x = pcg(A,b,tol,maxit,[],[],obj.x0);
+            
             obj.x0 = x;
         end
 

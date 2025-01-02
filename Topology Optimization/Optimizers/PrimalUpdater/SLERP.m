@@ -41,7 +41,7 @@ classdef SLERP < handle
         end
 
         function is = isTooSmall(obj)
-            is = obj.tau < 1e-10;
+            is = obj.tau < 1e-12;
         end
 
         function increaseStepLength(obj,f)
@@ -73,7 +73,7 @@ classdef SLERP < handle
             V       = obj.computeVolumeFromTau(g,ls);
             delta   = abs(V-1);
             cond1   = delta<=1e-10;
-            cond2   = delta>=0.05;
+            cond2   = delta>=0.001;
             while (cond1 || cond2)
                 if cond1
                     tLower  = obj.tau;
@@ -85,7 +85,7 @@ classdef SLERP < handle
                 V       = obj.computeVolumeFromTau(g,ls);
                 delta   = abs(V-1);
                 cond1   = delta<=1e-10;
-                cond2   = delta>=0.01;
+                cond2   = delta>=0.001;
             end
         end
 
@@ -93,7 +93,7 @@ classdef SLERP < handle
             obj.tau = 1;
             V       = obj.computeVolumeFromTau(g,ls);
             delta   = abs(V-1);
-            while delta<0.05
+            while delta<0.001
                 obj.tau = obj.tau*2;
                 V       = obj.computeVolumeFromTau(g,ls);
                 delta   = abs(V-1);
