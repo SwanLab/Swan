@@ -26,15 +26,17 @@ classdef MappingComputer < handle
             end
 
             % 
-            s.mesh    = obj.mesh;
-            s.fValues = uCF;
-            s.order   ='P1';                                          
-            uFC = LagrangianFunction(s);    
-
-             s.mesh    = obj.mesh;
-             s.fValues = (uFC.fValues);
-             s.order   ='P1';                                  
-             uFC = LagrangianFunction(s);             
+           %  s.mesh    = obj.mesh;
+           %  s.fValues = uCF;
+           %  s.order   ='P1';                                          
+           %  uFC = LagrangianFunction(s);    
+           % 
+           %   s.mesh    = obj.mesh;
+           %   s.fValues = (uFC.fValues);
+           %   s.order   ='P1';                                  
+           %   uFC = LagrangianFunction(s);   
+           % 
+           % %  uFCD = project(uFC,'P1D');
 
           
             s.mesh    = obj.mesh;
@@ -59,13 +61,13 @@ classdef MappingComputer < handle
             %  uF = LagrangianFunction(s);
             % 
             % 
-            dif = uFC-uF;
-            I   = ConstantFunction.create(1,obj.mesh);
-            a = L2norm(dif)/L2norm(I);
+        %    dif = uFC-uF;
+        %    I   = ConstantFunction.create(1,obj.mesh);
+       %     a = L2norm(dif)/L2norm(I);
             
              % 
              % 
-     %       uF = uFC;
+            uF = uF;
         end
         %% 
 
@@ -103,16 +105,16 @@ classdef MappingComputer < handle
 
         function u = solveSaddleSystem(obj,LHS,RHS)
             M = obj.createMassMatrix();
-            eta = 0.01;
+            eta = 0;%1e-2;%1e-15;%1e-2;%0.00000000000001;
             In = obj.interpolator;            
             LHS = In'*LHS*In+eta*In'*M*In;
-          %  I = ones(size(LHS,1),1);
-          %  LHS = [LHS,I;I',0];  
-          %  RHS = [RHS;0];
+            I = ones(size(LHS,1),1);
+            LHS = [LHS,I;I',0];  
+            RHS = [RHS;0];
             a.type = 'DIRECT';
             s = Solver.create(a);
             u = s.solve(LHS,RHS);             
-          %  u = u(1:end-1);
+            u = u(1:end-1);
         end
 
         function M = createMassMatrix(obj)

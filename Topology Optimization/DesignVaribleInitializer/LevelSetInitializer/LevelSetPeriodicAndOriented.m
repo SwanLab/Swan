@@ -137,7 +137,9 @@ classdef LevelSetPeriodicAndOriented < handle
             y = zeros(size(x));
             for iDim = 1:nDim
                 xI    = x(iDim,:,:);
-                xImin = min(xI(:));
+                %xImin = min(xI(:))
+               % xImin = eps(iDim)
+                xImin = 0;
                 y(iDim,:,:) = (xI-xImin)/(eps(iDim));
             end
             %y = (x-min(x(:))-eps)/eps;

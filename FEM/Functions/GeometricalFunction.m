@@ -74,7 +74,7 @@ classdef GeometricalFunction < handle
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
                     p  = cParams.pnorm;
-                    fH = @(x) ((abs(x1(x)-x0)./sx).^p+(abs(x2(x)-y0)./sy).^p).^(1/p) - 0.5;
+                    fH = @(x) ((abs(x1(x)-x0)./(sx/2)).^p+(abs(x2(x)-y0)./(sy/2)).^p).^(1/p) - 1;
                     obj.fHandle = fH;
 
                 case 'RectangleRotated'

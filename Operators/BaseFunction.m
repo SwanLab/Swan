@@ -48,7 +48,13 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             if size(varargin, 1) == 1, n = varargin{1}; else, n = 2; end
             p1D = project(obj,'P1D');            
             plotVector(p1D,n);
-        end             
+        end        
+
+        function plotIsoLines(obj,varargin)
+            if size(varargin, 1) == 1, n = varargin{1}; else, n = 2; end
+            p1D = project(obj,'P1D');            
+            plotIsoLines(p1D,n);
+        end                 
 
         function v = L2norm(obj,varargin)   
             if size(varargin, 1) == 1, qOrder = varargin{1}; else, qOrder = 2; end            

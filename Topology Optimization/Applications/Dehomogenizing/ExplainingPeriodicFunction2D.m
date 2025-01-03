@@ -33,18 +33,19 @@ classdef ExplainingPeriodicFunction2D < handle
     methods (Access = private)
 
         function init(obj)
-            %obj.meshSize = 0.03;
-            obj.meshSize = 0.01;
-            obj.nCells   = repmat(linspace(10,20,5),2,1)';
-            % obj.xmin = 0;
-            % obj.xmax = 2;
-            % obj.ymin = 0;
-            % obj.ymax = 1;
-           obj.xmin = -0.005;
-           obj.xmax = 0.005;
-           obj.ymin = 0;
-           obj.ymax = 0.01;
-            %obj.widthH = 0.4;
+            obj.meshSize = 0.03;
+            %obj.meshSize = 0.01;
+            n0 = 15; nF = 30; nN = 10;
+            obj.nCells   = round(repmat(linspace(n0,nF,nN),2,1)'/2)*2;
+             obj.xmin = 0;
+             obj.xmax = 2;
+             obj.ymin = 0;
+             obj.ymax = 1;
+           %obj.xmin = -0.005;
+           %obj.xmax = 0.005;
+           %obj.ymin = 0;
+           %obj.ymax = 0.01;
+            
             obj.widthH = 0.85;%0.85;
             obj.widthW = 0.85;%0.85;
         end
@@ -161,18 +162,19 @@ classdef ExplainingPeriodicFunction2D < handle
         function a = createOrientationAfromB(obj)
             b = obj.orientationB{1};
             beta = atan2(b.fValues(:,2),b.fValues(:,1));
-            alpha = beta/2;            
-           % a1 = [cos(alpha), sin(alpha)];
-           % a2 = [-sin(alpha), cos(alpha)];
+            alpha = beta/2;%0*ones(size(beta));%beta/2;            
+            %alpha = 0*ones(size(beta));%beta/2;            
+            a1 = [cos(alpha), sin(alpha)];
+            a2 = [-sin(alpha), cos(alpha)];
 
-           a1([1 3 4],1) = 0;
-           a1([1 3 4],2) = -1;
-           a1([2 5 6],1) = 0;
-           a1([2 5 6],2) = 1;
-           a2([1 3 4],1) = 1;
-           a2([1 3 4],2) = 0;
-           a2([2 5 6],1) = -1;
-           a2([2 5 6],2) = 0;                       
+           % a1([1 3 4],1) = 0;
+           % a1([1 3 4],2) = -1;
+           % a1([2 5 6],1) = 0;
+           % a1([2 5 6],2) = 1;
+           % a2([1 3 4],1) = 1;
+           % a2([1 3 4],2) = 0;
+           % a2([2 5 6],1) = -1;
+           % a2([2 5 6],2) = 0;                       
 
 
             a{1} = obj.createP1DiscontinousFunction(a1);
