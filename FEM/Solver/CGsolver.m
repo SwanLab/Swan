@@ -13,7 +13,7 @@ classdef CGsolver < handle
 
         function x = solve(obj,A,b)
             obj.prepareProblem(A);
-            tol = 1e-5;
+            tol = 1e-4;
             maxit = 15000;
 
             % Density

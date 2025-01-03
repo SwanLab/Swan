@@ -230,7 +230,7 @@ classdef TopOptTestSingularLevelSet < handle
              s.tolerance      = 1e-12;
              s.constraintCase = {'EQUALITY'};
              s.primal         = 'SLERP';
-             s.etaNorm        = inf; % NO TOCAR EN AQUEST ARXIU
+             s.etaNorm        = 0.002;
              s.gJFlowRatio    = 0.35;    %major=complirconstraintrapid    menor=prioritzarminimitzarcost
              s.etaMax         = 0.01;
              s.etaMaxMin      = 0.01;

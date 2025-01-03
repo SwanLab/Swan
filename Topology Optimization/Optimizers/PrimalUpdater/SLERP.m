@@ -18,7 +18,15 @@ classdef SLERP < handle
             obj.init(cParams);
         end
 
+        % 1. Normalize before update
+        % 2. g(isFixed)
+        % 3. Do not use -1 for isFixed, but meritGrad. We will try this first.
+
         function phi = update(obj,g,phi)
+            isFixed = phi.getFixedNodes();
+            % g = g(isFixed); same for phi
+            g(isFixed) = -abs(g(isFixed));
+            % g(isFixed) = -norm(g))
             ls                = phi.obtainVariableInCell();
             phiN              = obj.normalizeLevelSets(ls);
             gN                = obj.createNormalizedGradient(ls,g);
@@ -26,6 +34,7 @@ classdef SLERP < handle
             obj.Theta         = theta;
             [phiNvals,gNvals] = obj.computePhiAndGradientValues(phiN,gN);
             phiNew            = obj.computeNewLevelSet(phiNvals,gNvals,theta);
+            % add fixed values to phiNew + normalize
             phi.update(phiNew);
             obj.updateBoundsMultipliers(phi.fun);
         end
@@ -41,7 +50,7 @@ classdef SLERP < handle
         end
 
         function is = isTooSmall(obj)
-            is = obj.tau < 1e-12;
+            is = obj.tau < 1e-20;
         end
 
         function increaseStepLength(obj,f)
