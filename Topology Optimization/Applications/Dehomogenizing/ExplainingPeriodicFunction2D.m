@@ -35,7 +35,7 @@ classdef ExplainingPeriodicFunction2D < handle
         function init(obj)
             obj.meshSize = 0.03;
             %obj.meshSize = 0.01;
-            n0 = 15; nF = 30; nN = 10;
+            n0 = 4; nF = 30; nN = 3;
             obj.nCells   = round(repmat(linspace(n0,nF,nN),2,1)'/2)*2;
              obj.xmin = 0;
              obj.xmax = 2;
@@ -162,8 +162,8 @@ classdef ExplainingPeriodicFunction2D < handle
         function a = createOrientationAfromB(obj)
             b = obj.orientationB{1};
             beta = atan2(b.fValues(:,2),b.fValues(:,1));
-            alpha = beta/2;%0*ones(size(beta));%beta/2;            
-            %alpha = 0*ones(size(beta));%beta/2;            
+          %  alpha = beta/2;%0*ones(size(beta));%beta/2;            
+            alpha = 0*ones(size(beta));%beta/2;            
             a1 = [cos(alpha), sin(alpha)];
             a2 = [-sin(alpha), cos(alpha)];
 

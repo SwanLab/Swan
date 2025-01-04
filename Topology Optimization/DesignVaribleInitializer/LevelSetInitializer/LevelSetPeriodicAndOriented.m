@@ -99,13 +99,11 @@ classdef LevelSetPeriodicAndOriented < handle
         function fH = geometricalFunction(obj,xV,eps)
             sx = obj.m1.evaluate(xV);
             sy = obj.m2.evaluate(xV);
-            x0 = 0;
-            y0 = 0;
             x  = obj.evaluateCellCoord(xV,eps);            
             s.xSide = sx;
             s.ySide = sy;
-            s.xCoorCenter = x0;
-            s.yCoorCenter = y0;
+            s.xCoorCenter = 0;
+            s.yCoorCenter = 0;
             s.pnorm = 4;
             s.type = 'SmoothRectangleInclusion';
             %s.type = 'RectangleInclusion';
@@ -140,8 +138,8 @@ classdef LevelSetPeriodicAndOriented < handle
                 xI    = x(iDim,:,:);
                 %xImin = min(xI(:))
                % xImin = eps(iDim)
-                xImin = 0;
-                y(iDim,:,:) = (xI-xImin)/(eps(iDim));
+               % xImin = 0;
+                y(iDim,:,:) = (xI)/(eps(iDim));
             end
             %y = (x-min(x(:))-eps)/eps;
         end
@@ -152,9 +150,9 @@ classdef LevelSetPeriodicAndOriented < handle
 
         function f = periodicFunction(y)
             %f = ((cos(1*pi*(y)))).^2;           
-         %   f = (cos(2*pi*y));   
+        %    f = (cos(2*pi*y));   
 
-            f = (y-floor(y)-0.5);
+            f = abs(y-floor(y)-0.5);
         end
 
     end

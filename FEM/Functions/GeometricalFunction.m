@@ -51,15 +51,15 @@ classdef GeometricalFunction < handle
                     obj.computeInclusion(s);
 
                 case 'Rectangle'
-                    sx = (cParams.xSide)/2;
-                    sy = (cParams.ySide)/2;
-                    %sx = (1-cParams.xSide)/2;
-                    %sy = (1-cParams.ySide)/2;    
-                    %sx = cos(2*pi*sx);
-                    %sy = cos(2*pi*sy);                      
+                   % sx = (cParams.xSide)/2;
+                   % sy = (cParams.ySide)/2;
+                    sx = (1-cParams.xSide)/2;
+                    sy = (1-cParams.ySide)/2;    
+                    sx = cos(2*pi*sx);
+                    sy = cos(2*pi*sy);                      
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
-                    fH = @(x) max(abs(x1(x)-x0)./(sx),abs(x2(x)-y0)./(sy)) - 1;
+                    fH = @(x) max((x1(x)-x0)./(sx),(x2(x)-y0)./(sy)) - 1;
                     obj.fHandle = fH;
 
                 case 'RectangleInclusion'
@@ -73,12 +73,16 @@ classdef GeometricalFunction < handle
                     obj.computeInclusion(s);            
 
                 case 'SmoothRectangle'
-                    sx = (cParams.xSide)/2;
-                    sy = (cParams.ySide)/2;
+                     sx = (cParams.xSide)/2;
+                     sy = (cParams.ySide)/2;
+                   % sx = (1-cParams.xSide)/2;
+                   % sy = (1-cParams.ySide)/2;    
+                   % sx = cos(2*pi*sx);
+                   % sy = cos(2*pi*sy);                      
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
                     p  = cParams.pnorm;
-                    fH = @(x) ((abs(x1(x)-x0)./(sx)).^p+(abs(x2(x)-y0)./(sy)).^p).^(1/p) - 1;
+                    fH = @(x) (((x1(x)-x0)./(sx)).^p+((x2(x)-y0)./(sy)).^p).^(1/p) - 1;
                     obj.fHandle = fH;
 
                 case 'RectangleRotated'
