@@ -48,10 +48,10 @@ classdef SGD < Trainer
         function train(obj)
            tic
            x0  = obj.designVariable.thetavec; 
-           F = @(theta,X,Y) obj.costFunction.computeCost(theta,X,Y); 
+           F = @(theta,X,Y) obj.objectiveFunction.computeCost(theta,X,Y); 
            obj.optimize(F,x0);
            toc
-        end 
+        end
 
         function plotCostFunc(obj)
             figure(3);
@@ -81,9 +81,7 @@ classdef SGD < Trainer
             criteria(4)   = toc < obj.timeStop;
             criteria(5)   = fv > obj.fvStop;
             while all(criteria == 1)
-                % obj.plotter.image(2001)
-                % pause(1)
-                %obj.plotter.image(randi(3000))
+
                 if nB == 1 || nB == 0
                     order = 1:nD;
                     nB = 1;
@@ -162,7 +160,7 @@ classdef SGD < Trainer
         end 
 
         function [alarm,min_testError] = validateES(obj,alarm,min_testError)
-            [~,y_pred]   = max(obj.costFunction.getOutput(obj.Xtest),[],2);
+            [~,y_pred]   = max(obj.objectiveFunction.getOutput(obj.Xtest),[],2);
             [~,y_target] = max(obj.Ytest,[],2);
             testError    = mean(y_pred ~= y_target);
             if testError < min_testError
@@ -222,6 +220,7 @@ classdef SGD < Trainer
                end
            end
     end
+    
     methods (Access = protected)
         function x = step(obj,x,e,grad,F,Xb,Yb)
             x = x - e*grad;

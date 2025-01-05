@@ -4,7 +4,7 @@ classdef Trainer < handle
         isDisplayed
 
         designVariable
-        objectiveFunction % !! costFunction => objectiveFunction?
+        objectiveFunction
 
 
     end
@@ -12,7 +12,6 @@ classdef Trainer < handle
     properties (Access = protected) 
         xIter
         nPlot
-        costFunction % Remove
         Xtrain
         Ytrain
         Xtest
@@ -47,7 +46,7 @@ classdef Trainer < handle
     methods (Access = protected)
 
         function init(obj,cParams)
-            obj.costFunction = cParams.costFunc;
+            obj.objectiveFunction = cParams.costFunc;
             obj.designVariable = cParams.designVariable;
             obj.isDisplayed  = false;
         end
@@ -62,8 +61,8 @@ classdef Trainer < handle
                 case 'iter'
                     cV = zeros(1,3);
                     cV(1) = f;
-                    cV(2) = obj.costFunction.regularization;
-                    cV(3) = obj.costFunction.loss;
+                    cV(2) = obj.objectiveFunction.regularization;
+                    cV(3) = obj.objectiveFunction.loss;
                     obj.xIter = [obj.xIter, x];
                     obj.costHist = [obj.costHist;cV];
                     oV = zeros(1,2);
