@@ -83,22 +83,35 @@ classdef LevelSetPeriodicAndOriented < handle
         end
 
         function y = evaluateCellCoord(obj,xV,eps)
-            x = obj.deformedCoord.evaluate(xV);             
+            x = obj.deformedCoord.getFvaluesByElem();
+            
+          %  x = obj.deformedCoord.evaluate(xV);             
             y = obj.computeMicroCoordinate(x,eps);
             y = obj.periodicFunction(y);
         end
 
         function ls = createCellLevelSet(obj,eps)
-            s.operation  = @(xV) obj.geometricalFunction(xV,eps);
-            s.ndimf      = 1;
-            s.mesh       = obj.fineMesh;
-            f  = DomainFunction(s);
-            ls = project(f,'P1');            
+     %       s.operation  = @(xV) obj.geometricalFunction(xV,eps);
+    %        s.ndimf      = 1;
+    %        s.mesh       = obj.fineMesh;
+    %        f  = DomainFunction(s);
+    %        ls = project(f,'P1');      
+
+            x = obj.mesh.coordElem;
+
+            fValues = obj.geometricalFunction(x,eps);
+            s.mesh    = obj.fineMesh;
+            s.fValues = fValues(:);
+            s.order   = 'P1D';              
+            ls = LagrangianFunction(s);  
+            ls = project(ls,'P1');
         end
 
         function fH = geometricalFunction(obj,xV,eps)
-            sx = obj.m1.evaluate(xV);
-            sy = obj.m2.evaluate(xV);
+            sx = obj.m1.getFvaluesByElem();
+            sy = obj.m2.getFvaluesByElem();
+            %sx = obj.m1.evaluate(xV);
+            %sy = obj.m2.evaluate(xV);
             x  = obj.evaluateCellCoord(xV,eps);            
             s.xSide = sx;
             s.ySide = sy;

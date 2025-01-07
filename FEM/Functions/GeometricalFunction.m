@@ -75,10 +75,10 @@ classdef GeometricalFunction < handle
                 case 'SmoothRectangle'
                      sx = (cParams.xSide)/2;
                      sy = (cParams.ySide)/2;
-                   % sx = (1-cParams.xSide)/2;
-                   % sy = (1-cParams.ySide)/2;    
-                   % sx = cos(2*pi*sx);
-                   % sy = cos(2*pi*sy);                      
+                %   sx = (1-cParams.xSide)/2;
+                %   sy = (1-cParams.ySide)/2;    
+                %   sx = cos(2*pi*sx);
+                %   sy = cos(2*pi*sy);                      
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
                     p  = cParams.pnorm;

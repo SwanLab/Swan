@@ -89,7 +89,7 @@ classdef LagrangianFunction < FeFunction
             fAll      = obj.fValues(node(:), :);
             fReshaped = reshape(fAll, nElem, nNode, nDimF);
             fVals     = permute(fReshaped, [3, 2, 1]);            
-        end           
+       end   
 
         function c = getDofCoord(obj)
             c = obj.dofCoord;

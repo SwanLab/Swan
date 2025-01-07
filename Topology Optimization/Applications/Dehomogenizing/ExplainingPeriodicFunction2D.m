@@ -162,8 +162,8 @@ classdef ExplainingPeriodicFunction2D < handle
         function a = createOrientationAfromB(obj)
             b = obj.orientationB{1};
             beta = atan2(b.fValues(:,2),b.fValues(:,1));
-          %  alpha = beta/2;%0*ones(size(beta));%beta/2;            
-            alpha = 0*ones(size(beta));%beta/2;            
+            alpha = beta/2;%0*ones(size(beta));%beta/2;            
+         %   alpha = 0*ones(size(beta));%beta/2;            
             a1 = [cos(alpha), sin(alpha)];
             a2 = [-sin(alpha), cos(alpha)];
 
@@ -186,7 +186,7 @@ classdef ExplainingPeriodicFunction2D < handle
             s.nCells             = obj.nCells;
             s.cellLevelSetParams = obj.createLevelSetCellParams();
             s.mesh               = obj.mesh;
-        %  s.orientationA      = obj.orientationA;
+%          s.orientationA      = obj.orientationA;
             s.orientationA       = obj.createOrientationAfromB(); 
             d = Dehomogenizer(s);
             ls = d.compute();

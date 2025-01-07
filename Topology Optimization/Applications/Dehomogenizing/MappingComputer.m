@@ -87,6 +87,7 @@ classdef MappingComputer < handle
             s.type  = 'StiffnessMatrix';
             s.test  = obj.testFunction;
             s.trial = obj.testFunction;
+            s.quadratureOrder = 4;
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
         end
@@ -94,7 +95,7 @@ classdef MappingComputer < handle
         function RHS = computeRHS(obj,iDim)
             aI = obj.dilatedOrientation{iDim};
             s.mesh            = obj.mesh;
-            s.quadratureOrder = 3;
+            s.quadratureOrder = 4;
             s.type            = 'ShapeDerivative';
             test = obj.testFunction;
             rhs  = RHSintegrator.create(s);
@@ -105,24 +106,27 @@ classdef MappingComputer < handle
 
         function u = solveSaddleSystem(obj,LHS,RHS)
             M = obj.createMassMatrix();
-            eta = 0;%1e-2;%1e-15;%1e-2;%0.00000000000001;
+            eta = 1e-2;%1e-2;%1e-15;%1e-2;%0.00000000000001;
             In = obj.interpolator;            
             LHS = In'*LHS*In+eta*In'*M*In;
-            I = ones(size(LHS,1),1);
-            LHS = [LHS,I;I',0];  
-            RHS = [RHS;0];
+            %LHS = In'*LHS*In+eta*M;
+            %I = ones(size(LHS,1),1);
+            %LHS = [LHS,I;I',0];  
+           %RHS = [RHS;0];
             a.type = 'DIRECT';
             s = Solver.create(a);
             u = s.solve(LHS,RHS);             
-            u = u(1:end-1);
+            %u = u(1:end-1);
         end
 
         function M = createMassMatrix(obj)
             s.type            = 'MassMatrix';
             s.mesh            = obj.mesh;
-            s.test            = obj.testFunction;% LagrangianFunction.create(obj.mesh,1,'P1');
+            s.test            = obj.testFunction;            
             s.trial           = obj.testFunction;%LagrangianFunction.create(obj.mesh,1,'P1');
-            s.quadratureOrder = 2;
+           % s.test            = LagrangianFunction.create(obj.mesh,1,'P1');
+           % s.trial           = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.quadratureOrder = 4;
             LHS               = LHSintegrator.create(s);
             M = LHS.compute();
         end

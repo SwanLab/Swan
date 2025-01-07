@@ -29,7 +29,7 @@ classdef OrientedMappingComputer < handle
             obj.isCoherent            = obj.computeIsOrientationCoherent(a1);
             obj.interpolator          = obj.computeInterpolator();
             obj.phiMapping            = obj.computeMappings();
-            plotIsoLines((obj.phiMapping))
+   %         plotIsoLines((obj.phiMapping))
             obj.totalCorrector        = obj.computeTotalCorrector(a1);
             dCoord                    = obj.phiMapping;% + obj.totalCorrector;
         end
