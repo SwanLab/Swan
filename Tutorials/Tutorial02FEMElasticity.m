@@ -31,12 +31,10 @@ classdef Tutorial02FEMElasticity < handle
         end
 
         function computeElasticProperties(obj)
-            E1  = 1;
-            nu1 = 1/3;
-            E   = AnalyticalFunction.create(@(x) E1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
-            nu  = AnalyticalFunction.create(@(x) nu1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
-            obj.young   = E;
-            obj.poisson = nu;
+            E  = 1;
+            nu = 1/3;
+            obj.young   = ConstantFunction.create(E,obj.mesh);
+            obj.poisson = ConstantFunction.create(nu,obj.mesh);
         end
 
         function createMaterial(obj)
@@ -57,6 +55,7 @@ classdef Tutorial02FEMElasticity < handle
             s.boundaryConditions = obj.createBoundaryConditions();
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
+            s.solverCase = 'DIRECT';
             fem = ElasticProblem(s);
             fem.solve();
             obj.stateProblem = fem;

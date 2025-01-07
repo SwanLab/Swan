@@ -49,12 +49,8 @@ classdef TotalCorrectorComputer < handle
         end
 
         function createTotalCorrector(obj)
-            nElem = obj.mesh.nelem;
-            ndif  = obj.mesh.ndim;
-            nnode = obj.mesh.nnodeElem;
-            s.fValues = zeros(ndif,nnode,nElem);
-            s.mesh    = obj.mesh;
-            obj.totalCorrector = P1DiscontinuousFunction(s);    
+            ndimf  = obj.mesh.ndim;
+            obj.totalCorrector = LagrangianFunction.create(obj.mesh,ndimf,'P1D');    
         end     
 
         function computeNumberOfCorrectors(obj)
@@ -121,7 +117,8 @@ classdef TotalCorrectorComputer < handle
             phi = phi - fD;
             s.mesh    = obj.mesh;
             s.fValues = phi;
-            oC = P1DiscontinuousFunction(s);  
+            s.order = 'P1D';
+            oC = LagrangianFunction(s);  
         end          
         
         function coef = computeCoeffs(obj,psi,b)

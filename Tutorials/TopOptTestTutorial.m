@@ -95,13 +95,12 @@ classdef TopOptTestTutorial < handle
         end
 
         function m = createMaterial(obj)
-            x = obj.designVariable;
-            f = x.obtainDomainFunction();
-            f = f.project('P1');            
+            x = obj.designVariable.fun;           
             s.type                 = 'DensityBased';
-            s.density              = f;
+            s.density              = x;
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '2D';
+            s.mesh                 = obj.mesh;
             m = Material.create(s);
         end
 
@@ -177,15 +176,14 @@ classdef TopOptTestTutorial < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 3;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.ub             = 1;
             s.lb             = 0;
             s.volumeTarget   = 0.4;
             s.primal         = 'PROJECTED GRADIENT';
-            opt              = OptimizerInteriorPoint(s);
-            % opt = OptimizerMMA(s);
+            opt              = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
         end

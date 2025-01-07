@@ -54,7 +54,7 @@ classdef IPMErrorComputer < handle
 
         function computeGradientReference(obj)
             lb          = obj.sMax;
-            l           = obj.dualVariable.value;
+            l           = obj.dualVariable.fun.fValues;
             lZ          = obj.bounds.zLB;
             uZ          = obj.bounds.zUB;
             nConstr     = length(obj.constraint.value);
@@ -75,7 +75,7 @@ classdef IPMErrorComputer < handle
         function computeErrorDueToGradients(obj)
             DJ            = obj.cost.gradient';
             Dg            = obj.constraint.gradient;
-            l             = obj.dualVariable.value';
+            l             = obj.dualVariable.fun.fValues';
             lZ            = obj.bounds.zLB';
             uZ            = obj.bounds.zUB';
             sD            = obj.gradRef;

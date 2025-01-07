@@ -99,34 +99,26 @@ classdef MeshCreator < handle
         function plotCoordinates(obj)
             s.coord = obj.coord;
             s.connec = obj.connec;
-            a = Mesh.create(s);
-            a.plot();
+            m = Mesh.create(s);
+            m.plot();
         end
         
         function plotVertices(obj)
             vertexIndex(:,1) = 1:obj.nodes.vert;
-            MeshCreator.plotNodes(vertexIndex,obj.coord,'blue')
+            s.coord = obj.coord;
+            s.connec = obj.connec;
+            m = Mesh.create(s);
+            m.plotNodes(vertexIndex,'blue')
         end
         
         function plotMasterSlaveNodes(obj)
             masterIndex = obj.masterSlaveIndex(:,1);
             slaveIndex  = obj.masterSlaveIndex(:,2);
-            MeshCreator.plotNodes(masterIndex,obj.coord,'green')
-            MeshCreator.plotNodes(slaveIndex,obj.coord,'red')
-        end
-        
-    end
-    
-    methods (Static)
-        
-        function plotNodes(ind,coord,colorValue)
-            b = num2str(ind);
-            c = cellstr(b);
-            dx = 0.01; dy = 0.01;
-            x = coord(ind,1)';
-            y = coord(ind,2)';
-            t = text(x+dx,y+dy,c);
-            set(t,'Color',colorValue)
+            s.coord = obj.coord;
+            s.connec = obj.connec;
+            m = Mesh.create(s);
+            m.plotNodes(masterIndex,'green')
+            m.plotNodes(slaveIndex,'red')
         end
         
     end

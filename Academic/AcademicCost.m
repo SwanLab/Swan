@@ -14,6 +14,7 @@ classdef AcademicCost < handle
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             J          = obj.costFunction(x.fun.fValues);
             dJ.fValues = obj.gradientFunction(x.fun.fValues);
+            dJ         = {dJ};
         end
         
     end

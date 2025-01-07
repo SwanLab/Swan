@@ -1,7 +1,6 @@
-classdef UnfittedFunction < handle
+classdef UnfittedFunction < BaseFunction
 
     properties (Access = public)
-        ndimf
         unfittedMesh
         innerMeshFunction
         innerCutMeshFunction
@@ -12,16 +11,11 @@ classdef UnfittedFunction < handle
     end
 
     methods (Access = public)
+
         function obj = UnfittedFunction(cParams)
             obj.init(cParams);
             obj.computeUnfittedMeshFunction();
-        end
-
-        function f = copy(obj)
-            s.uMesh = obj.unfittedMesh;
-            s.fun   = obj.fun;
-            s.ndimf = obj.ndimf;
-            f       = UnfittedFunction(s);
+            obj.mesh = obj.unfittedMesh.backgroundMesh;
         end
 
         function res = times(obj1,obj2)
@@ -30,12 +24,6 @@ classdef UnfittedFunction < handle
             res.computeUnfittedMeshFunction();
         end
 
-        function fun = project(obj,target)
-            s.mesh          = obj.unfittedMesh.backgroundMesh;
-            s.projectorType = target;
-            proj            = Projector.create(s);
-            fun             = proj.project(obj);
-        end
     end
 
     methods (Access = private)
@@ -50,5 +38,13 @@ classdef UnfittedFunction < handle
             obj.innerMeshFunction    = uMeshFun.innerMeshFunction;
             obj.innerCutMeshFunction = uMeshFun.innerCutMeshFunction;
         end
+    end
+
+    methods (Access = protected)
+
+        function evaluateNew(obj,xV)
+
+        end
+
     end
 end

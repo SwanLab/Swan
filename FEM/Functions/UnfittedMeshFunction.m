@@ -20,6 +20,7 @@ classdef UnfittedMeshFunction < handle
     end
 
     methods (Access = public)
+
         function obj = UnfittedMeshFunction(cParams)
             obj.init(cParams);
             obj.computeSubMeshQuadrature();
@@ -82,7 +83,7 @@ classdef UnfittedMeshFunction < handle
                 case 'LagrangianFunction'
                     fBackgr = f;
                 case 'DomainFunction'
-                    fBackgr = f.project('P1',obj.unfittedMesh.backgroundMesh);
+                    fBackgr = f.project('P1');
                 otherwise
                     fBackgr = f.project('P1');
             end
@@ -141,22 +142,8 @@ classdef UnfittedMeshFunction < handle
         function computeUnfittedBoundaryMeshFunction(obj)
             uBoundMesh = obj.unfittedMesh.unfittedBoundaryMesh;
             fP1        = obj.backgroundFunction;
-            if ~isempty(uBoundMesh.meshes)
-                activeMeshes = uBoundMesh.getActiveMesh();
-                for i = 1:length(activeMeshes)
-                    uMeshi     = activeMeshes{i};
-                    connecLoc  = uMeshi.backgroundMesh.connec;
-                    connecGlob = uBoundMesh.getGlobalConnec{i};
-                    glob2loc(connecLoc(:)) = connecGlob(:);
-                    s.fValues  = fP1.fValues(glob2loc);
-                    s.mesh     = uMeshi.backgroundMesh;
-                    s.order    = 'P1';
-                    fbackMeshi = LagrangianFunction(s);
-                    glob2loc   = [];
-                    fi         = uMeshi.obtainFunctionAtUnfittedMesh(fbackMeshi);
-                    obj.unfittedBoundaryMeshFunction.activeFuns{i} = fi;
-                end
-            end
+            uBoundFun  = uBoundMesh.computeBoundaryMeshFunction(fP1);
+            obj.unfittedBoundaryMeshFunction = uBoundFun;
         end
 
         function cMesh = computeNonCutMesh(obj)

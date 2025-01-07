@@ -4,25 +4,25 @@ classdef ElasticProblem < handle
         uFun
         strainFun
         stressFun
+        forces
     end
 
     properties (Access = private)
         quadrature
-        boundaryConditions, BCApplier
+        boundaryConditions, bcApplier
 
         stiffness
-        forces
-        solver, solverType, solverMode, solverCase
+        solverType, solverMode, solverCase
         scale
         
         strain, stress
+
+        problemSolver
     end
 
     properties (Access = protected)
         mesh 
         material  
-        displacementFun
-        solverData
     end
 
     methods (Access = public)
@@ -59,13 +59,9 @@ classdef ElasticProblem < handle
         end
 
         function [fun, funNames] = getFunsToPlot(obj)
-            fun = {obj.uFun, obj.strainFun.project('P1',obj.mesh), ...
-                obj.stressFun.project('P1',obj.mesh)};
+            fun = {obj.uFun, obj.strainFun.project('P1'), ...
+                obj.stressFun.project('P1')};
             funNames = {'displacement', 'strain', 'stress'};
-        end
-
-        function mesh = getMesh(obj)
-            mesh = obj.mesh;
         end
 
     end
@@ -80,45 +76,16 @@ classdef ElasticProblem < handle
             obj.solverType  = cParams.solverType;
             obj.solverMode  = cParams.solverMode;
             obj.boundaryConditions = cParams.boundaryConditions;
-            if isfield(cParams,'solverCase')
-                obj.solverCase  = cParams.solverCase;
-            else
-                obj.solverCase = 'DIRECT';
-            end
-            if isfield(cParams, 'solverType')
-                obj.solverData.solverType = cParams.solverType;
-                if strcmp(obj.solverData.solverType,'ITERATIVE')
-                    obj.solverData.iterativeSolverType = cParams.iterativeSolverType; 
-                    obj.solverData.tol                 = cParams.tol; 
-                    if isfield(cParams, 'maxIter')
-                        obj.solverData.maxIter = cParams.maxIter; 
-                    else
-                        obj.solverData.maxIter = 1e15; 
-                    end
-                    if strcmp(obj.solverData.iterativeSolverType,'MULTIGRID')
-                        obj.solverData.nLevel = cParams.nLevel; 
-                    end  
-                end
-            else
-                obj.solverData.solverType = 'DIRECT';
-            end
-            obj.createQuadrature();
-        end
-
-        function createQuadrature(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('LINEAR');
-            obj.quadrature = quad;
-
+            obj.solverCase  = cParams.solverCase;
         end
 
         function createDisplacementFun(obj)
-            obj.displacementFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
+            obj.uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
         end
 
         function dim = getFunDims(obj)
-            d.ndimf  = obj.displacementFun.ndimf;
-            d.nnodes = size(obj.displacementFun.fValues, 1);
+            d.ndimf  = obj.uFun.ndimf;
+            d.nnodes = size(obj.uFun.fValues, 1);
             d.ndofs  = d.nnodes*d.ndimf;
             d.nnodeElem = obj.mesh.nnodeElem; % should come from interp..
             d.ndofsElem = d.nnodeElem*d.ndimf;
@@ -129,25 +96,25 @@ classdef ElasticProblem < handle
             s.mesh = obj.mesh;
             s.boundaryConditions = obj.boundaryConditions;
             bc = BCApplier(s);
-            obj.BCApplier = bc;
+            obj.bcApplier = bc;
         end
 
         function createSolver(obj)
-            %s.type =  'DIRECT';
-%             s.type = 'ITERATIVE';
-            s = obj.solverData;
-
-            s.type     = obj.solverCase;
-
-            obj.solver = Solver.create(s);
+            sS.type      = obj.solverCase;
+            solver       = Solver.create(sS);
+            s.solverType = obj.solverType;
+            s.solverMode = obj.solverMode;
+            s.solver     = solver;
+            s.boundaryConditions = obj.boundaryConditions;
+            s.BCApplier          = obj.bcApplier;
+            obj.problemSolver    = ProblemSolver(s);
         end
 
-        function computeStiffnessMatrix(obj)
-            ndimf = obj.displacementFun.ndimf;
+        function computeStiffnessMatrix(obj)           
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
-            s.test     = LagrangianFunction.create(obj.mesh,ndimf, 'P1');
-            s.trial    = obj.displacementFun;
+            s.test     = obj.uFun;
+            s.trial    = obj.uFun;
             s.material = obj.material;
             s.quadratureOrder = 2;
             lhs = LHSintegrator.create(s);
@@ -175,28 +142,17 @@ classdef ElasticProblem < handle
 
 
         function u = computeDisplacement(obj)
-            s.solverType = obj.solverType;
-            s.solverMode = obj.solverMode;
-            s.stiffness  = obj.stiffness;
-            s.forces     = obj.forces;
-            s.solver     = obj.solver;
-            s.boundaryConditions = obj.boundaryConditions;
-            s.BCApplier          = obj.BCApplier;
-            pb = ProblemSolver(s);
-            [u,L] = pb.solve();
-            z.mesh    = obj.mesh;
-            z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            z.order   = 'P1';
-            uFeFun = LagrangianFunction(z);
-            obj.uFun = uFeFun;
+            s.stiffness = obj.stiffness;
+            s.forces    = obj.forces;
+            [u,~]       = obj.problemSolver.solve(s);           
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            obj.displacementFun.fValues = uSplit;
+            obj.uFun.setFValues(uSplit);
         end
 
         function computeStrain(obj)
             quad = Quadrature.create(obj.mesh, 2);
             xV = quad.posgp;
-            obj.strainFun = SymGrad(obj.displacementFun);
+            obj.strainFun = SymGrad(obj.uFun);
 %             strFun = strFun.obtainVoigtFormat();
             obj.strain = obj.strainFun.evaluate(xV);
         end
@@ -205,7 +161,6 @@ classdef ElasticProblem < handle
             quad = Quadrature.create(obj.mesh, 2);
             xV = quad.posgp;
             obj.stressFun = DDP(obj.material, obj.strainFun);
-            obj.stressFun.ndimf = obj.strainFun.ndimf;
             obj.stress = obj.stressFun.evaluate(xV);
         end
 

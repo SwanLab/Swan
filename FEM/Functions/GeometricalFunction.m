@@ -5,6 +5,7 @@ classdef GeometricalFunction < handle
     end
 
     methods (Access = public)
+
         function obj = GeometricalFunction(cParams)
             obj.selectHandle(cParams);
         end
@@ -16,9 +17,14 @@ classdef GeometricalFunction < handle
             aFun      = AnalyticalFunction(s);
             ls        = aFun.project('P1');
         end
+
+        function f = getHandle(obj)
+            f = obj.fHandle;
+        end
     end
 
     methods (Access = private)
+
         function selectHandle(obj,cParams)
             x1 = @(x) x(1,:,:);
             x2 = @(x) x(2,:,:);
@@ -36,7 +42,7 @@ classdef GeometricalFunction < handle
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
                     p  = cParams.pnorm;
-                    fH = @(x) ((abs(x1(x)-x0).^p+abs(x2(x)-y0).^p).^(1/p))/l - 0.5;
+                    fH = @(x) (((abs(x1(x)-x0)).^p+(abs(x2(x)-y0)).^p).^(1/p))/l - 0.5;
                     obj.fHandle = fH;
 
                 case 'SquareInclusion'
@@ -49,7 +55,7 @@ classdef GeometricalFunction < handle
                     sy = cParams.ySide;
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
-                    fH = @(x) max(abs(x1(x)-x0)/sx,abs(x2(x)-y0)/sy) - 0.5;
+                    fH = @(x) max(abs(x1(x)-x0)./sx,abs(x2(x)-y0)./sy) - 0.5;
                     obj.fHandle = fH;
 
                 case 'RectangleInclusion'
@@ -57,13 +63,18 @@ classdef GeometricalFunction < handle
                     s.type = 'Rectangle';
                     obj.computeInclusion(s);
 
+                case 'SmoothRectangleInclusion'
+                    s      = cParams;
+                    s.type = 'SmoothRectangle';
+                    obj.computeInclusion(s);            
+
                 case 'SmoothRectangle'
                     sx = cParams.xSide;
                     sy = cParams.ySide;
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
                     p  = cParams.pnorm;
-                    fH = @(x) ((abs(x1(x)-x0)/sx).^p+(abs(x2(x)-y0)/sy).^p).^(1/p) - 0.5;
+                    fH = @(x) ((abs(x1(x)-x0)./sx).^p+(abs(x2(x)-y0)./sy).^p).^(1/p) - 0.5;
                     obj.fHandle = fH;
 
                 case 'RectangleRotated'
@@ -166,12 +177,12 @@ classdef GeometricalFunction < handle
                     obj.fHandle = fH;
 
                 case 'Vigdergauz'
-                    vig         = LevelSetVigdergauz(cParams);
-                    obj.fHandle = vig.getFunctionHandle();
+                    fH          = LevelSetVigdergauz(cParams);
+                    obj.fHandle = fH.getFunctionHandle();
 
                 case 'PeriodicAndOriented'
-                    perOr       = LevelSetPeriodicAndOriented(cParams);
-                    obj.fHandle = perOr.getFunctionHandle();
+                    fH          = LevelSetPeriodicAndOriented(cParams);
+                    obj.fHandle = fH.getFunctionHandle();
             end
         end
 

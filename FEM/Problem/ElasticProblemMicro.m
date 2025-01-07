@@ -13,13 +13,14 @@ classdef ElasticProblemMicro < handle
         material
         quadrature
         displacementFun
-        solver
-        boundaryConditions, BCApplier
+        boundaryConditions, bcApplier
         strain, stress
         stiffness, forces
 
-        solverType, solverMode, solverCase = 'DIRECT'
+        solverType, solverMode, solverCase
         lagrangeMultipliers
+
+        problemSolver
     end
 
     methods (Access = public)
@@ -83,8 +84,8 @@ classdef ElasticProblemMicro < handle
             quad = obj.quadrature;
         end
 
-        function setC(obj, C)
-            obj.material.C = C;
+        function updateMaterial(obj, mat)
+            obj.material = mat;
         end
 
         function dim = getDimensions(obj)
@@ -125,6 +126,7 @@ classdef ElasticProblemMicro < handle
             obj.solverType = cParams.solverType;
             obj.solverMode = cParams.solverMode;
             obj.boundaryConditions = cParams.boundaryConditions;
+            obj.solverCase  = cParams.solverCase;
         end
 
         function createQuadrature(obj)
@@ -151,12 +153,18 @@ classdef ElasticProblemMicro < handle
             s.mesh = obj.mesh;
             s.boundaryConditions = obj.boundaryConditions;
             bc = BCApplier(s);
-            obj.BCApplier = bc;
+            obj.bcApplier = bc;
         end
 
         function createSolver(obj)
-            s.type =  obj.solverCase;
-            obj.solver = Solver.create(s);
+            sS.type =  obj.solverCase;
+            solver = Solver.create(sS);
+            s.solverType = obj.solverType;
+            s.solverMode = obj.solverMode;
+            s.solver     = solver;
+            s.boundaryConditions = obj.boundaryConditions;
+            s.BCApplier = obj.bcApplier;
+            obj.problemSolver = ProblemSolver(s);
         end
 
         function computeForces(obj)
@@ -175,18 +183,11 @@ classdef ElasticProblemMicro < handle
         end
 
         function u = computeDisplacement(obj, iVoigt)
-            s.solverType = obj.solverType;
-            s.solverMode = obj.solverMode;
-            s.solver     = obj.solver;
             s.stiffness = obj.stiffness;
-            s.forces = obj.forces(:, iVoigt);
-            s.boundaryConditions = obj.boundaryConditions;
-            s.boundaryConditions.iVoigt = iVoigt;
-            s.boundaryConditions.nVoigt = size(obj.forces,2);
-            s.BCApplier = obj.BCApplier;
-            pb = ProblemSolver(s); % magic goes here
-            [u, L] = pb.solve();
-
+            s.forces    = obj.forces(:, iVoigt);
+            s.iVoigt    = iVoigt;
+            s.nVoigt    = size(obj.forces,2);
+            [u, L]      = obj.problemSolver.solve(s);
             obj.lagrangeMultipliers = L;
             z.mesh    = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
@@ -195,11 +196,19 @@ classdef ElasticProblemMicro < handle
             obj.uFun{iVoigt} = uFeFun;
 
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            obj.displacementFun.fValues = uSplit;
+            obj.displacementFun.setFValues(uSplit);
         end
 
         function computeStrain(obj, iVoigt)
-            obj.strainFluctFun{iVoigt} = SymGrad(obj.uFun{iVoigt});
+            nCases    = size(obj.Chomog,1);
+            e         = zeros(nCases,1,1);
+            e(iVoigt) = 1;
+            strn      = SymGrad(obj.uFun{iVoigt});
+
+            obj.strainFluctFun{iVoigt} = strn;
+            s.operation                = @(xV) e+strn.evaluate(xV);
+            s.mesh                     = obj.mesh;
+            obj.strainFun{iVoigt}      = DomainFunction(s);
         end
 
         function computeStress(obj, iVoigt)

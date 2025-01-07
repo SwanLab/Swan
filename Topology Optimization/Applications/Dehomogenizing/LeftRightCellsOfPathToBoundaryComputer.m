@@ -113,7 +113,8 @@ classdef LeftRightCellsOfPathToBoundaryComputer < handle
             v1 = obj.pathVertexes(1);
             vS = obj.mesh.connec(obj.singularElement,:);
             vOthers = vS ~= v1;
-            isCS = obj.isCoherent.fValues(1,:,obj.singularElement);
+            isCV = obj.isCoherent.getFvaluesDisc();
+            isCS = isCV(1,:,obj.singularElement);            
             isCS = squeeze(isCS);
             isCO = isCS & vOthers;
             oV = vS(isCO);
@@ -122,7 +123,8 @@ classdef LeftRightCellsOfPathToBoundaryComputer < handle
 
        function v0 = computeVertex0(obj)
            isS  = obj.singularElement;
-           isCS = obj.isCoherent.fValues(1,:,isS);
+           isCV = obj.isCoherent.getFvaluesDisc();
+           isCS = isCV(1,:,isS);
            isCS = squeeze(isCS);
            vertexS = obj.mesh.connec(isS,:);
            if all(isCS)
