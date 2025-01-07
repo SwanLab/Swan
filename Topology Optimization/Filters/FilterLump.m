@@ -24,7 +24,7 @@ classdef FilterLump < handle
             lhs          = obj.LHS;
             rhs          = obj.computeRHS(x, quadType);
             xProj        = rhs./lhs;
-            xFun.fValues = xProj;
+            xFun.setFValues(xProj);
         end
 
     end

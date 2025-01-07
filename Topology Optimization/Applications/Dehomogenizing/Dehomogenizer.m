@@ -29,7 +29,7 @@ classdef Dehomogenizer < handle
         function plot(obj)
             ls = obj.levelSet;
             for i = 1:numel(ls)
-                fh = figure(1);
+                fh = figure(i);
                 clf
                 uM = obj.createUnfittedMesh(ls{i});
                 uM.plotStructureInColor('black');
@@ -55,9 +55,11 @@ classdef Dehomogenizer < handle
         end
 
         function createEpsilons(obj)
-            L = obj.mesh.computeCharacteristicLength();
+            xmax = max(obj.mesh.coord(:,1));
+            xmin = min(obj.mesh.coord(:,1));
+            L    = xmax - xmin;
             e = L./obj.nCells;
-            obj.epsilons = (1 + 0.01*linspace(0,100,1))*e;
+            obj.epsilons = e;%(1 + 0.01*linspace(0,100,1))*e/2;
         end            
 
         function o = computeOrientedMappingComputer(obj)
@@ -67,32 +69,22 @@ classdef Dehomogenizer < handle
         end
 
         function computeLevelSet(obj)
-            s.type               = 'PeriodicAndOriented';
             s.mesh               = obj.mesh;
             s.orientationVectors = obj.computeOrientedMappingComputer();
-            s.cellLevelSetParams = obj.cellLevelSetParams;
-            g                    = GeometricalFunction(s);
-            %lSet = LevelSetCreator.create(s);
-            %ls = lSet.computeLS(obj.epsilons);
-            lsFun = g.computeLevelSetFunction(obj.mesh);
-            obj.levelSet = lsFun.fValues;  
-            obj.fineMesh = lSet.getFineMesh();
+            s.m1                 = obj.cellLevelSetParams.xSide;
+            s.m2                 = obj.cellLevelSetParams.ySide;
+            s.nRemeshLevels      = 1;
+            ls                   = LevelSetPeriodicAndOriented(s);
+            obj.levelSet = ls.computeLS(obj.epsilons);  
+            obj.fineMesh = ls.getFineMesh();
         end
 
         function uM = createUnfittedMesh(obj,ls)
-            s.boundaryMesh   = obj.createBoundaryMesh();
-            s.backgroundMesh = obj.fineMesh;
+            s.backgroundMesh = obj.fineMesh;            
+            s.boundaryMesh   = obj.fineMesh.createBoundaryMesh();
             uM = UnfittedMesh(s);
-            uM.compute(ls);
+            uM.compute(ls.fValues);
         end
-
-        function bM = createBoundaryMesh(obj)
-            sB.backgroundMesh = obj.fineMesh;
-            sB.dimension = 1:3;
-            sB.type = 'FromReactangularBox';
-            bMc = BoundaryMeshCreator.create(sB);
-            bM  = bMc.create();
-        end        
 
         function saveImage(obj)
             xmin = min(obj.mesh.coord(:,1));

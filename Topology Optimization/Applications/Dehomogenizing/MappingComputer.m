@@ -23,8 +23,9 @@ classdef MappingComputer < handle
                 uV(iDim,:,:) = uC;
             end
             s.mesh    = obj.mesh;
-            s.fValues = uV;
-            uF = P1DiscontinuousFunction(s);
+            s.fValues = reshape(uV,obj.mesh.ndim,[])';
+            s.order    ='P1D';
+            uF = LagrangianFunction(s);
         end
 
     end
@@ -40,24 +41,21 @@ classdef MappingComputer < handle
         function K = computeStiffnessMatrix(obj)
             s.mesh  = obj.mesh;
             s.type  = 'StiffnessMatrix';
-            s.test  = P1DiscontinuousFunction.create(obj.mesh, 1);
-            s.trial = P1DiscontinuousFunction.create(obj.mesh, 1);
+            s.test  = LagrangianFunction.create(obj.mesh,1,'P1D');
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1D');
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
         end
 
         function RHS = computeRHS(obj,iDim)
             aI = obj.dilatedOrientation{iDim};
-            aI = aI.project('P1D');
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('QUADRATIC');
-            s.mesh      = obj.mesh;
-            s.quadratureOrder = q.order;
+            s.mesh            = obj.mesh;
+            s.quadratureOrder = 2;
             s.type      = 'ShapeDerivative';
-            test = P1DiscontinuousFunction.create(obj.mesh,1);
+            test = LagrangianFunction.create(obj.mesh,1,'P1D');
             rhs  = RHSintegrator.create(s);
             rhsV = rhs.compute(aI,test);
-            In = obj.interpolator;
+            In   = obj.interpolator;
             RHS = In'*rhsV;          
         end
 

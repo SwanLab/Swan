@@ -12,14 +12,21 @@ classdef Mesh < handle
         nnodes
         nnodeElem
 
-        coordElem % remove (xFE)
+       % remove (xFE)
         interpolation
 
         edges
         faces
         boundaryNodes
         boundaryElements
+        coordElem
     end
+
+    properties (Access = private)
+        xVOld
+        dVOld
+        
+    end    
 
     properties (Access = protected)
         xFE
@@ -163,6 +170,23 @@ classdef Mesh < handle
             end
         end
 
+        function plotAllNodes(obj)
+            nodes = 1:obj.nnodes;
+            obj.plotNodes(nodes,'blue')
+        end
+
+        function plotNodes(obj,indeces,colorValue)
+            ind(:,1) = indeces;
+            b = num2str(ind);
+            c = cellstr(b);
+            dx = 0.01; dy = 0.01;
+            x = obj.coord(ind,1)';
+            y = obj.coord(ind,2)';
+            t = text(x+dx,y+dy,c);
+            set(t,'Color',colorValue)
+        end
+
+
         function bMesh = createBoundaryMesh(obj)
             if isempty(obj.boundaryNodes) || isempty(obj.boundaryElements)
                 s.backgroundMesh = obj;
@@ -191,12 +215,10 @@ classdef Mesh < handle
             cV  = obj.edges.computeConnectedVertex(vertex);
         end
 
-        function m = remesh(obj,nLevels) % only tri mesh
+        function mF = remesh(obj) % only tri mesh
             % for quad, QuadToTriMeshConverter
-            s.mesh = obj;
-            s.nLevels = nLevels;
-            r = Remesher(s);
-            m = r.compute();
+            mC = obj;
+            mF = Remesher.compute(mC);
         end
 
         function exportSTL(obj)
@@ -212,23 +234,19 @@ classdef Mesh < handle
         end
 
         function dV = computeDvolume(obj,quad)
-            w = reshape(quad.weigp,[quad.ngaus 1]);
-            dVolume = w.*obj.computeJacobianDeterminant(quad.posgp);
-            dV = reshape(dVolume, [quad.ngaus, obj.nelem]);
+            xV = quad.posgp;
+            if ~isequal(xV,obj.xVOld)
+                w = reshape(quad.weigp,[quad.ngaus 1]);
+                dVolume = w.*obj.computeJacobianDeterminant(quad.posgp);
+                dV = reshape(dVolume, [quad.ngaus, obj.nelem]);
+                obj.dVOld = dV;
+                obj.xVOld = xV;
+            else
+                dV = obj.dVOld;
+            end
         end
 
         %% Remove
-
-        function mD = createDiscontinuousMesh(obj) % P1D
-            ndims = size(obj.coord, 2);
-            nNodesDisc = obj.nnodeElem*obj.nelem;
-            nodesDisc  = 1:nNodesDisc;
-            connecDisc = reshape(nodesDisc,obj.nnodeElem,obj.nelem)';
-            coordD = reshape(obj.xFE.fValues, [ndims, nNodesDisc])';
-            s.connec = connecDisc;
-            s.coord  = coordD;
-            mD = Mesh.create(s);
-        end
 
         function [m, l2g] = createSingleBoundaryMesh(obj)
             % To BoundaryMesh
@@ -296,7 +314,7 @@ classdef Mesh < handle
 
     end
 
-    methods (Access = protected)
+    methods (Access = public) % ?????????
 
         function J = computeJacobian(obj,xV)
             nDimGlo  = size(obj.coordElem,1);
@@ -339,15 +357,15 @@ classdef Mesh < handle
 
         function computeElementCoordinates(obj)
             obj.computeCoordFEfunction();
-            obj.coordElem = obj.xFE.fValues;
+            obj.coordElem = obj.xFE.getFvaluesByElem();
         end
 
         function computeCoordFEfunction(obj)
             s.mesh    = obj;
             s.order   = 'P1';
             s.fValues = obj.coord;
-            coordP1 = LagrangianFunction(s);
-            obj.xFE = coordP1.project('P1D');
+            coordP1   = LagrangianFunction(s);
+            obj.xFE = coordP1.project('P1D');             
         end
 
         function L = computeSquarePerimeter(obj)

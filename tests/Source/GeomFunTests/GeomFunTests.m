@@ -5,7 +5,7 @@ classdef GeomFunTests < handle & matlab.unittest.TestCase
             'RectangleInclusion','SmoothRectangle','RectangleRotated',...
             'Circle','CircleInclusion','VerticalFiber','VerticalNFibers',...
             'HorizontalFiber','HorizontalInclusion','HorizontalNFibers',...
-            'Holes','Full','Given','Vigdergauz','PeriodicAndOriented'}
+            'Holes','Full','Given','Vigdergauz'}
 
         initialCases3D = {'Cylinder','Sphere','SphereInclusion','Holes',...
             'Full','Given'}
@@ -103,44 +103,7 @@ classdef GeomFunTests < handle & matlab.unittest.TestCase
             s.phiZero      = 0.4;
             s.fHandle      = @(x) -1+atan(3*x(1,:,:).*x(2,:,:).*x(3,:,:));
         end
-
-        function s = obtainPeriodicOrientedSettings(mesh)
-            s1     = 0.3;
-            s2     = -0.8;
-            x1     = mesh.coord(:,1);
-            x2     = mesh.coord(:,2);
-            v(:,1) = cos(pi*(x1 + s1*x2));
-            v(:,2) = cos(pi*(x2 + s2*x1));
-            beta   = atan2(v(:,2),v(:,1));
-            al     = beta/2;
-
-            ss.fValues     = [cos(al), sin(al)];
-            ss.mesh        = mesh;
-            ss.order       = 'P1';
-            aF             = LagrangianFunction(ss);
-            orientation{1} = aF;
-            ss.fValues     = [-sin(al), cos(al)];
-            aF             = LagrangianFunction(ss);
-            orientation{2} = aF;
-
-            nCells = 30;
-            L = mesh.computeCharacteristicLength();
-            e = L/nCells;
-            epsilons = (1 + 0.01*linspace(0,100,1))*e;
-
-            sM.orientationP1 = orientation;
-            sM.mesh          = mesh;
-            
-            I                          = ones(size(mesh.coord,1),1);
-            s.orientationVectors       = OrientedMappingComputer(sM);
-            s.epsilons                 = epsilons;
-            s.mesh                     = mesh;
-            s.cellLevelSetParams.type  = 'RectangleInclusion';
-            s.cellLevelSetParams.xSide = 1*I;
-            s.cellLevelSetParams.ySide = 0.5*I;
-            s.cellLevelSetParams.xCoorCenter = 0;
-            s.cellLevelSetParams.yCoorCenter = 0.5;
-        end
+       
     end
 
 end
