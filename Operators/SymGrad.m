@@ -4,7 +4,7 @@ function dom = SymGrad(u)
     s.ndimf     = gradU.ndimf;
     s.mesh      = u.mesh;
     dom = DomainFunction(s);
-    dom = Voigt(dom);    
+    %dom = Voigt(dom);    
 end
 
 function symGrad = evaluate(gradU, xV)
