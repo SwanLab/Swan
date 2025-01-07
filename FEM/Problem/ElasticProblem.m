@@ -100,7 +100,7 @@ classdef ElasticProblem < handle
         end
 
         function createSolver(obj)
-            sS.type      = obj.solverCase;
+            sS.solverType = obj.solverCase;
             solver       = Solver.create(sS);
             s.solverType = obj.solverType;
             s.solverMode = obj.solverMode;

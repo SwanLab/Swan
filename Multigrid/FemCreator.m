@@ -80,7 +80,7 @@ classdef FemCreator < handle
             fvalues = zeros(mesh.nnodes*obj.nDimf,1);
             fvalues(pointload.dofs) = pointload.values;
             fvalues = reshape(fvalues,obj.nDimf,[])';
-            pointload.fun.fValues = fvalues;
+            pointload.fun.setFValues(fvalues);
 
             s.pointloadFun = pointload;
             s.dirichletFun = dirichlet;
@@ -109,12 +109,10 @@ classdef FemCreator < handle
         end
 
         function [young,poisson] = computeElasticProperties(obj,mesh)
-            E1  = 1;
-            nu1 = 1/3;
-            E   = AnalyticalFunction.create(@(x) E1*ones(size(squeeze(x(1,:,:)))),1,mesh);
-            nu  = AnalyticalFunction.create(@(x) nu1*ones(size(squeeze(x(1,:,:)))),1,mesh);
-            young   = E;
-            poisson = nu;
+            E  = 1;
+            nu = 1/3;
+            young   = ConstantFunction.create(E,mesh);
+            poisson = ConstantFunction.create(nu,mesh);      
         end
 
         function material = createMaterial(obj,mesh)
