@@ -76,17 +76,17 @@ classdef MultilevelMesh < handle
         function m = createCoarseMesh(obj)
             
             if obj.ndim == 2
-                % % Triangular Mesh
-                % x1 = linspace(0,obj.Length,obj.nX);
-                % x2 = linspace(0,obj.Height,obj.nY);
-                % [xv,yv] = meshgrid(x1,x2);
-                % [F,V] = mesh2tri(xv,yv,zeros(length(xv)),'x');
-                % s.coord = V(:,1:2);
-                % s.connec = F;
-                % m = Mesh.create(s);
+             % %   Triangular Mesh
+                x1 = linspace(0,obj.Length,obj.nX);
+                x2 = linspace(0,obj.Height,obj.nY);
+                [xv,yv] = meshgrid(x1,x2);
+                [F,V] = mesh2tri(xv,yv,zeros(length(xv)),'x');
+                s.coord = V(:,1:2);
+                s.connec = F;
+                m = Mesh.create(s);
 
-                % Quadrilater Mesh
-                m = QuadMesh(obj.Length, obj.Height, obj.nX, obj.nY);
+                % % Quadrilater Mesh
+          %       m = QuadMesh(obj.Length, obj.Height, obj.nX, obj.nY);
             elseif obj.ndim == 3
                 m = TetraMesh(obj.Length,obj.Height,obj.Width,obj.nX,obj.nY,obj.nZ);
                

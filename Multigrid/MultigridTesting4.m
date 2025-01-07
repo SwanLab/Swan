@@ -105,9 +105,9 @@ classdef MultigridTesting4 < handle
         end
 
         function createMultiLevelMesh(obj)
-            s.nX               = 1; % Canviar per fer 2D 
-            s.nY               = 1; % Canviar per fer 2D 
-            s.nZ               = 1; % Canviar per fer 2D 
+            s.nX               = 2; % Canviar per fer 2D 
+            s.nY               = 2; % Canviar per fer 2D 
+            s.nZ               = 2; % Canviar per fer 2D 
             s.nLevel           = obj.nLevel;
             s.length           = 1; % Canviar per fer 2D
             s.height           = 1; % Canviar per fer 2D
