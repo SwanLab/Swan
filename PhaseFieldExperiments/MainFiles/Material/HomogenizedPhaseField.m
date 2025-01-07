@@ -70,7 +70,7 @@ classdef HomogenizedPhaseField < handle
         function [mxV, C] = loadVademecum(obj)
             fName = [obj.fileName];
             matFile   = [fName,'.mat'];
-            file2load = fullfile('VademecumDamage',matFile);
+            file2load = fullfile('PFVademecum','Degradation',matFile);
             v = load(file2load);
             mxV = v.phi;
             C   = v.mat;

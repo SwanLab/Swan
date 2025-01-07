@@ -16,45 +16,10 @@ s.tolerance.stag = 1e-8;
 
 s.benchmark.N = 10;
 
-% 1Elem
-% s.benchmark.type.mesh = '1Elem';
-% s.benchmark.type.bc = 'displacementTraction';
-% s.benchmark.bcValues = [1e-10:1e-4:1e-1];
-% s.matInfo.E  = 210;
-% s.matInfo.nu = 0.3;
-% s.matInfo.Gc = 5e-3;
-% s.l0 = 0.1;
-
-% SEN Traction
-s.benchmark.type.mesh = 'SENtraction';
-s.benchmark.type.bc = 'displacementTraction';
-s.benchmark.bcValues = [1e-10:1e-5:5e-3,5.001e-3:1e-6:1e-1]; %HOMOG AREA
-s.matInfo.E  = 210;
-s.matInfo.nu = 0.3;
-s.matInfo.Gc = 2.7e-3;
-s.l0 = 0.01;
-
-% s.benchmark.type.mesh = 'SENtraction';
-% s.benchmark.type.bc = 'displacementTraction';
-% s.benchmark.bcValues = [0:1e-3:9e-3,9.01e-3:1e-5:1e-1];
-% s.matInfo.E  = 210;
-% s.matInfo.nu = 0.3;
-% s.matInfo.Gc = 2.7e-3;
-% s.l0 = 0.01;
-
 % % SEN Shear
 % s.benchmark.type.mesh = 'SENshear';
 % s.benchmark.type.bc = 'displacementShear';
 % s.benchmark.bcValues = [0:1e-3:1e-1,1e-1:1e-3:1.2e-1];
-% s.matInfo.E  = 210;
-% s.matInfo.nu = 0.3;
-% s.matInfo.Gc = 2.7e-3;
-% s.l0 = 0.01;
-
-% SEN Mixed
-% s.benchmark.type.mesh = 'SENmixed';
-% s.benchmark.type.bc = 'displacementMixed';
-% s.benchmark.bcValues = [1e-4:1e-3:1e-2,1e-2:1e-4:1e-1]; %Homog
 % s.matInfo.E  = 210;
 % s.matInfo.nu = 0.3;
 % s.matInfo.Gc = 2.7e-3;
@@ -70,17 +35,17 @@ s.l0 = 0.01;
 % s.l0 = 5;
 
 s.matInfo.matType = 'PhaseFieldAnalytic';%'PhaseFieldHomog';  %'PhaseFieldAnalytic'
-s.matInfo.fileName = 'CircleMicroDamageArea'; %'IsoMicroDamage','Circle/Square+MicroDamage+Area/Perimeter'
+s.matInfo.fileName = 'CircleMicroDamagePerimeter'; %'IsoMicroDamage','Circle/Square+MicroDamage+Area/Perimeter'
 s.matInfo.degradation = 'PhaseFieldDegradation';
 s.dissipInfo.type = 'PhaseFieldDissipationAT';
-s.dissipInfo.pExp = 1;
+s.dissipInfo.pExp = 2;
 s.solverType = 'Gradient'; %'Newton'
 
 %% RUN
 tester = TestingPhaseField(s);
 outputData = tester.compute();
 outputData.inputParameters = s;
-save("/home/gerard/Documents/GitHub/Swan/PhaseFieldExperiments/ResultsOctober/SENtraction/" + ...
-      "SENtraction_AT1_GradientX.mat","outputData") %ACTIVATE TO SAVE DATA!
+save("/home/gerard/Documents/GitHub/Swan/PhaseFieldExperiments/ResultsPaper1/SENshear/" + ...
+      "SENshear_AT2.mat","outputData") %ACTIVATE TO SAVE DATA!
 
 PhaseFieldPlotter(outputData);
