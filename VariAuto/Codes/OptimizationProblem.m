@@ -77,10 +77,11 @@ classdef OptimizationProblem < handle
        end
 
        function createCost(obj)
-           s         = obj.costParams;
-           s.network = obj.network;
+           s                = obj.costParams;
+           s.network        = obj.network;
            s.designVariable = obj.network.getLearnableVariables();
-           obj.costFunc = CostFunction(s);
+           s.data           = obj.data;
+           obj.costFunc     = CostFunction(s);
        end
 
        function createOptimizer(obj)

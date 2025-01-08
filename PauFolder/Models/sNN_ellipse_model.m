@@ -1,4 +1,3 @@
-%% Testing with IRIS DATASET
 clc;
 clear;
 close all;
@@ -43,7 +42,8 @@ s.yFeatures = [3, 4, 5, 6];
 cHomogIdxs = [11, 12, 22, 33];
 
 % Load data
-data   = cHomogData(s);
+%data   = cHomogData(s);
+data   = Data(s);
 s.data = data;
 
 % Train the model

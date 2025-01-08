@@ -3,22 +3,27 @@ classdef Data < handle
     properties (Access = public)
         nFeatures
         nSamples
-        nLabels
-        polyGrade
+        nLabels        
         Xtrain
         Ytrain       
         Xtest
         Ytest
         Ntest
+
+        batchSize
+        Batch_nD
+        Batch_nB
     end
 
     properties (Access = private)
         X
         Y
+        polynomialOrder
         data
         fileName
         testRatio
-        features
+        xFeatures
+        yFeatures
     end
 
     methods (Access = public)
@@ -26,8 +31,10 @@ classdef Data < handle
         function obj = Data(cParams)            
             obj.init(cParams)
             obj.loadData();
-            obj.buildModel();
-            obj.splitdata();
+            %obj.buildModel();
+            obj.splitdata()
+            obj.nLabels   = size(obj.Ytrain,2);                        
+            obj.nFeatures = size(obj.Xtrain,2);
         end
 
         function plotdata(self,i,j)
@@ -66,10 +73,39 @@ classdef Data < handle
                    obj.testRatio = h.value;
                    obj.splitdata()
                case 'polyGrade'
-                   obj.polyGrade = h.value;
-                   obj.buildModel(obj.X,obj.polyGrade);
+                   obj.polynomialOrder = h.value;
+                   obj.buildModel(obj.X,obj.polynomialOrder);
            end
         end
+
+        function [x,y,I] = createMinibatch(obj,order,i)
+            
+            Xl = obj.Xtrain;
+            Yl = obj.Ytrain;
+            I = obj.batchSize;
+
+            cont = 1;
+            if i == fix(size(Xl,1)/I)
+                plus = mod(size(Xl,1),I);
+                x = zeros([I+plus,size(Xl,2)]);
+                y = zeros([I+plus,size(Yl,2)]);
+            else
+                plus = 0;
+                x = zeros([I,size(Xl,2)]);
+                y = zeros([I,size(Yl,2)]);
+            end
+            for j = (i-1)*I+1:i*I+plus
+                x(cont,:) = Xl(order(j),:);
+                y(cont,:) = Yl(order(j),:);
+                cont = cont+1;
+            end
+        end
+
+        %function [nD, nB, batchSize] = getBatchSize(obj)
+        %    nD = obj.nD;
+        %    nB = obj.nB;
+        %    batchSize = obj.batchSize;
+        %end
     end
 
     methods (Access = private)
@@ -77,65 +113,39 @@ classdef Data < handle
         function init(obj,cParams)
             obj.fileName        = cParams.fileName;
             obj.testRatio       = cParams.testRatio;
-            obj.polyGrade       = cParams.polynomialOrder;
-            obj.features        = cParams.features;
+            obj.polynomialOrder = cParams.polynomialOrder;
+            obj.xFeatures       = cParams.xFeatures;
+            obj.yFeatures       = cParams.yFeatures;
         end
 
         function loadData(obj)
-            f = obj.fileName;
+            f = fullfile('../Datasets/',obj.fileName);
+
+            % Change: use readmatrix to skip header
             obj.data = readmatrix(f);
-       %     fprintf('Features to be used (1:%d):',(size(obj.data,2)-1))
-       %     feat = input(' ');
-            xfeat = obj.features;
-            x = obj.data(:, xfeat);
-            yfeat = xfeat(end)+1:size(obj.data,2);
-            y = obj.data(:, yfeat);
+
+            % Change: incorporate features to use in cParams vs propmpting
+            % user though terminal
+            x = obj.data(:, obj.xFeatures);
+            y = obj.data(:, obj.yFeatures);
+
             obj.X = x;
             obj.Y = y;
-            obj.nLabels   = size(obj.Y,2);                        
-            obj.nFeatures = size(obj.X,2);
-            obj.nSamples  = size(obj.X,1);
 
-            % IDENTIFIER
-            % ydata = obj.data(:, end);
-            % y = zeros(length(ydata),max(ydata));
-
-%             ydata = obj.data(:, feat);
-%             y = zeros(length(ydata),width(ydata));
-%             
-%             u = unique(ydata);
-%             for i=1:length(ydata)
-%                 for j = 1:length(u)
-%                     if ydata(i) == u(j)
-%                         y(i,j) = 1;
-%                     end
-%                 end
-%             end
-%             
-%             obj.X = (x-min(x,[],1))./(max(x,[],1)-min(x,[],1)+10^(-10));
-%             % obj.Y = y;
-%             obj.Y = obj.X;
         end
+        
 
         function Xful = buildModel(obj)
-            % Generation of all the possible exponent combinations
-            exponents = [];
-            for tD = obj.polyGrade:-1:1
-                newDeg    = obj.generateExponents(tD);
-                exponents = [exponents; newDeg];
-            end
-            exponents = flip(exponents,1);
-            
-            % Initialization of the output matrix
-            Xful = zeros(obj.nSamples, size(exponents,1));
-            
-            % Double loop to cover all the possible polynomials
-            for i = 1:size(exponents,1)
-                auxTerm = ones(obj.nSamples,1);
-                for j = 1:obj.nFeatures
-                    auxTerm = auxTerm.*(obj.X(:,j).^exponents(i,j));
+            x  = obj.X;
+            d  = obj.polynomialOrder;
+            x1 = x(:,1);
+            x2 = x(:,2);
+            cont = 1;
+            for g = 1:d
+                for a = 0:g
+                    Xful(:,cont) = x2.^(a).*x1.^(g-a);
+                    cont = cont+1;
                 end
-                Xful(:,i) = auxTerm;
             end
             obj.X = Xful;
         end
@@ -176,6 +186,13 @@ classdef Data < handle
             obj.Ytrain = obj.Y(r(1:ntrain),:);
             obj.Ytest  = obj.Y(r((ntrain + 1):end),:);
             obj.Ntest = ntest;
+            obj.Batch_nD = size(obj.Xtrain,1);
+            if size(obj.Xtrain,1) > 200
+                obj.batchSize = 200;
+            else
+                obj.batchSize = size(obj.Xtrain,1);
+            end
+            obj.Batch_nB = fix(obj.Batch_nD/obj.batchSize);
         end
     end
 end
