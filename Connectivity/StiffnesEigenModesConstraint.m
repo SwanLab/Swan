@@ -3,9 +3,11 @@ classdef StiffnesEigenModesConstraint < handle
     properties (Access = private)
         mesh
         eigenModesFunctional
-        shift
         designVariable
         targetEigenValue
+        filteredDesignVariable
+        iter
+        filter
     end
     
     methods (Access = public)
@@ -18,13 +20,52 @@ classdef StiffnesEigenModesConstraint < handle
         end
         
         function [J,dJ] = computeFunctionAndGradient(obj,x)
+            iter = x{2};
+            if iter > 0 && iter > obj.iter && mod(iter,20)== 0 && obj.targetEigenValue < 2.5
+                obj.iter = iter;
+                obj.targetEigenValue = obj.targetEigenValue + 0.5;
+            end
+   
             [lambda,dlambda] = obj.eigenModesFunctional.computeFunctionAndGradient(x);
+
             J      = obj.computeFunction(lambda);
             dJ     = obj.computeGradient(dlambda);
         end  
 
-        function updateTargetEigenvalue(obj, new)
+        function t = getTargetEigenValue(obj)
+            t = obj.targetEigenValue;
+        end
+
+        function t = getBeta(obj)
+            t = obj.eigenModesFunctional.getBeta();
+        end
+
+        function updateTargetEigenValue(obj, new)
             obj.targetEigenValue = new;
+        end
+
+        function dV = getDesignVariable(obj)
+            dV = obj.eigenModesFunctional.getDesignVariable();
+        end
+       
+        function dV = getGradient(obj)
+            dV = obj.eigenModesFunctional.getGradient();
+        end
+
+        function dV = getGradientUN(obj)
+            dV = obj.eigenModesFunctional.getGradientUN();
+        end
+
+        function eigenF = getDirichletEigenMode(obj)
+            eigenF = obj.eigenModesFunctional.getDirichletEigenMode();
+        end
+
+        function eigsCell = getEigenModes(obj)
+            eigsCell = obj.eigenModesFunctional.getEigenModes();
+        end
+
+        function lambda1 = getLambda1(obj)
+            lambda1 = obj.eigenModesFunctional.value;
         end
     end
 
@@ -33,16 +74,16 @@ classdef StiffnesEigenModesConstraint < handle
             obj.mesh              = cParams.mesh;
             obj.targetEigenValue = cParams.targetEigenValue;
             obj.designVariable    = cParams.designVariable;
-            obj.shift             = cParams.shift;
+            obj.iter              = 0.0;
         end
 
         function J = computeFunction(obj,lambda)
-            J    = (obj.shift + obj.targetEigenValue) - lambda;
+              J    = obj.targetEigenValue - lambda;
         end
 
         function dJ = computeGradient(obj, dlambda)
-            dJ = - dlambda;
-%             dJ = dJ.project('P1', obj.mesh);
+            fValues = - dlambda.fValues;
+            dJ      = FeFunction.create(dlambda.order,fValues,obj.mesh);            
         end
 
     end

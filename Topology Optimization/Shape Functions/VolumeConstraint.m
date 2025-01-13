@@ -16,6 +16,10 @@ classdef VolumeConstraint < handle
             J      = obj.computeFunction(V);
             dJ     = obj.computeGradient(dV);
         end  
+
+        function vol = getDesignVariable(obj)
+            vol = obj.volume.getDesignVariable();
+        end
     end
 
     methods (Access = private)

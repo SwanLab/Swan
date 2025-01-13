@@ -28,10 +28,17 @@ classdef FilterAdjointAndProject < handle
             regFun             = fun.*projSensit;
             xF                 = obj.filter.compute(regFun,quadOrder);
         end
-       
 
         function updateBeta(obj, beta)
             obj.projector.updateBeta(beta);
+        end
+
+        function updateEpsilon(obj,epsilon)
+            obj.filter.updateEpsilon(epsilon);
+        end
+
+        function beta = getBeta(obj)
+            beta = obj.projector.getBeta();
         end
     end
 

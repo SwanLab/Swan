@@ -106,45 +106,29 @@ classdef Optimizer < handle
             end
         end
 
-        function obtainGIF(obj)
+        function obtainGIF(obj,gifName,fun)
             %set(0,'DefaultFigureVisible','off');
 
-            gifName = 'testingGIF';
             deltaTime = 0.01;
-            m = obj.designVariable.mesh;
-            xmin = min(m.coord(:,1));
-            xmax = max(m.coord(:,1));
-            ymin = min(m.coord(:,2));
-            ymax = max(m.coord(:,2));
+            m         = fun.mesh;
+            xmin      = min(m.coord(:,1));
+            xmax      = max(m.coord(:,1));
+            ymin      = min(m.coord(:,2));
+            ymax      = max(m.coord(:,2));
+            q = Quadrature.create(m,0);
+            xV = q.posgp;
+            RhoElem = squeeze(fun.evaluate(xV));
+            gifFig = figure();
+            axis off
+            axis equal
+            axes = gifFig.Children;
+            patchHandle = patch(axes,'Faces',m.connec,'Vertices',m.coord,...
+                'EdgeColor','none','LineStyle','none','FaceLighting','none' ,'AmbientStrength', .75);
+            set(axes,'ALim',[0, 1],'XTick',[],'YTick',[]);
+            set(patchHandle,'FaceVertexAlphaData',RhoElem,'FaceAlpha','flat');
 
-            f = obj.designVariable.value;
-            switch obj.designVariable.type
-                case 'LevelSet'
-                    uMesh = obj.designVariable.getUnfittedMesh();
-                    uMesh.compute(f);
-                    figure
-                    uMesh.plotStructureInColor('black');
-                    hold on
-                case 'Density'
-                    p1.mesh    = m;
-                    p1.fValues = f;
-                    p1.order   = 'P1';
-                    RhoNodal   = LagrangianFunction(p1);
-                    q = Quadrature.set(m.type);
-                    q.computeQuadrature('CONSTANT');
-                    xV = q.posgp;
-                    RhoElem = squeeze(RhoNodal.evaluate(xV));
-
-                    figHandle = figure;
-                    axis off
-                    axis equal
-                    axes = figHandle.Children;
-                    patchHandle = patch(axes,'Faces',m.connec,'Vertices',m.coord,...
-                        'EdgeColor','none','LineStyle','none','FaceLighting','none' ,'AmbientStrength', .75);
-                    set(axes,'ALim',[0, 1],'XTick',[],'YTick',[]);
-                    set(patchHandle,'FaceVertexAlphaData',RhoElem,'FaceAlpha','flat');
-            end
-            fig = gcf;
+            hold on;
+            fig = gifFig;
             fig.CurrentAxes.XLim = [xmin xmax];
             fig.CurrentAxes.YLim = [ymin ymax];
             axis([xmin xmax ymin ymax])
@@ -158,7 +142,7 @@ classdef Optimizer < handle
             else
                 imwrite(A,map,gifname,"gif","WriteMode","append","DelayTime",deltaTime);
             end
-            close gcf
+            close(gifFig);
 
             %set(0,'DefaultFigureVisible','on');
         end

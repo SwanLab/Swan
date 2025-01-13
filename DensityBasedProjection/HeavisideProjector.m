@@ -31,9 +31,12 @@ classdef HeavisideProjector < handle
             end
         end
 
-
         function updateBeta(obj, beta)
             obj.beta = beta;
+        end
+
+        function beta = getBeta(obj)
+            beta = obj.beta;
         end
 
     end

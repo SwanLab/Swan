@@ -16,7 +16,8 @@ classdef TopOptDensityConnectivity < handle
         constraint
         dualVariable
         optimizer
-        minimumEigenValue                                                  
+        minimumEigenValue
+        perimeter
     end
 
     methods (Access = public)
@@ -25,13 +26,13 @@ classdef TopOptDensityConnectivity < handle
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
-            obj.createFilter();
             obj.createFilterCompliance();
             obj.createFilterConnectivity();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
+            obj.createPerimeter();
             obj.createEigenValueConstraint();                             
             obj.createVolumeConstraint();
             obj.createCost();
@@ -49,15 +50,15 @@ classdef TopOptDensityConnectivity < handle
         end
 
         function createMesh(obj)
-            x1      = linspace(0,2,100);
-            x2      = linspace(0,1,50);
+            x1      = linspace(0,2.0,100);
+            x2      = linspace(0,1.0,50);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
             s.connec = F;
             obj.mesh = Mesh.create(s);
         end
-
+    
         function createDesignVariable(obj)
             s.fHandle = @(x) ones(size(x(1,:,:)));
             s.ndimf   = 1;
@@ -70,48 +71,49 @@ classdef TopOptDensityConnectivity < handle
             dens        = DesignVariable.create(sD);
             obj.designVariable = dens;
         end
-
-        function createFilter(obj)
-            s.filterType = 'LUMP';
-            s.mesh       = obj.mesh;
-            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-            f            = Filter.create(s);
-            obj.filter = f;
-        end
-
+    
         function createFilterCompliance(obj)
-            s.filterType = 'LUMP';
-            s.mesh       = obj.mesh;
-            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-            f            = Filter.create(s);
-            obj.filterComp = f;
 %             s.filterType = 'FilterAndProject';
 %             s.mesh       = obj.mesh;
 %             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
 %             s.filterStep = 'PDE';
 %             s.beta       = 2.0;
-% %             s.eta        = 0.5;
+%             s.eta        = 0.5;
 %             f            = Filter.create(s);
+%             f.updateEpsilon(1.5*obj.mesh.computeMeanCellSize());
 %             obj.filterComp = f;
 %             s.filterType = 'FilterAdjointAndProject';    
 %             f            = Filter.create(s);
+%             f.updateEpsilon(1.5*obj   .mesh.computeMeanCellSize());
 %             obj.filterAdjointComp = f;
-        end
 
-
-        function createFilterConnectivity(obj)
-            s.filterType = 'FilterAndProject';
+            s.filterType = 'LUMP';
             s.mesh       = obj.mesh;
             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.filterStep = 'LUMP';
-            s.beta       = 100.0;
-            s.eta        = 0.05;
-%             s.beta = 16.0;
+            f            = Filter.create(s);
+            obj.filterComp = f;
+        end
+        
+
+        function createFilterConnectivity(obj)
+%             s.filterType = 'FilterAndProject';
+%             s.mesh       = obj.mesh;
+%             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+%             s.filterStep = 'LUMP';
+%             s.beta       = 10.0;
+%             s.eta        = 0.5;
+%             f            = Filter.create(s);
+%             f.updateEpsilon(1.5*obj   .mesh.computeMeanCellSize());
+%             obj.filterConnect = f;
+%             s.filterType = 'FilterAdjointAndProject';   
+%             f            = Filter.create(s);
+%             f.updateEpsilon(1.5*obj   .mesh.computeMeanCellSize());
+%             obj.filterAdjointConnect = f;
+            s.filterType = 'LUMP';
+            s.mesh       = obj.mesh;
+            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
             f            = Filter.create(s);
             obj.filterConnect = f;
-            s.filterType = 'FilterAdjointAndProject';    
-            f            = Filter.create(s);
-            obj.filterAdjointConnect = f;
         end
 
         function createMaterialInterpolator(obj)
@@ -176,9 +178,19 @@ classdef TopOptDensityConnectivity < handle
             obj.compliance = c;
         end
 
+        function createPerimeter(obj)
+            s.mesh                        = obj.mesh;
+            s.filter                      = obj.filterComp;
+            p = SimplePerimeterFunctional(s);
+            obj.perimeter = p;
+        end
+
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
-            s.filter = obj.filter;
+            s.filter = obj.filterComp;
+            if ~isempty(obj.filterAdjointComp)
+                s.filterAdjoint               = obj.filterAdjointComp;
+            end
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
             s.volumeTarget = 0.4;
             v = VolumeConstraint(s);
@@ -189,9 +201,9 @@ classdef TopOptDensityConnectivity < handle
             s.mesh              = obj.mesh;
             s.designVariable    = obj.designVariable;
             s.filter            = obj.filterConnect;
-            s.filterAdjoint     = obj.filterAdjointConnect;
-            s.targetEigenValue = 0.05;      
-            s.shift             = 1.0;
+%             s.filterAdjoint     = obj.filterAdjointConnect;   
+            s.targetEigenValue  = 0.0;      
+            s.shift             = 0.0;
             obj.minimumEigenValue = StiffnesEigenModesConstraint(s);
         end
 
@@ -204,7 +216,8 @@ classdef TopOptDensityConnectivity < handle
 
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
-            s.weights           = 1;
+            s.shapeFunctions{2} = obj.perimeter;
+            s.weights           = [1.0; 1.0];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -239,52 +252,50 @@ classdef TopOptDensityConnectivity < handle
             opt              = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
-
-%             iterTotal = 0.0;
-%             target = 0.06;
-%             while target <= 0.15
-%                 iterTotal
-%                 target
-%                 obj.minimumEigenValue.updateTargetEigenvalue(target)
-%                 opt              = OptimizerMMA(s);
-%                 opt.solveProblem();
-%                 target = target + 0.01;
-%                 iterTotal = iterTotal + 50;
-%             end
-
-
-%             iterTotal = 400.0;
-%             s.maxIter        = 20;
-%             beta = 2;
-%             while beta <= 64
-%                 iterTotal
-%                 beta = beta*2;
-%                 obj.compliance.updateFilterParams(beta)
-%                 opt              = OptimizerMMA(s);
-%                 opt.solveProblem();
-%                 iterTotal = iterTotal + 20;
-%             end
-%             
-            s.maxIter        = 1000 - iterTotal;
-            opt              = OptimizerMMA(s);
-            opt.solveProblem();
-            obj.optimizer = opt;
         end
 
         function bc = createBoundaryConditions(obj)
-            xMax    = max(obj.mesh.coord(:,1));
-            yMax    = max(obj.mesh.coord(:,2));
-            isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
-
-            sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [1,2];
-            sDir{1}.value     = 0;
-
-            sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 2;
-            sPL{1}.value     = -1;
-
+            type = 'cantilever';
+            if isequal(type, 'cantilever')
+                xMax    = max(obj.mesh.coord(:,1));
+                yMax    = max(obj.mesh.coord(:,2));
+                isDir   = @(coor)  abs(coor(:,1))==0;
+                isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
+    
+                sDir{1}.domain    = @(coor) isDir(coor);
+                sDir{1}.direction = [1,2];
+                sDir{1}.value     = 0;
+    
+                sPL{1}.domain    = @(coor) isForce(coor);
+                sPL{1}.direction = 2;
+                sPL{1}.value     = -1;
+            elseif isequal(type, 'bridge')
+                xMax    = max(obj.mesh.coord(:,1));
+                yMax    = max(obj.mesh.coord(:,2));
+                isDir   = @(coor)  abs(coor(:,2))==0.0 & (abs(coor(:,1))>= 0.95*xMax | abs(coor(:,1))<= 0.05*xMax);
+                isForce = @(coor)  (abs(coor(:,2))==yMax & abs(coor(:,1))>=0.45*xMax & abs(coor(:,1))<=0.55*xMax);
+    
+                sDir{1}.domain    = @(coor) isDir(coor);
+                sDir{1}.direction = [1,2];
+                sDir{1}.value     = 0;
+    
+                sPL{1}.domain    = @(coor) isForce(coor);
+                sPL{1}.direction = 2;
+                sPL{1}.value     = -1;
+            elseif isequal(type, 'acantilever')
+                xMax    = max(obj.mesh.coord(:,1));
+                yMax    = max(obj.mesh.coord(:,2));
+                isDir   = @(coor)  abs(coor(:,1))==0.0;
+                isForce = @(coor)  abs(coor(:,1))==xMax & abs(coor(:,2))<=0.1*yMax;
+    
+                sDir{1}.domain    = @(coor) isDir(coor);
+                sDir{1}.direction = [1,2];
+                sDir{1}.value     = 0;
+    
+                sPL{1}.domain    = @(coor) isForce(coor);
+                sPL{1}.direction = 2;
+                sPL{1}.value     = -1;
+            end
             dirichletFun = [];
             for i = 1:numel(sDir)
                 dir = DirichletCondition(obj.mesh, sDir{i});

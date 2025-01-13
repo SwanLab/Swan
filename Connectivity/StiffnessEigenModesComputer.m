@@ -1,16 +1,14 @@
 classdef StiffnessEigenModesComputer < handle
     
     properties (Access = public)
-        
+        phiDCont
+        eigsCell
     end
     
     properties (Access = private)
         conductivity 
         massInterpolator
         boundaryConditions
-        Kmatrix
-        Mmatrix
-        shift
     end
     
     properties (Access = private)
@@ -37,20 +35,41 @@ classdef StiffnessEigenModesComputer < handle
             Kreduced = obj.fullToReduced(K);
             M  = obj.computeMassMatrixWithFunction(m);
             Mreduced = obj.fullToReduced(M);
-            K = K + obj.shift*M;
-            Kreduced = Kreduced + obj.shift*Mreduced;          
             [lambdaD, phiD] = obj.obtainLowestEigenValuesAndFunction(Kreduced, Mreduced, 1);
-%             [lambdaN, phiN] = obj.obtainLowestEigenValuesAndFunction(K,M,1);
+            %[lambdaN, phiD] = obj.obtainLowestEigenValuesAndFunction(K,M,1);
             % obj.plotDirichletEigenMode(phiD)
             % obj.plotNeumannEigenMode(phiN)
             dalphaCont = obj.createDomainFunction(dalpha);
             dmCont     = obj.createDomainFunction(dm);
-            s.fValues = obj.fillVectorWithHomogeneousDirichlet(phiD);
-            s.mesh    = obj.mesh;
-            s.order   = 'P1';
-            phiDCont = LagrangianFunction(s);
-            dlambda = obj.computeLowestEigenValueGradient(dalphaCont, dmCont, phiDCont, lambdaD); 
+            obj.phiDCont = obj.DirichletEigenModeToLagrangianFunction(phiD);
             lambda  = lambdaD;
+            dlambda = obj.computeLowestEigenValueGradient(dalphaCont, dmCont, obj.phiDCont, lambdaD); 
+        end
+
+        function [eigsV, eigsF] = getEigenModesComputer(obj, dens, n)
+            [Kreduced, Mreduced] = createMatrices(obj, dens);
+            [eigV, eigF] = obj.obtainEigenValuesAndFunction(Kreduced, Mreduced, n);
+            eigsF = [];
+            for i = 1:n
+%                 fV = eigF(:,i);
+%                 s.fValues = fV;
+%                 s.mesh    = obj.mesh;
+%                 s.order   = 'P1';
+%                 phi = LagrangianFunction(s);
+                phi = obj.DirichletEigenModeToLagrangianFunction(eigF(:,i));
+                eigsF = [eigsF, phi];
+            end
+            eigsV = [diag(eigV)];
+        end
+
+        function [Kreduced,Mreduced] = createMatrices(obj, dens)
+            obj.density = dens;
+            alpha  = obj.conductivity.fun;
+            m      = obj.massInterpolator.fun;
+            K  = obj.createStiffnessMatrixWithFunction(alpha);
+            Kreduced = obj.fullToReduced(K);
+            M  = obj.computeMassMatrixWithFunction(m);
+            Mreduced = obj.fullToReduced(M);
         end
     end
 
@@ -58,7 +77,6 @@ classdef StiffnessEigenModesComputer < handle
         
         function init(obj,cParams)
             obj.mesh    = cParams.mesh;
-            obj.shift   = cParams.shift;
         end
 
         function createBoundaryConditions(obj)
@@ -92,8 +110,8 @@ classdef StiffnessEigenModesComputer < handle
         end        
         
         function createConductivityInterpolator(obj)
-            s.interpolation  = 'SIMPThermal';                              
-            s.f0   = 1e-5;                                                 
+            s.interpolation  = 'SIMPThermal';   
+            s.f0   = 1e-3;                                                 
             s.f1   = 1;                                                    
             s.pExp = 8;
             a = MaterialInterpolator.create(s);
@@ -102,7 +120,7 @@ classdef StiffnessEigenModesComputer < handle
 
         function createMassInterpolator(obj)
             s.interpolation  = 'SIMPThermal';                              
-            s.f0   = 1e-5;
+            s.f0   = 1e-3;
             s.f1   = 1;
             s.pExp = 1;
             a = MaterialInterpolator.create(s);
@@ -161,9 +179,13 @@ classdef StiffnessEigenModesComputer < handle
         end       
                 
         function [eigV1,eigF1] = obtainLowestEigenValuesAndFunction(obj,K,M,n)
-            [eigF,eigV] = eigs(K,M,4,'smallestabs');
+            [eigF,eigV] = eigs(K,M,10,'smallestabs');
             eigV1 = eigV(n,n);
             eigF1 = eigF(:,n);
+        end   
+
+        function [eigV,eigF] = obtainEigenValuesAndFunction(obj,K,M,n)
+            [eigF,eigV] = eigs(K,M,n,'smallestabs');
         end   
 
         function plotNeumannEigenMode(obj,eigenF)
@@ -175,12 +197,15 @@ classdef StiffnessEigenModesComputer < handle
             vV.plot()
         end        
 
-        function plotDirichletEigenMode(obj,eigenF)
+        function eigenF = DirichletEigenModeToLagrangianFunction(obj, eigenF)
             s.fValues = obj.fillVectorWithHomogeneousDirichlet(eigenF);
             s.mesh    = obj.mesh;
             s.order   = 'P1';
-            vV = LagrangianFunction(s);
-            vV.plot()
+            eigenF = LagrangianFunction(s);
+        end
+
+        function plotDirichletEigenMode(obj,eigenF)
+            DirichletEigenModeToLagrangianFunction(eigenF).plot()
         end
 
         function fV = fillVectorWithHomogeneousDirichlet(obj,eigenF)
@@ -194,14 +219,7 @@ classdef StiffnessEigenModesComputer < handle
         end
 
         function dlambda = computeLowestEigenValueGradient(obj, dalpha, dm, phi, lambda)
-            dlambda = dalpha.*DP(Grad(phi), Grad(phi)) - (lambda - obj.shift)*dm.*phi.*phi; 
-%             phi.plot()
-%             a1 = dalpha.*DP(Grad(phi), Grad(phi))
-%             a2 = - (lambda - obj.shift)*dm.*phi.*phi
-%             a1.project('P1',obj.mesh).plot()
-%             a2.project('P1',obj.mesh).plot()
-%             a = a1 + a2
-%             dlambda.project('P1',obj.mesh).plot()
+            dlambda = - (dalpha.*DP(Grad(phi), Grad(phi)) - lambda*dm.*phi.*phi); 
         end
         
 

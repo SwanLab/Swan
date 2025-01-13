@@ -60,6 +60,18 @@ classdef Cost < handle
         function j = getFields(obj,i)
             j = obj.shapeValues{i};
         end
+
+        function j = getDesignVariable(obj,i)
+            j = obj.shapeFunctions{i}.getDesignVariable();
+        end
+
+        function j = getGradient(obj,i)
+            j = obj.shapeFunctions{i}.getGradient();
+        end
+
+        function j = getBeta(obj,i)
+            j = obj.shapeFunctions{i}.getBeta();
+        end
     end
     
     methods (Access = private)

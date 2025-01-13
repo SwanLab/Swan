@@ -8,6 +8,10 @@ classdef VolumeFunctional < handle
     properties (Access = private)
         mesh
         gradientTest
+        filter
+        filterAdjoint
+        filteredDesignVariable
+        iter
     end
 
     methods (Access = public)
@@ -18,9 +22,27 @@ classdef VolumeFunctional < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
+            iter = x{2};
+            x = x{1};
+ 
+%             if iter > obj.iter
+%                 obj.iter = iter;
+%                 beta = obj.filter.getBeta();
+%                 if iter >= 400 && mod(iter,20)== 0 && beta <= 40
+%                     obj.filter.updateBeta(beta+2.0);
+%                     obj.filterAdjoint.updateBeta(beta+2.0);
+%                 end
+%             end    
+
             xD  = x.obtainDomainFunction();
-            J  = obj.computeFunction(xD);
-            dJ = obj.computeGradient(xD);
+            xR  = obj.filterDesignVariable(xD);
+            obj.filteredDesignVariable = xR;
+            J  = obj.computeFunction(xR);
+            dJ = obj.computeGradient(xR);
+        end
+
+        function dV = getDesignVariable(obj)
+            dV = obj.filteredDesignVariable;
         end
     end
 
@@ -28,6 +50,10 @@ classdef VolumeFunctional < handle
         function init(obj,cParams)
             obj.mesh         = cParams.mesh;
             obj.gradientTest = cParams.gradientTest;
+            obj.filter       = cParams.filter;
+            if isfield(cParams,'filterAdjoint')
+                obj.filterAdjoint = cParams.filterAdjoint;            
+            end
         end
 
         function createQuadrature(obj)
@@ -49,6 +75,17 @@ classdef VolumeFunctional < handle
             test    = obj.gradientTest;
             fValues = ones(test.nDofs,1)/obj.totalVolume;
             dJ      = FeFunction.create(test.order,fValues,obj.mesh);
+            if ~isempty(obj.filterAdjoint)
+                dJ     = obj.filterAdjoint.compute(dJ,2);
+            end
+        end
+
+        function xR = filterDesignVariable(obj,x)
+            xR = obj.filter.compute(x,2);
+            if ~isempty(obj.filterAdjoint)
+                xFiltered = obj.filter.onlyFilter(x,2);
+                obj.filterAdjoint.updateFilteredField(xFiltered);
+            end
         end
     end
 

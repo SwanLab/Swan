@@ -63,6 +63,27 @@ classdef GeometricalFunction < handle
                     s.type = 'Rectangle';
                     obj.computeInclusion(s);
 
+                case 'ThreeRectangles'
+                    sx1 = cParams.xSide1;
+                    sy1 = cParams.ySide1;
+                    x01 = cParams.xCoorCenter1;
+                    y01 = cParams.yCoorCenter1;
+                    sx2 = cParams.xSide2;
+                    sy2 = cParams.ySide2;
+                    x02 = cParams.xCoorCenter2;
+                    y02 = cParams.yCoorCenter2;
+                    sx3 = cParams.xSide3;
+                    sy3 = cParams.ySide3;
+                    x03 = cParams.xCoorCenter3;
+                    y03 = cParams.yCoorCenter3;
+                    fH = @(x) min(min(max(abs(x1(x)-x01)./sx1,abs(x2(x)-y01)./sy1), max(abs(x1(x)-x02)./sx2,abs(x2(x)-y02)./sy2)), max(abs(x1(x)-x03)./sx3,abs(x2(x)-y03)./sy3)) - 0.5;
+                    obj.fHandle = fH;
+
+                case 'ThreeRectanglesInclusion'
+                    s      = cParams;
+                    s.type = 'ThreeRectangles';
+                    obj.computeInclusion(s);   
+
                 case 'SmoothRectangleInclusion'
                     s      = cParams;
                     s.type = 'SmoothRectangle';
@@ -195,5 +216,6 @@ classdef GeometricalFunction < handle
             fH          = obj.fHandle;
             obj.fHandle = @(x) -fH(x);
         end
+
     end
 end

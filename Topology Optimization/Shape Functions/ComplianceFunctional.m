@@ -10,6 +10,9 @@ classdef ComplianceFunctional < handle
         filterAdjoint
         compliance
         material
+        filteredDesignVariable
+        gradient
+        iter
     end
 
     methods (Access = public)
@@ -18,15 +21,47 @@ classdef ComplianceFunctional < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
+            iter = x{2};
+            x = x{1};
+            
+%             if iter > obj.iter
+% %                 if iter == 40 || iter == 100 || iter == 200 || iter == 400 || iter == 430 || iter == 460
+%                 if iter == 400
+%                     disp('save')
+%                 end
+%                 obj.iter = iter;
+%                 beta = obj.filter.getBeta();
+%                 if iter >= 400 && mod(iter,20)== 0 && beta <= 40
+%                     obj.filter.updateBeta(beta+2.0);
+%                     obj.filterAdjoint.updateBeta(beta+2.0);
+%                 end
+%             end         
+
             xD  = x.obtainDomainFunction();
             xR = obj.filterDesignVariable(xD);
+
+            obj.filteredDesignVariable = xR;
+            
             obj.material.setDesignVariable(xR);
             [J,dJ] = obj.computeComplianceFunctionAndGradient();
+            obj.gradient = dJ;
         end
 
         function updateFilterParams(obj, beta)
             obj.filter.updateBeta(beta);
             obj.filterAdjoint.updateBeta(beta);
+        end
+
+        function beta = getBeta(obj)
+            beta = obj.filter.getBeta();
+        end
+
+        function x = getDesignVariable(obj)
+            x = obj.filteredDesignVariable;
+        end
+
+        function x = getGradient(obj)
+            x = obj.gradient;
         end
     end
     
@@ -42,12 +77,14 @@ classdef ComplianceFunctional < handle
             if isfield(cParams,'filterAdjoint')
                 obj.filterAdjoint = cParams.filterAdjoint;            
             end
+            obj.iter = 0;
         end
 
         function xR = filterDesignVariable(obj,x)
             xR = obj.filter.compute(x,2);
-            if ~isempty(obj.filterAdjoint) 
-                obj.filterAdjoint.updateFilteredField(xR);
+            if ~isempty(obj.filterAdjoint)
+                xFiltered = obj.filter.onlyFilter(x,2);
+                obj.filterAdjoint.updateFilteredField(xFiltered);
             end
         end
 
