@@ -145,12 +145,16 @@ classdef TopOptTestTutorial3DDensity < handle
         end
 
         function M = createMassMatrix(obj)
-            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.mesh  = obj.mesh;
-            s.type  = 'MassMatrix';
-            LHS = LHSintegrator.create(s);
-            M = LHS.compute;     
+%             s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
+%             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+%             s.mesh  = obj.mesh;
+%             s.type  = 'MassMatrix';
+%             LHS = LHSintegrator.create(s);
+%             M = LHS.compute;     
+
+            n = obj.mesh.nnodes;
+            h = obj.mesh.computeMinCellSize();
+            M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
         end
 
         function createConstraint(obj)
@@ -171,7 +175,7 @@ classdef TopOptTestTutorial3DDensity < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 3;
             s.tolerance      = 1e-8;
             s.constraintCase = 'EQUALITY';
             s.ub             = 1;

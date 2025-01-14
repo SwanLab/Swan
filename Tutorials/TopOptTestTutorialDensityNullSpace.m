@@ -180,7 +180,7 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 3;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
@@ -188,6 +188,7 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             s.lb             = 0;
             s.etaNorm        = 0.01;
             s.gJFlowRatio    = 2;
+            s.tauMax         = 1000;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

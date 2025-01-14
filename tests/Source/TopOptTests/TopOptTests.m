@@ -224,6 +224,10 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             s.primal         = primal;
             s.etaNorm        = 0.05;
             s.gJFlowRatio    = 1; % Only NullSpace
+            s.tauMax         = 1000;
+            s.etaMax         = 1;
+            s.etaMaxMin      = 0.01;
+            s.etaNormMin     = 0.05;
             switch x.type
                 case 'Density'
                     s.ub = 1;
