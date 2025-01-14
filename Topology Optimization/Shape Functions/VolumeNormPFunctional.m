@@ -55,7 +55,7 @@ classdef VolumeNormPFunctional < handle
             xP   = x.^obj.p;
             volP = Integrator.compute(xP,obj.mesh,obj.quadrature.order);
             J    = volP^(1/obj.p);
-            J    = J/obj.totalVolume;
+            J    = J/obj.totalVolume - obj.alpha;
         end
 
         function dJ = computeGradient(obj,x,Vp,V)
