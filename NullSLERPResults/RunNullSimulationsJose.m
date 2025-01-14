@@ -31,8 +31,8 @@
 %ThreeDimCantilever(0.7,0.2);
 
 % Gripper LevelSet: gJ=0.5, gJ=0.05
-% Gripper(0.05);
-% Gripper(0.5);
+Gripper(0.05);
+Gripper(0.5);
 %Gripper(5);
 
 % MBB Beam 40% LevelSet: gJ= 0.5/1/2;
@@ -43,4 +43,4 @@
 % MultiLoad Bridge LevelSet: gJ=10/1Load + gJ=10/3Loads + gJ=10/9Loads;
 %TopOptTestMultiLoadBridgeLevelSet(1);
 %TopOptTestMultiLoadBridgeLevelSet(3);
-TopOptTestMultiLoadBridgeLevelSet(9);
+%TopOptTestMultiLoadBridgeLevelSet(9);
