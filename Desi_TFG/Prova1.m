@@ -12,12 +12,16 @@ learningRate    = 0.1;
 hiddenLayers    = [3,2,1,2,3];      
 
 %% INITIALIZATION
-s.fileName = 'Iris.csv';          
+s.fileName = '/OpenArms/Resultados1.csv';          
 s.polynomialOrder = pol_deg;        %% Orden del polinomio
 s.testRatio       = testratio;      %% Proporción de datos de prueba
+s.xFeatures = [1, 2];
+s.yFeatures = [1];
 data = Data(s);
 
-
+s.networkParams.costType = 'L2';
+s.networkParams.HUtype = 'ReLU';
+s.networkParams.OUtype = 'linear';
 s.networkParams.hiddenLayers    = hiddenLayers;
 s.data                          = data;
 s.optimizerParams.learningRate  = learningRate;
@@ -26,13 +30,13 @@ s.costParams.lambda             = lambda;
 
 opt = OptimizationProblem(s);
 opt.solve();
-opt.plotRegressionResults(); 
+%opt.plotRegressionResults(); 
 
 
-if data.nFeatures == 2  % If you want to be asked for Features change it in "Data" Class
-    opt.plotRegressionBoundary();
-end
+% if data.nFeatures == 2  % If you want to be asked for Features change it in "Data" Class
+%     opt.plotRegressionBoundary();
+% end
 
-%% Evaluación: MSE = R² para regresión
-MSE = mean((data.Ytest - opt.predict(data.Xtest)).^2);  %% Error cuadrático medio
-fprintf('Mean Squared Error (MSE): %.4f\n', MSE);
+% %% Evaluación: MSE = R² para regresión
+% MSE = mean((data.Ytest - opt.predict(data.Xtest)).^2);  %% Error cuadrático medio
+% fprintf('Mean Squared Error (MSE): %.4f\n', MSE);

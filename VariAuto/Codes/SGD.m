@@ -27,7 +27,7 @@ classdef SGD < Trainer
             obj.maxFunEvals  = 5000;
             obj.optTolerance = 10^(-8);
             obj.timeStop    = Inf([1,1]);
-            obj.fvStop      = 10^(-4);
+            obj.fvStop      = -Inf;%10^(-4);
             obj.nPlot       = 1;
             obj.MaxEpochs   = 1000;
             obj.earlyStop   = obj.MaxEpochs;
