@@ -2,7 +2,7 @@
 clc;
 clear;
 close all;
-addpath Codes\;
+
 
 %% Initialization of hyperparameters
 pol_deg         = 1;                
@@ -12,7 +12,7 @@ learningRate    = 0.1;
 hiddenLayers    = [3,2,1,2,3];      
 
 %% INITIALIZATION
-s.fileName = '/Resultados1.csv';          
+s.fileName = 'Iris.csv';          
 s.polynomialOrder = pol_deg;        %% Orden del polinomio
 s.testRatio       = testratio;      %% Proporción de datos de prueba
 data = Data(s);

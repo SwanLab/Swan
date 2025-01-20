@@ -81,7 +81,7 @@ classdef Data < handle
         end
 
         function loadData(obj)
-            f = fullfile('../Datasets/',obj.fileName);
+            f = fullfile('Datasets',obj.fileName);
             obj.data = load(f);
             fprintf('Features to be used (1:%d):',(size(obj.data,2)-1))
             feat = input(' ');
