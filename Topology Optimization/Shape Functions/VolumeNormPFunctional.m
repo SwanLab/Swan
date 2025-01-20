@@ -23,9 +23,9 @@ classdef VolumeNormPFunctional < handle
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)   % dJ: integrand field
             xD    = x.obtainDomainFunction(); % rho
-            [V,~] = obj.volume.computeFunctionAndGradient(x);
+%             [V,~] = obj.volume.computeFunctionAndGradient(x);
             J     = obj.computeFunction(xD{1});
-            dJ{1} = obj.computeGradient(xD,J,V);
+            dJ{1} = obj.computeGradient(xD,J);
         end
     end
 
@@ -58,10 +58,10 @@ classdef VolumeNormPFunctional < handle
             J    = J/obj.totalVolume - obj.alpha;
         end
 
-        function dJ = computeGradient(obj,x,Vp,V)
+        function dJ = computeGradient(obj,x,Vp)
             dx      = obj.gradientTest;
             rho     = x{1}.fValues;
-            fValues = (Vp/V)*rho.^(obj.p-1);
+            fValues = (Vp^(1-obj.p))*rho.^(obj.p-1);
             dJ      = FeFunction.create(dx.order,fValues,obj.mesh);
         end
     end
