@@ -1,0 +1,38 @@
+%% Testing with Regression on Custom Data
+clc;
+clear;
+close all;
+addpath Codes\;
+
+%% Initialization of hyperparameters
+pol_deg         = 1;                
+testratio       = 30;               
+lambda          = 0;                
+learningRate    = 0.1;              
+hiddenLayers    = [3,2,1,2,3];      
+
+%% INITIALIZATION
+s.fileName = '/Resultados1.csv';          
+s.polynomialOrder = pol_deg;        %% Orden del polinomio
+s.testRatio       = testratio;      %% Proporción de datos de prueba
+data = Data(s);
+
+
+s.networkParams.hiddenLayers    = hiddenLayers;
+s.data                          = data;
+s.optimizerParams.learningRate  = learningRate;
+s.costParams.lambda             = lambda;
+
+
+opt = OptimizationProblem(s);
+opt.solve();
+opt.plotRegressionResults(); 
+
+
+if data.nFeatures == 2  % If you want to be asked for Features change it in "Data" Class
+    opt.plotRegressionBoundary();
+end
+
+%% Evaluación: MSE = R² para regresión
+MSE = mean((data.Ytest - opt.predict(data.Xtest)).^2);  %% Error cuadrático medio
+fprintf('Mean Squared Error (MSE): %.4f\n', MSE);
