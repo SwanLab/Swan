@@ -11,7 +11,7 @@ classdef OptimizationProblem < handle
         optimizer
         plotter
     end
-
+  
    methods (Access = public)
 
        function obj = OptimizationProblem(cParams)
@@ -49,6 +49,14 @@ classdef OptimizationProblem < handle
        function plotImage(obj,row)
            obj.plotter.image(row);
        end
+       
+       function E = computeError(obj,X,Y)
+           E = obj.network.forwardprop(X,Y);
+       end
+       
+       function yOut = computeOutputValues(obj,X)
+           yOut = obj.network.computeYOut(X);
+       end
 
    end
 
@@ -69,10 +77,11 @@ classdef OptimizationProblem < handle
        end
 
        function createCost(obj)
-           s         = obj.costParams;
-           s.network = obj.network;
+           s                = obj.costParams;
+           s.network        = obj.network;
            s.designVariable = obj.network.getLearnableVariables();
-           obj.costFunc = CostFunction(s);
+           s.data           = obj.data;
+           obj.costFunc     = CostFunction(s);
        end
 
        function createOptimizer(obj)
@@ -94,7 +103,7 @@ classdef OptimizationProblem < handle
            s.network   = obj.network;
            s.data      = obj.data;
            s.costfunc  = obj.costFunc;
-           obj.plotter = Plotter(s);
+           obj.plotter = PlotterNN(s);
        end
          
    end

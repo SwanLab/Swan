@@ -1,18 +1,14 @@
-classdef Data < handle
+classdef cHomogData < handle
 
     properties (Access = public)
         nFeatures
-        nSamples
-        nLabels        
+        nLabels
+        
         Xtrain
-        Ytrain       
+        Ytrain
         Xtest
         Ytest
         Ntest
-
-        batchSize
-        Batch_nD
-        Batch_nB
     end
 
     properties (Access = private)
@@ -22,19 +18,18 @@ classdef Data < handle
         data
         fileName
         testRatio
-        xFeatures
-        yFeatures
+        xFeatures;
+        yFeatures;
     end
 
     methods (Access = public)
 
-        function obj = Data(cParams)            
+        function obj = cHomogData(cParams)            
             obj.init(cParams)
             obj.loadData();
-            %obj.buildModel();
             obj.splitdata()
             obj.nLabels   = size(obj.Ytrain,2);                        
-            obj.nFeatures = size(obj.Xtrain,2);
+            obj.nFeatures = size(obj.Xtrain,2);            
         end
 
         function plotdata(self,i,j)
@@ -77,35 +72,6 @@ classdef Data < handle
                    obj.buildModel(obj.X,obj.polynomialOrder);
            end
         end
-
-        function [x,y,I] = createMinibatch(obj,order,i)
-            
-            Xl = obj.Xtrain;
-            Yl = obj.Ytrain;
-            I = obj.batchSize;
-
-            cont = 1;
-            if i == fix(size(Xl,1)/I)
-                plus = mod(size(Xl,1),I);
-                x = zeros([I+plus,size(Xl,2)]);
-                y = zeros([I+plus,size(Yl,2)]);
-            else
-                plus = 0;
-                x = zeros([I,size(Xl,2)]);
-                y = zeros([I,size(Yl,2)]);
-            end
-            for j = (i-1)*I+1:i*I+plus
-                x(cont,:) = Xl(order(j),:);
-                y(cont,:) = Yl(order(j),:);
-                cont = cont+1;
-            end
-        end
-
-        %function [nD, nB, batchSize] = getBatchSize(obj)
-        %    nD = obj.nD;
-        %    nB = obj.nB;
-        %    batchSize = obj.batchSize;
-        %end
     end
 
     methods (Access = private)
@@ -119,11 +85,7 @@ classdef Data < handle
         end
 
         function loadData(obj)
-            f = fullfile('Datasets',obj.fileName);
-            obj.data = load(f);
-            fprintf('Features to be used (1:%d):',(size(obj.data,2)-1))
-            feat = input(' ');
-            x = obj.data(:, feat);
+            f = fullfile('../Datasets/',obj.fileName);
 
             % Change: use readmatrix to skip header
             obj.data = readmatrix(f);
@@ -153,31 +115,6 @@ classdef Data < handle
             end
             obj.X = Xful;
         end
-        
-        function exponents = generateExponents(obj,targetDeg)
-            % Initialization of parameters
-            exponents = [];
-            currentExponents = zeros(1, obj.nFeatures);
-            initialIndex = 1;
-            
-            % Calculation of the possible exponents for the target degree
-            exponents = obj.generateExponentsRecursive(targetDeg,initialIndex,currentExponents,exponents);
-        end
-        
-        function exponents = generateExponentsRecursive(obj,targetDeg,currentIndex,currentExponents,exponents)
-            % Assignation of exponents for the base case
-            if currentIndex == obj.nFeatures
-                currentExponents(currentIndex) = targetDeg;
-                exponents = [exponents; currentExponents];
-            else
-                % Recursion to search for the possibile combinations which
-                % sum the polynomial degree target
-                for i = 0:targetDeg
-                    currentExponents(currentIndex) = i;
-                    exponents = obj.generateExponentsRecursive(targetDeg - i, currentIndex + 1, currentExponents, exponents);
-                end
-            end
-        end
 
         function splitdata(obj)
             nD = size(obj.data,1);
@@ -190,13 +127,6 @@ classdef Data < handle
             obj.Ytrain = obj.Y(r(1:ntrain),:);
             obj.Ytest  = obj.Y(r((ntrain + 1):end),:);
             obj.Ntest = ntest;
-            obj.Batch_nD = size(obj.Xtrain,1);
-            if size(obj.Xtrain,1) > 200
-                obj.batchSize = 200;
-            else
-                obj.batchSize = size(obj.Xtrain,1);
-            end
-            obj.Batch_nB = fix(obj.Batch_nD/obj.batchSize);
         end
     end
 end
