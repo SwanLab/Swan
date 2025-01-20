@@ -17,13 +17,11 @@ classdef LearnableVariables < handle
         end
 
         function [W,b] = reshapeInLayerForm(obj)
-            
             theta = obj.thetavec;
             nPL = obj.neuronsPerLayer;
             last = 1;
             b = cell(obj.nLayers-1,1);
             W = cell(obj.nLayers-1,1);
-
             for i = 2:obj.nLayers
                 aux = nPL(i)*nPL(i-1) + nPL(i);
                 next = last + aux;

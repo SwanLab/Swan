@@ -6,7 +6,7 @@ classdef Network < handle
 
     properties (Access = private)
         delta
-        aValues
+        a_fcn
         HUtype
         OUtype
         Costtype
@@ -15,7 +15,6 @@ classdef Network < handle
         learnableVariables
         nFeatures
         nLabels
-        nPolyFeatures
     end
 
     methods (Access = public)
@@ -26,21 +25,10 @@ classdef Network < handle
         end
 
         function c = forwardprop(obj,Xb,Yb)
-            obj.computeAvalues(Xb);
-            yOut  = obj.aValues{end}; 
-            [c,~] = obj.lossFunction(Yb,yOut);
-        end
-
-        function yOut = computeYOut(obj,Xb)
-            obj.computeAvalues(Xb);
-            yOut = obj.aValues{end}; 
-        end
-
-        function computeAvalues(obj,X)
             [W,b] = obj.learnableVariables.reshapeInLayerForm();
             nLy = obj.nLayers;
             a = cell(nLy,1);
-            a{1} = X;
+            a{1} = Xb;
             for i = 2:nLy
                 g_prev = a{i-1};
                 Wi = W{i-1};
@@ -49,12 +37,13 @@ classdef Network < handle
                 [g,~] = obj.actFCN(h,i);
                 a{i} = g;
             end
-            obj.aValues = a;
+            obj.a_fcn = a;
+            [c,~] = obj.lossFunction(Yb,a);
         end
 
         function dc = backprop(obj,Yb)
             [W,b] = obj.learnableVariables.reshapeInLayerForm();
-            a = obj.aValues;
+            a = obj.a_fcn;
             nPl = obj.neuronsPerLayer;
             nLy = obj.nLayers;
             m = length(Yb);
@@ -66,8 +55,7 @@ classdef Network < handle
             for k = nLy:-1:2
                 [~,a_der] = obj.actFCN(a{k},k);
                 if k == nLy
-                    yOut   = a{end};
-                    [~,t1] = obj.lossFunction(Yb,yOut);
+                    [~,t1] = obj.lossFunction(Yb,a);
                     deltag{k} = t1.*a_der;
                 else
                     deltag{k} = (W{k}*deltag{k+1}')'.*a_der;
@@ -106,19 +94,18 @@ classdef Network < handle
         function init(obj,cParams)
             obj.hiddenLayers = cParams.hiddenLayers;
             obj.nFeatures    = cParams.data.nFeatures;
-            obj.nPolyFeatures= size(cParams.data.Xtrain,2);
             obj.nLabels      = cParams.data.nLabels;
             obj.createNeuronsPerLayer();
             obj.createNumberOfLayers();
-            %         if length(cParams) <= 2
-            %             obj.Costtype = '-loglikelihood';
-            %             obj.HUtype = 'ReLU';%'sigmoid';
-            %             obj.OUtype = 'sigmoid';'softmax';
-            %         else
-            obj.Costtype = cParams.costType;
-            obj.HUtype   = cParams.HUtype;
-            obj.OUtype   = cParams.OUtype;
-            %        end
+            if length(cParams) <= 2
+                obj.Costtype = '-loglikelihood';
+                obj.HUtype = 'ReLU';%'sigmoid';
+                obj.OUtype = 'sigmoid';'softmax';
+            else
+                obj.Costtype = cParams{3};
+                obj.HUtype = cParams{4};
+                obj.OUtype = cParams{5};
+            end
         end
 
         function createNumberOfLayers(obj)
@@ -127,7 +114,7 @@ classdef Network < handle
         end
         
         function createNeuronsPerLayer(obj)
-            nF = obj.nPolyFeatures;
+            nF = obj.nFeatures;
             hL = obj.hiddenLayers;
             nL = obj.nLabels;
             obj.neuronsPerLayer = [nF,hL,nL];
@@ -140,9 +127,9 @@ classdef Network < handle
             obj.learnableVariables = t;
         end
 
-        function [J,gc] = lossFunction(obj,y,yOut)
+        function [J,gc] = lossFunction(obj,y,a)
             type = obj.Costtype;
-            yp = yOut-10^-10;
+            yp = a{end}-10^-10;
             switch type
                 case '-loglikelihood'
                     c = sum((1-y).*(-log(1-yp)) + y.*(-log(yp)),2);
@@ -151,8 +138,6 @@ classdef Network < handle
                 case 'L2'
                     c = ((yp-y).^2);
                     J = sum(mean(c,1));
-                    % J = sqrt(sum(c)); % Propuesta 1
-                    % J = norm(yp-y,2); % Propuesta 2
                     gc = (yp-y);
                 otherwise
                     msg = [type,' is not a valid cost function'];
@@ -180,12 +165,7 @@ classdef Network < handle
                 case 'softmax'
                     g = (exp(z))./(sum(exp(z),2));
                     g_der = z.*(1-z);
-                case 'linear'
-                    g = z;
-                    g_der = ones(size(z));
                 otherwise
-                    %g = z;
-                    %g_der = ones(size(z));
                     msg = [type,' is not a valid activation function'];
                     error(msg)
             end
