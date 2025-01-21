@@ -3,27 +3,25 @@ classdef VolumeNormPFunctional < handle
     properties (Access = private)
         quadrature
         totalVolume
-        volume
+        filter
     end
 
     properties (Access = private)
         mesh
         alpha
         p
-        gradientTest
     end
 
     methods (Access = public)
         function obj = VolumeNormPFunctional(cParams)
             obj.init(cParams);
-            obj.createGlobalVolume(cParams);
             obj.createQuadrature();
             obj.createTotalVolume();
+            obj.createFilter();
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)   % dJ: integrand field
             xD    = x.obtainDomainFunction(); % rho
-%             [V,~] = obj.volume.computeFunctionAndGradient(x);
             J     = obj.computeFunction(xD{1});
             dJ{1} = obj.computeGradient(xD,J);
         end
@@ -34,16 +32,11 @@ classdef VolumeNormPFunctional < handle
             obj.mesh  = cParams.mesh;
             obj.alpha = cParams.alpha;
             obj.p     = cParams.p;
-            obj.gradientTest = cParams.gradientTest;
         end
 
         function createTotalVolume(obj)
             dV = obj.mesh.computeDvolume(obj.quadrature);
             obj.totalVolume = sum(dV(:));
-        end
-
-        function createGlobalVolume(obj,cParams)
-            obj.volume = VolumeFunctional(cParams);
         end
 
         function createQuadrature(obj)
@@ -54,15 +47,22 @@ classdef VolumeNormPFunctional < handle
         function J = computeFunction(obj,x)
             xP   = x.^obj.p;
             volP = Integrator.compute(xP,obj.mesh,obj.quadrature.order);
-            J    = volP^(1/obj.p);
-            J    = J/obj.totalVolume - obj.alpha;
+            J    = (volP/obj.totalVolume)^(1/obj.p);
+            J    = J/obj.alpha - 1;
         end
 
         function dJ = computeGradient(obj,x,Vp)
-            dx      = obj.gradientTest;
-            rho     = x{1}.fValues;
-            fValues = (Vp^(1-obj.p))*rho.^(obj.p-1);
-            dJ      = FeFunction.create(dx.order,fValues,obj.mesh);
+            rho = x{1};
+            dj  = ((Vp^(1-obj.p))*rho.^(obj.p-1))./(obj.alpha*obj.totalVolume^(1/obj.p));
+            dJ  = obj.filter.compute(dj,3);
+        end
+
+        function createFilter(obj)
+            s.filterType = 'LUMP';
+            s.mesh  = obj.mesh;
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            f = Filter.create(s);
+            obj.filter = f;
         end
     end
 

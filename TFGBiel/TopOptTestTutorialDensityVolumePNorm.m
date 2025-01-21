@@ -33,7 +33,7 @@ classdef TopOptTestTutorialDensityVolumePNorm < handle
             obj.createDualVariable();
             obj.createOptimizer();
 
-            obj.designVariable.fun.print('Topology_Cantilever_p4_alpha0.2_gJ0.2_eta0.02')
+            obj.designVariable.fun.print('Topology_Cantilever_p16_alpha0.5_gJ0.2_eta0.02')
         end
 
     end
@@ -149,8 +149,8 @@ classdef TopOptTestTutorialDensityVolumePNorm < handle
 
         function createLocalVolume(obj)
             s.mesh          = obj.mesh;
-            s.alpha         = 0.2;
-            s.p             = 4;
+            s.alpha         = 0.5;
+            s.p             = 16;
             s.gradientTest  = LagrangianFunction.create(obj.mesh,1,'P1');
             obj.localVolume = VolumeNormPFunctional(s);
         end
