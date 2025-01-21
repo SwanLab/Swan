@@ -187,7 +187,7 @@ classdef ExampleNormalCadiraAlvaroSIMPP3 < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 2000;
+            s.maxIter        = 700;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.ub             = 1;
