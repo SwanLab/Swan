@@ -11,19 +11,19 @@ s.monitoring.type = 'full'; %'reduced'
 s.monitoring.print = true;
 
 s.tolerance.u = 1e-13;
-s.tolerance.phi = 1e-8;
-s.tolerance.stag = 1e-8;
+s.tolerance.phi = 1e-6;
+s.tolerance.stag = 1e-6;
 
 s.benchmark.N = 10;
 
 % % SEN Shear
-% s.benchmark.type.mesh = 'SENshear';
-% s.benchmark.type.bc = 'displacementShear';
-% s.benchmark.bcValues = [0:1e-3:1e-1,1e-1:1e-3:1.2e-1];
-% s.matInfo.E  = 210;
-% s.matInfo.nu = 0.3;
-% s.matInfo.Gc = 2.7e-3;
-% s.l0 = 0.01;
+s.benchmark.type.mesh = 'SENshear';
+s.benchmark.type.bc = 'displacementShear';
+s.benchmark.bcValues = [0:1e-5:1e-3,1.001e-3:1e-6:1e-1];
+s.matInfo.E  = 210;
+s.matInfo.nu = 0.3;
+s.matInfo.Gc = 2.7e-3;
+s.l0 = 0.01;
 
 % Lshape
 % s.benchmark.type.mesh = 'Lshape';
@@ -34,8 +34,8 @@ s.benchmark.N = 10;
 % s.matInfo.Gc = 95*10e-6*100;
 % s.l0 = 5;
 
-s.matInfo.matType = 'PhaseFieldAnalytic';%'PhaseFieldHomog';  %'PhaseFieldAnalytic'
-s.matInfo.fileName = 'CircleMicroDamagePerimeter'; %'IsoMicroDamage','Circle/Square+MicroDamage+Area/Perimeter'
+s.matInfo.matType = 'PhaseFieldHomog';%'PhaseFieldHomog';  %'PhaseFieldAnalytic'
+s.matInfo.fileName = 'CircleMicroDamageArea'; %'IsoMicroDamage','Circle/Square+MicroDamage+Area/Perimeter'
 s.matInfo.degradation = 'PhaseFieldDegradation';
 s.dissipInfo.type = 'PhaseFieldDissipationAT';
 s.dissipInfo.pExp = 2;
@@ -46,6 +46,6 @@ tester = TestingPhaseField(s);
 outputData = tester.compute();
 outputData.inputParameters = s;
 save("/home/gerard/Documents/GitHub/Swan/PhaseFieldExperiments/ResultsPaper1/SENshear/" + ...
-      "SENshear_AT2.mat","outputData") %ACTIVATE TO SAVE DATA!
+      "SENshear_SquareArea.mat","outputData") %ACTIVATE TO SAVE DATA!
 
 PhaseFieldPlotter(outputData);

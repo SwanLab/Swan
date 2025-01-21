@@ -13,6 +13,7 @@ classdef PhaseFieldComputer < handle
         shallPrint
         monitor
         data
+        stop
     end
 
     methods (Access = public)
@@ -35,9 +36,9 @@ classdef PhaseFieldComputer < handle
             outputData = [];
 
             maxSteps = length(obj.boundaryConditions.bcValues);
-            noFullyBroken = true; maxF = 0; lastStep = maxSteps; stop = false;
+            obj.stop.noFullyBroken = true; obj.stop.maxF = 0; obj.stop.lastStep = maxSteps; obj.stop.stop = false;
             i = 1;
-            while(i<=maxSteps) && (noFullyBroken)
+            while(i<=maxSteps) && (obj.stop.noFullyBroken)
                 fprintf('\n ********* STEP %i/%i *********  \n',i,maxSteps)
                 bc = obj.boundaryConditions.nextStep();
                 u.setFValues(obj.updateInitialDisplacement(bc,uOld));
@@ -153,17 +154,7 @@ classdef PhaseFieldComputer < handle
                 obj.monitor.update(i,{[totF;displ],[max(phi.fValues);displ],[phi.fValues],...
                     [iterStag-1],[],[totE;displ],[]});
                 obj.monitor.refresh();
-
-                if totF > maxF
-                    maxF = totF;
-                elseif i>5 && totF<0.05*maxF && ~stop
-                    lastStep = i;
-                    stop = true;
-                end
-
-                if i==lastStep+10
-                    noFullyBroken = false;
-                end
+                obj.checkStopCode(i,totF);
                 i = i + 1;
             end
         end
@@ -202,6 +193,19 @@ classdef PhaseFieldComputer < handle
 
                 uVec(restrictedDofs) = dirichVec(restrictedDofs);
                 u = reshape(uVec,[flip(size(uOld.fValues))])';
+            end
+        end
+
+        function checkStopCode(obj,i,totF)
+            if totF > obj.stop.maxF
+                obj.stop.maxF = totF;
+            elseif i>5 && totF<0.01*obj.stop.maxF && ~obj.stop.stop
+                obj.stop.lastStep = i;
+                obj.stop.stop = true;
+            end
+
+            if i==obj.stop.lastStep+10
+                obj.stop.noFullyBroken = false;
             end
         end
 
