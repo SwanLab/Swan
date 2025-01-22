@@ -35,9 +35,10 @@ classdef SGD < Trainer
             obj.lSearchtype  = 'static';
         end
         
-        function train(obj)
+        function compute(obj)
            tic
            x0  = obj.designVariable.thetavec;
+           % Compute stochastic cost
            F = @(theta,order,i) obj.objectiveFunction.computeCost(theta,order,i); 
            obj.optimize(F,x0);
            toc
@@ -64,11 +65,7 @@ classdef SGD < Trainer
             epsilon0      = obj.learningRate;
             epoch         =  1;iter = -1; funcount =  0; fv = 1;
             alarm         =  0; gnorm = 1; min_testError = 1;
-            criteria(1)   = epoch <= obj.MaxEpochs; 
-            criteria(2)   = alarm < obj.earlyStop; 
-            criteria(3)   = gnorm > obj.optTolerance;
-            criteria(4)   = toc < obj.timeStop;
-            criteria(5)   = fv > obj.fvStop;
+            criteria = obj.updateCriteria(epoch, alarm, gnorm, fv);
             while all(criteria == 1)
 
                 if nB == 1 || nB == 0
@@ -96,11 +93,7 @@ classdef SGD < Trainer
                 end
                 [alarm,min_testError] = obj.validateES(alarm,min_testError);
                 epoch = epoch + 1;
-                criteria(1)   = epoch <= obj.MaxEpochs; 
-                criteria(2)   = alarm < obj.earlyStop; 
-                criteria(3)   = gnorm > obj.optTolerance;
-                criteria(4)   = toc < obj.timeStop; 
-                criteria(5)   = f > obj.fvStop;
+                criteria = obj.updateCriteria(epoch, alarm, gnorm, f);
             end
             if criteria(1) == 0
                 fprintf('Minimization terminated, maximum number of epochs reached %d\n',epoch)
@@ -118,6 +111,14 @@ classdef SGD < Trainer
             %F(th,Xb,Yb);
             %F(th,order, i);
             %th
+        end
+
+        function criteria = updateCriteria(obj, epoch, alarm, gnorm, cost)
+            criteria(1)   = epoch <= obj.MaxEpochs; 
+            criteria(2)   = alarm < obj.earlyStop; 
+            criteria(3)   = gnorm > obj.optTolerance;
+            criteria(4)   = toc < obj.timeStop;
+            criteria(5)   = cost > obj.fvStop;
         end
 
         function [e,x,funcount] = lineSearch(obj,x,grad,F,fOld,e,e0,funcount,order,i)

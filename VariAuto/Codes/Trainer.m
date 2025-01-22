@@ -1,18 +1,14 @@
 classdef Trainer < handle
 
     properties (Access = public)
-        isDisplayed
-        designVariable
         objectiveFunction
+        designVariable
     end
     
-    properties (Access = protected) 
+    properties (Access = protected)
         xIter
         nPlot
-        %Xtrain
-        %Ytrain
-        %Xtest
-        %Ytest
+        isDisplayed
     end
 
     properties (Access = private)
@@ -20,6 +16,10 @@ classdef Trainer < handle
         figureCost
         costHist
         optHist
+    end
+
+    methods (Abstract)
+        compute(obj);
     end
 
 

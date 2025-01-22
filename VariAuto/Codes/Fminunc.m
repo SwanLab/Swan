@@ -17,7 +17,7 @@ classdef Fminunc < Trainer
             obj.Ytrain  = s.Ytrain;
         end
 
-        function train(obj)
+        function compute(obj)
             x0  = obj.designVariable.thetavec;
             c   = obj.objectiveFunction;
             F = @(theta) obj.objectiveFunction.computeCost(theta,obj.Xtrain,obj.Ytrain);

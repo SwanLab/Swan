@@ -27,9 +27,9 @@ classdef CostFunction < handle
         function [j,dj] = computeCost(obj,theta,order,i)
             % Must create mini batch Xb and Yb out of (order, i)
             %[Xb, Yb] = network.createMiniBatch();
-            obj.loss.updateBatch(order, i);
+            
             obj.designVariable.thetavec = theta;
-            [c,dc] = obj.loss.computeCostAndGradient(); 
+            [c,dc] = obj.loss.computeCostAndGradient(order, i); 
             [r,dr] = obj.regularization.computeCostAndGradient();
             l = obj.lambda;
             j = c + l*r;  

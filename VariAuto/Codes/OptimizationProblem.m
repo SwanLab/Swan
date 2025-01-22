@@ -23,7 +23,7 @@ classdef OptimizationProblem < handle
        end
 
        function solve(obj)
-           obj.optimizer.train();
+           obj.optimizer.compute();
        end
 
        function plotCostFnc(obj)
