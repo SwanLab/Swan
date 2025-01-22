@@ -43,7 +43,7 @@ classdef FilterLump < handle
             s.trial           = obj.trial;
             s.quadratureOrder = 2;
             s.type            = 'MassMatrix';
-            int               = LHSintegrator.create(s);
+            int               = LHSIntegrator.create(s);
             lhs               = int.compute();
             obj.LHS           = obj.lumpMatrix(lhs);
         end
@@ -58,7 +58,7 @@ classdef FilterLump < handle
                     s.type = 'ShapeFunction';
             end
             s.quadType = quadType;
-            int        = RHSintegrator.create(s);
+            int        = RHSIntegrator.create(s);
             test       = obj.trial;
             rhs        = int.compute(fun,test);
         end

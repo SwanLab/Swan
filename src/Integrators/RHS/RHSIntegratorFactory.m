@@ -32,10 +32,9 @@ classdef RHSIntegratorFactory < handle
                     obj = RHSintegrator_Composite(cParams);
                     
                 case 'Elastic'
-                    % Computes the RHS for ELASTIC problems
                     switch cParams.scale
                         case 'MACRO'
-                            obj = RHSintegrator_ElasticMacro(cParams);
+                            obj = RHSIntegratorElasticMacro(cParams);
                         case 'MICRO'
                             obj = RHSintegrator_ElasticMicro(cParams);
                     end

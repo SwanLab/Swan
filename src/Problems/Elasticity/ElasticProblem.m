@@ -117,7 +117,7 @@ classdef ElasticProblem < handle
             s.trial    = obj.uFun;
             s.material = obj.material;
             s.quadratureOrder = 2;
-            lhs = LHSintegrator.create(s);
+            lhs = LHSIntegrator.create(s);
             obj.stiffness = lhs.compute();
         end
 
@@ -129,7 +129,7 @@ classdef ElasticProblem < handle
             s.mesh     = obj.mesh;
             s.material = obj.material;
             s.globalConnec = obj.mesh.connec;
-            RHSint = RHSintegrator.create(s);
+            RHSint = RHSIntegrator.create(s);
             rhs = RHSint.compute();
             % Perhaps move it inside RHSint?
             if strcmp(obj.solverType,'REDUCED')

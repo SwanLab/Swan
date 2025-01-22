@@ -11,26 +11,26 @@ classdef InterpolationFactory < handle
                 case 'LINE'
                     switch order
                         case 'CONSTANT'
-                            obj = Line_Constant(cParams);                        
+                            obj = LineConstant(cParams);                        
                         case 'LINEAR'
-                            obj = Line_Linear(cParams);
+                            obj = LineLinear(cParams);
                         case 'QUADRATIC'
-                            obj = Line_Quadratic(cParams);
+                            obj = LineQuadratic(cParams);
                         case 'CUBIC'
-                            obj = Line_Cubic(cParams);
+                            obj = LineCubic(cParams);
                         otherwise
                             error('Invalid order for element LINE.');
                     end
                 case 'TRIANGLE'
                     switch order
                         case 'CONSTANT' 
-                            obj = Triangle_Constant(cParams);
+                            obj = TriangleConstant(cParams);
                         case 'LINEAR'
                             obj = TriangleLinear(cParams);
                         case 'QUADRATIC'
-                            obj = Triangle_Quadratic(cParams);
+                            obj = TriangleQuadratic(cParams);
                         case 'CUBIC'
-                            obj = Triangle_Cubic(cParams);
+                            obj = TriangleCubic(cParams);
                         case 'RaviartThomas'
                             obj = Triangle_RaviartThomas(cParams);
                         case 'Nedelec'
@@ -41,27 +41,26 @@ classdef InterpolationFactory < handle
                 case 'QUAD'
                     switch order
                         case 'CONSTANT'
-                            obj = Quadrilateral_Constant(cParams);
+                            obj = QuadrilateralConstant(cParams);
                         case 'LINEAR'
-                            obj = Quadrilateral_Bilinear(cParams);
+                            obj = QuadrilateralBilinear(cParams);
                         case 'QUADRATIC'
-                            obj = Quadrilateral_Quadratic(cParams);
-%                             obj = Quadrilateral_Serendipity(cParams);
+                            obj = QuadrilateralQuadratic(cParams);
                         case 'CUBIC'
-                            obj = Quadrilateral_Cubic(cParams);
+                            obj = QuadrilateralCubic(cParams);
                         otherwise
                             error('Invalid order for element QUADRILATERAL.');
                     end
                 case 'TETRAHEDRA'
                     switch order
                         case 'CONSTANT'
-                            obj = Tetrahedra_Constant(cParams);
+                            obj = TetrahedraConstant(cParams);
                         case 'LINEAR'
-                            obj = Tetrahedra_Linear(cParams);
+                            obj = TetrahedraLinear(cParams);
                         case 'QUADRATIC'
-                            obj = Tetrahedra_Quadratic(cParams);
+                            obj = TetrahedraQuadratic(cParams);
                         case 'CUBIC'
-                            obj = Tetrahedra_Cubic(cParams);
+                            obj = TetrahedraCubic(cParams);
                         case 'RaviartThomas'
                             obj = Tetrahedra_RaviartThomas(cParams);
                         case 'Nedelec'
@@ -72,13 +71,13 @@ classdef InterpolationFactory < handle
                 case 'HEXAHEDRA'
                     switch order
                         case 'CONSTANT'
-                            obj = Hexahedra_Constant(cParams);
+                            obj = HexahedraConstant(cParams);
                         case 'LINEAR'
-                            obj = Hexahedra_Linear(cParams);
+                            obj = HexahedraLinear(cParams);
                         case 'QUADRATIC'
-                            obj = Hexahedra_Quadratic(cParams);
+                            obj = HexahedraQuadratic(cParams);
                         case 'CUBIC'
-                            obj = Hexahedra_Cubic(cParams);
+                            obj = HexahedraCubic(cParams);
                         otherwise
                             error('Invalid order for element HEXAHEDRA.');
                     end

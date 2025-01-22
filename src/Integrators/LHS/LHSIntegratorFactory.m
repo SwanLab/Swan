@@ -15,7 +15,7 @@ classdef LHSIntegratorFactory < handle
                case 'StiffnessMatrixVect'
                    obj = LHSintegrator_Stiffness_Vect(cParams);
                case 'ElasticStiffnessMatrix'
-                   obj = LHSintegrator_StiffnessElastic(cParams);
+                   obj = LHSIntegratorStiffnessElastic(cParams);
                case 'AnisotropicStiffnessMatrix'
                    obj = LHSintegrator_AnisotropicStiffness(cParams);
                case 'StiffnessMassBoundaryMass'

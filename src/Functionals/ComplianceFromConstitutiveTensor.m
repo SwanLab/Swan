@@ -1,4 +1,4 @@
-classdef ComplianceFromConstiutiveTensor < handle
+classdef ComplianceFromConstitutiveTensor < handle
 
     properties (Access = private)
         quadrature
@@ -10,7 +10,7 @@ classdef ComplianceFromConstiutiveTensor < handle
     end
 
     methods (Access = public)
-        function obj = ComplianceFromConstiutiveTensor(cParams)
+        function obj = ComplianceFromConstitutiveTensor(cParams)
             obj.init(cParams);
             obj.createQuadrature();
         end

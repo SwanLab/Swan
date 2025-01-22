@@ -1,4 +1,4 @@
-classdef LHSintegrator_StiffnessElastic < LHSintegrator
+classdef LHSIntegratorStiffnessElastic < LHSIntegrator
 
     properties (Access = private)
         material
@@ -6,8 +6,8 @@ classdef LHSintegrator_StiffnessElastic < LHSintegrator
 
     methods (Access = public)
 
-        function obj = LHSintegrator_StiffnessElastic(cParams)
-            obj@LHSintegrator(cParams)
+        function obj = LHSIntegratorStiffnessElastic(cParams)
+            obj@LHSIntegrator(cParams)
             obj.material = cParams.material;
         end
 
