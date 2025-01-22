@@ -100,6 +100,14 @@ classdef GeometricalFunction < handle
                     s.type = 'Circle';
                     obj.computeInclusion(s);
 
+                case 'Ellipse'
+                    sx = cParams.xSide;
+                    sy = cParams.ySide;
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+                    fH = @(x) (((x1(x)-x0).^2)./sx^2)+(((x2(x)-y0).^2)./sy^2) - 1;
+                    obj.fHandle = fH;
+
                 case 'Sphere'
                     r  = cParams.radius;
                     x0 = cParams.xCoorCenter;
