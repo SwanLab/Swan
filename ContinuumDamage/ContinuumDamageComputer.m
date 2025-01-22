@@ -33,7 +33,8 @@ classdef ContinuumDamageComputer < handle
             for i = 1:obj.boundaryConditions.ValueSetLenght
                 fprintf('Step: %d ',i);fprintf('/ %d \n',obj.boundaryConditions.ValueSetLenght);
 
-                bc = obj.boundaryConditions.nextStep(i);
+                bc = obj.updateBoundaryConditions(i);
+
                 u.setFValues(obj.updateInitialDisplacement(bc,u));
 
                 residu = 1; residuVec = [];
@@ -50,8 +51,12 @@ classdef ContinuumDamageComputer < handle
                     
                     Res  = obj.elasticity.computeResidual(u,bc);                    
                     Dres = obj.elasticity.computeDerivativeResidual(u,bc);
-
+                    % How is Dres dependent on the bc?
+                    
                     residu = norm(Res(bc.free_dofs))/residu0;
+
+                    obj.elasticity.computeDamageEvolutionParam(u);
+
                     residuVec(end+1) = residu/residu0;
 
                     fprintf('Error: %d | %d \n',residu,uNewVec(6));%.evaluate([0;0]));
@@ -83,12 +88,21 @@ classdef ContinuumDamageComputer < handle
             obj.H = cParams.H;
             obj.r0 = ConstantFunction.create(cParams.r0,obj.mesh);
         end
+        
+        function bc = updateBoundaryConditions (obj,i)
+            bc = obj.boundaryConditions.nextStep(i);
+            obj.elasticity.updateBoundaryConditions(bc);
+        end
 
         function createFunctionals(obj)
             s.mesh     = obj.mesh;
             s.material = obj.material;
             s.H = obj.H;
             s.r0 = obj.r0;
+            
+            s.quadOrder = obj.quadOrder;
+            s.boundaryConditions = obj.boundaryConditions;
+
             obj.elasticity = ShFunc_ContinuumDamage(s);
         end
 

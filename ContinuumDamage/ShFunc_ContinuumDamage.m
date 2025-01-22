@@ -6,6 +6,7 @@ classdef ShFunc_ContinuumDamage < handle
         externalWork
         boundaryConditions
         quadOrder
+        r
     end
 
     methods (Access = public)
@@ -23,25 +24,29 @@ classdef ShFunc_ContinuumDamage < handle
         function res = computeResidual(obj,u,bc)
             fExt = bc.pointloadFun;
             Fext = obj.externalWork.computeGradient(u,fExt);
-            Fint = obj.internalDamage.computeResidual(u,r);
+            Fint = obj.internalDamage.computeResidual(u,obj.r);
             resT = Fint - Fext;
             res  = resT(bc.free_dofs);
         end
 
-        function dRes = computeDerivativeResidual(obj,quadOrder,u,r)
-            dRes = obj.internalDamage.computeDerivativeResidual(quadOrder,u,r);
+        function dRes = computeDerivativeResidual(obj,u,bc) % What is the use of bc?
+            dRes = obj.internalDamage.computeDerivativeResidual(obj.quadOrder,u,obj.r);
         end
 
-        function r = computeDamageEvolutionParam(obj,u)
-            r = obj.internalDamage.computeDamageEvolutionParam(u);
+        function computeDamageEvolutionParam(obj,u)
+            obj.r = obj.internalDamage.computeDamageEvolutionParam(u);
         end
 
-        function setROld(obj,r)
-            obj.internalDamage.setROld(r);
+        function setROld(obj)
+            obj.internalDamage.setROld(obj.r);
         end
 
         function d = computeDamage(obj,r)
             d = obj.internalDamage.computeDamage(r);
+        end
+
+        function updateBoundaryConditions (obj,bc)
+            obj.boundaryConditions = bc;
         end
    end
 
@@ -50,6 +55,7 @@ classdef ShFunc_ContinuumDamage < handle
         function createFunctionals(obj,cParams)
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.internalDamage = ShFunc_ElasticDamage(cParams);
+            obj.quadOrder = cParams.quadOrder;
             %obj.internalElastic = ShFunc_Elastic(s);
             obj.externalWork = ShFunc_ExternalWork2(cParams);
         end
