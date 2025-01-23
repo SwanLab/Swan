@@ -23,4 +23,6 @@ Swan can **dehomogenize optimal solutions** in order to obtain feasible lattice 
   <figcaption> Optimizaiton of a 3D lattice structure.</figcaption>
 </figure>
 
-These designs are also easily exportable, making Swan the ideal toolbox to design your pieces and 3D-print them directly. 
+These designs are also easily exportable, making Swan the ideal toolbox to design your pieces and 3D-print them directly.
+
+$$\boldsymbol{A} = \varepsilon²:(\mathbb{C})$$
