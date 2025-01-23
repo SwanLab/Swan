@@ -29,26 +29,27 @@ classdef ContinuumDamageComputer < handle
 
         function data = compute(obj)
             u = LagrangianFunction.create(obj.mesh,2,'P1');
+            obj.elasticity.createTest(u);
             
             for i = 1:obj.boundaryConditions.ValueSetLenght
                 fprintf('Step: %d ',i);fprintf('/ %d \n',obj.boundaryConditions.ValueSetLenght);
 
                 bc = obj.updateBoundaryConditions(i);
-
+                
                 u.setFValues(obj.updateInitialDisplacement(bc,u));
 
                 residu = 1; residuVec = [];
-              
-                Res  = obj.elasticity.computeResidual(obj.quadOrder,u,r,bc);                
-                Dres = obj.elasticity.computeDerivativeResidual(obj.quadOrder,u,r);
+                obj.elasticity.computeDamageEvolutionParam(u);
+               
+                Res  = obj.elasticity.computeResidual(u,bc);                
+                Dres = obj.elasticity.computeDerivativeResidual(u,bc);
                 residu0 = norm(Res);
                 
                 while (residu >= obj.tolerance)
                     [uNew,uNewVec] = obj.computeU(Dres,Res,u,bc);
                                                           
                     u.setFValues(uNew);
-                    obj.elasticity.computeDamageEvolutionParam(u);
-                    
+                                      
                     Res  = obj.elasticity.computeResidual(u,bc);                    
                     Dres = obj.elasticity.computeDerivativeResidual(u,bc);
                     % How is Dres dependent on the bc?

@@ -23,7 +23,7 @@ classdef ShFunc_ContinuumDamage < handle
 
         function res = computeResidual(obj,u,bc)
             fExt = bc.pointloadFun;
-            Fext = obj.externalWork.computeGradient(u,fExt);
+            Fext = obj.externalWork.computeGradient(u,fExt,obj.quadOrder);
             Fint = obj.internalDamage.computeResidual(u,obj.r);
             resT = Fint - Fext;
             res  = resT(bc.free_dofs);
@@ -48,6 +48,10 @@ classdef ShFunc_ContinuumDamage < handle
         function updateBoundaryConditions (obj,bc)
             obj.boundaryConditions = bc;
         end
+
+        function createTest(obj,u)           
+            obj.internalDamage.createTest(u);
+        end 
    end
 
     methods (Access = private)
