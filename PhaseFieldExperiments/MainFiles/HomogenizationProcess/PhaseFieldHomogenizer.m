@@ -8,6 +8,8 @@ classdef PhaseFieldHomogenizer < handle
         holeType
         nSteps
         damageType
+        mesh
+        followerLeader
     end
 
     properties (Access = private)
@@ -67,6 +69,10 @@ classdef PhaseFieldHomogenizer < handle
                     MC = MeshCreator(s);
                     MC.computeMeshNodes();
             end
+        obj.followerLeader = MC.masterSlaveIndex;
+        s.coord = MC.coord;
+        s.connec = MC.connec;
+        obj.mesh = Mesh.create(s);
         end
 
         function paramHole = computeHoleParams(obj)
@@ -101,9 +107,10 @@ classdef PhaseFieldHomogenizer < handle
             % file = 'PFMeshHomogenization';
             % a.fileName = file;
             % s = FemDataContainer(a);
-            fullmesh = UnitTriangleMesh(obj.meshN,obj.meshN);
+            %fullmesh = UnitTriangleMesh(obj.meshN,obj.meshN);
             % FULLMESH must come from define mesh output. Also watch out
             % the boundary conditions
+            fullmesh = obj.mesh;
             ls = obj.computeLevelSet(fullmesh,l);
             sUm.backgroundMesh = fullmesh;
             sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
@@ -217,6 +224,8 @@ classdef PhaseFieldHomogenizer < handle
             s.periodicFun  = periodicFun;
             s.mesh = mesh;
             bc = BoundaryConditions(s);
+            bc.periodic_leader   = obj.followerLeader(:,1);
+            bc.periodic_follower = obj.followerLeader(:,2);
         end
         
         function phi = computeDamageMetric(obj,l)
