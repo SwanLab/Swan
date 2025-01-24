@@ -9,6 +9,8 @@ classdef StiffnessEigenModesComputer < handle
         conductivity 
         massInterpolator
         boundaryConditions
+        epsilon
+        p
     end
     
     properties (Access = private)
@@ -77,6 +79,8 @@ classdef StiffnessEigenModesComputer < handle
         
         function init(obj,cParams)
             obj.mesh    = cParams.mesh;
+            obj.epsilon = cParams.epsilon;
+            obj.p       = cParams.p;
         end
 
         function createBoundaryConditions(obj)
@@ -111,16 +115,16 @@ classdef StiffnessEigenModesComputer < handle
         
         function createConductivityInterpolator(obj)
             s.interpolation  = 'SIMPThermal';   
-            s.f0   = 1e-3;                                                 
+            s.f0   = 1e-2; %obj.epsilon;                                                 
             s.f1   = 1;                                                    
-            s.pExp = 8;
+            s.pExp = 8; %obj.p;
             a = MaterialInterpolator.create(s);
             obj.conductivity = a;            
         end            
 
         function createMassInterpolator(obj)
             s.interpolation  = 'SIMPThermal';                              
-            s.f0   = 1e-3;
+            s.f0   = 1e-4;%obj.epsilon;
             s.f1   = 1;
             s.pExp = 1;
             a = MaterialInterpolator.create(s);
@@ -180,6 +184,9 @@ classdef StiffnessEigenModesComputer < handle
                 
         function [eigV1,eigF1] = obtainLowestEigenValuesAndFunction(obj,K,M,n)
             [eigF,eigV] = eigs(K,M,10,'smallestabs');
+            if abs((eigV(1,1) - eigV(2,2))/eigV(1,1)) < 0.01
+                disp('MULTIPLICITY')
+            end
             eigV1 = eigV(n,n);
             eigF1 = eigF(:,n);
         end   

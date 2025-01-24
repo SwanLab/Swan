@@ -44,7 +44,13 @@ classdef MinimumEigenValueFunctional < handle
             if ~isempty(obj.filterAdjoint)
                 dfdx     = obj.filterAdjoint.compute(dfdx,2);
             elseif ~isempty(obj.filter)
-                dfdx     = obj.filter.compute(dfdx,2);
+                if isa(obj.filter, 'HeavisideProjector')
+                    sensitVals         = obj.filter.derive(obj.density);
+                    dfdx     = dfdx.project('P1',obj.mesh);
+                    dfdx.fValues       = dfdx.fValues.*sensitVals;
+                else
+                    dfdx     = obj.filter.compute(dfdx,2);
+                end
             else
                 dfdx     = dfdx.project('P1',obj.mesh);
             end
@@ -110,6 +116,12 @@ classdef MinimumEigenValueFunctional < handle
                 xR.fValues = 1 - xR.fValues;                % 1 - FP rho
                 obj.density = xR;
             end
+%             s.fun  = obj.density;
+%             s.mesh = obj.mesh;
+%             s.type = 'Density';
+%             s.plotting = true;
+%             dens    = DesignVariable.create(s);
+%             dens.plot();
          end
       
         function rho = computeComplementaryDensity(obj,fun,xV)

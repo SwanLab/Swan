@@ -55,25 +55,25 @@ classdef ConnectivityComputer < handle
         end
 
         function createLevelSet(obj)
-            s.type        = 'RectangleInclusion';
-            s.xSide       = 0.5;
-            s.ySide       = 0.5;
-            s.xCoorCenter = 0.5;
-            s.yCoorCenter = 0.5;
+%             s.type        = 'RectangleInclusion';
+%             s.xSide       = 0.5;
+%             s.ySide       = 0.5;
+%             s.xCoorCenter = 0.5;
+%             s.yCoorCenter = 0.5;
 
-%             s.type        = 'ThreeRectanglesInclusion';
-%             s.xSide1       = 0.3;
-%             s.ySide1       = 0.3;
-%             s.xCoorCenter1 = 0.4;
-%             s.yCoorCenter1 = 0.5;
-%             s.xSide2       = 0.05;
-%             s.ySide2       = 0.05;
-%             s.xCoorCenter2 = 0.6;
-%             s.yCoorCenter2 = 0.5;
-%             s.xSide3       = 1.0;
-%             s.ySide3       = 0.1;
-%             s.xCoorCenter3 = 0.5;
-%             s.yCoorCenter3 = 0.2; 
+            s.type        = 'ThreeRectanglesInclusion';
+            s.xSide1       = 0.3;
+            s.ySide1       = 0.3;
+            s.xCoorCenter1 = 0.4;
+            s.yCoorCenter1 = 0.5;
+            s.xSide2       = 0.05;
+            s.ySide2       = 0.05;
+            s.xCoorCenter2 = 0.6;
+            s.yCoorCenter2 = 0.5;
+            s.xSide3       = 1.0;
+            s.ySide3       = 0.1;
+            s.xCoorCenter3 = 0.5;
+            s.yCoorCenter3 = 0.2; 
 
             g             = GeometricalFunction(s);
             phi           = g.computeLevelSetFunction(obj.mesh);
@@ -122,12 +122,16 @@ classdef ConnectivityComputer < handle
 %             s.filterType = 'FilterAdjointAndProject';
 %             f            = Filter.create(s);
 %             obj.filterAdjointConnect = f;
-            s.filterType = 'LUMP';
+            s.filterType = 'PDE';
             s.mesh  = obj.mesh;
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
-%             f.updateEpsilon(1.0*obj   .mesh.computeMeanCellSize());
+            f.updateEpsilon(1.0*obj   .mesh.computeMeanCellSize());
             obj.filterConnect = f;
+%             s.beta       = 100.0;
+%             s.eta        = 0.5;
+%             f = HeavisideProjector(s);
+%             obj.filterConnect = f;
 
         end        
 

@@ -1,4 +1,4 @@
-classdef ConnectivityComputerProjectionTest < handle
+classdef ConnectivityComputerWithFilterAndProjectTest < handle
 
     properties (Access = public)
 
@@ -22,7 +22,7 @@ classdef ConnectivityComputerProjectionTest < handle
 
     methods (Access = public)
 
-        function obj = ConnectivityComputerProjectionTest()
+        function obj = ConnectivityComputerWithFilterAndProjectTest()
             obj.init();
             obj.createMesh();
             obj.createLevelSet();
@@ -44,6 +44,8 @@ classdef ConnectivityComputerProjectionTest < handle
             eigF2 = [];
             eigF3 = [];
             eigF4 = [];
+            eigF5 = [];
+            eigF6 = [];
             for type = ["FP", "P"]
                 for eta = [0.0, 0.5, 1.0]
                     eigVs= [];
@@ -58,8 +60,8 @@ classdef ConnectivityComputerProjectionTest < handle
                     eigF2 = [eigF2; eigFs(:,2)'];
                     eigF3 = [eigF3; eigFs(:,3)'];
                     eigF4 = [eigF4; eigFs(:,4)'];
-                    eigF5 = [eigF3; eigFs(:,5)'];
-                    eigF6 = [eigF4; eigFs(:,6)'];
+                    eigF5 = [eigF5; eigFs(:,5)'];
+                    eigF6 = [eigF6; eigFs(:,6)'];
                     obj.plot(eigVs, betas, eta, n, analytical, type, j);
 %                     obj.plotEig(eigFs, betas, eta, n, analytical, type, j);
                     j = j + 1;

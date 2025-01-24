@@ -66,12 +66,11 @@ classdef OptimizerMMA < Optimizer
                obj.printOptimizerVariable();
                obj.updateMonitoring();
 %                obj.updateMonitoringWithEigenvalueConstraint();
-%                obj.updateMonitoringGradients();
+               obj.updateMonitoringGradients();
 %                obj.updateMonitoringDesignVariables();
 %                obj.updateMonitoringEigenModes();
            end
             obj.hasConverged = 0;
-            close(obj.v);
        end
         
         function update(obj)
@@ -121,7 +120,7 @@ classdef OptimizerMMA < Optimizer
             obj.monitoring.update(obj.nIter,num2cell(data));
             obj.monitoring.refresh();
 
-            obj.obtainGIF('Dv connec', obj.designVariable.fun);
+%             obj.obtainGIF('Dv connec', obj.designVariable.fun);
         end
 
         function updateMonitoringWithEigenvalueConstraint(obj) 
@@ -183,7 +182,7 @@ classdef OptimizerMMA < Optimizer
             obj.createMonitoring(cParams);
 %             obj.createMonitoringWithEigenValueConstraint(cParams);
 %             obj.createMonitoringDesignVariables(cParams);
-%             obj.createMonitoringGradients(cParams);
+            obj.createMonitoringGradients(cParams);
 %             obj.createMonitoringEigenModes(cParams);
         end
         
@@ -192,7 +191,8 @@ classdef OptimizerMMA < Optimizer
             titlesConst   = obj.constraint.getTitleFields();
             nSFCost       = length(titlesF);
             nSFConstraint = length(titlesConst);
-            titles        = [{'Cost'};titlesF;titlesConst;{'First Eiegnvalue'};{'Norm L2 x'}];
+%             titles        = [{'Cost'};titlesF;titlesConst;{'Norm L2 x'}];
+                        titles        = [{'Cost'};titlesF;titlesConst;{'First Eiegnvalue'};{'Norm L2 x'}];
 %             titles        = [{'Cost'};titlesF;titlesConst;{'Norm L2 x'};{'Compliance Beta'}];
             chConstr      = cell(1,nSFConstraint);
             for i = 1:nSFConstraint
@@ -202,7 +202,8 @@ classdef OptimizerMMA < Optimizer
             for i = 1:nSFCost
                 chCost{i} = 'plot';
             end
-            chartTypes = [{'plot'},chCost,chConstr,{'plot'},{'logy'}];
+%             chartTypes = [{'plot'},chCost,chConstr,{'logy'}];
+                        chartTypes = [{'plot'},chCost,chConstr,{'plot'},{'logy'}];
 
             s.shallDisplay = cParams.monitoring;
             s.maxNColumns  = 4;

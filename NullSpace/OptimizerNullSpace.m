@@ -96,7 +96,8 @@ classdef OptimizerNullSpace < Optimizer
 
         function updateMonitoring(obj)
             data = obj.cost.value;
-            data = [data;obj.cost.getFields(':')];
+            data = [data;obj.cost.getFields(1)];
+            data = [data;obj.cost.getFields(2)];
             data = [data;obj.constraint.value];
             data = [data;obj.designVariable.computeL2normIncrement()];
             data = [data;obj.dualVariable.fun.fValues];
@@ -146,7 +147,8 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function prepareFirstIter(obj)
-            d = obj.designVariable;
+%             d = obj.designVariable;
+            d = {obj.designVariable, obj.nIter};
             obj.cost.computeFunctionAndGradient(d);
             obj.constraint.computeFunctionAndGradient(d);
             obj.designVariable.updateOld();
@@ -169,7 +171,8 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function calculateInitialStep(obj)
-            x   = obj.designVariable;
+%             x   = obj.designVariable;
+            x = {obj.designVariable, obj.nIter};
             DmF = obj.meritGradient;
             if obj.nIter == 0
                 factor = 1000;
@@ -261,7 +264,8 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function mF = computeMeritFunction(obj)
-            x = obj.designVariable;
+%             x = obj.designVariable;
+            x = {obj.designVariable, obj.nIter};
             obj.cost.computeFunctionAndGradient(x);
             obj.constraint.computeFunctionAndGradient(x);
             l  = obj.dualVariable.fun.fValues;

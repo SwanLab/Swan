@@ -27,7 +27,7 @@ classdef ProjectedGradient < handle
         end
 
         function computeFirstStepLength(obj,g,x,f)
-            xVal    = x.fun.fValues;
+            xVal    = x{1}.fun.fValues;
             obj.tau = f*sqrt(norm(g)/norm(xVal));
         end
         

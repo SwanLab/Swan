@@ -60,7 +60,7 @@ classdef TopOptDensityConnectivity < handle
         end
     
         function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(x(1,:,:)));
+            s.fHandle = @(x) 1.0*ones(size(x(1,:,:)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);
@@ -77,15 +77,17 @@ classdef TopOptDensityConnectivity < handle
 %             s.mesh       = obj.mesh;
 %             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
 %             s.filterStep = 'PDE';
-%             s.beta       = 2.0;
+%             s.beta       = 1.0;
 %             s.eta        = 0.5;
-%             f            = Filter.create(s);
-%             f.updateEpsilon(1.5*obj.mesh.computeMeanCellSize());
-%             obj.filterComp = f;
-%             s.filterType = 'FilterAdjointAndProject';    
-%             f            = Filter.create(s);
-%             f.updateEpsilon(1.5*obj   .mesh.computeMeanCellSize());
-%             obj.filterAdjointComp = f;
+%             obj.filterComp = Filter.create(s);
+%             
+%             s.filterType = 'FilterAdjointAndProject';   
+%             s.mesh       = obj.mesh;
+%             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+%             s.filterStep = 'LUMP';
+%             s.beta       = 1.0;
+%             s.eta        = 0.5;
+%             obj.filterAdjointComp = Filter.create(s);
 
             s.filterType = 'LUMP';
             s.mesh       = obj.mesh;
@@ -100,15 +102,18 @@ classdef TopOptDensityConnectivity < handle
 %             s.mesh       = obj.mesh;
 %             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
 %             s.filterStep = 'LUMP';
-%             s.beta       = 10.0;
+%             s.beta       = 5.0;
 %             s.eta        = 0.5;
-%             f            = Filter.create(s);
-%             f.updateEpsilon(1.5*obj   .mesh.computeMeanCellSize());
-%             obj.filterConnect = f;
+%             obj.filterConnect = Filter.create(s);
+% 
 %             s.filterType = 'FilterAdjointAndProject';   
-%             f            = Filter.create(s);
-%             f.updateEpsilon(1.5*obj   .mesh.computeMeanCellSize());
-%             obj.filterAdjointConnect = f;
+%             s.mesh       = obj.mesh;
+%             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+%             s.filterStep = 'LUMP';
+%             s.beta       =  5.0;
+%             s.eta        = 0.5;
+%             obj.filterAdjointConnect = Filter.create(s);
+
             s.filterType = 'LUMP';
             s.mesh       = obj.mesh;
             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
@@ -201,8 +206,8 @@ classdef TopOptDensityConnectivity < handle
             s.mesh              = obj.mesh;
             s.designVariable    = obj.designVariable;
             s.filter            = obj.filterConnect;
-%             s.filterAdjoint     = obj.filterAdjointConnect;   
-            s.targetEigenValue  = 0.0;      
+            s.filterAdjoint     = obj.filterAdjointConnect;   
+            s.targetEigenValue  = 0.5;      
             s.shift             = 0.0;
             obj.minimumEigenValue = StiffnesEigenModesConstraint(s);
         end
@@ -217,7 +222,7 @@ classdef TopOptDensityConnectivity < handle
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
             s.shapeFunctions{2} = obj.perimeter;
-            s.weights           = [1.0; 1.0];
+            s.weights           = [1.0; 0.0];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -247,9 +252,17 @@ classdef TopOptDensityConnectivity < handle
             s.tolerance      = 1e-8;
             s.constraintCase{1} = 'EQUALITY';
             s.constraintCase{2} = 'INEQUALITY';                             
+%             s.ub             = 1;
+%             s.lb             = 0;
+%             opt              = OptimizerMMA(s);
+%             opt.solveProblem();
+%             obj.optimizer = opt;
+            s.primal         = 'PROJECTED GRADIENT';
             s.ub             = 1;
             s.lb             = 0;
-            opt              = OptimizerMMA(s);
+            s.etaNorm        = 0.01;
+            s.gJFlowRatio    = 5.0;
+            opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
         end
@@ -285,8 +298,8 @@ classdef TopOptDensityConnectivity < handle
             elseif isequal(type, 'acantilever')
                 xMax    = max(obj.mesh.coord(:,1));
                 yMax    = max(obj.mesh.coord(:,2));
-                isDir   = @(coor)  abs(coor(:,1))==0.0;
-                isForce = @(coor)  abs(coor(:,1))==xMax & abs(coor(:,2))<=0.1*yMax;
+                isDir   = @(coor)  abs(coor(:,1))== 0.0;
+                isForce = @(coor)  abs(coor(:,1)) == xMax & abs(coor(:,2))==0.0;
     
                 sDir{1}.domain    = @(coor) isDir(coor);
                 sDir{1}.direction = [1,2];

@@ -9,6 +9,7 @@ classdef Cost < handle
         shapeFunctions
         weights
         Msmooth
+        iter
     end
 
     properties (Access = private)
@@ -18,9 +19,16 @@ classdef Cost < handle
     methods (Access = public)
         function obj = Cost(cParams)
             obj.init(cParams);
+            obj.iter = 0.0
         end
 
         function computeFunctionAndGradient(obj,x)
+%             iter = x{2};
+%             if iter > 400 && iter > obj.iter && mod(iter,100) == 0
+%                 obj.weights(2) = obj.weights(2)*10;
+%                 obj.iter = iter;
+%             end
+
             nF  = length(obj.shapeFunctions);
             Jc  = cell(nF,1);
             dJc = cell(nF,1);

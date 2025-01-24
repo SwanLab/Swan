@@ -75,9 +75,9 @@ classdef SLERP < handle
         end
 
         function V = computeVolumeFromTau(obj,g,ls)
-            lsAux = ls.copy();
+            lsAux = ls{1}.copy();
             lsAux = obj.update(g,lsAux);
-            V     = obj.volume.computeFunctionAndGradient(lsAux);
+            V     = obj.volume.computeFunctionAndGradient({lsAux, ls{2}});
         end
 
         function is = isTooSmall(obj)
@@ -97,12 +97,13 @@ classdef SLERP < handle
 
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
-            obj.createVolumeFunctional();
+            obj.createVolumeFunctional(cParams);
         end
 
-        function createVolumeFunctional(obj)
+        function createVolumeFunctional(obj,cParams)
             s.mesh         = obj.mesh;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.filter       = cParams.filter;
             obj.volume     = VolumeFunctional(s);
         end
 
