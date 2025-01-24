@@ -22,11 +22,11 @@ classdef FilterAdjointAndProject < handle
         end
 
         function xF = compute(obj,fun,quadOrder)
-            sensitVals         = obj.projector.derive(obj.filteredField);
-            projSensit         = LagrangianFunction.create(obj.mesh,fun.ndimf,obj.filteredField.order);
-            projSensit.fValues = sensitVals;
-            regFun             = fun.*projSensit;
-            xF                 = obj.filter.compute(regFun,quadOrder);
+            sensitVals = obj.projector.derive(obj.filteredField);
+            projSensit = LagrangianFunction.create(obj.mesh,fun.ndimf,obj.filteredField.order);
+            projSensit.setFValues(sensitVals);
+            regFun = fun.*projSensit;
+            xF     = obj.filter.compute(regFun,quadOrder);
         end
 
         function updateBeta(obj, beta)

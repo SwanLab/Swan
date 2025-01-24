@@ -1,5 +1,10 @@
 function dom = DP(A,B)
     s.operation = @(xV) evaluate(A,B,xV);
+    if isa(A,'DomainFunction')
+        s.mesh = A.mesh;
+    else
+        s.mesh = B.mesh;
+    end
     dom         = DomainFunction(s);
 end
 

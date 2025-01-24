@@ -23,4 +23,4 @@ micro.beta =[1 1 0]';
 plotting = false;
 printing = false;
 monitoring = false;
-maxiter = 3;
+maxiter = 5;

@@ -25,20 +25,25 @@ classdef LHSintegrator_MassBoundary < handle
             LHSg = sparse(ndof,ndof);
             for iInt = 1:nInt
                 sL = s.compositeParams{iInt};
+                m = sL.mesh;
                 a.type = 'MassMatrix';
-                a.mesh = sL.mesh;
-                a.test  = LagrangianFunction.create(sL.mesh, 1, 'P1');
-                a.trial = LagrangianFunction.create(sL.mesh, 1, 'P1');
-                lhs = LHSintegrator.create(a);
-                LHS = lhs.compute();
+                if m.nelem ~= 0
+                    a.mesh = m;
 
-                local2global(sL.mesh.connec(:)) = sL.bMesh.globalConnec(:);
-                [iLoc,jLoc,vals] = find(LHS); % !!! iLoc, jLoc should come from P1Fun
-                iGlob = local2global(iLoc);
-                jGlob = local2global(jLoc);
 
-                LHSadd = sparse(iGlob,jGlob,vals, ndof, ndof);
-                LHSg = LHSg + LHSadd;
+                    a.test  = LagrangianFunction.create(sL.mesh, 1, 'P1');
+                    a.trial = LagrangianFunction.create(sL.mesh, 1, 'P1');
+                    lhs = LHSintegrator.create(a);
+                    LHS = lhs.compute();
+
+                    local2global(sL.mesh.connec(:)) = sL.bMesh.globalConnec(:);
+                    [iLoc,jLoc,vals] = find(LHS); % !!! iLoc, jLoc should come from P1Fun
+                    iGlob = local2global(iLoc);
+                    jGlob = local2global(jLoc);
+
+                    LHSadd = sparse(iGlob,jGlob,vals, ndof, ndof);
+                    LHSg = LHSg + LHSadd;
+                end
             end
             Mr = LHSg;
         end

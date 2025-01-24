@@ -20,6 +20,7 @@ classdef UnfittedMeshFunction < handle
     end
 
     methods (Access = public)
+
         function obj = UnfittedMeshFunction(cParams)
             obj.init(cParams);
             obj.computeSubMeshQuadrature();
@@ -82,7 +83,7 @@ classdef UnfittedMeshFunction < handle
                 case 'LagrangianFunction'
                     fBackgr = f;
                 case 'DomainFunction'
-                    fBackgr = f.project('P1',obj.unfittedMesh.backgroundMesh);
+                    fBackgr = f.project('P1');
                 otherwise
                     fBackgr = f.project('P1');
             end

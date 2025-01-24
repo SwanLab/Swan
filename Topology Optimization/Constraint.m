@@ -23,7 +23,7 @@ classdef Constraint < handle
                 shI     = obj.shapeFunctions{iF};
                 [j,dJ]  = shI.computeFunctionAndGradient(x);
                 Jc{iF}  = j;
-                dJc{iF} = dJ.fValues;
+                dJc{iF} = obj.mergeGradient(dJ);
             end
             jV  = zeros(nF,1);
             djV = zeros(length(dJc{1}),nF);
@@ -47,38 +47,6 @@ classdef Constraint < handle
                 titles{iF} = obj.shapeFunctions{iF}.getTitleToPlot();
             end
         end
-
-        function j = getDesignVariable(obj,i)
-            j = obj.shapeFunctions{i}.getDesignVariable();
-        end
-
-        function j = getTargetEigenValue(obj,i)
-            j = obj.shapeFunctions{i}.getTargetEigenValue();
-        end
-
-        function j = getDirichletEigenMode(obj,i)
-            j = obj.shapeFunctions{i}.getDirichletEigenMode();
-        end
-
-        function j = getGradient(obj,i)
-            j = obj.shapeFunctions{i}.getGradient();
-        end
-
-        function j = getGradientUN(obj,i)
-            j = obj.shapeFunctions{i}.getGradientUN();
-        end
-
-        function j = getBeta(obj,i)
-            j = obj.shapeFunctions{i}.getBeta();
-        end
-
-        function j = getEigenModes(obj)
-            j = obj.shapeFunctions{2}.getEigenModes();
-        end
-
-        function j = getLambda1(obj)
-            j = obj.shapeFunctions{2}.getLambda1();
-        end
     end
 
     methods (Access = private)
@@ -87,5 +55,18 @@ classdef Constraint < handle
             obj.Msmooth        = cParams.Msmooth;
         end
     end
-    
+
+    methods (Static,Access=private)
+        function dJm = mergeGradient(dJ)
+            nDV   = length(dJ);
+            nDim1 = length(dJ{1}.fValues);
+            dJm   = zeros(nDV*nDim1,1);
+            for i = 1:nDV
+                ind1           = 1+nDim1*(i-1);
+                ind2           = nDim1+nDim1*(i-1);
+                indices        = ind1:ind2;
+                dJm(indices,1) = dJ{i}.fValues;
+            end
+        end
+    end
 end

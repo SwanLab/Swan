@@ -13,44 +13,40 @@ classdef LHSintegrator_Stiffness < LHSintegrator
 
     end
 
-    methods (Access = protected)
-
-        function lhs = computeElementalLHS(obj)
-            xV = obj.quadrature.posgp;
-            dNdxTs = obj.test.evaluateCartesianDerivatives(xV);
-            dNdxTr = obj.trial.evaluateCartesianDerivatives(xV);
-            dVolu = obj.mesh.computeDvolume(obj.quadrature);
-            nGaus = obj.quadrature.ngaus;
-            nElem = size(dVolu,2);
-
-            nNodETs = size(dNdxTs,2);
-            nDofETs = nNodETs*obj.test.ndimf;
-            nNodETr = size(dNdxTr,2);
-            nDofETr = nNodETr*obj.trial.ndimf;
-
-            BcompTs = obj.createBComputer(obj.test, dNdxTs);
-            BcompTr = obj.createBComputer(obj.trial, dNdxTr);
-            lhs = zeros(nDofETs,nDofETr,nElem);
-            for igaus = 1:nGaus
-                BmatTs = BcompTs.compute(igaus);
-                BmatTr = BcompTr.compute(igaus);
-                dV(1,1,:) = dVolu(igaus,:)';
-                Bt   = permute(BmatTs,[2 1 3]);
-                BtCB = pagemtimes(Bt, BmatTr);
-                lhs = lhs + bsxfun(@times, BtCB, dV);
-            end
-        end
-
-    end
-
     methods (Access = private)
 
-        function Bcomp = createBComputer(obj, fun, dNdx)
-            s.fun  = fun;
-            s.dNdx = dNdx;
-            Bcomp = BMatrixComputer(s);
+        function lhs = computeElementalLHS(obj)
+            xV        = obj.quadrature.posgp;
+            dNdxTest  = obj.test.evaluateCartesianDerivatives(xV);
+            dNdxTrial = obj.trial.evaluateCartesianDerivatives(xV);
+            dVolu     = obj.mesh.computeDvolume(obj.quadrature);
+
+            nGaus      = obj.quadrature.ngaus;
+            nElem      = size(dVolu,2);
+            nNodeTest  = size(dNdxTest,2);
+            nDofTest   = nNodeTest*obj.test.ndimf;
+            nNodeTrial = size(dNdxTrial,2);
+            nDofTrial  = nNodeTrial*obj.trial.ndimf;
+
+            K = zeros(nDofTest,nDofTrial,nElem);
+            for igauss = 1 :nGaus
+                for inode= 1:nNodeTest
+                    for jnode= 1:nNodeTrial
+                        for iDimf = 1:obj.test.ndimf
+                            idof = obj.test.ndimf*(inode-1)+iDimf;
+                            jdof = obj.trial.ndimf*(jnode-1)+iDimf;
+                            dvol = dVolu(igauss,:);
+                            dNi  = dNdxTest(:,inode,igauss,:);
+                            dNi  = permute(dNi,[2 1 3 4]);
+                            dNj  = dNdxTrial(:,jnode,igauss,:);
+                            v    = squeeze(pagemtimes(dNi,dNj));
+                            K(idof, jdof, :)= squeeze(K(idof,jdof,:)) ...
+                                + v(:).*dvol';
+                        end
+                    end
+                end
+            end
+            lhs = K;
         end
-
     end
-
 end

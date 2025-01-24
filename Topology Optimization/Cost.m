@@ -36,7 +36,7 @@ classdef Cost < handle
                 shI     = obj.shapeFunctions{iF};
                 [j,dJ]  = shI.computeFunctionAndGradient(x);
                 Jc{iF}  = j;
-                dJc{iF} = dJ.fValues;   
+                dJc{iF} = obj.mergeGradient(dJ);   
             end
             obj.shapeValues = Jc;
             jV  = 0;
@@ -83,10 +83,24 @@ classdef Cost < handle
     end
     
     methods (Access = private)
-        function obj = init(obj,cParams)
+        function init(obj,cParams)
             obj.shapeFunctions = cParams.shapeFunctions;
             obj.weights        = cParams.weights;   
             obj.Msmooth        = cParams.Msmooth;
+        end
+    end
+
+    methods (Static,Access=private)
+        function dJm = mergeGradient(dJ)
+            nDV   = length(dJ);
+            nDim1 = length(dJ{1}.fValues);
+            dJm   = zeros(nDV*nDim1,1);
+            for i = 1:nDV
+                ind1           = 1+nDim1*(i-1);
+                ind2           = nDim1+nDim1*(i-1);
+                indices        = ind1:ind2;
+                dJm(indices,1) = dJ{i}.fValues;
+            end
         end
     end
 end

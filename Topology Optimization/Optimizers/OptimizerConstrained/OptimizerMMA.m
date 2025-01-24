@@ -32,11 +32,6 @@ classdef OptimizerMMA < Optimizer
         hasConverged
         historicalVariables
         KKTnorm
-        monitoringVolume
-        monitoringWithEigenValueConstraint
-        monitoringDesignVariables
-        monitoringGradients
-        monitoringEigenModes
     end
     
     methods (Access = public)
@@ -51,24 +46,15 @@ classdef OptimizerMMA < Optimizer
        function solveProblem(obj)
            obj.hasFinished = false;
            obj.printOptimizerVariable();
-%            f = obj.designVariable;
-           fCell = {obj.designVariable, obj.nIter};
-           obj.cost.computeFunctionAndGradient(fCell);
-           obj.constraint.computeFunctionAndGradient(fCell);
+           f = obj.designVariable;
+           obj.cost.computeFunctionAndGradient(f);
+           obj.constraint.computeFunctionAndGradient(f);
            obj.updateMonitoring();
-%            obj.updateMonitoringWithEigenvalueConstraint();
-%            obj.updateMonitoringGradients();
-%            obj.updateMonitoringDesignVariables();
-%            obj.updateMonitoringEigenModes();
            while ~obj.hasFinished
                obj.update();
                obj.updateIterInfo();
                obj.printOptimizerVariable();
                obj.updateMonitoring();
-%                obj.updateMonitoringWithEigenvalueConstraint();
-               obj.updateMonitoringGradients();
-%                obj.updateMonitoringDesignVariables();
-%                obj.updateMonitoringEigenModes();
            end
             obj.hasConverged = 0;
        end
@@ -90,10 +76,9 @@ classdef OptimizerMMA < Optimizer
             %%%% of the objective- and constraint functions at xval.
             %%%% The results should be put in f0val, df0dx, fval and dfdx.
             obj.designVariable.update(x);
-%             f = obj.designVariable;
-            fCell = {obj.designVariable, obj.nIter};
-            obj.cost.computeFunctionAndGradient(fCell);
-            obj.constraint.computeFunctionAndGradient(fCell);
+            f = obj.designVariable;
+            obj.cost.computeFunctionAndGradient(f);
+            obj.constraint.computeFunctionAndGradient(f);
             
             [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma();
             %%%% The residual vector of the KKT conditions is calculated:
@@ -112,66 +97,11 @@ classdef OptimizerMMA < Optimizer
         
         function updateMonitoring(obj)
             data = obj.cost.value;
-            data = [data;obj.cost.getFields(1)];
-            data = [data;obj.cost.getFields(2)];
+            data = [data;obj.cost.getFields(':')];
             data = [data;obj.constraint.value];
-            data = [data;obj.constraint.getLambda1()];
             data = [data;obj.designVariable.computeL2normIncrement()];
             obj.monitoring.update(obj.nIter,num2cell(data));
             obj.monitoring.refresh();
-
-%             obj.obtainGIF('Dv connec', obj.designVariable.fun);
-        end
-
-        function updateMonitoringWithEigenvalueConstraint(obj) 
-            data = obj.cost.value;
-            data = [data;obj.cost.getFields(1)];
-            data = [data;obj.cost.getFields(2)];
-            data = [data;obj.constraint.value];
-            data = [data;obj.constraint.getLambda1()];
-            data = [data;obj.designVariable.computeL2normIncrement()];
-%             data = [data;obj.cost.getBeta(1)];
-            data = [data;obj.constraint.getBeta(2)];
-            data = [data;obj.constraint.getTargetEigenValue(2)];
-            obj.monitoringWithEigenValueConstraint.update(obj.nIter,num2cell(data));
-            obj.monitoringWithEigenValueConstraint.refresh();
-        end
-
-
-        function updateMonitoringEigenModes(obj) 
-            data = {};
-            eigs = obj.constraint.getEigenModes;
-            for i = 1:size(obj.constraint.getEigenModes,2)
-                data = [data; [eigs(i).fValues]];
-            end
-%             data = {[obj.constraint.getEigenModes{2,1}.fValues];
-%                     [obj.constraint.getEigenModes{2,2}.fValues];
-%                     [obj.constraint.getEigenModes{2,3}.fValues];  
-%                     [obj.constraint.getEigenModes{2,4}.fValues]}';
-            obj.monitoringEigenModes.update(obj.nIter,data);
-            obj.monitoringEigenModes.refresh();
-        end
-
-        function updateMonitoringDesignVariables(obj)
-            data = {[obj.designVariable.fun.fValues];
-                    [obj.cost.getDesignVariable(1).fValues];
-                    [obj.constraint.getDesignVariable(1).fValues];
-                    [obj.constraint.getDesignVariable(2).fValues]}';
-%                     [obj.constraint.getDesignVariable(2).project('P1',obj.designVariable.fun.mesh).fValues]}';
-            obj.monitoringDesignVariables.update(obj.nIter,data);
-            obj.monitoringDesignVariables.refresh();
-
-
-%             obj.obtainGIF('Dv connec', obj.designVariable.fun);
-        end
-
-        function updateMonitoringGradients(obj)
-            data = {[obj.constraint.getDesignVariable(2).fValues];
-                    [obj.constraint.getDirichletEigenMode(2).fValues];
-                    [obj.constraint.getGradient(2).fValues];
-                    [obj.constraint.getGradientUN(2).fValues]}';
-            obj.monitoringGradients.update(obj.nIter,data);
-            obj.monitoringGradients.refresh();
         end
 
         function init(obj,cParams)
@@ -180,20 +110,14 @@ classdef OptimizerMMA < Optimizer
             obj.hasConverged = false;
             obj.kkttol       = obj.tolerance;
             obj.createMonitoring(cParams);
-%             obj.createMonitoringWithEigenValueConstraint(cParams);
-%             obj.createMonitoringDesignVariables(cParams);
-            obj.createMonitoringGradients(cParams);
-%             obj.createMonitoringEigenModes(cParams);
         end
-        
+
         function createMonitoring(obj,cParams)
             titlesF       = obj.cost.getTitleFields();
             titlesConst   = obj.constraint.getTitleFields();
             nSFCost       = length(titlesF);
             nSFConstraint = length(titlesConst);
-%             titles        = [{'Cost'};titlesF;titlesConst;{'Norm L2 x'}];
-                        titles        = [{'Cost'};titlesF;titlesConst;{'First Eiegnvalue'};{'Norm L2 x'}];
-%             titles        = [{'Cost'};titlesF;titlesConst;{'Norm L2 x'};{'Compliance Beta'}];
+            titles        = [{'Cost'};titlesF;titlesConst;{'Norm L2 x'}];
             chConstr      = cell(1,nSFConstraint);
             for i = 1:nSFConstraint
                 chConstr{i}   = 'plot';
@@ -202,108 +126,13 @@ classdef OptimizerMMA < Optimizer
             for i = 1:nSFCost
                 chCost{i} = 'plot';
             end
-%             chartTypes = [{'plot'},chCost,chConstr,{'logy'}];
-                        chartTypes = [{'plot'},chCost,chConstr,{'plot'},{'logy'}];
+            chartTypes = [{'plot'},chCost,chConstr,{'logy'}];
 
-            s.shallDisplay = cParams.monitoring;
-            s.maxNColumns  = 4;
-            s.titles       = titles;
-            s.chartTypes   = chartTypes;
-            obj.monitoring = Monitoring(s);
-        end
-
-
-        function createMonitoringWithEigenValueConstraint(obj, cParams) 
-            titlesF       = obj.cost.getTitleFields();
-            titlesConst   = obj.constraint.getTitleFields();
-            nSFCost       = length(titlesF);
-            nSFConstraint = length(titlesConst);
-            titles        = [{'Cost'};titlesF;titlesConst;{'Lambda 1'};{'Norm L2 x'};{'Connectivity EigenValue'};{'Target Eigenvalue'}];
-%             titles        = [{'Cost'};titlesF;titlesConst;{'Norm L2 x'};{'Connectivity Beta'};{'Target Eigenvalue'}];
-%             titles        = [{'Cost'};titlesF;titlesConst;{'Norm L2 x'};{'Compliance Beta'}];
-            chConstr      = cell(1,nSFConstraint);
-            for i = 1:nSFConstraint
-                chConstr{i}   = 'plot';
-            end
-            chCost = cell(1,nSFCost);
-            for i = 1:nSFCost
-                chCost{i} = 'plot';
-            end
-            chartTypes = [{'plot'},chCost,chConstr,{'plot'},{'logy'},{'plot'},{'plot'},{'plot'}];
-%             chartTypes = [{'plot'},chCost,chConstr,{'logy'},{'plot'},{'plot'}];
             s.shallDisplay = cParams.monitoring;
             s.maxNColumns  = 5;
             s.titles       = titles;
             s.chartTypes   = chartTypes;
-            obj.monitoringWithEigenValueConstraint = Monitoring(s);
-        end
-
-        function createMonitoringGradients(obj,cParams)
-            titles        = [{'Design Variable Connectivity'}; {'First EigenMode'}; {'Eigenvalue Gradient'}; {'Eigenvalue Unfiltered Gradient'}];
-            chartTypes = [{'surf'},{'surf'},{'surf'},{'surf'}];
-            barLims = [{[]},{[]},{[]},{[]}];
-            field1 = obj.designVariable.fun;
-            funs = [{field1},{field1},{field1},{field1}];
-
-            s.shallDisplay = cParams.monitoring;
-            s.maxNColumns  = 2;
-            s.titles       = titles;
-            s.chartTypes   = chartTypes;
-            s.barLims      = barLims;
-            s.funs         = funs;
-            obj.monitoringGradients = Monitoring(s);
-
-%             obj.v = VideoWriter('teste.avi');open(obj.v)
-        end
-
-        function createMonitoringEigenModes(obj,cParams)
-            nEigs = 12;
-            chartTypes = cell(1,nEigs);
-            barLims = cell(1,nEigs);
-            funs = cell(1,nEigs);
-            titles = cell(1,nEigs);
-            field1 = obj.designVariable.fun;
-            for i = 1:nEigs
-                titles{i}      = string(i);
-                chartTypes{i}   = 'surf';
-                barLims{i} = [];
-                funs{i} = field1;
-            end
-            
-%             titles        = [{'First EigenMode'}; {'Second EigenMode'}; {'Third EigenMode'}; {'Fourth EigenMode'}];
-%             chartTypes = [{'surf'},{'surf'},{'surf'},{'surf'}];
-%             barLims = [{[]},{[]},{[]},{[]}];
-%             field1 = obj.designVariable.fun;
-%             funs = [{field1},{field1},{field1},{field1}];
-
-            s.shallDisplay = cParams.monitoring;
-            s.maxNColumns  = 4;
-            s.titles       = [titles];
-            s.chartTypes   = [chartTypes];
-            s.barLims      = [barLims];
-            s.funs         = [funs];
-            obj.monitoringEigenModes= Monitoring(s);
-%             obj.v = VideoWriter('teste.avi');open(obj.v)
-        end 
-
-        function createMonitoringDesignVariables(obj,cParams)
-            titles        = [{'Unfiltered DesignVariable'}; {'DesignVariable Compliance'}; {'DesignVariable Volume'}; {'DesignVariable EigenValue'}];
-            chartTypes = [{'surf'},{'surf'},{'surf'},{'surf'}];
-            barLims = [{[]},{[]},{[]},{[]}];
-            field1 = obj.designVariable.fun;
-            funs = [{field1},{field1},{field1},{field1}];
-%             titles        = [{'Unfiltered DesignVariable'}; {'DesignVariable Compliance'}; {'DesignVariable Volume'}];
-%             chartTypes = [{'surf'},{'surf'},{'surf'}];
-%             barLims = [{[]},{[]},{[]}];
-%             field1 = obj.designVariable.fun;
-%             funs = [{field1},{field1},{field1}];
-            s.shallDisplay = cParams.monitoring;
-            s.maxNColumns  = 2;
-            s.titles       = titles;
-            s.chartTypes   = chartTypes;
-            s.barLims      = barLims;
-            s.funs         = funs;
-            obj.monitoringDesignVariables = Monitoring(s);
+            obj.monitoring = Monitoring(s);
         end
 
         function [f,df,c,dc] = funmma(obj)
@@ -352,8 +181,8 @@ classdef OptimizerMMA < Optimizer
                 obj.upp = ones(length(x0),1);
                 [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma();
                 obj.m = length(obj.fval);
-                obj.c = 1000*ones(obj.m,1); % VAR1    1000
-                obj.d = 0*ones(obj.m,1); % VAR 2       0
+                obj.c = 1000*ones(obj.m,1);
+                obj.d = 0*ones(obj.m,1);
                 obj.a0 = 1;
                 obj.a = 0*ones(obj.m,1);
                 obj.n = length(obj.x);
