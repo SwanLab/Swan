@@ -193,7 +193,7 @@ classdef Network < handle
 
     end
 
-    methods (Access = private, Static)
+    methods (Access = public, Static)
 
         function h = hypothesisfunction(X,W,b)
             h = X*W + b;
