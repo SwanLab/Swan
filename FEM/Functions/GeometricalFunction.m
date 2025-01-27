@@ -66,7 +66,7 @@ classdef GeometricalFunction < handle
                 case 'SmoothRectangleInclusion'
                     s      = cParams;
                     s.type = 'SmoothRectangle';
-                    obj.computeInclusion(s);            
+                    obj.computeInclusion(s);
 
                 case 'SmoothRectangle'
                     sx = cParams.xSide;
@@ -191,6 +191,12 @@ classdef GeometricalFunction < handle
                 case 'PeriodicAndOriented'
                     fH          = LevelSetPeriodicAndOriented(cParams);
                     obj.fHandle = fH.getFunctionHandle();
+                case 'Hexagon'
+                    n  = cParams.normal;
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+                    fH = @(x) obj.computeHexagonFunction(x,x1,x2,x0,y0,n);
+                    obj.fHandle = fH;
             end
         end
 
@@ -199,5 +205,28 @@ classdef GeometricalFunction < handle
             fH          = obj.fHandle;
             obj.fHandle = @(x) -fH(x);
         end
+
+    end
+
+    methods (Access = private, Static)
+
+        function d = computeHexagonFunction(x,x1,x2,x0,y0,n)
+            r     = sqrt((x1(x)-x0).^2 + (x2(x)-y0).^2);
+            theta = atan2(x2(x),x1(x));
+            vx    = cos(theta);
+            vy    = sin(theta);
+            nS    = size(n,1);
+            vn = zeros([size(x) nS]);
+            for i = 1:nS
+                nx = n(i,1);
+                ny = n(i,2);
+                vn(:,:,:,i) = vx*nx + vy*ny;
+            end
+            h = 1;
+            maxVn = max(vn,[],4);
+            rh = h*maxVn;
+            d = r - rh;
+        end
+
     end
 end

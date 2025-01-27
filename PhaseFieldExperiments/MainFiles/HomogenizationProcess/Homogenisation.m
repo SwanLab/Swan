@@ -1,8 +1,8 @@
 s.E = 1;
 s.nu = 0.3;
-s.meshType  = 'Hexagon';
+s.meshType  = 'Square';
 s.meshN     = 100;
-s.holeType  = "Ellipse";
+s.holeType  = "Hexagon";%"Ellipse";
 s.nSteps     = [5 5];
 s.damageType = "Area";
 PFH = PhaseFieldHomogenizer(s);

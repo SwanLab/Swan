@@ -94,6 +94,8 @@ classdef PhaseFieldHomogenizer < handle
                     maxV = 0.98;
                 case 'Rectangle'
                     maxV = [0.98,0.98];
+                case 'Hexagon'
+                    maxV = [1];
             end
         end
 
@@ -141,6 +143,9 @@ classdef PhaseFieldHomogenizer < handle
                 case 'Rectangle'
                     gPar.xSide  = l(1);
                     gPar.ySide  = l(2);
+                case 'Hexagon'
+                    gPar.normal = [1 1; 1 1; 1 1];
+                    
             end
             g                  = GeometricalFunction(gPar);
             phiFun             = g.computeLevelSetFunction(mesh);
