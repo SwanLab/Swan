@@ -213,8 +213,8 @@ classdef GeometricalFunction < handle
         function d = computeHexagonFunction(x,x1,x2,x0,y0,n)
             r      = sqrt((x1(x)-x0).^2 + (x2(x)-y0).^2);
             theta  = atan2(x2(x),x1(x));
-            vx     = cos(theta);
-            vy     = sin(theta);
+            vx     = x1(x)-x0;%cos(theta);
+            vy     = x2(x)-y0;%sin(theta);
             nS     = size(n,1);
             nGauss = size(x,2);
             nElem  = size(x,3);
@@ -222,12 +222,12 @@ classdef GeometricalFunction < handle
             for i = 1:nS
                 nx = n(i,1);
                 ny = n(i,2);
-                vn(:,:,:,i) = vx*nx + vy*ny;
+                vn(:,:,:,i) = abs(vx*nx + vy*ny);
             end
             h = 0.5;
             maxVn = max(vn,[],4);
-            rh = h*(sqrt(3)/2)*(1/maxVn);
-            d = r - rh;
+            rh = h*(1-(sqrt(3)/2)*(1.*maxVn));
+            d = rh;
         end
 
     end
