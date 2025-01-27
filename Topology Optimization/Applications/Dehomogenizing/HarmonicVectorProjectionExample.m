@@ -31,7 +31,6 @@ classdef HarmonicVectorProjectionExample < handle
              obj.createBoundaryMesh();
              obj.createOrientationVector();
            %  obj.createDoubleOrientationVector();
-             obj.createUnitBallProjector();
              obj.harmonize();
             %obj.harmonizeWithPenalizedUnitNorm();
             %obj.harmonizeWithPenalizedHarmonizity();
@@ -45,28 +44,30 @@ classdef HarmonicVectorProjectionExample < handle
 
         function init(obj)
             close all
-           obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
-            obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
-           obj.iteration = 665;
+           % obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
+           %  obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
+           % obj.iteration = 665;
  
-       %     obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
-        %    obj.fileName = 'ExperimentingPlotSuperEllipse';
-        %    obj.iteration = 64;
+           obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';  
+           obj.fileName = 'ExperimentingPlotSuperEllipse';
+           obj.iteration = 64;
         end
 
         function loadDataExperiment(obj)
-           s.fileName = [obj.fileName,num2str(obj.iteration)];
-           s.folderPath = fullfile(obj.filePath );
-           w = WrapperMshResFiles(s);
-           w.compute();
-         %  d = load('DataExample.mat');
-     %      w = d.w;
+     %      s.fileName = [obj.fileName,num2str(obj.iteration)];
+     %      s.folderPath = fullfile(obj.filePath );
+     %      w = WrapperMshResFiles(s);
+     %      w.compute();
+           d = load('DataExample.mat');
+           w = d.w;
              obj.experimentData = w;
         end
 
         function createMesh(obj)
             d = obj.experimentData;
-            obj.mesh = d.mesh;          
+            s.coord  = d.mesh.coord;          
+            s.connec = d.mesh.connec;         
+            obj.mesh = Mesh.create(s);
         end    
 
         function createBoundaryMesh(obj)
@@ -78,16 +79,17 @@ classdef HarmonicVectorProjectionExample < handle
 
         function createOrientationVector(obj)
          %   a1 = obj.createOrientationVectorFromProjectedSigma();            
-            a0 = obj.createOrientationFromSigma();
-            obj.orientationVector = a0;
+            a = obj.createOrientationFromSigma();
+            a = obj.projectInUnitBall(a);
+            obj.orientationVector = a;
         end
 
         function a = createOrientationFromSigma(obj)
             sigma0  = obj.getSigma0FromData();
             sigma0V(1,:,:) = sigma0.fValues';
             [a1,a2] = obj.obtainPrincipalDirections(sigma0V);   
-            a{1}    = obj.createFunctionP0(a1);
-            a{2}    = obj.createFunctionP0(a2);
+            a{1}    = obj.createP1DiscontinousOrientation(a1);
+            a{2}    = obj.createP1DiscontinousOrientation(a2);
         end              
 
        function a  = createOrientationVectorFromProjectedSigma(obj)
@@ -100,7 +102,7 @@ classdef HarmonicVectorProjectionExample < handle
         end        
 
         function sigma0 = getSigma0FromData(obj)
-            s.mesh    = obj.experimentData.mesh;
+            s.mesh    = obj.mesh;
             s.fValues = obj.experimentData.dataRes.StressPrimal;
             s.order   = 'P0';
             sigma0 = LagrangianFunction(s);
@@ -116,11 +118,12 @@ classdef HarmonicVectorProjectionExample < handle
             a2 = a(:,2,:);
         end
 
-        function aF = createFunctionP0(obj,a)
+        function aF = createP1DiscontinousOrientation(obj,a)
             s.mesh = obj.mesh;
             s.fValues = squeeze(a)';
             s.order   = 'P0';
             aF = LagrangianFunction(s);
+            aF = project(aF,'P1D');
         end                     
 
         function aF = createFunctionP1(obj,a)
@@ -461,17 +464,6 @@ classdef HarmonicVectorProjectionExample < handle
            [v,lambda] = h.solveProblem(rho,alpha0,vH);
         end
 
-
-        function createUnitBallProjector(obj)
-            u = UnitBallProjector([]);
-            obj.unitBallProjector = u;
-        end
-
-        function vP = projectInUnitBall(obj,v)
-            u = obj.unitBallProjector;
-            vP = u.project(v);
-        end
-
         function alpha = projectInHarmonicSpace(obj,alpha)
             h  = obj.harmonicProjector;
             nDim    = size(alpha,2);
@@ -513,9 +505,9 @@ classdef HarmonicVectorProjectionExample < handle
             s = load('HarmonicVectorCantilever');
             obj.harmonicVector = s.a;
             obj.mesh = s.m;
-           obj.experimentData = s.e;
+            %obj.experimentData = s.e;
 
-           a = obj.harmonicVector;
+            a = obj.harmonicVector;
                 
             s.nCells  = 75;
             s.cellLevelSetParams = obj.createLevelSetCellParams();
@@ -523,6 +515,15 @@ classdef HarmonicVectorProjectionExample < handle
             s.mesh               = obj.mesh;
             d = Dehomogenizer(s);
             d.compute();
+            d.plot();
+
+
+           s.nCells             = 75;
+            s.cellLevelSetParams = obj.createLevelSetCellParams();
+            s.mesh               = obj.mesh;
+            s.orientationA       = a; 
+            d = Dehomogenizer(s);
+            ls = d.compute();
             d.plot();
        end        
 
@@ -573,6 +574,19 @@ classdef HarmonicVectorProjectionExample < handle
 
 
    
+    end
+
+
+    methods (Access = private, Static)
+
+        function vN = projectInUnitBall(v)
+            vx = v(:,1);
+            vy = v(:,2);
+            norm = sqrt(vx.^2 + vy.^2);
+            vN(:,1) = vx./norm;
+            vN(:,2) = vy./norm; 
+        end        
+
     end
 
 end

@@ -149,8 +149,7 @@ classdef LagrangianFunction < FeFunction
 
         function plot(obj) % 2D domains only
             plotFun = @(tri,x,y,z,iDim) obj.plotF(tri,x,y,z,iDim);
-            plotF = @() obj.plot();
-            obj.generalPlot(plotFun,plotF)
+            obj.generalPlot(plotFun)
         end
 
         function plotContour(obj,varargin) % 2D domains only
@@ -518,7 +517,7 @@ classdef LagrangianFunction < FeFunction
 
 
 
-        function generalPlot(obj,plotFun,plotD)
+        function generalPlot(obj,plotFun)
             switch obj.getOrderTextual(obj.order)
                 case 'LINEAR'
                     figure()
@@ -533,7 +532,7 @@ classdef LagrangianFunction < FeFunction
                     end
                 otherwise
                     f = obj.project('P1D');
-                    plotD(f);
+                    plot(f);
             end            
         end
 
