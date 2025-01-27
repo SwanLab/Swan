@@ -119,6 +119,8 @@ classdef PhaseFieldHomogenizer < handle
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(ls);
             holeMesh = uMesh.createInnerMesh();
+            figure()
+            holeMesh.plot
             mesh = holeMesh;
         end
 
@@ -144,11 +146,11 @@ classdef PhaseFieldHomogenizer < handle
                     gPar.xSide  = l(1);
                     gPar.ySide  = l(2);
                 case 'Hexagon'
-                    gPar.normal = [1 1; 1 1; 1 1];
-                    
+                    gPar.normal = [0 1; sqrt(3)/2 1/2; sqrt(3)/2 -1/2];  
             end
             g                  = GeometricalFunction(gPar);
             phiFun             = g.computeLevelSetFunction(mesh);
+            phiFun.plot;
             lsCircle           = phiFun.fValues;
             ls = -lsCircle;
         end

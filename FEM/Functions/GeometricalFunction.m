@@ -211,20 +211,22 @@ classdef GeometricalFunction < handle
     methods (Access = private, Static)
 
         function d = computeHexagonFunction(x,x1,x2,x0,y0,n)
-            r     = sqrt((x1(x)-x0).^2 + (x2(x)-y0).^2);
-            theta = atan2(x2(x),x1(x));
-            vx    = cos(theta);
-            vy    = sin(theta);
-            nS    = size(n,1);
-            vn = zeros([size(x) nS]);
+            r      = sqrt((x1(x)-x0).^2 + (x2(x)-y0).^2);
+            theta  = atan2(x2(x),x1(x));
+            vx     = cos(theta);
+            vy     = sin(theta);
+            nS     = size(n,1);
+            nGauss = size(x,2);
+            nElem  = size(x,3);
+            vn = zeros(1,nGauss,nElem,nS);
             for i = 1:nS
                 nx = n(i,1);
                 ny = n(i,2);
                 vn(:,:,:,i) = vx*nx + vy*ny;
             end
-            h = 1;
+            h = 0.5;
             maxVn = max(vn,[],4);
-            rh = h*maxVn;
+            rh = h*(sqrt(3)/2)*(1/maxVn);
             d = r - rh;
         end
 

@@ -1,6 +1,6 @@
 s.E = 1;
 s.nu = 0.3;
-s.meshType  = 'Square';
+s.meshType  = 'Hexagon';
 s.meshN     = 100;
 s.holeType  = "Hexagon";%"Ellipse";
 s.nSteps     = [5 5];
