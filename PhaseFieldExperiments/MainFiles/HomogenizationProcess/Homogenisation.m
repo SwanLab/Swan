@@ -1,9 +1,10 @@
-s.E = 1;
-s.nu = 0.3;
-s.meshType  = 'Hexagon';
-s.meshN     = 100;
-s.holeType  = "Hexagon";%"Ellipse";
-s.nSteps     = [5 5];
+s.E          = 210;
+s.nu         = 0.3;
+s.meshType   = 'Hexagon';
+s.meshN      = 1;
+s.holeType   = "SmoothHexagon";%"Ellipse";
+s.nSteps     = [5];
+s.pnorm      = 'Inf';
 s.damageType = "Area";
 PFH = PhaseFieldHomogenizer(s);
 [mat,phi] = PFH.computeHomogMaterial();

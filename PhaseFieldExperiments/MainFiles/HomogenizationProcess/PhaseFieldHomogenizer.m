@@ -8,11 +8,11 @@ classdef PhaseFieldHomogenizer < handle
         holeType
         nSteps
         damageType
-        mesh
-        followerLeader
+        pnorm
     end
 
     properties (Access = private)
+        baseMesh
         maxParam
     end
 
@@ -50,6 +50,7 @@ classdef PhaseFieldHomogenizer < handle
             obj.holeType  = cParams.holeType;
             obj.nSteps     = cParams.nSteps;
             obj.damageType = cParams.damageType;
+            obj.pnorm      = cParams.pnorm;
         end
 
         function defineMesh(obj)
@@ -58,21 +59,20 @@ classdef PhaseFieldHomogenizer < handle
                     s.c = [1,1];
                     s.theta = [0,90];
                     s.divUnit = obj.meshN;
-                    s.filename = 'PFMeshHomogenization.m';
+                    s.filename = '';
                     MC = MeshCreator(s);
                     MC.computeMeshNodes();
                 case 'Hexagon'
                     s.c = [1,1,1];
                     s.theta = [0,60,120];
                     s.divUnit = obj.meshN;
-                    s.filename = 'PFMeshHomogenization.m';
+                    s.filename = '';
                     MC = MeshCreator(s);
                     MC.computeMeshNodes();
             end
-        obj.followerLeader = MC.masterSlaveIndex;
-        s.coord = MC.coord;
-        s.connec = MC.connec;
-        obj.mesh = Mesh.create(s);
+            s.coord = MC.coord;
+            s.connec = MC.connec;
+            obj.baseMesh = Mesh.create(s);
         end
 
         function paramHole = computeHoleParams(obj)
@@ -94,8 +94,8 @@ classdef PhaseFieldHomogenizer < handle
                     maxV = 0.98;
                 case 'Rectangle'
                     maxV = [0.98,0.98];
-                case 'Hexagon'
-                    maxV = [1];
+                case 'SmoothHexagon'
+                    maxV = [0.98];
             end
         end
 
@@ -106,16 +106,9 @@ classdef PhaseFieldHomogenizer < handle
         end
 
         function mesh = createMesh(obj,l)
-            % file = 'PFMeshHomogenization';
-            % a.fileName = file;
-            % s = FemDataContainer(a);
-            %fullmesh = UnitTriangleMesh(obj.meshN,obj.meshN);
-            % FULLMESH must come from define mesh output. Also watch out
-            % the boundary conditions
-            fullmesh = obj.mesh;
-            ls = obj.computeLevelSet(fullmesh,l);
-            sUm.backgroundMesh = fullmesh;
-            sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
+            ls = obj.computeLevelSet(obj.baseMesh,l);
+            sUm.backgroundMesh = obj.baseMesh;
+            sUm.boundaryMesh   = obj.baseMesh.createBoundaryMesh;
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(ls);
             holeMesh = uMesh.createInnerMesh();
@@ -126,6 +119,7 @@ classdef PhaseFieldHomogenizer < handle
 
         function ls = computeLevelSet(obj,mesh,l)
             gPar.type = obj.holeType;
+            gPar.pnorm = obj.pnorm;
             switch obj.meshType
                 case 'Square'
                     gPar.xCoorCenter = 0.5;
@@ -146,11 +140,14 @@ classdef PhaseFieldHomogenizer < handle
                     gPar.xSide  = l(1);
                     gPar.ySide  = l(2);
                 case 'Hexagon'
-                    gPar.normal = [0 1; sqrt(3)/2 1/2; sqrt(3)/2 -1/2];  
+                    gPar.radius = l;
+                    gPar.normal = [0 1; sqrt(3)/2 1/2; sqrt(3)/2 -1/2];
+                case 'SmoothHexagon'
+                    gPar.radius = l;
+                    gPar.normal = [0 1; sqrt(3)/2 1/2; sqrt(3)/2 -1/2];
             end
             g                  = GeometricalFunction(gPar);
             phiFun             = g.computeLevelSetFunction(mesh);
-            phiFun.plot;
             lsCircle           = phiFun.fValues;
             ls = -lsCircle;
         end
@@ -231,8 +228,6 @@ classdef PhaseFieldHomogenizer < handle
             s.periodicFun  = periodicFun;
             s.mesh = mesh;
             bc = BoundaryConditions(s);
-            bc.periodic_leader   = obj.followerLeader(:,1);
-            bc.periodic_follower = obj.followerLeader(:,2);
         end
         
         function phi = computeDamageMetric(obj,l)
@@ -277,41 +272,6 @@ classdef PhaseFieldHomogenizer < handle
                 mat(idxMat{:}) = vec(idxVec{:});
             end
         end
-                % function [mat,holeLength] = computeIsotropicMaterial(obj,aType,steps)
-        %     constant =obj.E/(1-obj.nu^2);
-        %     C(1,1) = constant;
-        %     C(1,2) = constant*obj.nu;
-        %     C(2,1) = constant*obj.nu;
-        %     C(2,2) = constant;
-        %     C(3,3) = constant*(1-obj.nu)/2;
-        % 
-        %     phi = linspace(0,1,steps);
-        %     switch aType
-        %         case "AT1"
-        %             alpha = phi;
-        %         case "AT2"
-        %             alpha = phi.^2;
-        %     end
-        %     Ciso = cell(3,3);
-        %     for i=1:3
-        %         for j=1:3
-        %             sM.coord = alpha';
-        %             sM.connec = (1:length(alpha)-1)' + [0,1];
-        %             s.mesh = Mesh.create(sM);
-        %             s.fValues = ((1-phi).^2*C(i,j))';
-        %             s.order = 'P1';
-        %             Ciso{i,j} = LagrangianFunction(s);
-        %         end
-        %     end
-        %     holeLength = linspace(0,1,steps);
-        %     mat = zeros(3,3,length(phi));
-        %     mat(1,1,:) = constant*(1-phi).^2 ;
-        %     mat(1,2,:) = constant*obj.nu*(1-phi).^2;
-        %     mat(2,1,:) = constant*obj.nu*(1-phi).^2;
-        %     mat(2,2,:) = constant*(1-phi).^2;
-        %     mat(3,3,:) = constant*(1-obj.nu)*(1-phi).^2 /2;
-        % end
-        % 
         
     end
     
