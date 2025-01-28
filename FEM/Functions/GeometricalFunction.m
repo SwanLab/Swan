@@ -172,6 +172,10 @@ classdef GeometricalFunction < handle
                 case 'PeriodicAndOriented'
                     perOr       = LevelSetPeriodicAndOriented(cParams);
                     obj.fHandle = perOr.getFunctionHandle();
+
+                case 'Naca'
+                    fH = @(x) obj.createNaca(x1(x),x2(x));
+                    obj.fHandle = fH;
             end
         end
 
@@ -181,4 +185,38 @@ classdef GeometricalFunction < handle
             obj.fHandle = @(x) -fH(x);
         end
     end
+
+
+
+
+    methods (Access = private, Static)
+
+        function fV = createNaca(x,y)
+            c = 0.8;
+            x = x/c;
+            x0 = 0.1;
+            x = x;
+            y = y+0;
+            p = 0.5;
+            m = 0.02;
+            t = 0.12;
+            y0 = -0.1;
+            yc = (x>=0 & x<=p).*(m./p^2.*(2*p*x-x.^2))+...
+                (x>=p & x<=1).*(m./(1-p)^2.*((1-2*p)+2*p*x-x.^2))-y0;
+            yt = 5*t*(0.2969*sqrt(x)-0.1260*x-0.3516*x.^2+0.2843*x.^3-0.1015*x.^4);
+
+            dydx=(x>=0&x<=p).*(2*m/p^2.*(p-x))+...
+                (x>=p&x<=1).*(2*m/(1-p)^2.*(p-x));
+            
+            theta = atan(dydx);
+            yu = yc + yt.*cos(theta);
+            yl = yc - yt.*cos(theta);
+            f(:,:,:,1) = yl - y;
+            f(:,:,:,2) = y - yu;
+            f(:,:,:,3) = (x) - 1; 
+            f(:,:,:,4) = -(x);
+            fV = -max(f,[],4);
+        end
+    end
+
 end
