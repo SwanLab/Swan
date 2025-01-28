@@ -11,17 +11,18 @@ classdef TestNaca < handle
     properties (Access = private)
         refMesh
         levelSet
+        rawMesh
         mesh
-        meshGoodCond
     end
     
     methods (Access = public)
         
         function obj = TestNaca()
+            close all;
             obj.createReferenceMesh();
-            obj.createLevelSet();
+            obj.levelSet = obj.createLevelSet(obj.refMesh);
             obj.createFluidMesh();
-            %obj.createFluidMeshGoodConditioning(); Maybe in the future if necessary
+            obj.createFluidMeshGoodConditioning();
         end
         
     end
@@ -32,7 +33,46 @@ classdef TestNaca < handle
             obj.refMesh = TriangleMesh(2,1,150,75);
         end
         
-        function createLevelSet(obj)
+        function createFluidMesh(obj)
+            s.backgroundMesh = obj.refMesh;
+            s.boundaryMesh   = obj.refMesh.createBoundaryMesh();
+            uMesh            = UnfittedMesh(s);
+            uMesh.compute(obj.levelSet.fValues);       
+            obj.rawMesh = uMesh.createInnerMesh();
+        end
+
+        function createFluidMeshGoodConditioning(obj)
+            m        = obj.createMeshAlphaTriangulation();
+            s.connec = obj.computeConnectivitiesGoodCond(m);
+            s.coord  = obj.rawMesh.coord;
+            m2       = Mesh.create(s);
+            obj.mesh = m2.computeCanonicalMesh();
+            figure;
+            obj.mesh.plot();
+        end
+
+        function m = createMeshAlphaTriangulation(obj)
+            points = obj.rawMesh.coord;
+            T      = alphaShape(points,.007);
+            DT     = alphaTriangulation(T);
+
+            s.connec = DT;
+            s.coord  = points;
+            m        = Mesh.create(s);
+        end
+
+        function connec = computeConnectivitiesGoodCond(obj,mAlpha)
+            xV(:,1,:) = mAlpha.computeBaricenter();
+            lsFun  = obj.createLevelSet(mAlpha);
+            lsElem = squeeze(lsFun.evaluate(xV));
+            connec = mAlpha.connec(lsElem<=0,:);
+        end
+
+    end
+
+    methods (Static, Access = private)
+
+        function ls = createLevelSet(m)
             s.type = 'Naca';
             s.xLE  = 0.5;
             s.yLE  = 0.5;
@@ -42,28 +82,8 @@ classdef TestNaca < handle
             s.m     = 0.02;
             s.t     = 0.12;
 
-
-            g            = GeometricalFunction(s);
-            lsFun        = g.computeLevelSetFunction(obj.refMesh);
-            obj.levelSet = lsFun.fValues;
-        end
-        
-        function createFluidMesh(obj)
-            s.backgroundMesh = obj.refMesh;
-            s.boundaryMesh   = obj.refMesh.createBoundaryMesh();
-            uMesh            = UnfittedMesh(s);
-            uMesh.compute(obj.levelSet);       
-            obj.mesh = uMesh.createInnerMesh();
-        end
-
-        function createFluidMeshGoodConditioning(obj)
-            points = obj.mesh.coord;
-            T      = alphaShape(points,.007);
-            DT     = alphaTriangulation(T);
-
-            s.connec         = DT;
-            s.coord          = points;
-            obj.meshGoodCond = Mesh.create(s);
+            g  = GeometricalFunction(s);
+            ls = g.computeLevelSetFunction(m);
         end
 
     end
