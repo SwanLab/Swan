@@ -174,7 +174,7 @@ classdef GeometricalFunction < handle
                     obj.fHandle = perOr.getFunctionHandle();
 
                 case 'Naca'
-                    fH = @(x) obj.createNaca(x1(x),x2(x));
+                    fH = @(x) obj.createNacaHole(x1(x),x2(x),cParams);
                     obj.fHandle = fH;
             end
         end
@@ -191,31 +191,31 @@ classdef GeometricalFunction < handle
 
     methods (Access = private, Static)
 
-        function fV = createNaca(x,y)
-            c = 0.8;
-            x = x/c;
-            x0 = 0.1;
-            x = x;
-            y = y+0;
-            p = 0.5;
-            m = 0.02;
-            t = 0.12;
-            y0 = -0.1;
-            yc = (x>=0 & x<=p).*(m./p^2.*(2*p*x-x.^2))+...
-                (x>=p & x<=1).*(m./(1-p)^2.*((1-2*p)+2*p*x-x.^2))-y0;
-            yt = 5*t*(0.2969*sqrt(x)-0.1260*x-0.3516*x.^2+0.2843*x.^3-0.1015*x.^4);
+        function fV = createNacaHole(x,y,s)
+            c = s.chord;
+            p = s.p;
+            m = s.m;
+            t = s.t;
 
-            dydx=(x>=0&x<=p).*(2*m/p^2.*(p-x))+...
-                (x>=p&x<=1).*(2*m/(1-p)^2.*(p-x));
-            
+            x0    = s.xLE;
+            y0    = s.yLE/c;
+            xNaca = (x-x0)/c;
+
+            yc   = (xNaca>=0 & xNaca<=p).*(m./p^2.*(2*p*xNaca-xNaca.^2))+...
+                    (xNaca>=p & xNaca<=1).*(m./(1-p)^2.*((1-2*p)+2*p*xNaca-xNaca.^2));
+            yt   = (xNaca>=0 & xNaca<=1).*(5*t*(0.2969*sqrt(xNaca)-0.1260*xNaca-0.3516*xNaca.^2+0.2843*xNaca.^3-0.1015*xNaca.^4));
+            dydx = (xNaca>=0 & xNaca<=p).*(2*m/p^2.*(p-xNaca))+...
+                    (xNaca>=p & xNaca<=1).*(2*m/(1-p)^2.*(p-xNaca));
+
             theta = atan(dydx);
-            yu = yc + yt.*cos(theta);
-            yl = yc - yt.*cos(theta);
-            f(:,:,:,1) = yl - y;
-            f(:,:,:,2) = y - yu;
-            f(:,:,:,3) = (x) - 1; 
-            f(:,:,:,4) = -(x);
-            fV = -max(f,[],4);
+            yu    = y0 + yc + yt.*cos(theta);
+            yl    = y0 + yc - yt.*cos(theta);
+
+            f(:,:,:,1) = yl*c - y;
+            f(:,:,:,2) = y - yu*c;
+            f(:,:,:,3) = xNaca - 1; 
+            f(:,:,:,4) = -xNaca;
+            fV         = -max(f,[],4);
         end
     end
 
