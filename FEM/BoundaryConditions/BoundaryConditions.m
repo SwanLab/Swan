@@ -68,7 +68,7 @@ classdef BoundaryConditions < handle
 
                     dofs = [dofs; dofs_i];
                     vals = [vals; values_i];
-                    domain = @(coor) pl_domain(coor) | input(i).domain(coor);
+                    domain = @(coor) input(i).domain(coor);
                     bcFun.fValues = obj.addValues(bcFun,dofs_i,values_i);
                 end
             else
