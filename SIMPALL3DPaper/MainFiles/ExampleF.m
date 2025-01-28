@@ -32,6 +32,12 @@ classdef ExampleF < handle
             obj.createConstraint();
             obj.createDualVariable();
             obj.createOptimizer();
+
+            saveas(gcf,'SIMPALL3DPaper/MatVoidCase/MonitoringExampleFSIMPP3.fig');
+            obj.designVariable.fun.print('SIMPALL3DPaper/MatVoidCase/ExampleFSIMPP3');
+
+%             saveas(gcf,'SIMPALL3DPaper/MatVoidCase/MonitoringExampleFSIMPALL.fig');
+%             obj.designVariable.fun.print('SIMPALL3DPaper/MatVoidCase/ExampleFSIMPALL');
         end
 
     end
@@ -43,13 +49,17 @@ classdef ExampleF < handle
         end
 
         function createMesh(obj)
-            obj.mesh = TetraMesh(1,1,1,20,20,20);
+            obj.mesh = HexaMesh(1,1,1,48,48,48);
         end
 
         function createDesignVariable(obj)
-            s.type             = 'Full';
-            g                  = GeometricalFunction(s);
-            lsFun              = g.computeLevelSetFunction(obj.mesh);
+            s.type        = 'SphereInclusion';
+            s.radius      = 0.2;
+            s.xCoorCenter = 0.5;
+            s.yCoorCenter = 0.5;
+            s.zCoorCenter = 0.5;
+            g             = GeometricalFunction(s);
+            lsFun         = g.computeLevelSetFunction(obj.mesh);
             s.mesh             = obj.mesh;
             s.order            = 'P1';
             s.fValues          = 1-heaviside(lsFun.fValues);
@@ -61,10 +71,12 @@ classdef ExampleF < handle
         end
 
         function createFilter(obj)
-            s.filterType = 'LUMP';
-            s.mesh  = obj.mesh;
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            f = Filter.create(s);
+            s.filterType = 'PDE';
+            s.mesh       = obj.mesh;
+            s.trial      = obj.designVariable.fun;
+            f            = Filter.create(s);
+            h            = obj.mesh.computeMeanCellSize();
+            f.updateEpsilon(2*h);
             obj.filter = f;
         end
 
@@ -81,7 +93,7 @@ classdef ExampleF < handle
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
-            s.interpolation  = 'SIMPALL'; % SIMPALL, SIMP_P3
+            s.interpolation  = 'SIMP_P3';
             s.dim            = '3D';
             s.matA = matA;
             s.matB = matB;
@@ -169,7 +181,7 @@ classdef ExampleF < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 10000;
+            s.maxIter        = 2000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.ub             = 1;
