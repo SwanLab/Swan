@@ -33,11 +33,11 @@ classdef ExampleF < handle
             obj.createDualVariable();
             obj.createOptimizer();
 
-            saveas(gcf,'SIMPALL3DPaper/MatVoidCase/MonitoringExampleFSIMPP3.fig');
-            obj.designVariable.fun.print('SIMPALL3DPaper/MatVoidCase/ExampleFSIMPP3');
+%             saveas(gcf,'SIMPALL3DPaper/MatVoidCase/MonitoringExampleFSIMPP3.fig');
+%             obj.designVariable.fun.print('SIMPALL3DPaper/MatVoidCase/ExampleFSIMPP3');
 
-%             saveas(gcf,'SIMPALL3DPaper/MatVoidCase/MonitoringExampleFSIMPALL.fig');
-%             obj.designVariable.fun.print('SIMPALL3DPaper/MatVoidCase/ExampleFSIMPALL');
+            saveas(gcf,'SIMPALL3DPaper/MatVoidCase/MonitoringExampleFSIMPALL.fig');
+            obj.designVariable.fun.print('SIMPALL3DPaper/MatVoidCase/ExampleFSIMPALL');
         end
 
     end
@@ -93,7 +93,7 @@ classdef ExampleF < handle
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
-            s.interpolation  = 'SIMP_P3';
+            s.interpolation  = 'SIMPALL';
             s.dim            = '3D';
             s.matA = matA;
             s.matB = matB;
