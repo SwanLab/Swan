@@ -71,8 +71,8 @@ classdef LevelSetInclusionAuto_raul < handle
 
         function mesh = createReferenceMesh(~)
              %UnitMesh better
-            x1      = linspace(0,1,10);
-            x2      = linspace(0,1,10);
+            x1      = linspace(-1,1,50);
+            x2      = linspace(-1,1,50);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -82,8 +82,8 @@ classdef LevelSetInclusionAuto_raul < handle
 
         function levelSet = createLevelSetFunction(obj,bgMesh)
             sLS.type        = 'CircleInclusion';
-            sLS.xCoorCenter = 0.5;
-            sLS.yCoorCenter = 0.5;
+            sLS.xCoorCenter = 0;
+            sLS.yCoorCenter = 0;
             sLS.radius      = obj.radius;
             g               = GeometricalFunction(sLS);
             lsFun           = g.computeLevelSetFunction(bgMesh);
@@ -236,8 +236,8 @@ classdef LevelSetInclusionAuto_raul < handle
             obj.createSolverHere(cParams)
             obj.computeStiffnessMatrixHere();
             obj.computeForcesHere(cParams);
-             obj.computeCmat();
-            [u, L]  = obj.computeDisplacementHere();
+             c = obj.computeCmat();
+            [u, L]  = obj.computeDisplacementHere(c);
             obj.computeStrainHere();
             obj.computeStressHere();
         end
@@ -298,23 +298,44 @@ classdef LevelSetInclusionAuto_raul < handle
             
         end
 
-        function computeCmat(obj)
+        function Cg = computeCmat(obj)
             s.quadType = 2;
             s.mesh     = obj.boundaryMeshJoined;
-            s.type = 'ShapeFunction';
-            rhs    = RHSintegrator.create(s);
-
             lhs = LHSintegrator_ShapeFunction_fun(s);
-
-            
             test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); % !!
             ndimf  = 2;
             Lx     = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
             Ly     = max(obj.mesh.coord(:,2)) - min(obj.mesh.coord(:,2));
-            f1     = @(x) [1/(4*Lx/2*Ly/2)*(1-x(1,:,:)).*(1-x(2,:,:));...
-                           1/(4*Lx/2*Ly/2)*(1-x(1,:,:)).*(1-x(2,:,:))  ];
-            dLambda  = AnalyticalFunction.create(f1,ndimf,obj.boundaryMeshJoined);
-            c = lhs.compute(dLambda,test);
+%             f1 = @(x) [1/(4*Lx/2*Ly/2)*(1-x(1,:,:)).*(1-x(2,:,:));...
+%                     1/(4*Lx/2*Ly/2)*(1-x(1,:,:)).*(1-x(2,:,:))  ];
+%             f2 = @(x) [1/(4*Lx/2*Ly/2)*(1+x(1,:,:)).*(1-x(2,:,:));...
+%                     1/(4*Lx/2*Ly/2)*(1+x(1,:,:)).*(1-x(2,:,:))  ];
+%             f3 = @(x) [1/(4*Lx/2*Ly/2)*(1+x(1,:,:)).*(1+x(2,:,:));...
+%                     1/(4*Lx/2*Ly/2)*(1+x(1,:,:)).*(1+x(2,:,:))  ];
+%             f4 = @(x) [1/(4*Lx/2*Ly/2)*(1-x(1,:,:)).*(1+x(2,:,:));...
+%                     1/(4*Lx/2*Ly/2)*(1-x(1,:,:)).*(1+x(2,:,:))  ];
+            f1 = @(x) [1/(4)*(1-x(1,:,:)).*(1-x(2,:,:));...
+                    1/(4)*(1-x(1,:,:)).*(1-x(2,:,:))  ];
+            f2 = @(x) [1/(4)*(1+x(1,:,:)).*(1-x(2,:,:));...
+                    1/(4)*(1+x(1,:,:)).*(1-x(2,:,:))  ];
+            f3 = @(x) [1/(4)*(1+x(1,:,:)).*(1+x(2,:,:));...
+                    1/(4)*(1+x(1,:,:)).*(1+x(2,:,:))  ];
+            f4 = @(x) [1/(4)*(1-x(1,:,:)).*(1+x(2,:,:));...
+                    1/(4)*(1-x(1,:,:)).*(1+x(2,:,:))  ];
+            f     = {f1 f2 f3 f4}; %
+            nfun = size(f,2);
+            Cg = [];
+            for i=1:nfun
+                dLambda  = AnalyticalFunction.create(f{i},ndimf,obj.boundaryMeshJoined);
+                Ce = lhs.compute(dLambda,test);
+                [iLoc,jLoc,vals] = find(Ce);
+    
+                l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
+                l2g_dof = l2g_dof(:);
+                jGlob = l2g_dof(jLoc);
+                Cg = [Cg sparse(iLoc,jGlob,vals, obj.displacementFun.nDofs, dLambda.ndimf)];
+            end
+
         end
 
         function dim = getFunDimsHere(obj)
@@ -326,16 +347,31 @@ classdef LevelSetInclusionAuto_raul < handle
             dim         = d;
         end
 
-        function [u, L] = computeDisplacementHere(obj)
-            o.stiffness = obj.stiffness;
-            o.forces    = obj.forces;
-            [u,L]       = obj.problemSolver.solve(o);
-            z.mesh      = obj.mesh;
-            z.fValues   = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            z.order     = 'P1';
-            obj.uFun    = LagrangianFunction(z);
-            uSplit      = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            obj.displacementFun.fValues = uSplit;
+%         function [u, L] = computeDisplacementHere(obj)
+%             o.stiffness = obj.stiffness;
+%             o.forces    = obj.forces;
+%             [u,L]       = obj.problemSolver.solve(o);
+%             z.mesh      = obj.mesh;
+%             z.fValues   = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
+%             z.order     = 'P1';
+%             obj.uFun    = LagrangianFunction(z);
+%             uSplit      = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
+%             obj.displacementFun.fValues = uSplit;
+%         end
+
+        function [u, L] = computeDisplacementHere(obj,c)
+            K = obj.stiffness;
+            nC  = size(c,2);
+            Z   = zeros(nC);
+            LHS = [K, c; c' Z];
+            ud = zeros(nC,1);
+            ud(1) = 1;
+            RHS = [obj.forces; ud];
+            sol = LHS\RHS;
+            u = sol(1:obj.displacementFun.nDofs);
+            L = sol(obj.displacementFun.nDofs+1:end); 
+            obj.displacementFun.fValues = u;
+            EIFEMtesting.plotSolution(u,obj.mesh,1,1,0,0)
         end
 
         function computeStrainHere(obj)
