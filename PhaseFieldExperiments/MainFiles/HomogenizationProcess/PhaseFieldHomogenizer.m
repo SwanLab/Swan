@@ -80,27 +80,28 @@ classdef PhaseFieldHomogenizer < handle
             nParam = length(obj.maxParam);
             paramHole = cell(1,nParam);
             for i=1:nParam
-                paramHole{i} = linspace(0.01,obj.maxParam(i),obj.nSteps(i));
+                paramHole{i} = linspace(0.1,obj.maxParam(i),obj.nSteps(i));
             end
         end
         
         function maxV = computeMaxHoleParams(obj)
             switch obj.holeType
                 case 'Circle'
-                    maxV = 0.5;
-                case 'Ellipse'
-                    maxV = [0.5,0.5];
+                    maxV = 0.49;
                 case 'Square'
                     maxV = 0.98;
+                case 'Ellipse'
+                    maxV = [0.98,0.98];
                 case 'Rectangle'
                     maxV = [0.98,0.98];
                 case 'SmoothHexagon'
-                    maxV = [0.98];
+                    maxV = 0.98;
             end
         end
 
         function matHomog = computeHomogenization(obj,l)
             mesh = obj.createMesh(l);
+            mesh = obj.baseMesh;
             mat = obj.createMaterial(mesh);
             matHomog = obj.solveElasticMicroProblem(mesh,mat);
         end
@@ -112,8 +113,6 @@ classdef PhaseFieldHomogenizer < handle
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(ls);
             holeMesh = uMesh.createInnerMesh();
-            figure()
-            holeMesh.plot
             mesh = holeMesh;
         end
 
@@ -131,17 +130,16 @@ classdef PhaseFieldHomogenizer < handle
             switch obj.holeType
                 case 'Circle'
                     gPar.radius = l;
-                case 'Ellipse'
-                    gPar.xSide  = l(1);
-                    gPar.ySide  = l(2);
                 case 'Square'
                     gPar.radius = l;
                 case 'Rectangle'
                     gPar.xSide  = l(1);
                     gPar.ySide  = l(2);
-                case 'Hexagon'
-                    gPar.radius = l;
-                    gPar.normal = [0 1; sqrt(3)/2 1/2; sqrt(3)/2 -1/2];
+                case 'Ellipse'
+                    gPar.type = "SmoothRectangle";
+                    gPar.xSide  = l(1);
+                    gPar.ySide  = l(2);
+                    gPar.pnorm  = 2;  
                 case 'SmoothHexagon'
                     gPar.radius = l;
                     gPar.normal = [0 1; sqrt(3)/2 1/2; sqrt(3)/2 -1/2];
@@ -182,54 +180,75 @@ classdef PhaseFieldHomogenizer < handle
         end
 
         function bc = createBoundaryConditions(obj,mesh)
-            isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
-            isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
-            isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2))) < 1e-12);
-            isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2))) < 1e-12);
-            
-            % Dirichlet
-            
-            sDir{1}.domain    = @(coor) isTop(coor) & isLeft(coor);
-            sDir{1}.direction = [1,2];
-            sDir{1}.value     = 0;
-            
-            sDir{2}.domain    = @(coor) isTop(coor) & isRight(coor);
-            sDir{2}.direction = [1,2];
-            sDir{2}.value     = 0;
-            
-            sDir{3}.domain    = @(coor) isBottom(coor) & isLeft(coor);
-            sDir{3}.direction = [1,2];
-            sDir{3}.value     = 0;
-            
-            sDir{4}.domain    = @(coor) isBottom(coor) & isRight(coor);
-            sDir{4}.direction = [1,2];
-            sDir{4}.value     = 0;
-            
-            % Periodic (NOTE: actually sets all boundaries as periodic hehe)
-            
-            sPer{1}.leader = @(coor) isLeft(coor);
-            sPer{1}.follower = @(coor) isRight(coor);
+            switch obj.meshType
+                case 'Square'
+                    % Dirichlet
+                    isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2))) < 1e-12);
+                    isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2))) < 1e-12);
+                    isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1))) < 1e-12);
+                    isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1))) < 1e-12);
+                    isVertex = @(coor) (isTop(coor) & isLeft(coor))    |...
+                                       (isTop(coor) & isRight(coor))   |...
+                                       (isBottom(coor) & isLeft(coor)) |...
+                                       (isBottom(coor) & isRight(coor));
+                    sDir{1}.domain    = @(coor) isVertex(coor);
+                    sDir{1}.direction = [1,2];
+                    sDir{1}.value     = 0;
 
+                    % Periodic
+                    sPer{1}.leader = @(coor) isLeft(coor);
+                    sPer{1}.follower = @(coor) isRight(coor);
+                    sPer{2}.leader = @(coor) isBottom(coor);
+                    sPer{2}.follower = @(coor) isTop(coor);
+                    sPer{3}.vertex = @(coor) isVertex(coor);
+                case 'Hexagon'
+                    % Dirichlet
+                    isBottom      = @(coor) (abs(coor(:,2) - min(coor(:,2))) < 1e-12);
+                    isTop         = @(coor) (abs(coor(:,2) - max(coor(:,2))) < 1e-12);
+                    
+                    coorRotY = obj.defineRotatedCoordinates(pi/3);
+                    isRightBottom = @(coor) (abs(coorRotY(coor) - min(coorRotY(coor))) < 1e-12);
+                    isLeftTop     = @(coor) (abs(coorRotY(coor) - max(coorRotY(coor))) < 1e-12);
+                    coorRotY = obj.defineRotatedCoordinates(-pi/3);
+                    isLeftBottom  = @(coor) (abs(coorRotY(coor) - min(coorRotY(coor))) < 1e-12);
+                    isRightTop    = @(coor) (abs(coorRotY(coor) - max(coorRotY(coor))) < 1e-12);
+                    isVertex = @(coor) (isBottom(coor) & isRightBottom(coor))  |...
+                                       (isRightBottom(coor) & isRightTop(coor))|...
+                                       (isRightTop(coor) & isTop(coor))        |...
+                                       (isTop(coor) & isLeftTop(coor))         |...
+                                       (isLeftTop(coor) & isLeftBottom(coor))  |...
+                                       (isLeftBottom(coor) & isBottom(coor))   ;
+                    sDir{1}.domain    = @(coor) isVertex(coor);
+                    sDir{1}.direction = [1,2];
+                    sDir{1}.value     = 0;
+
+                    % Periodic
+                    sPer{1}.leader = @(coor) isBottom(coor);
+                    sPer{1}.follower = @(coor) isTop(coor);
+                    sPer{2}.leader = @(coor) isRightBottom(coor);
+                    sPer{2}.follower = @(coor) isLeftTop(coor);
+                    sPer{3}.leader = @(coor) isRightTop(coor);
+                    sPer{3}.follower = @(coor) isLeftBottom(coor);
+                    sPer{4}.vertex = @(coor) isVertex(coor);
+            end
             dirichletFun = [];
-            periodicFun = [];
-
             for i = 1:numel(sDir)
                 dir = DirichletCondition(mesh, sDir{i});
                 dirichletFun = [dirichletFun, dir];
             end
-
-            for i = 1:numel(sPer)
-                per = PeriodicCondition(mesh, sPer{i});
-                periodicFun = [periodicFun, per];
-            end
-
             s.dirichletFun = dirichletFun;
             s.pointloadFun = [];
-            s.periodicFun  = periodicFun;
+            s.periodicFun  = 1;
             s.mesh = mesh;
             bc = BoundaryConditions(s);
+            bc.updatePeriodicConditions(sPer);
         end
-        
+
+        function coorRot = defineRotatedCoordinates(~,theta)
+            x0 = 0.5; y0 = sqrt(1-0.5^2);
+            coorRot = @(coor) feval(@(fun) fun(:,2),([cos(theta) sin(theta); sin(theta) cos(theta)]*(coor-[x0,y0])')');
+        end
+
         function phi = computeDamageMetric(obj,l)
             max = obj.maxParam;
             switch obj.damageType
@@ -237,12 +256,16 @@ classdef PhaseFieldHomogenizer < handle
                     switch obj.holeType
                         case 'Circle'
                             phi = l^2/(max^2);
-                        case 'Ellipse'
-                            phi = (l(1)*l(2))/(max(1)*max(2));
                         case 'Square'
                             phi = l^2/max^2;
+                        case 'Ellipse'
+                            phi = (l(1)*l(2))/(max(1)*max(2));
                         case 'Rectangle'
                             phi = (l(1)*l(2))/(max(1)*max(2));
+                        case 'SmoothHexagon'
+                            perimeter = 6*l;
+                            apothem   = sqrt(l^2 + (l/2)^2);
+                            phi = perimeter*apothem/2;
                     end
                 case 'Perimeter'
                     switch obj.holeType
@@ -255,6 +278,8 @@ classdef PhaseFieldHomogenizer < handle
                             phi = l/max;
                         case 'Rectangle'
                             phi = (l(1)+l(2))/(max(1)+max(2));
+                        case 'SmoothHexagon'
+                            phi = 6*l;
                     end
             end
         end

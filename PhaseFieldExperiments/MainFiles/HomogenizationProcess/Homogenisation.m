@@ -1,15 +1,17 @@
+clc,clear,close all
 s.E          = 210;
 s.nu         = 0.3;
 s.meshType   = 'Hexagon';
-s.meshN      = 1;
-s.holeType   = "SmoothHexagon";%"Ellipse";
-s.nSteps     = [5];
+s.meshN      = 50;
+s.holeType   = 'SmoothHexagon';
+s.nSteps     = [20];
 s.pnorm      = 'Inf';
-s.damageType = "Area";
+s.damageType = "Perimeter";
 PFH = PhaseFieldHomogenizer(s);
 [mat,phi] = PFH.computeHomogMaterial();
+save("RectangleMicroDamagePerimeter_min0,1","mat","phi")
 
-
+%%%% EL RESULTAT S'HA DE DIVIDIR PEL VOLUM %%%%%%%%%
 
 % [mat,phi] = PFH.computeHomogMaterial("Circle","Perimeter",100);
 % save('CircleMicroDamagePerimeter','mat','phi')
