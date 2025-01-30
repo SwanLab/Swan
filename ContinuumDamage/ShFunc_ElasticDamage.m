@@ -30,9 +30,9 @@ classdef ShFunc_ElasticDamage < handle
             obj.test = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);           
         end 
         
-        % function energy = computeFunction(obj,u,r)            
-        %     d = obj.computeDamage(r);
-        %     C = obj.material.obtainTensor(d);           
+        % function energy = computeFunction(obj,u)            
+        %     obj.computeDamage();
+        %     C = obj.material.obtainTensor(obj.d);           
         %     e  = SymGrad(u);
         %     s  = DDP(e,C);
         %     en = DDP(s,e);

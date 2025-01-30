@@ -55,7 +55,7 @@ classdef ContinuumDamageComputer < handle
                 dmgFun = dmgDomainFun.project('P1D');
                 data.damage.maxValue(i)  = max(dmgFun.fValues);
                 data.damage.minValue(i)  = min(dmgFun.fValues);
-                data.reaction(i)  = -obj.computeTotalReaction(K,uVec); %%% SHOULD ONLY WORK FOR SECANT (resDeriv = K)
+                data.reaction(i)  = -obj.computeTotalReaction(K,uVec);
             end
             data.displacement.field = uFun;
             data.damage.field = dmgFun;
@@ -109,7 +109,6 @@ classdef ContinuumDamageComputer < handle
         end
 
         function [uOut,uOutVec] = computeDisplacement(obj,LHS,RHS,uIn,bc)            
-            
             uInVec = reshape(uIn.fValues',[uIn.nDofs 1]);
             uOutVec = uInVec;
 
