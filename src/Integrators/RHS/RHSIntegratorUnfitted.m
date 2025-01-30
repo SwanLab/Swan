@@ -51,7 +51,7 @@ classdef RHSIntegratorUnfitted < handle
                 s.mesh     = obj.unfittedMesh.innerMesh.mesh;
                 s.type     = 'ShapeFunction';
                 s.quadType = obj.quadType;
-                int        = RHSintegrator.create(s);
+                int        = RHSIntegrator.create(s);
                 obj.innerIntegrator = int;
             end
         end
