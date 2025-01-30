@@ -2,9 +2,7 @@ classdef ShFunc_ContinuumDamage < handle
 
    properties (Access = private)
         internalDamage
-        internalElastic
         externalWork
-        boundaryConditions
         quadOrder
         r
     end
@@ -21,7 +19,7 @@ classdef ShFunc_ContinuumDamage < handle
      %       totalEnergy = internalEnergy - externalEnergy;
      %   end
 
-        function res = computeResidual(obj,u,bc)
+        function [res,resT] = computeResidual(obj,u,bc)
             fExt = bc.pointloadFun;
             Fext = obj.externalWork.computeGradient(u,fExt,obj.quadOrder);
             Fint = obj.internalDamage.computeResidual(u,obj.r);
@@ -29,9 +27,9 @@ classdef ShFunc_ContinuumDamage < handle
             res  = resT(bc.free_dofs); %THE FREE DOFS ARE RETURNED, revisar el pq
         end
 
-        function dRes = computeDerivativeResidual(obj,u,bc) 
-            dres = obj.internalDamage.computeDerivativeResidual(obj.quadOrder,u,obj.r);
-            dRes = dres(bc.free_dofs,bc.free_dofs); %THE FREE DOFS ARE RETURNED, revisar el pq
+        function [dRes,dResT] = computeDerivativeResidual(obj,u,bc) 
+            dResT = obj.internalDamage.computeDerivativeResidual(obj.quadOrder,u,obj.r);
+            dRes = dResT(bc.free_dofs,bc.free_dofs); %THE FREE DOFS ARE RETURNED, revisar el pq
         end
 
         function computeDamageEvolutionParam(obj,u)
@@ -46,10 +44,6 @@ classdef ShFunc_ContinuumDamage < handle
             d = obj.internalDamage.computeDamage(r);
         end
 
-        function updateBoundaryConditions (obj,bc)
-            obj.boundaryConditions = bc;
-        end
-
         function createTest(obj,u)           
             obj.internalDamage.createTest(u);
         end 
@@ -58,10 +52,8 @@ classdef ShFunc_ContinuumDamage < handle
     methods (Access = private)
 
         function createFunctionals(obj,cParams)
-            obj.boundaryConditions = cParams.boundaryConditions;
             obj.internalDamage = ShFunc_ElasticDamage(cParams);
             obj.quadOrder = cParams.quadOrder;
-            %obj.internalElastic = ShFunc_Elastic(s);
             obj.externalWork = ShFunc_ExternalWork2(cParams);
         end
 

@@ -51,10 +51,10 @@ classdef ShFunc_ElasticDamage < handle
             Sec = obj.computeSecandDResidual (S);
             Tan = obj.computeTangentDResidual (S,u,r);
 
-            dRes = Sec - Tan;
+            dRes = Sec% - Tan;
         end  
        
-        function r = computeDamageEvolutionParam(obj,u)
+        function r = computeDamageEvolutionParam(obj,u) %PROBLEMA AQUI!
             C = obj.material.obtainNonDamagedTensor;
             epsi = SymGrad(u);
             tauEpsi = power(DDP(DDP(epsi,C),epsi),0.5);

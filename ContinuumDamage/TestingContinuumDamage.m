@@ -1,5 +1,4 @@
 classdef TestingContinuumDamage < handle
-
     properties (Access = private)
         mesh
         bc
@@ -11,7 +10,6 @@ classdef TestingContinuumDamage < handle
     end
 
     methods (Access = public)
-
         function obj = TestingContinuumDamage(cParams)
             obj.mesh         = obj.createMesh(cParams.mesh);
             obj.bc           = obj.defineBoundaryConditions(cParams.bc);
@@ -46,7 +44,6 @@ classdef TestingContinuumDamage < handle
     end
 
     methods (Access = private)
-
         function mesh = createMesh(~,s)
             if ~isfield(s,'name')
                 l = s.meshLength;
@@ -64,15 +61,12 @@ classdef TestingContinuumDamage < handle
 
         function bc = defineBoundaryConditions(obj,s)
             s.mesh = obj.mesh;
-            bc = Bc_ContinuumDamage(s);
+            bc = BcContinuumDamage(s);
         end
 
         function mat = createMaterial(obj,s)
-         
             s.mesh = obj.mesh;
-            
             mat = DamagedMaterial(s);
         end
-
     end
 end

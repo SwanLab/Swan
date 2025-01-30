@@ -1,18 +1,14 @@
-classdef Bc_ContinuumDamage < handle
- 
+classdef BcContinuumDamage < handle
+    
     properties (Access = public)
         type
         bcValueSet
-        ValueSetLenght
+        valueSetLenght
         mesh
     end
     
-    properties (Access = private)
-
-    end
-    
     methods (Access = public)
-        function obj = Bc_ContinuumDamage (cParams)
+        function obj = BcContinuumDamage (cParams)
             obj.init(cParams);
         end
 
@@ -20,16 +16,14 @@ classdef Bc_ContinuumDamage < handle
             s.bcVal = obj.bcValueSet(i);
             bc = obj.bcSetType (s);
         end
-    
     end
 
     methods (Access =  private)
-
         function init(obj,cParams) 
             obj.type = cParams.bcType;
             obj.bcValueSet = cParams.bcValueSet;
             obj.mesh = cParams.mesh;
-            obj.ValueSetLenght = size(obj.bcValueSet,2);
+            obj.valueSetLenght = size(obj.bcValueSet,2);
         end
 
         function  bc = bcSetType (obj, s)
@@ -65,7 +59,6 @@ classdef Bc_ContinuumDamage < handle
                     sNeum.direction = [2];
                     sNeum.value     = s.bcVal;
                     Neum1 = PointLoad(obj.mesh,sNeum);
-
 
                     s.mesh = obj.mesh;
                     s.dirichletFun = [Dir1];
@@ -112,8 +105,5 @@ classdef Bc_ContinuumDamage < handle
                     bc = BoundaryConditions(s);  
             end
         end
-
-
-
     end
 end

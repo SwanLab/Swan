@@ -21,7 +21,6 @@ classdef ContinuumDamageComputer < handle
     end
 
     methods (Access = public)
-
         function obj = ContinuumDamageComputer(cParams)
             obj.init(cParams)
             obj.createFunctionals()
@@ -31,8 +30,8 @@ classdef ContinuumDamageComputer < handle
             u = LagrangianFunction.create(obj.mesh,2,'P1');
             obj.elasticity.createTest(u);
             
-            for i = 1:obj.boundaryConditions.ValueSetLenght
-                fprintf('Step: %d ',i);fprintf('/ %d \n',obj.boundaryConditions.ValueSetLenght);
+            for i = 1:obj.boundaryConditions.valueSetLenght
+                fprintf('Step: %d ',i);fprintf('/ %d \n',obj.boundaryConditions.valueSetLenght);
 
                 bc = obj.updateBoundaryConditions(i);
                 
@@ -41,8 +40,8 @@ classdef ContinuumDamageComputer < handle
                 residu = 1; residuVec = [];
                 obj.elasticity.computeDamageEvolutionParam(u);
                
-                Res  = obj.elasticity.computeResidual(u,bc);                
-                Dres = obj.elasticity.computeDerivativeResidual(u,bc);
+                [Res,~]  = obj.elasticity.computeResidual(u,bc);                
+                [Dres,~] = obj.elasticity.computeDerivativeResidual(u,bc);
                 residu0 = norm(Res);
                 
                 while (residu >= obj.tolerance)
@@ -50,9 +49,8 @@ classdef ContinuumDamageComputer < handle
                                                           
                     u.setFValues(uNew);
                                       
-                    Res  = obj.elasticity.computeResidual(u,bc);                    
-                    Dres = obj.elasticity.computeDerivativeResidual(u,bc);
-                    % How is Dres dependent on the bc?
+                    [Res,~]   = obj.elasticity.computeResidual(u,bc);                    
+                    [Dres,~]= obj.elasticity.computeDerivativeResidual(u,bc);
                     
                     residu = norm(Res)/residu0;
 
@@ -81,7 +79,7 @@ classdef ContinuumDamageComputer < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.quadOrder = 2;
+            obj.quadOrder = 2; %maybe try to set it from Main?
             obj.mesh = cParams.mesh;
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.material  = cParams.material;
@@ -92,7 +90,6 @@ classdef ContinuumDamageComputer < handle
         
         function bc = updateBoundaryConditions (obj,i)
             bc = obj.boundaryConditions.nextStep(i);
-            obj.elasticity.updateBoundaryConditions(bc);
         end
 
         function createFunctionals(obj)
@@ -139,7 +136,7 @@ classdef ContinuumDamageComputer < handle
         end
 
         function xNew = updateWithNewton(~,LHS,RHS,x)
-            deltaX = -LHS\RHS;
+            deltaX = -LHS\RHS; 
             xNew = x + deltaX;
         end
 

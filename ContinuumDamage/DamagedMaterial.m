@@ -1,24 +1,13 @@
 classdef DamagedMaterial < handle
-    
-    properties (Access = public)
-        
-    end
-    
     properties (Access = private)
         mesh
         degradation
         baseMaterial
-    end
-    
-    properties (Access = private)
-        
-    end
-    
+    end   
+
     methods (Access = public)
-        
         function obj = DamagedMaterial(cParams)
-            obj.init(cParams)
-            
+            obj.init(cParams) 
         end
         
         function C = obtainTensor (obj,d)
@@ -29,12 +18,9 @@ classdef DamagedMaterial < handle
         function C = obtainNonDamagedTensor (obj)
             C = obj.baseMaterial;
         end
-
-        
     end
     
     methods (Access = private)
-        
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
             obj.degradation = @(d) (1-d);
@@ -64,8 +50,6 @@ classdef DamagedMaterial < handle
             s.bulk  = degK;
             s.ndim  = obj.mesh.ndim;
             mat = Isotropic2dElasticMaterial(s);
-        end
-        
-    end
-    
+        end     
+    end 
 end
