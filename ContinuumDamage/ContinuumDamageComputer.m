@@ -54,7 +54,7 @@ classdef ContinuumDamageComputer < handle
                     Dres = obj.elasticity.computeDerivativeResidual(u,bc);
                     % How is Dres dependent on the bc?
                     
-                    residu = norm(Res(bc.free_dofs))/residu0;
+                    residu = norm(Res)/residu0;
 
                     obj.elasticity.computeDamageEvolutionParam(u);
 
@@ -122,9 +122,7 @@ classdef ContinuumDamageComputer < handle
         end
 
         function [uOut,uOutVec] = computeU(obj,LHS,RHS,uIn,bc)            
-            RHS = RHS(bc.free_dofs);
-            LHS = LHS(bc.free_dofs,bc.free_dofs);
-
+            
             uInVec = reshape(uIn.fValues',[uIn.nDofs 1]);
             uOutVec = uInVec;
 

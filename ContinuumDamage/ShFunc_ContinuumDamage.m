@@ -26,11 +26,12 @@ classdef ShFunc_ContinuumDamage < handle
             Fext = obj.externalWork.computeGradient(u,fExt,obj.quadOrder);
             Fint = obj.internalDamage.computeResidual(u,obj.r);
             resT = Fint - Fext;
-            res  = resT(bc.free_dofs);
+            res  = resT(bc.free_dofs); %THE FREE DOFS ARE RETURNED, revisar el pq
         end
 
-        function dRes = computeDerivativeResidual(obj,u,bc) % What is the use of bc?
-            dRes = obj.internalDamage.computeDerivativeResidual(obj.quadOrder,u,obj.r);
+        function dRes = computeDerivativeResidual(obj,u,bc) 
+            dres = obj.internalDamage.computeDerivativeResidual(obj.quadOrder,u,obj.r);
+            dRes = dres(bc.free_dofs,bc.free_dofs); %THE FREE DOFS ARE RETURNED, revisar el pq
         end
 
         function computeDamageEvolutionParam(obj,u)
