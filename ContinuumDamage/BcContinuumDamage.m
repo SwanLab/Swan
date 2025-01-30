@@ -29,14 +29,14 @@ classdef BcContinuumDamage < handle
         function  bc = bcSetType (obj, s)
             switch obj.type
                 case 'displacementTraction'
-                    isInDown = @(coord) (abs(coord(:,2) - min(coord(:,2)))< 1e-12);
-                    sDir.domain    = @(coor) isInDown(coor);
+                    isDown = @(coord) (abs(coord(:,2) - min(coord(:,2)))< 1e-12);
+                    sDir.domain    = @(coor) isDown(coor);
                     sDir.direction = [1,2];
                     sDir.value     = 0;
                     Dir1 = DirichletCondition(obj.mesh,sDir);
 
-                    isInUp = @(coord) (abs(coord(:,2) - max(coord(:,2)))< 1e-12);
-                    sDir.domain    = @(coor) isInUp(coor);
+                    isUp = @(coord) (abs(coord(:,2) - max(coord(:,2)))< 1e-12);
+                    sDir.domain    = @(coor) isUp(coor);
                     sDir.direction = [2];
                     sDir.value     = s.bcVal;
                     Dir2 = DirichletCondition(obj.mesh,sDir);
@@ -48,14 +48,14 @@ classdef BcContinuumDamage < handle
                     bc = BoundaryConditions(s);
 
                 case 'forceTraction'
-                    isInDown = @(coord) (abs(coord(:,2) - min(coord(:,2)))< 1e-12);
-                    sDir.domain    = @(coor) isInDown(coor);
+                    isDown = @(coord) (abs(coord(:,2) - min(coord(:,2)))< 1e-12);
+                    sDir.domain    = @(coor) isDown(coor);
                     sDir.direction = [1,2];
                     sDir.value     = 0;
                     Dir1 = DirichletCondition(obj.mesh,sDir);
 
-                    isInUp = @(coord) (abs(coord(:,2) - max(coord(:,2)))< 1e-12);
-                    sNeum.domain    = @(coor) isInUp(coor);
+                    isUp = @(coord) (abs(coord(:,2) - max(coord(:,2)))< 1e-12);
+                    sNeum.domain    = @(coor) isUp(coor);
                     sNeum.direction = [2];
                     sNeum.value     = s.bcVal;
                     Neum1 = PointLoad(obj.mesh,sNeum);
@@ -67,14 +67,14 @@ classdef BcContinuumDamage < handle
                     bc = BoundaryConditions(s);
 
                 case 'displacementBending'
-                    isInLeft = @(coord) (abs(coord(:,1) - min(coord(:,1)))< 1e-12);
-                    sDir.domain    = @(coor) isInLeft(coor);
+                    isLeft = @(coord) (abs(coord(:,1) - min(coord(:,1)))< 1e-12);
+                    sDir.domain    = @(coor) isLeft(coor);
                     sDir.direction = [1,2];
                     sDir.value     = 0;
                     Dir1 = DirichletCondition(obj.mesh,sDir);
 
-                    isInRight = @(coord) (abs(coord(:,1) - max(coord(:,1)))< 1e-12);
-                    sDir.domain    = @(coor) isInRight(coor);
+                    isRight = @(coord) (abs(coord(:,1) - max(coord(:,1)))< 1e-12);
+                    sDir.domain    = @(coor) isRight(coor);
                     sDir.direction = [2];
                     sDir.value     = s.bcVal;
                     Dir2 = DirichletCondition(obj.mesh,sDir);
@@ -86,21 +86,21 @@ classdef BcContinuumDamage < handle
                     bc = BoundaryConditions(s);
 
                 case 'forceBending'
-                    isInLeft = @(coord) (abs(coord(:,1) - min(coord(:,1)))< 1e-12);
-                    sDir.domain    = @(coor) isInLeft(coor);
+                    isLeft = @(coord) (abs(coord(:,1) - min(coord(:,1)))< 1e-12);
+                    sDir.domain    = @(coor) isLeft(coor);
                     sDir.direction = [1,2];
                     sDir.value     = 0;
                     Dir1 = DirichletCondition(obj.mesh,sDir);
 
-                    isInRight = @(coord) (abs(coord(:,1) - max(coord(:,1)))< 1e-12);
-                    sDir.domain    = @(coor) isInRight(coor);
-                    sDir.direction = [2];
-                    sDir.value     = s.bcVal;
-                    Dir2 = PointLoad(obj.mesh,sDir);
+                    isRight = @(coord) (abs(coord(:,1) - max(coord(:,1)))< 1e-12);
+                    sNeum.domain    = @(coor) isRight(coor);
+                    sNeum.direction = [2];
+                    sNeum.value     = s.bcVal;
+                    Neum1 = PointLoad(obj.mesh,sNeum);
 
                     s.mesh = obj.mesh;
-                    s.dirichletFun = [Dir1 Dir2];
-                    s.pointloadFun = [];
+                    s.dirichletFun = [Dir1];
+                    s.pointloadFun = [Neum1];
                     s.periodicFun = [];
                     bc = BoundaryConditions(s);  
             end

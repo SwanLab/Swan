@@ -3,8 +3,6 @@ classdef ShFunc_ContinuumDamage < handle
    properties (Access = private)
         internalDamage
         externalWork
-        quadOrder
-        r
     end
 
     methods (Access = public)
@@ -13,47 +11,47 @@ classdef ShFunc_ContinuumDamage < handle
             obj.createFunctionals(cParams);
         end
 
-     %   function totalEnergy = computeEnergy(obj,quadOrder,u,r,fext)
-     %       internalEnergy = obj.internalDamage.computeFunction(quadOrder,u,r);
-     %       externalEnergy = obj.externalWork.computeFunction(u,fext,quadOrder);
-     %       totalEnergy = internalEnergy - externalEnergy;
-     %   end
+        function setTestFunctions(obj,u)           
+            obj.internalDamage.setTestFunction(u);
+            obj.externalWork.setTestFunction(u);
+        end 
 
-        function [res,resT] = computeResidual(obj,u,bc)
+       % function totalEnergy = computeEnergy(obj,quadOrder,u,r,fext)
+       %     internalEnergy = obj.internalDamage.computeFunction(quadOrder,u,r);
+       %     externalEnergy = obj.externalWork.computeFunction(u,fext,quadOrder);
+       %     totalEnergy = internalEnergy - externalEnergy;
+       % end
+
+        function [res] = computeResidual(obj,u,bc)
             fExt = bc.pointloadFun;
-            Fext = obj.externalWork.computeGradient(u,fExt,obj.quadOrder);
-            Fint = obj.internalDamage.computeResidual(u,obj.r);
-            resT = Fint - Fext;
-            res  = resT(bc.free_dofs); %THE FREE DOFS ARE RETURNED, revisar el pq
+            Fext = obj.externalWork.computeResidual(u,fExt);
+            Fint = obj.internalDamage.computeResidual(u);
+            res = Fint - Fext;
+            res  = res(bc.free_dofs);
         end
 
-        function [dRes,dResT] = computeDerivativeResidual(obj,u,bc) 
-            dResT = obj.internalDamage.computeDerivativeResidual(obj.quadOrder,u,obj.r);
-            dRes = dResT(bc.free_dofs,bc.free_dofs); %THE FREE DOFS ARE RETURNED, revisar el pq
+        function [K,dRes] = computeDerivativeResidual(obj,u,bc) 
+            [K,dRes] = obj.internalDamage.computeDerivativeResidual(u);
+            dRes = dRes(bc.free_dofs,bc.free_dofs);
         end
 
         function computeDamageEvolutionParam(obj,u)
-            obj.r = obj.internalDamage.computeDamageEvolutionParam(u);
+            obj.internalDamage.computeDamageEvolutionParam(u);
         end
 
         function setROld(obj)
-            obj.internalDamage.setROld(obj.r);
+            obj.internalDamage.setROld();
         end
 
-        function d = computeDamage(obj,r)
-            d = obj.internalDamage.computeDamage(r);
+        function d = getDamage(obj)
+            d = obj.internalDamage.getDamage();
         end
-
-        function createTest(obj,u)           
-            obj.internalDamage.createTest(u);
-        end 
    end
 
     methods (Access = private)
 
         function createFunctionals(obj,cParams)
             obj.internalDamage = ShFunc_ElasticDamage(cParams);
-            obj.quadOrder = cParams.quadOrder;
             obj.externalWork = ShFunc_ExternalWork2(cParams);
         end
 

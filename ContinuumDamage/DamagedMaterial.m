@@ -10,12 +10,12 @@ classdef DamagedMaterial < handle
             obj.init(cParams) 
         end
         
-        function C = obtainTensor (obj,d)
+        function C = obtainTensor(obj,d)
             degFun = obj.computeDegradationFun(d);
             C = obj.createDegradedMaterial(degFun);
         end
 
-        function C = obtainNonDamagedTensor (obj)
+        function C = obtainNonDamagedTensor(obj)
             C = obj.baseMaterial;
         end
     end

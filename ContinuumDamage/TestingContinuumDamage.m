@@ -7,6 +7,7 @@ classdef TestingContinuumDamage < handle
 
         H
         r0
+        tol
     end
 
     methods (Access = public)
@@ -17,6 +18,7 @@ classdef TestingContinuumDamage < handle
             obj.solverParams = cParams.solver;
             obj.H            = cParams.H;
             obj.r0           = cParams.r0;
+            obj.tol          = cParams.tol;
         end
 
         function data = compute(obj)
@@ -26,7 +28,7 @@ classdef TestingContinuumDamage < handle
             sComp.solver = obj.solverParams;
             sComp.H = obj.H;
             sComp.r0 = obj.r0;
-
+            sComp.tol = obj.tol;
             comp = ContinuumDamageComputer(sComp);
             data = comp.compute();
         end

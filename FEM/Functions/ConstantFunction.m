@@ -1,12 +1,11 @@
-classdef ConstantFunction < L2Function & matlab.mixin.Copyable
+classdef ConstantFunction < BaseFunction & matlab.mixin.Copyable
     
     properties (GetAccess = public, SetAccess = private)
         constant
     end
 
-    properties
+    properties (Access = private)
         fHandle
-        ndimf
     end
     
     
@@ -41,6 +40,14 @@ classdef ConstantFunction < L2Function & matlab.mixin.Copyable
             obj.mesh = cParams.mesh;
             obj.ndimf = cParams.ndimf;
         end
+
+    end
+
+  methods (Access = protected)
+
+        function fxV = evaluateNew(obj, xV)
+            fxV = obj.fHandle(xV);
+        end        
 
     end
     

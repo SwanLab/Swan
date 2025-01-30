@@ -1,18 +1,19 @@
 classdef ContinuumDamageComputer < handle
 
     properties (Access = private)
+        tolerance
+
         mesh
         boundaryConditions
         material
+        H
         solverParams
+        quadOrder 
+ 
     end
 
     properties (Access = private)
-        tau = 5e-5
-        tolerance = 1e-8
-        quadOrder
-
-        H
+        tau = 5e-5;
         r0
 
         elasticFun
@@ -23,69 +24,60 @@ classdef ContinuumDamageComputer < handle
     methods (Access = public)
         function obj = ContinuumDamageComputer(cParams)
             obj.init(cParams)
+            obj.defineRfunction(cParams)
             obj.createFunctionals()
         end
 
         function data = compute(obj)
-            u = LagrangianFunction.create(obj.mesh,2,'P1');
-            obj.elasticity.createTest(u);
+            uFun = LagrangianFunction.create(obj.mesh,2,'P1');
+            obj.elasticity.setTestFunctions(uFun);
             
             for i = 1:obj.boundaryConditions.valueSetLenght
                 fprintf('Step: %d ',i);fprintf('/ %d \n',obj.boundaryConditions.valueSetLenght);
-
                 bc = obj.updateBoundaryConditions(i);
-                
-                u.setFValues(obj.updateInitialDisplacement(bc,u));
+                uFun.setFValues(obj.updateInitialDisplacement(bc,uFun));
 
-                residu = 1; residuVec = [];
-                obj.elasticity.computeDamageEvolutionParam(u);
-               
-                [Res,~]  = obj.elasticity.computeResidual(u,bc);                
-                [Dres,~] = obj.elasticity.computeDerivativeResidual(u,bc);
-                residu0 = norm(Res);
-                
-                while (residu >= obj.tolerance)
-                    [uNew,uNewVec] = obj.computeU(Dres,Res,u,bc);
-                                                          
-                    u.setFValues(uNew);
-                                      
-                    [Res,~]   = obj.elasticity.computeResidual(u,bc);                    
-                    [Dres,~]= obj.elasticity.computeDerivativeResidual(u,bc);
-                    
-                    residu = norm(Res)/residu0;
+                resErr = 1;
+                while (resErr >= obj.tolerance)
+                    obj.elasticity.computeDamageEvolutionParam(uFun);
+                    [res]  = obj.elasticity.computeResidual(uFun,bc);
+                    [K,resDeriv] = obj.elasticity.computeDerivativeResidual(uFun,bc);
+                    [uVal,uVec] = obj.computeDisplacement(resDeriv,res,uFun,bc);
+                    uFun.setFValues(uVal);
 
-                    obj.elasticity.computeDamageEvolutionParam(u);
-
-                    residuVec(end+1) = residu/residu0;
-
-                    fprintf('Error: %d | %d \n',residu,uNewVec(6));%.evaluate([0;0]));
+                    resErr = norm(res);
+                    fprintf('Error: %d \n',resErr);
                 end
-                obj.elasticity.setROld(r);
-                %fprintf('r  = %d \n',r.evaluate([0;0]));
+                obj.elasticity.setROld();
 
                 data.displacement.value(i)  = obj.boundaryConditions.bcValueSet(i);
-                damageDomainFun = obj.elasticity.computeDamage();
-                damageFun = damageDomainFun.project('P1D',obj.mesh);
-                data.damage.maxValue(i)  = max(damageFun.fValues);
-                data.damage.minValue(i)  = min(damageFun.fValues);
-                data.reaction(i)  = -obj.computeTotalReaction(Dres,uNewVec);
+                dmgDomainFun = obj.elasticity.getDamage();
+                dmgFun = dmgDomainFun.project('P1D');
+                data.damage.maxValue(i)  = max(dmgFun.fValues);
+                data.damage.minValue(i)  = min(dmgFun.fValues);
+                data.reaction(i)  = -obj.computeTotalReaction(K,uVec); %%% SHOULD ONLY WORK FOR SECANT (resDeriv = K)
             end
-            data.displacement.field = u;
-            data.damage.field = damageFun;
-            data.residuVec = residuVec;
+            data.displacement.field = uFun;
+            data.damage.field = dmgFun;
         end
     end
 
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.quadOrder = 2; %maybe try to set it from Main?
             obj.mesh = cParams.mesh;
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.material  = cParams.material;
             obj.solverParams = cParams.solver; 
             obj.H = cParams.H;
-            obj.r0 = ConstantFunction.create(cParams.r0,obj.mesh);
+            obj.tolerance = cParams.tol;
+            obj.quadOrder = 2; %maybe try to set it from Main?
+        end
+
+        function defineRfunction(obj,cParams)
+            obj.r0 = LagrangianFunction.create(obj.mesh,1,'P1');
+            fV = cParams.r0*ones(size(obj.r0.fValues));
+            obj.r0.setFValues(fV);
         end
         
         function bc = updateBoundaryConditions (obj,i)
@@ -94,13 +86,11 @@ classdef ContinuumDamageComputer < handle
 
         function createFunctionals(obj)
             s.mesh     = obj.mesh;
+            s.boundaryConditions = obj.boundaryConditions;
             s.material = obj.material;
             s.H = obj.H;
             s.r0 = obj.r0;
-            
             s.quadOrder = obj.quadOrder;
-            s.boundaryConditions = obj.boundaryConditions;
-
             obj.elasticity = ShFunc_ContinuumDamage(s);
         end
 
@@ -118,7 +108,7 @@ classdef ContinuumDamageComputer < handle
             end
         end
 
-        function [uOut,uOutVec] = computeU(obj,LHS,RHS,uIn,bc)            
+        function [uOut,uOutVec] = computeDisplacement(obj,LHS,RHS,uIn,bc)            
             
             uInVec = reshape(uIn.fValues',[uIn.nDofs 1]);
             uOutVec = uInVec;
