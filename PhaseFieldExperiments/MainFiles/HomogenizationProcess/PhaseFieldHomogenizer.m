@@ -101,7 +101,6 @@ classdef PhaseFieldHomogenizer < handle
 
         function matHomog = computeHomogenization(obj,l)
             mesh = obj.createMesh(l);
-            mesh = obj.baseMesh;
             mat = obj.createMaterial(mesh);
             matHomog = obj.solveElasticMicroProblem(mesh,mat);
         end

@@ -37,14 +37,18 @@ classdef BoundaryConditions < handle
                 leader = nodes(sPar{i}.leader(obj.mesh.coord) & ~isVertex(obj.mesh.coord));
                 follower = flip(nodes(sPar{i}.follower(obj.mesh.coord) & ~isVertex(obj.mesh.coord)));
                 MS = [MS; [leader;follower]'];
+                m = obj.mesh;
+                m.plot;
+                m.plotNodes(MS(:,1),'green')
+                m.plotNodes(MS(:,2),'red')
             end
             obj.periodic_leader = obj.computePeriodicNodes(MS(:,1));
             obj.periodic_follower   = obj.computePeriodicNodes(MS(:,2));
 
-            % m = obj.mesh;
-            % m.plot;
-            % m.plotNodes(MS(:,1),'green')
-            % m.plotNodes(MS(:,2),'red')
+            m = obj.mesh;
+            m.plot;
+            m.plotNodes(MS(:,1),'green')
+            m.plotNodes(MS(:,2),'red')
         end
         
     end
