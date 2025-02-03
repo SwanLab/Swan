@@ -6,10 +6,10 @@ s.meshN      = 50;
 s.holeType   = 'SmoothHexagon';
 s.nSteps     = [20];
 s.pnorm      = 'Inf';
-s.damageType = "Perimeter";
+s.damageType = "Area";
 PFH = PhaseFieldHomogenizer(s);
 [mat,phi] = PFH.computeHomogMaterial();
-save("RectangleMicroDamagePerimeter_min0,1","mat","phi")
+%save("RectangleMicroDamagePerimeter_min0,1","mat","phi")
 
 %%%% EL RESULTAT S'HA DE DIVIDIR PEL VOLUM %%%%%%%%%
 

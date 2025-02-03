@@ -204,7 +204,7 @@ classdef PhaseFieldHomogenizer < handle
             fem = ElasticProblemMicro(s);
             material.setDesignVariable({x})
             fem.updateMaterial(material.obtainTensor())
-            fem.solve()
+            fem.solve();
             matHomog = fem.Chomog;
         end
 
@@ -293,8 +293,8 @@ classdef PhaseFieldHomogenizer < handle
                             phi = (l(1)*l(2))/(max(1)*max(2));
                         case 'SmoothHexagon'
                             perimeter = 6*l;
-                            apothem   = sqrt(l^2 + (l/2)^2);
-                            phi = perimeter*apothem/2;
+                            apothem   = sqrt(l^2 - (l/2)^2);
+                            phi = (perimeter*apothem)/(6*sqrt(3)/2);
                     end
                 case 'Perimeter'
                     switch obj.holeType
