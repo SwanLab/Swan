@@ -102,12 +102,28 @@ classdef TestNaca < handle
 
         function m = createMeshAlphaTriangulation(obj)
             points = obj.rawMesh.coord;
-            T      = alphaShape(points,.007);
+            r      = obj.computeAlphaDistance();
+            T      = alphaShape(points,r);
             DT     = alphaTriangulation(T);
 
             s.connec = DT;
             s.coord  = points;
             m        = Mesh.create(s);
+        end
+
+        function r = computeAlphaDistance(obj)
+            bCMesh = obj.uMesh.boundaryCutMesh.mesh;
+            x      = bCMesh.coord(:,1);
+            y      = bCMesh.coord(:,2);
+            xMax   = max(x);
+            xMin   = min(x);
+            yMax   = max(y);
+            yMin   = min(y);
+            r      = 0.25*min(xMax-xMin,yMax-yMin);
+            h      = obj.refMesh.computeMeanCellSize();
+            if h>=r
+                warning('Alpha radius is too small');
+            end
         end
 
         function connec = computeConnectivitiesGoodCond(obj,mAlpha)
