@@ -2,13 +2,13 @@ function [L,D] = aero_forces(nodespresscyl,pressureFun,mesh)
 
 nodesCyl    = nodespresscyl; 
 presCylVals = pressureFun.fValues(nodesCyl,1);
-xCyl        = mesh.coord(nodesCyl,1);
-yCyl        = mesh.coord(nodesCyl,2);
+%xCyl        = mesh.coord(nodesCyl,1);
+%yCyl        = mesh.coord(nodesCyl,2);
 mesh.computeEdges();
-e  = mesh.edges.nodesInEdges;
-bE = ismember(e,nodesCyl);
-bE = find(prod(bE,2));
-connec = e(bE,:);
+e  = mesh.edges.nodesInEdges; %Get the List of All Edges
+bE = ismember(e,nodesCyl); 
+bE = find(prod(bE,2));   % Find Edges Where Both Nodes Belong to the Cylinder
+connec = e(bE,:); %stores the edges that form the cylinder's boundary.
 ss.coord    = mesh.coord;
 ss.connec   = connec;
 ss.kFace    = -1;
@@ -19,22 +19,22 @@ presCyl.fValues = presCylVals;
 
 presCyl.plot()
 
-normal_vectors = zeros(bMesh.nelem,bMesh.ndim);
+normal_vectors = zeros(bMesh.nelem,bMesh.ndim); % define les matrius de vector normals i la longitud d'element.
 length_element = zeros(bMesh.nelem,1);
 
-centroid = mean(bMesh.coord);
-central_points = (bMesh.coord(bMesh.connec(:,1),:)+bMesh.coord(bMesh.connec(:,2),:))/2;
-ref_vect = central_points - centroid;
+centroid = mean(bMesh.coord); % calcula el centroide
+central_points = (bMesh.coord(bMesh.connec(:,1),:)+bMesh.coord(bMesh.connec(:,2),:))/2; % punt central de cada edge
+%ref_vect = central_points - centroid;
 
 cont =1;
 
 for iE = 1:bMesh.nelem
-    node1 = bMesh.coord(bMesh.connec(iE,1),:);
+    node1 = bMesh.coord(bMesh.connec(iE,1),:); %  two endpoints of the edge.
     node2 = bMesh.coord(bMesh.connec(iE,2),:);
 
     if node1(1)<= 5
-    nvect = (node2-node1)/(abs(norm(node2-node1)));
-    nvect = -nvect * [0 -1;1 0];
+    nvect = (node2-node1)/(abs(norm(node2-node1))); % busca el vector tangent al edge
+    nvect = -nvect * [0 -1;1 0]; % el gira -90º per obtenir el vector normal
 %     if dot(ref_vect(iE,:),nvect)<0 %No cal
 %         nvect = -nvect;
 %     end

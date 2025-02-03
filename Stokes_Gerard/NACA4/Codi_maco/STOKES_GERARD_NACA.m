@@ -10,28 +10,34 @@ O = 1;
 %         p = pp/10;
 
         % % INPUT DATA
-        m = QuadMesh(10,4,100,40); % MESH
+        m = TriangleMesh(2,1,150,75);
+        %QuadMesh(10,4,100,40); % MESH de referència sense cap objecte, quadrilateral
 
         % % NACA 4
-        M=9/100;
-        p=8/10;
+        M = 0.02;
+        %9/100;
+        p = 0.5;
+        %8/10;
         t=12/100;
 
         % Biga (posada en el centre de màx t):
-        alt = 0.11;
-        ampl = 0.095;
-        x_pos = 0.3; %Centre de la biga respecte el LE
+        % alt = 0.11;
+        % ampl = 0.095;
+        % x_pos = 0.3; %Centre de la biga respecte el LE
 
-        AOAd = 10; %deg
-        x_centr = 3.5;
-        y_centr = 2;
+        AOAd = 0;
+        %10; %deg
+        x_centr = 1;
+        %3.5;
+        y_centr = 0.5;
+        %2;
 
         %% Airfoil creation
 
         % [t,Q] = findthickness(x_pos,ampl,alt,M,p);
 
 
-        fH = Find_fH_circles(M,p,t,x_centr,y_centr,AOAd);
+        fH = Find_fH_circles(M,p,t,x_centr,y_centr,AOAd); % Troba la funció 
 
         % fH = Find_fH_points(M,p,t,x_centr,y_centr,AOAd);
 
@@ -39,8 +45,8 @@ O = 1;
 
         s.fHandle = fH;
         s.type='Given';
-        g = GeometricalFunction(s);
-        lsFun = g.computeLevelSetFunction(m); %D'aquí surt la malla de quadrats sense el forat
+        g = GeometricalFunction(s); %fabrica de diferents casos, cicles, en aquest cas donada l'equació
+        lsFun = g.computeLevelSetFunction(m); %D'aquí surt la funció de superficie
         sUm.backgroundMesh = m;
         sUm.boundaryMesh = m.createBoundaryMesh(); %sUm.boundaryMesh conté les mesh de les quatre fronteres del voltant. No té res del forat
         uMesh = UnfittedMesh(sUm);
@@ -51,16 +57,18 @@ O = 1;
         % hold on
         % scatter(punts_rot(1,:,1),punts_rot(2,:,1))
         %figure
-        %plot(lsFun)
-        e.type  = 'STOKES';
+        %plot(lsFun) 
+        e.type  = 'STOKES'; 
         e.nelem = mesh.nelem;
-        material = Material.create(e);
-        dtime = Inf; %Estacionari
+        material = Material.create(e); % definir les propietats físiques del fluid, com la viscositat dinàmica
+        dtime = Inf; %Estacionari 
 
         % VELOCITY AND PRESSURE FUNCTIONS
-        velocityFun = LagrangianFunction.create(mesh, 2, 'P2');
+        velocityFun = LagrangianFunction.create(mesh, 2, 'P2'); % interpreto que aqui el que fa es crear trial functions, és a dir, crear el shape function amb l'ordre que toca per solucions
         pressureFun = LagrangianFunction.create(mesh, 1, 'P1');
-        n_dofs = velocityFun.nDofs + pressureFun.nDofs;
+        n_dofs = velocityFun.nDofs + pressureFun.nDofs; % HE SALTAT AIXO
+
+        % Començo per aquí:
         
         %% Boudary conditions
 
@@ -74,7 +82,7 @@ O = 1;
 
 
         %% PLOT RESULTS
-        velocityFun.plot()
+        velocityFun.plot() %Surt error al realitzar l'últim pas d'edge amv step in
         pressureFun.plot()
         caxis([-50 50]);
 
@@ -94,3 +102,7 @@ O = 1;
 %     O=O+1;
 %     disp(O);
 % end
+
+close all;
+
+save("datas.mat");
