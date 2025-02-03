@@ -302,7 +302,9 @@ classdef LagrangianFunction < FeFunction
                 fEv2 = b;
             end
             if ~isempty(fEv1) && ~isempty(fEv2)
-                res.fxVOld  = fEv1 + fEv2;
+                res.fxVOld = fEv1 + fEv2;
+            else
+                res.fxVOld = [];
             end
             res.fValues = val1 + val2;
             s = res;
@@ -326,7 +328,9 @@ classdef LagrangianFunction < FeFunction
                 fEv2 = b;
             end
             if ~isempty(fEv1) && ~isempty(fEv2)
-                res.fxVOld  = fEv1 - fEv2;
+                res.fxVOld = fEv1 - fEv2;
+            else
+                res.fxVOld = [];
             end
             res.fValues = val1 - val2;
             s = res;
