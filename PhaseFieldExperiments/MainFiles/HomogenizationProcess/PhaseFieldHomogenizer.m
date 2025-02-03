@@ -100,19 +100,26 @@ classdef PhaseFieldHomogenizer < handle
         end
 
         function matHomog = computeHomogenization(obj,l)
-            mesh = obj.createMesh(l);
-            mat = obj.createMaterial(mesh);
+            mesh = obj.createDensity(l);
+            mat = obj.createDensityMaterial(mesh);
             matHomog = obj.solveElasticMicroProblem(mesh,mat);
         end
 
-        function mesh = createMesh(obj,l)
+        function tf = createDensity(obj,l)
             ls = obj.computeLevelSet(obj.baseMesh,l);
             sUm.backgroundMesh = obj.baseMesh;
             sUm.boundaryMesh   = obj.baseMesh.createBoundaryMesh;
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(ls);
-            holeMesh = uMesh.createInnerMesh();
-            mesh = holeMesh;
+
+            %holeMesh = uMesh.createInnerMesh();
+            %mesh = holeMesh;
+
+            t = CharacteristicFunction.create(uMesh);
+            s.trial = LagrangianFunction.create(obj.baseMesh,1,'P1');
+            s.mesh = obj.baseMesh;
+            f = FilterLump(s); 
+            tf = f.compute(t,2);
         end
 
         function ls = computeLevelSet(obj,mesh,l)
@@ -149,9 +156,27 @@ classdef PhaseFieldHomogenizer < handle
             ls = -lsCircle;
         end
 
-        function mat = createMaterial(obj,mesh)
-            young   = ConstantFunction.create(obj.E,mesh);
-            poisson = ConstantFunction.create(obj.nu,mesh);
+        function mat = createDensityMaterial(obj,tf)
+            s.interpolation  = 'SIMPALL';
+            s.dim            = '2D';
+            s.matA = obj.createMaterial(obj.baseMesh,1e-6*obj.E,obj.nu);
+            s.matB = obj.createMaterial(obj.baseMesh,obj.E,obj.nu);
+
+            m = MaterialInterpolator.create(s);
+            % obj.materialInterpolator = m;
+
+            x = tf;
+            s.
+            s.type                 = 'DensityBased';
+            s.density              = x;
+            s.materialInterpolator = m;
+            s.dim                  = '2D';
+            mat = Material.create(s);
+        end
+
+        function mat = createMaterial(obj,mesh,E,nu)
+            young   = ConstantFunction.create(E,mesh);
+            poisson = ConstantFunction.create(nu,mesh);
             s.type    = 'ISOTROPIC';
             s.ptype   = 'ELASTIC';
             s.mesh    = mesh;
