@@ -16,6 +16,14 @@ classdef GeometricalFunction < handle
             aFun      = AnalyticalFunction(s);
             ls        = aFun.project('P1');
         end
+
+        function fxV = evaluate(obj,xV,m)
+            s.fHandle = obj.fHandle;
+            s.ndimf   = 1;
+            s.mesh    = m;
+            aFun      = AnalyticalFunction(s);
+            fxV       = aFun.evaluate(xV);
+        end
     end
 
     methods (Access = private)

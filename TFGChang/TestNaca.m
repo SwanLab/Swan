@@ -37,7 +37,7 @@ classdef TestNaca < handle
             obj.init(cParams);
             obj.createReferenceMesh();
             obj.verifyReferenceMesh();
-            obj.levelSet = obj.createLevelSet(obj.refMesh, obj.p, obj.M, obj.t);
+            obj.createLevelSet();
             obj.createFluidMesh();
             obj.createFluidMeshGoodConditioning();
             obj.verifyFinalMesh();
@@ -80,6 +80,11 @@ classdef TestNaca < handle
         function createReferenceMesh(obj)      
             obj.refMesh = TriangleMesh(2,1,150,75);
             %QuadMesh(10,4,100,40);
+        end
+
+        function createLevelSet(obj)
+            g = obj.createNacaFunction(obj.p, obj.M, obj.t);
+            obj.levelSet = g.computeLevelSetFunction(obj.refMesh);
         end
         
         function createFluidMesh(obj)
@@ -127,9 +132,10 @@ classdef TestNaca < handle
         end
 
         function connec = computeConnectivitiesGoodCond(obj,mAlpha)
-            xV(:,1,:) = mAlpha.computeBaricenter();
-            lsFun  = obj.createLevelSet(mAlpha, obj.p, obj.M, obj.t);
-            lsElem = squeeze(lsFun.evaluate(xV));
+            q  = Quadrature.create(mAlpha, 0);
+            xV = q.posgp;
+            g  = obj.createNacaFunction(obj.p, obj.M, obj.t);
+            lsElem = squeeze(g.evaluate(xV,mAlpha));
             connec = mAlpha.connec(lsElem<=0,:);
         end
 
@@ -235,7 +241,7 @@ classdef TestNaca < handle
 
     methods (Static, Access = private)
 
-        function ls = createLevelSet(m, p, M, t)
+        function g = createNacaFunction(p, M, t)
             s.type = 'Naca';
             s.xLE  = 0.5;
             s.yLE  = 0.5;
@@ -246,7 +252,6 @@ classdef TestNaca < handle
             s.t     = t;
 
             g  = GeometricalFunction(s);
-            ls = g.computeLevelSetFunction(m);
         end
 
     end
