@@ -120,7 +120,7 @@ classdef Data < handle
 
         function loadData(obj)
             f = fullfile('Datasets',obj.fileName);
-            obj.data = load(f);
+            obj.data = readmatrix(f);
             fprintf('Features to be used (1:%d):',(size(obj.data,2)-1))
             feat = input(' ');
             x = obj.data(:, feat);

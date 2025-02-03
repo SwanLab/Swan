@@ -12,7 +12,7 @@ classdef OptimizationProblem < handle
         plotter
     end
   
-   methods (Access = public)
+    methods (Access = public)
 
        function obj = OptimizationProblem(cParams)
            obj.init(cParams);
@@ -57,6 +57,18 @@ classdef OptimizationProblem < handle
        function yOut = computeOutputValues(obj,X)
            yOut = obj.network.computeYOut(X);
        end
+
+       % Método para obtener los datos de prueba
+       function [Xtest, Ytest] = getTestData(obj)
+            Xtest = obj.data.Xtest;
+            Ytest = obj.data.Ytest;
+       end
+
+       % Método para obtener la red neuronal
+       function net = getNetwork(obj)
+            net = obj.network;
+       end
+
 
    end
 

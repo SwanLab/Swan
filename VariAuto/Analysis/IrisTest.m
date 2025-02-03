@@ -3,8 +3,8 @@ clc;
 clear;
 close all;
 addpath ../Codes;
-
 %% Initialization of hyperparameters
+
 pol_deg         = 1;
 testratio       = 30;  
 lambda          = 0;
