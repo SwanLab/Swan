@@ -9,6 +9,7 @@ classdef PhaseFieldHomogenizer < handle
         nSteps
         damageType
         pnorm
+        masterSlave
     end
 
     properties (Access = private)
@@ -72,6 +73,7 @@ classdef PhaseFieldHomogenizer < handle
             end
             s.coord = MC.coord;
             s.connec = MC.connec;
+            obj.masterSlave = MC.masterSlaveIndex;
             obj.baseMesh = Mesh.create(s);
         end
 
@@ -100,9 +102,9 @@ classdef PhaseFieldHomogenizer < handle
         end
 
         function matHomog = computeHomogenization(obj,l)
-            mesh = obj.createDensity(l);
-            mat = obj.createDensityMaterial(mesh);
-            matHomog = obj.solveElasticMicroProblem(mesh,mat);
+            dens = obj.createDensity(l);
+            mat = obj.createDensityMaterial(dens);
+            matHomog = obj.solveElasticMicroProblem(obj.baseMesh,mat,dens);
         end
 
         function tf = createDensity(obj,l)
@@ -165,8 +167,8 @@ classdef PhaseFieldHomogenizer < handle
             m = MaterialInterpolator.create(s);
             % obj.materialInterpolator = m;
 
-            x = tf;
-            s.
+            x{1} = tf;
+            s.mesh = obj.baseMesh;
             s.type                 = 'DensityBased';
             s.density              = x;
             s.materialInterpolator = m;
@@ -182,10 +184,11 @@ classdef PhaseFieldHomogenizer < handle
             s.mesh    = mesh;
             s.young   = young;
             s.poisson = poisson;
+            s.ndim = obj.baseMesh.ndim;
             mat    = Material.create(s);
         end
 
-        function matHomog = solveElasticMicroProblem(obj,mesh,material)
+        function matHomog = solveElasticMicroProblem(obj,mesh,material,x)
             figure(1)
             cla reset
             mesh.plot
@@ -199,7 +202,9 @@ classdef PhaseFieldHomogenizer < handle
             s.solverType = 'REDUCED';
             s.solverMode = 'FLUC';
             fem = ElasticProblemMicro(s);
-            fem.solve();
+            material.setDesignVariable({x})
+            fem.updateMaterial(material.obtainTensor())
+            fem.solve()
             matHomog = fem.Chomog;
         end
 
@@ -265,7 +270,7 @@ classdef PhaseFieldHomogenizer < handle
             s.periodicFun  = 1;
             s.mesh = mesh;
             bc = BoundaryConditions(s);
-            bc.updatePeriodicConditions(sPer);
+            bc.updatePeriodicConditions(obj.masterSlave);
         end
 
         function coorRot = defineRotatedCoordinates(~,theta)

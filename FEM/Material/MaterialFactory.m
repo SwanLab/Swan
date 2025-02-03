@@ -6,7 +6,7 @@ classdef MaterialFactory < handle
 
             switch cParams.type
                 case 'ISOTROPIC'
-                    switch cParams.mesh.ndim
+                    switch cParams.ndim
                         case 2
                             material = Isotropic2dElasticMaterial(cParams);
                         case 3
