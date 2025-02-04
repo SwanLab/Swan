@@ -179,7 +179,7 @@ classdef OptimizerNullSpace < Optimizer
                     case 'EQUALITY'
                         active(i) = 1;
                     case 'INEQUALITY'
-                        if l(i)>1e-6 || obj.firstEstimation
+                        if l(i)>0 || obj.firstEstimation
                             active(i) = 1;
                         end
                 end
