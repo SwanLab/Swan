@@ -327,16 +327,24 @@ classdef LevelSetInclusionAuto_raul < handle
             Cg = [];
             for i=1:nfun
                 dLambda  = AnalyticalFunction.create(f{i},ndimf,obj.boundaryMeshJoined);
+%                 dLambda = dLambda.project('P1');
                 Ce = lhs.compute(dLambda,test);
                 [iLoc,jLoc,vals] = find(Ce);
     
+%                 l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
+%                 l2g_dof = l2g_dof(:);
+%                 jGlob = l2g_dof(jLoc);
+%                 Cg = [Cg sparse(iLoc,jGlob,vals, obj.displacementFun.nDofs, dLambda.nDofs)];
+
                 l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
                 l2g_dof = l2g_dof(:);
-                jGlob = l2g_dof(jLoc);
-                Cg = [Cg sparse(iLoc,jGlob,vals, obj.displacementFun.nDofs, dLambda.ndimf)];
+                iGlob = l2g_dof(iLoc);
+                Cg = [Cg sparse(iGlob,jLoc,vals, obj.displacementFun.nDofs, dLambda.nDofs)];
             end
 
         end
+
+     
 
         function dim = getFunDimsHere(obj)
             d.ndimf     = obj.displacementFun.ndimf;
@@ -365,7 +373,7 @@ classdef LevelSetInclusionAuto_raul < handle
             Z   = zeros(nC);
             LHS = [K, c; c' Z];
             ud = zeros(nC,1);
-            ud(1) = 1;
+            ud(7) = 1;
             RHS = [obj.forces; ud];
             sol = LHS\RHS;
             u = sol(1:obj.displacementFun.nDofs);

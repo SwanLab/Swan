@@ -31,7 +31,7 @@ classdef LHSintegrator_ShapeFunction_fun < handle
             quad = obj.quadrature;
             xV   = quad.posgp;
             fG   = fun.evaluate(xV);
-            fG   = squeezeParticular(fG,2);
+%             fG   = squeezeParticular(fG,2);
             dV   = obj.mesh.computeDvolume(quad);
             N = test.computeShapeFunctions(xV);
             nNodeElem  = size(N,1);
