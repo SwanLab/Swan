@@ -9,11 +9,12 @@ classdef PhaseFieldHomogenizer < handle
         nSteps
         damageType
         pnorm
-        masterSlave
     end
 
     properties (Access = private)
         baseMesh
+        test
+        masterSlave
         maxParam
     end
 
@@ -24,7 +25,7 @@ classdef PhaseFieldHomogenizer < handle
             obj.defineMesh();
         end
         
-        function [mat,phi] = computeHomogMaterial(obj)
+        function [mat,phi,holeParams] = computeHomogMaterial(obj)
             holeParams = obj.computeHoleParams();
             comb = table2array(combinations(holeParams{:}));
             nComb = size(comb,1);
@@ -75,6 +76,7 @@ classdef PhaseFieldHomogenizer < handle
             s.connec = MC.connec;
             obj.masterSlave = MC.masterSlaveIndex;
             obj.baseMesh = Mesh.create(s);
+            obj.test = LagrangianFunction.create(obj.baseMesh,1,'P1');
         end
 
         function paramHole = computeHoleParams(obj)
@@ -82,7 +84,7 @@ classdef PhaseFieldHomogenizer < handle
             nParam = length(obj.maxParam);
             paramHole = cell(1,nParam);
             for i=1:nParam
-                paramHole{i} = linspace(0.1,obj.maxParam(i),obj.nSteps(i));
+                paramHole{i} = linspace(1e-2,obj.maxParam(i),obj.nSteps(i));
             end
         end
         
@@ -102,26 +104,23 @@ classdef PhaseFieldHomogenizer < handle
         end
 
         function matHomog = computeHomogenization(obj,l)
-            dens = obj.createDensity(l);
-            mat = obj.createDensityMaterial(dens);
-            matHomog = obj.solveElasticMicroProblem(obj.baseMesh,mat,dens);
+            dens = obj.createDensityLevelSet(l);
+            mat  = obj.createDensityMaterial(dens);
+            matHomog = obj.solveElasticMicroProblem(mat,dens);
         end
 
-        function tf = createDensity(obj,l)
+        function lsf = createDensityLevelSet(obj,l)
             ls = obj.computeLevelSet(obj.baseMesh,l);
             sUm.backgroundMesh = obj.baseMesh;
             sUm.boundaryMesh   = obj.baseMesh.createBoundaryMesh;
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(ls);
 
-            %holeMesh = uMesh.createInnerMesh();
-            %mesh = holeMesh;
-
-            t = CharacteristicFunction.create(uMesh);
-            s.trial = LagrangianFunction.create(obj.baseMesh,1,'P1');
+            ls = CharacteristicFunction.create(uMesh);
+            s.trial = obj.test;
             s.mesh = obj.baseMesh;
             f = FilterLump(s); 
-            tf = f.compute(t,2);
+            lsf = f.compute(ls,2);
         end
 
         function ls = computeLevelSet(obj,mesh,l)
@@ -158,20 +157,18 @@ classdef PhaseFieldHomogenizer < handle
             ls = -lsCircle;
         end
 
-        function mat = createDensityMaterial(obj,tf)
+        function mat = createDensityMaterial(obj,lsf)
             s.interpolation  = 'SIMPALL';
             s.dim            = '2D';
             s.matA = obj.createMaterial(obj.baseMesh,1e-6*obj.E,obj.nu);
             s.matB = obj.createMaterial(obj.baseMesh,obj.E,obj.nu);
+            mI = MaterialInterpolator.create(s);
 
-            m = MaterialInterpolator.create(s);
-            % obj.materialInterpolator = m;
-
-            x{1} = tf;
-            s.mesh = obj.baseMesh;
+            x{1} = lsf;
+            s.mesh                 = obj.baseMesh;
             s.type                 = 'DensityBased';
             s.density              = x;
-            s.materialInterpolator = m;
+            s.materialInterpolator = mI;
             s.dim                  = '2D';
             mat = Material.create(s);
         end
@@ -179,25 +176,26 @@ classdef PhaseFieldHomogenizer < handle
         function mat = createMaterial(obj,mesh,E,nu)
             young   = ConstantFunction.create(E,mesh);
             poisson = ConstantFunction.create(nu,mesh);
-            s.type    = 'ISOTROPIC';
-            s.ptype   = 'ELASTIC';
-            s.mesh    = mesh;
-            s.young   = young;
-            s.poisson = poisson;
-            s.ndim = obj.baseMesh.ndim;
-            mat    = Material.create(s);
+            bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(young,poisson,obj.baseMesh.ndim);
+            shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(young,poisson);
+
+            s.type  = 'ISOTROPIC';
+            s.ptype = 'ELASTIC';
+            s.mesh  = mesh;
+            s.bulk  = bulk;
+            s.shear = shear;
+            s.ndim  = obj.baseMesh.ndim;
+            mat     = Material.create(s);
         end
 
-        function matHomog = solveElasticMicroProblem(obj,mesh,material,x)
-            figure(1)
-            cla reset
-            mesh.plot
+        function matHomog = solveElasticMicroProblem(obj,material,x)
+            x.plot
 
-            s.mesh = mesh;
+            s.mesh = obj.baseMesh;
             s.material = material;
             s.scale = 'MICRO';
             s.dim = '2D';
-            s.boundaryConditions = obj.createBoundaryConditions(mesh);
+            s.boundaryConditions = obj.createBoundaryConditions(obj.baseMesh);
             s.solverCase = 'DIRECT';
             s.solverType = 'REDUCED';
             s.solverMode = 'FLUC';
@@ -205,13 +203,14 @@ classdef PhaseFieldHomogenizer < handle
             material.setDesignVariable({x})
             fem.updateMaterial(material.obtainTensor())
             fem.solve();
-            matHomog = fem.Chomog;
+
+            totVol = obj.baseMesh.computeVolume();
+            matHomog = fem.Chomog/totVol;
         end
 
         function bc = createBoundaryConditions(obj,mesh)
             switch obj.meshType
                 case 'Square'
-                    % Dirichlet
                     isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2))) < 1e-12);
                     isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2))) < 1e-12);
                     isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1))) < 1e-12);
@@ -223,15 +222,7 @@ classdef PhaseFieldHomogenizer < handle
                     sDir{1}.domain    = @(coor) isVertex(coor);
                     sDir{1}.direction = [1,2];
                     sDir{1}.value     = 0;
-
-                    % Periodic
-                    sPer{1}.leader = @(coor) isLeft(coor);
-                    sPer{1}.follower = @(coor) isRight(coor);
-                    sPer{2}.leader = @(coor) isBottom(coor);
-                    sPer{2}.follower = @(coor) isTop(coor);
-                    sPer{3}.vertex = @(coor) isVertex(coor);
                 case 'Hexagon'
-                    % Dirichlet
                     isBottom      = @(coor) (abs(coor(:,2) - min(coor(:,2))) < 1e-12);
                     isTop         = @(coor) (abs(coor(:,2) - max(coor(:,2))) < 1e-12);
                     
@@ -251,15 +242,8 @@ classdef PhaseFieldHomogenizer < handle
                     sDir{1}.direction = [1,2];
                     sDir{1}.value     = 0;
 
-                    % Periodic
-                    sPer{1}.leader = @(coor) isBottom(coor);
-                    sPer{1}.follower = @(coor) isTop(coor);
-                    sPer{2}.leader = @(coor) isRightBottom(coor);
-                    sPer{2}.follower = @(coor) isLeftTop(coor);
-                    sPer{3}.leader = @(coor) isRightTop(coor);
-                    sPer{3}.follower = @(coor) isLeftBottom(coor);
-                    sPer{4}.vertex = @(coor) isVertex(coor);
             end
+
             dirichletFun = [];
             for i = 1:numel(sDir)
                 dir = DirichletCondition(mesh, sDir{i});
@@ -267,7 +251,7 @@ classdef PhaseFieldHomogenizer < handle
             end
             s.dirichletFun = dirichletFun;
             s.pointloadFun = [];
-            s.periodicFun  = 1;
+            s.periodicFun  = 1; %Set to not be empty
             s.mesh = mesh;
             bc = BoundaryConditions(s);
             bc.updatePeriodicConditions(obj.masterSlave);

@@ -143,8 +143,6 @@ fontsize(gcf,25,'points')
 lg =legend('Analytical','Circle','Square');
 lg.Layout.Tile = 'East';
 
-
-
 %% Damage displacement plots
 t = tiledlayout(1,2);
 nexttile
