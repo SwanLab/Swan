@@ -42,7 +42,7 @@ xStar = problem.result;
 
 %% Case 2
 close all;
-clear; % High increment factor
+clear; % High increment factor. REMOVE +1 FROM X0+1 WHEN lUB,lLB STUDY
 
 % Min problem
 cost.cF = @(x) (x(1)-2).^2+(x(2)-2).^2;
@@ -101,7 +101,7 @@ x0               = [3;3];
 s.type           = "NullSpace";
 s.ub             = [4;3];
 s.lb             = [-1;-1];
-s.maxIter        = 4000;
+s.maxIter        = 400;
 s.constraintCase = {'INEQUALITY','INEQUALITY'};
 s.etaNorm        = 0.02;
 s.etaNormMin     = s.etaNorm;
