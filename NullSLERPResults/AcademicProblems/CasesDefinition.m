@@ -22,7 +22,7 @@ s.constraintCase = {'INEQUALITY','INEQUALITY'};
 s.etaNorm        = 0.02;
 s.etaNormMin     = s.etaNorm;
 s.tauMax         = 100;
-s.gJFlowRatio    = 5; % Only this
+s.gJFlowRatio    = 1; % Only this
 s.etaMax         = Inf;
 s.etaMaxMin      = [];
 
@@ -42,7 +42,7 @@ xStar = problem.result;
 
 %% Case 2
 close all;
-clear;
+clear; % High increment factor
 
 % Min problem
 cost.cF = @(x) (x(1)-2).^2+(x(2)-2).^2;
@@ -57,7 +57,7 @@ constraint.gF{2} = @(x) [1; 1];
 % Setting up
 x0               = [1.5;2.25];
 s.type           = "NullSpace";
-s.ub             = [1.4;3];
+s.ub             = [2;3];
 s.lb             = [0;1.7];
 s.maxIter        = 400;
 s.constraintCase = {'INEQUALITY','INEQUALITY'};
@@ -70,6 +70,8 @@ s.etaMaxMin      = [];
 
 cParams.cost         = cost;
 cParams.constraint   = constraint;
+cParams.ub           = s.ub;
+cParams.lb           = s.lb;
 cParams.initialGuess = x0;
 cParams.settings     = s;
 cParams.printingPath = true;
@@ -97,9 +99,9 @@ constraint.gF{2} = @(x) [-1; -1];
 % Setting up
 x0               = [3;3];
 s.type           = "NullSpace";
-s.ub             = [4;4];
-s.lb             = [-4;1];
-s.maxIter        = 400;
+s.ub             = [4;3];
+s.lb             = [-1;-1];
+s.maxIter        = 4000;
 s.constraintCase = {'INEQUALITY','INEQUALITY'};
 s.etaNorm        = 0.02;
 s.etaNormMin     = s.etaNorm;
@@ -110,6 +112,8 @@ s.etaMaxMin      = [];
 
 cParams.cost         = cost;
 cParams.constraint   = constraint;
+cParams.ub           = s.ub;
+cParams.lb           = s.lb;
 cParams.initialGuess = x0;
 cParams.settings     = s;
 cParams.printingPath = true;
