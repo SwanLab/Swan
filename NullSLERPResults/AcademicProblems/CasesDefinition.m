@@ -22,7 +22,7 @@ s.constraintCase = {'INEQUALITY','INEQUALITY'};
 s.etaNorm        = 0.02;
 s.etaNormMin     = s.etaNorm;
 s.tauMax         = 100;
-s.gJFlowRatio    = 0.2; % Only this
+s.gJFlowRatio    = 5; % Only this
 s.etaMax         = Inf;
 s.etaMaxMin      = [];
 
