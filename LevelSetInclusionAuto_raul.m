@@ -339,7 +339,7 @@ classdef LevelSetInclusionAuto_raul < handle
                 l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
                 l2g_dof = l2g_dof(:);
                 iGlob = l2g_dof(iLoc);
-                Cg = [Cg sparse(iGlob,jLoc,vals, obj.displacementFun.nDofs, dLambda.nDofs)];
+                Cg = [Cg sparse(iGlob,jLoc,vals, obj.displacementFun.nDofs, dLambda.ndimf)];
             end
 
         end
@@ -374,6 +374,7 @@ classdef LevelSetInclusionAuto_raul < handle
             LHS = [K, c; c' Z];
             ud = zeros(nC,1);
             ud(7) = 1;
+            ud(5) = 1;
             RHS = [obj.forces; ud];
             sol = LHS\RHS;
             u = sol(1:obj.displacementFun.nDofs);
