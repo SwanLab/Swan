@@ -60,13 +60,12 @@ classdef ShFunc_ElasticDamage < handle
             C = obj.material.obtainNonDamagedTensor;
             strain = SymGrad(u);
             tauEpsilon = power(DDP(DDP(strain,C),strain),0.5);
-            tauEpsilonVal = tauEpsilon.evaluate(obj.mesh.coord');
-            rOldVal = obj.rOld.evaluate(obj.mesh.coord');
+            tauEpsilon = project(tauEpsilon,obj.r.order);
 
-            fV = zeros(size(obj.r.fValues));  %%% THIS ONLY WORKS FOR P1, REVIEW
-            nodesNoDamage = tauEpsilonVal <= rOldVal;
-            fV(nodesNoDamage) = rOldVal(nodesNoDamage);
-            fV(~nodesNoDamage) = tauEpsilonVal(~nodesNoDamage);
+            fV = zeros(size(obj.r.fValues));
+            nodesNoDamage = tauEpsilon.fValues <= obj.rOld.fValues;
+            fV(nodesNoDamage) = obj.rOld.fValues(nodesNoDamage);
+            fV(~nodesNoDamage) = tauEpsilon.fValues(~nodesNoDamage);
             obj.r.setFValues(fV);
         end
         
@@ -108,7 +107,7 @@ classdef ShFunc_ElasticDamage < handle
             q = @(r,r0) r0 + obj.H *(r-r0);
         end 
         
-        function sec = computeDerivativeResidualSecant (obj,d)
+        function sec = computeDerivativeResidualSecant(obj,d)
             mat = obj.material.obtainTensor(d);
             LHS = obj.createElasticLHS(mat);         
             sec = LHS.compute();

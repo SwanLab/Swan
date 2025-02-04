@@ -75,7 +75,7 @@ classdef ContinuumDamageComputer < handle
         end
 
         function defineRfunction(obj,cParams)
-            obj.r0 = LagrangianFunction.create(obj.mesh,1,'P1');
+            obj.r0 = LagrangianFunction.create(obj.mesh,1,'P0');
             fV = cParams.r0*ones(size(obj.r0.fValues));
             obj.r0.setFValues(fV);
         end
