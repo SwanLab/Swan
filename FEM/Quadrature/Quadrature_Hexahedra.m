@@ -7,7 +7,7 @@ classdef Quadrature_Hexahedra < Quadrature
             switch order
                 case {0,1}
                     obj.ngaus = 1;
-                    obj.weigp = 1;
+                    obj.weigp = 8;
                     obj.posgp = [0;0;0];
 
                 case {2,3}
