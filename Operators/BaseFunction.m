@@ -92,7 +92,7 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
                 else
                     res.fxVOld = [];
                 end
-                res.fValues = val1 + val2;
+                res.setFValues(val1 + val2);
                 r = res;
             else
                 aOp = BaseFunction.computeOperation(a);
@@ -131,7 +131,7 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
                 else
                     res.fxVOld = [];
                 end
-                res.fValues = val1 - val2;
+                res.setFValues(val1 - val2);
                 r = res;
             else
                 aOp = BaseFunction.computeOperation(a);

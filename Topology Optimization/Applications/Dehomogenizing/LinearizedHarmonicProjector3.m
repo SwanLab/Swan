@@ -78,14 +78,30 @@ classdef LinearizedHarmonicProjector3 < handle
             resG = obj.evaluteGradientNorm(b);
         end
 
-        function resL = evaluateLossResidual(obj,bBar,b)
-            difB = b.fValues - bBar.fValues;
-            resL = obj.createP1Function(abs(difB));
+        function difB = evaluateLossResidual(obj,bBar,b)
+            difB = abs(b - bBar);
+        end
+
+        function bR = createReshapedFunction(obj,b)
+            bR = DomainFunction.create(@(x) reshape(b.evaluate(x),[1 size(b.evaluate(x))]),b.mesh,b.ndimf); 
         end
 
         function resH = evaluateHarmonicResidual(obj,b)
-            b1  = obj.createScalarFunctions(b,1);
-            b2  = obj.createScalarFunctions(b,2);
+            bs = b.getVectorFields;            
+            b1F = obj.createReshapedFunction(bs{1});
+            b2F = obj.createReshapedFunction(bs{2});
+            f = abs(-Grad(bs{1}).*b2F+Grad(bs{2}).*b1F);
+
+            s.mesh = obj.mesh;
+            s.quadratureOrder = 4;
+            s.type = 'ShapeDerivative';
+            test = obj.fG;
+            rhs  = RHSintegrator.create(s);
+            rhsV = rhs.compute(f,test);
+            rhsV(obj.boundaryNodes) = 0;
+            Mgg = obj.massMatrixGG; 
+            hf = Mgg\rhsV;
+
             Kb1 = obj.createStiffNessMatrixWithFunction(b1);
             Kb2 = obj.createStiffNessMatrixWithFunction(b2);
             Nb1 = obj.createAdvectionMatrixWithFunction(b1);
@@ -106,8 +122,9 @@ classdef LinearizedHarmonicProjector3 < handle
             quad = Quadrature.set(obj.mesh.type);
             quad.computeQuadrature('QUADRATICMASS');
             xV = quad.posgp;
-            b1  = obj.createScalarFunctions(b,1);
-            b2  = obj.createScalarFunctions(b,2);
+            bs = b.getVectorFields;
+            b1  = bs{1};%obj.createScalarFunctions(b,1);
+            b2  = bs{1};%obj.createScalarFunctions(b,2);
             db1 = b1.evaluateGradient(xV);
             db2 = b2.evaluateGradient(xV);
             db1V = db1.fValues;
@@ -145,7 +162,7 @@ classdef LinearizedHarmonicProjector3 < handle
             s.mesh  = obj.mesh;
             s.test  = test;
             s.trial = trial;
-            s.quadratureOrder = 'QUADRATICMASS';
+            s.quadratureOrder = 2;
             lhs = LHSintegrator.create(s);
             M = lhs.compute();
         end
@@ -201,7 +218,7 @@ classdef LinearizedHarmonicProjector3 < handle
             s.trial    = obj.fS;
             s.function = f;
             s.mesh     = obj.mesh;
-            s.quadratureOrder = 'QUADRATICMASS';
+            s.quadratureOrder = 2;
             s.type  = 'AdvectionMatrixWithFunction';
             lhs = LHSintegrator.create(s);
             Nf = lhs.compute();
@@ -212,22 +229,24 @@ classdef LinearizedHarmonicProjector3 < handle
             s.trial    = obj.fG;
             s.function = f;
             s.mesh     = obj.mesh;
-            s.quadratureOrder = 'QUADRATICMASS';
+            s.quadratureOrder = 2;
             s.type  = 'MassMatrixWithFunction';
             lhs = LHSintegrator.create(s);
             Mf = lhs.compute();
         end
 
         function [Mb1,Mb2] = createMassMatrixWithB(obj,b)
-            b1  = obj.createScalarFunctions(b,1);
-            b2  = obj.createScalarFunctions(b,2);
+            bs = b.getVectorFields;
+            b1  = bs{1};
+            b2  = bs{2};
             Mb1  = obj.createMassMatrixWithFunction(b1);
             Mb2  = obj.createMassMatrixWithFunction(b2);
         end
 
         function [Kb1,Kb2,Nb1,Nb2] = computeHarmonicMatrix(obj,b)
-            b1  = obj.createScalarFunctions(b,1);
-            b2  = obj.createScalarFunctions(b,2);
+            bs = b.getVectorFields;
+            b1  = bs{1};
+            b2  = bs{2};
             Kb1 = obj.createStiffNessMatrixWithFunction(b1);
             Kb2 = obj.createStiffNessMatrixWithFunction(b2);
             Nb1 = obj.createAdvectionMatrixWithFunction(b1);
@@ -258,8 +277,8 @@ classdef LinearizedHarmonicProjector3 < handle
         function RHS = computeRHS(obj,bI)
             Mbb  = obj.massMatrixBB;
             Mgg  = obj.massMatrixGG;
-            bI1  = obj.createScalarFunctions(bI,1);
-            bI2  = obj.createScalarFunctions(bI,2);
+            bI1  = bI{1};
+            bI2  = bI{2};
             Zs   = zeros(size(obj.internalDOFs,2),1);
             Ig    = ones(obj.fG.nDofs,1);
             RHS  = [Mbb*bI1.fValues;Mbb*bI2.fValues;Zs;Mgg*Ig];

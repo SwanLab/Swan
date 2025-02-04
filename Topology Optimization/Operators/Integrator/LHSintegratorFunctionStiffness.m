@@ -1,18 +1,14 @@
-classdef LHSintegratorFunctionStiffness < handle %LHSintegrator
+classdef LHSintegratorFunctionStiffness < LHSintegrator
 
-    properties (Access = private)
-        mesh
-        test, trial
-        quadratureOrder        
-        quadrature
+    properties (Access = private)     
         fun
     end
 
     methods (Access = public)
 
         function obj = LHSintegratorFunctionStiffness(cParams)
-            obj.init(cParams);
-            obj.createQuadrature();
+            obj@LHSintegrator(cParams)
+            obj.fun = cParams.function;
         end
 
         function LHS = compute(obj)
@@ -39,17 +35,17 @@ classdef LHSintegratorFunctionStiffness < handle %LHSintegrator
             lhs = zeros(nDofETs,nDofETr,nElem);
 
             fV  = obj.fun.evaluate(xV);
-            for igauss = 1 :nGaus
+            for iGaus = 1:nGaus
                 for inode= 1:nNodETs
                     for jnode= 1:nNodETr
                         for iunkn= 1:obj.test.ndimf
                             for idim = 1:obj.mesh.ndim
                                 idof = obj.fun.ndimf*(inode-1)+iunkn;
                                 jdof = obj.fun.ndimf*(jnode-1)+iunkn;
-                                dvol = dVolu(igauss,:);
-                                dNi = dNdxTs(idim,inode,:,igauss);
-                                dNj = dNdxTr(idim,jnode,:,igauss);
-                                fVG = fV(1,igauss,:);
+                                dvol = dVolu(iGaus,:);
+                                dNi = squeeze(dNdxTs(idim,inode,iGaus,:));
+                                dNj = squeeze(dNdxTr(idim,jnode,iGaus,:));
+                                fVG = squeeze(fV(1,iGaus,:));
                                 v = squeeze(fVG.*dNi.*dNj);
                                 lhs(idof, jdof, :)= squeeze(lhs(idof,jdof,:)) ...
                                     + v(:).*dvol';
@@ -62,42 +58,5 @@ classdef LHSintegratorFunctionStiffness < handle %LHSintegrator
 
     end
 
-    methods (Access = private)
-
-        function init(obj, cParams)
-            obj.test  = cParams.test;
-            obj.trial = cParams.trial;
-            obj.mesh  = cParams.mesh;
-            obj.fun   = cParams.function;
-            obj.setQuadratureOrder(cParams);
-        end
-
-        function setQuadratureOrder(obj, cParams)
-            if isfield(cParams, 'quadratureOrder')
-                obj.quadratureOrder = cParams.quadratureOrder;
-            else
-                obj.quadratureOrder = obj.trial.order;
-            end
-        end
-        
-        function createQuadrature(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature(obj.quadratureOrder);
-            obj.quadrature = quad;
-        end
-
-        function Bcomp = createBComputer(obj, fun, dNdx)
-            s.fun  = fun;
-            s.dNdx = dNdx;
-            Bcomp = BMatrixComputer(s);
-        end
-
-        function LHS = assembleMatrix(obj, lhs)
-            s.fun    = []; % !!!
-            assembler = AssemblerFun(s);
-            LHS = assembler.assemble(lhs, obj.test, obj.trial);
-        end
-  
-    end
 
 end

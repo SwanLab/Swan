@@ -1,18 +1,14 @@
-classdef LHSintegratorFunctionAdvection < handle
+classdef LHSintegratorFunctionAdvection < LHSintegrator
 
     properties (Access = private)
-        mesh
-        test, trial
-        quadratureOrder
-        quadrature
         fun
     end
 
     methods (Access = public)
 
         function obj = LHSintegratorFunctionAdvection(cParams)
-            obj.init(cParams);
-            obj.createQuadrature();
+            obj@LHSintegrator(cParams)
+            obj.fun = cParams.function;
         end
 
         function LHS = compute(obj)
@@ -65,7 +61,7 @@ classdef LHSintegratorFunctionAdvection < handle
                                 idof = obj.test.ndimf*(iNode-1)+iDim;
                                 jdof = obj.trial.ndimf*(jNode-1)+jDim;
                                 Ni = shapesTest(iNode,iGaus,:);
-                                dNj = squeeze(dNdxTr(iDim,jNode,:,iGaus));
+                                dNj = squeeze(dNdxTr(iDim,jNode,iGaus,:));
                                 v = squeeze(Ni.*dNj.*(fdv'));
                                 lhs(idof, jdof, :)= squeeze(lhs(idof,jdof,:)) ...
                                     + v(:);
@@ -78,36 +74,5 @@ classdef LHSintegratorFunctionAdvection < handle
 
     end
 
-    methods (Access = private)
-
-        function init(obj, cParams)
-            obj.test  = cParams.test;
-            obj.trial = cParams.trial;
-            obj.mesh  = cParams.mesh;
-            obj.fun   = cParams.function;
-            obj.setQuadratureOrder(cParams);
-        end
-
-        function setQuadratureOrder(obj, cParams)
-            if isfield(cParams, 'quadratureOrder')
-                obj.quadratureOrder = cParams.quadratureOrder;
-            else
-                obj.quadratureOrder = obj.trial.order;
-            end
-        end
-
-        function createQuadrature(obj)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature(obj.quadratureOrder);
-            obj.quadrature = quad;
-        end
-
-        function LHS = assembleMatrix(obj, lhs)
-            s.fun    = []; % !!!
-            assembler = AssemblerFun(s);
-            LHS = assembler.assemble(lhs, obj.test, obj.trial);
-        end
-
-    end
-
+ 
 end
