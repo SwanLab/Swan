@@ -72,5 +72,6 @@ classdef PointLoad < BoundaryCondition
         end
         
     end
-    
+
+
 end

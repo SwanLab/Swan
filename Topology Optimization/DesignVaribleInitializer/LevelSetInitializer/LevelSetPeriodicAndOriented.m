@@ -30,10 +30,10 @@ classdef LevelSetPeriodicAndOriented < handle
         end
 
         function ls = computeLS(obj,epsilons)
-            nEps = length(epsilons);
+            nEps = size(epsilons,1);
             ls = cell(nEps,1);
             for iEps = 1:nEps
-                eps = epsilons(iEps);
+                eps = epsilons(iEps,:);
                 lsF = obj.computeLevelSet(eps);
                 ls{iEps} = lsF;
             end
@@ -83,29 +83,34 @@ classdef LevelSetPeriodicAndOriented < handle
         end
 
         function y = evaluateCellCoord(obj,xV,eps)
-            x = obj.deformedCoord.evaluate(xV);            
+            x = obj.deformedCoord.evaluate(xV);             
             y = obj.computeMicroCoordinate(x,eps);
             y = obj.periodicFunction(y);
         end
 
         function ls = createCellLevelSet(obj,eps)
-            s.operation  = @(xV) obj.rectangle(xV,eps);
+            s.operation  = @(xV) obj.geometricalFunction(xV,eps);
             s.ndimf      = 1;
+            s.mesh       = obj.fineMesh;
             f  = DomainFunction(s);
-            ls = f.project('P1',obj.fineMesh);
+            ls = Project(f,'P1');            
         end
 
-        function fH = rectangle(obj,xV,eps)
+        function fH = geometricalFunction(obj,xV,eps)
             sx = obj.m1.evaluate(xV);
             sy = obj.m2.evaluate(xV);
             x0 = 0.5;
             y0 = 0.5;
-            x  = obj.evaluateCellCoord(xV,eps);
-            x1 = x(1,:,:);
-            x2 = x(2,:,:);
-            p = 2;
-            fH = ((abs(x1-x0)./(sx)).^p+(abs(x2-y0)./(sy)).^p).^(1/p) - 0.5;
-            fH = -fH;
+            x  = obj.evaluateCellCoord(xV,eps);            
+            s.xSide = sx;
+            s.ySide = sy;
+            s.xCoorCenter = x0;
+            s.yCoorCenter = y0;
+            s.pnorm = 4;
+            s.type = 'SmoothRectangleInclusion';
+            g = GeometricalFunction(s);
+            f = g.getHandle;
+            fH = f(x);
         end
 
         function thresholdParameters(obj)
@@ -128,7 +133,14 @@ classdef LevelSetPeriodicAndOriented < handle
         end
 
         function y = computeMicroCoordinate(obj,x,eps)
-            y = (x-min(x(:))-eps)/eps;
+            nDim = size(x,1);
+            y = zeros(size(x));
+            for iDim = 1:nDim
+                xI    = x(iDim,:,:);
+                xImin = min(xI(:));
+                y(iDim,:,:) = (xI-xImin)/(eps(iDim));
+            end
+            %y = (x-min(x(:))-eps)/eps;
         end
 
     end

@@ -27,8 +27,8 @@ classdef LevelSet < DesignVariable
         end
 
         function charFun = obtainDomainFunction(obj)
-            uMesh = obj.getUnfittedMesh();
-            charFun = CharacteristicFunction.create(uMesh);
+            uMesh      = obj.getUnfittedMesh();
+            charFun{1} = CharacteristicFunction.create(uMesh);
         end
 
         function m = getUnfittedMesh(obj)
@@ -59,6 +59,9 @@ classdef LevelSet < DesignVariable
             ls         = DesignVariable.create(s);
         end
 
+        function ls = obtainVariableInCell(obj)
+            ls{1} = obj;
+        end
     end
 
     methods (Access = private)

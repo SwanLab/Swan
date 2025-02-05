@@ -19,12 +19,14 @@ classdef Hexahedra_Constant < Interpolation
 
         function shape = evaluateShapeFunctions(obj,xV)
             ngaus = size(xV,2);
+            nelem = size(xV,3);
             N = ones(obj.nnode,ngaus, nelem);
             shape = N;
         end
 
         function deriv = evaluateShapeDerivatives(obj,xV)
             ngaus = size(xV,2);
+            nelem = size(xV,3);
             dN = zeros(obj.ndime,obj.nnode,ngaus, nelem);
             deriv = dN;
         end

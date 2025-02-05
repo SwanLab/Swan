@@ -100,7 +100,8 @@ classdef OptimizerMMA < Optimizer
             data = [data;obj.cost.getFields(':')];
             data = [data;obj.constraint.value];
             data = [data;obj.designVariable.computeL2normIncrement()];
-            obj.monitoring.update(obj.nIter,data);
+            obj.monitoring.update(obj.nIter,num2cell(data));
+            obj.monitoring.refresh();
         end
 
         function init(obj,cParams)
@@ -125,7 +126,7 @@ classdef OptimizerMMA < Optimizer
             for i = 1:nSFCost
                 chCost{i} = 'plot';
             end
-            chartTypes = [{'plot'},chCost,chConstr,{'log'}];
+            chartTypes = [{'plot'},chCost,chConstr,{'logy'}];
 
             s.shallDisplay = cParams.monitoring;
             s.maxNColumns  = 5;
