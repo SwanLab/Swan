@@ -10,13 +10,12 @@ classdef StokesProblemSolver < handle
         forcesFormula
         dirConditions
         dirDofs
-        nodesConditions
         material
     end
 
     properties (Access = private)
         diffTime
-        NumDofs
+        numDofs
         solver
         LHS
         RHS
@@ -55,7 +54,6 @@ classdef StokesProblemSolver < handle
             obj.forcesFormula    = cParams.forcesFormula;
             obj.dirConditions    = cParams.dirConditions;
             obj.dirDofs          = cParams.dirDofs;
-            obj.nodesConditions  = cParams.nodesConditions;
             obj.material         = cParams.material;
         end
 
@@ -64,7 +62,7 @@ classdef StokesProblemSolver < handle
         end
 
         function calculateNumDofs(obj)
-            obj.NumDofs = obj.velocityFun.nDofs + obj.pressureFun.nDofs;
+            obj.numDofs = obj.velocityFun.nDofs + obj.pressureFun.nDofs;
         end
 
         function createSolver(obj)
@@ -91,14 +89,13 @@ classdef StokesProblemSolver < handle
             d.forcesFormula = obj.forcesFormula;
             RHSint          = RHSintegrator.create(d);
             F               = RHSint.integrate();
-
             uD      = obj.dirConditions(:,3);
             R       = -obj.LHS(:,obj.dirDofs)*uD;
             obj.RHS = F + R;
         end
 
         function solveProblem(obj)
-            freeDofsPlus = setdiff(1:obj.NumDofs,obj.dirDofs);
+            freeDofsPlus = setdiff(1:obj.numDofs,obj.dirDofs);
             LHSr         = obj.LHS(freeDofsPlus,freeDofsPlus);
             RHSr         = obj.RHS(freeDofsPlus);
             obj.x        = obj.solver.solve(LHSr, RHSr);
@@ -108,8 +105,8 @@ classdef StokesProblemSolver < handle
             uD                 = obj.dirConditions(:,3);
             nSteps             = length(obj.x(1,:));
             uD                 = repmat(uD,1,nSteps);
-            obj.fullX          = zeros(n_dofs,nSteps);
-            freeDofs           = setdiff(1:(obj.NumDofs),obj.dirDofs);
+            obj.fullX          = zeros(obj.numDofs,nSteps);
+            freeDofs           = setdiff(1:(obj.numDofs),obj.dirDofs);
             obj.fullX(freeDofs,:) = obj.x;
             if ~isempty(obj.dirDofs)
                 obj.fullX(obj.dirDofs,:) = uD;

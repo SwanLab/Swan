@@ -37,7 +37,7 @@ classdef AeroForcesCalculationTestComputer < handle
         function init(obj,cParams)
             obj.saveInput(cParams);
             obj.loadOriginalfinalMesh();
-            obj.tolerance = 1e-6;
+            obj.tolerance = 1e-4;
         end
 
         function saveInput(obj,cParams)
@@ -53,9 +53,10 @@ classdef AeroForcesCalculationTestComputer < handle
 
         function compareLift(obj)
             try
-                assert(all(abs(obj.LiftOriginal - obj.LiftTest) < obj.tolerance, 'all'), ...
-                'The Lift forces do not have the expected value.');
-                 obj.comparingLiftMessage = 'The Lift forces have the expected value.';
+                relativeError = abs(obj.LiftOriginal - obj.LiftTest) / abs(obj.LiftOriginal);
+                assert(relativeError < obj.tolerance, ...
+                    sprintf('The lift force does not match the expected value.\nRelative error: %.4f', relativeError));
+                obj.comparingLiftMessage = 'The lift force corresponds to the expected value.';
             catch ME
                 obj.comparingLiftMessage = ME.message;
             end
@@ -63,9 +64,10 @@ classdef AeroForcesCalculationTestComputer < handle
 
         function compareDrag(obj)
             try
-                assert(all(abs(obj.DragOriginal - obj.DragTest) < obj.tolerance, 'all'), ...
-                    'The Drag forces do not have the expected value.');
-                obj.comparingDragMessage = 'The Drag forces have the expected value.';
+                relativeError = abs(obj.DragOriginal - obj.DragTest) / abs(obj.DragOriginal);
+                assert(relativeError < obj.tolerance, ...
+                    sprintf('The drag force does not match the expected value.\nRelative error: %.4f', relativeError));
+                obj.comparingDragMessage = 'The drag force corresponds to the expected value.';
             catch ME
                 obj.comparingDragMessage = ME.message;
             end

@@ -32,7 +32,7 @@ for iE = 1:bMesh.nelem
     node1 = bMesh.coord(bMesh.connec(iE,1),:); %  two endpoints of the edge.
     node2 = bMesh.coord(bMesh.connec(iE,2),:);
 
-    if node1(1)<= 5
+    %if node1(1)<= 5
     nvect = (node2-node1)/(abs(norm(node2-node1))); % busca el vector tangent al edge
     nvect = -nvect * [0 -1;1 0]; % el gira -90º per obtenir el vector normal
 %     if dot(ref_vect(iE,:),nvect)<0 %No cal
@@ -42,7 +42,7 @@ for iE = 1:bMesh.nelem
     length_element(cont) = abs(norm(node1-node2));
 
     cont = cont +1;
-    end
+    %end
 
 end
 
@@ -52,10 +52,10 @@ nx.fValues = normal_vectors(:,1);
 ny.fValues = normal_vectors(:,2);
 sss.operation = @(x) -presCyl.evaluate(x).*nx.evaluate(x);
 pNx           = DomainFunction(sss);
-D            = Integrator.compute(pNx,bMesh,2);
+D             = Integrator.compute(pNx,bMesh,2);
 sss.operation = @(x) -presCyl.evaluate(x).*ny.evaluate(x);
 pNy           = DomainFunction(sss);
-L           = Integrator.compute(pNy,bMesh,2);
+L             = Integrator.compute(pNy,bMesh,2);
 
 quiver(central_points(:,1),central_points(:,2),normal_vectors(:,1),normal_vectors(:,2)) %Plot the vectors
 hold on

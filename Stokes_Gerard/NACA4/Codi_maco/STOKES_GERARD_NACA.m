@@ -10,7 +10,7 @@ O = 1;
 %         p = pp/10;
 
         % % INPUT DATA
-        m = TriangleMesh(2,1,150,75);
+        m = QuadMesh(10,4,100,40);
         %QuadMesh(10,4,100,40); % MESH de referència sense cap objecte, quadrilateral
 
         % % NACA 4
@@ -103,6 +103,6 @@ O = 1;
 %     disp(O);
 % end
 
-close all;
+% close all;
 
 save("datas.mat");

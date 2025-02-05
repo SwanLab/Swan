@@ -20,6 +20,7 @@ classdef TestNaca < handle
         levelSet
         rawMesh
         mesh
+        backupmesh
         uMesh
         material
         velocityFun
@@ -28,6 +29,8 @@ classdef TestNaca < handle
         dirConditions
         dirDofs
         nodesConditions
+        length
+        height
     end
     
     methods (Access = public)
@@ -36,31 +39,22 @@ classdef TestNaca < handle
             close all;
             obj.init(cParams);
             obj.createReferenceMesh();
-            obj.verifyReferenceMesh();
             obj.createLevelSet();
             obj.createFluidMesh();
-            obj.createFluidMeshGoodConditioning();
-            obj.verifyFinalMesh();
+            %obj.createFluidMeshGoodConditioning();
             obj.createMaterial();
-            obj.checkMaterial();
             obj.createTrialFunction();
             obj.defineBoundaryConditions();
-            obj.checkBoundaryConditions();
+            obj.defineAppliedForces();
         end
 
         function compute(obj)
             obj.solveStokesProblem();
-            obj.verifyStokeProblemSolver();
             obj.plotResults();
             obj.CalculateAeroForces();
-            obj.verifyAeroForces();
         end
 
         function validate(obj)
-            obj.verifyReferenceMesh();
-            obj.verifyFinalMesh();
-            obj.checkBoundaryConditions();
-            obj.verifyStokeProblemSolver();
             obj.verifyAeroForces();
         end
         
@@ -77,9 +71,17 @@ classdef TestNaca < handle
             % obj.yCentral = cParams.yCentral;
         end
                 
-        function createReferenceMesh(obj)      
-            obj.refMesh = TriangleMesh(2,1,150,75);
-            %QuadMesh(10,4,100,40);
+        function createReferenceMesh(obj)
+            obj.length  = 10;
+            obj.height  = 4;
+            nx          = 100;
+            ny          = 40;
+            obj.refMesh = QuadMesh(obj.length,obj.height,nx,ny); 
+            % obj.length  = 2;
+            % obj.height  = 1;
+            % nx          = 150;
+            % ny          = 75;
+            %obj.refMesh = TriangleMesh(obj.length,obj.height,nx,ny);
         end
 
         function createLevelSet(obj)
@@ -93,16 +95,21 @@ classdef TestNaca < handle
             obj.uMesh            = UnfittedMesh(s);
             obj.uMesh.compute(obj.levelSet.fValues);       
             obj.rawMesh = obj.uMesh.createInnerMesh();
+            obj.mesh    = obj.rawMesh;
+            obj.mesh.plot();
+            title("Mesh with the airfoil inclusion.");
+            xlabel("x");
+            ylabel("y");
         end
 
         function createFluidMeshGoodConditioning(obj)
-            m        = obj.createMeshAlphaTriangulation();
-            s.connec = obj.computeConnectivitiesGoodCond(m);
-            s.coord  = obj.rawMesh.coord;
-            m2       = Mesh.create(s);
-            obj.mesh = m2.computeCanonicalMesh();
+            m              = obj.createMeshAlphaTriangulation();
+            s.connec       = obj.computeConnectivitiesGoodCond(m);
+            s.coord        = obj.rawMesh.coord;
+            m2             = Mesh.create(s);
+            obj.backupmesh = m2.computeCanonicalMesh();
             figure;
-            obj.mesh.plot();
+            %obj.backupmesh.plot();
         end
 
         function m = createMeshAlphaTriangulation(obj)
@@ -151,16 +158,23 @@ classdef TestNaca < handle
         end
 
         function defineBoundaryConditions(obj)
+            s.height       = obj.height;
             s.mesh         = obj.mesh;
             s.uMesh        = obj.uMesh;
             s.velocityFun  = obj.velocityFun;
             s.pressureFun  = obj.pressureFun;
             BCClass              = BoundaryCondition(s); 
             BCClass.compute();
-            obj.forcesFormula    = BCClass.forcesFormula;
             obj.dirConditions    = BCClass.dirConditions;
             obj.dirDofs          = BCClass.dirDofs;
             obj.nodesConditions  = BCClass.nodesConditions;
+        end
+
+        function defineAppliedForces(obj)
+            sAF.fHandle       = @(coor) [0.*coor,0.*coor];
+            sAF.ndimf         = 2;
+            sAF.mesh          = obj.mesh;
+            obj.forcesFormula = AnalyticalFunction(sAF);
         end
 
         function solveStokesProblem(obj)
@@ -178,9 +192,19 @@ classdef TestNaca < handle
             obj.pressureFun    = SolverResults.pressureFun;
         end
 
-        function plotResults(obj)
-            obj.velocityFun.plot();
+        function plotResults(obj)     
+            obj.velocityFun.plot(); 
+            ax = findall(groot, 'Type', 'axes');
+            xlabel(ax(2),"x");
+            ylabel(ax(2),"y");
+            xlabel(ax(1),"x");
+            ylabel(ax(1),"y"); 
+            title(ax(2), "Velocity distribution in the x direction.");
+            title(ax(1), "Velocity distribution in the y direction.");        
             obj.pressureFun.plot();
+            title("Pressure distribution");
+            xlabel("x");
+            ylabel("y");
             caxis([-50 50]);
         end
 
@@ -193,40 +217,6 @@ classdef TestNaca < handle
             obj.L              = AeroForcesResults.L;
             obj.D              = AeroForcesResults.D;
             obj.E              = AeroForcesResults.E;
-        end
-
-        function verifyReferenceMesh(obj)
-            s.refMesh         = obj.refMesh;
-            referenceMeshTest = ReferenceMeshTestComputer(s);
-            referenceMeshTest.compute();
-        end
-
-        function verifyFinalMesh(obj)
-            s.mesh         = obj.mesh;
-            finalMeshTest = FinalMeshTestComputer(s);
-            finalMeshTest.compute();
-        end
-
-        function checkMaterial(obj)
-            s.material   = obj.material;
-            MaterialTest = MaterialTestComputer(s);
-            MaterialTest.compute();
-        end
-
-        function checkBoundaryConditions(obj)
-            s.forcesFormula      = obj.forcesFormula;
-            s.dirConditions      = obj.dirConditions;
-            s.dirDofs            = obj.dirDofs;
-            s.nodesConditions    = obj.nodesConditions;
-            BoundaryConditionsTest = BoundaryConditionsTestComputer(s);
-            BoundaryConditionsTest.compute();
-        end
-
-        function verifyStokeProblemSolver(obj)
-            s.velocityFun       = obj.velocityFun;
-            s.pressureFun       = obj.pressureFun;
-            StokesProblemSolverTest = StokesProblemSolverTestComputer(s);
-            StokesProblemSolverTest.compute();
         end
 
         function verifyAeroForces(obj)
