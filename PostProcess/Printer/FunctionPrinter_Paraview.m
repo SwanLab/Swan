@@ -245,6 +245,8 @@ classdef FunctionPrinter_Paraview < handle
         
         function t = getCellType(obj)
             switch obj.mesh.type
+                case 'LINE'
+                    t = 3; 
                 case 'TRIANGLE'
                     t = 5;
                 case 'QUAD'
