@@ -16,6 +16,7 @@ classdef LevelSetInclusionAuto_raul < handle
         forces
         uFun
         strainFun
+        dLambda
     end
 
     properties  (Access = protected)
@@ -238,6 +239,7 @@ classdef LevelSetInclusionAuto_raul < handle
             obj.computeForcesHere(cParams);
              c = obj.computeCmat();
             [u, L]  = obj.computeDisplacementHere(c);
+            obj.plotSolution(u,L);
             obj.computeStrainHere();
             obj.computeStressHere();
         end
@@ -326,9 +328,9 @@ classdef LevelSetInclusionAuto_raul < handle
             nfun = size(f,2);
             Cg = [];
             for i=1:nfun
-                dLambda  = AnalyticalFunction.create(f{i},ndimf,obj.boundaryMeshJoined);
+                obj.dLambda{i}  = AnalyticalFunction.create(f{i},ndimf,obj.boundaryMeshJoined);
 %                 dLambda = dLambda.project('P1');
-                Ce = lhs.compute(dLambda,test);
+                Ce = lhs.compute(obj.dLambda{i},test);
                 [iLoc,jLoc,vals] = find(Ce);
     
 %                 l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
@@ -339,7 +341,7 @@ classdef LevelSetInclusionAuto_raul < handle
                 l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
                 l2g_dof = l2g_dof(:);
                 iGlob = l2g_dof(iLoc);
-                Cg = [Cg sparse(iGlob,jLoc,vals, obj.displacementFun.nDofs, dLambda.ndimf)];
+                Cg = [Cg sparse(iGlob,jLoc,vals, obj.displacementFun.nDofs, obj.dLambda{i}.ndimf)];
             end
 
         end
@@ -373,14 +375,26 @@ classdef LevelSetInclusionAuto_raul < handle
             Z   = zeros(nC);
             LHS = [K, c; c' Z];
             ud = zeros(nC,1);
-            ud(7) = 1;
-            ud(5) = 1;
+%             ud(7) = 1;
+            ud(1) = 1;
             RHS = [obj.forces; ud];
             sol = LHS\RHS;
             u = sol(1:obj.displacementFun.nDofs);
             L = sol(obj.displacementFun.nDofs+1:end); 
-            obj.displacementFun.fValues = u;
-            EIFEMtesting.plotSolution(u,obj.mesh,1,1,0,0)
+%             obj.displacementFun.fValues = u;
+%             EIFEMtesting.plotSolution(u,obj.mesh,1,1,0,0)
+        end
+
+        function plotSolution(obj,u,L)
+%             obj.displacementFun.fValues = u;
+%             EIFEMtesting.plotSolution(u,obj.mesh,1,1,0,0)
+             L = reshape(L,2,[])';
+            nbasis = size(obj.dLambda,2);
+            for i = 1:nbasis
+                lambda{i} = obj.dLambda{i}.*L(i,:)';
+                lambdaP1 = lambda{i}.project('P1');
+                EIFEMtesting.plotSolution(lambdaP1.fValues,obj.boundaryMeshJoined,2,1,i,0)
+            end
         end
 
         function computeStrainHere(obj)
