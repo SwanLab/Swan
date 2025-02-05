@@ -68,7 +68,9 @@ classdef VolumeNormPFunctional < handle
             s.filterType = 'PDE';
             s.mesh  = obj.mesh;
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            f = Filter.create(s);
+            f       = Filter.create(s);
+            epsilon = 6*obj.mesh.computeMeanCellSize();
+            f.updateEpsilon(epsilon);
             obj.filter = f;
         end
     end

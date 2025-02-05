@@ -1,4 +1,4 @@
-classdef TopOptTestTutorialDensityVolumePNorm < handle
+classdef TopOptTestTutorialLevelSetVolumePNorm < handle
 
     properties (Access = private)
         mesh
@@ -17,7 +17,7 @@ classdef TopOptTestTutorialDensityVolumePNorm < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorialDensityVolumePNorm()
+        function obj = TopOptTestTutorialLevelSetVolumePNorm()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -33,7 +33,7 @@ classdef TopOptTestTutorialDensityVolumePNorm < handle
             obj.createDualVariable();
             obj.createOptimizer();
 
-            obj.designVariable.fun.print('Topology_Cantilever_p16_alpha0.65_gJ0.2_eta0.02')
+            obj.designVariable.fun.print('Topology_Cantilever_p16_alpha0.65_gJ0.2_eta0.02_LevelSet')
         end
 
     end
@@ -46,8 +46,8 @@ classdef TopOptTestTutorialDensityVolumePNorm < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,2,400);
-            x2      = linspace(0,1,200);
+            x1      = linspace(0,2,100);
+            x2      = linspace(0,1,50);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -56,17 +56,15 @@ classdef TopOptTestTutorialDensityVolumePNorm < handle
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(x(1,:,:)));
-            s.ndimf   = 1;
-            s.mesh    = obj.mesh;
-            aFun      = AnalyticalFunction(s);
-            
-            sD.fun      = aFun.project('P1');
-            sD.mesh     = obj.mesh;
-            sD.type     = 'Density';
-            sD.plotting = true;
-            dens        = DesignVariable.create(sD);
-            obj.designVariable = dens;
+            s.type = 'Full';
+            g      = GeometricalFunction(s);
+            lsFun  = g.computeLevelSetFunction(obj.mesh);
+            s.fun  = lsFun;
+            s.mesh = obj.mesh;
+            s.type = 'LevelSet';
+            s.plotting = true;
+            ls     = DesignVariable.create(s);
+            obj.designVariable = ls;
         end
 
         function createFilter(obj)
@@ -118,7 +116,7 @@ classdef TopOptTestTutorialDensityVolumePNorm < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'CG';
+            s.solverCase = 'DIRECT';
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -163,9 +161,15 @@ classdef TopOptTestTutorialDensityVolumePNorm < handle
         end
 
         function M = createMassMatrix(obj)
-            n = obj.mesh.nnodes;
+            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.mesh  = obj.mesh;
+            s.type  = 'MassMatrix';
+            LHS = LHSintegrator.create(s);
+            M = LHS.compute;
+
             h = obj.mesh.computeMinCellSize();
-            M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
+            M = h^2*eye(size(M));
         end
 
         function createConstraint(obj)
@@ -190,12 +194,12 @@ classdef TopOptTestTutorialDensityVolumePNorm < handle
             s.maxIter        = 2000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'INEQUALITY','INEQUALITY'};
-            s.primal         = 'PROJECTED GRADIENT';
-            s.ub             = 1;
-            s.lb             = 0;
+            s.primal         = 'SLERP';                  
             s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 0.2;
-            s.tauMax         = 1000;
+            s.etaNormMin     = 0.02;
+            s.gJFlowRatio    = 1;
+            s.etaMax         = 1;
+            s.etaMaxMin      = 0.01;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
