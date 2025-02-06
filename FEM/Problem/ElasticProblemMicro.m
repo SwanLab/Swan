@@ -196,7 +196,7 @@ classdef ElasticProblemMicro < handle
             obj.uFun{iVoigt} = uFeFun;
 
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            obj.displacementFun.fValues = uSplit;
+            obj.displacementFun.setFValues(uSplit);
         end
 
         function computeStrain(obj, iVoigt)
@@ -207,6 +207,7 @@ classdef ElasticProblemMicro < handle
 
             obj.strainFluctFun{iVoigt} = strn;
             s.operation                = @(xV) e+strn.evaluate(xV);
+            s.mesh                     = obj.mesh;
             obj.strainFun{iVoigt}      = DomainFunction(s);
         end
 

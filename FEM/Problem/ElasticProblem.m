@@ -23,7 +23,6 @@ classdef ElasticProblem < handle
     properties (Access = protected)
         mesh 
         material  
-        displacementFun
     end
 
     methods (Access = public)
@@ -60,8 +59,8 @@ classdef ElasticProblem < handle
         end
 
         function [fun, funNames] = getFunsToPlot(obj)
-            fun = {obj.uFun, obj.strainFun.project('P1',obj.mesh), ...
-                obj.stressFun.project('P1',obj.mesh)};
+            fun = {obj.uFun, obj.strainFun.project('P1'), ...
+                obj.stressFun.project('P1')};
             funNames = {'displacement', 'strain', 'stress'};
         end
 
@@ -81,12 +80,12 @@ classdef ElasticProblem < handle
         end
 
         function createDisplacementFun(obj)
-            obj.displacementFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
+            obj.uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
         end
 
         function dim = getFunDims(obj)
-            d.ndimf  = obj.displacementFun.ndimf;
-            d.nnodes = size(obj.displacementFun.fValues, 1);
+            d.ndimf  = obj.uFun.ndimf;
+            d.nnodes = size(obj.uFun.fValues, 1);
             d.ndofs  = d.nnodes*d.ndimf;
             d.nnodeElem = obj.mesh.nnodeElem; % should come from interp..
             d.ndofsElem = d.nnodeElem*d.ndimf;
@@ -111,12 +110,11 @@ classdef ElasticProblem < handle
             obj.problemSolver    = ProblemSolver(s);
         end
 
-        function computeStiffnessMatrix(obj)
-            ndimf = obj.displacementFun.ndimf;
+        function computeStiffnessMatrix(obj)           
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
-            s.test     = LagrangianFunction.create(obj.mesh,ndimf, 'P1');
-            s.trial    = obj.displacementFun;
+            s.test     = obj.uFun;
+            s.trial    = obj.uFun;
             s.material = obj.material;
             s.quadratureOrder = 2;
             lhs = LHSintegrator.create(s);
@@ -146,20 +144,15 @@ classdef ElasticProblem < handle
         function u = computeDisplacement(obj)
             s.stiffness = obj.stiffness;
             s.forces    = obj.forces;
-            [u,~]       = obj.problemSolver.solve(s);
-            z.mesh      = obj.mesh;
-            z.fValues   = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            z.order     = 'P1';
-            uFeFun = LagrangianFunction(z);
-            obj.uFun = uFeFun;
+            [u,~]       = obj.problemSolver.solve(s);           
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            obj.displacementFun.fValues = uSplit;
+            obj.uFun.setFValues(uSplit);
         end
 
         function computeStrain(obj)
             quad = Quadrature.create(obj.mesh, 2);
             xV = quad.posgp;
-            obj.strainFun = SymGrad(obj.displacementFun);
+            obj.strainFun = SymGrad(obj.uFun);
 %             strFun = strFun.obtainVoigtFormat();
             obj.strain = obj.strainFun.evaluate(xV);
         end
@@ -168,7 +161,6 @@ classdef ElasticProblem < handle
             quad = Quadrature.create(obj.mesh, 2);
             xV = quad.posgp;
             obj.stressFun = DDP(obj.material, obj.strainFun);
-            obj.stressFun.ndimf = obj.strainFun.ndimf;
             obj.stress = obj.stressFun.evaluate(xV);
         end
 

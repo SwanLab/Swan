@@ -14,6 +14,7 @@ classdef AcademicConstraint < handle
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             J          = obj.constraintFunction(x.fun.fValues);
             dJ.fValues = obj.gradientFunction(x.fun.fValues);
+            dJ         = {dJ};
         end
         
     end

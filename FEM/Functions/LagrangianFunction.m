@@ -11,7 +11,8 @@ classdef LagrangianFunction < FeFunction
         dofConnec
 
        dNdxOld
-       xVOld     
+       xVOlddN
+       
     end
 
     methods (Access = public)
@@ -29,20 +30,9 @@ classdef LagrangianFunction < FeFunction
             end
         end
 
-        function fxV = evaluate(obj, xV)
-            shapes = obj.interpolation.computeShapeFunctions(xV);
-            func   = obj.getFvaluesByElem();
-            nNode  = size(shapes,1);
-            nGaus  = size(shapes,2);
-            nF     = size(func,1);
-            nElem  = size(func,3);
-            fxV = zeros(nF,nGaus,nElem);
-            for kNode = 1:nNode
-                shapeKJ = shapes(kNode,:,:);
-                fKJ     = func(:,kNode,:);
-                f = bsxfun(@times,shapeKJ,fKJ);
-                fxV = fxV + f;
-            end 
+        function setFValues(obj,fV)
+            obj.fValues = fV;
+            obj.fxVOld  = [];
         end
 
         function fxV = sampleFunction(obj,xP,cells)
@@ -63,7 +53,7 @@ classdef LagrangianFunction < FeFunction
         end
 
         function dNdx  = evaluateCartesianDerivatives(obj,xV)
-            if ~isequal(xV,obj.xVOld) || isempty(obj.dNdxOld)
+            if ~isequal(xV,obj.xVOlddN) || isempty(obj.dNdxOld)
                 nElem = size(obj.dofConnec,1);
                 nNodeE = obj.interpolation.nnode;
                 nDimE = obj.interpolation.ndime;
@@ -84,7 +74,7 @@ classdef LagrangianFunction < FeFunction
                 end
                 dNdx = dShapes;
                 obj.dNdxOld = dNdx;
-                obj.xVOld   = xV;
+                obj.xVOlddN = xV;
             else
                 dNdx = obj.dNdxOld;
             end
@@ -116,12 +106,14 @@ classdef LagrangianFunction < FeFunction
         function grad = computeGrad(obj)
             s.operation = @(xV) obj.computeGradFun(xV);
             s.ndimf     = obj.mesh.ndim*obj.ndimf;
+            s.mesh      = obj.mesh;
             grad        = DomainFunction(s);
         end
 
         function div = computeDiv(obj)
             s.operation = @(xV) obj.computeDivFun(xV);
             s.ndimf     = 1;
+            s.mesh      = obj.mesh;
             div         = DomainFunction(s);                   
         end        
 
@@ -134,9 +126,13 @@ classdef LagrangianFunction < FeFunction
             obj.dNdxOld = dNdx;
         end
 
-        function setXvOld(obj,xV)
-            obj.xVOld = xV;
-        end           
+        function setXvdNOld(obj,xV)
+            obj.xVOlddN = xV;
+        end  
+
+        function setXvfVOld(obj,xV)
+            obj.xVOldfV = xV;
+        end   
         
         function ord = orderTextual(obj)
             ord = obj.getOrderTextual(obj.order);
@@ -176,14 +172,11 @@ classdef LagrangianFunction < FeFunction
         end
 
         function plotVector(obj,varargin) %only for linear
-            if size(varargin,1) == 1
-                n = varargin{1};
-            else 
-                n = 2;
-            end
+            if size(varargin, 1) == 1, n = varargin{1}; else, n = 2; end
             figure();
-            x = obj.mesh.coord(1:n:end,1);
-            y = obj.mesh.coord(1:n:end,2);
+            coord = obj.getDofFieldByVector(1,obj.dofCoord); 
+            x = coord(1:n:end,1);
+            y = coord(1:n:end,2);
             fX = obj.fValues(1:n:end,1);
             fY = obj.fValues(1:n:end,2);
             quiver(x, y, fX, fY, 'AutoScale', 'on', 'LineWidth', 1.5);              
@@ -192,7 +185,6 @@ classdef LagrangianFunction < FeFunction
             xlim([min(x), max(x)]);
             ylim([min(y), max(y)]);
         end
-
 
         function fV = getDofFieldByVector(obj,dimf,field)   
           ndimf = size(field,2);
@@ -257,6 +249,7 @@ classdef LagrangianFunction < FeFunction
 
         function f = createOrthogonalVector(obj) %only in 2D and vector
             f = obj.copy();
+            f.fxVOld = [];
             f.nDofs = obj.nDofs;
             f.fValues(:,1) = obj.fValues(:,2);
             f.fValues(:,2) = -obj.fValues(:,1);
@@ -278,19 +271,6 @@ classdef LagrangianFunction < FeFunction
             end
         end
 
-        function f = copy(obj)
-            s.ndimf = obj.ndimf;
-            s.order = obj.order;
-            s.mesh      = obj.mesh;
-            s.fValues   = obj.fValues;
-            s.dofConnec = obj.dofConnec;
-            s.dofCoord  = obj.dofCoord;
-            s.dofs.getNumberDofs = size(obj.dofCoord,1);
-            f = LagrangianFunction(s);
-            f.setXvOld(obj.xVOld);
-            f.setdNdxOld(obj.dNdxOld);            
-        end
-
         function f = normalize(obj,type,epsilon)
             switch type
                 case 'L2'
@@ -304,87 +284,79 @@ classdef LagrangianFunction < FeFunction
 
         % Operator overload
 
-        function s = plus(obj1,obj2)
-            if isa(obj1, 'LagrangianFunction')
-                res = copy(obj1);
-                val1 = obj1.fValues;
+        function s = plus(a,b)
+            if isa(a, 'LagrangianFunction')
+                res = copy(a);
+                val1 = a.fValues;
+                fEv1 = a.fxVOld;
             else
-                val1 = obj1;
+                val1 = a;
+                fEv1 = a;
             end
-            if isa(obj2, 'LagrangianFunction')
-                res = copy(obj2);
-                val2 = obj2.fValues;
+            if isa(b, 'LagrangianFunction')
+                res = copy(b);
+                val2 = b.fValues;
+                fEv2 = b.fxVOld;
             else
-                val2 = obj2;
+                val2 = b;
+                fEv2 = b;
             end
-
+            if ~isempty(fEv1) && ~isempty(fEv2)
+                res.fxVOld = fEv1 + fEv2;
+            else
+                res.fxVOld = [];
+            end
             res.fValues = val1 + val2;
             s = res;
         end
 
-        function s = minus(obj1,obj2)
-            if isa(obj1, 'LagrangianFunction')
-                res = copy(obj1);
-                val1 = obj1.fValues;
+        function s = minus(a,b)
+            if isa(a, 'LagrangianFunction')
+                res = copy(a);
+                val1 = a.fValues;
+                fEv1 = a.fxVOld;
             else
-                val1 = obj1;
+                val1 = a;
+                fEv1 = a;
             end
-            if isa(obj2, 'LagrangianFunction')
-                res = copy(obj2);
-                val2 = obj2.fValues;
+            if isa(b, 'LagrangianFunction')
+                res = copy(b);
+                val2 = b.fValues;
+                fEv2 = b.fxVOld;
             else
-                val2 = obj2;
+                val2 = b;
+                fEv2 = b;
+            end
+            if ~isempty(fEv1) && ~isempty(fEv2)
+                res.fxVOld = fEv1 - fEv2;
+            else
+                res.fxVOld = [];
             end
             res.fValues = val1 - val2;
             s = res;
         end
 
-        function r = uminus(a)
-            r = copy(a);
-            r.fValues = -a.fValues;
-        end
+        
 
-        function r = mtimes(a,b)
-            aOp = DomainFunction.computeOperation(a);
-            bOp = DomainFunction.computeOperation(b);
-            s.operation = @(xV) pagemtimes(aOp(xV),bOp(xV));
-            r = DomainFunction(s);
-        end
+    end
 
-        function r = times(a,b)
-            aOp = DomainFunction.computeOperation(a);
-            bOp = DomainFunction.computeOperation(b);
-            ndimfA = DomainFunction.computeFieldDimension(a);
-            ndimfB = DomainFunction.computeFieldDimension(b);
-            s.operation = @(xV) aOp(xV).*bOp(xV);
-            s.ndimf = max(ndimfA,ndimfB);
-            r = DomainFunction(s);
-        end
+    methods (Access = protected)
 
-        function f = power(f1,b)
-            s.operation = @(xV) (f1.evaluate(xV)).^b;
-            s.ndimf = f1.ndimf;
-            f = DomainFunction(s);
-        end
-
-        function r = rdivide(a,b)
-            aOp = DomainFunction.computeOperation(a);
-            bOp = DomainFunction.computeOperation(b);
-            s.operation = @(xV) aOp(xV)./bOp(xV);
-            r = DomainFunction(s);
-        end
-
-        function f = mrdivide(f1,f2)
-            s.operation = @(xV) f1.evaluate(xV)./f2.evaluate(xV);
-            s.ndimf = max(f1.ndimf,f2.ndimf);
-            f = DomainFunction(s);            
-        end
-
-        function f = exp(f)
-            s.operation = @(xV) exp(f.evaluate(xV));
-            s.ndimf = f.ndimf;
-            f = DomainFunction(s);
-        end
+        function fxV = evaluateNew(obj, xV)
+            shapes = obj.interpolation.computeShapeFunctions(xV);
+            func   = obj.getFvaluesByElem();
+            nNode  = size(shapes,1);
+            nGaus  = size(shapes,2);
+            nF     = size(func,1);
+            nElem  = size(func,3);
+            fxV = zeros(nF,nGaus,nElem);
+            for kNode = 1:nNode
+                shapeKJ = shapes(kNode,:,:);
+                fKJ     = func(:,kNode,:);
+                f = bsxfun(@times,shapeKJ,fKJ);
+                fxV = fxV + f;
+            end
+        end        
 
     end
 

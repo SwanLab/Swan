@@ -16,10 +16,11 @@ classdef PerimeterFunctional < handle
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             xD = x.obtainDomainFunction();
             xR = obj.filterDesignVariable(xD);
-            J  = obj.computeFunction(xD,xR);
-            dJ = obj.computeGradient(xR);
+            J  = obj.computeFunction(xD{1},xR{1});
+            dJ{1} = obj.computeGradient(xR{1});
             J  = obj.computeNonDimensionalValue(J);
-            dJ.fValues = obj.computeNonDimensionalValue(dJ.fValues);
+            dJVal = obj.computeNonDimensionalValue(dJ{1}.fValues);
+            dJ{1}.setFValues(dJVal);
         end
 
     end
@@ -33,7 +34,11 @@ classdef PerimeterFunctional < handle
         end
 
         function xR = filterDesignVariable(obj,x)
-            xR = obj.filter.compute(x,2);
+            nDesVar = length(x);
+            xR      = cell(nDesVar,1);
+            for i = 1:nDesVar
+                xR{i} = obj.filter.compute(x{i},2);
+            end
         end
 
         function J = computeFunction(obj,xD,xR)

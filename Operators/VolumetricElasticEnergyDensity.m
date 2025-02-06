@@ -1,5 +1,6 @@
 function dom = VolumetricElasticEnergyDensity(u,kappa)
     s.operation = @(xV) evaluate(u,kappa, xV);
+    s.mesh = u.mesh;
     dom = DomainFunction(s);
 end
 

@@ -51,7 +51,6 @@ classdef Display_Plot < Display_Abstract
                         set(obj.style,'XLim',[min(0,min(obj.iterationArray)), max(obj.iterationArray)])
                         legend(obj.legend);
                     end
-                    drawnow
                 end
             end
         end

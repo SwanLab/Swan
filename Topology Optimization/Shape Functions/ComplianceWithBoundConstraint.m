@@ -19,15 +19,16 @@ classdef ComplianceWithBoundConstraint < handle
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             xD = x.density.obtainDomainFunction();
-            xR = obj.filterDesignVariable.compute(xD,2);
+            xR = obj.filterDesignVariable.compute(xD{1},2);
             obj.filterGradient.updateFilteredField(xR);
-            obj.material.setDesignVariable(xR);
+            obj.material.setDesignVariable({xR});
             [Jc,dJc]   = obj.computeComplianceFunctionAndGradient();
             if isempty(obj.value0Compliance)
                 obj.value0Compliance = Jc;
             end
             J          = Jc/obj.value0Compliance - x.bound;
             dJ.fValues = [dJc.fValues/obj.value0Compliance;-1];
+            dJ         = {dJ};
         end
     end
 
@@ -44,7 +45,7 @@ classdef ComplianceWithBoundConstraint < handle
             C      = obj.material.obtainTensor();
             dC     = obj.material.obtainTensorDerivative();
             [J,dJ] = obj.compliance.computeFunctionAndGradient(C,dC);
-            dJ     = obj.filterGradient.compute(dJ,2);
+            dJ     = obj.filterGradient.compute(dJ{1},2);
         end
     end
 

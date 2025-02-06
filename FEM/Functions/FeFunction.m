@@ -1,4 +1,4 @@
-classdef FeFunction < handle
+classdef FeFunction < BaseFunction
     % NOTE
     % Go to P1Function.m for The Class Formerly Known As FeFunction
     % Eventually should extend Function/Field or something like that, to
@@ -13,9 +13,7 @@ classdef FeFunction < handle
     end
 
     properties (GetAccess = public, SetAccess = protected)
-       ndimf
-       order
-       mesh       
+       order    
     end
     
     properties (Access = protected)

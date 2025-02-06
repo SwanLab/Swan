@@ -1,5 +1,6 @@
 function dom = Det(A)
     s.operation = @(xV) evaluate(A,xV);
+    s.mesh = A.mesh;
     dom         = DomainFunction(s);
 end
 

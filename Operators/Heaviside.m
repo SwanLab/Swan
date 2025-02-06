@@ -1,6 +1,7 @@
 function dom = Heaviside(x)
     s.operation = @(xV) evaluate(x, xV);
     s.ndimf = x.ndimf;
+    s.mesh  = x.mesh;
     dom = DomainFunction(s);
 end
 

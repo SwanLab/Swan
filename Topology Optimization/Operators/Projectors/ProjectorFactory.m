@@ -4,9 +4,7 @@ classdef ProjectorFactory < handle
 
         function obj = create(cParams)
             switch cParams.projectorType
-                case 'P0'
-                    obj = Projector_toP0(cParams);
-                case {'P1','P2','P3','P1D'}
+                case {'P0','P1','P1D','P2','P3'}
                     obj = Projector_toLagrangian(cParams);
                 case 'RT'
                     obj = Projector_toRaviartThomas(cParams);

@@ -26,7 +26,7 @@ classdef FilterKernel < handle
             xReg = LagrangianFunction.create(obj.mesh, 1, obj.trial.order);
             obj.computeRHS(fun,quadType);
             obj.solveFilter();
-            xReg.fValues = obj.trial.fValues;
+            xReg.setFValues(obj.trial.fValues);
         end
 
     end
@@ -115,7 +115,7 @@ classdef FilterKernel < handle
             LHS = Iki*M;
             LHS = obj.lumpMatrix(LHS);
             xRk = (Iki*rhs)./LHS;
-            obj.trial.fValues = xRk;
+            obj.trial.setFValues(xRk);
         end
 
     end
