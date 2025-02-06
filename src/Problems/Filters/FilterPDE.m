@@ -60,7 +60,7 @@ classdef FilterPDE < handle
             s.trial        = obj.trial;
             s.mesh         = obj.mesh;
             s.type         = obj.LHStype;
-            obj.problemLHS = LHSintegrator.create(s);
+            obj.problemLHS = LHSIntegrator.create(s);
         end
 
         function computeLHS(obj)
@@ -79,7 +79,7 @@ classdef FilterPDE < handle
                     s.type = 'ShapeFunction';
             end
             s.quadType = quadType;
-            int        = RHSintegrator.create(s);
+            int        = RHSIntegrator.create(s);
             test       = obj.trial;
             rhs        = int.compute(fun,test);
             % rhsR       = obj.bc.fullToReducedVector(rhs);

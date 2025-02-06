@@ -9,29 +9,29 @@ classdef LHSIntegratorFactory < handle
                case 'MassMatrixVect'
                    obj = LHSintegrator_Mass_Vect(cParams);
                case 'BoundaryMassMatrix'
-                   obj = LHSintegrator_MassBoundary(cParams);
+                   obj = LHSIntegratorMassBoundary(cParams);
                case 'StiffnessMatrix'
-                   obj = LHSintegrator_Stiffness(cParams);
+                   obj = LHSIntegratorStiffness(cParams);
                case 'StiffnessMatrixVect'
                    obj = LHSintegrator_Stiffness_Vect(cParams);
                case 'ElasticStiffnessMatrix'
                    obj = LHSIntegratorStiffnessElastic(cParams);
                case 'AnisotropicStiffnessMatrix'
-                   obj = LHSintegrator_AnisotropicStiffness(cParams);
+                   obj = LHSIntegratorAnisotropicStiffness(cParams);
                case 'StiffnessMassBoundaryMass'
                    cParams.stiffType = 'StiffnessMatrix';
-                   obj = LHSintegratorStiffnessMassBoundaryMass(cParams);
+                   obj = LHSIntegratorStiffnessMassBoundaryMass(cParams);
                case 'StiffnessMass'
                    cParams.stiffType = 'StiffnessMatrix';
-                   obj = LHSintegratorStiffnessMass(cParams);
+                   obj = LHSIntegratorStiffnessMass(cParams);
                case 'MassBoundaryMass'
-                   obj = LHSintegratorMassBoundaryMass(cParams);
+                   obj = LHSIntegratorMassBoundaryMass(cParams);
                case 'AnisotropicStiffnessMassBoundaryMass'
                    cParams.stiffType = 'AnisotropicStiffnessMatrix';
-                   obj = LHSintegratorStiffnessMassBoundaryMass(cParams);
+                   obj = LHSIntegratorStiffnessMassBoundaryMass(cParams);
                case 'AnisotropicStiffnessMass'
                    cParams.stiffType = 'AnisotropicStiffnessMatrix';
-                   obj = LHSintegratorStiffnessMass(cParams);
+                   obj = LHSIntegratorStiffnessMass(cParams);
                case 'Stokes'
                    obj = LHSIntegratorStokes(cParams);
                case 'Laplacian'

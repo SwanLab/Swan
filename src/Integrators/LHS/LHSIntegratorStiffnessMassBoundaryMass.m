@@ -1,9 +1,10 @@
-classdef LHSintegratorStiffnessMass < handle
+classdef LHSIntegratorStiffnessMassBoundaryMass < handle
 
     properties (GetAccess = public, SetAccess = private)
         test, trial
         M
         K
+        Mr
     end
 
     properties (Access = private)
@@ -12,14 +13,15 @@ classdef LHSintegratorStiffnessMass < handle
 
     methods (Access = public)
 
-        function obj = LHSintegratorStiffnessMass(cParams)
+        function obj = LHSIntegratorStiffnessMassBoundaryMass(cParams)
             obj.init(cParams);
             obj.computeStiffnessMatrix(cParams);
             obj.computeMassMatrix();
+            obj.computeBoundaryMassMatrix();
         end
 
         function LHS = compute(obj, epsilon)
-            LHS = epsilon^2*obj.K + obj.M;
+            LHS = epsilon^2*obj.K + obj.M + epsilon*obj.Mr;
         end
 
     end
@@ -33,12 +35,11 @@ classdef LHSintegratorStiffnessMass < handle
 
         function computeStiffnessMatrix(obj,cParams)
             s       = cParams;
-            s.type  = cParams.stiffType;
-            s.mesh  = obj.mesh;
             s.test  = obj.test;
             s.trial = obj.trial;
-            s.quadratureOrder = 2;
-            LHS     = LHSintegrator.create(s);
+            s.type  = cParams.stiffType;
+            s.mesh  = obj.mesh;
+            LHS     = LHSIntegrator.create(s);
             obj.K   = LHS.compute();
         end
 
@@ -48,8 +49,16 @@ classdef LHSintegratorStiffnessMass < handle
             s.test  = obj.test;
             s.trial = obj.trial;
             s.quadratureOrder = 2;
-            LHS     = LHSintegrator.create(s);
+            LHS     = LHSIntegrator.create(s);
             obj.M   = LHS.compute();
+        end
+
+        function computeBoundaryMassMatrix(obj)
+            s.type  = 'BoundaryMassMatrix';
+            s.mesh  = obj.mesh;
+            s.quadratureOrder = 2;
+            LHS     = LHSIntegrator.create(s);
+            obj.Mr  = LHS.compute();
         end
 
     end

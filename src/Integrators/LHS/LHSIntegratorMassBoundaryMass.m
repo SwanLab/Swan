@@ -1,4 +1,4 @@
-classdef LHSintegratorMassBoundaryMass < handle
+classdef LHSIntegratorMassBoundaryMass < handle
 
     properties (GetAccess = public, SetAccess = private)
         test, trial
@@ -11,7 +11,7 @@ classdef LHSintegratorMassBoundaryMass < handle
     end
 
     methods (Access = public)
-        function obj = LHSintegratorMassBoundaryMass(cParams)
+        function obj = LHSIntegratorMassBoundaryMass(cParams)
             obj.init(cParams);
             obj.computeMassMatrix();
             obj.computeBoundaryMassMatrix();
@@ -35,7 +35,7 @@ classdef LHSintegratorMassBoundaryMass < handle
             s.test  = obj.test;
             s.trial = obj.trial;
             s.quadratureOrder = 2;
-            LHS     = LHSintegrator.create(s);
+            LHS     = LHSIntegrator.create(s);
             obj.M   = LHS.compute();
         end
 
@@ -43,7 +43,7 @@ classdef LHSintegratorMassBoundaryMass < handle
             s.type  = 'BoundaryMassMatrix';
             s.mesh  = obj.mesh;
             s.quadratureOrder = 2;
-            LHS     = LHSintegrator.create(s);
+            LHS     = LHSIntegrator.create(s);
             obj.Mr  = LHS.compute();
         end
     end

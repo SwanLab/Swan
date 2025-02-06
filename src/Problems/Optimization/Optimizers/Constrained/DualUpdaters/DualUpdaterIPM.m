@@ -1,4 +1,4 @@
-classdef DualUpdater_IPM < handle
+classdef DualUpdaterIPM < handle
 
     properties (Access = private)
         dualVariable
@@ -9,7 +9,7 @@ classdef DualUpdater_IPM < handle
     end
 
     methods (Access = public)
-        function obj = DualUpdater_IPM(cParams)
+        function obj = DualUpdaterIPM(cParams)
             obj.init(cParams);
         end
 

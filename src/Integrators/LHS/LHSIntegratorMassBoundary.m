@@ -1,4 +1,4 @@
-classdef LHSintegrator_MassBoundary < handle
+classdef LHSIntegratorMassBoundary < handle
 
     properties (Access = private)
         mesh
@@ -6,7 +6,7 @@ classdef LHSintegrator_MassBoundary < handle
 
     methods (Access = public)
         
-        function obj = LHSintegrator_MassBoundary(cParams)
+        function obj = LHSIntegratorMassBoundary(cParams)
             obj.mesh  = cParams.mesh;
         end
 
@@ -33,7 +33,7 @@ classdef LHSintegrator_MassBoundary < handle
 
                     a.test  = LagrangianFunction.create(sL.mesh, 1, 'P1');
                     a.trial = LagrangianFunction.create(sL.mesh, 1, 'P1');
-                    lhs = LHSintegrator.create(a);
+                    lhs = LHSIntegrator.create(a);
                     LHS = lhs.compute();
 
                     local2global(sL.mesh.connec(:)) = sL.bMesh.globalConnec(:);

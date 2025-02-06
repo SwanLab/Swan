@@ -25,7 +25,7 @@ classdef ShapeFunctional < handle
     methods (Access = public, Static)
         
         function obj = create(cParams)
-            f = ShapeFunctional_Factory();
+            f = ShapeFunctionalFactory();
             obj = f.create(cParams);
         end
         

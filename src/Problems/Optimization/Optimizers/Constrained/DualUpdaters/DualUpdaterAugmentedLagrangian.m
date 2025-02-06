@@ -1,4 +1,4 @@
-classdef DualUpdater_AugmentedLagrangian < handle
+classdef DualUpdaterAugmentedLagrangian < handle
     
     properties (Access = private)
        dualVariable
@@ -10,7 +10,7 @@ classdef DualUpdater_AugmentedLagrangian < handle
         
     methods (Access = public)
         
-        function obj = DualUpdater_AugmentedLagrangian(cParams)
+        function obj = DualUpdaterAugmentedLagrangian(cParams)
             obj.init(cParams)
         end
         

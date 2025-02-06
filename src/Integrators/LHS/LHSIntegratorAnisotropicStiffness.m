@@ -1,4 +1,4 @@
-classdef LHSintegrator_AnisotropicStiffness < LHSintegrator
+classdef LHSIntegratorAnisotropicStiffness < LHSIntegrator
 
     properties (Access = private)
         CAnisotropic
@@ -8,8 +8,8 @@ classdef LHSintegrator_AnisotropicStiffness < LHSintegrator
 
     methods (Access = public)
 
-        function obj = LHSintegrator_AnisotropicStiffness(cParams)
-            obj@LHSintegrator(cParams)
+        function obj = LHSIntegratorAnisotropicStiffness(cParams)
+            obj@LHSIntegrator(cParams)
             obj.initAnisotropicTensor(cParams);
         end
 

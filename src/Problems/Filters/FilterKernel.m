@@ -48,7 +48,7 @@ classdef FilterKernel < handle
             s.test            = obj.test;
             s.trial           = obj.trial;
             s.quadratureOrder = 2;
-            LHS               = LHSintegrator.create(s);
+            LHS               = LHSIntegrator.create(s);
             obj.massMatrix    = LHS.compute();
         end 
 
@@ -104,7 +104,7 @@ classdef FilterKernel < handle
                     s.type = 'ShapeFunction';
             end
             s.quadType = quadType;
-            rhsI       = RHSintegrator.create(s);
+            rhsI       = RHSIntegrator.create(s);
             obj.RHS    = rhsI.compute(fun,obj.test);
         end
 

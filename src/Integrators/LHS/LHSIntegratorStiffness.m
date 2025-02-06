@@ -1,9 +1,9 @@
-classdef LHSintegrator_Stiffness < LHSintegrator
+classdef LHSIntegratorStiffness < LHSIntegrator
 
     methods (Access = public)
 
-        function obj = LHSintegrator_Stiffness(cParams)
-            obj@LHSintegrator(cParams)
+        function obj = LHSIntegratorStiffness(cParams)
+            obj@LHSIntegrator(cParams)
         end
 
         function LHS = compute(obj)

@@ -4,7 +4,7 @@ classdef TopOptTestsSuite < handle
 
         function obj = TopOptTestsSuite()
             warning('off', 'MATLAB:structOnObject')
-            results = runtests("TopOptTests","ProcedureName","testFastDisplacement", 'Debug', true);
+            results = runtests("TopOptTests","ProcedureName","testFastDisplacement", 'Debug', false);
             table(results)
             warning('on', 'MATLAB:structOnObject')
         end

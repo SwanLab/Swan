@@ -1,4 +1,4 @@
-classdef ShapeFunctional_Factory < handle
+classdef ShapeFunctionalFactory < handle
     
     properties (Access = private)
         cParams
@@ -21,7 +21,7 @@ classdef ShapeFunctional_Factory < handle
                 case 'compliance'
                     s.mesh                       = cParams.mesh;
                     s.stateProblem               = cParams.physicalProblem;
-                    c                            = ComplianceFromConstiutiveTensor(s);
+                    c                            = ComplianceFromConstitutiveTensor(s);
                     s.filter                     = cParams.filter;
                     s.complainceFromConstitutive = c;
                     s.material                   = cParams.material;
@@ -103,7 +103,7 @@ classdef ShapeFunctional_Factory < handle
                 case 'ComplianceConstraintBound'
                     s.mesh         = cParams.mesh;
                     s.stateProblem = cParams.physicalProblem;
-                    c              = ComplianceFromConstiutiveTensor(s);
+                    c              = ComplianceFromConstitutiveTensor(s);
                     s.filterDesignVariable = cParams.filterDesignVariable;
                     s.filterGradient = cParams.filterGradient;
                     s.complainceFromConstitutive = c;

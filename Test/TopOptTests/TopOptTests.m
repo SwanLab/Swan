@@ -158,7 +158,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             s.trial = LagrangianFunction.create(mesh,1,'P1');
             s.mesh  = mesh;
             s.type  = 'MassMatrix';
-            LHS = LHSintegrator.create(s);
+            LHS = LHSIntegrator.create(s);
             M = LHS.compute;
             M = eye(size(M));
 
