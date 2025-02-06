@@ -1,4 +1,4 @@
-classdef RHSintegrator_Stokes < RHSintegrator
+classdef RHSIntegratorStokes < RHSIntegrator
 
     properties (Access = private)
         velocityFun
@@ -8,7 +8,7 @@ classdef RHSintegrator_Stokes < RHSintegrator
 
     methods (Access = public)
 
-        function obj = RHSintegrator_Stokes(cParams)
+        function obj = RHSIntegratorStokes(cParams)
             obj.init(cParams);
         end
 
@@ -37,7 +37,7 @@ classdef RHSintegrator_Stokes < RHSintegrator
             a.type = 'ShapeFunction';
             a.mesh = obj.mesh;
             a.quadType = 3;
-            rhsI       = RHSintegrator.create(a);
+            rhsI       = RHSIntegrator.create(a);
             test = LagrangianFunction.create(obj.mesh, 2, 'P2');
             Fext = rhsI.compute(obj.forcesFormula,test);
         end

@@ -1,4 +1,4 @@
-classdef RHSintegrator_ElasticMicro < handle
+classdef RHSIntegratorElasticMicro < handle
 
     properties (Access = private)
         dim
@@ -13,7 +13,7 @@ classdef RHSintegrator_ElasticMicro < handle
     
     methods (Access = public)
 
-        function obj = RHSintegrator_ElasticMicro(cParams)
+        function obj = RHSIntegratorElasticMicro(cParams)
             obj.init(cParams);
         end
 

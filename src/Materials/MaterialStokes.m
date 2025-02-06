@@ -1,4 +1,4 @@
-classdef Material_Stokes < Material
+classdef MaterialStokes < Material
     
     properties (Access = public)
         mu
@@ -7,7 +7,7 @@ classdef Material_Stokes < Material
     
     methods (Access = public) 
         
-        function obj = Material_Stokes(cParams)
+        function obj = MaterialStokes(cParams)
             obj.nElem = cParams.nelem;
         end
 

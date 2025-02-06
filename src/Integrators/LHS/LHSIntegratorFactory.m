@@ -33,11 +33,11 @@ classdef LHSIntegratorFactory < handle
                    cParams.stiffType = 'AnisotropicStiffnessMatrix';
                    obj = LHSintegratorStiffnessMass(cParams);
                case 'Stokes'
-                   obj = LHSintegrator_Stokes(cParams);
+                   obj = LHSIntegratorStokes(cParams);
                case 'Laplacian'
-                   obj = LHSintegrator_Laplacian(cParams);
+                   obj = LHSIntegratorLaplacian(cParams);
                case 'WeakDivergence'
-                   obj = LHSintegrator_WeakDivergence(cParams);
+                   obj = LHSIntegratorWeakDivergence(cParams);
                case 'AdvectionMatrix'
                    obj = LHSintegrator_Advection(cParams);
                    

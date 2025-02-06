@@ -55,7 +55,7 @@ classdef ElasticProblemMicro < handle
             s.trial    = obj.displacementFun;
             s.material = obj.material;
             s.quadratureOrder = 2;
-            lhs = LHSintegrator.create(s);
+            lhs = LHSIntegrator.create(s);
             obj.stiffness = lhs.compute();
         end
 
@@ -175,7 +175,7 @@ classdef ElasticProblemMicro < handle
             s.mesh     = obj.mesh;
             s.material = obj.material;
             s.globalConnec = obj.mesh.connec;
-            RHSint = RHSintegrator.create(s);
+            RHSint = RHSIntegrator.create(s);
             rhs = RHSint.compute();
             R = RHSint.computeReactions(obj.stiffness);
             obj.variables.fext = rhs + R;

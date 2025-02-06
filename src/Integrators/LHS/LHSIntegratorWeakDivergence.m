@@ -1,4 +1,4 @@
-classdef LHSintegrator_WeakDivergence < handle
+classdef LHSIntegratorWeakDivergence < handle
 
     properties (Access = private)
         trial
@@ -9,7 +9,7 @@ classdef LHSintegrator_WeakDivergence < handle
 
     methods (Access = public)
 
-        function obj = LHSintegrator_WeakDivergence(cParams)
+        function obj = LHSIntegratorWeakDivergence(cParams)
             obj.initStokesD(cParams);
             obj.createQuadrature();
         end

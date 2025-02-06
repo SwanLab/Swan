@@ -1,4 +1,4 @@
-classdef LHSintegrator_Stokes < handle %LHSintegrator
+classdef LHSIntegratorStokes < handle %LHSintegrator
 
     properties (GetAccess = public, SetAccess = private)
         M
@@ -15,7 +15,7 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
 
     methods (Access = public)
 
-        function obj = LHSintegrator_Stokes(cParams)
+        function obj = LHSIntegratorStokes(cParams)
             obj.init(cParams);
         end
 
@@ -50,7 +50,7 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
             s.mesh = obj.mesh;
             s.trial = obj.pressureFun;
             s.test  = obj.velocityFun;
-            LHS = LHSintegrator.create(s);
+            LHS = LHSIntegrator.create(s);
             D = LHS.compute();
         end
 
@@ -69,7 +69,7 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
             s.test  = obj.velocityFun;
             s.trial = obj.velocityFun;
             s.material = obj.material;
-            LHS = LHSintegrator.create(s);
+            LHS = LHSIntegrator.create(s);
             lhs = LHS.compute();
             lhs = obj.symGradient(lhs);
         end
@@ -80,7 +80,7 @@ classdef LHSintegrator_Stokes < handle %LHSintegrator
             s.test  = obj.velocityFun;
             s.trial = obj.velocityFun;
             s.quadratureOrder = 3;
-            LHS = LHSintegrator.create(s);
+            LHS = LHSIntegrator.create(s);
             m = LHS.compute();
 
             dtime = obj.dt;

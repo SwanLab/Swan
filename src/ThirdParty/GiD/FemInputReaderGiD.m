@@ -1,4 +1,4 @@
-classdef FemInputReader_GiD < handle
+classdef FemInputReaderGiD < handle
     
     properties (GetAccess = public,SetAccess = public)
         pdim

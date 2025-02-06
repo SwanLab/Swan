@@ -160,7 +160,7 @@ classdef StokesProblem < handle
             s.material      = obj.material;
             s.velocityFun = obj.velocityFun;
             s.pressureFun = obj.pressureFun;
-            LHS_int = LHSintegrator.create(s);
+            LHS_int = LHSIntegrator.create(s);
             LHS = LHS_int.compute();
             obj.LHS = LHS;
             obj.LHSintegrator = LHS_int;
@@ -172,7 +172,7 @@ classdef StokesProblem < handle
             s.velocityFun   = obj.velocityFun;
             s.pressureFun   = obj.pressureFun;
             s.forcesFormula = obj.inputBC.forcesFormula;
-            RHSint = RHSintegrator.create(s);
+            RHSint = RHSIntegrator.create(s);
             F = RHSint.integrate();
             dirichlet = obj.boundaryConditions.dirichlet;
             uD = obj.boundaryConditions.dirichlet_values;

@@ -1,4 +1,4 @@
-classdef LHSintegrator_Laplacian < handle
+classdef LHSIntegratorLaplacian < handle
 
     properties (Access = private)
         mesh
@@ -10,7 +10,7 @@ classdef LHSintegrator_Laplacian < handle
 
     methods (Access = public)
 
-        function obj = LHSintegrator_Laplacian(cParams)
+        function obj = LHSIntegratorLaplacian(cParams)
             obj.initLaplacian(cParams);
             obj.createQuadrature();
         end

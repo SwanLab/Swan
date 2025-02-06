@@ -39,7 +39,7 @@ classdef StokesDataContainer < AbstractSettings
         end
         
         function readFemInputFile(obj)
-            femReader = FemInputReader_GiD();
+            femReader = FemInputReaderGiD();
             s = femReader.read(obj.fileName);
             
             obj.mesh      = s.mesh;
