@@ -48,12 +48,11 @@ classdef ShFunc_ElasticDamage < handle
             res = obj.RHS.compute(stress,obj.test);            
         end
         
-        function [K,dRes] = computeDerivativeResidual(obj,u)
+        function [K] = computeDerivativeResidual(obj,u)
             obj.computeDamage();
-            Ksec = obj.computeDerivativeResidualSecant(obj.d);
-            Ktan = obj.computeDerivativeResidualTangent(u,obj.r);
-            K = Ksec-Ktan;
-            dRes = Ksec-Ktan;%Ktan
+            Ksec = obj.computeDerivativeResidualSecant();
+            Ktan = obj.computeDerivativeResidualTangent(u);
+            K = Ktan;
         end  
        
         function computeDamageEvolutionParam(obj,u)
@@ -107,8 +106,8 @@ classdef ShFunc_ElasticDamage < handle
             q = @(r,r0) r0 + obj.H *(r-r0);
         end 
         
-        function sec = computeDerivativeResidualSecant(obj,d)
-            mat = obj.material.obtainTensor(d);
+        function sec = computeDerivativeResidualSecant(obj)
+            mat = obj.material.obtainTensor(obj.d);
             LHS = obj.createElasticLHS(mat);         
             sec = LHS.compute();
         end 
@@ -123,21 +122,30 @@ classdef ShFunc_ElasticDamage < handle
             LHS = LHSintegrator.create(s);
         end
 
-        function Tan = computeDerivativeResidualTangent (obj,u,r)          
-            q = obj.computeHardening;
-            C = obj.material.obtainNonDamagedTensor;
+        function Tan = computeDerivativeResidualTangent(obj,u)    
+            Csec = obj.material.obtainTensor(obj.d);
+
+            q = obj.computeHardening();
+           %Ctan = obj.material.obtainTangentTensor(obj.d,obj.r,obj.r0,obj.H,q,u)
+
+
+            C = obj.material.obtainNonDamagedTensor();
             epsi = SymGrad(u);
-            sig = DDP(epsi,C);
+            sigBar = DDP(epsi,C);
+
+            op = @(xV)((q(obj.r.evaluate(xV),obj.r0.evaluate(xV))-obj.H*obj.r.evaluate(xV))./((obj.r.evaluate(xV)).^3));
+            d_dot = DomainFunction.create(op,obj.mesh);
+            Ctan2 = pageKron(d_dot,pageKron(sigBar,sigBar));
+
+            op = @(xV) Csec.evaluate(xV) - Ctan2.evaluate(xV);
+            Ctan = DomainFunction.create(op,obj.mesh);
 
             s.type = 'ElasticStiffnessMatrix';
             s.quadratureOrder = obj.quadOrder;
             s.mesh = obj.mesh;
             s.test  = obj.test;
             s.trial = obj.test;
-
-            s.material = C;
-            s.fun = @(xV)((q(r.evaluate(xV),obj.r0.evaluate(xV))-obj.H*r.evaluate(xV))/((r.evaluate(xV))^3))*sig*sig;
-
+            s.material = Ctan;
             lhs = LHSintegrator.create(s);            
             Tan = lhs.compute();
         end 

@@ -32,8 +32,8 @@ classdef ShFunc_ContinuumDamage < handle
         end
 
         function [K,dRes] = computeDerivativeResidual(obj,u,bc) 
-            [K,dRes] = obj.internalDamage.computeDerivativeResidual(u);
-            dRes = dRes(bc.free_dofs,bc.free_dofs);
+            K = obj.internalDamage.computeDerivativeResidual(u);
+            dRes = K(bc.free_dofs,bc.free_dofs);
         end
 
         function computeDamageEvolutionParam(obj,u)
