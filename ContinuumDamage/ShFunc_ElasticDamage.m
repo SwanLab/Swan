@@ -51,9 +51,9 @@ classdef ShFunc_ElasticDamage < handle
         function [K,dRes] = computeDerivativeResidual(obj,u)
             obj.computeDamage();
             Ksec = obj.computeDerivativeResidualSecant(obj.d);
-            %Ktan = obj.computeDerivativeResidualTangent (s,u,obj.r);
-            K = Ksec;
-            dRes = Ksec;%Ktan
+            Ktan = obj.computeDerivativeResidualTangent(u,obj.r);
+            K = Ksec-Ktan;
+            dRes = Ksec-Ktan;%Ktan
         end  
        
         function computeDamageEvolutionParam(obj,u)
@@ -123,17 +123,23 @@ classdef ShFunc_ElasticDamage < handle
             LHS = LHSintegrator.create(s);
         end
 
-        % function Tan = computeDerivativeResidualTangent (obj,s,u,r)          
-        %     q = obj.computeHardening;
-        %     C = obj.material.obtainNonDamagedTensor;
-        %     epsi = SymGrad(u);
-        %     sig = DDP(epsi,C);
-        % 
-        %     s.material = C;
-        %     s.fun = @(xV)((q(r.evaluate(xV),obj.r0.evaluate(xV))-obj.H*r.evaluate(xV))/((r.evaluate(xV))^3))*sig*sig;
-        % 
-        %     lhs = LHSintegrator.create(s);            
-        %     Tan = lhs.compute();
-        % end 
+        function Tan = computeDerivativeResidualTangent (obj,u,r)          
+            q = obj.computeHardening;
+            C = obj.material.obtainNonDamagedTensor;
+            epsi = SymGrad(u);
+            sig = DDP(epsi,C);
+
+            s.type = 'ElasticStiffnessMatrix';
+            s.quadratureOrder = obj.quadOrder;
+            s.mesh = obj.mesh;
+            s.test  = obj.test;
+            s.trial = obj.test;
+
+            s.material = C;
+            s.fun = @(xV)((q(r.evaluate(xV),obj.r0.evaluate(xV))-obj.H*r.evaluate(xV))/((r.evaluate(xV))^3))*sig*sig;
+
+            lhs = LHSintegrator.create(s);            
+            Tan = lhs.compute();
+        end 
     end    
 end
