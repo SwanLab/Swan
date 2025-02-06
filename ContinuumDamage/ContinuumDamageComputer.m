@@ -56,6 +56,7 @@ classdef ContinuumDamageComputer < handle
                 data.damage.maxValue(i)  = max(dmgFun.fValues);
                 data.damage.minValue(i)  = min(dmgFun.fValues);
                 data.reaction(i)  = -obj.computeTotalReaction(K,uVec);
+                data.totalEnergy(i) = obj.elasticity.computeEnergy(uFun,bc);
             end
             data.displacement.field = uFun;
             data.damage.field = dmgFun;

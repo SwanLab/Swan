@@ -22,12 +22,12 @@ classdef ShFunc_ExternalWork2 < handle
             obj.test = LagrangianFunction.create(obj.bMesh.mesh, u.ndimf, u.order);           
         end 
       
-       %  function F = computeFunction(obj,u,fExt,quadOrder)
-       %    bMesh = obj.mesh.createBoundaryMesh{4}; %CARA SUPERIOR
-       %    int = Integrator.create('Function',bMesh.mesh,quadOrder);
-       %    [u, fExt] = obj.adaptFuns(u,fExt);
-       %    F = int.compute(u.*fExt);
-       % end
+        function F = computeFunction(obj,u,fExt)
+          bMesh = obj.mesh.createBoundaryMesh{4}; %CARA SUPERIOR
+          int = Integrator.create('Function',bMesh.mesh,obj.quadOrder);
+          [u, fExt] = obj.adaptFuns(u,fExt);
+          F = int.compute(u.*fExt);
+       end
       
        function Ju = computeResidual(obj,u,fExt)
             [~,fExt] = adaptFuns(obj,u,fExt);

@@ -38,8 +38,8 @@ figure()
 plot(data.displacement.value,data.reaction)
 title('Force-Displacement')
 
-% figure()
-% plot(data.displacement.value,data.totalEnergy)
-% title('Energy - Displacement')
+figure()
+plot(data.displacement.value,data.totalEnergy)
+title('Energy - Displacement')
 
 %tester.compareWithElasticProblem(data.displacement.fValues,uRef.fValues);
