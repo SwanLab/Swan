@@ -62,7 +62,7 @@ classdef AllSubCellsConnecComputer < handle
                 case 5
                     obj.cellMesher = TriangleSubMeshConnecComputer(s);
                 case {7,8}
-                    obj.cellMesher = TethaedraSubMeshConnecComputer(s);
+                    obj.cellMesher = TetrahedraSubMeshConnecComputer(s);
             end
         end
         

@@ -3,7 +3,7 @@ classdef VectorizedTriangulationTestsSuite < handle
     methods
 
         function obj = VectorizedTriangulationTestsSuite()
-            path = './tests/Source/CutCellsTests/VectorizedTriangulationTests.m';
+            path = './Test/VectorizedTriangulationTests/VectorizedTriangulationTests.m';
             suite = matlab.unittest.TestSuite.fromFile(path, 'Tag','VectorizedTriangulation');
             results = suite.run;
             table(results)

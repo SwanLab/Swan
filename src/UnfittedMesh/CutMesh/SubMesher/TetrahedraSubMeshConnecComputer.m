@@ -1,4 +1,4 @@
-classdef TethaedraSubMeshConnecComputer < handle
+classdef TetrahedraSubMeshConnecComputer < handle
     
     properties (Access = public)
         nSubCellNodes
@@ -16,7 +16,7 @@ classdef TethaedraSubMeshConnecComputer < handle
     
     methods (Access = public)
         
-        function obj = TethaedraSubMeshConnecComputer(cParams)
+        function obj = TetrahedraSubMeshConnecComputer(cParams)
             obj.init(cParams)
         end
         

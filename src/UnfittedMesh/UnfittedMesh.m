@@ -246,7 +246,7 @@ classdef UnfittedMesh < handle
             s.type = 'Unfitted';
             s.quadType = 2;
             test     = LagrangianFunction.create(obj.backgroundMesh,1,'P1');
-            integrator = RHSintegrator.create(s);
+            integrator = RHSIntegrator.create(s);
             fInt = integrator.compute(f,test);
             mass = sum(fInt);
         end
@@ -257,7 +257,7 @@ classdef UnfittedMesh < handle
             s.type = 'Unfitted';
             s.quadType = 2;
             test     = LagrangianFunction.create(obj.backgroundMesh,1,'P1');
-            integrator = RHSintegrator.create(s);
+            integrator = RHSIntegrator.create(s);
             fInt = integrator.compute(f,test);
             mass = sum(fInt);
         end
