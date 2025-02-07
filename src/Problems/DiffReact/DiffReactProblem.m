@@ -95,7 +95,7 @@ classdef DiffReactProblem < handle
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
             s.quadratureOrder = 2;
-            obj.problemLHS = LHSintegrator.create(s);
+            obj.problemLHS = LHSIntegrator.create(s);
         end
     
     end

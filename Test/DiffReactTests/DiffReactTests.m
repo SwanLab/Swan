@@ -63,7 +63,7 @@ classdef DiffReactTests < matlab.unittest.TestCase
         end
         
         function gidParams = createGiDparameters(testCase, file)
-            gidReader = FemInputReader_GiD();
+            gidReader = FemInputReaderGiD();
             gidParams = gidReader.read(file);
         end
         
@@ -83,7 +83,7 @@ classdef DiffReactTests < matlab.unittest.TestCase
             s.mesh = mesh;
             s.test  = f;
             s.trial = f;
-            LHS = LHSintegrator.create(s);
+            LHS = LHSIntegrator.create(s);
             M = LHS.compute();
         end
         
