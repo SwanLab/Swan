@@ -1,4 +1,4 @@
-classdef TopOptTestTutorialDensityVolumePNorm < handle
+classdef TopOptTestTutorialDensityPerimeterPNorm < handle
 
     properties (Access = private)
         mesh
@@ -8,7 +8,7 @@ classdef TopOptTestTutorialDensityVolumePNorm < handle
         physicalProblem
         compliance
         volume
-        localVolume
+        perimeter
         cost
         constraint
         dualVariable
@@ -17,7 +17,7 @@ classdef TopOptTestTutorialDensityVolumePNorm < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorialDensityVolumePNorm()
+        function obj = TopOptTestTutorialDensityPerimeterPNorm()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -27,7 +27,7 @@ classdef TopOptTestTutorialDensityVolumePNorm < handle
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
             obj.createVolumeConstraint();
-            obj.createLocalVolume();
+            obj.createPerimeterConstraint();
             obj.createCost();
             obj.createConstraint();
             obj.createDualVariable();
@@ -147,12 +147,12 @@ classdef TopOptTestTutorialDensityVolumePNorm < handle
             obj.volume = v;
         end
 
-        function createLocalVolume(obj)
-            s.mesh          = obj.mesh;
-            s.alpha         = 0.65;
-            s.p             = 16;
-            s.gradientTest  = LagrangianFunction.create(obj.mesh,1,'P1');
-            obj.localVolume = VolumeNormPFunctional(s);
+        function createPerimeterConstraint(obj)
+            s.mesh            = obj.mesh;
+            s.perimeterTarget = 0.65;
+            s.p               = 16;
+            s.gradientTest    = LagrangianFunction.create(obj.mesh,1,'P1');
+            obj.perimeter     = PerimeterNormPFunctional(s);
         end
 
         function createCost(obj)
@@ -170,7 +170,7 @@ classdef TopOptTestTutorialDensityVolumePNorm < handle
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
-            s.shapeFunctions{2} = obj.localVolume;
+            s.shapeFunctions{2} = obj.perimeter;
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
