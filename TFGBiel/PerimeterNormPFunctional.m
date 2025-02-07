@@ -23,9 +23,9 @@ classdef PerimeterNormPFunctional < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)   % dJ: integrand field
-            Le    = obj.computeFilteredVariable(x); % rho
-            J     = obj.computeFunction(x,Le);
-            dJ{1} = obj.computeGradient(x,Le);
+            [xD,Le] = obj.computeFilteredVariable(x); % rho
+            J       = obj.computeFunction(xD{1},Le);
+            dJ{1}   = obj.computeGradient(xD{1},Le);
         end
     end
 
@@ -57,9 +57,9 @@ classdef PerimeterNormPFunctional < handle
             obj.filter = f;
         end
 
-        function xD = computeFilteredVariable(obj,x)
+        function [xD,Le] = computeFilteredVariable(obj,x)
             xD = x.obtainDomainFunction();
-            xD = obj.filter.compute(xD{1},3);
+            Le = obj.filter.compute(xD{1},3);
         end
 
         function J = computeFunction(obj,x,Le)

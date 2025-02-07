@@ -170,7 +170,7 @@ classdef TopOptTestTutorialDensityPerimeterPNorm < handle
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
-            s.shapeFunctions{2} = obj.perimeter;
+            s.shapeFunctions{1} = obj.perimeter;
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
