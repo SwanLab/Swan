@@ -15,7 +15,7 @@ classdef GMSHComputer < handle
         end
 
         function compute(obj)
-            filePath = fullfile('tests','Source','ReadingFilesTests','ReadingFiles','testReadingGmsh.msh');
+            filePath = fullfile('Test','ReadingFilesTests','testReadingGmsh.msh');
             reader = GmsReader(filePath);
             reader.read();
             readData = reader.getDataBase();
