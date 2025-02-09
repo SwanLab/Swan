@@ -4,7 +4,7 @@ classdef ProjectorsTestsSuite < handle
 
         function obj = ProjectorsTestsSuite()
             warning('off', 'MATLAB:structOnObject')
-            results = runtests("ProjectorsTests","ProcedureName","testProjectorsInFEM", 'Debug', true);
+            results = runtests("ProjectorsTests","ProcedureName","testProjectorsInFEM", 'Debug', false);
             table(results)
             warning('on', 'MATLAB:structOnObject')
         end
