@@ -1,4 +1,4 @@
-classdef Optimizer_fmincon < Optimizer
+classdef Optimizerfmincon < Optimizer
 
     properties (GetAccess = public, SetAccess = protected)
         type = 'fmincon';
@@ -18,7 +18,7 @@ classdef Optimizer_fmincon < Optimizer
 
     methods (Access = public)
 
-        function obj = Optimizer_fmincon(cParams)
+        function obj = Optimizerfmincon(cParams)
             obj.initOptimizer(cParams);
             obj.init(cParams);
             obj.createProblem();

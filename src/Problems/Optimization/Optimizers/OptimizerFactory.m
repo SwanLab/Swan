@@ -13,7 +13,7 @@ classdef OptimizerFactory < handle
                 case 'DualNestedInPrimal'
                     op = OptimizerBisection(cParams);
                 case 'fmincon'
-                    op = Optimizer_fmincon(cParams);
+                    op = Optimizerfmincon(cParams);
                 case 'NullSpace'
 %                     cParams.optimizerNames.aJmax = 2;
 %                     cParams.optimizerNames.aGmax = 0.05;
