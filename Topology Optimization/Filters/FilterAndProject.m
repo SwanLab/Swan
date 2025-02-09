@@ -7,6 +7,7 @@ classdef FilterAndProject < handle
 
     properties (Access = private)
         mesh
+        xFiltered
     end
     
     methods (Access = public)
@@ -17,10 +18,26 @@ classdef FilterAndProject < handle
         end
 
         function xF = compute(obj,fun,quadOrder)
-            xFiltered  = obj.filter.compute(fun,quadOrder);
-            xFVal      = obj.projector.project(xFiltered);
-            xF         = LagrangianFunction.create(obj.mesh,fun.ndimf,fun.order);
+            obj.xFiltered  = obj.filter.compute(fun,quadOrder);
+            xFVal      = obj.projector.project(obj.xFiltered);
+            xF         = LagrangianFunction.create(obj.mesh,fun.ndimf,'P1');
             xF.setFValues(xFVal);
+        end
+
+        function xF = getFilteredField(obj)
+            xF = obj.xFiltered;
+        end
+
+        function updateBeta(obj, beta)
+            obj.projector.updateBeta(beta);
+        end
+
+        function updateEpsilon(obj,epsilon)
+            obj.filter.updateEpsilon(epsilon);
+        end
+
+        function beta = getBeta(obj)
+            beta = obj.projector.getBeta();
         end
     end
 
@@ -36,7 +53,9 @@ classdef FilterAndProject < handle
         end
 
         function createProjector(obj,cParams)
-            s.eta  = cParams.eta;
+            if isfield(cParams, 'eta')
+                s.eta  = cParams.eta;
+            end
             s.beta = cParams.beta;
             obj.projector = HeavisideProjector(s);
         end

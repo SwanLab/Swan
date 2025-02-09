@@ -140,6 +140,8 @@ classdef OptimizerNullSpace < Optimizer
             end
             obj.monitoring.update(obj.nIter,num2cell(data));
             obj.monitoring.refresh();
+%             obj.obtainGIF('DesignLevelSet', obj.designVariable.fun);
+
         end
 
         function updateEtaParameter(obj)
@@ -229,7 +231,7 @@ classdef OptimizerNullSpace < Optimizer
                 factor = 50;
                 obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
             else
-                factor = 1.05;
+                factor = 1.05; %3.0;%1.05;
                 obj.primalUpdater.increaseStepLength(factor);
             end
         end
@@ -279,7 +281,7 @@ classdef OptimizerNullSpace < Optimizer
                 case 'SLERP'
                     [actg,~] = obj.computeActiveConstraintsGradient();
                     isAlmostFeasible  = norm(actg) < 0.01;
-                    isAlmostOptimal   = obj.primalUpdater.Theta < 0.15;
+                    isAlmostOptimal   = obj.primalUpdater.Theta < 0.15; %4; %15;
                     if isAlmostFeasible && isAlmostOptimal
                         obj.etaMax  = max(obj.etaMax/1.05,obj.etaMaxMin);
                         obj.etaNorm = max(obj.etaNorm/1.1,obj.etaNormMin);

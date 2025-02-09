@@ -31,10 +31,10 @@ classdef SLERP < handle
         end
 
         function computeFirstStepLength(obj,g,ls,~)
-            [lsClass,gClass] = obj.getLevelSetAndGradientForVolume(ls,g);
-            V0 = obj.volume.computeFunctionAndGradient(lsClass);
+            [lsClass,gClass] = obj.getLevelSetAndGradientForVolume(ls{1},g);
+            V0 = obj.volume.computeFunctionAndGradient({lsClass,ls{2}});
             if abs(V0-1) <= 1e-10
-                obj.computeLineSearchInBounds(gClass,lsClass);
+                obj.computeLineSearchInBounds(gClass,{lsClass,ls{2}});
             else
                 obj.tau = 0.1;
             end
@@ -102,9 +102,9 @@ classdef SLERP < handle
         end
 
         function V = computeVolumeFromTau(obj,g,ls)
-            lsAux = ls.copy();
+            lsAux = ls{1}.copy();
             lsAux = obj.update(g,lsAux);
-            V     = obj.volume.computeFunctionAndGradient(lsAux);
+            V     = obj.volume.computeFunctionAndGradient({lsAux,ls{2}});
         end
 
         function fN = createNormalizedGradient(obj,ls,fV)

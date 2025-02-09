@@ -8,6 +8,7 @@ classdef StiffnesEigenModesConstraint < handle
         filteredDesignVariable
         iter
         filter
+        value0
     end
     
     methods (Access = public)
@@ -23,17 +24,17 @@ classdef StiffnesEigenModesConstraint < handle
         
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             iter = x{2};
-   
-%             if iter > 0 && iter > obj.iter && mod(iter,20)== 0 && obj.targetEigenValue < 2.0
-%                 obj.iter = iter;
-% %                 obj.targetEigenValue = 2.5;
-%                 obj.targetEigenValue = obj.targetEigenValue + 0.5;
-%             end
 %    
+            if iter > 0 && iter > obj.iter && mod(iter,20)== 0 && obj.targetEigenValue < 2.0
+                obj.iter = iter;
+%                 obj.targetEigenValue = 2.5;
+                obj.targetEigenValue = obj.targetEigenValue + 0.2;
+                disp(obj.targetEigenValue);
+            end
+   
             [lambda,dlambda] = obj.eigenModesFunctional.computeFunctionAndGradient(x);
-
             J      = obj.computeFunction(lambda);
-            dJ     = obj.computeGradient(dlambda);
+            dJ{1}     = obj.computeGradient(dlambda);
         end  
 
         function t = getTargetEigenValue(obj)
@@ -83,10 +84,14 @@ classdef StiffnesEigenModesConstraint < handle
 
         function J = computeFunction(obj,lambda)
               J    = (obj.targetEigenValue - lambda);
+              if isempty(obj.value0)
+                obj.value0 = abs(J);
+              end
+              J = J/obj.value0;
         end
 
         function dJ = computeGradient(obj, dlambda)
-            fValues = - dlambda.fValues;
+            fValues = - dlambda.fValues/obj.value0;
             dJ      = FeFunction.create(dlambda.order,fValues,obj.mesh);            
         end
 

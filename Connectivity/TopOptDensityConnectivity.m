@@ -18,27 +18,35 @@ classdef TopOptDensityConnectivity < handle
         optimizer
         minimumEigenValue
         perimeter
+        gJ
+        lambda1min
     end
 
     methods (Access = public)
 
         function obj = TopOptDensityConnectivity()
-            obj.init()
-            obj.createMesh();
-            obj.createDesignVariable();
-            obj.createFilterCompliance();
-            obj.createFilterConnectivity();
-            obj.createMaterialInterpolator();
-            obj.createElasticProblem();
-            obj.createComplianceFromConstiutive();
-            obj.createCompliance();
-            obj.createPerimeter();
-            obj.createEigenValueConstraint();                             
-            obj.createVolumeConstraint();
-            obj.createCost();
-            obj.createConstraint();
-            obj.createDualVariable();
-            obj.createOptimizer();
+%             for gJ = [0.2, 1.0, 2.0]
+                for lambda1min = [0.05]
+%                     obj.gJ = gJ;
+                    obj.lambda1min = lambda1min;        
+                    obj.init()
+                    obj.createMesh();
+                    obj.createDesignVariable();
+                    obj.createFilterCompliance();
+                    obj.createFilterConnectivity();
+                    obj.createMaterialInterpolator();
+                    obj.createElasticProblem();
+                    obj.createComplianceFromConstiutive();
+                    obj.createCompliance();
+                    obj.createPerimeter();
+                    obj.createEigenValueConstraint();                             
+                    obj.createVolumeConstraint();
+                    obj.createCost();
+                    obj.createConstraint();
+                    obj.createDualVariable();
+                    obj.createOptimizer();
+                end
+%             end
         end
 
     end
@@ -76,17 +84,17 @@ classdef TopOptDensityConnectivity < handle
 %             s.filterType = 'FilterAndProject';
 %             s.mesh       = obj.mesh;
 %             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-%             s.filterStep = 'PDE';
-%             s.beta       = 1.0;
-%             s.eta        = 0.5;
+%             s.filterStep = 'LUMP';
+%             s.beta       = 2.0;
+% %             s.eta        = 0.5;
 %             obj.filterComp = Filter.create(s);
 %             
 %             s.filterType = 'FilterAdjointAndProject';   
 %             s.mesh       = obj.mesh;
 %             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
 %             s.filterStep = 'LUMP';
-%             s.beta       = 1.0;
-%             s.eta        = 0.5;
+%             s.beta       = 2.0;
+% %             s.eta        = 0.5;
 %             obj.filterAdjointComp = Filter.create(s);
 
             s.filterType = 'LUMP';
@@ -102,7 +110,7 @@ classdef TopOptDensityConnectivity < handle
 %             s.mesh       = obj.mesh;
 %             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
 %             s.filterStep = 'LUMP';
-%             s.beta       = 5.0;
+%             s.beta       = 6.0;
 %             s.eta        = 0.5;
 %             obj.filterConnect = Filter.create(s);
 % 
@@ -110,7 +118,7 @@ classdef TopOptDensityConnectivity < handle
 %             s.mesh       = obj.mesh;
 %             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
 %             s.filterStep = 'LUMP';
-%             s.beta       =  5.0;
+%             s.beta       = 6.0;
 %             s.eta        = 0.5;
 %             obj.filterAdjointConnect = Filter.create(s);
 
@@ -146,6 +154,7 @@ classdef TopOptDensityConnectivity < handle
             f = obj.designVariable.fun;           
             s.type                 = 'DensityBased';
             s.density              = f;
+            s.mesh                 = obj.mesh;
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '2D';
             m = Material.create(s);
@@ -207,9 +216,12 @@ classdef TopOptDensityConnectivity < handle
             s.designVariable    = obj.designVariable;
             s.filter            = obj.filterConnect;
             s.filterAdjoint     = obj.filterAdjointConnect;   
-            s.targetEigenValue  = 0.5;      
+            s.targetEigenValue  = obj.lambda1min;      
             s.shift             = 0.0;
             obj.minimumEigenValue = StiffnesEigenModesConstraint(s);
+%             eigen = StiffnessEigenModesComputer(s);
+%             s.eigenModes = eigen;
+%             obj.minimumEigenValue = MinimumEigenValueFunctional(s);
         end
 
         function createConstraint(obj)
@@ -222,7 +234,8 @@ classdef TopOptDensityConnectivity < handle
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
             s.shapeFunctions{2} = obj.perimeter;
-            s.weights           = [1.0; 0.0];
+%             s.shapeFunctions{3} = obj.minimumEigenValue;
+            s.weights           = [1.0; 0.0]; %; -1.0];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -252,19 +265,27 @@ classdef TopOptDensityConnectivity < handle
             s.tolerance      = 1e-8;
             s.constraintCase{1} = 'EQUALITY';
             s.constraintCase{2} = 'INEQUALITY';                             
-%             s.ub             = 1;
-%             s.lb             = 0;
-%             opt              = OptimizerMMA(s);
-%             opt.solveProblem();
-%             obj.optimizer = opt;
-            s.primal         = 'PROJECTED GRADIENT';
             s.ub             = 1;
             s.lb             = 0;
-            s.etaNorm        = 0.01;
-            s.gJFlowRatio    = 5.0;
-            opt = OptimizerNullSpace(s);
+            opt              = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
+
+%             s.primal         = 'SLERP';
+%             s.ub             = inf;
+%             s.lb             = -inf;
+%             s.etaNorm        = 0.02;
+%             s.etaNormMin     = 0.02;
+%             s.gJFlowRatio    = obj.gJ;
+%             s.etaMax         = 1;
+%             s.etaMaxMin      = 0.01;
+%             s.filter         = obj.filterComp;
+%             opt = OptimizerNullSpace(s);
+%             opt.solveProblem();
+%             obj.optimizer = opt;
+            saveas(figure(1),'DEN1e-3lambda1min'+string(obj.lambda1min)+'design.png','png')
+            saveas(figure(2),'DEN1e-3lambda1min'+string(obj.lambda1min)+'graficos.png','png')
+            writematrix(obj.designVariable.fun.fValues,'DEN1e-3lambda1min'+string(obj.lambda1min)+'.txt')
         end
 
         function bc = createBoundaryConditions(obj)

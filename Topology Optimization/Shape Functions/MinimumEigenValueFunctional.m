@@ -27,9 +27,6 @@ classdef MinimumEigenValueFunctional < handle
             x = x{1};
 
 %             if iter > obj.iter
-%                 if iter == 40 || iter == 100 || iter == 200 || iter == 400 || iter == 430 || iter == 460
-%                     disp('save')
-%                 end
 %                 obj.iter = iter;
 %                 beta = obj.filter.getBeta();
 %                 if iter >= 20 && mod(iter,20)== 0 && beta <= 10
@@ -50,6 +47,7 @@ classdef MinimumEigenValueFunctional < handle
                     dfdx.fValues       = dfdx.fValues.*sensitVals;
                 else
                     dfdx     = obj.filter.compute(dfdx,2);
+%                     dfdx2{1} = dfdx;
                 end
             else
                 dfdx     = dfdx.project('P1',obj.mesh);
@@ -76,7 +74,7 @@ classdef MinimumEigenValueFunctional < handle
         end
 
         function dV = getGradientUN(obj)
-            dV = obj.gradientUN.project('P1',obj.mesh);
+            dV = obj.gradientUN;
         end
 
         function eigenF = getDirichletEigenMode(obj)
@@ -112,8 +110,8 @@ classdef MinimumEigenValueFunctional < handle
                 obj.density = densHole;
             else
                 xD  = x.obtainDomainFunction();             % rho
-                xR = obj.filterDesignVariable(xD);          % FP rho
-                xR.fValues = 1 - xR.fValues;                % 1 - FP rho
+                xR = obj.filterDesignVariable(xD{1});       % FP rho
+                xR.setFValues(1 - xR.fValues);              % 1 - FP rho
                 obj.density = xR;
             end
 %             s.fun  = obj.density;
@@ -139,12 +137,16 @@ classdef MinimumEigenValueFunctional < handle
                 xR = obj.filter.compute(x,2);
             end
             if ~isempty(obj.filterAdjoint)
-                xFiltered = obj.filter.onlyFilter(x,2);
+                xFiltered = obj.filter.getFilteredField();
                 obj.filterAdjoint.updateFilteredField(xFiltered);
             end
         end
 
     end
     
-    
+    methods (Static, Access = public)
+        function title = getTitleToPlot()
+            title = 'MinimumEigenvalue';
+        end
+    end  
 end

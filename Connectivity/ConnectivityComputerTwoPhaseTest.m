@@ -32,7 +32,7 @@ classdef ConnectivityComputerTwoPhaseTest < handle
             obj.createDesignVariable(); 
             obj.createFilterConnectivity();
             obj.computeEigenvaluesWithDifferentParameters();
-            obj.createPlot();
+%             obj.createPlot();
         end
     end
 
@@ -76,6 +76,7 @@ classdef ConnectivityComputerTwoPhaseTest < handle
             g             = GeometricalFunction(s);
             phi           = g.computeLevelSetFunction(obj.mesh);
             obj.levelSet = phi;
+            obj.levelSet.setFValues(importdata('1e-35lambda1min1gJ2.txt'))
         end
 
         function createCharacteristicFunction(obj)
@@ -87,23 +88,30 @@ classdef ConnectivityComputerTwoPhaseTest < handle
         end
 
         function createDesignVariable(obj)
-            s.fun  = obj.filter.compute(obj.characteristicFunction,3);
-            s.fValues = round(obj.characteristicFunction.project('P1').fValues);
-            s.mesh    = obj.mesh;
-            s.order   = 'P1';
-            s.fun = LagrangianFunction(s);
+%             s.fun  = obj.filter.compute(obj.characteristicFunction,3);
+%             s.fValues = round(obj.characteristicFunction.project('P1').fValues);
+%             s.mesh    = obj.mesh;
+%             s.order   = 'P1';
+%             s.fun = LagrangianFunction(s);
 
 %             cant = LagrangianFunction.create(obj.mesh,1,'P1');
-%             cant.fValues = importdata('optCantConnect.txt');
+%             cant.setFValues(importdata('cantilever.txt'));
 %             cant.fValues = importdata('optBridgeConnect.txt');
 %             s.fun = cant;    
 
+%             s.mesh = obj.mesh;
+%             s.type = 'Density';
+%             s.plotting = true;
+%             dens    = DesignVariable.create(s);
+%             dens.plot();
+%             obj.designVariable = dens;
+
+            s.fun  = obj.levelSet;
             s.mesh = obj.mesh;
-            s.type = 'Density';
+            s.type = 'LevelSet';
             s.plotting = true;
-            dens    = DesignVariable.create(s);
-            dens.plot();
-            obj.designVariable = dens;
+            ls     = DesignVariable.create(s);
+            obj.designVariable = ls;
         end
 
         function createFilter(obj)
@@ -183,6 +191,7 @@ classdef ConnectivityComputerTwoPhaseTest < handle
                 [lambda, phi] = obj.computeEigenValueFunctional(n, epsilon, 8);
                 eigVs = [eigVs; lambda'];
                 eigFs = [eigFs; phi];
+                eigVs'
                 j = j + 1;
             end
             obj.eigVs = eigVs;

@@ -7,8 +7,11 @@ classdef ComplianceFunctional < handle
     properties (Access = private)
         mesh
         filter
+        filterAdjoint
         compliance
         material
+        iter
+        filteredDesignVariable
     end
 
     methods (Access = public)
@@ -17,10 +20,36 @@ classdef ComplianceFunctional < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
+            iter = x{2};
+            x = x{1};
+% 
+%             if iter > obj.iter
+%                 obj.iter = iter;
+%                 beta = obj.filter.getBeta();
+%                 if iter >= 400 && mod(iter,20)== 0 && beta <= 40
+%                     obj.filter.updateBeta(beta*2.0);
+%                     obj.filterAdjoint.updateBeta(beta*2.0);
+%                 end
+%             end  
+
             xD  = x.obtainDomainFunction();
             xR = obj.filterFields(xD);
             obj.material.setDesignVariable(xR);
             [J,dJ] = obj.computeComplianceFunctionAndGradient(x);
+
+            obj.filteredDesignVariable = xR{1};
+        end
+
+        function beta = getBeta(obj)
+            beta = obj.filter.getBeta();
+        end
+
+        function x = getDesignVariable(obj)
+            x = obj.filteredDesignVariable;
+        end
+
+        function x = getGradient(obj)
+            x = obj.gradient;
         end
 
     end
@@ -34,6 +63,10 @@ classdef ComplianceFunctional < handle
             if isfield(cParams,'value0')
                 obj.value0 = cParams.value0;
             end
+            if isfield(cParams,'filterAdjoint')
+                obj.filterAdjoint = cParams.filterAdjoint;            
+            end
+            obj.iter = 0;
         end
 
         function xR = filterFields(obj,x)
@@ -41,6 +74,10 @@ classdef ComplianceFunctional < handle
             xR      = cell(nDesVar,1);
             for i = 1:nDesVar
                 xR{i} = obj.filter.compute(x{i},2);
+                if ~isempty(obj.filterAdjoint)
+                    xFiltered = obj.filter.getFilteredField();
+                    obj.filterAdjoint.updateFilteredField(xFiltered);
+                end
             end
         end
 
@@ -49,7 +86,11 @@ classdef ComplianceFunctional < handle
             dC  = obj.material.obtainTensorDerivative();
             dC  = ChainRule.compute(x,dC);
             [J,dJ] = obj.compliance.computeFunctionAndGradient(C,dC);
-            dJ     = obj.filterFields(dJ);
+            if ~isempty(obj.filterAdjoint)
+                dJ{1}     = obj.filterAdjoint.compute(dJ{1},2);
+            else
+                dJ{1}     = obj.filter.compute(dJ{1},2);
+            end
             if isempty(obj.value0)
                 obj.value0 = J;
             end
