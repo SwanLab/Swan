@@ -4,7 +4,7 @@ classdef RemeshingTestsSuite < handle
 
         function obj = RemeshingTestsSuite()
             warning('off', 'MATLAB:structOnObject')
-            results = runtests("RemeshingTests","Tag","Remesh", 'Debug', true);
+            results = runtests("RemeshingTests","Tag","Remesh", 'Debug', false);
             table(results)
             warning('on', 'MATLAB:structOnObject')
         end
