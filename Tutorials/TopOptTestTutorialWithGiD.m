@@ -121,7 +121,7 @@ classdef TopOptTestTutorialWithGiD < handle
         function c = createComplianceFromConstiutive(obj)
             s.mesh         = obj.mesh;
             s.stateProblem = obj.physicalProblem;
-            c = ComplianceFromConstiutiveTensor(s);
+            c = ComplianceFromConstitutiveTensor(s);
         end
 
         function createCompliance(obj)
@@ -154,7 +154,7 @@ classdef TopOptTestTutorialWithGiD < handle
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             s.mesh  = obj.mesh;
             s.type  = 'MassMatrix';
-            LHS = LHSintegrator.create(s);
+            LHS = LHSIntegrator.create(s);
             M = LHS.compute;     
         end
 
@@ -187,7 +187,7 @@ classdef TopOptTestTutorialWithGiD < handle
         end
 
         function newbcGiD = createBoundaryConditions(obj)
-            femReader = FemInputReader_GiD();
+            femReader = FemInputReaderGiD();
             s         = femReader.read(obj.filename);
             sPL       = obj.computeCondition(s.pointload);
             sDir      = obj.computeCondition(s.dirichlet);
