@@ -47,7 +47,7 @@ classdef Mesh < handle
         end
         
         function obj = createFromGiD(filename)
-            reader = FemInputReader_GiD();
+            reader = FemInputReaderGiD();
             a = reader.read(filename);
             obj = a.mesh;
         end

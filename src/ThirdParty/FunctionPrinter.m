@@ -11,9 +11,9 @@ classdef FunctionPrinter < handle
             if isfield(cParams, 'type')
                 switch cParams.type
                     case {'GiD', 'Gid', 'gid', 'GID'}
-                        obj = FunctionPrinter_GiD(cParams);
+                        obj = FunctionPrinterGiD(cParams);
                     case {'Paraview', 'paraview', 'pvw', 'pv'}
-                        obj = FunctionPrinter_Paraview(cParams);
+                        obj = FunctionPrinterParaview(cParams);
                 end
             else
                 % Default case

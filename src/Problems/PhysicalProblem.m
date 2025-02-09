@@ -7,7 +7,7 @@ classdef PhysicalProblem < handle
     methods (Access = public)
         
         function obj = PhysicalProblem()
-            obj.inputReader = FemInputReader_GiD();
+            obj.inputReader = FemInputReaderGiD();
         end
         
     end

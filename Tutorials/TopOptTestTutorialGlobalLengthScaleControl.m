@@ -124,7 +124,7 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
         function c = createComplianceFromConstiutive(obj)
             s.mesh         = obj.mesh;
             s.stateProblem = obj.physicalProblem;
-            c = ComplianceFromConstiutiveTensor(s);
+            c = ComplianceFromConstitutiveTensor(s);
         end
 
         function createComplianceConstraint(obj)
@@ -168,7 +168,7 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             s.mesh  = obj.mesh;
             s.type  = 'MassMatrix';
-            LHS = LHSintegrator.create(s);
+            LHS = LHSIntegrator.create(s);
             M = LHS.compute;
         end
 

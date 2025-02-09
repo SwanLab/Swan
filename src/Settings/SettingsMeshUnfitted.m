@@ -37,7 +37,7 @@ classdef SettingsMeshUnfitted < AbstractSettings
         function createBackgroundMesh(obj)
             if ischar(obj.backgroundMesh)
                 fileName = obj.backgroundMesh;
-                femReader = FemInputReader_GiD();
+                femReader = FemInputReaderGiD();
                 s = femReader.read(fileName);
                 obj.backgroundMesh = s.mesh;
             end

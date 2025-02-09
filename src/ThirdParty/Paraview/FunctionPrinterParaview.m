@@ -1,4 +1,4 @@
-classdef FunctionPrinter_Paraview < handle
+classdef FunctionPrinterParaview < handle
     
     % Its output is a .vtu file. It can represent both simple fields (and
     % supposedly data at Gaussian points).
@@ -24,7 +24,7 @@ classdef FunctionPrinter_Paraview < handle
     
     methods (Access = public)
         
-        function obj = FunctionPrinter_Paraview(cParams)
+        function obj = FunctionPrinterParaview(cParams)
             obj.init(cParams);
             obj.openFile();
         end

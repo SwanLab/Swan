@@ -187,7 +187,7 @@ classdef TopOptTestMultiLoadBridge < handle
         function c = createComplianceFromConstiutive(obj,physicalProblem)
             s.mesh         = obj.mesh;
             s.stateProblem = physicalProblem;
-            c              = ComplianceFromConstiutiveTensor(s);
+            c              = ComplianceFromConstitutiveTensor(s);
         end
 
         function createComplianceLeft(obj)

@@ -1,4 +1,4 @@
-classdef FunctionPrinter_GiD < handle
+classdef FunctionPrinterGiD < handle
     
     properties (Access = public)
         
@@ -18,7 +18,7 @@ classdef FunctionPrinter_GiD < handle
     
     methods (Access = public)
         
-        function obj = FunctionPrinter_GiD(cParams)
+        function obj = FunctionPrinterGiD(cParams)
             obj.init(cParams)
         end
 
