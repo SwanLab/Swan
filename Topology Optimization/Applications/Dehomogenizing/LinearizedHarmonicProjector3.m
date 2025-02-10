@@ -79,7 +79,7 @@ classdef LinearizedHarmonicProjector3 < handle
         end
 
         function difB = evaluateLossResidual(obj,bBar,b)
-            difB = abs(b - bBar);
+            difB = norm(b - bBar,2);
         end
 
         function bR = createReshapedFunction(obj,b)
@@ -257,13 +257,17 @@ classdef LinearizedHarmonicProjector3 < handle
         end
 
         function RHS = computeRHS(obj,bI)
-            Mbb  = obj.massMatrixBB;
-            Mgg  = obj.massMatrixGG;
-            bI1  = bI{1};
-            bI2  = bI{2};
+            s.mesh = obj.mesh;
+            s.quadType = 2;
+            s.type = 'ShapeFunction';
+            test = bI;
+            rhs  = RHSintegrator.create(s);
+            rhsB = rhs.compute(bI,test);
+            rhsB = reshape(rhsB,2,[])';
+            rhsB = rhsB(:);  
             Zs   = zeros(size(obj.internalDOFs,2),1);
             Ig    = ones(obj.fG.nDofs,1);
-            RHS  = [Mbb*bI1.fValues;Mbb*bI2.fValues;Zs;Mgg*Ig];
+            RHS  = [rhsB;Zs;Mgg*Ig];
         end
 
         function Ared = computeReducedAdvectionMatrix(obj,A)

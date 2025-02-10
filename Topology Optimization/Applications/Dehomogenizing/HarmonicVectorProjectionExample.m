@@ -228,23 +228,38 @@ classdef HarmonicVectorProjectionExample < handle
         function resHNorm = plotAll(obj,h,bBar,b)
             [resL,resH,resB,resG] = h.evaluateAllResiduals(bBar,b);
 
-            a1   = obj.createHalfOrientationVectorP1(b);
-            figure()
+            a1   = obj.createHalfOrientationVectorP1(b);            
             s.mesh        = obj.mesh;
             s.orientation = a1;
             sC = SingularitiesComputer(s);
             sCf = sC.compute();
-            sCf.plot();
+            plot(sCf);
             title('Singularities')
-            resL.plot
+            plot(resL)
             title('L2Distance')
-            resH.plot
+            plot(resH)
             title('Harmonicity')
-            resB.plot
+            plot(resB)
             title('UnitBall')
-            resG.plot
+            plot(resG)
             title('Gradient')
-            resHNorm = resH.computeL2norm();
+            resHNorm = L2norm(resH);
+
+            figHandles = findall(groot, 'Type', 'figure');
+            numFigures = length(figHandles);
+            figure; tiledlayout(ceil(sqrt(numFigures)), ceil(sqrt(numFigures)));
+
+            for i = 1:numFigures
+                nexttile;
+                axesHandles = findall(figHandles(i), 'Type', 'axes');
+                copyobj(get(axesHandles, 'Children'), gca);
+                title(get(axesHandles, 'Title').String);
+                xlabel(get(axesHandles, 'XLabel').String);
+                ylabel(get(axesHandles, 'YLabel').String);
+                colorbar
+                close(figHandles(i));    
+            end
+
         end
 
         function harmonizeWithPenalizedHarmonizity(obj)
@@ -353,12 +368,6 @@ classdef HarmonicVectorProjectionExample < handle
             bNew = h.solveProblem(bBar,bInit);
             obj.plotAll(h,bBar,bNew);
             a1   = obj.createHalfOrientationVectorP1(bNew);
-        end
-
-
-        function [v,lambda] = solveProblem(obj,rho,alpha0,vH)
-           h  = obj.harmonicProjector;
-           [v,lambda] = h.solveProblem(rho,alpha0,vH);
         end
 
         function alpha = projectInHarmonicSpace(obj,alpha)
