@@ -79,12 +79,9 @@ classdef HarmonicVectorProjectionExample < handle
 
         function createOrientationVector(obj)
             sigma0  = obj.getSigma0FromData();
-            sigma0V(1,:,:) = sigma0.fValues';
-            [a1,a2] = obj.obtainPrincipalDirections(sigma0V);   
-            a{1} = obj.createP1DiscontinousOrientation(a1);
-            a{1} = obj.projectInUnitBall(a{1});
-            a{2} = obj.createP1DiscontinousOrientation(a2);
-            a{2} = obj.projectInUnitBall(a{2}); 
+            s1 = project(sigma0,'P1');
+            %sigma0V(1,:,:) = sigma0.fValues';
+            a = obj.obtainPrincipalDirections(s1);               
             obj.orientationVector = a;
         end
              
@@ -96,14 +93,13 @@ classdef HarmonicVectorProjectionExample < handle
             sigma0 = LagrangianFunction(s);
         end
 
-        function [a1,a2] = obtainPrincipalDirections(obj,sigma)
+        function a = obtainPrincipalDirections(obj,sigma)
             s.type = '2D';
             s.eigenValueComputer.type = 'PRECOMPUTED';
             pcomp = PrincipalDirectionComputer.create(s);
-            pcomp.compute(sigma);
-            a = pcomp.direction;
-            a1 = a(:,1,:);
-            a2 = a(:,2,:);
+            [a,~] = pcomp.compute(sigma);
+            a{1} = obj.projectInUnitBall(a{1});
+            a{2} = obj.projectInUnitBall(a{2});
         end
 
         function aF = createP1DiscontinousOrientation(obj,a)
@@ -199,7 +195,7 @@ classdef HarmonicVectorProjectionExample < handle
             bV(:,2) = sin(beta);       
             s.fValues = bV;
             s.mesh    = obj.mesh;
-            s.order   = 'P1D';
+            s.order   = 'P1';
             b = LagrangianFunction(s);
         end
   
@@ -216,17 +212,6 @@ classdef HarmonicVectorProjectionExample < handle
             a = LagrangianFunction(s);
         end    
 
-        function rho = computeRho(obj)            
-            %rho = obj.experimentData.dataRes.DensityGauss;           
-            %rho = obj.interpolateOrientationComponent(rho);
-            rhoV = zeros(size(obj.mesh.coord(:,1)));
-            rhoV(:) = 0.5;
-            s.fValues = rhoV;
-            s.mesh    = obj.mesh;
-            s.order   = 'P1';
-            rho = LagrangianFunction(s);
-        end
-
         function a1 = createHalfOrientationVectorP1(obj,b1)
             bX = b1.fValues(:,1);
             bY = b1.fValues(:,2);
@@ -236,7 +221,7 @@ classdef HarmonicVectorProjectionExample < handle
             aV(:,2) = sin(alpha);
             s.fValues = aV;
             s.mesh    = obj.mesh;
-            s.order   = 'P0';
+            s.order   = 'P1';
             a1 = LagrangianFunction(s);
         end
 
@@ -244,14 +229,12 @@ classdef HarmonicVectorProjectionExample < handle
             [resL,resH,resB,resG] = h.evaluateAllResiduals(bBar,b);
 
             a1   = obj.createHalfOrientationVectorP1(b);
-            a1 = obj.projectInUnitBall(a1.fValues);
-            a1 = obj.createFunctionP1(a1);
             figure()
             s.mesh        = obj.mesh;
             s.orientation = a1;
             sC = SingularitiesComputer(s);
-            sC.compute();
-            sC.plot();
+            sCf = sC.compute();
+            sCf.plot();
             title('Singularities')
             resL.plot
             title('L2Distance')
@@ -265,37 +248,30 @@ classdef HarmonicVectorProjectionExample < handle
         end
 
         function harmonizeWithPenalizedHarmonizity(obj)
-            bInit = obj.obtainInitialOrientationVector();        
+            bInit = obj.obtainInitialOrientationVector();
             bBar  = bInit;
 
             epsilons = linspace(0,1,3);
-           
+
             for i = 1:length(epsilons)
+                n
                 epsilon = epsilons(i);
-                
+
                 for k = 1:1
-                h = obj.createHarmonicProjectionWithPenalizedHarmonizity(epsilon);
+                    h = obj.createHarmonicProjectionWithPenalizedHarmonizity(epsilon);
 
-                obj.plotAll(h,bBar,bInit);
-                bNew = h.solveProblem(bBar,bInit);
-                obj.plotAll(h,bBar,bNew);
+                    obj.plotAll(h,bBar,bInit);
+                    bNew = h.solveProblem(bBar,bInit);
+                    obj.plotAll(h,bBar,bNew);
 
+                    hnorm(i) = obj.plotAll(h,bBar,bNew);
+                    for j = 1:i
+                        disp(['epsilon ',num2str(epsilons(j)),' hNorm ',num2str(hnorm(j))])
+                    end
+                    close all
 
-                a1 = obj.createHalfOrientationVectorP1(bNew);
-                a1 = obj.projectInUnitBall(a1.fValues);
-                a1 = obj.createFunctionP1(a1);
-                bNewP = obj.createDobleOrientationVectorP1(a1);
-
-
-
-                hnorm(i) = obj.plotAll(h,bBar,bNewP);
-                for j = 1:i
-                disp(['epsilon ',num2str(epsilons(j)),' hNorm ',num2str(hnorm(j))])
+                    bInit = bNew;
                 end
-                close all
-
-                bInit = bNew;
-                end                
 
             end
 
@@ -312,43 +288,43 @@ classdef HarmonicVectorProjectionExample < handle
             a{2}           = LagrangianFunction(s);
 
             obj.harmonicVector = a;
-            
+
 
         end
 
         function harmonizeWithPenalizedUnitNorm(obj)
 
-            bInit = obj.obtainInitialOrientationVector();        
+            bInit = obj.obtainInitialOrientationVector();
             bBar  = bInit;
 
             epsilons = linspace(0,1,3);
-           
+
             for i = 1:length(epsilons)
                 epsilon = epsilons(i);
-                
+
                 for k = 1:1
-                h = obj.createHarmonicProjectionWithPenalizedUnitNorm(epsilon);
+                    h = obj.createHarmonicProjectionWithPenalizedUnitNorm(epsilon);
 
-                obj.plotAll(h,bBar,bInit);
-                bNew = h.solveProblem(bBar,bInit);
-                obj.plotAll(h,bBar,bNew);
-
-
-                a1 = obj.createHalfOrientationVectorP1(bNew);
-                a1 = obj.projectInUnitBall(a1.fValues);
-                a1 = obj.createFunctionP1(a1);
-                bNewP = obj.createDobleOrientationVectorP1(a1);
+                    obj.plotAll(h,bBar,bInit);
+                    bNew = h.solveProblem(bBar,bInit);
+                    obj.plotAll(h,bBar,bNew);
 
 
+                    a1 = obj.createHalfOrientationVectorP1(bNew);
+                    a1 = obj.projectInUnitBall(a1.fValues);
+                    a1 = obj.createFunctionP1(a1);
+                    bNewP = obj.createDobleOrientationVectorP1(a1);
 
-                hnorm(i) = obj.plotAll(h,bBar,bNewP);
-                for j = 1:i
-                disp(['epsilon ',num2str(epsilons(j)),' hNorm ',num2str(hnorm(j))])
+
+
+                    hnorm(i) = obj.plotAll(h,bBar,bNewP);
+                    for j = 1:i
+                        disp(['epsilon ',num2str(epsilons(j)),' hNorm ',num2str(hnorm(j))])
+                    end
+                    close all
+
+                    bInit = bNew;
                 end
-                close all
-
-                bInit = bNew;
-                end                
 
             end
 
@@ -363,59 +339,20 @@ classdef HarmonicVectorProjectionExample < handle
             a{2}           = LagrangianFunction(s);
 
             obj.harmonicVector = a;
-            
 
-               
         end
 
         function harmonize(obj)
-
-            a  = obj.orientationVector();
-            a1 = a{1};
-            bInit = obj.createDobleOrientationVectorP1(a1);             
+            a     = obj.orientationVector();
+            a1    = a{1};
+            bInit = obj.createDobleOrientationVectorP1(a1);
             bBar  = bInit;
-
-            h = obj.createHarmonicProjection();
-
-               
-            for k = 1:1
-
-                obj.plotAll(h,bBar,bInit);
-                bNew = h.solveProblem(bBar,bInit);
-                obj.plotAll(h,bBar,bNew);
-
-
-                a1 = obj.createHalfOrientationVectorP1(bNew);
-                a1 = obj.projectInUnitBall(a1);
-                bNewP = obj.createDobleOrientationVectorP1(a1);
-
-
-
-                hnorm(k) = obj.plotAll(h,bBar,bNewP);
-                for j = 1:k
-                    disp(['kIter ',num2str(k),' hNorm ',num2str(hnorm(j))])
-                end
-                close all
-
-                bInit = bNew;
-            end
-
-
-
-
-            a{1} = a1;
-
-            s.fValues(:,2) = a1.fValues(:,1);
-            s.fValues(:,1) = -a1.fValues(:,2);
-            s.mesh         = obj.mesh;
-            s.order        = 'P1';
-            a{2}           = LagrangianFunction(s);
-
-            obj.harmonicVector = a;
-
-
-
-
+            h     = obj.createHarmonicProjection();
+    
+            obj.plotAll(h,bBar,bInit);
+            bNew = h.solveProblem(bBar,bInit);
+            obj.plotAll(h,bBar,bNew);
+            a1   = obj.createHalfOrientationVectorP1(bNew);
         end
 
 

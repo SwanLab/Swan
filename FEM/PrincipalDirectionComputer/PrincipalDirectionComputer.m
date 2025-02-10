@@ -1,10 +1,5 @@
 classdef PrincipalDirectionComputer < handle
-   
-   properties (Access = public)
-       direction 
-       principalStress
-   end
-   
+     
    properties (Access = protected)
        eigenComputer
        ndim

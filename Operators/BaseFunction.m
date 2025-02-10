@@ -206,7 +206,7 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
         function r = norm(a,b)
             aOp = BaseFunction.computeOperation(a);
             s.operation = @(xV) pagenorm(aOp(xV),b);
-            s.ndimf = a.ndimf;            
+            s.ndimf = 1;            
             s.mesh  = a.mesh;
             r = DomainFunction(s);
         end

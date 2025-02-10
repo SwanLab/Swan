@@ -100,41 +100,23 @@ classdef LinearizedHarmonicProjector3 < handle
             rhsV = rhs.compute(f,test);
             rhsV(obj.boundaryNodes) = 0;
             Mgg = obj.massMatrixGG; 
-            hf = Mgg\rhsV;
-
-            Kb1 = obj.createStiffNessMatrixWithFunction(b1);
-            Kb2 = obj.createStiffNessMatrixWithFunction(b2);
-            Nb1 = obj.createAdvectionMatrixWithFunction(b1);
-            Nb2 = obj.createAdvectionMatrixWithFunction(b2);
-            b1V = b1.fValues;
-            b2V = b2.fValues;
-            resV = (-Kb2'+Nb2')*b1V + (Kb1'-Nb1')*b2V;
-            resV(obj.boundaryNodes) = 0;
-            resH = obj.createP1Function(abs(resV));
+            hf = (Mgg)\rhsV;
+            resH = obj.createP1Function(abs(hf));
         end
 
         function resB = evaluateUnitNormResidual(obj,b)
-            nB   = obj.computeUnitNormFunction(b);
-            resB = obj.createP1Function(abs(nB));
+            nB  = obj.computeUnitNormFunction(b);
+            Mgg = obj.massMatrixGG; 
+            nBf = (Mgg)\nB;            
+            resB = obj.createP1Function(abs(nBf));
         end
 
         function resG = evaluteGradientNorm(obj,b)
-            quad = Quadrature.set(obj.mesh.type);
-            quad.computeQuadrature('QUADRATICMASS');
-            xV = quad.posgp;
-            bs = b.getVectorFields;
-            b1  = bs{1};%obj.createScalarFunctions(b,1);
-            b2  = bs{1};%obj.createScalarFunctions(b,2);
-            db1 = b1.evaluateGradient(xV);
-            db2 = b2.evaluateGradient(xV);
-            db1V = db1.fValues;
-            db2V = db2.fValues;
-            grad = db1V.*db1V + db2V.*db2V;
-            db   = sum(grad,1);
-            s.fValues = db;
-            s.mesh    = obj.mesh;
-            s.quadrature = xV;
-            resG = FGaussDiscontinuousFunction(s);
+            bS = b.getVectorFields;
+            b1  = bS{1};
+            b2  = bS{2};
+            grad = norm(Grad(b1).*Grad(b1)+Grad(b2).*Grad(b2),2);
+            resG = project(grad,'P1D');
         end
     end
 
