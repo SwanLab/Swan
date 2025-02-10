@@ -10,7 +10,7 @@ classdef TestNaca < handle
         M
         p
         t
-        % AOAd
+        AoA
         % xCentral
         % yCentral
     end
@@ -66,33 +66,33 @@ classdef TestNaca < handle
             obj.p        = cParams.p;
             obj.M        = cParams.M;
             obj.t        = cParams.t;
-            % obj.AOAd     = cParams.AOAd;
+            obj.AoA      = cParams.AoA;
             % obj.xCentral = cParams.xCentral;
             % obj.yCentral = cParams.yCentral;
         end
                 
         function createReferenceMesh(obj)
-            obj.length  = 10;
-            obj.height  = 4;
-            nx          = 100;
-            ny          = 40;
-            obj.refMesh = QuadMesh(obj.length,obj.height,nx,ny); 
-            % obj.length  = 2;
-            % obj.height  = 1;
-            % nx          = 150;
-            % ny          = 75;
-            %obj.refMesh = TriangleMesh(obj.length,obj.height,nx,ny);
+            % obj.length  = 10;
+            % obj.height  = 4;
+            % nx          = 100;
+            % ny          = 40;
+            % obj.refMesh = QuadMesh(obj.length,obj.height,nx,ny); 
+            obj.length  = 2;
+            obj.height  = 1;
+            nx          = 300;
+            ny          = 150;
+            obj.refMesh = TriangleMesh(obj.length,obj.height,nx,ny);
         end
 
         function createLevelSet(obj)
-            g = obj.createNacaFunction(obj.p, obj.M, obj.t);
+            g = obj.createNacaFunction(obj.p, obj.M, obj.t, obj.AoA);
             obj.levelSet = g.computeLevelSetFunction(obj.refMesh);
         end
         
         function createFluidMesh(obj)
             s.backgroundMesh = obj.refMesh;
             s.boundaryMesh   = obj.refMesh.createBoundaryMesh();
-            obj.uMesh            = UnfittedMesh(s);
+            obj.uMesh        = UnfittedMesh(s);
             obj.uMesh.compute(obj.levelSet.fValues);       
             obj.rawMesh = obj.uMesh.createInnerMesh();
             obj.mesh    = obj.rawMesh;
@@ -141,7 +141,7 @@ classdef TestNaca < handle
         function connec = computeConnectivitiesGoodCond(obj,mAlpha)
             q  = Quadrature.create(mAlpha, 0);
             xV = q.posgp;
-            g  = obj.createNacaFunction(obj.p, obj.M, obj.t);
+            g  = obj.createNacaFunction(obj.p, obj.M, obj.t, obj.AoA);
             lsElem = squeeze(g.evaluate(xV,mAlpha));
             connec = mAlpha.connec(lsElem<=0,:);
         end
@@ -202,9 +202,9 @@ classdef TestNaca < handle
             title(ax(2), "Velocity distribution in the x direction.");
             title(ax(1), "Velocity distribution in the y direction.");        
             obj.pressureFun.plot();
-            title("Pressure distribution");
             xlabel("x");
             ylabel("y");
+            title("Pressure distribution"); 
             caxis([-50 50]);
         end
 
@@ -231,7 +231,7 @@ classdef TestNaca < handle
 
     methods (Static, Access = private)
 
-        function g = createNacaFunction(p, M, t)
+        function g = createNacaFunction(p, M, t, AoA)
             s.type = 'Naca';
             s.xLE  = 0.5;
             s.yLE  = 0.5;
@@ -240,6 +240,7 @@ classdef TestNaca < handle
             s.p     = p;
             s.m     = M;
             s.t     = t;
+            s.AoA   = AoA;
 
             g  = GeometricalFunction(s);
         end

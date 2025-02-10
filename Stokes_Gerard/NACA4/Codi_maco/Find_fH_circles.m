@@ -46,7 +46,7 @@ figure
 
 axis equal
 
-x_le = x_centr-0.5;
+x_le = x_centr-0.5; % ja està aplicat
 AOA = -deg2rad(AOAd);
 
 rn  = yt;

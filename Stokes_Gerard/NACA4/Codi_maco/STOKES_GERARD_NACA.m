@@ -10,7 +10,8 @@ O = 1;
 %         p = pp/10;
 
         % % INPUT DATA
-        m = QuadMesh(10,4,100,40);
+        m = TriangleMesh(2,1,150,75);
+        %TriangleMesh(2,1,150,75);
         %QuadMesh(10,4,100,40); % MESH de referència sense cap objecte, quadrilateral
 
         % % NACA 4
