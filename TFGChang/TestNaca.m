@@ -79,8 +79,8 @@ classdef TestNaca < handle
             % obj.refMesh = QuadMesh(obj.length,obj.height,nx,ny); 
             obj.length  = 2;
             obj.height  = 1;
-            nx          = 300;
-            ny          = 150;
+            nx          = 150;
+            ny          = 75;
             obj.refMesh = TriangleMesh(obj.length,obj.height,nx,ny);
         end
 
@@ -96,10 +96,11 @@ classdef TestNaca < handle
             obj.uMesh.compute(obj.levelSet.fValues);       
             obj.rawMesh = obj.uMesh.createInnerMesh();
             obj.mesh    = obj.rawMesh;
-            obj.mesh.plot();
+            %obj.mesh.plot();
             title("Mesh with the airfoil inclusion.");
             xlabel("x");
             ylabel("y");
+            obj.uMesh.plot();
         end
 
         function createFluidMeshGoodConditioning(obj)

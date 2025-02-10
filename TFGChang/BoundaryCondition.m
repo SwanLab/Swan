@@ -85,14 +85,10 @@ classdef BoundaryCondition < handle
         end
 
         function setDofsAirfoilNodes(obj)
-            for i = 1:1:obj.lengthCutMesh
-                isxcoord    = @(coor) coor(:,1) == obj.uMesh.boundaryCutMesh.mesh.coord(i,1);
-                isycoord    = @(coor) coor(:,2) == obj.uMesh.boundaryCutMesh.mesh.coord(i,2);
-                isAirfoil  = @(coor) isxcoord(coor) & isycoord(coor);
-            
-                obj.dirDofsAirfoilNodes(:,i) = obj.velocityFun.getDofsFromCondition(isAirfoil);
-            end
-            obj.dirDofsAirfoilNodes = sort(reshape(obj.dirDofsAirfoilNodes,size(obj.dirDofsAirfoilNodes,2)*2,1));
+            cutCoords = obj.uMesh.boundaryCutMesh.mesh.coord(1:obj.lengthCutMesh, :);
+            isAirfoil = @(coor) any(ismember(coor, cutCoords, 'rows'), 2);
+            obj.dirDofsAirfoilNodes = obj.velocityFun.getDofsFromCondition(isAirfoil);
+            obj.dirDofsAirfoilNodes = sort(reshape(obj.dirDofsAirfoilNodes, [], 1));
         end
 
         function findMiddleNodes(obj)
