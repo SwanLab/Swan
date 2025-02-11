@@ -251,7 +251,7 @@ classdef OptimizerNullSpace < Optimizer
             x    = obj.designVariable.fun.fValues;
             g    = obj.constraint.value;
             etaN = obj.obtainTrustRegion();
-            if mNew <= obj.mOldPrimal+1e-3  &&  norm(x-x0)/norm(x0) < etaN
+            if mNew <= obj.mOldPrimal+1e-3  &&  norm(x-x0)/(norm(x0)+1) < etaN
                 obj.predictedTau   = (1-g/g0)/obj.eta;
                 obj.acceptableStep = true;
                 obj.meritNew       = mNew;

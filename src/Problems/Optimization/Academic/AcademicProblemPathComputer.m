@@ -5,10 +5,12 @@ classdef AcademicProblemPathComputer < handle
         cost
         constraint
         constraintCase
+        boxConstraints
     end
 
     properties (Access = private)
         colors = 'mgr'
+        isFeasible
     end
 
     methods (Access = public)
@@ -23,17 +25,21 @@ classdef AcademicProblemPathComputer < handle
                 [X,Y] = obj.setMeshGrid(x,y);
                 obj.plotCostContour(X,Y);
                 obj.plotConstraintContour(X,Y);
+                obj.plotBoxConstraints(X,Y);
                 obj.plotDesignVariablePath(values);
+                obj.plotLegend();
             end
         end
     end
 
     methods (Access = private)
         function init(obj, cParams)
-            obj.printingPath   = cParams.printingPath;
-            obj.cost           = cParams.cost.cF;
-            obj.constraint     = cParams.constraint.cF;
-            obj.constraintCase = cParams.settings.constraintCase;
+            obj.printingPath      = cParams.printingPath;
+            obj.cost              = cParams.cost.cF;
+            obj.constraint        = cParams.constraint.cF;
+            obj.constraintCase    = cParams.settings.constraintCase;
+            obj.boxConstraints.ub = cParams.settings.ub;
+            obj.boxConstraints.lb = cParams.settings.lb;
         end
 
         function plotCostContour(obj,X,Y)
@@ -50,7 +56,7 @@ classdef AcademicProblemPathComputer < handle
             x2 = unique(Y);
             x  = @(i) X.*(i==1)+Y.*(i==2);
             nConst = length(obj.constraint);
-            isFeasible = ones(length(x1),length(x2));
+            isF = ones(length(x1),length(x2));
             for i = 1:nConst
                 c  = obj.constraint{i};
                 cr = obj.colors(i);
@@ -61,11 +67,41 @@ classdef AcademicProblemPathComputer < handle
                 hold on;
                 switch obj.constraintCase{i}
                     case 'INEQUALITY'
-                        isFeasible = isFeasible & fX<=0;
+                        isF = isF & fX<=0;
                 end
             end
+            obj.isFeasible = isF;
+        end
+
+        function plotBoxConstraints(obj,X,Y)
+            x1 = unique(X);
+            x2 = unique(Y);
+            x  = @(i) X.*(i==1)+Y.*(i==2);
+            v  = linspace(-1e-3,1e-3,2);
+
+            xlb = obj.boxConstraints.lb(1);
+            xub = obj.boxConstraints.ub(1);
+            ylb = obj.boxConstraints.lb(2);
+            yub = obj.boxConstraints.ub(2);
+
+            c{1}  = @(x) xlb-x(1);
+            c{2}  = @(x) x(1)-xub;
+            c{3}  = @(x) ylb-x(2);
+            c{4}  = @(x) x(2)-yub;
+
+            isF = obj.isFeasible;
+            for i = 1:length(c)
+                fX = c{i}(x);
+                if ~any(isinf(fX))
+                    [~,h] = contour(X,Y,fX,v,'linewidth',1);
+                    h.LineColor='r';
+                    hold on;
+                    isF = isF & fX<=0;
+                end
+            end
+
             output = NaN(length(x1),length(x2));
-            output(isFeasible) = 1;
+            output(isF) = 1;
             a = surf(X,Y,output,'EdgeColor','none');
             alpha(.25);
             view([0 90]);
@@ -73,18 +109,17 @@ classdef AcademicProblemPathComputer < handle
             hold on;
         end
 
-        function plotDesignVariablePath(obj,values)
-            vx = values(1,:);
-            vy = values(2,:);
-            plot(vx(1),vy(1),"o",'MarkerSize',10,'MarkerFaceColor','red');
-            plot(vx,vy,'-k','linewidth',1);
-            plot(vx(end),vy(end),"p",'MarkerSize',10,'MarkerFaceColor','red');
+        function plotLegend(obj)
             nConst = length(obj.constraint);
+            nBox   = sum(~isinf(obj.boxConstraints.ub)) + sum(~isinf(obj.boxConstraints.lb));
             leg = "J";
             for i = 1:nConst
                 leg = [leg,string(['g_',char(string(i))])];
             end
-            leg = [leg,"Initial point","Path","Solution"];
+            if nBox>=1
+                leg = [leg,["Box",repmat("",[1,nBox-1])]];
+            end
+            leg = [leg,"Initial point","Intermediate iter",repmat("",[1,9]),"Path","Solution"];
             legend(leg);
             hold off;
         end
@@ -101,6 +136,20 @@ classdef AcademicProblemPathComputer < handle
             xV    = linspace(xmin-0.1*dx,xmax+0.1*dx,2000);
             yV    = linspace(ymin-0.1*dy,ymax+0.1*dy,2000);
             [X,Y] = meshgrid(xV,yV);
+        end
+
+        function plotDesignVariablePath(values)
+            vx = values(1,:);
+            vy = values(2,:);
+            plot(vx(1),vy(1),"o",'MarkerSize',10,'MarkerFaceColor','red');
+            iters = length(vx);
+            dit   = floor(iters/11);
+            for i = 1:10
+                plot(vx(i*dit),vy(i*dit),"o",'MarkerSize',5,'MarkerFaceColor','red');
+            end
+            plot(vx,vy,'-k','linewidth',1);
+            plot(vx(end),vy(end),"p",'MarkerSize',10,'MarkerFaceColor','red');
+            hold on;
         end
     end
 end
