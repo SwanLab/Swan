@@ -5,6 +5,7 @@ classdef AcademicProblemPathComputer < handle
         cost
         constraint
         constraintCase
+        boxConstraints
     end
 
     properties (Access = private)
@@ -22,7 +23,8 @@ classdef AcademicProblemPathComputer < handle
                 y     = values(2,:);
                 [X,Y] = obj.setMeshGrid(x,y);
                 obj.plotCostContour(X,Y);
-                obj.plotConstraintContour(X,Y);
+                isF = obj.plotConstraintContour(X,Y);
+                obj.plotBoxConstraints(X,Y,isF);
                 obj.plotDesignVariablePath(values);
             end
         end
@@ -30,10 +32,12 @@ classdef AcademicProblemPathComputer < handle
 
     methods (Access = private)
         function init(obj, cParams)
-            obj.printingPath   = cParams.printingPath;
-            obj.cost           = cParams.cost.cF;
-            obj.constraint     = cParams.constraint.cF;
-            obj.constraintCase = cParams.settings.constraintCase;
+            obj.printingPath      = cParams.printingPath;
+            obj.cost              = cParams.cost.cF;
+            obj.constraint        = cParams.constraint.cF;
+            obj.constraintCase    = cParams.settings.constraintCase;
+            obj.boxConstraints.ub = cParams.ub;
+            obj.boxConstraints.lb = cParams.lb;
         end
 
         function plotCostContour(obj,X,Y)
@@ -45,7 +49,7 @@ classdef AcademicProblemPathComputer < handle
             hold on;
         end
 
-        function plotConstraintContour(obj,X,Y)
+        function isFeasible = plotConstraintContour(obj,X,Y)
             x1 = unique(X);
             x2 = unique(Y);
             x  = @(i) X.*(i==1)+Y.*(i==2);
@@ -64,6 +68,32 @@ classdef AcademicProblemPathComputer < handle
                         isFeasible = isFeasible & fX<=0;
                 end
             end
+        end
+
+        function plotBoxConstraints(obj,X,Y,isFeasible)
+            x1 = unique(X);
+            x2 = unique(Y);
+            x  = @(i) X.*(i==1)+Y.*(i==2);
+            v  = linspace(-1e-3,1e-3,2);
+
+            xlb = obj.boxConstraints.lb(1);
+            xub = obj.boxConstraints.ub(1);
+            ylb = obj.boxConstraints.lb(2);
+            yub = obj.boxConstraints.ub(2);
+
+            c{1}  = @(x) xlb-x(1);
+            c{2}  = @(x) x(1)-xub;
+            c{3}  = @(x) ylb-x(2);
+            c{4}  = @(x) x(2)-yub;
+
+            for i = 1:length(c)
+                fX = c{i}(x);
+                [~,h] = contour(X,Y,fX,v,'linewidth',1);
+                h.LineColor='r';
+                hold on;
+                isFeasible = isFeasible & fX<=0;
+            end
+
             output = NaN(length(x1),length(x2));
             output(isFeasible) = 1;
             a = surf(X,Y,output,'EdgeColor','none');
@@ -77,6 +107,11 @@ classdef AcademicProblemPathComputer < handle
             vx = values(1,:);
             vy = values(2,:);
             plot(vx(1),vy(1),"o",'MarkerSize',10,'MarkerFaceColor','red');
+            iters = length(vx);
+            dit   = floor(iters/11);
+            for i = 1:10
+                plot(vx(i*dit),vy(i*dit),"o",'MarkerSize',5,'MarkerFaceColor','red');
+            end
             plot(vx,vy,'-k','linewidth',1);
             plot(vx(end),vy(end),"p",'MarkerSize',10,'MarkerFaceColor','red');
             nConst = length(obj.constraint);
@@ -84,7 +119,8 @@ classdef AcademicProblemPathComputer < handle
             for i = 1:nConst
                 leg = [leg,string(['g_',char(string(i))])];
             end
-            leg = [leg,"Initial point","Path","Solution"];
+            leg = [leg,"Box","","",""];
+            leg = [leg,"Initial point","Intermediate iter","","","","","","","","","","Path","Solution"];
             legend(leg);
             hold off;
         end
@@ -98,8 +134,8 @@ classdef AcademicProblemPathComputer < handle
             ymin  = min(y);
             ymax  = max(y);
             dy    = ymax-ymin;
-            xV    = linspace(xmin-0.1*dx,xmax+0.1*dx,2000);
-            yV    = linspace(ymin-0.1*dy,ymax+0.1*dy,2000);
+            xV    = linspace(0,3,2000);
+            yV    = linspace(0,3,2000);
             [X,Y] = meshgrid(xV,yV);
         end
     end
