@@ -1,8 +1,8 @@
-classdef RHSintegrator_ShapeDerivative < RHSintegrator
+classdef RHSIntegrator_ShapeDerivative < RHSIntegrator
 
     methods (Access = public)
 
-        function obj = RHSintegrator_ShapeDerivative(cParams)
+        function obj = RHSIntegrator_ShapeDerivative(cParams)
             obj.init(cParams);
             obj.setQuadratureOrder(cParams);
             obj.createQuadrature();

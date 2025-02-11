@@ -96,7 +96,7 @@ classdef LinearizedHarmonicProjector3 < handle
             s.quadratureOrder = 4;
             s.type = 'ShapeDerivative';
             test = obj.fG;
-            rhs  = RHSintegrator.create(s);
+            rhs  = RHSIntegrator.create(s);
             rhsV = rhs.compute(f,test);
             rhsV(obj.boundaryNodes) = 0;
             Mgg = obj.massMatrixGG; 
@@ -145,7 +145,7 @@ classdef LinearizedHarmonicProjector3 < handle
             s.test  = test;
             s.trial = trial;
             s.quadratureOrder = 2;
-            lhs = LHSintegrator.create(s);
+            lhs = LHSIntegrator.create(s);
             M = lhs.compute();
         end
 
@@ -160,7 +160,7 @@ classdef LinearizedHarmonicProjector3 < handle
             s.trial = obj.fB;
             s.mesh  = obj.mesh;
             s.type  = 'StiffnessMatrix';
-            lhs = LHSintegrator.create(s);
+            lhs = LHSIntegrator.create(s);
             K = lhs.compute();
             obj.stiffnessMatrix = K;
         end
@@ -257,11 +257,12 @@ classdef LinearizedHarmonicProjector3 < handle
         end
 
         function RHS = computeRHS(obj,bI)
+            Mgg  = obj.massMatrixGG;            
             s.mesh = obj.mesh;
             s.quadType = 2;
             s.type = 'ShapeFunction';
             test = bI;
-            rhs  = RHSintegrator.create(s);
+            rhs  = RHSIntegrator.create(s);
             rhsB = rhs.compute(bI,test);
             rhsB = reshape(rhsB,2,[])';
             rhsB = rhsB(:);  
