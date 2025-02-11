@@ -20,12 +20,24 @@ classdef levelSetTesting < handle
             clc; close all;
             obj.init();
 
-            mR = obj.createReferenceMesh();
+            mR       = obj.createReferenceMesh();
+            [mD,mSb,iC,lG,iCR, discMesh] = obj.createMeshDomain(mR);
             mRcoarse = obj.createReferenceCoarseMesh(mR);
-            obj.createCoarseElasticProblem(mRcoarse);
+            u = obj.createCoarseElasticProblem(mRcoarse);
+            u = [u(:,1); u(:,2)]
+            EIFEMtesting.plotSolution(u, discMesh, 1, 1, 0, [], 0)
+            %ufun = LagrangianFunction.create(mSb{1}, obj.mesh.ndim,'P1');
+            
+            %u2 = reshape(u(:,1)', 2, [])';
+
+
+
+            %ufun.fValues = u2;
+
+            %ufun.plot
 
             bS  = mR.createBoundaryMesh();
-            [mD,mSb,iC,lG,iCR] = obj.createMeshDomain(mR);
+            
             obj.meshDomain = mD;
 
             [bC,dir] = obj.createBoundaryConditions(obj.meshDomain);
@@ -39,7 +51,7 @@ classdef levelSetTesting < handle
 
         function init(obj)
             obj.nSubdomains  = [2 1]; %nx ny
-            obj.fileNameEIFEM = "UL_r0_3.mat";
+            obj.fileNameEIFEM = "UL_r0_1.mat";
             obj.tolSameNode = 1e-14;
             data = load(obj.fileNameEIFEM);
             obj.Kel = data.L;
@@ -52,13 +64,13 @@ classdef levelSetTesting < handle
 
         function mS = createStructuredMesh(obj)
              %UnitMesh better
-            x1      = linspace(0,1,50);
-            x2      = linspace(0,1,50);
-            [xv,yv] = meshgrid(x1,x2);
-            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
+            x1       = linspace(-1,1,50);
+            x2       = linspace(-1,1,50);
+            [xv,yv]  = meshgrid(x1,x2);
+            [F,V]    = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
             s.connec = F;
-            bgMesh = Mesh.create(s);
+            bgMesh   = Mesh.create(s);
 
             lvSet    = obj.createLevelSetFunction(bgMesh);
             uMesh    = obj.computeUnfittedMesh(bgMesh,lvSet);
@@ -67,9 +79,9 @@ classdef levelSetTesting < handle
         
         function levelSet = createLevelSetFunction(~,bgMesh)
             sLS.type        = 'CircleInclusion';
-            sLS.xCoorCenter = 0.5;
-            sLS.yCoorCenter = 0.5;
-            sLS.radius      = 0.3;
+            sLS.xCoorCenter = 0;
+            sLS.yCoorCenter = 0;
+            sLS.radius      = 0.1;
             g               = GeometricalFunction(sLS);
             lsFun           = g.computeLevelSetFunction(bgMesh);
             levelSet        = lsFun.fValues;
@@ -82,12 +94,12 @@ classdef levelSetTesting < handle
             uMesh.compute(levelSet);
         end
         
-        function [mD,mSb,iC,lG,iCR] = createMeshDomain(obj,mR)
+        function [mD,mSb,iC,lG,iCR, discMesh] = createMeshDomain(obj,mR)
             s.nsubdomains   = obj.nSubdomains; %nx ny
             s.meshReference = mR;
             s.tolSameNode = obj.tolSameNode;
             m = MeshCreatorFromRVE(s);
-            [mD,mSb,iC,~,lG,iCR] = m.create();
+            [mD,mSb,iC,~,lG,iCR, discMesh] = m.create();
         end
         
         function [bc,Dir,PL] = createBoundaryConditions(obj,mesh)
@@ -199,10 +211,10 @@ classdef levelSetTesting < handle
 
         
         function cMesh = createReferenceCoarseMesh(~,mR)
-            xmax = max(mR.coord(:,1));
-            xmin = min(mR.coord(:,1));
-            ymax = max(mR.coord(:,2));
-            ymin = min(mR.coord(:,2));
+            xmax       = max(mR.coord(:,1));
+            xmin       = min(mR.coord(:,1));
+            ymax       = max(mR.coord(:,2));
+            ymin       = min(mR.coord(:,2));
             coord(1,1) = xmin;
             coord(1,2) = ymin;
             coord(2,1) = xmax;
@@ -212,16 +224,16 @@ classdef levelSetTesting < handle
             coord(4,1) = xmin;
             coord(4,2) = ymax;
             
-            connec = [2 3 4 1];
-            s.coord = coord;
+            connec   = [1 2 3 4];
+            s.coord  = coord;
             s.connec = connec;
-            cMesh = Mesh.create(s);
+            cMesh    = Mesh.create(s);
         end
 
-        function [mD,mSb,iC,lG,iCR] = createCoarseElasticProblem(obj, mR)
-            bS  = mR.createBoundaryMesh();
-            [mD,mSb,iC,lG,iCR] = obj.createMeshDomain(mR);
-            obj.mesh = mD;
+        function [u] = createCoarseElasticProblem(obj, mRcoarse)
+            bS                 = mRcoarse.createBoundaryMesh();
+            [mD,mSb,iC,lG,iCR, discMesh] = obj.createMeshDomain(mRcoarse);
+            obj.mesh           = mD;
             % 
             % Kel = [];
             % for i = 1:size(mSb,2)
@@ -243,10 +255,10 @@ classdef levelSetTesting < handle
             % s.mesh          = mR;
             % s.DirCond       = dir;
             % s.nSubdomains = obj.nSubdomains;
-            dispFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim,'P1');
+            dispFun                = LagrangianFunction.create(obj.mesh, obj.mesh.ndim,'P1');
             obj.boundaryConditions = createCoarseBoundaryConditions(obj);
             obj.createBCapplier();
-            [LHS,LHSr] = obj.computeStiffnessMatrix(dispFun);
+            [LHS,LHSr]             = obj.computeStiffnessMatrix(dispFun);
             
             
 
@@ -254,10 +266,20 @@ classdef levelSetTesting < handle
             
             uRed = LHSr\RHS;
             uCoarse = obj.bcApplier.reducedToFullVectorDirichlet(uRed);
+            
+            EIFEMtesting.plotSolution(uCoarse, mD, 1, 2, 0, [], 0)
+
 
             u = obj.reconstructSolution(uCoarse, dispFun);
+            
+            % for i = 1:obj.nSubdomains(1)
+            %     EIFEMtesting.plotSolution(u(:,i), mSb{i}, 1, i, 0, [], 0)
+            % 
+            % 
+            % end
 
 
+            
         end
 
         function [lhs,RHSr,LHSr] = coarseElasticProblem(obj)
@@ -302,38 +324,38 @@ classdef levelSetTesting < handle
             yMin    = min(obj.mesh.coord(:,2));
             tol     = 1e-10;
 
-            left = @(coor) abs(coor(:,1)-xMin) <= tol ;
-            right = @(coor) abs(coor(:,1)-xMax) <= tol ;
-            % corner3 = @(coor) abs(coor(:,1)-xMin) <= tol & abs(coor(:,2)-yMax)<= tol;
-            % corner4 = @(coor) abs(coor(:,1)-xMax) <= tol & abs(coor(:,2)-yMax)<= tol;
-
-            % cornerVec = {corner1; corner2; corner3; corner4};
-
+            left    = @(coor) abs(coor(:,1)-xMin) <= tol;
+            right   = @(coor) abs(coor(:,1)-xMax) <= tol;
+            % corner3 = @(coor) abs(coor(:,1)-xMax) <= tol & abs(coor(:,2)-yMax)<= tol;
+            % corner4 = @(coor) abs(coor(:,1)-xMin) <= tol & abs(coor(:,2)-yMax)<= tol;
 
             sDir{1}.domain    = @(coor) left(coor);
             sDir{1}.direction = [1,2];
             sDir{1}.value     = 0;
-
             
-            % sDir{2}.domain    = @(coor) right;
-            % % sDir{2}.direction = ;
+            % sDir{2}.domain    = @(coor) corner2(coor);
+            % sDir{2}.direction = [1,2];
             % sDir{2}.value     = 0;
             % 
-            % sDir{3}.domain    = @(coor) cornerVec{3}(coor);
-            % sDir{3}.direction = cell2mat(dirs(3));
+            % sDir{3}.domain    = @(coor) corner3(coor);
+            % sDir{3}.direction = [1,2];
             % sDir{3}.value     = 0;
             % 
-            % sDir{4}.domain    = @(coor) cornerVec{4}(coor);
-            % sDir{4}.direction = cell2mat(dirs(4));
+            % sDir{4}.domain    = @(coor) corner4(coor);
+            % sDir{4}.direction = [1,2];
             % sDir{4}.value     = 0;
-            % 
-            % sDir{5}.domain    = @(coor) cornerVec{nRes}(coor);
-            % sDir{5}.direction = cell2mat(dirs(end));
+            
+            % sDir{5}.domain    = @(coor) corner1(coor);
+            % sDir{5}.direction = 1;
             % sDir{5}.value     = 1;
+            
+
+            % isForce = @(coor) (abs(coor(:,1) - xMin)   < 1e-10);
+
 
             sPL{1}.domain    = @(coor) right(coor);
             sPL{1}.direction = 2;
-            sPL{1}.value     = -0.1;
+            sPL{1}.value     = -1;
 
             dirichletFun = [];
             for i = 1:numel(sDir)
