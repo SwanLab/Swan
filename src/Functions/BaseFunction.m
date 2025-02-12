@@ -123,9 +123,14 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
 
         function r = power(a,b)
             aOp = BaseFunction.computeOperation(a);
-            s.operation = @(xV) aOp(xV).^b;
+            bOp = BaseFunction.computeOperation(b);
+            s.operation = @(xV) aOp(xV).^bOp(xV);
             s.mesh = a.mesh;
             r = DomainFunction(s);
+        end
+
+        function r = sqrt(a)
+            r = power(a,0.5);
         end
 
         function r = norm(a,b)
