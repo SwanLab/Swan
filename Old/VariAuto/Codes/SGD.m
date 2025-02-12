@@ -39,7 +39,7 @@ classdef SGD < Trainer
            tic
            x0  = obj.designVariable.thetavec;
            % Compute stochastic cost
-           F = @(theta,order,i) obj.objectiveFunction.computeCost(theta,order,i); 
+           F = @(theta, moveBatch) obj.objectiveFunction.computeCost(theta, moveBatch); 
            obj.optimize(F,x0);
            toc
         end
@@ -61,29 +61,29 @@ classdef SGD < Trainer
     methods(Access = private)  
         
         function optimize(obj,F,th0)
-            [nD, nB, ~] = obj.objectiveFunction.getBatchSize();
             epsilon0      = obj.learningRate;
             epoch         =  1;iter = -1; funcount =  0; fv = 1;
             alarm         =  0; gnorm = 1; min_testError = 1;
             criteria = obj.updateCriteria(epoch, alarm, gnorm, fv);
+
+            
+
             while all(criteria == 1)
 
-                if nB == 1 || nB == 0
-                    order = 1:nD;
-                    nB = 1;
+                if iter == -1
+                    th      = th0;
+                    epsilon = epsilon0;
+                    state   = 'init';   
                 else
-                    order = randperm(nD,nD);
+                    state   = 'iter';
                 end
-                for i = 1:nB
-                    if iter == -1
-                        th      = th0;
-                        epsilon = epsilon0;
-                        state   = 'init';   
-                    else
-                        state   = 'iter';
-                    end
-                    [f,grad]              = F(th,order, i);  
-                    [epsilon,th,funcount] = obj.lineSearch(th,grad,F,f,epsilon,epsilon0,funcount,order,i);                
+
+                batches_depleted = false;
+
+                while batches_depleted == false
+                    [f,grad,batches_depleted] = F(th, true);
+                    %[f,grad]              = F(th,i); 
+                    [epsilon,th,funcount] = obj.lineSearch(th,grad,F,f,epsilon,epsilon0,funcount);                
                     gnorm                 = norm(grad,2);
                     opt.epsilon           = epsilon*gnorm; 
                     opt.gnorm             = gnorm;
@@ -91,6 +91,7 @@ classdef SGD < Trainer
                     iter                  = iter + 1;
                     obj.displayIter(epoch,iter,funcount,th,f,opt,state);
                 end
+                
                 [alarm,min_testError] = obj.validateES(alarm,min_testError);
                 epoch = epoch + 1;
                 criteria = obj.updateCriteria(epoch, alarm, gnorm, f);
@@ -121,7 +122,7 @@ classdef SGD < Trainer
             criteria(5)   = cost > obj.fvStop;
         end
 
-        function [e,x,funcount] = lineSearch(obj,x,grad,F,fOld,e,e0,funcount,order,i)
+        function [e,x,funcount] = lineSearch(obj,x,grad,F,fOld,e,e0,funcount)
             type = obj.lSearchtype;
             switch type
                 case 'static'
@@ -135,14 +136,14 @@ classdef SGD < Trainer
                     xnew = x;
                     while f >= 1.001*(fOld - e*(grad*grad'))
                         xnew = obj.step(x,e,grad);
-                        [f,~] = F(xnew,order,i);
+                        [f,~] = F(xnew, false);
                         e = e/2;
                         funcount = funcount + 1;
                     end
                     e = 5*e;                
                 case 'fminbnd'
                     xnew = @(e1) obj.step(x,e1,grad);
-                    f = @(e1) F(xnew(e1),order,i);
+                    f = @(e1) F(xnew(e1), false);
                     [e,~] = fminbnd(f,e/10,e*10);
                     xnew = xnew(e);
             end
@@ -166,7 +167,7 @@ classdef SGD < Trainer
         end
 
         function displayIter(obj,epoch,iter,funcount,x,f,opt,state)
-            [nD, ~, batchSize] = obj.objectiveFunction.getBatchSize();
+            [nD, ~, batchSize] = obj.objectiveFunction.fetchBatchSize();
             obj.printValues(epoch,funcount,opt,f,iter)
             if obj.isDisplayed == true
                 if iter*batchSize==(epoch-1)*nD || iter == -1

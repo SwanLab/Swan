@@ -1,4 +1,8 @@
 classdef Sh_Func_Loss < handle
+
+    properties(Access = public)
+        nBatches
+    end
     
     properties (Access = private)
         designVariable
@@ -6,9 +10,10 @@ classdef Sh_Func_Loss < handle
 
         % Pau addition
         data
-        batchSize
         Xb
         Yb
+        current_batch
+        
     end
     
     methods (Access = public)
@@ -17,18 +22,54 @@ classdef Sh_Func_Loss < handle
             obj.init(cParams)            
         end
         
-        function [j,dj] = computeCostAndGradient(obj,order, i)        
+        function [j,dj] = computeCostAndGradient(obj, order, i)        
             % Versió estocàstica (en la normal treure línia 21)
-            obj.updateBatch(order, i);
+            %obj.updateBatch(order, i);
             j  = obj.computeCost();
-            dj = obj.computeGradient();            
+            dj = obj.computeGradient();  
         end
 
-        % Ha de desaparèixer
-        function [nD, nB, batchSize] = getBatchSize(obj)
-            nD = obj.data.Batch_nD;
-            nB = obj.data.Batch_nB;
-            batchSize = obj.data.batchSize;
+        function [j, dj, batches_depleted] = computeStochasticCostAndGradient(obj, moveBatch)
+            [nD, nB, ~] = obj.fetchBatchSize();
+
+            if nB == 1 || nB == 0
+                order = 1:nD;
+                nB = 1;
+            else
+                order = randperm(nD,nD);
+            end
+            obj.nBatches = nB;
+
+            obj.updateMinibatch(order, obj.current_batch);
+
+            j  = obj.computeCost();
+            dj = obj.computeGradient();    
+            
+            % Should streamline this logic (too nested)
+            if obj.current_batch < obj.nBatches
+                if moveBatch
+                    obj.current_batch = obj.current_batch + 1;
+                end
+                batches_depleted = false;
+            elseif obj.current_batch == obj.nBatches
+                if  moveBatch
+                    obj.current_batch = 1;
+                    batches_depleted = true;
+                else
+                    batches_depleted = false;
+                end
+            end
+
+        end
+
+        function [nD, nB, batchSize] = fetchBatchSize(obj)
+            nD = size(obj.data.Xtrain,1);
+            if size(obj.data.Xtrain,1) > 200
+                batchSize = 200;
+            else
+                batchSize = size(obj.data.Xtrain,1);
+            end
+            nB = fix(nD/batchSize);
         end
 
         % Ha de desaparèixer
@@ -41,18 +82,11 @@ classdef Sh_Func_Loss < handle
     
     methods (Access = private)
 
-        function obj = updateBatch(obj, order, i)
-            [X, Y] = obj.data.createMinibatch(order, i);
-            obj.Xb = X;
-            obj.Yb = Y;
-        end
-
         function [x,y,I] = updateMinibatch(obj,order,i)
-            % Està WIP
             
             Xl = obj.data.Xtrain;
             Yl = obj.data.Ytrain;
-            I = obj.batchSize;
+            [~, ~, I] = obj.fetchBatchSize();
 
             cont = 1;
             if i == fix(size(Xl,1)/I)
@@ -70,8 +104,8 @@ classdef Sh_Func_Loss < handle
                 cont = cont+1;
             end
 
-            obj.Xb = X;
-            obj.Yb = Y;
+            obj.Xb = x;
+            obj.Yb = y;
 
         end
         
@@ -79,6 +113,7 @@ classdef Sh_Func_Loss < handle
             obj.designVariable = cParams.designVariable;
             obj.network        = cParams.network;
             obj.data           = cParams.data;
+            obj.current_batch  = 1;
         end
 
        function j = computeCost(obj)

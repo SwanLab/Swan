@@ -9,10 +9,6 @@ classdef Data < handle
         Xtest
         Ytest
         Ntest
-
-        batchSize
-        Batch_nD
-        Batch_nB
     end
 
     properties (Access = private)
@@ -78,34 +74,6 @@ classdef Data < handle
            end
         end
 
-        function [x,y,I] = createMinibatch(obj,order,i)
-            
-            Xl = obj.Xtrain;
-            Yl = obj.Ytrain;
-            I = obj.batchSize;
-
-            cont = 1;
-            if i == fix(size(Xl,1)/I)
-                plus = mod(size(Xl,1),I);
-                x = zeros([I+plus,size(Xl,2)]);
-                y = zeros([I+plus,size(Yl,2)]);
-            else
-                plus = 0;
-                x = zeros([I,size(Xl,2)]);
-                y = zeros([I,size(Yl,2)]);
-            end
-            for j = (i-1)*I+1:i*I+plus
-                x(cont,:) = Xl(order(j),:);
-                y(cont,:) = Yl(order(j),:);
-                cont = cont+1;
-            end
-        end
-
-        %function [nD, nB, batchSize] = getBatchSize(obj)
-        %    nD = obj.nD;
-        %    nB = obj.nB;
-        %    batchSize = obj.batchSize;
-        %end
     end
 
     methods (Access = private)
@@ -186,13 +154,6 @@ classdef Data < handle
             obj.Ytrain = obj.Y(r(1:ntrain),:);
             obj.Ytest  = obj.Y(r((ntrain + 1):end),:);
             obj.Ntest = ntest;
-            obj.Batch_nD = size(obj.Xtrain,1);
-            if size(obj.Xtrain,1) > 200
-                obj.batchSize = 200;
-            else
-                obj.batchSize = size(obj.Xtrain,1);
-            end
-            obj.Batch_nB = fix(obj.Batch_nD/obj.batchSize);
         end
     end
 end
