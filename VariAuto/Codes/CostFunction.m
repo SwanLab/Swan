@@ -16,20 +16,20 @@ classdef CostFunction < handle
             obj.createRegularizationFunctional();
         end
 
-        function [nD, nB, batchSize] = getBatchSize(obj)
-            [nD, nB, batchSize] = obj.loss.getBatchSize();
+        function [nD, nB, batchSize] = fetchBatchSize(obj)
+            [nD, nB, batchSize] = obj.loss.fetchBatchSize();
         end
 
         function [Xtest, Ytest] = getTestData(obj)
             [Xtest, Ytest] = obj.loss.getTestData();
         end
         
-        function [j,dj] = computeCost(obj,theta,order,i)
+        function [j,dj,batches_depleted] = computeCost(obj,theta,moveBatch)
             % Must create mini batch Xb and Yb out of (order, i)
             %[Xb, Yb] = network.createMiniBatch();
-            
+
             obj.designVariable.thetavec = theta;
-            [c,dc] = obj.loss.computeCostAndGradient(order, i); 
+            [c,dc,batches_depleted] = obj.loss.computeStochasticCostAndGradient(moveBatch); 
             [r,dr] = obj.regularization.computeCostAndGradient();
             l = obj.lambda;
             j = c + l*r;  
