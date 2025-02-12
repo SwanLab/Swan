@@ -5,10 +5,10 @@ close all;
 
 % Remove path before running
 %rmpath(genpath(pwd))
-addpath('..')
-addpath('../Models')
-addpath('../Datasets')
-addpath('../../VariAuto/Codes')
+%addpath('..')
+%addpath(fullfile('Models'))
+%addpath('../Datasets')
+%addpath('fullVariAuto/Codes')
 
 %% Initialization of hyperparameters
 pol_deg         = 1;

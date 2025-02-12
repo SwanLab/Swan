@@ -95,11 +95,12 @@ classdef TopOptTestTutorialGiD < handle
         function m = createMaterial(obj)
             x = obj.designVariable;
             f = x.obtainDomainFunction();
-            f = f.project('P1');            
+            f = f{1}.project('P1');            
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '2D';
+            s.mesh                 = obj.mesh;
             m = Material.create(s);
         end
 
@@ -112,6 +113,7 @@ classdef TopOptTestTutorialGiD < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
+            s.solverCase = 'DIRECT';
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -119,7 +121,7 @@ classdef TopOptTestTutorialGiD < handle
         function c = createComplianceFromConstiutive(obj)
             s.mesh         = obj.mesh;
             s.stateProblem = obj.physicalProblem;
-            c = ComplianceFromConstiutiveTensor(s);
+            c = ComplianceFromConstitutiveTensor(s);
         end
 
         function createCompliance(obj)
@@ -152,7 +154,7 @@ classdef TopOptTestTutorialGiD < handle
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             s.mesh  = obj.mesh;
             s.type  = 'MassMatrix';
-            LHS = LHSintegrator.create(s);
+            LHS = LHSIntegrator.create(s);
             M = LHS.compute;     
         end
 
@@ -174,7 +176,7 @@ classdef TopOptTestTutorialGiD < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 250;
+            s.maxIter        = 3;
             s.tolerance      = 1e-8;
             s.constraintCase = 'EQUALITY';
             s.ub             = 1;
@@ -186,7 +188,7 @@ classdef TopOptTestTutorialGiD < handle
         end
 
         function bc = createBoundaryConditions(obj)
-            femReader = FemInputReader_GiD();
+            femReader = FemInputReaderGiD();
             s         = femReader.read(obj.filename);
             sPL       = obj.computeCondition(s.pointload);
             sDir      = obj.computeCondition(s.dirichlet);
