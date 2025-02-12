@@ -87,7 +87,8 @@ classdef Data < handle
         end
 
         function loadData(obj)
-            f = fullfile('../Datasets/',obj.fileName);
+            %f = fullfile('../Datasets/',obj.fileName);
+            f = fullfile(obj.fileName);
 
             % Change: use readmatrix to skip header
             obj.data = readmatrix(f);

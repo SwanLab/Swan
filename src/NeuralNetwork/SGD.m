@@ -1,9 +1,5 @@
 classdef SGD < Trainer
 
-    properties (Access = protected)
-       learningRate  
-    end
-
     properties (Access = private)
        thetaLowest
        fvStop
@@ -16,6 +12,8 @@ classdef SGD < Trainer
        plotter
        svepoch
        fplot
+       learningRate  
+
     end
 
     methods (Access = public)
