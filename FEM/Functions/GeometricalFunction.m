@@ -231,7 +231,9 @@ classdef GeometricalFunction < handle
             f(:,:,:,2)   = y - yu*c;
             f(:,:,:,3)   = xNacaRotated - 1; 
             f(:,:,:,4)   = -xNacaRotated;
-            fV           = -max(f,[],4);        
+
+            f  = f./max(abs(f));
+            fV = -max(f,[],4);        
         end
     end
 
