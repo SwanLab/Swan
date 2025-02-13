@@ -28,7 +28,7 @@ classdef EIFEMtesting < handle
 
             mR = obj.createReferenceMesh();
             bS  = mR.createBoundaryMesh();
-            [mD,mSb,iC,lG,iCR] = obj.createMeshDomain(mR);
+            [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain(mR);
             obj.meshDomain = mD;
             [bC,dir] = obj.createBoundaryConditions(obj.meshDomain);
             obj.boundaryConditions = bC;
@@ -46,7 +46,7 @@ classdef EIFEMtesting < handle
 
 
             Mid          = @(r) r;
-            Meifem       = obj.createEIFEMPreconditioner(mR,dir,iC,lG,bS,iCR);
+            Meifem       = obj.createEIFEMPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
             Milu         = obj.createILUpreconditioner(LHS);
             MgaussSeidel = obj.createGaussSeidelpreconditioner(LHS);
             MJacobi      = obj.createJacobipreconditioner(LHS);
@@ -58,7 +58,7 @@ classdef EIFEMtesting < handle
             tol = 1e-8;
             tic
             x0 = zeros(size(RHSf));
-%             [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
+%             [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
             toc
             %             [uCG,residualCG,errCG,errAnormCG] = RichardsonSolver.solve(LHSf,RHSf,x0,P,tol,0.1,Usol);
 
@@ -67,13 +67,15 @@ classdef EIFEMtesting < handle
             %Mmult = MdirNeu;
             x0 = zeros(size(RHSf));
             r = RHSf - LHSf(x0);
-            Mmult = @(r) Preconditioner.multiplePrec(r,MiluCG,Meifem,MiluCG,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
-            zmult = Mmult(r);
-            zfull = obj.bcApplier.reducedToFullVectorDirichlet(zmult);
+            Mmult = @(r,uk) Preconditioner.multiplePrec(r,MiluCG,Meifem,MiluCG,LHSf,RHSf,obj.meshDomain,obj.bcApplier,uk);
+%              Mmult = @(r) Preconditioner.multiplePrec(r,Mid,Meifem,Mid,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
+%             zmult = Mmult(r);
+            
+%             zfull = obj.bcApplier.reducedToFullVectorDirichlet(zmult);
             %obj.plotSolution(zfull,obj.meshDomain,0,0,2,obj.bcApplier,0)
 
-            zeifem = Meifem(r);
-            zfull = obj.bcApplier.reducedToFullVectorDirichlet(zeifem);
+%             zeifem = Meifem(r);
+%             zfull = obj.bcApplier.reducedToFullVectorDirichlet(zeifem);
             %obj.plotSolution(zfull,obj.meshDomain,0,0,1,obj.bcApplier,0)
            % x0 = zmult;
             tic
@@ -119,15 +121,16 @@ classdef EIFEMtesting < handle
             obj.nSubdomains  = [2 1]; %nx ny
             %obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
             obj.fileNameEIFEM = 'DEF_Q4porL_1.mat';
-            obj.tolSameNode = 1e-14;
+            obj.tolSameNode = 1e-10;
+
         end
 
-        function [mD,mSb,iC,lG,iCR] = createMeshDomain(obj,mR)
+        function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomain(obj,mR)
             s.nsubdomains   = obj.nSubdomains; %nx ny
             s.meshReference = mR;
             s.tolSameNode = obj.tolSameNode;
             m = MeshCreatorFromRVE(s);
-            [mD,mSb,iC,~,lG,iCR] = m.create();
+            [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
         end
 
 
@@ -275,13 +278,13 @@ classdef EIFEMtesting < handle
             maxx = max(obj.meshDomain.coord(:,1));
             miny = min(obj.meshDomain.coord(:,2));
             maxy = max(obj.meshDomain.coord(:,2));
-            tolBound = 1e-8;
+            tolBound = obj.tolSameNode;
             isLeft   = @(coor) (abs(coor(:,1) - minx)   < tolBound);
             isRight  = @(coor) (abs(coor(:,1) - maxx)   < tolBound);
             isBottom = @(coor) (abs(coor(:,2) - miny)   < tolBound);
             isTop    = @(coor) (abs(coor(:,2) - maxy)   < tolBound);
             %             isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) == 0);
-            Dir{1}.domain    = @(coor) isLeft(coor)| isRight(coor) ;
+            Dir{1}.domain    = @(coor) isLeft(coor);%| isRight(coor) ;
             Dir{1}.direction = [1,2];
             Dir{1}.value     = 0;
 
@@ -289,12 +292,12 @@ classdef EIFEMtesting < handle
             %             Dir{2}.direction = [2];
             %             Dir{2}.value     = 0;
 
-            PL.domain    = @(coor) isTop(coor);
-            PL.direction = [2];
-            PL.value     = [-0.1];
-            %             PL.domain    = @(coor) isRight(coor);
-            %             PL.direction = [1];
-            %             PL.value     = [0.1];
+%             PL.domain    = @(coor) isTop(coor);
+%             PL.direction = [2];
+%             PL.value     = [-0.1];
+                        PL.domain    = @(coor) isRight(coor);
+                        PL.direction = [1];
+                        PL.value     = [0.1];
         end
 
         function [bc,Dir,PL] = createBoundaryConditions(obj,mesh)
@@ -355,7 +358,7 @@ classdef EIFEMtesting < handle
             RHS = obj.bcApplier.fullToReducedVectorDirichlet(RHS);
         end
 
-        function Meifem = createEIFEMPreconditioner(obj,mR,dir,iC,lG,bS,iCR)
+        function Meifem = createEIFEMPreconditioner(obj,mR,dir,iC,lG,bS,iCR,dMesh)
             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
             EIFEMfilename = obj.fileNameEIFEM;
             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
@@ -370,9 +373,10 @@ classdef EIFEMtesting < handle
             ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
             ss.EIFEMsolver = eifem;
             ss.bcApplier = obj.bcApplier;
+            ss.dMesh     = dMesh;
             ss.type = 'EIFEM';
             eP = Preconditioner.create(ss);
-            Meifem = @(r) eP.apply(r);
+            Meifem = @(r,uk) eP.apply(r,uk);
         end
 
         function Mdn = createDirichletNeumannPreconditioner(obj,mR,dir,iC,lG,bS,lhs,mSb,iCR)
@@ -472,8 +476,11 @@ classdef EIFEMtesting < handle
             J = 0.5*x'*A(x)-b'*x;
         end
 
-        function plotSolution(x,mesh,row,col,iter,flag)
-            % x = bcApplier.reducedToFullVectorDirichlet(x);
+
+        function plotSolution(x,mesh,row,col,iter,bcApplier,flag)
+            if ~isempty(bcApplier)
+                x = bcApplier.reducedToFullVectorDirichlet(x);
+            end
             if nargin <7
                 flag =0;
             end

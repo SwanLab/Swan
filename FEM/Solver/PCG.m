@@ -21,16 +21,16 @@ classdef PCG < handle
             iter = 0;
             x = x0;
             r = B - A(x);
-            z = P(r);
+            z = P(r,x);
             p = z;
             rzold = r' * z;
             while norm(r) > tol
                 Ap = A(p);
                 alpha = rzold / (p' * Ap);
                 x = x + alpha * p;
-               % EIFEMtesting.plotSolution(x,mesh,10,10,iter,bcApplier,0)
+%                EIFEMtesting.plotSolution(x,mesh,20,5,iter,bcApplier,0)
                 r = r - alpha * Ap;
-                z = P(r);
+                z = P(r,x);
                 rznew = r' * z;
                 beta  = (rznew / rzold);
                 p = z + beta * p;

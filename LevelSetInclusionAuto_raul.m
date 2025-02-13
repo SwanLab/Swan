@@ -239,9 +239,9 @@ classdef LevelSetInclusionAuto_raul < handle
             obj.computeForcesHere(cParams);
              c = obj.computeCmat2();
             [u, L]  = obj.computeDisplacementHere(c);
-            obj.plotSolution(u,L);
-            obj.computeStrainHere();
-            obj.computeStressHere();
+            % obj.plotSolution(u,L);
+            %obj.computeStrainHere();
+            %obj.computeStressHere();
         end
 
         function createDisplacementFunHere(obj)
@@ -439,13 +439,15 @@ classdef LevelSetInclusionAuto_raul < handle
             nC  = size(c,2);
             Z   = zeros(nC);
             LHS = [K, c; c' Z];
-            ud = zeros(nC,1);
-%             ud(7) = 1;
-            ud(1) = 1;
-            RHS = [obj.forces; ud];
+            ud = eye(nC);
+% %             ud(7) = 1;
+%             ud(1) = 1;
+            forces = zeros(obj.displacementFun.nDofs, nC);
+
+            RHS = [forces; ud];
             sol = LHS\RHS;
-            u = sol(1:obj.displacementFun.nDofs);
-            L = sol(obj.displacementFun.nDofs+1:end); 
+            u = sol(1:obj.displacementFun.nDofs,:);
+            L = sol(obj.displacementFun.nDofs+1:end,:); 
 %             obj.displacementFun.fValues = u;
 %             EIFEMtesting.plotSolution(u,obj.mesh,1,1,0,0)
         end
