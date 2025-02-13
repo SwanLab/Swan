@@ -23,7 +23,7 @@ classdef ShFunc_ElasticDamage < handle
             obj.init(cParams)
             obj.rOld = copy(obj.r0);
             obj.r    = copy(obj.r0);
-            obj.createRHSintegrator();
+            obj.createRHSIntegrator();
         end
 
         function setTestFunction(obj,u)           
@@ -51,8 +51,8 @@ classdef ShFunc_ElasticDamage < handle
         function [K] = computeDerivativeResidual(obj,u)
             obj.computeDamage();
             Ksec = obj.computeDerivativeResidualSecant();
-            Ktan = obj.computeDerivativeResidualTangent(u);
-            K = Ktan;
+            %Ktan = obj.computeDerivativeResidualTangent(u);
+            K = Ksec;
         end  
        
         function computeDamageEvolutionParam(obj,u)
@@ -87,11 +87,11 @@ classdef ShFunc_ElasticDamage < handle
             obj.r0 = cParams.r0;
         end
 
-        function createRHSintegrator(obj)
+        function createRHSIntegrator(obj)
             s.type = 'ShapeSymmetricDerivative';
             s.quadratureOrder= obj.quadOrder;
             s.mesh = obj.mesh;             
-            obj.RHS = RHSintegrator.create(s);
+            obj.RHS = RHSIntegrator.create(s);
         end
 
         function computeDamage(obj)
@@ -119,7 +119,7 @@ classdef ShFunc_ElasticDamage < handle
             s.test  = obj.test;
             s.trial = obj.test;
             s.material = material;
-            LHS = LHSintegrator.create(s);
+            LHS = LHSIntegrator.create(s);
         end
 
         function Tan = computeDerivativeResidualTangent(obj,u)    

@@ -13,7 +13,7 @@ classdef RHSIntegratorFactory < handle
                 case 'ShapeDerivative'
                     obj = RHSintegrator_ShapeDerivative(cParams);
                 case 'ShapeSymmetricDerivative'
-                    obj = RHSintegrator_ShapeSymmDerivative(cParams);
+                    obj = RHSIntegrator_ShapeSymmDerivative(cParams);
                 case 'CutMesh'
                     obj = RHSintegrator_CutMesh(cParams);
                 case {'Composite','COMPOSITE'}

@@ -49,7 +49,7 @@ classdef ShFunc_ExternalWork2 < handle
             s.mesh = obj.bMesh.mesh;
             s.quadType = obj.quadOrder;
             s.type = 'ShapeFunction';
-            obj.RHS = RHSintegrator.create(s);
+            obj.RHS = RHSIntegrator.create(s);
        end
 
         function [uFun,fExtFun] = adaptFuns(obj,u,fExt) %% ADAPTING TO TOP BOUNDARY %%
