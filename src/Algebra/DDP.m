@@ -22,7 +22,7 @@ end
 function aEval = computeLeftSideEvaluation(A,xV)
     res      = A.evaluate(xV);
     n        = ndims(res);
-    isTensor = n>=4;
+    isTensor = n>=3;
     switch isTensor
         case true
             aEval = res;
@@ -34,7 +34,7 @@ end
 function bEval = computeRightSideEvaluation(B,xV)
     res      = B.evaluate(xV);
     n        = ndims(res);
-    isTensor = n>=4;
+    isTensor = n>=3;
     switch isTensor
         case true
             bEval = res;

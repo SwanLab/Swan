@@ -2,7 +2,7 @@ clc;clear;close all
 
 %load('TestForceTraction1Elem.mat')
 %load('TestDisplacementTraction.mat')
-cParams.mesh.name = 'CD_Mesh';
+%cParams.mesh.name = 'CD_Mesh';
 cParams.mesh.meshLength = 1;
 cParams.mesh.meshWidth = 1;
 cParams.mesh.meshN = 1;
@@ -21,7 +21,7 @@ cParams.solver.solverCase = 'DIRECT';
 cParams.solver.scale = 'MACRO';
 
 cParams.tol = 1e-8;
-cParams.H = 0;
+cParams.H = 0.1;
 cParams.r0 = 1/sqrt(6);
 
 tester = TestingContinuumDamage(cParams);
@@ -41,5 +41,9 @@ title('Force-Displacement')
 figure()
 plot(data.displacement.value,data.totalEnergy)
 title('Energy - Displacement')
+
+figure()
+plot(data.displacement.value,data.damagedMaterial)
+title('Material - Displacement')
 
 %tester.compareWithElasticProblem(data.displacement.fValues,uRef.fValues);

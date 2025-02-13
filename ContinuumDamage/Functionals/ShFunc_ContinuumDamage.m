@@ -16,8 +16,11 @@ classdef ShFunc_ContinuumDamage < handle
             obj.externalWork.setTestFunction(u);
         end 
 
-        function totalEnergy = computeEnergy(obj,u,bc)
-           internalEnergy = obj.internalDamage.computeFunction(u);
+        function [totalEnergy,c] = computeEnergy(obj,u,bc)
+           [internalEnergy,C] = obj.internalDamage.computeFunction(u);
+           c = C.evaluate([0;0]);
+           c = c(1,1);
+
            fExt = bc.pointloadFun;
            externalEnergy = obj.externalWork.computeFunction(u,fExt);
            totalEnergy = internalEnergy - externalEnergy;

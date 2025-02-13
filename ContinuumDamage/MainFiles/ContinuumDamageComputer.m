@@ -38,13 +38,14 @@ classdef ContinuumDamageComputer < handle
                 uFun.setFValues(obj.updateInitialDisplacement(bc,uFun));
 
                 resErr = 1;
+                
                 while (resErr >= obj.tolerance)
                     obj.elasticity.computeDamageEvolutionParam(uFun);
                     [res]  = obj.elasticity.computeResidual(uFun,bc);
                     [K,resDeriv] = obj.elasticity.computeDerivativeResidual(uFun,bc);
                     [uVal,uVec] = obj.computeDisplacement(resDeriv,res,uFun,bc);
                     uFun.setFValues(uVal);
-
+                    
                     resErr = norm(res);
                     fprintf('Error: %d \n',resErr);
                 end
@@ -55,8 +56,8 @@ classdef ContinuumDamageComputer < handle
                 dmgFun = dmgDomainFun.project('P1D');
                 data.damage.maxValue(i)  = max(dmgFun.fValues);
                 data.damage.minValue(i)  = min(dmgFun.fValues);
-                data.reaction(i)  = -obj.computeTotalReaction(K,uVec);
-                data.totalEnergy(i) = obj.elasticity.computeEnergy(uFun,bc);
+                data.reaction(i)  = obj.computeTotalReaction(K,uVec);
+                [data.totalEnergy(i),data.damagedMaterial(i)] = obj.elasticity.computeEnergy(uFun,bc);
             end
             data.displacement.field = uFun;
             data.damage.field = dmgFun;
@@ -134,7 +135,7 @@ classdef ContinuumDamageComputer < handle
             F = LHS*u;
             isInDown =  (abs(obj.mesh.coord(:,2) - min(obj.mesh.coord(:,2)))< 1e-12);
             nodes = 1:obj.mesh.nnodes;
-            totReact = sum(F(2*nodes(isInDown)));
+            totReact = -sum(F(2*nodes(isInDown)));
         end
 
     end

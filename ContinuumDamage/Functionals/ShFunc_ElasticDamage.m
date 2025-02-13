@@ -30,7 +30,7 @@ classdef ShFunc_ElasticDamage < handle
             obj.test = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);           
         end 
         
-        function energy = computeFunction(obj,u)            
+        function [energy,C] = computeFunction(obj,u)            
             obj.computeDamage();
             C = obj.material.obtainTensor(obj.d);           
             e  = SymGrad(u);
@@ -43,8 +43,8 @@ classdef ShFunc_ElasticDamage < handle
         function res = computeResidual(obj,u)
             obj.computeDamage();
             C = obj.material.obtainTensor(obj.d);
-            strain = SymGrad(u);
-            stress = DDP(strain,C);
+            epsi = SymGrad(u);
+            stress = DDP(epsi,C);
             res = obj.RHS.compute(stress,obj.test);            
         end
         
@@ -56,9 +56,9 @@ classdef ShFunc_ElasticDamage < handle
         end  
        
         function computeDamageEvolutionParam(obj,u)
-            C = obj.material.obtainNonDamagedTensor;
-            strain = SymGrad(u);
-            tauEpsilon = power(DDP(DDP(strain,C),strain),0.5);
+            C = obj.material.obtainNonDamagedTensor();
+            epsi = SymGrad(u);
+            tauEpsilon = sqrt(DDP(DDP(epsi,C),epsi));
             tauEpsilon = project(tauEpsilon,obj.r.order);
 
             fV = zeros(size(obj.r.fValues));
