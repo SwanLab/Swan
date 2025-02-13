@@ -2,7 +2,7 @@ clc;clear;close all
 
 %load('TestForceTraction1Elem.mat')
 %load('TestDisplacementTraction.mat')
-% cParams.mesh.name = 'CD_Mesh';
+cParams.mesh.name = 'CD_Mesh';
 cParams.mesh.meshLength = 1;
 cParams.mesh.meshWidth = 1;
 cParams.mesh.meshN = 1;
@@ -21,7 +21,7 @@ cParams.solver.solverCase = 'DIRECT';
 cParams.solver.scale = 'MACRO';
 
 cParams.tol = 1e-8;
-cParams.H = 0.01;
+cParams.H = 0;
 cParams.r0 = 1/sqrt(6);
 
 tester = TestingContinuumDamage(cParams);
