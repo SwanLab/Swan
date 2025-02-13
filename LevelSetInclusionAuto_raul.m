@@ -237,7 +237,7 @@ classdef LevelSetInclusionAuto_raul < handle
             obj.createSolverHere(cParams)
             obj.computeStiffnessMatrixHere();
             obj.computeForcesHere(cParams);
-             c = obj.computeCmat();
+             c = obj.computeCmat2();
             [u, L]  = obj.computeDisplacementHere(c);
             obj.plotSolution(u,L);
             obj.computeStrainHere();
@@ -330,6 +330,71 @@ classdef LevelSetInclusionAuto_raul < handle
             for i=1:nfun
                 obj.dLambda{i}  = AnalyticalFunction.create(f{i},ndimf,obj.boundaryMeshJoined);
 %                 dLambda = dLambda.project('P1');
+                Ce = lhs.compute(obj.dLambda{i},test);
+                [iLoc,jLoc,vals] = find(Ce);
+    
+%                 l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
+%                 l2g_dof = l2g_dof(:);
+%                 jGlob = l2g_dof(jLoc);
+%                 Cg = [Cg sparse(iLoc,jGlob,vals, obj.displacementFun.nDofs, dLambda.nDofs)];
+
+                l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
+                l2g_dof = l2g_dof(:);
+                iGlob = l2g_dof(iLoc);
+                Cg = [Cg sparse(iGlob,jLoc,vals, obj.displacementFun.nDofs, obj.dLambda{i}.ndimf)];
+            end
+
+        end
+
+            function Cg = computeCmat2(obj)
+            s.quadType = 2;
+            s.mesh     = obj.boundaryMeshJoined;
+            lhs = LHSintegrator_ShapeFunction_fun(s);
+            test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); % !!
+            ndimf  = 2;
+            minx   = min(obj.mesh.coord(:,1));
+            miny   = min(obj.mesh.coord(:,2));
+            maxx   = max(obj.mesh.coord(:,1));
+            maxy   = max(obj.mesh.coord(:,2));
+            x0     = (maxx+minx)/2;
+            y0     = (maxy+miny)/2;
+            Lx     = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
+            Ly     = max(obj.mesh.coord(:,2)) - min(obj.mesh.coord(:,2));
+            theta  = 1*pi/180;
+            cond   = [minx, maxx, miny, maxy];
+            nrb=3;
+            k=1;
+            dof  = [1,1,2,2];
+            for i=1:length(obj.boundaryMesh)
+                x0 = (max(obj.boundaryMesh{i}.mesh.coord(:,1))+ min(obj.boundaryMesh{i}.mesh.coord(:,1)))/2;
+                y0 = (max(obj.boundaryMesh{i}.mesh.coord(:,2))+ min(obj.boundaryMesh{i}.mesh.coord(:,2)))/2;
+                    f{k}   = @(x) [(x(dof(i),:,:)==cond(i)).*(x(1,:,:)./x(1,:,:)) + (x(dof(i),:,:)~=cond(i)).*(x(1,:,:)*0);...
+                                     x(2,:,:).*0 ];
+                    f{k+1} = @(x) [x(dof(i),:,:).*0 ;...
+                                  (x(dof(i),:,:)==cond(i)).*(x(1,:,:)./x(1,:,:)) + (x(dof(i),:,:)~=cond(i)).*(x(1,:,:)*0) ];
+                    f{k+2} = @(x) [(x(dof(i),:,:)==cond(i)).*((x(1,:,:)-x0).*cos(theta) - (x(2,:,:)-y0).*sin(theta)) + (x(dof(i),:,:)~=cond(i)).*(x(1,:,:)*0) ;...
+                                   (x(dof(i),:,:)==cond(i)).*((x(1,:,:)-x0).*sin(theta) + (x(2,:,:)-y0).*cos(theta)) + (x(dof(i),:,:)~=cond(i)).*(x(1,:,:)*0) ];
+                    k=k+3;
+            end            
+%             f1 = @(x) [(x(2,:,:)==miny).*(x(1,:,:)./x(1,:,:)) + (x(2,:,:)~=miny).*(x(1,:,:)*0);...
+%                         x(2,:,:).*0 ];
+%             f2 = @(x) [x(2,:,:).*0 ;...
+%                         (x(2,:,:)==miny).*(x(1,:,:)./x(1,:,:)) + (x(2,:,:)~=miny).*(x(1,:,:)*0) ];
+%              f3 = @(x) [(x(2,:,:)==miny).*((x(1,:,:)-x0).*cos(theta) - (x(2,:,:)-(-1)).*sin(theta)) + (x(2,:,:)~=miny).*(x(1,:,:)*0) ;...
+%                         (x(2,:,:)==miny).*((x(1,:,:)-x0).*sin(theta) + (x(2,:,:)-(-1)).*cos(theta)) + (x(2,:,:)~=miny).*(x(1,:,:)*0) ];
+% %             f2 = @(x) [1/(4)*(1+x(1,:,:)).*(1-x(2,:,:));...
+% %                     1/(4)*(1+x(1,:,:)).*(1-x(2,:,:))  ];
+% %             f3 = @(x) [1/(4)*(1+x(1,:,:)).*(1+x(2,:,:));...
+% %                     1/(4)*(1+x(1,:,:)).*(1+x(2,:,:))  ];
+%             f4 = @(x) [1/(4)*(1-x(1,:,:)).*(1+x(2,:,:));...
+%                     1/(4)*(1-x(1,:,:)).*(1+x(2,:,:))  ];
+%             f     = {f1 f2 f3 f4}; %
+            nfun = size(f,2);
+            Cg = [];
+            for i=1:nfun
+                obj.dLambda{i}  = AnalyticalFunction.create(f{i},ndimf,obj.boundaryMeshJoined);
+%                 dLambda = dLambda.project('P1');
+%                 obj.dLambda{i}.plot
                 Ce = lhs.compute(obj.dLambda{i},test);
                 [iLoc,jLoc,vals] = find(Ce);
     
