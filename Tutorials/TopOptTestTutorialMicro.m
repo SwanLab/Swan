@@ -154,7 +154,7 @@ classdef TopOptTestTutorialMicro < handle
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             s.mesh  = obj.mesh;
             s.type  = 'MassMatrix';
-            LHS = LHSintegrator.create(s);
+            LHS = LHSIntegrator.create(s);
             M = LHS.compute;     
         end
 
