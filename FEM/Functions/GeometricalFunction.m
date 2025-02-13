@@ -232,7 +232,17 @@ classdef GeometricalFunction < handle
             f(:,:,:,3)   = xNacaRotated - 1; 
             f(:,:,:,4)   = -xNacaRotated;
 
-            f  = f./max(abs(f));
+            % No se quina d'aquestes dues funcionaria. Jo primer resoldria
+            % el tema de la rotació i després revisem els detallets dels
+            % forats petits
+
+            %f  = f./max(abs(f));
+
+            %f(:,:,:,1) = f(:,:,:,1)./max(abs(f(:,:,:,1)),[],'all');
+            %f(:,:,:,2) = f(:,:,:,2)./max(abs(f(:,:,:,2)),[],'all');
+            %f(:,:,:,3) = f(:,:,:,3)./max(abs(f(:,:,:,3)),[],'all');
+            %f(:,:,:,4) = f(:,:,:,4)./max(abs(f(:,:,:,4)),[],'all');
+
             fV = -max(f,[],4);        
         end
     end
