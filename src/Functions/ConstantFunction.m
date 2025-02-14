@@ -6,7 +6,6 @@ classdef ConstantFunction < BaseFunction
 
     properties
         fHandle
-        ndimf
     end
     
     
@@ -14,10 +13,6 @@ classdef ConstantFunction < BaseFunction
         
         function obj = ConstantFunction(cParams)
             obj.init(cParams)
-        end
-
-        function fxV = evaluate(obj,xV)
-            fxV = obj.fHandle(xV);
         end
         
     end
@@ -43,5 +38,13 @@ classdef ConstantFunction < BaseFunction
         end
 
     end
-    
+
+    methods (Access = protected)
+
+        function fxV = evaluateNew(obj, xV)
+            fxV = obj.fHandle(xV);
+        end
+
+    end
+
 end
