@@ -84,7 +84,7 @@ classdef PhaseFieldHomogenizer < handle
             nParam = length(obj.maxParam);
             paramHole = cell(1,nParam);
             for i=1:nParam
-                paramHole{i} = linspace(1e-2,obj.maxParam(i),obj.nSteps(i));
+                paramHole{i} = linspace(1e-5,obj.maxParam(i),obj.nSteps(i));
             end
         end
         
