@@ -15,7 +15,9 @@ classdef Projector < handle
 
         function ord = determineQuadratureOrder(fun)
             switch class(fun)
-                case 'L2Function'
+                case 'ConstantFunction'
+                    ord = 0;
+                case 'AnalyticalFunction'
                     ord = 2;
                 case 'FEFunction'
                     ord = 2; % needed to project P1 to P1D             

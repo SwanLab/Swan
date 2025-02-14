@@ -1,4 +1,4 @@
-classdef ConstantFunction < L2Function
+classdef ConstantFunction < BaseFunction
     
     properties (GetAccess = public, SetAccess = private)
         constant
