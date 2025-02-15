@@ -11,8 +11,7 @@ classdef TestNaca < handle
         p
         t
         AoA
-        % xCentral
-        % yCentral
+        chord
     end
     
     properties (Access = private)
@@ -37,11 +36,12 @@ classdef TestNaca < handle
         
         function obj = TestNaca(cParams)
             close all;
-            obj.init(cParams);
+            obj.init(cParams);    
             obj.createReferenceMesh();
-            obj.createLevelSet();
+            [AirfoilParams, BGParams] = obj.setParams();
+            obj.createLevelSet(AirfoilParams, BGParams);
             obj.createFluidMesh();
-            %obj.createFluidMeshGoodConditioning();
+            %obj.createFluidMeshGoodConditioning(AirfoilParams, BGParams));
             obj.createMaterial();
             obj.createTrialFunction();
             obj.defineBoundaryConditions();
@@ -67,25 +67,34 @@ classdef TestNaca < handle
             obj.M        = cParams.M;
             obj.t        = cParams.t;
             obj.AoA      = cParams.AoA;
-            % obj.xCentral = cParams.xCentral;
-            % obj.yCentral = cParams.yCentral;
+            obj.chord    = cParams.chord;
+        end
+
+        function [AirfoilParams, BGParams] = setParams(obj)
+            AirfoilParams.p      = obj.p;
+            AirfoilParams.M      = obj.M;
+            AirfoilParams.t      = obj.t;
+            AirfoilParams.AoA    = obj.AoA;
+            AirfoilParams.chord  = obj.chord;
+            BGParams.length      = obj.length;
+            BGParams.height      = obj.height;       
         end
                 
         function createReferenceMesh(obj)
-            % obj.length  = 10;
-            % obj.height  = 4;
-            % nx          = 100;
-            % ny          = 40;
-            % obj.refMesh = QuadMesh(obj.length,obj.height,nx,ny); 
             obj.length  = 2;
             obj.height  = 1;
-            nx          = 150;
-            ny          = 75;
-            obj.refMesh = TriangleMesh(obj.length,obj.height,nx,ny);
+            nx          = 300;
+            ny          = 150;
+            obj.refMesh = QuadMesh(obj.length,obj.height,nx,ny); 
+            % obj.length  = 2;
+            % obj.height  = 1;
+            % nx          = 150;
+            % ny          = 75;
+            % obj.refMesh = TriangleMesh(obj.length,obj.height,nx,ny);
         end
 
-        function createLevelSet(obj)
-            g = obj.createNacaFunction(obj.p, obj.M, obj.t, obj.AoA);
+        function createLevelSet(obj,AirfoilParams, BGParams)
+            g = obj.createNacaFunction(AirfoilParams, BGParams);
             obj.levelSet = g.computeLevelSetFunction(obj.refMesh);
         end
         
@@ -103,9 +112,9 @@ classdef TestNaca < handle
             obj.uMesh.plot();
         end
 
-        function createFluidMeshGoodConditioning(obj)
+        function createFluidMeshGoodConditioning(obj,AirfoilParams, BGParams)
             m              = obj.createMeshAlphaTriangulation();
-            s.connec       = obj.computeConnectivitiesGoodCond(m);
+            s.connec       = obj.computeConnectivitiesGoodCond(m,AirfoilParams, BGParams);
             s.coord        = obj.rawMesh.coord;
             m2             = Mesh.create(s);
             obj.backupmesh = m2.computeCanonicalMesh();
@@ -139,10 +148,10 @@ classdef TestNaca < handle
             end
         end
 
-        function connec = computeConnectivitiesGoodCond(obj,mAlpha)
-            q  = Quadrature.create(mAlpha, 0);
-            xV = q.posgp;
-            g  = obj.createNacaFunction(obj.p, obj.M, obj.t, obj.AoA);
+        function connec = computeConnectivitiesGoodCond(obj,mAlpha,AirfoilParams, BGParams)
+            q        = Quadrature.create(mAlpha, 0);
+            xV       = q.posgp;
+            g  = obj.createNacaFunction(AirfoilParams, BGParams);
             lsElem = squeeze(g.evaluate(xV,mAlpha));
             connec = mAlpha.connec(lsElem<=0,:);
         end
@@ -164,7 +173,7 @@ classdef TestNaca < handle
             s.uMesh        = obj.uMesh;
             s.velocityFun  = obj.velocityFun;
             s.pressureFun  = obj.pressureFun;
-            BCClass              = BoundaryCondition(s); 
+            BCClass              = StokesProblemBoundaryCondition(s); 
             BCClass.compute();
             obj.dirConditions    = BCClass.dirConditions;
             obj.dirDofs          = BCClass.dirDofs;
@@ -232,16 +241,16 @@ classdef TestNaca < handle
 
     methods (Static, Access = private)
 
-        function g = createNacaFunction(p, M, t, AoA)
+        function g = createNacaFunction(AirfoilParams, BGParams)
             s.type = 'Naca';
-            s.xLE  = 0.5;
-            s.yLE  = 0.5;
+            s.xLE  = (BGParams.length - AirfoilParams.chord)/2;
+            s.yLE  = BGParams.height/2;
 
-            s.chord = 1;
-            s.p     = p;
-            s.m     = M;
-            s.t     = t;
-            s.AoA   = AoA;
+            s.chord = AirfoilParams.chord;
+            s.p     = AirfoilParams.p;
+            s.m     = AirfoilParams.M;
+            s.t     = AirfoilParams.t;
+            s.AoA   = AirfoilParams.AoA;
 
             g  = GeometricalFunction(s);
         end

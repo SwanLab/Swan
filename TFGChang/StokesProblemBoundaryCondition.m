@@ -1,4 +1,4 @@
-classdef BoundaryCondition < handle
+classdef StokesProblemBoundaryCondition < handle
     
     properties (Access = public)
         dirConditions
@@ -30,7 +30,7 @@ classdef BoundaryCondition < handle
 
     methods (Access = public)
         
-        function obj = BoundaryCondition(cParams)
+        function obj = StokesProblemBoundaryCondition(cParams)
             obj.init(cParams);
             obj.defineVariables();
             obj.defineDomainBoundaries();

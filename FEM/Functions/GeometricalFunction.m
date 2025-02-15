@@ -204,11 +204,15 @@ classdef GeometricalFunction < handle
             p   = s.p;
             m   = s.m;
             t   = s.t;
-            AoA = -deg2rad(s.AoA);
+            AoA = deg2rad(s.AoA);
         
-            x0    = s.xLE;
-            y0    = s.yLE/c;
-            xNaca = (x-x0)/c;
+            x0     = s.xLE;
+            y0     = s.yLE/c;
+            offsetX  = (x - x0)/c;
+            offsetY  = y/c - y0;
+
+            xNaca    = offsetX.*cos(AoA) - offsetY.*sin(AoA);
+            yNaca    = offsetX.*sin(AoA) + offsetY.*cos(AoA);
         
             yc   = (xNaca>=0 & xNaca<=p).*(m./p^2.*(2*p*xNaca-xNaca.^2))+...
                     (xNaca>=p & xNaca<=1).*(m./(1-p)^2.*((1-2*p)+2*p*xNaca-xNaca.^2));
@@ -217,20 +221,13 @@ classdef GeometricalFunction < handle
                     (xNaca>=p & xNaca<=1).*(2*m/(1-p)^2.*(p-xNaca));
         
             theta = atan(dydx);
-            yu    = y0 + yc + yt.*cos(theta);
-            yl    = y0 + yc - yt.*cos(theta);
-        
-            xu = (xNaca>=0 & xNaca<=1).*(xNaca).*cos(AoA) - (yu - y0).*sin(AoA) + x0/c;
-            yu = (xNaca>=0 & xNaca<=1).*(xNaca).*sin(AoA) + (yu - y0).*cos(AoA) + y0;
-            xl = (xNaca>=0 & xNaca<=1).*(xNaca).*cos(AoA) - (yl - y0).*sin(AoA) + x0/c;
-            yl = (xNaca>=0 & xNaca<=1).*(xNaca).*sin(AoA) + (yl - y0).*cos(AoA) + y0;
-        
-            x0Rotated    = min([xu(:); xl(:)]);
-            xNacaRotated = (x-x0Rotated)/(c*cos(AoA));
-            f(:,:,:,1)   = yl*c - y;
-            f(:,:,:,2)   = y - yu*c;
-            f(:,:,:,3)   = xNacaRotated - 1; 
-            f(:,:,:,4)   = -xNacaRotated;
+            yu    = yc + yt.*cos(theta);
+            yl    = yc - yt.*cos(theta);
+
+            f(:,:,:,1)   = yl - yNaca;
+            f(:,:,:,2)   = yNaca - yu;
+            f(:,:,:,3)   = xNaca - 1; 
+            f(:,:,:,4)   = -xNaca;
 
             f  = f./max(abs(f));
             fV = -max(f,[],4);        

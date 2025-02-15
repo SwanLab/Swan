@@ -10,14 +10,14 @@ O = 1;
 %         p = pp/10;
 
         % % INPUT DATA
-        m = TriangleMesh(2,1,150,75);
+        m = QuadMesh(10,4,100,40);
         %TriangleMesh(2,1,150,75);
         %QuadMesh(10,4,100,40); % MESH de referència sense cap objecte, quadrilateral
 
         % % NACA 4
         M = 0.02;
         %9/100;
-        p = 0.5;
+        p = 0.4;
         %8/10;
         t=12/100;
 
@@ -28,10 +28,10 @@ O = 1;
 
         AOAd = 0;
         %10; %deg
-        x_centr = 1;
-        %3.5;
-        y_centr = 0.5;
-        %2;
+        x_centr = 3.5;
+        %1;
+        y_centr = 2;
+        %0.5;
 
         %% Airfoil creation
 
@@ -62,6 +62,7 @@ O = 1;
         e.type  = 'STOKES'; 
         e.nelem = mesh.nelem;
         material = Material.create(e); % definir les propietats físiques del fluid, com la viscositat dinàmica
+        material.compute();
         dtime = Inf; %Estacionari 
 
         % VELOCITY AND PRESSURE FUNCTIONS
