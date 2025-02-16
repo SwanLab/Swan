@@ -21,7 +21,7 @@ cParams.solver.solverCase = 'DIRECT';
 cParams.solver.scale = 'MACRO';
 
 cParams.tol = 1e-8;
-cParams.H = 0.1;
+cParams.H = 0.5;
 cParams.r0 = 1/sqrt(6);
 
 tester = TestingContinuumDamage(cParams);
