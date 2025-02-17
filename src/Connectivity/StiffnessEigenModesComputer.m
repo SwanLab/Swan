@@ -146,7 +146,7 @@ classdef StiffnessEigenModesComputer < handle
             s.quadratureOrder = 2;
             s.function        = obj.createDomainFunction(fun);
             s.type            = 'StiffnessMatrixWithFunction';
-            lhs = LHSintegrator.create(s);
+            lhs = LHSIntegrator.create(s);
             K = lhs.compute();
         end
 
@@ -186,7 +186,7 @@ classdef StiffnessEigenModesComputer < handle
             s.function = obj.createDomainFunction(fun);
             s.quadratureOrder = 2;
             s.type            = 'MassMatrixWithFunction';
-            lhs = LHSintegrator.create(s);
+            lhs = LHSIntegrator.create(s);
             M = lhs.compute();   
         end       
                 

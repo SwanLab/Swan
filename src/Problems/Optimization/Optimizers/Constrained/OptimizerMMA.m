@@ -113,7 +113,7 @@ classdef OptimizerMMA < Optimizer
             data = [data;obj.designVariable.computeL2normIncrement()];
             obj.monitoring.update(obj.nIter,num2cell(data));
             obj.monitoring.refresh();
-            obj.obtainGIF('Dv connec', obj.designVariable.fun);
+%             obj.obtainGIF('Dv connec', obj.designVariable.fun);
         end
 
         function updateMonitoringWithEigenvalueConstraint(obj) 

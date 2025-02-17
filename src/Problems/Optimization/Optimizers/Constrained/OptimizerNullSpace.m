@@ -77,7 +77,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.etaMin          = 1e-6;
             obj.initOtherParameters(cParams);
             obj.createMonitoring(cParams);
-            obj.GIFname         = cParams.GIFname;
+%             obj.GIFname         = cParams.GIFname;
         end
 
         function initOtherParameters(obj,cParams)
@@ -123,7 +123,7 @@ classdef OptimizerNullSpace < Optimizer
         function updateMonitoring(obj)
             data = obj.cost.value;
             data = [data;obj.cost.getFields(1)];
-            data = [data;obj.cost.getFields(2)];
+%             data = [data;obj.cost.getFields(2)];
             data = [data;obj.constraint.value];
             data = [data;obj.designVariable.computeL2normIncrement()];
             data = [data;obj.dualVariable.fun.fValues];
@@ -142,7 +142,7 @@ classdef OptimizerNullSpace < Optimizer
             end
             obj.monitoring.update(obj.nIter,num2cell(data));
             obj.monitoring.refresh();
-            obj.obtainGIF(obj.GIFname);
+%             obj.obtainGIF(obj.GIFname);
 
         end
 

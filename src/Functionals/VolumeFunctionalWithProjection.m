@@ -1,4 +1,4 @@
-classdef VolumeFunctional < handle
+classdef VolumeFunctionalWithProjection < handle
 
     properties (Access = private)
         quadrature
@@ -15,7 +15,7 @@ classdef VolumeFunctional < handle
     end
 
     methods (Access = public)
-        function obj = VolumeFunctional(cParams)
+        function obj = VolumeFunctionalWithProjection(cParams)
             obj.init(cParams);
             obj.createQuadrature();
             obj.createTotalVolume();
@@ -25,11 +25,22 @@ classdef VolumeFunctional < handle
             iter = x{2};
             x = x{1};
 
-            xD  = x.obtainDomainFunction();
-            J  = obj.computeFunction(xD{1});
-            dJ = obj.computeGradient(xD);
+%             if iter > obj.iter
+%                 obj.iter = iter;
+%                 beta = obj.filter.getBeta();
+%                 if iter >= 400 && mod(iter,20)== 0 && beta <= 10
+%                     obj.filter.updateBeta(beta*2.0);
+%                     obj.filterAdjoint.updateBeta(beta*2.0);
+%                 end
+%             end  
 
-            obj.filteredDesignVariable = xD{1};
+            xD  = x.obtainDomainFunction();
+            xR = obj.filterFields(xD);
+            J  = obj.computeFunction(xR{1});
+
+            dJ = obj.computeGradient(xR);
+
+            obj.filteredDesignVariable = xR{1};
         end
 
         function x = getDesignVariable(obj)
@@ -42,6 +53,10 @@ classdef VolumeFunctional < handle
         function init(obj,cParams)
             obj.mesh         = cParams.mesh;
             obj.gradientTest = cParams.gradientTest;
+            obj.filter       = cParams.filter;
+            if isfield(cParams,'filterAdjoint')
+                obj.filterAdjoint = cParams.filterAdjoint;            
+            end
             obj.iter = 0;
         end
 
@@ -50,6 +65,10 @@ classdef VolumeFunctional < handle
             xR      = cell(nDesVar,1);
             for i = 1:nDesVar
                 xR{i} = obj.filter.compute(x{i},2);
+                if ~isempty(obj.filterAdjoint)
+                    xFiltered = obj.filter.getFilteredField();
+                    obj.filterAdjoint.updateFilteredField(xFiltered);
+                end
             end
         end
 
@@ -72,6 +91,11 @@ classdef VolumeFunctional < handle
             test    = obj.gradientTest;
             fValues = ones(test.nDofs,1)/obj.totalVolume;
             dJ      = FeFunction.create(test.order,fValues,obj.mesh);
+            if ~isempty(obj.filterAdjoint)
+                dJ     = obj.filterAdjoint.compute(dJ,2);
+            else
+                dJ     = obj.filter.compute(dJ,2);
+            end
         end
     end
 
