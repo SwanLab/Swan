@@ -10,7 +10,7 @@ O = 1;
 %         p = pp/10;
 
         % % INPUT DATA
-        m = QuadMesh(10,4,100,40);
+        m = QuadMesh(8,4,300,150);
         %TriangleMesh(2,1,150,75);
         %QuadMesh(10,4,100,40); % MESH de referència sense cap objecte, quadrilateral
 
@@ -28,7 +28,7 @@ O = 1;
 
         AOAd = 0;
         %10; %deg
-        x_centr = 3.5;
+        x_centr = 4.0;
         %1;
         y_centr = 2;
         %0.5;

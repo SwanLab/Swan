@@ -57,6 +57,10 @@ classdef TestNaca < handle
         function validate(obj)
             obj.verifyAeroForces();
         end
+
+        function print(obj)
+            obj.printResults();
+        end
         
     end
     
@@ -81,16 +85,16 @@ classdef TestNaca < handle
         end
                 
         function createReferenceMesh(obj)
+            % obj.length  = 8;
+            % obj.height  = 4;
+            % nx          = 300;
+            % ny          = 150;
+            % obj.refMesh = QuadMesh(obj.length,obj.height,nx,ny); 
             obj.length  = 2;
             obj.height  = 1;
-            nx          = 300;
-            ny          = 150;
-            obj.refMesh = QuadMesh(obj.length,obj.height,nx,ny); 
-            % obj.length  = 2;
-            % obj.height  = 1;
-            % nx          = 150;
-            % ny          = 75;
-            % obj.refMesh = TriangleMesh(obj.length,obj.height,nx,ny);
+            nx          = 150;
+            ny          = 75;
+            obj.refMesh = TriangleMesh(obj.length,obj.height,nx,ny);
         end
 
         function createLevelSet(obj,AirfoilParams, BGParams)
@@ -234,6 +238,12 @@ classdef TestNaca < handle
             s.D    = obj.D;
             AeroForcesCalculationTest = AeroForcesCalculationTestComputer(s);
             AeroForcesCalculationTest.compute();
+        end
+
+        function printResults(obj)
+            fileID = fopen('results.txt', 'a');
+            fprintf(fileID, '%.2f %.2f %.2f %.4f\n', obj.M, obj.p, obj.t, obj.E);
+            fclose(fileID);
         end
 
 

@@ -9,3 +9,4 @@ Naca.AoA   = 0;
 NacaClass = TestNaca(Naca);
 NacaClass.compute();
 NacaClass.validate();
+NacaClass.print();
