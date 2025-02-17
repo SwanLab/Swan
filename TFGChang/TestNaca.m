@@ -22,6 +22,7 @@ classdef TestNaca < handle
         backupmesh
         uMesh
         material
+        filter
         velocityFun
         pressureFun
         forcesFormula
@@ -49,6 +50,7 @@ classdef TestNaca < handle
         end
 
         function compute(obj)
+            obj.createPressureFilter();
             obj.solveStokesProblem();
             obj.plotResults();
             obj.CalculateAeroForces();
@@ -191,6 +193,13 @@ classdef TestNaca < handle
             obj.forcesFormula = AnalyticalFunction(sAF);
         end
 
+        function createPressureFilter(obj)
+            s.filterType = 'PDE';
+            s.mesh       = obj.mesh;
+            s.trial      = obj.pressureFun;
+            obj.filter   = Filter.create(s);
+        end
+
         function solveStokesProblem(obj)
             s.mesh             = obj.mesh;
             s.forcesFormula    = obj.forcesFormula;
@@ -204,6 +213,7 @@ classdef TestNaca < handle
             SolverResults.compute();
             obj.velocityFun    = SolverResults.velocityFun;
             obj.pressureFun    = SolverResults.pressureFun;
+            obj.pressureFun    = obj.filter.compute(obj.pressureFun,3); % Comment this line to remove filter
         end
 
         function plotResults(obj)     
