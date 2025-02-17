@@ -9,32 +9,8 @@ classdef IsotropicElasticMaterial < Material
 
     properties (Access = protected)
         ndim
-        mesh
     end
 
-    methods (Access = public)
-
-        function mu = createShear(obj)
-            E  = @(xV) obj.young.evaluate(xV);
-            nu = @(xV) obj.poisson.evaluate(xV);
-            s.operation = @(xV) obj.computeMuFromYoungAndPoisson(E(xV),nu(xV));
-            s.ndimf = size(E,1);
-            s.mesh = obj.mesh;
-            mu = DomainFunction(s);
-        end
-
-        function k = createBulk(obj)
-            E  = @(xV) obj.young.evaluate(xV);
-            nu = @(xV) obj.poisson.evaluate(xV);
-            N  = obj.ndim;
-            s.operation  = @(xV) obj.computeKappaFromYoungAndPoisson(E(xV),nu(xV),N);
-            s.ndimf = size(E,1);
-            s.mesh = obj.mesh;
-            k = DomainFunction(s);
-        end
-        
-    end
-    
     methods (Access = protected)
 
         function init(obj,cParams)

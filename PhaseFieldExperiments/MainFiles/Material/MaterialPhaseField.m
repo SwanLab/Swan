@@ -46,16 +46,21 @@ classdef MaterialPhaseField < Material
 
     methods (Access = private)
 
-        function mat = createBaseMaterial(obj,cParams)
-            sIso.mesh = obj.mesh;
-            sIso.young = ConstantFunction.create(cParams.matInfo.E,obj.mesh);
-            sIso.poisson = ConstantFunction.create(cParams.matInfo.nu,obj.mesh);
+        function mat = createBaseMaterial(~,cParams)
+            sIso.mesh = cParams.mesh;
+            sIso.ndim = cParams.mesh.ndim;
+            sIso.young = ConstantFunction.create(cParams.matInfo.E,cParams.mesh);
+            sIso.poisson = ConstantFunction.create(cParams.matInfo.nu,cParams.mesh);
             mat = Isotropic2dElasticMaterial(sIso);
         end
 
         function mat = createDegradedMaterial(obj,fun)
-            mu    = obj.baseMaterial.createShear();
-            kappa = obj.baseMaterial.createBulk();
+            E = obj.baseMaterial.young;
+            nu = obj.baseMaterial.poisson;
+            ndim = obj.mesh.ndim;
+
+            mu    = obj.baseMaterial.computeMuFromYoungAndPoisson(E,nu);
+            kappa = obj.baseMaterial.computeKappaFromYoungAndPoisson(E,nu,ndim);
             degM  = fun.*mu + 1e-10; 
             degK  = fun.*kappa + 1e-10;
             s.shear = degM;

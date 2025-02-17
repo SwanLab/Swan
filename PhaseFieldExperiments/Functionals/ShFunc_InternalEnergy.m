@@ -28,7 +28,7 @@ classdef ShFunc_InternalEnergy < handle
             s.mesh = obj.mesh;
             s.quadratureOrder = quadOrder;
             s.type = 'ShapeSymmetricDerivative';
-            RHS = RHSintegrator.create(s);
+            RHS = RHSIntegrator.create(s);
             Ju = RHS.compute(sigma,test);
         end
 
@@ -40,7 +40,7 @@ classdef ShFunc_InternalEnergy < handle
             s.mesh = obj.mesh;
             s.type = 'ShapeFunction';
             s.quadType = quadOrder;
-            RHS = RHSintegrator.create(s);
+            RHS = RHSIntegrator.create(s);
             Jphi = 0.5*RHS.compute(dEnergyFun,test);
         end
 
@@ -52,7 +52,7 @@ classdef ShFunc_InternalEnergy < handle
             s.test      = u;
             s.material = C{1};
             s.quadratureOrder = quadOrder;
-            LHS = LHSintegrator.create(s);
+            LHS = LHSIntegrator.create(s);
             Huu = LHS.compute();
         end
 
@@ -66,7 +66,7 @@ classdef ShFunc_InternalEnergy < handle
             s.mesh = obj.mesh;
             s.type = 'MassMatrixWithFunction';
             s.quadratureOrder = quadOrder;
-            LHS = LHSintegrator.create(s);
+            LHS = LHSIntegrator.create(s);
             Hphiphi = 0.5*LHS.compute();
         end
     end
