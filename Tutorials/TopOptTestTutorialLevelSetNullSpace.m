@@ -103,7 +103,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'CG';
+            s.solverCase = 'DIRECT';
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -177,7 +177,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.lb             = -inf;
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 0.2;
+            s.gJFlowRatio    = 2.0;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
             opt = OptimizerNullSpace(s);

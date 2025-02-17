@@ -14,6 +14,7 @@ classdef PerimeterFunctional < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
+            x=x{1};
             xD = x.obtainDomainFunction();
             xR = obj.filterDesignVariable(xD);
             J  = obj.computeFunction(xD{1},xR{1});

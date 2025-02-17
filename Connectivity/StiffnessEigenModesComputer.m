@@ -17,6 +17,9 @@ classdef StiffnessEigenModesComputer < handle
     properties (Access = private)
         mesh
         density
+        test
+        trial
+        eigenF
     end
     
     methods (Access = public)
@@ -44,7 +47,8 @@ classdef StiffnessEigenModesComputer < handle
             % obj.plotNeumannEigenMode(phiN)
             dalphaCont = obj.createDomainFunction(dalpha);
             dmCont     = obj.createDomainFunction(dm);
-            obj.phiDCont = obj.DirichletEigenModeToLagrangianFunction(phiD);
+            obj.DirichletEigenModeToLagrangianFunction(phiD);
+            obj.phiDCont = obj.eigenF;
             lambda  = lambdaD;
             dlambda = obj.computeLowestEigenValueGradient(dalphaCont, dmCont, obj.phiDCont, lambdaD); 
         end
@@ -82,6 +86,9 @@ classdef StiffnessEigenModesComputer < handle
             obj.mesh    = cParams.mesh;
 %             obj.epsilon = cParams.epsilon;
 %             obj.p       = cParams.p;
+            obj.test  = LagrangianFunction.create(obj.mesh,1,'P1');
+            obj.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            obj.eigenF =  LagrangianFunction.create(obj.mesh,1,'P1');
         end
 
         function createBoundaryConditions(obj)
@@ -133,8 +140,8 @@ classdef StiffnessEigenModesComputer < handle
         end            
 
         function K = createStiffnessMatrixWithFunction(obj,fun)
-            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.test  = obj.test;
+            s.trial = obj.trial;
             s.mesh  = obj.mesh;
             s.quadratureOrder = 2;
             s.function        = obj.createDomainFunction(fun);
@@ -173,8 +180,8 @@ classdef StiffnessEigenModesComputer < handle
         end
 
         function M = computeMassMatrixWithFunction(obj,fun)                
-            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.test  = obj.test;
+            s.trial = obj.trial;
             s.mesh  = obj.mesh;
             s.function = obj.createDomainFunction(fun);
             s.quadratureOrder = 2;
@@ -226,11 +233,9 @@ classdef StiffnessEigenModesComputer < handle
             vV.plot()
         end        
 
-        function eigenF = DirichletEigenModeToLagrangianFunction(obj, eigenF)
-            s.fValues = obj.fillVectorWithHomogeneousDirichlet(eigenF);
-            s.mesh    = obj.mesh;
-            s.order   = 'P1';
-            eigenF = LagrangianFunction(s);
+        function DirichletEigenModeToLagrangianFunction(obj, eigenF)
+            fValues = obj.fillVectorWithHomogeneousDirichlet(eigenF);
+            obj.eigenF.setFValues(fValues);
         end
 
         function plotDirichletEigenMode(obj,eigenF)
@@ -238,8 +243,7 @@ classdef StiffnessEigenModesComputer < handle
         end
 
         function fV = fillVectorWithHomogeneousDirichlet(obj,eigenF)
-            t = LagrangianFunction.create(obj.mesh,1,'P1');
-            ndofs = t.nDofs;           
+            ndofs = obj.eigenF.nDofs;           
             fV = zeros(ndofs,1);
             dofsDir = obj.boundaryConditions.dirichlet_dofs;
             fV(dofsDir,1) = obj.boundaryConditions.dirichlet_vals;

@@ -27,6 +27,7 @@ classdef OptimizerNullSpace < Optimizer
         gJFlowRatio
         predictedTau
         firstEstimation
+        GIFname
     end
 
     methods (Access = public) 
@@ -76,6 +77,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.etaMin          = 1e-6;
             obj.initOtherParameters(cParams);
             obj.createMonitoring(cParams);
+            obj.GIFname         = cParams.GIFname;
         end
 
         function initOtherParameters(obj,cParams)
@@ -140,7 +142,7 @@ classdef OptimizerNullSpace < Optimizer
             end
             obj.monitoring.update(obj.nIter,num2cell(data));
             obj.monitoring.refresh();
-%             obj.obtainGIF('DesignLevelSet', obj.designVariable.fun);
+            obj.obtainGIF(obj.GIFname);
 
         end
 

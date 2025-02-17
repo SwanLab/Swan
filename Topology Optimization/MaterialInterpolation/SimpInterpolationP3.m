@@ -26,7 +26,7 @@ classdef SimpInterpolationP3 < handle
         function init(obj,cParams)
             obj.matA = cParams.matA;
             obj.matB = cParams.matB;
-            obj.pExp = 3;
+            obj.pExp = 8;
         end
 
         function mu = computeMuFunction(obj,rho)
