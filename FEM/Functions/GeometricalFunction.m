@@ -233,7 +233,7 @@ classdef GeometricalFunction < handle
             % el tema de la rotació i després revisem els detallets dels
             % forats petits
 
-            f  = f./max(abs(f));
+            %f  = f./max(abs(f));
 
             % f(:,:,:,1) = f(:,:,:,1)./max(abs(f(:,:,:,1)),[],'all');
             % f(:,:,:,2) = f(:,:,:,2)./max(abs(f(:,:,:,2)),[],'all');
