@@ -35,7 +35,7 @@ classdef ShFunc_LocalDamage < handle
             s.mesh = obj.mesh;
             s.type = 'ShapeFunction';
             s.quadType = quadOrder;
-            RHS = RHSintegrator.create(s);
+            RHS = RHSIntegrator.create(s);
             J = (obj.constant/obj.l0)*RHS.compute(dAlphaFun, test);
         end
         
@@ -48,7 +48,7 @@ classdef ShFunc_LocalDamage < handle
             s.mesh = obj.mesh;
             s.type = 'MassMatrixWithFunction';
             s.quadratureOrder = quadOrder;
-            LHS = LHSintegrator.create(s);
+            LHS = LHSIntegrator.create(s);
             H = (obj.constant/obj.l0)*LHS.compute();
         end
     end

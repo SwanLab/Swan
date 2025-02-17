@@ -27,7 +27,7 @@ classdef ShFunc_ExternalWork < handle
             s.mesh = bMesh.mesh;
             s.quadType = quadOrder;
             s.type = 'ShapeFunction';
-            RHS = RHSintegrator.create(s);
+            RHS = RHSIntegrator.create(s);
 
             [u,fExt] = adaptFuns(obj,u,fExt);
             test = LagrangianFunction.create(bMesh.mesh,u.ndimf,u.order);

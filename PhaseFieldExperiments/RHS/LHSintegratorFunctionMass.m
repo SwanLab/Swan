@@ -1,4 +1,4 @@
-classdef LHSintegratorFunctionMass < LHSintegrator
+classdef LHSintegratorFunctionMass < LHSIntegrator
 
     properties (Access = private)
         fun
@@ -7,7 +7,7 @@ classdef LHSintegratorFunctionMass < LHSintegrator
     methods (Access = public)
 
         function obj = LHSintegratorFunctionMass(cParams)
-            obj@LHSintegrator(cParams)
+            obj@LHSIntegrator(cParams)
             obj.fun = cParams.fun;
         end
 

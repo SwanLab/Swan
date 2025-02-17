@@ -1,4 +1,4 @@
-classdef RHSintegrator_ShapeSymmDerivative < RHSintegrator
+classdef RHSintegrator_ShapeSymmDerivative < RHSIntegrator
     
     methods (Access = public)
         
