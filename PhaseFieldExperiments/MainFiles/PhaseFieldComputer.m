@@ -39,7 +39,7 @@ classdef PhaseFieldComputer < handle
             obj.stop.noFullyBroken = true; obj.stop.maxF = 0; obj.stop.lastStep = maxSteps; obj.stop.stop = false;
             i = 1;
             while(i<=maxSteps) && (obj.stop.noFullyBroken)
-                fprintf('\n ********* STEP %i/%i *********  \n',i,maxSteps)
+                obj.printStep(i,maxSteps)
                 bc = obj.boundaryConditions.nextStep();
                 u.setFValues(obj.updateInitialDisplacement(bc,uOld));
 
@@ -283,6 +283,13 @@ classdef PhaseFieldComputer < handle
                 X = sprintf('%s:%d / cost: %.8e  (diff:%.8e) \n',name,iter,cost,e);
                 fprintf(X);
             end
+        end
+
+        function printStep(obj,i,maxSteps)
+            if obj.shallPrint == true
+                fprintf('\n ********* STEP %i/%i *********  \n',i,maxSteps)
+            end
+            
         end
 
         %% %%%%%%%%%%%%%%%%%% SAVE %%%%%%%%%%%%%%% %%

@@ -22,7 +22,7 @@ classdef MaterialFactory < handle
                 case 'STOKES'
                     material = Material_Stokes(cParams);
                     
-                case 'PhaseFieldAnalytic'
+                case {'PhaseFieldAnalytic','PhaseFieldAnalytical'}
                     material = MaterialPhaseField(cParams);
                     
                 case 'PhaseFieldHomog'

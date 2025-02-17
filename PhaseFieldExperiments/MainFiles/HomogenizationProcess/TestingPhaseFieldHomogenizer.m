@@ -1,4 +1,4 @@
-classdef PhaseFieldHomogenizer < handle
+classdef TestingPhaseFieldHomogenizer < handle
 
     properties (Access = private)
         E
@@ -20,12 +20,12 @@ classdef PhaseFieldHomogenizer < handle
 
     methods (Access = public)
         
-        function obj = PhaseFieldHomogenizer(cParams)
+        function obj = TestingPhaseFieldHomogenizer(cParams)
             obj.init(cParams);
             obj.defineMesh();
         end
         
-        function [mat,phi,holeParams] = computeHomogMaterial(obj)
+        function [mat,phi,holeParams] = compute(obj)
             holeParams = obj.computeHoleParams();
             comb = table2array(combinations(holeParams{:}));
             nComb = size(comb,1);
@@ -241,7 +241,6 @@ classdef PhaseFieldHomogenizer < handle
                     sDir{1}.domain    = @(coor) isVertex(coor);
                     sDir{1}.direction = [1,2];
                     sDir{1}.value     = 0;
-
             end
 
             dirichletFun = [];

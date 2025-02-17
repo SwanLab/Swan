@@ -1,5 +1,9 @@
 classdef TestingPhaseField < handle
 
+    properties (Access = public)
+        initialGuess
+    end
+
     properties (Access = private)
         monitoring
         benchmark
@@ -13,7 +17,6 @@ classdef TestingPhaseField < handle
     properties (Access = private)
         mesh
         boundaryConditions
-        initialGuess
         functional
     end
 
@@ -68,14 +71,26 @@ classdef TestingPhaseField < handle
 
         function createInitialGuess(obj,cParams)
             if isfield(cParams,'initialGuess')
-                obj.initialGuess.u = cParams.initialGuess.u;
-                obj.initialGuess.phi = cParams.initialGuess.phi;
+                if isfield(cParams.initialGuess,'u')
+                    obj.initialGuess.u = cParams.initialGuess.u;
+                else
+                    u = LagrangianFunction.create(obj.mesh,2,'P1');
+                    obj.initialGuess.u = u;
+                end
+
+                if isfield(cParams.initialGuess,'phi')
+                    obj.initialGuess.phi = cParams.initialGuess.phi;
+                else
+                    phi = LagrangianFunction.create(obj.mesh,1,'P1');
+                    %phi = obj.setInitialDamage(phi);
+                    obj.initialGuess.phi = phi;
+                end
             else
                 u = LagrangianFunction.create(obj.mesh,2,'P1');
                 phi = LagrangianFunction.create(obj.mesh,1,'P1');
                 %phi = obj.setInitialDamage(phi);
-                obj.initialGuess.u = u;
                 obj.initialGuess.phi = phi;
+                obj.initialGuess.u = u;
             end
         end
 
