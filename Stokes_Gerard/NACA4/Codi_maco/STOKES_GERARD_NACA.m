@@ -31,14 +31,21 @@ O = 1;
         % [t,Q] = findthickness(x_pos,ampl,alt,M,p);
 
 
-        fH = Find_fH_circles(M,p,t,x_centr,y_centr,AOAd);
+        %fH = Find_fH_circles(M,p,t,x_centr,y_centr,AOAd);
 
         % fH = Find_fH_points(M,p,t,x_centr,y_centr,AOAd);
 
         %% Create mesh
 
-        s.fHandle = fH;
-        s.type='Given';
+        %s.fHandle = fH;
+        s.m     = 0.02;
+        s.p     = 0.4;
+        s.t     = 12/100;
+        s.chord = 1;
+        s.AoA   = 0;
+        s.xLE  = (10 - 1)/2;
+        s.yLE  = 4/2;
+        s.type='Naca';
         g = GeometricalFunction(s);
         lsFun = g.computeLevelSetFunction(m); %D'aquí surt la malla de quadrats sense el forat
         sUm.backgroundMesh = m;

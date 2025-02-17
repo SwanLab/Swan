@@ -32,7 +32,7 @@ for iE = 1:bMesh.nelem
     node1 = bMesh.coord(bMesh.connec(iE,1),:);
     node2 = bMesh.coord(bMesh.connec(iE,2),:);
 
-    if node1(1)<= 5
+    %if node1(1)<= 5
     nvect = (node2-node1)/(abs(norm(node2-node1)));
     nvect = -nvect * [0 -1;1 0];
 %     if dot(ref_vect(iE,:),nvect)<0 %No cal
@@ -42,7 +42,7 @@ for iE = 1:bMesh.nelem
     length_element(cont) = abs(norm(node1-node2));
 
     cont = cont +1;
-    end
+    %end
 
 end
 
