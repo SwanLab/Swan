@@ -4,7 +4,7 @@ classdef ConstantFunction < BaseFunction
         constant
     end
 
-    properties (Access = private)
+    properties
         fHandle
     end
     
@@ -14,14 +14,7 @@ classdef ConstantFunction < BaseFunction
         function obj = ConstantFunction(cParams)
             obj.init(cParams)
         end
-
-    end
-
-    methods (Access = protected)
-
-        function fxV = evaluateNew(obj,xV)
-            fxV = obj.fHandle(xV);
-        end
+        
     end
     
     methods (Access = public, Static)
@@ -45,5 +38,13 @@ classdef ConstantFunction < BaseFunction
         end
 
     end
-    
+
+    methods (Access = protected)
+
+        function fxV = evaluateNew(obj, xV)
+            fxV = obj.fHandle(xV);
+        end
+
+    end
+
 end
