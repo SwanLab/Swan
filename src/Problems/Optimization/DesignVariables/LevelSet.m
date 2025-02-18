@@ -45,9 +45,11 @@ classdef LevelSet < DesignVariable
             Vf(1,1,:) = vf;
         end
 
-        function v = computeVolume(obj)
-            chi = CharacteristicFunction.create(obj.unfittedMesh);
-            v = Integrator.compute(chi,obj.unfittedMesh,2);
+        function Vf = computeVolume(obj)
+            VTot = obj.mesh.computeVolume();
+            chi  = CharacteristicFunction.create(obj.unfittedMesh);
+            V    = Integrator.compute(chi,obj.unfittedMesh,2);
+            Vf   = V/VTot;
         end
 
         function plot(obj)
