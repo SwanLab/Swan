@@ -1,5 +1,6 @@
 classdef CellFinderInStructuredMesh < handle
 
+
     properties (Access = public)
         naturalCoord
         cells
