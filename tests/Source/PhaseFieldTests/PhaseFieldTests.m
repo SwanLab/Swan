@@ -1,35 +1,59 @@
 classdef PhaseFieldTests < handle & matlab.unittest.TestCase
 
-% En el futur: agrupar testsTO malla en comú i sense definir functionals, opt..;
-% crear difs funcions a topopttests depenent tipus functionals...
-
     properties (TestParameter)
-        testsTO = {
-            'test_cantilever', 'test_cantilever2', 'test_cantilever3', ...
-            'testDualNestedInPrimal_WithProjectedGradient', ...
-            'testDualNestedInPrimal_WithSlerp', ...
-            'test_interiorPerimeter',...
-            'test_anisotropy','test_anisotropy_interior','test_nullspace',...
-            'test_interiorPerimeterPDErho','test_filterLump','test_cantilever_IPM',...
-            'test_dirichletProjection','test_gripping','test_micro', 'test_micro2'
-            }
+        singleElementCases = {'Analytical','Homogenized'}
+        % complexCases = {}
+        homogenizationCases = {'Square','Hexagon','Ellipse'}
     end
 
     methods (Test, TestTags = {'PF'})
+        function testPhaseFieldSingleElem(testCase,singleElementCases)
+            filename = ['testPhaseFieldSingleElem',singleElementCases];
+            load(filename,'input');
+            tester = TestingPhaseField(input);
+            outputData = tester.compute();
+            xNew = outputData.damage.maxValue;
+            load(filename,'xRef');
+            err = norm(xNew-xRef)/norm(xRef);
+            tol      = 1e-6;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
 
-        function test1DAmbrosioTortorelli(testCase, testsTO)
-            run(testsTO);
-            s.
+        % function testPhaseFieldComplexCases(testCase,complexCases)
+        %     filename = ['testPhaseField',complexCases,'2D'];
+        %     load(filename,'input');
+        %     tester = TestingPhaseField(input);
+        %     outputData = tester.compute();
+        %     xNew = tester.computeTotalEnergy(outputData.energy);
+        %     load(filename,'xRef');
+        %     err = norm(xNew-xRef)/norm(xRef);
+        %     tol      = 1e-6;
+        %     testCase.verifyLessThanOrEqual(err, tol)
+        % end
+        
+        function testPhaseFieldHomogenization(testCase,homogenizationCases)
+            filename = ['testPhaseFieldHomogenization',homogenizationCases];
+            load(filename,'input');
+            tester = TestingPhaseFieldHomogenizer(input);
+            [xNew,~,~] = tester.compute();
+            load(filename,'xRef');
+            err = max(pagenorm(xNew-xRef)./pagenorm(xRef));
+            tol      = 1e-6;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
+        
+    end
 
-            problem = TestingPhaseField(s);
-            ..
+    methods(Static,Access = private)
 
-            phiNew =
-            load([testsTO,'.mat'],'x');
-            err = norm(x - xNew)/norm(x);
-            tol = 1e-6;
-            testCase.verifyLessThanOrEqual(err, tol);
+        function computeTotalEnergy(energyCell)
+            E = struct2cell(energyCell);
+            totE = zeros(size(E{1}));
+            for i=1:length(E)
+                totE = totE + E{i};
+            end
         end
 
     end
+  
 end
