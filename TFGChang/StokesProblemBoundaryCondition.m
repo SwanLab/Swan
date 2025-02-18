@@ -22,7 +22,7 @@ classdef StokesProblemBoundaryCondition < handle
         isHorizontal
         dirVelBC
         dirPreBC
-        lengthCutMesh
+        nnodesCutMesh
         dirDofsAirfoilMNodes
         middleNodesCoor
         dirDofsAirfoilNodes
@@ -58,10 +58,9 @@ classdef StokesProblemBoundaryCondition < handle
         end
 
         function defineVariables(obj)
-            obj.lengthCutMesh         = size(obj.uMesh.boundaryCutMesh.mesh.coord,1);
-            obj.dirDofsAirfoilNodes   = zeros(2,obj.lengthCutMesh);
-            obj.middleNodesCoor       = zeros(obj.lengthCutMesh,2);
-            obj.dirDofsAirfoilMNodes  = zeros(2,obj.lengthCutMesh);
+            obj.nnodesCutMesh         = size(obj.uMesh.boundaryCutMesh.mesh.coord,1);
+            obj.middleNodesCoor       = zeros(obj.nnodesCutMesh,2);
+            obj.dirDofsAirfoilMNodes  = zeros(2,obj.nnodesCutMesh);
             obj.dirConditions         = [];
             obj.dirDofs               = [];
         end  
@@ -76,27 +75,39 @@ classdef StokesProblemBoundaryCondition < handle
         end
 
         function setDomainDirichletVelocityBC(obj)
-            obj.dirVelBC{2}.domain    = @(coor) obj.isTop(coor) | obj.isBottom(coor);
-            obj.dirVelBC{2}.direction = [1,2];
-            obj.dirVelBC{2}.value     = [0,0]; 
             obj.dirVelBC{1}.domain    = @(coor) obj.isLeft(coor) & not(obj.isTop(coor) | obj.isBottom(coor));
             obj.dirVelBC{1}.direction = [1,2];
-            obj.dirVelBC{1}.value     = [1,0]; 
+            obj.dirVelBC{1}.value     = [1,0];
+
+            obj.dirVelBC{2}.domain    = @(coor) obj.isTop(coor) | obj.isBottom(coor);
+            obj.dirVelBC{2}.direction = [1,2];
+            obj.dirVelBC{2}.value     = [0,0];
         end
 
         function setDofsAirfoilNodes(obj)
-            cutCoords = obj.uMesh.boundaryCutMesh.mesh.coord(1:obj.lengthCutMesh, :);
+            cutCoords = obj.uMesh.boundaryCutMesh.mesh.coord(1:obj.nnodesCutMesh, :);
             isAirfoil = @(coor) any(ismember(coor, cutCoords, 'rows'), 2);
             obj.dirDofsAirfoilNodes = obj.velocityFun.getDofsFromCondition(isAirfoil);
             obj.dirDofsAirfoilNodes = sort(reshape(obj.dirDofsAirfoilNodes, [], 1));
         end
 
+        function setAirfoilDirichletVelocityBC(obj)
+            cutCoords = obj.uMesh.boundaryCutMesh.mesh.coord(1:obj.nnodesCutMesh, :);
+            ind       = numel(obj.dirVelBC);
+            obj.dirVelBC{ind+1}.domain    = @(coor) any(ismember(coor, cutCoords, 'rows'), 2);
+            obj.dirVelBC{ind+1}.direction = [1,2];
+            obj.dirVelBC{ind+1}.value     = [0,0];
+        end
+
         function findMiddleNodes(obj)
-            obj.middleNodesCoor =(obj.uMesh.boundaryCutMesh.mesh.coord(obj.uMesh.boundaryCutMesh.mesh.connec(:,1),:) + obj.uMesh.boundaryCutMesh.mesh.coord(obj.uMesh.boundaryCutMesh.mesh.connec(:,2),:))./2;
+            bCutMesh = obj.uMesh.boundaryCutMesh.mesh;
+            x1       = bCutMesh.coord(bCutMesh.connec(:,1),:);
+            x2       = bCutMesh.coord(bCutMesh.connec(:,2),:);
+            obj.middleNodesCoor = (x1 + x2)./2;
         end
 
         function setDofsAirfoilMNodes(obj)
-            for i = 1:1:obj.lengthCutMesh
+            for i = 1:1:obj.nnodesCutMesh
                 isxcoord    = @(coor) coor(:,1) == obj.middleNodesCoor(i,1);
                 isycoord    = @(coor) coor(:,2) == obj.middleNodesCoor(i,2);
                 isAirfoil  = @(coor) isxcoord(coor) & isycoord(coor);
@@ -104,10 +115,12 @@ classdef StokesProblemBoundaryCondition < handle
                 obj.dirDofsAirfoilMNodes(:,i) = obj.velocityFun.getDofsFromCondition(isAirfoil);
             end
             obj.dirDofsAirfoilMNodes = sort(reshape(obj.dirDofsAirfoilMNodes,size(obj.dirDofsAirfoilMNodes,2)*2,1));
+            obj.dirVelBC{end+1}.value = [0,0];
         end
 
         function setDofsAirfoil(obj)
             obj.setDofsAirfoilNodes();
+            obj.setAirfoilDirichletVelocityBC();
             obj.findMiddleNodes();
             obj.setDofsAirfoilMNodes();
         end
@@ -117,15 +130,14 @@ classdef StokesProblemBoundaryCondition < handle
         end
 
         function constructDirichletVelBCMatrix(obj)
-            for i = 1:1:4 
-                if i == 1 || i == 2
+            n = numel(obj.dirVelBC);
+            for i = 1:numel(obj.dirVelBC)
+                if i<n-1
                     dirDofsVel = obj.velocityFun.getDofsFromCondition(obj.dirVelBC{i}.domain);
-                elseif i == 3
+                elseif i == n-1
                     dirDofsVel = obj.dirDofsAirfoilNodes;
-                    obj.dirVelBC{i}.value     = [0,0]; 
-                elseif i == 4
+                else
                     dirDofsVel = obj.dirDofsAirfoilMNodes;
-                    obj.dirVelBC{i}.value     = [0,0]; 
                 end
                 
                 nodes            = 1 + (dirDofsVel(2:2:end)-2)/obj.velocityFun.ndimf;
