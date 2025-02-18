@@ -74,9 +74,8 @@ classdef HamiltonJacobi < handle
             s.mesh    = m;
             s.order   = 'P1';
             xFun      = LagrangianFunction(s);
-            norm      = Norm.computeH1(m,xFun,obj.epsilon);
-            xNorm     = sqrt(norm);
-            x         = x/xNorm;
+            norm      = Norm(xFun,'H1',obj.epsilon);
+            x         = x/norm;
         end
 
         function setupFilter(obj)
