@@ -4,21 +4,18 @@ classdef levelSetTesting2 < handle
 
     properties
         nSubdomains
-        fileName
-        tol
-        meshDomain
-        bc
-        bcApplier
-        LHS
-        mesh
+        tolNode
         Kel
         U
+        
+        mesh
+        discMesh
+        fineDiscMesh
 
-        boundaryMesh
-        boundaryMeshJoined
-        localGlobalConnecBd
-        dLambda
-        displacementFun
+        meshDomain
+        boundaryConditions
+        bcApplier
+
     end
 
     methods
@@ -27,24 +24,44 @@ classdef levelSetTesting2 < handle
 
             obj.init();
             
-            mR  = obj.createStructuredMesh();
-            mRc = obj.createReferenceCoarseMesh(mR);
+            obj.createMesh();
 
-            obj.coarseElasticProblemHere(mRc);
+            obj.coarseElasticProblem();
 
         end
 
-        function init(obj)
-            obj.nSubdomains = [2, 1];
-            obj.fileName    = "UL_r0_3.mat";
-            obj.tol         = 1e-14;
-            data            = load(obj.fileName);
-            obj.Kel         = data.L;
-            obj.U           = data.U;
 
+        function init(obj)
+            obj.nSubdomains = [2,1];
+            obj.tolNode     = 1e-14;
+
+            fileName = "UL_r0_1-P1.mat";
+            data     = load(fileName);
+            obj.Kel  = data.L;
+            obj.U  = data.U;
+        end
+
+    end
+
+    methods (Access = private)
+
+        function createMesh(obj)
+            mR  = obj.createStructuredMesh();        %creates reference fine mesh
+            mRC = obj.createReferenceCoarseMesh(mR); %creates reference coarse mesh
+            
+            [mD,mSb,iC,lG,iCR, disMesh] = obj.createMeshDomain(mRC);
+            [~,~,~,~,~,obj.fineDiscMesh] = obj.createMeshDomain(mR);
+            
+            % mD       -> simplified joint mesh
+            % mSb      -> each element of the mesh domain in a cell
+            % discMesh -> each domain of the mesh together but not joint
+
+            obj.mesh     = mD;
+            obj.discMesh = disMesh;
         end
 
         function mS = createStructuredMesh(obj)
+             %UnitMesh better
             x1       = linspace(-1,1,50);
             x2       = linspace(-1,1,50);
             [xv,yv]  = meshgrid(x1,x2);
@@ -56,19 +73,14 @@ classdef levelSetTesting2 < handle
             lvSet    = obj.createLevelSetFunction(bgMesh);
             uMesh    = obj.computeUnfittedMesh(bgMesh,lvSet);
             mS       = uMesh.createInnerMesh();
-            obj.mesh = mS;
-
-            obj.boundaryMesh = obj.mesh.createBoundaryMesh();
-
-            [obj.boundaryMeshJoined, obj.localGlobalConnecBd] = obj.mesh.createSingleBoundaryMesh();
 
         end
-
+        
         function levelSet = createLevelSetFunction(~,bgMesh)
             sLS.type        = 'CircleInclusion';
-            sLS.xCoorCenter = 0.5;
-            sLS.yCoorCenter = 0.5;
-            sLS.radius      = 0.3;
+            sLS.xCoorCenter = 0;
+            sLS.yCoorCenter = 0;
+            sLS.radius      = 0.1;
             g               = GeometricalFunction(sLS);
             lsFun           = g.computeLevelSetFunction(bgMesh);
             levelSet        = lsFun.fValues;
@@ -83,7 +95,7 @@ classdef levelSetTesting2 < handle
 
         end
 
-        function cMesh = createReferenceCoarseMesh(~, mR)
+        function cMesh = createReferenceCoarseMesh(~,mR)
             xmax       = max(mR.coord(:,1));
             xmin       = min(mR.coord(:,1));
             ymax       = max(mR.coord(:,2));
@@ -97,49 +109,91 @@ classdef levelSetTesting2 < handle
             coord(4,1) = xmin;
             coord(4,2) = ymax;
             
-            connec   = [2 3 4 1];
+            connec   = [1 2 3 4];
             s.coord  = coord;
             s.connec = connec;
             cMesh    = Mesh.create(s);
 
         end
 
-        function coarseElasticProblemHere(obj, mR)
-            bS                     = mR.createBoundaryMesh();
-            [mD,mSb,iC,lG,iCR]     = obj.createMeshDomain(mR);
-            obj.mesh               = mD;
+        function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomain(obj,mR)
+            s.nsubdomains   = obj.nSubdomains; %nx ny
+            s.meshReference = mR;
+            s.tolSameNode   = obj.tolNode;
+            m               = MeshCreatorFromRVE(s);
+            [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
+        end
+
+        % --------------------
+
+        function coarseElasticProblem(obj)
             dispFun                = LagrangianFunction.create(obj.mesh, obj.mesh.ndim,'P1');
-            obj.bc = createCoarseBoundaryConditions(obj);
+            obj.boundaryConditions = obj.createCoarseBoundaryConditions();
             obj.createBCapplier();
 
-            [LHS,LHSr] = obj.computeStiffnessMatrix(dispFun);
-            RHS        = obj.computeForces(LHS, dispFun);
-            c          = obj.computeCmat();
-            [u, L]     = obj.computeDisplacementHere(c, LHS, RHS);
+            [lhs,LHSr]  = obj.computeStiffnessMatrix(dispFun);
+            RHS         = obj.computeForces(lhs, dispFun);
+            uRed        = LHSr\RHS;
+            uCoarse     = obj.bcApplier.reducedToFullVectorDirichlet(uRed);
 
+            u = obj.reconstructSolution(uCoarse, dispFun);
+            
+            EIFEMtesting.plotSolution(uCoarse, obj.mesh, 2, 3, 0, [], 0);     %plot solution with coarse mesh
+            EIFEMtesting.plotSolution(u, obj.fineDiscMesh, 2, 4, 0, [], 0);     %plot solution with fine mesh
 
         end
 
-        function [mD,mSb,iC,lG,iCR] = createMeshDomain(obj,mR)
-            s.nsubdomains   = obj.nSubdomains; %nx ny
-            s.meshReference = mR;
-            s.tolSameNode   = obj.tol;
-            m               = MeshCreatorFromRVE(s);
+        function bc = createCoarseBoundaryConditions(obj)
+            xMax    = max(obj.mesh.coord(:,1));
+            yMax    = max(obj.mesh.coord(:,2));
+            xMin    = min(obj.mesh.coord(:,1));
+            yMin    = min(obj.mesh.coord(:,2));
+            tol     = 1e-10;
 
-            [mD,mSb,iC,~,lG,iCR] = m.create();
+            left    = @(coor) abs(coor(:,1)-xMin) <= tol;
+            right   = @(coor) abs(coor(:,1)-xMax) <= tol;
+
+            sDir{1}.domain    = @(coor) left(coor);
+            sDir{1}.direction = [1,2];
+            sDir{1}.value     = 0;
+           
+            sPL{1}.domain     = @(coor) right(coor);
+            sPL{1}.direction  = 2;
+            sPL{1}.value      = -1;
+
+            dirichletFun = [];
+
+            for i = 1:numel(sDir)
+                dir = DirichletCondition(obj.mesh, sDir{i});
+                dirichletFun = cat(2, dirichletFun, dir);
+            end
+            s.dirichletFun = dirichletFun;
+
+            pointloadFun = [];
+
+            for i = 1:numel(sPL)
+                pl           = PointLoad(obj.mesh, sPL{i});
+                pointloadFun = cat(2, pointloadFun, pl);
+
+            end
+            s.pointloadFun = pointloadFun;
+
+            s.periodicFun  = [];
+            s.mesh         = obj.mesh;
+            bc             = BoundaryConditions(s);
 
         end
 
         function createBCapplier(obj)
             s.mesh                  = obj.meshDomain;
-            s.boundaryConditions    = obj.bc;
+            s.boundaryConditions    = obj.boundaryConditions;
             obj.bcApplier           = BCApplier(s);
 
         end
 
         function [LHS,LHSr] = computeStiffnessMatrix(obj, dispFun)
             K = repmat(obj.Kel,[1,1, obj.mesh.nelem]);
-            
+
             trial     = dispFun;
             test      = trial;
             s.fun     = dispFun;
@@ -153,77 +207,29 @@ classdef levelSetTesting2 < handle
             s.type      = 'Elastic';
             s.scale     = 'MACRO';
             s.dim.ndofs = u.nDofs;
-            s.BC        = obj.bc;
+            s.BC        = obj.boundaryConditions;
             s.mesh      = obj.mesh;
             RHSint      = RHSintegrator.create(s);
             rhs         = RHSint.compute();
+            % Perhaps move it inside RHSint?
             R           = RHSint.computeReactions(stiffness);
+            RHS         = rhs+R;
+            RHS         = obj.bcApplier.fullToReducedVectorDirichlet(RHS);
 
-            RHS = rhs+R;
-            RHS = obj.bcApplier.fullToReducedVectorDirichlet(RHS);
         end
 
-        function Cg = computeCmat(obj)
-            obj.createDisplacementFunHere();
+        function u = reconstructSolution(obj, uCoarse, dispFun)
+            nElem    = obj.mesh.nelem;
+            dofConec = dispFun.getDofConnec();
 
-            s.quadType = 2;
-            s.mesh     = obj.boundaryMeshJoined;
-
-            lhs    = LHSintegrator_ShapeFunction_fun(s);
-            test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); % !!
-            ndimf  = 2;
-            Lx     = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
-            Ly     = max(obj.mesh.coord(:,2)) - min(obj.mesh.coord(:,2));
-
-            f1 = @(x) [1/(4)*(1-x(1,:,:)).*(1-x(2,:,:));...
-                    1/(4)*(1-x(1,:,:)).*(1-x(2,:,:))  ];
-            f2 = @(x) [1/(4)*(1+x(1,:,:)).*(1-x(2,:,:));...
-                    1/(4)*(1+x(1,:,:)).*(1-x(2,:,:))  ];
-            f3 = @(x) [1/(4)*(1+x(1,:,:)).*(1+x(2,:,:));...
-                    1/(4)*(1+x(1,:,:)).*(1+x(2,:,:))  ];
-            f4 = @(x) [1/(4)*(1-x(1,:,:)).*(1+x(2,:,:));...
-                    1/(4)*(1-x(1,:,:)).*(1+x(2,:,:))  ];
-            f  = {f1 f2 f3 f4}; %
-
-            nfun = size(f,2);
-            Cg   = [];
-
-            for i = 1:nfun
-                obj.dLambda{i}  = AnalyticalFunction.create(f{i},ndimf,obj.boundaryMeshJoined);
-                Ce              = lhs.compute(obj.dLambda{i},test);
-                [iLoc,jLoc,vals] = find(Ce);
-    
-                l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
-                l2g_dof = l2g_dof(:);
-                iGlob   = l2g_dof(iLoc);
-                Cg      = [Cg sparse(iGlob,jLoc,vals, obj.displacementFun.nDofs, obj.dLambda{i}.ndimf)];
+            for ielem = 1:nElem
+                uCelem     = uCoarse(dofConec(ielem,:));
+                u(:,ielem) = obj.U*uCelem;
             end
 
-        end
-
-        function createDisplacementFunHere(obj)
-            obj.displacementFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
-        end
-
-        function [u, L] = computeDisplacementHere(obj,c,LHS,RHS)
-            K   = LHS;
-            nC  = size(c,2);
-            Z   = zeros(nC);
-            LHS = [K, c; c' Z];
-
-            ud    = zeros(nC,1);
-            ud(1) = 1;
-            RHS   = [RHS; ud];
-
-            sol = LHS\RHS;
-            u   = sol(1:obj.displacementFun.nDofs);
-            L   = sol(obj.displacementFun.nDofs+1:end); 
+            u = [u(:,1); u(:,2)];
 
         end
-
-
-
-
 
 
     end

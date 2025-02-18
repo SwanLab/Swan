@@ -4,6 +4,7 @@ classdef LevelSetInclusionAuto_raul < handle
         stiffness
         strain
         stress
+        dLambda
     end
     
     properties (Access = private)
@@ -16,7 +17,7 @@ classdef LevelSetInclusionAuto_raul < handle
         forces
         uFun
         strainFun
-        dLambda
+        
     end
 
     properties  (Access = protected)
@@ -38,10 +39,10 @@ classdef LevelSetInclusionAuto_raul < handle
             %% New ugly chunk of code warning
             [u, L] = obj.doElasticProblemHere();
             
-            z.mesh      = obj.mesh;
-            z.fValues   = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            z.order     = 'P1';
-            uFeFun = LagrangianFunction(z);
+            % z.mesh      = obj.mesh;
+            % z.fValues   = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
+            % z.order     = 'P1';
+            % uFeFun = LagrangianFunction(z);
 
             %obj.physicalProblem.solve();
 
@@ -185,10 +186,10 @@ classdef LevelSetInclusionAuto_raul < handle
             sDir{5}.direction = cell2mat(dirs(end));
             sDir{5}.value     = 1;
 
-            sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 2;
-            sPL{1}.value     = 0;
-%             sPL = {};
+            % sPL{1}.domain    = @(coor) isForce(coor);
+            % sPL{1}.direction = 2;
+            % sPL{1}.value     = 0;
+            sPL = {};
 
             dirichletFun = [];
             for i = 1:numel(sDir)
@@ -329,7 +330,10 @@ classdef LevelSetInclusionAuto_raul < handle
             Cg = [];
             for i=1:nfun
                 obj.dLambda{i}  = AnalyticalFunction.create(f{i},ndimf,obj.boundaryMeshJoined);
-%                 dLambda = dLambda.project('P1');
+                    
+                %% Project to P1
+                 obj.dLambda{i} = obj.dLambda{i}.project('P1');
+
                 Ce = lhs.compute(obj.dLambda{i},test);
                 [iLoc,jLoc,vals] = find(Ce);
     
