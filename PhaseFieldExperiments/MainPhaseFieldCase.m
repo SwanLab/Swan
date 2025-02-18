@@ -6,7 +6,7 @@ clc,clear,close all
 % s.initialGuess.phi = outputData.damage.field;
 
 %% LOAD PREDEFINED CASE
-load('caseSENtractionSquarePerimeter.mat')
+load('case1ElemAT2.mat')
 
 %% GENERAL SETTINGS
 s.monitoring.set = true;

@@ -188,8 +188,10 @@ classdef TestingPhaseFieldHomogenizer < handle
             mat     = Material.create(s);
         end
 
-        function matHomog = solveElasticMicroProblem(obj,material,x)
-            x.plot
+        function matHomog = solveElasticMicroProblem(obj,material,dens)
+            dens.plot
+            shading interp
+            colormap (flipud(pink))
 
             s.mesh = obj.baseMesh;
             s.material = material;
@@ -200,7 +202,7 @@ classdef TestingPhaseFieldHomogenizer < handle
             s.solverType = 'REDUCED';
             s.solverMode = 'FLUC';
             fem = ElasticProblemMicro(s);
-            material.setDesignVariable({x})
+            material.setDesignVariable({dens})
             fem.updateMaterial(material.obtainTensor())
             fem.solve();
 
