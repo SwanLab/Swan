@@ -52,7 +52,7 @@ classdef TestNaca < handle
         function compute(obj)
             obj.createPressureFilter();
             obj.solveStokesProblem();
-            obj.plotResults();
+            %obj.plotResults();
             obj.CalculateAeroForces();
         end
 
@@ -87,16 +87,16 @@ classdef TestNaca < handle
         end
                 
         function createReferenceMesh(obj)
-            % obj.length  = 8;
-            % obj.height  = 4;
-            % nx          = 300;
-            % ny          = 150;
-            % obj.refMesh = QuadMesh(obj.length,obj.height,nx,ny); 
-            obj.length  = 2;
-            obj.height  = 1;
-            nx          = 150;
-            ny          = 75;
-            obj.refMesh = TriangleMesh(obj.length,obj.height,nx,ny);
+            obj.length  = 8;
+            obj.height  = 4;
+            nx          = 300;
+            ny          = 150;
+            obj.refMesh = QuadMesh(obj.length,obj.height,nx,ny); 
+            % obj.length  = 2;
+            % obj.height  = 1;
+            % nx          = 150;
+            % ny          = 75;
+            % obj.refMesh = TriangleMesh(obj.length,obj.height,nx,ny);
         end
 
         function createLevelSet(obj,AirfoilParams, BGParams)
@@ -112,10 +112,10 @@ classdef TestNaca < handle
             obj.rawMesh = obj.uMesh.createInnerMesh();
             obj.mesh    = obj.rawMesh;
             %obj.mesh.plot();
-            title("Mesh with the airfoil inclusion.");
-            xlabel("x");
-            ylabel("y");
-            obj.uMesh.plot();
+            % title("Mesh with the airfoil inclusion.");
+            % xlabel("x");
+            % ylabel("y");
+            %obj.uMesh.plot();
         end
 
         function createFluidMeshGoodConditioning(obj,AirfoilParams, BGParams)
@@ -221,15 +221,17 @@ classdef TestNaca < handle
             ax = findall(groot, 'Type', 'axes');
             xlabel(ax(2),"x");
             ylabel(ax(2),"y");
+            axis(ax(2), 'equal');
             xlabel(ax(1),"x");
             ylabel(ax(1),"y"); 
+            axis(ax(1), 'equal');
             title(ax(2), "Velocity distribution in the x direction.");
             title(ax(1), "Velocity distribution in the y direction.");        
             obj.pressureFun.plot();
             xlabel("x");
             ylabel("y");
             title("Pressure distribution"); 
-            %caxis([-50 50]);
+            axis equal;
         end
 
         function CalculateAeroForces(obj)
@@ -252,7 +254,7 @@ classdef TestNaca < handle
 
         function printResults(obj)
             fileID = fopen('results.txt', 'a');
-            fprintf(fileID, '%.2f %.2f %.2f %.4f\n', obj.M, obj.p, obj.t, obj.E);
+            fprintf(fileID, '%.2f %.2f %.2f %.2f %.4f %.4f %.4f\n', obj.M, obj.p, obj.t, obj.AoA, obj.L, obj.D, obj.E);
             fclose(fileID);
         end
 
