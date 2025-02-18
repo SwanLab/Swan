@@ -51,5 +51,5 @@ classdef IntegratorScalarProduct < handle
         end
 
     end
-end
 
+end

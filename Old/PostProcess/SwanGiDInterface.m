@@ -6,7 +6,7 @@ classdef SwanGiDInterface < handle
         tclPath
 
         gidMode = 'gid_offscreen -offscreen '; % 'gid '
-%       gidMode = 'gid '; % 'gid '
+%         gidMode = 'gid '; % 'gid '
     end
     
     properties (Access = private)
