@@ -125,7 +125,7 @@ classdef LinearizedHarmonicProjector3 < handle
         function init(obj,cParams)
             obj.mesh             = cParams.mesh;
             obj.boundaryNodes    = cParams.boundaryMesh;
-            obj.eta     = (2*obj.mesh.computeMeanCellSize)^2;
+            obj.eta     = (10*obj.mesh.computeMeanCellSize)^2;
         end
 
         function initializeFunctions(obj)
