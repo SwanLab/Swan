@@ -20,7 +20,7 @@ classdef MaterialFactory < handle
                     material = DensityBasedMaterial(cParams);
                 
                 case 'STOKES'
-                    material = Material_Stokes(cParams);
+                    material = MaterialStokes(cParams);
                     
                 case {'PhaseFieldAnalytic','PhaseFieldAnalytical'}
                     material = MaterialPhaseField(cParams);

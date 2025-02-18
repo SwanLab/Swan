@@ -138,7 +138,7 @@ classdef TestingPhaseFieldHomogenizer < handle
                 case 'Circle'
                     gPar.radius = l;
                 case 'Square'
-                    gPar.radius = l;
+                    gPar.length = l;
                 case 'Rectangle'
                     gPar.xSide  = l(1);
                     gPar.ySide  = l(2);
