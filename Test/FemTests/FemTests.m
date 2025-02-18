@@ -177,8 +177,8 @@ classdef FemTests < handle & matlab.unittest.TestCase
         function testPrincipalDirection2D(testCase)
             s.stressDim = 3;
             s.pdim      = 2;
-            s.nelem     = 6400;
             s.nGaus     = 3;
+            s.mesh = TriangleMesh(1,1,5,5);
             test = PrincipalDirectionTest(s);
             err = test.computeError();
             tol = 1e-12;
@@ -188,8 +188,8 @@ classdef FemTests < handle & matlab.unittest.TestCase
         function testPrincipalDirection3D(testCase)
             s.stressDim = 6;
             s.pdim      = 3;
-            s.nelem     = 6400;
             s.nGaus     = 3;
+            s.mesh = TetraMesh(1,1,1,5,5,5);            
             test = PrincipalDirectionTest(s);
             err = test.computeError();
             tol = 1e-12;

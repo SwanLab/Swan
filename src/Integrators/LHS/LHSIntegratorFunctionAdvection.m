@@ -1,4 +1,4 @@
-classdef LHSintegratorFunctionAdvection < LHSintegrator
+classdef LHSIntegratorFunctionAdvection < LHSIntegrator
 
     properties (Access = private)
         fun
@@ -6,8 +6,8 @@ classdef LHSintegratorFunctionAdvection < LHSintegrator
 
     methods (Access = public)
 
-        function obj = LHSintegratorFunctionAdvection(cParams)
-            obj@LHSintegrator(cParams)
+        function obj = LHSIntegratorFunctionAdvection(cParams)
+            obj@LHSIntegrator(cParams)
             obj.fun = cParams.function;
         end
 

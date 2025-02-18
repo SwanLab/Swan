@@ -56,10 +56,10 @@ classdef LinearizedHarmonicProjector3 < handle
 
         function [resLnorm,resHnorm,resBnorm,resGnorm] = evaluateResidualNorms(obj,bBar,b)
             [resL,resH,resB,resG] = obj.evaluateAllResiduals(bBar,b);
-            resLnorm = resL.computeL2norm();
-            resHnorm = resH.computeL2norm();
-            resBnorm = resB.computeL2norm();
-            resGnorm = resG.computeL2norm();
+            resLnorm = Norm(resL,'L2');
+            resHnorm = Norm(resH,'L2');
+            resBnorm = Norm(resB,'L2');
+            resGnorm = Norm(resG,'L2');
         end
 
         function b = createVectorFromSolution(obj,x)
@@ -79,7 +79,7 @@ classdef LinearizedHarmonicProjector3 < handle
         end
 
         function difB = evaluateLossResidual(obj,bBar,b)
-            difB = norm(b - bBar,2);
+            difB = DP(b - bBar,b - bBar);
         end
 
         function bR = createReshapedFunction(obj,b)
@@ -177,7 +177,7 @@ classdef LinearizedHarmonicProjector3 < handle
             s.function = f;
             s.mesh     = obj.mesh;
             s.type  = 'StiffnessMatrixWithFunction';
-            lhs = LHSintegrator.create(s);
+            lhs = LHSIntegrator.create(s);
             Kf = lhs.compute();
         end
 
@@ -202,7 +202,7 @@ classdef LinearizedHarmonicProjector3 < handle
             s.mesh     = obj.mesh;
             s.quadratureOrder = 2;
             s.type  = 'AdvectionMatrixWithFunction';
-            lhs = LHSintegrator.create(s);
+            lhs = LHSIntegrator.create(s);
             Nf = lhs.compute();
         end
 
@@ -213,7 +213,7 @@ classdef LinearizedHarmonicProjector3 < handle
             s.mesh     = obj.mesh;
             s.quadratureOrder = 2;
             s.type  = 'MassMatrixWithFunction';
-            lhs = LHSintegrator.create(s);
+            lhs = LHSIntegrator.create(s);
             Mf = lhs.compute();
         end
 

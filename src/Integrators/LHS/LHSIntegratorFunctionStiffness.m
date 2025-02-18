@@ -1,4 +1,4 @@
-classdef LHSintegratorFunctionStiffness < LHSintegrator
+classdef LHSIntegratorFunctionStiffness < LHSIntegrator
 
     properties (Access = private)     
         fun
@@ -6,8 +6,8 @@ classdef LHSintegratorFunctionStiffness < LHSintegrator
 
     methods (Access = public)
 
-        function obj = LHSintegratorFunctionStiffness(cParams)
-            obj@LHSintegrator(cParams)
+        function obj = LHSIntegratorFunctionStiffness(cParams)
+            obj@LHSIntegrator(cParams)
             obj.fun = cParams.function;
         end
 
