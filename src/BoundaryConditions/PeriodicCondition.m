@@ -50,10 +50,6 @@ classdef PeriodicCondition < BoundaryCondition
             % nDirich = length(dir_dofs);
             % Ct = full(sparse(1:nDirich, dir_dofs, 1, nDirich, nDofs));
         end
-
-        function evaluate()
-
-        end
         
     end
     

@@ -150,7 +150,7 @@ classdef LagrangianFunction < FeFunction
         function plot(obj) % 2D domains only
             switch obj.getOrderTextual(obj.order)
                 case 'LINEAR'
-                    figure()
+                    figure(1)
                     connecP = obj.getDofConnecByVector();
                     for iDim = 1:obj.ndimf                                                
                         subplot(1,obj.ndimf,iDim);

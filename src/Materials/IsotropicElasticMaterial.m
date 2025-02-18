@@ -1,6 +1,6 @@
 classdef IsotropicElasticMaterial < Material
     
-    properties (SetAccess = private, GetAccess = private)
+    properties (SetAccess = private, GetAccess = public)
         young
         poisson
         bulk
@@ -10,7 +10,7 @@ classdef IsotropicElasticMaterial < Material
     properties (Access = protected)
         ndim
     end
-    
+
     methods (Access = protected)
 
         function init(obj,cParams)
@@ -40,7 +40,6 @@ classdef IsotropicElasticMaterial < Material
                 k  = obj.bulk.evaluate(xV); 
             end
         end
-
 
     end
 
