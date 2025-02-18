@@ -120,12 +120,12 @@ classdef StokesProblemSolver < handle
         end
 
         function defineVariables(obj)
-            nu      = obj.velocityFun.ndimf;
-            nnode   = round(length(obj.u)/nu);
+            nFieldu = obj.velocityFun.ndimf;
+            nnode   = round(length(obj.u)/nFieldu);
             nodes   = 1:nnode;
-            velfval = zeros(nnode,nu);
-            for idim = 1:nu
-                dofs = nu*(nodes-1)+idim;
+            velfval = zeros(nnode,nFieldu);
+            for idim = 1:nFieldu
+                dofs = nFieldu*(nodes-1)+idim;
                 velfval(:,idim) = obj.u(dofs, end);
             end
             obj.velocityFun.fValues = velfval;

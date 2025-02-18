@@ -41,11 +41,14 @@ classdef LagrangianPlotter < handle
                 
                 view(0,90)
                 colorbar
-                shading interp
                 grid on
                 title(['dim = ', num2str(idim)]);
                 a.EdgeColor = [0 0 0];
-                a.EdgeAlpha = 0;
+                
+                if not(size(T,2) == 2)
+                    shading interp;
+                    a.EdgeAlpha = 0;
+                end
     
             end
         end
