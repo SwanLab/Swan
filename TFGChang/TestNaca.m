@@ -229,7 +229,7 @@ classdef TestNaca < handle
             xlabel("x");
             ylabel("y");
             title("Pressure distribution"); 
-            caxis([-50 50]);
+            %caxis([-50 50]);
         end
 
         function CalculateAeroForces(obj)
