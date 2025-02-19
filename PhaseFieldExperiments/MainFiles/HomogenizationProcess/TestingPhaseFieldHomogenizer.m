@@ -13,6 +13,7 @@ classdef TestingPhaseFieldHomogenizer < handle
 
     properties (Access = private)
         baseMesh
+        backgroundMesh
         test
         masterSlave
         maxParam
@@ -72,11 +73,16 @@ classdef TestingPhaseFieldHomogenizer < handle
                     MC = MeshCreator(s);
                     MC.computeMeshNodes();
             end
-            s.coord = MC.coord;
-            s.connec = MC.connec;
-            obj.masterSlave = MC.masterSlaveIndex;
-            obj.baseMesh = Mesh.create(s);
-            obj.test = LagrangianFunction.create(obj.baseMesh,1,'P1');
+
+            m = TriangleMesh(1,1,obj.meshN,obj.meshN);
+            %m = QuadMesh(1,1,obj.meshN,obj.meshN);
+            obj.backgroundMesh = m;
+           % s.coord = MC.coord;
+           % s.connec = MC.connec;
+           % obj.masterSlave = MC.masterSlaveIndex;
+            %obj.backgroundMesh = Mesh.create(s);
+
+            obj.test = LagrangianFunction.create(obj.backgroundMesh,1,'P1');
         end
 
         function paramHole = computeHoleParams(obj)
@@ -84,8 +90,10 @@ classdef TestingPhaseFieldHomogenizer < handle
             nParam = length(obj.maxParam);
             paramHole = cell(1,nParam);
             for i=1:nParam
-                paramHole{i} = linspace(1e-5,obj.maxParam(i),obj.nSteps(i));
+                paramHole{i} = linspace(0.01,obj.maxParam(i),obj.nSteps(i));
             end
+       %     paramHole{1}= 0.1;
+       %     paramHole{2}= 0.5;
         end
         
         function maxV = computeMaxHoleParams(obj)
@@ -95,9 +103,9 @@ classdef TestingPhaseFieldHomogenizer < handle
                 case 'Square'
                     maxV = 0.98;
                 case 'Ellipse'
-                    maxV = [0.98,0.98];
+                    maxV = [0.9,0.9];
                 case 'Rectangle'
-                    maxV = [0.98,0.98];
+                    maxV = [0.99,0.99];
                 case 'SmoothHexagon'
                     maxV = 0.98;
             end
@@ -109,18 +117,30 @@ classdef TestingPhaseFieldHomogenizer < handle
             matHomog = obj.solveElasticMicroProblem(mat,dens);
         end
 
-        function lsf = createDensityLevelSet(obj,l)
-            ls = obj.computeLevelSet(obj.baseMesh,l);
-            sUm.backgroundMesh = obj.baseMesh;
-            sUm.boundaryMesh   = obj.baseMesh.createBoundaryMesh;
+        function dens = createDensityLevelSet(obj,l)
+            ls = obj.computeLevelSet(obj.backgroundMesh,l);
+            sUm.backgroundMesh = obj.backgroundMesh;
+            sUm.boundaryMesh   = obj.backgroundMesh.createBoundaryMesh;
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(ls);
 
-            ls = CharacteristicFunction.create(uMesh);
-            s.trial = obj.test;
-            s.mesh = obj.baseMesh;
-            f = FilterLump(s); 
-            lsf = f.compute(ls,2);
+            % ls = CharacteristicFunction.create(uMesh);
+            % s.trial = obj.test;
+            % s.mesh = obj.backgroundMesh;
+            % f = FilterLump(s); 
+            % dens = f.compute(ls,2);
+
+            obj.baseMesh = uMesh.createFullInnerMesh('Matlab');
+
+            close all
+            plot(obj.baseMesh)
+            set(gcf, 'WindowState', 'maximized')
+            drawnow
+
+
+            dens = LagrangianFunction.create(obj.baseMesh,1,'P1');
+            fV = ones(size(dens.fValues));
+            dens.setFValues(fV)
         end
 
         function ls = computeLevelSet(obj,mesh,l)
@@ -146,7 +166,7 @@ classdef TestingPhaseFieldHomogenizer < handle
                     gPar.type = "SmoothRectangle";
                     gPar.xSide  = l(1);
                     gPar.ySide  = l(2);
-                    gPar.pnorm  = 2;  
+                    gPar.pnorm  = 32;  
                 case 'SmoothHexagon'
                     gPar.radius = l;
                     gPar.normal = [0 1; sqrt(3)/2 1/2; sqrt(3)/2 -1/2];
@@ -176,7 +196,7 @@ classdef TestingPhaseFieldHomogenizer < handle
         function mat = createMaterial(obj,mesh,E,nu)
             young   = ConstantFunction.create(E,mesh);
             poisson = ConstantFunction.create(nu,mesh);
-            bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(young,poisson,obj.baseMesh.ndim);
+            bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(young,poisson,obj.backgroundMesh.ndim);
             shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(young,poisson);
 
             s.type  = 'ISOTROPIC';
@@ -184,14 +204,14 @@ classdef TestingPhaseFieldHomogenizer < handle
             s.mesh  = mesh;
             s.bulk  = bulk;
             s.shear = shear;
-            s.ndim  = obj.baseMesh.ndim;
+            s.ndim  = obj.backgroundMesh.ndim;
             mat     = Material.create(s);
         end
 
         function matHomog = solveElasticMicroProblem(obj,material,dens)
-            dens.plot
-            shading interp
-            colormap (flipud(pink))
+      %     dens.plot
+      %     shading interp
+      %     colormap (flipud(pink))
 
             s.mesh = obj.baseMesh;
             s.material = material;
@@ -255,7 +275,7 @@ classdef TestingPhaseFieldHomogenizer < handle
             s.periodicFun  = 1; %Set to not be empty
             s.mesh = mesh;
             bc = BoundaryConditions(s);
-            bc.updatePeriodicConditions(obj.masterSlave);
+            %bc.updatePeriodicConditions(obj.masterSlave);
         end
 
         function coorRot = defineRotatedCoordinates(~,theta)
