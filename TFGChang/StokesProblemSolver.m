@@ -77,7 +77,7 @@ classdef StokesProblemSolver < handle
             c.material      = obj.material;
             c.velocityFun   = obj.velocityFun;
             c.pressureFun   = obj.pressureFun;
-            LHSintegratorg  = LHSintegrator.create(c);
+            LHSintegratorg  = LHSIntegrator.create(c);
             obj.LHS         = LHSintegratorg.compute();
         end
 
@@ -87,7 +87,7 @@ classdef StokesProblemSolver < handle
             d.velocityFun   = obj.velocityFun;
             d.pressureFun   = obj.pressureFun;
             d.forcesFormula = obj.forcesFormula;
-            RHSint          = RHSintegrator.create(d);
+            RHSint          = RHSIntegrator.create(d);
             F               = RHSint.integrate();
             uD      = obj.dirConditions(:,3);
             R       = -obj.LHS(:,obj.dirDofs)*uD;
@@ -128,8 +128,8 @@ classdef StokesProblemSolver < handle
                 dofs = nFieldu*(nodes-1)+idim;
                 velfval(:,idim) = obj.u(dofs, end);
             end
-            obj.velocityFun.fValues = velfval;
-            obj.pressureFun.fValues = obj.p(:,end);
+            obj.velocityFun.setFValues(velfval);
+            obj.pressureFun.setFValues(obj.p(:,end));
         end
 
 
