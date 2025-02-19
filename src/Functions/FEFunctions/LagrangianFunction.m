@@ -89,7 +89,7 @@ classdef LagrangianFunction < FeFunction
             fAll      = obj.fValues(node(:), :);
             fReshaped = reshape(fAll, nElem, nNode, nDimF);
             fVals     = permute(fReshaped, [3, 2, 1]);            
-        end           
+       end   
 
         function c = getDofCoord(obj)
             c = obj.dofCoord;
@@ -148,26 +148,32 @@ classdef LagrangianFunction < FeFunction
         end
 
         function plot(obj) % 2D domains only
-            switch obj.getOrderTextual(obj.order)
-                case 'LINEAR'
-                    figure()
-                    connecP = obj.getDofConnecByVector();
-                    for iDim = 1:obj.ndimf                                                
-                        subplot(1,obj.ndimf,iDim);
-                        coordP  = obj.getDofFieldByVector(iDim,obj.dofCoord);                                                
-                        x  = coordP(:,1);
-                        y  = coordP(:,2);
-                        z  = double(obj.fValues(:,iDim));
-                        a = trisurf(connecP,x,y,z);
-                        view(0,90)
-                        %colorbar
-                        shading interp
-                        a.EdgeColor = [0 0 0];
-                        title(['dim = ', num2str(iDim)]);
-                    end
-                otherwise
-                    f = obj.project('P1D');
-                    f.plot()
+            plotFun = @(tri,x,y,z,iDim) obj.plotF(tri,x,y,z,iDim);
+            obj.generalPlot(plotFun)
+        end
+
+        function plotContour(obj,varargin) % 2D domains only
+        if size(varargin, 1) == 1, nC = varargin{1}; else, nC = 30; end            
+           plotFun  = @(tri,x,y,z,iDim) obj.plotContourF(tri,x,y,z,iDim,nC);
+           plotC    = @() obj.plotContour();
+           obj.generalPlot(plotFun,plotC)
+        end     
+
+        function plotIsoLines(obj,varargin) % 2D domains only 
+            if size(varargin, 1) == 1, nC = varargin{1}; else, nC = 16; end  
+            figure()
+            connecP  = obj.getDofConnecByVector();
+            for iDim = 1:obj.ndimf
+                coordP  = obj.getDofFieldByVector(iDim,obj.dofCoord);
+                x  = coordP(:,1);
+                y  = coordP(:,2);
+                z  = double(obj.fValues(:,iDim));
+                [~,h] = tricontour(connecP,x,y,z,nC);
+                view(0,90)            
+                set(h,'LineWidth',2);
+                set(h, 'EdgeColor', 'k');
+                view(0,90)
+                hold on
             end
         end
 
@@ -183,7 +189,7 @@ classdef LagrangianFunction < FeFunction
             axis equal;  
             box on;     
             xlim([min(x), max(x)]);
-            ylim([min(y), max(y)]);
+            ylim([min(y), max(y)]);            
         end
 
         function fV = getDofFieldByVector(obj,dimf,field)   
@@ -242,20 +248,28 @@ classdef LagrangianFunction < FeFunction
             end
         end
 
-        function v = computeL2norm(obj)            
-            int = Integrator.compute(obj.*obj,obj.mesh,2);
-            v   = sqrt(int);
-        end
-
         function f = createOrthogonalVector(obj) %only in 2D and vector
-            f = obj.copy();
+            f = copy(obj);
             f.fxVOld = [];
             f.nDofs = obj.nDofs;
             f.fValues(:,1) = obj.fValues(:,2);
             f.fValues(:,2) = -obj.fValues(:,1);
         end
 
-        function fFine = refine(obj,mFine)%Only for first order
+        function f = getVectorFields(obj)
+            for iDim = 1:obj.ndimf
+                s.ndimf     = obj.ndimf;
+                s.dofConnec = obj.getDofConnecByVector;
+                s.dofCoord  = obj.getDofFieldByVector(iDim,obj.dofCoord);                                                
+                s.fValues   = obj.fValues(:,iDim);
+                s.mesh      = obj.mesh;
+                s.order     = obj.order;
+                f{iDim} = LagrangianFunction(s);                
+            end
+
+        end
+
+        function fFine = refine(obj,mFine) %Only for first order
             switch obj.order
                 case 'P1'
                     fNodes  = obj.fValues;
@@ -271,15 +285,10 @@ classdef LagrangianFunction < FeFunction
             end
         end
 
-        function f = normalize(obj,type,epsilon)
-            switch type
-                case 'L2'
-                    fNorm = Norm.computeL2(obj.mesh,obj);
-                case 'H1'
-                    fNorm = Norm.computeH1(obj.mesh,obj,epsilon);
-            end
+        function f = normalize(obj,type,varargin)
+            fNorm = Norm(obj,type,varargin{:});
             f = obj.create(obj.mesh,obj.ndimf,obj.order);
-            f.fValues = obj.fValues/sqrt(fNorm);
+            f.fValues = obj.fValues/fNorm;
         end
 
         % Operator overload
@@ -475,6 +484,51 @@ classdef LagrangianFunction < FeFunction
                     fM(rows,iStre) = fV(iStre,iGaus,:);
                 end
             end
+        end
+
+        function plotF(obj,tri,x,y,z,iDim)
+            a = trisurf(tri,x,y,z);
+            view(0,90)
+            %colorbar
+            shading interp
+            a.EdgeColor = [0 0 0];
+            title(['dim = ', num2str(iDim)]);
+        end
+
+        function plotContourF(obj,tri,x,y,z,iDim,nC) % 2D domains only                       
+            [c,h] = tricontour(tri,x,y,z,nC);
+            view(0,90)            
+            set(h,'LineWidth',5);
+            view(0,90)
+            %colorbar
+            title(['dim = ', num2str(iDim)]);            
+            c = reshape(c,2,4,[]);   
+            nP = size(c,3);
+            c2 = c(:,:,(2*nP/nC):end);
+            c3 = reshape(c2,2,[]);
+            %clabel([],h,'LabelSpacing',72,'Color','b','FontWeight','bold');            
+            clabel(c3);            
+        end      
+
+
+
+        function generalPlot(obj,plotFun)
+            switch obj.getOrderTextual(obj.order)
+                case 'LINEAR'
+                    figure()
+                    connecP  = obj.getDofConnecByVector();
+                    for iDim = 1:obj.ndimf                                                
+                        subplot(1,obj.ndimf,iDim);
+                        coordP  = obj.getDofFieldByVector(iDim,obj.dofCoord);                                                
+                        x  = coordP(:,1);
+                        y  = coordP(:,2);
+                        z  = double(obj.fValues(:,iDim));
+                        plotFun(connecP,x,y,z,iDim);
+                    end
+                otherwise
+                    f = obj.project('P1D');
+                    plot(f);
+            end            
         end
 
     end
