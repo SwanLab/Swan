@@ -9,11 +9,11 @@ for j = 1:size(r,2)
     U = [];
     L = [];
     
-    for i = 1:8
-        [~, u, l] = LevelSetInclusionAuto_raul(r(j), i);
+    %for i = 1:8
+        [~, u, l] = LevelSetInclusionAuto_raul(r(j), 1);
         U         = cat(2, U, u);
         L         = cat(2, L, l);
-    end
-    string = strrep("UL_r"+r(j), ".", "_")+".mat";
+    %end
+    string = strrep("UL_r"+r(j), ".", "_")+"-P1"+".mat";
     save(string, "U", "L");
 end
