@@ -490,7 +490,10 @@ classdef LagrangianFunction < FeFunction
             a = trisurf(tri,x,y,z);
             view(0,90)
             %colorbar
-            shading interp
+            if not(size(tri,2) == 2)
+                shading interp
+                a.EdgeAlpha = 0;
+            end
             a.EdgeColor = [0 0 0];
             title(['dim = ', num2str(iDim)]);
         end
