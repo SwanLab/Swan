@@ -48,12 +48,16 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             aOp = BaseFunction.computeOperation(a);
             s.operation = @(xV) pagetranspose(aOp(xV));
             s.mesh = a.mesh;
+            s.ndimf = BaseFunction.computeFieldDimension(a);
             r = DomainFunction(s);
         end
 
         function r = plus(a,b)
             aOp = BaseFunction.computeOperation(a);
             bOp = BaseFunction.computeOperation(b);
+            ndimfA = BaseFunction.computeFieldDimension(a);
+            ndimfB = BaseFunction.computeFieldDimension(b);
+            s.ndimf = max(ndimfA,ndimfB);
             s.operation = @(xV) aOp(xV) + bOp(xV);
             if isa(a,'BaseFunction')
                 s.mesh = a.mesh;
@@ -93,6 +97,13 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
         function r = mtimes(a,b)
             aOp = BaseFunction.computeOperation(a);
             bOp = BaseFunction.computeOperation(b);
+%             ndimfA = BaseFunction.computeFieldDimension(a); Poseo mis dudas. Al final segun Alex ndimf sera un vector en el caso del Grad, es decir ndimf = [2,2].
+%             ndimfB = BaseFunction.computeFieldDimension(b);
+%             if ndimfB == 1
+%                 s.ndimf = ndimfA;
+%             else
+%                 s.ndimf = ndimfB;
+%             end
             s.operation = @(xV) pagemtimes(aOp(xV),bOp(xV));
             if isa(a,'BaseFunction')
                 s.mesh = a.mesh;

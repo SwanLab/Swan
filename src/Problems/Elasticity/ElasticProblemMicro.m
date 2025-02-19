@@ -208,6 +208,7 @@ classdef ElasticProblemMicro < handle
             obj.strainFluctFun{iVoigt} = strn;
             s.operation                = @(xV) e+strn.evaluate(xV);
             s.mesh                     = obj.mesh;
+            s.ndimf                    = strn.ndimf;
             obj.strainFun{iVoigt}      = DomainFunction(s);
         end
 

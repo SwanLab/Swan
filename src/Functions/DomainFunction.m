@@ -25,10 +25,10 @@ classdef DomainFunction < BaseFunction
    methods (Access = public, Static)
 
        function f = create(operation, mesh, ndimf)
-           if nargin == 3, s.ndimf = ndimf; end
            s.operation = operation;
-           s.mesh = mesh;
-           f = DomainFunction(s);
+           s.ndimf     = ndimf;
+           s.mesh      = mesh;
+           f           = DomainFunction(s);
        end
 
    end
