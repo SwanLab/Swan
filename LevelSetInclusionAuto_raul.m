@@ -232,13 +232,13 @@ classdef LevelSetInclusionAuto_raul < handle
 %         end
 
         function [u, L] = doElasticProblemHere(obj)
-            cParams = obj.createElasticProblem();
+            s = obj.createElasticProblem();
             obj.createDisplacementFunHere();
-            obj.createBCApplyerHere(cParams);
-            obj.createSolverHere(cParams)
+            obj.createBCApplyerHere(s);
+            obj.createSolverHere(s)
             obj.computeStiffnessMatrixHere();
-            obj.computeForcesHere(cParams);
-             c = obj.computeCmat2();
+            obj.computeForcesHere(s);
+             c = obj.computeCmatRB(s);
             [u, L]  = obj.computeDisplacementHere(c);
             % obj.plotSolution(u,L);
             %obj.computeStrainHere();
@@ -332,7 +332,7 @@ classdef LevelSetInclusionAuto_raul < handle
                 obj.dLambda{i}  = AnalyticalFunction.create(f{i},ndimf,obj.boundaryMeshJoined);
                     
                 %% Project to P1
-                 obj.dLambda{i} = obj.dLambda{i}.project('P1');
+%                  obj.dLambda{i} = obj.dLambda{i}.project('P1');
 
                 Ce = lhs.compute(obj.dLambda{i},test);
                 [iLoc,jLoc,vals] = find(Ce);
@@ -350,7 +350,62 @@ classdef LevelSetInclusionAuto_raul < handle
 
         end
 
-            function Cg = computeCmat2(obj)
+        function Cg = computeCmatEdgeCorner(obj,data)
+            s.quadType = 2;
+            s.mesh     = obj.boundaryMeshJoined;
+            lhs = LHSintegrator_ShapeFunction_fun(s);
+            test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); % !!
+            ndimf  = 2;
+            Lx     = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
+            Ly     = max(obj.mesh.coord(:,2)) - min(obj.mesh.coord(:,2));
+%             f1 = @(x) [1/(4*Lx/2*Ly/2)*(1-x(1,:,:)).*(1-x(2,:,:));...
+%                     1/(4*Lx/2*Ly/2)*(1-x(1,:,:)).*(1-x(2,:,:))  ];
+%             f2 = @(x) [1/(4*Lx/2*Ly/2)*(1+x(1,:,:)).*(1-x(2,:,:));...
+%                     1/(4*Lx/2*Ly/2)*(1+x(1,:,:)).*(1-x(2,:,:))  ];
+%             f3 = @(x) [1/(4*Lx/2*Ly/2)*(1+x(1,:,:)).*(1+x(2,:,:));...
+%                     1/(4*Lx/2*Ly/2)*(1+x(1,:,:)).*(1+x(2,:,:))  ];
+%             f4 = @(x) [1/(4*Lx/2*Ly/2)*(1-x(1,:,:)).*(1+x(2,:,:));...
+%                     1/(4*Lx/2*Ly/2)*(1-x(1,:,:)).*(1+x(2,:,:))  ];
+            f1 = @(x) [1/(4)*(1-x(1,:,:)).*(1-x(2,:,:));...
+                    1/(4)*(1-x(1,:,:)).*(1-x(2,:,:))  ];
+            f2 = @(x) [1/(4)*(1+x(1,:,:)).*(1-x(2,:,:));...
+                    1/(4)*(1+x(1,:,:)).*(1-x(2,:,:))  ];
+            f3 = @(x) [1/(4)*(1+x(1,:,:)).*(1+x(2,:,:));...
+                    1/(4)*(1+x(1,:,:)).*(1+x(2,:,:))  ];
+            f4 = @(x) [1/(4)*(1-x(1,:,:)).*(1+x(2,:,:));...
+                    1/(4)*(1-x(1,:,:)).*(1+x(2,:,:))  ];
+            f     = {f1 f2 f3 f4}; %
+            nfun = size(f,2);
+            Cg = [];
+            for i=1:nfun
+                obj.dLambda{i}  = AnalyticalFunction.create(f{i},ndimf,obj.boundaryMeshJoined);
+                    
+                %% Project to P1
+%                  obj.dLambda{i} = obj.dLambda{i}.project('P1');
+
+                Ce = lhs.compute(obj.dLambda{i},test);
+                [iLoc,jLoc,vals] = find(Ce);
+    
+%                 l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
+%                 l2g_dof = l2g_dof(:);
+%                 jGlob = l2g_dof(jLoc);
+%                 Cg = [Cg sparse(iLoc,jGlob,vals, obj.displacementFun.nDofs, dLambda.nDofs)];
+
+                l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
+                l2g_dof = l2g_dof(:);
+                iGlob = l2g_dof(iLoc);
+                Cg = [Cg sparse(iGlob,jLoc,vals, obj.displacementFun.nDofs, obj.dLambda{i}.ndimf)];
+            end
+            cornerDof = data.boundaryConditions.dirichlet_dofs;
+            Cg(cornerDof,:) = 0;
+            Cg2 = zeros(size(Cg,1),size(cornerDof,1));
+            for i=1:length(cornerDof)
+               Cg2(cornerDof(i),i)=1; 
+            end
+            Cg = [Cg,Cg2];
+        end
+
+            function Cg = computeCmatRB(obj,data)
             s.quadType = 2;
             s.mesh     = obj.boundaryMeshJoined;
             lhs = LHSintegrator_ShapeFunction_fun(s);
@@ -400,6 +455,7 @@ classdef LevelSetInclusionAuto_raul < handle
 %                 dLambda = dLambda.project('P1');
 %                 obj.dLambda{i}.plot
                 Ce = lhs.compute(obj.dLambda{i},test);
+                Ce = sum(Ce,2);
                 [iLoc,jLoc,vals] = find(Ce);
     
 %                 l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
@@ -410,9 +466,15 @@ classdef LevelSetInclusionAuto_raul < handle
                 l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
                 l2g_dof = l2g_dof(:);
                 iGlob = l2g_dof(iLoc);
-                Cg = [Cg sparse(iGlob,jLoc,vals, obj.displacementFun.nDofs, obj.dLambda{i}.ndimf)];
+                Cg = [Cg sparse(iGlob,jLoc,vals, obj.displacementFun.nDofs, 1)];
             end
-
+%             cornerDof = data.boundaryConditions.dirichlet_dofs;
+%             Cg(cornerDof,:) = 0;
+%             Cg2 = zeros(size(Cg,1),size(cornerDof,1));
+%             for i=1:length(cornerDof)
+%                Cg2(cornerDof(i),i)=1; 
+%             end
+%             Cg = [Cg,Cg2];
         end
 
      
@@ -450,8 +512,8 @@ classdef LevelSetInclusionAuto_raul < handle
 
             RHS = [forces; ud];
             sol = LHS\RHS;
-            u = sol(1:obj.displacementFun.nDofs,:);
-            L = sol(obj.displacementFun.nDofs+1:end,:); 
+            u = sol(1:obj.displacementFun.nDofs,1:8);
+            L = sol(obj.displacementFun.nDofs+1:obj.displacementFun.nDofs+8,1:8); 
 %             obj.displacementFun.fValues = u;
 %             EIFEMtesting.plotSolution(u,obj.mesh,1,1,0,0)
         end
