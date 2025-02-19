@@ -9,11 +9,11 @@ classdef Sh_Func_Loss < handle
         network
 
         % Pau addition
+        currentBatch
+        moveBatch
         data
         Xb
         Yb
-        current_batch
-        
     end
     
     methods (Access = public)
@@ -22,44 +22,36 @@ classdef Sh_Func_Loss < handle
             obj.init(cParams)            
         end
         
-        function [j,dj] = computeCostAndGradient(obj, order, i)        
-            % Versió estocàstica (en la normal treure línia 21)
-            %obj.updateBatch(order, i);
+        function [j,dj] = computeCostAndGradient(obj)
             j  = obj.computeCost();
             dj = obj.computeGradient();  
         end
 
-        function [j, dj, batches_depleted] = computeStochasticCostAndGradient(obj, moveBatch)
-            [nD, nB, ~] = obj.fetchBatchSize();
+        function [j, dj] = computeFunctionAndGradient(obj, x)
+            obj.designVariable.thetavec = x;
+            j  = obj.computeCost();
+            dj = obj.computeGradient();
+        end
 
+        function batches_depleted = handleStochasticBatch(obj, moveBatch)
+            [nD, nB, ~] = obj.fetchBatchSize();
             if nB == 1 || nB == 0
                 order = 1:nD;
                 nB = 1;
             else
                 order = randperm(nD,nD);
             end
+
             obj.nBatches = nB;
-
-            obj.updateMinibatch(order, obj.current_batch);
-
-            j  = obj.computeCost();
-            dj = obj.computeGradient();    
+            obj.updateMinibatch(order, obj.currentBatch);
             
-            % Should streamline this logic (too nested)
-            if obj.current_batch < obj.nBatches
-                if moveBatch
-                    obj.current_batch = obj.current_batch + 1;
-                end
-                batches_depleted = false;
-            elseif obj.current_batch == obj.nBatches
-                if  moveBatch
-                    obj.current_batch = 1;
-                    batches_depleted = true;
-                else
-                    batches_depleted = false;
-                end
+            batches_depleted = false;
+            if obj.currentBatch < obj.nBatches && moveBatch
+                obj.currentBatch = obj.currentBatch + 1;
+            elseif obj.currentBatch == obj.nBatches && moveBatch
+                obj.currentBatch = 1;
+                batches_depleted = true;
             end
-
         end
 
         function [nD, nB, batchSize] = fetchBatchSize(obj)
@@ -72,18 +64,37 @@ classdef Sh_Func_Loss < handle
             nB = fix(nD/batchSize);
         end
 
-        % Ha de desaparèixer
+        % Funcions getters (eliminar?)
         function [Xtest, Ytest] = getTestData(obj)
             Xtest = obj.data.Xtest;
             Ytest = obj.data.Ytest;
+        end
+
+        function h = getOutput(obj,X)
+            h = obj.network.computeLastH(X);
         end
         
     end
     
     methods (Access = private)
+        
+        function init(obj,cParams)
+            obj.designVariable = cParams.designVariable;
+            obj.network        = cParams.network;
+            obj.data           = cParams.data;
+            obj.currentBatch   = 1;
+            obj.moveBatch      = true;
+        end
 
+        function j = computeCost(obj)
+            j = obj.network.forwardprop(obj.Xb,obj.Yb);
+        end
+
+        function dj = computeGradient(obj)
+            dj = obj.network.backprop(obj.Yb);
+        end
+        
         function [x,y,I] = updateMinibatch(obj,order,i)
-            
             Xl = obj.data.Xtrain;
             Yl = obj.data.Ytrain;
             [~, ~, I] = obj.fetchBatchSize();
@@ -103,27 +114,9 @@ classdef Sh_Func_Loss < handle
                 y(cont,:) = Yl(order(j),:);
                 cont = cont+1;
             end
-
             obj.Xb = x;
             obj.Yb = y;
-
-        end
-        
-        function init(obj,cParams)
-            obj.designVariable = cParams.designVariable;
-            obj.network        = cParams.network;
-            obj.data           = cParams.data;
-            obj.current_batch  = 1;
         end
 
-       function j = computeCost(obj)
-           j = obj.network.forwardprop(obj.Xb,obj.Yb);
-       end
-
-       function dj = computeGradient(obj)
-           dj = obj.network.backprop(obj.Yb);
-       end                  
-        
     end
-    
 end

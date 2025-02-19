@@ -1,7 +1,6 @@
 classdef SGD < Trainer
 
     properties (Access = private)
-       thetaLowest
        fvStop
        lSearchtype
        MaxEpochs
@@ -36,8 +35,7 @@ classdef SGD < Trainer
         function compute(obj)
            tic
            x0  = obj.designVariable.thetavec;
-           % Compute stochastic cost
-           F = @(theta, moveBatch) obj.objectiveFunction.computeCost(theta, moveBatch); 
+           F = @(theta, moveBatch) obj.objectiveFunction.computeStochasticCostAndGradient(theta, moveBatch);
            obj.optimize(F,x0);
            toc
         end
@@ -60,68 +58,44 @@ classdef SGD < Trainer
         
         function optimize(obj,F,th0)
             epsilon0      = obj.learningRate;
-            epoch         =  1;iter = -1; funcount =  0; fv = 1;
-            alarm         =  0; gnorm = 1; min_testError = 1;
+            epoch         = 1;
+            iter          = -1;
+            funcount      = 0;
+            fv            = 1;
+            alarm         = 0;
+            gnorm         = 1;
+            minTestError = 1;
+
             criteria = obj.updateCriteria(epoch, alarm, gnorm, fv);
-
-            
-
             while all(criteria == 1)
 
+                state   = 'iter';
                 if iter == -1
                     th      = th0;
                     epsilon = epsilon0;
                     state   = 'init';   
-                else
-                    state   = 'iter';
                 end
 
-                batches_depleted = false;
-
-                while batches_depleted == false
-                    [f,grad,batches_depleted] = F(th, true);
-                    %[f,grad]              = F(th,i); 
+                batchesDepleted = false;
+                moveBatch = true;
+                while batchesDepleted == false
+                    [f,grad,batchesDepleted] = F(th, moveBatch);
                     [epsilon,th,funcount] = obj.lineSearch(th,grad,F,f,epsilon,epsilon0,funcount);                
-                    gnorm                 = norm(grad,2);
-                    opt.epsilon           = epsilon*gnorm; 
-                    opt.gnorm             = gnorm;
-                    funcount              = funcount + 1;
-                    iter                  = iter + 1;
-                    obj.displayIter(epoch,iter,funcount,th,f,opt,state);
+                    gnorm    = norm(grad,2);
+                    funcount = funcount + 1;
+                    iter     = iter + 1;
+                    obj.displayIter(epoch,iter,funcount,th,f,gnorm,epsilon,state);
                 end
                 
-                [alarm,min_testError] = obj.validateES(alarm,min_testError);
+                [alarm,minTestError] = obj.objectiveFunction.validateES(alarm,minTestError);
                 epoch = epoch + 1;
                 criteria = obj.updateCriteria(epoch, alarm, gnorm, f);
             end
-            if criteria(1) == 0
-                fprintf('Minimization terminated, maximum number of epochs reached %d\n',epoch)
-            elseif criteria(2) == 0
-                fprintf('Minimization terminated, validation set did not decrease in %d epochs\n',obj.earlyStop)
-            elseif criteria(3) == 0
-                fprintf('Minimization terminated, reached the optimalty tolerance of %f\n',obj.optTolerance)
-            elseif criteria(4) == 0
-                fprintf('Minimization terminated, reached the limit time of %f\n',obj.timeStop)
-            elseif criteria(5) == 0
-                fprintf('Minimization terminated, reached the target function value of %f\n',obj.fvStop)
-            else
-                fprintf('The operation terminated excepcionally\n')
-            end
-            %F(th,Xb,Yb);
-            %F(th,order, i);
-            %th
-        end
-
-        function criteria = updateCriteria(obj, epoch, alarm, gnorm, cost)
-            criteria(1)   = epoch <= obj.MaxEpochs; 
-            criteria(2)   = alarm < obj.earlyStop; 
-            criteria(3)   = gnorm > obj.optTolerance;
-            criteria(4)   = toc < obj.timeStop;
-            criteria(5)   = cost > obj.fvStop;
         end
 
         function [e,x,funcount] = lineSearch(obj,x,grad,F,fOld,e,e0,funcount)
             type = obj.lSearchtype;
+            moveBatch = false;
             switch type
                 case 'static'
                     xnew = obj.step(x,e,grad);
@@ -134,44 +108,50 @@ classdef SGD < Trainer
                     xnew = x;
                     while f >= 1.001*(fOld - e*(grad*grad'))
                         xnew = obj.step(x,e,grad);
-                        [f,~] = F(xnew, false);
+                        [f,~,~] = F(xnew, moveBatch);
                         e = e/2;
                         funcount = funcount + 1;
                     end
                     e = 5*e;                
                 case 'fminbnd'
                     xnew = @(e1) obj.step(x,e1,grad);
-                    f = @(e1) F(xnew(e1), false);
+                    f = @(e1) F(xnew(e1), moveBatch);
                     [e,~] = fminbnd(f,e/10,e*10);
                     xnew = xnew(e);
             end
             x = xnew;
-        end 
+        end
 
-        function [alarm,min_testError] = validateES(obj,alarm,min_testError)
-            [Xtest, Ytest] = obj.objectiveFunction.getTestData();
-            [~,y_pred]   = max(obj.objectiveFunction.getOutput(Xtest),[],2);
-            [~,y_target] = max(Ytest,[],2);
-            testError    = mean(y_pred ~= y_target);
-            if testError < min_testError
-                obj.thetaLowest = obj.designVariable.thetavec;
-                min_testError = testError;
-                alarm = 0;
-            elseif testError == min_testError
-                alarm = alarm + 0.5;
-            else
-                alarm = alarm + 1;
+        function criteria = updateCriteria(obj, epoch, alarm, gnorm, cost)
+            criteria(1)   = epoch <= obj.MaxEpochs; 
+            criteria(2)   = alarm < obj.earlyStop; 
+            criteria(3)   = gnorm > obj.optTolerance;
+            criteria(4)   = toc < obj.timeStop;
+            criteria(5)   = cost > obj.fvStop;
+
+            failedIdx = find(~criteria, 1);
+            if ~isempty(failedIdx)
+                msg = {sprintf('Minimization terminated, maximum number of epochs reached %d\n',epoch), ...
+                       sprintf('Minimization terminated, validation set did not decrease in %d epochs\n',obj.earlyStop), ...
+                       sprintf('Minimization terminated, reached the optimalty tolerance of %f\n',obj.optTolerance), ...
+                       sprintf('Minimization terminated, reached the limit time of %f\n',obj.timeStop), ...
+                       sprintf('Minimization terminated, reached the target function value of %f\n',obj.fvStop)};
+
+                if failedIdx >= 1 && failedIdx <= length(msg)
+                    fprintf('%s', msg{failedIdx})
+                end
             end
         end
 
-        function displayIter(obj,epoch,iter,funcount,x,f,opt,state)
-            [nD, ~, batchSize] = obj.objectiveFunction.fetchBatchSize();
+        function displayIter(obj,epoch,iter,funcount,x,f,gnorm,epsilon,state)
+            %[nD, ~, batchSize] = obj.objectiveFunction.fetchBatchSize();
+            opt.epsilon        = epsilon*gnorm; 
+            opt.gnorm          = gnorm;
             obj.printValues(epoch,funcount,opt,f,iter)
-            if obj.isDisplayed == true
-                if iter*batchSize==(epoch-1)*nD || iter == -1
-                    obj.storeValues(x,f,state,opt);
-                    obj.plotMinimization(epoch);
-                end
+
+            % if iter*obj.batchSize==(epoch-1)*length(obj.Xtrain) || iter == -1
+            if obj.isDisplayed && (~mod(epoch, 25) || iter == -1)
+                obj.storeValues(x,f,state,opt);
             end
         end  
 
@@ -187,7 +167,6 @@ classdef SGD < Trainer
                 obj.svepoch = epoch;
                 obj.fplot(1,epoch) = f;
             end
-
         end
 
     end

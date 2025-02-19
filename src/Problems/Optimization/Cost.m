@@ -28,7 +28,7 @@ classdef Cost < handle
                 shI     = obj.shapeFunctions{iF};
                 [j,dJ]  = shI.computeFunctionAndGradient(x);
                 Jc{iF}  = j;
-                dJc{iF} = obj.mergeGradient(dJ);   
+                dJc{iF} = obj.mergeGradient(dJ);
             end
             obj.shapeValues = Jc;
             jV  = 0;
@@ -39,8 +39,18 @@ classdef Cost < handle
                 djV = djV + wI*dJc{iF};
             end
             obj.value    = jV;
-            obj.gradient = obj.Msmooth*djV;
-%             obj.gradient = djV;
+            %obj.gradient = obj.Msmooth*djV;
+            obj.gradient = djV;
+        end
+
+        function [j,dj,batchesDepleted] = computeStochasticCostAndGradient(obj,x,moveBatch)
+
+            loss = obj.findFunctional('Sh_Func_Loss');
+            batchesDepleted = loss.handleStochasticBatch(moveBatch);
+
+            obj.computeFunctionAndGradient(x);
+            j = obj.value;
+            dj = obj.gradient;
         end
 
         function nF = obtainNumberFields(obj)
@@ -60,27 +70,64 @@ classdef Cost < handle
         function j = getFields(obj,i)
             j = obj.shapeValues{i};
         end
+
+        function [alarm,minTestError] = validateES(obj,alarm,minTestError)
+
+            loss = obj.findFunctional('Sh_Func_Loss');
+            [Xtest, Ytest] = loss.getTestData();
+            [~,y_pred]     = max(loss.getOutput(Xtest),[],2);
+            [~,y_target]   = max(Ytest,[],2);
+
+            testError = mean(y_pred ~= y_target);
+            if testError < minTestError
+                minTestError = testError;
+                alarm = 0;
+            elseif testError == minTestError
+                alarm = alarm + 0.5;
+            else
+                alarm = alarm + 1;
+            end
+        end
+
     end
     
     methods (Access = private)
+
         function init(obj,cParams)
             obj.shapeFunctions = cParams.shapeFunctions;
-            obj.weights        = cParams.weights;   
+            obj.weights        = cParams.weights;
             obj.Msmooth        = cParams.Msmooth;
         end
+
+        function functional = findFunctional(obj, fName)
+            shFuncIdx = find(cellfun(@(x) isa(x, fName), obj.shapeFunctions), 1);
+            if isempty(shFuncIdx)
+                error(['No functional named ', fName, ' has been found in the Objective Function'])
+            end
+            functional = obj.shapeFunctions{shFuncIdx};
+        end
+
     end
 
     methods (Static,Access=private)
+
         function dJm = mergeGradient(dJ)
-            nDV   = length(dJ);
-            nDim1 = length(dJ{1}.fValues);
-            dJm   = zeros(nDV*nDim1,1);
-            for i = 1:nDV
-                ind1           = 1+nDim1*(i-1);
-                ind2           = nDim1+nDim1*(i-1);
-                indices        = ind1:ind2;
-                dJm(indices,1) = dJ{i}.fValues;
+            if iscell(dJ)
+                nDV   = length(dJ);
+                nDim1 = length(dJ{1}.fValues);
+                dJm   = zeros(nDV*nDim1,1);
+                for i = 1:nDV
+                    ind1           = 1+nDim1*(i-1);
+                    ind2           = nDim1+nDim1*(i-1);
+                    indices        = ind1:ind2;
+                    dJm(indices,1) = dJ{i}.fValues;
+                end
+            elseif isnumeric(dJ)
+                dJm = dJ;
+            else
+                warning('Unsupported input type. dJ should be a cell array of structs or a numeric array.');
             end
         end
+
     end
 end

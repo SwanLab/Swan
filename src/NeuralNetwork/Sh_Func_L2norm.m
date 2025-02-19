@@ -10,7 +10,8 @@ classdef Sh_Func_L2norm < handle
             obj.init(cParams)            
         end
         
-        function [j,dj] = computeCostAndGradient(obj)
+        function [j,dj] = computeFunctionAndGradient(obj, x)
+            obj.designVariable.thetavec = x;
             j  = obj.computeCost();
             dj = obj.computeGradient();            
         end
