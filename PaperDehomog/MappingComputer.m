@@ -88,7 +88,7 @@ classdef MappingComputer < handle
             s.test  = obj.testFunction;
             s.trial = obj.testFunction;
             s.quadratureOrder = 4;
-            lhs = LHSintegrator.create(s);
+            lhs = LHSIntegrator.create(s);
             K = lhs.compute();
         end
 
@@ -98,7 +98,7 @@ classdef MappingComputer < handle
             s.quadratureOrder = 4;
             s.type            = 'ShapeDerivative';
             test = obj.testFunction;
-            rhs  = RHSintegrator.create(s);
+            rhs  = RHSIntegrator.create(s);
             rhsV = rhs.compute(aI,test);
             In   = obj.interpolator;
             RHS = In'*rhsV;          
@@ -127,7 +127,7 @@ classdef MappingComputer < handle
            % s.test            = LagrangianFunction.create(obj.mesh,1,'P1');
            % s.trial           = LagrangianFunction.create(obj.mesh,1,'P1');
             s.quadratureOrder = 4;
-            LHS               = LHSintegrator.create(s);
+            LHS               = LHSIntegrator.create(s);
             M = LHS.compute();
         end
 

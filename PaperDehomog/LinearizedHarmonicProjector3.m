@@ -39,7 +39,7 @@ classdef LinearizedHarmonicProjector3 < handle
             [resL,resH,resB,resG] = obj.evaluateResidualNorms(bBar,b);
             i = 1;
             theta = 0.5;
-            while res(i) > 1e-12
+            while res(i) > 1e-1
                 xNew   = LHS\RHS;
                 x = theta*xNew + (1-theta)*x;
                 b   = obj.createVectorFromSolution(x);
@@ -125,7 +125,7 @@ classdef LinearizedHarmonicProjector3 < handle
         function init(obj,cParams)
             obj.mesh             = cParams.mesh;
             obj.boundaryNodes    = cParams.boundaryMesh;
-            obj.eta     = (10*obj.mesh.computeMeanCellSize)^2;
+            obj.eta     = (20*obj.mesh.computeMeanCellSize)^2;
         end
 
         function initializeFunctions(obj)

@@ -105,7 +105,7 @@ classdef NewHarmonicVectorProjectionExample < handle
         end
 
         function harmonize(obj)
-            a     = obj.orientationVector();
+            a     = obj.orientationVector;
             a1    = a{1};
             bInit = obj.createDobleOrientationVectorP1(a1);
             bBar  = bInit;
@@ -113,8 +113,10 @@ classdef NewHarmonicVectorProjectionExample < handle
 
             obj.plotAll(h,bBar,bInit);
             bNew = h.solveProblem(bBar,bInit);
+            bNew = obj.projectInUnitBall(bNew);
             obj.plotAll(h,bBar,bNew);
             a1   = obj.createHalfOrientationVectorP1(bNew);
+            obj.harmonicVector = a1;
         end
 
         function b = createDobleOrientationVectorP1(obj,a)
@@ -144,6 +146,7 @@ classdef NewHarmonicVectorProjectionExample < handle
         end
 
         function resHNorm = plotAll(obj,h,bBar,b)
+            close all
             [resL,resH,resB,resG] = h.evaluateAllResiduals(bBar,b);
 
             a1   = obj.createHalfOrientationVectorP1(b);
@@ -185,7 +188,7 @@ classdef NewHarmonicVectorProjectionExample < handle
             s.nCells             = 75;
             s.cellLevelSetParams = obj.createLevelSetCellParams();
             s.mesh               = obj.mesh;
-            s.orientationA       = a;
+            s.orientationA       = obj.harmonicVector;
             d = Dehomogenizer(s);
             d.compute();
             d.plot();
@@ -194,11 +197,20 @@ classdef NewHarmonicVectorProjectionExample < handle
         function s = createLevelSetCellParams(obj)
             s.type   = 'smoothRectangle';
             % s.type   = 'rectangleInclusion';
-            s.widthH = obj.experimentData.dataRes.DesignVar1;%0.85*ones(size(obj.mesh.coord,1),1);
-            s.widthV = obj.experimentData.dataRes.DesignVar2;%0.85*ones(size(obj.mesh.coord,1),1);
-            s.pnorm  = obj.experimentData.dataRes.SuperEllipseExponent;
+            s.widthH = obj.createFunction(obj.experimentData.dataRes.DesignVar1);%0.85*ones(size(obj.mesh.coord,1),1);
+            s.widthV = obj.createFunction(obj.experimentData.dataRes.DesignVar2);%0.85*ones(size(obj.mesh.coord,1),1);
+            s.pnorm  = obj.createFunction(obj.experimentData.dataRes.SuperEllipseExponent);
             s.ndim   = 2;
         end
+
+        function f = createFunction(obj,value)
+            s.fValues = value;
+            s.mesh    = obj.mesh;
+            s.order   = 'P1';
+            f = LagrangianFunction(s);
+            f = project(f,'P1D');
+        end        
+
 
 
         %%%%%%%%%%%%%%%%%%%%%%%%

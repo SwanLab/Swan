@@ -48,7 +48,7 @@ classdef DilationComputer < handle
             s.trial = obj.dilation;
             s.mesh  = obj.mesh;
             s.type  = 'StiffnessMatrix';
-            lhs = LHSintegrator.create(s);
+            lhs = LHSIntegrator.create(s);
             K = lhs.compute();
         end
 
@@ -64,7 +64,7 @@ classdef DilationComputer < handle
             s.type = 'ShapeDerivative';
             s.quadratureOrder = 3;
             test = LagrangianFunction.create(obj.mesh,1,'P1');
-            rhs  = RHSintegrator.create(s);
+            rhs  = RHSIntegrator.create(s);
             rhsV = rhs.compute(fun,test);
             obj.RHS = [rhsV;0];
         end
