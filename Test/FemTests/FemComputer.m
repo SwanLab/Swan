@@ -11,7 +11,7 @@ classdef FemComputer < handle
         interpolationType
     end
 
-    methods (Access = public) % Aquí arribem desde "testComputer = TestComputer.create(obj.computerType, s);", a PrecomputedVariableTest, passant per TestComputer.
+    methods (Access = public)
         function obj = FemComputer(cParams)
             obj.testName          = cParams.testName;
             if isfield(cParams, 'interpolationType')
