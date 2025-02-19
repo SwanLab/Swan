@@ -1,4 +1,4 @@
-classdef PreconditionerEIFEM < handle
+classdef PreconditionerCoarse < handle
 
     properties (Access = public)
 
@@ -7,7 +7,7 @@ classdef PreconditionerEIFEM < handle
     properties (Access = private)
         EIFEMfilename
         weight
-        EIFEMsolver
+        Coarsesolver
     end
 
     properties (Access = private)
@@ -21,21 +21,15 @@ classdef PreconditionerEIFEM < handle
 
     methods (Access = public)
 
-        function obj = PreconditionerEIFEM(cParams)
+        function obj = PreconditionerCoarse(cParams)
             obj.init(cParams);
         end
 
-        function z = apply(obj,r,uk)
-%             uk = obj.bcApplier.reducedToFullVectorDirichlet(uk);
-%             uk = obj.ddDofManager.global2local(uk);  %dissemble
-%             uk = reshape(uk,[],1);
+        function z = apply(obj,r)
             Rd = obj.computeDiscontinousField(r);
-            uD = obj.EIFEMsolver.apply(Rd);
-%             u = reshape(uD,[],1);
-%             EIFEMtesting.plotSolution(u+uk,obj.dMesh,21,5,obj.iter,[],0)
-%             obj.iter = obj.iter+1;
+            uD = obj.Coarsesolver.apply(Rd);
             uC = obj.computeContinousField(uD);
-%             z  = uC; 
+            z  = uC; 
         end
 
     end
@@ -44,7 +38,7 @@ classdef PreconditionerEIFEM < handle
 
         function init(obj,cParams)
             obj.ddDofManager = cParams.ddDofManager;
-            obj.EIFEMsolver  = cParams.EIFEMsolver;
+            obj.Coarsesolver  = cParams.Coarsesolver;
             obj.bcApplier    = cParams.bcApplier;
             obj.weight       = 0.5;
             obj.dMesh        = cParams.dMesh;

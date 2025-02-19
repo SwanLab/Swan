@@ -13,6 +13,8 @@ classdef Preconditioner < handle
                     M = PreconditionerILU(cParams);
                 case {'EIFEM'}
                     M = PreconditionerEIFEM(cParams);
+                case {'Coarse'}
+                    M = PreconditionerCoarse(cParams);
                 case {'MODAL'}
                     M = PreconditionerModalApproximation(cParams);
                 case {'DirichletNeumann'}
@@ -25,12 +27,12 @@ classdef Preconditioner < handle
         end
 
 
-        function z = multiplePrec(r,P1,P2,P3,A,b,mesh,bcApplier,uk)
+        function z = multiplePrec(r,P1,P2,P3,A,b,mesh,bcApplier)
 
 
             z1 = P1(r);
             r  = r-A(z1);
-            z2 = P2(r,uk);
+            z2 = P2(r);
             r  = r-A(z2);
             z3 = P3(r);
             z  = z1+z2+z3;
@@ -61,12 +63,12 @@ classdef Preconditioner < handle
         function x = InexactCG(r,A,P,b)
             x0 = zeros(size(r));
            
-            factor = 0.99;
+            factor = 0.8;
             tol = factor*norm(r);
-            
+%             
 %             x = PCG.solve(A,r,x0,P,tol);
             
-            %tau = @(r,A) 1;
+%             tau = @(r,A) 1;
            tau = @(r,A) r'*r/(r'*A(r));           
            x = RichardsonSolver.solve(A,r,x0,P,tol,tau);
 

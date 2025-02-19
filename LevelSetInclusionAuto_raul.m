@@ -64,9 +64,10 @@ classdef LevelSetInclusionAuto_raul < handle
 
         function createMesh(obj)
             bgMesh   = obj.createReferenceMesh();
-            lvSet    = obj.createLevelSetFunction(bgMesh);
-            uMesh    = obj.computeUnfittedMesh(bgMesh,lvSet);
-            obj.mesh = uMesh.createInnerMesh();
+%             lvSet    = obj.createLevelSetFunction(bgMesh);
+%             uMesh    = obj.computeUnfittedMesh(bgMesh,lvSet);
+%             obj.mesh = uMesh.createInnerMesh();
+            obj.mesh = bgMesh;
             obj.boundaryMesh = obj.mesh.createBoundaryMesh();
             [obj.boundaryMeshJoined, obj.localGlobalConnecBd] = obj.mesh.createSingleBoundaryMesh();
         end
@@ -238,7 +239,7 @@ classdef LevelSetInclusionAuto_raul < handle
             obj.createSolverHere(s)
             obj.computeStiffnessMatrixHere();
             obj.computeForcesHere(s);
-             c = obj.computeCmatRB(s);
+             c = obj.computeCmat();
             [u, L]  = obj.computeDisplacementHere(c);
             % obj.plotSolution(u,L);
             %obj.computeStrainHere();
