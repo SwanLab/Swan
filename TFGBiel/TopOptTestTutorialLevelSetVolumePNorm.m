@@ -17,7 +17,7 @@ classdef TopOptTestTutorialLevelSetVolumePNorm < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorialLevelSetVolumePNorm()
+        function obj = TopOptTestTutorialLevelSetVolumePNorm(p,alpha)
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -27,13 +27,19 @@ classdef TopOptTestTutorialLevelSetVolumePNorm < handle
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
             obj.createVolumeConstraint();
-            obj.createLocalVolume();
+            obj.createLocalVolume(p,alpha);
             obj.createCost();
             obj.createConstraint();
             obj.createDualVariable();
             obj.createOptimizer();
 
-            obj.designVariable.fun.print('Topology_Cantilever_p16_alpha0.65_gJ0.2_eta0.02_LevelSet')
+            fileLocation = 'C:\Users\Biel\Desktop\UNI\TFG\ResultatsNormP_Density\00. From Batch';
+            
+            vtuName = fullfile(fileLocation, sprintf('Topology_Cantilever_p%d_alpha%.2f_gJ0.2_eta0.02_LevelSet',p,alpha));
+            obj.designVariable.fun.print(vtuName);
+            
+            fileName = fullfile(fileLocation, sprintf('Monitoring_Cantilever_p%d_alpha%.2f_gJ0.2_eta0.02_LevelSet.fig',p,alpha));
+            savefig(fileName);
         end
 
     end
@@ -145,10 +151,10 @@ classdef TopOptTestTutorialLevelSetVolumePNorm < handle
             obj.volume = v;
         end
 
-        function createLocalVolume(obj)
+        function createLocalVolume(obj,p,alpha)
             s.mesh          = obj.mesh;
-            s.alpha         = 0.65;
-            s.p             = 16;
+            s.alpha         = alpha;
+            s.p             = p;
             s.gradientTest  = LagrangianFunction.create(obj.mesh,1,'P1');
             obj.localVolume = VolumeNormPFunctional(s);
         end
@@ -197,7 +203,7 @@ classdef TopOptTestTutorialLevelSetVolumePNorm < handle
             s.primal         = 'SLERP';                  
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 1;
+            s.gJFlowRatio    = 0.2;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
             opt = OptimizerNullSpace(s);

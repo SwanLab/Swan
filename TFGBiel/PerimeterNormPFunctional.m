@@ -3,7 +3,7 @@ classdef PerimeterNormPFunctional < handle
     properties (Access = private)
         quadrature
         Pp
-        totalPerimeter
+        totalVolume
         filter
         epsilon
     end
@@ -18,7 +18,7 @@ classdef PerimeterNormPFunctional < handle
         function obj = PerimeterNormPFunctional(cParams)
             obj.init(cParams);
             obj.createQuadrature();
-            obj.createTotalPerimeter();
+            obj.createTotalVolume();
             obj.createFilter();
         end
 
@@ -41,10 +41,9 @@ classdef PerimeterNormPFunctional < handle
             obj.quadrature = quad;
         end
 
-        function createTotalPerimeter(obj) % revisar
-            a = obj.mesh.coord(end,1);
-            b = obj.mesh.coord(end,2);
-            obj.totalPerimeter = 2*a + 2*b;
+        function createTotalVolume(obj)
+            dV = obj.mesh.computeDvolume(obj.quadrature);
+            obj.totalVolume = sum(dV(:));
         end
 
         function createFilter(obj)
@@ -63,16 +62,23 @@ classdef PerimeterNormPFunctional < handle
         end
 
         function J = computeFunction(obj,x,Le)
-            xP     = ((1-Le)*x)^obj.p;
+            xP     = ((1-Le).*x).^obj.p;
             PerP   = Integrator.compute(xP,obj.mesh,obj.quadrature.order);
-            obj.Pp = 1/(2*obj.epsilon)*PerP^(1/obj.p);
-            J      = ((1/obj.perimeterTarget)*((1/obj.totalPerimeter)^(1/obj.p))*obj.Pp) - 1;
+            obj.Pp = PerP^(1/obj.p);
+            J      = (1/(2*obj.epsilon))*((1/obj.perimeterTarget)*((1/obj.totalVolume)^(1/obj.p))*obj.Pp) - 1;
         end
 
         function dJ = computeGradient(obj,x,Le)
-            num = (obj.Pp^(1-obj.p))*(((1-Le)*x)^(obj.p-1))*(1-2*Le);
-            den = 2*obj.epsilon*obj.perimeterTarget*(obj.totalPerimeter)^(1/obj.p);
-            dJ  = num/den;
+            Lea = obj.computeFilteredTermForGradient(x,Le);
+            num = (obj.Pp^(1-obj.p))*((((1-Le).*x).^(obj.p-1)).*(1-Le) - Lea);
+            den = 2*obj.epsilon*obj.perimeterTarget*(obj.totalVolume)^(1/obj.p);
+            dJ  = num./den;
+            dJ  = dJ.project('P1');
+        end
+
+        function Lea = computeFilteredTermForGradient(obj,x,Le)
+            a = (((1-Le).*x).^(obj.p-1)).*x;
+            Lea = obj.filter.compute(a,3);
         end
     end
 

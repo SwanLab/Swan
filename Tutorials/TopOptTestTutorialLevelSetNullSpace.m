@@ -30,6 +30,8 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             obj.createConstraint();
             obj.createDualVariable();
             obj.createOptimizer();
+
+            obj.designVariable.fun.print('Topology_Cantilever_gJ0.2_eta0.02_LevelSet');
         end
 
     end
@@ -169,7 +171,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 3;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'SLERP';

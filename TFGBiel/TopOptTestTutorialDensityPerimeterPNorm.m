@@ -17,7 +17,7 @@ classdef TopOptTestTutorialDensityPerimeterPNorm < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorialDensityPerimeterPNorm()
+        function obj = TopOptTestTutorialDensityPerimeterPNorm(p,pTarget)
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -27,13 +27,19 @@ classdef TopOptTestTutorialDensityPerimeterPNorm < handle
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
             obj.createVolumeConstraint();
-            obj.createPerimeterConstraint();
+            obj.createPerimeterConstraint(p,pTarget);
             obj.createCost();
             obj.createConstraint();
             obj.createDualVariable();
             obj.createOptimizer();
 
-            obj.designVariable.fun.print('Topology_Cantilever_p16_alpha0.65_gJ0.2_eta0.02')
+            fileLocation = 'C:\Users\Biel\Desktop\UNI\TFG\ResultatsNormP_Density\00. From Batch';
+            
+            vtuName = fullfile(fileLocation, sprintf('Topology_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02',p,alpha));
+            obj.designVariable.fun.print(vtuName);
+            
+            fileName = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02.fig',p,alpha));
+            savefig(fileName);
         end
 
     end
@@ -147,10 +153,10 @@ classdef TopOptTestTutorialDensityPerimeterPNorm < handle
             obj.volume = v;
         end
 
-        function createPerimeterConstraint(obj)
+        function createPerimeterConstraint(obj,p,pTarget)
             s.mesh            = obj.mesh;
-            s.perimeterTarget = 0.65;
-            s.p               = 16;
+            s.perimeterTarget = pTarget;
+            s.p               = p;
             s.gradientTest    = LagrangianFunction.create(obj.mesh,1,'P1');
             obj.perimeter     = PerimeterNormPFunctional(s);
         end
@@ -170,7 +176,7 @@ classdef TopOptTestTutorialDensityPerimeterPNorm < handle
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
-            s.shapeFunctions{1} = obj.perimeter;
+            s.shapeFunctions{2} = obj.perimeter;
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end

@@ -3,7 +3,7 @@ classdef VolumeNormPFunctional < handle
     properties (Access = private)
         quadrature
         vP
-        totalPerimeter
+        totalVolume
         filter
     end
 
@@ -42,7 +42,7 @@ classdef VolumeNormPFunctional < handle
 
         function createTotalVolume(obj)
             dV = obj.mesh.computeDvolume(obj.quadrature);
-            obj.totalPerimeter = sum(dV(:));
+            obj.totalVolume = sum(dV(:));
         end
 
         function createFilter(obj)
@@ -64,13 +64,13 @@ classdef VolumeNormPFunctional < handle
             xP     = x.^obj.p;
             volP   = Integrator.compute(xP,obj.mesh,obj.quadrature.order);
             obj.vP = volP^(1/obj.p);
-            J      = (volP/obj.totalPerimeter)^(1/obj.p);
+            J      = (volP/obj.totalVolume)^(1/obj.p);
             J      = J/obj.alpha - 1;
         end
 
         function dJ = computeGradient(obj,x)
             rho = x;
-            dj  = ((obj.vP^(1-obj.p))*rho.^(obj.p-1))./(obj.alpha*obj.totalPerimeter^(1/obj.p));
+            dj  = ((obj.vP^(1-obj.p))*rho.^(obj.p-1))./(obj.alpha*obj.totalVolume^(1/obj.p));
             dJ  = obj.filter.compute(dj,3);
         end
 
