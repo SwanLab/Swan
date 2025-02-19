@@ -273,7 +273,7 @@ classdef CoarseTesting < handle
 %             PL.direction = [2];
 %             PL.value     = [-0.1];
                         PL.domain    = @(coor) isRight(coor);
-                        PL.direction = [1];
+                        PL.direction = [2];
                         PL.value     = [0.1];
         end
 

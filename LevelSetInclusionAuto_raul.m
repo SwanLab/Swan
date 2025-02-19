@@ -333,7 +333,7 @@ classdef LevelSetInclusionAuto_raul < handle
                 obj.dLambda{i}  = AnalyticalFunction.create(f{i},ndimf,obj.boundaryMeshJoined);
                     
                 %% Project to P1
-%                  obj.dLambda{i} = obj.dLambda{i}.project('P1');
+                obj.dLambda{i} = obj.dLambda{i}.project('P1');
 
                 Ce = lhs.compute(obj.dLambda{i},test);
                 [iLoc,jLoc,vals] = find(Ce);

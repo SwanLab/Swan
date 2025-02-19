@@ -63,7 +63,7 @@ classdef Preconditioner < handle
         function x = InexactCG(r,A,P,b)
             x0 = zeros(size(r));
            
-            factor = 0.8;
+            factor = 0.5;
             tol = factor*norm(r);
 %             
 %             x = PCG.solve(A,r,x0,P,tol);
