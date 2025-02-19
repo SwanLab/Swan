@@ -64,11 +64,11 @@ classdef Preconditioner < handle
             factor = 0.99;
             tol = factor*norm(r);
             
-            x = PCG.solve(A,r,x0,P,tol);
+%             x = PCG.solve(A,r,x0,P,tol);
             
             %tau = @(r,A) 1;
-        %    tau = @(r,A) r'*r/(r'*A(r));           
-        %    x = RichardsonSolver.solve(A,r,x0,P,tol,tau);
+           tau = @(r,A) r'*r/(r'*A(r));           
+           x = RichardsonSolver.solve(A,r,x0,P,tol,tau);
 
 
 

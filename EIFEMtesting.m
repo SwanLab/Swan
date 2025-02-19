@@ -41,8 +41,8 @@ classdef EIFEMtesting < handle
             LHSf = @(x) LHS*x;
             RHSf = RHS;
             Usol = LHS\RHS;
-            Ufull = obj.bcApplier.reducedToFullVectorDirichlet(Usol);
-            %obj.plotSolution(Ufull,obj.meshDomain,1,1,0,obj.bcApplier,0)
+%             Ufull = obj.bcApplier.reducedToFullVectorDirichlet(Usol);
+%             obj.plotSolution(Usol,obj.meshDomain,1,1,0,obj.bcApplier,0)
 
 
             Mid          = @(r) r;
@@ -58,10 +58,10 @@ classdef EIFEMtesting < handle
             tol = 1e-8;
             tic
             x0 = zeros(size(RHSf));
-%             [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
+            [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
             toc
             %             [uCG,residualCG,errCG,errAnormCG] = RichardsonSolver.solve(LHSf,RHSf,x0,P,tol,0.1,Usol);
-
+%             save("./Article graphs/Aux30x5_ILU.mat","residualCG","errCG","errAnormCG")
             tol = 1e-8;
 
             %Mmult = MdirNeu;
@@ -70,17 +70,21 @@ classdef EIFEMtesting < handle
             Mmult = @(r) Preconditioner.multiplePrec(r,MiluCG,Meifem,MiluCG,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
             zmult = Mmult(r);
             zfull = obj.bcApplier.reducedToFullVectorDirichlet(zmult);
-            %obj.plotSolution(zfull,obj.meshDomain,0,0,2,obj.bcApplier,0)
+%             obj.plotSolution(zfull,obj.meshDomain,0,0,2,obj.bcApplier,0)
 
             zeifem = Meifem(r);
-            zfull = obj.bcApplier.reducedToFullVectorDirichlet(zeifem);
-            %obj.plotSolution(zfull,obj.meshDomain,0,0,1,obj.bcApplier,0)
+%             zfull = obj.bcApplier.reducedToFullVectorDirichlet(zeifem);
+%             obj.plotSolution(zeifem,obj.meshDomain,0,0,1,obj.bcApplier,0)
            % x0 = zmult;
             tic
             %           tau = @(r,A) 1;
             [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
             %            [uCG,residualPCG,errPCG,errAnormPCG] = RichardsonSolver.solve(LHSf,RHSf,x0,Mmult,tol,tau,Usol);
             toc
+
+%             save("./Article graphs/Aux30x5_training1.mat","residualPCG","errPCG","errAnormPCG")
+
+           
 
             figure
             plot(residualPCG,'linewidth',2)
@@ -116,10 +120,11 @@ classdef EIFEMtesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [10 2]; %nx ny
-            %obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
-            obj.fileNameEIFEM = 'DEF_Q4porL_1.mat';
-            obj.tolSameNode = 1e-14;
+            obj.nSubdomains  = [30 5]; %nx ny
+            obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
+%             obj.fileNameEIFEM = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
+%             obj.fileNameEIFEM = 'DEF_Q4porL_1.mat';
+            obj.tolSameNode = 1e-10;
         end
 
         function [mD,mSb,iC,lG,iCR] = createMeshDomain(obj,mR)
@@ -245,7 +250,7 @@ classdef EIFEMtesting < handle
             isBottom = @(coor) (abs(coor(:,2) - miny)   < tolBound);
             isTop    = @(coor) (abs(coor(:,2) - maxy)   < tolBound);
             %             isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) == 0);
-            Dir{1}.domain    = @(coor) isLeft(coor)| isRight(coor) ;
+            Dir{1}.domain    = @(coor) isLeft(coor);%| isRight(coor) ;
             Dir{1}.direction = [1,2];
             Dir{1}.value     = 0;
 
@@ -253,12 +258,12 @@ classdef EIFEMtesting < handle
             %             Dir{2}.direction = [2];
             %             Dir{2}.value     = 0;
 
-            PL.domain    = @(coor) isTop(coor);
-            PL.direction = [2];
-            PL.value     = [-0.1];
-            %             PL.domain    = @(coor) isRight(coor);
-            %             PL.direction = [1];
-            %             PL.value     = [0.1];
+%             PL.domain    = @(coor) isTop(coor);
+%             PL.direction = [2];
+%             PL.value     = [-0.1];
+                        PL.domain    = @(coor) isRight(coor);
+                        PL.direction = [1];
+                        PL.value     = [0.1];
         end
 
         function [bc,Dir,PL] = createBoundaryConditions(obj,mesh)
