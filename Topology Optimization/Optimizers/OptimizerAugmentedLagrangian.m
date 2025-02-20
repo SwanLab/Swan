@@ -21,7 +21,6 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         meritNew
         penalty
         meritGradient
-        Vtar
 
         globalCost
         globalConstraint
@@ -64,16 +63,16 @@ classdef OptimizerAugmentedLagrangian < Optimizer
     methods(Access = private)
 
         function init(obj,cParams)
-            obj.cost                   = cParams.cost;
-            obj.constraint             = cParams.constraint;
-            obj.nConstr                = length(cParams.constraintCase);
-            obj.designVariable         = cParams.designVariable;
-            obj.dualVariable           = cParams.dualVariable;
-            obj.nX                     = obj.designVariable.fun.nDofs;
-            obj.maxIter                = cParams.maxIter;
-            obj.hasConverged           = false;
-            obj.nIter                  = 0;
-            obj.Vtar                   = cParams.volumeTarget;
+            obj.cost           = cParams.cost;
+            obj.constraint     = cParams.constraint;
+            obj.nConstr        = length(cParams.constraintCase);
+            obj.designVariable = cParams.designVariable;
+            obj.dualVariable   = cParams.dualVariable;
+            obj.nX             = obj.designVariable.fun.nDofs;
+            obj.maxIter        = cParams.maxIter;
+            obj.hasConverged   = false;
+            obj.nIter          = 0;
+            obj.penalty        = cParams.rho;
             obj.createMonitoring(cParams);
         end
 
@@ -88,7 +87,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
                 titles{end+1} = ['\lambda_{',titlesConst{i},'}'];
                 chConstr{i}   = 'plot';
             end
-            titles  = [titles;{'Volume';'Line Search';'Line Search trials'}];
+            titles  = [titles;{'Line Search';'Line Search trials'}];
             chCost = cell(1,nSFCost);
             for i = 1:nSFCost
                 chCost{i} = 'plot';
@@ -108,7 +107,6 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             data = [data;obj.designVariable.computeL2normIncrement()];
             data = [data;obj.penalty];
             data = [data;obj.dualVariable.fun.fValues];
-            data = [data;obj.computeVolume(obj.constraint.value)];
             if obj.nIter == 0
                 data = [data;0;0];
             else
@@ -123,7 +121,6 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             obj.costOld = obj.cost.value;
             obj.designVariable.updateOld();
             obj.dualVariable.fun.fValues = zeros(obj.nConstr,1);
-            obj.penalty            = 3;
         end
 
         function obj = update(obj)
@@ -215,9 +212,23 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             end
         end
 
+        function etaN = obtainTrustRegion(obj)
+            switch class(obj.designVariable)
+                case 'LevelSet'
+                    if obj.nIter == 0
+                        etaN = inf;
+                    else
+                        etaN = 0.02;
+                    end
+                otherwise
+                    etaN = 0.02;
+            end
+        end
+
         function checkStep(obj,x,x0)
             mNew = obj.computeMeritFunction(x.fun.fValues);
-            if mNew < obj.mOld
+            etaN = obj.obtainTrustRegion();
+            if mNew <= obj.mOld+1e-3  &&  norm(x.fun.fValues-x0)/(norm(x0)+1) < etaN
                 obj.acceptableStep = true;
                 obj.dualUpdater.updatePenalty(obj.penalty);
                 obj.dualUpdater.update();
@@ -256,11 +267,6 @@ classdef OptimizerAugmentedLagrangian < Optimizer
                
            end
 
-        end
-
-        function v = computeVolume(obj,g)
-            targetVolume = obj.Vtar;
-            v            = targetVolume*(1+g);
         end
 
         function updateIterInfo(obj)
