@@ -20,12 +20,15 @@ classdef TestingPhaseFieldHomogenizer < handle
     end
 
     methods (Access = public)
-        
+
         function obj = TestingPhaseFieldHomogenizer(cParams)
             obj.init(cParams);
             obj.defineMesh();
+            figure()
+            set(gcf, 'WindowState', 'maximized')
+            drawnow
         end
-        
+
         function [mat,phi,holeParams] = compute(obj)
             holeParams = obj.computeHoleParams();
             comb = table2array(combinations(holeParams{:}));
@@ -92,22 +95,20 @@ classdef TestingPhaseFieldHomogenizer < handle
             for i=1:nParam
                 paramHole{i} = linspace(0.01,obj.maxParam(i),obj.nSteps(i));
             end
-       %     paramHole{1}= 0.1;
-       %     paramHole{2}= 0.5;
         end
         
         function maxV = computeMaxHoleParams(obj)
             switch obj.holeType
                 case 'Circle'
-                    maxV = 0.49;
+                    maxV = 0.495;
                 case 'Square'
-                    maxV = 0.98;
+                    maxV = 0.99;
                 case 'Ellipse'
-                    maxV = [0.9,0.9];
+                    maxV = [0.99,0.99];
                 case 'Rectangle'
                     maxV = [0.99,0.99];
                 case 'SmoothHexagon'
-                    maxV = 0.98;
+                    maxV = 0.99;
             end
         end
 
@@ -131,12 +132,13 @@ classdef TestingPhaseFieldHomogenizer < handle
             % dens = f.compute(ls,2);
 
             obj.baseMesh = uMesh.createFullInnerMesh('Matlab');
-
-            close all
-            plot(obj.baseMesh)
-            set(gcf, 'WindowState', 'maximized')
+            
+            clf
+            obj.baseMesh.plot
+            axis off
+            title('')
             drawnow
-
+            exportgraphics(gcf,'microFracture.gif','Append',true);                
 
             dens = LagrangianFunction.create(obj.baseMesh,1,'P1');
             fV = ones(size(dens.fValues));
@@ -226,7 +228,7 @@ classdef TestingPhaseFieldHomogenizer < handle
             fem.updateMaterial(material.obtainTensor())
             fem.solve();
 
-            totVol = obj.baseMesh.computeVolume();
+            totVol = obj.backgroundMesh.computeVolume();
             matHomog = fem.Chomog/totVol;
         end
 

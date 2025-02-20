@@ -18,7 +18,7 @@ classdef Projector < handle
                 case 'ConstantFunction'
                     ord = 0;
                 case 'AnalyticalFunction'
-                    ord = 6;
+                    ord = 2;
                 case 'FEFunction'
                     ord = 2; % needed to project P1 to P1D             
                 otherwise

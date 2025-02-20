@@ -55,7 +55,7 @@ classdef GeometricalFunction < handle
                     sy = cParams.ySide;
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
-                    fH = @(x) max(abs(x1(x)-x0)./sx,abs(x2(x)-y0)./sy) - 0.5;
+                    fH = @(x) obj.specialRectangle(x,x1,x2,x0,y0,sx,sy);%max(abs(x1(x)-x0)./sx,abs(x2(x)-y0)./sy) - 0.5;
                     obj.fHandle = fH;
 
                 case 'RectangleInclusion'
@@ -219,6 +219,26 @@ classdef GeometricalFunction < handle
     end
 
     methods (Access = private, Static)
+
+        function fV = specialRectangle(x,x1,x2,x0,y0,sx,sy)
+            f(:,:,:,1)   = x1(x)-x0 -sx/2;
+            f(:,:,:,2)   = -(x1(x)-x0) -sx/2;
+            f(:,:,:,3)   = x2(x)-y0 -sy/2; 
+            f(:,:,:,4)   = -(x2(x)-y0) -sy/2;
+
+            % No se quina d'aquestes dues funcionaria. Jo primer resoldria
+            % el tema de la rotació i després revisem els detallets dels
+            % forats petits
+
+            %f  = f./max(abs(f));
+
+            % f(:,:,:,1) = f(:,:,:,1)./max(abs(f(:,:,:,1)),[],'all');
+            % f(:,:,:,2) = f(:,:,:,2)./max(abs(f(:,:,:,2)),[],'all');
+            % f(:,:,:,3) = f(:,:,:,3)./max(abs(f(:,:,:,3)),[],'all');
+            % f(:,:,:,4) = f(:,:,:,4)./max(abs(f(:,:,:,4)),[],'all');
+            fV = max(f,[],4);       
+
+        end
 
         function d = computeHexagonFunction(x,x1,x2,x0,y0,n,p,l)
             vx     = x1(x)-x0;

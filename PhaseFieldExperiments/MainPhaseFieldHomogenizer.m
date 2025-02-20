@@ -1,16 +1,29 @@
 %% RUN
+% clc,clear,close all
+% s.E          = 1;
+% s.nu         = 0.3;
+% s.meshType   = 'Square';
+% s.meshN      = 150;
+% s.holeType   = 'Ellipse';
+% s.nSteps     = [2,2];
+% s.pnorm      = 'Inf';
+% s.damageType = "Area";
+% PFH = TestingPhaseFieldHomogenizer(s);
+% [mat,phi,holeParam] = PFH.compute();
+% save("EllipseMicroDamageArea","mat","phi","holeParam")
+
 clc,clear,close all
 s.E          = 1;
 s.nu         = 0.3;
 s.meshType   = 'Square';
-s.meshN      = 200;
+s.meshN      = 150;
 s.holeType   = 'Rectangle';
-s.nSteps     = [10,10];
+s.nSteps     = [100,100];
 s.pnorm      = 'Inf';
 s.damageType = "Area";
 PFH = TestingPhaseFieldHomogenizer(s);
 [mat,phi,holeParam] = PFH.compute();
-
+save("RectangleMicroDamageArea","mat","phi","holeParam")
 
 %% SAVE + PLOTS 
 %save("EllipseMicroDamageArea","mat","phi","holeParam")
