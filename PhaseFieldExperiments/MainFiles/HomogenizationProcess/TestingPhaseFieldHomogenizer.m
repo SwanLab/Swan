@@ -93,7 +93,7 @@ classdef TestingPhaseFieldHomogenizer < handle
             nParam = length(obj.maxParam);
             paramHole = cell(1,nParam);
             for i=1:nParam
-                paramHole{i} = linspace(0.01,obj.maxParam(i),obj.nSteps(i));
+                paramHole{i} = linspace(1e-2,obj.maxParam(i),obj.nSteps(i));
             end
         end
         
@@ -133,12 +133,12 @@ classdef TestingPhaseFieldHomogenizer < handle
 
             obj.baseMesh = uMesh.createFullInnerMesh('Matlab');
             
-            clf
-            obj.baseMesh.plot
-            axis off
-            title('')
-            drawnow
-            exportgraphics(gcf,'microFracture.gif','Append',true);                
+            % clf
+            % obj.baseMesh.plot
+            % axis off
+            % title('')
+            % drawnow
+            % exportgraphics(gcf,'microFracture.gif','Append',true);                
 
             dens = LagrangianFunction.create(obj.baseMesh,1,'P1');
             fV = ones(size(dens.fValues));
