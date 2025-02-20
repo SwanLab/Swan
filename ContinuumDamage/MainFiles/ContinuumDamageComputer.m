@@ -19,6 +19,8 @@ classdef ContinuumDamageComputer < handle
         elasticFun
         externalWorkFun
         elasticity
+
+        limIter = 100;
     end
 
     methods (Access = public)
@@ -37,9 +39,9 @@ classdef ContinuumDamageComputer < handle
                 bc = obj.updateBoundaryConditions(i);
                 uFun.setFValues(obj.updateInitialDisplacement(bc,uFun));
 
-                resErr = 1;
+                resErr = 1; iter = 0;
                 
-                while (resErr >= obj.tolerance)
+                while (resErr >= obj.tolerance && iter <= obj.limIter)
                     obj.elasticity.computeDamageEvolutionParam(uFun);
                     [res]  = obj.elasticity.computeResidual(uFun,bc);
                     [K,resDeriv] = obj.elasticity.computeDerivativeResidual(uFun,bc);
@@ -48,6 +50,10 @@ classdef ContinuumDamageComputer < handle
                     
                     resErr = norm(res);
                     fprintf('Error: %d \n',resErr);
+                    iter = iter+1;
+                end
+                if (iter >= obj.limIter)
+                    fprintf (2,'NOT CONVERGED FOR STEP %d\n',i);
                 end
                 obj.elasticity.setROld();
 
@@ -57,6 +63,7 @@ classdef ContinuumDamageComputer < handle
                 data.damage.maxValue(i)  = max(dmgFun.fValues);
                 data.damage.minValue(i)  = min(dmgFun.fValues);
                 data.reaction(i)  = obj.computeTotalReaction(K,uVec);
+                Reaction = data.reaction(i);
                 [data.totalEnergy(i),data.damagedMaterial(i)] = obj.elasticity.computeEnergy(uFun,bc);
             end
             data.displacement.field = uFun;
