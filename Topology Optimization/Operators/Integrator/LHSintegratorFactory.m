@@ -52,7 +52,10 @@ classdef LHSintegratorFactory < handle
                case 'AdvectionMatrixWithFunction'
                    obj = LHSintegratorFunctionAdvection(cParams); 
                case 'DivergenceMatrix'
-                   obj = LHSintegratorDivergenceMatrix(cParams); 
+                   obj = LHSintegratorDivergenceMatrix(cParams);
+
+               case 'NonLinearNS'
+                   obj = LHSintegrator_NonLinearNS(cParams);
            end
        end
    end

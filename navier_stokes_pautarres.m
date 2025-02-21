@@ -2,7 +2,7 @@ clear
 clc
 
 % CREATE MESH
-mesh = UnitQuadMesh(100,100);
+mesh = UnitQuadMesh(1000,1000);
 
 % CREATE FUNCTIONS
 u = LagrangianFunction.create(mesh, 2, 'P2');
@@ -56,22 +56,33 @@ s2.test  = u;
 LHS2 = LHSintegrator.create(s2);
 D = LHS2.compute();
 
+% CREATE NONLINEAR CONVECTIVE TERM
+s3.type = 'NonLinearNS';
+s3.mesh = mesh;
+s3.trial = u;
+s3.test = u;
+s3.velocityField = u;
+LHS3 = LHSintegrator.create(s3);
+C = LHS3.compute();
+
+
 sz = size(D, 2);
 BB = sparse(sz,sz);
 
-LHS = [K D; D', BB];
+LHS = [K+C D; D', BB];
 
 % CREATE RIGHT-HAND SIDE
-s3.type          = 'Stokes';
-s3.mesh          = mesh;
-s3.velocityFun   = u;
-s3.pressureFun   = p;
-s3.forcesFormula = forcesFormula;
-RHSint = RHSintegrator.create(s3);
+s5.type          = 'Stokes';
+s5.mesh          = mesh;
+s5.velocityFun   = u;
+s5.pressureFun   = p;
+s5.forcesFormula = forcesFormula;
+RHSint = RHSintegrator.create(s5);
 F = RHSint.integrate();
 uD = dirichlet(:,3);
 R  = -LHS(:,dir_dofs)*uD;
 RHS = F + R;
+
 
 % SOLVE PROBLEM
 free_dofs_plus = setdiff(1:n_dofs,dir_dofs);
@@ -79,13 +90,52 @@ LHSr = LHS(free_dofs_plus,free_dofs_plus);
 RHSr = RHS(free_dofs_plus);
 x = LHSr\RHSr;
 
+
+
+
+
+% SOLVE PROBLEM USING NEWTON-RAPHSON
+maxIter = 30;
+tol = 1e-6;
+x = zeros(n_dofs,1);
+free_dofs = setdiff(1:n_dofs, dir_dofs);
+
+for iter = 1:maxIter
+    u_vals = x(1:u.nDofs);
+    u.setFValues(reshape(u_vals, [], u.ndimf));
+
+    s3.velocityField = u;
+    LHS3 = LHSintegrator.create(s3);
+    C = LHS3.compute();
+    LHS = [K + C, D; D', BB];
+
+    R  = -LHS(:,dir_dofs) * uD;
+    RHS = F + R - LHS * x;
+
+    LHSr = LHS(free_dofs, free_dofs);
+    RHSr = RHS(free_dofs);
+    dx = LHSr\RHSr;
+
+    x(free_dofs) = x(free_dofs) + dx;
+
+    norm_dx = norm(dx) / (norm(x(free_dofs)) + eps);
+    fprintf('Iteration %d: Relative Norm dx = %.3e\n', iter, norm_dx);
+    if norm_dx < tol
+        fprintf('Converged after %d iterations.\n', iter);
+        break;
+    end
+end
+
+
+
+
+
 % ADD DDIRICHLET BOUNDARY CONDITIONS
 uD  = dirichlet(:,3);
 nsteps = length(x(1,:));
 uD = repmat(uD,1,nsteps);
-fullx = zeros(n_dofs,nsteps);
 free_dofs = setdiff(1:(n_dofs),dir_dofs);
-fullx(free_dofs,:) = x;
+fullx = x;
 if ~isempty(dir_dofs)
     fullx(dir_dofs,:) = uD;
 end
