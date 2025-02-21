@@ -43,9 +43,13 @@ end
 
 function isTensor = checkTensor(A,res)
     n = ndims(res);
-    if A.mesh.nelem == 1
-        isTensor = n>=3;
+    if isa(A,'Material')
+        isTensor = true;
     else
-        isTensor = n>=4;
+        if A.mesh.nelem == 1
+            isTensor = n>=3;
+        else
+            isTensor = n>=4;
+        end
     end
 end
