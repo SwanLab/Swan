@@ -103,7 +103,7 @@ classdef OptimizationProblem < handle
        function createCost(obj)
            s.shapeFunctions = {obj.loss, obj.regularization};
            s.weights = [1, obj.costParams.lambda];
-           s.Msmooth = 0;
+           s.Msmooth = [];
            obj.costFunc = Cost(s);
        end
 

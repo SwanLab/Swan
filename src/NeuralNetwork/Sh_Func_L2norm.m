@@ -9,6 +9,8 @@ classdef Sh_Func_L2norm < handle
         function obj = Sh_Func_L2norm(cParams)
             obj.init(cParams)            
         end
+
+        % Funció pública stochastic
         
         function [j,dj] = computeFunctionAndGradient(obj, x)
             obj.designVariable.thetavec = x;

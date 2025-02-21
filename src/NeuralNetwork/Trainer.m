@@ -47,6 +47,24 @@ classdef Trainer < handle
             obj.isDisplayed  = false;
         end
 
+        function [alarm,minTestError] = validateES(obj,alarm,minTestError)
+
+            loss = obj.findFunctional('Sh_Func_Loss');
+            [Xtest, Ytest] = loss.getTestData();
+            [~,y_pred]     = max(loss.getOutput(Xtest),[],2);
+            [~,y_target]   = max(Ytest,[],2);
+
+            testError = mean(y_pred ~= y_target);
+            if testError < minTestError
+                minTestError = testError;
+                alarm = 0;
+            elseif testError == minTestError
+                alarm = alarm + 0.5;
+            else
+                alarm = alarm + 1;
+            end
+        end
+
         function storeValues(obj,x,f,state,opt)
             switch state
                 case 'init'

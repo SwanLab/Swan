@@ -26,6 +26,7 @@ classdef Cost < handle
             dJc = cell(nF,1);
             for iF = 1:nF
                 shI     = obj.shapeFunctions{iF};
+                % Condicional per veure si és stochastic o no
                 [j,dJ]  = shI.computeFunctionAndGradient(x);
                 Jc{iF}  = j;
                 dJc{iF} = obj.mergeGradient(dJ);
@@ -44,10 +45,7 @@ classdef Cost < handle
         end
 
         function [j,dj,batchesDepleted] = computeStochasticCostAndGradient(obj,x,moveBatch)
-
-            loss = obj.findFunctional('Sh_Func_Loss');
-            batchesDepleted = loss.handleStochasticBatch(moveBatch);
-
+            batchesDepleted = obj.shapeFunctions{1}.handleStochasticBatch(moveBatch);
             obj.computeFunctionAndGradient(x);
             j = obj.value;
             dj = obj.gradient;
@@ -71,10 +69,10 @@ classdef Cost < handle
             j = obj.shapeValues{i};
         end
 
+        % Moure als funcionals --> isEarlyStop()
         function [alarm,minTestError] = validateES(obj,alarm,minTestError)
 
-            loss = obj.findFunctional('Sh_Func_Loss');
-            [Xtest, Ytest] = loss.getTestData();
+            [Xtest, Ytest] = obj.shapeFunctions{1}.getTestData();
             [~,y_pred]     = max(loss.getOutput(Xtest),[],2);
             [~,y_target]   = max(Ytest,[],2);
 
@@ -97,14 +95,6 @@ classdef Cost < handle
             obj.shapeFunctions = cParams.shapeFunctions;
             obj.weights        = cParams.weights;
             obj.Msmooth        = cParams.Msmooth;
-        end
-
-        function functional = findFunctional(obj, fName)
-            shFuncIdx = find(cellfun(@(x) isa(x, fName), obj.shapeFunctions), 1);
-            if isempty(shFuncIdx)
-                error(['No functional named ', fName, ' has been found in the Objective Function'])
-            end
-            functional = obj.shapeFunctions{shFuncIdx};
         end
 
     end

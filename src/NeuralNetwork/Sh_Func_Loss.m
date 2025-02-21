@@ -1,14 +1,13 @@
 classdef Sh_Func_Loss < handle
 
     properties(Access = public)
-        nBatches
+
     end
     
     properties (Access = private)
         designVariable
         network
-
-        % Pau addition
+        nBatches
         currentBatch
         moveBatch
         data
