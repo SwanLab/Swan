@@ -41,7 +41,7 @@ classdef ContinuumDamageComputer < handle
 
                 resErr = 1; iter = 0;
                 
-                while (resErr >= obj.tolerance && iter <= obj.limIter)
+                while (resErr >= obj.tolerance && iter < obj.limIter)
                     obj.elasticity.computeDamageEvolutionParam(uFun);
                     [res]  = obj.elasticity.computeResidual(uFun,bc);
                     [K,resDeriv] = obj.elasticity.computeDerivativeResidual(uFun,bc);
@@ -51,6 +51,7 @@ classdef ContinuumDamageComputer < handle
                     resErr = norm(res);
                     fprintf('Error: %d \n',resErr);
                     iter = iter+1;
+                    
                 end
                 if (iter >= obj.limIter)
                     fprintf (2,'NOT CONVERGED FOR STEP %d\n',i);
