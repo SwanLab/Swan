@@ -47,12 +47,6 @@ classdef SurfaceMesh < Mesh
             quad = Quadrature.create(obj,0);
             n = obj.computeNormals(quad.posgp);
         end
-<<<<<<< HEAD:FEM/Mesh/SurfaceMesh.m
-        
-        function plot(obj) 
-            faceColor = "black"; %red
-            faceAlpha = 1; %0.3
-=======
 
         function plotSolidColor(obj,color)
             faceColor = color;
@@ -63,8 +57,6 @@ classdef SurfaceMesh < Mesh
 
         function plot(obj) 
             faceColor = "red";
-            faceAlpha = 0.3;
->>>>>>> master:src/Mesh/SurfaceMesh.m
             edgeAlpha = 0.5;
             obj.plotSpecific(faceColor,faceAlpha,edgeAlpha)
         end

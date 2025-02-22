@@ -5,8 +5,13 @@ close all
 clear
 clc
 
+addpath('src/Problems/Elasticity')
+addpath('src/Mesh/Utilities')
+addpath('src/Mesh')
+addpath('src/Settings')
+
 % Set geometrical parameters
-n_variations = 60;
+n_variations = 10;
 min_semiAxis = 0.01;
 max_semiAxis = 0.49;
 
