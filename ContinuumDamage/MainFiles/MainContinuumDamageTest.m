@@ -2,14 +2,15 @@ clc;clear;close all
 
 %load('TestForceTraction1Elem.mat')
 %load('TestDisplacementTraction.mat')
-cParams.mesh.name = 'CD_Mesh';
+%cParams.mesh.name = 'CD_Mesh';
 cParams.mesh.meshLength = 1;
 cParams.mesh.meshWidth = 1;
 cParams.mesh.meshN = 1;
 cParams.mesh.meshM = 1;
 
 cParams.bc.bcType = 'displacementTraction'; %'FORCE'
-cParams.bc.bcValueSet = 1e-10:1e-3:0.5;
+cParams.bc.bcValueSetLoading = 1e-10:1e-3:0.5;
+cParams.bc.bcValueSetUnLoading = 0.5:-1e-3:1e-10;
 
 cParams.material.E = 210;
 cParams.material.nu = 0.3;

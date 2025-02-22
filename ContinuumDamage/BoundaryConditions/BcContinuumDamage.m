@@ -21,7 +21,7 @@ classdef BcContinuumDamage < handle
     methods (Access =  private)
         function init(obj,cParams) 
             obj.type = cParams.bcType;
-            obj.bcValueSet = cParams.bcValueSet;
+            obj.bcValueSet = cat(2,cParams.bcValueSetLoading,cParams.bcValueSetUnLoading(2:end));
             obj.mesh = cParams.mesh;
             obj.valueSetLenght = size(obj.bcValueSet,2);
         end
@@ -46,6 +46,7 @@ classdef BcContinuumDamage < handle
                     s.pointloadFun = [];
                     s.periodicFun = [];
                     bc = BoundaryConditions(s);
+                
 
                 case 'forceTraction'
                     isDown = @(coord) (abs(coord(:,2) - min(coord(:,2)))< 1e-12);
