@@ -16,6 +16,7 @@ classdef BcContinuumDamage < handle
             s.bcVal = obj.bcValueSet(i);
             bc = obj.bcSetType (s);
         end
+
     end
 
     methods (Access =  private)
@@ -104,6 +105,71 @@ classdef BcContinuumDamage < handle
                     s.pointloadFun = [Neum1];
                     s.periodicFun = [];
                     bc = BoundaryConditions(s);  
+
+                case 'SEMtraction'
+                    isDown = @(coord) (abs(coord(:,2) - min(coord(:,2)))< 1e-12);
+                    sDir.domain    = @(coor) isDown(coor);
+                    sDir.direction = [1,2];
+                    sDir.value     = 0;
+                    Dir1 = DirichletCondition(obj.mesh,sDir);
+
+                    isUp = @(coord) (abs(coord(:,2) - max(coord(:,2)))< 1e-12);
+                    sDir.domain    = @(coor) isUp(coor);
+                    sDir.direction = [2];
+                    sDir.value     = s.bcVal;
+                    Dir2 = DirichletCondition(obj.mesh,sDir);
+
+                    s.mesh = obj.mesh;
+                    s.dirichletFun = [Dir1 Dir2];
+                    s.pointloadFun = [];
+                    s.periodicFun = [];
+                    bc = BoundaryConditions(s);
+                    
+                case 'SEMmixed'
+                    %SHEAR BC
+                    isDown = @(coord) (abs(coord(:,2) - min(coord(:,2)))< 1e-12);
+                    sDir.domain    = @(coor) isDown(coor);
+                    sDir.direction = [1,2];
+                    sDir.value     = 0;
+                    Dir1 = DirichletCondition(obj.mesh,sDir);
+
+                    isUp = @(coord) (abs(coord(:,2) - max(coord(:,2)))< 1e-12);
+                    sDir.domain    = @(coor) isUp(coor);
+                    sDir.direction = [1];
+                    sDir.value     = s.bcVal;
+                    Dir2 = DirichletCondition(obj.mesh,sDir);
+
+                    %TRACTION BC
+
+                    isUp = @(coord) (abs(coord(:,2) - max(coord(:,2)))< 1e-12);
+                    sDir.domain    = @(coor) isUp(coor);
+                    sDir.direction = [2];
+                    sDir.value     = s.bcVal;
+                    Dir3 = DirichletCondition(obj.mesh,sDir);
+
+                    s.mesh = obj.mesh;
+                    s.dirichletFun = [Dir1 Dir2 Dir3];
+                    s.pointloadFun = [];
+                    s.periodicFun = [];
+                    bc = BoundaryConditions(s);
+                case 'SEMshear'
+                    isDown = @(coord) (abs(coord(:,2) - min(coord(:,2)))< 1e-12);
+                    sDir.domain    = @(coor) isDown(coor);
+                    sDir.direction = [1,2];
+                    sDir.value     = 0;
+                    Dir1 = DirichletCondition(obj.mesh,sDir);
+
+                    isUp = @(coord) (abs(coord(:,2) - max(coord(:,2)))< 1e-12);
+                    sDir.domain    = @(coor) isUp(coor);
+                    sDir.direction = [1];
+                    sDir.value     = s.bcVal;
+                    Dir2 = DirichletCondition(obj.mesh,sDir);
+
+                    s.mesh = obj.mesh;
+                    s.dirichletFun = [Dir1 Dir2];
+                    s.pointloadFun = [];
+                    s.periodicFun = [];
+                    bc = BoundaryConditions(s);
             end
         end
     end
