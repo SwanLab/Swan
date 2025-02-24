@@ -74,7 +74,8 @@ classdef GeometricalFunction < handle
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
                     p  = cParams.pnorm;
-                    fH = @(x) ((abs(x1(x)-x0)./sx).^p+(abs(x2(x)-y0)./sy).^p).^(1/p) - 0.5;
+                    %fH = @(x) ((abs(x1(x)-x0)./sx).^p+(abs(x2(x)-y0)./sy).^p).^(1/p) - 0.5;
+                    fH = @(x) obj.specialEllipse(x,x1,x2,x0,y0,sx,sy,p);
                     obj.fHandle = fH;
 
                 case 'RectangleRotated'
@@ -99,14 +100,6 @@ classdef GeometricalFunction < handle
                     s      = cParams;
                     s.type = 'Circle';
                     obj.computeInclusion(s);
-
-                case 'Ellipse'
-                    sx = cParams.xSide;
-                    sy = cParams.ySide;
-                    x0 = cParams.xCoorCenter;
-                    y0 = cParams.yCoorCenter;
-                    fH = @(x) (((x1(x)-x0).^2)./sx^2)+(((x2(x)-y0).^2)./sy^2) - 1;
-                    obj.fHandle = fH;
 
                 case 'Sphere'
                     r  = cParams.radius;
@@ -225,19 +218,21 @@ classdef GeometricalFunction < handle
             f(:,:,:,2)   = -(x1(x)-x0) -sx/2;
             f(:,:,:,3)   = x2(x)-y0 -sy/2; 
             f(:,:,:,4)   = -(x2(x)-y0) -sy/2;
-
-            % No se quina d'aquestes dues funcionaria. Jo primer resoldria
-            % el tema de la rotació i després revisem els detallets dels
-            % forats petits
-
-            %f  = f./max(abs(f));
-
-            % f(:,:,:,1) = f(:,:,:,1)./max(abs(f(:,:,:,1)),[],'all');
-            % f(:,:,:,2) = f(:,:,:,2)./max(abs(f(:,:,:,2)),[],'all');
-            % f(:,:,:,3) = f(:,:,:,3)./max(abs(f(:,:,:,3)),[],'all');
-            % f(:,:,:,4) = f(:,:,:,4)./max(abs(f(:,:,:,4)),[],'all');
             fV = max(f,[],4);       
+        end
 
+        function fV = specialEllipse(x,x1,x2,x0,y0,sx,sy,p)
+            f(:,:,:,1) = ((x1(x)-x0)).^2 + (sx.^2)*(((x2(x)-y0)./sy).^2 - 0.5.^2);
+            %f(:,:,:,2) = ((x1(x)-x0)).^2 + (sx.^2)*((-(x2(x)-y0)./sy).^2 - 0.5.^2);
+            %f(:,:,:,3) = (-(x1(x)-x0)).^2 + (sx.^2)*(((x2(x)-y0)./sy).^2 - 0.5.^2);
+            %f(:,:,:,4) = (-(x1(x)-x0)).^2 + (sx.^2)*((-(x2(x)-y0)./sy).^2 - 0.5.^2);
+
+            f(:,:,:,2) = ((x2(x)-y0)).^2 + (sy.^2)*(((x1(x)-x0)./sx).^2 - 0.5.^2);
+            %f(:,:,:,6) = ((x2(x)-y0)).^2 + (sy.^2)*((-(x1(x)-x0)./sx).^2 - 0.5.^2);
+            %f(:,:,:,7) = (-(x2(x)-y0)).^2 + (sy.^2)*(((x1(x)-x0)./sx).^2 - 0.5.^2);
+            %f(:,:,:,8) = (-(x2(x)-y0)).^2 + (sy.^2)*((-(x1(x)-x0)./sx).^2 - 0.5.^2);
+            %fV = max(f,[],4);
+            fV = f(:,:,:,1);
         end
 
         function d = computeHexagonFunction(x,x1,x2,x0,y0,n,p,l)

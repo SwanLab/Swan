@@ -104,7 +104,7 @@ classdef TestingPhaseFieldHomogenizer < handle
                 case 'Square'
                     maxV = 0.99;
                 case 'Ellipse'
-                    maxV = [0.99,0.99];
+                    maxV = [0.98,0.98];
                 case 'Rectangle'
                     maxV = [0.99,0.99];
                 case 'SmoothHexagon'
@@ -168,13 +168,15 @@ classdef TestingPhaseFieldHomogenizer < handle
                     gPar.type = "SmoothRectangle";
                     gPar.xSide  = l(1);
                     gPar.ySide  = l(2);
-                    gPar.pnorm  = 32;  
+                    gPar.pnorm  = 2;  
                 case 'SmoothHexagon'
                     gPar.radius = l;
                     gPar.normal = [0 1; sqrt(3)/2 1/2; sqrt(3)/2 -1/2];
             end
             g                  = GeometricalFunction(gPar);
             phiFun             = g.computeLevelSetFunction(mesh);
+            phiFun.plot;
+            colormap default
             lsCircle           = phiFun.fValues;
             ls = -lsCircle;
         end
@@ -211,9 +213,8 @@ classdef TestingPhaseFieldHomogenizer < handle
         end
 
         function matHomog = solveElasticMicroProblem(obj,material,dens)
-      %     dens.plot
-      %     shading interp
-      %     colormap (flipud(pink))
+          dens.plot
+          colormap (flipud(pink))
 
             s.mesh = obj.baseMesh;
             s.material = material;
