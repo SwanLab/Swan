@@ -84,7 +84,7 @@ classdef ContinuumDamageComputer < handle
             obj.solverParams = cParams.solver; 
             obj.H = cParams.H;
             obj.tolerance = cParams.tol;
-            obj.quadOrder = 2; %maybe try to set it from Main?
+            obj.quadOrder = 0;
         end
 
         function defineRfunction(obj,cParams)

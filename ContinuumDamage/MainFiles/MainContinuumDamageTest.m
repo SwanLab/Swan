@@ -4,34 +4,34 @@ clc;clear;close all
 %load('TestDisplacementTraction.mat')
 %cParams.mesh.name = 'CD_Mesh';
 
-type = '1Dtrac';
-
-switch type
-    case 'SEMtrac'
-        cParams.mesh.name = 'PF_SENtraction0_0025';
-        cParams.bc.bcType = 'SEMtraction'; 
-    case 'SEMmix'
-        cParams.mesh.name = 'PF_SENmixed0_0025';
-        cParams.bc.bcType = 'SEMmixed'; 
-    case 'SEMshear'
-        cParams.mesh.name = 'PF_SENshear0_0025';
-        cParams.bc.bcType = 'SEMshear'; 
-    case '1Dtrac'
-        cParams.mesh.meshLength = 1;
-        cParams.mesh.meshWidth = 1;
-        cParams.mesh.meshN = 10;
-        cParams.mesh.meshM = 10;
-        cParams.bc.bcType = 'displacementTraction';
-end
-
-
+% type = '1Dtrac';
 % 
-% cParams.mesh.meshLength = 1;
-% cParams.mesh.meshWidth = 1;
-% cParams.mesh.meshN = 1;
-% cParams.mesh.meshM = 1;
+% switch type
+%     case 'SEMtrac'
+%         cParams.mesh.name = 'PF_SENtraction0_0025';
+%         cParams.bc.bcType = 'SEMtraction'; 
+%     case 'SEMmix'
+%         cParams.mesh.name = 'PF_SENmixed0_0025';
+%         cParams.bc.bcType = 'SEMmixed'; 
+%     case 'SEMshear'
+%         cParams.mesh.name = 'PF_SENshear0_0025';
+%         cParams.bc.bcType = 'SEMshear'; 
+%     case '1Dtrac'
+%         cParams.mesh.meshLength = 1;
+%         cParams.mesh.meshWidth = 1;
+%         cParams.mesh.meshN = 10;
+%         cParams.mesh.meshM = 10;
+%         cParams.bc.bcType = 'displacementTraction';
+% end
 
-%cParams.bc.bcType = 'displacementTraction'; %'FORCE'
+
+
+cParams.mesh.meshLength = 1;
+cParams.mesh.meshWidth = 1;
+cParams.mesh.meshN = 1;
+cParams.mesh.meshM = 1;
+
+cParams.bc.bcType = 'displacementTraction'; %'FORCE'
 cParams.bc.bcValueSetLoading = 1e-10:1e-4:0.5;
 cParams.bc.bcValueSetUnLoading = [0.5:-1e-4:1e-10];
 
