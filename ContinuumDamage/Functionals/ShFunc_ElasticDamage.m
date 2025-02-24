@@ -48,11 +48,11 @@ classdef ShFunc_ElasticDamage < handle
             res = obj.RHS.compute(stress,obj.test);            
         end
         
-        function [K] = computeDerivativeResidual(obj,u)
+        function [K] = computeDerivativeResidual(obj,u,control,index)
             obj.computeDamage();
             Ksec = obj.computeDerivativeResidualSecant();
-            Ktan = obj.computeDerivativeResidualTangent(u);
-            K = Ktan;
+            Ktan = obj.computeDerivativeResidualTangent(u,control,index);
+            K = Ksec;
         end  
        
         function computeDamageEvolutionParam(obj,u)
@@ -122,20 +122,22 @@ classdef ShFunc_ElasticDamage < handle
             LHS = LHSIntegrator.create(s);
         end
 
-        function tan = computeDerivativeResidualTangent(obj,u)    
+        function tan = computeDerivativeResidualTangent(obj,u,control,index)    
             Csec = obj.material.obtainTensor(obj.d);
-
-            C = obj.material.obtainNonDamagedTensor();
-            epsi = SymGrad(u);
-            sigBar = DDP(epsi,C);
-            q = obj.computeHardening();
-            op = @(xV)((q(obj.r.evaluate(xV),obj.r0.evaluate(xV))-obj.H*obj.r.evaluate(xV))./((obj.r.evaluate(xV)).^3));
-            d_dot = DomainFunction.create(op,obj.mesh);
-            Ctan2 = Expand(d_dot).*OP(sigBar,sigBar);
-
-            op = @(xV) Csec.evaluate(xV) - Ctan2.evaluate(xV);
-            Ctan = DomainFunction.create(op,obj.mesh);
-
+            if (index<control)
+                C = obj.material.obtainNonDamagedTensor();
+                epsi = SymGrad(u);
+                sigBar = DDP(epsi,C);
+                q = obj.computeHardening();
+                op = @(xV)((q(obj.r.evaluate(xV),obj.r0.evaluate(xV))-obj.H*obj.r.evaluate(xV))./((obj.r.evaluate(xV)).^3));
+                d_dot = DomainFunction.create(op,obj.mesh);
+                Ctan2 = Expand(d_dot).*OP(sigBar,sigBar);
+    
+                op = @(xV) Csec.evaluate(xV) - Ctan2.evaluate(xV);
+                Ctan = DomainFunction.create(op,obj.mesh);
+            else
+                Ctan = Csec;
+            end
             LHS = obj.createElasticLHS(Ctan);         
             tan = LHS.compute();
         end 

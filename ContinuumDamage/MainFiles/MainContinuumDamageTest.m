@@ -4,7 +4,7 @@ clc;clear;close all
 %load('TestDisplacementTraction.mat')
 %cParams.mesh.name = 'CD_Mesh';
 
-type = 'SEMmix';
+type = '1Dtrac';
 
 switch type
     case 'SEMtrac'
@@ -16,6 +16,12 @@ switch type
     case 'SEMshear'
         cParams.mesh.name = 'PF_SENshear0_0025';
         cParams.bc.bcType = 'SEMshear'; 
+    case '1Dtrac'
+        cParams.mesh.meshLength = 1;
+        cParams.mesh.meshWidth = 1;
+        cParams.mesh.meshN = 10;
+        cParams.mesh.meshM = 10;
+        cParams.bc.bcType = 'displacementTraction';
 end
 
 
@@ -26,8 +32,8 @@ end
 % cParams.mesh.meshM = 1;
 
 %cParams.bc.bcType = 'displacementTraction'; %'FORCE'
-cParams.bc.bcValueSetLoading = 1e-5;%1e-10:1e-3:1e-2;
-cParams.bc.bcValueSetUnLoading = [];
+cParams.bc.bcValueSetLoading = 1e-10:1:10;
+cParams.bc.bcValueSetUnLoading = [10:-1:1e-10];
 
 cParams.material.E = 210;
 cParams.material.nu = 0.3;

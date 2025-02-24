@@ -13,7 +13,7 @@ classdef ContinuumDamageComputer < handle
     end
 
     properties (Access = private)
-        tau = 5e-5;
+        tau = 5e-4;
         r0
 
         elasticFun
@@ -33,25 +33,27 @@ classdef ContinuumDamageComputer < handle
         function data = compute(obj)
             uFun = LagrangianFunction.create(obj.mesh,2,'P1');
             obj.elasticity.setTestFunctions(uFun);
-            
+            LoadingBcLenght = obj.boundaryConditions.LoadingBcLength;
             for i = 1:obj.boundaryConditions.valueSetLenght
                 fprintf('Step: %d ',i);fprintf('/ %d \n',obj.boundaryConditions.valueSetLenght);
                 bc = obj.updateBoundaryConditions(i);
                 uFun.setFValues(obj.updateInitialDisplacement(bc,uFun));
 
                 resErr = 1; iter = 0;
-                
+                Error = [];
                 while (resErr >= obj.tolerance && iter < obj.limIter)
                     obj.elasticity.computeDamageEvolutionParam(uFun);
                     [res]  = obj.elasticity.computeResidual(uFun,bc);
-                    [K,resDeriv] = obj.elasticity.computeDerivativeResidual(uFun,bc);
+                    [K,resDeriv] = obj.elasticity.computeDerivativeResidual(uFun,bc,LoadingBcLenght,i);
                     [uVal,uVec] = obj.computeDisplacement(resDeriv,res,uFun,bc);
                     uFun.setFValues(uVal);
                     
+                    
+
                     resErr = norm(res);
                     fprintf('Error: %d \n',resErr);
                     iter = iter+1;
-                    
+                    Error(end+1) = resErr;
                 end
                 if (iter >= obj.limIter)
                     fprintf (2,'NOT CONVERGED FOR STEP %d\n',i);
@@ -63,8 +65,9 @@ classdef ContinuumDamageComputer < handle
                 dmgFun = dmgDomainFun.project('P1D');
                 data.damage.maxValue(i)  = max(dmgFun.fValues);
                 data.damage.minValue(i)  = min(dmgFun.fValues);
+                
                 data.reaction(i)  = obj.computeTotalReaction(K,uVec);
-                Reaction = data.reaction(i);
+ 
                 [data.totalEnergy(i),data.damagedMaterial(i)] = obj.elasticity.computeEnergy(uFun,bc);
             end
             data.displacement.field = uFun;
@@ -90,7 +93,7 @@ classdef ContinuumDamageComputer < handle
             obj.r0.setFValues(fV);
         end
         
-        function bc = updateBoundaryConditions (obj,i)
+        function [bc] = updateBoundaryConditions (obj,i)
             bc = obj.boundaryConditions.nextStep(i);
         end
 
@@ -124,7 +127,7 @@ classdef ContinuumDamageComputer < handle
 
             uInFree = uInVec(bc.free_dofs);
             uOutFree = obj.updateWithNewton(LHS,RHS,uInFree);
-            %uOutFree = obj.updateWithGradient(RHS,uInFree);
+           % uOutFree = obj.updateWithGradient(RHS,uInFree);
             uOutVec(bc.free_dofs) = uOutFree;
             uOut = reshape(uOutVec,[flip(size(uIn.fValues))])';
         end
