@@ -21,8 +21,7 @@ end
 
 function aEval = computeLeftSideEvaluation(A,xV)
     res      = A.evaluate(xV);
-    n        = ndims(res);
-    isTensor = n>=3;
+    isTensor = checkTensor(A,res);
     switch isTensor
         case true
             aEval = res;
@@ -33,12 +32,24 @@ end
 
 function bEval = computeRightSideEvaluation(B,xV)
     res      = B.evaluate(xV);
-    n        = ndims(res);
-    isTensor = n>=3;
+    isTensor = checkTensor(B,res);
     switch isTensor
         case true
             bEval = res;
         otherwise
             bEval(:,1,:,:) = res;
+    end
+end
+
+function isTensor = checkTensor(A,res)
+    n = ndims(res);
+    if isa(A,'Material')
+        isTensor = true;
+    else
+        if A.mesh.nelem == 1
+            isTensor = n>=3;
+        else
+            isTensor = n>=4;
+        end
     end
 end

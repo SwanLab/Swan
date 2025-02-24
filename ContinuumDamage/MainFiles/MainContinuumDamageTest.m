@@ -32,8 +32,8 @@ end
 % cParams.mesh.meshM = 1;
 
 %cParams.bc.bcType = 'displacementTraction'; %'FORCE'
-cParams.bc.bcValueSetLoading = 1e-10:1:10;
-cParams.bc.bcValueSetUnLoading = [10:-1:1e-10];
+cParams.bc.bcValueSetLoading = 1e-10:1e-4:0.5;
+cParams.bc.bcValueSetUnLoading = [0.5:-1e-4:1e-10];
 
 cParams.material.E = 210;
 cParams.material.nu = 0.3;
@@ -53,6 +53,8 @@ data = tester.compute();
 
 data.displacement.field.plot
 data.damage.field.plot
+colorbar
+caxis([0 1-cParams.H])
 
 figure()
 plot(data.displacement.value,data.damage.maxValue)

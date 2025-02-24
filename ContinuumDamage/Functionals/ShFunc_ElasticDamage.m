@@ -48,7 +48,7 @@ classdef ShFunc_ElasticDamage < handle
             res = obj.RHS.compute(stress,obj.test);            
         end
         
-        function [K] = computeDerivativeResidual(obj,u,control,index)
+        function [K,Ksec] = computeDerivativeResidual(obj,u,control,index)
             obj.computeDamage();
             Ksec = obj.computeDerivativeResidualSecant();
             Ktan = obj.computeDerivativeResidualTangent(u,control,index);
