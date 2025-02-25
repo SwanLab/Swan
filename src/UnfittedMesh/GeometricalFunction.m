@@ -215,10 +215,10 @@ classdef GeometricalFunction < handle
             yNaca    = offsetX.*sin(AoA) + offsetY.*cos(AoA);
         
             yc   = (xNaca>=0 & xNaca<=p).*(m./p^2.*(2*p*xNaca-xNaca.^2))+...
-                    (xNaca>=p & xNaca<=1).*(m./(1-p)^2.*((1-2*p)+2*p*xNaca-xNaca.^2));
+                    (xNaca>p & xNaca<=1).*(m./(1-p)^2.*((1-2*p)+2*p*xNaca-xNaca.^2));
             yt   = (xNaca>=0 & xNaca<=1).*(5*t*(0.2969*sqrt(xNaca)-0.1260*xNaca-0.3516*xNaca.^2+0.2843*xNaca.^3-0.1015*xNaca.^4));
             dydx = (xNaca>=0 & xNaca<=p).*(2*m/p^2.*(p-xNaca))+...
-                    (xNaca>=p & xNaca<=1).*(2*m/(1-p)^2.*(p-xNaca));
+                    (xNaca>p & xNaca<=1).*(2*m/(1-p)^2.*(p-xNaca));
         
             theta = atan(dydx);
             yu    = yc + yt.*cos(theta);
