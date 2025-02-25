@@ -87,16 +87,16 @@ classdef TestNaca < handle
         end
                 
         function createReferenceMesh(obj)
-            obj.length  = 8;
-            obj.height  = 4;
-            nx          = 300;
-            ny          = 150;
-            obj.refMesh = QuadMesh(obj.length,obj.height,nx,ny); 
-            % obj.length  = 2;
-            % obj.height  = 1;
-            % nx          = 150;
-            % ny          = 75;
-            % obj.refMesh = TriangleMesh(obj.length,obj.height,nx,ny);
+            %obj.length  = 8;
+            %obj.height  = 4;
+            %nx          = 300;
+            %ny          = 150;
+            %obj.refMesh = QuadMesh(obj.length,obj.height,nx,ny); 
+             obj.length  = 8;
+             obj.height  = 4;
+             nx          = 150;
+             ny          = 75;
+             obj.refMesh = TriangleMesh(obj.length,obj.height,nx,ny);
         end
 
         function createLevelSet(obj,AirfoilParams, BGParams)
@@ -109,7 +109,7 @@ classdef TestNaca < handle
             s.boundaryMesh   = obj.refMesh.createBoundaryMesh();
             obj.uMesh        = UnfittedMesh(s);
             obj.uMesh.compute(obj.levelSet.fValues);       
-            obj.rawMesh = obj.uMesh.createInnerMesh();
+            obj.rawMesh = obj.uMesh.createFullInnerMesh('Matlab');
             obj.mesh    = obj.rawMesh;
             %obj.mesh.plot();
             % title("Mesh with the airfoil inclusion.");
