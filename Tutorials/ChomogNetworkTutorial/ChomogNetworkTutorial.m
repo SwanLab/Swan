@@ -10,7 +10,7 @@ addpath('Tutorials/ChomogNetworkTutorial/Datasets')
 
 %% Initialization of hyperparameters
 pol_deg         = 1;
-testratio       = 30;  
+testratio       = 30;
 lambda          = 0.0;
 learningRate    = 0.2;
 hiddenLayers    = 128 .* ones(1, 5);

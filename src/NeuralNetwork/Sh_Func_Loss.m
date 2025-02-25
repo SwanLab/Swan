@@ -63,14 +63,12 @@ classdef Sh_Func_Loss < handle
             nB = fix(nD/batchSize);
         end
 
-        % Funcions getters (eliminar?)
-        function [Xtest, Ytest] = getTestData(obj)
+        function testError = getTestError(obj)
             Xtest = obj.data.Xtest;
             Ytest = obj.data.Ytest;
-        end
-
-        function h = getOutput(obj,X)
-            h = obj.network.computeLastH(X);
+            [~,Ypred] = max(obj.network.computeLastH(Xtest), [], 2);
+            [~,Ytarget]   = max(Ytest,[],2);
+            testError = mean(Ypred ~= Ytarget);
         end
         
     end

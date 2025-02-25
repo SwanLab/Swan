@@ -144,12 +144,10 @@ classdef SGD < Trainer
         end
 
         function displayIter(obj,epoch,iter,funcount,x,f,gnorm,epsilon,state)
-            %[nD, ~, batchSize] = obj.objectiveFunction.fetchBatchSize();
             opt.epsilon        = epsilon*gnorm; 
             opt.gnorm          = gnorm;
             obj.printValues(epoch,funcount,opt,f,iter)
 
-            % if iter*obj.batchSize==(epoch-1)*length(obj.Xtrain) || iter == -1
             if obj.isDisplayed && (~mod(epoch, 25) || iter == -1)
                 obj.storeValues(x,f,state,opt);
             end

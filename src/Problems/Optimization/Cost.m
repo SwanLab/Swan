@@ -69,14 +69,8 @@ classdef Cost < handle
             j = obj.shapeValues{i};
         end
 
-        % Moure als funcionals --> isEarlyStop()
         function [alarm,minTestError] = validateES(obj,alarm,minTestError)
-
-            [Xtest, Ytest] = obj.shapeFunctions{1}.getTestData();
-            [~,y_pred]     = max(loss.getOutput(Xtest),[],2);
-            [~,y_target]   = max(Ytest,[],2);
-
-            testError = mean(y_pred ~= y_target);
+            testError = obj.shapeFunctions{1}.getTestError();
             if testError < minTestError
                 minTestError = testError;
                 alarm = 0;
