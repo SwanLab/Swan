@@ -35,10 +35,10 @@ classdef TopOptTestTutorialLevelSetPerimeterPNorm < handle
 
             fileLocation = 'C:\Users\Biel\Desktop\UNI\TFG\ResultatsNormP_Density\00. From Batch';
             
-            vtuName = fullfile(fileLocation, sprintf('Topology_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02_LevelSet',p,alpha));
+            vtuName = fullfile(fileLocation, sprintf('Topology_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02_LevelSet',p,pTarget));
             obj.designVariable.fun.print(vtuName);
             
-            fileName = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02_LevelSet.fig',p,alpha));
+            fileName = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02_LevelSet.fig',p,pTarget));
             savefig(fileName);
         end
 
@@ -130,7 +130,7 @@ classdef TopOptTestTutorialLevelSetPerimeterPNorm < handle
         function c = createComplianceFromConstiutive(obj)
             s.mesh         = obj.mesh;
             s.stateProblem = obj.physicalProblem;
-            c = ComplianceFromConstiutiveTensor(s);
+            c = ComplianceFromConstitutiveTensor(s);
         end
 
         function createCompliance(obj)
@@ -171,7 +171,7 @@ classdef TopOptTestTutorialLevelSetPerimeterPNorm < handle
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             s.mesh  = obj.mesh;
             s.type  = 'MassMatrix';
-            LHS = LHSintegrator.create(s);
+            LHS = LHSIntegrator.create(s);
             M = LHS.compute;
 
             h = obj.mesh.computeMinCellSize();
@@ -202,7 +202,7 @@ classdef TopOptTestTutorialLevelSetPerimeterPNorm < handle
             s.constraintCase = {'INEQUALITY','INEQUALITY'};
             s.primal         = 'SLERP';                  
             s.etaNorm        = 0.02;
-            s.etaNormMin     = 0.02;
+            s.etaNormMin     = 0.002;
             s.gJFlowRatio    = 0.2;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;

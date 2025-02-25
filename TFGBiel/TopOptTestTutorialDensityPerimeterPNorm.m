@@ -35,10 +35,11 @@ classdef TopOptTestTutorialDensityPerimeterPNorm < handle
 
             fileLocation = 'C:\Users\Biel\Desktop\UNI\TFG\ResultatsNormP_Density\00. From Batch';
             
-            vtuName = fullfile(fileLocation, sprintf('Topology_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02',p,alpha));
+            vtuName = fullfile(fileLocation, sprintf('Topology_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02',p,pTarget));
             obj.designVariable.fun.print(vtuName);
             
-            fileName = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02.fig',p,alpha));
+            figure(2)
+            fileName = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02.fig',p,pTarget));
             savefig(fileName);
         end
 
@@ -132,7 +133,7 @@ classdef TopOptTestTutorialDensityPerimeterPNorm < handle
         function c = createComplianceFromConstiutive(obj)
             s.mesh         = obj.mesh;
             s.stateProblem = obj.physicalProblem;
-            c = ComplianceFromConstiutiveTensor(s);
+            c = ComplianceFromConstitutiveTensor(s);
         end
 
         function createCompliance(obj)

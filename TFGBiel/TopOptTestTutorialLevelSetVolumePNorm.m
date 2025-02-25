@@ -38,6 +38,7 @@ classdef TopOptTestTutorialLevelSetVolumePNorm < handle
             vtuName = fullfile(fileLocation, sprintf('Topology_Cantilever_p%d_alpha%.2f_gJ0.2_eta0.02_LevelSet',p,alpha));
             obj.designVariable.fun.print(vtuName);
             
+            figure(2)
             fileName = fullfile(fileLocation, sprintf('Monitoring_Cantilever_p%d_alpha%.2f_gJ0.2_eta0.02_LevelSet.fig',p,alpha));
             savefig(fileName);
         end
@@ -130,7 +131,7 @@ classdef TopOptTestTutorialLevelSetVolumePNorm < handle
         function c = createComplianceFromConstiutive(obj)
             s.mesh         = obj.mesh;
             s.stateProblem = obj.physicalProblem;
-            c = ComplianceFromConstiutiveTensor(s);
+            c = ComplianceFromConstitutiveTensor(s);
         end
 
         function createCompliance(obj)
@@ -171,7 +172,7 @@ classdef TopOptTestTutorialLevelSetVolumePNorm < handle
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             s.mesh  = obj.mesh;
             s.type  = 'MassMatrix';
-            LHS = LHSintegrator.create(s);
+            LHS = LHSIntegrator.create(s);
             M = LHS.compute;
 
             h = obj.mesh.computeMinCellSize();
@@ -202,7 +203,7 @@ classdef TopOptTestTutorialLevelSetVolumePNorm < handle
             s.constraintCase = {'INEQUALITY','INEQUALITY'};
             s.primal         = 'SLERP';                  
             s.etaNorm        = 0.02;
-            s.etaNormMin     = 0.02;
+            s.etaNormMin     = 0.002;
             s.gJFlowRatio    = 0.2;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
