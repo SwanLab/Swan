@@ -118,9 +118,9 @@ classdef EIFEMtesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [20 5]; %nx ny
-            obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
-%             obj.fileNameEIFEM = 'DEF_Q4porL_1.mat';
+            obj.nSubdomains  = [2 1]; %nx ny
+%             obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
+            obj.fileNameEIFEM = 'DEF_Q4porL_1.mat';
             obj.tolSameNode = 1e-10;
         end
 
@@ -277,7 +277,7 @@ classdef EIFEMtesting < handle
             fvalues                 = zeros(mesh.nnodes*mesh.ndim,1);
             fvalues(pointload.dofs) = pointload.values;
             fvalues                 = reshape(fvalues,mesh.ndim,[])';
-            pointload.fun.fValues   = fvalues;
+            pointload.fun.setFValues(fvalues);
 
             s.pointloadFun = pointload;
             s.dirichletFun = dirichletFun;
@@ -302,7 +302,7 @@ classdef EIFEMtesting < handle
             s.trial    = dispFun;
             s.material = mat;
             s.quadratureOrder = 2;
-            lhs = LHSintegrator.create(s);
+            lhs = LHSIntegrator.create(s);
             LHS = lhs.compute();
             LHSr = obj.bcApplier.fullToReducedMatrixDirichlet(LHS);
         end
@@ -313,7 +313,7 @@ classdef EIFEMtesting < handle
             s.dim.ndofs = u.nDofs;
             s.BC        = obj.boundaryConditions;
             s.mesh      = obj.meshDomain;
-            RHSint      = RHSintegrator.create(s);
+            RHSint      = RHSIntegrator.create(s);
             rhs         = RHSint.compute();
             % Perhaps move it inside RHSint?
             R           = RHSint.computeReactions(stiffness);
