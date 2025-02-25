@@ -102,6 +102,7 @@ classdef TestNaca < handle
         function createLevelSet(obj,AirfoilParams, BGParams)
             g = obj.createNacaFunction(AirfoilParams, BGParams);
             obj.levelSet = g.computeLevelSetFunction(obj.refMesh);
+            obj.levelSet.plot();
         end
         
         function createFluidMesh(obj)

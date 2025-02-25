@@ -492,7 +492,7 @@ classdef LagrangianFunction < FeFunction
             %colorbar
             if not(size(tri,2) == 2)
                 shading interp
-                %a.EdgeAlpha = 0;
+                a.EdgeAlpha = 0;
             end
             a.EdgeColor = [0 0 0];
             title(['dim = ', num2str(iDim)]);
