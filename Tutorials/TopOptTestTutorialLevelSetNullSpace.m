@@ -103,7 +103,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'rMINRES';
+            s.solverCase = 'CG';
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -111,7 +111,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         function c = createComplianceFromConstiutive(obj)
             s.mesh         = obj.mesh;
             s.stateProblem = obj.physicalProblem;
-            c = ComplianceFromConstiutiveTensor(s);
+            c = ComplianceFromConstitutiveTensor(s);
         end
 
         function createCompliance(obj)
@@ -144,7 +144,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             s.mesh  = obj.mesh;
             s.type  = 'MassMatrix';
-            LHS = LHSintegrator.create(s);
+            LHS = LHSIntegrator.create(s);
             M = LHS.compute;
 
             h = obj.mesh.computeMinCellSize();
@@ -169,14 +169,17 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 3;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'SLERP';
             s.ub             = inf;
             s.lb             = -inf;
             s.etaNorm        = 0.02;
+            s.etaNormMin     = 0.02;
             s.gJFlowRatio    = 0.2;
+            s.etaMax         = 1;
+            s.etaMaxMin      = 0.01;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -185,11 +188,12 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         function m = createMaterial(obj)
             x = obj.designVariable;
             f = x.obtainDomainFunction();
-            f = obj.filter.compute(f,1);            
+            f = obj.filter.compute(f{1},1);            
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '2D';
+            s.mesh                 = obj.mesh;
             m = Material.create(s);
         end
 
