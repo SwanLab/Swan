@@ -15,6 +15,12 @@ classdef GeometricalFunction < handle
             s.mesh    = m;
             aFun      = AnalyticalFunction(s);
             ls        = aFun.project('P1');
+
+            sF.trial = LagrangianFunction.create(m,1,'P1');
+            sF.mesh = m;
+            filter = FilterLump(sF);
+            ls = filter.compute(aFun,10);
+
         end
 
         function fxV = evaluate(obj,xV,m)
@@ -223,9 +229,9 @@ classdef GeometricalFunction < handle
             theta = atan(dydx);
             yu    = yc + yt.*cos(theta);
             yl    = yc - yt.*cos(theta);
-
-            f(:,:,:,1)   = yl - yNaca;
-            f(:,:,:,2)   = yNaca - yu;
+            
+            f(:,:,:,1)   = (yl./(yNaca)).^(3) - 1;
+            f(:,:,:,2)   = 1 - (yu./(yNaca)).^(3);
             f(:,:,:,3)   = xNaca - 1; 
             f(:,:,:,4)   = -xNaca;
 

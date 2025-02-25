@@ -109,9 +109,9 @@ classdef TestNaca < handle
             s.boundaryMesh   = obj.refMesh.createBoundaryMesh();
             obj.uMesh        = UnfittedMesh(s);
             obj.uMesh.compute(obj.levelSet.fValues);       
-            obj.rawMesh = obj.uMesh.createFullInnerMesh('Matlab');
+            obj.rawMesh = obj.uMesh.createInnerMesh();
             obj.mesh    = obj.rawMesh;
-            %obj.mesh.plot();
+            obj.mesh.plot();
             % title("Mesh with the airfoil inclusion.");
             % xlabel("x");
             % ylabel("y");
