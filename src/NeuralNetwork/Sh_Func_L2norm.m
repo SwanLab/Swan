@@ -10,8 +10,11 @@ classdef Sh_Func_L2norm < handle
             obj.init(cParams)            
         end
 
-        % Funció pública stochastic
-        
+        function [j,dj,isBD] = computeStochasticCostAndGradient(obj,x,moveBatch)
+            [j,dj] = obj.computeFunctionAndGradient(x);
+            isBD = false;
+        end    
+
         function [j,dj] = computeFunctionAndGradient(obj, x)
             obj.designVariable.thetavec = x;
             j  = obj.computeCost();

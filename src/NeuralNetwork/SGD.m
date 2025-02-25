@@ -35,8 +35,8 @@ classdef SGD < Trainer
         function compute(obj)
            tic
            x0  = obj.designVariable.thetavec;
-           F = @(theta, moveBatch) obj.objectiveFunction.computeStochasticCostAndGradient(theta, moveBatch);
-           obj.optimize(F,x0);
+           isStochastic = true;
+           obj.optimize(x0);
            toc
         end
 
@@ -56,7 +56,7 @@ classdef SGD < Trainer
     
     methods(Access = private)  
         
-        function optimize(obj,F,th0)
+        function optimize(obj,th0)
             epsilon0      = obj.learningRate;
             epoch         = 1;
             iter          = -1;
@@ -66,25 +66,31 @@ classdef SGD < Trainer
             gnorm         = 1;
             minTestError = 1;
 
+            
+
             criteria = obj.updateCriteria(epoch, alarm, gnorm, fv);
             while all(criteria == 1)
 
                 state   = 'iter';
                 if iter == -1
-                    th      = th0;
+                    theta      = th0;
                     epsilon = epsilon0;
                     state   = 'init';   
                 end
 
                 batchesDepleted = false;
                 moveBatch = true;
+                isStochastic = true;
                 while batchesDepleted == false
-                    [f,grad,batchesDepleted] = F(th, moveBatch);
-                    [epsilon,th,funcount] = obj.lineSearch(th,grad,F,f,epsilon,epsilon0,funcount);                
+                    obj.objectiveFunction.computeFunctionAndGradient(theta,isStochastic,moveBatch)
+                    f = obj.objectiveFunction.value;
+                    grad = obj.objectiveFunction.gradient;                    
+                    batchesDepleted = obj.objectiveFunction.isBatchDepleted;
+                    [epsilon,theta,funcount] = obj.lineSearch(theta,grad,f,epsilon,epsilon0,funcount);                
                     gnorm    = norm(grad,2);
                     funcount = funcount + 1;
                     iter     = iter + 1;
-                    obj.displayIter(epoch,iter,funcount,th,f,gnorm,epsilon,state);
+                    obj.displayIter(epoch,iter,funcount,theta,f,gnorm,epsilon,state);
                 end
                 
                 [alarm,minTestError] = obj.objectiveFunction.validateES(alarm,minTestError);
@@ -93,7 +99,10 @@ classdef SGD < Trainer
             end
         end
 
-        function [e,x,funcount] = lineSearch(obj,x,grad,F,fOld,e,e0,funcount)
+        function [e,x,funcount] = lineSearch(obj,x,grad,fOld,e,e0,funcount)
+            isStochastic = true;
+            F = @(theta,moveBatch) obj.objectiveFunction.computeFunctionAndGradient(theta,isStochastic,moveBatch);
+
             type = obj.lSearchtype;
             moveBatch = false;
             switch type

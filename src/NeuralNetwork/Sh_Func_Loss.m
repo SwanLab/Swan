@@ -1,66 +1,43 @@
 classdef Sh_Func_Loss < handle
 
-    properties(Access = public)
-
+    properties (Access = private)       
+        iBatch                
+        order
+        nBatches
     end
-    
+
     properties (Access = private)
         designVariable
         network
-        nBatches
-        currentBatch
-        moveBatch
         data
-        Xb
-        Yb
     end
+
     
     methods (Access = public)
         
         function obj = Sh_Func_Loss(cParams)
-            obj.init(cParams)            
-        end
-        
-        function [j,dj] = computeCostAndGradient(obj)
-            j  = obj.computeCost();
-            dj = obj.computeGradient();  
+            obj.init(cParams);
+            obj.iBatch = 1;            
+            obj.computeNumberOfBatchesAndOrder();
         end
 
         function [j, dj] = computeFunctionAndGradient(obj, x)
             obj.designVariable.thetavec = x;
-            j  = obj.computeCost();
-            dj = obj.computeGradient();
+            Xb = obj.data.Xtrain;
+            Yb = obj.data.Ytrain;            
+            j  = obj.computeCost(Xb,Yb);
+            dj = obj.computeGradient(Yb);
         end
 
-        function batches_depleted = handleStochasticBatch(obj, moveBatch)
-            [nD, nB, ~] = obj.fetchBatchSize();
-            if nB == 1 || nB == 0
-                order = 1:nD;
-                nB = 1;
-            else
-                order = randperm(nD,nD);
-            end
-
-            obj.nBatches = nB;
-            obj.updateMinibatch(order, obj.currentBatch);
-            
-            batches_depleted = false;
-            if obj.currentBatch < obj.nBatches && moveBatch
-                obj.currentBatch = obj.currentBatch + 1;
-            elseif obj.currentBatch == obj.nBatches && moveBatch
-                obj.currentBatch = 1;
-                batches_depleted = true;
-            end
-        end
-
-        function [nD, nB, batchSize] = fetchBatchSize(obj)
-            nD = size(obj.data.Xtrain,1);
-            if size(obj.data.Xtrain,1) > 200
-                batchSize = 200;
-            else
-                batchSize = size(obj.data.Xtrain,1);
-            end
-            nB = fix(nD/batchSize);
+        function [j,dj,isBD] = computeStochasticCostAndGradient(obj,x,moveBatch)
+            obj.designVariable.thetavec = x;            
+            Xt = obj.data.Xtrain;
+            Yt = obj.data.Ytrain;            
+            [Xb,Yb] = obj.updateSampledDataSet(Xt,Yt,obj.iBatch);
+            j  = obj.computeCost(Xb,Yb);
+            dj = obj.computeGradient(Yb);
+            obj.iBatch = obj.updateBatchCounter(obj.iBatch,moveBatch);
+            isBD = obj.isBatchDepleted(obj.iBatch,moveBatch);
         end
 
         function testError = getTestError(obj)
@@ -79,40 +56,70 @@ classdef Sh_Func_Loss < handle
             obj.designVariable = cParams.designVariable;
             obj.network        = cParams.network;
             obj.data           = cParams.data;
-            obj.currentBatch   = 1;
-            obj.moveBatch      = true;
         end
 
-        function j = computeCost(obj)
-            j = obj.network.forwardprop(obj.Xb,obj.Yb);
+        function j = computeCost(obj,Xb,Yb)
+            j = obj.network.forwardprop(Xb,Yb);
         end
 
-        function dj = computeGradient(obj)
-            dj = obj.network.backprop(obj.Yb);
+        function dj = computeGradient(obj,Yb)
+            dj = obj.network.backprop(Yb);
         end
-        
-        function [x,y,I] = updateMinibatch(obj,order,i)
-            Xl = obj.data.Xtrain;
-            Yl = obj.data.Ytrain;
-            [~, ~, I] = obj.fetchBatchSize();
 
-            cont = 1;
-            if i == fix(size(Xl,1)/I)
-                plus = mod(size(Xl,1),I);
-                x = zeros([I+plus,size(Xl,2)]);
-                y = zeros([I+plus,size(Yl,2)]);
+        function [ord,nBatches] = computeNumberOfBatchesAndOrder(obj)
+            nD = size(obj.data.Xtrain,1);            
+            [batchSize] = obj.computeBatchSize();
+            nBatches = fix(nD/batchSize);
+            if nBatches == 1 || nBatches == 0
+                ord = 1:nD;
+                nBatches = 1;
+            else
+                ord = randperm(nD,nD);
+            end
+            obj.order = ord;
+            obj.nBatches = nBatches;
+        end
+
+
+        function itIs = isBatchDepleted(obj,iBatch,moveBatch)
+            itIs = iBatch == obj.nBatches && moveBatch;
+        end
+
+        function iB = updateBatchCounter(obj,iB,moveBatch)
+            if iB < obj.nBatches && moveBatch
+                iB = iB + 1;
+            elseif iB == obj.nBatches && moveBatch
+                iB = 1;             
+            end
+        end
+
+        function batchSize = computeBatchSize(obj)
+            if size(obj.data.Xtrain,1) > 200
+                batchSize = 200;
+            else
+                batchSize = size(obj.data.Xtrain,1);
+            end
+        end        
+
+        function [x,y] = updateSampledDataSet(obj,Xl,Yl,iBatch)
+            iB = iBatch;            
+            batchSize = obj.computeBatchSize();
+            nB = batchSize;
+            if iB == fix(size(Xl,1)/nB)
+                plus = mod(size(Xl,1),nB);
+                x = zeros([nB+plus,size(Xl,2)]);
+                y = zeros([nB+plus,size(Yl,2)]);
             else
                 plus = 0;
-                x = zeros([I,size(Xl,2)]);
-                y = zeros([I,size(Yl,2)]);
+                x = zeros([nB,size(Xl,2)]);
+                y = zeros([nB,size(Yl,2)]);
             end
-            for j = (i-1)*I+1:i*I+plus
-                x(cont,:) = Xl(order(j),:);
-                y(cont,:) = Yl(order(j),:);
+            cont = 1;            
+            for jB = (iB-1)*nB+1:iB*nB+plus
+                x(cont,:) = Xl(obj.order(jB),:);
+                y(cont,:) = Yl(obj.order(jB),:);
                 cont = cont+1;
             end
-            obj.Xb = x;
-            obj.Yb = y;
         end
 
     end

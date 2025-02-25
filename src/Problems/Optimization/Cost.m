@@ -5,10 +5,13 @@ classdef Cost < handle
         gradient
     end
 
+    properties (SetAccess = private, GetAccess = public)
+        isBatchDepleted = false
+    end
+
     properties (Access = private)
         shapeFunctions
         weights
-        Msmooth
     end
 
     properties (Access = private)
@@ -16,18 +19,26 @@ classdef Cost < handle
     end
 
     methods (Access = public)
+
         function obj = Cost(cParams)
             obj.init(cParams);
         end
 
-        function computeFunctionAndGradient(obj,x)
+        function computeFunctionAndGradient(obj,x,isStochastic,moveBatch)
+            if nargin < 3
+                isStochastic = false;
+            end
             nF  = length(obj.shapeFunctions);
             Jc  = cell(nF,1);
             dJc = cell(nF,1);
             for iF = 1:nF
                 shI     = obj.shapeFunctions{iF};
-                % Condicional per veure si és stochastic o no
-                [j,dJ]  = shI.computeFunctionAndGradient(x);
+                if isStochastic
+                   [j,dJ,bD]  = shI.computeStochasticCostAndGradient(x,moveBatch);
+                   obj.isBatchDepleted = obj.isBatchDepleted || bD;
+                else
+                   [j,dJ]  = shI.computeFunctionAndGradient(x);
+                end
                 Jc{iF}  = j;
                 dJc{iF} = obj.mergeGradient(dJ);
             end
@@ -40,15 +51,7 @@ classdef Cost < handle
                 djV = djV + wI*dJc{iF};
             end
             obj.value    = jV;
-            %obj.gradient = obj.Msmooth*djV;
             obj.gradient = djV;
-        end
-
-        function [j,dj,batchesDepleted] = computeStochasticCostAndGradient(obj,x,moveBatch)
-            batchesDepleted = obj.shapeFunctions{1}.handleStochasticBatch(moveBatch);
-            obj.computeFunctionAndGradient(x);
-            j = obj.value;
-            dj = obj.gradient;
         end
 
         function nF = obtainNumberFields(obj)
@@ -88,7 +91,6 @@ classdef Cost < handle
         function init(obj,cParams)
             obj.shapeFunctions = cParams.shapeFunctions;
             obj.weights        = cParams.weights;
-            obj.Msmooth        = cParams.Msmooth;
         end
 
     end
