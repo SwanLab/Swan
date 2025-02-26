@@ -66,7 +66,9 @@ classdef TestingPhaseField < handle
             s.dissipation = obj.createDissipationInterpolation();
             s.l0 = obj.l0;
             s.quadOrder = 2;
-            obj.functional = ShFunc_BrittlePhaseField(s);
+            s.testSpace.u = obj.initialGuess.u;
+            s.testSpace.phi = obj.initialGuess.phi;
+            obj.functional = PhaseFieldFunctional(s);
         end
 
         function createInitialGuess(obj,cParams)

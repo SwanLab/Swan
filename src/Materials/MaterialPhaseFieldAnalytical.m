@@ -1,4 +1,4 @@
-classdef MaterialPhaseField < Material
+classdef MaterialPhaseFieldAnalytical < Material
 
     properties (Access = private)
         mesh
@@ -9,26 +9,26 @@ classdef MaterialPhaseField < Material
 
     methods (Access = public)
 
-        function obj = MaterialPhaseField(cParams)
+        function obj = MaterialPhaseFieldAnalytical(cParams)
             obj.init(cParams)
         end
 
         function C = obtainTensor(obj,phi)
             f    = obj.degradation.fun;
             degFun = obj.computeDegradationFun(f,phi);
-            C{1} = obj.createDegradedMaterial(degFun);
+            C = obj.createDegradedMaterial(degFun);
         end
 
         function dC = obtainTensorDerivative(obj,phi)
             df    = obj.degradation.dfun;
             degFun = obj.computeDegradationFun(df,phi);
-            dC{1} = obj.createDegradedMaterial(degFun);
+            dC = obj.createDegradedMaterial(degFun);
         end
 
         function ddC = obtainTensorSecondDerivative(obj,phi)
             ddf    = obj.degradation.ddfun;
             degFun = obj.computeDegradationFun(ddf,phi);
-            ddC{1} = obj.createDegradedMaterial(degFun);
+            ddC = obj.createDegradedMaterial(degFun);
         end
 
     end

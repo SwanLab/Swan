@@ -36,7 +36,7 @@ classdef PhaseFieldComputer < handle
             outputData = [];
 
             maxSteps = length(obj.boundaryConditions.bcValues);
-            obj.stop.noFullyBroken = true; obj.stop.maxF = 0; obj.stop.lastStep = maxSteps; obj.stop.stop = false;
+            obj.stop.noFullyBroken = true; obj.stop.maxF = 0; obj.stop.lastStep = maxSteps; obj.stop.indicator = false;
             i = 1;
             while(i<=maxSteps) && (obj.stop.noFullyBroken)
                 obj.printStep(i,maxSteps)
@@ -54,7 +54,7 @@ classdef PhaseFieldComputer < handle
                         u.setFValues(obj.computeDisplacement(LHS,RHS,u,bc));
                         F = obj.computeForceVector(LHS,u);
 
-                        [eU, costU] = obj.computeErrorCostFunction(u,phi,bc,costOldU);
+                        [eU, costU] = obj.computeErrorCostFunctional(u,phi,bc,costOldU);
                         costOldU = costU;
                         obj.printCost('iterU',iterU,costU,eU);
                         iterU = iterU + 1;
@@ -80,7 +80,7 @@ classdef PhaseFieldComputer < handle
                             phiNew = obj.updateWithGradient(RHS, phi.fValues,tau);
                             phiProposed = phi.copy();
                             phiProposed.setFValues(obj.projectInLowerAndUpperBound(phiNew,phiOld.fValues,1));
-                            [ePhi, costPhi] = obj.computeErrorCostFunction(u,phiProposed,bc,costOldPhi);
+                            [ePhi, costPhi] = obj.computeErrorCostFunctional(u,phiProposed,bc,costOldPhi);
                             obj.printCost('iterPhi',iterPhi,costPhi,ePhi);
                             iterPhi = iterPhi + 1;
 
@@ -105,7 +105,7 @@ classdef PhaseFieldComputer < handle
                             %NEWTON METHOD
                             phiNew = obj.updateWithNewton(LHS,RHS,phi.fValues);
                             phi.setFValues (obj.projectInLowerAndUpperBound(phiNew,phiOld.fValues,1));
-                            [ePhi, costPhi] = obj.computeErrorCostFunction(u,phi,bc,costOldPhi);
+                            [ePhi, costPhi] = obj.computeErrorCostFunctional(u,phi,bc,costOldPhi);
                             costOldPhi = costPhi;
                             obj.printCost('iterPhi',iterPhi,costPhi,ePhi);
                             iterPhi = iterPhi + 1;
@@ -123,7 +123,7 @@ classdef PhaseFieldComputer < handle
                     end
 
 
-                    [eStag, costStag] = obj.computeErrorCostFunction(u,phi,bc,costOldStag);
+                    [eStag, costStag] = obj.computeErrorCostFunctional(u,phi,bc,costOldStag);
                     costOldStag = costStag;
                     obj.printCost('iterStag',iterStag,costStag,eStag);
                     iterStag = iterStag + 1;
@@ -148,7 +148,7 @@ classdef PhaseFieldComputer < handle
                 s.cost = costFun;
                 outputData = obj.saveData(outputData,s);
 
-                totE = obj.functional.computeCostFunction(u,phi,bc);
+                totE = obj.functional.computeCostFunctional(u,phi,bc);
                 totF = obj.computeTotalReaction(F);
                 displ = obj.boundaryConditions.bcValues(i);
                 obj.monitor.update(i,{[totF;displ],[max(phi.fValues);displ],[phi.fValues],...
@@ -199,9 +199,9 @@ classdef PhaseFieldComputer < handle
         function checkStopCode(obj,i,totF)
             if totF > obj.stop.maxF
                 obj.stop.maxF = totF;
-            elseif i>5 && totF<0.01*obj.stop.maxF && ~obj.stop.stop
+            elseif i>5 && totF<0.01*obj.stop.maxF && ~obj.stop.indicator
                 obj.stop.lastStep = i;
-                obj.stop.stop = true;
+                obj.stop.indicator = true;
             end
 
             if i==obj.stop.lastStep+10
@@ -273,8 +273,8 @@ classdef PhaseFieldComputer < handle
             % totReact = sum(F(2*nodes(isInTip)));
         end
 
-        function [e, cost] = computeErrorCostFunction(obj,u,phi,bc,costOld)
-            cost = obj.functional.computeCostFunction(u,phi,bc);
+        function [e, cost] = computeErrorCostFunctional(obj,u,phi,bc,costOld)
+            cost = obj.functional.computeCostFunctional(u,phi,bc);
             e = cost - costOld;
         end
 

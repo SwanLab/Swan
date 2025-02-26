@@ -1,4 +1,4 @@
-classdef ShFunc_InternalEnergy < handle
+classdef InternalEnergyFunctional < handle
     
     properties (Access = private)
         mesh
@@ -9,48 +9,47 @@ classdef ShFunc_InternalEnergy < handle
     
     methods (Access = public)
         
-        function obj = ShFunc_InternalEnergy(cParams)
+        function obj = InternalEnergyFunctional(cParams)
             obj.init(cParams)            
         end
         
-        function F = computeFunction(obj,u,phi,quadOrder)
+        function F = computeFunctional(obj,u,phi,quadOrder)
             C = obj.material.obtainTensor(phi);
-            energyFun = DDP(SymGrad(u),DDP(C{1},SymGrad(u)));
-            int = Integrator.create('Function',obj.mesh,quadOrder);
+            energyFun = DDP(SymGrad(u),DDP(C,SymGrad(u)));
+            int  = Integrator.create('Function',obj.mesh,quadOrder);
             F = 0.5*int.compute(energyFun);
         end
 
         function Ju = computeGradientDisplacement(obj,u,phi,quadOrder)  
             C = obj.material.obtainTensor(phi);
-            sigma = DDP(C{1},SymGrad(u));
-            test = obj.testU;
+            sigma = DDP(C,SymGrad(u));
 
             s.mesh = obj.mesh;
-            s.quadratureOrder = quadOrder;
             s.type = 'ShapeSymmetricDerivative';
+            s.quadratureOrder = quadOrder;  
             RHS = RHSIntegrator.create(s);
-            Ju = RHS.compute(sigma,test);
+            Ju  = RHS.compute(sigma,obj.testU);
         end
 
         function Jphi = computeGradientDamage(obj,u,phi,quadOrder)
             dC = obj.material.obtainTensorDerivative(phi);
-            dEnergyFun = DDP(SymGrad(u),DDP(dC{1},SymGrad(u)));
-            test = obj.testPhi;
+            dEnergyFun = DDP(SymGrad(u),DDP(dC,SymGrad(u)));
             
-            s.mesh = obj.mesh;
-            s.type = 'ShapeFunction';
+            s.mesh     = obj.mesh;
+            s.type     = 'ShapeFunction';
             s.quadType = quadOrder;
-            RHS = RHSIntegrator.create(s);
-            Jphi = 0.5*RHS.compute(dEnergyFun,test);
+            RHS  = RHSIntegrator.create(s);
+            Jphi = 0.5*RHS.compute(dEnergyFun,obj.testPhi);
         end
 
         function Huu = computeHessianDisplacement(obj,u,phi,quadOrder)   
-            C = obj.material.obtainTensor(phi); 
-            s.type     = 'ElasticStiffnessMatrix';
+            C = obj.material.obtainTensor(phi);
+            
+            s.trial    = u;
+            s.test     = u;
+            s.material = C;
             s.mesh     = obj.mesh;
-            s.trial     = u;
-            s.test      = u;
-            s.material = C{1};
+            s.type     = 'ElasticStiffnessMatrix';
             s.quadratureOrder = quadOrder;
             LHS = LHSIntegrator.create(s);
             Huu = LHS.compute();
@@ -58,13 +57,13 @@ classdef ShFunc_InternalEnergy < handle
 
         function Hphiphi = computeHessianDamage(obj,u,phi,quadOrder)  
             ddC = obj.material.obtainTensorSecondDerivative(phi);
-            ddEnergyFun = DDP(SymGrad(u),DDP(ddC{1},SymGrad(u)));
+            ddEnergyFun = DDP(SymGrad(u),DDP(ddC,SymGrad(u)));
             
-            s.fun = ddEnergyFun;
+            s.fun   = ddEnergyFun;
             s.trial = obj.testPhi;
             s.test  = obj.testPhi;
-            s.mesh = obj.mesh;
-            s.type = 'MassMatrixWithFunction';
+            s.mesh  = obj.mesh;
+            s.type  = 'MassMatrixWithFunction';
             s.quadratureOrder = quadOrder;
             LHS = LHSIntegrator.create(s);
             Hphiphi = 0.5*LHS.compute();
@@ -74,13 +73,12 @@ classdef ShFunc_InternalEnergy < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.mesh = cParams.mesh;
+            obj.mesh     = cParams.mesh;
             obj.material = cParams.material;            
-            obj.testPhi = LagrangianFunction.create(obj.mesh, 1, 'P1');
-            obj.testU   = LagrangianFunction.create(obj.mesh, 2, 'P1');
+            obj.testPhi  = copy(cParams.testSpace.phi);
+            obj.testU    = copy(cParams.testSpace.u);
         end
         
-
     end
     
 end
