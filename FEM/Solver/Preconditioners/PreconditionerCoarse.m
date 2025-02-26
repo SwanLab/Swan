@@ -5,7 +5,7 @@ classdef PreconditionerCoarse < handle
     end
 
     properties (Access = private)
-        EIFEMfilename
+        CoarseFilename
         weight
         Coarsesolver
     end

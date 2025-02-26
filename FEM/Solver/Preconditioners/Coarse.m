@@ -99,7 +99,7 @@ classdef Coarse < handle
 
         function createBoundaryConditions(obj)
             dirichletFun = [];
-             for i = 1:numel(obj.DirCond)
+            for i = 1:numel(obj.DirCond)
                 dir = DirichletCondition(obj.mesh, obj.DirCond{i});
                 dirichletFun = [dirichletFun, dir];
             end

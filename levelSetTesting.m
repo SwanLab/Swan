@@ -25,7 +25,7 @@ classdef levelSetTesting < handle
             mRcoarse = obj.createReferenceCoarseMesh(mR);
             u = obj.createCoarseElasticProblem(mRcoarse);
             u = u(:);
-            EIFEMtesting.plotSolution(u, discMesh, 1, 1, 0, [], 0)
+            EIFEMtesting.plotSolution(u, discMesh, 20, 1, 0, [], 0)
             %ufun = LagrangianFunction.create(mSb{1}, obj.mesh.ndim,'P1');
             
             %u2 = reshape(u(:,1)', 2, [])';
@@ -50,8 +50,8 @@ classdef levelSetTesting < handle
         end
 
         function init(obj)
-            obj.nSubdomains  = [5 1]; %nx ny
-            obj.fileNameEIFEM = "UL_r0_1";
+            obj.nSubdomains  = [3 1]; %nx ny
+            obj.fileNameEIFEM = "UL_r0_1-P1";
             obj.tolSameNode = 1e-14;
             data = load(obj.fileNameEIFEM);
             obj.Kel = data.L;

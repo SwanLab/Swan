@@ -64,10 +64,10 @@ classdef LevelSetInclusionAuto_raul < handle
 
         function createMesh(obj)
             bgMesh   = obj.createReferenceMesh();
-%             lvSet    = obj.createLevelSetFunction(bgMesh);
-%             uMesh    = obj.computeUnfittedMesh(bgMesh,lvSet);
-%             obj.mesh = uMesh.createInnerMesh();
-            obj.mesh = bgMesh;
+            lvSet    = obj.createLevelSetFunction(bgMesh);
+            uMesh    = obj.computeUnfittedMesh(bgMesh,lvSet);
+            obj.mesh = uMesh.createInnerMesh();
+            % obj.mesh = bgMesh;
             obj.boundaryMesh = obj.mesh.createBoundaryMesh();
             [obj.boundaryMeshJoined, obj.localGlobalConnecBd] = obj.mesh.createSingleBoundaryMesh();
         end
@@ -239,8 +239,16 @@ classdef LevelSetInclusionAuto_raul < handle
             obj.createSolverHere(s)
             obj.computeStiffnessMatrixHere();
             obj.computeForcesHere(s);
-             c = obj.computeCmat();
-            [u, L]  = obj.computeDisplacementHere(c);
+             c = obj.computeCmatP1();
+             rdir = obj.RHSdir();
+            [u, L]  = obj.computeDisplacementHere(c, rdir);
+
+            if isa(obj.dLambda, "LagrangianFunction")
+                l2g_dof = ((obj.localGlobalConnecBd*obj.displacementFun.ndimf)' - ((obj.displacementFun.ndimf-1):-1:0))';
+                l2g_dof = l2g_dof(:);
+                uB = u(l2g_dof, :);
+                L = uB'*L;
+            end
             % obj.plotSolution(u,L);
             %obj.computeStrainHere();
             %obj.computeStressHere();
@@ -302,10 +310,30 @@ classdef LevelSetInclusionAuto_raul < handle
             
         end
 
+        function Cg = computeCmatP1(obj)
+            s.quadType = 2;
+            s.boundaryMeshJoined    = obj.boundaryMeshJoined;
+            s.localGlobalConnecBd   = obj.localGlobalConnecBd;
+            s.nnodes                 = obj.mesh.nnodes;
+
+            % lhs = LHSintegrator_ShapeFunction_fun(s);
+            lhs = LHSintegrator_MassBoundary_albert(s);
+            test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); % !!
+             obj.dLambda  = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1');
+             Cg = lhs.compute(obj.dLambda,test);      
+        end
+
         function Cg = computeCmat(obj)
             s.quadType = 2;
-            s.mesh     = obj.boundaryMeshJoined;
-            lhs = LHSintegrator_ShapeFunction_fun(s);
+            s.boundaryMeshJoined    = obj.boundaryMeshJoined;
+            s.localGlobalConnecBd   = obj.localGlobalConnecBd;
+            s.nnodes                 = obj.mesh.nnodes;
+            
+        
+
+
+            % lhs = LHSintegrator_ShapeFunction_fun(s);
+            lhs = LHSintegrator_MassBoundary_albert(s);
             test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); % !!
             ndimf  = 2;
             Lx     = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
@@ -501,20 +529,20 @@ classdef LevelSetInclusionAuto_raul < handle
 %             obj.displacementFun.fValues = uSplit;
 %         end
 
-        function [u, L] = computeDisplacementHere(obj,c)
+        function [u, L] = computeDisplacementHere(obj,c, rdir)
             K = obj.stiffness;
             nC  = size(c,2);
             Z   = zeros(nC);
             LHS = [K, c; c' Z];
-            ud = eye(nC);
+            % ud = eye(nC);
 % %             ud(7) = 1;
 %             ud(1) = 1;
-            forces = zeros(obj.displacementFun.nDofs, nC);
+            forces = zeros(obj.displacementFun.nDofs, size(rdir, 2));
 
-            RHS = [forces; ud];
+            RHS = [forces; rdir];
             sol = LHS\RHS;
-            u = sol(1:obj.displacementFun.nDofs,1:8);
-            L = sol(obj.displacementFun.nDofs+1:obj.displacementFun.nDofs+8,1:8); 
+            u = sol(1:obj.displacementFun.nDofs,:);
+            L = -sol(obj.displacementFun.nDofs+1:end,:); 
 %             obj.displacementFun.fValues = u;
 %             EIFEMtesting.plotSolution(u,obj.mesh,1,1,0,0)
         end
@@ -545,6 +573,58 @@ classdef LevelSetInclusionAuto_raul < handle
             stressFun       = DDP(obj.material, obj.strainFun);
             stressFun.ndimf = obj.strainFun.ndimf;
             obj.stress      = stressFun.evaluate(xV);
+
+        end
+
+
+        function rDir = RHSdir(obj)
+            test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1');
+            s.mesh = obj.boundaryMeshJoined;
+            s.quadType = 2;
+            rhs = RHSintegrator_ShapeFunction(s);
+
+            f1x = @(x) [1/(4)*(1-x(1,:,:)).*(1-x(2,:,:));...
+                    0*x(2,:,:)  ];
+            f2x = @(x) [1/(4)*(1+x(1,:,:)).*(1-x(2,:,:));...
+                    0*x(2,:,:)  ];
+            f3x = @(x) [1/(4)*(1+x(1,:,:)).*(1+x(2,:,:));...
+                    0*x(2,:,:)  ];
+            f4x = @(x) [1/(4)*(1-x(1,:,:)).*(1+x(2,:,:));...
+                    0*x(2,:,:)  ];
+
+            f1y = @(x) [0*x(1,:,:);...
+                    1/(4)*(1-x(1,:,:)).*(1-x(2,:,:))  ];
+            f2y = @(x) [0*x(1,:,:);...
+                    1/(4)*(1+x(1,:,:)).*(1-x(2,:,:))  ];
+            f3y = @(x) [0*x(1,:,:);...
+                    1/(4)*(1+x(1,:,:)).*(1+x(2,:,:))  ];
+            f4y = @(x) [0*x(1,:,:);...
+                    1/(4)*(1-x(1,:,:)).*(1+x(2,:,:))  ];
+
+
+            f     = {f1x f1y f2x f2y f3x f3y f4x f4y}; %
+            nfun = size(f,2);
+            rDir = [];
+            for i=1:nfun
+                Ud{i}  = AnalyticalFunction.create(f{i},obj.mesh.ndim,obj.boundaryMeshJoined);
+                    
+                % %% Project to P1
+                % obj.dLambda{i} = obj.dLambda{i}.project('P1');
+
+                rDire = rhs.compute(Ud{i},test);
+%                 [iLoc,jLoc,vals] = find(Ce);
+% 
+% %                 l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
+% %                 l2g_dof = l2g_dof(:);
+% %                 jGlob = l2g_dof(jLoc);
+% %                 Cg = [Cg sparse(iLoc,jGlob,vals, obj.displacementFun.nDofs, dLambda.nDofs)];
+% 
+%                 l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
+%                 l2g_dof = l2g_dof(:);
+%                 iGlob = l2g_dof(iLoc);
+                rDir = [rDir rDire];
+            end
+
 
         end
 

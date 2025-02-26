@@ -44,7 +44,7 @@ classdef CoarseTesting < handle
             Ufull = obj.bcApplier.reducedToFullVectorDirichlet(Usol);
             %obj.plotSolution(Ufull,obj.meshDomain,1,1,0,obj.bcApplier,0)
 
-            Meifem       = obj.createEIFEMPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
+            % Meifem       = obj.createEIFEMPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
             Milu         = obj.createILUpreconditioner(LHS);
             Mcoarse       = obj.createCoarsePreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
 
@@ -97,7 +97,7 @@ classdef CoarseTesting < handle
         function init(obj)
             obj.nSubdomains  = [2 1]; %nx ny
             %obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
-            obj.fileNameCoase = 'UL_r0_1.mat';
+            obj.fileNameCoase = 'UL_r0_1-P1.mat';
             obj.tolSameNode = 1e-10;
 
         end
