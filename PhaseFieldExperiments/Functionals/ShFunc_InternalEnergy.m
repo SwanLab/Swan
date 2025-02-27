@@ -15,9 +15,24 @@ classdef ShFunc_InternalEnergy < handle
         
         function F = computeFunction(obj,u,phi,quadOrder)
             C = obj.material.obtainTensor(phi);
-            energyFun = DDP(SymGrad(u),DDP(C{1},SymGrad(u)));
+            sigma = DDP(C{1},SymGrad(u));
+            energyFun = DDP(SymGrad(u),sigma);
             int = Integrator.create('Function',obj.mesh,quadOrder);
             F = 0.5*int.compute(energyFun);
+
+            obj.computeStressPrincipalDirections(sigma)
+        end
+
+        function computeStressPrincipalDirections(obj,sigma)
+            s.type = '2D';
+            s.ndim = 2;
+            s.eigenValueComputer.type = 'PRECOMPUTED';
+            p = PrincipalDirectionComputer.create(s);
+            sigTensor = sigma.evaluate([0;0]);
+            sigTensor = permute(sigTensor,[2 1 3]);
+            p.compute([1 0 1e-15])
+            dir = p.direction;
+            str = p.principalStress;
         end
 
         function Ju = computeGradientDisplacement(obj,u,phi,quadOrder)  
