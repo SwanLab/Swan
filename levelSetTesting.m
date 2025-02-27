@@ -50,7 +50,7 @@ classdef levelSetTesting < handle
         end
 
         function init(obj)
-            obj.nSubdomains  = [3 1]; %nx ny
+            obj.nSubdomains  = [2 1]; %nx ny
             obj.fileNameEIFEM = "UL_r0_1-P1";
             obj.tolSameNode = 1e-14;
             data = load(obj.fileNameEIFEM);
@@ -137,7 +137,7 @@ classdef levelSetTesting < handle
             isTop    = @(coor) (abs(coor(:,2) - maxy)   < tolBound);
             %             isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) == 0);
             Dir{1}.domain    = @(coor) isLeft(coor)| isRight(coor) ;
-            Dir{1}.direction = [1,2];
+            Dir{1}.direction = [1,2,3];
             Dir{1}.value     = 0;
 
             %             Dir{2}.domain    = @(coor) isRight(coor) ;
@@ -211,17 +211,30 @@ classdef levelSetTesting < handle
 
         
         function cMesh = createReferenceCoarseMesh(~,mR)
+%             xmax       = max(mR.coord(:,1));
+%             xmin       = min(mR.coord(:,1));
+%             ymax       = max(mR.coord(:,2));
+%             ymin       = min(mR.coord(:,2));
+%             coord(1,1) = xmin;
+%             coord(1,2) = ymin;
+%             coord(2,1) = xmax;
+%             coord(2,2) = ymin;
+%             coord(3,1) = xmax;
+%             coord(3,2) = ymax;
+%             coord(4,1) = xmin;
+%             coord(4,2) = ymax;
+
             xmax       = max(mR.coord(:,1));
             xmin       = min(mR.coord(:,1));
             ymax       = max(mR.coord(:,2));
             ymin       = min(mR.coord(:,2));
             coord(1,1) = xmin;
-            coord(1,2) = ymin;
-            coord(2,1) = xmax;
+            coord(1,2) = (ymin+ymax)/2;
+            coord(2,1) = (xmax+xmin)/2;
             coord(2,2) = ymin;
             coord(3,1) = xmax;
-            coord(3,2) = ymax;
-            coord(4,1) = xmin;
+            coord(3,2) = (ymin+ymax)/2;
+            coord(4,1) = (xmax+xmin)/2;
             coord(4,2) = ymax;
             
             connec   = [1 2 3 4];
@@ -255,7 +268,7 @@ classdef levelSetTesting < handle
             % s.mesh          = mR;
             % s.DirCond       = dir;
             % s.nSubdomains = obj.nSubdomains;
-            dispFun                = LagrangianFunction.create(obj.mesh, obj.mesh.ndim,'P1');
+            dispFun                = LagrangianFunction.create(obj.mesh, obj.mesh.ndim+1,'P1');
             obj.boundaryConditions = createCoarseBoundaryConditions(obj);
             obj.createBCapplier();
             [LHS,LHSr]             = obj.computeStiffnessMatrix(dispFun);
@@ -267,7 +280,7 @@ classdef levelSetTesting < handle
             uRed = LHSr\RHS;
             uCoarse = obj.bcApplier.reducedToFullVectorDirichlet(uRed);
             
-            EIFEMtesting.plotSolution(uCoarse, mD, 1, 2, 0, [], 0)
+%             EIFEMtesting.plotSolution(uCoarse, mD, 1, 2, 0, [], 0)
 
 
             u = obj.reconstructSolution(uCoarse, dispFun);
@@ -330,8 +343,9 @@ classdef levelSetTesting < handle
             % corner4 = @(coor) abs(coor(:,1)-xMin) <= tol & abs(coor(:,2)-yMax)<= tol;
 
             sDir{1}.domain    = @(coor) left(coor);
-            sDir{1}.direction = [1,2];
+            sDir{1}.direction = [1,2,3];
             sDir{1}.value     = 0;
+            sDir{1}.ndim      = 3;
             
             % sDir{2}.domain    = @(coor) corner2(coor);
             % sDir{2}.direction = [1,2];
@@ -354,9 +368,9 @@ classdef levelSetTesting < handle
 
 
             sPL{1}.domain    = @(coor) right(coor);
-            sPL{1}.direction = 2;
-            sPL{1}.value     = -1;
-
+            sPL{1}.direction = 1;
+            sPL{1}.value     = 1;
+            sPL{1}.ndim      = 3;
             dirichletFun = [];
             for i = 1:numel(sDir)
                 dir = DirichletCondition(obj.mesh, sDir{i});

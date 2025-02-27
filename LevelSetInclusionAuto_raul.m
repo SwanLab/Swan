@@ -68,11 +68,13 @@ classdef LevelSetInclusionAuto_raul < handle
             uMesh    = obj.computeUnfittedMesh(bgMesh,lvSet);
             obj.mesh = uMesh.createInnerMesh();
             % obj.mesh = bgMesh;
+
             obj.boundaryMesh = obj.mesh.createBoundaryMesh();
             [obj.boundaryMeshJoined, obj.localGlobalConnecBd] = obj.mesh.createSingleBoundaryMesh();
         end
 
         function mesh = createReferenceMesh(~)
+           
              %UnitMesh better
             x1      = linspace(-1,1,50);
             x2      = linspace(-1,1,50);
@@ -461,7 +463,9 @@ classdef LevelSetInclusionAuto_raul < handle
                     f{k+1} = @(x) [x(dof(i),:,:).*0 ;...
                                   (x(dof(i),:,:)==cond(i)).*(x(1,:,:)./x(1,:,:)) + (x(dof(i),:,:)~=cond(i)).*(x(1,:,:)*0) ];
                     f{k+2} = @(x) [(x(dof(i),:,:)==cond(i)).*((x(1,:,:)-x0).*cos(theta) - (x(2,:,:)-y0).*sin(theta)) + (x(dof(i),:,:)~=cond(i)).*(x(1,:,:)*0) ;...
-                                   (x(dof(i),:,:)==cond(i)).*((x(1,:,:)-x0).*sin(theta) + (x(2,:,:)-y0).*cos(theta)) + (x(dof(i),:,:)~=cond(i)).*(x(1,:,:)*0) ];
+                                   (x(dof(i),:,:)==cond(i)).*((x(1,:,:)-x0).*sin(theta) + (x(2,:,:)-y0).*cos(theta))*-1 + (x(dof(i),:,:)~=cond(i)).*(x(1,:,:)*0) ];
+%                     f{k+2} = @(x) [(x(dof(i),:,:)==cond(i)).*((x(2,:,:)-y0)) + (x(dof(i),:,:)~=cond(i)).*(x(1,:,:)*0) ;...
+%                                    (x(dof(i),:,:)==cond(i)).*(-(x(1,:,:)-x0)) + (x(dof(i),:,:)~=cond(i)).*(x(1,:,:)*0) ];
                     k=k+3;
             end            
 %             f1 = @(x) [(x(2,:,:)==miny).*(x(1,:,:)./x(1,:,:)) + (x(2,:,:)~=miny).*(x(1,:,:)*0);...
