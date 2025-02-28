@@ -39,7 +39,7 @@ classdef LinearizedHarmonicProjector3 < handle
             [resL,resH,resB,resG] = obj.evaluateResidualNorms(bBar,b);
             i = 1;
             theta = 0.5;
-            while res(i) > 1e-1
+            while res(i) > 1e-6
                 xNew   = LHS\RHS;
                 x = theta*xNew + (1-theta)*x;
                 b   = obj.createVectorFromSolution(x);
@@ -90,7 +90,7 @@ classdef LinearizedHarmonicProjector3 < handle
             bs = b.getVectorFields;            
             b1F = obj.createReshapedFunction(bs{1});
             b2F = obj.createReshapedFunction(bs{2});
-            f = abs(-Grad(bs{1}).*b2F+Grad(bs{2}).*b1F);
+            f = (-Grad(bs{1}).*b2F+Grad(bs{2}).*b1F);
 
             s.mesh = obj.mesh;
             s.quadratureOrder = 4;
@@ -100,15 +100,17 @@ classdef LinearizedHarmonicProjector3 < handle
             rhsV = rhs.compute(f,test);
             rhsV(obj.boundaryNodes) = 0;
             Mgg = obj.massMatrixGG; 
-            hf = (Mgg)\rhsV;
-            resH = obj.createP1Function(abs(hf));
+            hf = Mgg\rhsV;
+            resH = obj.createP1Function((hf));
         end
 
         function resB = evaluateUnitNormResidual(obj,b)
-            nB  = obj.computeUnitNormFunction(b);
-            Mgg = obj.massMatrixGG; 
-            nBf = (Mgg)\nB;            
-            resB = obj.createP1Function(abs(nBf));
+            f = @(x) obj.computeUnitNormFunction(b,x);
+            resB = DomainFunction.create(f,obj.mesh,1); 
+
+           % Mgg = obj.massMatrixGG; 
+           % nBf = (Mgg)\nB;            
+           % resB = obj.createP1Function(abs(nBf));
         end
 
         function resG = evaluteGradientNorm(obj,b)
@@ -125,7 +127,7 @@ classdef LinearizedHarmonicProjector3 < handle
         function init(obj,cParams)
             obj.mesh             = cParams.mesh;
             obj.boundaryNodes    = cParams.boundaryMesh;
-            obj.eta     = (20*obj.mesh.computeMeanCellSize)^2;
+            obj.eta     = (100*obj.mesh.computeMeanCellSize)^2;
         end
 
         function initializeFunctions(obj)
@@ -149,9 +151,10 @@ classdef LinearizedHarmonicProjector3 < handle
             M = lhs.compute();
         end
 
-        function nB = computeUnitNormFunction(obj,b)
-            b1V  = b.fValues(:,1);
-            b2V  = b.fValues(:,2);
+        function nB = computeUnitNormFunction(obj,b,x)
+            bV = b.evaluate(x);
+            b1V  = (bV(1,:,:));
+            b2V  = (bV(2,:,:));
             nB   = b1V.^2 + b2V.^2 -1;
         end
 
@@ -256,19 +259,31 @@ classdef LinearizedHarmonicProjector3 < handle
                 Mb1',      Mb2',       Zsg',Zgg];
         end
 
-        function RHS = computeRHS(obj,bI)
-            Mgg  = obj.massMatrixGG;            
+        function RHS = computeRHS(obj,bBar)
+            rhsB = obj.computeRHSCostDerivative(bBar);
+            rhsH = zeros(size(obj.internalDOFs,2),1);
+            rhsU = obj.computeRHSunitNorm();
+            RHS  = [rhsB;rhsH;rhsU];
+        end
+
+        function rhsB = computeRHSCostDerivative(obj,bBar)
+            s.mesh = obj.mesh;
+            s.quadType = 3;
+            s.type = 'ShapeFunction';
+            test = bBar;
+            rhs  = RHSIntegrator.create(s);
+            rhsB = rhs.compute(bBar,test);
+            rhsB = reshape(rhsB,2,[])';
+            rhsB = rhsB(:);  
+        end
+
+            function rhsV = computeRHSunitNorm(obj)
             s.mesh = obj.mesh;
             s.quadType = 2;
             s.type = 'ShapeFunction';
-            test = bI;
+            f    = ConstantFunction.create(1,obj.mesh);
             rhs  = RHSIntegrator.create(s);
-            rhsB = rhs.compute(bI,test);
-            rhsB = reshape(rhsB,2,[])';
-            rhsB = rhsB(:);  
-            Zs   = zeros(size(obj.internalDOFs,2),1);
-            Ig    = ones(obj.fG.nDofs,1);
-            RHS  = [rhsB;Zs;Mgg*Ig];
+            rhsV = rhs.compute(f,obj.fG);            
         end
 
         function Ared = computeReducedAdvectionMatrix(obj,A)

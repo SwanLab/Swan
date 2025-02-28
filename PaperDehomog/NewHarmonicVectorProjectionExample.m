@@ -81,7 +81,6 @@ classdef NewHarmonicVectorProjectionExample < handle
             obj.orientationVector = a;
         end
 
-
         function sigma0 = getSigma0FromData(obj)
             s.mesh    = obj.mesh;
             s.fValues = obj.experimentData.dataRes.StressPrimal;
@@ -116,7 +115,13 @@ classdef NewHarmonicVectorProjectionExample < handle
             bNew = obj.projectInUnitBall(bNew);
             obj.plotAll(h,bBar,bNew);
             a1   = obj.createHalfOrientationVectorP1(bNew);
-            obj.harmonicVector = a1;
+            
+            a1OrtV(:,1) = -a1.fValues(:,2);
+            a1OrtV(:,2) = a1.fValues(:,1);
+            a1Ort = LagrangianFunction.create(obj.mesh,2,'P1');
+            a1Ort.setFValues(a1OrtV);
+            obj.harmonicVector{1} = a1;
+            obj.harmonicVector{2} = a1Ort;
         end
 
         function b = createDobleOrientationVectorP1(obj,a)
@@ -197,8 +202,8 @@ classdef NewHarmonicVectorProjectionExample < handle
         function s = createLevelSetCellParams(obj)
             s.type   = 'smoothRectangle';
             % s.type   = 'rectangleInclusion';
-            s.widthH = obj.createFunction(obj.experimentData.dataRes.DesignVar1);%0.85*ones(size(obj.mesh.coord,1),1);
-            s.widthV = obj.createFunction(obj.experimentData.dataRes.DesignVar2);%0.85*ones(size(obj.mesh.coord,1),1);
+            s.xSide = obj.createFunction(obj.experimentData.dataRes.DesignVar1);%0.85*ones(size(obj.mesh.coord,1),1);
+            s.ySide = obj.createFunction(obj.experimentData.dataRes.DesignVar2);%0.85*ones(size(obj.mesh.coord,1),1);
             s.pnorm  = obj.createFunction(obj.experimentData.dataRes.SuperEllipseExponent);
             s.ndim   = 2;
         end
