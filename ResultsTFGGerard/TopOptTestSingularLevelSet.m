@@ -152,7 +152,7 @@ classdef TopOptTestSingularLevelSet < handle
         function c = createComplianceFromConstiutive(obj)
             s.mesh         = obj.mesh;
             s.stateProblem = obj.physicalProblem;
-            c = ComplianceFromConstiutiveTensor(s);
+            c = ComplianceFromConstitutiveTensor(s);
         end
 
         function createCompliance(obj)
@@ -281,7 +281,7 @@ classdef TopOptTestSingularLevelSet < handle
         end
 
         function newbcGiD = createNewBoundaryConditionsWithGiD(obj)
-            femReader = FemInputReader_GiD();
+            femReader = FemInputReaderGiD();
             s         = femReader.read(obj.filename);
             sPL       = obj.computeCondition(s.pointload);
             sPLPointL = sPL(2:3);

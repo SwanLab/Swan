@@ -117,7 +117,7 @@ classdef ElasticProblem < handle
             s.test     = obj.uFun;
             s.trial    = obj.uFun;
             s.quadratureOrder = 2;
-            obj.lhs = LHSintegrator.create(s);
+            obj.lhs = LHSIntegrator.create(s);
         end
 
         function computeStiffnessMatrix(obj)           
