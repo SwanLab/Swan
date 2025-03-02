@@ -13,7 +13,7 @@ pol_deg         = 1;
 testratio       = 30;
 lambda          = 0.0;
 learningRate    = 0.2;
-hiddenLayers    = 128 .* ones(1, 5);
+hiddenLayers    = 128 .* ones(1, 6);
 
 %% INITIALIZATION 
 % Store dataset file name
@@ -43,6 +43,7 @@ s.data = data;
 % Train the model
 opt = OptimizationProblem(s);
 opt.solve();
+opt.plotCostFnc();
 
 %% Plot surface
 

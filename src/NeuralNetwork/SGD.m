@@ -22,9 +22,9 @@ classdef SGD < Trainer
             obj.plotter = s.plotter;
             obj.learningRate = s.learningRate;
             obj.maxFunEvals  = 5000;
-            obj.optTolerance = 10^(-8);
+            obj.optTolerance = 1e-8;
             obj.timeStop    = Inf([1,1]);
-            obj.fvStop      = 10^(-4);
+            obj.fvStop      = 1e-4;
             obj.nPlot       = 1;
             obj.MaxEpochs   = 1000;
             obj.earlyStop   = obj.MaxEpochs;
@@ -35,7 +35,6 @@ classdef SGD < Trainer
         function compute(obj)
            tic
            x0  = obj.designVariable.thetavec;
-           isStochastic = true;
            obj.optimize(x0);
            toc
         end
@@ -45,7 +44,8 @@ classdef SGD < Trainer
             % epoch = 1:obj.MaxEpochs;
             epoch = 1:length(obj.fplot);
             % plot(epoch,obj.fplot,'-o');
-            plot(epoch,obj.fplot,'LineWidth',1.8);
+            grid on
+            loglog(epoch,obj.fplot,'LineWidth',1.8);
             xlabel('Epochs')
             ylabel('Function Values')
             title('Cost Function')
@@ -66,8 +66,6 @@ classdef SGD < Trainer
             gnorm         = 1;
             minTestError = 1;
 
-            
-
             criteria = obj.updateCriteria(epoch, alarm, gnorm, fv);
             while all(criteria == 1)
 
@@ -78,30 +76,30 @@ classdef SGD < Trainer
                     state   = 'init';   
                 end
 
-                batchesDepleted = false;
                 moveBatch = true;
-                isStochastic = true;
-                while batchesDepleted == false
-                    obj.objectiveFunction.computeFunctionAndGradient(theta,isStochastic,moveBatch)
-                    f = obj.objectiveFunction.value;
-                    grad = obj.objectiveFunction.gradient;                    
-                    batchesDepleted = obj.objectiveFunction.isBatchDepleted;
-                    [epsilon,theta,funcount] = obj.lineSearch(theta,grad,f,epsilon,epsilon0,funcount);                
+                newEpoch  = true;
+                while obj.objectiveFunction.isBatchDepleted == false || newEpoch
+                    obj.objectiveFunction.setBatchMover(moveBatch);
+                    obj.objectiveFunction.computeStochasticFunctionAndGradient(theta);
+                    f    = obj.objectiveFunction.value;
+                    grad = obj.objectiveFunction.gradient;
+                    [epsilon,theta,funcount] = obj.lineSearch(theta,grad,f,epsilon,epsilon0,funcount);
+                    epsilon0 = epsilon;
                     gnorm    = norm(grad,2);
                     funcount = funcount + 1;
                     iter     = iter + 1;
+                    newEpoch = false;
                     obj.displayIter(epoch,iter,funcount,theta,f,gnorm,epsilon,state);
                 end
-                
+
                 [alarm,minTestError] = obj.objectiveFunction.validateES(alarm,minTestError);
                 epoch = epoch + 1;
-                criteria = obj.updateCriteria(epoch, alarm, gnorm, f);
+                criteria = obj.updateCriteria(epoch + 1, alarm, gnorm, f);
             end
         end
 
         function [e,x,funcount] = lineSearch(obj,x,grad,fOld,e,e0,funcount)
-            isStochastic = true;
-            F = @(theta,moveBatch) obj.objectiveFunction.computeFunctionAndGradient(theta,isStochastic,moveBatch);
+            F = @(theta) obj.objectiveFunction.computeStochasticFunctionAndGradient(theta);
 
             type = obj.lSearchtype;
             moveBatch = false;
@@ -109,22 +107,28 @@ classdef SGD < Trainer
                 case 'static'
                     xnew = obj.step(x,e,grad);
                 case 'decay'
-                    tau = 50;
+                    %tau = 50;
                     xnew = obj.step(x,e,grad);
-                    e = e - 0.99*e0*30/tau;
+                    %e = e - 0.99*e0*30/tau;
+                    e = e - 0.001*e0;
                 case 'dynamic'
                     f = fOld;
                     xnew = x;
                     while f >= 1.001*(fOld - e*(grad*grad'))
                         xnew = obj.step(x,e,grad);
-                        [f,~,~] = F(xnew, moveBatch);
+                        obj.objectiveFunction.setBatchMover(moveBatch);
+                        %[f,~] = F(xnew);
+                        F(xnew);
+                        f    = obj.objectiveFunction.value;
+                        %grad = obj.objectiveFunction.gradient;
                         e = e/2;
                         funcount = funcount + 1;
                     end
                     e = 5*e;                
                 case 'fminbnd'
                     xnew = @(e1) obj.step(x,e1,grad);
-                    f = @(e1) F(xnew(e1), moveBatch);
+                    obj.objectiveFunction.setBatchMover(moveBatch);
+                    f = @(e1) F(xnew(e1));
                     [e,~] = fminbnd(f,e/10,e*10);
                     xnew = xnew(e);
             end

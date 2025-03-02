@@ -22,6 +22,21 @@ classdef Trainer < handle
         compute(obj);
     end
 
+    methods (Access = public)
+
+
+        function plotCostRegErr(obj,v)
+            figure(obj.figureCost)
+            plot(v(2:end),obj.costHist(2:end,1),'d--b','MarkerFaceColor','b')
+            xlabel('Iterations')
+            ylabel('Function Values')
+            title('Cost minimization')
+            xlim([1,inf])
+            drawnow
+            hold off
+        end
+
+    end
 
     methods (Access = public, Static)
 
@@ -66,17 +81,6 @@ classdef Trainer < handle
                     oV(2) = opt.epsilon;
                     obj.optHist = [obj.optHist;oV];
             end
-        end
-
-        function plotCostRegErr(obj,v)
-            figure(obj.figureCost)
-            plot(v(2:end),obj.costHist(2:end,1),'d--b','MarkerFaceColor','b')
-            xlabel('Iterations')
-            ylabel('Function Values')
-            title('Cost minimization')
-            xlim([1,inf])
-            drawnow
-            hold off
         end
 
         function plotEpsOpt(obj,v)
