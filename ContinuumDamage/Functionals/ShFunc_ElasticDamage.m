@@ -52,7 +52,7 @@ classdef ShFunc_ElasticDamage < handle
             obj.computeDamage();
             Ksec = obj.computeDerivativeResidualSecant();
             Ktan = obj.computeDerivativeResidualTangent(u,control,index);
-            K = Ksec;
+            K = Ktan;
         end  
        
         function computeDamageEvolutionParam(obj,u)
@@ -60,6 +60,9 @@ classdef ShFunc_ElasticDamage < handle
             epsi = SymGrad(u);
             tauEpsilon = sqrt(DDP(DDP(epsi,C),epsi));
             tauEpsilon = project(tauEpsilon,obj.r.order);
+
+            % tauEpsilon.evaluate([1;1])
+            % epsi.evaluate([1;1])
 
             fV = zeros(size(obj.r.fValues));
             nodesNoDamage = tauEpsilon.fValues <= obj.rOld.fValues;
@@ -100,7 +103,7 @@ classdef ShFunc_ElasticDamage < handle
             s.ndimf = 1;
             s.mesh  = obj.mesh;
             obj.d = DomainFunction(s);
-        end
+        end-<
 
         function q = computeHardening(obj)
             q = @(r,r0) r0 + obj.H *(r-r0);

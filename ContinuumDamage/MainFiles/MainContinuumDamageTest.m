@@ -32,8 +32,8 @@ cParams.mesh.meshN = 1;
 cParams.mesh.meshM = 1;
 
 cParams.bc.bcType = 'displacementTraction'; %'FORCE'
-cParams.bc.bcValueSetLoading = 1e-10:1e-4:0.5;
-cParams.bc.bcValueSetUnLoading = [0.5:-1e-4:1e-10];
+cParams.bc.bcValueSetLoading = 1e-10:1e-3:0.2;
+cParams.bc.bcValueSetUnLoading = [];
 
 cParams.material.E = 210;
 cParams.material.nu = 0.3;
