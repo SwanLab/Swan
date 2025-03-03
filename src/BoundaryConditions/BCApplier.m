@@ -75,23 +75,13 @@ classdef BCApplier < handle
                         Ce = sum(Ce,2);
                         [iLoc,jLoc,vals] = find(Ce);
 
-                        %                 l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
-                        %                 l2g_dof = l2g_dof(:);
-                        %                 jGlob = l2g_dof(jLoc);
-                        %                 Cg = [Cg sparse(iLoc,jGlob,vals, obj.displacementFun.nDofs, dLambda.nDofs)];
-
+                   
                         l2g_dof = ((localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
                         l2g_dof = l2g_dof(:);
                         iGlob = l2g_dof(iLoc);
                         Ct = [Ct sparse(iGlob,jLoc,vals, displacementFun.nDofs, 1)];
                     end
-                    %             cornerDof = data.boundaryConditions.dirichlet_dofs;
-                    %             Cg(cornerDof,:) = 0;
-                    %             Cg2 = zeros(size(Cg,1),size(cornerDof,1));
-                    %             for i=1:length(cornerDof)
-                    %                Cg2(cornerDof(i),i)=1;
-                    %             end
-                    %             Cg = [Cg,Cg2];
+
                 otherwise
                     dir_dom = obj.dirichlet_domain;
                     [mesh_left2, l2g_mesh] = obj.mesh.getBoundarySubmesh(dir_dom);
