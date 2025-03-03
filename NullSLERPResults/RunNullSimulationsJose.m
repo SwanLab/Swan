@@ -53,5 +53,14 @@
 
 
 %TwoDimCantileverAugmented(0.1);
-TwoDimCantileverAugmented(0.5);
+%TwoDimCantileverAugmented(0.5);
 %TwoDimCantileverAugmented(1);
+
+
+
+
+
+
+TopOptTestMultiLoadBridgeAugmented(3,0.1);
+% TopOptTestMultiLoadBridgeAugmented(3,0.5);
+% TopOptTestMultiLoadBridgeAugmented(3,1);

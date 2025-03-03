@@ -47,10 +47,10 @@ classdef DualUpdater_AugmentedLagrangian < handle
                     case 'INEQUALITY'
                         isZero = obj.checkDual(i);
                         if isZero
-                            obj.dualVariable.value(i) = 0;
+                            obj.dualVariable.fun.fValues(i) = 0;
                         else
                             obj.compute(i);
-                            obj.dualVariable.value(i) = max(0,obj.dualVariable.value(i));
+                            obj.dualVariable.fun.fValues(i) = max(0,obj.dualVariable.fun.fValues(i));
                         end
                     otherwise
                         obj.compute(i);
@@ -60,7 +60,7 @@ classdef DualUpdater_AugmentedLagrangian < handle
 
         function isZero = checkDual(obj,i)
             g      = obj.constraint.value(i,1);
-            l      = obj.dualVariable.value(i,1);
+            l      = obj.dualVariable.fun.fValues(i,1);
             rho    = obj.penalty;
             isZero = g < -l/rho;
         end

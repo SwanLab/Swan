@@ -207,7 +207,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
                     case 'EQUALITY'
                         
                     case 'INEQUALITY'
-                        c(i) = max(c(i),-l/rho);
+                        c(i) = max(c(i),-l(i)/rho);
                 end
             end
         end
