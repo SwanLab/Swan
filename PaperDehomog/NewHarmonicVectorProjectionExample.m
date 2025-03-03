@@ -15,11 +15,9 @@ classdef NewHarmonicVectorProjectionExample < handle
         experimentData
         mesh
         boundaryMesh
-        orientationAngle
         orientationVector
-        doubleOrientationVector
+        density
         harmonicProjector
-        unitBallProjector
     end
 
     methods (Access = public)
@@ -30,6 +28,8 @@ classdef NewHarmonicVectorProjectionExample < handle
             obj.createMesh();
             obj.createBoundaryMesh();
             obj.createOrientationVector();
+            obj.createDensity();
+            obj.createHarmonicProjection();
             obj.harmonize();
             obj.dehomogenize();
         end
@@ -40,22 +40,23 @@ classdef NewHarmonicVectorProjectionExample < handle
 
         function init(obj)
             close all
-            % obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
-            %  obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
-            % obj.iteration = 665;
+            obj.filePath = 'Old/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
+            obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
+            obj.iteration = 665;
 
-            obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';
-            obj.fileName = 'ExperimentingPlotSuperEllipse';
-            obj.iteration = 64;
+            % obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';
+            % obj.fileName = 'ExperimentingPlotSuperEllipse';
+            % obj.iteration = 64;
         end
 
         function loadDataExperiment(obj)
-            %      s.fileName = [obj.fileName,num2str(obj.iteration)];
-            %      s.folderPath = fullfile(obj.filePath );
-            %      w = WrapperMshResFiles(s);
-            %      w.compute();
-            d = load('DataExample.mat');
-            w = d.w;
+        %    s.fileName = [obj.fileName,num2str(obj.iteration)];
+        %    s.folderPath = fullfile(obj.filePath);
+        %    w = WrapperMshResFiles(s);
+        %    w.compute();
+           %d = load('DataExampleLshape.mat');
+           d = load('DataExampleCantilever.mat');
+           w = d.w;
             obj.experimentData = w;
         end
 
@@ -97,10 +98,18 @@ classdef NewHarmonicVectorProjectionExample < handle
             a{2} = obj.projectInUnitBall(a{2});
         end
 
-        function h = createHarmonicProjection(obj)
+        function createDensity(obj)
+            rhoV = obj.experimentData.dataRes.DensityGauss;
+            rho  = LagrangianFunction.create(obj.mesh,1,'P0');
+            rho.setFValues(rhoV);
+            obj.density = rho;
+        end
+
+        function createHarmonicProjection(obj)
             s.mesh         = obj.mesh;
             s.boundaryMesh = obj.boundaryMesh;
-            h = LinearizedHarmonicProjector3(s);
+            s.density      = obj.density;
+            obj.harmonicProjector = LinearizedHarmonicProjector3(s);
         end
 
         function harmonize(obj)
@@ -108,12 +117,12 @@ classdef NewHarmonicVectorProjectionExample < handle
             a1    = a{1};
             bInit = obj.createDobleOrientationVectorP1(a1);
             bBar  = bInit;
-            h     = obj.createHarmonicProjection();
+            
 
-            obj.plotAll(h,bBar,bInit);
-            bNew = h.solveProblem(bBar,bInit);
+            obj.plotAll(bBar,bInit);
+            bNew = obj.harmonicProjector.solveProblem(bBar,bInit);
             bNew = obj.projectInUnitBall(bNew);
-            obj.plotAll(h,bBar,bNew);
+            obj.plotAll(bBar,bNew);
             a1   = obj.createHalfOrientationVectorP1(bNew);
             
             a1OrtV(:,1) = -a1.fValues(:,2);
@@ -150,7 +159,8 @@ classdef NewHarmonicVectorProjectionExample < handle
             a1 = LagrangianFunction(s);
         end
 
-        function resHNorm = plotAll(obj,h,bBar,b)
+        function resHNorm = plotAll(obj,bBar,b)
+            h = obj.harmonicProjector;
             close all
             [resL,resH,resB,resG] = h.evaluateAllResiduals(bBar,b);
 
@@ -170,6 +180,8 @@ classdef NewHarmonicVectorProjectionExample < handle
             plot(resG)
             title('Gradient')
             resHNorm = Norm(resH,'L2');
+            plotVector(obj.createHalfOrientationVectorP1(bBar));
+            plotVector(obj.createHalfOrientationVectorP1(b));
 
             figHandles = findall(groot, 'Type', 'figure');
             numFigures = length(figHandles);

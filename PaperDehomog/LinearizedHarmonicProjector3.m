@@ -18,6 +18,7 @@ classdef LinearizedHarmonicProjector3 < handle
     properties (Access = private)
         mesh
         boundaryNodes
+        density
     end
 
     methods (Access = public)
@@ -25,6 +26,7 @@ classdef LinearizedHarmonicProjector3 < handle
         function obj = LinearizedHarmonicProjector3(cParams)
             obj.init(cParams);
             obj.initializeFunctions();
+            obj.eta = (10*obj.mesh.computeMeanCellSize)^2;                        
             obj.createInternalDOFs();
             obj.computeAllMassMatrix();
             obj.computeStiffnessMatrix();
@@ -38,8 +40,8 @@ classdef LinearizedHarmonicProjector3 < handle
             res = norm(LHS*x - RHS)/norm(x);
             [resL,resH,resB,resG] = obj.evaluateResidualNorms(bBar,b);
             i = 1;
-            theta = 0.5;
-            while res(i) > 1e-6
+            theta = 0.99;0.5;
+            while res(i) > 1e-12
                 xNew   = LHS\RHS;
                 x = theta*xNew + (1-theta)*x;
                 b   = obj.createVectorFromSolution(x);
@@ -127,7 +129,7 @@ classdef LinearizedHarmonicProjector3 < handle
         function init(obj,cParams)
             obj.mesh             = cParams.mesh;
             obj.boundaryNodes    = cParams.boundaryMesh;
-            obj.eta     = (100*obj.mesh.computeMeanCellSize)^2;
+            obj.density          = cParams.density;            
         end
 
         function initializeFunctions(obj)
@@ -137,7 +139,8 @@ classdef LinearizedHarmonicProjector3 < handle
         end
 
         function computeAllMassMatrix(obj)
-            obj.massMatrixBB = obj.computeMassMatrix(obj.fB,obj.fB);
+            rho = obj.density;
+            obj.massMatrixBB = obj.createMassMatrixWithFunction(rho.*(1-rho));
             obj.massMatrixGG = obj.computeMassMatrix(obj.fG,obj.fG);
         end
 
@@ -271,19 +274,22 @@ classdef LinearizedHarmonicProjector3 < handle
             s.quadType = 3;
             s.type = 'ShapeFunction';
             test = bBar;
+            rho  = obj.density;
+            per  = obj.createReshapedFunction(rho.*(1-rho));
+            f    = bBar.*per;
             rhs  = RHSIntegrator.create(s);
-            rhsB = rhs.compute(bBar,test);
+            rhsB = rhs.compute(f,test);
             rhsB = reshape(rhsB,2,[])';
-            rhsB = rhsB(:);  
+            rhsB = rhsB(:);
         end
 
-            function rhsV = computeRHSunitNorm(obj)
+        function rhsV = computeRHSunitNorm(obj)
             s.mesh = obj.mesh;
             s.quadType = 2;
             s.type = 'ShapeFunction';
             f    = ConstantFunction.create(1,obj.mesh);
             rhs  = RHSIntegrator.create(s);
-            rhsV = rhs.compute(f,obj.fG);            
+            rhsV = rhs.compute(f,obj.fG);
         end
 
         function Ared = computeReducedAdvectionMatrix(obj,A)

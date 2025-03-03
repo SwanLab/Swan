@@ -39,7 +39,7 @@ classdef WrapperResFile < FileReader
             obj.readScalarInNodes();
             obj.readScalarInGauss();            
             obj.readScalarInNodes();
-            obj.readScalarInNodes();
+            %obj.readScalarInNodes();
             obj.closeFile();
         end
         
