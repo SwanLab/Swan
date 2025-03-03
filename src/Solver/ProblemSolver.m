@@ -96,12 +96,6 @@ classdef ProblemSolver < handle
                         Z   = zeros(nC);
                         Km  = stiffness;
                         LHS = [Km C; C' Z];
-
-                        %%% Create Cs and Cv
-                        %Cs with RHS following BCApplier in the sense of
-                        %using local meshes. In RHS give constant function
-                        %1 using ConstantFunction%
-                        %Obtain LHS
                     else
                         % Micro
                         iV = cParams.iVoigt;
@@ -128,6 +122,12 @@ classdef ProblemSolver < handle
                     Z   = zeros(nC);
                     Km  = stiffness;
                     LHS = [Km C; C' Z];
+
+                    %%% Create Cs and Cv
+                    %Cs with RHS following BCApplier in the sense of
+                    %using local meshes. In RHS give constant function
+                    %1 using ConstantFunction%
+                    %Obtain LHS
                 case strcmp(obj.type, 'REDUCED') && strcmp(obj.mode, 'FLUC')
                     lead = bcs.periodic_leader;
                     fllw = bcs.periodic_follower;
