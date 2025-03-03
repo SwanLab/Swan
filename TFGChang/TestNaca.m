@@ -87,11 +87,11 @@ classdef TestNaca < handle
         end
                 
         function createReferenceMesh(obj)
-            %obj.length  = 8;
-            %obj.height  = 4;
-            %nx          = 300;
-            %ny          = 150;
-            %obj.refMesh = QuadMesh(obj.length,obj.height,nx,ny); 
+            % obj.length  = 8;
+            % obj.height  = 4;
+            % nx          = 300;
+            % ny          = 150;
+            % obj.refMesh = QuadMesh(obj.length,obj.height,nx,ny); 
              obj.length  = 8;
              obj.height  = 4;
              nx          = 150;
@@ -102,7 +102,7 @@ classdef TestNaca < handle
         function createLevelSet(obj,AirfoilParams, BGParams)
             g = obj.createNacaFunction(AirfoilParams, BGParams);
             obj.levelSet = g.computeLevelSetFunction(obj.refMesh);
-            obj.levelSet.plot();
+            %obj.levelSet.plot();
         end
         
         function createFluidMesh(obj)
