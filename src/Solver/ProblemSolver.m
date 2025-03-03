@@ -116,7 +116,8 @@ classdef ProblemSolver < handle
                 case strcmp(obj.type, 'MONOLITHIC') && strcmp(obj.mode, 'FLUC')
                     CtDir = bcapp.computeLinearConditionsMatrix('Dirac');
                     CtPer = bcapp.computeLinearPeriodicConditionsMatrix();
-                    Ct = [CtPer; CtDir];
+                    CtCs  = bcapp.computeLinearConditionsMatrix('Analytical');
+                    Ct = [CtPer; CtDir; CtCs' ];
                     C   = Ct';
                     nC  = size(Ct,1);
                     Z   = zeros(nC);
@@ -170,7 +171,7 @@ classdef ProblemSolver < handle
                     RHS = forces(free_dofs);
                 case strcmp(obj.type, 'MONOLITHIC') && strcmp(obj.mode, 'FLUC')
                     nPer = length(bcs.periodic_leader);
-                    RHS = [forces; zeros(nPer,1); bcs.dirichlet_vals];
+                    RHS = [forces; zeros(nPer,1); bcs.dirichlet_vals; [0;0;0;0]];
                 case strcmp(obj.type, 'REDUCED') && strcmp(obj.mode, 'FLUC')
                     lead = bcs.periodic_leader;
                     fllw = bcs.periodic_follower;
