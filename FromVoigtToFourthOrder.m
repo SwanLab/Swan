@@ -72,3 +72,13 @@ disp('The stress in Voigt is:');
 disp(sig1);
 disp('The stress without Voigt is:');
 disp(sig2);
+
+
+
+% Open Product test (gerard things)
+C1op = squeeze(tensorprod(sig1,sig1));
+pagemtimes(sig1,sig1')
+C2op = squeeze(tensorprod(sig2,sig2));
+
+sig1op = C1op*str1
+sig2op = tensorprod(C2op,str2,[3,4],1:2)
