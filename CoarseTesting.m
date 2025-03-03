@@ -95,7 +95,7 @@ classdef CoarseTesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [2 1]; %nx ny
+            obj.nSubdomains  = [3 1]; %nx ny
             %obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
             obj.fileNameCoase = 'UL_r0_1-P1.mat';
             obj.tolSameNode = 1e-10;

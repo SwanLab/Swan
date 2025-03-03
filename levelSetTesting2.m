@@ -32,7 +32,7 @@ classdef levelSetTesting2 < handle
 
 
         function init(obj)
-            obj.nSubdomains = [2,1];
+            obj.nSubdomains = [3,1];
             obj.tolNode     = 1e-14;
 
             fileName = "UL_r0_1-P1.mat";
