@@ -1,4 +1,4 @@
-classdef StokesDataContainer < AbstractSettings
+classdef StokesDataContainer < handle
     
     properties (Access = protected)
         defaultParamsName = ''
@@ -21,9 +21,7 @@ classdef StokesDataContainer < AbstractSettings
     methods (Access = public)
         
         function obj = StokesDataContainer(varargin)
-            if nargin == 1
-                obj.loadParams(varargin{1});
-            end
+            obj.fileName = varargin{1}.fileName;
             obj.init();
         end
         

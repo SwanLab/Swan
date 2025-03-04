@@ -67,7 +67,7 @@ classdef DenoisingProblem < handle
             im = obj.readImage(cParams);
             obj.computeImageSize(im);
             obj.transformImageInVectorForm(im)
-            obj.lambda = cParams.totalVariationWeigth;
+            obj.lambda = cParams.totalVariationWeight;
         end
         
         function computeImageSize(obj,image)
@@ -130,7 +130,7 @@ classdef DenoisingProblem < handle
         end
         
         function createL1Proximal(obj,cParams)
-            s.lambda = cParams.totalVariationWeigth;
+            s.lambda = cParams.totalVariationWeight;
             s.imageSize = obj.imageSize;
             s.designVariable = obj.designVariable;
             obj.l1Proximal = L1VectorNormProximal(s);
