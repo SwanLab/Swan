@@ -265,7 +265,7 @@ classdef TestNaca < handle
     methods (Static, Access = private)
 
         function g = createNacaFunction(AirfoilParams, BGParams)
-            s.type = 'Naca';
+            s.type = 'NacaHole'; % 'Naca
             s.xLE  = (BGParams.length - AirfoilParams.chord)/2;
             s.yLE  = BGParams.height/2;
 
