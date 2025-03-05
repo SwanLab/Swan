@@ -1,4 +1,4 @@
-classdef LHSintegrator_condition_shape_shape < handle
+classdef LHSIntegrator_condition_shape_shape < handle
 
     properties (Access = private)
         boundaryMeshJoined
@@ -10,7 +10,7 @@ classdef LHSintegrator_condition_shape_shape < handle
 
     methods (Access = public)
 
-        function obj = LHSintegrator_condition_shape_shape(cParams)
+        function obj = LHSIntegrator_condition_shape_shape(cParams)
             obj.init(cParams);
         end
 
@@ -40,7 +40,7 @@ classdef LHSintegrator_condition_shape_shape < handle
             a.trial = trial;
 
 
-            lhs = LHSintegrator.create(a);
+            lhs = LHSIntegrator.create(a);
 
             lhs = lhs.compute();
             [iLoc,jLoc,vals] = find(lhs);

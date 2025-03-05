@@ -5,6 +5,9 @@ classdef Training < handle
     end
     properties (Access = private)
         meshDomain
+        boundaryMeshJoined
+        localGlobalConnecBd
+        DirFun
         boundaryConditions
         bcApplier
         LHS
@@ -30,86 +33,90 @@ classdef Training < handle
             bS  = mR.createBoundaryMesh();
             [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain(mR);
             obj.meshDomain = mD;
-            [bC,dir] = obj.createBoundaryConditions(obj.meshDomain);
-            obj.boundaryConditions = bC;
-            obj.createBCapplier()
+            [obj.boundaryMeshJoined, obj.localGlobalConnecBd] = obj.meshDomain.createSingleBoundaryMesh();
+            obj.DirFun = obj.AnalyticalDirCond();
+%             [bC,dir] = obj.createBoundaryConditions(obj.meshDomain);
+%             obj.boundaryConditions = bC;
+%             obj.createBCapplier()
 
-            [LHS,RHS,LHSf] = obj.createElasticProblem();
-            obj.LHS = LHSf;
-            %             LHS = 0.5*(LHS+LHS');
-
-            LHSf = @(x) LHS*x;
-            RHSf = RHS;
-            Usol = LHS\RHS;
-            Ufull = obj.bcApplier.reducedToFullVectorDirichlet(Usol);
-            %obj.plotSolution(Ufull,obj.meshDomain,1,1,0,obj.bcApplier,0)
-
-
-            Mid          = @(r) r;
-            Meifem       = obj.createEIFEMPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
-            Milu         = obj.createILUpreconditioner(LHS);
-            MgaussSeidel = obj.createGaussSeidelpreconditioner(LHS);
-            MJacobi      = obj.createJacobipreconditioner(LHS);
-            Mmodal       = obj.createModalpreconditioner(LHS);
-            %             MdirNeu      = obj.createDirichletNeumannPreconditioner(mR,dir,iC,lG,bS,obj.LHS,mSb);
-
-            MiluCG = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
-
-            tol = 1e-8;
-            tic
-            x0 = zeros(size(RHSf));
-%             [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
-            toc
-            %             [uCG,residualCG,errCG,errAnormCG] = RichardsonSolver.solve(LHSf,RHSf,x0,P,tol,0.1,Usol);
-
-            tol = 1e-8;
-
-            %Mmult = MdirNeu;
-            x0 = zeros(size(RHSf));
-            r = RHSf - LHSf(x0);
-            Mmult = @(r,uk) Preconditioner.multiplePrec(r,MiluCG,Meifem,MiluCG,LHSf,RHSf,obj.meshDomain,obj.bcApplier,uk);
-%              Mmult = @(r) Preconditioner.multiplePrec(r,Mid,Meifem,Mid,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
-%             zmult = Mmult(r);
-            
-%             zfull = obj.bcApplier.reducedToFullVectorDirichlet(zmult);
-            %obj.plotSolution(zfull,obj.meshDomain,0,0,2,obj.bcApplier,0)
-
-%             zeifem = Meifem(r);
-%             zfull = obj.bcApplier.reducedToFullVectorDirichlet(zeifem);
-            %obj.plotSolution(zfull,obj.meshDomain,0,0,1,obj.bcApplier,0)
-           % x0 = zmult;
-            tic
-            %           tau = @(r,A) 1;
-            [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
-            %            [uCG,residualPCG,errPCG,errAnormPCG] = RichardsonSolver.solve(LHSf,RHSf,x0,Mmult,tol,tau,Usol);
-            toc
-
-            figure
-            plot(residualPCG,'linewidth',2)
-            hold on
-            plot(residualCG,'linewidth',2)
-            set(gca, 'YScale', 'log')
-            legend({'CG + ILU-EIFEM-ILU','CG'},'FontSize',12)
-            xlabel('Iteration')
-            ylabel('Residual')
-
-            figure
-            plot(errPCG,'linewidth',2)
-            hold on
-            plot(errCG,'linewidth',2)
-            set(gca, 'YScale', 'log')
-            legend('CG + EIFEM+ ILU(CG-90%-L2)','CG')
-            xlabel('Iteration')
-            ylabel('||error||_{L2}')
-
-            figure
-            plot(errAnormPCG,'linewidth',2)
-            hold on
-            plot(errAnormCG,'linewidth',2)
-            set(gca, 'YScale', 'log')
-            legend('CG + EIFEM+ ILU(CG-90%-L2)','CG')
-            xlabel('Iteration')
-            ylabel('Energy norm')
+            [LHS,RHS,uFun,lambdaFun] = obj.createElasticProblem();
+            sol = LHS\RHS;
+            u   = sol(1:uFun.nDofs,:);
+%             obj.LHS = LHSf;
+%             %             LHS = 0.5*(LHS+LHS');
+% 
+%             LHSf = @(x) LHS*x;
+%             RHSf = RHS;
+%             Usol = LHS\RHS;
+%             Ufull = obj.bcApplier.reducedToFullVectorDirichlet(Usol);
+%             %obj.plotSolution(Ufull,obj.meshDomain,1,1,0,obj.bcApplier,0)
+% 
+% 
+%             Mid          = @(r) r;
+%             Meifem       = obj.createEIFEMPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
+%             Milu         = obj.createILUpreconditioner(LHS);
+%             MgaussSeidel = obj.createGaussSeidelpreconditioner(LHS);
+%             MJacobi      = obj.createJacobipreconditioner(LHS);
+%             Mmodal       = obj.createModalpreconditioner(LHS);
+%             %             MdirNeu      = obj.createDirichletNeumannPreconditioner(mR,dir,iC,lG,bS,obj.LHS,mSb);
+% 
+%             MiluCG = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
+% 
+%             tol = 1e-8;
+%             tic
+%             x0 = zeros(size(RHSf));
+% %             [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
+%             toc
+%             %             [uCG,residualCG,errCG,errAnormCG] = RichardsonSolver.solve(LHSf,RHSf,x0,P,tol,0.1,Usol);
+% 
+%             tol = 1e-8;
+% 
+%             %Mmult = MdirNeu;
+%             x0 = zeros(size(RHSf));
+%             r = RHSf - LHSf(x0);
+%             Mmult = @(r,uk) Preconditioner.multiplePrec(r,MiluCG,Meifem,MiluCG,LHSf,RHSf,obj.meshDomain,obj.bcApplier,uk);
+% %              Mmult = @(r) Preconditioner.multiplePrec(r,Mid,Meifem,Mid,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
+% %             zmult = Mmult(r);
+%             
+% %             zfull = obj.bcApplier.reducedToFullVectorDirichlet(zmult);
+%             %obj.plotSolution(zfull,obj.meshDomain,0,0,2,obj.bcApplier,0)
+% 
+% %             zeifem = Meifem(r);
+% %             zfull = obj.bcApplier.reducedToFullVectorDirichlet(zeifem);
+%             %obj.plotSolution(zfull,obj.meshDomain,0,0,1,obj.bcApplier,0)
+%            % x0 = zmult;
+%             tic
+%             %           tau = @(r,A) 1;
+%             [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
+%             %            [uCG,residualPCG,errPCG,errAnormPCG] = RichardsonSolver.solve(LHSf,RHSf,x0,Mmult,tol,tau,Usol);
+%             toc
+% 
+%             figure
+%             plot(residualPCG,'linewidth',2)
+%             hold on
+%             plot(residualCG,'linewidth',2)
+%             set(gca, 'YScale', 'log')
+%             legend({'CG + ILU-EIFEM-ILU','CG'},'FontSize',12)
+%             xlabel('Iteration')
+%             ylabel('Residual')
+% 
+%             figure
+%             plot(errPCG,'linewidth',2)
+%             hold on
+%             plot(errCG,'linewidth',2)
+%             set(gca, 'YScale', 'log')
+%             legend('CG + EIFEM+ ILU(CG-90%-L2)','CG')
+%             xlabel('Iteration')
+%             ylabel('||error||_{L2}')
+% 
+%             figure
+%             plot(errAnormPCG,'linewidth',2)
+%             hold on
+%             plot(errAnormCG,'linewidth',2)
+%             set(gca, 'YScale', 'log')
+%             legend('CG + EIFEM+ ILU(CG-90%-L2)','CG')
+%             xlabel('Iteration')
+%             ylabel('Energy norm')
 
         end
 
@@ -118,7 +125,7 @@ classdef Training < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [2 1]; %nx ny
+            obj.nSubdomains  = [5 5]; %nx ny
 %             obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
             obj.fileNameEIFEM = 'DEF_Q4porL_1.mat';
             obj.tolSameNode = 1e-10;
@@ -287,19 +294,25 @@ classdef Training < handle
         end
 
 
-        function [LHSr,RHSr,lhs] = createElasticProblem(obj)
+        function [LHS,RHS,u,dLambda] = createElasticProblem(obj)
             u = LagrangianFunction.create(obj.meshDomain,obj.meshDomain.ndim,'P1');
+            dLambda = LagrangianFunction.create(obj.boundaryMeshJoined,obj.meshDomain.ndim,'P1');
+            LHS = obj.computeLHS(u,dLambda);
+            RHS = obj.computeRHS(u,dLambda);
+%             RHS = obj.computeForces(lhs,u);
+        end
+
+        function LHS  = computeLHS(obj,u,dLambda)
+           
             material = obj.createMaterial(obj.meshDomain);
-            [lhs,LHSr] = obj.computeStiffnessMatrix(obj.meshDomain,u,material);
-            RHSr       = obj.computeForces(lhs,u);
+            K = obj.computeStiffnessMatrix(obj.meshDomain,u,material);
+           
+            C = obj.computeConditionMatrix(dLambda);
+            Z = zeros(size(C,2));
+            LHS = [K C; C' Z];
         end
 
-        function computeLHS(obj,u,dlambda)
-             [lhs,LHSr] = obj.computeStiffnessMatrix(obj.meshDomain,u,material);
-        end
-
-
-        function [LHS,LHSr] = computeStiffnessMatrix(obj,mesh,dispFun,mat)
+        function LHS = computeStiffnessMatrix(obj,mesh,dispFun,mat)
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = mesh;
             s.test     = dispFun;
@@ -308,7 +321,25 @@ classdef Training < handle
             s.quadratureOrder = 2;
             lhs = LHSIntegrator.create(s);
             LHS = lhs.compute();
-            LHSr = obj.bcApplier.fullToReducedMatrixDirichlet(LHS);
+%             LHSr = obj.bcApplier.fullToReducedMatrixDirichlet(LHS);
+        end
+
+        function C = computeConditionMatrix(obj,dLambda)
+            s.type                  = 'ConditionMatrix';   
+            s.quadType              = 2;
+            s.boundaryMeshJoined    = obj.boundaryMeshJoined;
+            s.localGlobalConnecBd   = obj.localGlobalConnecBd;
+            s.nnodes                = obj.meshDomain.nnodes;
+            lhs      = LHSIntegrator_condition_shape_shape(s);
+            test     = LagrangianFunction.create(obj.boundaryMeshJoined, obj.meshDomain.ndim, 'P1'); % !!
+            C        = lhs.compute(dLambda,test); 
+        end
+
+        function RHS = computeRHS(obj,u,dLambda)
+%             F  = obj.computeForces(obj,k,u);
+            F = zeros(u.nDofs,length(obj.DirFun));
+            uD = obj.computeRHDcondition(dLambda,obj.DirFun);
+            RHS = [F ; uD];
         end
 
         function RHS = computeForces(obj,stiffness,u)
@@ -323,6 +354,18 @@ classdef Training < handle
             R           = RHSint.computeReactions(stiffness);
             RHS = rhs+R;
             RHS = obj.bcApplier.fullToReducedVectorDirichlet(RHS);
+        end
+
+        function uD = computeRHDcondition(obj,test,dir)
+            s.mesh = obj.boundaryMeshJoined;
+            s.quadType = 2;
+            rhs = RHSIntegratorShapeFunction(s);
+            nfun = size(dir,2);
+            uD = [];
+            for i=1:nfun
+                rDiri = rhs.compute(dir{i},test);
+                uD = [uD rDiri];
+            end
         end
 
         function Meifem = createEIFEMPreconditioner(obj,mR,dir,iC,lG,bS,iCR,dMesh)
@@ -391,13 +434,40 @@ classdef Training < handle
             Mjacobi = @(r) M.apply(r);
         end
 
-        function Mmodal = createModalpreconditioner(obj,LHS)
-            s.LHS = LHS;
-            s.nBasis = 8;
-            s.type   = 'MODAL';
-            M = Preconditioner.create(s);
-            Mmodal = @(r) M.apply(r);
+
+        function uD = AnalyticalDirCond(obj)
+            test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.meshDomain.ndim, 'P1');
+            s.mesh = obj.boundaryMeshJoined;
+            s.quadType = 2;
+%             rhs = RHSintegrator_ShapeFunction(s);
+
+            f1x = @(x) [1/(4)*(1-x(1,:,:)).*(1-x(2,:,:));...
+                    0*x(2,:,:)  ];
+            f2x = @(x) [1/(4)*(1+x(1,:,:)).*(1-x(2,:,:));...
+                    0*x(2,:,:)  ];
+            f3x = @(x) [1/(4)*(1+x(1,:,:)).*(1+x(2,:,:));...
+                    0*x(2,:,:)  ];
+            f4x = @(x) [1/(4)*(1-x(1,:,:)).*(1+x(2,:,:));...
+                    0*x(2,:,:)  ];
+
+            f1y = @(x) [0*x(1,:,:);...
+                    1/(4)*(1-x(1,:,:)).*(1-x(2,:,:))  ];
+            f2y = @(x) [0*x(1,:,:);...
+                    1/(4)*(1+x(1,:,:)).*(1-x(2,:,:))  ];
+            f3y = @(x) [0*x(1,:,:);...
+                    1/(4)*(1+x(1,:,:)).*(1+x(2,:,:))  ];
+            f4y = @(x) [0*x(1,:,:);...
+                    1/(4)*(1-x(1,:,:)).*(1+x(2,:,:))  ];
+
+            f     = {f1x f1y f2x f2y f3x f3y f4x f4y}; %
+            nfun = size(f,2);
+            for i=1:nfun
+                uD{i}  = AnalyticalFunction.create(f{i},obj.meshDomain.ndim,obj.boundaryMeshJoined);                   
+            end
+
+
         end
+
 
 
 %         function plotSolution(obj,x,mesh,row,col,iter,flag)

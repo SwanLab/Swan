@@ -52,6 +52,8 @@ classdef LHSIntegratorFactory < handle
                    obj = LHSIntegratorFunctionAdvection(cParams); 
                case 'DivergenceMatrix'
                    obj = LHSintegratorDivergenceMatrix(cParams); 
+               case 'ConditionMatrix'
+                   obj = LHSIntegrator_condition_shape_shape(cParams); 
            end
        end
    end
