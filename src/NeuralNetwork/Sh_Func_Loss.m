@@ -114,7 +114,7 @@ classdef Sh_Func_Loss < handle
                 x = zeros([nB,size(Xl,2)]);
                 y = zeros([nB,size(Yl,2)]);
             end
-            cont = 1;            
+            cont = 1;
             for jB = (iB-1)*nB+1:iB*nB+plus
                 x(cont,:) = Xl(obj.order(jB),:);
                 y(cont,:) = Yl(obj.order(jB),:);

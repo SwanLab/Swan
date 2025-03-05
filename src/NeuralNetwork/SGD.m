@@ -2,7 +2,7 @@ classdef SGD < Trainer
 
     properties (Access = private)
        fvStop
-       lSearchtype
+       lSearchType
        MaxEpochs
        maxFunEvals
        optTolerance
@@ -29,7 +29,7 @@ classdef SGD < Trainer
             obj.MaxEpochs   = 1000;
             obj.earlyStop   = obj.MaxEpochs;
             obj.svepoch     = 0;
-            obj.lSearchtype  = 'static';
+            obj.lSearchType = 'static';
         end
         
         function compute(obj)
@@ -57,77 +57,70 @@ classdef SGD < Trainer
     methods(Access = private)  
         
         function optimize(obj,th0)
-            epsilon0      = obj.learningRate;
-            epoch         = 1;
-            iter          = -1;
-            funcount      = 0;
-            fv            = 1;
-            alarm         = 0;
-            gnorm         = 1;
+            epsilon      = obj.learningRate;
+            iter         = -1;
+            funcount     = 0;
+            alarm        = 0;
             minTestError = 1;
+            KPI.epoch = 1;
+            KPI.alarm = 0;
+            KPI.gnorm = 1;
+            KPI.cost  = 1;
 
-            criteria = obj.updateCriteria(epoch, alarm, gnorm, fv);
-            while all(criteria == 1)
-
+            while obj.isCriteriaMet(KPI) == false
                 state   = 'iter';
                 if iter == -1
-                    theta      = th0;
-                    epsilon = epsilon0;
+                    theta   = th0;
                     state   = 'init';   
                 end
-
-                moveBatch = true;
                 newEpoch  = true;
+                moveBatch = true;
                 while obj.objectiveFunction.isBatchDepleted == false || newEpoch
-                    obj.objectiveFunction.setBatchMover(moveBatch);
-                    obj.objectiveFunction.computeStochasticFunctionAndGradient(theta);
-                    f    = obj.objectiveFunction.value;
-                    grad = obj.objectiveFunction.gradient;
-                    [epsilon,theta,funcount] = obj.lineSearch(theta,grad,f,epsilon,epsilon0,funcount);
-                    epsilon0 = epsilon;
-                    gnorm    = norm(grad,2);
-                    funcount = funcount + 1;
-                    iter     = iter + 1;
-                    newEpoch = false;
-                    obj.displayIter(epoch,iter,funcount,theta,f,gnorm,epsilon,state);
+                    [f, grad] = obj.computeStochasticFunctionAndGradient(theta, moveBatch);
+                    [epsilon,theta,funcount] = obj.lineSearch(theta,grad,f,epsilon,funcount);
+                    
+                    funcount  = funcount + 1;
+                    iter      = iter + 1;
+                    newEpoch  = false;
+                    
+                    KPI.cost  = f;
+                    KPI.gnorm = norm(grad,2);
+                    obj.displayIter(iter,funcount,theta,epsilon,state,KPI);
                 end
-
-                [alarm,minTestError] = obj.objectiveFunction.validateES(alarm,minTestError);
-                epoch = epoch + 1;
-                criteria = obj.updateCriteria(epoch + 1, alarm, gnorm, f);
+                KPI.epoch = KPI.epoch + 1;
+                [KPI.alarm,minTestError] = obj.objectiveFunction.validateES(alarm,minTestError);
             end
         end
 
-        function [e,x,funcount] = lineSearch(obj,x,grad,fOld,e,e0,funcount)
-            F = @(theta) obj.objectiveFunction.computeStochasticFunctionAndGradient(theta);
+        function [f, grad] = computeStochasticFunctionAndGradient(obj, theta, moveBatch)
+            obj.objectiveFunction.setBatchMover(moveBatch);
+            obj.objectiveFunction.computeStochasticFunctionAndGradient(theta);
+            f    = obj.objectiveFunction.value;
+            grad = obj.objectiveFunction.gradient;
+        end
 
-            type = obj.lSearchtype;
+        function [e,x,funcount] = lineSearch(obj,x,grad,fOld,e,funcount)
             moveBatch = false;
+            F = @(theta) obj.computeStochasticFunctionAndGradient(theta, moveBatch);
+            type = obj.lSearchType;
             switch type
                 case 'static'
                     xnew = obj.step(x,e,grad);
                 case 'decay'
-                    %tau = 50;
                     xnew = obj.step(x,e,grad);
-                    %e = e - 0.99*e0*30/tau;
-                    e = e - 0.001*e0;
+                    e = e * (1 - 1e-3);
                 case 'dynamic'
                     f = fOld;
                     xnew = x;
                     while f >= 1.001*(fOld - e*(grad*grad'))
                         xnew = obj.step(x,e,grad);
-                        obj.objectiveFunction.setBatchMover(moveBatch);
-                        %[f,~] = F(xnew);
-                        F(xnew);
-                        f    = obj.objectiveFunction.value;
-                        %grad = obj.objectiveFunction.gradient;
+                        [f, ~] = F(xnew);
                         e = e/2;
                         funcount = funcount + 1;
                     end
                     e = 5*e;                
                 case 'fminbnd'
                     xnew = @(e1) obj.step(x,e1,grad);
-                    obj.objectiveFunction.setBatchMover(moveBatch);
                     f = @(e1) F(xnew(e1));
                     [e,~] = fminbnd(f,e/10,e*10);
                     xnew = xnew(e);
@@ -135,32 +128,35 @@ classdef SGD < Trainer
             x = xnew;
         end
 
-        function criteria = updateCriteria(obj, epoch, alarm, gnorm, cost)
-            criteria(1)   = epoch <= obj.MaxEpochs; 
-            criteria(2)   = alarm < obj.earlyStop; 
-            criteria(3)   = gnorm > obj.optTolerance;
+        function criteria = updateCriteria(obj, KPI)
+            criteria(1)   = KPI.epoch <= obj.MaxEpochs; 
+            criteria(2)   = KPI.alarm < obj.earlyStop;
+            criteria(3)   = KPI.gnorm > obj.optTolerance;
             criteria(4)   = toc < obj.timeStop;
-            criteria(5)   = cost > obj.fvStop;
+            criteria(5)   = KPI.cost > obj.fvStop;
+        end
 
+        function itIs = isCriteriaMet(obj, KPI)
+            criteria = obj.updateCriteria(KPI);
             failedIdx = find(~criteria, 1);
+            itIs = false;
             if ~isempty(failedIdx)
-                msg = {sprintf('Minimization terminated, maximum number of epochs reached %d\n',epoch), ...
+                itIs = true;
+                msg = {sprintf('Minimization terminated, maximum number of epochs reached %d\n',KPI.epoch), ...
                        sprintf('Minimization terminated, validation set did not decrease in %d epochs\n',obj.earlyStop), ...
                        sprintf('Minimization terminated, reached the optimalty tolerance of %f\n',obj.optTolerance), ...
                        sprintf('Minimization terminated, reached the limit time of %f\n',obj.timeStop), ...
                        sprintf('Minimization terminated, reached the target function value of %f\n',obj.fvStop)};
-
                 if failedIdx >= 1 && failedIdx <= length(msg)
                     fprintf('%s', msg{failedIdx})
                 end
             end
         end
 
-        function displayIter(obj,epoch,iter,funcount,x,f,gnorm,epsilon,state)
-            opt.epsilon        = epsilon*gnorm; 
-            opt.gnorm          = gnorm;
-            obj.printValues(epoch,funcount,opt,f,iter)
-
+        function displayIter(obj,iter,funcount,x,epsilon,state,KPI)
+            opt.epsilon        = epsilon*KPI.gnorm; 
+            opt.gnorm          = KPI.gnorm;
+            obj.printValues(KPI.epoch,funcount,opt,KPI.cost,iter)
             if obj.isDisplayed && (~mod(epoch, 25) || iter == -1)
                 obj.storeValues(x,f,state,opt);
             end
@@ -173,7 +169,6 @@ classdef SGD < Trainer
                     'Epoch Iteration  Func-count       f(x)        Step-size       optimality\n']);
             end
             fprintf(formatstr,epoch,iter,funcount,f,opt.epsilon,opt.gnorm);
-            
             if epoch ~= obj.svepoch
                 obj.svepoch = epoch;
                 obj.fplot(1,epoch) = f;

@@ -24,7 +24,7 @@ classdef OptimizationProblem < handle
            obj.createRegularizationFunctional();
            obj.createCost();
            obj.createPlotter();
-           obj.createOptimizer();           
+           obj.createOptimizer();
        end
 
        function solve(obj)
