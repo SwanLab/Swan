@@ -26,6 +26,7 @@ classdef OptimizerNullSpace < Optimizer
         etaNormMin
         gJFlowRatio
         predictedTau
+        grayMeasure
         firstEstimation
     end
 
@@ -110,6 +111,9 @@ classdef OptimizerNullSpace < Optimizer
                 case 'LevelSet'
                     titles = [titles;{'Theta';'Alpha';'Beta'}];
                     chartTypes = [chartTypes,{'plot','plot','plot'}];
+                    case 'Density'
+                    titles = [titles;{'Gray measure'}];
+                    chartTypes = [chartTypes,{'plot'}];
             end
             s.shallDisplay = cParams.monitoring;
             s.maxNColumns  = 6;
@@ -119,6 +123,7 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function updateMonitoring(obj)
+            obj.computeGrayMeasure();
             data = obj.cost.value;
             data = [data;obj.cost.getFields(':')];
             data = [data;obj.constraint.value];
@@ -136,9 +141,18 @@ classdef OptimizerNullSpace < Optimizer
                     else
                         data = [data;obj.primalUpdater.Theta;obj.primalUpdater.Alpha;obj.primalUpdater.Beta];
                     end
+                case 'Density'
+                    data = [data;obj.grayMeasure];
             end
             obj.monitoring.update(obj.nIter,num2cell(data));
             obj.monitoring.refresh();
+        end
+
+        function computeGrayMeasure(obj)
+            xFun = obj.designVariable.fun;
+            dInt = xFun.*(1-xFun);
+            int  = Integrator.compute(dInt,xFun.mesh,2);
+            obj.grayMeasure = int;
         end
 
         function updateEtaParameter(obj)

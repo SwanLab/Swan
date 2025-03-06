@@ -65,13 +65,13 @@ classdef PerimeterNormPFunctional < handle
             xP     = (x.*(1-Le)).^obj.p;
             PerP   = Integrator.compute(xP,obj.mesh,obj.quadrature.order);
             obj.Pp = PerP^(1/obj.p);
-            J      = (1/(2*obj.epsilon))*((1/obj.perimeterTarget)*((1/obj.totalVolume)^(1/obj.p))*obj.Pp) - 1;
+            J      = ((1/obj.perimeterTarget)*((1/obj.totalVolume)^(1/obj.p))*obj.Pp) - 1;
         end
 
         function dJ = computeGradient(obj,x,Le)
             Lea = obj.computeFilteredTermForGradient(x,Le);
             num = (((x.*(1-Le)).^(obj.p-1)).*(1-Le) - Lea).*(obj.Pp^(1-obj.p));
-            den = 2*obj.epsilon*obj.perimeterTarget*(obj.totalVolume)^(1/obj.p);
+            den = obj.perimeterTarget*(obj.totalVolume)^(1/obj.p);
             dJ  = num./den;
             dJ  = dJ.project('P1');
         end
