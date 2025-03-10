@@ -1,9 +1,9 @@
 %% Test for TestNaca
 tic; % Inicia el contador de tiempo
-Naca.M     = 0.07;
-Naca.p     = 0.8;
+Naca.M     = 0.02;
+Naca.p     = 0.4;
 Naca.t     = 0.12;
-Naca.chord = 2;
+Naca.chord = 1;
 Naca.AoA   = 0;
 
 NacaClass = TestNaca(Naca);
@@ -15,7 +15,7 @@ NacaClass.compute();
 
 m     = 0:0.005:0.09;
 p     = 0.2:0.05:0.8;
-t     = 0.05:0.05:0.4;
+t     = 0.05:0.05:0.4; % A partir de 0.1
 alpha = 0:1:30;
 
 %% Code to compute Efficiency dataset

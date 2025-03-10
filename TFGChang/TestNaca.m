@@ -36,7 +36,7 @@ classdef TestNaca < handle
     methods (Access = public)
         
         function obj = TestNaca(cParams)
-            close all;
+            %close all;
             obj.init(cParams);    
             obj.createReferenceMesh();
             [AirfoilParams, BGParams] = obj.setParams();
@@ -94,15 +94,15 @@ classdef TestNaca < handle
             % obj.refMesh = QuadMesh(obj.length,obj.height,nx,ny); 
              obj.length  = 8;
              obj.height  = 4;
-             nx          = 150;
-             ny          = 75;
+             nx          = 600;
+             ny          = 300;
              obj.refMesh = TriangleMesh(obj.length,obj.height,nx,ny);
         end
 
         function createLevelSet(obj,AirfoilParams, BGParams)
             g = obj.createNacaFunction(AirfoilParams, BGParams);
             obj.levelSet = g.computeLevelSetFunction(obj.refMesh);
-            %obj.levelSet.plot();
+            obj.levelSet.plot();
         end
         
         function createFluidMesh(obj)
@@ -112,6 +112,7 @@ classdef TestNaca < handle
             obj.uMesh.compute(obj.levelSet.fValues);       
             obj.rawMesh = obj.uMesh.createInnerMesh();
             obj.mesh    = obj.rawMesh;
+            figure;
             obj.mesh.plot();
             % title("Mesh with the airfoil inclusion.");
             % xlabel("x");

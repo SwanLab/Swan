@@ -14,12 +14,12 @@ classdef GeometricalFunction < handle
             s.ndimf   = 1;
             s.mesh    = m;
             aFun      = AnalyticalFunction(s);
-            ls        = aFun.project('P1');
+            % ls        = aFun.project('P1');
 
-%             sF.trial = LagrangianFunction.create(m,1,'P1');
-%             sF.mesh = m;
-%             filter = FilterLump(sF);
-%             ls = filter.compute(aFun,10);
+            sF.trial = LagrangianFunction.create(m,1,'P1');
+            sF.mesh = m;
+            filter = FilterLump(sF);
+            ls = filter.compute(aFun,10);
 
         end
 
@@ -293,17 +293,74 @@ classdef GeometricalFunction < handle
             f(:,:,:,2)   = yNaca - yu;
             f(:,:,:,3)   = xNaca - 1; 
             f(:,:,:,4)   = -xNaca;
-
-
+            
             % STEP 2. Make +/- signs more sparse
+            % f(:,:,:,1)   = -2.^(-3*f(:,:,:,1)) + 1;
+            % f(:,:,:,2)   = -2.^(-3*f(:,:,:,2)) + 1;
+            % f(:,:,:,3)   = -2.^(-1*f(:,:,:,3)) + 1;
+            % f(:,:,:,4)   = -2.^(-1*f(:,:,:,4)) + 1;
             f(:,:,:,1)   = -exp(-10*f(:,:,:,1)) + 1;
             f(:,:,:,2)   = -exp(-10*f(:,:,:,2)) + 1;
             f(:,:,:,3)   = -exp(-10*f(:,:,:,3)) + 1;
             f(:,:,:,4)   = -exp(-10*f(:,:,:,4)) + 1;
-            
+            % 
             % STEP 3. Smooth the max function
             % ...
-            fV = max(f,[],4);     %Here no "-" sign is needed since we differentiate the inner naca from the hole naca
+            % minF = min(f(:));
+            % f = f - minF; 
+            % 
+            % p = 9;
+            % 
+            % fV = (f(:,:,:,1).^p + f(:,:,:,2).^p + f(:,:,:,3).^p + f(:,:,:,4).^p).^(1/p) + minF;
+            
+
+            % alpha = 200;
+            % 
+            % fVUp   = 0;
+            % fVDown = 0;
+            % 
+            % for i = 1:4
+            % 
+            %     fun      = f(:,:,:,i);
+            %     fVUp   = fVUp + fun.*exp(alpha*fun);
+            %     fVDown = fVDown + exp(alpha*fun); 
+            % 
+            % end
+
+            % fV = fVUp./fVDown;
+
+            alpha = 200;
+            fV = 1/alpha*log(exp(alpha*f(:,:,:,1)) + exp(alpha*f(:,:,:,2)) + exp(alpha*f(:,:,:,3)) + exp(alpha*f(:,:,:,4)));
+
+
+            % alpha = 200;
+            % fV = 1/alpha*log(1/4*(exp(alpha*f(:,:,:,1)) + exp(alpha*f(:,:,:,2)) + exp(alpha*f(:,:,:,3)) + exp(alpha*f(:,:,:,4))));
+
+
+            % fV = max(f,[],4);     %Here no "-" sign is needed since we differentiate the inner naca from the hole naca
+
+            % Crear el filtro gaussiano (Neteja tot darrere, la part separada)
+            sigma = 3;  % Ajustar según la necesidad
+            kernelSize = ceil(6 * sigma);  
+            if mod(kernelSize,2) == 0 
+                kernelSize = kernelSize + 1;
+            end
+
+
+            kernel = fspecial('gaussian', [kernelSize kernelSize], sigma);
+            fV = imfilter(fV, kernel, 'same');
+
+            % Detectar borde de salida
+            % edgeMask = xNaca > 0.95 & xNaca < 1.05;  
+            % 
+            % % % Suavizar solo en el borde de salida
+            % % fV(edgeMask) = conv2(fV(edgeMask), ones(1,5)/5, 'same');
+            % 
+            % % Levantar un poco más el borde de salida añadiendo un offset
+            % offset = -0.05;  % Ajusta este valor según lo necesites
+            % fV = fV + offset;
+            % %fV(edgeMask) = fV(edgeMask) + offset;
+
         end
 
 
