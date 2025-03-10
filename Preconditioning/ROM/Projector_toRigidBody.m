@@ -7,17 +7,18 @@ classdef Projector_toRigidBody < Projector
     methods (Access = public)
 
         function obj = Projector_toRigidBody(cParams)
-            obj.init(cParams);
+%             obj.init(cParams);
             obj.refPoint = cParams.refPoint;
         end
 
         function xFun = project(obj, x)
-            LHS = obj.computeLHS();
+            LHS = obj.computeLHS(x);
             RHS = obj.computeRHS(x);
             xProj = LHS\RHS;
-            s.mesh    = obj.mesh;
+            s.mesh    = x.mesh;
             s.fvalues = xProj;
             s.refPoint = obj.refPoint;
+            s.ndimf   = x.ndimf;
             xFun = RigidBodyFunction(s);
         end
 
@@ -25,13 +26,13 @@ classdef Projector_toRigidBody < Projector
 
     methods (Access = private)
 
-        function LHS = computeLHS(obj)
-            mesh     = obj.mesh;
+        function LHS = computeLHS(obj,x)
+            mesh     = x.mesh;
             refPoint = obj.refPoint;
             test  = RigidBodyFunction.create(mesh,refPoint);
             quad  = obj.createRHSQuadrature(test);
             xV    = quad.posgp;
-            dV    = obj.mesh.computeDvolume(quad);
+            dV    = x.mesh.computeDvolume(quad);
             ngaus = quad.ngaus;
             basisTest  = test.computeBasisFunction(xV);
             basisTrial = basisTest;
@@ -49,14 +50,14 @@ classdef Projector_toRigidBody < Projector
         end
 
         function RHS = computeRHS(obj,fun)
-            mesh     = obj.mesh;
+            mesh     = fun.mesh;
             refPoint = obj.refPoint;
 
             test  = RigidBodyFunction.create(mesh,refPoint);
 
             quad = obj.createRHSQuadrature(fun);
             xV = quad.posgp;
-            dV = obj.mesh.computeDvolume(quad);
+            dV = fun.mesh.computeDvolume(quad);
 
             basisTest  = test.computeBasisFunction(xV);
             nbasis     = size(basisTest,2);
@@ -79,8 +80,8 @@ classdef Projector_toRigidBody < Projector
 
         function q = createRHSQuadrature(obj, fun)
             ord = obj.determineQuadratureOrder(fun);
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature(ord);
+            q = Quadrature.create(fun.mesh,ord);
+%             q.computeQuadrature(ord);
         end
 
     end

@@ -1,7 +1,7 @@
-classdef RigidBodyFunction < L2Function
+classdef RigidBodyFunction < BaseFunction
 
     properties (Access = public)
-        ndimf
+%                  ndimf
         nbasis
         basisFunctions
     end
@@ -28,15 +28,15 @@ classdef RigidBodyFunction < L2Function
             obj.basisFunctions{3} = obj.computeRotationBase();
         end
 
-        function fxV = evaluate(obj, xGLoc)
-            phiU = obj.basisFunctions{1}.evaluate(xGLoc);
-            phiV = obj.basisFunctions{2}.evaluate(xGLoc);
-            phiT = obj.basisFunctions{3}.evaluate(xGLoc);
-            u     = obj.fvalues(1);
-            v     = obj.fvalues(2);
-            theta = obj.fvalues(3);
-            fxV = u*phiU + v*phiV + theta*phiT;
-        end
+%         function fxV = evaluateNew(obj, xGLoc)
+%             phiU = obj.basisFunctions{1}.evaluate(xGLoc);
+%             phiV = obj.basisFunctions{2}.evaluate(xGLoc);
+%             phiT = obj.basisFunctions{3}.evaluate(xGLoc);
+%             u     = obj.fvalues(1);
+%             v     = obj.fvalues(2);
+%             theta = obj.fvalues(3);
+%             fxV = u*phiU + v*phiV + theta*phiT;
+%         end
 
         function bE = computeBasisFunction(obj,xGloc)
             for i=1:obj.nbasis
@@ -53,8 +53,8 @@ classdef RigidBodyFunction < L2Function
     methods (Access = public, Static)
 
         function RB = create(mesh,refPoint)
-            ndimf=mesh.ndim;
-            s.fvalues  = zeros(mesh.nnodes, ndimf);
+            s.ndimf      = mesh.ndim;
+            s.fvalues  = zeros(mesh.nnodes, s.ndimf);
             s.mesh     = mesh;
             s.refPoint = refPoint;
             RB = RigidBodyFunction(s);
@@ -82,12 +82,13 @@ classdef RigidBodyFunction < L2Function
             obj.fvalues  = cParams.fvalues;
             obj.refPoint = cParams.refPoint;
             obj.mesh     = cParams.mesh;
+            obj.ndimf    = cParams.ndimf;
             obj.nbasis   = 3;
         end
 
         function f = computeHorizontalTranslationBase(obj)
             s.fHandle = @(x) [ones(size(x(1,:,:)));zeros(size(x(1,:,:)))];
-            obj.ndimf = obj.mesh.ndim;
+            %             obj.ndimf = obj.mesh.ndim;
             s.ndimf   = obj.ndimf;
             s.mesh    = obj.mesh;
             f = AnalyticalFunction(s);
@@ -95,7 +96,7 @@ classdef RigidBodyFunction < L2Function
 
         function f = computeVerticalTranslationBase(obj)
             s.fHandle = @(x) [zeros(size(x(1,:,:)));ones(size(x(2,:,:)))];
-            obj.ndimf = obj.mesh.ndim;
+            %             obj.ndimf = obj.mesh.ndim;
             s.ndimf   = obj.ndimf;
             s.mesh    = obj.mesh;
             f = AnalyticalFunction(s);
@@ -105,12 +106,26 @@ classdef RigidBodyFunction < L2Function
             x0 = obj.refPoint(1);
             y0 = obj.refPoint(2);
             s.fHandle = @(x) [-(x(2,:,:)-y0);x(1,:,:)-x0];
-            obj.ndimf = obj.mesh.ndim;
+            %             obj.ndimf = obj.mesh.ndim;
             s.ndimf   = obj.ndimf;
             s.mesh    = obj.mesh;
             f= AnalyticalFunction(s);
         end
 
+
+    end
+
+    methods(Access=protected)
+
+        function fxV = evaluateNew(obj, xGLoc)
+            phiU = obj.basisFunctions{1}.evaluate(xGLoc);
+            phiV = obj.basisFunctions{2}.evaluate(xGLoc);
+            phiT = obj.basisFunctions{3}.evaluate(xGLoc);
+            u     = obj.fvalues(1);
+            v     = obj.fvalues(2);
+            theta = obj.fvalues(3);
+            fxV = u*phiU + v*phiV + theta*phiT;
+        end
 
     end
 
