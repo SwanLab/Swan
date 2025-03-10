@@ -103,7 +103,7 @@ classdef ShFunc_ElasticDamage < handle
             s.ndimf = 1;
             s.mesh  = obj.mesh;
             obj.d = DomainFunction(s);
-        end-<
+        end
 
         function q = computeHardening(obj)
             q = @(r,r0) r0 + obj.H *(r-r0);
