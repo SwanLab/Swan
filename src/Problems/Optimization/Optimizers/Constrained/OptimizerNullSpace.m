@@ -70,7 +70,6 @@ classdef OptimizerNullSpace < handle
             obj.constraint      = cParams.constraint;
             obj.constraintCase  = cParams.constraintCase;
             obj.designVariable  = cParams.designVariable;
-            obj.dualVariable    = cParams.dualVariable;
             obj.maxIter         = cParams.maxIter;
             obj.lG              = 0;
             obj.lJ              = 0;
@@ -83,8 +82,15 @@ classdef OptimizerNullSpace < handle
             obj.eta             = 0;
             obj.etaMin          = 1e-6;
             obj.primalUpdater   = cParams.primalUpdater;
+            obj.createDualVariable();
+            cParams.dualVariable = obj.dualVariable; % ESTO LO QUITARÉ CUANDO DUALVARIABLE DESAPAREZCA DEL DUAPUPDATERNULL..
             obj.dualUpdater     = DualUpdaterNullSpace(cParams);
             obj.initOtherParameters(cParams);
+        end
+
+        function createDualVariable(obj)
+            s.nConstraints   = length(obj.constraintCase);
+            obj.dualVariable = DualVariable(s);
         end
 
         function initOtherParameters(obj,cParams)
@@ -133,7 +139,7 @@ classdef OptimizerNullSpace < handle
             obj.updateMonitoringMultipliers();
         end
 
-        function updateMonitoringMultipliers(obj) % Used just to monitor
+        function updateMonitoringMultipliers(obj)
             g      = obj.constraint.value;
             Dg     = obj.constraint.gradient;
             DJ     = obj.cost.gradient;
