@@ -1,12 +1,22 @@
-classdef OptimizerNullSpace < Optimizer
+classdef OptimizerNullSpace < handle
 
-    properties (GetAccess = public, SetAccess = protected)
-        type = 'NullSpace';
+    properties (Access = private)
+        tolCost   = 1e-8
+        tolConstr = 1e-6
     end
 
     properties (Access = private)
+        cost
+        constraint
+        constraintCase
+        designVariable
+        dualVariable
+        primalUpdater
+        dualUpdater
+        maxIter
+        nIter
+        monitoring
         lineSearchTrials
-        tol = 1e-8
         hasConverged
         acceptableStep
         hasFinished
@@ -31,17 +41,15 @@ classdef OptimizerNullSpace < Optimizer
 
     methods (Access = public) 
         function obj = OptimizerNullSpace(cParams)
-            obj.initOptimizer(cParams);
             obj.init(cParams);
-            obj.createPrimalUpdater(cParams);
-            obj.createDualUpdater(cParams);
+            obj.createMonitoring(cParams);
             obj.prepareFirstIter();
         end
 
         function solveProblem(obj)
             obj.hasConverged = false;
             obj.hasFinished  = false;
-            obj.printOptimizerVariable();
+            obj.plotVariable();
             obj.updateMonitoring();
             obj.computeNullSpaceFlow();
             obj.computeRangeSpaceFlow();
@@ -49,7 +57,7 @@ classdef OptimizerNullSpace < Optimizer
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
-                obj.printOptimizerVariable();
+                obj.plotVariable();
                 obj.updateMonitoring();
                 obj.checkConvergence();
                 obj.designVariable.updateOld();
@@ -61,6 +69,7 @@ classdef OptimizerNullSpace < Optimizer
         function init(obj,cParams)
             obj.cost            = cParams.cost;
             obj.constraint      = cParams.constraint;
+            obj.constraintCase  = cParams.constraintCase;
             obj.designVariable  = cParams.designVariable;
             obj.dualVariable    = cParams.dualVariable;
             obj.maxIter         = cParams.maxIter;
@@ -74,8 +83,9 @@ classdef OptimizerNullSpace < Optimizer
             obj.etaNorm         = cParams.etaNorm;
             obj.eta             = 0;
             obj.etaMin          = 1e-6;
+            obj.primalUpdater   = cParams.primalUpdater;
+            obj.dualUpdater     = DualUpdaterNullSpace(cParams);
             obj.initOtherParameters(cParams);
-            obj.createMonitoring(cParams);
         end
 
         function initOtherParameters(obj,cParams)
@@ -139,6 +149,12 @@ classdef OptimizerNullSpace < Optimizer
             end
             obj.monitoring.update(obj.nIter,num2cell(data));
             obj.monitoring.refresh();
+        end
+
+        function plotVariable(obj)
+            if ismethod(obj.designVariable,'plot')
+                obj.designVariable.plot();
+            end
         end
 
         function updateEtaParameter(obj)
@@ -313,7 +329,9 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function obj = checkConvergence(obj)
-            if abs(obj.meritNew - obj.meritOld) < obj.tol && obj.checkConstraint()
+            value = obj.constraint.value;
+            cases = obj.constraintCase;
+            if abs(obj.meritNew - obj.meritOld) < obj.tolCost && Optimizer.checkConstraint(value,cases,obj.tolConstr)
                 obj.hasConverged = true;
                 if obj.primalUpdater.isTooSmall()
                     obj.primalUpdater.tau = 1;

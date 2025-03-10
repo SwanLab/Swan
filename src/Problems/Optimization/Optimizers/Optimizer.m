@@ -32,6 +32,23 @@ classdef Optimizer < handle
             obj = f.create(cParams);
         end
 
+        function isAcceptable = checkConstraint(value,cases,tol)
+            for i = 1:length(value)
+                switch cases{i}
+                    case {'EQUALITY'}
+                        fine = Optimizer.checkEqualityConstraint(value,i,tol);
+                    case {'INEQUALITY'}
+                        fine = Optimizer.checkInequalityConstraint(value,i);
+                end
+                if fine
+                    isAcceptable = true;
+                else
+                    isAcceptable = false;
+                    break;
+                end
+            end
+        end
+
     end
 
     methods (Access = protected)
@@ -57,23 +74,6 @@ classdef Optimizer < handle
             cParams.type    = obj.type;
             f               = DualUpdaterFactory();
             obj.dualUpdater = f.create(cParams);
-        end
-
-        function isAcceptable = checkConstraint(obj)
-            for i = 1:length(obj.constraint.value)
-                switch obj.constraintCase{i}
-                    case {'EQUALITY'}
-                        fine = obj.checkEqualityConstraint(i);
-                    case {'INEQUALITY'}
-                        fine = obj.checkInequalityConstraint(i);
-                end
-                if fine
-                    isAcceptable = true;
-                else
-                    isAcceptable = false;
-                    break;
-                end
-            end
         end
 
         function printOptimizerVariable(obj)
@@ -165,45 +165,15 @@ classdef Optimizer < handle
 
     end
 
-    methods (Access = private)
-        function createPostProcess(obj,cParams)
-            if cParams.shallPrint
-                d = obj.createPostProcessDataBase(cParams);
-                d.printMode = cParams.printMode;
-                d.nDesignVariables = obj.designVariable.nVariables;
-                obj.postProcess = Postprocess('TopOptProblem',d);
-                s.filename = [obj.outFolder,'/',obj.outFilename, '_simulation'];
-                obj.simulationPrinter = SimulationPrinter(s);
-            end
-        end
-
-        function d = createPostProcessDataBase(obj,cParams)
-            path = pwd;
-            obj.outFolder   = fullfile(path,'Output',cParams.femFileName);
-            obj.outFilename = cParams.femFileName;
-            d.mesh    = obj.designVariable.mesh;
-            d.outFileName = cParams.femFileName;
-            d.ptype   = cParams.ptype;
-            ps = PostProcessDataBaseCreator(d);
-            d  = ps.create();
-            d.ndim       = obj.designVariable.mesh.ndim;
-            d.pdim       = cParams.pdim;
-            d.optimizer  = obj.type;
-            d.cost       = obj.cost;
-            d.constraint = obj.constraint;
-            d.designVar  = obj.designVariable.type;
-        end
-
-        function c = checkInequalityConstraint(obj,i)
-            g = obj.constraint.value(i);
+    methods (Static, Access = private)
+        function c = checkInequalityConstraint(value,i)
+            g = value(i);
             c = g <= 0;
         end
 
-        function c = checkEqualityConstraint(obj,i)
-            g = obj.constraint.value(i);
-            c = abs(g) < obj.tolerance;
+        function c = checkEqualityConstraint(value,i,tol)
+            g = value(i);
+            c = abs(g) < tol;
         end
-
     end
-
 end

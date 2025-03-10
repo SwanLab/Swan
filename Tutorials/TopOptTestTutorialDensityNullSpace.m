@@ -11,6 +11,7 @@ classdef TopOptTestTutorialDensityNullSpace < handle
         cost
         constraint
         dualVariable
+        primalUpdater
         optimizer
     end
 
@@ -29,6 +30,7 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             obj.createCost();
             obj.createConstraint();
             obj.createDualVariable();
+            obj.createPrimalUpdater();
             obj.createOptimizer();
         end
 
@@ -171,6 +173,13 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             obj.dualVariable = l;
         end
 
+        function createPrimalUpdater(obj)
+            s.ub     = 1;
+            s.lb     = 0;
+            s.tauMax = 1000;
+            obj.primalUpdater = ProjectedGradient(s);
+        end
+
         function createOptimizer(obj)
             s.monitoring     = true;
             s.cost           = obj.cost;
@@ -181,11 +190,9 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
-            s.ub             = 1;
-            s.lb             = 0;
             s.etaNorm        = 0.01;
             s.gJFlowRatio    = 2;
-            s.tauMax         = 1000;
+            s.primalUpdater  = obj.primalUpdater;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
