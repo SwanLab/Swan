@@ -199,6 +199,17 @@ classdef GeometricalFunction < handle
                     s      = cParams;
                     s.type = 'NacaInterior';
                     obj.computeInclusion(s);
+
+                case 'LevelSet1'
+                    fH = @(x) obj.createLS1(x1(x),x2(x),cParams);
+                    obj.fHandle = fH;
+
+                case 'LevelSet2'
+
+                case 'LevelSet3'
+
+                case 'LevelSet4'
+
             end
         end
 
@@ -360,6 +371,59 @@ classdef GeometricalFunction < handle
             % offset = -0.05;  % Ajusta este valor según lo necesites
             % fV = fV + offset;
             % %fV(edgeMask) = fV(edgeMask) + offset;
+
+        end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+         function fV = createLS1(x,y,s)
+
+            c   = s.chord;
+            p   = s.p;
+            m   = s.m;
+            t   = s.t;
+            AoA = deg2rad(s.AoA);
+        
+            x0     = s.xLE;
+            y0     = s.yLE/c;
+            offsetX  = (x - x0)/c;
+            offsetY  = y/c - y0;
+
+            xNaca    = offsetX.*cos(AoA) - offsetY.*sin(AoA);
+            yNaca    = offsetX.*sin(AoA) + offsetY.*cos(AoA);
+        
+            yc   = (xNaca>=0 & xNaca<=p).*(m./p^2.*(2*p*xNaca-xNaca.^2))+...
+                    (xNaca>p & xNaca<=1).*(m./(1-p)^2.*((1-2*p)+2*p*xNaca-xNaca.^2));
+            yt   = (xNaca>=0 & xNaca<=1).*(5*t*(0.2969*sqrt(xNaca)-0.1260*xNaca-0.3516*xNaca.^2+0.2843*xNaca.^3-0.1036*xNaca.^4));
+            dydx = (xNaca>=0 & xNaca<=p).*(2*m/p^2.*(p-xNaca))+...
+                    (xNaca>p & xNaca<=1).*(2*m/(1-p)^2.*(p-xNaca));
+        
+            theta = atan(dydx);
+            yl    = yc - yt.*cos(theta);
+            
+            fV   = yl - yNaca;
 
         end
 
