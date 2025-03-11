@@ -82,9 +82,8 @@ classdef OptimizerNullSpace < handle
             obj.eta             = 0;
             obj.etaMin          = 1e-6;
             obj.primalUpdater   = cParams.primalUpdater;
-            obj.createDualVariable();
-            cParams.dualVariable = obj.dualVariable; % ESTO LO QUITARÉ CUANDO DUALVARIABLE DESAPAREZCA DEL DUAPUPDATERNULL..
             obj.dualUpdater     = DualUpdaterNullSpace(cParams);
+            obj.createDualVariable();
             obj.initOtherParameters(cParams);
         end
 
@@ -196,7 +195,7 @@ classdef OptimizerNullSpace < handle
             obj.updateEtaParameter();
             obj.acceptableStep   = false;
             obj.lineSearchTrials = 0;
-            obj.dualUpdater.update(obj.eta,obj.primalUpdater);
+            obj.updateDualVariable();
             obj.mOldPrimal = obj.computeMeritFunction();
             obj.computeNullSpaceFlow();
             obj.computeRangeSpaceFlow();
@@ -206,6 +205,13 @@ classdef OptimizerNullSpace < handle
                 obj.updatePrimal();
                 obj.checkStep(x0);
             end
+        end
+
+        function updateDualVariable(obj)
+            e = obj.eta;
+            p = obj.primalUpdater;
+            l = obj.dualUpdater.update(e,p);
+            obj.dualVariable.update(l);
         end
 
         function calculateInitialStep(obj)
@@ -242,14 +248,12 @@ classdef OptimizerNullSpace < handle
             if mNew <= obj.mOldPrimal+1e-3  &&  norm(x-x0)/(norm(x0)+1) < etaN
                 obj.acceptableStep = true;
                 obj.meritNew       = mNew;
-                obj.dualUpdater.updateOld();
                 obj.updateEtaMax();
             elseif obj.primalUpdater.isTooSmall()
                 warning('Convergence could not be achieved (step length too small)')
                 obj.acceptableStep = true;
                 obj.meritNew       = obj.mOldPrimal;
                 obj.designVariable.update(x0);
-                obj.dualUpdater.updateOld();
             else
                 obj.primalUpdater.decreaseStepLength();
                 obj.designVariable.update(x0);
