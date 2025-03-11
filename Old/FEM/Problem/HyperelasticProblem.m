@@ -57,8 +57,8 @@ classdef HyperelasticProblem < handle
 
                     hasNotConverged = obj.hasNotConverged(intEnergy);
                 end
-                normDisp(iStep) = Norm.computeL2(obj.mesh, u);
-                normReac(iStep) = Norm.computeL2(obj.mesh, reacFun);
+                normDisp(iStep) = Norm(u,'L2');
+                normReac(iStep) = Norm(reacFun,'L2');
                 obj.printFile(iStep, u, reacFun);              
                 nIterPerStep(iStep) = obj.computeNumberOfIterations(iter,nIterPerStep,iStep);
                 obj.plotStep(intEnergy,nIterPerStep,iStep, normDisp,normReac);

@@ -2,7 +2,8 @@ classdef ExplainingPeriodicFunction2D < handle
 
     properties (Access = private)
         mesh
-        orientation
+        orientationA
+        orientationB
         levelSet
     end
 
@@ -15,7 +16,6 @@ classdef ExplainingPeriodicFunction2D < handle
         widthH
         widthW
         nCells
-        alpha
     end
 
     methods (Access = public)
@@ -23,8 +23,8 @@ classdef ExplainingPeriodicFunction2D < handle
         function obj = ExplainingPeriodicFunction2D()
             obj.init();
             obj.createMesh();
-            obj.createAngle();
-            obj.createOrientation();
+            obj.createOrientationA();
+            obj.createOrientationB();
             obj.dehomogenize();
         end
 
@@ -34,14 +34,20 @@ classdef ExplainingPeriodicFunction2D < handle
 
         function init(obj)
             obj.meshSize = 0.03;
-            obj.nCells   = [10 10; 20 20];
-            obj.xmin = 0;
-            obj.xmax = 2;
-            obj.ymin = 0;
-            obj.ymax = 1;
-            %obj.widthH = 0.4;
-            obj.widthH = 0.8;
-            obj.widthW = 0.8;
+            %obj.meshSize = 0.01;
+            n0 = 4; nF = 30; nN = 3;
+            obj.nCells   = round(repmat(linspace(n0,nF,nN),2,1)'/2)*2;
+             obj.xmin = 0;
+             obj.xmax = 2;
+             obj.ymin = 0;
+             obj.ymax = 1;
+           %obj.xmin = -0.005;
+           %obj.xmax = 0.005;
+           %obj.ymin = 0;
+           %obj.ymax = 0.01;
+            
+            obj.widthH = 0.85;%0.85;
+            obj.widthW = 0.85;%0.85;
         end
 
         function createMesh(obj)
@@ -54,62 +60,68 @@ classdef ExplainingPeriodicFunction2D < handle
             [F,V] = mesh2tri(X,Y,zeros(size(X)),'f');
             s.coord  = V(:,1:2);
             s.connec = F;
-
             m = Mesh.create(s);
             obj.mesh = m;
         end
 
-        function createAngle(obj)
-            s.fHandle = @(x) obj.createAlphaValues(x);
+        function createOrientationA(obj)
+            coord = obj.mesh.coord;
+            x1 = coord(:,1);
+            x2 = coord(:,2);
+            x10 = (max(x1(:))+min(x1(:)))/2+0;
+            x20 = -0.1*max(x2(:));                                    
+            r = sqrt((x1-x10).^2+(x2-x20).^2);
+            fR = obj.normalize([(x1-x10)./r,(x2-x20)./r]);            
+            fT = obj.normalize([-(x2-x20)./r,(x1-x10)./r]);
+            obj.orientationA{1} = obj.createP1DiscontinousOrientation(fR);
+            obj.orientationA{2} = obj.createP1DiscontinousOrientation(fT);
+        end 
+
+        function fN = normalize(obj,f)
+            fN = f./vecnorm(f,2,2);
+        end
+
+        function aF = createP1DiscontinousOrientation(obj,fV)
+            s.fValues = fV;
             s.mesh    = obj.mesh;
-            s.ndimf   = 1;
-            obj.alpha = AnalyticalFunction(s);
-
-
-            gradA = Grad(Project(obj.alpha,'P1'));
-            gradA = Project(gradA,'P1');
-            t = Divergence(gradA);
-            Project(t,'P1').plot()
+            s.order   = 'P1';
+            s.ndimf   = 2;
+            aF = LagrangianFunction(s);
+            aF = project(aF,'P1D');
         end
 
-        function f = createAlphaValues(obj,x)
-            x1 = x(1,:,:);
-            x2 = x(2,:,:);
-            x10 = (max(x1(:))+min(x1(:)))/2;
-            x20 = 0;            
-            f = atan2(x2-x20 +0.5*(max(x2(:))),x1-x10);
-            isLeft = x1 < (min(x1(:))+ max(x1(:)))/2;
-            f(isLeft) = f(isLeft) + pi;
-        end
-
-        function createOrientation(obj)
-            nDim = obj.mesh.ndim;
-            for iDim = 1:nDim
-                s.operation = @(xV) obj.createOrientationFunction(iDim,xV);
-                s.ndimf     = 2;
-                s.mesh      = obj.mesh;
-                aF = DomainFunction(s);
-                %aF = aF.project('P1',obj.mesh);
-                obj.orientation{iDim} = aF;
-            end
-
-        end
-
-        function or = createOrientationFunction(obj,iDim,xV)
-            alphaV = obj.alpha.evaluate(xV);
-            if iDim == 1                
-                or(1,:,:) = cos(alphaV);
-                or(2,:,:) = sin(alphaV);
-            else
-                alphaV = obj.alpha.evaluate(xV);
-                or(1,:,:) = -sin(alphaV);
-                or(2,:,:) = cos(alphaV);
+      function createOrientationB(obj)
+            for iDim = 1:obj.mesh.ndim
+                aI = obj.orientationA{iDim};
+                bI = obj.computeDoubleOrientationAngle(aI);
+                obj.orientationB{iDim} = bI;
             end
         end
 
-        function plotOrientation(obj,varargin)
-            obj.orientation{1}.project('P1D',obj.mesh).plotVector();
-            obj.orientation{2}.project('P1D',obj.mesh).plotVector();
+     function fS = computeDoubleOrientationAngle(obj,f)
+            aV = f.fValues;
+            aV1 = aV(:,1);
+            aV2 = aV(:,2);
+            fN(:,1) = aV1.^2-aV2.^2;
+            fN(:,2) = 2*aV1.*aV2;
+            s.fValues = fN;
+            s.mesh    = obj.mesh;
+            s.order   = 'P1D';
+            s.ndimf   = 2;
+            fS = LagrangianFunction(s);            
+     end        
+
+     function fS = createP1DiscontinousFunction(obj,f)
+            s.fValues = f;
+            s.mesh    = obj.mesh;
+            s.order   = 'P1D';
+            s.ndimf   = 2;
+            fS = LagrangianFunction(s);            
+        end       
+
+        function plotOrientation(obj)            
+            plotVector(obj.orientationA{1},4);
+            plotVector(obj.orientationA{2},4);
         end
 
         function s = createLevelSetCellParams(obj)
@@ -121,7 +133,6 @@ classdef ExplainingPeriodicFunction2D < handle
 
         function f = createFunction(obj,value,dir)
             s.fHandle = @(x) obj.variationFunction(value,x,dir);
-            %  s.fHandle = @(x) value*ones(size(x(1,:,:)));%x(1,:,:);%ones(size(x(1,:,:)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             f = AnalyticalFunction(s);
@@ -148,11 +159,35 @@ classdef ExplainingPeriodicFunction2D < handle
             f = mV + 2*t*(incM)/(incX)*(xV-xM);
         end
 
+        function a = createOrientationAfromB(obj)
+            b = obj.orientationB{1};
+            beta = atan2(b.fValues(:,2),b.fValues(:,1));
+            alpha = beta/2;%0*ones(size(beta));%beta/2;            
+         %   alpha = 0*ones(size(beta));%beta/2;            
+            a1 = [cos(alpha), sin(alpha)];
+            a2 = [-sin(alpha), cos(alpha)];
+
+           % a1([1 3 4],1) = 0;
+           % a1([1 3 4],2) = -1;
+           % a1([2 5 6],1) = 0;
+           % a1([2 5 6],2) = 1;
+           % a2([1 3 4],1) = 1;
+           % a2([1 3 4],2) = 0;
+           % a2([2 5 6],1) = -1;
+           % a2([2 5 6],2) = 0;                       
+
+
+            a{1} = obj.createP1DiscontinousFunction(a1);
+            a{2} = obj.createP1DiscontinousFunction(a2);
+        end
+
+
         function dehomogenize(obj)
             s.nCells             = obj.nCells;
             s.cellLevelSetParams = obj.createLevelSetCellParams();
             s.mesh               = obj.mesh;
-            s.theta              = obj.orientation;%.project('P0');%atan2(obj.orientation(:,2),obj.orientation(:,1));
+%          s.orientationA      = obj.orientationA;
+            s.orientationA       = obj.createOrientationAfromB(); 
             d = Dehomogenizer(s);
             ls = d.compute();
             d.plot();

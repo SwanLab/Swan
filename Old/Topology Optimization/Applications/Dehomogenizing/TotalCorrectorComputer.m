@@ -13,7 +13,7 @@ classdef TotalCorrectorComputer < handle
        orientationVector
        interpolator
        dilatedOrientation
-       singularities
+       isOrientationSingular
        phiMapping
        isCoherent       
     end
@@ -40,12 +40,12 @@ classdef TotalCorrectorComputer < handle
     methods (Access = private)
         
         function init(obj,cParams)
-           obj.mesh               = cParams.mesh;
-           obj.singularities      = cParams.singularities;
-           obj.isCoherent         = cParams.isCoherent;
-           obj.interpolator       = cParams.interpolator;
-           obj.dilatedOrientation = cParams.dilatedOrientation;
-           obj.phiMapping         = cParams.phiMapping;
+           obj.mesh                  = cParams.mesh;
+           obj.isOrientationSingular = cParams.isOrientationSingular;
+           obj.isCoherent            = cParams.isCoherent;
+           obj.interpolator          = cParams.interpolator;
+           obj.dilatedOrientation    = cParams.dilatedOrientation;
+           obj.phiMapping            = cParams.phiMapping;
         end
 
         function createTotalCorrector(obj)
@@ -54,12 +54,13 @@ classdef TotalCorrectorComputer < handle
         end     
 
         function computeNumberOfCorrectors(obj)
-            obj.nCorr =  obj.singularities.nSing - 1;
+            nSing = sum(obj.isOrientationSingular.fValues);
+            obj.nCorr =  nSing - 1;
         end
 
         function computeOrtoghonalCorrector(obj)
             oC      = cell(obj.nCorr,1);
-            areSing = find(squeeze(obj.singularities.isElemSingular.fValues));           
+            areSing = find(squeeze(obj.isOrientationSingular.fValues));           
             for iS = 1:obj.nCorr
               %  sCoord = obj.singularities.coord(iS,:);
            %   iSing  = areSing(end+1-iS);

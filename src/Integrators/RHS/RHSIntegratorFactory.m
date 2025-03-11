@@ -11,7 +11,7 @@ classdef RHSIntegratorFactory < handle
                 case 'ShapeFunctionN'
                     obj = RHSintegrator_ShapeFunctionN(cParams);
                 case 'ShapeDerivative'
-                    obj = RHSintegrator_ShapeDerivative(cParams);
+                    obj = RHSIntegrator_ShapeDerivative(cParams);
                 case 'ShapeSymmetricDerivative'
                     obj = RHSintegrator_ShapeSymmDerivative(cParams);
                 case 'CutMesh'
