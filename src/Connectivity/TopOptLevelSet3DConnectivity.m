@@ -1,4 +1,4 @@
-classdef TopOptLevelSetConnectivity< handle
+classdef TopOptLevelSet3DConnectivity< handle
 
     properties (Access = private)
         mesh
@@ -17,7 +17,6 @@ classdef TopOptLevelSetConnectivity< handle
         dualVariable
         optimizer
         minimumEigenValue
-        perimeter
         gJ
         lambda1min
         filterAdjointProj 
@@ -28,8 +27,7 @@ classdef TopOptLevelSetConnectivity< handle
     end 
 
     methods (Access = public)
-% 1.0, 3.5, 1e-3 1e-3
-        function obj = TopOptLevelSetConnectivity()
+        function obj = TopOptLevelSet3DConnectivity()
             for gJ = [2.0]
                 for lambda1min = [0.05]
 %                 for eta = [1.0]
@@ -48,7 +46,6 @@ classdef TopOptLevelSetConnectivity< handle
                     obj.createComplianceFromConstitutive();
                     obj.createCompliance();
                     obj.createComplianceProjected();
-                    obj.createPerimeter();
                     obj.createEigenValueConstraint();                             
                     obj.createVolumeConstraint();
                     obj.createVolumeConstraintProjected();
@@ -71,13 +68,7 @@ classdef TopOptLevelSetConnectivity< handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,2,100);
-            x2      = linspace(0,1,50);
-            [xv,yv] = meshgrid(x1,x2);
-            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            s.coord  = V(:,1:2);
-            s.connec = F;
-            obj.mesh = Mesh.create(s);
+            obj.mesh = HexaMesh(4,4,3,20,20,15);
         end
 
         function createDesignVariable(obj)
@@ -93,7 +84,7 @@ classdef TopOptLevelSetConnectivity< handle
         end
 
         function createFilter(obj)
-            s.filterType = 'PDE';
+            s.filterType = 'LUMP';
             s.mesh  = obj.mesh;
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
@@ -193,12 +184,12 @@ classdef TopOptLevelSetConnectivity< handle
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
             s.material = obj.createMaterial();
-            s.dim = '2D';
-            s.boundaryConditions = obj.createBoundaryConditions();
+            s.dim = '3D';
+            s.boundaryConditions = obj.createElasticBoundaryConditions();
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'DIRECT';
+            s.solverCase = 'CG';
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -218,17 +209,7 @@ classdef TopOptLevelSetConnectivity< handle
             obj.compliance = c;
         end
        
-        function createPerimeter(obj)
-            eOverhmin     = 10;
-            epsilon       = eOverhmin*obj.mesh.computeMeanCellSize();
-            s.mesh        = obj.mesh;
-            s.filter      = obj.filter;
-            s.epsilon     = epsilon;
-            s.value0      = 4; % external P
-            P             = PerimeterFunctional(s);
-            obj.perimeter = P;
-        end
-
+     
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
@@ -251,9 +232,9 @@ classdef TopOptLevelSetConnectivity< handle
             s.mesh              = obj.mesh;
             s.designVariable    = obj.designVariable;
             s.filter            = obj.filterConnect;
-            s.filterAdjoint     = obj.filterAdjointConnect;   
-            s.targetEigenValue  = obj.lambda1min; %1.0;      
-            s.shift             = 0.0;
+            s.filterAdjoint     = obj.filterAdjointConnect;  
+            s.boundaryConditions = obj.createElasticBoundaryConditions();
+            s.targetEigenValue  = obj.lambda1min;       
             obj.minimumEigenValue = StiffnessEigenModesConstraint(s);
         end
 
@@ -265,27 +246,33 @@ classdef TopOptLevelSetConnectivity< handle
             obj.cost            = Cost(s);
         end
 
-        function M = createMassMatrix(obj)
-            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.mesh  = obj.mesh;
-            s.type  = 'MassMatrix';
-            LHS = LHSIntegrator.create(s);
-            M = LHS.compute;
+%         function M = createMassMatrix(obj)
+%             s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
+%             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+%             s.mesh  = obj.mesh;
+%             s.type  = 'MassMatrix';
+%             LHS = LHSIntegrator.create(s);
+%             M = LHS.compute;
+% 
+%             h = obj.mesh.computeMinCellSize();
+%             M = h^2*eye(size(M));
+%         end
 
+        function M = createMassMatrix(obj)
+            n = obj.mesh.nnodes;
             h = obj.mesh.computeMinCellSize();
-            M = h^2*eye(size(M));
+            M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
         end
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
-            s.shapeFunctions{2} = obj.minimumEigenValue; 
+%             s.shapeFunctions{2} = obj.minimumEigenValue; 
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
 
         function createDualVariable(obj)
-            s.nConstraints   = 2;
+            s.nConstraints   = 1;
             l                = DualVariable(s);
             obj.dualVariable = l;
         end
@@ -301,7 +288,7 @@ classdef TopOptLevelSetConnectivity< handle
             s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase{1} = 'EQUALITY';
-            s.constraintCase{2} = 'INEQUALITY';      
+%             s.constraintCase{2} = 'INEQUALITY';      
             s.primal         = 'SLERP';
             s.ub             = inf;
             s.lb             = -inf;
@@ -329,53 +316,26 @@ classdef TopOptLevelSetConnectivity< handle
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
-            s.dim                  = '2D';
+            s.dim                  = '3D';
             s.mesh                 = obj.mesh;
             m = Material.create(s);
         end
 
-        function bc = createBoundaryConditions(obj)
-            type = 'cantilever';
-            if isequal(type, 'cantilever')
-                xMax    = max(obj.mesh.coord(:,1));
-                yMax    = max(obj.mesh.coord(:,2));
-                isDir   = @(coor)  abs(coor(:,1))==0;
-                isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
-    
-                sDir{1}.domain    = @(coor) isDir(coor);
-                sDir{1}.direction = [1,2];
-                sDir{1}.value     = 0;
-    
-                sPL{1}.domain    = @(coor) isForce(coor);
-                sPL{1}.direction = 2;
-                sPL{1}.value     = -1;
-            elseif isequal(type, 'bridge')
-                xMax    = max(obj.mesh.coord(:,1));
-                yMax    = max(obj.mesh.coord(:,2));
-                isDir   = @(coor)  abs(coor(:,2))==0.0 & (abs(coor(:,1))>= 0.95*xMax | abs(coor(:,1))<= 0.05*xMax);
-                isForce = @(coor)  (abs(coor(:,2))==yMax & abs(coor(:,1))>=0.45*xMax & abs(coor(:,1))<=0.55*xMax);
-    
-                sDir{1}.domain    = @(coor) isDir(coor);
-                sDir{1}.direction = [1,2];
-                sDir{1}.value     = 0;
-    
-                sPL{1}.domain    = @(coor) isForce(coor);
-                sPL{1}.direction = 2;
-                sPL{1}.value     = -1;
-            elseif isequal(type, 'acantilever')
-                xMax    = max(obj.mesh.coord(:,1));
-                yMax    = max(obj.mesh.coord(:,2));
-                isDir   = @(coor)  abs(coor(:,1))== 0.0;
-                isForce = @(coor)  abs(coor(:,1)) == xMax & abs(coor(:,2))==0.0;
-    
-                sDir{1}.domain    = @(coor) isDir(coor);
-                sDir{1}.direction = [1,2];
-                sDir{1}.value     = 0;
-    
-                sPL{1}.domain    = @(coor) isForce(coor);
-                sPL{1}.direction = 2;
-                sPL{1}.value     = -1;
-            end
+        function bc = createElasticBoundaryConditions(obj)
+            xMax = max(obj.mesh.coord(:,1));
+            yMax = max(obj.mesh.coord(:,2));
+            zMax = max(obj.mesh.coord(:,3));
+            isDir   = @(coor)  (abs(coor(:,3))==0 & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax);
+            isForce = @(coor)  (abs(coor(:,3))==zMax);
+
+            sDir{1}.domain    = @(coor) isDir(coor);
+            sDir{1}.direction = [1,2,3];
+            sDir{1}.value     = 0;
+
+            sPL{1}.domain    = @(coor) isForce(coor);
+            sPL{1}.direction = 3;
+            sPL{1}.value     = -1;
+
             dirichletFun = [];
             for i = 1:numel(sDir)
                 dir = DirichletCondition(obj.mesh, sDir{i});
@@ -394,6 +354,38 @@ classdef TopOptLevelSetConnectivity< handle
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
         end
+
+        function  bc = createEigenvalueBoundaryConditions(obj)
+            xMin    = min(obj.mesh.coord(:,1));
+            yMin    = min(obj.mesh.coord(:,2));
+            zMin    = min(obj.mesh.coord(:,3));
+            xMax    = max(obj.mesh.coord(:,1));
+            yMax    = max(obj.mesh.coord(:,2));
+            zMax    = max(obj.mesh.coord(:,3));
+            isDown  = @(coor) abs(coor(:,2))==zMin;
+            isUp    = @(coor) abs(coor(:,2))==zMax;
+            isLeft  = @(coor) abs(coor(:,1))==xMin;
+            isRight = @(coor) abs(coor(:,1))==xMax;
+            isFront = @(coor) abs(coor(:,1))==yMin;
+            isBack = @(coor) abs(coor(:,1))== yMax;
+            isDir   = @(coor)  isDown(coor) | isUp(coor) | isLeft(coor) | isRight(coor) | isFront(coor) | isBack(coor);  
+            sDir{1}.domain    = @(coor) isDir(coor);
+            sDir{1}.direction = 1;
+            sDir{1}.value     = 0;
+            sDir{1}.ndim = 1;
+
+             dirichletFun = [];
+            for i = 1:numel(sDir)
+                dir = DirichletCondition(obj.mesh, sDir{i});
+                dirichletFun = [dirichletFun, dir];
+            end
+            s.dirichletFun = dirichletFun;
+            s.pointloadFun = [];
+
+            s.periodicFun  = [];
+            s.mesh         = obj.mesh;
+            bc = BoundaryConditions(s);  
+        end   
 
     end
 end

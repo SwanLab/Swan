@@ -80,7 +80,7 @@ classdef DOFsComputer < handle
             ndofsEdges = max(max(dofsEdges));
             
             if ~strcmp(obj.mesh.type,'LINE')
-                dofsFaces = obj.computeDofsFaces(ndofsEdges);
+                    dofsFaces = obj.computeDofsFaces(ndofsEdges);
                 ndofsFaces = max(max(dofsFaces));
             
                 dofsElements = obj.computeDofsElements(ndofsFaces);

@@ -28,6 +28,7 @@ classdef OptimizerNullSpace < Optimizer
         predictedTau
         firstEstimation
         GIFname
+        dofsNonDesign
     end
 
     methods (Access = public) 
@@ -54,6 +55,13 @@ classdef OptimizerNullSpace < Optimizer
                 obj.updateMonitoring();
                 obj.checkConvergence();
                 obj.designVariable.updateOld();
+
+                if ~isempty(obj.dofsNonDesign) 
+                   fValues = obj.designVariable.fun.fValues;
+                   fValues(obj.dofsNonDesign) = -1.0;
+                   obj.designVariable.fun.setFValues(fValues);
+                end
+
             end
         end
     end
@@ -77,7 +85,11 @@ classdef OptimizerNullSpace < Optimizer
             obj.etaMin          = 1e-6;
             obj.initOtherParameters(cParams);
             obj.createMonitoring(cParams);
-%             obj.GIFname         = cParams.GIFname;
+            obj.GIFname         = cParams.GIFname;
+
+            if isfield(cParams,'dofsNonDesign') 
+                obj.dofsNonDesign = cParams.dofsNonDesign;
+            end
         end
 
         function initOtherParameters(obj,cParams)
@@ -142,7 +154,7 @@ classdef OptimizerNullSpace < Optimizer
             end
             obj.monitoring.update(obj.nIter,num2cell(data));
             obj.monitoring.refresh();
-%             obj.obtainGIF(obj.GIFname);
+            obj.obtainGIF(obj.GIFname);
 
         end
 

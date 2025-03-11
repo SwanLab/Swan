@@ -10,6 +10,7 @@ classdef Cost < handle
         weights
         Msmooth
         iter
+        dofsNonDesign
     end
 
     properties (Access = private)
@@ -19,7 +20,7 @@ classdef Cost < handle
     methods (Access = public)
         function obj = Cost(cParams)
             obj.init(cParams);
-            obj.iter = 0.0
+            obj.iter = 0.0;
         end
 
         function computeFunctionAndGradient(obj,x)
@@ -48,6 +49,10 @@ classdef Cost < handle
             end
             obj.value    = jV;
             obj.gradient = obj.Msmooth*djV;
+
+            if ~isempty(obj.dofsNonDesign) 
+               obj.gradient(obj.dofsNonDesign) = 0.0;
+            end
 %             obj.gradient = djV;
         end
 
@@ -87,6 +92,9 @@ classdef Cost < handle
             obj.shapeFunctions = cParams.shapeFunctions;
             obj.weights        = cParams.weights;   
             obj.Msmooth        = cParams.Msmooth;
+            if isfield(cParams,'dofsNonDesign') 
+                obj.dofsNonDesign = cParams.dofsNonDesign;
+            end
         end
     end
 

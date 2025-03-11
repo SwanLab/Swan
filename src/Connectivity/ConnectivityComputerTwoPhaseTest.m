@@ -43,7 +43,7 @@ classdef ConnectivityComputerTwoPhaseTest < handle
         end
 
         function createMesh(obj)
-            x1 = linspace(0,2.0,100);
+            x1 = linspace(0,1.0,50);
             x2 = linspace(0,1.0,50);
             [xv,yv] = meshgrid(x1,x2);
             [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
@@ -76,7 +76,7 @@ classdef ConnectivityComputerTwoPhaseTest < handle
             g             = GeometricalFunction(s);
             phi           = g.computeLevelSetFunction(obj.mesh);
             obj.levelSet = phi;
-            obj.levelSet.setFValues(importdata('1e-35lambda1min1gJ2.txt'))
+            obj.levelSet.setFValues(importdata('maxCaseC.txt'))
         end
 
         function createCharacteristicFunction(obj)
@@ -151,7 +151,9 @@ classdef ConnectivityComputerTwoPhaseTest < handle
             s.designVariable = obj.designVariable;
             s.filter = obj.filterConnect;
             s.mesh = obj.mesh;
-            mE = MinimumEigenValueFunctional(s);
+            s.boundaryConditions = obj.createEigenvalueBoundaryConditions();
+%             mE = MinimumEigenValueFunctional(s);
+            mE = MaximumEigenValueFunctional(s);
             [lambdas, phis] = mE.computeEigenModes(obj.designVariable, n);
         end
 
@@ -159,6 +161,7 @@ classdef ConnectivityComputerTwoPhaseTest < handle
             s.mesh  = obj.mesh;
             s.epsilon = epsilon;
             s.p       = p;
+            s.boundaryConditions = obj.createEigenvalueBoundaryConditions();
             eigen   = StiffnessEigenModesComputer(s);
         end
 
@@ -196,6 +199,34 @@ classdef ConnectivityComputerTwoPhaseTest < handle
             end
             obj.eigVs = eigVs;
             obj.eigFs = eigFs;
+        end
+
+        function  bc = createEigenvalueBoundaryConditions(obj)
+            xMin    = min(obj.mesh.coord(:,1));
+            yMin    = min(obj.mesh.coord(:,2));
+            xMax    = max(obj.mesh.coord(:,1));
+            yMax    = max(obj.mesh.coord(:,2));
+            isLeft  = @(coor) abs(coor(:,1))==xMin;
+            isRight = @(coor) abs(coor(:,1))==xMax;
+            isFront = @(coor) abs(coor(:,2))==yMin;
+            isBack = @(coor) abs(coor(:,2))== yMax;
+            isDir   = @(coor) isLeft(coor) | isRight(coor) | isFront(coor) | isBack(coor);  
+            sDir{1}.domain    = @(coor) isDir(coor);
+            sDir{1}.direction = 1;
+            sDir{1}.value     = 0;
+            sDir{1}.ndim = 1;
+            
+            dirichletFun = [];
+            for i = 1:numel(sDir)
+                dir = DirichletCondition(obj.mesh, sDir{i});
+                dirichletFun = [dirichletFun, dir];
+            end
+            s.dirichletFun = dirichletFun;
+            s.pointloadFun = [];
+
+            s.periodicFun  = [];
+            s.mesh         = obj.mesh;
+            bc = BoundaryConditions(s);  
         end
 
     end

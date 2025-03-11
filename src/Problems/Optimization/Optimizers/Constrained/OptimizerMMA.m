@@ -35,6 +35,7 @@ classdef OptimizerMMA < Optimizer
         monitoringWithEigenValueConstraint
         monitoringDesignVariables
         monitoringGradients
+        dofsNonDesign
     end
     
     methods (Access = public)
@@ -52,6 +53,7 @@ classdef OptimizerMMA < Optimizer
            fCell = {obj.designVariable; obj.nIter};
            obj.cost.computeFunctionAndGradient(fCell);
            obj.constraint.computeFunctionAndGradient(fCell);
+           
            obj.updateMonitoring();
 %            obj.updateMonitoringWithEigenvalueConstraint();
            while ~obj.hasFinished
@@ -62,6 +64,12 @@ classdef OptimizerMMA < Optimizer
 %                obj.updateMonitoringWithEigenvalueConstraint();
 %                obj.updateMonitoringDesignVariables();
 %                obj.updateMonitoringGradients();
+
+                if ~isempty(obj.dofsNonDesign) 
+                   fValues = obj.designVariable.fun.fValues;
+                   fValues(obj.dofsNonDesign) = 1.0;
+                   obj.designVariable.fun.setFValues(fValues);
+                end
            end
             obj.designVariable.fun.print('dV','Paraview')
             obj.hasConverged = 0;
@@ -106,7 +114,7 @@ classdef OptimizerMMA < Optimizer
         function updateMonitoring(obj)
             data = obj.cost.value;
             data = [data;obj.cost.getFields(1)];
-            data = [data;obj.cost.getFields(2)];
+%             data = [data;obj.cost.getFields(2)];
 %             data = [data;obj.cost.getFields(3)];
             data = [data;obj.constraint.value];
 %             data = [data;obj.constraint.getLambda1()];
@@ -168,6 +176,9 @@ classdef OptimizerMMA < Optimizer
 %             obj.createMonitoringWithEigenValueConstraint(cParams);
 %             obj.createMonitoringDesignVariables(cParams);
 %             obj.createMonitoringGradients(cParams);
+            if isfield(cParams,'dofsNonDesign') 
+                obj.dofsNonDesign = cParams.dofsNonDesign;
+            end
         end
 
         function createMonitoring(obj,cParams)

@@ -26,7 +26,7 @@ classdef StiffnessEigenModesComputer < handle
         
         function obj = StiffnessEigenModesComputer(cParams)
             obj.init(cParams)  
-            obj.createBoundaryConditions();    
+%             obj.createBoundaryConditions();    
             obj.createConductivityInterpolator();   
             obj.createMassInterpolator();                        
         end
@@ -84,55 +84,24 @@ classdef StiffnessEigenModesComputer < handle
         
         function init(obj,cParams)
             obj.mesh    = cParams.mesh;
-%             obj.epsilon = cParams.epsilon;
-%             obj.p       = cParams.p;
+            obj.boundaryConditions = cParams.boundaryConditions;
             obj.test  = LagrangianFunction.create(obj.mesh,1,'P1');
             obj.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             obj.eigenF =  LagrangianFunction.create(obj.mesh,1,'P1');
-        end
-
-        function createBoundaryConditions(obj)
-            xMin    = min(obj.mesh.coord(:,1));
-            yMin    = min(obj.mesh.coord(:,2));
-            xMax    = max(obj.mesh.coord(:,1));
-            yMax    = max(obj.mesh.coord(:,2));
-            isDown  = @(coor) abs(coor(:,2))==yMin;
-            isUp    = @(coor) abs(coor(:,2))==yMax;
-            isLeft  = @(coor) abs(coor(:,1))==xMin;
-            isRight = @(coor) abs(coor(:,1))==xMax;
-
-            isDir   = @(coor)  isDown(coor) | isUp(coor) | isLeft(coor) | isRight(coor);  
-            sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [1];
-            sDir{1}.value     = 0;
-            sDir{1}.ndim = 1;
-
-             dirichletFun = [];
-            for i = 1:numel(sDir)
-                dir = DirichletCondition(obj.mesh, sDir{i});
-                dirichletFun = [dirichletFun, dir];
-            end
-            s.dirichletFun = dirichletFun;
-            s.pointloadFun = [];
-
-            s.periodicFun  = [];
-            s.mesh         = obj.mesh;
-            bc = BoundaryConditions(s);  
-            obj.boundaryConditions = bc;
-        end        
+        end  
         
         function createConductivityInterpolator(obj)
             s.interpolation  = 'SIMPThermal';   
-            s.f0   = 1e-5; %obj.epsilon;                                                 
+            s.f0   = 1e-3;                                             
             s.f1   = 1;                                                    
-            s.pExp = 8; %obj.p;
+            s.pExp = 2;
             a = MaterialInterpolator.create(s);
             obj.conductivity = a;            
         end            
 
         function createMassInterpolator(obj)
             s.interpolation  = 'SIMPThermal';                              
-            s.f0   = 1e-5;%obj.epsilon;
+            s.f0   = 1e-5;
             s.f1   = 1;
             s.pExp = 1;
             a = MaterialInterpolator.create(s);
@@ -192,7 +161,7 @@ classdef StiffnessEigenModesComputer < handle
                 
         function [eigV1,eigF1] = obtainLowestEigenValuesAndFunction(obj,K,M,n)
             [eigF,eigV] = eigs(K,M,4,'smallestabs');
-            i = 1;%obj.modalAssuranceCriterion(eigF);
+            i = 1;
             eigV1 = eigV(i,i);
             eigF1 = eigF(:,i);
             if i ~= 1
@@ -201,6 +170,7 @@ classdef StiffnessEigenModesComputer < handle
             if abs((eigV(1,1) - eigV(2,2))/eigV(2,2)) < 0.01
                 disp('MULTIPLICITY')
             end
+            disp(eigV1)
         end   
 
         function [i] = modalAssuranceCriterion(obj,eigF)
@@ -252,7 +222,7 @@ classdef StiffnessEigenModesComputer < handle
         end
 
         function dlambda = computeLowestEigenValueGradient(obj, dalpha, dm, phi, lambda)
-            dlambda = - (dalpha.*DP(Grad(phi), Grad(phi)) - lambda*dm.*phi.*phi); 
+            dlambda = (dalpha.*DP(Grad(phi), Grad(phi)) - lambda*dm.*phi.*phi); 
         end
         
 

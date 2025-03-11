@@ -39,18 +39,18 @@ classdef MinimumEigenValueFunctional < handle
             [f,dfdx]= obj.eigModes.computeFunctionAndGradient(obj.density);    
             obj.gradientUN = dfdx;
             if ~isempty(obj.filterAdjoint)
-                dfdx     = obj.filterAdjoint.compute(dfdx,2);
+                dfdx     = obj.filterAdjoint.compute(-dfdx,2);
             elseif ~isempty(obj.filter)
                 if isa(obj.filter, 'HeavisideProjector')
                     sensitVals         = obj.filter.derive(obj.density);
                     dfdx     = dfdx.project('P1',obj.mesh);
-                    dfdx.fValues       = dfdx.fValues.*sensitVals;
+                    dfdx.fValues       = -dfdx.fValues.*sensitVals;
                 else
-                    dfdx     = obj.filter.compute(dfdx,2);
+                    dfdx     = obj.filter.compute(-dfdx,2);
 %                     dfdx2{1} = dfdx;
                 end
             else
-                dfdx     = dfdx.project('P1',obj.mesh);
+                dfdx     = dfdx.project('P1');
             end
             obj.gradientF = dfdx;   
             obj.value = f;
@@ -104,14 +104,16 @@ classdef MinimumEigenValueFunctional < handle
       
         function computeDensity(obj,x)
             if isempty(obj.filter)
-                densDomain  = x.fun;
-                s.operation = @(xV) obj.computeComplementaryDensity(densDomain,xV);
-                densHole = DomainFunction(s);
-                obj.density = densHole;
+%                 densDomain  = x.fun;
+%                 s.operation = @(xV) obj.computeComplementaryDensity(densDomain,xV);
+%                 s.mesh = obj.mesh;
+%                 densHole = DomainFunction(s);
+%                 obj.density = densHole;
             else
                 xD  = x.obtainDomainFunction();             % rho
                 xR = obj.filterDesignVariable(xD{1});       % FP rho
-                xR.setFValues(1 - xR.fValues);              % 1 - FP rho
+                xR.setFValues(1 - xR.fValues);              % 1 - FP rho with intermediate densities
+%                 xR.setFValues(1 - max(0,min(1,round(xR.fValues)))); % 1 - FP rho without intermediate densities
                 obj.density = xR;
             end
 %             s.fun  = obj.density;

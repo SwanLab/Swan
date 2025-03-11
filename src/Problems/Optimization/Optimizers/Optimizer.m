@@ -45,7 +45,7 @@ classdef Optimizer < handle
             obj.maxIter        = cParams.maxIter;
             obj.tolerance      = cParams.tolerance;
             obj.constraintCase = cParams.constraintCase;
-            %obj.createPostProcess(cParams.postProcessSettings);
+%             obj.createPostProcess(cParams.postProcessSettings);
         end
 
         function createPrimalUpdater(obj,cParams)

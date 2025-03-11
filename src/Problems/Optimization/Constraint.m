@@ -8,6 +8,7 @@ classdef Constraint < handle
     properties (Access = private)
         shapeFunctions
         Msmooth
+        dofsNonDesign
     end
 
     methods (Access = public)
@@ -33,6 +34,11 @@ classdef Constraint < handle
             end
             obj.value    = jV;
             obj.gradient = obj.Msmooth*djV;
+
+            if ~isempty(obj.dofsNonDesign) 
+               obj.gradient(obj.dofsNonDesign) = 0.0;
+            end
+
 %             obj.gradient = djV;
         end
 
@@ -85,6 +91,10 @@ classdef Constraint < handle
         function obj = init(obj,cParams)
             obj.shapeFunctions = cParams.shapeFunctions;
             obj.Msmooth        = cParams.Msmooth;
+
+            if isfield(cParams,'dofsNonDesign') 
+                obj.dofsNonDesign = cParams.dofsNonDesign;
+            end
         end
     end
 

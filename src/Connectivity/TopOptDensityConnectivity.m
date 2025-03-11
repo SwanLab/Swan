@@ -39,7 +39,7 @@ classdef TopOptDensityConnectivity < handle
                     obj.createComplianceFromConstitutive();
                     obj.createCompliance();
                     obj.createPerimeter();
-                    obj.createEigenValueConstraint();                             
+%                     obj.createEigenValueConstraint();                             
                     obj.createVolumeConstraint();
                     obj.createCost();
                     obj.createConstraint();
@@ -58,8 +58,8 @@ classdef TopOptDensityConnectivity < handle
         end
 
         function createMesh(obj)
-            x1      = linspace(0,2.0,100);
-            x2      = linspace(0,1.0,50);
+            x1      = linspace(0,6.0,180);
+            x2      = linspace(0,1.0,30);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -218,24 +218,21 @@ classdef TopOptDensityConnectivity < handle
             s.filterAdjoint     = obj.filterAdjointConnect;   
             s.targetEigenValue  = obj.lambda1min;      
             s.shift             = 0.0;
-            obj.minimumEigenValue = StiffnesEigenModesConstraint(s);
-%             eigen = StiffnessEigenModesComputer(s);
-%             s.eigenModes = eigen;
-%             obj.minimumEigenValue = MinimumEigenValueFunctional(s);
+            obj.minimumEigenValue = StiffnessEigenModesConstraint(s);
         end
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
-            s.shapeFunctions{2} = obj.minimumEigenValue; 
+%             s.shapeFunctions{2} = obj.minimumEigenValue; 
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
 
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
-            s.shapeFunctions{2} = obj.perimeter;
+%             s.shapeFunctions{2} = obj.perimeter;
 %             s.shapeFunctions{3} = obj.minimumEigenValue;
-            s.weights           = [1.0; 0.0]; %; -1.0];
+            s.weights           = [1.0]; %; -1.0];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -264,7 +261,7 @@ classdef TopOptDensityConnectivity < handle
             s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase{1} = 'EQUALITY';
-            s.constraintCase{2} = 'INEQUALITY';                             
+%             s.constraintCase{2} = 'INEQUALITY';                             
             s.ub             = 1;
             s.lb             = 0;
             opt              = OptimizerMMA(s);
@@ -289,7 +286,7 @@ classdef TopOptDensityConnectivity < handle
         end
 
         function bc = createBoundaryConditions(obj)
-            type = 'cantilever';
+            type = 'bridge';
             if isequal(type, 'cantilever')
                 xMax    = max(obj.mesh.coord(:,1));
                 yMax    = max(obj.mesh.coord(:,2));
