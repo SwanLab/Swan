@@ -99,7 +99,6 @@ classdef DualUpdaterNullSpace < handle
             s.cost           = obj.createCost(H,f);
             s.designVariable = obj.createDesignVariable(lb,isActive);
             s.monitoring     = false;
-            s.etaNorm        = 0.02;
             s.lb             = lb;
             s.ub             = ub;
             s.maxIter        = 1000;

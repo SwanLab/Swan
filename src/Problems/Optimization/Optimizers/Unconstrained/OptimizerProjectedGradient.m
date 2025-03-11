@@ -1,7 +1,7 @@
 classdef OptimizerProjectedGradient < handle
 
     properties (Access = private)
-        tolCost   = 1e-6
+        tolCost   = 1e-8
     end
 
     properties (Access = private)
@@ -18,7 +18,6 @@ classdef OptimizerProjectedGradient < handle
         meritNew
         meritOld
         meritGradient
-        etaNorm
     end
 
     methods (Access = public) 
@@ -51,7 +50,6 @@ classdef OptimizerProjectedGradient < handle
             obj.maxIter         = cParams.maxIter;
             obj.hasConverged    = false;
             obj.nIter           = 0;
-            obj.etaNorm         = cParams.etaNorm;
             obj.createPrimalUpdater(cParams);
         end
 
@@ -126,14 +124,13 @@ classdef OptimizerProjectedGradient < handle
 
         function checkStep(obj,x0)
             mNew = obj.computeMeritFunction();
-            x    = obj.designVariable.fun.fValues;
-            if mNew <= obj.meritOld+1e-3  &&  norm(x-x0)/(norm(x0)+1) < obj.etaNorm
+            if mNew < obj.meritOld
                 obj.acceptableStep = true;
                 obj.meritNew       = mNew;
             elseif obj.primalUpdater.isTooSmall()
                 warning('Convergence could not be achieved (step length too small)')
                 obj.acceptableStep = true;
-                obj.meritNew       = obj.mOld;
+                obj.meritNew       = obj.meritOld;
                 obj.designVariable.update(x0);
             else
                 obj.primalUpdater.decreaseStepLength();
