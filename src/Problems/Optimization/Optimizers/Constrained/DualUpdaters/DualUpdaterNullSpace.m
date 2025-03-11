@@ -81,7 +81,7 @@ classdef DualUpdaterNullSpace < handle
             if ~isempty(g)
                 H           = Dg'*Dg;
                 f           = Dg'*(DJ+xBoxUB-xBoxLB)-eta*g;
-                l(isActive) = obj.solve(H,f,lb,ub);
+                l(isActive) = obj.solve(H,f,lb,ub,isActive);
             end
             obj.l0 = l;
         end
@@ -95,9 +95,9 @@ classdef DualUpdaterNullSpace < handle
             end
         end
 
-        function l = solve(obj,H,f,lb,ub)
+        function l = solve(obj,H,f,lb,ub,isActive)
             s.cost           = obj.createCost(H,f);
-            s.designVariable = obj.createDesignVariable(lb);
+            s.designVariable = obj.createDesignVariable(lb,isActive);
             s.monitoring     = false;
             s.etaNorm        = 0.02;
             s.lb             = lb;
@@ -108,11 +108,11 @@ classdef DualUpdaterNullSpace < handle
             l = s.designVariable.fun.fValues;
         end
 
-        function d = createDesignVariable(obj,lb)
+        function d = createDesignVariable(obj,lb,isActive)
             if isempty(obj.l0)
                 s.x0 = zeros(size(lb));
             else
-                s.x0 = obj.l0;
+                s.x0 = obj.l0(isActive);
             end
             d    = DesignVariableAcademic(s);
         end
