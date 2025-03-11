@@ -73,7 +73,7 @@ classdef MonitoringNullSpace < handle
             data = [data;obj.designVariable.computeL2normIncrement()];
             data = [data;obj.dualVariable.fun.fValues];
             if nIter == 0
-                data = [data;0;0;0;sD.etaMax;0;0;0;NaN];
+                data = [data;0;0;0;sD.etaMax;0;0;NaN];
             else
                 data = [data;obj.primalUpdater.tau;sD.lineSearchTrials;sD.eta;sD.etaMax;norm(sD.lG);norm(sD.lJ);sD.meritNew];
             end

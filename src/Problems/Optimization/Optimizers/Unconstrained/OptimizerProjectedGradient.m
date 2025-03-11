@@ -1,7 +1,7 @@
 classdef OptimizerProjectedGradient < handle
 
     properties (Access = private)
-        tolCost   = 1e-8
+        tolCost   = 1e-12
     end
 
     properties (Access = private)
@@ -128,7 +128,6 @@ classdef OptimizerProjectedGradient < handle
                 obj.acceptableStep = true;
                 obj.meritNew       = mNew;
             elseif obj.primalUpdater.isTooSmall()
-                warning('Convergence could not be achieved (step length too small)')
                 obj.acceptableStep = true;
                 obj.meritNew       = obj.meritOld;
                 obj.designVariable.update(x0);
