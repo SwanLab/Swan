@@ -39,8 +39,11 @@ classdef TopOptTestTutorialDensityPerimeterPNorm < handle
             obj.designVariable.fun.print(vtuName);
             
             figure(2)
-            fileName = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02.fig',p,pTarget));
-            savefig(fileName);
+            set(gcf, 'Position', get(0, 'Screensize'));
+            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02.fig',p,pTarget));
+            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02',p,pTarget));
+            savefig(fileName1);
+            print(fileName2,'-dpng','-r300');
         end
 
     end

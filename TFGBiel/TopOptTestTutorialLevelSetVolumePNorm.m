@@ -39,8 +39,11 @@ classdef TopOptTestTutorialLevelSetVolumePNorm < handle
             obj.designVariable.fun.print(vtuName);
             
             figure(2)
-            fileName = fullfile(fileLocation, sprintf('Monitoring_Cantilever_p%d_alpha%.2f_gJ0.2_eta0.02_LevelSet.fig',p,alpha));
-            savefig(fileName);
+            set(gcf, 'Position', get(0, 'Screensize'));
+            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_p%d_alpha%.2f_gJ0.2_eta0.02_LevelSet.fig',p,alpha));
+            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_p%d_alpha%.2f_gJ0.2_eta0.02_LevelSet',p,alpha));
+            savefig(fileName1);
+            print(fileName2,'-dpng','-r300');
         end
 
     end
@@ -53,8 +56,8 @@ classdef TopOptTestTutorialLevelSetVolumePNorm < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,2,100);
-            x2      = linspace(0,1,50);
+            x1      = linspace(0,2,150);
+            x2      = linspace(0,1,75);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);

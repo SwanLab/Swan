@@ -62,7 +62,7 @@ classdef PerimeterNormPFunctional < handle
         end
 
         function J = computeFunction(obj,x,Le)
-            xP     = (x.*(1-Le)).^obj.p;
+            xP     = ((1/(2*obj.epsilon))*(x.*(1-Le))).^obj.p;
             PerP   = Integrator.compute(xP,obj.mesh,obj.quadrature.order);
             obj.Pp = PerP^(1/obj.p);
             J      = ((1/obj.perimeterTarget)*((1/obj.totalVolume)^(1/obj.p))*obj.Pp) - 1;
@@ -70,14 +70,14 @@ classdef PerimeterNormPFunctional < handle
 
         function dJ = computeGradient(obj,x,Le)
             Lea = obj.computeFilteredTermForGradient(x,Le);
-            num = (((x.*(1-Le)).^(obj.p-1)).*(1-Le) - Lea).*(obj.Pp^(1-obj.p));
-            den = obj.perimeterTarget*(obj.totalVolume)^(1/obj.p);
+            num = ((((1/(2*obj.epsilon))*(x.*(1-Le))).^(obj.p-1)).*(1-Le) - Lea).*(obj.Pp^(1-obj.p));
+            den = 2*obj.epsilon*obj.perimeterTarget*(obj.totalVolume)^(1/obj.p);
             dJ  = num./den;
             dJ  = dJ.project('P1');
         end
 
         function Lea = computeFilteredTermForGradient(obj,x,Le)
-            a = ((x.*(1-Le)).^(obj.p-1)).*x;
+            a = (((1/(2*obj.epsilon))*(x.*(1-Le))).^(obj.p-1)).*x;
             Lea = obj.filter.compute(a,3);
         end
     end
