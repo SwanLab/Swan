@@ -1,4 +1,4 @@
-classdef SubMesher < handle
+classdef QuadToTriMeshConverter < handle
     
     properties (Access = public)
        subMesh
@@ -12,7 +12,7 @@ classdef SubMesher < handle
     
     methods (Access = public)
         
-        function obj = SubMesher(cParams)
+        function obj = QuadToTriMeshConverter(cParams)
             obj.init(cParams);
             obj.computeLocalMesh();
             obj.computeSubMesh();
