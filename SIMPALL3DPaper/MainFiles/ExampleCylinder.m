@@ -34,11 +34,11 @@ classdef ExampleCylinder < handle
             obj.createDualVariable();
             obj.createOptimizer();
 
-%             saveas(gcf,'SIMPALL3DPaper/MatVoidCase/MonitoringExampleCylSIMPP3.fig');
-%             obj.designVariable.fun.print('SIMPALL3DPaper/MatVoidCase/ExampleCylSIMPP3');
+            saveas(gcf,'SIMPALL3DPaper/MatVoidCase/MonitoringExampleCylSIMPP3.fig');
+            obj.designVariable.fun.print('SIMPALL3DPaper/MatVoidCase/ExampleCylSIMPP3');
 
-            saveas(gcf,'SIMPALL3DPaper/MatVoidCase/MonitoringExampleCylSIMPALL.fig');
-            obj.designVariable.fun.print('SIMPALL3DPaper/MatVoidCase/ExampleCylSIMPALL');
+%             saveas(gcf,'SIMPALL3DPaper/MatVoidCase/MonitoringExampleCylSIMPALL.fig');
+%             obj.designVariable.fun.print('SIMPALL3DPaper/MatVoidCase/ExampleCylSIMPALL');
         end
 
     end
@@ -91,7 +91,7 @@ classdef ExampleCylinder < handle
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
-            s.interpolation  = 'SIMPALL';
+            s.interpolation  = 'SIMP_P3';
             s.dim            = '3D';
             s.matA = matA;
             s.matB = matB;
