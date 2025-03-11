@@ -4,6 +4,8 @@ matType{2} = load('CircleMicroDamagePerimeter.mat');
 matType{3} = load('SquareMicroDamageArea.mat');
 matType{4} = load('SquareMicroDamagePerimeter.mat');
 matType{5} = load('IsoMicroDamage.mat');
+matType{6} = load('HorizontalCrackMicroDamageArea.mat');
+matType{6}.mat = matType{6}.mat*210;
 
 filterTimes1 = 0;
 filterTimes2 = 0;
@@ -15,29 +17,29 @@ filterTimes2 = 0;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%% ONE TYPE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-type = 'Circle (Perimeter)';
-switch type
-    case 'Circle (Area)'
-        mat = matType{1};
-        derivMat = derivMatType{1};
-        deriv2Mat = deriv2MatType{1};
-    case 'Circle (Perimeter)'
-        mat = matType{2};
+% type = 'Circle (Perimeter)';
+% switch type
+%     case 'Circle (Area)'
+%         mat = matType{1};
+%         derivMat = derivMatType{1};
+%         deriv2Mat = deriv2MatType{1};
+%     case 'Circle (Perimeter)'
+%         mat = matType{2};
 %        derivMat = derivMatType{2};
 %        deriv2Mat = deriv2MatType{2};
-    case 'Square (Area)'
-        mat = matType{3};
-        derivMat = derivMatType{3};
-        deriv2Mat = deriv2MatType{3};
-    case 'Square (Perimeter)'
-        mat = matType{4};
-        derivMat = derivMatType{4};
-        deriv2Mat = deriv2MatType{4};
-    case 'Isotropic'
-        mat = matType{5};
-        derivMat = derivMatType{5};
-        deriv2Mat = deriv2MatType{5};
-end
+%     case 'Square (Area)'
+%         mat = matType{3};
+%         derivMat = derivMatType{3};
+%         deriv2Mat = deriv2MatType{3};
+%     case 'Square (Perimeter)'
+%         mat = matType{4};
+%         derivMat = derivMatType{4};
+%         deriv2Mat = deriv2MatType{4};
+%     case 'Isotropic'
+%         mat = matType{5};
+%         derivMat = derivMatType{5};
+%         deriv2Mat = deriv2MatType{5};
+% end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%% PLOT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -106,19 +108,21 @@ for i=1:3
         % legType = 1;
 
         %%%%%%%%%%%%%%%%%%% PLOT ANALYTICAL ALL TYPES %%%%%%%%%%%%%%%%%%
-        figure()
-        hold on
-        fplot(funMat(i,j,1),[0 1],'-o','Color','#D95319','LineWidth',1);
-        fplot(funMat(i,j,2),[0 1],'--o','Color','#D95319','LineWidth',1);
-        fplot(funMat(i,j,3),[0 1],'-square','Color','#0072BD','LineWidth',1);
-        fplot(funMat(i,j,4),[0 1],'--square','Color','#0072BD','LineWidth',1);
-        fplot(funMat(i,j,5),[0 1],'Color','#000000','LineWidth',1);
-        ylabel([char(8450)+"11 [GPa]"]);
-        ylim([0,inf])
-        xlabel("Damage $\phi$ [-]",'Interpreter','latex');
-        lgd = legend('Circle (Area)','Circle (Perimeter)','Square (Area)','Square (Perimeter)','Analytical');
-        fontsize(lgd,14,'points')
-        fontsize(gcf,16,'points')
+        % figure()
+        % hold on
+        % fplot(funMat(i,j,1),[0 1],'-o','Color','#D95319','LineWidth',1);
+        % fplot(funMat(i,j,2),[0 1],'--o','Color','#D95319','LineWidth',1);
+        % fplot(funMat(i,j,3),[0 1],'-square','Color','#0072BD','LineWidth',1);
+        % fplot(funMat(i,j,4),[0 1],'--square','Color','#0072BD','LineWidth',1);
+        % fplot(funMat(i,j,5),[0 1],'Color','#000000','LineWidth',1);
+        % fplot(funMat(i,j,6),[0 1],'Color',"#77AC30",'LineWidth',1)
+        % ylabel([char(8450)+"11 [GPa]"]);
+        % ylim([0,inf])
+        % xlabel("Damage $\phi$ [-]",'Interpreter','latex');
+        % lgd = legend('Circle (Area)','Circle (Perimeter)','Square (Area)','Square (Perimeter)','Analytical','Horizontal Crack');
+        % fontsize(lgd,14,'points')
+        % fontsize(gcf,16,'points')
+        
         %%%%%%%%%%%%%%%%%%%% PLOT DERIVATIVES ALL TYPES %%%%%%%%%%%%%%%%%
         % fplot(dfunMat(i,j,1),[0 1],'Color','#FF1F5B');
         % fplot(dfunMat(i,j,2),[0 1],'--','Color','#FF1F5B');
@@ -157,15 +161,15 @@ for i=1:3
     end
 end
 
-switch legType
-    case 1
-        leg = legend('C','dC','d2C');
-    case 2
-        leg =legend('Circle (Area)','Circle (Perimeter)','Square (Area)','Square (Perimeter)','AT0.5','AT1','AT2');
-    case 3
-        leg = legend('Circle (Perimeter)','Square (Perimeter)','Isotropic');
-end
-leg.Layout.Tile = 'east';
+% switch legType
+%     case 1
+%         leg = legend('C','dC','d2C');
+%     case 2
+%         leg =legend('Circle (Area)','Circle (Perimeter)','Square (Area)','Square (Perimeter)','AT0.5','AT1','AT2');
+%     case 3
+%         leg = legend('Circle (Perimeter)','Square (Perimeter)','Isotropic');
+% end
+% leg.Layout.Tile = 'east';
 
 
 
@@ -173,7 +177,12 @@ leg.Layout.Tile = 'east';
 
 
 function [fun,dfun,ddfun] = computeFunctionsAndDerivatives(cParams)
-    x = reshape(cParams.phi,length(cParams.phi),[]);
+    if isfield(cParams,'holeParam')
+        x = cParams.holeParam{1}';
+    else
+        x = cParams.phi;
+    end
+    x = reshape(x,length(x),[]);
     y = cParams.mat;
     
     fun   = cell(3,3);
@@ -181,9 +190,9 @@ function [fun,dfun,ddfun] = computeFunctionsAndDerivatives(cParams)
     ddfun = cell(3,3);
     for i=1:3
         for j=1:3
-            % f = fit(x,squeeze(y(i,j,:)),'poly9');
-            % fun{i,j} = poly2sym(coeffvalues(f));
-            coeffs = polyfix(x,squeeze(y(i,j,:)),9,[0,1],[squeeze(y(i,j,1)),0]);
+            coeffs = polyfit(x,squeeze(y(i,j,:)),9);
+            %coeffs = polyfix(x,squeeze(y(i,j,:)),9,[0,1],[squeeze(y(i,j,1)),0]);
+            %coeffs = polyfix(x,squeeze(y(i,j,:)),9,[0],[squeeze(y(i,j,1))]);
             fun{i,j} = poly2sym(coeffs);
             dfun{i,j} = diff(fun{i,j});
             ddfun{i,j} = diff(dfun{i,j});
@@ -191,34 +200,38 @@ function [fun,dfun,ddfun] = computeFunctionsAndDerivatives(cParams)
     end
 end
 
-function derivMat = computeGradient(cParams,filterTimes)
-    x = cParams.phi;
-    y = cParams.mat;
-    for i=1:3
-        for j=1:3
-            s.coord = reshape(x,length(x),[]);
-            s.connec = (1:1:length(x)-1)' + [0 1];
-            mesh1D = Mesh.create(s);
-    
-            matFun = LagrangianFunction.create(mesh1D,1,'P1');
-            matFun.fValues = squeeze(y(i,j,:));
-    
-            derivMatDom = Grad(matFun);
-            derivMatFun = derivMatDom.project('P1',mesh1D);
-            if filterTimes ~= 0
-                for k=1:filterTimes
-                    ss.filterType = 'LUMP';
-                    ss.mesh       = mesh1D;
-                    ss.trial      = LagrangianFunction.create(mesh1D,1,'P1');
-                    filter        = Filter.create(ss);
-                    derivMatFun   = filter.compute(derivMatFun,'QUADRATIC');
-                end  
-            end
-
-
-            derivMat.mat(i,j,:) = derivMatFun.fValues;
-            
-        end
-    end
-    derivMat.phi = cParams.phi;
-end
+% function derivMat = computeGradient(cParams,filterTimes)
+%     if isfield(cParams,'holeParam')
+%         x = cParams.holeParam{1};
+%     else
+%         x = cParams.phi;
+%     end
+%     y = cParams.mat;
+%     for i=1:3
+%         for j=1:3
+%             s.coord = reshape(x,length(x),[]);
+%             s.connec = (1:1:length(x)-1)' + [0 1];
+%             mesh1D = Mesh.create(s);
+% 
+%             matFun = LagrangianFunction.create(mesh1D,1,'P1');
+%             matFun.fValues = squeeze(y(i,j,:));
+% 
+%             derivMatDom = Grad(matFun);
+%             derivMatFun = derivMatDom.project('P1',mesh1D);
+%             if filterTimes ~= 0
+%                 for k=1:filterTimes
+%                     ss.filterType = 'LUMP';
+%                     ss.mesh       = mesh1D;
+%                     ss.trial      = LagrangianFunction.create(mesh1D,1,'P1');
+%                     filter        = Filter.create(ss);
+%                     derivMatFun   = filter.compute(derivMatFun,'QUADRATIC');
+%                 end  
+%             end
+% 
+% 
+%             derivMat.mat(i,j,:) = derivMatFun.fValues;
+% 
+%         end
+%     end
+%     derivMat.phi = cParams.phi;
+% end

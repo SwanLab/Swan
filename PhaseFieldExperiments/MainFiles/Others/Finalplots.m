@@ -1,12 +1,63 @@
-%% Constitutive tensor (after running C_Fun_Ploy)
-tiledlayout(1,3)
+%% Comparative constitutive tensor (data vs. fitting)
+close all
+matIdx = 1;
+if matIdx == 6
+    x = matType{matIdx}.holeParam{1};
+else
+    x = matType{matIdx}.phi; 
+end
+
+tiledlayout(2,2)
 nexttile
 hold on
-fplot(funMat(1,1,5),[0 1],'Color','#000000','LineWidth',1.5);
+scatter(x,squeeze(matType{matIdx}.mat(1,1,:)),'X','LineWidth',1.5)
+fplot(funMat(1,1,matIdx),[0 1],'LineWidth',1.5)
+ylabel(char(8450)+"11 [GPa]");
+ylim([0,inf])
+xlabel("Damage "+char(632)+" [-]");
+%fontsize(gcf,25,'points')
+
+nexttile
+hold on
+scatter(x,squeeze(matType{matIdx}.mat(1,2,:)),'X','LineWidth',1.5)
+fplot(funMat(1,2,matIdx),[0 1],'LineWidth',1.5)
+ylabel(char(8450)+"12 [GPa]");
+ylim([0,inf])
+xlabel("Damage "+char(632)+" [-]");
+%fontsize(gcf,25,'points')
+
+nexttile
+hold on
+scatter(x,squeeze(matType{matIdx}.mat(2,2,:)),'X','LineWidth',1.5)
+fplot(funMat(2,2,matIdx),[0 1],'LineWidth',1.5)
+ylabel(char(8450)+"22 [GPa]");
+ylim([0,inf])
+xlabel("Damage "+char(632)+" [-]");
+%fontsize(gcf,25,'points')
+
+nexttile
+hold on
+scatter(x,squeeze(matType{matIdx}.mat(3,3,:)),'X','LineWidth',1.5)
+fplot(funMat(3,3,matIdx),[0 1],'LineWidth',1.5)
+ylabel(char(8450)+"33 [GPa]");
+ylim([0,inf])
+xlabel("Damage "+char(632)+" [-]");
+%fontsize(gcf,25,'points')
+
+lg =legend('Data','Fitting');
+lg.Layout.Tile = 'East';
+
+%% Constitutive tensor (after running C_Fun_Ploy)
+close all
+tiledlayout(2,2)
+nexttile
+hold on
+fplot(funMat(1,1,5),[0 1],'-','Color','#000000','LineWidth',1.5);
 fplot(funMat(1,1,1),[0 1],'-','Color','#D95319','LineWidth',1.5);
 fplot(funMat(1,1,2),[0 1],'--','Color','#D95319','LineWidth',1.5);
 fplot(funMat(1,1,3),[0 1],'-','Color','#0072BD','LineWidth',1.5);
 fplot(funMat(1,1,4),[0 1],'--','Color','#0072BD','LineWidth',1.5);
+fplot(funMat(1,1,6),[0 1],'--','Color',"#7E2F8E",'LineWidth',1.5);
 ylabel(char(8450)+"11 [GPa]");
 ylim([0,inf])
 xlabel("Damage "+char(632)+" [-]");
@@ -19,7 +70,21 @@ fplot(funMat(1,2,1),[0 1],'-','Color','#D95319','LineWidth',1.5);
 fplot(funMat(1,2,2),[0 1],'--','Color','#D95319','LineWidth',1.5);
 fplot(funMat(1,2,3),[0 1],'-','Color','#0072BD','LineWidth',1.5);
 fplot(funMat(1,2,4),[0 1],'--','Color','#0072BD','LineWidth',1.5);
+fplot(funMat(1,2,6),[0 1],'--','Color',"#7E2F8E",'LineWidth',1.5);
 ylabel(char(8450)+"12 [GPa]");
+ylim([0,inf])
+xlabel("Damage "+char(632)+" [-]");
+fontsize(gcf,25,'points')
+
+nexttile
+hold on
+fplot(funMat(2,2,5),[0 1],'Color','#000000','LineWidth',1.5);
+fplot(funMat(2,2,1),[0 1],'-','Color','#D95319','LineWidth',1.5);
+fplot(funMat(2,2,2),[0 1],'--','Color','#D95319','LineWidth',1.5);
+fplot(funMat(2,2,3),[0 1],'-','Color','#0072BD','LineWidth',1.5);
+fplot(funMat(2,2,4),[0 1],'--','Color','#0072BD','LineWidth',1.5);
+fplot(funMat(2,2,6),[0 1],'--','Color',"#7E2F8E",'LineWidth',1.5);
+ylabel(char(8450)+"22 [GPa]");
 ylim([0,inf])
 xlabel("Damage "+char(632)+" [-]");
 fontsize(gcf,25,'points')
@@ -31,6 +96,7 @@ fplot(funMat(3,3,1),[0 1],'-','Color','#D95319','LineWidth',1.5);
 fplot(funMat(3,3,2),[0 1],'--','Color','#D95319','LineWidth',1.5);
 fplot(funMat(3,3,3),[0 1],'-','Color','#0072BD','LineWidth',1.5);
 fplot(funMat(3,3,4),[0 1],'--','Color','#0072BD','LineWidth',1.5);
+fplot(funMat(3,3,6),[0 1],'--','Color',"#7E2F8E",'LineWidth',1.5);
 ylabel(char(8450)+"33 [GPa]");
 ylim([0,inf])
 xlabel("Damage "+char(632)+" [-]");

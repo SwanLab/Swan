@@ -40,8 +40,8 @@ classdef TestingPhaseFieldHomogenizer < handle
                 mat(:,:,i) = obj.computeHomogenization(hole);
                 phi(i) = obj.computeDamageMetric(hole);
             end
-            mat = obj.assembleResults(mat);
-            phi = obj.assembleResults(phi);
+            %mat = obj.assembleResults(mat);
+            %phi = obj.assembleResults(phi);
         end
         
     end
@@ -93,8 +93,9 @@ classdef TestingPhaseFieldHomogenizer < handle
             nParam = length(obj.maxParam);
             paramHole = cell(1,nParam);
             for i=1:nParam
-                paramHole{i} = linspace(1e-2,obj.maxParam(i),obj.nSteps(i));
+                paramHole{i} = linspace(0,obj.maxParam(i),obj.nSteps(i));
             end
+            paramHole{2} = 1e-2;
         end
         
         function maxV = computeMaxHoleParams(obj)
