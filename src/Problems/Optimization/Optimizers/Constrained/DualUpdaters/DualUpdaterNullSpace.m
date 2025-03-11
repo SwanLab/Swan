@@ -37,17 +37,11 @@ classdef DualUpdaterNullSpace < handle
             prob.lb(p) = 0;
         end
 
-        function l = update(obj,eta,primalUpdater)
+        function l = update(obj,eta,lUB,lLB)
             s.prob = obj.computeDualBounds();
             s.eta  = eta;
-            if isempty(primalUpdater.tau)
-                s.lUB = 0;
-                s.lLB = 0;
-            else
-                t     = primalUpdater.boxConstraints.refTau;
-                s.lUB = primalUpdater.boxConstraints.lUB/t;
-                s.lLB = primalUpdater.boxConstraints.lLB/t;
-            end
+            s.lUB = lUB;
+            s.lLB = lLB;
             l = obj.computeQuadraticProblem(s);
         end
     end

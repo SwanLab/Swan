@@ -208,9 +208,15 @@ classdef OptimizerNullSpace < handle
         end
 
         function updateDualVariable(obj)
-            e = obj.eta;
-            p = obj.primalUpdater;
-            l = obj.dualUpdater.update(e,p);
+            if obj.nIter == 0
+                lUB = 0;
+                lLB = 0;
+            else
+                t   = obj.primalUpdater.boxConstraints.refTau;
+                lUB = obj.primalUpdater.boxConstraints.lUB/t;
+                lLB = obj.primalUpdater.boxConstraints.lLB/t;
+            end
+            l   = obj.dualUpdater.update(obj.eta,lUB,lLB);
             obj.dualVariable.update(l);
         end
 
