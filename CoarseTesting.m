@@ -95,9 +95,9 @@ classdef CoarseTesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [3 1]; %nx ny
+            obj.nSubdomains  = [15 1]; %nx ny
             %obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
-            obj.fileNameCoase = 'UL_r0_1-P1.mat';
+            obj.fileNameCoase = 'UL_r0_1-20x20.mat';
             obj.tolSameNode = 1e-10;
 
         end
@@ -127,8 +127,8 @@ classdef CoarseTesting < handle
 
         function mS = createStructuredMesh(obj)
              %UnitMesh better
-            x1      = linspace(-1,1,50);
-            x2      = linspace(-1,1,50);
+            x1      = linspace(-1,1,20);
+            x2      = linspace(-1,1,20);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -219,7 +219,7 @@ classdef CoarseTesting < handle
             %             coord(4,1) = xmin;
             %             coord(4,2) = ymin;
             connec = [1 2 3 4];
-            connec = [2 3 4 1];
+            % connec = [2 3 4 1];
             s.coord = coord;
             s.connec = connec;
             cMesh = Mesh.create(s);
@@ -274,7 +274,7 @@ classdef CoarseTesting < handle
 %             PL.value     = [-0.1];
                         PL.domain    = @(coor) isRight(coor);
                         PL.direction = [2];
-                        PL.value     = [0.1];
+                        PL.value     = [1];
         end
 
         function [bc,Dir,PL] = createBoundaryConditions(obj,mesh)

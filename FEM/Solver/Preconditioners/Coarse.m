@@ -91,7 +91,7 @@ classdef Coarse < handle
             dirich  = bc.dirichlet_dofs;
             dirichV = bc.dirichlet_vals;
             if ~isempty(dirich)
-                R = -obj.LHS(:,dirich)*dirichV;
+                R = -obj.LHS(:,dirich)*dirichV;  %% 
             else
                 R = zeros(sum(obj.dim.ndofs(:)),1);
             end

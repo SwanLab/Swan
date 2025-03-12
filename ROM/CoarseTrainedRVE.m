@@ -27,7 +27,7 @@ classdef CoarseTrainedRVE < handle
         
         function init(obj,filename)
             load(filename);
-            obj.Kcoarse = -L;
+            obj.Kcoarse = L;
             obj.U       = U;
             obj.ndimf   = 2;
         end

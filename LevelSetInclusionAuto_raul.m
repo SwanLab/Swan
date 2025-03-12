@@ -76,8 +76,8 @@ classdef LevelSetInclusionAuto_raul < handle
         function mesh = createReferenceMesh(~)
            
              %UnitMesh better
-            x1      = linspace(-1,1,50);
-            x2      = linspace(-1,1,50);
+            x1      = linspace(-1,1,20);
+            x2      = linspace(-1,1,20);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -241,8 +241,8 @@ classdef LevelSetInclusionAuto_raul < handle
             obj.createSolverHere(s)
             obj.computeStiffnessMatrixHere();
             obj.computeForcesHere(s);
-             c = obj.computeCmatP1();
-             rdir = obj.RHSdir();
+             c = obj.computeCmat();
+             rdir = obj.RHSweak(c);
             [u, L]  = obj.computeDisplacementHere(c, rdir);
 
             if isa(obj.dLambda, "LagrangianFunction")
@@ -325,17 +325,30 @@ classdef LevelSetInclusionAuto_raul < handle
              Cg = lhs.compute(obj.dLambda,test);      
         end
 
+        function Cg = computeCmatP2(obj)
+            s.quadType = 2;
+            s.boundaryMeshJoined    = obj.boundaryMeshJoined;
+            s.localGlobalConnecBd   = obj.localGlobalConnecBd;
+            s.nnodes                 = obj.mesh.nnodes;
+
+            % lhs = LHSintegrator_ShapeFunction_fun(s);
+            lhs = LHSintegrator_MassBoundary_albert(s);
+            test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); % !!
+             obj.dLambda  = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1');
+             Cg = lhs.compute(obj.dLambda,test);      
+        end
+
         function Cg = computeCmat(obj)
             s.quadType = 2;
             s.boundaryMeshJoined    = obj.boundaryMeshJoined;
             s.localGlobalConnecBd   = obj.localGlobalConnecBd;
             s.nnodes                 = obj.mesh.nnodes;
-            
+            s.mesh = obj.boundaryMeshJoined;
         
 
 
-            % lhs = LHSintegrator_ShapeFunction_fun(s);
-            lhs = LHSintegrator_MassBoundary_albert(s);
+             lhs = LHSintegrator_ShapeFunction_fun(s);
+            % lhs = LHSintegrator_MassBoundary_albert(s);
             test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); % !!
             ndimf  = 2;
             Lx     = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
@@ -629,8 +642,15 @@ classdef LevelSetInclusionAuto_raul < handle
                 rDir = [rDir rDire];
             end
 
+           
+
 
         end
+
+         function rDir = RHSweak(obj, c)
+                rDir = eye(size(c,2));
+
+         end
 
     end
 end

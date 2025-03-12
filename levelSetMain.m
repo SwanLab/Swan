@@ -14,6 +14,6 @@ for j = 1:size(r,2)
         U         = cat(2, U, u);
         L         = cat(2, L, l);
     %end
-    string = strrep("UL_r"+r(j), ".", "_")+"-P1"+".mat";
+    string = strrep("UL_r"+r(j), ".", "_")+"-20x20Weak"+".mat";
     save(string, "U", "L");
 end
