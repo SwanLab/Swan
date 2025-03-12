@@ -1,4 +1,3 @@
-
 clear;
 clc;
 
@@ -73,12 +72,86 @@ disp(sig1);
 disp('The stress without Voigt is:');
 disp(sig2);
 
+%% C*grad(u) test
+E = 1; nu = 0.3; N=2;
+mesh = TriangleMesh(1,1,2,2);
+u    = LagrangianFunction.create(mesh,2,'P1');
+young   = ConstantFunction.create(E,mesh);
+poisson = ConstantFunction.create(nu,mesh);
+
+% Voigt 
+s.type    = 'ISOTROPIC';
+s.ptype   = 'ELASTIC';
+s.ndim    = mesh.ndim;
+s.young   = young;
+s.poisson = poisson;
+Cvoigt    = Material.create(s);
+
+s.type     = 'ElasticStiffnessMatrix';
+s.mesh     = mesh;
+s.test     = u;
+s.trial    = u;
+s.material = Cvoigt;
+s.quadratureOrder = 2;
+LHS = LHSIntegrator.create(s);
+K = full(LHS.compute());
+
+% No voigt
+mu     = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E,nu);
+k      = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E,nu,N);
+lambda = IsotropicElasticMaterial.computeLambdaFromShearAndBulk(mu,k,N);
+I   = eye(N);
+IkI = tensorprod(I,I);
+I4  = double((reshape(1:N, [N, 1, 1, 1]) == reshape(1:N, [1, 1, N, 1])) & ...
+     (reshape(1:N, [1, N, 1, 1]) == reshape(1:N, [1, 1, 1, N])));
+C = 2*mu*I4 + lambda*IkI;
 
 
-% Open Product test (gerard things)
-C1op = squeeze(tensorprod(sig1,sig1));
-pagemtimes(sig1,sig1')
-C2op = squeeze(tensorprod(sig2,sig2));
+s.quadratureOrder;
+quad = Quadrature.create(mesh, s.quadratureOrder);
 
-sig1op = C1op*str1
-sig2op = tensorprod(C2op,str2,[3,4],1:2)
+nnodeElem = mesh.nnodeElem;
+xV = quad.posgp;
+dNdx = u.evaluateCartesianDerivatives(xV);
+lhs = zeros(nnodeElem*2,nnodeElem*2,mesh.nelem);
+dV   = mesh.computeDvolume(quad);
+dV   = permute(dV,[3, 4, 2, 1]);
+for i=1:nnodeElem
+    dNdxTrial = zeros(N,N,2,4,4);
+    dNdxTrial(:,1,1,:,:) = dNdx(:,i,:,:);
+    dNdxTrial(:,2,2,:,:) = dNdx(:,i,:,:);
+    symTrial = 0.5*(dNdxTrial + pagetranspose(dNdxTrial));
+    for j=1:nnodeElem
+        dNdxTest = zeros(N,N,2,4,4);
+        dNdxTest(:,1,1,:,:) = dNdx(:,i,:,:);
+        dNdxTest(:,2,2,:,:) = dNdx(:,i,:,:);
+        symTest = 0.5*(dNdxTest + pagetranspose(dNdxTest));
+        sigN = pagetensorprod(C,symTrial,[3 4],[1 2],4,3);
+        Kelem = pagetensorprod(symTest,sigN,[1 2],[1 2],3,3);
+        Kelem = Kelem.*dV;
+        A = squeezeParticular(sum(Kelem,3),3);
+        I = (2*i-1):(2*i);
+        J = (2*j-1):(2*j);
+        lhs(I,J,:) = lhs(I,J,:) + A; % Asignar en grados de libertad
+    end
+end
+
+for i=1:4
+    for j=1:4
+        res(1,i,j) = tensorprod(symTest(:,:,i,j),sigN(:,:,i,j),[1 2],[1 2]);
+    end
+end
+
+
+%%
+            xV   = obj.quadrature.posgp;
+            dNdx = obj.test.evaluateCartesianDerivatives(xV);
+            B    = obj.computeB(dNdx);            
+            dV   = obj.mesh.computeDvolume(obj.quadrature);
+            dV   = permute(dV,[3, 4, 2, 1]);
+            Cmat = obj.material.evaluate(xV);
+            Cmat = permute(Cmat,[1 2 4 3]);
+            Bt   = permute(B,[2 1 3 4]);
+            BtC  = pagemtimes(Bt, Cmat);
+            BtCB = pagemtimes(BtC, B);
+            lhs  = sum(BtCB .* dV, 4);
