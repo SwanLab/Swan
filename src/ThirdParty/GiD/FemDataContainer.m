@@ -1,4 +1,4 @@
-classdef FemDataContainer < AbstractSettings
+classdef FemDataContainer < handle
     
     properties (Access = protected)
         defaultParamsName = ''
@@ -24,9 +24,7 @@ classdef FemDataContainer < AbstractSettings
     methods (Access = public)
         
         function obj = FemDataContainer(varargin)
-            if nargin == 1
-                obj.loadParams(varargin{1});
-            end
+            obj.fileName = varargin{1}.fileName;
             obj.init(varargin{1});
         end
         
