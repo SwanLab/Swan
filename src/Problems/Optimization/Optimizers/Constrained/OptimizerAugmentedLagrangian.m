@@ -250,7 +250,9 @@ classdef OptimizerAugmentedLagrangian < Optimizer
         end
 
         function obj = checkConvergence(obj)
-           if abs(obj.meritNew - obj.mOld) < obj.tol && obj.checkConstraint()
+            value = obj.constraint.value;
+            cases = obj.constraintCase;
+           if abs(obj.meritNew - obj.mOld) < obj.tol && Optimizer.checkConstraint(value,cases,obj.tol)
                obj.hasConverged = true;
            else
                
