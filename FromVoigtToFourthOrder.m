@@ -115,7 +115,7 @@ xV = quad.posgp;
 dNdx = u.evaluateCartesianDerivatives(xV);
 lhs = zeros(nnodeElem*2,nnodeElem*2,mesh.nelem);
 dV   = mesh.computeDvolume(quad);
-dV   = permute(dV,[3, 4, 2, 1]);
+dV   = permute(dV,[3, 4, 1, 2]);
 for i=1:nnodeElem
     dNdxTrial = zeros(N,N,2,4,4);
     dNdxTrial(:,1,1,:,:) = dNdx(:,i,:,:);
@@ -123,8 +123,8 @@ for i=1:nnodeElem
     symTrial = 0.5*(dNdxTrial + pagetranspose(dNdxTrial));
     for j=1:nnodeElem
         dNdxTest = zeros(N,N,2,4,4);
-        dNdxTest(:,1,1,:,:) = dNdx(:,i,:,:);
-        dNdxTest(:,2,2,:,:) = dNdx(:,i,:,:);
+        dNdxTest(:,1,1,:,:) = dNdx(:,j,:,:);
+        dNdxTest(:,2,2,:,:) = dNdx(:,j,:,:);
         symTest = 0.5*(dNdxTest + pagetranspose(dNdxTest));
         sigN = pagetensorprod(C,symTrial,[3 4],[1 2],4,3);
         Kelem = pagetensorprod(symTest,sigN,[1 2],[1 2],3,3);
@@ -132,7 +132,7 @@ for i=1:nnodeElem
         A = squeezeParticular(sum(Kelem,3),3);
         I = (2*i-1):(2*i);
         J = (2*j-1):(2*j);
-        lhs(I,J,:) = lhs(I,J,:) + A; % Asignar en grados de libertad
+        lhs(I,J,:) = lhs(I,J,:) + A;
     end
 end
 

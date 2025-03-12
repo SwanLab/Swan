@@ -113,8 +113,8 @@ if any(ndimsB<dimB)
 end
 % Get elementwise-multiplication dimensions sizeA_ in A, sizeB_ in B, and
 % sizeC_ in C. (Singleton expansion is applied in sizeC_.)
-sizeA_ = size(A,ndimsA+1:ndims(A));
-sizeB_ = size(B,ndimsB+1:ndims(B));
+sizeA_ = size(A,ndimsA+(1:ndims(A)));
+sizeB_ = size(B,ndimsB+(1:ndims(B)));
 sizeA_(end+1:length(sizeB_)) = 1;
 sizeB_(end+1:length(sizeA_)) = 1;
 tf = sizeA_==sizeB_ | sizeA_==1 | sizeB_==1;
