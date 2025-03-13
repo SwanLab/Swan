@@ -34,7 +34,7 @@ classdef Projector_toRigidBody < Projector
             xV    = quad.posgp;
             dV    = x.mesh.computeDvolume(quad);
             ngaus = quad.ngaus;
-            basisTest  = test.computeBasisFunction(xV);
+            basisTest  = test.evaluateBasisFunctions(xV);
             basisTrial = basisTest;
             nbasis     = size(basisTest,2);
             LHS   = zeros(nbasis);
@@ -59,7 +59,7 @@ classdef Projector_toRigidBody < Projector
             xV = quad.posgp;
             dV = fun.mesh.computeDvolume(quad);
 
-            basisTest  = test.computeBasisFunction(xV);
+            basisTest  = test.evaluateBasisFunctions(xV);
             nbasis     = size(basisTest,2);
 
             nGaus = quad.ngaus;

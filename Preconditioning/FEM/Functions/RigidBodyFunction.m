@@ -38,7 +38,7 @@ classdef RigidBodyFunction < BaseFunction
 %             fxV = u*phiU + v*phiV + theta*phiT;
 %         end
 
-        function bE = computeBasisFunction(obj,xGloc)
+        function bE = evaluateBasisFunctions(obj,xGloc)
             for i=1:obj.nbasis
                 bE{i} = obj.basisFunctions{i}.evaluate(xGloc);
             end
@@ -48,12 +48,27 @@ classdef RigidBodyFunction < BaseFunction
             p1DiscFun = obj.project('P1D');
             p1DiscFun.plot();
         end
+
+         function RB = restrictBasisToBoundaryMesh(obj,bMesh)
+%              nodes      = unique(bMesh.globalConnec(:));
+             mesh       = bMesh.mesh;
+             RB = RigidBodyFunction.create(mesh,obj.refPoint);
+%              s.fValues  = zeros(obj.nbasis,1);
+%              s.ndimf    = obj.ndimf;  
+%              s.refPoint = obj.refPoint;
+% %              functionType = obj.functionType;
+%              for i=1:obj.nbasis
+%                  basis{i} = obj.basisFunctions{i}.fValues(nodes,:);                 
+%              end
+%              RB = RigidBodyFunction.create(bMesh.mesh,basis,obj.functionType);
+         end
+         
     end
 
     methods (Access = public, Static)
 
         function RB = create(mesh,refPoint)
-            s.ndimf      = mesh.ndim;
+            s.ndimf    = mesh.ndim;
             s.fvalues  = zeros(mesh.nnodes, s.ndimf);
             s.mesh     = mesh;
             s.refPoint = refPoint;

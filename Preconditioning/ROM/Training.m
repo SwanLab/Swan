@@ -43,9 +43,9 @@ classdef Training < handle
             [LHS,RHS,uFun,lambdaFun] = obj.createElasticProblem();
             sol  = LHS\RHS;
             uAll = sol(1:uFun.nDofs,:);
-            u    = obj.extractDomainData(uAll);
+            [uSbd,LHSsbd]    = obj.extractDomainData(uAll,LHS);
             
-            save('./Preconditioning/ROM/Training/PorousCell/OfflineData.mat','u','mR')
+            save('./Preconditioning/ROM/Training/PorousCell/OfflineData.mat','uSbd','mR','LHSsbd')
 
         end
 
@@ -181,14 +181,24 @@ classdef Training < handle
             end
         end
 
-        function u = extractDomainData(obj,uC)
+        function [u,lhs] = extractDomainData(obj,uC,LHS)
+            u   = obj.extractDomainDisplacements(uC);
+            lhs = obj.extractDomainLHS(LHS);
+        end
+
+        function u = extractDomainDisplacements(obj,uC)
             ntest = size(uC,2);
             for i = 1:ntest
                 uD    = obj.DDdofManager.global2local(uC(:,i));
-                ndom  = obj.nSubdomains(1)*obj.nSubdomains(2);
                 ind   = (obj.domainIndices(1)-1)*obj.nSubdomains(1)+obj.domainIndices(2);
                 u(:,i)= uD(:,ind);
             end
+        end
+
+        function lhs = extractDomainLHS(obj,LHS)
+            lhs = obj.DDdofManager.global2localMatrix(LHS);
+            ind = (obj.domainIndices(1)-1)*obj.nSubdomains(1)+obj.domainIndices(2);
+            lhs = lhs(:,:,ind);
         end
 
         function d = createDomainDecompositionDofManager(obj,iC,lG,bS,mR,iCR)
