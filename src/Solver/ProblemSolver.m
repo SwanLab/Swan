@@ -117,18 +117,14 @@ classdef ProblemSolver < handle
                     CtDir = bcapp.computeLinearConditionsMatrix('Dirac');
                     CtPer = bcapp.computeLinearPeriodicConditionsMatrix();
                     CtCs  = bcapp.computeLinearConditionsMatrix('Analytical');
-                    Ct = [CtPer; CtDir; CtCs' ];
-                    C   = Ct';
-                    nC  = size(Ct,1);
-                    Z   = zeros(nC);
-                    Km  = stiffness;
-                    LHS = [Km C; C' Z];
+                    Cv    = bcapp.computeVoluMatrix();
+                    Ct      = [CtPer; CtDir; CtCs'];
+                    C       = Ct';
+                    nC      = size(Ct,1);
+                    Z       = zeros(nC);
+                    Km      = stiffness;
+                    LHS     = [Km C; C' Z];
 
-                    %%% Create Cs and Cv
-                    %Cs with RHS following BCApplier in the sense of
-                    %using local meshes. In RHS give constant function
-                    %1 using ConstantFunction%
-                    %Obtain LHS
                 case strcmp(obj.type, 'REDUCED') && strcmp(obj.mode, 'FLUC')
                     lead = bcs.periodic_leader;
                     fllw = bcs.periodic_follower;

@@ -147,6 +147,16 @@ classdef BCApplier < handle
             Ct =  [CtPer; CtDirPer; CtDir];
         end
 
+        function Cv = computeVoluMatrix(obj)
+            ndimf  = 2;
+            displacementFun = LagrangianFunction.create(obj.mesh, ndimf, 'P1'); % !!
+            s.quadType = 2;
+            s.mesh     = obj.mesh;
+            lhs    = LHSintegrator_ShapeFunction_fun(s);
+            test   = LagrangianFunction.create(obj.mesh, ndimf, 'P1'); % !!
+            Cv = [];
+        end
+
         function RHSC = computeMicroDisplMonolithicRHS(obj, iVoigt, nVoigt)
             nDofs = obj.dirichletFun.nDofs;
             basis   = diag(ones(nVoigt,1));
