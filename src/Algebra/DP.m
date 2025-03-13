@@ -1,5 +1,10 @@
-function dom = DP(A,B)
-    s.operation = @(xV) evaluate(A,B,xV);
+function dom = DP(varargin)
+    A = varargin{1}; B = varargin{2};
+    dimA = 2; dimB = 1;
+    if nargin > 2, dimA = varargin{3}; end
+    if nargin > 3, dimB = varargin{4}; end
+
+    s.operation = @(xV) evaluate(A,B,dimA,dimB,xV);
     if isa(A,'DomainFunction')
         s.mesh = A.mesh;
     else
@@ -8,10 +13,48 @@ function dom = DP(A,B)
     dom         = DomainFunction(s);
 end
 
-function aDb = evaluate(a,b,xV)
-    aEval = a.evaluate(xV);
-    bEval = b.evaluate(xV);
-    aEval = pagetranspose(aEval);
-    aDb = pagemtimes(aEval,bEval);
-    aDb = squeezeParticular(aDb,1);
+function fVR = evaluate(A,B,dimA,dimB,xV)
+    aEval = computeLeftSideEvaluation(A,dimA,xV);
+    bEval = computeRightSideEvaluation(B,dimB,xV);
+    fVR = pagemtimes(aEval,bEval);
+    fVR = squeezeParticular(fVR, [1 2]);
+end
+
+function aEval = computeLeftSideEvaluation(A,dimA,xV)
+    res      = A.evaluate(xV);
+    isTensor = checkTensor(A,res);
+    if isTensor
+        aEval = res;
+        if dimA == 1
+            aEval = pagetranspose(aEval);
+        end
+    else
+        aEval(1,:,:,:) = res;
+    end
+end
+
+function bEval = computeRightSideEvaluation(B,dimB,xV)
+    res      = B.evaluate(xV);
+    isTensor = checkTensor(B,res);
+    if isTensor
+        bEval = res;
+        if dimB == 2
+            bEval = pagetranspose(bEval);
+        end
+    else
+        bEval(:,1,:,:) = res;
+    end
+end
+
+function isTensor = checkTensor(A,res)
+    n = ndims(res);
+    if isa(A,'Material')
+        isTensor = true;
+    else
+        if A.mesh.nelem == 1
+            isTensor = n>=3;
+        else
+            isTensor = n>=4;
+        end
+    end
 end

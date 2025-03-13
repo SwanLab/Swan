@@ -11,34 +11,36 @@ end
 function fVR = evaluate(A,B,xV)
     aEval = computeLeftSideEvaluation(A,xV);
     bEval = computeRightSideEvaluation(B,xV);
-    fVR   = pagemtimes(aEval,bEval);
-    if size(fVR,1) == 1
-        fVR = squeezeParticular(fVR, 1);
-    elseif size(fVR,2) == 1
-        fVR = squeezeParticular(fVR, 2);
-    end
+    bTranspose = pagetranspose(bEval);
+    fVR   = trace(pagemtimes(aEval,bTranspose));
+    fVR   = squeezeParticular(fVR,1);
 end
 
 function aEval = computeLeftSideEvaluation(A,xV)
-    res      = A.evaluate(xV);
-    n        = ndims(res);
-    isTensor = n>=4;
-    switch isTensor
-        case true
-            aEval = res;
-        otherwise
-            aEval(1,:,:,:) = res;
+    aEval    = A.evaluate(xV);
+    isTensor = checkTensor(A,aEval);
+    if ~isTensor
+        error('Not enough dimensions to contract')
     end
 end
 
 function bEval = computeRightSideEvaluation(B,xV)
-    res      = B.evaluate(xV);
-    n        = ndims(res);
-    isTensor = n>=4;
-    switch isTensor
-        case true
-            bEval = res;
-        otherwise
-            bEval(:,1,:,:) = res;
+    bEval    = B.evaluate(xV);
+    isTensor = checkTensor(B,bEval);
+    if ~isTensor
+        error('Not enough dimensions to contract')
+    end
+end
+
+function isTensor = checkTensor(A,res)
+    n = ndims(res);
+    if isa(A,'Material')
+        isTensor = true;
+    else
+        if A.mesh.nelem == 1
+            isTensor = n>=3;
+        else
+            isTensor = n>=4;
+        end
     end
 end
