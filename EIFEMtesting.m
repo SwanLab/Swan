@@ -72,7 +72,7 @@ classdef EIFEMtesting < handle
 %             zmult = Mmult(r);
             
 %             zfull = obj.bcApplier.reducedToFullVectorDirichlet(zmult);
-            %obj.plotSolution(zfull,obj.meshDomain,0,0,2,obj.bcApplier,0)
+            %obj.plotSolution(zfull,obj.meshDomaopenin,0,0,2,obj.bcApplier,0)
 
 %             zeifem = Meifem(r);
 %             zfull = obj.bcApplier.reducedToFullVectorDirichlet(zeifem);
@@ -118,9 +118,9 @@ classdef EIFEMtesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [2 1]; %nx ny
+            obj.nSubdomains  = [15 1]; %nx ny
 %             obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
-            obj.fileNameEIFEM = 'DEF_Q4porL_1.mat';
+            obj.fileNameEIFEM = 'DEF_Q4porL_1_raul.mat';
             obj.tolSameNode = 1e-10;
         end
 

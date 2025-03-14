@@ -44,11 +44,13 @@ classdef ProcessOfflineData < handle
             %             obj.mesh            = data.mR;
             %             obj.fValuesTraining = data.u;
 
+            obj.LHS = createElasticProblem(obj);
+
             uFun         = obj.createDispFun();
             uRBfun       = obj.projectToRigidBodyFun(uFun);
             uDEFSpaceFun = obj.projectToDeformationalSpace(uFun,uRBfun);
             PhiD         = obj.computeDeformationalModes(uDEFSpaceFun);
-            PhiD         = EIFEoper.RECONSTRUCTION.DEF_DISP.BASIS;
+%             PhiD         = EIFEoper.RECONSTRUCTION.DEF_DISP.BASIS;
             uDefFun      = obj.createDeformationalFunction(PhiD);
 
             PsiD       = obj.computeSelfEquilibratedLagrange(PhiD);
@@ -74,10 +76,16 @@ classdef ProcessOfflineData < handle
             Ldv = obj.computeBoundaryModalMassMatrixDirac(LMDefFunBd,Vfun);
             Lrv = obj.computeBoundaryModalMassMatrix(RBFunBd,Vfun);
 
-            Td = PhiD*(Add'\Ldv);
-            Tr = PhiR*(Arr')*(Lrv - Adr'*(Add'\Ldv));
+            Ud = PhiD*(Add'\Ldv);
+            Ur = PhiR*inv(Arr')*(Lrv - Adr'*(Add'\Ldv));
 
-            Kcoarse = Td'*obj.LHS*Td;
+            Kcoarse = Ud'*obj.LHS*Ud;
+
+            EIFEoper.Kcoarse = Kcoarse;
+            EIFEoper.Urb = Ur;
+            EIFEoper.Udef = Ud;
+
+            save('DEF_Q4porL_1_raul.mat','EIFEoper')
 
         end
 
@@ -271,6 +279,47 @@ classdef ProcessOfflineData < handle
                 functionType = repelem(functionType,size(VCoeff,2));
                 Vfun{ibd} = ModalFunction.create(mesh,VCoeff,functionType);
             end
+        end
+
+         function material = createMaterial(obj,mesh)
+            [young,poisson] = obj.computeElasticProperties(mesh);
+            s.type    = 'ISOTROPIC';
+            s.ptype   = 'ELASTIC';
+            s.ndim    = mesh.ndim;
+            s.young   = young;
+            s.poisson = poisson;
+            tensor    = Material.create(s);
+            material  = tensor;
+        end
+
+        function [young,poisson] = computeElasticProperties(obj,mesh)
+            E  = 1;
+            nu = 1/3;
+            young   = ConstantFunction.create(E,mesh);
+            poisson = ConstantFunction.create(nu,mesh);
+        end
+
+        function [LHS,u] = createElasticProblem(obj)
+            u = LagrangianFunction.create(obj.mesh,obj.mesh.ndim,'P1');
+            LHS = obj.computeLHS(u);
+%             RHS = obj.computeRHS(u,dLambda);
+        end
+
+        function K  = computeLHS(obj,u)          
+            material = obj.createMaterial(obj.mesh);
+            K = obj.computeStiffnessMatrix(obj.mesh,u,material);
+          
+        end
+
+        function LHS = computeStiffnessMatrix(obj,mesh,dispFun,mat)
+            s.type     = 'ElasticStiffnessMatrix';
+            s.mesh     = mesh;
+            s.test     = dispFun;
+            s.trial    = dispFun;
+            s.material = mat;
+            s.quadratureOrder = 2;
+            lhs = LHSIntegrator.create(s);
+            LHS = lhs.compute();
         end
 
     end

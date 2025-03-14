@@ -32,7 +32,7 @@ classdef PreconditionerEIFEM < handle
             Rd = obj.computeDiscontinousField(r);
             uD = obj.EIFEMsolver.apply(Rd);
             u = reshape(uD,[],1);
-            EIFEMtesting.plotSolution(u+uk,obj.dMesh,21,5,obj.iter,[],0)
+%             EIFEMtesting.plotSolution(u+uk,obj.dMesh,21,5,obj.iter,[],0)
             obj.iter = obj.iter+1;
             uC = obj.computeContinousField(uD);
             z  = uC; 
