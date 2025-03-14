@@ -28,8 +28,8 @@ clc;clear;close all
 
 cParams.mesh.meshLength = 1;
 cParams.mesh.meshWidth = 1;
-cParams.mesh.meshN = 1;
-cParams.mesh.meshM = 1;
+cParams.mesh.meshN = 10;
+cParams.mesh.meshM = 10;
 
 cParams.bc.bcType = 'displacementTraction'; %'FORCE'
 cParams.bc.bcValueSetLoading = 1e-10:1e-3:0.2;
@@ -47,6 +47,7 @@ cParams.solver.scale = 'MACRO';
 cParams.tol = 1e-8;
 cParams.H = 0.5;
 cParams.r0 = 1/sqrt(6);
+cParams.r1 = 1;
 
 tester = TestingContinuumDamage(cParams);
 data = tester.compute();

@@ -5,6 +5,7 @@ classdef ShFunc_ElasticDamage < handle
         mesh
         H
         r0
+        r1
         quadOrder
     end
     
@@ -68,7 +69,9 @@ classdef ShFunc_ElasticDamage < handle
             nodesNoDamage = tauEpsilon.fValues <= obj.rOld.fValues;
             fV(nodesNoDamage) = obj.rOld.fValues(nodesNoDamage);
             fV(~nodesNoDamage) = tauEpsilon.fValues(~nodesNoDamage);
+          
             obj.r.setFValues(fV);
+            
         end
         
         function setROld (obj)
@@ -88,6 +91,7 @@ classdef ShFunc_ElasticDamage < handle
             obj.quadOrder = cParams.quadOrder;
             obj.H = cParams.H;
             obj.r0 = cParams.r0;
+            obj.r1 = cParams.r1;
         end
 
         function createRHSIntegrator(obj)
@@ -99,14 +103,16 @@ classdef ShFunc_ElasticDamage < handle
 
         function computeDamage(obj)
             q = obj.computeHardening();
-            s.operation = @(xV) 1-(q(obj.r.evaluate(xV),obj.r0.evaluate(xV))./(obj.r.evaluate(xV)));
+            s.operation = @(xV) 1-(q(obj.r.evaluate(xV),obj.r0.evaluate(xV),obj.r1.evaluate(xV))./(obj.r.evaluate(xV)));
             s.ndimf = 1;
             s.mesh  = obj.mesh;
             obj.d = DomainFunction(s);
         end
 
         function q = computeHardening(obj)
-            q = @(r,r0) r0 + obj.H *(r-r0);
+            
+           q = @(r, r0, r1) (r >= r1) .* (r0 + obj.H * (r1 - r0)) + (r < r1) .* (r0 + obj.H .* (r - r0)); 
+           % q = @(r,r0,r1) r0 + obj.H *(r-r0);
         end 
         
         function sec = computeDerivativeResidualSecant(obj)
@@ -127,12 +133,17 @@ classdef ShFunc_ElasticDamage < handle
 
         function tan = computeDerivativeResidualTangent(obj,u,control,index)    
             Csec = obj.material.obtainTensor(obj.d);
-            if (index<control)
+            if (index<control && index >1)
                 C = obj.material.obtainNonDamagedTensor();
                 epsi = SymGrad(u);
+
+                tauEpsilon = sqrt(DDP(DDP(epsi,C),epsi));
+                tauEpsilon = project(tauEpsilon,obj.r.order);
+
                 sigBar = DDP(epsi,C);
                 q = obj.computeHardening();
-                op = @(xV)((q(obj.r.evaluate(xV),obj.r0.evaluate(xV))-obj.H*obj.r.evaluate(xV))./((obj.r.evaluate(xV)).^3));
+
+                op = @(xV)((q(obj.r.evaluate(xV),obj.r0.evaluate(xV),obj.r1.evaluate(xV))-obj.H*obj.r.evaluate(xV))./(((obj.r.evaluate(xV)).^2.*tauEpsilon.evaluate(xV))));
                 d_dot = DomainFunction.create(op,obj.mesh);
                 Ctan2 = Expand(d_dot).*OP(sigBar,sigBar);
     

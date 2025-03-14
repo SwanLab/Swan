@@ -9,12 +9,14 @@ classdef ContinuumDamageComputer < handle
         H
         solverParams
         quadOrder 
+
  
     end
 
     properties (Access = private)
         tau = 5e-4;
         r0
+        r1
 
         elasticFun
         externalWorkFun
@@ -59,6 +61,7 @@ classdef ContinuumDamageComputer < handle
                     fprintf (2,'NOT CONVERGED FOR STEP %d\n',i);
                 end
                 obj.elasticity.setROld();
+               
 
                 data.displacement.value(i)  = obj.boundaryConditions.bcValueSet(i);
                 dmgDomainFun = obj.elasticity.getDamage();
@@ -84,15 +87,20 @@ classdef ContinuumDamageComputer < handle
             obj.solverParams = cParams.solver; 
             obj.H = cParams.H;
             obj.tolerance = cParams.tol;
-            obj.quadOrder = 0;
+            obj.quadOrder = 2;
         end
 
         function defineRfunction(obj,cParams)
             obj.r0 = LagrangianFunction.create(obj.mesh,1,'P0');
             fV = cParams.r0*ones(size(obj.r0.fValues));
             obj.r0.setFValues(fV);
+
+            obj.r1 = LagrangianFunction.create(obj.mesh,1,'P0');
+            fV = cParams.r1*ones(size(obj.r1.fValues));
+            obj.r1.setFValues(fV);
         end
-        
+       
+
         function [bc] = updateBoundaryConditions (obj,i)
             bc = obj.boundaryConditions.nextStep(i);
         end
@@ -103,6 +111,7 @@ classdef ContinuumDamageComputer < handle
             s.material = obj.material;
             s.H = obj.H;
             s.r0 = obj.r0;
+            s.r1 = obj.r1;
             s.quadOrder = obj.quadOrder;
             obj.elasticity = ShFunc_ContinuumDamage(s);
         end
