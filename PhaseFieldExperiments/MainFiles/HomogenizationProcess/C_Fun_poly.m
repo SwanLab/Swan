@@ -6,6 +6,7 @@ matType{4} = load('SquareMicroDamagePerimeter.mat');
 matType{5} = load('IsoMicroDamage.mat');
 matType{6} = load('HorizontalCrackMicroDamageArea.mat');
 matType{6}.mat = matType{6}.mat*210;
+matType{6}.phi = matType{6}.holeParam{1};
 
 filterTimes1 = 0;
 filterTimes2 = 0;
@@ -177,11 +178,7 @@ end
 
 
 function [fun,dfun,ddfun] = computeFunctionsAndDerivatives(cParams)
-    if isfield(cParams,'holeParam')
-        x = cParams.holeParam{1}';
-    else
-        x = cParams.phi;
-    end
+    x = cParams.phi;
     x = reshape(x,length(x),[]);
     y = cParams.mat;
     

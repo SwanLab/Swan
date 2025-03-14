@@ -1,16 +1,11 @@
 %% Comparative constitutive tensor (data vs. fitting)
 close all
-matIdx = 1;
-if matIdx == 6
-    x = matType{matIdx}.holeParam{1};
-else
-    x = matType{matIdx}.phi; 
-end
+matIdx = 6;
 
 tiledlayout(2,2)
 nexttile
 hold on
-scatter(x,squeeze(matType{matIdx}.mat(1,1,:)),'X','LineWidth',1.5)
+scatter(matType{matIdx}.phi,squeeze(matType{matIdx}.mat(1,1,:)),'X','LineWidth',1.5)
 fplot(funMat(1,1,matIdx),[0 1],'LineWidth',1.5)
 ylabel(char(8450)+"11 [GPa]");
 ylim([0,inf])
@@ -19,7 +14,7 @@ xlabel("Damage "+char(632)+" [-]");
 
 nexttile
 hold on
-scatter(x,squeeze(matType{matIdx}.mat(1,2,:)),'X','LineWidth',1.5)
+scatter(matType{matIdx}.phi,squeeze(matType{matIdx}.mat(1,2,:)),'X','LineWidth',1.5)
 fplot(funMat(1,2,matIdx),[0 1],'LineWidth',1.5)
 ylabel(char(8450)+"12 [GPa]");
 ylim([0,inf])
@@ -28,7 +23,7 @@ xlabel("Damage "+char(632)+" [-]");
 
 nexttile
 hold on
-scatter(x,squeeze(matType{matIdx}.mat(2,2,:)),'X','LineWidth',1.5)
+scatter(matType{matIdx}.phi,squeeze(matType{matIdx}.mat(2,2,:)),'X','LineWidth',1.5)
 fplot(funMat(2,2,matIdx),[0 1],'LineWidth',1.5)
 ylabel(char(8450)+"22 [GPa]");
 ylim([0,inf])
@@ -37,7 +32,7 @@ xlabel("Damage "+char(632)+" [-]");
 
 nexttile
 hold on
-scatter(x,squeeze(matType{matIdx}.mat(3,3,:)),'X','LineWidth',1.5)
+scatter(matType{matIdx}.phi,squeeze(matType{matIdx}.mat(3,3,:)),'X','LineWidth',1.5)
 fplot(funMat(3,3,matIdx),[0 1],'LineWidth',1.5)
 ylabel(char(8450)+"33 [GPa]");
 ylim([0,inf])
