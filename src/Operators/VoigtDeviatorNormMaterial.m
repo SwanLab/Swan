@@ -1,12 +1,17 @@
 classdef VoigtDeviatorNormMaterial < handle
 
-properties (Access = private)
-    nElements
-    nStresses
-end
+    properties (Access = public)
+        mesh
+    end
+
+    properties (Access = private)
+        nElements
+        nStresses
+    end
 
     methods (Access = public)
-        function obj = VoigtDeviatorNormMaterial(N,nEval)
+        function obj = VoigtDeviatorNormMaterial(N,nEval,m)
+            obj.mesh = m;
             obj.nElements = nEval;
             switch N
                 case 2
