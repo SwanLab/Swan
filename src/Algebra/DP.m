@@ -17,7 +17,11 @@ function fVR = evaluate(A,B,dimA,dimB,xV)
     aEval = computeLeftSideEvaluation(A,dimA,xV);
     bEval = computeRightSideEvaluation(B,dimB,xV);
     fVR = pagemtimes(aEval,bEval);
-    fVR = squeezeParticular(fVR, [1 2]);
+    if size(fVR,1) == 1
+        fVR = squeezeParticular(fVR, 1);
+    elseif size(fVR,2) == 1
+        fVR = squeezeParticular(fVR, 2);
+    end
 end
 
 function aEval = computeLeftSideEvaluation(A,dimA,xV)

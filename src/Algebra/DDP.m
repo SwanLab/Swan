@@ -9,12 +9,17 @@ function dom = DDP(A,B)
 end
 
 function fVR = evaluate(A,B,xV)
-    aEval = computeLeftSideEvaluation(A,xV);
-    bEval = computeRightSideEvaluation(B,xV);
-    bTranspose = pagetranspose(bEval);
-    fVR   = trace(pagemtimes(aEval,bTranspose));
-    fVR   = squeezeParticular(fVR,1);
+    op = DP(A,B);
+    fVR = op.evaluate(xV);
 end
+
+% function fVR = evaluate(A,B,xV)
+%     aEval = computeLeftSideEvaluation(A,xV);
+%     bEval = computeRightSideEvaluation(B,xV);
+%     bTranspose = pagetranspose(bEval);
+%     fVR   = trace(pagemtimes(aEval,bTranspose));
+%     fVR   = squeezeParticular(fVR,1);
+% end
 
 function aEval = computeLeftSideEvaluation(A,xV)
     aEval    = A.evaluate(xV);
