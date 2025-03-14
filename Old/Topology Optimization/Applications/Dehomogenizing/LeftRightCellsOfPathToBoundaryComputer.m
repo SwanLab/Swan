@@ -123,7 +123,7 @@ classdef LeftRightCellsOfPathToBoundaryComputer < handle
 
        function v0 = computeVertex0(obj)
            isS  = obj.singularElement;
-           isCV = obj.isCoherent.getFvaluesDisc();
+           isCV = obj.isCoherent.getFvaluesByElem();
            isCS = isCV(1,:,isS);
            isCS = squeeze(isCS);
            vertexS = obj.mesh.connec(isS,:);

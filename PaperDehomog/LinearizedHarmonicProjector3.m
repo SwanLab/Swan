@@ -13,6 +13,7 @@ classdef LinearizedHarmonicProjector3 < handle
         fB
         fS
         fG
+        perimeter
     end
 
     properties (Access = private)
@@ -26,7 +27,9 @@ classdef LinearizedHarmonicProjector3 < handle
         function obj = LinearizedHarmonicProjector3(cParams)
             obj.init(cParams);
             obj.initializeFunctions();
-            obj.eta = (10*obj.mesh.computeMeanCellSize)^2;                        
+            obj.eta = (10*obj.mesh.computeMeanCellSize)^2;  
+            obj.perimeter = obj.density.*(1-obj.density);
+
             obj.createInternalDOFs();
             obj.computeAllMassMatrix();
             obj.computeStiffnessMatrix();
@@ -41,7 +44,7 @@ classdef LinearizedHarmonicProjector3 < handle
             [resL,resH,resB,resG] = obj.evaluateResidualNorms(bBar,b);
             i = 1;
             theta = 0.99;0.5;
-            while res(i) > 1e-12
+            while res(i) > 1e-3
                 xNew   = LHS\RHS;
                 x = theta*xNew + (1-theta)*x;
                 b   = obj.createVectorFromSolution(x);
@@ -81,7 +84,7 @@ classdef LinearizedHarmonicProjector3 < handle
         end
 
         function difB = evaluateLossResidual(obj,bBar,b)
-            difB = DP(b - bBar,b - bBar);
+            difB = DDP(b - bBar,b - bBar);
         end
 
         function bR = createReshapedFunction(obj,b)
@@ -139,8 +142,7 @@ classdef LinearizedHarmonicProjector3 < handle
         end
 
         function computeAllMassMatrix(obj)
-            rho = obj.density;
-            obj.massMatrixBB = obj.createMassMatrixWithFunction(rho.*(1-rho));
+            obj.massMatrixBB = obj.createMassMatrixWithFunction(obj.perimeter);
             obj.massMatrixGG = obj.computeMassMatrix(obj.fG,obj.fG);
         end
 
@@ -274,9 +276,7 @@ classdef LinearizedHarmonicProjector3 < handle
             s.quadType = 3;
             s.type = 'ShapeFunction';
             test = bBar;
-            rho  = obj.density;
-            per  = obj.createReshapedFunction(rho.*(1-rho));
-            f    = bBar.*per;
+            f    = bBar.*obj.perimeter;
             rhs  = RHSIntegrator.create(s);
             rhsB = rhs.compute(f,test);
             rhsB = reshape(rhsB,2,[])';

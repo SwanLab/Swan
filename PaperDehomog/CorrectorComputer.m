@@ -121,7 +121,7 @@ classdef CorrectorComputer < handle
         end
 
         function createCorrectorFunction(obj)
-            s.fValues = permute(obj.correctorValues, [3, 2, 1]);
+            s.fValues = reshape(obj.correctorValues',[],1);
             s.mesh    = obj.mesh;
             s.order   = 'P1D';
             f = LagrangianFunction(s);

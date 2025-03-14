@@ -6,7 +6,6 @@ classdef ShiftingFunctionComputer < handle
     end
     
     properties (Access = private)
-        meshDisc
         mesh
         corrector
         interpolator
@@ -39,7 +38,6 @@ classdef ShiftingFunctionComputer < handle
             obj.mesh     = cParams.mesh;
             obj.corrector    = cParams.corrector;
             obj.interpolator = cParams.interpolator;
-            obj.meshDisc     = obj.mesh.createDiscontinuousMesh();
         end
          
         function computeLHS(obj)
@@ -54,20 +52,18 @@ classdef ShiftingFunctionComputer < handle
             s.type  = 'StiffnessMatrix';
             s.test  = LagrangianFunction.create(obj.mesh,1,'P1D');
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1D');
-            lhs = LHSintegrator.create(s);
+            lhs = LHSIntegrator.create(s);
             K = lhs.compute();
         end
 
         function computeRHS(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('QUADRATIC');
-            cG = obj.corrector.evaluateGradient(q.posgp);
+            gradC = Grad(obj.corrector);
             test = LagrangianFunction.create(obj.mesh,1,'P1D');
-            s.mesh = obj.meshDisc;
+            s.mesh = obj.mesh;
             s.type = 'ShapeDerivative';
-            s.quadratureOrder = 'QUADRATIC';
-            rhs  = RHSintegrator.create(s);
-            rhsF = rhs.compute(cG,test);
+            s.quadratureOrder = 2;
+            rhs  = RHSIntegrator.create(s);
+            rhsF = rhs.compute(gradC,test);
             In = obj.interpolator;
             rhsV = In'*rhsF;
             obj.RHS = rhsV;

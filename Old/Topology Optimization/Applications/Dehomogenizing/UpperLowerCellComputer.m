@@ -73,8 +73,8 @@ classdef UpperLowerCellComputer < handle
 
             isL(itHas)    = ~isU(rCell);
             isL(itHasNot) = isU(rCell);
-            obj.isUpperCell.fValues(:,1) = isU;
-            obj.isLowerCell.fValues(:,1) = isL;
+            obj.isUpperCell.setFValues(isU);
+            obj.isLowerCell.setFValues(isL);
         end
         
         function computeCoherentAndNotCoherentVertex(obj)
