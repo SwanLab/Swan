@@ -76,15 +76,15 @@ classdef ExampleCylinderBimaterialSIMPALL < handle
         end
 
         function createMaterialInterpolator(obj)
-            E0 = 0.2;
-            nu0 = 0.2;
+            E0 = 0.4;
+            nu0 = -0.3;
             ndim = obj.mesh.ndim;
             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
             matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
 
 
             E1 = 1;
-            nu1 = 0.45;
+            nu1 = 0.49;
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
@@ -176,7 +176,7 @@ classdef ExampleCylinderBimaterialSIMPALL < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1200;
+            s.maxIter        = 5000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.ub             = 1;
