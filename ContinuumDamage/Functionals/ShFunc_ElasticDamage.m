@@ -142,8 +142,16 @@ classdef ShFunc_ElasticDamage < handle
 
                 sigBar = DDP(epsi,C);
                 q = obj.computeHardening();
+                
+                conditionR0 = @(xV) (obj.r.evaluate(xV) == obj.r0.evaluate(xV));
+                conditionR1 = @(xV) (obj.r.evaluate(xV) <= obj.r1.evaluate(xV));
 
                 op = @(xV)((q(obj.r.evaluate(xV),obj.r0.evaluate(xV),obj.r1.evaluate(xV))-obj.H*obj.r.evaluate(xV))./(((obj.r.evaluate(xV)).^2.*tauEpsilon.evaluate(xV))));
+                
+                opR0 = @(xV) conditionR1(xV).*op(xV) + ~conditionR1(xV).*((q(obj.r.evaluate(xV),obj.r0.evaluate(xV),obj.r1.evaluate(xV)))./(((obj.r.evaluate(xV)).^2.*tauEpsilon.evaluate(xV))));
+               
+                opR1 = @(xV) opR0(xV).*~conditionR0(xV);
+                
                 d_dot = DomainFunction.create(op,obj.mesh);
                 Ctan2 = Expand(d_dot).*OP(sigBar,sigBar);
     
