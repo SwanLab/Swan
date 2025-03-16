@@ -1,5 +1,5 @@
 eps   = sym("eps",[1 3]);
-eps   = [1 0 0];
+eps   = [1 0 1];
 theta = sym("theta");
 
 E  = 1;
@@ -13,9 +13,10 @@ C(1,2)= l;
 C(2,1)= l;
 C(2,2)= 0;%2*mu+l;
 C(3,3)= mu;
-Reps = [(1+cos(2*theta))/2 , (1-cos(2*theta))/2 , (sin(2*theta))/2 ;
-        (1-cos(2*theta))/2 , (1+cos(2*theta))/2 , (-sin(2*theta))/2  ;
-        -sin(2*theta)       , sin(2*theta)      , (cos(2*theta))    ];
+
+Reps = [(1+cos(2*theta))/2 , (1-cos(2*theta))/2 , (-sin(2*theta))/2 ;
+        (1-cos(2*theta))/2 , (1+cos(2*theta))/2 , (sin(2*theta))/2  ;
+        sin(2*theta)       , -sin(2*theta)      , (cos(2*theta))    ];
 
 Rsig = [(1+cos(2*theta))/2 , (1-cos(2*theta))/2 , sin(2*theta)   ;
         (1-cos(2*theta))/2 , (1+cos(2*theta))/2 , -sin(2*theta)  ;

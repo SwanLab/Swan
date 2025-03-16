@@ -5,8 +5,37 @@ matType{4} = load('SquareMicroDamagePerimeter.mat');
 matType{5} = load('IsoMicroDamage.mat');
 matType{6} = load('HorizontalCrackMicroDamageArea.mat');
 matType{6}.mat = matType{6}.mat*210;
-matType{6}.phi = matType{6}.holeParam{1};
 
+%% Change of variable
+%matType{6}.phi = matType{6}.holeParam{1};
+matType{6}.phi = matType{6}.holeParam{1}.^2;
+matType{6}.phi = matType{6}.holeParam{1}.^3;
+%% Include last point
+% matType{6}.mat(:,:,end+1) = [matType{6}.mat(1,1,end), 0 , 0;
+%                                         0           , 0 , 0;
+%                                         0           , 0 , 0];
+% matType{6}.phi(end+1) = 1;
+
+%% Include final points
+% lastMat = matType{6}.mat(:,:,end);
+% lastPhi = matType{6}.phi(end);
+% nPoints = 20;
+% points = zeros(3,3,nPoints);
+% for i=1:3
+%     for j=1:3
+%         if i==1 && j==1
+%             points(i,j,:) = lastMat(i,j);
+%         else
+%             points(i,j,:) = linspace(lastMat(i,j),0,nPoints); 
+%         end
+%     end
+% end
+% phiPoints = linspace(lastPhi,1,nPoints);
+% 
+% matType{6}.mat = cat(3,matType{6}.mat,points);
+% matType{6}.phi = [matType{6}.phi,phiPoints];
+
+%% Fitting
  for i=1:length(matType)
      [funMat(:,:,i),dfunMat(:,:,i),ddfunMat(:,:,i)] = computeFunctionsAndDerivatives(matType{i});
  end
