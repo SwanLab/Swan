@@ -1,21 +1,48 @@
 clear;
 close all;
 
+% Naca Info
 Naca.M     = 0.02;
 Naca.p     = 0.4;
 Naca.t     = 0.12;
 Naca.chord = 1;
 Naca.AoA   = 0;
 
+% Mesh Params
 length  = 8;
 height  = 4;
 chord   = 1;
-nx      = 600;
-ny      = 300;
+nx      = 800;
+ny      = nx/0.8;
 refMesh = TriangleMesh(length,height,nx,ny);
 
+%% Example Test
+% clear;
+% close all;
+s.type = 'LevelSetTest';
+s.xLE  = (length - chord)/2;
+s.yLE  = height/2;
 
-% Example LS1
+s.chord = Naca.chord;
+s.p     = Naca.p;
+s.m     = Naca.M;
+s.t     = Naca.t;
+s.AoA   = Naca.AoA;
+
+g  = GeometricalFunction(s);
+levelSetTest = g.computeLevelSetFunction(refMesh);
+levelSetTest.plot();
+
+s.backgroundMesh = refMesh;
+s.boundaryMesh   = refMesh.createBoundaryMesh();
+uMesh        = UnfittedMesh(s);
+uMesh.compute(levelSetTest.fValues);
+mT = uMesh.createInnerMesh();
+figure
+mT.plot();
+
+
+%% Example LS1
 s.type = 'LevelSet1';
 s.xLE  = (length - chord)/2;
 s.yLE  = height/2;
@@ -27,20 +54,19 @@ s.t     = Naca.t;
 s.AoA   = Naca.AoA;
 
 g  = GeometricalFunction(s);
-levelSet1 = g.computeLevelSetFunction(refMesh);
-levelSet1.plot();
+levelSetTest = g.computeLevelSetFunction(refMesh);
+%levelSetTest.plot();
 
 s.backgroundMesh = refMesh;
 s.boundaryMesh   = refMesh.createBoundaryMesh();
 uMesh        = UnfittedMesh(s);
-uMesh.compute(levelSet1.fValues);
+uMesh.compute(levelSetTest.fValues);
 m1 = uMesh.createInnerMesh();
 figure
 m1.plot();
 
 
-
-% Example LS2
+%% Example LS2
 s.type = 'LevelSet2';
 s.xLE  = (length - chord)/2;
 s.yLE  = height/2;
@@ -53,7 +79,8 @@ s.AoA   = Naca.AoA;
 
 g  = GeometricalFunction(s);
 levelSet2 = g.computeLevelSetFunction(refMesh);
-levelSet2.plot();
+%levelSet2.plot();
+
 
 s.backgroundMesh = refMesh;
 s.boundaryMesh   = refMesh.createBoundaryMesh();
@@ -70,6 +97,23 @@ lsVal = ls.fValues;
 lsVal(abs(lsVal)<=1e-4) = -1e-4; % DELETE OSCILLATIONS WITH L1 FILTER?
 ls.setFValues(lsVal);
 ls.plot();
+m2.plot();
+
+%% Example LS3
+s.type = 'LevelSet3';
+s.xLE  = (length - chord)/2;
+s.yLE  = height/2;
+
+s.chord = Naca.chord;
+s.p     = Naca.p;
+s.m     = Naca.M;
+s.t     = Naca.t;
+s.AoA   = Naca.AoA;
+
+g  = GeometricalFunction(s);
+levelSet3 = g.computeLevelSetFunction(refMesh);
+levelSet3.plot();
+
 
 s.backgroundMesh = refMesh;
 s.boundaryMesh   = refMesh.createBoundaryMesh();
@@ -78,3 +122,122 @@ uMesh.compute(ls.fValues);
 m3 = uMesh.createInnerMesh();
 figure
 m3.plot();
+
+
+
+%% Example LS4
+s.type = 'LevelSet4';
+s.xLE  = (length - chord)/2;
+s.yLE  = height/2;
+
+s.chord = Naca.chord;
+s.p     = Naca.p;
+s.m     = Naca.M;
+s.t     = Naca.t;
+s.AoA   = Naca.AoA;
+
+g  = GeometricalFunction(s);
+levelSet4 = g.computeLevelSetFunction(refMesh);
+levelSet4.plot();
+
+s.backgroundMesh = refMesh;
+s.boundaryMesh   = refMesh.createBoundaryMesh();
+uMesh        = UnfittedMesh(s);
+uMesh.compute(levelSet4.fValues);
+m4 = uMesh.createInnerMesh();
+% figure
+m4.plot();
+
+
+%% Example LS4
+s.type = 'NacaHole';
+s.xLE  = (length - chord)/2;
+s.yLE  = height/2;
+
+s.chord = Naca.chord;
+s.p     = Naca.p;
+s.m     = Naca.M;
+s.t     = Naca.t;
+s.AoA   = Naca.AoA;
+
+g  = GeometricalFunction(s);
+levelSet4 = g.computeLevelSetFunction(refMesh);
+levelSet4.plot();
+
+s.backgroundMesh = refMesh;
+s.boundaryMesh   = refMesh.createBoundaryMesh();
+uMesh        = UnfittedMesh(s);
+uMesh.compute(levelSet4.fValues);
+m4 = uMesh.createInnerMesh();
+ figure
+m4.plot();
+
+%% Example yc
+s.type = 'LevelSet5';
+s.xLE  = (length - chord)/2;
+s.yLE  = height/2;
+
+s.chord = Naca.chord;
+s.p     = Naca.p;
+s.m     = Naca.M;
+s.t     = Naca.t;
+s.AoA   = Naca.AoA;
+
+g  = GeometricalFunction(s);
+levelSet5 = g.computeLevelSetFunction(refMesh);
+levelSet5.plot();
+
+s.backgroundMesh = refMesh;
+s.boundaryMesh   = refMesh.createBoundaryMesh();
+uMesh        = UnfittedMesh(s);
+uMesh.compute(levelSet5.fValues);
+m5 = uMesh.createInnerMesh();
+ figure
+m5.plot();
+
+%% Example yt
+s.type = 'LevelSet6';
+s.xLE  = (length - chord)/2;
+s.yLE  = height/2;
+
+s.chord = Naca.chord;
+s.p     = Naca.p;
+s.m     = Naca.M;
+s.t     = Naca.t;
+s.AoA   = Naca.AoA;
+
+g  = GeometricalFunction(s);
+levelSet6 = g.computeLevelSetFunction(refMesh);
+ levelSet6.plot();
+
+s.backgroundMesh = refMesh;
+s.boundaryMesh   = refMesh.createBoundaryMesh();
+uMesh        = UnfittedMesh(s);
+uMesh.compute(levelSet6.fValues);
+m6 = uMesh.createInnerMesh();
+ figure
+m6.plot();
+
+%% Example yu
+s.type = 'LevelSet7';
+s.xLE  = (length - chord)/2;
+s.yLE  = height/2;
+
+s.chord = Naca.chord;
+s.p     = Naca.p;
+s.m     = Naca.M;
+s.t     = Naca.t;
+s.AoA   = Naca.AoA;
+
+g  = GeometricalFunction(s);
+levelSet7 = g.computeLevelSetFunction(refMesh);
+levelSet7.plot();
+
+s.backgroundMesh = refMesh;
+s.boundaryMesh   = refMesh.createBoundaryMesh();
+uMesh        = UnfittedMesh(s);
+uMesh.compute(levelSet7.fValues);
+m7 = uMesh.createInnerMesh();
+figure
+m7.plot();
+

@@ -199,6 +199,9 @@ classdef GeometricalFunction < handle
                     s      = cParams;
                     s.type = 'NacaInterior';
                     obj.computeInclusion(s);
+                case 'LevelSetTest'
+                    fH = @(x) obj.createLSTest(x1(x),x2(x),cParams);
+                    obj.fHandle = fH;
 
                 case 'LevelSet1'
                     fH = @(x) obj.createLS1(x1(x),x2(x),cParams);
@@ -209,8 +212,21 @@ classdef GeometricalFunction < handle
                     obj.fHandle = fH;
 
                 case 'LevelSet3'
+                    fH = @(x) obj.createLS3(x1(x),x2(x),cParams);
+                    obj.fHandle = fH;
 
                 case 'LevelSet4'
+                    fH = @(x) obj.createLS4(x1(x),x2(x),cParams);
+                    obj.fHandle = fH;
+                case 'LevelSet5'
+                    fH = @(x) obj.createLS4(x1(x),x2(x),cParams);
+                    obj.fHandle = fH;
+                case 'LevelSet6'
+                    fH = @(x) obj.createLS4(x1(x),x2(x),cParams);
+                    obj.fHandle = fH;
+                case 'LevelSet7'
+                    fH = @(x) obj.createLS4(x1(x),x2(x),cParams);
+                    obj.fHandle = fH;
 
             end
         end
@@ -308,14 +324,14 @@ classdef GeometricalFunction < handle
             f(:,:,:,4)   = -xNaca;
             
             % STEP 2. Make +/- signs more sparse
-            % f(:,:,:,1)   = -2.^(-3*f(:,:,:,1)) + 1;
-            % f(:,:,:,2)   = -2.^(-3*f(:,:,:,2)) + 1;
-            % f(:,:,:,3)   = -2.^(-1*f(:,:,:,3)) + 1;
-            % f(:,:,:,4)   = -2.^(-1*f(:,:,:,4)) + 1;
-            f(:,:,:,1)   = -exp(-10*f(:,:,:,1)) + 1;
-            f(:,:,:,2)   = -exp(-10*f(:,:,:,2)) + 1;
-            f(:,:,:,3)   = -exp(-10*f(:,:,:,3)) + 1;
-            f(:,:,:,4)   = -exp(-10*f(:,:,:,4)) + 1;
+            f(:,:,:,1)   = -50.^(-3*f(:,:,:,1)) + 1;
+            f(:,:,:,2)   = -50.^(-3*f(:,:,:,2)) + 1;
+            f(:,:,:,3)   = -50.^(-18*f(:,:,:,3)) + 1;
+            f(:,:,:,4)   = -50 .^(-18*f(:,:,:,4)) + 1;
+            % f(:,:,:,1)   = -exp(-10*f(:,:,:,1)) + 1;
+            % f(:,:,:,2)   = -exp(-10*f(:,:,:,2)) + 1;
+            % f(:,:,:,3)   = -exp(-10*f(:,:,:,3)) + 1;
+            % f(:,:,:,4)   = -exp(-10*f(:,:,:,4)) + 1;
             % 
             % STEP 3. Smooth the max function
             % ...
@@ -342,7 +358,7 @@ classdef GeometricalFunction < handle
 
             % fV = fVUp./fVDown;
 
-            alpha = 200;
+            alpha = 2;
             fV = 1/alpha*log(exp(alpha*f(:,:,:,1)) + exp(alpha*f(:,:,:,2)) + exp(alpha*f(:,:,:,3)) + exp(alpha*f(:,:,:,4)));
 
 
@@ -353,15 +369,15 @@ classdef GeometricalFunction < handle
             % fV = max(f,[],4);     %Here no "-" sign is needed since we differentiate the inner naca from the hole naca
 
             % Crear el filtro gaussiano (Neteja tot darrere, la part separada)
-            sigma = 3;  % Ajustar según la necesidad
-            kernelSize = ceil(6 * sigma);  
-            if mod(kernelSize,2) == 0 
-                kernelSize = kernelSize + 1;
-            end
-
-
-            kernel = fspecial('gaussian', [kernelSize kernelSize], sigma);
-            fV = imfilter(fV, kernel, 'same');
+            % sigma = 3;  % Ajustar según la necesidad
+            % kernelSize = ceil(6 * sigma);  
+            % if mod(kernelSize,2) == 0 
+            %     kernelSize = kernelSize + 1;
+            % end
+            % 
+            % 
+            % kernel = fspecial('gaussian', [kernelSize kernelSize], sigma);
+            % fV = imfilter(fV, kernel, 'same');
 
             % Detectar borde de salida
             % edgeMask = xNaca > 0.95 & xNaca < 1.05;  
@@ -376,27 +392,46 @@ classdef GeometricalFunction < handle
 
         end
 
+        function fV = createLSTest(x,y,s)
+
+            c   = s.chord;
+            p   = s.p;
+            m   = s.m;
+            t   = s.t;
+            AoA = deg2rad(s.AoA);
+        
+            x0     = s.xLE;
+            y0     = s.yLE/c;
+            offsetX  = (x - x0)/c;
+            offsetY  = y/c - y0;
+
+            xNaca    = offsetX.*cos(AoA) - offsetY.*sin(AoA);
+            yNaca    = offsetX.*sin(AoA) + offsetY.*cos(AoA);
+
+            yc   = (xNaca>=0 & xNaca<=p).*(m./p^2.*(2*p*xNaca-xNaca.^2))+...
+                    (xNaca>p & xNaca<=1).*(m./(1-p)^2.*((1-2*p)+2*p*xNaca-xNaca.^2));
+            yt   = (xNaca>=0 & xNaca<=1).*(5*t*(0.2969*sqrt(xNaca)-0.1260*xNaca-0.3516*xNaca.^2+0.2843*xNaca.^3-0.1036*xNaca.^4));
+            dydx = (xNaca>=0 & xNaca<=p).*(2*m/p^2.*(p-xNaca))+...
+                    (xNaca>p & xNaca<=1).*(2*m/(1-p)^2.*(p-xNaca));
 
 
+            theta = atan(dydx);
+            yu    = yc + yt.*cos(theta);
+            yl    = yc - yt.*cos(theta);
+            
+            %Primer intent fallat: amb producte sembla que no millora la
+            %cosa, crec que això està fent lo mateix com maximització,
+            %esforçant el cumpliment de punts
+            fV   = (yNaca - yu).*(yl - yNaca);
+            % 
+            % f(:,:,:,1)   = yl - yNaca;
+            % f(:,:,:,2)   = yNaca - yu;
+            % f(:,:,:,3)   = xNaca - 1; 
+            % f(:,:,:,4)   = -xNaca;
+            % 
+            % fV = -max(f,[],4);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        end
 
 
 
@@ -425,7 +460,7 @@ classdef GeometricalFunction < handle
             theta = atan(dydx);
             yl    = yc - yt.*cos(theta);
             
-            fV   = yl - yNaca;
+            fV   = -(yl - yNaca);
 
          end
 
@@ -459,9 +494,133 @@ classdef GeometricalFunction < handle
         end
 
 
+        function fV = createLS3(x,y,s)
 
+            c   = s.chord;
+            p   = s.p;
+            m   = s.m;
+            t   = s.t;
+            AoA = deg2rad(s.AoA);
+        
+            x0     = s.xLE;
+            y0     = s.yLE/c;
+            offsetX  = (x - x0)/c;
+            offsetY  = y/c - y0;
 
+            xNaca    = offsetX.*cos(AoA) - offsetY.*sin(AoA);
+            yNaca    = offsetX.*sin(AoA) + offsetY.*cos(AoA);
+        
+            yc   = (xNaca>=0 & xNaca<=p).*(m./p^2.*(2*p*xNaca-xNaca.^2))+...
+                            (xNaca>p & xNaca<=1).*(m./(1-p)^2.*((1-2*p)+2*p*xNaca-xNaca.^2));
+            yt   = (xNaca>=0 & xNaca<=1).*(5*t*(0.2969*sqrt(xNaca)-0.1260*xNaca-0.3516*xNaca.^2+0.2843*xNaca.^3-0.1036*xNaca.^4));
+            dydx = (xNaca>=0 & xNaca<=p).*(2*m/p^2.*(p-xNaca))+...
+                   (xNaca>p & xNaca<=1).*(2*m/(1-p)^2.*(p-xNaca));
+        
+            theta = atan(dydx);
+            yu    = yc + yt.*cos(theta);
+            fV   = -(yNaca - yu);
 
+        end
+
+        
+        function fV = createLS4(x,y,s)
+
+            c   = s.chord;
+            AoA = deg2rad(s.AoA);
+        
+            x0     = s.xLE;
+            y0     = s.yLE/c;
+            offsetX  = (x - x0)/c;
+            offsetY  = y/c - y0;
+
+            xNaca    = offsetX.*cos(AoA) - offsetY.*sin(AoA);
+            
+            fV   = xNaca - 1; 
+
+        end
+
+        function fV = createLS5(x,y,s)
+
+            c   = s.chord;
+            AoA = deg2rad(s.AoA);
+        
+            x0     = s.xLE;
+            y0     = s.yLE/c;
+            offsetX  = (x - x0)/c;
+            offsetY  = y/c - y0;
+
+            xNaca    = offsetX.*cos(AoA) - offsetY.*sin(AoA);
+            
+            fV   = -xNaca;
+
+        end
+
+        function fV = createLS6(x,y,s)
+
+            c   = s.chord;
+            p   = s.p;
+            m   = s.m;
+  
+            AoA = deg2rad(s.AoA);
+        
+            x0     = s.xLE;
+            y0     = s.yLE/c;
+            offsetX  = (x - x0)/c;
+            offsetY  = y/c - y0;
+
+            xNaca    = offsetX.*cos(AoA) - offsetY.*sin(AoA);
+        
+            yc   = (xNaca>=0 & xNaca<=p).*(m./p^2.*(2*p*xNaca-xNaca.^2))+...
+                            (xNaca>p & xNaca<=1).*(m./(1-p)^2.*((1-2*p)+2*p*xNaca-xNaca.^2));
+            fV   = yc;
+
+        end
+
+        function fV = createLS7(x,y,s)
+
+            c   = s.chord;
+            t   = s.t;
+            AoA = deg2rad(s.AoA);
+        
+            x0     = s.xLE;
+            y0     = s.yLE/c;
+            offsetX  = (x - x0)/c;
+            offsetY  = y/c - y0;
+
+            xNaca    = offsetX.*cos(AoA) - offsetY.*sin(AoA);
+            yt   = (xNaca>=0 & xNaca<=1).*(5*t*(0.2969*sqrt(xNaca)-0.1260*xNaca-0.3516*xNaca.^2+0.2843*xNaca.^3-0.1036*xNaca.^4));
+
+        
+            fV   = yt;
+
+        end
+
+        function fV = createLS8(x,y,s)
+
+            c   = s.chord;
+            p   = s.p;
+            m   = s.m;
+            t   = s.t;
+            AoA = deg2rad(s.AoA);
+        
+            x0     = s.xLE;
+            y0     = s.yLE/c;
+            offsetX  = (x - x0)/c;
+            offsetY  = y/c - y0;
+
+            xNaca    = offsetX.*cos(AoA) - offsetY.*sin(AoA);
+        
+            yc   = (xNaca>=0 & xNaca<=p).*(m./p^2.*(2*p*xNaca-xNaca.^2))+...
+                            (xNaca>p & xNaca<=1).*(m./(1-p)^2.*((1-2*p)+2*p*xNaca-xNaca.^2));
+            yt   = (xNaca>=0 & xNaca<=1).*(5*t*(0.2969*sqrt(xNaca)-0.1260*xNaca-0.3516*xNaca.^2+0.2843*xNaca.^3-0.1036*xNaca.^4));
+            dydx = (xNaca>=0 & xNaca<=p).*(2*m/p^2.*(p-xNaca))+...
+                   (xNaca>p & xNaca<=1).*(2*m/(1-p)^2.*(p-xNaca));
+        
+            theta = atan(dydx);
+            yu    = yc + yt.*cos(theta);
+            fV   = yu;
+
+        end
     
     end
 
