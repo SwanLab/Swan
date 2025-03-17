@@ -1,5 +1,5 @@
-eps   = sym("eps",[1 3]);
-eps   = [0 0 1]';
+eps = [1 2; 2 0];
+epsV   = [eps(1,1) eps(2,2) 2*eps(1,2)]';
 theta = sym("theta");
 
 E  = 1;
@@ -19,7 +19,7 @@ C(1,1)= 2*mu+l;
 C(1,2)= l;
 C(2,1)= l;
 C(2,2)= 10e-10;%2*mu+l;
-C(3,3)= mu;
+C(3,3)= 10e-10;%mu;
 
 Reps = [(1+cos(2*theta))/2 , (1-cos(2*theta))/2 , (-sin(2*theta))/2 ;
         (1-cos(2*theta))/2 , (1+cos(2*theta))/2 , (sin(2*theta))/2  ;
@@ -29,5 +29,16 @@ Rsig = [(1+cos(2*theta))/2 , (1-cos(2*theta))/2 , sin(2*theta)   ;
         (1-cos(2*theta))/2 , (1+cos(2*theta))/2 , -sin(2*theta)  ;
         (-sin(2*theta))/2  , (sin(2*theta))/2   , (cos(2*theta)) ];
 
-energy = eps'*Rsig*C*Reps*eps;
+energy = epsV'*Rsig*C*Reps*epsV;
 fplot(theta,energy,[0 pi]);
+
+%% Principal directions
+[epsDir,epsVal] = eigs(eps);
+
+
+sigV = C*epsV;
+sig = [sigV(1), sigV(3);
+       sigV(3), sigV(2)];
+[sigDir,sigVal] = eigs(sig);
+
+
