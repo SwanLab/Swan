@@ -344,10 +344,8 @@ classdef LevelSetInclusionAuto_raul < handle
             s.localGlobalConnecBd   = obj.localGlobalConnecBd;
             s.nnodes                 = obj.mesh.nnodes;
             s.mesh = obj.boundaryMeshJoined;
-        
 
-
-             lhs = LHSintegrator_ShapeFunction_fun(s);
+            lhs = LHSintegrator_ShapeFunction_fun(s);
             % lhs = LHSintegrator_MassBoundary_albert(s);
             test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); % !!
             ndimf  = 2;
@@ -376,7 +374,7 @@ classdef LevelSetInclusionAuto_raul < handle
                 obj.dLambda{i}  = AnalyticalFunction.create(f{i},ndimf,obj.boundaryMeshJoined);
                     
                 %% Project to P1
-                obj.dLambda{i} = obj.dLambda{i}.project('P1');
+%                 obj.dLambda{i} = obj.dLambda{i}.project('P1');
 
                 Ce = lhs.compute(obj.dLambda{i},test);
                 [iLoc,jLoc,vals] = find(Ce);
