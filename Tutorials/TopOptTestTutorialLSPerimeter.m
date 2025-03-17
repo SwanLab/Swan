@@ -8,7 +8,7 @@ classdef TopOptTestTutorialLSPerimeter < handle
         volume
         cost
         constraint
-        dualVariable
+        primalUpdater
         optimizer
     end
 
@@ -23,7 +23,7 @@ classdef TopOptTestTutorialLSPerimeter < handle
             obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
-            obj.createDualVariable();
+            obj.createPrimalUpdater();
             obj.createOptimizer();
         end
 
@@ -106,7 +106,7 @@ classdef TopOptTestTutorialLSPerimeter < handle
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             s.mesh  = obj.mesh;
             s.type  = 'MassMatrix';
-            LHS = LHSintegrator.create(s);
+            LHS = LHSIntegrator.create(s);
             M = LHS.compute;
         end
 
@@ -116,10 +116,9 @@ classdef TopOptTestTutorialLSPerimeter < handle
             obj.constraint      = Constraint(s);
         end
 
-        function createDualVariable(obj)
-            s.nConstraints   = 1;
-            l                = DualVariable(s);
-            obj.dualVariable = l;
+        function createPrimalUpdater(obj)
+            s.mesh = obj.mesh;
+            obj.primalUpdater = SLERP(s);
         end
 
         function createOptimizer(obj)
@@ -127,14 +126,16 @@ classdef TopOptTestTutorialLSPerimeter < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 400;
+            s.maxIter        = 3;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.volumeTarget   = 0.85;
-            s.primal         = 'SLERP';
+            s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.02;
+            s.etaNormMin     = 0.02;
             s.gJFlowRatio    = 5;
+            s.etaMax         = 1;
+            s.etaMaxMin      = 0.01;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
