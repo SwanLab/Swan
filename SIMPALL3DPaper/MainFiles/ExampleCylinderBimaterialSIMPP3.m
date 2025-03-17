@@ -76,8 +76,8 @@ classdef ExampleCylinderBimaterialSIMPP3 < handle
         end
 
         function createMaterialInterpolator(obj)
-            E0 = 0.4;
-            nu0 = -0.3;
+            E0 = 0.2;
+            nu0 = 0;
             ndim = obj.mesh.ndim;
             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
             matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
