@@ -428,8 +428,15 @@ classdef GeometricalFunction < handle
             % f(:,:,:,2)   = yNaca - yu;
             % f(:,:,:,3)   = xNaca - 1; 
             % f(:,:,:,4)   = -xNaca;
-            % 
-            % fV = -max(f,[],4);
+
+            % f(:,:,:,1)   = -exp(-50*f(:,:,:,1)) + 1;
+            % f(:,:,:,2)   = -exp(-50*f(:,:,:,2)) + 1;
+            % f(:,:,:,3)   = -exp(-50*f(:,:,:,3)) + 1;
+            % f(:,:,:,4)   = -exp(-50*f(:,:,:,4)) + 1;
+
+            % fV = -((yNaca - yc).^2 - yt.^2.*cos(theta).^2);
+
+            %fV = -max(f,[],4);
 
         end
 
@@ -460,7 +467,12 @@ classdef GeometricalFunction < handle
             theta = atan(dydx);
             yl    = yc - yt.*cos(theta);
             
-            fV   = -(yl - yNaca);
+             fV   = -(yl - yNaca);
+
+            % f(:,:,:,1)   = -(yl - yNaca);
+            % f(:,:,:,2)   = -xNaca;
+            % fV           = max(f,[],4);
+            %fV           = -fV;
 
          end
 
@@ -489,8 +501,12 @@ classdef GeometricalFunction < handle
             theta = atan(dydx);
             yu    = yc + yt.*cos(theta);
             
-            fV   = yNaca - yu;
+            fV   = -(yNaca - yu);
 
+            % f(:,:,:,1)   = yNaca - yu;
+            % f(:,:,:,2)   = -xNaca;
+            % fV           = max(f,[],4);
+            % fV           = - fV;
         end
 
 
@@ -519,6 +535,8 @@ classdef GeometricalFunction < handle
             theta = atan(dydx);
             yu    = yc + yt.*cos(theta);
             fV   = -(yNaca - yu);
+
+
 
         end
 

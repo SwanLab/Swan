@@ -1,5 +1,5 @@
 clear;
-close all;
+%close all;
 
 % Naca Info
 Naca.M     = 0.02;
@@ -12,34 +12,34 @@ Naca.AoA   = 0;
 length  = 8;
 height  = 4;
 chord   = 1;
-nx      = 800;
-ny      = nx/0.8;
-refMesh = TriangleMesh(length,height,nx,ny);
+nx      = 400;
+ny      = nx/2;
+refMesh = QuadMesh(length,height,nx,ny);
 
-%% Example Test
-% clear;
-% close all;
-s.type = 'LevelSetTest';
-s.xLE  = (length - chord)/2;
-s.yLE  = height/2;
-
-s.chord = Naca.chord;
-s.p     = Naca.p;
-s.m     = Naca.M;
-s.t     = Naca.t;
-s.AoA   = Naca.AoA;
-
-g  = GeometricalFunction(s);
-levelSetTest = g.computeLevelSetFunction(refMesh);
-levelSetTest.plot();
-
-s.backgroundMesh = refMesh;
-s.boundaryMesh   = refMesh.createBoundaryMesh();
-uMesh        = UnfittedMesh(s);
-uMesh.compute(levelSetTest.fValues);
-mT = uMesh.createInnerMesh();
-figure
-mT.plot();
+% %% Example Test
+% % clear;
+% % close all;
+% s.type = 'LevelSetTest';
+% s.xLE  = (length - chord)/2;
+% s.yLE  = height/2;
+% 
+% s.chord = Naca.chord;
+% s.p     = Naca.p;
+% s.m     = Naca.M;
+% s.t     = Naca.t;
+% s.AoA   = Naca.AoA;
+% 
+% g  = GeometricalFunction(s);
+% levelSetTest = g.computeLevelSetFunction(refMesh);
+% levelSetTest.plot();
+% 
+% s.backgroundMesh = refMesh;
+% s.boundaryMesh   = refMesh.createBoundaryMesh();
+% uMesh        = UnfittedMesh(s);
+% uMesh.compute(levelSetTest.fValues);
+% mT = uMesh.createInnerMesh();
+% figure
+% mT.plot();
 
 
 %% Example LS1
@@ -90,6 +90,38 @@ m2 = uMesh.createInnerMesh();
 figure
 m2.plot();
 
+m = collapseMeshes(m1,m2);
+
+points = m.coord;
+r = inf;
+T      = alphaShape(points,r);
+DT     = alphaTriangulation(T);
+
+s.connec = DT;
+s.coord  = points;
+m        = Mesh.create(s);
+
+s.type = 'LevelSetTest';
+s.xLE  = (length - chord)/2;
+s.yLE  = height/2;
+
+s.chord = Naca.chord;
+s.p     = Naca.p;
+s.m     = Naca.M;
+s.t     = Naca.t;
+s.AoA   = Naca.AoA;
+
+g  = GeometricalFunction(s);
+levelSetTest = g.computeLevelSetFunction(refMesh);
+
+q        = Quadrature.create(m, 0);
+xV       = q.posgp;
+
+lsElem = squeeze(levelSetTest.evaluate(xV));
+s.connec = m.connec(lsElem<=0,:);
+
+s.coord        = m.coord;
+m2             = Mesh.create(s);
 
 ls = exp(20*levelSet1.*levelSet2) - 1;
 ls = ls.project('P1');
