@@ -1,5 +1,5 @@
 eps   = sym("eps",[1 3]);
-eps   = [1 0 1];
+eps   = [0 1 0];
 theta = sym("theta");
 
 E  = 1;
@@ -9,10 +9,10 @@ mu = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E,nu);
 l  = IsotropicElasticMaterial.computeLambdaFromShearAndBulk(mu,k,2);
 C = zeros(3,3);
 C(1,1)= 2*mu+l;
-C(1,2)= l;
-C(2,1)= l;
+C(1,2)= 0;%l;
+C(2,1)= 0;%l;
 C(2,2)= 0;%2*mu+l;
-C(3,3)= mu;
+C(3,3)= 0;%mu;
 
 Reps = [(1+cos(2*theta))/2 , (1-cos(2*theta))/2 , (-sin(2*theta))/2 ;
         (1-cos(2*theta))/2 , (1+cos(2*theta))/2 , (sin(2*theta))/2  ;
