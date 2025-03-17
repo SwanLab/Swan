@@ -12,9 +12,9 @@ Naca.AoA   = 0;
 length  = 8;
 height  = 4;
 chord   = 1;
-nx      = 400;
+nx      = 600;
 ny      = nx/2;
-refMesh = QuadMesh(length,height,nx,ny);
+refMesh = TriangleMesh(length,height,nx,ny);
 
 % %% Example Test
 % % clear;
@@ -101,7 +101,7 @@ s.connec = DT;
 s.coord  = points;
 m        = Mesh.create(s);
 
-s.type = 'LevelSetTest';
+s.type = 'LevelSet1';
 s.xLE  = (length - chord)/2;
 s.yLE  = height/2;
 
@@ -112,13 +112,27 @@ s.t     = Naca.t;
 s.AoA   = Naca.AoA;
 
 g  = GeometricalFunction(s);
-levelSetTest = g.computeLevelSetFunction(refMesh);
+levelSet1 = g.computeLevelSetFunction(m);
+
+s.type = 'LevelSet2';
+s.xLE  = (length - chord)/2;
+s.yLE  = height/2;
+
+s.chord = Naca.chord;
+s.p     = Naca.p;
+s.m     = Naca.M;
+s.t     = Naca.t;
+s.AoA   = Naca.AoA;
+
+g  = GeometricalFunction(s);
+levelSet2 = g.computeLevelSetFunction(m);
 
 q        = Quadrature.create(m, 0);
 xV       = q.posgp;
 
-lsElem = squeeze(levelSetTest.evaluate(xV));
-s.connec = m.connec(lsElem<=0,:);
+lsElem1 = squeeze(levelSet1.evaluate(xV));
+lsElem2 = squeeze(levelSet2.evaluate(xV));
+s.connec = m.connec(lsElem1.*lsElem2<=0,:);
 
 s.coord        = m.coord;
 m2             = Mesh.create(s);
