@@ -432,7 +432,7 @@ classdef LagrangianFunction < FeFunction
             dNdx  = obj.evaluateCartesianDerivatives(xV);
             fV    = obj.getFvaluesByElem();            
             fV    = permute(fV,[2 1 4 3]);
-            gradF = pagemtimes(dNdx,fV);
+            gradF = squeezeParticular(pagemtimes(dNdx,fV),[1 2]);
         end
 
         function divF = computeDivFun(obj,xV)
