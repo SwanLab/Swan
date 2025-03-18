@@ -5,6 +5,7 @@ function dom = Expand(a,b)
     else
         s.mesh = b.mesh;
     end
+    s.ndimf = max(a.ndimf,b.ndimf);   
     dom         = DomainFunction(s);
 end
 

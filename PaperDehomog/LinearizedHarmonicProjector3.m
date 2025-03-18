@@ -43,8 +43,8 @@ classdef LinearizedHarmonicProjector3 < handle
             res = norm(LHS*x - RHS)/norm(x);
             [resL,resH,resB,resG] = obj.evaluateResidualNorms(bBar,b);
             i = 1;
-            theta = 0.99;0.5;
-            while res(i) > 1e-3
+            theta = 0.5;
+            while res(i) > 1e-6
                 xNew   = LHS\RHS;
                 x = theta*xNew + (1-theta)*x;
                 b   = obj.createVectorFromSolution(x);
@@ -93,10 +93,7 @@ classdef LinearizedHarmonicProjector3 < handle
 
         function resH = evaluateHarmonicResidual(obj,b)
             bs = b.getVectorFields;            
-            b1F = obj.createReshapedFunction(bs{1});
-            b2F = obj.createReshapedFunction(bs{2});
-            f = (-Grad(bs{1}).*b2F+Grad(bs{2}).*b1F);
-
+            f = (-Grad(bs{1}).*bs{2}+Grad(bs{2}).*bs{1});
             s.mesh = obj.mesh;
             s.quadratureOrder = 4;
             s.type = 'ShapeDerivative';

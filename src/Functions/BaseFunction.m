@@ -88,6 +88,7 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             else
                 s.mesh = b.mesh;
             end
+            s.ndimf = max(a.ndimf,b.ndimf);
             r = DomainFunction(s);
         end
 
@@ -100,6 +101,7 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             else
                 s.mesh = b.mesh;
             end
+            s.ndimf = max(a.ndimf,b.ndimf);
             r = DomainFunction(s);
         end
 
