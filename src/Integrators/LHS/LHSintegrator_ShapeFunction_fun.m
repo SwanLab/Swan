@@ -48,7 +48,7 @@ classdef LHSintegrator_ShapeFunction_fun < handle
                         Ni   = squeeze(N(iNode,iGaus,:));
                         fNdV(1,:) = Ni.*fV.*dVg;
                         iDof = nFlds*(iNode-1) + iField;
-                       int(iDof,iField,:) = squeezeParticular(int(iDof,iField,:),1) + fNdV;
+                        int(iDof,iField,:) = squeezeParticular(int(iDof,iField,:),1) + fNdV;
                     end
                 end
             end
