@@ -17,12 +17,9 @@ classdef CorrectorCoefficientsComputer < handle
 
         function obj = CorrectorCoefficientsComputer(cParams)
             obj.init(cParams)
-            obj.createQuadrature();
-            obj.createDvolum();
         end
 
         function cOpt = compute(obj,b)
-            obj.createOrthogonalCorrectorDerivatives();
             obj.computeLHS();
             obj.computeRHS(b);
             c = obj.computeReferenceCoefficients();
@@ -81,67 +78,28 @@ classdef CorrectorCoefficientsComputer < handle
             c = obj.LHS\obj.RHS;
         end
 
-        function createQuadrature(obj)
-            q = Quadrature.set(obj.mesh.type);
-            q.computeQuadrature('QUADRATIC');
-            obj.quadrature = q;
-        end
-
-        function createOrthogonalCorrectorDerivatives(obj)
-            psi = obj.orthogonalCorrector;
-            xV  = obj.quadrature.posgp;
-            nSing = numel(psi);
-            dP = cell(nSing,1);
-            for iSing = 1:nSing
-                dPsiV = psi{iSing}.evaluateGradient(xV);
-                dP{iSing} = dPsiV.fValues;
-            end
-            obj.oCorrectorDerivative = dP;
-        end
-
-        function createDvolum(obj)
-            q = obj.quadrature;
-            nDim = obj.mesh.ndim;
-            dV(1,:,:) = obj.mesh.computeDvolume(q);
-            dV = repmat(dV,nDim,1,1);
-            obj.dVolum = dV;
-        end
-
         function computeLHS(obj)
-            dP  = obj.oCorrectorDerivative;
-            dV  = obj.dVolum;
+            psi  = obj.orthogonalCorrector;
             nSing = numel(obj.orthogonalCorrector);
             lhs = zeros(nSing,nSing);
             for iS = 1:nSing
-                dPi = dP{iS};
+                psiI = psi{iS};                                
                 for jS = 1:nSing
-                    dPj = dP{jS};
-                    lhsIJ   = dPi.*dPj.*dV;
-                    lhs(iS,jS) = sum(lhsIJ(:));
+                    psiJ = psi{jS};
+                    lhs(iS,jS) = Integrate(DDP(Grad(psiI),Grad(psiJ)));
                 end
             end
             obj.LHS = lhs;
         end
 
         function computeRHS(obj,b)
-            bG    = obj.computeOrientationInGauss(b);
             nSing = numel(obj.orthogonalCorrector);
             rhs = zeros(nSing,1);
-            dP = obj.oCorrectorDerivative;
-            dV   = obj.dVolum;
             for iS = 1:nSing
-                dPi = dP{iS};
-                rhsI = dPi.*bG.*dV;
-                rhs(iS) = sum(rhsI(:));
+                psiS    = obj.orthogonalCorrector{iS};                
+                rhs(iS) = Integrate(DDP(Grad(psiS),b));
             end
             obj.RHS = rhs;
-        end
-
-        function bfG = computeOrientationInGauss(obj,b)
-            q      = obj.quadrature;
-            xGauss = q.posgp;
-            bfG    = b.evaluate(xGauss);
-            %bfG    = permute(b.evaluate(xGauss),[1 3 2]);
         end
 
     end

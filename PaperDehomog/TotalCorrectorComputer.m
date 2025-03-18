@@ -67,7 +67,7 @@ classdef TotalCorrectorComputer < handle
                 iSing  = areSing(iS);
                 cF     = obj.computeCorrectorFunction(iSing);
                 sF     = obj.createShifting(cF);
-                oC{iS} = obj.computeOrthogonalCorrector(cF,sF);
+                oC{iS} = cF - sF;
             end
             obj.ortoghonalCorrectors = oC;
         end             
@@ -90,10 +90,10 @@ classdef TotalCorrectorComputer < handle
             for iDim = 1:obj.mesh.ndim
                 for iSing = 1:obj.nCorr
                     ocV = oC{iSing}.fValues;
-                    psiT(iDim,:,:) = psiT(iDim,:,:) + coef(iDim,iSing)*ocV;
+                    psiT(:,iDim) = psiT(:,iDim) + coef(iDim,iSing)*ocV;
                 end
             end
-            obj.totalCorrector.fValues = psiT;
+            obj.totalCorrector.setFValues(psiT);
         end        
 
         function cV = computeCorrectorFunction(obj,singElem)
@@ -112,16 +112,6 @@ classdef TotalCorrectorComputer < handle
             sF = m.compute();
         end   
 
-        function oC = computeOrthogonalCorrector(obj,cF,sF)
-            phi = cF.fValues;
-            fD  = sF.fValues;
-            phi = phi - fD;
-            s.mesh    = obj.mesh;
-            s.fValues = phi;
-            s.order = 'P1D';
-            oC = LagrangianFunction(s);  
-        end          
-        
         function coef = computeCoeffs(obj,psi,b)
             s.orthogonalCorrector = psi;
             s.mesh                = obj.mesh;

@@ -25,7 +25,7 @@ classdef ShiftingFunctionComputer < handle
             u  = In*uC; 
             u = reshape(u,obj.mesh.nnodeElem,[]); 
             s.mesh = obj.mesh;
-            s.fValues(1,:,:) = u;
+            s.fValues = u(:);
             s.order = 'P1D';
             sF = LagrangianFunction(s);
         end

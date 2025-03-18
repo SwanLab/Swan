@@ -7,8 +7,9 @@ classdef LinearizedHarmonicProjector3 < handle
     properties (Access = private)
         eta
         internalDOFs
-        massMatrixBB
+        massMatrixBG
         massMatrixGG
+        massMatrixBB
         stiffnessMatrix
         fB
         fS
@@ -27,8 +28,9 @@ classdef LinearizedHarmonicProjector3 < handle
         function obj = LinearizedHarmonicProjector3(cParams)
             obj.init(cParams);
             obj.initializeFunctions();
-            obj.eta = (10*obj.mesh.computeMeanCellSize)^2;  
-            obj.perimeter = obj.density.*(1-obj.density);
+            obj.eta = (100*obj.mesh.computeMeanCellSize)^2;  
+            obj.perimeter = ConstantFunction.create(1,obj.mesh);
+            %obj.perimeter = obj.density.*(1-obj.density);
 
             obj.createInternalDOFs();
             obj.computeAllMassMatrix();
@@ -44,7 +46,7 @@ classdef LinearizedHarmonicProjector3 < handle
             [resL,resH,resB,resG] = obj.evaluateResidualNorms(bBar,b);
             i = 1;
             theta = 0.5;
-            while res(i) > 1e-6
+            while res(i) > 1e-12
                 xNew   = LHS\RHS;
                 x = theta*xNew + (1-theta)*x;
                 b   = obj.createVectorFromSolution(x);
@@ -97,11 +99,11 @@ classdef LinearizedHarmonicProjector3 < handle
             s.mesh = obj.mesh;
             s.quadratureOrder = 4;
             s.type = 'ShapeDerivative';
-            test = obj.fG;
+            test = obj.fB;
             rhs  = RHSIntegrator.create(s);
             rhsV = rhs.compute(f,test);
             rhsV(obj.boundaryNodes) = 0;
-            Mgg = obj.massMatrixGG; 
+            Mgg = obj.massMatrixBG; 
             hf = Mgg\rhsV;
             resH = obj.createP1Function((hf));
         end
@@ -135,11 +137,11 @@ classdef LinearizedHarmonicProjector3 < handle
         function initializeFunctions(obj)
             obj.fB = LagrangianFunction.create(obj.mesh, 1, 'P1');
             obj.fS = LagrangianFunction.create(obj.mesh, 1, 'P1');
-            obj.fG = LagrangianFunction.create(obj.mesh, 1, 'P1');
+            obj.fG = LagrangianFunction.create(obj.mesh, 1, 'P1D');
         end
 
         function computeAllMassMatrix(obj)
-            obj.massMatrixBB = obj.createMassMatrixWithFunction(obj.perimeter);
+            obj.massMatrixBB = obj.createMassMatrixWithFunction(obj.fB,obj.fB,obj.perimeter);
             obj.massMatrixGG = obj.computeMassMatrix(obj.fG,obj.fG);
         end
 
@@ -211,9 +213,9 @@ classdef LinearizedHarmonicProjector3 < handle
             Nf = lhs.compute();
         end
 
-        function Mf = createMassMatrixWithFunction(obj,f)
-            s.test     = obj.fB;
-            s.trial    = obj.fG;
+        function Mf = createMassMatrixWithFunction(obj,fTest,fTrial,f)
+            s.test     = fTest;
+            s.trial    = fTrial;
             s.function = f;
             s.mesh     = obj.mesh;
             s.quadratureOrder = 2;
@@ -226,8 +228,8 @@ classdef LinearizedHarmonicProjector3 < handle
             bs = b.getVectorFields;
             b1  = bs{1};
             b2  = bs{2};
-            Mb1  = obj.createMassMatrixWithFunction(b1);
-            Mb2  = obj.createMassMatrixWithFunction(b2);
+            Mb1  = obj.createMassMatrixBGWithFu(b1);
+            Mb2  = obj.createMassMatrixBGWithFunction(b2);
         end
 
         function [Kb1,Kb2,Nb1,Nb2] = computeHarmonicMatrix(obj,b)
