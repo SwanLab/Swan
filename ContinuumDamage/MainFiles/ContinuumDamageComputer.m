@@ -60,17 +60,25 @@ classdef ContinuumDamageComputer < handle
                 if (iter >= obj.limIter)
                     fprintf (2,'NOT CONVERGED FOR STEP %d\n',i);
                 end
-                obj.elasticity.setROld();
-               
+                obj.elasticity.setROld();         
 
                 data.displacement.value(i)  = obj.boundaryConditions.bcValueSet(i);
                 dmgDomainFun = obj.elasticity.getDamage();
                 dmgFun = dmgDomainFun.project('P1D');
                 data.damage.maxValue(i)  = max(dmgFun.fValues);
                 data.damage.minValue(i)  = min(dmgFun.fValues);
+               
+                rDomainFun = obj.elasticity.getR();
+                rFun = rDomainFun.project('P1D');
+                data.r.maxValue(i) = max(rFun.fValues);
+                data.r.minValue(i) = min(rFun.fValues);
+                
+                qDomainFun = obj.elasticity.getQ();
+                qFun = qDomainFun.project('P1D');
+                data.q.maxValue(i) = max(qFun.fValues);
+                data.q.minValue(i) = min(qFun.fValues);
                 
                 data.reaction(i)  = obj.computeTotalReaction(K,uVec);
- 
                 [data.totalEnergy(i),data.damagedMaterial(i)] = obj.elasticity.computeEnergy(uFun,bc);
             end
             data.displacement.field = uFun;
@@ -87,7 +95,7 @@ classdef ContinuumDamageComputer < handle
             obj.solverParams = cParams.solver; 
             obj.H = cParams.H;
             obj.tolerance = cParams.tol;
-            obj.quadOrder = 2;
+            obj.quadOrder = 0;
         end
 
         function defineRfunction(obj,cParams)
@@ -157,6 +165,6 @@ classdef ContinuumDamageComputer < handle
             nodes = 1:obj.mesh.nnodes;
             totReact = -sum(F(2*nodes(isInDown)));
         end
-
+ 
     end
 end

@@ -81,6 +81,16 @@ classdef ShFunc_ElasticDamage < handle
         function d = getDamage(obj)
             d = obj.d;
         end
+
+        function r = getR(obj)
+            r = obj.r;
+        end
+
+        function qFun = getQ(obj)
+            q = obj.computeHardening();
+            op = @(xV) q(obj.r.evaluate(xV),obj.r0.evaluate(xV),obj.r1.evaluate(xV));
+            qFun = DomainFunction.create(op,obj.mesh);
+        end
     end
    
     methods (Access = private)
@@ -152,7 +162,7 @@ classdef ShFunc_ElasticDamage < handle
                
                 opR1 = @(xV) opR0(xV).*~conditionR0(xV);
                 
-                d_dot = DomainFunction.create(op,obj.mesh);
+                d_dot = DomainFunction.create(opR1,obj.mesh);
                 Ctan2 = Expand(d_dot).*OP(sigBar,sigBar);
     
                 op = @(xV) Csec.evaluate(xV) - Ctan2.evaluate(xV);
