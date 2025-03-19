@@ -109,30 +109,32 @@ C = 2*mu*I4 + lambda*IkI;
 
 s.quadratureOrder;
 quad = Quadrature.create(mesh, s.quadratureOrder);
-
-nnodeElem = mesh.nnodeElem;
 xV = quad.posgp;
+nnodeE = mesh.nnodeElem;
+ndim   = mesh.ndim;
+nElem  = mesh.nelem;
+nGauss = size(xV,2);
+ndofE  = nnodeE*ndim;
+
 dNdx = u.evaluateCartesianDerivatives(xV);
-lhs = zeros(nnodeElem*2,nnodeElem*2,mesh.nelem);
+lhs = zeros(nnodeE*ndim,nnodeE*ndim,mesh.nelem);
 dV   = mesh.computeDvolume(quad);
-dV   = permute(dV,[3, 4, 1, 2]);
-for i=1:nnodeElem
-    dNdxTrial = zeros(N,N,2,4,4);
-    dNdxTrial(:,1,1,:,:) = dNdx(:,i,:,:);
-    dNdxTrial(:,2,2,:,:) = dNdx(:,i,:,:);
-    symTrial = 0.5*(dNdxTrial + pagetranspose(dNdxTrial));
-    for j=1:nnodeElem
-        dNdxTest = zeros(N,N,2,4,4);
-        dNdxTest(:,1,1,:,:) = dNdx(:,j,:,:);
-        dNdxTest(:,2,2,:,:) = dNdx(:,j,:,:);
-        symTest = 0.5*(dNdxTest + pagetranspose(dNdxTest));
-        sigN = pagetensorprod(C,symTrial,[3 4],[1 2],4,3);
-        Kelem = pagetensorprod(symTest,sigN,[1 2],[1 2],3,3);
+dV   = permute(dV,[3, 1, 2]);
+
+gradN = zeros(ndim,ndim,ndofE,nGauss,nElem);
+for i=1:ndim
+    gradN(i,:,i:ndim:end,:,:) = dNdx;
+end
+symN = 0.5*(gradN + pagetranspose(gradN));
+
+for i=1:ndofE
+    for j=1:ndofE
+        symTrial = symN(:,:,i,:,:);
+        symTest  = symN(:,:,j,:,:);
+        sigN = pagetensorprod(C,symTrial,[3 4],[1 2],4,2);
+        Kelem = pagetensorprod(symTest,sigN,[1 2],[1 2],2,2);
         Kelem = Kelem.*dV;
-        A = squeezeParticular(sum(Kelem,3),3);
-        I = (2*i-1):(2*i);
-        J = (2*j-1):(2*j);
-        lhs(I,J,:) = lhs(I,J,:) + A;
+        lhs(i,j,:) = lhs(i,j,:) + sum(Kelem,2);
     end
 end
 
