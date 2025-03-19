@@ -122,8 +122,7 @@ classdef NewHarmonicVectorProjectionExample < handle
             obj.plotAll(bBar,bInit);
             bNew = obj.harmonicProjector.solveProblem(bBar,bInit);
             bNew = obj.projectInUnitBall(bNew);
-            obj.plotAll(bBar,bNew);SGR CAMMS
-            SGR 
+            obj.plotAll(bBar,bNew);
             a1   = obj.createHalfOrientationVectorP1(bNew);
             
             a1OrtV(:,1) = -a1.fValues(:,2);
@@ -228,8 +227,6 @@ classdef NewHarmonicVectorProjectionExample < handle
             f = LagrangianFunction(s);
             f = project(f,'P1D');
         end        
-
-
 
         %%%%%%%%%%%%%%%%%%%%%%%%
 

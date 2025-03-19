@@ -105,7 +105,7 @@ classdef LinearizedHarmonicProjector3 < handle
             rhsV(obj.boundaryNodes) = 0;
             Mgg = obj.massMatrixBG; 
             hf = Mgg\rhsV;
-            resH = obj.createP1Function((hf));
+            resH = obj.createP1DFunction((hf));
         end
 
         function resB = evaluateUnitNormResidual(obj,b)
@@ -122,7 +122,7 @@ classdef LinearizedHarmonicProjector3 < handle
             b1  = bS{1};
             b2  = bS{2};
             grad = norm(Grad(b1).*Grad(b1)+Grad(b2).*Grad(b2),2);
-            resG = project(grad,'P1D');
+            resG = project(grad,obj.fG.order);
         end
     end
 
@@ -137,10 +137,11 @@ classdef LinearizedHarmonicProjector3 < handle
         function initializeFunctions(obj)
             obj.fB = LagrangianFunction.create(obj.mesh, 1, 'P1');
             obj.fS = LagrangianFunction.create(obj.mesh, 1, 'P1');
-            obj.fG = LagrangianFunction.create(obj.mesh, 1, 'P1D');
+            obj.fG = LagrangianFunction.create(obj.mesh, 1, 'P1');
         end
 
         function computeAllMassMatrix(obj)
+            obj.massMatrixBG = obj.computeMassMatrix(obj.fB,obj.fG);            
             obj.massMatrixBB = obj.createMassMatrixWithFunction(obj.fB,obj.fB,obj.perimeter);
             obj.massMatrixGG = obj.computeMassMatrix(obj.fG,obj.fG);
         end
@@ -188,10 +189,10 @@ classdef LinearizedHarmonicProjector3 < handle
             Kf = lhs.compute();
         end
 
-        function f = createP1Function(obj,fV)
+        function f = createP1DFunction(obj,fV)
             s.fValues = fV;
             s.mesh    = obj.mesh;
-            s.order   = 'P1';
+            s.order   = 'P1D';
             f = LagrangianFunction(s);
         end
 
@@ -228,8 +229,8 @@ classdef LinearizedHarmonicProjector3 < handle
             bs = b.getVectorFields;
             b1  = bs{1};
             b2  = bs{2};
-            Mb1  = obj.createMassMatrixBGWithFu(b1);
-            Mb2  = obj.createMassMatrixBGWithFunction(b2);
+            Mb1  = obj.createMassMatrixWithFunction(obj.fB,obj.fG,b1);
+            Mb2  = obj.createMassMatrixWithFunction(obj.fB,obj.fG,b2);
         end
 
         function [Kb1,Kb2,Nb1,Nb2] = computeHarmonicMatrix(obj,b)
