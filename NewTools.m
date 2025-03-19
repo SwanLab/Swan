@@ -31,15 +31,7 @@ sfi.mesh    = mesh;
 sfi.LHStype = 'StiffnessMass';
 perFilter   = FilterPDE(sfi);
 
-% Creating constraint of interest
-sF.mesh               = mesh;
-sF.epsilon            = 2*mesh.computeMeanCellSize();
-sF.minEpsilon         = 2*mesh.computeMeanCellSize();
-sF.perimeterTargetAbs = 1;
-sF.filter             = perFilter;
-globConstr            = PerimeterConstraint(sF);
-
-% Creating local domain with unfitted mesh
+% Creating local domain 1 with unfitted mesh
 sG.type            = 'Rectangle';
 sG.xCoorCenter     = 0.5;
 sG.yCoorCenter     = 0.5;
@@ -49,19 +41,48 @@ g                  = GeometricalFunction(sG);
 lsFun              = g.computeLevelSetFunction(mesh);
 sUm.backgroundMesh = mesh;
 sUm.boundaryMesh   = mesh.createBoundaryMesh();
-uMesh              = UnfittedMesh(sUm);
-uMesh.compute(lsFun.fValues);
+uMesh1             = UnfittedMesh(sUm);
+uMesh1.compute(lsFun.fValues);
 figure;
-plot(uMesh);
+plot(uMesh1);
 
-% Creating local constraint functional
-sC.mesh         = mesh;
-sC.constraint   = globConstr;
-sC.unfittedMesh = uMesh;
-sC.epsilon      = 2*mesh.computeMeanCellSize();
-sC.target       = 1;
-sC.filterPer    = perFilter;
-sC.value0       = 1;
-G               = LocalConstraint(sC);
-[J,dJ]          = G.computeFunctionAndGradient(dens);
+% Creating local domain 2 with unfitted mesh
+sG.type            = 'Rectangle';
+sG.xCoorCenter     = 1.5;
+sG.yCoorCenter     = 0.5;
+sG.xSide           = 1;
+sG.ySide           = 1;
+g                  = GeometricalFunction(sG);
+lsFun              = g.computeLevelSetFunction(mesh);
+sUm.backgroundMesh = mesh;
+sUm.boundaryMesh   = mesh.createBoundaryMesh();
+uMesh2             = UnfittedMesh(sUm);
+uMesh2.compute(lsFun.fValues);
+figure;
+plot(uMesh2);
+
+% Creating local perimeter constraint 1
+sC.mesh       = mesh;
+sC.uMesh      = uMesh1;
+sC.epsilon    = 2*mesh.computeMeanCellSize();
+sC.filter     = perFilter;
+sC.value0     = 1;
+sC.minEpsilon = mesh.computeMeanCellSize();
+sC.target     = 1;
+G2            = PerimeterConstraint(sC);
+[J1,dJ1]      = G2.computeFunctionAndGradient(dens);
+
+% Creating local perimeter constraint 2
+sC.mesh       = mesh;
+sC.uMesh      = uMesh2;
+sC.epsilon    = 2*mesh.computeMeanCellSize();
+sC.filter     = perFilter;
+sC.value0     = 1.25;
+sC.minEpsilon = mesh.computeMeanCellSize();
+sC.target     = 1;
+G2            = PerimeterConstraint(sC);
+[J2,dJ2]      = G2.computeFunctionAndGradient(dens);
+
+% Gradients sum
+dJ = dJ1 + dJ2;
 plot(dJ);

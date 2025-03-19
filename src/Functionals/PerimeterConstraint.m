@@ -1,10 +1,9 @@
 classdef PerimeterConstraint < handle
 
     properties (Access = private)
-        mesh
         epsilon
         minEpsilon
-        perimeterTargetAbs
+        target
         perimeter
     end
     
@@ -16,30 +15,27 @@ classdef PerimeterConstraint < handle
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             [P,dP]  = obj.perimeter.computeFunctionAndGradient(x);
             J       = obj.computeFunction(P);
-            dJ      = obj.computeGradient(dP);
+            dJ      = obj.computeGradient(dP{1});
             obj.updateEpsilonForNextIteration(J);
         end  
     end
 
     methods (Access = private)
         function init(obj,cParams)
-            obj.mesh               = cParams.mesh;
-            obj.epsilon            = cParams.epsilon;
-            obj.minEpsilon         = cParams.minEpsilon;
-            obj.perimeterTargetAbs = cParams.perimeterTargetAbs;
-            cParams.value0         = 1;
-            obj.perimeter          = PerimeterFunctional(cParams);
+            obj.epsilon    = cParams.epsilon;
+            obj.minEpsilon = cParams.minEpsilon;
+            obj.target     = cParams.target;
+            obj.perimeter  = PerimeterFunctional(cParams);
         end
 
         function J = computeFunction(obj,P)
-            pTar = obj.perimeterTargetAbs;
+            pTar = obj.target;
             J    = P/pTar-1;
         end
 
-        function dJ = computeGradient(obj,dP)
-            pTar    = obj.perimeterTargetAbs;
-            fValues = dP.fValues/pTar;
-            dJ      = FeFunction.create(dP.order,fValues,obj.mesh);
+        function dJ = computeGradient(obj,dJ)
+            pTar = obj.target;
+            dJ.setFValues(dJ.fValues./pTar);
         end
 
         function updateEpsilonForNextIteration(obj,J)
