@@ -3,22 +3,40 @@ matType{2} = load('CircleMicroDamagePerimeter.mat');
 matType{3} = load('SquareMicroDamageArea.mat');
 matType{4} = load('SquareMicroDamagePerimeter.mat');
 matType{5} = load('IsoMicroDamage.mat');
-matType{6} = load('CrackMicroDamage100.mat');
+matType{6} = load('CrackMicroDamageCubic.mat');
 matType{6}.mat = matType{6}.mat*210;
 
-%% Change of variable
-matType{6}.phi  = matType{6}.holeParam{1};
+% Change of variable
+%matType{6}.phi  = matType{6}.holeParam{1};
 %matType{6}.phi = matType{6}.holeParam{1}.^2;
-%matType{6}.phi = matType{6}.holeParam{1}.^3;
+matType{6}.phi = matType{6}.holeParam{1}.^3;
 
-%% Include last point
+%% Polynomial fraction fitting
+close all
+x = matType{6}.phi;
+y = squeeze(matType{6}.mat(3,3,:));
+p0 = [1 1 1 1 1 1 1 1];
+yp = @(p) (p(1).*x.^3 + p(2).*x.^2 + p(3).*x + p(4))/(p(5).*x.^3 + p(6).*x.^2 + p(7).*x + p(8));
+
+objective = @(p) sum(((yp(p)-y)./y).^2);
+popt = fmincon(objective,p0);
+
+disp("Initial objective: " + num2str(objective(p0)));
+disp("Final objective: " + num2str(objective(p0)));
+plot(x,y,'ro')
+hold on
+plot(x,yp(popt),'gs')
+legend('measured','optimal')
+
+%% Include pints
+% %% Include final points
 % matType{6}.mat(:,:,end+1) = [matType{6}.mat(1,1,end), 0 , 0;
 %                                         0           , 0 , 0;
 %                                         0           , 0 , 0];
 % matType{6}.phi(end+1) = 1;
 % matType{6}.mat(1,1,end) = matType{6}.mat(1,1,end-1);
-% 
-% %% Include more final points
+%
+% %% Include more final points %%
 % lastSteps = 2;
 % nPoints = 20;
 % lastPointsMat = matType{6}.mat(:,:,(end-lastSteps):end);
@@ -55,39 +73,12 @@ matType{6}.phi  = matType{6}.holeParam{1};
  for j=1:length(matType)
      isMat6 = false;
      if j==6 isMat6 = true; end
-     [funMat(:,:,j),dfunMat(:,:,j),ddfunMat(:,:,j)] = computeFunctionsAndDerivatives(matType{j},isMat6);
+     [funMat(:,:,j),dfunMat(:,:,j),ddfunMat(:,:,j)] = computeFittingHomogenization(matType{j},isMat6,4);
  end
 
  %% Run Plots
  Finalplots;
 
 
- %% Functions 
- function [fun,dfun,ddfun] = computeFunctionsAndDerivatives(cParams,isMat6)
-    x = cParams.phi;
-    x = reshape(x,length(x),[]);
-    y = cParams.mat;
-    
-    fun   = cell(3,3);
-    dfun  = cell(3,3);
-    ddfun = cell(3,3);
-    for i=1:3
-        for j=1:3
-            if i==1 && j==1 && isMat6
-                %coeffs = polyfit(x,squeeze(y(i,j,:)),9);
-                %coeffs = polyfix(x,squeeze(y(i,j,:)),9,[0],[squeeze(y(i,j,1))]);
-                %coeffs = polyfix(x,squeeze(y(i,j,:)),9,[1],[squeeze(y(i,j,end))]);
-                coeffs = polyfix(x,squeeze(y(i,j,:)),9,[0,1],[squeeze(y(i,j,1)),squeeze(y(i,j,end))]);
-            else
-                %coeffs = polyfit(x,squeeze(y(i,j,:)),9);
-                %coeffs = polyfix(x,squeeze(y(i,j,:)),9,[0],[squeeze(y(i,j,1))]);
-                %coeffs = polyfix(x,squeeze(y(i,j,:)),9,[1],[0]);
-                coeffs = polyfix(x,squeeze(y(i,j,:)),9,[0,1],[squeeze(y(i,j,1)),0]);
-            end
-            fun{i,j} = poly2sym(coeffs);
-            dfun{i,j} = diff(fun{i,j});
-            ddfun{i,j} = diff(dfun{i,j});
-        end
-    end
- end
+
 
