@@ -66,7 +66,7 @@ classdef StokesProblemSolver < handle
         end
 
         function createSolver(obj)
-            b.type =  'CG';%CG
+            b.type =  'DIRECT';%CG
             obj.solver = Solver.create(b);
         end
 

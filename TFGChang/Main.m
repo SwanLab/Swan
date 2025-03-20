@@ -1,36 +1,46 @@
 %% Test for TestNaca
-tic; % Inicia el contador de tiempo
-Naca.M     = 0.02;
-Naca.p     = 0.4;
-Naca.t     = 0.12;
-Naca.chord = 1;
-Naca.AoA   = 0;
+Naca.length = 8;
+Naca.height = 4;
+Naca.nx     = 700;
+Naca.M      = 0.0;
+Naca.p      = 0.4;
+Naca.t      = 0.12;
+Naca.chord  = 1;
+Naca.AoA    = 0;
 
 NacaClass = TestNaca(Naca);
 NacaClass.compute();
 %NacaClass.validate();
-%NacaClass.print();
+NacaClass.print();
 
 %% Control Parameters.
 
-m     = 0:0.005:0.09;
-p     = 0.2:0.05:0.8;
-t     = 0.05:0.05:0.4; % A partir de 0.1
+Naca.length = 8;
+Naca.height = 4;
+Naca.nx     = 700;
+m     = 0.0:0.01:0.09;
+p     = 0.2:0.1:0.8;
+% m     = 0:0.005:0.09;
+% p     = 0.2:0.05:0.8;
+t     = 0.1:0.05:0.4; % A partir de 0.1
 alpha = 0:1:30;
 
 %% Code to compute Efficiency dataset
 
-for k = 1:length(t)
+%for k = 1:length(t)
 
     for i = 1:length(m)
     
         for j = 1:length(p)
         
+            fprintf("m = %f\n", m(i));
+            fprintf("p = %f\n", p(j));
             Naca.M     = m(i);
             Naca.p     = p(j);
-            Naca.t     = t(k);
+            Naca.t     = 0.12;
+            %t(k);
             Naca.chord = 1;
-            Naca.AoA   = 10;
+            Naca.AoA   = 0;
             
             NacaClass  = TestNaca(Naca);
             NacaClass.compute();
@@ -40,17 +50,18 @@ for k = 1:length(t)
         end
     
     end
-end
+%end
 
 %% Plot efficiency vs p and m
 
-data = load('EPerAoA0.txt');
+data = load('EPerAoA0_NACA2412.txt');
 
 E = data(:, end);
 E = reshape(E, length(p), [])';
 
 [P,M] = meshgrid(p,m);
 
+figure;
 surface(M,P,E);
 shading interp;               
 xlabel('Max Camber (m)');          
