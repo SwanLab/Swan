@@ -6,46 +6,46 @@ tiledlayout(2,2)
 nexttile
 hold on
 scatter(matType{matIdx}.phi,squeeze(matType{matIdx}.mat(1,1,:)),'X','LineWidth',1.5)
-%fplot(funMat(1,1,matIdx),[0 1],'LineWidth',1.5)
+fplot(funMat(1,1,matIdx),[0 1],'LineWidth',1.5)
 ylabel(char(8450)+"11 [GPa]");
 ylim([0,inf])
 xlabel("Damage "+char(632)+" [-]");
 %fontsize(gcf,25,'points')
-set(gca,'xscale','log')
-set(gca,'yscale','log')
+% set(gca,'xscale','log')
+% set(gca,'yscale','log')
 
 nexttile
 hold on
 scatter(matType{matIdx}.phi,squeeze(matType{matIdx}.mat(1,2,:)),'X','LineWidth',1.5)
-%fplot(funMat(1,2,matIdx),[0 1],'LineWidth',1.5)
+fplot(funMat(1,2,matIdx),[0 1],'LineWidth',1.5)
 ylabel(char(8450)+"12 [GPa]");
 ylim([0,inf])
 xlabel("Damage "+char(632)+" [-]");
 %fontsize(gcf,25,'points')
-set(gca,'xscale','log')
-set(gca,'yscale','log')
+% set(gca,'xscale','log')
+% set(gca,'yscale','log')
 
 nexttile
 hold on
 scatter(matType{matIdx}.phi,squeeze(matType{matIdx}.mat(2,2,:)),'X','LineWidth',1.5)
-%fplot(funMat(2,2,matIdx),[0 1],'LineWidth',1.5)
+fplot(funMat(2,2,matIdx),[0 1],'LineWidth',1.5)
 ylabel(char(8450)+"22 [GPa]");
 ylim([0,inf])
 xlabel("Damage "+char(632)+" [-]");
 %fontsize(gcf,25,'points')
-set(gca,'xscale','log')
-set(gca,'yscale','log')
+% set(gca,'xscale','log')
+% set(gca,'yscale','log')
 
 nexttile
 hold on
 scatter(matType{matIdx}.phi,squeeze(matType{matIdx}.mat(3,3,:)),'X','LineWidth',1.5)
-%fplot(funMat(3,3,matIdx),[0 1],'LineWidth',1.5)
+fplot(funMat(3,3,matIdx),[0 1],'LineWidth',1.5)
 ylabel(char(8450)+"33 [GPa]");
 ylim([0,inf])
 xlabel("Damage "+char(632)+" [-]");
 %fontsize(gcf,25,'points')
-set(gca,'xscale','log')
-set(gca,'yscale','log')
+% set(gca,'xscale','log')
+% set(gca,'yscale','log')
 
 lg =legend('Data','Fitting');
 lg.Layout.Tile = 'East';

@@ -176,8 +176,8 @@ classdef TestingPhaseFieldHomogenizer < handle
             end
             g                  = GeometricalFunction(gPar);
             phiFun             = g.computeLevelSetFunction(mesh);
-            phiFun.plot;
-            colormap default
+            % phiFun.plot;
+            % colormap default
             lsCircle           = phiFun.fValues;
             ls = -lsCircle;
         end
