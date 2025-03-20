@@ -33,9 +33,10 @@ classdef PerimeterConstraint < handle
             J    = P/pTar-1;
         end
 
-        function dJ = computeGradient(obj,dJ)
+        function dJ = computeGradient(obj,dj)
             pTar = obj.target;
-            dJ.setFValues(dJ.fValues./pTar);
+            dj.setFValues(dj.fValues./pTar);
+            dJ{1} = dj;
         end
 
         function updateEpsilonForNextIteration(obj,J)
