@@ -2,16 +2,22 @@ classdef PerimeterNormPFunctional < handle
 
     properties (Access = private)
         quadrature
-        Pp
+%         Pp
         totalVolume
         filter
         epsilon
+        eps
     end
 
     properties (Access = private)
         mesh
         perimeterTarget
         p
+    end
+
+    properties (Access = public)
+        Pp
+        gx
     end
 
     methods (Access = public)
@@ -22,11 +28,16 @@ classdef PerimeterNormPFunctional < handle
             obj.createFilter();
         end
 
-        function [J,dJ] = computeFunctionAndGradient(obj,x)   % dJ: integrand field
-            [xD,Le] = obj.computeFilteredVariable(x); % rho
-            J       = obj.computeFunction(xD{1},Le);
-            dJ{1}   = obj.computeGradient(xD{1},Le);
+        function computeFunctionAndGradient(obj,x)
+            [xD,Le] = obj.computeFilteredVariable(x);
+            obj.computeFunction(xD{1},Le);
         end
+
+%         function [J,dJ] = computeFunctionAndGradient(obj,x)
+%             [xD,Le] = obj.computeFilteredVariable(x);
+%             J       = obj.computeFunction(xD{1},Le);
+%             dJ{1}   = obj.computeGradient(xD{1},Le);
+%         end
     end
 
     methods (Access = private)
@@ -34,6 +45,7 @@ classdef PerimeterNormPFunctional < handle
             obj.mesh            = cParams.mesh;
             obj.perimeterTarget = cParams.perimeterTarget;
             obj.p               = cParams.p;
+            obj.eps             = cParams.eps;
         end
 
         function createQuadrature(obj)
@@ -51,7 +63,7 @@ classdef PerimeterNormPFunctional < handle
             s.mesh       = obj.mesh;
             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
             f            = Filter.create(s);
-            obj.epsilon  = 6*obj.mesh.computeMeanCellSize();
+            obj.epsilon  = obj.eps*obj.mesh.computeMeanCellSize();
             f.updateEpsilon(obj.epsilon);
             obj.filter = f;
         end
@@ -62,22 +74,27 @@ classdef PerimeterNormPFunctional < handle
         end
 
         function J = computeFunction(obj,x,Le)
-            xP     = ((1/(2*obj.epsilon))*(x.*(1-Le))).^obj.p;
+%             xP     = ((1/(2*obj.epsilon))*(x.*(1-Le))).^obj.p;
+            xP     = (x.*(1-Le)).^obj.p;
             PerP   = Integrator.compute(xP,obj.mesh,obj.quadrature.order);
             obj.Pp = PerP^(1/obj.p);
-            J      = ((1/obj.perimeterTarget)*((1/obj.totalVolume)^(1/obj.p))*obj.Pp) - 1;
+            obj.gx = ((1/obj.perimeterTarget)*obj.Pp);
+%             J      = ((1/obj.perimeterTarget)*((1/obj.totalVolume)^(1/obj.p))*obj.Pp) - 1;
         end
 
         function dJ = computeGradient(obj,x,Le)
             Lea = obj.computeFilteredTermForGradient(x,Le);
-            num = ((((1/(2*obj.epsilon))*(x.*(1-Le))).^(obj.p-1)).*(1-Le) - Lea).*(obj.Pp^(1-obj.p));
-            den = 2*obj.epsilon*obj.perimeterTarget*(obj.totalVolume)^(1/obj.p);
+%             num = ((((1/(2*obj.epsilon))*(x.*(1-Le))).^(obj.p-1)).*(1-Le) - Lea).*(obj.Pp^(1-obj.p));
+%             den = 2*obj.epsilon*obj.perimeterTarget*(obj.totalVolume)^(1/obj.p);
+            num = (((x.*(1-Le)).^(obj.p-1)).*(1-Le) - Lea).*(obj.Pp^(1-obj.p));
+            den = obj.perimeterTarget*(obj.totalVolume)^(1/obj.p);
             dJ  = num./den;
             dJ  = dJ.project('P1');
         end
 
         function Lea = computeFilteredTermForGradient(obj,x,Le)
-            a = (((1/(2*obj.epsilon))*(x.*(1-Le))).^(obj.p-1)).*x;
+%             a = (((1/(2*obj.epsilon))*(x.*(1-Le))).^(obj.p-1)).*x;
+            a = ((x.*(1-Le)).^(obj.p-1)).*x;
             Lea = obj.filter.compute(a,3);
         end
     end

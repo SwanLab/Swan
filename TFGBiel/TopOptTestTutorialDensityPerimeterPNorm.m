@@ -41,7 +41,7 @@ classdef TopOptTestTutorialDensityPerimeterPNorm < handle
             figure(2)
             set(gcf, 'Position', get(0, 'Screensize'));
             fileName1 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02.fig',p,pTarget));
-            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02',p,pTarget));
+            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02.png',p,pTarget));
             savefig(fileName1);
             print(fileName2,'-dpng','-r300');
         end
@@ -56,7 +56,7 @@ classdef TopOptTestTutorialDensityPerimeterPNorm < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,2,150);
+            x1      = linspace(0,2,100);
             x2      = linspace(0,1,50);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');

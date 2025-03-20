@@ -40,8 +40,8 @@ classdef TopOptTestTutorialLevelSetPerimeterPNorm < handle
             
             figure(2)
             set(gcf, 'Position', get(0, 'Screensize'));
-            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_alpha%.2f_gJ0.2_eta0.02_LevelSet.fig',p,pTarget));
-            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_alpha%.2f_gJ0.2_eta0.02_LevelSet',p,pTarget));
+            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02_LevelSet.fig',p,pTarget));
+            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02_LevelSet.png',p,pTarget));
             savefig(fileName1);
             print(fileName2,'-dpng','-r300');
         end
@@ -201,7 +201,7 @@ classdef TopOptTestTutorialLevelSetPerimeterPNorm < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 2000;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'INEQUALITY','INEQUALITY'};
             s.primal         = 'SLERP';                  
