@@ -32,7 +32,7 @@ cParams.mesh.meshN = 1;
 cParams.mesh.meshM = 1;
 
 cParams.bc.bcType = 'displacementTraction'; %'FORCE'
-cParams.bc.bcValueSetLoading = 1e-10:1e-3:0.2;
+cParams.bc.bcValueSetLoading = 1e-10:1e-4:0.2;
 cParams.bc.bcValueSetUnLoading = [];
 
 cParams.material.E = 210;
@@ -76,5 +76,9 @@ title('Material - Displacement')
 figure()
 plot(data.r.maxValue,data.q.maxValue)
 title('r - q')
+
+figure()
+plot(data.r.maxValue,data.damage.maxValue)
+title('Damage-r')
 
 %tester.compareWithElasticProblem(data.displacement.fValues,uRef.fValues);

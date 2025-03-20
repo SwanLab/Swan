@@ -143,26 +143,28 @@ classdef ShFunc_ElasticDamage < handle
 
         function tan = computeDerivativeResidualTangent(obj,u,control,index)    
             Csec = obj.material.obtainTensor(obj.d);
-            if (index<control && index >1)
+            if (index<control) %implementar al computer, entrem un isloading
+             
                 C = obj.material.obtainNonDamagedTensor();
                 epsi = SymGrad(u);
 
-                tauEpsilon = sqrt(DDP(DDP(epsi,C),epsi));
-                tauEpsilon = project(tauEpsilon,obj.r.order);
-
                 sigBar = DDP(epsi,C);
                 q = obj.computeHardening();
-                
-                conditionR0 = @(xV) (obj.r.evaluate(xV) == obj.r0.evaluate(xV));
-                conditionR1 = @(xV) (obj.r.evaluate(xV) <= obj.r1.evaluate(xV));
 
-                op = @(xV)((q(obj.r.evaluate(xV),obj.r0.evaluate(xV),obj.r1.evaluate(xV))-obj.H*obj.r.evaluate(xV))./(((obj.r.evaluate(xV)).^2.*tauEpsilon.evaluate(xV))));
+                r = @(xV) obj.r.evaluate(xV);
+                r0 = @(xV) obj.r0.evaluate(xV);
+                r1 = @(xV) obj.r1.evaluate(xV);
                 
-                opR0 = @(xV) conditionR1(xV).*op(xV) + ~conditionR1(xV).*((q(obj.r.evaluate(xV),obj.r0.evaluate(xV),obj.r1.evaluate(xV)))./(((obj.r.evaluate(xV)).^2.*tauEpsilon.evaluate(xV))));
+                conditionR0 = @(xV) (r(xV) ~= obj.r0.evaluate(xV));%1
+                conditionR1 = @(xV) (r(xV) <= r1(xV)); %1
+
+                op = @(xV)(q(r(xV),r0(xV),r1(xV))-obj.H*r(xV))./(r(xV).^3);
+                
+                opR1 = @(xV) conditionR1(xV).*op(xV) + ~conditionR1(xV).*(q(r(xV),r0(xV),r1(xV)))./(r(xV).^3);
                
-                opR1 = @(xV) opR0(xV).*~conditionR0(xV);
+                opR0 = @(xV) opR1(xV).*conditionR0(xV);
                 
-                d_dot = DomainFunction.create(opR1,obj.mesh);
+                d_dot = DomainFunction.create(opR0,obj.mesh);
                 Ctan2 = Expand(d_dot).*OP(sigBar,sigBar);
     
                 op = @(xV) Csec.evaluate(xV) - Ctan2.evaluate(xV);
