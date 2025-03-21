@@ -42,19 +42,15 @@ classdef ContinuumDamageComputer < handle
                 bc = obj.updateBoundaryConditions(i);
                 uFun.setFValues(obj.updateInitialDisplacement(bc,uFun));
                 isLoading = obj.loadState(i);
-                resErr = 1; iter = 0;Error = [];
+                resErr = 1; iter = 0;
 
-                while (resErr >= obj.tolerance && iter < obj.limIter)
-                    obj.elasticity.computeDamageEvolutionParam(uFun);
-                    [res]  = obj.elasticity.computeResidual(uFun,bc);
-                    [K,resDeriv] = obj.elasticity.computeDerivativeResidual(uFun,bc,isLoading);
-                    [uVal,uVec] = obj.computeDisplacement(resDeriv,res,uFun,bc);
-                    uFun.setFValues(uVal);
-                    
+                while (resErr >= obj.tolerance && iter < obj.limIter)    
+                    [res,~,K,~,uVec,uFun] = obj.solveU (obj,uFun,bc,isLoading);  
+
                     resErr = norm(res);
                     fprintf('Error: %d \n',resErr);
+
                     iter = iter+1;
-                    Error(end+1) = resErr;
                 end
                 if (iter >= obj.limIter)
                     fprintf (2,'NOT CONVERGED FOR STEP %d\n',i);
@@ -170,8 +166,16 @@ classdef ContinuumDamageComputer < handle
             data.reaction(i)  = obj.computeTotalReaction(K,uVec);
             [data.totalEnergy(i),data.damagedMaterial(i)] = obj.elasticity.computeEnergy(uFun,bc);
             
-            
         end
+        function [res,resDeriv,K,uVal,uVec,uFun] = solveU (obj,uFun,bc,isLoading)  
+            obj.elasticity.computeDamageEvolutionParam(uFun);         
+            [res]  = obj.elasticity.computeResidual(uFun,bc);
+            [K,resDeriv] = obj.elasticity.computeDerivativeResidual(uFun,bc,isLoading);
+            [uVal,uVec] = obj.computeDisplacement(resDeriv,res,uFun,bc);
+            uFun.setFValues(uVal);
+        end
+
+        
 
         function totReact = computeTotalReaction(obj,LHS,u)
             F = LHS*u;
