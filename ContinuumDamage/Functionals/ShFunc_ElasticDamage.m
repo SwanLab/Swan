@@ -119,10 +119,17 @@ classdef ShFunc_ElasticDamage < handle
             obj.d = DomainFunction(s);
         end
 
+        % function rState = getStateR (obj,r,r0,r1)
+        %     rState.rHigherR0 = @(xV) (r(xV) > r0(xV));
+        %     rState.rHigherR1 = @(xV) (r(xV) > r1(xV));
+        % end
+
         function q = computeHardening(obj)
-            
-           q = @(r, r0, r1) (r >= r1) .* (r0 + obj.H * (r1 - r0)) + (r < r1) .* (r0 + obj.H .* (r - r0)); 
-           % q = @(r,r0,r1) r0 + obj.H *(r-r0);
+           qInf = @(r, r0, r1) (r0 + obj.H * (r1 - r0));
+           qLoading =  @(r, r0, r1) (r0 + obj.H .* (r - r0));
+
+           q = @(r, r0, r1) (r >= r1) .* qInf(r,r0,r1) + (r < r1) .* qLoading(r,r0,r1); 
+
         end 
         
         function sec = computeDerivativeResidualSecant(obj)
@@ -144,27 +151,29 @@ classdef ShFunc_ElasticDamage < handle
         function tan = computeDerivativeResidualTangent(obj,u,isLoading)    
             Csec = obj.material.obtainTensor(obj.d);
             if (isLoading) %implementar al computer, entrem un isloading
-             
                 C = obj.material.obtainNonDamagedTensor();
                 epsi = SymGrad(u);
-
                 sigBar = DDP(epsi,C);
                 q = obj.computeHardening();
 
                 r = @(xV) obj.r.evaluate(xV);
                 r0 = @(xV) obj.r0.evaluate(xV);
-                r1 = @(xV) obj.r1.evaluate(xV);
-                
-                conditionR0 = @(xV) (r(xV) ~= obj.r0.evaluate(xV));%1
-                conditionR1 = @(xV) (r(xV) <= r1(xV)); %1
+                r1 = @(xV) obj.r1.evaluate(xV);  
 
-                op = @(xV)(q(r(xV),r0(xV),r1(xV))-obj.H*r(xV))./(r(xV).^3);
+                rHigherR0 = @(xV) (r(xV) > r0(xV));
+                rHigherR1 = @(xV) (r(xV) > r1(xV));
+
+                % rState = @(xV) getStateR (r(xV),r0(xV),r1(xV));
                 
-                opR1 = @(xV) conditionR1(xV).*op(xV) + ~conditionR1(xV).*(q(r(xV),r0(xV),r1(xV)))./(r(xV).^3);
-               
-                opR0 = @(xV) opR1(xV).*conditionR0(xV);
+                d_dotLoading = @(xV)(q(r(xV),r0(xV),r1(xV))-obj.H*r(xV))./(r(xV).^3);
+                d_dotQInf = @(xV) (q(r(xV),r0(xV),r1(xV)))./(r(xV).^3);
                 
-                d_dot = DomainFunction.create(opR0,obj.mesh);
+                checkDamageLimit = @(xV) rHigherR1(xV).*d_dotQInf(xV);
+                checkLoading = @(xV) d_dotLoading(xV).*(rHigherR0(xV).*~rHigherR1(xV));
+
+                op = @(xV)  checkDamageLimit(xV) + checkLoading(xV);
+
+                d_dot = DomainFunction.create(op,obj.mesh);
                 Ctan2 = Expand(d_dot).*OP(sigBar,sigBar);
     
                 op = @(xV) Csec.evaluate(xV) - Ctan2.evaluate(xV);
