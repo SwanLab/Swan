@@ -34,7 +34,7 @@ classdef Tutorial02p2FEMElasticityMicro < handle
 
         function ls = computeCircleLevelSet(obj, mesh)
             gPar.type          = 'Circle';
-            gPar.radius        = 0.25;
+            gPar.radius        = 0.0;
             gPar.xCoorCenter   = 0.5;
             gPar.yCoorCenter   = 0.5;
             g                  = GeometricalFunction(gPar);
