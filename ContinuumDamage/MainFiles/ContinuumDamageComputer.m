@@ -35,23 +35,22 @@ classdef ContinuumDamageComputer < handle
         function data = compute(obj)
             uFun = LagrangianFunction.create(obj.mesh,2,'P1');
             obj.elasticity.setTestFunctions(uFun);
-            LoadingBcLenght = obj.boundaryConditions.LoadingBcLength;
+            data = {};
+
             for i = 1:obj.boundaryConditions.valueSetLenght
                 fprintf('Step: %d ',i);fprintf('/ %d \n',obj.boundaryConditions.valueSetLenght);
                 bc = obj.updateBoundaryConditions(i);
                 uFun.setFValues(obj.updateInitialDisplacement(bc,uFun));
+                isLoading = obj.loadState(i);
+                resErr = 1; iter = 0;Error = [];
 
-                resErr = 1; iter = 0;
-                Error = [];
                 while (resErr >= obj.tolerance && iter < obj.limIter)
                     obj.elasticity.computeDamageEvolutionParam(uFun);
                     [res]  = obj.elasticity.computeResidual(uFun,bc);
-                    [K,resDeriv] = obj.elasticity.computeDerivativeResidual(uFun,bc,LoadingBcLenght,i);
+                    [K,resDeriv] = obj.elasticity.computeDerivativeResidual(uFun,bc,isLoading);
                     [uVal,uVec] = obj.computeDisplacement(resDeriv,res,uFun,bc);
                     uFun.setFValues(uVal);
                     
-                    
-
                     resErr = norm(res);
                     fprintf('Error: %d \n',resErr);
                     iter = iter+1;
@@ -60,29 +59,15 @@ classdef ContinuumDamageComputer < handle
                 if (iter >= obj.limIter)
                     fprintf (2,'NOT CONVERGED FOR STEP %d\n',i);
                 end
-                obj.elasticity.setROld();         
-
-                data.displacement.value(i)  = obj.boundaryConditions.bcValueSet(i);
-                dmgDomainFun = obj.elasticity.getDamage();
-                dmgFun = dmgDomainFun.project('P1D');
-                data.damage.maxValue(i)  = max(dmgFun.fValues);
-                data.damage.minValue(i)  = min(dmgFun.fValues);
-               
-                rDomainFun = obj.elasticity.getR();
-                rFun = rDomainFun.project('P1D');
-                data.r.maxValue(i) = max(rFun.fValues);
-                data.r.minValue(i) = min(rFun.fValues);
+                obj.elasticity.setROld(); 
+                [data,dmgFun,rFun,qFun] = obj.getData (data,i,K,uVec,uFun,bc);
                 
-                qDomainFun = obj.elasticity.getQ();
-                qFun = qDomainFun.project('P1D');
-                data.q.maxValue(i) = max(qFun.fValues);
-                data.q.minValue(i) = min(qFun.fValues);
-                
-                data.reaction(i)  = obj.computeTotalReaction(K,uVec);
-                [data.totalEnergy(i),data.damagedMaterial(i)] = obj.elasticity.computeEnergy(uFun,bc);
             end
             data.displacement.field = uFun;
             data.damage.field = dmgFun;
+            data.r.field = rFun;
+            data.q.field = qFun;
+
         end
     end
 
@@ -157,6 +142,35 @@ classdef ContinuumDamageComputer < handle
         function xNew = updateWithNewton(~,LHS,RHS,x)
             deltaX = -LHS\RHS; 
             xNew = x + deltaX;
+        end
+
+        function isLoading = loadState (obj,i)
+           isLoading = obj.boundaryConditions.LoadingBcLength <= i;
+        end
+        
+        function [data,dmgFun,rFun,qFun] = getData (obj,data,i,K,uVec,uFun,bc)
+            
+
+            data.displacement.value(i)  = obj.boundaryConditions.bcValueSet(i);
+            dmgDomainFun = obj.elasticity.getDamage();
+            dmgFun = dmgDomainFun.project('P1D');
+            data.damage.maxValue(i)  = max(dmgFun.fValues);
+            data.damage.minValue(i)  = min(dmgFun.fValues);
+           
+            rDomainFun = obj.elasticity.getR();
+            rFun = rDomainFun.project('P1D');
+            data.r.maxValue(i) = max(rFun.fValues);
+            data.r.minValue(i) = min(rFun.fValues);
+            
+            qDomainFun = obj.elasticity.getQ();
+            qFun = qDomainFun.project('P1D');
+            data.q.maxValue(i) = max(qFun.fValues);
+            data.q.minValue(i) = min(qFun.fValues);
+            
+            data.reaction(i)  = obj.computeTotalReaction(K,uVec);
+            [data.totalEnergy(i),data.damagedMaterial(i)] = obj.elasticity.computeEnergy(uFun,bc);
+            
+            
         end
 
         function totReact = computeTotalReaction(obj,LHS,u)

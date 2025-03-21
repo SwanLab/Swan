@@ -49,10 +49,10 @@ classdef ShFunc_ElasticDamage < handle
             res = obj.RHS.compute(stress,obj.test);            
         end
         
-        function [K,Ksec] = computeDerivativeResidual(obj,u,control,index)
+        function [K,Ksec] = computeDerivativeResidual(obj,u,isLoading)
             obj.computeDamage();
             Ksec = obj.computeDerivativeResidualSecant();
-            Ktan = obj.computeDerivativeResidualTangent(u,control,index);
+            Ktan = obj.computeDerivativeResidualTangent(u,isLoading);
             K = Ktan;
         end  
        
@@ -141,9 +141,9 @@ classdef ShFunc_ElasticDamage < handle
             LHS = LHSIntegrator.create(s);
         end
 
-        function tan = computeDerivativeResidualTangent(obj,u,control,index)    
+        function tan = computeDerivativeResidualTangent(obj,u,isLoading)    
             Csec = obj.material.obtainTensor(obj.d);
-            if (index<control) %implementar al computer, entrem un isloading
+            if (isLoading) %implementar al computer, entrem un isloading
              
                 C = obj.material.obtainNonDamagedTensor();
                 epsi = SymGrad(u);
