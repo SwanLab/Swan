@@ -45,7 +45,7 @@ classdef ContinuumDamageComputer < handle
                 resErr = 1; iter = 0;
 
                 while (resErr >= obj.tolerance && iter < obj.limIter)    
-                    [res,~,K,~,uVec,uFun] = obj.solveU (obj,uFun,bc,isLoading);  
+                    [res,~,K,~,uVec,uFun] = obj.solveU (uFun,bc,isLoading);  
 
                     resErr = norm(res);
                     fprintf('Error: %d \n',resErr);
