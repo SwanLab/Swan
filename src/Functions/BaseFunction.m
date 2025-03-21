@@ -76,6 +76,7 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
         end
 
         function r = times(a,b)
+            a = Expand(a,b); b = Expand(b,a);
             aOp = BaseFunction.computeOperation(a);
             bOp = BaseFunction.computeOperation(b);
             ndimfA = BaseFunction.computeFieldDimension(a);
