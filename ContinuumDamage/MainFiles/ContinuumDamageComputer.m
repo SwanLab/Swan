@@ -141,7 +141,7 @@ classdef ContinuumDamageComputer < handle
         end
 
         function isLoading = loadState (obj,i)
-           isLoading = obj.boundaryConditions.LoadingBcLength <= i;
+           isLoading = i <= obj.boundaryConditions.LoadingBcLength ;
         end
         
         function [data,dmgFun,rFun,qFun] = getData (obj,data,i,K,uVec,uFun,bc)
