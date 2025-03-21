@@ -1,3 +1,4 @@
+clc,clear,close all
 matType{1} = load('CircleMicroDamageArea.mat');
 matType{2} = load('CircleMicroDamagePerimeter.mat');
 matType{3} = load('SquareMicroDamageArea.mat');
@@ -12,20 +13,74 @@ matType{6}.mat = matType{6}.mat*210;
 matType{6}.phi = matType{6}.holeParam{1}.^3;
 
 %% Polynomial fraction fitting
-close all
 x = matType{6}.phi;
 y = squeeze(matType{6}.mat(3,3,:));
-p0 = [1 1 1 1 1 1 1 1];
-yp = @(p) (p(1).*x.^3 + p(2).*x.^2 + p(3).*x + p(4))/(p(5).*x.^3 + p(6).*x.^2 + p(7).*x + p(8));
 
-objective = @(p) sum(((yp(p)-y)./y).^2);
-popt = fmincon(objective,p0);
+num = @(p) (  p(21).*x.^10 + p(19).*x.^9 + p(17).*x.^8 + p(15).*x.^7 + p(13).*x.^6 ...
+            + p(11).*x.^5 + p(9).*x.^4 + p(7).*x.^3 + p(5).*x.^2 ...
+            + p(3).*x.^1 + p(1));
+den = @(p) (  p(22).*x.^10 + p(20).*x.^9 + p(18).*x.^8 + p(16).*x.^7 + p(14).*x.^6 ...
+            + p(12).*x.^5 + p(10).*x.^4 + p(8).*x.^3 + p(6).*x.^2 ...
+            + p(4).*x.^1 + p(2));
+yp = @(p) num(p)./den(p) + p(23);
+
+
+objective = @(p) sum(sqrt(((yp(p)'-y)./y).^2));
+options = optimoptions(@fminunc,'StepTolerance',1e-10,'OptimalityTolerance',1e-10,...
+                        'maxFunctionEvaluations',5e3,'MaxFunctionEvaluations',10000);
+
+objResCon = 100;
+for i=1:1000
+p0 = rand(1,23);
+[popt,fval,exitflag,output,grad,hessian] = fminunc(objective,p0,options);
+if fval<objResCon
+    objResCon = fval;
+    pResCon = popt;
+end
+end
 
 disp("Initial objective: " + num2str(objective(p0)));
-disp("Final objective: " + num2str(objective(p0)));
+disp("Final objective: " + num2str(objective(pResCon)));
 plot(x,y,'ro')
 hold on
-plot(x,yp(popt),'gs')
+plot(x,yp(pResCon),'gs')
+legend('measured','optimal')
+
+%% Polynomial fraction fitting constrained
+x = matType{6}.phi;
+y = squeeze(matType{6}.mat(3,3,:));
+
+num = @(p) (  p(21).*x.^10 + p(19).*x.^9 + p(17).*x.^8 + p(15).*x.^7 + p(13).*x.^6 ...
+            + p(11).*x.^5 + p(9).*x.^4 + p(7).*x.^3 + p(5).*x.^2 ...
+            + p(3).*x.^1 + p(1));
+den = @(p) (  p(22).*x.^10 + p(20).*x.^9 + p(18).*x.^8 + p(16).*x.^7 + p(14).*x.^6 ...
+            + p(12).*x.^5 + p(10).*x.^4 + p(8).*x.^3 + p(6).*x.^2 ...
+            + p(4).*x.^1 + p(2));
+yp = @(p) num(p)./den(p) + p(23);
+
+A = []; b = []; Aeq = []; beq = []; lb = []; ub = [];
+nonlcon = @nonLinearCon;
+
+
+objective = @(p) sum(sqrt(((yp(p)'-y)./y).^2));
+options = optimoptions(@fmincon,'StepTolerance',1e-10,'OptimalityTolerance',1e-10,...
+                        'MaxFunctionEvaluations',10000);
+
+objResCon = 100;
+for i=1:1000
+    p0 = rand(1,23);
+    [popt,fval,exitflag,output,lambda,grad,hessian] = fmincon(objective,popt,A,b,Aeq,beq,lb,ub,nonlcon,options);
+    if fval<objResCon
+        objResCon = fval;
+        pResCon = popt;
+    end
+end
+
+disp("Initial objective: " + num2str(objective(p0)));
+disp("Final objective: " + num2str(objective(pResCon)));
+plot(x,y,'ro')
+hold on
+plot(x,yp(pResCon),'-')
 legend('measured','optimal')
 
 %% Include pints
@@ -79,6 +134,10 @@ legend('measured','optimal')
  %% Run Plots
  Finalplots;
 
-
-
+ function [c,ceq] = nonLinearCon(p,y)
+c = [];
+ceq(1) = p(1)/p(2)+ p(23) - 80.769230769231030;
+ceq(2) = (p(1)+p(3)+p(5)+p(7)+p(9)+p(11)+p(13)+p(15)+p(17)+p(19)+p(21))/...
+         (p(2)+p(4)+p(6)+p(8)+p(10)+p(12)+p(14)+p(16)+p(18)+p(20)+p(22)) + p(23);
+end
 
