@@ -13,7 +13,7 @@ matType{6}.mat = matType{6}.mat*210;
 matType{6}.phi = matType{6}.holeParam{1}.^3;
 
 %% Polynomial fraction fitting
-x = matType{6}.phi;
+x = matType{6}.holeParam{1};
 y = squeeze(matType{6}.mat(3,3,:));
 
 num = @(p) (  p(21).*x.^10 + p(19).*x.^9 + p(17).*x.^8 + p(15).*x.^7 + p(13).*x.^6 ...
@@ -29,21 +29,30 @@ objective = @(p) sum(sqrt(((yp(p)'-y)./y).^2));
 options = optimoptions(@fminunc,'StepTolerance',1e-10,'OptimalityTolerance',1e-10,...
                         'maxFunctionEvaluations',5e3,'MaxFunctionEvaluations',10000);
 
-objResCon = 100;
+objResUnc = 100;
 for i=1:1000
 p0 = rand(1,23);
 [popt,fval,exitflag,output,grad,hessian] = fminunc(objective,p0,options);
-if fval<objResCon
-    objResCon = fval;
-    pResCon = popt;
+if fval<objResUnc
+    objResUnc = fval;
+    pResUnc = popt;
 end
 end
 
+p = pResUnc;
+num = @(x) (  p(21).*x.^10 + p(19).*x.^9 + p(17).*x.^8 + p(15).*x.^7 + p(13).*x.^6 ...
+            + p(11).*x.^5 + p(9).*x.^4 + p(7).*x.^3 + p(5).*x.^2 ...
+            + p(3).*x.^1 + p(1));
+den = @(x) (  p(22).*x.^10 + p(20).*x.^9 + p(18).*x.^8 + p(16).*x.^7 + p(14).*x.^6 ...
+            + p(12).*x.^5 + p(10).*x.^4 + p(8).*x.^3 + p(6).*x.^2 ...
+            + p(4).*x.^1 + p(2));
+yp = @(x) num(x)./den(x) + p(23);
+
 disp("Initial objective: " + num2str(objective(p0)));
-disp("Final objective: " + num2str(objective(pResCon)));
+disp("Final objective: " + num2str(objective(pResUnc)));
 plot(x,y,'ro')
 hold on
-plot(x,yp(pResCon),'gs')
+fplot(yp,[0 1],'-')
 legend('measured','optimal')
 
 %% Polynomial fraction fitting constrained
@@ -56,19 +65,19 @@ num = @(p) (  p(21).*x.^10 + p(19).*x.^9 + p(17).*x.^8 + p(15).*x.^7 + p(13).*x.
 den = @(p) (  p(22).*x.^10 + p(20).*x.^9 + p(18).*x.^8 + p(16).*x.^7 + p(14).*x.^6 ...
             + p(12).*x.^5 + p(10).*x.^4 + p(8).*x.^3 + p(6).*x.^2 ...
             + p(4).*x.^1 + p(2));
-yp = @(p) num(p)./den(p) + p(23);
+yp = @(p) num(p)./den(p);
 
 A = []; b = []; Aeq = []; beq = []; lb = []; ub = [];
-nonlcon = @nonLinearCon;
-
+nonlcon = @(p) nonLinearCon(p,y);
 
 objective = @(p) sum(sqrt(((yp(p)'-y)./y).^2));
 options = optimoptions(@fmincon,'StepTolerance',1e-10,'OptimalityTolerance',1e-10,...
-                        'MaxFunctionEvaluations',10000);
+                        'ConstraintTolerance',1e-10,'MaxFunctionEvaluations',10000);
 
 objResCon = 100;
 for i=1:1000
-    p0 = rand(1,23);
+    i
+    p0 = rand(1,22);
     [popt,fval,exitflag,output,lambda,grad,hessian] = fmincon(objective,popt,A,b,Aeq,beq,lb,ub,nonlcon,options);
     if fval<objResCon
         objResCon = fval;
@@ -76,14 +85,23 @@ for i=1:1000
     end
 end
 
+p = pResCon;
+num = @(x) (  p(21).*x.^10 + p(19).*x.^9 + p(17).*x.^8 + p(15).*x.^7 + p(13).*x.^6 ...
+            + p(11).*x.^5 + p(9).*x.^4 + p(7).*x.^3 + p(5).*x.^2 ...
+            + p(3).*x.^1 + p(1));
+den = @(x) (  p(22).*x.^10 + p(20).*x.^9 + p(18).*x.^8 + p(16).*x.^7 + p(14).*x.^6 ...
+            + p(12).*x.^5 + p(10).*x.^4 + p(8).*x.^3 + p(6).*x.^2 ...
+            + p(4).*x.^1 + p(2));
+yp = @(x) num(x)./den(x);
+
 disp("Initial objective: " + num2str(objective(p0)));
 disp("Final objective: " + num2str(objective(pResCon)));
 plot(x,y,'ro')
 hold on
-plot(x,yp(pResCon),'-')
+fplot(yp,[0 1],'-')
 legend('measured','optimal')
 
-%% Include pints
+%% Include points
 % %% Include final points
 % matType{6}.mat(:,:,end+1) = [matType{6}.mat(1,1,end), 0 , 0;
 %                                         0           , 0 , 0;
@@ -134,10 +152,11 @@ legend('measured','optimal')
  %% Run Plots
  Finalplots;
 
- function [c,ceq] = nonLinearCon(p,y)
+
+function [c,ceq] = nonLinearCon(p,y)
 c = [];
-ceq(1) = p(1)/p(2)+ p(23) - 80.769230769231030;
+ceq(1) = p(1)/p(2) - y(1);
 ceq(2) = (p(1)+p(3)+p(5)+p(7)+p(9)+p(11)+p(13)+p(15)+p(17)+p(19)+p(21))/...
-         (p(2)+p(4)+p(6)+p(8)+p(10)+p(12)+p(14)+p(16)+p(18)+p(20)+p(22)) + p(23);
+         (p(2)+p(4)+p(6)+p(8)+p(10)+p(12)+p(14)+p(16)+p(18)+p(20)+p(22));
 end
 
