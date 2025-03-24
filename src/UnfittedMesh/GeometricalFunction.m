@@ -14,7 +14,7 @@ classdef GeometricalFunction < handle
             s.ndimf   = 1;
             s.mesh    = m;
             aFun      = AnalyticalFunction(s);
-            % ls        = aFun.project('P1');
+            %ls        = aFun.project('P1');
 
             sF.trial = LagrangianFunction.create(m,1,'P1');
             sF.mesh = m;
@@ -242,10 +242,10 @@ classdef GeometricalFunction < handle
             yNaca    = offsetX.*sin(AoA) + offsetY.*cos(AoA);
         
             yc   = (xNaca>=0 & xNaca<=p).*(m./p^2.*(2*p*xNaca-xNaca.^2))+...
-                    (xNaca>p & xNaca<=0.95).*(m./(1-p)^2.*((1-2*p)+2*p*xNaca-xNaca.^2));
-            yt   = (xNaca>=0 & xNaca<=0.95).*(5*t*(0.2969*sqrt(xNaca)-0.1260*xNaca-0.3516*xNaca.^2+0.2843*xNaca.^3-0.1036*xNaca.^4));
+                    (xNaca>p & xNaca<=1).*(m./(1-p)^2.*((1-2*p)+2*p*xNaca-xNaca.^2));
+            yt   = (xNaca>=0 & xNaca<=1).*(5*t*(0.2969*sqrt(xNaca)-0.1260*xNaca-0.3516*xNaca.^2+0.2843*xNaca.^3-0.1036*xNaca.^4));
             dydx = (xNaca>=0 & xNaca<=p).*(2*m/p^2.*(p-xNaca))+...
-                    (xNaca>p & xNaca<=0.95).*(2*m/(1-p)^2.*(p-xNaca));
+                    (xNaca>p & xNaca<=1).*(2*m/(1-p)^2.*(p-xNaca));
         
             theta = atan(dydx);
             yu    = yc + yt.*cos(theta);
@@ -253,7 +253,7 @@ classdef GeometricalFunction < handle
             
             f(:,:,:,1)   = yl - yNaca;
             f(:,:,:,2)   = yNaca - yu;
-            f(:,:,:,3)   = xNaca - 1; 
+            f(:,:,:,3)   = xNaca - 0.961; 
             f(:,:,:,4)   = -xNaca;
             
             fV = -max(f,[],4);       

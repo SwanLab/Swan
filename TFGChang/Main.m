@@ -1,9 +1,9 @@
 %% Test for TestNaca
 Naca.length = 8;
 Naca.height = 4;
-Naca.nx     = 700;
-Naca.M      = 0.0;
-Naca.p      = 0.4;
+Naca.nx     = 600;
+Naca.M      = 0.01;
+Naca.p      = 0.6;
 Naca.t      = 0.12;
 Naca.chord  = 1;
 Naca.AoA    = 0;
@@ -11,19 +11,19 @@ Naca.AoA    = 0;
 NacaClass = TestNaca(Naca);
 NacaClass.compute();
 %NacaClass.validate();
-NacaClass.print();
+%NacaClass.print();
 
 %% Control Parameters.
 
 Naca.length = 8;
 Naca.height = 4;
-Naca.nx     = 700;
-m     = 0.0:0.01:0.09;
+Naca.nx     = 600;
+m     = 0.00:0.01:0.09;
 p     = 0.2:0.1:0.8;
 % m     = 0:0.005:0.09;
 % p     = 0.2:0.05:0.8;
-t     = 0.1:0.05:0.4; % A partir de 0.1
-alpha = 0:1:30;
+t     = 0.1:0.05:0.4;
+alpha = -15:1:15;
 
 %% Code to compute Efficiency dataset
 
@@ -54,7 +54,7 @@ alpha = 0:1:30;
 
 %% Plot efficiency vs p and m
 
-data = load('EPerAoA0_NACA2412.txt');
+data = load('E_AOA0_nx600_PF.txt');
 
 E = data(:, end);
 E = reshape(E, length(p), [])';
@@ -70,11 +70,13 @@ title('L/D ratio versus Max Camber (m) and Max Camber Position (p)');
 axis tight; 
 colorbar;           
 caxis([-0.08, 0.08]); 
+hold on;
+mesh(M, P, E, 'FaceColor', 'none', 'EdgeColor', 'k', 'LineWidth', 0.5); % Cuadrícula negra
 
 %% Plot efficiency vs p and m
 
-dataWPF = load('EPerAoA0WPF.txt');
-data    = load('EPerAoA0.txt');
+dataWPF = load('E_AOA0_nx600_PF.txt');
+data    = load('E_AOA0_nx600_PNF.txt');
 
 E = data(:, end);
 E = reshape(E, length(p), [])';
@@ -82,10 +84,11 @@ E = reshape(E, length(p), [])';
 EWPF = dataWPF(:, end);
 EWPF = reshape(EWPF, length(p), [])';
 
-ReError = abs(EWPF - E) / E;
+ReError = abs(EWPF - E) ./ E;
 
 [P,M] = meshgrid(p,m);
 
+figure;
 surface(M,P,ReError);
 shading interp;               
 xlabel('Max Camber (m)');          
@@ -93,7 +96,7 @@ ylabel('Max Camber Position (p)');
 title('Relative Error of the L/D Ratio with and without a Pressure Filter as a Function of Maximum Camber (m) and Maximum Camber Position (p).');
 axis tight; 
 colorbar;           
-caxis([-0.08, 0.08]); 
+%caxis([-0.08, 0.08]); 
 
 
 %% Code to compute L,D vs alpha dataset

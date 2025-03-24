@@ -44,7 +44,7 @@ classdef TestNaca < handle
     methods (Access = public)
         
         function obj = TestNaca(cParams)
-            %close all;
+            close all;
             obj.init(cParams);    
             obj.createReferenceMesh();
             [AirfoilParams, BGParams] = obj.setParams();
@@ -55,9 +55,9 @@ classdef TestNaca < handle
             %obj.createLevelSetL(AirfoilParams, BGParams);
             %obj.createFluidMesh2L();
 
-            % obj.plotMesh();
+            obj.plotMesh();
             %obj.createFluidMeshGoodConditioning(AirfoilParams, BGParams));
-            obj.createMaterial();
+           obj.createMaterial();
             obj.createTrialFunction();
             obj.defineBoundaryConditions();
             obj.defineAppliedForces();
@@ -270,7 +270,7 @@ classdef TestNaca < handle
             SolverResults.compute();
             obj.velocityFun    = SolverResults.velocityFun;
             obj.pressureFun    = SolverResults.pressureFun;
-            obj.pressureFun    = obj.filter.compute(obj.pressureFun,3); % Comment this line to remove filter
+            %obj.pressureFun    = obj.filter.compute(obj.pressureFun,3); % Comment this line to remove filter
         end
 
         function plotResults(obj)     

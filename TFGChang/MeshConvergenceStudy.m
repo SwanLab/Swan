@@ -3,13 +3,13 @@
 Naca.length = 8;
 Naca.height = 4;
 
-Naca.M      = 0.04;
+Naca.M      = 0.02;
 Naca.p      = 0.4;
 Naca.t      = 0.12;
 Naca.chord  = 1;
 Naca.AoA    = 0;
 
-nx = 50:50:800;
+nx = 50:50:600;
 E  = zeros(size(nx));
 
 for i = 1:length(nx)
