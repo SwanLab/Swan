@@ -1,4 +1,4 @@
-classdef LevelSetInclusionAuto_raul < handle
+classdef LevelSetInclusionAuto_Ausetic < handle
     
     properties (Access = public)
         stiffness
@@ -17,6 +17,7 @@ classdef LevelSetInclusionAuto_raul < handle
         forces
         uFun
         strainFun
+        RmeshFilename
         
     end
 
@@ -32,8 +33,8 @@ classdef LevelSetInclusionAuto_raul < handle
 
     methods (Access = public)
 
-        function [obj, u, L] = LevelSetInclusionAuto_raul(r, i)
-            obj.init(r, i)
+        function [obj, u, L] = LevelSetInclusionAuto_Ausetic()
+            obj.init();
             obj.createMesh();
             
             %% New ugly chunk of code warning
@@ -55,22 +56,31 @@ classdef LevelSetInclusionAuto_raul < handle
 
     methods (Access = private)
 
-        function init(obj, r, i)
+        function init(obj)
             % close all;
             % clc;
-            obj.radius = r;
-            obj.nodeDirection = i;
+            obj.RmeshFilename = "DEF_Q4auxL_1.mat";
         end
 
         function createMesh(obj)
-            bgMesh   = obj.createReferenceMesh();
-            lvSet    = obj.createLevelSetFunction(bgMesh);
-            uMesh    = obj.computeUnfittedMesh(bgMesh,lvSet);
-            obj.mesh = uMesh.createInnerMesh();
+            % bgMesh   = obj.createReferenceMesh();
+            % lvSet    = obj.createLevelSetFunction(bgMesh);
+            % uMesh    = obj.computeUnfittedMesh(bgMesh,lvSet);
+            % obj.mesh = uMesh.createInnerMesh();
             % obj.mesh = bgMesh;
+            obj.mesh = obj.loadAuseticMesh();
 
             obj.boundaryMesh = obj.mesh.createBoundaryMesh();
             [obj.boundaryMeshJoined, obj.localGlobalConnecBd] = obj.mesh.createSingleBoundaryMesh();
+        end
+
+        function mesh = loadAuseticMesh(obj)
+            Data = load(obj.RmeshFilename);
+            s.coord  = Data.EIFEoper.MESH.COOR;
+            s.connec = Data.EIFEoper.MESH.CN;
+
+            mesh = Mesh.create(s);
+
         end
 
         function mesh = createReferenceMesh(~)
@@ -138,7 +148,7 @@ classdef LevelSetInclusionAuto_raul < handle
         function bc = createBoundaryConditions(obj)
 
             v                    = zeros(8,1);
-            v(obj.nodeDirection) = 1;
+            v(1) = 1;
             nRes                 = [1 1 2 2 3 3 4 4]*v;
             assignMatrix         = [2 1 0 0 0 0 0 0
                                     0 0 2 1 0 0 0 0
@@ -241,8 +251,8 @@ classdef LevelSetInclusionAuto_raul < handle
             obj.createSolverHere(s)
             obj.computeStiffnessMatrixHere();
             obj.computeForcesHere(s);
-             c = obj.computeCmat();
-             rdir = obj.RHSweak(c);
+             c = obj.computeCmatP1();
+             rdir = obj.RHSdir();
             [u, L]  = obj.computeDisplacementHere(c, rdir);
 
             if isa(obj.dLambda, "LagrangianFunction")

@@ -160,8 +160,8 @@ classdef CoarseTesting < handle
 
         function levelSet = createLevelSetFunction(obj,bgMesh)
             sLS.type        = 'CircleInclusion';
-            sLS.xCoorCenter = 0.0;
-            sLS.yCoorCenter = 0.0;
+            sLS.xCoorCenter = 0;
+            sLS.yCoorCenter = 0;
             sLS.radius      = 0.1;
             g               = GeometricalFunction(sLS);
             lsFun           = g.computeLevelSetFunction(bgMesh);

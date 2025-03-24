@@ -10,10 +10,10 @@ for j = 1:size(r,2)
     L = [];
     
     %for i = 1:8
-        [~, u, l] = LevelSetInclusionAuto_raul(r(j), 1);
+        [~, u, l] = LevelSetInclusionAuto_Ausetic();
         U         = cat(2, U, u);
         L         = cat(2, L, l);
     %end
-    string = strrep("UL_r"+r(j), ".", "_")+"-20x20Weak"+".mat";
+    string = "UL"+"-Ausetic"+".mat";
     save(string, "U", "L");
 end

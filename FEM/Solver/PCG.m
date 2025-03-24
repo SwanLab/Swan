@@ -28,7 +28,7 @@ classdef PCG < handle
                 Ap = A(p);
                 alpha = rzold / (p' * Ap);
                 x = x + alpha * p;
-                EIFEMtesting.plotSolution(x,mesh,15,1,iter,bcApplier,0)
+                %EIFEMtesting.plotSolution(x,mesh,15,1,iter,bcApplier,0)
                 r = r - alpha * Ap;
                 z = P(r);
                 rznew = r' * z;

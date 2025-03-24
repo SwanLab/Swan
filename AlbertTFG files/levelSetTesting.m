@@ -25,33 +25,15 @@ classdef levelSetTesting < handle
             mRcoarse = obj.createReferenceCoarseMesh(mR);
             u = obj.createCoarseElasticProblem(mRcoarse);
             u = u(:);
-            EIFEMtesting.plotSolution(u, discMesh, 20, 1, 0, [], 0)
-            %ufun = LagrangianFunction.create(mSb{1}, obj.mesh.ndim,'P1');
+            CoarsePlotSolution(u, discMesh, [], "r0_1 Fine test")
+            %EIFEMtesting.plotSolution(u, discMesh, 20, 1, 0, [], 0)
             
-            %u2 = reshape(u(:,1)', 2, [])';
-
-
-
-            %ufun.fValues = u2;
-
-            %ufun.plot
-
-            bS  = mR.createBoundaryMesh();
-            
-            obj.meshDomain = mD;
-
-            [bC,dir] = obj.createBoundaryConditions(obj.meshDomain);
-            obj.boundaryConditions = bC;
-            obj.createBCapplier()
-
-            [LHS,RHS,LHSf] = obj.createElasticProblem();
-            obj.LHS = LHSf;
 
         end
 
         function init(obj)
             obj.nSubdomains  = [2 1]; %nx ny
-            obj.fileNameEIFEM = "UL_r0_1-P1";
+            obj.fileNameEIFEM = "UL_r0_1-20x20";
             obj.tolSameNode = 1e-14;
             data = load(obj.fileNameEIFEM);
             obj.Kel = data.L;
@@ -64,8 +46,8 @@ classdef levelSetTesting < handle
 
         function mS = createStructuredMesh(obj)
              %UnitMesh better
-            x1       = linspace(-1,1,50);
-            x2       = linspace(-1,1,50);
+            x1       = linspace(-1,1,20);
+            x2       = linspace(-1,1,20);
             [xv,yv]  = meshgrid(x1,x2);
             [F,V]    = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -161,7 +143,7 @@ classdef levelSetTesting < handle
         function [LHSr,RHSr,lhs] = createElasticProblem(obj)
             u = LagrangianFunction.create(obj.meshDomain,obj.meshDomain.ndim,'P1');
             material = obj.createMaterial(obj.meshDomain);
-            [lhs,LHSr] = obj.computeStiffnessMatrix(obj.meshDomain,u,material);
+            [lhs,LHSr] = obj.computeStiffnessMatrix();
             RHSr       = obj.computeForces(lhs,u);
         end
 
@@ -247,27 +229,8 @@ classdef levelSetTesting < handle
             bS                 = mRcoarse.createBoundaryMesh();
             [mD,mSb,iC,lG,iCR, discMesh] = obj.createMeshDomain(mRcoarse);
             obj.mesh           = mD;
-            % 
-            % Kel = [];
-            % for i = 1:size(mSb,2)
-            %     obj.meshDomain = mSb{i};
-            %     [bC] = obj.createBoundaryConditions(obj.meshDomain);
-            %     obj.boundaryConditions = bC;
-            %     obj.createBCapplier();
-            %     [lhs,~, ~] = obj.coarseElasticProblem();
-            %     lhs = full(lhs);
-            %     Kel = cat(3, Kel, lhs);
-            % end
-            % 
-            % obj.meshDomain = mD;
-            % [bC, dir] = obj.createBoundaryConditions(obj.meshDomain);
-            % obj.boundaryConditions = bC;
-            % obj.createBCapplier()
-            % [lhs,RHSr,LHSr] = obj.coarseElasticProblem();
+            
 
-            % s.mesh          = mR;
-            % s.DirCond       = dir;
-            % s.nSubdomains = obj.nSubdomains;
             dispFun                = LagrangianFunction.create(obj.mesh, obj.mesh.ndim,'P1');
             obj.boundaryConditions = createCoarseBoundaryConditions(obj);
             obj.createBCapplier();
@@ -279,8 +242,8 @@ classdef levelSetTesting < handle
             
             uRed = LHSr\RHS;
             uCoarse = obj.bcApplier.reducedToFullVectorDirichlet(uRed);
-            
-             EIFEMtesting.plotSolution(uCoarse, mD, 1, 2, 0, [], 0)
+            CoarsePlotSolution(uCoarse, mD, [], "r0_1 Coarse test")
+            %EIFEMtesting.plotSolution(uCoarse, mD, 1, 2, 0, [], 0)
 
 
             u = obj.reconstructSolution(uCoarse, dispFun);
