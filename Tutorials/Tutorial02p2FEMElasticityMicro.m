@@ -29,7 +29,8 @@ classdef Tutorial02p2FEMElasticityMicro < handle
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(ls);
             holeMesh = uMesh.createInnerMesh();
-            obj.mesh = holeMesh;
+            %obj.mesh = holeMesh;
+            obj.mesh = fullmesh;
         end
 
         function ls = computeCircleLevelSet(obj, mesh)
