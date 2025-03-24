@@ -10,7 +10,7 @@ matType{6}.mat = matType{6}.mat*210;
 % Change of variable
 %matType{6}.phi  = matType{6}.holeParam{1};
 %matType{6}.phi = matType{6}.holeParam{1}.^2;
-matType{6}.phi = matType{6}.holeParam{1}.^3;
+matType{6}.phi = matType{6}.holeParam{1};
 
 %% Polynomial fraction fitting
 x = matType{6}.holeParam{1};
@@ -56,8 +56,13 @@ fplot(yp,[0 1],'-')
 legend('measured','optimal')
 
 %% Polynomial fraction fitting constrained
+
+tiledlayout(2,2)
+idx = [1 1; 1 2; 2 2; 3 3];
+
+for j=1:length(idx)
 x = matType{6}.phi;
-y = squeeze(matType{6}.mat(3,3,:));
+y = squeeze(matType{6}.mat(idx(j,1),idx(j,2),:));
 
 num = @(p) (  p(21).*x.^10 + p(19).*x.^9 + p(17).*x.^8 + p(15).*x.^7 + p(13).*x.^6 ...
             + p(11).*x.^5 + p(9).*x.^4 + p(7).*x.^3 + p(5).*x.^2 ...
@@ -68,7 +73,12 @@ den = @(p) (  p(22).*x.^10 + p(20).*x.^9 + p(18).*x.^8 + p(16).*x.^7 + p(14).*x.
 yp = @(p) num(p)./den(p);
 
 A = []; b = []; Aeq = []; beq = []; lb = []; ub = [];
-nonlcon = @(p) nonLinearCon(p,y);
+
+if j==1
+    nonlcon = @(p) nonLinearCon11(p,y);
+else
+    nonlcon = @(p) nonLinearCon(p,y);
+end
 
 objective = @(p) sum(sqrt(((yp(p)'-y)./y).^2));
 options = optimoptions(@fmincon,'StepTolerance',1e-10,'OptimalityTolerance',1e-10,...
@@ -78,7 +88,7 @@ objResCon = 100;
 for i=1:1000
     i
     p0 = rand(1,22);
-    [popt,fval,exitflag,output,lambda,grad,hessian] = fmincon(objective,popt,A,b,Aeq,beq,lb,ub,nonlcon,options);
+    [popt,fval,exitflag,output,lambda,grad,hessian] = fmincon(objective,p0,A,b,Aeq,beq,lb,ub,nonlcon,options);
     if fval<objResCon
         objResCon = fval;
         pResCon = popt;
@@ -96,10 +106,19 @@ yp = @(x) num(x)./den(x);
 
 disp("Initial objective: " + num2str(objective(p0)));
 disp("Final objective: " + num2str(objective(pResCon)));
-plot(x,y,'ro')
+
+nexttile
+plot(x,y,'X','LineWidth',1.5)
 hold on
-fplot(yp,[0 1],'-')
-legend('measured','optimal')
+fplot(yp,[0 1],'LineWidth',1.5)
+
+ylabel(char(8450)+"12 [GPa]");
+ylim([0,inf])
+xlabel("Damage "+char(632)+" [-]");
+
+end
+lg =legend('measured','optimal');
+lg.Layout.Tile = 'East';
 
 %% Include points
 % %% Include final points
@@ -160,3 +179,10 @@ ceq(2) = (p(1)+p(3)+p(5)+p(7)+p(9)+p(11)+p(13)+p(15)+p(17)+p(19)+p(21))/...
          (p(2)+p(4)+p(6)+p(8)+p(10)+p(12)+p(14)+p(16)+p(18)+p(20)+p(22));
 end
 
+
+function [c,ceq] = nonLinearCon11(p,y)
+c = [];
+ceq(1) = p(1)/p(2) - y(1);
+ceq(2) = (p(1)+p(3)+p(5)+p(7)+p(9)+p(11)+p(13)+p(15)+p(17)+p(19)+p(21))/...
+         (p(2)+p(4)+p(6)+p(8)+p(10)+p(12)+p(14)+p(16)+p(18)+p(20)+p(22)) - y(end);
+end
