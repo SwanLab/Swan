@@ -1,8 +1,8 @@
 classdef PhaseFieldTests < handle & matlab.unittest.TestCase
 
     properties (TestParameter)
-        singleElementCases = {'Analytical','Homogenized'}
-        % complexCases = {}
+        singleElementCases = {'Analytical','Split','Homogenized'}
+        complexCases = {'SEN'}
         homogenizationCases = {'Square','Hexagon','Ellipse'}
     end
 
@@ -12,24 +12,24 @@ classdef PhaseFieldTests < handle & matlab.unittest.TestCase
             load(filename,'input');
             tester = TestingPhaseField(input);
             outputData = tester.compute();
-            xNew = outputData.damage.maxValue;
+            xNew = outputData.reaction;
             load(filename,'xRef');
             err = norm(xNew-xRef)/norm(xRef);
             tol      = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
         end
 
-        % function testPhaseFieldComplexCases(testCase,complexCases)
-        %     filename = ['testPhaseField',complexCases,'2D'];
-        %     load(filename,'input');
-        %     tester = TestingPhaseField(input);
-        %     outputData = tester.compute();
-        %     xNew = tester.computeTotalEnergy(outputData.energy);
-        %     load(filename,'xRef');
-        %     err = norm(xNew-xRef)/norm(xRef);
-        %     tol      = 1e-6;
-        %     testCase.verifyLessThanOrEqual(err, tol)
-        % end
+        function testPhaseFieldComplexCases(testCase,complexCases)
+            filename = ['testPhaseField',complexCases];
+            load(filename,'input');
+            tester = TestingPhaseField(input);
+            outputData = tester.compute();
+            xNew = outputData.reaction;
+            load(filename,'xRef');
+            err = norm(xNew-xRef)/norm(xRef);
+            tol      = 1e-6;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
         
         function testPhaseFieldHomogenization(testCase,homogenizationCases)
             filename = ['testPhaseFieldHomogenization',homogenizationCases];

@@ -74,6 +74,24 @@ classdef MaterialPhaseFieldAnalytical < Material
     
     %% Energy split mode
     methods (Access = public)
+
+        function mat = getBulkMaterial(obj,u,phi,interpType)
+            mu    = ConstantFunction.create(0,obj.mesh);
+            kappa = obj.getBulkFun(u,phi,interpType);
+            s.shear = mu;
+            s.bulk  = kappa;
+            s.ndim  = obj.mesh.ndim;
+            mat = Isotropic2dElasticMaterial(s);
+        end
+
+        function mat = getShearMaterial(obj,phi,interpType)
+            mu    = obj.getShearFun(phi,interpType);
+            kappa = ConstantFunction.create(0,obj.mesh);
+            s.shear = mu;
+            s.bulk  = kappa;
+            s.ndim  = obj.mesh.ndim;
+            mat = Isotropic2dElasticMaterial(s);
+        end
         
         function kFun = getBulkFun(obj,u,phi,interpType)
             fun = obj.selectDegradationFun(interpType);
@@ -100,23 +118,6 @@ classdef MaterialPhaseFieldAnalytical < Material
             muFun = g.*mu;
         end
 
-        function mat = getBulkMaterial(obj,u,phi,interpType)
-            mu    = ConstantFunction.create(0,obj.mesh);
-            kappa = obj.getBulkFun(u,phi,interpType);
-            s.shear = mu;
-            s.bulk  = kappa;
-            s.ndim  = obj.mesh.ndim;
-            mat = Isotropic2dElasticMaterial(s);
-        end
-
-        function mat = getShearMaterial(obj,phi,interpType)
-            mu    = obj.getShearFun(phi,interpType);
-            kappa = ConstantFunction.create(0,obj.mesh);
-            s.shear = mu;
-            s.bulk  = kappa;
-            s.ndim  = obj.mesh.ndim;
-            mat = Isotropic2dElasticMaterial(s);
-        end
     end
 
     methods (Access = private)
@@ -146,7 +147,5 @@ classdef MaterialPhaseFieldAnalytical < Material
         end
 
     end
-
-
 
 end

@@ -61,13 +61,14 @@ classdef TestingPhaseField < handle
         end
 
         function createPhaseFieldFunctional(obj)
-            s.mesh = obj.mesh;
-            s.material = obj.createMaterialPhaseField();
-            s.dissipation = obj.createDissipationInterpolation();
-            s.l0 = obj.l0;
-            s.quadOrder = 2;
-            s.testSpace.u = obj.initialGuess.u;
+            s.mesh          = obj.mesh;
+            s.material      = obj.createMaterialPhaseField();
+            s.dissipation   = obj.createDissipationInterpolation();
+            s.l0            = obj.l0;
+            s.quadOrder     = 2;
+            s.testSpace.u   = obj.initialGuess.u;
             s.testSpace.phi = obj.initialGuess.phi;
+            s.energySplit   = obj.matInfo.split;
             obj.functional = PhaseFieldFunctional(s);
         end
 

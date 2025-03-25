@@ -67,11 +67,16 @@ classdef PhaseFieldFunctional < handle
         
         function init(obj,cParams)
             obj.quadOrder = cParams.quadOrder;
-            obj.functionals.energy         = InternalEnergyFunctional(cParams);
-            %obj.functionals.energy         = InternalEnergySplitFunctional(cParams);
             obj.functionals.localDamage    = LocalDamageFunctional(cParams);
             obj.functionals.nonLocalDamage = NonLocalDamageFunctional(cParams);
             obj.functionals.extWork        = ExternalWorkFunctional(cParams);
+            if cParams.energySplit
+                obj.functionals.energy     = InternalEnergySplitFunctional(cParams);
+            else
+                obj.functionals.energy     = InternalEnergyFunctional(cParams);
+            end
+ 
+
         end
         
     end

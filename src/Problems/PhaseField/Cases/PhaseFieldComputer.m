@@ -36,7 +36,8 @@ classdef PhaseFieldComputer < handle
             outputData = [];
 
             maxSteps = length(obj.boundaryConditions.bcValues);
-            obj.stop.noFullyBroken = true; obj.stop.maxF = 0; obj.stop.lastStep = maxSteps; obj.stop.indicator = false;
+            obj.stop.noFullyBroken = true; obj.stop.triggered = false;
+            obj.stop.maxF = 0;             obj.stop.lastStep = maxSteps;
             i = 1;
             while(i<=maxSteps) && (obj.stop.noFullyBroken)
                 obj.printStep(i,maxSteps)
@@ -199,9 +200,9 @@ classdef PhaseFieldComputer < handle
         function checkStopCode(obj,i,totF)
             if totF > obj.stop.maxF
                 obj.stop.maxF = totF;
-            elseif i>5 && totF<0.01*obj.stop.maxF && ~obj.stop.indicator
+            elseif i>5 && totF<0.01*obj.stop.maxF && ~obj.stop.triggered
                 obj.stop.lastStep = i;
-                obj.stop.indicator = true;
+                obj.stop.triggered = true;
             end
 
             if i==obj.stop.lastStep+10
