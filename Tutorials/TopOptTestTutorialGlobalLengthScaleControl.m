@@ -12,7 +12,7 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
         perimeter
         cost
         constraint
-        dualVariable
+        primalUpdater
         optimizer
     end
 
@@ -32,7 +32,7 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
             obj.createPerimeter();
             obj.createCost();
             obj.createConstraint();
-            obj.createDualVariable();
+            obj.createPrimalUpdater();
             obj.createOptimizer();
         end
 
@@ -179,10 +179,9 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
             obj.constraint      = Constraint(s);
         end
 
-        function createDualVariable(obj)
-            s.nConstraints   = 2;
-            l                = DualVariable(s);
-            obj.dualVariable = l;
+        function createPrimalUpdater(obj)
+            s.mesh = obj.mesh;
+            obj.primalUpdater = SLERP(s);
         end
 
         function createOptimizer(obj)
@@ -190,11 +189,10 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.dualVariable   = obj.dualVariable;
             s.maxIter        = 3;
             s.tolerance      = 1e-8;
             s.constraintCase = {'INEQUALITY','EQUALITY'};
-            s.primal         = 'SLERP';
+            s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.02;
             s.gJFlowRatio    = 1;

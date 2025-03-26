@@ -1,8 +1,16 @@
+<<<<<<<< HEAD:src/Integrators/RHS/RHSIntegratorShapeDerivative.m
 classdef RHSIntegratorShapeDerivative < RHSIntegrator
 
     methods (Access = public)
 
         function obj = RHSIntegratorShapeDerivative(cParams)
+========
+classdef RHSIntegrator_ShapeDerivative < RHSIntegrator
+
+    methods (Access = public)
+
+        function obj = RHSIntegrator_ShapeDerivative(cParams)
+>>>>>>>> master:src/Integrators/RHS/RHSIntegrator_ShapeDerivative.m
             obj.init(cParams);
             obj.setQuadratureOrder(cParams);
             obj.createQuadrature();
@@ -25,6 +33,7 @@ classdef RHSIntegratorShapeDerivative < RHSIntegrator
         function rhsC = computeElementalRHS(obj, fun, test)
             xV = obj.quadrature.posgp;
             fG    = fun.evaluate(xV);
+            fG = squeezeParticular(fG,2);
             dNdx  = test.evaluateCartesianDerivatives(xV);
             dV    = obj.mesh.computeDvolume(obj.quadrature);
             nDim  = size(dNdx,1);

@@ -51,7 +51,7 @@ classdef CutMeshProvisionalQuadrilater < CutMesh
         function createSubMesher(obj)
             s.mesh        = obj.backgroundMesh;
             s.lastNode    = obj.lastNode;
-            obj.subMesher = SubMesher(s);
+            obj.subMesher = QuadToTriMeshConverter(s);
         end
         
         function createSubMesh(obj)

@@ -9,7 +9,7 @@ classdef Dehomogenizer < handle
     properties (Access = private)
         cellLevelSetParams
         nCells
-        theta
+        orientationA
         mesh
         remesher
     end
@@ -49,7 +49,7 @@ classdef Dehomogenizer < handle
 
         function init(obj,cParams)
             obj.nCells             = cParams.nCells;
-            obj.theta              = cParams.theta;
+            obj.orientationA       = cParams.orientationA;
             obj.cellLevelSetParams = cParams.cellLevelSetParams;
             obj.mesh               = cParams.mesh;
         end
@@ -63,8 +63,8 @@ classdef Dehomogenizer < handle
         end            
 
         function o = computeOrientedMappingComputer(obj)
-            s.orientationP1 = obj.theta;
-            s.mesh  = obj.mesh;
+            s.orientationA = obj.orientationA;
+            s.mesh         = obj.mesh;
             o = OrientedMappingComputer(s);
         end
 
@@ -73,7 +73,7 @@ classdef Dehomogenizer < handle
             s.orientationVectors = obj.computeOrientedMappingComputer();
             s.m1                 = obj.cellLevelSetParams.xSide;
             s.m2                 = obj.cellLevelSetParams.ySide;
-            s.nRemeshLevels      = 1;
+            s.nRemeshLevels      = 3;
             ls                   = LevelSetPeriodicAndOriented(s);
             obj.levelSet = ls.computeLS(obj.epsilons);  
             obj.fineMesh = ls.getFineMesh();

@@ -76,6 +76,7 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
         end
 
         function r = times(a,b)
+            a = Expand(a,b); b = Expand(b,a);
             aOp = BaseFunction.computeOperation(a);
             bOp = BaseFunction.computeOperation(b);
             ndimfA = BaseFunction.computeFieldDimension(a);
@@ -125,7 +126,8 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             aOp = BaseFunction.computeOperation(a);
             bOp = BaseFunction.computeOperation(b);
             s.operation = @(xV) aOp(xV).^bOp(xV);
-            s.mesh = a.mesh;
+            s.mesh  = a.mesh;
+            s.ndimf = a.ndimf;
             r = DomainFunction(s);
         end
 
@@ -137,13 +139,15 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             aOp = BaseFunction.computeOperation(a);
             s.operation = @(xV) pagenorm(aOp(xV),b);
             s.mesh = a.mesh;
+            s.ndimf = a.ndimf;            
             r = DomainFunction(s);
         end
 
         function r = log(a)
             aOp = BaseFunction.computeOperation(a);
             s.operation = @(xV) log(aOp(xV));
-            s.mesh = a.mesh;
+            s.mesh  = a.mesh;
+            s.ndimf = a.ndimf;            
             r = DomainFunction(s);
         end
 
@@ -151,8 +155,17 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             aOp = BaseFunction.computeOperation(a);
             s.operation = @(xV) exp(aOp(xV));
             s.mesh = a.mesh;
+            s.ndimf = a.ndimf;            
             r = DomainFunction(s);
         end
+
+        function r = abs(a)
+            aOp = BaseFunction.computeOperation(a);
+            s.operation = @(xV) abs(aOp(xV));
+            s.mesh  = a.mesh;
+            s.ndimf = a.ndimf;            
+            r = DomainFunction(s);
+        end        
 
         function r = trace(a)
             aOp = BaseFunction.computeOperation(a);

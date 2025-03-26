@@ -59,8 +59,6 @@ classdef DilationComputer < handle
         function computeRHS(obj)
             a1   = obj.orientationVector{1};
             a2   = obj.orientationVector{2};
-            a1 = Project(a1,'P1D');
-            a2 = Project(a2,'P1D');
             fun  = (Curl(a1).*a2 - Curl(a2).*a1);
             s.mesh = obj.mesh;
             s.type = 'ShapeDerivative';
