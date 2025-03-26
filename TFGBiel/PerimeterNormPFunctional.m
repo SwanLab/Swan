@@ -6,7 +6,7 @@ classdef PerimeterNormPFunctional < handle
         totalVolume
         filter
         epsilon
-%         eps
+        eps
     end
 
     properties (Access = private)
@@ -15,11 +15,6 @@ classdef PerimeterNormPFunctional < handle
         p
     end
 
-%     properties (Access = public)
-%         Pp
-%         gx
-%     end
-
     methods (Access = public)
         function obj = PerimeterNormPFunctional(cParams)
             obj.init(cParams);
@@ -27,11 +22,6 @@ classdef PerimeterNormPFunctional < handle
             obj.createTotalVolume();
             obj.createFilter();
         end
-
-%         function computeFunctionAndGradient(obj,x)
-%             [xD,Le] = obj.computeFilteredVariable(x);
-%             obj.computeFunction(xD{1},Le);
-%         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             [xD,Le] = obj.computeFilteredVariable(x);
@@ -45,7 +35,7 @@ classdef PerimeterNormPFunctional < handle
             obj.mesh            = cParams.mesh;
             obj.perimeterTarget = cParams.perimeterTarget;
             obj.p               = cParams.p;
-%             obj.eps             = cParams.eps;
+            obj.eps             = cParams.eps;
         end
 
         function createQuadrature(obj)
@@ -63,7 +53,7 @@ classdef PerimeterNormPFunctional < handle
             s.mesh       = obj.mesh;
             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
             f            = Filter.create(s);
-            obj.epsilon  = 6*obj.mesh.computeMeanCellSize();
+            obj.epsilon  = obj.eps*obj.mesh.computeMeanCellSize();
             f.updateEpsilon(obj.epsilon);
             obj.filter = f;
         end
@@ -78,11 +68,6 @@ classdef PerimeterNormPFunctional < handle
 %             xP     = (x.*(1-Le)).^obj.p;
             PerP   = Integrator.compute(xP,obj.mesh,obj.quadrature.order);
             obj.Pp = PerP^(1/obj.p);
-<<<<<<< Updated upstream
-            obj.gx = ((1/obj.perimeterTarget)*obj.Pp);
-=======
-%             obj.gx = ((1/obj.perimeterTarget)*obj.Pp);
->>>>>>> Stashed changes
             J      = ((1/obj.perimeterTarget)*((1/obj.totalVolume)^(1/obj.p))*obj.Pp) - 1;
         end
 

@@ -197,7 +197,7 @@ classdef TopOptTestTutorialDensityPerimeterPNorm < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 2000;
+            s.maxIter        = 2500;
             s.tolerance      = 1e-8;
             s.constraintCase = {'INEQUALITY','INEQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';

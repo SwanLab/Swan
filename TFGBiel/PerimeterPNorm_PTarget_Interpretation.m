@@ -58,7 +58,7 @@ function perimeter = createPerimeterConstraint(mesh,p,pTarget,eps)
     s.p               = p;
     s.eps             = eps;
     s.gradientTest    = LagrangianFunction.create(mesh,1,'P1');
-    perimeter         = PerimeterNormPFunctional(s);
+    perimeter         = PerimeterNormPFunctionalTest(s);
 end
 
 function createPlot(PpValues,gxValues,pp,pTar,e)
