@@ -54,7 +54,7 @@ classdef InternalEnergySplitFunctional < handle
         end
 
         function F = computeEnergyBulk(obj,u,phi,quadOrder)
-            k       = obj.materialPhaseField.getBulkFun(u,phi,'Interpolated');
+            k       = obj.materialPhaseField.getBulkFun(u,phi);
             bulkFun = VolumetricElasticEnergyDensity(u,k);
             int = Integrator.create('Function',obj.mesh,quadOrder);
             F   = int.compute(bulkFun);            

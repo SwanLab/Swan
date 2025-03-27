@@ -68,7 +68,11 @@ classdef TestingPhaseField < handle
             s.quadOrder     = 2;
             s.testSpace.u   = obj.initialGuess.u;
             s.testSpace.phi = obj.initialGuess.phi;
-            s.energySplit   = obj.matInfo.split;
+            if obj.matInfo.degradationType == "ATSplit"
+                s.energySplit   = true;
+            else
+                s.energySplit   = false;
+            end
             obj.functional = PhaseFieldFunctional(s);
         end
 
@@ -98,14 +102,19 @@ classdef TestingPhaseField < handle
         end
 
         function material = createMaterialPhaseField(obj)
-            s.mesh = obj.mesh;
-            s.matInfo = obj.matInfo;
-            s.Gc = obj.matInfo.Gc;
-            s.type = obj.matInfo.matType;
+            E  = obj.matInfo.young;
+            nu = obj.matInfo.poisson;
+            
+            s.type  = obj.matInfo.matType;
             if s.type ~= "PhaseFieldAnalytic"
                 s.fileName = obj.matInfo.fileName;
             end
-            s.interpolation = obj.matInfo.degradation;
+            s.mesh  = obj.mesh;
+            s.interp.interpolation = 'PhaseFieldDegradation';
+            s.interp.degFunType    = obj.matInfo.degradationType;
+            s.interp.ndim    = obj.mesh.ndim;
+            s.interp.young   = ConstantFunction.create(E,obj.mesh);
+            s.interp.poisson = ConstantFunction.create(nu,obj.mesh);
             material = Material.create(s);
         end
 

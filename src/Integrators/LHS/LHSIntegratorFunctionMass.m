@@ -1,24 +1,13 @@
-<<<<<<<< HEAD:src/Integrators/LHS/LHSintegratorFunctionMass.m
-classdef LHSintegratorFunctionMass < LHSIntegrator
-========
 classdef LHSIntegratorFunctionMass < LHSIntegrator
->>>>>>>> master:src/Integrators/LHS/LHSIntegratorFunctionMass.m
-
     properties (Access = private)
         fun
     end
 
     methods (Access = public)
 
-<<<<<<<< HEAD:src/Integrators/LHS/LHSintegratorFunctionMass.m
-        function obj = LHSintegratorFunctionMass(cParams)
-            obj@LHSIntegrator(cParams)
-            obj.fun = cParams.fun;
-========
         function obj = LHSIntegratorFunctionMass(cParams)
             obj@LHSIntegrator(cParams);
             obj.fun = cParams.function;            
->>>>>>>> master:src/Integrators/LHS/LHSIntegratorFunctionMass.m
         end
 
         function LHS = compute(obj)
@@ -78,10 +67,5 @@ classdef LHSIntegratorFunctionMass < LHSIntegrator
         end
 
     end
-<<<<<<<< HEAD:src/Integrators/LHS/LHSintegratorFunctionMass.m
 
 end
-========
- 
-end
->>>>>>>> master:src/Integrators/LHS/LHSIntegratorFunctionMass.m

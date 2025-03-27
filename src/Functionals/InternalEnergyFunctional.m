@@ -59,11 +59,11 @@ classdef InternalEnergyFunctional < handle
             ddC = obj.material.obtainTensorSecondDerivative(phi);
             ddEnergyFun = DDP(SymGrad(u),DDP(ddC,SymGrad(u)));
             
-            s.fun   = ddEnergyFun;
-            s.trial = obj.testPhi;
-            s.test  = obj.testPhi;
-            s.mesh  = obj.mesh;
-            s.type  = 'MassMatrixWithFunction';
+            s.function = ddEnergyFun;
+            s.trial    = obj.testPhi;
+            s.test     = obj.testPhi;
+            s.mesh     = obj.mesh;
+            s.type     = 'MassMatrixWithFunction';
             s.quadratureOrder = quadOrder;
             LHS = LHSIntegrator.create(s);
             Hphiphi = 0.5*LHS.compute();

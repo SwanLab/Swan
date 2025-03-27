@@ -34,11 +34,11 @@ classdef LocalDamageFunctional < handle
         function H = computeHessian(obj,phi,quadOrder)
             ddAlphaFun =  obj.obtainDissipationFunction(phi,'Hessian');
             
-            s.trial = obj.testPhi;
-            s.test  = obj.testPhi;
-            s.fun   = ddAlphaFun;
-            s.mesh  = obj.mesh;
-            s.type  = 'MassMatrixWithFunction';
+            s.trial    = obj.testPhi;
+            s.test     = obj.testPhi;
+            s.function = ddAlphaFun;
+            s.mesh     = obj.mesh;
+            s.type     = 'MassMatrixWithFunction';
             s.quadratureOrder = quadOrder;
             LHS = LHSIntegrator.create(s);
             H = (obj.constant/obj.l0)*LHS.compute();

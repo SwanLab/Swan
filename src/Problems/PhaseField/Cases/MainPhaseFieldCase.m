@@ -18,18 +18,18 @@ s.tolerance.phi = 1e-6;
 s.tolerance.stag = 1e-6;
 
 s.benchmark.N = 10;
-s.benchmark.type.mesh = 'SENtest';
+s.benchmark.type.mesh = '1Elem';
 s.benchmark.type.bc = 'displacementTraction';
 s.benchmark.bcValues = [0:0.001:0.1];
-s.matInfo.split = false;
-s.matInfo.E  = 210;
-s.matInfo.nu = 0.3;
+
+s.matInfo.matType = 'PhaseFieldAnalytic';
+s.matInfo.degradationType = 'AT';
+%s.matInfo.fileName = 'CircleMicroDamagePerimeter'; 
+s.matInfo.young   = 210;
+s.matInfo.poisson = 0.3;
 s.matInfo.Gc = 5e-3;
 s.l0 = 0.1;
 
-s.matInfo.matType = 'PhaseFieldAnalytical';
-s.matInfo.fileName = 'CircleMicroDamagePerimeter'; 
-s.matInfo.degradation = 'PhaseFieldDegradation';
 s.dissipInfo.type = 'PhaseFieldDissipationAT';
 s.dissipInfo.pExp = 2;
 s.solverType = 'Newton';

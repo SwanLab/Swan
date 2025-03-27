@@ -1,16 +1,8 @@
-<<<<<<<< HEAD:src/Integrators/RHS/RHSIntegratorShapeDerivative.m
 classdef RHSIntegratorShapeDerivative < RHSIntegrator
 
     methods (Access = public)
 
         function obj = RHSIntegratorShapeDerivative(cParams)
-========
-classdef RHSIntegrator_ShapeDerivative < RHSIntegrator
-
-    methods (Access = public)
-
-        function obj = RHSIntegrator_ShapeDerivative(cParams)
->>>>>>>> master:src/Integrators/RHS/RHSIntegrator_ShapeDerivative.m
             obj.init(cParams);
             obj.setQuadratureOrder(cParams);
             obj.createQuadrature();
@@ -33,7 +25,6 @@ classdef RHSIntegrator_ShapeDerivative < RHSIntegrator
         function rhsC = computeElementalRHS(obj, fun, test)
             xV = obj.quadrature.posgp;
             fG    = fun.evaluate(xV);
-            fG = squeezeParticular(fG,2);
             dNdx  = test.evaluateCartesianDerivatives(xV);
             dV    = obj.mesh.computeDvolume(obj.quadrature);
             nDim  = size(dNdx,1);
@@ -44,8 +35,8 @@ classdef RHSIntegrator_ShapeDerivative < RHSIntegrator
             for igaus = 1:nGaus
                 for idime = 1:nDim
                     for inode = 1:nNode
-                        fI     = squeezeParticular(fG(idime,:,igaus,:),[1 2]);
-                        fdV    = fI.*dV(igaus,:);
+                        fI     = squeezeParticular(fG(idime,igaus,:),[1 2]);
+                        fdV    = fI'.*dV(igaus,:);
                         dShape = squeeze(dNdx(idime,inode,igaus,:))';
                         intI = dShape.*fdV;
                         int(inode,:) = int(inode,:) + intI;
