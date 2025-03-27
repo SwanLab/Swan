@@ -39,7 +39,8 @@ classdef ProcessOfflineData < handle
             end
             celastST = ConvertBlockDiag(celastST) ; % Diagonal block matrix
             Kfine = OPERFE.Bst'*(celastST*OPERFE.Bst);
-            obj.LHS = Kfine;
+%             Kfine = OPERFE.Bst(:,dof)'*(celastST*OPERFE.Bst(:,dof))
+%             obj.LHS = Kfine;
             %             data = load(obj.fileNameData);
             %             obj.mesh            = data.mR;
             %             obj.fValuesTraining = data.u;
@@ -50,7 +51,7 @@ classdef ProcessOfflineData < handle
             uRBfun       = obj.projectToRigidBodyFun(uFun);
             uDEFSpaceFun = obj.projectToDeformationalSpace(uFun,uRBfun);
             PhiD         = obj.computeDeformationalModes(uDEFSpaceFun);
-%             PhiD         = EIFEoper.RECONSTRUCTION.DEF_DISP.BASIS;
+            PhiD2         = EIFEoper.RECONSTRUCTION.DEF_DISP.BASIS;
             uDefFun      = obj.createDeformationalFunction(PhiD);
 
             PsiD       = obj.computeSelfEquilibratedLagrange(PhiD);
@@ -295,8 +296,10 @@ classdef ProcessOfflineData < handle
         function [young,poisson] = computeElasticProperties(obj,mesh)
             E  = 1;
             nu = 1/3;
-            young   = ConstantFunction.create(E,mesh);
-            poisson = ConstantFunction.create(nu,mesh);
+            Epstr  = E/(1-nu^2);
+            nupstr = nu/(1-nu);
+            young   = ConstantFunction.create(Epstr,mesh);
+            poisson = ConstantFunction.create(nupstr,mesh);
         end
 
         function [LHS,u] = createElasticProblem(obj)

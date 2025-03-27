@@ -121,8 +121,10 @@ classdef Training < handle
         function [young,poisson] = computeElasticProperties(obj,mesh)
             E  = 1;
             nu = 1/3;
-            young   = ConstantFunction.create(E,mesh);
-            poisson = ConstantFunction.create(nu,mesh);
+            Epstr  = E/(1-nu^2);
+            nupstr = nu/(1-nu);
+            young   = ConstantFunction.create(Epstr,mesh);
+            poisson = ConstantFunction.create(nupstr,mesh);
         end
 
         function [LHS,RHS,u,dLambda] = createElasticProblem(obj)
