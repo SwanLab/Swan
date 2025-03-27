@@ -10,7 +10,7 @@ for j = 1:size(r,2)
     L = [];
     
     %for i = 1:8
-        [~, u, l] = LevelSetInclusionAuto_Ausetic();
+        [~, u, l] = LevelSetInclusionAuto_raul(r(j),1);
         U         = cat(2, U, u);
         L         = cat(2, L, l);
     %end

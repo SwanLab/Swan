@@ -64,10 +64,10 @@ classdef LevelSetInclusionAuto_raul < handle
 
         function createMesh(obj)
             bgMesh   = obj.createReferenceMesh();
-            lvSet    = obj.createLevelSetFunction(bgMesh);
-            uMesh    = obj.computeUnfittedMesh(bgMesh,lvSet);
-            obj.mesh = uMesh.createInnerMesh();
-            % obj.mesh = bgMesh;
+%             lvSet    = obj.createLevelSetFunction(bgMesh);
+%             uMesh    = obj.computeUnfittedMesh(bgMesh,lvSet);
+%             obj.mesh = uMesh.createInnerMesh();
+            obj.mesh = bgMesh;
 
             obj.boundaryMesh = obj.mesh.createBoundaryMesh();
             [obj.boundaryMeshJoined, obj.localGlobalConnecBd] = obj.mesh.createSingleBoundaryMesh();
@@ -128,10 +128,18 @@ classdef LevelSetInclusionAuto_raul < handle
             
         end
 
-        function [young,poisson] = computeElasticProperties(~,mesh)
-            E  = 1;
+        function [young,poisson] = computeElasticProperties(obj,mesh)
+            E1  = 1;
+            E2 = E1/10000;
             nu = 1/3;
-            young   = ConstantFunction.create(E,mesh);
+            x0=0;
+            y0=0;
+%             young   = ConstantFunction.create(E,mesh);
+%             poisson = ConstantFunction.create(nu,mesh);
+            f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<obj.radius)*E2 + ...
+                        (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=obj.radius)*E1 ; 
+%                                      x(2,:,:).*0 ];
+            young   = AnalyticalFunction.create(f,1,mesh);
             poisson = ConstantFunction.create(nu,mesh);            
         end
 
