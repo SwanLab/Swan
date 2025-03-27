@@ -136,8 +136,9 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
         end
 
         function r = norm(a,b)
+            a = Expand(a);
             aOp = BaseFunction.computeOperation(a);
-            s.operation = @(xV) pagenorm(aOp(xV),b);
+            s.operation = @(xV) squeezeParticular(pagenorm(aOp(xV),b),2);
             s.mesh = a.mesh;
             s.ndimf = a.ndimf;            
             r = DomainFunction(s);
