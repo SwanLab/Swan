@@ -212,7 +212,7 @@ classdef ElasticProblemMicro < handle
         end
 
         function computeStress(obj, iVoigt)
-            obj.stress = DDP(obj.material, obj.strainFluctFun{iVoigt});
+            obj.stressFun{iVoigt} = DDP(obj.material, obj.strainFun{iVoigt});
 %             obj.variables.stress = permute(strFun.fValues, [2 1 3]);
             obj.stressFluctFun{iVoigt} = DDP(obj.material, obj.strainFluctFun{iVoigt});
         end
