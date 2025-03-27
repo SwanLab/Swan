@@ -2,10 +2,15 @@ clear;
 clc;
 close all;
 
-prob = TopOptTestTutorialDensityNullSpace();
-rho  = prob.designVariable;
-mesh = prob.mesh;
+% prob = TopOptTestTutorialDensityNullSpace();
+% rho  = prob.designVariable;
+% mesh = prob.mesh;
 pT   = 0.2;
+
+load('Gripping.mat');
+mesh  = createMesh(mesh);
+rho   = createDesignVariable(mesh,fun);
+clear('fun');
 
 epsilons = [1 2 3 4 5 6];
 
@@ -47,4 +52,22 @@ for ii = 1:size(epsilons,2)
     Results{2*ii,2}     = epsilons(ii);
     Results{2*ii,3}     = perOverVolP1_apr2;
     Results{2*ii,4}     = perOverVolPInf_apr2;
+end
+
+function mesh = createMesh(m)
+    s.connec = m.connec;
+    s.coord  = m.coord;
+    mesh     = Mesh.create(s);
+end
+
+function designVariable = createDesignVariable(mesh,f)
+    sF.fValues     = f.fValues;
+    sF.mesh        = mesh;
+    sF.order       = 'P1';
+    s.fun          = LagrangianFunction(sF);
+    s.mesh         = mesh;
+    s.type         = 'Density';
+    s.plotting     = false;
+    dens           = DesignVariable.create(s);
+    designVariable = dens;
 end
