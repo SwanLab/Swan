@@ -1,0 +1,78 @@
+classdef ExternalWorkFunctional < handle
+    
+    properties (Access = private)
+        mesh
+        bMesh
+        testU
+    end
+
+    properties (Access = private)
+        bFunfExt
+        bFunU
+    end
+    
+    methods (Access = public)
+        
+        function obj = ExternalWorkFunctional(cParams)
+            obj.init(cParams)
+        end
+        
+        function F = computeFunctional(obj,u,fExt,quadOrder)
+            int = Integrator.create('Function',obj.bMesh.mesh,quadOrder);
+            
+            obj.computeFunsInBoundary(u,fExt);
+            F = int.compute(obj.bFunU.*obj.bFunfExt);
+        end
+        
+        function Ju = computeGradient(obj,u,fExt,quadOrder)
+            s.mesh     = obj.bMesh.mesh;
+            s.type     = 'ShapeFunction';
+            s.quadType = quadOrder;
+            RHS = RHSIntegrator.create(s);
+
+            computeFunsInBoundary(obj,u,fExt);
+            Ju = RHS.compute(obj.bFunfExt,obj.testU);
+            Ju = obj.reducedToFull(Ju);
+        end
+        
+    end
+    
+    methods (Access = private)
+
+        function init(obj,cParams)
+            obj.mesh  = cParams.mesh;
+            obj.bMesh = obj.mesh.createBoundaryMesh{4}; %% Accounting for loads of Top boundary {4} %%
+
+            u = cParams.testSpace.u;
+            obj.testU    = LagrangianFunction.create(obj.bMesh.mesh,u.ndimf,u.order);      
+            obj.bFunfExt = LagrangianFunction.create(obj.bMesh.mesh,u.ndimf,'P1');
+            obj.bFunU    = LagrangianFunction.create(obj.bMesh.mesh,u.ndimf,u.order);  
+        end
+
+        function computeFunsInBoundary(obj,u,fExt) 
+            nodes = unique(obj.bMesh.globalConnec);
+            if isempty(fExt)
+                obj.bFunU.setFValues(u.fValues(nodes,:));
+            else
+                obj.bFunfExt.setFValues(fExt.fValues(nodes,:));
+                obj.bFunU.setFValues(u.fValues(nodes,:));
+            end
+        end
+
+        function JuFull = reducedToFull(obj,Ju)
+            nNodes = obj.mesh.nnodes;
+            nDim = obj.mesh.ndim;
+            nDofs = nNodes*obj.mesh.ndim;
+            JuFull = zeros(nDofs,1);
+            nodes = unique(obj.bMesh.globalConnec);
+            nNodesB = length(nodes);
+            ForceDofs = zeros(nNodesB*nDim,1);
+            for iDim = 1:nDim
+                ForceDofs(iDim:nDim:(end-nDim+iDim)) = nDim*(nodes-1)+iDim;
+            end
+            JuFull(ForceDofs) = Ju;
+        end
+
+    end
+    
+end
