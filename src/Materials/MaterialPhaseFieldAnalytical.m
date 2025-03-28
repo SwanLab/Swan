@@ -17,6 +17,7 @@ classdef MaterialPhaseFieldAnalytical < Material
             C = obj.createMaterial(mu,kappa);
         end
 
+<<<<<<< Updated upstream
         function V = obtainTensorVolumetric(obj,phi)
             mI = obj.materialInterpolator;
             [mu,~] = mI.computeConstitutiveTensorParams(phi);
@@ -31,6 +32,8 @@ classdef MaterialPhaseFieldAnalytical < Material
             D = obj.createMaterial(mu,kappa);
         end
 
+=======
+>>>>>>> Stashed changes
         function dC = obtainTensorDerivative(obj,phi)
             mI = obj.materialInterpolator;
             [mu,kappa] = mI.computeConstitutiveTensorDerivativeParams(phi);
