@@ -34,7 +34,7 @@ classdef TestingPhaseFieldHomogenizer < handle
             for i=1:nComb
                 hole = comb(i,:);
                 mat(:,:,i) = obj.computeHomogenization(hole);
-                phi(i) = obj.computeDamageMetric(hole);
+                phi(i)     = obj.computeDamageMetric(hole);
             end
             mat = obj.assembleResults(mat);
             phi = obj.assembleResults(phi);
@@ -45,11 +45,11 @@ classdef TestingPhaseFieldHomogenizer < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.E         = cParams.E;
-            obj.nu        = cParams.nu;
-            obj.meshType  = cParams.meshType;
-            obj.meshN     = cParams.meshN;
-            obj.holeType  = cParams.holeType;
+            obj.E          = cParams.E;
+            obj.nu         = cParams.nu;
+            obj.meshType   = cParams.meshType;
+            obj.meshN      = cParams.meshN;
+            obj.holeType   = cParams.holeType;
             obj.nSteps     = cParams.nSteps;
             obj.damageType = cParams.damageType;
             obj.pnorm      = cParams.pnorm;
@@ -72,10 +72,10 @@ classdef TestingPhaseFieldHomogenizer < handle
                     MC = MeshCreator(s);
                     MC.computeMeshNodes();
             end
-            s.coord = MC.coord;
+            s.coord  = MC.coord;
             s.connec = MC.connec;
-            obj.masterSlave = MC.masterSlaveIndex;
             obj.baseMesh = Mesh.create(s);
+            obj.masterSlave = MC.masterSlaveIndex;
             obj.test = LagrangianFunction.create(obj.baseMesh,1,'P1');
         end
 
@@ -160,8 +160,10 @@ classdef TestingPhaseFieldHomogenizer < handle
         function mat = createDensityMaterial(obj,lsf)
             s.interpolation  = 'SIMPALL';
             s.dim            = '2D';
-            s.matA = obj.createMaterial(obj.baseMesh,1e-6*obj.E,obj.nu);
-            s.matB = obj.createMaterial(obj.baseMesh,obj.E,obj.nu);
+            s.matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(1e-6*obj.E,obj.nu,obj.baseMesh.ndim);
+            s.matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(1e-6*obj.E,obj.nu);
+            s.matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(obj.E,obj.nu,obj.baseMesh.ndim);
+            s.matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(obj.E,obj.nu);
             mI = MaterialInterpolator.create(s);
 
             x{1} = lsf;
@@ -173,25 +175,10 @@ classdef TestingPhaseFieldHomogenizer < handle
             mat = Material.create(s);
         end
 
-        function mat = createMaterial(obj,mesh,E,nu)
-            young   = ConstantFunction.create(E,mesh);
-            poisson = ConstantFunction.create(nu,mesh);
-            bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(young,poisson,obj.baseMesh.ndim);
-            shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(young,poisson);
-
-            s.type  = 'ISOTROPIC';
-            s.ptype = 'ELASTIC';
-            s.mesh  = mesh;
-            s.bulk  = bulk;
-            s.shear = shear;
-            s.ndim  = obj.baseMesh.ndim;
-            mat     = Material.create(s);
-        end
-
         function matHomog = solveElasticMicroProblem(obj,material,dens)
-            dens.plot
-            shading interp
-            colormap (flipud(pink))
+            % dens.plot
+            % shading interp
+            % colormap (flipud(pink))
 
             s.mesh = obj.baseMesh;
             s.material = material;

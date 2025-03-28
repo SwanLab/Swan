@@ -30,9 +30,9 @@ classdef PhaseFieldComputer < handle
 
             iter = 0;
             phiIter = 0;
-            costFun = null(2,1);
+            costFun = [];
             tau = 150;
-            s.tauArray = [];
+            tauArray = [];
             outputData = [];
 
             maxSteps = length(obj.boundaryConditions.bcValues);
@@ -60,10 +60,9 @@ classdef PhaseFieldComputer < handle
                         obj.printCost('iterU',iterU,costU,eU);
                         iterU = iterU + 1;
 
-                        costFun(1,end+1) = costU;
-                        costFun(2,end) = 0;
+                        costFun(end+1) = costU;
                         iter = iter+1;
-                        obj.monitor.update(iter,{[],[],[],[],[costFun(1,end)],[],[]});
+                        obj.monitor.update(iter,{[],[],[],[],[costFun(end)],[],[]});
                         obj.monitor.refresh();
 
                     end
@@ -90,16 +89,15 @@ classdef PhaseFieldComputer < handle
                             else
                                 phiIter = phiIter + 1;
                                 obj.monitor.update(phiIter,{[],[],[],[],[],[],[tau]})
-                                s.tauArray(end+1) = tau;
+                                tauArray(end+1) = tau;
                                 if tau<=1e10
                                     tau = 10*tau;
                                 end
                                 phi = phiProposed;
                                 costOldPhi = costPhi;
-                                costFun(1,end+1) = costPhi;
-                                costFun(2,end) = 1;
+                                costFun(end+1) = costPhi;
                                 iter = iter+1;
-                                obj.monitor.update(iter,{[],[],[],[],[costFun(1,end)],[],[]});
+                                obj.monitor.update(iter,{[],[],[],[],[costFun(end)],[],[]});
                             end
 
                         elseif obj.solverType == "Newton"
@@ -111,10 +109,9 @@ classdef PhaseFieldComputer < handle
                             obj.printCost('iterPhi',iterPhi,costPhi,ePhi);
                             iterPhi = iterPhi + 1;
 
-                            costFun(1,end+1) = costPhi;
-                            costFun(2,end) = 1;
+                            costFun(end+1) = costPhi;
                             iter = iter+1;
-                            obj.monitor.update(iter,{[],[],[],[],[costFun(1,end)],[],[]});
+                            obj.monitor.update(iter,{[],[],[],[],[costFun(end)],[],[]});
                             obj.monitor.refresh();
                         end
                     end
@@ -129,10 +126,9 @@ classdef PhaseFieldComputer < handle
                     obj.printCost('iterStag',iterStag,costStag,eStag);
                     iterStag = iterStag + 1;
 
-                    costFun(1,end+1) = costStag;
-                    costFun(2,end) = 2;
+                    costFun(end+1) = costStag;
                     iter = iter+1;
-                    obj.monitor.update(iter,{[],[],[],[],[costFun(1,end)],[],[]});
+                    obj.monitor.update(iter,{[],[],[],[],[costFun(end)],[],[]});
                     obj.monitor.refresh();
                 end
                 uOld = u;
@@ -147,6 +143,7 @@ classdef PhaseFieldComputer < handle
                 s.bc = bc;
                 s.damageField = phi;
                 s.cost = costFun;
+                s.tauArray = tauArray;
                 outputData = obj.saveData(outputData,s);
 
                 totE = obj.functional.computeCostFunctional(u,phi,bc);

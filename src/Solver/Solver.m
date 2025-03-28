@@ -12,9 +12,6 @@ classdef Solver < handle
                     % At least up to ndof ~5e4, Direct is still faster
                     stype = Cholesky_Direct_Solver();
 
-                case {'Newton'}
-                    stype = IterNewton();
-
                 case {'ITERATIVE'}
                     error('Not implemented yet')
 

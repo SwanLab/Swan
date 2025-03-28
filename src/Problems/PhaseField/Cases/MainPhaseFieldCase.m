@@ -20,7 +20,7 @@ s.tolerance.stag = 1e-6;
 s.benchmark.N = 10;
 s.benchmark.type.mesh = 'SENtest';
 s.benchmark.type.bc = 'displacementTraction';
-s.benchmark.bcValues = [0:0.001:0.1];
+s.benchmark.bcValues = [0:0.0001:0.1];
 
 s.matInfo.matType = 'Analytic';
 s.matInfo.degradationType = 'AT';

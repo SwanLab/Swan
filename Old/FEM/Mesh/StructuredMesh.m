@@ -1,8 +1,10 @@
 classdef StructuredMesh < handle
     
     properties (Access = public)
-        nDivs
-        divs
+        nx
+        ny
+        x
+        y
         mesh
     end
     
@@ -32,35 +34,26 @@ classdef StructuredMesh < handle
     end
     
     methods (Access = private)
-
+        
         function init(obj,cParams)
-            nDim = length(cParams.coords);
-            obj.divs = cell(nDim,1);
-            [obj.divs{:}] = ndgrid(cParams.coords{:});
-
-            obj.nDivs = zeros(nDim,1);
-            for i=1:nDim
-                obj.nDivs(i) = size(obj.divs{1},i);
-            end
+            [obj.x,obj.y] = meshgrid(cParams.x,cParams.y);
+            obj.nx = length(obj.x);
+            obj.ny = length(obj.y);
         end
-
+        
         function coord = createCoordinates(obj)
-            nDim = length(obj.divs);
-            nNodes = prod(obj.nDivs,"All");
-            coord = zeros(nNodes,nDim);
-            for i=1:nDim
-                coord(:,i) = reshape(pagetranspose(obj.divs{i}),1,[]);
-            end
+            coord(:,1) = reshape(obj.x',1,[]);
+            coord(:,2) = reshape(obj.y',1,[]);
         end
         
         function connec = createConnectivities(obj)
             Nx = obj.nx;
             Ny = obj.ny;
-            lsw = obj.createVertex(1:Nx-1,1:Ny-1);
-            lse = obj.createVertex(2:Nx,1:Ny-1);
-            lne = obj.createVertex(2:Nx,2:Ny);
-            lnw = obj.createVertex(1:Nx-1,2:Ny);
-            connec = [lsw lse lne lnw];
+            sw = obj.createVertex(1:Nx-1,1:Ny-1);
+            se = obj.createVertex(2:Nx,1:Ny-1);
+            ne = obj.createVertex(2:Nx,2:Ny);
+            nw = obj.createVertex(1:Nx-1,2:Ny);
+            connec = [sw se ne nw];
         end
         
         function v = createVertex(obj,xv,yv)
