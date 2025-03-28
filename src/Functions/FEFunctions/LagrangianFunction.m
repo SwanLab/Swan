@@ -339,51 +339,13 @@ classdef LagrangianFunction < FeFunction
         end
 
         function s = minus(a,b)
-            if isnumeric(a) || isnumeric(b)
-                if isa(a, 'LagrangianFunction')
-                    res = copy(a);
-                    val1 = a.fValues;
-                    fEv1 = a.fxVOld;
-                else
-                    val1 = a;
-                    fEv1 = a;
-                end
-                if isa(b, 'LagrangianFunction')
-                    res = copy(b);
-                    val2 = b.fValues;
-                    fEv2 = b.fxVOld;
-                else
-                    val2 = b;
-                    fEv2 = b;
-                end
-                if ~isempty(fEv1) && ~isempty(fEv2)
-                    res.fxVOld = fEv1 - fEv2;
-                else
-                    res.fxVOld = [];
-                end
-                res.fValues = val1 - val2;
-                s = res;
-            else % a will be lagrangian, otherwise won't enter here              
-                if isa(b, 'LagrangianFunction')
-                    res = copy(a);
-                    val1 = a.fValues;
-                    fEv1 = a.fxVOld;
-                    val2 = b.fValues;
-                    fEv2 = b.fxVOld;
-                    if ~isempty(fEv1) && ~isempty(fEv2)
-                        res.fxVOld = fEv1 - fEv2;
-                    else
-                        res.fxVOld = [];
-                    end
-                    res.fValues = val1 - val2;
-                    s = res;
-                elseif isa(b, 'BaseFunction')
-                    s = minus@BaseFunction(a,b);
-                end
-            end
+            s = plus(a,-b);
         end
 
-        
+        function s = uminus(a)
+            s = copy(a);
+            s.setFValues(-a.fValues);
+        end
 
     end
 
