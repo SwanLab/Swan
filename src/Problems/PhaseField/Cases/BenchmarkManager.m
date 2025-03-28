@@ -15,17 +15,17 @@ classdef BenchmarkManager < handle
                     s = FemDataContainer(a);
                     mesh = s.mesh;
                 case 'SENshear'
-                    file = 'PF_SENshear0_0025';
+                    file = 'SENshear0_0025';
                     a.fileName = file;
                     s = FemDataContainer(a);
                     mesh = s.mesh;
                 case 'SENtraction'
-                    file = 'PF_SENtraction0_0025';
+                    file = 'SENtraction0_0025';
                     a.fileName = file;
                     s = FemDataContainer(a);
                     mesh = s.mesh;
                 case 'SENmixed'
-                    file = 'PF_SENmixed0_0025';
+                    file = 'SENmixed0_0025';
                     a.fileName = file;
                     s = FemDataContainer(a);
                     mesh = s.mesh;

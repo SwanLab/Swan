@@ -102,16 +102,17 @@ classdef TestingPhaseField < handle
             nu = obj.matInfo.poisson;
             
             s.type  = 'PhaseField';
+            s.mesh  = obj.mesh;
             s.PFtype = obj.matInfo.matType;
             if s.PFtype == "Homogenized"
                 s.fileName = obj.matInfo.fileName;
+            else
+                s.interp.interpolation = 'PhaseFieldDegradation';
+                s.interp.degFunType    = obj.matInfo.degradationType;
+                s.interp.ndim    = obj.mesh.ndim;
+                s.interp.young   = ConstantFunction.create(E,obj.mesh);
+                s.interp.poisson = ConstantFunction.create(nu,obj.mesh);
             end
-            s.mesh  = obj.mesh;
-            s.interp.interpolation = 'PhaseFieldDegradation';
-            s.interp.degFunType    = obj.matInfo.degradationType;
-            s.interp.ndim    = obj.mesh.ndim;
-            s.interp.young   = ConstantFunction.create(E,obj.mesh);
-            s.interp.poisson = ConstantFunction.create(nu,obj.mesh);
             material = Material.create(s);
         end
 
