@@ -11,27 +11,10 @@ classdef PhaseFieldAmbrosioTortorelliSplit < handle
             obj.init(cParams)
         end
 
-        function [mu,kappa] = computeConstitutiveTensorParams(obj,phi,u)
-            mu    = obj.computeShearFunction(phi);
-            kappa = obj.computeBulkFunction(phi,u);
-        end
-
-        function k = computeBulkFunction(obj,phi,u)
+        function k = computeBulkFunction(obj,u,phi)
             k0 = obj.bulk;
             k  = obj.interpolate(phi,k0);
             k  = obj.applySplit(u,k0,k);
-        end
-
-        function dk = computeBulkFunctionDerivative(obj,phi,u)
-            k0 = obj.bulk;
-            dk = obj.derive(phi,k0);
-            dk = obj.applySplit(u,k0,dk);
-        end
-
-        function ddk = computeBulkSecondDerivative(obj,phi,u)
-            k0  = obj.bulk;
-            ddk = obj.derive2(phi,k0);
-            ddk = obj.applySplit(u,k0,ddk);
         end
 
         function mu = computeShearFunction(obj,phi)
@@ -39,9 +22,21 @@ classdef PhaseFieldAmbrosioTortorelliSplit < handle
             mu  = obj.interpolate(phi,mu0);
         end
 
+        function dk = computeBulkFunctionDerivative(obj,u,phi)
+            k0 = obj.bulk;
+            dk = obj.derive(phi,k0);
+            dk = obj.applySplit(u,k0,dk);
+        end
+
         function dmu = computeShearFunctionDerivative(obj,phi)
             mu0 = obj.shear;
             dmu = obj.derive(phi,mu0);
+        end
+        
+        function ddk = computeBulkSecondDerivative(obj,u,phi)
+            k0  = obj.bulk;
+            ddk = obj.derive2(phi,k0);
+            ddk = obj.applySplit(u,k0,ddk);
         end
 
         function ddmu = computeShearFunctionSecondDerivative(obj,phi)

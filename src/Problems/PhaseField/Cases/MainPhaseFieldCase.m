@@ -18,13 +18,13 @@ s.tolerance.phi = 1e-6;
 s.tolerance.stag = 1e-6;
 
 s.benchmark.N = 10;
-s.benchmark.type.mesh = '1Elem';
+s.benchmark.type.mesh = 'SENtest';
 s.benchmark.type.bc = 'displacementTraction';
 s.benchmark.bcValues = [0:0.001:0.1];
 
-s.matInfo.matType = 'PhaseFieldAnalytic';
+s.matInfo.matType = 'Analytic';
 s.matInfo.degradationType = 'AT';
-%s.matInfo.fileName = 'CircleMicroDamagePerimeter'; 
+s.matInfo.fileName = 'CircleMicroDamagePerimeter'; 
 s.matInfo.young   = 210;
 s.matInfo.poisson = 0.3;
 s.matInfo.Gc = 5e-3;
@@ -39,11 +39,6 @@ tester = TestingPhaseField(s);
 outputData = tester.compute();
 outputData.inputParameters = s;
 
-input = s;
-xRef  = outputData.reaction;
-save('testPhaseFieldSEN','input','xRef')
-
 %% SAVE + PLOT
-% save("/home/gerard/Documents/GitHub/Swan/PhaseFieldExperiments/ResultsPaper1/SENshear/" + ...
-%       "SENshear_SquareArea.mat","outputData") %ACTIVATE TO SAVE DATA!
+%save("~/Documents/GitHub/Swan/SENshear_SquareArea.mat","outputData") %ACTIVATE TO SAVE DATA!
 PhaseFieldPlotter(outputData);

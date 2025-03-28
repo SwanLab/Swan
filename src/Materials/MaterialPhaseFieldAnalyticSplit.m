@@ -1,4 +1,4 @@
-classdef MaterialPhaseFieldAnalyticalSplit < Material
+classdef MaterialPhaseFieldAnalyticSplit < Material
 
     properties (Access = private)
         materialInterpolator
@@ -7,20 +7,20 @@ classdef MaterialPhaseFieldAnalyticalSplit < Material
 
     methods (Access = public)
 
-        function obj = MaterialPhaseFieldAnalyticalSplit(cParams)
+        function obj = MaterialPhaseFieldAnalyticSplit(cParams)
             obj.init(cParams)
         end
 
-        function V = obtainTensorVolumetric(obj,phi)
-            mI = obj.materialInterpolator;
-            [~,kappa] = mI.computeConstitutiveTensorParams(phi);
-            mu        = ConstantFunction.create(0,obj.mesh);
+        function V = obtainTensorVolumetric(obj,phi,u)
+            mI    = obj.materialInterpolator;
+            kappa = mI.computeBulkFunction(phi,u);
+            mu    = ConstantFunction.create(0,obj.mesh);
             V = obj.createMaterial(mu,kappa);
         end
 
-        function D = obtainTensorDeviatoric(obj,phi,u)
-            mI = obj.materialInterpolator;
-            [mu,~] = mI.computeConstitutiveTensorParams(phi,u);
+        function D = obtainTensorDeviatoric(obj,phi)
+            mI     = obj.materialInterpolator;
+            mu     = mI.computeShearFunction(phi);
             kappa  = ConstantFunction.create(0,obj.mesh);
             D = obj.createMaterial(mu,kappa);
         end
@@ -61,7 +61,7 @@ classdef MaterialPhaseFieldAnalyticalSplit < Material
 
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
-            cParams.interp.degradationType = 'ATSplit';
+            cParams.interp.degFunType = 'ATSplit';
             obj.materialInterpolator  = MaterialInterpolator.create(cParams.interp);
         end
 

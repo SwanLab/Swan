@@ -60,22 +60,6 @@ classdef TestingPhaseField < handle
             [obj.mesh, obj.boundaryConditions] = BenchmarkManager.create(obj.benchmark);
         end
 
-        function createPhaseFieldFunctional(obj)
-            s.mesh          = obj.mesh;
-            s.material      = obj.createMaterialPhaseField();
-            s.dissipation   = obj.createDissipationInterpolation();
-            s.l0            = obj.l0;
-            s.quadOrder     = 2;
-            s.testSpace.u   = obj.initialGuess.u;
-            s.testSpace.phi = obj.initialGuess.phi;
-            if obj.matInfo.degradationType == "ATSplit"
-                s.energySplit   = true;
-            else
-                s.energySplit   = false;
-            end
-            obj.functional = PhaseFieldFunctional(s);
-        end
-
         function createInitialGuess(obj,cParams)
             if isfield(cParams,'initialGuess')
                 if isfield(cParams.initialGuess,'u')
@@ -101,12 +85,25 @@ classdef TestingPhaseField < handle
             end
         end
 
+        function createPhaseFieldFunctional(obj)
+            s.mesh          = obj.mesh;
+            s.material      = obj.createMaterialPhaseField();
+            s.dissipation   = obj.createDissipationInterpolation();
+            s.l0            = obj.l0;
+            s.quadOrder     = 2;
+            s.testSpace.u   = obj.initialGuess.u;
+            s.testSpace.phi = obj.initialGuess.phi;
+            s.energySplit   = (obj.matInfo.matType == "AnalyticSplit");
+            obj.functional = PhaseFieldFunctional(s);
+        end
+
         function material = createMaterialPhaseField(obj)
             E  = obj.matInfo.young;
             nu = obj.matInfo.poisson;
             
-            s.type  = obj.matInfo.matType;
-            if s.type ~= "PhaseFieldAnalytic"
+            s.type  = 'PhaseField';
+            s.PFtype = obj.matInfo.matType;
+            if s.PFtype == "Homogenized"
                 s.fileName = obj.matInfo.fileName;
             end
             s.mesh  = obj.mesh;

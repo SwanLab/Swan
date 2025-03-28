@@ -1,4 +1,4 @@
-classdef MaterialPhaseFieldAnalytical < Material
+classdef MaterialPhaseFieldAnalytic < Material
 
     properties (Access = private)
         materialInterpolator
@@ -7,7 +7,7 @@ classdef MaterialPhaseFieldAnalytical < Material
 
     methods (Access = public)
 
-        function obj = MaterialPhaseFieldAnalytical(cParams)
+        function obj = MaterialPhaseFieldAnalytic(cParams)
             obj.init(cParams)
         end
 
@@ -17,23 +17,6 @@ classdef MaterialPhaseFieldAnalytical < Material
             C = obj.createMaterial(mu,kappa);
         end
 
-<<<<<<< Updated upstream
-        function V = obtainTensorVolumetric(obj,phi)
-            mI = obj.materialInterpolator;
-            [mu,~] = mI.computeConstitutiveTensorParams(phi);
-            kappa  = ConstantFunction.create(0,obj.mesh);
-            V = obj.createMaterial(mu,kappa);
-        end
-
-        function D = obtainTensorDeviatoric(obj,phi)
-            mI = obj.materialInterpolator;
-            [~,kappa] = mI.computeConstitutiveTensorParams(phi);
-            mu        = ConstantFunction.create(0,obj.mesh);
-            D = obj.createMaterial(mu,kappa);
-        end
-
-=======
->>>>>>> Stashed changes
         function dC = obtainTensorDerivative(obj,phi)
             mI = obj.materialInterpolator;
             [mu,kappa] = mI.computeConstitutiveTensorDerivativeParams(phi);
@@ -52,6 +35,10 @@ classdef MaterialPhaseFieldAnalytical < Material
 
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
+            if cParams.interp.degFunType == "ATSplit"
+                fprintf('ATSplit not supported by this material, changing to AT \n')
+                cParams.interp.degFunType = 'AT';
+            end
             obj.materialInterpolator  = MaterialInterpolator.create(cParams.interp);
         end
 

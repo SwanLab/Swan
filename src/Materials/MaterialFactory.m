@@ -22,11 +22,15 @@ classdef MaterialFactory < handle
                 case 'STOKES'
                     material = MaterialStokes(cParams);
                     
-                case {'PhaseFieldAnalytic','PhaseFieldAnalytical'}
-                    material = MaterialPhaseFieldAnalytical(cParams);
-                    
-                case 'PhaseFieldHomog'
-                    material = MaterialPhaseFieldHomogenized(cParams);
+                case 'PhaseField'
+                    switch cParams.PFtype
+                        case 'Analytic'
+                            material = MaterialPhaseFieldAnalytic(cParams);
+                        case 'AnalyticSplit'
+                            material = MaterialPhaseFieldAnalyticSplit(cParams);
+                        case 'Homogenized'
+                            material = MaterialPhaseFieldHomogenized(cParams);
+                    end
             end
 
         end

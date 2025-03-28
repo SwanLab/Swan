@@ -54,14 +54,16 @@ classdef InternalEnergySplitFunctional < handle
         end
 
         function F = computeEnergyBulk(obj,u,phi,quadOrder)
-            k       = obj.materialPhaseField.getBulkFun(u,phi);
+            mPF     = obj.materialPhaseField;
+            k       = mPF.obtainBulkFunction(u,phi);
             bulkFun = VolumetricElasticEnergyDensity(u,k);
             int = Integrator.create('Function',obj.mesh,quadOrder);
             F   = int.compute(bulkFun);            
         end
 
         function F = computeEnergyShear(obj,u,phi,quadOrder)
-            mu       = obj.materialPhaseField.getShearFun(phi,'Interpolated');
+            mPF      = obj.materialPhaseField;
+            mu       = mPF.obtainShearFunction(phi);
             shearFun = DeviatoricElasticEnergyDensity(u,mu);
             int = Integrator.create('Function',obj.mesh,quadOrder);
             F   = int.compute(shearFun);            
@@ -69,13 +71,15 @@ classdef InternalEnergySplitFunctional < handle
 
 
         function dE = computeVolumetricEnergyDisplacementGradient(obj,u,phi,quadOrder)
-            Cbulk    = obj.materialPhaseField.getBulkMaterial(u,phi,'Interpolated');
+            mPF      = obj.materialPhaseField;
+            Cbulk    = mPF.obtainTensorVolumetric(u,phi);
             sigmaVol = DDP(Cbulk,SymGrad(u));
             dE  = obj.computeShapeSymmetricDerivativeIntegralWithField(sigmaVol,quadOrder);
         end
 
         function dE = computeDeviatoricEnergyDisplacementGradient(obj,u,phi,quadOrder)
-            Cshear   = obj.materialPhaseField.getShearMaterial(phi,'Interpolated');
+            mPF      = obj.materialPhaseField;
+            Cshear   = mPF.obtainTensorDeviatoric(phi);
             sigmaDev = DDP(Cshear,SymGrad(u));
             dE =  obj.computeShapeSymmetricDerivativeIntegralWithField(sigmaDev,quadOrder);
         end        
@@ -90,13 +94,15 @@ classdef InternalEnergySplitFunctional < handle
 
 
         function dE = computeVolumetricEnergyDamageGradient(obj,u,phi,quadOrder)
-            dk    = obj.materialPhaseField.getBulkFun(u,phi,'Jacobian');
+            mPF   = obj.materialPhaseField;
+            dk    = mPF.obtainBulkDerivative(u,phi);
             deVol = VolumetricElasticEnergyDensity(u,dk);
             dE    =  obj.computeShapeIntegralWithField(deVol,quadOrder);
         end
 
         function dE = computeDeviatoricEnergyDamageGradient(obj,u,phi,quadOrder)
-            dmu   = obj.materialPhaseField.getShearFun(phi,'Jacobian');
+            mPF   = obj.materialPhaseField;
+            dmu   = mPF.obtainShearDerivative(phi);
             deDev = DeviatoricElasticEnergyDensity(u,dmu);
             dE    =  obj.computeShapeIntegralWithField(deDev,quadOrder);
         end        
@@ -111,12 +117,14 @@ classdef InternalEnergySplitFunctional < handle
 
 
         function ddE = computeVolumetricEnergyDisplacementHessian(obj,u,phi,quadOrder)
-            Cbulk = obj.materialPhaseField.getBulkMaterial(u,phi,'Interpolated');
+            mPF   = obj.materialPhaseField;
+            Cbulk = mPF.obtainTensorVolumetric(u,phi);
             ddE   = obj.computeElasticStiffnesMatrix(Cbulk,quadOrder);
         end
 
         function ddE = computeDeviatoricEnergyDisplacementHessian(obj,phi,quadOrder)
-            Cshear = obj.materialPhaseField.getShearMaterial(phi,'Interpolated');
+            mPF    = obj.materialPhaseField;
+            Cshear = mPF.obtainTensorDeviatoric(phi);
             ddE    = obj.computeElasticStiffnesMatrix(Cshear,quadOrder);
         end        
 
@@ -132,23 +140,25 @@ classdef InternalEnergySplitFunctional < handle
         end        
 
         function ddE = computeVolumetricEnergyDamageHessian(obj,u,phi,quadOrder)
-            ddk    = obj.materialPhaseField.getBulkFun(u,phi,'Hessian');
+            mPF    = obj.materialPhaseField;
+            ddk    = mPF.obtainBulkSecondDerivative(u,phi);
             ddeVol = VolumetricElasticEnergyDensity(u,ddk);
             ddE    = obj.computeMassWithFunction(ddeVol,quadOrder);
         end
 
         function ddE = computeDeviatoricEnergyDamageHessian(obj,u,phi,quadOrder)
-            ddmu   = obj.materialPhaseField.getShearFun(phi,'Hessian');
+            mPF    = obj.materialPhaseField;
+            ddmu   = mPF.obtainShearSecondDerivative(phi);
             ddeDev = DeviatoricElasticEnergyDensity(u,ddmu);
             ddE    = obj.computeMassWithFunction(ddeDev,quadOrder);
         end
 
         function Mf = computeMassWithFunction(obj,f,quadOrder)
-            s.fun   = f;
-            s.trial = obj.testPhi;
-            s.test  = obj.testPhi;
-            s.mesh  = obj.mesh;
-            s.type  = 'MassMatrixWithFunction';
+            s.function = f;
+            s.trial    = obj.testPhi;
+            s.test     = obj.testPhi;
+            s.mesh     = obj.mesh;
+            s.type     = 'MassMatrixWithFunction';
             s.quadratureOrder = quadOrder;
             LHS = LHSIntegrator.create(s);
             Mf  = LHS.compute();

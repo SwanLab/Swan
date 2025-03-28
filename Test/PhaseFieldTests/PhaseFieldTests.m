@@ -1,7 +1,7 @@
 classdef PhaseFieldTests < handle & matlab.unittest.TestCase
 
     properties (TestParameter)
-        singleElementCases = {'Analytical','Split','Homogenized'}
+        singleElementCases = {'Analytic','Split','Homogenized'}
         complexCases = {'SEN'}
         homogenizationCases = {'Square','Hexagon','Ellipse'}
     end

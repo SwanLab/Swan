@@ -2,12 +2,8 @@ classdef MaterialPhaseFieldHomogenized < handle
 
     properties (Access = private)
         fileName
-        structuredMesh
-        Ctensor
-        mesh
-        phi
         degradation
-        Gc
+        mesh
     end
 
     methods (Access = public)
@@ -19,24 +15,24 @@ classdef MaterialPhaseFieldHomogenized < handle
         end
 
         function C = obtainTensor(obj,phi)
-            obj.phi = phi;
-            s.operation = @(xV) obj.evaluate(xV);
+            fun = obj.degradation.fun;
+            s.operation = @(xV) obj.evaluate(phi,fun,xV);
             s.ndimf = 6;
             s.mesh  = obj.mesh;
             C = DomainFunction(s);
         end
 
         function dC = obtainTensorDerivative(obj,phi)
-            obj.phi = phi;
-            s.operation = @(xV) obj.evaluateGradient(xV);
+            fun = obj.degradation.dfun;
+            s.operation = @(xV) obj.evaluate(phi,fun,xV);
             s.ndimf = 6;
             s.mesh  = obj.mesh;
             dC =  DomainFunction(s);
         end
 
         function d2C = obtainTensorSecondDerivative(obj,phi)
-            obj.phi = phi;
-            s.operation = @(xV) obj.evaluateHessian(xV);
+            fun = obj.degradation.ddfun;
+            s.operation = @(xV) obj.evaluate(phi,fun,xV);
             s.ndimf = 6;
             s.mesh  = obj.mesh;
             d2C =  DomainFunction(s);
@@ -60,41 +56,15 @@ classdef MaterialPhaseFieldHomogenized < handle
             C   = v.mat;
         end
 
-        function C = evaluate(obj,xV)
+        function C = evaluate(~,phi,fun,xV)
             nStre = 3;
             nGaus = size(xV,2);
-            nElem = obj.phi.mesh.nelem;
+            nElem = phi.mesh.nelem;
             C = zeros(nStre,nStre,nGaus,nElem);
-            phiV = obj.phi.evaluate(xV);
+            phiV = phi.evaluate(xV);
             for i = 1:nStre
                 for j = 1:nStre
-                    C(i,j,:,:) = obj.degradation.fun{i,j}(phiV);
-                end
-            end
-        end
-
-        function dCt = evaluateGradient(obj,xV)
-            nStre = 3;
-            nGaus = size(xV,2);
-            nElem = obj.phi.mesh.nelem;
-            dCt = zeros(nStre,nStre,nGaus,nElem);
-            phiV = obj.phi.evaluate(xV);
-            for i = 1:nStre
-                for j = 1:nStre
-                    dCt(i,j,:,:) = obj.degradation.dfun{i,j}(phiV);
-                end
-            end
-        end
-
-        function d2Ct = evaluateHessian(obj,xV)
-            nStre = 3;
-            nGaus = size(xV,2);
-            nElem = obj.phi.mesh.nelem;
-            d2Ct = zeros(nStre,nStre,nGaus,nElem);
-            phiV = obj.phi.evaluate(xV);
-            for i = 1:nStre
-                for j = 1:nStre
-                    d2Ct(i,j,:,:) = obj.degradation.ddfun{i,j}(phiV);
+                    C(i,j,:,:) = fun{i,j}(phiV);
                 end
             end
         end
