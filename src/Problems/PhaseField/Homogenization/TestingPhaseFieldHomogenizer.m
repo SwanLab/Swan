@@ -9,6 +9,7 @@ classdef TestingPhaseFieldHomogenizer < handle
         nSteps
         damageType
         pnorm
+        monitoring
     end
 
     properties (Access = private)
@@ -33,6 +34,9 @@ classdef TestingPhaseFieldHomogenizer < handle
             phi = zeros(1,nComb);
             for i=1:nComb
                 hole = comb(i,:);
+                if i==1
+                    hole = zeros(size(hole));
+                end
                 mat(:,:,i) = obj.computeHomogenization(hole);
                 phi(i)     = obj.computeDamageMetric(hole);
             end
@@ -53,6 +57,7 @@ classdef TestingPhaseFieldHomogenizer < handle
             obj.nSteps     = cParams.nSteps;
             obj.damageType = cParams.damageType;
             obj.pnorm      = cParams.pnorm;
+            obj.monitoring = cParams.monitoring;
         end
 
         function defineMesh(obj)
@@ -176,9 +181,13 @@ classdef TestingPhaseFieldHomogenizer < handle
         end
 
         function matHomog = solveElasticMicroProblem(obj,material,dens)
-            % dens.plot
-            % shading interp
-            % colormap (flipud(pink))
+            if obj.monitoring == true
+                close all
+                dens.plot
+                shading interp
+                colormap (flipud(pink))
+                drawnow
+            end
 
             s.mesh = obj.baseMesh;
             s.material = material;
@@ -251,18 +260,17 @@ classdef TestingPhaseFieldHomogenizer < handle
         end
 
         function phi = computeDamageMetric(obj,l)
-            max = obj.maxParam;
             switch obj.damageType
                 case 'Area'
                     switch obj.holeType
                         case 'Circle'
-                            phi = l^2/(max^2);
+                            phi = l^2;
                         case 'Square'
-                            phi = l^2/max^2;
+                            phi = l^2;
                         case 'Ellipse'
-                            phi = (l(1)*l(2))/(max(1)*max(2));
+                            phi = l(1)*l(2);
                         case 'Rectangle'
-                            phi = (l(1)*l(2))/(max(1)*max(2));
+                            phi = l(1)*l(2);
                         case 'SmoothHexagon'
                             perimeter = 6*l;
                             apothem   = sqrt(l^2 - (l/2)^2);
@@ -271,16 +279,16 @@ classdef TestingPhaseFieldHomogenizer < handle
                 case 'Perimeter'
                     switch obj.holeType
                         case 'Circle'
-                            phi = l/max;
+                            phi = l;
                         case 'Ellipse'
                             phi = pi*(3*(l(1)+l(2))-sqrt((3*l(1)+l(2))*(l(1)+3*l(2))))/...
-                                  pi*(3*(max(1)+max(2))-sqrt((3*max(1)+max(2))*(max(1)+3*max(2))));
+                                  pi*(3*(2)-sqrt((3+1)*(1+3)));
                         case 'Square'
-                            phi = l/max;
+                            phi = l;
                         case 'Rectangle'
-                            phi = (l(1)+l(2))/(max(1)+max(2));
+                            phi = l(1)+l(2);
                         case 'SmoothHexagon'
-                            phi = 6*l;
+                            phi = l;
                     end
             end
         end

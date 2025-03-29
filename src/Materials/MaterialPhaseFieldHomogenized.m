@@ -10,8 +10,7 @@ classdef MaterialPhaseFieldHomogenized < handle
 
         function obj = MaterialPhaseFieldHomogenized(cParams)
             obj.init(cParams)
-            [mxV, C] = obj.loadVademecum();
-            obj.computeFunctionsAndDerivatives(mxV,C);
+            obj.loadVademecum();
         end
 
         function C = obtainTensor(obj,phi)
@@ -47,13 +46,21 @@ classdef MaterialPhaseFieldHomogenized < handle
             obj.mesh      = cParams.mesh;
         end
 
-        function [mxV, C] = loadVademecum(obj)
+        function loadVademecum(obj)
             fName = [obj.fileName];
             matFile   = [fName,'.mat'];
             file2load = fullfile('PFVademecum','Degradation',matFile);
             v = load(file2load);
-            mxV = v.phi;
-            C   = v.mat;
+            if isfield(v,'degradationFun')
+                obj.degradation = v.degradationFun;
+            else
+                phi = v.phi; mat = v.mat;
+                DHF = DamageHomogenizationFitter();
+                [f,df,ddf] = DHF.computePolynomialFitting(9,phi,mat);
+                obj.degradation.fun = f;
+                obj.degradation.dfun = df;
+                obj.degradation.ddfun = ddf;
+            end
         end
 
         function C = evaluate(~,phi,fun,xV)
@@ -65,37 +72,6 @@ classdef MaterialPhaseFieldHomogenized < handle
             for i = 1:nStre
                 for j = 1:nStre
                     C(i,j,:,:) = fun{i,j}(phiV);
-                end
-            end
-        end
-
-        function computeFunctionsAndDerivatives(obj,mxV,C)
-            x = reshape(mxV,length(mxV),[]);
-            y = C;
-            nStre = size(C,1);
-
-            fun   = cell(3,3);
-            dfun  = cell(3,3);
-            ddfun = cell(3,3);
-            for i=1:nStre
-                for j=1:nStre
-                    degreePoly = 9;
-                    fixedPointX = [0,1];
-                    fixedPointY = [squeeze(y(i,j,1)),0];
-                    coeffs = polyfix(x,squeeze(y(i,j,:)),degreePoly,fixedPointX,fixedPointY);
-                    fun{i,j} = poly2sym(coeffs);
-                    dfun{i,j} = diff(fun{i,j});
-                    ddfun{i,j} = diff(dfun{i,j});
-                    if all(coeffs)
-                        obj.degradation.fun{i,j}   = matlabFunction(fun{i,j});
-                        obj.degradation.dfun{i,j}  = matlabFunction(dfun{i,j});
-                        obj.degradation.ddfun{i,j} = matlabFunction(ddfun{i,j});
-                    else
-                        obj.degradation.fun{i,j}   = @(x) x-x;
-                        obj.degradation.dfun{i,j}  = @(x) x-x;
-                        obj.degradation.ddfun{i,j} = @(x) x-x;
-                    end
-
                 end
             end
         end
