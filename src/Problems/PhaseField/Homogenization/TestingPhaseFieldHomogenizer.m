@@ -286,7 +286,7 @@ classdef TestingPhaseFieldHomogenizer < handle
                         case 'Square'
                             phi = l;
                         case 'Rectangle'
-                            phi = l(1)+l(2);
+                            phi = (l(1)+l(2))/2;
                         case 'SmoothHexagon'
                             phi = l;
                     end
