@@ -5,7 +5,7 @@ function dom = OP(A,B)
     else
         s.mesh = B.mesh;
     end
-    dom         = DomainFunction(s);
+    dom = DomainFunction(s);
 end
 
 function aDb = evaluate(a,b,xV)
@@ -13,7 +13,6 @@ function aDb = evaluate(a,b,xV)
     bEval = adaptSize(b,xV);
     bEval = pagetranspose(bEval);
     aDb = pagemtimes(aEval,bEval);
-    aDb = squeezeParticular(aDb,1);
 end
 
 function aEval = adaptSize(a,xV)
