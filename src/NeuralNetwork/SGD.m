@@ -78,7 +78,7 @@ classdef SGD < Trainer
                 while obj.objectiveFunction.isBatchDepleted == false || newEpoch
                     [f, grad] = obj.computeStochasticFunctionAndGradient(theta, moveBatch);
                     [epsilon,theta,funcount] = obj.lineSearch(theta,grad,f,epsilon,funcount);
-                    
+
                     funcount  = funcount + 1;
                     iter      = iter + 1;
                     newEpoch  = false;
@@ -154,8 +154,8 @@ classdef SGD < Trainer
         end
 
         function displayIter(obj,iter,funcount,x,epsilon,state,KPI)
-            opt.epsilon        = epsilon*KPI.gnorm; 
-            opt.gnorm          = KPI.gnorm;
+            opt.epsilon = epsilon*KPI.gnorm; 
+            opt.gnorm   = KPI.gnorm;
             obj.printValues(KPI.epoch,funcount,opt,KPI.cost,iter)
             if obj.isDisplayed && (~mod(epoch, 25) || iter == -1)
                 obj.storeValues(x,f,state,opt);

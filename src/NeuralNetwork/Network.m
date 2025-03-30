@@ -16,6 +16,7 @@ classdef Network < handle
         nFeatures
         nLabels
         nPolyFeatures
+        deltag
     end
 
     methods (Access = public)
@@ -28,7 +29,9 @@ classdef Network < handle
         function c = forwardprop(obj,Xb,Yb)
             obj.computeAvalues(Xb);
             yOut  = obj.aValues{end}; 
+            % Out ↓
             [c,~] = obj.lossFunction(Yb,yOut);
+            % Out ↑
         end
 
         function yOut = computeYOut(obj,Xb)
@@ -39,8 +42,10 @@ classdef Network < handle
         function computeAvalues(obj,X)
             [W,b] = obj.learnableVariables.reshapeInLayerForm();
             nLy = obj.nLayers;
+            z = cell(nLy,1);
             a = cell(nLy,1);
             a{1} = X;
+            z{1} = X;
             for i = 2:nLy
                 g_prev = a{i-1};
                 Wi = W{i-1};
@@ -58,7 +63,7 @@ classdef Network < handle
             nPl = obj.neuronsPerLayer;
             nLy = obj.nLayers;
             m = length(Yb);
-            deltag = cell(nLy,1);
+            obj.deltag = cell(nLy,1);
 
             dcW = cell(nLy-1,1);
             dcB = cell(nLy-1,1);
@@ -66,21 +71,44 @@ classdef Network < handle
             for k = nLy:-1:2
                 [~,a_der] = obj.actFCN(a{k},k);
                 if k == nLy
+                    % Out ↓
                     yOut   = a{end};
                     [~,t1] = obj.lossFunction(Yb,yOut);
-                    deltag{k} = t1.*a_der;
+                    obj.deltag{k} = t1.*a_der;
+                    % Out ↑
                 else
-                    deltag{k} = (W{k}*deltag{k+1}')'.*a_der;
+                    obj.deltag{k} = (W{k}*obj.deltag{k+1}')'.*a_der;
                 end
-                dcW{k-1} = (1/m)*(a{k-1}'*deltag{k});
-                dcB{k-1} = (1/m)*(sum(deltag{k},1));
+                dcW{k-1} = (1/m)*(a{k-1}'*obj.deltag{k});
+                dcB{k-1} = (1/m)*(sum(obj.deltag{k},1));
             end
 
             dc = [];
             for i = 2:nLy
                 aux1 = [reshape(dcW{i-1},[1,nPl(i-1)*nPl(i)]),dcB{i-1}];
-                dc  = [dc,aux1];
+                dc   = [dc,aux1];
             end
+
+        end
+
+        function dy = networkGradient(obj,X)
+
+            obj.computeAvalues(X);
+            [W,~] = obj.learnableVariables.reshapeInLayerForm();
+            a = obj.aValues;
+            nLy = obj.nLayers;
+
+            for k = nLy-1:-1:1
+                [~,a_der] = obj.actFCN(a{k+1},k+1);
+                a_der = diag(a_der);
+                parDer = a_der * W{k}';
+                if k == nLy-1
+                    grad = parDer;
+                else
+                    grad = grad * parDer;
+                end
+            end
+            dy = grad;
 
         end
 
@@ -110,15 +138,9 @@ classdef Network < handle
             obj.nLabels      = cParams.data.nLabels;
             obj.createNeuronsPerLayer();
             obj.createNumberOfLayers();
-            %         if length(cParams) <= 2
-            %             obj.Costtype = '-loglikelihood';
-            %             obj.HUtype = 'ReLU';%'sigmoid';
-            %             obj.OUtype = 'sigmoid';'softmax';
-            %         else
             obj.Costtype = cParams.costType;
             obj.HUtype   = cParams.HUtype;
             obj.OUtype   = cParams.OUtype;
-            %        end
         end
 
         function createNumberOfLayers(obj)
@@ -140,6 +162,7 @@ classdef Network < handle
             obj.learnableVariables = t;
         end
 
+        % Out ↓
         function [J,gc] = lossFunction(obj,y,yOut)
             type = obj.Costtype;
             yp = yOut-10^-10;
@@ -159,6 +182,7 @@ classdef Network < handle
                     error(msg)
             end
         end
+        % Out ↑
 
         function [g,g_der] = actFCN(obj,z,k)
             nLy = obj.nLayers;
@@ -184,8 +208,6 @@ classdef Network < handle
                     g = z;
                     g_der = ones(size(z));
                 otherwise
-                    %g = z;
-                    %g_der = ones(size(z));
                     msg = [type,' is not a valid activation function'];
                     error(msg)
             end

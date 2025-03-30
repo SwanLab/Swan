@@ -63,6 +63,10 @@ classdef OptimizationProblem < handle
            yOut = obj.network.computeYOut(X);
        end
 
+       function dY = computeGradient(obj,X)
+           dY = obj.network.networkGradient(X);
+       end
+
    end
 
    methods (Access = private)
