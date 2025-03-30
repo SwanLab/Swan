@@ -25,8 +25,8 @@ s.testRatio       = testratio;
 s.networkParams.hiddenLayers    = hiddenLayers;
 s.optimizerParams.learningRate  = learningRate;
 s.costParams.lambda             = lambda;
+s.costParams.costType           = 'L2';
 
-s.networkParams.costType = 'L2';
 s.networkParams.HUtype = 'ReLU';
 s.networkParams.OUtype = 'linear';
 

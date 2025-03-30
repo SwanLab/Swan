@@ -7,11 +7,11 @@ classdef Sh_Func_Loss < handle
     end
 
     properties (Access = private)
+        costType
         designVariable
         network
         data
     end
-
     
     methods (Access = public)
         
@@ -24,9 +24,10 @@ classdef Sh_Func_Loss < handle
         function [j, dj] = computeFunctionAndGradient(obj, x)
             obj.designVariable.thetavec = x;
             Xb = obj.data.Xtrain;
-            Yb = obj.data.Ytrain;            
-            j  = obj.computeCost(Xb,Yb);
-            dj = obj.computeGradient(Yb);
+            Yb = obj.data.Ytrain;
+            yOut = obj.network.computeYOut(Xb);
+            j  = obj.computeCost(yOut,Yb);
+            dj = obj.computeGradient(yOut,Yb);
         end
 
         function [j,dj,isBD] = computeStochasticCostAndGradient(obj,x,moveBatch)
@@ -34,8 +35,9 @@ classdef Sh_Func_Loss < handle
             Xt = obj.data.Xtrain;
             Yt = obj.data.Ytrain;            
             [Xb,Yb] = obj.updateSampledDataSet(Xt,Yt,obj.iBatch);
-            j  = obj.computeCost(Xb,Yb);
-            dj = obj.computeGradient(Yb);
+            yOut = obj.network.computeYOut(Xb);
+            j  = obj.computeCost(yOut,Yb);
+            dj = obj.computeGradient(yOut,Yb);
             obj.iBatch = obj.updateBatchCounter(obj.iBatch,moveBatch);
             isBD = obj.isBatchDepleted(obj.iBatch,moveBatch);
         end
@@ -53,17 +55,37 @@ classdef Sh_Func_Loss < handle
     methods (Access = private)
         
         function init(obj,cParams)
+            obj.costType       = cParams.costType;
             obj.designVariable = cParams.designVariable;
             obj.network        = cParams.network;
             obj.data           = cParams.data;
         end
 
-        function j = computeCost(obj,Xb,Yb)
-            j = obj.network.forwardprop(Xb,Yb);
+        function j = computeCost(obj,yOut,Yb)
+            [j, ~] = obj.lossFunction(Yb,yOut);
         end
 
-        function dj = computeGradient(obj,Yb)
-            dj = obj.network.backprop(Yb);
+        function dj = computeGradient(obj,yOut,Yb)
+            [~, dLF] = obj.lossFunction(Yb,yOut);
+            dj = obj.network.backprop(Yb,dLF);
+        end
+
+        function [J,gc] = lossFunction(obj,y,yOut)
+            type = obj.costType;
+            yp = yOut - 1e-11;
+            switch type
+                case '-loglikelihood'
+                    c = sum((1-y).*(-log(1-yp)) + y.*(-log(yp)),2);
+                    J = mean(c);
+                    gc = (yp-y)./(yp.*(1-yp));
+                case 'L2'
+                    c = ((yp-y).^2);
+                    J = sqrt(sum(c, 'all'));
+                    gc = (yp-y);
+                otherwise
+                    msg = [type,' is not a valid cost function'];
+                    error(msg)
+            end
         end
 
         function [ord,nBatches] = computeNumberOfBatchesAndOrder(obj)
@@ -79,7 +101,6 @@ classdef Sh_Func_Loss < handle
             obj.order = ord;
             obj.nBatches = nBatches;
         end
-
 
         function itIs = isBatchDepleted(obj,iBatch,moveBatch)
             itIs = iBatch == obj.nBatches && moveBatch;
