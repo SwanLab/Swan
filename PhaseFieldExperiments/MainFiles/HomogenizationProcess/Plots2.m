@@ -4,28 +4,28 @@ matType{2} = load('CircleMicroDamagePerimeter.mat');
 matType{3} = load('SquareMicroDamageArea.mat');
 matType{4} = load('SquareMicroDamagePerimeter.mat');
 matType{5} = load('IsoMicroDamage.mat');
-matType{6} = load('CrackMicroDamageCubic.mat');
+matType{6} = load('HorizontalCrackDamage.mat');
 matType{6}.mat = matType{6}.mat*210;
 
 % Change of variable
 %matType{6}.phi  = matType{6}.holeParam{1};
 %matType{6}.phi = matType{6}.holeParam{1}.^2;
-matType{6}.phi = matType{6}.holeParam{1};
+matType{6}.phi = matType{6}.phi{1};
 
 %% Polynomial fraction fitting
-x = matType{6}.holeParam{1};
-y = squeeze(matType{6}.mat(3,3,:));
+phi = matType{6}.holeParam{1};
+C = squeeze(matType{6}.mat(3,3,:));
 
-num = @(p) (  p(21).*x.^10 + p(19).*x.^9 + p(17).*x.^8 + p(15).*x.^7 + p(13).*x.^6 ...
-            + p(11).*x.^5 + p(9).*x.^4 + p(7).*x.^3 + p(5).*x.^2 ...
-            + p(3).*x.^1 + p(1));
-den = @(p) (  p(22).*x.^10 + p(20).*x.^9 + p(18).*x.^8 + p(16).*x.^7 + p(14).*x.^6 ...
-            + p(12).*x.^5 + p(10).*x.^4 + p(8).*x.^3 + p(6).*x.^2 ...
-            + p(4).*x.^1 + p(2));
-yp = @(p) num(p)./den(p) + p(23);
+num = @(p) (  p(21).*phi.^10 + p(19).*phi.^9 + p(17).*phi.^8 + p(15).*phi.^7 + p(13).*phi.^6 ...
+            + p(11).*phi.^5 + p(9).*phi.^4 + p(7).*phi.^3 + p(5).*phi.^2 ...
+            + p(3).*phi.^1 + p(1));
+den = @(p) (  p(22).*phi.^10 + p(20).*phi.^9 + p(18).*phi.^8 + p(16).*phi.^7 + p(14).*phi.^6 ...
+            + p(12).*phi.^5 + p(10).*phi.^4 + p(8).*phi.^3 + p(6).*phi.^2 ...
+            + p(4).*phi.^1 + p(2));
+Cp = @(p) num(p)./den(p) + p(23);
 
 
-objective = @(p) sum(sqrt(((yp(p)'-y)./y).^2));
+objective = @(p) sum(sqrt(((Cp(p)'-C)./C).^2));
 options = optimoptions(@fminunc,'StepTolerance',1e-10,'OptimalityTolerance',1e-10,...
                         'maxFunctionEvaluations',5e3,'MaxFunctionEvaluations',10000);
 
@@ -46,80 +46,99 @@ num = @(x) (  p(21).*x.^10 + p(19).*x.^9 + p(17).*x.^8 + p(15).*x.^7 + p(13).*x.
 den = @(x) (  p(22).*x.^10 + p(20).*x.^9 + p(18).*x.^8 + p(16).*x.^7 + p(14).*x.^6 ...
             + p(12).*x.^5 + p(10).*x.^4 + p(8).*x.^3 + p(6).*x.^2 ...
             + p(4).*x.^1 + p(2));
-yp = @(x) num(x)./den(x) + p(23);
+Cp = @(x) num(x)./den(x) + p(23);
 
 disp("Initial objective: " + num2str(objective(p0)));
 disp("Final objective: " + num2str(objective(pResUnc)));
-plot(x,y,'ro')
+plot(phi,C,'ro')
 hold on
-fplot(yp,[0 1],'-')
+fplot(Cp,[0 1],'-')
 legend('measured','optimal')
 
 %% Polynomial fraction fitting constrained
+tiledlayout(3,3)
+fun = cell(3,3);
+for i=1:3
+    for j=1:3
+        phi = matType{6}.phi;
+        C = squeeze(matType{6}.mat(i,j,:));
 
-tiledlayout(2,2)
-idx = [1 1; 1 2; 2 2; 3 3];
+        num = @(p) (p(21).*phi.^10 + p(19).*phi.^9 + p(17).*phi.^8 + p(15).*phi.^7 + p(13).*phi.^6 ...
+            + p(11).*phi.^5 + p(9).*phi.^4 + p(7).*phi.^3 + p(5).*phi.^2 ...
+            + p(3).*phi.^1 + p(1));
+        den = @(p) (p(22).*phi.^10 + p(20).*phi.^9 + p(18).*phi.^8 + p(16).*phi.^7 + p(14).*phi.^6 ...
+            + p(12).*phi.^5 + p(10).*phi.^4 + p(8).*phi.^3 + p(6).*phi.^2 ...
+            + p(4).*phi.^1 + p(2));
+        Cp = @(p) num(p)./den(p);
 
-for j=1:length(idx)
-x = matType{6}.phi;
-y = squeeze(matType{6}.mat(idx(j,1),idx(j,2),:));
+        A = []; b = []; Aeq = []; beq = []; lb = []; ub = [];
 
-num = @(p) (  p(21).*x.^10 + p(19).*x.^9 + p(17).*x.^8 + p(15).*x.^7 + p(13).*x.^6 ...
+        if i==1 && j==1
+            nonlcon = @(p) nonLinearCon11(p,C);
+        else
+            nonlcon = @(p) nonLinearCon(p,C);
+        end
+
+        objective = @(p) sum(sqrt(((Cp(p)'-C)./C).^2));
+        options = optimoptions(@fmincon,'StepTolerance',1e-10,'OptimalityTolerance',1e-10,...
+            'ConstraintTolerance',1e-10,'MaxFunctionEvaluations',10000);
+
+        objResCon = 100;
+        for k=1:1000
+            k
+            p0 = rand(1,22);
+            [popt,fval,exitflag,output,lambda,grad,hessian] = fmincon(objective,p0,A,b,Aeq,beq,lb,ub,nonlcon,options);
+            if fval<objResCon
+                objResCon = fval;
+                pResCon = popt;
+            end
+        end
+
+        p = pResCon;
+        syms x
+        num = (p(21).*x.^10 + p(19).*x.^9 + p(17).*x.^8 + p(15).*x.^7 + p(13).*x.^6 ...
             + p(11).*x.^5 + p(9).*x.^4 + p(7).*x.^3 + p(5).*x.^2 ...
             + p(3).*x.^1 + p(1));
-den = @(p) (  p(22).*x.^10 + p(20).*x.^9 + p(18).*x.^8 + p(16).*x.^7 + p(14).*x.^6 ...
+        den = (p(22).*x.^10 + p(20).*x.^9 + p(18).*x.^8 + p(16).*x.^7 + p(14).*x.^6 ...
             + p(12).*x.^5 + p(10).*x.^4 + p(8).*x.^3 + p(6).*x.^2 ...
             + p(4).*x.^1 + p(2));
-yp = @(p) num(p)./den(p);
+        Cp = num./den;
+        fun{i,j} = Cp;
 
-A = []; b = []; Aeq = []; beq = []; lb = []; ub = [];
+        disp("Initial objective: " + num2str(objective(p0)));
+        disp("Final objective: " + num2str(objective(pResCon)));
 
-if j==1
-    nonlcon = @(p) nonLinearCon11(p,y);
-else
-    nonlcon = @(p) nonLinearCon(p,y);
-end
+        nexttile
+        plot(phi,C,'X','LineWidth',1.5)
+        hold on
+        fplot(Cp,[0 1],'LineWidth',1.5)
 
-objective = @(p) sum(sqrt(((yp(p)'-y)./y).^2));
-options = optimoptions(@fmincon,'StepTolerance',1e-10,'OptimalityTolerance',1e-10,...
-                        'ConstraintTolerance',1e-10,'MaxFunctionEvaluations',10000);
-
-objResCon = 100;
-for i=1:1000
-    i
-    p0 = rand(1,22);
-    [popt,fval,exitflag,output,lambda,grad,hessian] = fmincon(objective,p0,A,b,Aeq,beq,lb,ub,nonlcon,options);
-    if fval<objResCon
-        objResCon = fval;
-        pResCon = popt;
+        ylabel(char(8450)+"12 [GPa]");
+        ylim([0,inf])
+        xlabel("Damage "+char(632)+" [-]");
     end
-end
-
-p = pResCon;
-num = @(x) (  p(21).*x.^10 + p(19).*x.^9 + p(17).*x.^8 + p(15).*x.^7 + p(13).*x.^6 ...
-            + p(11).*x.^5 + p(9).*x.^4 + p(7).*x.^3 + p(5).*x.^2 ...
-            + p(3).*x.^1 + p(1));
-den = @(x) (  p(22).*x.^10 + p(20).*x.^9 + p(18).*x.^8 + p(16).*x.^7 + p(14).*x.^6 ...
-            + p(12).*x.^5 + p(10).*x.^4 + p(8).*x.^3 + p(6).*x.^2 ...
-            + p(4).*x.^1 + p(2));
-yp = @(x) num(x)./den(x);
-
-disp("Initial objective: " + num2str(objective(p0)));
-disp("Final objective: " + num2str(objective(pResCon)));
-
-nexttile
-plot(x,y,'X','LineWidth',1.5)
-hold on
-fplot(yp,[0 1],'LineWidth',1.5)
-
-ylabel(char(8450)+"12 [GPa]");
-ylim([0,inf])
-xlabel("Damage "+char(632)+" [-]");
-
 end
 lg =legend('measured','optimal');
 lg.Layout.Tile = 'East';
 
+dfun  = cell(3,3);
+ddfun = cell(3,3);
+for i=1:3
+    for j=1:3
+        dfun{i,j} = diff(fun{i,j});
+        ddfun{i,j} = diff(dfun{i,j});
+        if (i==1 && j==3) || (i==2 && j==3) || (i==3 && j==1) || (i==3 && j==2)
+            degradationFun.fun{i,j} = @(x) x-x;
+            degradationFun.dfun{i,j} = @(x) x-x;
+            degradationFun.ddfun{i,j} = @(x) x-x;
+        else
+            degradationFun.fun{i,j} = matlabFunction(fun{i,j});
+            degradationFun.dfun{i,j} = matlabFunction(dfun{i,j});
+            degradationFun.ddfun{i,j} = matlabFunction(ddfun{i,j}); 
+        end
+
+    end
+end
 %% Include points
 % %% Include final points
 % matType{6}.mat(:,:,end+1) = [matType{6}.mat(1,1,end), 0 , 0;

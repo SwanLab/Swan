@@ -7,10 +7,10 @@ s.meshN      = 200;
 s.holeType   = 'Rectangle';
 s.nSteps     = [200,1];
 s.pnorm      = 'Inf';
-s.damageType = "Area";
+s.damageType = "Perimeter";
 PFH = TestingPhaseFieldHomogenizer(s);
 [mat,phi,holeParam] = PFH.compute();
-
+phi = holeParam;
 %% SAVE + PLOTS 
 %save("EllipseMicroDamageArea","mat","phi","holeParam")
 % figure()

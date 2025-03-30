@@ -118,7 +118,8 @@ classdef TestingPhaseFieldHomogenizer < handle
         end
 
         function paramHoleOut = applyChangeOfVariable(obj,paramHoleIn)
-            paramHoleOut = paramHoleIn.^(1/3);
+            paramHoleOut = paramHoleIn;
+            %paramHoleOut = paramHoleIn.^(1/3);
         end
 
         function matHomog = computeHomogenization(obj,l)
