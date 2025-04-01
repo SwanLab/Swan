@@ -6,9 +6,9 @@
 % TopOptTestTutorialLevelSetPerimeterPNorm
 
 alpha   = [0.3 0.4 0.55];
-pTarget = [2 2.5 3 3.5 4];
+pTarget = [2 2.5];
 
-pNorm   = [1 4 8];
+pNorm   = 16;
 
 for ii = 1:size(pNorm,2)
     for jj = 1:size(pTarget,2)

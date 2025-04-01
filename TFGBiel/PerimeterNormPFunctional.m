@@ -6,7 +6,6 @@ classdef PerimeterNormPFunctional < handle
         totalVolume
         filter
         epsilon
-        eps
     end
 
     properties (Access = private)
@@ -35,7 +34,6 @@ classdef PerimeterNormPFunctional < handle
             obj.mesh            = cParams.mesh;
             obj.perimeterTarget = cParams.perimeterTarget;
             obj.p               = cParams.p;
-            obj.eps             = cParams.eps;
         end
 
         function createQuadrature(obj)
@@ -53,7 +51,7 @@ classdef PerimeterNormPFunctional < handle
             s.mesh       = obj.mesh;
             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
             f            = Filter.create(s);
-            obj.epsilon  = obj.eps*obj.mesh.computeMeanCellSize();
+            obj.epsilon  = 2*obj.mesh.computeMeanCellSize();
             f.updateEpsilon(obj.epsilon);
             obj.filter = f;
         end
