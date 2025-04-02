@@ -12,7 +12,6 @@ classdef PhaseFieldComputer < handle
     properties (Access = private)
         shallPrint
         monitor
-        data
         stop
     end
 
@@ -163,13 +162,13 @@ classdef PhaseFieldComputer < handle
     methods (Access = private)
         %% %%%%%%%%%%%%%%%%%%%%%% INITIALIZATION %%%%%%%%%%%%%%%%%%%%%%%% %%
         function init(obj,cParams)
-            obj.mesh                = cParams.mesh;
-            obj.initialGuess        = cParams.initialGuess;
-            obj.boundaryConditions  = cParams.boundaryConditions;
-            obj.functional          = cParams.functional;
-            obj.shallPrint          = cParams.monitoring.print;
-            obj.tol                 = cParams.tolerance;
-            obj.solverType          = cParams.solverType;
+            obj.mesh               = cParams.mesh;
+            obj.initialGuess       = cParams.initialGuess;
+            obj.boundaryConditions = cParams.boundaryConditions;
+            obj.functional         = cParams.functional;
+            obj.shallPrint         = cParams.monitoring.print;
+            obj.tol                = cParams.tolerance;
+            obj.solverType         = cParams.solverType;
             obj.setMonitoring(cParams)
         end
 
