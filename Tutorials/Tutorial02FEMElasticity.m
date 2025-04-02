@@ -40,7 +40,7 @@ classdef Tutorial02FEMElasticity < handle
         function createMaterial(obj)
             s.type    = 'ISOTROPIC';
             s.ptype   = 'ELASTIC';
-            s.pdim    = obj.mesh.ndim;
+            s.ndim    = obj.mesh.ndim;
             s.young   = obj.young;
             s.poisson = obj.poisson;
             tensor    = Material.create(s);

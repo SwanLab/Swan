@@ -86,6 +86,7 @@ classdef TopOptViaHomogenizationTutorial < handle
             s.type  = 'HomogenizedMicrostructure';
             s.fileName = 'Rectangle';
             s.microParams = m;
+            s.mesh = obj.mesh;
             m = Material.create(s);
         end
 
@@ -105,7 +106,7 @@ classdef TopOptViaHomogenizationTutorial < handle
         function c = createComplianceFromConstiutive(obj)
             s.mesh         = obj.mesh;
             s.stateProblem = obj.physicalProblem;
-            c = ComplianceFromConstiutiveTensor(s);
+            c = ComplianceFromConstitutiveTensor(s);
         end
 
         function createCompliance(obj)
@@ -150,7 +151,7 @@ classdef TopOptViaHomogenizationTutorial < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 3;
             s.tolerance      = 1e-8;
             s.constraintCase = 'EQUALITY';
             s.ub             = 1;
