@@ -1,4 +1,4 @@
-classdef PhaseFieldBoundaryCreator < handle
+classdef phaseFieldBoundaryCreator < handle
     
     properties (Access = public)
         
@@ -17,7 +17,7 @@ classdef PhaseFieldBoundaryCreator < handle
     
     methods (Access = public)
         
-        function obj = PhaseFieldBoundaryCreator(mesh,cParams)
+        function obj = phaseFieldBoundaryCreator(mesh,cParams)
             obj.init(mesh,cParams)
             obj.defineBoundaryConditions(cParams);
         end
