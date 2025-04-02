@@ -29,13 +29,12 @@ classdef Tutorial02p2FEMElasticityMicro < handle
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(ls);
             holeMesh = uMesh.createInnerMesh();
-            %obj.mesh = holeMesh;
-            obj.mesh = fullmesh;
+            obj.mesh = holeMesh;
         end
 
         function ls = computeCircleLevelSet(obj, mesh)
             gPar.type          = 'Circle';
-            gPar.radius        = 0.0;
+            gPar.radius        = 0.3;
             gPar.xCoorCenter   = 0.5;
             gPar.yCoorCenter   = 0.5;
             g                  = GeometricalFunction(gPar);
