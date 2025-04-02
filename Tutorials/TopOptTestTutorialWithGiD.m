@@ -95,12 +95,11 @@ classdef TopOptTestTutorialWithGiD < handle
         function m = createMaterial(obj)
             x = obj.designVariable;
             f = x.obtainDomainFunction();
-            f = f{1}.project('P1');            
+            f = f.project('P1');            
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '2D';
-            s.mesh                 = obj.mesh;
             m = Material.create(s);
         end
 
@@ -121,7 +120,7 @@ classdef TopOptTestTutorialWithGiD < handle
         function c = createComplianceFromConstiutive(obj)
             s.mesh         = obj.mesh;
             s.stateProblem = obj.physicalProblem;
-            c = ComplianceFromConstitutiveTensor(s);
+            c = ComplianceFromConstiutiveTensor(s);
         end
 
         function createCompliance(obj)
@@ -154,7 +153,7 @@ classdef TopOptTestTutorialWithGiD < handle
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             s.mesh  = obj.mesh;
             s.type  = 'MassMatrix';
-            LHS = LHSIntegrator.create(s);
+            LHS = LHSintegrator.create(s);
             M = LHS.compute;     
         end
 
@@ -176,7 +175,7 @@ classdef TopOptTestTutorialWithGiD < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 3;
+            s.maxIter        = 5;
             s.tolerance      = 1e-8;
             s.constraintCase = 'EQUALITY';
             s.ub             = 1;
@@ -187,7 +186,7 @@ classdef TopOptTestTutorialWithGiD < handle
         end
 
         function newbcGiD = createBoundaryConditions(obj)
-            femReader = FemInputReaderGiD();
+            femReader = FemInputReader_GiD();
             s         = femReader.read(obj.filename);
             sPL       = obj.computeCondition(s.pointload);
             sDir      = obj.computeCondition(s.dirichlet);

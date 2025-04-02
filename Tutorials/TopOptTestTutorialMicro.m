@@ -10,7 +10,7 @@ classdef TopOptTestTutorialMicro < handle
         volume
         cost
         constraint
-        primalUpdater
+        dualVariable
         optimizer
     end
 
@@ -27,7 +27,7 @@ classdef TopOptTestTutorialMicro < handle
             obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
-            obj.createPrimalUpdater();
+            obj.createDualVariable();
             obj.createOptimizer();
         end
 
@@ -101,12 +101,11 @@ classdef TopOptTestTutorialMicro < handle
         function m = createMaterial(obj)
             x = obj.designVariable;
             f = x.obtainDomainFunction();
-            f = f{1}.project('P1');            
+            f = f.project('P1');            
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '2D';
-            s.mesh                 = obj.mesh;
             m = Material.create(s);
         end
 
@@ -154,7 +153,7 @@ classdef TopOptTestTutorialMicro < handle
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             s.mesh  = obj.mesh;
             s.type  = 'MassMatrix';
-            LHS = LHSIntegrator.create(s);
+            LHS = LHSintegrator.create(s);
             M = LHS.compute;     
         end
 
@@ -164,11 +163,10 @@ classdef TopOptTestTutorialMicro < handle
             obj.constraint      = Constraint(s);
         end
 
-        function createPrimalUpdater(obj)
-            s.ub     = 1;
-            s.lb     = 0;
-            s.tauMax = 1000;
-            obj.primalUpdater = ProjectedGradient(s);
+        function createDualVariable(obj)
+            s.nConstraints   = 1;
+            l                = DualVariable(s);
+            obj.dualVariable = l;
         end
 
         function createOptimizer(obj)
@@ -176,10 +174,13 @@ classdef TopOptTestTutorialMicro < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 3;
+            s.dualVariable   = obj.dualVariable;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.primalUpdater  = obj.primalUpdater;
+            s.primal         = 'PROJECTED GRADIENT';
+            s.ub             = inf;
+            s.lb             = -inf;
             s.etaNorm        = 0.02;
             s.gJFlowRatio    = 0.2;
             opt = OptimizerNullSpace(s);

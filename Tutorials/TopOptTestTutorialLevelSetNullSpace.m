@@ -10,7 +10,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         volume
         cost
         constraint
-        primalUpdater
+        dualVariable
         optimizer
     end
 
@@ -28,7 +28,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
-            obj.createPrimalUpdater();
+            obj.createDualVariable();
             obj.createOptimizer();
         end
 
@@ -103,7 +103,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'CG';
+            s.solverCase = 'rMINRES';
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -111,7 +111,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         function c = createComplianceFromConstiutive(obj)
             s.mesh         = obj.mesh;
             s.stateProblem = obj.physicalProblem;
-            c = ComplianceFromConstitutiveTensor(s);
+            c = ComplianceFromConstiutiveTensor(s);
         end
 
         function createCompliance(obj)
@@ -144,7 +144,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             s.mesh  = obj.mesh;
             s.type  = 'MassMatrix';
-            LHS = LHSIntegrator.create(s);
+            LHS = LHSintegrator.create(s);
             M = LHS.compute;
 
             h = obj.mesh.computeMinCellSize();
@@ -157,9 +157,10 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             obj.constraint      = Constraint(s);
         end
 
-        function createPrimalUpdater(obj)
-            s.mesh = obj.mesh;
-            obj.primalUpdater = SLERP(s);
+        function createDualVariable(obj)
+            s.nConstraints   = 1;
+            l                = DualVariable(s);
+            obj.dualVariable = l;
         end
 
         function createOptimizer(obj)
@@ -167,15 +168,15 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 3;
+            s.dualVariable   = obj.dualVariable;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.primalUpdater  = obj.primalUpdater;
+            s.primal         = 'SLERP';
+            s.ub             = inf;
+            s.lb             = -inf;
             s.etaNorm        = 0.02;
-            s.etaNormMin     = 0.02;
             s.gJFlowRatio    = 0.2;
-            s.etaMax         = 1;
-            s.etaMaxMin      = 0.01;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -184,12 +185,11 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         function m = createMaterial(obj)
             x = obj.designVariable;
             f = x.obtainDomainFunction();
-            f = obj.filter.compute(f{1},1);            
+            f = obj.filter.compute(f,1);            
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '2D';
-            s.mesh                 = obj.mesh;
             m = Material.create(s);
         end
 

@@ -1,0 +1,8 @@
+Analysis performed with: 
+E = 210
+nu = 0.3
+Steps = [1e-10:1e-3:1e-1]
+Gc = 2.7*10^{-3} 
+AT2
+l0 = 0.0075
+

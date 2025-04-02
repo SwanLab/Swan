@@ -7,8 +7,7 @@
 %
 % With this, everytime Matlab is opened, Swan folder and subfolders
 % will be included. If Github branch is changed, just run commmand 
-% "startup"
+% "addpath(genpath(userpath))"
 userpath = 'C:\Users\XXXX\Documents\GitHub\Swan';
 addpath(genpath(userpath));
-rmpath(genpath('Old'))
 cd(userpath);

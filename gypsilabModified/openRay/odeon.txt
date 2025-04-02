@@ -1,0 +1,534 @@
+1	100% absorbent
+	1.00000	1.00000	1.00000	1.00000	1.00000	1.00000	1.00000	1.00000
+
+2	100% reflecting
+	0.00000	0.00000	0.00000	0.00000	0.00000	0.00000	0.00000	0.00000
+
+10	10% absorbent
+	0.10000	0.10000	0.10000	0.10000	0.10000	0.10000	0.10000	0.10000
+
+20	20% absorbent
+	0.20000	0.20000	0.20000	0.20000	0.20000	0.20000	0.20000	0.20000
+
+30	30% absorbent
+	0.30000	0.30000	0.30000	0.30000	0.30000	0.30000	0.30000	0.30000
+
+40	40% absorbent
+	0.40000	0.40000	0.40000	0.40000	0.40000	0.40000	0.40000	0.40000
+
+50	50% absorbent
+	0.50000	0.50000	0.50000	0.50000	0.50000	0.50000	0.50000	0.50000
+
+60	60% absorbent
+	0.60000	0.60000	0.60000	0.60000	0.60000	0.60000	0.60000	0.60000
+
+70	70% absorbent
+	0.70000	0.70000	0.70000	0.70000	0.70000	0.70000	0.70000	0.70000
+
+80	80% absorbent
+	0.80000	0.80000	0.80000	0.80000	0.80000	0.80000	0.80000	0.80000
+
+90	90% absorbent
+	0.90000	0.90000	0.90000	0.90000	0.90000	0.90000	0.90000	0.90000
+
+100	Rough concrete (Bobran, 1973)
+	0.02000	0.02000	0.03000	0.03000	0.03000	0.04000	0.07000	0.07000
+
+101	Smooth unpainted concrete (Bobran, 1973)
+	0.01000	0.01000	0.01000	0.02000	0.02000	0.02000	0.05000	0.05000
+
+102	Smooth concrete, painted or glazed (Bobran, 1973)
+	0.01000	0.01000	0.01000	0.01000	0.02000	0.02000	0.02000	0.02000
+
+103	Concrete block, painted (Harris, 1991)
+	0.10000	0.10000	0.05000	0.06000	0.07000	0.09000	0.08000	0.08000
+
+104	Concrete block, with or without plaster, painted (Ref. Dalenbäck, CATT)
+	0.11000	0.11000	0.08000	0.07000	0.06000	0.05000	0.05000	0.05000
+
+105	Porous concrete blocks without surface finish, 400-800 kg/m3 (Kristensen, 1984)
+	0.05000	0.05000	0.05000	0.05000	0.08000	0.14000	0.20000	0.20000
+
+106	Clinker concrete, no surface finish, 800 kg/m3 (Kristensen, 1984)
+	0.10000	0.10000	0.20000	0.40000	0.60000	0.50000	0.60000	0.60000
+
+107	Concrete block, coarse (Harris, 1991)
+	0.36000	0.36000	0.44000	0.31000	0.29000	0.39000	0.25000	0.25000
+
+108	Concrete or terrazzo Ref. (Harris, 1991)
+	0.01000	0.01000	0.01000	0.01500	0.02000	0.02000	0.02000	0.02000
+
+1000	Smooth brickwork with flush pointing, painted (Knudsen & Harris, 1950, 1978)
+	0.01000	0.01000	0.01000	0.02000	0.02000	0.02000	0.02000	0.02000
+
+1001	Smooth brickwork with flush pointing (Bobran, 1973)
+	0.02000	0.02000	0.03000	0.03000	0.04000	0.05000	0.07000	0.07000
+
+1002	Brick, unglazed (Harris, 1991)
+	0.03000	0.03000	0.03000	0.03000	0.04000	0.00000	0.07000	0.07000
+
+1003	Brick, unglazed, painted (Harris, 1991)
+	0.01000	0.01000	0.01000	0.02000	0.02000	0.02000	0.03000	0.03000
+
+1004	Brickwall, casted, with tapestry (Ref. Dalenbäck, CATT)
+	0.02000	0.02000	0.03000	0.04000	0.05000	0.07000	0.08000	0.08000
+
+1005	Smooth brickwork, 10 mm deep pointing, pit sand mortar (Kristensen, 1984)
+	0.08000	0.08000	0.09000	0.12000	0.16000	0.22000	0.24000	0.24000
+
+1006	Smooth brickwork, pointing 10 mm deep, every 3rd vertical joint 20 mm wide without mortar to 100m depth. In these holes 70 mm of mineral wool (Kristensen, 1984)
+	0.15000	0.15000	0.18000	0.20000	0.35000	0.35000	0.40000	0.40000
+
+1007	55 mm perforated bricks on edge, 33 holes per brick, 23% perforation, over 70 mm cavity with 50 mm mineral wool (Petersen, 1983)
+	0.45000	0.45000	0.99000	0.80000	0.49000	0.70000	0.55000	0.55000
+
+1008	55 mm perforated bricks on edge, 78 holes per brick, 11% perforation, over 50 mm cavity with 50 mm mineral wool (Ingerslev & Petersen, 1953)
+	0.48000	0.48000	0.77000	0.38000	0.27000	0.65000	0.35000	0.35000
+
+1009	55 mm perforated bricks on edge, 78 holes per brick, 11% perforation, no cavity (Kristensen, 1984)
+	0.03000	0.03000	0.15000	0.30000	0.80000	0.45000	0.50000	0.50000
+
+1010	Bricks with 19 holes, 60 mm thick, directly on concrete wall (Stroem, 1979)
+	0.14000	0.14000	0.28000	0.45000	0.90000	0.45000	0.65000	0.65000
+
+1011	Bricks with 19 holes, 60 mm thick, 50 mm cavity with mineral wool (Stroem, 1979)
+	0.37000	0.37000	0.99000	0.85000	0.60000	0.80000	0.65000	0.65000
+
+2001	Marble or glazed tile (Harris, 1991)
+	0.01000	0.01000	0.01000	0.01000	0.01000	0.02000	0.02000	0.02000
+
+2002	Ceramic tiles. perforation = 5 %. Mineralwool in cavity (Stroem, 1979)
+	0.21000	0.21000	0.54000	0.74000	0.34000	0.28000	0.42000	0.42000
+
+2003	Ceramic tiles. perforation = 12%. Mineralwool in cavity, (Stroem, 1979)
+	0.20000	0.20000	0.44000	0.68000	0.79000	0.56000	0.52000	0.52000
+
+2004	Ceramic tiles. perforation = 20 %. Mineralwool in cavity (Stroem, 1979)
+	0.12000	0.12000	0.20000	0.68000	0.90000	0.74000	0.60000	0.60000
+
+3000	Hollow wooden podium (Ref. Dalenbäck, CATT)
+	0.40000	0.40000	0.30000	0.20000	0.17000	0.15000	0.10000	0.10000
+
+3001	Floating wooden floor (Ref. Dalenbäck, CATT)
+	0.10000	0.10000	0.07000	0.05000	0.06000	0.06000	0.06000	0.06000
+
+3002	Wood parquet in asphalt on concrete ((Harris, 1991))
+	0.04000	0.04000	0.04000	0.07000	0.06000	0.06000	0.07000	0.07000
+
+3004	Wooden floor on joists (Ingerslev, 1949)
+	0.15000	0.15000	0.11000	0.10000	0.07000	0.06000	0.07000	0.07000
+
+3005	Parquet on counterfloor (Bobran, 1973)
+	0.20000	0.20000	0.15000	0.10000	0.10000	0.05000	0.10000	0.10000
+
+3020	16-22 mm wood facing (tongue-and-groove or rabbeted) on frame over 50 mm cavity filled with mineral wool (Bobran, 1973)
+	0.25000	0.25000	0.15000	0.10000	0.09000	0.08000	0.07000	0.07000
+
+3021	6 mm wood fibre board on laths, cavity >100 mm deep (Bobran, 1973)
+	0.30000	0.30000	0.20000	0.20000	0.10000	0.05000	0.05000	0.05000
+
+3022	22 mm chipboard, 50 mm cavity filled with mineral wool (Bobran, 1973)
+	0.12000	0.12000	0.04000	0.06000	0.05000	0.05000	0.05000	0.05000
+
+3023	3-4 mm asbestos or plywood sheets, >75 mm cavity with 25-50 mm mineral wool (Kristensen, 1984)
+	0.50000	0.50000	0.30000	0.10000	0.05000	0.05000	0.05000	0.05000
+
+3024	4 mm asbestos or plywood boards fastened at random intervals (at least 0.4 * 0.6 m), over 75 mm cavity with 25 mm mineral wool (Kristensen, 1984)
+	0.55000	0.55000	0.30000	0.10000	0.05000	0.05000	0.05000	0.05000
+
+3025	22 * 100 mm boards with 10 mm gaps, over 50 mm cavity with glass mat in front of mineral wool (Bobran, 1973)
+	0.05000	0.05000	0.25000	0.60000	0.15000	0.05000	0.10000	0.10000
+
+3062	Plywood on battens fixed to solid backing (Ref. Dalenbäck, CATT)
+	0.30000	0.30000	0.20000	0.15000	0.13000	0.10000	0.08000	0.08000
+
+3063	Thin plywood paneling (Ref. Dalenbäck, CATT)
+	0.42000	0.42000	0.21000	0.10000	0.08000	0.06000	0.06000	0.06000
+
+3064	16 mm wood on 40 mm studs (Ref. Dalenbäck, CATT)
+	0.18000	0.18000	0.12000	0.10000	0.09000	0.08000	0.07000	0.07000
+
+3065	Wood, 25 mm with air space (Ref. Dalenbäck, CATT)
+	0.19000	0.19000	0.14000	0.09000	0.06000	0.06000	0.05000	0.05000
+
+3066	8 mm wood veneer on 50mm studs (Ref. Dalenbäck, CATT)
+	0.28000	0.28000	0.22000	0.17000	0.09000	0.10000	0.11000	0.11000
+
+3067	3 mm wood veneer on 50 mm studs (Ref. Dalenbäck, CATT)
+	0.20000	0.20000	0.28000	0.26000	0.09000	0.12000	0.11000	0.11000
+
+3068	Plywood paneling, 1 cm thick (Harris, 1991)
+	0.28000	0.28000	0.22000	0.17000	0.09000	0.10000	0.11000	0.11000
+
+3069	Panel, 13 mm thick, without slots, on 30 mm studs with mineral wool
+	0.17000	0.17000	0.32000	0.12000	0.06000	0.03000	0.02000	0.02000
+
+3070	Panel, 13 mm thick, 70 mm wide with 1 mm slots, on 30 mm studs with mineral wool (Stroem, 1979)
+	0.09000	0.09000	0.72000	0.30000	0.12000	0.06000	0.05000	0.05000
+
+3071	Panel, 13 mm thick, 70 mm wide with 2 mm slots, on 30 mm studs with mineral wool (Stroem, 1979)
+	0.09000	0.09000	0.67000	0.49000	0.21000	0.09000	0.07000	0.07000
+
+3072	Panel, 13 mm thick, 70 mm wide with 4 mm slots, on 30 mm studs with mineral wool (Stroem, 1979)
+	0.08000	0.08000	0.57000	0.71000	0.40000	0.20000	0.18000	0.18000
+
+3073	Panel, 13 mm thick, 70 mm wide with 8 mm slots, on 30 mm studs with mineral wool (Stroem, 1979)
+	0.09000	0.09000	0.60000	0.91000	0.60000	0.35000	0.30000	0.30000
+
+3074	Panel, 13 mm thick, 70 mm wide with 16 mm slots, on 30 mm studs with mineral wool (Stroem, 1979)
+	0.03000	0.03000	0.46000	0.87000	0.70000	0.54000	0.42000	0.42000
+
+3075	Panel, 13 mm thick, 70 mm wide with 49 mm slots, on 30 mm studs with mineral wool (Stroem, 1979)
+	0.06000	0.06000	0.41000	0.83000	0.93000	0.73000	0.55000	0.55000
+
+3076	Panel, 13 mm thick, 70 mm wide with 102 mm slots, on 30 mm studs with mineral wool
+	0.03000	0.03000	0.40000	0.79000	0.91000	0.76000	0.70000	0.70000
+
+3077	Panel, 13 mm thick, 70 mm wide with 270 mm slots, on 30 mm studs with mineral wool
+	0.03000	0.03000	0.33000	0.73000	0.89000	0.85000	0.77000	0.77000
+
+3100	(Example 3100-3199) Gustaf MDF-panel system (href= "http://www.gustafs.com/__275").
+	0.15667	0.49333	0.68667	0.62667	0.43333	0.27333	0.18667	0.18000
+
+3200	(Example 3200-3299) Flex Acoustics AqFix panel system, dept of construction 70mm (href= "http://www.flexac.com").
+	0.56000	0.60000	0.14000	0.08000	0.08000	0.08000	0.08000	0.08000
+
+4000	Lime cement plaster (Bobran, 1973)
+	0.02000	0.02000	0.02000	0.03000	0.04000	0.05000	0.05000	0.05000
+
+4001	Glaze plaster (Bobran, 1973)
+	0.01000	0.01000	0.01000	0.01000	0.02000	0.02000	0.02000	0.02000
+
+4002	Painted plaster surface (Kristensen, 1984)
+	0.02000	0.02000	0.02000	0.02000	0.02000	0.02000	0.02000	0.02000
+
+4003	Plaster with wallpaper on backing paper (Bobran, 1973)
+	0.02000	0.02000	0.03000	0.04000	0.05000	0.07000	0.08000	0.08000
+
+4035	Plaster, gypsum, or lime, rough finish on lath (Harris, 1991)
+	0.14000	0.14000	0.10000	0.06000	0.05000	0.04000	0.03000	0.03000
+
+4036	Plaster, gypsum, or lime, smooth finish on lath (Harris, 1991)
+	0.14000	0.14000	0.10000	0.06000	0.04000	0.04000	0.03000	0.03000
+
+4038	'Acoustic plaster' (Kristensen, 1984)
+	0.15000	0.15000	0.25000	0.40000	0.55000	0.60000	0.60000	0.60000
+
+4040	Plasterboard on frame, 9.5 mm boards, 100 mm empty cavity (Fasold & Winkler, 1976)
+	0.11000	0.11000	0.13000	0.05000	0.03000	0.02000	0.03000	0.03000
+
+4041	Plasterboard on frame, 9.5 mm boards, 100 mm cavity filled with mineral wool (Fasold & Winkler, 1976)
+	0.28000	0.28000	0.14000	0.09000	0.06000	0.05000	0.05000	0.05000
+
+4042	Plasterboard on frame, 13 mm boards, 100 mm empty cavity (Fasold & Winkler, 1976)
+	0.08000	0.08000	0.11000	0.05000	0.03000	0.02000	0.03000	0.03000
+
+4043	Plasterboard on frame, 13 mm boards, 100 mm cavity filled with mineral wool (Fasold & Winkler, 1976)
+	0.30000	0.30000	0.12000	0.08000	0.06000	0.06000	0.05000	0.05000
+
+4044	2*13 mm plasterboard on steel frame, 50 mm mineral wool in cavity, surface painted (Petersen, 1983)
+	0.15000	0.15000	0.10000	0.06000	0.04000	0.04000	0.05000	0.05000
+
+4045	gypsum board, 2 layers total 32 mm (Ref. Dalenbäck, CATT)
+	0.28000	0.28000	0.12000	0.10000	0.17000	0.13000	0.09000	0.09000
+
+4046	13 mm plaster on 100 mm studs (Ref. Dalenbäck, CATT)
+	0.29000	0.29000	0.10000	0.05000	0.04000	0.07000	0.09000	0.09000
+
+4047	13 mm plaster on 25 mm studs (no mineral wool) (Ref. Dalenbäck, CATT)
+	0.16000	0.16000	0.15000	0.07000	0.08000	0.05000	0.06000	0.06000
+
+4048	30 mm plaster on metal lath (Ref. Dalenbäck, CATT)
+	0.14000	0.14000	0.10000	0.06000	0.05000	0.04000	0.03000	0.03000
+
+4049	13 mm plaster on 25 mm studs (with mineral wool) (Ref. Dalenbäck, CATT)
+	0.26000	0.26000	0.20000	0.10000	0.07000	0.04000	0.07000	0.07000
+
+4050	Plasterboard 9.5 mm with 6 mm o holes in square pattern with approx. 11% perforation. 100 mm from wall with 25 mm mineral wool at front of cavity (Kristensen, 1984)
+	0.08000	0.08000	0.20000	0.50000	0.40000	0.40000	0.35000	0.35000
+
+4051	Slotted 13 mm gypsum board (12%), 106 x3 mm2 on studs and mineral wool (Ref. Dalenbäck, CATT)
+	0.20000	0.20000	0.22000	0.71000	0.99000	0.55000	0.42000	0.42000
+
+4052	Perf. 13 mm gypsumboard (11%), d = 5 mm, on studs and mineral wool (Ref. Dalenbäck, CATT)
+	0.18000	0.18000	0.32000	0.71000	0.99000	0.50000	0.29000	0.29000
+
+4053	Perf. 27 mm gypsumboard (16%), d = 4,5 mm 300mm from ceiling (Ref. Dalenbäck, CATT)
+	0.45000	0.45000	0.55000	0.60000	0.90000	0.86000	0.75000	0.75000
+
+4100	(Example 4100-4199)Gyptone(href= "http://gyptone.com")
+	0.10000	0.10000	0.10000	0.05000	0.05000	0.00000	0.05000	0.05000
+
+4200	(Example 4200-4299)Danoline Regula R. smooth gypsum plate with acoustic felt. suspended 50 mm (href= "http://danoline.com")
+	0.30000	0.30000	0.10000	0.10000	0.05000	0.05000	0.05000	0.05000
+
+5000	Steel trapez profile (Weighted values)
+	0.40000	0.30000	0.25000	0.20000	0.10000	0.10000	0.15000	0.15000
+
+5100	(Example 5100-5199) Viledon SoundTex. p = 15% Perf. alum.plate med 40 mm mineral wool. 350 mm suspended (href= "http://viledon-akustik.de")
+	0.60000	0.60000	0.62000	0.77000	0.74000	0.65000	0.81000	0.81000
+
+5200	(Example 5200-5299) DAMPA 10 type N Aluminium plate. AL-21 (Ø 1.0 mm. p = 22.7 %) - 0.2 mm akustic felt.(href= "http://dampa.com")
+	0.06500	0.06500	0.21333	0.44667	0.79000	0.80333	0.57500	0.57500
+
+6000	Linoleum or vinyl stuck to concrete (Petersen, 1983)
+	0.02000	0.02000	0.02000	0.03000	0.04000	0.04000	0.05000	0.05000
+
+6001	Layer of rubber, cork, linoleum+underlay or vinyl+underlay stuck to concrete (Bobran, 1973)
+	0.02000	0.02000	0.02000	0.04000	0.05000	0.05000	0.10000	0.10000
+
+6002	Linoleum on wooden floor (Ref. Dalenbäck, CATT)
+	0.15000	0.15000	0.12000	0.11000	0.10000	0.07000	0.08000	0.08000
+
+6003	5 mm rubber carpet on concrete (Ref. Dalenbäck, CATT)
+	0.04000	0.04000	0.04000	0.08000	0.12000	0.10000	0.10000	0.10000
+
+6100	(Example 6100-6199) Single microsorber - 0.1 mm perforated polyester cloth 30 mm from reflecting surface(href= "http://www.microsorber.com/microsorber.htm")
+	0.01000	0.01000	0.03000	0.05000	0.30000	0.65000	0.50000	0.50000
+
+6200	(Example 6200-6299) Flex Acoustics, AqFlex portable fire retardent plastic tubes for large concert events total dept 700mm (href= "http://www.flexac.com")
+	0.30000	0.50000	0.50000	0.50000	0.30000	0.20000	0.10000	0.10000
+
+7000	Needle felt 5mm stuck to concrete (Kristensen, 1984)
+	0.01000	0.01000	0.02000	0.05000	0.15000	0.30000	0.40000	0.40000
+
+7001	6mm pile carpet bonded to closed-cell foam underlay (Parkin, Humphreys, & Cowell, 1979)
+	0.03000	0.03000	0.09000	0.25000	0.31000	0.33000	0.44000	0.44000
+
+7002	6 mm pile carpet bonded to open-cell foam underlay (Parkin, Humphreys, & Cowell, 1979)
+	0.03000	0.03000	0.09000	0.20000	0.54000	0.70000	0.72000	0.72000
+
+7003	9 mm tufted pile carpet on felt underlay (Parkin, Humphreys, & Cowell, 1979)
+	0.08000	0.08000	0.08000	0.30000	0.60000	0.75000	0.80000	0.80000
+
+7004	Carpet heavy, on concrete (Harris, 1991)
+	0.02000	0.02000	0.06000	0.14000	0.37000	0.60000	0.65000	0.65000
+
+7005	Carpet heavy, on hairfelt or foam rubber (Harris, 1991)
+	0.08000	0.08000	0.24000	0.57000	0.69000	0.71000	0.73000	0.73000
+
+7006	Carpet heavy, with impermeable latex backing on hairfelt or foam rubber (Harris, 1991)
+	0.08000	0.08000	0.27000	0.39000	0.34000	0.48000	0.63000	0.63000
+
+7007	10 mm soft carpet on concrete (Ref. Dalenbäck, CATT)
+	0.09000	0.09000	0.08000	0.21000	0.26000	0.27000	0.37000	0.37000
+
+8005	Cotton curtains (0.5 kg/m2) draped to 3/4 area approx.   130 mm from wall (Petersen, 1983)
+	0.30000	0.30000	0.45000	0.65000	0.56000	0.59000	0.71000	0.71000
+
+8006	Curtains (0.2 kg/m2) hung 90 mm from wall (Ingerslev & Petersen, 1953)
+	0.05000	0.05000	0.06000	0.39000	0.63000	0.70000	0.73000	0.73000
+
+8007	Curtains of close-woven glass mat hung 50 mm from wall   (Kristensen, 1984)
+	0.03000	0.03000	0.03000	0.15000	0.40000	0.50000	0.50000	0.50000
+
+8008	Drapes, light velour, hung straight, in contact with wall (Harris, 1991)
+	0.03000	0.03000	0.04000	0.11000	0.17000	0.24000	0.35000	0.35000
+
+8009	Drapes, medium velour, draped to half area (Harris, 1991)
+	0.07000	0.07000	0.31000	0.49000	0.75000	0.70000	0.60000	0.60000
+
+8010	Drapes, heavy velour (Harris, 1991)
+	0.14000	0.14000	0.35000	0.55000	0.72000	0.70000	0.65000	0.65000
+
+8011	Curtains, cotton cloth (0.33 kg/m2) folded to 1/2 area (Ref. Dalenbäck, CATT)
+	0.07000	0.07000	0.31000	0.49000	0.81000	0.66000	0.54000	0.54000
+
+8012	Curtains, cotton cloth (0.33 kg/m2) folded to 3/4 area (Ref. Dalenbäck, CATT)
+	0.04000	0.04000	0.23000	0.14000	0.57000	0.53000	0.40000	0.40000
+
+8013	Curtains, cotton cloth (0.33 kg/m2) folded to 7/8 area (Ref. Dalenbäck, CATT)
+	0.03000	0.03000	0.12000	0.15000	0.27000	0.37000	0.42000	0.42000
+
+8014	Curtains, densly woven window curtains 90mm from wall (Ref. Dalenbäck, CATT)
+	0.06000	0.06000	0.10000	0.38000	0.63000	0.70000	0.73000	0.73000
+
+8100	(Example 8100-8199) Blinds in front of glass 45 degrees (Ref. Multiconsult, Norway)
+	0.18000	0.18000	0.08000	0.14000	0.22000	0.37000	0.34000	0.34000
+
+9000	Water surface in swimming pool (Knudsen & Harris, 1950, 1978)
+	0.01000	0.01000	0.01000	0.01000	0.01000	0.02000	0.02000	0.02000
+
+9001	Sand,100 mm thickness (Ref. Dalenbäck, CATT)
+	0.15000	0.15000	0.35000	0.40000	0.50000	0.55000	0.80000	0.80000
+
+9010	Ballast or other crushed stone, 3.18 cm screened ballast 15.2 cm deep (Harris, 1991)
+	0.19000	0.19000	0.23000	0.43000	0.37000	0.58000	0.62000	0.62000
+
+9011	Ballast or other crushed stone,  3.18 cm, 30.5 cm deep (Harris, 1991)
+	0.27000	0.27000	0.58000	0.48000	0.54000	0.73000	0.63000	0.63000
+
+9012	Ballast or other crushed stone, 3.18 cm, 45.7 cm deep (Harris, 1991)
+	0.41000	0.41000	0.53000	0.64000	0.84000	0.91000	0.63000	0.63000
+
+9013	Ballast or other crushed stone, 0.64 or less granite aggregate 15.2 deep (Harris, 1991)
+	0.22000	0.22000	0.64000	0.70000	0.79000	0.88000	0.72000	0.72000
+
+9014	Floors, gravel, 100 mm thickness (Ref. Dalenbäck, CATT)
+	0.25000	0.25000	0.60000	0.65000	0.70000	0.75000	0.80000	0.80000
+
+9015	Earth partly covered with concrete(Ref. Multiconsult, Norway)
+	0.20000	0.40000	0.50000	0.55000	0.60000	0.70000	0.80000	0.79000
+
+10000	Solid glass blocks (Ref. Multiconsult, Norway)
+	0.02000	0.02000	0.02000	0.02000	0.02000	0.02000	0.02000	0.02000
+
+10001	Single pane of glass (Ref. Multiconsult, Norway)
+	0.18000	0.18000	0.06000	0.04000	0.03000	0.02000	0.02000	0.02000
+
+10002	Single pane of glass, 3 mm (Fasold & Winkler, 1976)
+	0.08000	0.08000	0.04000	0.03000	0.03000	0.02000	0.02000	0.02000
+
+10003	Double glazing, 2-3 mm glass, 10 mm gap (Kristensen, 1984)
+	0.10000	0.10000	0.07000	0.05000	0.03000	0.02000	0.02000	0.02000
+
+10004	Double glazing, 2-3 mm glass, >30 mm gap (Fasold & Winkler, 1976)
+	0.15000	0.15000	0.05000	0.03000	0.03000	0.02000	0.02000	0.02000
+
+10005	Glass, large panes of heavy plate glass (Harris, 1991)
+	0.18000	0.18000	0.06000	0.04000	0.03000	0.02000	0.02000	0.02000
+
+10006	Glass, ordinary window glass (Harris, 1991)
+	0.35000	0.35000	0.25000	0.18000	0.12000	0.07000	0.04000	0.04000
+
+10007	Solid wooden door (Bobran, 1973)
+	0.14000	0.14000	0.10000	0.06000	0.08000	0.10000	0.10000	0.10000
+
+10008	Canvas covering, from the danish stadium Parken (Ref. Ramboell, Denmark)
+	0.95000	0.90000	0.70000	0.50000	0.35000	0.25000	0.15000	0.15000
+
+10009	Ventilation grille (approx. per sq. m.) (Kristensen, 1984)
+	0.60000	0.60000	0.60000	0.60000	0.60000	0.60000	0.60000	0.60000
+
+10010	Open panel. opening area 20 % Panel 10 x 80 mm. 20 mm slits. 50 mm mineralwool (Ref. Multiconsult, Norway)
+	0.02000	0.09991	0.39913	0.83936	0.63086	0.29891	0.11902	0.12000
+
+10011	Open panel. opening area 30 % Panel 10 x 70 mm. 30 mm slits. 50 mm mineralwool (Ref. Multiconsult, Norway)
+	0.02000	0.09700	0.37047	0.79909	0.78024	0.46381	0.21758	0.22000
+
+10012	Open panel. opening area 50 % Panel 10 x 50 mm. 50 mm slits. 50 mm mineralwool (Ref. Multiconsult, Norway)
+	0.02000	0.09422	0.34374	0.72978	0.89314	0.73825	0.49007	0.49000
+
+10013	Open panel. opening area 50 % Panel 20 x 20 mm. 20 mm slits. 50 mm mineralwool (Ref. Multiconsult, Norway)
+	0.02000	0.09474	0.34832	0.74339	0.88101	0.68571	0.42110	0.42000
+
+10100	(Example 10100-10199) S-LINE Office screen. wood Strict Line (href= "http://www.sline.se/en/")
+	0.02000	0.02000	0.20000	0.70000	1.00000	0.90000	0.70000	0.70000
+
+11000	Orchestra with instruments on podium , 1.5 sq.m per person (Bobran, 1973)
+	0.27000	0.27000	0.53000	0.67000	0.93000	0.87000	0.80000	0.80000
+
+11001	Areas with audience, orchestra or choir including narrow aisles (Bobran, 1973)
+	0.60000	0.60000	0.74000	0.88000	0.96000	0.93000	0.85000	0.85000
+
+11002	Floor with cloth-upholstered seats (Bobran, 1973)
+	0.49000	0.49000	0.66000	0.80000	0.88000	0.82000	0.70000	0.70000
+
+11003	Audience on wooden chairs, 1 per sq. m (Meyer, Kunstmann, & Kuttruff, 1964)
+	0.16000	0.16000	0.24000	0.56000	0.69000	0.81000	0.78000	0.78000
+
+11004	Audience on wooden chairs, 2 per sq. m (Meyer, Kunstmann, & Kuttruff, 1964)
+	0.24000	0.24000	0.40000	0.78000	0.98000	0.96000	0.87000	0.87000
+
+11005	Empty chairs, upholstered with leather cover (Beranek, 1962)
+	0.40000	0.40000	0.50000	0.58000	0.61000	0.58000	0.50000	0.50000
+
+11006	Empty chairs, upholstered with cloth cover (Beranek, 1962)
+	0.44000	0.44000	0.60000	0.77000	0.89000	0.82000	0.70000	0.70000
+
+11007	Audience, heavily upholstered seats (Beranek & Hidaka, 1998, group 1)
+	0.72000	0.72000	0.80000	0.86000	0.89000	0.90000	0.90000	0.90000
+
+11008	Audience, medium upholstered seats (Beranek & Hidaka, 1998, group 2)
+	0.62000	0.62000	0.72000	0.80000	0.83000	0.84000	0.85000	0.85000
+
+11009	Audience, lightly upholstered seats (Beranek & Hidaka, 1998, group 3)
+	0.51000	0.51000	0.64000	0.75000	0.80000	0.82000	0.83000	0.83000
+
+11052	Chairs, unoccupied moderatelly upholstered chairs (0.90 m x 0.55 m) (Ref. Dalenbäck, CATT)
+	0.44000	0.44000	0.56000	0.67000	0.74000	0.83000	0.87000	0.87000
+
+11053	Chairs, unoccupied average cloth-covered well upholstered areaes (seats with perforated bottoms) (Ref. Dalenbäck, CATT)
+	0.49000	0.49000	0.66000	0.80000	0.88000	0.82000	0.70000	0.70000
+
+11056	Chairs, heavily upholstered concert hall chairs, average. (Ref. Dalenbäck, CATT)
+	0.72000	0.72000	0.79000	0.83000	0.84000	0.83000	0.79000	0.79000
+
+11057	Chairs, lightly upholstered concert hall chairs, average. (Ref. Dalenbäck, CATT)
+	0.35000	0.35000	0.45000	0.57000	0.61000	0.59000	0.55000	0.55000
+
+11058	Chairs, medium upholstered concert hall chairs, average. (Ref. Dalenbäck, CATT)
+	0.56000	0.56000	0.64000	0.70000	0.72000	0.68000	0.62000	0.62000
+
+12000	Mineral spray-on materials, 1.27 cm mineral fiber (Harris, 1991)
+	0.05000	0.05000	0.15000	0.45000	0.70000	0.80000	0.80000	0.80000
+
+12001	Mineral spray-on materials, 1.9 cm mineral fiber (Harris, 1991)
+	0.10000	0.10000	0.30000	0.60000	0.90000	0.90000	0.95000	0.95000
+
+12002	Mineral spray-on materials, 2.5 cm mineral fiber (Harris, 1991)
+	0.16000	0.16000	0.45000	0.70000	0.90000	0.90000	0.85000	0.85000
+
+12003	Mineral spray-on materials, 1.27 cm mineral fiber on metal lath, 2.54 cm airspace (Harris, 1991)
+	0.25000	0.25000	0.50000	0.80000	0.90000	0.90000	0.85000	0.85000
+
+12004	50 mm mineral wool (40 kg/m3), glued to wall, untreated surface (Kristensen, 1984)
+	0.15000	0.15000	0.70000	0.60000	0.60000	0.85000	0.90000	0.90000
+
+12005	50 mm mineral wool (40 kg/m3), glued to wall, surface sprayed with thin plastic solution (Kristensen, 1984)
+	0.15000	0.15000	0.70000	0.60000	0.60000	0.75000	0.75000	0.75000
+
+12006	50 mm mineral wool (70 kg/m3) 300 mm in front of wall (Kristensen, 1984)
+	0.70000	0.70000	0.45000	0.65000	0.60000	0.75000	0.65000	0.65000
+
+12100	(Example 12100-12199) Rockfon (href= "http://www.rockfon.com/sw2601.asp")
+	0.45000	0.45000	0.50000	0.55000	0.65000	0.70000	0.65000	0.65000
+
+12200	(Example 12200 12299) Ecophon (href= "http://www.ecophon.com/")
+	0.15000	0.15000	0.50000	0.95000	1.00000	0.95000	0.85000	0.65000
+
+12300	(Example 12300 12399) OWA Acoustic Harmony. Kant A C og F6 15 mm hardpresset mineralfiberplate. 200 mm utforing (href= "http://suspended-ceiling-systems.co.uk")
+	0.45000	0.45000	0.61000	0.64000	0.75000	0.91000	0.91000	0.91000
+
+12400	(Example 12400 12499) USG Auratone Favia 15 mm våtpresset mineralfiberplate. 200 mm utforing  (href= "http://usg.com")
+	0.45000	0.45000	0.60000	0.60000	0.80000	0.80000	0.65000	0.65000
+
+12500	(Example 12500 12599) AMF Star (Thermatex) 15 mm hardly compressed mineralfiberplate(href= "http://amfceilings.co.uk")
+	0.34000	0.34000	0.43000	0.54000	0.67000	0.65000	0.64000	0.64000
+
+13000	50 mm wood-wool set in mortar (Kristensen, 1984)
+	0.08000	0.08000	0.17000	0.35000	0.45000	0.65000	0.65000	0.65000
+
+13001	25 mm thick wood-wool, against ceiling (Ref. Dalenbäck, CATT)
+	0.05000	0.05000	0.21000	0.59000	0.83000	0.87000	0.91000	0.91000
+
+13002	50 mm thick wood-wool, against ceiling (Ref. Dalenbäck, CATT)
+	0.15000	0.15000	0.56000	0.88000	0.99000	0.99000	0.95000	0.95000
+
+13003	100 mm thick wood-wool, against ceiling (Ref. Dalenbäck, CATT)
+	0.58000	0.58000	0.69000	0.96000	0.97000	0.99000	0.91000	0.91000
+
+13004	25 mm thick wood-wool, 200 mm from ceiling (Ref. Dalenbäck, CATT)
+	0.48000	0.48000	0.49000	0.70000	0.78000	0.94000	0.93000	0.93000
+
+13005	50 mm thick wood-wool, 200 mm from ceiling (Ref. Dalenbäck, CATT)
+	0.49000	0.49000	0.63000	0.83000	0.97000	0.99000	0.96000	0.96000
+
+13006	100 mm  thick wood-wool, 200 mm from ceiling (Ref. Dalenbäck, CATT)
+	0.49000	0.49000	0.64000	0.89000	0.98000	0.99000	0.96000	0.96000
+
+13100	(Example 13100-13199) Treullit Akustikk Discrete 20. Dunisil-covered backside 20 mm plate. (href= "http://www.cembrit.com")
+	0.02000	0.02000	0.17000	0.50000	0.65000	0.72000	0.75000	0.75000
+
+13200	(Example 13200-13299) Trolltex Anti fire. p = 19.5 % Perforated woodfiber plate. 50 mm mineral woll matt with 135 mm cavity behind (href= "http://erhverv.lhammerich.dk/sw239.asp")
+	0.70000	0.70000	0.86333	0.77333	0.54333	0.21667	0.20667	0.20000
+
+14100	(Example 14100-14199) Barrisol Microacoustics Microperforated panel 120mm cavity with 40mm min. wool (href= "http://www.barrisol.com")
+	0.15000	0.20000	0.57000	0.99000	0.82000	0.76000	0.70000	0.65000
+
+14200	(Example 14200-14299) Sonogamma Modulator 250Hz slit absorper with diffusive effects, thicknes 100 mm (href= "http://www.sonogamma.com")
+	0.15000	0.24000	0.89000	0.37000	0.18000	0.07000	0.14000	0.14000
+
+14300	(Example 14300-14399)Deweton acoustic plate Type A (Helmholtz-resonator), 25 mm dick,  11 kg/m^2, visual slits 4 mm wide with 34 mm distance. mineral wool behind. Montage: 24 mm laths. distance to wall 30 mm. (href= "http://www.tavapan.ch/tavapan")
+	0.22000	0.22000	0.72000	0.53000	0.42000	0.62000	0.55000	0.55000
+

@@ -1,0 +1,30 @@
+classdef AbstractPlaneStressTransformer < handle
+    
+    
+    properties (Abstract, Access = protected)
+        TensorInPlaneStress
+    end
+ 
+    
+    methods (Access = public)
+        
+        function TPS = getTensor(obj)
+            TPS = obj.TensorInPlaneStress;
+        end
+        
+    end
+    
+    
+        methods (Access = public,Static)
+        
+        function PSTensor = transform(Tensor)
+            PS_Factory      = PlaneStressTransformerFactor();
+            PSTransformer = Factory.create(Tensor);
+            PSTensor = PSTransformer.getTensor();
+        end
+        
+        
+    end
+    
+end
+

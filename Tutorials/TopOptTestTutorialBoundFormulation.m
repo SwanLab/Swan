@@ -173,7 +173,6 @@ classdef TopOptTestTutorialBoundFormulation < handle
             s.density              = x;
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '2D';
-            s.mesh                 = obj.mesh;
             m = Material.create(s);
         end
 
@@ -198,7 +197,7 @@ classdef TopOptTestTutorialBoundFormulation < handle
         function c = createComplianceFromConstiutive(obj)
             s.mesh         = obj.mesh;
             s.stateProblem = obj.physicalProblem;
-            c = ComplianceFromConstitutiveTensor(s);
+            c = ComplianceFromConstiutiveTensor(s);
         end
 
         function createComplianceBoundConstraintRhoE(obj)
@@ -274,7 +273,7 @@ classdef TopOptTestTutorialBoundFormulation < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 3;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY'};
             s.ub             = [ones(obj.mesh.nnodes,1);1000];

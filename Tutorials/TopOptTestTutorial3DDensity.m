@@ -90,12 +90,11 @@ classdef TopOptTestTutorial3DDensity < handle
         function m = createMaterial(obj)
             x = obj.designVariable;
             f = x.obtainDomainFunction();
-            f = f{1}.project('P1');            
+            f = f.project('P1');            
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '3D';
-            s.mesh                 = obj.mesh;
             m = Material.create(s);
         end
 
@@ -108,7 +107,7 @@ classdef TopOptTestTutorial3DDensity < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'CG';
+            s.solverCase = 'rMINRES';
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -116,7 +115,7 @@ classdef TopOptTestTutorial3DDensity < handle
         function c = createComplianceFromConstiutive(obj)
             s.mesh         = obj.mesh;
             s.stateProblem = obj.physicalProblem;
-            c = ComplianceFromConstitutiveTensor(s);
+            c = ComplianceFromConstiutiveTensor(s);
         end
 
         function createCompliance(obj)
@@ -145,16 +144,12 @@ classdef TopOptTestTutorial3DDensity < handle
         end
 
         function M = createMassMatrix(obj)
-%             s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
-%             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-%             s.mesh  = obj.mesh;
-%             s.type  = 'MassMatrix';
-%             LHS = LHSintegrator.create(s);
-%             M = LHS.compute;     
-
-            n = obj.mesh.nnodes;
-            h = obj.mesh.computeMinCellSize();
-            M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
+            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.mesh  = obj.mesh;
+            s.type  = 'MassMatrix';
+            LHS = LHSintegrator.create(s);
+            M = LHS.compute;     
         end
 
         function createConstraint(obj)
@@ -175,11 +170,12 @@ classdef TopOptTestTutorial3DDensity < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 3;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = 'EQUALITY';
             s.ub             = 1;
             s.lb             = 0;
+            s.volumeTarget   = 0.4;
             opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
