@@ -1,9 +1,7 @@
 classdef TopOptTestTutorialLevelSetNullSpace < handle
 
     properties (Access = private)
-        mesh
         filter
-        designVariable
         materialInterpolator
         physicalProblem
         compliance
@@ -12,6 +10,11 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         constraint
         dualVariable
         optimizer
+    end
+
+    properties (Access = public)
+        mesh
+        designVariable
     end
 
     methods (Access = public)
@@ -31,7 +34,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             obj.createDualVariable();
             obj.createOptimizer();
 
-            obj.designVariable.fun.print('Topology_Cantilever_gJ0.2_eta0.02_LevelSet');
+%             obj.designVariable.fun.print('Topology_Cantilever_gJ0.2_eta0.02_LevelSet');
         end
 
     end
