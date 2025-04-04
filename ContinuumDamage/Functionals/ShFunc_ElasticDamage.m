@@ -161,7 +161,7 @@ classdef ShFunc_ElasticDamage < handle
                 r1 = @(xV) obj.r1.evaluate(xV);  
 
                 rHigherR0 = @(xV) (r(xV) > r0(xV));
-                rHigherR1 = @(xV) (r(xV) >= r1(xV));
+                rHigherR1 = @(xV) (r(xV) > r1(xV));
 
                 % rState = @(xV) getStateR (r(xV),r0(xV),r1(xV));
                 

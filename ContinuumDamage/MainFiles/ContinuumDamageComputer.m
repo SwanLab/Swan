@@ -154,7 +154,7 @@ classdef ContinuumDamageComputer < handle
             data.damage.minValue(i)  = min(dmgFun.fValues);
            
             rDomainFun = obj.elasticity.getR();
-            rFun = rDomainFun.project('P1D');
+            rFun = rDomainFun.project('P0');
             data.r.maxValue(i) = max(rFun.fValues);
             data.r.minValue(i) = min(rFun.fValues);
             
