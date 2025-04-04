@@ -35,7 +35,7 @@ classdef TestingPhaseFieldHomogenizer < handle
             for i=1:nComb
                 hole = comb(i,:);
                 if i==1
-                    hole = zeros(size(hole));
+                    hole = 1e-10*ones(size(hole));
                 end
                 mat(:,:,i) = obj.computeHomogenization(hole);
                 phi(i)     = obj.computeDamageMetric(hole);
