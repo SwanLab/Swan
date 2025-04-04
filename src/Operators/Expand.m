@@ -9,18 +9,24 @@ function dom = Expand(varargin)
 
     if isa(a,'DomainFunction')
         s.mesh = a.mesh;
+        s.ndimf = a.ndimf;
     else
         s.mesh = b.mesh;
+        s.ndimf = b.ndimf;
     end
-    dom         = DomainFunction(s);
+
+    dom = DomainFunction(s);
 end
 
 function aEval = evaluate(varargin)
     if nargin == 2
         a = varargin{1}; xV = varargin{2};
         aEval      = a.evaluate(xV);
-        dims = size(aEval);
-        aEval = reshape(aEval,[dims(1), 1, dims(2:end)]);
+        isTensorA  = checkTensor(a,aEval);
+        if ~isTensorA
+            dims = size(aEval);
+            aEval = reshape(aEval,[dims(1), 1, dims(2:end)]);
+        end
     else
         a = varargin{1}; b = varargin{2}; xV = varargin{3};
         if ~isnumeric(a)
