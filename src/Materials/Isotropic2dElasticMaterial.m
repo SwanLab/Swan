@@ -10,7 +10,7 @@ classdef Isotropic2dElasticMaterial < IsotropicElasticMaterial
             [mu,k] = obj.computeShearAndBulk(xV);
             l = obj.computeLambdaFromShearAndBulk(mu,k,obj.ndim);
             nGaus = size(xV,2);
-            nElem = size(mu,3);
+            nElem = size(mu,2);
             nStre = 3;
             C = zeros(nStre,nStre,nGaus,nElem);
             C(1,1,:,:)= 2*mu+l;

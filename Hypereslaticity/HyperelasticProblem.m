@@ -47,7 +47,7 @@ classdef HyperelasticProblem < handle
                     Res  = obj.computeResidual(u);
                     incU = hess\(-Res);
                     uVal(obj.freeDofs) = uVal(obj.freeDofs) + incU;
-                    u.fValues = obj.reshapeToMatrix(uVal);
+                    u.setFValues(obj.reshapeToMatrix(uVal));
                     reacFun = obj.computeReactions(KR,u);
 
                     iter = iter+1;
@@ -209,7 +209,7 @@ classdef HyperelasticProblem < handle
                     obj.mesh = NegPoissMesh;
                 otherwise
                     obj.mesh = HexaMesh(2,1,1,20,5,5);
-                    %                     obj.mesh = UnitHexaMesh(15,15,15);
+                    % obj.mesh = UnitHexaMesh(15,15,15);
             end
         end
 
@@ -224,12 +224,12 @@ classdef HyperelasticProblem < handle
             L = obj.material.lambda;
             N = obj.mesh.ndim;
             K = 2/N*G + L;
-            E1  = Isotropic2dElasticMaterial.computeYoungFromShearAndBulk(G,K,N);
+            E1  = Isotropic2dElasticMaterial.computeYoungFromShearAndBulk(G,K,N)  ;
             nu1 = Isotropic2dElasticMaterial.computePoissonFromFromShearAndBulk(G,K,N);
             E2        = G*(3*L+2*G)/(L+G);
             nu2       = L / (2*(L+G));
-            E         = AnalyticalFunction.create(@(x) E1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
-            nu        = AnalyticalFunction.create(@(x) nu1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
+            E         = ConstantFunction.create(E1,obj.mesh);
+            nu        = ConstantFunction.create(nu1,obj.mesh);
             s.pdim    = obj.mesh.ndim;
             s.nelem   = obj.mesh.nelem;
             s.mesh    = obj.mesh;
@@ -247,13 +247,13 @@ classdef HyperelasticProblem < handle
 
         function createDisplacementFun(obj)
             obj.uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
-            obj.uFun.fValues = obj.uFun.fValues + 0;
+            obj.uFun.setFValues(obj.uFun.fValues + 0);
         end
 
         function u = applyDirichletToUFun(obj,u,bc)
             u_k = reshape(u.fValues',[u.nDofs,1]);
             u_k(bc.dirichlet_dofs) = bc.dirichlet_vals;
-            u.fValues = reshape(u_k,[obj.mesh.ndim,obj.mesh.nnodes])';
+            u.setFValues(reshape(u_k,[obj.mesh.ndim,obj.mesh.nnodes])');
         end
 
         function [Fext] = computeExternalForces(obj,perc)

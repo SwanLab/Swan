@@ -34,7 +34,7 @@ classdef LinearElasticityFunctional < handle
             s.mesh = obj.mesh;
             s.quadratureOrder = 3;
             s.type = 'ShapeSymmetricDerivative';
-            RHS = RHSintegrator.create(s);
+            RHS = RHSIntegrator.create(s);
             Ju = RHS.compute(sigma,test);
         end
 
