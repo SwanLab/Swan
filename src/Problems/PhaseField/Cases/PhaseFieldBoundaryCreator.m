@@ -97,7 +97,7 @@ classdef PhaseFieldBoundaryCreator < handle
              sNeum.value     = fVal;
              Neum1 = PointLoad(obj.mesh,sNeum);
 
-             s.mesh = obj.mesh;D
+             s.mesh = obj.mesh;
              s.dirichletFun = [Dir1];
              s.pointloadFun = [Neum1];
              s.periodicFun = [];
