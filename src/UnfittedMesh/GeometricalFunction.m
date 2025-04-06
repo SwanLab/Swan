@@ -14,12 +14,12 @@ classdef GeometricalFunction < handle
             s.ndimf   = 1;
             s.mesh    = m;
             aFun      = AnalyticalFunction(s);
-            %ls        = aFun.project('P1');
+            ls        = aFun.project('P1');
 
-            sF.trial = LagrangianFunction.create(m,1,'P1');
-            sF.mesh = m;
-            filter = FilterLump(sF);
-            ls = filter.compute(aFun,10);
+            % sF.trial = LagrangianFunction.create(m,1,'P1');
+            % sF.mesh = m;
+            % filter = FilterLump(sF);
+            % ls = filter.compute(aFun,10);
 
         end
 

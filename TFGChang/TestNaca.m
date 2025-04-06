@@ -21,12 +21,6 @@ classdef TestNaca < handle
     properties (Access = private)
         refMesh
         levelSet
-
-        %levelSetU
-        %levelSetL
-        %uMeshU
-        %uMeshL
-
         rawMesh
         mesh
         backupmesh
@@ -44,20 +38,15 @@ classdef TestNaca < handle
     methods (Access = public)
         
         function obj = TestNaca(cParams)
-            close all;
+            %close all;
             obj.init(cParams);    
             obj.createReferenceMesh();
             [AirfoilParams, BGParams] = obj.setParams();
             obj.createLevelSet(AirfoilParams, BGParams);
             obj.createFluidMesh();
-
-            %obj.createLevelSetU(AirfoilParams, BGParams);
-            %obj.createLevelSetL(AirfoilParams, BGParams);
-            %obj.createFluidMesh2L();
-
-            obj.plotMesh();
+            %obj.plotMesh();
             %obj.createFluidMeshGoodConditioning(AirfoilParams, BGParams));
-           obj.createMaterial();
+            obj.createMaterial();
             obj.createTrialFunction();
             obj.defineBoundaryConditions();
             obj.defineAppliedForces();
@@ -110,8 +99,7 @@ classdef TestNaca < handle
             % nx          = 300;
             % ny          = 150;
             % obj.refMesh = QuadMesh(obj.length,obj.height,nx,ny); 
-            obj.ny      = obj.nx / obj.length * obj.height / 0.8;
-            %obj.length * obj.height / 0.8;
+            obj.ny      = round(obj.nx / obj.length * obj.height / 0.8);
             obj.refMesh = TriangleMesh(obj.length,obj.height,obj.nx,obj.ny);
         end
 
@@ -120,38 +108,6 @@ classdef TestNaca < handle
             obj.levelSet = g.computeLevelSetFunction(obj.refMesh);
             %obj.levelSet.plot();
         end
-
-        % Extra
-
-        % function createLevelSetU(obj,AirfoilParams, BGParams)
-        %     g = obj.createNacaUpFunction(AirfoilParams, BGParams);
-        %     obj.levelSetU = g.computeLevelSetFunction(obj.refMesh);
-        %     %obj.levelSet.plot();
-        % end
-        % 
-        % function createLevelSetL(obj,AirfoilParams, BGParams)
-        %     g = obj.createNacaLowFunction(AirfoilParams, BGParams);
-        %     obj.levelSetL = g.computeLevelSetFunction(obj.refMesh);
-        %     %obj.levelSet.plot();
-        % end
-        % 
-        % function createFluidMesh2L(obj)
-        %     s.backgroundMesh = obj.refMesh;
-        %     s.boundaryMesh   = obj.refMesh.createBoundaryMesh();
-        %     obj.uMeshU        = UnfittedMesh(s);
-        %     obj.uMeshU.compute(obj.levelSetU.fValues);      
-        %     mU = obj.uMeshU.createInnerMesh();
-        % 
-        %     obj.uMeshL        = UnfittedMesh(s);
-        %     obj.uMeshL.compute(obj.levelSetL.fValues);    
-        %     mL = obj.uMeshL.createInnerMesh();
-        % 
-        %     obj.mesh    = collapseMeshes(mU,mL);
-        %     % figure;
-        %     % obj.mesh.plot();
-        % end
-            
-        % End
    
         function createFluidMesh(obj)
             s.backgroundMesh = obj.refMesh;
@@ -160,8 +116,6 @@ classdef TestNaca < handle
             obj.uMesh.compute(obj.levelSet.fValues);       
             obj.rawMesh = obj.uMesh.createInnerMesh();
             obj.mesh    = obj.rawMesh;
-            % figure;
-            %obj.mesh.plot();
         end
 
         function plotMesh(obj)
@@ -231,9 +185,6 @@ classdef TestNaca < handle
             s.height       = obj.height;
             s.mesh         = obj.mesh;
             s.uMesh        = obj.uMesh;
-
-            %s.uMeshU       = obj.uMeshU;
-            %s.uMeshL       = obj.uMeshL;
             s.velocityFun  = obj.velocityFun;
             s.pressureFun  = obj.pressureFun;
             BCClass              = StokesProblemBoundaryCondition(s); 
@@ -270,7 +221,7 @@ classdef TestNaca < handle
             SolverResults.compute();
             obj.velocityFun    = SolverResults.velocityFun;
             obj.pressureFun    = SolverResults.pressureFun;
-            %obj.pressureFun    = obj.filter.compute(obj.pressureFun,3); % Comment this line to remove filter
+            obj.pressureFun    = obj.filter.compute(obj.pressureFun,3); % Comment this line to remove filter
         end
 
         function plotResults(obj)     
@@ -322,34 +273,6 @@ classdef TestNaca < handle
 
         function g = createNacaFunction(AirfoilParams, BGParams)
             s.type = 'Naca'; % 'Naca
-            s.xLE  = (BGParams.length - AirfoilParams.chord) / 2;
-            s.yLE  = BGParams.height/2;
-
-            s.chord = AirfoilParams.chord;
-            s.p     = AirfoilParams.p;
-            s.m     = AirfoilParams.M;
-            s.t     = AirfoilParams.t;
-            s.AoA   = AirfoilParams.AoA;
-
-            g  = GeometricalFunction(s);
-        end
-
-        function g = createNacaUpFunction(AirfoilParams, BGParams)
-            s.type = 'LevelSetYU'; % 'Naca
-            s.xLE  = (BGParams.length - AirfoilParams.chord) / 2;
-            s.yLE  = BGParams.height/2;
-
-            s.chord = AirfoilParams.chord;
-            s.p     = AirfoilParams.p;
-            s.m     = AirfoilParams.M;
-            s.t     = AirfoilParams.t;
-            s.AoA   = AirfoilParams.AoA;
-
-            g  = GeometricalFunction(s);
-        end
-
-        function g = createNacaLowFunction(AirfoilParams, BGParams)
-            s.type = 'LevelSetYL'; % 'Naca
             s.xLE  = (BGParams.length - AirfoilParams.chord) / 2;
             s.yLE  = BGParams.height/2;
 

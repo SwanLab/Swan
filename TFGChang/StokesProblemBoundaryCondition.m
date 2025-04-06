@@ -12,8 +12,6 @@ classdef StokesProblemBoundaryCondition < handle
         uMesh 
         velocityFun
         pressureFun
-        %uMeshU
-        %uMeshL
     end
 
     properties (Access = private)
@@ -57,13 +55,10 @@ classdef StokesProblemBoundaryCondition < handle
             obj.uMesh          = cParams.uMesh;
             obj.velocityFun    = cParams.velocityFun;
             obj.pressureFun    = cParams.pressureFun;
-            %obj.uMeshU          = cParams.uMeshU;
-            %obj.uMeshL          = cParams.uMeshL;
         end
 
         function defineVariables(obj)
             obj.nnodesCutMesh         = size(obj.uMesh.boundaryCutMesh.mesh.coord,1);
-            %obj.nnodesCutMesh         = size(obj.uMeshU.boundaryCutMesh.mesh.coord,1);
             obj.middleNodesCoor       = zeros(obj.nnodesCutMesh,2);
             obj.dirDofsAirfoilMNodes  = zeros(2,obj.nnodesCutMesh);
             obj.dirConditions         = [];
@@ -96,50 +91,6 @@ classdef StokesProblemBoundaryCondition < handle
             obj.dirDofsAirfoilNodes = sort(reshape(obj.dirDofsAirfoilNodes, [], 1));
         end
 
-        % function setDofsAirfoilNodesUp(obj)
-        %     cutCoords = obj.uMeshU.boundaryCutMesh.mesh.coord(1:obj.nnodesCutMesh, :);
-        %     isAirfoil = @(coor) any(ismember(coor, cutCoords, 'rows'), 2);
-        %     obj.dirDofsAirfoilNodes = obj.velocityFun.getDofsFromCondition(isAirfoil);
-        %     obj.dirDofsAirfoilNodes = sort(reshape(obj.dirDofsAirfoilNodes, [], 1));
-        % end
-        % 
-        % function setDofsAirfoilNodesLow(obj)
-        %     cutCoords = obj.uMeshL.boundaryCutMesh.mesh.coord(1:obj.nnodesCutMesh, :);
-        %     isAirfoil = @(coor) any(ismember(coor, cutCoords, 'rows'), 2);
-        %     obj.dirDofsAirfoilNodes = obj.velocityFun.getDofsFromCondition(isAirfoil);
-        %     obj.dirDofsAirfoilNodes = sort(reshape(obj.dirDofsAirfoilNodes, [], 1));
-        % end
-        % 
-        % function setAirfoilDirichletVelocityBCUp(obj)
-        %     cutCoords = obj.uMeshU.boundaryCutMesh.mesh.coord(1:obj.nnodesCutMesh, :);
-        %     ind       = numel(obj.dirVelBC);
-        %     obj.dirVelBC{ind+1}.domain    = @(coor) any(ismember(coor, cutCoords, 'rows'), 2);
-        %     obj.dirVelBC{ind+1}.direction = [1,2];
-        %     obj.dirVelBC{ind+1}.value     = [0,0];
-        % end
-        % 
-        % function setAirfoilDirichletVelocityBCLow(obj)
-        %     cutCoords = obj.uMeshL.boundaryCutMesh.mesh.coord(1:obj.nnodesCutMesh, :);
-        %     ind       = numel(obj.dirVelBC);
-        %     obj.dirVelBC{ind+1}.domain    = @(coor) any(ismember(coor, cutCoords, 'rows'), 2);
-        %     obj.dirVelBC{ind+1}.direction = [1,2];
-        %     obj.dirVelBC{ind+1}.value     = [0,0];
-        % end
-        % 
-        % function findMiddleNodesUp(obj)
-        %     bCutMesh = obj.uMeshU.boundaryCutMesh.mesh;
-        %     x1       = bCutMesh.coord(bCutMesh.connec(:,1),:);
-        %     x2       = bCutMesh.coord(bCutMesh.connec(:,2),:);
-        %     obj.middleNodesCoor = (x1 + x2)./2;
-        % end
-        % 
-        % function findMiddleNodesLow(obj)
-        %     bCutMesh = obj.uMeshL.boundaryCutMesh.mesh;
-        %     x1       = bCutMesh.coord(bCutMesh.connec(:,1),:);
-        %     x2       = bCutMesh.coord(bCutMesh.connec(:,2),:);
-        %     obj.middleNodesCoor = (x1 + x2)./2;
-        % end
-
         function setAirfoilDirichletVelocityBC(obj)
             cutCoords = obj.uMesh.boundaryCutMesh.mesh.coord(1:obj.nnodesCutMesh, :);
             ind       = numel(obj.dirVelBC);
@@ -171,12 +122,6 @@ classdef StokesProblemBoundaryCondition < handle
             obj.setDofsAirfoilNodes();
             obj.setAirfoilDirichletVelocityBC();
             obj.findMiddleNodes();
-            % obj.setDofsAirfoilNodesUp();
-            % obj.setDofsAirfoilNodesLow();
-            % obj.setAirfoilDirichletVelocityBCUp();
-            % obj.setAirfoilDirichletVelocityBCLow();
-            % obj.findMiddleNodesUp();
-            % obj.findMiddleNodesLow();
             obj.setDofsAirfoilMNodes();
         end
 

@@ -46,7 +46,7 @@ classdef AeroForcesCalculationTestComputer < handle
         end
 
         function loadOriginalfinalMesh(obj)
-            load("datas.mat","Li","Di");
+            load("E_GF_N2412.mat","Li","Di");
             obj.LiftOriginal = Li;
             obj.DragOriginal = Di;
         end
