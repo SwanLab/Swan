@@ -1,24 +1,21 @@
 classdef DualUpdaterNullSpace < handle
 
     properties (Access = private)
-       constraint
-       cost
-       dualVariable
-       options
-       constraintCase
-       nConstr
-       dualOld
-       position
-       primalUpdater
-       acceptableStep
+        cost
+        constraint
+        constraintCase
+        nConstr
+    end
+
+    properties (Access = private)
+        position
+        l0
     end
 
     methods (Access = public)
         function obj = DualUpdaterNullSpace(cParams)
             obj.init(cParams);
             obj.defineConstraintCases();
-            obj.computeDualProblemOptions();
-            %obj.createPrimalUpdater();
         end
 
         function defineConstraintCases(obj)
@@ -40,26 +37,12 @@ classdef DualUpdaterNullSpace < handle
             prob.lb(p) = 0;
         end
 
-        function update(obj,eta,primalUpdater)
+        function l = update(obj,eta,lUB,lLB)
             s.prob = obj.computeDualBounds();
             s.eta  = eta;
-            if isempty(primalUpdater.tau)
-                s.lUB = 0;
-                s.lLB = 0;
-            else
-                t     = primalUpdater.boxConstraints.refTau;
-                s.lUB = primalUpdater.boxConstraints.lUB/t;
-                s.lLB = primalUpdater.boxConstraints.lLB/t;
-            end
-            obj.computeQuadraticProblem(s);
-        end
-
-        function reset(obj)
-            obj.dualVariable.value = obj.dualOld;
-        end
-
-        function updateOld(obj)
-            obj.dualOld = obj.dualVariable.fun.fValues;
+            s.lUB = lUB;
+            s.lLB = lLB;
+            l = obj.computeQuadraticProblem(s);
         end
     end
 
@@ -68,18 +51,7 @@ classdef DualUpdaterNullSpace < handle
             obj.cost           = cParams.cost;
             obj.constraint     = cParams.constraint;
             obj.constraintCase = cParams.constraintCase;
-            obj.dualVariable   = cParams.dualVariable;
-            obj.dualOld        = obj.dualVariable.fun.fValues;
-            obj.nConstr        = length(cParams.dualVariable.fun.fValues);
-        end
-
-        function is = isEquality(obj,i)
-            switch obj.constraintCase{i}
-                case 'EQUALITY'
-                    is = true;
-                case 'INEQUALITY'
-                    is = false;
-            end
+            obj.nConstr        = length(cParams.constraintCase);
         end
 
         function is = isInequality(obj,i)
@@ -88,33 +60,30 @@ classdef DualUpdaterNullSpace < handle
                     is = false;
                 case 'INEQUALITY'
                     is = true;
-            end        
+            end
         end
 
-        function computeQuadraticProblem(obj,s)
-            eta      = s.eta;
-            lUB      = s.lUB;
-            lLB      = s.lLB;
-            problem  = s.prob;
-            g        = obj.constraint.value;
-            Dg       = obj.constraint.gradient;
-            isActive = obj.checkComplementaryKKT(g);
-            problem.lb(~isActive) = [];
-            problem.ub(~isActive) = [];
+        function l = computeQuadraticProblem(obj,s)
+            eta           = s.eta;
+            xBoxUB        = s.lUB;
+            xBoxLB        = s.lLB;
+            lb            = s.prob.lb;
+            ub            = s.prob.ub;
+            g             = obj.constraint.value;
+            Dg            = obj.constraint.gradient;
+            isActive      = obj.checkComplementaryKKT(g);
+            lb(~isActive) = [];
+            ub(~isActive) = [];
             g  = g(isActive);
             Dg = Dg(:,isActive);
             DJ = obj.cost.gradient;
             l  = zeros(obj.nConstr,1);
             if ~isempty(g)
-                problem.H       = Dg'*Dg;
-                problem.f       = Dg'*(DJ+lUB-lLB)-eta*g;
-                problem.solver  = 'quadprog';
-                problem.options = obj.options;
-                l(isActive)     = quadprog(problem);
+                H           = Dg'*Dg;
+                f           = Dg'*(DJ+xBoxUB-xBoxLB)-eta*g;
+                l(isActive) = obj.solve(H,f,lb,ub,isActive);
             end
-            obj.dualVariable.fun.fValues = l;
-
-            %obj.solveWithProjectedGradient(s);
+            obj.l0 = l;
         end
 
         function isActive = checkComplementaryKKT(obj,g)
@@ -126,77 +95,33 @@ classdef DualUpdaterNullSpace < handle
             end
         end
 
-        function solveWithProjectedGradient(obj,s)
-            eta   = s.eta;
-            lUB   = s.lUB;
-            lLB   = s.lLB;
-            l     = obj.dualVariable;
-            g     = obj.constraint.value;
-            Dg    = obj.constraint.gradient;
-            DJ    = obj.cost.gradient;
-            A     = Dg'*Dg;
-            b     = eta*g-Dg'*(DJ+lUB-lLB);
-            Df    = A*l.fun.fValues-b;
-            obj.primalUpdater.tau = Df'*Df/(Df'*A*Df);
-            delta = inf;
-            while delta>1e-8
-                lValk              = l.fun.fValues;
-                r                  = b-A*lValk;
-                obj.acceptableStep = false;
-                while (~obj.acceptableStep)
-                    l     = obj.primalUpdater.update(-r,l);
-                    lValk1   = l.fun.fValues;
-                    obj.checkStep(A,b,lValk,lValk1);
-                end
-                delta = norm(lValk1-lValk);
-                obj.primalUpdater.increaseStepLength(1.2);
-            end
-            obj.dualVariable = l;
+        function l = solve(obj,H,f,lb,ub,isActive)
+            s.cost           = obj.createCost(H,f);
+            s.designVariable = obj.createDesignVariable(isActive);
+            s.monitoring     = false;
+            s.lb             = lb;
+            s.ub             = ub;
+            s.maxIter        = 1000;
+            opt              = OptimizerProjectedGradient(s);
+            opt.solveProblem();
+            l = s.designVariable.fun.fValues;
         end
 
-        function checkStep(obj,A,b,lOld,l)
-            Mold = obj.computeMeritFunction(A,b,lOld);
-            M    = obj.computeMeritFunction(A,b,l);
-            if M<Mold+1e-6
-                obj.acceptableStep = true;
-            else
-                obj.primalUpdater.decreaseStepLength();
-                obj.dualVariable.update(lOld);
-            end
+        function d = createDesignVariable(obj,isActive)
+            g    = obj.constraint.value;
+            s.x0 = zeros(size(g(isActive)));
+            d    = DesignVariableAcademic(s);
         end
-        
-        function M = computeMeritFunction(obj,A,b,l)
-            lLB = obj.primalUpdater.boxConstraints.lLB;
-            q   = 0.5*l'*A*l-l'*b;
-            M   = q-sum(lLB);
-        end
+    end
 
-        function computeDualProblemOptions(obj)
-            opts = struct( ...
-                'Algorithm','interior-point-convex', ...
-                'Diagnostics','off', ...
-                'Display','none', ...
-                'HessMult',[], ...
-                'MaxIter',1e3, ...
-                'MaxPCGIter','max(1,floor(numberOfVariables/2))', ...
-                'PrecondBandWidth',0, ...
-                'ProblemdefOptions', struct, ...
-                'TolCon',1e-5, ...
-                'TolFun',[], ...
-                'TolFunValue', [], ...
-                'TolPCG',0.1, ...
-                'TolX',100*eps, ...
-                'TypicalX','ones(numberOfVariables,1)', ...
-                'LinearSolver', 'auto', ...
-                'ObjectiveLimit', -1e20 ...
-                );
-            obj.options = opts;
-        end
-
-        function createPrimalUpdater(obj)
-            s                 = obj.computeDualBounds();
-            p                 = ProjectedGradient(s);
-            obj.primalUpdater = p;
+    methods (Static, Access = private)
+        function c = createCost(H,f)
+            sA.cF = @(x) 0.5*x'*H*x + f'*x;
+            sA.gF = @(x) H*x + f;
+            s.shapeFunctions{1} = AcademicCost(sA);
+            s.weights           = 1;
+            s.Msmooth           = 1;
+            c                   = Cost(s);
         end
     end
 end

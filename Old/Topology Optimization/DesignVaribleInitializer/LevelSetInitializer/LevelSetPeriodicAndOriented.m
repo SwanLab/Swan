@@ -83,31 +83,43 @@ classdef LevelSetPeriodicAndOriented < handle
         end
 
         function y = evaluateCellCoord(obj,xV,eps)
-            x = obj.deformedCoord.evaluate(xV);             
+            x = obj.deformedCoord.getFvaluesByElem();
+            
+          %  x = obj.deformedCoord.evaluate(xV);             
             y = obj.computeMicroCoordinate(x,eps);
             y = obj.periodicFunction(y);
         end
 
         function ls = createCellLevelSet(obj,eps)
-            s.operation  = @(xV) obj.geometricalFunction(xV,eps);
-            s.ndimf      = 1;
-            s.mesh       = obj.fineMesh;
-            f  = DomainFunction(s);
-            ls = Project(f,'P1');            
+     %       s.operation  = @(xV) obj.geometricalFunction(xV,eps);
+    %        s.ndimf      = 1;
+    %        s.mesh       = obj.fineMesh;
+    %        f  = DomainFunction(s);
+    %        ls = project(f,'P1');      
+
+            x = obj.mesh.coordElem;
+
+            fValues = obj.geometricalFunction(x,eps);
+            s.mesh    = obj.fineMesh;
+            s.fValues = fValues(:);
+            s.order   = 'P1D';              
+            ls = LagrangianFunction(s);  
+            ls = project(ls,'P1');
         end
 
         function fH = geometricalFunction(obj,xV,eps)
-            sx = obj.m1.evaluate(xV);
-            sy = obj.m2.evaluate(xV);
-            x0 = 0.5;
-            y0 = 0.5;
+            sx = obj.m1.getFvaluesByElem();
+            sy = obj.m2.getFvaluesByElem();
+            %sx = obj.m1.evaluate(xV);
+            %sy = obj.m2.evaluate(xV);
             x  = obj.evaluateCellCoord(xV,eps);            
             s.xSide = sx;
             s.ySide = sy;
-            s.xCoorCenter = x0;
-            s.yCoorCenter = y0;
+            s.xCoorCenter = 0;
+            s.yCoorCenter = 0;
             s.pnorm = 4;
             s.type = 'SmoothRectangleInclusion';
+            %s.type = 'RectangleInclusion';
             g = GeometricalFunction(s);
             f = g.getHandle;
             fH = f(x);
@@ -117,8 +129,8 @@ classdef LevelSetPeriodicAndOriented < handle
             mL = obj.computeMinLengthInUnitCell();
             s.minLengthInUnitCell = mL;
             t = MparameterThresholder(s);
-            obj.m1.fValues = t.thresh(obj.m1.fValues);
-            obj.m2.fValues = t.thresh(obj.m2.fValues);
+            obj.m1.setFValues(t.thresh(obj.m1.fValues));
+            obj.m2.setFValues(t.thresh(obj.m2.fValues));
         end
 
         function t = computeMinLengthInUnitCell(obj)
@@ -137,8 +149,10 @@ classdef LevelSetPeriodicAndOriented < handle
             y = zeros(size(x));
             for iDim = 1:nDim
                 xI    = x(iDim,:,:);
-                xImin = min(xI(:));
-                y(iDim,:,:) = (xI-xImin)/(eps(iDim));
+                %xImin = min(xI(:))
+               % xImin = eps(iDim)
+               % xImin = 0;
+                y(iDim,:,:) = (xI)/(eps(iDim));
             end
             %y = (x-min(x(:))-eps)/eps;
         end
@@ -148,8 +162,10 @@ classdef LevelSetPeriodicAndOriented < handle
     methods (Access = private, Static)
 
         function f = periodicFunction(y)
-         %   f = abs(cos(1*pi*(y))).^2;           
-            f = (y - floor(y));
+            %f = ((cos(1*pi*(y)))).^2;           
+        %    f = (cos(2*pi*y));   
+
+            f = abs(y-floor(y)-0.5);
         end
 
     end

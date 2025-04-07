@@ -39,18 +39,17 @@ classdef LHSIntegratorFactory < handle
                case 'WeakDivergence'
                    obj = LHSIntegratorWeakDivergence(cParams);
                case 'AdvectionMatrix'
-                   obj = LHSintegrator_Advection(cParams);
-                   
+                   obj = LHSIntegrator_Advection(cParams);                   
                case 'StiffnessMatrixWithFunction'
-                   obj = LHSintegratorFunctionStiffness(cParams);
+                   obj = LHSIntegratorFunctionStiffness(cParams);
                case 'MassMatrixWithFunction'
-                   obj = LHSintegratorFunctionMass(cParams);
+                   obj = LHSIntegratorFunctionMass(cParams);
                case 'MassMatrixWithFunctionDerivative'
                    obj = LHSintegratorFunctionDerivativeMass(cParams);                   
                case 'AdvectionMatrixWithFunctionDerivative'
                    obj = LHSintegratorFunctionDerivativeAdvection(cParams);  
                case 'AdvectionMatrixWithFunction'
-                   obj = LHSintegratorFunctionAdvection(cParams); 
+                   obj = LHSIntegratorFunctionAdvection(cParams); 
                case 'DivergenceMatrix'
                    obj = LHSintegratorDivergenceMatrix(cParams); 
            end

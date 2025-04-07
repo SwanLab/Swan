@@ -1,10 +1,10 @@
-classdef ConstantFunction < BaseFunction & matlab.mixin.Copyable
+classdef ConstantFunction < BaseFunction
     
     properties (GetAccess = public, SetAccess = private)
         constant
     end
 
-    properties (Access = private)
+    properties
         fHandle
     end
     
@@ -13,10 +13,6 @@ classdef ConstantFunction < BaseFunction & matlab.mixin.Copyable
         
         function obj = ConstantFunction(cParams)
             obj.init(cParams)
-        end
-
-        function fxV = evaluate(obj,xV)
-            fxV = obj.fHandle(xV);
         end
         
     end
@@ -43,12 +39,12 @@ classdef ConstantFunction < BaseFunction & matlab.mixin.Copyable
 
     end
 
-  methods (Access = protected)
+    methods (Access = protected)
 
         function fxV = evaluateNew(obj, xV)
             fxV = obj.fHandle(xV);
-        end        
+        end
 
     end
-    
+
 end

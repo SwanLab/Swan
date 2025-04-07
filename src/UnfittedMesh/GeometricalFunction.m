@@ -51,12 +51,24 @@ classdef GeometricalFunction < handle
                     obj.computeInclusion(s);
 
                 case 'Rectangle'
+                   % sx = (cParams.xSide)/2;
+                   % sy = (cParams.ySide)/2;
+                    % sx = (1-cParams.xSide)/2;
+                    % sy = (1-cParams.ySide)/2;    
+                    % sx = cos(2*pi*sx);
+                    % sy = cos(2*pi*sy);                      
+                    % x0 = cParams.xCoorCenter;
+                    % y0 = cParams.yCoorCenter;
+                    % fH = @(x) max((x1(x)-x0)./(sx),(x2(x)-y0)./(sy)) - 1;
+                    % obj.fHandle = fH;
+
                     sx = cParams.xSide;
                     sy = cParams.ySide;
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
                     fH = @(x) max(abs(x1(x)-x0)./sx,abs(x2(x)-y0)./sy) - 0.5;
                     obj.fHandle = fH;
+
 
                 case 'RectangleInclusion'
                     s      = cParams;
@@ -66,16 +78,28 @@ classdef GeometricalFunction < handle
                 case 'SmoothRectangleInclusion'
                     s      = cParams;
                     s.type = 'SmoothRectangle';
-                    obj.computeInclusion(s);            
+                    obj.computeInclusion(s);
 
                 case 'SmoothRectangle'
+                     % sx = (cParams.xSide)/2;
+                     % sy = (cParams.ySide)/2;
+                %   sx = (1-cParams.xSide)/2;
+                %   sy = (1-cParams.ySide)/2;    
+                %   sx = cos(2*pi*sx);
+                %   sy = cos(2*pi*sy);                      
+                    % x0 = cParams.xCoorCenter;
+                    % y0 = cParams.yCoorCenter;
+                    % p  = cParams.pnorm;
+                    % fH = @(x) (((x1(x)-x0)./(sx)).^p+((x2(x)-y0)./(sy)).^p).^(1/p) - 1;
+                    % obj.fHandle = fH;
+
                     sx = cParams.xSide;
                     sy = cParams.ySide;
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
                     p  = cParams.pnorm;
                     fH = @(x) ((abs(x1(x)-x0)./sx).^p+(abs(x2(x)-y0)./sy).^p).^(1/p) - 0.5;
-                    obj.fHandle = fH;
+                    obj.fHandle = fH;                    
 
                 case 'RectangleRotated'
                     sx = cParams.xSide;
@@ -99,6 +123,14 @@ classdef GeometricalFunction < handle
                     s      = cParams;
                     s.type = 'Circle';
                     obj.computeInclusion(s);
+
+                case 'Ellipse'
+                    sx = cParams.xSide;
+                    sy = cParams.ySide;
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+                    fH = @(x) (((x1(x)-x0).^2)./sx^2)+(((x2(x)-y0).^2)./sy^2) - 1;
+                    obj.fHandle = fH;
 
                 case 'Sphere'
                     r  = cParams.radius;
@@ -183,6 +215,22 @@ classdef GeometricalFunction < handle
                 case 'PeriodicAndOriented'
                     fH          = LevelSetPeriodicAndOriented(cParams);
                     obj.fHandle = fH.getFunctionHandle();
+                case 'Hexagon'
+                    l  = cParams.radius;
+                    n  = cParams.normal;
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+                    p  = 'Inf';
+                    fH = @(x) obj.computeHexagonFunction(x,x1,x2,x0,y0,n,p,l);
+                    obj.fHandle = fH;
+                case 'SmoothHexagon'
+                    l  = cParams.radius;
+                    n  = cParams.normal;
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+                    p  = cParams.pnorm;
+                    fH = @(x) obj.computeHexagonFunction(x,x1,x2,x0,y0,n,p,l);
+                    obj.fHandle = fH;
             end
         end
 
@@ -191,5 +239,26 @@ classdef GeometricalFunction < handle
             fH          = obj.fHandle;
             obj.fHandle = @(x) -fH(x);
         end
+
+    end
+
+    methods (Access = private, Static)
+
+        function d = computeHexagonFunction(x,x1,x2,x0,y0,n,p,l)
+            vx     = x1(x)-x0;
+            vy     = x2(x)-y0;
+            nS     = size(n,1);
+            nGauss = size(x,2);
+            nElem  = size(x,3);
+            vn = zeros(1,nGauss,nElem,nS);
+            for i = 1:nS
+                nx = n(i,1);
+                ny = n(i,2);
+                vn(:,:,:,i) = abs(vx*nx + vy*ny);
+            end
+            normVn = vecnorm(vn,p,4);
+            d = (normVn/(l*(sqrt(3)/2)))-1;
+        end
+
     end
 end
