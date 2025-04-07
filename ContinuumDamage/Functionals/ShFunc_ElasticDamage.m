@@ -49,7 +49,7 @@ classdef ShFunc_ElasticDamage < handle
             res = obj.RHS.compute(stress,obj.test);            
         end
         
-        function [K,Ksec] = computeDerivativeResidual(obj,u,isLoading)
+        function [K,Ktan] = computeDerivativeResidual(obj,u,isLoading)
             obj.computeDamage();
             Ksec = obj.computeDerivativeResidualSecant();
             Ktan = obj.computeDerivativeResidualTangent(u,isLoading);
@@ -75,7 +75,8 @@ classdef ShFunc_ElasticDamage < handle
         end
         
         function setROld (obj)
-            obj.rOld = obj.r;        
+            % obj.rOld = obj.r; 
+            obj.rOld.setFValues(obj.r.fValues());
         end
         
         function d = getDamage(obj)
@@ -153,6 +154,8 @@ classdef ShFunc_ElasticDamage < handle
             if (isLoading) %implementar al computer, entrem un isloading
                 C = obj.material.obtainNonDamagedTensor();
                 epsi = SymGrad(u);
+                tauEpsilon = sqrt(DDP(DDP(epsi,C),epsi));
+                tauEpsilon = project(tauEpsilon,obj.r.order);
                 sigBar = DDP(epsi,C);
                 q = obj.computeHardening();
 
@@ -183,6 +186,16 @@ classdef ShFunc_ElasticDamage < handle
             end
             LHS = obj.createElasticLHS(Ctan);         
             tan = LHS.compute();
+
+            % EPSILON = epsi.evaluate([0;0])
+            % CnoDmg= C.evaluate([0;0])
+            % sigmaBarra = sigBar.evaluate([0;0])
+            % tauEpsi = tauEpsilon.evaluate([0;0])
+            % Rold = obj.rOld.evaluate([0;0])
+            % R = obj.r.evaluate([0;0])
+            % q_=q(obj.r.evaluate([0;0]),obj.r0.evaluate([0;0]),obj.r1.evaluate([0;0]))
+            % dmg = obj.d.evaluate([0;0])
+            % Ctangent = Ctan.evaluate([0;0])
         end 
     end    
 end

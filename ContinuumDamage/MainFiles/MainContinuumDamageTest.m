@@ -46,8 +46,8 @@ cParams.solver.scale = 'MACRO';
 
 cParams.tol = 1e-8;
 cParams.H = 0.5;
-cParams.r0 = 1/sqrt(6);
-cParams.r1 = 2;
+cParams.r0 = 0.4;
+cParams.r1 = 20;
 
 tester = TestingContinuumDamage(cParams);
 data = tester.compute();
