@@ -1,16 +1,8 @@
-<<<<<<<< HEAD:src/Integrators/RHS/RHSIntegrator_ShapeSymmDerivative.m
-classdef RHSIntegrator_ShapeSymmDerivative < RHSIntegrator
-    
-    methods (Access = public)
-        
-        function obj = RHSIntegrator_ShapeSymmDerivative(cParams)
-========
 classdef RHSIntegratorShapeSymmDerivative < RHSIntegrator
     
     methods (Access = public)
         
         function obj = RHSIntegratorShapeSymmDerivative(cParams)
->>>>>>>> master:src/Integrators/RHS/RHSIntegratorShapeSymmDerivative.m
             obj.init(cParams)
             obj.setQuadratureOrder(cParams);
             obj.createQuadrature();

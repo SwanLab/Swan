@@ -6,7 +6,6 @@ classdef BoundaryConditions < handle
         periodic_leader, periodic_follower, free_dofs
 
         iVoigt, nVoigt
-        free_dofs
     end
     
     properties (Access = private)
