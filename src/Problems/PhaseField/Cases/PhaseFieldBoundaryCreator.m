@@ -1,4 +1,4 @@
-classdef phaseFieldBoundaryCreator < handle
+classdef PhaseFieldBoundaryCreator < handle
     
     properties (Access = public)
         
@@ -17,7 +17,7 @@ classdef phaseFieldBoundaryCreator < handle
     
     methods (Access = public)
         
-        function obj = phaseFieldBoundaryCreator(mesh,cParams)
+        function obj = PhaseFieldBoundaryCreator(mesh,cParams)
             obj.init(mesh,cParams)
             obj.defineBoundaryConditions(cParams);
         end
@@ -97,7 +97,7 @@ classdef phaseFieldBoundaryCreator < handle
              sNeum.value     = fVal;
              Neum1 = PointLoad(obj.mesh,sNeum);
 
-             s.mesh = obj.mesh;D
+             s.mesh = obj.mesh;
              s.dirichletFun = [Dir1];
              s.pointloadFun = [Neum1];
              s.periodicFun = [];

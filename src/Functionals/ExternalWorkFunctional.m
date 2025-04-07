@@ -2,11 +2,11 @@ classdef ExternalWorkFunctional < handle
     
     properties (Access = private)
         mesh
-        bMesh
-        testU
     end
 
     properties (Access = private)
+        bMesh
+        testU
         bFunfExt
         bFunU
     end
