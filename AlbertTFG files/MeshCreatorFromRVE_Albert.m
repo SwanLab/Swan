@@ -1,4 +1,4 @@
-classdef MeshCreatorFromRVE < handle
+classdef MeshCreatorFromRVE_Albert < handle
 
     properties (Access = public)
 
@@ -6,6 +6,7 @@ classdef MeshCreatorFromRVE < handle
 
     properties (Access = private)
         nSubdomains
+        rSubdomains
         meshReference
         interfaceMeshReference
         ninterfaces
@@ -24,7 +25,7 @@ classdef MeshCreatorFromRVE < handle
 
     methods (Access = public)
 
-        function obj = MeshCreatorFromRVE(cParams)  
+        function obj = MeshCreatorFromRVE_Albert(cParams)  
             obj.init(cParams)
         end
 
@@ -46,21 +47,33 @@ classdef MeshCreatorFromRVE < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.nSubdomains = cParams.nsubdomains; %nx ny
+            obj.nSubdomains   = cParams.nsubdomains; %nx ny
+            obj.rSubdomains   = cParams.rsubdomains;
             obj.meshReference = cParams.meshReference;
-            obj.interfaceMeshReference  = obj.meshReference.createBoundaryMesh();
-            obj.ninterfaces = length(obj.interfaceMeshReference);
-            obj.tolSameNode = cParams.tolSameNode;
+            obj.tolSameNode   = cParams.tolSameNode;
+
+            iMR = [];
+            nin = [];
+
+            for i = 1:size(obj.nSubdomains,2)
+                imr = obj.meshReference(i).createBoundaryMesh();
+                nin = cat(1, nin, length(imr) );
+                iMR = cat(1, iMR, imr); 
+            end
+
+            obj.interfaceMeshReference = iMR;
+            obj.ninterfaces            = nin;
+            
         end
 
         function createSubDomainMeshes(obj)
             nX = obj.nSubdomains(1);
             nY = obj.nSubdomains(2);
-            figure(2)
+            %figure(2)
             for jDom = 1:nY
                 for iDom = 1:nX
                     coordIJ = obj.computeSubdomainCoords(jDom,iDom);
-                    mIJ     = obj.createSubdomainMesh(coordIJ);
+                    mIJ     = obj.createSubdomainMesh(coordIJ,jDom,iDom);
                     %mIJ.plot();
                     mD{jDom,iDom} = mIJ;
                     % hold on
@@ -74,8 +87,8 @@ classdef MeshCreatorFromRVE < handle
             nY = obj.nSubdomains(2);
             coord = [];
             connec = [];
-            for jDom = 1:nY
-                for iDom = 1:nX
+            for jDom = 1:nX
+                for iDom = 1:nY
                     m = obj.meshSubDomain{jDom,iDom};
                     coord  = [coord;m.coord];
                     connec = [connec;m.connec];
@@ -87,24 +100,24 @@ classdef MeshCreatorFromRVE < handle
 
         end
 
-        function L = computeReferenceMeshLength(obj)
-            coord = obj.meshReference.coord;
+        function L = computeReferenceMeshLength(obj,jDom,iDom)
+            coord = obj.meshReference(jDom,iDom).coord;
             Lx = max(coord(:,1))-min(coord(:,1));
             Ly = max(coord(:,2))-min(coord(:,2));
             L = [Lx Ly];
         end
 
         function coord = computeSubdomainCoords(obj,jDom,iDom)
-            coord0 = obj.meshReference.coord;
-            L  = obj.computeReferenceMeshLength();
+            coord0 = obj.meshReference(jDom, iDom).coord;
+            L  = obj.computeReferenceMeshLength(jDom,iDom);
             Lx = L(1);
             Ly = L(2);
             coord(:,1) = coord0(:,1)+Lx*(iDom-1);
             coord(:,2) = coord0(:,2)+Ly*(jDom-1);
         end
 
-        function m = createSubdomainMesh(obj,coord)
-            connec0  = obj.meshReference.connec;
+        function m = createSubdomainMesh(obj,coord,jDom,iDom)
+            connec0  = obj.meshReference(jDom,iDom).connec;
             s.coord  = coord;
             s.connec = connec0;
             m = Mesh.create(s);
@@ -113,10 +126,10 @@ classdef MeshCreatorFromRVE < handle
         function createInterfaceSubDomainMeshes(obj)
             nX = obj.nSubdomains(1);
             nY = obj.nSubdomains(2);
-             figure
-            for jDom = 1:nY
-                for iDom = 1:nX
-                    bIJ = obj.meshSubDomain{jDom,iDom}.createBoundaryMesh();
+            
+            for jDom = 1:nX
+                for iDom = 1:nY
+                    bIJ = obj.meshSubDomain{iDom,jDom}.createBoundaryMesh();
                     bD{jDom,iDom} = bIJ;
                   %   hold on
                   %   for iline=1:length(bIJ)
@@ -135,7 +148,7 @@ classdef MeshCreatorFromRVE < handle
             s.meshSubDomain = obj.meshSubDomain;
 
             s.tolSameNode = obj.tolSameNode;
-            coupling = InterfaceCoupling(s);
+            coupling = InterfaceCoupling_Albert(s);
             coupling.compute();
             obj.interfaceConnec = coupling.interfaceConnec;
             

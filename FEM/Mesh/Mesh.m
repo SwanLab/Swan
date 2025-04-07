@@ -253,7 +253,7 @@ classdef Mesh < handle
             x = obj.coord(:,1);
             y = obj.coord(:,2);
             
-            k = boundary(x,y);
+            k = boundary(x,y,1);
             k = k(1:end-1);
             originalNodes = k;
             newNodes = (1:length(k))';

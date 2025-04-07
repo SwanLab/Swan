@@ -1,9 +1,10 @@
-classdef levelSetTestingAusetic < handle
+classdef levelSetTesting_Albert < handle
     %UNTITLED Summary of this class goes here
     %   Detailed explanation goes here
 
     properties
         nSubdomains
+        rSubdomains
         fileNameEIFEM
         tolSameNode
         meshDomain
@@ -13,11 +14,10 @@ classdef levelSetTestingAusetic < handle
         mesh
         Kel
         U
-        RmeshFilename
     end
 
     methods
-        function obj = levelSetTestingAusetic()
+        function obj = levelSetTesting_Albert()
             clc; close all;
             obj.init();
 
@@ -26,33 +26,34 @@ classdef levelSetTestingAusetic < handle
             mRcoarse = obj.createReferenceCoarseMesh(mR);
             u = obj.createCoarseElasticProblem(mRcoarse);
             u = u(:);
-            CoarsePlotSolution(u, discMesh, [], "Ausetic Fine test")
+            CoarsePlotSolution(u, discMesh, [], "r0_1 Fine test")
             %EIFEMtesting.plotSolution(u, discMesh, 20, 1, 0, [], 0)
             
 
         end
 
         function init(obj)
-            obj.nSubdomains  = [4 1]; %nx ny
-            obj.fileNameEIFEM = "UL-Ausetic";
-            obj.RmeshFilename = "DEF_Q4auxL_1.mat";
+            obj.nSubdomains  = [2 1]; %nx ny
+            obj.rSubdomains  = [0.3 0.1];
             obj.tolSameNode = 1e-14;
-            data = load(obj.fileNameEIFEM);
-            obj.Kel = data.L;
-            obj.U = data.U;
+            obj.loadFilenames;
+        end
+
+        function loadFilenames(obj)
+            obj.Kel = {};
+            obj.U   = {};
+
+            stringNames = ["UL_r0_3-20x20-Hole", "UL_r0_1-20x20-Hole"];
+            for i = 1:size(obj.nSubdomains,2)
+                data = load(stringNames(1,i));
+                obj.Kel = cat(1, obj.Kel, {data.L});
+                obj.U = cat(1, obj.U, {data.U});
+
+            end
         end
         
         function mS = createReferenceMesh(obj)
-            mS = obj.loadAuseticMesh();
-        end
-
-        function mesh = loadAuseticMesh(obj)
-            Data = load(obj.RmeshFilename);
-            s.coord  = Data.EIFEoper.MESH.COOR;
-            s.connec = Data.EIFEoper.MESH.CN;
-
-            mesh = Mesh.create(s);
-
+            mS = obj.createStructuredMesh();
         end
 
         function mS = createStructuredMesh(obj)
@@ -64,17 +65,23 @@ classdef levelSetTestingAusetic < handle
             s.coord  = V(:,1:2);
             s.connec = F;
             bgMesh   = Mesh.create(s);
+            mS = {};
 
-            lvSet    = obj.createLevelSetFunction(bgMesh);
-            uMesh    = obj.computeUnfittedMesh(bgMesh,lvSet);
-            mS       = uMesh.createInnerMesh();
+            for i = 1:size(obj.nSubdomains,2)
+                lvSet = obj.createLevelSetFunction(bgMesh, i);
+                uMesh = obj.computeUnfittedMesh(bgMesh,lvSet);
+                ms    = uMesh.createInnerMesh();
+                mS = cat(2, mS, ms);
+            end
+
+            
         end
         
-        function levelSet = createLevelSetFunction(~,bgMesh)
+        function levelSet = createLevelSetFunction(obj,bgMesh, i)
             sLS.type        = 'CircleInclusion';
             sLS.xCoorCenter = 0;
             sLS.yCoorCenter = 0;
-            sLS.radius      = 0.1;
+            sLS.radius      = obj.rSubdomains(1, i);
             g               = GeometricalFunction(sLS);
             lsFun           = g.computeLevelSetFunction(bgMesh);
             levelSet        = lsFun.fValues;
@@ -89,9 +96,10 @@ classdef levelSetTestingAusetic < handle
         
         function [mD,mSb,iC,lG,iCR, discMesh] = createMeshDomain(obj,mR)
             s.nsubdomains   = obj.nSubdomains; %nx ny
+            s.rsubdomains   = obj.rSubdomains;
             s.meshReference = mR;
             s.tolSameNode = obj.tolSameNode;
-            m = MeshCreatorFromRVE(s);
+            m = MeshCreatorFromRVE_Albert(s);
             [mD,mSb,iC,~,lG,iCR, discMesh] = m.create();
         end
         
@@ -249,11 +257,11 @@ classdef levelSetTestingAusetic < handle
             
             
 
-            RHS = obj.computeForces(LHS, dispFun);
+            RHS = obj.computeForces(LHS, dispFun)
             
             uRed = LHSr\RHS;
             uCoarse = obj.bcApplier.reducedToFullVectorDirichlet(uRed);
-            CoarsePlotSolution(uCoarse, mD, [], "Ausetic Coarse test")
+            CoarsePlotSolution(uCoarse, mD, [], "r0_1 Coarse test")
             %EIFEMtesting.plotSolution(uCoarse, mD, 1, 2, 0, [], 0)
 
 

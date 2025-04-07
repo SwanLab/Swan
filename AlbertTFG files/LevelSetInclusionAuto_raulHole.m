@@ -1,4 +1,4 @@
-classdef LevelSetInclusionAuto_Ausetic < handle
+classdef LevelSetInclusionAuto_raulHole < handle
     
     properties (Access = public)
         stiffness
@@ -17,7 +17,6 @@ classdef LevelSetInclusionAuto_Ausetic < handle
         forces
         uFun
         strainFun
-        RmeshFilename
         
     end
 
@@ -33,8 +32,8 @@ classdef LevelSetInclusionAuto_Ausetic < handle
 
     methods (Access = public)
 
-        function [obj, u, L] = LevelSetInclusionAuto_Ausetic()
-            obj.init();
+        function [obj, u, L] = LevelSetInclusionAuto_raulHole(r, i)
+            obj.init(r, i)
             obj.createMesh();
             
             %% New ugly chunk of code warning
@@ -56,31 +55,22 @@ classdef LevelSetInclusionAuto_Ausetic < handle
 
     methods (Access = private)
 
-        function init(obj)
+        function init(obj, r, i)
             % close all;
             % clc;
-            obj.RmeshFilename = "DEF_Q4auxL_1.mat";
+            obj.radius = r;
+            obj.nodeDirection = i;
         end
 
         function createMesh(obj)
-            % bgMesh   = obj.createReferenceMesh();
-            % lvSet    = obj.createLevelSetFunction(bgMesh);
-            % uMesh    = obj.computeUnfittedMesh(bgMesh,lvSet);
-            % obj.mesh = uMesh.createInnerMesh();
+            bgMesh   = obj.createReferenceMesh();
+            lvSet    = obj.createLevelSetFunction(bgMesh);
+            uMesh    = obj.computeUnfittedMesh(bgMesh,lvSet);
+            obj.mesh = uMesh.createInnerMesh();
             % obj.mesh = bgMesh;
-            obj.mesh = obj.loadAuseticMesh();
 
             obj.boundaryMesh = obj.mesh.createBoundaryMesh();
             [obj.boundaryMeshJoined, obj.localGlobalConnecBd] = obj.mesh.createSingleBoundaryMesh();
-        end
-
-        function mesh = loadAuseticMesh(obj)
-            Data = load(obj.RmeshFilename);
-            s.coord  = Data.EIFEoper.MESH.COOR;
-            s.connec = Data.EIFEoper.MESH.CN;
-
-            mesh = Mesh.create(s);
-
         end
 
         function mesh = createReferenceMesh(~)
@@ -148,7 +138,7 @@ classdef LevelSetInclusionAuto_Ausetic < handle
         function bc = createBoundaryConditions(obj)
 
             v                    = zeros(8,1);
-            v(1) = 1;
+            v(obj.nodeDirection) = 1;
             nRes                 = [1 1 2 2 3 3 4 4]*v;
             assignMatrix         = [2 1 0 0 0 0 0 0
                                     0 0 2 1 0 0 0 0
@@ -332,18 +322,7 @@ classdef LevelSetInclusionAuto_Ausetic < handle
             lhs = LHSintegrator_MassBoundary_albert(s);
             test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); % !!
              obj.dLambda  = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1');
-             Cg = lhs.compute(obj.dLambda,test); 
-             % 
-             % for i = 1:size(Cg,1)
-             %    ci = Cg(i,:);
-             %    maxRow = max(ci);
-             %    if maxRow > 0
-             %        ci(ci == maxRow) = 1;
-             %        ci(ci < maxRow) = 0;
-             %        Cg(i,:) = ci;
-             %    end
-             % 
-             % end
+             Cg = lhs.compute(obj.dLambda,test);      
         end
 
         function Cg = computeCmatP2(obj)
@@ -365,8 +344,10 @@ classdef LevelSetInclusionAuto_Ausetic < handle
             s.localGlobalConnecBd   = obj.localGlobalConnecBd;
             s.nnodes                 = obj.mesh.nnodes;
             s.mesh = obj.boundaryMeshJoined;
+        
 
-            lhs = LHSintegrator_ShapeFunction_fun(s);
+
+             lhs = LHSintegrator_ShapeFunction_fun(s);
             % lhs = LHSintegrator_MassBoundary_albert(s);
             test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); % !!
             ndimf  = 2;
@@ -395,7 +376,7 @@ classdef LevelSetInclusionAuto_Ausetic < handle
                 obj.dLambda{i}  = AnalyticalFunction.create(f{i},ndimf,obj.boundaryMeshJoined);
                     
                 %% Project to P1
-%                 obj.dLambda{i} = obj.dLambda{i}.project('P1');
+                obj.dLambda{i} = obj.dLambda{i}.project('P1');
 
                 Ce = lhs.compute(obj.dLambda{i},test);
                 [iLoc,jLoc,vals] = find(Ce);
@@ -641,11 +622,9 @@ classdef LevelSetInclusionAuto_Ausetic < handle
             f     = {f1x f1y f2x f2y f3x f3y f4x f4y}; %
             nfun = size(f,2);
             rDir = [];
-
-            Ud = obj.AnalyticalDirCond();
             for i=1:nfun
-                % Ud{i}  = AnalyticalFunction.create(f{i},obj.mesh.ndim,obj.boundaryMeshJoined);
-
+                Ud{i}  = AnalyticalFunction.create(f{i},obj.mesh.ndim,obj.boundaryMeshJoined);
+                    
                 % %% Project to P1
                 % obj.dLambda{i} = obj.dLambda{i}.project('P1');
 
@@ -672,60 +651,6 @@ classdef LevelSetInclusionAuto_Ausetic < handle
                 rDir = eye(size(c,2));
 
          end
-
-
-         function uD = AnalyticalDirCond(obj)
-            xmax = max(obj.mesh.coord(:,1));
-            ymax = max(obj.mesh.coord(:,2));
-            xmin = min(obj.mesh.coord(:,1));
-            ymin = min(obj.mesh.coord(:,2));
-            a = (-xmin+xmax)/2;
-            b = (-ymin+ymax)/2;
-            x0 = xmin+a;
-            y0 = ymin+b;
-
-%             f1x = @(x) [1/(4)*(1-x(1,:,:)).*(1-x(2,:,:));...
-%                     0*x(2,:,:)  ];
-%             f2x = @(x) [1/(4)*(1+x(1,:,:)).*(1-x(2,:,:));...
-%                     0*x(2,:,:)  ];
-%             f3x = @(x) [1/(4)*(1+x(1,:,:)).*(1+x(2,:,:));...
-%                     0*x(2,:,:)  ];
-%             f4x = @(x) [1/(4)*(1-x(1,:,:)).*(1+x(2,:,:));...
-%                     0*x(2,:,:)  ];
-% 
-%             f1y = @(x) [0*x(1,:,:);...
-%                     1/(4)*(1-x(1,:,:)).*(1-x(2,:,:))  ];
-%             f2y = @(x) [0*x(1,:,:);...
-%                     1/(4)*(1+x(1,:,:)).*(1-x(2,:,:))  ];
-%             f3y = @(x) [0*x(1,:,:);...
-%                     1/(4)*(1+x(1,:,:)).*(1+x(2,:,:))  ];
-%             f4y = @(x) [0*x(1,:,:);...
-%                     1/(4)*(1-x(1,:,:)).*(1+x(2,:,:))  ];
-
-             f1x = @(x) [1/(4)*(1-(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b);...
-                    0*x(2,:,:)  ];
-            f2x = @(x) [1/(4)*(1+(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b);...
-                    0*x(2,:,:)  ];
-            f3x = @(x) [1/(4)*(1+(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b);...
-                    0*x(2,:,:)  ];
-            f4x = @(x) [1/(4)*(1-(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b);...
-                    0*x(2,:,:)  ];
-
-            f1y = @(x) [0*x(1,:,:);...
-                    1/(4)*(1-(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b) ];
-            f2y = @(x) [0*x(1,:,:);...
-                    1/(4)*(1+(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b) ];
-            f3y = @(x) [0*x(1,:,:);...
-                    1/(4)*(1+(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b) ];
-            f4y = @(x) [0*x(1,:,:);...
-                    1/(4)*(1-(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b)];
-
-            f     = {f1x f1y f2x f2y f3x f3y f4x f4y}; %
-            nfun = size(f,2);
-            for i=1:nfun
-                uD{i}  = AnalyticalFunction.create(f{i},obj.mesh.ndim,obj.boundaryMeshJoined);                   
-            end
-        end
 
     end
 end

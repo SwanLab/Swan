@@ -5,13 +5,14 @@ classdef LevelSetInclusionAuto_raul < handle
         strain
         stress
         dLambda
+        bcApplier
     end
     
     properties (Access = private)
         radius
         nodeDirection
         physicalProblem
-        bc
+        
         boundaryConditions
         problemSolver
         forces
@@ -64,11 +65,11 @@ classdef LevelSetInclusionAuto_raul < handle
 
         function createMesh(obj)
             bgMesh   = obj.createReferenceMesh();
-%             lvSet    = obj.createLevelSetFunction(bgMesh);
-%             uMesh    = obj.computeUnfittedMesh(bgMesh,lvSet);
-%             obj.mesh = uMesh.createInnerMesh();
+            % lvSet    = obj.createLevelSetFunction(bgMesh);
+            % uMesh    = obj.computeUnfittedMesh(bgMesh,lvSet);
+            % obj.mesh = uMesh.createInnerMesh();
             obj.mesh = bgMesh;
-
+            % 
             obj.boundaryMesh = obj.mesh.createBoundaryMesh();
             [obj.boundaryMeshJoined, obj.localGlobalConnecBd] = obj.mesh.createSingleBoundaryMesh();
         end
@@ -130,7 +131,7 @@ classdef LevelSetInclusionAuto_raul < handle
 
         function [young,poisson] = computeElasticProperties(obj,mesh)
             E1  = 1;
-            E2 = E1/10000;
+            E2 = E1/1000;
             nu = 1/3;
             x0=0;
             y0=0;
@@ -271,7 +272,7 @@ classdef LevelSetInclusionAuto_raul < handle
         function createBCApplyerHere(obj, cParams)
             s.mesh = obj.mesh;
             s.boundaryConditions = cParams.boundaryConditions;
-            obj.bc = BCApplier(s);
+            obj.bcApplier = BCApplier(s);
         end
 
         function createSolverHere(obj, cParams)
@@ -282,7 +283,7 @@ classdef LevelSetInclusionAuto_raul < handle
             p.solver     = solver;
 
             p.boundaryConditions = cParams.boundaryConditions;
-            p.BCApplier          = obj.bc;
+            p.BCApplier          = obj.bcApplier;
             obj.problemSolver    = ProblemSolver(p);
         end
 
