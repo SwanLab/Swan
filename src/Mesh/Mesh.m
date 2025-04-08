@@ -35,14 +35,18 @@ classdef Mesh < handle
     methods (Static, Access = public)
         
         function obj = create(cParams)
-            s = SettingsMesh(cParams);
-            switch s.geometryType
+            if ~(isfield(cParams,'kFace'))
+                cParams.kFace = 0;
+            end
+            g = GeometryType.compute(cParams);
+            cParams.type = MeshTypeComputer.compute(cParams.connec,g);
+            switch g
                 case 'Line'
-                    obj = LineMesh(s);
+                    obj = LineMesh(cParams);
                 case 'Surface'
-                    obj = SurfaceMesh(s);
+                    obj = SurfaceMesh(cParams);
                 case 'Volume'
-                    obj = VolumeMesh(s);
+                    obj = VolumeMesh(cParams);
             end
         end
         
@@ -55,13 +59,6 @@ classdef Mesh < handle
     end
 
     methods (Access = public)
-
-        function obj = Mesh(cParams)
-            obj.init(cParams);
-            obj.computeDimensionParams();
-            obj.createInterpolation();
-            obj.computeElementCoordinates();
-        end
 
         function L = computeCharacteristicLength(obj)
             xmin = min(obj.coord);
@@ -312,6 +309,15 @@ classdef Mesh < handle
             end
         end
 
+    end
+
+    methods (Access = protected)
+        function obj = Mesh(cParams)
+            obj.init(cParams);
+            obj.computeDimensionParams();
+            obj.createInterpolation();
+            obj.computeElementCoordinates();
+        end
     end
 
     methods (Access = public) % ?????????

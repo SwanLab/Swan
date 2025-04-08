@@ -1,5 +1,4 @@
 classdef LHSIntegratorFunctionMass < LHSIntegrator
-
     properties (Access = private)
         fun
     end
@@ -34,8 +33,8 @@ classdef LHSIntegratorFunctionMass < LHSIntegrator
             nDofTest   = nNodeTest*obj.test.ndimf;
             nDofTrial  = nNodeTrial*obj.trial.ndimf;
 
-            fG = squeeze(obj.fun.evaluate(xV));
-
+            fG = obj.fun.evaluate(xV);
+            fG = squeezeParticular(fG,1);
             M = zeros(nDofTest, nDofTrial, nElem);
             % lhs = zeros(nDofTest/2, nDofTrial/2, nElem);
             % for igaus = 1:nGaus
@@ -68,5 +67,5 @@ classdef LHSIntegratorFunctionMass < LHSIntegrator
         end
 
     end
- 
+
 end
