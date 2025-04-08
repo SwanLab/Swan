@@ -10,20 +10,25 @@ classdef OptimizationProblem < handle
         designVariable
         optimizer
         plotter
+        loss
+        regularization
     end
-
+  
    methods (Access = public)
 
        function obj = OptimizationProblem(cParams)
            obj.init(cParams);
            obj.createNetwork();
+           obj.createDesignVariable();
+           obj.createLossFunctional();
+           obj.createRegularizationFunctional();
            obj.createCost();
            obj.createPlotter();
-           obj.createOptimizer();           
+           obj.createOptimizer();
        end
 
        function solve(obj)
-           obj.optimizer.train();
+           obj.optimizer.compute();
        end
 
        function plotCostFnc(obj)
@@ -49,6 +54,18 @@ classdef OptimizationProblem < handle
        function plotImage(obj,row)
            obj.plotter.image(row);
        end
+       
+       function E = computeError(obj,X,Y)
+           E = obj.network.forwardprop(X,Y);
+       end
+       
+       function yOut = computeOutputValues(obj,X)
+           yOut = obj.network.computeYOut(X);
+       end
+
+       function dY = computeGradient(obj,X)
+           dY = obj.network.networkGradient(X);
+       end
 
    end
 
@@ -68,11 +85,31 @@ classdef OptimizationProblem < handle
            obj.network = n;
        end
 
+       function createDesignVariable(obj)
+           dv = obj.network.getLearnableVariables();
+           obj.designVariable = dv;
+       end
+
+       function createLossFunctional(obj)
+            s.network        = obj.network;
+            s.designVariable = obj.designVariable;
+            s.data           = obj.data;
+            s.costType       = obj.costParams.costType;
+            l = Sh_Func_Loss(s);
+            obj.loss = l;
+        end
+
+        function createRegularizationFunctional(obj)
+            s.designVariable = obj.designVariable;
+            r = Sh_Func_L2norm(s);
+            obj.regularization = r;
+        end
+
        function createCost(obj)
-           s         = obj.costParams;
-           s.network = obj.network;
-           s.designVariable = obj.network.getLearnableVariables();
-           obj.costFunc = CostFunction(s);
+           s.shapeFunctions = {obj.loss, obj.regularization};
+           s.weights = [1, obj.costParams.lambda];
+           s.Msmooth = [];
+           obj.costFunc = Cost(s);
        end
 
        function createOptimizer(obj)
@@ -83,8 +120,8 @@ classdef OptimizationProblem < handle
            s.data        = obj.data;
            s.Xtrain = obj.data.Xtrain;
            s.Ytrain = obj.data.Ytrain;
-           s.Xtest = obj.data.Xtest;
-           s.Ytest = obj.data.Ytest;
+           s.Xtest  = obj.data.Xtest;
+           s.Ytest  = obj.data.Ytest;
            s.plotter = obj.plotter;
            op = Trainer.create(s);
            obj.optimizer = op;
@@ -94,7 +131,7 @@ classdef OptimizationProblem < handle
            s.network   = obj.network;
            s.data      = obj.data;
            s.costfunc  = obj.costFunc;
-           obj.plotter = Plotter(s);
+           obj.plotter = PlotterNN(s);
        end
          
    end
