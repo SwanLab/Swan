@@ -72,7 +72,7 @@ classdef EIFEMtesting < handle
 %             zmult = Mmult(r);
             
 %             zfull = obj.bcApplier.reducedToFullVectorDirichlet(zmult);
-            %obj.plotSolution(zfull,obj.meshDomain,0,0,2,obj.bcApplier,0)
+            %obj.plotSolution(zfull,obj.meshDomaopenin,0,0,2,obj.bcApplier,0)
 
 %             zeifem = Meifem(r);
 %             zfull = obj.bcApplier.reducedToFullVectorDirichlet(zeifem);
@@ -314,7 +314,7 @@ classdef EIFEMtesting < handle
             fvalues                 = zeros(mesh.nnodes*mesh.ndim,1);
             fvalues(pointload.dofs) = pointload.values;
             fvalues                 = reshape(fvalues,mesh.ndim,[])';
-            pointload.fun.fValues   = fvalues;
+            pointload.fun.setFValues(fvalues);
 
             s.pointloadFun = pointload;
             s.dirichletFun = dirichletFun;
@@ -339,7 +339,7 @@ classdef EIFEMtesting < handle
             s.trial    = dispFun;
             s.material = mat;
             s.quadratureOrder = 2;
-            lhs = LHSintegrator.create(s);
+            lhs = LHSIntegrator.create(s);
             LHS = lhs.compute();
             LHSr = obj.bcApplier.fullToReducedMatrixDirichlet(LHS);
         end
@@ -350,7 +350,7 @@ classdef EIFEMtesting < handle
             s.dim.ndofs = u.nDofs;
             s.BC        = obj.boundaryConditions;
             s.mesh      = obj.meshDomain;
-            RHSint      = RHSintegrator.create(s);
+            RHSint      = RHSIntegrator.create(s);
             rhs         = RHSint.compute();
             % Perhaps move it inside RHSint?
             R           = RHSint.computeReactions(stiffness);
