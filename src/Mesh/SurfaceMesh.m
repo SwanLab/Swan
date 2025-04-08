@@ -57,6 +57,7 @@ classdef SurfaceMesh < Mesh
 
         function plot(obj) 
             faceColor = "red";
+            faceAlpha = 0.3;
             edgeAlpha = 0.5;
             obj.plotSpecific(faceColor,faceAlpha,edgeAlpha)
         end
@@ -91,9 +92,9 @@ classdef SurfaceMesh < Mesh
                 p.FaceAlpha = faceAlpha;
                 p.LineWidth = 1.5;
                 axis('equal');
-                axis off
-                xlabel('x');
-                ylabel('y');
+%                 axis off
+%                 xlabel('x');
+%                 ylabel('y');
                 hold on
             end
         end        
