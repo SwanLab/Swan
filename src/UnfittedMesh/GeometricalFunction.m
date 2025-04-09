@@ -118,15 +118,6 @@ classdef GeometricalFunction < handle
                     y0 = cParams.yCoorCenter;
                     fH = @(x) (x1(x)-x0).^2+(x2(x)-y0).^2-r^2;
                     obj.fHandle = fH;
-                
-                case 'Ellipse'
-                    a  = cParams.semiHorizontalAxis;
-                    b  = cParams.semiVerticalAxis;
-                    n  = cParams.superEllipseFactor;
-                    x0 = cParams.xCoorCenter;
-                    y0 = cParams.yCoorCenter;
-                    fH = @(x) -(abs((x1(x)-x0)/a).^n+abs((x2(x)-y0)/b).^n-1);
-                    obj.fHandle = fH;
                     
                 case 'EllipseInclusion'
                     s      = cParams;
