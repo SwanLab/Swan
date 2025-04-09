@@ -2,12 +2,6 @@ clc;
 clear;
 close all;
 
-% Handle paths
-addpath('src/NeuralNetwork')
-addpath('src/Problems/Optimization')
-addpath('Tutorials/ChomogNetworkTutorial')
-addpath('Tutorials/ChomogNetworkTutorial/Datasets')
-
 %% Initialization of hyperparameters
 pol_deg         = 1;
 testratio       = 30;
