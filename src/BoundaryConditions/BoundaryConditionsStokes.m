@@ -233,7 +233,7 @@ classdef BoundaryConditionsStokes < handle
             dir = obj.dirichlet;
             uD  = obj.dirichlet_values;
             fr  = obj.free;
-            nsteps = length(bfree(1,:));
+            nsteps = size(bfree,2);
             ndof = sum(obj.ndofs);
             uD = repmat(uD,1,nsteps);
             

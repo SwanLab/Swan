@@ -56,9 +56,11 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             bOp = BaseFunction.computeOperation(b);
             s.operation = @(xV) aOp(xV) + bOp(xV);
             if isa(a,'BaseFunction')
-                s.mesh = a.mesh;
+                s.mesh  = a.mesh;
+                s.ndimf = a.ndimf; 
             else
-                s.mesh = b.mesh;
+                s.mesh  = b.mesh;
+                s.ndimf = b.ndimf; 
             end
             r = DomainFunction(s);
         end
@@ -68,10 +70,12 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             bOp = BaseFunction.computeOperation(b);
             s.operation = @(xV) aOp(xV) - bOp(xV);
             if isa(a,'BaseFunction')
-                s.mesh = a.mesh;
+                s.mesh  = a.mesh;
+                s.ndimf = a.ndimf; 
             else
-                s.mesh = b.mesh;
-            end
+                s.mesh  = b.mesh;
+                s.ndimf = b.ndimf; 
+            end            
             r = DomainFunction(s);
         end
 
@@ -135,9 +139,16 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             r = power(a,0.5);
         end
 
-        function r = norm(a,b)
+        function r = norm(varargin)
+            a = varargin{1};
+            if nargin == 1
+                b = 2;
+            elseif nargin == 2
+                b = varargin{2};
+            end
+            a = Expand(a);
             aOp = BaseFunction.computeOperation(a);
-            s.operation = @(xV) pagenorm(aOp(xV),b);
+            s.operation = @(xV) squeezeParticular(pagenorm(aOp(xV),b),2);
             s.mesh = a.mesh;
             s.ndimf = a.ndimf;            
             r = DomainFunction(s);
