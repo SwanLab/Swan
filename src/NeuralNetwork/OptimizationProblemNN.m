@@ -95,7 +95,7 @@ classdef OptimizationProblemNN < handle
             s.designVariable = obj.designVariable;
             s.data           = obj.data;
             s.costType       = obj.costParams.costType;
-            l = Sh_Func_Loss(s);
+            l = LossFunctional(s);
             obj.loss = l;
         end
 

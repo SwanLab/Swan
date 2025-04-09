@@ -1,4 +1,4 @@
-classdef Sh_Func_Loss < handle
+classdef LossFunctional < handle
 
     properties (Access = private)       
         iBatch                
@@ -15,7 +15,7 @@ classdef Sh_Func_Loss < handle
     
     methods (Access = public)
         
-        function obj = Sh_Func_Loss(cParams)
+        function obj = LossFunctional(cParams)
             obj.init(cParams);
             obj.iBatch = 1;            
             obj.computeNumberOfBatchesAndOrder();
