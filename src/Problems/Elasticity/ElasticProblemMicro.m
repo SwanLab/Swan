@@ -34,20 +34,33 @@ classdef ElasticProblemMicro < handle
         end
 
         function obj = solve(obj)
-            obj.computeStiffnessMatrix();
-            obj.computeForces();
-            oX     = zeros(obj.getDimensions().ndimf,1);
-            nCases = size(obj.material.evaluate(oX),1);
-            obj.Chomog = zeros(nCases, nCases);
-            for i = 1:nCases
-                obj.computeDisplacement(i);
+            LHS = obj.computeLHS();
+        %    oX     = zeros(obj.getDimensions().ndimf,1);
+            nBasis = obj.computeNbasis();
+            obj.Chomog = zeros(nBasis, nBasis);
+            for iBasis = 1:nBasis
+                strainBase = obj.createDeformationBasis(iBasis);
+                RHS = obj.computeRHS(strainBase,LHS);              
+                obj.computeDisplacement(LHS,RHS);
                 obj.computeStrain(i);
                 obj.computeStress(i);
                 obj.computeChomogContribution(i);
             end
         end
 
-        function computeStiffnessMatrix(obj)
+        function s = createDeformationBasis(obj,iBasis)
+            nBasis = obj.computeNbasis();
+            s = zeros(nBasis,1);
+            s(iBasis) = 1;
+        end
+
+        function nBasis = computeNbasis(obj)
+            homogOrder = 1;
+            nDim = obj.mesh.ndim;
+            nBasis = homogOrder*nDim*(nDim+1)/2;
+        end
+
+        function LHS = computeLHS(obj)
             ndimf = obj.displacementFun.ndimf;
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
@@ -56,7 +69,7 @@ classdef ElasticProblemMicro < handle
             s.material = obj.material;
             s.quadratureOrder = 2;
             lhs = LHSIntegrator.create(s);
-            obj.stiffness = lhs.compute();
+            LHS = lhs.compute();
         end
 
         function v = computeGeometricalVolume(obj)
@@ -167,7 +180,7 @@ classdef ElasticProblemMicro < handle
             obj.problemSolver = ProblemSolver(s);
         end
 
-        function computeForces(obj)
+        function rhs = computeRHS(obj,strainBase,LHS)
             s.fun  = obj.displacementFun;
             s.type = 'ElasticMicro';
             s.dim      = obj.getFunDims();
@@ -176,27 +189,32 @@ classdef ElasticProblemMicro < handle
             s.material = obj.material;
             s.globalConnec = obj.mesh.connec;
             RHSint = RHSIntegrator.create(s);
-            rhs = RHSint.compute();
-            R = RHSint.computeReactions(obj.stiffness);
+            rhs = RHSint.compute(strainBase);
+            R = RHSint.computeReactions(LHS);
             obj.variables.fext = rhs + R;
-            obj.forces = rhs;
+            %obj.forces = rhs;
         end
 
-        function u = computeDisplacement(obj, iVoigt)
-            s.stiffness = obj.stiffness;
-            s.forces    = obj.forces(:, iVoigt);
-            s.iVoigt    = iVoigt;
-            s.nVoigt    = size(obj.forces,2);
+        function uFun = computeDisplacement(obj, LHS, RHS)
+            s.stiffness = LHS;
+            s.forces    = RHS;
+        %    s.iVoigt    = iVoigt;
+        %    s.nVoigt    = size(obj.forces,2);
             [u, L]      = obj.problemSolver.solve(s);
             obj.lagrangeMultipliers = L;
-            z.mesh    = obj.mesh;
-            z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            z.order   = 'P1';
-            uFeFun = LagrangianFunction(z);
-            obj.uFun{iVoigt} = uFeFun;
 
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            obj.displacementFun.setFValues(uSplit);
+            uFun = copy(obj.displacementFun);
+            uFun.setFValues(uSplit);            
+
+            % z.mesh    = obj.mesh;
+            % z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
+            % z.order   = 'P1';
+            % uFeFun = LagrangianFunction(z);
+            % obj.uFun{iVoigt} = uFeFun;
+
+          %  uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
+          %  obj.displacementFun.setFValues(uSplit);
         end
 
         function computeStrain(obj, iVoigt)

@@ -17,16 +17,17 @@ classdef RHSIntegratorElasticMicro < handle
             obj.init(cParams);
         end
 
-        function Fext = compute(obj)
-            oX     = zeros(obj.dim.ndimf,1);
-            nVoigt = size(obj.material.evaluate(oX),1);
-            basis   = diag(ones(nVoigt,1));
-            Fvol = zeros(obj.dim.ndofs, nVoigt);
-            for iVoigt = 1:nVoigt
-                vstrain = basis(iVoigt,:);
-                FvolE = obj.computeStrainRHS(vstrain);
-                Fvol(:,iVoigt)  = obj.assembleVector(FvolE);
-            end
+        function Fext = compute(obj,strainBase)
+      %      oX     = zeros(obj.dim.ndimf,1);
+     %       nVoigt = size(obj.material.evaluate(oX),1);
+     %       basis   = diag(ones(nVoigt,1));
+     %       Fvol = zeros(obj.dim.ndofs, nVoigt);
+     %       for iVoigt = 1:nVoigt
+      %          vstrain = basis(iVoigt,:);
+                FvolE = obj.computeStrainRHS(strainBase);
+       %         Fvol(:,iVoigt)  = obj.assembleVector(FvolE);
+            Fvol = obj.assembleVector(FvolE);
+       %     end
             Fpoint = obj.computePunctualFext();
             Fext = Fvol + Fpoint;
         end
