@@ -78,7 +78,7 @@ classdef RHSIntegratorElasticMicro < handle
         end
         
         
-        function F = computeStrainRHS(obj,vstrain)
+        function F = computeStrainRHS(obj,strain)
             quad = Quadrature.create(obj.mesh, 1);
             xV    = quad.posgp;
             dVol  = obj.mesh.computeDvolume(quad)';
@@ -95,6 +95,7 @@ classdef RHSIntegratorElasticMicro < handle
             ndimf = size(obj.mesh.coord,2);
             s.fun  = LagrangianFunction.create(obj.mesh,ndimf,'P1');
             s.dNdx = s.fun.evaluateCartesianDerivatives(xV);
+            vstrain = strain.evaluate(xV);
 
             Bcomp = BMatrixComputer(s);
             for igaus = 1:ngaus
@@ -105,7 +106,7 @@ classdef RHSIntegratorElasticMicro < handle
                         Cij = squeeze(Cmat(istre,jstre,igaus,:));
                         vj  = vstrain(jstre);
                         si  = squeeze(sigma(istre,igaus,:));
-                        sigma(istre,igaus,:) = si + Cij*vj;
+                        sigma(istre,igaus,:) = si + Cij.*vj;
                     end
                 end
                 for iv = 1:nnode*nunkn

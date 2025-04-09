@@ -1,25 +1,17 @@
 classdef ElasticProblemMicro < handle
     
     properties (Access = public)
-        variables
-        uFun, strainFun, stressFun
-        strainFluctFun, stressFluctFun
+        uFluc, strain, stress
         Chomog
     end
 
     properties (Access = private)
         mesh
-        pdim
         material
-        quadrature
-        displacementFun
+        trialFun
         boundaryConditions, bcApplier
-        strain, stress
-        stiffness, forces
-
         solverType, solverMode, solverCase
         lagrangeMultipliers
-
         problemSolver
     end
 
@@ -27,31 +19,39 @@ classdef ElasticProblemMicro < handle
 
         function obj = ElasticProblemMicro(cParams)
             obj.init(cParams);
-            obj.createQuadrature();
-            obj.createDisplacementFun();
+            obj.createTrialFun();
             obj.createBCApplier();
             obj.createSolver();
         end
 
         function obj = solve(obj)
             LHS = obj.computeLHS();
-        %    oX     = zeros(obj.getDimensions().ndimf,1);
+            %    oX     = zeros(obj.getDimensions().ndimf,1);
             nBasis = obj.computeNbasis();
             obj.Chomog = zeros(nBasis, nBasis);
-            for iBasis = 1:nBasis
-                strainBase = obj.createDeformationBasis(iBasis);
-                RHS = obj.computeRHS(strainBase,LHS);              
-                obj.computeDisplacement(LHS,RHS);
-                obj.computeStrain(i);
-                obj.computeStress(i);
-                obj.computeChomogContribution(i);
+            for iB = 1:nBasis
+                strainBase = obj.createDeformationBasis(iB);
+                RHS      = obj.computeRHS(strainBase,LHS);
+                uF{iB}    = obj.computeDisplacement(LHS,RHS);
+                strnFluc = SymGrad(uF{iB});
+                str{iB} = obj.computeStrain(strainBase,strnFluc);
+                sigma{iB} = DDP(obj.material, str{iB});
+                sigma{iB}.ndimf = str{iB}.ndimf;
+                Ch(:,iB) = obj.computeChomog(sigma{iB});
             end
+            obj.uFluc = uF;
+            obj.strain = str;
+            obj.stress = sigma;
+            obj.Chomog = Ch;
         end
 
         function s = createDeformationBasis(obj,iBasis)
             nBasis = obj.computeNbasis();
-            s = zeros(nBasis,1);
-            s(iBasis) = 1;
+            sV = zeros(nBasis,1);
+            sV(iBasis) = 1;
+            s = ConstantFunction.create(sV,obj.mesh);
+            %fH = @(xV) x(1,:,:);
+            %x1 = AnalyticalFunction.create(fH,obj.mesh)
         end
 
         function nBasis = computeNbasis(obj)
@@ -61,11 +61,11 @@ classdef ElasticProblemMicro < handle
         end
 
         function LHS = computeLHS(obj)
-            ndimf = obj.displacementFun.ndimf;
+            ndimf = obj.trialFun.ndimf;
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
             s.test     = LagrangianFunction.create(obj.mesh,ndimf, 'P1');
-            s.trial    = obj.displacementFun;
+            s.trial    = obj.trialFun;
             s.material = obj.material;
             s.quadratureOrder = 2;
             lhs = LHSIntegrator.create(s);
@@ -76,56 +76,18 @@ classdef ElasticProblemMicro < handle
             v = 1;%sum(sum(obj.geometry.dvolu));
         end
 
-        function dvolu = getDvolume(obj)
-            dvolu  = obj.mesh.computeDvolume(obj.quadrature);
-        end
-
         function setMatProps(obj,s)
            obj.material.compute(s);
         end
-
-        function mesh = getMesh(obj)
-            mesh  = obj.mesh;
-        end
         
-        function interp = getInterpolation(obj)
-            interp  = obj.mesh.interpolation;
-%             interp.computeShapeDeriv(obj.quadrature.posgp);
-        end
-
-        function quad = getQuadrature(obj)
-            quad = obj.quadrature;
-        end
-
         function updateMaterial(obj, mat)
             obj.material = mat;
         end
 
-        function dim = getDimensions(obj)
-            strdim = regexp(obj.pdim,'\d*','Match');
-            nDimf  = str2double(strdim);
-            d.ndimf  = nDimf;
-            d.nnodes = obj.mesh.nnodes;
-            d.ndofs  = d.nnodes*d.ndimf;
-            d.nnodeElem = obj.mesh.nnodeElem; % should come from interp..
-            d.ndofsElem = d.nnodeElem*d.ndimf;
-            dim = d;
-        end
-
         function [fun, funNames] = getFunsToPlot(obj)
-            if isempty(obj.stressFun)
-                fun = [];
-                funNames = [];
-            else
-                dispN = obj.createFunctionNames('displacement');
-                strsN = obj.createFunctionNames('stress');
-                strnN = obj.createFunctionNames('strain');
-                fun = {obj.uFun{:}, obj.strainFun{:}, obj.stressFun{:}};
-                funNames = {dispN{:}, strsN{:}, strnN{:}};
-                obj.uFun = {};
-                obj.strainFun = {};
-                obj.stressFun = {};
-            end
+            fun = {obj.uFluc, obj.strain.project('P1'), ...
+                obj.stress.project('P1')};
+            funNames = {'displacement', 'strain', 'stress'};
         end
 
     end
@@ -135,27 +97,19 @@ classdef ElasticProblemMicro < handle
         function init(obj, cParams)
             obj.mesh     = cParams.mesh;
             obj.material = cParams.material;
-            obj.pdim     = cParams.dim;
             obj.solverType = cParams.solverType;
             obj.solverMode = cParams.solverMode;
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.solverCase  = cParams.solverCase;
         end
 
-        function createQuadrature(obj)
-            quad = Quadrature.create(obj.mesh, 1);
-            obj.quadrature = quad;
-        end
-
-        function createDisplacementFun(obj)
-            strdim = regexp(obj.pdim,'\d*','Match');
-            nDimf  = str2double(strdim);
-            obj.displacementFun = LagrangianFunction.create(obj.mesh, nDimf, 'P1');
+        function createTrialFun(obj)
+            obj.trialFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
         end
 
         function dim = getFunDims(obj)
-            d.ndimf  = obj.displacementFun.ndimf;
-            d.nnodes = size(obj.displacementFun.fValues, 1);
+            d.ndimf  = obj.trialFun.ndimf;
+            d.nnodes = size(obj.trialFun.fValues, 1);
             d.ndofs  = d.nnodes*d.ndimf;
             d.nnodeElem = obj.mesh.nnodeElem; % should come from interp..
             d.ndofsElem = d.nnodeElem*d.ndimf;
@@ -181,7 +135,7 @@ classdef ElasticProblemMicro < handle
         end
 
         function rhs = computeRHS(obj,strainBase,LHS)
-            s.fun  = obj.displacementFun;
+            s.fun  = obj.trialFun;
             s.type = 'ElasticMicro';
             s.dim      = obj.getFunDims();
             s.BC       = obj.boundaryConditions;
@@ -190,9 +144,7 @@ classdef ElasticProblemMicro < handle
             s.globalConnec = obj.mesh.connec;
             RHSint = RHSIntegrator.create(s);
             rhs = RHSint.compute(strainBase);
-            R = RHSint.computeReactions(LHS);
-            obj.variables.fext = rhs + R;
-            %obj.forces = rhs;
+            R = RHSint.computeReactions(LHS); %%?
         end
 
         function uFun = computeDisplacement(obj, LHS, RHS)
@@ -204,7 +156,7 @@ classdef ElasticProblemMicro < handle
             obj.lagrangeMultipliers = L;
 
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            uFun = copy(obj.displacementFun);
+            uFun = copy(obj.trialFun);
             uFun.setFValues(uSplit);            
 
             % z.mesh    = obj.mesh;
@@ -217,35 +169,21 @@ classdef ElasticProblemMicro < handle
           %  obj.displacementFun.setFValues(uSplit);
         end
 
-        function computeStrain(obj, iVoigt)
-            nCases    = size(obj.Chomog,1);
-            e         = zeros(nCases,1,1);
-            e(iVoigt) = 1;
-            strn      = SymGrad(obj.uFun{iVoigt});
-
-            obj.strainFluctFun{iVoigt} = strn;
-            s.operation                = @(xV) e+strn.evaluate(xV);
-            s.mesh                     = obj.mesh;
-            obj.strainFun{iVoigt}      = DomainFunction(s);
-        end
-
-        function computeStress(obj, iVoigt)
-            obj.stressFun{iVoigt} = DDP(obj.material, obj.strainFun{iVoigt});
-%             obj.variables.stress = permute(strFun.fValues, [2 1 3]);
-            obj.stressFluctFun{iVoigt} = DDP(obj.material, obj.strainFluctFun{iVoigt});
+        function strainFun = computeStrain(obj, strainBase,strainFluc)
+            s.operation    = @(xV) strainBase.evaluate(xV)+strainFluc.evaluate(xV);
+            s.mesh         = obj.mesh;
+            s.ndimf        = size(strainBase,1);
+            strainFun      = DomainFunction(s);
         end
 
         %% 
 
-        function vstrain = computeVstrain(obj, iVoigt)
-            oX      = zeros(obj.getDimensions().ndimf,1);
-            nVoigt  = size(obj.material.evaluate(oX),1);
-            basis   = diag(ones(nVoigt,1));
-            vstrain = basis(iVoigt,:);
+        function Chomog = computeChomog(obj,stress)
+            Chomog = Integrator.compute(stress,obj.mesh,2);
         end
 
-        function vars = computeChomogContribution(obj, iVoigt)
-            if strcmp(obj.solverMode, 'DISP')
+        function Chomog = computeChomogFromLagrangeMultipliers(obj,iBase)
+           if strcmp(obj.solverMode, 'DISP')
                 L = obj.lagrangeMultipliers;
                 nPeriodic = length(obj.boundaryConditions.periodic_leader);
                 nBorderNod = nPeriodic/4; % cause 2D
@@ -253,7 +191,7 @@ classdef ElasticProblemMicro < handle
                 Lxy = sum( L(nBorderNod+1:2*nBorderNod));
                 Ly  = sum( L(2*nBorderNod+1 : 3*nBorderNod));
                 Ld = L(3*nBorderNod+1 : end); % dirich (2 per + 6 dir)
-                switch iVoigt
+                switch iBase
                     case 1
                         Lx = Lx + Ld(1) + Ld(2) + Ld(3) + Ld(5);
                         Ly = Ly + Ld(4) + Ld(7);
@@ -263,54 +201,14 @@ classdef ElasticProblemMicro < handle
                     case 3
                         Lxy = Lxy + Ld(1) + Ld(2);
                 end
-                obj.Chomog(iVoigt,:) = [-Lx; -Ly; -Lxy];
-
-            else
-                vstrain = obj.computeVstrain(iVoigt);
-                vars  = obj.variables;
-                xV    = obj.quadrature.posgp;
-                Cmat  = obj.material.evaluate(xV);
-                oX    = zeros(obj.getDimensions().ndimf,1);
-                nstre = size(obj.material.evaluate(oX),1);
-                nelem = size(Cmat,4);
-                ngaus = obj.quadrature.ngaus;
-                dV = obj.mesh.computeDvolume(obj.quadrature)';
-                strainFluct = obj.strainFluctFun{iVoigt}.evaluate(xV);
-                stressFluct = obj.stressFluctFun{iVoigt}.evaluate(xV);
-                
-                stress = zeros(nstre,ngaus,nelem);
-                strain = zeros(nstre,ngaus,nelem);
-                stressHomog = zeros(nstre,1);
-                
-                for igaus = 1:ngaus
-                    strain(1:nstre,igaus,:) = vstrain'.*ones(nstre,1,nelem) + strainFluct(1:nstre,ngaus,:);
-                    for istre = 1:nstre
-                        for jstre = 1:nstre
-                            Cij  = squeeze(Cmat(istre,jstre,igaus,:));
-                            C    = squeeze(Cij);
-                            strs = squeeze(stress(istre,igaus,:));
-                            strn = squeeze(strain(jstre,igaus,:));
-                            stress(istre,igaus,:) = strs + C.* strn;
-                        end
-                        strs = squeeze(stress(istre,igaus,:));
-                        stressHomog(istre) = stressHomog(istre) + (strs)'*dV(:,igaus);
-                    end
-                end
-    
-                obj.Chomog(:,iVoigt) = stressHomog;
-                
-                vars.stress_fluct = stressFluct;
-                vars.strain_fluct = strainFluct;
-    
-                vars.stress = stress;
-                vars.strain = strain;
-                vars.stress_homog = stressHomog;
-                obj.variables = vars;
-            end
+                Chomog = [-Lx; -Ly; -Lxy];
+           else
+               error('Not implemented');
+           end
         end
 
         function n = createFunctionNames(obj, name)
-            nStre = numel(obj.uFun);
+            nStre = numel(obj.uFluc);
             nums = 1:nStre;
             n = cellstr([repmat(name, [nStre,1]), num2str(nums')])';
         end
