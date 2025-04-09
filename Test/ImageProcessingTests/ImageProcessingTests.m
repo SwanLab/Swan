@@ -8,9 +8,16 @@ classdef ImageProcessingTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'ImageProcessing', 'Fast', 'Gmsh'})
 
         function testDisplacement(testCase, imageTests)
-            s.computerType    = 'IMAGE';
-            s.testName         = imageTests;
-            s.variablesToStore = {'optimizedImage'};
+            run(imageTests);
+            s.imageFile            = imageFile;
+            s.lipschitzConstant    = lipschitzConstant;
+            s.totalVariationWeight = totalVariationWeight;
+            s.noiseAmplitud        = noiseAmplitud;
+            s.maxIter              = maxIter;
+            s.optimizer            = optimizer;
+            s.computerType         = 'IMAGE';
+            s.testName             = imageTests;
+            s.variablesToStore     = {'optimizedImage'};
             test = PrecomputedVariableTest(s);
             err = test.computeError();
             tol = 5e-2;

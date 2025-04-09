@@ -96,19 +96,24 @@ classdef StiffnessEigenModesComputer < handle
             s.trial = P1Function.create(obj.mesh,1); 
             s.mesh  = obj.mesh;
             s.quadratureOrder = 'QUADRATIC';
-            s.function        = obj.createCompositeFunction(fun);
+            s.function        = obj.createDomainFunction(fun);
             s.type            = 'StiffnessMatrixWithFunction';
             lhs = LHSintegrator.create(s);
             K = lhs.compute();
             K = obj.boundaryConditions.fullToReducedMatrix(K);
         end
 
-        function f = createCompositeFunction(obj,fun)
-            s.l2function     = obj.density;
-            s.handleFunction = fun;
-            s.mesh           = obj.mesh;
-            f = CompositionFunction(s);
+        function f = createDomainFunction(obj,fun)
+            s.operation = @(xV) obj.createConductivityAsDomainFunction(fun,xV);
+            s.mesh      = obj.mesh;
+            f = DomainFunction(s);
         end
+
+        function fV = createConductivityAsDomainFunction(obj,fun,xV)
+            densV = obj.density.evaluate(xV);
+            fV = fun(densV);
+        end
+
 
         function M = computeMassMatrixWithFunction(obj,fun)
             s.test  = P1Function.create(obj.mesh,1); 

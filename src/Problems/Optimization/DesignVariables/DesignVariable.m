@@ -32,8 +32,8 @@ classdef DesignVariable < handle
         
         function norm = computeL2normIncrement(obj)
            incFun = obj.fun-obj.funOld;
-           nIncX  = Norm.computeL2(obj.mesh,incFun);
-           nX0    = Norm.computeL2(obj.mesh,obj.funOld);
+           nIncX  = Norm(incFun,'L2');
+           nX0    = Norm(obj.funOld,'L2');
            norm   = nIncX/nX0;
         end
         

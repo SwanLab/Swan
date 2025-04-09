@@ -14,6 +14,7 @@ classdef MultimaterialTesting < handle
         cost
         constraint
         dualVariable
+        primalUpdater
         optimizer
     end
 
@@ -33,6 +34,7 @@ classdef MultimaterialTesting < handle
             obj.createCost();
             obj.createConstraint();
             obj.createDualVariable();
+            obj.createPrimalUpdater();
             obj.createOptimizer();
         end
 
@@ -184,6 +186,11 @@ classdef MultimaterialTesting < handle
             obj.dualVariable = l;
          end
 
+         function createPrimalUpdater(obj)
+            s.mesh = obj.mesh;
+            obj.primalUpdater = SLERP(s);
+        end
+
          function createOptimizer(obj)
             s.monitoring     = false;
             s.cost           = obj.cost;
@@ -193,9 +200,7 @@ classdef MultimaterialTesting < handle
             s.maxIter        = 3;
             s.tolerance      = 1e-8;
             s.constraintCase = repmat({'EQUALITY'},[3,1]);
-            s.primal         = 'SLERP';
-            s.ub             = inf;
-            s.lb             = -inf;
+            s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = inf;
             s.gJFlowRatio    = 0.02;
             obj.optimizer    = OptimizerNullSpace(s);

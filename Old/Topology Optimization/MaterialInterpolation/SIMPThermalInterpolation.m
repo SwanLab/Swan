@@ -1,4 +1,4 @@
-classdef SIMPThermalInterpolation < L2Function
+classdef SIMPThermalInterpolation < BaseFunction
     
     properties (Access = public)
         fun

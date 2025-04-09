@@ -45,6 +45,13 @@ classdef LevelSet < DesignVariable
             Vf(1,1,:) = vf;
         end
 
+        function Vf = computeVolume(obj)
+            VTot = obj.mesh.computeVolume();
+            chi  = CharacteristicFunction.create(obj.unfittedMesh);
+            V    = Integrator.compute(chi,obj.unfittedMesh,2);
+            Vf   = V/VTot;
+        end
+
         function plot(obj)
             if obj.plotting
                 obj.plotter.plot();
@@ -69,8 +76,7 @@ classdef LevelSet < DesignVariable
         function createUnfittedMesh(obj)
             s.backgroundMesh = obj.mesh;
             s.boundaryMesh   = obj.mesh.createBoundaryMesh();
-            cParams = SettingsMeshUnfitted(s);
-            obj.unfittedMesh = UnfittedMesh(cParams);
+            obj.unfittedMesh = UnfittedMesh(s);
             obj.updateUnfittedMesh();
         end
         

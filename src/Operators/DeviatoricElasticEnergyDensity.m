@@ -9,7 +9,7 @@ function fVR = evaluate(u,mu,xV)
     muEval = mu.evaluate(xV);
     nEval  = size(muEval,3);
     ed     = DeviatoricStrain(u);
-    A      = VoigtDeviatorNormMaterial(N,nEval);
+    A      = VoigtDeviatorNormMaterial(N,nEval,u.mesh);
     dsE    = DDP(ed,DDP(A,ed));
     fVR    = 0.5*muEval.*dsE.evaluate(xV);
 end

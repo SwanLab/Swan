@@ -86,8 +86,9 @@ classdef UnfittedBoundaryMesh < handle
                 s.backgroundMesh = bMesh.mesh;
                 if ~isequal(bMesh.mesh.geometryType,'Line')
                     s.boundaryMesh = obj.createBoundaryMesh(bMesh);
+                else
+                    s.boundaryMesh = [];
                 end
-                s = SettingsMeshUnfitted(s);
                 obj.meshes{iBoundary} = UnfittedMesh(s);
             end
         end

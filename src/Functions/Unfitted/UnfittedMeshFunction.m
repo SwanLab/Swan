@@ -167,7 +167,7 @@ classdef UnfittedMeshFunction < handle
                     case 'QUAD'
                         ssub.mesh     = cMeshGlobal;
                         ssub.lastNode = obj.unfittedMesh.backgroundMesh.nnodes;
-                        subMesher     = SubMesher(ssub);
+                        subMesher     = QuadToTriMeshConverter(ssub);
                         subMesh       = subMesher.subMesh.computeCanonicalMesh();
                     case 'HEXAHEDRA'
                         Xiso     =  [-1 ,-1, -1;...

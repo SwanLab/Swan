@@ -1,5 +1,5 @@
-function fM = Mean(f,mesh,quad)
-Vol  = mesh.computeVolume();
-intF = Integrator.compute(f,mesh,quad);
+function fM = Mean(f,quad)
+Vol  = f.mesh.computeVolume();
+intF = Integrator.compute(f,f.mesh,quad);
 fM   = intF/Vol;
 end
