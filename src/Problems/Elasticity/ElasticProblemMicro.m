@@ -35,11 +35,16 @@ classdef ElasticProblemMicro < handle
                 SndOrderStrainY = obj.createSndOrderDeformationBasis(2,iB);
                 RHS      = obj.computeRHS(strainBase,LHS);
                 uF{iB}    = obj.computeDisplacement(LHS,RHS);
-                strnFluc = SymGrad(uF{iB});
-                str{iB} = obj.computeStrain(strainBase,strnFluc);
+                strnFluc{iB} = SymGrad(uF{iB});
+                str{iB} = obj.computeStrain(strainBase,strnFluc{iB});
                 sigma{iB} = DDP(obj.material, str{iB});
                 sigma{iB}.ndimf = str{iB}.ndimf;
                 Ch(:,iB) = obj.computeChomog(sigma{iB});
+
+                RHSord2  = obj.computeRHS(SndOrderStrainX,LHS);
+                uFord2  = obj.computeDisplacement(LHS,RHSord2);
+                strnFluctord2 = SymGrad(uFord2);
+                strnord2 = obj.computeStrain(SndOrderStrainX,strnFluctord2);
             end
             obj.uFluc = uF;
             obj.strain = str;
