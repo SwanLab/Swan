@@ -1,4 +1,4 @@
-classdef OptimizationProblem < handle
+classdef OptimizationProblemNN < handle
     
     properties (Access = private)
         data
@@ -16,7 +16,7 @@ classdef OptimizationProblem < handle
   
    methods (Access = public)
 
-       function obj = OptimizationProblem(cParams)
+       function obj = OptimizationProblemNN(cParams)
            obj.init(cParams);
            obj.createNetwork();
            obj.createDesignVariable();

@@ -41,7 +41,7 @@ data   = Data(s);
 s.data = data;
 
 % Train the model
-opt = OptimizationProblem(s);
+opt = OptimizationProblemNN(s);
 opt.solve();
 opt.plotCostFnc();
 
