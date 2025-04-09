@@ -48,7 +48,7 @@ opt.plotCostFnc();
 %% Plot surface
 
 % Load dataset from specified path
-filePath = fullfile('Tutorials', 'ChomogNetworkTutorial', 'Datasets', s.fileName);
+filePath = fullfile('Tutorials', 'ChomogNetworkTutorial', s.fileName);
 tempData = readmatrix(filePath);
 
 % Preallocate and evaluate y_data vector
