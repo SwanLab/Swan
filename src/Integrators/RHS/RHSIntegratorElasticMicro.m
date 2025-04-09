@@ -104,7 +104,7 @@ classdef RHSIntegratorElasticMicro < handle
                 for istre = 1:nstre
                     for jstre = 1:nstre
                         Cij = squeeze(Cmat(istre,jstre,igaus,:));
-                        vj  = vstrain(jstre);
+                        vj  = squeeze(vstrain(jstre,:,:));
                         si  = squeeze(sigma(istre,igaus,:));
                         sigma(istre,igaus,:) = si + Cij.*vj;
                     end

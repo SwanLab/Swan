@@ -31,6 +31,8 @@ classdef ElasticProblemMicro < handle
             obj.Chomog = zeros(nBasis, nBasis);
             for iB = 1:nBasis
                 strainBase = obj.createDeformationBasis(iB);
+                SndOrderStrainX = obj.createSndOrderDeformationBasis(1,iB);
+                SndOrderStrainY = obj.createSndOrderDeformationBasis(2,iB);
                 RHS      = obj.computeRHS(strainBase,LHS);
                 uF{iB}    = obj.computeDisplacement(LHS,RHS);
                 strnFluc = SymGrad(uF{iB});
@@ -50,8 +52,16 @@ classdef ElasticProblemMicro < handle
             sV = zeros(nBasis,1);
             sV(iBasis) = 1;
             s = ConstantFunction.create(sV,obj.mesh);
-            %fH = @(xV) x(1,:,:);
-            %x1 = AnalyticalFunction.create(fH,obj.mesh)
+        end
+
+        function s = createSndOrderDeformationBasis(obj,coord,iBasis) % 2nd Order: "etaVec*Ycoord"
+            nBasis = obj.computeNbasis();
+            sV = zeros(nBasis,1);
+            sV(iBasis) = 1;
+            eta = ConstantFunction.create(sV,obj.mesh);
+            Y1  = AnalyticalFunction.create(@(x) x(coord,:,:),1,obj.mesh);
+            s = eta.*Y1;
+            s.ndimf = nBasis;
         end
 
         function nBasis = computeNbasis(obj)
