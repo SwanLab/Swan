@@ -28,8 +28,16 @@ classdef NeohookeanFunctional < handle
             [F,~] = obj.computeDeformationGradient(uFun, xG);
             Ft = permute(F, [2 1 3 4]);
             
+
             C = pagemtimes(Ft,F);
             trC = obj.computeTrace(C);
+           
+         %   F = Id + Grad(uFun);
+         %   C = transpuse(F)*F;
+         %   trC =  Trace(C);
+         %   J = det(C);
+         %   phi = obj.mu/2*(trC - nDimf) - obj.mu*log(jac) + obj.lambda/2*(log(jac)).^2; % stanford
+         %   val = intregrator.compute(phi,)
 
             jac(1,1,:,:)  = MatrixVectorizedInverter.computeDeterminant(F);
             dV(1,1,:,:) = obj.mesh.computeDvolume(quad);
