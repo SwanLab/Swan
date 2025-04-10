@@ -113,10 +113,10 @@ if any(ndimsB<dimB)
 end
 % Get elementwise-multiplication dimensions sizeA_ in A, sizeB_ in B, and
 % sizeC_ in C. (Singleton expansion is applied in sizeC_.)
-sizeA_ = size(A,ndimsA+(1:ndims(A)));
-sizeB_ = size(B,ndimsB+(1:ndims(B)));
-sizeA_(end+1:length(sizeB_)) = 1;
-sizeB_(end+1:length(sizeA_)) = 1;
+sizeA_ = size(A,(ndimsA+1):ndims(A));
+sizeB_ = size(B,(ndimsB+1):ndims(B));
+sizeA_((end+1):length(sizeB_)) = 1;
+sizeB_((end+1):length(sizeA_)) = 1;
 tf = sizeA_==sizeB_ | sizeA_==1 | sizeB_==1;
 if ~all(tf)
     error('pagetensorprod:validation', ...
@@ -132,30 +132,38 @@ sizeC_(tf) = sizeB_(tf);
 % then flatten the uncontracted and contracted dimensions.
 p = 1:ndimsA;
 p(dimA) = [];
-sizeC = size(A,p);
-p = [p,dimA,ndimsA+1:ndims(A)]; % dimension permutation
+if isempty(p)
+    sizeC = [];
+else
+    sizeC = size(A,p);
+end
+p = [p,dimA,(ndimsA+1):ndims(A)]; % dimension permutation
 size_ = size(A);
-size_(end+1:ndimsA) = 1;
+size_((end+1):ndimsA) = 1;
 size_ = size_(p); % dimension-permuted array size
 A = permute(A,p); % size(A,j) is now size_(j).
-size_ = [prod(size_(1:ndimsA-length(dimA))), ... % uncontracted dims
-    prod(size_(ndimsA-length(dimA)+1:ndimsA)), ... % contracted dims
-    size_(ndimsA+1:end)];
+size_ = [prod(size_(1:(ndimsA-length(dimA)))), ... % uncontracted dims
+    prod(size_((ndimsA-length(dimA)+1):ndimsA)), ... % contracted dims
+    size_((ndimsA+1):end)];
 A = reshape(A,size_); % 3-D
 % Reorder B dimensions 1:ndimsB with contracted (inner-product) dimensions
 % (dimB) first and uncontrcted (outer-product) dimensions last; then
 % flatten the contracted and uncontracted dimensions.
 p = 1:ndimsB;
 p(dimB) = [];
-sizeC = [sizeC,size(B,p),sizeC_];
-p = [dimB,p,ndimsB+1:ndims(B)]; % dimension permutation
+if isempty(p)
+    sizeC = [sizeC,sizeC_];
+else
+    sizeC = [sizeC,size(B,p),sizeC_];
+end
+p = [dimB,p,(ndimsB+1):ndims(B)]; % dimension permutation
 size_ = size(B);
-size_(end+1:ndimsB) = 1;
+size_((end+1):ndimsB) = 1;
 size_ = size_(p); % dimension-permuted array size
 B = permute(B,p); % size(B,j) is now size_(j).
 size_ = [prod(size_(1:length(dimB))), ... % contracted dims
-    prod(size_(length(dimB)+1:ndimsB)), ... % uncontracted dims
-    size_(ndimsB+1:end)];
+    prod(size_((length(dimB)+1):ndimsB)), ... % uncontracted dims
+    size_((ndimsB+1):end)];
 B = reshape(B,size_); % 3-D
 % Use pagemtimes to do the inner/outer product operations; expand flattened
 % outer-product dimensions.
