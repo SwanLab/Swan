@@ -79,11 +79,23 @@ classdef ElasticProblemMicro < handle
         end
 
        function s = createDeformationBasis(obj,iBasis)
-            nBasis = obj.computeNbasis();
-            sV = zeros(nBasis,1);
-            sV(iBasis) = 1;
-            s = ConstantFunction.create(sV,obj.mesh);
-        end
+           v      = obj.computeBasesPosition();
+           sV     = zeros(obj.mesh.ndim,obj.mesh.ndim);
+           sV(v(iBasis,1),v(iBasis,2)) = 1;
+           sHV = diag(diag(sV));
+           sDV = sV-sHV;
+           sV = sHV+sDV+sDV';
+           s = ConstantFunction.create(sV,obj.mesh);
+       end
+
+       function v = computeBasesPosition(obj)
+           switch obj.mesh.ndim
+               case 2
+                   v = [1,1; 2,2; 1,2];
+               case 3
+                   v = [1,1; 2,2; 3,3; 2,3; 2,1; 1,2];
+           end
+       end
 
         function nBasis = computeNbasis(obj)
             homogOrder = 1;
@@ -139,7 +151,7 @@ classdef ElasticProblemMicro < handle
             s.material = obj.material;
             s.globalConnec = obj.mesh.connec;
             RHSint = RHSIntegrator.create(s);
-            rhs = RHSint.compute(strainBase);
+            rhs = RHSint.compute(strainBase,obj.trialFun);
             R = RHSint.computeReactions(LHS); %%?
         end
 
