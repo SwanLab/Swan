@@ -1,4 +1,4 @@
-classdef LHSintegrator_ShapeFunction_fun < handle
+classdef RHSintegrator_ShapeFunctionN < handle
 
     properties (Access = private)
         quadType
@@ -7,15 +7,15 @@ classdef LHSintegrator_ShapeFunction_fun < handle
     end
 
     methods (Access = public)
-        function obj = LHSintegrator_ShapeFunction_fun(cParams)
+        function obj = RHSintegrator_ShapeFunctionN(cParams)
             obj.init(cParams);
         end
 
 
-        function lhs = compute(obj,fun,test)
+        function rhs = compute(obj,fun,test)
             obj.createQuadrature(fun,test);
-            lhsElem = obj.computeElementalLHS(fun,test);
-            lhs = obj.assembleIntegrand(test,fun,lhsElem);
+            rhsElem = obj.computeElementalRHS(fun,test);
+            rhs = obj.assembleIntegrand(test,rhsElem);
         end
 
     end
@@ -27,47 +27,47 @@ classdef LHSintegrator_ShapeFunction_fun < handle
             obj.mesh     = cParams.mesh;
         end
 
-        function int = computeElementalLHS(obj,fun,test)
+        function rhsC = computeElementalRHS(obj,fun,test)
             quad = obj.quadrature;
             xV   = quad.posgp;
             fG   = fun.evaluate(xV);
-%             fG   = squeezeParticular(fG,2);
             dV   = obj.mesh.computeDvolume(quad);
             N = test.computeShapeFunctions(xV);
             nNodeElem  = size(N,1);
             nElem     = obj.mesh.nelem;
             nGaus     = quad.ngaus;
             nFlds     = size(fG,1);
-            nDofElem = nNodeElem*nFlds;
-            int = zeros(nDofElem,nFlds,nElem);
-            for iField = 1:nFlds
+            nDim      = obj.mesh.ndim;
+            nDofElem = nNodeElem*nFlds/2;
+            int = zeros(nDofElem,nElem);
+
+            shapesTestMapped  = test.mapFunction(N, xV);
+
+            for iField = 1:nFlds/2
                 for iNode = 1:nNodeElem
                     for iGaus = 1:nGaus
-                        dVg(:,1) = dV(iGaus, :);
-                        fV   = squeeze(fG(iField,iGaus,:));
-                        Ni   = squeeze(N(iNode,iGaus,:));
-                        fNdV(1,:) = Ni.*fV.*dVg;
-                        iDof = nFlds*(iNode-1) + iField;
-                        int(iDof,iField,:) = squeezeParticular(int(iDof,iField,:),1) + fNdV;
+                        dVg(:,1) = abs(dV(iGaus, :));
+                        fV   = squeeze(fG(:,iGaus,:));
+                        Ni   = reshape(squeeze(shapesTestMapped(iNode,iGaus,:,:))',nDim,[])';
+                        fNdV(:,1) = sum(Ni'.*fV,1)'.*dVg;
+                        iDof = iNode;
+                        int(iDof,:) = int(iDof,:) + fNdV';
                     end
                 end
             end
-            
+            rhsC = transpose(int);
         end
 
-        function C = assembleIntegrand(obj,test,fun,lhsElem)
-            integrand = lhsElem;
-            nFields = fun.ndimf;
+        function f = assembleIntegrand(obj,test,rhsElem)
+            integrand = rhsElem;
             connec   = test.getDofConnec();
             ndofs    = max(max(connec));
             nDofElem = size(connec,2);
-            C = zeros(ndofs,nFields);
-            for iField = 1:nFields
-                for iDof = 1:nDofElem
-                    int = squeezeParticular(integrand(iDof,iField,:),1);
-                    con = connec(:,iDof);
-                    C(:,iField) = C(:,iField) + accumarray(con,int,[ndofs,1],@sum,0);
-                end
+            f = zeros(ndofs,1);
+            for iDof = 1:nDofElem
+                int = integrand(:,iDof);
+                con = connec(:,iDof);
+                f = f + accumarray(con,int,[ndofs,1],@sum,0);
             end
         end
 

@@ -23,7 +23,7 @@ classdef ConstantFunction < BaseFunction
                 s.constant = constant;
                 s.ndimf = length(constant);
                 s.mesh = mesh;
-                s.fHandle = @(xV) constant.*ones([length(constant),size(xV,2),mesh.nelem]); 
+                s.fHandle = @(xV) constant*ones([1,size(xV,2),mesh.nelem]); 
                 obj = ConstantFunction(s);
             end
     end
