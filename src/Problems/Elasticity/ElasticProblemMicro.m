@@ -31,20 +31,12 @@ classdef ElasticProblemMicro < handle
             obj.Chomog = zeros(nBasis, nBasis);
             for iB = 1:nBasis
                 strainBase = obj.createDeformationBasis(iB);
-                SndOrderStrainX = obj.createSndOrderDeformationBasis(1,iB);
-                SndOrderStrainY = obj.createSndOrderDeformationBasis(2,iB);
                 RHS      = obj.computeRHS(strainBase,LHS);
-                uF{iB}    = obj.computeDisplacement(LHS,RHS);
+                uF{iB}    = obj.computeDisplacement(LHS,RHS,iB,nBasis);
                 strnFluc{iB} = SymGrad(uF{iB});
                 str{iB} = obj.computeStrain(strainBase,strnFluc{iB});
                 sigma{iB} = DDP(obj.material, str{iB});
-                sigma{iB}.ndimf = str{iB}.ndimf;
                 Ch(:,iB) = obj.computeChomog(sigma{iB});
-
-                RHSord2  = obj.computeRHS(SndOrderStrainX,LHS);
-                uFord2  = obj.computeDisplacement(LHS,RHSord2);
-                strnFluctord2 = SymGrad(uFord2);
-                strnord2 = obj.computeStrain(SndOrderStrainX,strnFluctord2);
             end
             obj.uFluc = uF;
             obj.strain = str;
@@ -57,16 +49,6 @@ classdef ElasticProblemMicro < handle
             sV = zeros(nBasis,1);
             sV(iBasis) = 1;
             s = ConstantFunction.create(sV,obj.mesh);
-        end
-
-        function s = createSndOrderDeformationBasis(obj,coord,iBasis) % 2nd Order: "etaVec*Ycoord"
-            nBasis = obj.computeNbasis();
-            sV = zeros(nBasis,1);
-            sV(iBasis) = 1;
-            eta = ConstantFunction.create(sV,obj.mesh);
-            Y1  = AnalyticalFunction.create(@(x) x(coord,:,:),1,obj.mesh);
-            s = eta.*Y1;
-            s.ndimf = nBasis;
         end
 
         function nBasis = computeNbasis(obj)
@@ -162,11 +144,11 @@ classdef ElasticProblemMicro < handle
             R = RHSint.computeReactions(LHS); %%?
         end
 
-        function uFun = computeDisplacement(obj, LHS, RHS)
+        function uFun = computeDisplacement(obj, LHS, RHS, iB, nBasis)
             s.stiffness = LHS;
             s.forces    = RHS;
-        %    s.iVoigt    = iVoigt;
-        %    s.nVoigt    = size(obj.forces,2);
+            s.iBase     = iB;
+            s.nBasis    = nBasis;
             [u, L]      = obj.problemSolver.solve(s);
             obj.lagrangeMultipliers = L;
 
