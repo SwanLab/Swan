@@ -1,12 +1,12 @@
 classdef BCApplier < handle
-    
+
     % Goal: group dirichlet and neumann conditions
     % to allow multiple boundary conditions at the same time
     % Use: BCApplier.computeLinearConditionsMatrix()
 
     properties (Access = public)
     end
-    
+
     properties (Access = private)
         mesh
 
@@ -16,17 +16,17 @@ classdef BCApplier < handle
         pointloadFun
         periodic_leader, periodic_follower
     end
-    
+
     properties (Access = private)
-        
+
     end
-    
+
     methods (Access = public)
-        
+
         function obj = BCApplier(cParams)
             obj.init(cParams)
         end
-        
+
         function Ct = computeLinearConditionsMatrix(obj, order)
             switch order
                 case 'Dirac'
@@ -35,13 +35,60 @@ classdef BCApplier < handle
                     nDofs = obj.dirichletFun.nDofs;
                     nDirich = length(dir_dofs);
                     Ct = sparse(1:nDirich, dir_dofs, 1, nDirich, nDofs);
+                case 'Analytical'
+                    ndimf  = 2;
+                    displacementFun = LagrangianFunction.create(obj.mesh, ndimf, 'P1'); % !!
+                    bMesh = obj.mesh.createBoundaryMesh();
+                    [boundaryMeshJoined, localGlobalConnecBd] = obj.mesh.createSingleBoundaryMesh();                   
+                    s.quadType = 2;
+                    s.mesh     = boundaryMeshJoined;
+                    lhs    = LHSintegrator_ShapeFunction_fun(s);
+                    test   = LagrangianFunction.create(boundaryMeshJoined, ndimf, 'P1'); % !!
+                   
+                    minx   = min(obj.mesh.coord(:,1));
+                    miny   = min(obj.mesh.coord(:,2));
+                    maxx   = max(obj.mesh.coord(:,1));
+                    maxy   = max(obj.mesh.coord(:,2));
+                    cond   = [maxx, maxy];
+                    k=1;
+                    j=1;
+                    dof    = [1,2];
+                    for i=1:length(bMesh)
+                        x0 = (max(bMesh{i}.mesh.coord(:,1))+ min(bMesh{i}.mesh.coord(:,1)))/2;
+                        y0 = (max(bMesh{i}.mesh.coord(:,2))+ min(bMesh{i}.mesh.coord(:,2)))/2;
+                        if abs(x0-maxx)<1e-6 || abs(y0-maxy)<1e-6
+                            f{k}   = @(x) [(x(dof(j),:,:)==cond(j)).* ones(size(x(1,:,:))) ; ...
+                                            x(2,:,:).*0 ];
+                            f{k+1} = @(x) [x(dof(j),:,:).*0 ;...
+                                          (x(dof(j),:,:)==cond(j)).*ones(size(x(1,:,:))) ];
+                            k=k+2;
+                            j=j+1;
+                        end
+                    end                 
+                    nfun = size(f,2);
+                    Ct = [];
+                    for i=1:nfun
+                        dLambda{i}  = AnalyticalFunction.create(f{i},ndimf,boundaryMeshJoined);
+%                                         dLambda = dLambda.project('P1');
+                        %                 obj.dLambda{i}.plot
+                        Ce = lhs.compute(dLambda{i},test);
+                        Ce = sum(Ce,2);
+                        [iLoc,jLoc,vals] = find(Ce);
+
+                   
+                        l2g_dof = ((localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
+                        l2g_dof = l2g_dof(:);
+                        iGlob = l2g_dof(iLoc);
+                        Ct = [Ct sparse(iGlob,jLoc,vals, displacementFun.nDofs, 1)];
+                    end
+
                 otherwise
                     dir_dom = obj.dirichlet_domain;
                     [mesh_left2, l2g_mesh] = obj.mesh.getBoundarySubmesh(dir_dom);
-        
+
                     dLambda = LagrangianFunction.create(mesh_left2, obj.mesh.ndim, order); % !!
                     uFun    = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1'); % !!
-        
+
                     b.mesh  = mesh_left2;
                     b.test  = dLambda;
                     b.trial = uFun.restrictTo(dir_dom);
@@ -85,19 +132,35 @@ classdef BCApplier < handle
             yy_bottom = 2*nDofsPerBorder + 1 : 3*nDofsPerBorder;
             yy_left   = 3*nDofsPerBorder + 1 : 4*nDofsPerBorder;
             CtPer = sparse([(1:nDofsPerBorder)', (1:nDofsPerBorder)'; ... % xx
-                         (nDofsPerBorder+1:2*nDofsPerBorder)', (nDofsPerBorder+1:2*nDofsPerBorder)'; ... % xy
-                         (nDofsPerBorder+1:2*nDofsPerBorder)', (nDofsPerBorder+1:2*nDofsPerBorder)'; ... % xy
-                         (2*nDofsPerBorder+1:3*nDofsPerBorder)', (2*nDofsPerBorder+1:3*nDofsPerBorder)'; ... % yy
-                         ], ...
-                         [per_lead(xx_bottom), per_fllw(xx_bottom); ... % xx
-                         per_lead(xx_left), per_fllw(xx_left); ... % xy
-                         per_lead(yy_bottom), per_fllw(yy_bottom); ... % xy
-                         per_lead(yy_left), per_fllw(yy_left) % yy
-                         ], ...
-                         [ones(length(per_lead),1), -ones(length(per_lead),1); ...
-                         ], ...
-                         nDofsPerBorder*nVoigt, nDofs);
+                (nDofsPerBorder+1:2*nDofsPerBorder)', (nDofsPerBorder+1:2*nDofsPerBorder)'; ... % xy
+                (nDofsPerBorder+1:2*nDofsPerBorder)', (nDofsPerBorder+1:2*nDofsPerBorder)'; ... % xy
+                (2*nDofsPerBorder+1:3*nDofsPerBorder)', (2*nDofsPerBorder+1:3*nDofsPerBorder)'; ... % yy
+                ], ...
+                [per_lead(xx_bottom), per_fllw(xx_bottom); ... % xx
+                per_lead(xx_left), per_fllw(xx_left); ... % xy
+                per_lead(yy_bottom), per_fllw(yy_bottom); ... % xy
+                per_lead(yy_left), per_fllw(yy_left) % yy
+                ], ...
+                [ones(length(per_lead),1), -ones(length(per_lead),1); ...
+                ], ...
+                nDofsPerBorder*nVoigt, nDofs);
             Ct =  [CtPer; CtDirPer; CtDir];
+        end
+
+        function Cv = computeVoluMatrix(obj)
+            ndimf  = 2;
+            %displacementFun = LagrangianFunction.create(obj.mesh, ndimf, 'P1'); % !!
+            s.quadType = 2;
+            s.mesh     = obj.mesh;
+            lhs    = LHSintegrator_ShapeFunction_fun(s);
+            rhs    = RHSintegrator_ShapeFunctionN(s);
+            test   = LagrangianFunction.create(obj.mesh, ndimf, 'P1'); % !!
+
+            f  = @(x) [ones(size(x(1,:,:))) ; ones(size(x(1,:,:)))];
+            dLambda  = AnalyticalFunction.create(f,ndimf,obj.mesh);
+%             Cv = lhs.compute(dLambda,test);
+%             Cv = sum(Cv,2);
+            Cv = -rhs.compute(dLambda,test);
         end
 
         function RHSC = computeMicroDisplMonolithicRHS(obj, iVoigt, nVoigt)
@@ -127,10 +190,30 @@ classdef BCApplier < handle
             [RHSDir, RHSDirPer] = comp.getRHSVector();
             RHSC = [zerosRHS; per_vec; RHSDirPer; RHSDir];
         end
+
+        function rVec = fullToReducedVectorDirichlet(obj,fVec)
+            dofs      = 1:1:obj.dirichletFun.nDofs;
+            free_dofs = setdiff(dofs, obj.dirichlet_dofs);
+            rVec      = fVec(free_dofs);
+        end
+
+        function rMat = fullToReducedMatrixDirichlet(obj,fMat)
+            dofs      = 1:1:obj.dirichletFun.nDofs;
+            free_dofs = setdiff(dofs, obj.dirichlet_dofs);
+            rMat      = fMat(free_dofs,free_dofs);
+        end
+
+        function fVec = reducedToFullVectorDirichlet(obj,rVec)
+            dofs                     = 1:1:obj.dirichletFun.nDofs;
+            free_dofs                = setdiff(dofs, obj.dirichlet_dofs);
+            fVec                     = zeros(obj.dirichletFun.nDofs,1);
+            fVec(free_dofs)          = rVec;
+            fVec(obj.dirichlet_dofs) = obj.dirichlet_vals;
+        end
     end
 
     methods (Access = private)
-        
+
         function init(obj,cParams)
             inBC = cParams.boundaryConditions;
             obj.mesh = cParams.mesh;
@@ -146,5 +229,5 @@ classdef BCApplier < handle
         end
 
     end
-    
+
 end

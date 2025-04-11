@@ -38,20 +38,25 @@ classdef RHSintegrator_ShapeFunctionN < handle
             nGaus     = quad.ngaus;
             nFlds     = size(fG,1);
             nDim      = obj.mesh.ndim;
-            nDofElem = nNodeElem*nFlds/2;
+            nDofElem = nNodeElem*nFlds;
             int = zeros(nDofElem,nElem);
 
-            shapesTestMapped  = test.mapFunction(N, xV);
+            %shapesTestMapped  = test.mapFunction(N, xV);
 
-            for iField = 1:nFlds/2
+            for iField = 1:nFlds
                 for iNode = 1:nNodeElem
                     for iGaus = 1:nGaus
                         dVg(:,1) = abs(dV(iGaus, :));
                         fV   = squeeze(fG(:,iGaus,:));
-                        Ni   = reshape(squeeze(shapesTestMapped(iNode,iGaus,:,:))',nDim,[])';
+%                         Ni   = reshape(squeeze(N(iNode,iGaus,:,:))',nDim,[])';
+                        Ni   = squeeze(N(iNode,iGaus,:));
                         fNdV(:,1) = sum(Ni'.*fV,1)'.*dVg;
-                        iDof = iNode;
+%                         fNdV(1,:) = Ni.*fV.*dVg;
+                        iDof = nFlds*(iNode-1) + iField;
+%                         int(iDof,iField,:) = squeezeParticular(int(iDof,iField,:),1) + fNdV;
+%                         iDof = iNode;
                         int(iDof,:) = int(iDof,:) + fNdV';
+                        
                     end
                 end
             end

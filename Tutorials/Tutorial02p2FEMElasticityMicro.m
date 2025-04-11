@@ -34,7 +34,7 @@ classdef Tutorial02p2FEMElasticityMicro < handle
 
         function ls = computeCircleLevelSet(obj, mesh)
             gPar.type          = 'Circle';
-            gPar.radius        = 0.25;
+            gPar.radius        = 0.3;
             gPar.xCoorCenter   = 0.5;
             gPar.yCoorCenter   = 0.5;
             g                  = GeometricalFunction(gPar);
@@ -70,7 +70,7 @@ classdef Tutorial02p2FEMElasticityMicro < handle
             s.boundaryConditions = obj.createBoundaryConditions();
             % Options: REDUCED-FLUC / MONOLITHIC-FLUC / MONOLITHIC-DISP
             s.solverCase = 'DIRECT';
-            s.solverType = 'REDUCED';
+            s.solverType = 'MONOLITHIC';
             s.solverMode = 'FLUC';
             fem = ElasticProblemMicro(s);
             fem.solve();
