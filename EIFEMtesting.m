@@ -175,7 +175,8 @@ classdef EIFEMtesting < handle
 
         function mCoarse = createCoarseMesh(obj,mR)
             s.nsubdomains   = obj.nSubdomains; %nx ny
-            s.meshReference = obj.createReferenceCoarseMesh(mR);
+%             s.meshReference = obj.createReferenceCoarseMesh(mR);
+            s.meshReference = obj.loadReferenceCoarseMesh();
             s.tolSameNode   = obj.tolSameNode;
             mRVECoarse      = MeshCreatorFromRVE(s);
             [mCoarse,~,~] = mRVECoarse.create();
@@ -210,6 +211,29 @@ classdef EIFEMtesting < handle
             s.connec = connec;
             cMesh = Mesh.create(s);
         end
+
+        function cMesh = loadReferenceCoarseMesh(obj)
+             coord(1,:)  = [ 0.378041543026706 , -0.843442136498517 ];
+             coord(2,:)  = [ 1.49050445103858  , -0.843442136498517 ];
+             coord(3,:)  = [ 2.60296735905045  , -0.843442136498517 ];
+             coord(4,:)  = [ 2.98100890207715  ,  0                 ];
+             coord(5,:)  = [ 2.98100890207715  ,  0.314540059347181 ];
+             coord(6,:)  = [ 2.60296735905045  ,  1.1579821958457   ];
+             coord(7,:)  = [ 1.49050445103858  ,  1.1579821958457   ];
+             coord(8,:)  = [ 0.378041543026706 ,  1.1579821958457   ];
+             coord(9,:)  = [ 0                 ,  0.314540059347181 ];
+             coord(10,:) = [ 0                 ,  0                 ];
+        
+         
+                     
+        
+            connec = [1 2 3 4 5 6 7 8 9 10];
+            s.coord = coord;
+            s.connec = connec;
+            cMesh = Mesh.create(s);
+        end
+
+
 
         function createBCapplier(obj)
             s.mesh                  = obj.meshDomain;
@@ -328,6 +352,7 @@ classdef EIFEMtesting < handle
             filename        = EIFEMfilename;
             s.RVE           = TrainedRVE(filename);
             s.mesh          = obj.createCoarseMesh(mR);
+            s.mesh          = obj.loadCoarseMesh(mR);
             s.DirCond       = dir;
             s.nSubdomains = obj.nSubdomains;
             eifem           = EIFEM(s);

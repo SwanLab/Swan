@@ -38,7 +38,7 @@ classdef TrainedRVE < handle
             obj.ndimf   = 2;
             obj.PhiDef  = EIFEoper.RECONSTRUCTION.DEF_DISP.BASIS;
             obj.PhiRb   = EIFEoper.RECONSTRUCTION.RB_DISP.BASIS;
-            obj.Grb     = EIFEoper.Grb;
+%             obj.Grb     = EIFEoper.Grb;
         end
         
     end
