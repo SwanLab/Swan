@@ -128,10 +128,11 @@ classdef ProcessOfflineData < handle
         function DEFfun = projectToDeformationalSpace(obj,uFun,RBfun)
             ntest    = size(uFun,2);
             for i = 1:ntest
-                s.operation = @(xV) uFun(i).evaluate(xV) - RBfun(i).evaluate(xV);
-                s.ndimf   = uFun.ndimf;
-                s.mesh    = uFun.mesh;
-                Df        = DomainFunction(s);
+                Df = uFun(i)-RBfun(i);
+%                 s.operation = @(xV) uFun(i).evaluate(xV) - RBfun(i).evaluate(xV);
+%                 s.ndimf   = uFun.ndimf;
+%                 s.mesh    = uFun.mesh;
+%                 Df        = DomainFunction(s);
                 DEFfun(i) = project(Df,'P1');
             end
         end
