@@ -10,6 +10,7 @@ classdef SettingsMesh < AbstractSettings
         type
         kFace
         geometryType
+        interpType
     end
     
     methods (Access = public)
@@ -18,6 +19,11 @@ classdef SettingsMesh < AbstractSettings
             if ~max(isfield(varargin{1},'kFace'))
                 varargin{1}.kFace = 0;
             end
+            if (isfield(varargin{1},'interpType'))
+                obj.interpType = varargin{1}.interpType;
+            else                
+                obj.interpType = 'LINEAR';
+            end            
             obj.coord  = varargin{1}.coord;
             obj.connec = varargin{1}.connec;
             obj.kFace  = varargin{1}.kFace;

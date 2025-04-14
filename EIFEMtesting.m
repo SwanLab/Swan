@@ -119,8 +119,9 @@ classdef EIFEMtesting < handle
 
         function init(obj)
             obj.nSubdomains  = [15 1]; %nx ny
-%             obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
-            obj.fileNameEIFEM = 'DEF_Q4porL_1_raul.mat';
+            %obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
+            obj.fileNameEIFEM = 'DEF_auxNew.mat';
+            %obj.fileNameEIFEM = 'DEF_Q4porL_1_raul.mat';
             obj.tolSameNode = 1e-10;
         end
 
@@ -170,6 +171,7 @@ classdef EIFEMtesting < handle
             isMax = s.coord==max(s.coord);
 
             s.connec   = EIFEoper.MESH.CN;
+            s.interType = 'QUADRATIC';
             mS         = Mesh.create(s);
         end
 
@@ -352,7 +354,7 @@ classdef EIFEMtesting < handle
             filename        = EIFEMfilename;
             s.RVE           = TrainedRVE(filename);
             s.mesh          = obj.createCoarseMesh(mR);
-            s.mesh          = obj.loadCoarseMesh(mR);
+%            s.mesh          = obj.loadCoarseMesh(mR);
             s.DirCond       = dir;
             s.nSubdomains = obj.nSubdomains;
             eifem           = EIFEM(s);

@@ -25,7 +25,7 @@ classdef Mesh < handle
     properties (Access = private)
         xVOld
         dVOld
-        
+        interpType
     end    
 
     properties (Access = protected)
@@ -44,6 +44,7 @@ classdef Mesh < handle
                 case 'Volume'
                     obj = VolumeMesh(s);
             end
+
         end
         
         function obj = createFromGiD(filename)
@@ -342,6 +343,7 @@ classdef Mesh < handle
             obj.connec = s.connec;
             obj.type   = s.type;
             obj.kFace  = s.kFace;
+            obj.interpType = s.interpType;
         end
 
         function computeDimensionParams(obj)
@@ -352,7 +354,7 @@ classdef Mesh < handle
         end
 
         function createInterpolation(obj)
-            obj.interpolation = Interpolation.create(obj.type,'LINEAR');
+            obj.interpolation = Interpolation.create(obj.type,obj.interpType);
         end
 
         function computeElementCoordinates(obj)

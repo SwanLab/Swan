@@ -81,6 +81,8 @@ classdef InterpolationFactory < handle
                         otherwise
                             error('Invalid order for element HEXAHEDRA.');
                     end
+                case 'SUPERELEMENT'
+                    obj = SuperElement(cParams);
                 otherwise
                     error('Invalid mesh type.')
             end
