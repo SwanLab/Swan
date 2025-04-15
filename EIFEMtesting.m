@@ -51,6 +51,7 @@ classdef EIFEMtesting < handle
             MgaussSeidel = obj.createGaussSeidelpreconditioner(LHS);
             MJacobi      = obj.createJacobipreconditioner(LHS);
             Mmodal       = obj.createModalpreconditioner(LHS);
+            MblockD      = obj.createBlockDiagonalpreconditioner(LHS);
             %             MdirNeu      = obj.createDirichletNeumannPreconditioner(mR,dir,iC,lG,bS,obj.LHS,mSb);
 
             MiluCG = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
@@ -67,7 +68,7 @@ classdef EIFEMtesting < handle
             %Mmult = MdirNeu;
             x0 = zeros(size(RHSf));
             r = RHSf - LHSf(x0);
-            Mmult = @(r,uk) Preconditioner.multiplePrec(r,MiluCG,Meifem,MiluCG,LHSf,RHSf,obj.meshDomain,obj.bcApplier,uk);
+            Mmult = @(r,uk) Preconditioner.multiplePrec(r,MblockD,Meifem,MblockD,LHSf,RHSf,obj.meshDomain,obj.bcApplier,uk);
 %              Mmult = @(r) Preconditioner.multiplePrec(r,Mid,Meifem,Mid,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
 %             zmult = Mmult(r);
             
@@ -118,8 +119,8 @@ classdef EIFEMtesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [15 1]; %nx ny
-            %obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
+            obj.nSubdomains  = [2 1]; %nx ny
+%             obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
             obj.fileNameEIFEM = 'DEF_auxNew.mat';
             %obj.fileNameEIFEM = 'DEF_Q4porL_1_raul.mat';
             obj.tolSameNode = 1e-10;
@@ -178,7 +179,7 @@ classdef EIFEMtesting < handle
         function mCoarse = createCoarseMesh(obj,mR)
             s.nsubdomains   = obj.nSubdomains; %nx ny
 %             s.meshReference = obj.createReferenceCoarseMesh(mR);
-            s.meshReference = obj.loadReferenceCoarseMesh();
+            s.meshReference = obj.loadReferenceCoarseMesh(mR);
             s.tolSameNode   = obj.tolSameNode;
             mRVECoarse      = MeshCreatorFromRVE(s);
             [mCoarse,~,~] = mRVECoarse.create();
@@ -214,19 +215,42 @@ classdef EIFEMtesting < handle
             cMesh = Mesh.create(s);
         end
 
-        function cMesh = loadReferenceCoarseMesh(obj)
-             coord(1,:)  = [ 0.378041543026706 , -0.843442136498517 ];
-             coord(2,:)  = [ 1.49050445103858  , -0.843442136498517 ];
-             coord(3,:)  = [ 2.60296735905045  , -0.843442136498517 ];
-             coord(4,:)  = [ 2.98100890207715  ,  0                 ];
-             coord(5,:)  = [ 2.98100890207715  ,  0.314540059347181 ];
-             coord(6,:)  = [ 2.60296735905045  ,  1.1579821958457   ];
-             coord(7,:)  = [ 1.49050445103858  ,  1.1579821958457   ];
-             coord(8,:)  = [ 0.378041543026706 ,  1.1579821958457   ];
-             coord(9,:)  = [ 0                 ,  0.314540059347181 ];
-             coord(10,:) = [ 0                 ,  0                 ];
-        
-         
+        function cMesh = loadReferenceCoarseMesh(obj,mR)
+            bS  = mR.createBoundaryMesh();
+            bS2{1} = bS{3}; bS2{2} = bS{2}; bS2{3} = bS{4}; bS2{4} = bS{1}; % reorder boundaries
+            bS = bS2;
+            nbd = size(bS,2);
+            interpType = [2,1,2,1];
+            inode = 1;
+            for ibd = 1:nbd
+                maxCoord  = max(bS{ibd}.mesh.coord);
+                minCoord  = min(bS{ibd}.mesh.coord);
+                meanCoord = (maxCoord+minCoord)/2;
+                val = ibd<=nbd/2;
+                if interpType(ibd) == 1
+                    coord(inode,:)   = val*minCoord + abs((val-1))*maxCoord;
+                    coord(inode+1,:) = val*maxCoord + abs((val-1))*minCoord;
+                    inode=inode + 2;
+                else
+                    coord(inode,:)   = val*minCoord + abs((val-1))*maxCoord;
+                    coord(inode+1,:) = meanCoord;
+                    coord(inode+2,:) = val*maxCoord + abs((val-1))*minCoord;
+                    inode=inode + 3;
+                end
+            end
+
+%              coord(1,:)  = [ 0.378041543026706 , -0.843442136498517 ];
+%              coord(2,:)  = [ 1.49050445103858  , -0.843442136498517 ];
+%              coord(3,:)  = [ 2.60296735905045  , -0.843442136498517 ];
+%              coord(4,:)  = [ 2.98100890207715  ,  0                 ];
+%              coord(5,:)  = [ 2.98100890207715  ,  0.314540059347181 ];
+%              coord(6,:)  = [ 2.60296735905045  ,  1.1579821958457   ];
+%              coord(7,:)  = [ 1.49050445103858  ,  1.1579821958457   ];
+%              coord(8,:)  = [ 0.378041543026706 ,  1.1579821958457   ];
+%              coord(9,:)  = [ 0                 ,  0.314540059347181 ];
+%              coord(10,:) = [ 0                 ,  0                 ];
+%         
+%          
                      
         
             connec = [1 2 3 4 5 6 7 8 9 10];
@@ -256,10 +280,16 @@ classdef EIFEMtesting < handle
         end
 
         function [young,poisson] = computeElasticProperties(obj,mesh)
-            E  = 1;
-            nu = 1/3;
-            young   = ConstantFunction.create(E,mesh);
-            poisson = ConstantFunction.create(nu,mesh);
+%             E  = 1;
+%             nu = 1/3;
+            E  = 70000;
+            nu = 0.3;
+            Epstr  = E/(1-nu^2);
+            nupstr = nu/(1-nu);
+            young   = ConstantFunction.create(Epstr,mesh);
+            poisson = ConstantFunction.create(nupstr,mesh);
+%             young   = ConstantFunction.create(E,mesh);
+%             poisson = ConstantFunction.create(nu,mesh);
         end
 
         function [Dir,PL] = createRawBoundaryConditions(obj)
@@ -286,7 +316,7 @@ classdef EIFEMtesting < handle
 %             PL.value     = [-0.1];
                         PL.domain    = @(coor) isRight(coor);
                         PL.direction = [1];
-                        PL.value     = [0.1];
+                        PL.value     = [10];
         end
 
         function [bc,Dir,PL] = createBoundaryConditions(obj,mesh)
@@ -420,6 +450,14 @@ classdef EIFEMtesting < handle
             s.type   = 'MODAL';
             M = Preconditioner.create(s);
             Mmodal = @(r) M.apply(r);
+        end
+
+        function MblockD = createBlockDiagonalpreconditioner(obj,LHS)
+            s.LHS       = LHS;
+            s.dimension = 20;
+            s.type      = 'BlockDiagonal';
+            M = Preconditioner.create(s);
+            MblockD = @(r) M.apply(r);
         end
 
 
