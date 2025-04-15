@@ -26,9 +26,9 @@ classdef PreconditionerEIFEM < handle
         end
 
         function z = apply(obj,r,uk)
-            uk = obj.bcApplier.reducedToFullVectorDirichlet(uk);
-            uk = obj.ddDofManager.global2local(uk);  %dissemble
-            uk = reshape(uk,[],1);
+%             uk = obj.bcApplier.reducedToFullVectorDirichlet(uk);
+%             uk = obj.ddDofManager.global2local(uk);  %dissemble
+%             uk = reshape(uk,[],1);
             Rd = obj.computeDiscontinousField(r);
             uD = obj.EIFEMsolver.apply(Rd);
             u = reshape(uD,[],1);
