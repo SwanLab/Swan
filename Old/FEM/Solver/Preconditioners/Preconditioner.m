@@ -30,7 +30,8 @@ classdef Preconditioner < handle
 
             z1 = P1(r);
             r  = r-A(z1);
-            z2 = P2(r,uk);
+            %z2 = P2(r,uk);
+            z2 = P2(r);
             r  = r-A(z2);
             z3 = P3(r);
             z  = z1+z2+z3;
@@ -61,13 +62,16 @@ classdef Preconditioner < handle
         function x = InexactCG(r,A,P,b)
             x0 = zeros(size(r));
            
-            factor = 0.99;
+            factor = 1-1e-4;%0.99;
             tol = factor*norm(r);
+            tol = 1;
             
-%             x = PCG.solve(A,r,x0,P,tol);
+      %      x = PCG.solve(A,r,x0,P,tol);
             
             %tau = @(r,A) 1;
-           tau = @(r,A) r'*r/(r'*A(r));           
+           tau = @(z,r,A) r'*z/(z'*A(z)); 
+           %tau = @(z,r,A) 1; 
+    %       tau = @(z,r,A) r'*r/(r'*A(r));           
            x = RichardsonSolver.solve(A,r,x0,P,tol,tau);
 
 

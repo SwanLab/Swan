@@ -51,7 +51,7 @@ classdef EIFEMtesting < handle
             MgaussSeidel = obj.createGaussSeidelpreconditioner(LHS);
             MJacobi      = obj.createJacobipreconditioner(LHS);
             Mmodal       = obj.createModalpreconditioner(LHS);
-            MblockD      = obj.createBlockDiagonalpreconditioner(LHS);
+%            MblockD      = obj.createBlockDiagonalpreconditioner(LHS);
             %             MdirNeu      = obj.createDirichletNeumannPreconditioner(mR,dir,iC,lG,bS,obj.LHS,mSb);
 
             MiluCG = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
@@ -68,7 +68,7 @@ classdef EIFEMtesting < handle
             %Mmult = MdirNeu;
             x0 = zeros(size(RHSf));
             r = RHSf - LHSf(x0);
-            Mmult = @(r,uk) Preconditioner.multiplePrec(r,MblockD,Meifem,MblockD,LHSf,RHSf,obj.meshDomain,obj.bcApplier,uk);
+            Mmult = @(r) Preconditioner.multiplePrec(r,MiluCG,Meifem,MiluCG,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
 %              Mmult = @(r) Preconditioner.multiplePrec(r,Mid,Meifem,Mid,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
 %             zmult = Mmult(r);
             
@@ -119,8 +119,8 @@ classdef EIFEMtesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [2 1]; %nx ny
-%             obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
+            obj.nSubdomains  = [15 1]; %nx ny
+          %   obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
             obj.fileNameEIFEM = 'DEF_auxNew.mat';
             %obj.fileNameEIFEM = 'DEF_Q4porL_1_raul.mat';
             obj.tolSameNode = 1e-10;
@@ -280,8 +280,8 @@ classdef EIFEMtesting < handle
         end
 
         function [young,poisson] = computeElasticProperties(obj,mesh)
-%             E  = 1;
-%             nu = 1/3;
+             %E  = 1;
+             %nu = 1/3;
             E  = 70000;
             nu = 0.3;
             Epstr  = E/(1-nu^2);
@@ -396,7 +396,7 @@ classdef EIFEMtesting < handle
             ss.dMesh     = dMesh;
             ss.type = 'EIFEM';
             eP = Preconditioner.create(ss);
-            Meifem = @(r,uk) eP.apply(r,uk);
+            Meifem = @(r) eP.apply(r);
         end
 
         function Mdn = createDirichletNeumannPreconditioner(obj,mR,dir,iC,lG,bS,lhs,mSb,iCR)
