@@ -124,8 +124,12 @@ classdef DomainMeshComputer < handle
             tol = obj.tolSameNode;
             nodes = obj.connecGlob(:);
             nodes = unique(nodes);
-            [~,ind] = ismember(obj.interfaceConnec(:,2),nodes);
-            nodes(ind) = obj.interfaceConnec(:,1);
+            for i = 1:size(obj.interfaceConnec,2)
+                 [~,ind] = ismember(obj.interfaceConnec(:,i),nodes);
+                 nodes(ind(ind>0)) = obj.interfaceConnec(ind>0,1);
+            end
+%             [~,ind] = ismember(obj.interfaceConnec(:,2),nodes);
+%             nodes(ind) = obj.interfaceConnec(:,1);
             nodes= unique(nodes,'stable');
             uniqueVals = obj.coordGlob(nodes,:);
             obj.updtCoordGlob = uniqueVals;
