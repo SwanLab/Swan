@@ -119,7 +119,7 @@ classdef EIFEMtesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [15 4]; %nx ny
+            obj.nSubdomains  = [4 4]; %nx ny
           %   obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
             obj.fileNameEIFEM = 'DEF_auxNew.mat';
             %obj.fileNameEIFEM = 'DEF_Q4porL_1_raul.mat';
