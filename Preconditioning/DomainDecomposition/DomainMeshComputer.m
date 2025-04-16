@@ -122,45 +122,51 @@ classdef DomainMeshComputer < handle
 
         function  updateGlobalCoord(obj)
             tol = obj.tolSameNode;
-
-            A = obj.coordGlob;
-
-            % Initialize a logical index to track unique rows
-            %tic
-            isUnique = true(size(A, 1), 1);
-
-            for i = 1:size(A, 1)
-                if isUnique(i)
-                    % Compute row-wise tolerance checks
-                    rowDiff = vecnorm(A - A(i, :),2,2);
-                    isSimilarRow = all(rowDiff <= tol, 2); % Rows similar within tolerance
-                    isUnique = isUnique & ~isSimilarRow;  % Mark similar rows as non-unique
-                    isUnique(i) = true;                  % Keep the first occurrence
-                end
-            end
-
-            uniqueVals = A(isUnique,:);
-            % toc
-            % 
-            % tic
-            % % Compute pairwise differences between rows
-            % diffMatrix = abs(A - permute(A, [3, 2, 1]));  % Compute differences between rows
-            % maxDiff = squeeze(max(diffMatrix, [], 2));    % Maximum difference across columns
-            % 
-            % % Find unique rows by checking if they are within the tolerance
-            % isSimilar = maxDiff <= tol;                   % Rows within tolerance
-            % isUnique = ~any(tril(isSimilar, -1), 2);      % Ignore duplicates in lower triangle
-            % 
-            % % Extract unique rows
-            % uniqueRows = A(isUnique, :);            
-            % toc
-
+            nodes = obj.connecGlob(:);
+            nodes = unique(nodes);
+            [~,ind] = ismember(obj.interfaceConnec(:,2),nodes);
+            nodes(ind) = obj.interfaceConnec(:,1);
+            nodes= unique(nodes,'stable');
+            uniqueVals = obj.coordGlob(nodes,:);
             obj.updtCoordGlob = uniqueVals;
-            %tol = obj.tolSameNode;
-          %  [~, colindices] = uniquetol(obj.coordGlob,tol, 'ByRows', true);   %get indices of unique value. Is sorted BY VALUE
-         %   obj.updtCoordGlob = obj.coordGlob(sort(colindices),:);
-            
-            %obj.updtCoordGlob  = unique(obj.coordGlob,'rows','stable');%'stable');
+%             A = obj.coordGlob;
+% 
+%             % Initialize a logical index to track unique rows
+%             %tic
+%             isUnique = true(size(A, 1), 1);
+% 
+%             for i = 1:size(A, 1)
+%                 if isUnique(i)
+%                     % Compute row-wise tolerance checks
+%                     rowDiff = vecnorm(A - A(i, :),2,2);
+%                     isSimilarRow = all(rowDiff <= tol, 2); % Rows similar within tolerance
+%                     isUnique = isUnique & ~isSimilarRow;  % Mark similar rows as non-unique
+%                     isUnique(i) = true;                  % Keep the first occurrence
+%                 end
+%             end
+% 
+%             uniqueVals = A(isUnique,:);
+%             % toc
+%             % 
+%             % tic
+%             % % Compute pairwise differences between rows
+%             % diffMatrix = abs(A - permute(A, [3, 2, 1]));  % Compute differences between rows
+%             % maxDiff = squeeze(max(diffMatrix, [], 2));    % Maximum difference across columns
+%             % 
+%             % % Find unique rows by checking if they are within the tolerance
+%             % isSimilar = maxDiff <= tol;                   % Rows within tolerance
+%             % isUnique = ~any(tril(isSimilar, -1), 2);      % Ignore duplicates in lower triangle
+%             % 
+%             % % Extract unique rows
+%             % uniqueRows = A(isUnique, :);            
+%             % toc
+% 
+%             obj.updtCoordGlob = uniqueVals;
+%             %tol = obj.tolSameNode;
+%           %  [~, colindices] = uniquetol(obj.coordGlob,tol, 'ByRows', true);   %get indices of unique value. Is sorted BY VALUE
+%          %   obj.updtCoordGlob = obj.coordGlob(sort(colindices),:);
+%             
+%             %obj.updtCoordGlob  = unique(obj.coordGlob,'rows','stable');%'stable');
         end
 
         function  computeLocalGlobalConnec(obj)
