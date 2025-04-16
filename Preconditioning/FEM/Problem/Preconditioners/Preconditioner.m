@@ -71,8 +71,8 @@ classdef Preconditioner < handle
       %      x = PCG.solve(A,r,x0,P,tol);
             
             %tau = @(r,A) 1;
-           tau = @(z,r,A) r'*z/(z'*A(z)); 
-           %tau = @(z,r,A) 1; 
+           %tau = @(z,r,A) r'*z/(z'*A(z)); 
+           tau = @(z,r,A) 1; 
     %       tau = @(z,r,A) r'*r/(r'*A(r));           
            x = RichardsonSolver.solve(A,r,x0,P,tol,tau);
 

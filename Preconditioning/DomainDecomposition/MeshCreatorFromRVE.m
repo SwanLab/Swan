@@ -139,7 +139,6 @@ classdef MeshCreatorFromRVE < handle
             coupling.compute();
             obj.interfaceConnec = coupling.interfaceConnec;
             
-            obj.interfaceConnecReshaped = coupling.interfaceConnecReshaped;
             
             s.interfaceConnec   = coupling.interfaceConnec;
             s.tolSameNode       = obj.tolSameNode;
@@ -149,6 +148,9 @@ classdef MeshCreatorFromRVE < handle
             obj.meshDomain        = DMesh.domainMesh;
             obj.localGlobalConnec = DMesh.localGlobalConnec;
             obj.domainMeshDisc    = DMesh.domainMeshDisc;
+
+            obj.interfaceConnecReshaped = coupling.reshapeConecPerInterface();
+            
         end
     end
 
