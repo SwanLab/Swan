@@ -30,7 +30,7 @@ classdef PhaseFieldPlotter < handle
             obj.damage = cParams.damage.maxValue;
             obj.damageField = cParams.damage.field;
             obj.displacement = cParams.displacement.value;
-            obj.reaction = cParams.reaction;
+            obj.reaction = cParams.force;
             obj.energy = cParams.energy;
             obj.iter = cParams.iter;
             obj.costFun = cParams.cost;
