@@ -73,7 +73,7 @@ classdef PhaseFieldComputer < handle
                             iterPhi = iterPhi + 1;
 
                             if ePhi > 0
-                                tau = tau/2;
+                                tau = tau/2; %% Estem el mateix RHS i LHS sempre que entrem aqui
                             else
                                 phiIter = phiIter + 1;
                                 obj.monitor.update(phiIter,{[],[],[],[],[],[],[tau]})
