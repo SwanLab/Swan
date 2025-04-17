@@ -85,7 +85,7 @@ classdef MicroFractionFunctional < handle
         end
 
         function dChOp = computeChomogGradientOperation(obj,dC)
-            tstrain = obj.stateProblem.strainFun;
+            tstrain = obj.stateProblem.strain;
             dChOp   = @(xV) [];
             for i = 1:length(tstrain)
                 opj = @(xV) [];
