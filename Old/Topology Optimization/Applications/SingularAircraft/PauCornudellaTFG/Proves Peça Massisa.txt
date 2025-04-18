@@ -1,0 +1,9 @@
+Prova 1 --> 20.911 Elements
+Prova 2 --> 176.000 Elements
+
+
+Volum Massisa --> 7.7026e+06
+Volum original (amb forats) --> 4.1286e+06
+Volume Target --> 0.536
+
+ProvaMassisa_LS070_Iter --> Density 0.70 amb peça massisa (NO LS, és DENSITY)

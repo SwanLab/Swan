@@ -42,7 +42,8 @@ classdef TopOptTestSingularLevelSet < handle
         end
 
         function createMesh(obj)
-            file = 'Malla_POCEXTENSA_6.m';
+            file = 'PecaMassisaArreglada.m';    %Canviar Malla
+            %file = 'Malla_POCEXTENSA_6.m';
             obj.filename = file;
             a.fileName = file;
             s = FemDataContainer(a);
@@ -168,7 +169,7 @@ classdef TopOptTestSingularLevelSet < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.95;                               %VOLUM FINAL (volum target)
+            s.volumeTarget = 0.70; %0.536;   %VOLUM FINAL (volum target) i 0.536 és el volume target de la peça original respecte de la massisa
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -230,15 +231,15 @@ classdef TopOptTestSingularLevelSet < handle
              s.tolerance      = 1e-12;
              s.constraintCase = {'EQUALITY'};
              s.primal         = 'SLERP';
-             s.etaNorm        = 0.002;
-             s.gJFlowRatio    = 0.35;    %major=complirconstraintrapid    menor=prioritzarminimitzarcost
+             s.etaNorm        = 0.002;  %estava a 0.002
+             s.gJFlowRatio    = 1;    %major=complirconstraintrapid    menor=prioritzarminimitzarcost
              s.etaMax         = 0.01;
              s.etaMaxMin      = 0.01;
              s.etaNormMin     = s.etaNorm;
              opt = OptimizerNullSpace(s);
              opt.solveProblem();
              obj.optimizer = opt;
-             obj.designVariable.fun.print('LevelSet_3D_Singular1'); 
+          %   obj.designVariable.fun.print('LevelSet_3D_Singular1'); 
         end
 
         function bc = createBoundaryConditionsGidAndMatlab(obj)

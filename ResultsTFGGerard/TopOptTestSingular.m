@@ -42,7 +42,8 @@ classdef TopOptTestSingular < handle
         end
 
         function createMesh(obj)
-            file = 'Malla_POCEXTENSA_6.m';
+            file = 'PecaMassisaArreglada.m';    %Canviar Malla
+            %file = 'Malla_POCEXTENSA_6.m';
             obj.filename = file;
             a.fileName = file;
             s = FemDataContainer(a);
@@ -148,7 +149,7 @@ classdef TopOptTestSingular < handle
         function c = createComplianceFromConstiutive(obj)
             s.mesh         = obj.mesh;
             s.stateProblem = obj.physicalProblem;
-            c = ComplianceFromConstiutiveTensor(s);
+            c = ComplianceFromConstitutiveTensor(s);
         end
 
         function createCompliance(obj)
@@ -164,7 +165,7 @@ classdef TopOptTestSingular < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.95;                               %VOLUM FINAL (volum target)
+            s.volumeTarget = 0.70; %0.536;   %VOLUM FINAL (volum target) i 0.536 és el volume target de la peça original respecte de la massisa
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -274,9 +275,11 @@ classdef TopOptTestSingular < handle
         end
 
         function newbcGiD = createNewBoundaryConditionsWithGiD(obj)
-            femReader = FemInputReader_GiD();
+            femReader = FemInputReaderGiD();
             s         = femReader.read(obj.filename);
             sPL       = obj.computeCondition(s.pointload);
+            sPLPointL = sPL(2:3);
+            sPL       = sPLPointL;
             sDir      = obj.computeCondition(s.dirichlet);
 
             dirichletFun = [];
