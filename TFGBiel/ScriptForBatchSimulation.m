@@ -6,14 +6,14 @@
 % TopOptTestTutorialLevelSetPerimeterPNorm
 
 alpha   = [0.3 0.4 0.55];
-pTarget = [2 2.5 3 3.5 4 4.5 5];
+pTarget = [0.5 1 1.5 2 2.5];
 
-pNorm   = 16;
+pNorm   = [8 16];
 
 for ii = 1:size(pNorm,2)
     for jj = 1:size(pTarget,2)
         p  = pNorm(ii);
         pT = pTarget(jj);
-        GripperProblem(p,pT);
+        TopOptTestTutorialDensityPerimeterPNorm(p,pT);
     end
 end
