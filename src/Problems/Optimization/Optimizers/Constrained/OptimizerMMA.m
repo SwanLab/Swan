@@ -55,6 +55,11 @@ classdef OptimizerMMA < Optimizer
                obj.updateIterInfo();
                obj.printOptimizerVariable();
                obj.updateMonitoring();
+               %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                if round(obj.nIter/50)==obj.nIter/50
+                    obj.designVariable.fun.print(['ResultsTFGGerard/ProvaMassisa2_DenMMA070_Iter',int2str(obj.nIter/50)]);
+                end
+                %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
            end
             obj.hasConverged = 0;
        end

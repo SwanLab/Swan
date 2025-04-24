@@ -47,7 +47,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.computeNullSpaceFlow();
             obj.computeRangeSpaceFlow();
             obj.firstEstimation = false;
-            obj.designVariable.fun.print(['ResultsTFGGerard/ProvaMassisa5_Den070_Iter',int2str(obj.nIter)]);
+            obj.designVariable.fun.print(['ResultsTFGGerard/ProvaMassisa6_Den070_Iter',int2str(obj.nIter)]);
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
@@ -57,7 +57,7 @@ classdef OptimizerNullSpace < Optimizer
                 obj.designVariable.updateOld();
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 if round(obj.nIter/10)==obj.nIter/10
-                    obj.designVariable.fun.print(['ResultsTFGGerard/ProvaMassisa5_Den070_Iter',int2str(obj.nIter/10)]);
+                    obj.designVariable.fun.print(['ResultsTFGGerard/ProvaMassisa6_Den070_Iter',int2str(obj.nIter/10)]);
                 end
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             end

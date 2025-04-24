@@ -59,7 +59,7 @@ classdef TopOptTestSingular < handle
             s.mesh    = obj.mesh;
             s.type = 'Density';
             s.plotting = false;
-            s.isFixed  = obj.computeFixedVolumeDomain(@(x) x(:,3)>=475, s.type);  %Volum no tocable
+            s.isFixed  = obj.computeFixedVolumeDomain(@(x) (x(:,3) >= 475) | ( (x(:,3) <= 473) & (x(:,2) >= 44) & (x(:,2) <= 47.3))  | (x(:,3) <= -218), s.type);  %Volum no tocable
             dens    = DesignVariable.create(s);
             obj.designVariable = dens;
             %%%%DENSITY^%%%%
@@ -203,7 +203,7 @@ classdef TopOptTestSingular < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 5000;     %Iteracions
+            s.maxIter        = 4000;     %Iteracions
             s.tolerance      = 1e-12;     %Hi havia 1e-8
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT'; 
@@ -214,7 +214,7 @@ classdef TopOptTestSingular < handle
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
-            %obj.designVariable.fun.print('Density_3D_Singular'); %Guarda la simulació automàticament per poder veure-la després a paraview
+            %obj.designVariable.fun.print('Density_PecaMassisa2'); %Guarda la simulació automàticament per poder veure-la després a paraview
             %%%%%%%% Density  ^%%%%%%%%%
 
             %%%%%%%%%% LevelSet v %%%%%%%%

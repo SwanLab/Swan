@@ -138,7 +138,7 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;
+            s.volumeTarget = 0.7;
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -177,7 +177,7 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 3;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
@@ -189,6 +189,7 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
+            obj.designVariable.fun.print('Density_IMATGEINTUITIVA'); %Guarda la simulació automàticament per poder veure-la després a paraview
         end
 
         function bc = createBoundaryConditions(obj)

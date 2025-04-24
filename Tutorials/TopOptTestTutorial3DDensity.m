@@ -1,6 +1,7 @@
 classdef TopOptTestTutorial3DDensity < handle
 
     properties (Access = private)
+        filename %AFEGIDA PER LLEGIR MALLA
         mesh
         filter
         designVariable
