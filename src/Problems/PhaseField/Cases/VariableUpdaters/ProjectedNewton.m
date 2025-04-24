@@ -27,9 +27,15 @@ classdef ProjectedNewton < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.upperBound = cParams.ub;
-            obj.lowerBound = cParams.lb;
+            ub = cParams.ub;
+            lb = cParams.lb;
+            obj.updateBounds(ub,lb);
         end
+
+        function updateBounds(obj,ub,lb)
+            obj.upperBound = ub;
+            obj.lowerBound = lb;
+        end 
 
         function xNew = solve(LHS,RHS,x)
             deltaX = -LHS\RHS;

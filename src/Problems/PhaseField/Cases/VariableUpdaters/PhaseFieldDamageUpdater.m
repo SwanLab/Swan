@@ -5,9 +5,6 @@ classdef PhaseFieldDamageUpdater < OptimizerPhaseField
         tol
         maxIter
         solver 
-
-        monitor
-        print
     end
 
     methods (Access = public)
@@ -16,14 +13,14 @@ classdef PhaseFieldDamageUpdater < OptimizerPhaseField
             obj.init(cParams);
         end
 
-        function [u,F,costArray,iter] = update(u,phi,bc,costArray)
+        function [phi,costArray,iter] = update(u,phi,bc,costArray)
             iter = 0; err = 0; costOld = costArray(end);
             while (abs(err) > obj.tol) && (iter < obj.maxIter)
                 LHS = obj.functional.computePhaseFieldLHS(u,phi);
                 RHS = obj.functional.computePhaseFieldRHS(u,phi);
                 phi = obj.solver.update(RHS,phi,LHS);
 
-                [err, cost] = obj.computeErrorCostFunctional(u,phi,bc,costOld);
+                [err, cost] = computeErrorCostFunctional(u,phi,bc,costOld);
                 costArray(end+1) = cost;
                 costOld = cost;
 
@@ -39,11 +36,8 @@ classdef PhaseFieldDamageUpdater < OptimizerPhaseField
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.functional = cParams.functional;
-            obj.tol        = cParams.tolerance;
-            obj.maxIter    = cParams.maxIter;
-            obj.monitor    = cParams.monitor;
-            obj.print      = cParams.print;
+            obj.tol        = cParams.toleranceDamage;
+            obj.maxIter    = cParams.maxIterDamage;
             switch cParams.solverType
                 case 'Gradient'
                     obj.solver = ProjectedGradient(cParams);
@@ -52,7 +46,9 @@ classdef PhaseFieldDamageUpdater < OptimizerPhaseField
             end
         end
 
-
+        function updateBounds(obj,ub,lb)
+            obj.solver.updateBounds(ub,lb);
+        end
 
         function xNew = updateWithGradient(~,RHS,x,tau)
             deltaX = -tau.*RHS;

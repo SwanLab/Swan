@@ -1,7 +1,6 @@
-classdef PhaseFieldDisplacementUpdater < handle
+classdef PhaseFieldDisplacementUpdater < OptimizerPhaseField
     
     properties (Access = private)
-        functional
         tol
         maxIter
         monitor
@@ -38,10 +37,8 @@ classdef PhaseFieldDisplacementUpdater < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.functional = cParams.functional;
-            obj.tol        = cParams.tolerance;
-            obj.maxIter    = cParams.maxIter;
-            obj.monitor    = cParams.monitor;
+            obj.tol        = cParams.toleranceDisplacement;
+            obj.maxIter    = cParams.maxIterDisplacement;
         end
 
         function uOut = computeDisplacement(obj,LHSfull, RHSfull,uIn,bc)
@@ -73,11 +70,6 @@ classdef PhaseFieldDisplacementUpdater < handle
         function F = computeForceVector(~,LHS,u)
             uVec = reshape(u.fValues',[u.nDofs 1]);
             F = LHS*uVec;
-        end
-
-        function [e, cost] = computeErrorCost(obj,u,phi,bc,costOld)
-            cost = obj.functional.computeCostFunctional(u,phi,bc);
-            e = cost - costOld;
         end
 
     end
