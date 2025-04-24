@@ -11,15 +11,30 @@ classdef ProjectedNewton < handle
             obj.init(cParams);
         end
 
-        function var = update(~,varargin)
+        function var = update(obj,varargin)
             RHS = varargin{1}; 
             var = varargin{2}; 
             LHS = varargin{3};
 
             x  = var.fValues;
-            xNew = solve(LHS,RHS,x);
-            xNew  = projectInBounds(xNew);
-            var.update(xNew);
+            xNew = obj.solve(LHS,RHS,x);
+            xNew = obj.projectInBounds(xNew);
+            var.setFValues(xNew); %% Change to designVariable
+        end
+
+        function updateBounds(obj,ub,lb)
+            if isnumeric(ub)
+                obj.upperBound = ub;
+            else
+                obj.upperBound = ub.fValues;
+            end
+
+            if isnumeric(lb)
+                obj.lowerBound = lb;
+            else
+                obj.lowerBound = lb.fValues;
+            end
+
         end
 
     end
@@ -27,17 +42,12 @@ classdef ProjectedNewton < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            ub = cParams.ub;
-            lb = cParams.lb;
+            ub = 1;
+            lb = cParams.initPhi;
             obj.updateBounds(ub,lb);
         end
 
-        function updateBounds(obj,ub,lb)
-            obj.upperBound = ub;
-            obj.lowerBound = lb;
-        end 
-
-        function xNew = solve(LHS,RHS,x)
+        function xNew = solve(~,LHS,RHS,x)
             deltaX = -LHS\RHS;
             xNew = x + deltaX;
         end

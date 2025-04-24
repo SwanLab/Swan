@@ -1,7 +1,8 @@
-classdef PhaseFieldDamageUpdater < OptimizerPhaseField
+classdef PhaseFieldDamageUpdater < handle
     
     properties (Access = private)
         functional
+        monitor
         tol
         maxIter
         solver 
@@ -13,14 +14,14 @@ classdef PhaseFieldDamageUpdater < OptimizerPhaseField
             obj.init(cParams);
         end
 
-        function [phi,costArray,iter] = update(u,phi,bc,costArray)
-            iter = 0; err = 0; costOld = costArray(end);
+        function [phi,costArray,iter] = update(obj,u,phi,bc,costArray)
+            iter = 0; err = 1; costOld = costArray(end);
             while (abs(err) > obj.tol) && (iter < obj.maxIter)
                 LHS = obj.functional.computePhaseFieldLHS(u,phi);
                 RHS = obj.functional.computePhaseFieldRHS(u,phi);
                 phi = obj.solver.update(RHS,phi,LHS);
 
-                [err, cost] = computeErrorCostFunctional(u,phi,bc,costOld);
+                [err, cost] = obj.computeErrorCost(u,phi,bc,costOld);
                 costArray(end+1) = cost;
                 costOld = cost;
 
@@ -31,13 +32,19 @@ classdef PhaseFieldDamageUpdater < OptimizerPhaseField
             end
         end
 
+        function updateBounds(obj,ub,lb)
+            obj.solver.updateBounds(ub,lb);
+        end
+
     end
 
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.tol        = cParams.toleranceDamage;
-            obj.maxIter    = cParams.maxIterDamage;
+            obj.functional = cParams.functional;
+            obj.monitor    = cParams.monitor;
+            obj.tol        = cParams.tolerance.phi;
+            obj.maxIter    = cParams.maxIter.phi;
             switch cParams.solverType
                 case 'Gradient'
                     obj.solver = ProjectedGradient(cParams);
@@ -46,25 +53,9 @@ classdef PhaseFieldDamageUpdater < OptimizerPhaseField
             end
         end
 
-        function updateBounds(obj,ub,lb)
-            obj.solver.updateBounds(ub,lb);
-        end
-
-        function xNew = updateWithGradient(~,RHS,x,tau)
-            deltaX = -tau.*RHS;
-            xNew = x + deltaX; 
-        end
-
         function [e, cost] = computeErrorCost(obj,u,phi,bc,costOld)
             cost = obj.functional.computeCostFunctional(u,phi,bc);
             e = cost - costOld;
-        end
-
-        function printCost(obj,name,iter,cost,e)
-            if obj.print
-                X = sprintf('%s:%d / cost: %.8e  (diff:%.8e) \n',name,iter,cost,e);
-                fprintf(X);
-            end
         end
 
     end

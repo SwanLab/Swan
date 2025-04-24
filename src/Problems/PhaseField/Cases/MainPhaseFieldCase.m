@@ -16,6 +16,9 @@ s.monitoring.print = true;
 s.tolerance.u = 1e-13;
 s.tolerance.phi = 1e-6;
 s.tolerance.stag = 1e-6;
+s.maxIter.u = 100;
+s.maxIter.phi = 300;
+s.maxIter.stag = 300;
 
 s.benchmark.N = 10;
 s.benchmark.type.mesh = '1Elem';

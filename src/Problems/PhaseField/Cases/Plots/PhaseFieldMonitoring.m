@@ -58,9 +58,9 @@ classdef PhaseFieldMonitoring < handle
             obj.data.energy.regDis(step)   = cParams.energy(3);
             obj.data.energy.extWork(step)  = cParams.energy(4);
 
-            obj.data.iter.u(step)    = cParams.numIterU;
-            obj.data.iter.phi(step)  = cParams.numIterP;
-            obj.data.iter.stag(step) = cParams.numIterStag;
+            obj.data.iter.u(step)    = cParams.numIter.u;
+            obj.data.iter.phi(step)  = cParams.numIter.phi;
+            obj.data.iter.stag(step) = cParams.numIter.stag;
 
             obj.data.cost = cParams.cost;
             obj.data.tau  = cParams.tauArray;

@@ -1,9 +1,11 @@
-classdef PhaseFieldDisplacementUpdater < OptimizerPhaseField
+classdef PhaseFieldDisplacementUpdater < handle
     
     properties (Access = private)
+        functional
+        monitor
+
         tol
         maxIter
-        monitor
     end
 
     methods (Access = public)
@@ -13,8 +15,8 @@ classdef PhaseFieldDisplacementUpdater < OptimizerPhaseField
         end
 
         function [u,F,costArray,iter] = update(obj,u,phi,bc,costArray)
-            iter = 0; err = 1; costOld = costArray(end);
-            while (abs(err) > obj.tol) && (iter < obj.maxIter)
+            i = 0; err = 1; costOld = costArray(end);
+            while (abs(err) > obj.tol) && (i < obj.maxIter)
                 LHS = obj.functional.computeElasticLHS(u,phi);
                 RHS = obj.functional.computeElasticRHS(u,phi,bc);
                 u.setFValues(obj.computeDisplacement(LHS,RHS,u,bc));
@@ -23,13 +25,14 @@ classdef PhaseFieldDisplacementUpdater < OptimizerPhaseField
                 costArray(end+1) = cost;
                 costOld = cost;
 
-                iter = iter+1;
-                obj.monitor.printCost('iterU',iter,cost,err);
+                i = i+1;
+                obj.monitor.printCost('iterU',i,cost,err);
                 obj.monitor.update(length(costArray),{[],[],[],[],[cost],[],[]});
                 obj.monitor.refresh();
                 
             end
             F = obj.computeForceVector(LHS,u);
+            iter = i;
         end
 
     end
@@ -37,8 +40,10 @@ classdef PhaseFieldDisplacementUpdater < OptimizerPhaseField
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.tol        = cParams.toleranceDisplacement;
-            obj.maxIter    = cParams.maxIterDisplacement;
+            obj.functional = cParams.functional;
+            obj.monitor    = cParams.monitor;
+            obj.tol        = cParams.tolerance.u;
+            obj.maxIter    = cParams.maxIter.u;
         end
 
         function uOut = computeDisplacement(obj,LHSfull, RHSfull,uIn,bc)
@@ -65,6 +70,11 @@ classdef PhaseFieldDisplacementUpdater < OptimizerPhaseField
         function xNew = updateWithNewton(~,LHS,RHS,x)
             deltaX = -LHS\RHS;
             xNew = x + deltaX;
+        end
+
+        function [e, cost] = computeErrorCost(obj,u,phi,bc,costOld)
+            cost = obj.functional.computeCostFunctional(u,phi,bc);
+            e = cost - costOld;
         end
 
         function F = computeForceVector(~,LHS,u)
