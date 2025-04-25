@@ -73,7 +73,7 @@ classdef PhaseFieldDisplacementUpdater < handle
         end
 
         function [e, cost] = computeErrorCost(obj,u,phi,bc,costOld)
-            cost = obj.functional.computeCostFunctional(u,phi,bc);
+            cost = obj.functional.computeCost(u,phi,bc);
             e = cost - costOld;
         end
 

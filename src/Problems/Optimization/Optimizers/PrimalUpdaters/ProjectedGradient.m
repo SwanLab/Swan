@@ -16,18 +16,16 @@ classdef ProjectedGradient < handle
             obj.init(cParams);
         end
 
-        function var = update(obj,varargin)
-            g = varargin{1}; 
-            var = varargin{2};
-
-            y  = var.fun.fValues;
+        function rhoOut = update(obj,g,rhoIn)
+            y  = rhoIn.fValues;
             ub = obj.upperBound;
             lb = obj.lowerBound;
             t  = obj.tau;
             y  = y - t*g;
             x  = min(ub,max(y,lb));
             obj.updateBoundsMultipliers(x,y);
-            var.update(x);
+            rhoOut = copy(rhoIn);
+            rhoOut.setFValues(x);
         end
 
         function computeFirstStepLength(obj,g,x,f)
@@ -46,6 +44,19 @@ classdef ProjectedGradient < handle
         function is = isTooSmall(obj)
             is = obj.tau < 1e-10;
         end
+
+        function updateBounds(obj,ub,lb)
+            if ~isnumeric(ub)
+                obj.upperBound = ub.fValues;
+            else
+                obj.upperBound = ub;
+            end
+            if ~isnumeric(lb)
+                obj.lowerBound = lb.fValues;
+            else
+                obj.lowerBound = lb;
+            end
+        end
     end
 
     methods (Access = private)
@@ -53,6 +64,7 @@ classdef ProjectedGradient < handle
             obj.upperBound = cParams.ub;
             obj.lowerBound = cParams.lb;
             obj.tauMax     = cParams.tauMax;
+            obj.tau        = 150;
         end
 
         function updateBoundsMultipliers(obj,x,y)

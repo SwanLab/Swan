@@ -11,13 +11,13 @@ classdef PhaseFieldFunctional < handle
             obj.init(cParams)
         end
 
-        function Etot = computeCostFunctional(obj,u,phi,bc)
+        function Etot = computeCost(obj,u,phi,bc)
             fExt = bc.pointloadFun;
-            E    = obj.computeEnergiesFunctional(u,phi,fExt);
+            E    = obj.computeEnergies(u,phi,fExt);
             Etot = sum(E);
         end
         
-        function E = computeEnergiesFunctional(obj,u,phi,fExt)
+        function E = computeEnergies(obj,u,phi,fExt)
             Eint = obj.functionals.energy.computeFunctional(u,phi,obj.quadOrder);
             Edis = obj.functionals.localDamage.computeFunctional(phi,obj.quadOrder);
             Ereg = obj.functionals.nonLocalDamage.computeFunctional(phi,obj.quadOrder);

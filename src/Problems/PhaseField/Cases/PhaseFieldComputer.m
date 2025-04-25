@@ -22,72 +22,18 @@ classdef PhaseFieldComputer < handle
         function outputData = compute(obj)
             u   = obj.initialGuess.u;
             phi = obj.initialGuess.phi;
-            
-            uOld = u;
-            cost = 0;
-            tauArray = [];
+            cost = 0; tauArray = [];
 
+            step = 1;
             maxSteps = length(obj.boundaryConditions.bcValues);
-            obj.stop.noFullyBroken = true; obj.stop.triggered = false;
-            obj.stop.maxF = 0;             obj.stop.lastStep = maxSteps;
-            i = 1;
-            while(i<=maxSteps) && (obj.stop.noFullyBroken)
-                obj.monitor.printStep(i,maxSteps)
-                bc = obj.boundaryConditions.nextStep();
-                u.setFValues(obj.updateInitialDisplacement(bc,uOld));
+            while(step<=maxSteps) && (obj.stop.noFailure)
+                obj.monitor.printStep(step,maxSteps)
+                [u,bc] = obj.updateBoundaryConditions(u);
                 [u,phi,F,cost,iterMax] = obj.optimizer.compute(u,phi,bc,cost);
-                uOld = u;
-
-
-                % if obj.solverType == "Gradient"
-                %     % ADAPTIVE LINE-SEARCH GRADIENT
-                %     phiNew = obj.updateWithGradient(RHS, phi.fValues,tau);
-                %     phiProposed = phi.copy();
-                %     phiProposed.setFValues(obj.projectInLowerAndUpperBound(phiNew,phiOld.fValues,1));
-                %     [ePhi, costPhi] = obj.computeErrorCostFunctional(u,phiProposed,bc,costOldPhi);
-                %
-                %     obj.monitor.printCost('iterPhi',iterPhi,costPhi,ePhi);
-                %     iterPhi = iterPhi + 1;
-                %
-                %     if ePhi > 0
-                %         tau = tau/2; %% Estem el mateix RHS i LHS sempre que entrem aqui
-                %     else
-                %         phiIter = phiIter + 1;
-                %         obj.monitor.update(phiIter,{[],[],[],[],[],[],[tau]})
-                %         tauArray(end+1) = tau;
-                %         if tau<=1e10
-                %             tau = 10*tau;
-                %         end
-                %         phi = phiProposed;
-                %         costOldPhi = costPhi;
-                %         costFun(end+1) = costPhi;
-                %         iter = iter+1;
-                %         obj.monitor.update(iter,{[],[],[],[],[costFun(end)],[],[]});
-                %     end
-
-                fExt = bc.pointloadFun;
-                Evec = obj.functional.computeEnergiesFunctional(u,phi,fExt);
-                totE = sum(Evec);
-                totF = obj.computeTotalReaction(F);
-
-                uVal = obj.boundaryConditions.bcValues(i);
-                obj.monitor.update(i,{[totF;uVal],[max(phi.fValues);uVal],[phi.fValues],...
-                                      [iterMax.stag],[],[totE;uVal],[]});
-                obj.monitor.refresh();
-
-                s.force    = totF;
-                s.bcVal    = obj.boundaryConditions.bcValues(i);
-                s.u        = u;
-                s.phi      = phi;
-                s.energy   = Evec;
-                s.numIter  = iterMax;
-                s.cost     = cost;
-                s.tauArray = tauArray;
-                obj.monitor.saveData(i,s);
-
-
-                obj.checkStopCode(i,totF);
-                i = i + 1;
+                [Evec,totE,totF] = obj.postprocess(u,phi,F,bc);
+                obj.printAndSave(step,totF,u,phi,Evec,totE,iterMax,cost,tauArray);
+                obj.checkStopCondition(step,totF);
+                step = step + 1;
             end
             outputData = obj.monitor.data;
         end
@@ -103,6 +49,7 @@ classdef PhaseFieldComputer < handle
             obj.functional         = cParams.functional;
             obj.setMonitoring(cParams)
             obj.setOptimizer(cParams)
+            obj.setStopConditions()
         end
 
         function setMonitoring(obj,cParams)
@@ -123,7 +70,20 @@ classdef PhaseFieldComputer < handle
             obj.optimizer = OptimizerPhaseField(s);
         end
 
-        function u = updateInitialDisplacement(obj,bc,uOld)
+        function setStopConditions(obj)
+            maxSteps = length(obj.boundaryConditions.bcValues);
+            obj.stop.noFailure   = true;
+            obj.stop.triggered   = false;
+            obj.stop.maxF        = 0;
+            obj.stop.stepTrigger = maxSteps;
+        end
+
+        function [u,bc] = updateBoundaryConditions(obj,u)
+            bc = obj.boundaryConditions.nextStep();
+            u.setFValues(obj.updateInitialDisplacement(u,bc));
+        end
+
+        function u = updateInitialDisplacement(~,uOld,bc)
             restrictedDofs = bc.dirichlet_dofs;
             if isempty(restrictedDofs)
                 u = uOld;
@@ -137,17 +97,11 @@ classdef PhaseFieldComputer < handle
             end
         end
 
-        function checkStopCode(obj,i,totF)
-            if totF > obj.stop.maxF
-                obj.stop.maxF = totF;
-            elseif i>5 && totF<0.01*obj.stop.maxF && ~obj.stop.triggered
-                obj.stop.lastStep = i;
-                obj.stop.triggered = true;
-            end
-
-            if i==obj.stop.lastStep+10
-                obj.stop.noFullyBroken = false;
-            end
+        function [E,totE,totF] = postprocess(obj,u,phi,F,bc)
+            fExt = bc.pointloadFun;
+            E    = obj.functional.computeEnergies(u,phi,fExt);
+            totE = sum(E);
+            totF = obj.computeTotalReaction(F);
         end
 
         function totReact = computeTotalReaction(obj,F)
@@ -166,6 +120,39 @@ classdef PhaseFieldComputer < handle
             % isInTip = (abs(obj.mesh.coord(:,2)-(max(obj.mesh.coord(:,2))+min(obj.mesh.coord(:,2)))/2) < 1e-12) & (abs(obj.mesh.coord(:,1)-max(obj.mesh.coord(:,1))) < 30);
             % nodes = 1:obj.mesh.nnodes;
             % totReact = sum(F(2*nodes(isInTip)));
+        end
+
+        function printAndSave(obj,step,totF,u,phi,Evec,totE,iterMax,cost,tauArray)
+            uVal = obj.boundaryConditions.bcValues(step);
+            obj.monitor.updateAndRefresh(step,{[totF;uVal],[max(phi.fValues);uVal],...
+                                               [phi.fValues],[iterMax.stag],[],...
+                                               [totE;uVal],[]});
+            obj.saveData(step,totF,uVal,u,phi,Evec,iterMax,cost,tauArray);
+        end
+
+        function saveData(obj,step,totF,uVal,u,phi,Evec,iterMax,cost,tauArray)
+            s.force    = totF;
+            s.bcVal    = uVal;
+            s.u        = u;
+            s.phi      = phi;
+            s.energy   = Evec;
+            s.numIter  = iterMax;
+            s.cost     = cost;
+            s.tauArray = tauArray;
+            obj.monitor.saveData(step,s);
+        end
+
+        function checkStopCondition(obj,step,totF)
+            if totF > obj.stop.maxF
+                obj.stop.maxF = totF;
+            elseif step>5 && totF<0.01*obj.stop.maxF && ~obj.stop.triggered
+                obj.stop.stepTrigger = step;
+                obj.stop.triggered = true;
+            end
+
+            if step==obj.stop.stepTrigger+10
+                obj.stop.noFailure = false;
+            end
         end
 
     end
