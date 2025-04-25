@@ -89,10 +89,12 @@ classdef TopOptTestSingular_MMA < handle
         end
 
         function createFilter(obj)
-            s.filterType = 'LUMP';
-            s.mesh  = obj.mesh;
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            f = Filter.create(s);
+            s.filterType = 'PDE';
+            s.mesh       = obj.mesh;
+            s.trial      = obj.designVariable.fun;
+            f            = Filter.create(s);
+            h            = obj.mesh.computeMeanCellSize();
+            f.updateEpsilon(2*h);
             obj.filter = f;
         end
 
