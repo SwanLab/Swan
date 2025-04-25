@@ -172,7 +172,7 @@ classdef CantileverDensityLocalLR < handle
             s.filter       = obj.createFilterPerimeter();
             s.value0       = 1;
             s.minEpsilon   = 1.5*obj.mesh.computeMeanCellSize();
-            %s.target       = ;
+            s.target       = (2/3)*8;
             obj.perimeterD = PerimeterConstraint(s);
         end
 
@@ -183,7 +183,7 @@ classdef CantileverDensityLocalLR < handle
             s.filter       = obj.createFilterPerimeter();
             s.value0       = 1;
             s.minEpsilon   = 1.5*obj.mesh.computeMeanCellSize();
-            %s.target       = ;
+            s.target       = 9.3/4;
             obj.perimeterU = PerimeterConstraint(s);
         end
 
