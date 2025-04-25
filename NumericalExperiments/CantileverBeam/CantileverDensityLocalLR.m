@@ -8,8 +8,8 @@ classdef CantileverDensityLocalLR < handle
         physicalProblem
         compliance
         volume
-        perimeterL
-        perimeterR
+        perimeterD
+        perimeterU
         cost
         constraint
         primalUpdater
@@ -28,8 +28,8 @@ classdef CantileverDensityLocalLR < handle
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
             obj.createVolumeConstraint();
-            obj.createPerimeterLeft();
-            obj.createPerimeterRight();
+            obj.createPerimeterDown();
+            obj.createPerimeterUp();
             obj.createCost();
             obj.createConstraint();
             obj.createPrimalUpdater();
@@ -49,7 +49,7 @@ classdef CantileverDensityLocalLR < handle
         end
 
         function createMesh(obj)
-            obj.mesh = TriangleMesh(6,1,390,65);
+            obj.mesh = TriangleMesh(1,2,110,220);
         end
 
         function createDesignVariable(obj)
@@ -155,7 +155,7 @@ classdef CantileverDensityLocalLR < handle
             s.type             = 'Rectangle';
             s.xCoorCenter      = x0;
             s.yCoorCenter      = y0;
-            s.xSide            = 3;
+            s.xSide            = 1;
             s.ySide            = 1;
             g                  = GeometricalFunction(s);
             lsFun              = g.computeLevelSetFunction(obj.mesh);
@@ -165,26 +165,26 @@ classdef CantileverDensityLocalLR < handle
             base.compute(lsFun.fValues);
         end
 
-        function createPerimeterLeft(obj)
+        function createPerimeterDown(obj)
             s.mesh         = obj.mesh;
-            s.uMesh        = obj.createBaseDomain(1.5,0.5);
+            s.uMesh        = obj.createBaseDomain(0.5,0.5);
             s.epsilon      = 5*obj.mesh.computeMeanCellSize();
             s.filter       = obj.createFilterPerimeter();
             s.value0       = 1;
             s.minEpsilon   = 1.5*obj.mesh.computeMeanCellSize();
-            s.target       = (1/3)*17.15;
-            obj.perimeterL = PerimeterConstraint(s);
+            %s.target       = ;
+            obj.perimeterD = PerimeterConstraint(s);
         end
 
-        function createPerimeterRight(obj)
+        function createPerimeterUp(obj)
             s.mesh         = obj.mesh;
-            s.uMesh        = obj.createBaseDomain(4.5,0.5);
+            s.uMesh        = obj.createBaseDomain(0.5,1.5);
             s.epsilon      = 5*obj.mesh.computeMeanCellSize();
             s.filter       = obj.createFilterPerimeter();
             s.value0       = 1;
             s.minEpsilon   = 1.5*obj.mesh.computeMeanCellSize();
-            s.target       = (2/3)*16.74;
-            obj.perimeterR = PerimeterConstraint(s);
+            %s.target       = ;
+            obj.perimeterU = PerimeterConstraint(s);
         end
 
         function createCost(obj)
@@ -202,8 +202,8 @@ classdef CantileverDensityLocalLR < handle
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
-            s.shapeFunctions{2} = obj.perimeterL;
-            s.shapeFunctions{3} = obj.perimeterR;
+            s.shapeFunctions{2} = obj.perimeterD;
+            s.shapeFunctions{3} = obj.perimeterU;
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
@@ -235,21 +235,16 @@ classdef CantileverDensityLocalLR < handle
         function bc = createBoundaryConditions(obj)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
-            isDir1  = @(coor)  coor(:,2)==0 & coor(:,1)<=0.3;
-            isDir2  = @(coor)  coor(:,2)==0 & coor(:,1)>=(xMax - 0.3);
-            isForce = @(coor)  coor(:,2)==yMax & coor(:,1)>=((xMax-0.3)/2) & coor(:,1)<=((xMax+0.3)/2);
+            isDir   = @(coor)  coor(:,2)==0;
+            isForce = @(coor)  coor(:,2)==yMax & coor(:,1)>=(xMax-0.3)/2 & coor(:,1)<=(xMax+0.3)/2;
 
-            sDir{1}.domain    = @(coor) isDir1(coor);
-            sDir{1}.direction = 2;
+            sDir{1}.domain    = @(coor) isDir(coor);
+            sDir{1}.direction = [1,2];
             sDir{1}.value     = 0;
 
-            sDir{2}.domain    = @(coor) isDir2(coor);
-            sDir{2}.direction = [1,2];
-            sDir{2}.value     = 0;
-
             sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 2;
-            sPL{1}.value     = -1;
+            sPL{1}.direction = 1;
+            sPL{1}.value     = 1;
 
             dirichletFun = [];
             for i = 1:numel(sDir)
