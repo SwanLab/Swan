@@ -26,11 +26,12 @@ classdef ElasticProblemMicro < handle
 
         function obj = solve(obj)
             LHS = obj.computeLHS();
+            homogOrd = 1;
             %    oX     = zeros(obj.getDimensions().ndimf,1);
-            nBasis = obj.computeNbasis();
+            nBasis = obj.computeNbasis(homogOrd);
             obj.Chomog = zeros(nBasis, nBasis);
             for iB = 1:nBasis
-                strainB     = obj.createDeformationBasis(iB);
+                strainB = obj.createDeformationBasis(iB,homogOrd);
                 RHS         = obj.computeRHS(strainB,LHS);
                 uF{iB}      = obj.computeDisplacement(LHS,RHS,iB,nBasis);
                 strainF{iB} = strainB+SymGrad(uF{iB});
@@ -78,17 +79,20 @@ classdef ElasticProblemMicro < handle
             obj.trialFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
         end
 
-       function s = createDeformationBasis(obj,iBasis)
-            nBasis = obj.computeNbasis();
+        function s = createDeformationBasis(obj,iBasis,homogOrder)
+            nBasis = obj.computeNbasis(homogOrder);
             sV = zeros(nBasis,1);
             sV(iBasis) = 1;
             s = ConstantFunction.create(sV,obj.mesh);
         end
 
-        function nBasis = computeNbasis(obj)
-            homogOrder = 1;
+        function nBasis = computeNbasis(obj,homogOrder)
             nDim = obj.mesh.ndim;
-            nBasis = homogOrder*nDim*(nDim+1)/2;
+            if homogOrder == 1
+                nBasis = nDim*(nDim+1)/2;
+            elseif homogOrder == 2
+                nBasis = 3*nDim*(nDim+1)/2;
+            end
         end
 
         function dim = getFunDims(obj)

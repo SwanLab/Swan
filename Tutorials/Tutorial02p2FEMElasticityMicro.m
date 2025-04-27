@@ -70,7 +70,7 @@ classdef Tutorial02p2FEMElasticityMicro < handle
             s.boundaryConditions = obj.createBoundaryConditions();
             % Options: REDUCED-FLUC / MONOLITHIC-FLUC / MONOLITHIC-DISP
             s.solverCase = 'DIRECT';
-            s.solverType = 'REDUCED';
+            s.solverType = 'MONOLITHIC';
             s.solverMode = 'FLUC';
             fem = ElasticProblemMicro(s);
             fem.solve();
