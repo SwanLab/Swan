@@ -175,7 +175,7 @@ classdef GrippingDensityLocalFourDomains < handle
             s.filter       = obj.createFilterPerimeter();
             s.value0       = 1;
             s.minEpsilon   = 1.5*obj.mesh.computeMeanCellSize();
-            s.target       = 1.35/2;
+            s.target       = 1.35*(3/4);
             obj.perimeterLU = PerimeterConstraint(s);
         end
 
@@ -186,7 +186,7 @@ classdef GrippingDensityLocalFourDomains < handle
             s.filter       = obj.createFilterPerimeter();
             s.value0       = 1;
             s.minEpsilon   = 1.5*obj.mesh.computeMeanCellSize();
-            s.target       = 1.35/2;
+            s.target       = 1.35*(3/4);
             obj.perimeterLD = PerimeterConstraint(s);
         end
 
@@ -197,7 +197,7 @@ classdef GrippingDensityLocalFourDomains < handle
             s.filter       = obj.createFilterPerimeter();
             s.value0       = 1;
             s.minEpsilon   = 1.5*obj.mesh.computeMeanCellSize();
-            s.target       = 1.06/2;
+            s.target       = 1.06*(3/4);
             obj.perimeterRU = PerimeterConstraint(s);
         end
 
@@ -208,7 +208,7 @@ classdef GrippingDensityLocalFourDomains < handle
             s.filter       = obj.createFilterPerimeter();
             s.value0       = 1;
             s.minEpsilon   = 1.5*obj.mesh.computeMeanCellSize();
-            s.target       = 1.06/2;
+            s.target       = 1.06*(3/4);
             obj.perimeterRD = PerimeterConstraint(s);
         end
 
@@ -247,7 +247,7 @@ classdef GrippingDensityLocalFourDomains < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 3;
+            s.maxIter        = 2000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY','INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
