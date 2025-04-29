@@ -4,7 +4,8 @@ classdef PerimeterNormPFunctional < handle
         quadrature
         Pp
         totalVolume
-        filter
+        filterDesignVariable
+        filterAdjoint
         epsilon
     end
 
@@ -20,6 +21,7 @@ classdef PerimeterNormPFunctional < handle
             obj.createQuadrature();
             obj.createTotalVolume();
             obj.createFilter();
+            obj.createFilterAdjoint();
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
@@ -53,12 +55,25 @@ classdef PerimeterNormPFunctional < handle
             f            = Filter.create(s);
             obj.epsilon  = 6*obj.mesh.computeMeanCellSize();
             f.updateEpsilon(obj.epsilon);
-            obj.filter = f;
+            obj.filterDesignVariable = f;
+        end
+
+        function createFilterAdjoint(obj)
+%             s.filterType = 'LUMP';
+%             s.mesh  = obj.mesh;
+%             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+%             f = Filter.create(s);
+
+            s.filterType = 'PDE';
+            s.mesh       = obj.mesh;
+            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            f            = Filter.create(s);
+            obj.filterAdjoint = f;
         end
 
         function [xD,Le] = computeFilteredVariable(obj,x)
             xD = x.obtainDomainFunction();
-            Le = obj.filter.compute(xD{1},3);
+            Le = obj.filterDesignVariable.compute(xD{1},3);
         end
 
         function J = computeFunction(obj,x,Le)
@@ -73,12 +88,12 @@ classdef PerimeterNormPFunctional < handle
             num = ((((x.*(1-Le)).*(1/(2*obj.epsilon))).^(obj.p-1)).*(1-Le) - Lea).*(obj.Pp^(1-obj.p));
             den = 2*obj.epsilon*obj.perimeterTarget*(obj.totalVolume)^(1/obj.p);
             dJ  = num./den;
-            dJ  = dJ.project('P1');
+            dJ  = obj.filterAdjoint.compute(dJ,3);
         end
 
         function Lea = computeFilteredTermForGradient(obj,x,Le)
             a = (((x.*(1-Le)).*(1/(2*obj.epsilon))).^(obj.p-1)).*x;
-            Lea = obj.filter.compute(a,3);
+            Lea = obj.filterDesignVariable.compute(a,3);
         end
     end
 
