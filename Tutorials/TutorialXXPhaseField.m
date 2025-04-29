@@ -18,7 +18,7 @@ classdef TutorialXXPhaseField < handle
 
         function obj = TutorialXXPhaseField()
             obj.defineCase();
-            obj.createInitialGuess(cParams);
+            obj.createInitialGuess();
             obj.createMaterialPhaseField();
             obj.createDissipationInterpolation();
             obj.createPhaseFieldFunctional()
@@ -60,7 +60,7 @@ classdef TutorialXXPhaseField < handle
             s.quadOrder     = 2;
             s.testSpace.u   = obj.initialGuess.u;
             s.testSpace.phi = obj.initialGuess.phi;
-            s.energySplit   = (obj.matType == "AnalyticSplit");
+            s.energySplit   = isa(obj.material,'MaterialPhaseFieldAnalyticSplit');
             obj.functional  = PhaseFieldFunctional(s);
         end
 
