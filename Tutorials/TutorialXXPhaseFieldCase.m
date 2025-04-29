@@ -1,4 +1,4 @@
-classdef TutorialXXPhaseField < handle
+classdef TutorialXXPhaseFieldCase < handle
 
     properties (Access = public)
         initialGuess
@@ -9,14 +9,14 @@ classdef TutorialXXPhaseField < handle
         mesh
         boundaryConditions
         material
-        matType
         dissipation
         functional
     end
 
     methods (Access = public)
 
-        function obj = TutorialXXPhaseField()
+        function obj = TutorialXXPhaseFieldCase()
+            obj.init()
             obj.defineCase();
             obj.createInitialGuess();
             obj.createMaterialPhaseField();
@@ -28,6 +28,10 @@ classdef TutorialXXPhaseField < handle
     end
 
     methods (Access = private)
+
+        function init(obj)
+           close all;
+        end
 
         function defineCase(obj)
             s.type.mesh = '1Elem';
@@ -95,7 +99,7 @@ classdef TutorialXXPhaseField < handle
             obj.dissipation.constant = Gc/(4*cw);
         end
 
-        function outputData = solvePhaseFieldProblem(obj)
+        function solvePhaseFieldProblem(obj)
             s.mesh               = obj.mesh;
             s.initialGuess       = obj.initialGuess;
             s.boundaryConditions = obj.boundaryConditions;
@@ -117,7 +121,7 @@ classdef TutorialXXPhaseField < handle
             s.solver.tau  = 150;
 
             PFComp = PhaseFieldComputer(s);
-            outputData = PFComp.compute();
+            obj.output = PFComp.compute();
         end
 
     end
