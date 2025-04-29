@@ -12,11 +12,11 @@ function main_constraint_drag
 
     x1_0 = 0; x2_0 = 0; v0 = 15;
     gamma0 = deg2rad(40);
-    t0 = 0; tf = 2;
+    t0 = 0; tf = 30;
     alpha0 = deg2rad(10);
     u0 = [tf; alpha0];
     lb = [0 0.01]; % Lower bounds for the control
-    ub = [10 pi/2]; % Upper bounds for the control
+    ub = [50 deg2rad(10)]; % Upper bounds for the control
 
     u0 = [u0(1) ones(1,N)*u0(2)];
     lb = [lb(1) ones(1,N)*lb(2)];
@@ -35,9 +35,9 @@ function main_constraint_drag
 
     [u_opt, ~] = fmincon(cost, u0, [], [], [], [], lb, ub, @(u) nonlcon(u,constraint), options);
 
-    y0 = [x1_0 x2_0 v0 u_opt(2)];
+    y0 = [x1_0 x2_0 v0 gamma0];
     t_span = linspace(t0, u_opt(1), 100);
-    [~, y] = ode45(@(t, y) dynamics(t, y, tf, alpha, g, aerodata, N), t_span, y0);
+    [~, y] = ode45(@(t, y) dynamics(t, y, tf, u_opt(2:N+1), g, aerodata, N), t_span, y0);
 
     disp(["Maximum distance [m] = ", num2str(y(end, 1))])
     disp(["Initial angle [°]: ", num2str(rad2deg(u_opt(2)))])
@@ -83,12 +83,12 @@ function [c, ceq, Dc, Dceq] = nonlcon(u,constraint)
     [ceq, Dceq] = constraint(u);
 end
 
-function [J, gradJ,q] = f_cost(u, g, t0, v0, gamma0, x1_0, x2_0, aerodata, N)
+function [J, gradJ] = f_cost(u, g, t0, v0, gamma0, x1_0, x2_0, aerodata, N)
     y0 = [x1_0 x2_0 v0 gamma0];
     tf = u(1);
     alpha = u(2:N+1);
     t_span = linspace(t0, u(1), N);
-    [~, y] = ode45(@(t, y) dynamics(t, y, tf, alpha, g, aerodata, N), t_span, y0);
+    [t, y] = ode45(@(t, y) dynamics(t, y, tf, alpha, g, aerodata, N), t_span, y0);
 
     J = -y(end,1);
     dydt_final = dynamics(t_span(end), y(end,:)', tf, alpha, g, aerodata, N);
@@ -97,15 +97,18 @@ function [J, gradJ,q] = f_cost(u, g, t0, v0, gamma0, x1_0, x2_0, aerodata, N)
     [~, p] = ode45(@(t, p) p_ode(t, p, y, g, t_span, alpha, aerodata), flip(t_span), pT);
     q = p(end,:);
 
-    gradJ = [-dydt_final(1); -q(4)*ones(100,1)];
+    v = interp1(t_span, y(:,3), t);
+    DFdu = -0.1*aerodata.rho*v.^2*aerodata.Sw*pi^2/aerodata.m.*alpha';
+
+    gradJ = [-dydt_final(1); DFdu*q(3)];
 end
 
 function [ceq, Dceq] = groundConstraint(u, g, t0, v0, x1_0, x2_0, gamma0, aerodata, N)
     y0 = [x1_0 x2_0 v0 gamma0]';
     tf = u(1);
     t_span = linspace(t0, tf, 100);
-    alpha = u(2:101);
-    [~, y] = ode45(@(t, y) dynamics(t, y, tf, alpha, g, aerodata, N), t_span, y0);
+    alpha = u(2:N+1);
+    [t, y] = ode45(@(t, y) dynamics(t, y, tf, alpha, g, aerodata, N), t_span, y0);
 
     ceq = y(end,2);
     dydt_final = dynamics(t_span(end), y(end,:)', tf, alpha, g, aerodata, N);
@@ -114,7 +117,10 @@ function [ceq, Dceq] = groundConstraint(u, g, t0, v0, x1_0, x2_0, gamma0, aeroda
     [~, p] = ode45(@(t, p) p_ode(t, p, y, g, t_span, alpha, aerodata), flip(t_span), pT);
     q = p(end,:);
 
-    Dceq = [dydt_final(2); -q(4)*ones(100,1)];
+    v = interp1(t_span, y(:,3), t);
+    DFdu = -0.1*aerodata.rho*v.^2*aerodata.Sw*pi.^2./aerodata.m.*alpha';
+
+    Dceq = [dydt_final(2); DFdu*q(3)];
 end
 
 function dpdt = p_ode(t, p, y, g, t_span, alpha, aerodata)
