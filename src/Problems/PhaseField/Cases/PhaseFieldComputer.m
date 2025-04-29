@@ -65,7 +65,7 @@ classdef PhaseFieldComputer < handle
             s.initPhi     = obj.initialGuess.phi;
             s.tolerance   = cParams.tolerance;
             s.maxIter     = cParams.maxIter;
-            s.solverType  = cParams.solverType;
+            s.solver      = cParams.solver;
             s.monitor     = obj.monitor;
             obj.optimizer = OptimizerPhaseField(s);
         end

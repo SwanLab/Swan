@@ -48,7 +48,7 @@ classdef PhaseFieldDamageUpdater < handle
             obj.tol        = cParams.tolerance.phi;
             obj.maxIter    = cParams.maxIter.phi;
             obj.totIter    = 1;
-            switch cParams.solverType
+            switch cParams.solver.type
                 case 'Gradient'
                     obj.solver = AdaptiveProjectedGradient(cParams);
                 case 'Newton'

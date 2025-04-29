@@ -12,7 +12,7 @@ classdef TestingPhaseField < handle
         monitoring
         tolerance
         maxIter
-        solverType
+        solver
     end
 
     properties (Access = private)
@@ -38,7 +38,7 @@ classdef TestingPhaseField < handle
             s.monitoring         = obj.monitoring;
             s.tolerance          = obj.tolerance;
             s.maxIter            = obj.maxIter;
-            s.solverType         = obj.solverType;
+            s.solver             = obj.solver;
             PFComp = PhaseFieldComputer(s);
 
             outputData = PFComp.compute();
@@ -56,7 +56,7 @@ classdef TestingPhaseField < handle
             obj.monitoring = cParams.monitoring;
             obj.tolerance  = cParams.tolerance;
             obj.maxIter    = cParams.maxIter;
-            obj.solverType = cParams.solverType;
+            obj.solver = cParams.solver;
         end
 
         function defineCase(obj)

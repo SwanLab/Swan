@@ -64,7 +64,7 @@ classdef ProjectedGradient < handle
             obj.upperBound = cParams.ub;
             obj.lowerBound = cParams.lb;
             obj.tauMax     = cParams.tauMax;
-            obj.tau        = 150;
+            obj.tau        = cParams.tau;
         end
 
         function updateBoundsMultipliers(obj,x,y)

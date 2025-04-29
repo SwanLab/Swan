@@ -21,7 +21,7 @@ s.maxIter.phi = 300;
 s.maxIter.stag = 300;
 
 s.benchmark.N = 10;
-s.benchmark.type.mesh = '1Elem';
+s.benchmark.type.mesh = 'SENtest';
 s.benchmark.type.bc = 'displacementTraction';
 s.benchmark.bcValues = [0:0.001:0.1];
 
@@ -35,7 +35,8 @@ s.l0 = 0.1;
 
 s.dissipInfo.type = 'PhaseFieldDissipationAT';
 s.dissipInfo.pExp = 2;
-s.solverType = 'Newton';
+s.solver.type = 'Gradient';
+s.solver.tau  = 150;
 
 %% RUN
 tester = TestingPhaseField(s);
