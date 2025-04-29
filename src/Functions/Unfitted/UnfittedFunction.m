@@ -30,9 +30,13 @@ classdef UnfittedFunction < BaseFunction
         end
 
         function res = power(obj,p)
-            res = copy(obj);
-            res.fun = res.fun.^p;
-            res.computeUnfittedMeshFunction();
+            if p == 0
+                res = ConstantFunction.create(1,obj.fun.mesh);
+            else
+                res = copy(obj);
+                res.fun = res.fun.^p;
+                res.computeUnfittedMeshFunction();
+            end
         end
 
         function res = minus(obj1,obj2)

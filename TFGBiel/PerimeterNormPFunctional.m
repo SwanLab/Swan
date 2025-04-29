@@ -92,7 +92,7 @@ classdef PerimeterNormPFunctional < handle
         end
 
         function Lea = computeFilteredTermForGradient(obj,x,Le)
-            a = (((x.*(1-Le)).*(1/(2*obj.epsilon))).^(obj.p-1)).*x;
+            a = x.*(((x.*(1-Le)).*(1/(2*obj.epsilon))).^(obj.p-1));
             Lea = obj.filterDesignVariable.compute(a,3);
         end
     end
