@@ -28,33 +28,47 @@ classdef ElasticProblemMicro < handle
             LHS = obj.computeLHS();
             %    oX     = zeros(obj.getDimensions().ndimf,1);
             nBasis = obj.computeNbasis();
-            obj.Chomog = zeros(nBasis, nBasis);
+            nTerms = 3*nBasis;
+            % obj.Chomog = zeros(nBasis, nBasis);
 
-           
-            for iB = 1:nBasis
-                strainB     = obj.createDeformationBasis(iB);
+            for iB = 1:nTerms
+
+                if iB <= 3
+                    s = obj.createDeformationBasis(iB);
+                    iBasis = iB;
+                elseif iB <= 6
+                    iBasis = iB - 3;
+                    coord = 1;
+                    s = obj.createSndOrderDeformationBasis(coord, iBasis);
+                else
+                    iBasis = iB - 6;
+                    coord = 2;
+                    s = obj.createSndOrderDeformationBasis(coord, iBasis);
+                end
+                
+                strainB     = s;
                 RHS         = obj.computeRHS(strainB,LHS);
-                uF{iB}      = obj.computeDisplacement(LHS,RHS,iB,nBasis);
+                uF{iB}      = obj.computeDisplacement(LHS,RHS,iBasis,nBasis);
                 strainF{iB} = strainB+SymGrad(uF{iB});
                 stressF{iB} = DDP(obj.material, strainF{iB});
-              %  Ch(:,iB)    = obj.computeChomog(stressF{iB},iB);
+                %  Ch(:,iB)    = obj.computeChomog(stressF{iB},iB);
                 uM     = obj.computeTotal(strainB);
                 uT{iB} = uF{iB} + uM;
             end
-            
+
             obj.uFluc  = uF;
             obj.strain = strainF;
             obj.stress = stressF;
-            obj.Chomog = Ch;
+            % obj.Chomog = Ch;
         end
 
-        function [uM] = computeTotal(obj,strainB)
+        function uT = computeTotal(obj,strainB)
             Y  = AnalyticalFunction.create(@(x) x,2,obj.mesh);
             uMF = @(xV) obj.obtainMacroscopicDisplacement(xV,strainB,Y);
-            uM = AnalyticalFunction.create(uMF,2,obj.mesh);
+            uT = AnalyticalFunction.create(uMF,2,obj.mesh);
         end 
 
-        function uM = obtainMacroscopicDisplacement(obj,xV,strain,Y)
+        function uM = obtainMacroscopicDisplacement(xV,strain,Y)
             e  = strain.evaluate(xV);            
             y = Y.evaluate(xV);
             y1 = y(1,:,:);
@@ -101,17 +115,26 @@ classdef ElasticProblemMicro < handle
             obj.trialFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
         end
 
-       function s = createDeformationBasis(obj,iBasis)
+        function s = createDeformationBasis(obj,iBasis)
             nBasis = obj.computeNbasis();
             sV = zeros(nBasis,1);
             sV(iBasis) = 1;
             s = ConstantFunction.create(sV,obj.mesh);
         end
 
+        function s = createSndOrderDeformationBasis(obj,coord,iBasis) 
+            nBasis = obj.computeNbasis();
+            sV = zeros(nBasis,1);
+            sV(iBasis) = 1;
+            eta = ConstantFunction.create(sV,obj.mesh);
+            Y1  = AnalyticalFunction.create(@(x) x(coord,:,:),1,obj.mesh);
+            s = eta.*Y1;
+            s.ndimf = nBasis;
+        end
+
         function nBasis = computeNbasis(obj)
-            homogOrder = 1;
             nDim = obj.mesh.ndim;
-            nBasis = homogOrder*nDim*(nDim+1)/2;
+            nBasis=nDim*(nDim+1)/2;
         end
 
         function dim = getFunDims(obj)

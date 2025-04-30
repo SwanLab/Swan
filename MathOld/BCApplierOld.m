@@ -1,4 +1,4 @@
-classdef BCApplier < handle
+classdef BCApplierOld < handle
 
     % Goal: group dirichlet and neumann conditions
     % to allow multiple boundary conditions at the same time

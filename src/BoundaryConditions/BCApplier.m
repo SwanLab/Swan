@@ -35,13 +35,61 @@ classdef BCApplier < handle
                     nDofs = obj.dirichletFun.nDofs;
                     nDirich = length(dir_dofs);
                     Ct = sparse(1:nDirich, dir_dofs, 1, nDirich, nDofs);
+
+                case 'Analytical'
+                    ndimf  = 2;
+                    displacementFun = LagrangianFunction.create(obj.mesh, ndimf, 'P1'); % !!
+                    bMesh = obj.mesh.createBoundaryMesh();
+                    [boundaryMeshJoined, localGlobalConnecBd] = obj.mesh.createSingleBoundaryMesh();
+                    s.quadType = 2;
+                    s.mesh     = boundaryMeshJoined;
+                    lhs    = LHSIntegratorShapeFunction(s);
+                    test   = LagrangianFunction.create(boundaryMeshJoined, ndimf, 'P1'); % !!
+
+                    minx   = min(obj.mesh.coord(:,1));
+                    miny   = min(obj.mesh.coord(:,2));
+                    maxx   = max(obj.mesh.coord(:,1));
+                    maxy   = max(obj.mesh.coord(:,2));
+                    cond   = [maxx, maxy];
+                    k=1;
+                    j=1;
+                    dof    = [1,2];
+                    for i=1:length(bMesh)
+                        x0 = (max(bMesh{i}.mesh.coord(:,1))+ min(bMesh{i}.mesh.coord(:,1)))/2;
+                        y0 = (max(bMesh{i}.mesh.coord(:,2))+ min(bMesh{i}.mesh.coord(:,2)))/2;
+                        if abs(x0-maxx)<1e-6 || abs(y0-maxy)<1e-6
+                            f{k}   = @(x) [(x(dof(j),:,:)==cond(j)).* ones(size(x(1,:,:))) ; ...
+                                x(2,:,:).*0 ];
+                            f{k+1} = @(x) [x(dof(j),:,:).*0 ;...
+                                (x(dof(j),:,:)==cond(j)).*ones(size(x(1,:,:))) ];
+                            k=k+2;
+                            j=j+1;
+                        end
+                    end
+                    nfun = size(f,2);
+                    Ct = [];
+                    for i=1:nfun
+                        dLambda{i}  = AnalyticalFunction.create(f{i},ndimf,boundaryMeshJoined);
+                        %                                         dLambda = dLambda.project('P1');
+                        %                 obj.dLambda{i}.plot
+                        Ce = lhs.compute(dLambda{i},test);
+                        Ce = sum(Ce,2);
+                        [iLoc,jLoc,vals] = find(Ce);
+
+
+                        l2g_dof = ((localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
+                        l2g_dof = l2g_dof(:);
+                        iGlob = l2g_dof(iLoc);
+                        Ct = [Ct sparse(iGlob,jLoc,vals, displacementFun.nDofs, 1)];
+                    end
+
                 otherwise
                     dir_dom = obj.dirichlet_domain;
                     [mesh_left2, l2g_mesh] = obj.mesh.getBoundarySubmesh(dir_dom);
-        
+
                     dLambda = LagrangianFunction.create(mesh_left2, obj.mesh.ndim, order); % !!
                     uFun    = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1'); % !!
-        
+
                     b.mesh  = mesh_left2;
                     b.test  = dLambda;
                     b.trial = uFun.restrictTo(dir_dom);
@@ -98,6 +146,22 @@ classdef BCApplier < handle
                          ], ...
                          nDofsPerBorder*nVoigt, nDofs);
             Ct =  [CtPer; CtDirPer; CtDir];
+        end
+    
+        function Cv = computeVoluMatrix(obj)
+            ndimf  = 2;
+            %displacementFun = LagrangianFunction.create(obj.mesh, ndimf, 'P1'); % !!
+            s.quadType = 2;
+            s.mesh     = obj.mesh;
+            % lhs    = LHSIntegratorShapeFunction(s);
+            rhs    = RHSIntegratorShapeFunction(s);
+            test   = LagrangianFunction.create(obj.mesh, ndimf, 'P1'); % !!
+
+            f  = @(x) [ones(size(x(1,:,:))) ; ones(size(x(1,:,:)))];
+            dLambda  = AnalyticalFunction.create(f,ndimf,obj.mesh);
+            %             Cv = lhs.compute(dLambda,test);
+            %             Cv = sum(Cv,2);
+            Cv = -rhs.compute(dLambda,test);
         end
 
         function RHSC = computeMicroDisplMonolithicRHS(obj, iVoigt, nVoigt)
