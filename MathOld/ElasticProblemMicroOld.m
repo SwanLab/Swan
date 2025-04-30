@@ -1,4 +1,4 @@
-classdef ElasticProblemMicro < handle
+classdef ElasticProblemMicroOld < handle
     
     properties (Access = public)
         uFluc, strain, stress
@@ -17,7 +17,7 @@ classdef ElasticProblemMicro < handle
 
     methods (Access = public)
 
-        function obj = ElasticProblemMicro(cParams)
+        function obj = ElasticProblemMicroOld(cParams)
             obj.init(cParams);
             obj.createTrialFun();
             obj.createBCApplier();
