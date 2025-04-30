@@ -129,7 +129,7 @@ classdef ElasticProblemMicro < handle
             eta = ConstantFunction.create(sV,obj.mesh);
             Y1  = AnalyticalFunction.create(@(x) x(coord,:,:),1,obj.mesh);
             s = eta.*Y1;
-            s.ndimf = nBasis;
+            % s.ndimf = nBasis;
         end
 
         function nBasis = computeNbasis(obj)
