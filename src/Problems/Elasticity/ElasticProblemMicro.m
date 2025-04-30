@@ -62,10 +62,10 @@ classdef ElasticProblemMicro < handle
             % obj.Chomog = Ch;
         end
 
-        function uT = computeTotal(obj,strainB)
+        function uM = computeTotal(obj,strainB)
             Y  = AnalyticalFunction.create(@(x) x,2,obj.mesh);
             uMF = @(xV) obj.obtainMacroscopicDisplacement(xV,strainB,Y);
-            uT = AnalyticalFunction.create(uMF,2,obj.mesh);
+            uM = AnalyticalFunction.create(uMF,2,obj.mesh);
         end 
 
         function uM = obtainMacroscopicDisplacement(xV,strain,Y)
