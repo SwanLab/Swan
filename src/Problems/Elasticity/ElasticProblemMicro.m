@@ -35,49 +35,59 @@ classdef ElasticProblemMicro < handle
 
                 if iB <= 3
                     s = obj.createDeformationBasis(iB);
-                    iBasis = iB;
+                    index = iB;
                 elseif iB <= 6
-                    iBasis = iB - 3;
+                    index = iB - 3;
                     coord = 1;
-                    s = obj.createSndOrderDeformationBasis(coord, iBasis);
+                    s = obj.createSndOrderDeformationBasis(coord, index);
                 else
-                    iBasis = iB - 6;
+                    index = iB - 6;
                     coord = 2;
-                    s = obj.createSndOrderDeformationBasis(coord, iBasis);
+                    s = obj.createSndOrderDeformationBasis(coord, index);
                 end
                 
                 strainB     = s;
                 RHS         = obj.computeRHS(strainB,LHS);
-                uF{iB}      = obj.computeDisplacement(LHS,RHS,iBasis,nBasis);
+                uF{iB}      = obj.computeDisplacement(LHS,RHS,index,nBasis);
                 strainF{iB} = strainB+SymGrad(uF{iB});
                 stressF{iB} = DDP(obj.material, strainF{iB});
                 %  Ch(:,iB)    = obj.computeChomog(stressF{iB},iB);
-                uM     = obj.computeTotal(strainB);
+                uM     = obj.computeTotal(strainB,iB);
                 uT{iB} = uF{iB} + uM;
+                
             end
-
             obj.uFluc  = uF;
             obj.strain = strainF;
             obj.stress = stressF;
             % obj.Chomog = Ch;
         end
 
-        function uM = computeTotal(obj,strainB)
+        function uM = computeTotal(obj,strainB,iB)
             Y  = AnalyticalFunction.create(@(x) x,2,obj.mesh);
-            uMF = @(xV) obj.obtainMacroscopicDisplacement(xV,strainB,Y);
+            uMF = @(xV) obj.obtainMacroscopicDisplacement(xV,strainB,Y,iB);
             uM = AnalyticalFunction.create(uMF,2,obj.mesh);
         end 
 
-        function uM = obtainMacroscopicDisplacement(xV,strain,Y)
-            e  = strain.evaluate(xV);            
-            y = Y.evaluate(xV);
-            y1 = y(1,:,:);
-            y2 = y(2,:,:);
-            ex = e(1,:,:);
-            ey = e(2,:,:);
+        function uM = obtainMacroscopicDisplacement(obj,xV,strain,Y,iB)
+            y   = Y.evaluate(xV);
+            e   = strain.evaluate(xV);
+            y1  = y(1,:,:);
+            y2  = y(2,:,:);
+
+            ex  = e(1,:,:);  
+            ey  = e(2,:,:);
             exy = e(3,:,:);
-            uM(1,:,:) = ex.*y1 + exy.*y2;
-            uM(2,:,:) = exy.*y1 + ey.*y2;
+
+            if iB <= 3
+                uM(1,:,:) = ex  .* y1 + exy .* y2;
+                uM(2,:,:) = exy .* y1 + ey  .* y2;
+            elseif iB <= 6
+                quadTerm = ex .* y1.^2 + 2 * exy .* y1 .* y2 + ey .* y2.^2;
+                uM(1,:,:) = 0.5 * quadTerm;
+            else
+                quadTerm = ex .* y1.^2 + 2 * exy .* y1 .* y2 + ey .* y2.^2;
+                uM(2,:,:) = 0.5 * quadTerm;
+            end
         end
 
         function v = computeGeometricalVolume(obj)
