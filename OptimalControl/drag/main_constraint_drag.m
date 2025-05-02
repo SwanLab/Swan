@@ -8,7 +8,7 @@ function main_constraint_drag
     aerodata.CD0 = 0.01; % Drag coefficient
     aerodata.m = 1; % Object mass [kg]
 
-    N = 100; % Discretization
+    N = 500; % Discretization
 
     x1_0 = 0; x2_0 = 0; v0 = 15;
     gamma0 = deg2rad(40);
@@ -25,18 +25,18 @@ function main_constraint_drag
     cost = @(u) f_cost(u, g, t0, v0, gamma0, x1_0, x2_0, aerodata, N);
     constraint = @(u) groundConstraint(u, g, t0, v0, x1_0, x2_0, gamma0, aerodata, N);
 
-    checkGradients(cost, u0);
-    checkGradients(constraint, u0);
+    [valid,err] = checkGradients(cost, u0, "Display","on")
+    [valid2,err2] = checkGradients(constraint, u0, "Display","on")
 
     options = optimoptions("fmincon", ...
         "OutputFcn", @store_fmincon, ...
-        "Algorithm", "sqp", ...
-        "DerivativeCheck", "on");
+        "Algorithm", "sqp", ... 
+        "DerivativeCheck", "on","Display","iter");
 
     [u_opt, ~] = fmincon(cost, u0, [], [], [], [], lb, ub, @(u) nonlcon(u,constraint), options);
 
     y0 = [x1_0 x2_0 v0 gamma0];
-    t_span = linspace(t0, u_opt(1), 100);
+    t_span = linspace(t0, u_opt(1), N);
     [~, y] = ode45(@(t, y) dynamics(t, y, tf, u_opt(2:N+1), g, aerodata, N), t_span, y0);
 
     disp(["Maximum distance [m] = ", num2str(y(end, 1))])
@@ -100,13 +100,13 @@ function [J, gradJ] = f_cost(u, g, t0, v0, gamma0, x1_0, x2_0, aerodata, N)
     v = interp1(t_span, y(:,3), t);
     DFdu = -0.1*aerodata.rho*v.^2*aerodata.Sw*pi^2/aerodata.m.*alpha';
 
-    gradJ = [-dydt_final(1); DFdu*q(3)];
+    gradJ = [-dydt_final(1); -DFdu.*p(:,3)*((tf-t0)/N)];
 end
 
 function [ceq, Dceq] = groundConstraint(u, g, t0, v0, x1_0, x2_0, gamma0, aerodata, N)
     y0 = [x1_0 x2_0 v0 gamma0]';
     tf = u(1);
-    t_span = linspace(t0, tf, 100);
+    t_span = linspace(t0, tf, N);
     alpha = u(2:N+1);
     [t, y] = ode45(@(t, y) dynamics(t, y, tf, alpha, g, aerodata, N), t_span, y0);
 
@@ -120,7 +120,7 @@ function [ceq, Dceq] = groundConstraint(u, g, t0, v0, x1_0, x2_0, gamma0, aeroda
     v = interp1(t_span, y(:,3), t);
     DFdu = -0.1*aerodata.rho*v.^2*aerodata.Sw*pi.^2./aerodata.m.*alpha';
 
-    Dceq = [dydt_final(2); DFdu*q(3)];
+    Dceq = [dydt_final(2); -DFdu.*p(:,3)*((tf-t0)/N)];
 end
 
 function dpdt = p_ode(t, p, y, g, t_span, alpha, aerodata)
