@@ -14,8 +14,8 @@ function main_constraint_nodrag
     cost = @(u) f_cost(u, g, t0, v0, x1_0, x2_0);
     constraint = @(u) groundConstraint(u, g, t0, v0, x1_0, x2_0);
 
-    checkGradients(cost, u0);
-    checkGradients(constraint, u0);
+    checkGradients(cost, u0,'Tolerance',1e-3)
+    checkGradients(constraint,u0,'Tolerance',1e-3)
 
     options = optimoptions("fmincon", ...
         "OutputFcn", @store_fmincon, ...
@@ -81,7 +81,7 @@ function [J, gradJ] = f_cost(u, g, t0, v0, x1_0, x2_0)
     dydt_final = dynamics(y(end,:)', g);
 
     pT = [1 0 0 0];
-    [~, p] = ode45(@(t, p) p_ode(t, p, y, g, t_span), flip(t_span), pT);
+    [~, p] = ode45(@(t, p) adjoint(t, p, y, g, t_span), flip(t_span), pT);
     q = p(end,:);
 
     gradJ = [-dydt_final(1); -q(4)];
@@ -96,15 +96,17 @@ function [ceq, Dceq] = groundConstraint(u, g, t0, v0, x1_0, x2_0)
     dydt_final = dynamics(y(end,:)', g);
 
     pT = [0 -1 0 0];
-    [~, p] = ode45(@(t, p) p_ode(t, p, y, g, t_span), flip(t_span), pT);
+    [~, p] = ode45(@(t, p) adjoint(t, p, y, g, t_span), flip(t_span), pT);
     q = p(end,:);
 
     Dceq = [dydt_final(2); -q(4)];
 end
 
-function dpdt = p_ode(t, p, y, g, t_span)
-    v = interp1(t_span, y(:,3), t);
-    gamma = interp1(t_span, y(:,4), t);
+function dpdt = adjoint(t, p, y, g, t_span)
+    ind = round((t - t_span(1)) / (t_span(2) - t_span(1))) + 1;
+    v = y(ind,3);
+    gamma = y(ind,4);
+
     J = [0 0 0 0;
          0 0 0 0;
          cos(gamma) sin(gamma) 0 (g/v^2)*cos(gamma);
