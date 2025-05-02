@@ -56,7 +56,7 @@ classdef PhaseFieldComputer < handle
             s.shallDisplay = cParams.monitoring.set;
             s.shallPrint   = cParams.monitoring.print;
             s.type         = cParams.monitoring.type;
-            s.fun          = obj.initialGuess.phi;
+            s.fun          = obj.initialGuess.phi.fun;
             obj.monitor = PhaseFieldMonitoring(s);
         end
 
@@ -124,8 +124,8 @@ classdef PhaseFieldComputer < handle
 
         function printAndSave(obj,step,totF,u,phi,Evec,totE,iterMax,cost,tauArray)
             uVal = obj.boundaryConditions.bcValues(step);
-            obj.monitor.updateAndRefresh(step,{[totF;uVal],[max(phi.fValues);uVal],...
-                                               [phi.fValues],[iterMax.stag],[],...
+            obj.monitor.updateAndRefresh(step,{[totF;uVal],[max(phi.fun.fValues);uVal],...
+                                               [phi.fun.fValues],[iterMax.stag],[],...
                                                [totE;uVal],[]});
             obj.saveData(step,totF,uVal,u,phi,Evec,iterMax,cost,tauArray);
         end

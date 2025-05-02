@@ -12,10 +12,10 @@ classdef ProjectedNewton < handle
         end
 
         function [phi,varargout] = update(obj,LHS,RHS,phi,varargin)
-            x  = phi.fValues;
+            x  = phi.fun.fValues;
             xNew = obj.solve(LHS,RHS,x);
             xNew = obj.projectInBounds(xNew);
-            phi.setFValues(xNew); %% Change to designVariable
+            phi.update(xNew);
             varargout{1} = [];
         end
         
@@ -38,7 +38,7 @@ classdef ProjectedNewton < handle
 
         function init(obj,cParams)
             ub = 1;
-            lb = cParams.initPhi;
+            lb = cParams.initPhi.fun;
             obj.updateBounds(ub,lb);
         end
 

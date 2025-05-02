@@ -7,12 +7,20 @@ classdef Damage < DesignVariable
             obj.init(cParams);
         end
 
+        function fxV = evaluate(obj,xV)
+            fxV = obj.fun.evaluate(xV);
+        end
+
+        function grad = computeGrad(obj)
+            grad = obj.fun.computeGrad();
+        end
+
         function update(obj,value)
             obj.fun.setFValues(value);
         end
 
         function plot(obj)
-            Plot(obj.fun);
+            plot(obj.fun);
         end
     
     end

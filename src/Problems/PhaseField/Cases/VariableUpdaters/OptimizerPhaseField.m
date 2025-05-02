@@ -41,7 +41,7 @@ classdef OptimizerPhaseField < handle
                 obj.monitor.refresh();
             end
             iter.stag = i;
-            obj.damageUpdater.updateBounds(1,phi);
+            obj.damageUpdater.updateBounds(1,phi.fun);
         end
 
     end

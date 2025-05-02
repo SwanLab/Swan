@@ -51,7 +51,7 @@ classdef PhaseFieldMonitoring < handle
             obj.data.displacement.value(step) = cParams.bcVal;
             obj.data.displacement.field       = cParams.u;
             obj.data.damage.field             = cParams.phi;
-            obj.data.damage.maxValue(step)    = max(cParams.phi.fValues);
+            obj.data.damage.maxValue(step)    = max(cParams.phi.fun.fValues);
 
             obj.data.energy.intE(step)     = cParams.energy(1);
             obj.data.energy.localDis(step) = cParams.energy(2);

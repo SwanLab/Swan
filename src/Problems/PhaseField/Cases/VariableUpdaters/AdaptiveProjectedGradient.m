@@ -48,7 +48,7 @@ classdef AdaptiveProjectedGradient < handle
 
         function PG = setProjectedGradient(obj,cParams)
                 s.ub = 1;
-                s.lb = cParams.initPhi.fValues;
+                s.lb = cParams.initPhi.fun.fValues;
                 s.tauMax = 1e10;
                 s.tau = cParams.solver.tau;
                 PG = ProjectedGradient(s);

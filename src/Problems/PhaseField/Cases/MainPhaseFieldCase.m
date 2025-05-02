@@ -21,7 +21,7 @@ s.maxIter.phi = 300;
 s.maxIter.stag = 300;
 
 s.benchmark.N = 10;
-s.benchmark.type.mesh = 'SENtest';
+s.benchmark.type.mesh = '1Elem';
 s.benchmark.type.bc = 'displacementTraction';
 s.benchmark.bcValues = [0:0.001:0.1];
 

@@ -66,26 +66,24 @@ classdef TestingPhaseField < handle
         function createInitialGuess(obj,cParams)
             if isfield(cParams,'initialGuess')
                 if isfield(cParams.initialGuess,'u')
-                    obj.initialGuess.u = cParams.initialGuess.u;
+                    u = cParams.initialGuess.u;
                 else
                     u = LagrangianFunction.create(obj.mesh,2,'P1');
-                    obj.initialGuess.u = u;
                 end
 
                 if isfield(cParams.initialGuess,'phi')
-                    obj.initialGuess.phi = cParams.initialGuess.phi;
+                    phi = cParams.initialGuess.phi;
                 else
                     phi = LagrangianFunction.create(obj.mesh,1,'P1');
                     %phi = obj.setInitialDamage(phi);
-                    obj.initialGuess.phi = phi;
                 end
             else
                 u = LagrangianFunction.create(obj.mesh,2,'P1');
                 phi = LagrangianFunction.create(obj.mesh,1,'P1');
                 %phi = obj.setInitialDamage(phi);
-                obj.initialGuess.phi = phi;
-                obj.initialGuess.u = u;
             end
+            obj.initialGuess.u = u;
+            obj.initialGuess.phi = obj.createDamageVariable(phi);
         end
 
         function phi = setInitialDamage(obj,phi)
@@ -96,6 +94,13 @@ classdef TestingPhaseField < handle
             phi.setFValues(fValues);
         end
 
+        function phi = createDamageVariable(obj,phi)
+            s.type = 'Damage';
+            s.mesh = phi.mesh;
+            s.fun  = phi;
+            phi = DesignVariable.create(s);
+        end
+
         function createPhaseFieldFunctional(obj)
             s.mesh          = obj.mesh;
             s.material      = obj.createMaterialPhaseField();
@@ -103,7 +108,7 @@ classdef TestingPhaseField < handle
             s.l0            = obj.l0;
             s.quadOrder     = 2;
             s.testSpace.u   = obj.initialGuess.u;
-            s.testSpace.phi = obj.initialGuess.phi;
+            s.testSpace.phi = obj.initialGuess.phi.fun;
             s.energySplit   = (obj.matInfo.matType == "AnalyticSplit");
             obj.functional  = PhaseFieldFunctional(s);
         end
