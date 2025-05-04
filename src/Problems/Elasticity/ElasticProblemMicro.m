@@ -1,7 +1,7 @@
 classdef ElasticProblemMicro < handle
-    
+
     properties (Access = public)
-        uFluc, strain, stress
+        uFluc, strain, stress, uTotal
         Chomog
     end
 
@@ -13,6 +13,7 @@ classdef ElasticProblemMicro < handle
         solverType, solverMode, solverCase
         lagrangeMultipliers
         problemSolver
+        homogOrd
     end
 
     methods (Access = public)
@@ -24,11 +25,17 @@ classdef ElasticProblemMicro < handle
             obj.createSolver();
         end
 
-        function obj = solve(obj)
+        function obj = solve(obj)     
             LHS = obj.computeLHS();
             %    oX     = zeros(obj.getDimensions().ndimf,1);
             nBasis = obj.computeNbasis();
-            nTerms = 3*nBasis;
+
+            if obj.homogOrd == 1
+                nTerms = nBasis;
+            else
+                nTerms = 3*nBasis;
+            end
+
             % obj.Chomog = zeros(nBasis, nBasis);
 
             for iB = 1:nTerms
@@ -45,18 +52,26 @@ classdef ElasticProblemMicro < handle
                     coord = 2;
                     s = obj.createSndOrderDeformationBasis(coord, index);
                 end
-                
+
                 strainB     = s;
                 RHS         = obj.computeRHS(strainB,LHS);
                 uF{iB}      = obj.computeDisplacement(LHS,RHS,index,nBasis);
-                strainF{iB} = strainB+SymGrad(uF{iB});
+
+                if iB <= 3
+                    strainF{iB} = strainB+SymGrad(uF{iB});
+                else
+                    strainTorque = obj.computeStrainTorque(strainB);
+                    strainF{iB} = strainTorque + SymGrad(uF{iB});
+                end
+
                 stressF{iB} = DDP(obj.material, strainF{iB});
                 %  Ch(:,iB)    = obj.computeChomog(stressF{iB},iB);
                 uM     = obj.computeTotal(strainB,iB);
                 uT{iB} = uF{iB} + uM;
-                
+
             end
             obj.uFluc  = uF;
+            obj.uTotal = uT;
             obj.strain = strainF;
             obj.stress = stressF;
             % obj.Chomog = Ch;
@@ -66,18 +81,16 @@ classdef ElasticProblemMicro < handle
             Y  = AnalyticalFunction.create(@(x) x,2,obj.mesh);
             uMF = @(xV) obj.obtainMacroscopicDisplacement(xV,strainB,Y,iB);
             uM = AnalyticalFunction.create(uMF,2,obj.mesh);
-        end 
+        end
 
         function uM = obtainMacroscopicDisplacement(obj,xV,strain,Y,iB)
             y   = Y.evaluate(xV);
             e   = strain.evaluate(xV);
             y1  = y(1,:,:);
             y2  = y(2,:,:);
-
-            ex  = e(1,:,:);  
+            ex  = e(1,:,:);
             ey  = e(2,:,:);
             exy = e(3,:,:);
-
             if iB <= 3
                 uM(1,:,:) = ex  .* y1 + exy .* y2;
                 uM(2,:,:) = exy .* y1 + ey  .* y2;
@@ -89,15 +102,33 @@ classdef ElasticProblemMicro < handle
                 uM(2,:,:) = 0.5 * quadTerm;
             end
         end
+        
+        function sT = computeStrainTorque(obj,strainB)
+            Y  = AnalyticalFunction.create(@(x) x,2,obj.mesh);
+            sTF = @(xV) obj.obtainStrainTorque(xV,strainB,Y);
+            sT = AnalyticalFunction.create(sTF,2,obj.mesh);
+        end
+
+        function sT = obtainStrainTorque(obj,xV,strain,Y)
+            y   = Y.evaluate(xV);
+            e   = strain.evaluate(xV);
+            y1  = y(1,:,:);
+            y2  = y(2,:,:);
+            ex  = e(1,:,:);
+            ey  = e(2,:,:);
+            exy = e(3,:,:);
+            sT(1,:,:) = ex.*y1+exy.*y2; 
+            sT(2,:,:) = exy.*y1+ey.*y2;
+        end
 
         function v = computeGeometricalVolume(obj)
             v = 1;%sum(sum(obj.geometry.dvolu));
         end
 
         function setMatProps(obj,s)
-           obj.material.compute(s);
+            obj.material.compute(s);
         end
-        
+
         function updateMaterial(obj, mat)
             obj.material = mat;
         end
@@ -119,6 +150,7 @@ classdef ElasticProblemMicro < handle
             obj.solverMode = cParams.solverMode;
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.solverCase  = cParams.solverCase;
+            obj.homogOrd = cParams.homogOrd;
         end
 
         function createTrialFun(obj)
@@ -132,7 +164,7 @@ classdef ElasticProblemMicro < handle
             s = ConstantFunction.create(sV,obj.mesh);
         end
 
-        function s = createSndOrderDeformationBasis(obj,coord,iBasis) 
+        function s = createSndOrderDeformationBasis(obj,coord,iBasis)
             nBasis = obj.computeNbasis();
             sV = zeros(nBasis,1);
             sV(iBasis) = 1;
@@ -208,7 +240,7 @@ classdef ElasticProblemMicro < handle
             obj.lagrangeMultipliers = L;
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             uFun = copy(obj.trialFun);
-            uFun.setFValues(uSplit);            
+            uFun.setFValues(uSplit);
         end
 
         function Chomog = computeChomog(obj,stress,iBase)
@@ -241,7 +273,5 @@ classdef ElasticProblemMicro < handle
         end
 
     end
-
-    
 
 end

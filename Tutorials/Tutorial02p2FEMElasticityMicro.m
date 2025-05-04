@@ -67,6 +67,7 @@ classdef Tutorial02p2FEMElasticityMicro < handle
             s.scale = 'MICRO';
             s.material = obj.material;
             s.dim = '2D';
+            s.homogOrd = 2;
             s.boundaryConditions = obj.createBoundaryConditions();
             % Options: REDUCED-FLUC / MONOLITHIC-FLUC / MONOLITHIC-DISP
             s.solverCase = 'DIRECT';
