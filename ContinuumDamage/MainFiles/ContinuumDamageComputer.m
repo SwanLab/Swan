@@ -21,6 +21,7 @@ classdef ContinuumDamageComputer < handle
         elasticFun
         externalWorkFun
         elasticity
+        qLaw
 
         limIter = 100;
     end
@@ -77,6 +78,7 @@ classdef ContinuumDamageComputer < handle
             obj.H = cParams.H;
             obj.tolerance = cParams.tol;
             obj.quadOrder = 2;
+            obj.qLaw = cParams.qLaw;
         end
 
         function defineRfunction(obj,cParams)
@@ -102,6 +104,7 @@ classdef ContinuumDamageComputer < handle
             s.r0 = obj.r0;
             s.r1 = obj.r1;
             s.quadOrder = obj.quadOrder;
+            s.qLaw = obj.qLaw;
             obj.elasticity = ShFunc_ContinuumDamage(s);
         end
 

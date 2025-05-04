@@ -4,6 +4,7 @@ classdef TestingContinuumDamage < handle
         bc
         material
         solverParams
+        qLaw
 
         H
         r0
@@ -21,6 +22,7 @@ classdef TestingContinuumDamage < handle
             obj.r0           = cParams.r0;
             obj.r1           = cParams.r1;
             obj.tol          = cParams.tol;
+            obj.qLaw         = cParams.qLaw;
         end
 
         function data = compute(obj)
@@ -32,6 +34,7 @@ classdef TestingContinuumDamage < handle
             sComp.r0 = obj.r0;
             sComp.r1 = obj.r1;
             sComp.tol = obj.tol;
+            sComp.qLaw = obj.qLaw;
             comp = ContinuumDamageComputer(sComp);
             data = comp.compute();
         end

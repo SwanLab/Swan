@@ -28,15 +28,19 @@ clc;clear;close all
 
 cParams.mesh.meshLength = 1;
 cParams.mesh.meshWidth = 1;
-cParams.mesh.meshN = 10;
-cParams.mesh.meshM = 10;
+cParams.mesh.meshN = 1;
+cParams.mesh.meshM = 1;
 
 cParams.bc.bcType = 'displacementTraction'; %'FORCE'
-cParams.bc.bcValueSetLoading = 1e-10:1e-3:0.3;
+cParams.bc.bcValueSetLoading = 0:1e-3:0.3;
 cParams.bc.bcValueSetUnLoading = [];
 
 cParams.material.E = 210;
 cParams.material.nu = 0.3;
+
+cParams.qLaw.type = 'Exp'; %'Exp'
+cParams.qLaw.A = 2;
+cParams.qLaw.qInfExp = 0.5;
 
 cParams.solver.type = 'Elastic';
 cParams.solver.solverType='REDUCED';
@@ -47,7 +51,7 @@ cParams.solver.scale = 'MACRO';
 cParams.tol = 1e-8;
 cParams.H = 0.5;
 cParams.r0 = 0.4;
-cParams.r1 = 20;
+cParams.r1 = 2;
 
 tester = TestingContinuumDamage(cParams);
 data = tester.compute();
