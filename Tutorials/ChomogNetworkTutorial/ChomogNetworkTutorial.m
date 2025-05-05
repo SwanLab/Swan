@@ -45,6 +45,22 @@ opt = OptimizationProblem(s);
 opt.solve();
 opt.plotCostFnc();
 
+% Save the model
+save('Tutorials/ChomogNetworkTutorial/ChomogNetwork.mat', 'opt')
+
+%% Get Network Results
+
+Xin = [0.25, 0.25];
+
+Y = opt.computeOutputValues(Xin);
+dY = opt.computeGradient(Xin);
+
+fprintf('Output of the network:\n')
+disp(Y)
+
+fprintf('Jacobian of the network output w.r.t its input:\n')
+disp(dY)
+
 %% Plot surface
 
 % Load dataset from specified path
@@ -53,18 +69,6 @@ tempData = readmatrix(filePath);
 
 % Preallocate and evaluate y_data vector
 yData = cell2mat(arrayfun(@(i) opt.computeOutputValues(tempData(i, 1:2)), 1:size(tempData, 1), 'UniformOutput',false)');
-
-Y = opt.computeOutputValues([0.25, 0.25]);
-dY = opt.computeGradient([0.25, 0.25]);
-
-disp(Y)
-disp(dY)
-
-Y = opt.computeOutputValues([0.27, 0.27]);
-dY = opt.computeGradient([0.27, 0.27]);
-
-disp(Y)
-disp(dY)
 
 % Determine grid size for reshaping data
 gridSize = floor(sqrt(size(tempData, 1)));

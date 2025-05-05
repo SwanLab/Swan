@@ -71,7 +71,7 @@ classdef Network < handle
                     grad = grad * parDer;
                 end
             end
-            dy = grad;
+            dy = grad';
         end
 
         function g = computeLastH(obj,X)
