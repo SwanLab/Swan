@@ -167,13 +167,17 @@ classdef GrippingDensityLocalSixteenDomains < handle
             s.epsilon    = 5*obj.mesh.computeMeanCellSize();
             s.minEpsilon = 1.5*obj.mesh.computeMeanCellSize();
             s.value0     = 1;
-            s.target     = 0.2;
             cgX          = 0.125:0.25:1-0.125;
             cgY          = cgX;
 
+            tars = [0.4, 0.4, 0.4, 0.4;...
+                    0.4, 0.4, 0.4, 0.4;...
+                    0.4, 0.3, 0.3, 0.4;...
+                    0.4, 0.3, 0.3, 0.4];
             P = cell(4,4);
             for i = 1:length(cgY)
                 for j = 1:length(cgX)
+                    s.target = tars(i,j);
                     s.uMesh  = obj.createBaseDomain(cgX(j),cgY(i));
                     s.filter = obj.createFilterPerimeter();
                     P{i,j}   = PerimeterConstraint(s);
