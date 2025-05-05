@@ -1,9 +1,9 @@
 clc,clear,close all
-
-matInfo = load('HorizontalCrackMicroDamageArea.mat');
-matInfo.mat = matInfo.mat;
-matInfo.phi  = matInfo.holeParam{1};
-[funMat,dfunMat,ddfunMat] = computeFittingHomogenization(matInfo,1,4);
+% 
+% matInfo = load('HorizontalCrackDamage.mat');
+% matInfo.mat = matInfo.mat;
+% matInfo.phi  = matInfo.holeParam{1};
+% [funMat,dfunMat,ddfunMat] = computeFittingHomogenization(matInfo,1,4);
 
 %% Strain state
 % eps = [1 0; 0 0]; % Traction X
@@ -19,26 +19,27 @@ epsV  = [eps(1,1) eps(2,2) 2*eps(1,2)]';
 
 %% Rotation matrices
 theta = sym("theta");
-Reps = [(1+cos(2*theta))/2 , (1-cos(2*theta))/2 , (-sin(2*theta))/2 ;
-        (1-cos(2*theta))/2 , (1+cos(2*theta))/2 , (sin(2*theta))/2  ;
-        sin(2*theta)       , -sin(2*theta)      , (cos(2*theta))    ];
+
+Reps = [(1+cos(2*theta))/2 , (1-cos(2*theta))/2 , (sin(2*theta))/2  ;
+        (1-cos(2*theta))/2 , (1+cos(2*theta))/2 , (-sin(2*theta))/2 ;
+        -sin(2*theta)      , sin(2*theta)       , (cos(2*theta))    ];
 
 Rsig = [(1+cos(2*theta))/2 , (1-cos(2*theta))/2 , sin(2*theta)   ;
         (1-cos(2*theta))/2 , (1+cos(2*theta))/2 , -sin(2*theta)  ;
         (-sin(2*theta))/2  , (sin(2*theta))/2   , (cos(2*theta)) ];
 
 %% Material
-% E  = 1;
-% nu = 0.3;
-% k  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E,nu,2);
-% mu = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E,nu);
-% l  = IsotropicElasticMaterial.computeLambdaFromShearAndBulk(mu,k,2);
-% C = zeros(3,3);
-% C(1,1)= 2*mu+l;
-% C(1,2)= l;
-% C(2,1)= l;
-% C(2,2)= 2*mu+l;
-% C(3,3)= mu;
+E  = 1;
+nu = 0.3;
+k  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E,nu,2);
+mu = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E,nu);
+l  = IsotropicElasticMaterial.computeLambdaFromShearAndBulk(mu,k,2);
+C = zeros(3,3);
+C(1,1)= 2*mu+l;
+C(1,2)= l;
+C(2,1)= l;
+C(2,2)= 2*mu+l;
+C(3,3)= mu;
 
 phi   = linspace(0,1,10);
 colors = jet(10);
