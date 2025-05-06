@@ -25,21 +25,31 @@ classdef RHSIntegratorShapeSymmDerivative < RHSIntegrator
         function rhsC = computeElementalRHS(obj, fun, test)
             fG = fun.evaluate(obj.quadrature.posgp);
             dV = obj.mesh.computeDvolume(obj.quadrature);
-            dNdx = test.evaluateCartesianDerivatives(obj.quadrature.posgp);
-            nDim  = size(dNdx,1);
-            nNode = size(dNdx,2);
-            nGaus = size(dNdx,3);
-            nElem = size(dNdx,4);
+            xV     = obj.quadrature.posgp;
+            % dNdx = test.evaluateCartesianDerivatives(obj.quadrature.posgp);
+            dSymN  = ShapeDerSym(test);
+            symN   = dSymN.evaluate(xV);
+            nDimf  = test.ndimf;
+            nnodeE = obj.mesh.nnodeElem;
+            % nGaus = obj.
+            nElem = obj.mesh.nelem;
+            ndofE=nnodeE*nDimf;
 
-            BComp = obj.createBComputer(test,dNdx);
-            rhsC = zeros(nNode*nDim,nElem);
-            for igaus = 1:nGaus
-                    fGI = squeezeParticular(fG(:,igaus,:),2);
-                    fdv = fGI.*dV(igaus,:);
-                    fdv = reshape(fdv,[1 size(fdv,1) nElem]);
-                    B = BComp.compute(igaus);
-                    intI = pagemtimes(fdv,B);
-                    rhsC = rhsC + squeezeParticular(intI,1);
+            % BComp = obj.createBComputer(test,dNdx);
+            rhsC = zeros(ndofE,nElem);
+            % for igaus = 1:nGaus
+            %         fGI = squeezeParticular(fG(:,igaus,:),2);
+            %         fdv = fGI'.*dV(igaus,:);
+            %         fdv = reshape(fdv,[1 size(fdv,1) nElem]);
+            %         B = BComp.compute(igaus);
+            %         intI = pagemtimes(fdv,B);
+            %         rhsC = rhsC + squeezeParticular(intI,1);
+            % end
+            for i=1:ndofE
+                symTest = squeezeParticular(symN(:,:,i,:,:),3);
+                fint    = pagetensorprod(fG,symTest,[1 2],[1 2],2,2);
+                fint    = fint.*dV;
+                rhsC(i,:) = rhsC(i,:) + sum(fint,1);
             end
         end
 
