@@ -1,4 +1,4 @@
-classdef TopOptTestTutorialLevelSetPerimeterPNorm < handle
+classdef TopOptTestTutorialDensityIsoPerimetricPNorm < handle
 
     properties (Access = private)
         mesh
@@ -8,7 +8,7 @@ classdef TopOptTestTutorialLevelSetPerimeterPNorm < handle
         physicalProblem
         compliance
         volume
-        perimeter
+        isoperimeter
         cost
         constraint
         dualVariable
@@ -17,7 +17,7 @@ classdef TopOptTestTutorialLevelSetPerimeterPNorm < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorialLevelSetPerimeterPNorm(p,pTarget)
+        function obj = TopOptTestTutorialDensityIsoPerimetricPNorm(p,C)
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -27,7 +27,7 @@ classdef TopOptTestTutorialLevelSetPerimeterPNorm < handle
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
             obj.createVolumeConstraint();
-            obj.createPerimeterConstraint(p,pTarget);
+            obj.createIsoPerimetricConstraint(p,C);
             obj.createCost();
             obj.createConstraint();
             obj.createDualVariable();
@@ -35,13 +35,13 @@ classdef TopOptTestTutorialLevelSetPerimeterPNorm < handle
 
             fileLocation = 'C:\Users\Biel\Desktop\UNI\TFG\ResultatsNormP_Density\00. From Batch';
             
-            vtuName = fullfile(fileLocation, sprintf('Topology_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.1_eta0.02_LevelSet',p,pTarget));
+            vtuName = fullfile(fileLocation, sprintf('Topology_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02',p,C));
             obj.designVariable.fun.print(vtuName);
             
             figure(2)
             set(gcf, 'Position', get(0, 'Screensize'));
-            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.1_eta0.02_LevelSet.fig',p,pTarget));
-            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.1_eta0.02_LevelSet.png',p,pTarget));
+            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02.fig',p,C));
+            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02.png',p,C));
             savefig(fileName1);
             print(fileName2,'-dpng','-r300');
         end
@@ -66,15 +66,17 @@ classdef TopOptTestTutorialLevelSetPerimeterPNorm < handle
         end
 
         function createDesignVariable(obj)
-            s.type = 'Full';
-            g      = GeometricalFunction(s);
-            lsFun  = g.computeLevelSetFunction(obj.mesh);
-            s.fun  = lsFun;
-            s.mesh = obj.mesh;
-            s.type = 'LevelSet';
-            s.plotting = true;
-            ls     = DesignVariable.create(s);
-            obj.designVariable = ls;
+            s.fHandle = @(x) ones(size(x(1,:,:)));
+            s.ndimf   = 1;
+            s.mesh    = obj.mesh;
+            aFun      = AnalyticalFunction(s);
+            
+            sD.fun      = aFun.project('P1');
+            sD.mesh     = obj.mesh;
+            sD.type     = 'Density';
+            sD.plotting = true;
+            dens        = DesignVariable.create(sD);
+            obj.designVariable = dens;
         end
 
         function createFilter(obj)
@@ -126,7 +128,7 @@ classdef TopOptTestTutorialLevelSetPerimeterPNorm < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'DIRECT';
+            s.solverCase = 'CG';
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -155,12 +157,12 @@ classdef TopOptTestTutorialLevelSetPerimeterPNorm < handle
             obj.volume = v;
         end
 
-        function createPerimeterConstraint(obj,p,pTarget)
-            s.mesh            = obj.mesh;
-            s.perimeterTarget = pTarget;
-            s.p               = p;
-            s.gradientTest    = LagrangianFunction.create(obj.mesh,1,'P1');
-            obj.perimeter     = PerimeterNormPFunctional(s);
+        function createIsoPerimetricConstraint(obj,p,C)
+            s.mesh           = obj.mesh;
+            s.C              = C;
+            s.p              = p;
+            s.gradientTest   = LagrangianFunction.create(obj.mesh,1,'P1');
+            obj.isoperimeter = IsoPerimetricNormPFunctional(s);
         end
 
         function createCost(obj)
@@ -171,20 +173,14 @@ classdef TopOptTestTutorialLevelSetPerimeterPNorm < handle
         end
 
         function M = createMassMatrix(obj)
-            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.mesh  = obj.mesh;
-            s.type  = 'MassMatrix';
-            LHS = LHSIntegrator.create(s);
-            M = LHS.compute;
-
+            n = obj.mesh.nnodes;
             h = obj.mesh.computeMinCellSize();
-            M = h^2*eye(size(M));
+            M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
         end
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
-            s.shapeFunctions{2} = obj.perimeter;
+            s.shapeFunctions{2} = obj.isoperimeter;
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
@@ -204,12 +200,12 @@ classdef TopOptTestTutorialLevelSetPerimeterPNorm < handle
             s.maxIter        = 2000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'INEQUALITY','INEQUALITY'};
-            s.primal         = 'SLERP';                  
+            s.primal         = 'PROJECTED GRADIENT';
+            s.ub             = 1;
+            s.lb             = 0;
             s.etaNorm        = 0.02;
-            s.etaNormMin     = 0.002;
-            s.gJFlowRatio    = 0.1;
-            s.etaMax         = 1;
-            s.etaMaxMin      = 0.01;
+            s.gJFlowRatio    = 0.2;
+            s.tauMax         = 1000;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
