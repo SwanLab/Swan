@@ -1,4 +1,4 @@
-classdef InternalEnergySplitFunctional < handle
+classdef PhaseFieldInternalEnergySplitFunctional < handle
     
     properties (Access = private)
         mesh
@@ -9,7 +9,7 @@ classdef InternalEnergySplitFunctional < handle
     
     methods (Access = public)
         
-        function obj = InternalEnergySplitFunctional(cParams)
+        function obj = PhaseFieldInternalEnergySplitFunctional(cParams)
             obj.init(cParams)            
         end
         

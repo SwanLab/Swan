@@ -139,7 +139,13 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             r = power(a,0.5);
         end
 
-        function r = norm(a,b)
+        function r = norm(varargin)
+            a = varargin{1};
+            if nargin == 1
+                b = 2;
+            elseif nargin == 2
+                b = varargin{2};
+            end
             a = Expand(a);
             aOp = BaseFunction.computeOperation(a);
             s.operation = @(xV) squeezeParticular(pagenorm(aOp(xV),b),2);

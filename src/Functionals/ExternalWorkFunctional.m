@@ -2,11 +2,11 @@ classdef ExternalWorkFunctional < handle
     
     properties (Access = private)
         mesh
-        bMesh
-        testU
     end
 
     properties (Access = private)
+        bMesh
+        testU
         bFunfExt
         bFunU
     end
@@ -21,7 +21,7 @@ classdef ExternalWorkFunctional < handle
             int = Integrator.create('Function',obj.bMesh.mesh,quadOrder);
             
             obj.computeFunsInBoundary(u,fExt);
-            F = int.compute(obj.bFunU.*obj.bFunfExt);
+            F = int.compute(DP(obj.bFunU,obj.bFunfExt));
         end
         
         function Ju = computeGradient(obj,u,fExt,quadOrder)
