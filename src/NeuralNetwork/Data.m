@@ -20,6 +20,7 @@ classdef Data < handle
         testRatio
         xFeatures
         yFeatures
+        k
     end
 
     methods (Access = public)
@@ -27,7 +28,7 @@ classdef Data < handle
         function obj = Data(cParams)            
             obj.init(cParams)
             obj.loadData();
-            %obj.buildModel();
+            obj.buildModel();
             obj.splitdata()
             obj.nLabels   = size(obj.Ytrain,2);                        
             obj.nFeatures = size(obj.Xtrain,2);
@@ -84,14 +85,12 @@ classdef Data < handle
             obj.polynomialOrder = cParams.polynomialOrder;
             obj.xFeatures       = cParams.xFeatures;
             obj.yFeatures       = cParams.yFeatures;
+            obj.k               = cParams.k;
         end
 
         function loadData(obj)
-            %f = fullfile('../Datasets/',obj.fileName);
-            f = fullfile(obj.fileName);
 
-            % Change: use readmatrix to skip header
-            obj.data = readmatrix(f);
+            obj.data = load(obj.fileName).data;
 
             % Change: incorporate features to use in cParams vs propmpting
             % user though terminal
@@ -105,17 +104,19 @@ classdef Data < handle
         
 
         function Xful = buildModel(obj)
-            x  = obj.X;
-            d  = obj.polynomialOrder;
-            x1 = x(:,1);
-            x2 = x(:,2);
-            cont = 1;
-            for g = 1:d
-                for a = 0:g
-                    Xful(:,cont) = x2.^(a).*x1.^(g-a);
-                    cont = cont+1;
+            x    = obj.X;
+            Xful = x;
+            d    = obj.polynomialOrder;
+
+            if d > 1
+                
+                for i = 2:d
+                    tempX = x.^i;
+                    Xful = cat(2,Xful,tempX);
                 end
+            
             end
+
             obj.X = Xful;
         end
         
@@ -147,14 +148,34 @@ classdef Data < handle
         function splitdata(obj)
             nD = size(obj.data,1);
             TP = obj.testRatio;
-            r = randperm(nD);
             ntest = round(TP/100*nD);
-            ntrain = nD - ntest;
-            obj.Xtrain = obj.X(r(1:ntrain),:);
-            obj.Xtest  = obj.X(r((ntrain + 1):end),:);
-            obj.Ytrain = obj.Y(r(1:ntrain),:);
-            obj.Ytest  = obj.Y(r((ntrain + 1):end),:);
+            TestStart = 1 + ntest * (obj.k - 1.0);
+            TestEnd   = min(ntest * obj.k,nD); 
+            
+            testIdx = TestStart:TestEnd;
+            allIdx  = 1:nD;
+            trainIdx = setdiff(allIdx, testIdx);
+            obj.Xtrain = obj.X(trainIdx, :);
+            obj.Ytrain = obj.Y(trainIdx, :);
+            obj.Xtest  = obj.X(testIdx, :);
+            obj.Ytest  = obj.Y(testIdx, :);
             obj.Ntest = ntest;
         end
+    end
+
+    methods (Access = public, Static)
+
+        function [NewData] = preProcessDataset(data)
+
+            nD = size(data,1);
+            r  = randperm(nD);
+            NewData = data(r(1:nD),:);
+
+            maxValue    = max(NewData(:,end));
+            minValue    = min(NewData(:,end));
+            NewData(:,end)  = (NewData(:,end) - minValue) / (maxValue - minValue);
+
+        end
+
     end
 end
