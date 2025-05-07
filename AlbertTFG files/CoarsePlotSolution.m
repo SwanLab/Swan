@@ -8,14 +8,18 @@ classdef CoarsePlotSolution < handle
         originalBCApplier
         outputFileName
         r
+        centroids
     end
 
     methods
-        function obj = CoarsePlotSolution(u, mesh, bcApplier,outputFileName, r)
+        function obj = CoarsePlotSolution(u, mesh, bcApplier,outputFileName, r, centroids)
+            
             if isempty(r)
                 obj.plot(u, mesh, bcApplier,outputFileName);
             else
-                obj.makeHole(u, mesh, bcApplier,outputFileName,r)
+                obj.init(u, mesh, bcApplier,outputFileName,r, centroids);
+                obj.makeHole(bcApplier,outputFileName);
+                
             end
         end
 
@@ -32,20 +36,21 @@ classdef CoarsePlotSolution < handle
 
     methods (Access = private) %%% treure Static
 
-        function makeHole(obj, u, mesh, bcApplier,outputFileName,r)
-                    obj.init(u, mesh, bcApplier,outputFileName,r);
-                    uH = obj.createUHole();
+        function makeHole(obj, bcApplier,outputFileName)
+                    
+                    %uH = obj.createUHole();
                     meshH = obj.createHole();
                     obj.plot(uH, meshH, bcApplier, outputFileName);
         
         end
 
-        function init(obj, u, mesh, bcApplier,outputFileName,r)
+        function init(obj, u, mesh, bcApplier,outputFileName,r,centroids)
             obj.mesh        = mesh;
             obj.u           = u;
             obj.originalBCApplier   = bcApplier;
             obj.outputFileName      = outputFileName;
             obj.r                   = r;
+            obj.centroids   = centroids;
 
         end
 
@@ -62,7 +67,54 @@ classdef CoarsePlotSolution < handle
         end
 
         function meshH = createHole(obj)
-            mR    = obj.createReferenceMesh();
+            % mR    = obj.createReferenceMesh();
+
+            gPar.type         = 'Circle';
+
+            % Initialize the sum as the zero function
+            f_sum = @(x) 0;
+            u = obj.u;
+            mesh = obj.mesh;
+            % Loop through each handle and build the sum
+            for i = 1:length(obj.r)
+                radius = obj.r(i);
+                x0 = obj.centroids(i,1);
+                y0 = obj.centroids(i,2);
+                % f_prev = f_sum;
+                f = @(x) (x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2-radius^2;
+                s.fHandle = f;
+                s.ndimf   = 1;
+                s.mesh    = mesh;
+                aFun      = AnalyticalFunction(s);
+                ls        = aFun.project('P1');
+
+                lsCircle          = ls.fValues;
+                lsCircleInclusion = -lsCircle;
+
+                sUm.backgroundMesh = obj.mesh;
+                sUm.boundaryMesh   = obj.mesh.createBoundaryMesh;
+                uMesh              = UnfittedMesh(sUm);
+                uMesh.compute(lsCircleInclusion);
+                uMeshFun = uMesh.obtainFunctionAtUnfittedMesh(u);
+                u = uMeshFun.innerMeshFunction;
+                mesh = uMesh.innerMesh;
+                %f = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<radius) + ...
+                %        (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=radius) ; % Save previous sum to avoid recursion
+                % f_sum = @(x) f_prev(x) + f(x);  % Add new handle
+            end
+
+            s.fHandle = f_sum;
+            s.ndimf   = 1;
+            s.mesh    = obj.mesh;
+            aFun      = AnalyticalFunction(s);
+            ls        = aFun.project('P1');
+
+            for i = 1:size(obj.r,2)
+                gPar.radius       = obj.r(i);
+                gPar.xCoorCenter  = obj.centroids(i,1);
+                gPar.yCoorCenter  = obj.centroids(i,2);
+                g                 = GeometricalFunction(gPar);
+            end
             lvSet = obj.createLevelSetFunction(mR);
             uMesh = obj.computeUnfittedMesh(mR,lvSet);
             meshH  = uMesh.createInnerMesh();
@@ -71,13 +123,13 @@ classdef CoarsePlotSolution < handle
         end
 
         function newMesh = createReferenceMesh(obj)
-            xmin = min(obj.mesh.coord(:,1));
-            xmax = max(obj.mesh.coord(:,1));
-            ymin = min(obj.mesh.coord(:,2));
-            ymax = max(obj.mesh.coord(:,2));
+            xmin = -1;
+            xmax = 1;
+            ymin = -1;
+            ymax = 1;
 
             n1 = numel(find(obj.mesh.coord(:,1)==xmin));
-            n2 = numel(find(obj.mesh.coord(:,2)==ymin));
+            n2 = n1;%numel(find(obj.mesh.coord(:,2)==ymin));
 
            
              %UnitMesh better

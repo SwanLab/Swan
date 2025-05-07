@@ -19,6 +19,7 @@ classdef CoarseTesting_Albert < handle
         LHS
         RHS
         r
+        centroids
 
         fileNameCorase
         tolSameNode
@@ -73,6 +74,16 @@ classdef CoarseTesting_Albert < handle
             [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
             %            [uCG,residualPCG,errPCG,errAnormPCG] = RichardsonSolver.solve(LHSf,RHSf,x0,Mmult,tol,tau,Usol);
             toc
+            
+            xFull = obj.bcApplier.reducedToFullVectorDirichlet(uPCG);
+            s.mesh = obj.meshDomain;
+            s.ndimf = obj.meshDomain.ndim
+            s.order = 'P1';
+            s.fValues = reshape(xFull,2,[])';
+            uFun = LagrangianFunction(s);
+
+            obj.computeSubdomainCentroid();
+            CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,"TestCoarsePlot", obj.r, obj.centroids);
 
             figure
             plot(residualPCG,'linewidth',2)
@@ -170,7 +181,19 @@ classdef CoarseTesting_Albert < handle
           
         end
 
+        function computeSubdomainCentroid(obj)
+            for i = 1:obj.nSubdomains(1,2)
+                for j = 1:obj.nSubdomains(1,1)
+                   x0=mean(obj.cellMeshes{i,j}.coord(:,1));
+                   y0=mean(obj.cellMeshes{i,j}.coord(:,2));
+                   obj.centroids = cat(1,obj.centroids, [x0,y0]);
+                end
 
+            end
+
+            
+
+        end
 
         function levelSet = createLevelSetFunction(obj,bgMesh)
             sLS.type        = 'CircleInclusion';
