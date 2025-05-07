@@ -5,6 +5,7 @@ classdef levelSetTesting_Albert < handle
     properties
         nSubdomains
         rSubdomains
+        mSubdomains
         fileNameEIFEM
         tolSameNode
         meshDomain
@@ -33,8 +34,9 @@ classdef levelSetTesting_Albert < handle
         end
 
         function init(obj)
-            obj.nSubdomains  = [2 1]; %nx ny
-            obj.rSubdomains  = [0.3 0.1];
+            obj.nSubdomains = [2 1]; %nx ny
+            obj.rSubdomains = [0.3 0.1];
+            obj.mSubdomains = [];
             obj.tolSameNode = 1e-14;
             obj.loadFilenames;
         end
@@ -43,7 +45,7 @@ classdef levelSetTesting_Albert < handle
             obj.Kel = {};
             obj.U   = {};
 
-            stringNames = ["UL_r0_3-20x20-Hole", "UL_r0_1-20x20-Hole"];
+            stringNames = ["UL_r0_3-20x20", "UL_r0_1-20x20"];
             for i = 1:size(obj.nSubdomains,2)
                 data = load(stringNames(1,i));
                 obj.Kel = cat(1, obj.Kel, {data.L});
@@ -65,14 +67,14 @@ classdef levelSetTesting_Albert < handle
             s.coord  = V(:,1:2);
             s.connec = F;
             bgMesh   = Mesh.create(s);
-            mS = {};
+            mS = bgMesh;
 
-            for i = 1:size(obj.nSubdomains,2)
-                lvSet = obj.createLevelSetFunction(bgMesh, i);
-                uMesh = obj.computeUnfittedMesh(bgMesh,lvSet);
-                ms    = uMesh.createInnerMesh();
-                mS = cat(2, mS, ms);
-            end
+            % for i = 1:size(obj.nSubdomains,2)
+            %     lvSet = obj.createLevelSetFunction(bgMesh, i);
+            %     uMesh = obj.computeUnfittedMesh(bgMesh,lvSet);
+            %     ms    = uMesh.createInnerMesh();
+            %     mS = cat(2, mS, ms);
+            % end
 
             
         end
@@ -99,7 +101,8 @@ classdef levelSetTesting_Albert < handle
             s.rsubdomains   = obj.rSubdomains;
             s.meshReference = mR;
             s.tolSameNode = obj.tolSameNode;
-            m = MeshCreatorFromRVE_Albert(s);
+            %m = MeshCreatorFromRVE_Albert(s);
+            m = MeshCreatorFromRVE(s);
             [mD,mSb,iC,~,lG,iCR, discMesh] = m.create();
         end
         
@@ -159,30 +162,6 @@ classdef levelSetTesting_Albert < handle
             obj.bcApplier           = BCApplier(s);
         end
 
-        function [LHSr,RHSr,lhs] = createElasticProblem(obj)
-            u = LagrangianFunction.create(obj.meshDomain,obj.meshDomain.ndim,'P1');
-            material = obj.createMaterial(obj.meshDomain);
-            [lhs,LHSr] = obj.computeStiffnessMatrix();
-            RHSr       = obj.computeForces(lhs,u);
-        end
-
-        function material = createMaterial(obj,mesh)
-            [young,poisson] = obj.computeElasticProperties(mesh);
-            s.type    = 'ISOTROPIC';
-            s.ptype   = 'ELASTIC';
-            s.ndim    = mesh.ndim;
-            s.young   = young;
-            s.poisson = poisson;
-            tensor    = Material.create(s);
-            material  = tensor;
-        end
-
-        function [young,poisson] = computeElasticProperties(~,mesh)
-            E  = 1;
-            nu = 1/3;
-            young   = ConstantFunction.create(E,mesh);
-            poisson = ConstantFunction.create(nu,mesh);
-        end
 
         function [LHS,LHSr] = computeStiffnessMatrix(obj, dispFun)
             

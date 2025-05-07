@@ -12,6 +12,7 @@ classdef Coarse < handle
 
     properties (Access = private)
         LHS
+        U
         Kel
         boundaryConditions
         bcApplier
@@ -52,9 +53,25 @@ classdef Coarse < handle
         function init(obj,cParams)
             obj.mesh    = cParams.mesh;
             obj.RVE     = cParams.RVE;
-            obj.Kel     = repmat(obj.RVE.Kcoarse,[1,1,obj.mesh.nelem]);
+            %obj.Kel     = repmat(obj.RVE.Kcoarse,[1,1,obj.mesh.nelem]);
             obj.DirCond = cParams.DirCond;
-            obj.dispFun = LagrangianFunction.create(obj.mesh, obj.RVE.ndimf,'P1');
+            
+            obj.Kel = [];
+            obj.U = [];
+
+            for i=1:size(obj.RVE,1)
+                for j=1:size(obj.RVE,2)
+                    obj.Kel = cat(3, obj.Kel, obj.RVE{i,j}.Kcoarse);
+                    obj.U   = cat(3, obj.U, obj.RVE{i,j}.U);
+                end
+            end
+
+            
+
+
+            obj.dispFun = LagrangianFunction.create(obj.mesh,obj.RVE{1,1}.ndimf,'P1');
+            %obj.dispFun = LagrangianFunction.create(obj.mesh, obj.RVE{1,1}.ndimf,'P1');
+            
         end
 
         function dim = getDims(obj)
@@ -126,16 +143,35 @@ classdef Coarse < handle
         end
 
         function Fcoarse = projectExternalForce(obj,Ffine)
-            Ut      = obj.RVE.U';
-            Fcoarse = Ut*Ffine;
+           %--------------------------------------------
+           Fcoarse = [];
+           a = 1;
+           for i = 1:size(obj.RVE,1)
+                for j = 1:size(obj.RVE,2)
+                    Fcoarse = cat(3, Fcoarse, obj.U(:,:,a)'*Ffine(:,a));
+                    a = a+1;
+                end
+
+           end
+            %Ut      = obj.U';
+            %Fcoarse = Ut*Ffine;
         end
 
         function u = reconstructSolution(obj,uCoarse)
             nElem = obj.mesh.nelem;
             dofConec = obj.dispFun.getDofConnec();
-            for ielem = 1:nElem
-                uCelem = uCoarse(dofConec(ielem,:));
-                u(:,ielem) =  obj.RVE.U*uCelem;
+            % for ielem = 1:nElem
+            %     uCelem = uCoarse(dofConec(ielem,:));
+            %     u(:,ielem) =  obj.RVE.U*uCelem;
+            % end
+            
+            ielem = 1;
+            for i = 1:size(obj.RVE,1)
+                for j = 1:size(obj.RVE,2)
+                    uCelem = uCoarse(dofConec(ielem,:));
+                    u(:,ielem) =  obj.RVE{i,j}.U*uCelem;
+                    ielem = ielem+1;
+                end
             end
         end
 

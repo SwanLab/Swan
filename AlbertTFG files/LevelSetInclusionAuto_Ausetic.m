@@ -33,12 +33,13 @@ classdef LevelSetInclusionAuto_Ausetic < handle
 
     methods (Access = public)
 
-        function [obj, u, L] = LevelSetInclusionAuto_Ausetic()
+        function [obj, u, L, mesh] = LevelSetInclusionAuto_Ausetic()
             obj.init();
             obj.createMesh();
             
             %% New ugly chunk of code warning
             [u, L] = obj.doElasticProblemHere();
+            mesh = obj.mesh;
             
             % z.mesh      = obj.mesh;
             % z.fValues   = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
@@ -297,7 +298,7 @@ classdef LevelSetInclusionAuto_Ausetic < handle
             m.material = obj.material;
 
             m.quadratureOrder = 2;
-            lhs               = LHSintegrator.create(m);
+            lhs               = LHSIntegrator.create(m);
             obj.stiffness     = lhs.compute();
         end
 
@@ -310,7 +311,7 @@ classdef LevelSetInclusionAuto_Ausetic < handle
             n.material     = obj.material;
             n.globalConnec = obj.mesh.connec;
 
-            RHSint = RHSintegrator.create(n);
+            RHSint = RHSIntegrator.create(n);
             rhs    = RHSint.compute();
             % Perhaps move it inside RHSint?
             if strcmp(cParams.solverType,'REDUCED')
@@ -333,17 +334,17 @@ classdef LevelSetInclusionAuto_Ausetic < handle
             test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); % !!
              obj.dLambda  = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1');
              Cg = lhs.compute(obj.dLambda,test); 
-             % 
-             % for i = 1:size(Cg,1)
-             %    ci = Cg(i,:);
-             %    maxRow = max(ci);
-             %    if maxRow > 0
-             %        ci(ci == maxRow) = 1;
-             %        ci(ci < maxRow) = 0;
-             %        Cg(i,:) = ci;
-             %    end
-             % 
-             % end
+
+             for i = 1:size(Cg,1)
+                ci = Cg(i,:);
+                maxRow = max(ci);
+                if maxRow > 0
+                    ci(ci == maxRow) = 1;
+                    ci(ci < maxRow) = 0;
+                    Cg(i,:) = ci;
+                end
+
+             end
         end
 
         function Cg = computeCmatP2(obj)
@@ -353,7 +354,7 @@ classdef LevelSetInclusionAuto_Ausetic < handle
             s.nnodes                 = obj.mesh.nnodes;
 
             % lhs = LHSintegrator_ShapeFunction_fun(s);
-            lhs = LHSintegrator_MassBoundary_albert(s);
+            lhs = LHSIntegrator_MassBoundary_albert(s);
             test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); % !!
              obj.dLambda  = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1');
              Cg = lhs.compute(obj.dLambda,test);      
@@ -366,7 +367,7 @@ classdef LevelSetInclusionAuto_Ausetic < handle
             s.nnodes                 = obj.mesh.nnodes;
             s.mesh = obj.boundaryMeshJoined;
 
-            lhs = LHSintegrator_ShapeFunction_fun(s);
+            lhs = LHSIntegrator_ShapeFunction_fun(s);
             % lhs = LHSintegrator_MassBoundary_albert(s);
             test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); % !!
             ndimf  = 2;
@@ -416,7 +417,7 @@ classdef LevelSetInclusionAuto_Ausetic < handle
         function Cg = computeCmatEdgeCorner(obj,data)
             s.quadType = 2;
             s.mesh     = obj.boundaryMeshJoined;
-            lhs = LHSintegrator_ShapeFunction_fun(s);
+            lhs = LHSIntegrator_ShapeFunction_fun(s);
             test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); % !!
             ndimf  = 2;
             Lx     = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
@@ -471,7 +472,7 @@ classdef LevelSetInclusionAuto_Ausetic < handle
             function Cg = computeCmatRB(obj,data)
             s.quadType = 2;
             s.mesh     = obj.boundaryMeshJoined;
-            lhs = LHSintegrator_ShapeFunction_fun(s);
+            lhs = LHSIntegrator_ShapeFunction_fun(s);
             test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); % !!
             ndimf  = 2;
             minx   = min(obj.mesh.coord(:,1));
@@ -617,7 +618,7 @@ classdef LevelSetInclusionAuto_Ausetic < handle
             test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1');
             s.mesh = obj.boundaryMeshJoined;
             s.quadType = 2;
-            rhs = RHSintegrator_ShapeFunction(s);
+            rhs = RHSIntegratorShapeFunction(s);
 
             f1x = @(x) [1/(4)*(1-x(1,:,:)).*(1-x(2,:,:));...
                     0*x(2,:,:)  ];

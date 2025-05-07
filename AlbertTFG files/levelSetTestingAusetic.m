@@ -26,6 +26,7 @@ classdef levelSetTestingAusetic < handle
             mRcoarse = obj.createReferenceCoarseMesh(mR);
             u = obj.createCoarseElasticProblem(mRcoarse);
             u = u(:);
+            
             %CoarsePlotSolution(u, discMesh, [], "Ausetic Fine test")
             %EIFEMtesting.plotSolution(u, discMesh, 20, 1, 0, [], 0)
             

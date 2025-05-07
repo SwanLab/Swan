@@ -34,7 +34,7 @@ classdef CoarsePlotSolution < handle
 
         function makeHole(obj, u, mesh, bcApplier,outputFileName,r)
                     obj.init(u, mesh, bcApplier,outputFileName,r);
-                    uH = obj.createXHole();
+                    uH = obj.createUHole();
                     meshH = obj.createHole();
                     obj.plot(uH, meshH, bcApplier, outputFileName);
         
@@ -49,12 +49,12 @@ classdef CoarsePlotSolution < handle
 
         end
 
-        function X = createXHole(obj)
-            X = obj.u;
+        function U = createUHole(obj)
+            U = obj.u;
 
             for i = obj.mesh.nnodes:-1:1
                 if sqrt( (obj.mesh.coord(i,1) )^2 + (obj.mesh.coord(i,2))^2 ) <= obj.r
-                    X(2*i-1:2*i) = [];
+                    U(2*i-1:2*i) = [];
                 end
 
             end

@@ -2,6 +2,7 @@ classdef FeFunction < BaseFunction
     
     properties (Constant, Access = public)
         fType = 'FE'
+        
     end
 
     properties (GetAccess = public, SetAccess = protected)

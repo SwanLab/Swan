@@ -32,12 +32,13 @@ classdef LevelSetInclusionAuto_raulHole < handle
 
     methods (Access = public)
 
-        function [obj, u, L] = LevelSetInclusionAuto_raulHole(r, i)
+        function [obj, u, L, mesh] = LevelSetInclusionAuto_raulHole(r, i)
             obj.init(r, i)
             obj.createMesh();
             
             %% New ugly chunk of code warning
             [u, L] = obj.doElasticProblemHere();
+            mesh = obj.mesh;
             
             % z.mesh      = obj.mesh;
             % z.fValues   = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
@@ -287,7 +288,7 @@ classdef LevelSetInclusionAuto_raulHole < handle
             m.material = obj.material;
 
             m.quadratureOrder = 2;
-            lhs               = LHSintegrator.create(m);
+            lhs               = LHSIntegrator.create(m);
             obj.stiffness     = lhs.compute();
         end
 
@@ -300,7 +301,7 @@ classdef LevelSetInclusionAuto_raulHole < handle
             n.material     = obj.material;
             n.globalConnec = obj.mesh.connec;
 
-            RHSint = RHSintegrator.create(n);
+            RHSint = RHSIntegrator.create(n);
             rhs    = RHSint.compute();
             % Perhaps move it inside RHSint?
             if strcmp(cParams.solverType,'REDUCED')
@@ -449,7 +450,7 @@ classdef LevelSetInclusionAuto_raulHole < handle
             Cg = [Cg,Cg2];
         end
 
-            function Cg = computeCmatRB(obj,data)
+        function Cg = computeCmatRB(obj,data)
             s.quadType = 2;
             s.mesh     = obj.boundaryMeshJoined;
             lhs = LHSintegrator_ShapeFunction_fun(s);
@@ -534,17 +535,6 @@ classdef LevelSetInclusionAuto_raulHole < handle
             dim         = d;
         end
 
-%         function [u, L] = computeDisplacementHere(obj)
-%             o.stiffness = obj.stiffness;
-%             o.forces    = obj.forces;
-%             [u,L]       = obj.problemSolver.solve(o);
-%             z.mesh      = obj.mesh;
-%             z.fValues   = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-%             z.order     = 'P1';
-%             obj.uFun    = LagrangianFunction(z);
-%             uSplit      = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-%             obj.displacementFun.fValues = uSplit;
-%         end
 
         function [u, L] = computeDisplacementHere(obj,c, rdir)
             K = obj.stiffness;
@@ -598,7 +588,7 @@ classdef LevelSetInclusionAuto_raulHole < handle
             test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1');
             s.mesh = obj.boundaryMeshJoined;
             s.quadType = 2;
-            rhs = RHSintegrator_ShapeFunction(s);
+            rhs = RHSIntegratorShapeFunction(s);
 
             f1x = @(x) [1/(4)*(1-x(1,:,:)).*(1-x(2,:,:));...
                     0*x(2,:,:)  ];
@@ -647,10 +637,11 @@ classdef LevelSetInclusionAuto_raulHole < handle
 
         end
 
-         function rDir = RHSweak(obj, c)
+        function rDir = RHSweak(obj, c)
                 rDir = eye(size(c,2));
 
-         end
+        end
 
     end
+
 end

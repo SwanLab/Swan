@@ -33,12 +33,13 @@ classdef LevelSetInclusionAuto_raul < handle
 
     methods (Access = public)
 
-        function [obj, u, L] = LevelSetInclusionAuto_raul(r, i)
+        function [obj, u, L, mesh] = LevelSetInclusionAuto_raul(r, i)
             obj.init(r, i)
             obj.createMesh();
             
             %% New ugly chunk of code warning
             [u, L] = obj.doElasticProblemHere();
+            mesh = obj.mesh;
             
             % z.mesh      = obj.mesh;
             % z.fValues   = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
@@ -296,7 +297,7 @@ classdef LevelSetInclusionAuto_raul < handle
             m.material = obj.material;
 
             m.quadratureOrder = 2;
-            lhs               = LHSintegrator.create(m);
+            lhs               = LHSIntegrator.create(m);
             obj.stiffness     = lhs.compute();
         end
 
@@ -309,7 +310,7 @@ classdef LevelSetInclusionAuto_raul < handle
             n.material     = obj.material;
             n.globalConnec = obj.mesh.connec;
 
-            RHSint = RHSintegrator.create(n);
+            RHSint = RHSIntegrator.create(n);
             rhs    = RHSint.compute();
             % Perhaps move it inside RHSint?
             if strcmp(cParams.solverType,'REDUCED')
@@ -605,7 +606,7 @@ classdef LevelSetInclusionAuto_raul < handle
             test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1');
             s.mesh = obj.boundaryMeshJoined;
             s.quadType = 2;
-            rhs = RHSintegrator_ShapeFunction(s);
+            rhs = RHSIntegratorShapeFunction(s);
 
             f1x = @(x) [1/(4)*(1-x(1,:,:)).*(1-x(2,:,:));...
                     0*x(2,:,:)  ];

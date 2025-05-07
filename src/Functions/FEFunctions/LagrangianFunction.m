@@ -347,6 +347,7 @@ classdef LagrangianFunction < FeFunction
             s.setFValues(-a.fValues);
         end
 
+        
     end
 
     methods (Access = protected)
@@ -531,6 +532,7 @@ classdef LagrangianFunction < FeFunction
             end            
         end
 
+        
     end
 
 end

@@ -40,7 +40,7 @@ classdef LHSintegrator_MassBoundary_albert < handle
             a.trial = trial;
 
 
-            lhs = LHSintegrator.create(a);
+            lhs = LHSIntegrator.create(a);
 
             lhs = lhs.compute();
             [iLoc,jLoc,vals] = find(lhs);

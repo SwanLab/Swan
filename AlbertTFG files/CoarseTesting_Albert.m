@@ -1,36 +1,47 @@
-classdef CoarseTestingAusetic < handle
+classdef CoarseTesting_Albert < handle
 
     properties (Access = public)
 
     end
     properties (Access = private)
+        nSubdomains
+        rSubdomains
+        mSubdomains
+        ic
+        icr
+        lg
+        bs
+
         meshDomain
+        cellMeshes
         boundaryConditions
         bcApplier
         LHS
         RHS
-        RmeshFilename
+        r
 
-        fileNameCoase
+        fileNameCorase
         tolSameNode
 
     end
 
 
-    properties (Access = private)
-        nSubdomains
-    end
-
     methods (Access = public)
 
-        function obj = CoarseTestingAusetic()
+        function obj = CoarseTesting_Albert()
             close all
             obj.init()
 
-            mR = obj.createReferenceMesh_Ausetic();
+            mR = obj.createReferenceMesh();
             bS  = mR.createBoundaryMesh();
             [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain(mR);
             obj.meshDomain = mD;
+            obj.cellMeshes = mSb;
+            obj.ic = iC;
+            obj.icr = iCR;
+            obj.lg = lG;
+            obj.bs;
+
             [bC,dir] = obj.createBoundaryConditions(obj.meshDomain);
             obj.boundaryConditions = bC;
             obj.createBCapplier()
@@ -48,6 +59,7 @@ classdef CoarseTestingAusetic < handle
             % Meifem       = obj.createEIFEMPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
             Milu         = obj.createILUpreconditioner(LHS);
             Mcoarse       = obj.createCoarsePreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
+            Mid            = @(r) r;
 
             MiluCG = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
 
@@ -55,7 +67,7 @@ classdef CoarseTestingAusetic < handle
             tic
             x0 = zeros(size(RHSf));
 
-            Mmult = @(r) Preconditioner.multiplePrec(r,MiluCG,Mcoarse,MiluCG,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
+            Mmult = @(r) Preconditioner.multiplePrec(r,Milu,Mcoarse,Milu,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
             tic
             %           tau = @(r,A) 1;
             [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
@@ -96,13 +108,32 @@ classdef CoarseTestingAusetic < handle
     methods (Access = private)
 
         function init(obj)
-            obj.RmeshFilename = "DEF_Q4auxL_1.mat";
-            obj.nSubdomains  = [15 1]; %nx ny
-            %obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
-            obj.fileNameCoase = 'UL-Ausetic.mat';
-            obj.tolSameNode = 1e-10;
+           % obj.nSubdomains    = [2 1]; %nx ny
+            %obj.fileNameCorase = ["UL_r0_1-20x20.mat", "UL_r0_15-20x20.mat", "UL_r0_2-20x20.mat", "UL_r0_25-20x20.mat", "UL_r0_3-20x20.mat", "UL_r0_35-20x20.mat", "UL_r0_45-20x20.mat", "UL_r0_5-20x20.mat", "UL_r0_55-20x20.mat", "UL_r0_6-20x20.mat", "UL_r0_65-20x20.mat", "UL_r0_7-20x20.mat", "UL_r0_75-20x20.mat", "UL_r0_8-20x20.mat", "UL_r0_85-20x20.mat"]; %
+            obj.fileNameCorase = ["UL_r0_1-20x20.mat", "UL_r0_5-20x20.mat", "UL_r0_85-20x20.mat"];
+            %obj.fileNameCorase = ["UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat"];
+            %obj.rSubdomains    = [0.1, 0.1, 0.1, 0.1];
+            obj.nSubdomains    = size(obj.fileNameCorase');
+            obj.mSubdomains    = [];
+            obj.tolSameNode    = 1e-10;
+            obj.r = obj.loadRadius();
+                      
+
 
         end
+
+        function r = loadRadius(obj)
+            r = zeros(size(obj.nSubdomains));
+            for i = 1:obj.nSubdomains(1,2)
+                for j = 1:obj.nSubdomains(1,1)
+                    Data = load(obj.fileNameCorase(i,j));
+                    r(i,j) = Data.R;
+                end
+
+            end
+
+        end
+
 
         function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomain(obj,mR)
             s.nsubdomains   = obj.nSubdomains; %nx ny
@@ -113,20 +144,10 @@ classdef CoarseTestingAusetic < handle
         end
 
 
-        function mS = createReferenceMesh_Ausetic(obj)
-            mS = obj.loadAuseticMesh();
-            % mS = obj.createStructuredMesh();
+        function mS = createReferenceMesh(obj)
+            mS = obj.createStructuredMesh();
             %   mS = obj.createMeshFromGid();
             % mS = obj.createEIFEMreferenceMesh();
-        end
-
-        function mesh = loadAuseticMesh(obj)
-            Data = load(obj.RmeshFilename);
-            s.coord  = Data.EIFEoper.MESH.COOR;
-            s.connec = Data.EIFEoper.MESH.CN;
-
-            mesh = Mesh.create(s);
-
         end
 
 
@@ -145,27 +166,8 @@ classdef CoarseTestingAusetic < handle
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
             s.connec = F;
-            bgMesh = Mesh.create(s);
-
-
-            % bgMesh   = obj.createReferenceMesh();
-            lvSet    = obj.createLevelSetFunction(bgMesh);
-            uMesh    = obj.computeUnfittedMesh(bgMesh,lvSet);
-            mS       = uMesh.createInnerMesh();
-
-
-
-            % % Generate coordinates
-            % x1 = linspace(0,1,2);
-            % x2 = linspace(0,1,2);
-            % % Create the grid
-            % [xv,yv] = meshgrid(x1,x2);
-            % % Triangulate the mesh to obtain coordinates and connectivities
-            % [F,coord] = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            % 
-            % s.coord    = coord(:,1:2);
-            % s.connec   = F;
-            % mS         = Mesh.create(s);
+            mS = Mesh.create(s);
+          
         end
 
 
@@ -189,7 +191,7 @@ classdef CoarseTestingAusetic < handle
 
 
         function mS = createEIFEMreferenceMesh(obj)
-            filename = obj.fileNameCoase;
+            filename = obj.fileNameCorase;
             load(filename);
             s.coord    = EIFEoper.MESH.COOR;
             isMin = s.coord==min(s.coord);
@@ -244,7 +246,30 @@ classdef CoarseTestingAusetic < handle
         end
 
 
-        function material = createMaterial(obj,mesh)
+        function material = createMaterial(obj)
+            
+            material = cell(size(obj.fileNameCorase));
+
+            for i = 1:obj.nSubdomains(1,2)
+                for j = 1:obj.nSubdomains(1,1)
+                    [young,poisson] = obj.computeElasticProperties(obj.cellMeshes{i,j}, obj.r(i,j) );
+
+                    s.type        = 'ISOTROPIC';
+                    s.ptype       = 'ELASTIC';
+                    s.ndim        = obj.cellMeshes{i,j}.ndim;
+                    s.young       = young;
+                    s.poisson     = poisson;
+                    tensor        = Material.create(s);
+                    material{i,j} = tensor;
+
+                end
+            end
+      
+
+        end
+
+
+        function material = createMaterialBasic(obj,mesh)
             [young,poisson] = obj.computeElasticProperties(mesh);
             s.type    = 'ISOTROPIC';
             s.ptype   = 'ELASTIC';
@@ -255,11 +280,20 @@ classdef CoarseTestingAusetic < handle
             material  = tensor;
         end
 
-        function [young,poisson] = computeElasticProperties(obj,mesh)
-            E  = 1;
+        function [young,poisson] = computeElasticProperties(obj,mesh, radius)
+            E1  = 1;
+            E2 = E1/1000;
             nu = 1/3;
-            young   = ConstantFunction.create(E,mesh);
+            x0=mean(mesh.coord(:,1));
+            y0=mean(mesh.coord(:,2));
+%             young   = ConstantFunction.create(E,mesh);
+%             poisson = ConstantFunction.create(nu,mesh);
+            f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<radius)*E2 + ...
+                        (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=radius)*E1 ; 
+%                                      x(2,:,:).*0 ];
+            young   = AnalyticalFunction.create(f,1,mesh);
             poisson = ConstantFunction.create(nu,mesh);
+            
         end
 
         function [Dir,PL] = createRawBoundaryConditions(obj)
@@ -303,7 +337,6 @@ classdef CoarseTestingAusetic < handle
             fvalues                 = zeros(mesh.nnodes*mesh.ndim,1);
             fvalues(pointload.dofs) = pointload.values;
             fvalues                 = reshape(fvalues,mesh.ndim,[])';
-            % pointload.fun.fValues   = fvalues;
             pointload.fun.setFValues(fvalues);
 
             s.pointloadFun = pointload;
@@ -315,16 +348,58 @@ classdef CoarseTestingAusetic < handle
 
 
         function [LHSr,RHSr,lhs] = createElasticProblem(obj)
-            u = LagrangianFunction.create(obj.meshDomain,obj.meshDomain.ndim,'P1');
-            material = obj.createMaterial(obj.meshDomain);
-            [lhs,LHSr] = obj.computeStiffnessMatrix(obj.meshDomain,u,material);
-            RHSr       = obj.computeForces(lhs,u);
+            u = LagrangianFunction.create(obj.cellMeshes{1,1},obj.cellMeshes{1,1}.ndim,'P1');
+            uBasic = LagrangianFunction.create(obj.meshDomain,obj.meshDomain.ndim,'P1');
+            material = obj.createMaterial();
+            %materialBasic = obj.createMaterialBasic(obj.meshDomain);
+            [lhs,LHSr] = obj.computeStiffnessMatrix(u,material);
+            %[lhsBasic,~] = obj.computeStiffnessMatrixBasic(uBasic,materialBasic);
+            RHSr       = obj.computeForces(lhs,uBasic);
         end
 
 
-        function [LHS,LHSr] = computeStiffnessMatrix(obj,mesh,dispFun,mat)
+        function [LHS,LHSr] = computeStiffnessMatrix(obj,dispFun,mat)
             s.type     = 'ElasticStiffnessMatrix';
-            s.mesh     = mesh;
+            s.quadratureOrder = 2;
+            s.test     = dispFun;
+            s.trial    = dispFun;
+            % LHScell    = cell(size(obj.rSubdomains));
+            % LHScellGlobal = LHScell;
+            LHSvect = [];
+
+            for i = 1:obj.nSubdomains(1,2)
+                for j = 1:obj.nSubdomains(1,1)
+                    s.mesh     = obj.cellMeshes{i,j};
+                    s.material = mat{i,j};
+                    
+                    lhs          = LHSIntegrator.create(s);
+                    % LHScell{i,j} = full(lhs.compute());
+                    LHSvect = cat(3, LHSvect, full(lhs.compute()) );
+                    
+                end
+            end
+
+            p.nSubdomains = obj.nSubdomains;
+            p.interfaceConnec = obj.ic;
+            p.interfaceConnecReshaped = obj.icr;
+            p.locGlobConnec = obj.lg;
+            p.nBoundaryNodes = obj.bs;
+            p.nReferenceNodes = obj.cellMeshes{1,1}.nnodes;
+            p.nNodes = obj.meshDomain.nnodes;
+            p.nDimf = obj.meshDomain.ndim;
+            
+            
+            
+            dddm = DomainDecompositionDofManager(p);
+            LHS = dddm.local2globalMatrix(LHSvect);
+            LHSr = obj.bcApplier.fullToReducedMatrixDirichlet(LHS);
+            
+        end
+
+
+        function [LHS,LHSr] = computeStiffnessMatrixBasic(obj,dispFun,mat)
+            s.type     = 'ElasticStiffnessMatrix';
+            s.mesh     = obj.meshDomain;
             s.test     = dispFun;
             s.trial    = dispFun;
             s.material = mat;
@@ -333,6 +408,7 @@ classdef CoarseTestingAusetic < handle
             LHS = lhs.compute();
             LHSr = obj.bcApplier.fullToReducedMatrixDirichlet(LHS);
         end
+
 
         function RHS = computeForces(obj,stiffness,u)
             s.type      = 'Elastic';
@@ -350,7 +426,7 @@ classdef CoarseTestingAusetic < handle
 
         function Meifem = createEIFEMPreconditioner(obj,mR,dir,iC,lG,bS,iCR,dMesh)
             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
-            EIFEMfilename = obj.fileNameCoase;
+            EIFEMfilename = obj.fileNameCorase;
             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
             filename        = EIFEMfilename;
             s.RVE           = CoarseTrainedRVE(filename);
@@ -371,14 +447,23 @@ classdef CoarseTestingAusetic < handle
 
          function Mcoarse = createCoarsePreconditioner(obj,mR,dir,iC,lG,bS,iCR,dMesh)
             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
-            Coarsefilename = obj.fileNameCoase;
             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
-            filename        = Coarsefilename;
-            s.RVE           = CoarseTrainedRVE(filename);
-            s.mesh          = obj.createCoarseMesh(mR);
+            
+            RVE = cell(size(obj.nSubdomains));
+
+            for i = 1:obj.nSubdomains(1,2)
+                for j = 1:obj.nSubdomains(1,1)
+                    filename = obj.fileNameCorase(i,j);
+                    RVE{i,j} = CoarseTrainedRVE(filename);  %%Passar vector de filenames
+                end
+            end
+            
+            
+            s.RVE           = RVE;
+            s.mesh          = obj.createCoarseMesh(obj.cellMeshes{1,1});
             s.DirCond       = dir;
-            s.nSubdomains = obj.nSubdomains;
-            coarseSolver           = Coarse(s);
+            s.nSubdomains   = obj.nSubdomains;
+            coarseSolver    = Coarse(s);
 
 
             ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
@@ -415,7 +500,7 @@ classdef CoarseTestingAusetic < handle
         end
 
         function Milu = createILUpreconditioner(obj,LHS)
-            s.LHS = LHS;
+            s.LHS = sparse(LHS);
             s.type = 'ILU';
             M = Preconditioner.create(s);
             Milu = @(r) M.apply(r);
