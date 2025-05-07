@@ -2,13 +2,19 @@ close all;
 clear;
 clc;
 
+% Handle paths
+addpath('src/NeuralNetwork')
+addpath('src/Problems/Optimization')
+addpath('Tutorials/ChomogNetworkTutorial')
+addpath('Tutorials/ChomogNetworkTutorial/Datasets')
+
 % Load trained network
 load('Tutorials/ChomogNetworkTutorial/ChomogNetwork.mat')
 
 %% Initialize the optimization problem
 
 % Define the problem constraint parameters
-A_ellipse = 0.47^2 * pi;
+A_ellipse = 0.15^2 * pi;
 lower_bounds = [10^-8; 10^-8];
 upper_bounds = [0.5; 0.5];
 

@@ -33,8 +33,9 @@ classdef Network < handle
         function dc = backprop(obj,Yb,dLF)
             [W,~] = obj.learnableVariables.reshapeInLayerForm();
             a = obj.aValues;
-            nPl = obj.neuronsPerLayer;
             nLy = obj.nLayers;
+
+            nPl = obj.neuronsPerLayer;
             m = length(Yb);
             obj.deltag = cell(nLy,1);
             dcW = cell(nLy-1,1);
@@ -44,7 +45,7 @@ classdef Network < handle
                 if k == nLy
                     obj.deltag{k} = dLF.*g_der;
                 else
-                    obj.deltag{k} = (W{k}*obj.deltag{k+1}')'.*g_der;
+                    obj.deltag{k} = (W{k}*obj.deltag{k+1}')'*g_der;
                 end
                 dcW{k-1} = (1/m)*(a{k-1}'*obj.deltag{k});
                 dcB{k-1} = (1/m)*(sum(obj.deltag{k},1));
@@ -56,22 +57,19 @@ classdef Network < handle
             end
         end
 
-        function dy = networkGradient(obj,X)
+        function J = networkJacobian(obj,X)
             obj.computeAvalues(X);
+
             [W,~] = obj.learnableVariables.reshapeInLayerForm();
             a = obj.aValues;
             nLy = obj.nLayers;
-            for k = nLy-1:-1:1
-                [~,a_der] = obj.actFCN(a{k+1},k+1);
-                a_der = diag(a_der);
-                parDer = a_der * W{k}';
-                if k == nLy-1
-                    grad = parDer;
-                else
-                    grad = grad * parDer;
-                end
+            J = eye(size(W{end},2));
+
+            for k = nLy:-1:2
+                [~,a_der] = obj.actFCN(a{k},k);
+                parDer = W{k-1} * diag(a_der);
+                J = parDer * J;
             end
-            dy = grad';
         end
 
         function g = computeLastH(obj,X)
