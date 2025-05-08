@@ -28,6 +28,7 @@ classdef BcContinuumDamage < handle
             obj.mesh = cParams.mesh;
         end
 
+
         function setLoadingBCLength(obj,set)
             op = set(2:end) - set(1:end-1);
             idx = find(op < 0, 1); %Maybe putting a +1 will help to not repeat any BC. 

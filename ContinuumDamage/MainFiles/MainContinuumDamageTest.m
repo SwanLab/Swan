@@ -56,37 +56,42 @@ cParams.r1 = 20;
 tester = TestingContinuumDamage(cParams);
 data = tester.compute();
 
-data.displacement.field.plot
-data.damage.field.plot
-colorbar
-caxis([0 1-cParams.H])
 
-figure()
-plot(data.displacement.value,data.damage.maxValue)
-title('Damage-Displacement')
+plotClass = ContinuumDamagePlotter(data);
 
-figure()
-plot(data.displacement.value,data.reaction)
-title('Force-Displacement')
+plotClass.plotDisplacementField();
 
-figure()
-plot(data.displacement.value,data.totalEnergy)
-title('Energy - Displacement')
-
-figure()
-plot(data.displacement.value,data.damagedMaterial)
-title('Material - Displacement')
-
-figure()
-plot(data.r.maxValue,data.q.maxValue)
-title('r - q')
-
-figure()
-plot(data.r.maxValue,data.damage.maxValue)
-title('Damage-r')
-
-figure()
-plot(data.r.maxValue,data.reaction)
-title('Force-r')
+% data.displacement.field.plot
+% data.damage.field.plot
+% colorbar
+% caxis([0 1-cParams.H])
+% 
+% figure()
+% plot(data.displacement.value,data.damage.maxValue)
+% title('Damage-Displacement')
+% 
+% figure()
+% plot(data.displacement.value,data.reaction)
+% title('Force-Displacement')
+% 
+% figure()
+% plot(data.displacement.value,data.totalEnergy)
+% title('Energy - Displacement')
+% 
+% figure()
+% plot(data.displacement.value,data.damagedMaterial)
+% title('Material - Displacement')
+% 
+% figure()
+% plot(data.r.maxValue,data.q.maxValue)
+% title('r - q')
+% 
+% figure()
+% plot(data.r.maxValue,data.damage.maxValue)
+% title('Damage-r')
+% 
+% figure()
+% plot(data.r.maxValue,data.reaction)
+% title('Force-r')
 
 %tester.compareWithElasticProblem(data.displacement.fValues,uRef.fValues);
