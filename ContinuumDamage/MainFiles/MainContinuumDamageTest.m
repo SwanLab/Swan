@@ -32,13 +32,13 @@ cParams.mesh.meshN = 1;
 cParams.mesh.meshM = 1;
 
 cParams.bc.bcType = 'displacementTraction'; %'FORCE'
-cParams.bc.bcValueSetLoading = 0:1e-3:0.3;
+cParams.bc.bcValueSetLoading = [0:1e-3:0.3,0.3:-1e-3:0];
 cParams.bc.bcValueSetUnLoading = [];
 
 cParams.material.E = 210;
 cParams.material.nu = 0.3;
 
-cParams.qLaw.type = 'Exp'; %'Exp'
+cParams.qLaw.type = 'Linear'; %'Exp'
 cParams.qLaw.A = 2;
 cParams.qLaw.qInfExp = 0.5;
 
@@ -51,7 +51,7 @@ cParams.solver.scale = 'MACRO';
 cParams.tol = 1e-8;
 cParams.H = 0.5;
 cParams.r0 = 0.4;
-cParams.r1 = 2;
+cParams.r1 = 20;
 
 tester = TestingContinuumDamage(cParams);
 data = tester.compute();

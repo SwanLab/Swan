@@ -3,7 +3,6 @@ classdef BcContinuumDamage < handle
     properties (Access = public)
         type
         bcValueSet
-        valueSetLenght
         LoadingBcLength
         mesh
     end
@@ -23,10 +22,16 @@ classdef BcContinuumDamage < handle
     methods (Access =  private)
         function init(obj,cParams) 
             obj.type = cParams.bcType;
-            obj.bcValueSet = cat(2,cParams.bcValueSetLoading,cParams.bcValueSetUnLoading(2:end));
+            %obj.bcValueSet = cat(2,cParams.bcValueSetLoading,cParams.bcValueSetUnLoading(2:end));
+            obj.setLoadingBCLength(Params.bcValueSet);
             obj.LoadingBcLength = size(cParams.bcValueSetLoading,2);
             obj.mesh = cParams.mesh;
-            obj.valueSetLenght = size(obj.bcValueSet,2);
+        end
+
+        function setLoadingBCLength(obj,set)
+            op = set(2:end) - set(1:end-1);
+            idx = find(op < 0, 1); %Maybe putting a +1 will help to not repeat any BC. 
+            obj.LoadingBcLength = idx;
         end
 
         function  bc = bcSetType (obj, s)
