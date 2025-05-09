@@ -62,13 +62,13 @@ classdef AirfoilOptimizer < handle
        function computeOptimization(obj)
            diff     = 1;
            iter     = 1;
-           maxIter  = 5e3;
+           maxIter  = 1e4;
 
            while diff > obj.tol && iter < maxIter
 
-               if (iter > 130)
-                   obj.learningRate = 1;
-               end
+               % if (iter > 130)
+               %     obj.learningRate = 1;
+               % end
 
                gradient          = obj.optimizer.computeGradient(obj.optimalParams);
                updatedParams     = obj.optimalParams + obj.learningRate * gradient;

@@ -41,7 +41,7 @@ s.networkParams.OUtype = 'linear';
 % Train the model
 opt = OptimizationProblem(s);
 opt.solve();
-%opt.plotCostFnc();
+opt.plotCostFnc();
 
 % Compute Error
 
@@ -67,8 +67,9 @@ dataset  = readmatrix("E_AoA5_mpt.txt");
 normalized = true;
 if (normalized == true)
     load("StokesNetwork.mat");
-    maxValue        = max(dataset(:,end));
-    minValue        = min(dataset(:,end));
+    EData = readmatrix("EData.txt");
+    maxValue        = max(EData(:,end));
+    minValue        = min(EData(:,end));
     dataset(:,end)  = (dataset(:,end) - minValue) / (maxValue - minValue);
 else
     load("StokesNetworkO.mat")
@@ -170,7 +171,7 @@ end
 
 sgtitle('Predicted Efficiency vs. m and p for Different Thickness (t)','FontWeight', 'bold');
 
-ReError = (EP - E) ./ E;
+ReError = abs(EP - E) ./ E;
 
 figure;
 

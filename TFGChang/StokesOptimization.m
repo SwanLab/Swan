@@ -1,7 +1,10 @@
 % Stoke Problem Optimization
+clc
+clear;
+close all;
 
 % Read Network data
-load("StokesNetwork.mat");
+load("StokesNetworkEpoch2e5.mat");
 
 % Initialization
 m   = 0.09;
@@ -10,7 +13,7 @@ t   = 0.4;
 AoA = 1;
 
 d.features      = [m,p,t,AoA];
-d.learningRate  = 0.02;
+d.learningRate  = 1;
 d.optimizer     = opt;
 d.tol           = 1e-6;
 d.lowerBC = [0.0, 0.0, 0.01, -2.5];
@@ -25,7 +28,7 @@ OptimalParams = stokeOpt.optimalParams;
 
 % Plot the Optimal Airfoil
 figure;
-AirfoilOptimizer.plotAirfoilContour([0,0,0.01,15],0)
+AirfoilOptimizer.plotAirfoilContour(OptimalParams,0)
 
 %% Plot E vs iterations
 
