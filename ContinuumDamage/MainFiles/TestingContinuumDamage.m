@@ -17,6 +17,7 @@ classdef TestingContinuumDamage < handle
             obj.mesh         = obj.createMesh(cParams.mesh);
             obj.bc           = obj.defineBoundaryConditions(cParams.bc);
             obj.material     = obj.createMaterial(cParams.material);
+            %obj.damageLaw    = obj.defineDamageLaw(cParams.qLaw);
             obj.solverParams = cParams.solver;
             obj.H            = cParams.H;
             obj.r0           = cParams.r0;
@@ -52,6 +53,7 @@ classdef TestingContinuumDamage < handle
     end
 
     methods (Access = private)
+
         function mesh = createMesh(~,s)
             if ~isfield(s,'name')
                 l = s.meshLength;
@@ -76,5 +78,6 @@ classdef TestingContinuumDamage < handle
             s.mesh = obj.mesh;
             mat = DamagedMaterial(s);
         end
+        
     end
 end

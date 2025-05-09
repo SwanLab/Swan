@@ -38,9 +38,11 @@ cParams.bc.bcValueSetUnLoading = [];
 cParams.material.E = 210;
 cParams.material.nu = 0.3;
 
-cParams.qLaw.type = 'Exp'; %'Exp'
-cParams.qLaw.A = 2;
-cParams.qLaw.qInfExp = 0.5;
+cParams.qLaw.type = 'Exp'; %'Linear'
+cParams.qLaw.A = 0.51;
+cParams.qLaw.qInfExp = 0.2;
+cParams.qLaw.r1 = 2;
+cParams.qLaw.H = 0.5;
 
 cParams.solver.type = 'Elastic';
 cParams.solver.solverType='REDUCED';
@@ -49,9 +51,9 @@ cParams.solver.solverCase = 'DIRECT';
 cParams.solver.scale = 'MACRO';
 
 cParams.tol = 1e-8;
-cParams.H = 0.5;
+
 cParams.r0 = 0.4;
-cParams.r1 = 2;
+
 
 tester = TestingContinuumDamage(cParams);
 data = tester.compute();

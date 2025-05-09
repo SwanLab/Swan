@@ -17,6 +17,7 @@ classdef ShFunc_ElasticDamage < handle
     properties (Access = private)
         test
         RHS
+        LHS
 
         rOld
         r
@@ -31,7 +32,8 @@ classdef ShFunc_ElasticDamage < handle
             obj.init(cParams)
             obj.rOld = copy(obj.r0);
             obj.r    = copy(obj.r0);
-            obj.createRHSIntegrator();
+            obj.defineRHSIntegrator();
+            obj.defineLHSIntegrator();
         end
 
         function setTestFunction(obj,u)           
@@ -60,7 +62,7 @@ classdef ShFunc_ElasticDamage < handle
             obj.computeDamage();
             Ksec = obj.computeDerivativeResidualSecant();
             Ktan = obj.computeDerivativeResidualTangent(u,isLoading);
-            K = Ksec;
+            K = Ktan;
         end  
        
         function computeDamageEvolutionParam(obj,u)
@@ -79,7 +81,8 @@ classdef ShFunc_ElasticDamage < handle
             fV(~nodesNoDamage) = tauEpsilon.fValues(~nodesNoDamage);
 
             obj.r.setFValues(fV);
-            
+            isDamaging = @(xV) tauEpsilon.evaluate(xV) - obj.rOld.evaluate(xV) <= 0 ;
+            is
         end
         
         function setROld (obj)
@@ -105,9 +108,9 @@ classdef ShFunc_ElasticDamage < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.material = cParams.material;
             obj.mesh = cParams.mesh;
             obj.quadOrder = cParams.quadOrder;
+            obj.material = cParams.material;
             obj.H = cParams.H;
             obj.r0 = cParams.r0;
             obj.r1 = cParams.r1;
@@ -116,11 +119,20 @@ classdef ShFunc_ElasticDamage < handle
             obj.qInfExp = cParams.qLaw.qInfExp;
         end
 
-        function createRHSIntegrator(obj)
+        function defineRHSIntegrator(obj)
             s.type = 'ShapeSymmetricDerivative';
             s.quadratureOrder= obj.quadOrder;
             s.mesh = obj.mesh;             
             obj.RHS = RHSIntegrator.create(s);
+        end
+
+        function defineLHSIntegrator(obj)
+            s.type = 'ElasticStiffnessMatrix';
+            s.quadratureOrder = obj.quadOrder;
+            s.mesh = obj.mesh;
+            s.test  = obj.test;
+            s.trial = obj.test;
+            obj.LHS = LHSIntegrator.create(s);
         end
 
         function computeDamage(obj)
@@ -158,26 +170,17 @@ classdef ShFunc_ElasticDamage < handle
                 case 'Exp'
                     qDeriv = @(r,r0) obj.A*((obj.qInfExp-r0)/r0)*exp(obj.A*(1-r/r0)); 
                 otherwise
-                    msg = "Q law is not deffined, put either 'Linear' or 'Exp";
+                    msg = "Q law is not defined, put either 'Linear' or 'Exp";
                     error(msg);
             end
         end
 
         function sec = computeDerivativeResidualSecant(obj)
-            mat = obj.material.obtainTensor(obj.d);
-            LHS = obj.createElasticLHS(mat);         
-            sec = LHS.compute();
+            mat = obj.material.obtainTensor(obj.d);      
+            sec = obj.LHS.compute(mat);
         end 
 
-        function LHS = createElasticLHS(obj,material)
-            s.type = 'ElasticStiffnessMatrix';
-            s.quadratureOrder = obj.quadOrder;
-            s.mesh = obj.mesh;
-            s.test  = obj.test;
-            s.trial = obj.test;
-            s.material = material;
-            LHS = LHSIntegrator.create(s);
-        end
+
 
         function tan = computeDerivativeResidualTangent(obj,u,isLoading)    
             Csec = obj.material.obtainTensor(obj.d);
@@ -191,7 +194,7 @@ classdef ShFunc_ElasticDamage < handle
                 r = @(xV) obj.r.evaluate(xV);
                 rOld = @(xV) obj.rOld.evaluate(xV);
                 r0 = @(xV) obj.r0.evaluate(xV);
-                r1 = @(xV) obj.r1.evaluate(xV);  
+                r1 = @(xV) obj.r1.evaluate(xV);
 
                 rHigherR0 = @(xV) (r(xV) > r0(xV));
                 rHigherR1 = @(xV) (r(xV) > r1(xV).*isequal(obj.qLaw , 'Linear'));

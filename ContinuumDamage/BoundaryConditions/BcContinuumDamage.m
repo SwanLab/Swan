@@ -3,7 +3,6 @@ classdef BcContinuumDamage < handle
     properties (Access = public)
         type
         bcValueSet
-        valueSetLenght
         LoadingBcLength
         mesh
     end
@@ -26,7 +25,6 @@ classdef BcContinuumDamage < handle
             obj.bcValueSet = cat(2,cParams.bcValueSetLoading,cParams.bcValueSetUnLoading(2:end));
             obj.LoadingBcLength = size(cParams.bcValueSetLoading,2);
             obj.mesh = cParams.mesh;
-            obj.valueSetLenght = size(obj.bcValueSet,2);
         end
 
         function  bc = bcSetType (obj, s)

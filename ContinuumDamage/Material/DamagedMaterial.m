@@ -1,7 +1,7 @@
 classdef DamagedMaterial < handle
     properties (Access = private)
         mesh
-        degradation
+        damage
         baseMaterial
     end   
 
@@ -10,14 +10,24 @@ classdef DamagedMaterial < handle
             obj.init(cParams) 
         end
         
-        function C = obtainTensor(obj,d)
+        function C = obtainNonDamagedTensor(obj)
+            C = obj.baseMaterial;
+        end
+
+        function Csec = obtainTensorSecant(obj,d)
+            C = obj.baseMaterial;
+            d = obj.damage;
+            Csec = (1-d)*C;
             degFun = obj.computeDegradationFun(d);
             C = obj.createDegradedMaterial(degFun);
         end
 
-        function C = obtainNonDamagedTensor(obj)
-            C = obj.baseMaterial;
+        function C = obtainTensorTanget(obj,d)
+            Csec = obj.obtainTensorSecant();
+            dmgTangent = obj.obtainDamageTangentContribution();
+            Ctan = Csec - dmgTangent;
         end
+
     end
     
     methods (Access = private)
@@ -28,17 +38,22 @@ classdef DamagedMaterial < handle
         end
         
         function mat = createBaseMaterial(obj,cParams)
-            sIso.ndim = obj.mesh.ndim;
-            sIso.young = ConstantFunction.create(cParams.E,obj.mesh);
-            sIso.poisson = ConstantFunction.create(cParams.nu,obj.mesh);
-            mat = Isotropic2dElasticMaterial(sIso);
+            s.type = 'ISOTROPIC';
+            s.ndim = obj.mesh.ndim;
+            s.young   = ConstantFunction.create(cParams.E,obj.mesh);
+            s.poisson = ConstantFunction.create(cParams.nu,obj.mesh);
+            mat = Material.create(s);
         end
 
-        function g = computeDegradationFun (obj,d)
+        function g = computeDegradationFun(obj,d)
             s.operation = @(xV) obj.degradation(d.evaluate(xV));
             s.ndimf = 1;
             s.mesh  = obj.mesh;
             g = DomainFunction(s);
+        end
+
+        function dg = computeDerivativeDegradationFun(obj,d)
+
         end
                 
         function mat = createDegradedMaterial(obj,fun)

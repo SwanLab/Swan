@@ -1,18 +1,13 @@
 classdef LHSIntegratorStiffnessElastic < LHSIntegrator
 
-    properties (Access = private)
-        material
-    end
-
     methods (Access = public)
 
         function obj = LHSIntegratorStiffnessElastic(cParams)
             obj@LHSIntegrator(cParams)
-            obj.material = cParams.material;
         end
 
-        function LHS = compute(obj)
-            lhs = obj.computeElementalLHS();
+        function LHS = compute(obj,mat)
+            lhs = obj.computeElementalLHS(mat);
             LHS = obj.assembleMatrix(lhs);
         end
 
@@ -20,13 +15,13 @@ classdef LHSIntegratorStiffnessElastic < LHSIntegrator
 
     methods (Access = protected)
 
-        function lhs = computeElementalLHS(obj)
+        function lhs = computeElementalLHS(obj,mat)
             xV   = obj.quadrature.posgp;
             dNdx = obj.test.evaluateCartesianDerivatives(xV);
             B    = obj.computeB(dNdx);            
             dV   = obj.mesh.computeDvolume(obj.quadrature);
             dV   = permute(dV,[3, 4, 2, 1]);
-            Cmat = obj.material.evaluate(xV);
+            Cmat = mat.evaluate(xV);
             Cmat = permute(Cmat,[1 2 4 3]);
             Bt   = permute(B,[2 1 3 4]);
             BtC  = pagemtimes(Bt, Cmat);

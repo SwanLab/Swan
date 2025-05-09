@@ -30,7 +30,7 @@ classdef ContinuumDamageComputer < handle
         function obj = ContinuumDamageComputer(cParams)
             obj.init(cParams)
             obj.defineRfunction(cParams)
-            obj.createFunctionals()
+            obj.defineFunctional()
         end
 
         function data = compute(obj)
@@ -38,18 +38,19 @@ classdef ContinuumDamageComputer < handle
             obj.elasticity.setTestFunctions(uFun);
             data = {};
 
-            for i = 1:obj.boundaryConditions.valueSetLenght
-                fprintf('Step: %d ',i);fprintf('/ %d \n',obj.boundaryConditions.valueSetLenght);
+            nSteps = length(obj.boundaryConditions.bcValueSet);
+            for i = 1:nSteps
+                fprintf('Step: %d / %d \n',i,nSteps);
                 bc = obj.updateBoundaryConditions(i);
                 uFun.setFValues(obj.updateInitialDisplacement(bc,uFun));
                 isLoading = obj.loadState(i);
-                resErr = 1; iter = 0;
 
-                while (resErr >= obj.tolerance && iter < obj.limIter)    
-                    [res,~,K,~,uVec,uFun] = obj.solveU (uFun,bc,isLoading);  
+                err = 1; iter = 0;
+                while (err >= obj.tolerance && iter < obj.limIter)    
+                    [res,K,uVec,uFun] = obj.solveU(uFun,bc,isLoading);  
 
-                    resErr = norm(res);
-                    fprintf('Error: %d \n',resErr);
+                    err = norm(res);
+                    fprintf('Error: %d \n',err);
 
                     iter = iter+1;
                 end
@@ -57,7 +58,7 @@ classdef ContinuumDamageComputer < handle
                     fprintf (2,'NOT CONVERGED FOR STEP %d\n',i);
                 end
                 obj.elasticity.setROld(); 
-                [data,dmgFun,rFun,qFun] = obj.getData (data,i,K,uVec,uFun,bc);
+                [data,dmgFun,rFun,qFun] = obj.getData(data,i,K,uVec,uFun,bc);
                 
             end
             data.displacement.field = uFun;
@@ -91,12 +92,7 @@ classdef ContinuumDamageComputer < handle
             obj.r1.setFValues(fV);
         end
        
-
-        function [bc] = updateBoundaryConditions (obj,i)
-            bc = obj.boundaryConditions.nextStep(i);
-        end
-
-        function createFunctionals(obj)
+        function defineFunctional(obj)
             s.mesh     = obj.mesh;
             s.boundaryConditions = obj.boundaryConditions;
             s.material = obj.material;
@@ -106,6 +102,10 @@ classdef ContinuumDamageComputer < handle
             s.quadOrder = obj.quadOrder;
             s.qLaw = obj.qLaw;
             obj.elasticity = ShFunc_ContinuumDamage(s);
+        end
+
+        function [bc] = updateBoundaryConditions (obj,i)
+            bc = obj.boundaryConditions.nextStep(i);
         end
 
         function u = updateInitialDisplacement(obj,bc,uOld)
@@ -143,13 +143,11 @@ classdef ContinuumDamageComputer < handle
             xNew = x + deltaX;
         end
 
-        function isLoading = loadState (obj,i)
+        function isLoading = loadState(obj,i)
            isLoading = i <= obj.boundaryConditions.LoadingBcLength ;
         end
         
-        function [data,dmgFun,rFun,qFun] = getData (obj,data,i,K,uVec,uFun,bc)
-            
-
+        function [data,dmgFun,rFun,qFun] = getData(obj,data,i,K,uVec,uFun,bc)
             data.displacement.value(i)  = obj.boundaryConditions.bcValueSet(i);
             dmgDomainFun = obj.elasticity.getDamage();
             dmgFun = dmgDomainFun.project('P1D');
@@ -170,15 +168,14 @@ classdef ContinuumDamageComputer < handle
             [data.totalEnergy(i),data.damagedMaterial(i)] = obj.elasticity.computeEnergy(uFun,bc);
             
         end
-        function [res,resDeriv,K,uVal,uVec,uFun] = solveU (obj,uFun,bc,isLoading)  
+        function [res,K,uVec,uFun] = solveU(obj,uFun,bc,isLoading)  
             obj.elasticity.computeDamageEvolutionParam(uFun);         
             [res]  = obj.elasticity.computeResidual(uFun,bc);
             [K,resDeriv] = obj.elasticity.computeDerivativeResidual(uFun,bc,isLoading);
-            [uVal,uVec] = obj.computeDisplacement(resDeriv,res,uFun,bc);
-            uFun.setFValues(uVal);
+            [ufV,uVec] = obj.computeDisplacement(resDeriv,res,uFun,bc);
+            uFun.setFValues(ufV);
+            [res]  = obj.elasticity.computeResidual(uFun,bc);
         end
-
-        
 
         function totReact = computeTotalReaction(obj,LHS,u)
             F = LHS*u;
