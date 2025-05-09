@@ -43,7 +43,9 @@ classdef ContinuumDamagePlotter < handle
                 case 'min q'
                     y = obj.data.q.minValue;
                 case 'total energy'
-                    y = obj.data.totalEnergy;       
+                    y = obj.data.totalEnergy;    
+                case 'material'
+                    y = obj.data.data.damagedMaterial;
                 otherwise
                     error("ContinuumDamagePlotter.m: Y axis label not recognised.");
             end
