@@ -21,7 +21,7 @@ classdef Density < DesignVariable
             if ~isempty(obj.isFixed)
                 value(obj.isFixed.nodes) = obj.isFixed.values;
             end
-            obj.fun.setFvalues(value);
+            obj.fun.setFValues(value);
         end
 
         function plot(obj)

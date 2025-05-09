@@ -19,7 +19,7 @@ classdef LevelSet < DesignVariable
             if ~isempty(obj.isFixed)
                 value(obj.isFixed.nodes) = obj.isFixed.values;
             end
-            obj.fun.setFvalues(value)
+            obj.fun.setFValues(value)
             obj.updateUnfittedMesh();
         end
 
@@ -55,18 +55,22 @@ classdef LevelSet < DesignVariable
             end
         end
 
-        function ls = copy(obj)
-            s.fun      = obj.fun;
-            s.mesh     = obj.mesh;
-            s.type     = 'LevelSet';
-            s.plotting = false;
-            ls         = DesignVariable.create(s);
-        end
-
         function ls = obtainVariableInCell(obj)
             ls{1} = obj;
         end
     end
+
+    % methods (Access = protected)
+    % 
+    %     function ls = copyElement(obj)
+    %         s.fun      = obj.fun;
+    %         s.mesh     = obj.mesh;
+    %         s.type     = 'LevelSet';
+    %         s.plotting = false;
+    %         ls         = DesignVariable.create(s);
+    %     end
+    % 
+    % end
 
     methods (Access = private)
 
