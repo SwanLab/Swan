@@ -32,7 +32,7 @@ cParams.mesh.meshN = 1;
 cParams.mesh.meshM = 1;
 
 cParams.bc.bcType = 'displacementTraction'; %'FORCE'
-cParams.bc.bcValueSetLoading = 0:1e-3:0.3;
+cParams.bc.bcValueSetLoading = [0:1e-3:0.3,0.3:-1e-3:0];
 cParams.bc.bcValueSetUnLoading = [];
 
 cParams.material.E = 210;
@@ -54,41 +54,45 @@ cParams.tol = 1e-8;
 
 cParams.r0 = 0.4;
 
-
 tester = TestingContinuumDamage(cParams);
 data = tester.compute();
 
-data.displacement.field.plot
-data.damage.field.plot
-colorbar
-caxis([0 1-cParams.H])
 
-figure()
-plot(data.displacement.value,data.damage.maxValue)
-title('Damage-Displacement')
+plotClass = ContinuumDamagePlotter(data);
 
-figure()
-plot(data.displacement.value,data.reaction)
-title('Force-Displacement')
+plotClass.plotDisplacementField();
 
-figure()
-plot(data.displacement.value,data.totalEnergy)
-title('Energy - Displacement')
-
-figure()
-plot(data.displacement.value,data.damagedMaterial)
-title('Material - Displacement')
-
-figure()
-plot(data.r.maxValue,data.q.maxValue)
-title('r - q')
-
-figure()
-plot(data.r.maxValue,data.damage.maxValue)
-title('Damage-r')
-
-figure()
-plot(data.r.maxValue,data.reaction)
-title('Force-r')
+% data.displacement.field.plot
+% data.damage.field.plot
+% colorbar
+% caxis([0 1-cParams.H])
+% 
+% figure()
+% plot(data.displacement.value,data.damage.maxValue)
+% title('Damage-Displacement')
+% 
+% figure()
+% plot(data.displacement.value,data.reaction)
+% title('Force-Displacement')
+% 
+% figure()
+% plot(data.displacement.value,data.totalEnergy)
+% title('Energy - Displacement')
+% 
+% figure()
+% plot(data.displacement.value,data.damagedMaterial)
+% title('Material - Displacement')
+% 
+% figure()
+% plot(data.r.maxValue,data.q.maxValue)
+% title('r - q')
+% 
+% figure()
+% plot(data.r.maxValue,data.damage.maxValue)
+% title('Damage-r')
+% 
+% figure()
+% plot(data.r.maxValue,data.reaction)
+% title('Force-r')
 
 %tester.compareWithElasticProblem(data.displacement.fValues,uRef.fValues);
