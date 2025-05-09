@@ -75,17 +75,17 @@ classdef PhaseFieldAmbrosioTortorelli < handle
 
         function f = interpolate(obj,phi,f0)
             p = obj.pExp;
-            f = ((1-phi).^p).*f0;
+            f = ((1-phi.fun).^p).*f0;
         end
         
         function f = derive(obj,phi,f0)
             p = obj.pExp;
-            f = -p*((1-phi).^(p-1)).*f0;
+            f = -p*((1-phi.fun).^(p-1)).*f0;
         end
 
         function f = derive2(obj,phi,f0)
             p = obj.pExp;
-            f = p*(p-1)*((1-phi).^(p-2)).*f0;
+            f = p*(p-1)*((1-phi.fun).^(p-2)).*f0;
         end
     end
 

@@ -1,4 +1,4 @@
-classdef DesignVariable < handle
+classdef DesignVariable < handle & matlab.mixin.Copyable
     
     properties (GetAccess = public, SetAccess = protected)
         fun
@@ -48,6 +48,11 @@ classdef DesignVariable < handle
             if isfield(cParams,'isFixed')
               obj.isFixed = cParams.isFixed;
             end
+        end
+
+        function cp = copyElement(obj)
+            cp = copyElement@matlab.mixin.Copyable(obj);
+            cp.fun = copy(obj.fun);
         end
         
     end

@@ -12,7 +12,7 @@ classdef PhaseFieldTests < handle & matlab.unittest.TestCase
             load(filename,'input');
             tester = TestingPhaseField(input);
             outputData = tester.compute();
-            xNew = outputData.reaction;
+            xNew = outputData.force;
             load(filename,'xRef');
             err = norm(xNew-xRef)/norm(xRef);
             tol      = 1e-6;
@@ -24,7 +24,7 @@ classdef PhaseFieldTests < handle & matlab.unittest.TestCase
             load(filename,'input');
             tester = TestingPhaseField(input);
             outputData = tester.compute();
-            xNew = outputData.reaction;
+            xNew = outputData.force;
             load(filename,'xRef');
             err = norm(xNew-xRef)/norm(xRef);
             tol      = 1e-6;
