@@ -13,20 +13,27 @@ load('Tutorials/ChomogNetworkTutorial/ChomogNetwork.mat')
 
 %% Initialize the optimization problem
 
+% Define the problem to solve
+studyCases = {'maxHorzStiffness';
+              'maxIsoStiffness';
+              'maxAuxetic'};
+
+studyType = char(studyCases(3));
+
 % Define the problem constraint parameters
 A_ellipse = 0.15^2 * pi;
 lower_bounds = [10^-8; 10^-8];
 upper_bounds = [0.5; 0.5];
 
 % Set the initial guess
-x0 = [0.25; 0.25];
+x0 = [rand(1) / 2; rand(1) / 2];
 
 % Wrap the cost and optimization functions
-costfunction = @(x) cHomogCost(opt, x);
+costfunction = @(x) cHomogCost(opt, studyType, x);
 nonlinconstraint = @(x) volumeConstraint(A_ellipse, x);
 
 % Set optimization problem options
-options = optimoptions('fmincon', 'SpecifyObjectiveGradient',true, 'SpecifyConstraintGradient',true, 'Display', 'iter');
+options = optimoptions('fmincon', 'StepTolerance', 1.0e-14,'SpecifyObjectiveGradient',true, 'SpecifyConstraintGradient',true, 'Display', 'iter');
 
 % Call optimizer
 [x_opt, fval] = fmincon(costfunction, x0, [], [], [], [], lower_bounds, upper_bounds, nonlinconstraint, options);
@@ -39,9 +46,14 @@ disp('Optimal cost:');
 disp(fval);
 drawRectWithEllipseHole([-0.5, -0.5, 1, 1], [0, 0, x_opt(1), x_opt(2)])
 
+Chomog = opt.computeOutputValues(x_opt');
+poisson = Chomog(2) / Chomog(1);
+disp('Poisson ratio:')
+disp(poisson)
+
 %% Declare optimization functions
 
-function [J, grad] = cHomogCost(opt, x)
+function [J, grad] = cHomogCost(opt, type, x)
 
     % Fetch output and jacobian of the network
     Y = opt.computeOutputValues(x');
@@ -49,11 +61,24 @@ function [J, grad] = cHomogCost(opt, x)
     
     % Fetch the Chomog component to optimize
     C_11 = Y(1);
+    C_12 = Y(2);
+    C_22 = Y(3);
     dC_11 = dY(:, 1)';
-    
+    dC_12 = dY(:, 2)';
+    dC_22 = dY(:, 3)';
+
     % Calculate the cost and gradient
-    J = 1 / C_11;
-    grad = - 1 / C_11^2 .* dC_11;
+    switch type
+        case 'maxHorzStiffness'
+            J = 1 / C_11;
+            grad = - 1 / C_11^2 .* dC_11;
+        case 'maxIsoStiffness'
+            J = 1 / (C_11 + C_22);
+            grad = - (dC_11 + dC_22) / (C_11 + C_22)^2;
+        case 'maxAuxetic'
+            J = C_12 / C_11;
+            grad = dC_12 / C_11 - C_12 / C_11^2 * dC_11;
+    end
 
 end
 
