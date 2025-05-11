@@ -165,6 +165,17 @@ classdef LagrangianFunction < FeFunction
                         a.EdgeColor = [0 0 0];
                         title(['dim = ', num2str(iDim)]);
                     end
+                case 'QUADRATIC'
+                    figure()
+                    for iDim = 1:obj.ndimf                                                
+                        subplot(1,obj.ndimf,iDim);
+                        x  = obj.dofCoord(:,1);
+                        y  = obj.dofCoord(:,2);
+                        z  = double(obj.fValues(:,iDim));
+                        scatter3(x,y,z,'.');
+                        view(45,70)
+                        title(['dim = ', num2str(iDim)]);
+                    end
                 otherwise
                     f = obj.project('P1D');
                     f.plot()
