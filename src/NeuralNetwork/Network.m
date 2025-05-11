@@ -43,7 +43,7 @@ classdef Network < handle
                 if k == nLy
                     obj.deltag{k} = dLF.*g_der;
                 else
-                    obj.deltag{k} = (W{k}*obj.deltag{k+1}')'*g_der;
+                    obj.deltag{k} = (W{k}*obj.deltag{k+1}')'.*g_der;
                 end
                 dcW{k-1} = (1/m)*(a{k-1}'*obj.deltag{k});
                 dcB{k-1} = (1/m)*(sum(obj.deltag{k},1));

@@ -5,10 +5,9 @@ close all
 clear
 clc
 
-addpath('src/Problems/Elasticity')
-addpath('src/Mesh/Utilities')
-addpath('src/Mesh')
-addpath('src/Settings')
+% Handle paths
+addpath(genpath('Tutorials'))
+addpath(genpath('src'))
 
 % Set geometrical parameters
 n_variations = 10;
