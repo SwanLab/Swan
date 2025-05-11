@@ -24,6 +24,8 @@ Tutorial02FEMElasticity();
 Tutorial02p2FEMElasticityMicro();
 Tutorial11Monitoring();
 TutorialRemeshing();
+ChomogNetworkTutorial();
+close all;
 
 % Output:
 clear;
