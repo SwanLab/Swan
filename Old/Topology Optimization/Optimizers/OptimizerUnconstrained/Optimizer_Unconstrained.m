@@ -6,14 +6,12 @@ classdef Optimizer_Unconstrained < handle
         optimalityCond
         hasConverged
     end
-    
 
     properties (GetAccess = public, SetAccess = protected)
         designImproved
         maxIncrNormX
         minIncrNormX
     end
-
 
     properties (GetAccess = public, SetAccess = private)
         lineSearch
@@ -22,7 +20,6 @@ classdef Optimizer_Unconstrained < handle
         convergenceVars
     end
 
-
     properties (Access = protected)
         designVariable
         xOld
@@ -30,16 +27,13 @@ classdef Optimizer_Unconstrained < handle
         incF
     end
 
-
     properties (Access = private)
 
     end
 
-
     methods (Access = public, Abstract)
         compute(obj)
     end
-
 
     methods (Access = public, Static)
 
@@ -50,8 +44,9 @@ classdef Optimizer_Unconstrained < handle
 
     end
 
-
     methods (Access = protected)
+
+
 
     end
 

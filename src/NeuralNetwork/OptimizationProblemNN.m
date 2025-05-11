@@ -1,4 +1,4 @@
-classdef OptimizationProblem < handle
+classdef OptimizationProblemNN < handle
     
     properties (Access = private)
         data
@@ -16,7 +16,7 @@ classdef OptimizationProblem < handle
   
    methods (Access = public)
 
-       function obj = OptimizationProblem(cParams)
+       function obj = OptimizationProblemNN(cParams)
            obj.init(cParams);
            obj.createNetwork();
            obj.createDesignVariable();
@@ -95,7 +95,7 @@ classdef OptimizationProblem < handle
             s.designVariable = obj.designVariable;
             s.data           = obj.data;
             s.costType       = obj.costParams.costType;
-            l = Sh_Func_Loss(s);
+            l = LossFunctional(s);
             obj.loss = l;
         end
 
@@ -108,8 +108,7 @@ classdef OptimizationProblem < handle
        function createCost(obj)
            s.shapeFunctions = {obj.loss, obj.regularization};
            s.weights = [1, obj.costParams.lambda];
-           s.Msmooth = [];
-           obj.costFunc = Cost(s);
+           obj.costFunc = CostNN(s);
        end
 
        function createOptimizer(obj)
