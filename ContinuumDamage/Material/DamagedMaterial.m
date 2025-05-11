@@ -3,6 +3,7 @@ classdef DamagedMaterial < handle
         mesh
         damage
         baseMaterial
+        qLaw
     end   
 
     methods (Access = public)
@@ -14,27 +15,39 @@ classdef DamagedMaterial < handle
             C = obj.baseMaterial;
         end
 
-        function Csec = obtainTensorSecant(obj,d)
-            C = obj.baseMaterial;
-            d = obj.damage;
-            Csec = (1-d)*C;
-            degFun = obj.computeDegradationFun(d);
-            C = obj.createDegradedMaterial(degFun);
+        function Csec = obtainTensorSecant(obj)
+            degFun = obj.computeDegradationFun();
+            Csec = obj.createDegradedMaterial(degFun);
         end
 
-        function C = obtainTensorTanget(obj,d)
+        function Ctan = obtainTensorTanget(obj,u)
             Csec = obj.obtainTensorSecant();
-            dmgTangent = obj.obtainDamageTangentContribution();
-            Ctan = Csec - dmgTangent;
+            dmgTangent = @(xV) obj.obtainDamageTangentContribution(u);
+            
+            op = @(xV) Csec.evaluate(xV) - dmgTangent.evaluate(xV);
+            Ctan = DomainFunction.create(op,obj.mesh);
         end
 
+        function updateMaterial (obj,qLaw)
+            obj.qLaw = qLaw;
+            obj.damage.updateParams(qLaw);
+        end
+
+        function d = getDamage(obj)
+            d = obj.damage.computeDamage();
+        end
+
+        function q = getQ(obj)
+            q = obj.damage.getQFun();
+        end
     end
     
     methods (Access = private)
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
-            obj.degradation = @(d) (1-d);
             obj.baseMaterial = obj.createBaseMaterial(cParams);
+            obj.qLaw = cParams.qLaw;
+            obj.damage = damageLaw(cParams.qLaw,obj.mesh);
         end
         
         function mat = createBaseMaterial(obj,cParams)
@@ -45,15 +58,24 @@ classdef DamagedMaterial < handle
             mat = Material.create(s);
         end
 
-        function g = computeDegradationFun(obj,d)
-            s.operation = @(xV) obj.degradation(d.evaluate(xV));
+        function g = computeDegradationFun(obj)
+            d = @(xV)obj.damage.computeDamage();
+            s.operation = @(xV) (1-d(xV));
             s.ndimf = 1;
             s.mesh  = obj.mesh;
             g = DomainFunction(s);
         end
 
-        function dg = computeDerivativeDegradationFun(obj,d)
+        function dContribution = obtainDamageTangentContribution(obj,u)
+            C = obj.baseMaterial;
 
+            epsi = SymGrad(u);
+            sigBar = DDP(epsi,C);
+
+            op = @(xV) obj.damage.computeDamageDerivative(xV);
+            
+            dDot = DomainFunction.create(op,obj.mesh);
+            dContribution = Expand(dDot).*OP(sigBar,sigBar);
         end
                 
         function mat = createDegradedMaterial(obj,fun)

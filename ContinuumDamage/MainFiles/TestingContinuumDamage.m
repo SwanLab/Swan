@@ -4,11 +4,8 @@ classdef TestingContinuumDamage < handle
         bc
         material
         solverParams
-        qLaw
+        damageLaw
 
-        H
-        r0
-        r1
         tol
     end
 
@@ -16,14 +13,14 @@ classdef TestingContinuumDamage < handle
         function obj = TestingContinuumDamage(cParams)
             obj.mesh         = obj.createMesh(cParams.mesh);
             obj.bc           = obj.defineBoundaryConditions(cParams.bc);
-            obj.material     = obj.createMaterial(cParams.material);
-            %obj.damageLaw    = obj.defineDamageLaw(cParams.qLaw);
-            obj.solverParams = cParams.solver;
-            obj.H            = cParams.H;
-            obj.r0           = cParams.r0;
-            obj.r1           = cParams.r1;
+            obj.material     = obj.createMaterial(cParams);
             obj.tol          = cParams.tol;
-            obj.qLaw         = cParams.qLaw;
+            obj.damageLaw    = cParams.qLaw;
+            % obj.solverParams = cParams.solver;
+            % obj.H            = cParams.H;
+            % obj.r0           = cParams.r0;
+            % obj.r1           = cParams.r1;
+            % obj.qLaw         = cParams.qLaw;
         end
 
         function data = compute(obj)
@@ -31,11 +28,12 @@ classdef TestingContinuumDamage < handle
             sComp.boundaryConditions = obj.bc;
             sComp.material = obj.material;
             sComp.solver = obj.solverParams;
-            sComp.H = obj.H;
-            sComp.r0 = obj.r0;
-            sComp.r1 = obj.r1;
+            % sComp.H = obj.H;
+            % sComp.r0 = obj.r0;
+            % sComp.r1 = obj.r1;
             sComp.tol = obj.tol;
-            sComp.qLaw = obj.qLaw;
+            % sComp.qLaw = obj.qLaw;
+            sComp.damageLaw = obj.damageLaw;
             comp = ContinuumDamageComputer(sComp);
             data = comp.compute();
         end
@@ -75,9 +73,10 @@ classdef TestingContinuumDamage < handle
         end
 
         function mat = createMaterial(obj,s)
-            s.mesh = obj.mesh;
-            mat = DamagedMaterial(s);
-        end
-        
+            sM = s.material;
+            sM.mesh = obj.mesh;
+            sM.qLaw = s.qLaw;
+            mat = DamagedMaterial(sM);
+        end        
     end
 end

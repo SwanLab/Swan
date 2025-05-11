@@ -23,8 +23,8 @@ classdef BcContinuumDamage < handle
         function init(obj,cParams) 
             obj.type = cParams.bcType;
             %obj.bcValueSet = cat(2,cParams.bcValueSetLoading,cParams.bcValueSetUnLoading(2:end));
-            obj.setLoadingBCLength(Params.bcValueSet);
-            obj.LoadingBcLength = size(cParams.bcValueSetLoading,2);
+            obj.bcValueSet = cParams.bcValueSet;
+            obj.setLoadingBCLength(cParams.bcValueSet);
             obj.mesh = cParams.mesh;
         end
 

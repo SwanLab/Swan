@@ -6,7 +6,7 @@ classdef ContinuumDamageComputer < handle
         mesh
         boundaryConditions
         material
-        H
+        %H
         solverParams
         quadOrder 
 
@@ -29,7 +29,7 @@ classdef ContinuumDamageComputer < handle
     methods (Access = public)
         function obj = ContinuumDamageComputer(cParams)
             obj.init(cParams)
-            obj.defineRfunction(cParams)
+            obj.defineRfunction();
             obj.defineFunctional()
         end
 
@@ -76,19 +76,19 @@ classdef ContinuumDamageComputer < handle
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.material  = cParams.material;
             obj.solverParams = cParams.solver; 
-            obj.H = cParams.H;
+            % obj.H = cParams.H;
             obj.tolerance = cParams.tol;
             obj.quadOrder = 2;
-            obj.qLaw = cParams.qLaw;
+            obj.qLaw = cParams.damageLaw;
         end
 
-        function defineRfunction(obj,cParams)
+        function defineRfunction(obj)
             obj.r0 = LagrangianFunction.create(obj.mesh,1,'P0');
-            fV = cParams.r0*ones(size(obj.r0.fValues));
+            fV = obj.qLaw.r0*ones(size(obj.r0.fValues));
             obj.r0.setFValues(fV);
 
             obj.r1 = LagrangianFunction.create(obj.mesh,1,'P0');
-            fV = cParams.r1*ones(size(obj.r1.fValues));
+            fV = obj.qLaw.r1*ones(size(obj.r1.fValues));
             obj.r1.setFValues(fV);
         end
        
@@ -96,7 +96,7 @@ classdef ContinuumDamageComputer < handle
             s.mesh     = obj.mesh;
             s.boundaryConditions = obj.boundaryConditions;
             s.material = obj.material;
-            s.H = obj.H;
+            % s.H = obj.qLaw.H;
             s.r0 = obj.r0;
             s.r1 = obj.r1;
             s.quadOrder = obj.quadOrder;
@@ -183,6 +183,5 @@ classdef ContinuumDamageComputer < handle
             nodes = 1:obj.mesh.nnodes;
             totReact = -sum(F(2*nodes(isInDown)));
         end
- 
     end
 end
