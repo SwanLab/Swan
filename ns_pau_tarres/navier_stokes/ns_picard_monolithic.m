@@ -57,7 +57,7 @@ s1.type  = 'StiffnessMatrix';
 s1.mesh  = mesh;
 s1.test  = u;
 s1.trial = u;
-LHS1 = LHSintegrator.create(s1);
+LHS1 = LHSIntegrator.create(s1);
 K = LHS1.compute();
 
 % (b) Divergence matrix
@@ -65,7 +65,7 @@ s2.type = 'WeakDivergence';
 s2.mesh = mesh;
 s2.trial = p;
 s2.test  = u;
-LHS2 = LHSintegrator.create(s2);
+LHS2 = LHSIntegrator.create(s2);
 D = LHS2.compute();
 
 % (c) Forces vector
@@ -74,7 +74,7 @@ s3.mesh          = mesh;
 s3.velocityFun   = u;
 s3.pressureFun   = p;
 s3.forcesFormula = forcesFormula;
-RHSint = RHSintegrator.create(s3);
+RHSint = RHSIntegrator.create(s3);
 F = RHSint.integrate();
 
 % (d) Nonlinear convective term
@@ -82,7 +82,7 @@ s4.type = 'NonLinearNS';
 s4.mesh = mesh;
 s4.trial = u;
 s4.test = u;
-LHS4 = LHSintegrator.create(s4);
+LHS4 = LHSIntegrator.create(s4);
 
 % C
 n_dir = length(dir_dofs);

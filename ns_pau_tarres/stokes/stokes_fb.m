@@ -58,21 +58,21 @@ s1.type  = 'MassMatrix';
 s1.mesh  = mesh;
 s1.test  = u;
 s1.trial = u;
-LHS1 = LHSintegrator.create(s1);
+LHS1 = LHSIntegrator.create(s1);
 M = LHS1.compute();
 
 s2.type  = 'StiffnessMatrix';
 s2.mesh  = mesh;
 s2.test  = u;
 s2.trial = u;
-LHS2 = LHSintegrator.create(s2);
+LHS2 = LHSIntegrator.create(s2);
 K = LHS2.compute();
 
 s3.type  = 'WeakDivergence';
 s3.mesh  = mesh;
 s3.trial = p;
 s3.test  = u;
-LHS3 = LHSintegrator.create(s3);
+LHS3 = LHSIntegrator.create(s3);
 B = LHS3.compute();
 
 s4.type = 'Stokes';
@@ -80,7 +80,7 @@ s4.mesh = mesh;
 s4.velocityFun = u;
 s4.pressureFun = p;
 s4.forcesFormula = forcesFormula;
-RHSint = RHSintegrator.create(s4);
+RHSint = RHSIntegrator.create(s4);
 F = RHSint.integrate();
 F = F(1:n_dofs_u);
 

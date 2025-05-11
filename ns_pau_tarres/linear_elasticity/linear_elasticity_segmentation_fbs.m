@@ -64,7 +64,7 @@ s1.test     = u;
 s1.trial    = u;
 s1.material = material;
 s1.quadratureOrder = 2;
-LHS1 = LHSintegrator.create(s1);
+LHS1 = LHSIntegrator.create(s1);
 K = LHS1.compute();
 
 % 2) Forces vector
@@ -79,7 +79,7 @@ s2.BC       = bc;
 s2.mesh     = mesh;
 s2.material = material;
 s2.globalConnec = mesh.connec;
-RHSint = RHSintegrator.create(s2);
+RHSint = RHSIntegrator.create(s2);
 F = RHSint.compute();
 
 

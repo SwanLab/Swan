@@ -57,7 +57,7 @@ s1.type  = 'StiffnessMatrix';
 s1.mesh  = mesh;
 s1.test  = u;
 s1.trial = u;
-LHS1 = LHSintegrator.create(s1);
+LHS1 = LHSIntegrator.create(s1);
 K = LHS1.compute();
 
 % 2) Divergence part for incompressibility
@@ -65,7 +65,7 @@ s2.type = 'WeakDivergence';
 s2.mesh = mesh;
 s2.trial = p;
 s2.test  = u;
-LHS2 = LHSintegrator.create(s2);
+LHS2 = LHSIntegrator.create(s2);
 D = LHS2.compute();
 
 % 3) Nonlinear convective term
@@ -73,7 +73,7 @@ s3.type = 'NonLinearNS';
 s3.mesh = mesh;
 s3.trial = u;
 s3.test = u;
-LHS3 = LHSintegrator.create(s3);
+LHS3 = LHSIntegrator.create(s3);
 
 % 3) Forces vector
 s4.type          = 'Stokes';
@@ -81,7 +81,7 @@ s4.mesh          = mesh;
 s4.velocityFun   = u;
 s4.pressureFun   = p;
 s4.forcesFormula = forcesFormula;
-RHSint = RHSintegrator.create(s4);
+RHSint = RHSIntegrator.create(s4);
 F = RHSint.integrate();
 
 sz = size(D, 2);

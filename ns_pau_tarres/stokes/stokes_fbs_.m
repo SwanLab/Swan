@@ -59,7 +59,7 @@ s1.type  = 'StiffnessMatrix';
 s1.mesh  = mesh;
 s1.test  = u;
 s1.trial = u;
-LHS1 = LHSintegrator.create(s1);
+LHS1 = LHSIntegrator.create(s1);
 K = LHS1.compute();
 
 % (b) Divergence matrix
@@ -67,7 +67,7 @@ s2.type  = 'WeakDivergence';
 s2.mesh  = mesh;
 s2.trial = p;
 s2.test  = u;
-LHS2 = LHSintegrator.create(s2);
+LHS2 = LHSIntegrator.create(s2);
 D = LHS2.compute();
 
 % (c) Forces vector
@@ -76,7 +76,7 @@ s3.mesh          = mesh;
 s3.velocityFun   = u;
 s3.pressureFun   = p;
 s3.forcesFormula = forcesFormula;
-RHSint = RHSintegrator.create(s3);
+RHSint = RHSIntegrator.create(s3);
 f = RHSint.integrate();
 f_u = f(1:n_dofs_u);
 f_p = f((n_dofs_u+1):n_dofs);

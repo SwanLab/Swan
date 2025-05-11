@@ -1,9 +1,9 @@
-classdef LHSintegrator_NonLinearNS < LHSintegrator
+classdef LHSintegrator_NonLinearNS < LHSIntegrator
 
     methods (Access = public)
 
         function obj = LHSintegrator_NonLinearNS(cParams)
-            obj@LHSintegrator(cParams)
+            obj@LHSIntegrator(cParams)
         end
 
         function LHS = compute(obj, velocityField)
