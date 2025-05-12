@@ -32,15 +32,15 @@ cParams.mesh.meshN = 1;
 cParams.mesh.meshM = 1;
 
 cParams.bc.bcType = 'displacementTraction'; %'FORCE'
-cParams.bc.bcValueSetLoading = [0:1e-3:0.3,0.3:-1e-3:0];
-cParams.bc.bcValueSetUnLoading = [];
+cParams.bc.bcValueSet = [0:1e-3:0.3,0.3:-1e-3:0];
 
 cParams.material.E = 210;
 cParams.material.nu = 0.3;
 
 cParams.qLaw.type = 'Exp'; %'Linear'
 cParams.qLaw.A = 0.51;
-cParams.qLaw.qInfExp = 0.2;
+cParams.qLaw.qInf = 0.2;
+cParams.qLaw.r0 = 0.4;
 cParams.qLaw.r1 = 2;
 cParams.qLaw.H = 0.5;
 
@@ -52,47 +52,28 @@ cParams.solver.scale = 'MACRO';
 
 cParams.tol = 1e-8;
 
-cParams.r0 = 0.4;
-
 tester = TestingContinuumDamage(cParams);
 data = tester.compute();
 
 
 plotClass = ContinuumDamagePlotter(data);
 
-plotClass.plotDisplacementField();
+plotClass.plotDisplacementField(); %FALTA POSAR LA H COM A INPUT
+plotClass.plotDamagesField();
 
-% data.displacement.field.plot
-% data.damage.field.plot
-% colorbar
-% caxis([0 1-cParams.H])
-% 
-% figure()
-% plot(data.displacement.value,data.damage.maxValue)
-% title('Damage-Displacement')
-% 
-% figure()
-% plot(data.displacement.value,data.reaction)
-% title('Force-Displacement')
-% 
-% figure()
-% plot(data.displacement.value,data.totalEnergy)
-% title('Energy - Displacement')
-% 
-% figure()
-% plot(data.displacement.value,data.damagedMaterial)
-% title('Material - Displacement')
-% 
-% figure()
-% plot(data.r.maxValue,data.q.maxValue)
-% title('r - q')
-% 
-% figure()
-% plot(data.r.maxValue,data.damage.maxValue)
-% title('Damage-r')
-% 
-% figure()
-% plot(data.r.maxValue,data.reaction)
-% title('Force-r')
+disp = 'disp';
+dmg = 'max damage';
+frce = 'force';
+engy = 'total energy';
+rVar = 'max r';
+qVar = 'max q';
+mat = 'material';
+
+plotClass.plotSelector (disp,dmg,'Damage - Displacement');
+plotClass.plotSelector (disp,frce,'Force - Displacement');
+plotClass.plotSelector (disp,engy,'Energy - Displacement');
+plotClass.plotSelector (rVar,qVar,'q - r');
+plotClass.plotSelector (rVar,dmg,'Damage-r');
+plotClass.plotSelector (rVar,frce,'Force-r');
 
 %tester.compareWithElasticProblem(data.displacement.fValues,uRef.fValues);
