@@ -25,9 +25,10 @@ classdef ElasticProblemMicro < handle
         end
 
         function obj = solve(obj)
+            ndim = obj.mesh.ndim;
             LHS = obj.computeLHS();
             nBasis = obj.computeNbasis();
-            obj.Chomog = zeros(nBasis, nBasis);
+            obj.Chomog = zeros(ndim, ndim, ndim, ndim);
             for iB = 1:nBasis
                 [strainB,v] = obj.createDeformationBasis(iB);
                 RHS         = obj.computeRHS(strainB,LHS);
@@ -35,12 +36,11 @@ classdef ElasticProblemMicro < handle
                 strainF{iB} = strainB+SymGrad(uF{iB});
                 stressF{iB} = DDP(obj.material, strainF{iB});
                 ChiB        = obj.computeChomog(stressF{iB},iB);
-                Ch          = obj.convertChomogToFourthOrder(ChiB,v,iB);
+                obj.convertChomogToFourthOrder(ChiB,v,iB);
             end
             obj.uFluc  = uF;
             obj.strain = strainF;
             obj.stress = stressF;
-            obj.Chomog = Ch;
         end
 
         function v = computeGeometricalVolume(obj)
@@ -175,9 +175,9 @@ classdef ElasticProblemMicro < handle
             end
         end
 
-        function Ch = convertChomogToFourthOrder(obj,ChiB,v,iB)
+        function convertChomogToFourthOrder(obj,ChiB,v,iB)
+            Ch = obj.Chomog;
             v1 = v(iB,1);    v2 = v(iB,2);
-            Ch = zeros([size(ChiB),size(ChiB)]);
             if v1==v2
                 Ch(:,:,v1,v2) = ChiB;
             else
@@ -188,6 +188,7 @@ classdef ElasticProblemMicro < handle
                 ChShear(v2,v1) = ChiB(v2,v1);
                 Ch(:,:,v2,v1)  = ChShear;
             end
+            obj.Chomog = Ch;
         end
 
         function Chomog = computeChomogFromLagrangeMultipliers(obj,iBase)
