@@ -4,6 +4,8 @@ classdef TestNaca < handle
         L
         D
         E
+        velocityFun
+        pressureFun
     end
     
     properties (Access = private)
@@ -27,8 +29,6 @@ classdef TestNaca < handle
         uMesh
         material
         filter
-        velocityFun
-        pressureFun
         forcesFormula
         dirConditions
         dirDofs
@@ -44,7 +44,7 @@ classdef TestNaca < handle
             [AirfoilParams, BGParams] = obj.setParams();
             obj.createLevelSet(AirfoilParams, BGParams);
             obj.createFluidMesh();
-            %obj.plotMesh();
+            obj.plotMesh();
             %obj.createFluidMeshGoodConditioning(AirfoilParams, BGParams));
             obj.createMaterial();
             obj.createTrialFunction();
@@ -55,7 +55,7 @@ classdef TestNaca < handle
         function compute(obj)
             obj.createPressureFilter();
             obj.solveStokesProblem();
-            %obj.plotResults();
+            obj.plotResults();
             obj.CalculateAeroForces();
         end
 
@@ -225,21 +225,8 @@ classdef TestNaca < handle
         end
 
         function plotResults(obj)     
-            obj.velocityFun.plot(); 
-            ax = findall(groot, 'Type', 'axes');
-            xlabel(ax(2),"x");
-            ylabel(ax(2),"y");
-            axis(ax(2), 'equal');
-            xlabel(ax(1),"x");
-            ylabel(ax(1),"y"); 
-            axis(ax(1), 'equal');
-            title(ax(2), "Velocity distribution in the x direction.");
-            title(ax(1), "Velocity distribution in the y direction.");        
-            obj.pressureFun.plot();
-            xlabel("x");
-            ylabel("y");
-            title("Pressure distribution"); 
-            axis equal;
+            TestNaca.plotVelocity(obj.velocityFun);
+            TestNaca.plotPressure(obj.pressureFun);
         end
 
         function CalculateAeroForces(obj)
@@ -266,6 +253,34 @@ classdef TestNaca < handle
             fclose(fileID);
         end
 
+
+    end
+
+    methods (Static, Access = public)
+
+        function plotVelocity(velFun)
+            velFun.plot(); 
+            ax = findall(groot, 'Type', 'axes');
+            xlabel(ax(2),"x");
+            ylabel(ax(2),"y");
+            axis(ax(2), 'equal');
+            xlabel(ax(1),"x");
+            ylabel(ax(1),"y"); 
+            axis(ax(1), 'equal');
+            title(ax(2), "Velocity distribution in the x direction.");
+            title(ax(1), "Velocity distribution in the y direction."); 
+            colorbar;
+        end
+
+        function plotPressure(PFun)
+            PFun.plot();
+            xlabel("x");
+            ylabel("y");
+            title("Pressure distribution"); 
+            axis equal;
+            colorbar;
+            caxis([-20, 20]);
+        end
 
     end
 
