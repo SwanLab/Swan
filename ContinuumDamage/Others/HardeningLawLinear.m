@@ -17,7 +17,7 @@ classdef HardeningLawLinear < HardeningLaw
             r = internalVariable.r;
             isOverLimit = obj.isDamageOverLimit(r);
             isDamaging  = internalVariable.isDamaging();
-            q = obj.computeHardening(internalVariable);
+            q = obj.computeHardening(r);
             qFun = isDamaging.*(q.*(~isOverLimit) + qinf.*isOverLimit);
         end
 
