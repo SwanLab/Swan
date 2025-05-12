@@ -1,5 +1,11 @@
 classdef ShFunc_ContinuumDamage < handle
 
+    properties (Access = private)
+        mesh
+        material
+        quadOrder
+    end
+
    properties (Access = private)
         internalDamage
         externalWork
@@ -8,7 +14,9 @@ classdef ShFunc_ContinuumDamage < handle
     methods (Access = public)
 
         function obj = ShFunc_ContinuumDamage(cParams)
-            obj.createFunctionals(cParams);
+            obj.init(cParams);
+            obj.createElasticDamage();
+            obj.createExternalWork()
         end
 
         function setTestFunctions(obj,u)           
@@ -39,8 +47,8 @@ classdef ShFunc_ContinuumDamage < handle
             dRes = K(bc.free_dofs,bc.free_dofs);
         end
 
-        function updateDamageEvolutionParam(obj,u)
-            obj.internalDamage.updateDamageEvolutionParam(u);
+        function tau = computeTauEpsilon(obj,u)
+            tau = obj.internalDamage.computeTauEpsilon(u);
         end
 
      %%%
@@ -68,9 +76,23 @@ classdef ShFunc_ContinuumDamage < handle
 
     methods (Access = private)
 
-        function createFunctionals(obj,cParams)
-            obj.internalDamage = ShFunc_ElasticDamage(cParams);
-            obj.externalWork = ShFunc_ExternalWork2(cParams);
+        function init(obj,cParams)
+            obj.mesh               = cParams.mesh;
+            obj.material           = cParams.material;
+            obj.quadOrder          = cParams.quadOrder;
+        end
+
+        function createElasticDamage(obj)
+            s.mesh      = obj.mesh;
+            s.quadOrder = obj.quadOrder;
+            s.material  = obj.material;            
+            obj.internalDamage = ShFunc_ElasticDamage(s);
+        end
+
+        function createExternalWork(obj)
+            s.mesh      = obj.mesh;
+            s.quadOrder = obj.quadOrder;
+            obj.externalWork = ShFunc_ExternalWork2(s);            
         end
 
     end

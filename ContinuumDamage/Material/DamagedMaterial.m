@@ -1,7 +1,6 @@
 classdef DamagedMaterial < handle
 
     properties (Access = private)
-        mesh
         baseMaterial
         damage
     end   
@@ -16,14 +15,14 @@ classdef DamagedMaterial < handle
             C = obj.baseMaterial;
         end
 
-        function Csec = obtainTensorSecant(obj,r,rOld)
-            degFun = obj.computeDegradationFun(r,rOld);
+        function Csec = obtainTensorSecant(obj,r)
+            degFun = obj.computeDegradationFun(r);
             Csec   = degFun.*obj.baseMaterial;
         end
 
-        function Ctan = obtainTensorTangent(obj,u,r,rOld)
+        function Ctan = obtainTensorTangent(obj,u,r)
             Csec = obj.obtainTensorSecant(r);
-            dmgTangent = obj.obtainDamageTangentContribution(u,r,rOld);
+            dmgTangent = obj.obtainDamageTangentContribution(u,r);
             Ctan = Csec - dmgTangent;
         end
 
@@ -39,36 +38,20 @@ classdef DamagedMaterial < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.mesh         = cParams.mesh;
-            obj.baseMaterial = obj.createBaseMaterial(cParams);
-            obj.damage       = obj.defineDamageLaw(cParams.hardening);
-        end
-        
-        function mat = createBaseMaterial(obj,cParams)
-            s.type    = 'ISOTROPIC';
-            s.ndim    = obj.mesh.ndim;
-            s.young   = ConstantFunction.create(cParams.E,obj.mesh);
-            s.poisson = ConstantFunction.create(cParams.nu,obj.mesh);
-            mat = Material.create(s);
+            obj.baseMaterial = cParams.baseMaterial;
+            obj.damage       = cParams.damage;
         end
 
-        function damage = defineDamageLaw(obj,s)
-            s.mesh = obj.mesh;
-            damage = DamageLaw(s);
-        end
-
-
-        function degFun = computeDegradationFun(obj,r,rOld)
-            d = obj.damage.computeFunction(r,rOld);
+        function degFun = computeDegradationFun(obj,r)
+            d = obj.damage.computeFunction(r);
             degFun = (1-d);
         end
 
-        function dContribution = obtainDamageTangentContribution(obj,u,r,rOld)
+        function dContribution = obtainDamageTangentContribution(obj,u,r)
             C = obj.baseMaterial;
             epsi = SymGrad(u);
             sigBar = DDP(epsi,C);
-
-            dDot = obj.damage.computeDerivative(r,rOld);
+            dDot = obj.damage.computeDerivative(r);
             dContribution = dDot.*OP(sigBar,sigBar);
         end
 

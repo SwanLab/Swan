@@ -18,8 +18,6 @@ classdef ShFunc_ElasticDamage < handle
         function obj = ShFunc_ElasticDamage(cParams)
             obj.init(cParams);
             obj.defineRHSIntegrator();
-            obj.r    = LagrangianFunction.create(obj.mesh,1,'P0');
-            obj.rOld = obj.defineROld(cParams.material.hardening.r0);
         end
 
         function setTestFunction(obj,u)
@@ -35,34 +33,25 @@ classdef ShFunc_ElasticDamage < handle
             energy = 0.5*int;
         end
 
-        function res = computeResidual(obj,u)
-            C = obj.material.obtainTensorSecant(obj.r,obj.rOld);
+        function res = computeResidual(obj,u,r)
+            C = obj.material.obtainTensorSecant(r);
             epsi = SymGrad(u);
             stress = DDP(epsi,C);
             res = obj.RHS.compute(stress,obj.test);
         end
 
-        function [Ksec,Ktan] = computeDerivativeResidual(obj,u)
-            Ksec = obj.computeDerivativeResidualSecant(obj.r,obj.rOld);
-            Ktan = obj.computeDerivativeResidualTangent(u,obj.r,obj.rOld);
+        function [Ksec,Ktan] = computeDerivativeResidual(obj,u,r)
+            Ksec = obj.computeDerivativeResidualSecant(r);
+            Ktan = obj.computeDerivativeResidualTangent(u,r);
         end
 
-        function updateDamageEvolutionParam(obj,u)
+        function tau = computeTauEpsilon(obj,u)
             C = obj.material.obtainNonDamagedTensor();
             epsi = SymGrad(u);
-            tauEpsilon = sqrt(DDP(DDP(epsi,C),epsi));
-            tauEpsilon = project(tauEpsilon,obj.r.order);
-
-            fV = zeros(size(obj.r.fValues));
-
-            nodesNoDamage = tauEpsilon.fValues <= obj.rOld.fValues;
-            fV(nodesNoDamage) = obj.rOld.fValues(nodesNoDamage);
-            fV(~nodesNoDamage) = tauEpsilon.fValues(~nodesNoDamage);
-
-            obj.r.setFValues(fV);
+            tau = sqrt(DDP(DDP(epsi,C),epsi));
         end
 
-        %%%
+           %%%
 
         function setROld(obj)
             obj.rOld.setFValues(obj.r.fValues());
@@ -113,13 +102,13 @@ classdef ShFunc_ElasticDamage < handle
             rOld.setFValues(r0.*ones(size(rOld.fValues)));
         end
 
-        function sec = computeDerivativeResidualSecant(obj)
-            mat = obj.material.obtainTensorSecant(r,rOld);
+        function sec = computeDerivativeResidualSecant(obj,r)
+            mat = obj.material.obtainTensorSecant(r);
             LHS = obj.createElasticLHS(mat);
             sec = LHS.compute();
         end
         
-        function tan = computeDerivativeResidualTangent(obj,u,r,rOld) 
+        function tan = computeDerivativeResidualTangent(obj,u,r) 
             isLoading = true;
             if (isLoading)
                 C = obj.material.obtainTensorTanget(u,r,rOld); %Ctan

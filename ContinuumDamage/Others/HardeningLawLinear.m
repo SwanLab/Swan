@@ -1,4 +1,5 @@
 classdef HardeningLawLinear < HardeningLaw
+ 
     properties (Access = private)
         H
         r1
@@ -12,14 +13,17 @@ classdef HardeningLawLinear < HardeningLaw
             obj.initClassParams(cParams);
         end
 
-        function qFun = computeFunction(obj,r,isDamaging)
-            isOverLimit = obj.checkHardeningLimit(r);
-            q = obj.computeHardening(r);
+        function qFun = computeFunction(obj,internalVariable)
+            r = internalVariable.r;
+            isOverLimit = obj.isDamageOverLimit(r);
+            isDamaging  = internalVariable.isDamaging();
+            q = obj.computeHardening(internalVariable);
             qFun = isDamaging.*(q.*(~isOverLimit) + qinf.*isOverLimit);
         end
 
         function qDot = computeDerivative(obj)
-            isOverLimit = obj.checkHardeningLimit(r);
+            isOverLimit = obj.isDamageOverLimit();
+            isDamaging  = internalVariable.isDamaging();            
             qDot = isDamaging.*(obj.H.*(~isOverLimit));
         end
         
@@ -37,12 +41,12 @@ classdef HardeningLawLinear < HardeningLaw
             qInf = obj.r0 - obj.H*(obj.r1 - obj.r0);
         end
 
+        function itIs = isDamageOverLimit(obj,r)
+            itIs = (r > obj.r1);
+        end        
+
         function q = computeHardening(obj,r)
             q = obj.r0 + obj.H*(r - obj.r0);
-        end
-        
-        function isOverLimit = checkDamaging(obj,r)
-            isOverLimit = (r > obj.r1);
         end
 
     end

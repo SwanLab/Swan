@@ -1,6 +1,7 @@
 classdef DamageLaw < handle
 
     properties (Access = private)
+        internalDamageVariable
         hardeningLaw
     end
     
@@ -10,16 +11,16 @@ classdef DamageLaw < handle
             obj.init(cParams)
         end
 
-        function d = computeFunction(obj,r,rOld)
-            isDamaging = obj.checkDamaging(r,rOld);
-            q = obj.hardeningLaw.computeFunction(r,isDamaging);
+        function d = computeFunction(obj,internalVariable)
+            r = internalVariable.r;            
+            q = obj.hardeningLaw.computeFunction(internalVariable);
             d = (1-(q/r));
         end
 
-        function dDot = computeDerivative(obj,r,rOld)
-            isDamaging = obj.checkDamaging(r,rOld);
-            q    = obj.hardeningLaw.computeFunction(r,isDamaging);
-            qDot = obj.hardeningLaw.computeDerivative(r,isDamaging);
+        function dDot = computeDerivative(obj,internalVariable)
+            r = internalVariable.r;
+            q    = obj.hardeningLaw.computeFunction(internalVariable);
+            qDot = obj.hardeningLaw.computeDerivative(internalVariable);
             dDot = (q - qDot*r)/(r.^3);
         end
 
@@ -32,11 +33,7 @@ classdef DamageLaw < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.hardeningLaw = HardeningLaw.create(cParams);
-        end
-
-        function isDamaging = checkDamaging(~,r,rOld)
-            isDamaging = (r > rOld);
+            obj.hardeningLaw = cParams.hardeningLaw;
         end
         
     end

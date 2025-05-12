@@ -1,56 +1,113 @@
 classdef TestingContinuumDamage < handle
+    
     properties (Access = private)
-        mesh
-        bc
-        material
-        solverParams
         tol
     end
 
+    properties (Access = private)
+        mesh
+        bc
+        internalDamageVariable
+        damageFunctional
+    end
+
     methods (Access = public)
-        function obj = TestingContinuumDamage(cParams)
-            obj.mesh         = obj.createMesh(cParams.mesh);
-            obj.bc           = obj.defineBoundaryConditions(cParams.bc);
-            obj.material     = obj.createMaterial(cParams.material);
-            obj.solverParams = cParams.solver;
-        end
 
-        function data = compute(obj)
-            sComp.mesh               = obj.mesh;
-            sComp.boundaryConditions = obj.bc;
-            sComp.material           = obj.material;
-            sComp.solver             = obj.solverParams;
-            comp = ContinuumDamageComputer(sComp);
-            data = comp.compute();
+        function obj = TestingContinuumDamage()
+            obj.init();
+            obj.mesh             = obj.createMesh();
+            obj.bc               = obj.createBoundaryConditions();
+            obj.damageFunctional = obj.createContinuumDamageFunctional();
+            obj.internalDamageVariable = obj.createInternalDamageVariable();
+            c = obj.createContinumDamageComputer();
+            d = c.compute();
         end
-
     end
 
     methods (Access = private)
 
-        function mesh = createMesh(~,s)
-            if ~isfield(s,'name')
-                l = s.meshLength;
-                w = s.meshWidth;
-                N = s.meshN;
-                M = s.meshM;
-                mesh = QuadMesh(l,w,N,M);
-            else
-                file = s.name;
-                a.fileName = file;
-                s = FemDataContainer(a);
-                mesh = s.mesh;
-            end
+        function init(obj)
+            obj.tol = 1e-8;
         end
 
-        function bc = defineBoundaryConditions(obj,s)
+        function mesh = createMesh(obj)
+                l = 1;
+                w = 1;
+                N = 1;
+                M = 1;
+                mesh = QuadMesh(l,w,N,M);
+
+                %file = s.name;
+                %a.fileName = file;
+                %s = FemDataContainer(a);
+                %mesh = s.mesh;
+        end
+
+        function bc = createBoundaryConditions(obj)
             s.mesh = obj.mesh;
+            s.bcType = 'displacementTraction';
+            s.bcValueSet = [0:1e-1:10];            
             bc = BcContinuumDamage(s);
         end
 
-        function mat = createMaterial(obj,s)
+        function r = createInternalDamageVariable(obj)
+            s.r0 = obj.createR0();
             s.mesh = obj.mesh;
-            mat = DamagedMaterial(s);
+            r = InternalDamageVariable(s);
+        end
+
+        function sF = createContinuumDamageFunctional(obj)
+            s.mesh               = obj.mesh;
+            s.boundaryConditions = obj.bc;
+            s.material           = obj.createDamagedMaterial();
+            s.quadOrder          = 2;
+            sF = ShFunc_ContinuumDamage(s);
         end        
+    
+        function dM = createDamagedMaterial(obj)
+            s.baseMaterial = obj.createBaseMaterial();
+            s.damage       = obj.createDamagedLaw();
+            dM = DamagedMaterial(s);
+        end
+
+        function mat = createBaseMaterial(obj)
+            E = 210;
+            nu = 0.3;
+            s.type    = 'ISOTROPIC';
+            s.ndim    = obj.mesh.ndim;
+            s.young   = ConstantFunction.create(E,obj.mesh);
+            s.poisson = ConstantFunction.create(nu,obj.mesh);
+            mat = Material.create(s);
+        end        
+
+        function d = createDamagedLaw(obj)
+            s.hardeningLaw = obj.createHardeningLaw();
+            d = DamageLaw(s);
+        end
+
+        function hL = createHardeningLaw(obj)
+            r1 = 20;
+            s.r1   = ConstantFunction.create(r1,obj.mesh);
+            s.type = 'Linear'; %'Exp'            
+            s.H    = 0.5;
+            s.A    = 0.1;
+            s.r0 = obj.createR0();
+            hL = HardeningLaw.create(s);
+        end          
+
+        function r0 = createR0(obj)
+            r0 = 10;
+            r0 = ConstantFunction.create(r0,obj.mesh);            
+        end
+
+        function comp = createContinumDamageComputer(obj)
+            s.mesh               = obj.mesh;
+            s.boundaryConditions = obj.bc;
+            s.tol                = obj.tol;
+            s.damageFunctional   = obj.damageFunctional();
+            s.internalDamageVariable = obj.internalDamageVariable;
+            comp = ContinuumDamageComputer(s);
+        end        
+ 
     end
 end

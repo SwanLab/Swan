@@ -3,14 +3,14 @@ classdef ContinuumDamageComputer < handle
     properties (Access = private)
         mesh
         boundaryConditions
-        material
         solverParams
         tolerance
-        quadOrder 
+        quadOrder
+        internalDamageVariable
     end
 
     properties (Access = private)
-        functional
+        damageFunctional
         tau = 5e-4;
         limIter = 100;
     end
@@ -18,12 +18,11 @@ classdef ContinuumDamageComputer < handle
     methods (Access = public)
         function obj = ContinuumDamageComputer(cParams)
             obj.init(cParams)
-            obj.defineFunctional()
         end
 
         function data = compute(obj)
             uFun = LagrangianFunction.create(obj.mesh,2,'P1');
-            obj.functional.setTestFunctions(uFun);
+            obj.damageFunctional.setTestFunctions(uFun);
             data = {};
 
             nSteps = length(obj.boundaryConditions.bcValueSet);
@@ -33,8 +32,8 @@ classdef ContinuumDamageComputer < handle
                 uFun.setFValues(obj.updateInitialDisplacement(bc,uFun));
 
                 err = 1; iter = 0;
-                while (err >= obj.tolerance && iter < obj.limIter)    
-                    [res,Ksec,uVec,uFun] = obj.solveU(uFun,bc);  
+                while (err >= obj.tolerance && iter < obj.limIter)
+                    [res,Ksec,uVec,uFun] = obj.solveU(uFun,bc);
 
                     err = norm(res);
                     fprintf('Error: %d \n',err);
@@ -45,9 +44,9 @@ classdef ContinuumDamageComputer < handle
                     fprintf (2,'NOT CONVERGED FOR STEP %d\n',i);
                 end
 
-                obj.functional.setROld(); 
+                obj.internalDamageVariable.updateRold();
                 [data,dmgFun,rFun,qFun] = obj.getData(data,i,Ksec,uVec,uFun,bc);
-                
+
             end
             data.displacement.field = uFun;
             data.damage.field = dmgFun;
@@ -62,18 +61,9 @@ classdef ContinuumDamageComputer < handle
         function init(obj,cParams)
             obj.mesh               = cParams.mesh;
             obj.boundaryConditions = cParams.boundaryConditions;
-            obj.material           = cParams.material;
-            obj.solverParams       = cParams.solver; 
-            obj.tolerance          = cParams.solver.tol;
-            obj.quadOrder          = 2;
-        end
-       
-        function defineFunctional(obj)
-            s.mesh               = obj.mesh;
-            s.boundaryConditions = obj.boundaryConditions;
-            s.material           = obj.material;
-            s.quadOrder          = obj.quadOrder;
-            obj.functional = ShFunc_ContinuumDamage(s);
+            obj.tolerance          = cParams.tol;
+            obj.damageFunctional   = cParams.damageFunctional;
+            obj.internalDamageVariable = cParams.internalDamageVariable;
         end
 
         function [bc] = updateBoundaryConditions (obj,i)
@@ -93,23 +83,24 @@ classdef ContinuumDamageComputer < handle
                 u = reshape(uVec,[flip(size(uOld.fValues))])';
             end
         end
-        
-        function [res,Ksec,uVec,u] = solveU(obj,u,bc)  
-            obj.functional.updateDamageEvolutionParam(u);         
-            [res]           = obj.functional.computeResidual(u,bc);
-            [resDeriv,Ksec] = obj.functional.computeDerivativeResidual(u,bc);
+
+        function [res,Ksec,uVec,u] = solveU(obj,u,bc)           
+            tauEps = obj.damageFunctional.computeTauEpsilon(u);
+            obj.internalDamageVariable.update(tauEps);
+            [res]           = obj.damageFunctional.computeResidual(u,bc);
+            [resDeriv,Ksec] = obj.damageFunctional.computeDerivativeResidual(u,bc);
             [uNew,uVec]     = obj.computeDisplacement(resDeriv,res,u,bc);
             u.setFValues(uNew);
-            [res]  = obj.functional.computeResidual(u,bc);
+            [res]  = obj.damageFunctional.computeResidual(u,bc);
         end
 
-        function [uOut,uOutVec] = computeDisplacement(obj,LHS,RHS,uIn,bc)            
+        function [uOut,uOutVec] = computeDisplacement(obj,LHS,RHS,uIn,bc)
             uInVec = reshape(uIn.fValues',[uIn.nDofs 1]);
             uOutVec = uInVec;
 
             uInFree = uInVec(bc.free_dofs);
             uOutFree = obj.updateWithNewton(LHS,RHS,uInFree);
-           % uOutFree = obj.updateWithGradient(RHS,uInFree);
+            % uOutFree = obj.updateWithGradient(RHS,uInFree);
             uOutVec(bc.free_dofs) = uOutFree;
             uOut = reshape(uOutVec,[flip(size(uIn.fValues))])';
         end
@@ -120,29 +111,29 @@ classdef ContinuumDamageComputer < handle
         % end
 
         function xNew = updateWithNewton(~,LHS,RHS,x)
-            deltaX = -LHS\RHS; 
+            deltaX = -LHS\RHS;
             xNew = x + deltaX;
         end
 
         function [data,dmgFun,rFun,qFun] = getData(obj,data,i,Ksec,uVec,uFun,bc)
             data.displacement.value(i)  = obj.boundaryConditions.bcValueSet(i);
-            dmgDomainFun = obj.functional.getDamage();
+            dmgDomainFun = obj.damageFunctional.getDamage();
             dmgFun = dmgDomainFun.project('P1D');
             data.damage.maxValue(i)  = max(dmgFun.fValues);
             data.damage.minValue(i)  = min(dmgFun.fValues);
-           
-            rDomainFun = obj.functional.getR();
+
+            rDomainFun = obj.damageFunctional.getR();
             rFun = rDomainFun.project('P0');
             data.r.maxValue(i) = max(rFun.fValues);
             data.r.minValue(i) = min(rFun.fValues);
-            
-            qDomainFun = obj.functional.getQ();
+
+            qDomainFun = obj.damageFunctional.getQ();
             qFun = qDomainFun.project('P1D');
             data.q.maxValue(i) = max(qFun.fValues);
             data.q.minValue(i) = min(qFun.fValues);
-            
+
             data.reaction(i)  = obj.computeTotalReaction(Ksec,uVec);
-            [data.totalEnergy(i),data.damagedMaterial(i)] = obj.functional.computeEnergy(uFun,bc);
+            [data.totalEnergy(i),data.damagedMaterial(i)] = obj.damageFunctional.computeEnergy(uFun,bc);
         end
 
         function totReact = computeTotalReaction(obj,LHS,u)
