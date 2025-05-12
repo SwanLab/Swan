@@ -2,6 +2,7 @@ classdef HardeningLawLinear < HardeningLaw
     properties (Access = private)
         H
         r1
+        qInf
     end
 
     methods (Access = public)
@@ -11,15 +12,15 @@ classdef HardeningLawLinear < HardeningLaw
             obj.initClassParams(cParams);
         end
 
-        function q = computeQ(obj)
-            qinf = qinfComputer();
-            op = @(xV) obj.r0(xV) + obj.H*(obj.r(xV) - obj.r0(xV));
-
-            q = @(xV) op(xV).*obj.isDamaging(xV)*~obj.isOverR1(xV) + qinf()*obj.isDamaging(xV)*obj.isOverR1(xV);
+        function qFun = computeFunction(obj,r,isDamaging)
+            isOverLimit = obj.checkHardeningLimit(r);
+            q = obj.computeHardening(r);
+            qFun = isDamaging.*(q.*(~isOverLimit) + qinf.*isOverLimit);
         end
 
-        function qDot = computeQDerivative(obj)
-            qDot = @(xV) obj.H.*obj.isDamaging(xV).*~obj.isOverR1(xV);
+        function qDot = computeDerivative(obj)
+            isOverLimit = obj.checkHardeningLimit(r);
+            qDot = isDamaging.*(obj.H.*(~isOverLimit));
         end
         
     end
@@ -27,16 +28,23 @@ classdef HardeningLawLinear < HardeningLaw
     methods (Access = private)
         
         function initClassParams(obj,cParams)
-            obj.H = cParams.H;
-            % obj.r1 = cParams.r1;
-            obj.r1 = @(xV) cParams.r1.evaluate(xV);
+            obj.H        = cParams.H;
+            obj.r1       = cParams.r1;
+            obj.qInf = obj.computeHardeningLimit();
         end
 
-        function qinf = qinfComputer(obj)
-            % qinf = @(xV) obj.r0.evaluate(xV) + obj.H*(r.evaluate(xV) - obj.r0.evaluate(xV));
-            qinf = @(xV) obj.r0(xV) - obj.H*(obj.r1(xV) - obj.r0(xV));
+        function qInf = computeHardeningLimit(obj)
+            qInf = obj.r0 - obj.H*(obj.r1 - obj.r0);
+        end
+
+        function q = computeHardening(obj,r)
+            q = obj.r0 + obj.H*(r - obj.r0);
         end
         
+        function isOverLimit = checkDamaging(obj,r)
+            isOverLimit = (r > obj.r1);
+        end
+
     end
     
 end

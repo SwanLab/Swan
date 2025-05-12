@@ -4,8 +4,6 @@ classdef TestingContinuumDamage < handle
         bc
         material
         solverParams
-        damageLaw
-
         tol
     end
 
@@ -13,41 +11,19 @@ classdef TestingContinuumDamage < handle
         function obj = TestingContinuumDamage(cParams)
             obj.mesh         = obj.createMesh(cParams.mesh);
             obj.bc           = obj.defineBoundaryConditions(cParams.bc);
-            obj.material     = obj.createMaterial(cParams);
-            obj.tol          = cParams.tol;
-            obj.damageLaw    = cParams.qLaw;
-            % obj.solverParams = cParams.solver;
-            % obj.H            = cParams.H;
-            % obj.r0           = cParams.r0;
-            % obj.r1           = cParams.r1;
-            % obj.qLaw         = cParams.qLaw;
+            obj.material     = obj.createMaterial(cParams.material);
+            obj.solverParams = cParams.solver;
         end
 
         function data = compute(obj)
-            sComp.mesh = obj.mesh;
+            sComp.mesh               = obj.mesh;
             sComp.boundaryConditions = obj.bc;
-            sComp.material = obj.material;
-            sComp.solver = obj.solverParams;
-            % sComp.H = obj.H;
-            % sComp.r0 = obj.r0;
-            % sComp.r1 = obj.r1;
-            sComp.tol = obj.tol;
-            % sComp.qLaw = obj.qLaw;
-            sComp.damageLaw = obj.damageLaw;
+            sComp.material           = obj.material;
+            sComp.solver             = obj.solverParams;
             comp = ContinuumDamageComputer(sComp);
             data = comp.compute();
         end
 
-        function compareWithElasticProblem(~,data,uRef)
-            if  all(all(ismembertol(uRef.fValues,data.displacement.fValues,1e-10)))
-                fprintf ("Continuum Damage TEST: \nPASSED\n")
-                disp ("-------------------")
-            else
-                disp ("Continuum Damage TEST:")
-                fprintf (2,'FAILED\n')
-                disp ("-------------------")
-            end
-        end
     end
 
     methods (Access = private)
@@ -73,10 +49,8 @@ classdef TestingContinuumDamage < handle
         end
 
         function mat = createMaterial(obj,s)
-            sM = s.material;
-            sM.mesh = obj.mesh;
-            sM.qLaw = s.qLaw;
-            mat = DamagedMaterial(sM);
+            s.mesh = obj.mesh;
+            mat = DamagedMaterial(s);
         end        
     end
 end

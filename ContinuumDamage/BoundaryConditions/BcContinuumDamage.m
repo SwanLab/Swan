@@ -3,7 +3,6 @@ classdef BcContinuumDamage < handle
     properties (Access = public)
         type
         bcValueSet
-        LoadingBcLength
         mesh
     end
     
@@ -14,28 +13,20 @@ classdef BcContinuumDamage < handle
 
         function bc = nextStep(obj,i)
             s.bcVal = obj.bcValueSet(i);
-            bc = obj.bcSetType (s);
+            bc = obj.bcSetType(s);
         end
 
     end
 
     methods (Access =  private)
+
         function init(obj,cParams) 
-            obj.type = cParams.bcType;
-            %obj.bcValueSet = cat(2,cParams.bcValueSetLoading,cParams.bcValueSetUnLoading(2:end));
+            obj.type       = cParams.bcType;
             obj.bcValueSet = cParams.bcValueSet;
-            obj.setLoadingBCLength(cParams.bcValueSet);
-            obj.mesh = cParams.mesh;
+            obj.mesh       = cParams.mesh;
         end
 
-
-        function setLoadingBCLength(obj,set)
-            op = set(2:end) - set(1:end-1);
-            idx = find(op < 0, 1); %Maybe putting a +1 will help to not repeat any BC. 
-            obj.LoadingBcLength = idx;
-        end
-
-        function  bc = bcSetType (obj, s)
+        function  bc = bcSetType(obj,s)
             switch obj.type
                 case 'displacementTraction'
                     isDown = @(coord) (abs(coord(:,2) - min(coord(:,2)))< 1e-12);

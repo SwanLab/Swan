@@ -18,8 +18,8 @@ classdef ShFunc_ContinuumDamage < handle
 
         function [totalEnergy,c] = computeEnergy(obj,u,bc)
            [internalEnergy,C] = obj.internalDamage.computeFunction(u);
-           c = C.evaluate([0;0]);
-           c = c(1,1);
+           %c = C.evaluate([0;0]);
+           %c = c(1,1);
 
            fExt = bc.pointloadFun;
            externalEnergy = obj.externalWork.computeFunction(u,fExt);
@@ -34,18 +34,24 @@ classdef ShFunc_ContinuumDamage < handle
             res  = res(bc.free_dofs);
         end
 
-        function [Ksec,dRes] = computeDerivativeResidual(obj,u,bc,isLoading) 
+        function [dRes,Ksec] = computeDerivativeResidual(obj,u,bc,isLoading) 
             [K,Ksec] = obj.internalDamage.computeDerivativeResidual(u,isLoading);
             dRes = K(bc.free_dofs,bc.free_dofs);
         end
 
-        function computeDamageEvolutionParam(obj,u)
-            obj.internalDamage.computeDamageEvolutionParam(u);
+        function updateDamageEvolutionParam(obj,u)
+            obj.internalDamage.updateDamageEvolutionParam(u);
         end
+
+     %%%
 
         function setROld(obj)
             obj.internalDamage.setROld();
         end
+
+
+     %%%
+
 
         function  r = getR(obj)
             r = obj.internalDamage.getR();

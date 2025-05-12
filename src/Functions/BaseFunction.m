@@ -139,6 +139,15 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             r = power(a,0.5);
         end
 
+        function r = gt(a,b)
+            aOp = BaseFunction.computeOperation(a);
+            bOp = BaseFunction.computeOperation(b);
+            s.operation = @(xV) aOp(xV) > bOp(xV);
+            s.mesh  = a.mesh;
+            s.ndimf = a.ndimf;
+            r = DomainFunction(s);
+        end
+
         function r = norm(varargin)
             a = varargin{1};
             if nargin == 1

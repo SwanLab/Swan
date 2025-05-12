@@ -31,49 +31,46 @@ cParams.mesh.meshWidth = 1;
 cParams.mesh.meshN = 1;
 cParams.mesh.meshM = 1;
 
-cParams.bc.bcType = 'displacementTraction'; %'FORCE'
-cParams.bc.bcValueSet = [0:1e-3:0.3,0.3:-1e-3:0];
+cParams.bc.bcType = 'displacementTraction';
+cParams.bc.bcValueSet = [0:1e-1:10];
 
 cParams.material.E = 210;
 cParams.material.nu = 0.3;
 
-cParams.qLaw.type = 'Exp'; %'Linear'
-cParams.qLaw.A = 0.51;
-cParams.qLaw.qInf = 0.2;
-cParams.qLaw.r0 = 0.4;
-cParams.qLaw.r1 = 2;
-cParams.qLaw.H = 0.5;
+cParams.material.hardening.type = 'Linear'; %'Exp'
+cParams.material.hardening.r0   = 10;
+cParams.material.hardening.r1   = 20;
+cParams.material.hardening.H    = 0.5;
+cParams.material.hardening.A    = 0.1;
+cParams.material.hardening.qInf = 15;
 
 cParams.solver.type = 'Elastic';
 cParams.solver.solverType='REDUCED';
 cParams.solver.solverMode = 'DISP';
 cParams.solver.solverCase = 'DIRECT';
 cParams.solver.scale = 'MACRO';
-
-cParams.tol = 1e-8;
+cParams.solver.tol = 1e-8;
 
 tester = TestingContinuumDamage(cParams);
 data = tester.compute();
 
 
-plotClass = ContinuumDamagePlotter(data);
-
-plotClass.plotDisplacementField(); %FALTA POSAR LA H COM A INPUT
-plotClass.plotDamagesField();
-
-disp = 'disp';
-dmg = 'max damage';
-frce = 'force';
-engy = 'total energy';
-rVar = 'max r';
-qVar = 'max q';
-mat = 'material';
-
-plotClass.plotSelector (disp,dmg,'Damage - Displacement');
-plotClass.plotSelector (disp,frce,'Force - Displacement');
-plotClass.plotSelector (disp,engy,'Energy - Displacement');
-plotClass.plotSelector (rVar,qVar,'q - r');
-plotClass.plotSelector (rVar,dmg,'Damage-r');
-plotClass.plotSelector (rVar,frce,'Force-r');
-
-%tester.compareWithElasticProblem(data.displacement.fValues,uRef.fValues);
+% plotClass = ContinuumDamagePlotter(data);
+% 
+% plotClass.plotDisplacementField(); %FALTA POSAR LA H COM A INPUT
+% plotClass.plotDamagesField();
+% 
+% disp = 'disp';
+% dmg = 'max damage';
+% frce = 'force';
+% engy = 'total energy';
+% rVar = 'max r';
+% qVar = 'max q';
+% mat = 'material';
+% 
+% plotClass.plotSelector (disp,dmg,'Damage - Displacement');
+% plotClass.plotSelector (disp,frce,'Force - Displacement');
+% plotClass.plotSelector (disp,engy,'Energy - Displacement');
+% plotClass.plotSelector (rVar,qVar,'q - r');
+% plotClass.plotSelector (rVar,dmg,'Damage-r');
+% plotClass.plotSelector (rVar,frce,'Force-r');
