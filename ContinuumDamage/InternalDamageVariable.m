@@ -1,11 +1,11 @@
 classdef InternalDamageVariable < handle
     
-    properties (Access = private)
-       mesh
+    properties (Access = public)
+        r
     end
     
     properties (Access = private)
-        r
+        mesh
         rOld
     end
     

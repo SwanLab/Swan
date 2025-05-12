@@ -84,11 +84,12 @@ classdef ContinuumDamageComputer < handle
             end
         end
 
-        function [res,Ksec,uVec,u] = solveU(obj,u,bc)           
+        function [res,Ksec,uVec,u] = solveU(obj,u,bc)   
             tauEps = obj.damageFunctional.computeTauEpsilon(u);
             obj.internalDamageVariable.update(tauEps);
-            [res]           = obj.damageFunctional.computeResidual(u,bc);
-            [resDeriv,Ksec] = obj.damageFunctional.computeDerivativeResidual(u,bc);
+            r = obj.internalDamageVariable;
+            [res]           = obj.damageFunctional.computeResidual(u,r,bc);
+            [resDeriv,Ksec] = obj.damageFunctional.computeDerivativeResidual(u,r,bc);
             [uNew,uVec]     = obj.computeDisplacement(resDeriv,res,u,bc);
             u.setFValues(uNew);
             [res]  = obj.damageFunctional.computeResidual(u,bc);

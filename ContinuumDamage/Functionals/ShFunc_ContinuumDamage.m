@@ -34,16 +34,16 @@ classdef ShFunc_ContinuumDamage < handle
            totalEnergy = internalEnergy - externalEnergy;
        end
 
-        function [res] = computeResidual(obj,u,bc)
+        function [res] = computeResidual(obj,u,r,bc)
             fExt = bc.pointloadFun;
             Fext = obj.externalWork.computeResidual(u,fExt);
-            Fint = obj.internalDamage.computeResidual(u);
+            Fint = obj.internalDamage.computeResidual(u,r);
             res = Fint - Fext;
             res  = res(bc.free_dofs);
         end
 
-        function [dRes,Ksec] = computeDerivativeResidual(obj,u,bc,isLoading) 
-            [K,Ksec] = obj.internalDamage.computeDerivativeResidual(u,isLoading);
+        function [dRes,Ksec] = computeDerivativeResidual(obj,u,r,bc,isLoading) 
+            [K,Ksec] = obj.internalDamage.computeDerivativeResidual(u,r,isLoading);
             dRes = K(bc.free_dofs,bc.free_dofs);
         end
 
