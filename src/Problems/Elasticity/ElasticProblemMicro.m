@@ -93,7 +93,7 @@ classdef ElasticProblemMicro < handle
                case 2
                    v = [1,1; 2,2; 1,2];
                case 3
-                   v = [1,1; 2,2; 3,3; 2,3; 2,1; 1,2];
+                   v = [1,1; 2,2; 3,3; 2,3; 1,3; 1,2];
            end
        end
 
