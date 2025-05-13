@@ -24,7 +24,8 @@ classdef PCG < handle
             z = P(r);
             p = z;
             rzold = r' * z;
-            while norm(r) > tol
+            normB = norm(B);
+            while norm(r)/normB > tol
                 Ap = A(p);
                 alpha = rzold / (p' * Ap);
                 x = x + alpha * p;
@@ -36,7 +37,7 @@ classdef PCG < handle
                 p = z + beta * p;
                 rzold = rznew;
                 iter = iter + 1;
-                residual(iter) = norm(r);
+                residual(iter) = norm(r)/normB;
                 err(iter)=norm(x-xsol);
                 errAnorm(iter)=((x-xsol)')*A(x-xsol);
             end
