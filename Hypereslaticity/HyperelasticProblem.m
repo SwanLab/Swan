@@ -8,7 +8,7 @@ classdef HyperelasticProblem < handle
         mesh
         neohookeanFun, linearElasticityFun
         material, materialElastic
-        bc_case = 'HoleDirich'
+        bc_case = 'Metamaterial'
         printing = 1
         bcApplier
         freeDofs, constrainedDofs
@@ -24,7 +24,7 @@ classdef HyperelasticProblem < handle
             u  = obj.uFun;
             f = animatedline;
 
-            nsteps = 20;
+            nsteps = 200;
             iter = 1;
             nIterPerStep = [];
 
@@ -206,7 +206,9 @@ classdef HyperelasticProblem < handle
                     obj.mesh = UnitQuadMesh(20,20);
                 case {'Metamaterial'}
                     load('NegPoissMesh.mat')
-                    obj.mesh = NegPoissMesh;
+                    s.coord = NegPoissMesh.coord;
+                    s.connec = NegPoissMesh.connec;
+                    obj.mesh = Mesh.create(s);
                 otherwise
                     obj.mesh = HexaMesh(2,1,1,20,5,5);
                     % obj.mesh = UnitHexaMesh(15,15,15);
