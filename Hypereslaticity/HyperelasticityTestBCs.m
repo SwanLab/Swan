@@ -107,18 +107,18 @@ classdef HyperelasticityTestBCs < handle
             isMiddle = @(coor)  abs(abs(coor(:,2))-yMax/2) <= 10e-2;
             
             % 2D N ELEMENTS
-            sDir.domain    = @(coor) isBottom(coor);
+            sDir.domain    = @(coor) isLeft(coor);
             sDir.direction = [1,2];
             sDir.value     = 0;
             dir1 =  DirichletCondition(obj.mesh, sDir);
 
-            sDir2.domain    = @(coor) isTop(coor);
-            sDir2.direction = [2];
+            sDir2.domain    = @(coor) isRight(coor);
+            sDir2.direction = [1];
             sDir2.value     = perc*2;
             dir2 =  DirichletCondition(obj.mesh, sDir2);
 
-            sDir3.domain    = @(coor) isTop(coor);
-            sDir3.direction = [1];
+            sDir3.domain    = @(coor) isRight(coor);
+            sDir3.direction = [2];
             sDir3.value     = 0;
             dir3 =  DirichletCondition(obj.mesh, sDir3);
 
