@@ -96,11 +96,14 @@ classdef HyperelasticityTestBCs < handle
         function bc = createBC_2DTraction(obj,perc)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
-            isLeft   = @(coor)  abs(coor(:,1))==0;
-            isRight  = @(coor)  abs(coor(:,1))==xMax;
+            xMin    = min(obj.mesh.coord(:,1));
+            yMin    = min(obj.mesh.coord(:,2));
+
+            isLeft   = @(coor)  abs(coor(:,1)-xMin)<= 1e-10;
+            isRight  = @(coor)  abs(coor(:,1)-xMax)<= 1e-10;
             isHalf   = @(coor)  abs(abs(coor(:,1)) - xMax/2) <=10e-2;
-            isTop    = @(coor)  abs(coor(:,2))==yMax;
-            isBottom = @(coor)  abs(coor(:,2))==0;
+            isTop    = @(coor)  abs(coor(:,2)-yMax)<= 1e-10;
+            isBottom = @(coor)  abs(coor(:,2)-yMin) <= 1e-10;
             isMiddle = @(coor)  abs(abs(coor(:,2))-yMax/2) <= 10e-2;
             
             % 2D N ELEMENTS
@@ -111,7 +114,7 @@ classdef HyperelasticityTestBCs < handle
 
             sDir2.domain    = @(coor) isTop(coor);
             sDir2.direction = [2];
-            sDir2.value     = perc*1;
+            sDir2.value     = perc*2;
             dir2 =  DirichletCondition(obj.mesh, sDir2);
 
             sDir3.domain    = @(coor) isTop(coor);

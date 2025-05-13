@@ -10,6 +10,8 @@ classdef HyperelasticProblem < handle
         neohookeanFun, linearElasticityFun
         material, materialElastic
         bc_case
+        fileName
+        meshGen
         printing
         bcApplier
         freeDofs, constrainedDofs
@@ -77,7 +79,7 @@ classdef HyperelasticProblem < handle
                 fun = {u, reac};
                 funNames = {'Displacement', 'Reactions'};
                 a.mesh     = obj.mesh;
-                a.filename = ['SIM_',obj.bc_case,'_',int2str(iStep)];
+                a.filename = ['SIM_',obj.fileName,'_',int2str(iStep)];
                 a.fun      = fun;
                 a.funNames = funNames;
                 a.type     = 'Paraview';
@@ -130,6 +132,8 @@ classdef HyperelasticProblem < handle
         function init(obj,cParams)
             obj.printing = cParams.printing;
             obj.bc_case  = cParams.bcCase;
+            obj.fileName = cParams.fileName;
+            obj.meshGen  = cParams.meshGen;
             obj.createMesh();
             obj.createMaterial();
             obj.createDisplacementFun();
@@ -202,7 +206,7 @@ classdef HyperelasticProblem < handle
         end
 
         function createMesh(obj)
-            switch obj.bc_case
+            switch obj.meshGen
                 case {'Hole', 'HoleDirich'}
                     IM = Mesh.createFromGiD('hole_mesh_quad.m');
                     obj.mesh = IM;
@@ -213,6 +217,12 @@ classdef HyperelasticProblem < handle
                     s.coord = NegPoissMesh.coord;
                     s.connec = NegPoissMesh.connec;
                     obj.mesh = Mesh.create(s);
+                case 'EIFEMMesh'
+                    load(obj.fileName)
+                    s.coord  = EIFEoper.MESH.COOR;          
+                    s.connec = EIFEoper.MESH.CN;
+                    mS       = Mesh.create(s);
+                    obj.mesh = mS;
                 otherwise
                     obj.mesh = HexaMesh(2,1,1,20,5,5);
                     % obj.mesh = UnitHexaMesh(15,15,15);
