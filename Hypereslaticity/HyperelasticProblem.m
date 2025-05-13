@@ -2,29 +2,30 @@ classdef HyperelasticProblem < handle
 
     properties (Access = public)
         uFun
+        rFun
     end
 
     properties (Access = private)
         mesh
         neohookeanFun, linearElasticityFun
         material, materialElastic
-        bc_case = 'Metamaterial'
-        printing = 1
+        bc_case
+        printing
         bcApplier
         freeDofs, constrainedDofs
     end
 
     methods (Access = public)
 
-        function obj = HyperelasticProblem()
+        function obj = HyperelasticProblem(cParams)
             close all;
-            obj.init();
+            obj.init(cParams);
             obj.computeFreeDofs();
 
             u  = obj.uFun;
             f = animatedline;
 
-            nsteps = 200;
+            nsteps = cParams.nsteps;
             iter = 1;
             nIterPerStep = [];
 
@@ -62,6 +63,7 @@ classdef HyperelasticProblem < handle
                 obj.printFile(iStep, u, reacFun);              
                 nIterPerStep(iStep) = obj.computeNumberOfIterations(iter,nIterPerStep,iStep);
                 obj.plotStep(intEnergy,nIterPerStep,iStep, normDisp,normReac);
+                obj.rFun = reacFun;
             end
 
         end
@@ -125,7 +127,9 @@ classdef HyperelasticProblem < handle
             hasNot = abs(energy-energyOld)/energy > TOL;
         end
 
-        function init(obj)
+        function init(obj,cParams)
+            obj.printing = cParams.printing;
+            obj.bc_case  = cParams.bcCase;
             obj.createMesh();
             obj.createMaterial();
             obj.createDisplacementFun();
@@ -206,6 +210,7 @@ classdef HyperelasticProblem < handle
                     obj.mesh = UnitQuadMesh(20,20);
                 case {'Metamaterial'}
                     load('NegPoissMesh.mat')
+                    clc;
                     s.coord = NegPoissMesh.coord;
                     s.connec = NegPoissMesh.connec;
                     obj.mesh = Mesh.create(s);
