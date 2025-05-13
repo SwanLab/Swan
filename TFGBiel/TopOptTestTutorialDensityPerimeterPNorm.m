@@ -167,7 +167,8 @@ classdef TopOptTestTutorialDensityPerimeterPNorm < handle
 
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
-            s.weights           = 1;
+            s.shapeFunctions{2} = obj.globalperimeter;
+            s.weights           = [1,0.2];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
