@@ -39,7 +39,7 @@ classdef CoarsePlotSolution < handle
         function makeHole(obj, bcApplier,outputFileName)
 
             %uH = obj.createUHole();
-            meshH = obj.createHole();
+            meshH = obj.createUnfittedMeshFun();
             obj.plot(uH, meshH, bcApplier, outputFileName);
 
         end
@@ -66,7 +66,7 @@ classdef CoarsePlotSolution < handle
 
         end
 
-        function meshH = createHole(obj)
+        function uMeshFun = createUnfittedMeshFun(obj)
             % mR    = obj.createReferenceMesh();
 
             gPar.type         = 'Circle';
@@ -83,28 +83,6 @@ classdef CoarsePlotSolution < handle
             g = GeometricalFunction(s);
             ls = g.computeLevelSetFunction(obj.mesh);
 
-% %             % Loop through each handle and build the sum
-% %             for i = 1:length(obj.r)
-% %                 f_prev = f;
-% %                 radius = obj.r(i);
-% %                 x0 = obj.centroids(i,1);
-% %                 y0 = obj.centroids(i,2);
-% %                 % f_prev = f_sum;
-% %                 f = @(x) max(f_prev(x),(x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2-radius^2);
-% % %                 f = @(x) (x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2-radius^2;
-% % 
-% %                 s.fHandle = f;
-% % 
-% %                 %f = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<radius) + ...
-% %                 %        (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=radius) ; % Save previous sum to avoid recursion
-% %                 % f_sum = @(x) f_prev(x) + f(x);  % Add new handle
-% %             end
-% % 
-% %             s.ndimf   = 1;
-% %             s.mesh    = mesh;
-% %             aFun      = AnalyticalFunction(s);
-% %             ls        = aFun.project('P1');
-
             lsCircle          = ls.fValues;
             lsCircleInclusion = -lsCircle;
 
@@ -114,31 +92,7 @@ classdef CoarsePlotSolution < handle
             uMesh.compute(lsCircleInclusion);
             uMeshFun = uMesh.obtainFunctionAtUnfittedMesh(u);
 %             s.fValues = reshape(uMeshFun.innerMeshFunction.fValues,2,[])';
-            s.fValues = uMeshFun.innerMeshFunction.fValues;
-            s.mesh         = uMeshFun.innerMeshFunction.mesh;
-            s.order = 'P1';
-            uInner = LagrangianFunction(s);
-            
-            u = uMeshFun.innerMeshFunction;
-            mesh = uMesh.innerMesh;
-
-% % %             s.fHandle = f_sum;
-% % %             s.ndimf   = 1;
-% % %             s.mesh    = obj.mesh;
-% % %             aFun      = AnalyticalFunction(s);
-% % %             ls        = aFun.project('P1');
-% % % 
-% % %             for i = 1:size(obj.r,2)
-% % %                 gPar.radius       = obj.r(i);
-% % %                 gPar.xCoorCenter  = obj.centroids(i,1);
-% % %                 gPar.yCoorCenter  = obj.centroids(i,2);
-% % %                 g                 = GeometricalFunction(gPar);
-% % %             end
-% % %             lvSet = obj.createLevelSetFunction(mR);
-% % %             uMesh = obj.computeUnfittedMesh(mR,lvSet);
-% % %             meshH  = uMesh.createInnerMesh();
-
-
+           
         end
 
         function newMesh = createReferenceMesh(obj)
