@@ -2,8 +2,8 @@ classdef Data < handle
 
     properties (Access = public)
         nFeatures
-        nLabels
-        
+        nSamples
+        nLabels        
         Xtrain
         Ytrain       
         Xtest
@@ -12,12 +12,14 @@ classdef Data < handle
     end
 
     properties (Access = private)
-        polynomialOrder
         X
         Y
+        polynomialOrder
         data
         fileName
         testRatio
+        xFeatures
+        yFeatures
     end
 
     methods (Access = public)
@@ -25,9 +27,10 @@ classdef Data < handle
         function obj = Data(cParams)            
             obj.init(cParams)
             obj.loadData();
+            %obj.buildModel();
             obj.splitdata()
             obj.nLabels   = size(obj.Ytrain,2);                        
-            obj.nFeatures = size(obj.Xtrain,2);            
+            obj.nFeatures = size(obj.Xtrain,2);
         end
 
         function plotdata(self,i,j)
@@ -70,6 +73,7 @@ classdef Data < handle
                    obj.buildModel(obj.X,obj.polynomialOrder);
            end
         end
+
     end
 
     methods (Access = private)
@@ -78,34 +82,25 @@ classdef Data < handle
             obj.fileName        = cParams.fileName;
             obj.testRatio       = cParams.testRatio;
             obj.polynomialOrder = cParams.polynomialOrder;
+            obj.xFeatures       = cParams.xFeatures;
+            obj.yFeatures       = cParams.yFeatures;
         end
 
         function loadData(obj)
-            f = fullfile('../Datasets/',obj.fileName);
-            obj.data = load(f);
-            fprintf('Features to be used (1:%d):',(size(obj.data,2)-1))
-            feat = input(' ');
-            x = obj.data(:, feat);
+            %f = fullfile('../Datasets/',obj.fileName);
+            f = fullfile(obj.fileName);
 
-            % IDENTIFIER
-            % ydata = obj.data(:, end);
-            % y = zeros(length(ydata),max(ydata));
+            % Change: use readmatrix to skip header
+            obj.data = readmatrix(f);
 
-            ydata = obj.data(:, feat);
-            y = zeros(length(ydata),width(ydata));
-            
-            u = unique(ydata);
-            for i=1:length(ydata)
-                for j = 1:length(u)
-                    if ydata(i) == u(j)
-                        y(i,j) = 1;
-                    end
-                end
-            end
-            
-            obj.X = (x-min(x,[],1))./(max(x,[],1)-min(x,[],1)+10^(-10));
-            % obj.Y = y;
-            obj.Y = obj.X;
+            % Change: incorporate features to use in cParams vs propmpting
+            % user though terminal
+            x = obj.data(:, obj.xFeatures);
+            y = obj.data(:, obj.yFeatures);
+
+            obj.X = x;
+            obj.Y = y;
+
         end
         
 
@@ -122,6 +117,31 @@ classdef Data < handle
                 end
             end
             obj.X = Xful;
+        end
+        
+        function exponents = generateExponents(obj,targetDeg)
+            % Initialization of parameters
+            exponents = [];
+            currentExponents = zeros(1, obj.nFeatures);
+            initialIndex = 1;
+            
+            % Calculation of the possible exponents for the target degree
+            exponents = obj.generateExponentsRecursive(targetDeg,initialIndex,currentExponents,exponents);
+        end
+        
+        function exponents = generateExponentsRecursive(obj,targetDeg,currentIndex,currentExponents,exponents)
+            % Assignation of exponents for the base case
+            if currentIndex == obj.nFeatures
+                currentExponents(currentIndex) = targetDeg;
+                exponents = [exponents; currentExponents];
+            else
+                % Recursion to search for the possibile combinations which
+                % sum the polynomial degree target
+                for i = 0:targetDeg
+                    currentExponents(currentIndex) = i;
+                    exponents = obj.generateExponentsRecursive(targetDeg - i, currentIndex + 1, currentExponents, exponents);
+                end
+            end
         end
 
         function splitdata(obj)

@@ -1,46 +1,22 @@
-function dom = Expand(varargin)
-    if nargin == 1
-        a = varargin{1};
+function A = Expand(a)
+    if isa(a,'BaseFunction')
         s.operation = @(xV) evaluate(a,xV);
+        s.mesh = a.mesh;
+        s.ndimf = a.ndimf;
+        A = DomainFunction(s);
     else
-        a = varargin{1}; b = varargin{2};
-        s.operation = @(xV) evaluate(a,b,xV);
+        A = a;
     end
 
-    if isa(a,'DomainFunction')
-        s.mesh = a.mesh;
-    else
-        s.mesh = b.mesh;
-    end
-    dom         = DomainFunction(s);
+
 end
 
-function aEval = evaluate(varargin)
-    if nargin == 2
-        a = varargin{1}; xV = varargin{2};
-        aEval      = a.evaluate(xV);
+function aEval = evaluate(a,xV)
+    aEval      = a.evaluate(xV);
+    isTensorA  = checkTensor(a,aEval);
+    if ~isTensorA
         dims = size(aEval);
         aEval = reshape(aEval,[dims(1), 1, dims(2:end)]);
-    else
-        a = varargin{1}; b = varargin{2}; xV = varargin{3};
-        if ~isnumeric(a)
-            if ~isnumeric(b)
-                aEval      = a.evaluate(xV);
-                bEval      = b.evaluate(xV);
-                isTensorA  = checkTensor(a,aEval);
-                isTensorB  = checkTensor(b,bEval);
-                if ~isTensorA
-                    if isTensorB
-                        dims = size(aEval);
-                        aEval = reshape(aEval,[dims(1), 1, dims(2:end)]);
-                    end
-                end
-            else
-                aEval = a.evaluate(xV);
-            end
-        else
-            aEval = a;
-        end
     end
 end
 

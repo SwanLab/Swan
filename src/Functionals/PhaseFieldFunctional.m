@@ -71,9 +71,9 @@ classdef PhaseFieldFunctional < handle
             obj.functionals.nonLocalDamage = NonLocalDamageFunctional(cParams);
             obj.functionals.extWork        = ExternalWorkFunctional(cParams);
             if cParams.energySplit
-                obj.functionals.energy     = InternalEnergySplitFunctional(cParams);
+                obj.functionals.energy     = PhaseFieldInternalEnergySplitFunctional(cParams);
             else
-                obj.functionals.energy     = InternalEnergyFunctional(cParams);
+                obj.functionals.energy     = PhaseFieldInternalEnergyFunctional(cParams);
             end
  
 

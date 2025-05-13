@@ -1,4 +1,4 @@
-classdef Plotter2 < handle
+classdef PlotterNN < handle
 
     properties (Access = private)
         data
@@ -9,7 +9,7 @@ classdef Plotter2 < handle
 
     methods (Access = public)
 
-        function obj = Plotter2(cParams)
+        function obj = PlotterNN(cParams)
             obj.data                = cParams.data;
             obj.network             = cParams.network;
             obj.costFunction        = cParams.costfunc;
