@@ -21,23 +21,29 @@ classdef ContinuumDamageComputer < handle
         end
 
         function data = compute(obj)
-            uFun = LagrangianFunction.create(obj.mesh,2,'P1');
-            obj.damageFunctional.setTestFunctions(uFun);
+            u = LagrangianFunction.create(obj.mesh,2,'P1');
             data = {};
 
             nSteps = length(obj.boundaryConditions.bcValueSet);
             for i = 1:nSteps
                 fprintf('Step: %d / %d \n',i,nSteps);
                 bc = obj.updateBoundaryConditions(i);
-                uFun.setFValues(obj.updateInitialDisplacement(bc,uFun));
+                u.setFValues(obj.updateInitialDisplacement(bc,u));
 
                 err = 1; iter = 0;
                 while (err >= obj.tolerance && iter < obj.limIter)
-                    [res,Ksec,uVec,uFun] = obj.solveU(uFun,bc);
+                    tauEps = obj.damageFunctional.computeTauEpsilon(u);
+                    obj.internalDamageVariable.update(tauEps);
 
+                    r = obj.internalDamageVariable;
+                    [res]       = obj.damageFunctional.computeResidual(u,r,bc);
+                    [dres,Ksec] = obj.damageFunctional.computeDerivativeResidual(u,r,bc);
+                    [uNew,uVec] = obj.computeDisplacement(dres,res,u,bc);
+                    u.setFValues(uNew);
+
+                    [res]  = obj.damageFunctional.computeResidual(u,r,bc);
                     err = norm(res);
                     fprintf('Error: %d \n',err);
-
                     iter = iter+1;
                 end
                 if (iter >= obj.limIter)
@@ -45,10 +51,10 @@ classdef ContinuumDamageComputer < handle
                 end
 
                 obj.internalDamageVariable.updateRold();
-                [data,dmgFun,rFun,qFun] = obj.getData(data,i,Ksec,uVec,uFun,bc);
+                [data,dmgFun,rFun,qFun] = obj.getData(data,i,Ksec,uVec,u,bc);
 
             end
-            data.displacement.field = uFun;
+            data.displacement.field = u;
             data.damage.field = dmgFun;
             data.r.field = rFun;
             data.q.field = qFun;
@@ -84,17 +90,6 @@ classdef ContinuumDamageComputer < handle
             end
         end
 
-        function [res,Ksec,uVec,u] = solveU(obj,u,bc)   
-            tauEps = obj.damageFunctional.computeTauEpsilon(u);
-            obj.internalDamageVariable.update(tauEps);
-            r = obj.internalDamageVariable;
-            [res]           = obj.damageFunctional.computeResidual(u,r,bc);
-            [resDeriv,Ksec] = obj.damageFunctional.computeDerivativeResidual(u,r,bc);
-            [uNew,uVec]     = obj.computeDisplacement(resDeriv,res,u,bc);
-            u.setFValues(uNew);
-            [res]  = obj.damageFunctional.computeResidual(u,bc);
-        end
-
         function [uOut,uOutVec] = computeDisplacement(obj,LHS,RHS,uIn,bc)
             uInVec = reshape(uIn.fValues',[uIn.nDofs 1]);
             uOutVec = uInVec;
@@ -118,23 +113,24 @@ classdef ContinuumDamageComputer < handle
 
         function [data,dmgFun,rFun,qFun] = getData(obj,data,i,Ksec,uVec,uFun,bc)
             data.displacement.value(i)  = obj.boundaryConditions.bcValueSet(i);
-            dmgDomainFun = obj.damageFunctional.getDamage();
-            dmgFun = dmgDomainFun.project('P1D');
+
+            dmgDomainFun = obj.damageFunctional.getDamage(obj.internalDamageVariable);
+            dmgFun = dmgDomainFun.project('P0');
             data.damage.maxValue(i)  = max(dmgFun.fValues);
             data.damage.minValue(i)  = min(dmgFun.fValues);
 
-            rDomainFun = obj.damageFunctional.getR();
-            rFun = rDomainFun.project('P0');
-            data.r.maxValue(i) = max(rFun.fValues);
-            data.r.minValue(i) = min(rFun.fValues);
-
-            qDomainFun = obj.damageFunctional.getQ();
-            qFun = qDomainFun.project('P1D');
+            qDomainFun = obj.damageFunctional.getHardening(obj.internalDamageVariable);
+            qFun = qDomainFun.project('P0');
             data.q.maxValue(i) = max(qFun.fValues);
             data.q.minValue(i) = min(qFun.fValues);
 
+            r = obj.internalDamageVariable.r;
+            rFun = r.project('P0');
+            data.r.maxValue(i) = max(rFun.fValues);
+            data.r.minValue(i) = min(rFun.fValues);
+
             data.reaction(i)  = obj.computeTotalReaction(Ksec,uVec);
-            [data.totalEnergy(i),data.damagedMaterial(i)] = obj.damageFunctional.computeEnergy(uFun,bc);
+            [data.totalEnergy(i)] = obj.damageFunctional.computeEnergy(uFun,obj.internalDamageVariable,bc);
         end
 
         function totReact = computeTotalReaction(obj,LHS,u)

@@ -31,7 +31,7 @@ classdef DamagedMaterial < handle
         end
 
         function q = getHardening(obj,r)
-            q = obj.damage.computeHardening(r);
+            q = obj.damage.getHardening(r);
         end
     end
     

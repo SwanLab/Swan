@@ -2,8 +2,9 @@ classdef ShFunc_ContinuumDamage < handle
 
     properties (Access = private)
         mesh
-        material
         quadOrder
+        material
+        test
     end
 
    properties (Access = private)
@@ -24,13 +25,10 @@ classdef ShFunc_ContinuumDamage < handle
             obj.externalWork.setTestFunction(u);
         end 
 
-        function [totalEnergy,c] = computeEnergy(obj,u,bc)
-           [internalEnergy,C] = obj.internalDamage.computeFunction(u);
-           %c = C.evaluate([0;0]);
-           %c = c(1,1);
-
+        function [totalEnergy] = computeEnergy(obj,u,r,bc)
            fExt = bc.pointloadFun;
            externalEnergy = obj.externalWork.computeFunction(u,fExt);
+           [internalEnergy] = obj.internalDamage.computeFunction(u,r);
            totalEnergy = internalEnergy - externalEnergy;
        end
 
@@ -38,12 +36,12 @@ classdef ShFunc_ContinuumDamage < handle
             fExt = bc.pointloadFun;
             Fext = obj.externalWork.computeResidual(u,fExt);
             Fint = obj.internalDamage.computeResidual(u,r);
-            res = Fint - Fext;
+            res  = Fint - Fext;
             res  = res(bc.free_dofs);
         end
 
-        function [dRes,Ksec] = computeDerivativeResidual(obj,u,r,bc,isLoading) 
-            [K,Ksec] = obj.internalDamage.computeDerivativeResidual(u,r,isLoading);
+        function [dRes,Ksec] = computeDerivativeResidual(obj,u,r,bc) 
+            [K,Ksec] = obj.internalDamage.computeDerivativeResidual(u,r);
             dRes = K(bc.free_dofs,bc.free_dofs);
         end
 
@@ -51,26 +49,12 @@ classdef ShFunc_ContinuumDamage < handle
             tau = obj.internalDamage.computeTauEpsilon(u);
         end
 
-     %%%
-
-        function setROld(obj)
-            obj.internalDamage.setROld();
+        function q = getHardening(obj,r)
+            q = obj.internalDamage.getHardening(r);
         end
 
-
-     %%%
-
-
-        function  r = getR(obj)
-            r = obj.internalDamage.getR();
-        end
-
-        function q = getQ(obj)
-            q = obj.internalDamage.getQ();
-        end
-
-        function d = getDamage(obj)
-            d = obj.internalDamage.getDamage();
+        function d = getDamage(obj,r)
+            d = obj.internalDamage.getDamage(r);
         end
    end
 
@@ -78,20 +62,23 @@ classdef ShFunc_ContinuumDamage < handle
 
         function init(obj,cParams)
             obj.mesh               = cParams.mesh;
-            obj.material           = cParams.material;
             obj.quadOrder          = cParams.quadOrder;
+            obj.material           = cParams.material;
+            obj.test               = cParams.test;
         end
 
         function createElasticDamage(obj)
             s.mesh      = obj.mesh;
             s.quadOrder = obj.quadOrder;
-            s.material  = obj.material;            
+            s.material  = obj.material;
+            s.test      = obj.test;
             obj.internalDamage = ShFunc_ElasticDamage(s);
         end
 
         function createExternalWork(obj)
             s.mesh      = obj.mesh;
             s.quadOrder = obj.quadOrder;
+            s.test      = obj.test;
             obj.externalWork = ShFunc_ExternalWork2(s);            
         end
 

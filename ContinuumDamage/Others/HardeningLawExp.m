@@ -10,13 +10,15 @@ classdef HardeningLawExp < HardeningLaw
             obj.initClassParams(cParams)  
         end
 
-        function qFun = computeFunction(obj,r)
+        function qFun = computeFunction(obj,internalVariable)
+            r = internalVariable.r;
             qFun = obj.computeHardening(r);
         end
 
-        function qDot = computeDerivative(obj,r,isDamaging)
+        function qDot = computeDerivative(obj,internalVariable)
+            r = internalVariable.r;
             qDot = obj.computeHardeningDerivative(r);
-            qDot = isDamaging.*qDot;
+            qDot = qDot;
         end
  
     end
@@ -28,11 +30,11 @@ classdef HardeningLawExp < HardeningLaw
         end
 
         function q = computeHardening(obj,r)
-            q = obj.qInf - (obj.qInf - obj.r0)*exp(obj.A*(1-(r/obj.r0)));
+            q = obj.qInf - (obj.qInf - obj.r0).*exp(obj.A*(1-(r./obj.r0)));
         end
 
         function qDot = computeHardeningDerivative(obj,r)
-            qDot = obj.A*((obj.qInf - obj.r0)/(obj.r0))*exp(obj.A*(1-(r/obj.r0)));
+            qDot = obj.A*((obj.qInf - obj.r0)./(obj.r0)).*exp(obj.A*(1-(r/obj.r0)));
         end
 
     end

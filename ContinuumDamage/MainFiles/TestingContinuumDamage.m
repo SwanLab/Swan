@@ -1,5 +1,9 @@
 classdef TestingContinuumDamage < handle
-    
+
+    properties (Access = public)
+        data
+    end
+
     properties (Access = private)
         tol
     end
@@ -20,7 +24,7 @@ classdef TestingContinuumDamage < handle
             obj.damageFunctional = obj.createContinuumDamageFunctional();
             obj.internalDamageVariable = obj.createInternalDamageVariable();
             c = obj.createContinumDamageComputer();
-            d = c.compute();
+            obj.data = c.compute();
         end
     end
 
@@ -61,6 +65,7 @@ classdef TestingContinuumDamage < handle
             s.boundaryConditions = obj.bc;
             s.material           = obj.createDamagedMaterial();
             s.quadOrder          = 2;
+            s.test               = LagrangianFunction.create(obj.mesh,2,'P1');
             sF = ShFunc_ContinuumDamage(s);
         end        
     
@@ -88,10 +93,11 @@ classdef TestingContinuumDamage < handle
         function hL = createHardeningLaw(obj)
             r1 = 20;
             s.r1   = ConstantFunction.create(r1,obj.mesh);
-            s.type = 'Linear'; %'Exp'            
-            s.H    = 0.5;
+            s.type = 'Exp'; %'Exp'            
+            s.H    = -0.5;
             s.A    = 0.1;
             s.r0 = obj.createR0();
+            s.qInf = -5;
             hL = HardeningLaw.create(s);
         end          
 

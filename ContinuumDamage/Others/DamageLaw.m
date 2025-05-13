@@ -14,17 +14,18 @@ classdef DamageLaw < handle
         function d = computeFunction(obj,internalVariable)
             r = internalVariable.r;            
             q = obj.hardeningLaw.computeFunction(internalVariable);
-            d = (1-(q/r));
+            d = min(1-(q/r),(1-1e-10));
         end
 
         function dDot = computeDerivative(obj,internalVariable)
             r = internalVariable.r;
+            isDamaging  = internalVariable.isDamaging();
             q    = obj.hardeningLaw.computeFunction(internalVariable);
             qDot = obj.hardeningLaw.computeDerivative(internalVariable);
-            dDot = (q - qDot*r)/(r.^3);
+            dDot = isDamaging.*(q - qDot.*r)./(r.^3);
         end
 
-        function qFun = getHardeningFun(obj,r)
+        function qFun = getHardening(obj,r)
             qFun = obj.hardeningLaw.computeFunction(r);
         end
         

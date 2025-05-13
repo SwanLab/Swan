@@ -148,6 +148,40 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             r = DomainFunction(s);
         end
 
+        function r = ge(a,b)
+            aOp = BaseFunction.computeOperation(a);
+            bOp = BaseFunction.computeOperation(b);
+            s.operation = @(xV) aOp(xV) >= bOp(xV);
+            s.mesh  = a.mesh;
+            s.ndimf = a.ndimf;
+            r = DomainFunction(s);
+        end
+        function r = lt(a,b)
+            aOp = BaseFunction.computeOperation(a);
+            bOp = BaseFunction.computeOperation(b);
+            s.operation = @(xV) aOp(xV) < bOp(xV);
+            s.mesh  = a.mesh;
+            s.ndimf = a.ndimf;
+            r = DomainFunction(s);
+        end
+
+        function r = le(a,b)
+            aOp = BaseFunction.computeOperation(a);
+            bOp = BaseFunction.computeOperation(b);
+            s.operation = @(xV) aOp(xV) <= bOp(xV);
+            s.mesh  = a.mesh;
+            s.ndimf = a.ndimf;
+            r = DomainFunction(s);
+        end
+
+        function r = not(a)
+            aOp = BaseFunction.computeOperation(a);
+            s.operation = @(xV) ~aOp(xV);
+            s.mesh  = a.mesh;
+            s.ndimf = a.ndimf;
+            r = DomainFunction(s);
+        end
+
         function r = norm(varargin)
             a = varargin{1};
             if nargin == 1
@@ -200,6 +234,24 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             s.ndimf = max(f1.ndimf,f2.ndimf);
             s.mesh = f1.mesh;
             f = DomainFunction(s);
+        end
+
+        function r = min(a,b)
+            aOp = BaseFunction.computeOperation(a);
+            bOp = BaseFunction.computeOperation(b);
+            s.operation = @(xV) min(aOp(xV),bOp(xV));
+            s.mesh  = a.mesh;
+            s.ndimf = a.ndimf;
+            r = DomainFunction(s);
+        end
+
+        function r = max(a,b)
+            aOp = BaseFunction.computeOperation(a);
+            bOp = BaseFunction.computeOperation(b);
+            s.operation = @(xV) max(aOp(xV),bOp(xV));
+            s.mesh  = a.mesh;
+            s.ndimf = a.ndimf;
+            r = DomainFunction(s);
         end
 
     end

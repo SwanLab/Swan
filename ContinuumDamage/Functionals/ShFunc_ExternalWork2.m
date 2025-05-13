@@ -3,45 +3,43 @@ classdef ShFunc_ExternalWork2 < handle
    properties (Access = private)
        mesh
        quadOrder
+       test
    end
 
    properties (Access = private)
        bMesh
-       test
        RHS
    end
-     
+
    methods (Access = public)
-      
+
        function obj = ShFunc_ExternalWork2(cParams)
            obj.init(cParams);
            obj.createRHSintegrator();
+           obj.defineBoundaryTestFunction();
        end
 
-       function setTestFunction(obj,u)           
-            obj.test = LagrangianFunction.create(obj.bMesh.mesh, u.ndimf, u.order);           
-        end 
-      
-        function F = computeFunction(obj,u,fExt)
-          bMesh = obj.mesh.createBoundaryMesh{4}; %CARA SUPERIOR
-          int = Integrator.create('Function',bMesh.mesh,obj.quadOrder);
-          [u, fExt] = obj.adaptFuns(u,fExt);
-          F = int.compute(u.*fExt);
+       function F = computeFunction(obj,u,fExt)
+           bMesh = obj.mesh.createBoundaryMesh{4}; %CARA SUPERIOR
+           int = Integrator.create('Function',bMesh.mesh,obj.quadOrder);
+           [u, fExt] = obj.adaptFuns(u,fExt);
+           F = int.compute(u.*fExt);
        end
-      
+
        function Ju = computeResidual(obj,u,fExt)
-            [~,fExt] = adaptFuns(obj,u,fExt);
-            Ju = obj.RHS.compute(fExt,obj.test);
-            Ju = obj.reducedToFull(Ju,obj.bMesh);
+           [~,fExt] = adaptFuns(obj,u,fExt);
+           Ju = obj.RHS.compute(fExt,obj.test);
+           Ju = obj.reducedToFull(Ju,obj.bMesh);
        end
-      
+
    end
   
    methods (Access = private)
       
        function init(obj,cParams)
-         obj.mesh = cParams.mesh;
+         obj.mesh      = cParams.mesh;
          obj.quadOrder = cParams.quadOrder;
+         obj.test      = cParams.test;
          obj.bMesh = obj.mesh.createBoundaryMesh{4}; %CARA SUPERIOR
        end
 
@@ -50,6 +48,10 @@ classdef ShFunc_ExternalWork2 < handle
             s.quadType = obj.quadOrder;
             s.type = 'ShapeFunction';
             obj.RHS = RHSIntegrator.create(s);
+       end
+
+       function defineBoundaryTestFunction(obj)
+           obj.test = LagrangianFunction.create(obj.bMesh.mesh,obj.test.ndimf,obj.test.order);
        end
 
         function [uFun,fExtFun] = adaptFuns(obj,u,fExt) %% ADAPTING TO TOP BOUNDARY %%

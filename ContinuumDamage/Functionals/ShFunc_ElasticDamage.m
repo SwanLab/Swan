@@ -7,9 +7,8 @@ classdef ShFunc_ElasticDamage < handle
     end
 
     properties (Access = private)
+        LHS
         RHS
-        r
-        rOld
         test
     end
 
@@ -17,15 +16,12 @@ classdef ShFunc_ElasticDamage < handle
 
         function obj = ShFunc_ElasticDamage(cParams)
             obj.init(cParams);
-            obj.defineRHSIntegrator();
+            obj.createRHSIntegrator();
+            obj.createLHSIntegrator();
         end
 
-        function setTestFunction(obj,u)
-            obj.test = LagrangianFunction.create(obj.mesh, u.ndimf, u.order);
-        end
-
-        function [energy,C] = computeFunction(obj,u)
-            C = obj.material.obtainTensorSecant(obj.r,obj.rOld);
+        function [energy] = computeFunction(obj,u,r)
+            C   = obj.material.obtainTensorSecant(r);
             eps = SymGrad(u);
             sig = DDP(eps,C);
             en  = DDP(sig,eps);
@@ -34,8 +30,8 @@ classdef ShFunc_ElasticDamage < handle
         end
 
         function res = computeResidual(obj,u,r)
-            C = obj.material.obtainTensorSecant(r);
-            epsi = SymGrad(u);
+            C      = obj.material.obtainTensorSecant(r);
+            epsi   = SymGrad(u);
             stress = DDP(epsi,C);
             res = obj.RHS.compute(stress,obj.test);
         end
@@ -51,25 +47,14 @@ classdef ShFunc_ElasticDamage < handle
             tau = sqrt(DDP(DDP(epsi,C),epsi));
         end
 
-           %%%
-
-        function setROld(obj)
-            obj.rOld.setFValues(obj.r.fValues());
+        function qFun = getHardening(obj,r)
+            qFun = obj.material.getHardening(r);
         end
 
-        %%%
-
-        function d = getDamage(obj)
-            d = obj.material.getDamage();
+        function d = getDamage(obj,r)
+            d = obj.material.getDamage(r);
         end
 
-        function r = getR(obj)
-            r = obj.r;
-        end
-
-        function qFun = getQ(obj)
-            qFun = obj.material.getQ();
-        end
     end
 
     methods (Access = private)
@@ -78,45 +63,38 @@ classdef ShFunc_ElasticDamage < handle
             obj.mesh      = cParams.mesh;
             obj.quadOrder = cParams.quadOrder;
             obj.material  = cParams.material;
+            obj.test      = cParams.test;
         end
 
-        function LHS = createElasticLHS(obj,material)
+        function createLHSIntegrator(obj)
             s.type = 'ElasticStiffnessMatrix';
             s.quadratureOrder = obj.quadOrder;
             s.mesh = obj.mesh;
             s.test  = obj.test;
             s.trial = obj.test;
-            s.material = material;
-            LHS = LHSIntegrator.create(s);
+            obj.LHS = LHSIntegrator.create(s);
         end
         
-        function defineRHSIntegrator(obj)
+        function createRHSIntegrator(obj)
             s.type = 'ShapeSymmetricDerivative';
             s.quadratureOrder = obj.quadOrder;
             s.mesh  = obj.mesh;
             obj.RHS = RHSIntegrator.create(s);
         end
 
-        function rOld = defineROld(obj,r0)
-            rOld = copy(obj.r);
-            rOld.setFValues(r0.*ones(size(rOld.fValues)));
-        end
-
         function sec = computeDerivativeResidualSecant(obj,r)
             mat = obj.material.obtainTensorSecant(r);
-            LHS = obj.createElasticLHS(mat);
-            sec = LHS.compute();
+            sec = obj.LHS.compute(mat);
         end
         
         function tan = computeDerivativeResidualTangent(obj,u,r) 
             isLoading = true;
             if (isLoading)
-                C = obj.material.obtainTensorTanget(u,r,rOld); %Ctan
+                mat = obj.material.obtainTensorTangent(u,r); %Ctan
             else
-                C = obj.material.obtainTensorSecant(r,rOld); %Csec
+                mat = obj.material.obtainTensorSecant(r); %Csec
             end
-            LHS = obj.createElasticLHS(C);
-            tan = LHS.compute();
+            tan = obj.LHS.compute(mat);
         end
 
     end
