@@ -39,8 +39,8 @@ classdef CoarsePlotSolution < handle
         function makeHole(obj, bcApplier,outputFileName)
 
             %uH = obj.createUHole();
-            meshH = obj.createUnfittedMeshFun();
-            obj.plot(uH, meshH, bcApplier, outputFileName);
+            uMeshFun = obj.createUnfittedMeshFun();
+            obj.plot(uMeshFun,outputFileName);
 
         end
 
@@ -132,45 +132,48 @@ classdef CoarsePlotSolution < handle
             uMesh.compute(levelSet);
         end
 
-        function plot(~, x, mesh, bcApplier,outputFileName)
+        function plot(~, uMeshFun,outputFileName)
             row = 0;
             col = 0;
             iter = 0;
             flag = 0;
 
-            if ~isempty(bcApplier)
-                x = bcApplier.reducedToFullVectorDirichlet(x);
-            end
-            if nargin <7
-                flag =0;
-            end
-            %             xFull = bc.reducedToFullVector(x);
-            if size(x,2)==1
-                s.fValues = reshape(x,2,[])';
-            else
-                s.fValues = x;
-            end
-            %
-
-            s.mesh = mesh;
-            s.fValues(:,end+1) = 0;
-            s.ndimf = 2;
-            s.order = 'P1';
-            xF = LagrangianFunction(s);
-            %             xF.plot();
-            if flag == 0
-                xF.print(['domain',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
-            elseif flag == 1
-                xF.print(['DomainResidual',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
-            elseif flag == 2
-                xF.print(['Residual',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
-            elseif flag == 3
-                xF.print(['domainFine',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
-            elseif flag == 4
-                xF.print(['domainNeuman',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
-            end
+%             if ~isempty(bcApplier)
+%                 x = bcApplier.reducedToFullVectorDirichlet(x);
+%             end
+%             if nargin <7
+%                 flag =0;
+%             end
+%             %             xFull = bc.reducedToFullVector(x);
+%             if size(x,2)==1
+%                 s.fValues = reshape(x,2,[])';
+%             else
+%                 s.fValues = x;
+%             end
+%             %
+% 
+%             s.mesh = mesh;
+%             s.fValues(:,end+1) = 0;
+%             s.ndimf = 2;
+%             s.order = 'P1';
+%             xF = LagrangianFunction(s);
+%             %             xF.plot();
+%             if flag == 0
+%                 xF.print(['domain',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+%             elseif flag == 1
+%                 xF.print(['DomainResidual',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+%             elseif flag == 2
+%                 xF.print(['Residual',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+%             elseif flag == 3
+%                 xF.print(['domainFine',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+%             elseif flag == 4
+%                 xF.print(['domainNeuman',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+%             end
 
             fileName = ['domain',num2str(row),num2str(col),'_',num2str(iter)];
+            
+            uMeshFun.innerMeshFunction.print(['inner',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+            uMeshFun.innerCutMeshFunction.print(['innerCut',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
 
             s = dir(pwd);
             s = struct2table(s);

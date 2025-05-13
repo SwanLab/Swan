@@ -109,7 +109,7 @@ classdef UnfittedMeshFunction < handle
             if ~isempty(obj.unfittedMesh.innerCutMesh)
                 cMeshGlobal              = obj.computeNonCutMesh();
                 [fCutMesh,lsCutMesh]     = obj.computeNodalValuesFromNonCutMesh();
-                innerValues              = fCutMesh(obj.isInterior(lsCutMesh));
+                innerValues              = fCutMesh(obj.isInterior(lsCutMesh),:);
                 subMesh                  = obj.computeSubMesh(cMeshGlobal);
                 subParams                = obj.computeNewNodalValuesFromSubMesh(fCutMesh,lsCutMesh,cMeshGlobal);
                 subLevelSet              = [lsCutMesh;subParams.subMeshLevelSet];
@@ -159,7 +159,7 @@ classdef UnfittedMeshFunction < handle
             mesh      = obj.unfittedMesh.backgroundMesh;
             nodes     = unique(mesh.connec(obj.cutCells,:));
             lsCutMesh = obj.levelSet(nodes);
-            fCutMesh  = fP1.fValues(nodes);
+            fCutMesh  = fP1.fValues(nodes,:);
         end
 
         function subMesh = computeSubMesh(obj,cMeshGlobal)
