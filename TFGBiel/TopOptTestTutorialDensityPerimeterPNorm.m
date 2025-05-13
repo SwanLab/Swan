@@ -9,6 +9,7 @@ classdef TopOptTestTutorialDensityPerimeterPNorm < handle
         compliance
         volume
         perimeter
+        globalPerimeter
         cost
         constraint
         dualVariable
@@ -28,6 +29,7 @@ classdef TopOptTestTutorialDensityPerimeterPNorm < handle
             obj.createCompliance();
             obj.createVolumeConstraint();
             obj.createPerimeterConstraint(p,pTarget);
+            obj.createGlobalPerimeterConstraint();
             obj.createCost();
             obj.createConstraint();
             obj.createDualVariable();
@@ -165,9 +167,26 @@ classdef TopOptTestTutorialDensityPerimeterPNorm < handle
             obj.perimeter     = PerimeterNormPFunctional(s);
         end
 
+        function createGlobalPerimeterConstraint(obj)
+            s.mesh              = obj.mesh;
+            s.filter            = createFilterPerimeter(obj);
+            s.epsilon           = 6*obj.mesh.computeMeanCellSize();
+            s.value0            = 6;
+            obj.globalPerimeter = PerimeterFunctional(s);
+        end
+
+        function filterPerimeter = createFilterPerimeter(obj)
+            s.filterType    = 'PDE';
+            s.boundaryType  = 'Robin';
+            s.mesh          = obj.mesh;
+            s.trial         = LagrangianFunction.create(obj.mesh,1,'P1');
+            f               = Filter.create(s);
+            filterPerimeter = f;
+        end
+
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
-            s.shapeFunctions{2} = obj.globalperimeter;
+            s.shapeFunctions{2} = obj.globalPerimeter;
             s.weights           = [1,0.2];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
