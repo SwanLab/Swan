@@ -45,7 +45,7 @@ classdef TutorialXXPhaseFieldCase < handle
             u   = LagrangianFunction.create(obj.mesh,2,'P1');
             phi = LagrangianFunction.create(obj.mesh,1,'P1');
             %phi = obj.setInitialDamage(phi);
-            obj.initialGuess.phi = phi;
+            obj.initialGuess.phi = obj.createDamageVariable(phi);
             obj.initialGuess.u = u;
         end
 
@@ -56,6 +56,13 @@ classdef TutorialXXPhaseFieldCase < handle
             phi.setFValues(fValues);
         end
 
+        function phi = createDamageVariable(obj,phi)
+            s.type = 'Damage';
+            s.mesh = phi.mesh;
+            s.fun  = phi;
+            phi = DesignVariable.create(s);
+        end
+
         function createPhaseFieldFunctional(obj)
             s.mesh          = obj.mesh;
             s.material      = obj.material;
@@ -63,7 +70,7 @@ classdef TutorialXXPhaseFieldCase < handle
             s.l0            = 0.1;
             s.quadOrder     = 2;
             s.testSpace.u   = obj.initialGuess.u;
-            s.testSpace.phi = obj.initialGuess.phi;
+            s.testSpace.phi = obj.initialGuess.phi.fun;
             s.energySplit   = isa(obj.material,'MaterialPhaseFieldAnalyticSplit');
             obj.functional  = PhaseFieldFunctional(s);
         end

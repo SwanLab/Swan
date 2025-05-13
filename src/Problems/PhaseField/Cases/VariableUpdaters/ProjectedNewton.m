@@ -11,9 +11,9 @@ classdef ProjectedNewton < handle
             obj.init(cParams);
         end
 
-        function [phi,varargout] = update(obj,LHS,RHS,phi,varargin)
+        function [phi,varargout] = update(obj,hessian,gradient,phi,varargin)
             x  = phi.fun.fValues;
-            xNew = obj.solve(LHS,RHS,x);
+            xNew = obj.solve(hessian,gradient,x);
             xNew = obj.projectInBounds(xNew);
             phi.update(xNew);
             varargout{1} = [];

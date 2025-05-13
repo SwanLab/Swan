@@ -66,7 +66,7 @@ classdef MaterialPhaseFieldHomogenized < handle
         function C = evaluate(~,phi,fun,xV)
             nStre = 3;
             nGaus = size(xV,2);
-            nElem = phi.mesh.nelem;
+            nElem = phi.fun.mesh.nelem;
             C = zeros(nStre,nStre,nGaus,nElem);
             phiV = phi.evaluate(xV);
             for i = 1:nStre
