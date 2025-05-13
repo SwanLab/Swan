@@ -82,31 +82,21 @@ s2.globalConnec = mesh.connec;
 RHSint = RHSIntegrator.create(s2);
 F = RHSint.compute();
 
-% 3) C
-n_dir_dofs = length(bc.dirichlet_dofs);
-C = sparse(bc.dirichlet_dofs, 1:n_dir_dofs, 1, n_dofs, n_dir_dofs);
-
-% 4) 0
-O = zeros(length(bc.dirichlet_dofs));
-
 % =========================================================================
 % 6) SOLVE SYSTEM (Monolithic)
 % =========================================================================
 
-LHS = [K C; C' O];
-RHS = [F; bc.dirichlet_vals];
-
 all_dofs  = 1:u.nDofs;
 free = setdiff(all_dofs , bc.dirichlet_dofs);
 
-U = zeros(u.nDofs,1);
+U_new = zeros(u.nDofs,1);
 
 maxIter = 2000000;
 rtol = 3e-6;
 tau = 0.3;
 
 for k = 1:maxIter
-    U_new = U;
+    U = U_new;
 
     % -- gradient step on the FREE dofs only
     grad = K*U - F;
@@ -125,8 +115,6 @@ for k = 1:maxIter
     if mod(k,100) == 0
         fprintf('Residual at iteration %i: %d\n',k, res);
     end
-
-    U = U_new;
 end
 
 u.setFValues(reshape(U_new,2,[])');
