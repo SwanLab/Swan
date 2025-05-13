@@ -3,8 +3,8 @@ clear;
 close all;
 clc;
 
-epsOverhVec = [2,4,6,8];
-tarVec      = [0.01, 0.034, 0.067, 0.1];
+epsOverhVec = [4,6];
+tarVec      = [0.034, 0.067];
 
 for i = 1:length(epsOverhVec)
     for j = 1:length(tarVec)

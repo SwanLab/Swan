@@ -11,6 +11,7 @@ classdef GrippingDensityLocalCirlceDomains < handle
         materialInterpolator
         physicalProblem
         compliance
+        globalPer
         volume
         perimeter
         cost
@@ -29,6 +30,7 @@ classdef GrippingDensityLocalCirlceDomains < handle
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
             obj.createNonSelfAdjCompliance();
+            obj.createGlobalPerimeter();
             obj.createVolumeConstraint();
             obj.createPerimeter();
             obj.createCost();
@@ -38,8 +40,8 @@ classdef GrippingDensityLocalCirlceDomains < handle
 
             d = obj.designVariable;
             info = ['Eps',num2str(obj.epsOverh),'Tar',num2str(obj.tar)];
-            saveas(gcf,['NumericalExperiments/Gripping/MonitDensityCircleDomains',info,'.fig']);
-            save(['NumericalExperiments/Gripping/DesVarDensityCircleDomains',info,'.mat'],'d');
+            saveas(gcf,['NumericalExperiments/Gripping/MonitDensityCircleDomainsGlob',info,'.fig']);
+            save(['NumericalExperiments/Gripping/DesVarDensityCircleDomainsGlob',info,'.mat'],'d');
         end
 
     end
@@ -145,6 +147,15 @@ classdef GrippingDensityLocalCirlceDomains < handle
             obj.compliance = c;
         end
 
+        function createGlobalPerimeter(obj)
+            s.mesh    = obj.mesh;
+            s.epsilon = obj.epsOverh*obj.mesh.computeMeanCellSize();
+            s.value0  = 4;
+            s.uMesh   = obj.createBaseGlobalDomain();
+            s.filter  = obj.createFilterPerimeter();
+            obj.globalPer = PerimeterFunctional(s);
+        end
+
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
             s.filter = obj.filterCompliance;
@@ -152,6 +163,16 @@ classdef GrippingDensityLocalCirlceDomains < handle
             s.volumeTarget = 0.6;
             v = VolumeConstraint(s);
             obj.volume = v;
+        end
+
+        function base = createBaseGlobalDomain(obj)
+            s.type             = 'Full';
+            g                  = GeometricalFunction(s);
+            lsFun              = g.computeLevelSetFunction(obj.mesh);
+            sUm.backgroundMesh = obj.mesh;
+            sUm.boundaryMesh   = obj.mesh.createBoundaryMesh();
+            base               = UnfittedMesh(sUm);
+            base.compute(lsFun.fValues);
         end
 
         function base = createBaseDomain(obj,x0,y0)
@@ -195,7 +216,8 @@ classdef GrippingDensityLocalCirlceDomains < handle
 
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
-            s.weights           = 1;
+            s.shapeFunctions{2} = obj.globalPer;
+            s.weights           = [1;0.3];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
