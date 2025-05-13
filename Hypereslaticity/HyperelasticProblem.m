@@ -210,7 +210,6 @@ classdef HyperelasticProblem < handle
                     obj.mesh = UnitQuadMesh(20,20);
                 case {'Metamaterial'}
                     load('NegPoissMesh.mat')
-                    clc;
                     s.coord = NegPoissMesh.coord;
                     s.connec = NegPoissMesh.connec;
                     obj.mesh = Mesh.create(s);
