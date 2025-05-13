@@ -35,13 +35,13 @@ classdef TopOptTestTutorialDensityIsoPerimetricPNorm < handle
 
             fileLocation = 'C:\Users\Biel\Desktop\UNI\TFG\ResultatsNormP_Density\00. From Batch';
             
-            vtuName = fullfile(fileLocation, sprintf('Topology_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02',p,C));
+            vtuName = fullfile(fileLocation, sprintf('Topology_Cantilever_isoperimeter_p%d_C%.2f_gJ0.2_eta0.02',p,C));
             obj.designVariable.fun.print(vtuName);
             
             figure(2)
             set(gcf, 'Position', get(0, 'Screensize'));
-            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02.fig',p,C));
-            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02.png',p,C));
+            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_isoperimeter_p%d_C%.2f_gJ0.2_eta0.02.fig',p,C));
+            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_isoperimeter_p%d_C%.2f_gJ0.2_eta0.02.png',p,C));
             savefig(fileName1);
             print(fileName2,'-dpng','-r300');
         end

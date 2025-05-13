@@ -12,25 +12,25 @@ mesh    = prob.mesh;
 
 res = zeros(3,size(p,2));
 
-for ii = 1:size(p,2)
-    s.mesh            = mesh;
-    s.perimeterTarget = pTarget;
-    s.p               = p(ii);
-    s.gradientTest    = LagrangianFunction.create(mesh,1,'P1');
-    perimeter         = PerimeterNormPFunctional(s);
-    [J,dJ]  = perimeter.computeFunctionAndGradient(desgVar);
-    res(1,ii) = (J+1)*pTarget;
-end
-
-for jj = 1:size(p,2)
-    s.mesh         = mesh;
-    s.alpha        = alpha;
-    s.p            = p(jj);
-    s.gradientTest = LagrangianFunction.create(mesh,1,'P1');
-    isoperimeter    = VolumeNormPFunctional(s);
-    [J,dJ]    = isoperimeter.computeFunctionAndGradient(desgVar);
-    res(2,jj) = (J+1)*alpha;
-end
+% for ii = 1:size(p,2)
+%     s.mesh            = mesh;
+%     s.perimeterTarget = pTarget;
+%     s.p               = p(ii);
+%     s.gradientTest    = LagrangianFunction.create(mesh,1,'P1');
+%     perimeter         = PerimeterNormPFunctional(s);
+%     [J,dJ]  = perimeter.computeFunctionAndGradient(desgVar);
+%     res(1,ii) = (J+1)*pTarget;
+% end
+% 
+% for jj = 1:size(p,2)
+%     s.mesh         = mesh;
+%     s.alpha        = alpha;
+%     s.p            = p(jj);
+%     s.gradientTest = LagrangianFunction.create(mesh,1,'P1');
+%     isoperimeter    = VolumeNormPFunctional(s);
+%     [J,dJ]    = isoperimeter.computeFunctionAndGradient(desgVar);
+%     res(2,jj) = (J+1)*alpha;
+% end
 
 for jj = 1:size(p,2)
     s.mesh         = mesh;
