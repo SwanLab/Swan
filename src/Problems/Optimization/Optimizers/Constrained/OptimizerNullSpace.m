@@ -86,7 +86,7 @@ classdef OptimizerNullSpace < Optimizer
                     obj.etaMaxMin  = cParams.etaMaxMin;
                     obj.etaNormMin = cParams.etaNormMin;
                 otherwise
-                    obj.etaMax = inf;
+                    obj.etaMax = 0;
             end
         end
 
