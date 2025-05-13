@@ -113,7 +113,7 @@ classdef HyperelasticProblem < handle
             hold on
             subplot(1,3,3)
             bar(1:iStep, nIterPerStep)
-            title('Number of iterations to converge \DeltaF')
+            title('Number of iterations to converge $\Delta$ F')
             xlabel('step')
             ylabel('num. iterations per step')
             hold on
