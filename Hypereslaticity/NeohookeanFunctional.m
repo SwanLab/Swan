@@ -25,19 +25,30 @@ classdef NeohookeanFunctional < handle
             xG = quad.posgp;
             nDimf = uFun.ndimf;
             
-            [F,~] = obj.computeDeformationGradient(uFun, xG);
-            Ft = permute(F, [2 1 3 4]);
+            [~,~,Ffun] = obj.computeDeformationGradient(uFun, xG);
+%             Ft = permute(F, [2 1 3 4]);
             
-            C = pagemtimes(Ft,F);
-            trC = obj.computeTrace(C);
+%             C = pagemtimes(Ft,F);
+            C = Ffun'*Ffun;
+%             C2 = C2.evaluate(xG);
+%             trC = obj.computeTrace(C);
+            trC = trace(C);
+%             trC2 = trC2.evaluate(xG);
 
-            jac(1,1,:,:)  = MatrixVectorizedInverter.computeDeterminant(F);
-            dV(1,1,:,:) = obj.mesh.computeDvolume(quad);
+%             jac(1,1,:,:)  = MatrixVectorizedInverter.computeDeterminant(F);
+            jac = Det(Ffun);
+            s.quadType = 2;
+            s.mesh = obj.mesh;           
+            int = IntegratorFunction(s);
+            f = obj.mu./2.*(trC - nDimf) - obj.mu.*log(jac) + obj.lambda./2.*(log(jac)).^2;
+            val = int.compute(f);
+%             jac2 = jac2.evaluate(xG);
+%             dV(1,1,:,:) = obj.mesh.computeDvolume(quad);
 
             % val = obj.mu/2*(trC - nDimf) - obj.mu*log(jac) + obj.lambda/2*(jac-1).^2;
-            val = obj.mu/2*(trC - nDimf) - obj.mu*log(jac) + obj.lambda/2*(log(jac)).^2; % stanford
-            val = pagemtimes(val,dV);
-            val = sum(val, 'all');
+%             val = obj.mu/2*(trC - nDimf) - obj.mu*log(jac) + obj.lambda/2*(log(jac)).^2; % stanford
+%             val = pagemtimes(val,dV);
+%             val = sum(val, 'all');
         end
         
 
@@ -117,8 +128,10 @@ classdef NeohookeanFunctional < handle
             xG = quad.posgp;
             dV(1,1,:,:) = obj.mesh.computeDvolume(quad);
 
-            [F,~] = obj.computeDeformationGradient(uFun, xG);
-            Ft = permute(F,[2 1 3 4]);
+%             [F,~] = obj.computeDeformationGradient(uFun, xG);
+%             [~,~,Ffun] = obj.computeDeformationGradient(uFun, xG);
+%             C = Ffun'*Ffun;
+%             Ft = permute(F,[2 1 3 4]);
             Aneo = obj.computeTangentConstitutive(uFun,xG);
             dNdxTest  = test.evaluateCartesianDerivatives(xG);
             dNdxTrial = trial.evaluateCartesianDerivatives(xG);
@@ -195,36 +208,52 @@ classdef NeohookeanFunctional < handle
         end
 
         function Aneo = computeTangentConstitutive(obj,uFun,xG)
-            [F,I33] = obj.computeDeformationGradient(uFun, xG);
-            Ft = permute(F, [2 1 3 4]);
+              [~,I33,Ffun] = obj.computeDeformationGradient(uFun, xG);
+%             Ft = permute(F, [2 1 3 4]);
             
-            nGaus = size(xG,2);
-            nElem = size(Ft,4);
-
-            invF = MatrixVectorizedInverter.computeInverse(F);
-            invFt = MatrixVectorizedInverter.computeInverse(Ft);
-
-            jac(1,1,:,:)  = MatrixVectorizedInverter.computeDeterminant(F);
-            jac = reshape(jac, [1 1 1 1 nGaus nElem]);
+%             C = pagemtimes(Ft,F);
+%             Ft = Ffun;
+%             [F,I33] = obj.computeDeformationGradient(uFun, xG);
+            
+%             Ft = permute(F, [2 1 3 4]);
+            
+%             nGaus = size(xG,2);
+%             nElem = size(Ft,4);
+            invF = Inv(Ffun);
+%             invF2 = invF.evaluate(xG);
+%             invF = MatrixVectorizedInverter.computeInverse(F);
+%             invFt = MatrixVectorizedInverter.computeInverse(Ffun');
+            jac = Det(Ffun);
             logJac = log(jac);
+%             jac(1,1,:,:)  = MatrixVectorizedInverter.computeDeterminant(F);
+%             jac = reshape(jac, [1 1 1 1 nGaus nElem]);
+%             logJac = log(jac);
 
-            Aneo = obj.lambda*obj.outerProduct(invFt, invFt) + ...
-                obj.mu*obj.kron_topF(I33,I33) + ...
-                (obj.mu-obj.lambda*logJac).*obj.kron_botF(invFt, invF);
+%             Aneo = obj.lambda*obj.outerProduct(invFt, invFt) + ...
+%                 obj.mu*obj.kron_topF(I33,I33) + ...
+%                 (obj.mu-obj.lambda*logJac).*obj.kron_botF(invFt, invF);
+
+             Aneo = obj.lambda.*OP(invF', invF') + ...
+                obj.mu.*kronTop(I33,I33) + ...
+                Expand((obj.mu-obj.lambda.*logJac),4).*kronBot(invF', invF);
         end
 
-        function [F,I33] = computeDeformationGradient(obj, uFun, xG)
-            nPoints  = size(xG,2);
-            nElem = obj.mesh.nelem;
-            nDimG = obj.mesh.ndim;
-            nDimf = uFun.ndimf;
+        function [F,I33,Ffun] = computeDeformationGradient(obj, uFun, xG)
+%             nPoints  = size(xG,2);
+%             nElem = obj.mesh.nelem;
+%             nDimG = obj.mesh.ndim;
+%             nDimf = uFun.ndimf;
 
-            GradU = reshape(Grad(uFun).evaluate(xG),[nDimG,nDimf,nPoints, nElem]);
-            GradU = permute(GradU, [2 1 3 4]);
+%             GradU = reshape(Grad(uFun).evaluate(xG),[nDimG,nDimf,nPoints, nElem]);
+%             GradU = permute(GradU, [2 1 3 4]);
 
-            I33 = obj.createIdentityMatrix(size(GradU));
 
-            F = I33 + GradU;
+%             I33 = obj.createIdentityMatrix(size(GradU));
+            I33 = Identity(uFun);
+
+            Ffun = I33 + Grad(uFun)';
+            F = Ffun.evaluate(xG);
+%             I33 = I33.evaluate(xG);
         end
 
         function trC = computeTrace(obj,C)
