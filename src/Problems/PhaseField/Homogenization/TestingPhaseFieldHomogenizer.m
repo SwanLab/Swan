@@ -40,8 +40,8 @@ classdef TestingPhaseFieldHomogenizer < handle
                 mat(:,:,i) = obj.computeHomogenization(hole);
                 phi(i)     = obj.computeDamageMetric(hole);
             end
-            mat = obj.assembleResults(mat);
-            phi = obj.assembleResults(phi);
+            % mat = obj.assembleResults(mat);
+            % phi = obj.assembleResults(phi);
         end
         
     end

@@ -9,9 +9,9 @@ clc,clear,close all
 %load('case1ElemAT2.mat')
 
 %% GENERAL SETTINGS
-s.monitoring.set = false;
+s.monitoring.set = true;
 s.monitoring.type = 'full'; %'reduced'
-s.monitoring.print = false;
+s.monitoring.print = true;
 
 s.tolerance.u = 1e-13;
 s.tolerance.phi = 1e-6;
@@ -38,8 +38,6 @@ s.dissipInfo.pExp = 2;
 s.solver.type = 'Newton';
 s.solver.tau  = 150;
 
-input = s;
-save('testPhaseFieldSEN','input','xRef')
 
 %% RUN
 tester = TestingPhaseField(s);
