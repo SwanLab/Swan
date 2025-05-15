@@ -17,7 +17,7 @@ classdef HiperelasticityTesting < handle
             s.bcCase = obj.bcCase;
             s.fileName = obj.fileName;
             s.meshGen  = 'EIFEMMesh';
-            s.nSubdomains = [5,5];
+            s.nSubdomains = [2,2];
 %             h = HyperelasticProblem(s);
             h2 = HyperelasticProblem_refactoring(s);
             

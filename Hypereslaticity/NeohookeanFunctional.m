@@ -20,88 +20,62 @@ classdef NeohookeanFunctional < handle
             obj.init(cParams)
         end
 
-        function val = compute(obj, uFun)
-            quad = Quadrature.create(obj.mesh, 2);
-            xG = quad.posgp;
-            nDimf = uFun.ndimf;
-            
-            [~,~,Ffun] = obj.computeDeformationGradient(uFun, xG);
-%             Ft = permute(F, [2 1 3 4]);
-            
-%             C = pagemtimes(Ft,F);
-            C = Ffun'*Ffun;
-%             C2 = C2.evaluate(xG);
-%             trC = obj.computeTrace(C);
+        function val = compute(obj, uFun)      
+            nDim = obj.mesh.ndim;
+            [~,F] = obj.computeDeformationGradient(uFun);
+            C = F'*F;
             trC = trace(C);
-%             trC2 = trC2.evaluate(xG);
-
-%             jac(1,1,:,:)  = MatrixVectorizedInverter.computeDeterminant(F);
-            jac = Det(Ffun);
+            jac = Det(F);
             s.quadType = 2;
             s.mesh = obj.mesh;           
             int = IntegratorFunction(s);
-            f = obj.mu./2.*(trC - nDimf) - obj.mu.*log(jac) + obj.lambda./2.*(log(jac)).^2;
+            f = obj.mu./2.*(trC - nDim) - obj.mu.*log(jac) + obj.lambda./2.*(log(jac)).^2;
             val = int.compute(f);
-%             jac2 = jac2.evaluate(xG);
-%             dV(1,1,:,:) = obj.mesh.computeDvolume(quad);
-
-            % val = obj.mu/2*(trC - nDimf) - obj.mu*log(jac) + obj.lambda/2*(jac-1).^2;
-%             val = obj.mu/2*(trC - nDimf) - obj.mu*log(jac) + obj.lambda/2*(log(jac)).^2; % stanford
-%             val = pagemtimes(val,dV);
-%             val = sum(val, 'all');
         end
         
-
         function Fint = computeGradient(obj, uFun)
-            nDimf = uFun.ndimf;
-            test = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
-            quad = Quadrature.create(obj.mesh,3);
-
-            xG = quad.posgp;
-            dV(1,1,:,:) = obj.mesh.computeDvolume(quad);
-            dNdxTest  = test.evaluateCartesianDerivatives(xG);
-
-            nNode = size(dNdxTest,2);
-            nGaus = size(dNdxTest,3);
-            nElem = size(dNdxTest,4);
-            nDof = nDimf*nNode;
-            nDim = obj.mesh.ndim;
-
-            piola = obj.computeFirstPiola(uFun,xG);
-            dofToDim = repmat(1:nDimf,[1,nNode]);
-            dofToNode = repmat(1:nNode, nDimf, 1);
-            dofToNode = dofToNode(:);
-
-            fint = zeros(nDof,1,nGaus,nElem);
-            % fint2 = zeros(nDof,1,nGaus,nElem);
-
-
-            % for iNode = 1:nNode
-            %     for iDim = 1:nDim
-            %         for iField = 1:nDimf
-            %             dNdx_ij = dNdxTest(iDim, iNode, :, :);
-            %             iDof = iField + nDimf*(iNode-1);
-            %             Pik = piola(iField,iDim,:,:);
-            %             fint2(iDof,1,:,:) = fint2(iDof,1,:,:) + Pik.*dNdx_ij;
-            %         end
-            %     end
-            % end
-
-            % GradDeltaV is not always compatible (see BCs), but we dont
-            % worry about it since we reduce the matrix later on    
-            for iDof = 1:nDof
-                iNode = dofToNode(iDof);
-                iDim  = dofToDim(iDof);
-                deltav = zeros(nNode,nDimf, nGaus, nElem);
-                deltav(iNode,iDim,:,:) = 1;
-                GradDeltaV = pagemtimes(dNdxTest,deltav);
-                fint(iDof, :,:,:) = squeeze(bsxfun(@(A,B) sum(A.*B, [1 2]), pagetranspose(piola),GradDeltaV));
-            end
-            % err = norm(fint(:)-fint2(:))/norm(fint(:))
-            % fint = fint2;
-            fint = fint.*dV;
-            fint = squeeze(sum(fint,3));
-            Fint = obj.assembleIntegrand(fint,test);
+%             piola = PK1.evaluate(xG); 
+%             dofToDim = repmat(1:nDimf,[1,nNode]);
+%             dofToNode = repmat(1:nNode, nDimf, 1);
+%             dofToNode = dofToNode(:);
+% 
+%             fint = zeros(nDof,1,nGaus,nElem);
+%             % fint2 = zeros(nDof,1,nGaus,nElem);
+% 
+% 
+%             % for iNode = 1:nNode
+%             %     for iDim = 1:nDim
+%             %         for iField = 1:nDimf
+%             %             dNdx_ij = dNdxTest(iDim, iNode, :, :);
+%             %             iDof = iField + nDimf*(iNode-1);
+%             %             Pik = piola(iField,iDim,:,:);
+%             %             fint2(iDof,1,:,:) = fint2(iDof,1,:,:) + Pik.*dNdx_ij;
+%             %         end
+%             %     end
+%             % end
+% 
+%             % GradDeltaV is not always compatible (see BCs), but we dont
+%             % worry about it since we reduce the matrix later on    
+%             for iDof = 1:nDof
+%                 iNode = dofToNode(iDof);
+%                 iDim  = dofToDim(iDof);
+%                 deltav = zeros(nNode,nDimf, nGaus, nElem);
+%                 deltav(iNode,iDim,:,:) = 1;
+%                 GradDeltaV = pagemtimes(dNdxTest,deltav);
+%                 fint(iDof, :,:,:) = squeeze(bsxfun(@(A,B) sum(A.*B, [1 2]), pagetranspose(piola),GradDeltaV));
+%             end
+%             % err = norm(fint(:)-fint2(:))/norm(fint(:))
+%             % fint = fint2;
+%             fint = fint.*dV;
+%             fint = squeeze(sum(fint,3));
+%             Fint = obj.assembleIntegrand(fint,test);
+            
+            PK1 = obj.computeFirstPiola(uFun);
+            s.mesh = obj.mesh;
+            s.quadratureOrder = 3;
+            s.type = 'ShapeDerivativeTensor';
+            rhs = RHSIntegrator.create(s);
+            Fint = rhs.compute(PK1,uFun); 
         end
 
         function f = assembleIntegrand(obj, rhsElem, test)
@@ -118,71 +92,17 @@ classdef NeohookeanFunctional < handle
         end
 
         function hess = computeHessian(obj, uFun)
-            % This is the LINEALIZED hessian (Holzapfel, 401)
-            % See  Holzapfel, 396
-            nDimf = uFun.ndimf;
-            trial = uFun;
-            test  = LagrangianFunction.create(obj.mesh, nDimf, 'P1');
-            quad = Quadrature.create(obj.mesh,3);
-
-            xG = quad.posgp;
-            dV(1,1,:,:) = obj.mesh.computeDvolume(quad);
-
-%             [F,~] = obj.computeDeformationGradient(uFun, xG);
-%             [~,~,Ffun] = obj.computeDeformationGradient(uFun, xG);
-%             C = Ffun'*Ffun;
-%             Ft = permute(F,[2 1 3 4]);
-            Aneo = obj.computeTangentConstitutive(uFun,xG);
-            Aneo = Aneo.evaluate(xG);
-            dNdxTest  = test.evaluateCartesianDerivatives(xG);
-            dNdxTrial = trial.evaluateCartesianDerivatives(xG);
-            nNode = size(dNdxTrial,2);
-            nGaus = size(dNdxTrial,3);
-            nElem = size(dNdxTrial,4);
-            nDof = nDimf*nNode;
-            
-            dofToDim = repmat(1:nDimf,[1,nNode]);
-            dofToNode = repmat(1:nNode, nDimf, 1);
-            dofToNode = dofToNode(:);
-
-            K = zeros(nDof,nDof,nGaus,nElem);
-            for iDof = 1:nDof % test dof
-                iNode = dofToNode(iDof);
-                iDim  = dofToDim(iDof);
-                GradDeltaV = zeros(nDimf,nDimf, nGaus, nElem);
-                GradDeltaV(:,iDim,:,:) = dNdxTest(:,iNode,:,:);
-%                 GradDeltaV = pagemtimes(F,GradDeltaV);
-                res = zeros(nDimf,nDimf,nGaus,nElem);
-                for a = 1:nDimf
-                    for b = 1:nDimf
-                        C = squeezeParticular(Aneo(:,:,a,b,:,:),[3 4]);
-                        res(a,b,:,:) = bsxfun(@(A,B) sum(A.*B, [1 2]), GradDeltaV,pagetranspose(C));
-                    end
-                end
-
-                for jDof = 1:nDof % trial dof
-                    jNode = dofToNode(jDof);
-                    jDim  = dofToDim(jDof);
-
-                    GradDeltaU = zeros(nDimf,nDimf, nGaus, nElem);
-                    GradDeltaU(:,jDim,:,:) = dNdxTrial(:,jNode,:,:);
-%                     GradDeltaU = pagemtimes(GradDeltaU,Ft);
-
-%                     Kgeo = bsxfun(@(A,B) sum(A.*B, [1 2]), piola, GradDeltaU);
-
-                   Ktan = bsxfun(@(A,B) sum(A.*B, [1 2]), pagetranspose(res), GradDeltaU);
-                    K(iDof,jDof,:,:) = Ktan;
-                end
-            end
-            K = K.*dV;
-            K = squeeze(sum(K,3));
-
-            % Assembly
-            s.fun    = []; % !!!
-            assembler = AssemblerFun(s);
-            hess = assembler.assemble(K, test, trial);
+%             % This is the LINEALIZED hessian (Holzapfel, 401)
+%             % See  Holzapfel, 396
+            Aneofun = obj.computeTangentConstitutive(uFun);
+            s.quadratureOrder = 3;
+            s.test  = uFun;
+            s.trial = uFun;
+            s.mesh  = obj.mesh;
+            s.type ='StiffnessFiniteStrain';
+            lhs = LHSIntegrator.create(s);
+            hess = lhs.compute(Aneofun);
         end
-
 
     end
     
@@ -194,143 +114,26 @@ classdef NeohookeanFunctional < handle
             obj.mesh   = cParams.mesh;
         end
 
-        function piola = computeFirstPiola(obj,uFun,xG)
-            [F,~] = obj.computeDeformationGradient(uFun, xG);
-            Ft = permute(F, [2 1 3 4]);
-
-            nGaus = size(xG,2);
-            nElem = size(Ft,4);
-
-            invFt = MatrixVectorizedInverter.computeInverse(Ft);
-            jac(1,1,:,:)  = MatrixVectorizedInverter.computeDeterminant(F);
-            jac = reshape(jac, [1 1 nGaus nElem]);
-            piola = obj.mu*(F-invFt) + obj.lambda*log(jac).*invFt;
-%             piola = obj.mu*(F-invFt) + obj.lambda/2*(jac.^2-1).*invFt;
+        function PK1 = computeFirstPiola(obj,uFun,xG)
+            [~,F] = obj.computeDeformationGradient(uFun);
+             invFt = Inv(F');
+             jac = Det(F);
+             PK1 = obj.mu.*(F-invFt) + obj.lambda.*log(jac).*invFt;
         end
 
-        function Aneo = computeTangentConstitutive(obj,uFun,xG)
-              [~,I33,Ffun] = obj.computeDeformationGradient(uFun, xG);
-%             Ft = permute(F, [2 1 3 4]);
-            
-%             C = pagemtimes(Ft,F);
-%             Ft = Ffun;
-%             [F,I33] = obj.computeDeformationGradient(uFun, xG);
-            
-%             Ft = permute(F, [2 1 3 4]);
-            
-%             nGaus = size(xG,2);
-%             nElem = size(Ft,4);
-            invF = Inv(Ffun);
-%             invF2 = invF.evaluate(xG);
-%             invF = MatrixVectorizedInverter.computeInverse(F);
-%             invFt = MatrixVectorizedInverter.computeInverse(Ffun');
-            jac = Det(Ffun);
-            logJac = log(jac);
-%             jac(1,1,:,:)  = MatrixVectorizedInverter.computeDeterminant(F);
-%             jac = reshape(jac, [1 1 1 1 nGaus nElem]);
-%             logJac = log(jac);
-
-%             Aneo = obj.lambda*obj.outerProduct(invFt, invFt) + ...
-%                 obj.mu*obj.kron_topF(I33,I33) + ...
-%                 (obj.mu-obj.lambda*logJac).*obj.kron_botF(invFt, invF);
-
-             Aneo = obj.lambda.*OP(invF', invF') + ...
+        function Aneo = computeTangentConstitutive(obj,uFun)
+            [I33,F] = obj.computeDeformationGradient(uFun);
+            invF = Inv(F);
+            jac = Det(F);
+            Aneo = obj.lambda.*OP(invF', invF') + ...
                 obj.mu.*kronTop(I33,I33) + ...
-                Expand((obj.mu-obj.lambda.*logJac),4).*kronBot(invF', invF);
+                Expand((obj.mu-obj.lambda.*log(jac)),4).*kronBot(invF', invF);
         end
 
-        function [F,I33,Ffun] = computeDeformationGradient(obj, uFun, xG)
-%             nPoints  = size(xG,2);
-%             nElem = obj.mesh.nelem;
-%             nDimG = obj.mesh.ndim;
-%             nDimf = uFun.ndimf;
-
-%             GradU = reshape(Grad(uFun).evaluate(xG),[nDimG,nDimf,nPoints, nElem]);
-%             GradU = permute(GradU, [2 1 3 4]);
-
-
-%             I33 = obj.createIdentityMatrix(size(GradU));
+        function [I33,F] = computeDeformationGradient(obj, uFun)
             I33 = Identity(uFun);
-
-            Ffun = I33 + Grad(uFun)';
-            F = Ffun.evaluate(xG);
-%             I33 = I33.evaluate(xG);
-        end
-
-        function trC = computeTrace(obj,C)
-            trC = zeros(1,1,size(C,3),size(C,4));
-            for i = 1:size(C,1)
-                trC = trC + C(i,i,:,:,:);
-            end
-        end
-
-        function I = createIdentityMatrix(obj,sz)
-            I = zeros(sz);
-            for i = 1:sz(1)
-                I(i,i,:,:) = 1;
-            end
-        end
-
-        % Operators
-        function C = double_dot(obj,A, B)
-            assert(~isvector(A) && ~isvector(B))
-            idx = max(0, ndims(A) - 1);
-            B_t = permute(B, circshift(1:ndims(A) + ndims(B), [0, idx - 1]));
-            C = squeeze(sum(squeeze(sum(bsxfun(@times, A, B_t), idx)), idx));
-        end
-
-        function C = outerProduct(obj, A, B)  % version 1
-            C = zeros([size(A,1), size(A,2),size(B)]);
-            for i = 1:size(A,1)
-                for j = 1:size(A,2)
-                    for k = 1:size(B,1)
-                        for l = 1:size(B,2)
-                            C(i,j,k,l,:,:) = A(i,j,:,:).*B(k,l,:,:);
-                        end
-                    end
-                end
-            end
-        end
-
-%         function C= kron_topF(obj, A,B)
-%             C = zeros([size(A,1), size(A,2), size(B)]); % to support 4th order tensors
-%             for i = 1:size(A,1)
-%                 for k = 1:size(B,1)
-%                     C(i,:,k,:,:,:) = pagemtimes( A(i,k,:,:), B);
-%                 end
-%             end
-%         end
-
-        function C= kron_topF(obj,A,B)
-    %             C = obj.kron_topF(A,B);
-    %             C = pagetranspose(C);
-            C = zeros([size(A,1), size(A,2), size(B)]); % to support 4th order tensors
-            for i = 1:size(A,1)
-                for k = 1:size(A,2)
-                    for j = 1:size(B,1)
-                        for l = 1:size(B,2)
-                            C(i,j,k,l,:,:) = A(i,k,:,:).*B(j,l,:,:);
-                        end
-                    end
-                end
-            end
-        end
-
-        function C= kron_botF(obj,A,B)
-    %             C = obj.kron_topF(A,B);
-    %             C = pagetranspose(C);
-            C = zeros([size(A,1), size(A,2), size(B)]); % to support 4th order tensors
-            for i = 1:size(A,1)
-                for j = 1:size(A,2)
-                    for k = 1:size(B,1)
-                        for l = 1:size(B,2)
-                            C(i,j,k,l,:,:) = A(i,l,:,:).*B(j,k,:,:);
-                        end
-                    end
-                end
-            end
-        end
-        
+            F = I33 + Grad(uFun)';
+        end     
     end
     
 end
