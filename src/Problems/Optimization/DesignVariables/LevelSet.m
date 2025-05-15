@@ -43,7 +43,7 @@ classdef LevelSet < DesignVariable
         end
 
         function Vf = computeVolume(obj)
-            VTot = obj.mesh.computeVolume();
+            VTot = obj.fun.mesh.computeVolume();
             chi  = CharacteristicFunction.create(obj.unfittedMesh);
             V    = Integrator.compute(chi,obj.unfittedMesh,2);
             Vf   = V/VTot;
@@ -55,28 +55,23 @@ classdef LevelSet < DesignVariable
             end
         end
 
+        function ls = copy(obj)
+            s.fun      = obj.fun;
+            s.type     = 'LevelSet';
+            s.plotting = false;
+            ls         = DesignVariable.create(s);
+        end
+
         function ls = obtainVariableInCell(obj)
             ls{1} = obj;
         end
     end
 
-    % methods (Access = protected)
-    % 
-    %     function ls = copyElement(obj)
-    %         s.fun      = obj.fun;
-    %         s.mesh     = obj.mesh;
-    %         s.type     = 'LevelSet';
-    %         s.plotting = false;
-    %         ls         = DesignVariable.create(s);
-    %     end
-    % 
-    % end
-
     methods (Access = private)
 
         function createUnfittedMesh(obj)
-            s.backgroundMesh = obj.mesh;
-            s.boundaryMesh   = obj.mesh.createBoundaryMesh();
+            s.backgroundMesh = obj.fun.mesh;
+            s.boundaryMesh   = obj.fun.mesh.createBoundaryMesh();
             obj.unfittedMesh = UnfittedMesh(s);
             obj.updateUnfittedMesh();
         end
