@@ -18,7 +18,6 @@ classdef HardeningLawExp < HardeningLaw
         function qDot = computeDerivative(obj,internalVariable)
             r = internalVariable.r;
             qDot = obj.computeHardeningDerivative(r);
-            qDot = qDot;
         end
  
     end
