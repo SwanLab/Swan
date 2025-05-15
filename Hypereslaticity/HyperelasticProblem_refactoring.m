@@ -15,6 +15,9 @@ classdef HyperelasticProblem_refactoring < handle
         printing
         bcApplier
         freeDofs, constrainedDofs
+        refMesh
+        nSubdomains
+        tolSameNode
     end
 
     methods (Access = public)
@@ -130,11 +133,14 @@ classdef HyperelasticProblem_refactoring < handle
         end
 
         function init(obj,cParams)
-            obj.printing = cParams.printing;
-            obj.bc_case  = cParams.bcCase;
-            obj.fileName = cParams.fileName;
-            obj.meshGen  = cParams.meshGen;
-            obj.createMesh();
+            obj.printing    = cParams.printing;
+            obj.bc_case     = cParams.bcCase;
+            obj.fileName    = cParams.fileName;
+            obj.meshGen     = cParams.meshGen;
+            obj.nSubdomains = cParams.nSubdomains;
+            obj.tolSameNode = 1e-10;
+            obj.createReferenceMesh();
+            obj.createMesh(obj.refMesh);
             obj.createMaterial();
             obj.createDisplacementFun();
             obj.createFunctionals();
@@ -205,28 +211,38 @@ classdef HyperelasticProblem_refactoring < handle
             obj.constrainedDofs = bc.dirichlet_dofs;
         end
 
-        function createMesh(obj)
+        function createReferenceMesh(obj)
             switch obj.meshGen
                 case {'Hole', 'HoleDirich'}
                     IM = Mesh.createFromGiD('hole_mesh_quad.m');
-                    obj.mesh = IM;
+                    obj.refMesh = IM;
                 case {'Bending', 'Traction'}
-                    obj.mesh = UnitQuadMesh(20,20);
+                    obj.refMesh = UnitQuadMesh(20,20);
                 case {'Metamaterial'}
                     load('NegPoissMesh.mat')
                     s.coord = NegPoissMesh.coord;
                     s.connec = NegPoissMesh.connec;
-                    obj.mesh = Mesh.create(s);
+                    obj.refMesh = Mesh.create(s);
                 case 'EIFEMMesh'
                     load(obj.fileName)
                     s.coord  = EIFEoper.MESH.COOR;          
                     s.connec = EIFEoper.MESH.CN;
                     mS       = Mesh.create(s);
-                    obj.mesh = mS;
+                    obj.refMesh = mS;
                 otherwise
-                    obj.mesh = HexaMesh(2,1,1,20,5,5);
+                    obj.refMesh = HexaMesh(2,1,1,20,5,5);
                     % obj.mesh = UnitHexaMesh(15,15,15);
             end
+        end
+
+
+        function [mD,mSb,iC,lG,iCR,discMesh] = createMesh(obj,mR)
+            s.nsubdomains   = obj.nSubdomains; %nx ny
+            s.meshReference = mR;
+            s.tolSameNode = obj.tolSameNode;
+            m = MeshCreatorFromRVE(s);
+            [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
+            obj.mesh = mD;
         end
 
         function createMaterial(obj)

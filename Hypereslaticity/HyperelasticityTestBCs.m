@@ -114,7 +114,7 @@ classdef HyperelasticityTestBCs < handle
 
             sDir2.domain    = @(coor) isRight(coor);
             sDir2.direction = [1];
-            sDir2.value     = perc*2;
+            sDir2.value     = perc*6;
             dir2 =  DirichletCondition(obj.mesh, sDir2);
 
             sDir3.domain    = @(coor) isRight(coor);

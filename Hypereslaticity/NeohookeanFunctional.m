@@ -133,6 +133,7 @@ classdef NeohookeanFunctional < handle
 %             C = Ffun'*Ffun;
 %             Ft = permute(F,[2 1 3 4]);
             Aneo = obj.computeTangentConstitutive(uFun,xG);
+            Aneo = Aneo.evaluate(xG);
             dNdxTest  = test.evaluateCartesianDerivatives(xG);
             dNdxTrial = trial.evaluateCartesianDerivatives(xG);
             nNode = size(dNdxTrial,2);
