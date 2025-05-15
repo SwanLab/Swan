@@ -1,4 +1,4 @@
-classdef DesignVariableAcademic < handle & matlab.mixin.Copyable
+classdef DesignVariableAcademic < handle
     
     properties (Access = public)
         fun

@@ -56,7 +56,7 @@ classdef LevelSet < DesignVariable
         end
 
         function ls = copy(obj)
-            s.fun      = obj.fun;
+            s.fun      = obj.fun.copy();
             s.type     = 'LevelSet';
             s.plotting = false;
             ls         = DesignVariable.create(s);
