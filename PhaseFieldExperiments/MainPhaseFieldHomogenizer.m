@@ -11,6 +11,8 @@ s.damageType = "Perimeter";
 PFH = TestingPhaseFieldHomogenizer(s);
 [mat,phi,holeParam] = PFH.compute();
 phi = holeParam;
+
+%% test (delete after)
 load('CircleMicroDamagePerimeter.mat')
 f1 = degradationFun.fun;
 load('CirclePerimeter.mat')
@@ -21,7 +23,6 @@ for i=1:3
     end
 end
 
-%% test
 tiledlayout(2,2)
 nexttile
 hold on
