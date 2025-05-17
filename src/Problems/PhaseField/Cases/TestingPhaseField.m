@@ -122,6 +122,7 @@ classdef TestingPhaseField < handle
             s.PFtype = obj.matInfo.matType;
             if s.PFtype == "Homogenized"
                 s.fileName = obj.matInfo.fileName;
+                s.young    = E;
             else
                 s.interp.interpolation = 'PhaseFieldDegradation';
                 s.interp.degFunType    = obj.matInfo.degradationType;

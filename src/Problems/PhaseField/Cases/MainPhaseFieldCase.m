@@ -21,13 +21,13 @@ s.maxIter.phi = 300;
 s.maxIter.stag = 300;
 
 s.benchmark.N = 10;
-s.benchmark.type.mesh = 'SENtest';
+s.benchmark.type.mesh = '1Elem';
 s.benchmark.type.bc = 'displacementTraction';
 s.benchmark.bcValues = [0:1e-3:0.1];
 
-s.matInfo.matType = 'Analytic';
+s.matInfo.matType = 'Homogenized';
 s.matInfo.degradationType = 'AT';
-s.matInfo.fileName = 'CircleMicroDamageArea'; 
+s.matInfo.fileName = 'CirclePerimeter'; 
 s.matInfo.young   = 210;
 s.matInfo.poisson = 0.3;
 s.matInfo.Gc = 5e-3;
