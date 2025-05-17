@@ -16,6 +16,8 @@ classdef DesignVariableFactory < handle
                     designVar = DensityAndBound(cParams);
                 case 'MultiLevelSet'
                     designVar = MultiLevelSet(cParams);
+                case 'Damage'
+                    designVar = Damage(cParams);
             end
         end
 

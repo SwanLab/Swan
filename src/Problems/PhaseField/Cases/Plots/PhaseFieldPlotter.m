@@ -8,6 +8,7 @@ classdef PhaseFieldPlotter < handle
         energy
         iter
         costFun
+        AT
     end
     
     methods (Access = public)
@@ -30,17 +31,19 @@ classdef PhaseFieldPlotter < handle
             obj.damage = cParams.damage.maxValue;
             obj.damageField = cParams.damage.field;
             obj.displacement = cParams.displacement.value;
-            obj.reaction = cParams.reaction;
+            obj.reaction = cParams.force;
             obj.energy = cParams.energy;
             obj.iter = cParams.iter;
             obj.costFun = cParams.cost;
+            obj.AT = cParams.inputParameters.dissipInfo.pExp;
         end
         
         function plotDamage(obj)
             figure()
             hold on
             plot(obj.displacement,obj.damage,'Color',"#0072BD")
-            %obj.computeTheoreticalDamage()
+            % dmg = obj.computeTheoreticalDamage();
+            % plot(obj.displacement,dmg);
             title('Damage-displacement diagram')
             grid on
             xlabel('Displacement [mm]')
@@ -48,12 +51,17 @@ classdef PhaseFieldPlotter < handle
             ylim([0 1]);
         end
 
-        function computeTheoreticalDamage(obj)
+        function [dmg] = computeTheoreticalDamage(obj)
             E = 210; nu = 0.3; l0 = 0.1; Gc = 5e-3;
             C22 = E/((1+nu)*(1-nu));
             e = obj.displacement;
-            damageTheory = (C22.*e.^2)./((Gc/l0)+(C22.*e.^2));
-            plot(obj.displacement,damageTheory);
+            if obj.AT == 1
+                w = (1/2)*(Gc/l0);
+                dmg = max(1 - w./(C22.*(e+ 1e-10).^2),0) ;
+            elseif obj.AT == 2
+                w = (3/8)*(Gc/l0);
+                dmg = (C22.*e.^2)./(2*w+(C22.*e.^2));
+            end
         end
         
         function meshDamage(obj)
@@ -68,21 +76,21 @@ classdef PhaseFieldPlotter < handle
             figure()
             hold on
             plot(obj.displacement,obj.reaction)
-            %obj.computeTheoreticalForce()
+            % sig = obj.computeTheoreticalForce();
+            % plot(obj.displacement,sig);
             title('Force-displacement diagram (Reaction force)')
             grid on
             xlabel('Displacement [mm]')
             ylabel('Force [kN]')
         end
 
-        function computeTheoreticalForce(obj)
-            E = 210; nu = 0.3; l0 = 0.1; Gc = 5e-3;
+        function sig = computeTheoreticalForce(obj)
+            E = 210; nu = 0.3;
             C22 = E/((1+nu)*(1-nu));
+            dmg = obj.computeTheoreticalDamage();
+            C22phi = ((1-dmg).^2).*C22;
             e = obj.displacement;
-            damageTheory = (C22.*e.^2)./((Gc/l0)+(C22.*e.^2));
-            C22phi = ((1-damageTheory).^2).*C22;
-            sigma = C22phi.*e;
-            plot(obj.displacement,sigma);
+            sig = C22phi.*e;
         end
         
         function plotEnergies(obj)
