@@ -1,12 +1,14 @@
 %% Test for TestNaca
-Naca.length = 8;
-Naca.height = 4;
-Naca.nx     = 420;
-Naca.M      = 0;
-Naca.p      = 0;
-Naca.t      = 0.05;
-Naca.chord  = 1;
-Naca.AoA    = 10;
+Naca.flowType  = "NavierStokes";
+Naca.length    = 8;
+Naca.height    = 4;
+Naca.nx        = 420;
+Naca.M         = 0.02;
+Naca.p         = 0.4;
+Naca.t         = 0.12;
+Naca.chord     = 1;
+Naca.AoA       = 0;
+
 
 NacaClass = TestNaca(Naca);
 NacaClass.compute();

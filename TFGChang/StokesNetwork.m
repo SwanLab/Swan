@@ -41,9 +41,9 @@ s.data = data;
 % Initialization
 
 % Load model parameters
-s.networkParams.hiddenLayers    = s.polynomialOrder * size(s.xFeatures,2)* 7 * ones(1,2);
+s.networkParams.hiddenLayers    = s.polynomialOrder * size(s.xFeatures,2)* 9 * ones(1,8);
 s.optimizerParams.learningRate  = 0.05;
-s.costParams.lambda             = 0.0;
+s.costParams.lambda             = 0.001;
 s.costParams.costType           = 'L2';
 
 s.networkParams.HUtype = 'ReLU'; 

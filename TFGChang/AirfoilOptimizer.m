@@ -97,9 +97,9 @@ classdef AirfoilOptimizer < handle
         
                 obj.ParamsMat(end + 1,:) = obj.optimalParams;
 
-                if mod(iter,10) == 0
-                     [obj.velFunMat(end + 1), obj.PFunMat(end + 1)] = computeVelPFun(obj);
-                end
+                % if mod(iter,10) == 0
+                %      [obj.velFunMat(end + 1), obj.PFunMat(end + 1)] = computeVelPFun(obj);
+                % end
 
         
                 iter = iter + 1;

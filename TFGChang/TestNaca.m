@@ -18,6 +18,7 @@ classdef TestNaca < handle
         height
         nx
         ny
+        flowType
     end
     
     properties (Access = private)
@@ -54,7 +55,7 @@ classdef TestNaca < handle
 
         function compute(obj)
             obj.createPressureFilter();
-            obj.solveStokesProblem();
+            obj.solveProblem();
             obj.plotResults();
             obj.CalculateAeroForces();
         end
@@ -80,6 +81,7 @@ classdef TestNaca < handle
             obj.length   = cParams.length;
             obj.height   = cParams.height;
             obj.nx       = cParams.nx;
+            obj.flowType = cParams.flowType;
         end
 
         function [AirfoilParams, BGParams] = setParams(obj)
@@ -208,20 +210,46 @@ classdef TestNaca < handle
             obj.filter   = Filter.create(s);
         end
 
-        function solveStokesProblem(obj)
+        function s = initProblemSolver(obj)
             s.mesh             = obj.mesh;
             s.forcesFormula    = obj.forcesFormula;
             s.dirConditions    = obj.dirConditions;
             s.dirDofs          = obj.dirDofs;
-            s.nodesConditions  = obj.nodesConditions;
             s.material         = obj.material;
             s.velocityFun      = obj.velocityFun;
             s.pressureFun      = obj.pressureFun;
+        end
+
+        function solveProblem(obj)
+            s = obj.initProblemSolver();
+        
+            switch obj.flowType
+                case 'Stokes'
+                    obj.solveStokesProblem(s);
+                case 'NavierStokes'
+                    s.velocityField = LagrangianFunction.create(obj.mesh, 2, 'P2');
+                    obj.solveNavierStokesProblem(s);
+                otherwise
+                    error('Unknown flow type: %s', obj.flowType);
+            end
+           
+            obj.pressureFun = obj.filter.compute(obj.pressureFun, 3);
+
+        end
+
+        function solveStokesProblem(obj,s)
             SolverResults      = StokesProblemSolver(s); 
             SolverResults.compute();
             obj.velocityFun    = SolverResults.velocityFun;
             obj.pressureFun    = SolverResults.pressureFun;
-            obj.pressureFun    = obj.filter.compute(obj.pressureFun,3); % Comment this line to remove filter
+        end
+
+        function solveNavierStokesProblem(obj,s)
+            s.velocityField    = LagrangianFunction.create(obj.mesh, 2, 'P2');
+            SolverResults      = NavierStokesProblemSolver(s); 
+            SolverResults.compute();
+            obj.velocityFun    = SolverResults.velocityFun;
+            obj.pressureFun    = SolverResults.pressureFun;
         end
 
         function plotResults(obj)     
@@ -238,7 +266,7 @@ classdef TestNaca < handle
             obj.L              = AeroForcesResults.L;
             obj.D              = AeroForcesResults.D;
             obj.E              = AeroForcesResults.E;
-        end
+        end 
 
         function verifyAeroForces(obj)
             s.L    = obj.L;
@@ -258,28 +286,55 @@ classdef TestNaca < handle
 
     methods (Static, Access = public)
 
-        function plotVelocity(velFun)
-            velFun.plot(); 
-            ax = findall(groot, 'Type', 'axes');
-            xlabel(ax(2),"x");
-            ylabel(ax(2),"y");
-            axis(ax(2), 'equal');
-            xlabel(ax(1),"x");
-            ylabel(ax(1),"y"); 
-            axis(ax(1), 'equal');
-            title(ax(2), "Velocity distribution in the x direction.");
-            title(ax(1), "Velocity distribution in the y direction."); 
+        function plotVelocity(velocityFun)
+            v = LagrangianFunction.create(velocityFun.mesh, 1, 'P2');
+            v.setFValues(sqrt(velocityFun.fValues(:,1).^2 + velocityFun.fValues(:,2).^2));
+            v.plot()
+            title("Velocity distribution.");
+            xlabel("x");
+            ylabel("y");
             colorbar;
+            axis image tight;
+            %set(gca, 'Position', [0.1 0.1 0.75 1]);
+            set(gcf, 'WindowState', 'maximized');
         end
 
-        function plotPressure(PFun)
-            PFun.plot();
+        function plotVelocityX(velocityFun)
+            vx = LagrangianFunction.create(velocityFun.mesh, 1, 'P2');
+            vx.setFValues(velocityFun.fValues(:,1));
+            vx.plot();
+            title("Velocity distribution in the x direction.");
+            xlabel("x");
+            ylabel("y");
+            colorbar;
+            axis equal tight;  
+            %set(gca, 'Position', [0.1 0 0.75 1]);
+            set(gcf, 'WindowState', 'maximized');
+        end
+
+        function plotVelocityY(velocityFun)
+            vy = LagrangianFunction.create(velocityFun.mesh, 1, 'P2');
+            vy.setFValues(velocityFun.fValues(:,2));
+            vy.plot();
+            title("Velocity distribution in the y direction."); 
+            xlabel("x");
+            ylabel("y"); 
+            colorbar;
+            axis equal tight; 
+            %set(gca, 'Position', [0.1 0 0.75 1]);
+            set(gcf, 'WindowState', 'maximized');
+        end
+
+        function plotPressure(PressureFun)
+            PressureFun.plot();
             xlabel("x");
             ylabel("y");
             title("Pressure distribution"); 
-            axis equal;
+            axis equal tight;
             colorbar;
             caxis([-20, 20]);
+            %set(gca, 'Position', [0.1 0 0.75 1]);
+            set(gcf, 'WindowState', 'maximized');
         end
 
     end

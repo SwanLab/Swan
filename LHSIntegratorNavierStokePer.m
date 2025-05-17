@@ -1,4 +1,4 @@
-classdef LHSIntegratorStokes < handle %LHSintegrator
+classdef LHSIntegratorNavierStokePer < handle
 
     properties (GetAccess = public, SetAccess = private)
         M
@@ -9,13 +9,14 @@ classdef LHSIntegratorStokes < handle %LHSintegrator
         mesh
         velocityFun
         pressureFun
+        velocityField
         material
         D
     end
 
     methods (Access = public)
 
-        function obj = LHSIntegratorStokes(cParams)
+        function obj = LHSIntegratorNavierStokePer(cParams)
             obj.init(cParams);
         end
 
@@ -26,24 +27,29 @@ classdef LHSIntegratorStokes < handle %LHSintegrator
             LHS = [velLHS, D; D',prsLHS];
         end
 
+        function C = computeConvectiveTerm(obj)
+            C = obj.computeConvectiveMatrix(obj);
+        end
+
     end
 
     methods (Access = private)
     
         function init(obj, cParams)
-            obj.dt          = cParams.dt;
-            obj.mesh        = cParams.mesh;
-            obj.material    = cParams.material;
-            obj.pressureFun = cParams.pressureFun;
-            obj.velocityFun = cParams.velocityFun;
+            obj.dt            = cParams.dt;
+            obj.mesh          = cParams.mesh;
+            obj.material      = cParams.material;
+            obj.pressureFun   = cParams.pressureFun;
+            obj.velocityFun   = cParams.velocityFun;
+            obj.velocityField = cParams.velocityField;
         end
 
         function LHS = computeVelocityLHS(obj)
-            K = obj.computeVelocityLaplacian();
-            M = obj.computeMassMatrix();
-            LHS = K + M;
-            %lhs = K + M;
-            %LHS = obj.symGradient(lhs);
+            K   = obj.computeVelocityLaplacian();
+            M   = obj.computeMassMatrix();
+            lhs = obj.symGradient(K + M);
+            C   = obj.computeConvectiveMatrix();
+            LHS = lhs + C;
         end
 
         function D = computeWeakDivergenceMatrix(obj)
@@ -73,6 +79,16 @@ classdef LHSIntegratorStokes < handle %LHSintegrator
             LHS = LHSIntegrator.create(s);
             lhs = LHS.compute();
             lhs = obj.symGradient(lhs);
+        end
+
+        function c = computeConvectiveMatrix(obj)
+            s.type  = 'Convective';
+            s.mesh  = obj.mesh;
+            s.test  = obj.velocityFun;
+            s.trial = obj.velocityFun;
+            s.material = obj.material;
+            C = LHSIntegrator.create(s);
+            c = C.compute(obj.velocityField);
         end
 
         function M = computeMassMatrix(obj)

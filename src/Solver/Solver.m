@@ -6,7 +6,7 @@ classdef Solver < handle
 %             solver_type = 'DIRECT';
             switch cParams.type
                 case {'DIRECT'}
-                    stype = DirectSolver();
+                    stype = DirectSolver();  
 
                 case {'CHOLEVSKY'}
                     % At least up to ndof ~5e4, Direct is still faster

@@ -1,10 +1,10 @@
 % Stoke Problem Optimization
-clc
-clear;
+% clc
+% clear;
 close all;
 
 % Read Network data
-load("StokesNetworkE1e5N32HL2Works.mat");
+load("StokesNetwork.mat");
 
 % Initialization
 m   = 0.09;
