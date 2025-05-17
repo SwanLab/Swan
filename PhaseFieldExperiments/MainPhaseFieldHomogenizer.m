@@ -11,63 +11,56 @@ s.damageType = "Perimeter";
 PFH = TestingPhaseFieldHomogenizer(s);
 [mat,phi,holeParam] = PFH.compute();
 phi = holeParam;
-%% SAVE + PLOTS 
-%save("EllipseMicroDamageArea","mat","phi","holeParam")
-% figure()
-% tiledlayout(3,3)
-% for i=1:9
-%     nexttile
-%     i1 = ceil(i/3);
-%     i2 = rem(i-1,3)+1;
-%     if ismember(i,[1,2,4,5,9])
-%     s = surf(holeParam{1},holeParam{2},squeeze(mat(i1,i2,:,:))');
-%     xlabel('m1')
-%     ylabel('m2')
-%     view([0,0,180])
-%     colormap turbo
-%     caxis([0,1])
-%     end
-%     str = sprintf('C%d%d',i1,i2);
-%     title(str)
-% end
-% sgtitle('Rectangle homogenization')
-% cb = colorbar;
-% cb.Layout.Tile = 'East';
-% 
-% figure()
-% tiledlayout(3,3)
-% for i=1:9
-%     nexttile
-%     i1 = ceil(i/3);
-%     i2 = rem(i-1,3)+1;
-%     if ismember(i,[1,2,4,5,9])
-%     s = surf(holeParam{1},holeParam{2},squeeze(mat(i1,i2,:,:)));
-%     xlabel('m2')
-%     ylabel('m1')
-%     view([45,45,45])
-%     colormap turbo
-%     caxis([0,1])
-%     end
-%     str = sprintf('C%d%d',i1,i2);
-%     title(str)
-% end
-% sgtitle('Rectangle homogenization')
-% cb = colorbar;
-% cb.Layout.Tile = 'East';
+load('CircleMicroDamagePerimeter.mat')
+f1 = degradationFun.fun;
+load('CirclePerimeter.mat')
+for i=1:3
+    for j=1:3
+        f = degradation.fun{i,j};
+        f2{i,j} = @(x) 210.*f(x);
+    end
+end
 
+%% test
+tiledlayout(2,2)
+nexttile
+hold on
+fplot(f1(1,1),[0 1],'Color','#000000','LineWidth',1.5);
+fplot(f2(1,1),[0 1],'--','Color','#D95319','LineWidth',1.5);
+ylabel(char(8450)+"11 [GPa]");
+ylim([0,inf])
+xlabel("Damage "+char(632)+" [-]");
+fontsize(gcf,25,'points')
 
-% surf(holeParam{1},holeParam{2},squeeze(mat(1,1,:,:)));
-% xlabel('m2')
-% ylabel('m1')
-% view(2)
-% colormap turbo
-% caxis([0,1])
-% title(char(8450)+"11")
-% cb = colorbar;
-% fontsize(gcf,30,'points')
+nexttile
+hold on
+fplot(f1(1,2),[0 1],'Color','#000000','LineWidth',1.5);
+fplot(f2(1,2),[0 1],'-','Color','#D95319','LineWidth',1.5);
 
-% figure()
-% s = surf(holeParam{1},holeParam{2},squeeze(phi));
-% xlabel('m2')
-% ylabel('m1')
-% sgtitle('Rectangle Perimeter Damage')
+ylabel(char(8450)+"12 [GPa]");
+ylim([0,inf])
+xlabel("Damage "+char(632)+" [-]");
+fontsize(gcf,25,'points')
+
+nexttile
+hold on
+fplot(f1(2,2),[0 1],'Color','#000000','LineWidth',1.5);
+fplot(f2(2,2),[0 1],'-','Color','#D95319','LineWidth',1.5);
+
+ylabel(char(8450)+"22 [GPa]");
+ylim([0,inf])
+xlabel("Damage "+char(632)+" [-]");
+fontsize(gcf,25,'points')
+
+nexttile
+hold on
+fplot(f1(3,3),[0 1],'Color','#000000','LineWidth',1.5);
+fplot(f2(3,3),[0 1],'-','Color','#D95319','LineWidth',1.5);
+
+ylabel(char(8450)+"33 [GPa]");
+ylim([0,inf])
+xlabel("Damage "+char(632)+" [-]");
+fontsize(gcf,25,'points')
+
+lg =legend('v1','v2');
+lg.Layout.Tile = 'East';
