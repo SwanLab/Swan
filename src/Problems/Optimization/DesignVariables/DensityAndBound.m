@@ -37,7 +37,6 @@ classdef DensityAndBound < DesignVariable
 
         function initBound(obj,cParams)
             obj.bound = 1;
-            obj.mesh  = cParams.mesh;
             obj.type  = cParams.type;
         end
 

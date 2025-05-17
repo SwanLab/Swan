@@ -10,7 +10,7 @@ classdef TopOptTestTutorialMicro < handle
         volume
         cost
         constraint
-        dualVariable
+        primalUpdater
         optimizer
     end
 
@@ -27,7 +27,7 @@ classdef TopOptTestTutorialMicro < handle
             obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
-            obj.createDualVariable();
+            obj.createPrimalUpdater();
             obj.createOptimizer();
         end
 
@@ -164,10 +164,12 @@ classdef TopOptTestTutorialMicro < handle
             obj.constraint      = Constraint(s);
         end
 
-        function createDualVariable(obj)
-            s.nConstraints   = 1;
-            l                = DualVariable(s);
-            obj.dualVariable = l;
+        function createPrimalUpdater(obj)
+            s.ub     = 1;
+            s.lb     = 0;
+            s.tauMax = 1000;
+            s.tau    = [];
+            obj.primalUpdater = ProjectedGradient(s);
         end
 
         function createOptimizer(obj)
@@ -175,16 +177,12 @@ classdef TopOptTestTutorialMicro < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.dualVariable   = obj.dualVariable;
             s.maxIter        = 3;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.primal         = 'PROJECTED GRADIENT';
-            s.ub             = inf;
-            s.lb             = -inf;
+            s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.02;
             s.gJFlowRatio    = 0.2;
-            s.tauMax         = 1000;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

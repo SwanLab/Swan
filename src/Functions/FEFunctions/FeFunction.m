@@ -8,22 +8,7 @@ classdef FeFunction < BaseFunction
         fValues
         order      
     end
-    
-    properties (Access = protected)
-    end
-
-    properties (Access = private)
         
-    end
-    
-    methods (Access = public)
-
-        function n = computeL2norm(obj)
-            l2Norm = L2Norm(obj.mesh);
-            n = l2Norm.compute(obj);
-        end
-    end
-
     methods (Static, Access = public)
         
         function obj = create(type,fValues,mesh)

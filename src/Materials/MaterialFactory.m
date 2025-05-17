@@ -20,13 +20,17 @@ classdef MaterialFactory < handle
                     material = DensityBasedMaterial(cParams);
                 
                 case 'STOKES'
-                    material = Material_Stokes(cParams);
+                    material = MaterialStokes(cParams);
                     
-                case {'PhaseFieldAnalytic','PhaseFieldAnalytical'}
-                    material = MaterialPhaseField(cParams);
-                    
-                case 'PhaseFieldHomog'
-                    material = HomogenizedPhaseField(cParams);
+                case 'PhaseField'
+                    switch cParams.PFtype
+                        case 'Analytic'
+                            material = MaterialPhaseFieldAnalytic(cParams);
+                        case 'AnalyticSplit'
+                            material = MaterialPhaseFieldAnalyticSplit(cParams);
+                        case 'Homogenized'
+                            material = MaterialPhaseFieldHomogenized(cParams);
+                    end
             end
 
         end

@@ -1,9 +1,9 @@
 classdef PrincipalDirectionTest < handle
      
-     properties (Access = protected)
+     properties (Access = private)
         stressDim
         pdim
-        nelem
+        mesh
         nGaus
         tensor
      end
@@ -25,39 +25,43 @@ classdef PrincipalDirectionTest < handle
         
         function init(obj, cParams)
             obj.pdim      = cParams.pdim;
-            obj.nelem     = cParams.nelem;
+            obj.mesh     = cParams.mesh;
             obj.nGaus     = cParams.nGaus;
             obj.stressDim = cParams.stressDim;
             obj.createTensor();
         end
         
     end
-    
+
     methods (Access = public)
 
         function error = computeError(obj)
             [dirS,strS] = obj.computeDirectionAndStress('SYMBOLIC');
             [dirP,strP] = obj.computeDirectionAndStress('PRECOMPUTED');
-            errorDir = norm(dirS(:) - dirP(:))/norm(dirP(:));
-            errorStr = norm(strS(:) - strP(:))/norm(strP(:));
-            error = max([errorDir, errorStr]);
+            for iCell = 1:numel(dirS)
+                errorDir(iCell) = Norm(dirS{iCell}-dirP{iCell},'L2')/Norm(dirP{iCell},'L2');
+            end
+            errorStr = Norm(strS -strP,'L2')/Norm(strP,'L2');            
+            error = max([norm(errorDir),errorStr]);
         end
 
     end
 
     methods (Access = protected)
-   
+
         function createTensor(obj)
-            obj.tensor = rand(obj.nGaus,obj.stressDim,obj.nelem);
-        end
+            s.fValues = rand(obj.mesh.nelem,obj.stressDim);
+            s.mesh    = obj.mesh;
+            s.order   = 'P0';
+            obj.tensor = LagrangianFunction(s);
+        end            
+        
         
         function [dir,str] = computeDirectionAndStress(obj,type)
             s.eigenValueComputer.type = type;
             s.type = obj.pdim;
             p = PrincipalDirectionComputer.create(s);
-            p.compute(obj.tensor);
-            dir = p.direction;
-            str = p.principalStress;
+            [dir,str] = p.compute(obj.tensor);
         end
 
     end

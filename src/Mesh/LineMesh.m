@@ -27,16 +27,6 @@ classdef LineMesh < Mesh
             detJ = obj.computeJacobianDeterminant(xV);
             invJ = 1./detJ;
         end
-
-        function detJ = sampleJacobianDeterminant(obj,xV,cells)
-            J = obj.sampleJacobian(xV,cells);
-            detJ = squeeze(pagenorm(J));
-        end
-
-        function invJ = sampleInverseJacobian(obj,xV,cells)
-            detJ = obj.sampleJacobianDeterminant(xV,cells);
-            invJ = 1./detJ;
-        end
         
         function plot(obj)
             p = patch('vertices',obj.coord,'faces',obj.connec);

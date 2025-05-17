@@ -31,7 +31,7 @@ classdef GeometricalFunction < handle
             x3 = @(x) x(3,:,:);
             switch cParams.type
                 case 'Square'
-                    l  = cParams.radius;
+                    l  = cParams.length;
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
                     fH = @(x) max(abs(x1(x)-x0),abs(x2(x)-y0))/l - 0.5;
@@ -51,12 +51,24 @@ classdef GeometricalFunction < handle
                     obj.computeInclusion(s);
 
                 case 'Rectangle'
+                   % sx = (cParams.xSide)/2;
+                   % sy = (cParams.ySide)/2;
+                    % sx = (1-cParams.xSide)/2;
+                    % sy = (1-cParams.ySide)/2;    
+                    % sx = cos(2*pi*sx);
+                    % sy = cos(2*pi*sy);                      
+                    % x0 = cParams.xCoorCenter;
+                    % y0 = cParams.yCoorCenter;
+                    % fH = @(x) max((x1(x)-x0)./(sx),(x2(x)-y0)./(sy)) - 1;
+                    % obj.fHandle = fH;
+
                     sx = cParams.xSide;
                     sy = cParams.ySide;
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
-                    fH = @(x) obj.specialRectangle(x,x1,x2,x0,y0,sx,sy);%max(abs(x1(x)-x0)./sx,abs(x2(x)-y0)./sy) - 0.5;
+                    fH = @(x) max(abs(x1(x)-x0)./sx,abs(x2(x)-y0)./sy) - 0.5;
                     obj.fHandle = fH;
+
 
                 case 'RectangleInclusion'
                     s      = cParams;
@@ -69,14 +81,25 @@ classdef GeometricalFunction < handle
                     obj.computeInclusion(s);
 
                 case 'SmoothRectangle'
+                     % sx = (cParams.xSide)/2;
+                     % sy = (cParams.ySide)/2;
+                %   sx = (1-cParams.xSide)/2;
+                %   sy = (1-cParams.ySide)/2;    
+                %   sx = cos(2*pi*sx);
+                %   sy = cos(2*pi*sy);                      
+                    % x0 = cParams.xCoorCenter;
+                    % y0 = cParams.yCoorCenter;
+                    % p  = cParams.pnorm;
+                    % fH = @(x) (((x1(x)-x0)./(sx)).^p+((x2(x)-y0)./(sy)).^p).^(1/p) - 1;
+                    % obj.fHandle = fH;
+
                     sx = cParams.xSide;
                     sy = cParams.ySide;
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
                     p  = cParams.pnorm;
-                    %fH = @(x) ((abs(x1(x)-x0)./sx).^p+(abs(x2(x)-y0)./sy).^p).^(1/p) - 0.5;
-                    fH = @(x) obj.specialEllipse(x,x1,x2,x0,y0,sx,sy,p);
-                    obj.fHandle = fH;
+                    fH = @(x) ((abs(x1(x)-x0)./sx).^p+(abs(x2(x)-y0)./sy).^p).^(1/p) - 0.5;
+                    obj.fHandle = fH;                    
 
                 case 'RectangleRotated'
                     sx = cParams.xSide;
@@ -95,11 +118,46 @@ classdef GeometricalFunction < handle
                     y0 = cParams.yCoorCenter;
                     fH = @(x) (x1(x)-x0).^2+(x2(x)-y0).^2-r^2;
                     obj.fHandle = fH;
+                    
+                case 'EllipseInclusion'
+                    s      = cParams;
+                    s.type = 'Ellipse';
+                    obj.computeInclusion(s);
+                
+                case 'Superformula'
+                    a  = cParams.semiHorizontalAxis;
+                    b  = cParams.semiVerticalAxis;
+                    m  = cParams.m;
+                    n1 = cParams.n1;
+                    n2 = cParams.n2;
+                    n3 = cParams.n3;
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+                    
+                    phi = @(x) atan2((x2(x)-y0), (x1(x)-x0));
+                    r1aux = @(x) abs(cos(m.*phi(x)/4)./a).^n2;
+                    r2aux = @(x) abs(sin(m.*phi(x)/4)./b).^n3;
+                    r = @(x) (r1aux(x) + r2aux(x)).^(-1./n1);
+                    fH = @(x) 1-(((x1(x)-x0)./r(x)).^2 + ((x2(x)-y0)./r(x)).^2); 
+                    obj.fHandle = fH;
+                    
+                case 'SuperformulaInclusion'
+                    s      = cParams;
+                    s.type = 'Superformula';
+                    obj.computeInclusion(s);
 
                 case 'CircleInclusion'
                     s      = cParams;
                     s.type = 'Circle';
                     obj.computeInclusion(s);
+
+                case 'Ellipse'
+                    sx = cParams.xSide;
+                    sy = cParams.ySide;
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+                    fH = @(x) (((x1(x)-x0).^2)./sx^2)+(((x2(x)-y0).^2)./sy^2) - 1;
+                    obj.fHandle = fH;
 
                 case 'Sphere'
                     r  = cParams.radius;
@@ -212,28 +270,6 @@ classdef GeometricalFunction < handle
     end
 
     methods (Access = private, Static)
-
-        function fV = specialRectangle(x,x1,x2,x0,y0,sx,sy)
-            f(:,:,:,1)   = x1(x)-x0 -sx/2;
-            f(:,:,:,2)   = -(x1(x)-x0) -sx/2;
-            f(:,:,:,3)   = x2(x)-y0 -sy/2; 
-            f(:,:,:,4)   = -(x2(x)-y0) -sy/2;
-            fV = max(f,[],4);       
-        end
-
-        function fV = specialEllipse(x,x1,x2,x0,y0,sx,sy,p)
-            f(:,:,:,1) = ((x1(x)-x0)).^2 + (sx.^2)*(((x2(x)-y0)./sy).^2 - 0.5.^2);
-            %f(:,:,:,2) = ((x1(x)-x0)).^2 + (sx.^2)*((-(x2(x)-y0)./sy).^2 - 0.5.^2);
-            %f(:,:,:,3) = (-(x1(x)-x0)).^2 + (sx.^2)*(((x2(x)-y0)./sy).^2 - 0.5.^2);
-            %f(:,:,:,4) = (-(x1(x)-x0)).^2 + (sx.^2)*((-(x2(x)-y0)./sy).^2 - 0.5.^2);
-
-            f(:,:,:,2) = ((x2(x)-y0)).^2 + (sy.^2)*(((x1(x)-x0)./sx).^2 - 0.5.^2);
-            %f(:,:,:,6) = ((x2(x)-y0)).^2 + (sy.^2)*((-(x1(x)-x0)./sx).^2 - 0.5.^2);
-            %f(:,:,:,7) = (-(x2(x)-y0)).^2 + (sy.^2)*(((x1(x)-x0)./sx).^2 - 0.5.^2);
-            %f(:,:,:,8) = (-(x2(x)-y0)).^2 + (sy.^2)*((-(x1(x)-x0)./sx).^2 - 0.5.^2);
-            %fV = max(f,[],4);
-            fV = f(:,:,:,1);
-        end
 
         function d = computeHexagonFunction(x,x1,x2,x0,y0,n,p,l)
             vx     = x1(x)-x0;

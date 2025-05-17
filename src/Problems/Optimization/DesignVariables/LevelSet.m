@@ -19,10 +19,7 @@ classdef LevelSet < DesignVariable
             if ~isempty(obj.isFixed)
                 value(obj.isFixed.nodes) = obj.isFixed.values;
             end
-            s.mesh    = obj.mesh;
-            s.fValues = value;
-            s.order   = 'P1';
-            obj.fun   = LagrangianFunction(s);
+            obj.fun.setFValues(value)
             obj.updateUnfittedMesh();
         end
 
@@ -45,6 +42,13 @@ classdef LevelSet < DesignVariable
             Vf(1,1,:) = vf;
         end
 
+        function Vf = computeVolume(obj)
+            VTot = obj.fun.mesh.computeVolume();
+            chi  = CharacteristicFunction.create(obj.unfittedMesh);
+            V    = Integrator.compute(chi,obj.unfittedMesh,2);
+            Vf   = V/VTot;
+        end
+
         function plot(obj)
             if obj.plotting
                 obj.plotter.plot();
@@ -52,8 +56,7 @@ classdef LevelSet < DesignVariable
         end
 
         function ls = copy(obj)
-            s.fun      = obj.fun;
-            s.mesh     = obj.mesh;
+            s.fun      = obj.fun.copy();
             s.type     = 'LevelSet';
             s.plotting = false;
             ls         = DesignVariable.create(s);
@@ -67,10 +70,9 @@ classdef LevelSet < DesignVariable
     methods (Access = private)
 
         function createUnfittedMesh(obj)
-            s.backgroundMesh = obj.mesh;
-            s.boundaryMesh   = obj.mesh.createBoundaryMesh();
-            cParams = SettingsMeshUnfitted(s);
-            obj.unfittedMesh = UnfittedMesh(cParams);
+            s.backgroundMesh = obj.fun.mesh;
+            s.boundaryMesh   = obj.fun.mesh.createBoundaryMesh();
+            obj.unfittedMesh = UnfittedMesh(s);
             obj.updateUnfittedMesh();
         end
         

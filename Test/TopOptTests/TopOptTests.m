@@ -53,7 +53,8 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             l.nConstraints = length(constraint);
             lam    = DualVariable(l);
             primal = optimizerUnconstrained;
-            t      = obj.createOptimizer(optimizer,primal,monitoring,sFCost,sFConstraint,x,lam,maxiter,constraint_case,target);
+            primalUp = obj.createPrimalUpdater(m,x,primal);
+            t      = obj.createOptimizer(optimizer,primalUp,primal,monitoring,sFCost,sFConstraint,x,lam,maxiter,constraint_case,target);
             close all;
         end
 
@@ -210,7 +211,28 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             sFConstraint      = Constraint(ss);
         end
 
-        function s = createOptimizer(type,primal,monitoring,cost,constraint,x,lam,maxIter,constraintCase,target)
+        function p = createPrimalUpdater(m,x,primal)
+            if isempty(primal)
+                p = [];
+            else
+                s.mesh           = m;
+                s.designVariable = x;
+                s.primal         = primal;
+                switch x.type
+                    case 'Density'
+                        s.ub = 1;
+                        s.lb = 0;
+                    case 'DensityAndBound'
+                        s.ub = [ones(x.density.fun.mesh.nnodes,1);1000];
+                        s.lb = [zeros(x.density.fun.mesh.nnodes,1);-1000];
+                end
+                s.tauMax = 1000;
+                s.tau    = [];
+                p        = PrimalUpdaterFactory.create(s);
+            end
+        end
+
+        function s = createOptimizer(type,primalUp,primal,monitoring,cost,constraint,x,lam,maxIter,constraintCase,target)
             s.type           = type;
             s.monitoring     = monitoring;
             s.cost           = cost;
@@ -221,6 +243,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             s.tolerance      = 1e-8;
             s.constraintCase = constraintCase;
             s.volumeTarget   = target; % will dissappear
+            s.primalUpdater  = primalUp;
             s.primal         = primal;
             s.etaNorm        = 0.05;
             s.gJFlowRatio    = 1; % Only NullSpace

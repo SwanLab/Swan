@@ -38,7 +38,7 @@ classdef Projector_toP0 < Projector
         function rhs = createRHS(obj, fun)
             dV = obj.mesh.computeDvolume(obj.quadrature);
             xV = obj.quadrature.posgp;
-            fGaus = squeezeParticular(fun.evaluate(xV),2);
+            fGaus = fun.evaluate(xV);
             nGaus  = obj.quadrature.ngaus;
             nF     = size(fGaus,1);
             nElem  = size(obj.mesh.connec,1);
