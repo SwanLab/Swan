@@ -1,18 +1,15 @@
 classdef VideoGenerator
 
-    properties (Access = private)
-
-        frameRate = 30;
-        repeatThreshold = 130;
-        moduloSkip = 6;
-
-    end
-
     methods (Access = public, Static)
 
-        function compute(obj, fileName, totalFrames, dataMatrix, plotFunction)
+        function compute(fileName, totalFrames, dataMatrix, plotFunction)
+            
+            frameRate = 30;
+            repeatThreshold = 30;
+            moduloSkip = 6;
+            
             v = VideoWriter(fileName);
-            v.FrameRate = obj.frameRate;
+            v.FrameRate = frameRate;
             open(v);
 
             figure;
@@ -22,9 +19,9 @@ classdef VideoGenerator
 
                 frame = getframe(gcf);
 
-                if i <= obj.repeatThreshold
-                    repeat = 2;
-                elseif mod(i, obj.moduloSkip) ~= 0
+                if i <= repeatThreshold
+                    repeat = 6;
+                elseif mod(i, moduloSkip) ~= 0
                     continue;
                 else
                     repeat = 1;

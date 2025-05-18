@@ -24,7 +24,7 @@ classdef AirfoilOptimizer < handle
        end
 
        function computeOptAirfoilParams(obj)
-           obj.computeOptimization();
+           obj.computeOptimization2();
        end
 
        function plotEEvolution(obj)
@@ -33,17 +33,17 @@ classdef AirfoilOptimizer < handle
 
        function generateAFSOPVideo(obj)
             plotFun = @(s, i) AirfoilOptimizer.plotAirfoilContour(s, i);
-            VideoGenrator.compute('AirfoilOptimization', 1501, obj.ParamsMat, plotFun);
+            VideoGenerator.compute("AirfoilOptimization", 300, obj.ParamsMat, plotFun);
        end
 
        function generateVelVideo(obj)
             plotFun = @(s, ~) TestNaca.plotVelocity(s);
-            VideoGenrator.compute('AirfoilOptimization-Velocity', 150, obj.velFunMat, plotFun);
+            VideoGenerator.compute('AirfoilOptimization-Velocity', 150, obj.velFunMat, plotFun);
        end
 
        function generatePVideo(obj)
             plotFun = @(s, ~) TestNaca.plotPressure(s);
-            VideoGenrator.compute('AirfoilOptimization-Pressure', 150, obj.PFunMat, plotFun);
+            VideoGenerator.compute('AirfoilOptimization-Pressure', 150, obj.PFunMat, plotFun);
        end
 
        function saveData(obj)
@@ -75,9 +75,9 @@ classdef AirfoilOptimizer < handle
        function computeOptimization(obj)
             diff     = 1;
             iter     = 1;
-            maxIter  = 1e4;
+            maxIter  = 1e3;
         
-            rho      = 0.9;            
+            rho      = 0.9;   %0.9         
             epsilon  = 1e-8;           
             cache    = zeros(size(obj.optimalParams));
         
@@ -113,9 +113,9 @@ classdef AirfoilOptimizer < handle
 
            while diff > obj.tol && iter < maxIter
 
-               % if (iter > 130)
-               %     obj.learningRate = 1;
-               % end
+               if (iter > 200)
+                   obj.learningRate = 2;
+               end
 
                gradient          = obj.optimizer.computeGradient(obj.optimalParams);
                updatedParams     = obj.optimalParams + obj.learningRate * gradient;

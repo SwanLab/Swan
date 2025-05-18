@@ -41,9 +41,8 @@ classdef LHSIntegratorStokes < handle %LHSintegrator
         function LHS = computeVelocityLHS(obj)
             K = obj.computeVelocityLaplacian();
             M = obj.computeMassMatrix();
-            LHS = K + M;
-            %lhs = K + M;
-            %LHS = obj.symGradient(lhs);
+            lhs = K + M;
+            LHS = obj.symGradient(lhs);
         end
 
         function D = computeWeakDivergenceMatrix(obj)

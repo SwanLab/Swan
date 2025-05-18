@@ -154,6 +154,7 @@ classdef NavierStokesProblemSolver < handle
 
         function computePicardIteration(obj)
             obj.computeLHSNS();
+            obj.computeRHS();
             obj.computeSolution();
             obj.addDirBoundaryConditions();
             obj.separateVariables();
@@ -174,7 +175,8 @@ classdef NavierStokesProblemSolver < handle
             Residual     = 1;
             ReError      = 1;
             iter         = 1;
-            maxIter      = 1e4;
+            maxIter      = 4;  
+            %1e4;
             tolRes       = 1e-6;
             tolReE       = 1e-4;
             fprintf('   Picard Iteration             Residual          ReError\n');
