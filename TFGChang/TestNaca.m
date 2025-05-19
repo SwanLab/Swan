@@ -45,7 +45,7 @@ classdef TestNaca < handle
             [AirfoilParams, BGParams] = obj.setParams();
             obj.createLevelSet(AirfoilParams, BGParams);
             obj.createFluidMesh();
-            obj.plotMesh();
+            %obj.plotMesh();
             %obj.createFluidMeshGoodConditioning(AirfoilParams, BGParams));
             obj.createMaterial();
             obj.createTrialFunction();
@@ -56,7 +56,7 @@ classdef TestNaca < handle
         function compute(obj)
             obj.createPressureFilter();
             obj.solveProblem();
-            obj.plotResults();
+            %obj.plotResults();
             obj.CalculateAeroForces();
         end
 
