@@ -8,6 +8,7 @@ Naca.p         = 0.4;
 Naca.t         = 0.12;
 Naca.chord     = 1;
 Naca.AoA       = 0;
+Naca.uRef      = 46.81;
 
 
 NacaClass = TestNaca(Naca);
