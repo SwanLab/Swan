@@ -4,7 +4,7 @@
 %close all;
 
 % Read Network data
-load("StokesNetworkE1e5N36HL2Works.mat");
+%load("StokesetworkE1e5N36HL8.mat");
 
 % Initialization
 m   = 0.09;
@@ -13,10 +13,10 @@ t   = 0.4;
 AoA = 1;
 
 d.features      = [m,p,t,AoA];
-d.learningRate  = 0.5; %0.06
+d.learningRate  = 3; %0.06
 d.optimizer     = opt;
 d.tol           = 1e-6;
-d.lowerBC = [0.0, 0.0, 0.01, -2.5]; % 0.0, 0.0, 0.1, -2.5
+d.lowerBC = [0.0, 0.0, 0.1, -2.5]; % 0.0, 0.0, 0.1, -2.5
 d.upperBC = [0.095, 0.9, 0.4, 15.0];
 
 % Compute the Optimization

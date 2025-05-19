@@ -175,7 +175,7 @@ classdef NavierStokesProblemSolver < handle
             Residual     = 1;
             ReError      = 1;
             iter         = 1;
-            maxIter      = 4;  
+            maxIter      = 1e3;  
             %1e4;
             tolRes       = 1e-6;
             tolReE       = 1e-4;
@@ -191,7 +191,7 @@ classdef NavierStokesProblemSolver < handle
 
                 [Residual, ReError] = obj.computeError();
                 
-                fprintf('      %d             %.7e          %.5e\n', iter, Residual, ReError);
+                fprintf('      %d                       %.7e          %.5e\n', iter, Residual, ReError);
       
                 obj.velocityField.setFValues(obj.velocityFun.fValues);
 

@@ -77,7 +77,7 @@ classdef AirfoilOptimizer < handle
             iter     = 1;
             maxIter  = 1e3;
         
-            rho      = 0.9;   %0.9         
+            rho      = 0.5;   %0.9         
             epsilon  = 1e-8;           
             cache    = zeros(size(obj.optimalParams));
         
@@ -113,9 +113,9 @@ classdef AirfoilOptimizer < handle
 
            while diff > obj.tol && iter < maxIter
 
-               if (iter > 200)
-                   obj.learningRate = 2;
-               end
+               % if (iter > 200)
+               %     obj.learningRate = 1;
+               % end
 
                gradient          = obj.optimizer.computeGradient(obj.optimalParams);
                updatedParams     = obj.optimalParams + obj.learningRate * gradient;

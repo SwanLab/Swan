@@ -5,7 +5,7 @@ classdef LHSIntegratorLaplacian < handle
         test, trial
         quadrature
         quadratureOrder
-%         material
+        material
     end
 
     methods (Access = public)
@@ -38,7 +38,8 @@ classdef LHSIntegratorLaplacian < handle
             nElem = size(dVolu,2);
 
 %             material = obj.material;
-%             Cmat = material.mu;
+            
+            Cmat = obj.material.mu;
             
             lhs = zeros(nDofETs, nDofETr, nElem);
             for iGaus = 1:nGaus
@@ -48,10 +49,10 @@ classdef LHSIntegratorLaplacian < handle
                 BmatTr = obj.computeB(dNdxTr);
                 dV(1,1,:) = dVolu(iGaus,:)';
                 Bt   = permute(BmatTs,[2 1 3]);
-%                 BtC  = pagemtimes(Bt,Cmat);
-%                 BtCB = pagemtimes(BtC, Bmat);
-                BtB = pagemtimes(Bt,BmatTr);
-                lhs = lhs + bsxfun(@times, BtB, dV);
+                BtC  = pagemtimes(Bt,Cmat);
+                BtCB = pagemtimes(BtC, BmatTr);
+                %BtB = pagemtimes(Bt,BmatTr);
+                lhs = lhs + bsxfun(@times, BtCB, dV);
             end
             LHSe = lhs;
         end
@@ -64,7 +65,7 @@ classdef LHSIntegratorLaplacian < handle
             obj.mesh  = cParams.mesh;
             obj.test  = cParams.test;
             obj.trial = cParams.trial;
-%             obj.material = cParams.material;
+            obj.material = cParams.material;
         end
 
         function createQuadrature(obj)

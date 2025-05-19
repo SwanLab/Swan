@@ -18,8 +18,11 @@ classdef MaterialFactory < handle
                     
                 case 'DensityBased'
                     material = DensityBasedMaterial(cParams);
-                
-                case 'STOKES'
+
+                case 'NavierStokes'
+                    material = MaterialNavierStokes(cParams);
+
+                case 'Stokes'
                     material = MaterialStokes(cParams);
             end
 
