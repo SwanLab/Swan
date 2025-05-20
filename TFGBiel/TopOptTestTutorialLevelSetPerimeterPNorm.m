@@ -9,6 +9,7 @@ classdef TopOptTestTutorialLevelSetPerimeterPNorm < handle
         compliance
         volume
         perimeter
+        globalPerimeter
         cost
         constraint
         dualVariable
@@ -28,6 +29,7 @@ classdef TopOptTestTutorialLevelSetPerimeterPNorm < handle
             obj.createCompliance();
             obj.createVolumeConstraint();
             obj.createPerimeterConstraint(p,pTarget);
+            obj.createGlobalPerimeterConstraint();
             obj.createCost();
             obj.createConstraint();
             obj.createDualVariable();
@@ -35,13 +37,13 @@ classdef TopOptTestTutorialLevelSetPerimeterPNorm < handle
 
             fileLocation = 'C:\Users\Biel\Desktop\UNI\TFG\ResultatsNormP_Density\00. From Batch';
             
-            vtuName = fullfile(fileLocation, sprintf('Topology_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.1_eta0.02_LevelSet',p,pTarget));
+            vtuName = fullfile(fileLocation, sprintf('Topology_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02_LevelSet',p,pTarget));
             obj.designVariable.fun.print(vtuName);
             
             figure(2)
             set(gcf, 'Position', get(0, 'Screensize'));
-            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.1_eta0.02_LevelSet.fig',p,pTarget));
-            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.1_eta0.02_LevelSet.png',p,pTarget));
+            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02_LevelSet.fig',p,pTarget));
+            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02_LevelSet.png',p,pTarget));
             savefig(fileName1);
             print(fileName2,'-dpng','-r300');
         end
@@ -163,9 +165,27 @@ classdef TopOptTestTutorialLevelSetPerimeterPNorm < handle
             obj.perimeter     = PerimeterNormPFunctional(s);
         end
 
+        function createGlobalPerimeterConstraint(obj)
+            s.mesh              = obj.mesh;
+            s.filter            = createFilterPerimeter(obj);
+            s.epsilon           = 6*obj.mesh.computeMeanCellSize();
+            s.value0            = 6;
+            obj.globalPerimeter = PerimeterFunctional(s);
+        end
+
+        function filterPerimeter = createFilterPerimeter(obj)
+            s.filterType    = 'PDE';
+            s.boundaryType  = 'Robin';
+            s.mesh          = obj.mesh;
+            s.trial         = LagrangianFunction.create(obj.mesh,1,'P1');
+            f               = Filter.create(s);
+            filterPerimeter = f;
+        end
+
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
-            s.weights           = 1;
+            s.shapeFunctions{2} = obj.globalPerimeter;
+            s.weights           = [1,0.3];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -207,7 +227,7 @@ classdef TopOptTestTutorialLevelSetPerimeterPNorm < handle
             s.primal         = 'SLERP';                  
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.002;
-            s.gJFlowRatio    = 0.1;
+            s.gJFlowRatio    = 0.2;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
             opt = OptimizerNullSpace(s);
