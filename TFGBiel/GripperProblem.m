@@ -9,7 +9,7 @@ classdef GripperProblem < handle
         physicalProblem
         compliance
         volume
-        perimeter
+        isoperimeter
         cost
         constraint
         dualVariable
@@ -18,7 +18,7 @@ classdef GripperProblem < handle
 
     methods (Access = public)
 
-        function obj = GripperProblem(p,pTarget)
+        function obj = GripperProblem(p,C)
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -27,7 +27,7 @@ classdef GripperProblem < handle
             obj.createElasticProblem();
             obj.createNonSelfAdjCompliance();
             obj.createVolumeConstraint();
-            obj.createPerimeterConstraint(p,pTarget);
+            obj.createIsoPerimetricConstraint(p,C);
             obj.createCost();
             obj.createConstraint();
             obj.createDualVariable();
@@ -35,13 +35,13 @@ classdef GripperProblem < handle
 
             fileLocation = 'C:\Users\Biel\Desktop\UNI\TFG\ResultatsNormP_Density\00. From Batch';
             
-            vtuName = fullfile(fileLocation, sprintf('Topology_Gripper_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02',p,pTarget));
+            vtuName = fullfile(fileLocation, sprintf('Topology_Gripper_perimeter_p%d_C%.2f_gJ0.2_eta0.02',p,C));
             obj.designVariable.fun.print(vtuName);
             
             figure(2)
             set(gcf, 'Position', get(0, 'Screensize'));
-            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Gripper_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02.fig',p,pTarget));
-            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Gripper_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02.png',p,pTarget));
+            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Gripper_perimeter_p%d_C%.2f_gJ0.2_eta0.02.fig',p,C));
+            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Gripper_perimeter_p%d_C%.2f_gJ0.2_eta0.02.png',p,C));
             savefig(fileName1);
             print(fileName2,'-dpng','-r300');
         end
@@ -139,12 +139,12 @@ classdef GripperProblem < handle
             obj.volume = v;
         end
 
-        function createPerimeterConstraint(obj,p,pTar)
-            s.mesh            = obj.mesh;
-            s.perimeterTarget = pTar;
-            s.p               = p;
-            s.gradientTest    = LagrangianFunction.create(obj.mesh,1,'P1');
-            obj.perimeter     = PerimeterNormPFunctional(s);
+        function createIsoPerimetricConstraint(obj,p,C)
+            s.mesh           = obj.mesh;
+            s.C              = C;
+            s.p              = p;
+            s.gradientTest   = LagrangianFunction.create(obj.mesh,1,'P1');
+            obj.isoperimeter = IsoPerimetricNormPFunctional(s);
         end
 
         function createCost(obj)
@@ -162,7 +162,7 @@ classdef GripperProblem < handle
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
-            s.shapeFunctions{2} = obj.perimeter;
+            s.shapeFunctions{2} = obj.isoperimeter;
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end

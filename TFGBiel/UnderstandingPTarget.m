@@ -7,8 +7,10 @@ C       = 0.2;
 pTarget = 0.2;
 alpha   = 0.2;
 p       = 1:16;
-desgVar = prob.designVariable;
-mesh    = prob.mesh;
+% desgVar = prob.designVariable;
+% mesh    = prob.mesh;
+
+desgVar = rho;
 
 res = zeros(3,size(p,2));
 

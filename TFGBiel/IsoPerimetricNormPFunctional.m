@@ -79,15 +79,16 @@ classdef IsoPerimetricNormPFunctional < handle
         end
 
         function dJ = computeGradient(obj,x,Le)
-            Lea = computeFilteredTermForGradient(obj,x,Le);
-            num = (obj.Qp^(1-obj.p)).*((Le.^(-0.5) - Le.^(0.5)).*(obj.Qp.^(obj.p*(obj.p-1))) + Lea);
-            den = 2*obj.epsilon*obj.C*(obj.totalVolume)^(1/obj.p);
+            b   = (x.*(1-Le).*(Le.^(-0.5))).^(obj.p-1);
+            Lea = computeFilteredTermForGradient(obj,x,Le,b);
+            num = (obj.Qp.^(1-obj.p)).*(((Le.^(-0.5) - Le.^(0.5)).*b) + Lea);
+            den = ((2*obj.epsilon)^obj.p)*obj.C*(obj.totalVolume)^(1/obj.p);
             dJ  = num./den;
             dJ  = obj.filterAdjoint.compute(dJ,3);
         end
 
-        function Lea = computeFilteredTermForGradient(obj,x,Le)
-            a   = x.*(-0.5.*Le.^(-1.5) - 0.5.*Le.^(-0.5)).*obj.Qp.^(obj.p*(obj.p-1));
+        function Lea = computeFilteredTermForGradient(obj,x,Le,b)
+            a   = x.*(-0.5.*Le.^(-1.5) - 0.5.*Le.^(-0.5)).*b;
             Lea = obj.filterDesignVariable.compute(a,3);
         end
     end

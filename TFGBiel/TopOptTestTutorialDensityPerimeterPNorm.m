@@ -28,7 +28,7 @@ classdef TopOptTestTutorialDensityPerimeterPNorm < handle
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
             obj.createVolumeConstraint();
-            obj.createPerimeterConstraint(p,pTarget);
+%             obj.createPerimeterConstraint(p,pTarget);
             obj.createGlobalPerimeterConstraint();
             obj.createCost();
             obj.createConstraint();
@@ -187,7 +187,7 @@ classdef TopOptTestTutorialDensityPerimeterPNorm < handle
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
             s.shapeFunctions{2} = obj.globalPerimeter;
-            s.weights           = [1,0.2];
+            s.weights           = [1,1];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -200,13 +200,13 @@ classdef TopOptTestTutorialDensityPerimeterPNorm < handle
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
-            s.shapeFunctions{2} = obj.perimeter;
+%             s.shapeFunctions{2} = obj.perimeter;
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
 
         function createDualVariable(obj)
-            s.nConstraints   = 2;
+            s.nConstraints   = 1;
             l                = DualVariable(s);
             obj.dualVariable = l;
         end
@@ -219,7 +219,7 @@ classdef TopOptTestTutorialDensityPerimeterPNorm < handle
             s.dualVariable   = obj.dualVariable;
             s.maxIter        = 2000;
             s.tolerance      = 1e-8;
-            s.constraintCase = {'INEQUALITY','INEQUALITY'};
+            s.constraintCase = {'INEQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
             s.ub             = 1;
             s.lb             = 0;
