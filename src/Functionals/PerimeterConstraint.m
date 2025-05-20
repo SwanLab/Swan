@@ -5,6 +5,7 @@ classdef PerimeterConstraint < handle
         minEpsilon
         target
         perimeter
+        value0
     end
     
     methods (Access = public)
@@ -26,16 +27,17 @@ classdef PerimeterConstraint < handle
             obj.minEpsilon = cParams.minEpsilon;
             obj.target     = cParams.target;
             obj.perimeter  = PerimeterFunctional(cParams);
+            obj.value0     = cParams.value0;
         end
 
         function J = computeFunction(obj,P)
             pTar = obj.target;
-            J    = P/pTar-1;
+            J    = P-pTar/obj.value0;
         end
 
         function dJ = computeGradient(obj,dj)
-            pTar = obj.target;
-            dj.setFValues(dj.fValues./pTar);
+%             pTar = obj.target;
+            dj.setFValues(dj.fValues);
             dJ{1} = dj;
         end
 

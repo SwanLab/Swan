@@ -179,7 +179,7 @@ classdef GrippingDensityLocalCirlceDomains < handle
             s.type             = 'Circle';
             s.xCoorCenter      = x0;
             s.yCoorCenter      = y0;
-            s.radius           = 0.035;
+            s.radius           = 0.02;
             g                  = GeometricalFunction(s);
             lsFun              = g.computeLevelSetFunction(obj.mesh);
             sUm.backgroundMesh = obj.mesh;
@@ -192,7 +192,7 @@ classdef GrippingDensityLocalCirlceDomains < handle
             s.mesh       = obj.mesh;
             s.epsilon    = obj.epsOverh*obj.mesh.computeMeanCellSize();
             s.minEpsilon = obj.epsOverh*obj.mesh.computeMeanCellSize();
-            s.value0     = 1;
+            s.value0     = 2*pi*0.01;
             s.target     = obj.tar;
 
             s.uMesh  = obj.createBaseDomain(0.28,0.5);
@@ -217,7 +217,7 @@ classdef GrippingDensityLocalCirlceDomains < handle
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
             s.shapeFunctions{2} = obj.globalPer;
-            s.weights           = [1;0.3];
+            s.weights           = [1;0.5];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -255,7 +255,7 @@ classdef GrippingDensityLocalCirlceDomains < handle
             s.constraintCase = [{'EQUALITY'},repmat({'INEQUALITY'},[1,4])];
             s.primal         = 'PROJECTED GRADIENT';
             s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 5;
+            s.gJFlowRatio    = 0.2;
             s.primalUpdater  = obj.primalUpdater;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
