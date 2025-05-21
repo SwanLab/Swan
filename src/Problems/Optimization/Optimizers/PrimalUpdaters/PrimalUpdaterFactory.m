@@ -10,6 +10,7 @@ classdef PrimalUpdaterFactory < handle
                     s.mesh = ls{1}.fun.mesh;
                     p = SLERP(s);
                 case 'PROJECTED GRADIENT'
+                    cParams.tau = [];
                     p = ProjectedGradient(cParams);
                 case 'HAMILTON-JACOBI'
                     p = HamiltonJacobi(cParams);

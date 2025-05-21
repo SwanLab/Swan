@@ -168,6 +168,7 @@ classdef TopOptTestTutorialMicro < handle
             s.ub     = 1;
             s.lb     = 0;
             s.tauMax = 1000;
+            s.tau    = [];
             obj.primalUpdater = ProjectedGradient(s);
         end
 

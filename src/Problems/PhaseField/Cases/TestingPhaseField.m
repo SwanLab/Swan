@@ -5,13 +5,14 @@ classdef TestingPhaseField < handle
     end
 
     properties (Access = private)
-        monitoring
         benchmark
         matInfo
         dissipInfo
-        tolerance
-        solverType
         l0
+        monitoring
+        tolerance
+        maxIter
+        solver
     end
 
     properties (Access = private)
@@ -30,13 +31,14 @@ classdef TestingPhaseField < handle
         end
 
         function outputData = compute(obj)
-            s.mesh = obj.mesh;
+            s.mesh               = obj.mesh;
+            s.initialGuess       = obj.initialGuess;
             s.boundaryConditions = obj.boundaryConditions;
-            s.initialGuess = obj.initialGuess;
-            s.monitoring = obj.monitoring;
-            s.functional = obj.functional;
-            s.tolerance = obj.tolerance;
-            s.solverType = obj.solverType;
+            s.functional         = obj.functional;
+            s.monitoring         = obj.monitoring;
+            s.tolerance          = obj.tolerance;
+            s.maxIter            = obj.maxIter;
+            s.solver             = obj.solver;
             PFComp = PhaseFieldComputer(s);
 
             outputData = PFComp.compute();
@@ -47,13 +49,14 @@ classdef TestingPhaseField < handle
     methods (Access = private)
 
         function init(obj, cParams)
-            obj.monitoring = cParams.monitoring;
-            obj.benchmark = cParams.benchmark;
-            obj.matInfo = cParams.matInfo;
+            obj.benchmark  = cParams.benchmark;
+            obj.matInfo    = cParams.matInfo;
             obj.dissipInfo = cParams.dissipInfo;
-            obj.tolerance = cParams.tolerance;
-            obj.solverType = cParams.solverType;
-            obj.l0 = cParams.l0;
+            obj.l0         = cParams.l0;
+            obj.monitoring = cParams.monitoring;
+            obj.tolerance  = cParams.tolerance;
+            obj.maxIter    = cParams.maxIter;
+            obj.solver = cParams.solver;
         end
 
         function defineCase(obj)
@@ -63,26 +66,39 @@ classdef TestingPhaseField < handle
         function createInitialGuess(obj,cParams)
             if isfield(cParams,'initialGuess')
                 if isfield(cParams.initialGuess,'u')
-                    obj.initialGuess.u = cParams.initialGuess.u;
+                    u = cParams.initialGuess.u;
                 else
                     u = LagrangianFunction.create(obj.mesh,2,'P1');
-                    obj.initialGuess.u = u;
                 end
 
                 if isfield(cParams.initialGuess,'phi')
-                    obj.initialGuess.phi = cParams.initialGuess.phi;
+                    phi = cParams.initialGuess.phi;
                 else
                     phi = LagrangianFunction.create(obj.mesh,1,'P1');
                     %phi = obj.setInitialDamage(phi);
-                    obj.initialGuess.phi = phi;
                 end
             else
                 u = LagrangianFunction.create(obj.mesh,2,'P1');
                 phi = LagrangianFunction.create(obj.mesh,1,'P1');
                 %phi = obj.setInitialDamage(phi);
-                obj.initialGuess.phi = phi;
-                obj.initialGuess.u = u;
             end
+            obj.initialGuess.u = u;
+            obj.initialGuess.phi = obj.createDamageVariable(phi);
+        end
+
+        function phi = setInitialDamage(obj,phi)
+            isInMiddle = obj.mesh.coord(:,1)>=0.5 & obj.mesh.coord(:,2)==0.5;
+            fValues = phi.fValues;
+            fValues(isInMiddle) = 0.01;
+            %fValues = 0.01*ones(size(phi.fValues));
+            phi.setFValues(fValues);
+        end
+
+        function phi = createDamageVariable(obj,phi)
+            s.type = 'Damage';
+            s.mesh = phi.mesh;
+            s.fun  = phi;
+            phi = DesignVariable.create(s);
         end
 
         function createPhaseFieldFunctional(obj)
@@ -92,9 +108,9 @@ classdef TestingPhaseField < handle
             s.l0            = obj.l0;
             s.quadOrder     = 2;
             s.testSpace.u   = obj.initialGuess.u;
-            s.testSpace.phi = obj.initialGuess.phi;
+            s.testSpace.phi = obj.initialGuess.phi.fun;
             s.energySplit   = (obj.matInfo.matType == "AnalyticSplit");
-            obj.functional = PhaseFieldFunctional(s);
+            obj.functional  = PhaseFieldFunctional(s);
         end
 
         function material = createMaterialPhaseField(obj)
@@ -106,6 +122,7 @@ classdef TestingPhaseField < handle
             s.PFtype = obj.matInfo.matType;
             if s.PFtype == "Homogenized"
                 s.fileName = obj.matInfo.fileName;
+                s.young    = E;
             else
                 s.interp.interpolation = 'PhaseFieldDegradation';
                 s.interp.degFunType    = obj.matInfo.degradationType;
@@ -122,18 +139,10 @@ classdef TestingPhaseField < handle
             dissipation.interpolation = PhaseFieldDissipationInterpolator(s);
 
             if s.pExp == 1
-                dissipation.constant = obj.matInfo.Gc/(4*(2/3));
+                dissipation.constant = obj.matInfo.Gc/2;
             elseif s.pExp == 2
-                dissipation.constant = obj.matInfo.Gc/(4*(1/2));
+                dissipation.constant = obj.matInfo.Gc/(8/3);
             end
-        end
-
-        function phi = setInitialDamage(obj,phi)
-            isInMiddle = obj.mesh.coord(:,1)>=0.5 & obj.mesh.coord(:,2)==0.5;
-            fValues = phi.fValues;
-            fValues(isInMiddle) = 0.01;
-            %fValues = 0.01*ones(size(phi.fValues));
-            phi.setFValues(fValues);
         end
 
     end
