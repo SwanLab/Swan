@@ -146,12 +146,16 @@ classdef GrippingLevelSetCoupled < handle
         end
 
         function createGlobalPerimeter(obj)
-            s.mesh    = obj.mesh;
-            s.epsilon = 4*obj.mesh.computeMeanCellSize();
-            s.value0  = 4;
-            s.uMesh   = obj.createBaseGlobalDomain();
-            s.filter  = obj.createFilterPerimeter();
-            obj.globalPer = PerimeterFunctional(s);
+            PMax     = 4.5*0.7;
+            s.target = PMax;
+
+            s.mesh        = obj.mesh;
+            s.epsilon     = 6*obj.mesh.computeMeanCellSize();
+            s.minEpsilon  = 1.5*obj.mesh.computeMeanCellSize();
+            s.value0      = 4;
+            s.uMesh       = obj.createBaseGlobalDomain();
+            s.filter      = obj.createFilterPerimeter();
+            obj.globalPer = PerimeterConstraint(s);
         end
 
         function createVolumeConstraint(obj)
@@ -192,11 +196,11 @@ classdef GrippingLevelSetCoupled < handle
             s.minEpsilon = 1.5*obj.mesh.computeMeanCellSize();
             s.value0     = 2*pi*0.02;
 
-            PMax     = 4.5;
+            PMax     = 4.5*0.7;
             L        = sqrt(2);
             l        = 0.04;
             l0       = 0.05; % Minimum length scale
-            s.target = max(0,(PMax/L^2)*(l-l0));
+            s.target = max(0,(PMax/L^2)*(l^2-l0^2));
 
             s.uMesh  = obj.createBaseDomain(0.28,0.5);
             s.filter = obj.createFilterPerimeter();
@@ -219,8 +223,7 @@ classdef GrippingLevelSetCoupled < handle
 
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
-            s.shapeFunctions{2} = obj.globalPer;
-            s.weights           = [1;0.4];
+            s.weights           = 1;
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -233,10 +236,11 @@ classdef GrippingLevelSetCoupled < handle
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
-            s.shapeFunctions{2} = obj.perimeter{1};
-            s.shapeFunctions{3} = obj.perimeter{2};
-            s.shapeFunctions{4} = obj.perimeter{3};
-            s.shapeFunctions{5} = obj.perimeter{4};
+            s.shapeFunctions{2} = obj.globalPer;
+            s.shapeFunctions{3} = obj.perimeter{1};
+            s.shapeFunctions{4} = obj.perimeter{2};
+            s.shapeFunctions{5} = obj.perimeter{3};
+            s.shapeFunctions{6} = obj.perimeter{4};
             s.Msmooth      = obj.createMassMatrix();
             obj.constraint = Constraint(s);
         end
@@ -251,9 +255,9 @@ classdef GrippingLevelSetCoupled < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 3000;
+            s.maxIter        = 2000;
             s.tolerance      = 1e-8;
-            s.constraintCase = [{'EQUALITY'},repmat({'INEQUALITY'},[1,4])];
+            s.constraintCase = [{'EQUALITY'},repmat({'INEQUALITY'},[1,5])];
             s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.002;
