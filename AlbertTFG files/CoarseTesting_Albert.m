@@ -83,7 +83,7 @@ classdef CoarseTesting_Albert < handle
             uFun = LagrangianFunction(s);
 
             obj.computeSubdomainCentroid();
-            CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,"TestCoarsePlot", obj.r, obj.centroids);
+            CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'085 085 085', obj.r, obj.centroids);
 
             figure
             plot(residualPCG,'linewidth',2)
@@ -121,8 +121,11 @@ classdef CoarseTesting_Albert < handle
         function init(obj)
            % obj.nSubdomains    = [2 1]; %nx ny
             %obj.fileNameCorase = ["UL_r0_1-20x20.mat", "UL_r0_15-20x20.mat", "UL_r0_2-20x20.mat", "UL_r0_25-20x20.mat", "UL_r0_3-20x20.mat", "UL_r0_35-20x20.mat", "UL_r0_45-20x20.mat", "UL_r0_5-20x20.mat", "UL_r0_55-20x20.mat", "UL_r0_6-20x20.mat", "UL_r0_65-20x20.mat", "UL_r0_7-20x20.mat", "UL_r0_75-20x20.mat", "UL_r0_8-20x20.mat", "UL_r0_85-20x20.mat"]; %
-            obj.fileNameCorase = ["UL_r0_1-20x20.mat", "UL_r0_5-20x20.mat", "UL_r0_85-20x20.mat"];
+            %obj.fileNameCorase = ["UL_r0_1-20x20.mat", "UL_r0_1-20x20.mat", "UL_r0_1-20x20.mat"];
+            obj.fileNameCorase = ["UL_r0_85-20x20.mat", "UL_r0_85-20x20.mat", "UL_r0_85-20x20.mat"];
             %obj.fileNameCorase = ["UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat"];
+            %obj.fileNameCorase = ["UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_85-20x20.mat"];
+            %obj.fileNameCorase = ["UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_85-20x20.mat"]
             %obj.rSubdomains    = [0.1, 0.1, 0.1, 0.1];
             obj.nSubdomains    = size(obj.fileNameCorase');
             obj.mSubdomains    = [];
@@ -343,8 +346,8 @@ classdef CoarseTesting_Albert < handle
 %             PL.value     = [-0.1];
                         PL.domain    = @(coor) isRight(coor);
                         PL.direction = [2];
-                        PL.value     = [1];
-        end
+                        PL.value     = [1];       %Set displacement intensity ------------------------------------------------------------
+        end 
 
         function [bc,Dir,PL] = createBoundaryConditions(obj,mesh)
             [Dir,PL]  = obj.createRawBoundaryConditions();

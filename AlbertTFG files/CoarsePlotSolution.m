@@ -27,7 +27,7 @@ classdef CoarsePlotSolution < handle
         %     x = obj.createXHole(x, mesh, r, holeCoords);
         %     mesh = createHole(mesh, r, holeCoords);
         %     obj.plot(x, mesh, bcApplier,outputFileName);
-        %
+        %o
         % end
 
 
@@ -170,10 +170,32 @@ classdef CoarsePlotSolution < handle
 %                 xF.print(['domainNeuman',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
 %             end
 
-            fileName = ['domain',num2str(row),num2str(col),'_',num2str(iter)];
             
-            uMeshFun.innerMeshFunction.print(['inner',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
-            uMeshFun.innerCutMeshFunction.print(['innerCut',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+            
+            %uMeshFun.innerMeshFunction.print(['inner',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+            %uMeshFun.innerCutMeshFunction.print(['innerCut',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+
+            fvalues = [uMeshFun.innerMeshFunction.fValues;
+                         uMeshFun.innerCutMeshFunction.fValues];
+
+            s.coord = [uMeshFun.innerMeshFunction.mesh.coord;
+                         uMeshFun.innerCutMeshFunction.mesh.coord];
+
+            s.connec = [uMeshFun.innerMeshFunction.mesh.connec;
+                         uMeshFun.innerCutMeshFunction.mesh.connec  + max(uMeshFun.innerMeshFunction.mesh.connec(:))];
+
+            mh = Mesh.create(s);
+
+            ss.mesh = mh;
+            ss.fValues = fvalues;
+            ss.order = 'P1';
+            ss.ndimf = size(fvalues,2)
+
+            u = LagrangianFunction(ss);
+
+            u.print([num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+
+            fileName = [num2str(row),num2str(col),'_',num2str(iter)];
 
             s = dir(pwd);
             s = struct2table(s);
@@ -182,7 +204,18 @@ classdef CoarsePlotSolution < handle
             oldFileName = s.name;
             newFileName = replace(oldFileName, fileName, outputFileName);
             fclose('all');
-            movefile(oldFileName{1}, newFileName{1})
+            movefile(oldFileName{1}, newFileName{1});
+
+            fileName = ['innerCut',num2str(row),num2str(col),'_',num2str(iter)];
+
+            s = dir(pwd);
+            s = struct2table(s);
+            idx = startsWith(s.name, fileName);
+            s = s(idx,:);
+            oldFileName = s.name;
+            newFileName = replace(oldFileName, fileName, [outputFileName, '_cut']);
+            fclose('all');
+            movefile(oldFileName{1}, newFileName{1});
 
         end
 
