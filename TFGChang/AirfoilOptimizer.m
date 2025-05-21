@@ -24,7 +24,7 @@ classdef AirfoilOptimizer < handle
        end
 
        function computeOptAirfoilParams(obj)
-           obj.computeOptimization2();
+           obj.computeOptimization();
        end
 
        function plotEEvolution(obj)
@@ -33,17 +33,17 @@ classdef AirfoilOptimizer < handle
 
        function generateAFSOPVideo(obj)
             plotFun = @(s, i) AirfoilOptimizer.plotAirfoilContour(s, i);
-            VideoGenerator.compute("AirfoilOptimization", 300, obj.ParamsMat, plotFun);
+            VideoGenerator.compute("AirfoilOptimization", size(obj.ParamsMat,1), 7, obj.ParamsMat, plotFun);
        end
 
        function generateVelVideo(obj)
             plotFun = @(s, ~) TestNaca.plotVelocity(s);
-            VideoGenerator.compute('AirfoilOptimization-Velocity', 150, obj.velFunMat, plotFun);
+            VideoGenerator.compute('AirfoilOptimization-Velocity', size(obj.velFunMat,2), size(obj.velFunMat,2),obj.velFunMat, plotFun);
        end
 
        function generatePVideo(obj)
             plotFun = @(s, ~) TestNaca.plotPressure(s);
-            VideoGenerator.compute('AirfoilOptimization-Pressure', 150, obj.PFunMat, plotFun);
+            VideoGenerator.compute('AirfoilOptimization-Pressure',  size(obj.PFunMat,2), size(obj.PFunMat,2),obj.PFunMat, plotFun);
        end
 
        function saveData(obj)
@@ -55,15 +55,16 @@ classdef AirfoilOptimizer < handle
    methods (Access = private)
 
        function init(obj,cParams)
-           obj.features         = cParams.features;
-           obj.optimizer        = cParams.optimizer;
-           obj.tol              = cParams.tol;
-           obj.learningRate     = cParams.learningRate;
-           obj.upperBC          = cParams.upperBC;
-           obj.lowerBC          = cParams.lowerBC;
-           obj.optimalParams    = obj.features; 
-           obj.E(1)             = obj.optimizer.computeOutputValues(obj.optimalParams);
-           obj.ParamsMat(1,:)   = obj.features;
+           obj.features                       = cParams.features;
+           obj.optimizer                      = cParams.optimizer;
+           obj.tol                            = cParams.tol;
+           obj.learningRate                   = cParams.learningRate;
+           obj.upperBC                        = cParams.upperBC;
+           obj.lowerBC                        = cParams.lowerBC;
+           obj.optimalParams                  = obj.features; 
+           obj.E(1)                           = obj.optimizer.computeOutputValues(obj.optimalParams);
+           obj.ParamsMat(1,:)                 = obj.features;
+           [obj.velFunMat{1}, obj.PFunMat{1}] = computeVelPFun(obj);
        end  
 
        function projected = projectParams(obj,params)
@@ -75,7 +76,7 @@ classdef AirfoilOptimizer < handle
        function computeOptimization(obj)
             diff     = 1;
             iter     = 1;
-            maxIter  = 1e3;
+            maxIter  = 301;%301
         
             rho      = 0.5;   %0.9         
             epsilon  = 1e-8;           
@@ -97,14 +98,14 @@ classdef AirfoilOptimizer < handle
         
                 obj.ParamsMat(end + 1,:) = obj.optimalParams;
 
-                % if mod(iter,10) == 0
-                %      [obj.velFunMat(end + 1), obj.PFunMat(end + 1)] = computeVelPFun(obj);
-                % end
+                if mod(iter,10) == 0
+                     [obj.velFunMat{end + 1}, obj.PFunMat{end + 1}] = computeVelPFun(obj);
+                end
 
         
                 iter = iter + 1;
             end
-       end
+        end
 
        function computeOptimization2(obj)
            diff     = 1;
@@ -148,14 +149,15 @@ classdef AirfoilOptimizer < handle
        end
 
        function [velFun,PFun] = computeVelPFun(obj)
-            Naca.length = 8;
-            Naca.height = 4;
-            Naca.nx     = 420;
-            Naca.M      = obj.optimalParams(1);
-            Naca.p      = obj.optimalParams(2);
-            Naca.t      = obj.optimalParams(3);
-            Naca.chord  = 1;
-            Naca.AoA    = obj.optimalParams(4);
+            Naca.flowType = "Stokes";
+            Naca.length   = 8;
+            Naca.height   = 4;
+            Naca.nx       = 420;
+            Naca.M        = obj.optimalParams(1);
+            Naca.p        = obj.optimalParams(2);
+            Naca.t        = obj.optimalParams(3);
+            Naca.chord    = 1;
+            Naca.AoA      = obj.optimalParams(4);
             
             NacaClass = TestNaca(Naca);
             NacaClass.compute(); 
