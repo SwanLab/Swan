@@ -1,7 +1,7 @@
 function m = TriangleMesh(length, height, nx, ny)
     % Generate coordinates
-    x1 = linspace(-length/2,length/2,nx);
-    x2 = linspace(-height/2,height/2,ny);
+    x1 = linspace(0,length,nx);
+    x2 = linspace(0,height,ny);
     % Create the grid
     [xv,yv] = meshgrid(x1,x2);
     % Triangulate the mesh to obtain coordinates and connectivities

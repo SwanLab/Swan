@@ -22,7 +22,21 @@ classdef Tutorial02p2FEMElasticityMicro < handle
     methods (Access = private)
         
         function createMesh(obj)
-            fullmesh = UnitTriangleMesh(30,30);
+            l = 1;
+            h = 1;
+            nx = 30; 
+            ny = 30;
+            x1 = linspace(-l/2,l/2,nx);
+            x2 = linspace(-h/2,h/2,ny);
+            % Create the grid
+            [xv,yv] = meshgrid(x1,x2);
+            % Triangulate the mesh to obtain coordinates and connectivities
+            [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
+            s.coord  = V(:,1:2);
+            s.connec = F;
+            fullmesh = Mesh.create(s);
+
+       %     fullmesh = UnitTriangleMesh(50,50);
             ls = obj.computeCircleLevelSet(fullmesh);
             sUm.backgroundMesh = fullmesh;
             sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
@@ -36,8 +50,8 @@ classdef Tutorial02p2FEMElasticityMicro < handle
         function ls = computeCircleLevelSet(obj, mesh)
             gPar.type          = 'Circle';
             gPar.radius        = 0.25;
-            gPar.xCoorCenter   = 0.5;
-            gPar.yCoorCenter   = 0.5;
+            gPar.xCoorCenter   = 0;
+            gPar.yCoorCenter   = 0;
             g                  = GeometricalFunction(gPar);
             phiFun             = g.computeLevelSetFunction(mesh);
             lsCircle           = phiFun.fValues;
