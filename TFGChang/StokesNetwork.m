@@ -77,7 +77,7 @@ dataset  = readmatrix("E_AoA5_mpt.txt");
 
 normalized = true;
 if (normalized == true)
-    load("StokesNetworkEpoch2e5.mat");
+    load("StokesetworkE1e5N36HL8.mat");
     EData = readmatrix("EData.txt");
     maxValue        = max(EData(:,end));
     minValue        = min(EData(:,end));

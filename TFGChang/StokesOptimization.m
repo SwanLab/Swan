@@ -4,7 +4,7 @@
 close all;
 
 % Read Network data
-load("StokesNetwork.mat");
+load("StokesNetworkEpoch2e5.mat");
 
 % Initialization
 m   = 0.09;
@@ -13,7 +13,7 @@ t   = 0.4;
 AoA = 1;
 
 d.features      = [m,p,t,AoA];
-d.learningRate  = 0.06; %0.06  %1.5 mínim per LE fixe
+d.learningRate  = 0.03; %0.06  %1.5 mínim per LE fixe
 d.optimizer     = opt;
 d.tol           = 1e-6;
 d.lowerBC = [0.0, 0.0, 0.1, -2.5]; % 0.0, 0.0, 0.1, -2.5
@@ -29,15 +29,15 @@ OptimalParams = stokeOpt.optimalParams;
 % Plot the Optimal Airfoil
 % figure;
 % AirfoilOptimizer.plotAirfoilContour(OptimalParams,0)
-% stokeOpt.plotEEvolution();
+stokeOpt.plotEEvolution();
 %% Plot E vs iterations
 
 %stokeOpt.plotEEvolution();
 
 %% Generate the Airfoil Shape Optimization Video
 
-%stokeOpt.generateAFSOPVideo();
-stokeOpt.generateVelVideo();
-stokeOpt.generatePVideo();
+stokeOpt.generateAFSOPVideo();
+%stokeOpt.generateVelVideo();
+%stokeOpt.generatePVideo();
 
-system('shutdown /s /t 60');
+%system('shutdown /s /t 60');

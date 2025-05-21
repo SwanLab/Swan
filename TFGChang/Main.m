@@ -3,18 +3,19 @@ Naca.flowType  = "NavierStokes";
 Naca.length    = 8;
 Naca.height    = 4;
 Naca.nx        = 420;
-Naca.M         = 0.02;
-Naca.p         = 0.4;
-Naca.t         = 0.12;
+Naca.M         = 0.0;
+Naca.p         = 0.0;
+Naca.t         = 0.10;
 Naca.chord     = 1;
 Naca.AoA       = 0;
 Naca.uRef      = 0.755;
 
-
 NacaClass = TestNaca(Naca);
 NacaClass.compute();
 %NacaClass.validate();
-%NacaClass.print();
+NacaClass.print();
+
+%system('shutdown /s /t 60');
 
 %% Control Parameters.
 
@@ -75,14 +76,19 @@ end
 
 
 %% Code to compute L,D vs alpha dataset
+alpha = 10:0.5:12.5;
 
 for i = 1:length(alpha)
 
 fprintf("alpha = %f\n", alpha(i));
-Naca.M     = 0.02;
-Naca.p     = 0.4;
-Naca.t     = 12/100;
-Naca.chord = 1;
+Naca.flowType  = "Stokes";
+Naca.length    = 8;
+Naca.height    = 4;
+Naca.nx        = 420;
+Naca.M         = 0;
+Naca.p         = 0;
+Naca.t         = 0.1;
+Naca.chord     = 1;
 Naca.AoA   = alpha(i);
 
 NacaClass  = TestNaca(Naca);

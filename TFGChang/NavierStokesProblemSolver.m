@@ -175,7 +175,7 @@ classdef NavierStokesProblemSolver < handle
             Residual     = 1;
             ReError      = 1;
             iter         = 1;
-            maxIter      = 1e3;  
+            maxIter      = 3;  
             %1e4;
             tolRes       = 1e-6;
             tolReE       = 1e-4;
