@@ -80,12 +80,12 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
         end
 
         function r = times(a,b)
-            a = Expand(a,b); b = Expand(b,a);
+            a = Expand(a); b = Expand(b);
             aOp = BaseFunction.computeOperation(a);
             bOp = BaseFunction.computeOperation(b);
             ndimfA = BaseFunction.computeFieldDimension(a);
             ndimfB = BaseFunction.computeFieldDimension(b);
-            s.operation = @(xV) aOp(xV).*bOp(xV);
+            s.operation = @(xV) squeezeParticular(aOp(xV).*bOp(xV),2);
             s.ndimf = max(ndimfA,ndimfB);
             if isa(a,'BaseFunction')
                 s.mesh = a.mesh;

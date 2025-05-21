@@ -1,4 +1,10 @@
-classdef TestingPhaseFieldHomogenizer < handle
+classdef TutorialXXPhaseFieldHomogenization < handle
+
+    properties (Access = public)
+        paramHole
+        Chomog
+        damage
+    end
 
     properties (Access = private)
         E
@@ -14,50 +20,36 @@ classdef TestingPhaseFieldHomogenizer < handle
 
     properties (Access = private)
         baseMesh
-        test
         masterSlave
+        test
         maxParam
     end
 
     methods (Access = public)
         
-        function obj = TestingPhaseFieldHomogenizer(cParams)
-            obj.init(cParams);
+        function obj = TutorialXXPhaseFieldHomogenization()
+            obj.init();
             obj.defineMesh();
+            obj.computeHoleParams();
+            obj.compute();
         end
-        
-        function [mat,phi,holeParams] = compute(obj)
-            holeParams = obj.computeHoleParams();
-            comb = table2array(combinations(holeParams{:}));
-            nComb = size(comb,1);
-            mat = zeros(3,3,nComb);
-            phi = zeros(1,nComb);
-            for i=1:nComb
-                hole = comb(i,:);
-                if i==1
-                    hole = 1e-10*ones(size(hole));
-                end
-                mat(:,:,i) = obj.computeHomogenization(hole);
-                phi(i)     = obj.computeDamageMetric(hole);
-            end
-            mat = obj.assembleResults(mat);
-            phi = obj.assembleResults(phi);
-        end
-        
+      
     end
     
     methods (Access = private)
         
-        function init(obj,cParams)
-            obj.E          = cParams.E;
-            obj.nu         = cParams.nu;
-            obj.meshType   = cParams.meshType;
-            obj.meshN      = cParams.meshN;
-            obj.holeType   = cParams.holeType;
-            obj.nSteps     = cParams.nSteps;
-            obj.damageType = cParams.damageType;
-            obj.pnorm      = cParams.pnorm;
-            obj.monitoring = cParams.monitoring;
+        function init(obj)
+            obj.E          = 210;
+            obj.nu         = 0.3;
+            obj.meshType   = 'Square';
+            obj.meshN      = 100;
+
+            obj.holeType   = 'Square';
+            obj.pnorm      = 'Inf';
+            obj.damageType = 'Area';
+            obj.nSteps     = 5;
+
+            obj.monitoring = true;
         end
 
         function defineMesh(obj)
@@ -84,15 +76,32 @@ classdef TestingPhaseFieldHomogenizer < handle
             obj.test = LagrangianFunction.create(obj.baseMesh,1,'P1');
         end
 
-        function paramHole = computeHoleParams(obj)
+        function computeHoleParams(obj)
             obj.maxParam = 0.98*ones(size(obj.nSteps));
             nParam = length(obj.maxParam);
-            paramHole = cell(1,nParam);
+            obj.paramHole = cell(1,nParam);
             for i=1:nParam
-                paramHole{i} = linspace(1e-5,obj.maxParam(i),obj.nSteps(i));
+                obj.paramHole{i} = linspace(1e-5,obj.maxParam(i),obj.nSteps(i));
             end
         end
 
+        function compute(obj)
+            comb = table2array(combinations(obj.paramHole{:}));
+            nComb = size(comb,1);
+            mat = zeros(3,3,nComb);
+            phi = zeros(1,nComb);
+            for i=1:nComb
+                hole = comb(i,:);
+                if i==1
+                    hole = 1e-10*ones(size(hole));
+                end
+                mat(:,:,i) = obj.computeHomogenization(hole);
+                phi(i)     = obj.computeDamageMetric(hole);
+            end
+            obj.Chomog = obj.assembleResults(mat);
+            obj.damage = obj.assembleResults(phi);
+        end
+        
         function matHomog = computeHomogenization(obj,l)
             dens = obj.createDensityLevelSet(l);
             mat  = obj.createDensityMaterial(dens);
@@ -137,7 +146,7 @@ classdef TestingPhaseFieldHomogenizer < handle
                     gPar.xSide  = l(1);
                     gPar.ySide  = l(2);
                     gPar.pnorm  = 2;  
-                case {'SmoothHexagon','Hexagon'}
+                case 'SmoothHexagon'
                     gPar.radius = l;
                     gPar.normal = [0 1; sqrt(3)/2 1/2; sqrt(3)/2 -1/2];
             end

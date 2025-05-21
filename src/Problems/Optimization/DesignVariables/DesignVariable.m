@@ -6,13 +6,12 @@ classdef DesignVariable < handle
     end
 
     properties (Access = protected)
-        mesh
         nVariables
         isFixed
     end
     
     properties (Access = private)
-        funOld
+        fValuesOld
     end
     
     methods (Access = public, Static)
@@ -26,24 +25,29 @@ classdef DesignVariable < handle
 
     methods (Access = public)
         
+        function recoverOld(obj)
+            obj.fun.setFValues(obj.fValuesOld);
+        end
+
         function updateOld(obj)
-            obj.funOld = obj.fun.copy();
+            obj.fValuesOld = obj.fun.fValues;
         end
-        
+
         function norm = computeL2normIncrement(obj)
-           incFun = obj.fun-obj.funOld;
-           nIncX  = Norm(incFun,'L2');
-           nX0    = Norm(obj.funOld,'L2');
-           norm   = nIncX/nX0;
+            funOld = obj.fun.copy();
+            funOld.setFValues(obj.fValuesOld);
+            incFun = obj.fun-funOld;
+            nIncX  = Norm(incFun,'L2');
+            nX0    = Norm(funOld,'L2');
+            norm   = nIncX/nX0;
         end
-        
+
     end
     
     methods (Access = protected)
         
         function init(obj,cParams)
             obj.type = cParams.type;
-            obj.mesh = cParams.mesh;
             obj.fun  = cParams.fun;
             if isfield(cParams,'isFixed')
               obj.isFixed = cParams.isFixed;

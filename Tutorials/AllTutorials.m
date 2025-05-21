@@ -25,6 +25,8 @@ Tutorial02p2FEMElasticityMicro();
 Tutorial11Monitoring();
 TutorialRemeshing();
 ChomogNetworkTutorial();
+TutorialXXPhaseFieldCase;
+TutorialXXPhaseFieldHomogenization;
 close all;
 
 % Output:
