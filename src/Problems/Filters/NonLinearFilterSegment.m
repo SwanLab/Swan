@@ -34,8 +34,9 @@ classdef NonLinearFilterSegment < handle
             obj.createMassMatrix();
             obj.createDirectionalStiffnessMatrix();
             obj.Den = obj.createConstantFunction(2*obj.lineSearch);
-            obj.a2  = obj.createConstantFunction(obj.alpha^2);
-            obj.b2  = obj.createConstantFunction(obj.beta^2);
+            eps = obj.mesh.computeMeanCellSize();
+            obj.a2  = obj.createConstantFunction((obj.alpha*eps)^2);
+            obj.b2  = obj.createConstantFunction((obj.beta*eps)^2);
         end
 
         function xF = compute(obj,fun,quadOrder)
@@ -43,28 +44,29 @@ classdef NonLinearFilterSegment < handle
             obj.createRHSChi(fun,quadOrder);
             iter = 1;
             tolerance = 1;
-            obj.trial.fValues = obj.rhoOld.fValues;
+            obj.trial.setFValues(obj.rhoOld.fValues);
             obj.updateDotProductPreviousGuess();            
             while tolerance >= 1e-4 
-                obj.rhoOld.fValues = obj.trial.fValues;
+                obj.rhoOld.setFValues(obj.trial.fValues);
                 obj.createRHSDirectionalDerivative(quadOrder);
                 obj.solveProblem();
                 obj.updateDotProductPreviousGuess();
-                obj.rhoDif.fValues = obj.rhoOld.fValues - obj.trial.fValues;
-                tolerance = obj.rhoDif.computeL2norm()/obj.trial.computeL2norm();
+                obj.rhoDif.setFValues(obj.rhoOld.fValues - obj.trial.fValues);
+                tolerance = Norm(obj.rhoDif,'L2')/Norm(obj.trial,'L2');
                 iter = iter + 1;
-             %   disp(iter)  
-             %    disp(tolerance)
             end
-%             obj.trial.plot
-            xF.fValues = obj.trial.fValues;
+            xF.setFValues(obj.trial.fValues);
+        end
 
+        function updateEpsilon(obj,eps)
+            obj.a2  = obj.createConstantFunction((obj.alpha*eps)^2);
+            obj.b2  = obj.createConstantFunction((obj.beta*eps)^2);
         end
     end
 
     methods (Access = private)
         function init(obj,cParams)
-            obj.trial = LagrangianFunction.create(cParams.mesh, 1, 'P1'); % rho_eps
+            obj.trial = LagrangianFunction.create(cParams.mesh, 1, 'P1');
             obj.rhoOld = LagrangianFunction.create(cParams.mesh, 1, 'P1');
             obj.rhoDif = LagrangianFunction.create(cParams.mesh, 1, 'P1');
             obj.mesh  = cParams.mesh;
@@ -90,7 +92,7 @@ classdef NonLinearFilterSegment < handle
             s.mesh  = obj.mesh;
             s.test  = obj.trial;
             s.trial = obj.trial;
-            LHS     = LHSintegrator.create(s);
+            LHS     = LHSIntegrator.create(s);
             obj.M   = LHS.compute();
         end
 
@@ -102,15 +104,21 @@ classdef NonLinearFilterSegment < handle
             s.trial = obj.trial;
             s.aniAlphaDeg = 0;
             s.CAnisotropic = k*k';
-            LHS     = LHSintegrator.create(s);
+            LHS     = LHSIntegrator.create(s);
             obj.K   = LHS.compute();
         end
 
-        function createRHSChi(obj,fun,quadOrder)
-            s.mesh     = obj.mesh;
-            s.type     = 'ShapeFunction';
-            s.quadType = quadOrder;
-            int        = RHSintegrator.create(s);
+        function createRHSChi(obj,fun,quadType)
+            switch class(fun)
+                case {'UnfittedFunction','UnfittedBoundaryFunction'}
+                    s.mesh = fun.unfittedMesh;
+                    s.type = 'Unfitted';
+                otherwise
+                    s.mesh = obj.mesh;
+                    s.type = 'ShapeFunction';
+            end
+            s.quadType = quadType;
+            int        = RHSIntegrator.create(s);
             test       = obj.trial;
             rhs        = int.compute(fun,test);
             obj.intChi = rhs;
@@ -120,7 +128,7 @@ classdef NonLinearFilterSegment < handle
             s.mesh = obj.mesh;
             s.type     = 'ShapeDerivative';
             s.quadratureOrder = quadOrder;
-            int        = RHSintegrator.create(s);
+            int        = RHSIntegrator.create(s);
             test       = obj.trial;
             g          = obj.computeGradient();
             f          = obj.directionFunction;
@@ -141,11 +149,13 @@ classdef NonLinearFilterSegment < handle
 
         function m = createDomainMax(obj,sFun)
             s.operation = @(xV) max(zeros(size(xV(1,:,:))),sFun.evaluate(xV));
+            s.mesh      = obj.mesh;
             m           = DomainFunction(s);
         end
 
         function m = createDomainMin(obj,sFun)
             s.operation = @(xV) min(zeros(size(xV(1,:,:))),sFun.evaluate(xV));
+            s.mesh      = obj.mesh;
             m           = DomainFunction(s);
         end
 
@@ -154,12 +164,13 @@ classdef NonLinearFilterSegment < handle
             LHS = obj.M + (1/(2*tau))*obj.K;
             RHS = obj.rhsDer + obj.intChi;
             rhoi = LHS\RHS;
-            obj.trial.fValues = rhoi;
+            obj.trial.setFValues(rhoi);
         end
 
         function aF = createConstantFunction(obj,c)
             s.ndimf = length(c);
             s.operation = @(xV) obj.createOperation(c,xV);
+            s.mesh = obj.mesh;
             aF = DomainFunction(s);
         end
 
