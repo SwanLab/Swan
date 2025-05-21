@@ -150,12 +150,12 @@ classdef GrippingDensityCoupled < handle
             s.target = PMax;
 
             s.mesh        = obj.mesh;
-            s.epsilon     = 6*obj.mesh.computeMeanCellSize();
+            s.epsilon     = 4*obj.mesh.computeMeanCellSize();
             s.minEpsilon  = 1.5*obj.mesh.computeMeanCellSize();
             s.value0      = 4;
             s.uMesh       = obj.createBaseGlobalDomain();
             s.filter      = obj.createFilterPerimeter();
-            obj.globalPer = PerimeterConstraint(s);
+            obj.globalPer = PerimeterFunctional(s);
         end
 
         function createVolumeConstraint(obj)
@@ -181,7 +181,7 @@ classdef GrippingDensityCoupled < handle
             s.type             = 'Circle';
             s.xCoorCenter      = x0;
             s.yCoorCenter      = y0;
-            s.radius           = 0.02;
+            s.radius           = 0.015;
             g                  = GeometricalFunction(s);
             lsFun              = g.computeLevelSetFunction(obj.mesh);
             sUm.backgroundMesh = obj.mesh;
@@ -192,15 +192,15 @@ classdef GrippingDensityCoupled < handle
 
         function createPerimeter(obj)
             s.mesh       = obj.mesh;
-            s.epsilon    = 6*obj.mesh.computeMeanCellSize();
+            s.epsilon    = 4*obj.mesh.computeMeanCellSize();
             s.minEpsilon = 1.5*obj.mesh.computeMeanCellSize();
-            s.value0     = 2*pi*0.02;
+            s.value0     = 2*pi*0.01;
 
             PMax     = 9*0.75;
             L        = sqrt(2);
             l        = 0.04;
             l0       = 0.05; % Minimum length scale
-            s.target = max(0,(PMax/L^2)*(l^2-l0^2));
+            s.target = max(0,(PMax/L^2)*(l^2-l0^2)) + 0.006;
 
             s.uMesh  = obj.createBaseDomain(0.28,0.5);
             s.filter = obj.createFilterPerimeter();
@@ -223,7 +223,8 @@ classdef GrippingDensityCoupled < handle
 
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
-            s.weights           = 1;
+            s.shapeFunctions{2} = obj.globalPer;
+            s.weights           = [1,0.25];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -236,11 +237,10 @@ classdef GrippingDensityCoupled < handle
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
-            s.shapeFunctions{2} = obj.globalPer;
-            s.shapeFunctions{3} = obj.perimeter{1};
-            s.shapeFunctions{4} = obj.perimeter{2};
-            s.shapeFunctions{5} = obj.perimeter{3};
-            s.shapeFunctions{6} = obj.perimeter{4};
+            s.shapeFunctions{2} = obj.perimeter{1};
+            s.shapeFunctions{3} = obj.perimeter{2};
+            s.shapeFunctions{4} = obj.perimeter{3};
+            s.shapeFunctions{5} = obj.perimeter{4};
             s.Msmooth      = obj.createMassMatrix();
             obj.constraint = Constraint(s);
         end
@@ -249,6 +249,7 @@ classdef GrippingDensityCoupled < handle
             s.ub     = 1;
             s.lb     = 0;
             s.tauMax = 1000;
+            s.tau = [];
             obj.primalUpdater = ProjectedGradient(s);
         end
 
@@ -259,7 +260,7 @@ classdef GrippingDensityCoupled < handle
             s.designVariable = obj.designVariable;
             s.maxIter        = 3000;
             s.tolerance      = 1e-8;
-            s.constraintCase = [{'INEQUALITY','EQUALITY'},repmat({'INEQUALITY'},[1,4])];
+            s.constraintCase = repmat({'INEQUALITY'},[1,5]);
             s.primal         = 'PROJECTED GRADIENT';
             s.etaNorm        = 0.02;
             s.gJFlowRatio    = obj.etaSt;
