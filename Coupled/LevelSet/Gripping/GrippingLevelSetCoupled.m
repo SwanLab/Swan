@@ -146,7 +146,7 @@ classdef GrippingLevelSetCoupled < handle
         end
 
         function createGlobalPerimeter(obj)
-            PMax     = 9*0.9;
+            PMax     = 9*0.75;
             s.target = PMax;
 
             s.mesh        = obj.mesh;
@@ -196,7 +196,7 @@ classdef GrippingLevelSetCoupled < handle
             s.minEpsilon = 1.5*obj.mesh.computeMeanCellSize();
             s.value0     = 2*pi*0.02;
 
-            PMax     = 9*0.9;
+            PMax     = 9*0.75;
             L        = sqrt(2);
             l        = 0.04;
             l0       = 0.05; % Minimum length scale
@@ -257,7 +257,7 @@ classdef GrippingLevelSetCoupled < handle
             s.designVariable = obj.designVariable;
             s.maxIter        = 3000;
             s.tolerance      = 1e-8;
-            s.constraintCase = repmat({'INEQUALITY'},[1,6]);
+            s.constraintCase = [{'INEQUALITY','EQUALITY'},repmat({'INEQUALITY'},[1,4])];
             s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.002;
