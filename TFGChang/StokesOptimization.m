@@ -4,7 +4,7 @@
 %close all;
 
 % Read Network data
-%load("StokesetworkE1e5N36HL8.mat");
+load("StokesNetwork.mat");
 
 % Initialization
 m   = 0.09;
@@ -13,7 +13,7 @@ t   = 0.4;
 AoA = 1;
 
 d.features      = [m,p,t,AoA];
-d.learningRate  = 3; %0.06
+d.learningRate  = 0.5; %0.06
 d.optimizer     = opt;
 d.tol           = 1e-6;
 d.lowerBC = [0.0, 0.0, 0.1, -2.5]; % 0.0, 0.0, 0.1, -2.5

@@ -179,6 +179,7 @@ classdef NavierStokesProblemSolver < handle
             %1e4;
             tolRes       = 1e-6;
             tolReE       = 1e-4;
+            relaxFactor  = 0.5;
             fprintf('   Picard Iteration             Residual          ReError\n');
 
             while ~((Residual <= tolRes && ReError <= tolReE) || iter >= maxIter)
@@ -191,9 +192,11 @@ classdef NavierStokesProblemSolver < handle
 
                 [Residual, ReError] = obj.computeError();
                 
-                fprintf('      %d                       %.7e          %.5e\n', iter, Residual, ReError);
+                fprintf(['      %d               ' ...
+                    '        %.7e          %.5e\n'], iter, Residual, ReError);
       
-                obj.velocityField.setFValues(obj.velocityFun.fValues);
+                relaxedVel = (1 - relaxFactor) * obj.velocityField.fValues + relaxFactor * obj.velocityFun.fValues;
+                obj.velocityField.setFValues(relaxedVel);
 
                 iter = iter + 1;
 

@@ -7,7 +7,7 @@ figure
 t = 1;
 for i = 1:0.01:15 
     x(t) = i;
-    y(t) = opt.computeOutputValues([0,0,0.01,i]);
+    y(t) = opt.computeOutputValues([0,0,0.1,i]);
  t = t + 1;
 end
 
@@ -41,7 +41,7 @@ s.data = data;
 % Initialization
 
 % Load model parameters
-s.networkParams.hiddenLayers    = s.polynomialOrder * size(s.xFeatures,2)* 5 * ones(1,2);
+s.networkParams.hiddenLayers    = s.polynomialOrder * size(s.xFeatures,2)* 9 * ones(1,2);
 s.optimizerParams.learningRate  = 0.05;
 s.costParams.lambda             = 0;
 s.costParams.costType           = 'L2';
@@ -77,7 +77,7 @@ dataset  = readmatrix("E_AoA5_mpt.txt");
 
 normalized = true;
 if (normalized == true)
-    %load("StokesNetwork.mat");
+    load("StokesNetworkEpoch2e5.mat");
     EData = readmatrix("EData.txt");
     maxValue        = max(EData(:,end));
     minValue        = min(EData(:,end));
