@@ -1,3 +1,4 @@
+%% 
 classdef HyperelasticProblem_refactoring < handle
 
     properties (Access = public)
@@ -296,7 +297,8 @@ classdef HyperelasticProblem_refactoring < handle
 
         function [intFor,intForel] = computeInternalForces(obj,u)
             intFor = obj.neohookeanFun.computeGradient(u);
-            intForel = obj.linearElasticityFun.computeGradient(u);
+            % intForel = obj.linearElasticityFun.computeGradient(u);
+            intForel = 0;
         end
 
         function rshp = reshapeToVector(obj, A)
