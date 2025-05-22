@@ -73,7 +73,7 @@ classdef MshReader < FileReader
             fmtConnec = repmat('%d ', [1,obj.nNodeElem]);
             strConnec = sprintf('%s ', obj.contentCell{obj.fLConnec:obj.lLConnec});
             scanConnec = sscanf(strConnec, fmtConnec);
-            conn = reshape(scanConnec, [obj.nNodeElem+1, obj.nElem])';
+            conn = reshape(scanConnec, [obj.nNodeElem+1, obj.nElem-1])';
             obj.connec = conn(:,2:end);
         end
 

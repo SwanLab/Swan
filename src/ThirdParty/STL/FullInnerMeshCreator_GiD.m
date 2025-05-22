@@ -15,7 +15,7 @@ classdef FullInnerMeshCreator_GiD < FullInnerMeshCreator
             m = obj.readMsh();
             delete InnerMeshCreator_File.flavia.msh
             delete InnerMeshCreator_File.flavia.res
-            delete PostProcess/STL/sampleMesh.msh
+            delete src/ThirdParty/STL/sampleMesh.msh
         end
 
         function exportMshThroughGiD(obj)
@@ -41,7 +41,7 @@ classdef FullInnerMeshCreator_GiD < FullInnerMeshCreator
         end
 
         function f = getOutputFileName(obj)
-            f = [pwd,'/PostProcess/STL/sampleMesh.msh'];
+            f = [pwd,'/src/ThirdParty/STL/sampleMesh.msh'];
         end
 
         function f = getResFilePath(obj)
