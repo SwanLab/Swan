@@ -61,7 +61,7 @@ classdef PhaseFieldBoundaryCreator < handle
                case 'Lshape'
                    % obj.createBoundaryConditions = @obj.createLshapeDisplacementConditions;
                case 'FiberMatrix'
-                   % obj.createFiberMatrixDisplacementConditions(prescribedVal);
+                   obj.createFiberMatrixDisplacementConditions(prescribedVal);
            end
        end
 

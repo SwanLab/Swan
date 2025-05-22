@@ -75,22 +75,24 @@ classdef TestingPhaseField < handle
                     phi = cParams.initialGuess.phi;
                 else
                     phi = LagrangianFunction.create(obj.mesh,1,'P1');
-                    %phi = obj.setInitialDamage(phi);
+                    phi = obj.setInitialDamage(phi);
                 end
             else
                 u = LagrangianFunction.create(obj.mesh,2,'P1');
                 phi = LagrangianFunction.create(obj.mesh,1,'P1');
-                %phi = obj.setInitialDamage(phi);
+                phi = obj.setInitialDamage(phi);
             end
             obj.initialGuess.u = u;
             obj.initialGuess.phi = obj.createDamageVariable(phi);
         end
 
         function phi = setInitialDamage(obj,phi)
-            isInMiddle = obj.mesh.coord(:,1)>=0.5 & obj.mesh.coord(:,2)==0.5;
             fValues = phi.fValues;
-            fValues(isInMiddle) = 0.01;
-            %fValues = 0.01*ones(size(phi.fValues));
+            
+            % isInMiddle = obj.mesh.coord(:,1)>=0.5 & obj.mesh.coord(:,2)==0.5;
+            % fValues(isInMiddle) = 0;
+
+            fValues(:) = 1e-2;
             phi.setFValues(fValues);
         end
 
