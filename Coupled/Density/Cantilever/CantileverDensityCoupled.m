@@ -199,7 +199,7 @@ classdef CantileverDensityCoupled < handle
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
             s.shapeFunctions{2} = obj.globalPer;
-            s.weights           = [1,0.50]; % 0.25 hay más barras que tmb cumplen min length
+            s.weights           = [1,0.80]; % 0.25 hay más barras que tmb cumplen min length, 0.50 + 2 barritas pequeñas
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
