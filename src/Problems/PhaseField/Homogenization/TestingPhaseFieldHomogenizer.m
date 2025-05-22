@@ -85,26 +85,11 @@ classdef TestingPhaseFieldHomogenizer < handle
         end
 
         function paramHole = computeHoleParams(obj)
-            obj.maxParam = obj.computeMaxHoleParams();
+            obj.maxParam = 0.98*ones(size(obj.nSteps));
             nParam = length(obj.maxParam);
             paramHole = cell(1,nParam);
             for i=1:nParam
                 paramHole{i} = linspace(1e-5,obj.maxParam(i),obj.nSteps(i));
-            end
-        end
-        
-        function maxV = computeMaxHoleParams(obj)
-            switch obj.holeType
-                case 'Circle'
-                    maxV = 0.49;
-                case 'Square'
-                    maxV = 0.98;
-                case 'Ellipse'
-                    maxV = [0.98,0.98];
-                case 'Rectangle'
-                    maxV = [0.98,0.98];
-                case 'SmoothHexagon'
-                    maxV = 0.98;
             end
         end
 
@@ -141,7 +126,7 @@ classdef TestingPhaseFieldHomogenizer < handle
             end
             switch obj.holeType
                 case 'Circle'
-                    gPar.radius = l;
+                    gPar.radius = l/2;
                 case 'Square'
                     gPar.length = l;
                 case 'Rectangle'
@@ -152,7 +137,7 @@ classdef TestingPhaseFieldHomogenizer < handle
                     gPar.xSide  = l(1);
                     gPar.ySide  = l(2);
                     gPar.pnorm  = 2;  
-                case 'SmoothHexagon'
+                case {'SmoothHexagon','Hexagon'}
                     gPar.radius = l;
                     gPar.normal = [0 1; sqrt(3)/2 1/2; sqrt(3)/2 -1/2];
             end
@@ -263,32 +248,24 @@ classdef TestingPhaseFieldHomogenizer < handle
             switch obj.damageType
                 case 'Area'
                     switch obj.holeType
-                        case 'Circle'
+                        case {'Circle','Square'}
                             phi = l^2;
-                        case 'Square'
-                            phi = l^2;
-                        case 'Ellipse'
+                        case {'Ellipse','Rectangle'}
                             phi = l(1)*l(2);
-                        case 'Rectangle'
-                            phi = l(1)*l(2);
-                        case 'SmoothHexagon'
+                        case {'SmoothHexagon','Hexagon'}
                             perimeter = 6*l;
                             apothem   = sqrt(l^2 - (l/2)^2);
                             phi = (perimeter*apothem)/(6*sqrt(3)/2);
                     end
                 case 'Perimeter'
                     switch obj.holeType
-                        case 'Circle'
+                        case {'Circle','Square','SmoothHexagon','Hexagon'}
                             phi = l;
                         case 'Ellipse'
                             phi = pi*(3*(l(1)+l(2))-sqrt((3*l(1)+l(2))*(l(1)+3*l(2))))/...
                                   pi*(3*(2)-sqrt((3+1)*(1+3)));
-                        case 'Square'
-                            phi = l;
                         case 'Rectangle'
                             phi = (l(1)+l(2))/2;
-                        case 'SmoothHexagon'
-                            phi = l;
                     end
             end
         end

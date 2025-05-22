@@ -17,16 +17,17 @@ classdef RHSIntegratorElasticMicro < handle
             obj.init(cParams);
         end
 
-        function Fext = compute(obj)
-            oX     = zeros(obj.dim.ndimf,1);
-            nVoigt = size(obj.material.evaluate(oX),1);
-            basis   = diag(ones(nVoigt,1));
-            Fvol = zeros(obj.dim.ndofs, nVoigt);
-            for iVoigt = 1:nVoigt
-                vstrain = basis(iVoigt,:);
-                FvolE = obj.computeStrainRHS(vstrain);
-                Fvol(:,iVoigt)  = obj.assembleVector(FvolE);
-            end
+        function Fext = compute(obj,strainBase)
+      %      oX     = zeros(obj.dim.ndimf,1);
+     %       nVoigt = size(obj.material.evaluate(oX),1);
+     %       basis   = diag(ones(nVoigt,1));
+     %       Fvol = zeros(obj.dim.ndofs, nVoigt);
+     %       for iVoigt = 1:nVoigt
+      %          vstrain = basis(iVoigt,:);
+                FvolE = obj.computeStrainRHS(strainBase);
+       %         Fvol(:,iVoigt)  = obj.assembleVector(FvolE);
+            Fvol = obj.assembleVector(FvolE);
+       %     end
             Fpoint = obj.computePunctualFext();
             Fext = Fvol + Fpoint;
         end
@@ -77,7 +78,7 @@ classdef RHSIntegratorElasticMicro < handle
         end
         
         
-        function F = computeStrainRHS(obj,vstrain)
+        function F = computeStrainRHS(obj,strain)
             quad = Quadrature.create(obj.mesh, 1);
             xV    = quad.posgp;
             dVol  = obj.mesh.computeDvolume(quad)';
@@ -94,6 +95,7 @@ classdef RHSIntegratorElasticMicro < handle
             ndimf = size(obj.mesh.coord,2);
             s.fun  = LagrangianFunction.create(obj.mesh,ndimf,'P1');
             s.dNdx = s.fun.evaluateCartesianDerivatives(xV);
+            vstrain = strain.evaluate(xV);
 
             Bcomp = BMatrixComputer(s);
             for igaus = 1:ngaus
@@ -102,9 +104,9 @@ classdef RHSIntegratorElasticMicro < handle
                 for istre = 1:nstre
                     for jstre = 1:nstre
                         Cij = squeeze(Cmat(istre,jstre,igaus,:));
-                        vj  = vstrain(jstre);
+                        vj  = squeeze(vstrain(jstre,:,:));
                         si  = squeeze(sigma(istre,igaus,:));
-                        sigma(istre,igaus,:) = si + Cij*vj;
+                        sigma(istre,igaus,:) = si + Cij.*vj;
                     end
                 end
                 for iv = 1:nnode*nunkn

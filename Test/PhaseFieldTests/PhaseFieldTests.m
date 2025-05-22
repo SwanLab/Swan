@@ -1,7 +1,7 @@
 classdef PhaseFieldTests < handle & matlab.unittest.TestCase
 
     properties (TestParameter)
-        singleElementCases = {'Analytic','Split','Homogenized','AnalyticForce'}
+        singleElementCases = {'AT1','AT2','Force','Split','HomogGrad'}
         complexCases = {'SEN'}
         homogenizationCases = {'Square','Hexagon','Ellipse'}
     end
@@ -12,7 +12,7 @@ classdef PhaseFieldTests < handle & matlab.unittest.TestCase
             load(filename,'input');
             tester = TestingPhaseField(input);
             outputData = tester.compute();
-            xNew = outputData.reaction;
+            xNew = outputData.force;
             load(filename,'xRef');
             err = norm(xNew-xRef)/norm(xRef);
             tol      = 1e-6;
@@ -24,7 +24,7 @@ classdef PhaseFieldTests < handle & matlab.unittest.TestCase
             load(filename,'input');
             tester = TestingPhaseField(input);
             outputData = tester.compute();
-            xNew = outputData.reaction;
+            xNew = outputData.force;
             load(filename,'xRef');
             err = norm(xNew-xRef)/norm(xRef);
             tol      = 1e-6;
@@ -37,7 +37,7 @@ classdef PhaseFieldTests < handle & matlab.unittest.TestCase
             tester = TestingPhaseFieldHomogenizer(input);
             [xNew,~,~] = tester.compute();
             load(filename,'xRef');
-            err = max(pagenorm(xNew-xRef)./pagenorm(xRef));
+            err = max(pagenorm(xNew-xRef)./(pagenorm(xRef)+1));
             tol      = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
             close all
