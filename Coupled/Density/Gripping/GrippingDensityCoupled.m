@@ -181,7 +181,7 @@ classdef GrippingDensityCoupled < handle
             s.type             = 'Circle';
             s.xCoorCenter      = x0;
             s.yCoorCenter      = y0;
-            s.radius           = 0.015;
+            s.radius           = 0.0125;
             g                  = GeometricalFunction(s);
             lsFun              = g.computeLevelSetFunction(obj.mesh);
             sUm.backgroundMesh = obj.mesh;
@@ -200,7 +200,7 @@ classdef GrippingDensityCoupled < handle
             L        = sqrt(2);
             l        = 0.04;
             l0       = 0.05; % Minimum length scale
-            s.target = max(0,(PMax/L^2)*(l^2-l0^2)) + 0.006;
+            s.target = max(0,(PMax/L^2)*(l^2-l0^2)) + 0.008*1.25;
 
             s.uMesh  = obj.createBaseDomain(0.28,0.5);
             s.filter = obj.createFilterPerimeter();
