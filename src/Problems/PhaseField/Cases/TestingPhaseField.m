@@ -88,11 +88,7 @@ classdef TestingPhaseField < handle
 
         function phi = setInitialDamage(obj,phi)
             fValues = phi.fValues;
-            
-            % isInMiddle = obj.mesh.coord(:,1)>=0.5 & obj.mesh.coord(:,2)==0.5;
-            % fValues(isInMiddle) = 0;
-
-            fValues(:) = 1e-2;
+            fValues(:) = 0;
             phi.setFValues(fValues);
         end
 
@@ -141,9 +137,9 @@ classdef TestingPhaseField < handle
             dissipation.interpolation = PhaseFieldDissipationInterpolator(s);
 
             if s.pExp == 1
-                dissipation.constant = obj.matInfo.Gc/2;
+                dissipation.constant = (3/8)*obj.matInfo.Gc;
             elseif s.pExp == 2
-                dissipation.constant = obj.matInfo.Gc/(8/3);
+                dissipation.constant = (1/2)*obj.matInfo.Gc;
             end
         end
 

@@ -42,8 +42,8 @@ classdef PhaseFieldPlotter < handle
             figure()
             hold on
             plot(obj.displacement,obj.damage,'Color',"#0072BD")
-            % dmg = obj.computeTheoreticalDamage();
-            % plot(obj.displacement,dmg);
+            dmg = obj.computeTheoreticalDamage();
+            plot(obj.displacement,dmg);
             title('Damage-displacement diagram')
             grid on
             xlabel('Displacement [mm]')
@@ -56,10 +56,10 @@ classdef PhaseFieldPlotter < handle
             C22 = E/((1+nu)*(1-nu));
             e = obj.displacement;
             if obj.AT == 1
-                w = (1/2)*(Gc/l0);
+                w = (3/8)*(Gc/l0);
                 dmg = max(1 - w./(C22.*(e+ 1e-10).^2),0) ;
             elseif obj.AT == 2
-                w = (3/8)*(Gc/l0);
+                w = (1/2)*(Gc/l0);
                 dmg = (C22.*e.^2)./(2*w+(C22.*e.^2));
             end
         end
@@ -76,8 +76,8 @@ classdef PhaseFieldPlotter < handle
             figure()
             hold on
             plot(obj.displacement,obj.reaction)
-            % sig = obj.computeTheoreticalForce();
-            % plot(obj.displacement,sig);
+            sig = obj.computeTheoreticalForce();
+            plot(obj.displacement,sig);
             title('Force-displacement diagram (Reaction force)')
             grid on
             xlabel('Displacement [mm]')
