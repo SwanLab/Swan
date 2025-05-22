@@ -82,7 +82,7 @@ classdef TutorialXXPhaseFieldCase < handle
             s.type  = 'PhaseField';
             s.mesh  = obj.mesh;
             s.PFtype = 'Analytic';
-            s.fileName = 'CircleMicroDamagePerimeter'; %Only for 'Homogenized' PFtype
+            s.fileName = 'CirclePerimeter'; %Only for 'Homogenized' PFtype
 
             s.interp.interpolation = 'PhaseFieldDegradation';
             s.interp.degFunType    = 'AT';
@@ -98,9 +98,9 @@ classdef TutorialXXPhaseFieldCase < handle
             s.pExp = 2;
             Gc = 5e-3;
             if s.pExp == 1
-                cw = 2/3;
-            elseif s.pExp == 2
                 cw = 1/2;
+            elseif s.pExp == 2
+                cw = 2/3;
             end
             obj.dissipation.interpolation = PhaseFieldDissipationInterpolator(s);
             obj.dissipation.constant = Gc/(4*cw);

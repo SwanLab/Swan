@@ -30,8 +30,8 @@ classdef PhaseFieldComputer < handle
                 obj.monitor.printStep(step,maxSteps)
                 [u,bc] = obj.updateBoundaryConditions(u);
                 [u,phi,F,cost,iterMax] = obj.optimizer.compute(u,phi,bc,cost);
-                [Evec,totE,totF] = obj.postprocess(u,phi,F,bc);
-                obj.printAndSave(step,totF,u,phi,Evec,totE,iterMax,cost,tauArray);
+                [Evec,totE,totF,uBC] = obj.postprocess(step,u,phi,F,bc);
+                obj.printAndSave(step,totF,uBC,u,phi,Evec,totE,iterMax,cost,tauArray);
                 obj.checkStopCondition(step,totF);
                 step = step + 1;
             end
@@ -97,20 +97,27 @@ classdef PhaseFieldComputer < handle
             end
         end
 
-        function [E,totE,totF] = postprocess(obj,u,phi,F,bc)
+        function [E,totE,totF,uBC] = postprocess(obj,step,u,phi,F,bc)
             fExt = bc.pointloadFun;
             E    = obj.functional.computeEnergies(u,phi,fExt);
             totE = sum(E);
-            totF = obj.computeTotalReaction(F);
+            [totF,uBC] = obj.computeTotalReaction(step,F,u);
         end
 
-        function totReact = computeTotalReaction(obj,F)
+        function [totReact,uBC] = computeTotalReaction(obj,step,F,u)
             UpSide  = max(obj.mesh.coord(:,2));
             isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;
-            ReactX = sum(F(2*nodes(isInUp)-1));
-            ReactY = sum(F(2*nodes(isInUp)));
-            totReact = sqrt(ReactX^2+ReactY^2);
+            if obj.boundaryConditions.type == "forceTraction"
+                uBC = norm(mean(u.fValues(nodes(isInUp),2)));
+                totReact = obj.boundaryConditions.bcValues(step);
+            else
+                ReactX = sum(F(2*nodes(isInUp)-1));
+                ReactY = sum(F(2*nodes(isInUp)));
+                totReact = sqrt(ReactX^2+ReactY^2);
+                uBC = obj.boundaryConditions.bcValues(step);
+            end
+            
 
             % DownSide  = min(obj.mesh.coord(:,2));
             % isInDown = abs(obj.mesh.coord(:,2)-DownSide)< 1e-12;
@@ -122,12 +129,11 @@ classdef PhaseFieldComputer < handle
             % totReact = sum(F(2*nodes(isInTip)));
         end
 
-        function printAndSave(obj,step,totF,u,phi,Evec,totE,iterMax,cost,tauArray)
-            uVal = obj.boundaryConditions.bcValues(step);
-            obj.monitor.updateAndRefresh(step,{[totF;uVal],[max(phi.fun.fValues);uVal],...
+        function printAndSave(obj,step,totF,uBC,u,phi,Evec,totE,iterMax,cost,tauArray)
+            obj.monitor.updateAndRefresh(step,{[totF;uBC],[max(phi.fun.fValues);uBC],...
                                                [phi.fun.fValues],[iterMax.stag],[],...
-                                               [totE;uVal],[]});
-            obj.saveData(step,totF,uVal,u,phi,Evec,iterMax,cost,tauArray);
+                                               [totE;uBC],[]});
+            obj.saveData(step,totF,uBC,u,phi,Evec,iterMax,cost,tauArray);
         end
 
         function saveData(obj,step,totF,uVal,u,phi,Evec,iterMax,cost,tauArray)
