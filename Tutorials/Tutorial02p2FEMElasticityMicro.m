@@ -36,15 +36,18 @@ classdef Tutorial02p2FEMElasticityMicro < handle
             s.connec = F;
             fullmesh = Mesh.create(s);
 
-       %     fullmesh = UnitTriangleMesh(50,50);
+            load('NegPoissMesh.mat');
+
+            % fullmesh = UnitTriangleMesh(50,50);
             ls = obj.computeCircleLevelSet(fullmesh);
             sUm.backgroundMesh = fullmesh;
             sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(ls);
             holeMesh = uMesh.createInnerMesh();
-            obj.mesh = holeMesh;
-            %obj.mesh = fullmesh;
+            %obj.mesh = holeMesh;
+            obj.mesh = fullmesh;
+            %obj.mesh = NegPoissMesh;
         end
 
         function ls = computeCircleLevelSet(obj, mesh)

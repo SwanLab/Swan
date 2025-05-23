@@ -178,7 +178,7 @@ classdef MasterSlaveRelator < handle
             xB = pos(nodeB,1);
             distAB = abs(xA - xB);
             [distMin,isClosest] = min(distAB);
-            if distMin > 1e-10
+            if distMin > 1e-4
                 error('non slave node')
             end
             closestNodeB = nodeB(isClosest);
@@ -194,7 +194,7 @@ classdef MasterSlaveRelator < handle
             distAB = sqrt((xA - xB).^2 + (yA - yB).^2);
             [distMin, isClosest] = min(distAB);
             
-            if distMin > 1e-10
+            if distMin > 1e-4
                 error('non slave node')
             end
             closestNodeB = nodeB(isClosest);

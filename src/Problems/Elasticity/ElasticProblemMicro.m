@@ -46,13 +46,13 @@ classdef ElasticProblemMicro < handle
                 elseif iB <= 6
                     index = iB - 3;
                     coord = 1;
-                    strainTorque = obj.computeStrainTorque(index, iB);
                     s = obj.createSndOrderDeformationBasis(coord, index);
+                    strainTorque = obj.computeStrainTorque(index, iB, s);
                 else
                     index = iB - 6;
                     coord = 2;
-                    strainTorque = obj.computeStrainTorque(index, iB);
                     s = obj.createSndOrderDeformationBasis(coord, index);
+                    strainTorque = obj.computeStrainTorque(index, iB, s);
                 end
 
                 strainB     = s;
@@ -104,20 +104,29 @@ classdef ElasticProblemMicro < handle
             end
         end
         
-        function sT = computeStrainTorque(obj, index, iB)
-            nBasis = obj.computeNbasis();
-            eta1Array = zeros(nBasis,1);
-            eta2Array = zeros(nBasis,1);
+        function sT = computeStrainTorque(obj, index, iB,eta)
+            Y  = AnalyticalFunction.create(@(x) x,2,obj.mesh);
+            sTF = @(xV) obj.obtainStrainTorque(xV,Y,iB,eta);
+            sT = AnalyticalFunction.create(sTF,3,obj.mesh);
+        end
+
+        function sT = obtainStrainTorque(obj,xV,Y,iB,eta)
+            y   = Y.evaluate(xV);
+            e   = eta.evaluate(xV);
+            y1  = y(1,:,:);
+            y2  = y(2,:,:);
+            ex  = e(1,:,:);
+            ey  = e(2,:,:);
+            exy = e(3,:,:);         
             if iB <= 6
-                eta1Array(index) = 1;
+                sT(1,:,:) = ex .* y1;
+                sT(2,:,:) = ey .* y1;
+                sT(3,:,:) = exy .* y1;
             else
-                eta2Array(index) = 1;
+                sT(1,:,:) = ex .* y2;
+                sT(2,:,:) = ey .* y2;
+                sT(3,:,:) = exy .* y2;               
             end
-            eta1 = ConstantFunction.create(eta1Array, obj.mesh);
-            eta2 = ConstantFunction.create(eta2Array, obj.mesh);
-            Y1 = AnalyticalFunction.create(@(x) x(1,:,:), 1, obj.mesh); 
-            Y2 = AnalyticalFunction.create(@(x) x(2,:,:), 1, obj.mesh);  
-            sT = eta1 .* Y1 + eta2 .* Y2;
         end
 
         function v = computeGeometricalVolume(obj)
