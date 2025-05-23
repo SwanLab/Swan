@@ -35,12 +35,31 @@ classdef ElasticProblemMicro < handle
                 uF{iB}      = obj.computeDisplacement(LHS,RHS,iB,nBasis);
                 strainF{iB} = strainB+SymGrad(uF{iB});
                 stressF{iB} = DDP(obj.material, strainF{iB});
+                uT{iB}      = obj.computeTotal(strainB);
                 Ch(:,iB)    = obj.computeChomog(stressF{iB},iB);
             end
             obj.uFluc  = uF;
             obj.strain = strainF;
             obj.stress = stressF;
             obj.Chomog = Ch;
+        end
+
+        function uM = computeTotal(obj,strainB)
+            Y  = AnalyticalFunction.create(@(x) x,2,obj.mesh);
+            uMF = @(xV) obj.obtainMacroscopicDisplacement(xV,strainB,Y);
+            uM = AnalyticalFunction.create(uMF,2,obj.mesh);
+        end
+
+        function uM = obtainMacroscopicDisplacement(obj,xV,strain,Y)
+            y   = Y.evaluate(xV);
+            e   = strain.evaluate(xV);
+            y1  = y(1,:,:);
+            y2  = y(2,:,:);
+            ex  = e(1,:,:);
+            ey  = e(2,:,:);
+            exy = e(3,:,:);
+            uM(1,:,:) = ex  .* y1 + exy .* y2;
+            uM(2,:,:) = exy .* y1 + ey  .* y2;
         end
 
         function v = computeGeometricalVolume(obj)
