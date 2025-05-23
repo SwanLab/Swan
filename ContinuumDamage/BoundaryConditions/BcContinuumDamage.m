@@ -104,28 +104,8 @@ classdef BcContinuumDamage < handle
                     s.pointloadFun = [Neum1];
                     s.periodicFun = [];
                     bc = BoundaryConditions(s);  
-
-                case 'SEMtraction'
-                    isDown = @(coord) (abs(coord(:,2) - min(coord(:,2)))< 1e-12);
-                    sDir.domain    = @(coor) isDown(coor);
-                    sDir.direction = [1,2];
-                    sDir.value     = 0;
-                    Dir1 = DirichletCondition(obj.mesh,sDir);
-
-                    isUp = @(coord) (abs(coord(:,2) - max(coord(:,2)))< 1e-12);
-                    sDir.domain    = @(coor) isUp(coor);
-                    sDir.direction = [2];
-                    sDir.value     = s.bcVal;
-                    Dir2 = DirichletCondition(obj.mesh,sDir);
-
-                    s.mesh = obj.mesh;
-                    s.dirichletFun = [Dir1 Dir2];
-                    s.pointloadFun = [];
-                    s.periodicFun = [];
-                    bc = BoundaryConditions(s);
                     
-                case 'SEMmixed'
-                    %SHEAR BC
+                case 'displacementShear'
                     isDown = @(coord) (abs(coord(:,2) - min(coord(:,2)))< 1e-12);
                     sDir.domain    = @(coor) isDown(coor);
                     sDir.direction = [1,2];
@@ -138,34 +118,44 @@ classdef BcContinuumDamage < handle
                     sDir.value     = s.bcVal;
                     Dir2 = DirichletCondition(obj.mesh,sDir);
 
-                    %TRACTION BC
+                    s.mesh = obj.mesh;
+                    s.dirichletFun = [Dir1 Dir2];
+                    s.pointloadFun = [];
+                    s.periodicFun = [];
+                    bc = BoundaryConditions(s);
 
+                case 'fiberMatrix'
+                    % Enforce fixed Dirichlet conditions to the down nodes
+                    isDown = @(coord) (abs(coord(:,2) - min(coord(:,2)))< 1e-12);
+                    sDir.domain    = @(coor) isDown(coor);
+                    sDir.direction = [1,2];
+                    sDir.value     = 0;
+                    Dir1 = DirichletCondition(obj.mesh,sDir);
+
+                    % Enforce fixed Dirichlet conditions to the fiber nodes                    
+                    isFiber = @(coord) ((coord(:,1)-0.5).^2 + (coord(:,2)-0.5).^2) < (0.25^2 + 1e-5);
+                    sDir.domain    = @(coor) isFiber(coor);
+                    sDir.direction = [1,2];
+                    sDir.value     = 0;
+                    Dir2 = DirichletCondition(obj.mesh,sDir);
+
+                    % Enforce roller Dirichlet conditions to the top nodes
                     isUp = @(coord) (abs(coord(:,2) - max(coord(:,2)))< 1e-12);
                     sDir.domain    = @(coor) isUp(coor);
-                    sDir.direction = [2];
-                    sDir.value     = s.bcVal;
+                    sDir.direction = [1];
+                    sDir.value     = 0;
                     Dir3 = DirichletCondition(obj.mesh,sDir);
 
-                    s.mesh = obj.mesh;
-                    s.dirichletFun = [Dir1 Dir2 Dir3];
-                    s.pointloadFun = [];
-                    s.periodicFun = [];
-                    bc = BoundaryConditions(s);
-                case 'SEMshear'
-                    isDown = @(coord) (abs(coord(:,2) - min(coord(:,2)))< 1e-12);
-                    sDir.domain    = @(coor) isDown(coor);
-                    sDir.direction = [1,2];
-                    sDir.value     = 0;
-                    Dir1 = DirichletCondition(obj.mesh,sDir);
-
+                    % Enforce displacement at the top
                     isUp = @(coord) (abs(coord(:,2) - max(coord(:,2)))< 1e-12);
                     sDir.domain    = @(coor) isUp(coor);
-                    sDir.direction = [1];
+                    sDir.direction = [2];
                     sDir.value     = s.bcVal;
-                    Dir2 = DirichletCondition(obj.mesh,sDir);
+                    Dir4 = DirichletCondition(obj.mesh,sDir);
 
+                    % Merge
                     s.mesh = obj.mesh;
-                    s.dirichletFun = [Dir1 Dir2];
+                    s.dirichletFun = [Dir1 Dir2 Dir3 Dir4];
                     s.pointloadFun = [];
                     s.periodicFun = [];
                     bc = BoundaryConditions(s);
