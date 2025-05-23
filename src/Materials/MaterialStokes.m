@@ -9,6 +9,7 @@ classdef MaterialStokes < Material
         
         function obj = MaterialStokes(cParams)
             obj.nElem = cParams.nelem;
+            obj.compute();
         end
 
         function compute(obj)

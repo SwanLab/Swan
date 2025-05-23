@@ -6,6 +6,7 @@ close all;
 % Read Network data
 %load("StokesNetwork.mat");
 load("StokesNetworkE0.5e5N36HL6MaxAoA12.88.mat");
+
 % Initialization
 m   = 0.09;
 p   = 0.8;
@@ -29,7 +30,7 @@ OptimalParams = stokeOpt.optimalParams;
 % Plot the Optimal Airfoil
 % figure;
 % AirfoilOptimizer.plotAirfoilContour(OptimalParams,0)
-% stokeOpt.plotEEvolution();
+stokeOpt.plotEEvolution();
 %% Plot E vs iterations
 
 %stokeOpt.plotEEvolution();
@@ -39,5 +40,5 @@ OptimalParams = stokeOpt.optimalParams;
 stokeOpt.generateAFSOPVideo();
 stokeOpt.generateVelVideo();
 stokeOpt.generatePVideo();
-% 
-% system('shutdown /s /t 60');
+
+%system('shutdown /s /t 60');

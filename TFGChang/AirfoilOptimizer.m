@@ -64,7 +64,7 @@ classdef AirfoilOptimizer < handle
            obj.optimalParams                  = obj.features; 
            obj.E(1)                           = obj.optimizer.computeOutputValues(obj.optimalParams);
            obj.ParamsMat(1,:)                 = obj.features;
-           [obj.velFunMat{1}, obj.PFunMat{1}] = computeVelPFun(obj);
+       %   [obj.velFunMat{1}, obj.PFunMat{1}] = computeVelPFun(obj);
        end  
 
        function projected = projectParams(obj,params)
@@ -78,7 +78,7 @@ classdef AirfoilOptimizer < handle
             iter     = 1;
             maxIter  = 151;%301
         
-            rho      = 0.5;   %0.9         
+            rho      = 0.9;   %0.9         
             epsilon  = 1e-8;           
             cache    = zeros(size(obj.optimalParams));
         
@@ -109,10 +109,10 @@ classdef AirfoilOptimizer < handle
         
                 obj.ParamsMat(end + 1,:) = obj.optimalParams;
 
-                if mod(iter,5) == 0
-                     [obj.velFunMat{end + 1}, obj.PFunMat{end + 1}] = computeVelPFun(obj);
-                end
 
+                % if mod(iter,5) == 0
+                %      [obj.velFunMat{end + 1}, obj.PFunMat{end + 1}] = computeVelPFun(obj);
+                % end
         
                 iter = iter + 1;
             end
