@@ -9,6 +9,7 @@ Naca.t         = 0.12;
 Naca.chord     = 1;
 Naca.AoA       = 0;
 Naca.uRef      = 0.755;
+Naca.velocityField = LagrangianFunction.create(obj.mesh, 2, 'P2');
 
 
 NacaClass = TestNaca(Naca);
@@ -16,6 +17,36 @@ NacaClass.compute();
 %NacaClass.validate();
 %NacaClass.print();
 
+%% Test for TestNaca NV
+
+uRef = [1.51e-5, 1.51e-4, 1.51e-3, 1.51e-2];
+Naca.convectVel = 0;
+
+for i = 4 : 4
+    %length(uRef)
+
+Naca.flowType  = "NavierStokes";
+Naca.length    = 8;
+Naca.height    = 4;
+Naca.nx        = 210;
+Naca.M         = 0.02;
+Naca.p         = 0.4;
+Naca.t         = 0.12;
+Naca.chord     = 1;
+Naca.AoA       = 0;
+Naca.uRef      = uRef(i);
+%0.755;
+disp(i)
+disp(Naca.uRef)
+
+NacaClass = TestNaca(Naca);
+NacaClass.compute();
+%NacaClass.validate();
+NacaClass.print();
+
+Naca.convectVel = NacaClass.velocityFun.fValues;
+
+end
 %% Control Parameters.
 
 Naca.length = 8;

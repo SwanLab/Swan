@@ -41,7 +41,7 @@ s.data = data;
 % Initialization
 
 % Load model parameters
-s.networkParams.hiddenLayers    = s.polynomialOrder * size(s.xFeatures,2)* 9 * ones(1,2);
+s.networkParams.hiddenLayers    = s.polynomialOrder * size(s.xFeatures,2)* 9 * ones(1,6);
 s.optimizerParams.learningRate  = 0.05;
 s.costParams.lambda             = 0;
 s.costParams.costType           = 'L2';
@@ -77,7 +77,7 @@ dataset  = readmatrix("E_AoA5_mpt.txt");
 
 normalized = true;
 if (normalized == true)
-    load("StokesNetworkEpoch2e5.mat");
+    %load("StokesNetworkE1e5N32HL2MaxAoA12.11.mat");
     EData = readmatrix("EData.txt");
     maxValue        = max(EData(:,end));
     minValue        = min(EData(:,end));

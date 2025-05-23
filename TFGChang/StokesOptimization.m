@@ -4,8 +4,8 @@
 close all;
 
 % Read Network data
-load("StokesNetwork.mat");
-
+%load("StokesNetwork.mat");
+load("StokesNetworkE0.5e5N36HL6MaxAoA12.88.mat");
 % Initialization
 m   = 0.09;
 p   = 0.8;
@@ -13,7 +13,7 @@ t   = 0.4;
 AoA = 1;
 
 d.features      = [m,p,t,AoA];
-d.learningRate  = 0.06; %0.06  %1.5 mínim per LE fixe
+d.learningRate  = 0.015; %0.06  %1.5 mínim per LE fixe
 d.optimizer     = opt;
 d.tol           = 1e-6;
 d.lowerBC = [0.0, 0.0, 0.1, -2.5]; % 0.0, 0.0, 0.1, -2.5
@@ -36,8 +36,8 @@ OptimalParams = stokeOpt.optimalParams;
 
 %% Generate the Airfoil Shape Optimization Video
 
-%stokeOpt.generateAFSOPVideo();
+stokeOpt.generateAFSOPVideo();
 stokeOpt.generateVelVideo();
 stokeOpt.generatePVideo();
-
-system('shutdown /s /t 60');
+% 
+% system('shutdown /s /t 60');

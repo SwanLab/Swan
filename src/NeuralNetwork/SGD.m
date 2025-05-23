@@ -26,7 +26,7 @@ classdef SGD < Trainer
             obj.timeStop    = Inf([1,1]);
             obj.fvStop      = 1e-4;
             obj.nPlot       = 1;
-            obj.MaxEpochs   = 1e5;
+            obj.MaxEpochs   = 0.5e5;
             obj.earlyStop   = obj.MaxEpochs;
             obj.svepoch     = 0;
             obj.lSearchType = 'static';

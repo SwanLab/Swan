@@ -175,12 +175,12 @@ classdef NavierStokesProblemSolver < handle
             Residual     = 1;
             ReError      = 1;
             iter         = 1;
-            maxIter      = 1e3;  
+            maxIter      = 1e2;  
             %1e4;
             tolRes       = 1e-6;
             tolReE       = 1e-4;
-            relaxFactor  = 0.5;
-            fprintf('   Picard Iteration             Residual          ReError\n');
+            relaxFactor  = 0.5; %0.9
+            fprintf('   Picard Iteration             Residual                ReError\n');
 
             while ~((Residual <= tolRes && ReError <= tolReE) || iter >= maxIter)
 

@@ -6,6 +6,7 @@ classdef TestNaca < handle
         E
         velocityFun
         pressureFun
+        convectVel
     end
     
     properties (Access = private)
@@ -84,6 +85,7 @@ classdef TestNaca < handle
             obj.nx       = cParams.nx;
             obj.flowType = cParams.flowType;
             obj.uRef     = cParams.uRef;
+            obj.convectVel  = cParams.convectVel;
         end
 
         function [AirfoilParams, BGParams] = setParams(obj)
@@ -230,7 +232,6 @@ classdef TestNaca < handle
                 case 'Stokes'
                     obj.solveStokesProblem(s);
                 case 'NavierStokes'
-                    s.velocityField = LagrangianFunction.create(obj.mesh, 2, 'P2');
                     obj.solveNavierStokesProblem(s);
                 otherwise
                     error('Unknown flow type: %s', obj.flowType);
@@ -248,7 +249,10 @@ classdef TestNaca < handle
         end
 
         function solveNavierStokesProblem(obj,s)
-            s.velocityField    = LagrangianFunction.create(obj.mesh, 2, 'P2');
+            s.velocityField = LagrangianFunction.create(obj.mesh, 2, 'P2');
+            if (obj.convectVel ~=0) 
+                s.velocityField.setFValues(obj.convectVel);
+            end
             SolverResults      = NavierStokesProblemSolver(s); 
             SolverResults.compute();
             obj.velocityFun    = SolverResults.velocityFun;
@@ -280,7 +284,7 @@ classdef TestNaca < handle
 
         function printResults(obj)
             fileID = fopen('results.txt', 'a');
-            fprintf(fileID, '%.2f %.2f %.2f %.2f %.4f %.4f %.4f\n', obj.M, obj.p, obj.t, obj.AoA, obj.L, obj.D, obj.E);
+            fprintf(fileID, '%.2f %.2f %.2f %.2f %.4e %.4e %.4f\n', obj.M, obj.p, obj.t, obj.AoA, obj.L, obj.D, obj.E);
             fclose(fileID);
         end
 

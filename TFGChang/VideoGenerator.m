@@ -25,9 +25,9 @@ classdef VideoGenerator
                 frame = getframe(gcf);
 
                 if i <= repeatThreshold
-                    repeat = 6;
-                elseif mod(i, moduloSkip) ~= 0
-                    continue;
+                    repeat = 2;
+                % elseif mod(i, moduloSkip) ~= 0
+                %     continue;
                 else
                     repeat = 1;
                 end
