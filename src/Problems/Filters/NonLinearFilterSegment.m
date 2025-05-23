@@ -45,8 +45,8 @@ classdef NonLinearFilterSegment < handle
             iter = 1;
             tolerance = 1;
             obj.trial.setFValues(obj.rhoOld.fValues);
-            obj.updateDotProductPreviousGuess();            
-            while tolerance >= 1e-4 
+            obj.updateDotProductPreviousGuess();      
+            while tolerance >= 1e-4  && iter<=1000
                 obj.rhoOld.setFValues(obj.trial.fValues);
                 obj.createRHSDirectionalDerivative(quadOrder);
                 obj.solveProblem();
@@ -73,7 +73,7 @@ classdef NonLinearFilterSegment < handle
             obj.theta = cParams.theta;
             obj.alpha = cParams.alpha;
             obj.beta  = cParams.beta;
-            obj.lineSearch = 10;
+            obj.lineSearch = 1;
         end
 
         function createDirection(obj)

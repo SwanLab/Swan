@@ -42,11 +42,11 @@ classdef PerimeterConstraint < handle
         end
 
         function updateEpsilonForNextIteration(obj,J)
-            if abs(J)<=1e-2
-                obj.epsilon = obj.epsilon/1.001;
+            %if abs(J)<=1e-2
+                obj.epsilon = obj.epsilon/1.003;
                 obj.epsilon = max(obj.epsilon,obj.minEpsilon);
                 obj.perimeter.updateEpsilon(obj.epsilon);
-            end
+            %end
         end
     end
 

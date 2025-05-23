@@ -6,7 +6,6 @@ classdef CantileverDensityCoupled < handle
         mesh
         filterCompliance
         filterGlobPer
-        filterSegPer
         designVariable
         materialInterpolator
         physicalProblem
@@ -28,7 +27,6 @@ classdef CantileverDensityCoupled < handle
             obj.createDesignVariable();
             obj.createFilterCompliance();
             obj.createFilterGlobalPerimeter();
-            obj.createFilterSegmentPerimeter();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
             obj.createCompliance();
@@ -88,12 +86,12 @@ classdef CantileverDensityCoupled < handle
             obj.filterGlobPer = FilterPDE(s);
         end
 
-        function createFilterSegmentPerimeter(obj)
+        function filter = createFilterSegmentPerimeter(obj)
             s.mesh  = obj.mesh;
             s.theta = 90;
             s.alpha = 8;
             s.beta  = 0;
-            obj.filterSegPer = NonLinearFilterSegment(s);
+            filter  = NonLinearFilterSegment(s);
         end
 
         function createMaterialInterpolator(obj)
@@ -185,15 +183,42 @@ classdef CantileverDensityCoupled < handle
             base.compute(lsFun.fValues);
         end
 
+        function base = createHalfDomain(obj,x0,y0)
+            s.type = 'Rectangle';
+            s.xSide = 1;
+            s.ySide = 0.5;
+            s.xCoorCenter = x0;
+            s.yCoorCenter = y0;
+            g                  = GeometricalFunction(s);
+            lsFun              = g.computeLevelSetFunction(obj.mesh);
+            sUm.backgroundMesh = obj.mesh;
+            sUm.boundaryMesh   = obj.mesh.createBoundaryMesh();
+            base               = UnfittedMesh(sUm);
+            base.compute(lsFun.fValues);
+        end
+
         function createSegmentPerimeter(obj)
             s.mesh       = obj.mesh;
-            s.epsilon    = obj.mesh.computeMeanCellSize();
+            s.epsilon    = 10*obj.mesh.computeMeanCellSize();
             s.minEpsilon = obj.mesh.computeMeanCellSize();
-            s.value0     = 2;
-            s.target     = 1000; % esto sera un cero numerico
-            s.uMesh      = obj.createBaseGlobalDomain();
-            s.filter     = obj.filterSegPer;
-            obj.segPerimeter = PerimeterConstraint(s);
+            s.value0     = 2*0.5;
+            s.target     = 2*(8.67/2)*0.25; % el 8.67 es lo que sale del P cuando alpha=1.5eps;    factor entre 1 y 10;    el ultimo factor es num subdomains
+
+            s.uMesh      = obj.createHalfDomain(0.5,0.75);
+            s.filter     = obj.createFilterSegmentPerimeter();
+            obj.segPerimeter{1} = PerimeterConstraint(s);
+
+            s.uMesh      = obj.createHalfDomain(0.5,0.25);
+            s.filter     = obj.createFilterSegmentPerimeter();
+            obj.segPerimeter{2} = PerimeterConstraint(s);
+
+            s.uMesh      = obj.createHalfDomain(1.5,0.75);
+            s.filter     = obj.createFilterSegmentPerimeter();
+            obj.segPerimeter{3} = PerimeterConstraint(s);
+
+            s.uMesh = obj.createHalfDomain(1.5,0.25);
+            s.filter = obj.createFilterSegmentPerimeter();
+            obj.segPerimeter{4} = PerimeterConstraint(s);
         end
 
         function createCost(obj)
@@ -212,7 +237,10 @@ classdef CantileverDensityCoupled < handle
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
-            s.shapeFunctions{2} = obj.segPerimeter;
+            s.shapeFunctions{2} = obj.segPerimeter{1};
+            s.shapeFunctions{3} = obj.segPerimeter{2};
+            s.shapeFunctions{4} = obj.segPerimeter{3};
+            s.shapeFunctions{5} = obj.segPerimeter{4};
             s.Msmooth      = obj.createMassMatrix();
             obj.constraint = Constraint(s);
         end
@@ -220,7 +248,7 @@ classdef CantileverDensityCoupled < handle
         function createPrimalUpdater(obj)
             s.ub     = 1;
             s.lb     = 0;
-            s.tauMax = 1000;
+            s.tauMax = 10000;
             s.tau = [];
             obj.primalUpdater = ProjectedGradient(s);
         end
@@ -232,7 +260,7 @@ classdef CantileverDensityCoupled < handle
             s.designVariable = obj.designVariable;
             s.maxIter        = 3000;
             s.tolerance      = 1e-8;
-            s.constraintCase = repmat({'INEQUALITY'},[1,2]);
+            s.constraintCase = repmat({'INEQUALITY'},[1,5]);
             s.primal         = 'PROJECTED GRADIENT';
             s.etaNorm        = 0.02;
             s.gJFlowRatio    = obj.etaSt;
