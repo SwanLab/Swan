@@ -29,8 +29,10 @@ classdef Tutorial02p2FEMElasticityMicro < handle
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(ls);
             holeMesh = uMesh.createInnerMesh();
+            %load('NegPoissMesh.mat');
             obj.mesh = holeMesh;
             %obj.mesh = fullmesh;
+            %obj.mesh = NegPoissMesh;
         end
 
         function ls = computeCircleLevelSet(obj, mesh)
