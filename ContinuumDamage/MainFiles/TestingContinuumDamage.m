@@ -41,16 +41,16 @@ classdef TestingContinuumDamage < handle
                 M = 1;
                 mesh = QuadMesh(l,w,N,M);
 
-                %file = s.name;
-                %a.fileName = file;
-                %s = FemDataContainer(a);
-                %mesh = s.mesh;
+                file = 'SENtraction0_0025'; %SENshear0_0025
+                a.fileName = file;
+                s = FemDataContainer(a);
+                mesh = s.mesh;
         end
 
         function bc = createBoundaryConditions(obj)
             s.mesh = obj.mesh;
             s.bcType = 'displacementTraction';
-            s.bcValueSet = [0:1e-1:10];            
+            s.bcValueSet = [0:1e-5:0.1];            
             bc = BcContinuumDamage(s);
         end
 
