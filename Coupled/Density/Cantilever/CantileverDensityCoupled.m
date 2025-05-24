@@ -202,7 +202,7 @@ classdef CantileverDensityCoupled < handle
             s.epsilon    = 10*obj.mesh.computeMeanCellSize();
             s.minEpsilon = obj.mesh.computeMeanCellSize();
             s.value0     = 2*0.5;
-            s.target     = 2*(8.67/2)*0.25; % el 8.67 es lo que sale del P cuando alpha=1.5eps;    factor entre 1 y 10;    el ultimo factor es num subdomains
+            s.target     = 0.01*(8.67/2)*0.25; % el 8.67 es lo que sale del P cuando alpha=1.5eps;    factor entre 1 y 10;    el ultimo factor es num subdomains
 
             s.uMesh      = obj.createHalfDomain(0.5,0.75);
             s.filter     = obj.createFilterSegmentPerimeter();
