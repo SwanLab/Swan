@@ -1,20 +1,20 @@
 classdef MaterialNavierStokes < Material
     
     properties (Access = public)
-        mu
+        nu
         nElem
     end
     
     methods (Access = public) 
         
         function obj = MaterialNavierStokes(cParams)
-            obj.nElem = cParams.nelem;
+            obj.nElem   = cParams.nelem;
+            obj.nuValue = cParams.nu;
             obj.compute();
         end
 
         function compute(obj)
-            nu = 1.51e-5;
-            obj.mu = nu * repmat(eye(4), [1, 1, obj.nElem]);
+            obj.nu = obj.nuValue * repmat(eye(4), [1, 1, obj.nElem]);
         end
  
     end

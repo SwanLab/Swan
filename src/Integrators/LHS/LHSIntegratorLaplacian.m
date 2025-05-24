@@ -39,7 +39,7 @@ classdef LHSIntegratorLaplacian < handle
 
 %             material = obj.material;
             
-            Cmat = obj.material.mu;
+            Cmat = obj.material.nu;
             
             lhs = zeros(nDofETs, nDofETr, nElem);
             for iGaus = 1:nGaus

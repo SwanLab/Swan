@@ -1,7 +1,7 @@
 classdef MaterialStokes < Material
     
     properties (Access = public)
-        mu
+        nu
         nElem
     end
     
@@ -18,7 +18,7 @@ classdef MaterialStokes < Material
             m(2,2,:) = 1;
             m(3,3,:) = 1;
             m(4,4,:) = 1;
-            obj.mu = m;
+            obj.nu = m;
         end
         
     end

@@ -1,20 +1,18 @@
 %% Test for TestNaca
-Naca.flowType  = "NavierStokes";
-Naca.length    = 8;
-Naca.height    = 4;
-Naca.nx        = 420;
-Naca.M         = 0.0;
-Naca.p         = 0.0;
-Naca.t         = 0.10;
-Naca.chord     = 1;
-Naca.AoA       = 0;
-Naca.uRef      = 0.755;
-Naca.velocityField = LagrangianFunction.create(obj.mesh, 2, 'P2');
+Naca.flowType  = "Stokes";
+Naca.length      = 8;
+Naca.height      = 4;
+Naca.nx          = 420;
+Naca.M           = 0.0;
+Naca.p           = 0.0;
+Naca.t           = 0.10;
+Naca.chord       = 1;
+Naca.AoA         = 0;
 
 NacaClass = TestNaca(Naca);
 NacaClass.compute();
 %NacaClass.validate();
-NacaClass.print();
+%NacaClass.print();
 
 %system('shutdown /s /t 60');
 

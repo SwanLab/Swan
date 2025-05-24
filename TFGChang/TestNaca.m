@@ -20,7 +20,7 @@ classdef TestNaca < handle
         nx
         ny
         flowType
-        uRef
+        nu
     end
     
     properties (Access = private)
@@ -84,7 +84,14 @@ classdef TestNaca < handle
             obj.height   = cParams.height;
             obj.nx       = cParams.nx;
             obj.flowType = cParams.flowType;
-            obj.uRef     = cParams.uRef;
+            if (obj.flowType == "NavierStokes")
+                obj.initNV(cParams);
+            end
+            
+        end
+
+        function initNV(obj,cParams)
+            obj.nu       = cParams.nu;
             obj.convectVel  = cParams.convectVel;
         end
 
@@ -179,6 +186,7 @@ classdef TestNaca < handle
         function createMaterial(obj)
             e.type       = obj.flowType;  
             e.nelem      = obj.mesh.nelem;
+            e.nu         = obj.nu;
             obj.material = Material.create(e); 
         end
 
@@ -193,7 +201,6 @@ classdef TestNaca < handle
             s.uMesh        = obj.uMesh;
             s.velocityFun  = obj.velocityFun;
             s.pressureFun  = obj.pressureFun;
-            s.uRef         = obj.uRef;
             BCClass              = StokesProblemBoundaryCondition(s); 
             BCClass.compute();
             obj.dirConditions    = BCClass.dirConditions;

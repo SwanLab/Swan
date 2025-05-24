@@ -35,6 +35,7 @@ classdef VideoGenerator
                 for r = 1:repeat
                     writeVideo(v, frame);
                 end
+                close all
             end
 
             close(v);

@@ -22,7 +22,7 @@ d.upperBC = [0.095, 0.9, 0.4, 15.0];
 
 % Compute the Optimization
 stokeOpt = AirfoilOptimizer(d);
-stokeOpt.computeOptAirfoilParams();
+stokeOpt.computeOptAirfoilParams();close 
 
 % Results
 OptimalParams = stokeOpt.optimalParams;
@@ -30,15 +30,18 @@ OptimalParams = stokeOpt.optimalParams;
 % Plot the Optimal Airfoil
 % figure;
 % AirfoilOptimizer.plotAirfoilContour(OptimalParams,0)
-stokeOpt.plotEEvolution();
+%stokeOpt.plotEEvolution();
 %% Plot E vs iterations
 
 %stokeOpt.plotEEvolution();
 
 %% Generate the Airfoil Shape Optimization Video
 
-stokeOpt.generateAFSOPVideo();
+%stokeOpt.generateAFSOPVideo();
+ close all
 stokeOpt.generateVelVideo();
+ close all
 stokeOpt.generatePVideo();
+ close all
 
 %system('shutdown /s /t 60');

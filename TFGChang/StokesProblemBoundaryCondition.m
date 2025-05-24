@@ -12,7 +12,6 @@ classdef StokesProblemBoundaryCondition < handle
         uMesh 
         velocityFun
         pressureFun
-        uRef
     end
 
     properties (Access = private)
@@ -56,7 +55,6 @@ classdef StokesProblemBoundaryCondition < handle
             obj.uMesh          = cParams.uMesh;
             obj.velocityFun    = cParams.velocityFun;
             obj.pressureFun    = cParams.pressureFun;
-            obj.uRef           = cParams.uRef;
         end
 
         function defineVariables(obj)
@@ -79,7 +77,7 @@ classdef StokesProblemBoundaryCondition < handle
         function setDomainDirichletVelocityBC(obj)
             obj.dirVelBC{1}.domain    = @(coor) obj.isLeft(coor) & not(obj.isTop(coor) | obj.isBottom(coor));
             obj.dirVelBC{1}.direction = [1,2];
-            obj.dirVelBC{1}.value     = [obj.uRef,0];
+            obj.dirVelBC{1}.value     = [1,0];
 
             obj.dirVelBC{2}.domain    = @(coor) obj.isTop(coor) | obj.isBottom(coor);
             obj.dirVelBC{2}.direction = [1,2];
