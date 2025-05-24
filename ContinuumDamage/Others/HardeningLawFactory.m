@@ -6,6 +6,8 @@ classdef HardeningLawFactory < handle
                     obj = HardeningLawLinear(cParams);
                 case 'Exp'
                     obj = HardeningLawExp(cParams);
+                case 'AT2'
+                    obj = HardeningLawAT2(cParams);
             end
         end 
     end
