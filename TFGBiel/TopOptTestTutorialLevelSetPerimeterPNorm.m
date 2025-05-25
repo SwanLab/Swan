@@ -37,13 +37,13 @@ classdef TopOptTestTutorialLevelSetPerimeterPNorm < handle
 
             fileLocation = 'C:\Users\Biel\Desktop\UNI\TFG\ResultatsNormP_Density\00. From Batch';
             
-            vtuName = fullfile(fileLocation, sprintf('Topology_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02_LevelSet',p,pTarget));
+            vtuName = fullfile(fileLocation, sprintf('Topology_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.5_eta0.02_LevelSet',p,pTarget));
             obj.designVariable.fun.print(vtuName);
             
             figure(2)
             set(gcf, 'Position', get(0, 'Screensize'));
-            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02_LevelSet.fig',p,pTarget));
-            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02_LevelSet.png',p,pTarget));
+            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.5_eta0.02_LevelSet.fig',p,pTarget));
+            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.5_eta0.02_LevelSet.png',p,pTarget));
             savefig(fileName1);
             print(fileName2,'-dpng','-r300');
         end
@@ -185,7 +185,7 @@ classdef TopOptTestTutorialLevelSetPerimeterPNorm < handle
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
             s.shapeFunctions{2} = obj.globalPerimeter;
-            s.weights           = [1,0.3];
+            s.weights           = [1,0.8];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -227,7 +227,7 @@ classdef TopOptTestTutorialLevelSetPerimeterPNorm < handle
             s.primal         = 'SLERP';                  
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.002;
-            s.gJFlowRatio    = 0.2;
+            s.gJFlowRatio    = 0.5;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
             opt = OptimizerNullSpace(s);

@@ -59,11 +59,6 @@ classdef PerimeterNormPFunctional < handle
         end
 
         function createFilterAdjoint(obj)
-%             s.filterType = 'LUMP';
-%             s.mesh  = obj.mesh;
-%             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-%             f = Filter.create(s);
-
             s.filterType = 'PDE';
             s.mesh       = obj.mesh;
             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
