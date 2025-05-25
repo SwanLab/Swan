@@ -24,17 +24,20 @@
 
 
 values = [
-        16 2   0.05
-        16 2.5 0.05
-        16 3   0.05
-        16 2   2
-        16 2.5 2
-        16 3   2
+        16 2.3 0.2
+        16 2.5 0.2
+        16 2.7 0.2
+        16 3   0.2
+        16 3   0.02
+        16 2.3 0.5
+        16 3   0.5
         ];
 
 for ii = 1:size(values,1)
     p  = values(ii,1);
     pT = values(ii,2);
     gJ = values(ii,3);
-    TopOptTestTutorialDensityPerimeterPNorm(p,pT,gJ);
+    TopOptTestTutorialLevelSetPerimeterPNorm(p,pT,gJ);
 end
+
+GripperProblemDensityPerimeterPNorm(16,2.7)

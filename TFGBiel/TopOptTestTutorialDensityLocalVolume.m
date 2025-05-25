@@ -1,4 +1,4 @@
-classdef TopOptTestTutorialDensityLocalPerimeter < handle
+classdef TopOptTestTutorialDensityLocalVolume < handle
 
     properties (Access = private)
         mesh
@@ -8,8 +8,8 @@ classdef TopOptTestTutorialDensityLocalPerimeter < handle
         physicalProblem
         compliance
         volume
-        leftPerimeter
-        rightPerimeter
+        leftVolume
+        rightVolume
         globalPerimeter
         cost
         constraint
@@ -19,7 +19,7 @@ classdef TopOptTestTutorialDensityLocalPerimeter < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorialDensityLocalPerimeter()
+        function obj = TopOptTestTutorialDensityLocalVolume()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -29,8 +29,8 @@ classdef TopOptTestTutorialDensityLocalPerimeter < handle
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
             obj.createVolumeConstraint();
-            obj.createPerimeterConstraintLeft();
-            obj.createPerimeterConstraintRight();
+            obj.createVolumeConstraintLeft();
+            obj.createVolumeConstraintRight();
             obj.createGlobalPerimeterConstraint();
             obj.createCost();
             obj.createConstraint();
@@ -161,26 +161,26 @@ classdef TopOptTestTutorialDensityLocalPerimeter < handle
             obj.volume = v;
         end
 
-        function createPerimeterConstraintLeft(obj)
+        function createVolumeConstraintLeft(obj)
             s.mesh            = obj.mesh;
             s.uMesh           = obj.computeLeftDomain(); % Geometrical function
             s.filter          = obj.createFilterPerimeter();
             s.epsilon         = 4*obj.mesh.computeMeanCellSize();
             s.minEpsilon      = 4*obj.mesh.computeMeanCellSize();
-            s.value0          = 4; % Perimeter of subdomain OmegaLeft
-            s.target          = 0*(30/2); % Reference case té Per=30
-            obj.leftPerimeter = LocalPerimeterConstraint(s);
+            s.value0          = 2; % Volum Global
+            s.target          = 1; % Fracció volumétrica
+            obj.leftVolume    = LocalVolumeConstraint(s);
         end
 
-        function createPerimeterConstraintRight(obj)
+        function createVolumeConstraintRight(obj)
             s.mesh             = obj.mesh;
             s.uMesh            = obj.computeRightDomain(); % Geometrical function
             s.filter           = obj.createFilterPerimeter();
             s.epsilon          = 4*obj.mesh.computeMeanCellSize();
             s.minEpsilon       = 4*obj.mesh.computeMeanCellSize();
-            s.value0           = 4; % Perimeter of subdomain OmegaLeft
-            s.target           = 0.75*(30/2); % Reference case té Per=30
-            obj.rightPerimeter = LocalPerimeterConstraint(s);
+            s.value0           = 2; % Volum Global
+            s.target           = 0.5; % Fracció volumétrica
+            obj.rightVolume    = LocalVolumeConstraint(s);
         end
 
         function uMesh = computeLeftDomain(obj)
@@ -246,8 +246,8 @@ classdef TopOptTestTutorialDensityLocalPerimeter < handle
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
-            s.shapeFunctions{2} = obj.leftPerimeter;
-            s.shapeFunctions{3} = obj.rightPerimeter;
+            s.shapeFunctions{2} = obj.leftVolume;
+            s.shapeFunctions{3} = obj.rightVolume;
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
