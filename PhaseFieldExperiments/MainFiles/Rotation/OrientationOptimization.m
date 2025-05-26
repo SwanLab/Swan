@@ -1,6 +1,8 @@
 % My example
-syms theta exx eyy exy real
-assume(theta,'real');
+syms exx eyy exy real
+theta = sym('theta');
+assume(theta < pi)
+assumeAlso(0 <= theta)
 
 % Define trigonometric terms
 c2 = cos(2*theta);
@@ -12,7 +14,7 @@ C(3,1) = 0;
 C(1,3) = 0;
 C(3,2) = 0;
 C(2,3) = 0;
-% C(1,1) = C(1,2) + 2*C(3,3);
+%C(1,1) = C(1,2) + 2*C(3,3);
 C(2,2) = C(1,1);
 assume(C, 'real');  % Optional
 
@@ -33,7 +35,8 @@ dReps = diff(Reps,theta);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-eps_vec = [exx; eyy; exy];
+%eps_vec = [exx; eyy; exy];
+eps_vec = [1; 0; 0]
 rotEps = Reps*eps_vec;
 rotSig = C*rotEps; 
 sig = dRsig*rotSig; 
@@ -44,4 +47,6 @@ rotSig = C*rotEps;
 sig = Rsig*rotSig; 
 dE2 = simplify(eps_vec'*sig);
 
-dE = simplify(dE1 + dE2);
+dE = simplify(dE1 + dE2)
+thetaOpt = solve(dE,theta)
+

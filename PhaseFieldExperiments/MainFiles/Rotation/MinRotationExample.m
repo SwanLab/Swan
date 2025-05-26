@@ -8,15 +8,18 @@ funMat = matInfo.degradationFun.fun;
 % eps = [0 0; 0 1]; % Traction Y
 % eps = [0 1; 1 0]; % Pure shear
 % eps = [1 0; 0 -1]; % Possion
-% eps = [1 0; 0 1]; % Hidrostatic state
 % eps = [1 1; 1 1]; % Mixed state1
 % eps = [1 2; 2 1]; % Mixed state2
 % eps = [2 1; 1 2]; % Mixed state3
+ eps = [1 0; 0 1]; % Hidrostatic state
 
 epsV  = [eps(1,1) eps(2,2) 2*eps(1,2)]';
 
 %% Rotation matrices
-theta = sym("theta");
+syms theta
+assume(theta,'real');
+assumeAlso(theta < pi)
+assumeAlso(0 <= theta)
 
 Reps = [(1+cos(2*theta))/2 , (1-cos(2*theta))/2 , (-sin(2*theta))/2  ;
         (1-cos(2*theta))/2 , (1+cos(2*theta))/2 , (sin(2*theta))/2 ;
@@ -27,25 +30,29 @@ Rsig = [(1+cos(2*theta))/2 , (1-cos(2*theta))/2 , sin(2*theta)   ;
         (-sin(2*theta))/2  , (sin(2*theta))/2   , (cos(2*theta)) ];
 
 %% Material
-E  = 1;
-nu = 0.3;
-k  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E,nu,2);
-mu = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E,nu);
-l  = IsotropicElasticMaterial.computeLambdaFromShearAndBulk(mu,k,2);
-C = zeros(3,3);
-C(1,1)= 2*mu+l;
-C(1,2)= l;
-C(2,1)= l;
-C(2,2)= 2*mu+l;
-C(3,3)= mu;
+% E  = 1;
+% nu = 0.3;
+% k  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E,nu,2);
+% mu = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E,nu);
+% l  = IsotropicElasticMaterial.computeLambdaFromShearAndBulk(mu,k,2);
+% C = zeros(3,3);
+% C(1,1)= 2*mu+l;
+% C(1,2)= l;
+% C(2,1)= l;
+% C(2,2)= 2*mu+l;
+% C(3,3)= mu;
 
 phi   = linspace(0,1,10);
 colors = jet(10);
 colors2 = copper(10);
 epsAngle = zeros(2,10);
 sigAngle = zeros(2,10);
+Esol = cell(1,10);
+thetaSol = cell(1,10);
 
 for i=1:10
+
+% Compute material
 C = zeros(3,3);
 C(1,1)= double(subs(funMat{1,1},phi(i)));
 C(1,2)= double(subs(funMat{1,2},phi(i)));
@@ -53,10 +60,7 @@ C(2,1)= double(subs(funMat{2,1},phi(i)));
 C(2,2)= double(subs(funMat{2,2},phi(i)));
 C(3,3)= double(subs(funMat{3,3},phi(i)));
 
-%% Energy values
-energy = epsV'*Rsig*C*Reps*epsV;
-
-%% Principal directions
+% Compute principal directions
 [epsDir,epsVal] = eigs(eps);
 epsAngle(:,i) = atan2(epsDir(2,:),epsDir(1,:));
 for j=1:size(epsAngle,1)
@@ -76,24 +80,43 @@ for k=1:size(sigAngle,1)
     end
 end
 
-%% Plots
+% Compute energy minimum
+energy = epsV'*Rsig*C*Reps*epsV;
+dRsig = diff(Rsig,theta);
+dReps = diff(Reps,theta);
+
+rotEps = Reps*epsV;
+rotSig = C*rotEps; 
+sig = dRsig*rotSig; 
+dE1 = simplify(epsV'*sig);
+
+rotEps = dReps*epsV;
+rotSig = C*rotEps; 
+sig = Rsig*rotSig; 
+dE2 = simplify(epsV'*sig);
+
+dE = simplify(dE1 + dE2);
+thetaStar = double(solve(dE,theta));
+Esol{i} = double(subs(energy,thetaStar));
+thetaSol{i} = double(thetaStar);
+
+% Plots
 fplot(theta,energy,[0 pi],'Color',[colors(i,:)],'LineWidth',1.5);
 ax = gca;
 ax.XTick = 0:pi/8:pi;
 ax.XTickLabel = {'0','22.5','45','67.5','90',...
     '112.5','135','157.5','180'};
+% if i==1
+%     f = matlabFunction(energy);
+%     [~,maxV] = fminbnd(@(theta)-f(theta),0,pi);
+%     ylim([0 -maxV*1.05])
+% end
 
-if i==1
-    f = matlabFunction(energy);
-    [~,maxV] = fminbnd(@(theta)-f(theta),0,pi);
-    ylim([0 -maxV*1.05])
-end
-%ylim([0,3]) % For hidrostatic case
 hold on
+plot(thetaSol{i},Esol{i},'o','Color',[colors(1,:)])
 %xline([sigAngle(:,i)],'--',["s1-"+i,"s2-"+i],'Color',[colors2(i,:)])
 end
 xline([sigAngle(:,end)],'--',["s1","s2"])
 
 xl = xline([epsAngle(:,end)],'-',["e1","e2"]);
 xl(1).LabelVerticalAlignment   = 'bottom'; xl(2).LabelVerticalAlignment   = 'bottom';
-
