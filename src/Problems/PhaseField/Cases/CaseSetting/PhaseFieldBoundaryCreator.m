@@ -10,6 +10,7 @@ classdef PhaseFieldBoundaryCreator < handle
     end
     
     properties (SetAccess = private, GetAccess = public)
+        type
         mesh
         bcValues
         step
@@ -19,7 +20,7 @@ classdef PhaseFieldBoundaryCreator < handle
         
         function obj = PhaseFieldBoundaryCreator(mesh,cParams)
             obj.init(mesh,cParams)
-            obj.defineBoundaryConditions(cParams);
+            obj.defineBoundaryConditions();
         end
 
         function bC = nextStep(obj)
@@ -40,12 +41,13 @@ classdef PhaseFieldBoundaryCreator < handle
         
         function init(obj,mesh,cParams)
             obj.mesh = mesh;
+            obj.type = cParams.type.bc;
             obj.bcValues = cParams.bcValues;
             obj.step = 0;
         end
         
-        function defineBoundaryConditions(obj,cParams)
-           switch cParams.type.bc
+        function defineBoundaryConditions(obj)
+           switch obj.type
                case 'bending'
                    obj.createBoundaryConditions = @obj.createBendingConditions;
                case 'forceTraction'
@@ -92,13 +94,18 @@ classdef PhaseFieldBoundaryCreator < handle
              Dir1 = DirichletCondition(obj.mesh,sDir);
 
              isInUp = @(coor) (abs(coor(:,2) - max(coor(:,2)))  < 1e-12);
+             sDir.domain    = @(coor) isInUp(coor);
+             sDir.direction = [1];
+             sDir.value     = 0;
+             Dir2 = DirichletCondition(obj.mesh,sDir);
+
              sNeum.domain    = @(coor) isInUp(coor);
              sNeum.direction = [2];
              sNeum.value     = fVal;
              Neum1 = PointLoad(obj.mesh,sNeum);
 
              s.mesh = obj.mesh;
-             s.dirichletFun = [Dir1];
+             s.dirichletFun = [Dir1, Dir2];
              s.pointloadFun = [Neum1];
              s.periodicFun = [];
              obj.boundaryConditions = BoundaryConditions(s);           
