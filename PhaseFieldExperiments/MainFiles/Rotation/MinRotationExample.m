@@ -3,19 +3,19 @@ clc,clear,close all
 matInfo = load('HorizontalCrackDamage.mat');
 funMat = matInfo.degradationFun.fun;
 
-%% Strain state
-% eps = [1 0; 0 0]; % Traction X
+% Strain state
+ eps = [1 0; 0 0]; % Traction X
 % eps = [0 0; 0 1]; % Traction Y
 % eps = [0 1; 1 0]; % Pure shear
 % eps = [1 0; 0 -1]; % Possion
 % eps = [1 1; 1 1]; % Mixed state1
 % eps = [1 2; 2 1]; % Mixed state2
 % eps = [2 1; 1 2]; % Mixed state3
- eps = [1 0; 0 1]; % Hidrostatic state
+% eps = [1 0; 0 1]; % Hidrostatic state
 
 epsV  = [eps(1,1) eps(2,2) 2*eps(1,2)]';
 
-%% Rotation matrices
+% Rotation matrices
 syms theta
 assume(theta,'real');
 assumeAlso(theta < pi)
@@ -29,7 +29,7 @@ Rsig = [(1+cos(2*theta))/2 , (1-cos(2*theta))/2 , sin(2*theta)   ;
         (1-cos(2*theta))/2 , (1+cos(2*theta))/2 , -sin(2*theta)  ;
         (-sin(2*theta))/2  , (sin(2*theta))/2   , (cos(2*theta)) ];
 
-%% Material
+% Isotropic Material
 % E  = 1;
 % nu = 0.3;
 % k  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E,nu,2);
@@ -52,7 +52,7 @@ thetaSol = cell(1,10);
 
 for i=1:10
 
-% Compute material
+% Compute degraded material
 C = zeros(3,3);
 C(1,1)= double(subs(funMat{1,1},phi(i)));
 C(1,2)= double(subs(funMat{1,2},phi(i)));
