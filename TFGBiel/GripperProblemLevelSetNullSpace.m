@@ -35,7 +35,9 @@ classdef GripperProblemLevelSetNullSpace < handle
             obj.createDualVariable();
             obj.createOptimizer();
 
-            save GripperProblem_LevelSet obj
+            d = obj.designVariable;
+            m = obj.mesh;
+            save('GripperProblem_LevelSet.mat','d','m');
         end
 
     end
