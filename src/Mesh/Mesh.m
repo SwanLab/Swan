@@ -268,6 +268,38 @@ classdef Mesh < handle
             m = Mesh.create(s);
             l2g(newNodes(:)) = originalNodes(:);
         end
+
+        function [m, l2g] = createSingleBoundaryMesh3D(obj)
+            % Extract coordinates
+            x = obj.coord(:,1);
+            y = obj.coord(:,2);
+            z = obj.coord(:,3);
+
+            % Compute 3D boundary triangulation using shrink factor (alpha)
+            k = boundary(x, y, z, 0);  % Returns triangular faces (Nx3)
+
+            % Get unique nodes used in the boundary
+            originalNodes = unique(k(:));
+            newNodes = (1:length(originalNodes))';
+
+            % Map global indices to local
+            l2g = zeros(max(originalNodes), 1);  % Preallocate
+            l2g(originalNodes) = newNodes;
+
+            % Re-index the face connectivity to local node indices
+            boundaryConnec = l2g(k);
+
+            % Boundary node coordinates
+            boundaryCoords = [x(originalNodes), y(originalNodes), z(originalNodes)];
+
+            % Assemble mesh structure
+            s.coord = boundaryCoords;
+            s.connec = boundaryConnec;
+            s.kFace = obj.kFace - 1;  % or just -1 if not using face IDs
+
+            % Create mesh
+            m = Mesh.create(s);
+        end
         
         function [m, l2g] = getBoundarySubmesh(obj, domain)
             % To BoundaryMesh -- obj.boundary.mesh{iMesh} instead of

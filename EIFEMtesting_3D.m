@@ -1,4 +1,4 @@
-classdef EIFEMtesting < handle
+classdef EIFEMtesting_3D < handle
 
     properties (Access = public)
 
@@ -22,7 +22,7 @@ classdef EIFEMtesting < handle
 
     methods (Access = public)
 
-        function obj = EIFEMtesting()
+        function obj = EIFEMtesting_3D()
             close all
             obj.init()
 
@@ -51,7 +51,7 @@ classdef EIFEMtesting < handle
             MgaussSeidel = obj.createGaussSeidelpreconditioner(LHS);
             MJacobi      = obj.createJacobipreconditioner(LHS);
             Mmodal       = obj.createModalpreconditioner(LHS);
-%            MblockD      = obj.createBlockDiagonalpreconditioner(LHS);
+            %            MblockD      = obj.createBlockDiagonalpreconditioner(LHS);
             %             MdirNeu      = obj.createDirichletNeumannPreconditioner(mR,dir,iC,lG,bS,obj.LHS,mSb);
 
             MiluCG = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
@@ -59,7 +59,7 @@ classdef EIFEMtesting < handle
             tol = 1e-8;
             tic
             x0 = zeros(size(RHSf));
-%             [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
+            %             [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
             toc
             %             [uCG,residualCG,errCG,errAnormCG] = RichardsonSolver.solve(LHSf,RHSf,x0,P,tol,0.1,Usol);
 
@@ -69,16 +69,16 @@ classdef EIFEMtesting < handle
             x0 = zeros(size(RHSf));
             r = RHSf - LHSf(x0);
             Mmult = @(r) Preconditioner.multiplePrec(r,Milu,Meifem,Milu,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
-%              Mmult = @(r) Preconditioner.multiplePrec(r,Mid,Meifem,Mid,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
-%             zmult = Mmult(r);
-            
-%             zfull = obj.bcApplier.reducedToFullVectorDirichlet(zmult);
+            %              Mmult = @(r) Preconditioner.multiplePrec(r,Mid,Meifem,Mid,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
+            %             zmult = Mmult(r);
+
+            %             zfull = obj.bcApplier.reducedToFullVectorDirichlet(zmult);
             %obj.plotSolution(zfull,obj.meshDomaopenin,0,0,2,obj.bcApplier,0)
 
-%             zeifem = Meifem(r);
-%             zfull = obj.bcApplier.reducedToFullVectorDirichlet(zeifem);
+            %             zeifem = Meifem(r);
+            %             zfull = obj.bcApplier.reducedToFullVectorDirichlet(zeifem);
             %obj.plotSolution(zfull,obj.meshDomain,0,0,1,obj.bcApplier,0)
-           % x0 = zmult;
+            % x0 = zmult;
             tic
             %           tau = @(r,A) 1;
             [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
@@ -119,49 +119,111 @@ classdef EIFEMtesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [30 5]; %nx ny
+            obj.nSubdomains  = [2 2 9]; %nx ny
             obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
-%             obj.fileNameEIFEM = 'DEF_auxNew_2.mat';
+            %             obj.fileNameEIFEM = 'DEF_auxNew_2.mat';
             %obj.fileNameEIFEM = 'DEF_Q4porL_1_raul.mat';
-            obj.tolSameNode = 1e-12;
+            obj.tolSameNode = 1e-6;
         end
 
         function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomain(obj,mR)
             s.nsubdomains   = obj.nSubdomains; %nx ny
             s.meshReference = mR;
             s.tolSameNode = obj.tolSameNode;
-            m = MeshCreatorFromRVE(s);
+            m = MeshCreatorFromRVE3D(s);
             [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
         end
 
 
         function mS = createReferenceMesh(obj)
-            %     mS = obj.createStructuredMesh();
-            %   mS = obj.createMeshFromGid();
-            mS = obj.createEIFEMreferenceMesh();
+%                             mS = obj.createStructuredMesh();
+            mS = obj.createMeshFromGid();
+%                         mS = obj.createEIFEMreferenceMesh();
         end
 
 
         function mS = createMeshFromGid(obj)
-            filename   = 'lattice_ex1';
-            a.fileName = filename;
-            femD       = FemDataContainer(a);
-            mS         = femD.mesh;
+            %             filename   = 'lattice_ex1';
+            %             a.fileName = filename;
+            %             femD       = FemDataContainer(a);
+            %             mS         = femD.mesh;
+            load('por3Dmesh.mat');
+            s.connec = porMesh.connec ;
+            s.coord  = porMesh.coord;
+            maxC= max(s.coord);
+            minC = min(s.coord);
+            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
+            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+
+            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:) =...
+            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+
+            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:) =...
+            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+
+            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:) =...
+            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+
+            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:) =...
+            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+
+            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:) =...
+            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+
+            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:) =...
+            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+
+            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:) =...
+            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+
+            mS = Mesh.create(s);
+
+
         end
 
         function mS = createStructuredMesh(obj)
+%             mS = HexaMesh(1,1,1,10,10,10);
+            mS = TetraMesh(1,1,1,10,10,10);
+            s.coord = mS.coord;
+            maxC= max(s.coord);
+            minC = min(s.coord);
+             s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
+            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
 
-            % Generate coordinates
-            x1 = linspace(0,1,2);
-            x2 = linspace(0,1,2);
-            % Create the grid
-            [xv,yv] = meshgrid(x1,x2);
-            % Triangulate the mesh to obtain coordinates and connectivities
-            [F,coord] = mesh2tri(xv,yv,zeros(size(xv)),'x');
+            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:) =...
+            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
 
-            s.coord    = coord(:,1:2);
-            s.connec   = F;
-            mS         = Mesh.create(s);
+            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:) =...
+            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+
+            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:) =...
+            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+
+            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:) =...
+            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+
+            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:) =...
+            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+
+            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:) =...
+            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+
+            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:) =...
+            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+            s.connec = mS.connec;
+            mS = Mesh.create(s);
+            u = LagrangianFunction.create(mS,mS.ndim,'P1');
+            %             % Generate coordinates
+            %             x1 = linspace(0,1,2);
+            %             x2 = linspace(0,1,2);
+            %             % Create the grid
+            %             [xv,yv] = meshgrid(x1,x2);
+            %             % Triangulate the mesh to obtain coordinates and connectivities
+            %             [F,coord] = mesh2tri(xv,yv,zeros(size(xv)),'x');
+            %
+            %             s.coord    = coord(:,1:2);
+            %             s.connec   = F;
+            %             mS         = Mesh.create(s);
         end
 
         function mS = createEIFEMreferenceMesh(obj)
@@ -179,7 +241,7 @@ classdef EIFEMtesting < handle
         function mCoarse = createCoarseMesh(obj,mR)
             s.nsubdomains   = obj.nSubdomains; %nx ny
             s.meshReference = obj.createReferenceCoarseMesh(mR);
-%             s.meshReference = obj.loadReferenceCoarseMesh(mR);
+            %             s.meshReference = obj.loadReferenceCoarseMesh(mR);
             s.tolSameNode   = obj.tolSameNode;
             mRVECoarse      = MeshCreatorFromRVE(s);
             [mCoarse,~,~] = mRVECoarse.create();
@@ -239,20 +301,20 @@ classdef EIFEMtesting < handle
                 end
             end
 
-%              coord(1,:)  = [ 0.378041543026706 , -0.843442136498517 ];
-%              coord(2,:)  = [ 1.49050445103858  , -0.843442136498517 ];
-%              coord(3,:)  = [ 2.60296735905045  , -0.843442136498517 ];
-%              coord(4,:)  = [ 2.98100890207715  ,  0                 ];
-%              coord(5,:)  = [ 2.98100890207715  ,  0.314540059347181 ];
-%              coord(6,:)  = [ 2.60296735905045  ,  1.1579821958457   ];
-%              coord(7,:)  = [ 1.49050445103858  ,  1.1579821958457   ];
-%              coord(8,:)  = [ 0.378041543026706 ,  1.1579821958457   ];
-%              coord(9,:)  = [ 0                 ,  0.314540059347181 ];
-%              coord(10,:) = [ 0                 ,  0                 ];
-%         
-%          
-                     
-        
+            %              coord(1,:)  = [ 0.378041543026706 , -0.843442136498517 ];
+            %              coord(2,:)  = [ 1.49050445103858  , -0.843442136498517 ];
+            %              coord(3,:)  = [ 2.60296735905045  , -0.843442136498517 ];
+            %              coord(4,:)  = [ 2.98100890207715  ,  0                 ];
+            %              coord(5,:)  = [ 2.98100890207715  ,  0.314540059347181 ];
+            %              coord(6,:)  = [ 2.60296735905045  ,  1.1579821958457   ];
+            %              coord(7,:)  = [ 1.49050445103858  ,  1.1579821958457   ];
+            %              coord(8,:)  = [ 0.378041543026706 ,  1.1579821958457   ];
+            %              coord(9,:)  = [ 0                 ,  0.314540059347181 ];
+            %              coord(10,:) = [ 0                 ,  0                 ];
+            %
+            %
+
+
             connec = [1 2 3 4 5 6 7 8 9 10];
             s.coord = coord;
             s.connec = connec;
@@ -280,14 +342,14 @@ classdef EIFEMtesting < handle
         end
 
         function [young,poisson] = computeElasticProperties(obj,mesh)
-             E  = 1;
-             nu = 1/3;
-%             E  = 70000;
-%             nu = 0.3;
+            E  = 1;
+            nu = 1/3;
+            %             E  = 70000;
+            %             nu = 0.3;
             Epstr  = E/(1-nu^2);
             nupstr = nu/(1-nu);
-%             young   = ConstantFunction.create(Epstr,mesh);
-%             poisson = ConstantFunction.create(nupstr,mesh);
+            %             young   = ConstantFunction.create(Epstr,mesh);
+            %             poisson = ConstantFunction.create(nupstr,mesh);
             young   = ConstantFunction.create(E,mesh);
             poisson = ConstantFunction.create(nu,mesh);
         end
@@ -297,26 +359,28 @@ classdef EIFEMtesting < handle
             maxx = max(obj.meshDomain.coord(:,1));
             miny = min(obj.meshDomain.coord(:,2));
             maxy = max(obj.meshDomain.coord(:,2));
+            minz = min(obj.meshDomain.coord(:,3));
+            maxz = max(obj.meshDomain.coord(:,3));
             tolBound = obj.tolSameNode;
             isLeft   = @(coor) (abs(coor(:,1) - minx)   < tolBound);
             isRight  = @(coor) (abs(coor(:,1) - maxx)   < tolBound);
-            isBottom = @(coor) (abs(coor(:,2) - miny)   < tolBound);
-            isTop    = @(coor) (abs(coor(:,2) - maxy)   < tolBound);
+            isBottom = @(coor) (abs(coor(:,3) - minz)   < tolBound);
+            isTop    = @(coor) (abs(coor(:,3) - maxz)   < tolBound);
             %             isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) == 0);
-            Dir{1}.domain    = @(coor) isLeft(coor);%| isRight(coor) ;
-            Dir{1}.direction = [1,2];
+            Dir{1}.domain    = @(coor) isBottom(coor);%| isRight(coor) ;
+            Dir{1}.direction = [1,2,3];
             Dir{1}.value     = 0;
 
             %             Dir{2}.domain    = @(coor) isRight(coor) ;
             %             Dir{2}.direction = [2];
             %             Dir{2}.value     = 0;
 
-%             PL.domain    = @(coor) isTop(coor);
-%             PL.direction = [2];
-%             PL.value     = [-0.1];
-                        PL.domain    = @(coor) isRight(coor);
-                        PL.direction = [1];
-                        PL.value     = [0.1];
+            %             PL.domain    = @(coor) isTop(coor);
+            %             PL.direction = [2];
+            %             PL.value     = [-0.1];
+            PL.domain    = @(coor) isTop(coor);
+            PL.direction = [2];
+            PL.value     = [-1];
         end
 
         function [bc,Dir,PL] = createBoundaryConditions(obj,mesh)
@@ -384,7 +448,7 @@ classdef EIFEMtesting < handle
             filename        = EIFEMfilename;
             s.RVE           = TrainedRVE(filename);
             s.mesh          = obj.createCoarseMesh(mR);
-%            s.mesh          = obj.loadCoarseMesh(mR);
+            %            s.mesh          = obj.loadCoarseMesh(mR);
             s.DirCond       = dir;
             s.nSubdomains = obj.nSubdomains;
             eifem           = EIFEM(s);
@@ -461,37 +525,37 @@ classdef EIFEMtesting < handle
         end
 
 
-%         function plotSolution(obj,x,mesh,row,col,iter,flag)
-%             if nargin <7
-%                 flag =0;
-%             end
-%             %             xFull = bc.reducedToFullVector(x);
-%             if size(x,2)==1
-%                 s.fValues = reshape(x,2,[])';
-%             else
-%                 s.fValues = x;
-%             end
-%             %
-% 
-%             s.mesh = mesh;
-%             s.fValues(:,end+1) = 0;
-%             s.ndimf = 2;
-%             s.order = 'P1';
-%             xF = LagrangianFunction(s);
-%             %             xF.plot();
-%             if flag == 0
-%                 xF.print(['domain',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
-%             elseif flag == 1
-%                 xF.print(['DomainResidual',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
-%             elseif flag == 2
-%                 xF.print(['Residual',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
-%             elseif flag == 3
-%                 xF.print(['domainFine',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
-%             elseif flag == 4
-%                 xF.print(['domainNeuman',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
-%             end
-%             fclose('all');
-%         end
+        %         function plotSolution(obj,x,mesh,row,col,iter,flag)
+        %             if nargin <7
+        %                 flag =0;
+        %             end
+        %             %             xFull = bc.reducedToFullVector(x);
+        %             if size(x,2)==1
+        %                 s.fValues = reshape(x,2,[])';
+        %             else
+        %                 s.fValues = x;
+        %             end
+        %             %
+        %
+        %             s.mesh = mesh;
+        %             s.fValues(:,end+1) = 0;
+        %             s.ndimf = 2;
+        %             s.order = 'P1';
+        %             xF = LagrangianFunction(s);
+        %             %             xF.plot();
+        %             if flag == 0
+        %                 xF.print(['domain',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+        %             elseif flag == 1
+        %                 xF.print(['DomainResidual',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+        %             elseif flag == 2
+        %                 xF.print(['Residual',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+        %             elseif flag == 3
+        %                 xF.print(['domainFine',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+        %             elseif flag == 4
+        %                 xF.print(['domainNeuman',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+        %             end
+        %             fclose('all');
+        %         end
 
 
 
@@ -508,21 +572,24 @@ classdef EIFEMtesting < handle
             if ~isempty(bcApplier)
                 x = bcApplier.reducedToFullVectorDirichlet(x);
             end
-            
+
             if nargin <7
                 flag =0;
             end
             %             xFull = bc.reducedToFullVector(x);
             if size(x,2)==1
-                s.fValues = reshape(x,2,[])';
+                s.fValues = reshape(x,mesh.ndim,[])';
             else
                 s.fValues = x;
+            end
+
+            if mesh.ndim == 2
+                s.fValues(:,end+1) = 0;
             end
             %
 
             s.mesh = mesh;
-            s.fValues(:,end+1) = 0;
-            s.ndimf = 2;
+            s.ndimf = mesh.ndim;
             s.order = 'P1';
             xF = LagrangianFunction(s);
             %             xF.plot();
