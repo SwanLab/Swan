@@ -1,4 +1,4 @@
-classdef HardeningLawAT2 < HardeningLaw
+classdef HardeningLawAT1 < HardeningLaw
  
     properties (Access = private)
         w1
@@ -8,7 +8,7 @@ classdef HardeningLawAT2 < HardeningLaw
 
     methods (Access = public)
         
-        function obj = HardeningLawAT2(cParams)
+        function obj = HardeningLawAT1(cParams)
             obj@HardeningLaw(cParams)
             obj.initClassParams(cParams);
         end
@@ -38,7 +38,7 @@ classdef HardeningLawAT2 < HardeningLaw
         end
 
         function qInf = computeHardeningLimit(obj)
-            qInf =  (2*obj.w1*obj.r1 + obj.r1.^2-obj.r1^3)./(obj.w1*2+obj.r1);
+            qInf =  obj.w1./(obj.r1);
         end
 
         function itIs = isDamageOverLimit(obj,r)
@@ -46,11 +46,11 @@ classdef HardeningLawAT2 < HardeningLaw
         end        
 
         function q = computeHardening(obj,r)
-            q = (2*obj.w1.*r + r.^2-r.^3)./(obj.w1*2+r);
+            q = obj.w1./(r);
         end
 
         function qDot = computeHardeningDerivative(obj,r)
-            qDot = (4*obj.w1.^2-6*obj.w1.*r.^2+4*obj.w1.*r-2.*r.^3+r.^2)./(2*obj.w1+r).^2;
+            qDot = -obj.w1./r.^2;
         end
 
     end

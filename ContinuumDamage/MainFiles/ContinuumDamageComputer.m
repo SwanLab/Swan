@@ -40,7 +40,8 @@ classdef ContinuumDamageComputer < handle
                     [dres,Ksec] = obj.damageFunctional.computeDerivativeResidual(u,r,bc);
                     [uNew,uVec] = obj.computeDisplacement(dres,res,u,bc);
                     u.setFValues(uNew);
-
+                    err = norm(res);
+                    fprintf('Error: %d \n',err);
                     [res]  = obj.damageFunctional.computeResidual(u,r,bc);
                     err = norm(res);
                     fprintf('Error: %d \n',err);
