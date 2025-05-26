@@ -30,21 +30,10 @@ classdef BenchmarkManager < handle
                     s = FemDataContainer(a);
                     mesh = s.mesh;
                 case {'FiberMatrix','Hole'}
-                    N = 100;
-                    mesh = QuadMesh(1,1,N,N);
-
-                    gPar.type = 'Circle';
-                    gPar.xCoorCenter = 0.5;
-                    gPar.yCoorCenter = 0.5;
-                    gPar.radius = 0.25;
-                    g                  = GeometricalFunction(gPar);
-                    ls = g.computeLevelSetFunction(mesh);
-                    sUm.backgroundMesh = mesh;
-                    sUm.boundaryMesh   = mesh.createBoundaryMesh;
-                    uMesh              = UnfittedMesh(sUm);
-                    uMesh.compute(-ls.fValues);
-                    mesh = uMesh.createInnerMeshGoodConditioning();
-                    mesh.computeCanonicalMesh()
+                    file = 'Hole0_0025';
+                    a.fileName = file;
+                    s = FemDataContainer(a);
+                    mesh = s.mesh;
             end
             bc = PhaseFieldBoundaryCreator(mesh,cParams);
         end

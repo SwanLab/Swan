@@ -61,12 +61,12 @@ classdef PhaseFieldBoundaryCreator < handle
                case 'Lshape'
                    % obj.createBoundaryConditions = @obj.createLshapeDisplacementConditions;
                case 'FiberMatrix'
-                   obj.createFiberMatrixDisplacementConditions(prescribedVal);
+                   obj.createBoundaryConditions = @obj.createFiberMatrixDisplacementConditions;
            end
        end
 
 
-       function createBendingConditions(obj,uVal)
+       function createBendingConditions(obj,bcVal)
            isInLeft = @(coord) (abs(coord(:,1) - min(coord(:,1)))< 1e-12);
            sDir.domain    = @(coor) isInLeft(coor);
            sDir.direction = [1,2];
@@ -76,7 +76,7 @@ classdef PhaseFieldBoundaryCreator < handle
            isInRight = @(coord) (abs(coord(:,1) - max(coord(:,1)))< 1e-12);
            sDir.domain    = @(coor) isInRight(coor);
            sDir.direction = [2];
-           sDir.value     = uVal;
+           sDir.value     = bcVal;
            Dir2 = DirichletCondition(obj.mesh,sDir);
 
            s.mesh = obj.mesh;
@@ -86,7 +86,7 @@ classdef PhaseFieldBoundaryCreator < handle
            obj.boundaryConditions = BoundaryConditions(s);
         end
         
-         function createForceTractionConditions(obj,fVal)
+         function createForceTractionConditions(obj,bcVal)
              isInDown = @(coor) (abs(coor(:,2) - min(coor(:,2)))  < 1e-12);
              sDir.domain    = @(coor) isInDown(coor);
              sDir.direction = [1,2];
@@ -101,7 +101,7 @@ classdef PhaseFieldBoundaryCreator < handle
 
              sNeum.domain    = @(coor) isInUp(coor);
              sNeum.direction = [2];
-             sNeum.value     = fVal;
+             sNeum.value     = bcVal;
              Neum1 = PointLoad(obj.mesh,sNeum);
 
              s.mesh = obj.mesh;
@@ -111,7 +111,7 @@ classdef PhaseFieldBoundaryCreator < handle
              obj.boundaryConditions = BoundaryConditions(s);           
          end
         
-         function createDisplacementTractionConditions(obj,uVal)
+         function createDisplacementTractionConditions(obj,bcVal)
              isInDown = @(coor) (abs(coor(:,2) - min(coor(:,2)))  < 1e-12);
              sDir.domain    = @(coor) isInDown(coor);
              sDir.direction = [1,2];
@@ -126,7 +126,7 @@ classdef PhaseFieldBoundaryCreator < handle
 
              sDir.domain    = @(coor) isInUp(coor);
              sDir.direction = [2];
-             sDir.value     = uVal;       
+             sDir.value     = bcVal;       
              Dir3 = DirichletCondition(obj.mesh,sDir);
 
              s.mesh = obj.mesh;
@@ -136,7 +136,7 @@ classdef PhaseFieldBoundaryCreator < handle
              obj.boundaryConditions = BoundaryConditions(s);
          end
 
-         function createDisplacementShearConditions(obj,uVal)
+         function createDisplacementShearConditions(obj,bcVal)
              isInDown = @(coor) (abs(coor(:,2) - min(coor(:,2)))  < 1e-12);
              sDir.domain    = @(coor) isInDown(coor);
              sDir.direction = [1,2];
@@ -146,7 +146,7 @@ classdef PhaseFieldBoundaryCreator < handle
              isInUp = @(coor) (abs(coor(:,2) - max(coor(:,2)))  < 1e-12);
              sDir.domain    = @(coor) isInUp(coor);
              sDir.direction = [1];
-             sDir.value     = uVal;
+             sDir.value     = bcVal;
              Dir2 = DirichletCondition(obj.mesh,sDir);
 
              sDir.domain    = @(coor) isInUp(coor);
@@ -161,7 +161,7 @@ classdef PhaseFieldBoundaryCreator < handle
              obj.boundaryConditions = BoundaryConditions(s);
          end
 
-         function createDisplacementMixedConditions(obj,uVal)
+         function createDisplacementMixedConditions(obj,bcVal)
              angle = pi/4;
 
              isInDown = @(coor) (abs(coor(:,2) - min(coor(:,2)))  < 1e-12);
@@ -173,12 +173,12 @@ classdef PhaseFieldBoundaryCreator < handle
              isInUp = @(coor) (abs(coor(:,2) - max(coor(:,2)))  < 1e-12);
              sDir.domain    = @(coor) isInUp(coor);
              sDir.direction = [1];
-             sDir.value     = uVal*cos(angle);
+             sDir.value     = bcVal*cos(angle);
              Dir2 = DirichletCondition(obj.mesh,sDir);
 
              sDir.domain    = @(coor) isInUp(coor);
              sDir.direction = [2];
-             sDir.value     = uVal*sin(angle);
+             sDir.value     = bcVal*sin(angle);
              Dir3 = DirichletCondition(obj.mesh,sDir);             
 
              s.mesh = obj.mesh;
@@ -188,7 +188,7 @@ classdef PhaseFieldBoundaryCreator < handle
              obj.boundaryConditions = BoundaryConditions(s);
          end
 
-         function createLshapeDisplacementConditions(obj,uVal)
+         function createLshapeDisplacementConditions(obj,bcVal)
              isInDown = @(coor) (abs(coor(:,2) - min(coor(:,2)))  < 1e-12);
              sDir.domain    = @(coor) isInDown(coor);
              sDir.direction = [1,2];
@@ -203,7 +203,7 @@ classdef PhaseFieldBoundaryCreator < handle
 
              sDir.domain    = @(coor) isInTip(coor);
              sDir.direction = [2];
-             sDir.value     = uVal;
+             sDir.value     = bcVal;
              Dir3 = DirichletCondition(obj.mesh,sDir);
 
              % Merge
@@ -214,47 +214,41 @@ classdef PhaseFieldBoundaryCreator < handle
              obj.boundaryConditions = BoundaryConditions(s);
          end
 
-         function createFiberMatrixDisplacementConditions(obj,uVal)
-             % nodes = 1:obj.mesh.nnodes;
-             % ndim = 2;
-             % 
-             % % Enforce fixed Dirichlet conditions to the down nodes
-             % downSide = min(obj.mesh.coord(:,2));
-             % isInDown = abs(obj.mesh.coord(:,2)-downSide) < 1e-12;
-             % dirichletDown = zeros(ndim*length(nodes(isInDown)),3);
-             % for i=1:ndim
-             %     dirichletDown(i:2:end,1) = nodes(isInDown);
-             %     dirichletDown(i:2:end,2) = i;
-             % end
-             % 
-             % % Enforce fixed Dirichlet conditions to the fiber nodes
-             % center = [(min(obj.mesh.coord(:,1))+max(obj.mesh.coord(:,1)))/2;
-             %           (min(obj.mesh.coord(:,2))+max(obj.mesh.coord(:,2)))/2];
-             % radius = 0.2;
-             % isInCircle = ((obj.mesh.coord(:,1)-center(1)).^2 + (obj.mesh.coord(:,2)-center(2)).^2) ...
-             %              < (radius^2 + 1e-5);
-             % dirichletCircle = zeros(ndim*length(nodes(isInCircle)),3);
-             % for i=1:ndim
-             %     dirichletCircle(i:2:end,1) = nodes(isInCircle);
-             %     dirichletCircle(i:2:end,2) = i;
-             % end
-             % 
-             % % Enforce roller Dirichlet conditions to the top nodes
-             % upSide  = max(obj.mesh.coord(:,2));
-             % isInUp = abs(obj.mesh.coord(:,2)-upSide)< 1e-12;
-             % dirichletUp   = zeros(ndim*length(nodes(isInUp)),3);
-             % for i=1:ndim
-             %     dirichletUp(i:2:end,1) = nodes(isInUp);
-             %     dirichletUp(i:2:end,2) = i;
-             % end
-             % 
-             % % Enforce displacement at the top
-             % dirichletUp(2:2:end,3) = uVal;
-             % 
-             % % Merge
-             % bc.dirichlet = [dirichletDown; dirichletUp; dirichletCircle];
-             % bc.pointload = [];
-             % obj.boundaryConditions = bc;
+         function createFiberMatrixDisplacementConditions(obj,bcVal)
+             % Enforce fixed Dirichlet conditions to the down nodes
+             isDown = @(coord) (abs(coord(:,2) - min(coord(:,2)))< 1e-12);
+             sDir.domain    = @(coor) isDown(coor);
+             sDir.direction = [1,2];
+             sDir.value     = 0;
+             Dir1 = DirichletCondition(obj.mesh,sDir);
+
+             % Enforce fixed Dirichlet conditions to the fiber nodes
+             isFiber = @(coord) ((coord(:,1)-0.5).^2 + (coord(:,2)-0.5).^2) < (0.25^2 + 1e-5);
+             sDir.domain    = @(coor) isFiber(coor);
+             sDir.direction = [1,2];
+             sDir.value     = 0;
+             Dir2 = DirichletCondition(obj.mesh,sDir);
+
+             % Enforce roller Dirichlet conditions to the top nodes
+             isUp = @(coord) (abs(coord(:,2) - max(coord(:,2)))< 1e-12);
+             sDir.domain    = @(coor) isUp(coor);
+             sDir.direction = [1];
+             sDir.value     = 0;
+             Dir3 = DirichletCondition(obj.mesh,sDir);
+
+             % Enforce displacement at the top
+             isUp = @(coord) (abs(coord(:,2) - max(coord(:,2)))< 1e-12);
+             sDir.domain    = @(coor) isUp(coor);
+             sDir.direction = [2];
+             sDir.value     = bcVal;
+             Dir4 = DirichletCondition(obj.mesh,sDir);
+
+             % Merge
+             s.mesh = obj.mesh;
+             s.dirichletFun = [Dir1 Dir2 Dir3 Dir4];
+             s.pointloadFun = [];
+             s.periodicFun = [];
+             obj.boundaryConditions = BoundaryConditions(s);
          end
 
     end

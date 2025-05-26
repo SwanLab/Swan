@@ -22,8 +22,8 @@ s.maxIter.stag = 300;
 
 s.benchmark.N = 10;
 s.benchmark.type.mesh = 'FiberMatrix';
-s.benchmark.type.bc = 'displacementTraction';
-s.benchmark.bcValues = [0:1e-4:0.025];
+s.benchmark.type.bc = 'FiberMatrix';
+s.benchmark.bcValues = [0:1e-4:0.1];
 
 s.matInfo.matType = 'Analytic';
 s.matInfo.degradationType = 'AT';
@@ -45,5 +45,5 @@ outputData = tester.compute();
 outputData.inputParameters = s;
 
 %% SAVE + PLOT
-%save("SquarePerimeter","outputData") %ACTIVATE TO SAVE DATA!
+save("FiberAT2_2",'outputData') %ACTIVATE TO SAVE DATA!
 PhaseFieldPlotter(outputData);
