@@ -193,29 +193,29 @@ classdef CoarsePlotSolution < handle
 
             u = LagrangianFunction(ss);
 
-            u.print([num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
+            u.print([outputFileName],'Paraview')
 
-            fileName = [num2str(row),num2str(col),'_',num2str(iter)];
-
-            s = dir(pwd);
-            s = struct2table(s);
-            idx = startsWith(s.name, fileName);
-            s = s(idx,:);
-            oldFileName = s.name;
-            newFileName = replace(oldFileName, fileName, outputFileName);
-            fclose('all');
-            movefile(oldFileName{1}, newFileName{1});
-
-            fileName = ['innerCut',num2str(row),num2str(col),'_',num2str(iter)];
-
-            s = dir(pwd);
-            s = struct2table(s);
-            idx = startsWith(s.name, fileName);
-            s = s(idx,:);
-            oldFileName = s.name;
-            newFileName = replace(oldFileName, fileName, [outputFileName, '_cut']);
-            fclose('all');
-            movefile(oldFileName{1}, newFileName{1});
+            % fileName = [num2str(row),num2str(col),'_',num2str(iter)];
+            % 
+            % s = dir(pwd);
+            % s = struct2table(s);
+            % idx = startsWith(s.name, fileName);
+            % s = s(idx,:);
+            % oldFileName = s.name;
+            % newFileName = replace(oldFileName, fileName, outputFileName);
+            % fclose('all');
+            % movefile(oldFileName{1}, newFileName{1});
+            % 
+            % fileName = ['innerCut',num2str(row),num2str(col),'_',num2str(iter)];
+            % 
+            % s = dir(pwd);
+            % s = struct2table(s);
+            % idx = startsWith(s.name, fileName);
+            % s = s(idx,:);
+            % oldFileName = s.name;
+            % newFileName = replace(oldFileName, fileName, [outputFileName, '_cut']);
+            % fclose('all');
+            % movefile(oldFileName{1}, newFileName{1});
 
         end
 
