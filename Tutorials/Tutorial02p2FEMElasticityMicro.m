@@ -22,6 +22,20 @@ classdef Tutorial02p2FEMElasticityMicro < handle
     methods (Access = private)
         
         function createMesh(obj)
+           m = obj.createHoleMesh();
+%            m = obj.createAuxeticMesh();
+            obj.mesh = m;
+        end
+
+        function m = createAuxeticMesh(obj)
+            negmesh = load(fullfile('src','Mesh','NegPoissMesh.mat'));
+            %auxmesh = load(fullfile('src','Mesh','AuxeticMesh.mat'));            
+            s.coord = negmesh.NegPoissMesh.coord-0.5;
+            s.connec = negmesh.NegPoissMesh.connec;                        
+            m = Mesh.create(s); 
+        end
+
+        function m = createHoleMesh(obj)
             l = 1;
             h = 1;
             nx = 30; 
@@ -36,9 +50,6 @@ classdef Tutorial02p2FEMElasticityMicro < handle
             s.connec = F;
             fullmesh = Mesh.create(s);
 
-            load('src\Mesh\NegPoissMesh.mat');
-            %auxmesh = load('src\Mesh\AuxeticMesh.mat');
-
             % fullmesh = UnitTriangleMesh(50,50);
             ls = obj.computeCircleLevelSet(fullmesh);
             sUm.backgroundMesh = fullmesh;
@@ -46,9 +57,8 @@ classdef Tutorial02p2FEMElasticityMicro < handle
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(ls);
             holeMesh = uMesh.createInnerMesh();
-            %obj.mesh = holeMesh;
-            obj.mesh = fullmesh;
-            %obj.mesh = NegPoissMesh;
+            m = holeMesh;
+            %obj.mesh = fullmesh;
         end
 
         function ls = computeCircleLevelSet(obj, mesh)

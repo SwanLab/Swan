@@ -92,6 +92,7 @@ classdef ElasticProblemMicro < handle
             ex  = e(1,:,:);
             ey  = e(2,:,:);
             exy = e(3,:,:);
+            uM = zeros(size(y));
             if iB <= 3
                 uM(1,:,:) = ex  .* y1 + exy .* y2;
                 uM(2,:,:) = exy .* y1 + ey  .* y2;
