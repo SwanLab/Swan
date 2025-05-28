@@ -36,7 +36,8 @@ classdef Tutorial02p2FEMElasticityMicro < handle
             s.connec = F;
             fullmesh = Mesh.create(s);
 
-            %load('NegPoissMesh.mat');
+            load('src\Mesh\NegPoissMesh.mat');
+            %auxmesh = load('src\Mesh\AuxeticMesh.mat');
 
             % fullmesh = UnitTriangleMesh(50,50);
             ls = obj.computeCircleLevelSet(fullmesh);
