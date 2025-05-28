@@ -42,7 +42,7 @@ classdef TopOptTestTutorialWithGiD < handle
         end
 
         function createMesh(obj)
-            file = 'test2d_triangle';
+            file = 'BEAM_3D_FRAME';
             obj.filename = file;
             a.fileName = file;
             s = FemDataContainer(a);
@@ -84,7 +84,7 @@ classdef TopOptTestTutorialWithGiD < handle
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
             s.interpolation  = 'SIMPALL';
-            s.dim            = '2D';
+            s.dim            = '3D';
             s.matA = matA;
             s.matB = matB;
 
@@ -99,7 +99,7 @@ classdef TopOptTestTutorialWithGiD < handle
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
-            s.dim                  = '2D';
+            s.dim                  = '3D';
             s.mesh                 = obj.mesh;
             m = Material.create(s);
         end
@@ -108,7 +108,7 @@ classdef TopOptTestTutorialWithGiD < handle
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
             s.material = obj.createMaterial();
-            s.dim = '2D';
+            s.dim = '3D';
             s.boundaryConditions = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
