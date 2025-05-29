@@ -19,7 +19,7 @@ function main_constraint_drag
     alpha0 = deg2rad(10);
     u0 = [tf; alpha0];
     lb = [0 0.01]; % Lower bounds for the control
-    ub = [50 deg2rad(10)]; % Upper bounds for the control
+    ub = [500 deg2rad(10)]; % Upper bounds for the control
 
     u0 = [u0(1) ones(1,N)*u0(2)];
     lb = [lb(1) ones(1,N)*lb(2)];

@@ -32,17 +32,44 @@ function main_constraint_nodrag
     disp(["Initial angle [°]: ", num2str(rad2deg(u_opt(2)))])
     disp(["Final Time [s]: ", num2str(u_opt(1))])
 
-    figure; plot(y(:,1), y(:,2), 'b-', 'LineWidth', 2);
-    xlabel("Horizontal distance [m]"); ylabel("Vertical distance [m]"); grid on;
+    %%% Results plot %%%
 
-    figure; plot(u_history(:,1), 'b-o', 'LineWidth', 2);
+    set(groot, 'defaultTextInterpreter', 'latex');
+    set(groot, 'defaultAxesTickLabelInterpreter', 'latex');
+    set(groot, 'defaultLegendInterpreter', 'latex');
+    
+    % Trajectory
+
+    figure;
+    plot(y(:,1), y(:,2), 'b-', 'LineWidth', 2);
+    hold on
+    plot(y(1,1), y(1,2), 'go', 'MarkerSize', 7, 'MarkerFaceColor', 'g'); % initial
+    plot(y(end,1), y(end,2), 'ro', 'MarkerSize', 7, 'MarkerFaceColor', 'r'); % final
+    xlabel("Horizontal distance [m]"); 
+    ylabel("Vertical distance [m]");
+    ylim([0 6])
+    grid on;
+    legend({'Trajectory','Start','Final'}, 'Location', 'Best');
+
+    % Control over iterations
+
+    figure;
+    subplot(2,1,1)
+    plot(u_history(:,1), 'b-o', 'LineWidth', 2, 'MarkerSize', 6);
     xlabel('Iteration'); ylabel('Final time [s]'); grid on;
+    title('Convergence of final time')
 
-    figure; plot(rad2deg(u_history(:,2)), 'r-o', 'LineWidth', 2);
-    xlabel('Iteration'); ylabel('Initial angle [°]'); grid on;
+    subplot(2,1,2)
+    plot(rad2deg(u_history(:,2)), 'r-o', 'LineWidth', 2, 'MarkerSize', 6);
+    xlabel('Iteration'); ylabel('Initial angle [$^circ$]'); grid on;
+    title('Convergence of initial angle')
 
-    figure; plot(J_history, 'o-', 'LineWidth', 2);
+    % Cost function
+
+    figure; 
+    plot(J_history, 'k-o', 'LineWidth', 2, 'MarkerSize', 6);
     xlabel('Iteration'); ylabel('Cost function J'); grid on;
+    title('Evolution of cost function')
 
     vars = whos;
     nodrag_results = struct();
