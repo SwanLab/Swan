@@ -40,10 +40,10 @@ function main_constraint_drag
     cost = @(u) f_cost(u, g, t0, v0, gamma0, x1_0, x2_0, D, dDda, dDdv, N, m);
     constraint = @(u) groundConstraint(u, g, t0, v0, x1_0, x2_0, gamma0, D, dDda, dDdv, N, m);
 
-    [valid,err] = checkGradients(cost, u0, 'Tolerance', 1e-3, 'Display', 'on');
-    assignin('base', 'err', err);
-    [valid2,err2] = checkGradients(constraint, u0, 'Tolerance', 1e-3, 'Display', 'on')
-    assignin('base', 'err2', err2);
+    %[valid,err] = checkGradients(cost, u0, 'Tolerance', 1e-3, 'Display', 'on');
+    %assignin('base', 'err', err);
+    %[valid2,err2] = checkGradients(constraint, u0, 'Tolerance', 1e-3, 'Display', 'on')
+    %assignin('base', 'err2', err2);
 
     options = optimoptions("fmincon", ...
         "OutputFcn", @store_fmincon, ...
@@ -103,7 +103,7 @@ function [J, gradJ] = f_cost(u, g, t0, v0, gamma0, x1_0, x2_0, D, dDdv, dDda, N,
     y0 = [x1_0 x2_0 v0 gamma0];
     tf = u(1);
     alpha = u(2:N+1);
-    t_span = linspace(t0, u(1), N);    
+    t_span = linspace(t0, tf, N);    
     [~, y] = ode45(@(t, y) dynamics(t, y, tf, alpha, g, D, N, m), t_span, y0);
 
     J = -y(end,1);
@@ -119,12 +119,12 @@ function [J, gradJ] = f_cost(u, g, t0, v0, gamma0, x1_0, x2_0, D, dDdv, dDda, N,
     v = y(:,3);
     DFdu = -dDda(v,alpha')./m;
 
-    % gradJ = [-dydt_final(1); DFdu.*p(:,3)];
-    gradJ = zeros(N+1,1);
-    gradJ(1) = -dydt_final(1);
-    for i = 1:N
-    gradJ(i+1) = DFdu(i) * p(i,3);
-    end
+     gradJ = [-dydt_final(1); -DFdu.*p(:,3)];
+    %gradJ = zeros(N+1,1);
+    %gradJ(1) = -dydt_final(1);
+    %for i = 1:N
+    %gradJ(i+1) = DFdu(i) * p(i,3);
+    %end
 end
 
 function [ceq, Dceq] = groundConstraint(u, g, t0, v0, x1_0, x2_0, gamma0, D, dDdv, dDda, N, m)
@@ -146,7 +146,7 @@ function [ceq, Dceq] = groundConstraint(u, g, t0, v0, x1_0, x2_0, gamma0, D, dDd
     v = y(:,3);
     DFdu = -dDda(v,alpha');
 
-    Dceq = [dydt_final(2); DFdu.*p(:,3)];
+    Dceq = [dydt_final(2); -DFdu.*p(:,3)];
 end
 
 function dpdt = adjoint(t, p, y, g, t_span, alpha, dDdv, m)
@@ -161,7 +161,7 @@ function dpdt = adjoint(t, p, y, g, t_span, alpha, dDdv, m)
 
     J = [0 0 0 0;
          0 0 0 0;
-         cos(gamma) sin(gamma) -dDdv(v,alpha')./m (g/v^2)*cos(gamma);
+         cos(gamma) sin(gamma) -dDdv(v,alpha)./m (g/v^2)*cos(gamma);
          -v*sin(gamma) v*cos(gamma) -g*cos(gamma) (g/v)*sin(gamma)];
     dpdt = -J*p;
 end
