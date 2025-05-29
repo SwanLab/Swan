@@ -16,8 +16,9 @@ classdef HardeningLawAT1 < HardeningLaw
         function qFun = computeFunction(obj,internalVariable)
             r = internalVariable.r;
             isOverLimit = obj.isDamageOverLimit(r);
+            isOverR0 = obj.isDamaging(r);
             q = obj.computeHardening(r);
-            qFun = (q.*(~isOverLimit) + obj.qInf.*isOverLimit);
+            qFun = (~isOverR0).*obj.r0 + (isOverR0).*(q.*(~isOverLimit) + obj.qInf.*isOverLimit);
         end
 
         function qDot = computeDerivative(obj,internalVariable)
@@ -43,7 +44,11 @@ classdef HardeningLawAT1 < HardeningLaw
 
         function itIs = isDamageOverLimit(obj,r)
             itIs = (r > obj.r1);
-        end        
+        end     
+
+        function itIs = isDamaging(obj,r)
+            itIs = (r > obj.r0);
+        end     
 
         function q = computeHardening(obj,r)
             q = obj.w1./(r);
