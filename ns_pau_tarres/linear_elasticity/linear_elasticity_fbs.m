@@ -98,7 +98,7 @@ tau = 0.3;
 for k = 1:maxIter
     U = U_new;
 
-    % -- gradient step on the FREE dofs only
+    % -- gradient step
     grad = K*U - F;
     U_new = U - tau*grad;
     

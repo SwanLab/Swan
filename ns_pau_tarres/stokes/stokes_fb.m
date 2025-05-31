@@ -4,7 +4,7 @@ clc
 % =========================================================================
 % 1) CREATE MESH
 % =========================================================================
-mesh = UnitTriangleMesh(100,100);
+mesh = UnitTriangleMesh(30,30);
 
 % =========================================================================
 % 2) CREATE FINITE ELEMENT FUNCTIONS (velocity u, pressure p)
@@ -102,7 +102,7 @@ RHS(pFix + u.nDofs) = 0;
 maxIter = 200000;
 tol     = 1e-6;
 
-lambda = 0.15;
+lambda = 0.17;
 
 u_k1 = zeros(n_dofs_u, 1);
 p_k1 = zeros(n_dofs_p, 1);
@@ -110,8 +110,9 @@ p_k1 = zeros(n_dofs_p, 1);
 for iter = 1:maxIter
     u_k = u_k1;
     p_k = p_k1;
-    u_k(dir_dofs) = dirichlet(:,3);
-    u_ast = u_k - lambda*(K*u_k + F);
+    gr = K*u_k - F;
+    u_ast = u_k - lambda*gr;
+    u_ast(dir_dofs) = dirichlet(:,3);
     rhs = [M*u_ast; o];
     vars = LHS \ rhs;
     u_k1 = vars(1:n_dofs_u);

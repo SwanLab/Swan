@@ -24,7 +24,7 @@ isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2)))   < 1e-12);
 
 dir_vel{1}.domain    = @(coor) isTop(coor);
 dir_vel{1}.direction = [1,2];
-dir_vel{1}.value     = [100,0];
+dir_vel{1}.value     = [1,0];
 
 dir_vel{2}.domain    = @(coor) (isBottom(coor) | isRight(coor) | isLeft(coor)) & not(isTop(coor));
 dir_vel{2}.direction = [1,2];
@@ -108,11 +108,13 @@ x = zeros(length(RHS),1);
 x_prev = zeros(length(RHS),1);
 lambda = 1;
 
+nu = 1e-2;
+
 for iter = 1:maxIter
 
     N = LHS4.compute(u);
     
-    LHS = [K+N D C; D' O1 O2; C' O2' O3];
+    LHS = [nu*K+ N D C; D' O1 O2; C' O2' O3];
     LHS(pFix + u.nDofs, :) = 0;
     LHS(:, pFix + u.nDofs) = 0;
     LHS(pFix + u.nDofs, pFix + u.nDofs) = 1;
