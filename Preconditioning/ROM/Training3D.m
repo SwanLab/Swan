@@ -126,12 +126,12 @@ classdef Training3D < handle
 % % %             s.coord    = coord(:,1:2);
 % % %             s.connec   = F;
 % % %             mS         = Mesh.create(s);
-            mS = TetraMesh(1,1,1,2,2,2);
+            mS = TetraMesh(1,1,1,3,3,3);
             s.coord = mS.coord;
             s.connec = mS.connec;
              maxC= max(s.coord);
             minC = min(s.coord);
-           shift = 1e-2;
+           shift = 1e-3;
             s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
                 s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,shift];
 

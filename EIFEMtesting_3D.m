@@ -41,7 +41,9 @@ classdef EIFEMtesting_3D < handle
             LHSf = @(x) LHS*x;
             RHSf = RHS;
             Usol = LHS\RHS;
+            tic
             Ufull = obj.bcApplier.reducedToFullVectorDirichlet(Usol);
+            toc
             %obj.plotSolution(Ufull,obj.meshDomain,1,1,0,obj.bcApplier,0)
 
 
@@ -119,8 +121,8 @@ classdef EIFEMtesting_3D < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [2 2 9]; %nx ny
-            obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
+            obj.nSubdomains  = [15 4 1]; %nx ny
+            obj.fileNameEIFEM = 'DEF_por3D.mat';
             %             obj.fileNameEIFEM = 'DEF_auxNew_2.mat';
             %obj.fileNameEIFEM = 'DEF_Q4porL_1_raul.mat';
             obj.tolSameNode = 1e-6;
@@ -137,8 +139,8 @@ classdef EIFEMtesting_3D < handle
 
         function mS = createReferenceMesh(obj)
 %                             mS = obj.createStructuredMesh();
-            mS = obj.createMeshFromGid();
-%                         mS = obj.createEIFEMreferenceMesh();
+%             mS = obj.createMeshFromGid();
+                        mS = obj.createEIFEMreferenceMesh();
         end
 
 
@@ -230,12 +232,39 @@ classdef EIFEMtesting_3D < handle
             filename = obj.fileNameEIFEM;
             load(filename);
             s.coord    = EIFEoper.MESH.COOR;
-            isMin = s.coord==min(s.coord);
-            isMax = s.coord==max(s.coord);
-
             s.connec   = EIFEoper.MESH.CN;
-            s.interType = 'QUADRATIC';
-            mS         = Mesh.create(s);
+
+            maxC= max(s.coord);
+            minC = min(s.coord);
+            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
+            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+
+            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:) =...
+            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+
+            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:) =...
+            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+
+            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:) =...
+            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+
+            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:) =...
+            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+
+            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:) =...
+            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+
+            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:) =...
+            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+
+            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:) =...
+            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+
+            mS = Mesh.create(s);
+
+%             s.connec   = EIFEoper.MESH.CN;
+%             s.interType = 'QUADRATIC';
+%             mS         = Mesh.create(s);
         end
 
         function mCoarse = createCoarseMesh(obj,mR)
@@ -243,7 +272,7 @@ classdef EIFEMtesting_3D < handle
             s.meshReference = obj.createReferenceCoarseMesh(mR);
             %             s.meshReference = obj.loadReferenceCoarseMesh(mR);
             s.tolSameNode   = obj.tolSameNode;
-            mRVECoarse      = MeshCreatorFromRVE(s);
+            mRVECoarse      = MeshCreatorFromRVE3D(s);
             [mCoarse,~,~] = mRVECoarse.create();
         end
 
@@ -254,24 +283,18 @@ classdef EIFEMtesting_3D < handle
             xmin = min(mR.coord(:,1));
             ymax = max(mR.coord(:,2));
             ymin = min(mR.coord(:,2));
-            coord(1,1) = xmin;
-            coord(1,2) = ymin;
-            coord(2,1) = xmax;
-            coord(2,2) = ymin;
-            coord(3,1) = xmax;
-            coord(3,2) = ymax;
-            coord(4,1) = xmin;
-            coord(4,2) = ymax;
-            %             coord(1,1) = xmax;
-            %             coord(1,2) = ymin;
-            %             coord(2,1) = xmax;
-            %             coord(2,2) = ymax;
-            %             coord(3,1) = xmin;
-            %             coord(3,2) = ymax;
-            %             coord(4,1) = xmin;
-            %             coord(4,2) = ymin;
-            connec = [1 2 3 4];
-            connec = [2 3 4 1];
+            zmax = max(mR.coord(:,3));
+            zmin = min(mR.coord(:,3));
+            coord(1,1) = xmax;  coord(1,2) = ymax;   coord(1,3) = zmax;
+            coord(2,1) = xmin;  coord(2,2) = ymax;   coord(2,3) = zmax;
+            coord(3,1) = xmin;  coord(3,2) = ymax;   coord(3,3) = zmin;
+            coord(4,1) = xmax;  coord(4,2) = ymax;   coord(4,3) = zmin;
+            coord(5,1) = xmax;  coord(5,2) = ymin;   coord(5,3) = zmax;
+            coord(6,1) = xmin;  coord(6,2) = ymin;   coord(6,3) = zmax;
+            coord(7,1) = xmin;  coord(7,2) = ymin;   coord(7,3) = zmin;
+            coord(8,1) = xmax;  coord(8,2) = ymin;   coord(8,3) = zmin;
+           
+            connec = [1 2 3 4 5 6 7 8];
             s.coord = coord;
             s.connec = connec;
             cMesh = Mesh.create(s);
@@ -367,7 +390,7 @@ classdef EIFEMtesting_3D < handle
             isBottom = @(coor) (abs(coor(:,3) - minz)   < tolBound);
             isTop    = @(coor) (abs(coor(:,3) - maxz)   < tolBound);
             %             isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) == 0);
-            Dir{1}.domain    = @(coor) isBottom(coor);%| isRight(coor) ;
+            Dir{1}.domain    = @(coor) isLeft(coor);%| isRight(coor) ;
             Dir{1}.direction = [1,2,3];
             Dir{1}.value     = 0;
 
@@ -378,7 +401,7 @@ classdef EIFEMtesting_3D < handle
             %             PL.domain    = @(coor) isTop(coor);
             %             PL.direction = [2];
             %             PL.value     = [-0.1];
-            PL.domain    = @(coor) isTop(coor);
+            PL.domain    = @(coor) isRight(coor);
             PL.direction = [2];
             PL.value     = [-1];
         end
@@ -484,7 +507,7 @@ classdef EIFEMtesting_3D < handle
             s.nReferenceNodes = mR.nnodes;
             s.nNodes          = obj.meshDomain.nnodes;
             s.nDimf           = obj.meshDomain.ndim;
-            d = DomainDecompositionDofManager(s);
+            d = DomainDecompositionDofManager3D(s);
         end
 
         function Milu = createILUpreconditioner(obj,LHS)
