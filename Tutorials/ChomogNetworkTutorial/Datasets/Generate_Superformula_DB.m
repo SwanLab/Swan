@@ -11,28 +11,28 @@ addpath(genpath('src'))
 
 % Set geometrical parameters
 
-max_radius = 0.245;
+max_radius = 0.4;
 min_radius = 0.1;
 
 min_semiAxis = 0.2;
 max_semiAxis = 0.4;
-nVar_semiAxis = 1;
+nVar_semiAxis = 3;
 
-min_mParam = 6;
-max_mParam = 10;
-nVar_mParam = 1 + (max_mParam - min_mParam) / 2;
+min_mParam = 1;
+max_mParam = 8;
+nVar_mParam = 1 + (max_mParam - min_mParam);
 
 min_nParam = 2;
 max_nParam = 12;
-nVar_nParam = 6;
+nVar_nParam = 4;
 
 % Data-file storage
-data_filename = 'PauFolder/Datasets/Chomog_superformula_Big.csv';
+data_filename = 'Tutorials/ChomogNetworkTutorial/Datasets/Chomog_superformula_Big.csv';
 
 % Compute the homogenized tensors
 
 semiAxisArray = linspace(min_semiAxis, max_semiAxis, nVar_semiAxis);
-mParamArray = min_mParam:2:max_mParam;
+mParamArray = min_mParam:1:max_mParam;
 nParamArray = linspace(min_nParam, max_nParam, nVar_nParam);
 
 %nVar_total = nVar_semiAxis^2 * nVar_mParam * nVar_nParam^3;
@@ -99,11 +99,20 @@ for n_sh = 1:nVar_semiAxis
                                                       Chomog_tensor(1, 2), ...
                                                       Chomog_tensor(2, 2), ...
                                                       Chomog_tensor(3, 3)];
-                        Params_array(n_counter, :) = cell2mat(struct2cell(gPar))';
+                        %Params_array(n_counter, :) = cell2mat(struct2cell(gPar))';
+
+                        Params_array(n_counter, :) = [gPar.semiHorizontalAxis, ...
+                                                      gPar.semiVerticalAxis, ...
+                                                      gPar.m, ...
+                                                      gPar.n1, ...
+                                                      gPar.n2, ...
+                                                      gPar.n3];
 
                         % Plot mesh
-                        figure();
-                        femMicro.mesh.plot();
+                        %close all;
+                        %figure();
+                        %femMicro.mesh.plot();
+                        %plot_superform(gPar);
 
                         % Log generation progress
                         fun_logProgress(n_counter, nVar_total);
@@ -115,43 +124,16 @@ for n_sh = 1:nVar_semiAxis
     end
 end
 
-%% Data plotting
+% Data Storage
+% Create a table with Chomog_array and Sides_array
+%data_table = array2table([Sides_array, Chomog_array], 'VariableNames', {'a', 'b', 'Chomog_00', 'Chomog_01', 'Chomog_02', 'Chomog_10', 'Chomog_11', 'Chomog_12', 'Chomog_20', 'Chomog_21', 'Chomog_22'});
+data_table = array2table([Params_array, Chomog_array], 'VariableNames', {'a', 'b', 'm', 'n1', 'n2', 'n3', 'Chomog_00', 'Chomog_01', 'Chomog_11', 'Chomog_22'});
 
-close all
-
-% Reshape the a and b parameters
-var_a = reshape(Sides_array(:, 1), [n_variations, n_variations]);
-var_b = reshape(Sides_array(:, 2), [n_variations, n_variations]);
-
-% Plot every Chomog variable (tensor position)
-hfig = figure;
-tiledlayout(3, 3)
-for i = 1:9
-
-    % Reshape the data into a matrix with positions dependant on a and b
-    var_C = reshape(Chomog_array(:, i), [n_variations, n_variations]);
-    
-    % Plot the data
-    nexttile
-    surf(var_a, var_b, var_C)
-    %shading interp
-    colormap winter
-
-    % Find the indices of the constitutive tensor (must be a simpler way)
-    [C_comp_j, C_comp_i] = ind2sub([3, 3], i);
-
-    % Indicate ellipse parameters - axis
-    xlabel('Sx')
-    ylabel('Sy')
-
-    % Indicate component of constitutive tensor
-    title(['Component ', num2str(C_comp_i), ', ', num2str(C_comp_j),' of constitutive tensor'])
-end
-
-adjust_figure_properties(hfig, 12, 30, 0.5);
+% Save the table as a CSV file
+writetable(data_table, data_filename);
 
 
-%% Random function
+%% Useful functions
 
 function is_valid = fun_super_eval(gPar, r_min, r_max)
 
@@ -236,7 +218,7 @@ function plot_superform(gPar)
     rad_vec = fun_superform(phi_vec, a, b, m, n1, n2, n3);
     x_vec = rad_vec .* cos(phi_vec);
     y_vec = rad_vec .* sin(phi_vec);
-    figure()
+    
     plot(x_vec, y_vec)
     axis equal
 
@@ -253,7 +235,7 @@ function fun_logRunTime(nVar_total)
     if runTimeMins > 1 && runTimeMins < 60
         fprintf('Expected execution time: %.1f minutes', runTimeMins);
     elseif runTimeHours > 1 && runTimeHours < 24
-        fprintf('Expected execution time: %.1f hours', runTimeMins);
+        fprintf('Expected execution time: %.1f hours', runTimeHours);
     elseif runTimeDays > 1
         fprintf('Expected execution time: %.1f days', runTimeDays);
     else
