@@ -33,7 +33,7 @@ classdef AirfoilOptimizer < handle
 
        function generateAFSOPVideo(obj)
             plotFun = @(s, i) AirfoilOptimizer.plotAirfoilContour(s, i);
-            VideoGenerator.compute("AirfoilOptimization", size(obj.ParamsMat,1),125, obj.ParamsMat, plotFun);
+            VideoGenerator.compute("AirfoilOptimization", size(obj.ParamsMat,1),105, obj.ParamsMat, plotFun);
        end
 
        function generateVelVideo(obj)
@@ -76,7 +76,7 @@ classdef AirfoilOptimizer < handle
        function computeOptimization(obj)
             diff     = 1;
             iter     = 1;
-            maxIter  = 151;%301
+            maxIter  = 141;%301
         
             rho      = 0.5;   %0.9         
             epsilon  = 1e-8;           
@@ -84,12 +84,12 @@ classdef AirfoilOptimizer < handle
         
             while diff > obj.tol && iter < maxIter
 
-                if (iter > 90)
+                if (iter > 70)
 
                     obj.learningRate = 0.5;
                 end
 
-                 if (iter > 115)
+                 if (iter > 95)
 
                     obj.learningRate = 0.02;
                 end

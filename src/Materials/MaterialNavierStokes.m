@@ -3,6 +3,7 @@ classdef MaterialNavierStokes < Material
     properties (Access = public)
         nu
         nElem
+        nuValue
     end
     
     methods (Access = public) 

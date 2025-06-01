@@ -3,11 +3,11 @@ Naca.flowType  = "Stokes";
 Naca.length      = 8;
 Naca.height      = 4;
 Naca.nx          = 420;
-Naca.M           = 0.0;
-Naca.p           = 0.0;
-Naca.t           = 0.10;
+Naca.M           = 0.02;
+Naca.p           = 0.4;
+Naca.t           = 0.12;
 Naca.chord       = 1;
-Naca.AoA         = 0;
+Naca.AoA         = 10;
 
 NacaClass = TestNaca(Naca);
 NacaClass.compute();
@@ -17,13 +17,13 @@ NacaClass.compute();
 %system('shutdown /s /t 60');
 
 %% Test for TestNaca NV
-
-uRef = [1.51e-5, 1.51e-4, 1.51e-3, 1.51e-2];
+tic
+nuRef = [1, 0.1, 1/20, 1/30,1/40, 1/50];
 Naca.convectVel = 0;
 
-for i = 4 : 4
-    %length(uRef)
-
+for i = 1 : length(nuRef)
+    %length(nuRef)
+tic
 Naca.flowType  = "NavierStokes";
 Naca.length    = 8;
 Naca.height    = 4;
@@ -32,11 +32,12 @@ Naca.M         = 0.02;
 Naca.p         = 0.4;
 Naca.t         = 0.12;
 Naca.chord     = 1;
-Naca.AoA       = 0;
-Naca.uRef      = uRef(i);
+Naca.AoA       = 5;
+Naca.nu        = nuRef(i);
+%Naca.i         = i;
 %0.755;
 disp(i)
-disp(Naca.uRef)
+disp(Naca.nu)
 
 NacaClass = TestNaca(Naca);
 NacaClass.compute();
@@ -46,6 +47,7 @@ NacaClass.print();
 Naca.convectVel = NacaClass.velocityFun.fValues;
 
 end
+toc
 %% Control Parameters.
 
 Naca.length = 8;
@@ -179,20 +181,34 @@ data = load('LD_N2412_AoA-+15_nx420_PF_NFL.txt');
 
 L = data(:, end-2);
 D = data(:, end-1);
+E = data(:,end);
 
+% Lift figure
 figure;
-plot(alpha, L);
+plot(alpha, L, 'b');
 xlabel('\alpha (deg)');
-ylabel('L');
-title('Lift vs AoA(\alpha)');
+ylabel('Lift (L)');
+title('Lift vs AoA (\alpha)');
+xlim([-15 15]);
 grid on;
 
+% Drag figure
 figure;
-plot(L, D);
-xlabel('L');
-ylabel('D');
-title('Drag vs Lift');
-grid on;   
+plot(alpha, D, 'r');
+xlabel('\alpha (deg)');
+ylabel('Drag (D)');
+title('Drag vs AoA (\alpha)');
+xlim([-15 15]);
+grid on;
+
+% Efficiency figure
+figure;
+plot(alpha, E, 'g');
+xlabel('\alpha (deg)');
+ylabel('Efficiency (E)');
+title('Efficiency vs AoA (\alpha)');
+xlim([-15 15]);
+grid on;
 
 %% Plot L vs alpha and D vs L (Pressure Filtered and No Filtered)
 

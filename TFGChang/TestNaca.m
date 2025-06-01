@@ -21,6 +21,7 @@ classdef TestNaca < handle
         ny
         flowType
         nu
+        i
     end
     
     properties (Access = private)
@@ -58,7 +59,7 @@ classdef TestNaca < handle
         function compute(obj)
             obj.createPressureFilter();
             obj.solveProblem();
-            %obj.plotResults();
+            obj.plotResults();
             obj.CalculateAeroForces();
         end
 
@@ -91,8 +92,9 @@ classdef TestNaca < handle
         end
 
         function initNV(obj,cParams)
-            obj.nu       = cParams.nu;
+            obj.nu          = cParams.nu;
             obj.convectVel  = cParams.convectVel;
+            %obj.i           = cParams.i;
         end
 
         function [AirfoilParams, BGParams] = setParams(obj)
@@ -256,6 +258,7 @@ classdef TestNaca < handle
         end
 
         function solveNavierStokesProblem(obj,s)
+            s.nu             = obj.nu;
             s.velocityField = LagrangianFunction.create(obj.mesh, 2, 'P2');
             if (obj.convectVel ~=0) 
                 s.velocityField.setFValues(obj.convectVel);
@@ -267,7 +270,8 @@ classdef TestNaca < handle
         end
 
         function plotResults(obj)     
-            TestNaca.plotVelocity(obj.velocityFun);
+            TestNaca.plotVelocityX(obj.velocityFun);
+            TestNaca.plotVelocityY(obj.velocityFun);
             TestNaca.plotPressure(obj.pressureFun);
         end
 

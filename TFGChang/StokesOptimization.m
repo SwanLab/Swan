@@ -18,7 +18,7 @@ d.learningRate  = 0.015; %0.06  %1.5 mínim per LE fixe
 d.optimizer     = opt;
 d.tol           = 1e-6;
 d.lowerBC = [0.0, 0.0, 0.1, -2.5]; % 0.0, 0.0, 0.1, -2.5
-d.upperBC = [0.095, 0.9, 0.4, 15.0];
+d.upperBC = [0.09, 0.9, 0.4, 15.0];
 
 % Compute the Optimization
 stokeOpt = AirfoilOptimizer(d);
@@ -37,7 +37,7 @@ OptimalParams = stokeOpt.optimalParams;
 
 %% Generate the Airfoil Shape Optimization Video
 
-%stokeOpt.generateAFSOPVideo();
+stokeOpt.generateAFSOPVideo();
  close all
 stokeOpt.generateVelVideo();
  close all

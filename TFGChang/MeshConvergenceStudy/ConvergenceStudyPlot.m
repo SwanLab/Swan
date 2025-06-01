@@ -45,13 +45,13 @@ end
 
 figure;
 
-subplot(2,1,1);
+%subplot(2,1,1);
 plot(nx, data.E, 'b-', 'DisplayName', 'Original Data'); hold on;
 plot(nx, ySmooth, 'r-', 'LineWidth', 2, 'DisplayName', 'Moving Average');
-ylim([0,1.4]);
+%ylim([0,1.4]);
 legend; grid on;
 title('Original and Smoothed Data');
-
+%
 subplot(2,1,2);
 plot(nx(2:end), errorRelative, 'm-', 'LineWidth', 2, 'DisplayName', 'Absolute Relative Error');
 legend; grid on;

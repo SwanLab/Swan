@@ -77,7 +77,7 @@ dataset  = readmatrix("E_AoA5_mpt.txt");
 
 normalized = true;
 if (normalized == true)
-    %load("StokesNetworkE1e5N32HL2MaxAoA12.11.mat");
+    load("StokesNetworkE0.5e5N36HL6MaxAoA12.88.mat");
     EData = readmatrix("EData.txt");
     maxValue        = max(EData(:,end));
     minValue        = min(EData(:,end));
@@ -99,7 +99,7 @@ plot(tSym, eSym);
 hold on;
 plot(tSym, yDataSym);
 legend('Location', 'best');
-title("Aerodynamic Efficiency of Symmetric Airfoil vs Thickness (t)");
+title("Aerodynamic efficiency of symmetric airfoil vs thickness (t) - AoA 5º");
 xlabel('Thickness (t)');
 ylabel('Aerodynamic Efficiency');
 legend('Ground Truth', 'Predicted');
@@ -154,7 +154,7 @@ for i = 1:length(thicknesses)
     colorbar;
 end
 
-sgtitle('Efficiency vs. m and p for Different Thickness (t)','FontWeight', 'bold');
+sgtitle('Ground truth aerodynamic efficiency (E) vs. m and p for different thickness (t) - AoA 5º','FontWeight', 'bold');
 
 % Compute Predicted Outputs y
 
@@ -180,7 +180,7 @@ for i = 1:length(thicknesses)
     colorbar;
 end
 
-sgtitle('Predicted Efficiency vs. m and p for Different Thickness (t)','FontWeight', 'bold');
+sgtitle('Predicted aerodynamic efficiency vs. m and p for different thickness (t) - AoA 5º','FontWeight', 'bold');
 
 ReError = abs(EP - E) ./ E;
 
@@ -199,7 +199,7 @@ for i = 1:length(thicknesses)
     colorbar;
 end
 
-sgtitle('Relative Error between Prediction and Ground Truth vs. m and p for Different Thickness (t)','FontWeight', 'bold');
+sgtitle('Relative error between prediction and ground truth vs. m and p for different thickness (t) - AoA 5º','FontWeight', 'bold');
 
 %% Plot Merged E Surface
 
@@ -256,4 +256,4 @@ for i = 1:length(thicknesses)
     %colorbar;
 end
 
-sgtitle('Prediction and Ground Truth Efficiency vs. m and p for Different Thickness (t)','FontWeight', 'bold');
+sgtitle('Ground truth and predicted efficiency vs. m and p for different thickness (t)','FontWeight', 'bold');

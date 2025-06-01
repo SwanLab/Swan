@@ -12,6 +12,7 @@ classdef NavierStokesProblemSolver < handle
         dirDofs
         material
         velocityField
+        nu
     end
 
     properties (Access = private)
@@ -53,6 +54,7 @@ classdef NavierStokesProblemSolver < handle
             obj.dirDofs          = cParams.dirDofs;
             obj.material         = cParams.material;
             obj.velocityField    = cParams.velocityField;
+            obj.nu                = cParams.nu;
         end
 
         function setDiffTime(obj)
@@ -175,11 +177,19 @@ classdef NavierStokesProblemSolver < handle
             Residual     = 1;
             ReError      = 1;
             iter         = 1;
-            maxIter      = 1e2;  
+            maxIter      = 1e3;  
             %1e4;
             tolRes       = 1e-6;
             tolReE       = 1e-4;
-            relaxFactor  = 0.5; %0.9
+
+            if obj.nu < 1e-3
+                relaxFactor = 0.5;
+            elseif obj.nu < 1e-2
+                relaxFactor = 0.7;
+            else
+                relaxFactor = 1;
+            end
+
             fprintf('   Picard Iteration             Residual                ReError\n');
 
             while ~((Residual <= tolRes && ReError <= tolReE) || iter >= maxIter)
