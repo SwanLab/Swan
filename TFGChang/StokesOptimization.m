@@ -44,4 +44,4 @@ stokeOpt.generateVelVideo();
 stokeOpt.generatePVideo();
  close all
 
-%system('shutdown /s /t 60');
+system('shutdown /s /t 60');
