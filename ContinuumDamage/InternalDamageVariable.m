@@ -17,6 +17,9 @@ classdef InternalDamageVariable < handle
 
         function itIs = isDamaging(obj)
             itIs = (obj.r > obj.rOld);
+           r =  obj.r.evaluate([0;0]);
+           rOld =  obj.rOld.evaluate([0;0]);
+        %  [r(:)-rOld(:)]
         end  
 
         function update(obj,tau)
@@ -29,7 +32,7 @@ classdef InternalDamageVariable < handle
         end
 
         function updateRold(obj)
-            obj.rOld = obj.r;
+            obj.rOld.setFValues(obj.r.fValues);
         end        
         
     end

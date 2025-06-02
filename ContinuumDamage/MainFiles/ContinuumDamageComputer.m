@@ -41,10 +41,15 @@ classdef ContinuumDamageComputer < handle
                     [uNew,uVec] = obj.computeDisplacement(dres,res,u,bc);
                     u.setFValues(uNew);
                     err = norm(res);
-                    fprintf('Error: %d \n',err);
-                    [res]  = obj.damageFunctional.computeResidual(u,r,bc);
-                    err = norm(res);
-                    fprintf('Error: %d \n',err);
+                    fprintf('Error: %d;     Iter: %d \n',err,iter);
+
+                   % tauEps = obj.damageFunctional.computeTauEpsilon(u);
+                   % obj.internalDamageVariable.update(tauEps);
+                   % r = obj.internalDamageVariable;
+
+                  % [res]  = obj.damageFunctional.computeResidual(u,r,bc);
+                  %  err = norm(res);
+                  %  fprintf('Error: %d;     Iter: %d \n',err,iter);
                     iter = iter+1;
                 end
                 if (iter >= obj.limIter)
