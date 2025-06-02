@@ -91,19 +91,19 @@ classdef TestingContinuumDamage < handle
         end
 
         function hL = createHardeningLaw(obj)
-            r1 = 2000;
+            r1 = 20;
             s.r1   = ConstantFunction.create(r1,obj.mesh);
             s.type = 'AT2'; %'Exp'            
             s.H    = 0.5;
             s.A    = 0.2;
-            s.r0 = obj.createR0();
-            s.w1 = 80;
+            s.r0   = obj.createR0();
+            s.w1   = 80;
             s.qInf = 1.1;
             hL = HardeningLaw.create(s);
         end          
 
         function r0 = createR0(obj)
-            r0 = 0;
+            r0 = 10;
             r0 = ConstantFunction.create(r0,obj.mesh);            
         end
 

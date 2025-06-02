@@ -7,14 +7,14 @@ classdef IsotropicElasticMaterial < Material
         shear
     end
 
-    properties (Access = protected)
-        ndim
+    properties (GetAccess = public, SetAccess = protected)
+        ndimf
     end
     
     methods (Access = protected)
 
         function init(obj,cParams)
-            obj.ndim    = cParams.ndim;
+            obj.ndimf    = cParams.ndim;
             if isfield(cParams,'young')
                 obj.young = cParams.young;
             end
@@ -34,7 +34,7 @@ classdef IsotropicElasticMaterial < Material
                 E  = obj.young.evaluate(xV);
                 nu = obj.poisson.evaluate(xV);
                 mu = obj.computeMuFromYoungAndPoisson(E,nu);
-                k  = obj.computeKappaFromYoungAndPoisson(E,nu,obj.ndim);
+                k  = obj.computeKappaFromYoungAndPoisson(E,nu,obj.ndimf);
             else
                 mu = obj.shear.evaluate(xV);
                 k  = obj.bulk.evaluate(xV); 
@@ -79,7 +79,7 @@ classdef IsotropicElasticMaterial < Material
         function k = createBulk(obj,mesh)
             E  = @(xV) obj.young.evaluate(xV);
             nu = @(xV) obj.poisson.evaluate(xV);
-            N  = obj.ndim;
+            N  = obj.ndimf;
             s.operation  = @(xV) obj.computeKappaFromYoungAndPoisson(E(xV),nu(xV),N);
             s.ndimf = size(E,1);
             s.mesh = mesh;

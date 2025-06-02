@@ -23,7 +23,7 @@ classdef ShFunc_ExternalWork2 < handle
            bMesh = obj.mesh.createBoundaryMesh{4}; %CARA SUPERIOR
            int = Integrator.create('Function',bMesh.mesh,obj.quadOrder);
            [u, fExt] = obj.adaptFuns(u,fExt);
-           F = int.compute(u.*fExt);
+           F = int.compute(DP(u,fExt));
        end
 
        function Ju = computeResidual(obj,u,fExt)
