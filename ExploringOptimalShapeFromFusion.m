@@ -49,6 +49,7 @@ classdef ExploringOptimalShapeFromFusion < handle
 
         function createVolume(obj)
             obj.volume = obj.mesh.computeVolume();
+            %restar caixa
             InitialVolume = 7.002e5;
             obj.fractionVolume = obj.volume/InitialVolume;
         end
@@ -83,8 +84,11 @@ classdef ExploringOptimalShapeFromFusion < handle
             obj.poisson = ConstantFunction.create(nu,obj.mesh);
         end
 
+        %Interpolation (copia de TopOpt tuorial)
+
+
         function createMaterial(obj)
-            s.type    = 'ISOTROPIC';
+            s.type    = 'DensityBased';
             s.ptype   = 'ELASTIC';
             s.ndim    = obj.mesh.ndim;
             s.young   = obj.young;
@@ -121,6 +125,7 @@ classdef ExploringOptimalShapeFromFusion < handle
             s.material                    = obj.material; %obj.createMaterial();
             c = ComplianceFunctional(s);
             obj.compliance = c;
+            [J,dJ] = c.computeFunctionAndGradient(obj.designVariable)
         end
         
         function bc = createBoundaryConditions(obj)
@@ -128,8 +133,16 @@ classdef ExploringOptimalShapeFromFusion < handle
             yMax    = max(obj.mesh.coord(:,2));
             zMax    = max(obj.mesh.coord(:,3));
             isDir   = @(coor)  abs(coor(:,1))==20;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax & abs(coor(:,3))>=0.3*zMax & abs(coor(:,3))<=0.7*zMax);
+            isForce = @(coor)  (abs(coor(:,1))>0.995*xMax);% & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax & abs(coor(:,3))>=0.3*zMax & abs(coor(:,3))<=0.7*zMax);
 
+         
+            s.fHandle = @(x)  (abs(x(1,:,:))>0.995*xMax);
+            s.ndimf   = 1;
+            s.mesh    = obj.mesh;
+            aFun      = AnalyticalFunction(s);
+
+            %print(aFun.project('P1'),'Force','Paraview')
+            
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2,3];
             sDir{1}.value     = 0;
