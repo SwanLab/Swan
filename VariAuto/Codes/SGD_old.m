@@ -5,7 +5,6 @@ classdef SGD < Trainer
     end
 
     properties (Access = private)
-       batchSize
        thetaLowest
        fvStop
        lSearchtype
@@ -25,21 +24,12 @@ classdef SGD < Trainer
             obj.init(s)
             obj.plotter = s.plotter;
             obj.learningRate = s.learningRate;
-            obj.Xtrain  = s.Xtrain;
-            obj.Ytrain  = s.Ytrain;
-            obj.Xtest  = s.Xtest;
-            obj.Ytest  = s.Ytest;
             obj.maxFunEvals  = 5000;
-            obj.optTolerance = 10^(-6);
+            obj.optTolerance = 10^(-8);
             obj.timeStop    = Inf([1,1]);
-            obj.fvStop      = 10^(-4);
+            obj.fvStop      = -Inf;%10^(-4);
             obj.nPlot       = 1;
-            if size(obj.Xtrain,1) > 200
-                obj.batchSize    = 200;
-            else
-                obj.batchSize    = size(obj.Xtrain,1);
-            end
-            obj.MaxEpochs   = obj.maxFunEvals*obj.batchSize/size(obj.Xtrain,1);
+            obj.MaxEpochs   = 3000;
             obj.earlyStop   = obj.MaxEpochs;
             obj.svepoch     = 0;
             obj.lSearchtype  = 'static';
@@ -47,17 +37,18 @@ classdef SGD < Trainer
         
         function train(obj)
            tic
-           x0  = obj.designVariable.thetavec; 
-           F = @(theta,X,Y) obj.costFunction.computeCost(theta,X,Y); 
+           x0  = obj.designVariable.thetavec;
+           F = @(theta,order,i) obj.objectiveFunction.computeCost(theta,order,i); 
            obj.optimize(F,x0);
            toc
-        end 
+        end
 
         function plotCostFunc(obj)
             figure(3);
-            epoch = 1:obj.MaxEpochs;
+            %epoch = 1:obj.MaxEpochs;
+            epoch = 1:length(obj.fplot);
             % plot(epoch,obj.fplot,'-o');
-            plot(epoch,obj.fplot);
+            plot(epoch,obj.fplot,'LineWidth',1.8);
             xlabel('Epochs')
             ylabel('Function Values')
             title('Cost Function')
@@ -69,20 +60,20 @@ classdef SGD < Trainer
     methods(Access = private)  
         
         function optimize(obj,F,th0)
-            nD            = size(obj.Xtrain,1);
+            [nD, nB, ~] = obj.objectiveFunction.getBatchSize();
             epsilon0      = obj.learningRate;
             epoch         =  1;iter = -1; funcount =  0; fv = 1;
             alarm         =  0; gnorm = 1; min_testError = 1;
-            nB            = fix(nD/obj.batchSize);
             criteria(1)   = epoch <= obj.MaxEpochs; 
             criteria(2)   = alarm < obj.earlyStop; 
             criteria(3)   = gnorm > obj.optTolerance;
             criteria(4)   = toc < obj.timeStop;
             criteria(5)   = fv > obj.fvStop;
             while all(criteria == 1)
-                % obj.plotter.image(2001)
-                % pause(1)
-                %obj.plotter.image(randi(3000))
+                if epoch == 1
+                    fprintf('Weights and biases at the start')
+                    obj.displayWeightsAndBiases(); % Show weights and biases at the start
+                end
                 if nB == 1 || nB == 0
                     order = 1:nD;
                     nB = 1;
@@ -90,7 +81,6 @@ classdef SGD < Trainer
                     order = randperm(nD,nD);
                 end
                 for i = 1:nB
-                    [Xb,Yb] = obj.createMinibatch(order,i);
                     if iter == -1
                         th      = th0;
                         epsilon = epsilon0;
@@ -98,8 +88,8 @@ classdef SGD < Trainer
                     else
                         state   = 'iter';
                     end
-                    [f,grad]              = F(th,Xb,Yb);  
-                    [epsilon,th,funcount] = obj.lineSearch(th,grad,F,f,epsilon,epsilon0,funcount,Xb,Yb);                
+                    [f,grad]              = F(th,order, i);  
+                    [epsilon,th,funcount] = obj.lineSearch(th,grad,F,f,epsilon,epsilon0,funcount,order,i);                
                     gnorm                 = norm(grad,2);
                     opt.epsilon           = epsilon*gnorm; 
                     opt.gnorm             = gnorm;
@@ -107,6 +97,7 @@ classdef SGD < Trainer
                     iter                  = iter + 1;
                     obj.displayIter(epoch,iter,funcount,th,f,opt,state);
                 end
+                
                 [alarm,min_testError] = obj.validateES(alarm,min_testError);
                 epoch = epoch + 1;
                 criteria(1)   = epoch <= obj.MaxEpochs; 
@@ -114,6 +105,11 @@ classdef SGD < Trainer
                 criteria(3)   = gnorm > obj.optTolerance;
                 criteria(4)   = toc < obj.timeStop; 
                 criteria(5)   = f > obj.fvStop;
+
+                if epoch == obj.MaxEpochs || criteria(3) == 0
+                    fprintf('Weights and biases at the end')
+                    obj.displayWeightsAndBiases(); % Show weights and biases after the last epoch
+                end
             end
             if criteria(1) == 0
                 fprintf('Minimization terminated, maximum number of epochs reached %d\n',epoch)
@@ -128,31 +124,33 @@ classdef SGD < Trainer
             else
                 fprintf('The operation terminated excepcionally\n')
             end
-            F(th,Xb,Yb);
+            %F(th,Xb,Yb);
+            %F(th,order, i);
+            %th
         end
 
-        function [e,x,funcount] = lineSearch(obj,x,grad,F,fOld,e,e0,funcount,Xb,Yb)
+        function [e,x,funcount] = lineSearch(obj,x,grad,F,fOld,e,e0,funcount,order,i)
             type = obj.lSearchtype;
             switch type
                 case 'static'
-                    xnew = obj.step(x,e,grad,F,Xb,Yb);
+                    xnew = obj.step(x,e,grad);
                 case 'decay'
                     tau = 50;
-                    xnew = obj.step(x,e,grad,F,Xb,Yb);
+                    xnew = obj.step(x,e,grad);
                     e = e - 0.99*e0*30/tau;
                 case 'dynamic'
                     f = fOld;
                     xnew = x;
                     while f >= 1.001*(fOld - e*(grad*grad'))
-                        xnew = obj.step(x,e,grad,F,Xb,Yb);
-                        [f,~] = F(xnew,Xb,Yb);
+                        xnew = obj.step(x,e,grad);
+                        [f,~] = F(xnew,order,i);
                         e = e/2;
                         funcount = funcount + 1;
                     end
                     e = 5*e;                
                 case 'fminbnd'
-                    xnew = @(e1) obj.step(x,e1,grad,F,Xb,Yb);
-                    f = @(e1) F(xnew(e1),Xb,Yb);
+                    xnew = @(e1) obj.step(x,e1,grad);
+                    f = @(e1) F(xnew(e1),order,i);
                     [e,~] = fminbnd(f,e/10,e*10);
                     xnew = xnew(e);
             end
@@ -160,8 +158,9 @@ classdef SGD < Trainer
         end 
 
         function [alarm,min_testError] = validateES(obj,alarm,min_testError)
-            [~,y_pred]   = max(obj.costFunction.getOutput(obj.Xtest),[],2);
-            [~,y_target] = max(obj.Ytest,[],2);
+            [Xtest, Ytest] = obj.objectiveFunction.getTestData();
+            [~,y_pred]   = max(obj.objectiveFunction.getOutput(Xtest),[],2);
+            [~,y_target] = max(Ytest,[],2);
             testError    = mean(y_pred ~= y_target);
             if testError < min_testError
                 obj.thetaLowest = obj.designVariable.thetavec;
@@ -175,9 +174,10 @@ classdef SGD < Trainer
         end
 
         function displayIter(obj,epoch,iter,funcount,x,f,opt,state)
+            [nD, ~, batchSize] = obj.objectiveFunction.getBatchSize();
             obj.printValues(epoch,funcount,opt,f,iter)
             if obj.isDisplayed == true
-                if iter*obj.batchSize==(epoch-1)*length(obj.Xtrain) || iter == -1
+                if iter*batchSize==(epoch-1)*nD || iter == -1
                     obj.storeValues(x,f,state,opt);
                     obj.plotMinimization(epoch);
                 end
@@ -198,30 +198,28 @@ classdef SGD < Trainer
             end
 
         end
+        
+        function displayWeightsAndBiases(obj)
+            % Get the learnable variables (weights and biases)
+            [W, b] = obj.designVariable.reshapeInLayerForm();
 
-        function [x,y] = createMinibatch(obj,order,i)
-               I = obj.batchSize;            
-               X = obj.Xtrain;
-               Y = obj.Ytrain;
-               cont = 1;
-               if i == fix(size(X,1)/I)
-                   plus = mod(size(X,1),I);
-                   x = zeros([I+plus,size(X,2)]);
-                   y = zeros([I+plus,size(Y,2)]);
-               else
-                   plus = 0;
-                   x = zeros([I,size(X,2)]);
-                   y = zeros([I,size(Y,2)]);
-               end
-               for j = (i-1)*I+1:i*I+plus
-                   x(cont,:) = X(order(j),:);
-                   y(cont,:) = Y(order(j),:);
-                   cont = cont+1;
-               end
-           end
+            % Display weights and biases
+            for i = 1:length(W)
+                fprintf('Layer %d:\n', i);
+                fprintf('Weights (W{%d}):\n', i);
+                disp(W{i});
+                fprintf('Biases (b{%d}):\n', i);
+                disp(b{i});
+                fprintf('--------------------------\n');
+            end
+        end
     end
+
+
+    
+    
     methods (Access = protected)
-        function x = step(obj,x,e,grad,F,Xb,Yb)
+        function x = step(obj,x,e,grad)
             x = x - e*grad;
         end
     end
