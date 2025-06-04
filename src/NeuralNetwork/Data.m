@@ -9,6 +9,22 @@ classdef Data < handle
         Xtest
         Ytest
         Ntest
+<<<<<<< Updated upstream:src/NeuralNetwork/Data.m
+=======
+
+        batchSize
+        Batch_nD
+        Batch_nB
+        % Joel addition
+        muX
+        sigmaX
+        muY
+        sigmaY
+        Xmin
+        Ymin
+        Xmax
+        Ymax
+>>>>>>> Stashed changes:VariAuto/Codes/Data.m
     end
 
     properties (Access = private)
@@ -87,8 +103,16 @@ classdef Data < handle
         end
 
         function loadData(obj)
+<<<<<<< Updated upstream:src/NeuralNetwork/Data.m
             %f = fullfile('../Datasets/',obj.fileName);
             f = fullfile(obj.fileName);
+=======
+            f = fullfile('Datasets',obj.fileName);
+            obj.data = readmatrix(f);
+            %fprintf('Features to be used (1:%d):',(size(obj.data,2)-1))
+            %feat = input(' ');
+            %x = obj.data(:, feat);
+>>>>>>> Stashed changes:VariAuto/Codes/Data.m
 
             % Change: use readmatrix to skip header
             obj.data = readmatrix(f);
@@ -154,6 +178,38 @@ classdef Data < handle
             obj.Xtest  = obj.X(r((ntrain + 1):end),:);
             obj.Ytrain = obj.Y(r(1:ntrain),:);
             obj.Ytest  = obj.Y(r((ntrain + 1):end),:);
+
+            % !!!! CHANGED TO 3 and 1 instead of 4 and 2 for RPM trial
+            % Velocity squared/cubed
+            obj.Xtrain(:,4) = obj.Xtrain(:,4).^3;
+            obj.Xtest(:,4) = obj.Xtest(:,4).^3;
+            
+            % Wind direction as a cosine
+            obj.Xtrain(:,2) = cos(obj.Xtrain(:,2)*pi/180);
+            obj.Xtest(:,2) = cos(obj.Xtest(:,2)*pi/180);
+%{
+            % Normilize X and Y to [0, 1]
+            [obj.Xmin, obj.Xmax] = bounds(obj.Xtrain);
+            obj.Xtest = (obj.Xtest - obj.Xmin) ./ (obj.Xmax - obj.Xmin);
+            obj.Xtrain = (obj.Xtrain - obj.Xmin) ./ (obj.Xmax - obj.Xmin);
+
+            [obj.Ymin, obj.Ymax] = bounds(obj.Ytrain);
+            obj.Ytest = (obj.Ytest - obj.Ymin) ./ (obj.Ymax - obj.Ymin);
+            obj.Ytrain = (obj.Ytrain - obj.Ymin) ./ (obj.Ymax - obj.Ymin);
+%}
+            % Normalize X
+            [obj.Xtrain, obj.muX, obj.sigmaX] = zscore(obj.Xtrain);
+            obj.Xtest = (obj.Xtest - obj.muX) ./ obj.sigmaX;
+
+            % Normalize Y
+            [obj.Ytrain, obj.muY, obj.sigmaY] = zscore(obj.Ytrain);
+            obj.Ytest = (obj.Ytest - obj.muY) ./ obj.sigmaY;
+%}
+     
+           
+
+
+
             obj.Ntest = ntest;
         end
     end

@@ -42,12 +42,28 @@ classdef Network < handle
             for k = nLy:-1:2
                 [~,g_der] = obj.actFCN(a{k},k);
                 if k == nLy
+<<<<<<< Updated upstream:src/NeuralNetwork/Network.m
                     obj.deltag{k} = dLF.*g_der;
+=======
+                    yOut  = a{end};
+                    [~,t1] = obj.lossFunction(Yb,yOut);
+                    deltag{k} = t1.*a_der;
+>>>>>>> Stashed changes:VariAuto/Codes/Network.m
                 else
                     obj.deltag{k} = (W{k}*obj.deltag{k+1}')'.*g_der;
                 end
+<<<<<<< Updated upstream:src/NeuralNetwork/Network.m
                 dcW{k-1} = (1/m)*(a{k-1}'*obj.deltag{k});
                 dcB{k-1} = (1/m)*(sum(obj.deltag{k},1));
+=======
+                dcW{k-1} = (1/m)*(a{k-1}'*deltag{k});
+                dcB{k-1} = (1/m)*(sum(deltag{k},1));
+
+                % Gradient debugging layer by layer
+                %fprintf('Layer %d gradient (dcW): mean = %.6f, std = %.6f, min = %.6f, max = %.6f\n', ...
+                %k-1, mean(dcW{k-1}(:)), std(dcW{k-1}(:)), min(dcW{k-1}(:)), max(dcW{k-1}(:)));
+                
+>>>>>>> Stashed changes:VariAuto/Codes/Network.m
             end
             dc = [];
             for i = 2:nLy
@@ -123,6 +139,7 @@ classdef Network < handle
             obj.learnableVariables = t;
         end
 
+<<<<<<< Updated upstream:src/NeuralNetwork/Network.m
         function computeAvalues(obj,X)
             [W,b] = obj.learnableVariables.reshapeInLayerForm();
             nLy = obj.nLayers;
@@ -135,6 +152,26 @@ classdef Network < handle
                 h = obj.hypothesisfunction(g_prev,Wi,bi);
                 [g,~] = obj.actFCN(h,i);
                 a{i} = g;
+=======
+        function [J,gc] = lossFunction(obj,y,yOut)
+            type = obj.Costtype;
+            yp = yOut-10^-10;
+            switch type
+                case '-loglikelihood'
+                    c = sum((1-y).*(-log(1-yp)) + y.*(-log(yp)),2);
+                    J = mean(c);
+                    gc = yOut - y;
+                    %gc = (yp-y)./(yp.*(1-yp));
+                case 'L2'
+                    c = ((yp-y).^2);
+                    J = sum(mean(c,1));
+                    %J = sqrt(sum(c)); % Propuesta 1
+                    % J = norm(yp-y,2); % Propuesta 2
+                    gc = (yp-y);
+                otherwise
+                    msg = [type,' is not a valid cost function'];
+                    error(msg)
+>>>>>>> Stashed changes:VariAuto/Codes/Network.m
             end
             obj.aValues = a;
         end
@@ -149,13 +186,13 @@ classdef Network < handle
             switch type
                 case 'sigmoid'
                     g = 1./(1+exp(-z));
-                    g_der = z.*(1-z);
+                    g_der = g.*(1-g);
                 case 'ReLU'
                     g = gt(z,0).*z;
                     g_der = gt(z,0);
                 case 'tanh'
                     g = (exp(z)-exp(-z))./(exp(z)+exp(-z));
-                    g_der = (1-z.^2);
+                    g_der = (1-g.^2);
                 case 'softmax'
                     g = (exp(z))./(sum(exp(z),2));
                     g_der = z.*(1-z);

@@ -47,7 +47,7 @@ classdef LearnableVariables < handle
            obj.neuronsPerLayer = s.neuronsPerLayer;
            obj.nLayers         = s.nLayers;
         end         
-
+        
         function computeInitialTheta(obj)
            nPL    = obj.neuronsPerLayer;
            th     = [];
@@ -55,7 +55,7 @@ classdef LearnableVariables < handle
                 if i ~= obj.nLayers
                     getB = zeros([1,nPL(i)]) + 0.1;
                 else
-                    getB = zeros([1,nPL(i)]) + 1/nPL(i);
+                    getB = zeros([1,nPL(i)]) + 0.5; %1/nPL(i);
                 end
                 u = (6/(nPL(i-1)+nPL(i)))^0.5;
                 getW = (unifrnd(-u,u,[1,nPL(i-1)*nPL(i)]));
@@ -63,6 +63,7 @@ classdef LearnableVariables < handle
            end      
         obj.thetavec = th;
         end  
+        
 
     end
 

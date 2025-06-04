@@ -106,9 +106,18 @@ classdef OptimizationProblemNN < handle
         end
 
        function createCost(obj)
+<<<<<<< Updated upstream:src/NeuralNetwork/OptimizationProblemNN.m
            s.shapeFunctions = {obj.loss, obj.regularization};
            s.weights = [1, obj.costParams.lambda];
            obj.costFunc = CostNN(s);
+=======
+           s                = obj.costParams;
+           s.network        = obj.network;
+           s.designVariable = obj.network.getLearnableVariables();
+           s.data           = obj.data;
+           obj.costFunc     = CostFunction(s);
+           disp(class(obj.costFunc));
+>>>>>>> Stashed changes:VariAuto/Codes/OptimizationProblem.m
        end
 
        function createOptimizer(obj)
