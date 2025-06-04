@@ -170,7 +170,6 @@ classdef Data < handle
             obj.Ytrain = obj.Y(r(1:ntrain),:);
             obj.Ytest  = obj.Y(r((ntrain + 1):end),:);
 
-            % !!!! CHANGED TO 3 and 1 instead of 4 and 2 for RPM trial
             % Velocity squared/cubed
             obj.Xtrain(:,4) = obj.Xtrain(:,4).^3;
             obj.Xtest(:,4) = obj.Xtest(:,4).^3;
