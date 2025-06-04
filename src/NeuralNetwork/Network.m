@@ -149,13 +149,13 @@ classdef Network < handle
             switch type
                 case 'sigmoid'
                     g = 1./(1+exp(-z));
-                    g_der = z.*(1-z);
+                    g_der = g.*(1-g);
                 case 'ReLU'
                     g = gt(z,0).*z;
                     g_der = gt(z,0);
                 case 'tanh'
                     g = (exp(z)-exp(-z))./(exp(z)+exp(-z));
-                    g_der = (1-z.^2);
+                    g_der = (1-g.^2);
                 case 'softmax'
                     g = (exp(z))./(sum(exp(z),2));
                     g_der = z.*(1-z);

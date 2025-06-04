@@ -13,7 +13,7 @@ hiddenLayers    = [10,5,10];  %[3,2,1,2,3];
 % tanh
 
 %% INICIALIZACIÓN
-s.fileName = '/OpenArms/Resultados2.csv'; 
+s.fileName = 'VariAuto/Datasets/OpenArms/Resultados2.csv'; 
 s.polynomialOrder = pol_deg;
 s.testRatio       = testratio;
 s.xFeatures = [1, 2, 3, 4, 5, 6, 7];  
@@ -30,8 +30,9 @@ s.networkParams.hiddenLayers    = hiddenLayers;
 s.data                          = data;
 s.optimizerParams.learningRate  = learningRate;
 s.costParams.lambda             = lambda;
+s.costParams.costType = 'L2';
 
-opt = OptimizationProblem(s);
+opt = OptimizationProblemNN(s);
 learnableVariables = LearnableVariables(s);
 opt.solve();
 opt.plotCostFnc();
