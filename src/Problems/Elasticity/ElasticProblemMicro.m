@@ -27,7 +27,7 @@ classdef ElasticProblemMicro < handle
 
         function obj = solve(obj)     
             LHS = obj.computeLHS();
-            %    oX     = zeros(obj.getDimensions().ndimf,1);
+            %oX     = zeros(obj.getDimensions().ndimf,1);
             nBasis = obj.computeNbasis();
 
             if obj.homogOrd == 1
@@ -36,7 +36,7 @@ classdef ElasticProblemMicro < handle
                 nTerms = 3*nBasis;
             end
 
-            % obj.Chomog = zeros(nBasis, nBasis);
+            obj.Chomog = zeros(nBasis, nBasis);
 
             for iB = 1:nTerms
 
@@ -75,7 +75,7 @@ classdef ElasticProblemMicro < handle
             obj.uTotal = uT;
             obj.strain = strainF;
             obj.stress = stressF;
-            % obj.Chomog = Ch;
+            obj.Chomog = Ch;
         end
 
         function uM = computeTotal(obj,strainB,iB)
