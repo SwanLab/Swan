@@ -17,8 +17,8 @@ classdef InternalDamageVariable < handle
 
         function itIs = isDamaging(obj)
             itIs = (obj.r > obj.rOld);
-           r =  obj.r.evaluate([0;0]);
-           rOld =  obj.rOld.evaluate([0;0]);
+           % r =  obj.r.evaluate([0;0]);
+           % rOld =  obj.rOld.evaluate([0;0]);
         %  [r(:)-rOld(:)]
         end  
 
