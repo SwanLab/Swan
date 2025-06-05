@@ -14,7 +14,7 @@ t   = 0.4;
 AoA = 1;
 
 d.features      = [m,p,t,AoA];
-d.learningRate  = 0.015; %0.06  %1.5 mínim per LE fixe
+d.learningRate  = 0.5; %0.06  %1.5 mínim per LE fixe
 d.optimizer     = opt;
 d.tol           = 1e-6;
 d.lowerBC = [0.0, 0.0, 0.1, -2.5]; % 0.0, 0.0, 0.1, -2.5
@@ -29,8 +29,8 @@ OptimalParams = stokeOpt.optimalParams;
 
 % Plot the Optimal Airfoil
 % figure;
-% AirfoilOptimizer.plotAirfoilContour(OptimalParams,0)
-%stokeOpt.plotEEvolution();
+AirfoilOptimizer.plotAirfoilContour([0,0,0.1,12.89],0)
+stokeOpt.plotEEvolution();
 %% Plot E vs iterations
 
 %stokeOpt.plotEEvolution();

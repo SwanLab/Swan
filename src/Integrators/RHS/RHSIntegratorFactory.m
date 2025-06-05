@@ -29,6 +29,8 @@ classdef RHSIntegratorFactory < handle
                     obj = RHSIntegratorElasticMicro(cParams);
                 case 'Stokes'
                     obj = RHSIntegratorStokes(cParams);
+                case 'NavierStokes'
+                    obj = RHSIntegratorStokes(cParams);
                 case 'Unfitted'
                     obj = RHSIntegratorUnfitted(cParams);
             end

@@ -2,12 +2,12 @@
 Naca.flowType  = "Stokes";
 Naca.length      = 8;
 Naca.height      = 4;
-Naca.nx          = 420;
+Naca.nx          = 210;
 Naca.M           = 0.02;
 Naca.p           = 0.4;
 Naca.t           = 0.12;
 Naca.chord       = 1;
-Naca.AoA         = 10;
+Naca.AoA         = 5;
 
 NacaClass = TestNaca(Naca);
 NacaClass.compute();
@@ -18,7 +18,7 @@ NacaClass.compute();
 
 %% Test for TestNaca NV
 tic
-nuRef = [1, 0.1, 1/20, 1/30,1/40, 1/50];
+nuRef = [0.1, 1/20, 1/30,1/40, 1/50];
 Naca.convectVel = 0;
 
 for i = 1 : length(nuRef)
@@ -27,10 +27,10 @@ tic
 Naca.flowType  = "NavierStokes";
 Naca.length    = 8;
 Naca.height    = 4;
-Naca.nx        = 210;
-Naca.M         = 0.02;
-Naca.p         = 0.4;
-Naca.t         = 0.12;
+Naca.nx        = 220;
+Naca.M         = 0.09;
+Naca.p         = 0.8;
+Naca.t         = 0.10;
 Naca.chord     = 1;
 Naca.AoA       = 5;
 Naca.nu        = nuRef(i);
@@ -45,9 +45,9 @@ NacaClass.compute();
 NacaClass.print();
 
 Naca.convectVel = NacaClass.velocityFun.fValues;
-
-end
 toc
+end
+
 %% Control Parameters.
 
 Naca.length = 8;

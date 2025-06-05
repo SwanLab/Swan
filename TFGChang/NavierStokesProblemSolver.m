@@ -13,6 +13,7 @@ classdef NavierStokesProblemSolver < handle
         material
         velocityField
         nu
+        dt
     end
 
     properties (Access = private)
@@ -26,6 +27,12 @@ classdef NavierStokesProblemSolver < handle
         fullX
         u
         p
+        M
+        D
+        KU
+        KP
+        C
+        uT
     end
 
     methods (Access = public)
@@ -54,7 +61,8 @@ classdef NavierStokesProblemSolver < handle
             obj.dirDofs          = cParams.dirDofs;
             obj.material         = cParams.material;
             obj.velocityField    = cParams.velocityField;
-            obj.nu                = cParams.nu;
+            obj.nu               = cParams.nu;
+            obj.dt               = cParams.dt;
         end
 
         function setDiffTime(obj)
@@ -89,8 +97,48 @@ classdef NavierStokesProblemSolver < handle
             c.velocityField = obj.velocityField;
             c.velocityFun   = obj.velocityFun;
             c.LHSS          = obj.LHSS;
+            c.dt            = obj.dt;
             LHSintegratorg  = LHSIntegrator.create(c);
             obj.LHS         = LHSintegratorg.compute();
+        end
+
+        function computeLHSMatrixNS(obj)
+            c.type                          = 'NavierStokes';
+            c.mesh                          = obj.mesh;
+            c.material                      = obj.material;
+            c.velocityField                 = obj.velocityField;
+            c.velocityFun                   = obj.velocityFun;
+            c.dt                            = obj.dt;
+            LHSintegratorg                  = LHSIntegrator.create(c);
+            [obj.M, obj.D, obj.KU, obj.KP]  = LHSintegratorg.computeLHSMatrix();
+        end
+
+        function computeLHSConvectiveMatrix(obj)
+            c.type          = 'NavierStokes';
+            c.mesh          = obj.mesh;
+            c.material      = obj.material;
+            c.velocityField = obj.velocityField;
+            c.velocityFun   = obj.velocityFun;
+            c.dt            = obj.dt;
+            LHSintegratorg  = LHSIntegrator.create(c);
+            obj.C           = LHSintegratorg.computeConvectiveTerm();
+        end
+
+        function computeTentativeVelocity(obj)
+            uN  = obj.velocityField.fValues;
+            uN  = reshape(uN.', [], 1);
+            LHSTV   = obj.M + obj.C + obj.KU;
+            RHSTV   = obj.M * uN;
+            obj.uT  = obj.solver.solve(LHSTV, RHSTV);
+        end
+
+        function computePressure(obj)
+            RHSP     = obj.D * obj.uT ./ obj.dt;
+            obj.p    = obj.solver.solve(obj.KP,RHSP);
+        end
+
+        function computeVelocity(obj)
+            obj.u = obj.uT - obj.dt * obj.D * obj.p;
         end
 
         function computeRHS(obj)
@@ -125,6 +173,22 @@ classdef NavierStokesProblemSolver < handle
             end
         end
 
+        function addDirBCToVelocity(obj)
+            uD                 = obj.dirConditions(1:end - 1,3);
+            uDirDofs           = obj.dirDofs(1:end - 1);
+            if ~isempty(uDirDofs)
+                obj.u(uDirDofs,:) = uD;
+            end
+        end
+
+        function addDirBCToPressure(obj)
+            pD                 = obj.dirConditions(end,3);
+            pDirDofs           = obj.dirDofs(end);
+            if ~isempty(pDirDofs)
+                obj.p(pDirDofs,:) = pD;
+            end
+        end
+
         function separateVariables(obj)
             ndofsV = obj.velocityFun.nDofs;
             obj.u = obj.fullX(1:ndofsV,:);
@@ -146,6 +210,7 @@ classdef NavierStokesProblemSolver < handle
 
         function initPicardIteration(obj)
             obj.computeLHSStokes();
+            %obj.computeLHSMatrixNS();
             obj.computeLHSNS();
             obj.computeRHS();
             obj.computeSolution();
@@ -156,6 +221,7 @@ classdef NavierStokesProblemSolver < handle
 
         function computePicardIteration(obj)
             obj.computeLHSNS();
+            %obj.computeLHSMatrixNS();
             obj.computeRHS();
             obj.computeSolution();
             obj.addDirBoundaryConditions();
@@ -170,6 +236,58 @@ classdef NavierStokesProblemSolver < handle
 
              Residual = max(max(abs(vNew - vOld)));
              ReError  = max(max(abs((vNew - vOld) ./ denom)));
+        end
+
+        function solveNVProblem2(obj)
+
+            Residual     = 1;
+            ReError      = 1;
+            iter         = 1;
+            maxIter      = 1e3;  
+            %1e4;
+            tolRes       = 1e-6;
+            tolReE       = 1e-4;
+
+            if obj.nu < 1e-3
+                relaxFactor = 0.5;
+            elseif obj.nu < 1e-2
+                relaxFactor = 0.7;
+            else
+                relaxFactor = 1;
+            end
+
+            % obj.initPicardIteration
+            % obj.velocityField.setFValues(obj.velocityFun.fValues);
+
+            obj.computeLHSMatrixNS()
+
+            fprintf('   Picard Iteration             Residual                ReError\n');
+
+            while ~((Residual <= tolRes && ReError <= tolReE) || iter >= maxIter)
+
+                obj.computeLHSConvectiveMatrix();                
+                obj.computeTentativeVelocity();
+                obj.computePressure();
+                obj.computeVelocity();
+
+                obj.addDirBCToVelocity();
+                obj.defineVariablesFValues();
+
+                [Residual, ReError] = obj.computeError();
+                
+                fprintf(['      %d               ' ...
+                    '        %.7e          %.5e\n'], iter, Residual, ReError);
+      
+                relaxedVel = (1 - relaxFactor) * obj.velocityField.fValues + relaxFactor * obj.velocityFun.fValues;
+                obj.velocityField.setFValues(relaxedVel);
+
+                iter = iter + 1;
+
+            end
+
+            %add dir conditions
+            
+
         end
 
         function solveNVProblem(obj)

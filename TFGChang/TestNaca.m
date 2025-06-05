@@ -259,6 +259,7 @@ classdef TestNaca < handle
 
         function solveNavierStokesProblem(obj,s)
             s.nu             = obj.nu;
+            s.dt             = inf;
             s.velocityField = LagrangianFunction.create(obj.mesh, 2, 'P2');
             if (obj.convectVel ~=0) 
                 s.velocityField.setFValues(obj.convectVel);
@@ -269,9 +270,10 @@ classdef TestNaca < handle
             obj.pressureFun    = SolverResults.pressureFun;
         end
 
-        function plotResults(obj)     
-            TestNaca.plotVelocityX(obj.velocityFun);
-            TestNaca.plotVelocityY(obj.velocityFun);
+        function plotResults(obj)    
+            TestNaca.plotVelocity(obj.velocityFun);
+            % TestNaca.plotVelocityX(obj.velocityFun);
+            % TestNaca.plotVelocityY(obj.velocityFun);
             TestNaca.plotPressure(obj.pressureFun);
         end
 
