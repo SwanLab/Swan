@@ -9,16 +9,11 @@ classdef BCApplier < handle
     
     properties (Access = private)
         mesh
-
         dirichlet_dofs, dirichlet_vals, dirichlet_domain
         dirichletFun
         pointload_dofs, pointload_vals
         pointloadFun
         periodic_leader, periodic_follower
-    end
-    
-    properties (Access = private)
-        
     end
     
     methods (Access = public)

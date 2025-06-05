@@ -22,9 +22,9 @@ classdef Tutorial02p2FEMElasticityMicro < handle
     methods (Access = private)
         
         function createMesh(obj)
-           m = obj.createHoleMesh();
-%            m = obj.createAuxeticMesh();
-            obj.mesh = m;
+           % m = obj.createHoleMesh();
+           m = obj.createAuxeticMesh();
+           obj.mesh = m;
         end
 
         function m = createAuxeticMesh(obj)
