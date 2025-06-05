@@ -30,7 +30,7 @@ classdef ContinuumDamageComputer < handle
                 bc = obj.updateBoundaryConditions(i);
                 u.setFValues(obj.updateInitialDisplacement(bc,u));
 
-                err = 1; iter = 0;
+                err = 1; iter = 1;
                 while (err >= obj.tolerance && iter < obj.limIter)
                     tauEps = obj.damageFunctional.computeTauEpsilon(u);
                     obj.internalDamageVariable.update(tauEps);

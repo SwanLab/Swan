@@ -24,10 +24,11 @@ classdef InternalDamageVariable < handle
 
         function update(obj,tau)
             tau = project(tau,obj.r.order);            
-            fV = zeros(size(obj.r.fValues));
-            nodesNoDamage = tau.fValues <= obj.rOld.fValues;
-            fV(nodesNoDamage) = obj.rOld.fValues(nodesNoDamage);
-            fV(~nodesNoDamage) = tau.fValues(~nodesNoDamage);
+            % fV = zeros(size(obj.r.fValues));
+            % nodesNoDamage = tau.fValues <= obj.rOld.fValues;
+            % fV(nodesNoDamage) = obj.rOld.fValues(nodesNoDamage);
+            % fV(~nodesNoDamage) = tau.fValues(~nodesNoDamage);
+            fV = max(tau.fValues,obj.rOld.fValues);
             obj.r.setFValues(fV);
         end
 
