@@ -7,6 +7,7 @@ classdef GripperProblemDensityNullSpace < handle
         physicalProblem
         compliance
         volume
+        globalPerimeter
         cost
         constraint
         dualVariable
@@ -29,10 +30,23 @@ classdef GripperProblemDensityNullSpace < handle
             obj.createElasticProblem();
             obj.createNonSelfAdjCompliance();
             obj.createVolumeConstraint();
+            obj.createGlobalPerimeterConstraint();
             obj.createCost();
             obj.createConstraint();
             obj.createDualVariable();
             obj.createOptimizer();
+
+            fileLocation = 'C:\Users\Biel\Desktop\UNI\TFG\ResultatsNormP_Density\00. From Batch';
+            
+            vtuName = fullfile(fileLocation, sprintf('Topology_Gripper_gJ0.2_eta0.02'));
+            obj.designVariable.fun.print(vtuName);
+            
+            figure(2)
+            set(gcf, 'Position', get(0, 'Screensize'));
+            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Gripper_gJ0.2_eta0.02.fig'));
+            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Gripper_gJ0.2_eta0.02.png'));
+            savefig(fileName1);
+            print(fileName2,'-dpng','-r300');
         end
 
     end
@@ -128,9 +142,27 @@ classdef GripperProblemDensityNullSpace < handle
             obj.volume = v;
         end
 
+        function createGlobalPerimeterConstraint(obj)
+            s.mesh              = obj.mesh;
+            s.filter            = createFilterPerimeter(obj);
+            s.epsilon           = 6*obj.mesh.computeMeanCellSize();
+            s.value0            = 6;
+            obj.globalPerimeter = PerimeterFunctional(s);
+        end
+
+        function filterPerimeter = createFilterPerimeter(obj)
+            s.filterType    = 'PDE';
+            s.boundaryType  = 'Robin';
+            s.mesh          = obj.mesh;
+            s.trial         = LagrangianFunction.create(obj.mesh,1,'P1');
+            f               = Filter.create(s);
+            filterPerimeter = f;
+        end
+
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
-            s.weights           = 1;
+            s.shapeFunctions{2} = obj.globalPerimeter;
+            s.weights           = [1,1];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end

@@ -25,7 +25,7 @@ classdef LocalVolumeFunctional < handle
             xD = x.obtainDomainFunction();
             xR = obj.filterDesignVariable(xD);
             J  = obj.computeFunction(xR{1});
-            dJ{1} = obj.computeGradient(xR{1});
+            dJ{1} = obj.computeGradient();
             J  = obj.computeNonDimensionalValue(J);
             dJVal = obj.computeNonDimensionalValue(dJ{1}.fValues);
             dJ{1}.setFValues(dJVal);
@@ -72,9 +72,9 @@ classdef LocalVolumeFunctional < handle
             J   = int;
         end
 
-        function dJH1 = computeGradient(obj,xR)
+        function dJH1 = computeGradient(obj)
             b    = obj.baseFun;
-            dJL2 = xR.*b;
+            dJL2 = b;
             dJH1 = obj.riszFilter.compute(dJL2,2);
         end
 

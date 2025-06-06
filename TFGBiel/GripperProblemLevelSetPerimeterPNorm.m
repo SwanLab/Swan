@@ -19,7 +19,7 @@ classdef GripperProblemLevelSetPerimeterPNorm < handle
 
     methods (Access = public)
 
-        function obj = GripperProblemLevelSetPerimeterPNorm(p,pT)
+        function obj = GripperProblemLevelSetPerimeterPNorm(p,pT,gJ,w)
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -27,24 +27,24 @@ classdef GripperProblemLevelSetPerimeterPNorm < handle
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
             obj.createComplianceFromConstiutive();
-            obj.createCompliance();
+            obj.createNonSelfAdjCompliance();
             obj.createVolumeConstraint();
             obj.createPerimeterConstraint(p,pT);
             obj.createGlobalPerimeterConstraint();
-            obj.createCost();
+            obj.createCost(w);
             obj.createConstraint();
             obj.createDualVariable();
-            obj.createOptimizer();
+            obj.createOptimizer(gJ);
 
             fileLocation = 'C:\Users\Biel\Desktop\UNI\TFG\ResultatsNormP_Density\00. From Batch';
             
-            vtuName = fullfile(fileLocation, sprintf('Topology_Gripper_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02',p,pT));
+            vtuName = fullfile(fileLocation, sprintf('Topology_Gripper_perimeter_p%d_ptarget%.2f_gJ%.2f_eta0.02_w%.2f_LevelSet',p,pT,gJ,w));
             obj.designVariable.fun.print(vtuName);
             
             figure(2)
             set(gcf, 'Position', get(0, 'Screensize'));
-            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Gripper_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02.fig',p,pT));
-            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Gripper_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02.png',p,pT));
+            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Gripper_perimeter_p%d_ptarget%.2f_gJ%.2f_eta0.02_w%.2f_LevelSet.fig',p,pT,gJ,w));
+            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Gripper_perimeter_p%d_ptarget%.2f_gJ%.2f_eta0.02_w%.2f_LevelSet.png',p,pT,gJ,w));
             savefig(fileName1);
             print(fileName2,'-dpng','-r300');
         end
@@ -137,12 +137,13 @@ classdef GripperProblemLevelSetPerimeterPNorm < handle
             c = ComplianceFromConstitutiveTensor(s);
         end
 
-        function createCompliance(obj)
-            s.mesh                        = obj.mesh;
-            s.filter                      = obj.filter;
-            s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
-            s.material                    = obj.createMaterial();
-            c = ComplianceFunctional(s);
+        function createNonSelfAdjCompliance(obj)
+            s.mesh         = obj.mesh;
+            s.filter       = obj.filter;
+            s.material     = obj.createMaterial();
+            s.stateProblem = obj.physicalProblem;
+            s.filename     = obj.filename;
+            c = NonSelfAdjointComplianceFunctional(s);
             obj.compliance = c;
         end
 
@@ -180,10 +181,10 @@ classdef GripperProblemLevelSetPerimeterPNorm < handle
             filterPerimeter = f;
         end
 
-        function createCost(obj)
+        function createCost(obj,w)
             s.shapeFunctions{1} = obj.compliance;
             s.shapeFunctions{2} = obj.globalPerimeter;
-            s.weights           = [1,0.8];
+            s.weights           = [1,w];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -213,7 +214,7 @@ classdef GripperProblemLevelSetPerimeterPNorm < handle
             obj.dualVariable = l;
         end
 
-        function createOptimizer(obj)
+        function createOptimizer(obj,gJ)
             s.monitoring     = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
@@ -225,8 +226,8 @@ classdef GripperProblemLevelSetPerimeterPNorm < handle
             s.primal         = 'SLERP';                  
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.002;
-            s.gJFlowRatio    = 0.01;
-            s.etaMax         = 1;
+            s.gJFlowRatio    = gJ;
+            s.etaMax         = 0.1;
             s.etaMaxMin      = 0.01;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();

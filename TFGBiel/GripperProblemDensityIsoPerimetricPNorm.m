@@ -10,6 +10,7 @@ classdef GripperProblemDensityIsoPerimetricPNorm < handle
         compliance
         volume
         isoperimeter
+        globalPerimeter
         cost
         constraint
         dualVariable
@@ -18,7 +19,7 @@ classdef GripperProblemDensityIsoPerimetricPNorm < handle
 
     methods (Access = public)
 
-        function obj = GripperProblemDensityIsoPerimetricPNorm(p,C)
+        function obj = GripperProblemDensityIsoPerimetricPNorm(p,C,gJ,w)
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -28,20 +29,21 @@ classdef GripperProblemDensityIsoPerimetricPNorm < handle
             obj.createNonSelfAdjCompliance();
             obj.createVolumeConstraint();
             obj.createIsoPerimetricConstraint(p,C);
-            obj.createCost();
+            obj.createGlobalPerimeterConstraint();
+            obj.createCost(w);
             obj.createConstraint();
             obj.createDualVariable();
-            obj.createOptimizer();
+            obj.createOptimizer(gJ);
 
             fileLocation = 'C:\Users\Biel\Desktop\UNI\TFG\ResultatsNormP_Density\00. From Batch';
             
-            vtuName = fullfile(fileLocation, sprintf('Topology_Gripper_isoperimeter_p%d_C%.2f_gJ0.2_eta0.02',p,C));
+            vtuName = fullfile(fileLocation, sprintf('Topology_Gripper_isoperimeter_p%d_C%.2f_gJ%.2f_eta0.02_w%.2f',p,C,gJ,w));
             obj.designVariable.fun.print(vtuName);
             
             figure(2)
             set(gcf, 'Position', get(0, 'Screensize'));
-            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Gripper_isoperimeter_p%d_C%.2f_gJ0.2_eta0.02.fig',p,C));
-            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Gripper_isoperimeter_p%d_C%.2f_gJ0.2_eta0.02.png',p,C));
+            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Gripper_isoperimeter_p%d_C%.2f_gJ%.2f_eta0.02_w%.2f.fig',p,C,gJ,w));
+            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Gripper_isoperimeter_p%d_C%.2f_gJ%.2f_eta0.02_w%.2f.png',p,C,gJ,w));
             savefig(fileName1);
             print(fileName2,'-dpng','-r300');
         end
@@ -147,9 +149,27 @@ classdef GripperProblemDensityIsoPerimetricPNorm < handle
             obj.isoperimeter = IsoPerimetricNormPFunctional(s);
         end
 
-        function createCost(obj)
+        function createGlobalPerimeterConstraint(obj)
+            s.mesh              = obj.mesh;
+            s.filter            = createFilterPerimeter(obj);
+            s.epsilon           = 6*obj.mesh.computeMeanCellSize();
+            s.value0            = 6;
+            obj.globalPerimeter = PerimeterFunctional(s);
+        end
+
+        function filterPerimeter = createFilterPerimeter(obj)
+            s.filterType    = 'PDE';
+            s.boundaryType  = 'Robin';
+            s.mesh          = obj.mesh;
+            s.trial         = LagrangianFunction.create(obj.mesh,1,'P1');
+            f               = Filter.create(s);
+            filterPerimeter = f;
+        end
+
+        function createCost(obj,w)
             s.shapeFunctions{1} = obj.compliance;
-            s.weights           = 1;
+            s.shapeFunctions{2} = obj.globalPerimeter;
+            s.weights           = [1,w];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -173,7 +193,7 @@ classdef GripperProblemDensityIsoPerimetricPNorm < handle
             obj.dualVariable = l;
         end
 
-        function createOptimizer(obj)
+        function createOptimizer(obj,gJ)
             s.monitoring     = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
@@ -187,7 +207,7 @@ classdef GripperProblemDensityIsoPerimetricPNorm < handle
             s.ub             = 1;
             s.lb             = 0;
             s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 0.2;
+            s.gJFlowRatio    = gJ;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

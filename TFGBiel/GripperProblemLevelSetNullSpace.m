@@ -28,7 +28,7 @@ classdef GripperProblemLevelSetNullSpace < handle
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
             obj.createComplianceFromConstiutive();
-            obj.createCompliance();
+            obj.createNonSelfAdjCompliance();
             obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
@@ -77,18 +77,19 @@ classdef GripperProblemLevelSetNullSpace < handle
         end
 
         function createMaterialInterpolator(obj)
-            E0 = 1e-3;
-            nu0 = 1/3;
-            ndim = obj.mesh.ndim;
+            E0   = 1e-3;
+            nu0  = 1/3;
+            E1   = 1;
+            nu1  = 1/3;
+            ndim = 2;
+
             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
             matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
 
-
-            E1 = 1;
-            nu1 = 1/3;
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
+            s.typeOfMaterial = 'ISOTROPIC';
             s.interpolation  = 'SIMPALL';
             s.dim            = '2D';
             s.matA = matA;
@@ -128,12 +129,13 @@ classdef GripperProblemLevelSetNullSpace < handle
             c = ComplianceFromConstitutiveTensor(s);
         end
 
-        function createCompliance(obj)
-            s.mesh                        = obj.mesh;
-            s.filter                      = obj.filter;
-            s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
-            s.material                    = obj.createMaterial();
-            c = ComplianceFunctional(s);
+        function createNonSelfAdjCompliance(obj)
+            s.mesh         = obj.mesh;
+            s.filter       = obj.filter;
+            s.material     = obj.createMaterial();
+            s.stateProblem = obj.physicalProblem;
+            s.filename     = obj.filename;
+            c = NonSelfAdjointComplianceFunctional(s);
             obj.compliance = c;
         end
 
@@ -141,7 +143,7 @@ classdef GripperProblemLevelSetNullSpace < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;
+            s.volumeTarget = 0.6;
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -189,8 +191,8 @@ classdef GripperProblemLevelSetNullSpace < handle
             s.primal         = 'SLERP';                  
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.002;
-            s.gJFlowRatio    = 0.01;
-            s.etaMax         = 1;
+            s.gJFlowRatio    = 0.2;
+            s.etaMax         = 0.1;
             s.etaMaxMin      = 0.01;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();

@@ -18,7 +18,7 @@ classdef TopOptTestTutorialLevelSetIsoPerimetricPNorm < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorialLevelSetIsoPerimetricPNorm(p,C)
+        function obj = TopOptTestTutorialLevelSetIsoPerimetricPNorm(p,C,gJ,w)
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -30,20 +30,20 @@ classdef TopOptTestTutorialLevelSetIsoPerimetricPNorm < handle
             obj.createVolumeConstraint();
             obj.createIsoPerimetricConstraint(p,C);
             obj.createGlobalPerimeterConstraint();
-            obj.createCost();
+            obj.createCost(w);
             obj.createConstraint();
             obj.createDualVariable();
-            obj.createOptimizer();
+            obj.createOptimizer(gJ);
 
             fileLocation = 'C:\Users\Biel\Desktop\UNI\TFG\ResultatsNormP_Density\00. From Batch';
             
-            vtuName = fullfile(fileLocation, sprintf('Topology_Cantilever_isoperimeter_p%d_C%.2f_gJ0.1_eta0.02_LevelSet',p,C));
+            vtuName = fullfile(fileLocation, sprintf('Topology_Cantilever_isoperimeter_p%d_C%.2f_gJ%.2f_eta0.02_w%.2f_LevelSet',p,C,gJ,w));
             obj.designVariable.fun.print(vtuName);
             
             figure(2)
             set(gcf, 'Position', get(0, 'Screensize'));
-            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_isoperimeter_p%d_C%.2f_gJ0.1_eta0.02_LevelSet.fig',p,C));
-            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_isoperimeter_p%d_C%.2f_gJ0.1_eta0.02_LevelSet.png',p,C));
+            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_isoperimeter_p%d_C%.2f_gJ%.2f_eta0.02_w%.2f_LevelSet.fig',p,C,gJ,w));
+            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_isoperimeter_p%d_C%.2f_gJ%.2f_eta0.02_w%.2f_LevelSet.png',p,C,gJ,w));
             savefig(fileName1);
             print(fileName2,'-dpng','-r300');
         end
@@ -58,8 +58,8 @@ classdef TopOptTestTutorialLevelSetIsoPerimetricPNorm < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,2,100);
-            x2      = linspace(0,1,50);
+            x1      = linspace(0,2,150);
+            x2      = linspace(0,1,75);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -182,10 +182,10 @@ classdef TopOptTestTutorialLevelSetIsoPerimetricPNorm < handle
             filterPerimeter = f;
         end
 
-        function createCost(obj)
+        function createCost(obj,w)
             s.shapeFunctions{1} = obj.compliance;
             s.shapeFunctions{2} = obj.globalPerimeter;
-            s.weights           = [1,0.8];
+            s.weights           = [1,w];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -215,19 +215,19 @@ classdef TopOptTestTutorialLevelSetIsoPerimetricPNorm < handle
             obj.dualVariable = l;
         end
 
-        function createOptimizer(obj)
+        function createOptimizer(obj,gJ)
             s.monitoring     = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 3000;
+            s.maxIter        = 2000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'INEQUALITY','INEQUALITY'};
             s.primal         = 'SLERP';                  
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.002;
-            s.gJFlowRatio    = 0.1;
+            s.gJFlowRatio    = gJ;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
             opt = OptimizerNullSpace(s);

@@ -7,6 +7,7 @@ classdef GripperProblemDensityLocalPerimeter < handle
         physicalProblem
         compliance
         volume
+        globalPerimeter
         hinge1Perimeter
         hinge2Perimeter
         hinge3Perimeter
@@ -24,7 +25,7 @@ classdef GripperProblemDensityLocalPerimeter < handle
 
     methods (Access = public)
 
-        function obj = GripperProblemDensityLocalPerimeter()
+        function obj = GripperProblemDensityLocalPerimeter(r,gJ,w)
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -33,24 +34,25 @@ classdef GripperProblemDensityLocalPerimeter < handle
             obj.createElasticProblem();
             obj.createNonSelfAdjCompliance();
             obj.createVolumeConstraint();
-            obj.createPerimeterConstraintHinge1();
-            obj.createPerimeterConstraintHinge2();
-            obj.createPerimeterConstraintHinge3();
-            obj.createPerimeterConstraintHinge4();
-            obj.createCost();
+            obj.createPerimeterConstraintHinge1(r);
+            obj.createPerimeterConstraintHinge2(r);
+            obj.createPerimeterConstraintHinge3(r);
+            obj.createPerimeterConstraintHinge4(r);
+            obj.createGlobalPerimeterConstraint();
+            obj.createCost(w);
             obj.createConstraint();
             obj.createDualVariable();
-            obj.createOptimizer();
+            obj.createOptimizer(gJ);
 
             fileLocation = 'C:\Users\Biel\Desktop\UNI\TFG\ResultatsNormP_Density\00. From Batch';
             
-            vtuName = fullfile(fileLocation, sprintf('Topology_Gripper_localPerimeter_gJ0.2_eta0.02'));
+            vtuName = fullfile(fileLocation, sprintf('Topology_Gripper_localPerimeter_r%.2f_gJ%.2f_eta0.02_w%.2f',r,gJ,w));
             obj.designVariable.fun.print(vtuName);
             
             figure(2)
             set(gcf, 'Position', get(0, 'Screensize'));
-            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Gripper_localPerimeter_gJ0.2_eta0.02.fig'));
-            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Gripper_localPerimeter_gJ0.2_eta0.02.png'));
+            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Gripper_localPerimeter_r%.2f_gJ%.2f_eta0.02_w%.2f.fig',r,gJ,w));
+            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Gripper_localPerimeter_r%.2f_gJ%.2f_eta0.02_w%.2f.png',r,gJ,w));
             savefig(fileName1);
             print(fileName2,'-dpng','-r300');
         end
@@ -148,53 +150,53 @@ classdef GripperProblemDensityLocalPerimeter < handle
             obj.volume = v;
         end
 
-        function createPerimeterConstraintHinge1(obj)
+        function createPerimeterConstraintHinge1(obj,r)
             s.mesh              = obj.mesh;
-            s.uMesh             = obj.computeHinge1Domain(); % Geometrical function
+            s.uMesh             = obj.computeHinge1Domain(r); % Geometrical function
             s.filter            = obj.createFilterPerimeter();
             s.epsilon           = 4*obj.mesh.computeMeanCellSize();
             s.minEpsilon        = 4*obj.mesh.computeMeanCellSize();
             s.value0            = 0.01; % Perimeter of subdomain OmegaLeft
-            s.target            = 0*(30/2); % Reference case té Per=30
+            s.target            = 0.001; % Reference case té Per=30
             obj.hinge1Perimeter = LocalPerimeterConstraint(s);
         end
 
-        function createPerimeterConstraintHinge2(obj)
+        function createPerimeterConstraintHinge2(obj,r)
             s.mesh              = obj.mesh;
-            s.uMesh             = obj.computeHinge2Domain(); % Geometrical function
+            s.uMesh             = obj.computeHinge2Domain(r); % Geometrical function
             s.filter            = obj.createFilterPerimeter();
             s.epsilon           = 4*obj.mesh.computeMeanCellSize();
             s.minEpsilon        = 4*obj.mesh.computeMeanCellSize();
             s.value0            = 0.01; % Perimeter of subdomain OmegaLeft
-            s.target            = 0*(30/2); % Reference case té Per=30
+            s.target            = 0.001; % Reference case té Per=30
             obj.hinge2Perimeter = LocalPerimeterConstraint(s);
         end
 
-        function createPerimeterConstraintHinge3(obj)
+        function createPerimeterConstraintHinge3(obj,r)
             s.mesh              = obj.mesh;
-            s.uMesh             = obj.computeHinge3Domain(); % Geometrical function
+            s.uMesh             = obj.computeHinge3Domain(r); % Geometrical function
             s.filter            = obj.createFilterPerimeter();
             s.epsilon           = 4*obj.mesh.computeMeanCellSize();
             s.minEpsilon        = 4*obj.mesh.computeMeanCellSize();
             s.value0            = 0.01; % Perimeter of subdomain OmegaLeft
-            s.target            = 0*(30/2); % Reference case té Per=30
+            s.target            = 0.001; % Reference case té Per=30
             obj.hinge3Perimeter = LocalPerimeterConstraint(s);
         end
 
-        function createPerimeterConstraintHinge4(obj)
+        function createPerimeterConstraintHinge4(obj,r)
             s.mesh              = obj.mesh;
-            s.uMesh             = obj.computeHinge4Domain(); % Geometrical function
+            s.uMesh             = obj.computeHinge4Domain(r); % Geometrical function
             s.filter            = obj.createFilterPerimeter();
             s.epsilon           = 4*obj.mesh.computeMeanCellSize();
             s.minEpsilon        = 4*obj.mesh.computeMeanCellSize();
             s.value0            = 0.01; % Perimeter of subdomain OmegaLeft
-            s.target            = 0*(30/2); % Reference case té Per=30
+            s.target            = 0.001; % Reference case té Per=30
             obj.hinge4Perimeter = LocalPerimeterConstraint(s);
         end
 
-        function uMesh = computeHinge1Domain(obj)
+        function uMesh = computeHinge1Domain(obj,r)
             s.type        = 'Circle';
-            s.radius      = 0.02;
+            s.radius      = r*obj.mesh.computeMeanCellSize();
             s.xCoorCenter = 0.5;
             s.yCoorCenter = 0.75;
             g             = GeometricalFunction(s);
@@ -206,9 +208,9 @@ classdef GripperProblemDensityLocalPerimeter < handle
             uMesh.compute(levelSet);
         end
 
-        function uMesh = computeHinge2Domain(obj)
+        function uMesh = computeHinge2Domain(obj,r)
             s.type        = 'Circle';
-            s.radius      = 0.02;
+            s.radius      = r*obj.mesh.computeMeanCellSize();
             s.xCoorCenter = 0.75;
             s.yCoorCenter = 0.5;
             g             = GeometricalFunction(s);
@@ -220,9 +222,9 @@ classdef GripperProblemDensityLocalPerimeter < handle
             uMesh.compute(levelSet);
         end
 
-        function uMesh = computeHinge3Domain(obj)
+        function uMesh = computeHinge3Domain(obj,r)
             s.type        = 'Circle';
-            s.radius      = 0.02;
+            s.radius      = r*obj.mesh.computeMeanCellSize();
             s.xCoorCenter = 0.5;
             s.yCoorCenter = 0.25;
             g             = GeometricalFunction(s);
@@ -234,9 +236,9 @@ classdef GripperProblemDensityLocalPerimeter < handle
             uMesh.compute(levelSet);
         end
 
-        function uMesh = computeHinge4Domain(obj)
+        function uMesh = computeHinge4Domain(obj,r)
             s.type        = 'Circle';
-            s.radius      = 0.02;
+            s.radius      = r*obj.mesh.computeMeanCellSize();
             s.xCoorCenter = 0.25;
             s.yCoorCenter = 0.5;
             g             = GeometricalFunction(s);
@@ -257,9 +259,18 @@ classdef GripperProblemDensityLocalPerimeter < handle
             filterPerimeter = f;
         end
 
-        function createCost(obj)
+        function createGlobalPerimeterConstraint(obj)
+            s.mesh              = obj.mesh;
+            s.filter            = createFilterPerimeter(obj);
+            s.epsilon           = 6*obj.mesh.computeMeanCellSize();
+            s.value0            = 6;
+            obj.globalPerimeter = PerimeterFunctional(s);
+        end
+
+        function createCost(obj,w)
             s.shapeFunctions{1} = obj.compliance;
-            s.weights           = 1;
+            s.shapeFunctions{2} = obj.globalPerimeter;
+            s.weights           = [1,w];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -286,7 +297,7 @@ classdef GripperProblemDensityLocalPerimeter < handle
             obj.dualVariable = l;
         end
 
-        function createOptimizer(obj)
+        function createOptimizer(obj,gJ)
             s.monitoring     = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
@@ -300,7 +311,7 @@ classdef GripperProblemDensityLocalPerimeter < handle
             s.ub             = 1;
             s.lb             = 0;
             s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 0.2;
+            s.gJFlowRatio    = gJ;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

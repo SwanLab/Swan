@@ -10,7 +10,6 @@ classdef TopOptTestTutorialDensityLocalPerimeter < handle
         volume
         leftPerimeter
         rightPerimeter
-        globalPerimeter
         cost
         constraint
         dualVariable
@@ -31,7 +30,6 @@ classdef TopOptTestTutorialDensityLocalPerimeter < handle
             obj.createVolumeConstraint();
             obj.createPerimeterConstraintLeft();
             obj.createPerimeterConstraintRight();
-            obj.createGlobalPerimeterConstraint();
             obj.createCost();
             obj.createConstraint();
             obj.createDualVariable();
@@ -39,13 +37,13 @@ classdef TopOptTestTutorialDensityLocalPerimeter < handle
 
             fileLocation = 'C:\Users\Biel\Desktop\UNI\TFG\ResultatsNormP_Density\00. From Batch';
             
-            vtuName = fullfile(fileLocation, sprintf('Topology_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02',p,pTarget));
+            vtuName = fullfile(fileLocation, sprintf('Topology_Cantilever_localPerimeter_gJ0.2_eta0.02'));
             obj.designVariable.fun.print(vtuName);
             
             figure(2)
             set(gcf, 'Position', get(0, 'Screensize'));
-            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02.fig',p,pTarget));
-            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02.png',p,pTarget));
+            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_localPerimeter_gJ0.2_eta0.02.fig'));
+            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Cantilever_localPerimeter_gJ0.2_eta0.02.png'));
             savefig(fileName1);
             print(fileName2,'-dpng','-r300');
         end
@@ -168,7 +166,7 @@ classdef TopOptTestTutorialDensityLocalPerimeter < handle
             s.epsilon         = 4*obj.mesh.computeMeanCellSize();
             s.minEpsilon      = 4*obj.mesh.computeMeanCellSize();
             s.value0          = 4; % Perimeter of subdomain OmegaLeft
-            s.target          = 0*(30/2); % Reference case té Per=30
+            s.target          = 0.25*(30/2); % Reference case té Per=30
             obj.leftPerimeter = LocalPerimeterConstraint(s);
         end
 
@@ -213,14 +211,6 @@ classdef TopOptTestTutorialDensityLocalPerimeter < handle
             uMesh.compute(levelSet);
         end
 
-        function createGlobalPerimeterConstraint(obj)
-            s.mesh              = obj.mesh;
-            s.filter            = createFilterPerimeter(obj);
-            s.epsilon           = 6*obj.mesh.computeMeanCellSize();
-            s.value0            = 6;
-            obj.globalPerimeter = PerimeterFunctional(s);
-        end
-
         function filterPerimeter = createFilterPerimeter(obj)
             s.filterType    = 'PDE';
             s.boundaryType  = 'Neumann';
@@ -232,8 +222,7 @@ classdef TopOptTestTutorialDensityLocalPerimeter < handle
 
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
-            s.shapeFunctions{2} = obj.globalPerimeter;
-            s.weights           = [1,0.8];
+            s.weights           = 1;
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end

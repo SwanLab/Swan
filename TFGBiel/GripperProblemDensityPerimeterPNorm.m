@@ -19,7 +19,7 @@ classdef GripperProblemDensityPerimeterPNorm < handle
 
     methods (Access = public)
 
-        function obj = GripperProblemDensityPerimeterPNorm(p,pT)
+        function obj = GripperProblemDensityPerimeterPNorm(p,pT,gJ,w)
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -30,20 +30,20 @@ classdef GripperProblemDensityPerimeterPNorm < handle
             obj.createVolumeConstraint();
             obj.createPerimeterConstraint(p,pT);
             obj.createGlobalPerimeterConstraint();
-            obj.createCost();
+            obj.createCost(w);
             obj.createConstraint();
             obj.createDualVariable();
-            obj.createOptimizer();
+            obj.createOptimizer(gJ);
 
             fileLocation = 'C:\Users\Biel\Desktop\UNI\TFG\ResultatsNormP_Density\00. From Batch';
             
-            vtuName = fullfile(fileLocation, sprintf('Topology_Gripper_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02',p,pT));
+            vtuName = fullfile(fileLocation, sprintf('Topology_Gripper_perimeter_p%d_ptarget%.2f_gJ%.2f_eta0.02_w%.2f',p,pT,gJ,w));
             obj.designVariable.fun.print(vtuName);
             
             figure(2)
             set(gcf, 'Position', get(0, 'Screensize'));
-            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Gripper_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02.fig',p,pT));
-            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Gripper_perimeter_p%d_ptarget%.2f_gJ0.2_eta0.02.png',p,pT));
+            fileName1 = fullfile(fileLocation, sprintf('Monitoring_Gripper_perimeter_p%d_ptarget%.2f_gJ%.2f_eta0.02_w%.2f.fig',p,pT,gJ,w));
+            fileName2 = fullfile(fileLocation, sprintf('Monitoring_Gripper_perimeter_p%d_ptarget%.2f_gJ%.2f_eta0.02_w%.2f.png',p,pT,gJ,w));
             savefig(fileName1);
             print(fileName2,'-dpng','-r300');
         end
@@ -166,10 +166,10 @@ classdef GripperProblemDensityPerimeterPNorm < handle
             filterPerimeter = f;
         end
 
-        function createCost(obj)
+        function createCost(obj,w)
             s.shapeFunctions{1} = obj.compliance;
             s.shapeFunctions{2} = obj.globalPerimeter;
-            s.weights           = [1,0.5];
+            s.weights           = [1,w];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -193,7 +193,7 @@ classdef GripperProblemDensityPerimeterPNorm < handle
             obj.dualVariable = l;
         end
 
-        function createOptimizer(obj)
+        function createOptimizer(obj,gJ)
             s.monitoring     = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
@@ -207,7 +207,7 @@ classdef GripperProblemDensityPerimeterPNorm < handle
             s.ub             = 1;
             s.lb             = 0;
             s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 0.2;
+            s.gJFlowRatio    = gJ;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
