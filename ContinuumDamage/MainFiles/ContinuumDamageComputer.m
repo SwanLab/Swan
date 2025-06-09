@@ -32,15 +32,17 @@ classdef ContinuumDamageComputer < handle
 
                 err = 1; iter = 1;
                 while (err >= obj.tolerance && iter < obj.limIter)
+                  
                     tauEps = obj.damageFunctional.computeTauEpsilon(u);
                     obj.internalDamageVariable.update(tauEps);
 
                     r = obj.internalDamageVariable;
+
                     [res]       = obj.damageFunctional.computeResidual(u,r,bc);
                     [dres,Ksec] = obj.damageFunctional.computeDerivativeResidual(u,r,bc);
                     [uNew,uVec] = obj.computeDisplacement(dres,res,u,bc);
                     u.setFValues(uNew);
-
+                    
                     err = norm(res);
                     fprintf('Error: %d;     Iter: %d \n',err,iter);
 
@@ -51,14 +53,13 @@ classdef ContinuumDamageComputer < handle
                   % [res]  = obj.damageFunctional.computeResidual(u,r,bc);
                   %  err = norm(res);
                   %  fprintf('Error: %d;     Iter: %d \n',err,iter);
+                   
                     iter = iter+1;
-                    obj.internalDamageVariable.updateRold();
                 end
                 if (iter >= obj.limIter)
                     fprintf (2,'NOT CONVERGED FOR STEP %d\n',i);
                 end
-
-                % obj.internalDamageVariable.updateRold();
+                obj.internalDamageVariable.updateRold();
                 [data,dmgFun,rFun,qFun] = obj.getData(data,i,Ksec,uVec,u,bc);
 
             end
