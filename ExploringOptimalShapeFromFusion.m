@@ -12,6 +12,7 @@ classdef ExploringOptimalShapeFromFusion < handle
         fractionVolume
         designVariable
         filter
+        materialInterpolator
         
     end
 
@@ -24,6 +25,7 @@ classdef ExploringOptimalShapeFromFusion < handle
             obj.createDesignVariable();
             obj.createFilter();
             obj.computeElasticProperties();
+            obj.createMaterialInterpolator();
             obj.createMaterial();
             obj.solveElasticProblem();
             obj.createComplianceFromConstiutive();
@@ -49,7 +51,8 @@ classdef ExploringOptimalShapeFromFusion < handle
 
         function createVolume(obj)
             obj.volume = obj.mesh.computeVolume();
-            %restar caixa
+            % No fa falta restar caixa perque el total ja esta fet amb
+            % caixa
             InitialVolume = 7.002e5;
             obj.fractionVolume = obj.volume/InitialVolume;
         end
@@ -84,16 +87,39 @@ classdef ExploringOptimalShapeFromFusion < handle
             obj.poisson = ConstantFunction.create(nu,obj.mesh);
         end
 
-        %Interpolation (copia de TopOpt tuorial)
+        function createMaterialInterpolator(obj)
+            E0 = 10e3;
+            nu0 = 1/3;
+            ndim = obj.mesh.ndim;
+            matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
+            matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
+
+
+            E1 = 71e3;
+            nu1 = 1/3;
+            matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
+            matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
+
+            s.interpolation  = 'SIMPALL';
+            s.dim            = '3D';
+            s.matA = matA;
+            s.matB = matB;
+
+            m = MaterialInterpolator.create(s);
+            obj.materialInterpolator = m;
+        end
 
 
         function createMaterial(obj)
-            s.type    = 'DensityBased';
-            s.ptype   = 'ELASTIC';
-            s.ndim    = obj.mesh.ndim;
-            s.young   = obj.young;
-            s.poisson = obj.poisson;
-            tensor    = Material.create(s);
+            s.type                 = 'DensityBased';
+            s.ptype                = 'ELASTIC';
+            s.dim                  = obj.mesh.ndim;
+            s.mesh                 = obj.mesh;
+            s.density              = obj.designVariable;
+            s.materialInterpolator = obj.materialInterpolator;
+            s.young                = obj.young;
+            s.poisson              = obj.poisson;
+            tensor                 = Material.create(s);
             obj.material = tensor;
         end
 
@@ -125,7 +151,7 @@ classdef ExploringOptimalShapeFromFusion < handle
             s.material                    = obj.material; %obj.createMaterial();
             c = ComplianceFunctional(s);
             obj.compliance = c;
-            [J,dJ] = c.computeFunctionAndGradient(obj.designVariable)
+            [J,dJ] = c.computeFunctionAndGradient(obj.designVariable);
         end
         
         function bc = createBoundaryConditions(obj)
