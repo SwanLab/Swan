@@ -211,12 +211,6 @@ function [J] = f_cost(u, g, t0, v0, gamma0, x1_0, x2_0, D, dDdv, dDda, N, m)
     p3 = p((N:-1:1),3);
     gradJ = [-dydt_final(1); -DFdu.*p3];
 
-
-    figure(100); plot(y(:,1), y(:,2), 'b-', 'LineWidth', 2);
-    xlabel("Horizontal distance [m]"); ylabel("Vertical distance [m]"); grid on;
-    xlim([0 30])
-    ylim([-1 5])
-
 end
 
 function [ceq] = groundConstraint(u, g, t0, v0, x1_0, x2_0, gamma0, D, dDdv, dDda, N, m)
