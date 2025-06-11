@@ -41,9 +41,9 @@ classdef ShFunc_ContinuumDamage < handle
         end
 
         function [dRes,Ksec] = computeDerivativeResidual(obj,u,r,bc) 
-            [K,Ksec] = obj.internalDamage.computeDerivativeResidual(u,r);
+            [Ktan,Ksec] = obj.internalDamage.computeDerivativeResidual(u,r);
              % KsecFree = Ksec(bc.free_dofs,bc.free_dofs);
-            dRes = K(bc.free_dofs,bc.free_dofs);
+            dRes = Ktan(bc.free_dofs,bc.free_dofs);
         end
 
         function tau = computeTauEpsilon(obj,u)

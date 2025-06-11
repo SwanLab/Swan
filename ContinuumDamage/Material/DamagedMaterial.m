@@ -24,6 +24,7 @@ classdef DamagedMaterial < handle
             Csec = obj.obtainTensorSecant(r);
             dmgTangent = obj.obtainDamageTangentContribution(u,r);
             Ctan = Csec - dmgTangent;
+            %Ctan.evaluate([0;0])
           %  dmgTangent.evaluate([0;0])
         end
 

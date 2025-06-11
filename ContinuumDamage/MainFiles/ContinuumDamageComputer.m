@@ -55,6 +55,14 @@ classdef ContinuumDamageComputer < handle
                   %  fprintf('Error: %d;     Iter: %d \n',err,iter);
                    
                     iter = iter+1;
+
+
+            dmgDomainFun = obj.damageFunctional.getDamage(obj.internalDamageVariable);
+            dmgFun = dmgDomainFun.project('P0');
+            dmgFun.plot
+            colorbar
+            clim([0 1])
+
                 end
                 if (iter >= obj.limIter)
                     fprintf (2,'NOT CONVERGED FOR STEP %d\n',i);

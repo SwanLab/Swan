@@ -37,8 +37,8 @@ classdef TestingContinuumDamage < handle
         function mesh = createMesh(obj)
                 l = 1;
                 w = 1;
-                N = 5;
-                M = 5;
+                N = 1;
+                M = 20;
                 mesh = QuadMesh(l,w,N,M);
 
                 % file = 'Hole'; %SENshear0_0025
@@ -50,7 +50,7 @@ classdef TestingContinuumDamage < handle
         function bc = createBoundaryConditions(obj)
             s.mesh = obj.mesh;
             s.bcType = 'displacementTraction'; %fiberMatrix
-            s.bcValueSet = [0:1e-3:0.5];            
+            s.bcValueSet = [0:1e-2:1];            
             bc = BcContinuumDamage(s);
         end
 
@@ -91,10 +91,10 @@ classdef TestingContinuumDamage < handle
         end
 
         function hL = createHardeningLaw(obj)
-            r1 = 20;
+            r1 = 2;
             s.r1   = ConstantFunction.create(r1,obj.mesh);
-            s.type = 'Linear';%'Exp'; %'Exp'            
-            s.H    = 0.5;
+            s.type = 'Exp';%'Exp'; %'Exp'            
+            s.H    = -0.5;
             s.A    = 0.2;
             s.r0   = obj.createR0();
             s.w1   = 80;
@@ -103,7 +103,7 @@ classdef TestingContinuumDamage < handle
         end          
 
         function r0 = createR0(obj)
-            r0 = 1;
+            r0 = 10;
             r0 = ConstantFunction.create(r0,obj.mesh);            
         end
 
