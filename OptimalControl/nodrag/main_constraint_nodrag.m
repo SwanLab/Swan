@@ -101,7 +101,8 @@ end
 
 function [J, gradJ] = f_cost(u, g, t0, v0, x1_0, x2_0)
     y0 = [x1_0 x2_0 v0 u(2)];
-    t_span = linspace(t0, u(1), 1000);
+    tf = u(1);
+    t_span = linspace(t0, tf, 1000);
     [~, y] = ode45(@(t, y) dynamics(y, g), t_span, y0);
 
     J = -y(end,1);
@@ -116,7 +117,8 @@ end
 
 function [ceq, Dceq] = groundConstraint(u, g, t0, v0, x1_0, x2_0)
     y0 = [x1_0 x2_0 v0 u(2)]';
-    t_span = linspace(t0, u(1), 1000);
+    tf = u(1);
+    t_span = linspace(t0, tf, 1000);
     [~, y] = ode45(@(t, y) dynamics(y, g), t_span, y0);
 
     ceq = y(end,2);

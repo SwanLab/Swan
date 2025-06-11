@@ -1,4 +1,4 @@
-function main_constraint_drag
+function main_constraint_draglift
     persistent u_history J_history;
     clc; close all
 
@@ -15,11 +15,11 @@ function main_constraint_drag
 
     x1_0 = 0; x2_0 = 0; v0 = 15;
     gamma0 = deg2rad(40);
-    t0 = 0; tf = 3;
+    t0 = 0; tf = 20;
     alpha0 = deg2rad(3);
     u0 = [tf; alpha0];
-    lb = [0 0]; % Lower bounds for the control
-    ub = [5 deg2rad(10)]; % Upper bounds for the control
+    lb = [0 deg2rad(-10)]; % Lower bounds for the control
+    ub = [500 deg2rad(10)]; % Upper bounds for the control
 
     u0 = [u0(1) ones(1,N)*u0(2)];
     lb = [lb(1) ones(1,N)*lb(2)];
@@ -30,15 +30,17 @@ function main_constraint_drag
     Cl = @(alpha) Cl0 + Clalpha*alpha;
     Cd = @(alpha) Cd0 + k*Cl(alpha).^2;
     D = @(V,alpha) 0.5*rho*Sw*V.^2.*Cd(alpha);
+    L = @(V,alpha) 0.5*rho*Sw*V.^2.*Cl(alpha);
    
     dCl = Clalpha; % Derivative respecto to alpha
     dCd = @(alpha) 2*k*Cl(alpha)*dCl; % Derivative respect to alpha
     dDda = @(V,alpha) 0.5*rho*Sw*V.^2.*dCd(alpha); % Derivative respect to alpha
 
     dDdv = @(V,alpha) rho*Sw*V.*Cd(alpha); % Derivative respect to velocity
+    dLdv = @(alpha) rho*Sw*Cl(alpha)/m; % Derivative respect to velocity
 
-    cost = @(u) f_cost(u, g, t0, v0, gamma0, x1_0, x2_0, D, dDda, dDdv, N, m);
-    constraint = @(u) groundConstraint(u, g, t0, v0, x1_0, x2_0, gamma0, D, dDda, dDdv, N, m);
+    cost = @(u) f_cost(u, g, t0, v0, gamma0, x1_0, x2_0, D, dDda, dDdv, N, m, L, dLdv);
+    constraint = @(u) groundConstraint(u, g, t0, v0, x1_0, x2_0, gamma0, D, dDda, dDdv, N, m, L, dLdv);
     % 
     % eps = 1e-6;
     % [cost0, grad0] = cost(u0);
@@ -148,7 +150,7 @@ function main_constraint_drag
 
     y0 = [x1_0 x2_0 v0 gamma0];
     t_span = linspace(t0, u_opt(1), N);
-    [~, y] = ode45(@(t, y) dynamics(t, y, tf, u_opt(2:N+1), g, D, N, m), t_span, y0);
+    [~, y] = ode45(@(t, y) dynamics(t, y, tf, u_opt(2:N+1), g, D, N, m, L), t_span, y0);
 
     disp(["Maximum distance [m] = ", num2str(y(end, 1))])
     disp(["Initial angle [°]: ", num2str(rad2deg(u_opt(2)))])
@@ -193,58 +195,41 @@ function [c, ceq] = nonlcon(u,constraint)
     [ceq] = constraint(u);
 end
 
-function [J] = f_cost(u, g, t0, v0, gamma0, x1_0, x2_0, D, dDdv, dDda, N, m)
+function [J] = f_cost(u, g, t0, v0, gamma0, x1_0, x2_0, D, dDdv, dDda, N, m, L, dLdv)
     y0 = [x1_0 x2_0 v0 gamma0];
     tf = u(1);
     alpha = u(2:N+1);
     t_span = linspace(t0, tf, N)';    
-    [~, y] = ode45(@(t, y) dynamics(t, y, tf, alpha, g, D, N, m), t_span, y0);
+    [~, y] = ode45(@(t, y) dynamics(t, y, tf, alpha, g, D, N, m, L), t_span, y0);
 
     J = -y(end,1);
-    dydt_final = dynamics(tf, y(end,:)', tf, alpha, g, D, N, m);
-
-    pT = [1 0 0 0];
-    [~, p] = ode45(@(t, p) adjoint(t, p, y, g, t_span, alpha, dDdv, m), flip(t_span), pT);
-
-    v = y(:,3);
-    DFdu = -dDda(v,alpha')./m;
-    p3 = p((N:-1:1),3);
-    gradJ = [-dydt_final(1); -DFdu.*p3];
 
 end
 
-function [ceq] = groundConstraint(u, g, t0, v0, x1_0, x2_0, gamma0, D, dDdv, dDda, N, m)
+function [ceq] = groundConstraint(u, g, t0, v0, x1_0, x2_0, gamma0, D, dDdv, dDda, N, m, L, dLdv)
     y0 = [x1_0 x2_0 v0 gamma0]';
     tf = u(1);
     t_span = linspace(t0, tf, N);
     alpha = u(2:N+1);
-    [~, y] = ode45(@(t, y) dynamics(t, y, tf, alpha, g, D, N, m), t_span, y0);
+    [~, y] = ode45(@(t, y) dynamics(t, y, tf, alpha, g, D, N, m, L), t_span, y0);
 
     ceq = y(end,2);
-    dydt_final = dynamics(t_span(end), y(end,:)', tf, alpha, g, D, N, m);
 
-    pT = [0 -1 0 0];
-    [~, p] = ode45(@(t, p) adjoint(t, p, y, g, t_span, alpha, dDdv, m), flip(t_span), pT);
-     
-    v = y(:,3);
-    DFdu = -dDda(v,alpha');
-
-    Dceq = [dydt_final(2); -DFdu.*p(:,3)];
 end
 
-function dpdt = adjoint(t, p, y, g, t_span, alpha, dDdv, m)
+function dpdt = adjoint(t, p, y, g, t_span, alpha, dDdv, m, dLdv)
     v = interp1(t_span, y(:,3), t);
     gamma = interp1(t_span, y(:,4), t);
     alpha = interp1(t_span, alpha, t);
 
     J = [0 0 0 0;
          0 0 0 0;
-         cos(gamma) sin(gamma) -dDdv(v,alpha)./m (g/v^2)*cos(gamma);
+         cos(gamma) sin(gamma) -dDdv(v,alpha)./m (g/v^2)*cos(gamma)+dLdv(alpha);
          -v*sin(gamma) v*cos(gamma) -g*cos(gamma) (g/v)*sin(gamma)];
     dpdt = -J*p;
 end
 
-function dydt = dynamics(t, y, tf, alpha, g, D, N, m)
+function dydt = dynamics(t, y, tf, alpha, g, D, N, m, L)
     v = y(3);
     gamma = y(4);
 
@@ -255,6 +240,6 @@ function dydt = dynamics(t, y, tf, alpha, g, D, N, m)
         v*cos(gamma);
         v*sin(gamma);
         -g*sin(gamma)-D(v,alpha)/m;
-        -(g/v)*cos(gamma)
+        -(g/v)*cos(gamma)+L(v,alpha)/(m*v);
     ];
 end
