@@ -11,15 +11,15 @@ function main_constraint_draglift
     Clalpha = 5.7296;
     Cl0 = 0;
 
-    N = 50; % Discretization
+    N = 100; % Discretization
 
     x1_0 = 0; x2_0 = 0; v0 = 15;
     gamma0 = deg2rad(40);
-    t0 = 0; tf = 20;
-    alpha0 = deg2rad(3);
+    t0 = 0; tf = 7;
+    alpha0 = deg2rad(0);
     u0 = [tf; alpha0];
-    lb = [0 deg2rad(-10)]; % Lower bounds for the control
-    ub = [500 deg2rad(10)]; % Upper bounds for the control
+    lb = [0.1 deg2rad(-10)]; % Lower bounds for the control
+    ub = [10 deg2rad(10)]; % Upper bounds for the control
 
     u0 = [u0(1) ones(1,N)*u0(2)];
     lb = [lb(1) ones(1,N)*lb(2)];
@@ -200,9 +200,26 @@ function [J] = f_cost(u, g, t0, v0, gamma0, x1_0, x2_0, D, dDdv, dDda, N, m, L, 
     tf = u(1);
     alpha = u(2:N+1);
     t_span = linspace(t0, tf, N)';    
+
     [~, y] = ode45(@(t, y) dynamics(t, y, tf, alpha, g, D, N, m, L), t_span, y0);
 
     J = -y(end,1);
+
+    figure(100); plot(y(:,1), y(:,2), 'b-+', 'LineWidth', 2);
+    xlabel("Horizontal distance [m]"); ylabel("Vertical distance [m]"); grid on;
+    xlim([0 200])
+    ylim([-50 50])
+
+    figure(101); plot(t_span, rad2deg(u(2:end)), 'b-+', 'LineWidth', 2);
+    xlabel("Time [t]"); ylabel("angle of attack [deg]"); grid on;
+    xlim([0 tf])
+    ylim([0 10])
+
+    figure(102); plot(t_span, (y(:,3)), 'b-+', 'LineWidth', 2);
+    xlabel("Time [t]"); ylabel("Velocity [m/s]"); grid on;
+    xlim([0 tf])
+    ylim([-50 50])
+
 
 end
 
