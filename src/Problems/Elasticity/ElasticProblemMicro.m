@@ -67,8 +67,8 @@ classdef ElasticProblemMicro < handle
 
                 stressF{iB} = DDP(obj.material, strainF{iB});
                 %  Ch(:,iB)    = obj.computeChomog(stressF{iB},iB);
-                uM     = obj.computeTotal(strainB,iB);
-                uT{iB} = uF{iB} + uM;
+                uM{iB}     = obj.computeTotal(strainB,iB);
+                uT{iB} = uF{iB} + uM{iB};
 
             end
             obj.uFluc  = uF;
