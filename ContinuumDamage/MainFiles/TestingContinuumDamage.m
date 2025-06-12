@@ -50,7 +50,7 @@ classdef TestingContinuumDamage < handle
         function bc = createBoundaryConditions(obj)
             s.mesh = obj.mesh;
             s.bcType = 'displacementTraction'; %fiberMatrix
-            s.bcValueSet = [0:1e-3:0.5,0.5:1e-4:0.55,0.55:1e-2:1];            
+            s.bcValueSet = [0:1e-3:0.5,0.5:1e-4:0.55];            
             bc = BcContinuumDamage(s);
         end
 
