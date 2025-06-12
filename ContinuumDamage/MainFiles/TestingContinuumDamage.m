@@ -37,8 +37,8 @@ classdef TestingContinuumDamage < handle
         function mesh = createMesh(obj)
                 l = 1;
                 w = 1;
-                N = 20;
-                M = 20;
+                N = 30;
+                M = 30;
                 mesh = QuadMesh(l,w,N,M);
 
                 % file = 'Hole'; %SENshear0_0025

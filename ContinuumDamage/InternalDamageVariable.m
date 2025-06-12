@@ -56,7 +56,7 @@ classdef InternalDamageVariable < handle
             xmiddle = (max(xcoord)-min(xcoord))/2;
             eps = m.computeMeanCellSize/2;
             isMiddleY = abs(ycoord - ymiddle) < eps;
-            isBelowMiddleX = (xcoord - ymiddle) < 0;
+            isBelowMiddleX = (xcoord - (ymiddle+eps)) < 0;
             fV(isMiddleY & isBelowMiddleX) = 100000;
             obj.r.setFValues(fV);
             obj.rOld.setFValues(fV);
