@@ -46,6 +46,10 @@ classdef InternalDamageVariable < handle
         function init(obj,cParams)
             obj.rOld = project(cParams.r0,'P0');
             obj.r    = project(cParams.r0,'P0');
+            fV = 10*ones(size(obj.r.fValues));
+            fV([5,15,25,35,45]) = 100000;
+            obj.r.setFValues(fV);
+            obj.rOld.setFValues(fV);
             obj.mesh = cParams.mesh;
         end
         

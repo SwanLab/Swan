@@ -14,7 +14,7 @@ classdef DamageLaw < handle
         function d = computeFunction(obj,internalVariable)
             r = internalVariable.r;            
             q = obj.hardeningLaw.computeFunction(internalVariable);
-            d = min(1-(q/r),(1-1e-10));
+            d = min(1-(q/r),(1-1e-15));
         end
 
         function dDot = computeDerivative(obj,internalVariable)
