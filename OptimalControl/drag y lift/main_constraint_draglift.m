@@ -15,15 +15,16 @@ function main_constraint_draglift
     %Clalpha = 0.1; % en grados
     Cl0 = 0;
 
-    N = 100; % Discretization
+    N = 250; % Discretization
 
     x1_0 = 0; x2_0 = 0; v0 = 15;
     gamma0 = deg2rad(30);
-    t0 = 0; tf_guess = 10;
-    alpha0 = deg2rad(3);
+    t0 = 0; tf_guess = 6;
+    alpha0 = deg2rad(10);
     u0 = [resultsfalcon.tfinal resultsfalcon.u.alpha];
+    %u0 = [tf_guess alpha0]
     lb = [0.1 deg2rad(-10)]; % Lower bounds for the control
-    ub = [15 deg2rad(10)]; % Upper bounds for the control
+    ub = [15 deg2rad(10.1)]; % Upper bounds for the control
 
     %u0 = [u0(1) ones(1,N)*u0(2)];
     lb = [lb(1) ones(1,N)*lb(2)];
@@ -35,6 +36,13 @@ function main_constraint_draglift
     Cd = @(alpha) Cd0 + k*Cl(alpha).^2;
     D = @(V,alpha) 0.5*rho*Sw*V.^2.*Cd(alpha);
     L = @(V,alpha) 0.5*rho*Sw*V.^2.*Cl(alpha);   
+
+    [~,y0traj] = ode45(@(t,y)dynamics(t,y,u0(1),u0(2:end),g,D,N,m,L), ...
+                   linspace(t0,u0(1),N), ...
+                   [x1_0; x2_0; v0; gamma0]);
+
+minAlt = min(y0traj(:,2));
+fprintf('Altura mínima con u0 = %.4f m\n',minAlt);
 
     cost = @(u) f_cost(u, g, t0, v0, gamma0, x1_0, x2_0, D, N, m, L);
     nonlcon_fun = @(u) nonlcon_full(u, g, t0, v0, x1_0, x2_0, gamma0, D, N, m, L);
@@ -57,6 +65,9 @@ function main_constraint_draglift
 
     figure
     plot(y(:,1),y(:,2))
+    xlabel("Horizontal displacement [m]")
+    ylabel("Vertical displacement [m]")
+    title("Trajectory")
 
     function stop = store_fmincon(u, optimValues, state)
         if optimValues.iteration == 0
@@ -79,7 +90,8 @@ function [J] = f_cost(u, g, t0, v0, gamma0, x1_0, x2_0, D, N, m, L)
     tf = u(1);
     alpha = u(2:N+1);
     t_span = linspace(t0, tf, N)';
-    [~, y] = ode45(@(t, y) dynamics(t, y, tf, alpha, g, D, N, m, L), t_span, y0);
+    ode_opts = odeset('RelTol',1e-5,'AbsTol',1e-7);
+    [~, y] = ode45(@(t, y) dynamics(t, y, tf, alpha, g, D, N, m, L), t_span, y0, ode_opts);
 
     J = -y(end,1);
 
@@ -108,7 +120,8 @@ function [c, ceq] = nonlcon_full(u, g, t0, v0, gamma0, x1_0, x2_0, D, N, m, L)
     alpha = u(2:end);
     t_span = linspace(t0, tf, N);
     y0 = [x1_0; x2_0; v0; gamma0];
-    [~, y] = ode45(@(t,y)dynamics(t,y,tf,alpha,g,D,N,m,L), t_span, y0);
+    ode_opts = odeset('RelTol',1e-5,'AbsTol',1e-7);
+    [~, y] = ode45(@(t,y)dynamics(t,y,tf,alpha,g,D,N,m,L), t_span, y0, ode_opts);
 
     c = -y(:,2);
     ceq = y(end,2);
