@@ -21,9 +21,9 @@ s.maxIter.phi = 300;
 s.maxIter.stag = 300;
 
 s.benchmark.N = 10;
-s.benchmark.type.mesh = 'SENtest';
+s.benchmark.type.mesh = '1Elem';
 s.benchmark.type.bc = 'displacementTraction';
-s.benchmark.bcValues = [0:1e-3:0.01];
+s.benchmark.bcValues = [0:1e-3:0.05];
 
 s.matInfo.matType = 'Analytic';
 s.matInfo.degradationType = 'AT';
@@ -34,7 +34,7 @@ s.matInfo.Gc = 5e-3;
 s.l0 = 0.1;
 
 s.dissipInfo.type = 'PhaseFieldDissipationAT';
-s.dissipInfo.pExp = 2;
+s.dissipInfo.pExp = 1;
 s.solver.type = 'Newton';
 s.solver.tau  = 150;
 
@@ -45,5 +45,5 @@ outputData = tester.compute();
 outputData.inputParameters = s;
 
 %% SAVE + PLOT
-%save("~/Documents/GitHub/Swan/SENshear_SquareArea.mat","outputData") %ACTIVATE TO SAVE DATA!
+%save("FiberAT2_2",'outputData') %ACTIVATE TO SAVE DATA!
 PhaseFieldPlotter(outputData);

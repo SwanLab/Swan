@@ -39,7 +39,7 @@ classdef PhaseFieldAmbrosioTortorelli < handle
                 obj.shear = cParams.shear;
                 obj.bulk  = cParams.bulk;
             end
-            obj.pExp  = 2;
+            obj.pExp  = 3;
         end
 
         function mu = computeMuFunction(obj,phi)
@@ -75,12 +75,15 @@ classdef PhaseFieldAmbrosioTortorelli < handle
 
         function f = interpolate(obj,phi,f0)
             p = obj.pExp;
+            p = 1;
             f = ((1-phi.fun).^p).*f0;
         end
         
         function f = derive(obj,phi,f0)
             p = obj.pExp;
-            f = -p*((1-phi.fun).^(p-1)).*f0;
+            %f = -p*((1-phi.fun).^(p-1)).*f0;
+            phiFun = (phi.fun<0.25).*(phi.fun./1.5) + (phi.fun>=0.25).*(phi.fun);
+            f = -p*((1-phiFun).^(p-1)).*f0;
         end
 
         function f = derive2(obj,phi,f0)
