@@ -38,8 +38,8 @@ classdef Tutorial02p2FEMElasticityMicro < handle
         function m = createHoleMesh(obj)
             l = 1;
             h = 1;
-            nx = 30; 
-            ny = 30;
+            nx = 50; 
+            ny = 50;
             x1 = linspace(-l/2,l/2,nx);
             x2 = linspace(-h/2,h/2,ny);
             % Create the grid
