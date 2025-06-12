@@ -40,10 +40,11 @@ classdef EIFEMtesting_3D < handle
 
             LHSf = @(x) LHS*x;
             RHSf = RHS;
-            Usol = LHS\RHS;
             tic
-            Ufull = obj.bcApplier.reducedToFullVectorDirichlet(Usol);
+            Usol = LHS\RHS;
             toc
+            Ufull = obj.bcApplier.reducedToFullVectorDirichlet(Usol);
+            
             %obj.plotSolution(Ufull,obj.meshDomain,1,1,0,obj.bcApplier,0)
 
 
@@ -59,9 +60,10 @@ classdef EIFEMtesting_3D < handle
             MiluCG = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
 
             tol = 1e-8;
-            tic
+            
             x0 = zeros(size(RHSf));
-            %             [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
+            tic
+                        [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
             toc
             %             [uCG,residualCG,errCG,errAnormCG] = RichardsonSolver.solve(LHSf,RHSf,x0,P,tol,0.1,Usol);
 
@@ -121,7 +123,7 @@ classdef EIFEMtesting_3D < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [15 4 1]; %nx ny
+            obj.nSubdomains  = [15 2 2]; %nx ny
             obj.fileNameEIFEM = 'DEF_por3D.mat';
             %             obj.fileNameEIFEM = 'DEF_auxNew_2.mat';
             %obj.fileNameEIFEM = 'DEF_Q4porL_1_raul.mat';

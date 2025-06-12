@@ -21,6 +21,7 @@ classdef PreconditionerEIFEMcontinous < handle
         LHS
         bcApplier        
         dir
+        KeifemContinuous
     end    
     
     methods (Access = public)

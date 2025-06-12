@@ -8,6 +8,8 @@ classdef EIFEM_trying_ideas < handle
         RVE
         mesh
         DirCond
+        fineMesh
+        mR
     end
 
     properties (Access = private)
@@ -63,6 +65,10 @@ classdef EIFEM_trying_ideas < handle
             U      = (Udef + Urb);
         end
 
+        function M = computePreconditionerMatrix(obj)
+            R = computeRmat(obj);
+        end
+
     end
 
     methods (Access = private)
@@ -73,6 +79,8 @@ classdef EIFEM_trying_ideas < handle
             obj.Kel     = repmat(obj.RVE.Kcoarse,[1,1,obj.mesh.nelem]);
             obj.DirCond = cParams.DirCond;
             obj.dispFun = LagrangianFunction.create(obj.mesh, obj.RVE.ndimf,'P1');
+            obj.mR      = cParams.mR;
+            obj.fineMesh = cParams.meshDomain;
 %             Kfine  = cParams.Kfine;
 %             obj.Kmodal = obj.RVE.PhiDef'*Kfine*obj.RVE.PhiDef;
         end
@@ -161,6 +169,13 @@ classdef EIFEM_trying_ideas < handle
             for ielem = 1:nElem
                 uCelem = uCoarse(dofConec(ielem,:));
                 u(:,ielem) =  U*uCelem;
+            end
+        end
+
+        function M = computeRmat(obj)
+            for i=1:obj.mesh.nelem
+                rLoc = zeros(obj.mR.nnodes*obj.dispFun.nDimf,obj.fineMesh.nnodes*obj.dispFun.nDimf);
+%                 R{}
             end
         end
 

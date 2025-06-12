@@ -47,6 +47,7 @@ classdef EIFEMtesting < handle
 
             Mid          = @(r) r;
             Meifem       = obj.createEIFEMPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
+            MeifemCont   = obj.createEIFEMPreconditionerContinuous(mR,dir,iC,lG,bS,iCR,discMesh);
             Milu         = obj.createILUpreconditioner(LHS);
             MgaussSeidel = obj.createGaussSeidelpreconditioner(LHS);
             MJacobi      = obj.createJacobipreconditioner(LHS);
@@ -119,7 +120,7 @@ classdef EIFEMtesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [30 5]; %nx ny
+            obj.nSubdomains  = [10 4 1]; %nx ny
             obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
 %             obj.fileNameEIFEM = 'DEF_auxNew_2.mat';
             %obj.fileNameEIFEM = 'DEF_Q4porL_1_raul.mat';
@@ -394,6 +395,30 @@ classdef EIFEMtesting < handle
             ss.EIFEMsolver = eifem;
             ss.bcApplier = obj.bcApplier;
             ss.dMesh     = dMesh;
+            ss.type = 'EIFEM';
+            eP = Preconditioner.create(ss);
+            Meifem = @(r) eP.apply(r);
+        end
+
+        function Meifem = createEIFEMPreconditionerContinuous(obj,mR,dir,iC,lG,bS,iCR,dMesh)
+            % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
+            EIFEMfilename = obj.fileNameEIFEM;
+            % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
+            filename        = EIFEMfilename;
+            s.RVE           = TrainedRVE(filename);
+            s.mesh          = obj.createCoarseMesh(mR);
+%            s.mesh          = obj.loadCoarseMesh(mR);
+            s.DirCond       = dir;
+            s.nSubdomains = obj.nSubdomains;
+            s.meshRef = mR;
+            s.meshDomain = obj.meshDomain;
+            eifem           = EIFEM_trying_ideas(s);
+
+
+            ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
+            ss.EIFEMsolver = eifem;
+            ss.bcApplier = obj.bcApplier;
+            ss.dmesh     = dMesh;
             ss.type = 'EIFEM';
             eP = Preconditioner.create(ss);
             Meifem = @(r) eP.apply(r);
