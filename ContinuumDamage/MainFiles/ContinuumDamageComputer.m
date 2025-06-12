@@ -25,9 +25,9 @@ classdef ContinuumDamageComputer < handle
             data = {};
 
             nSteps = length(obj.boundaryConditions.bcValueSet);
-            for i = 1:nSteps
-                fprintf('Step: %d / %d \n',i,nSteps);
-                bc = obj.updateBoundaryConditions(i);
+            for iStep = 1:nSteps
+                fprintf('Step: %d / %d \n',iStep,nSteps);
+                bc = obj.updateBoundaryConditions(iStep);
                 u.setFValues(obj.updateInitialDisplacement(bc,u));
 
                 err = 1; iter = 1;
@@ -56,25 +56,34 @@ classdef ContinuumDamageComputer < handle
                    
                     iter = iter+1;
 
+                end
+                if (iter >= obj.limIter)
+                    fprintf (2,'NOT CONVERGED FOR STEP %d\n',iStep);
+                end
+                obj.internalDamageVariable.updateRold();
+                [data,dmgFun,rFun,qFun] = obj.getData(data,iStep,Ksec,uVec,u,bc);
 
+          
+
+            if mod(iStep,10)==0 
             dmgDomainFun = obj.damageFunctional.getDamage(obj.internalDamageVariable);
             dmgFun = dmgDomainFun.project('P0');
             dmgFun.plot
             colorbar
             clim([0 1])
 
-                end
-                if (iter >= obj.limIter)
-                    fprintf (2,'NOT CONVERGED FOR STEP %d\n',i);
-                end
-                obj.internalDamageVariable.updateRold();
-                [data,dmgFun,rFun,qFun] = obj.getData(data,i,Ksec,uVec,u,bc);
-
+            figure(100)
+            drawnow
+            plot(data.displacement.value,data.reaction,'-+')
             end
+            
             data.displacement.field = u;
             data.damage.field = dmgFun;
             data.r.field = rFun;
             data.q.field = qFun;
+
+            end
+            
 
         end
     end
