@@ -13,6 +13,8 @@ classdef Preconditioner < handle
                     M = PreconditionerILU(cParams);
                 case {'EIFEM'}
                     M = PreconditionerEIFEM(cParams);
+                case {'EIFEMcont'}
+                    M = PreconditionerEIFEMcontinous(cParams);
                 case {'MODAL'}
                     M = PreconditionerModalApproximation(cParams);
                 case {'DirichletNeumann'}

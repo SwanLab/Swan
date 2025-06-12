@@ -47,7 +47,7 @@ classdef EIFEMtesting < handle
 
             Mid          = @(r) r;
             Meifem       = obj.createEIFEMPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
-            MeifemCont   = obj.createEIFEMPreconditionerContinuous(mR,dir,iC,lG,bS,iCR,discMesh);
+            MeifemCont   = obj.createEIFEMPreconditionerContinuous(mR,dir,iC,lG,bS,iCR,discMesh,LHS);
             Milu         = obj.createILUpreconditioner(LHS);
             MgaussSeidel = obj.createGaussSeidelpreconditioner(LHS);
             MJacobi      = obj.createJacobipreconditioner(LHS);
@@ -120,7 +120,7 @@ classdef EIFEMtesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [10 4 1]; %nx ny
+            obj.nSubdomains  = [2 2 1]; %nx ny
             obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
 %             obj.fileNameEIFEM = 'DEF_auxNew_2.mat';
             %obj.fileNameEIFEM = 'DEF_Q4porL_1_raul.mat';
@@ -400,7 +400,7 @@ classdef EIFEMtesting < handle
             Meifem = @(r) eP.apply(r);
         end
 
-        function Meifem = createEIFEMPreconditionerContinuous(obj,mR,dir,iC,lG,bS,iCR,dMesh)
+        function Meifem = createEIFEMPreconditionerContinuous(obj,mR,dir,iC,lG,bS,iCR,dMesh,LHS)
             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
             EIFEMfilename = obj.fileNameEIFEM;
             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
@@ -418,9 +418,11 @@ classdef EIFEMtesting < handle
             ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
             ss.EIFEMsolver = eifem;
             ss.bcApplier = obj.bcApplier;
-            ss.dmesh     = dMesh;
-            ss.type = 'EIFEM';
+            ss.dMesh     = dMesh;
+            ss.type = 'EIFEMcont';
+            ss.nSubdomains = obj.nSubdomains;
             eP = Preconditioner.create(ss);
+            k  = eP.computeKEIFEMglobal(LHS);
             Meifem = @(r) eP.apply(r);
         end
 
