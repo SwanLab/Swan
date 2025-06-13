@@ -61,7 +61,7 @@ classdef ContinuumDamageComputer < handle
                     fprintf (2,'NOT CONVERGED FOR STEP %d\n',iStep);
                 end
                 obj.internalDamageVariable.updateRold();
-                [data,dmgFun,rFun,qFun] = obj.getData(data,iStep,Ksec,uVec,u,bc);
+                [data,dmgFun,rFun,qFun] = obj.getData(data,iStep,Ksec,uVec,u,bc,iter);
 
           
 
@@ -81,7 +81,7 @@ classdef ContinuumDamageComputer < handle
             data.damage.field = dmgFun;
             data.r.field = rFun;
             data.q.field = qFun;
-
+            
             end
             
 
@@ -137,7 +137,7 @@ classdef ContinuumDamageComputer < handle
             xNew = x + deltaX;
         end
 
-        function [data,dmgFun,rFun,qFun] = getData(obj,data,i,Ksec,uVec,uFun,bc)
+        function [data,dmgFun,rFun,qFun] = getData(obj,data,i,Ksec,uVec,uFun,bc,iter)
             data.displacement.value(i)  = obj.boundaryConditions.bcValueSet(i);
 
             dmgDomainFun = obj.damageFunctional.getDamage(obj.internalDamageVariable);
@@ -149,6 +149,7 @@ classdef ContinuumDamageComputer < handle
             qFun = qDomainFun.project('P0');
             data.q.maxValue(i) = max(qFun.fValues);
             data.q.minValue(i) = min(qFun.fValues);
+            data.numIters(i,:) = [i,iter];
 
             r = obj.internalDamageVariable.r;
             rFun = r.project('P0');
