@@ -25,7 +25,7 @@ classdef ElasticProblemMicro < handle
             obj.createSolver();
         end
 
-        function obj = solve(obj)     
+        function obj = solve(obj)
             LHS = obj.computeLHS();
             %oX     = zeros(obj.getDimensions().ndimf,1);
             nBasis = obj.computeNbasis();
@@ -45,24 +45,31 @@ classdef ElasticProblemMicro < handle
                     index = iB;
                 elseif iB <= 6
                     index = iB - 3;
+                    s = obj.createDeformationBasis(index);
                     coord = 1;
-                    s = obj.createSndOrderDeformationBasis(coord, index);
+                    baseRhs = obj.createSndOrderDeformationBasis(coord, index);
                     strainTorque = obj.computeStrainTorque(index, iB, s);
                 else
-                    index = iB - 6;
+                    index = iB - 3;
+                    s = obj.createDeformationBasis(index);
                     coord = 2;
-                    s = obj.createSndOrderDeformationBasis(coord, index);
+                    baseRhs = obj.createSndOrderDeformationBasis(coord, index);
                     strainTorque = obj.computeStrainTorque(index, iB, s);
                 end
 
                 strainB     = s;
-                RHS         = obj.computeRHS(strainB,LHS);
+                if iB<=3
+                    RHS         = obj.computeRHS(s,LHS);
+                else
+                    RHS         = obj.computeRHS(baseRhs,LHS);
+                end
+
                 uF{iB}      = obj.computeDisplacement(LHS,RHS,index,nBasis);
 
                 if iB <= 3
                     strainF{iB} = SymGrad(uF{iB}) + strainB;
                 else
-                    strainF{iB} = SymGrad(uF{iB}) + strainTorque;  
+                    strainF{iB} = SymGrad(uF{iB}) + strainTorque;
                 end
 
                 stressF{iB} = DDP(obj.material, strainF{iB});
@@ -104,7 +111,7 @@ classdef ElasticProblemMicro < handle
                 uM(2,:,:) = 0.5 * quadTerm;
             end
         end
-        
+
         function sT = computeStrainTorque(obj, index, iB,eta)
             Y  = AnalyticalFunction.create(@(x) x,2,obj.mesh);
             sTF = @(xV) obj.obtainStrainTorque(xV,Y,iB,eta);
@@ -118,7 +125,7 @@ classdef ElasticProblemMicro < handle
             y2  = y(2,:,:);
             ex  = e(1,:,:);
             ey  = e(2,:,:);
-            exy = e(3,:,:);         
+            exy = e(3,:,:);
             if iB <= 6
                 sT(1,:,:) = ex .* y1;
                 sT(2,:,:) = ey .* y1;
@@ -126,7 +133,7 @@ classdef ElasticProblemMicro < handle
             else
                 sT(1,:,:) = ex .* y2;
                 sT(2,:,:) = ey .* y2;
-                sT(3,:,:) = exy .* y2;               
+                sT(3,:,:) = exy .* y2;
             end
         end
 
