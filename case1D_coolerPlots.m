@@ -11,7 +11,7 @@ A = 1;
 
 
 % Applied displacement values
-uVals = 0:1e-3:0.2;
+uVals = 0:1e-3:10;
 
 % Define hardening and softening parameters
 q_infVals = [10, -0.1]; % H = +0.5 (hardening), H = -0.5 (softening)
