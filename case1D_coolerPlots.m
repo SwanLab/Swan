@@ -5,16 +5,17 @@ close all;
 
 % Material parameters
 E0 = 210;
-r0 = 0.2;
-r1 = 1000000000;
-A = 0.1;
+r0 = 10;
+r1 = 20;
+A = 1;
 
 
 % Applied displacement values
 uVals = 0:1e-3:0.2;
 
 % Define hardening and softening parameters
-q_infVals = [0.5, -0.5]; % H = +0.5 (hardening), H = -0.5 (softening)
+q_infVals = [10, -0.1]; % H = +0.5 (hardening), H = -0.5 (softening)
+H_vals = [0.5, -0.5];
 labels = {'Hardening (q_\infty = 0.5)', 'Softening (q_\infty = -0.5)'};
 
 % Initialize storage for both cases
@@ -25,7 +26,7 @@ tau_all = {};
 
 for h = 1:length(q_infVals)
     qInf = q_infVals(h);
-
+    H = H_vals(h)
     rOld = r0;
 
     dmg = [];
