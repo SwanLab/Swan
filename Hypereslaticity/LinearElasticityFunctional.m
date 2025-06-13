@@ -1,16 +1,8 @@
 classdef LinearElasticityFunctional < handle
     
-    properties (Access = public)
-        
-    end
-    
     properties (Access = private)
         mesh
         material
-    end
-    
-    properties (Access = private)
-        
     end
     
     methods (Access = public)
@@ -19,16 +11,18 @@ classdef LinearElasticityFunctional < handle
             obj.init(cParams)
         end
 
-        function val = compute(obj, uFun)
-            val = 1;
+        function energy = compute(obj, uFun)
+            C = obj.material;
+            epsi = SymGrad(uFun);
+            fun = DDP(DDP(epsi,C),epsi);
+            quadOrder = 3;
+            energy = 0.5*(Integrator.compute(fun,obj.mesh,quadOrder));
         end
         
 
         function Ju = computeGradient(obj, uFun)
-            strainVgt = SymGrad(uFun);
-%             strainVgt.ndimf = 4;
-            sigma = DDP(obj.material,strainVgt);
-%             sigma.ndimf = 3;
+            strain = SymGrad(uFun);
+            sigma = DDP(obj.material,strain);
             test = LagrangianFunction.create(obj.mesh, uFun.ndimf, uFun.order);
 
             s.mesh = obj.mesh;
@@ -45,10 +39,9 @@ classdef LinearElasticityFunctional < handle
             s.quadratureOrder = 3;
             s.test     = LagrangianFunction.create(obj.mesh,uFun.ndimf, 'P1');
             s.trial    = uFun;
-            LHS = LHSintegrator.create(s);
+            LHS = LHSIntegrator.create(s);
             Huu = LHS.compute();
         end
-
 
     end
     
@@ -59,7 +52,6 @@ classdef LinearElasticityFunctional < handle
             obj.material = cParams.material;
         end
 
-        
     end
     
 end

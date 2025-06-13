@@ -43,7 +43,7 @@ classdef HyperelasticProblem_refactoring < handle
                 u  = obj.applyDirichletToUFun(u,bc);
 
                 intEnergy(iter) = obj.neohookeanFun.compute(u);
-                % intEnergy(iter) = obj.linearElasticityFun.compute(u);
+                %intEnergy(iter) = obj.linearElasticityFun.compute(u);
                 Res = obj.computeResidual(u);
                 resi(iter) = norm(Res);
 
@@ -183,6 +183,7 @@ classdef HyperelasticProblem_refactoring < handle
 
         function [Hff,Hr] = computeHessian(obj,u)
             H = obj.neohookeanFun.computeHessian(u);
+            %H = obj.linearElasticityFun.computeHessian(u);
             f = obj.freeDofs;
             r = obj.constrainedDofs;
             Hff = H(f,f);
@@ -297,7 +298,7 @@ classdef HyperelasticProblem_refactoring < handle
 
         function [intFor,intForel] = computeInternalForces(obj,u)
             intFor = obj.neohookeanFun.computeGradient(u);
-            % intForel = obj.linearElasticityFun.computeGradient(u);
+            %intForel = obj.linearElasticityFun.computeGradient(u);
             intForel = 0;
         end
 
@@ -320,9 +321,8 @@ classdef HyperelasticProblem_refactoring < handle
 
         % Other useful stuff later on
         function lambdas = computeStretches(obj)
-            GradU2 = ActualGrad(obj.uFun);
-            Id = Identity(obj.uFun);
-            F = GradU2 + Id;
+            I33 = Identity(obj.uFun);
+            F = I33 + Grad(obj.uFun)';
             C = F'*F;
             lambdas = (Eigen(C).^0.5);
         end
@@ -330,9 +330,8 @@ classdef HyperelasticProblem_refactoring < handle
         function sigma = computeCauchyStress(obj)
             mu = obj.material.mu;
             lambda = obj.material.lambda;
-            GradU2 = ActualGrad(obj.uFun);
-            Id = Identity(obj.uFun);
-            F = GradU2 + Id;
+            I33 = Identity(obj.uFun);
+            F = I33 + Grad(obj.uFun)';
             b = F*F';
             jac = Det(F);
             sigma = mu.*(b-Id)./jac + lambda.*(log(jac)).*Id./jac;
