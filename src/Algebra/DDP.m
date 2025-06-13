@@ -1,51 +1,32 @@
-function dom = DDP(A,B)
-    s.operation = @(xV) evaluate(A,B,xV);
+function dom = DDP(varargin)
+    A = varargin{1}; B = varargin{2};
+    dimA = []; dimB = [];
+    if nargin > 2, dimA = varargin{3}; end
+    if nargin > 3, dimB = varargin{4}; end
+
+    s.operation = @(xV) evaluate(A,B,dimA,dimB,xV);
     if isa(A,'DomainFunction')
         s.mesh = A.mesh;
     else
         s.mesh = B.mesh;
     end
-    dom         = DomainFunction(s);
+    dom        = DomainFunction(s);
 end
 
-function fVR = evaluate(A,B,xV)
-    op = DP(A,B);
-    fVR = op.evaluate(xV);
-end
-
-% function fVR = evaluate(A,B,xV)
-%     aEval = computeLeftSideEvaluation(A,xV);
-%     bEval = computeRightSideEvaluation(B,xV);
-%     bTranspose = pagetranspose(bEval);
-%     fVR   = trace(pagemtimes(aEval,bTranspose));
-%     fVR   = squeezeParticular(fVR,1);
-% end
-
-function aEval = computeLeftSideEvaluation(A,xV)
-    aEval    = A.evaluate(xV);
-    isTensor = checkTensor(A,aEval);
-    if ~isTensor
-        error('Not enough dimensions to contract')
+function fVR = evaluate(A,B,dimA,dimB,xV)
+    aEval = A.evaluate(xV);
+    bEval = B.evaluate(xV);
+    ndimsA = ndims(aEval)-2; %2 for nGaus and nElem
+    ndimsB = ndims(bEval)-2; %2 for nGaus and nElem
+    if isempty(dimA)
+        dimA = [ndimsA-1 ndimsA];
     end
-end
-
-function bEval = computeRightSideEvaluation(B,xV)
-    bEval    = B.evaluate(xV);
-    isTensor = checkTensor(B,bEval);
-    if ~isTensor
-        error('Not enough dimensions to contract')
+    if isempty(dimB)
+        dimB = [ndimsB-1 ndimsB];
     end
-end
-
-function isTensor = checkTensor(A,res)
-    n = ndims(res);
-    if isa(A,'Material')
-        isTensor = true;
-    else
-        if A.mesh.nelem == 1
-            isTensor = n>=3;
-        else
-            isTensor = n>=4;
-        end
+    fVR = pagetensorprod(aEval,bEval,dimA,dimB,ndimsA,ndimsB);
+    
+    if ndims(fVR) <=2
+        fVR = reshape(fVR,[1 size(fVR)]);
     end
 end

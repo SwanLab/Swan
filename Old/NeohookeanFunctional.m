@@ -131,6 +131,7 @@ classdef NeohookeanFunctional < handle
             dofToNode = repmat(1:nNode, nDimf, 1);
             dofToNode = dofToNode(:);
 
+            % AQUI ESTA LA CLAVE
             K = zeros(nDof,nDof,nGaus,nElem);
             for iDof = 1:nDof % test dof
                 iNode = dofToNode(iDof);
