@@ -31,6 +31,15 @@ classdef OptimizationProblemNN < handle
            obj.optimizer.compute();
        end
 
+       function [Xtest, Ytest] = getTestData(obj)
+           Xtest = obj.data.Xtest;
+           Ytest = obj.data.Ytest;
+       end
+
+       function net = getNetwork(obj)
+            net = obj.network;
+        end
+
        function plotCostFnc(obj)
            obj.optimizer.plotCostFunc();
        end
