@@ -50,7 +50,7 @@ classdef ElasticProblemMicro < handle
                     baseRhs = obj.createSndOrderDeformationBasis(coord, index);
                     strainTorque = obj.computeStrainTorque(index, iB, s);
                 else
-                    index = iB - 3;
+                    index = iB - 6;
                     s = obj.createDeformationBasis(index);
                     coord = 2;
                     baseRhs = obj.createSndOrderDeformationBasis(coord, index);
