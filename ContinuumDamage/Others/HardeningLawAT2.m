@@ -46,11 +46,13 @@ classdef HardeningLawAT2 < HardeningLaw
         end        
 
         function q = computeHardening(obj,r)
-            q = (2*obj.w1.*r + r.^2-r.^3)./(obj.w1*2+r.^2);
+            q = (2*obj.w1.*r)./(obj.w1*2+r.^2);
         end
 
         function qDot = computeHardeningDerivative(obj,r)
-            qDot = (4*obj.w1^2 + 4*obj.w1*r - 8*obj.w1*r^2-r^4)./(2*obj.w1+r^2).^2;
+            %qDot = (4*obj.w1^2 + 4*obj.w1*r - 8*obj.w1*r^2-r^4)./(2*obj.w1+r^2).^2;
+
+            qDot = (2*obj.w1.*(2*obj.w1-r.^2))./(obj.w1*2+r.^2).^2;
         end
 
     end
