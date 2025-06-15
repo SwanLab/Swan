@@ -22,8 +22,8 @@ classdef Tutorial02p2FEMElasticityMicro < handle
     methods (Access = private)
         
         function createMesh(obj)
-            m = obj.createHoleMesh();
-            %m = obj.createAuxeticMesh();
+            %m = obj.createHoleMesh();
+            m = obj.createAuxeticMesh();
             obj.mesh = m;
         end
 
@@ -57,8 +57,8 @@ classdef Tutorial02p2FEMElasticityMicro < handle
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(ls);
             holeMesh = uMesh.createInnerMesh();
-            %m = holeMesh;
-            m = fullmesh;
+            m = holeMesh;
+            %m = fullmesh;
         end
 
         function ls = computeCircleLevelSet(obj, mesh)
