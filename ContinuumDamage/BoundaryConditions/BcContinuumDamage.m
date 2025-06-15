@@ -118,11 +118,43 @@ classdef BcContinuumDamage < handle
                     sDir.value     = s.bcVal;
                     Dir2 = DirichletCondition(obj.mesh,sDir);
 
+                    isUp = @(coord) (abs(coord(:,2) - max(coord(:,2)))< 1e-12);
+                    sDir.domain    = @(coor) isUp(coor);
+                    sDir.direction = [2];
+                    sDir.value     = 0;
+                    Dir3 = DirichletCondition(obj.mesh,sDir);
+
                     s.mesh = obj.mesh;
-                    s.dirichletFun = [Dir1 Dir2];
+                    s.dirichletFun = [Dir1 Dir2 Dir3];
                     s.pointloadFun = [];
                     s.periodicFun = [];
                     bc = BoundaryConditions(s);
+
+                case 'displacementMixed'
+                    beta = 0;
+                    isDown = @(coord) (abs(coord(:,2) - min(coord(:,2)))< 1e-12);
+                    sDir.domain    = @(coor) isDown(coor);
+                    sDir.direction = [1,2];
+                    sDir.value     = 0;
+                    Dir1 = DirichletCondition(obj.mesh,sDir);
+
+                    isUp = @(coord) (abs(coord(:,2) - max(coord(:,2)))< 1e-12);
+                    sDir.domain    = @(coor) isUp(coor);
+                    sDir.direction = [1];
+                    sDir.value     = s.bcVal*cos(beta);
+                    Dir2 = DirichletCondition(obj.mesh,sDir);
+
+                    isUp = @(coord) (abs(coord(:,2) - max(coord(:,2)))< 1e-12);
+                    sDir.domain    = @(coor) isUp(coor);
+                    sDir.direction = [2];
+                    sDir.value     = s.bcVal*sin(beta);
+                    Dir3 = DirichletCondition(obj.mesh,sDir);
+
+                    s.mesh = obj.mesh;
+                    s.dirichletFun = [Dir1 Dir2 Dir3];
+                    s.pointloadFun = [];
+                    s.periodicFun = [];
+                    bc = BoundaryConditions(s); 
 
                 case 'fiberMatrix'
                     % Enforce fixed Dirichlet conditions to the down nodes

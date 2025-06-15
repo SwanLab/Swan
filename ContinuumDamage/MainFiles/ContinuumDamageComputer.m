@@ -11,8 +11,8 @@ classdef ContinuumDamageComputer < handle
 
     properties (Access = private)
         damageFunctional
-        tau = 5e-4;
-        limIter = 100;
+        tau = 2.5e-3
+        limIter = 100
     end
 
     methods (Access = public)
@@ -96,6 +96,7 @@ classdef ContinuumDamageComputer < handle
             obj.tolerance          = cParams.tol;
             obj.damageFunctional   = cParams.damageFunctional;
             obj.internalDamageVariable = cParams.internalDamageVariable;
+            obj.tau = 150;
         end
 
         function [bc] = updateBoundaryConditions (obj,i)
@@ -122,15 +123,15 @@ classdef ContinuumDamageComputer < handle
 
             uInFree = uInVec(bc.free_dofs);
             uOutFree = obj.updateWithNewton(LHS,RHS,uInFree);
-            % uOutFree = obj.updateWithGradient(RHS,uInFree);
+            %uOutFree = obj.updateWithGradient(RHS,uInFree);
             uOutVec(bc.free_dofs) = uOutFree;
             uOut = reshape(uOutVec,[flip(size(uIn.fValues))])';
         end
 
-        % function xNew = updateWithGradient(obj,RHS,x)
-        %     deltaX = -obj.tau.*RHS;
-        %     xNew = x + deltaX;
-        % end
+        function xNew = updateWithGradient(obj,RHS,x)
+            deltaX = -obj.tau.*RHS;
+            xNew = x + deltaX;
+        end
 
         function xNew = updateWithNewton(~,LHS,RHS,x)
             deltaX = -LHS\RHS;
@@ -164,7 +165,9 @@ classdef ContinuumDamageComputer < handle
             F = LHS*u;
             isInDown =  (abs(obj.mesh.coord(:,2) - min(obj.mesh.coord(:,2)))< 1e-12);
             nodes = 1:obj.mesh.nnodes;
-            totReact = -sum(F(2*nodes(isInDown)));
+            ReactX = sum(F(2*nodes(isInDown)-1));
+            ReactY = sum(F(2*nodes(isInDown)));
+            totReact = sqrt(ReactX^2+ReactY^2);
         end
 
     end

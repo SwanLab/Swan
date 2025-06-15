@@ -1,4 +1,4 @@
-classdef InternalDamageVariable < handle
+ classdef InternalDamageVariable < handle
     
     properties (Access = public)
         r
@@ -54,9 +54,9 @@ classdef InternalDamageVariable < handle
             xcoord = coordB(:,1);
             ymiddle = (max(ycoord)-min(ycoord))/2;
             xmiddle = (max(xcoord)-min(xcoord))/2;
-            eps = m.computeMeanCellSize/2;
+            eps = m.computeMeanCellSize/2.1;
             isMiddleY = abs(ycoord - ymiddle) < eps;
-            isBelowMiddleX = (xcoord - (ymiddle+eps)) < 0;
+            isBelowMiddleX = (xcoord - (xmiddle+eps)) < 0;
             fV(isMiddleY & isBelowMiddleX) = 100000;
             obj.r.setFValues(fV);
             obj.rOld.setFValues(fV);
