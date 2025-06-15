@@ -15,16 +15,22 @@ function main_constraint_draglift
     %Clalpha = 0.1; % en grados
     Cl0 = 0;
 
-    N = 250; % Discretization
-
+    N = 50; % Discretization
+   
     x1_0 = 0; x2_0 = 0; v0 = 15;
     gamma0 = deg2rad(30);
-    t0 = 0; tf_guess = 6;
-    alpha0 = deg2rad(10);
-    u0 = [resultsfalcon.tfinal resultsfalcon.u.alpha];
-    %u0 = [tf_guess alpha0]
+    t0 = 0; tf_guess = 3;
+    alpha0 = deg2rad(3);
+    tf_falcon = resultsfalcon.tfinal;
+    t_span_falcon = linspace(0,tf_falcon,250);
+    t_span = linspace(0,tf_falcon,N);
+    alpha_falcon = interp1(t_span_falcon,resultsfalcon.u.alpha,t_span);
+
+    %u0 = [tf_falcon+rand(1,1)*0*norm(tf_falcon) alpha_falcon+rand(1,1)*0*norm(alpha_falcon)];
+    %u0 = [tf_guess alpha0*ones(1,N)];
+    u0 = [tf_falcon alpha_falcon];
     lb = [0.1 deg2rad(-10)]; % Lower bounds for the control
-    ub = [15 deg2rad(10.1)]; % Upper bounds for the control
+    ub = [15 deg2rad(15)]; % Upper bounds for the control
 
     %u0 = [u0(1) ones(1,N)*u0(2)];
     lb = [lb(1) ones(1,N)*lb(2)];
@@ -37,21 +43,43 @@ function main_constraint_draglift
     D = @(V,alpha) 0.5*rho*Sw*V.^2.*Cd(alpha);
     L = @(V,alpha) 0.5*rho*Sw*V.^2.*Cl(alpha);   
 
-    [~,y0traj] = ode45(@(t,y)dynamics(t,y,u0(1),u0(2:end),g,D,N,m,L), ...
-                   linspace(t0,u0(1),N), ...
-                   [x1_0; x2_0; v0; gamma0]);
-
-minAlt = min(y0traj(:,2));
-fprintf('Altura mínima con u0 = %.4f m\n',minAlt);
-
     cost = @(u) f_cost(u, g, t0, v0, gamma0, x1_0, x2_0, D, N, m, L);
     nonlcon_fun = @(u) nonlcon_full(u, g, t0, v0, x1_0, x2_0, gamma0, D, N, m, L);
 
-    options = optimoptions("fmincon", ...
-        "OutputFcn", @store_fmincon, ...
-        "Algorithm", "sqp", ... 
-        "DerivativeCheck", "off","Display","iter","FiniteDifferenceType","central", ...
-        "FiniteDifferenceStepSize", 1e-4);
+    options = optimoptions('fmincon', ...
+    'Algorithm', 'sqp', ...
+    'TolX', 1e-8, ...          % precisión en las variables
+    'TolFun', 1e-8, ...        % precisión en el valor de la función objetivo
+    'TolCon', 1e-6, ...        % precisión en las restricciones
+    'MaxIter', 500, ...        % aumentar número de iteraciones
+    'MaxFunEvals', 5000, ...   % aumentar evaluaciónes de la función
+    'Display', 'iter', ...
+    'FiniteDifferenceType', 'central', ...
+    'FiniteDifferenceStepSize', 1e-6);
+
+    % Antes de llamar a fmincon, tras definir u0, lb, ub, etc.:
+t_nodes = linspace(t0, tf_guess, N);      % nodos de control iniciales
+% (en cada iteración de fmincon habrá que actualizar tf y volver a crear el interpolant;
+% lo hacemos dentro de la función no-lineal y en f_cost)
+
+% Y definimos un interpolante cúbico:
+alpha = @(t, alpha_vec, tf) ...
+    griddedInterpolant( ...
+      linspace(0,tf, numel(alpha_vec)), ...  % vector de tiempo
+      [alpha_vec; alpha_vec(end)], ...       % extiendo para t=tf
+      'pchip', ...                           % shape-preserving spline
+      'nearest' ...                          % extrapolación constante
+    );
+
+% Luego, en tu función dynamics, en lugar de:
+%   t_span = linspace(0, tf, N);
+%   alpha = interp1(t_span, alpha_vec, t);
+%
+% harías algo como:
+%
+%   F = alphaInterp(t, alpha_vec, tf);
+%   alpha = F(t);
+
 
     [u_opt, ~] = fmincon(cost, u0, [], [], [], [], lb, ub, nonlcon_fun, options);
 
@@ -123,7 +151,8 @@ function [c, ceq] = nonlcon_full(u, g, t0, v0, gamma0, x1_0, x2_0, D, N, m, L)
     ode_opts = odeset('RelTol',1e-5,'AbsTol',1e-7);
     [~, y] = ode45(@(t,y)dynamics(t,y,tf,alpha,g,D,N,m,L), t_span, y0, ode_opts);
 
-    c = -y(:,2);
+    minY = min(y(:,2));
+    c    = -minY;   % cumple si minY ≥ 0
     ceq = y(end,2);
 
 end
