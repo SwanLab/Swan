@@ -38,8 +38,8 @@ classdef TestingContinuumDamage < handle
         function mesh = createMesh(obj)
                 l = 1;
                 w = 1;
-                N = 40;
-                M = 40;
+                N = 10;
+                M = 10;
                 mesh = QuadMesh(l,w,N,M);
 
                 % file = 'SENshear0_0025';
@@ -50,11 +50,24 @@ classdef TestingContinuumDamage < handle
 
         function bc = createBoundaryConditions(obj)
             s.mesh = obj.mesh;
-            s.bcType = 'displacementMixed'; %fiberMatrix
-            s.bcValueSet = [0:1e-3:2];            
+            s.bcType = 'displacementShear'; %fiberMatrix
+            s.bcValueSet = [0:1e-5:1];            
             bc = BcContinuumDamage(s);
         end
-
+            % m = obj.r.mesh;
+            % 
+            % coordB = m.computeBaricenter';
+            % ycoord = coordB(:,2);
+            % xcoord = coordB(:,1);
+            % ymiddle = (max(ycoord)-min(ycoord))/2;
+            % xmiddle = (max(xcoord)-min(xcoord))/2;
+            % eps = m.computeMeanCellSize/2.1;
+            % isMiddleY = abs(ycoord - ymiddle) < eps;
+            % isBelowMiddleX = (xcoord - (xmiddle+eps)) < 0;
+            % fV(isMiddleY & isBelowMiddleX) = 100000;
+            % obj.r.setFValues(fV);
+            % obj.rOld.setFValues(fV);
+            % obj.mesh = cParams.mesh;
         function r = createInternalDamageVariable(obj)
             s.r0 = obj.createR0();
             s.mesh = obj.mesh;
@@ -92,14 +105,14 @@ classdef TestingContinuumDamage < handle
         end
 
         function hL = createHardeningLaw(obj)
-            r1     = 25;
+            r1     = 25000000000000000;
             s.r1   = ConstantFunction.create(r1,obj.mesh);
             s.type = 'Exp';%'Exp'; %'Exp'            
-            s.H    = -0.1;
-            s.A    = 0.2;
+            s.H    = -0.5;
+            s.A    = 1;
             s.r0   = obj.createR0();
-            s.w1   = 80;
-            s.qInf = -1;
+            s.w1   = 8;
+            s.qInf = 2;
             hL = HardeningLaw.create(s);
         end          
 

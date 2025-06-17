@@ -14,9 +14,9 @@ A = 1;
 uVals = 0:1e-3:10;
 
 % Define hardening and softening parameters
-q_infVals = [10, -0.1]; % H = +0.5 (hardening), H = -0.5 (softening)
+q_infVals = [20, -0.1]; % H = +0.5 (hardening), H = -0.5 (softening)
 H_vals = [0.5, -0.5];
-labels = {'Hardening (q_\infty = 0.5)', 'Softening (q_\infty = -0.5)'};
+labels = {'Hardening (q_\infty = 20)', 'Softening (q_\infty = -0.1)'};
 
 % Initialize storage for both cases
 dmg_all = {};
@@ -49,9 +49,10 @@ for h = 1:length(q_infVals)
 
         % Compute hardening/softening function q
         if r >= r1
-            q = qInf;
+            q = r0 + H*(r1-r0);
         else
-            q =  qInf - (qInf - r0)*exp(A*(1-r/r0));
+            %q =  qInf - (qInf - r0)*exp(A*(1-r/r0));
+            q = r0 + H*(r-r0);
         end
 
         % Damage calculation
@@ -82,38 +83,40 @@ end
 figure();
 hold on;
 for i = 1:2
-    plot(tau_all{i}, dmg_all{i}, 'LineWidth', 2);
+    plot(uVals, dmg_all{i}, 'LineWidth', 2);
 end
-xlabel('Damage evolution parameter (r)', 'Interpreter', 'latex');
+xlabel('Displacement ($\varepsilon$)', 'Interpreter', 'latex');
 ylabel('Damage (d)', 'Interpreter', 'latex');
-title('Damage variable vs damage evolution parameter');
+% title('Damage variable vs damage evolution parameter');
 legend(labels, 'Location', 'best');
 grid on;
-
+fontsize(gcf,15,'points')
 % Plot q vs Tau
 figure();
 hold on;
 for i = 1:2
-    plot(tau_all{i}, q_all{i}, 'LineWidth', 2);
+    plot(uVals, q_all{i}, 'LineWidth', 2);
 end
-xlabel('Damage evolution parameter (r)', 'Interpreter', 'latex');
+xlabel('Displacement ($\varepsilon$)', 'Interpreter', 'latex');
 ylabel('Hardening law (q)', 'Interpreter', 'latex');
-title('Exponential hardening law as a function of the damage evolution parameter');
+% title('Exponential hardening law as a function of the damage evolution parameter');
 legend(labels, 'Location', 'best');
 grid on;
+fontsize(gcf,15,'points')
 
 % Plot Force vs Displacement
 figure();
 hold on;
 for i = 1:2
-    plot(tau_all{i}, F_all{i}, 'LineWidth', 2);
+    plot(uVals, F_all{i}, 'LineWidth', 2);
 end
-xlabel('Damage evolution parameter (r)', 'Interpreter', 'latex');
+xlabel('Displacement ($\varepsilon$)', 'Interpreter', 'latex');
 ylabel('Reaction ($\sigma$)', 'Interpreter', 'latex');
-title('Reaction force as a function of the damage evolution parameter');
+% title('Reaction force as a function of the damage evolution parameter');
 legend(labels, 'Location', 'best');
 grid on;
 % Plot Displacement vs r
+fontsize(gcf,15,'points')
 figure();
 hold on;
 for i = 1:2
@@ -121,6 +124,6 @@ for i = 1:2
 end
 xlabel('Displacement ($\varepsilon$)', 'Interpreter', 'latex');
 ylabel('Damage evolution parameter (r)', 'Interpreter', 'latex');
-title('Damage evolution parameter as a function of displacement');
+% title('Damage evolution parameter as a function of displacement');
 legend(labels, 'Location', 'best');
 grid on;
