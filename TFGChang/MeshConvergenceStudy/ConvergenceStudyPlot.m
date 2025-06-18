@@ -57,3 +57,31 @@ plot(nx(2:end), errorRelative, 'm-', 'LineWidth', 2, 'DisplayName', 'Absolute Re
 legend; grid on;
 title('Absolute Relative Error between Consecutive y_{smooth}');
 ylim([0,0.1]);
+
+
+%% NV
+
+data = readmatrix("results.txt");
+nx = 20:20: size(data,1)*20;
+
+windowSize = 3;
+ySmooth = data(:,end);
+%movmean(data(:,end), windowSize);
+
+for i = 2:length(ySmooth)
+    errorRelative(i-1) = abs((ySmooth(i) - ySmooth(i-1)) / ySmooth(i-1)) ;
+end
+
+figure;
+
+plot(nx,data(:,end));
+
+%ylim([0,1.4]);
+grid on;
+title('E vs. n_x');
+
+figure;
+plot(nx(2:end), errorRelative);
+grid on;
+title('Absolute Relative Error between consecutive E vs. n_x');
+ylim([0,0.1]);
