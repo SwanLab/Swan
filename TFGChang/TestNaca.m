@@ -1,5 +1,5 @@
 classdef TestNaca < handle
-    
+
     properties (Access = public)
         L
         D
@@ -8,7 +8,7 @@ classdef TestNaca < handle
         pressureFun
         convectVel
     end
-    
+
     properties (Access = private)
         M
         p
@@ -23,7 +23,7 @@ classdef TestNaca < handle
         nu
         i
     end
-    
+
     properties (Access = private)
         refMesh
         levelSet
@@ -37,13 +37,14 @@ classdef TestNaca < handle
         dirConditions
         dirDofs
         nodesConditions
+        velocityField
     end
-    
+
     methods (Access = public)
-        
+
         function obj = TestNaca(cParams)
             %close all;
-            obj.init(cParams);    
+            obj.init(cParams);
             obj.createReferenceMesh();
             [AirfoilParams, BGParams] = obj.setParams();
             obj.createLevelSet(AirfoilParams, BGParams);
@@ -59,7 +60,6 @@ classdef TestNaca < handle
         function compute(obj)
             obj.createPressureFilter();
             obj.solveProblem();
-            %obj.plotResults();
             obj.CalculateAeroForces();
         end
 
@@ -70,9 +70,9 @@ classdef TestNaca < handle
         function print(obj)
             obj.printResults();
         end
-        
+
     end
-    
+
     methods (Access = private)
 
         function init(obj,cParams)
@@ -88,13 +88,12 @@ classdef TestNaca < handle
             if (obj.flowType == "NavierStokes")
                 obj.initNV(cParams);
             end
-            
+
         end
 
         function initNV(obj,cParams)
             obj.nu          = cParams.nu;
             obj.convectVel  = cParams.convectVel;
-            %obj.i           = cParams.i;
         end
 
         function [AirfoilParams, BGParams] = setParams(obj)
@@ -104,16 +103,11 @@ classdef TestNaca < handle
             AirfoilParams.AoA    = obj.AoA;
             AirfoilParams.chord  = obj.chord;
             BGParams.length      = obj.length;
-            BGParams.height      = obj.height;       
+            BGParams.height      = obj.height;
             BGParams.nx          = obj.nx;
         end
-                
+
         function createReferenceMesh(obj)
-            % obj.length  = 8;
-            % obj.height  = 4;
-            % nx          = 300;
-            % ny          = 150;
-            % obj.refMesh = QuadMesh(obj.length,obj.height,nx,ny); 
             obj.ny      = round(obj.nx / obj.length * obj.height / 0.8);
             obj.refMesh = TriangleMesh(obj.length,obj.height,obj.nx,obj.ny);
         end
@@ -123,12 +117,12 @@ classdef TestNaca < handle
             obj.levelSet = g.computeLevelSetFunction(obj.refMesh);
             %obj.levelSet.plot();
         end
-   
+
         function createFluidMesh(obj)
             s.backgroundMesh = obj.refMesh;
             s.boundaryMesh   = obj.refMesh.createBoundaryMesh();
             obj.uMesh        = UnfittedMesh(s);
-            obj.uMesh.compute(obj.levelSet.fValues);       
+            obj.uMesh.compute(obj.levelSet.fValues);
             obj.rawMesh = obj.uMesh.createInnerMesh();
             obj.mesh    = obj.rawMesh;
         end
@@ -147,8 +141,6 @@ classdef TestNaca < handle
             s.coord        = obj.rawMesh.coord;
             m2             = Mesh.create(s);
             obj.backupmesh = m2.computeCanonicalMesh();
-            %figure;
-            %obj.backupmesh.plot();
         end
 
         function m = createMeshAlphaTriangulation(obj)
@@ -186,15 +178,28 @@ classdef TestNaca < handle
         end
 
         function createMaterial(obj)
-            e.type       = obj.flowType;  
+            e.type       = obj.flowType;
             e.nelem      = obj.mesh.nelem;
             e.nu         = obj.nu;
-            obj.material = Material.create(e); 
+            obj.material = Material.create(e);
         end
 
         function createTrialFunction(obj)
-            obj.velocityFun = LagrangianFunction.create(obj.mesh, 2, 'P2');
+
             obj.pressureFun = LagrangianFunction.create(obj.mesh, 1, 'P1');
+
+            switch obj.flowType
+                case 'Stokes'
+                    obj.velocityFun = LagrangianFunction.create(obj.mesh, 2, 'P2');
+                case 'NavierStokes'
+                    obj.velocityFun    = LagrangianFunction.create(obj.mesh, 2, 'P2');
+                    obj.velocityField  = LagrangianFunction.create(obj.mesh, 2, 'P2');
+                    if ~isempty(obj.convectVel)
+                        obj.velocityField.setFValues(obj.convectVel);
+                    end
+                otherwise
+                    error('Unknown flow type: %s', obj.flowType);
+            end
         end
 
         function defineBoundaryConditions(obj)
@@ -203,7 +208,7 @@ classdef TestNaca < handle
             s.uMesh        = obj.uMesh;
             s.velocityFun  = obj.velocityFun;
             s.pressureFun  = obj.pressureFun;
-            BCClass              = StokesProblemBoundaryCondition(s); 
+            BCClass              = StokesProblemBoundaryCondition(s);
             BCClass.compute();
             obj.dirConditions    = BCClass.dirConditions;
             obj.dirDofs          = BCClass.dirDofs;
@@ -236,7 +241,7 @@ classdef TestNaca < handle
 
         function solveProblem(obj)
             s = obj.initProblemSolver();
-        
+
             switch obj.flowType
                 case 'Stokes'
                     obj.solveStokesProblem(s);
@@ -245,13 +250,13 @@ classdef TestNaca < handle
                 otherwise
                     error('Unknown flow type: %s', obj.flowType);
             end
-           
+
             obj.pressureFun = obj.filter.compute(obj.pressureFun, 3);
 
         end
 
         function solveStokesProblem(obj,s)
-            SolverResults      = StokesProblemSolver(s); 
+            SolverResults      = StokesProblemSolver(s);
             SolverResults.compute();
             obj.velocityFun    = SolverResults.velocityFun;
             obj.pressureFun    = SolverResults.pressureFun;
@@ -260,20 +265,17 @@ classdef TestNaca < handle
         function solveNavierStokesProblem(obj,s)
             s.nu             = obj.nu;
             s.dt             = inf;
-            s.velocityField = LagrangianFunction.create(obj.mesh, 2, 'P2');
-            if (obj.convectVel ~=0) 
-                s.velocityField.setFValues(obj.convectVel);
-            end
-            SolverResults      = NavierStokesProblemSolver(s); 
+            s.velocityField  = obj.velocityField;
+            SolverResults      = NavierStokesProblemSolver(s);
             SolverResults.compute();
             obj.velocityFun    = SolverResults.velocityFun;
             obj.pressureFun    = SolverResults.pressureFun;
         end
 
-        function plotResults(obj)    
+        function plotResults(obj)
             TestNaca.plotVelocity(obj.velocityFun);
-            % TestNaca.plotVelocityX(obj.velocityFun);
-            % TestNaca.plotVelocityY(obj.velocityFun);
+            TestNaca.plotVelocityX(obj.velocityFun);
+            TestNaca.plotVelocityY(obj.velocityFun);
             TestNaca.plotPressure(obj.pressureFun);
         end
 
@@ -281,12 +283,12 @@ classdef TestNaca < handle
             s.mesh             = obj.mesh;
             s.nodesConditions  = obj.nodesConditions;
             s.pressureFun      = obj.pressureFun;
-            AeroForcesResults  = AeroForcesCalculation(s); 
+            AeroForcesResults  = AeroForcesCalculation(s);
             AeroForcesResults.compute();
             obj.L              = AeroForcesResults.L;
             obj.D              = AeroForcesResults.D;
             obj.E              = AeroForcesResults.E;
-        end 
+        end
 
         function verifyAeroForces(obj)
             s.L    = obj.L;
@@ -327,7 +329,7 @@ classdef TestNaca < handle
             xlabel("x");
             ylabel("y");
             colorbar;
-            axis equal tight;  
+            axis equal tight;
             %set(gca, 'Position', [0.1 0 0.75 1]);
             set(gcf, 'WindowState', 'maximized');
         end
@@ -336,11 +338,11 @@ classdef TestNaca < handle
             vy = LagrangianFunction.create(velocityFun.mesh, 1, 'P2');
             vy.setFValues(velocityFun.fValues(:,2));
             vy.plot();
-            title("Velocity distribution in the y direction."); 
+            title("Velocity distribution in the y direction.");
             xlabel("x");
-            ylabel("y"); 
+            ylabel("y");
             colorbar;
-            axis equal tight; 
+            axis equal tight;
             %set(gca, 'Position', [0.1 0 0.75 1]);
             set(gcf, 'WindowState', 'maximized');
         end
@@ -349,7 +351,7 @@ classdef TestNaca < handle
             PressureFun.plot();
             xlabel("x");
             ylabel("y");
-            title("Pressure distribution"); 
+            title("Pressure distribution");
             axis equal tight;
             colorbar;
             caxis([-20, 20]);
@@ -377,6 +379,6 @@ classdef TestNaca < handle
 
     end
 
-    
+
 
 end

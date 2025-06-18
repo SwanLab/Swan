@@ -1,4 +1,4 @@
-%% Compute Datas for Mesh Convergence Study
+%% Compute Datas for Stokes Flow Mesh Convergence Study
 
 Naca.length = 8;
 Naca.height = 4;
@@ -19,15 +19,15 @@ for i = 1:length(nx)
 
     NacaClass  = TestNaca(Naca);
     NacaClass.compute();
-    
-    E(i)       = NacaClass.E;     
+
+    E(i)       = NacaClass.E;
 
 end
 
 save("data10.mat","E")
 
 
-%%
+%% Compute Datas for Navier-Stokes Flow Mesh Convergence Study
 
 Naca.flowType  = "NavierStokes";
 Naca.length    = 8;
@@ -46,17 +46,15 @@ E  = zeros(size(nx));
 for i = 24:length(nx)
 
     disp(i);
-    Naca.convectVel = 0;    
+    Naca.convectVel = 0;
     Naca.nx    = nx(i);
 
     NacaClass  = TestNaca(Naca);
     NacaClass.compute();
     NacaClass.print();
-    
-    E(i)       = NacaClass.E;     
+
+    E(i)       = NacaClass.E;
 
 end
 
 save("data10.mat","E")
-
-system('shutdown /s /t 60');

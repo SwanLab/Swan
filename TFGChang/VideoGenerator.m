@@ -3,10 +3,9 @@ classdef VideoGenerator
     methods (Access = public, Static)
 
         function compute(fileName, totalFrames, repeatThreshold, dataMatrix, plotFunction)
-            
+
             frameRate = 30;
-            moduloSkip = 3;
-            
+
             v = VideoWriter(fileName);
             v.FrameRate = frameRate;
             open(v);
@@ -14,7 +13,7 @@ classdef VideoGenerator
             figure;
             for i = 1:totalFrames
 
-                 if iscell(dataMatrix)
+                if iscell(dataMatrix)
                     s = dataMatrix{i};
                 else
                     s = dataMatrix(i, :);
@@ -26,8 +25,6 @@ classdef VideoGenerator
 
                 if i <= repeatThreshold
                     repeat = 2;
-                % elseif mod(i, moduloSkip) ~= 0
-                %     continue;
                 else
                     repeat = 1;
                 end

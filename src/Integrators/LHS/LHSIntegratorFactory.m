@@ -56,6 +56,8 @@ classdef LHSIntegratorFactory < handle
                    obj = LHSIntegratorFunctionAdvection(cParams); 
                case 'DivergenceMatrix'
                    obj = LHSintegratorDivergenceMatrix(cParams); 
+               case 'DobleDivergenceMatrix'
+                   obj = LHSIntegratorDobleWeakDivergence(cParams);
            end
        end
    end

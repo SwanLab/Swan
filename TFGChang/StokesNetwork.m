@@ -2,17 +2,6 @@ clc;
 clear;
 close all;
 
-%%
-figure
-t = 1;
-for i = 1:0.01:15 
-    x(t) = i;
-    y(t) = opt.computeOutputValues([0,0,0.1,i]);
- t = t + 1;
-end
-
-     plot(x,y); 
-
 %% Preprocess and Save Dataset
 
 OriginalData = readmatrix('E_AoA5_mpt.txt');
@@ -24,44 +13,44 @@ save("EAoA5Datas.mat","data");
 
 for i = 1:1:1
 
-% Store dataset file name
-s.fileName          = "EDatasNS.mat";
-s.testRatio         = 20;
-s.k                 = i;
-s.polynomialOrder   = 1;
+    % Store dataset file name
+    s.fileName          = "EDatasNS.mat";
+    s.testRatio         = 20;
+    s.k                 = i;
+    s.polynomialOrder   = 1;
 
-% Select the model's features
-s.xFeatures = [1, 2, 3, 4];
-s.yFeatures = 7;
+    % Select the model's features
+    s.xFeatures = [1, 2, 3, 4];
+    s.yFeatures = 7;
 
-% Load data
-data   = Data(s);
-s.data = data;
+    % Load data
+    data   = Data(s);
+    s.data = data;
 
-% Initialization
+    % Initialization
 
-% Load model parameters
-s.networkParams.hiddenLayers    = s.polynomialOrder * size(s.xFeatures,2)* 9 * ones(1,6);
-s.optimizerParams.learningRate  = 0.05;
-s.costParams.lambda             = 0;
-s.costParams.costType           = 'L2';
+    % Load model parameters
+    s.networkParams.hiddenLayers    = s.polynomialOrder * size(s.xFeatures,2)* 9 * ones(1,6);
+    s.optimizerParams.learningRate  = 0.05;
+    s.costParams.lambda             = 0;
+    s.costParams.costType           = 'L2';
 
-s.networkParams.HUtype = 'ReLU'; 
-s.networkParams.OUtype = 'linear';
+    s.networkParams.HUtype = 'ReLU';
+    s.networkParams.OUtype = 'linear';
 
-% Train the model
-opt = OptimizationProblem(s);
-opt.solve();
-opt.plotCostFnc();
+    % Train the model
+    opt = OptimizationProblem(s);
+    opt.solve();
+    opt.plotCostFnc();
 
-% Compute Error
+    % Compute Error
 
-MSETrain(i)    = immse(opt.computeOutputValues(data.Xtrain), data.Ytrain);
-MSETest(i)     = immse(opt.computeOutputValues(data.Xtest), data.Ytest);
+    MSETrain(i)    = immse(opt.computeOutputValues(data.Xtrain), data.Ytrain);
+    MSETest(i)     = immse(opt.computeOutputValues(data.Xtest), data.Ytest);
 
-disp("MSE:")
-disp(MSETrain)
-disp(MSETest)
+    disp("MSE:")
+    disp(MSETrain)
+    disp(MSETest)
 
 end
 
@@ -77,22 +66,22 @@ dataset  = readmatrix("E_AoA5_mpt.txt");
 
 normalized = true;
 if (normalized == true)
-    load("StokesNetworkE0.5e5N36HL6MaxAoA12.88.mat");
+    load("StokesNN.mat");
     EData = readmatrix("EData.txt");
     maxValue        = max(EData(:,end));
     minValue        = min(EData(:,end));
     dataset(:,end)  = (dataset(:,end) - minValue) / (maxValue - minValue);
 else
-    load("StokesNetworkO.mat")
+    load("StokesNNO.mat")
 end
 
 %% Plot Symmetric Airfoil E Data Comparison
 
 yDataSym = opt.computeOutputValues(dataset(1:16, 1:4));
 
-% Extract Original Data      
-tSym = dataset(1:16,3);        
-eSym = dataset(1:16,end);   
+% Extract Original Data
+tSym = dataset(1:16,3);
+eSym = dataset(1:16,end);
 
 figure;
 plot(tSym, eSym);
@@ -114,10 +103,10 @@ ylabel('Relative Error');
 %% Plot Asymetric Airfoil E Surface
 
 % Extract Original Data
-mT = dataset(17:end,1);        
-pT = dataset(17:end,2);        
-tT = dataset(17:end,3);        
-eT = dataset(17:end,end);   
+mT = dataset(17:end,1);
+pT = dataset(17:end,2);
+tT = dataset(17:end,3);
+eT = dataset(17:end,end);
 
 m = unique(mT);
 p = unique(pT);
@@ -131,7 +120,7 @@ figure;
 
 for i = 1:length(thicknesses)
     ti = thicknesses(i);
-    
+
     idx = abs(tT - ti) < 1e-3;
 
     if (i == 1)
@@ -144,7 +133,7 @@ for i = 1:length(thicknesses)
     F = scatteredInterpolant(mi, pi, ei, 'linear', 'none');
     E(:,:,i) = F(M, P);
 
-    subplot(2, 2, i); 
+    subplot(2, 2, i);
     surface(M,P,E(:,:,i));
     shading interp;
     title(sprintf('t = %.2f', ti));
@@ -163,14 +152,14 @@ figure;
 
 for i = 1:length(thicknesses)
     ti = thicknesses(i);
-    
+
     idx = abs(tT - ti) < 1e-3;
     ei = yData(idx);
 
     F = scatteredInterpolant(mi, pi, ei, 'linear', 'none');
     EP(:,:,i) = F(M, P);
 
-    subplot(2, 2, i); 
+    subplot(2, 2, i);
     surface(M,P,EP(:,:,i));
     shading interp;
     title(sprintf('t = %.2f', ti));
@@ -189,7 +178,7 @@ figure;
 for i = 1:length(thicknesses)
     ti = thicknesses(i);
 
-    subplot(2, 2, i); 
+    subplot(2, 2, i);
     surface(M,P,ReError(:,:,i));
     shading interp;
     title(sprintf('t = %.2f', ti));
@@ -207,10 +196,10 @@ sgtitle('Relative error between prediction and ground truth vs. m and p for diff
 yData  = opt.computeOutputValues(dataset(17:end, 1:4));
 
 % Extract Original Data
-mT = dataset(17:end,1);        
-pT = dataset(17:end,2);        
-tT = dataset(17:end,3);        
-eT = dataset(17:end,end);   
+mT = dataset(17:end,1);
+pT = dataset(17:end,2);
+tT = dataset(17:end,3);
+eT = dataset(17:end,end);
 
 m = unique(mT);
 p = unique(pT);
@@ -224,7 +213,7 @@ figure;
 
 for i = 1:length(thicknesses)
     ti = thicknesses(i);
-    
+
     idx = abs(tT - ti) < 1e-3;
 
     if (i == 1)
@@ -241,7 +230,7 @@ for i = 1:length(thicknesses)
     F = scatteredInterpolant(mi, pi, eiP, 'linear', 'none');
     EP(:,:,i) = F(M, P);
 
-    subplot(2, 2, i); 
+    subplot(2, 2, i);
     surface(M,P,E(:,:,i),'FaceColor', 'blue', 'EdgeColor', 'none', 'DisplayName', 'Ground Truth');
     surface(M,P,EP(:,:,i),'FaceColor', [1, 0.5, 0], 'EdgeColor', 'none', 'DisplayName', 'Predicted');
     alpha(0.7);

@@ -1,10 +1,10 @@
 classdef NavierStokesProblemSolver < handle
-    
+
     properties (Access = public)
         velocityFun
         pressureFun
     end
-    
+
     properties (Access = private)
         mesh
         forcesFormula
@@ -36,7 +36,7 @@ classdef NavierStokesProblemSolver < handle
     end
 
     methods (Access = public)
-        
+
         function obj = NavierStokesProblemSolver(cParams)
             obj.init(cParams);
             obj.setDiffTime();
@@ -47,11 +47,11 @@ classdef NavierStokesProblemSolver < handle
         function compute(obj)
             obj.solveNVProblem();
         end
-        
+
     end
-        
+
     methods (Access = private)
-        
+
         function init(obj,cParams)
             obj.mesh             = cParams.mesh;
             obj.velocityFun      = cParams.velocityFun;
@@ -74,7 +74,7 @@ classdef NavierStokesProblemSolver < handle
         end
 
         function createSolver(obj)
-            b.type =  'DIRECT';%CG
+            b.type =  'DIRECT';
             obj.solver = Solver.create(b);
         end
 
@@ -90,14 +90,16 @@ classdef NavierStokesProblemSolver < handle
             obj.LHSS        = obj.LHS;
         end
 
-        function computeLHSNS(obj)
+        function computeLHSNS(obj,residual)
             c.type          = 'NavierStokes';
             c.mesh          = obj.mesh;
             c.material      = obj.material;
             c.velocityField = obj.velocityField;
             c.velocityFun   = obj.velocityFun;
+            c.pressureFun   = obj.pressureFun;
             c.LHSS          = obj.LHSS;
             c.dt            = obj.dt;
+            c.residual      = residual;
             LHSintegratorg  = LHSIntegrator.create(c);
             obj.LHS         = LHSintegratorg.compute();
         end
@@ -108,6 +110,7 @@ classdef NavierStokesProblemSolver < handle
             c.material                      = obj.material;
             c.velocityField                 = obj.velocityField;
             c.velocityFun                   = obj.velocityFun;
+            c.pressureFun                   = obj.pressureFun;
             c.dt                            = obj.dt;
             LHSintegratorg                  = LHSIntegrator.create(c);
             [obj.M, obj.D, obj.KU, obj.KP]  = LHSintegratorg.computeLHSMatrix();
@@ -211,40 +214,50 @@ classdef NavierStokesProblemSolver < handle
         function initPicardIteration(obj)
             obj.computeLHSStokes();
             %obj.computeLHSMatrixNS();
-            obj.computeLHSNS();
+            %obj.computeLHSNS();
             obj.computeRHS();
             obj.computeSolution();
             obj.addDirBoundaryConditions();
             obj.separateVariables();
             obj.defineVariablesFValues();
-        end 
+        end
 
-        function computePicardIteration(obj)
-            obj.computeLHSNS();
+        function initPicardIterationFSM(obj)
+            obj.computeLHSStokes();
+            obj.computeLHSMatrixNS();
+            %obj.computeLHSNS();
+            obj.computeRHS();
+            obj.computeSolution();
+            obj.addDirBoundaryConditions();
+            obj.separateVariables();
+            obj.defineVariablesFValues();
+        end
+
+        function computePicardIteration(obj,residual)
+            obj.computeLHSNS(residual);
             %obj.computeLHSMatrixNS();
             obj.computeRHS();
             obj.computeSolution();
             obj.addDirBoundaryConditions();
             obj.separateVariables();
             obj.defineVariablesFValues();
-        end 
-
-        function [Residual, ReError] = computeError(obj)
-             vNew = obj.velocityFun.fValues;
-             vOld = obj.velocityField.fValues;
-             denom = max(abs(vNew), 1e-12);
-
-             Residual = max(max(abs(vNew - vOld)));
-             ReError  = max(max(abs((vNew - vOld) ./ denom)));
         end
 
-        function solveNVProblem2(obj)
+        function [Residual, ReError] = computeError(obj)
+            vNew = obj.velocityFun.fValues;
+            vOld = obj.velocityField.fValues;
+            denom = max(abs(vNew), 1e-12);
+
+            Residual = max(max(abs(vNew - vOld)));
+            ReError  = max(max(abs((vNew - vOld) ./ denom)));
+        end
+
+        function solveNVProblemFSM(obj)
 
             Residual     = 1;
             ReError      = 1;
             iter         = 1;
-            maxIter      = 1e3;  
-            %1e4;
+            maxIter      = 1e3;
             tolRes       = 1e-6;
             tolReE       = 1e-4;
 
@@ -256,16 +269,13 @@ classdef NavierStokesProblemSolver < handle
                 relaxFactor = 1;
             end
 
-            % obj.initPicardIteration
-            % obj.velocityField.setFValues(obj.velocityFun.fValues);
-
-            obj.computeLHSMatrixNS()
+            obj.initPicardIterationFSM()
 
             fprintf('   Picard Iteration             Residual                ReError\n');
 
             while ~((Residual <= tolRes && ReError <= tolReE) || iter >= maxIter)
 
-                obj.computeLHSConvectiveMatrix();                
+                obj.computeLHSConvectiveMatrix();
                 obj.computeTentativeVelocity();
                 obj.computePressure();
                 obj.computeVelocity();
@@ -274,19 +284,16 @@ classdef NavierStokesProblemSolver < handle
                 obj.defineVariablesFValues();
 
                 [Residual, ReError] = obj.computeError();
-                
+
                 fprintf(['      %d               ' ...
                     '        %.7e          %.5e\n'], iter, Residual, ReError);
-      
+
                 relaxedVel = (1 - relaxFactor) * obj.velocityField.fValues + relaxFactor * obj.velocityFun.fValues;
                 obj.velocityField.setFValues(relaxedVel);
 
                 iter = iter + 1;
 
             end
-
-            %add dir conditions
-            
 
         end
 
@@ -295,8 +302,7 @@ classdef NavierStokesProblemSolver < handle
             Residual     = 1;
             ReError      = 1;
             iter         = 1;
-            maxIter      = 1e3;  
-            %1e4;
+            maxIter      = 1e3;
             tolRes       = 1e-6;
             tolReE       = 1e-4;
 
@@ -308,21 +314,24 @@ classdef NavierStokesProblemSolver < handle
                 relaxFactor = 1;
             end
 
+            if all(obj.velocityField.fValues(:) == 0)
+                obj.initPicardIteration();
+                obj.velocityField.setFValues(obj.velocityFun.fValues);
+            else
+
+                obj.computeLHSStokes()
+            end
             fprintf('   Picard Iteration             Residual                ReError\n');
 
             while ~((Residual <= tolRes && ReError <= tolReE) || iter >= maxIter)
 
-                if (iter == 1)
-                    obj.initPicardIteration();
-                else
-                    obj.computePicardIteration();
-                end
+                obj.computePicardIteration(Residual);
 
                 [Residual, ReError] = obj.computeError();
-                
+
                 fprintf(['      %d               ' ...
                     '        %.7e          %.5e\n'], iter, Residual, ReError);
-      
+
                 relaxedVel = (1 - relaxFactor) * obj.velocityField.fValues + relaxFactor * obj.velocityFun.fValues;
                 obj.velocityField.setFValues(relaxedVel);
 

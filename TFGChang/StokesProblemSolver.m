@@ -1,10 +1,10 @@
 classdef StokesProblemSolver < handle
-    
+
     properties (Access = public)
         velocityFun
         pressureFun
     end
-    
+
     properties (Access = private)
         mesh
         forcesFormula
@@ -26,7 +26,7 @@ classdef StokesProblemSolver < handle
     end
 
     methods (Access = public)
-        
+
         function obj = StokesProblemSolver(cParams)
             obj.init(cParams);
             obj.setDiffTime();
@@ -42,11 +42,11 @@ classdef StokesProblemSolver < handle
             obj.separateVariablesFvalues();
             obj.defineVariables();
         end
-        
+
     end
-        
+
     methods (Access = private)
-        
+
         function init(obj,cParams)
             obj.mesh             = cParams.mesh;
             obj.velocityFun      = cParams.velocityFun;
@@ -66,7 +66,7 @@ classdef StokesProblemSolver < handle
         end
 
         function createSolver(obj)
-            b.type =  'DIRECT';%CG
+            b.type =  'DIRECT';
             obj.solver = Solver.create(b);
         end
 

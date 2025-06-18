@@ -6,8 +6,8 @@ classdef LHSIntegratorConvective < LHSIntegrator
             obj@LHSIntegrator(cParams)
         end
 
-        function LHS = compute(obj, velocityField)
-            lhs = obj.computeElementalLHS(velocityField);
+        function [LHS, u] = compute(obj, velocityField)
+            [lhs, u] = obj.computeElementalLHS(velocityField);
             LHS = obj.assembleMatrix(lhs);
         end
 
@@ -15,7 +15,7 @@ classdef LHSIntegratorConvective < LHSIntegrator
 
     methods (Access = private)
 
-        function lhs = computeElementalLHS(obj,velocityField)
+        function [lhs, uValues] = computeElementalLHS(obj,velocityField)
             xV          = obj.quadrature.posgp;  
             NTest       = obj.test.computeShapeFunctions(xV);
             dNdxTest    = obj.test.evaluateCartesianDerivatives(xV);

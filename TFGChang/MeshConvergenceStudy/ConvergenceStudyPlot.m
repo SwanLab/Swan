@@ -1,9 +1,9 @@
-%% Calculate E smooth and Absolute Relative Error (Case with FiltreLump) 
+%% Calculate E smooth and Absolute Relative Error (Case with FiltreLump, Stokes)
 
 openfig('E_N_NACA9810_A0A10_PF_FL.fig');
 
 h = findobj(gca, 'Type', 'line');
-nx = get(h, 'XData'); 
+nx = get(h, 'XData');
 E = get(h, 'YData');
 
 windowSize = 5;  % Window size for the moving average
@@ -14,7 +14,7 @@ for i = 2:length(ySmooth)
 end
 
 
-%% Plot Original E & E_smooth vs nx and Absolute Relative Error vs nx (Case with FiltreLump) 
+%% Plot Original E & E_smooth vs nx and Absolute Relative Error vs nx (Case with FiltreLump, Stokes)
 
 figure;
 
@@ -30,7 +30,7 @@ legend; grid on;
 title('Absolute Relative Error between Consecutive y_{smooth}');
 ylim([0,0.1]);
 
-%% Calculate E smooth and Absolute Relative Error (Case without FiltreLump) 
+%% Calculate E smooth and Absolute Relative Error (Case without FiltreLump, Stokes)
 
 data = load("E_N9810_AoA10_PF_NFL.mat");
 
@@ -41,7 +41,7 @@ for i = 2:length(ySmooth)
     errorRelative(i-1) = abs((ySmooth(i) - ySmooth(i-1)) / ySmooth(i-1)) ;
 end
 
-%% Plot Original E & E_smooth vs nx and Absolute Relative Error vs nx (Case without FiltreLump) 
+%% Plot Original E & E_smooth vs nx and Absolute Relative Error vs nx (Case without FiltreLump, Stokes)
 
 figure;
 
@@ -59,24 +59,20 @@ title('Absolute Relative Error between Consecutive y_{smooth}');
 ylim([0,0.1]);
 
 
-%% NV
+%% Plot E and Absolute Relative Increment vs nx (Navier-Stokes)
 
-data = readmatrix("results.txt");
+data = readmatrix("E_nx_NS.txt");
 nx = 20:20: size(data,1)*20;
 
-windowSize = 3;
-ySmooth = data(:,end);
-%movmean(data(:,end), windowSize);
+E = data(:,end);
 
-for i = 2:length(ySmooth)
-    errorRelative(i-1) = abs((ySmooth(i) - ySmooth(i-1)) / ySmooth(i-1)) ;
+for i = 2:length(E)
+    errorRelative(i-1) = abs((E(i) - E(i-1)) / E(i-1)) ;
 end
 
 figure;
 
 plot(nx,data(:,end));
-
-%ylim([0,1.4]);
 grid on;
 title('E vs. n_x');
 
@@ -84,4 +80,4 @@ figure;
 plot(nx(2:end), errorRelative);
 grid on;
 title('Absolute Relative Error between consecutive E vs. n_x');
-ylim([0,0.1]);
+ylim([0,0.15]);
