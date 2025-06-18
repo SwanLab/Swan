@@ -17,10 +17,10 @@ classdef Data < handle
         sigmaX
         muY
         sigmaY
-        Xmin
-        Ymin
-        Xmax
-        Ymax
+        %Xmin
+        %Ymin
+        %Xmax
+        %Ymax
     end
 
     properties (Access = private)

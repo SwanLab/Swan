@@ -72,6 +72,12 @@ Xtest = Xtest .* data.sigmaX + data.muX;
 Ypred = Ypred .* data.sigmaY + data.muY;
 Ytest = Ytest .* data.sigmaY + data.muY;
 
+% Dependencia del consumo con la velocidad al cubo
+figure;
+plot(Xtest(:,4),Ytest,'o')
+xlabel('Speed cubed (m/s)^3')
+ylabel('Fuel consumption')
+
 
 % Calcular el error cuadrático medio (MSE)
 mse = mean((Ypred - Ytest).^2);
