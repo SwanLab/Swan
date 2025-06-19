@@ -103,6 +103,6 @@ output_data = DataFrame(
 result_table = hcat(input_data, output_data)
 
 println("\nTabla de resultados:")
-show(result_table, allcols=true)
+#show(result_table, allcols=true)
 
 

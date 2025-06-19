@@ -1,6 +1,6 @@
 module Sh_Func_L2norm
 
-export Sh_Func_L2norm, computeStochasticCostAndGradient, computeFunctionAndGradient
+export ShFuncL2norm, computeStochasticCostAndGradient, computeFunctionAndGradient
 
 mutable struct ShFuncL2norm
     designVariable::Dict{String, Any}
@@ -16,7 +16,7 @@ function computeStochasticCostAndGradient(obj::ShFuncL2norm, x::Vector{Float64},
     return j, dj, isBD
 end
 
-function computeFunctionAndGradient(obj::ShFuncL2norm, x::Vector{Float64})
+function computeFunctionAndGradient(obj::ShFuncL2norm, x::Vector{Any})
     obj.designVariable["thetavec"] = x
     j = computeCost(obj)
     dj = computeGradient(obj)
@@ -25,7 +25,7 @@ end
 
 function computeCost(obj::ShFuncL2norm)
     theta = obj.designVariable["thetavec"]
-    return 0.5 * dot(theta, theta)  # Equivalent to theta * theta'
+    return 0.5 * theta'*theta #dot(theta, theta)  # Equivalent to theta * theta'
 end
 
 function computeGradient(obj::ShFuncL2norm)
