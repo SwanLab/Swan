@@ -16,7 +16,7 @@ function computeStochasticCostAndGradient(obj::ShFuncL2norm, x::Vector{Float64},
     return j, dj, isBD
 end
 
-function computeFunctionAndGradient(obj::ShFuncL2norm, x::Vector{Any})
+function computeFunctionAndGradient(obj::ShFuncL2norm, x::Vector{Float64})
     obj.designVariable["thetavec"] = x
     j = computeCost(obj)
     dj = computeGradient(obj)

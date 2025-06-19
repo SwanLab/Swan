@@ -10,6 +10,7 @@ thetavec = Vector{Float64}(args["designVariable"]["thetavec"])
 designVariable = Dict("thetavec" => thetavec)
 params = designVariable
 obj = Sh_Func_L2norm.ShFuncL2norm(params)
+
 # Step 3: Return basic confirmation
 result = Dict(
     "status" => "created",

@@ -8,14 +8,13 @@ args = JSON.parsefile(ARGS[1])
 # Create object
 obj = Sh_Func_L2norm.ShFuncL2norm(Dict("designVariable" => args["designVariable"]))
 
-# Convert to Float64
 x = Vector{Float64}(args["x"])
 
 # Call method
-j, dj = computeFunctionAndGradient(obj, x)
+j, dj, isBD = computeStochasticCostAndGradient(obj, x)
 
 # Write result
-result = Dict("j" => j, "dj" => dj)
+result = Dict("j" => j, "dj" => dj, "isBD" => isBD)
 open(args["output"], "w") do f
     write(f, JSON.json(result))
 end

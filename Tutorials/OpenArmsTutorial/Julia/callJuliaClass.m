@@ -27,4 +27,8 @@ function output = callJuliaClass(className, methodName, params)
     fclose(fid);
 
     output = jsondecode(raw);
+
+    % Delete JSON files
+    delete(inputFile);
+    delete(outputFile);
 end
