@@ -88,6 +88,7 @@ classdef TestingPhaseField < handle
 
         function phi = setInitialDamage(obj,phi)
             fValues = phi.fValues;
+            fValues(:) = 1e-8;
             m = obj.mesh;
 
             coordB = m.coord;
