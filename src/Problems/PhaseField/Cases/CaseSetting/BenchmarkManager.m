@@ -8,7 +8,7 @@ classdef BenchmarkManager < handle
                     mesh = QuadMesh(1,1,1,1);
                 case 'nElem'
                     N = cParams.N;
-                    mesh = QuadMesh(1,10,N,N);
+                    mesh = QuadMesh(1,1,N,N);
                 case 'SENtest'
                     file = 'SENtest0_05';
                     a.fileName = file;
