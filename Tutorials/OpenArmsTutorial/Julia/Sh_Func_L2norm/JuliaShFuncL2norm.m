@@ -39,6 +39,7 @@ classdef JuliaShFuncL2norm < handle
             dj = result.dj;
         end
     end
+    %{
     methods (Access = private)
         function j = computeCost(obj)
             params.designVariable = struct('thetavec', obj.data.thetavec);
@@ -52,4 +53,5 @@ classdef JuliaShFuncL2norm < handle
             dj = result.dj;
         end
     end
+    %}
 end

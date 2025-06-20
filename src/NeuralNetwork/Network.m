@@ -120,6 +120,7 @@ classdef Network < handle
             s.neuronsPerLayer = obj.neuronsPerLayer;
             s.nLayers         = obj.nLayers;
             t = LearnableVariables(s);
+            %t = JuliaLearnableVariables(s);
             obj.learnableVariables = t;
         end
 
