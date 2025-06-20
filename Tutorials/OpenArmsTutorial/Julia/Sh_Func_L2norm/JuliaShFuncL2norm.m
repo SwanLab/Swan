@@ -25,7 +25,7 @@ classdef JuliaShFuncL2norm < handle
             
             % Return outputs
             j    = result.j;
-            dj   = result.dj;
+            dj   = result.dj';
             isBD = result.isBD;
         end
 
