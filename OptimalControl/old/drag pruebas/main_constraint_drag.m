@@ -103,11 +103,12 @@ function [J, gradJ] = f_cost(u, g, t0, v0, gamma0, x1_0, x2_0, D, dDdv, dDda, N,
     y0 = [x1_0 x2_0 v0 gamma0];
     tf = u(1);
     alpha = u(2:N+1);
-    t_span = linspace(t0, tf, N);    
-    [~, y] = ode45(@(t, y) dynamics(t, y, tf, alpha, g, D, N, m), t_span, y0);
+    t_span = linspace(t0, tf, N);  
+    f = @(t,y,alpha) dynamics(t, y, alpha, g, D,  m);
+    [~, y] = ode45(f, t_span, y0,alpha);
 
     J = -y(end,1);
-    dydt_final = dynamics(tf, y(end,:)', tf, alpha, g, D, N, m);
+    dydt_final = dynamics(tf, y(end,:)', alpha, g, D, m);
 
     pT = [1 0 0 0];
     [~, p] = ode45(@(t, p) adjoint(t, p, y, g, t_span, alpha, dDdv, m), flip(t_span), pT);
@@ -125,15 +126,34 @@ function [J, gradJ] = f_cost(u, g, t0, v0, gamma0, x1_0, x2_0, D, dDdv, dDda, N,
     end
 end
 
+function y = trapezoidal(f,t_span, y0, alpha)
+    dt = tf / (N-1);
+    y = zeros(4,N);
+    y(:,1) = y0;
+    for i = 1:N-1
+        ti      = t_span(i);
+        ti1     = t_span(i+1);
+        alphai  = alpha(i);
+        alphai1 = alpha(i+1);
+        yi = y(:,i);
+
+        fi = f(ti, yi,alphai);
+        y_pred = yi + dt*fi;
+        fi1 = f(ti1, y_pred, alphai1);
+        y(:,i+1) = yi + (dt/2)*(fi + fi1);
+    end
+end
+
+
 function [ceq, Dceq] = groundConstraint(u, g, t0, v0, x1_0, x2_0, gamma0, D, dDdv, dDda, N, m)
     y0 = [x1_0 x2_0 v0 gamma0]';
     tf = u(1);
     t_span = linspace(t0, tf, N);
     alpha = u(2:N+1);
-    [~, y] = ode45(@(t, y) dynamics(t, y, tf, alpha, g, D, N, m), t_span, y0);
+    [~, y] = ode45(@(t, y,alpha) dynamics(t, y,alpha, g, D,  m), t_span, y0,alpha);
 
     ceq = y(end,2);
-    dydt_final = dynamics(t_span(end), y(end,:)', tf, alpha, g, D, N, m);
+    dydt_final = dynamics(t_span(end), y(end,:)', alpha, g, D,  m);
 
     pT = [0 -1 0 0];
     [~, p] = ode45(@(t, p) adjoint(t, p, y, g, t_span, alpha, dDdv, m), flip(t_span), pT);
@@ -164,15 +184,16 @@ function dpdt = adjoint(t, p, y, g, t_span, alpha, dDdv, m)
     dpdt = -J*p;
 end
 
-function dydt = dynamics(t, y, tf, alpha, g, D, N, m)
+
+function dydt = dynamics(t, y, alpha, g, D, m)
     v = y(3);
     gamma = y(4);
 
-    t_span = linspace(0, tf, N);    
+ %   t_span = linspace(0, tf, N);    
     % ind = round((t - t_span(1)) / (t_span(2) - t_span(1))) + 1;
     % alpha = alpha(ind);
     
-    alpha = interp1(t_span, alpha, t);
+   % alpha = interp1(t_span, alpha, t);
 
     dydt = [
         v*cos(gamma);
