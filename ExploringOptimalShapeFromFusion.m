@@ -41,7 +41,7 @@ classdef ExploringOptimalShapeFromFusion < handle
         end
 
         function createMesh(obj)
-            file = 'BEAM_3D_FRAME';
+            file = 'BEAM_3D_SF25';
             obj.filename = file;
             a.fileName = file;
             s = FemDataContainer(a);
@@ -51,10 +51,11 @@ classdef ExploringOptimalShapeFromFusion < handle
 
         function createVolume(obj)
             obj.volume = obj.mesh.computeVolume();
-            % No fa falta restar caixa perque el total ja esta fet amb
-            % caixa
+            % Fa falta restar 
+            boxVolume = 2e5;
             InitialVolume = 7.002e5;
-            obj.fractionVolume = obj.volume/InitialVolume;
+            beamVolume = obj.volume-boxVolume;
+            obj.fractionVolume = beamVolume/InitialVolume;
         end
 
         function createDesignVariable(obj)
@@ -113,7 +114,7 @@ classdef ExploringOptimalShapeFromFusion < handle
         function createMaterial(obj)
             s.type                 = 'DensityBased';
             s.ptype                = 'ELASTIC';
-            s.dim                  = obj.mesh.ndim;
+            s.dim                  = '3D';%obj.mesh.ndim;
             s.mesh                 = obj.mesh;
             s.density              = obj.designVariable;
             s.materialInterpolator = obj.materialInterpolator;
