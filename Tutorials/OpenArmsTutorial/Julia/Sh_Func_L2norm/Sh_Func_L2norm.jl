@@ -29,8 +29,8 @@ function computeCost(obj::ShFuncL2norm)
 end
 
 function computeGradient(obj::ShFuncL2norm)
-    #return obj.designVariable["thetavec"]
-    return Vector{Float64}(obj.designVariable["thetavec"])
+    return obj.designVariable["thetavec"]
+    #return Vector{Float64}(obj.designVariable["thetavec"])
 end
 
 end

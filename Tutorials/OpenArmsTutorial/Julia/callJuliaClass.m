@@ -32,3 +32,6 @@ function output = callJuliaClass(className, methodName, params)
     delete(inputFile);
     delete(outputFile);
 end
+
+
+

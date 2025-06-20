@@ -110,8 +110,8 @@ classdef OptimizationProblemNN < handle
 
         function createRegularizationFunctional(obj)
             s.designVariable = obj.designVariable;
-            %r = Sh_Func_L2norm(s);
-            r = JuliaShFuncL2norm(s);
+            r = Sh_Func_L2norm(s);
+            %r = JuliaShFuncL2norm(s);
             obj.regularization = r;
         end
 
