@@ -25,11 +25,11 @@ classdef ExploringOptimalShapeFromFusion < handle
             obj.createDesignVariable();
             obj.createFilter();
             obj.computeElasticProperties();
-            obj.createMaterialInterpolator();
+            %obj.createMaterialInterpolator();
             obj.createMaterial();
             obj.solveElasticProblem();
-            obj.createComplianceFromConstiutive();
-            obj.createCompliance();
+            %obj.createComplianceFromConstiutive();
+            %obj.createCompliance();
         end
 
     end
@@ -115,6 +115,7 @@ classdef ExploringOptimalShapeFromFusion < handle
             s.type                 = 'DensityBased';
             s.ptype                = 'ELASTIC';
             s.dim                  = '3D';%obj.mesh.ndim;
+            s.dim                  = '3D';
             s.mesh                 = obj.mesh;
             s.density              = obj.designVariable;
             s.materialInterpolator = obj.materialInterpolator;
@@ -160,15 +161,15 @@ classdef ExploringOptimalShapeFromFusion < handle
             yMax    = max(obj.mesh.coord(:,2));
             zMax    = max(obj.mesh.coord(:,3));
             isDir   = @(coor)  abs(coor(:,1))==20;
-            isForce = @(coor)  (abs(coor(:,1))>0.995*xMax);% & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax & abs(coor(:,3))>=0.3*zMax & abs(coor(:,3))<=0.7*zMax);
+            isForce = @(coor)  (abs(coor(:,1))>0.995*xMax & abs(coor(:,2))>=0.25*yMax & abs(coor(:,2))<=0.75*yMax); % & abs(coor(:,3))>=0.749*zMax & abs(coor(:,3))<=0.75*zMax);
 
          
-            s.fHandle = @(x)  (abs(x(1,:,:))>0.995*xMax);
+            s.fHandle = @(x)  (abs(x(1,:,:))>0.995*xMax & abs(x(2,:,:))>=0.25*yMax & abs(x(2,:,:))<=0.75*yMax); %  & abs(x(3,:,:))>=0.749*zMax & abs(x(3,:,:))<=0.75*zMax);
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);
 
-            %print(aFun.project('P1'),'Force','Paraview')
+            print(aFun.project('P1'),'Force 2','Paraview')
             
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2,3];

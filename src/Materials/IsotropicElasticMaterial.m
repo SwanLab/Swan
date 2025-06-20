@@ -26,7 +26,7 @@ classdef IsotropicElasticMaterial < Material
             end
             if isfield(cParams,'shear')
                 obj.shear = cParams.shear;
-            end
+              end
         end
 
         function [mu,k] = computeShearAndBulk(obj,xV)

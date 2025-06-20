@@ -19,7 +19,14 @@ classdef SimpAllExplicitInterpolator < handle
         function [dmu,dkappa] = computeConsitutiveTensorDerivative(obj,rho)
             dmu{1}    = obj.computeMuDerivative(rho); %rho{1}
             dkappa{1} = obj.computeKappaDerivative(rho); %rho{1}
-        end          
+            mu    = obj.computeMuFunction(rho(1)); %rho{1}
+            kappa = obj.computeKappaFunction(rho(1));  %rho{1}
+        end
+
+        % function [dmu,dkappa] = computeConsitutiveTensorDerivative(obj,rho)
+        %     dmu{1}    = obj.computeMuDerivative(rho(1)); %rho{1}
+        %     dkappa{1} = obj.computeKappaDerivative(rho(1)); %rho{1}
+        % end          
     end
      
     methods (Access = private)
@@ -108,6 +115,7 @@ classdef SimpAllExplicitInterpolator < handle
         
         function f = computeRationalFunction(rho,s)
             rho = rho.fun.fValues(1);
+            rho = rho.fun.fValues;
             n01 = s.n01;
             n0  = s.n0;
             n1  = s.n1;
