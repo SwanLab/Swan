@@ -14,9 +14,8 @@ classdef AnalyticalFunction < BaseFunction
 
     methods (Access = public, Static)
 
-        function obj = create(fHandle,ndimf,mesh)
+        function obj = create(fHandle,mesh)
             s.fHandle = fHandle;
-            s.ndimf   = ndimf;
             s.mesh    = mesh;
             obj = AnalyticalFunction(s);
         end
@@ -27,9 +26,14 @@ classdef AnalyticalFunction < BaseFunction
 
         function init(obj,cParams)
             fHandle   = cParams.fHandle;
-            obj.ndimf = cParams.ndimf;
             obj.mesh  = cParams.mesh;
+            obj.computeNdimf(fHandle);
             obj.createDomainFunction(fHandle);
+        end
+
+        function computeNdimf(obj,fHandle)
+            ndim = obj.mesh.ndim;
+            obj.ndimf = size(fHandle(zeros(ndim,1)),1);
         end
 
         function createDomainFunction(obj,fHandle)
