@@ -18,7 +18,7 @@ s.polynomialOrder = pol_deg;
 s.testRatio       = testratio;
 s.networkParams.hiddenLayers    = hiddenLayers;
 s.optimizerParams.learningRate  = learningRate;
-s.optimizerParams.maxEpochs = 10; % 1000 is the best option, but we use 10 to pass the tutorial quickly
+s.optimizerParams.maxEpochs = 1000; % 1000 is the best option, but we use 10 to pass the tutorial quickly
 s.costParams.lambda             = lambda;
 s.costParams.costType           = 'L2';
 
@@ -48,11 +48,14 @@ network = opt.getNetwork();
 % Inicializamos Ypred como un columna vacía
 Ypred = zeros(size(Ytest));
 
+%{
 % Pasamos cada muestra de Xtest a la red neuronal y guardamos las predicciones
 for i = 1:size(Xtest, 1)
     %Ypred(i) = network.forwardprop(Xtest(i, :), Ytest(i, :));  % Predicción para cada caso
     Ypred(i) = network.computeYOut(Xtest(i, :));
 end
+%}
+Ypred = network.computeYOut(Xtest);
 
 %(debugging) Histograma para ver la distribución de Ypred, [-1,1]
 figure;

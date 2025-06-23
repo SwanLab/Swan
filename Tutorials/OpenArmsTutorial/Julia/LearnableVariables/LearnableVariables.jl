@@ -5,7 +5,7 @@ export LearnableVars, reshapeInLayerForm
 using Random
 using Distributions
 
-struct LearnableVars
+mutable struct LearnableVars
     neuronsPerLayer::Vector{Int}
     nLayers::Int
     thetavec::Vector{Float64}
