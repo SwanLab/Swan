@@ -1,6 +1,6 @@
 using JSON
-include("Network.jl")
 include("../LearnableVariables/LearnableVariables.jl")  # Adjust if needed
+include("Network.jl")
 using .Network
 using .LearnableVariables
 
@@ -8,10 +8,10 @@ using .LearnableVariables
 args = JSON.parsefile(ARGS[1])
 
 # Reconstruct the Net object
-net = Net(args["network"])
+net = Net(args)
 
 # Extract input data
-Xb = Matrix{Float64}(args["Xb"])
+Xb = hcat([Float64.(row) for row in args["Xb"]]...)  # Transpose if needed
 
 # Call method
 yOut = computeYOut(net, Xb)

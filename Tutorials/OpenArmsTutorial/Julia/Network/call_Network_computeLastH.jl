@@ -1,6 +1,6 @@
 using JSON
-include("Network.jl")
 include("../LearnableVariables/LearnableVariables.jl")
+include("Network.jl")
 using .Network
 using .LearnableVariables
 

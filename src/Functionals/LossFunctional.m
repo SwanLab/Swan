@@ -35,6 +35,7 @@ classdef LossFunctional < handle
             Xt = obj.data.Xtrain;
             Yt = obj.data.Ytrain;            
             [Xb,Yb] = obj.updateSampledDataSet(Xt,Yt,obj.iBatch);
+            size(Xb)
             yOut = obj.network.computeYOut(Xb);
             j  = obj.computeCost(yOut,Yb);
             dj = obj.computeGradient(yOut,Yb);

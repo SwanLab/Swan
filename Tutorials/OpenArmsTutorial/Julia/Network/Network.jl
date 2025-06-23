@@ -1,6 +1,6 @@
 module Network
 
-export Net
+export Net, computeYOut, backprop, networkGradient, computeLastH, getLearnableVariables
 
 using ..LearnableVariables # Assuming this is the name of your LearnableVariables module
 
@@ -174,6 +174,7 @@ function actFCN(obj::Net, z::Matrix{Float64}, k::Int)
 end
 
 function hypothesisfunction(X::Matrix{Float64}, W::Matrix{Float64}, b::Vector{Float64})
+    println(size(W))
     return X * W .+ b'
 end
 
