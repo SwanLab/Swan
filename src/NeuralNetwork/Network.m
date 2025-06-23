@@ -159,7 +159,7 @@ classdef Network < handle
                     g_der = (1-g.^2);
                 case 'softmax'
                     g = (exp(z))./(sum(exp(z),2));
-                    g_der = z.*(1-z);
+                    g_der = g.*(1-g);
                 case 'linear'
                     g = z;
                     g_der = ones(size(z));

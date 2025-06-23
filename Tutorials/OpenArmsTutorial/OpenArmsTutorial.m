@@ -45,17 +45,17 @@ opt.plotCostFnc();
 % Realizar predicciones con la red neuronal entrenada
 network = opt.getNetwork();
 
+%{
 % Inicializamos Ypred como un columna vacía
 Ypred = zeros(size(Ytest));
 
-%{
 % Pasamos cada muestra de Xtest a la red neuronal y guardamos las predicciones
 for i = 1:size(Xtest, 1)
     %Ypred(i) = network.forwardprop(Xtest(i, :), Ytest(i, :));  % Predicción para cada caso
     Ypred(i) = network.computeYOut(Xtest(i, :));
 end
 %}
-Ypred = network.computeYOut(Xtest);
+Ypred = network.computeYOut(Xtest); % Vectorize the computation of Ypred
 
 %(debugging) Histograma para ver la distribución de Ypred, [-1,1]
 figure;
