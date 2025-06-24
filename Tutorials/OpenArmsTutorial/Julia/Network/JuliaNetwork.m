@@ -23,7 +23,7 @@ classdef JuliaNetwork < handle
 
         function yOut = computeYOut(obj, Xb)
             params = obj.struct;
-            params.Xb = double(Xb);
+            params.Xb = double(Xb');
             result = callJuliaClass('Network', 'computeYOut', params);
             yOut = result.yOut;
         end
@@ -32,6 +32,8 @@ classdef JuliaNetwork < handle
             params = obj.struct;
             params.Yb = double(Yb);
             params.dLF = double(dLF);
+            params.Xb = double(obj.struct.data.Xtrain);
+
             result = callJuliaClass('Network', 'backprop', params);
             dc = result.dc';
         end

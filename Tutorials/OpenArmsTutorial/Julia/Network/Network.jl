@@ -2,7 +2,7 @@ module Network
 
 export Net, computeYOut, backprop, networkGradient, computeLastH, getLearnableVariables
 
-using ..LearnableVariables # Assuming this is the name of your LearnableVariables module
+using ..LearnableVariables 
 
 mutable struct Net
     hiddenLayers::Vector{Int}
@@ -22,6 +22,19 @@ function Net(cParams::Dict{String, Any})
     data = cParams["data"]
     hiddenLayers = Vector{Int}(cParams["hiddenLayers"])
     nFeatures = data["nFeatures"]
+
+    # Necessary for Matlab communication only, conditional for robustness
+    Xraw = data["Xtrain"]
+    if ndims(Xraw) == 2
+        # Already a matrix, keep as is
+        Xtrain = Xraw
+    else
+        # Assume it's a vector of vectors, concatenate and transpose
+        Xtrain = hcat(Xraw...)'
+    end
+    data["Xtrain"] = Xtrain
+
+
     nPolyFeatures = size(data["Xtrain"], 2)
     nLabels = data["nLabels"]
     HUtype = cParams["HUtype"]
@@ -69,6 +82,8 @@ function backprop(obj::Net, Yb::Matrix{Float64}, dLF::Matrix{Float64})
     for k in reverse(2:nLy)
         _, g_der = actFCN(obj, a[k], k)
         if k == nLy
+            println(size(dLF))
+            println(size(g_der))
             obj.deltag[k] = dLF .* g_der
         else
             obj.deltag[k] = (W[k] * obj.deltag[k+1]')' .* g_der
@@ -174,7 +189,6 @@ function actFCN(obj::Net, z::Matrix{Float64}, k::Int)
 end
 
 function hypothesisfunction(X::Matrix{Float64}, W::Matrix{Float64}, b::Vector{Float64})
-    println(size(W))
     return X * W .+ b'
 end
 
