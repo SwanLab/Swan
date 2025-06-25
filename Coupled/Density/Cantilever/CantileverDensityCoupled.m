@@ -54,7 +54,7 @@ classdef CantileverDensityCoupled < handle
         end
 
         function createMesh(obj)
-            obj.mesh = TriangleMesh(2,1,220,110);
+            obj.mesh = TriangleMesh(2,1,182,91);
         end
 
         function createDesignVariable(obj)
@@ -66,7 +66,7 @@ classdef CantileverDensityCoupled < handle
             sD.fun      = aFun.project('P1');
             sD.mesh     = obj.mesh;
             sD.type     = 'Density';
-            sD.plotting = false;
+            sD.plotting = true;
             dens        = DesignVariable.create(sD);
             obj.designVariable = dens;
         end
@@ -199,32 +199,32 @@ classdef CantileverDensityCoupled < handle
 
         function createSegmentPerimeter(obj)
             s.mesh       = obj.mesh;
-            s.epsilon    = 10*obj.mesh.computeMeanCellSize();
+            s.epsilon    = 20;
             s.minEpsilon = obj.mesh.computeMeanCellSize();
-            s.value0     = 2*0.5;
-            s.target     = 0.01*(8.67/2)*0.25; % el 8.67 es lo que sale del P cuando alpha=1.5eps;    factor entre 1 y 10;    el ultimo factor es num subdomains
+            s.value0     = 2;
+            s.target     = 10; % tendra relacion con el 8.67 que sale del P cuando alpha=1.5eps en la ref?;
 
-            s.uMesh      = obj.createHalfDomain(0.5,0.75);
+            s.uMesh      = obj.createBaseGlobalDomain();
             s.filter     = obj.createFilterSegmentPerimeter();
             obj.segPerimeter{1} = PerimeterConstraint(s);
 
-            s.uMesh      = obj.createHalfDomain(0.5,0.25);
-            s.filter     = obj.createFilterSegmentPerimeter();
-            obj.segPerimeter{2} = PerimeterConstraint(s);
-
-            s.uMesh      = obj.createHalfDomain(1.5,0.75);
-            s.filter     = obj.createFilterSegmentPerimeter();
-            obj.segPerimeter{3} = PerimeterConstraint(s);
-
-            s.uMesh = obj.createHalfDomain(1.5,0.25);
-            s.filter = obj.createFilterSegmentPerimeter();
-            obj.segPerimeter{4} = PerimeterConstraint(s);
+%             s.uMesh      = obj.createHalfDomain(0.5,0.25);
+%             s.filter     = obj.createFilterSegmentPerimeter();
+%             obj.segPerimeter{2} = PerimeterConstraint(s);
+% 
+%             s.uMesh      = obj.createHalfDomain(1.5,0.75);
+%             s.filter     = obj.createFilterSegmentPerimeter();
+%             obj.segPerimeter{3} = PerimeterConstraint(s);
+% 
+%             s.uMesh = obj.createHalfDomain(1.5,0.25);
+%             s.filter = obj.createFilterSegmentPerimeter();
+%             obj.segPerimeter{4} = PerimeterConstraint(s);
         end
 
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
             s.shapeFunctions{2} = obj.globalPer;
-            s.weights           = [1,0.80]; % 0.25 hay más barras que tmb cumplen min length, 0.50 + 2 barritas pequeñas
+            s.weights           = [1,0]; % 0.25 hay más barras que tmb cumplen min length, 0.50 + 2 barritas pequeñas
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -238,9 +238,9 @@ classdef CantileverDensityCoupled < handle
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
             s.shapeFunctions{2} = obj.segPerimeter{1};
-            s.shapeFunctions{3} = obj.segPerimeter{2};
-            s.shapeFunctions{4} = obj.segPerimeter{3};
-            s.shapeFunctions{5} = obj.segPerimeter{4};
+%             s.shapeFunctions{3} = obj.segPerimeter{2};
+%             s.shapeFunctions{4} = obj.segPerimeter{3};
+%             s.shapeFunctions{5} = obj.segPerimeter{4};
             s.Msmooth      = obj.createMassMatrix();
             obj.constraint = Constraint(s);
         end
@@ -260,7 +260,7 @@ classdef CantileverDensityCoupled < handle
             s.designVariable = obj.designVariable;
             s.maxIter        = 3000;
             s.tolerance      = 1e-8;
-            s.constraintCase = repmat({'INEQUALITY'},[1,5]);
+            s.constraintCase = repmat({'INEQUALITY'},[1,2]);
             s.primal         = 'PROJECTED GRADIENT';
             s.etaNorm        = 0.02;
             s.gJFlowRatio    = obj.etaSt;

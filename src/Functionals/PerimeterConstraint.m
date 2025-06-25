@@ -42,11 +42,11 @@ classdef PerimeterConstraint < handle
         end
 
         function updateEpsilonForNextIteration(obj,J)
-            %if abs(J)<=1e-2
-                obj.epsilon = obj.epsilon/1.003;
+            if abs(J)<=1e-2
+                obj.epsilon = obj.epsilon/1.018;
                 obj.epsilon = max(obj.epsilon,obj.minEpsilon);
                 obj.perimeter.updateEpsilon(obj.epsilon);
-            %end
+            end % Será preferible tener una decay constante al inicio y luego más notoria hacia el final (cuando el volumen esta por cumplirse y tenemos muchos grises)
         end
     end
 

@@ -32,6 +32,7 @@ classdef PerimeterFunctional < handle
         end
 
         function updateEpsilon(obj,epsilon)
+            obj.epsilon = epsilon;
             obj.domainFilter.updateEpsilon(epsilon);
         end
 

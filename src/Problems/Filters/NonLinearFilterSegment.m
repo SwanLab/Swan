@@ -22,6 +22,7 @@ classdef NonLinearFilterSegment < handle
         a2
         b2
         rhoOld
+        epsilonOld
     end
 
     methods (Access = public)
@@ -35,16 +36,17 @@ classdef NonLinearFilterSegment < handle
             obj.createDirectionalStiffnessMatrix();
             obj.Den = obj.createConstantFunction(2*obj.lineSearch);
             eps = obj.mesh.computeMeanCellSize();
+            obj.epsilonOld = eps;
             obj.a2  = obj.createConstantFunction((obj.alpha*eps)^2);
             obj.b2  = obj.createConstantFunction((obj.beta*eps)^2);
         end
 
         function xF = compute(obj,fun,quadOrder)
-            xF = LagrangianFunction.create(obj.mesh, 1, obj.trial.order);            
+            xF = LagrangianFunction.create(obj.mesh, 1, obj.trial.order);     
+            obj.trial = fun.project(obj.rhoOld.order);
             obj.createRHSChi(fun,quadOrder);
             iter = 1;
             tolerance = 1;
-            obj.trial.setFValues(obj.rhoOld.fValues);
             obj.updateDotProductPreviousGuess();      
             while tolerance >= 1e-4  && iter<=1000
                 obj.rhoOld.setFValues(obj.trial.fValues);
@@ -61,6 +63,9 @@ classdef NonLinearFilterSegment < handle
         function updateEpsilon(obj,eps)
             obj.a2  = obj.createConstantFunction((obj.alpha*eps)^2);
             obj.b2  = obj.createConstantFunction((obj.beta*eps)^2);
+            obj.lineSearch = obj.lineSearch*(obj.epsilonOld/eps);
+            obj.Den = obj.createConstantFunction(2*obj.lineSearch);
+            obj.epsilonOld = eps;
         end
     end
 
@@ -73,7 +78,7 @@ classdef NonLinearFilterSegment < handle
             obj.theta = cParams.theta;
             obj.alpha = cParams.alpha;
             obj.beta  = cParams.beta;
-            obj.lineSearch = 1;
+            obj.lineSearch = 2e-2;
         end
 
         function createDirection(obj)
