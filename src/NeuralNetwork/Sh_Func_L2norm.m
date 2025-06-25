@@ -31,7 +31,8 @@ classdef Sh_Func_L2norm < handle
 
        function j = computeCost(obj)
            theta = obj.designVariable.thetavec;
-           j = 0.5*(theta)*theta';
+           j = dot(theta, theta);
+           %j = 0.5*(theta)*theta';
        end
 
        function dj = computeGradient(obj)

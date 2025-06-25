@@ -59,6 +59,7 @@ classdef LearnableVariables < handle
                 end
                 u = (6/(nPL(i-1)+nPL(i)))^0.5;
                 getW = (unifrnd(-u,u,[1,nPL(i-1)*nPL(i)]));
+                %getW = zeros(1,nPL(i-1)*nPL(i));
                 th = [th,getW,getB];
            end      
         obj.thetavec = th;

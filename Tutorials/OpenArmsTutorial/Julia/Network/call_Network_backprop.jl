@@ -16,17 +16,14 @@ Xb = reshape(Xb, :, net.nPolyFeatures)
 
 Yb = hcat(args["Yb"]...)
 Yb = reshape(Yb, :, 1)
-println("typeof(args[\"dLF\"]): ", typeof(args["dLF"]))
-println("size(args[\"dLF\"]): ", size(args["dLF"]))
-dLF = hcat(args["dLF"]...)
-dLF = reshape(dLF, :, 1)
-
+dLF = hcat(args["dLF"])
 # Compute aValues first 
 Network.computeAvalues(net, Xb)
 
 # Call method
 dc = Network.backprop(net, Yb, dLF)
 
+println("I called backprop")
 # Return output
 result = Dict("dc" => dc)
 open(args["output"], "w") do f

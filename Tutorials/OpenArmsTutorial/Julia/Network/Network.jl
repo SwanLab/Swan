@@ -2,7 +2,8 @@ module Network
 
 export Net, computeYOut, backprop, networkGradient, computeLastH, getLearnableVariables
 
-using ..LearnableVariables 
+include("../LearnableVariables/LearnableVariables.jl")
+using .LearnableVariables 
 
 mutable struct Net
     hiddenLayers::Vector{Int}
@@ -82,14 +83,14 @@ function backprop(obj::Net, Yb::Matrix{Float64}, dLF::Matrix{Float64})
     for k in reverse(2:nLy)
         _, g_der = actFCN(obj, a[k], k)
         if k == nLy
-            println(size(dLF))
-            println(size(g_der))
             obj.deltag[k] = dLF .* g_der
         else
-            obj.deltag[k] = (W[k] * obj.deltag[k+1]')' .* g_der
+            #obj.deltag[k] = (W[k] * obj.deltag[k+1]')' .* g_der
+            obj.deltag[k] = (obj.deltag[k+1] * W[k]') .* g_der
         end
         dcW[k-1] = (1 / m) * (a[k-1]' * obj.deltag[k])
-        dcB[k-1] = (1 / m) * sum(obj.deltag[k], dims=1)
+        dcB[k-1] = vec(sum(obj.deltag[k], dims=1)) / m
+        #dcB[k-1] = (1 / m) * sum(obj.deltag[k], dims=1)
     end
 
     dc = Float64[]
@@ -171,7 +172,7 @@ function actFCN(obj::Net, z::Matrix{Float64}, k::Int)
         g_der = g .* (1 .- g)
     elseif type == "ReLU"
         g = max.(z, 0.0)
-        g_der = z .> 0.0
+        g_der = Float64.(z .> 0.0)
     elseif type == "tanh"
         g = tanh.(z)
         g_der = 1 .- g.^2

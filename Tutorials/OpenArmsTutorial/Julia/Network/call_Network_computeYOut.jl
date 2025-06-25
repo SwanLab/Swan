@@ -16,6 +16,7 @@ Xb = hcat([Float64.(row) for row in args["Xb"]]...)  # Transpose if needed
 # Call method
 yOut = computeYOut(net, Xb)
 
+println("I called computeYOut")
 # Write result
 result = Dict("yOut" => yOut)
 open(args["output"], "w") do f

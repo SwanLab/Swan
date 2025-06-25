@@ -49,6 +49,7 @@ classdef Network < handle
                 dcW{k-1} = (1/m)*(a{k-1}'*obj.deltag{k});
                 dcB{k-1} = (1/m)*(sum(obj.deltag{k},1));
             end
+            obj.deltag
             dc = [];
             for i = 2:nLy
                 aux1 = [reshape(dcW{i-1},[1,nPl(i-1)*nPl(i)]),dcB{i-1}];

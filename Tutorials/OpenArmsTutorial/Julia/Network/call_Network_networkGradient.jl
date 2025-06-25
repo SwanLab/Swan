@@ -16,6 +16,8 @@ X = Matrix{Float64}(args["X"])
 # Call the networkGradient method
 dy = networkGradient(net, X)
 
+println("I called networkGradient")
+
 # Write output to JSON file
 result = Dict("dy" => dy)
 open(args["output"], "w") do f

@@ -2,6 +2,8 @@ module Sh_Func_L2norm
 
 export ShFuncL2norm, computeStochasticCostAndGradient, computeFunctionAndGradient
 
+using LinearAlgebra
+
 mutable struct ShFuncL2norm
     designVariable::Dict{String, Any}
 end
@@ -25,7 +27,9 @@ end
 
 function computeCost(obj::ShFuncL2norm)
     theta = obj.designVariable["thetavec"]
-    return 0.5 * theta'*theta #dot(theta, theta)  # Equivalent to theta * theta'
+    size(theta)
+    return 0.5 * dot(theta, theta)
+    #return 0.5 * theta'*theta   # Equivalent to theta * theta'
 end
 
 function computeGradient(obj::ShFuncL2norm)

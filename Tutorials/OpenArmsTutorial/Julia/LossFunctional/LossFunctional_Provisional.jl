@@ -2,6 +2,9 @@ module LossFunctional
 
 export LossFunc, computeFunctionAndGradient, computeStochasticCostAndGradient, getTestError
 
+include("../Network/Network.jl") 
+using .Network
+
 mutable struct LossFunc
     iBatch::Int
     order::Vector{Int}
@@ -51,7 +54,7 @@ function computeStochasticCostAndGradient(obj::LossFunc, x::Vector{Float64}, mov
 end
 
 
-function getTestError(obj::LossFunctional)
+function getTestError(obj::LossFunc)
     Xtest = obj.data["Xtest"]
     Ytest = obj.data["Ytest"]
 
@@ -134,7 +137,7 @@ end
 function updateSampledDataSet(obj::LossFunc, Xl::Matrix{Float64}, Yl::Matrix{Float64}, iBatch::Int)
     batchSize = computeBatchSize(obj)
     startIdx = (iBatch - 1) * batchSize + 1
-    endIdx = min(iBatch * batchSize, size(Xl, 1))  # ⬅️ this handles the last batch
+    endIdx = min(iBatch * batchSize, size(Xl, 1)) 
     idx = obj.order[startIdx:endIdx]
     return Xl[idx, :], Yl[idx, :]
 end

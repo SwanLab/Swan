@@ -57,7 +57,7 @@ function computeInitialTheta(nPL::Vector{Int}, nLayers::Int)
         # Weight matrix flattened
         u = sqrt(6 / (prevL + nextL))
         getW = rand(Uniform(-u, u), prevL * nextL)
-
+        #getW = zeros(prevL * nextL)
         append!(th, getW)
         append!(th, getB)
     end

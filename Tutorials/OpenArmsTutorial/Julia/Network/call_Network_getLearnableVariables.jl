@@ -19,7 +19,7 @@ result = Dict(
     "nLayers" => lvars.nLayers,
     "thetavec" => lvars.thetavec
 )
-
+println("I called getLearnableVariables")
 # Write to output file
 open(args["output"], "w") do f
     write(f, JSON.json(result))
