@@ -1,16 +1,9 @@
 classdef DamageHomogenizationFitter < handle
 
-    methods (Access = public)
+    methods (Access = public, Static)
 
-        function obj = DamageHomogenizationFitter()
-            obj.init()
-        end
-
-    end
-
-    methods (Access = public)
-
-        function [fun,dfun,ddfun] = computePolynomialFitting(obj,degPoly,phi,C)
+        function [fun,dfun,ddfun] = computePolynomial(degPoly,phi,C)
+            obj = DamageHomogenizationFitter();
             fun = obj.computeFitting(degPoly,phi,C);
             [dfun,ddfun] = obj.computeDerivative(fun);
             [fun,dfun,ddfun] = obj.convertToHandle(fun,dfun,ddfun);
@@ -19,9 +12,6 @@ classdef DamageHomogenizationFitter < handle
     end
 
     methods (Access = private)
-
-        function obj = init(obj)
-        end
 
         function fun = computeFitting(~,degPoly,phi,C)
             syms x
