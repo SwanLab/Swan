@@ -76,9 +76,11 @@ function backprop(obj::Net, Yb::Matrix{Float64}, dLF::Matrix{Float64})
     nLy = obj.nLayers
     m = size(Yb, 1)
 
-    obj.deltag = Vector{Any}(undef, nLy)
+    #obj.deltag = fill(nothing, nLy)
     dcW = Vector{Any}(undef, nLy - 1)
     dcB = Vector{Any}(undef, nLy - 1)
+    obj.deltag = Vector{Any}(undef, nLy)
+    obj.deltag[1] = zeros(0)  # Match MATLAB’s {0x0 double}
 
     for k in reverse(2:nLy)
         _, g_der = actFCN(obj, a[k], k)
@@ -92,13 +94,12 @@ function backprop(obj::Net, Yb::Matrix{Float64}, dLF::Matrix{Float64})
         dcB[k-1] = vec(sum(obj.deltag[k], dims=1)) / m
         #dcB[k-1] = (1 / m) * sum(obj.deltag[k], dims=1)
     end
-
+    #println(obj.deltag)
     dc = Float64[]
     for i in 2:nLy
         aux1 = vcat(vec(dcW[i-1]), vec(dcB[i-1]))
         append!(dc, aux1)
     end
-
     return dc
 end
 
@@ -192,6 +193,9 @@ end
 function hypothesisfunction(X::Matrix{Float64}, W::Matrix{Float64}, b::Vector{Float64})
     return X * W .+ b'
 end
-
-
+#=
+function setLearnableVariables!(net::Net, thetavec::Vector{Float64})
+    net.learnableVariables.thetavec = thetavec
+end
+=#
 end

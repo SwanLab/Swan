@@ -1,0 +1,1 @@
+IMPORTANTE: modificada la clase lossFunctional mínimamente en las funciones computeStochasticCostAndGradient y computeFunctionAndGradient

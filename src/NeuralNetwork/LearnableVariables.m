@@ -59,7 +59,13 @@ classdef LearnableVariables < handle
                 end
                 u = (6/(nPL(i-1)+nPL(i)))^0.5;
                 getW = (unifrnd(-u,u,[1,nPL(i-1)*nPL(i)]));
-                %getW = zeros(1,nPL(i-1)*nPL(i));
+                %{
+                % Constant weight initialization for better debugging
+                getW = zeros(1,nPL(i-1)*nPL(i));
+                for j = 1:nPL(i-1)*nPL(i)
+                    getW(j) = 0.2 * (-1)^j;
+                end
+                %}
                 th = [th,getW,getB];
            end      
         obj.thetavec = th;

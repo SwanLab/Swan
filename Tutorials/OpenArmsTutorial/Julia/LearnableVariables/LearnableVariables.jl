@@ -16,6 +16,7 @@ function LearnableVars(s::Dict{String, Any})
     nPL = Vector{Int}(s["neuronsPerLayer"])
     nLayers = s["nLayers"]
     thetavec = computeInitialTheta(nPL, nLayers)
+    
     return LearnableVars(nPL, nLayers, thetavec)
 end
 
@@ -57,7 +58,12 @@ function computeInitialTheta(nPL::Vector{Int}, nLayers::Int)
         # Weight matrix flattened
         u = sqrt(6 / (prevL + nextL))
         getW = rand(Uniform(-u, u), prevL * nextL)
-        #getW = zeros(prevL * nextL)
+        #=
+        getW = zeros(prevL * nextL, 1)
+        for j in 1:prevL * nextL
+            getW[j] = 0.2 * (-1)^j
+        end
+        =#
         append!(th, getW)
         append!(th, getB)
     end

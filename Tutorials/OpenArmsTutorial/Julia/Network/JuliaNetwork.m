@@ -19,6 +19,7 @@ classdef JuliaNetwork < handle
             obj.struct.HUtype          = params.HUtype;
             obj.struct.OUtype          = params.OUtype;
             obj.struct.data            = params.data;
+            
         end
 
         function yOut = computeYOut(obj, Xb)
@@ -33,7 +34,7 @@ classdef JuliaNetwork < handle
             params.Yb = double(Yb);
             params.dLF = double(dLF);
             params.Xb = double(obj.struct.data.Xtrain);
-
+            params.thetavec = obj.struct.thetavec;
             result = callJuliaClass('Network', 'backprop', params);
             dc = result.dc';
         end
@@ -54,10 +55,19 @@ classdef JuliaNetwork < handle
 
         function vars = getLearnableVariables(obj)
             params = obj.struct;
-            result = callJuliaClass('Network', 'getLearnableVariables', params);
-            result.thetavec = result.thetavec';
-            vars = result;  % Struct with fields: thetavec, neuronsPerLayer, nLayers
+            vars = callJuliaClass('Network', 'getLearnableVariables', params);
+            vars.thetavec = vars.thetavec';  
+            obj.struct.thetavec = vars.thetavec; 
+            % Struct with fields: thetavec, neuronsPerLayer, nLayers
         end
-
+        %{
+        function setThetavec(obj, x)
+        obj.struct.thetavec = x;
+        callJuliaClass('Network', 'setLearnableVariables!', obj.struct);
+        end
+        %}
     end
+
+    
+
 end
