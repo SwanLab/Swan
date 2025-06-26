@@ -96,10 +96,6 @@ function backprop(obj::Net, Yb::Matrix{Float64}, dLF::Matrix{Float64})
         else
             #obj.deltag[k] = (W[k] * obj.deltag[k+1]')' .* g_der
             obj.deltag[k] = (obj.deltag[k+1] * W[k]') .* g_der
-            @show size(obj.deltag[k+1])
-            @show size(W[k])
-            @show size(obj.deltag[k+1] * W[k]')
-            @show size(a[k])
         end
         dcW[k-1] = (1 / m) * (a[k-1]' * obj.deltag[k])
         dcB[k-1] = vec(sum(obj.deltag[k], dims=1)) / m

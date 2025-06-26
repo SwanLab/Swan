@@ -31,7 +31,7 @@ classdef JuliaNetwork < handle
         end
 
         function dc = backprop(obj, Yb, dLF)
-            params = obj.struct
+            params = obj.struct;
             params.Yb = double(Yb);
             params.dLF = double(dLF);
             params.Xb = double(obj.struct.data.Xtrain);
@@ -56,7 +56,7 @@ classdef JuliaNetwork < handle
         function vars = getLearnableVariables(obj)
             params = obj.struct;
             vars = callJuliaClass('Network', 'getLearnableVariables', params);
-            vars.thetavec = vars.thetavec';  
+            vars.thetavec = vars.thetavec'; % ATTENTION
             obj.struct.thetavec = vars.thetavec; 
             % Struct with fields: thetavec, neuronsPerLayer, nLayers
         end

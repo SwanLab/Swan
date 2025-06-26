@@ -15,7 +15,7 @@ classdef JuliaLearnableVariables < handle
             % Save params fields too, to pass in future calls
             obj.data.neuronsPerLayer = params.neuronsPerLayer;
             obj.data.nLayers = params.nLayers;
-            obj.thetavec = obj.data.thetavec';
+            obj.thetavec = obj.data.thetavec'; % ATTENTION
         end
         
         function [W, b] = reshapeInLayerForm(obj)

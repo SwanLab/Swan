@@ -182,6 +182,8 @@ classdef Data < handle
 
             % Normalize X
             [obj.Xtrain, obj.muX, obj.sigmaX] = zscore(obj.Xtrain);
+            size(obj.muX)
+            size(obj.sigmaX)
             obj.Xtest = (obj.Xtest - obj.muX) ./ obj.sigmaX;
 
             % Normalize Y

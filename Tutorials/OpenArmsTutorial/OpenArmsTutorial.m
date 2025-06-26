@@ -18,7 +18,7 @@ s.polynomialOrder = pol_deg;
 s.testRatio       = testratio;
 s.networkParams.hiddenLayers    = hiddenLayers;
 s.optimizerParams.learningRate  = learningRate;
-s.optimizerParams.maxEpochs = 6; % 1000 is the best option, but we use 10 to pass the tutorial quickly
+s.optimizerParams.maxEpochs = 1000; % 1000 is the best option, but we use 10 to pass the tutorial quickly
 s.costParams.lambda             = lambda;
 s.costParams.costType           = 'L2';
 
@@ -28,9 +28,9 @@ s.networkParams.OUtype = 'linear';
 % Select the model's features
 s.xFeatures = [1, 2, 3, 4, 5, 6, 7];
 s.yFeatures = [8];
-
 % Load data
 %data   = cHomogData(s);
+%data = JuliaData(s);
 data   = Data(s);
 s.data = data;
 
@@ -71,6 +71,9 @@ histogram(Ytest, edges);
 title('Distribution of Test Y');
 
 % Denormalization
+size(Xtest)
+size(data.sigmaX)
+size(data.muX)
 Xtest = Xtest .* data.sigmaX + data.muX;
 Ypred = Ypred .* data.sigmaY + data.muY;
 Ytest = Ytest .* data.sigmaY + data.muY;

@@ -90,8 +90,8 @@ classdef OptimizationProblemNN < handle
        function createNetwork(obj)
            s      = obj.networkParams;
            s.data = obj.data;
-           %n  = Network(s);
-           n = JuliaNetwork(s);
+           n  = Network(s);
+           %n = JuliaNetwork(s);
            obj.network = n;
        end
 
