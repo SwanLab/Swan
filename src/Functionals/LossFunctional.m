@@ -32,7 +32,7 @@ classdef LossFunctional < handle
         end
 
         function [j,dj,isBD] = computeStochasticCostAndGradient(obj,x,moveBatch)
-            obj.designVariable.thetavec = x;    
+            obj.designVariable.thetavec = x ;  
             obj.network.setThetavec(x); % Julia special
             Xt = obj.data.Xtrain;
             Yt = obj.data.Ytrain;            

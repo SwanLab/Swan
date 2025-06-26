@@ -54,7 +54,7 @@ classdef JuliaNetwork < handle
         end
 
         function vars = getLearnableVariables(obj)
-            params = obj.struct
+            params = obj.struct;
             vars = callJuliaClass('Network', 'getLearnableVariables', params);
             vars.thetavec = vars.thetavec';  
             obj.struct.thetavec = vars.thetavec; 

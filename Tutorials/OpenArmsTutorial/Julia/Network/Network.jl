@@ -87,7 +87,7 @@ function backprop(obj::Net, Yb::Matrix{Float64}, dLF::Matrix{Float64})
     dcW = Vector{Any}(undef, nLy - 1)
     dcB = Vector{Any}(undef, nLy - 1)
     obj.deltag = Vector{Any}(undef, nLy)
-    obj.deltag[1] = zeros(0)  # Match MATLAB’s {0x0 double}
+    #obj.deltag[1] = zeros(0)  # Match MATLAB’s {0x0 double}
 
     for k in reverse(2:nLy)
         _, g_der = actFCN(obj, a[k], k)
@@ -96,12 +96,16 @@ function backprop(obj::Net, Yb::Matrix{Float64}, dLF::Matrix{Float64})
         else
             #obj.deltag[k] = (W[k] * obj.deltag[k+1]')' .* g_der
             obj.deltag[k] = (obj.deltag[k+1] * W[k]') .* g_der
+            @show size(obj.deltag[k+1])
+            @show size(W[k])
+            @show size(obj.deltag[k+1] * W[k]')
+            @show size(a[k])
         end
         dcW[k-1] = (1 / m) * (a[k-1]' * obj.deltag[k])
         dcB[k-1] = vec(sum(obj.deltag[k], dims=1)) / m
         #dcB[k-1] = (1 / m) * sum(obj.deltag[k], dims=1)
+        
     end
-    #println(obj.deltag)
     dc = Float64[]
     for i in 2:nLy
         aux1 = vcat(vec(dcW[i-1]), vec(dcB[i-1]))
