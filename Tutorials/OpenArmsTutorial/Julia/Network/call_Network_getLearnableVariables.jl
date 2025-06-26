@@ -8,10 +8,10 @@ using .LearnableVariables
 args = JSON.parsefile(ARGS[1])
 
 # Reconstruct Net object
-net = Net(args)
+net = Network.Net(args)
 
 # Get LearnableVars object
-lvars = getLearnableVariables(net)
+lvars = Network.getLearnableVariables(net)
 
 # Prepare result as a Dict for serialization
 result = Dict(

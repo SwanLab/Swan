@@ -8,13 +8,13 @@ using .LearnableVariables
 args = JSON.parsefile(ARGS[1])
 
 # Reconstruct the Net object
-net = Net(args)
+net = Network.Net(args)
 
 # Extract input data
 Xb = hcat([Float64.(row) for row in args["Xb"]]...)  # Transpose if needed
 
 # Call method
-yOut = computeYOut(net, Xb)
+yOut = Network.computeYOut(net, Xb)
 
 println("I called computeYOut")
 # Write result

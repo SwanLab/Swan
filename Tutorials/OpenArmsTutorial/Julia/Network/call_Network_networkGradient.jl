@@ -8,13 +8,13 @@ using .LearnableVariables
 args = JSON.parsefile(ARGS[1])
 
 # Reconstruct Net object from input parameters
-net = Net(args)
+net = Network.Net(args)
 
 # Convert input data
 X = Matrix{Float64}(args["X"])
 
 # Call the networkGradient method
-dy = networkGradient(net, X)
+dy = Network.networkGradient(net, X)
 
 println("I called networkGradient")
 

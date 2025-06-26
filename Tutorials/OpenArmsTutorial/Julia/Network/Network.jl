@@ -47,7 +47,14 @@ function Net(cParams::Dict{String, Any})
         "neuronsPerLayer" => neuronsPerLayer,
         "nLayers" => nLayers
     )
-    learnableVariables = LearnableVars(learnableParams)
+
+    # Pass thetavec if available in full args (maybe only Matlab necessary)
+    if haskey(cParams, "thetavec")
+        println("Net received thetavec, passing it to LearnableVars")
+        learnableParams["thetavec"] = cParams["thetavec"]
+    end
+
+    learnableVariables = LearnableVars(learnableParams) # equivalent to createLearnableVariables
 
     return Net(
         hiddenLayers,
@@ -141,14 +148,6 @@ function getLearnableVariables(obj::Net)
     return obj.learnableVariables
 end
 
-function createLearnableVariables(obj::Net)
-    s = Dict(
-        "neuronsPerLayer" => obj.neuronsPerLayer,
-        "nLayers" => obj.nLayers
-    )
-    obj.learnableVariables = LearnableVars(s)
-end
-
 function computeAvalues(obj::Net, X::Matrix{Float64})
     W, b = reshapeInLayerForm(obj.learnableVariables)
     nLy = obj.nLayers
@@ -193,9 +192,5 @@ end
 function hypothesisfunction(X::Matrix{Float64}, W::Matrix{Float64}, b::Vector{Float64})
     return X * W .+ b'
 end
-#=
-function setLearnableVariables!(net::Net, thetavec::Vector{Float64})
-    net.learnableVariables.thetavec = thetavec
-end
-=#
+
 end

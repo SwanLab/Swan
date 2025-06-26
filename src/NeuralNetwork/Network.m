@@ -26,11 +26,13 @@ classdef Network < handle
         end
 
         function yOut = computeYOut(obj,Xb)
+            disp('I called computeYOut')
             obj.computeAvalues(Xb);
             yOut = obj.aValues{end};
         end
 
         function dc = backprop(obj,Yb,dLF)
+            disp('I called backprop')
             [W,~] = obj.learnableVariables.reshapeInLayerForm();
             a = obj.aValues;
             nPl = obj.neuronsPerLayer;
@@ -57,6 +59,7 @@ classdef Network < handle
         end
 
         function dy = networkGradient(obj,X)
+            disp('I called networkGradient')
             obj.computeAvalues(X);
             [W,~] = obj.learnableVariables.reshapeInLayerForm();
             a = obj.aValues;
@@ -75,6 +78,7 @@ classdef Network < handle
         end
 
         function g = computeLastH(obj,X)
+            disp('I called computeLastH')
             nLy = obj.nLayers;
             [W,b] = obj.learnableVariables.reshapeInLayerForm();
             h = obj.hypothesisfunction(X,W{1},b{1});
@@ -86,6 +90,7 @@ classdef Network < handle
         end
 
         function l = getLearnableVariables(obj)
+            disp('I called getLearnableVariables')
             l = obj.learnableVariables;
         end
 

@@ -8,13 +8,13 @@ using .LearnableVariables
 args = JSON.parsefile(ARGS[1])
 
 # Reconstruct Net object from JSON
-net = Net(args)
+net = Network.Net(args)
 
 # Load input matrix X
 X = Matrix(hcat(map(x -> Float64.(x), args["X"])...)')
 
 # Compute the last hidden layer activation
-H = computeLastH(net, X)
+H = Network.computeLastH(net, X)
 
 println("I called computeLastH")
 # Write result

@@ -12,11 +12,22 @@ mutable struct LearnableVars
 end
 
 # Constructor: builds and returns a LearnableVars object
+
+
 function LearnableVars(s::Dict{String, Any})
+    # Extract required fields
     nPL = Vector{Int}(s["neuronsPerLayer"])
     nLayers = s["nLayers"]
-    thetavec = computeInitialTheta(nPL, nLayers)
-    
+
+    # Use provided thetavec if available, otherwise initialize it
+    if haskey(s, "thetavec")
+        thetavec = Float64.(s["thetavec"])  # Ensure correct type
+        println("I received a thetavec!")
+    else
+        println("I initialized thetavec!")
+        thetavec = computeInitialTheta(nPL, nLayers)
+    end
+
     return LearnableVars(nPL, nLayers, thetavec)
 end
 

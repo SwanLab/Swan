@@ -12,6 +12,7 @@ classdef JuliaNetwork < handle
 
         function obj = JuliaNetwork(params)
             % Initialize the network by calling Julia constructor
+            params.thetavec = [];  % Explicitly pass empty thetavec to avoid double initialization
             obj.struct = callJuliaClass('Network', 'Net', params);
 
             % Save all input fields in case we need to resend them later
@@ -30,11 +31,10 @@ classdef JuliaNetwork < handle
         end
 
         function dc = backprop(obj, Yb, dLF)
-            params = obj.struct;
+            params = obj.struct
             params.Yb = double(Yb);
             params.dLF = double(dLF);
             params.Xb = double(obj.struct.data.Xtrain);
-            params.thetavec = obj.struct.thetavec;
             result = callJuliaClass('Network', 'backprop', params);
             dc = result.dc';
         end
@@ -54,18 +54,17 @@ classdef JuliaNetwork < handle
         end
 
         function vars = getLearnableVariables(obj)
-            params = obj.struct;
+            params = obj.struct
             vars = callJuliaClass('Network', 'getLearnableVariables', params);
             vars.thetavec = vars.thetavec';  
             obj.struct.thetavec = vars.thetavec; 
             % Struct with fields: thetavec, neuronsPerLayer, nLayers
         end
-        %{
+        
         function setThetavec(obj, x)
         obj.struct.thetavec = x;
-        callJuliaClass('Network', 'setLearnableVariables!', obj.struct);
         end
-        %}
+        
     end
 
     

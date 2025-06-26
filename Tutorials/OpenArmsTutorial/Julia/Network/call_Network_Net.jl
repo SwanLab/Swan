@@ -9,7 +9,7 @@ using .Network
 args = JSON.parsefile(ARGS[1])
 
 # Create Julia object
-net = Net(args)
+net = Network.Net(args)
 
 # Prepare the minimal data to return to MATLAB
 # (MATLAB doesn't need to hold the full object, they will be defined through other methods)
