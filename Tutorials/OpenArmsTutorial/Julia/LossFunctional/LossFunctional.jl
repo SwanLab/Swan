@@ -3,8 +3,8 @@ module LossFunctional
 export LossFunc, computeFunctionAndGradient, computeStochasticCostAndGradient, getTestError
 
 #include("../Network/Network.jl") 
-import ..Network
-using ..Network.LearnableVariables
+import Main.Network
+using Main.Network.LearnableVariables
 using Random
 using Distributions
 
