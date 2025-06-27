@@ -4,20 +4,8 @@ export AbstractTrainer, TrainerStruct, Create, plotCostRegErr, storeValues!, plo
 
 using Plots
 
-# Include trainer submodules
-include("SGD/SGD.jl")
-include("Fminunc/Fminunc.jl")
-include("Nesterov/Nesterov.jl")
-include("RMSProp/RMSProp.jl")
-
-# Import their constructors
-using .SGD
-using .Fminunc
-using .Nesterov
-using .RMSProp
-
 #abstract type AbstractTrainer end
-
+# Define Trainer structure first
 mutable struct TrainerStruct
     objectiveFunction::Any
     designVariable::Any
@@ -42,6 +30,18 @@ function TrainerStruct(cParams::Dict{String, Any})
         zeros(0, 2)                 # optHist
     )
 end
+
+# Now include trainer submodules
+include("SGD/SGD.jl")
+include("Fminunc/Fminunc.jl")
+include("Nesterov/Nesterov.jl")
+include("RMSProp/RMSProp.jl")
+
+# Import their constructors
+using .SGD
+using .Fminunc
+using .Nesterov
+using .RMSProp
 
 function plotCostRegErr(t::TrainerStruct, v::Vector{Int})
     idxs = 2:length(v)

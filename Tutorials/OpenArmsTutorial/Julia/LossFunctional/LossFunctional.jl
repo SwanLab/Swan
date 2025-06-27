@@ -2,8 +2,11 @@ module LossFunctional
 
 export LossFunc, computeFunctionAndGradient, computeStochasticCostAndGradient, getTestError
 
-include("../Network/Network.jl") 
-using .Network
+#include("../Network/Network.jl") 
+import ..Network
+using ..Network.LearnableVariables
+using Random
+using Distributions
 
 mutable struct LossFunc
     iBatch::Int
@@ -11,7 +14,7 @@ mutable struct LossFunc
     nBatches::Int
 
     costType::String
-    designVariable::Dict{String, Any}
+    designVariable::LearnableVars   #Dict{String, Any}
     network::Any
     data::Dict{String, Any}
 end
@@ -31,21 +34,21 @@ function LossFunc(cParams::Dict{String, Any})
 end
 
 function computeFunctionAndGradient(obj::LossFunc, x::Vector{Float64})
-    obj.designVariable["thetavec"] = x
+    obj.designVariable.thetavec = x
     Xb = obj.data["Xtrain"]
     Yb = obj.data["Ytrain"]
-    yOut = computeYOut(obj.network, Xb)
+    yOut = Network.computeYOut(obj.network, Xb)
     j  = computeCost(obj, yOut, Yb)
     dj = computeGradient(obj, yOut, Yb)
     return j, dj
 end
 
 function computeStochasticCostAndGradient(obj::LossFunc, x::Vector{Float64}, moveBatch::Bool)
-    obj.designVariable["thetavec"] = x
+    obj.designVariable.thetavec = x
     Xt = obj.data["Xtrain"]
     Yt = obj.data["Ytrain"]
     Xb, Yb = updateSampledDataSet(obj, Xt, Yt, obj.iBatch)
-    yOut = computeYOut(obj.network, Xb)
+    yOut = Network.computeYOut(obj.network, Xb)
     j = computeCost(obj, yOut, Yb)
     dj = computeGradient(obj, yOut, Yb)
     obj.iBatch = updateBatchCounter(obj, obj.iBatch, moveBatch)
@@ -58,10 +61,10 @@ function getTestError(obj::LossFunc)
     Xtest = obj.data["Xtest"]
     Ytest = obj.data["Ytest"]
 
-    H = computeLastH(obj.network, Xtest)  # Should return matrix of predictions
-    Ypred = map(indmax, eachrow(H))      # Row-wise argmax (like max(..., [], 2))
+    H = Network.computeLastH(obj.network, Xtest)  # Should return matrix of predictions
+    Ypred = map(row -> findmax(row)[2], eachrow(H))      # Row-wise argmax (like max(..., [], 2))
 
-    Ytarget = map(indmax, eachrow(Ytest))
+    Ytarget = map(row -> findmax(row)[2], eachrow(Ytest))
 
     mismatches = sum(Ypred .!= Ytarget)
     testError = mismatches / length(Ytarget)
@@ -76,7 +79,7 @@ end
 
 function computeGradient(obj::LossFunc, yOut, Yb)
     _, dLF = lossFunction(obj, Yb, yOut)
-    dj = backprop(obj.network, Yb, dLF)
+    dj = Network.backprop(obj.network, Yb, dLF)
     return dj
 end
 

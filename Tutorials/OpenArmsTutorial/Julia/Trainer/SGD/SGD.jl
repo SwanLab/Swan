@@ -6,6 +6,8 @@ using ..Trainer  # Use the parent module where TrainerStruct is defined
 using Dates  # For timing (like tic/toc)
 using Optim
 using Plots
+using Printf
+using LinearAlgebra
 
 mutable struct SGDStruct
     trainer::Trainer.TrainerStruct
@@ -168,7 +170,7 @@ function lineSearch(
     return e, xnew, funcount
 end
 
-function updateCriteria(obj::SGDStruct, KPI::Dict{Symbol, Any})
+function updateCriteria(obj::SGDStruct, KPI::Dict{Symbol, Real})
     return [
         KPI[:epoch] <= obj.MaxEpochs,
         KPI[:alarm] < obj.earlyStop,
@@ -178,7 +180,7 @@ function updateCriteria(obj::SGDStruct, KPI::Dict{Symbol, Any})
     ]
 end
 
-function isCriteriaMet(obj::SGDStruct, KPI::Dict{Symbol, Any})
+function isCriteriaMet(obj::SGDStruct, KPI::Dict{Symbol, Real})
     criteria = updateCriteria(obj, KPI)
     failedIdx = findfirst(!, criteria)
     itIs = false
@@ -207,7 +209,7 @@ function displayIter(
     x::Vector{Float64},
     epsilon::Float64,
     state::Symbol,
-    KPI::Dict{Symbol, Any}
+    KPI::Dict{Symbol, Real}
 )
     opt = Dict(
         :epsilon => epsilon * KPI[:gnorm],
