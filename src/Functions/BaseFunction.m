@@ -22,16 +22,23 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
                 obj.fxVOld  = fxV;
                 obj.xVOldfV = xV;
             else
-               fxV = obj.fxVOld;
+                fxV = obj.fxVOld;
             end
-        end        
+        end
 
         function fun = project(obj,target)
-            s.mesh          = obj.mesh;
-            s.projectorType = target;
-            proj = Projector.create(s);
-            fun = proj.project(obj);
-        end       
+            ndimF = length(size(obj.evaluate(zeros(obj.mesh.ndim,1)))); % Parche 1
+            if ndimF>=4 % Parche 2
+                s.projectorType = target;
+                proj = ProjectorToLagrangianTensor(s);
+                fun = proj.project(obj);
+            else
+                s.mesh          = obj.mesh;
+                s.projectorType = target;
+                proj = Projector.create(s);
+                fun = proj.project(obj);
+            end
+        end
 
         function plot(obj)
             p1D = project(obj,'P1D');
