@@ -25,7 +25,7 @@ classdef SGD < Trainer
             obj.optTolerance = 1e-8;
             obj.timeStop    = Inf([1,1]);
             obj.fvStop      = 1e-4;
-            obj.nPlot       = 1;
+            obj.nPlot       = 1; % Maybe should be fplot like property?
             obj.MaxEpochs   = s.maxEpochs;
             obj.earlyStop   = obj.MaxEpochs;
             obj.svepoch     = 0;

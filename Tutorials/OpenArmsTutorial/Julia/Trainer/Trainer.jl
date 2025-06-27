@@ -16,7 +16,7 @@ using .Fminunc
 using .Nesterov
 using .RMSProp
 
-abstract type AbstractTrainer end
+#abstract type AbstractTrainer end
 
 mutable struct TrainerStruct
     objectiveFunction::Any
@@ -28,8 +28,11 @@ mutable struct TrainerStruct
     optHist::Matrix{Float64}
 end
 
-function TrainerStruct(objFunc, designVar)
-    TrainerStruct(
+function TrainerStruct(cParams::Dict{String, Any})
+    objFunc = cParams["costFunc"]
+    designVar = cParams["designVariable"]
+
+    return TrainerStruct(
         objFunc,
         designVar,
         Vector{Vector{Float64}}(),  # xIter
