@@ -70,9 +70,9 @@ classdef ProjectorToLagrangianTensor < Projector
 
         function f = assembleIntegrand(obj,test,int)
             nDim     = test.mesh.ndim;
-            nNode    = test.mesh.nnodeElem;
+            nDofsEl  = test.nDofsElem;
             nElem    = test.mesh.nelem;
-            int      = reshape(int,[nDim^2 nNode nElem]);
+            int      = reshape(int,[nDim^2 nDofsEl nElem]);
             connec   = test.getDofConnec();
             ndofs    = max(max(connec));
             nDofElem = size(connec,2);
@@ -87,13 +87,13 @@ classdef ProjectorToLagrangianTensor < Projector
         end
 
         function N = computeShapeFunctionsBase(obj,mesh,test,xV)
-            nDim   = mesh.ndim;
-            nNode  = mesh.nnodeElem;
-            nDof   = nDim^2*nNode;
-            nGauss = size(xV,2);
-            NxV    = test.computeShapeFunctions(xV);
-            N      = zeros(nDim,nDim,nDof,nGauss);
-            for i = 1:nNode
+            nDim    = mesh.ndim;
+            nDofsEl = test.nDofsElem;
+            nDof    = nDim^2*nDofsEl;
+            nGauss  = size(xV,2);
+            NxV     = test.computeShapeFunctions(xV);
+            N       = zeros(nDim,nDim,nDof,nGauss);
+            for i = 1:nDofsEl
                 Ng = NxV(i,:);
                 for j = 1:nDim
                     for k = 1:nDim
