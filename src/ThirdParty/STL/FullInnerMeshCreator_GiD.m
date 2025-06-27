@@ -41,13 +41,13 @@ classdef FullInnerMeshCreator_GiD < FullInnerMeshCreator
         end
 
         function f = getOutputFileName(obj)
-            f = [pwd,'/PostProcess/STL/sampleMesh.msh'];
+            f = [pwd,'\PostProcess\STL\sampleMesh.msh'];
         end
 
         function f = getResFilePath(obj)
             name = obj.filename;
             swan = pwd;
-            f = [swan, '/', name, '.flavia.res'];
+            f = [swan, '\', name, '.flavia.res'];
         end
         
     end
