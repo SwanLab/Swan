@@ -133,7 +133,8 @@ classdef OptimizationProblemNN < handle
            s.Xtest  = obj.data.Xtest;
            s.Ytest  = obj.data.Ytest;
            s.plotter = obj.plotter;
-           op = Trainer.create(s);
+           op = JuliaTrainer.create(s);
+           %op = Trainer.create(s);
            obj.optimizer = op;
        end
 

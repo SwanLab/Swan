@@ -71,9 +71,6 @@ histogram(Ytest, edges);
 title('Distribution of Test Y');
 
 % Denormalization
-size(Xtest)
-size(data.sigmaX)
-size(data.muX)
 Xtest = Xtest .* data.sigmaX + data.muX;
 Ypred = Ypred .* data.sigmaY + data.muY;
 Ytest = Ytest .* data.sigmaY + data.muY;
