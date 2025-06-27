@@ -68,8 +68,8 @@ classdef TopOptTestMultiLoadBridgeAugmented < handle
             obj.createDualVariable();
             obj.createOptimizer();
 
-            saveas(gcf,['NullSLERPResults/TopOpt/MultiLoadBridge/Augmented/Monitoring_rho',num2str(obj.rho),'3Loads.fig']);
-            obj.designVariable.fun.print(['NullSLERPResults/TopOpt/MultiLoadBridge/Augmented/rho',num2str(obj.rho),'3Loads_fValues']);
+            saveas(gcf,['NullSLERPResults/TopOpt/MultiLoadBridge/Augmented/Monitoring_rho',num2str(obj.rho),'9Loads.fig']);
+            obj.designVariable.fun.print(['NullSLERPResults/TopOpt/MultiLoadBridge/Augmented/rho',num2str(obj.rho),'9Loads_fValues']);
         end
 
     end
@@ -478,7 +478,7 @@ classdef TopOptTestMultiLoadBridgeAugmented < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1500;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = repmat({'INEQUALITY'},[1,obj.nLoads]);
             s.primal         = 'SLERP';
