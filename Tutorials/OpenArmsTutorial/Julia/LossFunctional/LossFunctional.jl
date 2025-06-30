@@ -1,6 +1,6 @@
 module LossFunctional
 
-export LossFunc, computeFunctionAndGradient, computeStochasticCostAndGradient, getTestError
+export LossFunctionalStruct, computeFunctionAndGradient, computeStochasticCostAndGradient, getTestError
 
 #include("../Network/Network.jl") 
 import Main.Network
@@ -8,7 +8,7 @@ using Main.Network.LearnableVariables
 using Random
 using Distributions
 
-mutable struct LossFunc
+mutable struct LossFunctionalStruct
     iBatch::Int
     order::Vector{Int}
     nBatches::Int
@@ -19,8 +19,8 @@ mutable struct LossFunc
     data::Dict{String, Any}
 end
 
-function LossFunc(cParams::Dict{String, Any})
-    obj = LossFunc(
+function LossFunctionalStruct(cParams::Dict{String, Any})
+    obj = LossFunctionalStruct(
         1,                              # iBatch starts at 1
         Int[],                         # order
         0,                             # nBatches
@@ -33,7 +33,7 @@ function LossFunc(cParams::Dict{String, Any})
     return obj
 end
 
-function computeFunctionAndGradient(obj::LossFunc, x::Vector{Float64})
+function computeFunctionAndGradient(obj::LossFunctionalStruct, x::Vector{Float64})
     obj.designVariable.thetavec = x
     Xb = obj.data["Xtrain"]
     Yb = obj.data["Ytrain"]
@@ -43,7 +43,7 @@ function computeFunctionAndGradient(obj::LossFunc, x::Vector{Float64})
     return j, dj
 end
 
-function computeStochasticCostAndGradient(obj::LossFunc, x::Vector{Float64}, moveBatch::Bool)
+function computeStochasticCostAndGradient(obj::LossFunctionalStruct, x::Vector{Float64}, moveBatch::Bool)
     obj.designVariable.thetavec = x
     Xt = obj.data["Xtrain"]
     Yt = obj.data["Ytrain"]
@@ -57,7 +57,7 @@ function computeStochasticCostAndGradient(obj::LossFunc, x::Vector{Float64}, mov
 end
 
 
-function getTestError(obj::LossFunc)
+function getTestError(obj::LossFunctionalStruct)
     Xtest = obj.data["Xtest"]
     Ytest = obj.data["Ytest"]
 
@@ -72,18 +72,18 @@ function getTestError(obj::LossFunc)
     return testError
 end
 
-function computeCost(obj::LossFunc, yOut, Yb)
-    J, _ = lossFunction(obj, Yb, yOut)
+function computeCost(obj::LossFunctionalStruct, yOut, Yb)
+    J, _ = LossFunction(obj, Yb, yOut)
     return J
 end
 
-function computeGradient(obj::LossFunc, yOut, Yb)
-    _, dLF = lossFunction(obj, Yb, yOut)
+function computeGradient(obj::LossFunctionalStruct, yOut, Yb)
+    _, dLF = LossFunction(obj, Yb, yOut)
     dj = Network.backprop(obj.network, Yb, dLF)
     return dj
 end
 
-function lossFunction(obj::LossFunc, y::Matrix{Float64}, yOut::Matrix{Float64})
+function LossFunction(obj::LossFunctionalStruct, y::Matrix{Float64}, yOut::Matrix{Float64})
     type = obj.costType
     yp = yOut .- 1e-11
 
@@ -104,7 +104,7 @@ function lossFunction(obj::LossFunc, y::Matrix{Float64}, yOut::Matrix{Float64})
     return J, gc
 end
 
-function computeNumberOfBatchesAndOrder!(obj::LossFunc)
+function computeNumberOfBatchesAndOrder!(obj::LossFunctionalStruct)
     Xtrain = obj.data["Xtrain"]
     nD = size(Xtrain, 1)
     batchSize = computeBatchSize(obj)
@@ -118,11 +118,11 @@ function computeNumberOfBatchesAndOrder!(obj::LossFunc)
     end
 end
 
-function isBatchDepleted(obj::LossFunc, iBatch::Int, moveBatch::Bool)
+function isBatchDepleted(obj::LossFunctionalStruct, iBatch::Int, moveBatch::Bool)
     return iBatch == obj.nBatches && moveBatch
 end
 
-function updateBatchCounter(obj::LossFunc, iB::Int, moveBatch::Bool)
+function updateBatchCounter(obj::LossFunctionalStruct, iB::Int, moveBatch::Bool)
     if iB < obj.nBatches && moveBatch
         return iB + 1
     elseif iB == obj.nBatches && moveBatch
@@ -132,12 +132,12 @@ function updateBatchCounter(obj::LossFunc, iB::Int, moveBatch::Bool)
     end
 end
 
-function computeBatchSize(obj::LossFunc)
+function computeBatchSize(obj::LossFunctionalStruct)
     n = size(obj.data["Xtrain"], 1)
     return n > 200 ? 200 : n
 end
 
-function updateSampledDataSet(obj::LossFunc, Xl::Matrix{Float64}, Yl::Matrix{Float64}, iBatch::Int)
+function updateSampledDataSet(obj::LossFunctionalStruct, Xl::Matrix{Float64}, Yl::Matrix{Float64}, iBatch::Int)
     batchSize = computeBatchSize(obj)
     startIdx = (iBatch - 1) * batchSize + 1
     endIdx = min(iBatch * batchSize, size(Xl, 1)) 

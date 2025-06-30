@@ -9,7 +9,7 @@ using .LossFunctional
 
 # Shortcut for convenience
 const Net = Network.Net
-const LossFunc = LossFunctional.LossFunc
+const LossFunc = LossFunctional.LossFunctionalStruct
 const computeFunctionAndGradient = LossFunctional.computeFunctionAndGradient
 const computeStochasticCostAndGradient = LossFunctional.computeStochasticCostAndGradient
 

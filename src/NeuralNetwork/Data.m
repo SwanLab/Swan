@@ -121,7 +121,7 @@ classdef Data < handle
         end
         
 
-        function Xful = buildModel(obj)
+        function Xful = pModel(obj)
             x  = obj.X;
             d  = obj.polynomialOrder;
             x1 = x(:,1);
