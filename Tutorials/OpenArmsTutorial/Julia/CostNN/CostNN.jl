@@ -3,6 +3,9 @@ module CostNN
 export CostNNStruct, computeFunctionAndGradient, computeStochasticFunctionAndGradient,
        obtainNumberFields, getTitleFields, getFields, setBatchMover, validateES
 
+import ..LossFunctional
+import ..Sh_Func_L2norm 
+import ..Network
 mutable struct CostNNStruct
     value::Float64
     gradient::Vector{Float64}
@@ -28,15 +31,23 @@ function CostNNStruct(cParams::Dict{String, Any})
 end
 
 function computeFunctionAndGradient(obj::CostNNStruct, x::Vector{Float64})
-    compFunc = (shI, x) -> shI.computeFunctionAndGradient(x)
-    jV, djV = computeValueAndGradient(obj, x, compFunc)
+    #compFunc = (shI, x) -> computeFunctionAndGradient(shI, x)
+    compFunc = (shI, x) -> 
+        isa(shI, LossFunctional.LossFunc) ? LossFunctional.computeFunctionAndGradient(shI, x) :
+        isa(shI, Sh_Func_L2norm.ShFuncL2norm) ? Sh_Func_L2norm.computeFunctionAndGradient(shI, x) :
+        error("Unsupported shape function type: $(typeof(shI))")
+    jV, djV = computeValueAndGradient_2arg(obj, x, compFunc)
     obj.value = jV
     obj.gradient = djV
 end
 
 function computeStochasticFunctionAndGradient!(obj::CostNNStruct, x::Vector{Float64})
-    compFunc = (shI, x, moveBatch) -> shI.computeStochasticCostAndGradient(shI, x, moveBatch)
-    jV, djV = computeValueAndGradient(obj, x, compFunc)
+    #compFunc = (shI, x, moveBatch) -> shI.computeStochasticCostAndGradient(shI, x, moveBatch)
+    compFunc = (shI, x, moveBatch) -> 
+        isa(shI, LossFunctional.LossFunc) ? LossFunctional.computeStochasticCostAndGradient(shI, x, moveBatch) :
+        isa(shI, Sh_Func_L2norm.ShFuncL2norm) ? Sh_Func_L2norm.computeStochasticCostAndGradient(shI, x, moveBatch) :
+        error("Unsupported shape function type: $(typeof(shI))")
+    jV, djV = computeValueAndGradient_3arg(obj, x, compFunc)
     obj.value = jV
     obj.gradient = djV
 end
@@ -49,9 +60,15 @@ end
 function getTitleFields(obj::CostNNStruct)
     nF = length(obj.shapeFunctions)
     titles = Vector{String}(undef, nF)
+
+    getTitle = shI ->
+        isa(shI, LossFunctional.LossFunc) ? LossFunctional.getTitleToPlot(shI) :
+        isa(shI, Sh_Func_L2norm.ShFuncL2norm) ? Sh_Func_L2norm.getTitleToPlot(shI) :
+        error("Unsupported shape function type: $(typeof(shI))")
+
     for iF in 1:nF
         wI = obj.weights[iF]
-        titleF = obj.shapeFunctions[iF].getTitleToPlot()
+        titleF = getTitle(obj.shapeFunctions[iF])
         titles[iF] = "$titleF (w=$wI)"
     end
     return titles
@@ -66,7 +83,12 @@ function setBatchMover!(obj::CostNNStruct, moveBatch::Bool)
 end
 
 function validateES(obj::CostNNStruct, alarm::Float64, minTestError::Float64)
-    testError = obj.shapeFunctions[1].getTestError(obj.shapeFunctions[1])
+    shI = obj.shapeFunctions[1]
+
+    testError = isa(shI, LossFunctional.LossFunc) ? LossFunctional.getTestError(shI) :
+                isa(shI, Sh_Func_L2norm.ShFuncL2norm) ? Sh_Func_L2norm.getTestError(shI) :
+                error("Unsupported shape function type: $(typeof(shI))")
+
     if testError < minTestError
         minTestError = testError
         alarm = 0.0
@@ -78,9 +100,7 @@ function validateES(obj::CostNNStruct, alarm::Float64, minTestError::Float64)
     return alarm, minTestError
 end
 
-
-
-function computeValueAndGradient(obj::CostNNStruct, x::Vector{Float64}, compFunc)
+function computeValueAndGradient_2arg(obj::CostNNStruct, x::Vector{Float64}, compFunc)
     nF = length(obj.shapeFunctions)
     bDa = falses(nF)
     Jc = Vector{Any}(undef, nF)
@@ -88,27 +108,17 @@ function computeValueAndGradient(obj::CostNNStruct, x::Vector{Float64}, compFunc
 
     for iF in 1:nF
         shI = obj.shapeFunctions[iF]
-
-        # Try calling with 3 args (stochastic), fallback to 2 args (full batch)
-        try
-            j, dJ, bD = compFunc(shI, x, obj.moveBatch)
-            bDa[iF] = bD
-        catch
-            j, dJ = compFunc(shI, x)
-            bDa[iF] = false
-        end
-
+        j, dJ = compFunc(shI, x)
+        bDa[iF] = false
         Jc[iF] = j
         dJc[iF] = mergeGradient(dJ)
     end
 
     jV = 0.0
     djV = zeros(size(dJc[1]))
-
     for iF in 1:nF
-        wI = obj.weights[iF]
-        jV += wI * Jc[iF]
-        djV .+= wI * dJc[iF]
+        jV += obj.weights[iF] * Jc[iF]
+        djV .+= obj.weights[iF] * dJc[iF]
     end
 
     obj.isBatchDepleted = any(bDa)
@@ -116,6 +126,36 @@ function computeValueAndGradient(obj::CostNNStruct, x::Vector{Float64}, compFunc
 
     return jV, djV
 end
+
+
+function computeValueAndGradient_3arg(obj::CostNNStruct, x::Vector{Float64}, compFunc)
+    nF = length(obj.shapeFunctions)
+    bDa = falses(nF)
+    Jc = Vector{Any}(undef, nF)
+    dJc = Vector{Any}(undef, nF)
+
+    for iF in 1:nF
+        shI = obj.shapeFunctions[iF]
+        j, dJ, bD = compFunc(shI, x, obj.moveBatch)
+        bDa[iF] = bD
+        Jc[iF] = j
+        dJc[iF] = mergeGradient(dJ)
+    end
+
+    jV = 0.0
+    djV = zeros(size(dJc[1]))
+    for iF in 1:nF
+        jV += obj.weights[iF] * Jc[iF]
+        djV .+= obj.weights[iF] * dJc[iF]
+    end
+
+    obj.isBatchDepleted = any(bDa)
+    obj.shapeValues = Jc
+
+    return jV, djV
+end
+
+
 
 function mergeGradient(dJ)
     if isa(dJ, Vector) && all(x -> hasproperty(x, :fValues), dJ)
