@@ -35,7 +35,7 @@ classdef ElasticProblemMicro < handle
                 uF{iB}      = obj.computeDisplacement(LHS,RHS,iB,nBasis);
                 strainF{iB} = strainB+SymGrad(uF{iB});
                 stressF{iB} = DDP(obj.material, strainF{iB});
-                ChiB        = obj.computeChomog(stressF{iB},iB);
+                ChiB        = obj.computeChomog(stressF{iB});
                 obj.convertChomogToFourthOrder(ChiB,v,iB);
             end
             obj.uFluc  = uF;
@@ -164,15 +164,11 @@ classdef ElasticProblemMicro < handle
             obj.lagrangeMultipliers = L;
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             uFun = copy(obj.trialFun);
-            uFun.setFValues(uSplit);            
+            uFun.setFValues(uSplit);
         end
 
-        function Chomog = computeChomog(obj,stress,iBase)
-            if strcmp(obj.solverMode, 'DISP')
-                Chomog = computeChomogFromLagrangeMultipliers(obj,iBase);
-            else
-                Chomog = Integrator.compute(stress,obj.mesh,2);
-            end
+        function Chomog = computeChomog(obj,stress)
+            Chomog = Integrator.compute(stress,obj.mesh,2);
         end
 
         function convertChomogToFourthOrder(obj,ChiB,v,iB)
@@ -189,27 +185,6 @@ classdef ElasticProblemMicro < handle
                 Ch(:,:,v2,v1)  = ChShear;
             end
             obj.Chomog = Ch;
-        end
-
-        function Chomog = computeChomogFromLagrangeMultipliers(obj,iBase)
-            L = obj.lagrangeMultipliers;
-            nPeriodic = length(obj.boundaryConditions.periodic_leader);
-            nBorderNod = nPeriodic/4; % cause 2D
-            Lx  = sum( L(1:nBorderNod) );
-            Lxy = sum( L(nBorderNod+1:2*nBorderNod));
-            Ly  = sum( L(2*nBorderNod+1 : 3*nBorderNod));
-            Ld = L(3*nBorderNod+1 : end); % dirich (2 per + 6 dir)
-            switch iBase
-                case 1
-                    Lx = Lx + Ld(1) + Ld(2) + Ld(3) + Ld(5);
-                    Ly = Ly + Ld(4) + Ld(7);
-                case 2
-                    Ly = Ly + Ld(1) + Ld(2) + Ld(4) + Ld(6);
-                    Lx = Lx + Ld(3) + Ld(7);
-                case 3
-                    Lxy = Lxy + Ld(1) + Ld(2);
-            end
-            Chomog = [-Lx; -Ly; -Lxy];
         end
 
     end
