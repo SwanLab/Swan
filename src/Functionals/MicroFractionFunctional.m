@@ -76,12 +76,13 @@ classdef MicroFractionFunctional < handle
 
         function [JAB,JBA,JAA,JBB] = computeAllAlphaBetaValues(obj)
             Ch  = obj.stateProblem.Chomog;
+            Sh  = inv4D(Ch);
             a   = obj.alpha;
             b   = obj.beta;
-            JAB = a'*(Ch\b);
-            JBA = b'*(Ch\a);
-            JAA = a'*(Ch\a);
-            JBB = b'*(Ch\b);
+            JAB = obj.doubleDDP(a,Sh,b);
+            JBA = obj.doubleDDP(b,Sh,a);
+            JAA = obj.doubleDDP(a,Sh,a);
+            JBB = obj.doubleDDP(b,Sh,b);
         end
 
         function dChOp = computeChomogGradientOperation(obj,dC)
@@ -101,7 +102,7 @@ classdef MicroFractionFunctional < handle
 
         function dChInv = computeGradientOfInverse(obj,dChOp,a,b)
             Ch          = obj.stateProblem.Chomog;
-            wInv        = (Ch\a)*(b'/Ch);
+            wInv        = (Ch\a)*(b'/Ch); % Sh:a * b:Sh
             f           = @(xV) squeezeParticular(sum(wInv.*dChOp(xV),[1,2]),1);            
             dChInv      = DomainFunction.create(f,obj.mesh);
         end
@@ -109,6 +110,13 @@ classdef MicroFractionFunctional < handle
         function x = computeNonDimensionalValue(obj,x)
             refX = obj.value0;
             x    = x/refX;
+        end
+    end
+    
+    methods (Static, Access = private)
+        function J = doubleDDP(a,S,b)
+            Sb = tensorprod(S,b,[3,4],[1,2]);
+            J  = tensorprod(a,Sb,[1,2],[1,2]);
         end
     end
 
