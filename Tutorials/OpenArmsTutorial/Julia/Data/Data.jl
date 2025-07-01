@@ -229,7 +229,6 @@ function splitdata!(d::DataStruct)
     d.sigmaY = std(d.Ytrain, dims=1)[:]
     d.Ytrain = (d.Ytrain .- d.muY') ./ d.sigmaY'
     d.Ytest  = (d.Ytest  .- d.muY') ./ d.sigmaY'
-    println(size(d.muX))
     d.Ntest = ntest
 end
 

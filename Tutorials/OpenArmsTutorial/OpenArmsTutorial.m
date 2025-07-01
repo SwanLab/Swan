@@ -39,25 +39,25 @@ opt = OptimizationProblemNN(s);
 opt.solve();
 opt.plotCostFnc();
 
-% Obtener los datos de prueba
+% Obtain test data
 [Xtest, Ytest] = opt.getTestData();  % Usa el método para obtener los datos de prueba
 
-% Realizar predicciones con la red neuronal entrenada
+% Load the trained neural network
 network = opt.getNetwork();
 
 %{
-% Inicializamos Ypred como un columna vacía
+% Initialize Ypred as an empty column vector
 Ypred = zeros(size(Ytest));
 
-% Pasamos cada muestra de Xtest a la red neuronal y guardamos las predicciones
+% Pass every Xtest sample to the neural network and store predictions
 for i = 1:size(Xtest, 1)
-    %Ypred(i) = network.forwardprop(Xtest(i, :), Ytest(i, :));  % Predicción para cada caso
+    %Ypred(i) = network.forwardprop(Xtest(i, :), Ytest(i, :));  % Prediction for each case
     Ypred(i) = network.computeYOut(Xtest(i, :));
 end
 %}
 Ypred = network.computeYOut(Xtest); % Vectorize the computation of Ypred
 
-%(debugging) Histograma para ver la distribución de Ypred, [-1,1]
+%(debugging) Histogram for the distribution of Ypred
 figure;
 edges = linspace(-1, 2, 31);  % 30 bins between -1 and 2
 histogram(Ypred, edges);
@@ -75,33 +75,32 @@ Xtest = Xtest .* data.sigmaX + data.muX;
 Ypred = Ypred .* data.sigmaY + data.muY;
 Ytest = Ytest .* data.sigmaY + data.muY;
 
-% Dependencia del consumo con la velocidad al cubo
+% Consumption dependance on speed cubed
 figure;
 plot(Xtest(:,4),Ytest,'o')
 xlabel('Speed cubed (m/s)^3')
 ylabel('Fuel consumption')
 
 
-% Calcular el error cuadrático medio (MSE)
+% Compute the mean square error (MSE)
 mse = mean((Ypred - Ytest).^2);
 
 disp(['Error cuadrático medio (MSE) en los datos de prueba: ', num2str(mse)]);
 
-% Crear la diferencia entre los valores reales y predichos
+% Compute the difference between real and predicted values
 difference = Ytest - Ypred;
 
+% Convert Xtest to a table and rename the columns
+input_data = array2table(Xtest);
+input_data.Properties.VariableNames =  {'rpm','Windy(cosine)', 'Windy(m/s)', 'Speed^3 (m/s)^3', 'Yaw', 'Pitch', 'Roll'};  
 
-% Convertir Xtest en una tabla y renombrar las columnas
-input_data = array2table(Xtest);  % Convertir Xtest en tabla
-input_data.Properties.VariableNames =  {'rpm','Windy(cosine)', 'Windy(m/s)', 'Speed^3 (m/s)^3', 'Yaw', 'Pitch', 'Roll'};  %'rpm', Renombrar columnas
+% Create a table of outputs and rename the columns
+output_data = table(Ytest, Ypred, difference);
+output_data.Properties.VariableNames = {'Cons. real', 'Cons. prediction', 'Difference'};
 
-% Crear la tabla de salidas y renombrar las columnas
-output_data = table(Ytest, Ypred, difference);  % Crear la tabla de salidas
-output_data.Properties.VariableNames = {'Cons. real', 'Cons. prediction', 'Difference'};  % Renombrar columnas
-
-% Combinar las tablas de entradas y salidas
+% Combine input and output tables
 result_table = [input_data, output_data];
 
-% Mostrar la tabla final
+% Display the resulting table
 disp('Tabla de resultados:');
 disp(result_table);

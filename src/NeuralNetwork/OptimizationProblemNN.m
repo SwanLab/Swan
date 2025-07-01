@@ -65,7 +65,7 @@ classdef OptimizationProblemNN < handle
        end
        
        function E = computeError(obj,X,Y)
-           E = obj.network.forwardprop(X,Y);
+           E = obj.network.forwardprop(X,Y); % Forwardprop may not exist anymore
        end
        
        function yOut = computeOutputValues(obj,X)
