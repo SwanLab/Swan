@@ -26,7 +26,7 @@ classdef LHSIntegratorStiffnessElastic < LHSIntegrator
             B    = obj.computeB(dNdx);            
             dV   = obj.mesh.computeDvolume(obj.quadrature);
             dV   = permute(dV,[3, 4, 2, 1]);
-            Cmat = obj.material.obtainTensor(xV);
+            Cmat = obj.material.evaluate(xV);
             Cmat = permute(Cmat,[1 2 4 3]);
             Bt   = permute(B,[2 1 3 4]);
             BtC  = pagemtimes(Bt, Cmat);

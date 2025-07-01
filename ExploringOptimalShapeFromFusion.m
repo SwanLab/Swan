@@ -25,7 +25,7 @@ classdef ExploringOptimalShapeFromFusion < handle
             obj.createDesignVariable();
             obj.createFilter();
             obj.computeElasticProperties();
-            %obj.createMaterialInterpolator();
+            obj.createMaterialInterpolator();
             obj.createMaterial();
             obj.solveElasticProblem();
             %obj.createComplianceFromConstiutive();
@@ -45,7 +45,18 @@ classdef ExploringOptimalShapeFromFusion < handle
             obj.filename = file;
             a.fileName = file;
             s = FemDataContainer(a);
-            obj.mesh = s.mesh;
+            m = s.mesh;
+            con = m.connec;
+
+            q = Quadrature.create(m,0);
+            dv = m.computeDvolume(q);
+            negElem=find(dv<=0);
+            con(negElem,:) = [];
+            sM.coord = m.coord;
+            sM.connec = con;
+            m2 = Mesh.create(sM);
+            m2 = m2.computeCanonicalMesh();
+            obj.mesh = m2;
         end
 
 
@@ -89,7 +100,7 @@ classdef ExploringOptimalShapeFromFusion < handle
         end
 
         function createMaterialInterpolator(obj)
-            E0 = 10e3;
+            E0 = 10;
             nu0 = 1/3;
             ndim = obj.mesh.ndim;
             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
@@ -115,12 +126,11 @@ classdef ExploringOptimalShapeFromFusion < handle
             s.type                 = 'DensityBased';
             s.ptype                = 'ELASTIC';
             s.dim                  = '3D';%obj.mesh.ndim;
-            s.dim                  = '3D';
             s.mesh                 = obj.mesh;
             s.density              = obj.designVariable;
             s.materialInterpolator = obj.materialInterpolator;
-            s.young                = obj.young;
-            s.poisson              = obj.poisson;
+            % s.young                = obj.young;
+            % s.poisson              = obj.poisson;
             tensor                 = Material.create(s);
             obj.material = tensor;
         end
@@ -134,8 +144,12 @@ classdef ExploringOptimalShapeFromFusion < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'DIRECT';
+            s.solverCase = 'DIRECT'; % DIRECT
             fem = ElasticProblem(s);
+            xD = obj.designVariable.obtainDomainFunction();
+            obj.material.setDesignVariable(xD);
+            C   = obj.material.obtainTensor();
+            fem.updateMaterial(C);
             fem.solve();
             obj.stateProblem = fem;
         end
@@ -160,11 +174,12 @@ classdef ExploringOptimalShapeFromFusion < handle
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
             zMax    = max(obj.mesh.coord(:,3));
-            isDir   = @(coor)  abs(coor(:,1))==20;
-            isForce = @(coor)  (abs(coor(:,1))>0.995*xMax & abs(coor(:,2))>=0.25*yMax & abs(coor(:,2))<=0.75*yMax); % & abs(coor(:,3))>=0.749*zMax & abs(coor(:,3))<=0.75*zMax);
-
+            isDir   = @(coor)  coor(:,1)<=20*1.05;
+            isForce = @(coor)  coor(:,1)>0.995*xMax;% & abs(coor(:,2))>=0.25*yMax & abs(coor(:,2))<=0.75*yMax); % & abs(coor(:,3))>=0.749*zMax & abs(coor(:,3))<=0.75*zMax);
+            
+            numNodes = sum(isForce(obj.mesh.coord));
          
-            s.fHandle = @(x)  (abs(x(1,:,:))>0.995*xMax & abs(x(2,:,:))>=0.25*yMax & abs(x(2,:,:))<=0.75*yMax); %  & abs(x(3,:,:))>=0.749*zMax & abs(x(3,:,:))<=0.75*zMax);
+            s.fHandle = @(x)  (abs(x(1,:,:))>0.995*xMax); % & abs(x(2,:,:))>=0.25*yMax & abs(x(2,:,:))<=0.75*yMax); %  & abs(x(3,:,:))>=0.749*zMax & abs(x(3,:,:))<=0.75*zMax);
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);
@@ -177,7 +192,7 @@ classdef ExploringOptimalShapeFromFusion < handle
 
             sPL{1}.domain    = @(coor) isForce(coor);
             sPL{1}.direction = 3;
-            sPL{1}.value     = -10000;
+            sPL{1}.value     = -10000/numNodes;
 
             dirichletFun = [];
             for i = 1:numel(sDir)

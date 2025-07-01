@@ -13,8 +13,8 @@ classdef DensityBasedMaterial < handle
             obj.init(cParams)
         end
         
-        function C = obtainTensor(obj,xV)
-            s.operation = obj.evaluate(xV); % @(xV) obj.evaluate(xV);
+        function C = obtainTensor(obj)
+            s.operation = @(xV) obj.evaluate(xV);
             s.mesh      = obj.mesh;
             C = DomainFunction(s);
         end
@@ -84,4 +84,3 @@ classdef DensityBasedMaterial < handle
     end
     
 end
-

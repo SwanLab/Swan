@@ -26,7 +26,7 @@ classdef IsotropicElasticMaterial < Material
             end
             if isfield(cParams,'shear')
                 obj.shear = cParams.shear;
-              end
+            end
         end
 
         function [mu,k] = computeShearAndBulk(obj,xV)
@@ -36,8 +36,8 @@ classdef IsotropicElasticMaterial < Material
                 mu = obj.computeMuFromYoungAndPoisson(E,nu);
                 k  = obj.computeKappaFromYoungAndPoisson(E,nu,obj.ndim);
             else
-                mu = obj.shear; %obj.shear.evaluate(xV);
-                k  = obj.bulk; %obj.bulk.evaluate(xV); 
+                mu = obj.shear.evaluate(xV);
+                k  = obj.bulk.evaluate(xV); 
             end
         end
 
@@ -69,4 +69,3 @@ classdef IsotropicElasticMaterial < Material
     end
     
 end
-
