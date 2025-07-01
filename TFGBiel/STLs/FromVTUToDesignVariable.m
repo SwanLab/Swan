@@ -37,6 +37,7 @@ uMesh2.compute(ls2);
 
 innerMesh2 = uMesh2.createInnerMesh();
 iM3D_2     = innerMesh2.provideExtrudedMesh(0.1);
+iM3D_2.exportSTL();
 
 
 
