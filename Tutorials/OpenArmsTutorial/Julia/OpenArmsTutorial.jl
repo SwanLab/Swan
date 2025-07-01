@@ -67,6 +67,20 @@ s["yFeatures"] = [8]
 data = Data.DataStruct(s)
 s["data"] = data
 
+# Train the model
+opt = OptimizationProblemNN.OptimizationProblemNNStruct(s)
+OptimizationProblemNN.solve(opt)
+OptimizationProblemNN.plotCostFnc(opt)
+
+# Obtain test data
+Xtest, Ytest = OptimizationProblemNN.getTestData(opt)
+
+# Load the trained neural network
+network = OptimizationProblemNN.getNetwork(opt)
+
+# Vectorized prediction of Ytest
+Ypred = OptimizationProblemNN.computeOutputValues(opt, Xtest)
+
 
 
 

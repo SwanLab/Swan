@@ -32,7 +32,7 @@ mutable struct OptimizationProblemNNStruct
 end
 
 function OptimizationProblemNNStruct(cParams::Dict{String,Any})
-    obj = new(
+    obj = OptimizationProblemNNStruct(
         cParams["data"],
         cParams["networkParams"],
         cParams["optimizerParams"],
@@ -75,7 +75,7 @@ function plotCostFnc(obj::OptimizationProblemNNStruct)
     Trainer.SGD.plotCostFunc(obj.optimizer)
 end
 
-function plotBoundary(obj::OptimizationProblemNNStruct, type::String="filledS")
+function plotBoundary(obj::OptimizationProblemNNStruct, type::String="filledS") # !!! Cannot work without a method Data.buildModel()
     PlotterNN.plotBoundary(obj.plotter, type)
 end
 
@@ -137,7 +137,7 @@ function createRegularizationFunctional(obj::OptimizationProblemNNStruct)
 end
 
 function createCost(obj::OptimizationProblemNNStruct)
-    s = Dict(
+    s = Dict{String, Any}(
         "shapeFunctions" => [obj.loss, obj.regularization],
         "weights" => [1.0, obj.costParams["lambda"]]
     )
@@ -145,7 +145,7 @@ function createCost(obj::OptimizationProblemNNStruct)
 end
 
 function createOptimizer(obj::OptimizationProblemNNStruct)
-    s = copy(obj.optimizerParams)
+    s = Dict{String, Any}(copy(obj.optimizerParams))
 
     s["costFunc"] = obj.costFunc
     s["designVariable"] = Network.getLearnableVariables(obj.network)
@@ -166,7 +166,7 @@ function createPlotter(obj::OptimizationProblemNNStruct)
         "data" => obj.data,
         "costFunc" => obj.costFunc
     )
-    obj.plotter = PlotterNN(s)
+    obj.plotter = PlotterNN.PlotterNNStruct(s)
 end
 
 end

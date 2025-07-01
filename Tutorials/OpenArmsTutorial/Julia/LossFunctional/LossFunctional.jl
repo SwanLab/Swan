@@ -3,8 +3,9 @@ module LossFunctional
 export LossFunctionalStruct, computeFunctionAndGradient, computeStochasticCostAndGradient, getTestError
 
 #include("../Network/Network.jl") 
-import Main.Network
-using Main.Network.LearnableVariables
+import ..Network
+using ..Network.LearnableVariables
+using ..Data
 using Random
 using Distributions
 
@@ -16,7 +17,8 @@ mutable struct LossFunctionalStruct
     costType::String
     designVariable::LearnableVars   #Dict{String, Any}
     network::Any
-    data::Dict{String, Any}
+    #data::Dict{String, Any}
+    data::DataStruct
 end
 
 function LossFunctionalStruct(cParams::Dict{String, Any})
@@ -35,8 +37,10 @@ end
 
 function computeFunctionAndGradient(obj::LossFunctionalStruct, x::Vector{Float64})
     obj.designVariable.thetavec = x
-    Xb = obj.data["Xtrain"]
-    Yb = obj.data["Ytrain"]
+    #Xb = obj.data["Xtrain"]
+    #Yb = obj.data["Ytrain"]
+    Xb = obj.data.Xtrain
+    Yb = obj.data.Ytrain
     yOut = Network.computeYOut(obj.network, Xb)
     j  = computeCost(obj, yOut, Yb)
     dj = computeGradient(obj, yOut, Yb)
@@ -45,8 +49,10 @@ end
 
 function computeStochasticCostAndGradient(obj::LossFunctionalStruct, x::Vector{Float64}, moveBatch::Bool)
     obj.designVariable.thetavec = x
-    Xt = obj.data["Xtrain"]
-    Yt = obj.data["Ytrain"]
+    #Xt = obj.data["Xtrain"]
+    #Yt = obj.data["Ytrain"]
+    Xt = obj.data.Xtrain
+    Yt = obj.data.Ytrain
     Xb, Yb = updateSampledDataSet(obj, Xt, Yt, obj.iBatch)
     yOut = Network.computeYOut(obj.network, Xb)
     j = computeCost(obj, yOut, Yb)
@@ -58,8 +64,10 @@ end
 
 
 function getTestError(obj::LossFunctionalStruct)
-    Xtest = obj.data["Xtest"]
-    Ytest = obj.data["Ytest"]
+    #Xtest = obj.data["Xtest"]
+    #Ytest = obj.data["Ytest"]
+    Xtest = obj.data.Xtest
+    Ytest = obj.data.Ytest
 
     H = Network.computeLastH(obj.network, Xtest)  # Should return matrix of predictions
     Ypred = map(row -> findmax(row)[2], eachrow(H))      # Row-wise argmax (like max(..., [], 2))
@@ -105,7 +113,7 @@ function LossFunction(obj::LossFunctionalStruct, y::Matrix{Float64}, yOut::Matri
 end
 
 function computeNumberOfBatchesAndOrder!(obj::LossFunctionalStruct)
-    Xtrain = obj.data["Xtrain"]
+    Xtrain = obj.data.Xtrain
     nD = size(Xtrain, 1)
     batchSize = computeBatchSize(obj)
     obj.nBatches = fld(nD, batchSize)
@@ -133,7 +141,7 @@ function updateBatchCounter(obj::LossFunctionalStruct, iB::Int, moveBatch::Bool)
 end
 
 function computeBatchSize(obj::LossFunctionalStruct)
-    n = size(obj.data["Xtrain"], 1)
+    n = size(obj.data.Xtrain, 1)
     return n > 200 ? 200 : n
 end
 

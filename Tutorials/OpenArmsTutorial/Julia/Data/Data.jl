@@ -140,13 +140,14 @@ function updateHyperparameter!(d::DataStruct, h::Dict{String,Any})
         splitdata!(d)
     elseif h["type"] == "polyGrade"
         d.polynomialOrder = h["value"]
-        d.X = buildModel(d)
-        # OR buildModel_generalized(d) if using general one
+        # buildModel has been removed from the matlab code (calls are commented and method is inexistant)
+        #d.X = buildModel(d)    
     else
         @warn "Unknown hyperparameter type: $(h["type"])"
     end
 end
 
+#=
 function buildModel(d::DataStruct)
     X = d.X
     k = d.polynomialOrder
@@ -167,6 +168,7 @@ function buildModel(d::DataStruct)
     return Xful
 end
 
+=#
 function generateExponents(nFeatures::Int, targetDeg::Int)
     currentExponents = zeros(Int, nFeatures)
     return generateExponentsRecursive(nFeatures, targetDeg, 1, currentExponents, Int[])

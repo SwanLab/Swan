@@ -16,6 +16,7 @@ mutable struct PlotterNNStruct
     neuronsPerLayer::Vector{Int}
 end
 
+#=
 function PlotterNNStruct(s::Dict{String,Any})
     obj = new()
     obj.data = s["data"]
@@ -24,8 +25,18 @@ function PlotterNNStruct(s::Dict{String,Any})
     obj.neuronsPerLayer = obj.network.neuronsPerLayer
     return obj
 end
+=#
 
-function plotBoundary(obj::PlotterNNStruct, type::String)
+function PlotterNNStruct(s::Dict{String,Any})
+    return PlotterNNStruct(
+        s["data"],
+        s["network"],
+        s["costFunc"],
+        s["network"].neuronsPerLayer
+    )
+end
+
+function plotBoundary(obj::PlotterNNStruct, type::String) # !!! Cannot work without a method Data.buildModel()
     X = obj.data.Xtrain
     nF = size(X, 2)
     nPL = obj.neuronsPerLayer
@@ -191,7 +202,7 @@ function image(obj::PlotterNNStruct, row::Int)
     display(p2)
 end
 
-function computeHeights(obj::PlotterNNStruct, x1, x2, n_pts, nF)
+function computeHeights(obj::PlotterNNStruct, x1, x2, n_pts, nF) # !!! Cannot work without a method Data.buildModel()
     nPL = obj.neuronsPerLayer
     X_test = zeros(n_pts, nF, n_pts)
     h = zeros(n_pts * nPL[end], n_pts)
@@ -201,7 +212,8 @@ function computeHeights(obj::PlotterNNStruct, x1, x2, n_pts, nF)
         x2_aux = ones(n_pts) .* x2[i]
         xdata_test = hcat(x1, x2_aux)
 
-        # Assuming buildModel returns an n_pts x nF matrix
+        # Needs buildModel() in Data.jl (inexistant)
+        #=
         tempData = DataStruct(X = xdata_test, polynomialOrder = obj.data.polyGrade)
         xful = Data.buildModel(tempData)
 
@@ -209,13 +221,15 @@ function computeHeights(obj::PlotterNNStruct, x1, x2, n_pts, nF)
 
         output = obj.costFunction.getOutput(X_test[:,:,i]) # Right now there's no getOutput method in CostNN. This might be outdated
         h[:,i] = reshape(output, n_pts * nPL[end])
+        =#
     end
-
+    #=
     for j in 1:nPL[end]
         h_3D[:,:,j] = h[(j-1)*n_pts+1 : j*n_pts, :]
     end
 
     return h_3D
+    =#
 end
 
 function plotSurface(obj::PlotterNNStruct, target, output)

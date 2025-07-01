@@ -22,10 +22,11 @@ end
 function Net(cParams::Dict{String, Any})
     data = cParams["data"]
     hiddenLayers = Vector{Int}(cParams["hiddenLayers"])
-    nFeatures = data["nFeatures"]
+    nFeatures = data.nFeatures
 
+    #=
     # Necessary for Matlab communication only, conditional for robustness
-    Xraw = data["Xtrain"]
+    Xraw = data.Xtrain
     if ndims(Xraw) == 2
         # Already a matrix, keep as is
         Xtrain = Xraw
@@ -34,10 +35,10 @@ function Net(cParams::Dict{String, Any})
         Xtrain = hcat(Xraw...)'
     end
     data["Xtrain"] = Xtrain
+    =#
 
-
-    nPolyFeatures = size(data["Xtrain"], 2)
-    nLabels = data["nLabels"]
+    nPolyFeatures = size(data.Xtrain, 2)
+    nLabels = data.nLabels
     HUtype = cParams["HUtype"]
     OUtype = cParams["OUtype"]
     neuronsPerLayer = [nPolyFeatures; hiddenLayers; nLabels]
