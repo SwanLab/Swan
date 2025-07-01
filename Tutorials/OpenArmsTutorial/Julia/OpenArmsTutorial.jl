@@ -22,6 +22,7 @@ using .OptimizationProblemNN
 using .Data # This assumes Data.jl is in your module system
 using Plots
 using Statistics
+using DataFrames
 
 # Initialization of hyperparameters
 pol_deg       = 1
@@ -81,6 +82,39 @@ network = OptimizationProblemNN.getNetwork(opt)
 # Vectorized prediction of Ytest
 Ypred = OptimizationProblemNN.computeOutputValues(opt, Xtest)
 
+# Histogram for the distribution of Ypred
+edges = range(-1, 2, length=31)  # 30 bins between -1 and 2
 
+hist1 = histogram(Ypred, bins=edges, title="Distribution of predicted Ytest")
+display(hist1)
 
+# Histogram for the distribution of Ytest
+hist2 = histogram(Ytest, bins=edges, title="Distribution of Test Y")
+display(hist2)
 
+# Denormalization
+Xtest = Xtest .* data.sigmaX .+ data.muX
+Ypred = Ypred .* data.sigmaY .+ data.muY
+Ytest = Ytest .* data.sigmaY .+ data.muY
+
+mse = mean((Ypred .- Ytest).^2)
+println("Error cuadrático medio (MSE) en los datos de prueba: $(round(mse, digits=6))")
+
+# Compute difference between real and predicted values
+difference = Ytest .- Ypred
+
+# Convert Xtest to DataFrame and rename columns
+input_data = DataFrame(Xtest, [:rpm, :Windy_cosine, :Windy_ms, :Speed3, :Yaw, :Pitch, :Roll])
+
+# Create output DataFrame
+output_data = DataFrame(
+    Cons_real = vec(Ytest),
+    Cons_prediction = vec(Ypred),
+    Difference = vec(difference)
+)
+# Combine input and output into one result table
+result_table = hcat(input_data, output_data)
+
+# Display table
+println("Tabla de resultados:")
+display(result_table)

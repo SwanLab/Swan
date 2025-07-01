@@ -33,7 +33,7 @@ end
 function computeFunctionAndGradient(obj::CostNNStruct, x::Vector{Float64})
     #compFunc = (shI, x) -> computeFunctionAndGradient(shI, x)
     compFunc = (shI, x) -> 
-        isa(shI, LossFunctional.LossFunc) ? LossFunctional.computeFunctionAndGradient(shI, x) :
+        isa(shI, LossFunctional.LossFunctionalStruct) ? LossFunctional.computeFunctionAndGradient(shI, x) :
         isa(shI, Sh_Func_L2norm.ShFuncL2norm) ? Sh_Func_L2norm.computeFunctionAndGradient(shI, x) :
         error("Unsupported shape function type: $(typeof(shI))")
     jV, djV = computeValueAndGradient_2arg(obj, x, compFunc)
@@ -44,7 +44,7 @@ end
 function computeStochasticFunctionAndGradient!(obj::CostNNStruct, x::Vector{Float64})
     #compFunc = (shI, x, moveBatch) -> shI.computeStochasticCostAndGradient(shI, x, moveBatch)
     compFunc = (shI, x, moveBatch) -> 
-        isa(shI, LossFunctional.LossFunc) ? LossFunctional.computeStochasticCostAndGradient(shI, x, moveBatch) :
+        isa(shI, LossFunctional.LossFunctionalStruct) ? LossFunctional.computeStochasticCostAndGradient(shI, x, moveBatch) :
         isa(shI, Sh_Func_L2norm.ShFuncL2norm) ? Sh_Func_L2norm.computeStochasticCostAndGradient(shI, x, moveBatch) :
         error("Unsupported shape function type: $(typeof(shI))")
     jV, djV = computeValueAndGradient_3arg(obj, x, compFunc)
@@ -62,7 +62,7 @@ function getTitleFields(obj::CostNNStruct)
     titles = Vector{String}(undef, nF)
 
     getTitle = shI ->
-        isa(shI, LossFunctional.LossFunc) ? LossFunctional.getTitleToPlot(shI) :
+        isa(shI, LossFunctional.LossFunctionalStruct) ? LossFunctional.getTitleToPlot(shI) :
         isa(shI, Sh_Func_L2norm.ShFuncL2norm) ? Sh_Func_L2norm.getTitleToPlot(shI) :
         error("Unsupported shape function type: $(typeof(shI))")
 
@@ -85,7 +85,7 @@ end
 function validateES(obj::CostNNStruct, alarm::Float64, minTestError::Float64)
     shI = obj.shapeFunctions[1]
 
-    testError = isa(shI, LossFunctional.LossFunc) ? LossFunctional.getTestError(shI) :
+    testError = isa(shI, LossFunctional.LossFunctionalStruct) ? LossFunctional.getTestError(shI) :
                 isa(shI, Sh_Func_L2norm.ShFuncL2norm) ? Sh_Func_L2norm.getTestError(shI) :
                 error("Unsupported shape function type: $(typeof(shI))")
 

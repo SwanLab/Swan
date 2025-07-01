@@ -3,6 +3,7 @@ module SGD
 export SGDStruct, compute
 
 using ..Trainer  # Use the parent module where TrainerStruct is defined
+using Main.CostNN
 using Dates  # For timing (like tic/toc)
 using Optim
 using Plots
@@ -48,8 +49,8 @@ end
 
 function compute(obj::SGDStruct)
     start_time = time()
-    
-    x0 = obj.trainer.designVariable["thetavec"]  # Assuming designVariable is a Dict
+
+    x0 = obj.trainer.designVariable.thetavec
     optimize(obj, x0)
     
     obj.elapsedTime = time() - start_time
@@ -80,7 +81,7 @@ function optimize(obj::SGDStruct, th0::Vector{Float64})
     epsilon      = obj.learningRate
     iter         = -1
     funcount     = 0
-    alarm        = 0
+    alarm        = 0.0
     minTestError = 1.0
 
     KPI = Dict(
@@ -96,7 +97,7 @@ function optimize(obj::SGDStruct, th0::Vector{Float64})
         newEpoch = true
         moveBatch = true
 
-        while !obj.trainer.objectiveFunction["isBatchDepleted"] || newEpoch
+        while !obj.trainer.objectiveFunction.isBatchDepleted || newEpoch
             f, grad = computeStochasticFunctionAndGradient(obj, theta, moveBatch)
             epsilon, theta, funcount = lineSearch(obj, theta, grad, f, epsilon, funcount)
 
@@ -110,17 +111,20 @@ function optimize(obj::SGDStruct, th0::Vector{Float64})
         end
 
         KPI[:epoch] += 1
-        kpi_alarm, minTestError = obj.trainer.objectiveFunction["validateES"](alarm, minTestError)
+        #kpi_alarm, minTestError = obj.trainer.objectiveFunction["validateES"](alarm, minTestError)
+        kpi_alarm, minTestError = CostNN.validateES(obj.trainer.objectiveFunction, alarm, minTestError)
+        
         KPI[:alarm] = kpi_alarm
     end
 end
 
 function computeStochasticFunctionAndGradient(obj::SGDStruct, theta::Vector{Float64}, moveBatch::Bool)
-    obj.trainer.objectiveFunction["setBatchMover"](moveBatch)
-    obj.trainer.objectiveFunction["computeStochasticFunctionAndGradient"](theta)
-
-    f    = obj.trainer.objectiveFunction["value"]
-    grad = obj.trainer.objectiveFunction["gradient"]
+    CostNN.setBatchMover!(obj.trainer.objectiveFunction, moveBatch)
+    CostNN.computeStochasticFunctionAndGradient!(obj.trainer.objectiveFunction, theta)
+    #f    = obj.trainer.objectiveFunction["value"]
+    f    = obj.trainer.objectiveFunction.value
+    #grad = obj.trainer.objectiveFunction["gradient"]
+    grad = obj.trainer.objectiveFunction.gradient
     return f, grad
 end
 

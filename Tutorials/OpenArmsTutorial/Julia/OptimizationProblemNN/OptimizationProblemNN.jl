@@ -64,7 +64,8 @@ function solve(obj::OptimizationProblemNNStruct)
 end
 
 function getTestData(obj::OptimizationProblemNNStruct)
-    return obj.data["Xtest"], obj.data["Ytest"]
+    #return obj.data["Xtest"], obj.data["Ytest"]
+    return obj.data.Xtest, obj.data.Ytest
 end
 
 function getNetwork(obj::OptimizationProblemNNStruct)
@@ -151,10 +152,10 @@ function createOptimizer(obj::OptimizationProblemNNStruct)
     s["designVariable"] = Network.getLearnableVariables(obj.network)
     s["type"] = "SGD" # Specify your optimizer here
     s["data"] = obj.data
-    s["Xtrain"] = obj.data["Xtrain"]
-    s["Ytrain"] = obj.data["Ytrain"]
-    s["Xtest"] = obj.data["Xtest"]
-    s["Ytest"] = obj.data["Ytest"]
+    s["Xtrain"] = obj.data.Xtrain
+    s["Ytrain"] = obj.data.Ytrain
+    s["Xtest"] = obj.data.Xtest
+    s["Ytest"] = obj.data.Ytest
     s["plotter"] = obj.plotter
 
     obj.optimizer = Trainer.Create(s)

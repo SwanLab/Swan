@@ -18,10 +18,10 @@ mutable struct DataStruct
     batchSize::Int
     Batch_nD::Int
     Batch_nB::Int
-    muX::Vector{Float64}
-    sigmaX::Vector{Float64}
-    muY::Vector{Float64}
-    sigmaY::Vector{Float64}
+    muX::Matrix{Float64} #Vector{Float64}
+    sigmaX::Matrix{Float64} #Vector{Float64}
+    muY::Matrix{Float64} #Vector{Float64}
+    sigmaY::Matrix{Float64} #Vector{Float64}
     # Private properties
     X::Matrix{Float64}
     Y::Matrix{Float64}
@@ -52,7 +52,7 @@ function DataStruct(cParams::Dict{String, Any})
     # Create initial dummy values for everything else
     dummyX = zeros(1, 1)
     dummyY = zeros(1, 1)
-    dummyV = zeros(1)
+    dummyV = zeros(1, 1)
     d = DataStruct(
         0, 0, 0, dummyX, dummyY, dummyX, dummyY, 0, 0, 0, 0,
         dummyV, dummyV, dummyV, dummyV,
@@ -221,16 +221,20 @@ function splitdata!(d::DataStruct)
     d.Xtest[:, 2]  .= cosd.(d.Xtest[:, 2])
 
     # Normalize X
-    d.muX = mean(d.Xtrain, dims=1)[:]
-    d.sigmaX = std(d.Xtrain, dims=1)[:]
-    d.Xtrain = (d.Xtrain .- d.muX') ./ d.sigmaX'
-    d.Xtest  = (d.Xtest  .- d.muX') ./ d.sigmaX'
+    #d.muX = mean(d.Xtrain, dims=1)[:]
+    #d.sigmaX = std(d.Xtrain, dims=1)[:]
+    d.muX = mean(d.Xtrain, dims=1)
+    d.sigmaX = std(d.Xtrain, dims=1)
+    d.Xtrain = (d.Xtrain .- d.muX) ./ d.sigmaX
+    d.Xtest  = (d.Xtest  .- d.muX) ./ d.sigmaX
 
     # Normalize Y
-    d.muY = mean(d.Ytrain, dims=1)[:]
-    d.sigmaY = std(d.Ytrain, dims=1)[:]
-    d.Ytrain = (d.Ytrain .- d.muY') ./ d.sigmaY'
-    d.Ytest  = (d.Ytest  .- d.muY') ./ d.sigmaY'
+    #d.muY = mean(d.Ytrain, dims=1)[:]
+    #d.sigmaY = std(d.Ytrain, dims=1)[:]
+    d.muY = mean(d.Ytrain, dims=1)
+    d.sigmaY = std(d.Ytrain, dims=1)
+    d.Ytrain = (d.Ytrain .- d.muY) ./ d.sigmaY
+    d.Ytest  = (d.Ytest  .- d.muY) ./ d.sigmaY
     d.Ntest = ntest
 end
 
