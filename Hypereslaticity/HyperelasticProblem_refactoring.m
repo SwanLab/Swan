@@ -1,4 +1,3 @@
-%% 
 classdef HyperelasticProblem_refactoring < handle
 
     properties (Access = public)
@@ -246,12 +245,46 @@ classdef HyperelasticProblem_refactoring < handle
                 case {'Hole', 'HoleDirich'}
                     IM = Mesh.createFromGiD('hole_mesh_quad.m');
                     obj.refMesh = IM;
+                    s.coord = obj.refMesh.coord;
+                    s.connec = obj.refMesh.connec;
+                     maxC = max(s.coord);
+                    minC = min(s.coord);
+                    s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:) =...
+                    s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:)-1e-8;
+
+                    s.coord(abs(s.coord(:,1)- minC(1))<1e-5 & abs(s.coord(:,2)- maxC(2))<1e-5,:) =...
+                    s.coord(abs(s.coord(:,1)- minC(1))<1e-5 & abs(s.coord(:,2)- maxC(2))<1e-5,:)+[1e-8,-1e-8];
+
+                    s.coord(abs(s.coord(:,1)- minC(1))<1e-5 & abs(s.coord(:,2)- minC(2))<1e-5,:) =...
+                    s.coord(abs(s.coord(:,1)- minC(1))<1e-5 & abs(s.coord(:,2)- minC(2))<1e-5,:)+[1e-8,1e-8];
+                    
+                    s.coord(abs(s.coord(:,1)- maxC(1))<1e-5 & abs(s.coord(:,2)- minC(2))<1e-5,:) =...
+                    s.coord(abs(s.coord(:,1)- maxC(1))<1e-5 & abs(s.coord(:,2)- minC(2))<1e-5,:)+[-1e-8,1e-8];
+                    %                     s.coord(min(s.coord)) = s.coord(max(s.coord))-1-e9;
+                    obj.refMesh = Mesh.create(s);
                 case {'Bending', 'Traction'}
                     obj.refMesh = UnitQuadMesh(20,20);
                 case {'Metamaterial'}
                     load('NegPoissMesh.mat')
                     s.coord = NegPoissMesh.coord;
                     s.connec = NegPoissMesh.connec;
+                    maxC = max(s.coord);
+                    minC = min(s.coord);
+%                     s.coord(abs(s.coord(:,1)- maxC(1))<1e-5 & abs(s.coord(:,2)- maxC(2))<1e-5,:) =...
+%                     s.coord(abs(s.coord(:,1)- maxC(1))<1e-5 & abs(s.coord(:,2)- maxC(2))<1e-5,:)-1e-3;
+
+                    s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:) =...
+                    s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:)-1e-2;
+
+                    s.coord(abs(s.coord(:,1)- minC(1))<1e-5 & abs(s.coord(:,2)- maxC(2))<1e-5,:) =...
+                    s.coord(abs(s.coord(:,1)- minC(1))<1e-5 & abs(s.coord(:,2)- maxC(2))<1e-5,:)+[1e-2,-1e-2];
+
+                    s.coord(abs(s.coord(:,1)- minC(1))<1e-5 & abs(s.coord(:,2)- minC(2))<1e-5,:) =...
+                    s.coord(abs(s.coord(:,1)- minC(1))<1e-5 & abs(s.coord(:,2)- minC(2))<1e-5,:)+[1e-2,1e-2];
+                    
+                    s.coord(abs(s.coord(:,1)- maxC(1))<1e-5 & abs(s.coord(:,2)- minC(2))<1e-5,:) =...
+                    s.coord(abs(s.coord(:,1)- maxC(1))<1e-5 & abs(s.coord(:,2)- minC(2))<1e-5,:)+[-1e-2,1e-2];
+                    %                     s.coord(min(s.coord)) = s.coord(max(s.coord))-1-e9;
                     obj.refMesh = Mesh.create(s);
                 case 'EIFEMMesh'
                     load(obj.fileName)
