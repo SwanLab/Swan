@@ -17,7 +17,7 @@ classdef HiperelasticityTesting < handle
             s.bcCase = obj.bcCase;
             s.fileName = obj.fileName;
             s.meshGen  = 'EIFEMMesh';
-            s.nSubdomains = [2,2];
+            s.nSubdomains = [7,3];
 %             h = HyperelasticProblem(s);
             h2 = HyperelasticProblem_refactoring(s);
             
@@ -32,8 +32,8 @@ classdef HiperelasticityTesting < handle
 %            obj.nsteps = 20; 
 %             obj.fileName = 'Metamaterial'; 
 %            obj.nsteps = 75; %          
-           obj.fileName = 'DEF_Q4auxL_1.mat';
-            obj.nsteps = 50; 
+           obj.fileName = 'DEF_Q4porL_1.mat';
+            obj.nsteps = 75; 
            obj.bcCase = 'Traction';
        end
 

@@ -19,6 +19,9 @@ classdef HyperelasticProblem_refactoring < handle
         refMesh
         nSubdomains
         tolSameNode
+        boundaryConditions
+        EIFEMp
+%         Meifem
     end
 
     methods (Access = public)
@@ -26,49 +29,62 @@ classdef HyperelasticProblem_refactoring < handle
         function obj = HyperelasticProblem_refactoring(cParams)
             close all;
             obj.init(cParams);
-            obj.computeFreeDofs();
+            tol = 1e-8;
 
             u  = obj.uFun;
+            [hess, ~] = obj.computeHessian(u);
+            hessf = @(x) hess*x;
+            Meifem = @(r) obj.EIFEMp.apply(r);
+            Milu      = obj.createILUpreconditioner(hess);
+            Mmult     = @(r) Preconditioner.multiplePrec(r,Milu,Meifem,Milu,hessf);
+%             coarseBasis = mat2cell(obj.EIFEMp.getProjectionMatrix(),[]);
+            coarseBasis = num2cell(obj.EIFEMp.getProjectionMatrix(), 1);
+            functionType = {'P1','P1','P1','P1','P1','P1','P1','P1'};
+            Tfun =  ModalFunction.create(obj.refMesh,coarseBasis,functionType);
             f = animatedline;
 
             nsteps = cParams.nsteps;
             iter = 1;
             nIterPerStep = [];
-
+            Usol = zeros(size(hess,1),1);
             reactions = zeros(u.nDofs,1);
             for iStep = 1:nsteps
                 loadPercent = iStep/nsteps;
-                bc = obj.createBoundaryConditions(loadPercent);
+                [bc,~] = obj.createBoundaryConditions(loadPercent);
                 % u  = obj.computeInitialElasticGuess(bc);
                 u  = obj.applyDirichletToUFun(u,bc);
 
                 intEnergy(iter) = obj.neohookeanFun.compute(u);
                 %intEnergy(iter) = obj.linearElasticityFun.compute(u);
-                Res = obj.computeResidual(u);
+                Res = obj.computeResidual(u,loadPercent);
                 resi(iter) = norm(Res);
-
+                cgiters(iStep)=0;
                 hasNotConverged = 1;
                 while hasNotConverged
                     uVal = obj.reshapeToVector(u.fValues);
                     [hess, KR] = obj.computeHessian(u);
-                    Res  = obj.computeResidual(u);
-                    incU = hess\(-Res);
+                    hessf = @(x) hess*x;
+                    Res  = obj.computeResidual(u,loadPercent);
+%                     incU = hess\(-Res);
+                    [incU,residualPCG,errPCG,errAnormPCG] = PCG.solve(hessf,-Res,uVal(obj.freeDofs),Mmult,tol,Usol,obj.mesh,obj.bcApplier);
+                    cgiters(iStep) =  cgiters(iStep)+length(residualPCG);
                     uVal(obj.freeDofs) = uVal(obj.freeDofs) + incU;
                     u.setFValues(obj.reshapeToMatrix(uVal));
                     reacFun = obj.computeReactions(KR,u);
 
                     iter = iter+1;
                     intEnergy(iter) = obj.neohookeanFun.compute(u);
-                    Res        = obj.computeResidual(u);
+                    Res        = obj.computeResidual(u,loadPercent);
                     resi(iter) = norm(Res);
-
-                    hasNotConverged = obj.hasNotConverged(intEnergy);
+                    hasNotConverged = resi(iter) > tol;
+%                     hasNotConverged = obj.hasNotConverged(intEnergy);
                 end
                 normDisp(iStep) = Norm(u,'L2');
                 normReac(iStep) = Norm(reacFun,'L2');
                 obj.printFile(iStep, u, reacFun);              
                 nIterPerStep(iStep) = obj.computeNumberOfIterations(iter,nIterPerStep,iStep);
-                obj.plotStep(intEnergy,nIterPerStep,iStep, normDisp,normReac);
+                avgCGiters = cgiters./nIterPerStep;
+                obj.plotStep(intEnergy,nIterPerStep,iStep, normDisp,normReac,avgCGiters);
                 obj.rFun = reacFun;
             end
 
@@ -102,24 +118,30 @@ classdef HyperelasticProblem_refactoring < handle
             reacFun = LagrangianFunction(s);
         end
 
-        function plotStep(obj,intEnergy,nIterPerStep,iStep, normDisp, normReac)
+        function plotStep(obj,intEnergy,nIterPerStep,iStep, normDisp, normReac,cgiters)
 
             f = figure(1);
             clf(f)
-            subplot(1,3,1)
+            subplot(1,4,1)
             plot(intEnergy)
-            title('Energies')
+            title('Energy')
             xlabel('iteration')
             ylabel('Energy')
-            subplot(1,3,2)
+            subplot(1,4,2)
             plot(normDisp, normReac)
             title('Displacement-reaction')
             xlabel('displacement')
             ylabel('reactions')
             hold on
-            subplot(1,3,3)
+            subplot(1,4,3)
             bar(1:iStep, nIterPerStep)
-            title('Number of iterations to converge $\Delta$ F')
+%             title('Number of iterations to converge $\Delta$ F')
+             title('Newton iterations')
+            xlabel('step')
+            ylabel('num. iterations per step')
+            subplot(1,4,4)
+            bar(1:iStep, cgiters)
+            title('CG iterations')
             xlabel('step')
             ylabel('num. iterations per step')
             hold on
@@ -141,10 +163,16 @@ classdef HyperelasticProblem_refactoring < handle
             obj.nSubdomains = cParams.nSubdomains;
             obj.tolSameNode = 1e-10;
             obj.createReferenceMesh();
-            obj.createMesh(obj.refMesh);
+            [mD,mSb,iC,lG,iCR,discMesh] = obj.createMesh(obj.refMesh);
+            obj.mesh = mD;            
             obj.createMaterial();
             obj.createDisplacementFun();
             obj.createFunctionals();
+            obj.computeFreeDofs();
+            [obj.boundaryConditions,dir] = obj.createBoundaryConditions(1);
+            obj.createBCapplier();
+            bS  = obj.refMesh.createBoundaryMesh();
+            obj.createEIFEMPreconditioner(obj.refMesh,dir,iC,lG,bS,iCR,discMesh);
         end
 
         function u = computeInitialElasticGuess(obj, bc)
@@ -190,8 +218,8 @@ classdef HyperelasticProblem_refactoring < handle
             Hr  = H(r,:);
         end
 
-        function Rf = computeResidual(obj,u)
-            Fext          = obj.computeExternalForces();
+        function Rf = computeResidual(obj,u,perc)
+            Fext          = obj.computeExternalForces(perc);
             [Fint,FintEl] = obj.computeInternalForces(u);
             R = Fint - Fext;% - react;
             f = obj.freeDofs;
@@ -244,7 +272,6 @@ classdef HyperelasticProblem_refactoring < handle
             s.tolSameNode = obj.tolSameNode;
             m = MeshCreatorFromRVE(s);
             [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
-            obj.mesh = mD;
         end
 
         function createMaterial(obj)
@@ -274,9 +301,10 @@ classdef HyperelasticProblem_refactoring < handle
             mat = Material.create(s);
         end
 
-        function bcs = createBoundaryConditions(obj,perc)
+        function [bcs,dir] = createBoundaryConditions(obj,perc)
             bc = HyperelasticityTestBCs(obj.bc_case, obj.mesh, perc);
             bcs = bc.boundaryConditions;
+            dir = bc.dir;
         end
 
         function createDisplacementFun(obj)
@@ -291,9 +319,9 @@ classdef HyperelasticProblem_refactoring < handle
         end
 
         function [Fext] = computeExternalForces(obj,perc)
-            %             Fext = perc*obj.FextInitial;
-            %             Fext = obj.reshapeToVector(Fext);
-            Fext = zeros(obj.uFun.nDofs,1);
+                        Fext = perc*obj.boundaryConditions.pointloadFun.fValues;
+                        Fext = obj.reshapeToVector(Fext);
+%             Fext = zeros(obj.uFun.nDofs,1);
         end
 
         function [intFor,intForel] = computeInternalForces(obj,u)
@@ -338,6 +366,89 @@ classdef HyperelasticProblem_refactoring < handle
             sigma.ndimf = [2 2];
         end
 
+        function  createEIFEMPreconditioner(obj,mR,dir,iC,lG,bS,iCR,dMesh)
+            % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
+            EIFEMfilename = obj.fileName;
+            % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
+            filename        = EIFEMfilename;
+            s.RVE           = TrainedRVE(filename);
+            s.mesh          = obj.createCoarseMesh(mR);
+%            s.mesh          = obj.loadCoarseMesh(mR);
+            s.DirCond       = dir;
+            s.nSubdomains = obj.nSubdomains;
+            eifem           = EIFEM(s);
+
+
+            ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
+            ss.EIFEMsolver = eifem;
+            ss.bcApplier = obj.bcApplier;
+            ss.dMesh     = dMesh;
+            ss.type = 'EIFEM';
+            obj.EIFEMp = Preconditioner.create(ss);
+%             Meifem = @(r) obj.EIFEMp.apply(r);
+        end
+
+        function mCoarse = createCoarseMesh(obj,mR)
+            s.nsubdomains   = obj.nSubdomains; %nx ny
+            s.meshReference = obj.createReferenceCoarseMesh(mR);
+%             s.meshReference = obj.loadReferenceCoarseMesh(mR);
+            s.tolSameNode   = obj.tolSameNode;
+            mRVECoarse      = MeshCreatorFromRVE(s);
+            [mCoarse,~,~] = mRVECoarse.create();
+        end
+
+        function cMesh = createReferenceCoarseMesh(obj,mR)
+            xmax = max(mR.coord(:,1));
+            xmin = min(mR.coord(:,1));
+            ymax = max(mR.coord(:,2));
+            ymin = min(mR.coord(:,2));
+            coord(1,1) = xmin;
+            coord(1,2) = ymin;
+            coord(2,1) = xmax;
+            coord(2,2) = ymin;
+            coord(3,1) = xmax;
+            coord(3,2) = ymax;
+            coord(4,1) = xmin;
+            coord(4,2) = ymax;
+            %             coord(1,1) = xmax;
+            %             coord(1,2) = ymin;
+            %             coord(2,1) = xmax;
+            %             coord(2,2) = ymax;
+            %             coord(3,1) = xmin;
+            %             coord(3,2) = ymax;
+            %             coord(4,1) = xmin;
+            %             coord(4,2) = ymin;
+%             connec = [1 2 3 4];
+            connec = [2 3 4 1];
+            s.coord = coord;
+            s.connec = connec;
+            cMesh = Mesh.create(s);
+        end
+
+        function Milu = createILUpreconditioner(obj,LHS)
+            s.LHS = LHS;
+            s.type = 'ILU';
+            M = Preconditioner.create(s);
+            Milu = @(r) M.apply(r);
+        end
+
+         function createBCapplier(obj)
+            s.mesh                  = obj.mesh;
+            s.boundaryConditions    = obj.boundaryConditions;
+            obj.bcApplier           = BCApplier(s);
+         end
+
+          function d = createDomainDecompositionDofManager(obj,iC,lG,bS,mR,iCR)
+            s.nSubdomains     = obj.nSubdomains;
+            s.interfaceConnec = iC;
+            s.interfaceConnecReshaped = iCR;
+            s.locGlobConnec   = lG;
+            s.nBoundaryNodes  = bS{1}.mesh.nnodes;
+            s.nReferenceNodes = mR.nnodes;
+            s.nNodes          = obj.mesh.nnodes;
+            s.nDimf           = obj.mesh.ndim;
+            d = DomainDecompositionDofManager(s);
+        end
 
     end
 

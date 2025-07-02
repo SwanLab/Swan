@@ -2,6 +2,7 @@ classdef HyperelasticityTestBCs < handle
     
     properties (Access = public)
         boundaryConditions
+        dir
     end
     
     properties (Access = private)
@@ -93,7 +94,7 @@ classdef HyperelasticityTestBCs < handle
             bc = BoundaryConditions(s);
             obj.boundaryConditions = bc;
         end
-        function bc = createBC_2DTraction(obj,perc)
+        function [bc,dir] = createBC_2DTraction(obj,perc)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
             xMin    = min(obj.mesh.coord(:,1));
@@ -106,31 +107,53 @@ classdef HyperelasticityTestBCs < handle
             isBottom = @(coor)  abs(coor(:,2)-yMin) <= 1e-10;
             isMiddle = @(coor)  abs(abs(coor(:,2))-yMax/2) <= 10e-2;
             
-            % 2D N ELEMENTS
-            sDir.domain    = @(coor) isLeft(coor);
-            sDir.direction = [1,2];
-            sDir.value     = 0;
-            dir1 =  DirichletCondition(obj.mesh, sDir);
+%             % 2D N ELEMENTS
+%             sDir.domain    = @(coor) isLeft(coor);
+%             sDir.direction = [1,2];
+%             sDir.value     = 0;
+%             dir1 =  DirichletCondition(obj.mesh, sDir);
+% 
+%             sDir2.domain    = @(coor) isRight(coor);
+%             sDir2.direction = [1];
+%             sDir2.value     = perc*6;
+%             dir2 =  DirichletCondition(obj.mesh, sDir2);
+% 
+%             sDir3.domain    = @(coor) isRight(coor);
+%             sDir3.direction = [2];
+%             sDir3.value     = 0;
+%             dir3 =  DirichletCondition(obj.mesh, sDir3);
+%             s.dirichletFun = [dir1, dir2,dir3];
 
-            sDir2.domain    = @(coor) isRight(coor);
-            sDir2.direction = [1];
-            sDir2.value     = perc*6;
-            dir2 =  DirichletCondition(obj.mesh, sDir2);
+ % 2D N ELEMENTS
+            sDir{1}.domain    = @(coor) isLeft(coor);
+            sDir{1}.direction = [1,2];
+            sDir{1}.value     = 0;
+%             dir1 =  DirichletCondition(obj.mesh, sDir);
 
-            sDir3.domain    = @(coor) isRight(coor);
-            sDir3.direction = [2];
-            sDir3.value     = 0;
-            dir3 =  DirichletCondition(obj.mesh, sDir3);
+%             sDir{2}.domain    = @(coor) isRight(coor);
+%             sDir{2}.direction = [1];
+%             sDir{2}.value     = perc*6;
+% %             dir2 =  DirichletCondition(obj.mesh, sDir2);
 
+%             sDir{2}.domain    = @(coor) isRight(coor);
+%             sDir{2}.direction = [2];
+%             sDir{2}.value     = 0;
+%             dir3 =  DirichletCondition(obj.mesh, sDir3);
 
+            dirichletFun = [];
+            for i = 1:numel(sDir)
+                dir = DirichletCondition(obj.mesh, sDir{i});
+                dirichletFun = [dirichletFun, dir];
+            end
+            
 
-
-            s.dirichletFun = [dir1, dir2,dir3];
+            s.dirichletFun = dirichletFun;
+%              s.pointloadFun = [];
             % 
-            % sPL.domain    = @(coor) isRight(coor);
-            % sPL.direction = 1;
-            % sPL.value     = 0.2;
-             s.pointloadFun = [];%DistributedLoad(obj.mesh, sPL);
+            sPL.domain    = @(coor) isRight(coor);
+            sPL.direction = [1];
+            sPL.value     = 0.15;
+             s.pointloadFun = PointLoad(obj.mesh,sPL);%DistributedLoad(obj.mesh, sPL);
             % 
             % [bM,l2g] = obj.mesh.getBoundarySubmesh(sPL.domain);
             % 
@@ -156,6 +179,7 @@ classdef HyperelasticityTestBCs < handle
 
             bc = BoundaryConditions(s);
             obj.boundaryConditions = bc;
+            obj.dir =  sDir;
         end
 
         function bc = createBC_2DBending(obj)
