@@ -16,19 +16,23 @@ using ..RMSProp
 using ..Fminunc
 using ..PlotterNN
 using ..Data
+# Performance optimization
+using Profile 
+using ProfileView
+using InteractiveUtils
 
 mutable struct OptimizationProblemNNStruct
-    data::Any
-    networkParams::Any
-    optimizerParams::Any
-    costParams::Any
-    network::Any
-    costFunc::Any
-    designVariable::Any
-    optimizer::Any
-    plotter::Any
-    loss::Any
-    regularization::Any
+    data::Data.DataStruct
+    networkParams::Dict{String, Any}
+    optimizerParams::Dict{String, Any}
+    costParams::Dict{String, Any}
+    network::Union{Network.Net, Nothing}
+     costFunc::Union{CostNN.CostNNStruct, Nothing}
+    designVariable::Union{Network.LearnableVariables.LearnableVars, Nothing}
+    optimizer::Union{Trainer.SGD.SGDStruct, Nothing}
+    plotter::Union{PlotterNN.PlotterNNStruct, Nothing}
+    loss::Union{LossFunctional.LossFunctionalStruct, Nothing}
+    regularization::Union{Sh_Func_L2norm.ShFuncL2norm, Nothing}
 end
 
 function OptimizationProblemNNStruct(cParams::Dict{String,Any})
@@ -60,6 +64,7 @@ end
 # Public methods
 
 function solve(obj::OptimizationProblemNNStruct)
+    #@code_warntype 
     Trainer.SGD.compute(obj.optimizer)
 end
 

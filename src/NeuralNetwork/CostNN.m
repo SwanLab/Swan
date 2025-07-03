@@ -104,12 +104,6 @@ classdef CostNN < handle
             djV = zeros(size(dJc{1}));
             for iF = 1:nF
                 wI  = obj.weights(iF);
-                disp("wI")
-                size(wI)
-                disp("dJc")
-                size(dJc{iF})
-                disp("djV")
-                size(djV)
                 jV  = jV  + wI*Jc{iF};
                 djV = djV + wI*dJc{iF};
             end

@@ -11,7 +11,7 @@ using Printf
 using LinearAlgebra
 
 mutable struct SGDStruct
-    trainer::Trainer.TrainerStruct
+    trainer::TrainerStruct
 
     fvStop::Float64
     lSearchType::String
@@ -25,6 +25,13 @@ mutable struct SGDStruct
     fplot::Vector{Float64}
     learningRate::Float64
     elapsedTime::Float64  # total elapsed time in seconds
+end
+
+mutable struct KPI
+    epoch::Int
+    alarm::Float64
+    gnorm::Float64
+    cost::Float64
 end
 
 function SGDStruct(s::Dict{String, Any})
@@ -41,9 +48,9 @@ function SGDStruct(s::Dict{String, Any})
         Inf,                              # timeStop
         s["plotter"],                     # plotter
         0,                                # svepoch
-        Float64[],                        # fplot
-        s["learningRate"],                 # learningRate
-        0.0  # elapsedTime
+        fill(0.0, s["maxEpochs"]),        # fplot
+        s["learningRate"],                # learningRate
+        0.0                               # elapsedTime
     )
 end
 
@@ -83,16 +90,17 @@ function optimize(obj::SGDStruct, th0::Vector{Float64})
     funcount     = 0
     alarm        = 0.0
     minTestError = 1.0
-
+    kpi = KPI(1, 0.0, 1.0, 1.0)
+    #=
     KPI = Dict(
         :epoch => 1,
         :alarm => 0,
         :gnorm => 1.0,
         :cost  => 1.0
     )
-
+    =#
     theta = th0
-    while !isCriteriaMet(obj, KPI)
+    while !isCriteriaMet(obj, kpi)
         state = iter == -1 ? :init : :iter
         newEpoch = true
         moveBatch = true
@@ -105,16 +113,16 @@ function optimize(obj::SGDStruct, th0::Vector{Float64})
             iter += 1
             newEpoch = false
 
-            KPI[:cost]  = f
-            KPI[:gnorm] = norm(grad)
-            displayIter(obj, iter, funcount, theta, epsilon, state, KPI)
+            kpi.cost  = f
+            kpi.gnorm = norm(grad)
+            displayIter(obj, iter, funcount, theta, epsilon, state, kpi)
         end
 
-        KPI[:epoch] += 1
+        kpi.epoch += 1
         #kpi_alarm, minTestError = obj.trainer.objectiveFunction["validateES"](alarm, minTestError)
         kpi_alarm, minTestError = CostNN.validateES(obj.trainer.objectiveFunction, alarm, minTestError)
         
-        KPI[:alarm] = kpi_alarm
+        kpi.alarm = kpi_alarm
     end
 end
 
@@ -174,25 +182,25 @@ function lineSearch(
     return e, xnew, funcount
 end
 
-function updateCriteria(obj::SGDStruct, KPI::Dict{Symbol, Real})
+function updateCriteria(obj::SGDStruct, kpi::KPI)
     return [
-        KPI[:epoch] <= obj.MaxEpochs,
-        KPI[:alarm] < obj.earlyStop,
-        KPI[:gnorm] > obj.optTolerance,
+        kpi.epoch <= obj.MaxEpochs,
+        kpi.alarm < obj.earlyStop,
+        kpi.gnorm > obj.optTolerance,
         obj.elapsedTime < obj.timeStop,    # use field now
-        KPI[:cost] > obj.fvStop
+        kpi.cost > obj.fvStop
     ]
 end
 
-function isCriteriaMet(obj::SGDStruct, KPI::Dict{Symbol, Real})
-    criteria = updateCriteria(obj, KPI)
+function isCriteriaMet(obj::SGDStruct, kpi::KPI)
+    criteria = updateCriteria(obj, kpi)
     failedIdx = findfirst(!, criteria)
     itIs = false
 
     if !isnothing(failedIdx)
         itIs = true
         messages = [
-            "Minimization terminated, maximum number of epochs reached $(KPI[:epoch])",
+            "Minimization terminated, maximum number of epochs reached $(kpi.epoch)",
             "Minimization terminated, validation set did not decrease in $(obj.earlyStop) epochs",
             "Minimization terminated, reached the optimality tolerance of $(obj.optTolerance)",
             "Minimization terminated, reached the limit time of $(obj.timeStop)",
@@ -213,17 +221,14 @@ function displayIter(
     x::Vector{Float64},
     epsilon::Float64,
     state::Symbol,
-    KPI::Dict{Symbol, Real}
+    kpi::KPI
 )
-    opt = Dict(
-        :epsilon => epsilon * KPI[:gnorm],
-        :gnorm   => KPI[:gnorm]
-    )
+    opt = Trainer.OptInfo(epsilon * kpi.gnorm, kpi.gnorm)
 
-    printValues(obj, KPI[:epoch], funcount, opt, KPI[:cost], iter)
+    printValues(obj, kpi.epoch, funcount, opt, kpi.cost, iter)
 
-    if obj.trainer.isDisplayed && ((KPI[:epoch] % 25 == 0) || iter == -1)
-        obj.trainer.storeValues(x, KPI[:cost], state, opt)
+    if obj.trainer.isDisplayed && ((kpi.epoch % 25 == 0) || iter == -1)
+        obj.trainer.storeValues!(x, kpi.cost, state, opt)
     end
 end
 
@@ -231,7 +236,7 @@ function printValues(
     obj::SGDStruct,
     epoch::Int,
     funcount::Int,
-    opt::Dict{Symbol, Float64},
+    opt::Trainer.OptInfo,
     f::Float64,
     iter::Int
 )
@@ -241,14 +246,16 @@ function printValues(
     end
 
     @printf("%5d    %5d       %5d    %13.6g  %13.6g   %12.3g\n",
-        epoch, iter, funcount, f, opt[:epsilon], opt[:gnorm])
+        epoch, iter, funcount, f, opt.epsilon, opt.gnorm)
 
     if epoch != obj.svepoch
         obj.svepoch = epoch
+        #=
         # Ensure fplot has enough capacity
         if length(obj.fplot) < epoch
             resize!(obj.fplot, epoch)
         end
+        =#
         obj.fplot[epoch] = f
     end
 end

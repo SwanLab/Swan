@@ -3,17 +3,24 @@ module Trainer
 export AbstractTrainer, TrainerStruct, Create, plotCostRegErr, storeValues!, plotEpsOpt
 
 using Plots
+using ..Network.LearnableVariables
+using ..CostNN
 
 #abstract type AbstractTrainer end
 # Define Trainer structure first
 mutable struct TrainerStruct
-    objectiveFunction::Any
-    designVariable::Any
+    objectiveFunction::CostNNStruct
+    designVariable::LearnableVars
     xIter::Vector{Vector{Float64}}
     nPlot::Int
     isDisplayed::Bool
     costHist::Matrix{Float64}
     optHist::Matrix{Float64}
+end
+
+mutable struct OptInfo
+    epsilon::Float64
+    gnorm::Float64
 end
 
 function TrainerStruct(cParams::Dict{String, Any})
@@ -82,7 +89,7 @@ function storeValues!(
     x::Vector{Float64},
     f::Float64,
     state::Symbol,
-    opt::Dict{Symbol, Float64}
+    opt::OptInfo
 )
     if state == :init
         t.costHist = [zeros(3)]      # equivalent to [0,0,0]
@@ -96,7 +103,7 @@ function storeValues!(
         ]
         t.costHist = vcat(t.costHist, cV')
         t.optHist  = vcat(t.optHist, oV')
-        oV = [opt[:gnorm], opt[:epsilon]]
+        oV = [opt.gnorm, opt.epsilon]
         push!(t.optHist, oV)
         
 

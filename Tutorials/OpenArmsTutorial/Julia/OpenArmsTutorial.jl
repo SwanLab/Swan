@@ -19,10 +19,13 @@ include("Trainer/Fminunc/Fminunc.jl")                        # Uses Trainer
 include("OptimizationProblemNN/OptimizationProblemNN.jl")  # Uses everything above
 
 using .OptimizationProblemNN
-using .Data # This assumes Data.jl is in your module system
+using .Data 
 using Plots
 using Statistics
 using DataFrames
+# Tools to see where time is spent and improve performance
+using Profile 
+using ProfileView
 
 # Initialization of hyperparameters
 pol_deg       = 1
