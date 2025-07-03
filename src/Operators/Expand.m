@@ -13,28 +13,36 @@ function A = Expand(varargin)
         A = a;
     end
 
-
 end
 
 function aEval = evaluate(a,ndim,xV)
-    aEval      = a.evaluate(xV);
-    isTensorA  = checkTensor(a,aEval);
-    if ~isTensorA
+    aEval         = a.evaluate(xV);
+    extraDims     = computeExtraDims(a,xV);
+    expandTensor  = checkTensorSize(a,ndim,extraDims,aEval);
+    if expandTensor
         dims = size(aEval);
-        extraDims = ones(1,ndim-1);
-        aEval = reshape(aEval,[dims(1), extraDims, dims(2:end)]);
+        extraDimTensor = ones(1,(ndim+extraDims)-ndims(aEval));
+        aEval = reshape(aEval,[dims(1), extraDimTensor, dims(2:end)]);
     end
 end
 
-function isTensor = checkTensor(A,res)
-    n = ndims(res);
-    if isa(A,'Material')
-        isTensor = true;
-    else
-        if A.mesh.nelem == 1
-            isTensor = n>=3;
-        else
-            isTensor = n>=4;
+function extraDim = computeExtraDims(a,xV)
+    extraDim = 2;
+    if a.mesh.nelem == 1
+        extraDim = extraDim - 1;
+        if size(xV,2) == 1
+            extraDim = extraDim -1;
         end
+    end
+end
+
+function expandTensor = checkTensorSize(a,ndim,extraDims,res)
+    dimTensor = ndims(res);
+    if isa(a,'Material')
+        expandTensor = false;
+    elseif dimTensor-extraDims >= ndim
+        expandTensor = false;
+    else
+        expandTensor = true;
     end
 end

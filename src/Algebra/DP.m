@@ -16,8 +16,10 @@ end
 function fVR = evaluate(A,B,dimA,dimB,xV)
     aEval = A.evaluate(xV);
     bEval = B.evaluate(xV);
-    ndimsA = ndims(aEval)-2; %2 for nGaus and nElem
-    ndimsB = ndims(bEval)-2; %2 for nGaus and nElem
+
+    extraDim = computeExtraDims(A,B,xV);
+    ndimsA = ndims(aEval)-extraDim; %To be adapted when ndimf is vector
+    ndimsB = ndims(bEval)-extraDim; 
     if isempty(dimA)
         dimA = ndimsA;
     end
@@ -29,4 +31,21 @@ function fVR = evaluate(A,B,dimA,dimB,xV)
     if ndims(fVR) <=2
         fVR = reshape(fVR,[1 size(fVR)]);
     end
+end
+
+function extraDim = computeExtraDims(A,B,xV)
+    if isfield(A,'mesh')
+        nelem = A.mesh.nelem;
+    else
+        nelem = B.mesh.nelem;
+    end
+
+    extraDim = 2;
+    if nelem == 1
+        extraDim = extraDim - 1;
+        if size(xV,2) == 1
+            extraDim = extraDim -1;
+        end
+    end
+
 end

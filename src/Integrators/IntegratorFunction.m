@@ -21,19 +21,21 @@ classdef IntegratorFunction < handle
             dV        = obj.mesh.computeDvolume(quad);
             nGaus     = quad.ngaus;
             fGaus     = f.evaluate(xV);
-            nFields   = size(fGaus,1);
-            h         = zeros(size(fGaus,1:ndims(fGaus)-2)); % zeros(nFields,1);
-            for iField = 1:nFields
-                for igaus = 1:nGaus
-                    dVg(:,1) = dV(igaus, :);
-                    if ndims(fGaus) == 3
-                        fG = squeeze(fGaus(iField,igaus,:));
+
+            extraDim = obj.computeExtraDims(xV);
+            nFields  = ndims(fGaus)-extraDim;
+
+            h = zeros(size(fGaus,1:nFields));
+            for iField = 1:size(fGaus,1)
+                for iGaus = 1:nGaus
+                    dVg(:,1) = dV(iGaus, :);
+                    if nFields == 1
+                        fG = squeeze(fGaus(iField,iGaus,:));
                         int       = fG.*dVg;
                         h(iField) = h(iField) + sum(int);
                     else
-                        nFields2 = size(fGaus,2);
-                        for jField = 1:nFields2
-                            fG  = squeeze(fGaus(iField,jField,igaus,:));
+                        for jField = 1:size(fGaus,2)
+                            fG  = squeeze(fGaus(iField,jField,iGaus,:));
                             int = fG.*dVg;
                             h(iField,jField) = h(iField,jField) + sum(int);
                         end
@@ -54,6 +56,16 @@ classdef IntegratorFunction < handle
         function createQuadrature(obj)
             q = Quadrature.create(obj.mesh,obj.quadType);
             obj.quadrature = q;
+        end
+
+        function extraDim = computeExtraDims(obj,xV)
+            extraDim = 2;
+            if obj.mesh.nelem == 1
+                extraDim = extraDim - 1;
+                if size(xV,2) == 1
+                    extraDim = extraDim -1;
+                end
+            end
         end
 
     end
