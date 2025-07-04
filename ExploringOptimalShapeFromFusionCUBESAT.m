@@ -1,4 +1,4 @@
-classdef ExploringOptimalShapeFromFusion < handle
+classdef ExploringOptimalShapeFromFusionCUBESAT < handle
 
     properties (Access = private)
         filename
@@ -18,7 +18,7 @@ classdef ExploringOptimalShapeFromFusion < handle
 
     methods (Access = public)
 
-        function obj = ExploringOptimalShapeFromFusion()
+        function obj = ExploringOptimalShapeFromFusionCUBESAT()
             obj.init()
             obj.createMesh();
             obj.createVolume();
@@ -28,8 +28,8 @@ classdef ExploringOptimalShapeFromFusion < handle
             obj.createMaterialInterpolator();
             obj.createMaterial();
             obj.solveElasticProblem();
-            obj.createComplianceFromConstiutive();
-            obj.createCompliance();
+            %obj.createComplianceFromConstiutive();
+            %obj.createCompliance();
         end
 
     end
@@ -41,7 +41,7 @@ classdef ExploringOptimalShapeFromFusion < handle
         end
 
         function createMesh(obj)
-            file = 'BEAM_3D_SF25';
+            file = 'CUBESAT_MALLA';
             obj.filename = file;
             a.fileName = file;
             s = FemDataContainer(a);
@@ -63,9 +63,10 @@ classdef ExploringOptimalShapeFromFusion < handle
         function createVolume(obj)
             obj.volume = obj.mesh.computeVolume();
             % Fa falta restar 
-            boxVolume = 2e5;
-            InitialVolume = 7.002e5;
-            beamVolume = obj.volume-boxVolume;
+            %boxVolume = 2e5;
+            InitialVolume = 6.681e3;
+           % preservedVolume = 
+            beamVolume = obj.volume; %-boxVolume;
             obj.fractionVolume = beamVolume/InitialVolume;
         end
 
@@ -171,28 +172,10 @@ classdef ExploringOptimalShapeFromFusion < handle
         end
         
         function bc = createBoundaryConditions(obj)
-            xMax    = max(obj.mesh.coord(:,1));
-            yMax    = max(obj.mesh.coord(:,2));
-            zMax    = max(obj.mesh.coord(:,3));
-            isDir   = @(coor)  coor(:,1)<=20*1.05;
-            isForce = @(coor)  coor(:,1)>0.995*xMax;% & abs(coor(:,2))>=0.25*yMax & abs(coor(:,2))<=0.75*yMax); % & abs(coor(:,3))>=0.749*zMax & abs(coor(:,3))<=0.75*zMax);
-            
-            numNodes = sum(isForce(obj.mesh.coord));
-         
-            s.fHandle = @(x)  (abs(x(1,:,:))>0.995*xMax); % & abs(x(2,:,:))>=0.25*yMax & abs(x(2,:,:))<=0.75*yMax); %  & abs(x(3,:,:))>=0.749*zMax & abs(x(3,:,:))<=0.75*zMax);
-            s.ndimf   = 1;
-            s.mesh    = obj.mesh;
-            aFun      = AnalyticalFunction(s);
-
-            print(aFun.project('P1'),'Force 2','Paraview')
-            
-            sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [1,2,3];
-            sDir{1}.value     = 0;
-
-            sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 3;
-            sPL{1}.value     = -10000/numNodes;
+            femReader = FemInputReaderGiD();
+            s         = femReader.read(obj.filename);
+            sPL       = obj.computeCondition(s.pointload);
+            sDir      = obj.computeCondition(s.dirichlet);
 
             dirichletFun = [];
             for i = 1:numel(sDir)
@@ -215,6 +198,26 @@ classdef ExploringOptimalShapeFromFusion < handle
 
       
 
+    end
+
+    methods (Static, Access=private)
+        function sCond = computeCondition(conditions)
+            nodes = @(coor) 1:size(coor,1);
+            dirs  = unique(conditions(:,2));
+            j     = 0;
+            for k = 1:length(dirs)
+                rowsDirk = ismember(conditions(:,2),dirs(k));
+                u        = unique(conditions(rowsDirk,3));
+                for i = 1:length(u)
+                    rows   = conditions(:,3)==u(i) & rowsDirk;
+                    isCond = @(coor) ismember(nodes(coor),conditions(rows,1));
+                    j      = j+1;
+                    sCond{j}.domain    = @(coor) isCond(coor);
+                    sCond{j}.direction = dirs(k);
+                    sCond{j}.value     = u(i);
+                end
+            end
+        end
     end
 
 
