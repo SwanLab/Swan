@@ -5,6 +5,5 @@ function dom = ShapeDer(u)
 end
 
 function fVR = evaluate(u, xV)
-    dNdx = u.evaluateCartesianDerivatives(xV);
-    fVR = dNdx;
+    fVR = u.evaluateCartesianDerivatives(xV);
 end

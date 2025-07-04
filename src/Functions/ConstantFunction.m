@@ -20,12 +20,11 @@ classdef ConstantFunction < BaseFunction
     methods (Access = public, Static)
             
             function obj = create(constant, mesh)
-                d          = size(constant);
-                dimC       = [1,ones(1,sum(not(d(2:end)==1)))];
+                dimC       = ones(1,ndims(constant));
                 s.constant = constant;
                 s.ndimf    = length(constant(:));
                 s.mesh     = mesh;
-                s.fHandle = @(xV) repmat(constant,[dimC,size(xV,2),mesh.nelem]);
+                s.fHandle = @(xV) squeezeParticular(repmat(constant,[dimC,size(xV,2),mesh.nelem]),2);
                 obj = ConstantFunction(s);
             end
     end
