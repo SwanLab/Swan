@@ -2,29 +2,32 @@ classdef HyperelasticProblem < handle
 
     properties (Access = public)
         uFun
+        rFun
     end
 
     properties (Access = private)
         mesh
         neohookeanFun, linearElasticityFun
         material, materialElastic
-        bc_case = 'HoleDirich'
-        printing = 1
+        bc_case
+        fileName
+        meshGen
+        printing
         bcApplier
         freeDofs, constrainedDofs
     end
 
     methods (Access = public)
 
-        function obj = HyperelasticProblem()
+        function obj = HyperelasticProblem(cParams)
             close all;
-            obj.init();
+            obj.init(cParams);
             obj.computeFreeDofs();
 
             u  = obj.uFun;
             f = animatedline;
 
-            nsteps = 20;
+            nsteps = cParams.nsteps;
             iter = 1;
             nIterPerStep = [];
 
@@ -47,7 +50,7 @@ classdef HyperelasticProblem < handle
                     Res  = obj.computeResidual(u);
                     incU = hess\(-Res);
                     uVal(obj.freeDofs) = uVal(obj.freeDofs) + incU;
-                    u.fValues = obj.reshapeToMatrix(uVal);
+                    u.setFValues(obj.reshapeToMatrix(uVal));
                     reacFun = obj.computeReactions(KR,u);
 
                     iter = iter+1;
@@ -62,6 +65,7 @@ classdef HyperelasticProblem < handle
                 obj.printFile(iStep, u, reacFun);              
                 nIterPerStep(iStep) = obj.computeNumberOfIterations(iter,nIterPerStep,iStep);
                 obj.plotStep(intEnergy,nIterPerStep,iStep, normDisp,normReac);
+                obj.rFun = reacFun;
             end
 
         end
@@ -75,7 +79,7 @@ classdef HyperelasticProblem < handle
                 fun = {u, reac};
                 funNames = {'Displacement', 'Reactions'};
                 a.mesh     = obj.mesh;
-                a.filename = ['SIM_',obj.bc_case,'_',int2str(iStep)];
+                a.filename = ['SIM_',obj.fileName,'_',int2str(iStep)];
                 a.fun      = fun;
                 a.funNames = funNames;
                 a.type     = 'Paraview';
@@ -111,7 +115,7 @@ classdef HyperelasticProblem < handle
             hold on
             subplot(1,3,3)
             bar(1:iStep, nIterPerStep)
-            title('Number of iterations to converge \DeltaF')
+            title('Number of iterations to converge $\Delta$ F')
             xlabel('step')
             ylabel('num. iterations per step')
             hold on
@@ -125,7 +129,11 @@ classdef HyperelasticProblem < handle
             hasNot = abs(energy-energyOld)/energy > TOL;
         end
 
-        function init(obj)
+        function init(obj,cParams)
+            obj.printing = cParams.printing;
+            obj.bc_case  = cParams.bcCase;
+            obj.fileName = cParams.fileName;
+            obj.meshGen  = cParams.meshGen;
             obj.createMesh();
             obj.createMaterial();
             obj.createDisplacementFun();
@@ -198,7 +206,7 @@ classdef HyperelasticProblem < handle
         end
 
         function createMesh(obj)
-            switch obj.bc_case
+            switch obj.meshGen
                 case {'Hole', 'HoleDirich'}
                     IM = Mesh.createFromGiD('hole_mesh_quad.m');
                     obj.mesh = IM;
@@ -206,10 +214,18 @@ classdef HyperelasticProblem < handle
                     obj.mesh = UnitQuadMesh(20,20);
                 case {'Metamaterial'}
                     load('NegPoissMesh.mat')
-                    obj.mesh = NegPoissMesh;
+                    s.coord = NegPoissMesh.coord;
+                    s.connec = NegPoissMesh.connec;
+                    obj.mesh = Mesh.create(s);
+                case 'EIFEMMesh'
+                    load(obj.fileName)
+                    s.coord  = EIFEoper.MESH.COOR;          
+                    s.connec = EIFEoper.MESH.CN;
+                    mS       = Mesh.create(s);
+                    obj.mesh = mS;
                 otherwise
                     obj.mesh = HexaMesh(2,1,1,20,5,5);
-                    %                     obj.mesh = UnitHexaMesh(15,15,15);
+                    % obj.mesh = UnitHexaMesh(15,15,15);
             end
         end
 
@@ -224,12 +240,12 @@ classdef HyperelasticProblem < handle
             L = obj.material.lambda;
             N = obj.mesh.ndim;
             K = 2/N*G + L;
-            E1  = Isotropic2dElasticMaterial.computeYoungFromShearAndBulk(G,K,N);
+            E1  = Isotropic2dElasticMaterial.computeYoungFromShearAndBulk(G,K,N)  ;
             nu1 = Isotropic2dElasticMaterial.computePoissonFromFromShearAndBulk(G,K,N);
             E2        = G*(3*L+2*G)/(L+G);
             nu2       = L / (2*(L+G));
-            E         = AnalyticalFunction.create(@(x) E1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
-            nu        = AnalyticalFunction.create(@(x) nu1*ones(size(squeeze(x(1,:,:)))),1,obj.mesh);
+            E         = ConstantFunction.create(E1,obj.mesh);
+            nu        = ConstantFunction.create(nu1,obj.mesh);
             s.pdim    = obj.mesh.ndim;
             s.nelem   = obj.mesh.nelem;
             s.mesh    = obj.mesh;
@@ -247,13 +263,13 @@ classdef HyperelasticProblem < handle
 
         function createDisplacementFun(obj)
             obj.uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
-            obj.uFun.fValues = obj.uFun.fValues + 0;
+            obj.uFun.setFValues(obj.uFun.fValues + 0);
         end
 
         function u = applyDirichletToUFun(obj,u,bc)
             u_k = reshape(u.fValues',[u.nDofs,1]);
             u_k(bc.dirichlet_dofs) = bc.dirichlet_vals;
-            u.fValues = reshape(u_k,[obj.mesh.ndim,obj.mesh.nnodes])';
+            u.setFValues(reshape(u_k,[obj.mesh.ndim,obj.mesh.nnodes])');
         end
 
         function [Fext] = computeExternalForces(obj,perc)
