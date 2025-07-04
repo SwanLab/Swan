@@ -16,6 +16,7 @@ mutable struct TrainerStruct
     isDisplayed::Bool
     costHist::Matrix{Float64}
     optHist::Matrix{Float64}
+    #maxEpochs::Int64
 end
 
 mutable struct OptInfo
@@ -26,15 +27,17 @@ end
 function TrainerStruct(cParams::Dict{String, Any})
     objFunc = cParams["costFunc"]
     designVar = cParams["designVariable"]
+    maxEpochs = cParams["maxEpochs"]
 
     return TrainerStruct(
         objFunc,
         designVar,
-        Vector{Vector{Float64}}(),  # xIter
+        Vector{Vector{Float64}}(undef, maxEpochs),  # xIter
         1,                          # nPlot
         false,                      # isDisplayed
-        zeros(0, 3),                # costHist
-        zeros(0, 2)                 # optHist
+        zeros(maxEpochs, 3),                # costHist
+        zeros(maxEpochs, 2),                 # optHist
+        #maxEps
     )
 end
 
@@ -88,29 +91,19 @@ function storeValues!(
     t::TrainerStruct,
     x::Vector{Float64},
     f::Float64,
-    state::Symbol,
     opt::OptInfo
 )
-    if state == :init
-        t.costHist = [zeros(3)]      # equivalent to [0,0,0]
-        t.optHist  = [zeros(2)]      # equivalent to [0,0]
-        # Julia doesn't need figure handles for plotting
-    elseif state == :iter
-        cV = [
+    # No need for an "if state == init" because t.costHist and t.optHist already initialized to zeros
+        epoch = findfirst(isequal(nothing), t.xIter)
+        epoch = epoch === nothing ? length(t.xIter) + 1 : epoch
+
+        t.costHist[epoch, :] .= [
             f,
             t.objectiveFunction.regularization,
             t.objectiveFunction.loss
         ]
-        t.costHist = vcat(t.costHist, cV')
-        t.optHist  = vcat(t.optHist, oV')
-        oV = [opt.gnorm, opt.epsilon]
-        push!(t.optHist, oV)
-        
-
-        push!(t.xIter, copy(x))
-    else
-        @warn "Unknown state passed to storeValues: $state"
-    end
+        t.optHist[epoch, :] .= [opt.gnorm, opt.epsilon]
+        t.xIter[epoch] = copy(x)
 end
 
 function plotEpsOpt(t::TrainerStruct, v::Vector{Int})

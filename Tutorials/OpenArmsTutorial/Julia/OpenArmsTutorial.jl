@@ -19,7 +19,7 @@ include("Trainer/Fminunc/Fminunc.jl")                        # Uses Trainer
 include("OptimizationProblemNN/OptimizationProblemNN.jl")  # Uses everything above
 
 using .OptimizationProblemNN
-using .Data 
+using .Data
 using Plots
 using Statistics
 using DataFrames
@@ -87,14 +87,14 @@ Ypred = OptimizationProblemNN.computeOutputValues(opt, Xtest)
 
 # Histogram for the distribution of Ypred
 edges = range(-1, 2, length=31)  # 30 bins between -1 and 2
-
+#=
 hist1 = histogram(Ypred, bins=edges, title="Distribution of predicted Ytest")
 display(hist1)
 
 # Histogram for the distribution of Ytest
 hist2 = histogram(Ytest, bins=edges, title="Distribution of Test Y")
 display(hist2)
-
+=#
 # Denormalization
 Xtest = Xtest .* data.sigmaX .+ data.muX
 Ypred = Ypred .* data.sigmaY .+ data.muY

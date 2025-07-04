@@ -3,19 +3,22 @@ module CostNN
 export CostNNStruct, computeFunctionAndGradient, computeStochasticFunctionAndGradient,
        obtainNumberFields, getTitleFields, getFields, setBatchMover, validateES
 
-import ..LossFunctional
-import ..Sh_Func_L2norm 
-import ..Network
+#import ..LossFunctional
+#import ..Sh_Func_L2norm 
+using ..LossFunctional
+using ..Sh_Func_L2norm
+using ..Network
+
 mutable struct CostNNStruct
     value::Float64
     gradient::Vector{Float64}
     isBatchDepleted::Bool
 
-    shapeFunctions::Vector{Any}
+    shapeFunctions::Vector{Union{LossFunctionalStruct, ShFuncL2norm}}
     weights::Vector{Float64}
     moveBatch::Bool
 
-    shapeValues::Vector{Any}
+    shapeValues::Vector{Float64}
 end
 
 function CostNNStruct(cParams::Dict{String, Any})
@@ -26,7 +29,7 @@ function CostNNStruct(cParams::Dict{String, Any})
         cParams["shapeFunctions"],       # shapeFunctions (vector of modules)
         cParams["weights"],              # weights for each shape function
         true,                            # moveBatch default
-        Any[]                            # shapeValues
+        Float64[]                            # shapeValues
     )
 end
 
@@ -42,7 +45,6 @@ function computeFunctionAndGradient(obj::CostNNStruct, x::Vector{Float64})
 end
 
 function computeStochasticFunctionAndGradient!(obj::CostNNStruct, x::Vector{Float64})
-    #compFunc = (shI, x, moveBatch) -> shI.computeStochasticCostAndGradient(shI, x, moveBatch)
     compFunc = (shI, x, moveBatch) -> 
         isa(shI, LossFunctional.LossFunctionalStruct) ? LossFunctional.computeStochasticCostAndGradient(shI, x, moveBatch) :
         isa(shI, Sh_Func_L2norm.ShFuncL2norm) ? Sh_Func_L2norm.computeStochasticCostAndGradient(shI, x, moveBatch) :
@@ -157,7 +159,7 @@ end
 
 
 
-function mergeGradient(dJ)
+function mergeGradient(dJ::Vector{Float64})
     if isa(dJ, Vector) && all(x -> hasproperty(x, :fValues), dJ)
         nDV = length(dJ)
         nDim1 = length(dJ[1].fValues)

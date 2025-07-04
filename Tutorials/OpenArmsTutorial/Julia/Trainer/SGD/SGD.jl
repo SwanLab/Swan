@@ -4,6 +4,7 @@ export SGDStruct, compute
 
 using ..Trainer  # Use the parent module where TrainerStruct is defined
 using Main.CostNN
+using Main.PlotterNN
 using Dates  # For timing (like tic/toc)
 using Optim
 using Plots
@@ -20,7 +21,7 @@ mutable struct SGDStruct
     optTolerance::Float64
     earlyStop::Int
     timeStop::Float64
-    plotter::Any
+    plotter::PlotterNNStruct
     svepoch::Int
     fplot::Vector{Float64}
     learningRate::Float64
@@ -101,7 +102,7 @@ function optimize(obj::SGDStruct, th0::Vector{Float64})
     =#
     theta = th0
     while !isCriteriaMet(obj, kpi)
-        state = iter == -1 ? :init : :iter
+        #state = iter == -1 ? :init : :iter
         newEpoch = true
         moveBatch = true
 
@@ -115,7 +116,7 @@ function optimize(obj::SGDStruct, th0::Vector{Float64})
 
             kpi.cost  = f
             kpi.gnorm = norm(grad)
-            displayIter(obj, iter, funcount, theta, epsilon, state, kpi)
+            displayIter(obj, iter, funcount, theta, epsilon, kpi)
         end
 
         kpi.epoch += 1
@@ -129,9 +130,11 @@ end
 function computeStochasticFunctionAndGradient(obj::SGDStruct, theta::Vector{Float64}, moveBatch::Bool)
     CostNN.setBatchMover!(obj.trainer.objectiveFunction, moveBatch)
     CostNN.computeStochasticFunctionAndGradient!(obj.trainer.objectiveFunction, theta)
-    #f    = obj.trainer.objectiveFunction["value"]
+#=
+    alloc = @allocated CostNN.computeStochasticFunctionAndGradient!(obj.trainer.objectiveFunction, theta)
+    println("Allocated bytes: $alloc")
+=#
     f    = obj.trainer.objectiveFunction.value
-    #grad = obj.trainer.objectiveFunction["gradient"]
     grad = obj.trainer.objectiveFunction.gradient
     return f, grad
 end
@@ -220,7 +223,6 @@ function displayIter(
     funcount::Int,
     x::Vector{Float64},
     epsilon::Float64,
-    state::Symbol,
     kpi::KPI
 )
     opt = Trainer.OptInfo(epsilon * kpi.gnorm, kpi.gnorm)
@@ -228,7 +230,7 @@ function displayIter(
     printValues(obj, kpi.epoch, funcount, opt, kpi.cost, iter)
 
     if obj.trainer.isDisplayed && ((kpi.epoch % 25 == 0) || iter == -1)
-        obj.trainer.storeValues!(x, kpi.cost, state, opt)
+        obj.trainer.storeValues!(x, kpi.cost, opt)
     end
 end
 

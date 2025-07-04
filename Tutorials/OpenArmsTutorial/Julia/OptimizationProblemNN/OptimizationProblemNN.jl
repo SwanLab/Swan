@@ -5,7 +5,6 @@ export OptimizationProblemNNStruct, solve, getTestData, getNetwork,
        plotImage, computeError, computeOutputValues, computeGradient
 
 using ..Network
-using ..LearnableVariables
 using ..LossFunctional
 using ..Sh_Func_L2norm
 using ..CostNN
@@ -162,7 +161,6 @@ function createOptimizer(obj::OptimizationProblemNNStruct)
     s["Xtest"] = obj.data.Xtest
     s["Ytest"] = obj.data.Ytest
     s["plotter"] = obj.plotter
-
     obj.optimizer = Trainer.Create(s)
 end
 

@@ -49,8 +49,6 @@ end
 
 function computeStochasticCostAndGradient(obj::LossFunctionalStruct, x::Vector{Float64}, moveBatch::Bool)
     obj.designVariable.thetavec = x
-    #Xt = obj.data["Xtrain"]
-    #Yt = obj.data["Ytrain"]
     Xt = obj.data.Xtrain
     Yt = obj.data.Ytrain
     Xb, Yb = updateSampledDataSet(obj, Xt, Yt, obj.iBatch)
