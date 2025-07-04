@@ -227,6 +227,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
                         s.lb = [zeros(x.density.fun.mesh.nnodes,1);-1000];
                 end
                 s.tauMax = 1000;
+                s.tau    = [];
                 p        = PrimalUpdaterFactory.create(s);
             end
         end

@@ -57,6 +57,7 @@ classdef OptimizerProjectedGradient < handle
             s.ub              = cParams.ub;
             s.lb              = cParams.lb;
             s.tauMax          = 100;
+            s.tau             = [];
             obj.primalUpdater = ProjectedGradient(s);
         end
 

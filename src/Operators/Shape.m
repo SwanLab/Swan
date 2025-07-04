@@ -4,8 +4,5 @@ function dom = Shape(u)
 end
 
 function fVR = evaluate(u, xV)
-    shapes = u.computeShapeFunctions(xV);
-    % shapes = repmat(shapes, [1 1 u.mesh.nelem]);
-    fVR = shapes;
-    % fVR = reshape(grad, [nDimG*nDimf,nPoints, nElem]);
+    fVR = u.computeShapeFunctions(xV);
 end

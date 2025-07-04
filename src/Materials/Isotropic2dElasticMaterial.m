@@ -13,7 +13,7 @@ classdef Isotropic2dElasticMaterial < IsotropicElasticMaterial
 
             N = obj.ndim;
             nGauss = size(mu,2);
-            nElem  = size(mu,3);
+            nElem  = m.mesh.nelem;
             lambda = reshape(lambda,[1 1 1 1 nGauss nElem]);
             mu     = reshape(mu,[1 1 1 1 nGauss nElem]);
             I      = repmat(eye4D(N),[1 1 1 1 nGauss nElem]);

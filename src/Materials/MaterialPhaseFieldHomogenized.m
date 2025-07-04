@@ -4,6 +4,7 @@ classdef MaterialPhaseFieldHomogenized < handle
         fileName
         degradation
         mesh
+        young
     end
 
     methods (Access = public)
@@ -44,6 +45,7 @@ classdef MaterialPhaseFieldHomogenized < handle
         function init(obj,cParams)
             obj.fileName  = cParams.fileName;
             obj.mesh      = cParams.mesh;
+            obj.young     = cParams.young;
         end
 
         function loadVademecum(obj)
@@ -51,8 +53,20 @@ classdef MaterialPhaseFieldHomogenized < handle
             matFile   = [fName,'.mat'];
             file2load = fullfile('PFVademecum','Degradation',matFile);
             v = load(file2load);
-            if isfield(v,'degradationFun')
-                obj.degradation = v.degradationFun;
+            if isfield(v,'degradation')
+                E = obj.young;
+                nStre = size(v.degradation.fun,1);
+                for i=1:nStre
+                    for j=1:nStre
+                        for k=1:nStre
+                            for l=1:nStre
+                                obj.degradation.fun{i,j,k,l} = @(x) E.*v.degradation.fun{i,j,k,l}(x);
+                                obj.degradation.dfun{i,j,k,l} = @(x) E.*v.degradation.dfun{i,j,k,l}(x);
+                                obj.degradation.ddfun{i,j,k,l} = @(x) E.*v.degradation.ddfun{i,j,k,l}(x);
+                            end
+                        end
+                    end
+                end
             else
                 phi = v.phi; mat = v.mat;
                 DHF = DamageHomogenizationFitter();
@@ -64,14 +78,18 @@ classdef MaterialPhaseFieldHomogenized < handle
         end
 
         function C = evaluate(~,phi,fun,xV)
-            nStre = 3;
+            nStre = size(fun,1);
             nGaus = size(xV,2);
-            nElem = phi.mesh.nelem;
-            C = zeros(nStre,nStre,nGaus,nElem);
+            nElem = phi.fun.mesh.nelem;
+            C = zeros(2,2,2,2,nGaus,nElem);
             phiV = phi.evaluate(xV);
             for i = 1:nStre
                 for j = 1:nStre
-                    C(i,j,:,:) = fun{i,j}(phiV);
+                    for k=1:nStre
+                        for l=1:nStre
+                            C(i,j,k,l,:,:) = fun{i,j,k,l}(phiV);
+                        end
+                    end
                 end
             end
         end
