@@ -23,23 +23,20 @@ classdef RHSIntegratorShapeSymmDerivative < RHSIntegrator
         end
         
         function rhsC = computeElementalRHS(obj, fun, test)
-            fG = fun.evaluate(obj.quadrature.posgp);
-            dV = obj.mesh.computeDvolume(obj.quadrature);
-            dNdx = test.evaluateCartesianDerivatives(obj.quadrature.posgp);
-            nDim  = size(dNdx,1);
-            nNode = size(dNdx,2);
-            nGaus = size(dNdx,3);
-            nElem = size(dNdx,4);
-
-            BComp = obj.createBComputer(test,dNdx);
-            rhsC = zeros(nNode*nDim,nElem);
-            for igaus = 1:nGaus
-                    fGI = squeezeParticular(fG(:,igaus,:),2);
-                    fdv = fGI.*dV(igaus,:);
-                    fdv = reshape(fdv,[1 size(fdv,1) nElem]);
-                    B = BComp.compute(igaus);
-                    intI = pagemtimes(fdv,B);
-                    rhsC = rhsC + squeezeParticular(intI,1);
+            xV    = obj.quadrature.posgp;
+            fG    = fun.evaluate(obj.quadrature.posgp);
+            symN  = ShapeDerSym(test).evaluate(xV);
+            dV    = obj.mesh.computeDvolume(obj.quadrature);
+            nDimf  = test.ndimf;
+            nnodeE = obj.mesh.nnodeElem;
+            nElem  = obj.mesh.nelem;
+            ndofE  = nnodeE*nDimf;
+            rhsC   = zeros(ndofE,nElem);
+            for i=1:ndofE
+                symTest = squeezeParticular(symN(:,:,i,:,:),3);
+                fint    = pagetensorprod(fG,symTest,[1 2],[1 2],2,2);
+                fint    = fint.*dV;
+                rhsC(i,:) = rhsC(i,:) + sum(fint,1);
             end
         end
 
@@ -55,12 +52,7 @@ classdef RHSIntegratorShapeSymmDerivative < RHSIntegrator
                 f = f + accumarray(con,int,[nDofs,1],@sum,0);
             end
         end
-
-        function BComp = createBComputer(obj, fun, dNdx)
-            s.fun = fun;
-            s.dNdx = dNdx;
-            BComp = BMatrixComputer(s);
-        end
+        
     end
     
 end
