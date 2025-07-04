@@ -88,14 +88,14 @@ classdef TutorialXXPhaseFieldHomogenization < handle
         function compute(obj)
             comb = table2array(combinations(obj.paramHole{:}));
             nComb = size(comb,1);
-            mat = zeros(3,3,nComb);
+            mat = zeros(2,2,2,2,nComb);
             phi = zeros(1,nComb);
             for i=1:nComb
                 hole = comb(i,:);
                 if i==1
                     hole = 1e-10*ones(size(hole));
                 end
-                mat(:,:,i) = obj.computeHomogenization(hole);
+                mat(:,:,:,:,i) = obj.computeHomogenization(hole);
                 phi(i)     = obj.computeDamageMetric(hole);
             end
             obj.Chomog = obj.assembleResults(mat);

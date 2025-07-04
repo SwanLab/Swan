@@ -25,30 +25,42 @@ classdef LHSIntegratorAnisotropicStiffness < LHSIntegrator
 
         function lhs = computeElementalLHS(obj)
             xV = obj.quadrature.posgp;
-            dNdxTs = obj.test.evaluateCartesianDerivatives(xV);
-            dNdxTr = obj.trial.evaluateCartesianDerivatives(xV);
+            dNTs = ShapeDer(obj.test);
+            dNTs = dNTs.evaluate(xV);
+            dNTr = ShapeDer(obj.trial);
+            dNTr = dNTr.evaluate(xV);
             dVolu = obj.mesh.computeDvolume(obj.quadrature);
             nGaus = obj.quadrature.ngaus;
             nElem = size(dVolu,2);
 
-            nNodETs = size(dNdxTs,2);
+            nNodETs = size(dNTs,2);
             nDofETs = nNodETs*obj.test.ndimf;
-            nNodETr = size(dNdxTr,2);
+            nNodETr = size(dNTr,2);
             nDofETr = nNodETr*obj.trial.ndimf;
 
-            Cmat    = obj.Celas;
-            BcompTs = obj.createBComputer(obj.test, dNdxTs);
-            BcompTr = obj.createBComputer(obj.trial, dNdxTr);
-            lhs = zeros(nDofETs,nDofETr,nElem);
+            Cmat = repmat(obj.Celas,[1 1 1 nGaus]);
+            Cmat = permute(Cmat, [1 2 4 3]);
+            K    = zeros(nDofETs,nDofETr,nElem);
             for iGaus = 1:nGaus
-                BmatTs = BcompTs.compute(iGaus);
-                BmatTr = BcompTr.compute(iGaus);
-                dV(1,1,:) = dVolu(iGaus,:)';
-                Bt   = permute(BmatTs,[2 1 3]);
-                BtC  = pagemtimes(Bt,Cmat);
-                BtCB = pagemtimes(BtC, BmatTr);
-                lhs = lhs + bsxfun(@times, BtCB, dV);
+                for inode = 1:nNodETs
+                    for jnode = 1:nNodETr
+                        for iDimf = 1:obj.test.ndimf
+                            idof = obj.test.ndimf*(inode-1)+iDimf;
+                            jdof = obj.trial.ndimf*(jnode-1)+iDimf;
+                            dV  = dVolu(iGaus,:)';
+                            dNi = dNTs(:,inode,iGaus,:);
+                            dNi = permute(dNi,[2 1 3 4]);
+                            dNj = dNTr(:,jnode,iGaus,:);
+                            Cg  = Cmat(:,:,iGaus,:);
+                            v   = pagemtimes(dNi,Cg);
+                            v    = squeeze(pagemtimes(v,dNj));
+                            K(idof, jdof, :)= squeeze(K(idof,jdof,:)) ...
+                                + v(:).*dV;
+                        end
+                    end
+                end
             end
+            lhs = K;
         end
 
     end
