@@ -14,7 +14,7 @@ classdef NonLocalDamageFunctional < handle
         end
         
         function F = computeFunctional(obj,phi,quadOrder)        
-            phiGradSquaredFun = norm(Expand(Grad(phi)),2).^2;
+            phiGradSquaredFun = norm(Grad(phi)).^2;
             int = Integrator.create('Function',obj.mesh,quadOrder);
             F   = (obj.constant*(obj.l0/2))*int.compute(phiGradSquaredFun);
         end
