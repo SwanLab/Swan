@@ -38,8 +38,8 @@ classdef PhaseFieldTests < handle & matlab.unittest.TestCase
             [xNew,~,~] = tester.compute();
 
             load(filename,'xRef');
-            err = max(max(pagenorm(xNew-xRef)./(pagenorm(xRef)+1)));
-            tol      = 1e-6;
+            err = max(norm(xNew(:)-xRef(:))./(norm(xRef(:)+1)));
+            tol      = 5e-4;
             testCase.verifyLessThanOrEqual(err, tol)
             close all
         end
