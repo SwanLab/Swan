@@ -71,11 +71,11 @@ classdef TopOptTestTutorialLSPerimeter < handle
             s.filterType   = 'PDE';
             s.boundaryType = 'Neumann';
             s.metric       = 'Anisotropy';
-            s.A = ConstantFunction.create(CGlobal,obj.mesh);
-            s.mesh  = obj.mesh;
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            f = Filter.create(s);
-            obj.filter = f;
+            s.A            = ConstantFunction.create(CGlobal,obj.mesh);
+            s.mesh         = obj.mesh;
+            s.trial        = LagrangianFunction.create(obj.mesh,1,'P1');
+            f              = Filter.create(s);
+            obj.filter     = f;
         end
 
         function createPerimeter(obj)
