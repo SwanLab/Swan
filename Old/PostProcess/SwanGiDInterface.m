@@ -5,8 +5,8 @@ classdef SwanGiDInterface < handle
         gidPath
         tclPath
 
-        gidMode = 'gid_offscreen -offscreen '; % 'gid '
-%         gidMode = 'gid '; % 'gid '
+%         gidMode = 'gid_offscreen -offscreen '; % 'gid '
+        gidMode = 'gid '; % 'gid '
     end
     
     properties (Access = private)
@@ -19,7 +19,7 @@ classdef SwanGiDInterface < handle
             run('UserVariables.m')
             obj.swanPath = pwd;
             obj.gidPath  = gid_path;
-            obj.tclPath  = fullfile([obj.swanPath, '/PostProcess/STL/']);
+            obj.tclPath  = [obj.swanPath, '/PostProcess/STL/'];
         end
 
         function generateMesh(obj, resultsFile)
@@ -53,41 +53,25 @@ classdef SwanGiDInterface < handle
     methods (Access = private)
 
         function writeSurfaceTclFile(obj, resultsFile)
-            tclFile = fullfile([obj.tclPath,'callGiD_CreateSurface.tcl']);
+            tclFile = [obj.tclPath,'callGiD_CreateSurface.tcl'];
             stlFileTocall = 'CreateSurfaceNew.tcl';
-            gidBasPath = fullfile([obj.gidPath,'templates\DXF.bas']);
+            gidBasPath = [obj.gidPath,'templates/DXF.bas'];
             fid = fopen(tclFile,'w+');
             fprintf(fid,['set path "',obj.tclPath,'"\n']);
             fprintf(fid,['set tclFile "',stlFileTocall,'"\n']);
             fprintf(fid,['source $path$tclFile \n']);
-            fprintf(fid,['set output "$path\sampleMesh" \n']);
+            fprintf(fid,['set output "$path/sampleMesh" \n']);
             fprintf(fid,['set inputFile "',resultsFile,'"\n']);
-            fprintf(fid,['set meshFile "$path\sampleMesh" \n']);
-            fprintf(fid,['set gidProjectName "$path\sampleMesh" \n']);
+            fprintf(fid,['set meshFile "$path/sampleMesh" \n']);
+            fprintf(fid,['set gidProjectName "$path/sampleMesh" \n']);
             fprintf(fid,['set gidBasPath "',gidBasPath,'" \n']);
             fprintf(fid,['CreateSurfaceNew $inputFile $output $meshFile $gidProjectName $gidBasPath \n']);
-
-%             fprintf(fid, 'set path "%s"\n', obj.tclPath);
-%             fprintf(fid, 'set tclFile "%s"\n', stlFileTocall);
-%             fprintf(fid, 'source $path$tclFile\n');
-%             fprintf(fid, 'set output "$path\sampleMesh"\n');
-%             fprintf(fid, 'set inputFile "%s"\n', resultsFile);
-%             fprintf(fid, 'set meshFile "$path\sampleMesh"\n');
-%             fprintf(fid, 'set gidProjectName "$path\sampleMesh"\n');
-%             fprintf(fid, 'set gidBasPath "%s"\n', gidBasPath);
-%             fprintf(fid, 'CreateSurfaceNew $inputFile $output $meshFile $gidProjectName $gidBasPath\n');
-
             fclose(fid);
         end
 
         function runSurfaceTcl(obj)
             % Create Surface
-%             command = obj.callGiDFunctionFile('callGiD_CreateSurface.tcl"');
-            command = ['"', ...
-            'C:\Program Files\GiD\GiD 17.0.4\gid_offscreen', ...
-            '" -offscreen -t "source ', ...
-            '"C:/Users/Biel/Desktop/UNI/TFG/PostProcess/STL/callGiD_CreateSurface.tcl"', ...
-            '"'];
+            command = obj.callGiDFunctionFile('callGiD_CreateSurface.tcl"');
             system(command);
         end
 
@@ -99,25 +83,14 @@ classdef SwanGiDInterface < handle
             fprintf(fid,['set path "',obj.tclPath,'"\n']);
             fprintf(fid,['set tclFile "',stlFileTocall,'"\n']);
             fprintf(fid,['source $path$tclFile \n']);
-            fprintf(fid,['set gidProjectName "$path\sampleMesh" \n']);
+            fprintf(fid,['set gidProjectName "$path/sampleMesh" \n']);
             fprintf(fid,['GenerateMesh $gidProjectName \n']);
-
-%             fprintf(fid, 'set path "%s"\n', obj.tclPath);
-%             fprintf(fid, 'set tclFile "%s"\n', stlFileTocall);
-%             fprintf(fid, 'source $path$tclFile\n');
-%             fprintf(fid, 'set gidProjectName "$path\sampleMesh"\n');
-%             fprintf(fid, 'GenerateMesh $gidProjectName\n');
             fclose(fid);
         end
 
         function runGenerateMeshTcl(obj)
             % Generate Mesh
-            % command = obj.callGiDFunctionFile('callGiD_GenerateMesh.tcl"');
-            command = ['"', ...
-                'C:\Program Files\GiD\GiD 17.0.4\gid_offscreen', ...
-                '" -offscreen -t "source ', ...
-                '"C:/Users/Biel/Desktop/UNI/TFG/PostProcess/STL/callGiD_GenerateMesh.tcl"', ...
-                '"'];
+            command = obj.callGiDFunctionFile('callGiD_GenerateMesh.tcl"');
             system(command);
         end
 
@@ -126,22 +99,14 @@ classdef SwanGiDInterface < handle
             stlFileTocall = 'ExtrudeSurface.tcl';
             gidBasPath = [obj.gidPath,'templates/DXF.bas'];
             fid = fopen(tclFile,'w+');
-%             fprintf(fid,['set path "',obj.tclPath,'"\n']);
-%             fprintf(fid,['set tclFile "',stlFileTocall,'"\n']);
-%             fprintf(fid,['set mshname "sampleMesh.msh" \n']);
-%             fprintf(fid,['source $path$tclFile \n']);
-%             fprintf(fid,['set input "$path/HmmLetMeCook.msh" \n']);
-%             fprintf(fid,['set output "$path/sampleMesh" \n']);
-%             fprintf(fid,['set height "', sprintf('%f', height),'" \n']);
-%             fprintf(fid,['ExtrudeSurface $input $height $output \n']);
-            fprintf(fid, 'set path "%s"\n', obj.tclPath);
-            fprintf(fid, 'set tclFile "%s"\n', stlFileTocall);
-            fprintf(fid, 'set mshname "sampleMesh.msh"\n');
-            fprintf(fid, 'source $path$tclFile\n');
-            fprintf(fid, 'set input "$path/HmmLetMeCook.msh"\n');
-            fprintf(fid, 'set output "$path/sampleMesh"\n');
-            fprintf(fid, 'set height "%f"\n', height);
-            fprintf(fid, 'ExtrudeSurface $input $height $output\n');
+            fprintf(fid,['set path "',obj.tclPath,'"\n']);
+            fprintf(fid,['set tclFile "',stlFileTocall,'"\n']);
+            fprintf(fid,['set mshname "sampleMesh.msh" \n']);
+            fprintf(fid,['source $path$tclFile \n']);
+            fprintf(fid,['set input "$path/HmmLetMeCook.msh" \n']);
+            fprintf(fid,['set output "$path/sampleMesh" \n']);
+            fprintf(fid,['set height "', sprintf('%f', height),'" \n']);
+            fprintf(fid,['ExtrudeSurface $input $height $output \n']);
             fclose(fid);
         end
 
@@ -156,20 +121,13 @@ classdef SwanGiDInterface < handle
             stlFileTocall = 'ExportSTL.tcl';
             fid = fopen(tclFile,'w+');
             gidBasPath = [obj.gidPath,'templates/STL.bas'];
-%             fprintf(fid,['set path "',obj.tclPath,'"\n']);
-%             fprintf(fid,['set tclFile "',stlFileTocall,'"\n']);
-%             fprintf(fid,['source $path$tclFile \n']);
-%             fprintf(fid,['set input "$path/HmmLetMeCook.msh" \n']);
-%             fprintf(fid,['set output "$path/sampleMeshFile.stl" \n']);
-%             fprintf(fid,['set gidBasPath "',gidBasPath,'" \n']);
-%             fprintf(fid,['ExportSTL $input $output $gidBasPath \n']);
-            fprintf(fid, 'set path "%s"\n', obj.tclPath);
-            fprintf(fid, 'set tclFile "%s"\n', stlFileTocall);
-            fprintf(fid, 'source $path$tclFile\n');
-            fprintf(fid, 'set input "$path/HmmLetMeCook.msh"\n');
-            fprintf(fid, 'set output "$path/sampleMeshFile.stl"\n');
-            fprintf(fid, 'set gidBasPath "%s"\n', gidBasPath);
-            fprintf(fid, 'ExportSTL $input $output $gidBasPath\n');
+            fprintf(fid,['set path "',obj.tclPath,'"\n']);
+            fprintf(fid,['set tclFile "',stlFileTocall,'"\n']);
+            fprintf(fid,['source $path$tclFile \n']);
+            fprintf(fid,['set input "$path/HmmLetMeCook.msh" \n']);
+            fprintf(fid,['set output "$path/sampleMeshFile.stl" \n']);
+            fprintf(fid,['set gidBasPath "',gidBasPath,'" \n']);
+            fprintf(fid,['ExportSTL $input $output $gidBasPath \n']);
             fclose(fid);
         end
 
@@ -187,21 +145,14 @@ classdef SwanGiDInterface < handle
             stlFileTocall = 'ExportMSH.tcl';
             fid = fopen(tclFile,'w+');
             gidBasPath = [obj.gidPath,'templates/DXF.bas'];
-%             fprintf(fid,['set path "',obj.tclPath,'"\n']);
-%             fprintf(fid,['set swanpath "',obj.swanPath,'"\n']);
-%             fprintf(fid,['set tclFile "',stlFileTocall,'"\n']);
-%             fprintf(fid,['source $path$tclFile \n']);
-%             fprintf(fid,['set input "$swanpath/TempMeshFile.flavia.res" \n']);
-% %             fprintf(fid,['set output "$swanpath/resultingMesh.stl" \n']);
-%             fprintf(fid,['set gidBasPath "',gidBasPath,'" \n']);
-%             fprintf(fid,['ExportMSH $input $gidBasPath \n']);
-            fprintf(fid, 'set path "%s"\n', obj.tclPath);
-            fprintf(fid, 'set swanpath "%s"\n', obj.swanPath);
-            fprintf(fid, 'set tclFile "%s"\n', stlFileTocall);
-            fprintf(fid, 'source $path$tclFile\n');
-            fprintf(fid, 'set input "$swanpath/TempMeshFile.flavia.res"\n');
-            fprintf(fid, 'set gidBasPath "%s"\n', gidBasPath);
-            fprintf(fid, 'ExportMSH $input $gidBasPath\n');
+            fprintf(fid,['set path "',obj.tclPath,'"\n']);
+            fprintf(fid,['set swanpath "',obj.swanPath,'"\n']);
+            fprintf(fid,['set tclFile "',stlFileTocall,'"\n']);
+            fprintf(fid,['source $path$tclFile \n']);
+            fprintf(fid,['set input "$swanpath/TempMeshFile.flavia.res" \n']);
+%             fprintf(fid,['set output "$swanpath/resultingMesh.stl" \n']);
+            fprintf(fid,['set gidBasPath "',gidBasPath,'" \n']);
+            fprintf(fid,['ExportMSH $input $gidBasPath \n']);
             fclose(fid);
         end
 
@@ -252,15 +203,3 @@ classdef SwanGiDInterface < handle
     end
 
 end
-
-% command = ['"', ...
-%     'C:\Program Files\GiD\GiD 17.0.4\gid_offscreen', ...
-%     '" -offscreen -t "source ', ...
-%     '"C:/Users/Biel/Desktop/UNI/TFG/PostProcess/STL/callGiD_GenerateMesh.tcl"', ...
-%     '"'];
-
-% command = ['"', ...
-%     'C:\Program Files\GiD\GiD 17.0.4\gid_offscreen', ...
-%     '" -offscreen -t "source ', ...
-%     '"C:/Users/Biel/Desktop/UNI/TFG/PostProcess/STL/callGiD_CreateSurface.tcl"', ...
-%     '"'];
