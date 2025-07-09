@@ -176,9 +176,26 @@ function [c, ceq] = collocation_constraints_tf(z, N, rho, S, Cd0, k, Cl0, Clalph
 
     % Inequality constraint: y_i ≥ 0
     c = -y;
+
+    % Optimal trajectory 
+figure(100)
+plot(x, y, 'LineWidth', 2,'DisplayName','Trajectory') 
+hold on
+plot(x(1), y(1), 'go', 'MarkerSize', 7, 'MarkerFaceColor', 'g', 'DisplayName','Launch');
+plot(x(end),y(end),'ro', 'MarkerSize', 7, 'MarkerFaceColor','r','DisplayName','Impact');
+xlim([0 1.05*max(x)+0.01])
+ylim([min(0,1.05*min(y))  1.05*max(y)])
+grid on; box on
+xlabel('x [m]','Interpreter','latex')
+ylabel('y [m]','Interpreter','latex')
+title('Optimal trajectory','Interpreter','latex')
+legend('Location','best')
+set(gca,'FontSize',12)
+hold off
+
 end
 
-function [dx, dy, dv, dgamma] = dynamics(~, y, v, gamma, alpha, rho, S, Cd0, k, Cl0, Clalpha, m, g)
+function [dx, dy, dv, dgamma] = dynamics(x, y, v, gamma, alpha, rho, S, Cd0, k, Cl0, Clalpha, m, g)
     Cl = Cl0+Clalpha*alpha;
     Cd = Cd0+k* Cl^2;
     q = 0.5*rho*v^2;
@@ -189,4 +206,5 @@ function [dx, dy, dv, dgamma] = dynamics(~, y, v, gamma, alpha, rho, S, Cd0, k, 
     dy = v*sin(gamma);
     dv = -D/m-g*sin(gamma);
     dgamma = L/(m*v)-g*cos(gamma)/v;
+
 end
