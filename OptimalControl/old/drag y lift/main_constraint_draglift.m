@@ -57,30 +57,6 @@ function main_constraint_draglift
     'FiniteDifferenceType', 'central', ...
     'FiniteDifferenceStepSize', 1e-6);
 
-    % Antes de llamar a fmincon, tras definir u0, lb, ub, etc.:
-t_nodes = linspace(t0, tf_guess, N);      % nodos de control iniciales
-% (en cada iteración de fmincon habrá que actualizar tf y volver a crear el interpolant;
-% lo hacemos dentro de la función no-lineal y en f_cost)
-
-% Y definimos un interpolante cúbico:
-alpha = @(t, alpha_vec, tf) ...
-    griddedInterpolant( ...
-      linspace(0,tf, numel(alpha_vec)), ...  % vector de tiempo
-      [alpha_vec; alpha_vec(end)], ...       % extiendo para t=tf
-      'pchip', ...                           % shape-preserving spline
-      'nearest' ...                          % extrapolación constante
-    );
-
-% Luego, en tu función dynamics, en lugar de:
-%   t_span = linspace(0, tf, N);
-%   alpha = interp1(t_span, alpha_vec, t);
-%
-% harías algo como:
-%
-%   F = alphaInterp(t, alpha_vec, tf);
-%   alpha = F(t);
-
-
     [u_opt, ~] = fmincon(cost, u0, [], [], [], [], lb, ub, nonlcon_fun, options);
 
     y0 = [x1_0 x2_0 v0 gamma0];
