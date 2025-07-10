@@ -64,10 +64,10 @@ classdef ExploringOptimalShapeFromFusionCUBESAT < handle
             obj.volume = obj.mesh.computeVolume();
             % Fa falta restar 
             %boxVolume = 2e5;
-            InitialVolume = 6.681e3;
-           % preservedVolume = 
-            beamVolume = obj.volume; %-boxVolume;
-            obj.fractionVolume = beamVolume/InitialVolume;
+            PreservedVolume = 66.814;
+            InitialVolume = 599.6;
+            cubesatVolume = obj.volume - PreservedVolume;
+            obj.fractionVolume = cubesatVolume/InitialVolume;
         end
 
         function createDesignVariable(obj)

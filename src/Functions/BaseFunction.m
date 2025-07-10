@@ -11,6 +11,10 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
 
     properties (GetAccess = public, SetAccess = protected)
         mesh
+        %ndimf
+    end
+
+    properties (GetAccess = public, SetAccess = public)
         ndimf
     end
 

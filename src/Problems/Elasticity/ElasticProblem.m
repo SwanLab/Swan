@@ -161,7 +161,9 @@ classdef ElasticProblem < handle
             quad = Quadrature.create(obj.mesh, 2);
             xV = quad.posgp;
             obj.stressFun = DDP(obj.material, obj.strainFun);
+            obj.stressFun.ndimf = 6; % (3D)
             obj.stress = obj.stressFun.evaluate(xV);
+            obj.stressFun.setFValues(obj.stress);
         end
 
     end
