@@ -88,19 +88,7 @@ classdef TestingPhaseField < handle
 
         function phi = setInitialDamage(obj,phi)
             fValues = phi.fValues;
-            fValues(:) = 1e-8;
-            m = obj.mesh;
-
-            coordB = m.coord;
-            ycoord = coordB(:,2);
-            xcoord = coordB(:,1);
-            ymiddle = (max(ycoord)-min(ycoord))/2;
-            xmiddle = (max(xcoord)-min(xcoord))/2;
-            eps = m.computeMeanCellSize;
-            isMiddleY = abs(ycoord - ymiddle) < eps;
-            isBelowMiddleX = (xcoord - xmiddle) < eps;
-            fValues(isMiddleY & isBelowMiddleX) = 1;
-
+            fValues(:) = 0;
             phi.setFValues(fValues);
         end
 
