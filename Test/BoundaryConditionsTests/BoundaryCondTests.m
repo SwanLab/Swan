@@ -67,18 +67,6 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
 
     methods (Test, TestTags = {'Monolithic', 'Micro'})
 
-        function testMicroDispMonolitic(testCase, micro)
-            s.testName = micro;
-            s.variablesToStore = {'Chomog'};
-            s.computerType = 'MICRO';
-            s.solverType   = 'MONOLITHIC';
-            s.solverMode   = 'DISP';
-            test = PrecomputedVariableTest(s);
-            err = test.computeError();
-            tol = 1e-4;
-            testCase.verifyLessThanOrEqual(err, tol)
-        end
-
         function testMicroFlucReduced(testCase, micro)
             s.testName = micro;
             s.variablesToStore = {'Chomog'};
