@@ -1,4 +1,6 @@
 filename = 'test2d_micro';
+a.fileName = filename;
+gid = FemDataContainer(a);
 ptype = 'MICRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';

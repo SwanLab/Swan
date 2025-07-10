@@ -1,4 +1,6 @@
 filename = 'cantileverExample_80x40';
+a.fileName = filename;
+gid = FemDataContainer(a);
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';

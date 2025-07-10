@@ -1,20 +1,17 @@
 classdef LHSIntegratorAnisotropicStiffness < LHSIntegrator
 
     properties (Access = private)
-        CAnisotropic
-        Celas
-        alphaDeg
+        A
     end
 
     methods (Access = public)
 
         function obj = LHSIntegratorAnisotropicStiffness(cParams)
             obj@LHSIntegrator(cParams)
-            obj.initAnisotropicTensor(cParams);
+            obj.A = cParams.A;
         end
 
         function LHS = compute(obj)
-            obj.assemblyCMatrix();
             lhs = obj.computeElementalLHS();
             LHS = obj.assembleMatrix(lhs);
         end
@@ -38,9 +35,8 @@ classdef LHSIntegratorAnisotropicStiffness < LHSIntegrator
             nNodETr = size(dNTr,2);
             nDofETr = nNodETr*obj.trial.ndimf;
 
-            Cmat = repmat(obj.Celas,[1 1 1 nGaus]);
-            Cmat = permute(Cmat, [1 2 4 3]);
-            K    = zeros(nDofETs,nDofETr,nElem);
+            AxV = obj.A.evaluate(xV);
+            K   = zeros(nDofETs,nDofETr,nElem);
             for iGaus = 1:nGaus
                 for inode = 1:nNodETs
                     for jnode = 1:nNodETr
@@ -51,8 +47,8 @@ classdef LHSIntegratorAnisotropicStiffness < LHSIntegrator
                             dNi = dNTs(:,inode,iGaus,:);
                             dNi = permute(dNi,[2 1 3 4]);
                             dNj = dNTr(:,jnode,iGaus,:);
-                            Cg  = Cmat(:,:,iGaus,:);
-                            v   = pagemtimes(dNi,Cg);
+                            Ag  = AxV(:,:,iGaus,:);
+                            v   = pagemtimes(dNi,Ag);
                             v    = squeeze(pagemtimes(v,dNj));
                             K(idof, jdof, :)= squeeze(K(idof,jdof,:)) ...
                                 + v(:).*dV;
@@ -62,34 +58,5 @@ classdef LHSIntegratorAnisotropicStiffness < LHSIntegrator
             end
             lhs = K;
         end
-
     end
-
-    methods (Access = private)
-
-        function Bcomp = createBComputer(obj, fun, dNdx)
-            s.fun  = fun;
-            s.dNdx = dNdx;
-            Bcomp = BMatrixComputer(s);
-        end
-
-        function initAnisotropicTensor(obj,cParams)
-            CLocal = cParams.CAnisotropic;
-            obj.alphaDeg = cParams.aniAlphaDeg;
-            obj.CAnisotropic = obj.rotateAnisotropicMatrix(CLocal);
-        end
-
-        function CGlobal = rotateAnisotropicMatrix(obj,CLocal)
-            R = [cosd(obj.alphaDeg),-sind(obj.alphaDeg)
-                sind(obj.alphaDeg), cosd(obj.alphaDeg)];
-            CGlobal = R*CLocal*R';
-        end
-
-        function assemblyCMatrix(obj)
-            nelem = size(obj.mesh.connec,1);
-            C = repmat(obj.CAnisotropic, [1 1 nelem]);
-            obj.Celas = C;
-        end
-    end
-
 end
