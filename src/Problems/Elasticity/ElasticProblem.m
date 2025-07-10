@@ -163,7 +163,8 @@ classdef ElasticProblem < handle
             obj.stressFun = DDP(obj.material, obj.strainFun);
             obj.stressFun.ndimf = 6; % (3D)
             obj.stress = obj.stressFun.evaluate(xV);
-            obj.stressFun.setFValues(obj.stress);
+            stressP0 = obj.stressFun.project('P0');
+            %obj.stressFun.setFValues(obj.stress);
         end
 
     end
