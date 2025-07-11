@@ -3,8 +3,10 @@ module SGD
 export SGDStruct, compute
 
 using ..Trainer  # Use the parent module where TrainerStruct is defined
-using Main.CostNN
-using Main.PlotterNN
+using ...CostNN
+using ...PlotterNN
+#using Main.CostNN
+#using Main.PlotterNN
 using Dates  # For timing (like tic/toc)
 using Optim
 using Plots
@@ -92,15 +94,10 @@ function optimize(obj::SGDStruct, th0::Vector{Float64})
     alarm        = 0.0
     minTestError = 1.0
     kpi = KPI(1, 0.0, 1.0, 1.0)
-    #=
-    KPI = Dict(
-        :epoch => 1,
-        :alarm => 0,
-        :gnorm => 1.0,
-        :cost  => 1.0
-    )
-    =#
-    theta = th0
+
+    theta = copy(th0)
+    xnew = similar(theta) # preallocate xnew with same size and type
+
     while !isCriteriaMet(obj, kpi)
         #state = iter == -1 ? :init : :iter
         newEpoch = true
@@ -108,7 +105,8 @@ function optimize(obj::SGDStruct, th0::Vector{Float64})
 
         while !obj.trainer.objectiveFunction.isBatchDepleted || newEpoch
             f, grad = computeStochasticFunctionAndGradient(obj, theta, moveBatch)
-            epsilon, theta, funcount = lineSearch(obj, theta, grad, f, epsilon, funcount)
+            epsilon, funcount = lineSearch!(obj, xnew, theta, grad, f, epsilon, funcount)
+            theta .= xnew  # update theta with xnew content (in-place copy)
 
             funcount += 1
             iter += 1
@@ -139,8 +137,9 @@ function computeStochasticFunctionAndGradient(obj::SGDStruct, theta::Vector{Floa
     return f, grad
 end
 
-function lineSearch(
+function lineSearch!(
     obj::SGDStruct,
+    xnew::Vector{Float64},
     x::Vector{Float64},
     grad::Vector{Float64},
     fOld::Float64,
@@ -151,19 +150,19 @@ function lineSearch(
     F = theta -> computeStochasticFunctionAndGradient(obj, theta, moveBatch)
 
     type = obj.lSearchType
-    xnew = copy(x)  # Default fallback
+    #xnew = copy(x)  # Default fallback
 
     if type == "static"
-        xnew = step(obj, x, e, grad)
+        step!(xnew, x, e, grad)
 
     elseif type == "decay"
-        xnew = step(obj, x, e, grad)
+        step!(xnew, x, e, grad)
         e *= (1 - 1e-3)
 
     elseif type == "dynamic"
         f = fOld
         while f >= 1.001 * (fOld - e * dot(grad, grad))
-            xnew = step(obj, x, e, grad)
+            step!(xnew, x, e, grad)
             f, _ = F(xnew)
             e /= 2
             funcount += 1
@@ -179,10 +178,10 @@ function lineSearch(
 
     else
         @warn "Unknown line search type: $type. Defaulting to static step."
-        xnew = step(obj, x, e, grad)
+        step!(xnew, x, e, grad)
     end
 
-    return e, xnew, funcount
+    return e, funcount
 end
 
 function updateCriteria(obj::SGDStruct, kpi::KPI)
@@ -268,6 +267,9 @@ function step(obj::SGDStruct, x::Vector{Float64}, e::Float64, grad::Vector{Float
     return x .- e .* grad
 end
 
+function step!(xnew::Vector{Float64}, x::Vector{Float64}, e::Float64, grad::Vector{Float64})
+    @. xnew = x - e * grad
+end
 
 
 

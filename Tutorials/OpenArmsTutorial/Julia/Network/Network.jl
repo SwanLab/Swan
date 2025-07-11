@@ -3,7 +3,8 @@ module Network
 export Net, computeYOut, backprop, networkGradient, computeLastH, getLearnableVariables
 
 include("../LearnableVariables/LearnableVariables.jl")
-using .LearnableVariables 
+using .LearnableVariables
+using LinearAlgebra
 
 mutable struct Net
     hiddenLayers::Vector{Int}
@@ -15,27 +16,14 @@ mutable struct Net
     HUtype::String
     OUtype::String
     learnableVariables::LearnableVars
-    aValues::Union{Vector{Any}, Nothing}
-    deltag::Union{Vector{Any}, Nothing}
+    aValues::Vector{Matrix{Float64}}
+    deltag::Vector{Matrix{Float64}}
 end
 
 function Net(cParams::Dict{String, Any})
     data = cParams["data"]
     hiddenLayers = Vector{Int}(cParams["hiddenLayers"])
     nFeatures = data.nFeatures
-
-    #=
-    # Necessary for Matlab communication only, conditional for robustness
-    Xraw = data.Xtrain
-    if ndims(Xraw) == 2
-        # Already a matrix, keep as is
-        Xtrain = Xraw
-    else
-        # Assume it's a vector of vectors, concatenate and transpose
-        Xtrain = hcat(Xraw...)'
-    end
-    data["Xtrain"] = Xtrain
-    =#
 
     nPolyFeatures = size(data.Xtrain, 2)
     nLabels = data.nLabels
@@ -49,13 +37,8 @@ function Net(cParams::Dict{String, Any})
         "nLayers" => nLayers
     )
 
-    # Pass thetavec if available in full args (maybe only Matlab necessary)
-    if haskey(cParams, "thetavec")
-        println("Net received thetavec, passing it to LearnableVars")
-        learnableParams["thetavec"] = cParams["thetavec"]
-    end
-
     learnableVariables = LearnableVars(learnableParams) # equivalent to createLearnableVariables
+    aValues = [zeros(0,0) for _ in 1:nLayers]
 
     return Net(
         hiddenLayers,
@@ -67,8 +50,8 @@ function Net(cParams::Dict{String, Any})
         HUtype,
         OUtype,
         learnableVariables,
-        nothing, # aValues
-        nothing  # deltag
+        aValues, # aValues
+        [zeros(size(aValues[i])) for i in 1:nLayers]  # deltag
     )
 end
 
@@ -82,27 +65,34 @@ function backprop(obj::Net, Yb::Matrix{Float64}, dLF::Matrix{Float64})
     a = obj.aValues
     nPl = obj.neuronsPerLayer
     nLy = obj.nLayers
-    m = size(Yb, 1)
+    m = size(Yb, 1) # Batch size
 
     #obj.deltag = fill(nothing, nLy)
+    #=
     dcW = Vector{Any}(undef, nLy - 1)
     dcB = Vector{Any}(undef, nLy - 1)
-    obj.deltag = Vector{Any}(undef, nLy)
-    #obj.deltag[1] = zeros(0)  # Match MATLAB’s {0x0 double}
+    =#
+    dcW = [zeros(nPl[k-1], nPl[k]) for k in 2:nLy]
+    dcB = [zeros(nPl[i+1]) for i in 1:nLy-1]
+    obj.deltag = [zeros(m, nPl[i]) for i in 1:nLy]
 
     for k in reverse(2:nLy)
         _, g_der = actFCN(obj, a[k], k)
         if k == nLy
-            obj.deltag[k] = dLF .* g_der
+            obj.deltag[k] .= dLF .* g_der
         else
-            #obj.deltag[k] = (W[k] * obj.deltag[k+1]')' .* g_der
-            obj.deltag[k] = (obj.deltag[k+1] * W[k]') .* g_der
+            #obj.deltag[k] = (obj.deltag[k+1] * W[k]') .* g_der
+            mul!(obj.deltag[k], obj.deltag[k+1], W[k]')
+            obj.deltag[k] .*= g_der
         end
-        dcW[k-1] = (1 / m) * (a[k-1]' * obj.deltag[k])
-        dcB[k-1] = vec(sum(obj.deltag[k], dims=1)) / m
-        #dcB[k-1] = (1 / m) * sum(obj.deltag[k], dims=1)
-        
+        #dcW[k-1] = (1 / m) * (a[k-1]' * obj.deltag[k])
+        #dcB[k-1] = vec(sum(obj.deltag[k], dims=1)) / m
+
+        mul!(dcW[k-1], a[k-1]', obj.deltag[k])
+        dcW[k-1] ./= m
+        dcB[k-1] .= sum(obj.deltag[k], dims=1)' ./ m
     end
+    
     dc = Float64[]
     for i in 2:nLy
         aux1 = vcat(vec(dcW[i-1]), vec(dcB[i-1]))
@@ -152,17 +142,15 @@ end
 function computeAvalues(obj::Net, X::Matrix{Float64})
     W, b = reshapeInLayerForm(obj.learnableVariables)
     nLy = obj.nLayers
-    a = Vector{Any}(undef, nLy)
-    a[1] = X
+    obj.aValues[1] = X
     for i in 2:nLy
-        g_prev = a[i-1]
+        g_prev = obj.aValues[i-1]
         Wi = W[i-1]
         bi = b[i-1]
         h = hypothesisfunction(g_prev, Wi, bi)
         g, _ = actFCN(obj, h, i)
-        a[i] = g
+        obj.aValues[i] = g
     end
-    obj.aValues = a
 end
 
 function actFCN(obj::Net, z::Matrix{Float64}, k::Int)

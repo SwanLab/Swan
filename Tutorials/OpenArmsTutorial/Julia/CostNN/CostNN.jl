@@ -3,8 +3,6 @@ module CostNN
 export CostNNStruct, computeFunctionAndGradient, computeStochasticFunctionAndGradient,
        obtainNumberFields, getTitleFields, getFields, setBatchMover, validateES
 
-#import ..LossFunctional
-#import ..Sh_Func_L2norm 
 using ..LossFunctional
 using ..Sh_Func_L2norm
 using ..Network
@@ -19,22 +17,34 @@ mutable struct CostNNStruct
     moveBatch::Bool
 
     shapeValues::Vector{Float64}
+
+    Jc::Vector{Any}
+    dJc::Vector{Any}
+    
 end
 
 function CostNNStruct(cParams::Dict{String, Any})
+    shapeFuncs = cParams["shapeFunctions"]
+    nF = length(shapeFuncs)
+
+    # Preallocate Jc and dJc vectors with undefined entries, will fill later
+    Jc = Vector{Any}(undef, nF)
+    dJc = Vector{Any}(undef, nF)
+
     return CostNNStruct(
         0.0,                             # value
         zeros(0),                        # gradient
         false,                           # isBatchDepleted
-        cParams["shapeFunctions"],       # shapeFunctions (vector of modules)
+        shapeFuncs,                      # shapeFunctions (vector of modules)
         cParams["weights"],              # weights for each shape function
         true,                            # moveBatch default
-        Float64[]                            # shapeValues
+        Float64[],                       # shapeValues
+        Jc,
+        dJc
     )
 end
 
 function computeFunctionAndGradient(obj::CostNNStruct, x::Vector{Float64})
-    #compFunc = (shI, x) -> computeFunctionAndGradient(shI, x)
     compFunc = (shI, x) -> 
         isa(shI, LossFunctional.LossFunctionalStruct) ? LossFunctional.computeFunctionAndGradient(shI, x) :
         isa(shI, Sh_Func_L2norm.ShFuncL2norm) ? Sh_Func_L2norm.computeFunctionAndGradient(shI, x) :
@@ -113,7 +123,7 @@ function computeValueAndGradient_2arg(obj::CostNNStruct, x::Vector{Float64}, com
         j, dJ = compFunc(shI, x)
         bDa[iF] = false
         Jc[iF] = j
-        dJc[iF] = mergeGradient(dJ)
+        dJc[iF] = dJ #mergeGradient(dJ)
     end
 
     jV = 0.0
@@ -133,26 +143,22 @@ end
 function computeValueAndGradient_3arg(obj::CostNNStruct, x::Vector{Float64}, compFunc)
     nF = length(obj.shapeFunctions)
     bDa = falses(nF)
-    Jc = Vector{Any}(undef, nF)
-    dJc = Vector{Any}(undef, nF)
 
     for iF in 1:nF
         shI = obj.shapeFunctions[iF]
-        j, dJ, bD = compFunc(shI, x, obj.moveBatch)
+        obj.Jc[iF], obj.dJc[iF], bD = compFunc(shI, x, obj.moveBatch)
         bDa[iF] = bD
-        Jc[iF] = j
-        dJc[iF] = mergeGradient(dJ)
     end
 
     jV = 0.0
-    djV = zeros(size(dJc[1]))
+    djV = zeros(size(obj.dJc[1]))
     for iF in 1:nF
-        jV += obj.weights[iF] * Jc[iF]
-        djV .+= obj.weights[iF] * dJc[iF]
+        jV += obj.weights[iF] * obj.Jc[iF]
+        djV .+= obj.weights[iF] * obj.dJc[iF]
     end
 
     obj.isBatchDepleted = any(bDa)
-    obj.shapeValues = Jc
+    obj.shapeValues = obj.Jc
 
     return jV, djV
 end

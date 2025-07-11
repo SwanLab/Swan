@@ -16,6 +16,7 @@ mutable struct TrainerStruct
     isDisplayed::Bool
     costHist::Matrix{Float64}
     optHist::Matrix{Float64}
+    epoch_counter::Int
     #maxEpochs::Int64
 end
 
@@ -32,11 +33,12 @@ function TrainerStruct(cParams::Dict{String, Any})
     return TrainerStruct(
         objFunc,
         designVar,
-        Vector{Vector{Float64}}(undef, maxEpochs),  # xIter
-        1,                          # nPlot
-        false,                      # isDisplayed
-        zeros(maxEpochs, 3),                # costHist
-        zeros(maxEpochs, 2),                 # optHist
+        [zeros(length(designVar.thetavec)) for _ in 1:maxEpochs], # xIter
+        1,                              # nPlot
+        false,                          # isDisplayed
+        zeros(maxEpochs, 3),            # costHist
+        zeros(maxEpochs, 2),            # optHist
+        1                               # epoch_counter
         #maxEps
     )
 end
@@ -94,8 +96,7 @@ function storeValues!(
     opt::OptInfo
 )
     # No need for an "if state == init" because t.costHist and t.optHist already initialized to zeros
-        epoch = findfirst(isequal(nothing), t.xIter)
-        epoch = epoch === nothing ? length(t.xIter) + 1 : epoch
+        epoch = t.epoch_counter
 
         t.costHist[epoch, :] .= [
             f,
@@ -103,7 +104,9 @@ function storeValues!(
             t.objectiveFunction.loss
         ]
         t.optHist[epoch, :] .= [opt.gnorm, opt.epsilon]
-        t.xIter[epoch] = copy(x)
+        t.xIter[epoch] .= x # in-place copy
+
+        t.epoch_counter += 1  # increment counter
 end
 
 function plotEpsOpt(t::TrainerStruct, v::Vector{Int})
