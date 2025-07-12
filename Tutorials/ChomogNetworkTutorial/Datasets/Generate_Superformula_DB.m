@@ -16,15 +16,15 @@ min_radius = 0.1;
 
 min_semiAxis = 0.2;
 max_semiAxis = 0.4;
-nVar_semiAxis = 3;
+nVar_semiAxis = 50;
 
-min_mParam = 1;
+min_mParam = 8;
 max_mParam = 8;
 nVar_mParam = 1 + (max_mParam - min_mParam);
 
 min_nParam = 2;
-max_nParam = 12;
-nVar_nParam = 4;
+max_nParam = 18;
+nVar_nParam = 100;
 
 % Data-file storage
 data_filename = 'Tutorials/ChomogNetworkTutorial/Datasets/Chomog_superformula_Big.csv';
@@ -41,14 +41,16 @@ nVar_total = 0;
 for n_sh = 1:nVar_semiAxis
     for n_mp = 1:nVar_mParam
         for n_n1 = 1:nVar_nParam
-            for n_n2 = 1:nVar_nParam
-                for n_n3 = 1:nVar_nParam
+            %for n_n2 = 1:nVar_nParam
+                %for n_n3 = 1:nVar_nParam
                     % Fetch superformula parameters
                     gPar.semiVerticalAxis = semiAxisArray(n_sh); % b
                     gPar.m  = mParamArray(n_mp);
                     gPar.n1 = nParamArray(n_n1);
-                    gPar.n2 = nParamArray(n_n2);
-                    gPar.n3 = nParamArray(n_n3);
+                    gPar.n2 = nParamArray(n_n1);
+                    gPar.n3 = nParamArray(n_n1);
+                    %gPar.n2 = nParamArray(n_n2);
+                    %gPar.n3 = nParamArray(n_n3);
 
                     % S'ajusta a per un b donat per aconseguir un radi desitjat!!
                     gPar.semiHorizontalAxis = gPar.semiVerticalAxis^(gPar.n3/gPar.n2);
@@ -56,8 +58,8 @@ for n_sh = 1:nVar_semiAxis
                     if fun_super_eval(gPar, min_radius, max_radius)
                         nVar_total = nVar_total + 1;
                     end
-                end
-            end
+                %end
+            %end
         end
     end
 end
@@ -71,14 +73,16 @@ n_counter = 0;
 for n_sh = 1:nVar_semiAxis
     for n_mp = 1:nVar_mParam
         for n_n1 = 1:nVar_nParam
-            for n_n2 = 1:nVar_nParam
-                for n_n3 = 1:nVar_nParam
+            %for n_n2 = 1:nVar_nParam
+                %for n_n3 = 1:nVar_nParam
                     % Fetch superformula parameters
                     gPar.semiVerticalAxis = semiAxisArray(n_sh); % b
                     gPar.m  = mParamArray(n_mp);
                     gPar.n1 = nParamArray(n_n1);
-                    gPar.n2 = nParamArray(n_n2);
-                    gPar.n3 = nParamArray(n_n3);
+                    gPar.n2 = nParamArray(n_n1);
+                    gPar.n3 = nParamArray(n_n1);
+                    %gPar.n2 = nParamArray(n_n2);
+                    %gPar.n3 = nParamArray(n_n3);
 
                     % S'ajusta a per un b donat per aconseguir un radi desitjat!!
                     gPar.semiHorizontalAxis = gPar.semiVerticalAxis^(gPar.n3/gPar.n2);
@@ -118,8 +122,8 @@ for n_sh = 1:nVar_semiAxis
                         fun_logProgress(n_counter, nVar_total);
                     end
 
-                end
-            end
+                %end
+            %end
         end
     end
 end
