@@ -4,7 +4,6 @@ classdef RHSIntegratorElasticMicro < handle
         dim
         mesh
         boundaryConditions
-        vstrain
         material
         globalConnec
 
@@ -17,14 +16,14 @@ classdef RHSIntegratorElasticMicro < handle
             obj.init(cParams);
         end
 
-        function Fext = compute(obj,strainBase)
+        function Fext = compute(obj,strainBase,test)
       %      oX     = zeros(obj.dim.ndimf,1);
      %       nVoigt = size(obj.material.evaluate(oX),1);
      %       basis   = diag(ones(nVoigt,1));
      %       Fvol = zeros(obj.dim.ndofs, nVoigt);
      %       for iVoigt = 1:nVoigt
       %          vstrain = basis(iVoigt,:);
-                FvolE = obj.computeStrainRHS(strainBase);
+                FvolE = obj.computeStrainRHS(strainBase,test);
        %         Fvol(:,iVoigt)  = obj.assembleVector(FvolE);
             Fvol = obj.assembleVector(FvolE);
        %     end
@@ -78,47 +77,26 @@ classdef RHSIntegratorElasticMicro < handle
         end
         
         
-        function F = computeStrainRHS(obj,strain)
-            quad = Quadrature.create(obj.mesh, 1);
-            xV    = quad.posgp;
-            dVol  = obj.mesh.computeDvolume(quad)';
-            Cmat  = obj.material.evaluate(xV);
-            nunkn = obj.dim.ndimf;
-            nstre = size(Cmat,1);
-            nelem = size(Cmat,4);
-            nnode = obj.dim.nnodeElem;
-            ngaus = quad.ngaus;
-
-            eforce = zeros(nunkn*nnode,ngaus,nelem);
-            sigma = zeros(nstre,ngaus,nelem);
-
-            ndimf = size(obj.mesh.coord,2);
-            s.fun  = LagrangianFunction.create(obj.mesh,ndimf,'P1');
-            s.dNdx = s.fun.evaluateCartesianDerivatives(xV);
+        function F = computeStrainRHS(obj,strain,test)
+            quad    = Quadrature.create(obj.mesh, 1);
+            xV      = quad.posgp;
+            ngaus   = size(xV,2);
+            dSymN   = ShapeDerSym(test);
+            symN    = dSymN.evaluate(xV);
+            dV      = obj.mesh.computeDvolume(quad);
+            C       = obj.material.evaluate(xV);
             vstrain = strain.evaluate(xV);
-
-            Bcomp = BMatrixComputer(s);
-            for igaus = 1:ngaus
-                Bmat    = Bcomp.compute(igaus);
-                dV(:,1) = dVol(:,igaus);
-                for istre = 1:nstre
-                    for jstre = 1:nstre
-                        Cij = squeeze(Cmat(istre,jstre,igaus,:));
-                        vj  = squeeze(vstrain(jstre,:,:));
-                        si  = squeeze(sigma(istre,igaus,:));
-                        sigma(istre,igaus,:) = si + Cij.*vj;
-                    end
-                end
-                for iv = 1:nnode*nunkn
-                    for istre = 1:nstre
-                        Biv_i = squeeze(Bmat(istre,iv,:));
-                        si    = squeeze(sigma(istre,igaus,:));
-                        Fiv   = squeeze(eforce(iv,igaus,:));
-                        eforce(iv,igaus,:) = Fiv + Biv_i.*si.*dV;
-                    end
-                end
+            nnodeE  = obj.mesh.nnodeElem;
+            ndim    = obj.mesh.ndim;
+            ndofE   = nnodeE*ndim;
+            nElem   = obj.mesh.nelem;
+            F       = zeros(ndofE,ngaus,nElem);
+            for i = 1:ndofE
+                symTest  = squeezeParticular(symN(:,:,i,:,:),3);
+                sig      = pagetensorprod(C,vstrain,[3 4],[1 2],4,2);
+                df       = pagetensorprod(symTest,sig,[1 2],[1 2],2,2);
+                F(i,:,:) = -df.*dV;
             end
-            F = -eforce;
         end
 
     end
