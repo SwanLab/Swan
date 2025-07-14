@@ -5,6 +5,7 @@ classdef ElasticProblem < handle
         strainFun
         stressFun
         forces
+        vonMises
     end
 
     properties (Access = private)
@@ -164,7 +165,9 @@ classdef ElasticProblem < handle
             obj.stressFun.ndimf = 6; % (3D)
             obj.stress = obj.stressFun.evaluate(xV);
             stressP0 = obj.stressFun.project('P0');
-            %obj.stressFun.setFValues(obj.stress);
+            sigma = stressP0.fValues;
+            obj.vonMises = sqrt(0.5*((sigma(:,1)-sigma(:,2)).^2 + (sigma(:,2)-sigma(:,3)).^2 ...
+                + (sigma(:,3)-sigma(:,1)).^2 )+3*(sigma(:,4).^2 + sigma(:,5).^2 + sigma(:,6).^2));
         end
 
     end
