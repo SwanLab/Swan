@@ -1,9 +1,10 @@
 module Network
 
-export Net, init_network, compute_output, forward_pass, backpropagation, compute_last_H, compute_gradient
+export Net, init_network, compute_output, forward_pass, backpropagation, compute_last_H, compute_gradient, get_learnable_variables
 
+#include("LearnableVariables.jl")
 using LinearAlgebra
-using LearnableVariables
+using ..LearnableVariables
 
 """
     Net
@@ -27,12 +28,12 @@ function init_network(params::Dict{String, Any})
     hidden_layers = Vector{Int}(params["hiddenLayers"])
     data = params["data"]
     n_inputs = size(data.Xtrain, 2)
-    n_outputs = data.nLabels
+    n_outputs = data.n_labels
 
     neurons = [n_inputs; hidden_layers; n_outputs]
     n_layers = length(neurons)
 
-    lv = init_learnable_vars(Dict(
+    lv = init_learnable_variables(Dict(
         "neuronsPerLayer" => neurons,
         "nLayers" => n_layers
     ))
@@ -45,27 +46,32 @@ end
 
 Computes network output for inputs X.
 """
-function compute_output(net::Net, X::Matrix{Float64})
-    a_values = forward_pass(net, X)
+function compute_output(net::Net, X::Matrix{Float64}, θ::Vector{Float64})
+    new_lv = set_theta(net.learnable_variables, θ)
+    updated_net = Net(net.neurons_per_layer, net.n_layers, net.hu_type, net.ou_type, new_lv)
+    a_values = forward_pass(updated_net, X, θ)
     return a_values[end]
 end
 
 """
     forward_pass(net, X)
 
-Performs a forward pass and returns (z_values, a_values), where:
+Performs a forward pass and returns (a_values), where:
 - z_values[k] is pre-activation at layer k
 - a_values[k] is activation at layer k
 """
-function forward_pass(net::Net, X::Matrix{Float64})
-    W, b = reshape_in_layer_form(net.learnable_variables)
+function forward_pass(net::Net, X::Matrix{Float64}, θ::Vector{Float64})
+    new_lv = set_theta(net.learnable_variables, θ)
+    updated_net = Net(net.neurons_per_layer, net.n_layers, net.hu_type, net.ou_type, new_lv)
+
+    W, b = reshape_in_layer_form(updated_net.learnable_variables)
     a_values = Vector{Matrix{Float64}}(undef, net.n_layers)
     a_values[1] = X
 
     for i in 2:net.n_layers
         z = a_values[i-1] * W[i-1] .+ b[i-1]'
         act_type = i == net.n_layers ? net.ou_type : net.hu_type
-        a = activation(z, act_type)
+        a = _activation(z, act_type)
         a_values[i] = a
     end
 
@@ -78,8 +84,11 @@ end
 Computes the gradient of the loss wrt weights using backpropagation.
 Returns a flattened gradient vector.
 """
-function backpropagation(net::Net, Y::Matrix{Float64}, dLF::Matrix{Float64}, a_values::Vector{Matrix{Float64}})
-    W, _ = reshape_in_layer_form(net.learnable_variables)
+function backpropagation(net::Net, Y::Matrix{Float64}, dLF::Matrix{Float64}, a_values::Vector{Matrix{Float64}}, θ::Vector{Float64})
+    new_lv = set_theta(net.learnable_variables, θ)
+    updated_net = Net(net.neurons_per_layer, net.n_layers, net.hu_type, net.ou_type, new_lv)
+
+    W, _ = reshape_in_layer_form(updated_net.learnable_variables)
     npl = net.neurons_per_layer
     m = size(Y, 1)
     nL = net.n_layers
@@ -91,7 +100,7 @@ function backpropagation(net::Net, Y::Matrix{Float64}, dLF::Matrix{Float64}, a_v
     for k in reverse(2:nL)
         z_k = a_values[k]
         act_type = k == nL ? net.ou_type : net.hu_type
-        g_der = activation_derivative(z_k, act_type)
+        g_der = _activation_derivative(z_k, act_type)
 
         if k == nL
             deltag[k] = dLF .* g_der
@@ -117,14 +126,18 @@ end
 
 Computes ∂a/∂x for final output layer wrt X.
 """
-function compute_gradient(net::Net, X::Matrix{Float64})
-    W, _ = reshape_in_layer_form(net.learnable_variables)
-    a_values = forward_pass(net, X)
+function compute_gradient(net::Net, X::Matrix{Float64}, θ::Vector{Float64})
+    new_lv = set_theta(net.learnable_variables, θ)
+    updated_net = Net(net.neurons_per_layer, net.n_layers, net.hu_type, net.ou_type, new_lv)
+
+    W, _ = reshape_in_layer_form(updated_net.learnable_variables)
+    a_values = forward_pass(updated_net, X, θ)
+
     nL = net.n_layers
 
     for k in reverse(1:nL-1)
         act_type = k+1 == nL ? net.ou_type : net.hu_type
-        a_der = activation_derivative(a_values[k+1], act_type)
+        a_der = _activation_derivative(a_values[k+1], act_type)
         A = Diagonal(vec(a_der))
         parDer = A * W[k]'
         grad = k+1 == nL ? parDer : grad * parDer
@@ -137,20 +150,27 @@ end
 
 Returns the last hidden layer activation (before output layer).
 """
-function compute_last_H(net::Net, X::Matrix{Float64})
-    W, b = reshape_in_layer_form(net.learnable_variables)
+function compute_last_H(net::Net, X::Matrix{Float64}, θ::Vector{Float64})
+    new_lv = set_theta(net.learnable_variables, θ)
+    updated_net = Net(net.neurons_per_layer, net.n_layers, net.hu_type, net.ou_type, new_lv)
+
+    W, b = reshape_in_layer_form(updated_net.learnable_variables)
     a = X
     for i in 1:(net.n_layers - 1)
         z = a * W[i] .+ b[i]'
         act_type = i == net.n_layers - 1 ? net.ou_type : net.hu_type
-        a = activation(z, act_type)
+        a = _activation(z, act_type)
     end
     return a
 end
 
+function get_learnable_variables(net::Net)
+    return net.learnable_variables
+end
+
 # --- Activation functions and their derivatives ---
 
-function activation(z::Matrix{Float64}, type::String)
+function _activation(z::Matrix{Float64}, type::String)
     if type == "sigmoid"
         return 1.0 ./ (1.0 .+ exp.(-z))
     elseif type == "tanh"
@@ -161,15 +181,15 @@ function activation(z::Matrix{Float64}, type::String)
         return z
     elseif type == "softmax"
         ez = exp.(z .- maximum(z, dims=2))
-        return ez ./ sum(ez, dims=2)
+        return ez ./ sum(ez, dims=2) # Approximate
     else
         error("Unknown activation type: $type")
     end
 end
 
-function activation_derivative(z::Matrix{Float64}, type::String)
+function _activation_derivative(z::Matrix{Float64}, type::String)
     if type == "sigmoid"
-        g = activation(z, type)
+        g = _activation(z, type)
         return g .* (1 .- g)
     elseif type == "tanh"
         g = tanh.(z)
@@ -179,7 +199,7 @@ function activation_derivative(z::Matrix{Float64}, type::String)
     elseif type == "linear"
         return ones(size(z))
     elseif type == "softmax"
-        g = activation(z, type)
+        g = _activation(z, type)
         return g .* (1 .- g)  # Approximate
     else
         error("Unknown activation type: $type")

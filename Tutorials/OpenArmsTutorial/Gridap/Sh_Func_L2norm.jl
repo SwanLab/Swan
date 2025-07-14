@@ -1,39 +1,62 @@
 module Sh_Func_L2norm
 
-export ShFuncL2norm, 
-       computeStochasticCostAndGradient, 
-       computeFunctionAndGradient,
-       computeCost, 
-       computeGradient
+export ShFuncL2normStruct, init_ShFuncL2norm, compute_stochastic_cost_and_gradient, compute_function_and_gradient
 
 using LinearAlgebra
 
-"Stateless structure representing the L2 regularization functional"
-struct ShFuncL2norm
-    # Placeholder for configuration parameters, if needed in future
+"""
+    ShFuncL2normStruct
+
+Immutable structure storing problem design parameters.
+"""
+struct ShFuncL2normStruct
+    designVariable::Dict{String, Any}
 end
 
-"Optional constructor accepting a Dict, for compatibility with existing design"
-ShFuncL2norm(cParams::Dict{String, Any}) = ShFuncL2norm()
+"""
+    init_ShFuncL2norm(params)
 
-function computeStochasticCostAndGradient(obj::ShFuncL2norm, x::Vector{Float64}, moveBatch=nothing)
-    j, dj = computeFunctionAndGradient(obj, x)
+Initializes a ShFuncL2normStruct from parameter dictionary.
+"""
+function init_ShFuncL2norm(params::Dict{String, Any})
+    return ShFuncL2normStruct(params["designVariable"])
+end
+
+"""
+    compute_stochastic_cost_and_gradient(obj, θ)
+
+Returns (cost, gradient, is_batch_depleted).
+For L2 norm, no batching logic is needed so is_batch_depleted is always false.
+"""
+function compute_stochastic_cost_and_gradient(obj::ShFuncL2normStruct, θ::Vector{Float64}, move_batch=nothing)
+    j, dj = compute_function_and_gradient(obj, θ)
     isBD = false
     return j, dj, isBD
 end
 
-function computeFunctionAndGradient(obj::ShFuncL2norm, x::Vector{Float64})
-    j = computeCost(obj, x)
-    dj = computeGradient(obj, x)
+"""
+    compute_function_and_gradient(obj, θ)
+
+Returns (cost, gradient).
+"""
+function compute_function_and_gradient(obj::ShFuncL2normStruct, θ::Vector{Float64})
+    j = compute_cost(θ)
+    dj = compute_gradient(θ)
     return j, dj
 end
 
-function computeCost(::ShFuncL2norm, x::Vector{Float64})
-    return 0.5 * dot(x, x)
-end
+"""
+    compute_cost(θ)
 
-function computeGradient(::ShFuncL2norm, x::Vector{Float64})
-    return x
-end
+Returns 0.5 * ||θ||².
+"""
+compute_cost(θ::Vector{Float64}) = 0.5 * dot(θ, θ)
+
+"""
+    compute_gradient(θ)
+
+Returns θ (gradient of 0.5 * ||θ||²).
+"""
+compute_gradient(θ::Vector{Float64}) = θ
 
 end

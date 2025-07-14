@@ -3,9 +3,9 @@ module LossFunctional
 export LossFunctional, init_lossfunctional, compute_loss_and_gradient, compute_stochastic_loss_and_gradient, get_test_error
 
 using LinearAlgebra
-using Network
-using LearnableVariables
-using Data
+using ..Network
+using ..LearnableVariables
+using ..Data
 using Random
 
 """
@@ -40,14 +40,13 @@ Full-batch cost and gradient.
 This includes auxiliar function computeGradient()
 """
 function compute_loss_and_gradient(lf::LossFunctionalStruct, θ::Vector{Float64})
-    lf.network.learnable_variables = set_theta(lf.network.learnable_variables, θ)
     X = lf.data.Xtrain
     Y = lf.data.Ytrain
 
-    a_vals = forward_pass(lf.network, X)
+    a_vals = forward_pass(lf.network, X, θ)
     y_out = a_vals[end]
-    j, dLF = compute_cost_and_dLF(lf, Y, y_out)
-    grad = backpropagation(lf.network, Y, dLF, a_vals)
+    j, dLF = _compute_cost_and_dLF(lf, Y, y_out)
+    grad = backpropagation(lf.network, Y, dLF, a_vals, θ)
 
     return j, grad
 end
@@ -59,11 +58,9 @@ Mini-batch cost and gradient with batch update logic.
 Returns (loss, grad, is_depleted, next_batch_id).
 """
 function compute_stochastic_loss_and_gradient(lf::LossFunctionalStruct, θ::Vector{Float64}, i_batch::Int, order::Vector{Int}, move_batch::Bool)
-    lf.network.learnable_variables = set_theta(lf.network.learnable_variables, θ)
-
     X = lf.data.Xtrain
     Y = lf.data.Ytrain
-    batch_size = compute_batch_size(X)
+    batch_size = _compute_batch_size(X)
     n_batches = fld(size(X, 1), batch_size)
 
     i_start = (i_batch - 1) * batch_size + 1
@@ -73,15 +70,15 @@ function compute_stochastic_loss_and_gradient(lf::LossFunctionalStruct, θ::Vect
     Xb = X[idx, :]
     Yb = Y[idx, :]
 
-    z_vals, a_vals = forward_pass(lf.network, Xb)
+    a_vals = forward_pass(lf.network, Xb, θ)
     y_out = a_vals[end]
-    j, dLF = compute_cost_and_dLF(lf, Yb, y_out)
-    grad = backpropagation(lf.network, Yb, dLF, a_vals)
+    j, dLF = _compute_cost_and_dLF(lf, Yb, y_out)
+    grad = backpropagation(lf.network, Yb, dLF, a_vals, θ)
 
     is_depleted = move_batch && i_batch == n_batches
-    #next_batch = move_batch ? (i_batch % n_batches) + 1 : i_batch
+    next_batch = move_batch ? (i_batch % n_batches) + 1 : i_batch
 
-    return j, grad, is_depleted #, next_batch
+    return j, grad, is_depleted, next_batch
 end
 
 """
@@ -89,8 +86,8 @@ end
 
 Returns misclassification rate on test set.
 """
-function get_test_error(lf::LossFunctionalStruct)
-    H = compute_last_H(lf.network, lf.data.Xtest)
+function get_test_error(lf::LossFunctionalStruct, θ::Vector{Float64})
+    H = compute_last_H(lf.network, lf.data.Xtest, θ)
     Ypred = map(row -> findmax(row)[2], eachrow(H))
     Ytarget = map(row -> findmax(row)[2], eachrow(lf.data.Ytest))
     return sum(Ypred .!= Ytarget) / length(Ytarget)
@@ -101,7 +98,7 @@ end
 
 Returns (loss, derivative w.r.t. final layer).
 """
-function compute_cost_and_dLF(lf::LossFunctional, Y::Matrix{Float64}, Ŷ::Matrix{Float64})
+function _compute_cost_and_dLF(lf::LossFunctionalStruct, Y::Matrix{Float64}, Ŷ::Matrix{Float64})
     yp = Ŷ .- 1e-11  # for stability
     if lf.cost_type == "-loglikelihood"
         c = sum((1 .- Y) .* (-log.(1 .- yp)) .+ Y .* (-log.(yp)), dims=2)
@@ -122,6 +119,7 @@ end
 
 Batch size policy (cap at 200).
 """
-compute_batch_size(X::Matrix) = min(size(X, 1), 200)
+_compute_batch_size(X::Matrix) = min(size(X, 1), 200)
+
 
 end

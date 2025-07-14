@@ -1,6 +1,6 @@
 module LearnableVariables
 
-export LearnableVars, init_learnable_vars, reshape_in_layer_form, set_theta
+export LearnableVars, init_learnable_variables, reshape_in_layer_form, set_theta
 
 using Random
 using Distributions
@@ -17,16 +17,16 @@ struct LearnableVars
 end
 
 """
-    init_learnable_vars(params)
+    init_learnable_variables(params)
 
 Create a `LearnableVars` object from a layer structure and optionally a `thetavec`.
 """
-function init_learnable_vars(params::Dict{String, Any})
+function init_learnable_variables(params::Dict{String, Any})
     npl = Vector{Int}(params["neuronsPerLayer"])
     n_layers = params["nLayers"]
     thetavec = haskey(params, "thetavec") ?
         Float64.(params["thetavec"]) :
-        compute_initial_theta(npl)
+        _compute_initial_theta(npl)
     return LearnableVars(npl, n_layers, thetavec)
 end
 
@@ -58,7 +58,7 @@ end
 
 Xavier initialization of thetavec from layer sizes.
 """
-function compute_initial_theta(npl::Vector{Int})
+function _compute_initial_theta(npl::Vector{Int})
     θ = Float64[]
     for i in 2:length(npl)
         in_dim, out_dim = npl[i-1], npl[i]
