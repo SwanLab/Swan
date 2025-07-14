@@ -107,8 +107,7 @@ classdef NonLinearFilterSegment < handle
             s.mesh  = obj.mesh;
             s.test  = obj.trial;
             s.trial = obj.trial;
-            s.aniAlphaDeg = 0;
-            s.CAnisotropic = k*k';
+            s.A     = ConstantFunction.create(k*k',obj.mesh);
             LHS     = LHSIntegrator.create(s);
             obj.K   = LHS.compute();
         end
