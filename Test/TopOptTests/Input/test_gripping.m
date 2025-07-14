@@ -1,4 +1,6 @@
 filename = 'Gripping_triangle_coarse';
+a.fileName = filename;
+gid = FemDataContainer(a);
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';

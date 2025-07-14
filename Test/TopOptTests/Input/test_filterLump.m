@@ -1,4 +1,6 @@
 filename='Tests_Triangle_Linear';
+a.fileName = filename;
+gid = FemDataContainer(a);
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';

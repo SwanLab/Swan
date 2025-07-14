@@ -128,8 +128,8 @@ classdef TopOptTestTutorialMicro < handle
             s.filter            = obj.filter;
             s.material          = obj.createMaterial();
             s.stateProblem      = obj.physicalProblem;
-            s.alpha             = [0;0;1];
-            s.beta              = [0;0;1];
+            s.alpha             = [0, 1; 1 ,0];
+            s.beta              = [0, 1; 1 ,0];
             obj.ChomogAlphaBeta = MicroAlphaBetaFunctional(s);
         end
 

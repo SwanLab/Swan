@@ -77,7 +77,7 @@ classdef PhaseFieldAmbrosioTortorelliSplit < handle
         end
 
         function f = applySplit(obj,u,f0,f)
-            trc = squeezeParticular(trace(AntiVoigt(SymGrad(u))),1);
+            trc = squeezeParticular(trace(SymGrad(u)),1);
             trcSign = Heaviside(trc);
             f = f.*trcSign + f0.*(1-trcSign);
         end
