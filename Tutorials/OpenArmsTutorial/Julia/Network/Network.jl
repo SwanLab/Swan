@@ -18,6 +18,9 @@ mutable struct Net
     learnableVariables::LearnableVars
     aValues::Vector{Matrix{Float64}}
     deltag::Vector{Matrix{Float64}}
+    dcW::Vector{Matrix{Float64}}
+    dcB::Vector{Vector{Float64}}
+    gradient::Vector{Float64}
 end
 
 function Net(cParams::Dict{String, Any})
@@ -38,7 +41,15 @@ function Net(cParams::Dict{String, Any})
     )
 
     learnableVariables = LearnableVars(learnableParams) # equivalent to createLearnableVariables
+
     aValues = [zeros(0,0) for _ in 1:nLayers]
+    
+    # Initialization of the backprop parameters
+    deltag = [zeros(size(aValues[i])) for i in 1:nLayers]
+    dcW = [zeros(neuronsPerLayer[k-1], neuronsPerLayer[k]) for k in 2:nLayers]
+    dcB = [zeros(neuronsPerLayer[i+1]) for i in 1:nLayers-1]
+    gradSize = sum(length.(dcW)) + sum(length.(dcB)) # Reshape whole gradient in one vector
+    gradient = zeros(gradSize)
 
     return Net(
         hiddenLayers,
@@ -51,7 +62,10 @@ function Net(cParams::Dict{String, Any})
         OUtype,
         learnableVariables,
         aValues, # aValues
-        [zeros(size(aValues[i])) for i in 1:nLayers]  # deltag
+        deltag,  # deltag
+        dcW,
+        dcB,
+        gradient
     )
 end
 
@@ -72,33 +86,49 @@ function backprop(obj::Net, Yb::Matrix{Float64}, dLF::Matrix{Float64})
     dcW = Vector{Any}(undef, nLy - 1)
     dcB = Vector{Any}(undef, nLy - 1)
     =#
-    dcW = [zeros(nPl[k-1], nPl[k]) for k in 2:nLy]
-    dcB = [zeros(nPl[i+1]) for i in 1:nLy-1]
-    obj.deltag = [zeros(m, nPl[i]) for i in 1:nLy]
+    #dcW = [zeros(nPl[k-1], nPl[k]) for k in 2:nLy]
+    #dcB = [zeros(nPl[i+1]) for i in 1:nLy-1]
+    #obj.deltag = [zeros(m, nPl[i]) for i in 1:nLy]
+
+    # Ensure deltag has correct shape and size
+    for i in 1:nLy
+        if size(obj.deltag[i], 1) != m || size(obj.deltag[i], 2) != nPl[i]
+            obj.deltag[i] = zeros(m, nPl[i])
+        end
+    end
 
     for k in reverse(2:nLy)
         _, g_der = actFCN(obj, a[k], k)
         if k == nLy
             obj.deltag[k] .= dLF .* g_der
         else
-            #obj.deltag[k] = (obj.deltag[k+1] * W[k]') .* g_der
             mul!(obj.deltag[k], obj.deltag[k+1], W[k]')
             obj.deltag[k] .*= g_der
         end
-        #dcW[k-1] = (1 / m) * (a[k-1]' * obj.deltag[k])
-        #dcB[k-1] = vec(sum(obj.deltag[k], dims=1)) / m
 
-        mul!(dcW[k-1], a[k-1]', obj.deltag[k])
-        dcW[k-1] ./= m
-        dcB[k-1] .= sum(obj.deltag[k], dims=1)' ./ m
+        mul!(obj.dcW[k-1], a[k-1]', obj.deltag[k])
+        obj.dcW[k-1] ./= m
+        obj.dcB[k-1] .= sum(obj.deltag[k], dims=1)' ./ m
     end
     
-    dc = Float64[]
-    for i in 2:nLy
-        aux1 = vcat(vec(dcW[i-1]), vec(dcB[i-1]))
-        append!(dc, aux1)
+    # Different to Matlab's code for performance
+    # Start filling the gradient vector from index 1
+    offset = 0
+    # Loop through each layer's gradients
+    for i in 1:length(obj.dcW)
+        dw = obj.dcW[i]  # weight gradient matrix of layer i
+        db = obj.dcB[i]  # bias gradient vector of layer i
+
+        # Flatten weight matrix and copy it into the correct position in gradient
+        copyto!(obj.gradient, offset + 1, vec(dw), 1, length(vec(dw)))
+        offset += length(vec(dw))  # Update offset for next copy
+
+        # Copy bias vector into the gradient vector
+        copyto!(obj.gradient, offset + 1, db, 1, length(db))
+        offset += length(db)  # Update offset again
     end
-    return dc
+    return obj.gradient
+    
 end
 
 function networkGradient(obj::Net, X::Matrix{Float64})

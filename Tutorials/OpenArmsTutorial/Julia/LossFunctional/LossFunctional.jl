@@ -1,6 +1,6 @@
 module LossFunctional
 
-export LossFunctionalStruct, computeFunctionAndGradient, computeStochasticCostAndGradient, getTestError
+export LossFunctionalStruct, computeFunctionAndGradient, computeStochasticCostAndGradient, getTestError, computeBatchSize
 
 #include("../Network/Network.jl") 
 import ..Network
@@ -15,9 +15,8 @@ mutable struct LossFunctionalStruct
     nBatches::Int
 
     costType::String
-    designVariable::LearnableVars   #Dict{String, Any}
+    designVariable::LearnableVars   
     network::Any
-    #data::Dict{String, Any}
     data::DataStruct
 end
 
@@ -37,8 +36,6 @@ end
 
 function computeFunctionAndGradient(obj::LossFunctionalStruct, x::Vector{Float64})
     obj.designVariable.thetavec = x
-    #Xb = obj.data["Xtrain"]
-    #Yb = obj.data["Ytrain"]
     Xb = obj.data.Xtrain
     Yb = obj.data.Ytrain
     yOut = Network.computeYOut(obj.network, Xb)
@@ -62,8 +59,6 @@ end
 
 
 function getTestError(obj::LossFunctionalStruct)
-    #Xtest = obj.data["Xtest"]
-    #Ytest = obj.data["Ytest"]
     Xtest = obj.data.Xtest
     Ytest = obj.data.Ytest
 

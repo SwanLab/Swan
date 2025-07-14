@@ -35,12 +35,10 @@ learningRate  = 0.2
 hiddenLayers  = fill(128, 6)
 
 # INITIALIZATION
-
 # Store dataset file name
 s = Dict{String, Any}()
 #s["fileName"] = "Resultados2.csv"
 s["fileName"] = joinpath(@__DIR__, "Datasets", "Resultados2.csv")
-
 
 # Load model parameters
 s["polynomialOrder"] = pol_deg

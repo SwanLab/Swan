@@ -27,7 +27,6 @@ end
 
 function computeCost(obj::ShFuncL2norm)
     theta = obj.designVariable["thetavec"]
-    size(theta)
     return 0.5 * dot(theta, theta)
     #return 0.5 * theta'*theta   # Equivalent to theta * theta'
 end
