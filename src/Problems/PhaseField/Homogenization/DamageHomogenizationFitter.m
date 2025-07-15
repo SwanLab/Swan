@@ -4,7 +4,8 @@ classdef DamageHomogenizationFitter < handle
 
         function [fun,dfun,ddfun] = computePolynomial(degPoly,phi,C)
             obj = DamageHomogenizationFitter();
-            fun = obj.computeFitting(degPoly,phi,C);
+            initDeriv = obj.computeInitialDerivative();
+            fun = obj.computeFitting(degPoly,phi,C,initDeriv);
             [dfun,ddfun] = obj.computeDerivative(fun);
             [fun,dfun,ddfun] = obj.convertToHandle(fun,dfun,ddfun);
         end
@@ -13,7 +14,14 @@ classdef DamageHomogenizationFitter < handle
 
     methods (Access = private)
 
-        function fun = computeFitting(~,degPoly,phi,C)
+        function initDeriv = computeInitialDerivative(~)
+            Gc=5e-3; l0=0.1; E=210; nu=0; cw = 3/8;
+            C0 = E/((1+nu)*(1-nu)); sigCrit =1;
+            initDeriv = -2*cw*(Gc/l0)*C0*(1/sigCrit)^2;
+            initDeriv = -2*cw*(Gc/l0)*(E^2/C0)*(1/sigCrit)^2;
+        end
+
+        function fun = computeFitting(~,degPoly,phi,C,initDeriv)
             syms x
             phi = reshape(phi,length(phi),[]);
 
@@ -25,7 +33,9 @@ classdef DamageHomogenizationFitter < handle
                         for l=1:nStre
                             fixedPointX = [0,1];
                             fixedPointY = [squeeze(C(i,j,k,l,1)),0];
-                            coeffs = polyfix(phi,squeeze(C(i,j,k,l,:)),degPoly,fixedPointX,fixedPointY);
+                            fixedDerivX = 0;
+                            fixedDerivY = initDeriv;
+                            coeffs = polyfix(phi,squeeze(C(i,j,k,l,:)),degPoly,fixedPointX,fixedPointY,fixedDerivX,fixedDerivY);
                             fun{i,j,k,l} = poly2sym(coeffs);
                             if isempty(symvar(fun{i,j,k,l}))
                                 fun{i,j,k,l} = 1e-20.*x.^9;

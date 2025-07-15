@@ -149,7 +149,6 @@ classdef PhaseFieldComputer < handle
         end
 
         function checkStopCondition(obj,step,totF)
-            while false
             if totF > obj.stop.maxF
                 obj.stop.maxF = totF;
             elseif step>5 && totF<0.01*obj.stop.maxF && ~obj.stop.triggered
@@ -159,7 +158,6 @@ classdef PhaseFieldComputer < handle
 
             if step==obj.stop.stepTrigger+10
                 obj.stop.noFailure = false;
-            end
             end
         end
 
