@@ -78,7 +78,7 @@ function _optimize(sgd::SGDStruct, θ::Vector{Float64}, kpi, start_time::Float64
         new_epoch = true
         move_batch = true
         is_batch_depleted = false
-        objFunc = sgd.trainer.objectiveFunction
+        objFunc = sgd.trainer.objective_function
 
         while !is_batch_depleted || new_epoch
             # Compute stochastic function and gradient
@@ -144,14 +144,14 @@ function line_search(sgd::SGDStruct, θ::Vector{Float64}, grad::Vector{Float64},
         f = fOld
         while f >= 1.001 * (fOld - ε * dot(grad, grad))
             θ_new .= step(θ, ε, grad)
-            f, _, _, _ = compute_stochastic_function_and_gradient(sgd.trainer.objectiveFunction, θ_new, false)
+            f, _, _, _ = compute_stochastic_function_and_gradient(sgd.trainer.objective_function, θ_new, false)
             ε /= 2
             funcount_inc += 1
         end
         ε *= 5
 
     elseif type == "fminbnd"
-        F = θ -> compute_stochastic_function_and_gradient(sgd.trainer.objectiveFunction, θ, false)[1]
+        F = θ -> compute_stochastic_function_and_gradient(sgd.trainer.objective_function, θ, false)[1]
         f_e(e1) = F(step(θ, e1, grad))
         result = Optim.optimize(f_e, ε/10, ε*10)
         ε = Optim.minimizer(result)
@@ -210,7 +210,7 @@ function display_iter(sgd::SGDStruct, iter::Int, funcount::Int, θ::Vector{Float
     @printf("%5d    %5d       %5d    %13.6g  %13.6g   %12.3g\n",
         kpi.epoch, iter, funcount, kpi.cost, optinfo.ε, optinfo.gnorm)
 
-    if sgd.trainer.isDisplayed && ((kpi.epoch % 25 == 0) || iter == -1)
+    if sgd.trainer.is_displayed && ((kpi.epoch % 25 == 0) || iter == -1)
         updated_trainer = Trainer.store_values(sgd.trainer, θ, kpi.cost, optinfo)
         sgd = update_trainer(sgd, updated_trainer)
     end

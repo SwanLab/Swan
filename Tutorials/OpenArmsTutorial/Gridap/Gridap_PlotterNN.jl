@@ -1,6 +1,6 @@
 module PlotterNN
 
-export PlotterNNStruct, init_plotter_nn, plot_boundary, plot_network_status, draw_confusion_mat, draw_surface_results, plot_image
+export PlotterNNStruct, init_plotter_nn, plot_boundary, plot_network_status, draw_confusion_mat, draw_surface_results, image
 
 using ..Network
 using ..CostNN
@@ -48,7 +48,7 @@ function plot_boundary(obj::PlotterNNStruct, type::String) # !!! Cannot work wit
     graphzoom = 1
 
     x = create_mesh(X, graphzoom, n_pts)
-    h = compute_heights(obj, x[:,1], x[:,2], n_pts, nF)
+    h = _compute_heights(obj, x[:,1], x[:,2], n_pts, nF)
 
     colorsc = reverse(["r","g","b","c","m","y","k"][1:obj.data.nLabels])
     colorRGB = reverse([[1,0,0],[0,1,0],[0,0,1],[0,1,1],[1,0,1],[1,1,0],[0,0,0]][1:obj.data.nLabels])
@@ -161,7 +161,105 @@ function confusion_matrix(true_labels, pred_labels)
     return cm
 end
 
+"""
+    draw_surface_results(obj)
 
+Plots a surface plot comparing target and output frequencies.
+"""
+function draw_surface_results(obj::PlotterNNStruct) # !!! Cannot work without getOutput()
+    targets = obj.data.Ytest
+    x = obj.data.Xtest
+    outputs = obj.cost_function.getOutput(x)
+    _plot_surface(obj, targets', outputs')
+end
 
+"""
+    plot_image(obj, row)
+
+Plots target and output images for a specified row in the test set.
+"""
+function image(obj::PlotterNNStruct, row::Int)
+    targets = obj.data.Ytest
+    x = obj.data.Xtest
+    outputs = obj.cost_function.getOutput(x)
+
+    img_target = reshape(targets[row,:], 28, 28)
+    img_output = reshape(outputs[row,:], 28, 28)
+
+    p1 = heatmap(img_target, color=:grays, title="Target Image", aspect_ratio=:equal)
+    p2 = heatmap(img_output, color=:grays, title="Output Image", aspect_ratio=:equal)
+
+    display(p1)
+    display(p2)
+end
+
+"""
+    compute_heights(obj, x1, x2, n_pts, nF)
+
+Placeholder function.
+"""
+function _compute_heights(obj::PlotterNNStruct, x1, x2, n_pts, nF) # !!! Cannot work without a method Data.buildModel()
+    nPL = obj.neuronsPerLayer
+    X_test = zeros(n_pts, nF, n_pts)
+    h = zeros(n_pts * nPL[end], n_pts)
+    h_3D = zeros(n_pts, n_pts, nPL[end])
+
+    for i in 1:n_pts
+        x2_aux = ones(n_pts) .* x2[i]
+        xdata_test = hcat(x1, x2_aux)
+
+        # Needs buildModel() in Data.jl (inexistant)
+        #=
+        tempData = DataStruct(X = xdata_test, polynomialOrder = obj.data.polyGrade)
+        xful = Data.buildModel(tempData)
+
+        X_test[:,:,i] = xful
+
+        output = obj.costFunction.getOutput(X_test[:,:,i]) # Right now there's no getOutput method in CostNN. This might be outdated
+        h[:,i] = reshape(output, n_pts * nPL[end])
+        =#
+    end
+    #=
+    for j in 1:nPL[end]
+        h_3D[:,:,j] = h[(j-1)*n_pts+1 : j*n_pts, :]
+    end
+
+    return h_3D
+    =#
+end
+
+"""
+    _plot_surface(obj, target, output)
+
+Generates a 3D surface plot comparing target vs output classifications.
+"""
+function _plot_surface(obj::PlotterNNStruct, target, output)
+    nF = obj.data.nFeatures
+    Ntest = size(target,2)
+    result = zeros(nF, nF)
+
+    for i = 1:Ntest
+        j = findfirst(>=(0.5), output[:,i])
+        k = findfirst(==(1), target[:,i])
+        if !isnothing(j) && !isnothing(k)
+            result[k,j] += 1
+        end
+    end
+
+    perc = (sum(diag(result)) / Ntest) * 100
+
+    surface(result, xlabel="Target", ylabel="Output", zlabel="Count", title="Output vs Expected Surface")
+    println("Output value vs expected percentage is $perc %")
+end
+
+"""
+    draw_circle!(x, y, r, color)
+
+Auxiliary function to draw a filled circle.
+"""
+function draw_circle!(x, y, r, color)
+    θ = LinRange(0, 2π, 100)
+    plot!(x .+ r*cos.(θ), y .+ r*sin.(θ), fill=(color,0.8), linecolor=color)
+end
 
 end

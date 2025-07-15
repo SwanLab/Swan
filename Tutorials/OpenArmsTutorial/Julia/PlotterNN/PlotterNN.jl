@@ -170,7 +170,7 @@ function drawSurfaceResults(obj::PlotterNNStruct) # Cannot work without getOutpu
     plotSurface(obj, targets', outputs')
 end
 
-function image(obj::PlotterNNStruct, row::Int)
+function image(obj::PlotterNNStruct, row::Int) # Cannot work without getOutput()
     targets = obj.data.Ytest
     x = obj.data.Xtest
     outputs = obj.costFunction.getOutput(x)

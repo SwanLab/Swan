@@ -1,6 +1,6 @@
 module Trainer
 
-export TrainerStruct, init_Trainer, plot_cost_reg_err, store_values, plot_eps_opt, opt_info
+export TrainerStruct, init_Trainer, plot_cost_reg_err, store_values, plot_eps_opt, opt_info, update_design_variable
 
 using Plots
 using ..Network.LearnableVariables
@@ -12,13 +12,13 @@ using ..CostNN
 Immutable struct storing training state and history.
 """
 struct TrainerStruct
-    objectiveFunction::CostNNStruct
-    designVariable::LearnableVars
+    objective_function::CostNNStruct
+    design_variable::LearnableVars
     xIter::Vector{Vector{Float64}}
     nPlot::Int
-    isDisplayed::Bool
-    costHist::Matrix{Float64}
-    optHist::Matrix{Float64}
+    is_displayed::Bool
+    cost_hist::Matrix{Float64}
+    opt_hist::Matrix{Float64}
     epoch_counter::Int
 end
 
@@ -64,7 +64,7 @@ Plots cost minimization curve.
 """
 function plot_cost_reg_err(t::TrainerStruct, v::Vector{Int})
     idxs = 2:length(v)
-    fvals = t.costHist[2:end, 1]
+    fvals = t.cost_hist[2:end, 1]
 
     plot(
         v[idxs], fvals;
@@ -89,23 +89,23 @@ Returns updated TrainerStruct with stored θ, cost, and optimizer info.
 function store_values(t::TrainerStruct, θ::Vector{Float64}, f::Float64, opt::opt_info)
     epoch = t.epoch_counter
 
-    new_costHist = copy(t.costHist)
-    new_costHist[epoch, :] .= [f, t.objectiveFunction.regularization, t.objectiveFunction.loss] # Problematic if function is used, no such names
+    new_cost_hist = copy(t.cost_hist)
+    new_cost_hist[epoch, :] .= [f, t.objective_function.regularization, t.objective_function.loss] # Problematic if function is used, no such names
 
-    new_optHist = copy(t.optHist)
-    new_optHist[epoch, :] .= [opt.gnorm, opt.ε]
+    new_opt_hist = copy(t.opt_hist)
+    new_opt_hist[epoch, :] .= [opt.gnorm, opt.ε]
 
     new_xIter = copy(t.xIter)
     new_xIter[epoch] = copy(θ)
 
     return TrainerStruct(
-        t.objectiveFunction,
-        t.designVariable,
+        t.objective_function,
+        t.design_variable,
         new_xIter,
         t.nPlot,
-        t.isDisplayed,
-        new_costHist,
-        new_optHist,
+        t.is_displayed,
+        new_cost_hist,
+        new_opt_hist,
         epoch + 1
     )
 end
@@ -118,7 +118,7 @@ Plots step size vs iterations.
 function plot_eps_opt(t::TrainerStruct, v::Vector{Int})
     plot(
         v[2:end],
-        t.optHist[2:end, 2],
+        t.opt_hist[2:end, 2],
         seriestype = :scatter,
         line = (:dash, :green),
         marker = (:diamond, 6, :green),
@@ -130,5 +130,19 @@ function plot_eps_opt(t::TrainerStruct, v::Vector{Int})
     )
 end
 
+function update_design_variable(t::TrainerStruct, θ_new::Vector{Float64})
+    updated_design_variable = LearnableVariables.update_thetavec(t.design_variable, θ_new)
+    
+    return TrainerStruct(
+        t.objective_function,
+        updated_design_variable,
+        t.xIter,
+        t.nPlot,
+        t.is_displayed,
+        t.cost_hist,
+        t.opt_hist,
+        t.epoch_counter
+    )
+end
 
 end

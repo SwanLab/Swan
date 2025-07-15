@@ -99,10 +99,9 @@ function main()
         "costFunc" => costnn,
         "designVariable" => lv
     )
-
+    
     sgd = SGD.init_SGD(sgd_params)
     println("✔ SGD initialized. Learning rate: ", sgd.learning_rate)
-
     # ----------------------------
     # 🔎 Test compute_stochastic_function_and_gradient
     # ----------------------------

@@ -1,6 +1,6 @@
 module LearnableVariables
 
-export LearnableVars, init_learnable_variables, reshape_in_layer_form, set_theta
+export LearnableVars, init_learnable_variables, reshape_in_layer_form, set_theta, update_thetavec
 
 using Random
 using Distributions
@@ -51,6 +51,10 @@ function reshape_in_layer_form(lv::LearnableVars)
         offset += total
     end
     return W, b
+end
+
+function update_thetavec(lv::LearnableVars, θ_new::Vector{Float64})
+    return LearnableVars(lv.neurons_per_layer, lv.n_layers, θ_new)
 end
 
 """
