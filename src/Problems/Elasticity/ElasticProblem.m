@@ -164,10 +164,13 @@ classdef ElasticProblem < handle
             obj.stressFun = DDP(obj.material, obj.strainFun);
             obj.stressFun.ndimf = 6; % (3D)
             obj.stress = obj.stressFun.evaluate(xV);
-            stressP0 = obj.stressFun.project('P0');
-            sigma = stressP0.fValues;
-            obj.vonMises = sqrt(0.5*((sigma(:,1)-sigma(:,2)).^2 + (sigma(:,2)-sigma(:,3)).^2 ...
-                + (sigma(:,3)-sigma(:,1)).^2 )+3*(sigma(:,4).^2 + sigma(:,5).^2 + sigma(:,6).^2));
+            % stressP0 = obj.stressFun.project('P0');
+            % sigma = stressP0.fValues;
+            % obj.vonMises = sqrt(0.5*((sigma(:,1)-sigma(:,2)).^2 + (sigma(:,2)-sigma(:,3)).^2 ...
+            %     + (sigma(:,3)-sigma(:,1)).^2 )+3*(sigma(:,4).^2 + sigma(:,5).^2 + sigma(:,6).^2));
+
+            VM = VonMisesStress(obj.stressFun);
+            obj.vonMises = VM.evaluate(xV);
         end
 
     end
