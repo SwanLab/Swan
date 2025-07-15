@@ -10,7 +10,7 @@ using LinearAlgebra
 Immutable structure storing problem design parameters.
 """
 struct ShFuncL2normStruct
-    designVariable::Dict{String, Any}
+    #designVariable::Dict{String, Any}
 end
 
 """
@@ -18,8 +18,8 @@ end
 
 Initializes a ShFuncL2normStruct from parameter dictionary.
 """
-function init_ShFuncL2norm(params::Dict{String, Any})
-    return ShFuncL2normStruct(params["designVariable"])
+function init_ShFuncL2norm(params::Dict{Any, Any})
+    return ShFuncL2normStruct()
 end
 
 """

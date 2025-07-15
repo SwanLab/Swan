@@ -39,7 +39,7 @@ end
 Full-batch cost and gradient.
 This includes auxiliar function computeGradient()
 """
-function compute_loss_and_gradient(lf::LossFunctionalStruct, θ::Vector{Float64})
+function compute_function_and_gradient(lf::LossFunctionalStruct, θ::Vector{Float64})
     X = lf.data.Xtrain
     Y = lf.data.Ytrain
 
@@ -57,7 +57,7 @@ end
 Mini-batch cost and gradient with batch update logic.
 Returns (loss, grad, is_depleted, next_batch_id).
 """
-function compute_stochastic_loss_and_gradient(lf::LossFunctionalStruct, θ::Vector{Float64}, i_batch::Int, order::Vector{Int}, move_batch::Bool)
+function compute_stochastic_cost_and_gradient(lf::LossFunctionalStruct, θ::Vector{Float64}, i_batch::Int, order::Vector{Int}, move_batch::Bool)
     X = lf.data.Xtrain
     Y = lf.data.Ytrain
     batch_size = _compute_batch_size(X)
@@ -76,9 +76,9 @@ function compute_stochastic_loss_and_gradient(lf::LossFunctionalStruct, θ::Vect
     grad = backpropagation(lf.network, Yb, dLF, a_vals, θ)
 
     is_depleted = move_batch && i_batch == n_batches
-    next_batch = move_batch ? (i_batch % n_batches) + 1 : i_batch
+    #next_batch = move_batch ? (i_batch % n_batches) + 1 : i_batch
 
-    return j, grad, is_depleted, next_batch
+    return j, grad, is_depleted #, next_batch
 end
 
 """
