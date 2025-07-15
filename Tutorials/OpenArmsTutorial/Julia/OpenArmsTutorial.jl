@@ -51,7 +51,7 @@ s["networkParams"] = Dict(
 
 s["optimizerParams"] = Dict(
     "learningRate" => learningRate,
-    "maxEpochs" => 1000 # adjust to 10 for fast runs if needed
+    "maxEpochs" => 100 # adjust to 10 for fast runs if needed
 )
 
 s["costParams"] = Dict(

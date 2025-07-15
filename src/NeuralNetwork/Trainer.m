@@ -62,7 +62,7 @@ classdef Trainer < handle
             obj.isDisplayed  = false;
         end
 
-        function storeValues(obj,x,f,state,opt)
+        function storeValues(obj,x,f,state,opt) % Function is unused
             switch state
                 case 'init'
                     obj.costHist = [0,0,0];
@@ -72,6 +72,9 @@ classdef Trainer < handle
                 case 'iter'
                     cV = zeros(1,3);
                     cV(1) = f;
+                    % This might be problematic if function is used: no
+                    % regularization or loss in objectiveFunction.
+                    % Replace with indexing of objectiveFunction.shapeFunctions
                     cV(2) = obj.objectiveFunction.regularization;
                     cV(3) = obj.objectiveFunction.loss;
                     obj.xIter = [obj.xIter, x];

@@ -104,7 +104,7 @@ classdef PlotterNN < handle
         end
 
         function plotNetworkStatus(obj)   
-            layer = obj.network.layer;
+            layer = obj.network.layer; % Property does not exist
             nPL = obj.neuronsPerLayer;
             nLy = length(nPL);
             neurons = cell(max(nPL),nLy);

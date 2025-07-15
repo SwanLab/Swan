@@ -103,6 +103,7 @@ function storeValues!(
             t.objectiveFunction.regularization,
             t.objectiveFunction.loss
         ]
+        println("checkpoint")
         t.optHist[epoch, :] .= [opt.gnorm, opt.epsilon]
         t.xIter[epoch] .= x # in-place copy
 

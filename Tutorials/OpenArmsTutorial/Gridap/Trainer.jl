@@ -28,7 +28,7 @@ end
 Struct storing optimizer info.
 """
 struct opt_info
-    epsilon::Float64
+    ε::Float64
     gnorm::Float64
 end
 
@@ -86,14 +86,14 @@ end
 
 Returns updated TrainerStruct with stored θ, cost, and optimizer info.
 """
-function store_values(t::TrainerStruct, θ::Vector{Float64}, f::Float64, opt::OptInfo)
+function store_values(t::TrainerStruct, θ::Vector{Float64}, f::Float64, opt::opt_info)
     epoch = t.epoch_counter
 
     new_costHist = copy(t.costHist)
-    new_costHist[epoch, :] .= [f, t.objectiveFunction.regularization, t.objectiveFunction.loss]
+    new_costHist[epoch, :] .= [f, t.objectiveFunction.regularization, t.objectiveFunction.loss] # Problematic if function is used, no such names
 
     new_optHist = copy(t.optHist)
-    new_optHist[epoch, :] .= [opt.gnorm, opt.epsilon]
+    new_optHist[epoch, :] .= [opt.gnorm, opt.ε]
 
     new_xIter = copy(t.xIter)
     new_xIter[epoch] = copy(θ)

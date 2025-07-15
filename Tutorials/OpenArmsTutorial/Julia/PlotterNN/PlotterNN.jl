@@ -16,17 +16,6 @@ mutable struct PlotterNNStruct
     neuronsPerLayer::Vector{Int}
 end
 
-#=
-function PlotterNNStruct(s::Dict{String,Any})
-    obj = new()
-    obj.data = s["data"]
-    obj.network = s["network"]
-    obj.costFunction = s["costfunc"]
-    obj.neuronsPerLayer = obj.network.neuronsPerLayer
-    return obj
-end
-=#
-
 function PlotterNNStruct(s::Dict{String,Any})
     return PlotterNNStruct(
         s["data"],
@@ -145,7 +134,7 @@ function plotNetworkStatus(obj::PlotterNNStruct)
     display(plt)
 end
 
-function drawConfusionMat(obj::PlotterNNStruct)
+function drawConfusionMat(obj::PlotterNNStruct) # !!! Cannot work without getOutput()
     targets = obj.data.Ytest
     x = obj.data.Xtest
     outputs = obj.costFunction.getOutput(x)
@@ -173,7 +162,7 @@ function confusion_matrix(true_labels, pred_labels)
     return cm
 end
 
-function drawSurfaceResults(obj::PlotterNNStruct)
+function drawSurfaceResults(obj::PlotterNNStruct) # Cannot work without getOutput()
     targets = obj.data.Ytest
     x = obj.data.Xtest
     outputs = obj.costFunction.getOutput(x)

@@ -160,6 +160,7 @@ classdef SGD < Trainer
             if obj.isDisplayed && (~mod(epoch, 25) || iter == -1)
                 obj.storeValues(x,f,state,opt);
             end
+            
         end  
 
         function printValues(obj,epoch,funcount,opt,f,iter)
