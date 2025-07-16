@@ -20,7 +20,12 @@ classdef UnfittedFunction < BaseFunction
 
         function res = times(obj1,obj2)
             res     = copy(obj1);
-            res.fun = res.fun.*obj2;
+            switch class(obj2)
+                case 'UnfittedFunction'
+                    res.fun = res.fun.*obj2.fun;
+                otherwise
+                    res.fun = res.fun.*obj2;
+            end
             res.computeUnfittedMeshFunction();
         end
 

@@ -200,9 +200,9 @@ classdef CantileverDensityCoupled < handle
         function createSegmentPerimeter(obj)
             s.mesh       = obj.mesh;
             s.epsilon    = 20;
-            s.minEpsilon = obj.mesh.computeMeanCellSize();
+            s.minEpsilon = 1.5*obj.mesh.computeMeanCellSize();
             s.value0     = 2;
-            s.target     = 10; % tendra relacion con el 8.67 que sale del P cuando alpha=1.5eps en la ref?;
+            s.target     = 8; % tendra relacion con el 8.67 que sale del P cuando alpha=1.5eps en la ref?;
 
             s.uMesh      = obj.createBaseGlobalDomain();
             s.filter     = obj.createFilterSegmentPerimeter();
