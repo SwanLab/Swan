@@ -26,9 +26,10 @@ mutable struct OptimizationProblemNNStruct
     optimizerParams::Dict{String, Any}
     costParams::Dict{String, Any}
     network::Union{Network.Net, Nothing}
-     costFunc::Union{CostNN.CostNNStruct, Nothing}
+    costFunc::Union{CostNN.CostNNStruct, Nothing}
     designVariable::Union{Network.LearnableVariables.LearnableVars, Nothing}
-    optimizer::Union{Trainer.SGD.SGDStruct, Nothing}
+    #optimizer::Union{Trainer.SGD.SGDStruct, Nothing}
+    optimizer::Any
     plotter::Union{PlotterNN.PlotterNNStruct, Nothing}
     loss::Union{LossFunctional.LossFunctionalStruct, Nothing}
     regularization::Union{Sh_Func_L2norm.ShFuncL2norm, Nothing}
@@ -171,6 +172,7 @@ function createPlotter(obj::OptimizationProblemNNStruct)
         "costFunc" => obj.costFunc
     )
     obj.plotter = PlotterNN.PlotterNNStruct(s)
+    println(obj.network.neuronsPerLayer)
 end
 
 end

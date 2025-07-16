@@ -18,6 +18,7 @@ include("Trainer/Fminunc/Fminunc.jl")                        # Uses Trainer
 # Final controller
 include("OptimizationProblemNN/OptimizationProblemNN.jl")  # Uses everything above
 
+
 using .OptimizationProblemNN
 using .Data
 using Plots
@@ -73,6 +74,7 @@ s["data"] = data
 opt = OptimizationProblemNN.OptimizationProblemNNStruct(s)
 OptimizationProblemNN.solve(opt)
 OptimizationProblemNN.plotCostFnc(opt)
+
 
 # Obtain test data
 Xtest, Ytest = OptimizationProblemNN.getTestData(opt)

@@ -1,6 +1,6 @@
 module SGD
 
-export SGDStruct, init_SGD, compute
+export SGDStruct, init_SGD, compute, plot_cost_func
 
 using ..Trainer
 using ..CostNN
@@ -59,13 +59,32 @@ function compute(sgd::SGDStruct, θ::Vector{Float64})
 
     kpi = (epoch=1, alarm=0.0, gnorm=1.0, cost=1.0)
 
-    sgd, _ = _optimize(sgd, θ, kpi, start_time)
+    sgd, θ = _optimize(sgd, θ, kpi, start_time)
 
     elapsed = time() - start_time
     sgd = update_elapsed_time(sgd, elapsed)
 
     println("Elapsed time: $(round(elapsed, digits=4)) seconds")
-    return sgd
+    return sgd, θ
+end
+
+function plot_cost_func(sgd::SGDStruct)
+    epoch = 1:length(sgd.fplot)
+    if !isempty(epoch)
+        plt = plot(epoch, sgd.fplot;
+            xaxis = "Epochs",
+            yaxis = "Function Values",
+            title = "Cost Function",
+            xscale = :log10,
+            yscale = :log10,
+            linewidth = 1.8,
+            legend = false,
+            grid = true
+        )
+        display(plt)
+    else
+        println("No data to plot in fplot.")
+    end
 end
 
 function _optimize(sgd::SGDStruct, θ::Vector{Float64}, kpi, start_time::Float64)
@@ -88,6 +107,12 @@ function _optimize(sgd::SGDStruct, θ::Vector{Float64}, kpi, start_time::Float64
             θ_new, ε, funcount_inc = line_search(sgd, θ, grad, f, ε)
             θ = θ_new
 
+            funcount += 1   # For compute_stochastic_function_and_gradient call
+            funcount += funcount_inc   # For line search internal calls
+            
+            iter += 1
+            new_epoch = false
+
             # Update KPI
             gnorm = norm(grad)
             kpi = (epoch=kpi.epoch, alarm=kpi.alarm, gnorm=gnorm, cost=f)
@@ -98,12 +123,6 @@ function _optimize(sgd::SGDStruct, θ::Vector{Float64}, kpi, start_time::Float64
             # Display iteration info
             optinfo = Trainer.opt_info(ε * gnorm, gnorm)
             sgd = display_iter(sgd, iter, funcount, θ, kpi, optinfo)
-
-            funcount += 1   # For compute_stochastic_function_and_gradient call
-            funcount += funcount_inc   # For line search internal calls
-            
-            iter += 1
-            new_epoch = false
         end
 
         # Epoch increment

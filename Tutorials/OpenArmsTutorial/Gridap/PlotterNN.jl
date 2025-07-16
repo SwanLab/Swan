@@ -8,6 +8,7 @@ using ..Data
 using Plots
 using LinearAlgebra
 using StatsBase
+using Statistics
 
 """
     PlotterNNStruct
@@ -31,7 +32,7 @@ function init_plotter_nn(params::Dict{String,Any})
         params["data"],
         params["network"],
         params["costFunc"],
-        params["network"].neuronsPerLayer
+        params["network"].neurons_per_layer
     )
 end
 

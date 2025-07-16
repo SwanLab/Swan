@@ -1,6 +1,6 @@
 module SGD
 
-export SGDStruct, compute
+export SGDStruct, compute, plotCostFunc
 
 using ..Trainer  # Use the parent module where TrainerStruct is defined
 using ...CostNN
