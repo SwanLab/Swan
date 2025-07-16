@@ -16,7 +16,7 @@ Immutable.
 """
 struct LossFunctionalStruct
     cost_type::String
-    data::DataStruct
+    data::Any
     network::Net
 end
 

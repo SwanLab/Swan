@@ -63,6 +63,7 @@ end
 Xavier initialization of thetavec from layer sizes.
 """
 function _compute_initial_theta(npl::Vector{Int})
+    println("I initialized thetavec!")
     θ = Float64[]
     for i in 2:length(npl)
         in_dim, out_dim = npl[i-1], npl[i]

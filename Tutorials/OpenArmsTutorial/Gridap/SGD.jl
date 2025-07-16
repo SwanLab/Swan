@@ -118,7 +118,7 @@ function _optimize(sgd::SGDStruct, θ::Vector{Float64}, kpi, start_time::Float64
             kpi = (epoch=kpi.epoch, alarm=kpi.alarm, gnorm=gnorm, cost=f)
 
             # Update fplot and svepoch
-            sgd = update_fplot_and_svepoch(sgd, kpi.epoch, f)
+            sgd = update_fplot(sgd, kpi.epoch, f)
 
             # Display iteration info
             optinfo = Trainer.opt_info(ε * gnorm, gnorm)
@@ -229,6 +229,9 @@ function display_iter(sgd::SGDStruct, iter::Int, funcount::Int, θ::Vector{Float
     @printf("%5d    %5d       %5d    %13.6g  %13.6g   %12.3g\n",
         kpi.epoch, iter, funcount, kpi.cost, optinfo.ε, optinfo.gnorm)
 
+    # Update fplot and svepoch
+    sgd = update_fplot_and_svepoch(sgd, kpi.epoch, kpi.cost)
+
     if sgd.trainer.is_displayed && ((kpi.epoch % 25 == 0) || iter == -1)
         updated_trainer = Trainer.store_values(sgd.trainer, θ, kpi.cost, optinfo)
         sgd = update_trainer(sgd, updated_trainer)
@@ -267,6 +270,22 @@ Returns SGDStruct with updated elapsed_time.
 update_elapsed_time(sgd::SGDStruct, elapsed::Float64) = SGDStruct(sgd.trainer, sgd.fvStop, sgd.l_search_type,
     sgd.max_epochs, sgd.max_fun_evals, sgd.opt_tolerance, sgd.early_stop, sgd.time_stop,
     sgd.learning_rate, sgd.svepoch, sgd.fplot, elapsed)
+"""
+    update_fplot(sgd, epoch, cost)
+
+Updates SGDStruct with fplot
+"""
+function update_fplot(sgd::SGDStruct, epoch::Int, cost::Float64)
+    # Make a copy of fplot with updated cost
+    new_fplot = copy(sgd.fplot)
+    new_fplot[epoch] = cost
+
+    # Return a new SGDStruct with updated fplot and svepoch
+    return SGDStruct(sgd.trainer, sgd.fvStop, sgd.l_search_type,
+    sgd.max_epochs, sgd.max_fun_evals, sgd.opt_tolerance, sgd.early_stop, sgd.time_stop,
+    sgd.learning_rate, sgd.svepoch, new_fplot, sgd.elapsed_time)
+    
+end
 
 """
     step(θ, ε, grad)

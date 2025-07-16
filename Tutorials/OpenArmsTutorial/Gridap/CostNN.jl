@@ -58,7 +58,6 @@ function compute_stochastic_function_and_gradient(obj::CostNNStruct, θ::Vector{
     Jc = Vector{Any}(undef, nF)
     dJc = Vector{Any}(undef, nF)
     bDa = falses(nF)
-
     for iF in 1:nF
         shI = obj.shapeFunctions[iF]
         if shI isa LossFunctional.LossFunctionalStruct
@@ -69,7 +68,7 @@ function compute_stochastic_function_and_gradient(obj::CostNNStruct, θ::Vector{
             error("Unsupported shape function type: $(typeof(shI))")
         end
     end
-
+    
     jV = sum(obj.weights .* map(x -> x, Jc))
     djV = sum([obj.weights[i] * dJc[i] for i in 1:nF])
 

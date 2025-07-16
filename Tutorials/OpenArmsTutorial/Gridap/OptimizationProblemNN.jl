@@ -95,8 +95,8 @@ end
 
 function solve(opt::OptimizationProblemNNStruct)
     θvec = opt.learnable_vars.thetavec
-    _, θ = compute(opt.optimizer, θvec)
-    return θ
+    optimizer, θ = compute(opt.optimizer, θvec)
+    return optimizer, θ
 end
 
 function get_test_data(opt::OptimizationProblemNNStruct)
@@ -107,8 +107,8 @@ function get_network(opt::OptimizationProblemNNStruct)
     return opt.network
 end
 
-function plot_cost(opt::OptimizationProblemNNStruct)
-    plot_cost_func(opt.optimizer)
+function plot_cost(optimizer::Any)
+    plot_cost_func(optimizer)
 end
 
 function plot_boundary(opt::OptimizationProblemNNStruct, type::String="filledS")
