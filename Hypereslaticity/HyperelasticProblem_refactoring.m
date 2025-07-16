@@ -30,14 +30,19 @@ classdef HyperelasticProblem_refactoring < handle
             obj.init(cParams);
             tol = 1e-8;
 
-            u  = obj.uFun;
+%             u  = obj.uFun;
+            u = LagrangianFunction.create(obj.refMesh, obj.mesh.ndim, 'P1');
+
             [hess, ~] = obj.computeHessian(u);
             hessf = @(x) hess*x;
             Meifem = @(r) obj.EIFEMp.apply(r);
             Milu      = obj.createILUpreconditioner(hess);
             Mmult     = @(r) Preconditioner.multiplePrec(r,Milu,Meifem,Milu,hessf);
 %             coarseBasis = mat2cell(obj.EIFEMp.getProjectionMatrix(),[]);
-            coarseBasis = num2cell(obj.EIFEMp.getProjectionMatrix(), 1);
+            Pmat = obj.EIFEMp.getProjectionMatrix();
+            C = mat2cell(Pmat, size(Pmat,1), ones(1,size(Pmat,2)));             % Split A into 8 columns (478x1 each)
+            coarseBasis = cellfun(@(x) reshape(x, 2, []).', C, 'UniformOutput', false); 
+%             coarseBasis = num2cell(obj.EIFEMp.getProjectionMatrix(), 1);
             functionType = {'P1','P1','P1','P1','P1','P1','P1','P1'};
             Tfun =  ModalFunction.create(obj.refMesh,coarseBasis,functionType);
             f = animatedline;

@@ -47,7 +47,8 @@ classdef ModalFunction < BaseFunction
             op = 0;
             for iBasis = 1:obj.nbasis
                 fI   = obj.fValues(iBasis);
-                op = op + Grad(obj.basisFunctions{iBasis})*fI;
+                op = op + Grad(obj.basisFunctions{iBasis}).*fI;
+%                 op =  Grad(obj.basisFunctions{iBasis})*fI;
             end
 %             grad = op.evaluate(xV);
             grad = op;
@@ -116,7 +117,7 @@ classdef ModalFunction < BaseFunction
             s.mesh  = obj.mesh;
             for ibasis=1:obj.nbasis
                s.fValues      = obj.basisValues{ibasis};
-               s.order = obj.functionType{ibasis};
+               s.order        = obj.functionType{ibasis};
                obj.basisFunctions{ibasis} = LagrangianFunction(s);
 %                obj.basisFunctions{ibasis} = FunctionFactory.create(s);
 %                obj.basisFunctions{ibasis} = P1Function(s);
