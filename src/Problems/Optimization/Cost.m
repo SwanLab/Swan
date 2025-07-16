@@ -9,6 +9,8 @@ classdef Cost < handle
         shapeFunctions
         weights
         Msmooth
+        iter
+        dofsNonDesign
     end
 
     properties (Access = private)
@@ -18,9 +20,16 @@ classdef Cost < handle
     methods (Access = public)
         function obj = Cost(cParams)
             obj.init(cParams);
+            obj.iter = 0.0;
         end
 
         function computeFunctionAndGradient(obj,x)
+%             iter = x{2};
+%             if iter > 400 && iter > obj.iter && mod(iter,100) == 0
+%                 obj.weights(2) = obj.weights(2)*10;
+%                 obj.iter = iter;
+%             end
+
             nF  = length(obj.shapeFunctions);
             Jc  = cell(nF,1);
             dJc = cell(nF,1);
@@ -40,6 +49,10 @@ classdef Cost < handle
             end
             obj.value    = jV;
             obj.gradient = obj.Msmooth*djV;
+
+            if ~isempty(obj.dofsNonDesign) 
+               obj.gradient(obj.dofsNonDesign) = 0.0;
+            end
 %             obj.gradient = djV;
         end
 
@@ -60,6 +73,18 @@ classdef Cost < handle
         function j = getFields(obj,i)
             j = obj.shapeValues{i};
         end
+
+        function j = getDesignVariable(obj,i)
+            j = obj.shapeFunctions{i}.getDesignVariable();
+        end
+
+        function j = getGradient(obj,i)
+            j = obj.shapeFunctions{i}.getGradient();
+        end
+
+        function j = getBeta(obj,i)
+            j = obj.shapeFunctions{i}.getBeta();
+        end
     end
     
     methods (Access = private)
@@ -67,6 +92,9 @@ classdef Cost < handle
             obj.shapeFunctions = cParams.shapeFunctions;
             obj.weights        = cParams.weights;   
             obj.Msmooth        = cParams.Msmooth;
+            if isfield(cParams,'dofsNonDesign') 
+                obj.dofsNonDesign = cParams.dofsNonDesign;
+            end
         end
     end
 

@@ -30,7 +30,7 @@ classdef PlotterLevelSet < handle
         end
         
         function createFigure(obj)
-            obj.figHandle = figure();
+            obj.figHandle = figure('units','normalized','outerposition',[0 0 1 1]); %figure();
             set(obj.figHandle,'Pointer','arrow','NumberTitle','off');
             obj.plotUnfittedMesh();
         end

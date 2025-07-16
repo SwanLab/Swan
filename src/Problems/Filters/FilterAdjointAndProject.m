@@ -28,6 +28,18 @@ classdef FilterAdjointAndProject < handle
             regFun = fun.*projSensit;
             xF     = obj.filter.compute(regFun,quadOrder);
         end
+
+        function updateBeta(obj, beta)
+            obj.projector.updateBeta(beta);
+        end
+
+        function updateEpsilon(obj,epsilon)
+            obj.filter.updateEpsilon(epsilon);
+        end
+
+        function beta = getBeta(obj)
+            beta = obj.projector.getBeta();
+        end
     end
 
     methods (Access = private)
@@ -42,9 +54,12 @@ classdef FilterAdjointAndProject < handle
         end
 
         function createProjector(obj,cParams)
-            s.eta  = cParams.eta;
             s.beta = cParams.beta;
+            if isfield(cParams, 'eta')
+                s.eta  = cParams.eta;
+            end
             obj.projector = HeavisideProjector(s);
         end
+
     end
 end

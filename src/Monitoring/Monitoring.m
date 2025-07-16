@@ -50,7 +50,8 @@ classdef Monitoring < handle
 
         function createMonitoring(obj,cParams)
             if (obj.shallDisplay)
-                figure
+%                 figure
+                figure('units','normalized','outerposition',[0 0 1 1])
                 nPlots         = length(obj.titles);
                 [nRow,nColumn] = obj.computeNumberRowsColumns();
                 idxMultiBar = 1; idxSurf = 1;

@@ -1,4 +1,4 @@
-classdef VolumeConstraint < handle
+classdef VolumeConstraintWithProjection < handle
 
     properties (Access = private)
         mesh
@@ -7,7 +7,7 @@ classdef VolumeConstraint < handle
     end
     
     methods (Access = public)
-        function obj = VolumeConstraint(cParams)
+        function obj = VolumeConstraintWithProjection(cParams)
             obj.init(cParams);
         end
         
@@ -26,7 +26,7 @@ classdef VolumeConstraint < handle
         function init(obj,cParams)
             obj.mesh         = cParams.mesh;
             obj.volumeTarget = cParams.volumeTarget;
-            obj.volume       = VolumeFunctional(cParams);
+            obj.volume       = VolumeFunctionalWithProjection(cParams);
         end
 
         function J = computeFunction(obj,V)

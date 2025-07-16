@@ -9,13 +9,15 @@ classdef ConnectivityComputer < handle
         levelSet
         characteristicFunction
         designVariable
-
         materialInterpolation
         filter
+        filterConnect
+        filterAdjointConnect
+        monitoringEigenModes
     end
 
     properties (Access = private)
-
+        
     end
 
     methods (Access = public)
@@ -26,18 +28,11 @@ classdef ConnectivityComputer < handle
             obj.createLevelSet();
             obj.createFilter();
             obj.createCharacteristicFunction();
-            obj.createDesignVariable();
-
-            % obj.levelSet.getUnfittedMesh().plot()
-            % obj.density.plot()
-            % shading flat
-            % colormap('gray');
-            % colormap(flipud(gray));
-            % colorbar
-            % figure
-
-            obj.computeComplianceFunctional();
-            obj.computeEigenValueFunctional()
+            obj.createDesignVariable();  
+            obj.createFilterConnectivity();
+            [eigV, eigF] = obj.computeEigenValueFunctional();
+            obj.createMonitoringEigenModes(eigV);
+            obj.updateMonitoringEigenModes(eigF);
         end
 
     end
@@ -45,11 +40,11 @@ classdef ConnectivityComputer < handle
     methods (Access = private)
 
         function init(obj)
-
+            close all
         end
 
         function createMesh(obj)
-            x1 = linspace(0,2,100);
+            x1 = linspace(0,1,100);
             x2 = linspace(0,1,100);
             [xv,yv] = meshgrid(x1,x2);
             [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
@@ -60,158 +55,135 @@ classdef ConnectivityComputer < handle
         end
 
         function createLevelSet(obj)
-            s.type        = 'Circle';
-            s.radius      = 0.3;
-            s.xCoorCenter = 0.5;
-            s.yCoorCenter = 0.5;
+%             s.type        = 'RectangleInclusion';
+%             s.xSide       = 0.5;
+%             s.ySide       = 0.5;
+%             s.xCoorCenter = 0.5;
+%             s.yCoorCenter = 0.5;
+
+            s.type        = 'ThreeRectanglesInclusion';
+            s.xSide1       = 0.3;
+            s.ySide1       = 0.3;
+            s.xCoorCenter1 = 0.4;
+            s.yCoorCenter1 = 0.5;
+            s.xSide2       = 0.05;
+            s.ySide2       = 0.05;
+            s.xCoorCenter2 = 0.6;
+            s.yCoorCenter2 = 0.5;
+            s.xSide3       = 1.0;
+            s.ySide3       = 0.1;
+            s.xCoorCenter3 = 0.5;
+            s.yCoorCenter3 = 0.2; 
+
             g             = GeometricalFunction(s);
             phi           = g.computeLevelSetFunction(obj.mesh);
             obj.levelSet = phi;
         end
 
-        function createCharacteristicFunction(obj)
-            s.backgroundMesh = obj.mesh;
-            s.boundaryMesh   = obj.mesh.createBoundaryMesh;
-            uMesh              = UnfittedMesh(s);
-            uMesh.compute(obj.levelSet.fValues);
-
-            sC.uMesh = uMesh;
-            obj.characteristicFunction  = CharacteristicFunction.create(sC);
-        end
-
         function createFilter(obj)
             s.filterType = 'LUMP';
             s.mesh  = obj.mesh;
-            s.trial = P1Function.create(obj.mesh,1);
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
             obj.filter = f;
+        end        
+
+        function createCharacteristicFunction(obj)
+            s.backgroundMesh = obj.mesh;
+            s.boundaryMesh   = obj.mesh.createBoundaryMesh;
+            uMesh            = UnfittedMesh(s);
+            uMesh.compute(obj.levelSet.fValues);
+            obj.characteristicFunction  = CharacteristicFunction.create(uMesh);
         end
 
         function createDesignVariable(obj)
-            sD.fun  = obj.filter.compute(obj.characteristicFunction,'QUADRATIC');
-            sD.mesh = obj.mesh;
-            sD.type = 'Density';
-            dens    = DesignVariable.create(sD);
+%             s.fValues = round(obj.characteristicFunction.project('P1').fValues);
+%             s.mesh    = obj.mesh;
+%             s.order   = 'P1';
+%             s.fun = LagrangianFunction(s);
+            s.fun  = obj.filter.compute(obj.characteristicFunction,3);
+            s.mesh = obj.mesh;
+            s.type = 'Density';
+            s.plotting = true;
+            dens    = DesignVariable.create(s);
+            dens.plot();
             obj.designVariable = dens;
         end
 
-        function computeComplianceFunctional(obj)
-            obj.materialInterpolation = obj.computeMaterialInterpolation();
-            s.mesh = obj.mesh;
-            s.type    = 'ELASTIC';
-            s.scale = 'MACRO';
-            s.material = obj.createMaterial();
-            s.dim = '2D';
-            s.bc = obj.createBoundaryConditionsForElasticity();
-            s.interpolationType = 'LINEAR';
-            fem = FEM.create(s);
-            fem.solve();
-
-
-
-
-            sH.type = 'ByInterpolation';
-            sH.material = obj.createMaterial();
-            sH.interpolationSettings.interpolation = obj.materialInterpolation;
-
-
-            homogVarComp = HomogenizedVarComputer.create(sH);
-
-
-            s.type = 'compliance';
-            s.designVariable = obj.designVariable;
-            s.femSettings.physicalProblem      = fem;
-            s.femSettings.designVariableFilter = obj.filter;
-            s.femSettings.gradientFilter       = obj.filter;
-            s.homogVarComputer = homogVarComp;
-            s.targetParameters = [];
-            sh = ShapeFunctional.create(s);
-
-
-            sh.computeFunctionAndGradient();
-        end
-
-
-        function matInt = computeMaterialInterpolation(obj)
-            c.typeOfMaterial = 'ISOTROPIC';
-            c.interpolation = 'SIMPALL';
-            c.nElem = obj.mesh.nelem;
-            c.dim = '2D';
-            c.constitutiveProperties.rho_plus = 1;
-            c.constitutiveProperties.rho_minus = 0;
-            c.constitutiveProperties.E_plus = 1;
-            c.constitutiveProperties.E_minus = 1e-3;
-            c.constitutiveProperties.nu_plus = 1/3;
-            c.constitutiveProperties.nu_minus = 1/3;
-
-            matInt = MaterialInterpolation.create(c);
-        end
-
-        function mat = createMaterial(obj)
-            d = obj.designVariable.fun.project('P0');
-            %  d.fValues = round(d.fValues);
-
-            dens  = d.fValues;
-            mat  = obj.materialInterpolation.computeMatProp(dens);
-            s.ptype = 'ELASTIC';
-            s.pdim  = '2D';
-            s.nelem = obj.mesh.nelem;
+        function createFilterConnectivity(obj)
+%            s.filterType = 'FilterAndProject';
+%             s.mesh       = obj.mesh;
+%             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+%             s.filterStep = 'LUMP';
+%             s.beta       = 100.0;
+%             s.eta        = 1.0;
+%             f            = Filter.create(s);
+%             obj.filterConnect = f;
+%             s.filterType = 'FilterAdjointAndProject';
+%             f            = Filter.create(s);
+%             obj.filterAdjointConnect = f;
+            s.filterType = 'PDE';
             s.mesh  = obj.mesh;
-            s.kappa = mat.kappa;
-            s.mu    = mat.mu;
-            mat = Material.create(s);
-            mat.compute(s);
-        end
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            f = Filter.create(s);
+            f.updateEpsilon(1.0*obj   .mesh.computeMeanCellSize());
+            obj.filterConnect = f;
+%             s.beta       = 100.0;
+%             s.eta        = 0.5;
+%             f = HeavisideProjector(s);
+%             obj.filterConnect = f;
 
-        function bc = createBoundaryConditionsForElasticity(obj)
-            bM = obj.mesh.createBoundaryMesh();
+        end        
 
-            dirichletBc.boundaryId=1;
-            dirichletBc.dof=[1,2];
-            dirichletBc.value=[0,0];
-            newmanBc.boundaryId=2;
-            newmanBc.dof=[2];
-            newmanBc.value=[-1];
-
-            [dirichlet,pointload] = obj.createBc(bM,dirichletBc,newmanBc);
-            bc.dirichlet=dirichlet;
-            bc.pointload=pointload;
-        end
-
-        function [dirichlet,pointload] = createBc(obj,boundaryMesh,dirchletBc,newmanBc)
-            dirichlet = obj.createBondaryCondition(boundaryMesh,dirchletBc);
-            pointload = obj.createBondaryCondition(boundaryMesh,newmanBc);
-        end
-
-        function cond = createBondaryCondition(obj,bM,condition)
-            nbound = length(condition.boundaryId);
-            cond = zeros(1,3);
-            for ibound=1:nbound
-                ncond  = length(condition.dof(nbound,:));
-                nodeId= unique(bM{condition.boundaryId(ibound)}.globalConnec);
-                nbd   = length(nodeId);
-                for icond=1:ncond
-                    bdcond= [nodeId, repmat(condition.dof(icond),[nbd,1]), repmat(condition.value(icond),[nbd,1])];
-                    cond=[cond;bdcond];
-                end
-            end
-            cond = cond(2:end,:);
-        end
-
-        function computeEigenValueFunctional(obj)
+        function [eigV, eigF] = computeEigenValueFunctional(obj)
             eigen = obj.computeEigenValueProblem();
             s.eigenModes = eigen;
             s.designVariable = obj.designVariable;
+            s.mesh = obj.mesh;
+            s.filter = obj.filterConnect;
+%             s.filterAdjoint = obj.filterAdjointConnect;
             mE = MinimumEigenValueFunctional(s);
-            mE.computeFunctionAndGradient()
+%             [lambda, dlambda] = mE.computeFunctionAndGradient({obj.designVariable,0});  
+            [eigV, eigF] = mE.computeEigenModes(obj.designVariable, 6);
         end
 
         function eigen = computeEigenValueProblem(obj)
-            s.mesh = obj.mesh;
-            eigen  = StiffnessEigenModesComputer(s);
+            s.mesh  = obj.mesh;
+            s.shift = 0.0;
+            eigen   = StiffnessEigenModesComputer(s);
         end
 
+        function createMonitoringEigenModes(obj,eigV)
+            nPlots = 6;
+            chartTypes = cell(1,nPlots);
+            barLims = cell(1,nPlots);
+            funs = cell(1,nPlots);
+            titles = cell(1,nPlots);
+            field1 = obj.designVariable.fun;
+            for i = 1:nPlots
+                titles{i}      = string(i);
+                chartTypes{i}   = 'surf';
+                barLims{i} = [];
+                funs{i} = field1;
+            end
+            s.shallDisplay = true;
+            s.maxNColumns  = 3;
+            s.titles       = ['Eig '+string(1:6)+'= '+string(eigV)'];
+            s.chartTypes   = [chartTypes];
+            s.barLims      = [barLims];
+            s.funs         = [funs];
+            obj.monitoringEigenModes = Monitoring(s);
+        end 
 
+
+        function updateMonitoringEigenModes(obj,eigF) 
+            data = {};
+            for i = 1:size(eigF,2)
+                data = [data; [eigF(i).fValues]];
+            end
+            obj.monitoringEigenModes.update(1,data);
+            obj.monitoringEigenModes.refresh();
+        end
 
     end
 
