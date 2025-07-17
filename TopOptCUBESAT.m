@@ -159,7 +159,7 @@ classdef TopOptCUBESAT < handle
             s.material                    = obj.material; %obj.createMaterial();
             c = ComplianceFunctional(s);
             obj.compliance = c;
-            [J,dJ] = c.computeFunctionAndGradient(obj.designVariable);
+            %[J,dJ] = c.computeFunctionAndGradient(obj.designVariable);
         end
 
         function createVolumeConstraint(obj)
@@ -206,7 +206,7 @@ classdef TopOptCUBESAT < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 100;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';

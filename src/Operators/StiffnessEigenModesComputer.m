@@ -92,7 +92,7 @@ classdef StiffnessEigenModesComputer < handle
         
         function createConductivityInterpolator(obj)
             s.interpolation  = 'SIMPThermal';   
-            s.f0   = 1e-3;                                             
+            s.f2   = 1e-3;                                             
             s.f1   = 1;                                                    
             s.pExp = 2;
             a = MaterialInterpolator.create(s);

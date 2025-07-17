@@ -8,10 +8,6 @@ classdef VolumeFunctional < handle
     properties (Access = private)
         mesh
         gradientTest
-        iter
-        filter
-        filterAdjoint
-        filteredDesignVariable
     end
 
     methods (Access = public)
@@ -22,41 +18,16 @@ classdef VolumeFunctional < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            iter = x{2};
-            x = x{1};
             xD  = x.obtainDomainFunction();
-            if ~isempty(obj.filterAdjoint)
-                xFiltered = obj.filter.getFilteredField();
-                obj.filterAdjoint.updateFilteredField(xFiltered);
-            end
             J  = obj.computeFunction(xD{1});
             dJ = obj.computeGradient(xD);
-
-            obj.filteredDesignVariable = xD{1};
         end
-
-        function x = getDesignVariable(obj)
-            x = obj.filteredDesignVariable;
-        end
-        
     end
 
     methods (Access = private)
         function init(obj,cParams)
             obj.mesh         = cParams.mesh;
             obj.gradientTest = cParams.gradientTest;
-            obj.iter = 0;
-            if isfield(cParams,'filterAdjoint')
-                obj.filterAdjoint = cParams.filterAdjoint;
-            end
-        end
-
-        function xR = filterFields(obj,x)
-            nDesVar = length(x);
-            xR      = cell(nDesVar,1);
-            for i = 1:nDesVar
-                xR{i} = obj.filter.compute(x{i},2);
-            end
         end
 
         function createQuadrature(obj)
@@ -78,9 +49,6 @@ classdef VolumeFunctional < handle
             test    = obj.gradientTest;
             fValues = ones(test.nDofs,1)/obj.totalVolume;
             dJ      = FeFunction.create(test.order,fValues,obj.mesh);
-            if ~isempty(obj.filterAdjoint)
-                dJ     = obj.filterAdjoint.compute(dJ,2);
-            end
         end
     end
 
@@ -90,4 +58,3 @@ classdef VolumeFunctional < handle
         end
     end
 end
-

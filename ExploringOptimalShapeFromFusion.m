@@ -12,8 +12,11 @@ classdef ExploringOptimalShapeFromFusion < handle
         fractionVolume
         designVariable
         filter
+        filterConnect
         materialInterpolator
-        
+        minimumEigenValue
+        lambdas
+        phis
     end
 
     methods (Access = public)
@@ -24,10 +27,12 @@ classdef ExploringOptimalShapeFromFusion < handle
             obj.createVolume();
             obj.createDesignVariable();
             obj.createFilter();
+            obj.createFilterConnectivity();
             obj.computeElasticProperties();
             obj.createMaterialInterpolator();
             obj.createMaterial();
             obj.solveElasticProblem();
+            obj.computeEigenValue();
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
         end
@@ -89,6 +94,14 @@ classdef ExploringOptimalShapeFromFusion < handle
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
             obj.filter = f;
+        end
+
+        function createFilterConnectivity(obj)
+            s.filterType = 'LUMP';
+            s.mesh       = obj.mesh;
+            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            f            = Filter.create(s);
+            obj.filterConnect = f;
         end
 
 
@@ -154,6 +167,20 @@ classdef ExploringOptimalShapeFromFusion < handle
             obj.stateProblem = fem;
         end
 
+        function computeEigenValue(obj)                           
+            s.mesh              = obj.mesh;
+            s.designVariable    = obj.designVariable;
+            s.filter            = obj.filterConnect;
+            %s.filterAdjoint     = obj.filterAdjointConnect;   
+            s.targetEigenValue  = 50; % Minim eigenvalue      
+            s.boundaryConditions = obj.createBoundaryConditions();
+            obj.minimumEigenValue = StiffnessEigenModesConstraint(s);
+            n = 5;
+            epsilon = 1e-5;
+            p=8;
+            [obj.lambda,obj.phis] = computeEigenValueFunctional(obj,n,epsilon,p);
+        end
+
         function c = createComplianceFromConstiutive(obj)
             s.mesh         = obj.mesh;
             s.stateProblem = obj.stateProblem;
@@ -212,6 +239,55 @@ classdef ExploringOptimalShapeFromFusion < handle
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
         end
+
+         function  [lambdas, phis] = computeEigenValueFunctional(obj, n, epsilon, p)
+            eigen = obj.computeEigenValueProblem(epsilon, p);
+            s.eigenModes = eigen;
+            s.designVariable = obj.designVariable;
+            s.filter = obj.filterConnect;
+            s.mesh = obj.mesh;
+            s.boundaryConditions = obj.createEigenvalueBoundaryConditions();
+%             mE = MinimumEigenValueFunctional(s);
+            mE = MaximumEigenValueFunctional(s);
+            [lambdas, phis] = mE.computeEigenModes(obj.designVariable, n);
+         end
+
+         function eigen = computeEigenValueProblem(obj,epsilon, p)
+            s.mesh  = obj.mesh;
+            s.epsilon = epsilon;
+            s.p       = p;
+            s.boundaryConditions = obj.createEigenvalueBoundaryConditions();
+            eigen   = StiffnessEigenModesComputer(s);
+         end
+
+         function  bc = createEigenvalueBoundaryConditions(obj)
+            xMin    = min(obj.mesh.coord(:,1));
+            yMin    = min(obj.mesh.coord(:,2));
+            xMax    = max(obj.mesh.coord(:,1));
+            yMax    = max(obj.mesh.coord(:,2));
+            isLeft  = @(coor) abs(coor(:,1))==xMin;
+            isRight = @(coor) abs(coor(:,1))==xMax;
+            isFront = @(coor) abs(coor(:,2))==yMin;
+            isBack = @(coor) abs(coor(:,2))== yMax;
+            isDir   = @(coor) isLeft(coor) | isRight(coor) | isFront(coor) | isBack(coor);  
+            sDir{1}.domain    = @(coor) isDir(coor);
+            sDir{1}.direction = 1;
+            sDir{1}.value     = 0;
+            sDir{1}.ndim = 1;
+            
+            dirichletFun = [];
+            for i = 1:numel(sDir)
+                dir = DirichletCondition(obj.mesh, sDir{i});
+                dirichletFun = [dirichletFun, dir];
+            end
+            s.dirichletFun = dirichletFun;
+            s.pointloadFun = [];
+
+            s.periodicFun  = [];
+            s.mesh         = obj.mesh;
+            bc = BoundaryConditions(s);  
+        end
+
 
       
 
