@@ -26,6 +26,7 @@ classdef RHSIntegratorShapeDerivative < RHSIntegrator
             xV = obj.quadrature.posgp;
             fG    = fun.evaluate(xV);
             dNdx  = test.evaluateCartesianDerivatives(xV);
+            detGradN = Det(ShapeDer(test)).evaluate(xV);
             dV    = obj.mesh.computeDvolume(obj.quadrature);
             nDim  = size(dNdx,1);
             nNode = size(dNdx,2);
