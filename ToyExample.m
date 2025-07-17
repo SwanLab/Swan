@@ -6,7 +6,7 @@ clc;
 
 
 % MESH
-m = TriangleMesh(1,1,50,50);
+m = TriangleMesh(1,1,150,150);
 
 
 % FIBER UNFITTED FUNCTION
@@ -23,28 +23,36 @@ uM.compute(ls.fValues);
 
 chi = CharacteristicFunction.create(uM);
 
+% fValues = 1-heaviside(ls.fValues);
+% chi = LagrangianFunction.create(m,1,'P1');
+% chi.setFValues(fValues);
+
 
 % NONLINEAR SEGMENT
 s.mesh  = m;
 s.theta = 90;
-s.alpha = 8;
+s.alpha = 4;
 s.beta  = 0;
 
 
 % EPSILON STUDY
 h = m.computeMeanCellSize();
-epsVec = 1.5*h:0.5*h:5*h;
-LineSearchVec = [0.01, 0.1, 1, 10];
+epsVec = 2*h; % 1.5*h:0.5*h:5*h                [2*h,5*h,10*h,20*h]
+%LineSearchVec = 500; % [0.01, 0.1, 1, 10, 100]           [0.01, 0.1, 1, 10]
 
-for i = 1:length(LineSearchVec)
-    s.lineSearch = LineSearchVec(i);
-    filter  = NonLinearFilterSegment(s);
+%for i = 1:length(LineSearchVec)
+    %s.lineSearch = LineSearchVec(i);
     for j = 1:length(epsVec)
+        filter  = NonLinearFilterSegment(s);
         filter.updateEpsilon(epsVec(j));
-        rhoEps{i,j} = filter.compute(chi,2);
-        iter(i,j) = filter.iter;
+        rhoEps{j} = filter.compute(chi,2);
+        iter(j) = filter.iterVec(end);
+        figure
+        plot(filter.iterVec,filter.errorVec);
+        %title(['LS',num2str(LineSearchVec(i)),'Eps',num2str(epsVec(j))]);
+        title(['Eps',num2str(epsVec(j))]);
     end
-end
+%end
 
 
 

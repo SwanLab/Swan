@@ -1,8 +1,4 @@
 classdef NonLinearFilterSegment < handle
-
-    properties (Access = public)
-        iter
-    end
     
     properties (Access = private)
         mesh
@@ -24,7 +20,6 @@ classdef NonLinearFilterSegment < handle
     end
 
     methods (Access = public)
-
         function obj = NonLinearFilterSegment(cParams)
             obj.init(cParams);
             obj.createDirection();
@@ -33,41 +28,44 @@ classdef NonLinearFilterSegment < handle
         end
 
         function xF = compute(obj,fun,quadOrder)
-            xF = LagrangianFunction.create(obj.mesh, 1, obj.trial.order);     
+            xF = copy(obj.trial);     
             obj.computeInitialGuess(fun,quadOrder);
             obj.intChi = obj.createRHSShapeFunction(fun,quadOrder);
-            iter = 1;
-            error = 1;
+            iter   = 1;
+            error0 = inf;
+            error  = inf;
             obj.updateDotProduct(obj.trial); 
-            while error >= 1e-8  && iter<=1000
+            while error >= 1e-6  && iter<=1000
                 obj.createRHSDirectionalDerivative(quadOrder);
                 obj.solveProblem();
                 obj.updateDotProduct(obj.trial);
                 dJ = obj.computeCostGradient(quadOrder);
                 error = Norm(dJ,'L2');
                 iter = iter + 1;
+                obj.updateLineSearch(error0,error);
+                error0 = error;
             end
+            % Projection ub, lb
             xF.setFValues(obj.trial.fValues);
-            obj.iter = iter;
         end
 
         function updateEpsilon(obj,eps)
-            obj.alpha = (obj.alpha/obj.epsilon)*eps;
-            obj.beta  = (obj.beta/obj.epsilon)*eps;
-            obj.epsilon = eps;
-            % Line search ?
+            obj.alpha      = (obj.alpha/obj.epsilon)*eps;
+            obj.beta       = (obj.beta/obj.epsilon)*eps;
+            obj.lineSearch = obj.lineSearch*(obj.epsilon/eps);
+            obj.epsilon    = eps;
         end
     end
 
     methods (Access = private)
         function init(obj,cParams)
-            obj.trial   = LagrangianFunction.create(cParams.mesh, 1, 'P1');
-            obj.mesh    = cParams.mesh;
-            obj.theta   = cParams.theta;
-            obj.epsilon = obj.mesh.computeMeanCellSize();
-            obj.alpha   = cParams.alpha*obj.epsilon;
-            obj.beta    = cParams.beta*obj.epsilon;
-            obj.lineSearch = cParams.lineSearch; % Sera calculado automaticamente
+            obj.trial      = LagrangianFunction.create(cParams.mesh, 1, 'P1');
+            obj.mesh       = cParams.mesh;
+            obj.theta      = cParams.theta;
+            obj.epsilon    = obj.mesh.computeMeanCellSize();
+            obj.alpha      = cParams.alpha*obj.epsilon;
+            obj.beta       = cParams.beta*obj.epsilon;
+            obj.lineSearch = 10;
         end
 
         function createDirection(obj)
@@ -147,27 +145,41 @@ classdef NonLinearFilterSegment < handle
         end
 
         function solveProblem(obj)
-            tau = obj.lineSearch;
-            LHS = obj.M + (1/(2*tau))*obj.K;
-            RHS = obj.rhsDer + obj.intChi;
+            tau  = obj.lineSearch;
+            LHS  = obj.M + (1/(2*tau))*obj.K;
+            RHS  = obj.rhsDer + obj.intChi;
             rhoi = LHS\RHS;
             obj.trial.setFValues(rhoi);
         end
 
         function dJ = computeCostGradient(obj,quadOrder)
+            [rhs1,rhs2,rhs3] = obj.computeCostGateaux(quadOrder);
+            Ms   = obj.M;
+            Ms   = diag(sum(Ms,1));
+            fVal = Ms\(rhs1+rhs2+rhs3);
+            dJ   = copy(obj.trial);
+            dJ.setFValues(fVal);
+        end
+
+        function [rhs1,rhs2,rhs3] = computeCostGateaux(obj,quadOrder)
             a      = obj.alpha;
             b      = obj.beta;
             s      = obj.sVar;
             k      = obj.direction;
             maxFun = obj.createDomainMax(s);
             minFun = obj.createDomainMin(s);
-            int3   = (a^2.*maxFun + b^2.*minFun).*k;
             rhs1   = obj.createRHSShapeFunction(obj.trial,quadOrder);
             rhs2   = -obj.intChi;
+            int3   = (a^2.*maxFun + b^2.*minFun).*k;
             rhs3   = obj.createRHSShapeDerivative(int3,quadOrder);
-            fVal   = obj.M\(rhs1+rhs2+rhs3);
-            dJ     = copy(obj.trial);
-            dJ.setFValues(fVal);
+        end
+
+        function updateLineSearch(obj,error0,error)
+            if error<=error0
+                obj.lineSearch = obj.lineSearch*1.1;
+            else
+                obj.lineSearch = obj.lineSearch/2;
+            end
         end
 
         function intN = createRHSShapeFunction(obj,fun,quadType)
