@@ -20,7 +20,7 @@ nSamples = 500
 nFeatures = 10
 nLabels = 3
 
-# Random input matrix: nSamples x nFeatures
+# Dummy input matrix: nSamples x nFeatures
 Xtrain = randn(nSamples, nFeatures)
 Ytrain = zeros(nSamples, nLabels)
 
@@ -63,7 +63,9 @@ loss_params = Dict(
     "data" => network_params["data"]
 )
 
-loss = LossFunc(loss_params)
+
+# === Initialize LossFunctionalStruct ===
+loss = LossFunctionalStruct(loss_params)
 
 # === Run full batch computation ===
 println("\nRunning computeFunctionAndGradient (full batch)...")

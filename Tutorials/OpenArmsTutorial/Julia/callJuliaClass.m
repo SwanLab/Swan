@@ -16,7 +16,7 @@ function output = callJuliaClass(className, methodName, params)
     fclose(fid);
 
     % Build Julia command
-    juliaScriptName = ['call_' className '_' methodName '.jl'];
+    juliaScriptName = ['call_' className '_' methodName '.jl']; % !! Énfasis en el nombre
     juliaScript = fullfile(juliaScriptDir, juliaScriptName);
     command = ['julia ' juliaScript ' ' inputFile];
     system(command);

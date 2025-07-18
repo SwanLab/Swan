@@ -61,7 +61,8 @@ function compute_stochastic_function_and_gradient(obj::CostNNStruct, θ::Vector{
     for iF in 1:nF
         shI = obj.shapeFunctions[iF]
         if shI isa LossFunctional.LossFunctionalStruct
-            Jc[iF], dJc[iF], bDa[iF] = LossFunctional.compute_stochastic_cost_and_gradient(shI, θ, 1, randperm(size(shI.data.Xtrain, 1)), obj.moveBatch)
+            order = randperm(size(shI.data.Xtrain, 1))
+            Jc[iF], dJc[iF], bDa[iF] = LossFunctional.compute_stochastic_cost_and_gradient(shI, θ, 1, order, obj.moveBatch)
         elseif shI isa Sh_Func_L2norm.ShFuncL2normStruct
             Jc[iF], dJc[iF], bDa[iF] = Sh_Func_L2norm.compute_stochastic_cost_and_gradient(shI, θ, obj.moveBatch)
         else

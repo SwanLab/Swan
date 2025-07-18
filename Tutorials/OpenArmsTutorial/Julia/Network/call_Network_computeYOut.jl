@@ -4,20 +4,21 @@ include("Network.jl")
 using .Network
 using .LearnableVariables
 
-# Read JSON input
+# Step 1: Read JSON input
 args = JSON.parsefile(ARGS[1])
 
-# Reconstruct the Net object
+# Step 2: Reconstruct the Net object
 net = Network.Net(args)
 
-# Extract input data
-Xb = hcat([Float64.(row) for row in args["Xb"]]...)  # Transpose if needed
+# Step 2.5: Extract input data
+Xb = hcat([Float64.(row) for row in args["Xb"]]...) 
 
-# Call method
+# Step 3: Call method
 yOut = Network.computeYOut(net, Xb)
 
 println("I called computeYOut")
-# Write result
+
+# Step 4: Write result into output file
 result = Dict("yOut" => yOut)
 open(args["output"], "w") do f
     write(f, JSON.json(result))
