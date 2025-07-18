@@ -25,9 +25,9 @@ s.benchmark.type.mesh = '1Elem';
 s.benchmark.type.bc = 'displacementTraction';
 s.benchmark.bcValues = [0:1e-4:0.1];
 
-s.matInfo.matType = 'Analytic';
+s.matInfo.matType = 'Homogenized';
 s.matInfo.degradationType = 'General';
-s.matInfo.fileName = 'SquareAreaDerivativeNu0Sig1'; 
+s.matInfo.fileName = 'NewSet'; 
 s.matInfo.young   = 210;
 s.matInfo.poisson = 0.3;
 s.matInfo.Gc = 5e-3;
