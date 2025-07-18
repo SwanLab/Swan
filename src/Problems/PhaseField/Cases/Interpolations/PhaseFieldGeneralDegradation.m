@@ -1,4 +1,4 @@
-classdef PhaseFieldAmbrosioTortorelli < handle
+classdef PhaseFieldGeneralDegradation < handle
     
    properties (Access = private)
         shear
@@ -7,7 +7,7 @@ classdef PhaseFieldAmbrosioTortorelli < handle
    end
 
     methods (Access = public)
-        function obj = PhaseFieldAmbrosioTortorelli(cParams)
+        function obj = PhaseFieldGeneralDegradation(cParams)
             obj.init(cParams)
         end
 
@@ -74,9 +74,6 @@ classdef PhaseFieldAmbrosioTortorelli < handle
 
 
         function f = interpolate(obj,phi,f0)
-            p = obj.pExp;
-            f = ((1-phi.fun).^p).*f0;
-
             d = 1;
             cw = 8/3; E = 210; Gc = 5e-3; l0 = 0.1;
             sigCrit = 1.5;            
@@ -84,15 +81,9 @@ classdef PhaseFieldAmbrosioTortorelli < handle
             b = -10;
             a = -2*(c+1)-b/3;
             f = ((b/6).*phi.fun.^3 + (a/2).*phi.fun.^2 + c.*phi.fun + d).*f0;
-
-            % fun = @(x) (b/6)*x^3 + (a/2).*x^2 + c.*x + d;
-            % dfun = diff(fun)
         end
         
         function f = derive(obj,phi,f0)
-            p = obj.pExp;
-            f = -p*((1-phi.fun).^(p-1)).*f0;
-
             d = 1;
             cw = 8/3; E = 210; Gc = 5e-3; l0 = 0.1;
             sigCrit = 1.5;
@@ -103,9 +94,6 @@ classdef PhaseFieldAmbrosioTortorelli < handle
         end
 
         function f = derive2(obj,phi,f0)
-            p = obj.pExp;
-            f = p*(p-1)*((1-phi.fun).^(p-2)).*f0;
-
             d = 1;
             cw = 8/3; E = 210; Gc = 5e-3; l0 = 0.1;
             sigCrit = 1.5;

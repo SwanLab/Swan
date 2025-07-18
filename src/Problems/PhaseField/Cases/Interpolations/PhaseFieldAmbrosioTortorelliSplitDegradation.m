@@ -1,4 +1,4 @@
-classdef PhaseFieldAmbrosioTortorelliSplit < handle
+classdef PhaseFieldAmbrosioTortorelliSplitDegradation < handle
     
    properties (Access = private)
         shear
@@ -7,7 +7,7 @@ classdef PhaseFieldAmbrosioTortorelliSplit < handle
    end
 
     methods (Access = public)
-        function obj = PhaseFieldAmbrosioTortorelliSplit(cParams)
+        function obj = PhaseFieldAmbrosioTortorelliSplitDegradation(cParams)
             obj.init(cParams)
         end
 

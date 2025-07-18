@@ -26,7 +26,7 @@ s.benchmark.type.bc = 'displacementTraction';
 s.benchmark.bcValues = [0:1e-4:0.1];
 
 s.matInfo.matType = 'Analytic';
-s.matInfo.degradationType = 'AT';
+s.matInfo.degradationType = 'General';
 s.matInfo.fileName = 'SquareAreaDerivativeNu0Sig1'; 
 s.matInfo.young   = 210;
 s.matInfo.poisson = 0.3;

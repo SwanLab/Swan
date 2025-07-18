@@ -37,9 +37,11 @@ classdef MaterialInterpolatorFactory < handle
                     end
                     switch cParams.degFunType
                         case 'AT'
-                            obj = PhaseFieldAmbrosioTortorelli(cParams);
+                            obj = PhaseFieldAmbrosioTortorelliDegradation(cParams);
                         case 'ATSplit'
-                            obj = PhaseFieldAmbrosioTortorelliSplit(cParams);
+                            obj = PhaseFieldAmbrosioTortorelliSplitDegradation(cParams);
+                        case 'General'
+                            obj = PhaseFieldGeneralDegradation(cParams);
                     end
                 otherwise
                     error('Invalid Material Interpolation method.');
