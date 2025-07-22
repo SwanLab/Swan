@@ -88,7 +88,7 @@ classdef TestingPhaseField < handle
 
         function phi = setInitialDamage(obj,phi)
             fValues = phi.fValues;
-            fValues(:) = 0;
+            fValues(:) = 1e-5;
             phi.setFValues(fValues);
         end
 

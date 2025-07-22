@@ -27,7 +27,7 @@ s.benchmark.bcValues = [0:1e-4:0.1];
 
 s.matInfo.matType = 'Homogenized';
 s.matInfo.degradationType = 'General';
-s.matInfo.fileName = 'NewSet'; 
+s.matInfo.fileName = 'NewSet1s'; 
 s.matInfo.young   = 210;
 s.matInfo.poisson = 0.3;
 s.matInfo.Gc = 5e-3;

@@ -1,5 +1,5 @@
 clc,clear,close all
-matType = load('CircleArea.mat');
+matType = load('SquareArea.mat');
 
 x = matType.phi;
 C11 = squeeze(matType.mat(1,1,1,1,:));
@@ -135,7 +135,7 @@ degradation.ddfun{2,2,1,1} = matlabFunction(diff(diff(C12fun)));
 degradation.ddfun{2,2,2,2} = matlabFunction(diff(diff(C11fun)));
 degradation.ddfun{1,2,1,2} = matlabFunction(diff(diff(C33fun)));
 degradation.ddfun{2,1,2,1} = matlabFunction(diff(diff(C33fun)));
-save('NewSet','mat','phi','degradation');
+save('NewSet1s','mat','phi','degradation');
 
 %% Function
 function [c,ceq] = nonLinearConC11(p,C11,C12)
@@ -150,9 +150,9 @@ ceq(4) = (p(21)+p(23)+p(25)+p(27)+p(29)+p(31)+p(33)+p(35)+p(37)+p(39))/...
 E=210; nu=0.3; C=E/((1+nu)*(1-nu));
 Gc=5e-3; l0=0.1; sigCrit=1.5; cw=8/3;
 
-ceq(5) = 2*(nu^2)*((p(23)*p(22)-p(21)*p(24))/p(22)^2) ...
-         -(1+nu^2)*((p(3)*p(2)-p(1)*p(4))/p(2)^2) ...
-         +2*(Gc/(cw*l0))*((E^2)/C)*(1/sigCrit)^2;
+ceq(5) = 2*(nu^2)*((p(23)*p(22)-p(21)*p(24))/(p(22)^2)) ...
+         -(1+nu^2)*((p(3)*p(2)-p(1)*p(4))/(p(2)^2)) ...
+         -2*(Gc/(cw*l0))*((E^2)/C)*(1/sigCrit)^2;
 end
 
 function [c,ceq] = nonLinearConC33(q,C33)
@@ -165,5 +165,5 @@ ceq(2) = (q(1)+q(3)+q(5)+q(7)+q(9)+q(11)+q(13)+q(15)+q(17)+q(19))/...
 % Gc=5e-3; l0=0.1; sigCrit=1.5; cw=8/3;
 end
 
-2*(nu^2)*degradation.dfun{1,1,2,2}(0) - (1+nu^2)*degradation.dfun{1,1,1,1}(0) ...
-         +2*(Gc/(cw*l0))*((E^2)/C)*(1/sigCrit)^2;
+% 2*(nu^2)*degradation.dfun{1,1,2,2}(0) - (1+nu^2)*degradation.dfun{1,1,1,1}(0) ...
+%          -2*(Gc/(cw*l0))*((E^2)/C)*(1/sigCrit)^2;
