@@ -37,6 +37,8 @@ classdef TopOptCUBESAT < handle
             obj.createConstraint();
             obj.createPrimalUpdater();
             obj.createOptimizer();
+
+            
         end
 
     end

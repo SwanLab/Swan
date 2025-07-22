@@ -15,7 +15,7 @@ classdef ExploringOptimalShapeFromFusion < handle
         filterConnect
         materialInterpolator
         minimumEigenValue
-        lambdas
+        lambda
         phis
     end
 

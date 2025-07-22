@@ -30,6 +30,13 @@ classdef MaximumEigenValueFunctional < handle
             dfdx{1} = obj.computeGradient(dlambda);
         end
 
+        function [lambdas, phis] = computeEigenModes(obj, x, n)
+            xD  = x.obtainDomainFunction();
+            xR = obj.filterDesignVariable(xD{1});     
+            xR.setFValues(1 - xR.fValues);
+            [lambdas, phis] = obj.eigModes.getEigenModesComputer(xR,n);
+        end
+
     end
     
     methods (Access = private)
@@ -60,8 +67,21 @@ classdef MaximumEigenValueFunctional < handle
                 dJ        = obj.filter.compute(dlambda,2);
             end
             fValues   = - dJ.fValues;
-%             fValues   =  -1./dJ.fValues.^2; %
-            dJ.setFValues(fValues/obj.value0);   
+            %             fValues   =  -1./dJ.fValues.^2; %
+            dJ.setFValues(fValues/obj.value0);
+        end
+
+        function xR = filterDesignVariable(obj,x)
+            if isa(obj.filter, 'HeavisideProjector')
+                fValues = obj.filter.project(x);
+                xR = FeFunction.create(x.order,fValues,obj.mesh);
+            else
+                xR = obj.filter.compute(x,2);
+            end
+            if ~isempty(obj.filterAdjoint)
+                xFiltered = obj.filter.getFilteredField();
+                obj.filterAdjoint.updateFilteredField(xFiltered);
+            end
         end
 
     end

@@ -63,7 +63,8 @@ classdef StiffnessEigenModesComputer < handle
 %                 s.mesh    = obj.mesh;
 %                 s.order   = 'P1';
 %                 phi = LagrangianFunction(s);
-                phi = obj.DirichletEigenModeToLagrangianFunction(eigF(:,i));
+                obj.DirichletEigenModeToLagrangianFunction(eigF(:,i));
+                phi = obj.eigenF;
                 eigsF = [eigsF, phi];
             end
             eigsV = [diag(eigV)];
@@ -92,7 +93,7 @@ classdef StiffnessEigenModesComputer < handle
         
         function createConductivityInterpolator(obj)
             s.interpolation  = 'SIMPThermal';   
-            s.f2   = 1e-3;                                             
+            s.f0   = 1e-3;                                             
             s.f1   = 1;                                                    
             s.pExp = 2;
             a = MaterialInterpolator.create(s);
