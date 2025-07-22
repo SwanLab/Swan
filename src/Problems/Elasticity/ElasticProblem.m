@@ -168,6 +168,8 @@ classdef ElasticProblem < handle
             % sigma = stressP0.fValues;
             % obj.vonMises = sqrt(0.5*((sigma(:,1)-sigma(:,2)).^2 + (sigma(:,2)-sigma(:,3)).^2 ...
             %     + (sigma(:,3)-sigma(:,1)).^2 )+3*(sigma(:,4).^2 + sigma(:,5).^2 + sigma(:,6).^2));
+            
+            print(obj.stressFun.project('P1'),'Stress','Paraview');
 
             VM = VonMisesStress(obj.stressFun);
             obj.vonMises = VM.evaluate(xV);

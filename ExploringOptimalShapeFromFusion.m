@@ -165,6 +165,8 @@ classdef ExploringOptimalShapeFromFusion < handle
             fem.updateMaterial(C);
             fem.solve();
             obj.stateProblem = fem;
+            u = fem.uFun;
+            u.print('Displacements');
         end
 
         function computeEigenValue(obj)                           
@@ -211,7 +213,7 @@ classdef ExploringOptimalShapeFromFusion < handle
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);
 
-            print(aFun.project('P1'),'Force 2','Paraview')
+            print(aFun.project('P1'),'Force','Paraview')
             
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2,3];
@@ -250,6 +252,8 @@ classdef ExploringOptimalShapeFromFusion < handle
 %             mE = MinimumEigenValueFunctional(s);
             mE = MaximumEigenValueFunctional(s);
             [lambdas, phis] = mE.computeEigenModes(obj.designVariable, n);
+            freq = sqrt(lambdas)/(2*pi);
+
          end
 
          function eigen = computeEigenValueProblem(obj,epsilon, p)
@@ -269,9 +273,9 @@ classdef ExploringOptimalShapeFromFusion < handle
             isRight = @(coor) abs(coor(:,1))==xMax;
             isFront = @(coor) abs(coor(:,2))==yMin;
             isBack = @(coor) abs(coor(:,2))== yMax;
-            isDir   = @(coor) isLeft(coor) | isRight(coor) | isFront(coor) | isBack(coor);  
+            isDir   = @(coor) isLeft(coor) | isBack(coor);  
             sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = 1;
+            sDir{1}.direction = [1,2,3];
             sDir{1}.value     = 0;
             sDir{1}.ndim = 1;
             
