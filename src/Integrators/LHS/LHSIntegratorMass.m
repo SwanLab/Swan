@@ -8,7 +8,7 @@ classdef LHSIntegratorMass < LHSIntegrator
 
         function LHS = compute(obj)
             lhs = obj.computeElementalLHS();
-            LHS = obj.assembleMatrix(lhs);
+            LHS = obj.assembleMatrix(lhs,obj.trial,obj.test);
         end
 
     end

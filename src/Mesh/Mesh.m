@@ -243,6 +243,17 @@ classdef Mesh < handle
             end
         end
 
+        function detJ = DetJ(obj)
+            s.operation  = @(xV) obj.evaluateJac(xV);
+            s.mesh       = obj;
+            detJ         = DomainFunction(s);
+        end
+
+        function detJ = evaluateJac(obj,xV)
+            detJ(1,:,:) = obj.computeJacobianDeterminant(xV);
+        end
+
+
         %% Remove
 
         function [m, l2g] = createSingleBoundaryMesh(obj)

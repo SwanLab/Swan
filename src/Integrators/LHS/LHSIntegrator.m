@@ -51,10 +51,10 @@ classdef LHSIntegrator < handle
             obj.quadrature = quad;
         end
 
-        function LHS = assembleMatrix(obj, lhs)
+        function LHS = assembleMatrix(obj, lhs,test,trial)
             s.fun    = []; % !!!
             assembler = AssemblerFun(s);
-            LHS = assembler.assemble(lhs, obj.test, obj.trial);
+            LHS = assembler.assemble(lhs, test, trial);
         end
 
     end
