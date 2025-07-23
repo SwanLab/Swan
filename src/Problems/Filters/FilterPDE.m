@@ -11,13 +11,13 @@ classdef FilterPDE < handle
         problemLHS
         LHS
         RHS
-        % bc
+        bc
     end
 
     methods (Access = public)
         function obj = FilterPDE(cParams)
             obj.init(cParams);
-            % obj.computeBoundaryConditions(cParams);
+            obj.computeBoundaryConditions(cParams);
             obj.createProblemLHS(cParams);
             obj.computeLHS();
         end
@@ -52,7 +52,7 @@ classdef FilterPDE < handle
             s.bc{1}.ndimf     = 1;
             s.bc{1}.ndofs     = [];
             s.ndofs           = obj.mesh.nnodes;
-            obj.bc            = BoundaryConditions(s);
+            obj.bc            = BoundaryConditionsStokes(s); % This does not make sense regarding clean code. Once ProblemSolver is refactored by Raul and Alex, this will be changed. Speak with Jose when you read this.
             obj.bc.compute();
         end
 
@@ -65,7 +65,7 @@ classdef FilterPDE < handle
 
         function computeLHS(obj)
             lhs     = obj.problemLHS.compute(obj.epsilon);
-            % lhs     = obj.bc.fullToReducedMatrix(lhs); % its the same
+            lhs     = obj.bc.fullToReducedMatrix(lhs);
             obj.LHS = decomposition(lhs);
         end
 
@@ -82,8 +82,7 @@ classdef FilterPDE < handle
             int        = RHSIntegrator.create(s);
             test       = obj.trial;
             rhs        = int.compute(fun,test);
-            % rhsR       = obj.bc.fullToReducedVector(rhs);
-            rhsR       = rhs; % its the same
+            rhsR       = obj.bc.fullToReducedVector(rhs);
             obj.RHS    = rhsR;
         end
 
@@ -91,8 +90,7 @@ classdef FilterPDE < handle
             s.type = 'DIRECT';
             solver = Solver.create(s);
             x      = solver.solve(obj.LHS,obj.RHS);
-            % xR     = obj.bc.reducedToFullVector(x);
-            xR = x; % its the same
+            xR     = obj.bc.reducedToFullVector(x);
             obj.trial.setFValues(reshape(xR',obj.trial.ndimf,[])');
         end
 

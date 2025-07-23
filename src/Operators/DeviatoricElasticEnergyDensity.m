@@ -5,11 +5,8 @@ function dom = DeviatoricElasticEnergyDensity(u,mu)
 end
 
 function fVR = evaluate(u,mu,xV)
-    N      = u.ndimf;
     muEval = mu.evaluate(xV);
-    nEval  = size(muEval,3);
     ed     = DeviatoricStrain(u);
-    A      = VoigtDeviatorNormMaterial(N,nEval);
-    dsE    = DDP(ed,DDP(A,ed));
+    dsE    = 2*DDP(ed,ed);
     fVR    = 0.5*muEval.*dsE.evaluate(xV);
 end

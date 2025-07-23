@@ -10,7 +10,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         volume
         cost
         constraint
-        dualVariable
+        primalUpdater
         optimizer
     end
 
@@ -28,7 +28,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
-            obj.createDualVariable();
+            obj.createPrimalUpdater();
             obj.createOptimizer();
         end
 
@@ -157,10 +157,9 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             obj.constraint      = Constraint(s);
         end
 
-        function createDualVariable(obj)
-            s.nConstraints   = 1;
-            l                = DualVariable(s);
-            obj.dualVariable = l;
+        function createPrimalUpdater(obj)
+            s.mesh = obj.mesh;
+            obj.primalUpdater = SLERP(s);
         end
 
         function createOptimizer(obj)
@@ -169,13 +168,10 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 3;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.primal         = 'SLERP';
-            s.ub             = inf;
-            s.lb             = -inf;
+            s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.02;
             s.gJFlowRatio    = 0.2;

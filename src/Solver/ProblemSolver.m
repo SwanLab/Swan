@@ -102,8 +102,8 @@ classdef ProblemSolver < handle
                         LHS = [Km C; C' Z];
                     else
                         % Micro
-                        iV = cParams.iVoigt;
-                        nV = cParams.nVoigt;
+                        iV = cParams.iBase;
+                        nV = cParams.nBasis;
                         % CtDir = bcapp.computeLinearConditionsMatrix();
                         % CtPer = bcapp.computeLinearPeriodicConditionsMatrix();
                         Ct = bcapp.computeSingleDirichletPeriodicCondition(iV, nV);
@@ -158,8 +158,8 @@ classdef ProblemSolver < handle
                         Ct = repmat(lambda, [1 nCases]);
                         RHS = [forces; Ct];
                     else
-                        iV = cParams.iVoigt;
-                        nV = cParams.nVoigt;
+                        iV = cParams.iBase;
+                        nV = cParams.nBasis;
                         RHS = bcapp.computeMicroDisplMonolithicRHS(iV, nV);
                     end
                 case strcmp(obj.type, 'REDUCED') && strcmp(obj.mode, 'DISP')

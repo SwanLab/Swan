@@ -98,7 +98,7 @@ classdef SLERP < handle
         end
 
         function V = computeVolumeFromTau(obj,g,ls)
-            lsAux = ls.copy();
+            lsAux = copy(ls);
             lsAux = obj.update(g,lsAux);
             V     = lsAux.computeVolume();
         end
