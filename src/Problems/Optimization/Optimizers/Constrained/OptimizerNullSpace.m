@@ -134,7 +134,7 @@ classdef OptimizerNullSpace < handle
             s.meritNew         = obj.meritNew;
             obj.monitoring.update(obj.nIter,s);
             obj.monitoring.refresh();
-            obj.obtainGIF(obj.GIFname);
+%             obj.obtainGIF(obj.GIFname);
 
         end
 

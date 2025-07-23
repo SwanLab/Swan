@@ -26,6 +26,7 @@ classdef TopOptLevelSetConnectivity< handle
         volumeProj
         eta
         beta
+        primalUpdater
     end 
 
     methods (Access = public)
@@ -50,7 +51,7 @@ classdef TopOptLevelSetConnectivity< handle
                     obj.createVolumeConstraintProjected();
                     obj.createCost();
                     obj.createConstraint();
-                    obj.createDualVariable();
+                    obj.createPrimalUpdater();
                     obj.createOptimizer();
 %                 end
                 end
@@ -277,33 +278,28 @@ classdef TopOptLevelSetConnectivity< handle
             obj.constraint      = Constraint(s);
         end
 
-        function createDualVariable(obj)
-            s.nConstraints   = 2;
-            l                = DualVariable(s);
-            obj.dualVariable = l;
+        function createPrimalUpdater(obj)
+            s.mesh = obj.mesh;
+            obj.primalUpdater = SLERP(s);
         end
 
         function createOptimizer(obj)
-            s.monitoring     = true;
-            s.cost           = obj.cost;
-            s.constraint     = obj.constraint;
-            s.designVariable = obj.designVariable;
-            s.dualVariable   = obj.dualVariable;
+            s.monitoring       = true;
+            s.cost             = obj.cost;
+            s.constraint       = obj.constraint;
+            s.designVariable   = obj.designVariable;
 %             s.GIFname        = '1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+string(obj.eta)+'GIF';
-            s.GIFname        = '1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+'GIF';
-            s.maxIter        = 3000;
-            s.tolerance      = 1e-8;
+            s.GIFname           = '1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+'GIF';
+            s.maxIter           = 3000;
+            s.tolerance         = 1e-8;
             s.constraintCase{1} = 'EQUALITY';
             s.constraintCase{2} = 'INEQUALITY';      
-            s.primal         = 'SLERP';
-            s.ub             = inf;
-            s.lb             = -inf;
-            s.etaNorm        = 0.02; 
-            s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = obj.gJ;
-            s.etaMax         = 0.1;   %1.0 0.2
-            s.etaMaxMin      = 0.05; %0.01;
-            s.filter         = obj.filterComp;
+            s.primalUpdater     = obj.primalUpdater;
+            s.etaNorm           = 0.02; 
+            s.etaNormMin        = 0.02;
+            s.gJFlowRatio       = obj.gJ;
+            s.etaMax            = 0.1;   %1.0 0.2
+            s.etaMaxMin         = 0.05; %0.01;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

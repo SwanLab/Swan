@@ -16,9 +16,9 @@ classdef LevelSet < DesignVariable
         end
 
         function update(obj,value)
-            if ~isempty(obj.isFixed)
-                value(obj.isFixed.nodes) = obj.isFixed.values;
-            end
+%             if ~isempty(obj.isFixed)
+%                 value(obj.isFixed.nodes) = obj.isFixed.values;
+%             end
             obj.fun.setFValues(value)
             obj.updateUnfittedMesh();
         end

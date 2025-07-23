@@ -1,17 +1,17 @@
 classdef LHSIntegratorFunctionMass < LHSIntegrator
     properties (Access = private)
-        mesh
-        test, trial
-        quadrature
-        quadratureOrder
+%         mesh
+%         test, trial
+%         quadrature
+%         quadratureOrder
         fun
     end
 
     methods (Access = public)
 
         function obj = LHSIntegratorFunctionMass(cParams)
-            obj.init(cParams);
-            obj.createQuadrature();
+            obj@LHSIntegrator(cParams);
+            obj.fun = cParams.function;            
         end
 
         function LHS = compute(obj)

@@ -26,6 +26,7 @@ classdef TopOptLevelSet3DConnectivity< handle
         eta
         dofsNonDesign
         type
+        primalUpdater
     end  
 
     methods (Access = public)
@@ -49,7 +50,7 @@ classdef TopOptLevelSet3DConnectivity< handle
                     obj.createVolumeConstraint();
                     obj.createCost();
                     obj.createConstraint();
-                    obj.createDualVariable();
+                    obj.createPrimalUpdater();
                     obj.createOptimizer();
                 end
             end
@@ -71,8 +72,8 @@ classdef TopOptLevelSet3DConnectivity< handle
                 obj.mesh = HexaMesh(1,1,0.75,30,30,24);
 %                 obj.mesh = HexaMesh(1,1,0.75,40,40,30);
             elseif isequal(obj.type, 'torqueBeam')
-                obj.mesh = HexaMesh(3,1,1,90,30,30);
-%                 obj.mesh = HexaMesh(3,1,1,45,15,15);
+%                 obj.mesh = HexaMesh(3,1,1,90,30,30);
+                obj.mesh = HexaMesh(3,1,1,30,10,10);
             elseif isequal(obj.type, 'bridge')
                 obj.mesh = HexaMesh(1,1,1,30,30,30);
             end
@@ -216,10 +217,15 @@ classdef TopOptLevelSet3DConnectivity< handle
             obj.constraint      = Constraint(s);
         end
 
-        function createDualVariable(obj)
-            s.nConstraints   = 2;
-            l                = DualVariable(s);
-            obj.dualVariable = l;
+%       function createDualVariable(obj)
+%             s.nConstraints   = 2;
+%             l                = DualVariable(s);
+%             obj.dualVariable = l;
+%         end  
+
+        function createPrimalUpdater(obj)
+            s.mesh = obj.mesh;
+            obj.primalUpdater = SLERP(s);
         end
 
         function createOptimizer(obj)
@@ -229,26 +235,19 @@ classdef TopOptLevelSet3DConnectivity< handle
             s.type           = obj.type;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.dualVariable   = obj.dualVariable;
+%             s.dualVariable   = obj.dualVariable;
 %             s.GIFname        = '1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+string(obj.eta)+'GIF';
             s.GIFname        = '1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+'GIF';
             s.maxIter        = 1000;
             s.tolerance      = 1e-3; %3.0e-2; %
             s.constraintCase{1} = 'EQUALITY';
             s.constraintCase{2} = 'INEQUALITY';      
-            s.primal         = 'SLERP';
-            s.ub             = inf;
-            s.lb             = -inf;
-%             s.etaNorm        = 0.005; %0.005; %02;  
-%             s.etaNormMin     = 0.005; %0.005;
-            s.etaNorm        = 0.02; %0.005; %02;  
-            s.etaNormMin     = 0.02; %0.005;
+            s.primalUpdater  = obj.primalUpdater;
+            s.etaNorm        = 0.02;  
+            s.etaNormMin     = 0.02;
             s.gJFlowRatio    = 1.0;  
-            s.etaMax         = 60.0;%60.0; %50.0; %20.0 
-            s.etaMaxMin      = 1.0; %0.01; 
-%             s.gJFlowRatio    = 0.2;  
-%             s.etaMax         = 1.0;%60.0; %50.0; %20.0 
-%             s.etaMaxMin      = 0.1; %0.01; 
+            s.etaMax         = 60.0; 
+            s.etaMaxMin      = 1.0;  
             s.filter         = obj.filterComp;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
