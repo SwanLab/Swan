@@ -25,10 +25,6 @@ classdef VolumeFunctional < handle
             iter = x{2};
             x = x{1};
             xD  = x.obtainDomainFunction();
-            if ~isempty(obj.filterAdjoint)
-                xFiltered = obj.filter.getFilteredField();
-                obj.filterAdjoint.updateFilteredField(xFiltered);
-            end
             J  = obj.computeFunction(xD{1});
             dJ = obj.computeGradient(xD);
 
@@ -47,6 +43,7 @@ classdef VolumeFunctional < handle
             obj.gradientTest = cParams.gradientTest;
             obj.iter = 0;
             if isfield(cParams,'filterAdjoint')
+                obj.filter        = cParams.filter;
                 obj.filterAdjoint = cParams.filterAdjoint;
             end
         end

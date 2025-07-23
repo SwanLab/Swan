@@ -18,16 +18,16 @@ classdef SimplePerimeterFunctional < handle
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             iter = x{2};
             x = x{1};
-%             if iter > 400 && obj.updated == 0
-%                 obj.weight =  100;
-%                 obj.updated = 1;
-%             end
-   
-%             if iter > 0 && iter > obj.iter && mod(iter,50)== 0 && obj.weight < 100
-%                 obj.iter = iter;
-% %                 obj.targetEigenValue = 2.5;
-%                 obj.weight = obj.weight + 10;
-%             end
+            if iter > 200 && obj.updated == 0
+                obj.weight =  100;
+                obj.updated = 1;
+            end
+%    
+            if iter > 0 && iter > obj.iter && mod(iter,50)== 0 && obj.weight < 1000
+                obj.iter = iter;
+%                 obj.targetEigenValue = 2.5;
+                obj.weight = obj.weight*100;
+            end
 
             xD = x.obtainDomainFunction();
             xR = obj.filterFields(xD);
@@ -42,7 +42,7 @@ classdef SimplePerimeterFunctional < handle
 
     methods (Access = private)
         function init(obj,cParams)
-            obj.weight = 1.0;
+            obj.weight = 0.0;
             obj.updated = 0;
             obj.mesh    = cParams.mesh;
             obj.filter  = cParams.filter;

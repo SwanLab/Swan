@@ -16,9 +16,9 @@ classdef LevelSet < DesignVariable
         end
 
         function update(obj,value)
-            if ~isempty(obj.isFixed)
-                value(obj.isFixed.nodes) = obj.isFixed.values;
-            end
+%             if ~isempty(obj.isFixed)
+%                 value(obj.isFixed.nodes) = obj.isFixed.values;
+%             end
             s.mesh    = obj.mesh;
             s.fValues = value;
             s.order   = 'P1';
@@ -58,11 +58,20 @@ classdef LevelSet < DesignVariable
             end
         end
 
+        function fixedNodes = getFixedNodes(obj) %%%%%%%
+            if ~isempty(obj.isFixed)
+                fixedNodes = obj.isFixed.nodes;      %%%%%%%
+            else
+                fixedNodes = [];
+            end                                       %%%%%%
+        end
+
         function ls = copy(obj)
             s.fun      = obj.fun;
             s.mesh     = obj.mesh;
             s.type     = 'LevelSet';
             s.plotting = false;
+            s.isFixed  = obj.isFixed;            %%%%%%%
             ls         = DesignVariable.create(s);
         end
 

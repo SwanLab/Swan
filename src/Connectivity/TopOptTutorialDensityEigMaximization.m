@@ -65,27 +65,27 @@ classdef TopOptTutorialDensityEigMaximization < handle
         end
 
         function createFilter(obj)
-%             s.filterType = 'LUMP';
-%             s.mesh  = obj.mesh;
-%             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-%             f = Filter.create(s);
-%             obj.filter = f;
+            s.filterType = 'LUMP';
+            s.mesh  = obj.mesh;
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            f = Filter.create(s);
+            obj.filter = f;
 
-            s.filterType = 'FilterAndProject';
-            s.mesh       = obj.mesh;
-            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.filterStep = 'LUMP';
-            s.beta       = obj.beta;
-            s.eta        = obj.eta;
-            obj.filter = Filter.create(s);
-
-            s.filterType = 'FilterAdjointAndProject';   
-            s.mesh       = obj.mesh;
-            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.filterStep = 'LUMP';
-            s.beta       = obj.beta;
-            s.eta        = obj.eta;
-            obj.filterAdjoint = Filter.create(s);
+%             s.filterType = 'FilterAndProject';
+%             s.mesh       = obj.mesh;
+%             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+%             s.filterStep = 'LUMP';
+%             s.beta       = obj.beta;
+%             s.eta        = obj.eta;
+%             obj.filter = Filter.create(s);
+% 
+%             s.filterType = 'FilterAdjointAndProject';   
+%             s.mesh       = obj.mesh;
+%             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+%             s.filterStep = 'LUMP';
+%             s.beta       = obj.beta;
+%             s.eta        = obj.eta;
+%             obj.filterAdjoint = Filter.create(s);
 
         end
 
@@ -103,7 +103,7 @@ classdef TopOptTutorialDensityEigMaximization < handle
             s.mesh   = obj.mesh;
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
             s.volumeTarget = 0.4;
-%             s.dofsNonDesign = obj.dofsNonDesign;
+            s.dofsNonDesign = obj.dofsNonDesign;
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -111,7 +111,7 @@ classdef TopOptTutorialDensityEigMaximization < handle
         function createCost(obj)
             s.shapeFunctions{1} = obj.eigenvalue;
             s.weights           = [1.0];
-%             s.dofsNonDesign     = obj.dofsNonDesign;
+            s.dofsNonDesign     = obj.dofsNonDesign;
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end

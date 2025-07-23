@@ -4,6 +4,7 @@ classdef VolumeConstraint < handle
         mesh
         volumeTarget
         volume
+        value0
     end
     
     methods (Access = public)
@@ -32,11 +33,16 @@ classdef VolumeConstraint < handle
         function J = computeFunction(obj,V)
             vTar = obj.volumeTarget;
             J    = V/vTar-1;
+            if isempty(obj.value0)
+              obj.value0 = 1;
+            end
+            J = J/obj.value0;
         end
 
         function dJ = computeGradient(obj,dV)
             vTar    = obj.volumeTarget;
             fValues = dV.fValues/vTar;
+            fValues = fValues/obj.value0;
             dJ      = FeFunction.create(dV.order,fValues,obj.mesh);
         end
     end

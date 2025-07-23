@@ -22,13 +22,13 @@ classdef StiffnessEigenModesConstraint < handle
         
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             iter = x{2};
-%    
-            if iter > 0 && iter > obj.iter && mod(iter,20)== 0 && obj.targetEigenValue < 0.4
-                obj.iter = iter;
-%                 obj.targetEigenValue = 2.5;
-                obj.targetEigenValue = obj.targetEigenValue + 0.02;
-                disp(obj.targetEigenValue);
-            end
+   
+%             if iter > 0 && iter > obj.iter && mod(iter,20)== 0 && obj.targetEigenValue < 2.0
+%                 obj.iter = iter;
+% %                 obj.targetEigenValue = 2.5;
+%                 obj.targetEigenValue = obj.targetEigenValue + 0.1;
+%                 disp(obj.targetEigenValue);
+%             end
    
             [lambda,dlambda] = obj.eigenModesFunctional.computeFunctionAndGradient(x);
             J      = obj.computeFunction(lambda);
@@ -81,16 +81,19 @@ classdef StiffnessEigenModesConstraint < handle
         end
 
         function J = computeFunction(obj,lambda)
+              % if its close to zero, use 1
               J    = (obj.targetEigenValue - lambda);
               if isempty(obj.value0)
-                obj.value0 = abs(J);
+                obj.value0 =  1; %abs(J); 
+%                 disp(obj.value0)
               end
               J = J/obj.value0;
         end
 
-        function dJ = computeGradient(obj, dlambda)
+        function dlambda = computeGradient(obj, dlambda)
             fValues = - dlambda.fValues/obj.value0;
-            dJ      = FeFunction.create(dlambda.order,fValues,obj.mesh);            
+%             dJ      = FeFunction.create(dlambda.order,fValues,obj.mesh);     
+            dlambda.setFValues(fValues);
         end
 
     end

@@ -165,6 +165,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
 
         function createOptimizer(obj)
             s.monitoring     = true;
+            s.GIFname = 'teste'
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
@@ -177,7 +178,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.lb             = -inf;
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 2.0;
+            s.gJFlowRatio    = 0.2;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
             opt = OptimizerNullSpace(s);

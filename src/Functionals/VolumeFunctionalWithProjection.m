@@ -25,21 +25,10 @@ classdef VolumeFunctionalWithProjection < handle
             iter = x{2};
             x = x{1};
 
-%             if iter > obj.iter
-%                 obj.iter = iter;
-%                 beta = obj.filter.getBeta();
-%                 if iter >= 400 && mod(iter,20)== 0 && beta <= 10
-%                     obj.filter.updateBeta(beta*2.0);
-%                     obj.filterAdjoint.updateBeta(beta*2.0);
-%                 end
-%             end  
-
             xD  = x.obtainDomainFunction();
             xR = obj.filterFields(xD);
             J  = obj.computeFunction(xR{1});
-
             dJ = obj.computeGradient(xR);
-
             obj.filteredDesignVariable = xR{1};
         end
 
@@ -66,8 +55,7 @@ classdef VolumeFunctionalWithProjection < handle
             for i = 1:nDesVar
                 xR{i} = obj.filter.compute(x{i},2);
                 if ~isempty(obj.filterAdjoint)
-                    xFiltered = obj.filter.getFilteredField();
-                    obj.filterAdjoint.updateFilteredField(xFiltered);
+                    obj.filterAdjoint.updateFilteredField(obj.filter);
                 end
             end
         end

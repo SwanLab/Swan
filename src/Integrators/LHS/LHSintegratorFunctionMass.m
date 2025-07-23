@@ -1,4 +1,4 @@
-classdef LHSintegratorFunctionMass < handle
+classdef LHSIntegratorFunctionMass < handle
 
     properties (Access = private)
         mesh
@@ -10,7 +10,7 @@ classdef LHSintegratorFunctionMass < handle
 
     methods (Access = public)
 
-        function obj = LHSintegratorFunctionMass(cParams)
+        function obj = LHSIntegratorFunctionMass(cParams)
             obj.init(cParams);
             obj.createQuadrature();
         end

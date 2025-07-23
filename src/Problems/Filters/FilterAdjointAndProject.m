@@ -4,6 +4,7 @@ classdef FilterAdjointAndProject < handle
         filter
         projector
         filteredField
+        projSensit
     end
 
     properties (Access = private)
@@ -17,16 +18,27 @@ classdef FilterAdjointAndProject < handle
             obj.createProjector(cParams);
         end
 
-        function updateFilteredField(obj,xF)
-            obj.filteredField = xF;
+        function xF = compute(obj,fun,quadOrder)
+            if isempty(obj.projSensit)
+                obj.projSensit = LagrangianFunction.create(obj.mesh,fun.ndimf,'P1');
+            end
+            sensitVals = obj.projector.derive(obj.filteredField);
+            obj.projSensit.setFValues(sensitVals);
+            regFun = fun.*obj.projSensit;
+            xF     = obj.filter.compute(regFun,quadOrder);
         end
 
-        function xF = compute(obj,fun,quadOrder)
-            sensitVals = obj.projector.derive(obj.filteredField);
-            projSensit = LagrangianFunction.create(obj.mesh,fun.ndimf,obj.filteredField.order);
-            projSensit.setFValues(sensitVals);
-            regFun = fun.*projSensit;
-            xF     = obj.filter.compute(regFun,quadOrder);
+%         function updateFilteredField(obj,xF)
+%             obj.filteredField = xF;
+%         end
+
+        function updateFilteredField(obj,filter)
+           xF = filter.getFilteredField();
+           obj.setFilteredField(xF);
+        end
+
+        function setFilteredField(obj,xF)
+            obj.filteredField = xF;
         end
 
         function updateBeta(obj, beta)

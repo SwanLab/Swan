@@ -1,4 +1,4 @@
-classdef TopOptTutorialLevelSetEigMaximization < handle
+classdef TopOptLevelSet3DEigMaximization < handle
 
     properties (Access = private)
         mesh
@@ -18,11 +18,7 @@ classdef TopOptTutorialLevelSetEigMaximization < handle
     end 
 
     methods (Access = public)
-        function obj = TopOptTutorialLevelSetEigMaximization()
-%             for beta = [1.0, 2.0, 5.0]
-%                 for eta = [0.0, 0.5, 1.0]
-%                     obj.beta = beta;
-%                     obj.eta = eta;
+        function obj = TopOptLevelSet3DEigMaximization()
                     obj.init()
                     obj.createMesh();
                     obj.createDesignVariable();
@@ -34,8 +30,6 @@ classdef TopOptTutorialLevelSetEigMaximization < handle
                     obj.createConstraint();
                     obj.createDualVariable();
                     obj.createOptimizer();
-%                 end
-%             end
         end
     end
 
@@ -46,39 +40,43 @@ classdef TopOptTutorialLevelSetEigMaximization < handle
         end
 
         function createMesh(obj)
-            x1      = linspace(0,1.0,200);
-            x2      = linspace(0,1.0,200);
-            [xv,yv] = meshgrid(x1,x2);
-            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            s.coord  = V(:,1:2);
-            s.connec = F;
-            obj.mesh = Mesh.create(s);
+            obj.mesh = HexaMesh(1.0,1.0,1.0,25,25,25); %20,20,20);
         end
 
         function createDesignVariable(obj)
-            s.type        = 'ThreeRectangles';
-            s.xSide1       = 0.3;
-            s.ySide1       = 0.3;
-            s.xCoorCenter1 = 0.35;
-            s.yCoorCenter1 = 0.5;
-            s.xSide2       = 0.1;
-            s.ySide2       = 0.1;
-            s.xCoorCenter2 = 0.6;
-            s.yCoorCenter2 = 0.5;
-            s.xSide3       = 1.0;
-            s.ySide3       = 0.1;
-            s.xCoorCenter3 = 0.5;
-            s.yCoorCenter3 = 0.2; 
-%             s.type = 'TwoCircles';
-%             s.radius = 0.05;
-%             s.xCoorCenter = 0.1;
-%             s.yCoorCenter = 0.1;
-%             s.xCoorCenter2 = 0.3;
-%             s.yCoorCenter2 = 0.3;
-%             s.type = 'Circle';
-%             s.radius = 0.1;
+%             s.type = 'Sphere';
+%             s.radius = 0.2;
 %             s.xCoorCenter = 0.0;
 %             s.yCoorCenter = 0.0;
+%             s.zCoorCenter = 0.0;
+%             s.type = 'TwoSpheres';
+%             s.radius = 0.15;
+%             s.xCoorCenter = 0.0;
+%             s.yCoorCenter = 0.0;
+%             s.zCoorCenter = 0.0;
+%             s.xCoorCenter2 = 0.3;
+%             s.yCoorCenter2 = 0.3;
+%             s.zCoorCenter2 = 0.3;
+%             s.type = 'Full';
+            s.type = 'ThreePrisms';
+            s.xSide1 = 0.3;
+            s.ySide1 = 0.3;
+            s.zSide1 = 0.3;
+            s.xCoorCenter1 = 0.4;
+            s.yCoorCenter1 = 0.6;
+            s.zCoorCenter1 = 0.5;
+            s.xSide2 = 1.0;
+            s.ySide2 = 0.2;
+            s.zSide2 = 0.2;
+            s.xCoorCenter2 = 0.5;
+            s.yCoorCenter2 = 0.2;
+            s.zCoorCenter2 = 0.2;
+            s.xSide3 = 0.2;
+            s.ySide3 = 0.2;
+            s.zSide3 = 0.2;
+            s.xCoorCenter3 = 0.7;
+            s.yCoorCenter3 = 0.7;
+            s.zCoorCenter3 = 0.7;
             g      = GeometricalFunction(s);
             lsFun  = g.computeLevelSetFunction(obj.mesh);
             s.fun  = lsFun;
@@ -87,7 +85,7 @@ classdef TopOptTutorialLevelSetEigMaximization < handle
             s.plotting = true;
             s.isFixed.nodes = obj.createNonDesignableDomain();
             ls     = DesignVariable.create(s);
-%             ls.fun.setFValues(importdata('fvalues.txt'))
+%             ls.fun.setFValues(importdata('fvalues2.txt'))
             obj.designVariable = ls;
         end
 
@@ -97,23 +95,15 @@ classdef TopOptTutorialLevelSetEigMaximization < handle
             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
             f            = Filter.create(s);
             obj.filter = f;
-% 
+
 %             s.filterType = 'FilterAndProject';
 %             s.mesh       = obj.mesh;
 %             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
 %             s.filterStep = 'LUMP';
-%             s.beta       = 100.0;
+%             s.beta       = 2.0;
 %             s.eta        = 0.5;
-%             obj.filter = Filter.create(s);
-
-%             s.filterType = 'FilterAdjointAndProject';   
-%             s.mesh       = obj.mesh;
-%             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-%             s.filterStep = 'LUMP';
-%             s.beta       = obj.beta;
-%             s.eta        = obj.eta;
-%             obj.filterAdjoint = Filter.create(s);
-
+%             f            = Filter.create(s);
+%             obj.filter = f;
         end
 
         function createEigenValue(obj)                           
@@ -175,11 +165,11 @@ classdef TopOptTutorialLevelSetEigMaximization < handle
             s.primal         = 'SLERP';
             s.ub             = inf;
             s.lb             = -inf;
-            s.etaNorm        = 0.02; %0.5
+            s.etaNorm        = 0.02; % 0.5
             s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 2.0;  %0.2   2.0; 60.0
-            s.etaMax         = 60.0;    % 1 - 5.0 5.0
-            s.etaMaxMin      = 10.0; 
+            s.gJFlowRatio    = 5.0; %0.2   2.0; 60.0
+            s.etaMax         = 0.1;    % 1 - 5.0 5.0
+            s.etaMaxMin      = 0.05; 
             s.filter         = obj.filter;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
@@ -196,23 +186,27 @@ classdef TopOptTutorialLevelSetEigMaximization < handle
             saveas(figure(Fig), 'designBlack.png','png')
         end
 
-        function  bc = createEigenvalueBoundaryConditions(obj)
+       function  bc = createEigenvalueBoundaryConditions(obj)
             xMin    = min(obj.mesh.coord(:,1));
             yMin    = min(obj.mesh.coord(:,2));
+            zMin    = min(obj.mesh.coord(:,3));
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
+            zMax    = max(obj.mesh.coord(:,3));
+            isDown  = @(coor) abs(coor(:,3))==zMin;
+            isUp    = @(coor) abs(coor(:,3))==zMax;
             isLeft  = @(coor) abs(coor(:,1))==xMin;
             isRight = @(coor) abs(coor(:,1))==xMax;
-            isDown = @(coor) abs(coor(:,2))==yMin;
-            isUp = @(coor) abs(coor(:,2))== yMax;
-            isDir   = @(coor) isLeft(coor) | isRight(coor) | isUp(coor) | isDown(coor);  
-%             isDir   = @(coor)   isRight(coor) | isUp(coor);  
+            isFront = @(coor) abs(coor(:,2))==yMin;
+            isBack = @(coor) abs(coor(:,2))== yMax;
+%             isDir   = @(coor)  isUp(coor) | isRight(coor) | isBack(coor);  
+            isDir   = @(coor)  isUp(coor) | isRight(coor) | isBack(coor)| isDown(coor) | isLeft(coor) | isFront(coor);  
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = 1;
-            sDir{1}.value     = 0;
+            sDir{1}.value     = 0;  
             sDir{1}.ndim = 1;
-            
-            dirichletFun = [];
+
+             dirichletFun = [];
             for i = 1:numel(sDir)
                 dir = DirichletCondition(obj.mesh, sDir{i});
                 dirichletFun = [dirichletFun, dir];
@@ -223,19 +217,19 @@ classdef TopOptTutorialLevelSetEigMaximization < handle
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);  
-        end
+        end   
 
         function [dofsNonDesign] = createNonDesignableDomain(obj)
 %             isNonDesign =  @(coor) ((abs(coor(:,1)) >= 0.48 & abs(coor(:,1)) <= 0.52) & (abs(coor(:,2)) >= 0.48 & abs(coor(:,2)) <= 0.52)) | ((abs(coor(:,1)) >= 0.25 & abs(coor(:,1)) <= 0.29) & (abs(coor(:,2)) >= 0.25 & abs(coor(:,2)) <= 0.29))  | ((abs(coor(:,1)) >= 0.71 & abs(coor(:,1)) <= 0.75) & (abs(coor(:,2)) >= 0.71 & abs(coor(:,2)) <= 0.75));
 %             isNonDesign =  @(coor) ((abs(coor(:,1)) >= 0.48 & abs(coor(:,1)) <= 0.52) & (abs(coor(:,2)) >= 0.48 & abs(coor(:,2)) <= 0.52));
-%             r = 0.1;
-%             x0 = 0.0; y0 = 0.0;
-%             isNonDesign =  @(coor) (((coor(:,1)-x0).^2+(coor(:,2)-y0).^2-r^2 <= 0));
+            r = 0.2;
+            x0 = 0.0; y0 = 0.0; z0 = 0.0;
+            isNonDesign =  @(coor) (((coor(:,1)-x0).^2+(coor(:,2)-y0).^2+(coor(:,3)-z0).^2-r^2 <= 0));
 
-            r = 0.05;
-            x0 = 0.1; y0 = 0.1;
-            x02 = 0.3; y02 = 0.3;
-            isNonDesign =  @(coor) (((coor(:,1)-x0).^2+(coor(:,2)-y0).^2-r^2 <= 0) | ((coor(:,1)-x02).^2+(coor(:,2)-y02).^2-r^2 <= 0));
+%             r = 0.15;
+%             x0 = 0.0; y0 = 0.0; z0 = 0.0;
+%             x02 = 0.3; y02 = 0.3; z02 = 0.3;
+%             isNonDesign =  @(coor) (((coor(:,1)-x0).^2+(coor(:,2)-y0).^2+(coor(:,3)-z0).^2-r^2 <= 0) | ((coor(:,1)-x02).^2+(coor(:,2)-y02).^2+(coor(:,3)-z02).^2-r^2 <= 0));
             dofsNonDesign = isNonDesign(obj.mesh.coord);
         end
 

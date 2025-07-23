@@ -8,6 +8,7 @@ classdef MaximumEigenValueFunctional < handle
        filter
        filterAdjoint
        iter
+       lambdaOld
        value0
     end
     
@@ -20,14 +21,14 @@ classdef MaximumEigenValueFunctional < handle
         function [f, dfdx] = computeFunctionAndGradient(obj,x) 
             x = x{1};
             xD  = x.obtainDomainFunction();             
-            xR = obj.filter.compute(xD{1},2);   
+            xR = obj.filter.compute(xD{1},2);            
             if ~isempty(obj.filterAdjoint)
                 xFiltered = obj.filter.getFilteredField();
                 obj.filterAdjoint.updateFilteredField(xFiltered);
             end
             [lambda,dlambda]= obj.eigModes.computeFunctionAndGradient(xR);
             f = obj.computeFunction(lambda);
-            dfdx{1} = obj.computeGradient(dlambda);
+            dfdx{1} = obj.computeGradient(dlambda, lambda);
         end
 
     end
@@ -39,6 +40,7 @@ classdef MaximumEigenValueFunctional < handle
             obj.designVariable = cParams.designVariable;
             obj.mesh           = cParams.mesh;
             obj.filter = cParams.filter;
+%             obj.value0  = 1.0;
             if isfield(cParams,'filterAdjoint')
                 obj.filterAdjoint = cParams.filterAdjoint;
             end
@@ -46,21 +48,28 @@ classdef MaximumEigenValueFunctional < handle
 
         function J = computeFunction(obj,lambda)
 %                  J = 1/lambda;
-                J = -lambda;
                 if isempty(obj.value0)
-                   obj.value0 = abs(J);
+                    obj.value0  = 1; %lambda;
                 end
+%                 if isempty(obj.lambdaOld)
+%                     obj.lambdaOld = lambda;
+%                 end
+                J = -lambda;
+%                 if lambda > 1 && abs(lambda - obj.lambdaOld)/abs(obj.lambdaOld) > 1.0 
+% %                    obj.value0 = lambda;% abs(J);
+%                    obj.lambdaOld = lambda;
+%                 end
                 J = J/obj.value0;
         end
 
-        function dJ = computeGradient(obj, dlambda)
+        function dJ = computeGradient(obj, dlambda, lambda)
             if ~isempty(obj.filterAdjoint)
                 dJ     = obj.filterAdjoint.compute(dlambda,2);
             else
                 dJ        = obj.filter.compute(dlambda,2);
             end
             fValues   = - dJ.fValues;
-%             fValues   =  -1./dJ.fValues.^2; %
+%             fValues   =  -1/lambda^2 *dJ.fValues; %
             dJ.setFValues(fValues/obj.value0);   
         end
 

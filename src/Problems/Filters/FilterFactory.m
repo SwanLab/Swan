@@ -38,6 +38,10 @@ classdef FilterFactory < handle
                     filter = FilterAndProject(cParams);
                 case 'FilterAdjointAndProject'
                     filter = FilterAdjointAndProject(cParams);
+                case 'CloseOperator'
+                    filter = CloseOperator(cParams);
+                case 'CloseAdjointOperator'
+                    filter = CloseAdjointOperator(cParams);
             end
         end
 

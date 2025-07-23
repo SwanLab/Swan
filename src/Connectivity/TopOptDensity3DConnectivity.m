@@ -21,35 +21,33 @@ classdef TopOptDensity3DConnectivity < handle
         gJ
         lambda1min
         dofsNonDesign
+        type
     end
 
     methods (Access = public)
 
-        function obj = TopOptDensity3DConnectivity()
-%             for gJ = [0.2, 1.0, 2.0]
-                for lambda1min = [1.0]
-%                     obj.gJ = gJ;
-                    obj.lambda1min = lambda1min;        
-                    obj.init()
-                    obj.createMesh();
-                    obj.createDesignVariable();
-                    obj.createFilterCompliance();
-                    obj.createFilterConnectivity();
-                    obj.createMaterialInterpolator();
-                    obj.createElasticProblem();
-                    obj.createComplianceFromConstitutive();
-                    obj.createNonDesignableDomain();
-                    obj.createCompliance();
-                    obj.createPerimeter();
-                    obj.createEigenValueConstraint();                             
-                    obj.createVolumeConstraint();
-                    obj.createCost();
-                    obj.createConstraint();
-                    obj.createDualVariable();
-                    obj.createOptimizer();
-                end
-%             end
-        end
+        function obj = TopOptDensity3DConnectivity()    
+            for type = ['bridge',  'cornersSupport', 'centralSupport', 'torqueBeam']
+                obj.type = type;
+                obj.init()
+                obj.createMesh();
+                obj.createDesignVariable();
+                obj.createFilterCompliance();
+                obj.createFilterConnectivity();
+                obj.createMaterialInterpolator();
+                obj.createElasticProblem();
+                obj.createComplianceFromConstitutive();
+                obj.createNonDesignableDomain();
+                obj.createCompliance();
+                obj.createPerimeter();
+                obj.createEigenValueConstraint();                             
+                obj.createVolumeConstraint();
+                obj.createCost();
+                obj.createConstraint();
+                obj.createDualVariable();
+                obj.createOptimizer();
+            end
+         end
 
     end
 
@@ -60,7 +58,15 @@ classdef TopOptDensity3DConnectivity < handle
         end
 
         function createMesh(obj)
-            obj.mesh = HexaMesh(4,4,3,20,20,15);
+            if isequal(obj.type, 'cornersSupport') 
+                obj.mesh = HexaMesh(2,2,2,30,30,30);
+            elseif isequal(obj.type,'centralSupport')
+                obj.mesh = HexaMesh(4,4,3,40,40,30);
+            elseif isequal(obj.type, 'torqueBeam')
+                obj.mesh = HexaMesh(3,1,1,75,25,25);
+            elseif isequal(obj.type, 'bridge')
+                obj.mesh = HexaMesh(1,1,1,20,20,20);
+            end
         end
     
         function createDesignVariable(obj)
@@ -152,7 +158,6 @@ classdef TopOptDensity3DConnectivity < handle
             end
             s.complainceFromConstitutive  = obj.createComplianceFromConstitutive();
             s.material                    = obj.createMaterial();
-            s.dofsNonDesign = obj.dofsNonDesign;
             c = ComplianceFunctional(s);
             obj.compliance = c;
         end
@@ -171,7 +176,13 @@ classdef TopOptDensity3DConnectivity < handle
                 s.filterAdjoint               = obj.filterAdjointComp;
             end
             s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.3;
+            if isequal(obj.type, 'bridge')
+                s.volumeTarget = 0.4;
+            elseif isequal(obj.type, 'torqueBeam')
+                s.volumeTarget = 0.4;
+            else
+                s.volumeTarget = 0.3;
+            end
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -181,8 +192,8 @@ classdef TopOptDensity3DConnectivity < handle
             s.designVariable    = obj.designVariable;
             s.filter            = obj.filterConnect;
             s.filterAdjoint     = obj.filterAdjointConnect;   
-            s.targetEigenValue  = obj.lambda1min;      
-            s.boundaryConditions = obj.createElasticBoundaryConditions();
+            s.targetEigenValue  = 2.0;      
+            s.boundaryConditions = obj.createEigenvalueBoundaryConditions();
             obj.minimumEigenValue = StiffnessEigenModesConstraint(s);
         end
 
@@ -190,6 +201,7 @@ classdef TopOptDensity3DConnectivity < handle
             s.shapeFunctions{1} = obj.volume;
 %             s.shapeFunctions{2} = obj.minimumEigenValue; 
             s.Msmooth           = obj.createMassMatrix();
+            s.dofsNonDesign     = obj.dofsNonDesign;
             obj.constraint      = Constraint(s);
         end
 
@@ -198,6 +210,7 @@ classdef TopOptDensity3DConnectivity < handle
 %             s.shapeFunctions{2} = obj.perimeter;
             s.weights           = [1.0];
             s.Msmooth           = obj.createMassMatrix();
+            s.dofsNonDesign     = obj.dofsNonDesign;
             obj.cost            = Cost(s);
         end
 
@@ -236,46 +249,124 @@ classdef TopOptDensity3DConnectivity < handle
         end
 
         function bc = createElasticBoundaryConditions(obj)
-            yMin    = min(obj.mesh.coord(:,2));
-            xMax    = max(obj.mesh.coord(:,1));
-            yMax    = max(obj.mesh.coord(:,2));
-            zMax    = max(obj.mesh.coord(:,3));
-%             isDir   = @(coor)  (abs(coor(:,3))==0 & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax);
-            isDir   = @(coor)  (abs(coor(:,3))==0 & abs(coor(:,2))<=0.1*yMax & abs(coor(:,1))>=0.9*xMax);
-            isDirFront   = @(coor)  abs(coor(:,2))==yMin;
-            isDirRight   = @(coor)  abs(coor(:,1))==xMax;
-            isForce = @(coor)  (abs(coor(:,3))==zMax);
+            if isequal(obj.type, 'centralSupport')
+                yMin    = min(obj.mesh.coord(:,2));
+                xMax    = max(obj.mesh.coord(:,1));
+                yMax    = max(obj.mesh.coord(:,2));
+                zMax    = max(obj.mesh.coord(:,3));
+                isDir   = @(coor)  (abs(coor(:,3))==0 & abs(coor(:,2))<=0.1*yMax & abs(coor(:,1))>=0.9*xMax);
+                isDirY   = @(coor)  abs(coor(:,2))==yMin;
+                isDirX   = @(coor)  abs(coor(:,1))==xMax;
+                isForce = @(coor)  (abs(coor(:,3))==zMax);
+    
+                sDir{1}.domain    = @(coor) isDir(coor);
+                sDir{1}.direction = [1,2,3];
+                sDir{1}.value     = 0;
+    
+                sDir{2}.domain    = @(coor) isDirY(coor);
+                sDir{2}.direction = [2];
+                sDir{2}.value     = 0;
+    
+                sDir{3}.domain    = @(coor) isDirX(coor);
+                sDir{3}.direction = [1];
+                sDir{3}.value     = 0;
+    
+                sPL{1}.domain    = @(coor) isForce(coor);
+                sPL{1}.direction = 3;
+                sPL{1}.value     = -1;
+            elseif isequal(obj.type, 'torqueBeam')
+                xMin    = min(obj.mesh.coord(:,1));
+                xMax    = max(obj.mesh.coord(:,1));
+                yMin    = min(obj.mesh.coord(:,2));
+                yMax    = max(obj.mesh.coord(:,2));
+                zMin    = min(obj.mesh.coord(:,3));
+                zMax    = max(obj.mesh.coord(:,3));
+                isDir   = @(coor)  abs(coor(:,1))==xMin;
+                isForceLeft = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))==yMin  & abs(coor(:,3))>=0.45*zMax  & abs(coor(:,3))<=0.55*zMax);
+                isForceDown = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,3))==zMin  & abs(coor(:,2))>=0.45*yMax  & abs(coor(:,2))<=0.55*yMax);
+                isForceRight = @(coor) (abs(coor(:,1))==xMax & abs(coor(:,2))==yMax  & abs(coor(:,3))>=0.45*zMax & abs(coor(:,3))<=0.55*zMax);
+                isForceUp = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,3))==zMax & abs(coor(:,2))>=0.45*yMax  & abs(coor(:,2))<=0.55*yMax);
 
-            sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [1,2,3];
-            sDir{1}.value     = 0;
+                sDir{1}.domain    = @(coor) isDir(coor);
+                sDir{1}.direction = [1,2,3];
+                sDir{1}.value     = 0;
+    
+                sPL{1}.domain    = @(coor) isForceLeft(coor);
+                sPL{1}.direction = 3;
+                sPL{1}.value     = -1;
+      
+                sPL{2}.domain    = @(coor) isForceDown(coor);
+                sPL{2}.direction = 2;
+                sPL{2}.value     = 1;
 
-            sDir{2}.domain    = @(coor) isDirFront(coor);
-            sDir{2}.direction = [2];
-            sDir{2}.value     = 0;
+                sPL{3}.domain    = @(coor) isForceRight(coor);
+                sPL{3}.direction = 3;
+                sPL{3}.value     = 1;
+    
+                sPL{4}.domain    = @(coor) isForceUp(coor);
+                sPL{4}.direction = 2;
+                sPL{4}.value     = -1;  
+            elseif isequal(obj.type, 'cornersSupport')
+                xMax    = max(obj.mesh.coord(:,1));
+                yMin    = min(obj.mesh.coord(:,2));
+                yMax    = max(obj.mesh.coord(:,2));
+                zMin    = min(obj.mesh.coord(:,3));
+                isDir2   = @(coor)  (abs(coor(:,3))==zMin & abs(coor(:,2))>=0.9*yMax & abs(coor(:,1))<=0.1*xMax);
+                isForce = @(coor)  (abs(coor(:,3))==zMin & abs(coor(:,2))<=0.1*yMax & abs(coor(:,1))>=0.9*xMax);
+                isDirY   = @(coor)  abs(coor(:,2))==yMin;
+                isDirX   = @(coor)  abs(coor(:,1))==xMax;
 
-            sDir{3}.domain    = @(coor) isDirRight(coor);
-            sDir{3}.direction = [1];
-            sDir{3}.value     = 0;
+                sDir{1}.domain    = @(coor) isDir2(coor);
+                sDir{1}.direction = [1,2,3];
+                sDir{1}.value     = 0;
+                
+                sDir{2}.domain    = @(coor) isDirY(coor);
+                sDir{2}.direction = [2];
+                sDir{2}.value     = 0;
+    
+                sDir{3}.domain    = @(coor) isDirX(coor);
+                sDir{3}.direction = [1];
+                sDir{3}.value     = 0;
 
-            sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 3;
-            sPL{1}.value     = -1;
-
+                sPL{1}.domain    = @(coor) isForce(coor);
+                sPL{1}.direction = 3;
+                sPL{1}.value     = -1;
+            elseif isequal(obj.type, 'bridge')
+                yMin    = min(obj.mesh.coord(:,2));
+                xMax    = max(obj.mesh.coord(:,1));
+                yMax    = max(obj.mesh.coord(:,2));
+                zMax    = max(obj.mesh.coord(:,3));
+                zMin    = min(obj.mesh.coord(:,3));
+                isDir   = @(coor)  (abs(coor(:,3))==zMin & abs(coor(:,1))<=0.1*xMax);
+                isDirX   = @(coor)  abs(coor(:,1))==xMax;
+                isForce = @(coor)  (abs(coor(:,3))==zMax);
+    
+                sDir{1}.domain    = @(coor) isDir(coor);
+                sDir{1}.direction = [1,2,3];
+                sDir{1}.value     = 0;
+    
+                sDir{2}.domain    = @(coor) isDirX(coor);
+                sDir{2}.direction = [1];
+                sDir{2}.value     = 0;
+    
+                sPL{1}.domain    = @(coor) isForce(coor);
+                sPL{1}.direction = 3;
+                sPL{1}.value     = -1;
+            end
             dirichletFun = [];
             for i = 1:numel(sDir)
                 dir = DirichletCondition(obj.mesh, sDir{i});
                 dirichletFun = [dirichletFun, dir];
             end
             s.dirichletFun = dirichletFun;
-
+    
             pointloadFun = [];
             for i = 1:numel(sPL)
                 pl = PointLoad(obj.mesh, sPL{i});
                 pointloadFun = [pointloadFun, pl];
             end
             s.pointloadFun = pointloadFun;
-
+    
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
@@ -291,22 +382,22 @@ classdef TopOptDensity3DConnectivity < handle
             isDown  = @(coor) abs(coor(:,3))==zMin;
             isUp    = @(coor) abs(coor(:,3))==zMax;
             isLeft  = @(coor) abs(coor(:,1))==xMin;
-%             isRight = @(coor) abs(coor(:,1))==xMax;
-%             isFront = @(coor) abs(coor(:,2))==yMin;
+            isRight = @(coor) abs(coor(:,1))==xMax;
+            isFront = @(coor) abs(coor(:,2))==yMin;
             isBack = @(coor) abs(coor(:,2))== yMax;
-            isDir   = @(coor)  isDown(coor) | isUp(coor) | isLeft(coor) | isBack(coor);  
+
+            if isequal(obj.type, 'centralSupport') || isequal(obj.type, 'cornersSupport') 
+                isDir   = @(coor)  isDown(coor) | isUp(coor) | isLeft(coor) | isBack(coor);  
+            elseif isequal(obj.type, 'bridge')
+                isDir   = @(coor)  (isDown(coor) | isUp(coor) | isLeft(coor) | isBack(coor) | isFront(coor));  
+             else
+                isDir   = @(coor)  (isDown(coor) | isUp(coor) | isLeft(coor) | isBack(coor) |isRight(coor)| isFront(coor));  
+            end 
+
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = 1;
             sDir{1}.value     = 0;
             sDir{1}.ndim = 1;
-
-%             sDir{2}.domain    = @(coor) isFront(coor);
-%             sDir{2}.direction = [2];
-%             sDir{2}.value     = 0;
-% 
-%             sDir{3}.domain    = @(coor) isRight(coor);
-%             sDir{3}.direction = [1];
-%             sDir{3}.value     = 0;
 
              dirichletFun = [];
             for i = 1:numel(sDir)
@@ -323,9 +414,17 @@ classdef TopOptDensity3DConnectivity < handle
 
         function createNonDesignableDomain(obj)
             zMax    = max(obj.mesh.coord(:,3));
-            isNonDesign =  @(coor) abs(coor(:,3)) >= (zMax - 3*obj.mesh.computeMeanCellSize());
-            obj.dofsNonDesign = isNonDesign(obj.mesh.coord);
+            xMax    = max(obj.mesh.coord(:,1));
+            if isequal(obj.type, 'centralSupport')
+                isNonDesign =  @(coor) abs(coor(:,3)) >= (zMax - 3*obj.mesh.computeMeanCellSize());  
+            elseif isequal(obj.type, 'bridge') 
+                isNonDesign =  @(coor) abs(coor(:,3)) >= (zMax - 2*obj.mesh.computeMeanCellSize());  
+            elseif isequal(obj.type, 'torqueBeam')
+                isNonDesign =  @(coor) ((abs(coor(:,1)) >= (xMax - 2*obj.mesh.computeMeanCellSize())) | (abs(coor(:,1)) <= (2*obj.mesh.computeMeanCellSize())));
+            elseif isequal(obj.type, 'cornersSupport') 
+                isNonDesign =  @(coor) abs(coor(:,3)) <= (2*obj.mesh.computeMeanCellSize());
+            end
+%             obj.dofsNonDesign = isNonDesign(obj.mesh.coord);
         end
-
      end
 end

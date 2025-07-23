@@ -6,7 +6,7 @@ classdef OptimizerNullSpace < Optimizer
 
     properties (Access = private)
         lineSearchTrials
-        tol = 1e-8
+        tol = 1e-5
         hasConverged
         acceptableStep
         hasFinished
@@ -29,6 +29,7 @@ classdef OptimizerNullSpace < Optimizer
         firstEstimation
         GIFname
         dofsNonDesign
+        typeBench
     end
 
     methods (Access = public) 
@@ -55,12 +56,14 @@ classdef OptimizerNullSpace < Optimizer
                 obj.updateMonitoring();
                 obj.checkConvergence();
                 obj.designVariable.updateOld();
-
-                if ~isempty(obj.dofsNonDesign) 
-                   fValues = obj.designVariable.fun.fValues;
-                   fValues(obj.dofsNonDesign) = -1.0;
-                   obj.designVariable.fun.setFValues(fValues);
-                end
+%                 if obj.nIter == 1 || mod(obj.nIter,20)== 0
+%                     obj.designVariable.fun.print('dV'+string(obj.nIter)+string(obj.typeBench),'Paraview')
+%                 end
+%                 if ~isempty(obj.dofsNonDesign) 
+%                    fValues = obj.designVariable.fun.fValues;
+%                    fValues(obj.dofsNonDesign) = - 1.0;
+%                    obj.designVariable.fun.setFValues(fValues);
+%                 end
 
             end
         end
@@ -85,7 +88,8 @@ classdef OptimizerNullSpace < Optimizer
             obj.etaMin          = 1e-6;
             obj.initOtherParameters(cParams);
             obj.createMonitoring(cParams);
-            obj.GIFname         = cParams.GIFname;
+%             obj.GIFname         = cParams.GIFname;
+%             obj.typeBench           = cParams.type;
 
             if isfield(cParams,'dofsNonDesign') 
                 obj.dofsNonDesign = cParams.dofsNonDesign;
@@ -294,10 +298,12 @@ classdef OptimizerNullSpace < Optimizer
             switch class(obj.primalUpdater)
                 case 'SLERP'
                     [actg,~] = obj.computeActiveConstraintsGradient();
-                    isAlmostFeasible  = norm(actg) < 0.01;
-                    isAlmostOptimal   = obj.primalUpdater.Theta < 0.15; %4; %15;
+                    isAlmostFeasible  = norm(actg) < 0.02; %0.01; %0.02;
+%                     isAlmostOptimal   = obj.primalUpdater.Theta < 0.15; %35; %15; %4; %15;
+                    isAlmostOptimal   = obj.primalUpdater.Theta < 0.35; %15; %4; %15;
                     if isAlmostFeasible && isAlmostOptimal
-                        obj.etaMax  = max(obj.etaMax/1.05,obj.etaMaxMin);
+%                         obj.etaMax  = max(obj.etaMax/1.05,obj.etaMaxMin);
+                        obj.etaMax  = max(obj.etaMax/1.1,obj.etaMaxMin);
                         obj.etaNorm = max(obj.etaNorm/1.1,obj.etaNormMin);
                     end
                 case 'HAMILTON-JACOBI'

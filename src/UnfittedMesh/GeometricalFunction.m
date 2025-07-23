@@ -91,6 +91,40 @@ classdef GeometricalFunction < handle
                     fH = @(x) min(min(max(abs(x1(x)-x01)./sx1,abs(x2(x)-y01)./sy1), max(abs(x1(x)-x02)./sx2,abs(x2(x)-y02)./sy2)), max(abs(x1(x)-x03)./sx3,abs(x2(x)-y03)./sy3)) - 0.5;
                     obj.fHandle = fH;
 
+
+                case 'Prism'
+                    sx = cParams.xSide;
+                    sy = cParams.ySide;
+                    sz = cParams.zSide;
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+                    z0 = cParams.zCoorCenter;
+                    fH = @(x) max(max(abs(x1(x)-x0)./sx,abs(x2(x)-y0)./sy), abs(x3(x)-z0)./sz) - 0.5;
+                    obj.fHandle = fH;
+
+
+                case 'ThreePrisms'
+                    sx1 = cParams.xSide1;
+                    sy1 = cParams.ySide1;
+                    sz1 = cParams.zSide1;
+                    x01 = cParams.xCoorCenter1;
+                    y01 = cParams.yCoorCenter1;
+                    z01 = cParams.zCoorCenter1;
+                    sx2 = cParams.xSide2;
+                    sy2 = cParams.ySide2;
+                    sz2 = cParams.zSide2;
+                    x02 = cParams.xCoorCenter2;
+                    y02 = cParams.yCoorCenter2;
+                    z02 = cParams.zCoorCenter2;     
+                    sx3 = cParams.xSide3;
+                    sy3 = cParams.ySide3;
+                    sz3 = cParams.zSide3;
+                    x03 = cParams.xCoorCenter3;
+                    y03 = cParams.yCoorCenter3;
+                    z03 = cParams.zCoorCenter3;
+                    fH = @(x) min(min(max(max(abs(x1(x)-x01)./sx1,abs(x2(x)-y01)./sy1), abs(x3(x)-z01)./sz1), max(max(abs(x1(x)-x02)./sx2,abs(x2(x)-y02)./sy2), abs(x3(x)-z02)./sz2)), max(max(abs(x1(x)-x03)./sx3,abs(x2(x)-y03)./sy3), abs(x3(x)-z03)./sz3)) - 0.5;
+                    obj.fHandle = fH;    
+
                 case 'ThreeRectanglesInclusion'
                     s      = cParams;
                     s.type = 'ThreeRectangles';
@@ -140,6 +174,15 @@ classdef GeometricalFunction < handle
                     fH = @(x) (x1(x)-x0).^2+(x2(x)-y0).^2-r^2;
                     obj.fHandle = fH;
 
+                case 'TwoCircles'
+                    r  = cParams.radius;
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+                    x02 = cParams.xCoorCenter2;
+                    y02 = cParams.yCoorCenter2;
+                    fH = @(x) min((x1(x)-x0).^2+(x2(x)-y0).^2-r^2, (x1(x)-x02).^2+(x2(x)-y02).^2-r^2);
+                    obj.fHandle = fH;
+
                 case 'CircleInclusion'
                     s      = cParams;
                     s.type = 'Circle';
@@ -151,6 +194,17 @@ classdef GeometricalFunction < handle
                     y0 = cParams.yCoorCenter;
                     z0 = cParams.zCoorCenter;
                     fH = @(x) (x1(x)-x0).^2+(x2(x)-y0).^2+(x3(x)-z0).^2-r^2;
+                    obj.fHandle = fH;
+
+                case 'TwoSpheres'
+                    r  = cParams.radius;
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+                    z0 = cParams.zCoorCenter;
+                    x02 = cParams.xCoorCenter2;
+                    y02 = cParams.yCoorCenter2;
+                    z02 = cParams.zCoorCenter2;
+                    fH = @(x) min((x1(x)-x0).^2+(x2(x)-y0).^2+(x3(x)-z0).^2-r^2, (x1(x)-x02).^2+(x2(x)-y02).^2+(x3(x)-z02).^2-r^2);
                     obj.fHandle = fH;
 
                 case 'SphereInclusion'

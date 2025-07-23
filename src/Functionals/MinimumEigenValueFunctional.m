@@ -139,8 +139,7 @@ classdef MinimumEigenValueFunctional < handle
                 xR = obj.filter.compute(x,2);
             end
             if ~isempty(obj.filterAdjoint)
-                xFiltered = obj.filter.getFilteredField();
-                obj.filterAdjoint.updateFilteredField(xFiltered);
+                obj.filterAdjoint.updateFilteredField(obj.filter);
             end
         end
 

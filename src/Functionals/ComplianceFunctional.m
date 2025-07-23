@@ -12,7 +12,6 @@ classdef ComplianceFunctional < handle
         material
         iter
         filteredDesignVariable
-        dofsNonDesign
     end
 
     methods (Access = public)
@@ -37,13 +36,6 @@ classdef ComplianceFunctional < handle
             xR = obj.filterFields(xD);
             obj.material.setDesignVariable(xR);
             [J,dJ] = obj.computeComplianceFunctionAndGradient(x);
-            
-            if ~isempty(obj.dofsNonDesign) 
-                fValues = dJ{1}.fValues;
-                fValues(obj.dofsNonDesign) = 0.0;
-                dJ{1}.setFValues(fValues);
-            end
-
             obj.filteredDesignVariable = xR{1};
         end
 
@@ -74,9 +66,6 @@ classdef ComplianceFunctional < handle
                 obj.filterAdjoint = cParams.filterAdjoint;            
             end
             obj.iter = 0;
-%             if isprop(cParams.dofsNonDesign) 
-%                 obj.dofsNonDesign = cParams.dofsNonDesign;
-%             end
         end
 
         function xR = filterFields(obj,x)
@@ -85,8 +74,7 @@ classdef ComplianceFunctional < handle
             for i = 1:nDesVar
                 xR{i} = obj.filter.compute(x{i},2);
                 if ~isempty(obj.filterAdjoint)
-                    xFiltered = obj.filter.getFilteredField();
-                    obj.filterAdjoint.updateFilteredField(xFiltered);
+                    obj.filterAdjoint.updateFilteredField(obj.filter);
                 end
             end
         end

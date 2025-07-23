@@ -41,7 +41,7 @@ classdef TopOptTestTutorialDensityNullSpace < handle
         end
 
         function createMesh(obj)
-            %UnitMesh better
+            % UnitMesh better
             x1      = linspace(0,2,100);
             x2      = linspace(0,1,50);
             [xv,yv] = meshgrid(x1,x2);
@@ -175,16 +175,17 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             s.monitoring     = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
+            s.GIFname        = 'name';
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 3;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
             s.ub             = 1;
             s.lb             = 0;
             s.etaNorm        = 0.01;
-            s.gJFlowRatio    = 2;
+            s.gJFlowRatio    = 0.2;
             s.tauMax         = 1000;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
@@ -194,8 +195,11 @@ classdef TopOptTestTutorialDensityNullSpace < handle
         function bc = createBoundaryConditions(obj)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
+            yMin    = min(obj.mesh.coord(:,2));
             isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
+%             isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
+%             isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))<=0.2*yMax);
+            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))==yMin);
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2];

@@ -198,6 +198,7 @@ classdef Optimizer < handle
                     else
                         imwrite(A,map,gifname,"gif","WriteMode","append","DelayTime",deltaTime);
                     end
+%                     saveas(fig,'design.png','png')
                     close(gifFig);
         
                     %set(0,'DefaultFigureVisible','on');

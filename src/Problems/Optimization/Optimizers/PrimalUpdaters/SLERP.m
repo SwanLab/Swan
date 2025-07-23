@@ -1,3 +1,4 @@
+
 classdef SLERP < handle
 
     properties (Access = public)
@@ -10,7 +11,7 @@ classdef SLERP < handle
 
     properties (Access = private)
         mesh
-        volume
+        dofsNonDesign
     end
 
     methods (Access = public)
@@ -19,22 +20,24 @@ classdef SLERP < handle
         end
 
         function phi = update(obj,g,phi)
+            isFixed = phi.getFixedNodes();
+            g(isFixed) = -abs(g(isFixed));
             ls                = phi.obtainVariableInCell();
             phiN              = obj.normalizeLevelSets(ls);
             gN                = obj.createNormalizedGradient(ls,g);
             theta             = obj.computeThetaNorm(phiN,gN);
             obj.Theta         = theta;
             [phiNvals,gNvals] = obj.computePhiAndGradientValues(phiN,gN);
-            phiNew            = obj.computeNewLevelSet(phiNvals,gNvals,theta);
+            phiNew            = obj.computeNewLevelSet(phiNvals,gNvals,theta); 
             phi.update(phiNew);
             obj.updateBoundsMultipliers(phi.fun);
         end
 
         function computeFirstStepLength(obj,g,ls,~)
             [lsClass,gClass] = obj.getLevelSetAndGradientForVolume(ls{1},g);
-            V0 = obj.volume.computeFunctionAndGradient({lsClass,ls{2}});
+            V0 = lsClass.computeVolume();
             if abs(V0-1) <= 1e-10
-                obj.computeLineSearchInBounds(gClass,{lsClass,ls{2}});
+                obj.computeLineSearchInBounds(gClass,lsClass);
             else
                 obj.tau = 0.1;
             end
@@ -57,13 +60,6 @@ classdef SLERP < handle
 
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
-            obj.createVolumeFunctional();
-        end
-
-        function createVolumeFunctional(obj)
-            s.mesh         = obj.mesh;
-            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            obj.volume     = VolumeFunctional(s);
         end
 
         function computeLineSearchInBounds(obj,g,ls)
@@ -102,9 +98,9 @@ classdef SLERP < handle
         end
 
         function V = computeVolumeFromTau(obj,g,ls)
-            lsAux = ls{1}.copy();
+            lsAux = ls.copy();
             lsAux = obj.update(g,lsAux);
-            V     = obj.volume.computeFunctionAndGradient({lsAux,ls{2}});
+            V     = lsAux.computeVolume();
         end
 
         function fN = createNormalizedGradient(obj,ls,fV)
@@ -120,9 +116,21 @@ classdef SLERP < handle
             end
         end
 
+        function [lsNon, gNNon] = setLevelSetAndGradientNonDesignable(obj, ls, gN)
+            gNFValues = gN.fValues;
+            lsFValues = ls.fValues;
+            lsFValues(obj.dofsNonDesign) = 0.0;
+            gNFValues(obj.dofsNonDesign) = 0.0;
+            lsNon         = ls.copy;
+            lsNon.setFValues(lsFValues);
+            lsNon = lsNon.normalize('L2');
+            gNNon         = gN.copy;
+            gNNon.setFValues(gNFValues);
+        end
+
         function t = computeTheta(obj,phi,g)
-            m    = obj.mesh;
-            phiG = ScalarProduct.computeL2(m,phi,g);
+%             [phi, g] = obj.setLevelSetAndGradientNonDesignable(phi,g);
+            phiG = ScalarProduct(phi,g,'L2');
             t    = max(acos(phiG),1e-14);
         end
 
