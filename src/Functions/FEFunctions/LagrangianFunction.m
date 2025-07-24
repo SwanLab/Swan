@@ -103,11 +103,11 @@ classdef LagrangianFunction < FeFunction
             N = obj.interpolation.computeShapeFunctions(xV);
         end
 
-       function gradF = computeGrad(obj,xV)
-            dNdx  = obj.evaluateCartesianDerivatives(xV);
-            fV    = obj.getFvaluesByElem();            
-            fV    = permute(fV,[2 1 4 3]);
-            gradF = squeezeParticular(pagemtimes(dNdx,fV),[1 2]);
+        function grad = computeGrad(obj)
+            s.operation = @(xV) obj.computeGradFun(xV);
+            s.ndimf     = obj.mesh.ndim*obj.ndimf;
+            s.mesh      = obj.mesh;
+            grad        = DomainFunction(s);
         end
 
         function div = computeDiv(obj)
@@ -428,7 +428,12 @@ classdef LagrangianFunction < FeFunction
             obj.nDofs  = c.getNumberDofs();
         end
 
-
+        function gradF = computeGradFun(obj,xV)
+            dNdx  = obj.evaluateCartesianDerivatives(xV);
+            fV    = obj.getFvaluesByElem();            
+            fV    = permute(fV,[2 1 4 3]);
+            gradF = squeezeParticular(pagemtimes(dNdx,fV),[1 2]);
+        end
 
         function divF = computeDivFun(obj,xV)
             nP = size(xV,2);

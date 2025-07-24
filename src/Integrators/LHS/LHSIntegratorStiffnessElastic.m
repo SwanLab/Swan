@@ -1,45 +1,40 @@
 classdef LHSIntegratorStiffnessElastic < LHSIntegrator
 
+    properties (Access = private)
+        material
+    end
+
     methods (Access = public)
         function obj = LHSIntegratorStiffnessElastic(cParams)
-               obj@LHSIntegrator(cParams)
-         %   obj.init(cParams);
+            obj@LHSIntegrator(cParams)
+            obj.material = cParams.material;
         end
 
-
-
-        function LHS = compute(obj,f,test,trial)
-            lhs = obj.computeElementalLHS(f);
-            LHS = obj.assembleMatrix(lhs,test,trial);
+        function LHS = compute(obj)
+            lhs = obj.computeElementalLHS();
+            LHS = obj.assembleMatrix(lhs);
         end
     end
 
     methods (Access = protected)
-
-
-        function lhs = computeElementalLHS(obj,f)
+        function lhs = computeElementalLHS(obj)
+            xV    = obj.quadrature.posgp;
+            SymN  = @(i) ShapeDerSym(obj.test,i);
+            C     = obj.material;
+            dE    = @(i,j) DDP(SymN(i),DDP(C,SymN(j)));
+            dV     = obj.mesh.computeDvolume(obj.quadrature);
+            nnodeE = obj.mesh.nnodeElem;
+            ndim   = obj.mesh.ndim;
+            ndofE  = nnodeE*ndim;
             nElem  = obj.mesh.nelem;
-            lhs    = zeros(size(f,1),size(f,2),nElem);
-
-            %J = Jacobian(obj.mesh);
-            %J    = obj.mesh.getJacobian();
-            %detJ = Det(J);
-            detJ = DetJ(obj.mesh);
-
-            xV = obj.quadrature.posgp;
-            w  = obj.quadrature.weigp;
-            for i = 1:size(f,1)
-                for j = 1:size(f,2)
-                    int = (f{i,j}.*detJ)*w';
-                    lhs(i,j,:) = lhs(i,j,:) + int.evaluate(xV);
+            lhs    = zeros(ndofE,ndofE,nElem);
+            for i = 1:ndofE
+                for j = 1:ndofE
+                    dEval = dE(i,j).evaluate(xV);
+                    dK    = dEval.*dV;
+                    lhs(i,j,:) = squeeze(lhs(i,j,:))' + sum(dK,1);
                 end
             end
         end
-
-        function init(obj,cParams)
-            obj.mesh  = cParams.mesh;
-            obj.setQuadratureOrder(cParams);
-        end
-
     end
 end
