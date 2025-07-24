@@ -12,6 +12,7 @@ classdef TopOptTestTutorialThermal < handle
         constraint
         dualVariable
         optimizer
+        thermalCompliance
     end
 
     methods (Access = public)
@@ -21,10 +22,9 @@ classdef TopOptTestTutorialThermal < handle
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
-            obj.createMaterialInterpolator();
+            obj.createConductivityInterpolator();
             obj.createThermalProblem();
-            obj.createComplianceFromConstiutive();
-            obj.createCompliance();
+            obj.createThermalCompliance();
             obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
@@ -72,65 +72,33 @@ classdef TopOptTestTutorialThermal < handle
             obj.filter = f;
         end
 
-        function createMaterialInterpolator(obj)
-            E0 = 1e-3;
-            nu0 = 1/3;
-            ndim = obj.mesh.ndim;
-            matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
-            matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
+        function createConductivityInterpolator(obj)
+            s.interpolation  = 'SIMPThermal';   
+            s.f0   = 1e-3;                                             
+            s.f1   = 1;                                                    
+            s.pExp = 3;
+            a = MaterialInterpolator.create(s);
+            obj.materialInterpolator = a;            
+        end            
 
-
-            E1 = 1;
-            nu1 = 1/3;
-            matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
-            matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
-
-            s.interpolation  = 'SIMPALL';
-            s.dim            = '2D';
-            s.matA = matA;
-            s.matB = matB;
-
-            m = MaterialInterpolator.create(s);
-            obj.materialInterpolator = m;
-        end
-
-        function m = createMaterial(obj)
-            x = obj.designVariable.fun;           
-            s.type                 = 'DensityBased';
-            s.density              = x;
-            s.materialInterpolator = obj.materialInterpolator;
-            s.dim                  = '2D';
-            s.mesh                 = obj.mesh;
-            m = Material.create(s);
-        end
-
-        function createElasticProblem(obj)
+        function createThermalProblem(obj)
             s.mesh = obj.mesh;
-            s.scale = 'MACRO';
-            s.material = obj.createMaterial();
+            s.conductivity = obj.materialInterpolator();
             s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
             s.solverCase = 'DIRECT';
-            fem = ElasticProblem(s);
+            fem = ThermalProblem(s);
             obj.physicalProblem = fem;
         end
 
-        function c = createComplianceFromConstiutive(obj)
-            s.mesh         = obj.mesh;
-            s.stateProblem = obj.physicalProblem;
-            c = ComplianceFromConstitutiveTensor(s);
-        end
-
-        function createCompliance(obj)
+        function createThermalCompliance(obj)
             s.mesh                        = obj.mesh;
             s.filter                      = obj.filter;
-            s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
-            s.material                    = obj.createMaterial();
-            c = ComplianceFunctional(s);
-            obj.compliance = c;
+            c = ThermalComplianceFunctional(s);
+            obj.thermalCompliance = c;
         end
 
         function createVolumeConstraint(obj)
@@ -143,7 +111,7 @@ classdef TopOptTestTutorialThermal < handle
         end
 
         function createCost(obj)
-            s.shapeFunctions{1} = obj.compliance;
+            s.shapeFunctions{1} = obj.thermalCompliance;
             s.weights           = 1;
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
@@ -189,36 +157,25 @@ classdef TopOptTestTutorialThermal < handle
         end
 
         function bc = createBoundaryConditions(obj)
+            yMin    = min(obj.mesh.coord(:,2));
             xMax    = max(obj.mesh.coord(:,1));
-            yMax    = max(obj.mesh.coord(:,2));
-            isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax);
-
+            isDir   = @(coor) abs(coor(:,2))==yMin & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax;  
             sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [1,2];
+            sDir{1}.direction = 1;
             sDir{1}.value     = 0;
-
-            sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 2;
-            sPL{1}.value     = -1;
-
+            sDir{1}.ndim = 1;
+            
             dirichletFun = [];
             for i = 1:numel(sDir)
                 dir = DirichletCondition(obj.mesh, sDir{i});
                 dirichletFun = [dirichletFun, dir];
             end
             s.dirichletFun = dirichletFun;
-
-            pointloadFun = [];
-            for i = 1:numel(sPL)
-                pl = PointLoad(obj.mesh, sPL{i});
-                pointloadFun = [pointloadFun, pl];
-            end
-            s.pointloadFun = pointloadFun;
+            s.pointloadFun = [];
 
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
-            bc = BoundaryConditions(s);
+            bc = BoundaryConditions(s);  
         end
     end
 end
