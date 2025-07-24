@@ -60,7 +60,6 @@ classdef LHSIntegratorWeakDivergence < handle
             obj.mesh  = cParams.mesh;
             obj.trial = cParams.trial;
             obj.test  = cParams.test;
-%             obj.material = cParams.material;
         end
 
         function createQuadrature(obj)

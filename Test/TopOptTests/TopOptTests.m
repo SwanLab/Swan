@@ -12,7 +12,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             'test_anisotropy','test_anisotropy_interior','test_nullspace',...
             'test_interiorPerimeterPDErho','test_filterLump','test_cantilever_IPM',...
             'test_dirichletProjection','test_gripping','test_micro', 'test_micro2',...
-            'test_boundFormFilterAndProject','test_cantilever_SIMPP3'
+            'test_micro3','test_boundFormFilterAndProject','test_cantilever_SIMPP3'
             }
     end
 
@@ -32,7 +32,6 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
     methods (Static, Access = private)
         function t = runTopOptTest(obj,testName)
             run(testName);
-            gid    = obj.readGidFile(filename);
             m      = gid.mesh;
             dim    = gid.dim;
             bc     = gid.boundaryConditions;
@@ -56,11 +55,6 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             primalUp = obj.createPrimalUpdater(m,x,primal);
             t      = obj.createOptimizer(optimizer,primalUp,primal,monitoring,sFCost,sFConstraint,x,lam,maxiter,constraint_case,target);
             close all;
-        end
-
-        function s = readGidFile(file)
-            a.fileName = file;
-            s          = FemDataContainer(a);
         end
 
         function x = createDesignVariable(type,mesh,gSet,plotting)

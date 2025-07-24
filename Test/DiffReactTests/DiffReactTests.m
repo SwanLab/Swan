@@ -25,15 +25,14 @@ classdef DiffReactTests < matlab.unittest.TestCase
 
     methods (Test, TestTags = {'DiffReact', '3D'})
 
-        function test3D(testCase, file3d)
-            lhstype = 'StiffnessMass';
-            s   = testCase.createFEMparameters(file3d, lhstype);
+        function test3D(testCase, file3d, LHStype)
+            s   = testCase.createFEMparameters(file3d, LHStype);
             RHS = testCase.createRHS(s.mesh);
             fem = PhysicalProblem.create(s);
             fem.computeLHS(0.1857);
             fem.computeVariables(RHS);
 %             fem.print(filename)
-            err = testCase.computeError(file3d, lhstype, fem);
+            err = testCase.computeError(file3d, LHStype, fem);
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
         end

@@ -57,7 +57,7 @@ classdef ProjectorComputer < handle
                 case {'FEM'}
                     obj.readMesh();
                     obj.selectOrigin();
-                    obj.selectProjector();
+                    obj.project();
                 case {'TOPOPT'}
                     %...
             end
@@ -73,12 +73,8 @@ classdef ProjectorComputer < handle
             obj.fun = obj.computation.(obj.var);
         end
 
-        function selectProjector(obj)
-            s.mesh          = obj.mesh;
-            s.connec        = obj.mesh.connec;
-            s.projectorType = obj.projectTo;
-            projector       = Projector.create(s);
-            obj.funProj     = projector.project(obj.fun);
+        function project(obj)
+            obj.funProj = obj.fun.project(obj.projectTo);
         end
 
     end
