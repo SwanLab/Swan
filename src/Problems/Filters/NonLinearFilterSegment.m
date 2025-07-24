@@ -26,6 +26,7 @@ classdef NonLinearFilterSegment < handle
         intChi
         rhsDer % Mergeable?
         isBoundFree
+        rhsShapeDer
     end
 
     methods (Access = public)
@@ -38,9 +39,10 @@ classdef NonLinearFilterSegment < handle
         end
 
         function xF = compute(obj,fun,quadOrder)
-            xF = copy(obj.trial);     
+            xF = copy(obj.trial);   
             obj.computeInitialGuess(fun,quadOrder);
             obj.updateDotProduct(obj.trial); 
+            obj.createRHSShapeDerivative(quadOrder);
             obj.intChi = obj.createRHSShapeFunction(fun,quadOrder);
             iter   = 1;
             dJ0 = obj.computeCostGradient(quadOrder);
@@ -50,12 +52,12 @@ classdef NonLinearFilterSegment < handle
                 x0 = copy(obj.trial);
                 isAcceptable = false;
                 while not(isAcceptable)
-                    obj.createRHSDirectionalDerivative(quadOrder);
+                    obj.createRHSDirectionalDerivative();
                     obj.solveProblem();
                     obj.updateDotProduct(obj.trial);
                     dJ = obj.computeCostGradient(quadOrder);
                     error = Norm(dJ,'L2');
-                    if error <= error0
+                    if error <= 1.05*error0
                         obj.lineSearch = obj.lineSearch*1.1;
                         isAcceptable = true;
                     else
@@ -127,6 +129,14 @@ classdef NonLinearFilterSegment < handle
             obj.K   = LHS.compute();
         end
 
+        function createRHSShapeDerivative(obj,quadOrder)
+            s.mesh = obj.mesh;
+            s.type = 'ShapeDerivative';
+            s.quadratureOrder = quadOrder;
+            s.test = obj.trial;
+            obj.rhsShapeDer = RHSIntegrator.create(s);
+        end
+
         function computeInitialGuess(obj,fun,quadOrder)
             rhoE1 = obj.trial;
             rhoE2 = obj.filter.compute(fun,quadOrder);
@@ -156,26 +166,24 @@ classdef NonLinearFilterSegment < handle
         end
 
         function h = computeMeasure(obj)
-            e = obj.mesh.computeMeanCellSize();
             s = obj.sVar;
-            a = max(obj.alpha,0);
-            b = max(obj.beta,0);
+            a = obj.alpha;
+            b = obj.beta;
             maxFun = obj.createDomainMax(s);
             minFun = obj.createDomainMin(s);
             h = a.*maxFun - b.*minFun;
         end
 
-        function createRHSDirectionalDerivative(obj,quadOrder)
+        function createRHSDirectionalDerivative(obj)
             g          = obj.computeMeasureGradient();
             f          = obj.direction;
-            obj.rhsDer = obj.createRHSShapeDerivative(f.*g,quadOrder);
+            obj.rhsDer = obj.rhsShapeDer.compute(f.*g);
         end
 
         function g = computeMeasureGradient(obj)
-            e      = obj.mesh.computeMeanCellSize();
             s      = obj.sVar;
-            a      = max(obj.alpha,0);
-            b      = max(obj.beta,0);
+            a      = obj.alpha;
+            b      = obj.beta;
             maxFun = obj.createDomainMax(s);
             minFun = obj.createDomainMin(s);
             g      = s./(2*obj.lineSearch)-(a^2).*maxFun-(b^2).*minFun;
@@ -214,9 +222,8 @@ classdef NonLinearFilterSegment < handle
         end
 
         function [rhs1,rhs2,rhs3] = computeCostGateaux(obj,quadOrder)
-            e      = obj.mesh.computeMeanCellSize();
-            a      = max(obj.alpha,0);
-            b      = max(obj.beta,0);
+            a      = obj.alpha;
+            b      = obj.beta;
             s      = obj.sVar;
             k      = obj.direction;
             maxFun = obj.createDomainMax(s);
@@ -224,7 +231,7 @@ classdef NonLinearFilterSegment < handle
             rhs1   = obj.createRHSShapeFunction(obj.trial,quadOrder);
             rhs2   = -obj.intChi;
             int3   = (a^2.*maxFun + b^2.*minFun).*k;
-            rhs3   = obj.createRHSShapeDerivative(int3,quadOrder);
+            rhs3   = obj.rhsShapeDer.compute(int3);
         end
 
         function intN = createRHSShapeFunction(obj,fun,quadType)
@@ -240,15 +247,6 @@ classdef NonLinearFilterSegment < handle
             int        = RHSIntegrator.create(s);
             test       = obj.trial;
             intN       = int.compute(fun,test);
-        end
-
-        function intdN = createRHSShapeDerivative(obj,fun,quadOrder)
-            s.mesh = obj.mesh;
-            s.type = 'ShapeDerivative';
-            s.quadratureOrder = quadOrder;
-            int        = RHSIntegrator.create(s);
-            test       = obj.trial;
-            intdN      = int.compute(fun, test);
         end
 
         function m = createDomainMax(obj,sFun)

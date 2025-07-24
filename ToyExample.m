@@ -32,7 +32,7 @@ chi = CharacteristicFunction.create(uM);
 s.mesh  = m;
 s.theta = 90;
 s.alpha = 4;
-s.beta  = 0; % ¿ POR QUÉ PARA BETA 0 NO DA ERROR 0 Y CON BETA 1 SÍ ?
+s.beta  = 1; % ¿ POR QUÉ PARA BETA 0 NO DA ERROR 0 Y CON BETA 1 SÍ ?
 s.ub    = 1;
 s.lb    = 0;
 
