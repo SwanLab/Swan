@@ -1,20 +1,17 @@
 classdef TopOptTestTutorialDensityNullSpace < handle
 
     properties (Access = private)
+        mesh
         filter
+        designVariable
         materialInterpolator
         physicalProblem
         compliance
         volume
         cost
         constraint
-        dualVariable
+        primalUpdater
         optimizer
-    end
-
-    properties (Access = public)
-        mesh
-        designVariable
     end
 
     methods (Access = public)
@@ -31,11 +28,8 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
-            obj.createDualVariable();
+            obj.createPrimalUpdater();
             obj.createOptimizer();
-
-            %obj.designVariable.fun.print('Topology_Cantilever_gJ0.2_eta0.02');
-            % Save monitoring
         end
 
     end
@@ -171,10 +165,12 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             obj.constraint      = Constraint(s);
         end
 
-        function createDualVariable(obj)
-            s.nConstraints   = 1;
-            l                = DualVariable(s);
-            obj.dualVariable = l;
+        function createPrimalUpdater(obj)
+            s.ub     = 1;
+            s.lb     = 0;
+            s.tauMax = 1000;
+            s.tau    = [];
+            obj.primalUpdater = ProjectedGradient(s);
         end
 
         function createOptimizer(obj)
@@ -182,16 +178,13 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 500;
+            s.maxIter        = 3;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
-            s.ub             = 1;
-            s.lb             = 0;
-            s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 0.2;
-            s.tauMax         = 1000;
+            s.etaNorm        = 0.01;
+            s.gJFlowRatio    = 2;
+            s.primalUpdater  = obj.primalUpdater;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -200,8 +193,8 @@ classdef TopOptTestTutorialDensityNullSpace < handle
         function bc = createBoundaryConditions(obj)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
-            isDir   = @(coor)  coor(:,1)==0;
-            isForce = @(coor)  coor(:,1)==xMax & coor(:,2)>=0.4*yMax & coor(:,2)<=0.6*yMax;
+            isDir   = @(coor)  abs(coor(:,1))==0;
+            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2];

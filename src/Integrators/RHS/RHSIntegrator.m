@@ -16,9 +16,6 @@ classdef RHSIntegrator < handle
     end
     
     methods (Access = public)
-        
-%         function obj = RHSintegrator(cParams)
-%         end
 
         function createQuadrature(obj)
             q = Quadrature.create(obj.mesh, obj.quadratureOrder);

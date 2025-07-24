@@ -1,5 +1,4 @@
 classdef LHSIntegratorFunctionMass < LHSIntegrator
-
     properties (Access = private)
         fun
     end
@@ -34,23 +33,13 @@ classdef LHSIntegratorFunctionMass < LHSIntegrator
             nDofTest   = nNodeTest*obj.test.ndimf;
             nDofTrial  = nNodeTrial*obj.trial.ndimf;
 
-            fG = squeeze(obj.fun.evaluate(xV));
-
+            fG = obj.fun.evaluate(xV);
+            fG = squeezeParticular(fG,1);
             M = zeros(nDofTest, nDofTrial, nElem);
-            % lhs = zeros(nDofTest/2, nDofTrial/2, nElem);
-            % for igaus = 1:nGaus
-            %     dv(1,1,:) = dVolu(igaus,:);
-            %     Nv = shapesTest(:,igaus);
-            %     Nu = shapesTrial(:,igaus);
-            %     NvNu = Nv*Nu';
-            %     Aij = bsxfun(@times,NvNu,dv);
-            %     lhs = lhs + Aij;
-            % end
             for igauss = 1 :nGaus
                 for inode= 1:nNodeTest
                     for jnode= 1:nNodeTrial
                         for iunkn= 1:obj.test.ndimf
-                       %     for junkn= 1:obj.trial.ndimf
                                 fdv = fG(igauss,:).*dVolu(igauss,:);
                                 idof = obj.test.ndimf*(inode-1)+iunkn;
                                 jdof = obj.trial.ndimf*(jnode-1)+iunkn;
@@ -59,7 +48,6 @@ classdef LHSIntegratorFunctionMass < LHSIntegrator
                                 v = squeeze(Ni.*Nj.*fdv);
                                 M(idof, jdof, :)= squeeze(M(idof,jdof,:)) ...
                                     + v(:);
-                       %     end
                         end
                     end
                 end
@@ -68,5 +56,5 @@ classdef LHSIntegratorFunctionMass < LHSIntegrator
         end
 
     end
- 
+
 end

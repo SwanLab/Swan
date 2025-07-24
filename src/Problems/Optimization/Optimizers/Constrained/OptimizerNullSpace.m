@@ -1,12 +1,22 @@
-classdef OptimizerNullSpace < Optimizer
+classdef OptimizerNullSpace < handle
 
-    properties (GetAccess = public, SetAccess = protected)
-        type = 'NullSpace';
+    properties (Access = private)
+        tolCost   = 1e-8
+        tolConstr = 1e-6
     end
 
     properties (Access = private)
+        cost
+        constraint
+        constraintCase
+        designVariable
+        dualVariable
+        primalUpdater
+        dualUpdater
+        maxIter
+        nIter
+        monitoring
         lineSearchTrials
-        tol = 1e-8
         hasConverged
         acceptableStep
         hasFinished
@@ -25,24 +35,20 @@ classdef OptimizerNullSpace < Optimizer
         etaNorm
         etaNormMin
         gJFlowRatio
-        predictedTau
-        grayMeasure
         firstEstimation
     end
 
     methods (Access = public) 
         function obj = OptimizerNullSpace(cParams)
-            obj.initOptimizer(cParams);
             obj.init(cParams);
-            obj.createPrimalUpdater(cParams);
-            obj.createDualUpdater(cParams);
+            obj.createMonitoring(cParams);
             obj.prepareFirstIter();
         end
 
         function solveProblem(obj)
             obj.hasConverged = false;
             obj.hasFinished  = false;
-            obj.printOptimizerVariable();
+            obj.plotVariable();
             obj.updateMonitoring();
             obj.computeNullSpaceFlow();
             obj.computeRangeSpaceFlow();
@@ -50,7 +56,7 @@ classdef OptimizerNullSpace < Optimizer
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
-                obj.printOptimizerVariable();
+                obj.plotVariable();
                 obj.updateMonitoring();
                 obj.checkConvergence();
                 obj.designVariable.updateOld();
@@ -62,8 +68,8 @@ classdef OptimizerNullSpace < Optimizer
         function init(obj,cParams)
             obj.cost            = cParams.cost;
             obj.constraint      = cParams.constraint;
+            obj.constraintCase  = cParams.constraintCase;
             obj.designVariable  = cParams.designVariable;
-            obj.dualVariable    = cParams.dualVariable;
             obj.maxIter         = cParams.maxIter;
             obj.lG              = 0;
             obj.lJ              = 0;
@@ -75,8 +81,15 @@ classdef OptimizerNullSpace < Optimizer
             obj.etaNorm         = cParams.etaNorm;
             obj.eta             = 0;
             obj.etaMin          = 1e-6;
+            obj.primalUpdater   = cParams.primalUpdater;
+            obj.dualUpdater     = DualUpdaterNullSpace(cParams);
+            obj.createDualVariable();
             obj.initOtherParameters(cParams);
-            obj.createMonitoring(cParams);
+        end
+
+        function createDualVariable(obj)
+            s.nConstraints   = length(obj.constraintCase);
+            obj.dualVariable = DualVariable(s);
         end
 
         function initOtherParameters(obj,cParams)
@@ -86,73 +99,35 @@ classdef OptimizerNullSpace < Optimizer
                     obj.etaMaxMin  = cParams.etaMaxMin;
                     obj.etaNormMin = cParams.etaNormMin;
                 otherwise
-                    obj.etaMax = 0;
+                    obj.etaMax = inf;
             end
         end
 
         function createMonitoring(obj,cParams)
-            titlesF       = obj.cost.getTitleFields();
-            titlesConst   = obj.constraint.getTitleFields();
-            nSFCost       = length(titlesF);
-            nSFConstraint = length(titlesConst);
-            titles        = [{'Cost'};titlesF;titlesConst;{'Norm L2 x'}];
-            chConstr      = cell(1,nSFConstraint);
-            for i = 1:nSFConstraint
-                titles{end+1} = ['\lambda_{',titlesConst{i},'}'];
-                chConstr{i}   = 'plot';
-            end
-            titles  = [titles;{'Line Search';'Line Search trials';'Eta';'EtaMax';'lG';'lJ';'1/\eta (1-gk1/gk)';'Merit'}];
-            chCost = cell(1,nSFCost);
-            for i = 1:nSFCost
-                chCost{i} = 'plot';
-            end
-            chartTypes = [{'plot'},chCost,chConstr,{'logy'},chConstr,{'bar','bar','plot','logy','plot','plot','plot','plot'}];
-            switch class(obj.designVariable)
-                case 'LevelSet'
-                    titles = [titles;{'Theta';'Alpha';'Beta'}];
-                    chartTypes = [chartTypes,{'plot','plot','plot'}];
-                    case 'Density'
-                    titles = [titles;{'Gray measure'}];
-                    chartTypes = [chartTypes,{'plot'}];
-            end
-            s.shallDisplay = cParams.monitoring;
-            s.maxNColumns  = 6;
-            s.titles       = titles;
-            s.chartTypes   = chartTypes;
-            obj.monitoring = Monitoring(s);
+            s.shallDisplay   = cParams.monitoring;
+            s.cost           = obj.cost;
+            s.constraint     = obj.constraint;
+            s.designVariable = obj.designVariable;
+            s.dualVariable   = obj.dualVariable;
+            s.primalUpdater  = obj.primalUpdater;
+            obj.monitoring   = MonitoringNullSpace(s);
         end
 
         function updateMonitoring(obj)
-            obj.computeGrayMeasure();
-            data = obj.cost.value;
-            data = [data;obj.cost.getFields(':')];
-            data = [data;obj.constraint.value];
-            data = [data;obj.designVariable.computeL2normIncrement()];
-            data = [data;obj.dualVariable.fun.fValues];
-            if obj.nIter == 0
-                data = [data;0;0;0;obj.etaMax;0;0;0;NaN];
-            else
-                data = [data;obj.primalUpdater.tau;obj.lineSearchTrials;obj.eta;obj.etaMax;norm(obj.lG);norm(obj.lJ);norm(obj.predictedTau);obj.meritNew];
-            end
-            switch class(obj.designVariable)
-                case 'LevelSet'
-                    if obj.nIter == 0
-                        data = [data;0;0;0];
-                    else
-                        data = [data;obj.primalUpdater.Theta;obj.primalUpdater.Alpha;obj.primalUpdater.Beta];
-                    end
-                case 'Density'
-                    data = [data;obj.grayMeasure];
-            end
-            obj.monitoring.update(obj.nIter,num2cell(data));
+            s.etaMax           = obj.etaMax;
+            s.lineSearchTrials = obj.lineSearchTrials;
+            s.eta              = obj.eta;
+            s.lG               = obj.lG;
+            s.lJ               = obj.lJ;
+            s.meritNew         = obj.meritNew;
+            obj.monitoring.update(obj.nIter,s);
             obj.monitoring.refresh();
         end
 
-        function computeGrayMeasure(obj)
-            xFun = obj.designVariable.fun;
-            dInt = xFun.*(1-xFun);
-            int  = Integrator.compute(dInt,xFun.mesh,2);
-            obj.grayMeasure = int;
+        function plotVariable(obj)
+            if ismethod(obj.designVariable,'plot')
+                obj.designVariable.plot();
+            end
         end
 
         function updateEtaParameter(obj)
@@ -163,7 +138,7 @@ classdef OptimizerNullSpace < Optimizer
             obj.updateMonitoringMultipliers();
         end
 
-        function updateMonitoringMultipliers(obj) % Used just to monitor
+        function updateMonitoringMultipliers(obj)
             g      = obj.constraint.value;
             Dg     = obj.constraint.gradient;
             DJ     = obj.cost.gradient;
@@ -216,12 +191,11 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function update(obj)
-            g0 = obj.constraint.value;
             x0 = obj.designVariable.fun.fValues;
             obj.updateEtaParameter();
             obj.acceptableStep   = false;
             obj.lineSearchTrials = 0;
-            obj.dualUpdater.update(obj.eta,obj.primalUpdater);
+            obj.updateDualVariable();
             obj.mOldPrimal = obj.computeMeritFunction();
             obj.computeNullSpaceFlow();
             obj.computeRangeSpaceFlow();
@@ -229,8 +203,21 @@ classdef OptimizerNullSpace < Optimizer
             obj.calculateInitialStep();
             while ~obj.acceptableStep
                 obj.updatePrimal();
-                obj.checkStep(x0,g0);
+                obj.checkStep(x0);
             end
+        end
+
+        function updateDualVariable(obj)
+            if obj.nIter == 0
+                lUB = 0;
+                lLB = 0;
+            else
+                t   = obj.primalUpdater.boxConstraints.refTau;
+                lUB = obj.primalUpdater.boxConstraints.lUB/t;
+                lLB = obj.primalUpdater.boxConstraints.lLB/t;
+            end
+            l   = obj.dualUpdater.update(obj.eta,lUB,lLB);
+            obj.dualVariable.update(l);
         end
 
         function calculateInitialStep(obj)
@@ -260,24 +247,19 @@ classdef OptimizerNullSpace < Optimizer
             obj.meritGradient = DmF;
         end
 
-        function checkStep(obj,x0,g0)
+        function checkStep(obj,x0)
             mNew = obj.computeMeritFunction();
             x    = obj.designVariable.fun.fValues;
-            g    = obj.constraint.value;
             etaN = obj.obtainTrustRegion();
             if mNew <= obj.mOldPrimal+1e-3  &&  norm(x-x0)/(norm(x0)+1) < etaN
-                obj.predictedTau   = (1-g/g0)/obj.eta;
                 obj.acceptableStep = true;
                 obj.meritNew       = mNew;
-                obj.dualUpdater.updateOld();
                 obj.updateEtaMax();
             elseif obj.primalUpdater.isTooSmall()
                 warning('Convergence could not be achieved (step length too small)')
-                obj.predictedTau   = (1-g/g0)/obj.eta;
                 obj.acceptableStep = true;
                 obj.meritNew       = obj.mOldPrimal;
                 obj.designVariable.update(x0);
-                obj.dualUpdater.updateOld();
             else
                 obj.primalUpdater.decreaseStepLength();
                 obj.designVariable.update(x0);
@@ -327,7 +309,9 @@ classdef OptimizerNullSpace < Optimizer
         end
 
         function obj = checkConvergence(obj)
-            if abs(obj.meritNew - obj.meritOld) < obj.tol && obj.checkConstraint()
+            value = obj.constraint.value;
+            cases = obj.constraintCase;
+            if abs(obj.meritNew - obj.meritOld) < obj.tolCost && Optimizer.checkConstraint(value,cases,obj.tolConstr)
                 obj.hasConverged = true;
                 if obj.primalUpdater.isTooSmall()
                     obj.primalUpdater.tau = 1;
