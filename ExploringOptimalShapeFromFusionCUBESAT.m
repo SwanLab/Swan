@@ -52,7 +52,7 @@ classdef ExploringOptimalShapeFromFusionCUBESAT < handle
             dv = m.computeDvolume(q);
             negElem=find(dv<=0);
             con(negElem,:) = [];
-            sM.coord = m.coord;
+            sM.coord = m.coord*10;
             sM.connec = con;
             m2 = Mesh.create(sM);
             m2 = m2.computeCanonicalMesh();
@@ -64,10 +64,13 @@ classdef ExploringOptimalShapeFromFusionCUBESAT < handle
             obj.volume = obj.mesh.computeVolume();
             % Fa falta restar 
             %boxVolume = 2e5;
-            PreservedVolume = 66.814;
-            InitialVolume = 599.6;
+            PreservedVolume = 6.6814e4;
+            InitialVolume = 59.96e4;
             cubesatVolume = obj.volume - PreservedVolume;
             obj.fractionVolume = cubesatVolume/InitialVolume;
+            initialMass = 1.6;
+            cubesatMass = 2.670e-6*cubesatVolume;
+            massRemoved = 100*(1-(cubesatMass/initialMass));
         end
 
         function createDesignVariable(obj)
@@ -153,6 +156,9 @@ classdef ExploringOptimalShapeFromFusionCUBESAT < handle
             fem.updateMaterial(C);
             fem.solve();
             obj.stateProblem = fem;
+            u = fem.uFun;
+            maxDisplacements = max(abs(u.fValues));
+            u.print('Displacements_CUBESAT');
         end
 
         function c = createComplianceFromConstiutive(obj)

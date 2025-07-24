@@ -46,7 +46,7 @@ classdef ExploringOptimalShapeFromFusion < handle
         end
 
         function createMesh(obj)
-            file = 'BEAM_3D_SF25';
+            file = 'BEAM_3D_SF5';
             obj.filename = file;
             a.fileName = file;
             s = FemDataContainer(a);
@@ -57,7 +57,7 @@ classdef ExploringOptimalShapeFromFusion < handle
             dv = m.computeDvolume(q);
             negElem=find(dv<=0);
             con(negElem,:) = [];
-            sM.coord = m.coord;
+            sM.coord = m.coord*10;
             sM.connec = con;
             m2 = Mesh.create(sM);
             m2 = m2.computeCanonicalMesh();
@@ -66,12 +66,16 @@ classdef ExploringOptimalShapeFromFusion < handle
 
 
         function createVolume(obj)
+            % ESTA EN CM^3 NO SÉ PER QUÈ
             obj.volume = obj.mesh.computeVolume();
             % Fa falta restar 
-            boxVolume = 2e5;
-            InitialVolume = 7.002e5;
+            boxVolume = 2e8;
+            InitialVolume = 7.002e8;
             beamVolume = obj.volume-boxVolume;
             obj.fractionVolume = beamVolume/InitialVolume;
+            initialMass = 1335;
+            beamMass = 2.670e-6*beamVolume;
+            massRemoved = 100*(1-(beamMass/initialMass));
         end
 
         function createDesignVariable(obj)
@@ -166,6 +170,7 @@ classdef ExploringOptimalShapeFromFusion < handle
             fem.solve();
             obj.stateProblem = fem;
             u = fem.uFun;
+            maxDisplacements = max(abs(u.fValues));
             u.print('Displacements');
         end
 
@@ -203,7 +208,7 @@ classdef ExploringOptimalShapeFromFusion < handle
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
             zMax    = max(obj.mesh.coord(:,3));
-            isDir   = @(coor)  coor(:,1)<=20*1.05;
+            isDir   = @(coor)  coor(:,1)<=200*1.05;
             isForce = @(coor)  coor(:,1)>0.995*xMax;% & abs(coor(:,2))>=0.25*yMax & abs(coor(:,2))<=0.75*yMax); % & abs(coor(:,3))>=0.749*zMax & abs(coor(:,3))<=0.75*zMax);
             
             numNodes = sum(isForce(obj.mesh.coord));
@@ -265,20 +270,15 @@ classdef ExploringOptimalShapeFromFusion < handle
          end
 
          function  bc = createEigenvalueBoundaryConditions(obj)
-            xMin    = min(obj.mesh.coord(:,1));
-            yMin    = min(obj.mesh.coord(:,2));
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
-            isLeft  = @(coor) abs(coor(:,1))==xMin;
-            isRight = @(coor) abs(coor(:,1))==xMax;
-            isFront = @(coor) abs(coor(:,2))==yMin;
-            isBack = @(coor) abs(coor(:,2))== yMax;
-            isDir   = @(coor) isLeft(coor) | isBack(coor);  
+            zMax    = max(obj.mesh.coord(:,3));
+            isDir   = @(coor)  coor(:,1)<=200*1.05;
+            
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2,3];
             sDir{1}.value     = 0;
-            sDir{1}.ndim = 1;
-            
+
             dirichletFun = [];
             for i = 1:numel(sDir)
                 dir = DirichletCondition(obj.mesh, sDir{i});

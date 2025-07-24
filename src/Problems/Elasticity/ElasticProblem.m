@@ -173,6 +173,9 @@ classdef ElasticProblem < handle
 
             VM = VonMisesStress(obj.stressFun);
             obj.vonMises = VM.evaluate(xV);
+            s = max(abs(obj.vonMises));
+            maxVM = max(s);
+            meanVM = mean(s); % Mitjana dels maxims
         end
 
     end
