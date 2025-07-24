@@ -171,7 +171,7 @@ classdef ExploringOptimalShapeFromFusion < handle
             obj.stateProblem = fem;
             u = fem.uFun;
             maxDisplacements = max(abs(u.fValues));
-            u.print('Displacements');
+      %      u.print('Displacements');
         end
 
         function computeEigenValue(obj)                           
@@ -185,7 +185,7 @@ classdef ExploringOptimalShapeFromFusion < handle
             n = 5;
             epsilon = 1e-5;
             p=8;
-            [obj.lambda,obj.phis] = computeEigenValueFunctional(obj,n,epsilon,p);
+            [obj.lambda,obj.phis] = obj.computeEigenValueFunctional(n,epsilon,p);
         end
 
         function c = createComplianceFromConstiutive(obj)
@@ -218,7 +218,7 @@ classdef ExploringOptimalShapeFromFusion < handle
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);
 
-            print(aFun.project('P1'),'Force','Paraview')
+      %      print(aFun.project('P1'),'Force','Paraview')
             
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2,3];
@@ -266,7 +266,7 @@ classdef ExploringOptimalShapeFromFusion < handle
             s.epsilon = epsilon;
             s.p       = p;
             s.boundaryConditions = obj.createEigenvalueBoundaryConditions();
-            eigen   = StiffnessEigenModesComputer(s);
+            eigen   = StiffnessEigenModesDisplacementComputer(s);
          end
 
          function  bc = createEigenvalueBoundaryConditions(obj)

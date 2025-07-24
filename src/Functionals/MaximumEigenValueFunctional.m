@@ -42,7 +42,7 @@ classdef MaximumEigenValueFunctional < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.eigModes       = StiffnessEigenModesComputer(cParams);
+            obj.eigModes       = StiffnessEigenModesDisplacementComputer(cParams);
             obj.designVariable = cParams.designVariable;
             obj.mesh           = cParams.mesh;
             obj.filter = cParams.filter;
