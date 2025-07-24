@@ -1,6 +1,7 @@
 function dom = Identity(u)
     s.operation = @(xV) evaluate(u, xV);
     s.mesh = u.mesh;
+    s.ndimf = u.ndimf;
     dom = DomainFunction(s);
 end
 

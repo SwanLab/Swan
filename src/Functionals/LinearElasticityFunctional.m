@@ -1,65 +1,57 @@
 classdef LinearElasticityFunctional < handle
-    
-    properties (Access = public)
-        
-    end
-    
+
     properties (Access = private)
         mesh
         material
     end
-    
-    properties (Access = private)
-        
-    end
-    
+
     methods (Access = public)
-        
-        function obj = LinearElasticityFunctional (cParams)
+
+        function obj = LinearElasticityFunctional(cParams)
             obj.init(cParams)
         end
 
-        function val = compute(obj, uFun)
-            val = 1;
+        function energy = compute(obj, uFun)
+            C = obj.material;
+            eps = SymGrad(uFun);
+            fun = DDP(DDP(eps,C),eps);
+            quadOrder = 3;
+            energy = 0.5*(Integrator.compute(fun,obj.mesh,quadOrder));
         end
-        
+
 
         function Ju = computeGradient(obj, uFun)
-            strainVgt = SymGrad(uFun);
-%             strainVgt.ndimf = 4;
-            sigma = DDP(obj.material,strainVgt);
-%             sigma.ndimf = 3;
+            eps = SymGrad(uFun);
+            sig = DDP(obj.material,eps);
             test = LagrangianFunction.create(obj.mesh, uFun.ndimf, uFun.order);
 
             s.mesh = obj.mesh;
             s.quadratureOrder = 3;
             s.type = 'ShapeSymmetricDerivative';
-            RHS = RHSintegrator.create(s);
-            Ju = RHS.compute(sigma,test);
+            RHS = RHSIntegrator.create(s);
+            Ju = RHS.compute(sig,test);
         end
 
-        function Huu = computeHessian(obj, uFun) 
+        function Huu = computeHessian(obj, uFun)
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
             s.material = obj.material;
             s.quadratureOrder = 3;
             s.test     = LagrangianFunction.create(obj.mesh,uFun.ndimf, 'P1');
             s.trial    = uFun;
-            LHS = LHSintegrator.create(s);
+            LHS = LHSIntegrator.create(s);
             Huu = LHS.compute();
         end
 
-
     end
-    
+
     methods (Access = private)
-        
+
         function init(obj,cParams)
-            obj.mesh   = cParams.mesh;
+            obj.mesh     = cParams.mesh;
             obj.material = cParams.material;
         end
 
-        
     end
-    
+
 end

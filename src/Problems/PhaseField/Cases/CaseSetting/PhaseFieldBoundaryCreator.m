@@ -1,9 +1,5 @@
 classdef PhaseFieldBoundaryCreator < handle
     
-    properties (Access = public)
-        
-    end
-    
     properties (Access = private)
         createBoundaryConditions
         boundaryConditions
@@ -188,74 +184,74 @@ classdef PhaseFieldBoundaryCreator < handle
              obj.boundaryConditions = BoundaryConditions(s);
          end
 
-         function createLshapeDisplacementConditions(obj,uVal)
-             isInDown = @(coor) (abs(coor(:,2) - min(coor(:,2)))  < 1e-12);
-             sDir.domain    = @(coor) isInDown(coor);
-             sDir.direction = [1,2];
-             sDir.value     = 0;
-             Dir1 = DirichletCondition(obj.mesh,sDir);
-
-             isInTip = @(coor) (abs(coor(:,2)-(max(coor(:,2))+min(coor(:,2)))/2) < 1e-12) & (abs(coor(:,1)-max(coor(:,1))) < 30);
-             sDir.domain    = @(coor) isInTip(coor);
-             sDir.direction = [1];
-             sDir.value     = 0;
-             Dir2 = DirichletCondition(obj.mesh,sDir);
-
-             sDir.domain    = @(coor) isInTip(coor);
-             sDir.direction = [2];
-             sDir.value     = uVal;
-             Dir3 = DirichletCondition(obj.mesh,sDir);
-
-             % Merge
-             s.mesh = obj.mesh;
-             s.dirichletFun = [Dir1 Dir2 Dir3];
-             s.pointloadFun = [];
-             s.periodicFun = [];
-             obj.boundaryConditions = BoundaryConditions(s);
-         end
-
-         function createFiberMatrixDisplacementConditions(obj,uVal)
-             % nodes = 1:obj.mesh.nnodes;
-             % ndim = 2;
-             % 
-             % % Enforce fixed Dirichlet conditions to the down nodes
-             % downSide = min(obj.mesh.coord(:,2));
-             % isInDown = abs(obj.mesh.coord(:,2)-downSide) < 1e-12;
-             % dirichletDown = zeros(ndim*length(nodes(isInDown)),3);
-             % for i=1:ndim
-             %     dirichletDown(i:2:end,1) = nodes(isInDown);
-             %     dirichletDown(i:2:end,2) = i;
-             % end
-             % 
-             % % Enforce fixed Dirichlet conditions to the fiber nodes
-             % center = [(min(obj.mesh.coord(:,1))+max(obj.mesh.coord(:,1)))/2;
-             %           (min(obj.mesh.coord(:,2))+max(obj.mesh.coord(:,2)))/2];
-             % radius = 0.2;
-             % isInCircle = ((obj.mesh.coord(:,1)-center(1)).^2 + (obj.mesh.coord(:,2)-center(2)).^2) ...
-             %              < (radius^2 + 1e-5);
-             % dirichletCircle = zeros(ndim*length(nodes(isInCircle)),3);
-             % for i=1:ndim
-             %     dirichletCircle(i:2:end,1) = nodes(isInCircle);
-             %     dirichletCircle(i:2:end,2) = i;
-             % end
-             % 
-             % % Enforce roller Dirichlet conditions to the top nodes
-             % upSide  = max(obj.mesh.coord(:,2));
-             % isInUp = abs(obj.mesh.coord(:,2)-upSide)< 1e-12;
-             % dirichletUp   = zeros(ndim*length(nodes(isInUp)),3);
-             % for i=1:ndim
-             %     dirichletUp(i:2:end,1) = nodes(isInUp);
-             %     dirichletUp(i:2:end,2) = i;
-             % end
-             % 
-             % % Enforce displacement at the top
-             % dirichletUp(2:2:end,3) = uVal;
-             % 
-             % % Merge
-             % bc.dirichlet = [dirichletDown; dirichletUp; dirichletCircle];
-             % bc.pointload = [];
-             % obj.boundaryConditions = bc;
-         end
+         % function createLshapeDisplacementConditions(obj,uVal)
+         %     isInDown = @(coor) (abs(coor(:,2) - min(coor(:,2)))  < 1e-12);
+         %     sDir.domain    = @(coor) isInDown(coor);
+         %     sDir.direction = [1,2];
+         %     sDir.value     = 0;
+         %     Dir1 = DirichletCondition(obj.mesh,sDir);
+         % 
+         %     isInTip = @(coor) (abs(coor(:,2)-(max(coor(:,2))+min(coor(:,2)))/2) < 1e-12) & (abs(coor(:,1)-max(coor(:,1))) < 30);
+         %     sDir.domain    = @(coor) isInTip(coor);
+         %     sDir.direction = [1];
+         %     sDir.value     = 0;
+         %     Dir2 = DirichletCondition(obj.mesh,sDir);
+         % 
+         %     sDir.domain    = @(coor) isInTip(coor);
+         %     sDir.direction = [2];
+         %     sDir.value     = uVal;
+         %     Dir3 = DirichletCondition(obj.mesh,sDir);
+         % 
+         %     % Merge
+         %     s.mesh = obj.mesh;
+         %     s.dirichletFun = [Dir1 Dir2 Dir3];
+         %     s.pointloadFun = [];
+         %     s.periodicFun = [];
+         %     obj.boundaryConditions = BoundaryConditions(s);
+         % end
+         % 
+         % function createFiberMatrixDisplacementConditions(obj,uVal)
+         %     % nodes = 1:obj.mesh.nnodes;
+         %     % ndim = 2;
+         %     % 
+         %     % % Enforce fixed Dirichlet conditions to the down nodes
+         %     % downSide = min(obj.mesh.coord(:,2));
+         %     % isInDown = abs(obj.mesh.coord(:,2)-downSide) < 1e-12;
+         %     % dirichletDown = zeros(ndim*length(nodes(isInDown)),3);
+         %     % for i=1:ndim
+         %     %     dirichletDown(i:2:end,1) = nodes(isInDown);
+         %     %     dirichletDown(i:2:end,2) = i;
+         %     % end
+         %     % 
+         %     % % Enforce fixed Dirichlet conditions to the fiber nodes
+         %     % center = [(min(obj.mesh.coord(:,1))+max(obj.mesh.coord(:,1)))/2;
+         %     %           (min(obj.mesh.coord(:,2))+max(obj.mesh.coord(:,2)))/2];
+         %     % radius = 0.2;
+         %     % isInCircle = ((obj.mesh.coord(:,1)-center(1)).^2 + (obj.mesh.coord(:,2)-center(2)).^2) ...
+         %     %              < (radius^2 + 1e-5);
+         %     % dirichletCircle = zeros(ndim*length(nodes(isInCircle)),3);
+         %     % for i=1:ndim
+         %     %     dirichletCircle(i:2:end,1) = nodes(isInCircle);
+         %     %     dirichletCircle(i:2:end,2) = i;
+         %     % end
+         %     % 
+         %     % % Enforce roller Dirichlet conditions to the top nodes
+         %     % upSide  = max(obj.mesh.coord(:,2));
+         %     % isInUp = abs(obj.mesh.coord(:,2)-upSide)< 1e-12;
+         %     % dirichletUp   = zeros(ndim*length(nodes(isInUp)),3);
+         %     % for i=1:ndim
+         %     %     dirichletUp(i:2:end,1) = nodes(isInUp);
+         %     %     dirichletUp(i:2:end,2) = i;
+         %     % end
+         %     % 
+         %     % % Enforce displacement at the top
+         %     % dirichletUp(2:2:end,3) = uVal;
+         %     % 
+         %     % % Merge
+         %     % bc.dirichlet = [dirichletDown; dirichletUp; dirichletCircle];
+         %     % bc.pointload = [];
+         %     % obj.boundaryConditions = bc;
+         % end
 
     end
     
