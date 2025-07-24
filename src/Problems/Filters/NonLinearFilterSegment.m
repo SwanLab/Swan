@@ -1,5 +1,10 @@
 classdef NonLinearFilterSegment < handle
-    
+
+    properties (Access = public)
+            errorVec
+            iterVec
+    end
+
     properties (Access = private)
         mesh
         trial
@@ -7,21 +12,26 @@ classdef NonLinearFilterSegment < handle
         epsilon
         alpha
         beta
+        ub
+        lb
     end
 
     properties (Access = private)
         lineSearch
+        filter
         direction
-        sVar
+        sVar % Eliminable?
         M
-        K
+        K % Mergeable?
         intChi
-        rhsDer
+        rhsDer % Mergeable?
+        isBoundFree
     end
 
     methods (Access = public)
         function obj = NonLinearFilterSegment(cParams)
             obj.init(cParams);
+            obj.createFilterInitialGuess();
             obj.createDirection();
             obj.createMassMatrix();
             obj.createDirectionalStiffnessMatrix();
@@ -30,22 +40,35 @@ classdef NonLinearFilterSegment < handle
         function xF = compute(obj,fun,quadOrder)
             xF = copy(obj.trial);     
             obj.computeInitialGuess(fun,quadOrder);
+            obj.updateDotProduct(obj.trial); 
             obj.intChi = obj.createRHSShapeFunction(fun,quadOrder);
             iter   = 1;
-            error0 = inf;
+            dJ0 = obj.computeCostGradient(quadOrder);
+            error0 = Norm(dJ0,'L2');
             error  = inf;
-            obj.updateDotProduct(obj.trial); 
             while error >= 1e-6  && iter<=1000
-                obj.createRHSDirectionalDerivative(quadOrder);
-                obj.solveProblem();
-                obj.updateDotProduct(obj.trial);
-                dJ = obj.computeCostGradient(quadOrder);
-                error = Norm(dJ,'L2');
+                x0 = copy(obj.trial);
+                isAcceptable = false;
+                while not(isAcceptable)
+                    obj.createRHSDirectionalDerivative(quadOrder);
+                    obj.solveProblem();
+                    obj.updateDotProduct(obj.trial);
+                    dJ = obj.computeCostGradient(quadOrder);
+                    error = Norm(dJ,'L2');
+                    if error <= error0
+                        obj.lineSearch = obj.lineSearch*1.1;
+                        isAcceptable = true;
+                    else
+                        obj.lineSearch = obj.lineSearch/2;
+                        obj.trial.setFValues(x0.fValues);
+                        obj.updateDotProduct(obj.trial);
+                    end
+                end
+                obj.iterVec = [obj.iterVec; iter];
+                obj.errorVec = [obj.errorVec; error];
                 iter = iter + 1;
-                obj.updateLineSearch(error0,error);
                 error0 = error;
             end
-            % Projection ub, lb
             xF.setFValues(obj.trial.fValues);
         end
 
@@ -65,7 +88,17 @@ classdef NonLinearFilterSegment < handle
             obj.epsilon    = obj.mesh.computeMeanCellSize();
             obj.alpha      = cParams.alpha*obj.epsilon;
             obj.beta       = cParams.beta*obj.epsilon;
+            obj.ub         = cParams.ub;
+            obj.lb         = cParams.lb;
             obj.lineSearch = 10;
+        end
+
+        function createFilterInitialGuess(obj)
+            s.filterType = 'LUMP';
+            s.mesh  = obj.mesh;
+            s.trial = LagrangianFunction.create(obj.mesh,1,obj.trial.order);
+            f = Filter.create(s);
+            obj.filter = f;
         end
 
         function createDirection(obj)
@@ -96,7 +129,7 @@ classdef NonLinearFilterSegment < handle
 
         function computeInitialGuess(obj,fun,quadOrder)
             rhoE1 = obj.trial;
-            rhoE2 = fun.project(obj.trial.order);
+            rhoE2 = obj.filter.compute(fun,quadOrder);
             J1    = obj.computeCostFunction(rhoE1,fun,quadOrder);
             J2    = obj.computeCostFunction(rhoE2,fun,quadOrder);
             if J2<J1
@@ -123,9 +156,10 @@ classdef NonLinearFilterSegment < handle
         end
 
         function h = computeMeasure(obj)
+            e = obj.mesh.computeMeanCellSize();
             s = obj.sVar;
-            a = obj.alpha;
-            b = obj.beta;
+            a = max(obj.alpha,0);
+            b = max(obj.beta,0);
             maxFun = obj.createDomainMax(s);
             minFun = obj.createDomainMin(s);
             h = a.*maxFun - b.*minFun;
@@ -138,21 +172,39 @@ classdef NonLinearFilterSegment < handle
         end
 
         function g = computeMeasureGradient(obj)
+            e      = obj.mesh.computeMeanCellSize();
             s      = obj.sVar;
+            a      = max(obj.alpha,0);
+            b      = max(obj.beta,0);
             maxFun = obj.createDomainMax(s);
             minFun = obj.createDomainMin(s);
-            g      = s./(2*obj.lineSearch)-(obj.alpha^2).*maxFun-(obj.beta^2).*minFun;
+            g      = s./(2*obj.lineSearch)-(a^2).*maxFun-(b^2).*minFun;
         end
 
         function solveProblem(obj)
             tau  = obj.lineSearch;
             LHS  = obj.M + (1/(2*tau))*obj.K;
             RHS  = obj.rhsDer + obj.intChi;
-            rhoi = LHS\RHS;
+            x    = LHS\RHS;
+            %rhoi = max(obj.lb,min(obj.ub,x));
+            rhoi = x;
             obj.trial.setFValues(rhoi);
+            obj.isBoundFree = find((x-rhoi)==0);
         end
 
         function dJ = computeCostGradient(obj,quadOrder)
+            dJUnc = obj.computeUnconstrainedCostGradient(quadOrder);
+            dj    = copy(dJUnc);
+            djV   = dj.fValues;
+            djV(obj.isBoundFree) = 0;
+            dj.setFValues(djV);
+            mu = obj.createDomainMax(-dj);
+            l  = obj.createDomainMax(dj);
+            %dJ = dJUnc + mu - l;
+            dJ = dJUnc;
+        end
+
+        function dJ = computeUnconstrainedCostGradient(obj,quadOrder)
             [rhs1,rhs2,rhs3] = obj.computeCostGateaux(quadOrder);
             Ms   = obj.M;
             Ms   = diag(sum(Ms,1));
@@ -162,8 +214,9 @@ classdef NonLinearFilterSegment < handle
         end
 
         function [rhs1,rhs2,rhs3] = computeCostGateaux(obj,quadOrder)
-            a      = obj.alpha;
-            b      = obj.beta;
+            e      = obj.mesh.computeMeanCellSize();
+            a      = max(obj.alpha,0);
+            b      = max(obj.beta,0);
             s      = obj.sVar;
             k      = obj.direction;
             maxFun = obj.createDomainMax(s);
@@ -172,14 +225,6 @@ classdef NonLinearFilterSegment < handle
             rhs2   = -obj.intChi;
             int3   = (a^2.*maxFun + b^2.*minFun).*k;
             rhs3   = obj.createRHSShapeDerivative(int3,quadOrder);
-        end
-
-        function updateLineSearch(obj,error0,error)
-            if error<=error0
-                obj.lineSearch = obj.lineSearch*1.1;
-            else
-                obj.lineSearch = obj.lineSearch/2;
-            end
         end
 
         function intN = createRHSShapeFunction(obj,fun,quadType)

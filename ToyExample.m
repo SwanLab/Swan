@@ -32,12 +32,14 @@ chi = CharacteristicFunction.create(uM);
 s.mesh  = m;
 s.theta = 90;
 s.alpha = 4;
-s.beta  = 0;
+s.beta  = 0; % ¿ POR QUÉ PARA BETA 0 NO DA ERROR 0 Y CON BETA 1 SÍ ?
+s.ub    = 1;
+s.lb    = 0;
 
 
 % EPSILON STUDY
 h = m.computeMeanCellSize();
-epsVec = 2*h; % 1.5*h:0.5*h:5*h                [2*h,5*h,10*h,20*h]
+epsVec = 20*h; % 1.5*h:0.5*h:5*h                [2*h,5*h,10*h,20*h]
 %LineSearchVec = 500; % [0.01, 0.1, 1, 10, 100]           [0.01, 0.1, 1, 10]
 
 %for i = 1:length(LineSearchVec)
