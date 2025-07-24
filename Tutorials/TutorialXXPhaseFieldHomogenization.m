@@ -77,7 +77,7 @@ classdef TutorialXXPhaseFieldHomogenization < handle
         end
 
         function computeHoleParams(obj)
-            obj.maxParam = 0.98*ones(size(obj.nSteps));
+            obj.maxParam = 0.979*ones(size(obj.nSteps));
             nParam = length(obj.maxParam);
             obj.paramHole = cell(1,nParam);
             for i=1:nParam
