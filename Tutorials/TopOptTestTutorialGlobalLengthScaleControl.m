@@ -12,7 +12,7 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
         perimeter
         cost
         constraint
-        dualVariable
+        primalUpdater
         optimizer
     end
 
@@ -32,7 +32,7 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
             obj.createPerimeter();
             obj.createCost();
             obj.createConstraint();
-            obj.createDualVariable();
+            obj.createPrimalUpdater();
             obj.createOptimizer();
         end
 
@@ -124,7 +124,7 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
         function c = createComplianceFromConstiutive(obj)
             s.mesh         = obj.mesh;
             s.stateProblem = obj.physicalProblem;
-            c = ComplianceFromConstiutiveTensor(s);
+            c = ComplianceFromConstitutiveTensor(s);
         end
 
         function createComplianceConstraint(obj)
@@ -168,7 +168,7 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             s.mesh  = obj.mesh;
             s.type  = 'MassMatrix';
-            LHS = LHSintegrator.create(s);
+            LHS = LHSIntegrator.create(s);
             M = LHS.compute;
         end
 
@@ -179,10 +179,9 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
             obj.constraint      = Constraint(s);
         end
 
-        function createDualVariable(obj)
-            s.nConstraints   = 2;
-            l                = DualVariable(s);
-            obj.dualVariable = l;
+        function createPrimalUpdater(obj)
+            s.mesh = obj.mesh;
+            obj.primalUpdater = SLERP(s);
         end
 
         function createOptimizer(obj)
@@ -190,13 +189,15 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 3;
             s.tolerance      = 1e-8;
             s.constraintCase = {'INEQUALITY','EQUALITY'};
-            s.primal         = 'SLERP';
+            s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.02;
+            s.etaNormMin     = 0.02;
             s.gJFlowRatio    = 1;
+            s.etaMax         = 1;
+            s.etaMaxMin      = 0.01;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -205,11 +206,12 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
         function m = createMaterial(obj)
             x = obj.designVariable;
             f = x.obtainDomainFunction();
-            f = obj.filterCompliance.compute(f,1);            
+            f = obj.filterCompliance.compute(f{1},1);            
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '2D';
+            s.mesh                 = obj.mesh;
             m = Material.create(s);
         end
 

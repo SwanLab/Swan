@@ -74,10 +74,14 @@ classdef Tutorial11Monitoring < handle
 
         function updateMonitoring2(obj)
             for i=1:5
-                obj.field1.fValues(:) = i/5;
-                obj.field2.fValues(:,1) = i;
-                obj.field2.fValues(1:2:end,2) = 15-2.5*i;
-                obj.field2.fValues(2:2:end,2) = -5+3.5*i;
+                fv1 = (i/5)*ones(size(obj.field1.fValues));
+                obj.field1.setFValues(fv1);
+
+                fv2            = obj.field2.fValues;
+                fv2(:,1)       = i;
+                fv2(1:2:end,2) = 15-2.5*i;
+                fv2(2:2:end,2) = -5+3.5*i;
+                obj.field2.setFValues(fv2);
 
                 SurfData1 = obj.field1.fValues;
                 SurfData2 = obj.field2.fValues(:,1);
