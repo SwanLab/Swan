@@ -102,6 +102,18 @@ classdef P1DiscontinuousFunction < FeFunction
             fFine  = P1Dref.compute();
         end
 
+        function fR = getFvaluesAsVector(obj)
+            f  = obj.fValues;
+            fR = obj.reshapeAsVector(f);
+        end
+
+        function fR = reshapeAsVector(obj,fValues)
+            ndims   = size(fValues, 1);
+            nelem   = size(obj.mesh.connec, 1);
+            nnodeEl = size(obj.mesh.connec, 2);
+            fR = reshape(fValues, [ndims, nelem*nnodeEl])';
+        end
+
         function plot(obj)
             for iDim = 1:obj.ndimf
                 connec{iDim} = obj.getDofConnecByVector();
@@ -148,8 +160,8 @@ classdef P1DiscontinuousFunction < FeFunction
         end
 
         function plotContour(obj)
-            fD = obj.fValues;
-            xy = obj.dofCoord;            
+            fD = obj.getFvaluesAsVector();
+            xy = obj.reshapeAsVector(obj.dofCoord);          
             x = xy(:,1);
             y = xy(:,2);
             figure()

@@ -10,7 +10,7 @@ classdef PerimeterFunctional < handle
     methods (Access = public)
         function obj = PerimeterFunctional(cParams)
             obj.init(cParams);
-           % obj.filter.updateEpsilon(obj.epsilon);
+            obj.filter.updateEpsilon(obj.epsilon);
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)

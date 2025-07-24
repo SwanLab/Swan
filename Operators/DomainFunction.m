@@ -78,7 +78,7 @@ classdef DomainFunction < handle
             s.operation = @(xV) aOp(xV)./bOp(xV);
             r = DomainFunction(s);
         end
-
+        
         function r = uminus(a)
             aOp = DomainFunction.computeOperation(a);
             s.operation = @(xV) -aOp(xV);

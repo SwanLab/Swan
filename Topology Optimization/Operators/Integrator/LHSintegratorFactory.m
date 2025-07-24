@@ -6,8 +6,6 @@ classdef LHSintegratorFactory < handle
            switch cParams.type
                case 'MassMatrix'
                    obj = LHSintegrator_Mass(cParams);
-               case 'AnisotropicMassMatrix'
-                   obj = LHSintegratorAnisotropicMass(cParams);
                case 'MassMatrixVect'
                    obj = LHSintegrator_Mass_Vect(cParams);
                case 'BoundaryMassMatrix'

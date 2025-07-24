@@ -252,9 +252,13 @@ classdef LagrangianFunction < FeFunction
             end
         end
 
-        function v = computeL2norm(obj)            
-            int = Integrator.compute(obj.*obj,obj.mesh,2);
-            v   = sqrt(int);
+        function v = computeL2norm(obj)
+            s.type     = 'ScalarProduct';
+            s.quadType = 'QUADRATIC';
+            s.mesh     = obj.mesh;
+            int = Integrator.create(s);
+            ff  = int.compute(obj,obj);
+            v   = sqrt(ff);
         end
 
         function f = createOrthogonalVector(obj) %only in 2D and vector

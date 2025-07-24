@@ -47,10 +47,10 @@ classdef LHSintegratorFunctionStiffness < handle %LHSintegrator
                                 idof = obj.fun.ndimf*(inode-1)+iunkn;
                                 jdof = obj.fun.ndimf*(jnode-1)+iunkn;
                                 dvol = dVolu(igauss,:);
-                                dNi = squeeze(dNdxTs(idim,inode,igauss,:));
-                                dNj = squeeze(dNdxTr(idim,jnode,igauss,:));
-                                fVG = squeeze(fV(1,igauss,:));
-                                v = fVG.*dNi.*dNj;
+                                dNi = dNdxTs(idim,inode,:,igauss);
+                                dNj = dNdxTr(idim,jnode,:,igauss);
+                                fVG = fV(1,igauss,:);
+                                v = squeeze(fVG.*dNi.*dNj);
                                 lhs(idof, jdof, :)= squeeze(lhs(idof,jdof,:)) ...
                                     + v(:).*dvol';
                             end
@@ -81,8 +81,8 @@ classdef LHSintegratorFunctionStiffness < handle %LHSintegrator
         end
         
         function createQuadrature(obj)
-%             quadOrder = obj.fun.getOrderNum();
-            quad = Quadrature.create(obj.mesh, obj.quadratureOrder);
+            quad = Quadrature.set(obj.mesh.type);
+            quad.computeQuadrature(obj.quadratureOrder);
             obj.quadrature = quad;
         end
 
