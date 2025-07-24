@@ -101,7 +101,7 @@ classdef P1DiscontinuousFunction < FeFunction
             P1Dref = P1Refiner(obj,mFine);
             fFine  = P1Dref.compute();
         end
-
+   
         function fR = getFvaluesAsVector(obj)
             f  = obj.fValues;
             fR = obj.reshapeAsVector(f);
@@ -161,7 +161,7 @@ classdef P1DiscontinuousFunction < FeFunction
 
         function plotContour(obj)
             fD = obj.getFvaluesAsVector();
-            xy = obj.reshapeAsVector(obj.dofCoord);          
+            xy = obj.reshapeAsVector(obj.dofCoord);            
             x = xy(:,1);
             y = xy(:,2);
             figure()
