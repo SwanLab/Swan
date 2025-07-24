@@ -34,42 +34,6 @@ classdef NeohookeanFunctional < handle
         end
         
         function Fint = computeGradient(obj, uFun)
-%             piola = PK1.evaluate(xG); 
-%             dofToDim = repmat(1:nDimf,[1,nNode]);
-%             dofToNode = repmat(1:nNode, nDimf, 1);
-%             dofToNode = dofToNode(:);
-% 
-%             fint = zeros(nDof,1,nGaus,nElem);
-%             % fint2 = zeros(nDof,1,nGaus,nElem);
-% 
-% 
-%             % for iNode = 1:nNode
-%             %     for iDim = 1:nDim
-%             %         for iField = 1:nDimf
-%             %             dNdx_ij = dNdxTest(iDim, iNode, :, :);
-%             %             iDof = iField + nDimf*(iNode-1);
-%             %             Pik = piola(iField,iDim,:,:);
-%             %             fint2(iDof,1,:,:) = fint2(iDof,1,:,:) + Pik.*dNdx_ij;
-%             %         end
-%             %     end
-%             % end
-% 
-%             % GradDeltaV is not always compatible (see BCs), but we dont
-%             % worry about it since we reduce the matrix later on    
-%             for iDof = 1:nDof
-%                 iNode = dofToNode(iDof);
-%                 iDim  = dofToDim(iDof);
-%                 deltav = zeros(nNode,nDimf, nGaus, nElem);
-%                 deltav(iNode,iDim,:,:) = 1;
-%                 GradDeltaV = pagemtimes(dNdxTest,deltav);
-%                 fint(iDof, :,:,:) = squeeze(bsxfun(@(A,B) sum(A.*B, [1 2]), pagetranspose(piola),GradDeltaV));
-%             end
-%             % err = norm(fint(:)-fint2(:))/norm(fint(:))
-%             % fint = fint2;
-%             fint = fint.*dV;
-%             fint = squeeze(sum(fint,3));
-%             Fint = obj.assembleIntegrand(fint,test);
-            
             PK1 = obj.computeFirstPiola(uFun);
             s.mesh = obj.mesh;
             s.quadratureOrder = 3;
@@ -92,8 +56,8 @@ classdef NeohookeanFunctional < handle
         end
 
         function hess = computeHessian(obj, uFun)
-%             % This is the LINEALIZED hessian (Holzapfel, 401)
-%             % See  Holzapfel, 396
+            % This is the LINEALIZED hessian (Holzapfel, 401)
+            % See  Holzapfel, 396
             Aneofun = obj.computeTangentConstitutive(uFun);
             s.quadratureOrder = 3;
             s.test  = uFun;

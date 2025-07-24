@@ -7,10 +7,13 @@ classdef HyperelasticityTests < handle & matlab.unittest.TestCase
     methods (Test, TestTags = {'DisplReact'})
         function test2D(testCase, cases)
             filename = ['testHyperElas',cases,'2D'];
+            s.fileName = cases;
+            s.meshGen = cases;
             s.nsteps = testCase.computeNumberOfSteps(cases);
             s.printing = false;
             s.bcCase = cases;
             h = HyperelasticProblem(s);
+            h.solve();
             uNew = h.uFun.fValues(:);
             rNew = h.rFun.fValues(:);
             load(filename,'uRef','rRef');
