@@ -96,10 +96,11 @@ classdef NonLinearFilterSegment < handle
         end
 
         function createFilterInitialGuess(obj)
-            s.filterType = 'LUMP';
+            s.filterType = 'PDE';
             s.mesh  = obj.mesh;
             s.trial = LagrangianFunction.create(obj.mesh,1,obj.trial.order);
             f = Filter.create(s);
+            f.updateEpsilon(max(obj.alpha,obj.beta));
             obj.filter = f;
         end
 
