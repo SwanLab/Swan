@@ -12,7 +12,7 @@ classdef RHSIntegratorShapeFunction < handle
         end
 
 
-        function rhs = compute(obj,fun,test)
+        function rhs = compute(obj,fun,test) %FUN q TEST psi
             obj.createQuadrature(fun,test);
             rhsElem = obj.computeElementalRHS(fun,test);
             rhs = obj.assembleIntegrand(test,rhsElem);
