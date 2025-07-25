@@ -33,8 +33,8 @@ classdef ThermalProblem < handle
             obj.createSolver();
         end
 
-        function solve(obj)
-            obj.computeStiffnessMatrix(); % LHS
+        function solve(obj, kappa)
+            obj.computeStiffnessMatrix(kappa); % LHS
             obj.computeForces();          % RHS
             obj.computeTemperature();     % Solve PDE 
         end
@@ -77,27 +77,21 @@ classdef ThermalProblem < handle
             obj.problemSolver    = ProblemSolver(s);
         end
 
-        function computeStiffnessMatrix(obj)
+        function computeStiffnessMatrix(obj, kappa)
             s.test  = obj.test;
             s.trial = obj.trial;
             s.mesh  = obj.mesh;
             s.quadratureOrder = 2;
-            s.function        = obj.createDomainFunction(obj.conductivity);
+            s.function        = kappa; 
             s.type            = 'StiffnessMatrixWithFunction';
             lhs = LHSIntegrator.create(s);
             obj.stiffness = lhs.compute();
         end
 
-        function f = createDomainFunction(obj,fun)
-            s.operation = @(xV) obj.createConductivityAsDomainFunction(fun,xV);
-            s.mesh      = obj.mesh;
-            f = DomainFunction(s);
-        end
-
         function computeForces(obj)
             s.type     = 'ShapeFunction';
             s.mesh     = obj.mesh;
-            % s.quadType?
+            s.quadType = 2;
             RHSint = RHSIntegrator.create(s);
             rhs = RHSint.compute(obj.source, obj.test);
             % Perhaps move it inside RHSint?

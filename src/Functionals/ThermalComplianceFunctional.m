@@ -7,8 +7,7 @@ classdef ThermalComplianceFunctional < handle
     properties (Access = private)
         mesh
         filter
-        compliance
-        material
+        conductivity
         stateProblem
     end
 
@@ -18,12 +17,9 @@ classdef ThermalComplianceFunctional < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            xD  = x.obtainDomainFunction();
-            xR = obj.filterFields(xD);
-            % make sure that the conductivity is being updated!---
-            u  = obj.computeStateVariable();
-            J = obj.computeFunction(u);
-            dJ = obj.computeGradient(u);
+            xD      = x.obtainDomainFunction();
+            xR      = obj.filterFields(xD);
+            [J, dJ] = obj.computeThermalComplianceFunctionAndGradient(xR);
         end
 
     end
@@ -33,7 +29,7 @@ classdef ThermalComplianceFunctional < handle
             obj.mesh       = cParams.mesh;
             obj.filter     = cParams.filter;
             obj.stateProblem = cParams.stateProblem;
-%             obj.material   = cParams.material; ----
+            obj.conductivity = cParams.conductivity;
             if isfield(cParams,'value0')
                 obj.value0 = cParams.value0;
             end
@@ -47,38 +43,31 @@ classdef ThermalComplianceFunctional < handle
             end
         end
 
-        function u = computeStateVariable(obj)
-            obj.stateProblem.solve();
+        function u = computeStateVariable(obj, kappa)
+            obj.stateProblem.solve(kappa);
             u = obj.stateProblem.uFun;
         end
 
-        function J = computeFunction(obj, u)
-            s.operation = @(xV) evaluate(u,xV);
-            s.mesh = u.mesh;
-            dom = DomainFunction(s);
+        function [J,dJ] = computeThermalComplianceFunctionAndGradient(obj, xR)
+            kappa  = obj.createDomainFunction(obj.conductivity.fun,xR);           % conductivity on the new domain
+            dkappa = obj.createDomainFunction(obj.conductivity.dfun,xR); 
+            u      = obj.computeStateVariable(kappa);                             % solve the PDE
+            s.operation = @(xV) ThermalEnergyDensity(u,kappa,xV);
+            s.mesh      = u.mesh;
+            dom         = DomainFunction(s);
             dCompliance = dom;
-            J  = Integrator.compute(dCompliance,obj.mesh,obj.quadrature.order);    
+            J  = Integrator.compute(dCompliance,obj.mesh,obj.quadrature.order);   % compute function 
             if isempty(obj.value0)
                 obj.value0 = J;
             end
-            J  = obj.computeNonDimensionalValue(J);
-        end
-
-        function fVR = evaluate(u,xR,xV)
-            kappa = obj.createDomainFunction(obj.conductivity.fun, xR); 
-            thE = DP(kappa*Grad(u),Grad(u)); % check dimensions
-            fVR = thE.evaluate(xV);
-        end
-
-        function dJ = computeGradient(obj,xR,u)
-            dkappa = obj.createDomainFunction(obj.conductivity.dfun,xR); 
-            dJ = - DP(dkappa*Grad(u),Grad(u));
+            J      = obj.computeNonDimensionalValue(J);
+            dJ     = - dkappa.*DP(Grad(u),Grad(u));                               % compute gradient 
             dJ     = obj.filterFields(dJ);
-            dJ = obj.computeNonDimensionalGradient(dJ);
+            dJ     = obj.computeNonDimensionalGradient(dJ);                         
         end
 
         function f = createDomainFunction(obj,fun,xR)
-            s.operation = @(xV) obj.createConductivityAsDomainFunction(fun,xR,xV);
+            s.operation = @(xV) obj.createConductivityAsDomainFunction(fun,xR{1},xV);
             s.mesh      = obj.mesh;
             f = DomainFunction(s);
         end

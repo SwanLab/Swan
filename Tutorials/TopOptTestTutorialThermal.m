@@ -85,29 +85,26 @@ classdef TopOptTestTutorialThermal < handle
         function createThermalProblem(obj)
             s.mesh = obj.mesh;
             s.conductivity = obj.materialInterpolator; 
-            s.source       = obj.source; 
+            Q = LagrangianFunction.create(obj.mesh,1,'P1');
+            fValues = ones(Q.nDofs);
+            Q.setFValues(fValues);
+            s.source       = Q;  
             s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
             s.solverCase = 'DIRECT';
-            fem = ThermalProblem(s); % TO-DO
+            fem = ThermalProblem(s); 
             obj.physicalProblem = fem;
         end
-
-%         function c = createComplianceFromConstiutive(obj)
-%             s.mesh         = obj.mesh;
-%             s.stateProblem = obj.physicalProblem;
-%             c = ComplianceFromConstitutiveTensor(s);
-%         end
 
         function createThermalCompliance(obj)
             s.mesh                        = obj.mesh;
             s.filter                      = obj.filter;
             s.stateProblem                = obj.physicalProblem;
-            s.material                    =  obj.materialInterpolator; 
-            c = ThermalComplianceFunctional(s); % TO-DO
+            s.conductivity                =  obj.materialInterpolator; 
+            c = ThermalComplianceFunctional(s);  
             obj.thermalCompliance = c;
         end
 
@@ -167,36 +164,25 @@ classdef TopOptTestTutorialThermal < handle
         end
 
         function bc = createBoundaryConditions(obj)
+            yMin    = min(obj.mesh.coord(:,2));
             xMax    = max(obj.mesh.coord(:,1));
-            yMax    = max(obj.mesh.coord(:,2));
-            isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax);
-
+            isDir   = @(coor) abs(coor(:,2))==yMin & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax;  
             sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [1,2];
+            sDir{1}.direction = 1;
             sDir{1}.value     = 0;
-
-            sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 2;
-            sPL{1}.value     = -1;
-
+            sDir{1}.ndim = 1;
+            
             dirichletFun = [];
             for i = 1:numel(sDir)
                 dir = DirichletCondition(obj.mesh, sDir{i});
                 dirichletFun = [dirichletFun, dir];
             end
             s.dirichletFun = dirichletFun;
-
-            pointloadFun = [];
-            for i = 1:numel(sPL)
-                pl = PointLoad(obj.mesh, sPL{i});
-                pointloadFun = [pointloadFun, pl];
-            end
-            s.pointloadFun = pointloadFun;
+            s.pointloadFun = [];
 
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
-            bc = BoundaryConditions(s);
+            bc = BoundaryConditions(s);  
         end
     end
 end
