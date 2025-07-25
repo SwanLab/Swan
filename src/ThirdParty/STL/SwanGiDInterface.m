@@ -19,7 +19,7 @@ classdef SwanGiDInterface < handle
             run('UserVariables.m')
             obj.swanPath = pwd;
             obj.gidPath  = gid_path;
-            obj.tclPath  = [obj.swanPath, '/PostProcess/STL/'];
+            obj.tclPath  = [obj.swanPath, '/src/ThirdParty/STL/']; % The files will be created also in this folder
         end
 
         function generateMesh(obj, resultsFile)
