@@ -116,8 +116,10 @@ classdef DualUpdaterNullSpace < handle
 
     methods (Static, Access = private)
         function c = createCost(H,f)
-            sA.cF = @(x) 0.5*x'*H*x + f'*x;
-            sA.gF = @(x) H*x + f;
+            I     = ones(size(f));
+            value0 = abs(0.5*I'*H*I + f'*I);
+            sA.cF = @(x) (0.5*x'*H*x + f'*x)./value0;
+            sA.gF = @(x) (H*x + f)./value0;
             s.shapeFunctions{1} = AcademicCost(sA);
             s.weights           = 1;
             s.Msmooth           = 1;

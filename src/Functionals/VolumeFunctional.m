@@ -20,7 +20,7 @@ classdef VolumeFunctional < handle
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             xD  = x.obtainDomainFunction();
             J  = obj.computeFunction(xD{1});
-            dJ = obj.computeGradient(xD);
+            dJ{1} = obj.computeGradient(xD);
         end
     end
 

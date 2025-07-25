@@ -1,4 +1,4 @@
-classdef PerimeterFunctional < handle
+classdef LocalVolumeFunctional < handle
 
     properties (Access = private)
         mesh
@@ -14,7 +14,7 @@ classdef PerimeterFunctional < handle
     end
 
     methods (Access = public)
-        function obj = PerimeterFunctional(cParams)
+        function obj = LocalVolumeFunctional(cParams)
             obj.init(cParams);
             obj.domainFilter.updateEpsilon(obj.epsilon);
             obj.createRiszFilter();
@@ -24,15 +24,14 @@ classdef PerimeterFunctional < handle
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             xD = x.obtainDomainFunction();
             xR = obj.filterDesignVariable(xD);
-            J  = obj.computeFunction(xD{1},xR{1});
-            dJ{1} = obj.computeGradient(xR{1});
+            J  = obj.computeFunction(xR{1});
+            dJ{1} = obj.computeGradient();
             J  = obj.computeNonDimensionalValue(J);
             dJVal = obj.computeNonDimensionalValue(dJ{1}.fValues);
             dJ{1}.setFValues(dJVal);
         end
 
         function updateEpsilon(obj,epsilon)
-            obj.epsilon = epsilon;
             obj.domainFilter.updateEpsilon(epsilon);
         end
 
@@ -66,16 +65,16 @@ classdef PerimeterFunctional < handle
             end
         end
 
-        function J = computeFunction(obj,xD,xR)
+        function J = computeFunction(obj,xR)
             b   = obj.baseFun;
-            f   = xD.*(1-xR).*b;
+            f   = xR.*b;
             int = Integrator.compute(f,obj.mesh,2);
-            J   = 2/(obj.epsilon)*int;
+            J   = int;
         end
 
-        function dJH1 = computeGradient(obj,xR)
+        function dJH1 = computeGradient(obj)
             b    = obj.baseFun;
-            dJL2 = 2/(obj.epsilon)*(1-2*xR).*b;
+            dJL2 = b;
             dJH1 = obj.riszFilter.compute(dJL2,2);
         end
 
@@ -87,7 +86,7 @@ classdef PerimeterFunctional < handle
 
     methods (Static, Access = public)
         function title = getTitleToPlot()
-            title = 'Perimeter';
+            title = 'Volume';
         end
     end
 end
