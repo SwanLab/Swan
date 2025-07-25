@@ -13,6 +13,7 @@ classdef TopOptTestTutorialThermal < handle
         dualVariable
         optimizer
         thermalCompliance
+        source
     end
 
     methods (Access = public)
@@ -81,19 +82,10 @@ classdef TopOptTestTutorialThermal < handle
             obj.materialInterpolator = a;            
         end   
 
-%         function m = createMaterial(obj)
-%             x = obj.designVariable.fun;           
-%             s.type                 = 'DensityBased';
-%             s.density              = x;
-%             s.materialInterpolator = obj.materialInterpolator;
-%             s.dim                  = '2D';
-%             s.mesh                 = obj.mesh;
-%             m = Material.create(s);
-%         end
-
         function createThermalProblem(obj)
             s.mesh = obj.mesh;
-            s.material = obj.materialInterpolator; % obj.createMaterial();
+            s.conductivity = obj.materialInterpolator; 
+            s.source       = obj.source; 
             s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';

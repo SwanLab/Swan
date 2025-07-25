@@ -1,0 +1,122 @@
+classdef ThermalProblem < handle
+    
+    properties (Access = public)
+        uFun
+        forces
+    end
+
+    properties (Access = private)
+        boundaryConditions, bcApplier
+
+        stiffness
+        solverType, solverMode, solverCase
+
+        problemSolver
+
+        conductivity
+        test
+        trial
+        source
+    end
+
+    properties (Access = protected)
+        mesh 
+        material  
+    end
+
+    methods (Access = public)
+
+        function obj = ThermalProblem(cParams)
+            obj.init(cParams);
+            obj.createTemperatureFun(); 
+            obj.createBCApplier();
+            obj.createSolver();
+        end
+
+        function solve(obj)
+            obj.computeStiffnessMatrix(); % LHS
+            obj.computeForces();          % RHS
+            obj.computeTemperature();     % Solve PDE 
+        end
+
+    end
+
+    methods (Access = private)
+
+        function init(obj, cParams)
+            obj.mesh         = cParams.mesh;
+            obj.conductivity = cParams.conductivity;
+            obj.source       = cParams.source;
+            obj.solverType   = cParams.solverType;
+            obj.solverMode   = cParams.solverMode;   % check what it means!
+            obj.boundaryConditions = cParams.boundaryConditions;
+            obj.solverCase  = cParams.solverCase;
+            obj.test  = LagrangianFunction.create(obj.mesh,1,'P1');
+            obj.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+        end
+
+        function createTemperatureFun(obj)
+            obj.uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
+        end
+
+        function createBCApplier(obj)
+            s.mesh = obj.mesh;
+            s.boundaryConditions = obj.boundaryConditions;
+            bc = BCApplier(s);
+            obj.bcApplier = bc;
+        end
+
+        function createSolver(obj)
+            sS.type              = obj.solverCase;
+            solver               = Solver.create(sS);
+            s.solverType         = obj.solverType;
+            s.solverMode         = obj.solverMode;
+            s.solver             = solver;
+            s.boundaryConditions = obj.boundaryConditions;
+            s.BCApplier          = obj.bcApplier;
+            obj.problemSolver    = ProblemSolver(s);
+        end
+
+        function computeStiffnessMatrix(obj)
+            s.test  = obj.test;
+            s.trial = obj.trial;
+            s.mesh  = obj.mesh;
+            s.quadratureOrder = 2;
+            s.function        = obj.createDomainFunction(obj.conductivity);
+            s.type            = 'StiffnessMatrixWithFunction';
+            lhs = LHSIntegrator.create(s);
+            obj.stiffness = lhs.compute();
+        end
+
+        function f = createDomainFunction(obj,fun)
+            s.operation = @(xV) obj.createConductivityAsDomainFunction(fun,xV);
+            s.mesh      = obj.mesh;
+            f = DomainFunction(s);
+        end
+
+        function computeForces(obj)
+            s.type     = 'ShapeFunction';
+            s.mesh     = obj.mesh;
+            % s.quadType?
+            RHSint = RHSIntegrator.create(s);
+            rhs = RHSint.compute(obj.source, obj.test);
+            % Perhaps move it inside RHSint?
+            if strcmp(obj.solverType,'REDUCED')
+                R = RHSint.computeReactions(obj.stiffness);
+                obj.forces = rhs+R;
+            else
+                obj.forces = rhs;
+            end
+        end
+
+        function u = computeTemperature(obj)
+            s.stiffness = obj.stiffness;
+            s.forces    = obj.forces;
+            [u,~]       = obj.problemSolver.solve(s);           
+            uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
+            obj.uFun.setFValues(uSplit);
+        end
+
+    end
+
+end
