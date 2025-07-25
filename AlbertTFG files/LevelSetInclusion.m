@@ -189,8 +189,8 @@ classdef LevelSetInclusion < handle
             obj.computeStiffnessMatrixHere();
             obj.computeForcesHere(cParams);
             [u, L]  = obj.computeDisplacementHere();
-            obj.computeStrainHere();
-            obj.computeStressHere();
+       %     obj.computeStrainHere();
+%            obj.computeStressHere();
         end
 
         function createDisplacementFunHere(obj)
@@ -224,7 +224,7 @@ classdef LevelSetInclusion < handle
             m.material = obj.material;
 
             m.quadratureOrder = 2;
-            lhs               = LHSintegrator.create(m);
+            lhs               = LHSIntegrator.create(m);
             obj.stiffness     = lhs.compute();
         end
 
@@ -237,7 +237,7 @@ classdef LevelSetInclusion < handle
             n.material     = obj.material;
             n.globalConnec = obj.mesh.connec;
 
-            RHSint = RHSintegrator.create(n);
+            RHSint = RHSIntegrator.create(n);
             rhs    = RHSint.compute();
             % Perhaps move it inside RHSint?
             if strcmp(cParams.solverType,'REDUCED')
@@ -267,7 +267,8 @@ classdef LevelSetInclusion < handle
             z.order     = 'P1';
             obj.uFun    = LagrangianFunction(z);
             uSplit      = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            obj.displacementFun.fValues = uSplit;
+%            obj.displacementFun.fValues = uSplit;
+            obj.displacementFun.setFValues(uSplit);
         end
 
         function computeStrainHere(obj)

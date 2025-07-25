@@ -41,11 +41,11 @@ classdef LevelSetInclusionAuto_raul < handle
             [u, L] = obj.doElasticProblemHere();
             mesh = obj.mesh;
             
-            % z.mesh      = obj.mesh;
-            % z.fValues   = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            % z.order     = 'P1';
-            % uFeFun = LagrangianFunction(z);
-
+             z.mesh      = obj.mesh;
+             z.fValues   = reshape(u(:,1),[obj.mesh.ndim,obj.mesh.nnodes])';
+             z.order     = 'P1';
+             uFeFun = LagrangianFunction(z);
+             
             %obj.physicalProblem.solve();
 
             
