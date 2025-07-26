@@ -56,7 +56,7 @@ classdef ThermalProblem < handle
         end
 
         function createTemperatureFun(obj)
-            obj.uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
+            obj.uFun = LagrangianFunction.create(obj.mesh, 1, 'P1');
         end
 
         function createBCApplier(obj)
@@ -94,21 +94,14 @@ classdef ThermalProblem < handle
             s.quadType = 2;
             RHSint = RHSIntegrator.create(s);
             rhs = RHSint.compute(obj.source, obj.test);
-            % Perhaps move it inside RHSint?
-            if strcmp(obj.solverType,'REDUCED')
-                R = RHSint.computeReactions(obj.stiffness);
-                obj.forces = rhs+R;
-            else
-                obj.forces = rhs;
-            end
+            obj.forces = rhs;
         end
 
         function u = computeTemperature(obj)
             s.stiffness = obj.stiffness;
             s.forces    = obj.forces;
             [u,~]       = obj.problemSolver.solve(s);           
-            uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            obj.uFun.setFValues(uSplit);
+            obj.uFun.setFValues(u);
         end
 
     end

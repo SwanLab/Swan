@@ -9,11 +9,13 @@ classdef ThermalComplianceFunctional < handle
         filter
         conductivity
         stateProblem
+        quadrature
     end
 
     methods (Access = public)
         function obj = ThermalComplianceFunctional(cParams)
             obj.init(cParams);
+            obj.createQuadrature();
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
@@ -52,16 +54,13 @@ classdef ThermalComplianceFunctional < handle
             kappa  = obj.createDomainFunction(obj.conductivity.fun,xR);           % conductivity on the new domain
             dkappa = obj.createDomainFunction(obj.conductivity.dfun,xR); 
             u      = obj.computeStateVariable(kappa);                             % solve the PDE
-            s.operation = @(xV) ThermalEnergyDensity(u,kappa,xV);
-            s.mesh      = u.mesh;
-            dom         = DomainFunction(s);
-            dCompliance = dom;
+            dCompliance = ThermalEnergyDensity(u,kappa);
             J  = Integrator.compute(dCompliance,obj.mesh,obj.quadrature.order);   % compute function 
             if isempty(obj.value0)
                 obj.value0 = J;
             end
             J      = obj.computeNonDimensionalValue(J);
-            dJ     = - dkappa.*DP(Grad(u),Grad(u));                               % compute gradient 
+            dJ{1}     = - times(dkappa,DP(Grad(u),Grad(u)));                               % compute gradient 
             dJ     = obj.filterFields(dJ);
             dJ     = obj.computeNonDimensionalGradient(dJ);                         
         end
@@ -87,6 +86,11 @@ classdef ThermalComplianceFunctional < handle
             for i = 1:length(dx)
                 dx{i}.setFValues(dx{i}.fValues/refX);
             end
+        end
+
+        function createQuadrature(obj)
+            quad = Quadrature.create(obj.mesh,2);
+            obj.quadrature = quad;
         end
 
     end

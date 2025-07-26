@@ -43,7 +43,7 @@ classdef TopOptTestTutorialThermal < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,2,100);
+            x1      = linspace(0,1,50);
             x2      = linspace(0,1,50);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
@@ -75,7 +75,7 @@ classdef TopOptTestTutorialThermal < handle
 
         function createMaterialInterpolator(obj) % Conductivity
             s.interpolation  = 'SIMPThermal';   
-            s.f0   = 0.5;                                             
+            s.f0   = 0.01;                                             
             s.f1   = 1;                                                    
             s.pExp = 3;
             a = MaterialInterpolator.create(s);
@@ -86,7 +86,7 @@ classdef TopOptTestTutorialThermal < handle
             s.mesh = obj.mesh;
             s.conductivity = obj.materialInterpolator; 
             Q = LagrangianFunction.create(obj.mesh,1,'P1');
-            fValues = ones(Q.nDofs);
+            fValues = ones(Q.nDofs,1);
             Q.setFValues(fValues);
             s.source       = Q;  
             s.dim = '2D';

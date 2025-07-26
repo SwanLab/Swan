@@ -5,6 +5,6 @@ function dom = ThermalEnergyDensity(kappa,u)
 end
 
 function fVR = evaluate(u, kappa, xV)
-    thE = kappa.*DP(Grad(u),Grad(u)); 
+    thE = times(kappa,DP(Grad(u),Grad(u))); 
     fVR = thE.evaluate(xV);
 end
