@@ -4,6 +4,7 @@ classdef FilteredVolumeFunctional < handle
         mesh
         base
         filter
+        p
     end
 
     properties (Access = private)
@@ -21,8 +22,9 @@ classdef FilteredVolumeFunctional < handle
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             xD = x.obtainDomainFunction();
             xR = obj.filterDesignVariable(xD);
-            J  = obj.computeFunction(xR{1});
-            dJ{1} = obj.computeGradient();
+            Vp = obj.computeVolume(xR{1});
+            J  = obj.computeFunction(Vp);
+            dJ{1} = obj.computeGradient(xR{1},Vp);
         end
 
     end
@@ -32,6 +34,7 @@ classdef FilteredVolumeFunctional < handle
             obj.mesh   = cParams.mesh;
             obj.base   = cParams.uMesh;
             obj.filter = cParams.filter;
+            obj.p      = cParams.p;
         end
 
         function createBaseFunction(obj)
@@ -52,17 +55,21 @@ classdef FilteredVolumeFunctional < handle
             end
         end
 
-        function J = computeFunction(obj,xR)
+        function Vp = computeVolume(obj,xR)
             b   = obj.baseFun;
-            f   = b.*xR./obj.totalVolume;
-            int = Integrator.compute(f,obj.mesh,2);
-            J   = int;
+            xP  = xR.^obj.p;
+            int = Integrator.compute(b.*xP,obj.mesh,3);
+            Vp  = int^(1/obj.p);
         end
 
-        function dJ = computeGradient(obj)
+        function J = computeFunction(obj,Vp)
+            J = Vp/(obj.totalVolume^(1/obj.p));
+        end
+
+        function dJ = computeGradient(obj,xR,Vp)
             b  = obj.baseFun;
-            dj = obj.filter.compute(b,2);
-            dJ = dj./obj.totalVolume;
+            dj = ((Vp^(1-obj.p))*xR.^(obj.p-1))./(obj.totalVolume^(1/obj.p));
+            dJ = obj.filter.compute(b.*dj,3);
         end
 
     end
