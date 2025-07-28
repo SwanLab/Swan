@@ -131,15 +131,29 @@ classdef ElasticProblemMicro < handle
         end
 
         function LHS = computeLHS(obj)
-            ndimf = obj.trialFun.ndimf;
+            % ndimf = obj.trialFun.ndimf;
+            % s.type     = 'ElasticStiffnessMatrix';
+            % s.mesh     = obj.mesh;
+            % s.test     = LagrangianFunction.create(obj.mesh,ndimf, 'P1');
+            % s.trial    = obj.trialFun;
+            % s.material = obj.material;
+            % s.quadratureOrder = 2;
+            % lhs = LHSIntegrator.create(s);
+            % LHS = lhs.compute(obj.trialFun,obj.trialFun);
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
-            s.test     = LagrangianFunction.create(obj.mesh,ndimf, 'P1');
-            s.trial    = obj.trialFun;
-            s.material = obj.material;
             s.quadratureOrder = 2;
             lhs = LHSIntegrator.create(s);
-            LHS = lhs.compute();
+            C     = obj.material;
+            for i = 1:obj.trialFun.nDofsElem
+                v = Test(obj.trialFun,i);
+                for j = 1:obj.trialFun.nDofsElem
+                    u = Test(obj.trialFun,j);
+                    f{i,j} = DDP(SymGrad(v),DDP(C,SymGrad(u)));
+                end
+            end
+            LHS = lhs.compute(f,obj.trialFun,obj.trialFun);
+
         end
 
         function rhs = computeRHS(obj,strainBase,LHS)
@@ -151,7 +165,13 @@ classdef ElasticProblemMicro < handle
             s.material = obj.material;
             s.globalConnec = obj.mesh.connec;
             RHSint = RHSIntegrator.create(s);
-            rhs = RHSint.compute(strainBase,obj.trialFun);
+
+            C = obj.material;
+            for i = 1:obj.trialFun.nDofsElem
+                v = Test(obj.trialFun,i);
+                f{i} = DDP(SymGrad(v),DDP(C,strainBase));
+            end
+            rhs = RHSint.compute(f,obj.trialFun);
             R = RHSint.computeReactions(LHS); %%?
         end
 

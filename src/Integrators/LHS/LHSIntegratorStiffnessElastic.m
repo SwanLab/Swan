@@ -20,7 +20,6 @@ classdef LHSIntegratorStiffnessElastic < LHSIntegrator
         function lhs = computeElementalLHS(obj,f)
             nElem  = obj.mesh.nelem;
             lhs    = zeros(size(f,1),size(f,2),nElem);
-
             J = Jacobian(obj.mesh);
             detJ = Det(J);
 

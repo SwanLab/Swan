@@ -23,9 +23,9 @@ classdef RHSIntegratorElasticMicro < handle
      %       Fvol = zeros(obj.dim.ndofs, nVoigt);
      %       for iVoigt = 1:nVoigt
       %          vstrain = basis(iVoigt,:);
-                FvolE = obj.computeStrainRHS(strainBase,test);
+                FvolE = obj.computeStrainRHS(strainBase);
        %         Fvol(:,iVoigt)  = obj.assembleVector(FvolE);
-            Fvol = obj.assembleVector(FvolE);
+            Fvol = obj.assembleVector(FvolE,test);
        %     end
             Fpoint = obj.computePunctualFext();
             Fext = Fvol + Fpoint;
@@ -56,14 +56,13 @@ classdef RHSIntegratorElasticMicro < handle
             obj.fun                = cParams.fun;
         end
 
-        function b = assembleVector(obj, forces)
-            s.dim          = obj.dim;
-            s.globalConnec = obj.globalConnec;
-            s.nnodeEl      = []; % size(obj.geometry.dNdx,2);
+        function b = assembleVector(obj, forces,test)
+        %    s.dim          = obj.dim;
+        %    s.globalConnec = obj.globalConnec;
+        %    s.nnodeEl      = []; % size(obj.geometry.dNdx,2);
 %             F(:,1,:) = forces;
-            s.fun = obj.fun;
-            assembler = AssemblerFun(s);
-            b = assembler.assembleV(forces, obj.fun);
+            assembler = AssemblerFun();
+            b = assembler.assembleV(forces, test);
         end
 
         function Fp = computePunctualFext(obj)
@@ -77,26 +76,43 @@ classdef RHSIntegratorElasticMicro < handle
         end
         
         
-        function F = computeStrainRHS(obj,strain,test)
+        function rhs = computeStrainRHS(obj,f)
+            % quad    = Quadrature.create(obj.mesh, 1);
+            % xV      = quad.posgp;
+            % ngaus   = size(xV,2);
+            % SymN = Grad(test);
+            % symN  = SymN.evaluate(xV);            
+            % dV      = obj.mesh.computeDvolume(quad);
+            % C       = obj.material.evaluate(xV);
+            % vstrain = strain.evaluate(xV);
+            % nnodeE  = obj.mesh.nnodeElem;
+            % ndim    = obj.mesh.ndim;
+            % ndofE   = nnodeE*ndim;
+            % nElem   = obj.mesh.nelem;
+            % F       = zeros(ndofE,ngaus,nElem);
+            % for i = 1:ndofE
+            %     symTest  = symN(:,:,:,:);
+            %     sig      = pagetensorprod(C,vstrain,[3 4],[1 2],4,2);
+            %     df       = pagetensorprod(symTest,sig,[1 2],[1 2],2,2);
+            %     F(i,:,:) = -df.*dV;
+            % end
+
             quad    = Quadrature.create(obj.mesh, 1);
-            xV      = quad.posgp;
-            ngaus   = size(xV,2);
-            dSymN   = ShapeDerSym(test);
-            symN    = dSymN.evaluate(xV);
-            dV      = obj.mesh.computeDvolume(quad);
-            C       = obj.material.evaluate(xV);
-            vstrain = strain.evaluate(xV);
-            nnodeE  = obj.mesh.nnodeElem;
-            ndim    = obj.mesh.ndim;
-            ndofE   = nnodeE*ndim;
-            nElem   = obj.mesh.nelem;
-            F       = zeros(ndofE,ngaus,nElem);
-            for i = 1:ndofE
-                symTest  = squeezeParticular(symN(:,:,i,:,:),3);
-                sig      = pagetensorprod(C,vstrain,[3 4],[1 2],4,2);
-                df       = pagetensorprod(symTest,sig,[1 2],[1 2],2,2);
-                F(i,:,:) = -df.*dV;
+
+            nElem  = obj.mesh.nelem;
+            rhs    = zeros(size(f,2),nElem);
+            J = Jacobian(obj.mesh);
+            detJ = Det(J);
+
+            xV = quad.posgp;
+            w  = quad.weigp;
+            for i = 1:size(f,1)
+                    int = squeezeParticular((f{i}.*detJ)*w',2);
+                    rhs(i,:) = rhs(i,:) + int.evaluate(xV);
             end
+
+
+
         end
 
     end
