@@ -233,8 +233,10 @@ classdef Mesh < handle
         function dV = computeDvolume(obj,quad)
             xV = quad.posgp;
             if ~isequal(xV,obj.xVOld)
-                w = reshape(quad.weigp,[quad.ngaus 1]);
-                dVolume = w.*obj.computeJacobianDeterminant(quad.posgp);
+                detJ = Det(Jacobian(obj));                            
+                w = reshape(quad.weigp,[1 quad.ngaus]);
+                detJv  = detJ.evaluate(xV);
+                dVolume = detJv.*w;
                 dV = reshape(dVolume, [quad.ngaus, obj.nelem]);
                 obj.dVOld = dV;
                 obj.xVOld = xV;
@@ -243,17 +245,7 @@ classdef Mesh < handle
             end
         end
 
-        function detJ = DetJ(obj)
-            s.operation  = @(xV) obj.evaluateJac(xV);
-            s.mesh       = obj;
-            detJ         = DomainFunction(s);
-        end
-
-        function detJ = evaluateJac(obj,xV)
-            detJ(1,:,:) = obj.computeJacobianDeterminant(xV);
-        end
-
-
+    
         %% Remove
 
         function [m, l2g] = createSingleBoundaryMesh(obj)
@@ -329,22 +321,7 @@ classdef Mesh < handle
             J            = DomainFunction(s);            
         end
         
-        function J = computeJacobian(obj,xV)
-            nDimGlo  = size(obj.coordElem,1);
-            nElem    = size(obj.coordElem,3);
-            dShapes  = obj.interpolation.computeShapeDerivatives(xV);
-            nDimElem = size(dShapes,1);
-            nPoints  = size(xV,2);
-            J = zeros(nDimElem,nDimGlo,nPoints,nElem);
-            for iDimGlo = 1:nDimGlo
-                for iDimElem = 1:nDimElem
-                    dShapeIK = squeezeParticular(dShapes(iDimElem,:,:),1)';
-                    xKJ = squeezeParticular(obj.coordElem(iDimGlo,:,:),1);
-                    jacIJ    = dShapeIK*xKJ;
-                    J(iDimElem,iDimGlo,:,:) = squeezeParticular(J(iDimElem,iDimGlo,:,:),[1 2]) + jacIJ;
-                end
-            end
-        end
+
 
     end
 
@@ -437,6 +414,23 @@ classdef Mesh < handle
             m = Mesh.create(s);
             l2g(newNodes(:)) = originalNodes(:);
         end
+
+        function J = computeJacobian(obj,xV)
+            nDimGlo  = size(obj.coordElem,1);
+            nElem    = size(obj.coordElem,3);
+            dShapes  = obj.interpolation.computeShapeDerivatives(xV);
+            nDimElem = size(dShapes,1);
+            nPoints  = size(xV,2);
+            J = zeros(nDimElem,nDimGlo,nPoints,nElem);
+            for iDimGlo = 1:nDimGlo
+                for iDimElem = 1:nDimElem
+                    dShapeIK = squeezeParticular(dShapes(iDimElem,:,:),1)';
+                    xKJ = squeezeParticular(obj.coordElem(iDimGlo,:,:),1);
+                    jacIJ    = dShapeIK*xKJ;
+                    J(iDimElem,iDimGlo,:,:) = squeezeParticular(J(iDimElem,iDimGlo,:,:),[1 2]) + jacIJ;
+                end
+            end
+        end        
 
     end
 
