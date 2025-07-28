@@ -54,33 +54,16 @@ classdef LagrangianFunction < FeFunction
 
         function dNdx  = evaluateCartesianDerivatives(obj,xV)
             if ~isequal(xV,obj.xVOlddN) || isempty(obj.dNdxOld)
-                nElem = size(obj.dofConnec,1);
-                nNodeE = obj.interpolation.nnode;
-                nDimE = obj.interpolation.ndime;
-                nDimG = obj.mesh.ndim;
-                nPoints = size(xV, 2);
-                invJ  = Inv(Jacobian(obj.mesh));
-               
-                invJv = invJ.evaluate(xV);
-                deriv = obj.interpolation.computeShapeDerivatives(xV);
-                dShapes  = zeros(nDimG,nNodeE,nPoints,nElem);
-                for iDimG = 1:nDimG
-                    for kNodeE = 1:nNodeE
-                        for jDimE = 1:nDimE
-                            invJ_IJ   = invJv(iDimG,jDimE,:,:);
-                            dShapes_JK = deriv(jDimE,kNodeE,:);
-                            dShapes_KI   = pagemtimes(invJ_IJ,dShapes_JK);
-                            dShapes(iDimG,kNodeE,:,:) = dShapes(iDimG,kNodeE,:,:) + dShapes_KI;
-                        end
-                    end
-                end
-                dNdx = dShapes;
+                invJ    = Inv(Jacobian(obj.mesh));
+                N       = obj.interpolation;
+                dShapes = invJ*obj.Gradient(N);
+                dNdx    = dShapes.evaluate(xV);
                 obj.dNdxOld = dNdx;
                 obj.xVOlddN = xV;
             else
                 dNdx = obj.dNdxOld;
             end
-        end         
+        end 
 
        function fVals = getFvaluesByElem(obj)
             nDimF     = obj.ndimf;
@@ -430,8 +413,6 @@ classdef LagrangianFunction < FeFunction
             obj.nDofs  = c.getNumberDofs();
         end
 
-
-
         function divF = computeDivFun(obj,xV)
             nP = size(xV,2);
             dNdx  = obj.evaluateCartesianDerivatives(xV);
@@ -525,7 +506,13 @@ classdef LagrangianFunction < FeFunction
                 otherwise
                     f = obj.project('P1D');
                     plot(f);
-            end            
+            end
+        end
+
+        function gradN = Gradient(obj,N)
+            s.operation = @(xV) N.computeShapeDerivatives(xV);
+            s.mesh      = obj.mesh;
+            gradN       = DomainFunction(s);
         end
 
     end
