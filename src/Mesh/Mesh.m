@@ -323,6 +323,12 @@ classdef Mesh < handle
 
     methods (Access = public) % ?????????
 
+        function J = Jacobian(obj)
+            s.operation  = @(xV) obj.computeJacobian(xV);
+            s.mesh       = obj;
+            J            = DomainFunction(s);            
+        end
+        
         function J = computeJacobian(obj,xV)
             nDimGlo  = size(obj.coordElem,1);
             nElem    = size(obj.coordElem,3);

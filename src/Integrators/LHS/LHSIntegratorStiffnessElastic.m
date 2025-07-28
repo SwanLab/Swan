@@ -21,9 +21,9 @@ classdef LHSIntegratorStiffnessElastic < LHSIntegrator
             nElem  = obj.mesh.nelem;
             lhs    = zeros(size(f,1),size(f,2),nElem);
 
-            %J = Jacobian(obj.mesh);
+            J = Jacobian(obj.mesh);
             %J    = obj.mesh.getJacobian();
-            %detJ = Det(J);
+            detJ2 = Det(J);
             detJ = DetJ(obj.mesh);
 
             xV = obj.quadrature.posgp;
