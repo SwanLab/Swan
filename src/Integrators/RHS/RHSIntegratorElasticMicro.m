@@ -97,7 +97,7 @@ classdef RHSIntegratorElasticMicro < handle
             %     F(i,:,:) = -df.*dV;
             % end
 
-            quad    = Quadrature.create(obj.mesh, 1);
+            quad    = Quadrature.create(obj.mesh, 2);
 
             nElem  = obj.mesh.nelem;
             rhs    = zeros(size(f,2),nElem);
@@ -106,9 +106,9 @@ classdef RHSIntegratorElasticMicro < handle
 
             xV = quad.posgp;
             w  = quad.weigp;
-            for i = 1:size(f,1)
-                    int = squeezeParticular((f{i}.*detJ)*w',2);
-                    rhs(i,:) = rhs(i,:) + int.evaluate(xV);
+            for i = 1:size(f,2)
+                int = squeezeParticular((f{i}.*detJ)*w',2);
+                rhs(i,:) = rhs(i,:) + int.evaluate(xV);
             end
 
 

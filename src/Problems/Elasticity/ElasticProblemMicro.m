@@ -84,7 +84,7 @@ classdef ElasticProblemMicro < handle
            sV(v(iBasis,1),v(iBasis,2)) = 1;
            sHV = diag(diag(sV));
            sDV = sV-sHV;
-           sV = sHV+sDV+sDV';
+           sV = sHV+1*(sDV+sDV');
            s = ConstantFunction.create(sV,obj.mesh);
        end
 
