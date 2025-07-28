@@ -245,6 +245,12 @@ classdef Mesh < handle
             end
         end
 
+        function J = Jacobian(obj)
+            s.operation  = @(xV) obj.computeJacobian(xV);
+            s.mesh       = obj;
+            J            = DomainFunction(s);            
+        end        
+
     
         %% Remove
 
@@ -312,19 +318,6 @@ classdef Mesh < handle
             obj.computeElementCoordinates();
         end
     end
-
-    methods (Access = public) % ?????????
-
-        function J = Jacobian(obj)
-            s.operation  = @(xV) obj.computeJacobian(xV);
-            s.mesh       = obj;
-            J            = DomainFunction(s);            
-        end
-        
-
-
-    end
-
     methods (Access = private)
 
         function init(obj,s)
@@ -430,7 +423,7 @@ classdef Mesh < handle
                     J(iDimElem,iDimGlo,:,:) = squeezeParticular(J(iDimElem,iDimGlo,:,:),[1 2]) + jacIJ;
                 end
             end
-        end        
+        end   
 
     end
 

@@ -59,13 +59,15 @@ classdef LagrangianFunction < FeFunction
                 nDimE = obj.interpolation.ndime;
                 nDimG = obj.mesh.ndim;
                 nPoints = size(xV, 2);
-                invJ  = obj.mesh.computeInverseJacobian(xV);
+                invJ  = Inv(Jacobian(obj.mesh));
+               
+                invJv = invJ.evaluate(xV);
                 deriv = obj.interpolation.computeShapeDerivatives(xV);
                 dShapes  = zeros(nDimG,nNodeE,nPoints,nElem);
                 for iDimG = 1:nDimG
                     for kNodeE = 1:nNodeE
                         for jDimE = 1:nDimE
-                            invJ_IJ   = invJ(iDimG,jDimE,:,:);
+                            invJ_IJ   = invJv(iDimG,jDimE,:,:);
                             dShapes_JK = deriv(jDimE,kNodeE,:);
                             dShapes_KI   = pagemtimes(invJ_IJ,dShapes_JK);
                             dShapes(iDimG,kNodeE,:,:) = dShapes(iDimG,kNodeE,:,:) + dShapes_KI;

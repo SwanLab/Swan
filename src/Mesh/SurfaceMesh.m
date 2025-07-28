@@ -24,17 +24,9 @@ classdef SurfaceMesh < Mesh
                     J = obj.computeJacobian(xV);
                     n = obj.computeNormalVectors(J);
                     detJ = squeeze(pagenorm(n));
-                case 2 % 2D Surface in 2D space
-                    J = obj.computeJacobian(xV);
-                    detJ = MatrixVectorizedInverter.computeDeterminant(J);
-            end
-        end
-
-        function invJ = computeInverseJacobian(obj,xV)
-            switch obj.ndim
-                case 2 % 2D Surface in 3D space
-                    J = obj.computeJacobian(xV);
-                    invJ = MatrixVectorizedInverter.computeInverse(J);
+                %case 2 % 2D Surface in 2D space
+                %    J = obj.computeJacobian(xV);
+                %    detJ = MatrixVectorizedInverter.computeDeterminant(J);
             end
         end
 
