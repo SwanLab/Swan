@@ -39,6 +39,7 @@ classdef VolumeFunctional < handle
             s.mesh  = obj.mesh;
             obj.riszFilter = FilterLump(s);
         end
+        
         function createBaseFunction(obj)
             f           = CharacteristicFunction.create(obj.base);
             obj.baseFun = obj.riszFilter.compute(f,2);
