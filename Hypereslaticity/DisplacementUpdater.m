@@ -42,8 +42,8 @@ classdef DisplacementUpdater < handle
         function init(obj,cParams)
             obj.functional = cParams.functional;
             obj.monitor    = cParams.monitor;
-            obj.tol        = cParams.tolerance.u;
-            obj.maxIter    = cParams.maxIter.u;
+            obj.tol        = cParams.tolerance;
+            obj.maxIter    = cParams.maxIter;
         end
 
         function uOut = computeDisplacement(obj,LHSfull, RHSfull,uIn,bc)

@@ -1,6 +1,5 @@
 classdef HyperelasticityMonitoring < handle
 
-
     properties (GetAccess = public, SetAccess = private)
         data
     end

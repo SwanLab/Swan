@@ -1,156 +1,95 @@
-classdef HyperelasticProblem < handle
-
-    properties (Access = public)
-        uFun
-        rFun
-    end
-
-    properties (Access = private)
-        print
-        bcCase
-        fileNameOut
-        meshType
-    end
+classdef HyperelasticityComputer < handle
 
     properties (Access = private)
         mesh
-        matProp, material
-        neohookeanFun, linearElasticityFun
-        monitor
         boundaryConditions
+        functional
+    end
 
-        bcApplier
-        freeDofs, constrainedDofs
+    properties (Access = private)
+        monitor
+        updater
     end
 
     methods (Access = public)
 
-        function obj = HyperelasticProblem(cParams)
+        function obj = HyperelasticityComputer(cParams)
             obj.init(cParams);
-            obj.createMesh();
-            obj.createBoundaryConditions();
-            obj.createMaterial();
-            obj.createDisplacementFun();
-            obj.createFunctionals();
-            obj.setMonitoring();
+            obj.setMonitoring(cParams);
+            obj.setOptimizer(cParams)
         end
 
-        function solve(obj)
-            u  = obj.uFun;
-            iter = 1; nSteps = length(obj.boundaryConditions.bcValues);
+        function outputData = compute(obj)
+            u = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
+            cost = 0;
+
+            nSteps = length(obj.boundaryConditions.bcValues);
             for iStep = 1:nSteps
+                obj.monitor.printStep(iStep,nSteps)
                 [u,bc] = obj.updateBoundaryConditions(u);
-
-                %intEnergy(iter) = obj.neohookeanFun.compute(u);
-                intEnergy(iter) = obj.linearElasticityFun.compute(u);
-                Res = obj.computeResidual(u);
-                resi(iter) = norm(Res);
-
-                hasNotConverged = 1;
-                while hasNotConverged
-                    uVal = obj.reshapeToVector(u.fValues);
-                    [hess, KR] = obj.computeHessian(u);
-                    Res  = obj.computeResidual(u);
-                    incU = hess\(-Res);
-                    uVal(obj.freeDofs) = uVal(obj.freeDofs) + incU;
-                    u.setFValues(obj.reshapeToMatrix(uVal));
-                    reacFun = obj.computeReactions(KR,u);
-
-                    iter = iter+1;
-                    intEnergy(iter) = obj.neohookeanFun.compute(u);
-                    Res        = obj.computeResidual(u);
-                    resi(iter) = norm(Res);
-
-                    hasNotConverged = obj.hasNotConverged(intEnergy);
-                end
-                normDisp(iStep) = Norm(u,'L2');
-                normReac(iStep) = Norm(reacFun,'L2');
-                obj.printFile(iStep, u, reacFun);
-                nIterPerStep(iStep) = obj.computeNumberOfIterations(iter,nIterPerStep,iStep);
-                obj.plotStep(intEnergy,nIterPerStep,iStep, normDisp,normReac);
-                obj.rFun = reacFun;
+                [u,F,cost,iterMax] = obj.updater.update(u,bc,cost);
+                %[Evec,totE,totF,uBC] = obj.postprocess(iStep,u,phi,F,bc);
+                %obj.printAndSave(iStep,totF,uBC,u,phi,Evec,totE,iterMax,cost,tauArray);
             end
+            outputData = obj.monitor.data;
+
+            % u  = obj.uFun;
+            % iter = 1; nSteps = length(obj.boundaryConditions.bcValues);
+            % for iStep = 1:nSteps
+            %     [u,bc] = obj.updateBoundaryConditions(u);
+            % 
+            %     %intEnergy(iter) = obj.neohookeanFun.compute(u);
+            %     intEnergy(iter) = obj.linearElasticityFun.compute(u);
+            %     Res = obj.computeResidual(u);
+            %     resi(iter) = norm(Res);
+            % 
+            %     hasNotConverged = 1;
+            %     while hasNotConverged
+            %         uVal = obj.reshapeToVector(u.fValues);
+            %         [hess, KR] = obj.computeHessian(u);
+            %         Res  = obj.computeResidual(u);
+            %         incU = hess\(-Res);
+            %         uVal(obj.freeDofs) = uVal(obj.freeDofs) + incU;
+            %         u.setFValues(obj.reshapeToMatrix(uVal));
+            %         reacFun = obj.computeReactions(KR,u);
+            % 
+            %         iter = iter+1;
+            %         intEnergy(iter) = obj.neohookeanFun.compute(u);
+            %         Res        = obj.computeResidual(u);
+            %         resi(iter) = norm(Res);
+            % 
+            %         hasNotConverged = obj.hasNotConverged(intEnergy);
+            %     end
+            %     normDisp(iStep) = Norm(u,'L2');
+            %     normReac(iStep) = Norm(reacFun,'L2');
+            %     obj.printFile(iStep, u, reacFun);
+            %     nIterPerStep(iStep) = obj.computeNumberOfIterations(iter,nIterPerStep,iStep);
+            %     obj.plotStep(intEnergy,nIterPerStep,iStep, normDisp,normReac);
+            %     obj.rFun = reacFun;
+            % end
         end
     end
 
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.print = cParams.printing;
-            obj.bcCase  = cParams.bcCase;
-            obj.fileNameOut = cParams.fileName;
-            obj.meshType  = cParams.meshGen;
-        end
-
-        function createMesh(obj)
-            switch obj.meshType
-                case {'Hole', 'HoleDirich'}
-                    IM = Mesh.createFromGiD('holeMeshQuad.m');
-                    obj.mesh = IM;
-                case {'Bending', 'Traction'}
-                    obj.mesh = UnitQuadMesh(20,20);
-                case {'Metamaterial'}
-                    load('NegativePoissonMesh.mat','NegPoissMesh');
-                    s.coord  = NegPoissMesh.coord;
-                    s.connec = NegPoissMesh.connec;
-                    obj.mesh = Mesh.create(s);
-                otherwise
-                    obj.mesh = HexaMesh(2,1,1,20,5,5);
-            end
-        end
-
-        function createMaterial(obj)
-            mu     = ConstantFunction.create(1,obj.mesh);
-            lambda = ConstantFunction.create(1,obj.mesh);
-            ndim   = obj.mesh.ndim;
-            kappa = IsotropicElasticMaterial.computeKappaFromShearAndLambda(mu,lambda,ndim);
-
-            s.type  = 'ISOTROPIC';
-            s.ndim  = ndim;
-            s.bulk  = kappa;
-            s.shear = mu;
-            obj.material = Material.create(s);
-            obj.matProp.mu = mu;
-            obj.matProp.lambda = lambda;
-        end
-
-        function createDisplacementFun(obj)
-            obj.uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
-            obj.uFun.setFValues(obj.uFun.fValues + 0);
-        end
-
-        function createFunctionals(obj)
-            obj.createLinearElasticityFunctional();
-            obj.createNeohookeanFunctional();
-        end
-
-        function createLinearElasticityFunctional(obj)
-            s.material = obj.material;
-            s.mesh     = obj.mesh;
-            elas = LinearElasticityFunctional(s);
-            obj.linearElasticityFun = elas;
-        end
-
-        function createNeohookeanFunctional(obj)
-            s.material = obj.matProp;
-            s.mesh     = obj.mesh;
-            neo = NeohookeanFunctional(s);
-            obj.neohookeanFun = neo;
+            obj.mesh               = cParams.mesh;
+            obj.boundaryConditions = cParams.boundaryConditions;
+            obj.functional         = cParams.functional;
         end
 
         function setMonitoring(obj,cParams)
-            s.shallDisplay = true;
-            s.shallPrint   = true;
+            s.shallDisplay = cParams.monitoring.set;
+            s.shallPrint   = cParams.monitoring.print;
             obj.monitor = HyperelasticityMonitoring(s);
         end
 
-        function createBoundaryConditions(obj)
-            nSteps = 25;
-            maxVal = 1;
-            cParams.bcValues = linspace(0,maxVal,nSteps);
-            cParams.type = 'ForceTractionX';
-            bc = HyperelasticityBoundaryCreator(obj.mesh,cParams);
-            obj.boundaryConditions = bc;
+        function setOptimizer(obj,cParams)
+            s.functional  = obj.functional;
+            s.monitor     = obj.monitor;
+            s.tolerance   = cParams.tolerance;
+            s.maxIter     = cParams.maxIter;
+            obj.updater = DisplacementUpdater(s);
         end
 
         function [u,bc] = updateBoundaryConditions(obj,u)
