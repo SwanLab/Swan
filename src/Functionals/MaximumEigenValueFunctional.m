@@ -17,19 +17,6 @@ classdef MaximumEigenValueFunctional < handle
             obj.init(cParams)
         end   
 
-        function [f, dfdx] = computeFunctionAndGradient(obj,x) 
-            x = x{1};
-            xD  = x.obtainDomainFunction();             
-            xR = obj.filter.compute(xD{1},2);   
-            if ~isempty(obj.filterAdjoint)
-                xFiltered = obj.filter.getFilteredField();
-                obj.filterAdjoint.updateFilteredField(xFiltered);
-            end
-            [lambda,dlambda]= obj.eigModes.computeFunctionAndGradient(xR);
-            f = obj.computeFunction(lambda);
-            dfdx{1} = obj.computeGradient(dlambda);
-        end
-
         function [lambdas, phis] = computeEigenModes(obj, x, n)
             xD  = x.obtainDomainFunction();
             xR = obj.filterDesignVariable(xD{1});     
@@ -51,26 +38,6 @@ classdef MaximumEigenValueFunctional < handle
             end
         end
 
-        function J = computeFunction(obj,lambda)
-%                  J = 1/lambda;
-                J = -lambda;
-                if isempty(obj.value0)
-                   obj.value0 = abs(J);
-                end
-                J = J/obj.value0;
-        end
-
-        function dJ = computeGradient(obj, dlambda)
-            if ~isempty(obj.filterAdjoint)
-                dJ     = obj.filterAdjoint.compute(dlambda,2);
-            else
-                dJ        = obj.filter.compute(dlambda,2);
-            end
-            fValues   = - dJ.fValues;
-            %             fValues   =  -1./dJ.fValues.^2; %
-            dJ.setFValues(fValues/obj.value0);
-        end
-
         function xR = filterDesignVariable(obj,x)
             if isa(obj.filter, 'HeavisideProjector')
                 fValues = obj.filter.project(x);
@@ -83,12 +50,5 @@ classdef MaximumEigenValueFunctional < handle
                 obj.filterAdjoint.updateFilteredField(xFiltered);
             end
         end
-
     end
-
-    methods (Static, Access = public)
-        function title = getTitleToPlot()
-            title = '- First Eigenvalue';
-        end
-    end  
 end

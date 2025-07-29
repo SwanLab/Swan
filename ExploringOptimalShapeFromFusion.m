@@ -46,7 +46,7 @@ classdef ExploringOptimalShapeFromFusion < handle
         end
 
         function createMesh(obj)
-            file = 'BEAM_3D_SF5';
+            file = 'BEAM_3D_SF25';
             obj.filename = file;
             a.fileName = file;
             s = FemDataContainer(a);
@@ -178,6 +178,7 @@ classdef ExploringOptimalShapeFromFusion < handle
             s.mesh              = obj.mesh;
             s.designVariable    = obj.designVariable;
             s.filter            = obj.filterConnect;
+            s.material           = obj.material;
             %s.filterAdjoint     = obj.filterAdjointConnect;   
             s.targetEigenValue  = 50; % Minim eigenvalue      
             s.boundaryConditions = obj.createBoundaryConditions();
@@ -253,8 +254,9 @@ classdef ExploringOptimalShapeFromFusion < handle
             s.designVariable = obj.designVariable;
             s.filter = obj.filterConnect;
             s.mesh = obj.mesh;
+            s.material = obj.material;
             s.boundaryConditions = obj.createEigenvalueBoundaryConditions();
-%             mE = MinimumEigenValueFunctional(s);
+            %mE = MinimumEigenValueFunctional(s);
             mE = MaximumEigenValueFunctional(s);
             [lambdas, phis] = mE.computeEigenModes(obj.designVariable, n);
             freq = sqrt(lambdas)/(2*pi);
@@ -265,6 +267,7 @@ classdef ExploringOptimalShapeFromFusion < handle
             s.mesh  = obj.mesh;
             s.epsilon = epsilon;
             s.p       = p;
+            s.material = obj.material;
             s.boundaryConditions = obj.createEigenvalueBoundaryConditions();
             eigen   = StiffnessEigenModesDisplacementComputer(s);
          end

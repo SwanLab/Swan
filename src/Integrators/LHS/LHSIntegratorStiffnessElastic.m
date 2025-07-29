@@ -21,6 +21,7 @@ classdef LHSIntegratorStiffnessElastic < LHSIntegrator
             xV     = obj.quadrature.posgp;
             dSymN  = ShapeDerSym(obj.test);
             symN   = dSymN.evaluate(xV);
+            % C = obj.material.obtainTensor
             C      = obj.material.evaluate(xV);
             nnodeE = obj.mesh.nnodeElem;
             ndim   = obj.mesh.ndim;
