@@ -144,6 +144,8 @@ classdef StiffnessEigenModesDisplacementComputer < handle
 
         function DirichletEigenModeToLagrangianFunction(obj, eigenF)
             fValues = obj.fillVectorWithHomogeneousDirichlet(eigenF);
+            eF      = obj.eigenF;
+            fValues = reshape(fValues,[eF.ndimf,eF.nDofs/eF.ndimf])';
             obj.eigenF.setFValues(fValues);
         end
 

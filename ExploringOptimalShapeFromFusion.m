@@ -171,7 +171,7 @@ classdef ExploringOptimalShapeFromFusion < handle
             obj.stateProblem = fem;
             u = fem.uFun;
             maxDisplacements = max(abs(u.fValues));
-      %      u.print('Displacements');
+            u.print('Displacements');
         end
 
         function computeEigenValue(obj)                           
@@ -259,6 +259,7 @@ classdef ExploringOptimalShapeFromFusion < handle
             %mE = MinimumEigenValueFunctional(s);
             mE = MaximumEigenValueFunctional(s);
             [lambdas, phis] = mE.computeEigenModes(obj.designVariable, n);
+            print(phis(1,1),'First Mode','Paraview');
             freq = sqrt(lambdas)/(2*pi);
 
          end
