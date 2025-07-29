@@ -8,7 +8,7 @@ classdef LHSIntegratorStiffness < LHSIntegrator
 
         function LHS = compute(obj)
             lhs = obj.computeElementalLHS();
-            LHS = obj.assembleMatrix(lhs);
+            LHS = obj.assembleMatrix(lhs,obj.test,obj.trial);
         end
 
     end

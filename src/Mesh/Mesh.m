@@ -233,8 +233,19 @@ classdef Mesh < handle
         function dV = computeDvolume(obj,quad)
             xV = quad.posgp;
             if ~isequal(xV,obj.xVOld)
-                detJ = Det(Jacobian(obj));                            
-                w = reshape(quad.weigp,[1 quad.ngaus]);
+                if isequal(obj.geometryType,'Surface') && isequal(obj.ndim,3)
+                    s.operation  = @(xV) obj.computeJacobianDeterminant(xV);
+                    s.mesh       = obj;
+                    detJ         = DomainFunction(s);
+                elseif isequal(obj.geometryType,'Line') && isequal(obj.ndim,2)
+                    s.operation  = @(xV) obj.computeJacobianDeterminant(xV);
+                    s.mesh       = obj;
+                    detJ         = DomainFunction(s);
+
+                else
+                    detJ = Det(Jacobian(obj));
+                end
+                w = reshape(quad.weigp,[1 quad.ngaus]);                
                 detJv  = detJ.evaluate(xV);
                 dVolume = detJv.*w;
                 dV = reshape(dVolume, [quad.ngaus, obj.nelem]);
@@ -317,6 +328,24 @@ classdef Mesh < handle
             obj.createInterpolation();
             obj.computeElementCoordinates();
         end
+
+        function J = computeJacobian(obj,xV)
+            nDimGlo  = size(obj.coordElem,1);
+            nElem    = size(obj.coordElem,3);
+            dShapes  = obj.interpolation.computeShapeDerivatives(xV);
+            nDimElem = size(dShapes,1);
+            nPoints  = size(xV,2);
+            J = zeros(nDimElem,nDimGlo,nPoints,nElem);
+            for iDimGlo = 1:nDimGlo
+                for iDimElem = 1:nDimElem
+                    dShapeIK = squeezeParticular(dShapes(iDimElem,:,:),1)';
+                    xKJ = squeezeParticular(obj.coordElem(iDimGlo,:,:),1);
+                    jacIJ    = dShapeIK*xKJ;
+                    J(iDimElem,iDimGlo,:,:) = squeezeParticular(J(iDimElem,iDimGlo,:,:),[1 2]) + jacIJ;
+                end
+            end
+        end   
+
     end
     methods (Access = private)
 
@@ -408,22 +437,7 @@ classdef Mesh < handle
             l2g(newNodes(:)) = originalNodes(:);
         end
 
-        function J = computeJacobian(obj,xV)
-            nDimGlo  = size(obj.coordElem,1);
-            nElem    = size(obj.coordElem,3);
-            dShapes  = obj.interpolation.computeShapeDerivatives(xV);
-            nDimElem = size(dShapes,1);
-            nPoints  = size(xV,2);
-            J = zeros(nDimElem,nDimGlo,nPoints,nElem);
-            for iDimGlo = 1:nDimGlo
-                for iDimElem = 1:nDimElem
-                    dShapeIK = squeezeParticular(dShapes(iDimElem,:,:),1)';
-                    xKJ = squeezeParticular(obj.coordElem(iDimGlo,:,:),1);
-                    jacIJ    = dShapeIK*xKJ;
-                    J(iDimElem,iDimGlo,:,:) = squeezeParticular(J(iDimElem,iDimGlo,:,:),[1 2]) + jacIJ;
-                end
-            end
-        end   
+
 
     end
 
