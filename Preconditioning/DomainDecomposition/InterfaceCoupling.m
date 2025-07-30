@@ -31,6 +31,7 @@ classdef InterfaceCoupling < handle
         end
 
       function intConec = reshapeConecPerInterface(obj)
+          if (size(obj.interfaceConnec,2) == 2)
             globalConec = obj.interfaceConnec;
             nRnodes     = obj.meshReference.nnodes;
             nnode       = size(globalConec,1);
@@ -54,6 +55,10 @@ classdef InterfaceCoupling < handle
                     end
                 end
             end
+          else
+              disp('Continuous mesh generated. However, case not suitable for domain decomposition yet')
+              intConec = obj.interfaceConnec;
+          end
         end        
         
     end
@@ -71,29 +76,26 @@ classdef InterfaceCoupling < handle
         function coordNodeBoundary(obj)
             nX            = obj.nSubdomains(1);
             nY            = obj.nSubdomains(2);
-            nZ            = obj.nSubdomains(3);
             nnodes        = obj.meshReference.nnodes;
             interfaceMesh = obj.interfaceMeshSubDomain();
             ndim          = interfaceMesh{1,1}{1,1}.mesh.ndim;
             ninterface    = obj.ninterfaces;
             coordBdGl     = zeros(1,ndim);
             GlNodeBd      = zeros(1,1);
-            for kDom = 1:nZ
                 for jDom = 1:nY
                     for iDom = 1:nX
                         for iline=1:ninterface
-                            bdcood    = interfaceMesh{jDom,iDom,kDom}{iline,1}.mesh.coord;
+                            bdcood    = interfaceMesh{jDom,iDom}{iline,1}.mesh.coord;
                             coordBdGl = [coordBdGl;bdcood];
                             %although it says global is in subdomain
                             %conecctivity
-                            conecInter = interfaceMesh{jDom,iDom,kDom}{iline,1}.globalConnec;
+                            conecInter = interfaceMesh{jDom,iDom}{iline,1}.globalConnec;
                             nodeIntSub = reshape(unique(conecInter),[],1);
-                            nodeIntGl  = nodeIntSub + nnodes*(nX*nY*(kDom-1)+nX*(jDom-1)+iDom-1);
+                            nodeIntGl  = nodeIntSub + nnodes*(nX*(jDom-1)+iDom-1);
                             GlNodeBd   = [GlNodeBd; nodeIntGl];
                         end
                     end
                 end
-            end
                 [GlNodeBd,ind]  = unique(GlNodeBd,'stable');
                 coordBdGl       = coordBdGl(ind,:);
                 obj.coordBdGl   = coordBdGl(2:end,:);

@@ -39,6 +39,19 @@ classdef RemeshingTests < handle & matlab.unittest.TestCase
             obj.verifyLessThanOrEqual(err, tol)
         end
 
+        function testRepeatMesh2D(obj)
+            s.nsubdomains   = [3,3]; %nx ny
+            s.meshReference = obj.createRefMesh();
+            s.tolSameNode   = 1e-10;
+            m = MeshCreatorFromRVE.create(s);
+            [meshDomain,~,~,~,~,~,~] = m.create();           
+            s = load('test_RepeatMesh2D');
+            err(1) = norm(meshDomain.coord(:)  - s.mD.coord(:));
+            err(2) = norm(meshDomain.connec(:) - s.mD.connec(:));
+            tol = 1e-6;
+            obj.verifyLessThanOrEqual(norm(err), tol)
+        end
+
     end
 
     methods (Access = private)
@@ -70,7 +83,11 @@ classdef RemeshingTests < handle & matlab.unittest.TestCase
             x1 = x(1,:,:);
             x2 = x(2,:,:);
             f  = x1.^2+x2.^2;
-        end        
+        end    
+
+         function m = createRefMesh(obj)
+            m = TriangleMesh(1,1,5,5);
+         end
 
 
     end
