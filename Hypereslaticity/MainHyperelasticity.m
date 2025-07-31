@@ -1,7 +1,7 @@
 close all
 s.meshType = 'Metamaterial';
 
-s.bcProp.nSteps = 200;
+s.bcProp.nSteps = 76;
 s.bcProp.maxVal = 1;
 s.bcProp.type   = 'DisplacementTractionX';
 
