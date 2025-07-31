@@ -7,7 +7,6 @@ classdef VolumeFunctional < handle
     end
 
     properties (Access = private)
-        riszFilter
         baseFun
         totalVolume
     end
@@ -15,7 +14,6 @@ classdef VolumeFunctional < handle
     methods (Access = public)
         function obj = VolumeFunctional(cParams)
             obj.init(cParams);
-            obj.createRiszFilter();
             obj.createBaseFunction();
             obj.createTotalVolume();
         end
@@ -33,16 +31,13 @@ classdef VolumeFunctional < handle
             obj.base = cParams.uMesh;
             obj.test = cParams.test;
         end
-
-        function createRiszFilter(obj)
-            s.trial = LagrangianFunction.create(obj.mesh,1,obj.test.order);
-            s.mesh  = obj.mesh;
-            obj.riszFilter = FilterLump(s);
-        end
         
         function createBaseFunction(obj)
+            s.trial     = LagrangianFunction.create(obj.mesh,1,obj.test.order);
+            s.mesh      = obj.mesh;
+            riszFilter  = FilterLump(s);
             f           = CharacteristicFunction.create(obj.base);
-            obj.baseFun = obj.riszFilter.compute(f,2);
+            obj.baseFun = riszFilter.compute(f,2);
         end
 
         function createTotalVolume(obj)
@@ -58,8 +53,8 @@ classdef VolumeFunctional < handle
         end
 
         function dJ = computeGradient(obj)
-            dj = obj.baseFun./obj.totalVolume;
-            dJ = obj.riszFilter.compute(dj,2);
+            dJ = obj.baseFun;
+            dJ.setFValues(dJ.fValues./obj.totalVolume);
         end
     end
 
@@ -69,4 +64,3 @@ classdef VolumeFunctional < handle
         end
     end
 end
-

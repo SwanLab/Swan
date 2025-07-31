@@ -3,7 +3,7 @@ classdef PerimeterFunctional < handle
     properties (Access = private)
         mesh
         base
-        domainFilter
+        filter
         epsilon
         value0
     end
@@ -16,35 +16,35 @@ classdef PerimeterFunctional < handle
     methods (Access = public)
         function obj = PerimeterFunctional(cParams)
             obj.init(cParams);
-            obj.domainFilter.updateEpsilon(obj.epsilon);
+            obj.filter.updateEpsilon(obj.epsilon);
             obj.createRiszFilter();
             obj.createBaseFunction();
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            xD = x.obtainDomainFunction();
-            xR = obj.filterDesignVariable(xD);
-            J  = obj.computeFunction(xD{1},xR{1});
+            xD    = x.obtainDomainFunction();
+            xR    = obj.filterDesignVariable(xD);
+            J     = obj.computeFunction(xD{1},xR{1});
             dJ{1} = obj.computeGradient(xR{1});
-            J  = obj.computeNonDimensionalValue(J);
+            J     = obj.computeNonDimensionalValue(J);
             dJVal = obj.computeNonDimensionalValue(dJ{1}.fValues);
             dJ{1}.setFValues(dJVal);
         end
 
         function updateEpsilon(obj,epsilon)
             obj.epsilon = epsilon;
-            obj.domainFilter.updateEpsilon(epsilon);
+            obj.filter.updateEpsilon(epsilon);
         end
 
     end
 
     methods (Access = private)
         function init(obj,cParams)
-            obj.mesh         = cParams.mesh;
-            obj.base         = cParams.uMesh;
-            obj.domainFilter = cParams.filter;
-            obj.epsilon      = cParams.epsilon;
-            obj.value0       = cParams.value0;
+            obj.mesh    = cParams.mesh;
+            obj.base    = cParams.uMesh;
+            obj.filter  = cParams.filter;
+            obj.epsilon = cParams.epsilon;
+            obj.value0  = cParams.value0;
         end
 
         function createRiszFilter(obj)
@@ -62,7 +62,7 @@ classdef PerimeterFunctional < handle
             nDesVar = length(x);
             xR      = cell(nDesVar,1);
             for i = 1:nDesVar
-                xR{i} = obj.domainFilter.compute(x{i},2);
+                xR{i} = obj.filter.compute(x{i},2);
             end
         end
 
