@@ -58,15 +58,6 @@ classdef EIFEM < handle
             obj.dispFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim,'P1');
         end
 
-        function dim = getDims(obj)
-            d.ndimf     = obj.RVE.ndimf;
-            d.nnodes    = size(obj.mesh.coord, 1);
-            d.ndofs     = d.nnodes*d.ndimf;
-            d.nnodeElem = obj.mesh.nnodeElem; % should come from interp..
-            d.ndofsElem = d.nnodeElem*d.ndimf;
-            dim = d;
-        end
-
         function LHS = computeLHS(obj)
             LHS = obj.assembleMatrix();
         end
