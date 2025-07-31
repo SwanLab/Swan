@@ -23,7 +23,7 @@ function mat = fittingPhaseFieldClean()
         end
     end
     plotResults(objective,phiData,Cdata,coeff0BestResult,coeffBestResult)
-    generateConstitutiveTensor(coeffBestResult,matType,'CircleAreaDerivative2');
+    generateConstitutiveTensor(coeffBestResult,matType,'CircleAreaDerivative');
 end
 
 function C = constitutiveTensor(coeff,phi)
@@ -98,7 +98,7 @@ function [c,ceq] = nonLinearCon(coeff,Cdata)
 
     E=210;
     Gc=5e-3; l0=0.1; cw=8/3;
-    sigCrit=[2 0 0];
+    sigCrit=[1.5 0 0];
     
     dC0 = cell2mat(dCfun(0));
     ceq(7) = sigCrit*inv(C0)*dC0*inv(C0)*sigCrit' + 2*(Gc/(cw*l0))*(E);
