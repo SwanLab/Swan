@@ -14,24 +14,24 @@ classdef DisplacementUpdater < handle
             obj.init(cParams);
         end
 
-        function [u,F,costArray,iter] = update(obj,u,bc,costArray)
+        function [u,rFun,costArray,iter] = update(obj,u,bc,costArray)
             i = 0; err = 1; costOld = costArray(end);
             while (abs(err) > obj.tol) && (i < obj.maxIter)
                 LHS = obj.functional.computeHessian(u);
-                RHS = obj.functional.computeResidual(u,bc);
+                RHS = obj.functional.computeGradient(u); %Incorporate BC for extWork
                 u.setFValues(obj.computeDisplacement(LHS,RHS,u,bc));
 
-                [err, cost] = obj.computeErrorCost(u,phi,bc,costOld);
+                [err, cost] = obj.computeErrorCost(u,costOld);
                 costArray(end+1) = cost;
                 costOld = cost;
 
                 i = i+1;
                 obj.monitor.printCost('iterU',i,cost,err);
-                obj.monitor.update(length(costArray),{[],[],[],[],[cost],[],[]});
+                obj.monitor.update(length(costArray),{[],[cost],[],[]});
                 obj.monitor.refresh();
                 
             end
-            F = obj.computeForceVector(LHS,u);
+            rFun = obj.computeReactions(LHS,u,bc);
             iter = i;
         end
 
@@ -72,14 +72,22 @@ classdef DisplacementUpdater < handle
             xNew = x + deltaX;
         end
 
-        function [e, cost] = computeErrorCost(obj,u,phi,bc,costOld)
-            cost = obj.functional.computeCost(u,phi,bc);
-            e = cost - costOld;
+        function [e, cost] = computeErrorCost(obj,u,costOld)
+            cost = obj.functional.computeCost(u); % To include extWork
+            e = (cost - costOld)/cost;
         end
 
-        function F = computeForceVector(~,LHS,u)
+        function rFun = computeReactions(~,LHS,u,bc)
+            constrainedDofs = bc.dirichlet_dofs;
             uVec = reshape(u.fValues',[u.nDofs 1]);
-            F = LHS*uVec;
+            KR   = LHS(constrainedDofs,:);
+            rVec = zeros(size(uVec));
+            rVec(constrainedDofs,1) = -KR*uVec;
+            
+            s.fValues = reshape(rVec,[flip(size(u.fValues))])';
+            s.order   = 'P1';
+            s.mesh    = u.mesh;
+            rFun = LagrangianFunction(s);
         end
 
     end

@@ -236,5 +236,5 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
     methods (Access = protected, Abstract)
         evaluateNew(obj,xV)
     end
-
+    
 end

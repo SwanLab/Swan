@@ -20,7 +20,7 @@ classdef NeohookeanFunctional < handle
             obj.init(cParams)
         end
 
-        function val = compute(obj, uFun)      
+        function val = computeCost(obj, uFun)      
             nDim = obj.mesh.ndim;
             [~,F] = obj.computeDeformationGradient(uFun);
             C = F'*F;
@@ -40,19 +40,6 @@ classdef NeohookeanFunctional < handle
             s.type = 'ShapeDerivativeTensor';
             rhs = RHSIntegrator.create(s);
             Fint = rhs.compute(PK1,uFun); 
-        end
-
-        function f = assembleIntegrand(obj, rhsElem, test)
-            integrand = pagetranspose(rhsElem);
-            connec = test.getDofConnec();
-            nDofs = max(max(connec));
-            nDofElem  = size(connec,2);
-            f = zeros(nDofs,1);
-            for idof = 1:nDofElem
-                int = integrand(:,idof);
-                con = connec(:,idof);
-                f = f + accumarray(con,int,[nDofs,1],@sum,0);
-            end
         end
 
         function hess = computeHessian(obj, uFun)
@@ -89,9 +76,9 @@ classdef NeohookeanFunctional < handle
             [I33,F] = obj.computeDeformationGradient(uFun);
             invF = Inv(F);
             jac = Det(F);
-            Aneo = obj.lambda.*OP(invF', invF') + ...
-                obj.mu.*kronTop(I33,I33) + ...
-                Expand((obj.mu-obj.lambda.*log(jac)),4).*kronBot(invF', invF);
+            Aneo = Expand(obj.lambda,4).*OP(invF', invF') + ...
+                   Expand(obj.mu,4).*kronTop(I33,I33) + ...
+                   Expand((obj.mu-obj.lambda.*log(jac)),4).*kronBot(invF', invF);
         end
 
         function [I33,F] = computeDeformationGradient(obj, uFun)

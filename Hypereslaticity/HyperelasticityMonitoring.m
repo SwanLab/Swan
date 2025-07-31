@@ -6,7 +6,9 @@ classdef HyperelasticityMonitoring < handle
 
     properties (Access = private)
         monitor
-        print
+        printInfo
+        printFile
+        fileNameOut
     end
 
     methods (Access = public)
@@ -32,17 +34,31 @@ classdef HyperelasticityMonitoring < handle
         end
 
         function printCost(obj,name,iter,cost,err)
-            if obj.print == true
+            if obj.printInfo == true
                 X = sprintf('%s:%d / cost: %.8e  (diff:%.8e) \n',name,iter,cost,err);
                 fprintf(X);
             end
         end
 
         function printStep(obj,step,maxSteps)
-            if obj.print == true
+            if obj.printInfo == true
                 fprintf('\n ********* STEP %i/%i *********  \n',step,maxSteps)
             end
 
+        end
+
+        function printOutput(obj,step,u,r)
+            if obj.printFile
+                fun = {u,r};
+                funNames = {'Displacement', 'Reactions'};
+                a.mesh     = u.mesh;
+                a.filename = ['SIM_',obj.fileNameOut,'_',int2str(step)];
+                a.fun      = fun;
+                a.funNames = funNames;
+                a.type     = 'Paraview';
+                pst = FunctionPrinter.create(a);
+                pst.print();
+            end
         end
 
         function saveData(obj,step,cParams)
@@ -50,11 +66,8 @@ classdef HyperelasticityMonitoring < handle
             obj.data.reaction.function{step}     = cParams.rFun;
             obj.data.displacement.value(step)    = cParams.u;
             obj.data.displacement.function{step} = cParams.uFun;
-
-            obj.data.energy.linear(step)     = cParams.energy(1);
-            obj.data.energy.neohook(step)    = cParams.energy(2);
-
-            obj.data.iter(step)    = cParams.numIter;
+            obj.data.energy.linear(step)         = cParams.energy;
+            obj.data.iter(step)                  = cParams.numIter;
         end
         
     end
@@ -63,13 +76,15 @@ classdef HyperelasticityMonitoring < handle
         
         function init(obj,cParams)
             s.shallDisplay = cParams.shallDisplay;
-            s.maxNColumns = 3;
-            s.titles = [{'Energy'},{'Force-displacement'},{'Iterations'}];
-            s.chartTypes = [{'plot'},{'plot'},{'bar'}];
+            s.maxNColumns = 2;
+            s.titles = [{'Energy'},{'Cost'},{'Force-displacement'},{'Iterations'}];
+            s.chartTypes = [{'plot'},{'plot'},{'plot'},{'bar'}];
             obj.monitor = Monitoring(s);
 
             obj.data = [];
-            obj.print = cParams.shallPrint;
+            obj.printInfo = cParams.shallPrintInfo;
+            obj.printFile = cParams.shallPrintFile;
+            obj.fileNameOut = cParams.fileNameOut;
         end
 
     end

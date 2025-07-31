@@ -11,7 +11,7 @@ classdef LinearElasticityFunctional < handle
             obj.init(cParams)
         end
 
-        function energy = compute(obj, uFun)
+        function energy = computeCost(obj, uFun)
             C = obj.material;
             eps = SymGrad(uFun);
             fun = DDP(DDP(eps,C),eps);

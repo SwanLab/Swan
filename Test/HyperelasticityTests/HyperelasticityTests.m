@@ -12,7 +12,7 @@ classdef HyperelasticityTests < handle & matlab.unittest.TestCase
             s.nsteps = testCase.computeNumberOfSteps(cases);
             s.printing = false;
             s.bcCase = cases;
-            h = HyperelasticProblem(s);
+            h = TestingHyperelasticity(s);
             h.solve();
             uNew = h.uFun.fValues(:);
             rNew = h.rFun.fValues(:);
