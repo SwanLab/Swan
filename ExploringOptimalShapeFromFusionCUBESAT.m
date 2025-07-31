@@ -13,7 +13,10 @@ classdef ExploringOptimalShapeFromFusionCUBESAT < handle
         designVariable
         filter
         materialInterpolator
-        
+        filterConnect
+        minimumEigenValue
+        lambda
+        phis
     end
 
     methods (Access = public)
@@ -24,12 +27,14 @@ classdef ExploringOptimalShapeFromFusionCUBESAT < handle
             obj.createVolume();
             obj.createDesignVariable();
             obj.createFilter();
+            obj.createFilterConnectivity();
             obj.computeElasticProperties();
             obj.createMaterialInterpolator();
             obj.createMaterial();
             obj.solveElasticProblem();
-            %obj.createComplianceFromConstiutive();
-            %obj.createCompliance();
+            obj.computeEigenValue();
+            obj.createComplianceFromConstiutive();
+            obj.createCompliance();
         end
 
     end
@@ -95,6 +100,13 @@ classdef ExploringOptimalShapeFromFusionCUBESAT < handle
             obj.filter = f;
         end
 
+        function createFilterConnectivity(obj)
+            s.filterType = 'LUMP';
+            s.mesh       = obj.mesh;
+            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            f            = Filter.create(s);
+            obj.filterConnect = f;
+        end
 
         function computeElasticProperties(obj)
             E  = 71e3; %1; % canviar?
@@ -158,8 +170,24 @@ classdef ExploringOptimalShapeFromFusionCUBESAT < handle
             obj.stateProblem = fem;
             u = fem.uFun;
             maxDisplacements = max(abs(u.fValues));
-            u.print('Displacements_CUBESAT');
+            %u.print('Displacements_CUBESAT');
         end
+
+        function computeEigenValue(obj)                           
+            s.mesh              = obj.mesh;
+            s.designVariable    = obj.designVariable;
+            s.filter            = obj.filterConnect;
+            s.material           = obj.material;
+            %s.filterAdjoint     = obj.filterAdjointConnect;   
+            s.targetEigenValue  = (100*pi)^2; % Minim eigenvalue      
+            s.boundaryConditions = obj.createBoundaryConditions();
+            obj.minimumEigenValue = StiffnessEigenModesConstraint(s);
+            n = 5;
+            epsilon = 1e-5;
+            p=8;
+            [obj.lambda,obj.phis] = obj.computeEigenValueFunctional(n,epsilon,p);
+        end
+
 
         function c = createComplianceFromConstiutive(obj)
             s.mesh         = obj.mesh;
@@ -202,7 +230,46 @@ classdef ExploringOptimalShapeFromFusionCUBESAT < handle
             bc = BoundaryConditions(s);
         end
 
-      
+        function  [lambdas, phis] = computeEigenValueFunctional(obj, n, epsilon, p)
+            eigen = obj.computeEigenValueProblem(epsilon, p);
+            s.eigenModes = eigen;
+            s.designVariable = obj.designVariable;
+            s.filter = obj.filterConnect;
+            s.mesh = obj.mesh;
+            s.material = obj.material;
+            s.boundaryConditions = obj.createEigenvalueBoundaryConditions();
+            %mE = MinimumEigenValueFunctional(s);
+            mE = MaximumEigenValueFunctional(s);
+            [lambdas, phis] = mE.computeEigenModes(obj.designVariable, n);
+            %print(phis(1,1),'First Mode Cubesat','Paraview');
+            freq = sqrt(lambdas)/(2*pi);
+
+         end
+
+         function eigen = computeEigenValueProblem(obj,epsilon, p)
+            s.mesh  = obj.mesh;
+            s.epsilon = epsilon;
+            s.p       = p;
+            s.material = obj.material;
+            s.boundaryConditions = obj.createEigenvalueBoundaryConditions();
+            eigen   = StiffnessEigenModesDisplacementComputer(s);
+         end
+
+         function bc = createEigenvalueBoundaryConditions(obj)
+            femReader = FemInputReaderGiD();
+            s         = femReader.read(obj.filename);
+            sDir      = obj.computeCondition(s.dirichlet);
+
+            dirichletFun = [];
+            for i = 1:numel(sDir)
+                dir = DirichletCondition(obj.mesh, sDir{i});
+                dirichletFun = [dirichletFun, dir];
+            end
+            s.dirichletFun = dirichletFun;
+            s.periodicFun  = [];
+            s.mesh         = obj.mesh;
+            bc = BoundaryConditions(s);
+         end
 
     end
 
