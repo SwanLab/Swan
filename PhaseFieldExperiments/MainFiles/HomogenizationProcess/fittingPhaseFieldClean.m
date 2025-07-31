@@ -1,5 +1,5 @@
-function fittingPhaseFieldClean()
-    matType = load('SquareArea.mat');
+function mat = fittingPhaseFieldClean()
+    matType = load('CircleArea.mat');
     
     phiData = matType.phi;
     C11data = squeeze(matType.mat(1,1,1,1,:));
@@ -7,16 +7,13 @@ function fittingPhaseFieldClean()
     C33data = squeeze(matType.mat(1,2,1,2,:));
     Cdata = [C11data';C12data';C33data'];
     
-    Cfun  = @(coeff,phi) constitutiveTensor(coeff,phi);
     A = []; b = []; Aeq = []; beq = []; lb = []; ub = [];
     nonlcon = @(coeff) nonLinearCon(coeff,Cdata);
-
     objective = @(p) objectiveFun(p,phiData,Cdata);
     options = optimoptions(@fmincon,'StepTolerance',1e-10,'OptimalityTolerance',1e-10,...
-        'MaxFunctionEvaluations',10000);
-
+                           'MaxFunctionEvaluations',10000);
     objBestResult=100;
-    for i=1:50
+    for i=1:25
         coeff0 = rand(1,60);
         [coeffOpt,fval,exitflag,output,lambda,grad,hessian] = fmincon(objective,coeff0,A,b,Aeq,beq,lb,ub,nonlcon,options);
         if i==1 || fval<objBestResult
@@ -25,8 +22,8 @@ function fittingPhaseFieldClean()
             coeff0BestResult = coeff0;
         end
     end
-    Cfit = Cfun(coeffBestResult,phiData);
-    plotResults(Cfit,objective,phiData,Cdata,coeff0BestResult,coeffBestResult)
+    plotResults(objective,phiData,Cdata,coeff0BestResult,coeffBestResult)
+    generateConstitutiveTensor(coeffBestResult,matType,'CircleAreaDerivative2');
 end
 
 function C = constitutiveTensor(coeff,phi)
@@ -101,7 +98,7 @@ function [c,ceq] = nonLinearCon(coeff,Cdata)
 
     E=210;
     Gc=5e-3; l0=0.1; cw=8/3;
-    sigCrit=[1.5 0 0];
+    sigCrit=[2 0 0];
     
     dC0 = cell2mat(dCfun(0));
     ceq(7) = sigCrit*inv(C0)*dC0*inv(C0)*sigCrit' + 2*(Gc/(cw*l0))*(E);
@@ -116,10 +113,11 @@ function objFun = objectiveFun(coeff,phiData,Cdata)
     end
 end
 
-function plotResults(Cfit,objective,phiData,Cdata,coeff0,coeffResCon)
+function plotResults(objective,phiData,Cdata,coeff0,coeffRes)
+    Cfit = constitutiveTensor(coeffRes,phiData);
     close all
     disp("Initial objective: " + num2str(objective(coeff0)));
-    disp("Final objective: "   + num2str(objective(coeffResCon)));
+    disp("Final objective: "   + num2str(objective(coeffRes)));
 
     figure()
     plot(phiData,Cdata(1,:),'ro')
@@ -139,4 +137,40 @@ function plotResults(Cfit,objective,phiData,Cdata,coeff0,coeffResCon)
     plot(phiData,Cfit{3,3},'-')
     legend('measured','optimal')
     title('C33')
+end
+
+function generateConstitutiveTensor(coeff,matType,name)
+    [C11,C12,C33] = recoverTensorComponents(coeff);
+    mat = matType.mat;
+    phi = matType.phi;
+    degradation = matType.degradation;
+    degradation.fun{1,1,1,1} = matlabFunction(C11);
+    degradation.fun{1,1,2,2} = matlabFunction(C12);
+    degradation.fun{2,2,1,1} = matlabFunction(C12);
+    degradation.fun{2,2,2,2} = matlabFunction(C11);
+    degradation.fun{1,2,1,2} = matlabFunction(C33);
+    degradation.fun{2,1,2,1} = matlabFunction(C33);
+
+    degradation.dfun{1,1,1,1} = matlabFunction(diff(C11));
+    degradation.dfun{1,1,2,2} = matlabFunction(diff(C12));
+    degradation.dfun{2,2,1,1} = matlabFunction(diff(C12));
+    degradation.dfun{2,2,2,2} = matlabFunction(diff(C11));
+    degradation.dfun{1,2,1,2} = matlabFunction(diff(C33));
+    degradation.dfun{2,1,2,1} = matlabFunction(diff(C33));
+
+    degradation.ddfun{1,1,1,1} = matlabFunction(diff(diff(C11)));
+    degradation.ddfun{1,1,2,2} = matlabFunction(diff(diff(C12)));
+    degradation.ddfun{2,2,1,1} = matlabFunction(diff(diff(C12)));
+    degradation.ddfun{2,2,2,2} = matlabFunction(diff(diff(C11)));
+    degradation.ddfun{1,2,1,2} = matlabFunction(diff(diff(C33)));
+    degradation.ddfun{2,1,2,1} = matlabFunction(diff(diff(C33)));
+    save(name,'mat','phi','degradation');
+end
+
+function [C11,C12,C33] = recoverTensorComponents(coeff)
+    a=coeff(1:20); b=coeff(21:40); c=coeff(41:60);
+    syms phi
+    C11 = rationalFun(a,phi);
+    C12 = rationalFun(b,phi);
+    C33 = rationalFun(c,phi); 
 end

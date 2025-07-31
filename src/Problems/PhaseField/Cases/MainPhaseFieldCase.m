@@ -23,11 +23,11 @@ s.maxIter.stag = 300;
 s.benchmark.N = 10;
 s.benchmark.type.mesh = '1Elem';
 s.benchmark.type.bc = 'displacementTraction';
-s.benchmark.bcValues = [0:1e-4:0.1];
+s.benchmark.bcValues = [0:1e-5:0.1];
 
 s.matInfo.matType = 'Homogenized';
 s.matInfo.degradationType = 'General';
-s.matInfo.fileName = 'NewSet2'; 
+s.matInfo.fileName = 'SquareAreaDerivative2'; 
 s.matInfo.young   = 210;
 s.matInfo.poisson = 0.3;
 s.matInfo.Gc = 5e-3;
