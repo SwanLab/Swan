@@ -27,6 +27,7 @@ TutorialRemeshing();
 ChomogNetworkTutorial();
 TutorialXXPhaseFieldCase;
 TutorialXXPhaseFieldHomogenization;
+TutorialXXHyperelasticity;
 close all;
 
 % Output:
