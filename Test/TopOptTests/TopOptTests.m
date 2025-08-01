@@ -47,8 +47,9 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             else
                 s = [];
             end
-            sFCost = obj.createCost(cost,weights,m,fem,filtersCost,mat,Msmooth,filename,s);
-            sFConstraint = obj.createConstraint(constraint,target,m,fem,filtersConstraint,mat,Msmooth);
+            base = obj.createChiOmega(m);
+            sFCost = obj.createCost(cost,weights,m,fem,filtersCost,mat,Msmooth,filename,s,base);
+            sFConstraint = obj.createConstraint(constraint,target,m,fem,filtersConstraint,mat,Msmooth,base);
             l.nConstraints = length(constraint);
             lam    = DualVariable(l);
             primal = optimizerUnconstrained;
@@ -164,7 +165,15 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             end
         end
 
-        function sFCost = createCost(cost,weights,mesh,fem,filter,mat,Msmooth,filename,s)
+        function base = createChiOmega(mesh)
+            levelSet         = -ones(mesh.nnodes,1);
+            s.backgroundMesh = mesh;
+            s.boundaryMesh   = mesh.createBoundaryMesh();
+            base             = UnfittedMesh(s);
+            base.compute(levelSet);
+        end
+
+        function sFCost = createCost(cost,weights,mesh,fem,filter,mat,Msmooth,filename,s,base)
             for i = 1:length(cost)
                 s.type            = cost{i};
                 s.mesh            = mesh;
@@ -172,6 +181,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
                 s.filter          = filter{i};
                 s.material        = mat;
                 s.filename        = filename;
+                s.base            = base;
                 sF{i}             = ShapeFunctional.create(s);
             end
             ss.shapeFunctions = sF;
@@ -180,7 +190,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             sFCost            = Cost(ss);
         end
 
-        function sFConstraint = createConstraint(constraint,target,mesh,fem,filter,mat,Msmooth)
+        function sFConstraint = createConstraint(constraint,target,mesh,fem,filter,mat,Msmooth,base)
             k = 1;
             for i = 1:length(constraint)
                 switch class(filter{k})
@@ -198,6 +208,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
                 s.physicalProblem = fem;
                 s.material        = mat;
                 s.gradientTest    = LagrangianFunction.create(mesh,1,'P1');
+                s.base            = base;
                 sF{i}             = ShapeFunctional.create(s);
             end
             ss.shapeFunctions = sF;
