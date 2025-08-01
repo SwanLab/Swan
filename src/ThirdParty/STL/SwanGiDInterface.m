@@ -5,8 +5,8 @@ classdef SwanGiDInterface < handle
         gidPath
         tclPath
 
-        gidMode = 'gid_offscreen -offscreen '; % 'gid '
-%         gidMode = 'gid '; % 'gid '
+%         gidMode = 'gid_offscreen -offscreen '; % 'gid '
+        gidMode = 'gid '; % 'gid '
     end
     
     properties (Access = private)
@@ -19,7 +19,7 @@ classdef SwanGiDInterface < handle
             run('UserVariables.m')
             obj.swanPath = pwd;
             obj.gidPath  = gid_path;
-            obj.tclPath  = [obj.swanPath, '/PostProcess/STL/'];
+            obj.tclPath  = [obj.swanPath, '/src/ThirdParty/STL/']; % The files will be created also in this folder
         end
 
         function generateMesh(obj, resultsFile)
@@ -203,4 +203,3 @@ classdef SwanGiDInterface < handle
     end
 
 end
-

@@ -55,7 +55,7 @@ classdef MultiMaterialVolumeConstraint < handle
         end
 
         function dJ = computeGradient(obj,x,dV)
-            TD = obj.computeTopologicalDerivatives(dV);
+            TD = obj.computeTopologicalDerivatives(dV{1});
             dt = ChainRule.compute(x,TD);
             dJ = cell(size(dt));
             for i = 1:length(dt)
