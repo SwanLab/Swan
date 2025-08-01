@@ -32,7 +32,8 @@ classdef FilteredVolumeConstraint < handle
 
         function dJ = computeGradient(obj,dV)
             volFrac = obj.alpha;
-            dJ      = dV./volFrac;
+            dJ      = dV;
+            dJ.setFValues(dV.fValues/volFrac);
         end
     end
 
