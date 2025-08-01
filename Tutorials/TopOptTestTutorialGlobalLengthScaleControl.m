@@ -161,6 +161,7 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
             s.filter      = obj.filterPerimeter;
             s.epsilon     = epsilon;
             s.value0      = 6; % external Perimeter
+            s.uMesh       = obj.createBaseDomain();
             P             = PerimeterFunctional(s);
             obj.perimeter = P;
         end

@@ -85,6 +85,7 @@ classdef TopOptTestTutorialLSPerimeter < handle
             s.filter      = obj.filter;
             s.epsilon     = epsilon;
             s.value0      = 4; % external P
+            s.uMesh       = obj.createBaseDomain();
             P             = PerimeterFunctional(s);
             obj.perimeter = P;
         end

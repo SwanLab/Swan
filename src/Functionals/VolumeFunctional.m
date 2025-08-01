@@ -53,7 +53,7 @@ classdef VolumeFunctional < handle
         end
 
         function dJ = computeGradient(obj)
-            dJ = obj.baseFun;
+            dJ = copy(obj.baseFun);
             dJ.setFValues(dJ.fValues./obj.totalVolume);
         end
     end
