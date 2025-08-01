@@ -204,7 +204,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
                         k = k+1;
                 end
                 s.type            = constraint{i};
-                s.target          = target;
+                s.target          = target(i);
                 s.mesh            = mesh;
                 s.physicalProblem = fem;
                 s.material        = mat;

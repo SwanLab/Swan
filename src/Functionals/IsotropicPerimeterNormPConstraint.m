@@ -32,7 +32,8 @@ classdef IsotropicPerimeterNormPConstraint < handle
 
         function dJ = computeGradient(obj,dIP)
             pTar = obj.perTarget;
-            dJ   = dIP./pTar;
+            dJ   = dIP;
+            dJ.setFValues(dIP.fValues/pTar);
         end
     end
 

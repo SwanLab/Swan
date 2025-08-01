@@ -39,7 +39,13 @@ classdef NonLinearFilterDroplet < handle
                 tolerance = norm(obj.trial.fValues - oldRho)/norm(obj.trial.fValues);
                 iter = iter + 1;
              end
-            xF.setFValues(obj.trial.fValues);
+             xF.setFValues(obj.trial.fValues);
+        end
+
+        function updateEpsilon(obj,eps)
+            obj.alpha   = (obj.alpha/obj.epsilon)*eps;
+            obj.lambda  = obj.lambda*(obj.epsilon/eps);
+            obj.epsilon = eps;
         end
     end
 
@@ -47,7 +53,7 @@ classdef NonLinearFilterDroplet < handle
         function init(obj,cParams)
             obj.trial   = LagrangianFunction.create(cParams.mesh, 1, 'P1'); % rho_eps
             obj.mesh    = cParams.mesh;
-            obj.epsilon = cParams.epsilon;
+            obj.epsilon = obj.mesh.computeMeanCellSize();
             obj.alpha   = cParams.alpha*obj.epsilon;
             obj.lambda  = 10;
         end
@@ -63,7 +69,7 @@ classdef NonLinearFilterDroplet < handle
             s.mesh  = obj.mesh;
             s.test  = obj.trial;
             s.trial = obj.trial;
-            LHS     = LHSintegrator.create(s);
+            LHS     = LHSIntegrator.create(s);
             obj.M   = LHS.compute();
         end
 
@@ -72,27 +78,33 @@ classdef NonLinearFilterDroplet < handle
             s.mesh  = obj.mesh;
             s.test  = obj.trial;
             s.trial = obj.trial;
-            LHS     = LHSintegrator.create(s);
+            LHS     = LHSIntegrator.create(s);
             obj.K   = LHS.compute();
         end
 
-        function createRHSChi(obj,fun,quadOrder)
-            s.mesh     = obj.mesh;
-            s.type     = 'ShapeFunction';
-            s.quadType = quadOrder;
-            int        = RHSintegrator.create(s);
+        function createRHSChi(obj,fun,quadType)
+            switch class(fun)
+                case {'UnfittedFunction','UnfittedBoundaryFunction'}
+                    s.mesh = fun.unfittedMesh;
+                    s.type = 'Unfitted';
+                otherwise
+                    s.mesh = obj.mesh;
+                    s.type = 'ShapeFunction';
+            end
+            s.quadType = quadType;
+            int        = RHSIntegrator.create(s);
             test       = obj.trial;
-            rhs        = int.compute(fun,test);
-            obj.chiN   = rhs;
+            intN       = int.compute(fun,test);
+            obj.chiN   = intN;
         end
 
         function createRHSShapeDerivative(obj,quadOrder)
             s.mesh     = obj.mesh;
             s.type     = 'ShapeDerivative';
             s.quadratureOrder = quadOrder;
-            int        = RHSintegrator.create(s);
-            test       = obj.trial;
-            rhs        = int.compute(obj.sVar, test);
+            s.test     = obj.trial;
+            int        = RHSIntegrator.create(s);
+            rhs        = int.compute(obj.sVar);
             obj.proxdN = rhs;
         end
 
@@ -114,7 +126,7 @@ classdef NonLinearFilterDroplet < handle
             LHS = obj.M + (eps^2/l)*obj.K;
             RHS = obj.chiN+(eps^2/l)*obj.proxdN;
             rhoi = LHS\RHS;
-            obj.trial.fValues = rhoi;
+            obj.trial.setFValues(rhoi);
         end
 
         function updatePreviousGuess(obj,iter)
@@ -128,6 +140,7 @@ classdef NonLinearFilterDroplet < handle
 
                 muEv = @(xV) mu.evaluate(xV);
                 s.operation = @(xV) 2*l*(1-muEv(xV))*a^2./(1+2*l*muEv(xV)+2*l*(1-muEv(xV))*a^2);
+                s.mesh      = obj.mesh;
                 A = DomainFunction(s);
 
                 k        = obj.direction;
@@ -146,9 +159,10 @@ classdef NonLinearFilterDroplet < handle
             gRhoK   = DP(gradRho,k);
 
             % Mu = 0
-            l2gRho  = Norm.computeL2(obj.mesh,gradRho);
+            l2gRho  = Norm(gradRho,'L2');
             A       = a*sqrt(1+4*l+4*l^2*a^2)/(1+2*l*a^2);
             s.operation = @(xV) gRhoK.evaluate(xV)>=l2gRho/A;
+            s.mesh     = obj.mesh;
             MuZeroCond = DomainFunction(s);
 
             % Mu = 1
@@ -175,6 +189,7 @@ classdef NonLinearFilterDroplet < handle
             D = @(xV) D(xV).*(D(xV)~=0)+1.*(D(xV)==0);
 
             s.operation = @(xV) (A(xV)-B(xV))./(C*D(xV));
+            s.mesh      = obj.mesh;
             mu          = DomainFunction(s);
         end
     end

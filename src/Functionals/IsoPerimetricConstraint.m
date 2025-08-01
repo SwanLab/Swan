@@ -32,7 +32,8 @@ classdef IsoPerimetricConstraint < handle
 
         function dJ = computeGradient(obj,dIP)
             CTar = obj.C;
-            dJ   = dIP./CTar;
+            dJ   = dIP;
+            dJ.setFValues(dIP.fValues/CTar);
         end
     end
 
