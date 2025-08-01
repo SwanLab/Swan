@@ -1,15 +1,15 @@
-classdef TopOptTestTutorialGlobalLengthScaleControl < handle
+classdef TopOptTestTutorialLevelSetInfill < handle
 
     properties (Access = private)
         mesh
         filterCompliance
-        filterPerimeter
+        filterVolume
         designVariable
         materialInterpolator
         physicalProblem
         compliance
         volume
-        perimeter
+        localVolume
         cost
         constraint
         primalUpdater
@@ -18,18 +18,18 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorialGlobalLengthScaleControl()
+        function obj = TopOptTestTutorialLevelSetInfill()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilterCompliance();
-            obj.createFilterPerimeter();
+            obj.createFilterVolume();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
             obj.createComplianceFromConstiutive();
-            obj.createComplianceConstraint();
+            obj.createCompliance();
             obj.createVolumeConstraint();
-            obj.createPerimeter();
+            obj.createLocalVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
             obj.createPrimalUpdater();
@@ -68,20 +68,20 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
         end
 
         function createFilterCompliance(obj)
-            s.filterType         = 'LUMP';
-            s.mesh               = obj.mesh;
-            s.trial              = LagrangianFunction.create(obj.mesh,1,'P1');
-            f                    = Filter.create(s);
+            s.filterType = 'LUMP';
+            s.mesh  = obj.mesh;
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            f = Filter.create(s);
             obj.filterCompliance = f;
         end
 
-        function createFilterPerimeter(obj)
-            s.filterType        = 'PDE';
-            s.boundaryType      = 'Robin';
-            s.mesh              = obj.mesh;
-            s.trial             = LagrangianFunction.create(obj.mesh,1,'P1');
-            f                   = Filter.create(s);
-            obj.filterPerimeter = f;
+        function createFilterVolume(obj)
+            s.filterType = 'PDE';
+            s.mesh  = obj.mesh;
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            f = Filter.create(s);
+            f.updateEpsilon(6*obj.mesh.computeMeanCellSize());
+            obj.filterVolume = f;
         end
 
         function createMaterialInterpolator(obj)
@@ -127,21 +127,23 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
             c = ComplianceFromConstitutiveTensor(s);
         end
 
-        function createComplianceConstraint(obj)
+        function createCompliance(obj)
             s.mesh                       = obj.mesh;
             s.filter                     = obj.filterCompliance;
             s.complainceFromConstitutive = obj.createComplianceFromConstiutive();
             s.material                   = obj.createMaterial();
-            s.complianceTarget           = 3;
-            c = ComplianceConstraint(s);
+            c = ComplianceFunctional(s);
             obj.compliance = c;
         end
 
         function uMesh = createBaseDomain(obj)
-            levelSet         = -ones(obj.mesh.nnodes,1);
+            sG.type          = 'Full';
+            g                = GeometricalFunction(sG);
+            lsFun            = g.computeLevelSetFunction(obj.mesh);
+            levelSet         = lsFun.fValues;
             s.backgroundMesh = obj.mesh;
             s.boundaryMesh   = obj.mesh.createBoundaryMesh();
-            uMesh = UnfittedMesh(s);
+            uMesh            = UnfittedMesh(s);
             uMesh.compute(levelSet);
         end
 
@@ -154,37 +156,32 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
             obj.volume = v;
         end
 
-        function createPerimeter(obj)
-            eOverhmin     = 10; % 10
-            epsilon       = eOverhmin*obj.mesh.computeMeanCellSize();
-            s.mesh        = obj.mesh;
-            s.filter      = obj.filterPerimeter;
-            s.epsilon     = epsilon;
-            s.value0      = 6; % external Perimeter
-            s.uMesh       = obj.createBaseDomain();
-            P             = PerimeterFunctional(s);
-            obj.perimeter = P;
+        function createLocalVolumeConstraint(obj)
+            s.mesh   = obj.mesh;
+            s.filter = obj.filterVolume;
+            s.p      = 4;
+            s.alpha  = 0.5;
+            s.uMesh  = obj.createBaseDomain();
+            v        = FilteredVolumeConstraint(s);
+            obj.localVolume = v;
         end
 
         function createCost(obj)
-            s.shapeFunctions{1} = obj.perimeter;
+            s.shapeFunctions{1} = obj.compliance;
             s.weights           = 1;
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
 
         function M = createMassMatrix(obj)
-            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.mesh  = obj.mesh;
-            s.type  = 'MassMatrix';
-            LHS = LHSIntegrator.create(s);
-            M = LHS.compute;
+            n = obj.mesh.nnodes;
+            h = obj.mesh.computeMinCellSize();
+            M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
         end
 
         function createConstraint(obj)
-            s.shapeFunctions{1} = obj.compliance;
-            s.shapeFunctions{2} = obj.volume;
+            s.shapeFunctions{1} = obj.volume;
+            s.shapeFunctions{2} = obj.localVolume;
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
@@ -201,11 +198,11 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
             s.designVariable = obj.designVariable;
             s.maxIter        = 3;
             s.tolerance      = 1e-8;
-            s.constraintCase = {'INEQUALITY','EQUALITY'};
+            s.constraintCase = {'EQUALITY','INEQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 1;
+            s.gJFlowRatio    = 0.2;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
             opt = OptimizerNullSpace(s);
@@ -229,7 +226,7 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
             isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.35*yMax & abs(coor(:,2))<=0.65*yMax);
+            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2];

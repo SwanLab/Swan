@@ -1,45 +1,45 @@
-classdef VolumeConstraint < handle
+classdef FilteredVolumeConstraint < handle
 
     properties (Access = private)
         mesh
-        volumeTarget
+        alpha
         volume
     end
     
     methods (Access = public)
-        function obj = VolumeConstraint(cParams)
+        function obj = FilteredVolumeConstraint(cParams)
             obj.init(cParams);
         end
         
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             [V,dV] = obj.volume.computeFunctionAndGradient(x);
             J      = obj.computeFunction(V);
-            dJ{1}  = obj.computeGradient(dV);
+            dJ{1}  = obj.computeGradient(dV{1});
         end  
     end
 
     methods (Access = private)
         function init(obj,cParams)
-            obj.mesh         = cParams.mesh;
-            obj.volumeTarget = cParams.volumeTarget;
-            obj.volume       = VolumeFunctional(cParams);
+            obj.mesh   = cParams.mesh;
+            obj.alpha  = cParams.alpha;
+            obj.volume = FilteredVolumeFunctional(cParams);
         end
 
         function J = computeFunction(obj,V)
-            vTar = obj.volumeTarget;
-            J    = V/vTar-1;
+            volFrac = obj.alpha;
+            J       = V/volFrac-1;
         end
 
         function dJ = computeGradient(obj,dV)
-            vTar = obj.volumeTarget;
-            dJ   = dV;
-            dJ.setFValues(dV.fValues/vTar);
+            volFrac = obj.alpha;
+            dJ      = dV;
+            dJ.setFValues(dV.fValues/volFrac);
         end
     end
 
     methods (Static, Access = public)
         function title = getTitleToPlot()
-            title = 'Volume constraint';
+            title = 'Filtered volume constraint';
         end
     end
 end

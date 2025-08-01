@@ -123,11 +123,26 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             obj.compliance = c;
         end
 
+        function uMesh = createBaseDomain(obj)
+            sG.type          = 'Square';
+            sG.length        = 1;
+            sG.xCoorCenter   = 1.5;
+            sG.yCoorCenter   = 0.5;
+            g                = GeometricalFunction(sG);
+            lsFun            = g.computeLevelSetFunction(obj.mesh);
+            levelSet         = lsFun.fValues;
+            s.backgroundMesh = obj.mesh;
+            s.boundaryMesh   = obj.mesh.createBoundaryMesh();
+            uMesh            = UnfittedMesh(s);
+            uMesh.compute(levelSet);
+        end
+
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
-            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;
+            s.test = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.volumeTarget = 0.3;
+            s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
         end

@@ -38,6 +38,10 @@ classdef FilterFactory < handle
                     filter = FilterAndProject(cParams);
                 case 'FilterAdjointAndProject'
                     filter = FilterAdjointAndProject(cParams);
+                case 'Segment'
+                    filter = NonLinearFilterSegment(cParams);
+                case 'Droplet'
+                    filter = NonLinearFilterDroplet(cParams);
             end
         end
 

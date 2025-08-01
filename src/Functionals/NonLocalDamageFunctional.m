@@ -23,8 +23,9 @@ classdef NonLocalDamageFunctional < handle
             s.mesh = obj.mesh;
             s.type = 'ShapeDerivative';
             s.quadratureOrder = quadOrder;
+            s.test = obj.testPhi;
             RHS = RHSIntegrator.create(s);
-            J = (obj.constant*obj.l0)*RHS.compute(Grad(phi), obj.testPhi);
+            J = (obj.constant*obj.l0)*RHS.compute(Grad(phi));
         end
         
         function H = computeHessian(obj,~,quadOrder)
