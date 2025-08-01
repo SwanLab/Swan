@@ -19,12 +19,10 @@ classdef LinearElasticityFunctional < handle
             energy = 0.5*(Integrator.compute(fun,obj.mesh,quadOrder));
         end
 
-
         function Ju = computeGradient(obj, uFun)
             eps = SymGrad(uFun);
             sig = DDP(obj.material,eps);
             test = LagrangianFunction.create(obj.mesh, uFun.ndimf, uFun.order);
-
             s.mesh = obj.mesh;
             s.quadratureOrder = 3;
             s.type = 'ShapeSymmetricDerivative';
@@ -33,12 +31,12 @@ classdef LinearElasticityFunctional < handle
         end
 
         function Huu = computeHessian(obj, uFun)
-            s.type     = 'ElasticStiffnessMatrix';
-            s.mesh     = obj.mesh;
             s.material = obj.material;
-            s.quadratureOrder = 3;
-            s.test     = LagrangianFunction.create(obj.mesh,uFun.ndimf, 'P1');
+            s.test     = uFun;
             s.trial    = uFun;
+            s.mesh     = obj.mesh;
+            s.quadratureOrder = 3;
+            s.type     = 'ElasticStiffnessMatrix';
             LHS = LHSIntegrator.create(s);
             Huu = LHS.compute();
         end
