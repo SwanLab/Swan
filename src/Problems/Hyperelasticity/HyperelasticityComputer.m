@@ -62,20 +62,7 @@ classdef HyperelasticityComputer < handle
         function [uFun,bc] = preprocess(obj,iStep,nSteps,uFun)
             obj.monitor.printStep(iStep,nSteps)
             bc = obj.boundaryConditions.nextStep();
-            uFun = obj.computeInitialGuess(uFun,bc);
-        end
-
-        function uInit = computeInitialGuess(obj,uOld,bc)
-            uOld.setFValues(obj.updateInitialDisplacement(uOld,bc));
-            uElas = obj.computeElasticProblem(bc);
-            costOld  = abs(obj.functional.computeCost(uOld,bc));
-            costElas = abs(obj.functional.computeCost(uElas,bc));
-            % A bit slower sometimes
-            if costOld > costElas
-                uInit = uElas;
-            else
-                uInit = uOld;
-            end
+            uFun.setFValues(obj.updateInitialDisplacement(uFun,bc));
         end
 
         function u = updateInitialDisplacement(~,uOld,bc)

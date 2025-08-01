@@ -21,9 +21,9 @@ s.maxIter.phi = 300;
 s.maxIter.stag = 300;
 
 s.benchmark.N = 10;
-s.benchmark.type.mesh = '1Elem';
-s.benchmark.type.bc = 'forceTraction';
-s.benchmark.bcValues = [1e-5:1e-3:0.01];
+s.benchmark.type.mesh = 'SENtest';
+s.benchmark.type.bc = 'displacementTraction';
+s.benchmark.bcValues = [0:1e-3:0.01];
 
 s.matInfo.matType = 'Analytic';
 s.matInfo.degradationType = 'AT';
