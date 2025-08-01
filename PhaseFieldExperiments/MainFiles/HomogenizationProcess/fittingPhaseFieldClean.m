@@ -10,18 +10,28 @@ function mat = fittingPhaseFieldClean()
     A = []; b = []; Aeq = []; beq = []; lb = []; ub = [];
     nonlcon = @(coeff) nonLinearCon(coeff,Cdata);
     objective = @(p) objectiveFun(p,phiData,Cdata);
-    options = optimoptions(@fmincon,'StepTolerance',1e-10,'OptimalityTolerance',1e-10,...
-                           'MaxFunctionEvaluations',10000);
+    options = optimoptions(@fmincon, ...
+                       'StepTolerance',1e-10, ...
+                       'OptimalityTolerance',1e-10, ...
+                       'MaxFunctionEvaluations',10000, ...
+                       'Display','none');
+
     objBestResult=100;
     for i=1:25
         coeff0 = rand(1,60);
         [coeffOpt,fval,exitflag,output,lambda,grad,hessian] = fmincon(objective,coeff0,A,b,Aeq,beq,lb,ub,nonlcon,options);
+        [~, ceq] = nonlcon(coeffOpt);
+        disp(['Objective: ', num2str(fval, '%.2e'), ' | ceq: [', num2str(abs(ceq), '%.2e '), ']']);        
+
         if i==1 || fval<objBestResult
             objBestResult    = fval;
             coeffBestResult  = coeffOpt;
             coeff0BestResult = coeff0;
         end
     end
+    [~, ceq] = nonlcon(coeffOpt);
+    disp(['MinObjective: ', num2str(objBestResult, '%.2e'), ' | MinCeq: [', num2str(abs(ceq), '%.2e '), ']']);        
+
     plotResults(objective,phiData,Cdata,coeff0BestResult,coeffBestResult)
     generateConstitutiveTensor(coeffBestResult,matType,'CircleAreaDerivative');
 end
@@ -139,33 +149,25 @@ function plotResults(objective,phiData,Cdata,coeff0,coeffRes)
     title('C33')
 end
 
-function generateConstitutiveTensor(coeff,matType,name)
-    [C11,C12,C33] = recoverTensorComponents(coeff);
+function generateConstitutiveTensor(coeff, matType, name)
+    [C11, C12, C33] = recoverTensorComponents(coeff);
     mat = matType.mat;
     phi = matType.phi;
     degradation = matType.degradation;
-    degradation.fun{1,1,1,1} = matlabFunction(C11);
-    degradation.fun{1,1,2,2} = matlabFunction(C12);
-    degradation.fun{2,2,1,1} = matlabFunction(C12);
-    degradation.fun{2,2,2,2} = matlabFunction(C11);
-    degradation.fun{1,2,1,2} = matlabFunction(C33);
-    degradation.fun{2,1,2,1} = matlabFunction(C33);
 
-    degradation.dfun{1,1,1,1} = matlabFunction(diff(C11));
-    degradation.dfun{1,1,2,2} = matlabFunction(diff(C12));
-    degradation.dfun{2,2,1,1} = matlabFunction(diff(C12));
-    degradation.dfun{2,2,2,2} = matlabFunction(diff(C11));
-    degradation.dfun{1,2,1,2} = matlabFunction(diff(C33));
-    degradation.dfun{2,1,2,1} = matlabFunction(diff(C33));
+    comps = {C11, C12, C33};
+    idx = {[1,1,1,1], [1,1,2,2], [2,2,1,1], [2,2,2,2], [1,2,1,2], [2,1,2,1]};
+    map = [1 2 2 1 3 3];
 
-    degradation.ddfun{1,1,1,1} = matlabFunction(diff(diff(C11)));
-    degradation.ddfun{1,1,2,2} = matlabFunction(diff(diff(C12)));
-    degradation.ddfun{2,2,1,1} = matlabFunction(diff(diff(C12)));
-    degradation.ddfun{2,2,2,2} = matlabFunction(diff(diff(C11)));
-    degradation.ddfun{1,2,1,2} = matlabFunction(diff(diff(C33)));
-    degradation.ddfun{2,1,2,1} = matlabFunction(diff(diff(C33)));
-    save(name,'mat','phi','degradation');
+    for i = 1:length(idx)
+        degradation.fun{idx{i}{:}} = matlabFunction(comps{map(i)});
+        degradation.dfun{idx{i}{:}} = matlabFunction(diff(comps{map(i)}));
+        degradation.ddfun{idx{i}{:}} = matlabFunction(diff(diff(comps{map(i)})));
+    end
+
+    save(name, 'mat', 'phi', 'degradation');
 end
+
 
 function [C11,C12,C33] = recoverTensorComponents(coeff)
     a=coeff(1:20); b=coeff(21:40); c=coeff(41:60);
