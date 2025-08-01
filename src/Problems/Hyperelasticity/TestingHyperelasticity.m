@@ -30,6 +30,8 @@ classdef TestingHyperelasticity < handle
             s.mesh               = obj.mesh;
             s.boundaryConditions = obj.boundaryConditions;
             s.functional         = obj.functional;
+            s.material.tensor    = obj.material;
+            s.material.prop      = obj.matProp;
             s.monitoring         = obj.monitoring;
             s.tolerance          = obj.tolerance;
             s.maxIter            = obj.maxIter;
@@ -98,7 +100,7 @@ classdef TestingHyperelasticity < handle
             s.mesh     = obj.mesh;
             neo = NeohookeanFunctional(s);
             obj.functional = neo;
-            % 
+             
             % s.material = obj.material;
             % s.mesh     = obj.mesh;
             % elas = LinearElasticityFunctional(s);

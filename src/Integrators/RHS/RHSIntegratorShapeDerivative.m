@@ -22,28 +22,23 @@ classdef RHSIntegratorShapeDerivative < RHSIntegrator
             obj.quadratureOrder = cParams.quadratureOrder;
         end
         
-        function rhsC = computeElementalRHS(obj, fun, test)
-            xV = obj.quadrature.posgp;
-            fG    = fun.evaluate(xV);
-            dNdx  = test.evaluateCartesianDerivatives(xV);
-            dV    = obj.mesh.computeDvolume(obj.quadrature);
-            nDim  = size(dNdx,1);
-            nNode = size(dNdx,2);
-            nGaus = size(dNdx,3);
-            nElem = size(dNdx,4);
-            int = zeros(nNode,nElem);
-            for igaus = 1:nGaus
-                for idime = 1:nDim
-                    for inode = 1:nNode
-                        fI     = squeezeParticular(fG(idime,igaus,:),[1 2]);
-                        fdV    = fI'.*dV(igaus,:);
-                        dShape = squeeze(dNdx(idime,inode,igaus,:))';
-                        intI = dShape.*fdV;
-                        int(inode,:) = int(inode,:) + intI;
-                    end
-                end
+        function rhs = computeElementalRHS(obj, fun, test)
+            xV     = obj.quadrature.posgp;
+            dN     = ShapeDer(test).evaluate(xV);
+            fG     = fun.evaluate(xV);
+            nnodeE = obj.mesh.nnodeElem;
+            ndim   = test.ndimf;
+            ndofE  = nnodeE*ndim;
+            nElem  = obj.mesh.nelem;
+            rhs    = zeros(ndofE,nElem);
+            dV     = obj.mesh.computeDvolume(obj.quadrature);
+            for i = 1:ndofE
+                dTest    = squeezeParticular(dN(:,:,i,:,:),[1 3]);
+                intI     = pagetensorprod(fG,dTest,[1],[1],1,1);
+                fI       = intI.*dV;
+                rhs(i,:) = rhs(i,:) + sum(fI,1);
             end
-            rhsC = transpose(int);
+            rhs = transpose(rhs);
         end
 
         function f = assembleIntegrand(obj,rhsElem,test)

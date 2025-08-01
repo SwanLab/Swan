@@ -3,6 +3,7 @@ classdef HyperelasticityComputer < handle
     properties (Access = private)
         mesh
         boundaryConditions
+        material
         functional
     end
 
@@ -25,12 +26,9 @@ classdef HyperelasticityComputer < handle
 
             nSteps = length(obj.boundaryConditions.bcValues);
             for iStep = 1:nSteps
-                obj.monitor.printStep(iStep,nSteps)
-                [uFun,bc] = obj.updateBoundaryConditions(uFun);
+                [uFun,bc] = obj.preprocess(iStep,nSteps,uFun);
                 [uFun,rFun,cost,iterMax] = obj.updater.update(uFun,bc,cost);
-                [uBC,rBC] = obj.postprocess(uFun,rFun);
-                obj.printAndSave(iStep,cost(end),uBC,rBC,uFun,rFun,iterMax);
-                obj.monitor.printOutput(iStep,uFun,rFun);
+                obj.postprocess(iStep,cost,uFun,rFun,iterMax);
             end
             outputData = obj.monitor.data;
         end
@@ -41,6 +39,7 @@ classdef HyperelasticityComputer < handle
         function init(obj,cParams)
             obj.mesh               = cParams.mesh;
             obj.boundaryConditions = cParams.boundaryConditions;
+            obj.material           = cParams.material;
             obj.functional         = cParams.functional;
         end
 
@@ -60,9 +59,23 @@ classdef HyperelasticityComputer < handle
             obj.updater = DisplacementUpdater(s);
         end
 
-        function [u,bc] = updateBoundaryConditions(obj,u)
+        function [uFun,bc] = preprocess(obj,iStep,nSteps,uFun)
+            obj.monitor.printStep(iStep,nSteps)
             bc = obj.boundaryConditions.nextStep();
-            u.setFValues(obj.updateInitialDisplacement(u,bc));
+            uFun = obj.computeInitialGuess(uFun,bc);
+        end
+
+        function uInit = computeInitialGuess(obj,uOld,bc)
+            uOld.setFValues(obj.updateInitialDisplacement(uOld,bc));
+            uElas = obj.computeElasticProblem(bc);
+            costOld  = abs(obj.functional.computeCost(uOld));
+            costElas = abs(obj.functional.computeCost(uElas));
+            % A bit slower sometimes
+            if costOld > costElas
+                uInit = uElas;
+            else
+                uInit = uOld;
+            end
         end
 
         function u = updateInitialDisplacement(~,uOld,bc)
@@ -79,9 +92,48 @@ classdef HyperelasticityComputer < handle
             end
         end
 
-        function [rBC,uBC] = postprocess(~,uFun,rFun)
+        function uElas = computeElasticProblem(obj,bc)
+            s.mesh = obj.mesh;
+            s.scale = 'MACRO';
+            s.material = obj.material.tensor;
+            s.dim = '2D';
+            s.boundaryConditions = bc;
+            s.solverType = 'REDUCED';
+            s.solverMode = 'DISP';
+            s.solverCase = 'DIRECT';
+            fem = ElasticProblem(s);
+            fem.solve();
+            uElas = fem.uFun;
+        end
+
+        function [rBC,uBC] = postprocess(obj,iStep,cost,uFun,rFun,iterMax)
+            [uBC,rBC] = obj.computeNorm(uFun,rFun);
+            lambdas   = obj.computeStretches(uFun);
+            sigma     = obj.computeCauchyStress(uFun);
+            obj.printAndSave(iStep,cost(end),uBC,rBC,uFun,rFun,iterMax);
+            obj.monitor.printOutput(iStep,uFun,rFun);
+        end
+
+        function [uBC,rBC] = computeNorm(~,uFun,rFun)
             rBC = Norm(rFun,'L2');
             uBC = Norm(uFun,'L2');
+        end
+
+        function lambdas = computeStretches(~,u)
+            F = Identity(u) + Grad(u);
+            C = F'*F;
+            lambdas = (Eigen(C).^0.5);
+        end
+
+        function sigma = computeCauchyStress(obj,u)
+            mu     = obj.material.prop.mu;
+            lambda = obj.material.prop.lambda;
+            I = Identity(u);
+            F = I + Grad(u);
+            b = F*F';
+            jac = Det(F);
+            sigma = Expand(mu./jac,2).*(b-I) + ...
+                    Expand(lambda.*(log(jac))./jac,2).*I;
         end
 
         function printAndSave(obj,step,energy,uBC,rBC,uFun,rFun,iterMax)
@@ -98,44 +150,6 @@ classdef HyperelasticityComputer < handle
             s.numIter = iterMax;
             obj.monitor.saveData(step,s)
         end
-
-        % 
-        % function u = computeInitialElasticGuess(obj, bc)
-        %     s.mesh = obj.mesh;
-        %     s.scale = 'MACRO';
-        %     s.material = obj.material;
-        %     s.dim = '2D';
-        %     s.boundaryConditions = bc;
-        %     s.solverType = 'REDUCED';
-        %     s.solverMode = 'DISP';
-        %     s.solverCase = 'DIRECT';
-        %     fem = ElasticProblem(s);
-        %     fem.solve();
-        %     %             u = obj.reshapeToVector(fem.uFun.fValues);
-        %     u = fem.uFun;
-        % end
-        % 
-        % Other useful stuff later on
-        % function lambdas = computeStretches(obj)
-        %     GradU2 = ActualGrad(obj.uFun);
-        %     Id = Identity(obj.uFun);
-        %     F = GradU2 + Id;
-        %     C = F'*F;
-        %     lambdas = (Eigen(C).^0.5);
-        % end
-        % 
-        % function sigma = computeCauchyStress(obj)
-        %     mu = obj.material.mu;
-        %     lambda = obj.material.lambda;
-        %     GradU2 = ActualGrad(obj.uFun);
-        %     Id = Identity(obj.uFun);
-        %     F = GradU2 + Id;
-        %     b = F*F';
-        %     jac = Det(F);
-        %     sigma = mu.*(b-Id)./jac + lambda.*(log(jac)).*Id./jac;
-        %     sigma.ndimf = [2 2];
-        % end
-
 
     end
 

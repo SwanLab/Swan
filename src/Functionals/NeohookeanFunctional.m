@@ -37,7 +37,7 @@ classdef NeohookeanFunctional < handle
             s.trial = uFun;
             s.mesh  = obj.mesh;
             s.quadratureOrder = 3;
-            s.type ='StiffnessFiniteStrain';
+            s.type ='AnisotropicStiffnessTensor';
             lhs = LHSIntegrator.create(s);
             hess = lhs.compute(Aneofun);
         end

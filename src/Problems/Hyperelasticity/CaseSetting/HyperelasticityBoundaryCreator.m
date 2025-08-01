@@ -52,7 +52,7 @@ classdef HyperelasticityBoundaryCreator < handle
                     obj.createBoundaryConditions = @obj.createForceTractionYConditions;
                 case 'DisplacementTractionY'
                     obj.createBoundaryConditions = @obj.createDisplacementTractionYConditions;
-                case 'ThreePointBneding'
+                case 'ThreePointBending'
                     obj.createBoundaryConditions = @obj.createThreePointBendingConditions;
                 case 'ForceCompressionZ'
                     obj.createBoundaryConditions = @obj.createForceTractionZConditions;

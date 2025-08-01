@@ -1,8 +1,8 @@
-classdef LHSIntegratorStiffnessFiniteStrain < LHSIntegrator
+classdef LHSIntegratorAnisotropicStiffnessTensor < LHSIntegrator
 
 
     methods (Access = public)
-        function obj = LHSIntegratorStiffnessFiniteStrain(cParams)
+        function obj = LHSIntegratorAnisotropicStiffnessTensor(cParams)
             obj@LHSIntegrator(cParams)
         end
 
@@ -15,11 +15,10 @@ classdef LHSIntegratorStiffnessFiniteStrain < LHSIntegrator
     methods (Access = protected)
         function lhs = computeElementalLHS(obj,mat)
             xV     = obj.quadrature.posgp;
-            dN     = ShapeDerTensor(obj.test);
-            dN     = dN.evaluate(xV);
+            dN     = ShapeDer(obj.test).evaluate(xV);
             C      = mat.evaluate(xV);
             nnodeE = obj.mesh.nnodeElem;
-            ndim   = obj.mesh.ndim;
+            ndim   = obj.test.ndimf;
             ndofE  = nnodeE*ndim;
             nElem  = obj.mesh.nelem;
             lhs    = zeros(ndofE,ndofE,nElem);
