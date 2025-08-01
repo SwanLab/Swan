@@ -71,6 +71,7 @@ classdef HyperelasticityBoundaryCreator < handle
             sNeum.direction = [1];
             sNeum.value     = fVal;
             Neum1 = PointLoad(obj.mesh,sNeum);
+            % Remember change bMesh{2} in extWorkFunctional
 
             s.mesh         = obj.mesh;
             s.dirichletFun = [Dir1];
@@ -116,6 +117,7 @@ classdef HyperelasticityBoundaryCreator < handle
             sNeum.direction = [2];
             sNeum.value     = fVal;
             Neum1 = PointLoad(obj.mesh,sNeum);
+            % Remember change bMesh{4} in extWorkFunctional
 
             s.mesh = obj.mesh;
             s.dirichletFun = [Dir1];
@@ -168,6 +170,7 @@ classdef HyperelasticityBoundaryCreator < handle
             sNeum.direction = [2];
             sNeum.value     = fVal;
             Neum1 = DirichletCondition(obj.mesh,sNeum);
+            % Remember change bMesh{4} in extWorkFunctional
 
             s.mesh         = obj.mesh;
             s.dirichletFun = [Dir1 Dir2];
@@ -192,6 +195,7 @@ classdef HyperelasticityBoundaryCreator < handle
             sNeum.direction = [3];
             sNeum.value     = fVal;
             Neum1 = DirichletCondition(obj.mesh,sNeum);
+            % Remember set bMesh{6} in extWorkFunctional
 
             s.mesh         = obj.mesh;
             s.dirichletFun = [Dir1];

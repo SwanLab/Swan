@@ -12,31 +12,31 @@ classdef NeohookeanFunctional < handle
             obj.init(cParams)
         end
 
-        function val = computeCost(obj,uFun)
+        function val = computeCost(obj,uFun,quadOrder)
             fun = obj.computeCostFunction(uFun);
             s.mesh = obj.mesh;
-            s.quadType = 2;
+            s.quadType = quadOrder;
             int = IntegratorFunction(s);
             val = int.compute(fun);
         end
 
-        function Fint = computeGradient(obj,uFun)
+        function Fint = computeGradient(obj,uFun,quadOrder)
             PK1 = obj.computeFirstPiola(uFun);
             s.mesh = obj.mesh;
-            s.quadratureOrder = 3;
+            s.quadratureOrder = quadOrder;
             s.type = 'ShapeDerivativeTensor';
             rhs = RHSIntegrator.create(s);
             Fint = rhs.compute(PK1,uFun);
         end
 
-        function hess = computeHessian(obj,uFun)
+        function hess = computeHessian(obj,uFun,quadOrder)
             % This is the LINEALIZED hessian (Holzapfel, 401)
             % See  Holzapfel, 396
             Aneofun = obj.computeTangentConstitutive(uFun);
             s.test  = uFun;
             s.trial = uFun;
             s.mesh  = obj.mesh;
-            s.quadratureOrder = 3;
+            s.quadratureOrder = quadOrder;
             s.type ='AnisotropicStiffnessTensor';
             lhs = LHSIntegrator.create(s);
             hess = lhs.compute(Aneofun);

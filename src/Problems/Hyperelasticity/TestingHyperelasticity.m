@@ -65,7 +65,7 @@ classdef TestingHyperelasticity < handle
                     s.connec = NegPoissMesh.connec;
                     obj.mesh = Mesh.create(s);
                 otherwise
-                    obj.mesh = UnitQuadMesh(2,2);
+                    obj.mesh = QuadMesh(10,1,100,100);
                     %obj.mesh = HexaMesh(2,1,1,20,5,5);
             end
         end
@@ -96,15 +96,12 @@ classdef TestingHyperelasticity < handle
         end
 
         function createFunctional(obj)
-            s.material = obj.matProp;
-            s.mesh     = obj.mesh;
-            neo = NeohookeanFunctional(s);
-            obj.functional = neo;
-             
-            % s.material = obj.material;
-            % s.mesh     = obj.mesh;
-            % elas = LinearElasticityFunctional(s);
-            % obj.functional = elas;
+            s.matTensor   = obj.material;
+            s.quadOrder   = 3;
+            s.matProp     = obj.matProp;
+            s.mesh        = obj.mesh;
+            s.testSpace.u = LagrangianFunction.create(obj.mesh,2,'P1');
+            obj.functional = ElasticityFunctional(s);
         end
 
     end

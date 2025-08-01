@@ -18,10 +18,10 @@ classdef DisplacementUpdater < handle
             i = 0; err = 1; costOld = costArray(end);
             while (abs(err) > obj.tol) && (i < obj.maxIter)
                 LHS = obj.functional.computeHessian(u);
-                RHS = obj.functional.computeGradient(u); %Incorporate BC for extWork
+                RHS = obj.functional.computeGradient(u,bc); %Incorporate BC for extWork
                 u.setFValues(obj.computeDisplacement(LHS,RHS,u,bc));
 
-                [err, cost] = obj.computeErrorCost(u,costOld);
+                [err, cost] = obj.computeErrorCost(u,bc,costOld);
                 costArray(end+1) = cost;
                 costOld = cost;
 
@@ -71,8 +71,8 @@ classdef DisplacementUpdater < handle
             xNew = x + deltaX;
         end
 
-        function [e, cost] = computeErrorCost(obj,u,costOld)
-            cost = obj.functional.computeCost(u); % To include extWork
+        function [e, cost] = computeErrorCost(obj,u,bc,costOld)
+            cost = obj.functional.computeCost(u,bc); % To include extWork
             e = (cost - costOld)/cost;
         end
 

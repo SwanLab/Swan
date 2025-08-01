@@ -1,16 +1,16 @@
 close all
-s.meshType = 'Metamaterial';
+s.meshType = '';
 
-s.bcProp.nSteps = 76;
-s.bcProp.maxVal = 1;
-s.bcProp.type   = 'DisplacementTractionX';
+s.bcProp.nSteps = 30;
+s.bcProp.maxVal = -5;
+s.bcProp.type   = 'Displacement';
 
 s.matProp.mu     = 1;
 s.matProp.lambda = 1;
 
 s.monitoring.set       = true;
 s.monitoring.printInfo = true;
-s.monitoring.printFile = false;
+s.monitoring.printFile = true;
 s.monitoring.fileNameOut = 'NeoElastic';
 
 s.tolerance = 1e-12;
