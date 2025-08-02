@@ -33,7 +33,7 @@ classdef RHSIntegratorShapeSymmDerivative < RHSIntegrator
             ndofE  = nnodeE*nDimf;
             rhsC   = zeros(ndofE,nElem);
             for i=1:ndofE
-                symTest = squeezeParticular(symN(:,:,i,:,:),3);
+                symTest = symN(:,:,:,:,i);
                 fint    = pagetensorprod(fG,symTest,[1 2],[1 2],2,2);
                 fint    = fint.*dV;
                 rhsC(i,:) = rhsC(i,:) + sum(fint,1);

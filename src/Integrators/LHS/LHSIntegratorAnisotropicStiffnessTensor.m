@@ -25,8 +25,8 @@ classdef LHSIntegratorAnisotropicStiffnessTensor < LHSIntegrator
             dV     = obj.mesh.computeDvolume(obj.quadrature);
             for i = 1:ndofE
                 for j = 1:ndofE
-                    dTrial     = squeezeParticular(dN(:,:,i,:,:),3);
-                    dTest      = squeezeParticular(dN(:,:,j,:,:),3);
+                    dTrial     = dN(:,:,:,:,i);
+                    dTest      = dN(:,:,:,:,j);
                     sigN       = pagetensorprod(C,dTrial,[3 4],[1 2],4,2);
                     de         = pagetensorprod(dTest,sigN,[1 2],[1 2],2,2);
                     dK         = de.*dV;

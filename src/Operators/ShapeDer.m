@@ -16,4 +16,5 @@ function gradN = evaluate(u, xV)
     for i=1:ndimf
         gradN(i,:,i:ndimf:end,:,:) = dNdx;
     end
+    gradN = permute(gradN,[1 2 4 5 3]);
 end

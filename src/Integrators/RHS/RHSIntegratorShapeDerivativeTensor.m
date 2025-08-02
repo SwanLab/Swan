@@ -33,9 +33,9 @@ classdef RHSIntegratorShapeDerivativeTensor < RHSIntegrator
             rhs    = zeros(ndofE,nElem);
             dV     = obj.mesh.computeDvolume(obj.quadrature);
             for i = 1:ndofE
-                dTest     = squeezeParticular(dN(:,:,i,:,:),3);
-                intI       = pagetensorprod(fG,dTest,[1 2],[1 2],2,2);
-                fI         = intI.*dV;
+                dTest = dN(:,:,:,:,i);
+                intI  = pagetensorprod(fG,dTest,[1 2],[1 2],2,2);
+                fI    = intI.*dV;
                 rhs(i,:) = rhs(i,:) + sum(fI,1);
             end
             rhs = rhs';
