@@ -1,8 +1,7 @@
 classdef RHSIntegratorShapeDerivative < RHSIntegrator
-
+    
     properties (Access = private)
         test
-        dNdx
     end
 
     methods (Access = public)
@@ -11,7 +10,6 @@ classdef RHSIntegratorShapeDerivative < RHSIntegrator
             obj.init(cParams);
             obj.setQuadratureOrder(cParams);
             obj.createQuadrature();
-            obj.computeShapeDerivatives();
         end
 
         function rhs = compute(obj,fun)
@@ -28,34 +26,24 @@ classdef RHSIntegratorShapeDerivative < RHSIntegrator
             obj.quadratureOrder = cParams.quadratureOrder;
             obj.test            = cParams.test;
         end
-
-        function computeShapeDerivatives(obj)
-            xV       = obj.quadrature.posgp;
-            dN       = obj.test.evaluateCartesianDerivatives(xV);
-            obj.dNdx = permute(dN,[5 4 1 2 3]);
-        end
-
-        function rhsC = computeElementalRHS(obj,fun)
-            xV = obj.quadrature.posgp;
-            fG    = fun.evaluate(xV);
-            dV    = obj.mesh.computeDvolume(obj.quadrature);
-            nElem = size(obj.dNdx,2);
-            nDim  = size(obj.dNdx,3);
-            nNode = size(obj.dNdx,4);
-            nGaus = size(obj.dNdx,5);
-            int = zeros(nNode,nElem);
-            for igaus = 1:nGaus
-                for idime = 1:nDim
-                    for inode = 1:nNode
-                        fI     = squeezeParticular(fG(idime,igaus,:),[1 2]);
-                        fdV    = fI'.*dV(igaus,:);
-                        dShape = obj.dNdx(1,:,idime,inode,igaus);
-                        intI = dShape.*fdV;
-                        int(inode,:) = int(inode,:) + intI;
-                    end
-                end
+        
+        function rhs = computeElementalRHS(obj,fun)
+            xV     = obj.quadrature.posgp;
+            dN     = ShapeDer(obj.test).evaluate(xV);
+            fG     = fun.evaluate(xV);
+            nnodeE = obj.mesh.nnodeElem;
+            ndim   = obj.test.ndimf;
+            ndofE  = nnodeE*ndim;
+            nElem  = obj.mesh.nelem;
+            rhs    = zeros(ndofE,nElem);
+            dV     = obj.mesh.computeDvolume(obj.quadrature);
+            for i = 1:ndofE
+                dTest    = squeezeParticular(dN(:,:,:,:,i),1);
+                intI     = pagetensorprod(fG,dTest,[1],[1],1,1);
+                fI       = intI.*dV;
+                rhs(i,:) = rhs(i,:) + sum(fI,1);
             end
-            rhsC = transpose(int);
+            rhs = transpose(rhs);
         end
 
         function f = assembleIntegrand(obj,rhsElem)

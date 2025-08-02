@@ -30,8 +30,8 @@ classdef LHSIntegratorStiffnessElastic < LHSIntegrator
             dV     = obj.mesh.computeDvolume(obj.quadrature);
             for i = 1:ndofE
                 for j = 1:ndofE
-                    symTrial   = squeezeParticular(symN(:,:,i,:,:),3);
-                    symTest    = squeezeParticular(symN(:,:,j,:,:),3);
+                    symTrial   = symN(:,:,:,:,i);
+                    symTest    = symN(:,:,:,:,j);
                     sigN       = pagetensorprod(C,symTrial,[3 4],[1 2],4,2);
                     de         = pagetensorprod(symTest,sigN,[1 2],[1 2],2,2);
                     dK         = de.*dV;

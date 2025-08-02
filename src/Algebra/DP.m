@@ -34,7 +34,7 @@ function fVR = evaluate(A,B,dimA,dimB,xV)
 end
 
 function extraDim = computeExtraDims(A,B,xV)
-    if isfield(A,'mesh')
+    if any(strcmp('mesh', properties(A)))
         nelem = A.mesh.nelem;
     else
         nelem = B.mesh.nelem;

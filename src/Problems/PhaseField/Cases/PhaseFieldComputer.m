@@ -17,6 +17,9 @@ classdef PhaseFieldComputer < handle
 
         function obj = PhaseFieldComputer(cParams)
             obj.init(cParams)
+            obj.setMonitoring(cParams)
+            obj.setOptimizer(cParams)
+            obj.setStopConditions()
         end
 
         function outputData = compute(obj)
@@ -47,9 +50,6 @@ classdef PhaseFieldComputer < handle
             obj.initialGuess       = cParams.initialGuess;
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.functional         = cParams.functional;
-            obj.setMonitoring(cParams)
-            obj.setOptimizer(cParams)
-            obj.setStopConditions()
         end
 
         function setMonitoring(obj,cParams)
