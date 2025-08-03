@@ -1,0 +1,212 @@
+function main_constraint_drag
+    persistent u_history J_history;
+    clc; close all
+
+    g = 9.81; % Gravity [m/s^2]
+    rho = 1.225; % Air density [kg/m^3]
+    Sw = 2; % Wing/Aerodynamic surface [m^2]
+    Cd0 = 0.01; % Drag coefficient
+    m = 1; % Object mass [kg]
+    k = 0.05;
+    Clalpha = 2*pi;
+    Cl0 = 0;
+
+    N = 50; % Discretization
+
+    x1_0 = 0; x2_0 = 0; v0 = 15;
+    gamma0 = deg2rad(40);
+    t0 = 0; tf = 30;
+    alpha0 = deg2rad(10);
+    u0 = [tf; alpha0];
+    lb = [0 0.01]; % Lower bounds for the control
+    ub = [500 deg2rad(10)]; % Upper bounds for the control
+
+    u0 = [u0(1) ones(1,N)*u0(2)];
+    lb = [lb(1) ones(1,N)*lb(2)];
+    ub = [ub(1) ones(1,N)*ub(2)];
+
+    % Previous calculations (Derivatives)
+
+    Cl = @(alpha) Cl0 + Clalpha*alpha;
+    Cd = @(alpha) Cd0 + k*Cl(alpha).^2;
+    D = @(V,alpha) 0.5*rho*Sw*V.^2.*Cd(alpha);
+   
+    dCl = Clalpha; % Derivative respecto to alpha
+    dCd = @(alpha) 2*k*Cl(alpha)*dCl; % Derivative respect to alpha
+    dDda = @(V,alpha) 0.5*rho*Sw*V.^2.*dCd(alpha); % Derivative respect to alpha
+
+    dDdv = @(V,alpha) rho*Sw*V.*Cd(alpha); % Derivative respect to velocity
+
+    y0 = [x1_0 x2_0 v0 gamma0];
+    cost = @(u) f_cost(u, g, t0, y0, D, dDda, dDdv, N, m);
+    constraint = @(u) groundConstraint(u, g, t0, v0, x1_0, x2_0, gamma0, D, dDda, dDdv, N, m);
+
+%    [valid,err] = checkGradients(cost, u0, 'Tolerance', 1e-3, 'Display', 'on');
+%    assignin('base', 'err', err);
+    %[valid2,err2] = checkGradients(constraint, u0, 'Tolerance', 1e-3, 'Display', 'on')
+    %assignin('base', 'err2', err2);
+
+    options = optimoptions("fmincon", ...
+        "OutputFcn", @store_fmincon, ...
+        "Algorithm", "sqp", ... 
+        "DerivativeCheck", "on","Display","iter");
+
+    [u_opt, ~] = fmincon(cost, u0, [], [], [], [], lb, ub, @(u) nonlcon(u,constraint), options);
+
+    y0 = [x1_0 x2_0 v0 gamma0];
+    t_span = linspace(t0, u_opt(1), N);
+    alpha = u_opt(2:N+1);
+    f = @(t,y,alpha) dynamics(t, y, alpha, g, D,  m);
+    [~, y] = trapezoidal(f, t_span, y0,alpha);
+
+    disp(["Maximum distance [m] = ", num2str(y(end, 1))])
+    disp(["Initial angle [°]: ", num2str(rad2deg(u_opt(2)))])
+    disp(["Final Time [s]: ", num2str(u_opt(1))])
+
+    figure; plot(y(:,1), y(:,2), 'b-', 'LineWidth', 2);
+    xlabel("Horizontal distance [m]"); ylabel("Vertical distance [m]"); grid on;
+
+    figure; plot(u_history(:,1), 'b-o', 'LineWidth', 2);
+    xlabel('Iteration'); ylabel('Final time [s]'); grid on;
+
+    figure; plot(rad2deg(u_history(:,2)), 'r-o', 'LineWidth', 2);
+    xlabel('Iteration'); ylabel('Initial angle [°]'); grid on;
+
+    figure; plot(J_history, 'o-', 'LineWidth', 2);
+    xlabel('Iteration'); ylabel('Cost function J'); grid on;
+
+    vars = whos;
+    nodrag_results = struct();
+    for i = 1:length(vars)
+        nodrag_results.(vars(i).name) = eval(vars(i).name); 
+    end
+
+    function stop = store_fmincon(u, optimValues, state)
+        if optimValues.iteration == 0
+            u_history = [];
+            J_history = [];
+        end
+        if strcmp(state, 'iter')
+            u_history = [u_history; u(:)'];
+            J_history = [J_history; optimValues.fval];
+            assignin('base', 'u_iterations', u_history);
+            assignin('base', 'J_iterations', J_history);
+        end
+        stop = false;
+    end
+end
+
+function [c, ceq, Dc, Dceq] = nonlcon(u,constraint)
+    c = [];
+    Dc = [];
+    [ceq, Dceq] = constraint(u);
+end
+
+function [J, gradJ] = f_cost(u, g, t0, y0, D, dDdv, dDda, N, m)
+    tf = u(1);
+    alpha = u(2:N+1);
+    t_span = linspace(t0, tf, N);  
+    f = @(t,y,alpha) dynamics(t, y, alpha, g, D,  m);
+    [~, y] = trapezoidal(f, t_span, y0,alpha);
+
+    J = -y(end,1);
+    dydt_final = dynamics(tf, y(end,:), alpha(end), g, D, m);
+
+    pT = [1 0 0 0];
+    dp = @(t,p,alpha) adjoint(t, p, y, g,  alpha, dDdv, m);
+    [~, p] = trapezoidal(dp, flip(t_span), pT,alpha);
+
+    % ind = round((t - t_span(1)) / (t_span(2) - t_span(1))) + 1;
+    % v = y(ind,3);    
+    %v = interp1(t_span, y(:,3), t);
+    v = y(:,3);
+    DFdu = -dDda(v,alpha')./m;
+    % gradJ = [-dydt_final(1); DFdu.*p(:,3)];
+    gradJ = zeros(N+1,1);
+    gradJ(1) = -dydt_final(1);
+    for i = 1:N
+    gradJ(i+1) = DFdu(i) * p(i,3);
+    end
+end
+
+function [t_span,y] = trapezoidal(f,t_span, y0, alpha)
+    N = length(t_span);
+    dt = (t_span(end)-t_span(1)) / (N-1);
+    y = zeros(4,N);
+    y(:,1) = y0;
+    for i = 1:N-1
+        ti      = t_span(i);
+        ti1     = t_span(i+1);
+        alphai  = alpha(i);
+        alphai1 = alpha(i+1);
+        yi = y(:,i);
+        fi = f(ti, yi,alphai);
+        y_pred = yi + dt*fi;
+        fi1 = f(ti1, y_pred, alphai1);
+        y(:,i+1) = yi + (dt/2)*(fi + fi1);
+    end
+    y = y';
+end
+
+
+function [ceq, Dceq] = groundConstraint(u, g, t0, v0, x1_0, x2_0, gamma0, D, dDdv, dDda, N, m)
+    y0 = [x1_0 x2_0 v0 gamma0]';
+    tf = u(1);
+    t_span = linspace(t0, tf, N);
+    alpha = u(2:N+1);
+    [~, y] = trapezoidal(@(t, y,alpha) dynamics(t, y,alpha, g, D,  m), t_span, y0,alpha);
+
+    ceq = y(end,2);
+    dydt_final = dynamics(t_span(end), y(end,:), alpha(end), g, D,  m);
+
+    pT = [0 -1 0 0];
+     dp = @(t,p,alpha) adjoint(t, p, y, g,  alpha, dDdv, m);
+    [~, p] = trapezoidal(dp, flip(t_span), pT,alpha);
+
+    % v = interp1(t_span, y(:,3), t);
+    % ind = round((t - t_span(1)) / (t_span(2) - t_span(1))) + 1;
+    % v = y(ind,3);    
+    v = y(:,3);
+    DFdu = -dDda(v,alpha');
+
+    Dceq = [dydt_final(2); DFdu.*p(:,3)];
+    c = [];
+    dc = [];
+end
+
+function dpdt = adjoint(t, p, y, g,  alpha, dDdv, m)
+    v = y(3);
+    gamma = y(4);
+    % v = interp1(t_span, y(:,3), t);
+    % gamma = interp1(t_span, y(:,4), t);
+    % alpha = interp1(t_span, alpha, t);
+
+    % ind = round((t - t_span(1)) / (t_span(2) - t_span(1))) + 1;
+    % v = y(ind,3);
+    % gamma = y(ind,4);    
+    % alpha = alpha(ind);
+
+    J = [0 0 0 0;
+         0 0 0 0;
+         cos(gamma) sin(gamma) -dDdv(v,alpha)/m (g/v^2)*cos(gamma);
+         -v*sin(gamma) v*cos(gamma) -g*cos(gamma) (g/v)*sin(gamma)];
+    dpdt = -J*p;
+end
+
+
+function dydt = dynamics(t, y, alpha, g, D, m)
+    v = y(3);
+    gamma = y(4);
+
+ %   t_span = linspace(0, tf, N);    
+    % ind = round((t - t_span(1)) / (t_span(2) - t_span(1))) + 1;
+    % alpha = alpha(ind);
+    
+   % alpha = interp1(t_span, alpha, t);
+
+    dydt = [v*cos(gamma);
+        v*sin(gamma);
+        -g*sin(gamma)-D(v,alpha)/m;
+        -(g/v)*cos(gamma)
+    ];
+end
