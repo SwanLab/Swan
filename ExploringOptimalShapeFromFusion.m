@@ -46,7 +46,7 @@ classdef ExploringOptimalShapeFromFusion < handle
         end
 
         function createMesh(obj)
-            file = 'BEAM_3D_SF25';
+            file = 'BEAM_ANALYTIC';
             obj.filename = file;
             a.fileName = file;
             s = FemDataContainer(a);
@@ -171,7 +171,7 @@ classdef ExploringOptimalShapeFromFusion < handle
             obj.stateProblem = fem;
             u = fem.uFun;
             maxDisplacements = max(abs(u.fValues));
-            %u.print('Displacements');
+            u.print('Displacements');
         end
 
         function computeEigenValue(obj)                           
