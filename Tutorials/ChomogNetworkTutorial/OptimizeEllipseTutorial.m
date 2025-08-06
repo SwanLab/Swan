@@ -47,35 +47,6 @@ disp(poisson)
 
 %% Declare optimization functions
 
-function [J, grad] = cHomogCost(opt, type, x)
-
-    % Fetch output and jacobian of the network
-    Y = opt.computeOutputValues(x');
-    dY = opt.computeGradient(x');
-    
-    % Fetch the Chomog component to optimize
-    C_11 = Y(1);
-    C_12 = Y(2);
-    C_22 = Y(3);
-    dC_11 = dY(:, 1)';
-    dC_12 = dY(:, 2)';
-    dC_22 = dY(:, 3)';
-
-    % Calculate the cost and gradient
-    switch type
-        case 'maxHorzStiffness'
-            J = 1 / C_11;
-            grad = - 1 / C_11^2 .* dC_11;
-        case 'maxIsoStiffness'
-            J = 1 / (C_11 + C_22);
-            grad = - (dC_11 + dC_22) / (C_11 + C_22)^2;
-        case 'maxAuxetic'
-            J = C_12 / C_11;
-            grad = dC_12 / C_11 - C_12 / C_11^2 * dC_11;
-    end
-
-end
-
 function [c, ceq, gradc, gradceq] = volumeConstraint(A_ellipse, x)
 
     % No inequality constraints
