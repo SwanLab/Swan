@@ -37,20 +37,6 @@ classdef LHSIntegratorFunctionAdvection < LHSIntegrator
 
 
             lhs = zeros(nDofTest,nDofTrial,nElem);
-            %             for iGaus = 1:nGaus
-            %                 dV(1,1,:) = dVolu(iGaus,:)';
-            %                 for iDof = 1:nDofETs
-            %                     for jDof = 1:nDofETr
-            %                        Ni  = shapesTest(iDof,iGaus,:);
-            %                        dNj = squeeze(dNdxTr(:,jDof,:,iGaus));
-            %                        df  = squeeze(fG(:,iGaus,:));
-            %                        int(1,1,:) = sum(Ni*df.*dNj,1);
-            %                        lhs(iDof,jDof,:) = lhs(iDof,jDof,:) + int.*dV;
-            %                     end
-            %
-            %                 end
-            %             end
-
 
             for iGaus = 1 :nGaus
                 for iNode = 1:nNodeTest

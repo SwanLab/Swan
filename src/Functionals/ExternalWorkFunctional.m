@@ -17,9 +17,8 @@ classdef ExternalWorkFunctional < handle
             obj.init(cParams)
         end
         
-        function F = computeFunctional(obj,u,fExt,quadOrder)
+        function F = computeCost(obj,u,fExt,quadOrder)
             int = Integrator.create('Function',obj.bMesh.mesh,quadOrder);
-            
             obj.computeFunsInBoundary(u,fExt);
             F = int.compute(DP(obj.bFunU,obj.bFunfExt));
         end
