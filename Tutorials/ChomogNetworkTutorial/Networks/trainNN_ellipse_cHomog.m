@@ -15,14 +15,14 @@ hiddenLayers    = 128 .* ones(1, 6);
 
 %% INITIALIZATION 
 % Store dataset file name
-s.fileName = 'Chomog_ellipse.csv';
+s.fileName = 'DB_ellipse_cHomog.csv';
 
 % Load model parameters
 s.polynomialOrder = pol_deg;
 s.testRatio       = testratio;
 s.networkParams.hiddenLayers    = hiddenLayers;
 s.optimizerParams.learningRate  = learningRate;
-s.optimizerParams.maxEpochs = 100; % 1000 is the best option, but we use 10 to pass the tutorial quickly
+s.optimizerParams.maxEpochs     = 100; % 1000 is the best option, but we use 100 to pass the tutorial quickly
 s.costParams.lambda             = lambda;
 s.costParams.costType           = 'L2';
 
@@ -45,7 +45,7 @@ opt.solve();
 opt.plotCostFnc();
 
 % Save the model
-save('Tutorials/ChomogNetworkTutorial/ChomogNetwork.mat', 'opt')
+save('Tutorials/ChomogNetworkTutorial/Networks/network_ellipse_cHomog.mat', 'opt')
 
 %% Get Network Results
 

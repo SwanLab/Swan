@@ -2,14 +2,8 @@ close all;
 clear;
 clc;
 
-% Handle paths
-addpath('src/NeuralNetwork')
-addpath('src/Problems/Optimization')
-addpath('Tutorials/ChomogNetworkTutorial')
-addpath('Tutorials/ChomogNetworkTutorial/Datasets')
-
 % Load trained network
-load('Tutorials/ChomogNetworkTutorial/ChomogNetwork.mat')
+load('Tutorials/ChomogNetworkTutorial/Networks/network_ellipse_cHomog.mat')
 
 %% Initialize the optimization problem
 
@@ -18,7 +12,7 @@ studyCases = {'maxHorzStiffness';
               'maxIsoStiffness';
               'maxAuxetic'};
 
-studyType = char(studyCases(3));
+studyType = char(studyCases(1));
 
 % Define the problem constraint parameters
 A_ellipse = 0.15^2 * pi;

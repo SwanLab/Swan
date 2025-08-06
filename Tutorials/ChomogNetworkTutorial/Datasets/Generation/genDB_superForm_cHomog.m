@@ -27,7 +27,7 @@ max_nParam = 18;
 nVar_nParam = 100;
 
 % Data-file storage
-data_filename = 'Tutorials/ChomogNetworkTutorial/Datasets/Chomog_superformula_Big.csv';
+data_filename = 'Tutorials/ChomogNetworkTutorial/Datasets/DB_superForm_cHomog.csv';
 
 % Compute the homogenized tensors
 

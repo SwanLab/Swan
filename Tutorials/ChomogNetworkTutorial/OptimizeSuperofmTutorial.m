@@ -2,14 +2,9 @@ close all;
 clear;
 clc;
 
-% Handle paths
-% addpath('src/NeuralNetwork')
-% addpath('src/Problems/Optimization')
-% addpath('Tutorials/ChomogNetworkTutorial')
-% addpath('Tutorials/ChomogNetworkTutorial/Datasets')
-
-% Load trained network
-load('Tutorials/ChomogNetworkTutorial/SuperformNetwork.mat')
+% Load trained networks
+load('Tutorials/ChomogNetworkTutorial/Networks/network_superForm_area.mat')
+load('Tutorials/ChomogNetworkTutorial/Networks/network_superForm_cHomog.mat')
 
 %% Initialize the optimization problem
 
@@ -19,10 +14,10 @@ studyCases = {'maxHorzStiffness';
               'maxIsoStiffness';
               'maxAuxetic'};
 
-studyType = char(studyCases(1));
+studyType = char(studyCases(2));
 
 % Define the problem constraint parameters - X vector: a, n (n1 = n2 = n3)
-A_shape = 0.2;
+A_target = 0.2;
 lower_bounds = [0.2; 2];
 upper_bounds = [0.4; 12];
 
@@ -31,15 +26,15 @@ x0 = [lower_bounds(1) + rand(1) * (upper_bounds(1) - lower_bounds(1));
       lower_bounds(2) + rand(1) * (upper_bounds(2) - lower_bounds(2))];
 
 % Wrap the cost and optimization functions
-costfunction = @(x) cHomogCost(opt, studyType, x);
-%nonlinconstraint = @(x) volumeConstraint(A_shape, x);
+costfunction = @(x) cHomogCost(opt_cHomog, studyType, x);
+nonlinconstraint = @(x) volumeConstraint(A_target, opt_area, x);
 
 % Set optimization problem options
 options = optimoptions('fmincon', 'StepTolerance', 1.0e-14,'SpecifyObjectiveGradient',true, 'SpecifyConstraintGradient',true, 'Display', 'iter');
 
 % Call optimizer
-%[x_opt, fval] = fmincon(costfunction, x0, [], [], [], [], lower_bounds, upper_bounds, nonlinconstraint, options);
-[x_opt, fval] = fmincon(costfunction, x0, [], [], [], [], lower_bounds, upper_bounds, [], options);
+[x_opt, fval] = fmincon(costfunction, x0, [], [], [], [], lower_bounds, upper_bounds, nonlinconstraint, options);
+%[x_opt, fval] = fmincon(costfunction, x0, [], [], [], [], lower_bounds, upper_bounds, [], options);
 
 %% Display results
 
@@ -54,16 +49,15 @@ rectangle = [-0.5, -0.5, 1, 1];
 
 drawRectWithSuperHole(rectangle, gPar)
 
-% disp('Optimal solution:');
-% disp(x_opt);
-% disp('Optimal cost:');
-% disp(fval);
-% drawRectWithEllipseHole([-0.5, -0.5, 1, 1], [0, 0, x_opt(1), x_opt(2)])
-% 
-% Chomog = opt.computeOutputValues(x_opt');
-% poisson = Chomog(2) / Chomog(1);
-% disp('Poisson ratio:')
-% disp(poisson)
+disp('Optimal solution:');
+disp(x_opt);
+disp('Optimal cost:');
+disp(fval);
+
+Chomog = opt_cHomog.computeOutputValues(x_opt');
+poisson = Chomog(2) / Chomog(1);
+disp('Poisson ratio:')
+disp(poisson)
 
 %% Declare optimization functions
 
@@ -82,11 +76,11 @@ function area = area_superform(a, b, m, n1, n2, n3)
 
 end
 
-function [J, grad] = cHomogCost(opt, type, x)
+function [J, grad] = cHomogCost(opt_cHomog, type, x)
 
     % Fetch output and jacobian of the network
-    Y = opt.computeOutputValues(x');
-    dY = opt.computeGradient(x');
+    Y = opt_cHomog.computeOutputValues(x');
+    dY = opt_cHomog.computeGradient(x');
     
     % Fetch the Chomog component to optimize
     C_11 = Y(1);
@@ -114,7 +108,7 @@ function [J, grad] = cHomogCost(opt, type, x)
 
 end
 
-function [c, ceq, gradc, gradceq] = volumeConstraint(A_shape, x)
+function [c, ceq, gradc, gradceq] = volumeConstraint(A_target, A_net, x)
 
     % No inequality constraints
     c = [];
@@ -127,18 +121,17 @@ function [c, ceq, gradc, gradceq] = volumeConstraint(A_shape, x)
     n3 = x(2);
     a = b^(n3/n2); % S'ajusta a per un b donat per aconseguir un radi desitjat!!
 
-    A_real = area_superform(a, b, m, n1, n2, n3);
+    A_current = area_superform(a, b, m, n1, n2, n3);
+    dA_current = A_net.computeGradient([a, n1]);
 
-    ceq = A_shape - A_real;
+    ceq = A_target - A_current;
 
     if nargout > 2
         % Gradient of inequality constraints (none here)
         gradc = [];
 
         % Gradient of equality constraint
-        % d/dx1 = 1
-        % d/dx2 = k / x2^2
-        %gradceq = [1; k / (x(2)^2)]; ??? How can gradient be found? No analytical expression
+        gradceq = - [dA_current(1); dA_current(2)];
 
     end
 end

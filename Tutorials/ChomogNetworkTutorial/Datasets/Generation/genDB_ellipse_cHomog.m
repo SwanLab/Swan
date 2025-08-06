@@ -5,17 +5,13 @@ close all
 clear
 clc
 
-% Handle paths
-addpath(genpath('Tutorials'))
-addpath(genpath('src'))
-
 % Set geometrical parameters
 n_variations = 10;
 min_semiAxis = 0.01;
 max_semiAxis = 0.49;
 
 % Data-file storage
-data_filename = 'PauFolder/Datasets/Chomog_ellipse_Big.csv';
+data_filename = 'Tutorials/ChomogNetworkTutorial/Datasets/DB_ellipse_cHomog.csv';
 
 %% Compute the homogenized tensors
 
@@ -93,4 +89,4 @@ for i = 1:9
     title(['Component ', num2str(C_comp_i), ', ', num2str(C_comp_j),' of constitutive tensor'])
 end
 
-adjust_figure_properties(hfig, 12, 30, 0.5);
+adjust_figure_properties(hfig, 12, 30, 0.7);

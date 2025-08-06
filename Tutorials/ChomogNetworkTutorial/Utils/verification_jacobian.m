@@ -24,6 +24,7 @@ s.polynomialOrder = pol_deg;
 s.testRatio       = testratio;
 s.networkParams.hiddenLayers    = hiddenLayers;
 s.optimizerParams.learningRate  = learningRate;
+s.optimizerParams.maxEpochs     = 100;
 s.costParams.lambda             = lambda;
 s.costParams.costType           = 'L2';
 
@@ -39,12 +40,11 @@ xSlope = 0.2;
 ySlope = 3.9;
 
 % Load data
-%data   = cHomogData(s);
 data   = Data(s);
 s.data = data;
 
 % Train the model
-opt = OptimizationProblem(s);
+opt = OptimizationProblemNN(s);
 opt.solve();
 opt.plotCostFnc();
 

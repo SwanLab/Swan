@@ -4,11 +4,6 @@
 close all
 clear
 clc
-
-% Handle paths
-addpath(genpath('Tutorials'))
-addpath(genpath('src'))
-
 % Set geometrical parameters
 n_variations = 100;
 min_semiAxis = 0.0;
@@ -18,7 +13,7 @@ ySlope = 3.9;
 nIntercept = -0.3;
 
 % Data-file storage
-data_filename = 'Tutorials/ChomogNetworkTutorial/Datasets/Plane_DB.csv';
+data_filename = 'Tutorials/ChomogNetworkTutorial/Datasets/DB_plane_slope_testin.csv';
 
 %% Compute the homogenized tensors
 
@@ -54,7 +49,6 @@ end
 
 %% Data Storage
 % Create a table with Chomog_array and Sides_array
-%data_table = array2table([Sides_array, Chomog_array], 'VariableNames', {'a', 'b', 'Chomog_00', 'Chomog_01', 'Chomog_02', 'Chomog_10', 'Chomog_11', 'Chomog_12', 'Chomog_20', 'Chomog_21', 'Chomog_22'});
 data_table = array2table([Sides_array, Chomog_array(:)], 'VariableNames', {'a', 'b', 'yOut'});
 
 % Save the table as a CSV file
