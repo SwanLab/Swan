@@ -1,4 +1,4 @@
-filename = 'CantileverBeam_Triangle_Linear';
+filename = 'anisoCantilever';
 a.fileName = filename;
 gid = FemDataContainer(a);
 ptype = 'MACRO';

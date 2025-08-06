@@ -14,9 +14,9 @@ classdef PerimeterConstraint < handle
         end
         
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            [P,dP]  = obj.perimeter.computeFunctionAndGradient(x);
-            J       = obj.computeFunction(P);
-            dJ      = dP;
+            [P,dP] = obj.perimeter.computeFunctionAndGradient(x);
+            J      = obj.computeFunction(P);
+            dJ     = obj.computeGradient(dP);
             obj.updateEpsilonForNextIteration(J);
         end  
     end
@@ -32,7 +32,13 @@ classdef PerimeterConstraint < handle
 
         function J = computeFunction(obj,P)
             pTar = obj.target;
-            J    = P-pTar/obj.value0;
+            J    = P/(pTar/obj.value0) - 1; % P-pTar/obj.value0 if pTar is close to zero!!
+        end
+
+        function dJ = computeGradient(obj,dP)
+            pTar = obj.target;
+            dJ   = dP;
+            dJ{1}.setFValues(dP{1}.fValues/(pTar/obj.value0));
         end
 
         function updateEpsilonForNextIteration(obj,J) % Cuando la suma de grays empieza a decaer puede provocar tmb la decay de epsilon
