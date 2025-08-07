@@ -448,28 +448,28 @@ classdef Mesh < handle
             l2g(newNodes(:)) = originalNodes(:);
         end
 
-        function [m, l2g] = createSingleBoundaryMesh3D(obj)
-            x = obj.coord(:,1);
-            y = obj.coord(:,2);
-            z = obj.coord(:,3);
-
-            T = boundary(x,y,z);
-            originalNodes = unique(T);
-            newNodes = (1:length(originalNodes))';
-            boundaryCoords = [x(originalNodes), y(originalNodes), z(originalNodes)];
-            g2l(originalNodes(:)) = newNodes(:);
-            boundaryConnec = zeros(size(T));
-            tG = T(:);
-            tL = g2l(tG);
-            boundaryConnec(:) = tL;
-
-            s.connec = boundaryConnec;
-            s.coord = boundaryCoords;
-            s.kFace = -1;
-
-            m = Mesh.create(s);
-            l2g(newNodes(:)) = originalNodes(:);
-        end
+%         function [m, l2g] = createSingleBoundaryMesh3D(obj)
+%             x = obj.coord(:,1);
+%             y = obj.coord(:,2);
+%             z = obj.coord(:,3);
+% 
+%             T = boundary(x,y,z);
+%             originalNodes = unique(T);
+%             newNodes = (1:length(originalNodes))';
+%             boundaryCoords = [x(originalNodes), y(originalNodes), z(originalNodes)];
+%             g2l(originalNodes(:)) = newNodes(:);
+%             boundaryConnec = zeros(size(T));
+%             tG = T(:);
+%             tL = g2l(tG);
+%             boundaryConnec(:) = tL;
+% 
+%             s.connec = boundaryConnec;
+%             s.coord = boundaryCoords;
+%             s.kFace = -1;
+% 
+%             m = Mesh.create(s);
+%             l2g(newNodes(:)) = originalNodes(:);
+%         end
 
     end
 
