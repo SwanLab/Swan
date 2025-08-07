@@ -1,4 +1,6 @@
 filename = 'anisoCantilever';
+a.fileName = filename;
+gid = FemDataContainer(a);
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -8,7 +10,7 @@ weights = [1];
 constraint = {'ComplianceConstraintBound','ComplianceConstraintBound',...
     'ComplianceConstraintBound','VolumeConstraintBound'};
 constraint_case = {'INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY'};
-target = 0.5;
+target = [NaN,NaN,NaN,0.5];
 optimizerUnconstrained = 'PROJECTED GRADIENT';
 optimizer = 'MMA';
 designVariable = 'DensityAndBound';

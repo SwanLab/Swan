@@ -19,11 +19,17 @@ TopOptTestTutorialLevelSetNullSpace();
 TopOptTestTutorialLSPerimeter();
 TopOptTestTutorialMicro();
 TopOptTestTutorialWithGiD();
+TopOptTestTutorialLevelSetInfill();
 %TopOptViaHomogenizationTutorial(); % ALEX
 Tutorial02FEMElasticity();
 Tutorial02p2FEMElasticityMicro();
 Tutorial11Monitoring();
 TutorialRemeshing();
+ChomogNetworkTutorial();
+TutorialXXPhaseFieldCase;
+TutorialXXPhaseFieldHomogenization;
+TutorialXXHyperelasticity;
+close all;
 
 % Output:
 clear;

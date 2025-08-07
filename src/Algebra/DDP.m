@@ -1,44 +1,50 @@
-function dom = DDP(A,B)
-    s.operation = @(xV) evaluate(A,B,xV);
+function dom = DDP(varargin)
+    A = varargin{1}; B = varargin{2};
+    dimA = []; dimB = [];
+    if nargin > 2, dimA = varargin{3}; end
+    if nargin > 3, dimB = varargin{4}; end
+
+    s.operation = @(xV) evaluate(A,B,dimA,dimB,xV);
     if isa(A,'DomainFunction')
         s.mesh = A.mesh;
     else
         s.mesh = B.mesh;
     end
-    dom         = DomainFunction(s);
+    dom        = DomainFunction(s);
 end
 
-function fVR = evaluate(A,B,xV)
-    aEval = computeLeftSideEvaluation(A,xV);
-    bEval = computeRightSideEvaluation(B,xV);
-    fVR   = pagemtimes(aEval,bEval);
-    if size(fVR,1) == 1
-        fVR = squeezeParticular(fVR, 1);
-    elseif size(fVR,2) == 1
-        fVR = squeezeParticular(fVR, 2);
+function fVR = evaluate(A,B,dimA,dimB,xV)
+    aEval = A.evaluate(xV);
+    bEval = B.evaluate(xV);
+
+    extraDim = computeExtraDims(A,B,xV);
+    ndimsA = ndims(aEval)-extraDim; %To be adapted when ndimf is vector
+    ndimsB = ndims(bEval)-extraDim; %2 for nGaus and nElem
+    if isempty(dimA)
+        dimA = [ndimsA-1 ndimsA];
+    end
+    if isempty(dimB)
+        dimB = [ndimsB-1 ndimsB];
+    end
+    fVR = pagetensorprod(aEval,bEval,dimA,dimB,ndimsA,ndimsB);
+    
+    if ndims(fVR) <=2
+        fVR = reshape(fVR,[1 size(fVR)]);
     end
 end
 
-function aEval = computeLeftSideEvaluation(A,xV)
-    res      = A.evaluate(xV);
-    n        = ndims(res);
-    isTensor = n>=4;
-    switch isTensor
-        case true
-            aEval = res;
-        otherwise
-            aEval(1,:,:,:) = res;
+function extraDim = computeExtraDims(A,B,xV)
+    if any(strcmp('mesh', properties(A)))
+        nelem = A.mesh.nelem;
+    else
+        nelem = B.mesh.nelem;
     end
-end
 
-function bEval = computeRightSideEvaluation(B,xV)
-    res      = B.evaluate(xV);
-    n        = ndims(res);
-    isTensor = n>=4;
-    switch isTensor
-        case true
-            bEval = res;
-        otherwise
-            bEval(:,1,:,:) = res;
+    extraDim = 2;
+    if nelem == 1
+        extraDim = extraDim - 1;
+        if size(xV,2) == 1
+            extraDim = extraDim -1;
+        end
     end
 end

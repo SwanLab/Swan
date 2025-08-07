@@ -8,7 +8,7 @@ classdef TopOptTestTutorialLSPerimeter < handle
         volume
         cost
         constraint
-        dualVariable
+        primalUpdater
         optimizer
     end
 
@@ -23,7 +23,7 @@ classdef TopOptTestTutorialLSPerimeter < handle
             obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
-            obj.createDualVariable();
+            obj.createPrimalUpdater();
             obj.createOptimizer();
         end
 
@@ -61,18 +61,22 @@ classdef TopOptTestTutorialLSPerimeter < handle
         end
 
         function createFilter(obj)
-            u              = 65;
-            alpha          = 90;
+            u = 65;
+            alpha = 90;
+            CAnisotropic = [tand(u),0;0,1/tand(u)];
+            R = [cosd(alpha),-sind(alpha)
+                sind(alpha), cosd(alpha)];
+            CGlobal = R*CAnisotropic*R';
+
             s.filterType   = 'PDE';
             s.boundaryType = 'Neumann';
             s.metric       = 'Anisotropy';
-            s.CAnisotropic = [tand(u),0;0,1/tand(u)];
-            s.aniAlphaDeg  = alpha;
-            s.mesh  = obj.mesh;
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            f = Filter.create(s);
-            obj.filter = f;
-        end   
+            s.A            = ConstantFunction.create(CGlobal,obj.mesh);
+            s.mesh         = obj.mesh;
+            s.trial        = LagrangianFunction.create(obj.mesh,1,'P1');
+            f              = Filter.create(s);
+            obj.filter     = f;
+        end
 
         function createPerimeter(obj)
             eOverhmin     = 10;
@@ -81,15 +85,25 @@ classdef TopOptTestTutorialLSPerimeter < handle
             s.filter      = obj.filter;
             s.epsilon     = epsilon;
             s.value0      = 4; % external P
+            s.uMesh       = obj.createBaseDomain();
             P             = PerimeterFunctional(s);
             obj.perimeter = P;
+        end
+
+        function uMesh = createBaseDomain(obj)
+            levelSet         = -ones(obj.mesh.nnodes,1);
+            s.backgroundMesh = obj.mesh;
+            s.boundaryMesh   = obj.mesh.createBoundaryMesh();
+            uMesh = UnfittedMesh(s);
+            uMesh.compute(levelSet);
         end
 
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
-            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.test = LagrangianFunction.create(obj.mesh,1,'P1');
             s.volumeTarget = 0.85;
+            s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -116,10 +130,9 @@ classdef TopOptTestTutorialLSPerimeter < handle
             obj.constraint      = Constraint(s);
         end
 
-        function createDualVariable(obj)
-            s.nConstraints   = 1;
-            l                = DualVariable(s);
-            obj.dualVariable = l;
+        function createPrimalUpdater(obj)
+            s.mesh = obj.mesh;
+            obj.primalUpdater = SLERP(s);
         end
 
         function createOptimizer(obj)
@@ -127,12 +140,11 @@ classdef TopOptTestTutorialLSPerimeter < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.dualVariable   = obj.dualVariable;
             s.maxIter        = 3;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.volumeTarget   = 0.85;
-            s.primal         = 'SLERP';
+            s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.02;
             s.gJFlowRatio    = 5;

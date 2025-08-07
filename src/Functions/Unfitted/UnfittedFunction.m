@@ -20,8 +20,52 @@ classdef UnfittedFunction < BaseFunction
 
         function res = times(obj1,obj2)
             res     = copy(obj1);
-            res.fun = res.fun.*obj2;
+            switch class(obj2)
+                case 'UnfittedFunction'
+                    res.fun = res.fun.*obj2.fun;
+                otherwise
+                    res.fun = res.fun.*obj2;
+            end
             res.computeUnfittedMeshFunction();
+        end
+
+        function res = power(obj,p)
+            if p == 0
+                res = ConstantFunction.create(1,obj.fun.mesh);
+            else
+                res = copy(obj);
+                res.fun = res.fun.^p;
+                res.computeUnfittedMeshFunction();
+            end
+        end
+
+        function res = plus(obj1,obj2)
+            res     = copy(obj1);
+            switch class(obj2)
+                case 'UnfittedFunction'
+                    res.fun = res.fun + obj2.fun;
+                    res.computeUnfittedMeshFunction();
+            end
+        end
+
+        function res = minus(obj1,obj2)
+            res     = copy(obj1);
+            switch class(obj2)
+                case 'UnfittedFunction'
+                    res.fun = res.fun - obj2.fun;
+                    res.computeUnfittedMeshFunction();
+            end
+        end
+
+        function res = rdivide(obj1,obj2)
+            res     = copy(obj1);
+            switch class(obj2)
+                case 'UnfittedFunction'
+                    res = res.fun./obj2.fun;
+                otherwise
+                    res.fun = res.fun./obj2;
+                    res.computeUnfittedMeshFunction();
+            end
         end
 
     end

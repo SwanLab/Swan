@@ -1,4 +1,4 @@
-classdef LHSIntegratorStokes < handle %LHSintegrator
+classdef LHSIntegratorStokes < handle
 
     properties (GetAccess = public, SetAccess = private)
         M
@@ -10,7 +10,6 @@ classdef LHSIntegratorStokes < handle %LHSintegrator
         velocityFun
         pressureFun
         material
-        D
     end
 
     methods (Access = public)

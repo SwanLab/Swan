@@ -1,17 +1,51 @@
-function dom = DP(A,B)
-    s.operation = @(xV) evaluate(A,B,xV);
+function dom = DP(varargin)
+    A = varargin{1}; B = varargin{2};
+    dimA = []; dimB = [];
+    if nargin > 2, dimA = varargin{3}; end
+    if nargin > 3, dimB = varargin{4}; end
+
+    s.operation = @(xV) evaluate(A,B,dimA,dimB,xV);
     if isa(A,'DomainFunction')
         s.mesh = A.mesh;
     else
         s.mesh = B.mesh;
     end
-    dom         = DomainFunction(s);
+    dom        = DomainFunction(s);
 end
 
-function aDb = evaluate(a,b,xV)
-    aEval = a.evaluate(xV);
-    bEval = b.evaluate(xV);
-    aEval = pagetranspose(aEval);
-    aDb = pagemtimes(aEval,bEval);
-    aDb = squeezeParticular(aDb,1);
+function fVR = evaluate(A,B,dimA,dimB,xV)
+    aEval = A.evaluate(xV);
+    bEval = B.evaluate(xV);
+
+    extraDim = computeExtraDims(A,B,xV);
+    ndimsA = ndims(aEval)-extraDim; %To be adapted when ndimf is vector
+    ndimsB = ndims(bEval)-extraDim; 
+    if isempty(dimA)
+        dimA = ndimsA;
+    end
+    if isempty(dimB)
+        dimB = ndimsB;
+    end
+    fVR = pagetensorprod(aEval,bEval,dimA,dimB,ndimsA,ndimsB);
+
+    if ndims(fVR) <=2
+        fVR = reshape(fVR,[1 size(fVR)]);
+    end
+end
+
+function extraDim = computeExtraDims(A,B,xV)
+    if any(strcmp('mesh', properties(A)))
+        nelem = A.mesh.nelem;
+    else
+        nelem = B.mesh.nelem;
+    end
+
+    extraDim = 2;
+    if nelem == 1
+        extraDim = extraDim - 1;
+        if size(xV,2) == 1
+            extraDim = extraDim -1;
+        end
+    end
+
 end

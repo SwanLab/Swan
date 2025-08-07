@@ -26,7 +26,7 @@ classdef PrecomputedVariableTest < handle
             for ivar = 1:d
                 sV = obj.storedVar{ivar};
                 cV = obj.computedVar{ivar};
-                err(ivar) = norm(sV - cV)/norm(sV);
+                err(ivar) = norm(sV(:) - cV(:))/norm(sV(:));
             end
             error = norm(err);
         end

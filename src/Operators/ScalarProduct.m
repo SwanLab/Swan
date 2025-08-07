@@ -8,7 +8,7 @@ end
 end
 
 function sp = computeL2(f,g)
-fg = f.*g;
+fg = DP(f,g);
 sp = Integrator.compute(fg,fg.mesh,2);
 end
 

@@ -14,6 +14,7 @@ classdef MultimaterialTesting < handle
         cost
         constraint
         dualVariable
+        primalUpdater
         optimizer
     end
 
@@ -33,6 +34,7 @@ classdef MultimaterialTesting < handle
             obj.createCost();
             obj.createConstraint();
             obj.createDualVariable();
+            obj.createPrimalUpdater();
             obj.createOptimizer();
         end
 
@@ -154,12 +156,21 @@ classdef MultimaterialTesting < handle
             obj.volumeC = obj.createIndivVolumeConstraint(0.1,3);
         end
 
+        function uMesh = createBaseDomain(obj)
+            levelSet         = -ones(obj.mesh.nnodes,1);
+            s.backgroundMesh = obj.mesh;
+            s.boundaryMesh   = obj.mesh.createBoundaryMesh();
+            uMesh = UnfittedMesh(s);
+            uMesh.compute(levelSet);
+        end
+
         function v = createIndivVolumeConstraint(obj,target,ID)
             s.volumeTarget = target;
             s.nMat         = 4;
             s.matID        = ID;
             s.mesh         = obj.mesh;
-            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.test         = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.uMesh        = obj.createBaseDomain();
             v              = MultiMaterialVolumeConstraint(s);
          end
 
@@ -184,6 +195,11 @@ classdef MultimaterialTesting < handle
             obj.dualVariable = l;
          end
 
+         function createPrimalUpdater(obj)
+            s.mesh = obj.mesh;
+            obj.primalUpdater = SLERP(s);
+        end
+
          function createOptimizer(obj)
             s.monitoring     = false;
             s.cost           = obj.cost;
@@ -193,9 +209,7 @@ classdef MultimaterialTesting < handle
             s.maxIter        = 3;
             s.tolerance      = 1e-8;
             s.constraintCase = repmat({'EQUALITY'},[3,1]);
-            s.primal         = 'SLERP';
-            s.ub             = inf;
-            s.lb             = -inf;
+            s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = inf;
             s.gJFlowRatio    = 0.02;
             obj.optimizer    = OptimizerNullSpace(s);

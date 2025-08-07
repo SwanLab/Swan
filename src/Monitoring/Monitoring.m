@@ -62,8 +62,8 @@ classdef Monitoring < handle
                         sDisp.legend = cParams.legends{idxMultiBar};
                         idxMultiBar = idxMultiBar+1;
                     elseif sDisp.chartType == "surf"
-                        sDisp.barLim = cParams.barLims{i};
-                        sDisp.fun    = cParams.funs{i};
+                        sDisp.barLim = cParams.barLims{idxSurf};
+                        sDisp.fun    = cParams.funs{idxSurf};
                         idxSurf = idxSurf+1;
                     end
                     sDisp.position  = i;
