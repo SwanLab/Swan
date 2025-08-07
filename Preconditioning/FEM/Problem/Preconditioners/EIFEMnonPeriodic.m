@@ -57,6 +57,7 @@ classdef EIFEMnonPeriodic < handle
             obj.DirCond = cParams.DirCond;
 %             obj.dispFun = LagrangianFunction.create(obj.mesh, obj.RVE.ndimf,'P1');
             obj.dispFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim,'P1');
+            
         end
 
         function LHS = computeLHS(obj)
