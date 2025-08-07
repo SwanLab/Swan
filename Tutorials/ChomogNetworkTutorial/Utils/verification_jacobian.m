@@ -2,29 +2,23 @@ clc;
 clear;
 close all;
 
-% Handle paths
-addpath('src/NeuralNetwork')
-addpath('src/Problems/Optimization')
-addpath('Tutorials/ChomogNetworkTutorial')
-addpath('Tutorials/ChomogNetworkTutorial/Datasets')
-
 %% Initialization of hyperparameters
 pol_deg         = 1;
 testratio       = 30;
 lambda          = 0.000001;
 learningRate    = 0.1;
-hiddenLayers    = 6 .* ones(1, 2);
+hiddenLayers    = 4 .* ones(1, 2);
 
 %% INITIALIZATION 
 % Store dataset file name
-s.fileName = 'Plane_DB.csv';
+s.fileName = 'DB_plane_slope.csv';
 
 % Load model parameters
 s.polynomialOrder = pol_deg;
 s.testRatio       = testratio;
 s.networkParams.hiddenLayers    = hiddenLayers;
 s.optimizerParams.learningRate  = learningRate;
-s.optimizerParams.maxEpochs     = 100;
+s.optimizerParams.maxEpochs     = 500;
 s.costParams.lambda             = lambda;
 s.costParams.costType           = 'L2';
 

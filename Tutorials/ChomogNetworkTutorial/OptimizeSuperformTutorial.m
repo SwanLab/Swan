@@ -11,15 +11,20 @@ sf = superformula_functionality;
 
 % Define the problem to solve
 studyCases = {'maxHorzStiffness';
-              'minHorzStiffness';
+              'maxVertStiffness';
+              'maxShearStiffness';
               'maxIsoStiffness';
+              'minHorzStiffness';
+              'minVertStiffness';
+              'minShearStiffness';
+              'minIsoStiffness';
               'maxAuxetic'};
 
-studyType = char(studyCases(2));
+studyType = char(studyCases(9));
 
 % Define the problem constraint parameters - X vector: a, n (n1 = n2 = n3)
-A_target = 0.2;
-lower_bounds = [0.2; 2];
+A_target = 0.50;
+lower_bounds = [0.2; 2.0];
 upper_bounds = [0.4; 12];
 
 % Set the initial guess
@@ -31,7 +36,7 @@ costfunction = @(x) cHomogCost(opt_cHomog, studyType, x);
 nonlinconstraint = @(x) volumeConstraint(A_target, sf, opt_area, x);
 
 % Set optimization problem options
-options = optimoptions('fmincon', 'StepTolerance', 1.0e-14,'SpecifyObjectiveGradient',true, 'SpecifyConstraintGradient',true, 'Display', 'iter');
+options = optimoptions('fmincon', 'StepTolerance', 1.0e-16,'SpecifyObjectiveGradient',true, 'SpecifyConstraintGradient',true, 'Display', 'iter','PlotFcns',@optimPlotCustom);
 
 % Call optimizer
 [x_opt, fval] = fmincon(costfunction, x0, [], [], [], [], lower_bounds, upper_bounds, nonlinconstraint, options);
@@ -40,7 +45,7 @@ options = optimoptions('fmincon', 'StepTolerance', 1.0e-14,'SpecifyObjectiveGrad
 %% Display results
 
 gPar.semiVerticalAxis = x_opt(1); %b
-gPar.m  = 8;
+gPar.m  =8;
 gPar.n1 = x_opt(2);
 gPar.n2 = x_opt(2);
 gPar.n3 = x_opt(2);
@@ -48,19 +53,59 @@ gPar.semiHorizontalAxis = gPar.semiVerticalAxis^(gPar.n3/gPar.n2); % S'ajusta a 
 
 rectangle = [-0.5, -0.5, 1, 1];
 
-drawRectWithSuperHole(rectangle, gPar, sf)
+drawRectWithSuperHole(rectangle, gPar, sf, studyType)
 
 disp('Optimal solution:');
 disp(x_opt);
-disp('Optimal cost:');
+disp('Optimized cost:');
 disp(fval);
 
 Chomog = opt_cHomog.computeOutputValues(x_opt');
+Chomog_Voigt = [Chomog(1), Chomog(2), 0;
+                Chomog(2), Chomog(3), 0;
+                0, 0,         Chomog(4)];
+disp('Homogenized Constitutive Tensor:')
+disp(Chomog_Voigt)
+
 poisson = Chomog(2) / Chomog(1);
 disp('Poisson ratio:')
 disp(poisson)
 
 %% Declare optimization functions
+
+function stop = optimPlotCustom(~,optimValues,state,varargin)
+    
+    stop = false;
+
+    % Persistent variable to store figure handle
+    %persistent hFig ax1 ax2
+
+    switch state
+        case "init"
+            grid minor
+            grid on
+        case "done"
+            yyaxis left
+            ylabel('Cost Function Value')
+            yyaxis right
+            ylabel('Constraint Violation')
+            set(gca, 'YScale', 'log')
+            ax = gca;
+            ax.YAxis(1).Color = 'b';
+            ax.YAxis(2).Color = 'r';
+            xlabel('Iteration Count')
+        otherwise
+            hold on
+            yyaxis right
+            scatter(optimValues.funccount, optimValues.constrviolation, 20, 'red', 'filled', 'd')
+            drawnow
+            yyaxis left
+            scatter(optimValues.funccount, optimValues.fval, 20, 'blue', 'filled', 'd')
+            drawnow
+            hold off
+    end
+end
+
 
 function [J, grad] = cHomogCost(opt_cHomog, type, x)
 
@@ -139,7 +184,7 @@ function [c, ceq, gradc, gradceq] = volumeConstraint(A_target, sf, A_net, x)
     end
 end
 
-function drawRectWithSuperHole(rect, gPar, sf)
+function drawRectWithSuperHole(rect, gPar, sf, studyType)
 
     x = rect(1);
     y = rect(2);
@@ -162,6 +207,7 @@ function drawRectWithSuperHole(rect, gPar, sf)
     y_vec = rad_vec .* sin(phi_vec);
 
     % Draw black rectangle
+    figure()
     fill([x, x+w, x+w, x], [y, y, y+h, y+h], 'k');
     hold on;
 
@@ -175,9 +221,7 @@ function drawRectWithSuperHole(rect, gPar, sf)
 
     xlabel('x')
     ylabel('y')
-    title(['Ellipse area: ', num2str(area_sup / (w * h) * 100 , '%.1f'), ' % of rectangle area'])
+    title(['Opt case: ', studyType, '. Hole area: ', num2str(area_sup / (w * h) * 100 , '%.1f'), ' % of total.'], 'Units', 'normalized', 'Position', [0.5, 1.03,1])
     hold off;
-
-    axis equal
 
 end
