@@ -25,7 +25,7 @@ classdef Mesh < handle
     properties (Access = private)
         xVOld
         dVOld
-        interpType
+        
     end    
 
     properties (Access = protected)
@@ -48,7 +48,6 @@ classdef Mesh < handle
                 case 'Volume'
                     obj = VolumeMesh(cParams);
             end
-
         end
         
         function obj = createFromGiD(filename)
@@ -248,60 +247,12 @@ classdef Mesh < handle
 
         function [m, l2g] = createSingleBoundaryMesh(obj)
             % To BoundaryMesh
-           % x = obj.coord(:,1);
-           % y = obj.coord(:,2);
-            
-           % k = boundary(x,y,0.8);
-           % k = k(1:end-1);
-           % originalNodes = k;
-           % newNodes = (1:length(k))';
-           % boundaryCoords = [x(k), y(k)];
-           % boundaryConnec = [newNodes, circshift(newNodes,-1)];
-
-           % s.connec = boundaryConnec;
-           % s.coord = boundaryCoords;
-           % s.kFace = -1;
-            
-           % m = Mesh.create(s);
-           % l2g(newNodes(:)) = originalNodes(:);
             switch obj.ndim
                 case 2
                     [m, l2g] = obj.createSingleBoundaryMesh2D();
                 case 3
                     [m, l2g] = obj.createSingleBoundaryMesh3D();
             end
-        end
-
-        function [m, l2g] = createSingleBoundaryMesh3D(obj)
-            % Extract coordinates
-            x = obj.coord(:,1);
-            y = obj.coord(:,2);
-            z = obj.coord(:,3);
-
-            % Compute 3D boundary triangulation using shrink factor (alpha)
-            k = boundary(x, y, z, 0);  % Returns triangular faces (Nx3)
-
-            % Get unique nodes used in the boundary
-            originalNodes = unique(k(:));
-            newNodes = (1:length(originalNodes))';
-
-            % Map global indices to local
-            l2g = zeros(max(originalNodes), 1);  % Preallocate
-            l2g(originalNodes) = newNodes;
-
-            % Re-index the face connectivity to local node indices
-            boundaryConnec = l2g(k);
-
-            % Boundary node coordinates
-            boundaryCoords = [x(originalNodes), y(originalNodes), z(originalNodes)];
-
-            % Assemble mesh structure
-            s.coord = boundaryCoords;
-            s.connec = boundaryConnec;
-            s.kFace = obj.kFace - 1;  % or just -1 if not using face IDs
-
-            % Create mesh
-            m = Mesh.create(s);
         end
         
         function [m, l2g] = getBoundarySubmesh(obj, domain)
@@ -387,7 +338,6 @@ classdef Mesh < handle
             obj.connec = s.connec;
             obj.type   = s.type;
             obj.kFace  = s.kFace;
-            obj.interpType = s.interpType;
         end
 
         function computeDimensionParams(obj)
@@ -398,7 +348,7 @@ classdef Mesh < handle
         end
 
         function createInterpolation(obj)
-            obj.interpolation = Interpolation.create(obj.type,obj.interpType);
+            obj.interpolation = Interpolation.create(obj.type,'LINEAR');
         end
 
         function computeElementCoordinates(obj)
@@ -448,28 +398,28 @@ classdef Mesh < handle
             l2g(newNodes(:)) = originalNodes(:);
         end
 
-%         function [m, l2g] = createSingleBoundaryMesh3D(obj)
-%             x = obj.coord(:,1);
-%             y = obj.coord(:,2);
-%             z = obj.coord(:,3);
-% 
-%             T = boundary(x,y,z);
-%             originalNodes = unique(T);
-%             newNodes = (1:length(originalNodes))';
-%             boundaryCoords = [x(originalNodes), y(originalNodes), z(originalNodes)];
-%             g2l(originalNodes(:)) = newNodes(:);
-%             boundaryConnec = zeros(size(T));
-%             tG = T(:);
-%             tL = g2l(tG);
-%             boundaryConnec(:) = tL;
-% 
-%             s.connec = boundaryConnec;
-%             s.coord = boundaryCoords;
-%             s.kFace = -1;
-% 
-%             m = Mesh.create(s);
-%             l2g(newNodes(:)) = originalNodes(:);
-%         end
+        function [m, l2g] = createSingleBoundaryMesh3D(obj)
+            x = obj.coord(:,1);
+            y = obj.coord(:,2);
+            z = obj.coord(:,3);
+
+            T = boundary(x,y,z);
+            originalNodes = unique(T);
+            newNodes = (1:length(originalNodes))';
+            boundaryCoords = [x(originalNodes), y(originalNodes), z(originalNodes)];
+            g2l(originalNodes(:)) = newNodes(:);
+            boundaryConnec = zeros(size(T));
+            tG = T(:);
+            tL = g2l(tG);
+            boundaryConnec(:) = tL;
+
+            s.connec = boundaryConnec;
+            s.coord = boundaryCoords;
+            s.kFace = -1;
+
+            m = Mesh.create(s);
+            l2g(newNodes(:)) = originalNodes(:);
+        end
 
     end
 
