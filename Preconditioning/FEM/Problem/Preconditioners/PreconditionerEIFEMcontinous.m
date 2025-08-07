@@ -44,7 +44,8 @@ classdef PreconditionerEIFEMcontinous < handle
             %             U = U(:,9:end);
             obj.EIFEMprojection = obj.computeReducedProjection(U);
 %             LHS = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);
-            obj.KeifemContinuous = obj.EIFEMprojection'*LHS*obj.EIFEMprojection;
+%             obj.KeifemContinuous = obj.EIFEMprojection'*LHS*obj.EIFEMprojection;
+            obj.KeifemContinuous = U'*LHS*U;
 
         end
         
@@ -53,7 +54,7 @@ classdef PreconditionerEIFEMcontinous < handle
     methods (Access = private)
         
         function init(obj,cParams)
-% %             obj.LHS          = cParams.LHS;
+            obj.LHS          = cParams.LHS;
 %             obj.ddDofManager = cParams.ddDofManager;
             obj.nSubdomains  = cParams.nSubdomains;
 %             obj.coarseMesh   = cParams.coarseMesh;
@@ -164,10 +165,11 @@ classdef PreconditionerEIFEMcontinous < handle
         function Ug = assembleProjectionMatrix(obj,U)
             nsbd = obj.nSubdomains(1)*obj.nSubdomains(2);
             nDofcoarse = size(U,2)/nsbd;
-            Ug = zeros(obj.ddDofManager.nDof,nDofcoarse*nsbd);
+            ndof = size(obj.LHS,1);
+            Ug = zeros(ndof,nDofcoarse*nsbd);
             for i=1: nDofcoarse
                 Usbd = U(:,i:nDofcoarse:end);
-                Uaux = obj.local2global(Usbd);
+                Uaux = obj.ddDofManager.local2global(Usbd);
                 Ug(:,i:nDofcoarse:end)= Uaux;
             end
             Ug = sparse(Ug);

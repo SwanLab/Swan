@@ -1,4 +1,4 @@
-classdef EIFEMtesting < handle
+classdef EIFEMtesting_refactoring < handle
 
     properties (Access = public)
 
@@ -22,7 +22,7 @@ classdef EIFEMtesting < handle
 
     methods (Access = public)
 
-        function obj = EIFEMtesting()
+        function obj = EIFEMtesting_refactoring()
             close all
             obj.init()
 
@@ -34,22 +34,13 @@ classdef EIFEMtesting < handle
             obj.boundaryConditions = bC;
             obj.createBCapplier()
 
-            tic
             [LHS,RHS,LHSf] = obj.createElasticProblem();
-            toc
             obj.LHS = LHSf;
-            %             LHS = 0.5*(LHS+LHS');
 
             LHSf = @(x) LHS*x;
             RHSf = RHS;
-            rhs2 = repmat(RHS,[1,20,1]);
-            tic
             Usol = LHS\RHS;
-            toc
-%             Ufull = obj.bcApplier.reducedToFullVectorDirichlet(Usol);
-            %obj.plotSolution(Ufull,obj.meshDomain,1,1,0,obj.bcApplier,0)
 
-            RBbasisFree = obj.forAlgebraicMultigrid();
             Mid          = @(r) r;
             Meifem       = obj.createEIFEMPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
 %             MeifemCont   = obj.createEIFEMPreconditionerContinuous(mR,dir,iC,lG,bS,iCR,discMesh,obj.LHS);
@@ -63,43 +54,12 @@ classdef EIFEMtesting < handle
             MiluCG = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
 
             tol = 1e-8;
-            tic
-            x0 = zeros(size(RHSf));
-%             [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
-            toc
-            %             [uCG,residualCG,errCG,errAnormCG] = RichardsonSolver.solve(LHSf,RHSf,x0,P,tol,0.1,Usol);
-
-            tol = 1e-8;
 
             %Mmult = MdirNeu;
             x0 = zeros(size(RHSf));
             r = RHSf - LHSf(x0);
-            Mmult = @(r) Preconditioner.multiplePrec(r,MgaussSeidel,Meifem,MgaussSeidel,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
-% %            [eigVALMA_min,eigVALMA_max] = obj.computeEigs(LHS,Mmult);
-% % %            eigMA = sort([diag(eigVALMA_min);diag(eigVALMA_max)]);
-% %             eigMA = [diag(eigVALMA_min);diag(eigVALMA_max)];
-% %            [eigVALLHS_min,eigVALLHS_max] = obj.computeEigs(LHS);
-% % %            eigLHS = sort([diag(eigVALLHS_min);diag(eigVALLHS_max)]);
-% %             eigLHS = [diag(eigVALLHS_min);diag(eigVALLHS_max)];
-% %             figure
-% %             plot((eigMA),'o','MarkerFaceColor', 'b')
-% %             hold on 
-% %             plot((eigLHS), 'o', 'MarkerFaceColor', 'r')
-% %             xlabel('Number')
-% %             ylabel('Eigenvalue')
-% %             legend({'EIFEM','Coefficient matrix',},'FontSize',12)
-%             set(gca, 'YScale', 'log')
+            Mmult = @(r) Preconditioner.multiplePrec(r,Milu,Meifem,Milu,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
 
-%              Mmult = @(r) Preconditioner.multiplePrec(r,Mid,Meifem,Mid,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
-%             zmult = Mmult(r);
-            
-%             zfull = obj.bcApplier.reducedToFullVectorDirichlet(zmult);
-            %obj.plotSolution(zfull,obj.meshDomaopenin,0,0,2,obj.bcApplier,0)
-
-%             zeifem = Meifem(r);
-%             zfull = obj.bcApplier.reducedToFullVectorDirichlet(zeifem);
-            %obj.plotSolution(zfull,obj.meshDomain,0,0,1,obj.bcApplier,0)
-           % x0 = zmult;
             tic
             %           tau = @(r,A) 1;
             [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
@@ -140,7 +100,7 @@ classdef EIFEMtesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [3 3]; %nx ny
+            obj.nSubdomains  = [15 1]; %nx ny
 %             obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
 %             obj.fileNameEIFEM = 'DEF_auxNew_2.mat';
             obj.fileNameEIFEM = 'DEF_Q4porL_1_raul.mat';
@@ -155,13 +115,11 @@ classdef EIFEMtesting < handle
             [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
         end
 
-
         function mS = createReferenceMesh(obj)
-                mS = obj.createStructuredMesh();
+%                 mS = obj.createStructuredMesh();
             %   mS = obj.createMeshFromGid();
-%             mS = obj.createEIFEMreferenceMesh();
+            mS = obj.createEIFEMreferenceMesh();
         end
-
 
         function mS = createMeshFromGid(obj)
             filename   = 'lattice_ex1';
@@ -171,7 +129,6 @@ classdef EIFEMtesting < handle
         end
 
         function mS = createStructuredMesh(obj)
-
             % Generate coordinates
             x1 = linspace(0,1,2);
             x2 = linspace(0,1,2);
@@ -189,9 +146,6 @@ classdef EIFEMtesting < handle
             filename = obj.fileNameEIFEM;
             load(filename);
             s.coord    = EIFEoper.MESH.COOR;
-            isMin = s.coord==min(s.coord);
-            isMax = s.coord==max(s.coord);
-
             s.connec   = EIFEoper.MESH.CN;
             s.interType = 'QUADRATIC';
             mS         = Mesh.create(s);
@@ -206,30 +160,15 @@ classdef EIFEMtesting < handle
             [mCoarse,~,~] = mRVECoarse.create();
         end
 
-
-
         function cMesh = createReferenceCoarseMesh(obj,mR)
             xmax = max(mR.coord(:,1));
             xmin = min(mR.coord(:,1));
             ymax = max(mR.coord(:,2));
             ymin = min(mR.coord(:,2));
-            coord(1,1) = xmin;
-            coord(1,2) = ymin;
-            coord(2,1) = xmax;
-            coord(2,2) = ymin;
-            coord(3,1) = xmax;
-            coord(3,2) = ymax;
-            coord(4,1) = xmin;
-            coord(4,2) = ymax;
-            %             coord(1,1) = xmax;
-            %             coord(1,2) = ymin;
-            %             coord(2,1) = xmax;
-            %             coord(2,2) = ymax;
-            %             coord(3,1) = xmin;
-            %             coord(3,2) = ymax;
-            %             coord(4,1) = xmin;
-            %             coord(4,2) = ymin;
-            connec = [1 2 3 4];
+            coord(1,1) = xmin;  coord(1,2) = ymin;
+            coord(2,1) = xmax;  coord(2,2) = ymin;
+            coord(3,1) = xmax;  coord(3,2) = ymax;
+            coord(4,1) = xmin;  coord(4,2) = ymax;
             connec = [2 3 4 1];
             s.coord = coord;
             s.connec = connec;
@@ -259,20 +198,6 @@ classdef EIFEMtesting < handle
                     inode=inode + 3;
                 end
             end
-
-%              coord(1,:)  = [ 0.378041543026706 , -0.843442136498517 ];
-%              coord(2,:)  = [ 1.49050445103858  , -0.843442136498517 ];
-%              coord(3,:)  = [ 2.60296735905045  , -0.843442136498517 ];
-%              coord(4,:)  = [ 2.98100890207715  ,  0                 ];
-%              coord(5,:)  = [ 2.98100890207715  ,  0.314540059347181 ];
-%              coord(6,:)  = [ 2.60296735905045  ,  1.1579821958457   ];
-%              coord(7,:)  = [ 1.49050445103858  ,  1.1579821958457   ];
-%              coord(8,:)  = [ 0.378041543026706 ,  1.1579821958457   ];
-%              coord(9,:)  = [ 0                 ,  0.314540059347181 ];
-%              coord(10,:) = [ 0                 ,  0                 ];
-%         
-%          
-                     
         
             connec = [1 2 3 4 5 6 7 8 9 10];
             s.coord = coord;
@@ -280,14 +205,11 @@ classdef EIFEMtesting < handle
             cMesh = Mesh.create(s);
         end
 
-
-
         function createBCapplier(obj)
             s.mesh                  = obj.meshDomain;
             s.boundaryConditions    = obj.boundaryConditions;
             obj.bcApplier           = BCApplier(s);
         end
-
 
         function material = createMaterial(obj,mesh)
             [young,poisson] = obj.computeElasticProperties(mesh);
@@ -371,7 +293,6 @@ classdef EIFEMtesting < handle
             RHSr       = obj.computeForces(lhs,u);
         end
 
-
         function [LHS,LHSr] = computeStiffnessMatrix(obj,mesh,dispFun,mat)
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = mesh;
@@ -410,41 +331,12 @@ classdef EIFEMtesting < handle
             s.nSubdomains = obj.nSubdomains;
             eifem           = EIFEM(s);
 
-
             ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
             ss.EIFEMsolver = eifem;
             ss.bcApplier = obj.bcApplier;
             ss.dMesh     = dMesh;
             ss.type = 'EIFEM';
             eP = Preconditioner.create(ss);
-            Meifem = @(r) eP.apply(r);
-        end
-
-        function Meifem = createEIFEMPreconditionerContinuous(obj,mR,dir,iC,lG,bS,iCR,dMesh,LHS)
-            % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
-            EIFEMfilename = obj.fileNameEIFEM;
-            % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
-            filename        = EIFEMfilename;
-            s.RVE           = TrainedRVE(filename);
-            s.mesh          = obj.createCoarseMesh(mR);
-%            s.mesh          = obj.loadCoarseMesh(mR);
-            s.DirCond       = dir;
-            s.nSubdomains = obj.nSubdomains;
-            s.meshRef = mR;
-            s.meshDomain = obj.meshDomain;
-           
-            eifem           = EIFEM_trying_ideas(s);
-
-
-            ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
-            ss.EIFEMsolver = eifem;
-            ss.bcApplier = obj.bcApplier;
-            ss.dMesh     = dMesh;
-            ss.LHS  = LHS; 
-            ss.type = 'EIFEMcont';
-            ss.nSubdomains = obj.nSubdomains;
-            eP = Preconditioner.create(ss);
-            k  = eP.computeKEIFEMglobal(LHS);
             Meifem = @(r) eP.apply(r);
         end
 
@@ -509,89 +401,9 @@ classdef EIFEMtesting < handle
             MblockD = @(r) M.apply(r);
         end
 
-        function B = forAlgebraicMultigrid(obj)
-            refPoint = (min(obj.meshDomain.coord)+min(obj.meshDomain.coord))/2 ;
-
-            RB = RigidBodyFunction.create(obj.meshDomain,refPoint);
-            xt  = RB.basisFunctions{1}.project('P1');
-            yt  = RB.basisFunctions{2}.project('P1');
-            rot  = RB.basisFunctions{3}.project('P1');
-            BG = [reshape(xt.fValues',[],1),reshape(yt.fValues',[],1),reshape(rot.fValues',[],1)];
-            B = [obj.bcApplier.fullToReducedVectorDirichlet(BG(:,1)),obj.bcApplier.fullToReducedVectorDirichlet(BG(:,2)),...
-                 obj.bcApplier.fullToReducedVectorDirichlet(BG(:,3))]; 
-        end
-
-        function [eigValsMin,eigValsMax ] = computeEigs(obj,A,M)
-             opts = struct();
-                opts.tol = 1e-7;          % Reasonably tight tolerance
-                opts.maxit = 20000;        % More iterations than default
-                opts.issym = true;        % Matrix is symmetric
-                opts.isreal = true;       % Matrix is real
-            if nargin == 2
-
-                % Compute 6 largest-magnitude eigenvalues
-                [eigVecs, eigValsMin] = eigs(A, 6809, 'smallestreal', opts);
-                 [eigVecs, eigValsMax] = eigs(A, 1, 'largestreal', opts);
-
-                % Extract eigenvalues from diagonal
-%                 eigenvalues = diag(eigVals);
-            else
-                for j = 1:size(A,1)
-                    MA(:, j) = M(A(:, j));
-                end
-                try
-                    chol(MA);  % Should succeed if truly SPD
-                    disp('Matrix is numerically SPD.');
-                catch
-                    disp('Matrix is not SPD numerically.');
-                end
-                [eigVecs, eigValsMin] = eigs(MA, 6809, 'smallestreal', opts);
-                eigValsMin = real(eigValsMin);
-                [eigVecs, eigValsMax] = eigs(MA, 1, 'largestreal', opts);
-            end
-
-
-        end
-
-
-%         function plotSolution(obj,x,mesh,row,col,iter,flag)
-%             if nargin <7
-%                 flag =0;
-%             end
-%             %             xFull = bc.reducedToFullVector(x);
-%             if size(x,2)==1
-%                 s.fValues = reshape(x,2,[])';
-%             else
-%                 s.fValues = x;
-%             end
-%             %
-% 
-%             s.mesh = mesh;
-%             s.fValues(:,end+1) = 0;
-%             s.ndimf = 2;
-%             s.order = 'P1';
-%             xF = LagrangianFunction(s);
-%             %             xF.plot();
-%             if flag == 0
-%                 xF.print(['domain',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
-%             elseif flag == 1
-%                 xF.print(['DomainResidual',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
-%             elseif flag == 2
-%                 xF.print(['Residual',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
-%             elseif flag == 3
-%                 xF.print(['domainFine',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
-%             elseif flag == 4
-%                 xF.print(['domainNeuman',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
-%             end
-%             fclose('all');
-%         end
-
-
-
     end
 
     methods (Static, Access = public)
-
 
         function J = computeTotalEnergy(x,A,b)
             J = 0.5*x'*A(x)-b'*x;

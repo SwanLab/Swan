@@ -34,20 +34,23 @@ classdef EIFEMtesting_3D < handle
             obj.boundaryConditions = bC;
             obj.createBCapplier()
 
+            tic
             [LHS,RHS,LHSf] = obj.createElasticProblem();
+            toc
             obj.LHS = LHSf;
             %             LHS = 0.5*(LHS+LHS');
 
             LHSf = @(x) LHS*x;
             RHSf = RHS;
+            rhs2 = repmat(RHS,[1,24,1]);
             tic
             Usol = LHS\RHS;
             toc
             Ufull = obj.bcApplier.reducedToFullVectorDirichlet(Usol);
-            
+
             %obj.plotSolution(Ufull,obj.meshDomain,1,1,0,obj.bcApplier,0)
 
-
+            RBbasisFree  = forAlgebraicMultigrid(obj);
             Mid          = @(r) r;
             Meifem       = obj.createEIFEMPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
             Milu         = obj.createILUpreconditioner(LHS);
@@ -60,10 +63,10 @@ classdef EIFEMtesting_3D < handle
             MiluCG = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
 
             tol = 1e-8;
-            
+
             x0 = zeros(size(RHSf));
             tic
-                        [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
+%             [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
             toc
             %             [uCG,residualCG,errCG,errAnormCG] = RichardsonSolver.solve(LHSf,RHSf,x0,P,tol,0.1,Usol);
 
@@ -123,7 +126,7 @@ classdef EIFEMtesting_3D < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [15 2 2]; %nx ny
+            obj.nSubdomains  = [3 3 1]; %nx ny
             obj.fileNameEIFEM = 'DEF_por3D.mat';
             %             obj.fileNameEIFEM = 'DEF_auxNew_2.mat';
             %obj.fileNameEIFEM = 'DEF_Q4porL_1_raul.mat';
@@ -134,15 +137,15 @@ classdef EIFEMtesting_3D < handle
             s.nsubdomains   = obj.nSubdomains; %nx ny
             s.meshReference = mR;
             s.tolSameNode = obj.tolSameNode;
-            m = MeshCreatorFromRVE3D(s);
+            m = MeshCreatorFromRVE3D.create(s);
             [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
         end
 
 
         function mS = createReferenceMesh(obj)
-%                             mS = obj.createStructuredMesh();
-%             mS = obj.createMeshFromGid();
-                        mS = obj.createEIFEMreferenceMesh();
+            %                             mS = obj.createStructuredMesh();
+            %             mS = obj.createMeshFromGid();
+            mS = obj.createEIFEMreferenceMesh();
         end
 
 
@@ -157,28 +160,28 @@ classdef EIFEMtesting_3D < handle
             maxC= max(s.coord);
             minC = min(s.coord);
             s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
-            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
 
             s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:) =...
-            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
 
             s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:) =...
-            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+                s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
 
             s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:) =...
-            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+                s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
 
             s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:) =...
-            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+                s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
 
             s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:) =...
-            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+                s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
 
             s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:) =...
-            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+                s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
 
             s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:) =...
-            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+                s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
 
             mS = Mesh.create(s);
 
@@ -186,34 +189,34 @@ classdef EIFEMtesting_3D < handle
         end
 
         function mS = createStructuredMesh(obj)
-%             mS = HexaMesh(1,1,1,10,10,10);
+            %             mS = HexaMesh(1,1,1,10,10,10);
             mS = TetraMesh(1,1,1,10,10,10);
             s.coord = mS.coord;
             maxC= max(s.coord);
             minC = min(s.coord);
-             s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
-            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
+                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
 
             s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:) =...
-            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
 
             s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:) =...
-            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+                s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
 
             s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:) =...
-            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+                s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
 
             s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:) =...
-            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+                s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
 
             s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:) =...
-            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+                s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
 
             s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:) =...
-            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+                s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
 
             s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:) =...
-            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+                s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
             s.connec = mS.connec;
             mS = Mesh.create(s);
             u = LagrangianFunction.create(mS,mS.ndim,'P1');
@@ -239,34 +242,34 @@ classdef EIFEMtesting_3D < handle
             maxC= max(s.coord);
             minC = min(s.coord);
             s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
-            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
 
             s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:) =...
-            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
 
             s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:) =...
-            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+                s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
 
             s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:) =...
-            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+                s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
 
             s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:) =...
-            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+                s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
 
             s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:) =...
-            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+                s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
 
             s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:) =...
-            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+                s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
 
             s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:) =...
-            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+                s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
 
             mS = Mesh.create(s);
 
-%             s.connec   = EIFEoper.MESH.CN;
-%             s.interType = 'QUADRATIC';
-%             mS         = Mesh.create(s);
+            %             s.connec   = EIFEoper.MESH.CN;
+            %             s.interType = 'QUADRATIC';
+            %             mS         = Mesh.create(s);
         end
 
         function mCoarse = createCoarseMesh(obj,mR)
@@ -274,7 +277,7 @@ classdef EIFEMtesting_3D < handle
             s.meshReference = obj.createReferenceCoarseMesh(mR);
             %             s.meshReference = obj.loadReferenceCoarseMesh(mR);
             s.tolSameNode   = obj.tolSameNode;
-            mRVECoarse      = MeshCreatorFromRVE3D(s);
+            mRVECoarse      = MeshCreatorFromRVE3D.create(s);
             [mCoarse,~,~] = mRVECoarse.create();
         end
 
@@ -295,7 +298,7 @@ classdef EIFEMtesting_3D < handle
             coord(6,1) = xmin;  coord(6,2) = ymin;   coord(6,3) = zmax;
             coord(7,1) = xmin;  coord(7,2) = ymin;   coord(7,3) = zmin;
             coord(8,1) = xmax;  coord(8,2) = ymin;   coord(8,3) = zmin;
-           
+
             connec = [1 2 3 4 5 6 7 8];
             s.coord = coord;
             s.connec = connec;
@@ -548,6 +551,75 @@ classdef EIFEMtesting_3D < handle
             M = Preconditioner.create(s);
             MblockD = @(r) M.apply(r);
         end
+
+
+        function B = forAlgebraicMultigrid(obj)
+%             refPoint = (min(obj.meshDomain.coord)+max(obj.meshDomain.coord))/2 ;
+             refPoint = min(obj.meshDomain.coord);
+             Bfull = obj.rigidBodyModes3D(obj.meshDomain.coord,refPoint);
+             for i = 1:size(Bfull,2)
+                 B(:,i) = obj.bcApplier.fullToReducedVectorDirichlet(Bfull(:,i));
+             end
+
+
+% 
+%             RB = RigidBodyFunction.create(obj.meshDomain,refPoint);
+%             xt  = RB.basisFunctions{1}.project('P1');
+%             yt  = RB.basisFunctions{2}.project('P1');
+%             rot  = RB.basisFunctions{3}.project('P1');
+%             BG = [reshape(xt.fValues',[],1),reshape(yt.fValues',[],1),reshape(rot.fValues',[],1)];
+%             B = [obj.bcApplier.fullToReducedVectorDirichlet(BG(:,1)),obj.bcApplier.fullToReducedVectorDirichlet(BG(:,2)),...
+%                 obj.bcApplier.fullToReducedVectorDirichlet(BG(:,3))];
+        end
+
+        function R = rigidBodyModes3D(obj,coords, refPoint)
+            % rigidBodyModes3D computes the 6 rigid body modes in 3D
+            %
+            % INPUTS:
+            %   coords    : N x 3 matrix of nodal coordinates [x, y, z]
+            %   refPoint  : 1 x 3 vector [x0, y0, z0] - reference point for rotation
+            %
+            % OUTPUT:
+            %   R         : 3N x 6 matrix where each column is a rigid body mode
+            %               (3 displacements per node)
+
+            % Number of nodes
+            N = size(coords, 1);
+
+            % Initialize rigid body modes matrix
+            R = zeros(3*N, 6);
+
+            % Displacement indices
+            ix = 1:3:3*N;
+            iy = 2:3:3*N;
+            iz = 3:3:3*N;
+
+            % Displacements for translation modes
+            R(ix, 1) = 1; % Translation in x
+            R(iy, 2) = 1; % Translation in y
+            R(iz, 3) = 1; % Translation in z
+
+            % Compute position vectors relative to reference point
+            relCoords = coords - refPoint;
+
+            x = relCoords(:, 1);
+            y = relCoords(:, 2);
+            z = relCoords(:, 3);
+
+            % Displacements for rotation about x-axis
+            R(iy, 4) = -z;
+            R(iz, 4) =  y;
+
+            % Displacements for rotation about y-axis
+            R(ix, 5) =  z;
+            R(iz, 5) = -x;
+
+            % Displacements for rotation about z-axis
+            R(ix, 6) = -y;
+            R(iy, 6) =  x;
+
+        end
+
 
 
         %         function plotSolution(obj,x,mesh,row,col,iter,flag)
