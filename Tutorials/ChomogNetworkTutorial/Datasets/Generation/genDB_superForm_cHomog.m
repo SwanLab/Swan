@@ -27,7 +27,7 @@ nVar_nParam = 100;
 % Data-file storage
 data_filename = 'Tutorials/ChomogNetworkTutorial/Datasets/DB_superForm_cHomog.csv';
 
-% Compute the homogenized tensors
+%% Compute the homogenized tensors
 
 semiAxisArray = linspace(min_semiAxis, max_semiAxis, nVar_semiAxis);
 mParamArray = min_mParam:1:max_mParam;
