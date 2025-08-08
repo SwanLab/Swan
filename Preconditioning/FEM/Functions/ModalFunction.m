@@ -54,7 +54,7 @@ classdef ModalFunction < BaseFunction
             grad = op;
         end
 
-        
+
 
         
     end
@@ -66,7 +66,12 @@ classdef ModalFunction < BaseFunction
             s.fValues      = zeros(nbasis,1);
             s.mesh         = mesh;
             s.basis        = basis;
-            s.functionType = functionType;
+            if size(functionType,2) == 1
+                ftype          = repmat(functionType, 1, nbasis);
+                s.functionType = ftype;
+            else
+                s.functionType = functionType;
+            end            
             MF = ModalFunction(s);
         end
 

@@ -17,8 +17,10 @@ classdef EIFEMnonPeriodic < handle
         bcApplier
         assembler
         dispFun
-        Kmodal
         reactions
+        LHSintegrator
+        material
+        meshRef
     end
 
     methods (Access = public)
@@ -52,12 +54,32 @@ classdef EIFEMnonPeriodic < handle
 
         function init(obj,cParams)
             obj.mesh    = cParams.mesh;
+            obj.meshRef = cParams.meshRef;
             obj.RVE     = cParams.RVE;
 %             obj.Kel     = repmat(obj.RVE.Kcoarse,[1,1,obj.mesh.nelem]);
             obj.DirCond = cParams.DirCond;
-%             obj.dispFun = LagrangianFunction.create(obj.mesh, obj.RVE.ndimf,'P1');
             obj.dispFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim,'P1');
-            
+            obj.LHSintegrator = obj.createLHSintegrator();
+        end
+
+        function LHSint = createLHSintegrator(obj)
+            s.type     = 'ElasticStiffnessMatrixModal';
+            s.mesh     = obj.mesh;
+            s.test     = [];
+            s.trial    = [];
+            s.quadratureOrder = 2;
+            LHSint = LHSIntegrator.create(s);
+        end
+
+        function T = computeDownscalingFunction(obj)
+            nElem = obj.mesh.nelem;
+            functionType = 'P1';
+            for i = 1:nElem
+             Udef    = obj.RVE.Udef;
+             Urb     = obj.RVE.Urb;
+             U       = Urb + Udef; 
+             T = ModalFunction.create(obj.meshRef,U,functionType);
+            end
         end
 
         function LHS = computeLHS(obj)
