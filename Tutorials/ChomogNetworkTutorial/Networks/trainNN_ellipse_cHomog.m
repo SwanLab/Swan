@@ -2,10 +2,6 @@ clc;
 clear;
 close all;
 
-% Handle paths
-addpath(genpath('Tutorials'))
-addpath(genpath('src'))
-
 %% Initialization of hyperparameters
 pol_deg         = 1;
 testratio       = 30;

@@ -3,9 +3,9 @@
 
 close all
 clear
-%clc
+clc
 
-% Set geometrical parameters
+%% Set geometrical parameters
 n_variations = 10;
 min_semiAxis = 0.01;
 max_semiAxis = 0.49;
@@ -37,7 +37,7 @@ for a = 1:length(lengths_array)
 
         % Fetch homogenized constitutive tensor
         Chomog_mdt = femMicro.stateProblem.Chomog;
-        Chomog_tensor = fun_tensor_to_voigt_2D(Chomog_mdt);
+        Chomog_tensor = tensor_to_voigt_2D(Chomog_mdt);
 
         % Store values of interest
         Chomog_array(w, :) = [Chomog_tensor(1, :), Chomog_tensor(2, :), Chomog_tensor(3, :)];

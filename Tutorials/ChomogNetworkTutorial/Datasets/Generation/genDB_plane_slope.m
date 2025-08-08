@@ -4,7 +4,8 @@
 close all
 clear
 clc
-% Set geometrical parameters
+
+%% Set geometrical parameters
 n_variations = 100;
 min_semiAxis = 0.0;
 max_semiAxis = 0.5;

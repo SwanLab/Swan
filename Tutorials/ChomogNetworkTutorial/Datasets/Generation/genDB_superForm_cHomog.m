@@ -5,11 +5,7 @@ close all
 clear
 clc
 
-% Handle paths
-addpath(genpath('Tutorials'))
-addpath(genpath('src'))
-
-% Set geometrical parameters
+%% Set geometrical parameters
 
 sf = superformula_functionality;
 
@@ -99,14 +95,13 @@ for n_sh = 1:nVar_semiAxis
                         
                         % Fetch homogenized constitutive tensor
                         Chomog_mdt = femMicro.stateProblem.Chomog;
-                        Chomog_tensor = fun_tensor_to_voigt_2D(Chomog_mdt);
+                        Chomog_tensor = tensor_to_voigt_2D(Chomog_mdt);
 
                         % Store data
                         Chomog_array(n_counter, :) = [Chomog_tensor(1, 1), ...
                                                       Chomog_tensor(1, 2), ...
                                                       Chomog_tensor(2, 2), ...
                                                       Chomog_tensor(3, 3)];
-                        %Params_array(n_counter, :) = cell2mat(struct2cell(gPar))';
 
                         Params_array(n_counter, :) = [gPar.semiHorizontalAxis, ...
                                                       gPar.semiVerticalAxis, ...
@@ -122,7 +117,7 @@ for n_sh = 1:nVar_semiAxis
                         % plot_superform(gPar);
 
                         % Log generation progress
-                        fun_logProgress(n_counter, nVar_total);
+                        logProgress(n_counter, nVar_total);
                     end
 
                 %end

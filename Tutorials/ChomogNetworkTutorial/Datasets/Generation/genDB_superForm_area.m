@@ -5,11 +5,7 @@ close all
 clear
 clc
 
-% Handle paths
-addpath(genpath('Tutorials'))
-addpath(genpath('src'))
-
-% Set geometrical parameters
+%% Set geometrical parameters
 
 sf = superformula_functionality;
 
@@ -113,13 +109,13 @@ for n_sh = 1:nVar_semiAxis
                                                       gPar.n3];
 
                         % Plot mesh
-                        %close all;
-                        %figure();
-                        %femMicro.mesh.plot();
-                        %plot_superform(gPar);
+                        % close all;
+                        % figure();
+                        % femMicro.mesh.plot();
+                        % plot_superform(gPar);
 
                         % Log generation progress
-                        fun_logProgress(n_counter, nVar_total);
+                        logProgress(n_counter, nVar_total);
                     end
 
                 %end

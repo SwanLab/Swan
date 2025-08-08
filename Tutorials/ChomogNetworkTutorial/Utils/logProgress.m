@@ -1,4 +1,4 @@
-function fun_logProgress(i, nPoints)
+function logProgress(i, nPoints)
 
     increment = 2.5; % Percentage increment
     keyPoints = increment:increment:100;

@@ -9,10 +9,16 @@ load('Tutorials/ChomogNetworkTutorial/Networks/network_ellipse_cHomog.mat')
 
 % Define the problem to solve
 studyCases = {'maxHorzStiffness';
+              'maxVertStiffness';
+              'maxShearStiffness';
               'maxIsoStiffness';
+              'minHorzStiffness';
+              'minVertStiffness';
+              'minShearStiffness';
+              'minIsoStiffness';
               'maxAuxetic'};
 
-studyType = char(studyCases(1));
+studyType = char(studyCases(4));
 
 % Define the problem constraint parameters
 A_ellipse = 0.15^2 * pi;
@@ -27,20 +33,32 @@ costfunction = @(x) cHomogCost(opt, studyType, x);
 nonlinconstraint = @(x) volumeConstraint(A_ellipse, x);
 
 % Set optimization problem options
-options = optimoptions('fmincon', 'StepTolerance', 1.0e-14,'SpecifyObjectiveGradient',true, 'SpecifyConstraintGradient',true, 'Display', 'iter');
+options = optimoptions('fmincon', ...
+                       'StepTolerance', 1.0e-16, ...
+                       'SpecifyObjectiveGradient',true, ...
+                       'SpecifyConstraintGradient',true, ...
+                       'Display', 'iter', ...
+                       'PlotFcns', @optimPlotCustom);
 
 % Call optimizer
 [x_opt, fval] = fmincon(costfunction, x0, [], [], [], [], lower_bounds, upper_bounds, nonlinconstraint, options);
 
 %% Display results
 
+drawRectWithEllipseHole([-0.5, -0.5, 1, 1], [0, 0, x_opt(1), x_opt(2)], studyType)
+
 disp('Optimal solution:');
 disp(x_opt);
-disp('Optimal cost:');
+disp('Optimized cost:');
 disp(fval);
-drawRectWithEllipseHole([-0.5, -0.5, 1, 1], [0, 0, x_opt(1), x_opt(2)])
 
 Chomog = opt.computeOutputValues(x_opt');
+Chomog_Voigt = [Chomog(1), Chomog(2), 0;
+                Chomog(2), Chomog(3), 0;
+                0, 0,         Chomog(4)];
+disp('Homogenized Constitutive Tensor:')
+disp(Chomog_Voigt)
+
 poisson = Chomog(2) / Chomog(1);
 disp('Poisson ratio:')
 disp(poisson)
@@ -67,7 +85,7 @@ function [c, ceq, gradc, gradceq] = volumeConstraint(A_ellipse, x)
     end
 end
 
-function drawRectWithEllipseHole(rect, ellipse)
+function drawRectWithEllipseHole(rect, ellipse, studyType)
 % Draws a black rectangle with a white elliptical hole
 % 
 % rect = [x, y, width, height]    — rectangle lower-left corner and size
@@ -86,6 +104,7 @@ function drawRectWithEllipseHole(rect, ellipse)
     ry = ellipse(4);
     
     % Draw black rectangle
+    figure();
     fill([x, x+w, x+w, x], [y, y, y+h, y+h], 'k');
     hold on;
 

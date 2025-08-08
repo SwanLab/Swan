@@ -1,11 +1,11 @@
-function C_voigt = fun_tensor_to_voigt_2D(C_tensor)
-% Converts a 2x2x2x2 stiffness tensor to a 3x3 Voigt matrix
-%
-% Input:
-%   C_tensor: 4th-order tensor of size (2,2,2,2)
-%
-% Output:
-%   C_voigt: 3x3 Voigt stiffness matrix
+function C_voigt = tensor_to_voigt_2D(C_tensor)
+    % Converts a 2x2x2x2 stiffness tensor to a 3x3 Voigt matrix
+    %
+    % Input:
+    %   C_tensor: 4th-order tensor of size (2,2,2,2)
+    %
+    % Output:
+    %   C_voigt: 3x3 Voigt stiffness matrix
 
     C_voigt = zeros(3,3);
     

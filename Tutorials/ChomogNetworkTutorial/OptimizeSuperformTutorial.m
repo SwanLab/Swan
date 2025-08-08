@@ -22,7 +22,7 @@ studyCases = {'maxHorzStiffness';
 
 studyType = char(studyCases(9));
 
-% Define the problem constraint parameters - X vector: a, n (n1 = n2 = n3)
+% Define the problem constraint parameters - Target Area and X vector: a, n (n1 = n2 = n3)
 A_target = 0.50;
 lower_bounds = [0.2; 2.0];
 upper_bounds = [0.4; 12];
@@ -36,11 +36,15 @@ costfunction = @(x) cHomogCost(opt_cHomog, studyType, x);
 nonlinconstraint = @(x) volumeConstraint(A_target, sf, opt_area, x);
 
 % Set optimization problem options
-options = optimoptions('fmincon', 'StepTolerance', 1.0e-16,'SpecifyObjectiveGradient',true, 'SpecifyConstraintGradient',true, 'Display', 'iter','PlotFcns',@optimPlotCustom);
+options = optimoptions('fmincon', ...
+                       'StepTolerance', 1.0e-16, ...
+                       'SpecifyObjectiveGradient',true, ...
+                       'SpecifyConstraintGradient',true, ...
+                       'Display', 'iter', ...
+                       'PlotFcns', @optimPlotCustom);
 
 % Call optimizer
 [x_opt, fval] = fmincon(costfunction, x0, [], [], [], [], lower_bounds, upper_bounds, nonlinconstraint, options);
-%[x_opt, fval] = fmincon(costfunction, x0, [], [], [], [], lower_bounds, upper_bounds, [], options);
 
 %% Display results
 
@@ -72,89 +76,6 @@ disp('Poisson ratio:')
 disp(poisson)
 
 %% Declare optimization functions
-
-function stop = optimPlotCustom(~,optimValues,state,varargin)
-    
-    stop = false;
-
-    % Persistent variable to store figure handle
-    %persistent hFig ax1 ax2
-
-    switch state
-        case "init"
-            grid minor
-            grid on
-        case "done"
-            yyaxis left
-            ylabel('Cost Function Value')
-            yyaxis right
-            ylabel('Constraint Violation')
-            set(gca, 'YScale', 'log')
-            ax = gca;
-            ax.YAxis(1).Color = 'b';
-            ax.YAxis(2).Color = 'r';
-            xlabel('Iteration Count')
-        otherwise
-            hold on
-            yyaxis right
-            scatter(optimValues.funccount, optimValues.constrviolation, 20, 'red', 'filled', 'd')
-            drawnow
-            yyaxis left
-            scatter(optimValues.funccount, optimValues.fval, 20, 'blue', 'filled', 'd')
-            drawnow
-            hold off
-    end
-end
-
-
-function [J, grad] = cHomogCost(opt_cHomog, type, x)
-
-    % Fetch output and jacobian of the network
-    Y = opt_cHomog.computeOutputValues(x');
-    dY = opt_cHomog.computeGradient(x');
-    
-    % Fetch the Chomog component to optimize
-    C_11 = Y(1);
-    C_12 = Y(2);
-    C_22 = Y(3);
-    C_33 = Y(4);
-    dC_11 = dY(:, 1)';
-    dC_12 = dY(:, 2)';
-    dC_22 = dY(:, 3)';
-    dC_33 = dY(:, 4)';
-
-    % Calculate the cost and gradient
-    switch type
-        case 'maxHorzStiffness'
-            J = 1 / C_11;
-            grad = - 1 / C_11^2 .* dC_11;
-        case 'maxVertStiffness'
-            J = 1 / C_22;
-            grad = - 1 / C_22^2 .* dC_22;
-        case 'maxShearStiffness'
-            J = 1 / C_33;
-            grad = - 1 / C_33^2 .* dC_33;
-        case 'maxIsoStiffness'
-            J = 1 / (C_11 + C_22);
-            grad = - (dC_11 + dC_22) / (C_11 + C_22)^2;
-        case 'minHorzStiffness'
-            J = C_11;
-            grad = dC_11;
-        case 'minVertStiffness'
-            J = C_22;
-            grad = dC_22;
-        case 'minShearStiffness'
-            J = C_33;
-            grad = dC_33;
-        case 'minIsoStiffness'
-            J = C_11 + C_22;
-            grad = dC_11 + dC_22;
-        case 'maxAuxetic'
-            J = C_12 / C_11;
-            grad = dC_12 / C_11 - C_12 / C_11^2 * dC_11;
-    end
-
-end
 
 function [c, ceq, gradc, gradceq] = volumeConstraint(A_target, sf, A_net, x)
 
