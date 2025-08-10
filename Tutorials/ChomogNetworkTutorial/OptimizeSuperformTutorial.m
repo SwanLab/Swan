@@ -5,7 +5,7 @@ clc;
 % Load trained networks
 load('Tutorials/ChomogNetworkTutorial/Networks/network_superForm_area.mat')
 load('Tutorials/ChomogNetworkTutorial/Networks/network_superForm_cHomog.mat')
-sf = superformula_functionality;
+sf = SuperformulaFunctionality;
 
 %% Initialize the optimization problem
 

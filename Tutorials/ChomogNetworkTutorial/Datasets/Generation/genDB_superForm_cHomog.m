@@ -7,7 +7,7 @@ clc
 
 %% Set geometrical parameters
 
-sf = superformula_functionality;
+sf = SuperformulaFunctionality;
 
 max_radius = 0.4;
 min_radius = 0.1;
@@ -95,7 +95,7 @@ for n_sh = 1:nVar_semiAxis
                         
                         % Fetch homogenized constitutive tensor
                         Chomog_mdt = femMicro.stateProblem.Chomog;
-                        Chomog_tensor = tensor_to_voigt_2D(Chomog_mdt);
+                        Chomog_tensor = tensorToVoigt2D(Chomog_mdt);
 
                         % Store data
                         Chomog_array(n_counter, :) = [Chomog_tensor(1, 1), ...

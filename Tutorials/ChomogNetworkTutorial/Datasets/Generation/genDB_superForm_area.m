@@ -7,7 +7,7 @@ clc
 
 %% Set geometrical parameters
 
-sf = superformula_functionality;
+sf = SuperformulaFunctionality;
 
 max_radius = 0.4;
 min_radius = 0.1;

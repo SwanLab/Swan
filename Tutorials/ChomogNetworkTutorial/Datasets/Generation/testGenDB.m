@@ -6,7 +6,7 @@ clear
 clc
 
 %% Set geometrical parameters
-n_variations = 10;
+n_variations = 1;
 min_semiAxis = 0.01;
 max_semiAxis = 0.49;
 
@@ -48,46 +48,3 @@ for a = 1:length(lengths_array)
 
     end
 end
-
-%% Data Storage
-% Create a table with Chomog_array and Sides_array
-%data_table = array2table([Sides_array, Chomog_array], 'VariableNames', {'a', 'b', 'Chomog_00', 'Chomog_01', 'Chomog_02', 'Chomog_10', 'Chomog_11', 'Chomog_12', 'Chomog_20', 'Chomog_21', 'Chomog_22'});
-data_table = array2table([Sides_array, Chomog_array(:, [1, 2, 5, 9])], 'VariableNames', {'a', 'b', 'Chomog_00', 'Chomog_01', 'Chomog_11', 'Chomog_22'});
-
-% Save the table as a CSV file
-writetable(data_table, data_filename);
-
-%% Data plotting
-
-close all
-
-% Reshape the a and b parameters
-var_a = reshape(Sides_array(:, 1), [n_variations, n_variations]);
-var_b = reshape(Sides_array(:, 2), [n_variations, n_variations]);
-
-% Plot every Chomog variable (tensor position)
-hfig = figure;
-tiledlayout(3, 3)
-for i = 1:9
-
-    % Reshape the data into a matrix with positions dependant on a and b
-    var_C = reshape(Chomog_array(:, i), [n_variations, n_variations]);
-    
-    % Plot the data
-    nexttile
-    surf(var_a, var_b, var_C)
-    %shading interp
-    colormap winter
-
-    % Find the indices of the constitutive tensor (must be a simpler way)
-    [C_comp_j, C_comp_i] = ind2sub([3, 3], i);
-
-    % Indicate ellipse parameters - axis
-    xlabel('Sx')
-    ylabel('Sy')
-
-    % Indicate component of constitutive tensor
-    title(['Component ', num2str(C_comp_i), ', ', num2str(C_comp_j),' of constitutive tensor'])
-end
-
-adjust_figure_properties(hfig, 12, 30, 0.7);

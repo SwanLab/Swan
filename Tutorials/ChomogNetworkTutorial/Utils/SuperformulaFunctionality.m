@@ -1,4 +1,4 @@
-classdef superformula_functionality
+classdef SuperformulaFunctionality
     
     methods (Access = public)
 
