@@ -5,12 +5,13 @@ classdef TestingContinuumDamage < handle
     end
 
     properties (Access = private)
-        tol
+        benchmark
+        tolerance
     end
 
     properties (Access = private)
         mesh
-        bc
+        boundaryConditions
         internalDamageVariable
         damageFunctional
     end
@@ -19,55 +20,52 @@ classdef TestingContinuumDamage < handle
 
         function obj = TestingContinuumDamage()
             obj.init();
-            obj.mesh             = obj.createMesh();
-            obj.bc               = obj.createBoundaryConditions();
-            obj.damageFunctional = obj.createContinuumDamageFunctional();
+            obj.mesh                   = obj.createMesh();
+            obj.boundaryConditions     = obj.createBoundaryConditions();
+            obj.damageFunctional       = obj.createContinuumDamageFunctional();
             obj.internalDamageVariable = obj.createInternalDamageVariable();
-            c = obj.createContinumDamageComputer();
-            obj.data = c.compute();
+        end
+
+        function outputData = compute(obj)
+            s.mesh                   = obj.mesh;
+            s.boundaryConditions     = obj.boundaryConditions;
+            s.damageFunctional       = obj.damageFunctional;
+            s.internalDamageVariable = obj.internalDamageVariable;
+            s.tol                    = obj.tolerance;
+            CDComp = ContinuumDamageComputer(s);
+
+            outputData = CDComp.compute();
         end
     end
 
     methods (Access = private)
 
-        function init(obj)
-            close all
-            obj.tol = 1e-6;
+        function init(obj,cParams)
+            obj.benchmark = cParams.benchmark;
         end
 
         function mesh = createMesh(obj)
-                l = 1;
-                w = 1;
-                N = 100;
-                M = 100;
+            if obj.benchmark.mesh.type == "Rectangle"
+                l = obj.benchmark.mesh.length;
+                w = obj.benchmark.mesh.width;
+                N = obj.benchmark.mesh.lN;
+                M = obj.benchmark.mesh.wN;
                 mesh = QuadMesh(l,w,N,M);
-
-                % file = 'SENshear0_0025';
-                % a.fileName = file;
-                % s = FemDataContainer(a);
-                % mesh = s.mesh;
+            else
+                file = obj.benchmark.mesh.type;
+                a.fileName = file;
+                s = FemDataContainer(a);
+                mesh = s.mesh;
+            end
         end
 
         function bc = createBoundaryConditions(obj)
             s.mesh = obj.mesh;
-            s.bcType = 'displacementTraction'; %fiberMatrix
-            s.bcValueSet = [0:1e-3:1];            
-            bc = BcContinuumDamage(s);
+            s.bcType = obj.benchmark.bc.type;
+            s.bcValueSet = obj.benchmark.bc.bcValues;            
+            bc = BcContinuumDamage(s); %% Merge w/ PFBoundaryCreator -> BenchmarkBoundaryCreator
         end
-            % m = obj.r.mesh;
-            % 
-            % coordB = m.computeBaricenter';
-            % ycoord = coordB(:,2);
-            % xcoord = coordB(:,1);
-            % ymiddle = (max(ycoord)-min(ycoord))/2;
-            % xmiddle = (max(xcoord)-min(xcoord))/2;
-            % eps = m.computeMeanCellSize/2.1;
-            % isMiddleY = abs(ycoord - ymiddle) < eps;
-            % isBelowMiddleX = (xcoord - (xmiddle+eps)) < 0;
-            % fV(isMiddleY & isBelowMiddleX) = 100000;
-            % obj.r.setFValues(fV);
-            % obj.rOld.setFValues(fV);
-            % obj.mesh = cParams.mesh;
+
         function r = createInternalDamageVariable(obj)
             s.r0 = obj.createR0();
             s.mesh = obj.mesh;
@@ -76,7 +74,7 @@ classdef TestingContinuumDamage < handle
 
         function sF = createContinuumDamageFunctional(obj)
             s.mesh               = obj.mesh;
-            s.boundaryConditions = obj.bc;
+            s.boundaryConditions = obj.boundaryConditions;
             s.material           = obj.createDamagedMaterial();
             s.quadOrder          = 2;
             s.test               = LagrangianFunction.create(obj.mesh,2,'P1');
@@ -107,7 +105,7 @@ classdef TestingContinuumDamage < handle
         function hL = createHardeningLaw(obj)
             r1     = 20;
             s.r1   = ConstantFunction.create(r1,obj.mesh);
-            s.type = 'Linear';%'Exp'; %'Exp'            
+            s.type = 'Linear';            
             s.H    = -0.5;
             s.A    = 0.1;
             s.r0   = obj.createR0();
@@ -121,14 +119,6 @@ classdef TestingContinuumDamage < handle
             r0 = ConstantFunction.create(r0,obj.mesh);            
         end
 
-        function comp = createContinumDamageComputer(obj)
-            s.mesh               = obj.mesh;
-            s.boundaryConditions = obj.bc;
-            s.tol                = obj.tol;
-            s.damageFunctional   = obj.damageFunctional();
-            s.internalDamageVariable = obj.internalDamageVariable;
-            comp = ContinuumDamageComputer(s);
-        end        
  
     end
 end

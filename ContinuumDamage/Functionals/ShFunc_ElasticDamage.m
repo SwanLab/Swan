@@ -72,6 +72,7 @@ classdef ShFunc_ElasticDamage < handle
             s.mesh = obj.mesh;
             s.test  = obj.test;
             s.trial = obj.test;
+            s.material = obj.material;
             obj.LHS = LHSIntegrator.create(s);
         end
         

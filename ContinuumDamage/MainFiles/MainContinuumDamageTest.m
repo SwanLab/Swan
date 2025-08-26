@@ -1,53 +1,31 @@
-clc;clear;close all
+clc,clear,close all
 
-%load('TestForceTraction1Elem.mat')
-%load('TestDisplacementTraction.mat')
-%cParams.mesh.name = 'CD_Mesh';
+%% GENERAL SETTINGS
+s.monitoring.set = true;
+s.monitoring.type = 'full'; %'reduced'
+s.monitoring.print = false;
 
-% type = '1Dtrac';
-% 
-% switch type
-%     case 'SEMtrac'
-%         cParams.mesh.name = 'PF_SENtraction0_0025';
-%         cParams.bc.bcType = 'SEMtraction'; 
-%     case 'SEMmix'
-%         cParams.mesh.name = 'PF_SENmixed0_0025';
-%         cParams.bc.bcType = 'SEMmixed'; 
-%     case 'SEMshear'
-%         cParams.mesh.name = 'PF_SENshear0_0025';
-%         cParams.bc.bcType = 'SEMshear'; 
-%     case '1Dtrac'
-%         cParams.mesh.meshLength = 1;
-%         cParams.mesh.meshWidth = 1;
-%         cParams.mesh.meshN = 10;
-%         cParams.mesh.meshM = 10;
-%         cParams.bc.bcType = 'displacementTraction';
-% end
+s.benchmark.mesh.length = 10;
+s.benchmark.mesh.width  = 1;
+s.benchmark.mesh.lN     = 100;
+s.benchmark.mesh.wN     = 5;
+s.benchmark.mesh.type   = 'Rectangle';
+
+s.benchmark.bc.type     = 'displacementTraction';
+s.benchmark.bc.bcValues = [0:1e-3:0.01];
+
+s.matInfo.young   = 210;
+s.matInfo.poisson = 0.3;
+
+s.tolerance = 1e-6;
+s.maxIter   = 100;
 
 
+%% RUN
+tester = TestingContinuumDamage(s);
+outputData = tester.compute();
+outputData.inputParameters = s;
 
-
-
-
-
-
-
-% plotClass = ContinuumDamagePlotter(data);
-% 
-% plotClass.plotDisplacementField(); %FALTA POSAR LA H COM A INPUT
-% plotClass.plotDamagesField();
-% 
-% disp = 'disp';
-% dmg = 'max damage';
-% frce = 'force';
-% engy = 'total energy';
-% rVar = 'max r';
-% qVar = 'max q';
-% mat = 'material';
-% 
-% plotClass.plotSelector (disp,dmg,'Damage - Displacement');
-% plotClass.plotSelector (disp,frce,'Force - Displacement');
-% plotClass.plotSelector (disp,engy,'Energy - Displacement');
-% plotClass.plotSelector (rVar,qVar,'q - r');
-% plotClass.plotSelector (rVar,dmg,'Damage-r');
-% plotClass.plotSelector (rVar,frce,'Force-r');
+%% SAVE + PLOT
+%save("~/Documents/GitHub/Swan/SENshear_SquareArea.mat","outputData") %ACTIVATE TO SAVE DATA!
+ContinuumDamagePlotter(outputData);
