@@ -25,22 +25,22 @@ classdef ElasticProblemMicro < handle
         end
 
         function obj = solve(obj)
+            ndim = obj.mesh.ndim;
             LHS = obj.computeLHS();
-            %    oX     = zeros(obj.getDimensions().ndimf,1);
             nBasis = obj.computeNbasis();
-            obj.Chomog = zeros(nBasis, nBasis);
+            obj.Chomog = zeros(ndim, ndim, ndim, ndim);
             for iB = 1:nBasis
-                strainB     = obj.createDeformationBasis(iB);
+                [strainB,v] = obj.createDeformationBasis(iB);
                 RHS         = obj.computeRHS(strainB,LHS);
                 uF{iB}      = obj.computeDisplacement(LHS,RHS,iB,nBasis);
                 strainF{iB} = strainB+SymGrad(uF{iB});
                 stressF{iB} = DDP(obj.material, strainF{iB});
-                Ch(:,iB)    = obj.computeChomog(stressF{iB},iB);
+                ChiB        = obj.computeChomog(stressF{iB});
+                obj.convertChomogToFourthOrder(ChiB,v,iB);
             end
             obj.uFluc  = uF;
             obj.strain = strainF;
             obj.stress = stressF;
-            obj.Chomog = Ch;
         end
 
         function v = computeGeometricalVolume(obj)
@@ -78,12 +78,24 @@ classdef ElasticProblemMicro < handle
             obj.trialFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
         end
 
-       function s = createDeformationBasis(obj,iBasis)
-            nBasis = obj.computeNbasis();
-            sV = zeros(nBasis,1);
-            sV(iBasis) = 1;
-            s = ConstantFunction.create(sV,obj.mesh);
-        end
+       function [s,v] = createDeformationBasis(obj,iBasis)
+           v      = obj.computeBasesPosition();
+           sV     = zeros(obj.mesh.ndim,obj.mesh.ndim);
+           sV(v(iBasis,1),v(iBasis,2)) = 1;
+           sHV = diag(diag(sV));
+           sDV = sV-sHV;
+           sV = sHV+sDV+sDV';
+           s = ConstantFunction.create(sV,obj.mesh);
+       end
+
+       function v = computeBasesPosition(obj)
+           switch obj.mesh.ndim
+               case 2
+                   v = [1,1; 2,2; 1,2];
+               case 3
+                   v = [1,1; 2,2; 3,3; 2,3; 1,3; 1,2];
+           end
+       end
 
         function nBasis = computeNbasis(obj)
             homogOrder = 1;
@@ -139,7 +151,7 @@ classdef ElasticProblemMicro < handle
             s.material = obj.material;
             s.globalConnec = obj.mesh.connec;
             RHSint = RHSIntegrator.create(s);
-            rhs = RHSint.compute(strainBase);
+            rhs = RHSint.compute(strainBase,obj.trialFun);
             R = RHSint.computeReactions(LHS); %%?
         end
 
@@ -152,36 +164,27 @@ classdef ElasticProblemMicro < handle
             obj.lagrangeMultipliers = L;
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             uFun = copy(obj.trialFun);
-            uFun.setFValues(uSplit);            
+            uFun.setFValues(uSplit);
         end
 
-        function Chomog = computeChomog(obj,stress,iBase)
-            if strcmp(obj.solverMode, 'DISP')
-                Chomog = computeChomogFromLagrangeMultipliers(obj,iBase);
+        function Chomog = computeChomog(obj,stress)
+            Chomog = Integrator.compute(stress,obj.mesh,2);
+        end
+
+        function convertChomogToFourthOrder(obj,ChiB,v,iB)
+            Ch = obj.Chomog;
+            v1 = v(iB,1);    v2 = v(iB,2);
+            if v1==v2
+                Ch(:,:,v1,v2) = ChiB;
             else
-                Chomog = Integrator.compute(stress,obj.mesh,2);
+                ChShear        = zeros(size(ChiB));
+                ChShear(v1,v2) = ChiB(v1,v2);
+                Ch(:,:,v1,v2)  = ChShear;
+                ChShear        = zeros(size(ChiB));
+                ChShear(v2,v1) = ChiB(v2,v1);
+                Ch(:,:,v2,v1)  = ChShear;
             end
-        end
-
-        function Chomog = computeChomogFromLagrangeMultipliers(obj,iBase)
-            L = obj.lagrangeMultipliers;
-            nPeriodic = length(obj.boundaryConditions.periodic_leader);
-            nBorderNod = nPeriodic/4; % cause 2D
-            Lx  = sum( L(1:nBorderNod) );
-            Lxy = sum( L(nBorderNod+1:2*nBorderNod));
-            Ly  = sum( L(2*nBorderNod+1 : 3*nBorderNod));
-            Ld = L(3*nBorderNod+1 : end); % dirich (2 per + 6 dir)
-            switch iBase
-                case 1
-                    Lx = Lx + Ld(1) + Ld(2) + Ld(3) + Ld(5);
-                    Ly = Ly + Ld(4) + Ld(7);
-                case 2
-                    Ly = Ly + Ld(1) + Ld(2) + Ld(4) + Ld(6);
-                    Lx = Lx + Ld(3) + Ld(7);
-                case 3
-                    Lxy = Lxy + Ld(1) + Ld(2);
-            end
-            Chomog = [-Lx; -Ly; -Lxy];
+            obj.Chomog = Ch;
         end
 
     end

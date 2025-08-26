@@ -1,46 +1,37 @@
 classdef IsotropicElasticMaterial < Material
     
-    properties (SetAccess = private, GetAccess = private)
+    properties (Access = private)
         young
         poisson
         bulk
         shear
     end
 
-    properties (GetAccess = public, SetAccess = protected)
-        ndimf
+    properties (Access = protected)
+        ndim
     end
     
     methods (Access = protected)
 
         function init(obj,cParams)
-            obj.ndimf    = cParams.ndim;
-            if isfield(cParams,'young')
-                obj.young = cParams.young;
-            end
-            if isfield(cParams,'poisson')
+            obj.ndim    = cParams.ndim;
+            if isfield(cParams,'young') && isfield(cParams,'poisson')
+                obj.young   = cParams.young;
                 obj.poisson = cParams.poisson;
-            end            
-            if isfield(cParams,'bulk')
+                obj.bulk  = obj.computeKappaFromYoungAndPoisson(obj.young,obj.poisson,obj.ndim);
+                obj.shear = obj.computeMuFromYoungAndPoisson(obj.young,obj.poisson);
+            elseif isfield(cParams,'bulk') && isfield(cParams,'shear')
                 obj.bulk  = cParams.bulk;
-            end
-            if isfield(cParams,'shear')
                 obj.shear = cParams.shear;
-            end
-        end
-
-        function [mu,k] = computeShearAndBulk(obj,xV)
-            if isempty(obj.shear) && isempty(obj.bulk)
-                E  = obj.young.evaluate(xV);
-                nu = obj.poisson.evaluate(xV);
-                mu = obj.computeMuFromYoungAndPoisson(E,nu);
-                k  = obj.computeKappaFromYoungAndPoisson(E,nu,obj.ndimf);
             else
-                mu = obj.shear.evaluate(xV);
-                k  = obj.bulk.evaluate(xV); 
+                error('Young/Poisson or Bulk/Shear allowed')
             end
         end
 
+        function [lambda,mu] = computeLameParameters(obj)
+            lambda = obj.computeLambdaFromShearAndBulk(obj.shear,obj.bulk,obj.ndim);
+            mu     = obj.shear;
+        end
 
     end
 
@@ -65,27 +56,15 @@ classdef IsotropicElasticMaterial < Material
         function lambda = computeLambdaFromShearAndBulk(m,k,N)
             lambda = k - 2/N*m;
         end
-    end
-    methods (Access = public)
-            function mu = createShear(obj,mesh)
-            E  = @(xV) obj.young.evaluate(xV);
-            nu = @(xV) obj.poisson.evaluate(xV);
-            s.operation = @(xV) obj.computeMuFromYoungAndPoisson(E(xV),nu(xV));
-            s.ndimf = size(E,1);
-            s.mesh = mesh;
-            mu = DomainFunction(s);
+
+        function k = computeKappaFromShearAndLambda(m,l,N)
+            k = (2/N)*m + l;
         end
 
-        function k = createBulk(obj,mesh)
-            E  = @(xV) obj.young.evaluate(xV);
-            nu = @(xV) obj.poisson.evaluate(xV);
-            N  = obj.ndimf;
-            s.operation  = @(xV) obj.computeKappaFromYoungAndPoisson(E(xV),nu(xV),N);
-            s.ndimf = size(E,1);
-            s.mesh = mesh;
-            k = DomainFunction(s);
+        function mu = computeMuFromKappaAndLambda(k,l,N)
+            mu = (N/2)*(k-l);
         end
-
+        
     end
     
 end

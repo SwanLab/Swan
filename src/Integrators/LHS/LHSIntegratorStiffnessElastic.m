@@ -1,67 +1,43 @@
 classdef LHSIntegratorStiffnessElastic < LHSIntegrator
 
-    methods (Access = public)
+    properties (Access = private)
+        material
+    end
 
+    methods (Access = public)
         function obj = LHSIntegratorStiffnessElastic(cParams)
             obj@LHSIntegrator(cParams)
+            obj.material = cParams.material;
         end
 
-        function LHS = compute(obj,mat)
-            lhs = obj.computeElementalLHS(mat);
+        function LHS = compute(obj)
+            lhs = obj.computeElementalLHS();
             LHS = obj.assembleMatrix(lhs);
         end
-
     end
 
     methods (Access = protected)
-
-        function lhs = computeElementalLHS(obj,mat)
-            xV   = obj.quadrature.posgp;
-            dNdx = obj.test.evaluateCartesianDerivatives(xV);
-            B    = obj.computeB(dNdx);            
-            dV   = obj.mesh.computeDvolume(obj.quadrature);
-            dV   = permute(dV,[3, 4, 2, 1]);
-            Cmat = mat.evaluate(xV);
-            Cmat = permute(Cmat,[1 2 4 3]);
-            Bt   = permute(B,[2 1 3 4]);
-            BtC  = pagemtimes(Bt, Cmat);
-            BtCB = pagemtimes(BtC, B);
-            lhs  = sum(BtCB .* dV, 4);
-        end
-
-    end
-
-    methods (Access = private)
-
-        function B = computeB(obj, dNdx)
-            nGaus = obj.quadrature.ngaus;
-            nNode = size(dNdx, 2);
-            nElem = obj.mesh.nelem;
-            nDim  = obj.mesh.ndim;
-            nDimF = obj.test.ndimf;
-            nDofE = nNode*nDimF;            
-            nVoigt = nDim * (nDim + 1) / 2;
-            j = nDimF * reshape((1:nNode) - 1, 1, nNode, 1);
-            B = zeros(nVoigt, nDofE, nElem, nGaus);
-            d = permute(dNdx, [1, 2, 4, 3]);
-            if nDim == 2
-                B(1, j + 1, :, :) = d(1, :, :, :);
-                B(2, j + 2, :, :) = d(2, :, :, :);
-                B(3, j + 1, :, :) = d(2, :, :, :);
-                B(3, j + 2, :, :) = d(1, :, :, :);
-            elseif nDim == 3
-                B(1, j + 1, :, :) = d(1, :, :, :);
-                B(2, j + 2, :, :) = d(2, :, :, :);
-                B(3, j + 3, :, :) = d(3, :, :, :);
-                B(4, j + 1, :, :) = d(2, :, :, :);
-                B(4, j + 2, :, :) = d(1, :, :, :);
-                B(5, j + 1, :, :) = d(3, :, :, :);
-                B(5, j + 3, :, :) = d(1, :, :, :);
-                B(6, j + 2, :, :) = d(3, :, :, :);
-                B(6, j + 3, :, :) = d(2, :, :, :);
+        function lhs = computeElementalLHS(obj)
+            xV     = obj.quadrature.posgp;
+            dSymN  = ShapeDerSym(obj.test);
+            symN   = dSymN.evaluate(xV);
+            C      = obj.material.evaluate(xV);
+            nnodeE = obj.mesh.nnodeElem;
+            ndim   = obj.mesh.ndim;
+            ndofE  = nnodeE*ndim;
+            nElem  = obj.mesh.nelem;
+            lhs    = zeros(ndofE,ndofE,nElem);
+            dV     = obj.mesh.computeDvolume(obj.quadrature);
+            for i = 1:ndofE
+                for j = 1:ndofE
+                    symTrial   = symN(:,:,:,:,i);
+                    symTest    = symN(:,:,:,:,j);
+                    sigN       = pagetensorprod(C,symTrial,[3 4],[1 2],4,2);
+                    de         = pagetensorprod(symTest,sigN,[1 2],[1 2],2,2);
+                    dK         = de.*dV;
+                    lhs(i,j,:) = squeeze(lhs(i,j,:))' + sum(dK,1);
+                end
             end
         end
-
     end
-
 end

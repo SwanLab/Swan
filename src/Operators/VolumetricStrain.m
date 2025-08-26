@@ -5,7 +5,7 @@ function dom = VolumetricStrain(u)
 end
 
 function fEval = evaluate(u, xV)
-    e     = AntiVoigt(SymGrad(u));
-    ev    = Voigt(Spherical(e));
+    e     = SymGrad(u);
+    ev    = Spherical(e);
     fEval = ev.evaluate(xV);
 end

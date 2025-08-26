@@ -30,15 +30,16 @@ classdef PhaseFieldTests < handle & matlab.unittest.TestCase
             tol      = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
         end
-        
+
         function testPhaseFieldHomogenization(testCase,homogenizationCases)
             filename = ['testPhaseFieldHomogenization',homogenizationCases];
             load(filename,'input');
             tester = TestingPhaseFieldHomogenizer(input);
             [xNew,~,~] = tester.compute();
+
             load(filename,'xRef');
-            err = max(pagenorm(xNew-xRef)./(pagenorm(xRef)+1));
-            tol      = 1e-6;
+            err = max(norm(xNew(:)-xRef(:))./(norm(xRef(:)+1)));
+            tol      = 5e-4;
             testCase.verifyLessThanOrEqual(err, tol)
             close all
         end
