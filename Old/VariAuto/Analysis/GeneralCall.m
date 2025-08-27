@@ -2,6 +2,7 @@
 clc;
 clear;
 close all;
+addpath ../Codes;
 
 %% Initialization of hyperparameters
 pol_deg         = 1;
@@ -13,18 +14,13 @@ batch           = 200;
 hiddenlayers    = [10,15];
 
 %% Loading of files/datasets
-datasets = load("datasets.mat").datasets1;
+datasets = load("../Codes/datasets.mat").datasets1;
 disp('Datsets available:')
 for i = 1:length(datasets)
     fprintf('%d - %s \n',i,datasets(i))
 end
-fileN = 'Iris.csv';%datasets(input('Choose: '));
-
-s.features = 1:2;
-s.fileName        = fileN;
-s.testRatio       = testratio;
-s.polynomialOrder = pol_deg;
-data  = Data(s);
+fileN = datasets(input('Choose: '));
+data  = Data(fileN,testratio,pol_deg);
 
 %% Create Network and trainer Objects
 structure = [data.nFeatures,hiddenlayers,data.nLabels];
@@ -32,26 +28,17 @@ structure = [data.nFeatures,hiddenlayers,data.nLabels];
 % network = Network(data,structure,'-loglikelihood','ReLU','softmax',lambda);
 
 %% Run Optimization Problem
-p.data            = data;
-p.structure       = structure;
-p.optimizerParams.learningRate = learningRate;
-p.costParams.lambda = lambda;
-p.networkParams.hiddenLayers = hiddenlayers;
-
-optProblem   = OptimizationProblem(p);
+optProblem   = optimizationProblem(data,structure,learningRate);
 % opt.optTolerance  = 1*10^-8; opt.maxevals      = 100;
 % opt.maxepochs     = 100    ; opt.earlyStop     = 10;
 % opt.time          = Inf([1,1]); opt.fv         = 10^-4;
 % nplt              = 1;
 % optimizer       = Trainer.create(network,'SGD',learningRate,momentum,batch,opt,'static',nplt);
 
-optProblem.solve();
 %% RUN & Possible functions
-% optProblem.plotCostFnc();
+data.plotCorrMatrix();
+% network.plotBoundary('contour'); Amb errors dins?
 optProblem.plotConections();
-% optProblem.plotBoundary('contour'); NOT WORKING
-% optProblem.plotSurface();
-% optProblem.plotConfusionMatrix();
-
+optProblem.plotConfusionMatrix();
 
 

@@ -2,12 +2,6 @@ clc;
 clear;
 close all;
 
-% Handle paths
-addpath('src/NeuralNetwork')
-addpath('src/Problems/Optimization')
-addpath('Tutorials/ChomogNetworkTutorial')
-addpath('Tutorials/ChomogNetworkTutorial/Datasets')
-
 %% Initialization of hyperparameters
 pol_deg         = 1;
 testratio       = 30;
@@ -24,6 +18,7 @@ s.polynomialOrder = pol_deg;
 s.testRatio       = testratio;
 s.networkParams.hiddenLayers    = hiddenLayers;
 s.optimizerParams.learningRate  = learningRate;
+s.optimizerParams.maxEpochs = 10; % 1000 is the best option, but we use 10 to pass the tutorial quickly
 s.costParams.lambda             = lambda;
 s.costParams.costType           = 'L2';
 
@@ -41,14 +36,14 @@ data   = Data(s);
 s.data = data;
 
 % Train the model
-opt = OptimizationProblem(s);
+opt = OptimizationProblemNN(s);
 opt.solve();
 opt.plotCostFnc();
 
 %% Plot surface
 
 % Load dataset from specified path
-filePath = fullfile('Tutorials', 'ChomogNetworkTutorial', 'Datasets', s.fileName);
+filePath = fullfile('Tutorials', 'ChomogNetworkTutorial', s.fileName);
 tempData = readmatrix(filePath);
 
 % Preallocate and evaluate y_data vector

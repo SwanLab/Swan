@@ -58,6 +58,8 @@ classdef LHSIntegratorFactory < handle
                    obj = LHSintegratorDivergenceMatrix(cParams); 
                case 'DobleDivergenceMatrix'
                    obj = LHSIntegratorDobleWeakDivergence(cParams);
+               case 'NonLinearNS'
+                   obj = LHSintegrator_NonLinearNS(cParams);
            end
        end
    end

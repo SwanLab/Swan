@@ -5,14 +5,10 @@ classdef Cost < handle
         gradient
     end
 
-    properties (SetAccess = private, GetAccess = public)
-        isBatchDepleted = false
-    end
-
     properties (Access = private)
         shapeFunctions
         weights
-        moveBatch
+        Msmooth
     end
 
     properties (Access = private)
@@ -20,23 +16,31 @@ classdef Cost < handle
     end
 
     methods (Access = public)
-
         function obj = Cost(cParams)
             obj.init(cParams);
         end
 
         function computeFunctionAndGradient(obj,x)
-            compFunc = @(shI, x) shI.computeCostAndGradient(x);
-            [jV, djV] = obj.computeValueAndGradient(x, compFunc);
+            nF  = length(obj.shapeFunctions);
+            Jc  = cell(nF,1);
+            dJc = cell(nF,1);
+            for iF = 1:nF
+                shI     = obj.shapeFunctions{iF};
+                [j,dJ]  = shI.computeFunctionAndGradient(x);
+                Jc{iF}  = j;
+                dJc{iF} = obj.mergeGradient(dJ);   
+            end
+            obj.shapeValues = Jc;
+            jV  = 0;
+            djV = zeros(size(dJc{1}));
+            for iF = 1:nF
+                wI  = obj.weights(iF);
+                jV  = jV  + wI*Jc{iF};
+                djV = djV + wI*dJc{iF};
+            end
             obj.value    = jV;
-            obj.gradient = djV;
-        end
-
-        function computeStochasticFunctionAndGradient(obj,x)
-            compFunc = @(shI, x, moveBatch) shI.computeStochasticCostAndGradient(x, moveBatch);
-            [jV, djV] = obj.computeValueAndGradient(x, compFunc);
-            obj.value    = jV;
-            obj.gradient = djV;
+            obj.gradient = obj.Msmooth*djV;
+%             obj.gradient = djV;
         end
 
         function nF = obtainNumberFields(obj)
@@ -56,84 +60,27 @@ classdef Cost < handle
         function j = getFields(obj,i)
             j = obj.shapeValues{i};
         end
-
-        function setBatchMover(obj, moveBatch)
-            obj.moveBatch = moveBatch;
-        end
-
-        function [alarm,minTestError] = validateES(obj,alarm,minTestError)
-            testError = obj.shapeFunctions{1}.getTestError();
-            if testError < minTestError
-                minTestError = testError;
-                alarm = 0;
-            elseif testError == minTestError
-                alarm = alarm + 0.5;
-            else
-                alarm = alarm + 1;
-            end
-        end
-
     end
     
     methods (Access = private)
-
         function init(obj,cParams)
             obj.shapeFunctions = cParams.shapeFunctions;
-            obj.weights        = cParams.weights;
+            obj.weights        = cParams.weights;   
+            obj.Msmooth        = cParams.Msmooth;
         end
-
-        function [jV, djV] = computeValueAndGradient(obj, x, compFunc)
-            nF  = length(obj.shapeFunctions);
-            bDa  = length(obj.shapeFunctions);
-            Jc  = cell(nF,1);
-            dJc = cell(nF,1);
-            for iF = 1:nF
-                shI = obj.shapeFunctions{iF};
-                if nargout(compFunc) == 2
-                    [j,dJ]  = compFunc(shI,x);
-                    bDa(iF) = false;
-                else
-                    [j,dJ,bD]  = compFunc(shI,x,obj.moveBatch);
-                    bDa(iF) = bD;
-                end
-                Jc{iF}  = j;
-                dJc{iF} = obj.mergeGradient(dJ);
-            end
-            
-            jV  = 0;
-            djV = zeros(size(dJc{1}));
-            for iF = 1:nF
-                wI  = obj.weights(iF);
-                jV  = jV  + wI*Jc{iF};
-                djV = djV + wI*dJc{iF};
-            end
-
-            obj.isBatchDepleted = any(bDa);
-            obj.shapeValues = Jc;
-        end
-
     end
 
     methods (Static,Access=private)
-
         function dJm = mergeGradient(dJ)
-            if iscell(dJ)
-                nDV   = length(dJ);
-                nDim1 = length(dJ{1}.fValues);
-                dJm   = zeros(nDV*nDim1,1);
-                for i = 1:nDV
-                    ind1           = 1+nDim1*(i-1);
-                    ind2           = nDim1+nDim1*(i-1);
-                    indices        = ind1:ind2;
-                    dJm(indices,1) = dJ{i}.fValues;
-                end
-            elseif isnumeric(dJ)
-                dJm = dJ;
-            else
-                warning(['Unsupported input type. dJ should be a ' ...
-                    'cell array of structs or a numeric array.']);
+            nDV   = length(dJ);
+            nDim1 = length(dJ{1}.fValues);
+            dJm   = zeros(nDV*nDim1,1);
+            for i = 1:nDV
+                ind1           = 1+nDim1*(i-1);
+                ind2           = nDim1+nDim1*(i-1);
+                indices        = ind1:ind2;
+                dJm(indices,1) = dJ{i}.fValues;
             end
         end
-
     end
 end
