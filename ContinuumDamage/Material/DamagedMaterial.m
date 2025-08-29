@@ -17,7 +17,7 @@ classdef DamagedMaterial < handle
 
         function Csec = obtainTensorSecant(obj,r)
             degFun = obj.computeDegradationFun(r);
-            Csec   = degFun.*obj.baseMaterial;
+            Csec   = Expand(degFun,4).*obj.baseMaterial;
         end
 
         function Ctan = obtainTensorTangent(obj,u,r)
@@ -52,7 +52,7 @@ classdef DamagedMaterial < handle
             epsi   = SymGrad(u);
             sigBar = DDP(epsi,C);
             dDot = obj.damage.computeDerivative(r);
-            dContribution = dDot.*kronProd(sigBar,sigBar,[1 2 3 4]);
+            dContribution = Expand(dDot,4).*kronProd(sigBar,sigBar,[1 2 3 4]);
         end
 
     end 

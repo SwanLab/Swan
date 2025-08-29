@@ -10,7 +10,7 @@ classdef HardeningLawLinear < HardeningLaw
         
         function obj = HardeningLawLinear(cParams)
             obj@HardeningLaw(cParams)
-            obj.initClassParams(cParams);
+            obj.initParams(cParams);
         end
 
         function qFun = computeFunction(obj,internalVariable)
@@ -30,9 +30,9 @@ classdef HardeningLawLinear < HardeningLaw
     
     methods (Access = private)
         
-        function initClassParams(obj,cParams)
-            obj.H        = cParams.H;
-            obj.r1       = cParams.r1;
+        function initParams(obj,cParams)
+            obj.H    = cParams.params.hardening;
+            obj.r1   = cParams.params.r1;
             obj.qInf = obj.computeHardeningLimit();
         end
 

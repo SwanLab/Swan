@@ -8,7 +8,9 @@ classdef TestingContinuumDamage < handle
         benchmark
         matInfo
         damageInfo
+        monitoring
         tolerance
+        maxIter
     end
 
     properties (Access = private)
@@ -20,8 +22,8 @@ classdef TestingContinuumDamage < handle
 
     methods (Access = public)
 
-        function obj = TestingContinuumDamage()
-            obj.init();
+        function obj = TestingContinuumDamage(cParams)
+            obj.init(cParams);
             obj.mesh                   = obj.createMesh();
             obj.boundaryConditions     = obj.createBoundaryConditions();
             obj.internalDamageVariable = obj.createInternalDamageVariable();
@@ -44,7 +46,12 @@ classdef TestingContinuumDamage < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.benchmark = cParams.benchmark;
+            obj.benchmark  = cParams.benchmark;
+            obj.matInfo    = cParams.matInfo;
+            obj.damageInfo = cParams.damageInfo;
+            obj.monitoring = cParams.monitoring;
+            obj.tolerance  = cParams.tolerance;
+            obj.maxIter    = cParams.maxIter;
         end
 
         function mesh = createMesh(obj)
@@ -111,14 +118,6 @@ classdef TestingContinuumDamage < handle
             s.r0   = ConstantFunction.create(r0,obj.mesh);
             s.type = obj.damageInfo.type;   
             s.params = obj.damageInfo.params;
-
-            r1     = obj.damageInfo.params.r1;
-            s.r1   = ConstantFunction.create(r1,obj.mesh);
-            s.H    = obj.damageInfo.params.hardening;
-            s.A    = obj.damageInfo.params.A;
-            s.w1   = obj.damageInfo.params.w1;
-            s.qInf = obj.damageInfo.params.qInf;
-
             hL = HardeningLaw.create(s);
         end          
  

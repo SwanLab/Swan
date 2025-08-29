@@ -7,7 +7,7 @@ classdef HardeningLawExp < HardeningLaw
 
         function obj = HardeningLawExp(cParams)
             obj@HardeningLaw(cParams)
-            obj.initClassParams(cParams)  
+            obj.initParams(cParams)  
         end
 
         function qFun = computeFunction(obj,internalVariable)
@@ -23,9 +23,9 @@ classdef HardeningLawExp < HardeningLaw
     end
     
     methods (Access = private)   
-        function initClassParams(obj,cParams)
-            obj.A = cParams.A;
-            obj.qInf = cParams.qInf;
+        function initParams(obj,cParams)
+            obj.A = cParams.params.A;
+            obj.qInf = cParams.params.qInf;
         end
 
         function q = computeHardening(obj,r)

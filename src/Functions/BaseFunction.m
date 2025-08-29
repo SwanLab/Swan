@@ -287,6 +287,8 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
                 ndimf = a.ndimf;
             elseif isnumeric(a)
                 ndimf = size(a,1);
+            elseif isa(a,'Material')
+                ndimf = 9;
             else
                 ndimf = a.ndimf;
             end
