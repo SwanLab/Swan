@@ -14,7 +14,7 @@ classdef LocalDamageFunctional < handle
             obj.init(cParams)
         end
         
-        function F = computeFunctional(obj,phi,quadOrder)
+        function F = computeCost(obj,phi,quadOrder)
             alphaFun = obj.obtainDissipationFunction(phi,'Function');
 
             int = Integrator.create('Function',obj.mesh,quadOrder);

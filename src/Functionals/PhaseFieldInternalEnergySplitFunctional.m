@@ -13,7 +13,7 @@ classdef PhaseFieldInternalEnergySplitFunctional < handle
             obj.init(cParams)            
         end
         
-        function F = computeFunctional(obj,u,phi,quadOrder)
+        function F = computeCost(obj,u,phi,quadOrder)
             Fbulk  = obj.computeEnergyBulk(u,phi,quadOrder);
             Fshear = obj.computeEnergyShear(u,phi,quadOrder);
             F      = Fbulk + Fshear;

@@ -24,3 +24,4 @@ close all;
 DomainFunTestsSuite;
 PhaseFieldTestsSuite;
 close all;
+HyperelasticityTestsSuite;

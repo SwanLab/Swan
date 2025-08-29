@@ -4,8 +4,6 @@ classdef LHSIntegratorLaplacian < handle
         mesh
         test, trial
         quadrature
-        quadratureOrder
-        material
     end
 
     methods (Access = public)
@@ -25,34 +23,28 @@ classdef LHSIntegratorLaplacian < handle
     methods (Access = protected)
 
         function LHSe = computeElementalLHS(obj)
-            xV = obj.quadrature.posgp;
-            shapesTs = obj.test.evaluateCartesianDerivatives(xV);
-            shapesTr = obj.trial.evaluateCartesianDerivatives(xV);
-            dVolu = obj.mesh.computeDvolume(obj.quadrature);
+            xV     = obj.quadrature.posgp;
+            dNdxTs = obj.test.evaluateCartesianDerivatives(xV);
+            dNdxTr = obj.trial.evaluateCartesianDerivatives(xV);
+            dNTs   = obj.reshapeGradient(dNdxTs);
+            dNTr   = obj.reshapeGradient(dNdxTr);
+            dV     = obj.mesh.computeDvolume(obj.quadrature);
 
-            nGaus = obj.quadrature.ngaus;
-            nNodETs = size(shapesTs,2);
+            nNodETs = size(dNdxTs,2);
             nDofETs = nNodETs*obj.test.ndimf;
-            nNodETr = size(shapesTr,2);
+            nNodETr = size(dNdxTr,2);
             nDofETr = nNodETr*obj.trial.ndimf;
-            nElem = size(dVolu,2);
+            nElem   = size(dV,2);
 
-%             material = obj.material;
-            
-            Cmat = obj.material.nu;
-            
             lhs = zeros(nDofETs, nDofETr, nElem);
-            for iGaus = 1:nGaus
-                dNdxTs = squeeze(shapesTs(:,:,iGaus,:));
-                dNdxTr = squeeze(shapesTr(:,:,iGaus,:));
-                BmatTs = obj.computeB(dNdxTs);
-                BmatTr = obj.computeB(dNdxTr);
-                dV(1,1,:) = dVolu(iGaus,:)';
-                Bt   = permute(BmatTs,[2 1 3]);
-                BtC  = pagemtimes(Bt,Cmat);
-                BtCB = pagemtimes(BtC, BmatTr);
-                %BtB = pagemtimes(Bt,BmatTr);
-                lhs = lhs + bsxfun(@times, BtCB, dV);
+            for i = 1:nDofETs
+                for j = 1:nDofETr
+                    dNi   = squeezeParticular(dNTs(:,:,i,:,:),3);
+                    dNj   = squeezeParticular(dNTr(:,:,j,:,:),3);
+                    dNiNj = pagetensorprod(dNi,dNj,[1 2],[1 2],2,2);
+                    dK    = dNiNj.*dV;
+                    lhs(i,j,:) = squeeze(lhs(i,j,:))' + sum(dK,1);
+                end
             end
             LHSe = lhs;
         end
@@ -65,7 +57,6 @@ classdef LHSIntegratorLaplacian < handle
             obj.mesh  = cParams.mesh;
             obj.test  = cParams.test;
             obj.trial = cParams.trial;
-            obj.material = cParams.material;
         end
 
         function createQuadrature(obj)
@@ -76,17 +67,14 @@ classdef LHSIntegratorLaplacian < handle
             obj.quadrature = quad;
         end
 
-        function B = computeB(obj,dNdx)
-            nunkn = size(dNdx,1);
-            nnode = size(dNdx,2);
-            nelem = size(dNdx,3);
-            B = zeros(4,nnode*nunkn,nelem);
-            for i = 1:nnode
-                j = nunkn*(i-1)+1;
-                B(1,j,:)   = dNdx(1,i,:);
-                B(2,j+1,:) = dNdx(1,i,:);
-                B(3,j,:)   = dNdx(2,i,:);
-                B(4,j+1,:) = dNdx(2,i,:);
+        function dN = reshapeGradient(obj,dNdx)
+            ndim   = obj.mesh.ndim;
+            ndofE  = obj.test.nDofsElem;
+            nGauss = obj.quadrature.ngaus;
+            nElem  = obj.mesh.nelem;
+            dN  = zeros(ndim,ndim,ndofE,nGauss,nElem);
+            for i=1:ndim
+                dN(i,:,i:ndim:end,:,:) = dNdx;
             end
         end
 
