@@ -17,7 +17,7 @@ classdef TestingContinuumDamage < handle
         mesh
         boundaryConditions
         internalDamageVariable
-        damageFunctional
+        functional
     end
 
     methods (Access = public)
@@ -27,16 +27,18 @@ classdef TestingContinuumDamage < handle
             obj.mesh                   = obj.createMesh();
             obj.boundaryConditions     = obj.createBoundaryConditions();
             obj.internalDamageVariable = obj.createInternalDamageVariable();
-            obj.damageFunctional       = obj.createContinuumDamageFunctional();
+            obj.functional             = obj.createContinuumDamageFunctional();
             
         end
 
         function outputData = compute(obj)
             s.mesh                   = obj.mesh;
             s.boundaryConditions     = obj.boundaryConditions;
-            s.damageFunctional       = obj.damageFunctional;
             s.internalDamageVariable = obj.internalDamageVariable;
-            s.tol                    = obj.tolerance;
+            s.functional             = obj.functional;
+            s.tolerance              = obj.tolerance;
+            s.maxIter                = obj.maxIter;
+            s.monitoring             = obj.monitoring;
             CDComp = ContinuumDamageComputer(s);
 
             outputData = CDComp.compute();
@@ -61,6 +63,10 @@ classdef TestingContinuumDamage < handle
                 N = obj.benchmark.mesh.lN;
                 M = obj.benchmark.mesh.wN;
                 mesh = QuadMesh(l,w,N,M);
+
+                mesh.coord(56,2) = 5e-2;
+                mesh.coord(66,2) = 9.5e-1;
+                mesh.plot
             else
                 file = obj.benchmark.mesh.type;
                 a.fileName = file;
@@ -70,10 +76,9 @@ classdef TestingContinuumDamage < handle
         end
 
         function bc = createBoundaryConditions(obj)
-            s.mesh = obj.mesh;
-            s.bcType = obj.benchmark.bc.type;
-            s.bcValueSet = obj.benchmark.bc.bcValues;            
-            bc = BcContinuumDamage(s); %% Merge w/ PFBoundaryCreator -> BenchmarkBoundaryCreator
+            s.type     = obj.benchmark.bc.type;
+            s.bcValues = obj.benchmark.bc.bcValues;            
+            bc = BoundaryCreator(obj.mesh,s);
         end
 
         function r = createInternalDamageVariable(obj)
@@ -89,7 +94,7 @@ classdef TestingContinuumDamage < handle
             s.material           = obj.createDamagedMaterial();
             s.quadOrder          = 2;
             s.test               = LagrangianFunction.create(obj.mesh,2,'P1');
-            functional = ShFunc_ContinuumDamage(s);
+            functional = ContinuumDamageFunctional(s);
         end        
     
         function dM = createDamagedMaterial(obj)

@@ -3,89 +3,39 @@ classdef ContinuumDamageComputer < handle
     properties (Access = private)
         mesh
         boundaryConditions
-        solverParams
-        tolerance
-        quadOrder
         internalDamageVariable
+        functional
+        tolerance
+        maxIter
     end
 
     properties (Access = private)
-        damageFunctional
-        tau = 2.5e-3
-        limIter = 100
+        monitor
+        optimizer
+        updater
     end
 
     methods (Access = public)
         function obj = ContinuumDamageComputer(cParams)
             obj.init(cParams)
+            obj.setMonitoring(cParams);
+            obj.setOptimizer(cParams);
         end
 
-        function data = compute(obj)
+        function outputData = compute(obj)
             u = LagrangianFunction.create(obj.mesh,2,'P1');
-            data = {};
+            r = obj.internalDamageVariable;
+            cost = 0;
 
-            nSteps = length(obj.boundaryConditions.bcValueSet);
+            nSteps = length(obj.boundaryConditions.bcValues);
             for iStep = 1:nSteps
-                fprintf('Step: %d / %d \n',iStep,nSteps);
-                bc = obj.updateBoundaryConditions(iStep);
-                u.setFValues(obj.updateInitialDisplacement(bc,u));
-
-                err = 1; iter = 1;
-                while (err >= obj.tolerance && iter < obj.limIter)
-                  
-                    tauEps = obj.damageFunctional.computeTauEpsilon(u);
-                    obj.internalDamageVariable.update(tauEps);
-
-                    r = obj.internalDamageVariable;
-
-                    [res]       = obj.damageFunctional.computeResidual(u,r,bc);
-                    [dres,Ksec] = obj.damageFunctional.computeDerivativeResidual(u,r,bc);
-                    [uNew,uVec] = obj.computeDisplacement(dres,res,u,bc);
-                    u.setFValues(uNew);
-                    
-                    err = norm(res);
-                    fprintf('Error: %d;     Iter: %d \n',err,iter);
-
-                   % tauEps = obj.damageFunctional.computeTauEpsilon(u);
-                   % obj.internalDamageVariable.update(tauEps);
-                   % r = obj.internalDamageVariable;
-
-                  % [res]  = obj.damageFunctional.computeResidual(u,r,bc);
-                  %  err = norm(res);
-                  %  fprintf('Error: %d;     Iter: %d \n',err,iter);
-                   
-                    iter = iter+1;
-
-                end
-                if (iter >= obj.limIter)
-                    fprintf (2,'NOT CONVERGED FOR STEP %d\n',iStep);
-                end
-                obj.internalDamageVariable.updateRold();
-                [data,dmgFun,rFun,qFun] = obj.getData(data,iStep,Ksec,uVec,u,bc,iter);
-
-          
-
-            if mod(iStep,10)==0 
-            dmgDomainFun = obj.damageFunctional.getDamage(obj.internalDamageVariable);
-            dmgFun = dmgDomainFun.project('P0');
-            dmgFun.plot
-            colorbar
-            clim([0 1])
-
-            figure(100)
-            drawnow
-            plot(data.displacement.value,data.reaction,'-+')
+                [u,bc] = obj.preprocess(iStep,nSteps,u);
+                [u,r,F,cost,iterMax] = obj.updater.update(u,r,bc,cost);
+                obj.postprocess(iStep,u,r,F,cost,iterMax)
             end
-            
-            data.displacement.field = u;
-            data.damage.field = dmgFun;
-            data.r.field = rFun;
-            data.q.field = qFun;
-            
-            end
-            
-
+            outputData = obj.monitor.data;
         end
+        
     end
 
     methods (Access = private)
@@ -93,17 +43,34 @@ classdef ContinuumDamageComputer < handle
         function init(obj,cParams)
             obj.mesh               = cParams.mesh;
             obj.boundaryConditions = cParams.boundaryConditions;
-            obj.tolerance          = cParams.tol;
-            obj.damageFunctional   = cParams.damageFunctional;
             obj.internalDamageVariable = cParams.internalDamageVariable;
-            obj.tau = 150;
+            obj.functional         = cParams.functional;
+            obj.tolerance          = cParams.tolerance;
+            obj.maxIter            = cParams.maxIter;
         end
 
-        function [bc] = updateBoundaryConditions (obj,i)
-            bc = obj.boundaryConditions.nextStep(i);
+        function setMonitoring(obj,cParams)
+            s.shallDisplay   = cParams.monitoring.set;
+            s.shallPrintInfo = cParams.monitoring.print;
+            s.fun            = LagrangianFunction.create(obj.mesh,1,'P1');
+            obj.monitor = ContinuumDamageMonitoring(s);
         end
 
-        function u = updateInitialDisplacement(obj,bc,uOld)
+        function setOptimizer(obj,cParams)
+            s.functional = obj.functional;
+            s.monitor    = obj.monitor;
+            s.tolerance  = cParams.tolerance;
+            s.maxIter    = cParams.maxIter;
+            obj.updater  = ContinuumDamageDisplacementUpdater(s);
+        end
+
+        function [u,bc] = preprocess(obj,iStep,nSteps,u)
+            obj.monitor.printStep(iStep,nSteps)
+            bc = obj.boundaryConditions.nextStep();
+            u.setFValues(obj.updateInitialDisplacement(u,bc));
+        end
+
+        function u = updateInitialDisplacement(obj,uOld,bc)
             restrictedDofs = bc.dirichlet_dofs;
             if isempty(restrictedDofs)
                 u = uOld;
@@ -117,57 +84,51 @@ classdef ContinuumDamageComputer < handle
             end
         end
 
-        function [uOut,uOutVec] = computeDisplacement(obj,LHS,RHS,uIn,bc)
-            uInVec = reshape(uIn.fValues',[uIn.nDofs 1]);
-            uOutVec = uInVec;
-
-            uInFree = uInVec(bc.free_dofs);
-            uOutFree = obj.updateWithNewton(LHS,RHS,uInFree);
-            %uOutFree = obj.updateWithGradient(RHS,uInFree);
-            uOutVec(bc.free_dofs) = uOutFree;
-            uOut = reshape(uOutVec,[flip(size(uIn.fValues))])';
+        function postprocess(obj,iStep,uFun,r,F,cost,iterMax)
+            [fVal,uVal] = obj.computeTotalReaction(iStep,F,uFun);
+            [dmgFun,qFun,rFun] = obj.computeDamageVariables(uFun,r);
+            obj.printAndSave(iStep,uFun,dmgFun,qFun,rFun,uVal,fVal,cost(end),iterMax);
         end
 
-        function xNew = updateWithGradient(obj,RHS,x)
-            deltaX = -obj.tau.*RHS;
-            xNew = x + deltaX;
-        end
-
-        function xNew = updateWithNewton(~,LHS,RHS,x)
-            deltaX = -LHS\RHS;
-            xNew = x + deltaX;
-        end
-
-        function [data,dmgFun,rFun,qFun] = getData(obj,data,i,Ksec,uVec,uFun,bc,iter)
-            data.displacement.value(i)  = obj.boundaryConditions.bcValueSet(i);
-
-            dmgDomainFun = obj.damageFunctional.getDamage(obj.internalDamageVariable);
-            dmgFun = dmgDomainFun.project('P0');
-            data.damage.maxValue(i)  = max(dmgFun.fValues);
-            data.damage.minValue(i)  = min(dmgFun.fValues);
-
-            qDomainFun = obj.damageFunctional.getHardening(obj.internalDamageVariable);
-            qFun = qDomainFun.project('P0');
-            data.q.maxValue(i) = max(qFun.fValues);
-            data.q.minValue(i) = min(qFun.fValues);
-            data.numIters(i,:) = [i,iter];
-
-            r = obj.internalDamageVariable.r;
-            rFun = r.project('P0');
-            data.r.maxValue(i) = max(rFun.fValues);
-            data.r.minValue(i) = min(rFun.fValues);
-
-            data.reaction(i)  = obj.computeTotalReaction(Ksec,uVec);
-            [data.totalEnergy(i)] = obj.damageFunctional.computeEnergy(uFun,obj.internalDamageVariable,bc);
-        end
-
-        function totReact = computeTotalReaction(obj,LHS,u)
-            F = LHS*u;
-            isInDown =  (abs(obj.mesh.coord(:,2) - min(obj.mesh.coord(:,2)))< 1e-12);
+        function [fVal,uVal] = computeTotalReaction(obj,step,F,u)
+            UpSide  = max(obj.mesh.coord(:,2));
+            isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;
-            ReactX = sum(F(2*nodes(isInDown)-1));
-            ReactY = sum(F(2*nodes(isInDown)));
-            totReact = sqrt(ReactX^2+ReactY^2);
+            if obj.boundaryConditions.type == "forceTraction"
+                uVal = norm(mean(u.fValues(nodes(isInUp),2)));
+                fVal = obj.boundaryConditions.bcValues(step);
+            else
+                ReactX = sum(F(2*nodes(isInUp)-1));
+                ReactY = sum(F(2*nodes(isInUp)));
+                fVal = sqrt(ReactX^2+ReactY^2);
+                uVal = obj.boundaryConditions.bcValues(step);
+            end
+        end
+
+        function [dmgFun,qFun,rFun] = computeDamageVariables(obj,u,r)
+            [dmgFun,sig] = obj.functional.getDamage(u,r);
+            dmgFun = dmgFun.project('P1');
+            sig.plot
+            qFun   = obj.functional.getHardening(r).project('P1');
+            rFun   = obj.internalDamageVariable.r.project('P1');
+        end
+
+        function printAndSave(obj,step,uFun,dmgFun,qFun,rFun,uVal,fVal,energy,iterMax)
+            dmgMax = max(dmgFun.fValues); qMax = max(qFun.fValues); rMax = max(rFun.fValues);
+            obj.monitor.updateAndRefresh(step,{[fVal;uVal],[dmgMax;uVal],[qMax,rMax],[],[dmgFun.fValues],[iterMax]});
+            obj.saveData(step,uFun,dmgFun,qFun,rFun,uVal,fVal,energy,iterMax);
+        end
+
+        function saveData(obj,step,uFun,dmgFun,qFun,rFun,uVal,fVal,energy,iterMax)
+            s.uFun    = uFun;
+            s.uVal    = uVal;
+            s.fVal    = fVal;
+            s.dmgFun  = dmgFun;
+            s.qFun    = qFun;
+            s.rFun    = rFun;
+            s.energy  = energy;
+            s.numIter = iterMax;
+            obj.monitor.saveData(step,s)
         end
 
     end

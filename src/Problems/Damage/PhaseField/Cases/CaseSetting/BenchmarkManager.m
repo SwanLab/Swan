@@ -30,7 +30,7 @@ classdef BenchmarkManager < handle
                     s = FemDataContainer(a);
                     mesh = s.mesh;
             end
-            bc = PhaseFieldBoundaryCreator(mesh,cParams);
+            bc = BoundaryCreator(mesh,cParams);
         end
 
     end

@@ -1,4 +1,4 @@
-classdef ShFunc_ElasticDamage < handle
+classdef ContinuumDamageInternalEnergyFunctional < handle
 
     properties (Access = private)
         material
@@ -7,16 +7,14 @@ classdef ShFunc_ElasticDamage < handle
     end
 
     properties (Access = private)
-        LHS
         RHS
         test
     end
 
     methods (Access = public)
 
-        function obj = ShFunc_ElasticDamage(cParams)
+        function obj = ContinuumDamageInternalEnergyFunctional(cParams)
             obj.init(cParams);
-            %obj.createLHSIntegrator();
             obj.createRHSIntegrator();
         end
 
@@ -27,6 +25,12 @@ classdef ShFunc_ElasticDamage < handle
             en  = DDP(sig,eps);
             int = Integrator.compute(en,obj.mesh,obj.quadOrder);
             energy = 0.5*int;
+        end
+
+        function sig = computeStress(obj,u,r)
+            C   = obj.material.obtainTensorSecant(r);
+            eps = SymGrad(u);
+            sig = DDP(eps,C);
         end
 
         function res = computeResidual(obj,u,r)
