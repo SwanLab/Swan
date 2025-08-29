@@ -5,6 +5,7 @@ classdef GeometricalFunction < handle
     end
 
     methods (Access = public)
+
         function obj = GeometricalFunction(cParams)
             obj.selectHandle(cParams);
         end
@@ -15,24 +16,15 @@ classdef GeometricalFunction < handle
             s.mesh    = m;
             aFun      = AnalyticalFunction(s);
             ls        = aFun.project('P1');
-
-            % sF.trial = LagrangianFunction.create(m,1,'P1');
-            % sF.mesh = m;
-            % filter = FilterLump(sF);
-            % ls = filter.compute(aFun,10);
-
         end
 
-        function fxV = evaluate(obj,xV,m)
-            s.fHandle = obj.fHandle;
-            s.ndimf   = 1;
-            s.mesh    = m;
-            aFun      = AnalyticalFunction(s);
-            fxV       = aFun.evaluate(xV);
+        function f = getHandle(obj)
+            f = obj.fHandle;
         end
     end
 
     methods (Access = private)
+
         function selectHandle(obj,cParams)
             x1 = @(x) x(1,:,:);
             x2 = @(x) x(2,:,:);
@@ -231,26 +223,6 @@ classdef GeometricalFunction < handle
                     fH = @(x) obj.createNacaHole(x1(x),x2(x),cParams);
                     obj.fHandle = fH;
 
-                case 'NacaInterior'
-                    fH = @(x) obj.createNaca2(x1(x),x2(x),cParams);
-                    obj.fHandle = fH;
-
-                case 'NacaHole'
-                    s      = cParams;
-                    s.type = 'NacaInterior';
-                    obj.computeInclusion(s);
-                case 'LevelSetTest'
-                    fH = @(x) obj.createLSTest(x1(x),x2(x),cParams);
-                    obj.fHandle = fH;
-
-                case 'LevelSetYL'
-                    fH = @(x) obj.createLSYL(x1(x),x2(x),cParams);
-                    obj.fHandle = fH;
-
-                case 'LevelSetYU'
-                    fH = @(x) obj.createLSYU(x1(x),x2(x),cParams);
-                    obj.fHandle = fH;
-
                 case 'Hexagon'
                     l  = cParams.radius;
                     n  = cParams.normal;
@@ -296,13 +268,6 @@ classdef GeometricalFunction < handle
             d = (normVn/(l*(sqrt(3)/2)))-1;
         end
 
-    end
-
-
-
-
-    methods (Access = private, Static)
-
         function fV = createNacaHole(x,y,s)
             c   = s.chord;
             p   = s.p;
@@ -310,10 +275,10 @@ classdef GeometricalFunction < handle
             t   = s.t;
             AoA = deg2rad(s.AoA);
         
-            x0     = s.xLE;
-            y0     = s.yLE/c;
-            offsetX  = (x - x0)/c;
-            offsetY  = y/c - y0;
+            x0      = s.xLE;
+            y0      = s.yLE/c;
+            offsetX = (x - x0)/c;
+            offsetY = y/c - y0;
 
             xNaca    = offsetX.*cos(AoA) - offsetY.*sin(AoA);
             yNaca    = offsetX.*sin(AoA) + offsetY.*cos(AoA);
@@ -340,181 +305,6 @@ classdef GeometricalFunction < handle
             f(:,:,:,4)   = -xNaca;
             
             fV = -max(f,[],4);       
-        end
-
-
-        function fV = createNaca2(x,y,s)
-
-            % STEP 1. Define Naca level-sets
-            c   = s.chord;
-            p   = s.p;
-            m   = s.m;
-            t   = s.t;
-            AoA = deg2rad(s.AoA);
-        
-            x0     = s.xLE;
-            y0     = s.yLE/c;
-            offsetX  = (x - x0)/c;
-            offsetY  = y/c - y0;
-
-            xNaca    = offsetX.*cos(AoA) - offsetY.*sin(AoA);
-            yNaca    = offsetX.*sin(AoA) + offsetY.*cos(AoA);
-        
-            yc   = (xNaca>=0 & xNaca<=p).*(m./p^2.*(2*p*xNaca-xNaca.^2))+...
-                    (xNaca>p & xNaca<=1).*(m./(1-p)^2.*((1-2*p)+2*p*xNaca-xNaca.^2));
-            yt   = (xNaca>=0 & xNaca<=1).*(5*t*(0.2969*sqrt(xNaca)-0.1260*xNaca-0.3516*xNaca.^2+0.2843*xNaca.^3-0.1036*xNaca.^4));
-            dydx = (xNaca>=0 & xNaca<=p).*(2*m/p^2.*(p-xNaca))+...
-                    (xNaca>p & xNaca<=1).*(2*m/(1-p)^2.*(p-xNaca));
-        
-            theta = atan(dydx);
-            yu    = yc + yt.*cos(theta);
-            yl    = yc - yt.*cos(theta);
-            
-            f(:,:,:,1)   = yl - yNaca;
-            f(:,:,:,2)   = yNaca - yu;
-            f(:,:,:,3)   = xNaca - 1; 
-            f(:,:,:,4)   = -xNaca;
-            
-            % STEP 2. Make +/- signs more sparse
-            f(:,:,:,1)   = -50.^(-3*f(:,:,:,1)) + 1;
-            f(:,:,:,2)   = -50.^(-3*f(:,:,:,2)) + 1;
-            f(:,:,:,3)   = -50.^(-18*f(:,:,:,3)) + 1;
-            f(:,:,:,4)   = -50 .^(-18*f(:,:,:,4)) + 1;
-            % f(:,:,:,1)   = -exp(-10*f(:,:,:,1)) + 1;
-            % f(:,:,:,2)   = -exp(-10*f(:,:,:,2)) + 1;
-            % f(:,:,:,3)   = -exp(-10*f(:,:,:,3)) + 1;
-            % f(:,:,:,4)   = -exp(-10*f(:,:,:,4)) + 1;
-            
-            % STEP 3. Smooth the max function
-            
-            % minF = min(f(:));
-            % f = f - minF; 
-            % 
-            % p = 9;
-            % 
-            % fV = (f(:,:,:,1).^p + f(:,:,:,2).^p + f(:,:,:,3).^p + f(:,:,:,4).^p).^(1/p) + minF;
-            
-
-            % alpha = 200;
-            % 
-            % fVUp   = 0;
-            % fVDown = 0;
-            % 
-            % for i = 1:4
-            % 
-            %     fun      = f(:,:,:,i);
-            %     fVUp   = fVUp + fun.*exp(alpha*fun);
-            %     fVDown = fVDown + exp(alpha*fun); 
-            % 
-            % end
-
-            % fV = fVUp./fVDown;
-
-            alpha = 2;
-            fV = 1/alpha*log(exp(alpha*f(:,:,:,1)) + exp(alpha*f(:,:,:,2)) + exp(alpha*f(:,:,:,3)) + exp(alpha*f(:,:,:,4)));
-
-
-            % alpha = 200;
-            % fV = 1/alpha*log(1/4*(exp(alpha*f(:,:,:,1)) + exp(alpha*f(:,:,:,2)) + exp(alpha*f(:,:,:,3)) + exp(alpha*f(:,:,:,4))));
-
-
-            % fV = max(f,[],4);     %Here no "-" sign is needed since we differentiate the inner naca from the hole naca
-
-        end
-
-        function fV = createLSTest(x,y,s)
-
-            c   = s.chord;
-            p   = s.p;
-            m   = s.m;
-            t   = s.t;
-            AoA = deg2rad(s.AoA);
-        
-            x0     = s.xLE;
-            y0     = s.yLE/c;
-            offsetX  = (x - x0)/c;
-            offsetY  = y/c - y0;
-
-            xNaca    = offsetX.*cos(AoA) - offsetY.*sin(AoA);
-            yNaca    = offsetX.*sin(AoA) + offsetY.*cos(AoA);
-
-            yc   = (xNaca>=0 & xNaca<=p).*(m./p^2.*(2*p*xNaca-xNaca.^2))+...
-                    (xNaca>p & xNaca<=1).*(m./(1-p)^2.*((1-2*p)+2*p*xNaca-xNaca.^2));
-            yt   = (xNaca>=0 & xNaca<=1).*(5*t*(0.2969*sqrt(xNaca)-0.1260*xNaca-0.3516*xNaca.^2+0.2843*xNaca.^3-0.1036*xNaca.^4));
-            dydx = (xNaca>=0 & xNaca<=p).*(2*m/p^2.*(p-xNaca))+...
-                    (xNaca>p & xNaca<=1).*(2*m/(1-p)^2.*(p-xNaca));
-
-
-            theta = atan(dydx);
-            yu    = yc + yt.*cos(theta);
-            yl    = yc - yt.*cos(theta);
-
-            f(:,:,:,1)   = yl - yNaca;
-            f(:,:,:,2)   = yNaca - yu;
-            f(:,:,:,3)   = xNaca - 1; 
-            f(:,:,:,4)   = -xNaca;
-
-            fV = -max(f,[],4);
-        end
-
-         function fV = createLSYL(x,y,s)
-
-            c   = s.chord;
-            p   = s.p;
-            m   = s.m;
-            t   = s.t;
-            AoA = deg2rad(s.AoA);
-        
-            x0     = s.xLE;
-            y0     = s.yLE/c;
-            offsetX  = (x - x0)/c;
-            offsetY  = y/c - y0;
-
-            xNaca    = offsetX.*cos(AoA) - offsetY.*sin(AoA);
-            yNaca    = offsetX.*sin(AoA) + offsetY.*cos(AoA);
-        
-            yc   = (xNaca>=0 & xNaca<=p).*(m./p^2.*(2*p*xNaca-xNaca.^2))+...
-                    (xNaca>p & xNaca<=1).*(m./(1-p)^2.*((1-2*p)+2*p*xNaca-xNaca.^2));
-            yt   = (xNaca>=0 & xNaca<=1).*(5*t*(0.2969*sqrt(xNaca)-0.1260*xNaca-0.3516*xNaca.^2+0.2843*xNaca.^3-0.1036*xNaca.^4));
-            dydx = (xNaca>=0 & xNaca<=p).*(2*m/p^2.*(p-xNaca))+...
-                    (xNaca>p & xNaca<=1).*(2*m/(1-p)^2.*(p-xNaca));
-        
-            theta = atan(dydx);
-            yl    = yc - yt.*cos(theta);         
-      
-            fV   = -(yl - yNaca);
-
-         end
-
-         function fV = createLSYU(x,y,s)
-
-            c   = s.chord;
-            p   = s.p;
-            m   = s.m;
-            t   = s.t;
-            AoA = deg2rad(s.AoA);
-        
-            x0     = s.xLE;
-            y0     = s.yLE/c;
-            offsetX  = (x - x0)/c;
-            offsetY  = y/c - y0;
-
-            xNaca    = offsetX.*cos(AoA) - offsetY.*sin(AoA);
-            yNaca    = offsetX.*sin(AoA) + offsetY.*cos(AoA);
-        
-            yc   = (xNaca>=0 & xNaca<=p).*(m./p^2.*(2*p*xNaca-xNaca.^2))+...
-                    (xNaca>p & xNaca<=1).*(m./(1-p)^2.*((1-2*p)+2*p*xNaca-xNaca.^2));
-            yt   = (xNaca>=0 & xNaca<=1).*(5*t*(0.2969*sqrt(xNaca)-0.1260*xNaca-0.3516*xNaca.^2+0.2843*xNaca.^3-0.1036*xNaca.^4));
-            dydx = (xNaca>=0 & xNaca<=p).*(2*m/p^2.*(p-xNaca))+...
-                    (xNaca>p & xNaca<=1).*(2*m/(1-p)^2.*(p-xNaca));
-        
-            theta = atan(dydx);
-            yu    = yc + yt.*cos(theta);
-            
-            fV   = -(yNaca - yu);
-
-         end
-    
+        end    
     end
-
 end

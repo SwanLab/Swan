@@ -1,24 +1,24 @@
 classdef FittedNaca < handle
 
     properties (Access = private)
+        filename
         mesh
+        nacaNodes
+        dY
         young
         poisson
         material
-        dY
         stateProblem
-        filename
-        nacaNodes
         mNew
     end
 
     methods (Access = public)
 
-        function obj = FittedNaca()
-            obj.init();
+        function obj = FittedNaca(file,mRef,pRef,tRef,m,p,t)
+            obj.init(file);
             obj.createMesh();
             obj.readNacaNodes();
-            obj.computeUpdatedNaca();
+            obj.computeUpdatedNaca(mRef,pRef,tRef,m,p,t);
             obj.computeElasticProperties();
             obj.createMaterial();
             obj.solveElasticProblem();
@@ -29,8 +29,7 @@ classdef FittedNaca < handle
 
     methods (Access = private)
 
-        function init(obj)
-            file = 'Naca';
+        function init(obj,file)
             obj.filename = file;
         end
 
@@ -42,9 +41,21 @@ classdef FittedNaca < handle
 
         function readNacaNodes(obj)
             a.fileName = obj.filename;
-            s = FemDataContainer(a);            
+            s = FemDataContainer(a);
             obj.nacaNodes = unique(s.bc.dirichlet(:,1));
-        end        
+        end
+
+        function computeUpdatedNaca(obj,mRef,pRef,tRef,m,p,t) % 0.02, 0.4, 0.12, 0.01, 0.2, 0.05
+            isUP      = obj.compueIsUp(mRef,pRef,tRef);
+            xNaca     = obj.mesh.coord(obj.nacaNodes,1);
+            yNaca     = obj.mesh.coord(obj.nacaNodes,2);
+            [yu,yl,~] = obj.computeNacaFunction(m,p,t,xNaca);
+
+            incY(isUP)  = yu(isUP) - yNaca(isUP);
+            incY(~isUP) = yl(~isUP) - yNaca(~isUP);
+
+            obj.dY = incY;
+        end
 
         function computeElasticProperties(obj)
             E  = 1;
@@ -77,25 +88,6 @@ classdef FittedNaca < handle
             obj.stateProblem = fem;
         end
 
-        function computeUpdatedNaca(obj)
-            mRef      = 0.02;
-            pRef      = 0.4;
-            tRef      = 0.12;
-            isUP = obj.compueIsUp(mRef,pRef,tRef);
-
-            m      = 0.01;
-            p      = 0.2;
-            t      = 0.05;
-            xNaca = obj.mesh.coord(obj.nacaNodes,1);
-            yNaca = obj.mesh.coord(obj.nacaNodes,2);                                    
-            [yu,yl,~] = obj.computeNacaFunction(m,p,t,xNaca);
-                
-            incY(isUP)  = yu(isUP) - yNaca(isUP);
-            incY(~isUP) = -yl(~isUP) + yNaca(~isUP);
-            
-            obj.dY = incY;
-        end
-
         function isUP = compueIsUp(obj,m,p,t)              
             xNaca = obj.mesh.coord(obj.nacaNodes,1);
             yNaca = obj.mesh.coord(obj.nacaNodes,2);                        
@@ -108,6 +100,16 @@ classdef FittedNaca < handle
             dYCond(:,2) = 2;
             dYCond(:,3) = obj.dY;
             sDir        = obj.computeCondition(dYCond);
+
+
+            xMin       = min(obj.mesh.coord(:,1));
+            yMin       = min(obj.mesh.coord(:,2));
+            xMax       = max(obj.mesh.coord(:,1));
+            yMax       = max(obj.mesh.coord(:,2));
+            isBoundary = @(coor)  coor(:,1)==xMin | coor(:,2)==yMin | coor(:,1)==xMax | coor(:,2)==yMax;
+            sDir{end+1}.domain    = @(coor) isBoundary(coor);
+            sDir{end}.direction = [1,2];
+            sDir{end}.value     = 0;
 
             dirichletFun = [];
             for i = 1:numel(sDir)
