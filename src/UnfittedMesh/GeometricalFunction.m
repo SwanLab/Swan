@@ -42,7 +42,7 @@ classdef GeometricalFunction < handle
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
                     p  = cParams.pnorm;
-                    fH = @(x) (((abs(x1(x)-x0)).^p+(abs(x2(x)-y0)).^p).^(1/p))/l - 0.5;
+                    fH = @(x) ((abs(x1(x)-x0).^p+abs(x2(x)-y0).^p).^(1/p))/l - 0.5;
                     obj.fHandle = fH;
 
                 case 'SquareInclusion'
@@ -51,24 +51,12 @@ classdef GeometricalFunction < handle
                     obj.computeInclusion(s);
 
                 case 'Rectangle'
-                   % sx = (cParams.xSide)/2;
-                   % sy = (cParams.ySide)/2;
-                    % sx = (1-cParams.xSide)/2;
-                    % sy = (1-cParams.ySide)/2;    
-                    % sx = cos(2*pi*sx);
-                    % sy = cos(2*pi*sy);                      
-                    % x0 = cParams.xCoorCenter;
-                    % y0 = cParams.yCoorCenter;
-                    % fH = @(x) max((x1(x)-x0)./(sx),(x2(x)-y0)./(sy)) - 1;
-                    % obj.fHandle = fH;
-
                     sx = cParams.xSide;
                     sy = cParams.ySide;
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
-                    fH = @(x) max(abs(x1(x)-x0)./sx,abs(x2(x)-y0)./sy) - 0.5;
+                    fH = @(x) max(abs(x1(x)-x0)/sx,abs(x2(x)-y0)/sy) - 0.5;
                     obj.fHandle = fH;
-
 
                 case 'RectangleInclusion'
                     s      = cParams;
@@ -81,25 +69,13 @@ classdef GeometricalFunction < handle
                     obj.computeInclusion(s);
 
                 case 'SmoothRectangle'
-                     % sx = (cParams.xSide)/2;
-                     % sy = (cParams.ySide)/2;
-                %   sx = (1-cParams.xSide)/2;
-                %   sy = (1-cParams.ySide)/2;    
-                %   sx = cos(2*pi*sx);
-                %   sy = cos(2*pi*sy);                      
-                    % x0 = cParams.xCoorCenter;
-                    % y0 = cParams.yCoorCenter;
-                    % p  = cParams.pnorm;
-                    % fH = @(x) (((x1(x)-x0)./(sx)).^p+((x2(x)-y0)./(sy)).^p).^(1/p) - 1;
-                    % obj.fHandle = fH;
-
                     sx = cParams.xSide;
                     sy = cParams.ySide;
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
                     p  = cParams.pnorm;
-                    fH = @(x) ((abs(x1(x)-x0)./sx).^p+(abs(x2(x)-y0)./sy).^p).^(1/p) - 0.5;
-                    obj.fHandle = fH;                    
+                    fH = @(x) ((abs(x1(x)-x0)/sx).^p+(abs(x2(x)-y0)/sy).^p).^(1/p) - 0.5;
+                    obj.fHandle = fH;
 
                 case 'RectangleRotated'
                     sx = cParams.xSide;
@@ -236,12 +212,17 @@ classdef GeometricalFunction < handle
                     obj.fHandle = fH;
 
                 case 'Vigdergauz'
-                    fH          = LevelSetVigdergauz(cParams);
-                    obj.fHandle = fH.getFunctionHandle();
+                    vig         = LevelSetVigdergauz(cParams);
+                    obj.fHandle = vig.getFunctionHandle();
 
                 case 'PeriodicAndOriented'
-                    fH          = LevelSetPeriodicAndOriented(cParams);
-                    obj.fHandle = fH.getFunctionHandle();
+                    perOr       = LevelSetPeriodicAndOriented(cParams);
+                    obj.fHandle = perOr.getFunctionHandle();
+
+                case 'Naca'
+                    fH = @(x) obj.createNacaHole(x1(x),x2(x),cParams);
+                    obj.fHandle = fH;
+
                 case 'Hexagon'
                     l  = cParams.radius;
                     n  = cParams.normal;
@@ -287,5 +268,43 @@ classdef GeometricalFunction < handle
             d = (normVn/(l*(sqrt(3)/2)))-1;
         end
 
+        function fV = createNacaHole(x,y,s)
+            c   = s.chord;
+            p   = s.p;
+            m   = s.m;
+            t   = s.t;
+            AoA = deg2rad(s.AoA);
+        
+            x0      = s.xLE;
+            y0      = s.yLE/c;
+            offsetX = (x - x0)/c;
+            offsetY = y/c - y0;
+
+            xNaca    = offsetX.*cos(AoA) - offsetY.*sin(AoA);
+            yNaca    = offsetX.*sin(AoA) + offsetY.*cos(AoA);
+
+            if (m > 1e-6)
+               yc   = (xNaca>=0 & xNaca<=p).*(m./p^2.*(2*p*xNaca-xNaca.^2))+...
+                    (xNaca>p & xNaca<=1).*(m./(1-p)^2.*((1-2*p)+2*p*xNaca-xNaca.^2));
+               dydx = (xNaca>=0 & xNaca<=p).*(2*m/p^2.*(p-xNaca))+...
+                    (xNaca>p & xNaca<=1).*(2*m/(1-p)^2.*(p-xNaca));
+            else
+                yc   = 0;
+                dydx = 0;
+            end
+          
+            yt   = (xNaca>=0 & xNaca<=1).*(5*t*(0.2969*sqrt(xNaca)-0.1260*xNaca-0.3516*xNaca.^2+0.2843*xNaca.^3-0.1036*xNaca.^4));
+            
+            theta = atan(dydx);
+            yu    = yc + yt.*cos(theta);
+            yl    = yc - yt.*cos(theta);
+            
+            f(:,:,:,1)   = yl - yNaca;
+            f(:,:,:,2)   = yNaca - yu;
+            f(:,:,:,3)   = xNaca - 0.961; 
+            f(:,:,:,4)   = -xNaca;
+            
+            fV = -max(f,[],4);       
+        end    
     end
 end

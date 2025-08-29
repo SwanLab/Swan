@@ -49,6 +49,7 @@ classdef ProjectorToLagrangian < Projector
                     s.type  = 'MassMatrix';
                     lhs = LHSIntegrator.create(s);
                     LHS = lhs.compute();
+                    LHS = decomposition(LHS);
             end
         end
 

@@ -36,10 +36,14 @@ classdef LHSIntegratorFactory < handle
                    obj = LHSIntegratorStiffnessMass(cParams);
                case 'Stokes'
                    obj = LHSIntegratorStokes(cParams);
+               case 'NavierStokes'
+                   obj = LHSIntegratorNavierStokes(cParams);   
                case 'Laplacian'
                    obj = LHSIntegratorLaplacian(cParams);
                case 'WeakDivergence'
                    obj = LHSIntegratorWeakDivergence(cParams);
+               case 'Convective'
+                   obj = LHSIntegratorConvective(cParams);    
                case 'AdvectionMatrix'
                    obj = LHSIntegrator_Advection(cParams);                   
                case 'StiffnessMatrixWithFunction'
@@ -54,6 +58,10 @@ classdef LHSIntegratorFactory < handle
                    obj = LHSIntegratorFunctionAdvection(cParams); 
                case 'DivergenceMatrix'
                    obj = LHSintegratorDivergenceMatrix(cParams); 
+               case 'DobleDivergenceMatrix'
+                   obj = LHSIntegratorDobleWeakDivergence(cParams);
+               case 'NonLinearNS'
+                   obj = LHSintegrator_NonLinearNS(cParams);
            end
        end
    end

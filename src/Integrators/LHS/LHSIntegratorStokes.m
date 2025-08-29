@@ -9,7 +9,7 @@ classdef LHSIntegratorStokes < handle
         mesh
         velocityFun
         pressureFun
-        material
+        nu
     end
 
     methods (Access = public)
@@ -32,7 +32,7 @@ classdef LHSIntegratorStokes < handle
         function init(obj, cParams)
             obj.dt          = cParams.dt;
             obj.mesh        = cParams.mesh;
-            obj.material    = cParams.material;
+            obj.nu          = cParams.nu;
             obj.pressureFun = cParams.pressureFun;
             obj.velocityFun = cParams.velocityFun;
         end
@@ -63,14 +63,14 @@ classdef LHSIntegratorStokes < handle
         end
 
         function lhs = computeVelocityLaplacian(obj)
+            n       = obj.nu;
             s.type  = 'Laplacian';
             s.mesh  = obj.mesh;
             s.test  = obj.velocityFun;
             s.trial = obj.velocityFun;
-            s.material = obj.material;
-            LHS = LHSIntegrator.create(s);
-            lhs = LHS.compute();
-            lhs = obj.symGradient(lhs);
+            LHS     = LHSIntegrator.create(s);
+            lhs     = n*LHS.compute();
+            lhs     = obj.symGradient(lhs);
         end
 
         function M = computeMassMatrix(obj)

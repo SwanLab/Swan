@@ -99,7 +99,8 @@ classdef UnfittedMesh < handle
             ls.print(filename, 'GiD');
         end
 
-        function m = createFullInnerMesh(obj, s)
+        function m = createFullInnerMesh(obj, type)
+            s.type         = type;
             s.unfittedMesh = obj;
             imc = FullInnerMeshCreator.create(s);
             m = imc.export();

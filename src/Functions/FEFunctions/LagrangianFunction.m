@@ -3,11 +3,12 @@ classdef LagrangianFunction < FeFunction
     properties (GetAccess = public, SetAccess = private)
         nDofs
         nDofsElem
+        dofCoord
     end
 
     properties (Access = private)
         interpolation
-        dofCoord
+        
         dofConnec
 
        dNdxOld
@@ -79,7 +80,7 @@ classdef LagrangianFunction < FeFunction
                 dNdx = obj.dNdxOld;
             end
         end         
-
+        
        function fVals = getFvaluesByElem(obj)
             nDimF     = obj.ndimf;
             nNode     = obj.interpolation.nnode;
@@ -204,9 +205,13 @@ classdef LagrangianFunction < FeFunction
         function dof = getDofsFromCondition(obj, condition)
             nodes = condition(obj.dofCoord);
             iNode = find(nodes==1);
-            dofElem = repmat(1:obj.ndimf, [length(iNode) 1]);
-            dofMat = obj.ndimf*(iNode - 1) + dofElem;
-            dof = sort(dofMat(:));
+            dof   = iNode;
+
+            if strcmp(obj.order, 'P2')
+                dofElem = repmat(1:obj.ndimf, [length(iNode) 1]);
+                dofMat = obj.ndimf*(iNode - 1) + dofElem;
+                dof = sort(dofMat(:));
+            end
         end
 
         function print(obj, filename, software)
@@ -490,7 +495,10 @@ classdef LagrangianFunction < FeFunction
             a = trisurf(tri,x,y,z);
             view(0,90)
             %colorbar
-            shading interp
+            if not(size(tri,2) == 2)
+                shading interp
+                a.EdgeAlpha = 0;
+            end
             a.EdgeColor = [0 0 0];
             title(['dim = ', num2str(iDim)]);
         end

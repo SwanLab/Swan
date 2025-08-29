@@ -1,7 +1,7 @@
 classdef Sh_Func_L2norm < handle
     
     properties (Access = private)
-       designVariable  
+       designVariable
     end
     
     methods (Access = public)
@@ -26,12 +26,12 @@ classdef Sh_Func_L2norm < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.designVariable = cParams.designVariable;
+            obj.designVariable  = cParams.designVariable;
         end
 
        function j = computeCost(obj)
            theta = obj.designVariable.thetavec;
-           j = 0.5*(theta)*theta';
+           j     =  0.5*(theta)*theta';
        end
 
        function dj = computeGradient(obj)

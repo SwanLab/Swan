@@ -18,9 +18,6 @@ classdef MaterialFactory < handle
                     
                 case 'DensityBased'
                     material = DensityBasedMaterial(cParams);
-                
-                case 'STOKES'
-                    material = MaterialStokes(cParams);
                     
                 case 'PhaseField'
                     switch cParams.PFtype
