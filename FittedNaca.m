@@ -5,9 +5,11 @@ classdef FittedNaca < handle
         young
         poisson
         material
+        dY
         stateProblem
         filename
         nacaNodes
+        mNew
     end
 
     methods (Access = public)
@@ -20,6 +22,7 @@ classdef FittedNaca < handle
             obj.computeElasticProperties();
             obj.createMaterial();
             obj.solveElasticProblem();
+            obj.createNewMesh();
         end
 
     end
@@ -80,20 +83,57 @@ classdef FittedNaca < handle
             tRef      = 0.12;
             isUP = obj.compueIsUp(mRef,pRef,tRef);
 
-            m      = 0.02;
-            p      = 0.4;
-            t      = 0.12;
+            m      = 0.01;
+            p      = 0.2;
+            t      = 0.05;
             xNaca = obj.mesh.coord(obj.nacaNodes,1);
             yNaca = obj.mesh.coord(obj.nacaNodes,2);                                    
-            [yu,yl,yc] = obj.computeNacaFunction(mRef,pRef,tRef,xNaca);
+            [yu,yl,~] = obj.computeNacaFunction(m,p,t,xNaca);
                 
-            incY(isUP)  = yu - yNaca(isUP);
-            incY(~isUP) = yl + yNaca(isUP);
-
+            incY(isUP)  = yu(isUP) - yNaca(isUP);
+            incY(~isUP) = -yl(~isUP) + yNaca(~isUP);
+            
+            obj.dY = incY;
         end
 
-        function [yu,yl,yc] = computeNacaFunction(obj,m,p,t,xNaca)
+        function isUP = compueIsUp(obj,m,p,t)              
+            xNaca = obj.mesh.coord(obj.nacaNodes,1);
+            yNaca = obj.mesh.coord(obj.nacaNodes,2);                        
+            [~,~,yc] = obj.computeNacaFunction(m,p,t,xNaca);
+            isUP = yNaca > yc;
+        end
 
+        function bc = createBoundaryConditions(obj)
+            dYCond      = obj.nacaNodes;
+            dYCond(:,2) = 2;
+            dYCond(:,3) = obj.dY;
+            sDir        = obj.computeCondition(dYCond);
+
+            dirichletFun = [];
+            for i = 1:numel(sDir)
+                dir = DirichletCondition(obj.mesh, sDir{i});
+                dirichletFun = [dirichletFun, dir];
+            end
+            s.dirichletFun = dirichletFun;
+
+            s.pointloadFun = [];
+            s.periodicFun  = [];
+            s.mesh = obj.mesh;
+            bc = BoundaryConditions(s);
+        end
+
+        function createNewMesh(obj)
+            u = obj.stateProblem.uFun;
+
+            s.coord  = obj.mesh.coord + u.fValues;
+            s.connec = obj.mesh.connec;
+            obj.mNew = Mesh.create(s);
+        end
+
+    end
+
+    methods (Static, Access=private)
+        function [yu,yl,yc] = computeNacaFunction(m,p,t,xNaca)
             yc   = (xNaca>=0 & xNaca<=p).*(m./p^2.*(2*p*xNaca-xNaca.^2))+...
                 (xNaca>p & xNaca<=1).*(m./(1-p)^2.*((1-2*p)+2*p*xNaca-xNaca.^2));
             yt   = (xNaca>=0 & xNaca<=1).*(5*t*(0.2969*sqrt(xNaca)-0.1260*xNaca-0.3516*xNaca.^2+0.2843*xNaca.^3-0.1036*xNaca.^4));
@@ -106,44 +146,22 @@ classdef FittedNaca < handle
 
         end
 
-        function isUP = compueIsUp(obj,m,p,t)              
-            xNaca = obj.mesh.coord(obj.nacaNodes,1);
-            yNaca = obj.mesh.coord(obj.nacaNodes,2);                        
-            [yu,yl,yc] = obj.computeNacaFunction(m,p,t,xNaca);
-            isUP = yNaca > yc;
-        end
-
-        function bc = createBoundaryConditions(obj)
-            xMax    = max(obj.mesh.coord(:,1));
-            yMax    = max(obj.mesh.coord(:,2));
-            isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax);
-
-            sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [1,2];
-            sDir{1}.value     = 0;
-
-            sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 2;
-            sPL{1}.value     = -1;
-
-            dirichletFun = [];
-            for i = 1:numel(sDir)
-                dir = DirichletCondition(obj.mesh, sDir{i});
-                dirichletFun = [dirichletFun, dir];
+        function sCond = computeCondition(conditions)
+            nodes = @(coor) 1:size(coor,1);
+            dirs  = unique(conditions(:,2));
+            j     = 0;
+            for k = 1:length(dirs)
+                rowsDirk = ismember(conditions(:,2),dirs(k));
+                u        = unique(conditions(rowsDirk,3));
+                for i = 1:length(u)
+                    rows   = conditions(:,3)==u(i) & rowsDirk;
+                    isCond = @(coor) ismember(nodes(coor),conditions(rows,1));
+                    j      = j+1;
+                    sCond{j}.domain    = @(coor) isCond(coor);
+                    sCond{j}.direction = dirs(k);
+                    sCond{j}.value     = u(i);
+                end
             end
-            s.dirichletFun = dirichletFun;
-
-            % pointloadFun = [];
-            % for i = 1:numel(sPL)
-            %     pl = PointLoad(obj.mesh, sPL{i});
-            %     pointloadFun = [pointloadFun, pl];
-            % end
-            % s.pointloadFun = pointloadFun;
-
-            s.periodicFun  = [];
-            s.mesh = obj.mesh;
-            bc = BoundaryConditions(s);
         end
 
     end
