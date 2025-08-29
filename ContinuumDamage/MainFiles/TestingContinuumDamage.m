@@ -6,6 +6,8 @@ classdef TestingContinuumDamage < handle
 
     properties (Access = private)
         benchmark
+        matInfo
+        damageInfo
         tolerance
     end
 
@@ -22,8 +24,9 @@ classdef TestingContinuumDamage < handle
             obj.init();
             obj.mesh                   = obj.createMesh();
             obj.boundaryConditions     = obj.createBoundaryConditions();
-            obj.damageFunctional       = obj.createContinuumDamageFunctional();
             obj.internalDamageVariable = obj.createInternalDamageVariable();
+            obj.damageFunctional       = obj.createContinuumDamageFunctional();
+            
         end
 
         function outputData = compute(obj)
@@ -67,18 +70,19 @@ classdef TestingContinuumDamage < handle
         end
 
         function r = createInternalDamageVariable(obj)
-            s.r0 = obj.createR0();
+            r0     = obj.damageInfo.r0;
+            s.r0   = ConstantFunction.create(r0,obj.mesh);
             s.mesh = obj.mesh;
             r = InternalDamageVariable(s);
         end
 
-        function sF = createContinuumDamageFunctional(obj)
+        function functional = createContinuumDamageFunctional(obj)
             s.mesh               = obj.mesh;
             s.boundaryConditions = obj.boundaryConditions;
             s.material           = obj.createDamagedMaterial();
             s.quadOrder          = 2;
             s.test               = LagrangianFunction.create(obj.mesh,2,'P1');
-            sF = ShFunc_ContinuumDamage(s);
+            functional = ShFunc_ContinuumDamage(s);
         end        
     
         function dM = createDamagedMaterial(obj)
@@ -88,8 +92,8 @@ classdef TestingContinuumDamage < handle
         end
 
         function mat = createBaseMaterial(obj)
-            E = 210;
-            nu = 0.3;
+            E  = obj.matInfo.young;
+            nu = obj.matInfo.poisson;
             s.type    = 'ISOTROPIC';
             s.ndim    = obj.mesh.ndim;
             s.young   = ConstantFunction.create(E,obj.mesh);
@@ -103,22 +107,20 @@ classdef TestingContinuumDamage < handle
         end
 
         function hL = createHardeningLaw(obj)
-            r1     = 20;
+            r0     = obj.damageInfo.r0;
+            s.r0   = ConstantFunction.create(r0,obj.mesh);
+            s.type = obj.damageInfo.type;   
+            s.params = obj.damageInfo.params;
+
+            r1     = obj.damageInfo.params.r1;
             s.r1   = ConstantFunction.create(r1,obj.mesh);
-            s.type = 'Linear';            
-            s.H    = -0.5;
-            s.A    = 0.1;
-            s.r0   = obj.createR0();
-            s.w1   = 8;
-            s.qInf = 2;
+            s.H    = obj.damageInfo.params.hardening;
+            s.A    = obj.damageInfo.params.A;
+            s.w1   = obj.damageInfo.params.w1;
+            s.qInf = obj.damageInfo.params.qInf;
+
             hL = HardeningLaw.create(s);
         end          
-
-        function r0 = createR0(obj)
-            r0 = 10;
-            r0 = ConstantFunction.create(r0,obj.mesh);            
-        end
-
  
     end
 end

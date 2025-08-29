@@ -49,10 +49,10 @@ classdef DamagedMaterial < handle
 
         function dContribution = obtainDamageTangentContribution(obj,u,r)
             C = obj.baseMaterial;
-            epsi = SymGrad(u);
+            epsi   = SymGrad(u);
             sigBar = DDP(epsi,C);
             dDot = obj.damage.computeDerivative(r);
-            dContribution = dDot.*OP(sigBar,sigBar);
+            dContribution = dDot.*kronProd(sigBar,sigBar,[1 2 3 4]);
         end
 
     end 

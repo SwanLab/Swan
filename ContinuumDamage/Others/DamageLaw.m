@@ -1,7 +1,6 @@
 classdef DamageLaw < handle
 
     properties (Access = private)
-        internalDamageVariable
         hardeningLaw
     end
     
