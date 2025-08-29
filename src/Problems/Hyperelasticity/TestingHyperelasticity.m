@@ -76,7 +76,7 @@ classdef TestingHyperelasticity < handle
             type   = obj.bcProp.type;
             cParams.bcValues = linspace(0,maxVal,nSteps);
             cParams.type = type;
-            bc = HyperelasticityBoundaryCreator(obj.mesh,cParams);
+            bc = BoundaryCreator(obj.mesh,cParams);
             obj.boundaryConditions = bc;
         end
 

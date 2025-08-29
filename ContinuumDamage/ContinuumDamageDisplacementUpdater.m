@@ -1,4 +1,4 @@
-classdef DisplacementUpdater < handle
+classdef ContinuumDamageDisplacementUpdater < handle
     
     properties (Access = private)
         functional
@@ -10,27 +10,32 @@ classdef DisplacementUpdater < handle
 
     methods (Access = public)
 
-        function obj = DisplacementUpdater(cParams)
+        function obj = ContinuumDamageDisplacementUpdater(cParams)
             obj.init(cParams);
         end
 
-        function [u,rFun,costArray,iter] = update(obj,u,bc,costArray)
+        function [u,r,F,costArray,iter] = update(obj,u,r,bc,costArray)
             i = 0; err = 1; costOld = costArray(end);
             while (abs(err) > obj.tol) && (i < obj.maxIter)
-                LHS = obj.functional.computeHessian(u);
-                RHS = obj.functional.computeGradient(u,bc);
-                u.setFValues(obj.computeDisplacement(LHS,RHS,u,bc));
+                tauEps = obj.functional.computeTauEpsilon(u);
+                r.update(tauEps);
 
-                [err, cost] = obj.computeErrorCost(u,bc,costOld);
+                [res]       = obj.functional.computeResidual(u,r,bc);
+                [Ktan,Ksec] = obj.functional.computeDerivativeResidual(u,r);
+                [uNew,uVec] = obj.computeDisplacement(Ktan,res,u,bc);
+                u.setFValues(uNew);
+
+                [err, cost] = obj.computeErrorCost(u,r,bc,costOld);
                 costArray(end+1) = cost;
                 costOld = cost;
 
                 i = i+1;
-                obj.monitor.printCost('iterU',i,cost,err);
-                obj.monitor.update(length(costArray),{[],[cost],[],[]});
-                obj.monitor.refresh(); 
+                obj.monitor.printCost('iter',i,cost,err);
+                obj.monitor.update(length(costArray),{[],[],[],[cost],[],[]});
+                obj.monitor.refresh();
             end
-            rFun = obj.computeReactions(LHS,u,bc);
+            r.updateRold();
+            F = Ksec*uVec;
             iter = i;
         end
 
@@ -45,7 +50,7 @@ classdef DisplacementUpdater < handle
             obj.maxIter    = cParams.maxIter;
         end
 
-        function uOut = computeDisplacement(obj,LHSfull, RHSfull,uIn,bc)
+        function [uOut,uOutVec] = computeDisplacement(obj,LHSfull, RHSfull,uIn,bc)
             [LHS,RHS] = fullToReduced(obj,LHSfull,RHSfull,bc);
             if ~isempty(LHS)
                 uInVec = reshape(uIn.fValues',[uIn.nDofs 1]);
@@ -57,6 +62,7 @@ classdef DisplacementUpdater < handle
                 uOut = reshape(uOutVec,[flip(size(uIn.fValues))])';
             else
                 uOut = uIn.fValues;
+                uOutVec = reshape(uIn.fValues',[uIn.nDofs 1]);
             end
         end
 
@@ -71,22 +77,9 @@ classdef DisplacementUpdater < handle
             xNew = x + deltaX;
         end
 
-        function [e, cost] = computeErrorCost(obj,u,bc,costOld)
-            cost = obj.functional.computeCost(u,bc); % To include extWork
-            e = (cost - costOld)/cost;
-        end
-
-        function rFun = computeReactions(~,LHS,u,bc)
-            constrainedDofs = bc.dirichlet_dofs;
-            uVec = reshape(u.fValues',[u.nDofs 1]);
-            KR   = LHS(constrainedDofs,:);
-            rVec = zeros(size(uVec));
-            rVec(constrainedDofs,1) = -KR*uVec;
-            
-            s.fValues = reshape(rVec,[flip(size(u.fValues))])';
-            s.order   = 'P1';
-            s.mesh    = u.mesh;
-            rFun = LagrangianFunction(s);
+        function [e, cost] = computeErrorCost(obj,u,r,bc,costOld)
+            cost = obj.functional.computeEnergy(u,r,bc);
+            e = cost - costOld;
         end
 
     end
