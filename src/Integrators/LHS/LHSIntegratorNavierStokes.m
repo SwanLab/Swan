@@ -5,7 +5,6 @@ classdef LHSIntegratorNavierStokes < handle
         velocityFun
         pressureFun
         velocityField
-        material
         LHSS
         dt
         residual
@@ -60,14 +59,13 @@ classdef LHSIntegratorNavierStokes < handle
 
         function init(obj, cParams)
             obj.mesh          = cParams.mesh;
-            obj.material      = cParams.material;
             obj.velocityFun   = cParams.velocityFun;
             obj.pressureFun   = cParams.pressureFun;
             obj.velocityField = cParams.velocityField;
             obj.LHSS          = cParams.LHSS;
             obj.dt            = cParams.dt;
             obj.residual      = cParams.residual;
-            obj.nu            = cParams.material.nuValue;
+            obj.nu            = cParams.nu;
         end
 
         function [c,a] = computeConvectiveMatrix(obj)
@@ -75,7 +73,6 @@ classdef LHSIntegratorNavierStokes < handle
             s.mesh  = obj.mesh;
             s.test  = obj.velocityFun;
             s.trial = obj.velocityFun;
-            s.material = obj.material;
             C = LHSIntegrator.create(s);
             [c,a] = C.compute(obj.velocityField);
         end
@@ -109,14 +106,14 @@ classdef LHSIntegratorNavierStokes < handle
         end
 
         function lhs = computeVelocityLaplacian(obj)
+            n       = obj.nu;
             s.type  = 'Laplacian';
             s.mesh  = obj.mesh;
             s.test  = obj.velocityFun;
             s.trial = obj.velocityFun;
-            s.material = obj.material;
-            LHS = LHSIntegrator.create(s);
-            lhs = LHS.compute();
-            lhs = obj.symGradient(lhs);
+            LHS     = LHSIntegrator.create(s);
+            lhs     = n*LHS.compute();
+            lhs     = obj.symGradient(lhs);
         end
 
         function Kvs = computeVVA2Mat(obj)
