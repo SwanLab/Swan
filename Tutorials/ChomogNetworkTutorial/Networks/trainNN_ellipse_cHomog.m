@@ -11,14 +11,14 @@ hiddenLayers    = 128 .* ones(1, 6);
 
 %% INITIALIZATION 
 % Store dataset file name
-s.fileName = 'Chomog_ellipse.csv';
+s.fileName = 'DB_ellipse_cHomog.csv';
 
 % Load model parameters
 s.polynomialOrder = pol_deg;
 s.testRatio       = testratio;
 s.networkParams.hiddenLayers    = hiddenLayers;
 s.optimizerParams.learningRate  = learningRate;
-s.optimizerParams.maxEpochs = 10; % 1000 is the best option, but we use 10 to pass the tutorial quickly
+s.optimizerParams.maxEpochs     = 100; % 1000 is the best option, but we use 100 to pass the tutorial quickly
 s.costParams.lambda             = lambda;
 s.costParams.costType           = 'L2';
 
@@ -40,26 +40,30 @@ opt = OptimizationProblemNN(s);
 opt.solve();
 opt.plotCostFnc();
 
+% Save the model
+save('Tutorials/ChomogNetworkTutorial/Networks/network_ellipse_cHomog.mat', 'opt')
+
+%% Get Network Results
+
+Xin = [0.25, 0.25];
+
+Y = opt.computeOutputValues(Xin);
+dY = opt.computeGradient(Xin);
+
+fprintf('Output of the network:\n')
+disp(Y)
+
+fprintf('Jacobian of the network output w.r.t its input:\n')
+disp(dY)
+
 %% Plot surface
 
 % Load dataset from specified path
-filePath = fullfile('Tutorials', 'ChomogNetworkTutorial', s.fileName);
+filePath = fullfile('Tutorials', 'ChomogNetworkTutorial', 'Datasets', s.fileName);
 tempData = readmatrix(filePath);
 
 % Preallocate and evaluate y_data vector
 yData = cell2mat(arrayfun(@(i) opt.computeOutputValues(tempData(i, 1:2)), 1:size(tempData, 1), 'UniformOutput',false)');
-
-Y = opt.computeOutputValues([0.25, 0.25]);
-dY = opt.computeGradient([0.25, 0.25]);
-
-disp(Y)
-disp(dY)
-
-Y = opt.computeOutputValues([0.27, 0.27]);
-dY = opt.computeGradient([0.27, 0.27]);
-
-disp(Y)
-disp(dY)
 
 % Determine grid size for reshaping data
 gridSize = floor(sqrt(size(tempData, 1)));
