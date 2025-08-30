@@ -13,6 +13,7 @@ classdef TopOptTestTutorialThermal < handle
         dualVariable
         optimizer
         thermalCompliance
+        source
     end
 
     methods (Access = public)
@@ -22,7 +23,7 @@ classdef TopOptTestTutorialThermal < handle
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
-            obj.createConductivityInterpolator();
+            obj.createMaterialInterpolator();
             obj.createThermalProblem();
             obj.createThermalCompliance();
             obj.createVolumeConstraint();
@@ -42,7 +43,7 @@ classdef TopOptTestTutorialThermal < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,2,100);
+            x1      = linspace(0,1,50);
             x2      = linspace(0,1,50);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
@@ -72,32 +73,38 @@ classdef TopOptTestTutorialThermal < handle
             obj.filter = f;
         end
 
-        function createConductivityInterpolator(obj)
+        function createMaterialInterpolator(obj) % Conductivity
             s.interpolation  = 'SIMPThermal';   
-            s.f0   = 1e-3;                                             
+            s.f0   = 0.01;                                             
             s.f1   = 1;                                                    
             s.pExp = 3;
             a = MaterialInterpolator.create(s);
             obj.materialInterpolator = a;            
-        end            
+        end   
 
         function createThermalProblem(obj)
             s.mesh = obj.mesh;
-            s.conductivity = obj.materialInterpolator();
+            s.conductivity = obj.materialInterpolator; 
+            Q = LagrangianFunction.create(obj.mesh,1,'P1');
+            fValues = ones(Q.nDofs,1);
+            Q.setFValues(fValues);
+            s.source       = Q;  
             s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
             s.solverCase = 'DIRECT';
-            fem = ThermalProblem(s);
+            fem = ThermalProblem(s); 
             obj.physicalProblem = fem;
         end
 
         function createThermalCompliance(obj)
             s.mesh                        = obj.mesh;
             s.filter                      = obj.filter;
-            c = ThermalComplianceFunctional(s);
+            s.stateProblem                = obj.physicalProblem;
+            s.conductivity                =  obj.materialInterpolator; 
+            c = ThermalComplianceFunctional(s);  
             obj.thermalCompliance = c;
         end
 
@@ -144,7 +151,7 @@ classdef TopOptTestTutorialThermal < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 3;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.ub             = 1;

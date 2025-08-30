@@ -7,23 +7,21 @@ classdef ThermalComplianceFunctional < handle
     properties (Access = private)
         mesh
         filter
-        filterAdjoint
-        compliance
-        material
-        iter
-        filteredDesignVariable
+        conductivity
+        stateProblem
+        quadrature
     end
 
     methods (Access = public)
         function obj = ThermalComplianceFunctional(cParams)
             obj.init(cParams);
+            obj.createQuadrature();
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            xD  = x.obtainDomainFunction();
-            xR = obj.filterFields(xD);
-            obj.material.setDesignVariable(xR);
-            [J,dJ] = obj.computeThermalComplianceFunctionAndGradient(x);
+            xD      = x.obtainDomainFunction();
+            xR      = obj.filterFields(xD);
+            [J, dJ] = obj.computeThermalComplianceFunctionAndGradient(xR);
         end
 
     end
@@ -32,7 +30,11 @@ classdef ThermalComplianceFunctional < handle
         function init(obj,cParams)
             obj.mesh       = cParams.mesh;
             obj.filter     = cParams.filter;
-            obj.material   = cParams.material;
+            obj.stateProblem = cParams.stateProblem;
+            obj.conductivity = cParams.conductivity;
+            if isfield(cParams,'value0')
+                obj.value0 = cParams.value0;
+            end
         end
 
         function xR = filterFields(obj,x)
@@ -43,29 +45,35 @@ classdef ThermalComplianceFunctional < handle
             end
         end
 
-        function [J,dJ] = computeThermalComplianceFunctionAndGradient(obj,x)
-            C   = obj.material.obtainTensor();
-            dC  = obj.material.obtainTensorDerivative();
-            dC  = ChainRule.compute(x,dC);
-            [J,dJ] = obj.compliance.computeFunctionAndGradient(C,dC);
+        function u = computeStateVariable(obj, kappa)
+            obj.stateProblem.solve(kappa);
+            u = obj.stateProblem.uFun;
+        end
+
+        function [J,dJ] = computeThermalComplianceFunctionAndGradient(obj, xR)
+            kappa  = obj.createDomainFunction(obj.conductivity.fun,xR);           % conductivity on the new domain
+            dkappa = obj.createDomainFunction(obj.conductivity.dfun,xR); 
+            u      = obj.computeStateVariable(kappa);                             % solve the PDE
+            dCompliance = ThermalEnergyDensity(u,kappa);
+            J  = Integrator.compute(dCompliance,obj.mesh,obj.quadrature.order);   % compute function 
             if isempty(obj.value0)
                 obj.value0 = J;
             end
-            J  = obj.computeNonDimensionalValue(J);
-            dJ = obj.computeNonDimensionalGradient(dJ);
+            J      = obj.computeNonDimensionalValue(J);
+            dJ{1}     = - times(dkappa,DP(Grad(u),Grad(u)));                               % compute gradient 
+            dJ     = obj.filterFields(dJ);
+            dJ     = obj.computeNonDimensionalGradient(dJ);                         
         end
 
-        function J = computeFunction(obj,C,u)
-            dCompliance = ElasticEnergyDensity(C,u);
-            J           = Integrator.compute(dCompliance,obj.mesh,obj.quadrature.order);
+        function f = createDomainFunction(obj,fun,xR)
+            s.operation = @(xV) obj.createConductivityAsDomainFunction(fun,xR{1},xV);
+            s.mesh      = obj.mesh;
+            f = DomainFunction(s);
         end
 
-        function dj = computeGradient(dkappa,u)
-            nDesVar = length(dC);
-            dj      = cell(nDesVar,1);
-            for i = 1:nDesVar
-                dj{i}   = - dkappa{i}.*DP(Grad(u), Grad(u));
-            end
+        function fV = createConductivityAsDomainFunction(obj,fun,xR,xV)
+            densV = xR.evaluate(xV);
+            fV = fun(densV);
         end
 
         function x = computeNonDimensionalValue(obj,x)
@@ -80,11 +88,16 @@ classdef ThermalComplianceFunctional < handle
             end
         end
 
+        function createQuadrature(obj)
+            quad = Quadrature.create(obj.mesh,2);
+            obj.quadrature = quad;
+        end
+
     end
 
     methods (Static, Access = public)
         function title = getTitleToPlot()
-            title = 'Thermal Compliance';
+            title = 'Compliance';
         end
     end
 end

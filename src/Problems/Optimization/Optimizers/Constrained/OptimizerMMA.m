@@ -50,9 +50,10 @@ classdef OptimizerMMA < Optimizer
        function solveProblem(obj)
            obj.hasFinished = false;
            obj.printOptimizerVariable();
-           fCell = {obj.designVariable; obj.nIter};
-           obj.cost.computeFunctionAndGradient(fCell);
-           obj.constraint.computeFunctionAndGradient(fCell);
+%            fCell = {obj.designVariable; obj.nIter};
+           f = obj.designVariable;
+           obj.cost.computeFunctionAndGradient(f);
+           obj.constraint.computeFunctionAndGradient(f);
            
            obj.updateMonitoring();
 %            obj.updateMonitoringWithEigenvalueConstraint();
@@ -92,9 +93,10 @@ classdef OptimizerMMA < Optimizer
             %%%% of the objective- and constraint functions at xval.
             %%%% The results should be put in f0val, df0dx, fval and dfdx.
             obj.designVariable.update(x);
-            fCell = {obj.designVariable; obj.nIter};
-            obj.cost.computeFunctionAndGradient(fCell);
-            obj.constraint.computeFunctionAndGradient(fCell);
+%             fCell = {obj.designVariable; obj.nIter};
+            f = obj.designVariable;
+            obj.cost.computeFunctionAndGradient(f);
+            obj.constraint.computeFunctionAndGradient(f);
             
             [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma();
             %%%% The residual vector of the KKT conditions is calculated:
