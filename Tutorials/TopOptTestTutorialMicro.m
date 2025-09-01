@@ -128,16 +128,25 @@ classdef TopOptTestTutorialMicro < handle
             s.filter            = obj.filter;
             s.material          = obj.createMaterial();
             s.stateProblem      = obj.physicalProblem;
-            s.alpha             = [0;0;1];
-            s.beta              = [0;0;1];
+            s.alpha             = [0, 1; 1 ,0];
+            s.beta              = [0, 1; 1 ,0];
             obj.ChomogAlphaBeta = MicroAlphaBetaFunctional(s);
+        end
+
+        function uMesh = createBaseDomain(obj)
+            levelSet         = -ones(obj.mesh.nnodes,1);
+            s.backgroundMesh = obj.mesh;
+            s.boundaryMesh   = obj.mesh.createBoundaryMesh();
+            uMesh = UnfittedMesh(s);
+            uMesh.compute(levelSet);
         end
 
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
-            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.test = LagrangianFunction.create(obj.mesh,1,'P1');
             s.volumeTarget = 0.5;
+            s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
         end

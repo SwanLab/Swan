@@ -1,4 +1,6 @@
 filename = 'anisoCantilever';
+a.fileName = filename;
+gid = FemDataContainer(a);
 ptype = 'MACRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -22,8 +24,11 @@ overhangAngle = 90;
 tu = tand(scaleAngle);
 f2.boundaryType = 'Neumann';
 f2.metric       = 'Anisotropy';
-f2.CAnisotropic = [tu,0;0,1/tu];
-f2.aniAlphaDeg  = overhangAngle;
+CAnisotropic = [tu,0;0,1/tu];
+R = [cosd(overhangAngle),-sind(overhangAngle)
+    sind(overhangAngle), cosd(overhangAngle)];
+CGlobal = R*CAnisotropic*R';
+f2.A = ConstantFunction.create(CGlobal,gid.mesh);
 f3 = [];
 filterCostSettings = {f1,f2};
 filterConstraintSettings = {f3};

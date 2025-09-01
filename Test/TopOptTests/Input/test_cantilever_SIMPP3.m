@@ -1,4 +1,6 @@
 filename = 'CantileverBeam_Triangle_Linear';
+a.fileName = filename;
+gid = FemDataContainer(a);
 ptype = 'MACRO';
 method = 'SIMP_P3';
 materialType = 'ISOTROPIC';

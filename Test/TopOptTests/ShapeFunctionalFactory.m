@@ -38,9 +38,17 @@ classdef ShapeFunctionalFactory < handle
                     s.filter      = cParams.filter;
                     s.epsilon     = 5*cParams.mesh.computeMeanCellSize();
                     s.value0      = 1;
+                    s.uMesh       = cParams.base;
                     sF = PerimeterFunctional(s);
                 case 'perimeterConstraint'
-                    sF = Perimeter_constraint(cParams);
+                    s.mesh    = cParams.mesh;
+                    s.filter  = cParams.filter;
+                    s.epsilon = 2*cParams.mesh.computeMeanCellSize();
+                    s.minEpsilon = cParams.mesh.computeMeanCellSize();
+                    s.value0  = 1;
+                    s.uMesh   = cParams.base;
+                    s.target  = cParams.target;
+                    sF        = PerimeterConstraint(s);
                 case 'chomog_alphabeta'
                     s.mesh         = cParams.mesh;
                     s.filter       = cParams.filter;
@@ -88,7 +96,8 @@ classdef ShapeFunctionalFactory < handle
                     s.mesh         = cParams.mesh;
                     s.filter       = cParams.filter;
                     s.volumeTarget = cParams.target;
-                    s.gradientTest = cParams.gradientTest;
+                    s.test         = cParams.gradientTest;
+                    s.uMesh        = cParams.base;
                     sF             = VolumeConstraint(s);
                 case 'firstEignValue_functional'
                     sF = ShFunc_FirstEigenValue(cParams);
@@ -112,14 +121,36 @@ classdef ShapeFunctionalFactory < handle
                 case 'VolumeConstraintBound'
                     s.mesh         = cParams.mesh;
                     s.volumeTarget = cParams.target;
-                    s.gradientTest = cParams.gradientTest;
+                    s.test         = cParams.gradientTest;
+                    s.uMesh        = cParams.base;
                     sF = VolumeConstraintWithBound(s);
+                case 'filteredVolumeConstraint'
+                    s.mesh   = cParams.mesh;
+                    s.filter = cParams.filter;
+                    s.p      = 4;
+                    s.alpha  = cParams.target;
+                    s.uMesh  = cParams.base;
+                    sF       = FilteredVolumeConstraint(s);
+                case 'isoPerConstraint'
+                    s.mesh    = cParams.mesh;
+                    s.uMesh   = cParams.base;
+                    s.epsilon = 5*cParams.mesh.computeMeanCellSize();
+                    s.p       = 4;
+                    s.C       = 2.5;
+                    sF        = IsoPerimetricConstraint(s);
+                case 'perNormpConstraint'
+                    s.mesh      = cParams.mesh;
+                    s.uMesh     = cParams.base;
+                    s.epsilon   = 5*cParams.mesh.computeMeanCellSize();
+                    s.p         = 4;
+                    s.perTarget = 1.5;
+                    sF          = IsotropicPerimeterNormPConstraint(s);
                 otherwise
                     error('Wrong cost name or not added to Cost Object')
             end
         end
-        
+
     end
-    
+
 end
 
