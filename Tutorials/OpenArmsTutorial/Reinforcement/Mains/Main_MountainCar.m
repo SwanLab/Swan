@@ -34,15 +34,13 @@ params.offsets = generateDiagonalOffsets(2, params.num_tilings);  % 2D case
 % --- Environment ---
 env = MountainCarEnv(params);
 
+% --- Agent ---
 agent = Agent(env, @policyFunction, @getActiveTiles, params);
 
-weights = agent.SARSA();
 % --- Train using SARSA(λ) ---
-tic
-%weights = TD_lambda(env, @policyFunction, @getActiveTiles, params, 'sarsa'); % change 'sarsa' to alg
-toc
-%save('w_reference.mat', 'weights');
-%stepsPerState = evaluate_steps(weights, env, params);
+weights = agent.SARSA();
+
+%weights = TD_lambda(env, @policyFunction, @getActiveTiles, params, 'sarsa'); 
 %% --- Visualization ---
 
 % Resolution of plots

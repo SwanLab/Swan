@@ -75,13 +75,6 @@ Xtest = Xtest .* data.sigmaX + data.muX;
 Ypred = Ypred .* data.sigmaY + data.muY;
 Ytest = Ytest .* data.sigmaY + data.muY;
 
-% Consumption dependance on speed cubed
-figure;
-plot(Xtest(:,4),Ytest,'o')
-xlabel('Speed cubed (m/s)^3')
-ylabel('Fuel consumption')
-
-
 % Compute the mean square error (MSE)
 mse = mean((Ypred - Ytest).^2);
 
