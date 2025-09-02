@@ -31,11 +31,10 @@ classdef Network < handle
         end
 
         function dc = backprop(obj,Yb,dLF)
-            [W,~] = obj.learnableVariables.reshapeInLayerForm();
-            a = obj.aValues;
+            [W, a, nLy] = obj.backLoopVars();
             nPl = obj.neuronsPerLayer;
-            nLy = obj.nLayers;
             m = length(Yb);
+
             obj.deltag = cell(nLy,1);
             dcW = cell(nLy-1,1);
             dcB = cell(nLy-1,1);
@@ -56,22 +55,16 @@ classdef Network < handle
             end
         end
 
-        function dy = networkGradient(obj,X)
+        function J = networkJacobian(obj,X)
             obj.computeAvalues(X);
-            [W,~] = obj.learnableVariables.reshapeInLayerForm();
-            a = obj.aValues;
-            nLy = obj.nLayers;
-            for k = nLy-1:-1:1
-                [~,a_der] = obj.actFCN(a{k+1},k+1);
-                a_der = diag(a_der);
-                parDer = a_der * W{k}';
-                if k == nLy-1
-                    grad = parDer;
-                else
-                    grad = grad * parDer;
-                end
+            [W, a, nLy] = obj.backLoopVars();
+        
+            J = eye(size(W{end},2));
+            for k = nLy:-1:2
+                [~,a_der] = obj.actFCN(a{k},k);
+                parDer = W{k-1} * diag(a_der);
+                J = parDer * J;
             end
-            dy = grad;
         end
 
         function g = computeLastH(obj,X)
@@ -121,6 +114,12 @@ classdef Network < handle
             s.nLayers         = obj.nLayers;
             t = LearnableVariables(s);
             obj.learnableVariables = t;
+        end
+
+        function [W, a, nLy] = backLoopVars(obj)
+            [W,~] = obj.learnableVariables.reshapeInLayerForm();
+            a     = obj.aValues;
+            nLy   = obj.nLayers;
         end
 
         function computeAvalues(obj,X)
