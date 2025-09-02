@@ -35,7 +35,7 @@ classdef ThreeDimCantileverDensity < handle
             obj.createConstraint();
             obj.createDualVariable();
             obj.createOptimizer();
-            saveas(gcf,['NullSLERPResults/TopOpt/3DCantileverBeam/DensityComparison/Monitoring_trust0d02_gJ',num2str(obj.gJFlow),'.fig']);
+            saveas(gcf,['NullSLERPResults/TopOpt/3DCantileverBeam/DensityComparison/Monitoring_trust0d02_gJ',num2str(obj.gJFlow),'_V',num2str(obj.Vf),'.fig']);
             obj.designVariable.fun.print(['NullSLERPResults/TopOpt/3DCantileverBeam/DensityComparison/gJ',num2str(obj.gJFlow),'_V',num2str(obj.Vf),'_fValues']);
         end
 
@@ -184,7 +184,10 @@ classdef ThreeDimCantileverDensity < handle
             s.ub             = 1;
             s.lb             = 0;
             s.etaNorm        = 0.02;
+            s.etaNormMin     = 0.02;
             s.gJFlowRatio    = obj.gJFlow;
+            s.etaMax         = Inf;
+            s.etaMaxMin      = [];
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
