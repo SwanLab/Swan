@@ -25,6 +25,7 @@ s.costParams.costType           = 'L2';
 s.networkParams.HUtype = 'ReLU';
 s.networkParams.OUtype = 'linear';
 
+
 % Select the model's features
 s.xFeatures = [1, 2, 3, 4, 5, 6, 7];
 s.yFeatures = [8];
@@ -45,16 +46,19 @@ opt.plotCostFnc();
 % Load the trained neural network
 network = opt.getNetwork();
 
-%{
+
 % Initialize Ypred as an empty column vector
 Ypred = zeros(size(Ytest));
 
 % Pass every Xtest sample to the neural network and store predictions
 for i = 1:size(Xtest, 1)
-    %Ypred(i) = network.forwardprop(Xtest(i, :), Ytest(i, :));  % Prediction for each case
-    Ypred(i) = network.computeYOut(Xtest(i, :));
+    Ypred(i) = network.computeYOut(Xtest(i, :));  % Prediction for each case
 end
+
+Ypred(i) = network.forwardprop(Xtest(i, :), Ytest(i, :));
 %}
+
+
 Ypred = network.computeYOut(Xtest); % Vectorize the computation of Ypred
 
 %(debugging) Histogram for the distribution of Ypred

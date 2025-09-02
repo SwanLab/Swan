@@ -172,7 +172,7 @@ classdef Data < handle
             obj.Ytrain = obj.Y(r(1:ntrain),:);
             obj.Ytest  = obj.Y(r((ntrain + 1):end),:);
 
-            % Velocity squared/cubed
+            % Velocity cubed
             obj.Xtrain(:,4) = obj.Xtrain(:,4).^3;
             obj.Xtest(:,4) = obj.Xtest(:,4).^3;
             
@@ -187,7 +187,7 @@ classdef Data < handle
             % Normalize Y
             [obj.Ytrain, obj.muY, obj.sigmaY] = zscore(obj.Ytrain);
             obj.Ytest = (obj.Ytest - obj.muY) ./ obj.sigmaY;
-%}
+
             obj.Ntest = ntest;
         end
     end
