@@ -9,6 +9,9 @@ if exist("RBbasisFree")
 else
     RBM = B;
 end
-% RBM = B;
-% u = elasticity_amg_solver(A,B,RBM);
-[x,res]= run_pyamg_with_residuals2(A,b, 'B_nullspace', RBM);
+
+%[x1,res1]= run_pyamg_with_residuals2(A,b, 'B_nullspace', RBM);
+
+s.type = 'ELASTIC';
+s.LHS  = A;
+x2     = pyAMG.create(s);

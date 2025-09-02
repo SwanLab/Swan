@@ -22,7 +22,7 @@ function [x, residuals] = run_pyamg_with_residuals2(A, b, varargin)
     % --- Hardcoded Solver Parameters ---
     % These values are now fixed within the function
     solver_tol = 1e-8;    % Default tolerance for the solver
-    solver_maxiter = 1; % Default maximum iterations for the solver
+    solver_maxiter = 1000; % Default maximum iterations for the solver
     % --- End Hardcoded Solver Parameters ---
 
     % --- Input Validation (MATLAB side) ---
@@ -118,7 +118,7 @@ function [x, residuals] = run_pyamg_with_residuals2(A, b, varargin)
     residuals = [];
     % Define standard solver options for the solve method
 %     solve_method_options = pyargs("callback", tracker, "tol", solver_tol, "maxiter", solver_maxiter);
-    solve_method_options = pyargs("callback", tracker, "tol", solver_tol, "maxiter", solver_maxiter);
+    solve_method_options = pyargs("callback", tracker, "tol", solver_tol, "maxiter", solver_maxiter, "accel", "cg");
 
     % Define arguments for the smoothed_aggregation_solver constructor
     solver_constructor_args = {A_csr};
