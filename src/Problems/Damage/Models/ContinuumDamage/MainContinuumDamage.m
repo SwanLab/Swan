@@ -4,28 +4,28 @@ clc,clear,close all
 s.monitoring.set = true;
 s.monitoring.print = true;
 
-s.benchmark.mesh.length = 10;
+s.benchmark.mesh.length = 100;
 s.benchmark.mesh.width  = 1;
-s.benchmark.mesh.lN     = 10;
-s.benchmark.mesh.wN     = 10;
-s.benchmark.mesh.type   = 'Rectangle';
+s.benchmark.mesh.lN     = 100;
+s.benchmark.mesh.wN     = 100;
+s.benchmark.mesh.type   = 'Sample';
 
 s.benchmark.bc.type     = 'DisplacementTractionX';
-s.benchmark.bc.bcValues = [0:1e-1:10];
+s.benchmark.bc.bcValues = [0:1e-2:1e-1,1e-1:1e-3:2e-1];
 
 s.matInfo.young   = 210;
 s.matInfo.poisson = 0.3;
 
 s.damageInfo.type = 'Linear';
-s.damageInfo.r0 = 10;
-s.damageInfo.params.r1 = 29;
+s.damageInfo.r0 = 1;
+s.damageInfo.params.r1 = 3;
 s.damageInfo.params.hardening = -0.5;
 % obj.damageInfo.params.A = 0.1;
 % obj.damageInfo.params.w = 0.1 ;
 %obj.damageInfo.params.qInf = 30;
 
 s.tolerance = 1e-6;
-s.maxIter   = 100;
+s.maxIter   = 20;
 
 
 %% RUN

@@ -63,9 +63,11 @@ classdef TestingContinuumDamage < handle
                 N = obj.benchmark.mesh.lN;
                 M = obj.benchmark.mesh.wN;
                 mesh = QuadMesh(l,w,N,M);
-
-                mesh.coord(56,2) = 5e-2;
-                mesh.coord(66,2) = 9.5e-1;
+                
+                idx1 = round(length(mesh.coord)/2) + N/2;
+                idx2 = round(length(mesh.coord)/2) - N/2;
+                mesh.coord(idx1,2) = w -w/(2*M) ;
+                mesh.coord(idx2,2) = w/(2*M);
                 mesh.plot
             else
                 file = obj.benchmark.mesh.type;

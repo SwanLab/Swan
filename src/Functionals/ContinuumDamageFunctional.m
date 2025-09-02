@@ -50,6 +50,10 @@ classdef ContinuumDamageFunctional < handle
             d = obj.internalEnergy.getDamage(r);
             sig = obj.internalEnergy.computeStress(u,r);
         end
+
+        function C = getMaterial(obj)
+            C = obj.material;
+        end
         
    end
 

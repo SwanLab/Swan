@@ -49,6 +49,7 @@ classdef ContinuumDamageInternalEnergyFunctional < handle
             C = obj.material.obtainNonDamagedTensor();
             epsi = SymGrad(u);
             tau = sqrt(DDP(DDP(epsi,C),epsi));
+            max(tau.evaluate([0;0]))
         end
 
         function qFun = getHardening(obj,r)
