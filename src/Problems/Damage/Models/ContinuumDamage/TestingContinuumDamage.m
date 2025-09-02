@@ -98,9 +98,10 @@ classdef TestingContinuumDamage < handle
         end        
     
         function dM = createDamagedMaterial(obj)
+            s.type = 'ContinuumDamage';
             s.baseMaterial = obj.createBaseMaterial();
             s.damage       = obj.createDamagedLaw();
-            dM = DamagedMaterial(s);
+            dM = Material.create(s);
         end
 
         function mat = createBaseMaterial(obj)

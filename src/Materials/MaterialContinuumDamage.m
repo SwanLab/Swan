@@ -1,4 +1,4 @@
-classdef DamagedMaterial < handle
+classdef MaterialContinuumDamage < handle
 
     properties (Access = private)
         baseMaterial
@@ -7,7 +7,7 @@ classdef DamagedMaterial < handle
 
     methods (Access = public)
 
-        function obj = DamagedMaterial(cParams)
+        function obj = MaterialContinuumDamage(cParams)
             obj.init(cParams) 
         end
         

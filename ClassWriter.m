@@ -1,4 +1,4 @@
-classdef ClassWritter < handle
+classdef ClassWriter < handle
     
     properties (Access = private)
         lines
@@ -11,7 +11,7 @@ classdef ClassWritter < handle
     
     methods (Access = public)
         
-        function obj = ClassWritter(cParams)
+        function obj = ClassWriter(cParams)
             obj.init(cParams)
             obj.computeLines();
             obj.computeString();
