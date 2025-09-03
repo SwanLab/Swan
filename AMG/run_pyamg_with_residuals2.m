@@ -1,4 +1,4 @@
-function [x, residuals] = run_pyamg_with_residuals2(A, b, varargin)
+function [x, residualPCG] = run_pyamg_with_residuals2(A, b, varargin)
 %RUN_PYAMG_WITH_RESIDUALS Solve Ax = b using PyAMG with residual tracking.
 %
 % Input:
@@ -158,7 +158,7 @@ function [x, residuals] = run_pyamg_with_residuals2(A, b, varargin)
     x = double(x_py);
     % Convert Python list of residuals to MATLAB array
     residualPCG = double(np.array(py.list(tracker.residuals)));
-    save('/home/raul/Documents/GitHub/Article graphs/Por3D_AMG.mat','residualPCG')
+    %save('/home/raul/Documents/GitHub/Article graphs/Por3D_AMG.mat','residualPCG')
 %     residuals = double(py.list(tracker.residuals));
 
 end
