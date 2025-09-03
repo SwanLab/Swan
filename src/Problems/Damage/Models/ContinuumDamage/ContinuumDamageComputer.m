@@ -67,8 +67,10 @@ classdef ContinuumDamageComputer < handle
         function [u,bc] = preprocess(obj,iStep,nSteps,u)
             obj.monitor.printStep(iStep,nSteps)
             bc = obj.boundaryConditions.nextStep();
-            %u.setFValues(obj.updateInitialDisplacement(u,bc));
-            
+            u  = obj.computeInitialDisplacement(u,bc);
+        end
+
+        function u = computeInitialDisplacement(obj,u,bc)
             mat = obj.functional.getMaterial();
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
@@ -79,23 +81,8 @@ classdef ContinuumDamageComputer < handle
             s.solverMode = 'DISP';
             s.solverCase = 'DIRECT';
             fem = ElasticProblem(s);
-            uVec = fem.solve();
-            uVal = reshape(uVec,[flip(size(u.fValues))])';
-            u.setFValues(uVal);
-        end
-
-        function u = updateInitialDisplacement(obj,uOld,bc)
-            restrictedDofs = bc.dirichlet_dofs;
-            if isempty(restrictedDofs)
-                u = uOld;
-            else
-                dirich = bc.dirichletFun;
-                uVec = reshape(uOld.fValues',[uOld.nDofs 1]);
-                dirichVec = reshape(dirich.fValues',[dirich.nDofs 1]);
-
-                uVec(restrictedDofs) = dirichVec(restrictedDofs);
-                u = reshape(uVec,[flip(size(uOld.fValues))])';
-            end
+            fem.solve();
+            u.setFValues(fem.uFun.fValues);
         end
 
         function postprocess(obj,iStep,uFun,r,F,cost,iterMax)
@@ -119,28 +106,31 @@ classdef ContinuumDamageComputer < handle
             end
         end
 
-        function [dmgFun0,dmgFun1,qFun,rFun] = computeDamageVariables(obj,u,r)
-            [dmgFun,sig] = obj.functional.getDamage(u,r);
-            dmgFun0 = dmgFun.project('P0');
-            dmgFun1 = dmgFun.project('P1');
-            %sig.plot
-            qFun   = obj.functional.getHardening(r).project('P1');
-            rFun   = obj.internalDamageVariable.r.project('P1');
+        function [dmgFunP0,dmgFunP1,qFun,rFun] = computeDamageVariables(obj,u,r)
+            dmg = obj.functional.getDamage(r);
+            dmgFunP0 = dmg.project('P0');
+            dmgFunP1 = dmg.project('P1');
+
+            qFun   = obj.functional.getHardening(r).project('P0');
+            rFun   = obj.internalDamageVariable.r.project('P0');
         end
 
-        function printAndSave(obj,step,uFun,dmgFun0,dmgFun1,qFun,rFun,uVal,fVal,energy,iterMax)
-            dmgMax = max(dmgFun0.fValues); qMax = max(qFun.fValues); rMax = max(rFun.fValues);
-            obj.monitor.updateAndRefresh(step,{[fVal;uVal],[dmgMax;uVal],[qMax,rMax],[],[dmgFun1.fValues],[iterMax]});
-            obj.saveData(step,uFun,dmgFun0,qFun,rFun,uVal,fVal,energy,iterMax);
+        function printAndSave(obj,step,uFun,dmgFunP0,dmgFunP1,qFun,rFun,uVal,fVal,energy,iterMax)
+            dmgMax = max(dmgFunP0.fValues); 
+            qMax = max(qFun.fValues);
+            rMax = max(rFun.fValues);
+            obj.monitor.updateAndRefresh(step,{[fVal;uVal],[dmgMax;uVal],[qMax,rMax],...
+                                               [],[dmgFunP1.fValues],[iterMax]});
+            obj.saveData(step,uFun,dmgFunP0,qMax,rMax,uVal,fVal,energy,iterMax);
         end
 
-        function saveData(obj,step,uFun,dmgFun,qFun,rFun,uVal,fVal,energy,iterMax)
+        function saveData(obj,step,uFun,dmgFun,qMax,rMax,uVal,fVal,energy,iterMax)
             s.uFun    = uFun;
             s.uVal    = uVal;
             s.fVal    = fVal;
             s.dmgFun  = dmgFun;
-            s.qFun    = qFun;
-            s.rFun    = rFun;
+            s.qMax    = qMax;
+            s.rMax    = rMax;
             s.energy  = energy;
             s.numIter = iterMax;
             obj.monitor.saveData(step,s)

@@ -51,8 +51,8 @@ classdef ContinuumDamageMonitoring < handle
             obj.data.reaction                    = cParams.fVal;
             obj.data.damage.function{step}       = cParams.dmgFun;
             obj.data.damage.maxValue(step)       = max(cParams.dmgFun.fValues);
-            obj.data.qMaxValue                   = max(cParams.qFun.fValues);
-            obj.data.rMaxValue                   = max(cParams.rFun.fValues);
+            obj.data.qMaxValue                   = cParams.qMax;
+            obj.data.rMaxValue                   = cParams.rMax;
             obj.data.energy(step)                = cParams.energy;
             obj.data.iter(step)                  = cParams.numIter;
         end
@@ -66,7 +66,7 @@ classdef ContinuumDamageMonitoring < handle
             s.maxNColumns = 3;
             s.funs = [{cParams.fun}];
             s.barLims = [{[0;1]}];
-            s.titles = [{'Force-displacement'},{'Damage-displacement'},{'q-displacement'},{'Cost'},{'Damage'},{'Iterations'}];
+            s.titles = [{'Force-displacement'},{'Damage-displacement'},{'q-r'},{'Cost'},{'Damage'},{'Iterations'}];
             s.chartTypes = [{'plot'},{'plot'},{'plot'},{'plot'},{'surf'},{'bar'}];
             obj.monitor = Monitoring(s);
 

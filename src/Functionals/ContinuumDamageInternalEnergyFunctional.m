@@ -18,19 +18,18 @@ classdef ContinuumDamageInternalEnergyFunctional < handle
             obj.createRHSIntegrator();
         end
 
-        function [energy] = computeFunction(obj,u,r)
-            C   = obj.material.obtainTensorSecant(r);
-            eps = SymGrad(u);
-            sig = DDP(eps,C);
-            en  = DDP(sig,eps);
-            int = Integrator.compute(en,obj.mesh,obj.quadOrder);
-            energy = 0.5*int;
-        end
-
         function sig = computeStress(obj,u,r)
             C   = obj.material.obtainTensorSecant(r);
             eps = SymGrad(u);
             sig = DDP(eps,C);
+        end
+
+        function [energy] = computeFunction(obj,u,r)
+            sig = obj.computeStress(u,r);
+            eps = SymGrad(u);
+            en  = DDP(sig,eps);
+            int = Integrator.compute(en,obj.mesh,obj.quadOrder);
+            energy = 0.5*int;
         end
 
         function res = computeResidual(obj,u,r)

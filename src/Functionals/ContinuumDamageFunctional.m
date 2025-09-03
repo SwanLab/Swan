@@ -42,17 +42,20 @@ classdef ContinuumDamageFunctional < handle
             tau = obj.internalEnergy.computeTauEpsilon(u);
         end
 
+        function sig = computeStress(obj,u,r)
+            sig = obj.internalEnergy.computeStress(u,r);
+        end
+
         function q = getHardening(obj,r)
             q = obj.internalEnergy.getHardening(r);
         end
 
-        function [d,sig] = getDamage(obj,u,r)
+        function d = getDamage(obj,r)
             d = obj.internalEnergy.getDamage(r);
-            sig = obj.internalEnergy.computeStress(u,r);
         end
 
-        function C = getMaterial(obj)
-            C = obj.material;
+        function mat = getMaterial(obj)
+            mat = obj.material;
         end
         
    end

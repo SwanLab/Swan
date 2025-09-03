@@ -1,6 +1,6 @@
 classdef Mesh < handle
 
-    properties (GetAccess = public, SetAccess = public)
+    properties (GetAccess = public, SetAccess = private)
         type
         kFace
 

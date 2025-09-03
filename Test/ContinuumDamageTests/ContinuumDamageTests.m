@@ -1,7 +1,7 @@
 classdef ContinuumDamageTests < handle & matlab.unittest.TestCase
 
     properties (TestParameter)
-        singleElementCases = {'Linear','Exponential'}
+        singleElementCases = {'LinearHardening','LinearSoftening','Exponential','AT1','AT2'}
         complexCases = {'SEN'}
     end
 
