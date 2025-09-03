@@ -124,7 +124,6 @@ classdef BoundaryConditions < handle
             fVdofs = reshape(fVdofs,[ndimf ndofs/ndimf])';
             fV = dirich.fValues + fVdofs;
         end
-
     end
     
 end
