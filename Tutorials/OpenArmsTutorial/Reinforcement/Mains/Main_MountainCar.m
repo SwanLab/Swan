@@ -46,8 +46,8 @@ policyFunction = createPolicyFunction(policyType);
 agent = Agent(env, policyFunction, @getActiveTiles, params);
 
 % --- Train using SARSA(λ) ---
-%[w_c, weights] = agent.ActorCritic();
-weights = agent.SARSA();
+[w_c, weights] = agent.ActorCritic();
+%weights = agent.SARSA();
 %% --- Visualization ---
 
 % Resolution of plots
