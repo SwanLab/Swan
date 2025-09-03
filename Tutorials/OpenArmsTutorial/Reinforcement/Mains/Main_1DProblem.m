@@ -29,8 +29,12 @@ env = OneDEnv(params);
 % Define your policy (ε-greedy)
 policy = @(s, w, epsilon, params) epsilonGreedy(s, w, epsilon, params, @getActiveTiles);
 
-% Run SARSA(λ)
-weights = TD_lambda(env, policy, @getActiveTiles, params,'qlearning');
+% --- Agent ---
+agent = Agent(env, policy, @getActiveTiles, params);
+
+% --- Train using SARSA(λ) ---
+weights = agent.SARSA();
+
 
 %% Visualization
 plotValueFunction(weights, params)

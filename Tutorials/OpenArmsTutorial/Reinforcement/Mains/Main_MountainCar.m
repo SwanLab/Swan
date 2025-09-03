@@ -39,8 +39,6 @@ agent = Agent(env, @policyFunction, @getActiveTiles, params);
 
 % --- Train using SARSA(λ) ---
 weights = agent.SARSA();
-
-%weights = TD_lambda(env, @policyFunction, @getActiveTiles, params, 'sarsa'); 
 %% --- Visualization ---
 
 % Resolution of plots

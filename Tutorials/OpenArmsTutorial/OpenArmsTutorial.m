@@ -46,16 +46,15 @@ opt.plotCostFnc();
 % Load the trained neural network
 network = opt.getNetwork();
 
-
+%{
 % Initialize Ypred as an empty column vector
 Ypred = zeros(size(Ytest));
 
 % Pass every Xtest sample to the neural network and store predictions
 for i = 1:size(Xtest, 1)
+    %Ypred(i) = network.forwardprop(Xtest(i, :), Ytest(i, :));
     Ypred(i) = network.computeYOut(Xtest(i, :));  % Prediction for each case
 end
-
-Ypred(i) = network.forwardprop(Xtest(i, :), Ytest(i, :));
 %}
 
 

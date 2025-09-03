@@ -1,3 +1,4 @@
+
 classdef JuliaShFuncL2norm < handle
     properties (Access = private)
         data  % Struct returned from Julia constructor (holds designVariable info)
@@ -39,19 +40,6 @@ classdef JuliaShFuncL2norm < handle
             dj = result.dj;
         end
     end
-    %{
-    methods (Access = private)
-        function j = computeCost(obj)
-            params.designVariable = struct('thetavec', obj.data.thetavec);
-            result = callJuliaClass('Sh_Func_L2norm', 'computeCost', params);
-            j = result.j;
-        end
-
-        function dj = computeGradient(obj)
-            params.designVariable = struct('thetavec', obj.data.thetavec);
-            result = callJuliaClass('Sh_Func_L2norm', 'computeGradient', params);
-            dj = result.dj;
-        end
-    end
-    %}
 end
+
+
