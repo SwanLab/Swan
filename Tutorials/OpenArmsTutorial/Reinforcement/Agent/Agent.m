@@ -4,7 +4,11 @@ classdef Agent
         policyFunction
         getActiveTiles
         params
-        w   % weight vector
+        w       % weight vector
+
+        % New for Actor-Critic
+        w_c     % critic weights
+        w_a     % actor weights 
     end
     
     methods
@@ -15,6 +19,10 @@ classdef Agent
             obj.getActiveTiles = getActiveTiles;
             obj.params = params;
             obj.w = zeros(params.n_features, 1);
+            
+            % Actor weights (state-action)
+            obj.w_c = zeros(prod(params.tiles_per_dim) * params.num_tilings, 1);
+            obj.w_a = zeros(params.n_features, 1);
         end
         
         function w = SARSA(obj)
@@ -28,7 +36,7 @@ classdef Agent
             for ep = 1:nEpisodes
                 % Reset environment
                 state = obj.env.reset();
-                [a, epsilon] = obj.policyFunction(state, obj.w, epsilon, obj.params);
+                [a, epsilon] = obj.policyFunction(state, obj.w, epsilon, obj.params, obj.getActiveTiles);
 
                 % Eligibility trace
                 e = zeros(size(obj.w));
@@ -40,7 +48,7 @@ classdef Agent
                     [next_state, reward, done] = obj.env.step(state, a);
 
                     % Next action
-                    [ap, epsilon] = obj.policyFunction(next_state, obj.w, epsilon, obj.params);
+                    [ap, epsilon] = obj.policyFunction(next_state, obj.w, epsilon, obj.params, obj.getActiveTiles);
 
                     % Current Q
                     idx = obj.getActiveTiles(state, a, obj.params);
@@ -87,7 +95,7 @@ classdef Agent
             for ep = 1:nEpisodes
                 % Reset environment
                 state = obj.env.reset();
-                [a, epsilon] = obj.policyFunction(state, obj.w, epsilon, obj.params);
+                [a, epsilon] = obj.policyFunction(state, obj.w, epsilon, obj.params, obj.getActiveTiles);
 
                 % Eligibility trace
                 e = zeros(size(obj.w));
@@ -99,7 +107,7 @@ classdef Agent
                     [next_state, reward, done] = obj.env.step(state, a);
 
                     % Next action (for exploration only)
-                    [ap, epsilon] = obj.policyFunction(next_state, obj.w, epsilon, obj.params);
+                    [ap, epsilon] = obj.policyFunction(next_state, obj.w, epsilon, obj.params, obj.getActiveTiles);
 
                     % Current Q
                     idx = obj.getActiveTiles(state, a, obj.params);
@@ -144,5 +152,78 @@ classdef Agent
             end
             w = obj.w;
         end
+
+        function [w_c, w_a] = ActorCritic(obj)
+            % Extract params
+            alpha_c = obj.params.alpha_c;  % critic learning rate
+            alpha_a = obj.params.alpha_a;  % actor learning rate
+            gamma = obj.params.gamma;
+            lambda = obj.params.lambda;
+            nEpisodes = obj.params.n_episodes;
+            
+            for ep = 1:nEpisodes
+                state = obj.env.reset();
+                
+                % Eligibility traces
+                e_c = zeros(size(obj.w_c));
+                e_a = zeros(size(obj.w_a));
+                
+                done = false;
+                it = 0;
+                
+                % Choose first action
+                try
+                    a = obj.policyFunction(state, obj.w_a, obj.params, obj.getActiveTiles);
+                catch
+                    disp('Incompatible policy function and agent')
+                end
+                
+                while ~done
+                    % Step environment
+                    [next_state, reward, done] = obj.env.step(state, a);
+                    
+                    % Critic: state features
+                    idx_s = obj.getActiveTiles(state, 1, obj.params);        % 0 = ignore action
+                    V = sum(obj.w_c(idx_s));
+                    
+                    % Critic: next state features
+                    idx_s_next = obj.getActiveTiles(next_state, 1, obj.params);
+                    V_next = sum(obj.w_c(idx_s_next));
+                    
+                    % TD error
+                    if done
+                        delta = reward - V;
+                    else
+                        delta = reward + gamma * V_next - V;
+                    end
+                    
+                    % Update critic
+                    e_c(idx_s) = 1;
+                    obj.w_c = obj.w_c + alpha_c * delta * e_c;
+                    e_c = gamma * lambda * e_c;
+                    
+                    % Update actor
+                    idx_a = obj.getActiveTiles(state, a, obj.params);
+                    e_a(idx_a) = 1;  % eligibility for chosen action
+                    obj.w_a = obj.w_a + alpha_a * delta * e_a;
+                    e_a = gamma * lambda * e_a;
+                    
+                    
+                    % Choose next action
+                    a = obj.policyFunction(next_state, obj.w_a, obj.params, obj.getActiveTiles);
+                    
+                    % Transition
+                    state = next_state;
+                    it = it + 1;
+                end
+                
+                disp(['Episode ', int2str(ep), ' completed in ', int2str(it), ' iterations']);
+            end
+            
+            % Return final weights
+            w_c = obj.w_c;
+            w_a = obj.w_a;
+        end
+
     end
 end
