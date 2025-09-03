@@ -1,4 +1,4 @@
-function w = TD_lambda(env, policyFunction, getActiveTiles, params, type)
+function w = TD_lambda(env, policyFunction, getActiveTiles, params, agent)
     % type = 'sarsa' or 'qlearning'
 
     % Unpack parameters
@@ -8,7 +8,7 @@ function w = TD_lambda(env, policyFunction, getActiveTiles, params, type)
     lambda = params.lambda;
     epsilon = params.epsilon;
     nEpisodes = params.n_episodes;
-    nActions = params.n_actions;
+    
 
     % Initialize weights
     w = zeros(nFeatures, 1);
@@ -16,10 +16,9 @@ function w = TD_lambda(env, policyFunction, getActiveTiles, params, type)
     for ep = 1:nEpisodes
         % Reset environment
         state = env.reset();
-        [a, epsilon] = policyFunction(state, w, epsilon, params);
+        [a, epsilon] = policyFunction(state, w, epsilon, params,@getActiveTiles);
 
         % Eligibility trace
-        e = zeros(size(w));
         done = false;
         it = 0;
 
@@ -28,66 +27,17 @@ function w = TD_lambda(env, policyFunction, getActiveTiles, params, type)
             [next_state, reward, done] = env.step(state, a);
 
             % Choose next action ε-greedily
-            [ap, epsilon] = policyFunction(next_state, w, epsilon, params);
+            [ap, epsilon] = policyFunction(next_state, w, epsilon, params,@getActiveTiles);
 
             % Feature indices
             idx = getActiveTiles(state, a, params);
 
+            
             Q = sum(w(idx));
+            idx_p = getActiveTiles(next_state, ap, params);           
 
-            switch type
-                case 'sarsa'
-                    idx_p = getActiveTiles(next_state, ap, params);
-                    Qp = sum(w(idx_p));
-                    if done
-                        delta = reward - Q;
-                    else
-                        delta = reward + gamma * Qp - Q;
-                    end
+            w = agent.computeW(done,reward,gamma,w,idx,idx_p,Q,alpha,lambda,next_state,params);
 
-                    % Update eligibility trace (replacing)
-                    e(idx) = 1;
-
-                    % Weight update
-                    w = w + alpha * delta * e;
-
-                    % Decay trace
-                    e = gamma * lambda * e;
-
-                case 'qlearning'
-                    Qp_all = zeros(1, nActions);
-                    for a_i = 1:nActions
-                        idx_p = getActiveTiles(next_state, a_i, params);
-                        Qp_all(a_i) = sum(w(idx_p));
-                    end
-                    Qp_max = max(Qp_all);
-
-                    if done
-                        delta = reward - Q;
-                    else
-                        delta = reward + gamma * Qp_max - Q;
-                    end
-
-                    % Update eligibility trace (replacing)
-                    e(idx) = 1;
-
-                    % Weight update
-                    w = w + alpha * delta * e;
-
-                    % Check if chosen action was greedy
-                    idx_ap = getActiveTiles(next_state, ap, params);
-                    isGreedy = sum(w(idx_ap)) == Qp_max;
-
-                    % Reset or decay trace
-                    if done || ~isGreedy
-                        e = zeros(size(e));
-                    else
-                        e = gamma * lambda * e;
-                    end
-
-                otherwise
-                    error('Unknown type. Use ''sarsa'' or ''qlearning''.');
-            end
 
             % Transition
             state = next_state;
