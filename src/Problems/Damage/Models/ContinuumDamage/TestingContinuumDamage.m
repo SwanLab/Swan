@@ -24,8 +24,7 @@ classdef TestingContinuumDamage < handle
 
         function obj = TestingContinuumDamage(cParams)
             obj.init(cParams);
-            obj.mesh                   = obj.createMesh();
-            obj.boundaryConditions     = obj.createBoundaryConditions();
+            [obj.mesh, obj.boundaryConditions] = obj.defineCase();
             obj.internalDamageVariable = obj.createInternalDamageVariable();
             obj.functional             = obj.createContinuumDamageFunctional();
             
@@ -56,25 +55,8 @@ classdef TestingContinuumDamage < handle
             obj.maxIter    = cParams.maxIter;
         end
 
-        function mesh = createMesh(obj)
-            if obj.benchmark.mesh.type == "Rectangle"
-                l = obj.benchmark.mesh.length;
-                w = obj.benchmark.mesh.width;
-                N = obj.benchmark.mesh.lN;
-                M = obj.benchmark.mesh.wN;
-                mesh = QuadMesh(l,w,N,M);
-            else
-                file = obj.benchmark.mesh.type;
-                a.fileName = file;
-                s = FemDataContainer(a);
-                mesh = s.mesh;
-            end
-        end
-
-        function bc = createBoundaryConditions(obj)
-            s.type     = obj.benchmark.bc.type;
-            s.bcValues = obj.benchmark.bc.bcValues;            
-            bc = BoundaryCreator(obj.mesh,s);
+        function [mesh,bc] = defineCase(obj)
+            [mesh, bc] = BenchmarkManager.create(obj.benchmark);
         end
 
         function r = createInternalDamageVariable(obj)

@@ -32,7 +32,7 @@ classdef HardeningLawAT2 < HardeningLaw
     methods (Access = private)
         
         function initParams(obj,cParams)
-            obj.w   = cParams.params.w;
+            obj.w    = cParams.params.w;
             obj.r1   = cParams.params.r1;
             obj.qInf = obj.computeHardeningLimit();
         end
@@ -50,8 +50,6 @@ classdef HardeningLawAT2 < HardeningLaw
         end
 
         function qDot = computeHardeningDerivative(obj,r)
-            %qDot = (4*obj.w1^2 + 4*obj.w1*r - 8*obj.w1*r^2-r^4)./(2*obj.w1+r^2).^2;
-
             qDot = (2*obj.w.*(2*obj.w-r.^2))./(obj.w*2+r.^2).^2;
         end
 

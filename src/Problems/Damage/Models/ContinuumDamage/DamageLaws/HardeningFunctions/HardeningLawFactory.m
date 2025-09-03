@@ -4,7 +4,7 @@ classdef HardeningLawFactory < handle
             switch cParams.type
                 case 'Linear'
                     obj = HardeningLawLinear(cParams);
-                case 'Exp'
+                case 'Exponential'
                     obj = HardeningLawExp(cParams);
                 case 'AT2'
                     obj = HardeningLawAT2(cParams);

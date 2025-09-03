@@ -92,6 +92,7 @@ classdef ContinuumDamageComputer < handle
         end
 
         function [fVal,uVal] = computeTotalReaction(obj,step,F,u)
+            % Only reactions in Upper Side -> Change for DisplacementX
             UpSide  = max(obj.mesh.coord(:,2));
             isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;

@@ -515,7 +515,7 @@ classdef LagrangianFunction < FeFunction
         function generalPlot(obj,plotFun)
             switch obj.getOrderTextual(obj.order)
                 case 'LINEAR'
-                    figure(100)
+                    figure()
                     connecP  = obj.getDofConnecByVector();
                     for iDim = 1:obj.ndimf                                                
                         subplot(1,obj.ndimf,iDim);

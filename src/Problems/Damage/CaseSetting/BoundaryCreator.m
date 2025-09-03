@@ -36,10 +36,10 @@ classdef BoundaryCreator < handle
     methods (Access = private)
 
         function init(obj,mesh,cParams)
-            obj.mesh = mesh;
-            obj.type = cParams.type;
-            obj.bcValues = cParams.bcValues;
-            obj.step = 0;
+            obj.mesh     = mesh;
+            obj.type     = cParams.type;
+            obj.bcValues = cParams.values;
+            obj.step     = 0;
         end
 
         function defineBoundaryConditions(obj)

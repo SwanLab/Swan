@@ -101,7 +101,7 @@ classdef TestingHyperelasticity < handle
             s.matProp     = obj.matProp;
             s.mesh        = obj.mesh;
             s.testSpace.u = LagrangianFunction.create(obj.mesh,2,'P1');
-            obj.functional = ElasticityFunctional(s);
+            obj.functional = NeohookeanFunctional(s);
         end
 
     end

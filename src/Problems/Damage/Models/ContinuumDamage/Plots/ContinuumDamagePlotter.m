@@ -1,67 +1,95 @@
-classdef ContinuumDamagePlotter < handle    
+classdef ContinuumDamagePlotter < handle
+    
     properties (Access = private)
-        data
+        damage
+        damageField
+        displacement
+        reaction
+        qMax
+        rMax
+        energy
+        iter
     end
     
     methods (Access = public)
+        
         function obj = ContinuumDamagePlotter(cParams)
-           obj.init(cParams)
-        end
-
-        function plotDisplacementField (obj,H)
-            obj.data.displacement.field.plot;
-            colorbar;
-            caxis([0 1-H]);
-        end
-
-        function plotDamagesField (obj,H)
-            obj.data.damage.field.plot;
-            colorbar;
-            caxis([0 1-H]);
-        end
-
-        function plotSelector (x,y,text)
-            switch x
-                case 'max r'
-                    x=  obj.data.r.maxValue;
-                case 'min r'
-                    x = obj.data.r.minValue;
-                case 'disp'
-                    x = obj.data.displacement.value;
-                otherwise
-                    error("ContinuumDamagePlotter.m: X axis label not recognised.");            
-            end
-            switch y
-                case 'force'
-                    y = obj.data.reaction;
-                case 'max damage'
-                    y = obj.data.damage.maxValue;
-                case 'min damage'
-                    y = obj.data.damage.minValue;
-                case 'max q'
-                    y = obj.data.q.maxValue;
-                case 'min q'
-                    y = obj.data.q.minValue;
-                case 'total energy'
-                    y = obj.data.totalEnergy;    
-                case 'material'
-                    y = obj.data.data.damagedMaterial;
-                otherwise
-                    error("ContinuumDamagePlotter.m: Y axis label not recognised.");
-            end
-            obj.plotter(x,y,text);
+            obj.init(cParams)
+            obj.plotForceDisplacement()
+            obj.plotDamage()
+            obj.meshDamage()
+            obj.plotQR()
+            obj.plotEnergy()
+            obj.plotIterations()
         end
         
     end
-    methods(Access = private)
+        
+    methods (Access = private)
+        
         function init(obj,cParams)
-            obj.data = cParams.data;
+            obj.damage = cParams.damage.maxValue;
+            obj.damageField = cParams.damage.field{end};
+            obj.displacement = cParams.displacement.value;
+            obj.reaction = cParams.reaction;
+            obj.qMax = cParams.qMaxValue;
+            obj.rMax = cParams.rMaxValue;
+            obj.energy = cParams.energy;
+            obj.iter = cParams.iter;
         end
-        function plotter (x,y,text)
-            figure();
-            plot(x,y)
-            title(text);
-        end
-    end
-end
 
+        function plotForceDisplacement(obj)
+            figure()
+            plot(obj.displacement,obj.reaction)
+            title('Force-displacement diagram (Reaction force)')
+            grid on
+            xlabel('Displacement [mm]')
+            ylabel('Force [kN]')
+        end
+        
+        function plotDamage(obj)
+            figure()
+            plot(obj.displacement,obj.damage)
+            title('Damage-displacement diagram')
+            grid on
+            xlabel('Displacement [mm]')
+            ylabel('Damage [-]')
+            ylim([0 1]);
+        end
+
+        function meshDamage(obj)
+            obj.damageField.plot;
+            title('Final damage distribution')
+            shading interp
+            colorbar
+            clim([0 1])
+        end
+
+        function plotQR(obj)
+            figure()
+            plot(obj.rMax,obj.qMax)
+            title('Hardening parameter (q-r)')
+            xlabel('Hardening function (q) [$\sqrt{GPa}$]','Interpreter','latex')
+            ylabel('Internal variable (r) [$\sqrt{GPa}$]','Interpreter','latex')
+            hold off
+        end
+        
+        function plotEnergy(obj)
+            figure()
+            plot(obj.displacement,obj.energy)
+            title('Energy - displacement')
+            xlabel('Displacement [mm]')
+            ylabel('Energy [J]')
+        end
+
+        function plotIterations(obj)
+            figure()
+            plot(obj.iter)
+            title('Iterations needed')
+            xlabel('Step [-]')
+            ylabel('Iterations')
+        end
+
+    end
+    
+end

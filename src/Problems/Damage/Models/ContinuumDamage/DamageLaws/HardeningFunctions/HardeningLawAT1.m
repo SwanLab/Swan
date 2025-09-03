@@ -33,8 +33,8 @@ classdef HardeningLawAT1 < HardeningLaw
     methods (Access = private)
         
         function initParams(obj,cParams)
-            obj.w        = cParams.params.w;
-            obj.r1       = cParams.params.r1;
+            obj.w    = cParams.params.w;
+            obj.r1   = cParams.params.r1;
             obj.qInf = obj.computeHardeningLimit();
         end
 

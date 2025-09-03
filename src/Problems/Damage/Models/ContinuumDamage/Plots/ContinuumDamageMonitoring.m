@@ -48,11 +48,11 @@ classdef ContinuumDamageMonitoring < handle
         function saveData(obj,step,cParams)
             obj.data.displacement.function{step} = cParams.uFun;
             obj.data.displacement.value(step)    = cParams.uVal;
-            obj.data.reaction                    = cParams.fVal;
-            obj.data.damage.function{step}       = cParams.dmgFun;
+            obj.data.reaction(step)              = cParams.fVal;
+            obj.data.damage.field{step}          = cParams.dmgFun;
             obj.data.damage.maxValue(step)       = max(cParams.dmgFun.fValues);
-            obj.data.qMaxValue                   = cParams.qMax;
-            obj.data.rMaxValue                   = cParams.rMax;
+            obj.data.qMaxValue(step)             = cParams.qMax;
+            obj.data.rMaxValue(step)             = cParams.rMax;
             obj.data.energy(step)                = cParams.energy;
             obj.data.iter(step)                  = cParams.numIter;
         end
