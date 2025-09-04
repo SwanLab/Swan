@@ -1,4 +1,4 @@
-classdef BoundaryCreator < handle
+classdef BoundaryConditionsCreator < handle
 
     properties (Access = private)
         createBoundaryConditions
@@ -14,7 +14,7 @@ classdef BoundaryCreator < handle
 
     methods (Access = public)
 
-        function obj = BoundaryCreator(mesh,cParams)
+        function obj = BoundaryConditionsCreator(mesh,cParams)
             obj.init(mesh,cParams)
             obj.defineBoundaryConditions();
         end
