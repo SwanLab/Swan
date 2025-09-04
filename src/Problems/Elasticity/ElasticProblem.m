@@ -105,7 +105,6 @@ classdef ElasticProblem < handle
             s.solver     = obj.solverCase;
             s.boundaryConditions = obj.boundaryConditions;
             s.BCApplier          = obj.bcApplier;
-            s.mesh = obj.mesh;
             obj.problemSolver    = ProblemSolver(s);
         end
 

@@ -9,7 +9,6 @@ classdef ProblemSolver < handle
         boundaryConditions
         BCApplier
         solver
-        mesh
     end
     
     properties (Access = private)
@@ -38,7 +37,6 @@ classdef ProblemSolver < handle
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.BCApplier          = cParams.BCApplier;
             obj.solver             = cParams.solver;
-            obj.mesh = cParams.mesh;
         end
 
         function [LHS, RHS] = computeMatrices(obj,cParams)
