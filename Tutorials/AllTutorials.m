@@ -32,6 +32,7 @@ OptimizeSuperformTutorial();
 TutorialXXPhaseFieldCase;
 TutorialXXPhaseFieldHomogenization;
 TutorialXXHyperelasticity;
+TutorialXXContinuumDamage;
 close all;
 
 % Output:

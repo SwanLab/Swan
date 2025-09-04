@@ -108,7 +108,7 @@ classdef PhaseFieldComputer < handle
             UpSide  = max(obj.mesh.coord(:,2));
             isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;
-            if obj.boundaryConditions.type == "forceTraction"
+            if obj.boundaryConditions.type == "ForceTractionY"
                 uBC = norm(mean(u.fValues(nodes(isInUp),2)));
                 totReact = obj.boundaryConditions.bcValues(step);
             else
