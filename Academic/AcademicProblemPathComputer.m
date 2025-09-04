@@ -134,8 +134,8 @@ classdef AcademicProblemPathComputer < handle
             ymin  = min(y);
             ymax  = max(y);
             dy    = ymax-ymin;
-            xV    = linspace(0,3,2000);
-            yV    = linspace(0,3,2000);
+            xV    = linspace(-3.05,6.05,2000);
+            yV    = linspace(-1.05,3.05,2000);
             [X,Y] = meshgrid(xV,yV);
         end
     end
