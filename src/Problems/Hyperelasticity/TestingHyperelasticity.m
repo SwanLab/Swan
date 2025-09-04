@@ -74,9 +74,9 @@ classdef TestingHyperelasticity < handle
             nSteps = obj.bcProp.nSteps;
             maxVal = obj.bcProp.maxVal;
             type   = obj.bcProp.type;
-            cParams.bcValues = linspace(0,maxVal,nSteps);
+            cParams.values = linspace(0,maxVal,nSteps);
             cParams.type = type;
-            bc = HyperelasticityBoundaryCreator(obj.mesh,cParams);
+            bc = BoundaryConditionsCreator(obj.mesh,cParams);
             obj.boundaryConditions = bc;
         end
 
@@ -96,11 +96,11 @@ classdef TestingHyperelasticity < handle
         end
 
         function createFunctional(obj)
-            s.matTensor   = obj.material;
-            s.quadOrder   = 3;
-            s.matProp     = obj.matProp;
-            s.mesh        = obj.mesh;
-            s.testSpace.u = LagrangianFunction.create(obj.mesh,2,'P1');
+            s.matTensor    = obj.material;
+            s.quadOrder    = 3;
+            s.matProp      = obj.matProp;
+            s.mesh         = obj.mesh;
+            s.testSpace.u  = LagrangianFunction.create(obj.mesh,2,'P1');
             obj.functional = ElasticityFunctional(s);
         end
 

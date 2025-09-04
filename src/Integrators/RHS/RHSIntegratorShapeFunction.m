@@ -33,7 +33,7 @@ classdef RHSIntegratorShapeFunction < handle
             fG   = fun.evaluate(xV);
             fG   = squeezeParticular(fG,2);
             dV   = obj.mesh.computeDvolume(quad);
-            N = test.computeShapeFunctions(xV);
+            N    = test.computeShapeFunctions(xV);
             nNodeElem  = size(N,1);
             nElem     = obj.mesh.nelem;
             nGaus     = quad.ngaus;

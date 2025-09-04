@@ -9,6 +9,8 @@ clc,clear,close all
 %load('caseSENtractionAT2.mat')
 
 %% GENERAL SETTINGS
+s = []; 
+
 s.monitoring.set = true;
 s.monitoring.type = 'full'; %'reduced'
 s.monitoring.print = true;
@@ -20,10 +22,9 @@ s.maxIter.u = 100;
 s.maxIter.phi = 100;
 s.maxIter.stag = 300;
 
-s.benchmark.N = 10;
-s.benchmark.type.mesh = '1Elem';
-s.benchmark.type.bc = 'displacementTraction';
-s.benchmark.bcValues = [0:1e-4:0.1];
+benchmark.mesh.type = '1Elem';
+benchmark.bc.type   = 'ForceTractionY';
+benchmark.bc.values = [0:1e-4:0.1];
 
 s.matInfo.matType = 'Analytic';
 s.matInfo.degradationType = 'SIMPALL';
