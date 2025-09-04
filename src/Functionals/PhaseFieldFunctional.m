@@ -18,10 +18,10 @@ classdef PhaseFieldFunctional < handle
         end
         
         function E = computeEnergies(obj,u,phi,fExt)
-            Eint = obj.functionals.energy.computeFunctional(u,phi,obj.quadOrder);
-            Edis = obj.functionals.localDamage.computeFunctional(phi,obj.quadOrder);
-            Ereg = obj.functionals.nonLocalDamage.computeFunctional(phi,obj.quadOrder);
-            Wext = obj.functionals.extWork.computeFunctional(u,fExt,obj.quadOrder);
+            Eint = obj.functionals.energy.computeCost(u,phi,obj.quadOrder);
+            Edis = obj.functionals.localDamage.computeCost(phi,obj.quadOrder);
+            Ereg = obj.functionals.nonLocalDamage.computeCost(phi,obj.quadOrder);
+            Wext = obj.functionals.extWork.computeCost(u,fExt,obj.quadOrder);
             E = [Eint,Edis,Ereg,Wext];
         end
         

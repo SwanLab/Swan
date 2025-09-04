@@ -92,7 +92,7 @@ classdef RHSIntegratorElasticMicro < handle
             nElem   = obj.mesh.nelem;
             F       = zeros(ndofE,ngaus,nElem);
             for i = 1:ndofE
-                symTest  = squeezeParticular(symN(:,:,i,:,:),3);
+                symTest  = symN(:,:,:,:,i);
                 sig      = pagetensorprod(C,vstrain,[3 4],[1 2],4,2);
                 df       = pagetensorprod(symTest,sig,[1 2],[1 2],2,2);
                 F(i,:,:) = -df.*dV;

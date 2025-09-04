@@ -5,8 +5,8 @@ classdef SwanGiDInterface < handle
         gidPath
         tclPath
 
-        gidMode = 'gid_offscreen -offscreen '; % 'gid '
-%         gidMode = 'gid '; % 'gid '
+%         gidMode = 'gid_offscreen -offscreen '; % 'gid '
+        gidMode = 'gid '; % 'gid '
     end
     
     properties (Access = private)
@@ -17,9 +17,9 @@ classdef SwanGiDInterface < handle
 
         function obj = SwanGiDInterface()
             run('UserVariables.m')
-            obj.swanPath = [pwd,'/src'];
+            obj.swanPath = pwd;
             obj.gidPath  = gid_path;
-            obj.tclPath  = [obj.swanPath, '/ThirdParty/STL/'];
+            obj.tclPath  = [obj.swanPath, '/src/ThirdParty/STL/']; % The files will be created also in this folder
         end
 
         function generateMesh(obj, resultsFile)
@@ -160,38 +160,38 @@ classdef SwanGiDInterface < handle
             % Export MSH
             command = obj.callGiDFunctionFile('callGiD_ExportMSH.tcl"');
             system(command);
-            delete ThirdParty/STL/HmmLetMeCook.png;
-            delete ThirdParty/STL/HmmLetMeCook.res;
-            delete ThirdParty/STL/HmmLetMeCook.vv;
+            delete PostProcess/STL/HmmLetMeCook.png;
+            delete PostProcess/STL/HmmLetMeCook.res;
+            delete PostProcess/STL/HmmLetMeCook.vv;
         end
 
         % Cleanup
         function cleanupGenerateMesh(obj)
-            delete ThirdParty/STL/callGiD_CreateSurface.tcl
-            delete ThirdParty/STL/callGiD_GenerateMesh.tcl
-            delete ThirdParty/STL/sampleMesh
-            delete ThirdParty/STL/sampleMesh.png
-            delete ThirdParty/STL/sampleMesh.res
-            delete ThirdParty/STL/sampleMesh.vv
-            rmdir([obj.swanPath,'/ThirdParty/STL/sampleMesh.gid'] , 's')
+            delete PostProcess/STL/callGiD_CreateSurface.tcl
+            delete PostProcess/STL/callGiD_GenerateMesh.tcl
+            delete PostProcess/STL/sampleMesh
+            delete PostProcess/STL/sampleMesh.png
+            delete PostProcess/STL/sampleMesh.res
+            delete PostProcess/STL/sampleMesh.vv
+            rmdir('PostProcess/STL/sampleMesh.gid/', 's')
         end
 
         function cleanupExtrudeMesh(obj)
             obj.cleanupExportSTL();
-            delete ThirdParty/STL/callGiD_CreateSurface.tcl
-            delete ThirdParty/STL/callGiD_Extrude.tcl
-            delete ThirdParty/STL/callGiD_GenerateMesh.tcl
-            rmdir([obj.swanPath,'/ThirdParty/STL/sampleMesh.gid'] , 's')
-            delete ThirdParty/STL/sampleMesh
-            delete ThirdParty/STL/sampleMesh.png
-            delete ThirdParty/STL/sampleMesh.res
-            delete ThirdParty/STL/sampleMesh.vv
+            delete PostProcess/STL/callGiD_CreateSurface.tcl
+            delete PostProcess/STL/callGiD_Extrude.tcl
+            delete PostProcess/STL/callGiD_GenerateMesh.tcl
+            rmdir('PostProcess/STL/sampleMesh.gid/', 's')
+            delete PostProcess/STL/sampleMesh
+            delete PostProcess/STL/sampleMesh.png
+            delete PostProcess/STL/sampleMesh.res
+            delete PostProcess/STL/sampleMesh.vv
         end
 
         function cleanupExportSTL(obj)
-            delete ThirdParty/STL/callGiD_ExportMSH.tcl
-            delete ThirdParty/STL/callGiD_ExportSTL.tcl
-            delete ThirdParty/STL/HmmLetMeCook.msh
+            delete PostProcess/STL/callGiD_ExportMSH.tcl
+            delete PostProcess/STL/callGiD_ExportSTL.tcl
+            delete PostProcess/STL/HmmLetMeCook.msh
             delete TempMeshFile.flavia.msh
             delete TempMeshFile.flavia.res
         end
@@ -203,4 +203,3 @@ classdef SwanGiDInterface < handle
     end
 
 end
-
