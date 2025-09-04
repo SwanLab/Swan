@@ -1,33 +1,42 @@
 classdef SmoothedAggregation < handle
 
     properties (Access = private)
+        nLevels
+        nSolve
         np
         sp
-        LHS
-        nullSpace
-        AMGSolver
         AMGOptions
+        nullSpace
+    end
+
+    properties (Access = private)
+        AMGSolver
     end
 
     methods (Access = public)
         function obj = SmoothedAggregation(cParams)
             obj.init(cParams);
+            obj.importLibraries();
+            obj.createSolverOptions(cParams);
+            obj.setNullSpace(cParams);
         end
 
-        function x = solve(obj,res)
+        function x = solve(obj,A,res)
+            if obj.nSolve/50 == round(obj.nSolve/50)
+                LHS = obj.convertToPythonSparse(A);
+                obj.createAMGSolver(LHS);
+            end
             b    = obj.np.array(double(res));
             x_py = obj.AMGSolver.solve(b, obj.AMGOptions);
             x    = double(x_py)';
+            obj.nSolve = obj.nSolve + 1;
         end
     end
 
     methods (Access = private)
         function init(obj,cParams)
-            obj.importLibraries();
-            obj.setLHS(cParams);
-            obj.setNullSpace(cParams);
-            obj.createAMGSolver(cParams);
-            obj.createSolverOptions(cParams);
+            obj.nLevels = cParams.nLevels;
+            obj.nSolve  = 0;
         end
 
         function importLibraries(obj)
@@ -35,9 +44,10 @@ classdef SmoothedAggregation < handle
             obj.sp = py.importlib.import_module('scipy.sparse');
         end
 
-        function setLHS(obj,cParams)
-            A       = cParams.LHS;
-            obj.LHS = obj.convertToPythonSparse(A);
+        function createSolverOptions(obj,cParams)
+            tol     = cParams.tol;
+            maxIter = cParams.maxIter;
+            obj.AMGOptions = pyargs("tol", tol, "maxiter", maxIter);
         end
 
         function setNullSpace(obj,cParams)
@@ -55,19 +65,11 @@ classdef SmoothedAggregation < handle
             pyVar     = coo.tocsr();
         end
 
-        function createAMGSolver(obj,cParams)
-            n        = cParams.nLevels;
-            pyArgs   = pyargs('B', obj.nullSpace,'max_levels', int32(n));
-            s        = {obj.LHS};
-            s{end+1} = pyArgs;
+        function createAMGSolver(obj,LHS)
+            pyArgs        = pyargs('B', obj.nullSpace,'max_levels', int32(obj.nLevels));
+            s             = {LHS};
+            s{end+1}      = pyArgs;
             obj.AMGSolver = py.pyamg.smoothed_aggregation_solver(s{:});
-        end
-
-        function createSolverOptions(obj,cParams)
-            tol     = cParams.tol;
-            maxIter = cParams.maxIter;
-%             obj.AMGOptions = pyargs("tol", tol, "maxiter", maxIter, "accel", "cg");
-            obj.AMGOptions = pyargs("tol", tol, "maxiter", maxIter);
         end
     end
 end

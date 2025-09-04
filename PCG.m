@@ -1,47 +1,37 @@
 classdef PCG < handle
-    
-    properties (Access = public)
-        
-    end
-    
-    properties (Access = private)
-        
-    end
-    
+
     properties (Access = private)
         Preconditioner
         tol
+    end
+
+    properties (Access = private)
         x0
     end
 
-    methods (Access = private)
-        function prepareProblem(obj, b)
-            n = length(b);
-            if isempty(obj.x0)
-                obj.x0 = zeros(n, 1);
-            end
-        end
-    end
-
     methods (Access = public)
+        function obj = PCG(cParams)
+            obj.init(cParams);
+        end
 
-        function [x,residual,err,errAnorm] = solve(obj,A,B,P,tol,xsol)
-            if nargin == 5, xsol = zeros(size(B)); end
+        function [x,residual,err,errAnorm] = solve(obj,LHS,B,xsol)
+            if nargin == 3, xsol = zeros(size(B)); end
             obj.prepareProblem(B);
+            P = obj.Preconditioner;
+            A = @(x) LHS*x;
             iter = 0;
             x = obj.x0;
             r = B - A(x);
-            z = P(r);
+            z = P(LHS,r);
             p = z;
             rzold = r' * z;
             normB = norm(B);
-            while norm(r)/normB > tol
+            while norm(r)/normB > obj.tol
                 Ap = A(p);
                 alpha = rzold / (p' * Ap);
                 x = x + alpha * p;
-%                  EIFEMtesting_3D.plotSolution(x,mesh,30,4,iter,bcApplier,0)
                 r = r - alpha * Ap;
-                z = P(r);
+                z = P(LHS,r);
                 rznew = r' * z;
                 beta  = (rznew / rzold);
                 p = z + beta * p;
@@ -54,8 +44,22 @@ classdef PCG < handle
             obj.x0 = x;
             disp(['Iter: ',num2str(iter)]);
         end
-        
+
     end
-    
-    
+
+    methods (Access = private)
+        function init(obj,cParams)
+            obj.Preconditioner = cParams.preconditioner;
+            obj.tol            = cParams.tol;
+        end
+
+        function prepareProblem(obj, b)
+            n = length(b);
+            if isempty(obj.x0)
+                obj.x0 = zeros(n, 1);
+            end
+        end
+    end
+
+
 end
