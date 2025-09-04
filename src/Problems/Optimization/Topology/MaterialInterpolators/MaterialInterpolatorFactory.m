@@ -31,15 +31,17 @@ classdef MaterialInterpolatorFactory < handle
                     obj = SIMPThermalInterpolation(cParams);
                 case 'HomogenizedMicrostructure'
                     obj = HomogenizedMicrostructureInterpolator(cParams);
-                case 'PhaseFieldDegradation'
+                case 'PhaseField'
                     if ~isfield(cParams,'degFunType')
-                        cParams.degFunType = 'AT';
+                        cParams.subType = 'AT';
                     end
-                    switch cParams.degFunType
+                    switch cParams.subType
                         case 'AT'
                             obj = PhaseFieldAmbrosioTortorelliDegradation(cParams);
                         case 'ATSplit'
                             obj = PhaseFieldAmbrosioTortorelliSplitDegradation(cParams);
+                        case 'Rational'
+                            obj = PhaseFieldRationalDegradation(cParams);
                         case 'General'
                             obj = PhaseFieldGeneralDegradation(cParams);
                     end

@@ -11,17 +11,17 @@ classdef PhaseFieldGeneralDegradation < handle
             obj.init(cParams)
         end
 
-        function [mu,kappa] = computeConstitutiveTensorParams(obj,phi)
+        function [mu,kappa] = computeConstitutiveTensor(obj,phi)
             mu    = obj.computeMuFunction(phi);
             kappa = obj.computeKappaFunction(phi);
         end
 
-        function [dmu,dkappa] = computeConstitutiveTensorDerivativeParams(obj,phi)
+        function [dmu,dkappa] = computeConstitutiveTensorDerivative(obj,phi)
             dmu    = obj.computeMuDerivative(phi);
             dkappa = obj.computeKappaDerivative(phi);
         end
 
-        function [ddmu,ddkappa] = computeConstitutiveTensorSecondDerivativeParams(obj,phi)
+        function [ddmu,ddkappa] = computeConstitutiveTensorSecondDerivative(obj,phi)
             ddmu    = obj.computeMuSecondDerivative(phi);
             ddkappa = obj.computeKappaSecondDerivative(phi);
         end

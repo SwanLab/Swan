@@ -10,16 +10,21 @@ classdef SimpAllExplicitInterpolator < handle
         function obj = SimpAllExplicitInterpolator(cParams)
             obj.init(cParams);
         end
-        
-        function [mu,kappa] = computeConsitutiveTensor(obj,rho)
-            mu    = obj.computeMuFunction(rho{1});
-            kappa = obj.computeKappaFunction(rho{1});
+
+        function [mu,kappa] = computeConstitutiveTensor(obj,rho)
+            mu    = obj.computeMuFunction(rho);
+            kappa = obj.computeKappaFunction(rho);
+            %mu    = obj.computeMuFunction(rho{1});
+            %kappa = obj.computeKappaFunction(rho{1});
         end
 
-        function [dmu,dkappa] = computeConsitutiveTensorDerivative(obj,rho)
-            dmu{1}    = obj.computeMuDerivative(rho{1});
-            dkappa{1} = obj.computeKappaDerivative(rho{1});
-        end          
+        function [dmu,dkappa] = computeConstitutiveTensorDerivative(obj,rho)
+            dmu    = obj.computeMuDerivative(rho);
+            dkappa = obj.computeKappaDerivative(rho);
+            %dmu{1}    = obj.computeMuDerivative(rho{1});
+            %dkappa{1} = obj.computeKappaDerivative(rho{1});
+        end
+
     end
      
     methods (Access = private)
@@ -30,12 +35,13 @@ classdef SimpAllExplicitInterpolator < handle
         end        
 
         function computeNDim(obj,cParams)
-            switch cParams.dim
-                case '2D'
-                  obj.ndim = 2;
-                case '3D'
-                  obj.ndim = 3;
-            end
+            obj.ndim = cParams.dim;
+            % switch cParams.dim
+            %     case '2D'
+            %       obj.ndim = 2;
+            %     case '3D'
+            %       obj.ndim = 3;
+            % end
         end                       
         
         function mu = computeMuFunction(obj,rho)

@@ -18,6 +18,7 @@ classdef TestingPhaseField < handle
     properties (Access = private)
         mesh
         boundaryConditions
+        initialDerivative
         functional
     end
 
@@ -27,6 +28,7 @@ classdef TestingPhaseField < handle
             obj.init(cParams) 
             obj.defineCase();
             obj.createInitialGuess(cParams);
+            obj.computeInitialDerivative(cParams)
             obj.createPhaseFieldFunctional()
         end
 
@@ -99,6 +101,13 @@ classdef TestingPhaseField < handle
             phi = DesignVariable.create(s);
         end
 
+        function computeInitialDerivative(obj,cParams)
+            Gc = cParams.matInfo.Gc;
+            E = cParams.matInfo.young;
+            sigMax = 2;
+            obj.initialDerivative = -2*(3/8)*(Gc/obj.l0)*E*(1/sigMax)^2;
+        end
+
         function createPhaseFieldFunctional(obj)
             s.mesh          = obj.mesh;
             s.material      = obj.createMaterialPhaseField();
@@ -111,24 +120,44 @@ classdef TestingPhaseField < handle
             obj.functional  = PhaseFieldFunctional(s);
         end
 
-        function material = createMaterialPhaseField(obj)
-            E  = obj.matInfo.young;
-            nu = obj.matInfo.poisson;
-            
+        function material = createMaterialPhaseField(obj)            
             s.type  = 'PhaseField';
             s.mesh  = obj.mesh;
-            s.PFtype = obj.matInfo.matType;
-            if s.PFtype == "Homogenized"
+            s.subType = obj.matInfo.matType;
+            if s.subType == "Homogenized"
                 s.fileName = obj.matInfo.fileName;
                 s.young    = E;
             else
-                s.interp.interpolation = 'PhaseFieldDegradation';
-                s.interp.degFunType    = obj.matInfo.degradationType;
-                s.interp.ndim    = obj.mesh.ndim;
-                s.interp.young   = ConstantFunction.create(E,obj.mesh);
-                s.interp.poisson = ConstantFunction.create(nu,obj.mesh);
+                s.interp = obj.defineDegradationFunction();  
             end
             material = Material.create(s);
+        end
+
+        function degParams = defineDegradationFunction(obj)
+            E  = obj.matInfo.young;
+            nu = obj.matInfo.poisson;
+            ndim = obj.mesh.ndim;
+            mu = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E,nu);
+            kappa = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E,nu,ndim);
+
+            degType = obj.matInfo.degradationType;
+            degParams.interpolation = degType;
+            switch degType
+                case 'SIMPALL'
+                    degParams.dim        = ndim;
+                    degParams.matA.shear = 1e-10;
+                    degParams.matA.bulk  = 1e-10;
+                    degParams.matB.shear = mu;
+                    degParams.matB.bulk  = kappa;
+                case 'PhaseField'
+                    if isfield(obj.matInfo,'degradationSubType')
+                        degParams.subType    = obj.matInfo.degradationSubType;
+                    end
+                    degParams.ndim    = ndim;
+                    degParams.young   = ConstantFunction.create(E,obj.mesh);
+                    degParams.poisson = ConstantFunction.create(nu,obj.mesh);
+                    degParams.initialDerivative = obj.initialDerivative;
+            end
         end
 
         function dissipation = createDissipationInterpolation(obj)

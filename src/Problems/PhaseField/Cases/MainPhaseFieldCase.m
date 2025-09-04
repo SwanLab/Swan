@@ -25,16 +25,17 @@ s.benchmark.type.mesh = '1Elem';
 s.benchmark.type.bc = 'displacementTraction';
 s.benchmark.bcValues = [0:1e-4:0.1];
 
-s.matInfo.matType = 'Homogenized';
-s.matInfo.degradationType = 'General';
+s.matInfo.matType = 'Analytic';
+s.matInfo.degradationType = 'SIMPALL';
+s.matInfo.degradationSubType = 'Rational';
 s.matInfo.fileName = 'CircleAreaDerivative2'; 
 s.matInfo.young   = 210;
-s.matInfo.poisson = 0.3;
+s.matInfo.poisson = 1/3;
 s.matInfo.Gc = 5e-3;
 s.l0 = 0.1;
 
 s.dissipInfo.type = 'PhaseFieldDissipationAT';
-s.dissipInfo.pExp = 1;
+s.dissipInfo.pExp = 2;
 s.solver.type = 'Gradient';
 s.solver.tau  = 150;
 

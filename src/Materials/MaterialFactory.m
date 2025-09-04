@@ -23,7 +23,7 @@ classdef MaterialFactory < handle
                     material = MaterialStokes(cParams);
                     
                 case 'PhaseField'
-                    switch cParams.PFtype
+                    switch cParams.subType
                         case 'Analytic'
                             material = MaterialPhaseFieldAnalytic(cParams);
                         case 'AnalyticSplit'

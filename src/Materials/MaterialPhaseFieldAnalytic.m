@@ -13,19 +13,24 @@ classdef MaterialPhaseFieldAnalytic < Material
 
         function C = obtainTensor(obj,phi)
             mI = obj.materialInterpolator;
-            [mu,kappa] = mI.computeConstitutiveTensorParams(phi);
+            rho = (1-phi.fun); %SIMPALL
+            [mu,kappa] = mI.computeConstitutiveTensor(rho);
             C = obj.createMaterial(mu,kappa);
         end
 
         function dC = obtainTensorDerivative(obj,phi)
             mI = obj.materialInterpolator;
-            [mu,kappa] = mI.computeConstitutiveTensorDerivativeParams(phi);
+            rho = (1-phi.fun); %SIMPALL
+            [mu,kappa] = mI.computeConstitutiveTensorDerivative(rho);
             dC = obj.createMaterial(mu,kappa);
         end
 
         function ddC = obtainTensorSecondDerivative(obj,phi)
             mI = obj.materialInterpolator;
-            [mu,kappa] = mI.computeConstitutiveTensorSecondDerivativeParams(phi);
+            %[mu,kappa] = mI.computeConstitutiveTensorSecondDerivative(phi);
+            rho = (1-phi.fun); %SIMPALL
+            [mu,kappa] = mI.computeConstitutiveTensorDerivative(rho); %Just to compute something
+
             ddC = obj.createMaterial(mu,kappa);
         end
 
@@ -35,9 +40,11 @@ classdef MaterialPhaseFieldAnalytic < Material
 
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
-            if cParams.interp.degFunType == "ATSplit"
-                fprintf('ATSplit not supported by this material, changing to AT \n')
-                cParams.interp.degFunType = 'AT';
+            if isfield(cParams.interp,'subType')
+                if cParams.interp.subType == "ATSplit"
+                    fprintf('ATSplit not supported by this material, changing to AT \n')
+                    cParams.interp.subType = 'AT';
+                end
             end
             obj.materialInterpolator  = MaterialInterpolator.create(cParams.interp);
         end
