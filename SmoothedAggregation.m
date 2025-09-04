@@ -22,7 +22,7 @@ classdef SmoothedAggregation < handle
         end
 
         function x = solve(obj,A,res)
-            if obj.nSolve/50 == round(obj.nSolve/50)
+            if obj.nSolve/1e6 == round(obj.nSolve/1e6)
                 LHS = obj.convertToPythonSparse(A);
                 obj.createAMGSolver(LHS);
             end
