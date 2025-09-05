@@ -17,6 +17,10 @@ classdef Sarsa < handle
             obj.e = gamma * lambda * obj.e;
         end
 
+    end
+
+    methods (Access = private)
+        
         function delta = computeDelta(obj,done,reward,gamma,w,idx_p,Q)
             Qp = sum(w(idx_p));
             if done

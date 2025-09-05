@@ -31,13 +31,11 @@ function w = TD_lambda(env, policyFunction, getActiveTiles, params, agent)
 
             % Feature indices
             idx = getActiveTiles(state, a, params);
-
             
             Q = sum(w(idx));
             idx_p = getActiveTiles(next_state, ap, params);           
 
             w = agent.computeW(done,reward,gamma,w,idx,idx_p,Q,alpha,lambda,next_state,params);
-
 
             % Transition
             state = next_state;

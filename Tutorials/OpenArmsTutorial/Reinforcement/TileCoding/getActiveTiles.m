@@ -10,14 +10,6 @@ function idx = getActiveTiles(state, a_idx, params)
     
     % Preallocate index output
     idx = zeros(nTilings, 1);
-    %{
-    % Precompute per-tiling base index offset
-    if length(tilesPerDim) == 1
-        dimProd = [1; tilesPerDim];
-    else
-        dimProd = [1; cumprod(tilesPerDim(1:end-1))];
-    end
-    %}
     dimProd = [1; cumprod(tilesPerDim(1:end-1))];
     tilePlaneSize = prod(tilesPerDim);
     baseOffset = (a_idx - 1) * nTilings * tilePlaneSize;

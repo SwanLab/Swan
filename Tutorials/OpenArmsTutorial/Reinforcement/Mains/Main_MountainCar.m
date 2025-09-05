@@ -39,21 +39,26 @@ params.offsets = generateDiagonalOffsets(2, params.num_tilings);  % 2D case
 env = MountainCarEnv(params);
 
 % --- Policy ---
-policyType = 'epsilonGreedy'; % 'epsilonGreedy' or 'softmax'
+policyType = 'epsilonGreedy';
+%policyType = 'softmax';
 policyFunction = createPolicyFunction(policyType);
 
-% --- Agent ---
+% --- Old Versions ---
 %agent = Agent(env, policyFunction, @getActiveTiles, params);
-
-% --- Train using SARSA(λ) ---
-weights = TD_lambda(env, policyFunction, @getActiveTiles, params, 'sarsa');
 %[w_c, weights] = agent.ActorCritic();
 %weights = agent.SARSA();
 
+% --- Active Tiles ---
+activeTiles = ActiveTiles(params);
+
+% --- Agent ---
 agent = Sarsa(params.n_features);
 %agent = Q_learning(params.n_features);
+%agent = ActorCritic(params);
 
+% --- Function ---
 weights = TD_lambda(env, policyFunction, @getActiveTiles, params, agent);
+%[~, weights] = ActorCriticFunc(env, policyFunction, @getActiveTiles, params, agent);
 %% --- Visualization ---
 
 % Resolution of plots

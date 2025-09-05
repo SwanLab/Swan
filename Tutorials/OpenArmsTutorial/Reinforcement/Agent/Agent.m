@@ -208,7 +208,6 @@ classdef Agent
                     obj.w_a = obj.w_a + alpha_a * delta * e_a;
                     e_a = gamma * lambda * e_a;
                     
-                    
                     % Choose next action
                     a = obj.policyFunction(next_state, obj.w_a, obj.params, obj.getActiveTiles);
                     
