@@ -13,25 +13,36 @@ classdef MaterialPhaseFieldAnalytic < Material
 
         function C = obtainTensor(obj,phi)
             mI = obj.materialInterpolator;
-            rho = (1-phi.fun); %SIMPALL
-            [mu,kappa] = mI.computeConstitutiveTensor(rho);
+            if isa(mI,'SimpAllExplicitInterpolator')
+                rho = (1-phi.fun);
+                [mu,kappa] = mI.computeConstitutiveTensor(rho);
+            else
+                [mu,kappa] = mI.computeConstitutiveTensor(phi);
+            end
             C = obj.createMaterial(mu,kappa);
         end
 
         function dC = obtainTensorDerivative(obj,phi)
             mI = obj.materialInterpolator;
-            rho = (1-phi.fun); %SIMPALL
-            [mu,kappa] = mI.computeConstitutiveTensorDerivative(rho);
-            dC = obj.createMaterial(mu,kappa);
+            if isa(mI,'SimpAllExplicitInterpolator')
+                rho = (1-phi.fun);
+                [dmu,dkappa] = mI.computeConstitutiveTensorDerivative(rho);
+                dmu = -dmu; dkappa = -dkappa;
+            else
+                [dmu,dkappa] = mI.computeConstitutiveTensorDerivative(phi);
+            end
+            dC = obj.createMaterial(dmu,dkappa);
         end
 
         function ddC = obtainTensorSecondDerivative(obj,phi)
             mI = obj.materialInterpolator;
-            %[mu,kappa] = mI.computeConstitutiveTensorSecondDerivative(phi);
-            rho = (1-phi.fun); %SIMPALL
-            [mu,kappa] = mI.computeConstitutiveTensorDerivative(rho); %Just to compute something
-
-            ddC = obj.createMaterial(mu,kappa);
+            if isa(mI,'SimpAllExplicitInterpolator')
+                rho = (1-phi.fun);
+                [ddmu,ddkappa] = mI.computeConstitutiveTensorDerivative(rho); %Just to compute something
+            else
+                [ddmu,ddkappa] = mI.computeConstitutiveTensorSecondDerivative(phi);
+            end
+            ddC = obj.createMaterial(ddmu,ddkappa);
         end
 
     end

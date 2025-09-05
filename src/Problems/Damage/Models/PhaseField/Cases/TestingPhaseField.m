@@ -90,7 +90,7 @@ classdef TestingPhaseField < handle
 
         function phi = setInitialDamage(obj,phi)
             fValues = phi.fValues;
-            fValues(:) = 1e-5;
+            fValues(:) = 0;
             phi.setFValues(fValues);
         end
 
@@ -145,8 +145,8 @@ classdef TestingPhaseField < handle
             switch degType
                 case 'SIMPALL'
                     degParams.dim        = ndim;
-                    degParams.matA.shear = 1e-10;
-                    degParams.matA.bulk  = 1e-10;
+                    degParams.matA.shear = 1e-5;
+                    degParams.matA.bulk  = 1e-5;
                     degParams.matB.shear = mu;
                     degParams.matB.bulk  = kappa;
                 case 'PhaseField'
