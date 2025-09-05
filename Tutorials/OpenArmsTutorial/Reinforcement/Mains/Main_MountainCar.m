@@ -43,12 +43,17 @@ policyType = 'epsilonGreedy'; % 'epsilonGreedy' or 'softmax'
 policyFunction = createPolicyFunction(policyType);
 
 % --- Agent ---
-agent = Agent(env, policyFunction, @getActiveTiles, params);
+%agent = Agent(env, policyFunction, @getActiveTiles, params);
 
 % --- Train using SARSA(λ) ---
 weights = TD_lambda(env, policyFunction, @getActiveTiles, params, 'sarsa');
 %[w_c, weights] = agent.ActorCritic();
 %weights = agent.SARSA();
+
+agent = Sarsa(params.n_features);
+%agent = Q_learning(params.n_features);
+
+weights = TD_lambda(env, policyFunction, @getActiveTiles, params, agent);
 %% --- Visualization ---
 
 % Resolution of plots
