@@ -16,7 +16,7 @@ function w = TD_lambda(env, policyFunction, getActiveTiles, params, type)
     for ep = 1:nEpisodes
         % Reset environment
         state = env.reset();
-        [a, epsilon] = policyFunction(state, w, epsilon, params);
+        [a, epsilon] = policyFunction(state, w, epsilon, params, @getActiveTiles);
 
         % Eligibility trace
         e = zeros(size(w));
@@ -28,7 +28,7 @@ function w = TD_lambda(env, policyFunction, getActiveTiles, params, type)
             [next_state, reward, done] = env.step(state, a);
 
             % Choose next action ε-greedily
-            [ap, epsilon] = policyFunction(next_state, w, epsilon, params);
+            [ap, epsilon] = policyFunction(next_state, w, epsilon, params, @getActiveTiles);
 
             % Feature indices
             idx = getActiveTiles(state, a, params);
