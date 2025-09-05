@@ -27,8 +27,8 @@ params.epsilon_decay = 0.995;
 %params.min_epsilon = 0.001;
 
 % Plot resolution and gif frequency
-params.pixels1 = 100;
-params.pixels2 = 100;
+params.pixels1 = 300;
+params.pixels2 = 300;
 params.gifFreq = 100;
 params.max_steps = 4000;
 
@@ -38,11 +38,6 @@ params.offsets = generateDiagonalOffsets(2, params.num_tilings);  % 2D case
 % --- Environment ---
 env = MountainCarEnv(params);
 
-% --- Policy ---
-policyType = 'epsilonGreedy';
-%policyType = 'softmax';
-policyFunction = createPolicyFunction(policyType);
-
 % --- Old Versions ---
 %agent = Agent(env, policyFunction, @getActiveTiles, params);
 %[w_c, weights] = agent.ActorCritic();
@@ -51,14 +46,19 @@ policyFunction = createPolicyFunction(policyType);
 % --- Active Tiles ---
 activeTiles = ActiveTiles(params);
 
+% --- Policy ---
+policyType = 'epsilonGreedy';
+%policyType = 'softmax';
+policyFunction = createPolicyFunction(policyType);
+
 % --- Agent ---
 agent = Sarsa(params.n_features);
-%agent = Q_learning(params.n_features);
+%agent = Q_learning(params.n_features, activeTiles);
 %agent = ActorCritic(params);
 
-% --- Function ---
-weights = TD_lambda(env, policyFunction, @getActiveTiles, params, agent);
-%[~, weights] = ActorCriticFunc(env, policyFunction, @getActiveTiles, params, agent);
+% --- Training ---
+weights = TD_lambda(env, policyFunction, activeTiles, params, agent);
+%[~, weights] = ActorCriticFunc(env, policyFunction, activeTiles, params, agent);
 %% --- Visualization ---
 
 % Resolution of plots
@@ -66,16 +66,16 @@ Pixels1 = params.pixels1;  % Position resolution
 Pixels2 = params.pixels2;  % Velocity resolution
 
 % Plot learned Q-value surface
-plotQSurface2D(weights, params, Pixels1, Pixels2); 
+plotQSurface2D(weights, params, Pixels1, Pixels2, activeTiles); 
 
 % Plot learned policy
-plotPolicyColorMap(weights, params, @getActiveTiles);
+plotPolicyColorMap(weights, params, activeTiles);
 
 maxSteps = params.max_steps;
 
 % Plot single episode trajectory (greedy policy)
 initialState = [-0.5; 0];
-plotEpisodeTrajectory2D(weights, initialState, maxSteps, params, env, @getActiveTiles)
+plotEpisodeTrajectory2D(weights, initialState, maxSteps, params, env, activeTiles)
 
 % Plot multiple episode trajectories
 nTrajectories = 10;
@@ -86,4 +86,4 @@ for i = 1:nTrajectories
     initialState(i, :) = [pos, vel];
 end
 %initialState = [-0.5, 0];  % Starting at default initial state
-plotMultipleTrajectories2D(weights, initialState, maxSteps, params, env, @getActiveTiles);
+plotMultipleTrajectories2D(weights, initialState, maxSteps, params, env, activeTiles);

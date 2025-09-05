@@ -1,4 +1,4 @@
-function plotEpisodeTrajectory2D(weights, initialState, maxSteps, params, env, getActiveTiles)
+function plotEpisodeTrajectory2D(weights, initialState, maxSteps, params, env, activeTiles)
     
     nActions = params.n_actions;
     trajectory = zeros(maxSteps, 2);
@@ -12,7 +12,7 @@ function plotEpisodeTrajectory2D(weights, initialState, maxSteps, params, env, g
         % Choose greedy action
         qVals = zeros(nActions, 1);
         for a = 1:nActions
-            idx = getActiveTiles(state, a, params);
+            idx = activeTiles.get(state, a);
             qVals(a) = sum(weights(idx));
         end
         [~, action] = max(qVals);

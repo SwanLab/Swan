@@ -1,4 +1,4 @@
-function w = TD_lambda(env, policyFunction, getActiveTiles, params, agent)
+function w = TD_lambda(env, policyFunction, activeTiles, params, agent)
     % type = 'sarsa' or 'qlearning'
 
     % Unpack parameters
@@ -16,7 +16,7 @@ function w = TD_lambda(env, policyFunction, getActiveTiles, params, agent)
     for ep = 1:nEpisodes
         % Reset environment
         state = env.reset();
-        [a, epsilon] = policyFunction(state, w, epsilon, params, @getActiveTiles);
+        [a, epsilon] = policyFunction(state, w, epsilon, params, activeTiles); %<<<<<<<<
 
         % Eligibility trace
         done = false;
@@ -27,13 +27,13 @@ function w = TD_lambda(env, policyFunction, getActiveTiles, params, agent)
             [next_state, reward, done] = env.step(state, a);
 
             % Choose next action ε-greedily
-            [ap, epsilon] = policyFunction(next_state, w, epsilon, params, @getActiveTiles);
+            [ap, epsilon] = policyFunction(next_state, w, epsilon, params, activeTiles); %<<<<<<<<<<<<<<<<<<<
 
             % Feature indices
-            idx = getActiveTiles(state, a, params);
+            idx = activeTiles.get(state, a);
             
             Q = sum(w(idx));
-            idx_p = getActiveTiles(next_state, ap, params);           
+            idx_p = activeTiles.get(next_state, ap);           
 
             w = agent.computeW(done,reward,gamma,w,idx,idx_p,Q,alpha,lambda,next_state,params);
 

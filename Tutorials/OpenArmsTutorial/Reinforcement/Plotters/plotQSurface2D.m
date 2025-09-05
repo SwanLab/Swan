@@ -1,4 +1,4 @@
-function plotQSurface2D(weights, params, Pixels1, Pixels2)
+function plotQSurface2D(weights, params, Pixels1, Pixels2, activeTiles)
     % Extract state ranges (assumes 2D state: [position; velocity])
     posRange = params.pos_range;
     velRange = params.vel_range;
@@ -17,7 +17,7 @@ function plotQSurface2D(weights, params, Pixels1, Pixels2)
             state = [pos; vel];
             q_vals = zeros(nActions, 1);
             for a = 1:nActions
-                idx = getActiveTiles(state, a, params);
+                idx = activeTiles.get(state, a);
                 q_vals(a) = sum(weights(idx));
             end
             qMaxVals(j, i) = max(q_vals);

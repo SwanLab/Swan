@@ -1,4 +1,4 @@
-function plotMultipleTrajectories2D(weights, initialStates, maxSteps, params, env, getActiveTiles)
+function plotMultipleTrajectories2D(weights, initialStates, maxSteps, params, env, activeTiles)
     % initialStates: matrix of size (nTrajectories × 2)
     
     nActions = params.n_actions;
@@ -21,7 +21,7 @@ function plotMultipleTrajectories2D(weights, initialStates, maxSteps, params, en
             % Choose greedy action
             qVals = zeros(nActions, 1);
             for a = 1:nActions
-                idx = getActiveTiles(state, a, params);
+                idx = activeTiles.get(state, a);
                 qVals(a) = sum(weights(idx));
             end
             [~, action] = max(qVals);

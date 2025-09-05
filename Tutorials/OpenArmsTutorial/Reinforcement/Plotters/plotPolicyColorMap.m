@@ -1,4 +1,4 @@
-function plotPolicyColorMap(weights, params, getActiveTiles)
+function plotPolicyColorMap(weights, params, activeTiles)
     % Unpack parameters
     posRange = params.pos_range;
     velRange = params.vel_range;
@@ -19,7 +19,7 @@ function plotPolicyColorMap(weights, params, getActiveTiles)
 
             qVals = zeros(nActions, 1);
             for a = 1:nActions
-                idx = getActiveTiles(state, a, params);
+                idx = activeTiles.get(state, a);
                 qVals(a) = sum(weights(idx));
             end
 

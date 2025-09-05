@@ -1,4 +1,4 @@
-function episodeReturn = evaluate_greedy_episode(weights, initialState, maxSteps, params, env, getActiveTiles)
+function episodeReturn = evaluateGreedyEpisode(weights, initialState, maxSteps, params, env, activeTiles)
     % Evaluates greedy policy from a fixed initial state
     % Returns the total reward (or number of steps if you prefer)
 
@@ -11,7 +11,7 @@ function episodeReturn = evaluate_greedy_episode(weights, initialState, maxSteps
         % Compute Q-values
         qVals = zeros(nActions, 1);
         for a = 1:nActions
-            idx = getActiveTiles(state, a, params);
+            idx = activeTiles.get(state, a);
             qVals(a) = sum(weights(idx));
         end
         [~, action] = max(qVals);

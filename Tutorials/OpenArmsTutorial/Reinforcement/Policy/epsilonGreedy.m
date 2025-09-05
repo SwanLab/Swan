@@ -1,4 +1,4 @@
-function [a, epsilon] = epsilonGreedy(state, w, epsilon, params, getActiveTiles)
+function [a, epsilon] = epsilonGreedy(state, w, epsilon, params, activeTiles)
     % Extract from params
     nActions = params.n_actions;
     epsilonStrategy = params.epsilon_strategy;
@@ -11,7 +11,7 @@ function [a, epsilon] = epsilonGreedy(state, w, epsilon, params, getActiveTiles)
         % Exploitation
         values = zeros(1, nActions);
         for a_i = 1:nActions
-            idx = getActiveTiles(state, a_i, params);
+            idx = activeTiles.get(state, a_i);
             values(a_i) = sum(w(idx));
         end
         % Break ties randomly

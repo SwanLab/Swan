@@ -1,4 +1,4 @@
-function Q = evaluate_Q(weights, params)
+function Q = evaluateQ(weights, params, activeTiles)
     posRange = params.pos_range;
     velRange = params.vel_range;
     nActions = params.n_actions;
@@ -16,7 +16,7 @@ function Q = evaluate_Q(weights, params)
             state = [posVals(i); velVals(j)];
             q_vals = zeros(nActions, 1);
             for a = 1:nActions
-                idx = getActiveTiles(state, a, params);
+                idx = activeTiles.get(state, a, params);
                 q_vals(a) = sum(weights(idx));
             end
             qMaxVals(j, i) = max(q_vals);  % (row j, col i)

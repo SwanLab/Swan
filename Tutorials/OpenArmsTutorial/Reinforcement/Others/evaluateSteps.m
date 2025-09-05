@@ -1,4 +1,4 @@
-function stepsPerState = evaluate_steps(weights, env, params)
+function stepsPerState = evaluateSteps(weights, env, params, activeTiles)
     % Grid resolution
     posRange = params.pos_range;
     velRange = params.vel_range;
@@ -26,7 +26,7 @@ function stepsPerState = evaluate_steps(weights, env, params)
                 % Greedy policy
                 q_vals = zeros(nActions, 1);
                 for a = 1:nActions
-                    idx = getActiveTiles(s, a, params);
+                    idx = activeTiles.get(s, a, params);
                     q_vals(a) = sum(weights(idx));
                 end
                 [~, a] = max(q_vals);

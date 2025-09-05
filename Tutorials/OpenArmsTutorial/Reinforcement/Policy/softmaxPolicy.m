@@ -1,8 +1,8 @@
-function a = softmaxPolicy(state, w_a, params, getActiveTiles)
+function a = softmaxPolicy(state, w_a, params, activeTiles)
     nActions = params.n_actions;
     h = zeros(1, nActions);
     for a_i = 1:nActions
-        idx = getActiveTiles(state, a_i, params);
+        idx = activeTiles.get(state, a_i);
         h(a_i) = sum(w_a(idx));
     end
     % Softmax probabilities

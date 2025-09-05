@@ -3,12 +3,14 @@ classdef Q_learning < handle
     properties (Access = private)
         Qpmax
         e
+        activeTiles %<<<<<<<<<<<<<<<<<
     end
 
     methods (Access = public)
 
-        function obj = Q_learning(nFeatures)
-            obj.e = zeros(nFeatures, 1);            
+        function obj = Q_learning(nFeatures, activeTiles)
+            obj.e = zeros(nFeatures, 1);    
+            obj.activeTiles = activeTiles; %<<<<<<<<<<<<<<<<<<<
         end
 
         function w = computeW(obj,done,reward,gamma,w,idx,idx_p,Q,alpha,lambda,next_state,params)
@@ -47,7 +49,7 @@ classdef Q_learning < handle
         function computeQpMax(obj,w,next_state,params)
             Qp_all = zeros(1, params.n_actions);
             for a_i = 1:params.n_actions
-                idx_p = getActiveTiles(next_state, a_i, params);
+                idx_p = obj.activeTiles.get(next_state, a_i);
                 Qp_all(a_i) = sum(w(idx_p));
             end
             Qp_max = max(Qp_all);
