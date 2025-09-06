@@ -13,8 +13,8 @@ params.n_features = prod(params.tiles_per_dim) * params.num_tilings * params.n_a
 % SARSA(λ) hyperparameters
 params.alpha = 0.2 / params.num_tilings;
 params.gamma = 1.0;
-params.lambda = 0.95;
-params.epsilon = 0.1;
+params.lambda = 0.9;
+params.epsilon = 0;
 params.n_episodes = 4000;
 
 % Actor-critic hyperparameters
