@@ -11,8 +11,17 @@ classdef FemTests < handle & matlab.unittest.TestCase
         microTests = {'test2d_micro', 'test3d_micro_cube'}
         thermalTests = {'test_thermal'}
         hyperelasticTests = {'test_hyperelastic'}
+        solvers = {'CG'};
+        preconditioners = {'pyAMG'};
     end
 
+    methods (Test, TestTags = {'FEM','Solvers'})
+
+        function testIterativeSolvers(testCase, solvers, preconditioners)
+
+        end
+
+    end
 
     methods (Test, TestTags = {'Triangle'})
 

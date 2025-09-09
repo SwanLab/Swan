@@ -17,6 +17,7 @@ classdef Solver < handle
 
                 case 'CG'
                     stype = PCG();
+                    % CGSolver = old pcg
 
                 case 'Nonlinear'
                     stype = NonLinear_Solver(cParams);

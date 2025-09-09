@@ -7,6 +7,7 @@ classdef PCG < handle
 
     properties (Access = private)
         x0
+        iter0
 
         % To delete:
         nIter
@@ -20,7 +21,7 @@ classdef PCG < handle
         function [x,residual,err,errAnorm] = solve(obj,LHS,B,xsol)
             if nargin == 3, xsol = zeros(size(B)); end
             obj.prepareProblem(B);
-            P = obj.Preconditioner;
+            P = @(A,r) obj.Preconditioner.solve(A,r);
             A = @(x) LHS*x;
             iter = 0;
             x = obj.x0;
@@ -45,6 +46,7 @@ classdef PCG < handle
                 errAnorm(iter)=((x-xsol)')*A(x-xsol);
             end
             obj.x0 = x;
+            obj.checkStep(iter);
             disp(['Iter: ',num2str(iter)]);
             obj.nIter = [obj.nIter;iter];
         end
@@ -61,6 +63,15 @@ classdef PCG < handle
             n = length(b);
             if isempty(obj.x0)
                 obj.x0 = zeros(n, 1);
+            end
+        end
+
+        function checkStep(obj,iter)
+            if isempty(obj.iter0)
+                obj.iter0 = iter;
+            elseif iter>3*obj.iter0
+                obj.iter0 = [];
+                obj.Preconditioner.update();
             end
         end
     end

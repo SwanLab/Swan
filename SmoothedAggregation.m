@@ -3,6 +3,7 @@ classdef SmoothedAggregation < handle
     properties (Access = private)
         nLevels
         nSolve
+        needUpdate
         np
         sp
         AMGOptions
@@ -15,6 +16,7 @@ classdef SmoothedAggregation < handle
 
     methods (Access = public)
         function obj = SmoothedAggregation(cParams)
+            obj.restartPython();
             obj.init(cParams);
             obj.importLibraries();
             obj.createSolverOptions(cParams);
@@ -22,21 +24,27 @@ classdef SmoothedAggregation < handle
         end
 
         function x = solve(obj,A,res)
-            if obj.nSolve/1e6 == round(obj.nSolve/1e6)
+            if obj.needUpdate
                 LHS = obj.convertToPythonSparse(A);
                 obj.createAMGSolver(LHS);
+                obj.needUpdate = false;
             end
             b    = obj.np.array(double(res));
             x_py = obj.AMGSolver.solve(b, obj.AMGOptions);
             x    = double(x_py)';
             obj.nSolve = obj.nSolve + 1;
         end
+
+        function update(obj)
+            obj.needUpdate = true;
+        end
     end
 
     methods (Access = private)
         function init(obj,cParams)
-            obj.nLevels = cParams.nLevels;
-            obj.nSolve  = 0;
+            obj.nLevels    = cParams.nLevels;
+            obj.nSolve     = 0;
+            obj.needUpdate = true;
         end
 
         function importLibraries(obj)
@@ -70,6 +78,13 @@ classdef SmoothedAggregation < handle
             s             = {LHS};
             s{end+1}      = pyArgs;
             obj.AMGSolver = py.pyamg.smoothed_aggregation_solver(s{:});
+        end
+    end
+
+    methods (Static, Access = private)
+        function restartPython()
+            terminate(pyenv);
+            pyenv('ExecutionMode','OutOfProcess');
         end
     end
 end
