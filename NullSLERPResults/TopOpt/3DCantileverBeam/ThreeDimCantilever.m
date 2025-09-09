@@ -35,7 +35,7 @@ classdef ThreeDimCantilever < handle
             obj.createConstraint();
             obj.createDualVariable();
             obj.createOptimizer();
-            saveas(gcf,['NullSLERPResults/TopOpt/3DCantileverBeam/FinalResults_NoOscillations/Monitoring_trust0d02_gJ',num2str(obj.gJFlow),'.fig']);
+            saveas(gcf,['NullSLERPResults/TopOpt/3DCantileverBeam/FinalResults_NoOscillations/Monitoring_trust0d02_gJ',num2str(obj.gJFlow),'_V',num2str(obj.Vf),'.fig']);
             obj.designVariable.fun.print(['NullSLERPResults/TopOpt/3DCantileverBeam/FinalResults_NoOscillations/gJ',num2str(obj.gJFlow),'_V',num2str(obj.Vf),'_fValues']);
         end
 
@@ -175,13 +175,14 @@ classdef ThreeDimCantilever < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 2000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'SLERP';
             s.ub             = inf;
             s.lb             = -inf;
             s.etaNorm        = 0.02;
+            s.etaNormMin     = 0.02;
             s.gJFlowRatio    = obj.gJFlow;
             s.etaMaxMin      = 0.033;
             s.etaMax         = 100;
