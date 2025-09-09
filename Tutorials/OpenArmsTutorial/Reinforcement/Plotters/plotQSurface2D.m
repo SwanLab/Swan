@@ -32,7 +32,8 @@ function plotQSurface2D(weights, params, Pixels1, Pixels2, activeTiles)
     xlabel('Position');
     ylabel('Velocity');
     zlabel('-max Q(s,a)');
-    title('Surface Plot of -max Q-value over State Space');
+    %title('Surface Plot of -max Q-value over State Space');
+    title('Episode 4000')
     colorbar;
     colormap jet;
     view([-135 30]);

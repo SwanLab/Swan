@@ -47,18 +47,18 @@ env = MountainCarEnv(params);
 activeTiles = ActiveTiles(params);
 
 % --- Policy ---
-policyType = 'epsilonGreedy';
-%policyType = 'softmax';
+%policyType = 'epsilonGreedy';
+policyType = 'softmax';
 policyFunction = createPolicyFunction(policyType);
 
 % --- Agent ---
-agent = Sarsa(params.n_features);
+%agent = Sarsa(params.n_features);
 %agent = Q_learning(params.n_features, activeTiles);
-%agent = ActorCritic(params);
+agent = ActorCritic(params);
 
 % --- Training ---
-weights = TD_lambda(env, policyFunction, activeTiles, params, agent);
-%[~, weights] = ActorCriticFunc(env, policyFunction, activeTiles, params, agent);
+%weights = TD_lambda(env, policyFunction, activeTiles, params, agent);
+[~, weights] = ActorCriticFunc(env, policyFunction, activeTiles, params, agent);
 %% --- Visualization ---
 
 % Resolution of plots
