@@ -52,10 +52,10 @@ classdef HyperelasticityComputer < handle
         end
 
         function setOptimizer(obj,cParams)
-            s.functional  = obj.functional;
-            s.monitor     = obj.monitor;
-            s.tolerance   = cParams.tolerance;
-            s.maxIter     = cParams.maxIter;
+            s.functional = obj.functional;
+            s.monitor    = obj.monitor;
+            s.tolerance  = cParams.tolerance;
+            s.maxIter    = cParams.maxIter;
             obj.updater = DisplacementUpdater(s);
         end
 

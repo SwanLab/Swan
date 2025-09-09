@@ -3,14 +3,22 @@ classdef BenchmarkManager < handle
     methods (Access = public, Static)
 
         function [mesh, bc] = create(cParams)
-            switch cParams.type.mesh
+            switch cParams.mesh.type
                 case '1Elem'
                     mesh = QuadMesh(1,1,1,1);
-                case 'nElem'
-                    N = cParams.N;
-                    mesh = QuadMesh(1,10,N,N);
+                case 'Rectangle'
+                    l = cParams.mesh.length;
+                    w = cParams.mesh.width;
+                    N = cParams.mesh.lN;
+                    M = cParams.mesh.wN;
+                    mesh = QuadMesh(l,w,N,M);
                 case 'SENtest'
                     file = 'SENtest0_05';
+                    a.fileName = file;
+                    s = FemDataContainer(a);
+                    mesh = s.mesh;
+                case 'Sample'
+                    file = 'Sample';
                     a.fileName = file;
                     s = FemDataContainer(a);
                     mesh = s.mesh;
@@ -30,7 +38,7 @@ classdef BenchmarkManager < handle
                     s = FemDataContainer(a);
                     mesh = s.mesh;
             end
-            bc = PhaseFieldBoundaryCreator(mesh,cParams);
+            bc = BoundaryConditionsCreator(mesh,cParams.bc);
         end
 
     end

@@ -32,6 +32,7 @@ OptimizeSuperformTutorial();
 TutorialXXPhaseFieldCase;
 TutorialXXPhaseFieldHomogenization;
 TutorialXXHyperelasticity;
+TutorialXXContinuumDamage;
 TopOptTestTutorial3DDensityPython;
 close all;
 
