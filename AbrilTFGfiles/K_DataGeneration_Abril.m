@@ -3,7 +3,7 @@
 
 clc; clear; close all;
 
-r = linspace(0,1,200);
+r = linspace(0.01,1,200);
 
 K_all=zeros(8,8,length(r));
 

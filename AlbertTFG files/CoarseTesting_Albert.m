@@ -85,30 +85,34 @@ classdef CoarseTesting_Albert < handle
             obj.computeSubdomainCentroid();
             CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'085 085 085', obj.r, obj.centroids);
 
+            close all % Ho he afegit, cal borrar
             figure
             plot(residualPCG,'linewidth',2)
-            hold on
-            plot(residualCG,'linewidth',2)
+         %   hold on
+         %   plot(residualCG,'linewidth',2)  SORTIA ERROR
+         %   legend({'CG + ILU-EIFEM-ILU','CG'},'FontSize',12)
             set(gca, 'YScale', 'log')
-            legend({'CG + ILU-EIFEM-ILU','CG'},'FontSize',12)
+            legend({'CG + ILU-EIFEM-ILU'},'FontSize',12)
             xlabel('Iteration')
             ylabel('Residual')
 
             figure
             plot(errPCG,'linewidth',2)
-            hold on
-            plot(errCG,'linewidth',2)
+          %  hold on
+          %  plot(errCG,'linewidth',2) SORTIA ERROR
             set(gca, 'YScale', 'log')
-            legend('CG + EIFEM+ ILU(CG-90%-L2)','CG')
+          %  legend('CG + EIFEM+ ILU(CG-90%-L2)','CG')
+            legend('CG + EIFEM+ ILU(CG-90%-L2)')
             xlabel('Iteration')
             ylabel('||error||_{L2}')
 
             figure
             plot(errAnormPCG,'linewidth',2)
-            hold on
-            plot(errAnormCG,'linewidth',2)
+         %   hold on
+         %   plot(errAnormCG,'linewidth',2)
             set(gca, 'YScale', 'log')
-            legend('CG + EIFEM+ ILU(CG-90%-L2)','CG')
+         %   legend('CG + EIFEM+ ILU(CG-90%-L2)','CG')
+            legend('CG + EIFEM+ ILU(CG-90%-L2)')
             xlabel('Iteration')
             ylabel('Energy norm')
 
@@ -309,7 +313,7 @@ classdef CoarseTesting_Albert < handle
         function [young,poisson] = computeElasticProperties(obj,mesh, radius)
             E1  = 1;
             E2 = E1/1000;
-            nu = 1/3;
+            nu = 1/3; 
             x0=mean(mesh.coord(:,1));
             y0=mean(mesh.coord(:,2));
 %             young   = ConstantFunction.create(E,mesh);
