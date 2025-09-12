@@ -20,6 +20,7 @@ TopOptTestTutorialLSPerimeter();
 TopOptTestTutorialMicro();
 TopOptTestTutorialWithGiD();
 TopOptTestTutorialLevelSetInfill();
+NullSpaceVerification();
 %TopOptViaHomogenizationTutorial(); % ALEX
 Tutorial02FEMElasticity();
 Tutorial02p2FEMElasticityMicro();
