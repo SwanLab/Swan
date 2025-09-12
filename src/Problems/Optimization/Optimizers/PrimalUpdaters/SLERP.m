@@ -21,7 +21,7 @@ classdef SLERP < handle
 
         function phi = update(obj,g,phi)
             isFixed = phi.getFixedNodes();
-            g(isFixed) = -abs(g(isFixed));
+            g(isFixed) = - abs(g(isFixed)); %should be positive if we want to fix as void
             ls                = phi.obtainVariableInCell();
             phiN              = obj.normalizeLevelSets(ls);
             gN                = obj.createNormalizedGradient(ls,g);
@@ -34,7 +34,8 @@ classdef SLERP < handle
         end
 
         function computeFirstStepLength(obj,g,ls,~)
-            [lsClass,gClass] = obj.getLevelSetAndGradientForVolume(ls{1},g);
+%             [lsClass,gClass] = obj.getLevelSetAndGradientForVolume(ls{1},g);
+            [lsClass,gClass] = obj.getLevelSetAndGradientForVolume(ls,g);
             V0 = lsClass.computeVolume();
             if abs(V0-1) <= 1e-10
                 obj.computeLineSearchInBounds(gClass,lsClass);
@@ -163,7 +164,7 @@ classdef SLERP < handle
 
     methods (Static, Access = private)
         function [lsClass,gClass] = getLevelSetAndGradientForVolume(ls,g)
-            lsC     = ls.obtainVariableInCell();
+            lsC     = ls{1}.obtainVariableInCell();
             lsClass = lsC{1};
             n       = length(lsClass.fun.fValues);
             gClass  = g(1:n);

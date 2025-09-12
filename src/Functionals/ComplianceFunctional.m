@@ -20,18 +20,7 @@ classdef ComplianceFunctional < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            iter = x{2};
             x = x{1};
-% 
-%             if iter > obj.iter
-%                 obj.iter = iter;
-%                 beta = obj.filter.getBeta();
-%                 if iter >= 400 && mod(iter,20)== 0 && beta <= 40
-%                     obj.filter.updateBeta(beta*2.0);
-%                     obj.filterAdjoint.updateBeta(beta*2.0);
-%                 end
-%             end  
-
             xD  = x.obtainDomainFunction();
             xR = obj.filterFields(xD);
             obj.material.setDesignVariable(xR);

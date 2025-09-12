@@ -1,8 +1,9 @@
+
 classdef OptimizerNullSpace < handle
 
     properties (Access = private)
-        tolCost   = 1e-8
-        tolConstr = 1e-6
+        tolCost   = 1e-5
+        tolConstr = 1e-5
     end
 
     properties (Access = private)
@@ -39,6 +40,8 @@ classdef OptimizerNullSpace < handle
         GIFname
         dofsNonDesign
         typeBench
+        saveCost
+        saveConstraint
     end
 
     methods (Access = public) 
@@ -63,16 +66,15 @@ classdef OptimizerNullSpace < handle
                 obj.updateMonitoring();
                 obj.checkConvergence();
                 obj.designVariable.updateOld();
-%                 if obj.nIter == 1 || mod(obj.nIter,20)== 0
-%                     obj.designVariable.fun.print('dV'+string(obj.nIter)+string(obj.typeBench),'Paraview')
-%                 end
-%                 if ~isempty(obj.dofsNonDesign) 
-%                    fValues = obj.designVariable.fun.fValues;
-%                    fValues(obj.dofsNonDesign) = - 1.0;
-%                    obj.designVariable.fun.setFValues(fValues);
-%                 end
-
+                obj.saveFilesPosProcess();
+                if obj.nIter == 1 || mod(obj.nIter,20)== 0
+                    obj.designVariable.fun.print('dV'+string(obj.nIter),'Paraview') %+string(obj.typeBench)
+                end
             end
+            cost = obj.saveCost; 
+            constraint = obj.saveConstraint;
+            save('cost.mat','cost')
+            save('constraint.mat','constraint')
         end
     end
 
@@ -97,7 +99,16 @@ classdef OptimizerNullSpace < handle
             obj.dualUpdater     = DualUpdaterNullSpace(cParams);
             obj.createDualVariable();
             obj.initOtherParameters(cParams);
+            obj.saveCost = [];
+            obj.saveConstraint = [];
         end
+
+
+        function saveFilesPosProcess(obj)
+            obj.saveCost(end+1) = obj.cost.value;
+            obj.saveConstraint(end+1,:) = obj.constraint.value;
+        end
+
 
         function createDualVariable(obj)
             s.nConstraints   = length(obj.constraintCase);
@@ -135,7 +146,6 @@ classdef OptimizerNullSpace < handle
             obj.monitoring.update(obj.nIter,s);
             obj.monitoring.refresh();
 %             obj.obtainGIF(obj.GIFname);
-
         end
 
         function plotVariable(obj)
@@ -288,8 +298,8 @@ classdef OptimizerNullSpace < handle
                 case 'SLERP'
                     [actg,~] = obj.computeActiveConstraintsGradient();
                     isAlmostFeasible  = norm(actg) < 0.02; %0.01; %0.02;
-%                     isAlmostOptimal   = obj.primalUpdater.Theta < 0.15; %35; %15; %4; %15;
-                    isAlmostOptimal   = obj.primalUpdater.Theta < 0.35; %15; %4; %15;
+                    isAlmostOptimal   = obj.primalUpdater.Theta < 0.15; %35; %15; %4; %15;
+%                     isAlmostOptimal   = obj.primalUpdater.Theta < 0.35; %15; %4; %15;
                     if isAlmostFeasible && isAlmostOptimal
 %                         obj.etaMax  = max(obj.etaMax/1.05,obj.etaMaxMin);
                         obj.etaMax  = max(obj.etaMax/1.1,obj.etaMaxMin);

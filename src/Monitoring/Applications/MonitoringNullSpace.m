@@ -68,7 +68,9 @@ classdef MonitoringNullSpace < handle
 
         function data = computeDataUpdated(obj,nIter,sD)
             data = obj.cost.value;
-            data = [data;obj.cost.getFields(':')];
+%             data = [data;obj.cost.getFields(':')];
+            data = [data;obj.cost.getFields(1)];
+            data = [data;obj.cost.getFields(2)];
             data = [data;obj.constraint.value];
             data = [data;obj.designVariable.computeL2normIncrement()];
             data = [data;obj.dualVariable.fun.fValues];

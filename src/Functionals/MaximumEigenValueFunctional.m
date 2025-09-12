@@ -10,6 +10,7 @@ classdef MaximumEigenValueFunctional < handle
        iter
        lambdaOld
        value0
+       isCompl
     end
     
     methods (Access = public)
@@ -19,9 +20,11 @@ classdef MaximumEigenValueFunctional < handle
         end   
 
         function [f, dfdx] = computeFunctionAndGradient(obj,x) 
-            x = x{1};
-            xD  = x.obtainDomainFunction();             
-            xR = obj.filter.compute(xD{1},2);            
+            xD  = x{1}.obtainDomainFunction();             
+            xR = obj.filter.compute(xD{1},2);  
+            if obj.isCompl == true
+                xR.setFValues(1 - xR.fValues);          % 1 - FP
+            end
             if ~isempty(obj.filterAdjoint)
                 xFiltered = obj.filter.getFilteredField();
                 obj.filterAdjoint.updateFilteredField(xFiltered);
@@ -29,6 +32,9 @@ classdef MaximumEigenValueFunctional < handle
             [lambda,dlambda]= obj.eigModes.computeFunctionAndGradient(xR);
             f = obj.computeFunction(lambda);
             dfdx{1} = obj.computeGradient(dlambda, lambda);
+            if obj.isCompl == true
+                dfdx{1}.setFValues(-dfdx{1}.fValues);   % Chain rule
+            end
         end
 
     end
@@ -40,25 +46,23 @@ classdef MaximumEigenValueFunctional < handle
             obj.designVariable = cParams.designVariable;
             obj.mesh           = cParams.mesh;
             obj.filter = cParams.filter;
-%             obj.value0  = 1.0;
             if isfield(cParams,'filterAdjoint')
                 obj.filterAdjoint = cParams.filterAdjoint;
+            end
+            if isfield(cParams,'isCompl')
+                obj.isCompl  = cParams.isCompl;
             end
         end
 
         function J = computeFunction(obj,lambda)
-%                  J = 1/lambda;
+                 J = 1/lambda;
                 if isempty(obj.value0)
-                    obj.value0  = 1; %lambda;
+                    obj.value0  =   1; %lambda; %lambda full domain;
                 end
 %                 if isempty(obj.lambdaOld)
 %                     obj.lambdaOld = lambda;
 %                 end
-                J = -lambda;
-%                 if lambda > 1 && abs(lambda - obj.lambdaOld)/abs(obj.lambdaOld) > 1.0 
-% %                    obj.value0 = lambda;% abs(J);
-%                    obj.lambdaOld = lambda;
-%                 end
+%                 J = -lambda;
                 J = J/obj.value0;
         end
 
@@ -68,8 +72,8 @@ classdef MaximumEigenValueFunctional < handle
             else
                 dJ        = obj.filter.compute(dlambda,2);
             end
-            fValues   = - dJ.fValues;
-%             fValues   =  -1/lambda^2 *dJ.fValues; %
+%             fValues   = - dJ.fValues;
+            fValues   = (-1/lambda^2 *dJ.fValues); %
             dJ.setFValues(fValues/obj.value0);   
         end
 

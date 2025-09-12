@@ -13,6 +13,7 @@ classdef VolumeConstraint < handle
         end
         
         function [J,dJ] = computeFunctionAndGradient(obj,x)
+            x = x{1};
             [V,dV] = obj.volume.computeFunctionAndGradient(x);
             J      = obj.computeFunction(V);
             dJ{1}  = obj.computeGradient(dV);
