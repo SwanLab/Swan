@@ -5,7 +5,7 @@ classdef UnfittedMeshFunction < handle
         function obj = create(cParams)
             f = cParams.fun;
             switch class(f)
-                case {'LagrangianFunction','DomainFunction'}
+                case 'LagrangianFunction'
                     obj = UnfittedMeshLagrangian(cParams);
                     obj.compute(f);
                 case 'AnalyticalFunction'

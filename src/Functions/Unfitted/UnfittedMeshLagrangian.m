@@ -79,13 +79,7 @@ classdef UnfittedMeshLagrangian < handle
         end
 
         function computeBackgroundFunction(obj,f)
-            switch class(f) % Provisional
-                case 'LagrangianFunction'
-                    fBackgr = f;
-                case 'DomainFunction'
-                    fBackgr = f.project('P1');
-            end
-            obj.backgroundFunction = fBackgr;
+            obj.backgroundFunction = f;
         end
 
         function computeInnerMeshFunction(obj)
