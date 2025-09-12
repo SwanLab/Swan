@@ -10,6 +10,16 @@ classdef UnfittedFunction < BaseFunction
         fun
     end
 
+    methods (Static, Access = public)
+
+        function obj = create(uMesh,fun)
+            s.uMesh = uMesh;
+            s.fun   = fun;
+            obj     = UnfittedFunction(s);
+        end
+
+    end
+
     methods (Access = public)
 
         function obj = UnfittedFunction(cParams)
@@ -36,6 +46,8 @@ classdef UnfittedFunction < BaseFunction
                     res.fun = res.fun.*obj2;
                     res.innerMeshFunction = res.innerMeshFunction.*obj2;
                     res.innerCutMeshFunction = res.innerCutMeshFunction.*obj2;
+                case 'DomainFunction'
+                    error('Can not be a domain function');
             end
         end
 
@@ -86,6 +98,8 @@ classdef UnfittedFunction < BaseFunction
                     res.fun = res.fun./obj2;
                     res.innerMeshFunction = res.innerMeshFunction./obj2;
                     res.innerCutMeshFunction = res.innerCutMeshFunction./obj2;
+                case 'DomainFunction'
+                    error('Can not be a domain function');
             end
         end
 
