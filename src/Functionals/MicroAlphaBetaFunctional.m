@@ -59,9 +59,10 @@ classdef MicroAlphaBetaFunctional < handle
 
         function J = computeFunction(obj)
             Ch = obj.stateProblem.Chomog;
+            Sh = inv4D(Ch);
             a  = obj.alpha;
             b  = obj.beta;
-            J  = a'*(Ch\b);
+            J  = obj.doubleDDP(a,Sh,b);
         end
 
         function dJ = computeGradient(obj,dC)
@@ -70,32 +71,61 @@ classdef MicroAlphaBetaFunctional < handle
         end
 
         function dChOp = computeChomogGradientOperation(obj,dC)
-            tstrain = obj.stateProblem.strainFun;
-            dChOp   = @(xV) [];
+            tstrain = obj.stateProblem.strain;
+            dChOp   = @(xV) 0;
             for i = 1:length(tstrain)
-                opj = @(xV) [];
                 for j = 1:length(tstrain)
                     dStrj  = DDP(dC,tstrain{j});
                     dChVij = -DDP(tstrain{i},dStrj);
-                    dChEv  = @(xV) reshape(dChVij.evaluate(xV),1,1,size(xV,2),[]);
-                    opj    = @(xV) cat(2,opj(xV),dChEv(xV));
+                    dChEv  = @(xV) reshape(dChVij.evaluate(xV),1,1,1,1,size(xV,2),[]);
+                    eij    = obj.defineCanonicalTensor(i,j);
+                    dChOp  = @(xV) dChOp(xV) + dChEv(xV).*eij;
                 end
-                dChOp = @(xV) cat(1,dChOp(xV),opj(xV));
             end
         end
 
+        function v = computeBasesPosition(obj)
+            switch obj.mesh.ndim
+                case 2
+                    v = [1,1; 2,2; 1,2];
+                case 3
+                    v = [1,1; 2,2; 3,3; 2,3; 1,3; 1,2];
+            end
+        end
+
+        function eij = defineCanonicalTensor(obj,i,j)
+            v   = obj.computeBasesPosition();
+            vI  = v(i,:);
+            vJ  = v(j,:);
+            dim = obj.mesh.ndim;
+            eij = zeros(dim,dim,dim,dim);
+            eij(vI(1),vI(2),vJ(1),vJ(2)) = 1;
+            eij(vI(1),vI(2),vJ(2),vJ(1)) = 1;
+            eij(vI(2),vI(1),vJ(1),vJ(2)) = 1;
+            eij(vI(2),vI(1),vJ(2),vJ(1)) = 1;
+        end
+
         function dChInv = computeGradientOfInverse(obj,dChOp)
-            Ch          = obj.stateProblem.Chomog;
-            a           = obj.alpha;
-            b           = obj.beta;
-            wInv        = (Ch\a)*(b'/Ch);
-            f           = @(xV) squeezeParticular(sum(wInv.*dChOp(xV),[1,2]),1);
-            dChInv      = DomainFunction.create(f,obj.mesh);
+            Ch     = obj.stateProblem.Chomog;
+            Sh     = inv4D(Ch);
+            a      = obj.alpha;
+            b      = obj.beta;
+            Shb    = tensorprod(Sh,b,[3,4],[1,2]);
+            dCShb  = @(xV) tensorprod(dChOp(xV),Shb,[3,4],[1,2]);
+            f      = @(xV) reshape(obj.doubleDDP(a,Sh,dCShb(xV)),1,size(xV,2),[]);
+            dChInv = DomainFunction.create(f,obj.mesh);
         end
 
         function x = computeNonDimensionalValue(obj,x)
             refX = obj.value0;
             x    = x/refX;
+        end
+    end
+
+    methods (Static, Access = private)
+        function J = doubleDDP(a,S,b)
+            Sb = tensorprod(S,b,[3,4],[1,2]);
+            J  = tensorprod(a,Sb,[1,2],[1,2]);
         end
     end
 

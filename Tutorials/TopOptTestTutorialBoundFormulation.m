@@ -231,10 +231,19 @@ classdef TopOptTestTutorialBoundFormulation < handle
             obj.complianceRhoD = c;
         end
 
+        function uMesh = createBaseDomain(obj)
+            levelSet         = -ones(obj.mesh.nnodes,1);
+            s.backgroundMesh = obj.mesh;
+            s.boundaryMesh   = obj.mesh.createBoundaryMesh();
+            uMesh = UnfittedMesh(s);
+            uMesh.compute(levelSet);
+        end
+
         function createVolumeConstraintWithBound(obj)
             s.mesh         = obj.mesh;
-            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.test = LagrangianFunction.create(obj.mesh,1,'P1');
             s.volumeTarget = 0.4;
+            s.uMesh = obj.createBaseDomain();
             v              = VolumeConstraintWithBound(s);
             obj.volume = v;
         end

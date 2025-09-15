@@ -22,3 +22,7 @@ BoundaryCondTestsSuite;
 GeomFunTestsSuite;
 close all;
 DomainFunTestsSuite;
+PhaseFieldTestsSuite;
+ContinuumDamageTestsSuite;
+HyperelasticityTestsSuite;
+close all;

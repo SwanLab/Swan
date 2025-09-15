@@ -1,4 +1,6 @@
 filename = 'test2d_micro';
+a.fileName = filename;
+gid = FemDataContainer(a);
 ptype = 'MICRO';
 method = 'SIMPALL';
 materialType = 'ISOTROPIC';
@@ -18,8 +20,8 @@ filterCostType = {'P1'};
 filterConstraintType = {[]};
 filterCostSettings = {[]};
 filterConstraintSettings = {[]};
-micro.alpha =[1 0 0]';
-micro.beta =[0 -1 0]';
+micro.alpha =[1 0; 0 0]';
+micro.beta =[0 0; 0 -1]';
 plotting = false;
 printing = false;
 monitoring = false;

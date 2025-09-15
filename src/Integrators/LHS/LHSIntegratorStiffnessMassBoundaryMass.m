@@ -57,6 +57,8 @@ classdef LHSIntegratorStiffnessMassBoundaryMass < handle
             s.type  = 'BoundaryMassMatrix';
             s.mesh  = obj.mesh;
             s.quadratureOrder = 2;
+            s.test  = obj.test;
+            s.trial = obj.trial;
             LHS     = LHSIntegrator.create(s);
             obj.Mr  = LHS.compute();
         end

@@ -21,6 +21,19 @@ classdef MaterialFactory < handle
                 
                 case 'STOKES'
                     material = MaterialStokes(cParams);
+                    
+                case 'PhaseField'
+                    switch cParams.PFtype
+                        case 'Analytic'
+                            material = MaterialPhaseFieldAnalytic(cParams);
+                        case 'AnalyticSplit'
+                            material = MaterialPhaseFieldAnalyticSplit(cParams);
+                        case 'Homogenized'
+                            material = MaterialPhaseFieldHomogenized(cParams);
+                    end
+
+                case 'ContinuumDamage'
+                    material = MaterialContinuumDamage(cParams);
             end
 
         end
