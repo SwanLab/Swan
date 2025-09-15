@@ -4,6 +4,7 @@ classdef TutorialEIFEM < handle
 
     end
     properties (Access = private)
+        referenceMesh
         meshDomain
         boundaryConditions
         bcApplier
@@ -24,26 +25,31 @@ classdef TutorialEIFEM < handle
             close all
             obj.init()
 
-            mR = obj.createReferenceMesh();
-            bS  = mR.createBoundaryMesh();
-            [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain(mR);
+            obj.createReferenceMesh();
+            bS  = obj.referenceMesh.createBoundaryMesh();
+            [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain();
             obj.meshDomain = mD;
-            [bC,dir] = obj.createBoundaryConditions(obj.meshDomain);
+            mD.plot()
+            [bC,dir] = obj.createBoundaryConditions();
             obj.boundaryConditions = bC;
             obj.createBCapplier()
 
             [LHSr,RHSr] = obj.createElasticProblem();
 
             LHSfun = @(x) LHSr*x;
-            Meifem       = obj.createEIFEMPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
+            Meifem       = obj.createEIFEMPreconditioner(dir,iC,lG,bS,iCR,discMesh);
             Milu         = obj.createILUpreconditioner(LHSr);
-            Mmult        = @(r) Preconditioner.multiplePrec(r,Milu,Meifem,Milu,LHSfun,RHSr,obj.meshDomain,obj.bcApplier);
+            Mmult        = @(r) Preconditioner.multiplePrec(r,LHSfun,Milu,Meifem,Milu);
+            Mid          = @(r) r;
+
 
             tol = 1e-8;
             x0 = zeros(size(RHSr));
+            xSol = LHSr\RHSr;
 
-            [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSfun,RHSr,x0,Mmult,tol);         
-
+            [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSfun,RHSr,x0,Mmult,tol,xSol);     
+            [uCG,residualCG,errCG,errAnormCG]    = PCG.solve(LHSfun,RHSr,x0,Mid,tol,xSol);     
+            obj.plotResidual(residualPCG,errPCG,errAnormPCG,residualCG,errCG,errAnormCG)
         end
 
     end
@@ -51,31 +57,35 @@ classdef TutorialEIFEM < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [15 1]; %nx ny
-            obj.fileNameEIFEM = 'DEF_Q4porL_1_raul.mat';
+            obj.nSubdomains  = [15 2]; %nx ny
+            obj.fileNameEIFEM = 'DEF_Q4porL_1.mat';
             obj.tolSameNode = 1e-10;
-        end
+        end        
 
-        function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomain(obj,mR)
-            s.nsubdomains   = obj.nSubdomains; %nx ny
-            s.meshReference = mR;
-            s.tolSameNode = obj.tolSameNode;
-            m = MeshCreatorFromRVE.create(s);
-            [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
-        end
-
-        function mS = createReferenceMesh(obj)
-            mS = obj.createEIFEMreferenceMesh();
-        end
-
-        function mS = createEIFEMreferenceMesh(obj)
+        function createReferenceMesh(obj)
             filename = obj.fileNameEIFEM;
             load(filename);
             s.coord    = EIFEoper.MESH.COOR;
             s.connec   = EIFEoper.MESH.CN;
             s.interType = 'QUADRATIC';
-            mS         = Mesh.create(s);
+            obj.referenceMesh = Mesh.create(s);
         end
+        
+
+  
+
+      
+
+
+
+        function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomain(obj)
+            s.nsubdomains   = obj.nSubdomains;
+            s.meshReference = obj.referenceMesh;
+            s.tolSameNode = obj.tolSameNode;
+            m = MeshCreatorFromRVE.create(s);
+            [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
+        end
+
 
         function mCoarse = createCoarseMesh(obj,mR)
             s.nsubdomains   = obj.nSubdomains; %nx ny
@@ -107,64 +117,33 @@ classdef TutorialEIFEM < handle
         end
 
         function material = createMaterial(obj,mesh)
-            [young,poisson] = obj.computeElasticProperties(mesh);
+            E  = 1;
+            nu = 1/3;  
             s.type    = 'ISOTROPIC';
             s.ptype   = 'ELASTIC';
             s.ndim    = mesh.ndim;
-            s.young   = young;
-            s.poisson = poisson;
+            s.young   = ConstantFunction.create(E,mesh);
+            s.poisson = ConstantFunction.create(nu,mesh);
             tensor    = Material.create(s);
             material  = tensor;
         end
 
-        function [young,poisson] = computeElasticProperties(obj,mesh)
-             E  = 1;
-             nu = 1/3;
-%             E  = 70000;
-%             nu = 0.3;
-            Epstr  = E/(1-nu^2);
-            nupstr = nu/(1-nu);
-            young   = ConstantFunction.create(Epstr,mesh);
-            poisson = ConstantFunction.create(nupstr,mesh);
-%             young   = ConstantFunction.create(E,mesh);
-%             poisson = ConstantFunction.create(nu,mesh);
-        end
 
-        function [Dir,PL] = createRawBoundaryConditions(obj)
+        function [bC,Dir] = createBoundaryConditions(obj)
             minx = min(obj.meshDomain.coord(:,1));
             maxx = max(obj.meshDomain.coord(:,1));
-            miny = min(obj.meshDomain.coord(:,2));
-            maxy = max(obj.meshDomain.coord(:,2));
             tolBound = obj.tolSameNode;
             isLeft   = @(coor) (abs(coor(:,1) - minx)   < tolBound);
             isRight  = @(coor) (abs(coor(:,1) - maxx)   < tolBound);
-            isBottom = @(coor) (abs(coor(:,2) - miny)   < tolBound);
-            isTop    = @(coor) (abs(coor(:,2) - maxy)   < tolBound);
-            %             isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) == 0);
             Dir{1}.domain    = @(coor) isLeft(coor);%| isRight(coor) ;
             Dir{1}.direction = [1,2];
             Dir{1}.value     = 0;
+            dirichletFun = DirichletCondition(obj.meshDomain, Dir{1});
 
-                        Dir{2}.domain    = @(coor) isRight(coor) ;
-                        Dir{2}.direction = [1,2];
-                        Dir{2}.value     = 0;
-
-            PL.domain    = @(coor) isTop(coor);
-            PL.direction = [2];
-            PL.value     = [-0.1];
-%                         PL.domain    = @(coor) isRight(coor);
-%                         PL.direction = [1];
-%                         PL.value     = [0.1];
-        end
-
-        function [bc,Dir,PL] = createBoundaryConditions(obj,mesh)
-            [Dir,PL]  = obj.createRawBoundaryConditions();
-            dirichletFun = [];
-            for i = 1:numel(Dir)
-                dir = DirichletCondition(obj.meshDomain, Dir{i});
-                dirichletFun = [dirichletFun, dir];
-            end
-
+            mesh = obj.meshDomain;
+            PL.domain    = @(coor) isRight(coor);
+            PL.direction = 2;
+            PL.value     = -0.1;
             pointload = PointLoad(mesh,PL);
             % need this because force applied in the face not in a point
             pointload.values        = pointload.values/size(pointload.dofs,1);
@@ -177,8 +156,10 @@ classdef TutorialEIFEM < handle
             s.dirichletFun = dirichletFun;
             s.periodicFun  =[];
             s.mesh         = mesh;
-            bc             = BoundaryConditions(s);
+            bC             = BoundaryConditions(s);                        
         end
+
+  
 
         function [LHSr,RHSr] = createElasticProblem(obj)
             u = LagrangianFunction.create(obj.meshDomain,obj.meshDomain.ndim,'P1');
@@ -213,7 +194,8 @@ classdef TutorialEIFEM < handle
             RHS = obj.bcApplier.fullToReducedVectorDirichlet(RHS);
         end
 
-        function Meifem = createEIFEMPreconditioner(obj,mR,dir,iC,lG,bS,iCR,dMesh)
+        function Meifem = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh)
+            mR = obj.referenceMesh;
             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
             EIFEMfilename = obj.fileNameEIFEM;
             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
@@ -251,6 +233,36 @@ classdef TutorialEIFEM < handle
             s.type = 'ILU';
             M = Preconditioner.create(s);
             Milu = @(r) M.apply(r);
+        end
+
+        function plotResidual(obj,residualPCG,errPCG,errAnormPCG,residualCG,errCG,errAnormCG)
+            figure
+            plot(residualPCG,'linewidth',2)
+            hold on
+            plot(residualCG,'linewidth',2)
+            set(gca, 'YScale', 'log')
+            legend({'CG + ILU-EIFEM-ILU','CG'},'FontSize',12)
+            xlabel('Iteration')
+            ylabel('Residual')
+
+            figure
+            plot(errPCG,'linewidth',2)
+            hold on
+            plot(errCG,'linewidth',2)
+            set(gca, 'YScale', 'log')
+            legend('CG + EIFEM+ ILU(CG-90%-L2)','CG')
+            xlabel('Iteration')
+            ylabel('||error||_{L2}')
+
+            figure
+            plot(errAnormPCG,'linewidth',2)
+            hold on
+            plot(errAnormCG,'linewidth',2)
+            set(gca, 'YScale', 'log')
+            legend('CG + EIFEM+ ILU(CG-90%-L2)','CG')
+            xlabel('Iteration')
+            ylabel('Energy norm')
+
         end
        
     end
