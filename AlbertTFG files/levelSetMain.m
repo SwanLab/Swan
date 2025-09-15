@@ -35,7 +35,7 @@ for j = 1:size(r,2)
         S = cat(1, S, s);         % concatena les files verticalment de cada s corresponent a un diferent radi
 
         U         = cat(2, U, u); % concatena els desplaçaments
-        L         = cat(2, L, l); % concatena les K
+        L         = cat(2, L, l); % concatena les L
         R         = r(j);
     
     

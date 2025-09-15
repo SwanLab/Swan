@@ -3,14 +3,29 @@
 
 clc; clear; close all;
 
-r = linspace(0.01,1,200);
+r = linspace(0.01,1,10); 
 
 K_all=zeros(8,8,length(r));
 
 % Obtains the K coarse for each radius
 for j = 1:size(r,2)
+    K = [];
+    auxl = [];
+    
     [~, u, l, mesh,Kcoarse] = LevelSetInclusionAuto_abril(r(j),1);
     K_all(:,:,j)=Kcoarse;
+
+    %Designa un nom per cada linea corresponent a un radi
+    string = strrep("UL_r"+num2str(r(j), '%.2f'), ".", "_")+"-20x20"+".mat"; 
+
+    U         = u;
+    L         = l;
+    R         = r(j);
+    K         = Kcoarse
+
+    % Guarda el workspace per cert radi
+    FileName=fullfile('AbrilTFGfiles','DataVariables',string)
+    save(FileName, "U", "L", "K","mesh","R"); 
 end
 
 data=zeros(size(r,2),36);
