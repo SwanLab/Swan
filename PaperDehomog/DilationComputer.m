@@ -63,9 +63,9 @@ classdef DilationComputer < handle
             s.mesh = obj.mesh;
             s.type = 'ShapeDerivative';
             s.quadratureOrder = 3;
-            test = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.test = LagrangianFunction.create(obj.mesh,1,'P1');
             rhs  = RHSIntegrator.create(s);
-            rhsV = rhs.compute(fun,test);
+            rhsV = rhs.compute(fun);
             obj.RHS = [rhsV;0];
         end
         

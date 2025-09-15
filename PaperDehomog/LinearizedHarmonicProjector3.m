@@ -86,7 +86,7 @@ classdef LinearizedHarmonicProjector3 < handle
         end
 
         function difB = evaluateLossResidual(obj,bBar,b)
-            difB = DDP(b - bBar,b - bBar);
+            difB = DP(b-bBar,b-bBar);
         end
 
         function bR = createReshapedFunction(obj,b)
@@ -99,9 +99,9 @@ classdef LinearizedHarmonicProjector3 < handle
             s.mesh = obj.mesh;
             s.quadratureOrder = 4;
             s.type = 'ShapeDerivative';
-            test = obj.fS;
+            s.test = obj.fS;
             rhs  = RHSIntegrator.create(s);
-            rhsV = rhs.compute(f,test);
+            rhsV = rhs.compute(f);
             rhsV(obj.boundaryNodes) = 0;
             Mss = obj.massMatrixSS;
             hf = Mss\rhsV;
@@ -121,7 +121,8 @@ classdef LinearizedHarmonicProjector3 < handle
             bS = b.getVectorFields;
             b1  = bS{1};
             b2  = bS{2};
-            grad = norm(Grad(b1).*Grad(b1)+Grad(b2).*Grad(b2),2);
+            %grad = norm(Grad(b1).*Grad(b1)+Grad(b2).*Grad(b2),2);
+            grad = DP(Grad(b1),Grad(b1))+DP(Grad(b2),Grad(b2));
             resG = project(grad,obj.fG.order);
         end
     end

@@ -157,7 +157,30 @@ classdef NewHarmonicVectorProjectionExample < handle
             s.mesh    = obj.mesh;
             s.order   = 'P1';
             a1 = LagrangianFunction(s);
+
+
+            s.operation = @(x) obj.createHalfOrientationDomain(b1,x);
+            s.mesh = b1.mesh;
+            s.ndimf = b1.ndimf;
+            a1D = DomainFunction(s);
+
+            a1P = project(a1D,'P1');
+            a1P = obj.projectInUnitBall(a1P);
+
         end
+
+        function aV = createHalfOrientationDomain(obj,b1,xV)
+            b1V = b1.evaluate(xV);
+            bX  = b1V(1,:,:);
+            bY  = b1V(2,:,:);
+            beta   = atan2(bY,bX);
+            alpha  = beta/2;
+            aV(1,:,:) = cos(alpha);
+            aV(2,:,:) = sin(alpha);
+
+        end
+
+
 
         function resHNorm = plotAll(obj,bBar,b)
             h = obj.harmonicProjector;

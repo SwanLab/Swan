@@ -131,7 +131,7 @@ classdef LeftRightCellsOfPathToBoundaryComputer < handle
                for idof = 1:obj.mesh.nnodeElem
                    iVertex = vertexS(idof);
                    cells = obj.mesh.computeAllCellsOfVertex(iVertex);
-                   isCo = squeeze(obj.isCoherent.fValues(1,:,cells));
+                   isCo = squeeze(isCV(1,:,cells));
                    isCellC = all(isCo);
                    notCoh(idof) = sum(~isCellC);
                end

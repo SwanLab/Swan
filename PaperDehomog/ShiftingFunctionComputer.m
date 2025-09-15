@@ -58,12 +58,12 @@ classdef ShiftingFunctionComputer < handle
 
         function computeRHS(obj)
             gradC = Grad(obj.corrector);
-            test = LagrangianFunction.create(obj.mesh,1,'P1D');
+            s.test = LagrangianFunction.create(obj.mesh,1,'P1D');
             s.mesh = obj.mesh;
             s.type = 'ShapeDerivative';
             s.quadratureOrder = 2;
             rhs  = RHSIntegrator.create(s);
-            rhsF = rhs.compute(gradC,test);
+            rhsF = rhs.compute(gradC);
             In = obj.interpolator;
             rhsV = In'*rhsF;
             obj.RHS = rhsV;

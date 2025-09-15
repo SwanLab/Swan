@@ -86,7 +86,7 @@ classdef CorrectorCoefficientsComputer < handle
                 psiI = psi{iS};                                
                 for jS = 1:nSing
                     psiJ = psi{jS};
-                    lhs(iS,jS) = Integrate(DDP(Grad(psiI),Grad(psiJ)));
+                    lhs(iS,jS) = Integrate(DP(Grad(psiI),Grad(psiJ)));
                 end
             end
             obj.LHS = lhs;
@@ -97,7 +97,7 @@ classdef CorrectorCoefficientsComputer < handle
             rhs = zeros(nSing,1);
             for iS = 1:nSing
                 psiS    = obj.orthogonalCorrector{iS};                
-                rhs(iS) = Integrate(DDP(Grad(psiS),b));
+                rhs(iS) = Integrate(DP(Grad(psiS),b));
             end
             obj.RHS = rhs;
         end

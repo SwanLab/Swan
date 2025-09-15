@@ -97,9 +97,9 @@ classdef MappingComputer < handle
             s.mesh            = obj.mesh;
             s.quadratureOrder = 4;
             s.type            = 'ShapeDerivative';
-            test = obj.testFunction;
+            s.test = obj.testFunction;
             rhs  = RHSIntegrator.create(s);
-            rhsV = rhs.compute(aI,test);
+            rhsV = rhs.compute(aI);
             In   = obj.interpolator;
             RHS = In'*rhsV;          
         end
