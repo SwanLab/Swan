@@ -28,9 +28,9 @@ classdef LinearizedHarmonicProjector3 < handle
         function obj = LinearizedHarmonicProjector3(cParams)
             obj.init(cParams);
             obj.initializeFunctions();
-            obj.eta = (1*obj.mesh.computeMeanCellSize)^2;  
-            obj.perimeter = ConstantFunction.create(1,obj.mesh);
-            %obj.perimeter = obj.density.*(1-obj.density);
+            obj.eta = (2*obj.mesh.computeMeanCellSize)^2;  
+            %obj.perimeter = ConstantFunction.create(1,obj.mesh);
+            obj.perimeter = obj.density.*(1-obj.density);
 
             obj.createInternalDOFs();
             obj.computeAllMassMatrix();
@@ -86,7 +86,7 @@ classdef LinearizedHarmonicProjector3 < handle
         end
 
         function difB = evaluateLossResidual(obj,bBar,b)
-            difB = DP(b-bBar,b-bBar);
+            difB = DP(b-bBar,obj.perimeter.*(b-bBar));
         end
 
         function bR = createReshapedFunction(obj,b)

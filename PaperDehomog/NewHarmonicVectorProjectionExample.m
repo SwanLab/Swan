@@ -173,11 +173,9 @@ classdef NewHarmonicVectorProjectionExample < handle
             b1V = b1.evaluate(xV);
             bX  = b1V(1,:,:);
             bY  = b1V(2,:,:);
-            beta   = atan2(bY,bX);
-            alpha  = beta/2;
-            aV(1,:,:) = cos(alpha);
-            aV(2,:,:) = sin(alpha);
-
+            n = sqrt(2*(1+bX));
+            aV(1,:,:) = (1+bX)./n;
+            aV(2,:,:) = bY./n;
         end
 
 
