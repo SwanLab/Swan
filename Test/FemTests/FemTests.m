@@ -16,15 +16,15 @@ classdef FemTests < handle & matlab.unittest.TestCase
 
     methods (Test, TestTags = {'Triangle'})
         % 
-        % function testTriangle(testCase, triangle)
-        %     s.computerType     = 'FEM';
-        %     s.testName         = triangle;
-        %     s.variablesToStore = {'d_u'};
-        %     test = PrecomputedVariableTest(s);
-        %     err = test.computeError();
-        %     tol = 1e-6;
-        %     testCase.verifyLessThanOrEqual(err, tol)
-        % end
+        function testTriangle(testCase, triangle)
+            s.computerType     = 'FEM';
+            s.testName         = triangle;
+            s.variablesToStore = {'d_u'};
+            test = PrecomputedVariableTest(s);
+            err = test.computeError();
+            tol = 1e-6;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
 
     end
 
@@ -102,19 +102,19 @@ classdef FemTests < handle & matlab.unittest.TestCase
     % 
     % end
     % 
-    % methods (Test, TestTags = {'FEM', 'Passed', 'Classic', 'Displacement', 'ToPass'})
-    % 
-    %     function testDisplacement(testCase, duTests)
-    %         s.computerType    = 'FEM'; %FEM
-    %         s.testName         = duTests;
-    %         s.variablesToStore = {'d_u'};
-    %         test = PrecomputedVariableTest(s);
-    %         err = test.computeError();
-    %         tol = 1e-6;
-    %         testCase.verifyLessThanOrEqual(err, tol)
-    %     end
-    % 
-    % end
+    methods (Test, TestTags = {'FEM', 'Passed', 'Classic', 'Displacement', 'ToPass'})
+
+        function testDisplacement(testCase, duTests)
+            s.computerType    = 'FEM'; %FEM
+            s.testName         = duTests;
+            s.variablesToStore = {'d_u'};
+            test = PrecomputedVariableTest(s);
+            err = test.computeError();
+            tol = 1e-6;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
+
+    end
     % 
     % methods(Test, TestTags = {'FEM', 'Passed', 'Classic', 'Stokes'})
     % 

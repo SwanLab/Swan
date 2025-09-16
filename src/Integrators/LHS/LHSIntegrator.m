@@ -27,6 +27,22 @@ classdef LHSIntegrator < handle
 
     methods (Access = protected)
 
+        function lhs = computeElementalLHS(obj,f)
+            nElem  = obj.mesh.nelem;
+            lhs    = zeros(size(f,1),size(f,2),nElem);
+            J = Jacobian(obj.mesh);
+            detJ = Det(J);
+
+            xV = obj.quadrature.posgp;
+            w  = obj.quadrature.weigp;
+            for i = 1:size(f,1)
+                for j = 1:size(f,2)
+                    int = (f{i,j}.*detJ)*w';
+                    lhs(i,j,:) = lhs(i,j,:) + int.evaluate(xV);
+                end
+            end
+        end
+
         function init(obj, cParams)
             obj.test  = cParams.test;
             obj.trial = cParams.trial;
