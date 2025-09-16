@@ -22,7 +22,12 @@ classdef LHSIntegrator < handle
             obj.init(cParams);
             obj.createQuadrature();
         end
- 
+
+        function LHS = compute(obj,f,test,trial)
+            lhs = obj.computeElementalLHS(f);
+            LHS = obj.assembleMatrix(lhs,test,trial);
+        end
+
     end
 
     methods (Access = protected)
@@ -44,8 +49,8 @@ classdef LHSIntegrator < handle
         end
 
         function init(obj, cParams)
-            obj.test  = cParams.test;
-            obj.trial = cParams.trial;
+            %obj.test  = cParams.test;
+            %obj.trial = cParams.trial;
             obj.mesh  = cParams.mesh;
             obj.setQuadratureOrder(cParams);
         end

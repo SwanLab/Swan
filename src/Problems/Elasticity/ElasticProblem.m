@@ -110,10 +110,10 @@ classdef ElasticProblem < handle
         end
 
         function computeStiffnessMatrix(obj)           
-            s.type     = 'ElasticStiffnessMatrix';
+           % s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
             s.quadratureOrder = 2;
-            lhs = LHSIntegrator.create(s);
+            lhs = LHSIntegrator(s);
             C     = obj.material;
             for i = 1:obj.uFun.nDofsElem
                 v = Test(obj.uFun,i);

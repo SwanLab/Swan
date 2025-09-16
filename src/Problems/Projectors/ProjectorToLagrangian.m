@@ -43,14 +43,10 @@ classdef ProjectorToLagrangian < Projector
                     LHS = spdiags(a',0,length(a),length(a));
                 otherwise
                     s.mesh  = fun.mesh;
-                    test = LagrangianFunction.create(fun.mesh, fun.ndimf, obj.order);
-                    trial = LagrangianFunction.create(fun.mesh, fun.ndimf, obj.order);
-                    s.test  = test;
-                    s.trial = trial;
+                    test   = LagrangianFunction.create(fun.mesh, fun.ndimf, obj.order);
+                    trial  = LagrangianFunction.create(fun.mesh, fun.ndimf, obj.order);
                     s.quadratureOrder = 2; % no
-                    s.type  = 'MassMatrix';
-                    lhs = LHSIntegrator.create(s);
-                    
+                    lhs = LHSIntegrator(s);
                     for i = 1:test.nDofsElem
                         v = Test(test,i);
                         for j = 1:trial.nDofsElem
@@ -58,7 +54,7 @@ classdef ProjectorToLagrangian < Projector
                          f{i,j} = DP(v,u);
                         end
                     end
-                    LHS = lhs.compute(f);
+                    LHS = lhs.compute(f,test,trial);
             end             
         end
 
