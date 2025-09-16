@@ -149,7 +149,7 @@ classdef TestingPhaseFieldHomogenizer < handle
 
         function mat = createDensityMaterial(obj,lsf)
             s.interpolation  = 'SIMPALL';
-            s.dim            = '2D';
+            s.dim            = 2;
             s.matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(1e-6*obj.E,obj.nu,obj.baseMesh.ndim);
             s.matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(1e-6*obj.E,obj.nu);
             s.matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(obj.E,obj.nu,obj.baseMesh.ndim);

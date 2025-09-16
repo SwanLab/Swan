@@ -23,20 +23,20 @@ s.maxIter.phi = 100;
 s.maxIter.stag = 300;
 
 s.benchmark.mesh.type = '1Elem';
-s.benchmark.bc.type   = 'DisplacementTractionY';
-s.benchmark.bc.values = [0:1e-4:01];
+s.benchmark.bc.type   = 'DisplacementTractionX';
+s.benchmark.bc.values = [0:5e-5:0.1];
 
-s.matInfo.matType = 'Analytic';
-s.matInfo.degradationType = 'SIMPALL';
-s.matInfo.degradationSubType = 'Rational';
-s.matInfo.fileName = 'CircleAreaDerivative2'; 
+s.matInfo.matType = 'Analytic'; %'Analytic','Homogenized'
+s.matInfo.degradationType = 'PhaseField'; %'PhaseField','SIMPALL'
+s.matInfo.degradationSubType = 'General'; %'AT','ATSplit',,'Rational','General'
+s.matInfo.fileName = 'HexagonPerimeter'; 
 s.matInfo.young   = 210;
-s.matInfo.poisson = 0.3;
+s.matInfo.poisson = -0.9;
 s.matInfo.Gc = 5e-3;
 s.l0 = 0.1;
 
 s.dissipInfo.type = 'PhaseFieldDissipationAT';
-s.dissipInfo.pExp = 2;
+s.dissipInfo.pExp = 1;
 s.solver.type = 'Gradient';
 s.solver.tau  = 150;
 
@@ -47,5 +47,5 @@ outputData = tester.compute();
 outputData.inputParameters = s;
 
 %% SAVE + PLOT
-% save("AT2shear_X",'outputData') %ACTIVATE TO SAVE DATA!
+%save("Hexagon",'outputData') %ACTIVATE TO SAVE DATA!
 PhaseFieldPlotter(outputData);

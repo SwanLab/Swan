@@ -1,30 +1,24 @@
 clc,clear,close all
 s.monitoring = false;
 s.E          = 1;
-s.nu         = 0;
-s.meshType   = 'Square';
+s.nu         = 0.3;
+s.meshType   = 'Hexagon';
 s.meshN      = 100;
-s.holeType   = 'Square';
+s.holeType   = 'Hexagon';
 s.nSteps     = [100];
 s.pnorm      = 'Inf';
-s.damageType = 'Area';
+s.damageType = 'Perimeter';
 PFH = TestingPhaseFieldHomogenizer(s);
 [mat,phi,holeParam] = PFH.compute();
 
-% [f,df,ddf] = DamageHomogenizationFitter.computePolynomial(9,phi,mat);
-% degradation.fun = f;
-% degradation.dfun = df;
-% degradation.ddfun = ddf;
-% fplot(f,[0 1])
-%save('CirclePerimeter','mat','phi','degradation')
 
 %% DERIVATIVE
-load('SquareAreaDerivativeNu0Sig1.mat')
+load('SquarePerimeter.mat')
 [f,df,ddf] = DamageHomogenizationFitter.computePolynomial(9,phi,mat);
 degradation.fun = f;
 degradation.dfun = df;
 degradation.ddfun = ddf;
-save('SquareAreaDerivativeNu0Sig1','mat','phi','degradation')
+save('SquarePerimeter','mat','phi','degradation')
 
 tiledlayout(1,3)
 nexttile

@@ -126,7 +126,7 @@ classdef TestingPhaseField < handle
             s.subType = obj.matInfo.matType;
             if s.subType == "Homogenized"
                 s.fileName = obj.matInfo.fileName;
-                s.young    = E;
+                s.young    = obj.matInfo.young;
             else
                 s.interp = obj.defineDegradationFunction();  
             end

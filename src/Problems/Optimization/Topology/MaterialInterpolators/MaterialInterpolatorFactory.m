@@ -32,7 +32,7 @@ classdef MaterialInterpolatorFactory < handle
                 case 'HomogenizedMicrostructure'
                     obj = HomogenizedMicrostructureInterpolator(cParams);
                 case 'PhaseField'
-                    if ~isfield(cParams,'degFunType')
+                    if ~isfield(cParams,'subType')
                         cParams.subType = 'AT';
                     end
                     switch cParams.subType

@@ -5,7 +5,7 @@ classdef DamageHomogenizationFitter < handle
         function [fun,dfun,ddfun] = computePolynomial(degPoly,phi,C)
             obj = DamageHomogenizationFitter();
             initDeriv = obj.computeInitialDerivative();
-            fun = obj.computeFitting(degPoly,phi,C,initDeriv);
+            fun = obj.computeFitting(degPoly,phi,C,-1e-10);
             [dfun,ddfun] = obj.computeDerivative(fun);
             [fun,dfun,ddfun] = obj.convertToHandle(fun,dfun,ddfun);
         end
@@ -15,10 +15,8 @@ classdef DamageHomogenizationFitter < handle
     methods (Access = private)
 
         function initDeriv = computeInitialDerivative(~)
-            Gc=5e-3; l0=0.1; E=210; nu=0; cw = 3/8;
-            C0 = E/((1+nu)*(1-nu)); sigCrit =1;
-            initDeriv = -2*cw*(Gc/l0)*C0*(1/sigCrit)^2;
-            initDeriv = -2*cw*(Gc/l0)*(E^2/C0)*(1/sigCrit)^2;
+            Gc=5e-3; l0=0.1; E=210; cw = 3/8; sigCrit =1;
+            initDeriv = -2*cw*(Gc/l0)*E*(1/sigCrit)^2;
         end
 
         function fun = computeFitting(~,degPoly,phi,C,initDeriv)

@@ -74,33 +74,15 @@ classdef PhaseFieldGeneralDegradation < handle
 
 
         function f = interpolate(obj,phi,f0)
-            d = 1;
-            cw = 8/3; E = 210; Gc = 5e-3; l0 = 0.1;
-            sigCrit = 1.5;            
-            c = -2*(Gc/(cw*l0))*E*(1/sigCrit)^2;
-            b = -10;
-            a = -2*(c+1)-b/3;
-            f = ((b/6).*phi.fun.^3 + (a/2).*phi.fun.^2 + c.*phi.fun + d).*f0;
+            f = (1-phi.fun).*f0;
         end
         
         function f = derive(obj,phi,f0)
-            d = 1;
-            cw = 8/3; E = 210; Gc = 5e-3; l0 = 0.1;
-            sigCrit = 1.5;
-            c = -2*(Gc/(cw*l0))*E*(1/sigCrit)^2;
-            b = -10;
-            a = -2*(c+1)-b/3;
-            f = ((b/2).*phi.fun.^2 + (a).*phi.fun + c).*f0;
+            f = 0.*phi.fun - f0;
         end
 
         function f = derive2(obj,phi,f0)
-            d = 1;
-            cw = 8/3; E = 210; Gc = 5e-3; l0 = 0.1;
-            sigCrit = 1.5;
-            c = -2*(Gc/(cw*l0))*E*(1/sigCrit)^2;
-            b = -10;
-            a = -2*(c+1)-b/3;
-            f = (b.*phi.fun + a).*f0;
+            f = 0.*phi.fun;
         end
     end
 

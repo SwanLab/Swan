@@ -105,28 +105,33 @@ classdef PhaseFieldComputer < handle
         end
 
         function [totReact,uBC] = computeTotalReaction(obj,step,F,u)
-            UpSide  = max(obj.mesh.coord(:,2));
-            isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
+            % -- Traction Y --
+            % UpSide  = max(obj.mesh.coord(:,2));
+            % isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
+            % nodes = 1:obj.mesh.nnodes;
+            % if obj.boundaryConditions.type == "ForceTractionY"
+            %     uBC = norm(mean(u.fValues(nodes(isInUp),2)));
+            %     totReact = obj.boundaryConditions.bcValues(step);
+            % else
+            %     ReactX = sum(F(2*nodes(isInUp)-1));
+            %     ReactY = sum(F(2*nodes(isInUp)));
+            %     totReact = sqrt(ReactX^2+ReactY^2);
+            %     uBC = obj.boundaryConditions.bcValues(step);
+            % end
+            
+            % -- Traction X --
+            RightSide  = max(obj.mesh.coord(:,1));
+            isInRight = abs(obj.mesh.coord(:,1)-RightSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;
             if obj.boundaryConditions.type == "ForceTractionY"
-                uBC = norm(mean(u.fValues(nodes(isInUp),2)));
+                uBC = norm(mean(u.fValues(nodes(isInRight),2)));
                 totReact = obj.boundaryConditions.bcValues(step);
             else
-                ReactX = sum(F(2*nodes(isInUp)-1));
-                ReactY = sum(F(2*nodes(isInUp)));
+                ReactX = sum(F(2*nodes(isInRight)-1));
+                ReactY = sum(F(2*nodes(isInRight)));
                 totReact = sqrt(ReactX^2+ReactY^2);
                 uBC = obj.boundaryConditions.bcValues(step);
             end
-            
-
-            % DownSide  = min(obj.mesh.coord(:,2));
-            % isInDown = abs(obj.mesh.coord(:,2)-DownSide)< 1e-12;
-            % nodes = 1:obj.mesh.nnodes;
-            % totReact = -sum(F(2*nodes(isInDown)));
-
-            % isInTip = (abs(obj.mesh.coord(:,2)-(max(obj.mesh.coord(:,2))+min(obj.mesh.coord(:,2)))/2) < 1e-12) & (abs(obj.mesh.coord(:,1)-max(obj.mesh.coord(:,1))) < 30);
-            % nodes = 1:obj.mesh.nnodes;
-            % totReact = sum(F(2*nodes(isInTip)));
         end
 
         function printAndSave(obj,step,totF,uBC,u,phi,Evec,totE,iterMax,cost,tauArray)

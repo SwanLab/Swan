@@ -62,7 +62,7 @@ classdef DensityBasedMaterial < handle
         function C = evaluate(obj,xV)
             mI  = obj.materialInterpolator;
             rho = obj.density;
-            [mu,kappa] = mI.computeConsitutiveTensor(rho);
+            [mu,kappa] = mI.computeConstitutiveTensor(rho{1});
             m = obj.createMaterial(mu,kappa);
             C = m.evaluate(xV);
         end
