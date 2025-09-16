@@ -43,13 +43,17 @@ classdef FilterKernel < handle
         end 
 
         function createMassMatrix(obj)
-            s.type            = 'MassMatrix';
-            s.mesh            = obj.mesh;
-            s.test            = obj.test;
-            s.trial           = obj.trial;
-            s.quadratureOrder = 2;
-            LHS               = LHSIntegrator.create(s);
-            obj.massMatrix    = LHS.compute();
+            s.mesh  = fun.mesh;
+            s.quadratureOrder = 2; % no
+            lhs = LHSIntegrator(s);
+            for i = 1:obj.test.nDofsElem
+                v = Test(obj.test,i);
+                for j = 1:obj.trial.nDofsElem
+                    u = Test(obj.trial,j);
+                    f{i,j} = DP(v,u);
+                end
+            end
+            obj.massMatrix = lhs.compute(f,obj.test,obj.trial);
         end 
 
         function createNeighborElementsMatrix(obj)

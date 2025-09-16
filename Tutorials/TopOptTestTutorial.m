@@ -159,12 +159,19 @@ classdef TopOptTestTutorial < handle
         end
 
         function M = createMassMatrix(obj)
-            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             s.mesh  = obj.mesh;
-            s.type  = 'MassMatrix';
-            LHS = LHSIntegrator.create(s);
-            M = LHS.compute;     
+            s.quadratureOrder = 2; % no
+            test   = LagrangianFunction.create(obj.mesh, 1, 'P1');
+            trial  = LagrangianFunction.create(obj.mesh, 1, 'P1');
+            lhs = LHSIntegrator(s);
+            for i = 1:test.nDofsElem
+                v = Test(test,i);
+                for j = 1:trial.nDofsElem
+                    u = Test(trial,j);
+                    f{i,j} = DP(v,u);
+                end
+            end
+            M = lhs.compute(f,test,trial);
         end
 
         function createConstraint(obj)

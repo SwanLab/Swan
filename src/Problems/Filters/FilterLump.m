@@ -40,13 +40,17 @@ classdef FilterLump < handle
         end
 
         function computeLHS(obj)
-            s.mesh            = obj.mesh;
-            s.test            = obj.trial;
-            s.trial           = obj.trial;
-            s.quadratureOrder = 2;
-            s.type            = 'MassMatrix';
-            int               = LHSIntegrator.create(s);
-            lhs               = int.compute();
+            s.mesh  = obj.trial.mesh;
+            s.quadratureOrder = 2; % no
+            lhs = LHSIntegrator(s);
+            for i = 1:obj.trial.nDofsElem
+                v = Test(obj.trial,i);
+                for j = 1:obj.trial.nDofsElem
+                    u = Test(obj.trial,j);
+                    f{i,j} = DP(v,u);
+                end
+            end
+            lhs = lhs.compute(f,obj.trial,obj.trial);
             obj.LHS           = obj.lumpMatrix(lhs);
         end
 
