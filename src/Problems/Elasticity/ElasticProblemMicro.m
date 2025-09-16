@@ -131,20 +131,9 @@ classdef ElasticProblemMicro < handle
         end
 
         function LHS = computeLHS(obj)
-            s.type     = 'ElasticStiffnessMatrix';
-            s.mesh     = obj.mesh;
-            s.quadratureOrder = 2;
-            lhs = LHSIntegrator.create(s);
             C     = obj.material;
-            for i = 1:obj.trialFun.nDofsElem
-                v = Test(obj.trialFun,i);
-                for j = 1:obj.trialFun.nDofsElem
-                    u = Test(obj.trialFun,j);
-                    f{i,j} = DDP(SymGrad(v),DDP(C,SymGrad(u)));
-                end
-            end
-            LHS = lhs.compute(f,obj.trialFun,obj.trialFun);
-
+            f = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
+            LHS = IntegrateLHS(f,obj.trialFun,obj.trialFun,obj.mesh,2);
         end
 
         function rhs = computeRHS(obj,strainBase,LHS)

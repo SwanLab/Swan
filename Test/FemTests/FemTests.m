@@ -28,80 +28,80 @@ classdef FemTests < handle & matlab.unittest.TestCase
 
     end
 
-%     methods (Test, TestTags = {'FEM', 'Quadratic'})
-% 
-%         function testTriangleQuadratic(testCase, triangle)
-%             s.computerType     = 'FEM';
-%             s.testName         = triangle;
-%             s.testResultsName  = [triangle '_quadratic'];
-%             s.variablesToStore = {'d_u'};
-%             s.interpolationType = 'QUADRATIC';
-%             test = PrecomputedVariableTest(s);
-%             err = test.computeError();
-%             tol = 1e-6;
-%             testCase.verifyLessThanOrEqual(err, tol)
-%         end
-% 
-%     end
+    methods (Test, TestTags = {'FEM', 'Quadratic'})
 
-    % methods (Test, TestTags = {'Quad'})
-    % 
-    %     function testQuad(testCase, quad)
-    %         s.computerType     = 'FEM';
-    %         s.testName         = quad;
-    %         s.variablesToStore = {'d_u'};
-    %         test = PrecomputedVariableTest(s);
-    %         err = test.computeError();
-    %         tol = 1e-6;
-    %         testCase.verifyLessThanOrEqual(err, tol)
-    %     end
-    % 
-    % end
-    % 
-    % 
-    % methods (Test, TestTags = {'2D'})
-    % 
-    %     function test2d(testCase, tests2d)
-    %         s.computerType    = 'FEM';
-    %         s.testName         = tests2d;
-    %         s.variablesToStore = {'d_u'};
-    %         test = PrecomputedVariableTest(s);
-    %         err = test.computeError();
-    %         tol = 1e-6;
-    %         testCase.verifyLessThanOrEqual(err, tol)
-    %     end
-    % 
-    % end
-    % 
-    % 
-    % methods (Test, TestTags = {'3D'})
-    % 
-    %     function test3d(testCase, tests3d)
-    %         s.computerType    = 'FEM';
-    %         s.testName         = tests3d;
-    %         s.variablesToStore = {'d_u'};
-    %         test = PrecomputedVariableTest(s);
-    %         err = test.computeError();
-    %         tol = 1e-6;
-    %         testCase.verifyLessThanOrEqual(err, tol)
-    %     end
-    % 
-    % end
-    % 
-    % methods (Test, TestTags = {'Hexahedra'})
-    % 
-    %     function testHexahedra(testCase, hexahedra)
-    %         s.computerType    = 'FEM';
-    %         s.testName         = hexahedra;
-    %         s.variablesToStore = {'d_u'};
-    %         test = PrecomputedVariableTest(s);
-    %         err = test.computeError();
-    %         tol = 1e-6;
-    %         testCase.verifyLessThanOrEqual(err, tol)
-    %     end
-    % 
-    % end
-    % 
+        function testTriangleQuadratic(testCase, triangle)
+            s.computerType     = 'FEM';
+            s.testName         = triangle;
+            s.testResultsName  = [triangle '_quadratic'];
+            s.variablesToStore = {'d_u'};
+            s.interpolationType = 'QUADRATIC';
+            test = PrecomputedVariableTest(s);
+            err = test.computeError();
+            tol = 1e-6;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
+
+    end
+
+    methods (Test, TestTags = {'Quad'})
+
+        function testQuad(testCase, quad)
+            s.computerType     = 'FEM';
+            s.testName         = quad;
+            s.variablesToStore = {'d_u'};
+            test = PrecomputedVariableTest(s);
+            err = test.computeError();
+            tol = 1e-6;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
+
+    end
+
+
+    methods (Test, TestTags = {'2D'})
+
+        function test2d(testCase, tests2d)
+            s.computerType    = 'FEM';
+            s.testName         = tests2d;
+            s.variablesToStore = {'d_u'};
+            test = PrecomputedVariableTest(s);
+            err = test.computeError();
+            tol = 1e-6;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
+
+    end
+
+
+    methods (Test, TestTags = {'3D'})
+
+        function test3d(testCase, tests3d)
+            s.computerType    = 'FEM';
+            s.testName         = tests3d;
+            s.variablesToStore = {'d_u'};
+            test = PrecomputedVariableTest(s);
+            err = test.computeError();
+            tol = 1e-6;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
+
+    end
+
+    methods (Test, TestTags = {'Hexahedra'})
+
+        function testHexahedra(testCase, hexahedra)
+            s.computerType    = 'FEM';
+            s.testName         = hexahedra;
+            s.variablesToStore = {'d_u'};
+            test = PrecomputedVariableTest(s);
+            err = test.computeError();
+            tol = 1e-6;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
+
+    end
+   
     methods (Test, TestTags = {'FEM', 'Passed', 'Classic', 'Displacement', 'ToPass'})
 
         function testDisplacement(testCase, duTests)
