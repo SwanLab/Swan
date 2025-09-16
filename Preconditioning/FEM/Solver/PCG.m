@@ -16,7 +16,7 @@ classdef PCG < handle
     
     methods (Static, Access = public)
                
-        function [x,residual,err,errAnorm] = solve(A,B,x0,P,tol,xsol,mesh,bcApplier)
+        function [x,residual,err,errAnorm] = solve(A,B,x0,P,tol,xsol)
             if nargin == 5, xsol = zeros(size(B)); end
             iter = 0;
             x = x0;

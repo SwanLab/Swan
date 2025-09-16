@@ -43,48 +43,21 @@ classdef LHSIntegrator_condition_shape_shape < handle
             lhs = LHSIntegrator.create(a);
 
             lhs = lhs.compute();
+
             [iLoc,jLoc,vals] = find(lhs);
+            l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
+            l2g_dof = l2g_dof(:);
+            jGlob = l2g_dof(jLoc);
+            iGlob = l2g_dof(iLoc);
+            lhsg = lhsg + sparse(iGlob,jLoc,vals, nDofs, trial.nDofs);
 
-            globalNodes = obj.localGlobalConnecBd(:);  % column vector
-            ndimf = test.ndimf;
-            nLocalNodes = length(globalNodes);
+            % local2global(sL.mesh.connec(:)) = sL.bMesh.globalConnec(:);
+            % [iLoc,jLoc,vals] = find(LHS); % !!! iLoc, jLoc should come from P1Fun
+            % iGlob = local2global(iLoc);
+            % jGlob = local2global(jLoc);
 
-            % Initialize l2g_dof with zeros (which will be skipped later)
-            l2g_dof = zeros(nLocalNodes * ndimf, 1);
-
-            % Only assign valid (nonzero) mappings
-            valid = globalNodes > 0;
-
-            for d = 1:ndimf
-                idx = d:ndimf:(nLocalNodes * ndimf);
-                l2g_dof(idx(valid)) = (globalNodes(valid) - 1) * ndimf + d;
-            end
-
-            % Remove contributions where l2g_dof == 0 (invalid/undefined nodes)
-            [iLoc, jLoc, vals] = find(lhs);
-            validRows = l2g_dof(iLoc) > 0 & l2g_dof(jLoc) > 0;
-            iGlob = l2g_dof(iLoc(validRows));
-            jGlob = l2g_dof(jLoc(validRows));
-            vals  = vals(validRows);
-
-            % Now assemble safely
-            nDofs = obj.nnodes * trial.ndimf;
-            lhsg = sparse(iGlob, jGlob, vals, nDofs, trial.nDofs);
-            % %
-
-            % %             l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
-            % %             l2g_dof = l2g_dof(:);
-            % %             jGlob = l2g_dof(jLoc);
-            % %             iGlob = l2g_dof(iLoc);
-            % %             lhsg = lhsg + sparse(iGlob,jLoc,vals, nDofs, trial.nDofs);
-            % %
-            % %             % local2global(sL.mesh.connec(:)) = sL.bMesh.globalConnec(:);
-            % %             % [iLoc,jLoc,vals] = find(LHS); % !!! iLoc, jLoc should come from P1Fun
-            % %             % iGlob = local2global(iLoc);
-            % %             % jGlob = local2global(jLoc);
-            % %
-            % %             %         LHSadd = sparse(iGlob,jGlob,vals, ndof, ndof);
-            % %             %         LHSg = LHSg + LHSadd;
+            %         LHSadd = sparse(iGlob,jGlob,vals, ndof, ndof);
+            %         LHSg = LHSg + LHSadd;
             Mr = lhsg;
         end
 
