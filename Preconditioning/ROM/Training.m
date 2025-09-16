@@ -1,7 +1,8 @@
 classdef Training < handle
 
     properties (Access = public)
-
+        uSbd
+        LHSsbd
     end
     properties (Access = private)
         meshDomain
@@ -27,25 +28,25 @@ classdef Training < handle
 
     methods (Access = public)
 
-        function obj = Training()
+        function obj = Training(meshRef)
             close all
             obj.init()
 
-            mR = obj.createReferenceMesh();
-            bS  = mR.createBoundaryMesh();
-            [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain(mR);
+%             mR = obj.createReferenceMesh();
+            bS  = meshRef.createBoundaryMesh();
+            [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain(meshRef);
             obj.meshDomain = mD;
             [obj.boundaryMeshJoined, obj.localGlobalConnecBd] = obj.meshDomain.createSingleBoundaryMesh();
-            obj.DDdofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
+            obj.DDdofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,meshRef,iCR);
             obj.DirFun = obj.AnalyticalDirCond();
 
 
             [LHS,RHS,uFun,lambdaFun] = obj.createElasticProblem();
             sol  = LHS\RHS;
             uAll = sol(1:uFun.nDofs,:);
-            [uSbd,LHSsbd]    = obj.extractDomainData(uAll,LHS);
+            [obj.uSbd,obj.LHSsbd]    = obj.extractDomainData(uAll,LHS);
             
-            save('./Preconditioning/ROM/Training/PorousCell/OfflineData.mat','uSbd','mR','LHSsbd')
+%             save('./Preconditioning/ROM/Training/PorousCell/OfflineData.mat','uSbd','meshRef','LHSsbd')
 
         end
 
@@ -65,7 +66,7 @@ classdef Training < handle
             s.nsubdomains   = obj.nSubdomains; %nx ny
             s.meshReference = mR;
             s.tolSameNode = obj.tolSameNode;
-            m = MeshCreatorFromRVE(s);
+            m = MeshCreatorFromRVE2D(s);
             [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
         end
 
@@ -264,7 +265,7 @@ classdef Training < handle
             f     = {f1x f1y f2x f2y f3x f3y f4x f4y}; %
             nfun = size(f,2);
             for i=1:nfun
-                uD{i}  = AnalyticalFunction.create(f{i},obj.meshDomain.ndim,obj.boundaryMeshJoined);                   
+                uD{i}  = AnalyticalFunction.create(f{i},obj.boundaryMeshJoined);                   
             end
         end
 

@@ -8,30 +8,9 @@ Ntheta = 30; % angular divisions per triangle sector
 
 [nodes, elements] = mesh_rectangle_via_triangles(cx, cy, r, xmin, xmax, ymin, ymax, Nr, Ntheta);
 
-figure; hold on; axis equal;
-for i = 1:size(elements,1)
-    elem_nodes = elements(i,:);
-    patch('Vertices', nodes, 'Faces', elem_nodes, 'FaceColor', 'none', 'EdgeColor', 'k');
-end
 
-theta = linspace(0, 2*pi, 200);
-plot(cx + r*cos(theta), cy + r*sin(theta), 'r-', 'LineWidth', 2);
-
-plot([xmin xmax xmax xmin xmin], [ymin ymin ymax ymax ymin], 'b-', 'LineWidth', 2);
-
-title('Radial mesh via 4 triangle sectors');
-
-
-function [nodes, elements] = mesh_triangle_sector(cx, cy, corner1, corner2, r_inner, Nr, Ntheta)
-    % Mesh radial elements in triangle formed by center and two corners
-    % Inputs:
-    % cx, cy - center of circle/hole
-    % r - hole radius (inner radius)
-    % corner1, corner2 - two rectangle corners (2x1 or 1x2 vectors)
-    % Nr - number of radial divisions
-    % Ntheta - number of angular divisions between corner1 and corner2
-    
-   v1 = corner1 - [cx, cy];
+function [nodes, elements] = mesh_triangle_sector(cx, cy, corner1, corner2, r_inner, Nr, Ntheta)    
+    v1 = corner1 - [cx, cy];
     v2 = corner2 - [cx, cy];
 
     % Prepare storage
@@ -71,7 +50,7 @@ function [nodes, elements] = mesh_triangle_sector(cx, cy, corner1, corner2, r_in
 end
 
 
-function [nodes_all, elements_all] = mesh_rectangle_via_triangles(cx, cy, r, xmin, xmax, ymin, ymax, Nr, Ntheta)
+function [nodes_final, elements_final] = mesh_rectangle_via_triangles(cx, cy, r, xmin, xmax, ymin, ymax, Nr, Ntheta)
     % Mesh rectangle with hole by meshing 4 triangles and flipping the mesh
     
     % Define corners
