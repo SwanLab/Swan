@@ -23,34 +23,34 @@ classdef LHSIntegrator < handle
             obj.createQuadrature();
         end
 
-        function LHS = compute(obj,f,test,trial)
-            lhs = obj.computeElementalLHS(f,test,trial);
-            LHS = obj.assembleMatrix(lhs,test,trial);
+        function LHS = compute(obj,f)
+            lhs = obj.computeElementalLHS(f);
+            LHS = obj.assembleMatrix(lhs);
         end
 
     end
 
     methods (Access = protected)
 
-        function lhs = computeElementalLHS(obj,f,test,trial)
-            nElem  = obj.mesh.nelem;
-            lhs    = zeros(test.nDofsElem,trial.nDofsElem,nElem);
-            J = Jacobian(obj.mesh);
-            detJ = Det(J);
-
+        function lhs = computeElementalLHS(obj,f)
+            lhs    = zeros(obj.test.nDofsElem,obj.trial.nDofsElem,obj.mesh.nelem);
+            J      = Jacobian(obj.mesh);
+            detJ   = Det(J);
             xV = obj.quadrature.posgp;
             w  = obj.quadrature.weigp;
-            for i = 1:test.nDofsElem
-                for j = 1:trial.nDofsElem
-                    int = (f(i,j).*detJ)*w';
+            v = @(i) Test(obj.test,i);
+            u = @(j) Test(obj.trial,j);              
+            for i = 1:obj.test.nDofsElem
+                for j = 1:obj.trial.nDofsElem
+                    int = (f(u(j),v(i)).*detJ)*w';
                     lhs(i,j,:) = lhs(i,j,:) + int.evaluate(xV);
                 end
             end
         end
 
         function init(obj, cParams)
-            %obj.test  = cParams.test;
-            %obj.trial = cParams.trial;
+            obj.test  = cParams.test;
+            obj.trial = cParams.trial;
             obj.mesh  = cParams.mesh;
             obj.setQuadratureOrder(cParams);
         end
@@ -72,10 +72,10 @@ classdef LHSIntegrator < handle
             obj.quadrature = quad;
         end
 
-        function LHS = assembleMatrix(obj, lhs,test,trial)
+        function LHS = assembleMatrix(obj, lhs)
             s.fun    = []; % !!!
             assembler = AssemblerFun(s);
-            LHS = assembler.assemble(lhs, test, trial);
+            LHS = assembler.assemble(lhs, obj.test, obj.trial);
         end
 
     end
