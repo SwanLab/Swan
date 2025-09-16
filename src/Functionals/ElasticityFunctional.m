@@ -1,0 +1,53 @@
+classdef ElasticityFunctional < handle
+    
+    properties (Access = private)
+        functionals
+        quadOrder
+    end
+    
+    methods (Access = public)
+        
+        function obj = ElasticityFunctional(cParams)
+            obj.init(cParams)
+        end
+
+        function Etot = computeCost(obj,u,bc)
+            fExt = bc.pointloadFun;
+            E    = obj.computeEnergies(u,fExt);
+            Etot = sum(E);
+        end
+
+        function E = computeEnergies(obj,u,fExt)
+            Eint = obj.functionals.intE.computeCost(u,obj.quadOrder);
+            Wext = obj.functionals.extWork.computeCost(u,fExt,obj.quadOrder);
+            E = [Eint,Wext];
+        end
+
+        function RHS = computeGradient(obj,u,bc)
+            fExt = bc.pointloadFun;
+            Fint = obj.functionals.intE.computeGradient(u,obj.quadOrder);
+            Fext = obj.functionals.extWork.computeGradient(u,fExt,obj.quadOrder);
+            RHS  = Fint - Fext;
+        end
+
+        function LHS = computeHessian(obj,u)
+            LHS  = obj.functionals.intE.computeHessian(u,obj.quadOrder);
+        end
+
+    end
+
+    methods (Access = private)
+
+        function init(obj,cParams)
+            obj.quadOrder = cParams.quadOrder;
+            cParams.material = cParams.matProp;
+            obj.functionals.intE = NeohookeanFunctional(cParams);
+            % cParams.material = cParams.matTensor;
+            % obj.functionals.intE = LinearElasticityFunctional(cParams);
+            obj.functionals.extWork = ExternalWorkFunctional(cParams);
+
+        end
+
+    end
+
+end

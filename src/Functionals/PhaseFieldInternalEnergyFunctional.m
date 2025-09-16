@@ -13,7 +13,7 @@ classdef PhaseFieldInternalEnergyFunctional < handle
             obj.init(cParams)            
         end
         
-        function F = computeFunctional(obj,u,phi,quadOrder)
+        function F = computeCost(obj,u,phi,quadOrder)
             C = obj.material.obtainTensor(phi);
             energyFun = DDP(SymGrad(u),DDP(C,SymGrad(u)));
             int  = Integrator.create('Function',obj.mesh,quadOrder);
