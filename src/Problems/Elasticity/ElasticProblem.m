@@ -110,19 +110,9 @@ classdef ElasticProblem < handle
         end
 
         function computeStiffnessMatrix(obj)           
-           % s.type     = 'ElasticStiffnessMatrix';
-            s.mesh     = obj.mesh;
-            s.quadratureOrder = 2;
-            lhs = LHSIntegrator(s);
             C     = obj.material;
-            for i = 1:obj.uFun.nDofsElem
-                v = Test(obj.uFun,i);
-                for j = 1:obj.uFun.nDofsElem
-                    u = Test(obj.uFun,j);
-                    f{i,j} = DDP(SymGrad(v),DDP(C,SymGrad(u)));
-                end
-            end
-            obj.stiffness = lhs.compute(f,obj.uFun,obj.uFun);
+            f = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
+            obj.stiffness = IntegrateLHS(f,obj.uFun,obj.uFun,obj.mesh,2);
         end
 
         function computeForces(obj)

@@ -1,9 +1,9 @@
 classdef ProjectorToLagrangian < Projector
-    
+
     properties (Access = private)
         order
     end
-    
+
     methods (Access = public)
 
         function obj = ProjectorToLagrangian(cParams)
@@ -11,7 +11,7 @@ classdef ProjectorToLagrangian < Projector
         end
 
         function xFun = project(obj, x)
-            
+
             if obj.isP1toP1Dprojection(x)
                 f = x.fValues;
                 connec = x.mesh.connec;
@@ -32,7 +32,7 @@ classdef ProjectorToLagrangian < Projector
     end
 
     methods (Access = private)
-        
+
         function LHS = computeLHS(obj,fun)
             switch obj.order
                 case 'P0'
@@ -42,20 +42,11 @@ classdef ProjectorToLagrangian < Projector
                     a = repmat(a,1,fun.ndimf);
                     LHS = spdiags(a',0,length(a),length(a));
                 otherwise
-                    s.mesh  = fun.mesh;                    
-                    s.quadratureOrder = 2; % no
                     test   = LagrangianFunction.create(fun.mesh, fun.ndimf, obj.order);
-                    trial  = LagrangianFunction.create(fun.mesh, fun.ndimf, obj.order);                    
-                    lhs = LHSIntegrator(s);
-                    for i = 1:test.nDofsElem
-                        v = Test(test,i);
-                        for j = 1:trial.nDofsElem
-                         u = Test(trial,j);
-                         f{i,j} = DP(v,u);
-                        end
-                    end
-                    LHS = lhs.compute(f,test,trial);
-            end             
+                    trial  = LagrangianFunction.create(fun.mesh, fun.ndimf, obj.order);
+                    f = @(u,v) DP(v,u);
+                    LHS = IntegrateLHS(f,test,trial,fun.mesh,2);
+            end
         end
 
         function itIs = isP1toP1Dprojection(obj,x)
