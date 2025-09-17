@@ -74,7 +74,7 @@ classdef EIFEMtesting < handle
             %Mmult = MdirNeu;
             x0 = zeros(size(RHSf));
             r = RHSf - LHSf(x0);
-            Mmult = @(r) Preconditioner.multiplePrec(r,MgaussSeidel,Meifem,MgaussSeidel,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
+            Mmult = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Meifem,Milu);
 % %            [eigVALMA_min,eigVALMA_max] = obj.computeEigs(LHS,Mmult);
 % % %            eigMA = sort([diag(eigVALMA_min);diag(eigVALMA_max)]);
 % %             eigMA = [diag(eigVALMA_min);diag(eigVALMA_max)];
@@ -102,7 +102,7 @@ classdef EIFEMtesting < handle
            % x0 = zmult;
             tic
             %           tau = @(r,A) 1;
-            [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
+            [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol);
             %            [uCG,residualPCG,errPCG,errAnormPCG] = RichardsonSolver.solve(LHSf,RHSf,x0,Mmult,tol,tau,Usol);
             toc
 

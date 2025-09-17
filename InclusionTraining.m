@@ -26,6 +26,8 @@ classdef InclusionTraining < handle
             obj.init()
             m = obj.mesh_rectangle_via_triangles();
             data = Training(m);
+            p = OfflineDataProcessor(data);
+            EIFEoper = p.computeROMbasis();
         end
         
     end
@@ -40,8 +42,8 @@ classdef InclusionTraining < handle
             obj.ymax = 1;
             obj.cx = 0; 
             obj.cy = 0;
-            obj.Nr=15;
-            obj.Ntheta=30;
+            obj.Nr=7;
+            obj.Ntheta=14;
         end
         
         function [nodes, elements] = mesh_triangle_sector(obj,cx, cy, corner1, corner2, r_inner, Nr, Ntheta)
@@ -120,6 +122,16 @@ classdef InclusionTraining < handle
             elements_final = ic(elements_all);
             
             s.coord = nodes_final;
+            s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
+                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)-[1e-9,0];
+            s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
+                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)-[1e-9,0];
+            s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
+                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[1e-9,0];
+            s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
+                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[1e-9,0];
+
+
             s.connec = elements_final;
             mesh = Mesh.create(s);
         end

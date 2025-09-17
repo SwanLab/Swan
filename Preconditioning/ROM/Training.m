@@ -1,8 +1,9 @@
 classdef Training < handle
 
-    properties (Access = public)
+    properties (GetAccess = public, SetAccess = private)
         uSbd
         LHSsbd
+        mesh
     end
     properties (Access = private)
         meshDomain
@@ -29,15 +30,14 @@ classdef Training < handle
     methods (Access = public)
 
         function obj = Training(meshRef)
-            close all
-            obj.init()
+            obj.init(meshRef)
 
 %             mR = obj.createReferenceMesh();
-            bS  = meshRef.createBoundaryMesh();
-            [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain(meshRef);
+            bS  = obj.mesh.createBoundaryMesh();
+            [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain(obj.mesh);
             obj.meshDomain = mD;
             [obj.boundaryMeshJoined, obj.localGlobalConnecBd] = obj.meshDomain.createSingleBoundaryMesh();
-            obj.DDdofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,meshRef,iCR);
+            obj.DDdofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,obj.mesh,iCR);
             obj.DirFun = obj.AnalyticalDirCond();
 
 
@@ -54,12 +54,13 @@ classdef Training < handle
 
     methods (Access = private)
 
-        function init(obj)
+        function init(obj,mesh)
             obj.nSubdomains  = [5 5]; %nx ny
 %             obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
             obj.fileNameEIFEM = 'DEF_Q4porL_1.mat';
             obj.tolSameNode = 1e-10;
             obj.domainIndices = [3 3];
+            obj.mesh = mesh;
         end
 
         function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomain(obj,mR)

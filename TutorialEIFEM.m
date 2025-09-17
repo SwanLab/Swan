@@ -196,11 +196,15 @@ classdef TutorialEIFEM < handle
 
         function Meifem = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh)
             mR = obj.referenceMesh;
-            % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
-            EIFEMfilename = obj.fileNameEIFEM;
-            % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
-            filename        = EIFEMfilename;
-            s.RVE           = TrainedRVE(filename);
+%             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
+%             EIFEMfilename = obj.fileNameEIFEM;
+%             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
+%             filename        = EIFEMfilename;
+%             s.RVE           = TrainedRVE(filename);
+            data = Training(mR);
+            p = OfflineDataProcessor(data);
+            EIFEoper = p.computeROMbasis();
+            s.RVE           = TrainedRVE(EIFEoper);
             s.mesh          = obj.createCoarseMesh(mR);
 %            s.mesh          = obj.loadCoarseMesh(mR);
             s.DirCond       = dir;
