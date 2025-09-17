@@ -130,7 +130,7 @@ classdef MultimaterialTesting < handle
             s.boundaryConditions = obj.boundaryConditions;
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'DIRECT';
+            s.solverCase = DirectSolver();
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
