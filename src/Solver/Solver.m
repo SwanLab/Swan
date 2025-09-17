@@ -16,8 +16,10 @@ classdef Solver < handle
                     error('Not implemented yet')
 
                 case 'CG'
+                    stype = CGSolver();
+
+                case 'PCG'
                     stype = PCG(cParams);
-                    % CGSolver = old pcg
 
                 case 'Nonlinear'
                     stype = NonLinear_Solver(cParams);

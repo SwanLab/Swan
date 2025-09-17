@@ -8,9 +8,6 @@ classdef PCG < handle
     properties (Access = private)
         x0
         iter0
-
-        % To delete:
-        nIter
     end
 
     methods (Access = public)
@@ -48,7 +45,6 @@ classdef PCG < handle
             obj.x0 = x;
             obj.checkStep(iter);
             disp(['Iter: ',num2str(iter)]);
-            obj.nIter = [obj.nIter;iter];
         end
 
     end
@@ -75,6 +71,4 @@ classdef PCG < handle
             end
         end
     end
-
-
 end

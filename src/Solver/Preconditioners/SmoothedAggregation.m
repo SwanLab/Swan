@@ -2,7 +2,6 @@ classdef SmoothedAggregation < handle
 
     properties (Access = private)
         nLevels
-        nSolve
         needUpdate
         np
         sp
@@ -33,7 +32,6 @@ classdef SmoothedAggregation < handle
             b    = obj.np.array(double(res));
             x_py = obj.AMGSolver.solve(b, obj.AMGOptions);
             x    = double(x_py)';
-            obj.nSolve = obj.nSolve + 1;
         end
 
         function update(obj)
@@ -44,7 +42,6 @@ classdef SmoothedAggregation < handle
     methods (Access = private)
         function init(obj,cParams)
             obj.nLevels    = cParams.nLevels;
-            obj.nSolve     = 0;
             obj.needUpdate = true;
         end
 

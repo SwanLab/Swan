@@ -6,4 +6,4 @@ sP.nullSpace = RBbasisFree;
 
 s.preconditioner = SmoothedAggregation(sP);
 s.tol  = 1e-5;
-s.type = 'CG';
+s.type = 'PCG';
