@@ -24,7 +24,7 @@ classdef ProjectorToLagrangian < Projector
                 xProj = reshape(xProj,[x.ndimf,numel(xProj)/x.ndimf])';
             end
             s.mesh    = x.mesh;
-            s.fValues = xProj;
+            s.fValues = full(xProj);
             s.order = obj.order;
             xFun = LagrangianFunction(s);
         end

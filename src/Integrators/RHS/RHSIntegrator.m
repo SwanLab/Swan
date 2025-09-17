@@ -4,6 +4,7 @@ classdef RHSIntegrator < handle
         mesh
         quadrature
         quadratureOrder
+        test
     end
 
     methods (Access = public, Static)
@@ -11,6 +12,10 @@ classdef RHSIntegrator < handle
         function obj = create(s)
             f = RHSIntegratorFactory();
             obj = f.create(s);
+        end
+
+        function obj = compute(obj,f)
+
         end
 
     end
@@ -35,6 +40,9 @@ classdef RHSIntegrator < handle
     methods (Access = private)
         
         function init(obj,cParams)
+            obj.test = cParams.test;
+            obj.mesh = cParams.mesh;
+            obj.setQuadratureOrder(cParams);            
         end
         
     end

@@ -3,8 +3,8 @@ classdef LHSIntegrator < handle
     properties (Access = protected)
         mesh
         test, trial
+        quadratureOrder        
         quadrature
-        quadratureOrder
     end
 
     methods (Access = public, Static)
@@ -25,7 +25,7 @@ classdef LHSIntegrator < handle
 
         function LHS = compute(obj,f)
             lhs = obj.computeElementalLHS(f);
-            LHS = obj.assembleMatrix(lhs);
+            LHS = assembleMatrix(lhs, obj.test, obj.trial);
         end
 
     end
@@ -52,30 +52,12 @@ classdef LHSIntegrator < handle
             obj.test  = cParams.test;
             obj.trial = cParams.trial;
             obj.mesh  = cParams.mesh;
-            obj.setQuadratureOrder(cParams);
+            obj.quadratureOrder = cParams.quadratureOrder;
         end
-
-        function setQuadratureOrder(obj, cParams)
-            if isfield(cParams, 'quadratureOrder')
-                obj.quadratureOrder = cParams.quadratureOrder;
-            else
-                % warning('Assuming quadrature order')
-                quadOrderTe = obj.test.getOrderNum();
-                quadOrderTr = obj.trial.getOrderNum();
-                obj.quadratureOrder = quadOrderTe + quadOrderTr;
-            end
-        end
-        
+    
         function createQuadrature(obj)
-%             quadOrder = obj.fun.getOrderNum();
             quad = Quadrature.create(obj.mesh, obj.quadratureOrder);
             obj.quadrature = quad;
-        end
-
-        function LHS = assembleMatrix(obj, lhs)
-            s.fun    = []; % !!!
-            assembler = AssemblerFun(s);
-            LHS = assembler.assemble(lhs, obj.test, obj.trial);
         end
 
     end

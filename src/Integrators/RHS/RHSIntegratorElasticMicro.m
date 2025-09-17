@@ -25,7 +25,8 @@ classdef RHSIntegratorElasticMicro < handle
       %          vstrain = basis(iVoigt,:);
                 FvolE = obj.computeStrainRHS(strainBase);
        %         Fvol(:,iVoigt)  = obj.assembleVector(FvolE);
-            Fvol = obj.assembleVector(FvolE,test);
+
+            Fvol = assembleVector(FvolE,test);
        %     end
             Fpoint = obj.computePunctualFext();
             Fext = Fvol + Fpoint;
