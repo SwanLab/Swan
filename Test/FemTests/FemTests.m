@@ -11,14 +11,21 @@ classdef FemTests < handle & matlab.unittest.TestCase
         microTests = {'test2d_micro', 'test3d_micro_cube'}
         thermalTests = {'test_thermal'}
         hyperelasticTests = {'test_hyperelastic'}
-        solvers = {'CG'};
-        preconditioners = {'pyAMG'};
+        solvers = {'test_pyAMG'};
     end
 
     methods (Test, TestTags = {'FEM','Solvers'})
 
-        function testIterativeSolvers(testCase, solvers, preconditioners)
-
+        function testIterativeSolvers(testCase, solvers)
+            load('Por3D_LHS.mat','LHS');
+            load('Por3D_RHS.mat','RHS');
+            load([solvers,'.mat'],'xReal');
+            run(solvers);
+            solver = Solver.create(s);
+            xNew = solver.solve(LHS,RHS);
+            err = norm(xReal - xNew)/norm(xReal);
+            tol = 1e-6;
+            testCase.verifyLessThanOrEqual(err, tol);
         end
 
     end

@@ -24,6 +24,7 @@ classdef SmoothedAggregation < handle
         end
 
         function x = solve(obj,A,res)
+            % obj.restartPython() here as well? Maybe if code crushes
             if obj.needUpdate
                 LHS = obj.convertToPythonSparse(A);
                 obj.createAMGSolver(LHS);
