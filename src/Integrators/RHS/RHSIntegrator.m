@@ -7,6 +7,20 @@ classdef RHSIntegrator < handle
         test
     end
 
+    methods (Access = public)
+        
+        function obj = RHSIntegrator(cParams)
+            obj.init(cParams);
+            obj.createQuadrature();
+        end
+
+        function RHS = compute(obj,f)
+            rhs = obj.computeElementalRHS(f);
+            RHS = assembleVector(rhs, obj.test);
+        end
+    end
+    
+
     methods (Access = public, Static)
         
         function obj = create(s)
@@ -14,24 +28,20 @@ classdef RHSIntegrator < handle
             obj = f.create(s);
         end
 
-        function obj = compute(obj,f)
-
-        end
-
     end
     
     methods (Access = public)
 
-        function createQuadrature(obj)
-            q = Quadrature.create(obj.mesh, obj.quadratureOrder);
-            obj.quadrature = q;
-        end
-
-        function setQuadratureOrder(obj, cParams)
-            if isfield(cParams, 'quadratureOrder')
-                obj.quadratureOrder = cParams.quadratureOrder;
-            else
-                obj.quadratureOrder = 2;
+        function rhs = computeElementalRHS(obj,f)
+            rhs    = zeros(obj.test.nDofsElem,obj.mesh.nelem);
+            J      = Jacobian(obj.mesh);
+            detJ   = Det(J);
+            xV = obj.quadrature.posgp;
+            w  = obj.quadrature.weigp;
+            v = @(i) Test(obj.test,i);
+            for i = 1:obj.test.nDofsElem
+                int = (f(v(i)).*detJ)*w';
+                rhs(i,:) = rhs(i,:) + squeezeParticular(int.evaluate(xV),2);
             end
         end
 
@@ -42,8 +52,14 @@ classdef RHSIntegrator < handle
         function init(obj,cParams)
             obj.test = cParams.test;
             obj.mesh = cParams.mesh;
-            obj.setQuadratureOrder(cParams);            
+            obj.quadratureOrder = cParams.quadratureOrder;
         end
+
+        function createQuadrature(obj)
+            q = Quadrature.create(obj.mesh, obj.quadratureOrder);
+            obj.quadrature = q;
+        end
+        
         
     end
     

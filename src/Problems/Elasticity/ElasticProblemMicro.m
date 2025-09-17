@@ -25,17 +25,17 @@ classdef ElasticProblemMicro < handle
         end
 
         function obj = solve(obj)
-            ndim = obj.mesh.ndim;
-            LHS = obj.computeLHS();
-            nBasis = obj.computeNbasis();
-            obj.Chomog = zeros(ndim, ndim, ndim, ndim);
-            for iB = 1:nBasis
-                [strainB,v] = obj.createDeformationBasis(iB);
-                RHS         = obj.computeRHS(strainB,LHS);
-                uF{iB}      = obj.computeDisplacement(LHS,RHS,iB,nBasis);
-                strainF{iB} = strainB+SymGrad(uF{iB});
+            C     = obj.material;
+            f     = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
+            LHS   = IntegrateLHS(f,obj.trialFun,obj.trialFun,obj.mesh,2);
+            for iB = 1:obj.computeNbasis()
+                [eB,v] = obj.createDeformationBasis(iB);
+                f = @(v) DDP(SymGrad(v),DDP(C,eB));
+                RHS = IntegrateRHS(f,obj.trialFun,obj.mesh,2);    
+                uF{iB}      = obj.computeDisplacement(LHS,RHS,iB);
+                strainF{iB} = eB+SymGrad(uF{iB});
                 stressF{iB} = DDP(obj.material, strainF{iB});
-                ChiB        = obj.computeChomog(stressF{iB});
+                ChiB        = Integrator.compute(stressF{iB},obj.mesh,2);
                 obj.convertChomogToFourthOrder(ChiB,v,iB);
             end
             obj.uFluc  = uF;
@@ -130,45 +130,16 @@ classdef ElasticProblemMicro < handle
             obj.problemSolver = ProblemSolver(s);
         end
 
-        function LHS = computeLHS(obj)
-            C     = obj.material;
-            f = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
-            LHS = IntegrateLHS(f,obj.trialFun,obj.trialFun,obj.mesh,2);
-        end
-
-        function rhs = computeRHS(obj,strainBase,LHS)
-            s.fun  = obj.trialFun;
-            s.type = 'ElasticMicro';
-            s.dim      = obj.getFunDims();
-            s.BC       = obj.boundaryConditions;
-            s.mesh     = obj.mesh;
-            s.material = obj.material;
-            s.globalConnec = obj.mesh.connec;
-            RHSint = RHSIntegrator.create(s);
-
-            C = obj.material;
-            for i = 1:obj.trialFun.nDofsElem
-                v = Test(obj.trialFun,i);
-                f{i} = DDP(SymGrad(v),DDP(C,strainBase));
-            end
-            rhs = RHSint.compute(f,obj.trialFun);
-            R = RHSint.computeReactions(LHS); %%?
-        end
-
-        function uFun = computeDisplacement(obj, LHS, RHS, iB, nBasis)
+        function uFun = computeDisplacement(obj, LHS, RHS, iB)
             s.stiffness = LHS;
             s.forces    = RHS;
             s.iBase     = iB;
-            s.nBasis    = nBasis;
+            s.nBasis    = obj.computeNbasis();
             [u, L]      = obj.problemSolver.solve(s);
             obj.lagrangeMultipliers = L;
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             uFun = copy(obj.trialFun);
             uFun.setFValues(uSplit);
-        end
-
-        function Chomog = computeChomog(obj,stress)
-            Chomog = Integrator.compute(stress,obj.mesh,2);
         end
 
         function convertChomogToFourthOrder(obj,ChiB,v,iB)
