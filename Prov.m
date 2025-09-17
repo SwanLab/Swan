@@ -3,7 +3,7 @@ close all;
 
 %% CODE
 refLine = '            <DataArray Name="fValues" NumberOfComponents="1" format="ascii" type="Float64">';
-fileID = fopen('NullSLERPResults\TopOpt\MultiLoadBridge\FinalResults_NoOscillations\gJ10_9Loads_fValues.vtu');
+fileID = fopen('NullSLERPResults/TopOpt/MultiLoadBridge/FinalResults_NoOscillations/gJ10_9Loads_fValues.vtu');
 tline  = fgetl(fileID);
 while ischar(tline)
     switch tline
@@ -26,8 +26,12 @@ mesh = Mesh.create(s);
 
 fVal = zeros(mesh.nnodes,1);
 for i = 1:mesh.nnodes
-    fk      = find(tline(2:end)==' ')+1;
-    fVal(i) = str2double(tline(1:fk(1)-1));
+    if i==mesh.nnodes
+        fk      = find(tline(2:end)==' ')+1;
+        fVal(i) = str2double(tline(1:fk(1)-1));
+    else
+        fVal(i) = str2double(tline);
+    end
     tline   = fgetl(fileID);
 end
 fclose(fileID);
@@ -37,6 +41,11 @@ sUm.boundaryMesh   = mesh.createBoundaryMesh();
 uMesh = UnfittedMesh(sUm);
 uMesh.compute(fVal);
 chi = CharacteristicFunction.create(uMesh);
+
+% sF.fValues = fVal;
+% sF.mesh = mesh;
+% sF.order = 'P1';
+% chi = LagrangianFunction(sF);
 
 sFi.filterType = 'LUMP';
 sFi.mesh       = mesh;
