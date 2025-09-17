@@ -4,8 +4,7 @@ mesh = UnitQuadMesh(50,50);
 figure()
 mesh.plot()
 
-sAF.fHandle = @(x) sin(2*pi*x(1,:,:)); % f(x) = sin(2*pi*x)
-sAF.ndimf   = 1; % number of dimensions
-sAF.mesh    = mesh;
-xFun = AnalyticalFunction(sAF);
+s.fHandle = @(x) [sin(2*pi*x(1,:,:));cos(2*pi*x(1,:,:))]; % f(x) = sin(2*pi*x)
+s.mesh    = mesh;
+xFun = AnalyticalFunction(s);
 plot(project(xFun,'P1'))

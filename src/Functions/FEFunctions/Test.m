@@ -1,8 +1,8 @@
-classdef Test < handle
+classdef Test < BaseFunction
     
     properties (Access = public)
-                mesh
-            ndimf
+          %      mesh
+          %  ndimf
     end
     
     properties (Access = private)
@@ -37,7 +37,11 @@ classdef Test < handle
    
         end
 
-        function Ni = evaluate(obj,xV)
+    end
+
+    methods (Access = protected)
+        
+        function Ni = evaluateNew(obj,xV)
             u     = obj.uFun;
             ndim  = u.ndimf;
             iNode = ceil(obj.iDof/ndim);
