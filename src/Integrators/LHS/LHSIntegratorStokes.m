@@ -74,13 +74,15 @@ classdef LHSIntegratorStokes < handle
         end
 
         function M = computeMassMatrix(obj)
-            s.type  = 'MassMatrix';
-            s.mesh  = obj.mesh;
-            s.test  = obj.velocityFun;
-            s.trial = obj.velocityFun;
-            s.quadratureOrder = 3;
-            LHS = LHSIntegrator.create(s);
-            m = LHS.compute();
+            %s.type  = 'MassMatrix';
+            %s.mesh  = obj.mesh;
+            %s.test  = obj.velocityFun;
+            %s.trial = obj.velocityFun;
+            %s.quadratureOrder = 3;
+            %LHS = LHSIntegrator.create(s);
+            %m = LHS.compute();
+            f = @(u,v) DP(v,u);%v.*u;%DP(v,u);
+            m = IntegrateLHS(f,obj.velocityFun,obj.velocityFun,obj.velocityFun.mesh,3);
 
             dtime = obj.dt;
             M = m/dtime;

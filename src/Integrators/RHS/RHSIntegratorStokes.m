@@ -1,9 +1,10 @@
-classdef RHSIntegratorStokes < RHSIntegrator
+classdef RHSIntegratorStokes < handle
 
     properties (Access = private)
         velocityFun
         pressureFun
         forcesFormula
+        mesh
     end
 
     methods (Access = public)

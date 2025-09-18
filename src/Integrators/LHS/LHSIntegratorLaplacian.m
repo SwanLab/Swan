@@ -15,7 +15,7 @@ classdef LHSIntegratorLaplacian < handle
 
         function LHS = compute(obj)
             lhs = obj.computeElementalLHS();
-            LHS = obj.assembleMatrix(lhs);
+            LHS = assembleMatrix(lhs, obj.test, obj.trial);
         end
 
     end

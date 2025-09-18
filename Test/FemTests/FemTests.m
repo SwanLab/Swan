@@ -3,19 +3,19 @@ classdef FemTests < handle & matlab.unittest.TestCase
     properties (TestParameter)
         triangle = {'test2d_triangle'}
         quad = {'test2d_quad'}
-       tests2d = {'test2d_triangle', 'test2d_quad'}
-       tests3d = {'test3d_tetrahedra', 'test3d_hexahedra'}
-       hexahedra = {'test3d_hexahedra'}
-       duTests = {'test2d_triangle', 'test2d_quad', 'test3d_tetrahedra', 'test3d_hexahedra'}
-       stokesTests = {'test2d_stokes_triangle_steady', 'test2d_stokes_triangle_transient'}
+        tests2d = {'test2d_triangle', 'test2d_quad'}
+        tests3d = {'test3d_tetrahedra', 'test3d_hexahedra'}
+        hexahedra = {'test3d_hexahedra'}
+        duTests = {'test2d_triangle', 'test2d_quad', 'test3d_tetrahedra', 'test3d_hexahedra'}
+        stokesTests = {'test2d_stokes_triangle_steady', 'test2d_stokes_triangle_transient'}
         microTests = {'test2d_micro', 'test3d_micro_cube'}
-       thermalTests = {'test_thermal'}
-       hyperelasticTests = {'test_hyperelastic'}
+        thermalTests = {'test_thermal'}
+        hyperelasticTests = {'test_hyperelastic'}
     end
 
 
     methods (Test, TestTags = {'Triangle'})
-        % 
+
         function testTriangle(testCase, triangle)
             s.computerType     = 'FEM';
             s.testName         = triangle;
@@ -28,21 +28,21 @@ classdef FemTests < handle & matlab.unittest.TestCase
 
     end
 
-    methods (Test, TestTags = {'FEM', 'Quadratic'})
-
-        % function testTriangleQuadratic(testCase, triangle)
-        %     s.computerType     = 'FEM';
-        %     s.testName         = triangle;
-        %     s.testResultsName  = [triangle '_quadratic'];
-        %     s.variablesToStore = {'d_u'};
-        %     s.interpolationType = 'QUADRATIC';
-        %     test = PrecomputedVariableTest(s);
-        %     err = test.computeError();
-        %     tol = 1e-6;
-        %     testCase.verifyLessThanOrEqual(err, tol)
-        % end
-
-    end
+%     methods (Test, TestTags = {'FEM', 'Quadratic'})
+% 
+%         function testTriangleQuadratic(testCase, triangle)
+%             s.computerType     = 'FEM';
+%             s.testName         = triangle;
+%             s.testResultsName  = [triangle '_quadratic'];
+%             s.variablesToStore = {'d_u'};
+%             s.interpolationType = 'QUADRATIC';
+%             test = PrecomputedVariableTest(s);
+%             err = test.computeError();
+%             tol = 1e-6;
+%             testCase.verifyLessThanOrEqual(err, tol)
+%         end
+% 
+%     end
 
     methods (Test, TestTags = {'Quad'})
 
@@ -101,7 +101,7 @@ classdef FemTests < handle & matlab.unittest.TestCase
         end
 
     end
-   
+
     methods (Test, TestTags = {'FEM', 'Passed', 'Classic', 'Displacement', 'ToPass'})
 
         function testDisplacement(testCase, duTests)
@@ -115,20 +115,20 @@ classdef FemTests < handle & matlab.unittest.TestCase
         end
 
     end
-    % 
-    % methods(Test, TestTags = {'FEM', 'Passed', 'Classic', 'Stokes'})
-    % 
-    %     function testStokes(testCase, stokesTests)
-    %         s.computerType     = 'STOKES';
-    %         s.testName         = stokesTests;
-    %         s.variablesToStore = {'u','p'};
-    %         test = PrecomputedVariableTest(s);
-    %         err = test.computeError();
-    %         tol = 1e-6;
-    %         testCase.verifyLessThanOrEqual(err, tol)
-    %     end
-    % 
-    % end
+
+    methods(Test, TestTags = {'FEM', 'Passed', 'Classic', 'Stokes'})
+
+        function testStokes(testCase, stokesTests)
+            s.computerType     = 'STOKES';
+            s.testName         = stokesTests;
+            s.variablesToStore = {'u','p'};
+            test = PrecomputedVariableTest(s);
+            err = test.computeError();
+            tol = 1e-6;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
+
+    end
 
     methods(Test, TestTags = {'FEM', 'Classic', 'Micro'})
 
@@ -172,30 +172,30 @@ classdef FemTests < handle & matlab.unittest.TestCase
 
     end
 
-    % methods(Test, TestTags = {'FEM', 'Classic', 'PrincipalDirection'})
-    % 
-    %     function testPrincipalDirection2D(testCase)
-    %         s.stressDim = 3;
-    %         s.pdim      = 2;
-    %         s.nGaus     = 3;
-    %         s.mesh = TriangleMesh(1,1,5,5);
-    %         test = PrincipalDirectionTest(s);
-    %         err = test.computeError();
-    %         tol = 1e-12;
-    %         testCase.verifyLessThanOrEqual(err, tol)
-    %     end
-    % 
-    %     function testPrincipalDirection3D(testCase)
-    %         s.stressDim = 6;
-    %         s.pdim      = 3;
-    %         s.nGaus     = 3;
-    %         s.mesh = TetraMesh(1,1,1,5,5,5);            
-    %         test = PrincipalDirectionTest(s);
-    %         err = test.computeError();
-    %         tol = 1e-12;
-    %         testCase.verifyLessThanOrEqual(err, tol)
-    %     end
-    % 
-    % end
+    methods(Test, TestTags = {'FEM', 'Classic', 'PrincipalDirection'})
+
+        function testPrincipalDirection2D(testCase)
+            s.stressDim = 3;
+            s.pdim      = 2;
+            s.nGaus     = 3;
+            s.mesh = TriangleMesh(1,1,5,5);
+            test = PrincipalDirectionTest(s);
+            err = test.computeError();
+            tol = 1e-12;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
+
+        function testPrincipalDirection3D(testCase)
+            s.stressDim = 6;
+            s.pdim      = 3;
+            s.nGaus     = 3;
+            s.mesh = TetraMesh(1,1,1,5,5,5);            
+            test = PrincipalDirectionTest(s);
+            err = test.computeError();
+            tol = 1e-12;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
+
+    end
 
 end
