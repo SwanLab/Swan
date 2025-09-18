@@ -191,7 +191,8 @@ classdef StokesProblem < handle
             RHS = zeros(size(RHS0));
             freeV = obj.boundaryConditions.freeFields{1};
             lenFreeV = length(freeV);
-            M = obj.LHSintegrator.M;
+            f = @(u,v) DP(v,u)./obj.dtime;
+            M = IntegrateLHS(f,obj.velocityFun,obj.velocityFun,obj.velocityFun.mesh,3);            
             Mred = M(freeV,freeV);
             Mred_x_n = Mred*x_n;
             RHS(1:lenFreeV,1) = RHS0(1:lenFreeV,1) + Mred_x_n;

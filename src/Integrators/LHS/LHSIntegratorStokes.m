@@ -1,9 +1,5 @@
 classdef LHSIntegratorStokes < handle
 
-    properties (GetAccess = public, SetAccess = private)
-        M
-    end
-
     properties (Access = private)
         dt
         mesh
@@ -40,17 +36,12 @@ classdef LHSIntegratorStokes < handle
         function LHS = computeVelocityLHS(obj)
             K = obj.computeVelocityLaplacian();
             M = obj.computeMassMatrix();
-            lhs = K + M;
-            LHS = obj.symGradient(lhs);
+            LHS = K + M;
         end
 
         function D = computeWeakDivergenceMatrix(obj)
-            s.type = 'WeakDivergence';
-            s.mesh = obj.mesh;
-            s.trial = obj.pressureFun;
-            s.test  = obj.velocityFun;
-            LHS = LHSIntegrator.create(s);
-            D = LHS.compute();
+            f = @(p,v) DP(v,Grad(p));
+            D = IntegrateLHS(f,obj.velocityFun,obj.pressureFun,obj.mesh);            
         end
 
         function BB = computePressureLHS(obj,D)
@@ -58,35 +49,15 @@ classdef LHSIntegratorStokes < handle
             BB = sparse(sz,sz);
         end
 
-        function A = symGradient(obj, B)
-            A = 1/2 * (B+B');
-        end
-
         function lhs = computeVelocityLaplacian(obj)
-            s.type  = 'Laplacian';
-            s.mesh  = obj.mesh;
-            s.test  = obj.velocityFun;
-            s.trial = obj.velocityFun;
-            s.material = obj.material;
-            LHS = LHSIntegrator.create(s);
-            lhs = LHS.compute();
-            lhs = obj.symGradient(lhs);
+            f = @(u,v) DDP(Grad(v),Grad(u));
+            lhs = IntegrateLHS(f,obj.velocityFun,obj.velocityFun,obj.mesh);
+            lhs = 1/2*(lhs+lhs');
         end
 
         function M = computeMassMatrix(obj)
-            %s.type  = 'MassMatrix';
-            %s.mesh  = obj.mesh;
-            %s.test  = obj.velocityFun;
-            %s.trial = obj.velocityFun;
-            %s.quadratureOrder = 3;
-            %LHS = LHSIntegrator.create(s);
-            %m = LHS.compute();
-            f = @(u,v) DP(v,u);%v.*u;%DP(v,u);
-            m = IntegrateLHS(f,obj.velocityFun,obj.velocityFun,obj.velocityFun.mesh,3);
-
-            dtime = obj.dt;
-            M = m/dtime;
-            obj.M = M;
+            f = @(u,v) DP(v,u)./obj.dt;
+            M = IntegrateLHS(f,obj.velocityFun,obj.velocityFun,obj.mesh,3);
         end
 
     end

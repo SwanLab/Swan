@@ -26,13 +26,12 @@ classdef Test < BaseFunction
         function gradN = computeGrad(obj,xV)
             u = obj.uFun;
             dNdx = u.evaluateCartesianDerivatives(xV);
-            ndim = u.mesh.ndim;
-            node = ceil(obj.iDof/ndim);
-            dim  = obj.iDof - (node-1)*ndim;
-            
+            ndimf = u.ndimf;
+            node = ceil(obj.iDof/ndimf);
+            dim  = obj.iDof - (node-1)*ndimf;            
             nGauss = size(xV,2);
             nElem  = u.mesh.nelem;
-            gradN = zeros(ndim,ndim,nGauss,nElem);
+            gradN = zeros(ndimf,u.mesh.ndim,nGauss,nElem);
             gradN(dim,:,:,:) = dNdx(:,node,:,:);
    
         end
@@ -47,7 +46,6 @@ classdef Test < BaseFunction
             ndimf = u.ndimf;
             node = ceil(obj.iDof/ndimf);
             dim  = obj.iDof - (node-1)*ndimf;
-
             nGauss = size(xV,2);
             nElem  = u.mesh.nelem;
             Ni = zeros(ndimf,nGauss,nElem);            
