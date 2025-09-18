@@ -51,7 +51,7 @@ classdef DensityBasedMaterial < handle
         end
         
         function m = createMaterial(obj,mu,kappa)
-            s.type    = 'ISOTROPIC';
+            s.type    = 'ANISOTROPIC';
             s.ptype   = 'ELASTIC';
             s.ndim    = obj.computeNdim();
             s.shear   = mu;
@@ -64,12 +64,31 @@ classdef DensityBasedMaterial < handle
             rho = obj.density;
             [mu,kappa] = mI.computeConsitutiveTensor(rho);
             m = obj.createMaterial(mu,kappa);
-            C = m.evaluate(xV);
+            C_voigt = [ 0.0022   0.001  0;
+                0.001  0.50 0;
+                0      0      0.19];
+            C = m.evaluate(xV,C_voigt);
+            rhoEv = rho{1}.evaluate(xV);
+            nGauss = size(rhoEv,2);
+            nElem = size(rhoEv,3);
+            rhoEv = reshape(rhoEv,[1 1 1 1 nGauss nElem]);
+            C = C.*(rhoEv.^3)+1e-3.*C;
         end
         
         function dC = evaluateGradient(obj,dmu,dkappa,xV)
-            m  = obj.createMaterial(dmu,dkappa);
-            dC = m.evaluate(xV);
+            mI  = obj.materialInterpolator;
+            rho = obj.density;
+            [mu,kappa] = mI.computeConsitutiveTensor(rho);
+            m = obj.createMaterial(mu,kappa);
+            C_voigt = [ 0.0022   0.001  0;
+                0.001  0.50 0;
+                0      0      0.19];
+            C = m.evaluate(xV,C_voigt);
+            rhoEv = rho{1}.evaluate(xV);
+            nGauss = size(rhoEv,2);
+            nElem = size(rhoEv,3);
+            rhoEv = reshape(rhoEv,[1 1 1 1 nGauss nElem]);
+            dC = C.*(3.*rhoEv.^2);
         end
 
         function ndim = computeNdim(obj)
