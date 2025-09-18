@@ -9,6 +9,7 @@ classdef ElasticProblemMicro < handle
         mesh
         material
         trialFun
+        testFun
         boundaryConditions, bcApplier
         solverType, solverMode, solverCase
         lagrangeMultipliers
@@ -27,11 +28,11 @@ classdef ElasticProblemMicro < handle
         function obj = solve(obj)
             C     = obj.material;
             f     = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
-            LHS   = IntegrateLHS(f,obj.trialFun,obj.trialFun,obj.mesh,2);
+            LHS   = IntegrateLHS(f,obj.testFun,obj.trialFun,obj.mesh,2);
             for iB = 1:obj.computeNbasis()
                 [eB,v] = obj.createDeformationBasis(iB);
                 f = @(v) -DDP(SymGrad(v),DDP(C,eB));
-                RHS = IntegrateRHS(f,obj.trialFun,obj.mesh,2);    
+                RHS = IntegrateRHS(f,obj.testFun,obj.mesh,2);    
                 uF{iB}      = obj.computeDisplacement(LHS,RHS,iB);
                 strainF{iB} = eB+SymGrad(uF{iB});
                 stressF{iB} = DDP(obj.material, strainF{iB});
@@ -76,6 +77,7 @@ classdef ElasticProblemMicro < handle
 
         function createTrialFun(obj)
             obj.trialFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
+            obj.testFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
         end
 
        function [s,v] = createDeformationBasis(obj,iBasis)

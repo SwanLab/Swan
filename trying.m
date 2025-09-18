@@ -10,3 +10,10 @@ xFun = AnalyticalFunction(s);
 t = xFun.project('P1');
 t.plot()
 %plot(project(xFun,'P1'))
+
+
+s.fHandle = @(x) [sin(2*pi*x(1,:,:).*x(2,:,:))]; % f(x) = sin(2*pi*x)
+s.mesh    = mesh;
+xFun = AnalyticalFunction(s);
+t = xFun.project('P1');
+t.plot()
