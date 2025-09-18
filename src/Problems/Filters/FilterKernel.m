@@ -26,7 +26,7 @@ classdef FilterKernel < handle
             xReg = LagrangianFunction.create(obj.mesh, 1, obj.trial.order);
             obj.computeRHS(fun,quadType);
             obj.solveFilter();
-            xReg.setFValues(obj.trial.fValues);
+            xReg.setFValues(full(obj.trial.fValues));
         end
 
     end
@@ -44,7 +44,7 @@ classdef FilterKernel < handle
 
         function createMassMatrix(obj)
             f = @(v,u) DP(v,u);               
-            obj.massMatrix = IntegrateLHS(f,obj.test,obj.trial,fun.mesh,2);
+            obj.massMatrix = IntegrateLHS(f,obj.test,obj.trial,obj.mesh,2);
         end 
 
         function createNeighborElementsMatrix(obj)
@@ -94,13 +94,13 @@ classdef FilterKernel < handle
                 case {'UnfittedFunction','UnfittedBoundaryFunction'}
                     s.mesh = fun.unfittedMesh;
                     s.type = 'Unfitted';
+                    s.quadType = quadType;
+                    int        = RHSIntegrator.create(s);
+                    obj.RHS    = int.compute(fun,obj.test);
                 otherwise
-                    s.mesh = obj.mesh;
-                    s.type = 'ShapeFunction';
-            end
-            s.quadType = quadType;
-            rhsI       = RHSIntegrator.create(s);
-            obj.RHS    = rhsI.compute(fun,obj.test);
+                    f = @(v) DP(v,fun);
+                    obj.RHS = IntegrateRHS(f,obj.test,obj.test.mesh,quadType);   
+            end            
         end
 
         function solveFilter(obj)

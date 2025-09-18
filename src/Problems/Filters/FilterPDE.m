@@ -18,7 +18,6 @@ classdef FilterPDE < handle
         function obj = FilterPDE(cParams)
             obj.init(cParams);
             obj.computeBoundaryConditions(cParams);
-            obj.createProblemLHS(cParams);
             obj.computeLHS();
         end
 
@@ -26,7 +25,7 @@ classdef FilterPDE < handle
             xF = LagrangianFunction.create(obj.mesh, fun.ndimf, obj.trial.order);
             obj.computeRHS(fun,quadType);
             obj.solveFilter();
-            xF.setFValues(obj.trial.fValues);
+            xF.setFValues(full(obj.trial.fValues));
         end
 
         function obj = updateEpsilon(obj,epsilon)
@@ -56,15 +55,15 @@ classdef FilterPDE < handle
             obj.bc.compute();
         end
 
-        function createProblemLHS(obj,s)
-            s.trial        = obj.trial;
-            s.mesh         = obj.mesh;
-            s.type         = obj.LHStype;
-            obj.problemLHS = LHSIntegrator.create(s);
-        end
 
         function computeLHS(obj)
-            lhs     = obj.problemLHS.compute(obj.epsilon);
+            e = obj.epsilon;
+%            lhs     = obj.problemLHS.compute(obj.epsilon);
+            %M = IntegrateLHS(@(u,v) DP(v,u),vF,uF,obj.mesh,3);
+            vF  = obj.trial;
+            uF =  obj.trial;
+            lhs = IntegrateLHS(@(u,v) e.*DDP(Grad(v),Grad(u)) + DP(v,u),vF,uF,obj.mesh); 
+
             lhs     = obj.bc.fullToReducedMatrix(lhs);
             obj.LHS = decomposition(lhs);
         end
@@ -74,16 +73,13 @@ classdef FilterPDE < handle
                 case {'UnfittedFunction','UnfittedBoundaryFunction'}
                     s.mesh = fun.unfittedMesh;
                     s.type = 'Unfitted';
+                    s.quadType = quadType;
+                    int        = RHSIntegrator.create(s);
+                    obj.RHS    = int.compute(fun,obj.trial);
                 otherwise
-                    s.mesh = obj.mesh;
-                    s.type = 'ShapeFunction';
-            end
-            s.quadType = quadType;
-            int        = RHSIntegrator.create(s);
-            test       = obj.trial;
-            rhs        = int.compute(fun,test);
-            rhsR       = obj.bc.fullToReducedVector(rhs);
-            obj.RHS    = rhsR;
+                    f = @(v) DP(v,fun);
+                    obj.RHS = IntegrateRHS(f,obj.trial,obj.trial.mesh,quadType);   
+            end            
         end
 
         function solveFilter(obj)

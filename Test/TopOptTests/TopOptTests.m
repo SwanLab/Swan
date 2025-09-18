@@ -15,6 +15,9 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             'test_micro3','test_boundFormFilterAndProject','test_cantilever_SIMPP3',...
             'test_infillLS','test_isoPerLS', 'test_PerpnormLS','test_segment','test_droplet'
             }
+
+        % testsTO = {'test_segment','test_droplet'}
+
     end
 
     methods (Test, TestTags = {'TopOpt', 'Various', 'testsTO'})
@@ -151,12 +154,15 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
         end
 
         function M = createMassMatrix(mesh,x)
-            s.test  = LagrangianFunction.create(mesh,1,'P1');
-            s.trial = LagrangianFunction.create(mesh,1,'P1');
-            s.mesh  = mesh;
-            s.type  = 'MassMatrix';
-            LHS = LHSIntegrator.create(s);
-            M = LHS.compute;
+            vF = LagrangianFunction.create(mesh,1,'P1');
+            %s.test  = vF;
+            %s.trial = vF;
+            %s.mesh  = mesh;
+            %s.type  = 'MassMatrix';
+            %LHS = LHSIntegrator.create(s);
+            %M = LHS.compute;
+            M = IntegrateLHS(@(u,v) DP(v,u),vF,vF,mesh); 
+            
             M = eye(size(M));
 
             switch class(x)
