@@ -30,7 +30,7 @@ classdef ElasticProblemMicro < handle
             LHS   = IntegrateLHS(f,obj.trialFun,obj.trialFun,obj.mesh,2);
             for iB = 1:obj.computeNbasis()
                 [eB,v] = obj.createDeformationBasis(iB);
-                f = @(v) DDP(SymGrad(v),DDP(C,eB));
+                f = @(v) -DDP(SymGrad(v),DDP(C,eB));
                 RHS = IntegrateRHS(f,obj.trialFun,obj.mesh,2);    
                 uF{iB}      = obj.computeDisplacement(LHS,RHS,iB);
                 strainF{iB} = eB+SymGrad(uF{iB});
