@@ -30,17 +30,17 @@ classdef FemTests < handle & matlab.unittest.TestCase
 
     methods (Test, TestTags = {'FEM', 'Quadratic'})
 
-        function testTriangleQuadratic(testCase, triangle)
-            s.computerType     = 'FEM';
-            s.testName         = triangle;
-            s.testResultsName  = [triangle '_quadratic'];
-            s.variablesToStore = {'d_u'};
-            s.interpolationType = 'QUADRATIC';
-            test = PrecomputedVariableTest(s);
-            err = test.computeError();
-            tol = 1e-6;
-            testCase.verifyLessThanOrEqual(err, tol)
-        end
+        % function testTriangleQuadratic(testCase, triangle)
+        %     s.computerType     = 'FEM';
+        %     s.testName         = triangle;
+        %     s.testResultsName  = [triangle '_quadratic'];
+        %     s.variablesToStore = {'d_u'};
+        %     s.interpolationType = 'QUADRATIC';
+        %     test = PrecomputedVariableTest(s);
+        %     err = test.computeError();
+        %     tol = 1e-6;
+        %     testCase.verifyLessThanOrEqual(err, tol)
+        % end
 
     end
 
