@@ -73,11 +73,19 @@ classdef TopOptCUBESAT < handle
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);
+
+            % isFixed for CUBESAT
             
+            bar1 = @(x) x(:,1)>=-113.15 & x(:,1)<=-106.65 & x(:,2) >= -50 & x(:,2)<= -43.5;
+            bar2 = @(x) x(:,1)>=-113.15 & x(:,1)<=-106.65 & x(:,2) >= 43.5 & x(:,2)<= 50;
+            bar3 = @(x) x(:,1)>=106.65 & x(:,1)<=113.15 & x(:,2) >= -50 & x(:,2)<= -43.5;
+            bar4 = @(x) x(:,1)>=106.65 & x(:,1)<=113.15 & x(:,2) >= 43.5 & x(:,2)<= 50;
+
             s.fun     = aFun.project('P1');
             s.mesh    = obj.mesh;
             s.type = 'Density';
             s.plotting = true;
+            s.isFixed  = obj.computeFixedVolumeDomain(@(x) bar1(x) | bar2(x) | bar3(x) | bar4(x), s.type);  %Volum no tocable
             dens    = DesignVariable.create(s);
             obj.designVariable = dens;
         end
@@ -243,6 +251,19 @@ classdef TopOptCUBESAT < handle
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
+        end
+
+        function isFixed = computeFixedVolumeDomain(obj,cond,type)
+            coor  = obj.mesh.coord;
+            nodes = find(cond(coor));
+            isFixed.nodes = nodes;
+            switch type
+                case 'Density'
+                    values = ones(size(nodes));
+                case 'LevelSet'
+                    values = -ones(size(nodes));
+            end
+            isFixed.values = values;
         end
     end
 
