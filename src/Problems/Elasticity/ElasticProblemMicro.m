@@ -141,7 +141,7 @@ classdef ElasticProblemMicro < handle
             obj.lagrangeMultipliers = L;
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             uFun = copy(obj.trialFun);
-            uFun.setFValues(uSplit);
+            uFun.setFValues(full(uSplit));
         end
 
         function convertChomogToFourthOrder(obj,ChiB,v,iB)
