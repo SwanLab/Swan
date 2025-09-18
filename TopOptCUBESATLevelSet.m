@@ -1,4 +1,4 @@
-classdef TopOptCUBESAT < handle
+classdef TopOptCUBESATLevelSet < handle
 
     properties (Access = private)
         filename
@@ -21,7 +21,7 @@ classdef TopOptCUBESAT < handle
 
     methods (Access = public)
 
-        function obj = TopOptCUBESAT()
+        function obj = TopOptCUBESATLevelSet()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -86,7 +86,7 @@ classdef TopOptCUBESAT < handle
 
             s.fun     = aFun.project('P1');
             s.mesh    = obj.mesh;
-            s.type = 'Density';
+            s.type = 'LevelSet';
             s.plotting = true;
             %s.isFixed  = obj.computeFixedVolumeDomain(@(x) bar1(x) | bar2(x) | bar3(x) | bar4(x), s.type);  %Volum no tocable
             dens    = DesignVariable.create(s);
@@ -206,12 +206,9 @@ classdef TopOptCUBESAT < handle
             obj.constraint      = Constraint(s);
         end
 
-         function createPrimalUpdater(obj)
-            s.ub     = 1;
-            s.lb     = 0;
-            s.tauMax = 1000;
-            s.tau    = [];
-            obj.primalUpdater = ProjectedGradient(s);
+        function createPrimalUpdater(obj)
+            s.mesh = obj.mesh;
+            obj.primalUpdater = SLERP(s);
         end
 
         function createOptimizer(obj)
@@ -219,13 +216,15 @@ classdef TopOptCUBESAT < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 500;
+            s.maxIter        = 100;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.primal         = 'PROJECTED GRADIENT';
-            s.etaNorm        = 0.01;
-            s.gJFlowRatio    = 2;
             s.primalUpdater  = obj.primalUpdater;
+            s.etaNorm        = 0.02;
+            s.etaNormMin     = 0.02;
+            s.gJFlowRatio    = 0.2;
+            s.etaMax         = 1;
+            s.etaMaxMin      = 0.01;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
