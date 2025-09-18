@@ -1,10 +1,12 @@
 close all
 clear all
-mesh = UnitQuadMesh(50,50);
+mesh = UnitTriangleMesh(50,50);
 figure()
 mesh.plot()
 
-s.fHandle = @(x) [sin(2*pi*x(1,:,:));cos(2*pi*x(1,:,:))]; % f(x) = sin(2*pi*x)
+s.fHandle = @(x) [sin(2*pi*x(1,:,:).*x(2,:,:))]; % f(x) = sin(2*pi*x)
 s.mesh    = mesh;
 xFun = AnalyticalFunction(s);
-plot(project(xFun,'P1'))
+t = xFun.project('P1');
+t.plot()
+%plot(project(xFun,'P1'))
