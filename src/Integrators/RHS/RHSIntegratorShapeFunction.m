@@ -53,7 +53,7 @@ classdef RHSIntegratorShapeFunction < handle
                     end
                 end
             end
-            rhsC = transpose(int);
+            rhsC = (int);
         end
 
         function f = assembleIntegrand(obj,test,rhsElem)
