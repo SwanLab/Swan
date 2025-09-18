@@ -44,13 +44,13 @@ classdef Test < BaseFunction
         function Ni = evaluateNew(obj,xV)
             u     = obj.uFun;
             N  = u.computeShapeFunctions(xV);
-            ndim = u.mesh.ndim;
-            node = ceil(obj.iDof/ndim);
-            dim  = obj.iDof - (node-1)*ndim;
+            ndimf = u.ndimf;
+            node = ceil(obj.iDof/ndimf);
+            dim  = obj.iDof - (node-1)*ndimf;
 
             nGauss = size(xV,2);
             nElem  = u.mesh.nelem;
-            Ni = zeros(ndim,nGauss,nElem);            
+            Ni = zeros(ndimf,nGauss,nElem);            
             Ni(dim,:,:) = repmat(N(node,:),[1 1 nElem]);
         end
         
