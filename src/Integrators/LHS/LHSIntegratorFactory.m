@@ -8,8 +8,8 @@ classdef LHSIntegratorFactory < handle
                %     obj = LHSIntegratorMass(cParams);
                % case 'MassMatrixVect'
                %     obj = LHSintegrator_Mass_Vect(cParams);
-               % case 'BoundaryMassMatrix'
-               %     obj = LHSIntegratorMassBoundary(cParams);
+               case 'BoundaryMassMatrix'
+                   obj = LHSIntegratorMassBoundary(cParams);
                % case 'StiffnessMatrix'
                %     obj = LHSIntegratorStiffness(cParams);
                % case 'StiffnessMatrixVect'
@@ -20,14 +20,14 @@ classdef LHSIntegratorFactory < handle
              %       obj = LHSIntegratorAnisotropicStiffnessTensor(cParams);
              %   case 'AnisotropicStiffnessMatrix'
              %       obj = LHSIntegratorAnisotropicStiffness(cParams);
-               % case 'StiffnessMass    BoundaryMass'
-               %     cParams.stiffType = 'StiffnessMatrix';
-               %     obj = LHSIntegratorStiffnessMassBoundaryMass(cParams);
-               % case 'StiffnessMass'
-               %     cParams.stiffType = 'StiffnessMatrix';
-               %     obj = LHSIntegratorStiffnessMass(cParams);
-               % case 'MassBoundaryMass'
-               %     obj = LHSIntegratorMassBoundaryMass(cParams);
+               case 'StiffnessMassBoundaryMass'
+                   cParams.stiffType = 'StiffnessMatrix';
+                   obj = LHSIntegratorStiffnessMassBoundaryMass(cParams);
+               case 'StiffnessMass'
+                   cParams.stiffType = 'StiffnessMatrix';
+                   obj = LHSIntegratorStiffnessMass(cParams);
+               case 'MassBoundaryMass'
+                   obj = LHSIntegratorMassBoundaryMass(cParams);
                % case 'AnisotropicStiffnessMassBoundaryMass'
                %     cParams.stiffType = 'AnisotropicStiffnessMatrix';
                %     obj = LHSIntegratorStiffnessMassBoundaryMass(cParams);
