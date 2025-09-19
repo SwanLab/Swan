@@ -22,49 +22,6 @@ classdef OfflineDataProcessor < handle
 
         function obj = OfflineDataProcessor(data)
             obj.init(data)
-            
-%             obj.LHS = createElasticProblem(obj);
-% 
-%             uFun         = obj.createDispFun();
-%             uRBfun       = obj.projectToRigidBodyFun(uFun);
-%             uDEFSpaceFun = obj.projectToDeformationalSpace(uFun,uRBfun);
-%             PhiD         = obj.computeDeformationalModes(uDEFSpaceFun);
-%             uDefFun      = obj.createDeformationalFunction(PhiD);
-% 
-%             PsiD       = obj.computeSelfEquilibratedLagrange(PhiD);
-%             LMDefFun   = obj.createDeformationalFunction(PsiD);
-% 
-%             PhiR       = obj.getRigidBodyModes(uRBfun(1));
-% 
-%             bMesh = obj.mesh.createBoundaryMesh();
-% 
-%             Vfun = obj.createInterfaceModesFun(bMesh);
-% 
-%             uDefFunBd  = obj.restrictToBoundary(uDefFun,bMesh);
-%             RBFunBd    = obj.restrictToBoundary(uRBfun(1),bMesh); %only the first bevause we just want the basis!
-%             LMDefFunBd = obj.restrictToBoundary(LMDefFun,bMesh);
-% 
-%             Adr = obj.computeBoundaryModalMassMatrix(uDefFunBd,RBFunBd);
-%             Arr = obj.computeBoundaryModalMassMatrix(RBFunBd,RBFunBd);
-%             %             Add = obj.computeBoundaryModalMassMatrix(uDefFunBd,LMDefFunBd);
-%             Add = obj.computeBoundaryModalMassMatrixDirac(uDefFunBd,LMDefFunBd);
-%             %             Add = PhiD'*PsiD;
-%             % Add with dirac integrator and PhiD'*PsiD are the same!
-% %             Ldv = obj.computeBoundaryModalMassMatrix(LMDefFunBd,Vfun);
-%             Ldv = obj.computeBoundaryModalMassMatrixDirac(LMDefFunBd,Vfun);
-%             Lrv = obj.computeBoundaryModalMassMatrix(RBFunBd,Vfun);
-% 
-%             Ud = PhiD*(Add'\Ldv);
-%             Ur = PhiR*inv(Arr')*(Lrv - Adr'*(Add'\Ldv));
-% 
-%             Kcoarse = Ud'*obj.LHS*Ud;
-% 
-%             obj.EIFEoper.Kcoarse = Kcoarse;
-%             obj.EIFEoper.Urb = Ur;
-%             obj.EIFEoper.Udef = Ud;
-% 
-%             save('DEF_Q4porL_1_raul.mat','EIFEoper')
-
         end
 
         function EIFEoper = computeROMbasis(obj)
