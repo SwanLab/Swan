@@ -237,7 +237,7 @@ classdef Mesh < handle
                     s.operation  = @(xV) obj.computeJacobianDeterminant(xV);
                     s.mesh       = obj;
                     detJ         = DomainFunction(s);
-                elseif isequal(obj.geometryType,'Line') && isequal(obj.ndim,2)
+                elseif isequal(obj.geometryType,'Line') && (isequal(obj.ndim,2) || isequal(obj.ndim,3))
                     s.operation  = @(xV) obj.computeJacobianDeterminant(xV);
                     s.mesh       = obj;
                     detJ         = DomainFunction(s);
