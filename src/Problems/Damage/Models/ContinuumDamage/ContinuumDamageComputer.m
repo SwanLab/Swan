@@ -79,7 +79,7 @@ classdef ContinuumDamageComputer < handle
             s.boundaryConditions = bc;
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'DIRECT';
+            s.solverCase = DirectSolver();
             fem = ElasticProblem(s);
             fem.solve();
             u.setFValues(fem.uFun.fValues);
