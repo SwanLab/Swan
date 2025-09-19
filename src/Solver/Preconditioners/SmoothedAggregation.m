@@ -23,15 +23,12 @@ classdef SmoothedAggregation < handle
         end
 
         function x = solve(obj,A,res)
-            % obj.restartPython() here as well? Maybe if code crushes
-            if obj.needUpdate
-                LHS = obj.convertToPythonSparse(A);
-                obj.createAMGSolver(LHS);
-                obj.needUpdate = false;
+            try
+                x = obj.compute(A,res);
+            catch
+                obj.restartPython();
+                x = obj.compute(A,res);
             end
-            b    = obj.np.array(double(res));
-            x_py = obj.AMGSolver.solve(b, obj.AMGOptions);
-            x    = double(x_py)';
         end
 
         function update(obj)
@@ -59,6 +56,17 @@ classdef SmoothedAggregation < handle
         function setNullSpace(obj,cParams)
             BNull         = cParams.nullSpace;
             obj.nullSpace = obj.np.array(full(BNull));
+        end
+
+        function x = compute(obj,A,res)
+            if obj.needUpdate
+                LHS = obj.convertToPythonSparse(A);
+                obj.createAMGSolver(LHS);
+                obj.needUpdate = false;
+            end
+            b    = obj.np.array(double(res));
+            x_py = obj.AMGSolver.solve(b, obj.AMGOptions);
+            x    = double(x_py)';
         end
 
         function pyVar = convertToPythonSparse(obj,A)
