@@ -35,18 +35,17 @@ classdef DiffReactProblem < handle
             obj.epsilon = epsilon;
             vF = LagrangianFunction.create(obj.mesh,1,'P1');
             uF = LagrangianFunction.create(obj.mesh,1,'P1');
-            if strcmp(obj.LHStype, "StiffnessMass")
-                K = IntegrateLHS(@(u,v) DP(Grad(v),Grad(u)),vF,uF,obj.mesh,2);
-            elseif strcmp(obj.LHStype, "StiffnessMassBoundaryMass")
+            ndof  = uF.nDofs;
+            Mr     = sparse(ndof,ndof);
+            if strcmp(obj.LHStype, "StiffnessMassBoundaryMass")
                 [bMesh, l2g] = obj.mesh.createSingleBoundaryMesh();
                 test  = LagrangianFunction.create(bMesh,vF.ndimf,vF.order);
-                trial = LagrangianFunction.create(bMesh,uF.ndimf,uF.order);
-                ndof  = uF.nDofs;
-                K     = sparse(ndof,ndof);
-                K(l2g,l2g) = IntegrateLHS(@(u,v) DP(Grad(v),Grad(u)),test,trial,bMesh,2);
+                trial = LagrangianFunction.create(bMesh,uF.ndimf,uF.order);            
+                Mr(l2g,l2g) = IntegrateLHS(@(u,v) DP(v,u),test,trial,bMesh,3);
             end
-            M = IntegrateLHS(@(u,v) DP(v,u),vF,uF,obj.mesh,2);
-            LHS = (obj.epsilon^2).*K + M;
+            K = IntegrateLHS(@(u,v) DP(Grad(v),Grad(u)),vF,uF,obj.mesh);            
+            M = IntegrateLHS(@(u,v) DP(v,u),vF,uF,obj.mesh,3);
+            LHS = (obj.epsilon^2).*K + M + obj.epsilon*Mr;
         end
        
         function print(obj,filename)

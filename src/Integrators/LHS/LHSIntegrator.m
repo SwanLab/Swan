@@ -34,8 +34,8 @@ classdef LHSIntegrator < handle
 
         function lhs = computeElementalLHS(obj,f)
             lhs    = zeros(obj.test.nDofsElem,obj.trial.nDofsElem,obj.mesh.nelem);
-            J      = Jacobian(obj.mesh);
-            detJ   = Det(J);
+            detJ   = DetJacobian(obj.mesh);
+            %detJ   = Det(J);
             xV = obj.quadrature.posgp;
             w  = obj.quadrature.weigp;
             v = @(i) Test(obj.test,i);
