@@ -233,18 +233,7 @@ classdef Mesh < handle
         function dV = computeDvolume(obj,quad)
             xV = quad.posgp;
             if ~isequal(xV,obj.xVOld)
-                if isequal(obj.geometryType,'Surface') && isequal(obj.ndim,3)
-                    s.operation  = @(xV) obj.computeJacobianDeterminant(xV);
-                    s.mesh       = obj;
-                    detJ         = DomainFunction(s);
-                elseif isequal(obj.geometryType,'Line') && isequal(obj.ndim,2)
-                    s.operation  = @(xV) obj.computeJacobianDeterminant(xV);
-                    s.mesh       = obj;
-                    detJ         = DomainFunction(s);
-
-                else
-                    detJ = Det(Jacobian(obj));
-                end
+                detJ = obj.DetJacobian();
                 w = reshape(quad.weigp,[1 quad.ngaus]);                
                 detJv  = detJ.evaluate(xV);
                 dVolume = detJv.*w;
@@ -253,6 +242,18 @@ classdef Mesh < handle
                 obj.xVOld = xV;
             else
                 dV = obj.dVOld;
+            end
+        end
+
+        function detJ = DetJacobian(obj)
+            isSurfaceIn3D = isequal(obj.geometryType,'Surface') && isequal(obj.ndim,3);
+            isLineNotIn1D = isequal(obj.geometryType,'Line') && (isequal(obj.ndim,2) || isequal(obj.ndim,3));
+            if isSurfaceIn3D || isLineNotIn1D
+                s.operation  = @(xV) obj.computeJacobianDeterminant(xV);
+                s.mesh       = obj;
+                detJ         = DomainFunction(s);
+            else
+                detJ = Det(Jacobian(obj));
             end
         end
 

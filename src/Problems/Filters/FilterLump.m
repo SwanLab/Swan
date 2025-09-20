@@ -25,7 +25,7 @@ classdef FilterLump < handle
             rhs          = obj.computeRHS(x, quadType);
             xProj        = rhs./lhs;
             xProj        = reshape(xProj',obj.trial.ndimf,[])';
-            xFun.setFValues(xProj);
+            xFun.setFValues(full(xProj));
         end
 
     end

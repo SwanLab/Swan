@@ -58,12 +58,9 @@ classdef FilterPDE < handle
 
         function computeLHS(obj)
             e = obj.epsilon;
-%            lhs     = obj.problemLHS.compute(obj.epsilon);
-            %M = IntegrateLHS(@(u,v) DP(v,u),vF,uF,obj.mesh,3);
             vF  = obj.trial;
             uF =  obj.trial;
-            lhs = IntegrateLHS(@(u,v) e.*DDP(Grad(v),Grad(u)) + DP(v,u),vF,uF,obj.mesh); 
-
+            lhs = IntegrateLHS(@(u,v) e.*DP(Grad(v),Grad(u)) + DP(v,u),vF,uF,obj.mesh); 
             lhs     = obj.bc.fullToReducedMatrix(lhs);
             obj.LHS = decomposition(lhs);
         end
@@ -80,6 +77,7 @@ classdef FilterPDE < handle
                     f = @(v) DP(v,fun);
                     obj.RHS = IntegrateRHS(f,obj.trial,obj.trial.mesh,quadType);   
             end            
+             obj.RHS     = obj.bc.fullToReducedVector(obj.RHS);
         end
 
         function solveFilter(obj)

@@ -3,7 +3,7 @@ classdef DiffReactTests < matlab.unittest.TestCase
     properties (TestParameter)
 %         file = {'testDiffReactHexagon', 'testDiffReactTorus', 'testDiffReactCube'}
         file = {'testDiffReactHexagon'}
-        file3d = {'testDiffReactTorus', 'testDiffReactCube'}
+        file3d = {'testDiffReactTorus', 'testDiffReactCube'}     
         LHStype = {'StiffnessMass', 'StiffnessMassBoundaryMass'}
     end
 

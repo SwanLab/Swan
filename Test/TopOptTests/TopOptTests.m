@@ -16,7 +16,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             'test_infillLS','test_isoPerLS', 'test_PerpnormLS','test_segment','test_droplet'
             }
 
-        % testsTO = {'test_segment','test_droplet'}
+        % testsTO = {'test_micro3'}
 
     end
 
