@@ -15,7 +15,6 @@ classdef ContinuumDamageInternalEnergyFunctional < handle
 
         function obj = ContinuumDamageInternalEnergyFunctional(cParams)
             obj.init(cParams);
-            obj.createRHSIntegrator();
         end
 
         function sig = computeStress(obj,u,r)
@@ -33,10 +32,8 @@ classdef ContinuumDamageInternalEnergyFunctional < handle
         end
 
         function res = computeResidual(obj,u,r)
-            C      = obj.material.obtainTensorSecant(r);
-            epsi   = SymGrad(u);
-            stress = DDP(epsi,C);
-            res = obj.RHS.compute(stress,obj.test);
+            stress = obj.computeStress(u,r);
+            res = IntegrateRHS(@(v) DDP(SymGrad(v),stress),obj.test,obj.mesh,obj.quadOrder);
         end
 
         function [Ktan,Ksec] = computeDerivativeResidual(obj,u,r)
@@ -70,21 +67,7 @@ classdef ContinuumDamageInternalEnergyFunctional < handle
         end
 
         function LHS = computeLHS(obj,mat)
-            s.type = 'ElasticStiffnessMatrix';
-            s.quadratureOrder = obj.quadOrder;
-            s.mesh = obj.mesh;
-            s.test  = obj.test;
-            s.trial = obj.test;
-            s.material = mat;
-            integrator = LHSIntegrator.create(s);
-            LHS = integrator.compute();
-        end
-        
-        function createRHSIntegrator(obj)
-            s.type = 'ShapeSymmetricDerivative';
-            s.quadratureOrder = obj.quadOrder;
-            s.mesh  = obj.mesh;
-            obj.RHS = RHSIntegrator.create(s);
+            LHS = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(mat,SymGrad(u))),obj.test,obj.test,obj.mesh,obj.quadOrder);
         end
 
         function sec = computeDerivativeResidualSecant(obj,r)
