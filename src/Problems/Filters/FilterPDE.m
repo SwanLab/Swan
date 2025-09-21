@@ -69,7 +69,7 @@ classdef FilterPDE < handle
                 Mr(l2g,l2g) = IntegrateLHS(@(u,v) DP(v,u),bTest,bTrial,bMesh,3);
             end
             K = IntegrateLHS(@(u,v) DP(Grad(v),Grad(u)),vF,uF,obj.mesh);            
-            M = IntegrateLHS(@(u,v) DP(v,u),vF,uF,obj.mesh,3);
+            M = IntegrateLHS(@(u,v) DP(v,u),vF,uF,obj.mesh,2);
             lhs = (obj.epsilon^2).*K + M + obj.epsilon*Mr;
             lhs     = obj.bc.fullToReducedMatrix(lhs);
             obj.LHS = decomposition(lhs);

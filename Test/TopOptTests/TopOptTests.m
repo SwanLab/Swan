@@ -13,11 +13,12 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
         %     'test_interiorPerimeterPDErho','test_filterLump','test_cantilever_IPM',...
         %     'test_dirichletProjection','test_gripping','test_micro', 'test_micro2',...
         %     'test_micro3','test_boundFormFilterAndProject','test_cantilever_SIMPP3',...
-        %     'test_infillLS','test_segment','test_droplet'
+        %     'test_infillLS','test_isoPerLS','test_PerpnormLS','test_segment','test_droplet'
         %     }
-        
-        testsTO = {'test_micro', 'test_micro2','test_micro3'}
-        %testsTO = {'test_isoPerLS''test_PerpnormLS'}
+        % 
+        testsTO = {'test_anisotropy','test_anisotropy_interior','test_dirichletProjection'}
+        %testsTO = {'test_micro', 'test_micro2','test_micro3'}
+        %testsTO = {'test_isoPerLS'}
 
     end
 
