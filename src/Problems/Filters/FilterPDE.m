@@ -58,9 +58,19 @@ classdef FilterPDE < handle
 
         function computeLHS(obj)
             e = obj.epsilon;
-            vF  = obj.trial;
-            uF =  obj.trial;
-            lhs = IntegrateLHS(@(u,v) e.*DP(Grad(v),Grad(u)) + DP(v,u),vF,uF,obj.mesh); 
+            vF = LagrangianFunction.create(obj.mesh,1,'P1');
+            uF = LagrangianFunction.create(obj.mesh,1,'P1');
+            ndof  = uF.nDofs;
+            Mr     = sparse(ndof,ndof);
+            if strcmp(obj.LHStype, "StiffnessMassBoundaryMass")
+                [bMesh, l2g] = obj.mesh.createSingleBoundaryMesh();
+                bTest  = LagrangianFunction.create(bMesh,vF.ndimf,vF.order);
+                bTrial = LagrangianFunction.create(bMesh,uF.ndimf,uF.order);            
+                Mr(l2g,l2g) = IntegrateLHS(@(u,v) DP(v,u),bTest,bTrial,bMesh,3);
+            end
+            K = IntegrateLHS(@(u,v) DP(Grad(v),Grad(u)),vF,uF,obj.mesh);            
+            M = IntegrateLHS(@(u,v) DP(v,u),vF,uF,obj.mesh,3);
+            lhs = (obj.epsilon^2).*K + M + obj.epsilon*Mr;
             lhs     = obj.bc.fullToReducedMatrix(lhs);
             obj.LHS = decomposition(lhs);
         end
