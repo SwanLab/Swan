@@ -28,6 +28,10 @@ classdef InclusionTraining < handle
             data = Training(m);
             p = OfflineDataProcessor(data);
             EIFEoper = p.computeROMbasis();
+            EIFEoper.U = EIFEoper.Udef + EIFEoper.Urb;
+            EIFEoper.U = EIFEoper.U(:);
+            filePath = ['/home/raul/Documents/GitHub/EPFL/data_' num2str(obj.r) '.mat'];
+            save(filePath,'EIFEoper')
         end
         
     end
@@ -35,7 +39,7 @@ classdef InclusionTraining < handle
     methods (Access = private)
         
         function init(obj)
-            obj.r    = 0.3;
+            obj.r    = 0.83;
             obj.xmin = -1; 
             obj.xmax = 1;
             obj.ymin = -1;

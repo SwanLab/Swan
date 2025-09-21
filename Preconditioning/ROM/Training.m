@@ -31,20 +31,19 @@ classdef Training < handle
 
         function obj = Training(meshRef)
             obj.init(meshRef)
-
-%             mR = obj.createReferenceMesh();
-            bS  = obj.mesh.createBoundaryMesh();
-            [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain(obj.mesh);
-            obj.meshDomain = mD;
+            if sum(obj.nSubdomains > 1)>= 1
+                obj.repeatMesh();
+            else
+                obj.meshDomain = obj.mesh; 
+            end
             [obj.boundaryMeshJoined, obj.localGlobalConnecBd] = obj.meshDomain.createSingleBoundaryMesh();
-            obj.DDdofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,obj.mesh,iCR);
             obj.DirFun = obj.AnalyticalDirCond();
-
 
             [LHS,RHS,uFun,lambdaFun] = obj.createElasticProblem();
             sol  = LHS\RHS;
             uAll = sol(1:uFun.nDofs,:);
-            [obj.uSbd,obj.LHSsbd]    = obj.extractDomainData(uAll,LHS);
+            K = LHS(1:uFun.nDofs,1:uFun.nDofs);
+            [obj.uSbd,obj.LHSsbd]    = obj.extractDomainData(uAll,K);
             
 %             save('./Preconditioning/ROM/Training/PorousCell/OfflineData.mat','uSbd','meshRef','LHSsbd')
 
@@ -56,11 +55,16 @@ classdef Training < handle
 
         function init(obj,mesh)
             obj.nSubdomains  = [5 5]; %nx ny
-%             obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
-            obj.fileNameEIFEM = 'DEF_Q4porL_1.mat';
             obj.tolSameNode = 1e-10;
             obj.domainIndices = [3 3];
             obj.mesh = mesh;
+        end
+
+        function repeatMesh(obj)
+             bS  = obj.mesh.createBoundaryMesh();
+            [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain(obj.mesh);
+            obj.meshDomain = mD;         
+            obj.DDdofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,obj.mesh,iCR);
         end
 
         function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomain(obj,mR)
@@ -69,44 +73,6 @@ classdef Training < handle
             s.tolSameNode = obj.tolSameNode;
             m = MeshCreatorFromRVE2D(s);
             [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
-        end
-
-        function mS = createReferenceMesh(obj)
-            %     mS = obj.createStructuredMesh();
-            %   mS = obj.createMeshFromGid();
-            mS = obj.createEIFEMreferenceMesh();
-        end
-
-        function mS = createMeshFromGid(obj)
-            filename   = 'lattice_ex1';
-            a.fileName = filename;
-            femD       = FemDataContainer(a);
-            mS         = femD.mesh;
-        end
-
-        function mS = createStructuredMesh(obj)
-            % Generate coordinates
-            x1 = linspace(0,1,2);
-            x2 = linspace(0,1,2);
-            % Create the grid
-            [xv,yv] = meshgrid(x1,x2);
-            % Triangulate the mesh to obtain coordinates and connectivities
-            [F,coord] = mesh2tri(xv,yv,zeros(size(xv)),'x');
-
-            s.coord    = coord(:,1:2);
-            s.connec   = F;
-            mS         = Mesh.create(s);
-        end
-
-        function mS = createEIFEMreferenceMesh(obj)
-            filename = obj.fileNameEIFEM;
-            load(filename);
-            s.coord    = EIFEoper.MESH.COOR;
-            isMin = s.coord==min(s.coord);
-            isMax = s.coord==max(s.coord);
-
-            s.connec   = EIFEoper.MESH.CN;
-            mS         = Mesh.create(s);
         end
 
         function material = createMaterial(obj,mesh)
@@ -138,8 +104,7 @@ classdef Training < handle
 
         function LHS  = computeLHS(obj,u,dLambda)          
             material = obj.createMaterial(obj.meshDomain);
-            K = obj.computeStiffnessMatrix(obj.meshDomain,u,material);
-           
+            K = obj.computeStiffnessMatrix(obj.meshDomain,u,material);          
             C = obj.computeConditionMatrix(dLambda);
             Z = zeros(size(C,2));
             LHS = [K C; C' Z];
@@ -186,8 +151,13 @@ classdef Training < handle
         end
 
         function [u,lhs] = extractDomainData(obj,uC,LHS)
-            u   = obj.extractDomainDisplacements(uC);
-            lhs = obj.extractDomainLHS(LHS);
+            if sum(obj.nSubdomains > 1)>= 1
+                u   = obj.extractDomainDisplacements(uC);
+                lhs = obj.extractDomainLHS(LHS);
+            else
+                u = uC;
+                lhs = LHS;
+            end
         end
 
         function u = extractDomainDisplacements(obj,uC)
