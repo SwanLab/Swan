@@ -15,7 +15,8 @@ classdef RHSIntegratorShapeFunction < handle
         function rhs = compute(obj,fun,test)
             obj.createQuadrature(fun,test);
             rhsElem = obj.computeElementalRHS(fun,test);
-            rhs = obj.assembleIntegrand(test,rhsElem);
+            %rhs = obj.assembleIntegrand(test,rhsElem);
+            rhs = assembleVector(rhsElem,test);
         end
 
     end
@@ -52,7 +53,7 @@ classdef RHSIntegratorShapeFunction < handle
                     end
                 end
             end
-            rhsC = transpose(int);
+            rhsC = (int);
         end
 
         function f = assembleIntegrand(obj,test,rhsElem)

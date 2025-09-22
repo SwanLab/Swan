@@ -18,7 +18,6 @@ classdef FilterPDE < handle
         function obj = FilterPDE(cParams)
             obj.init(cParams);
             obj.computeBoundaryConditions(cParams);
-            obj.createProblemLHS(cParams);
             obj.computeLHS();
         end
 
@@ -26,7 +25,7 @@ classdef FilterPDE < handle
             xF = LagrangianFunction.create(obj.mesh, fun.ndimf, obj.trial.order);
             obj.computeRHS(fun,quadType);
             obj.solveFilter();
-            xF.setFValues(obj.trial.fValues);
+            xF.setFValues(full(obj.trial.fValues));
         end
 
         function obj = updateEpsilon(obj,epsilon)
@@ -56,15 +55,22 @@ classdef FilterPDE < handle
             obj.bc.compute();
         end
 
-        function createProblemLHS(obj,s)
-            s.trial        = obj.trial;
-            s.mesh         = obj.mesh;
-            s.type         = obj.LHStype;
-            obj.problemLHS = LHSIntegrator.create(s);
-        end
 
         function computeLHS(obj)
-            lhs     = obj.problemLHS.compute(obj.epsilon);
+            e = obj.epsilon;
+            vF = LagrangianFunction.create(obj.mesh,1,'P1');
+            uF = LagrangianFunction.create(obj.mesh,1,'P1');
+            ndof  = uF.nDofs;
+            Mr     = sparse(ndof,ndof);
+            if strcmp(obj.LHStype, "StiffnessMassBoundaryMass")
+                [bMesh, l2g] = obj.mesh.createSingleBoundaryMesh();
+                bTest  = LagrangianFunction.create(bMesh,vF.ndimf,vF.order);
+                bTrial = LagrangianFunction.create(bMesh,uF.ndimf,uF.order);            
+                Mr(l2g,l2g) = IntegrateLHS(@(u,v) DP(v,u),bTest,bTrial,bMesh,3);
+            end
+            K = IntegrateLHS(@(u,v) DP(Grad(v),Grad(u)),vF,uF,obj.mesh);            
+            M = IntegrateLHS(@(u,v) DP(v,u),vF,uF,obj.mesh,2);
+            lhs = (obj.epsilon^2).*K + M + obj.epsilon*Mr;
             lhs     = obj.bc.fullToReducedMatrix(lhs);
             obj.LHS = decomposition(lhs);
         end
@@ -74,16 +80,14 @@ classdef FilterPDE < handle
                 case {'UnfittedFunction','UnfittedBoundaryFunction'}
                     s.mesh = fun.unfittedMesh;
                     s.type = 'Unfitted';
+                    s.quadType = quadType;
+                    int        = RHSIntegrator.create(s);
+                    obj.RHS    = int.compute(fun,obj.trial);
                 otherwise
-                    s.mesh = obj.mesh;
-                    s.type = 'ShapeFunction';
-            end
-            s.quadType = quadType;
-            int        = RHSIntegrator.create(s);
-            test       = obj.trial;
-            rhs        = int.compute(fun,test);
-            rhsR       = obj.bc.fullToReducedVector(rhs);
-            obj.RHS    = rhsR;
+                    f = @(v) DP(v,fun);
+                    obj.RHS = IntegrateRHS(f,obj.trial,obj.trial.mesh,quadType);   
+            end            
+             obj.RHS     = obj.bc.fullToReducedVector(obj.RHS);
         end
 
         function solveFilter(obj)

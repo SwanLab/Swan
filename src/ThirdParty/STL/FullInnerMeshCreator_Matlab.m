@@ -15,7 +15,7 @@ classdef FullInnerMeshCreator_Matlab < FullInnerMeshCreator
             connecCutInner = innerCutMesh.connec;
 
             switch uM.innerMesh.mesh.type
-                case 'TRIANGLE'
+                case {'TRIANGLE','TETRAHEDRA'}
                     coordInner     = innerMesh.coord;
                     connecInner    = innerMesh.connec;
 

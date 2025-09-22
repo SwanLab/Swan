@@ -10,28 +10,21 @@ classdef DiffReactProblem < handle
         solver
         epsilon
         LHStype
-        problemLHS
         problemData
-        % boundaryConditions
     end
 
     methods (Access = public)
         
         function obj = DiffReactProblem(cParams)
             obj.init(cParams);
-            % obj.createBoundaryConditions();
             obj.createSolver();
-            obj.createProblemLHS();
         end
 
         function computeVariables(obj,rhs)
-            % bc  = obj.boundaryConditions;
-            % RHS = bc.fullToReducedVector(rhs);
             RHS = rhs;
             LHS = obj.computeLHS(obj.epsilon);
-            x = obj.solver.solve(LHS,RHS);
-            % obj.variables.x = bc.reducedToFullVector(x);
-            obj.variables.x = x;
+            obj.variables.x = obj.solver.solve(LHS,RHS);
+
             a.mesh = obj.mesh;
             a.fValues = obj.variables.x;
             a.order = 'P1';
@@ -40,9 +33,19 @@ classdef DiffReactProblem < handle
         
         function LHS = computeLHS(obj, epsilon)
             obj.epsilon = epsilon;
-            lhs = obj.problemLHS.compute(epsilon);
-            % LHS = obj.boundaryConditions.fullToReducedMatrix(lhs);
-            LHS = lhs;
+            vF = LagrangianFunction.create(obj.mesh,1,'P1');
+            uF = LagrangianFunction.create(obj.mesh,1,'P1');
+            ndof  = uF.nDofs;
+            Mr     = sparse(ndof,ndof);
+            if strcmp(obj.LHStype, "StiffnessMassBoundaryMass")
+                [bMesh, l2g] = obj.mesh.createSingleBoundaryMesh();
+                test  = LagrangianFunction.create(bMesh,vF.ndimf,vF.order);
+                trial = LagrangianFunction.create(bMesh,uF.ndimf,uF.order);            
+                Mr(l2g,l2g) = IntegrateLHS(@(u,v) DP(v,u),test,trial,bMesh,3);
+            end
+            K = IntegrateLHS(@(u,v) DP(Grad(v),Grad(u)),vF,uF,obj.mesh);            
+            M = IntegrateLHS(@(u,v) DP(v,u),vF,uF,obj.mesh,3);
+            LHS = (obj.epsilon^2).*K + M + obj.epsilon*Mr;
         end
        
         function print(obj,filename)
@@ -65,39 +68,15 @@ classdef DiffReactProblem < handle
     methods (Access = private)
         
         function init(obj, cParams)
-            obj.mesh              = cParams.mesh;
-            obj.LHStype           = cParams.LHStype;
-            obj.problemData.pdim  = '1D';
-            obj.problemData.scale = cParams.scale;
-        end
-
-        function createBoundaryConditions(obj)
-            s.mesh  = obj.mesh;
-            s.scale = obj.problemData.scale;
-            s.ndofs = obj.mesh.nnodes;
-            s.bc{1}.dirichlet = [];
-            s.bc{1}.pointload = [];
-            s.bc{1}.ndimf     = [];
-            s.bc{1}.ndofs     = [];
-            bc = BoundaryConditions(s);
-            bc.compute();
-            obj.boundaryConditions = bc;
+            obj.mesh    = cParams.mesh;
+            obj.LHStype = cParams.LHStype;
         end
         
         function createSolver(obj)
             s.type = 'DIRECT';
             obj.solver = Solver.create(s);
         end
-
-        function createProblemLHS(obj)
-            s.type  = obj.LHStype;
-            s.mesh  = obj.mesh;
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.quadratureOrder = 2;
-            obj.problemLHS = LHSIntegrator.create(s);
-        end
-    
+        
     end
 
 end

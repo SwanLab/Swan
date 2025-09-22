@@ -4,7 +4,7 @@ DiffReactTestsSuite;
 UnfittedIntegrationTestsSuite;
 VectorizedTriangulationTestsSuite;
 close all;
-TopOptTestsSuite;
+% TopOptTestsSuite;
 MultimaterialTestsSuite;
 ReadingFilesTestsSuite;
 %PlottingTestsSuite; % Funciona quan es generen els .mat

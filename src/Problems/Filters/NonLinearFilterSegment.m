@@ -36,7 +36,7 @@ classdef NonLinearFilterSegment < handle
             xF = copy(obj.trial);   
             obj.computeInitialGuess(fun,quadOrder);
             obj.updateDotProduct(obj.trial); 
-            obj.createRHSShapeDerivative(quadOrder);
+            %obj.createRHSShapeDerivative(quadOrder);
             obj.chiN = obj.createRHSShapeFunction(fun,quadOrder);
             iter = 1;
             dJ0 = obj.computeCostGradient(quadOrder);
@@ -46,7 +46,7 @@ classdef NonLinearFilterSegment < handle
                 valOld = obj.trial.fValues;
                 isAcceptable = false;
                 while not(isAcceptable)
-                    obj.createRHSDirectionalDerivative();
+                    obj.createRHSDirectionalDerivative(quadOrder);
                     obj.solveProblem();
                     obj.updateDotProduct(obj.trial);
                     dJ = obj.computeCostGradient(quadOrder);
@@ -103,32 +103,38 @@ classdef NonLinearFilterSegment < handle
         end
 
         function createMassMatrix(obj)
-            s.type  = 'MassMatrix';
-            s.mesh  = obj.mesh;
-            s.test  = obj.trial;
-            s.trial = obj.trial;
-            LHS     = LHSIntegrator.create(s);
-            obj.M   = LHS.compute();
+            obj.M = IntegrateLHS(@(v,u) DP(v,u),obj.trial,obj.trial,obj.mesh,2);
         end
 
         function createDirectionalStiffnessMatrix(obj)
             k       = obj.direction.constant;
-            s.type  = 'AnisotropicStiffnessMatrix';
-            s.mesh  = obj.mesh;
-            s.test  = obj.trial;
-            s.trial = obj.trial;
-            s.A     = ConstantFunction.create(k*k',obj.mesh);
-            LHS     = LHSIntegrator.create(s);
-            obj.K   = LHS.compute();
+          %  s.type  = 'AnisotropicStiffnessMatrix';
+          %  s.mesh  = obj.mesh;
+          %  s.test  = obj.trial;
+          %  s.trial = obj.trial;
+            A = ConstantFunction.create(k*k',obj.mesh);
+          %  s.A     = A;
+          %  LHS     = LHSIntegrator.create(s);
+          %  K1   = LHS.compute();
+
+            vF  = obj.trial;
+            uF =  obj.trial;
+            K2  = IntegrateLHS(@(u,v) DP(Grad(v),DP(A,Grad(u))'),vF,uF,obj.mesh); 
+                
+            obj.K = K2;
+
         end
 
-        function createRHSShapeDerivative(obj,quadOrder)
-            s.mesh = obj.mesh;
-            s.type = 'ShapeDerivative';
-            s.quadratureOrder = quadOrder;
-            s.test = obj.trial;
-            obj.dNIntegrator = RHSIntegrator.create(s);
-        end
+        % function createRHSShapeDerivative(obj,quadOrder)
+        %     s.mesh = obj.mesh;
+        %     s.type = 'ShapeDerivative';
+        %     s.quadratureOrder = quadOrder;
+        %     s.test = obj.trial;
+        %     obj.dNIntegrator = RHSIntegrator.create(s);
+        % 
+        % 
+        % 
+        % end
 
         function computeInitialGuess(obj,fun,quadOrder)
             rhoE1 = obj.trial;
@@ -167,10 +173,14 @@ classdef NonLinearFilterSegment < handle
             h = a.*maxFun - b.*minFun;
         end
 
-        function createRHSDirectionalDerivative(obj)
+        function createRHSDirectionalDerivative(obj,quadOrder)
             g         = obj.computeMeasureGradient();
             f         = obj.direction;
-            obj.kdhdN = obj.dNIntegrator.compute(f.*g);
+            %obj.kdhdN = obj.dNIntegrator.compute(f.*g);
+
+            obj.kdhdN = IntegrateRHS(@(v) DP(Grad(v),f.*g),obj.trial,obj.mesh,quadOrder);
+
+            
         end
 
         function g = computeMeasureGradient(obj)
@@ -224,23 +234,23 @@ classdef NonLinearFilterSegment < handle
             rhs1   = obj.createRHSShapeFunction(obj.trial,quadOrder);
             rhs2   = -obj.chiN;
             int3   = (a^2.*maxFun + b^2.*minFun).*k;
-            rhs3   = obj.dNIntegrator.compute(int3);
+            rhs3   = IntegrateRHS(@(v) DP(Grad(v),int3),obj.trial,obj.mesh,quadOrder);
         end
 
-        function intN = createRHSShapeFunction(obj,fun,quadType)
+        function RHS = createRHSShapeFunction(obj,fun,quadType)
             switch class(fun)
                 case {'UnfittedFunction','UnfittedBoundaryFunction'}
                     s.mesh = fun.unfittedMesh;
                     s.type = 'Unfitted';
+                    s.quadType = quadType;
+                    int        = RHSIntegrator.create(s);
+                    RHS    = int.compute(fun,obj.trial);
                 otherwise
-                    s.mesh = obj.mesh;
-                    s.type = 'ShapeFunction';
-            end
-            s.quadType = quadType;
-            int        = RHSIntegrator.create(s);
-            test       = obj.trial;
-            intN       = int.compute(fun,test);
+                    f = @(v) DP(v,fun);
+                    RHS = IntegrateRHS(f,obj.trial,obj.trial.mesh,quadType);   
+            end    
         end
+
 
         function m = createDomainMax(obj,sFun)
             s.operation = @(xV) max(zeros(size(xV(1,:,:))),sFun.evaluate(xV));
