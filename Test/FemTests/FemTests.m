@@ -132,15 +132,15 @@ classdef FemTests < handle & matlab.unittest.TestCase
 
     methods(Test, TestTags = {'FEM', 'Classic', 'Micro'})
 
-        % function testMicro(testCase, microTests)
-        %     s.testName = microTests;
-        %     s.variablesToStore = {'Chomog'};
-        %     s.computerType = 'MICRO';
-        %     test = PrecomputedVariableTest(s);
-        %     err = test.computeError();
-        %     tol = 1e-6;
-        %     testCase.verifyLessThanOrEqual(err, tol)
-        % end
+        function testMicro(testCase, microTests)
+            s.testName = microTests;
+            s.variablesToStore = {'Chomog'};
+            s.computerType = 'MICRO';
+            test = PrecomputedVariableTest(s);
+            err = test.computeError();
+            tol = 1e-6;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
 
     end
 
