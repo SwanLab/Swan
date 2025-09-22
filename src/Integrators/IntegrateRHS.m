@@ -6,11 +6,19 @@ quad = Quadrature.create(mesh,quadOrder);
 xV = quad.posgp;
 w  = quad.weigp;
 rhs    = zeros(test.nDofsElem,mesh.nelem);
-detJ   = DetJacobian(omesh);
+detJ   = DetJacobian(mesh);
 v = @(i) Test(test,i);
 for i = 1:test.nDofsElem
     int = (f(v(i)).*detJ)*w';
     rhs(i,:) = rhs(i,:) + squeezeParticular(int.evaluate(xV),2);
 end
 RHS = assembleVector(rhs, test);
+end
+
+function F = assembleVector(Felem, f)
+dofConnec = f.getDofConnec();
+nDofs     = numel(f.fValues);
+rowIdx    = dofConnec(:);
+Felem = Felem';
+F = sparse(rowIdx, 1, Felem(:), nDofs, 1);
 end

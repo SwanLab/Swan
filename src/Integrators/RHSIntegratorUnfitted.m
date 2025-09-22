@@ -63,9 +63,8 @@ classdef RHSIntegratorUnfitted < handle
 
         function integrator = createIntegratorUnfittedBoundary(obj,uMesh)
             s.mesh     = uMesh;
-            s.type     = 'Unfitted';
             s.quadType = obj.quadType;
-            integrator = RHSIntegrator.create(s);
+            integrator = RHSIntegratorUnfitted(s);
         end
 
         function int = integrateInnerMeshFunction(obj,uFun,test)

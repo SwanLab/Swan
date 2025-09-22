@@ -71,9 +71,8 @@ classdef FilterPDE < handle
             switch class(fun)
                 case {'UnfittedFunction','UnfittedBoundaryFunction'}
                     s.mesh = fun.unfittedMesh;
-                    s.type = 'Unfitted';
                     s.quadType = quadType;
-                    int        = RHSIntegrator.create(s);
+                    int        = RHSIntegratorUnfitted(s);
                     obj.RHS    = int.compute(fun,obj.trial);
                 otherwise
                     f = @(v) DP(v,fun);
