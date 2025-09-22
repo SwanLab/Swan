@@ -211,7 +211,7 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             aOp = BaseFunction.computeOperation(a);
             s.operation = @(xV) squeezeParticular(pagenorm(aOp(xV),b),2);
             s.mesh = a.mesh;
-            s.ndimf = a.ndimf;            
+            s.ndimf = 1;%a.ndimf;            
             r = DomainFunction(s);
         end
 
