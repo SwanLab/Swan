@@ -63,9 +63,8 @@ classdef RHSIntegratorUnfitted < handle
 
         function integrator = createIntegratorUnfittedBoundary(obj,uMesh)
             s.mesh     = uMesh;
-            s.type     = 'Unfitted';
             s.quadType = obj.quadType;
-            integrator = RHSIntegrator.create(s);
+            integrator = RHSIntegratorUnfitted(s);
         end
 
         function int = integrateInnerMeshFunction(obj,uFun,test)
@@ -76,7 +75,7 @@ classdef RHSIntegratorUnfitted < handle
                 fullCells = iMesh.fullCells;
                 fInner    = uFun.innerMeshFunction;
                 testLoc   = LagrangianFunction.create(iMesh.mesh,test.ndimf,test.order);
-                intLoc = IntegrateRHS(@(v) DP(v,fInner),testLoc,iMesh.mesh,obj.quadType);
+                intLoc    = IntegrateRHS(@(v) DP(v,fInner),testLoc,iMesh.mesh,obj.quadType);
                 dofG      = test.getDofConnec();
                 dofL      = testLoc.getDofConnec();
                 l2g(dofL) = dofG(fullCells,:);

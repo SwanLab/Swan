@@ -243,7 +243,7 @@ classdef NonLinearFilterSegment < handle
                     s.mesh = fun.unfittedMesh;
                     s.type = 'Unfitted';
                     s.quadType = quadType;
-                    int        = RHSIntegrator.create(s);
+                    int        = RHSIntegratorUnfitted(s);
                     RHS    = int.compute(fun,obj.trial);
                 otherwise
                     f = @(v) DP(v,fun);
