@@ -48,7 +48,7 @@ classdef LinearizedHarmonicProjector3 < handle
             [resL,resH,resB,resG] = obj.evaluateResidualNorms(bBar,b);
             i = 1;
             theta = 0.5;
-            while res(i) > 1e-14
+            while res(i) > 1e-4
                 xNew   = LHS\RHS;
                 x = theta*xNew + (1-theta)*x;
                 b   = obj.createVectorFromSolution(x);
@@ -82,9 +82,8 @@ classdef LinearizedHarmonicProjector3 < handle
 
         function [resL,resH,resB,resG] = evaluateAllResiduals(obj,bBar,b)
             resL = DP(b-bBar,obj.perimeter.*(b-bBar));
-            resH = obj.evaluateHarmonicResidual(b);
-            bs = b.getVectorFields();                        
-            resB = bs{1}.^2 + bs{2}.^2 - 1;
+            resH = obj.evaluateHarmonicResidual(b);                
+            resB = norm(b)- 1;
             resG = DDP(Grad(b),Grad(b));
         end
 
