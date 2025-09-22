@@ -106,6 +106,12 @@ classdef RHSIntegratorUnfitted < handle
                     end
                 end
                 int = obj.assembleIntegrand(test,intElem);
+
+
+                testLoc = UnfittedFunction.create(uMesh,test);
+                f2 = @(v) DomainFunction.create(@(xV) DP(v.evaluate(isoMesh.evaluate(xV)),f),cutMesh.mesh,1);
+                f3 = @(v) DomainFunction.create(@(xV) accumarray(globCell,f2(v).evaluate(xV),[1,nGaus,nElem],@sum,0),cutMesh.mesh,1);
+                intElem2 = IntegrateRHS(f3,testLoc.innerCutMeshFunction,cutMesh.mesh,obj.quadType); % Or create IntegrateRHSCutMesh
             else
                 dofs = size(test.fValues,1);
                 int  = zeros(dofs,1);
