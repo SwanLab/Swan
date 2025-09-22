@@ -5,7 +5,7 @@ classdef MappingComputer < handle
         mesh
         interpolator
         dilatedOrientation
-        testFunction
+        test
     end
 
     methods (Access = public)
@@ -15,13 +15,13 @@ classdef MappingComputer < handle
         end
 
         function uF = compute(obj)
-            LHS = obj.computeStiffnessMatrix();
+            LHS = IntegrateLHS(@(u,v) DP(Grad(u),Grad(v)),obj.test,obj.test,obj.mesh,4);
             In  = obj.interpolator;
             for iDim = 1:obj.mesh.ndim
                 RHS = obj.computeRHS(iDim);
                 uC  = obj.solveSaddleSystem(LHS,RHS);
                 uD  = In*uC;                          
-                uV(iDim,:,:) = reshape(uD,obj.mesh.nnodeElem,[]);
+                uV(iDim,:,:) = reshape(full(uD),obj.mesh.nnodeElem,[]);
                 uCF(:,iDim) = uC;
             end
 
@@ -79,33 +79,18 @@ classdef MappingComputer < handle
             obj.mesh               = cParams.mesh;
             obj.dilatedOrientation = cParams.dilatedOrientation;
             obj.interpolator       = cParams.interpolator;
-            obj.testFunction       = LagrangianFunction.create(obj.mesh,1,'P1D');
-        end
-
-        function K = computeStiffnessMatrix(obj)
-            s.mesh  = obj.mesh;
-            s.type  = 'StiffnessMatrix';
-            s.test  = obj.testFunction;
-            s.trial = obj.testFunction;
-            s.quadratureOrder = 4;
-            lhs = LHSIntegrator.create(s);
-            K = lhs.compute();
+            obj.test               = LagrangianFunction.create(obj.mesh,1,'P1D');
         end
 
         function RHS = computeRHS(obj,iDim)
             aI = obj.dilatedOrientation{iDim};
-            s.mesh            = obj.mesh;
-            s.quadratureOrder = 4;
-            s.type            = 'ShapeDerivative';
-            s.test = obj.testFunction;
-            rhs  = RHSIntegrator.create(s);
-            rhsV = rhs.compute(aI);
+            rhsV = IntegrateRHS(@(v) DP(Grad(v),aI),obj.test,obj.mesh,4);
             In   = obj.interpolator;
             RHS = In'*rhsV;          
         end
 
         function u = solveSaddleSystem(obj,LHS,RHS)
-            M = obj.createMassMatrix();
+            M = IntegrateLHS(@(u,v) DP(v,u),obj.test,obj.test,obj.mesh,4);
             eta = 1e-2;%1e-2;%1e-15;%1e-2;%0.00000000000001;
             In = obj.interpolator;            
             LHS = In'*LHS*In+eta*In'*M*In;
@@ -117,18 +102,6 @@ classdef MappingComputer < handle
             s = Solver.create(a);
             u = s.solve(LHS,RHS);             
             %u = u(1:end-1);
-        end
-
-        function M = createMassMatrix(obj)
-            s.type            = 'MassMatrix';
-            s.mesh            = obj.mesh;
-            s.test            = obj.testFunction;            
-            s.trial           = obj.testFunction;%LagrangianFunction.create(obj.mesh,1,'P1');
-           % s.test            = LagrangianFunction.create(obj.mesh,1,'P1');
-           % s.trial           = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.quadratureOrder = 4;
-            LHS               = LHSIntegrator.create(s);
-            M = LHS.compute();
         end
 
     end

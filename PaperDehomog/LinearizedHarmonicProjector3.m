@@ -1,9 +1,5 @@
 classdef LinearizedHarmonicProjector3 < handle
 
-    properties (Access = public)
-
-    end
-
     properties (Access = private)
         eta
         internalDOFs
@@ -31,12 +27,12 @@ classdef LinearizedHarmonicProjector3 < handle
             obj.fS = LagrangianFunction.create(obj.mesh, 1, 'P1');
             obj.fG = LagrangianFunction.create(obj.mesh, 1, 'P1');
             obj.createInternalDOFs();                        
-            obj.eta = (2*obj.mesh.computeMeanCellSize)^2;  
+            obj.eta = (200*obj.mesh.computeMeanCellSize)^2;  
             obj.perimeter = obj.density.*(1-obj.density);%ConstantFunction.create(1,obj.mesh);
             obj.massMatrixBB      = IntegrateLHS(@(u,v) DP(v,obj.perimeter.*u),obj.fB,obj.fB,obj.mesh);
             obj.massMatrixGG      = IntegrateLHS(@(u,v) DP(v,u),obj.fG,obj.fG,obj.mesh);
             obj.massMatrixSS      = IntegrateLHS(@(u,v) DP(v,u),obj.fS,obj.fS,obj.mesh);
-            obj.stiffnessMatrixBB = IntegrateLHS(@(u,v) DP(Grad(v),Grad(u)),obj.fB,obj.fB,obj.mesh);
+            obj.stiffnessMatrixBB = IntegrateLHS(@(u,v) DP(Grad(v),(1-obj.perimeter).*Grad(u)),obj.fB,obj.fB,obj.mesh);
         end
 
         function b = solveProblem(obj,bBar,b)
@@ -48,7 +44,7 @@ classdef LinearizedHarmonicProjector3 < handle
             [resL,resH,resB,resG] = obj.evaluateResidualNorms(bBar,b);
             i = 1;
             theta = 0.5;
-            while res(i) > 1e-4
+            while res(i) > 1e-6
                 xNew   = LHS\RHS;
                 x = theta*xNew + (1-theta)*x;
                 b   = obj.createVectorFromSolution(x);
@@ -149,7 +145,7 @@ classdef LinearizedHarmonicProjector3 < handle
         end
 
         function RHS = computeRHS(obj,bBar)
-            rhsB = IntegrateRHS(@(v) DP(v,bBar),bBar,obj.mesh,3);
+            rhsB = IntegrateRHS(@(v) DP(v,obj.perimeter.*bBar),bBar,obj.mesh,3);
             rhsH = zeros(size(obj.internalDOFs,2),1);
             rhsU = IntegrateRHS(@(v) v,obj.fG,obj.mesh,2);
             RHS  = [rhsB;rhsH;rhsU];

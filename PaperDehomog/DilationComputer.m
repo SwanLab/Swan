@@ -23,7 +23,7 @@ classdef DilationComputer < handle
             obj.computeRHS();
             r = obj.solveSystem();
             s.mesh = obj.mesh;
-            s.fValues = r;
+            s.fValues = full(r);
             s.order = 'P1';
             rF = LagrangianFunction(s);
         end
@@ -38,19 +38,10 @@ classdef DilationComputer < handle
         end
        
         function computeLHS(obj)
-            K = obj.computeStiffnessMatrix();
+            K = IntegrateLHS(@(u,v) DP(Grad(v),Grad(u)),obj.dilation,obj.dilation,obj.mesh);
             I = ones(size(K,1),1);
             obj.LHS = [K,I;I',0];
-        end
-        
-        function K = computeStiffnessMatrix(obj)
-            s.test  = obj.dilation;
-            s.trial = obj.dilation;
-            s.mesh  = obj.mesh;
-            s.type  = 'StiffnessMatrix';
-            lhs = LHSIntegrator.create(s);
-            K = lhs.compute();
-        end
+        end 
 
         function createDilationFun(obj)
             obj.dilation = LagrangianFunction.create(obj.mesh, 1, 'P1');
@@ -60,12 +51,14 @@ classdef DilationComputer < handle
             a1   = obj.orientationVector{1};
             a2   = obj.orientationVector{2};
             fun  = (Curl(a1).*a2 - Curl(a2).*a1);
-            s.mesh = obj.mesh;
-            s.type = 'ShapeDerivative';
-            s.quadratureOrder = 3;
-            s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            rhs  = RHSIntegrator.create(s);
-            rhsV = rhs.compute(fun);
+            test = obj.dilation;
+            %s.mesh = obj.mesh;
+            %s.type = 'ShapeDerivative';
+            %s.quadratureOrder = 3;
+            %s.test = test;
+            %rhs  = RHSIntegrator.create(s);
+            %rhsV = rhs.compute(fun);
+            rhsV = IntegrateRHS(@(v) DP(fun,Grad(v)),test,obj.mesh);
             obj.RHS = [rhsV;0];
         end
         
