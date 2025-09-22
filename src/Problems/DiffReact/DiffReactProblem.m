@@ -36,12 +36,9 @@ classdef DiffReactProblem < handle
             vF = LagrangianFunction.create(obj.mesh,1,'P1');
             uF = LagrangianFunction.create(obj.mesh,1,'P1');
             ndof  = uF.nDofs;
-            Mr     = sparse(ndof,ndof);
+            Mr    = sparse(ndof,ndof);
             if strcmp(obj.LHStype, "StiffnessMassBoundaryMass")
-                [bMesh, l2g] = obj.mesh.createSingleBoundaryMesh();
-                test  = LagrangianFunction.create(bMesh,vF.ndimf,vF.order);
-                trial = LagrangianFunction.create(bMesh,uF.ndimf,uF.order);            
-                Mr(l2g,l2g) = IntegrateLHS(@(u,v) DP(v,u),test,trial,bMesh,3);
+                Mr = IntegrateLHSBoundary(@(u,v) DP(v,u),vF,uF,obj.mesh,3);
             end
             K = IntegrateLHS(@(u,v) DP(Grad(v),Grad(u)),vF,uF,obj.mesh);            
             M = IntegrateLHS(@(u,v) DP(v,u),vF,uF,obj.mesh,3);

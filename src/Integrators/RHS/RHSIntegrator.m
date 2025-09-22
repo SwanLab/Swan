@@ -34,8 +34,8 @@ classdef RHSIntegrator < handle
 
         function rhs = computeElementalRHS(obj,f)
             rhs    = zeros(obj.test.nDofsElem,obj.mesh.nelem);
-            J      = Jacobian(obj.mesh);
-            detJ   = Det(J);
+            detJ      = DetJacobian(obj.mesh);
+            %detJ   = Det(J);
             xV = obj.quadrature.posgp;
             w  = obj.quadrature.weigp;
             v = @(i) Test(obj.test,i);
