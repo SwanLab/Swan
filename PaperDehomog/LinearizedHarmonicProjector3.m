@@ -10,7 +10,7 @@ classdef LinearizedHarmonicProjector3 < handle
         massMatrixSS
         massMatrixGG
         massMatrixBB
-        stiffnessMatrix
+        stiffnessMatrixBB
         fB
         fS
         fG
@@ -27,14 +27,16 @@ classdef LinearizedHarmonicProjector3 < handle
 
         function obj = LinearizedHarmonicProjector3(cParams)
             obj.init(cParams);
-            obj.initializeFunctions();
+            obj.fB = LagrangianFunction.create(obj.mesh, 1, 'P1');
+            obj.fS = LagrangianFunction.create(obj.mesh, 1, 'P1');
+            obj.fG = LagrangianFunction.create(obj.mesh, 1, 'P1');
+            obj.createInternalDOFs();                        
             obj.eta = (2*obj.mesh.computeMeanCellSize)^2;  
-            %obj.perimeter = ConstantFunction.create(1,obj.mesh);
-            obj.perimeter = obj.density.*(1-obj.density);
-
-            obj.createInternalDOFs();
-            obj.computeAllMassMatrix();
-            obj.computeStiffnessMatrix();
+            obj.perimeter = obj.density.*(1-obj.density);%ConstantFunction.create(1,obj.mesh);
+            obj.massMatrixBB      = IntegrateLHS(@(u,v) DP(v,obj.perimeter.*u),obj.fB,obj.fB,obj.mesh);
+            obj.massMatrixGG      = IntegrateLHS(@(u,v) DP(v,u),obj.fG,obj.fG,obj.mesh);
+            obj.massMatrixSS      = IntegrateLHS(@(u,v) DP(v,u),obj.fS,obj.fS,obj.mesh);
+            obj.stiffnessMatrixBB = IntegrateLHS(@(u,v) DP(Grad(v),Grad(u)),obj.fB,obj.fB,obj.mesh);
         end
 
         function b = solveProblem(obj,bBar,b)
@@ -79,52 +81,24 @@ classdef LinearizedHarmonicProjector3 < handle
         end
 
         function [resL,resH,resB,resG] = evaluateAllResiduals(obj,bBar,b)
-            resL = obj.evaluateLossResidual(bBar,b);
+            resL = DP(b-bBar,obj.perimeter.*(b-bBar));
             resH = obj.evaluateHarmonicResidual(b);
-            resB = obj.evaluateUnitNormResidual(b);
-            resG = obj.evaluteGradientNorm(b);
-        end
-
-        function difB = evaluateLossResidual(obj,bBar,b)
-            difB = DP(b-bBar,obj.perimeter.*(b-bBar));
-        end
-
-        function bR = createReshapedFunction(obj,b)
-            bR = DomainFunction.create(@(x) reshape(b.evaluate(x),[1 size(b.evaluate(x))]),b.mesh,b.ndimf); 
+            bs = b.getVectorFields();                        
+            resB = bs{1}.^2 + bs{2}.^2 - 1;
+            resG = DDP(Grad(b),Grad(b));
         end
 
         function resH = evaluateHarmonicResidual(obj,b)
-            bs = b.getVectorFields;            
+            bs = b.getVectorFields();            
             f = (-Grad(bs{1}).*bs{2}+Grad(bs{2}).*bs{1});
-            s.mesh = obj.mesh;
-            s.quadratureOrder = 4;
-            s.type = 'ShapeDerivative';
-            s.test = obj.fS;
-            rhs  = RHSIntegrator.create(s);
-            rhsV = rhs.compute(f);
+            rhsV = IntegrateRHS(@(v) DP(Grad(v),f),obj.fS,obj.mesh,4);
             rhsV(obj.boundaryNodes) = 0;
             Mss = obj.massMatrixSS;
             hf = Mss\rhsV;
-            resH = obj.createFunction(hf,obj.fS.order);
+            resH = obj.createFunction(full(hf),obj.fS.order);
         end
 
-        function resB = evaluateUnitNormResidual(obj,b)
-            f = @(x) obj.computeUnitNormFunction(b,x);
-            resB = DomainFunction.create(f,obj.mesh,1); 
 
-           % Mgg = obj.massMatrixGG; 
-           % nBf = (Mgg)\nB;            
-           % resB = obj.createP1Function(abs(nBf));
-        end
-
-        function resG = evaluteGradientNorm(obj,b)
-            bS = b.getVectorFields;
-            b1  = bS{1};
-            b2  = bS{2};
-            %grad = norm(Grad(b1).*Grad(b1)+Grad(b2).*Grad(b2),2);
-            grad = DP(Grad(b1),Grad(b1))+DP(Grad(b2),Grad(b2));
-            resG = project(grad,obj.fG.order);
-        end
     end
 
     methods (Access = private)
@@ -134,60 +108,11 @@ classdef LinearizedHarmonicProjector3 < handle
             obj.boundaryNodes    = cParams.boundaryMesh;
             obj.density          = cParams.density;            
         end
-
-        function initializeFunctions(obj)
-            obj.fB = LagrangianFunction.create(obj.mesh, 1, 'P1');
-            obj.fS = LagrangianFunction.create(obj.mesh, 1, 'P1');
-            obj.fG = LagrangianFunction.create(obj.mesh, 1, 'P1');
-        end
-
-        function computeAllMassMatrix(obj)
-            obj.massMatrixBB = obj.createMassMatrixWithFunction(obj.fB,obj.fB,obj.perimeter);
-            obj.massMatrixGG = obj.computeMassMatrix(obj.fG,obj.fG);
-            obj.massMatrixSS = obj.computeMassMatrix(obj.fS,obj.fS);            
-        end
-
-        function M = computeMassMatrix(obj,test,trial)
-            s.type  = 'MassMatrix';
-            s.mesh  = obj.mesh;
-            s.test  = test;
-            s.trial = trial;
-            s.quadratureOrder = 2;
-            lhs = LHSIntegrator.create(s);
-            M = lhs.compute();
-        end
-
-        function nB = computeUnitNormFunction(obj,b,x)
-            bV = b.evaluate(x);
-            b1V  = (bV(1,:,:));
-            b2V  = (bV(2,:,:));
-            nB   = b1V.^2 + b2V.^2 -1;
-        end
-
-        function computeStiffnessMatrix(obj)
-            s.test  = obj.fB;
-            s.trial = obj.fB;
-            s.mesh  = obj.mesh;
-            s.type  = 'StiffnessMatrix';
-            lhs = LHSIntegrator.create(s);
-            K = lhs.compute();
-            obj.stiffnessMatrix = K;
-        end
-
+  
         function createInternalDOFs(obj)
             bNodes = obj.boundaryNodes;
             iDOFs  = setdiff(1:obj.fS.nDofs,bNodes);
             obj.internalDOFs = iDOFs;
-        end
-
-        function Kf = createStiffNessMatrixWithFunction(obj,f)
-            s.test     = obj.fB;
-            s.trial    = obj.fS;
-            s.function = f;
-            s.mesh     = obj.mesh;
-            s.type  = 'StiffnessMatrixWithFunction';
-            lhs = LHSIntegrator.create(s);
-            Kf = lhs.compute();
         end
 
         function f = createFunction(obj,fV,order)
@@ -197,107 +122,39 @@ classdef LinearizedHarmonicProjector3 < handle
             f = LagrangianFunction(s);
         end
 
-        function f = createScalarFunctions(obj,b,dir)
-            s.fValues = b.fValues(:,dir);
-            s.mesh    = obj.mesh;
-            s.order   = 'P1';
-            f = LagrangianFunction(s);
-        end
-
-        function Nf = createAdvectionMatrixWithFunction(obj,f)
-            s.test     = obj.fB;
-            s.trial    = obj.fS;
-            s.function = f;
-            s.mesh     = obj.mesh;
-            s.quadratureOrder = 2;
-            s.type  = 'AdvectionMatrixWithFunction';
-            lhs = LHSIntegrator.create(s);
-            Nf = lhs.compute();
-        end
-
-        function Mf = createMassMatrixWithFunction(obj,fTest,fTrial,f)
-            s.test     = fTest;
-            s.trial    = fTrial;
-            s.function = f;
-            s.mesh     = obj.mesh;
-            s.quadratureOrder = 2;
-            s.type  = 'MassMatrixWithFunction';
-            lhs = LHSIntegrator.create(s);
-            Mf = lhs.compute();
-        end
-
-        function [Mb1,Mb2] = createMassMatrixWithB(obj,b)
-            bs = b.getVectorFields;
-            b1  = bs{1};
-            b2  = bs{2};
-            Mb1  = obj.createMassMatrixWithFunction(obj.fB,obj.fG,b1);
-            Mb2  = obj.createMassMatrixWithFunction(obj.fB,obj.fG,b2);
-        end
-
-        function [Kb1,Kb2,Nb1,Nb2] = computeHarmonicMatrix(obj,b)
-            bs = b.getVectorFields;
-            b1  = bs{1};
-            b2  = bs{2};
-            Kb1 = obj.createStiffNessMatrixWithFunction(b1);
-            Kb2 = obj.createStiffNessMatrixWithFunction(b2);
-            Nb1 = obj.createAdvectionMatrixWithFunction(b1);
-            Nb2 = obj.createAdvectionMatrixWithFunction(b2);
-            Kb1 = obj.computeReducedAdvectionMatrix(Kb1);
-            Kb2 = obj.computeReducedAdvectionMatrix(Kb2);
-            Nb1 = obj.computeReducedAdvectionMatrix(Nb1);
-            Nb2 = obj.computeReducedAdvectionMatrix(Nb2);
-        end
-
         function LHS = computeLHS(obj,b)
             Mbb  = obj.massMatrixBB;
-            K    = obj.stiffnessMatrix;
+            Kbb  = obj.stiffnessMatrixBB;
             nInt = size(obj.internalDOFs,2);
-            [Mb1,Mb2] = obj.createMassMatrixWithB(b);
-            [Kb1,Kb2,Nb1,Nb2] = obj.computeHarmonicMatrix(b);
+            bs = b.getVectorFields();
+            Mb1 = IntegrateLHS(@(u,v) DP(v,bs{1}.*u),obj.fB,obj.fG,obj.mesh);
+            Mb2 = IntegrateLHS(@(u,v) DP(v,bs{2}.*u),obj.fB,obj.fG,obj.mesh);
+            Kb1 = IntegrateLHS(@(u,v) bs{1}.*DP(Grad(v),Grad(u)),obj.fB,obj.fS,obj.mesh);
+            Kb2 = IntegrateLHS(@(u,v) bs{2}.*DP(Grad(v),Grad(u)),obj.fB,obj.fS,obj.mesh);
+            Nb1 = IntegrateLHS(@(u,v) v.*DP(Grad(bs{1}),Grad(u)),obj.fB,obj.fS,obj.mesh);
+            Nb2 = IntegrateLHS(@(u,v) v.*DP(Grad(bs{2}),Grad(u)),obj.fB,obj.fS,obj.mesh); 
+            iDOFs = obj.internalDOFs;
+            Kb1 = Kb1(:,iDOFs);
+            Kb2 = Kb2(:,iDOFs);
+            Nb1 = Nb1(:,iDOFs);
+            Nb2 = Nb2(:,iDOFs);
             Z  = sparse(obj.fB.nDofs,obj.fB.nDofs);
             Zh = sparse(nInt,nInt);
             Zsg = sparse(nInt,obj.fG.nDofs);
             Zgg = sparse(obj.fG.nDofs,obj.fG.nDofs);
-            A  = Mbb + obj.eta*K;
-            LHS = [A          ,         Z,(-Kb2+Nb2),Mb1;       ...
-                Z          ,         A, (Kb1-Nb1),Mb2;         ...
-                (-Kb2+Nb2)',(Kb1-Nb1)',        Zh,Zsg;...
-                Mb1',      Mb2',       Zsg',Zgg];
+            A  = Mbb + obj.eta*Kbb;
+            LHS = [A          ,          Z, (-Kb2+Nb2),Mb1;...
+                   Z          ,          A,  (Kb1-Nb1),Mb2;...
+                   (-Kb2+Nb2)', (Kb1-Nb1)',         Zh,Zsg;...
+                   Mb1'       ,       Mb2',       Zsg',Zgg];
         end
 
         function RHS = computeRHS(obj,bBar)
-            rhsB = obj.computeRHSCostDerivative(bBar);
+            rhsB = IntegrateRHS(@(v) DP(v,bBar),bBar,obj.mesh,3);
             rhsH = zeros(size(obj.internalDOFs,2),1);
-            rhsU = obj.computeRHSunitNorm();
+            rhsU = IntegrateRHS(@(v) v,obj.fG,obj.mesh,2);
             RHS  = [rhsB;rhsH;rhsU];
         end
-
-        function rhsB = computeRHSCostDerivative(obj,bBar)
-            s.mesh = obj.mesh;
-            s.quadType = 3;
-            s.type = 'ShapeFunction';
-            test = bBar;
-            f    = bBar.*obj.perimeter;
-            rhs  = RHSIntegrator.create(s);
-            rhsB = rhs.compute(f,test);
-            rhsB = reshape(rhsB,2,[])';
-            rhsB = rhsB(:);
-        end
-
-        function rhsV = computeRHSunitNorm(obj)
-            s.mesh = obj.mesh;
-            s.quadType = 2;
-            s.type = 'ShapeFunction';
-            f    = ConstantFunction.create(1,obj.mesh);
-            rhs  = RHSIntegrator.create(s);
-            rhsV = rhs.compute(f,obj.fG);
-        end
-
-        function Ared = computeReducedAdvectionMatrix(obj,A)
-            iDOFs = obj.internalDOFs;
-            Ared = A(:,iDOFs);
-        end
-
 
     end
 

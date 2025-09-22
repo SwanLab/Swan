@@ -105,7 +105,7 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             else
                 s.mesh = b.mesh;
             end
-            s.ndimf = max(a.ndimf,b.ndimf);
+            %s.ndimf = max(a.ndimf,b.ndimf);
             r = DomainFunction(s);
         end
 
@@ -113,12 +113,15 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             aOp = BaseFunction.computeOperation(a);
             bOp = BaseFunction.computeOperation(b);
             s.operation = @(xV) pagemtimes(aOp(xV),bOp(xV));
+            ndimfA = BaseFunction.computeFieldDimension(a);
+            ndimfB = BaseFunction.computeFieldDimension(b);
+            s.ndimf = max(ndimfA,ndimfB);
             if isa(a,'BaseFunction')
                 s.mesh = a.mesh;
             else
                 s.mesh = b.mesh;
             end
-            s.ndimf = max(a.ndimf,b.ndimf);
+            %s.ndimf = max(a.ndimf,b.ndimf);
             r = DomainFunction(s);
         end
 
