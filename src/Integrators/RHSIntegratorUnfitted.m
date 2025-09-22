@@ -75,7 +75,7 @@ classdef RHSIntegratorUnfitted < handle
                 fullCells = iMesh.fullCells;
                 fInner    = uFun.innerMeshFunction;
                 testLoc   = LagrangianFunction.create(iMesh.mesh,test.ndimf,test.order);
-                intLoc = IntegrateRHS(@(v) DP(v,fInner),testLoc,iMesh.mesh,obj.quadType);
+                intLoc    = IntegrateRHS(@(v) DP(v,fInner),testLoc,iMesh.mesh,obj.quadType);
                 dofG      = test.getDofConnec();
                 dofL      = testLoc.getDofConnec();
                 l2g(dofL) = dofG(fullCells,:);
