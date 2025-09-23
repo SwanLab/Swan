@@ -281,20 +281,8 @@ classdef OfflineDataProcessor < handle
         end
 
         function K  = computeLHS(obj,u)          
-            material = obj.createMaterial(obj.mesh);
-            K = obj.computeStiffnessMatrix(obj.mesh,u,material);
-          
-        end
-
-        function LHS = computeStiffnessMatrix(obj,mesh,dispFun,mat)
-            s.type     = 'ElasticStiffnessMatrix';
-            s.mesh     = mesh;
-            s.test     = dispFun;
-            s.trial    = dispFun;
-            s.material = mat;
-            s.quadratureOrder = 2;
-            lhs = LHSIntegrator.create(s);
-            LHS = lhs.compute();
+            C = obj.createMaterial(obj.mesh);
+            K = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),u,u,obj.mesh,2);
         end
 
     end

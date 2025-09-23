@@ -105,31 +105,35 @@ classdef Training < handle
         function LHS  = computeLHS(obj,u,dLambda)          
             material = obj.createMaterial(obj.meshDomain);
             K = obj.computeStiffnessMatrix(obj.meshDomain,u,material);          
-            C = obj.computeConditionMatrix(dLambda);
+            C = obj.computeConditionMatrix(obj.meshDomain,u,dLambda);
             Z = zeros(size(C,2));
             LHS = [K C; C' Z];
         end
 
-        function LHS = computeStiffnessMatrix(obj,mesh,dispFun,mat)
-            s.type     = 'ElasticStiffnessMatrix';
-            s.mesh     = mesh;
-            s.test     = dispFun;
-            s.trial    = dispFun;
-            s.material = mat;
-            s.quadratureOrder = 2;
-            lhs = LHSIntegrator.create(s);
-            LHS = lhs.compute();
+        function LHS = computeStiffnessMatrix(obj,mesh,dispFun,C)
+            LHS = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),dispFun,dispFun,mesh,2);
         end
 
-        function C = computeConditionMatrix(obj,dLambda)
-            s.type                  = 'ConditionMatrix';   
-            s.quadType              = 2;
-            s.boundaryMeshJoined    = obj.boundaryMeshJoined;
-            s.localGlobalConnecBd   = obj.localGlobalConnecBd;
-            s.nnodes                = obj.meshDomain.nnodes;
-            lhs      = LHSIntegrator_condition_shape_shape(s);
-            test     = LagrangianFunction.create(obj.boundaryMeshJoined, obj.meshDomain.ndim, 'P1'); % !!
-            C        = lhs.compute(dLambda,test); 
+        function C = computeConditionMatrix(obj,mesh,dispFun,dLambda)
+            % s.type                  = 'ConditionMatrix';   
+            % s.quadType              = 2;
+            % s.boundaryMeshJoined    = obj.boundaryMeshJoined;
+            % s.localGlobalConnecBd   = obj.localGlobalConnecBd;
+            % s.nnodes                = obj.meshDomain.nnodes;
+            % lhs      = LHSIntegrator_condition_shape_shape(s);
+            test     = LagrangianFunction.create(obj.boundaryMeshJoined, obj.meshDomain.ndim, 'P1'); % !!         
+            lhs = IntegrateLHS(@(u,v) DP(v,u),dLambda,test,obj.boundaryMeshJoined,2);
+
+            nDofs = obj.meshDomain.nnodes*dLambda.ndimf;
+            lhsg = sparse(nDofs,dLambda.nDofs);
+            [iLoc,jLoc,vals] = find(lhs);
+            l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
+            l2g_dof = l2g_dof(:);
+            jGlob = l2g_dof(jLoc);
+            iGlob = l2g_dof(iLoc);
+            C = lhsg + sparse(iGlob,jLoc,vals, nDofs,dLambda.nDofs);
+
+
         end
 
         function RHS = computeRHS(obj,u,dLambda)
@@ -139,13 +143,14 @@ classdef Training < handle
         end
        
         function uD = computeRHScondition(obj,test,dir)
-            s.mesh = obj.boundaryMeshJoined;
-            s.quadType = 2;
-            rhs = RHSIntegratorShapeFunction(s);
+            % s.mesh = obj.boundaryMeshJoined;
+            % s.quadType = 2;
+            % rhs = RHSIntegratorShapeFunction(s);
             nfun = size(dir,2);
             uD = [];
             for i=1:nfun
-                rDiri = rhs.compute(dir{i},test);
+                rDiri = IntegrateRHS(@(v) DP(v,dir{i}),test,obj.boundaryMeshJoined,2);
+                % rDiri = rhs.compute(dir{i},test);
                 uD = [uD rDiri];
             end
         end

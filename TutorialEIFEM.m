@@ -12,6 +12,7 @@ classdef TutorialEIFEM < handle
         RHS
         fileNameEIFEM
         tolSameNode
+        solverType
     end
 
 
@@ -60,6 +61,7 @@ classdef TutorialEIFEM < handle
             obj.nSubdomains  = [15 2]; %nx ny
             obj.fileNameEIFEM = 'DEF_Q4porL_1.mat';
             obj.tolSameNode = 1e-10;
+            obj.solverType = 'REDUCED';
         end        
 
         function createReferenceMesh(obj)
@@ -168,30 +170,54 @@ classdef TutorialEIFEM < handle
             RHSr       = obj.computeForces(lhs,u);
         end
 
-        function [LHS,LHSr] = computeStiffnessMatrix(obj,mesh,dispFun,mat)
-            s.type     = 'ElasticStiffnessMatrix';
-            s.mesh     = mesh;
-            s.test     = dispFun;
-            s.trial    = dispFun;
-            s.material = mat;
-            s.quadratureOrder = 2;
-            lhs = LHSIntegrator.create(s);
-            LHS = lhs.compute();
+        function [LHS,LHSr] = computeStiffnessMatrix(obj,mesh,dispFun,C)
+            % s.type     = 'ElasticStiffnessMatrix';
+            % s.mesh     = mesh;
+            % s.test     = dispFun;
+            % s.trial    = dispFun;
+            % s.material = mat;
+            % s.quadratureOrder = 2;
+            % lhs = LHSIntegrator.create(s);
+            % LHS = lhs.compute();
+
+            LHS = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),dispFun,dispFun,mesh,2);
             LHSr = obj.bcApplier.fullToReducedMatrixDirichlet(LHS);
         end
 
         function RHS = computeForces(obj,stiffness,u)
-            s.type      = 'Elastic';
-            s.scale     = 'MACRO';
-            s.dim.ndofs = u.nDofs;
-            s.BC        = obj.boundaryConditions;
-            s.mesh      = obj.meshDomain;
-            RHSint      = RHSIntegrator.create(s);
-            rhs         = RHSint.compute();
-            % Perhaps move it inside RHSint?
-            R           = RHSint.computeReactions(stiffness);
-            RHS = rhs+R;
-            RHS = obj.bcApplier.fullToReducedVectorDirichlet(RHS);
+            % s.type      = 'Elastic';
+            % s.scale     = 'MACRO';
+            % s.dim.ndofs = u.nDofs;
+            % s.BC        = obj.boundaryConditions;
+            % s.mesh      = obj.meshDomain;
+            % RHSint      = RHSIntegrator.create(s);
+            % rhs         = RHSint.compute();
+            % % Perhaps move it inside RHSint?
+            % R           = RHSint.computeReactions(stiffness);
+            % RHS = rhs+R;
+            
+
+
+            ndofs = u.nDofs;
+            bc            = obj.boundaryConditions;
+            neumann       = bc.pointload_dofs;
+            neumannValues = bc.pointload_vals;
+            rhs = zeros(ndofs,1);
+            if ~isempty(neumann)
+                rhs(neumann) = neumannValues;
+            end
+            if strcmp(obj.solverType,'REDUCED')
+                bc      = obj.boundaryConditions;
+                dirich  = bc.dirichlet_dofs;
+                dirichV = bc.dirichlet_vals;
+                if ~isempty(dirich)
+                    R = -stiffness(:,dirich)*dirichV;
+                else
+                    R = zeros(sum(ndofs(:)),1);
+                end
+                rhs = rhs+R;
+            end
+            RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
         end
 
         function Meifem = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh)
