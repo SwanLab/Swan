@@ -103,7 +103,7 @@
         function computeStiffnessMatrix(obj)           
             C     = obj.material;
             f = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
-            obj.stiffness = IntegrateLHS(f,obj.uFun,obj.uFun,obj.mesh,2);
+            obj.stiffness = IntegrateLHS(f,obj.uFun,obj.uFun,obj.mesh,'Domain',2);
         end
 
         function computeForces(obj)

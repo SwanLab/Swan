@@ -103,7 +103,7 @@ classdef NonLinearFilterSegment < handle
         end
 
         function createMassMatrix(obj)
-            obj.M = IntegrateLHS(@(v,u) DP(v,u),obj.trial,obj.trial,obj.mesh,2);
+            obj.M = IntegrateLHS(@(v,u) DP(v,u),obj.trial,obj.trial,obj.mesh,'Domain',2);
         end
 
         function createDirectionalStiffnessMatrix(obj)
@@ -119,7 +119,7 @@ classdef NonLinearFilterSegment < handle
 
             vF  = obj.trial;
             uF =  obj.trial;
-            K2  = IntegrateLHS(@(u,v) DP(Grad(v),DP(A,Grad(u))'),vF,uF,obj.mesh); 
+            K2  = IntegrateLHS(@(u,v) DP(Grad(v),DP(A,Grad(u))'),vF,uF,obj.mesh,'Domain'); 
                 
             obj.K = K2;
 

@@ -62,7 +62,6 @@ classdef NonLinearFilterDroplet < handle
             th            = s.theta;
             k             = [cosd(th);sind(th)];
             obj.direction = ConstantFunction.create(k,obj.mesh);
-        end
 
 
         function createRHSChi(obj,fun,quadType)

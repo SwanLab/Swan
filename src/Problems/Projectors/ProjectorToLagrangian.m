@@ -45,7 +45,7 @@ classdef ProjectorToLagrangian < Projector
                     test   = LagrangianFunction.create(fun.mesh, fun.ndimf, obj.order);
                     trial  = LagrangianFunction.create(fun.mesh, fun.ndimf, obj.order);
                     f = @(u,v) DP(v,u);
-                    LHS = IntegrateLHS(f,test,trial,fun.mesh,2);
+                    LHS = IntegrateLHS(f,test,trial,fun.mesh,'Domain',2);
             end
         end
 
