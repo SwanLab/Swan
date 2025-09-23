@@ -116,22 +116,26 @@ classdef ElasticProblem < handle
         end
 
         function computeForces(obj)
-            s.type     = 'Elastic';
-            s.scale    = 'MACRO';
-            s.dim      = obj.getFunDims();
-            s.BC       = obj.boundaryConditions;
-            s.mesh     = obj.mesh;
-            s.material = obj.material;
-            s.globalConnec = obj.mesh.connec;
-            RHSint = RHSIntegrator.create(s);
-            rhs = RHSint.compute();
-            % Perhaps move it inside RHSint?
+            dim           = obj.getFunDims();
+            bc            = obj.boundaryConditions;
+            neumann       = bc.pointload_dofs;
+            neumannValues = bc.pointload_vals;
+            rhs = zeros(dim.ndofs,1);
+            if ~isempty(neumann)
+                rhs(neumann) = neumannValues;
+            end            
             if strcmp(obj.solverType,'REDUCED')
-                R = RHSint.computeReactions(obj.stiffness);
-                obj.forces = rhs+R;
-            else
-                obj.forces = rhs;
+                bc      = obj.boundaryConditions;
+                dirich  = bc.dirichlet_dofs;
+                dirichV = bc.dirichlet_vals;
+                if ~isempty(dirich)
+                    R = -obj.stiffness(:,dirich)*dirichV;
+                else
+                    R = zeros(sum(dim.ndofs(:)),1);
+                end
+                rhs = rhs+R;
             end
+            obj.forces = rhs;
         end
 
 
