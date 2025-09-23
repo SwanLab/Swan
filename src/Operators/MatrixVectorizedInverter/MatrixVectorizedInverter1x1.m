@@ -7,7 +7,7 @@ classdef MatrixVectorizedInverter1x1 < MatrixVectorizedInverterInterface
         end
         
         function det = computeDeterminant(~,A)
-            det = A;
+            det = squeeze(pagenorm(A));
         end
         
     end

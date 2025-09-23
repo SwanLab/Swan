@@ -3,7 +3,7 @@ classdef DiffReactTests < matlab.unittest.TestCase
     properties (TestParameter)
 %         file = {'testDiffReactHexagon', 'testDiffReactTorus', 'testDiffReactCube'}
         file = {'testDiffReactHexagon'}
-        file3d = {'testDiffReactTorus', 'testDiffReactCube'}
+        file3d = {'testDiffReactTorus', 'testDiffReactCube'}     
         LHStype = {'StiffnessMass', 'StiffnessMassBoundaryMass'}
     end
 
@@ -66,24 +66,15 @@ classdef DiffReactTests < matlab.unittest.TestCase
             gidParams = gidReader.read(file);
         end
         
-        function rhs = createRHS(testCase, mesh)
+        function rhs = createRHS(testCase, mesh) %% TO BE ADAPTED
             M = testCase.computeM(mesh);
             u = testCase.createDisplacement(M);
             rhs = M*u;
         end
         
         function M = computeM(testCase, mesh)
-            a.mesh    = mesh;
-            a.fValues = zeros(mesh.nnodes, 1);
-            a.order   = 'P1';
-            f = LagrangianFunction(a);
-            s.type         = 'MassMatrix';
-            s.quadratureOrder = 2;
-            s.mesh = mesh;
-            s.test  = f;
-            s.trial = f;
-            LHS = LHSIntegrator.create(s);
-            M = LHS.compute();
+            f = LagrangianFunction.create(mesh,1,'P1');
+            M = IntegrateLHS(@(u,v) DP(v,u),f,f,mesh,2);
         end
         
         function u = createDisplacement(testCase, M)
