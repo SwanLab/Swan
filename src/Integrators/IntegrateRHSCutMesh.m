@@ -8,35 +8,18 @@ end
 
 function rhs = integrateElementalRHS(f,test,cutMesh,quadOrder)
 quad     = Quadrature.create(cutMesh.mesh,quadOrder);
-xVLoc    = quad.posgp;
-isoMesh  = obtainIsoparametricMesh(cutMesh);
-xV       = isoMesh.evaluate(xVLoc);
+xV       = quad.posgp;
 globCell = cutMesh.cellContainingSubcell;
 nElem    = test.mesh.nelem;
-w        = repmat(quad.weigp',[1 1 cutMesh.mesh.nelem]);
+w        = quad.weigp;
 rhs      = zeros(test.nDofsElem,nElem);
 detJ     = DetJacobian(cutMesh.mesh);
-fdetJ    = f.*detJ;
-fdetJ    = fdetJ.evaluate(xVLoc);
 v        = @(i) Test(test,i);
 for i = 1:test.nDofsElem
-    N = v(i).evaluate(xV);
-    int = squeezeParticular(pagemtimes(N.*fdetJ,w),2);
+    int = (f(v(i)).*detJ)*w';
+    int = squeezeParticular(int.evaluate(xV),2);
     rhs(i,:) = rhs(i,:) + accumarray(globCell,int,[nElem,1],@sum,0)';
 end
-end
-
-function m = obtainIsoparametricMesh(cutMesh)
-coord      = cutMesh.xCoordsIso;
-nDim       = size(coord,1);
-nNode      = size(coord,2);
-nElem      = size(coord,3);
-msh.connec = reshape(1:nElem*nNode,nNode,nElem)';
-msh.type   = cutMesh.mesh.type;
-s.fValues  = reshape(coord,nDim,[])';
-s.mesh     = msh;
-s.order    = 'P1';
-m          = LagrangianFunction(s);
 end
 
 function F = assembleVector(Felem, f)

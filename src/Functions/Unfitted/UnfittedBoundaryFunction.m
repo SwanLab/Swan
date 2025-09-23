@@ -16,6 +16,17 @@ classdef UnfittedBoundaryFunction < handle
             obj.init(cParams);
             obj.computeUnfittedMeshFunction();
         end
+
+        function res = DP(obj1,v)
+            switch class(v)
+                case 'Test'
+                    f       = obj1.boundaryCutMeshFunction;
+                    isoMesh = obj1.obtainIsoparametricMesh();
+                    xV      = @(xVLoc) isoMesh.evaluate(xVLoc);
+                    Ni      = DomainFunction.create(@(xVLoc) v.evaluate(xV(xVLoc)),f.mesh,1);
+                    res     = DP(f,Ni);
+            end
+        end
     end
 
     methods (Access = private)
@@ -29,6 +40,19 @@ classdef UnfittedBoundaryFunction < handle
             uMeshFun = obj.unfittedMesh.obtainFunctionAtUnfittedMesh(obj.fun);
             obj.boundaryCutMeshFunction = uMeshFun.boundaryCutMeshFunction;
             obj.unfittedBoundaryMeshFunction = uMeshFun.unfittedBoundaryMeshFunction;
+        end
+
+        function m = obtainIsoparametricMesh(obj)
+            coord      = obj.unfittedMesh.boundaryCutMesh.xCoordsIso;
+            nDim       = size(coord,1);
+            nNode      = size(coord,2);
+            nElem      = size(coord,3);
+            msh.connec = reshape(1:nElem*nNode,nNode,nElem)';
+            msh.type   = obj.unfittedMesh.boundaryCutMesh.mesh.type;
+            s.fValues  = reshape(coord,nDim,[])';
+            s.mesh     = msh;
+            s.order    = 'P1';
+            m          = LagrangianFunction(s);
         end
     end
 end

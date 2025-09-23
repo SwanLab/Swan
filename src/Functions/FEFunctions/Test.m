@@ -52,6 +52,8 @@ classdef Test < BaseFunction
                 Ni = zeros(ndimf,nGauss,nEval);
                 Ni(dim,:,:) = repmat(N(node,:),[1 1 nEval]);
             else
+                nEval = size(xV,3);
+                Ni = zeros(ndimf,nGauss,nEval);
                 Ni(dim,:,:) = N(node,:,:);
             end
         end

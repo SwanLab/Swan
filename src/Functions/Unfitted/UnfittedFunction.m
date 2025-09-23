@@ -104,15 +104,13 @@ classdef UnfittedFunction < BaseFunction
         end
 
         function res = DP(obj1,v)
-            res = copy(obj1);
             switch class(v)
                 case 'Test'
-                    Ni      = DomainFunction.create(@(xVLoc) v.evaluate(xV(xVLoc)));
-                    res.fun = DP(res.fun,v);
-                    f2      = obj1.createNew(obj2);
-                    res.innerMeshFunction = res.innerMeshFunction.*f2.innerMeshFunction;
-                    res.innerCutMeshFunction = res.innerCutMeshFunction.*f2.innerCutMeshFunction;
-                    res.updateNDimF(f2);
+                    f            = obj1.innerCutMeshFunction;
+                    isoMesh      = obj1.obtainIsoparametricMesh();
+                    xV           = @(xVLoc) isoMesh.evaluate(xVLoc);
+                    Ni           = DomainFunction.create(@(xVLoc) v.evaluate(xV(xVLoc)),f.mesh,1);
+                    res.innerCut = DP(f,Ni);
             end
         end
 
@@ -139,6 +137,19 @@ classdef UnfittedFunction < BaseFunction
             s.uMesh = obj.unfittedMesh;
             s.fun   = fun;
             f       = UnfittedFunction(s);
+        end
+
+        function m = obtainIsoparametricMesh(obj)
+            coord      = obj.unfittedMesh.innerCutMesh.xCoordsIso;
+            nDim       = size(coord,1);
+            nNode      = size(coord,2);
+            nElem      = size(coord,3);
+            msh.connec = reshape(1:nElem*nNode,nNode,nElem)';
+            msh.type   = obj.unfittedMesh.innerCutMesh.mesh.type;
+            s.fValues  = reshape(coord,nDim,[])';
+            s.mesh     = msh;
+            s.order    = 'P1';
+            m          = LagrangianFunction(s);
         end
     end
 

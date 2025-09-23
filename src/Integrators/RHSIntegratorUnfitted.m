@@ -22,17 +22,15 @@ classdef RHSIntegratorUnfitted < handle
             switch class(uFun)
                 case 'UnfittedFunction'
                     intInner    = obj.integrateInnerMeshFunction(uFun,test);
-                    fInnerCut   = uFun.innerCutMeshFunction;
                     iCMesh      = obj.unfittedMesh.innerCutMesh;
                     qICMesh     = obj.innerCutQuad;
-                    intInnerCut = obj.integrateCutMeshFunction(fInnerCut,test,iCMesh,qICMesh);
+                    f           = @(v) DP(uFun,v);
+                    intInnerCut = obj.integrateCutMeshFunction(@(v) f(v).innerCut,test,iCMesh,qICMesh);
                     int         = intInner+intInnerCut;
-                    %s.mesh=obj.unfittedMesh.backgroundMesh;s.order='P1';s.fValues=intInner;fP1=LagrangianFunction(s);fP1.plot;s.fValues=intInnerCut;fP1=LagrangianFunction(s);fP1.plot;s.fValues=int;fP1=LagrangianFunction(s);fP1.plot
                 case 'UnfittedBoundaryFunction'
-                    fBoundCut   = uFun.boundaryCutMeshFunction;
                     bCMesh      = obj.unfittedMesh.boundaryCutMesh;
                     qBCMesh     = obj.boundCutQuad;
-                    intBoundCut = obj.integrateCutMeshFunction(fBoundCut,test,bCMesh,qBCMesh);
+                    intBoundCut = obj.integrateCutMeshFunction(uFun,test,bCMesh,qBCMesh);
                     intUnfBound = obj.integrateUnfittedBoundaryMeshFunction(uFun,test);
                     int         = intBoundCut+intUnfBound;
             end
