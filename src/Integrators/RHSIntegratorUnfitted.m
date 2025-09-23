@@ -85,33 +85,7 @@ classdef RHSIntegratorUnfitted < handle
 
         function int = integrateCutMeshFunction(obj,f,test,cutMesh,quad)
             if ~isempty(cutMesh)
-                xVLoc    = quad.posgp;
-                fG       = f.evaluate(xVLoc);
-                dV       = cutMesh.mesh.computeDvolume(quad);
-                isoMesh  = obj.obtainIsoparametricMesh(cutMesh);
-                xV       = isoMesh.evaluate(xVLoc);
-                globCell = cutMesh.cellContainingSubcell;
-                N        = test.computeShapeFunctions(xV);
-                nDofElem = size(N,1);
-                nElem    = test.mesh.nelem;
-                nGaus    = quad.ngaus;
-                intElem  = zeros(nElem,nDofElem);
-                for iDof = 1:nDofElem
-                    for iGaus = 1:nGaus
-                        dVg(:,1) = dV(iGaus, :);
-                        fV   = squeeze(fG(1,iGaus,:));
-                        Ni   = squeeze(N(iDof,iGaus,:));
-                        fNdV = Ni.*fV.*dVg;
-                        intElem(:,iDof) = intElem(:,iDof) + accumarray(globCell,fNdV,[nElem,1],@sum,0);
-                    end
-                end
-                int = obj.assembleIntegrand(test,intElem);
-
-
-                testLoc = UnfittedFunction.create(uMesh,test);
-                f2 = @(v) DomainFunction.create(@(xV) DP(v.evaluate(isoMesh.evaluate(xV)),f),cutMesh.mesh,1);
-                f3 = @(v) DomainFunction.create(@(xV) accumarray(globCell,f2(v).evaluate(xV),[1,nGaus,nElem],@sum,0),cutMesh.mesh,1);
-                intElem2 = IntegrateRHS(f3,testLoc.innerCutMeshFunction,cutMesh.mesh,obj.quadType); % Or create IntegrateRHSCutMesh
+                int = IntegrateRHSCutMesh(f,test,cutMesh,quad.order);
             else
                 dofs = size(test.fValues,1);
                 int  = zeros(dofs,1);

@@ -39,7 +39,7 @@ classdef Test < BaseFunction
     end
 
     methods (Access = protected)
-        
+
         function Ni = evaluateNew(obj,xV)
             u     = obj.uFun;
             N  = u.computeShapeFunctions(xV);
@@ -47,12 +47,16 @@ classdef Test < BaseFunction
             node = ceil(obj.iDof/ndimf);
             dim  = obj.iDof - (node-1)*ndimf;
             nGauss = size(xV,2);
-            nElem  = u.mesh.nelem;
-            Ni = zeros(ndimf,nGauss,nElem);            
-            Ni(dim,:,:) = repmat(N(node,:),[1 1 nElem]);
+            if ismatrix(xV)
+                nEval = u.mesh.nelem;
+                Ni = zeros(ndimf,nGauss,nEval);
+                Ni(dim,:,:) = repmat(N(node,:),[1 1 nEval]);
+            else
+                Ni(dim,:,:) = N(node,:,:);
+            end
         end
-        
+
     end
-  
-    
+
+
 end
