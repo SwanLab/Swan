@@ -29,7 +29,7 @@ end
 
 function [bFunc, gFunc] = restrictFunc(bMesh,func,l2g_map)
     if func.mesh.kFace == 0
-        bFunc = LagrangianFunction.create(bMesh,func.ndimf,func.order);
+        bFunc = func.restrictBaseToBoundary(bMesh);
         gFunc = @(iLoc) l2g_map(iLoc);
     else
         bFunc = func;

@@ -65,11 +65,11 @@ classdef NonLinearFilterDroplet < handle
     end
 
         function createMassMatrix(obj)
-            obj.M = IntegrateLHS(@(u,v) DP(v,u),obj.trial,obj.trial,obj.mesh);
+            obj.M = IntegrateLHS(@(u,v) DP(v,u),obj.trial,obj.trial,obj.mesh,'Domain');
         end
 
         function createStiffnessMatrix(obj)
-            obj.K = IntegrateLHS(@(u,v) DP(Grad(v),Grad(u)),obj.trial,obj.trial,obj.mesh); 
+            obj.K = IntegrateLHS(@(u,v) DP(Grad(v),Grad(u)),obj.trial,obj.trial,obj.mesh,'Domain'); 
         end
 
         function createRHSChi(obj,fun,quadType)

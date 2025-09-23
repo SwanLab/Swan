@@ -29,7 +29,7 @@ classdef NeohookeanFunctional < handle
             % This is the LINEALIZED hessian (Holzapfel, 401)
             % See  Holzapfel, 396
             Aneofun = obj.computeTangentConstitutive(uFun);
-            hess = IntegrateLHS(@(u,v) DDP(Grad(v),DDP(Aneofun,Grad(u))),uFun,uFun,obj.mesh,quadOrder);
+            hess = IntegrateLHS(@(u,v) DDP(Grad(v),DDP(Aneofun,Grad(u))),uFun,uFun,obj.mesh,'Domain',quadOrder);
         end
 
     end

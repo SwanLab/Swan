@@ -44,7 +44,7 @@ classdef LocalDamageFunctional < handle
             % s.quadratureOrder = quadOrder;
             % LHS = LHSIntegrator.create(s);
             % H = (obj.constant/obj.l0)*LHS.compute();
-            H = IntegrateLHS(@(u,v) (obj.constant/obj.l0).*ddAlphaFun.*DP(v,u),obj.testPhi,obj.testPhi,obj.mesh,quadOrder);
+            H = IntegrateLHS(@(u,v) (obj.constant/obj.l0).*ddAlphaFun.*DP(v,u),obj.testPhi,obj.testPhi,obj.mesh,'Domain',quadOrder);
         end
     end
     
