@@ -189,7 +189,7 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 3;
+            s.maxIter        = 10;
             s.tolerance      = 1e-8;
             s.constraintCase = {'INEQUALITY','EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;

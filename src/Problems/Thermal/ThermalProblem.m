@@ -78,14 +78,16 @@ classdef ThermalProblem < handle
         end
 
         function computeStiffnessMatrix(obj, kappa)
-            s.test  = obj.test;
-            s.trial = obj.trial;
-            s.mesh  = obj.mesh;
-            s.quadratureOrder = 2;
-            s.function        = kappa; 
-            s.type            = 'StiffnessMatrixWithFunction';
-            lhs = LHSIntegrator.create(s);
-            obj.stiffness = lhs.compute();
+            % s.test  = obj.test;
+            % s.trial = obj.trial;
+            % s.mesh  = obj.mesh;
+            % s.quadratureOrder = 2;
+            % s.function        = kappa; 
+            % s.type            = 'StiffnessMatrixWithFunction';
+            % lhs = LHSIntegrator.create(s);
+            % obj.stiffness = lhs.compute();
+
+            obj.stiffness=integrateLHS
         end
 
         function computeForces(obj)

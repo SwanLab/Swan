@@ -7,7 +7,6 @@ classdef Tutorial02FEMElasticity < handle
         material
         stateProblem
     end
-
     methods (Access = public)
 
         function obj = Tutorial02FEMElasticity()
