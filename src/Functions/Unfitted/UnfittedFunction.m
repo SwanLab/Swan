@@ -103,6 +103,19 @@ classdef UnfittedFunction < BaseFunction
             end
         end
 
+        function res = DP(obj1,v)
+            res = copy(obj1);
+            switch class(v)
+                case 'Test'
+                    Ni      = DomainFunction.create(@(xVLoc) v.evaluate(xV(xVLoc)));
+                    res.fun = DP(res.fun,v);
+                    f2      = obj1.createNew(obj2);
+                    res.innerMeshFunction = res.innerMeshFunction.*f2.innerMeshFunction;
+                    res.innerCutMeshFunction = res.innerCutMeshFunction.*f2.innerCutMeshFunction;
+                    res.updateNDimF(f2);
+            end
+        end
+
     end
 
     methods (Access = private)
