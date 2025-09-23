@@ -41,7 +41,7 @@ classdef FilterLump < handle
 
         function computeLHS(obj)
             f   = @(v,u) DP(v,u);
-            lhs = IntegrateLHS(f,obj.trial,obj.trial,obj.mesh,2);
+            lhs = IntegrateLHS(f,obj.trial,obj.trial,obj.mesh,'Domain',2);
             obj.LHS = obj.lumpMatrix(lhs);
         end
 

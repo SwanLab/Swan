@@ -59,9 +59,9 @@ classdef FilterPDE < handle
             e   = obj.epsilon;
             vF  = obj.trial;
             uF  =  obj.trial;
-            lhs = IntegrateLHS(@(u,v) obj.LHSint.domain(e,u,v),vF,uF,obj.mesh);
+            lhs = IntegrateLHS(@(u,v) obj.LHSint.domain(e,u,v),vF,uF,obj.mesh,'Domain');
             if ~isempty(obj.LHSint.boundary)
-                lhs = lhs + IntegrateLHSBoundary(@(u,v) obj.LHSint.boundary(e,u,v),vF,uF,obj.mesh);
+                lhs = lhs + IntegrateLHS(@(u,v) obj.LHSint.boundary(e,u,v),vF,uF,obj.mesh,'Boundary');
             end
             lhs     = obj.bc.fullToReducedMatrix(lhs);
             obj.LHS = decomposition(lhs);
