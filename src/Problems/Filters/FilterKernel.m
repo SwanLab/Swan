@@ -44,7 +44,7 @@ classdef FilterKernel < handle
 
         function createMassMatrix(obj)
             f = @(v,u) DP(v,u);               
-            obj.massMatrix = IntegrateLHS(f,obj.test,obj.trial,obj.mesh,2);
+            obj.massMatrix = IntegrateLHS(f,obj.test,obj.trial,obj.mesh,'Domain',2);
         end 
 
         function createNeighborElementsMatrix(obj)

@@ -121,7 +121,7 @@ classdef PhaseFieldInternalEnergySplitFunctional < handle
         end        
 
         function K = computeElasticStiffnesMatrix(obj,C,quadOrder)
-            K = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),obj.testU,obj.testU,obj.mesh,quadOrder);
+            K = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),obj.testU,obj.testU,obj.mesh,'Domain',quadOrder);
         end        
 
         function ddE = computeVolumetricEnergyDamageHessian(obj,u,phi,quadOrder)
@@ -139,7 +139,7 @@ classdef PhaseFieldInternalEnergySplitFunctional < handle
         end
 
         function Mf = computeMassWithFunction(obj,f,quadOrder)
-            Mf = IntegrateLHS(@(u,v) f.*DP(v,u),obj.testPhi,obj.testPhi,obj.mesh,quadOrder);
+            Mf = IntegrateLHS(@(u,v) f.*DP(v,u),obj.testPhi,obj.testPhi,obj.mesh,'Domain',quadOrder);
         end        
         
     end
