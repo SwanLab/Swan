@@ -115,12 +115,6 @@ classdef Training < handle
         end
 
         function C = computeConditionMatrix(obj,mesh,dispFun,dLambda)
-            % s.type                  = 'ConditionMatrix';   
-            % s.quadType              = 2;
-            % s.boundaryMeshJoined    = obj.boundaryMeshJoined;
-            % s.localGlobalConnecBd   = obj.localGlobalConnecBd;
-            % s.nnodes                = obj.meshDomain.nnodes;
-            % lhs      = LHSIntegrator_condition_shape_shape(s);
             test     = LagrangianFunction.create(obj.boundaryMeshJoined, obj.meshDomain.ndim, 'P1'); % !!         
             lhs = IntegrateLHS(@(u,v) DP(v,u),dLambda,test,obj.boundaryMeshJoined,2);
 
@@ -132,8 +126,6 @@ classdef Training < handle
             jGlob = l2g_dof(jLoc);
             iGlob = l2g_dof(iLoc);
             C = lhsg + sparse(iGlob,jLoc,vals, nDofs,dLambda.nDofs);
-
-
         end
 
         function RHS = computeRHS(obj,u,dLambda)
@@ -143,14 +135,10 @@ classdef Training < handle
         end
        
         function uD = computeRHScondition(obj,test,dir)
-            % s.mesh = obj.boundaryMeshJoined;
-            % s.quadType = 2;
-            % rhs = RHSIntegratorShapeFunction(s);
             nfun = size(dir,2);
             uD = [];
             for i=1:nfun
                 rDiri = IntegrateRHS(@(v) DP(v,dir{i}),test,obj.boundaryMeshJoined,2);
-                % rDiri = rhs.compute(dir{i},test);
                 uD = [uD rDiri];
             end
         end
