@@ -155,15 +155,9 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         end
 
         function M = createMassMatrix(obj)
-            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.mesh  = obj.mesh;
-            s.type  = 'MassMatrix';
-            LHS = LHSIntegrator.create(s);
-            M = LHS.compute;
-
+            n = obj.mesh.nnodes;
             h = obj.mesh.computeMinCellSize();
-            M = h^2*eye(size(M));
+            M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
         end
 
         function createConstraint(obj)

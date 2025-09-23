@@ -20,15 +20,20 @@ TopOptTestTutorialLSPerimeter();
 TopOptTestTutorialMicro();
 TopOptTestTutorialWithGiD();
 TopOptTestTutorialLevelSetInfill();
+NullSpaceVerification();
 %TopOptViaHomogenizationTutorial(); % ALEX
 Tutorial02FEMElasticity();
 Tutorial02p2FEMElasticityMicro();
 Tutorial11Monitoring();
 TutorialRemeshing();
-ChomogNetworkTutorial();
+verification_jacobian();
+testGenDB();
+OptimizeEllipseTutorial();
+OptimizeSuperformTutorial();
 TutorialXXPhaseFieldCase;
 TutorialXXPhaseFieldHomogenization;
 TutorialXXHyperelasticity;
+TutorialXXContinuumDamage;
 close all;
 
 % Output:

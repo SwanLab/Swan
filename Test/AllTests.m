@@ -23,5 +23,6 @@ GeomFunTestsSuite;
 close all;
 DomainFunTestsSuite;
 PhaseFieldTestsSuite;
-close all;
+ContinuumDamageTestsSuite;
 HyperelasticityTestsSuite;
+close all;
