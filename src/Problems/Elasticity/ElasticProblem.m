@@ -1,4 +1,4 @@
-classdef ElasticProblem < handle
+    classdef ElasticProblem < handle
     
     properties (Access = public)
         uFun
@@ -82,15 +82,6 @@ classdef ElasticProblem < handle
             obj.uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
         end
 
-        function dim = getFunDims(obj)
-            d.ndimf  = obj.uFun.ndimf;
-            d.nnodes = size(obj.uFun.fValues, 1);
-            d.ndofs  = d.nnodes*d.ndimf;
-            d.nnodeElem = obj.mesh.nnodeElem; % should come from interp..
-            d.ndofsElem = d.nnodeElem*d.ndimf;
-            dim = d;
-        end
-
         function createBCApplier(obj)
             s.mesh = obj.mesh;
             s.boundaryConditions = obj.boundaryConditions;
@@ -116,11 +107,10 @@ classdef ElasticProblem < handle
         end
 
         function computeForces(obj)
-            dim           = obj.getFunDims();
             bc            = obj.boundaryConditions;
             neumann       = bc.pointload_dofs;
             neumannValues = bc.pointload_vals;
-            rhs = zeros(dim.ndofs,1);
+            rhs = zeros(obj.uFun.nDofs,1);
             if ~isempty(neumann)
                 rhs(neumann) = neumannValues;
             end            
@@ -131,7 +121,7 @@ classdef ElasticProblem < handle
                 if ~isempty(dirich)
                     R = -obj.stiffness(:,dirich)*dirichV;
                 else
-                    R = zeros(sum(dim.ndofs(:)),1);
+                    R = zeros(sum(obj.uFun.nDofs(:)),1);
                 end
                 rhs = rhs+R;
             end
