@@ -1,9 +1,9 @@
 classdef ProjectorToLagrangian < Projector
-    
+
     properties (Access = private)
         order
     end
-    
+
     methods (Access = public)
 
         function obj = ProjectorToLagrangian(cParams)
@@ -11,7 +11,7 @@ classdef ProjectorToLagrangian < Projector
         end
 
         function xFun = project(obj, x)
-            
+
             if obj.isP1toP1Dprojection(x)
                 f = x.fValues;
                 connec = x.mesh.connec;
@@ -24,7 +24,7 @@ classdef ProjectorToLagrangian < Projector
                 xProj = reshape(xProj,[x.ndimf,numel(xProj)/x.ndimf])';
             end
             s.mesh    = x.mesh;
-            s.fValues = xProj;
+            s.fValues = full(xProj);
             s.order = obj.order;
             xFun = LagrangianFunction(s);
         end
@@ -32,7 +32,7 @@ classdef ProjectorToLagrangian < Projector
     end
 
     methods (Access = private)
-        
+
         function LHS = computeLHS(obj,fun)
             switch obj.order
                 case 'P0'
@@ -42,13 +42,10 @@ classdef ProjectorToLagrangian < Projector
                     a = repmat(a,1,fun.ndimf);
                     LHS = spdiags(a',0,length(a),length(a));
                 otherwise
-                    s.mesh  = fun.mesh;
-                    s.test  = LagrangianFunction.create(fun.mesh, fun.ndimf, obj.order);
-                    s.trial = LagrangianFunction.create(fun.mesh, fun.ndimf, obj.order);
-                    s.quadratureOrder = 2; % no
-                    s.type  = 'MassMatrix';
-                    lhs = LHSIntegrator.create(s);
-                    LHS = lhs.compute();
+                    test   = LagrangianFunction.create(fun.mesh, fun.ndimf, obj.order);
+                    trial  = LagrangianFunction.create(fun.mesh, fun.ndimf, obj.order);
+                    f = @(u,v) DP(v,u);
+                    LHS = IntegrateLHS(f,test,trial,fun.mesh,2);
             end
         end
 
@@ -62,14 +59,16 @@ classdef ProjectorToLagrangian < Projector
                 case {'UnfittedFunction','UnfittedBoundaryFunction'}
                     s.mesh = fun.unfittedMesh;
                     s.type = 'Unfitted';
+                    s.quadType = ord;
+                    int        = RHSIntegrator.create(s);
+                    test       = LagrangianFunction.create(fun.mesh,fun.ndimf,obj.order);
+                    RHS        = int.compute(fun,test);
                 otherwise
-                    s.mesh = fun.mesh;
-                    s.type = 'ShapeFunction';
+                    test       = LagrangianFunction.create(fun.mesh,fun.ndimf,obj.order);
+                    f = @(v) DP(v,fun);
+                    RHS = IntegrateRHS(f,test,test.mesh,2);   
             end
-            s.quadType = ord;
-            int        = RHSIntegrator.create(s);
-            test       = LagrangianFunction.create(fun.mesh,fun.ndimf,obj.order);
-            RHS        = int.compute(fun,test);
+
         end
 
         function ord = createRHSQuadrature(obj, fun)

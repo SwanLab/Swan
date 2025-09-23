@@ -28,13 +28,13 @@ function fVR = evaluate(A,B,dimA,dimB,xV)
     end
     fVR = pagetensorprod(aEval,bEval,dimA,dimB,ndimsA,ndimsB);
 
-    if ndims(fVR) <=2
+    if ndims(fVR) == 2
         fVR = reshape(fVR,[1 size(fVR)]);
     end
 end
 
 function extraDim = computeExtraDims(A,B,xV)
-    if isfield(A,'mesh')
+    if any(strcmp('mesh', properties(A)))
         nelem = A.mesh.nelem;
     else
         nelem = B.mesh.nelem;

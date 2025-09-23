@@ -14,7 +14,6 @@ classdef RHSIntegratorUnfitted < handle
     methods (Access = public)
         function obj = RHSIntegratorUnfitted(cParams)
             obj.init(cParams);
-            obj.createIntegratorInner();
             obj.createQuadratureInnerCut();
             obj.createQuadratureBoundaryCut();
         end
@@ -44,16 +43,6 @@ classdef RHSIntegratorUnfitted < handle
         function init(obj,cParams)
             obj.quadType     = cParams.quadType;
             obj.unfittedMesh = cParams.mesh;
-        end
-
-        function createIntegratorInner(obj)
-            if ~isempty(obj.unfittedMesh.innerMesh)
-                s.mesh     = obj.unfittedMesh.innerMesh.mesh;
-                s.type     = 'ShapeFunction';
-                s.quadType = obj.quadType;
-                int        = RHSIntegrator.create(s);
-                obj.innerIntegrator = int;
-            end
         end
 
         function createQuadratureInnerCut(obj)
@@ -87,7 +76,7 @@ classdef RHSIntegratorUnfitted < handle
                 fullCells = iMesh.fullCells;
                 fInner    = uFun.innerMeshFunction;
                 testLoc   = LagrangianFunction.create(iMesh.mesh,test.ndimf,test.order);
-                intLoc    = obj.innerIntegrator.compute(fInner,testLoc);
+                intLoc = IntegrateRHS(@(v) DP(v,fInner),testLoc,iMesh.mesh,obj.quadType);
                 dofG      = test.getDofConnec();
                 dofL      = testLoc.getDofConnec();
                 l2g(dofL) = dofG(fullCells,:);

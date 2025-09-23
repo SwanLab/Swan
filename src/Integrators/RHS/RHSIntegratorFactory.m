@@ -12,6 +12,8 @@ classdef RHSIntegratorFactory < handle
                     obj = RHSintegrator_ShapeFunctionN(cParams);
                 case 'ShapeDerivative'
                     obj = RHSIntegratorShapeDerivative(cParams);
+                case 'ShapeDerivativeTensor'
+                    obj = RHSIntegratorShapeDerivativeTensor(cParams);
                 case 'ShapeSymmetricDerivative'
                     obj = RHSIntegratorShapeSymmDerivative(cParams);
                 case 'CutMesh'
@@ -27,8 +29,8 @@ classdef RHSIntegratorFactory < handle
                     end
                 case 'ElasticMicro'
                     obj = RHSIntegratorElasticMicro(cParams);
-                case 'Stokes'
-                    obj = RHSIntegratorStokes(cParams);
+             %   case 'Stokes'
+             %       obj = RHSIntegratorStokes(cParams);
                 case 'Unfitted'
                     obj = RHSIntegratorUnfitted(cParams);
             end

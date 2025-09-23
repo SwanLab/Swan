@@ -59,7 +59,7 @@ classdef BoundaryConditionsStokes < handle
         function full = reducedToFullVector(obj, vec)
             switch obj.scale
                 case 'MACRO'
-                    full = obj.expandVectorDirichlet(vec);
+                        full = obj.expandVectorDirichlet(vec);
                 case 'MICRO'
                     full = obj.expandVectorPeriodic(vec);
             end
