@@ -1,4 +1,4 @@
-classdef ElasticProblem < handle
+    classdef ElasticProblem < handle
     
     properties (Access = public)
         uFun
@@ -82,15 +82,6 @@ classdef ElasticProblem < handle
             obj.uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
         end
 
-        function dim = getFunDims(obj)
-            d.ndimf  = obj.uFun.ndimf;
-            d.nnodes = size(obj.uFun.fValues, 1);
-            d.ndofs  = d.nnodes*d.ndimf;
-            d.nnodeElem = obj.mesh.nnodeElem; % should come from interp..
-            d.ndofsElem = d.nnodeElem*d.ndimf;
-            dim = d;
-        end
-
         function createBCApplier(obj)
             s.mesh = obj.mesh;
             s.boundaryConditions = obj.boundaryConditions;
@@ -116,22 +107,25 @@ classdef ElasticProblem < handle
         end
 
         function computeForces(obj)
-            s.type     = 'Elastic';
-            s.scale    = 'MACRO';
-            s.dim      = obj.getFunDims();
-            s.BC       = obj.boundaryConditions;
-            s.mesh     = obj.mesh;
-            s.material = obj.material;
-            s.globalConnec = obj.mesh.connec;
-            RHSint = RHSIntegrator.create(s);
-            rhs = RHSint.compute();
-            % Perhaps move it inside RHSint?
+            bc            = obj.boundaryConditions;
+            neumann       = bc.pointload_dofs;
+            neumannValues = bc.pointload_vals;
+            rhs = zeros(obj.uFun.nDofs,1);
+            if ~isempty(neumann)
+                rhs(neumann) = neumannValues;
+            end            
             if strcmp(obj.solverType,'REDUCED')
-                R = RHSint.computeReactions(obj.stiffness);
-                obj.forces = rhs+R;
-            else
-                obj.forces = rhs;
+                bc      = obj.boundaryConditions;
+                dirich  = bc.dirichlet_dofs;
+                dirichV = bc.dirichlet_vals;
+                if ~isempty(dirich)
+                    R = -obj.stiffness(:,dirich)*dirichV;
+                else
+                    R = zeros(sum(obj.uFun.nDofs(:)),1);
+                end
+                rhs = rhs+R;
             end
+            obj.forces = rhs;
         end
 
 

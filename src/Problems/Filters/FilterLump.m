@@ -45,19 +45,17 @@ classdef FilterLump < handle
             obj.LHS = obj.lumpMatrix(lhs);
         end
 
-        function rhs = computeRHS(obj,fun,quadType)
+        function RHS = computeRHS(obj,fun,quadType)
             switch class(fun)
                 case {'UnfittedFunction','UnfittedBoundaryFunction'}
                     s.mesh = fun.unfittedMesh;
-                    s.type = 'Unfitted';
+                    s.quadType = quadType;
+                    int        = RHSIntegratorUnfitted(s);
+                    RHS    = int.compute(fun,obj.trial);
                 otherwise
-                    s.mesh = obj.mesh;
-                    s.type = 'ShapeFunction';
-            end
-            s.quadType = quadType;
-            int        = RHSIntegrator.create(s);
-            test       = obj.trial;
-            rhs        = int.compute(fun,test);
+                    f = @(v) DP(v,fun);
+                    RHS = IntegrateRHS(f,obj.trial,obj.mesh,quadType);   
+            end  
         end
 
     end

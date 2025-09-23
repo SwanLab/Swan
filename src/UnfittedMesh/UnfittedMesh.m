@@ -243,10 +243,9 @@ classdef UnfittedMesh < handle
         function mass = computeMass(obj)
             f = CharacteristicFunction.create(obj);
             s.mesh = obj;
-            s.type = 'Unfitted';
             s.quadType = 2;
             test     = LagrangianFunction.create(obj.backgroundMesh,1,'P1');
-            integrator = RHSIntegrator.create(s);
+            integrator = RHSIntegratorUnfitted(s);
             fInt = integrator.compute(f,test);
             mass = sum(fInt);
         end
@@ -254,10 +253,9 @@ classdef UnfittedMesh < handle
         function mass = computePerimeter(obj)
             f = CharacteristicFunction.createAtBoundary(obj);
             s.mesh = obj;
-            s.type = 'Unfitted';
             s.quadType = 2;
             test     = LagrangianFunction.create(obj.backgroundMesh,1,'P1');
-            integrator = RHSIntegrator.create(s);
+            integrator = RHSIntegratorUnfitted(s);
             fInt = integrator.compute(f,test);
             mass = sum(fInt);
         end
