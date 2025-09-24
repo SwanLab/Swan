@@ -5,31 +5,21 @@ classdef RHSIntegratorUnfitted < handle
         unfittedMesh
     end
 
-    properties (Access = private)
-        innerIntegrator
-        innerCutQuad
-        boundCutQuad
-   end
-
     methods (Access = public)
         function obj = RHSIntegratorUnfitted(cParams)
             obj.init(cParams);
-            obj.createQuadratureInnerCut();
-            obj.createQuadratureBoundaryCut();
         end
 
         function int = computeUnfitted(obj,f,test)
             intInner    = obj.integrateInnerMeshFunction(@(v) f(v).innerMeshFunction,test);
             iCMesh      = obj.unfittedMesh.innerCutMesh;
-            qICMesh     = obj.innerCutQuad;
-            intInnerCut = obj.integrateCutMeshFunction(@(v) f(v).innerCutMeshFunction,test,iCMesh,qICMesh);
+            intInnerCut = obj.integrateCutMeshFunction(@(v) f(v).innerCutMeshFunction,test,iCMesh);
             int         = intInner+intInnerCut;
         end
 
         function int = computeUnfittedBoundary(obj,f,test)
             bCMesh      = obj.unfittedMesh.boundaryCutMesh;
-            qBCMesh     = obj.boundCutQuad;
-            intBoundCut = obj.integrateCutMeshFunction(@(v) f(v).boundaryCutMeshFunction,test,bCMesh,qBCMesh);
+            intBoundCut = obj.integrateCutMeshFunction(@(v) f(v).boundaryCutMeshFunction,test,bCMesh);
             intUnfBound = obj.integrateUnfittedBoundaryMeshFunction(@(v) f(v).unfittedBoundaryMeshFunction,test);
             int         = intBoundCut+intUnfBound;
         end
@@ -39,28 +29,6 @@ classdef RHSIntegratorUnfitted < handle
         function init(obj,cParams)
             obj.quadType     = cParams.quadType;
             obj.unfittedMesh = cParams.mesh;
-        end
-
-        function createQuadratureInnerCut(obj)
-            if ~isempty(obj.unfittedMesh.innerCutMesh)
-                m = obj.unfittedMesh.innerCutMesh.mesh;
-                q = Quadrature.create(m,obj.quadType);
-                obj.innerCutQuad = q;
-            end
-        end
-
-        function createQuadratureBoundaryCut(obj)
-            if ~isempty(obj.unfittedMesh.boundaryCutMesh)
-                m = obj.unfittedMesh.boundaryCutMesh.mesh;
-                q = Quadrature.create(m,obj.quadType);
-                obj.boundCutQuad = q;
-            end
-        end
-
-        function integrator = createIntegratorUnfittedBoundary(obj,uMesh)
-            s.mesh     = uMesh;
-            s.quadType = obj.quadType;
-            integrator = RHSIntegratorUnfitted(s);
         end
 
         function int = integrateInnerMeshFunction(obj,fI,test)
@@ -78,9 +46,9 @@ classdef RHSIntegratorUnfitted < handle
             end
         end
 
-        function int = integrateCutMeshFunction(obj,f,test,cutMesh,quad)
+        function int = integrateCutMeshFunction(obj,f,test,cutMesh)
             if ~isempty(cutMesh)
-                int = IntegrateRHSCutMesh(f,test,cutMesh,quad.order);
+                int = IntegrateRHSCutMesh(f,test,cutMesh,obj.quadType);
             else
                 dofs = size(test.fValues,1);
                 int  = zeros(dofs,1);
@@ -105,49 +73,10 @@ classdef RHSIntegratorUnfitted < handle
             end
         end
 
-        function uF = computeUnfittedFunctionAtExternalBoundary(obj,uFun,i)
-            uFunBound  = uFun.unfittedBoundaryMeshFunction.activeFuns;
-            uMeshBound = obj.unfittedMesh.unfittedBoundaryMesh.getActiveMesh();
-            funi       = uFunBound{i}.backgroundFunction;
-            s.fun      = funi;
-            s.uMesh    = uMeshBound{i};
-            uF         = UnfittedFunction(s);
-        end
-
         function intLoc = integrateExternalBoundaryLocal(obj,uFi,test,uMeshi)
             mi      = uMeshi.backgroundMesh;
             testLoc = LagrangianFunction.create(mi,test.ndimf,test.order);
             intLoc  = IntegrateRHS(uFi,testLoc,mi,obj.quadType);
-        end
-
-    end
-
-    methods (Static, Access = private)
-
-        function m = obtainIsoparametricMesh(cutMesh)
-            coord      = cutMesh.xCoordsIso;
-            nDim       = size(coord,1);
-            nNode      = size(coord,2);
-            nElem      = size(coord,3);
-            msh.connec = reshape(1:nElem*nNode,nNode,nElem)';
-            msh.type   = cutMesh.mesh.type;
-            s.fValues  = reshape(coord,nDim,[])';
-            s.mesh     = msh;
-            s.order    = 'P1';
-            m          = LagrangianFunction(s);
-        end
-
-        function f = assembleIntegrand(test,rhsElem)
-            integrand = rhsElem;
-            connec    = test.getDofConnec();
-            ndofs     = max(max(connec));
-            nDofElem  = size(connec,2);
-            f         = zeros(ndofs,1);
-            for iDof = 1:nDofElem
-                int = integrand(:,iDof);
-                con = connec(:,iDof);
-                f   = f + accumarray(con,int,[ndofs,1],@sum,0);
-            end
         end
     end
 end
