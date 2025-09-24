@@ -68,18 +68,9 @@ classdef FilterPDE < handle
         end
 
         function computeRHS(obj,fun,quadType)
-            switch class(fun)
-                case {'UnfittedFunction','UnfittedBoundaryFunction'}
-                    s.mesh = fun.unfittedMesh;
-                    s.type = 'Unfitted';
-                    s.quadType = quadType;
-                    int        = RHSIntegrator.create(s);
-                    obj.RHS    = int.compute(fun,obj.trial);
-                otherwise
-                    f = @(v) DP(v,fun);
-                    obj.RHS = IntegrateRHS(f,obj.trial,obj.trial.mesh,quadType);   
-            end            
-             obj.RHS     = obj.bc.fullToReducedVector(obj.RHS);
+            f       = @(v) DP(fun,v);
+            rhs     = IntegrateRHS(f,obj.trial,obj.trial.mesh,quadType);
+            obj.RHS = obj.bc.fullToReducedVector(rhs);
         end
 
         function solveFilter(obj)

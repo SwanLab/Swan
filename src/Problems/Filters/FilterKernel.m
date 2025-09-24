@@ -90,17 +90,8 @@ classdef FilterKernel < handle
         end
 
         function computeRHS(obj,fun,quadType)
-            switch class(fun)
-                case {'UnfittedFunction','UnfittedBoundaryFunction'}
-                    s.mesh = fun.unfittedMesh;
-                    s.type = 'Unfitted';
-                    s.quadType = quadType;
-                    int        = RHSIntegrator.create(s);
-                    obj.RHS    = int.compute(fun,obj.test);
-                otherwise
-                    f = @(v) DP(v,fun);
-                    obj.RHS = IntegrateRHS(f,obj.test,obj.test.mesh,quadType);   
-            end            
+            f       = @(v) DP(fun,v);
+            obj.RHS = IntegrateRHS(f,obj.test,obj.test.mesh,quadType);
         end
 
         function solveFilter(obj)

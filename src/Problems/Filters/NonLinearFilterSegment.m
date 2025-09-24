@@ -238,17 +238,8 @@ classdef NonLinearFilterSegment < handle
         end
 
         function RHS = createRHSShapeFunction(obj,fun,quadType)
-            switch class(fun)
-                case {'UnfittedFunction','UnfittedBoundaryFunction'}
-                    s.mesh = fun.unfittedMesh;
-                    s.type = 'Unfitted';
-                    s.quadType = quadType;
-                    int        = RHSIntegrator.create(s);
-                    RHS    = int.compute(fun,obj.trial);
-                otherwise
-                    f = @(v) DP(v,fun);
-                    RHS = IntegrateRHS(f,obj.trial,obj.trial.mesh,quadType);   
-            end    
+            f   = @(v) DP(fun,v);
+            RHS = IntegrateRHS(f,obj.trial,obj.trial.mesh,quadType);
         end
 
 
