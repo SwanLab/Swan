@@ -104,13 +104,20 @@ classdef UnfittedFunction < BaseFunction
         end
 
         function res = DP(obj1,v)
+            res = copy(obj1);
             switch class(v)
                 case 'Test'
-                    f            = obj1.innerCutMeshFunction;
-                    isoMesh      = obj1.obtainIsoparametricMesh();
-                    xV           = @(xVLoc) isoMesh.evaluate(xVLoc);
-                    Ni           = DomainFunction.create(@(xVLoc) v.evaluate(xV(xVLoc)),f.mesh,1);
-                    res.innerCut = DP(f,Ni);
+                    res.fun = DP(obj1.fun,v);
+                    if ~isempty(res.innerMeshFunction)
+                        res.innerMeshFunction = DP(obj1.innerMeshFunction,v.updateMesh(obj1.unfittedMesh.innerMesh.mesh));
+                    end
+                    if ~isempty(res.innerCutMeshFunction)
+                        f       = obj1.innerCutMeshFunction;
+                        isoMesh = obj1.obtainIsoparametricMesh();
+                        xV      = @(xVLoc) isoMesh.evaluate(xVLoc);
+                        Ni      = DomainFunction.create(@(xVLoc) v.evaluate(xV(xVLoc)),f.mesh,1);
+                        res.innerCutMeshFunction = DP(f,Ni);
+                    end
             end
         end
 

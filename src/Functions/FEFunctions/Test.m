@@ -33,7 +33,11 @@ classdef Test < BaseFunction
             nElem  = u.mesh.nelem;
             gradN = zeros(ndimf,u.mesh.ndim,nGauss,nElem);
             gradN(dim,:,:,:) = dNdx(:,node,:,:);
-   
+        end
+
+        function test = updateMesh(obj,m)
+            uF   = LagrangianFunction.create(m,obj.ndimf,obj.uFun.order);
+            test = Test(uF,obj.iDof);
         end
 
     end

@@ -18,22 +18,20 @@ classdef RHSIntegratorUnfitted < handle
             obj.createQuadratureBoundaryCut();
         end
 
-        function int = compute(obj,uFun,test)
-            switch class(uFun)
-                case 'UnfittedFunction'
-                    intInner    = obj.integrateInnerMeshFunction(uFun,test);
-                    iCMesh      = obj.unfittedMesh.innerCutMesh;
-                    qICMesh     = obj.innerCutQuad;
-                    f           = @(v) DP(uFun,v);
-                    intInnerCut = obj.integrateCutMeshFunction(@(v) f(v).innerCut,test,iCMesh,qICMesh);
-                    int         = intInner+intInnerCut;
-                case 'UnfittedBoundaryFunction'
-                    bCMesh      = obj.unfittedMesh.boundaryCutMesh;
-                    qBCMesh     = obj.boundCutQuad;
-                    intBoundCut = obj.integrateCutMeshFunction(uFun,test,bCMesh,qBCMesh);
-                    intUnfBound = obj.integrateUnfittedBoundaryMeshFunction(uFun,test);
-                    int         = intBoundCut+intUnfBound;
-            end
+        function int = computeUnfitted(obj,f,test)
+            intInner    = obj.integrateInnerMeshFunction(@(v) f(v).innerMeshFunction,test);
+            iCMesh      = obj.unfittedMesh.innerCutMesh;
+            qICMesh     = obj.innerCutQuad;
+            intInnerCut = obj.integrateCutMeshFunction(@(v) f(v).innerCutMeshFunction,test,iCMesh,qICMesh);
+            int         = intInner+intInnerCut;
+        end
+
+        function int = computeUnfittedBoundary(obj,f,test)
+            bCMesh      = obj.unfittedMesh.boundaryCutMesh;
+            qBCMesh     = obj.boundCutQuad;
+            intBoundCut = obj.integrateCutMeshFunction(@(v) f(v).boundaryCutMeshFunction,test,bCMesh,qBCMesh);
+            intUnfBound = obj.integrateUnfittedBoundaryMeshFunction(@(v) f(v).unfittedBoundaryMeshFunction,test);
+            int         = intBoundCut+intUnfBound;
         end
     end
 
@@ -65,15 +63,14 @@ classdef RHSIntegratorUnfitted < handle
             integrator = RHSIntegratorUnfitted(s);
         end
 
-        function int = integrateInnerMeshFunction(obj,uFun,test)
+        function int = integrateInnerMeshFunction(obj,fI,test)
             dofs  = size(test.fValues,1);
             int   = zeros(dofs,1);
             iMesh = obj.unfittedMesh.innerMesh;
             if ~isempty(iMesh)
                 fullCells = iMesh.fullCells;
-                fInner    = uFun.innerMeshFunction;
                 testLoc   = LagrangianFunction.create(iMesh.mesh,test.ndimf,test.order);
-                intLoc    = IntegrateRHS(@(v) DP(v,fInner),testLoc,iMesh.mesh,obj.quadType);
+                intLoc    = IntegrateRHS(fI,testLoc,iMesh.mesh,obj.quadType);
                 dofG      = test.getDofConnec();
                 dofL      = testLoc.getDofConnec();
                 l2g(dofL) = dofG(fullCells,:);
@@ -90,14 +87,14 @@ classdef RHSIntegratorUnfitted < handle
             end
         end
 
-        function int = integrateUnfittedBoundaryMeshFunction(obj,uFun,test)
+        function int = integrateUnfittedBoundaryMeshFunction(obj,f,test)
             dofs = size(test.fValues,1);
             int  = zeros(dofs,1);
             if ~isempty(obj.unfittedMesh.unfittedBoundaryMesh)
                 uMeshBound = obj.unfittedMesh.unfittedBoundaryMesh.getActiveMesh();
                 nFun       = length(uMeshBound);
                 for i = 1:nFun
-                    uFi          = obj.computeUnfittedFunctionAtExternalBoundary(uFun,i);
+                    uFi          = @(v) subsref(f(v), struct('type','{}','subs',{{i}}));
                     intLoci      = obj.integrateExternalBoundaryLocal(uFi,test,uMeshBound{i});
                     conG         = obj.unfittedMesh.unfittedBoundaryMesh.getGlobalConnec{i};
                     conL         = uMeshBound{i}.backgroundMesh.connec;
@@ -118,10 +115,9 @@ classdef RHSIntegratorUnfitted < handle
         end
 
         function intLoc = integrateExternalBoundaryLocal(obj,uFi,test,uMeshi)
-            mi         = uMeshi.backgroundMesh;
-            integrator = obj.createIntegratorUnfittedBoundary(uMeshi);
-            testLoc    = LagrangianFunction.create(mi,test.ndimf,test.order);
-            intLoc     = integrator.compute(uFi,testLoc);
+            mi      = uMeshi.backgroundMesh;
+            testLoc = LagrangianFunction.create(mi,test.ndimf,test.order);
+            intLoc  = IntegrateRHS(uFi,testLoc,mi,obj.quadType);
         end
 
     end

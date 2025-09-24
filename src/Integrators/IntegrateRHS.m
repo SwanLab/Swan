@@ -1,9 +1,23 @@
 function RHS = IntegrateRHS(f,test,mesh,quadOrder)
-if nargin < 4 || isempty(quadOrder)
-    quadOrder = 2;
+sample = f(Test(test,1));
+switch class(sample)
+    case 'UnfittedFunction'
+        s.mesh     = sample.unfittedMesh;
+        s.quadType = quadOrder;
+        int        = RHSIntegratorUnfitted(s);
+        RHS        = int.computeUnfitted(f,test);
+    case 'UnfittedBoundaryFunction'
+        s.mesh     = sample.unfittedMesh;
+        s.quadType = quadOrder;
+        int        = RHSIntegratorUnfitted(s);
+        RHS        = int.computeUnfittedBoundary(f,test);
+    otherwise
+        if nargin < 4 || isempty(quadOrder)
+            quadOrder = 2;
+        end
+        rhs = integrateElementalRHS(f,test,mesh,quadOrder);
+        RHS = assembleVector(rhs, test);
 end
-rhs = integrateElementalRHS(f,test,mesh,quadOrder);
-RHS = assembleVector(rhs, test);
 end
 
 function rhs = integrateElementalRHS(f,test,mesh,quadOrder)
