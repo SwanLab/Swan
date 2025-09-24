@@ -59,27 +59,18 @@ classdef FilterPDE < handle
             e   = obj.epsilon;
             vF  = obj.trial;
             uF  =  obj.trial;
-            lhs = IntegrateLHS(@(u,v) obj.LHSint.domain(e,u,v),vF,uF,obj.mesh);
+            lhs = IntegrateLHS(@(u,v) obj.LHSint.domain(e,u,v),vF,uF,obj.mesh,'Domain');
             if ~isempty(obj.LHSint.boundary)
-                lhs = lhs + IntegrateLHSBoundary(@(u,v) obj.LHSint.boundary(e,u,v),vF,uF,obj.mesh);
+                lhs = lhs + IntegrateLHS(@(u,v) obj.LHSint.boundary(e,u,v),vF,uF,obj.mesh,'Boundary');
             end
             lhs     = obj.bc.fullToReducedMatrix(lhs);
             obj.LHS = decomposition(lhs);
         end
 
         function computeRHS(obj,fun,quadType)
-            switch class(fun)
-                case {'UnfittedFunction','UnfittedBoundaryFunction'}
-                    s.mesh = fun.unfittedMesh;
-                    s.type = 'Unfitted';
-                    s.quadType = quadType;
-                    int        = RHSIntegrator.create(s);
-                    obj.RHS    = int.compute(fun,obj.trial);
-                otherwise
-                    f = @(v) DP(v,fun);
-                    obj.RHS = IntegrateRHS(f,obj.trial,obj.trial.mesh,quadType);   
-            end            
-             obj.RHS     = obj.bc.fullToReducedVector(obj.RHS);
+            f       = @(v) DP(fun,v);
+            rhs     = IntegrateRHS(f,obj.trial,obj.trial.mesh,quadType);
+            obj.RHS = obj.bc.fullToReducedVector(rhs);
         end
 
         function solveFilter(obj)

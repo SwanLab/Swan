@@ -45,7 +45,7 @@ classdef ProjectorToLagrangian < Projector
                     test   = LagrangianFunction.create(fun.mesh, fun.ndimf, obj.order);
                     trial  = LagrangianFunction.create(fun.mesh, fun.ndimf, obj.order);
                     f = @(u,v) DP(v,u);
-                    LHS = IntegrateLHS(f,test,trial,fun.mesh,2);
+                    LHS = IntegrateLHS(f,test,trial,fun.mesh,'Domain',2);
             end
         end
 
@@ -54,21 +54,9 @@ classdef ProjectorToLagrangian < Projector
         end
 
         function RHS = computeRHS(obj,fun)
-            ord = obj.createRHSQuadrature(fun);
-            switch class(fun)
-                case {'UnfittedFunction','UnfittedBoundaryFunction'}
-                    s.mesh = fun.unfittedMesh;
-                    s.type = 'Unfitted';
-                    s.quadType = ord;
-                    int        = RHSIntegrator.create(s);
-                    test       = LagrangianFunction.create(fun.mesh,fun.ndimf,obj.order);
-                    RHS        = int.compute(fun,test);
-                otherwise
-                    test       = LagrangianFunction.create(fun.mesh,fun.ndimf,obj.order);
-                    f = @(v) DP(v,fun);
-                    RHS = IntegrateRHS(f,test,test.mesh,2);   
-            end
-
+            test = LagrangianFunction.create(fun.mesh,fun.ndimf,obj.order);
+            f    = @(v) DP(fun,v);
+            RHS  = IntegrateRHS(f,test,test.mesh,2);
         end
 
         function ord = createRHSQuadrature(obj, fun)

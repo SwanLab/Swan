@@ -152,7 +152,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
 
         function M = createMassMatrix(mesh,x)
             vF = LagrangianFunction.create(mesh,1,'P1');
-            M = IntegrateLHS(@(u,v) DP(v,u),vF,vF,mesh); 
+            M = IntegrateLHS(@(u,v) DP(v,u),vF,vF,mesh,'Domain'); 
             M = eye(size(M));
             switch class(x)
                 case 'DensityAndBound'

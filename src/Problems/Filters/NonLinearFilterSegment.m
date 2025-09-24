@@ -103,7 +103,7 @@ classdef NonLinearFilterSegment < handle
         end
 
         function createMassMatrix(obj)
-            obj.M = IntegrateLHS(@(v,u) DP(v,u),obj.trial,obj.trial,obj.mesh,2);
+            obj.M = IntegrateLHS(@(v,u) DP(v,u),obj.trial,obj.trial,obj.mesh,'Domain',2);
         end
 
         function createDirectionalStiffnessMatrix(obj)
@@ -119,7 +119,7 @@ classdef NonLinearFilterSegment < handle
 
             vF  = obj.trial;
             uF =  obj.trial;
-            K2  = IntegrateLHS(@(u,v) DP(Grad(v),DP(A,Grad(u))'),vF,uF,obj.mesh); 
+            K2  = IntegrateLHS(@(u,v) DP(Grad(v),DP(A,Grad(u))'),vF,uF,obj.mesh,'Domain'); 
                 
             obj.K = K2;
 
@@ -238,17 +238,8 @@ classdef NonLinearFilterSegment < handle
         end
 
         function RHS = createRHSShapeFunction(obj,fun,quadType)
-            switch class(fun)
-                case {'UnfittedFunction','UnfittedBoundaryFunction'}
-                    s.mesh = fun.unfittedMesh;
-                    s.type = 'Unfitted';
-                    s.quadType = quadType;
-                    int        = RHSIntegrator.create(s);
-                    RHS    = int.compute(fun,obj.trial);
-                otherwise
-                    f = @(v) DP(v,fun);
-                    RHS = IntegrateRHS(f,obj.trial,obj.trial.mesh,quadType);   
-            end    
+            f   = @(v) DP(fun,v);
+            RHS = IntegrateRHS(f,obj.trial,obj.trial.mesh,quadType);
         end
 
 

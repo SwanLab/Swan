@@ -28,7 +28,7 @@ classdef ElasticProblemMicro < handle
         function obj = solve(obj)
             C     = obj.material;
             f     = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
-            LHS   = IntegrateLHS(f,obj.testFun,obj.trialFun,obj.mesh,2);
+            LHS   = IntegrateLHS(f,obj.testFun,obj.trialFun,obj.mesh,'Domain',2);
             for iB = 1:obj.computeNbasis()
                 [eB,v] = obj.createDeformationBasis(iB);
                 f = @(v) -DDP(SymGrad(v),DDP(C,eB));
