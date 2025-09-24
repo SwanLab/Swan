@@ -25,7 +25,7 @@ classdef UnfittedBoundaryFunction < BaseFunction
                     f       = obj1.boundaryCutMeshFunction;
                     isoMesh = obj1.obtainIsoparametricMesh();
                     xV      = @(xVLoc) isoMesh.evaluate(xVLoc);
-                    Ni      = DomainFunction.create(@(xVLoc) v.evaluate(xV(xVLoc)),f.mesh,1);
+                    Ni      = DomainFunction.create(@(xVLoc) v.evaluate({xV(xVLoc)}),f.mesh,1);
                     res.boundaryCutMeshFunction = DP(f,Ni);
             end
         end
