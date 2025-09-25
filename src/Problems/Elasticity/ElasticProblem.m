@@ -114,6 +114,12 @@ classdef ElasticProblem < handle
             if ~isempty(neumann)
                 rhs(neumann) = neumannValues;
             end
+
+
+            f = bc.pointloadFun;
+            rhs2 = IntegrateRHS(@(v) DP(f,v),obj.uFun,obj.mesh,'Boundary');
+
+
             if strcmp(obj.solverType,'REDUCED')
                 bc      = obj.boundaryConditions;
                 dirich  = bc.dirichlet_dofs;

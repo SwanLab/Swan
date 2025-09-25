@@ -69,7 +69,7 @@ classdef FilterPDE < handle
 
         function computeRHS(obj,fun,quadType)
             f       = @(v) DP(fun,v);
-            rhs     = IntegrateRHS(f,obj.trial,obj.trial.mesh,quadType);
+            rhs     = IntegrateRHS(f,obj.trial,obj.trial.mesh,'Domain',quadType);
             obj.RHS = obj.bc.fullToReducedVector(rhs);
         end
 

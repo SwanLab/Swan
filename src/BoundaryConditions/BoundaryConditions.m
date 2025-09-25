@@ -69,7 +69,8 @@ classdef BoundaryConditions < handle
         function [dofs,vals,domain,bcFun] = createBCFun(obj,input)
             if ~isequal(input, [])
                 ndimf  = input(1).fun.ndimf;
-                bcFun = LagrangianFunction.create(obj.mesh, ndimf,'P1');
+                [bMesh, l2g]  = obj.mesh.createSingleBoundaryMesh();
+                bcFun = LagrangianFunction.create(bMesh, ndimf,'P1');
                 dofs = [];
                 vals = [];
                 domain = @(coor) input(1).domain(coor);
@@ -80,7 +81,7 @@ classdef BoundaryConditions < handle
                     dofs = [dofs; dofs_i];
                     vals = [vals; values_i];
                     domain = @(coor) pl_domain(coor) | input(i).domain(coor);
-                    bcFun.setFValues(obj.addValues(bcFun,dofs_i,values_i));
+                    bcFun.setFValues(obj.addValues(bcFun,dofs_i,values_i,l2g));
                 end
             else
                 dofs = [];
@@ -115,14 +116,13 @@ classdef BoundaryConditions < handle
             idof(:,1)= ndimf*(inode - 1) + iunkn;
         end
         
-        function fV = addValues(obj,dirich,dofs,values)
-            ndofs = dirich.nDofs;
+        function fV = addValues(obj,dirich,dofs,values,l2g)
             ndimf = dirich.ndimf;
-
+            ndofs = obj.mesh.nnodes*ndimf;
             fVdofs = zeros(ndofs,1);
             fVdofs(dofs) = values;
             fVdofs = reshape(fVdofs,[ndimf ndofs/ndimf])';
-            fV = dirich.fValues + fVdofs;
+            fV = fVdofs(l2g,:);
         end
     end
     
