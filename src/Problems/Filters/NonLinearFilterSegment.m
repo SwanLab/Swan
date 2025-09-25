@@ -4,6 +4,8 @@ classdef NonLinearFilterSegment < handle
         mesh
         trial
         epsilon
+        alphaEps
+        betaEps
         alpha
         beta
         %ub
@@ -32,7 +34,7 @@ classdef NonLinearFilterSegment < handle
             obj.createDirectionalStiffnessMatrix();
         end
 
-        function xF = compute(obj,fun,quadOrder)
+        function [xF,errorVec] = compute(obj,fun,quadOrder)
             xF = copy(obj.trial);   
             obj.computeInitialGuess(fun,quadOrder);
             obj.updateDotProduct(obj.trial); 
@@ -42,6 +44,7 @@ classdef NonLinearFilterSegment < handle
             dJ0 = obj.computeCostGradient(quadOrder);
             error0 = Norm(dJ0,'L2');
             error  = inf;
+            errorVec = [];
             while error >= 1e-6  && iter<=1000
                 valOld = obj.trial.fValues;
                 isAcceptable = false;
@@ -62,13 +65,24 @@ classdef NonLinearFilterSegment < handle
                 end
                 iter = iter + 1;
                 error0 = error;
+                errorVec = [errorVec;error];
             end
             xF.setFValues(obj.trial.fValues);
         end
 
+        function updateAlpha(obj,a)
+            obj.alphaEps = a;
+            obj.alpha    = a*obj.epsilon;
+        end
+
+        function updateBeta(obj,b)
+            obj.betaEps = b;
+            obj.beta    = b*obj.epsilon;
+        end
+
         function updateEpsilon(obj,eps)
-            obj.alpha      = (obj.alpha/obj.epsilon)*eps;
-            obj.beta       = (obj.beta/obj.epsilon)*eps;
+            obj.alpha      = obj.alphaEps*eps;
+            obj.beta       = obj.betaEps*eps;
             obj.lineSearch = obj.lineSearch*(obj.epsilon/eps);
             obj.epsilon    = eps;
             obj.filter.updateEpsilon(max(obj.alpha,obj.beta));
@@ -80,6 +94,8 @@ classdef NonLinearFilterSegment < handle
             obj.trial      = LagrangianFunction.create(cParams.mesh, 1, 'P1');
             obj.mesh       = cParams.mesh;
             obj.epsilon    = obj.mesh.computeMeanCellSize();
+            obj.alphaEps   = cParams.alpha;
+            obj.betaEps    = cParams.beta;
             obj.alpha      = cParams.alpha*obj.epsilon;
             obj.beta       = cParams.beta*obj.epsilon;
             %obj.ub         = cParams.ub;
