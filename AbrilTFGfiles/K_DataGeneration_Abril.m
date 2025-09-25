@@ -3,7 +3,8 @@
 
 clc; clear; close all;
 
-r = linspace(0.01,1,10); 
+%r = linspace(0,1,200); 
+r=0.4130;
 
 K_all=zeros(8,8,length(r));
 
@@ -16,7 +17,7 @@ for j = 1:size(r,2)
     K_all(:,:,j)=Kcoarse;
 
     %Designa un nom per cada linea corresponent a un radi
-    string = strrep("UL_r"+num2str(r(j), '%.2f'), ".", "_")+"-20x20"+".mat"; 
+    string = strrep("UL_r"+num2str(r(j), '%.4f'), ".", "_")+"-20x20"+".mat"; 
 
     U         = u;
     L         = l;
@@ -24,14 +25,17 @@ for j = 1:size(r,2)
     K         = Kcoarse
 
     % Guarda el workspace per cert radi
-    FileName=fullfile('AbrilTFGfiles','DataVariables',string)
+    %FileName=fullfile('AbrilTFGfiles','DataVariables',string)
+    FileName=fullfile('AbrilTFGfiles','DataComparison',string)
     save(FileName, "U", "L", "K","mesh","R"); 
 end
 
+
+
+
+%% Reshapes the data and saves it in a csv file
+
 data=zeros(size(r,2),36);
-
-
-% Reshapes the data and saves it in a csv file
 for n=1:size(r,2)
     triangSup=triu(K_all(:,:,n));  %gets the triangular superior matrix
     clear row;

@@ -1,1 +1,0 @@
-obj = CoarseTesting_Albert()

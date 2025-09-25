@@ -41,6 +41,10 @@ opt.solve();
 opt.plotCostFnc();
 MSETrain    = immse(opt.computeOutputValues(data.Xtrain), data.Ytrain);
 
+string ="NeuralNetwork1.mat"
+
+FileName=fullfile('AbrilTFGfiles','NN',string)
+    save(FileName, "opt");
 %% Plot surface
 
 % Load dataset from specified path
@@ -62,7 +66,7 @@ dataPoints = 1:1:size(difference,2);
 
 [x, y] = meshgrid(dataPoints, rVector');
 
-zero = zeros(size(difference))
+zero = zeros(size(difference));
 
 s = surf(x, y, abs(difference),'FaceAlpha',0.5)
 s.EdgeColor = 'none';
