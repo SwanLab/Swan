@@ -38,7 +38,7 @@ classdef DilationComputer < handle
         end
        
         function computeLHS(obj)
-            K = IntegrateLHS(@(u,v) DP(Grad(v),Grad(u)),obj.dilation,obj.dilation,obj.mesh);
+            K = IntegrateLHS(@(u,v) DP(Grad(v),Grad(u)),obj.dilation,obj.dilation,obj.mesh,'Domain');
             I = ones(size(K,1),1);
             obj.LHS = [K,I;I',0];
         end 
