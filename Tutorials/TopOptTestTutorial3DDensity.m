@@ -108,7 +108,7 @@ classdef TopOptTestTutorial3DDensity < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'CG';
+            s.solverCase = CGsolver();
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end

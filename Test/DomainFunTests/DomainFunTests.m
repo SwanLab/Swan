@@ -145,7 +145,7 @@ classdef DomainFunTests < handle & matlab.unittest.TestCase
             s.boundaryConditions = bc;
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'DIRECT';
+            s.solverCase = DirectSolver();
             fem = ElasticProblem(s);
             fem.solve();
         end

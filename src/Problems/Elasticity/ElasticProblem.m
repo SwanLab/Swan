@@ -90,11 +90,9 @@ classdef ElasticProblem < handle
         end
 
         function createSolver(obj)
-            sS.type      = obj.solverCase;
-            solver       = Solver.create(sS);
             s.solverType = obj.solverType;
             s.solverMode = obj.solverMode;
-            s.solver     = solver;
+            s.solver     = obj.solverCase;
             s.boundaryConditions = obj.boundaryConditions;
             s.BCApplier          = obj.bcApplier;
             obj.problemSolver    = ProblemSolver(s);

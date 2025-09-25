@@ -186,7 +186,7 @@ classdef TopOptTestTutorialBoundFormulation < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'DIRECT';
+            s.solverCase = DirectSolver();
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
