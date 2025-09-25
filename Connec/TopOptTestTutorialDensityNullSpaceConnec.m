@@ -54,32 +54,32 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
         end
 
         function createDesignVariable(obj)
-            % s.fHandle = @(x) ones(size(x(1,:,:)));
-            % s.ndimf   = 1;
-            % s.mesh    = obj.mesh;
-            % aFun      = AnalyticalFunction(s);
-            % d = aFun.project('P1');
+            s.fHandle = @(x) ones(size(x(1,:,:)));
+            s.ndimf   = 1;
+            s.mesh    = obj.mesh;
+            aFun      = AnalyticalFunction(s);
+            d = aFun.project('P1');
 
-            s.dim = obj.mesh.ndim;
-            s.nHoles = [1 1];
-            s.phases = [0 0]; 
-            s.phiZero = 0.5;
-            s.totalLengths = [1,1];
-            s.type         = 'Holes';
-            g              = GeometricalFunction(s);
-            phiFun         = g.computeLevelSetFunction(obj.mesh);
-            ls          = phiFun.fValues;
-            lsInclusion = ls;
-            sU.backgroundMesh = obj.mesh;
-            sU.boundaryMesh   = obj.mesh.createBoundaryMesh;
-            uMesh             = UnfittedMesh(sU);
-            uMesh.compute(lsInclusion);           
-            cFun = CharacteristicFunction.create(uMesh);
-            s.filterType = 'LUMP';
-            s.mesh  = obj.mesh;
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            f = Filter.create(s);
-            d = f.compute(cFun,2);            
+            % s.dim = obj.mesh.ndim;
+            % s.nHoles = [1 1];
+            % s.phases = [0 0]; 
+            % s.phiZero = 0.5;
+            % s.totalLengths = [1,1];
+            % s.type         = 'Holes';
+            % g              = GeometricalFunction(s);
+            % phiFun         = g.computeLevelSetFunction(obj.mesh);
+            % ls          = phiFun.fValues;
+            % lsInclusion = ls;
+            % sU.backgroundMesh = obj.mesh;
+            % sU.boundaryMesh   = obj.mesh.createBoundaryMesh;
+            % uMesh             = UnfittedMesh(sU);
+            % uMesh.compute(lsInclusion);           
+            % cFun = CharacteristicFunction.create(uMesh);
+            % s.filterType = 'LUMP';
+            % s.mesh  = obj.mesh;
+            % s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            % f = Filter.create(s);
+            % d = f.compute(cFun,2);            
             
             sD.fun      = d;
             sD.mesh     = obj.mesh;
@@ -182,16 +182,17 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             k1  = e; 
             m0  = e;
             m1  = 1-e;
-            sC.mesh     = obj.mesh;            
-            sC.diffCoef = @(x) k0*(1-x)+k1*x;
-            sC.massCoef = @(x) m0*(1-x)+m1*x;
-            s.connec = Connect(sC);
+            p  = 1;
+            s.diffCoef = @(x) k0*(1-x.^p)+k1*x.^p;
+            s.massCoef = @(x) m0*(1-x.^p)+m1*x.^p;
+            s.dm       = @(x) -m0*p*x.^(p-1)+m1*p.*x.^(p-1);
+            s.dk       = @(x) -k0*p*x.^(p-1)+k1*p.*x.^(p-1);
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.test   = LagrangianFunction.create(obj.mesh,1,'P1');
             s.uMesh = obj.createBaseDomain();
             v = EnclosedVoidFunctional(s);
-            v.computeFunctionAndGradient(obj.designVariable,sC.massCoef)
+            v.computeFunctionAndGradient(obj.designVariable)
             obj.enclosedVoid = v;
         end        
 
@@ -205,12 +206,12 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
         function M = createMassMatrix(obj)
             test  = LagrangianFunction.create(obj.mesh,1,'P1');
             trial = LagrangianFunction.create(obj.mesh,1,'P1'); 
-            M = IntegrateLHS(@(u,v) DP(v,u),test,trial,obj.mesh);
+            M = IntegrateLHS(@(u,v) DP(v,u),test,trial,obj.mesh,'Domain');
         end
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
-          %  s.shapeFunctions{2} = obj.enclosedVoid;
+            s.shapeFunctions{2} = obj.enclosedVoid;
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
@@ -230,7 +231,7 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             s.designVariable = obj.designVariable;
             s.maxIter        = 300;
             s.tolerance      = 1e-8;
-            s.constraintCase = {'EQUALITY'};
+            s.constraintCase = {'EQUALITY','INEQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
             s.etaNorm        = 0.1;
             s.gJFlowRatio    = 2;

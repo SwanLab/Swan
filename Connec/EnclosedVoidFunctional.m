@@ -7,41 +7,92 @@ classdef EnclosedVoidFunctional < handle
     properties (Access = private)
         mesh
         filter
-        connec
+        boundaryConditions
+        k
+        m
+        dm
+        dk
+        test
+        problemSolver        
     end
 
     methods (Access = public)
         function obj = EnclosedVoidFunctional(cParams)
             obj.init(cParams);
+            obj.test = LagrangianFunction.create(obj.mesh,1,'P1');
+            obj.createBoundaryConditions();
+            obj.createSolver();            
         end
 
-        function [J,dJ] = computeFunctionAndGradient(obj,x,massCoef)
+        function [J,dJ] = computeFunctionAndGradient(obj,x)
             xD  = x.obtainDomainFunction();
             xR = obj.filterFields(xD);
             xR = xR{1};
-            phi = obj.connec.solve(xR);
-            rhoV = (phi-xR);
-            rhoV = phi.*(1-xR);
+            phi = obj.solveState(xR);
+            lam = obj.solveAdjoint(xR);
+         %   rhoV = (phi - xD{1});
+            rhoV = phi.*(1-xD{1});
             %rhoV = (1-phi).*massCoef(xR);
-            plot(x.fun)
-            plot(phi)
-            plot(rhoV) 
-            J = Integrator.compute(rhoV,obj.mesh,2);
-            dJ = 0;
+          %  plot(x.fun)
+          %  plot(phi)
+          %  plot(rhoV) 
+          %  plot(lam);
+            Dom = Integrator.compute(ConstantFunction.create(1,obj.mesh),obj.mesh,2);
+            J = Integrator.compute(rhoV,obj.mesh,2)/Dom - 0.1;
+            dJ{1} = -phi + obj.dk(xR).*DP(Grad(lam),Grad(phi)) + DP(obj.dm(xR).*(phi-xR)-obj.m(xR),lam);
+            dJ{1} = dJ{1}./Dom;
+            dJ = obj.filterFields(dJ);
+            %plot(dJ{1})
             %[J,dJ] = obj.computeComplianceFunctionAndGradient(x);
         end
 
     end
     
     methods (Access = private)
+
         function init(obj,cParams)
-            obj.mesh       = cParams.mesh;
-            obj.filter     = cParams.filter;
-            obj.connec     = cParams.connec;
+            obj.mesh     = cParams.mesh;
+            obj.filter   = cParams.filter;
+            obj.k = cParams.diffCoef;
+            obj.m = cParams.massCoef;
+            obj.dm       = cParams.dm;
+            obj.dk       = cParams.dk;
             if isfield(cParams,'value0')
                 obj.value0 = cParams.value0;
             end
         end
+
+        function createBoundaryConditions(obj)
+            isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
+            isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
+            isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2))) < 1e-12);
+            isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2))) < 1e-12);
+            sDir{1}.domain    = @(coor) isTop(coor) | isLeft(coor) | isBottom(coor) | isRight(coor);
+            sDir{1}.direction = 1;
+            sDir{1}.value     = 0;
+            sDir{1}.ndim      = 1;
+            dirichletFun = DirichletCondition(obj.mesh, sDir{1});
+            s.dirichletFun = dirichletFun;
+            s.pointloadFun = [];
+            s.periodicFun  = [];
+            s.mesh = obj.mesh;
+            obj.boundaryConditions = BoundaryConditions(s);            
+        end        
+
+        function createSolver(obj)
+            s.mesh = obj.mesh;
+            s.boundaryConditions = obj.boundaryConditions;           
+            bcA = BCApplier(s);
+            sS.type      = 'DIRECT';
+            solver       = Solver.create(sS);
+            s.solverType = 'REDUCED';
+            s.solverMode = 'DISP';
+            s.solver     = solver;
+            s.boundaryConditions = obj.boundaryConditions;
+            s.BCApplier          = bcA;
+            obj.problemSolver    = ProblemSolver(s);   
+        end  
+
 
         function xR = filterFields(obj,x)
             nDesVar = length(x);
@@ -49,31 +100,30 @@ classdef EnclosedVoidFunctional < handle
             for i = 1:nDesVar
                 xR{i} = obj.filter.compute(x{i},2);
             end
-        end
+        end        
 
-        function [J,dJ] = computeComplianceFunctionAndGradient(obj,x)
-            C   = obj.material.obtainTensor();
-            dC  = obj.material.obtainTensorDerivative();
-            dC  = ChainRule.compute(x,dC);
-            [J,dJ] = obj.compliance.computeFunctionAndGradient(C,dC);
-            dJ     = obj.filterFields(dJ);
-            if isempty(obj.value0)
-                obj.value0 = J;
-            end
-            J  = obj.computeNonDimensionalValue(J);
-            dJ = obj.computeNonDimensionalGradient(dJ);
-        end
+        function [uFun] = solveState(obj,x)
+            k   = obj.k(x);
+            m   = obj.m(x);
+            LHS = IntegrateLHS(@(u,v) DDP(Grad(v),k.*Grad(u)) + DP(v,m.*u),obj.test,obj.test,obj.mesh,'Domain');
+            RHS = IntegrateRHS(@(v) DP(v,m.*x),obj.test,obj.mesh);
+            s.stiffness = LHS;
+            s.forces    = RHS;  
+            [u,~]       = obj.problemSolver.solve(s); 
+            uFun = LagrangianFunction.create(obj.mesh,1,'P1');
+            uFun.setFValues(u);  
+        end        
 
-        function x = computeNonDimensionalValue(obj,x)
-            refX = obj.value0;
-            x    = x/refX;
-        end
-
-        function dx = computeNonDimensionalGradient(obj,dx)
-            refX = obj.value0;
-            for i = 1:length(dx)
-                dx{i}.setFValues(dx{i}.fValues/refX);
-            end
+        function lam = solveAdjoint(obj,x)
+            k   = obj.k(x);
+            m   = obj.m(x);
+            LHS = IntegrateLHS(@(u,v) DDP(Grad(v),k.*Grad(u)) + DP(v,m.*u),obj.test,obj.test,obj.mesh,'Domain');
+            RHS = IntegrateRHS(@(v) -DP(v,(1-x)),obj.test,obj.mesh);
+            s.stiffness = LHS;
+            s.forces    = RHS;  
+            [u,~]       = obj.problemSolver.solve(s); 
+            lam = LagrangianFunction.create(obj.mesh,1,'P1');
+            lam.setFValues(u);              
         end
 
     end
