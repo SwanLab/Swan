@@ -55,14 +55,14 @@ classdef MaximumEigenValueFunctional < handle
         end
 
         function J = computeFunction(obj,lambda)
-                 J = 1/lambda;
+%                  J = 1/lambda;
                 if isempty(obj.value0)
                     obj.value0  =   1; %lambda; %lambda full domain;
                 end
 %                 if isempty(obj.lambdaOld)
 %                     obj.lambdaOld = lambda;
 %                 end
-%                 J = -lambda;
+                J = -lambda;  
                 J = J/obj.value0;
         end
 
@@ -72,8 +72,8 @@ classdef MaximumEigenValueFunctional < handle
             else
                 dJ        = obj.filter.compute(dlambda,2);
             end
-%             fValues   = - dJ.fValues;
-            fValues   = (-1/lambda^2 *dJ.fValues); %
+            fValues   = - dJ.fValues;
+%             fValues   = (-1/lambda^2 *dJ.fValues); %
             dJ.setFValues(fValues/obj.value0);   
         end
 

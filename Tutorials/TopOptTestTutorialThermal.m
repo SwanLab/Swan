@@ -75,8 +75,8 @@ classdef TopOptTestTutorialThermal < handle
 
         function createMaterialInterpolator(obj) % Conductivity
             s.interpolation  = 'SIMPThermal';   
-            s.f0   = 0.01;                                             
-            s.f1   = 1;                                                    
+            s.kappa0   = 0.01;                                             
+            s.kappa1   = 1;                                                    
             s.pExp = 3;
             a = MaterialInterpolator.create(s);
             obj.materialInterpolator = a;            

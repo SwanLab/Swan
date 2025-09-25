@@ -25,7 +25,8 @@ classdef MinimumEigenValueFunctional < handle
             xD  = x.obtainDomainFunction();             % rho
             xR = obj.filterDesignVariable(xD{1});       % FP rho
             if obj.isCompl == true
-                xR.setFValues(1 - xR.fValues);          % 1 - FP
+                xR.setFValues(max(min(1 - xR.fValues,1),0));
+%                 xR.setFValues(1 - xR.fValues);          % 1 - FP
             end
             [f,dfdx]= obj.eigModes.computeFunctionAndGradient(xR);    
             if ~isempty(obj.filterAdjoint)

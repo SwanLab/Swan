@@ -23,7 +23,7 @@ classdef TopOptTutorialLevelSetEigMaximization < handle
                     obj.init()
                     obj.createMesh();
                     obj.createDesignVariable();
-%                     obj.createFilter();
+                    obj.createFilter();
                     obj.createEigenValue();      
                     obj.createNonDesignableDomain();
                     obj.createVolumeConstraint();
@@ -72,11 +72,11 @@ classdef TopOptTutorialLevelSetEigMaximization < handle
 %             s.yCoorCenter = 0.1;
 %             s.xCoorCenter2 = 0.3;
 %             s.yCoorCenter2 = 0.3;
-            s.type = 'Circle';
-            s.radius = sqrt(0.4/pi);
-            s.xCoorCenter = 0.5;
-            s.yCoorCenter = 0.5;      
-%             s.type = 'Full';
+%             s.type = 'Circle';
+%             s.radius = sqrt(0.4/pi);
+%             s.xCoorCenter = 0.5;
+%             s.yCoorCenter = 0.5;      
+            s.type = 'Full';
             g      = GeometricalFunction(s);
             lsFun  = g.computeLevelSetFunction(obj.mesh);
             s.fun  = lsFun;

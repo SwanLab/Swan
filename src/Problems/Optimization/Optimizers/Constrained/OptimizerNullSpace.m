@@ -3,7 +3,7 @@ classdef OptimizerNullSpace < handle
 
     properties (Access = private)
         tolCost   = 1e-5
-        tolConstr = 1e-5
+        tolConstr = 1e-4
     end
 
     properties (Access = private)
@@ -105,7 +105,7 @@ classdef OptimizerNullSpace < handle
 
 
         function saveFilesPosProcess(obj)
-            obj.saveCost(end+1) = obj.cost.value;
+            obj.saveCost(end+1) = obj.cost.getFields(1);
             obj.saveConstraint(end+1,:) = obj.constraint.value;
         end
 

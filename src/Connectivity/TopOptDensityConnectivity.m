@@ -92,7 +92,7 @@ classdef TopOptDensityConnectivity < handle
 %             s.beta       = 2.0;
 %             s.eta        = 0.0;
 %             obj.filterAdjointComp = Filter.create(s);
-            s.filterType = 'LUMP';
+            s.filterType = 'PDE';
             s.mesh       = obj.mesh;
             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
             f            = Filter.create(s);

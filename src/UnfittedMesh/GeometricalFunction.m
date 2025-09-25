@@ -210,6 +210,58 @@ classdef GeometricalFunction < handle
                     fH = @(x) min((x1(x)-x0).^2+(x2(x)-y0).^2-r^2, (x1(x)-x02).^2+(x2(x)-y02).^2-r^2);
                     obj.fHandle = fH;
 
+                case 'RingSDF'
+                    Rin = cParams.innerRadius;
+                    Rout = cParams.outerRadius;
+                    x0  = cParams.xCoorCenter;
+                    y0  = cParams.yCoorCenter;
+                
+                    if Rout <= Rin
+                        error('outerRadius must be greater than innerRadius');
+                    end
+                
+                    fH = @(x) max( Rin - sqrt( (x1(x)-x0).^2 + (x2(x)-y0).^2 ), ...
+                                    sqrt( (x1(x)-x0).^2 + (x2(x)-y0).^2 ) - Rout );
+                
+                    % Inside the ring: fH(x) < 0; magnitude = distance to nearest boundary
+                    obj.fHandle = fH;
+
+                case 'RingInclusion'
+                    s      = cParams;
+                    s.type = 'RingSDF';
+                    obj.computeInclusion(s);
+
+                case 'RingWithHorizontalCrack'
+                    Rin = cParams.innerRadius;
+                    Rout = cParams.outerRadius;
+                    x0  = cParams.xCoorCenter;
+                    y0  = cParams.yCoorCenter;
+                    w = cParams.crackWidth;
+                
+                    if Rout <= Rin
+                        error('outerRadius must be greater than innerRadius');
+                    end
+                
+                    % Helpers
+                    r  = @(x) sqrt( (x1(x)-x0).^2 + (x2(x)-y0).^2 );
+                
+                    % Annulus SDF: negative inside the ring
+                    phi_ring  = @(x) max(Rin - r(x), r(x) - Rout);
+                
+                    % Crack SDF (intersection of: horizontal strip, half-plane x>=x0, and ring radii)
+                    phi_crack = @(x) max( max(abs(x2(x)-y0) - w/2, -(x1(x)-x0)), ...
+                                          max(r(x) - Rout, Rin - r(x)) );
+                
+                    % Set difference: Ring \ Crack  =>  max(φ_ring, -φ_crack)
+                    fH = @(x) max( phi_ring(x), -phi_crack(x) );
+                
+                    obj.fHandle = fH;
+
+                case 'RingWithHorizontalCrackInclusion'
+                    s      = cParams;
+                    s.type = 'RingWithHorizontalCrack';
+                    obj.computeInclusion(s);
+
                 case 'CircleInclusion'
                     s      = cParams;
                     s.type = 'Circle';

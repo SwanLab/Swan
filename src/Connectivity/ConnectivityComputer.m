@@ -23,14 +23,29 @@ classdef ConnectivityComputer < handle
     methods (Access = public)
 
         function obj = ConnectivityComputer()
-            obj.init();
-            obj.createMesh();
-            obj.createLevelSet();
-            obj.createFilter();
-            obj.createCharacteristicFunction();
-            obj.createDesignVariable();  
-            obj.createFilterConnectivity();
-            obj.computeEigenValueFunctional();
+            lambda1 = []
+            h = 1/100;
+%             for radius = 0:h:0.6 %0.5
+            radius_all = 0.0:h:0.6
+            for radius = radius_all %0.5
+                radius
+                obj.init();
+                obj.createMesh();
+                obj.createLevelSet(radius);
+                obj.createFilter();
+                obj.createCharacteristicFunction();
+                obj.createDesignVariable();  
+                lambda = obj.computeEigenValueFunctional();
+                lambda1 = [lambda1, lambda]
+            end
+            figure
+            semilogy(radius_all,lambda1,'-')
+            xlabel('Radius')
+            ylabel('First Eigenvalue')
+            grid on
+%             save('PDEFP.mat','lambda1')
+            save('LUMP.mat','lambda1')
+%             save('PDE.mat','lambda1')
         end
 
     end
@@ -52,26 +67,38 @@ classdef ConnectivityComputer < handle
             obj.mesh = m;
         end
 
-        function createLevelSet(obj)
-%             s.type        = 'RectangleInclusion';
-%             s.xSide       = 0.5;
-%             s.ySide       = 0.5;
+        function createLevelSet(obj,radius)
+            s.type        = 'CircleInclusion';
+            s.xCoorCenter       = 0.5;
+            s.yCoorCenter       = 0.5;
+            s.radius      = radius;%0.1;
+% % 
+%             s.type        = 'RingWithHorizontalCrack'; %'RingSDF';
+%             s.innerRadius = 0.1;
+%             s.outerRadius = 0.2;
+%             s.xCoorCenter = 0.5;
+%             s.yCoorCenter = 0.5;
+%             s.crackWidth = 0.02;
+
+%             s.type        = 'RingSDF';
+%             s.innerRadius = 0.1;
+%             s.outerRadius = 0.2;
 %             s.xCoorCenter = 0.5;
 %             s.yCoorCenter = 0.5;
 
-            s.type        = 'ThreeRectanglesInclusion';
-            s.xSide1       = 0.3;
-            s.ySide1       = 0.3;
-            s.xCoorCenter1 = 0.35;
-            s.yCoorCenter1 = 0.5;
-            s.xSide2       = 0.1;
-            s.ySide2       = 0.1;
-            s.xCoorCenter2 = 0.6;
-            s.yCoorCenter2 = 0.5;
-            s.xSide3       = 1.0;
-            s.ySide3       = 0.1;
-            s.xCoorCenter3 = 0.5;
-            s.yCoorCenter3 = 0.2; 
+%             s.type        = 'ThreeRectanglesInclusion';
+%             s.xSide1       = 0.3;
+%             s.ySide1       = 0.3;
+%             s.xCoorCenter1 = 0.35;
+%             s.yCoorCenter1 = 0.5;
+%             s.xSide2       = 0.1;
+%             s.ySide2       = 0.1;
+%             s.xCoorCenter2 = 0.6;
+%             s.yCoorCenter2 = 0.5;
+%             s.xSide3       = 1.0;
+%             s.ySide3       = 0.1;
+%             s.xCoorCenter3 = 0.5;
+%             s.yCoorCenter3 = 0.2; 
 
             g             = GeometricalFunction(s);
             phi           = g.computeLevelSetFunction(obj.mesh);
@@ -84,6 +111,15 @@ classdef ConnectivityComputer < handle
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
             obj.filter = f;
+
+%             s.filterType = 'FilterAndProject';
+% %             s.filterType = 'CloseOperator'; %'FilterAndProject';
+%             s.mesh       = obj.mesh;
+%             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+%             s.filterStep = 'PDE';
+%             s.beta       = 2.0; % 1.0;
+% %             s.eta        = 0.0;
+%             obj.filter = Filter.create(s);
         end        
 
         function createCharacteristicFunction(obj)
@@ -104,32 +140,15 @@ classdef ConnectivityComputer < handle
             obj.designVariable = dens;
         end
 
-        function createFilterConnectivity(obj)
-           s.filterType = 'FilterAndProject';
-            s.mesh       = obj.mesh;
-            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.filterStep = 'LUMP';
-            s.beta       = 100.0;
-            s.eta        = 0.5;
-            f            = Filter.create(s);
-            obj.filterConnect = f;
-
-%             s.filterType = 'PDE';
-%             s.mesh  = obj.mesh;
-%             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-%             f = Filter.create(s);
-%             f.updateEpsilon(1.0*obj   .mesh.computeMeanCellSize());
-%             obj.filterConnect = f;
-        end        
-
-        function computeEigenValueFunctional(obj)
+        function [lambda] = computeEigenValueFunctional(obj)
             s.mesh = obj.mesh;
             s.designVariable = obj.designVariable;
-            s.filter = obj.filterConnect;
+            s.filter = obj.filter;
             s.boundaryConditions = obj.createEigenvalueBoundaryConditions();
             s.eigenModes = StiffnessEigenModesComputer(s);
+            s.isCompl  = true;
             mE = MinimumEigenValueFunctional(s);
-            [lambda, dlambda] = mE.computeFunctionAndGradient({obj.designVariable,0});  
+            [lambda, dlambda] = mE.computeFunctionAndGradient(obj.designVariable);  
         end
 
         function  bc = createEigenvalueBoundaryConditions(obj)
