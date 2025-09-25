@@ -161,7 +161,7 @@ classdef TopOptTestTutorialWithGiD < handle
         function M = createMassMatrix(obj)
             test  = LagrangianFunction.create(obj.mesh,1,'P1');
             trial = LagrangianFunction.create(obj.mesh,1,'P1'); 
-            M = IntegrateLHS(@(u,v) DP(v,u),test,trial,obj.mesh);    
+            M = IntegrateLHS(@(u,v) DP(v,u),test,trial,obj.mesh,'Domain');    
         end
 
         function createConstraint(obj)

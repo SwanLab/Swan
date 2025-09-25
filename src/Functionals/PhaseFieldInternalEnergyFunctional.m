@@ -34,13 +34,13 @@ classdef PhaseFieldInternalEnergyFunctional < handle
 
         function Huu = computeHessianDisplacement(obj,~,phi,quadOrder)   
             C = obj.material.obtainTensor(phi);
-            Huu = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),obj.testU,obj.testU,obj.mesh,quadOrder);
+            Huu = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),obj.testU,obj.testU,obj.mesh,'Domain',quadOrder);
         end
 
         function Hphiphi = computeHessianDamage(obj,u,phi,quadOrder)  
             ddC = obj.material.obtainTensorSecondDerivative(phi);
             ddEnergyFun = DDP(SymGrad(u),DDP(ddC,SymGrad(u)));
-            Hphiphi = IntegrateLHS(@(u,v) (1/2)*ddEnergyFun.*DP(u,v),obj.testPhi,obj.testPhi,obj.mesh,quadOrder);
+            Hphiphi = IntegrateLHS(@(u,v) (1/2)*ddEnergyFun.*DP(u,v),obj.testPhi,obj.testPhi,obj.mesh,'Domain',quadOrder);
         end
     end
     

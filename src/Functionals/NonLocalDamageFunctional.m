@@ -37,7 +37,7 @@ classdef NonLocalDamageFunctional < handle
             % s.type = 'StiffnessMatrix';
             % LHS = LHSIntegrator.create(s);
             % H = (obj.constant*obj.l0)*LHS.compute();
-            H = IntegrateLHS(@(u,v) (obj.constant*obj.l0)*DP(Grad(v),Grad(u)),obj.testPhi,obj.testPhi,obj.mesh,quadOrder);
+            H = IntegrateLHS(@(u,v) (obj.constant*obj.l0)*DP(Grad(v),Grad(u)),obj.testPhi,obj.testPhi,obj.mesh,'Domain',quadOrder);
         end
     end
     

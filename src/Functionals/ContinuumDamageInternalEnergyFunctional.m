@@ -67,7 +67,7 @@ classdef ContinuumDamageInternalEnergyFunctional < handle
         end
 
         function LHS = computeLHS(obj,mat)
-            LHS = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(mat,SymGrad(u))),obj.test,obj.test,obj.mesh,obj.quadOrder);
+            LHS = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(mat,SymGrad(u))),obj.test,obj.test,obj.mesh,'Domain',obj.quadOrder);
         end
 
         function sec = computeDerivativeResidualSecant(obj,r)
