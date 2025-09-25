@@ -30,7 +30,7 @@ classdef Connect < handle
             k   = obj.diffCoef(x);
             m   = obj.massCoef(x);
             LHS = IntegrateLHS(@(u,v) DDP(Grad(v),k.*Grad(u)) + DP(v,m.*u),obj.test,obj.test,obj.mesh);
-            RHS = IntegrateRHS(@(v) DP(v,m.*(1-x)),obj.test,obj.mesh);
+            RHS = IntegrateRHS(@(v) DP(v,m.*(x)),obj.test,obj.mesh);
             s.stiffness = LHS;
             s.forces    = RHS;  
             [u,~]       = obj.problemSolver.solve(s); 

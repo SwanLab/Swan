@@ -178,10 +178,10 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
 
         function createEnclosedVoidFunctionalConstraint(obj)
             e   = 1e-3;
-            k0  = e;
-            k1  = 1-e; 
-            m0  = 1-e;
-            m1  = e;
+            k0  = 1-e;
+            k1  = e; 
+            m0  = e;
+            m1  = 1-e;
             sC.mesh     = obj.mesh;            
             sC.diffCoef = @(x) k0*(1-x)+k1*x;
             sC.massCoef = @(x) m0*(1-x)+m1*x;
@@ -191,7 +191,7 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             s.test   = LagrangianFunction.create(obj.mesh,1,'P1');
             s.uMesh = obj.createBaseDomain();
             v = EnclosedVoidFunctional(s);
-            v.computeFunctionAndGradient(obj.designVariable)
+            v.computeFunctionAndGradient(obj.designVariable,sC.massCoef)
             obj.enclosedVoid = v;
         end        
 

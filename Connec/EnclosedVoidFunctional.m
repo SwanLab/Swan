@@ -15,15 +15,18 @@ classdef EnclosedVoidFunctional < handle
             obj.init(cParams);
         end
 
-        function [J,dJ] = computeFunctionAndGradient(obj,x)
+        function [J,dJ] = computeFunctionAndGradient(obj,x,massCoef)
             xD  = x.obtainDomainFunction();
             xR = obj.filterFields(xD);
             xR = xR{1};
-            uFun = obj.connec.solve(1-xR);
+            phi = obj.connec.solve(xR);
+            rhoV = (phi-xR);
+            rhoV = phi.*(1-xR);
+            %rhoV = (1-phi).*massCoef(xR);
             plot(x.fun)
-            plot(uFun)
-            plot(uFun.*(1-xR)) 
-            J = Integrator.compute(uFun.*(1-xR),obj.mesh,2);
+            plot(phi)
+            plot(rhoV) 
+            J = Integrator.compute(rhoV,obj.mesh,2);
             dJ = 0;
             %[J,dJ] = obj.computeComplianceFunctionAndGradient(x);
         end
