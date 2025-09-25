@@ -4,7 +4,6 @@ classdef VolumeConstraint < handle
         mesh
         volumeTarget
         volume
-        value0
     end
     
     methods (Access = public)
@@ -13,15 +12,10 @@ classdef VolumeConstraint < handle
         end
         
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            x = x{1};
             [V,dV] = obj.volume.computeFunctionAndGradient(x);
             J      = obj.computeFunction(V);
-            dJ{1}  = obj.computeGradient(dV);
+            dJ{1}  = obj.computeGradient(dV{1});
         end  
-
-        function vol = getDesignVariable(obj)
-            vol = obj.volume.getDesignVariable();
-        end
     end
 
     methods (Access = private)
@@ -34,17 +28,12 @@ classdef VolumeConstraint < handle
         function J = computeFunction(obj,V)
             vTar = obj.volumeTarget;
             J    = V/vTar-1;
-            if isempty(obj.value0)
-              obj.value0 = 1;
-            end
-            J = J/obj.value0;
         end
 
         function dJ = computeGradient(obj,dV)
-            vTar    = obj.volumeTarget;
-            fValues = dV.fValues/vTar;
-            fValues = fValues/obj.value0;
-            dJ      = FeFunction.create(dV.order,fValues,obj.mesh);
+            vTar = obj.volumeTarget;
+            dJ   = dV;
+            dJ.setFValues(dV.fValues/vTar);
         end
     end
 

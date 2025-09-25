@@ -123,11 +123,26 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             obj.compliance = c;
         end
 
+        function uMesh = createBaseDomain(obj)
+            sG.type          = 'Square';
+            sG.length        = 1;
+            sG.xCoorCenter   = 1.5;
+            sG.yCoorCenter   = 0.5;
+            g                = GeometricalFunction(sG);
+            lsFun            = g.computeLevelSetFunction(obj.mesh);
+            levelSet         = lsFun.fValues;
+            s.backgroundMesh = obj.mesh;
+            s.boundaryMesh   = obj.mesh.createBoundaryMesh();
+            uMesh            = UnfittedMesh(s);
+            uMesh.compute(levelSet);
+        end
+
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
-            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;
+            s.test = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.volumeTarget = 0.3;
+            s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -140,15 +155,9 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         end
 
         function M = createMassMatrix(obj)
-            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.mesh  = obj.mesh;
-            s.type  = 'MassMatrix';
-            LHS = LHSIntegrator.create(s);
-            M = LHS.compute;
-
+            n = obj.mesh.nnodes;
             h = obj.mesh.computeMinCellSize();
-            M = h^2*eye(size(M));
+            M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
         end
 
         function createConstraint(obj)

@@ -17,19 +17,24 @@ classdef FilterFactory < handle
                         case {'Neumann','Periodic'}
                             switch cParams.metric
                                 case 'Isotropy'
-                                    cParams.LHStype = 'StiffnessMass';
+                                    cParams.LHSint.domain = @(e,u,v) e^2.*DP(Grad(v),Grad(u)) + DP(v,u);
                                 case 'Anisotropy'
-                                    cParams.LHStype = 'AnisotropicStiffnessMass';
+                                    A = cParams.A;
+                                    cParams.LHSint.domain = @(e,u,v) e^2.*DP(Grad(v),DP(A,Grad(u)',2,1),2,1) + DP(v,u);
                             end
+                            cParams.LHSint.boundary = [];
                         case 'Robin'
                             switch cParams.metric
                                 case 'Isotropy'
-                                    cParams.LHStype = 'StiffnessMassBoundaryMass';
+                                    cParams.LHSint.domain = @(e,u,v) e^2.*DP(Grad(v),Grad(u)) + DP(v,u);
                                 case 'Anisotropy'
-                                    cParams.LHStype = 'AnisotropicStiffnessMassBoundaryMass';
+                                    A = cParams.A;
+                                    cParams.LHSint.domain = @(e,u,v) e^2.*DP(Grad(v),DP(A,Grad(u)',2,1),2,1) + DP(v,u);
                             end
+                            cParams.LHSint.boundary = @(e,u,v) e.*DP(v,u);
                         case 'DirichletProjection'
-                            cParams.LHStype = 'MassBoundaryMass';
+                            cParams.LHSint.domain = @(e,u,v) DP(v,u);
+                            cParams.LHSint.boundary = @(e,u,v) e.*DP(v,u);
                     end
                     filter = FilterPDE(cParams);
                 case 'LUMP'
@@ -42,6 +47,10 @@ classdef FilterFactory < handle
                     filter = CloseOperator(cParams);
                 case 'CloseAdjointOperator'
                     filter = CloseAdjointOperator(cParams);
+                case 'Segment'
+                    filter = NonLinearFilterSegment(cParams);
+                case 'Droplet'
+                    filter = NonLinearFilterDroplet(cParams);
             end
         end
 

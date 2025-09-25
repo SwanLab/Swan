@@ -8,6 +8,6 @@ function fVR = evaluate(A,xV)
     F = A.evaluate(xV);
     nGaus = size(xV,2);
     nElem = size(F,4);
-    jac(1,1,:,:) = MatrixVectorizedInverter.computeDeterminant(F);
-    fVR   = reshape(jac, [1 1 nGaus nElem]);
+    jac(1,:,:) = MatrixVectorizedInverter.computeDeterminant(F);
+    fVR   = reshape(jac, [1 nGaus nElem]);
 end

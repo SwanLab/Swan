@@ -13,28 +13,31 @@ classdef NonLocalDamageFunctional < handle
             obj.init(cParams)            
         end
         
-        function F = computeFunctional(obj,phi,quadOrder)        
+        function F = computeCost(obj,phi,quadOrder)        
             phiGradSquaredFun = norm(Grad(phi)).^2;
             int = Integrator.create('Function',obj.mesh,quadOrder);
             F   = (obj.constant*(obj.l0/2))*int.compute(phiGradSquaredFun);
         end
         
         function J = computeGradient(obj,phi,quadOrder)
-            s.mesh = obj.mesh;
-            s.type = 'ShapeDerivative';
-            s.quadratureOrder = quadOrder;
-            RHS = RHSIntegrator.create(s);
-            J = (obj.constant*obj.l0)*RHS.compute(Grad(phi), obj.testPhi);
+            % s.mesh = obj.mesh;
+            % s.type = 'ShapeDerivative';
+            % s.quadratureOrder = quadOrder;
+            % s.test = obj.testPhi;
+            % RHS = RHSIntegrator.create(s);
+            % J = (obj.constant*obj.l0)*RHS.compute(Grad(phi));
+            J = IntegrateRHS(@(v) (obj.constant*obj.l0)*DP(Grad(v),Grad(phi)),obj.testPhi,obj.mesh,quadOrder);
         end
         
         function H = computeHessian(obj,~,quadOrder)
-            s.trial = obj.testPhi;
-            s.test  = obj.testPhi;
-            s.quadratureOrder = quadOrder;
-            s.mesh = obj.mesh;
-            s.type = 'StiffnessMatrix';
-            LHS = LHSIntegrator.create(s);
-            H = (obj.constant*obj.l0)*LHS.compute();
+            % s.trial = obj.testPhi;
+            % s.test  = obj.testPhi;
+            % s.quadratureOrder = quadOrder;
+            % s.mesh = obj.mesh;
+            % s.type = 'StiffnessMatrix';
+            % LHS = LHSIntegrator.create(s);
+            % H = (obj.constant*obj.l0)*LHS.compute();
+            H = IntegrateLHS(@(u,v) (obj.constant*obj.l0)*DP(Grad(v),Grad(u)),obj.testPhi,obj.testPhi,obj.mesh,'Domain',quadOrder);
         end
     end
     

@@ -71,7 +71,7 @@ classdef Cost < handle
         end
 
         function j = getFields(obj,i)
-            j = obj.shapeValues{i};
+            j = cell2mat(obj.shapeValues(i));
         end
 
         function j = getDesignVariable(obj,i)
