@@ -22,8 +22,8 @@ classdef NonLinearFilterDroplet < handle
             obj.init(cParams);
             obj.createDirection(cParams);
             obj.updatePreviousGuess(0);
-            obj.M = IntegrateLHS(@(u,v) DP(v,u),obj.trial,obj.trial,obj.mesh);
-            obj.K = IntegrateLHS(@(u,v) DP(Grad(v),Grad(u)),obj.trial,obj.trial,obj.mesh); 
+            obj.M = IntegrateLHS(@(u,v) DP(v,u),obj.trial,obj.trial,obj.mesh,'Domain');
+            obj.K = IntegrateLHS(@(u,v) DP(Grad(v),Grad(u)),obj.trial,obj.trial,obj.mesh,'Domain'); 
         end
 
         function xF = compute(obj,fun,quadOrder)
@@ -66,16 +66,8 @@ classdef NonLinearFilterDroplet < handle
 
 
         function createRHSChi(obj,fun,quadType)
-            switch class(fun)
-                case {'UnfittedFunction','UnfittedBoundaryFunction'}
-                    s.mesh = fun.unfittedMesh;
-                    s.quadType = quadType;
-                    int        = RHSIntegratorUnfitted(s);
-                    obj.chiN   = int.compute(fun,obj.trial);
-                otherwise
-                    f = @(v) DP(v,fun);
-                    obj.chiN = IntegrateRHS(f,obj.trial,obj.trial.mesh,quadType);   
-            end     
+            f        = @(v) DP(fun,v);
+            obj.chiN = IntegrateRHS(f,obj.trial,obj.trial.mesh,quadType);
         end
 
         function createRHSShapeDerivative(obj,quadOrder)
