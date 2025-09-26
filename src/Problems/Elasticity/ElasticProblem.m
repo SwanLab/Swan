@@ -112,7 +112,7 @@ classdef ElasticProblem < handle
             rhs = zeros(obj.uFun.nDofs,1);
             if ~isempty(t)
                 for i = 1:numel(t)
-                    rhsi = t(1).computeRHS(obj.uFun);
+                    rhsi = t(i).computeRHS(obj.uFun);
                     rhs  = rhs + rhsi;
                 end
             end
