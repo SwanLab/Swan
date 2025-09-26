@@ -178,7 +178,7 @@ classdef NonLinearFilterSegment < handle
             f         = obj.direction;
             %obj.kdhdN = obj.dNIntegrator.compute(f.*g);
 
-            obj.kdhdN = IntegrateRHS(@(v) DP(Grad(v),f.*g),obj.trial,obj.mesh,quadOrder);
+            obj.kdhdN = IntegrateRHS(@(v) DP(Grad(v),f.*g),obj.trial,obj.mesh,'Domain',quadOrder);
 
             
         end
@@ -234,7 +234,7 @@ classdef NonLinearFilterSegment < handle
             rhs1   = obj.createRHSShapeFunction(obj.trial,quadOrder);
             rhs2   = -obj.chiN;
             int3   = (a^2.*maxFun + b^2.*minFun).*k;
-            rhs3   = IntegrateRHS(@(v) DP(Grad(v),int3),obj.trial,obj.mesh,quadOrder);
+            rhs3   = IntegrateRHS(@(v) DP(Grad(v),int3),obj.trial,obj.mesh,'Domain',quadOrder);
         end
 
         function RHS = createRHSShapeFunction(obj,fun,quadType)

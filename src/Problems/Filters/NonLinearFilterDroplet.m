@@ -71,7 +71,7 @@ classdef NonLinearFilterDroplet < handle
         end
 
         function createRHSShapeDerivative(obj,quadOrder)
-            obj.proxdN = IntegrateRHS(@(v) DP(Grad(v),obj.sVar),obj.trial,obj.mesh,quadOrder);
+            obj.proxdN = IntegrateRHS(@(v) DP(Grad(v),obj.sVar),obj.trial,obj.mesh,'Domain',quadOrder);
         end
 
         function g = computeGradient(obj)
