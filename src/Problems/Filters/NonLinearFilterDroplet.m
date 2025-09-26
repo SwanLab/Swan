@@ -67,7 +67,7 @@ classdef NonLinearFilterDroplet < handle
 
         function createRHSChi(obj,fun,quadType)
             f        = @(v) DP(fun,v);
-            obj.chiN = IntegrateRHS(f,obj.trial,obj.trial.mesh,quadType);
+            obj.chiN = IntegrateRHS(f,obj.trial,obj.trial.mesh,'Domain',quadType);
         end
 
         function createRHSShapeDerivative(obj,quadOrder)

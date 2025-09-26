@@ -239,7 +239,7 @@ classdef NonLinearFilterSegment < handle
 
         function RHS = createRHSShapeFunction(obj,fun,quadType)
             f   = @(v) DP(fun,v);
-            RHS = IntegrateRHS(f,obj.trial,obj.trial.mesh,quadType);
+            RHS = IntegrateRHS(f,obj.trial,obj.trial.mesh,'Domain',quadType);
         end
 
 
