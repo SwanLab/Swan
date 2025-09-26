@@ -92,7 +92,7 @@ classdef TopOptTestTutorialThermalLevelSet < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'DIRECT';         %
+            s.solverCase = 'DIRECT';         
             fem = ThermalProblem(s); 
             obj.physicalProblem = fem;
         end
@@ -108,11 +108,23 @@ classdef TopOptTestTutorialThermalLevelSet < handle
 
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
+            s.uMesh  = obj.createBaseDomain();
             s.filter = obj.filter;
-            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.test = LagrangianFunction.create(obj.mesh,1,'P1');
             s.volumeTarget = 0.4;
             v = VolumeConstraint(s);
             obj.volume = v;
+        end
+
+        function uMesh = createBaseDomain(obj)
+            sG.type          = 'Full';
+            g                = GeometricalFunction(sG);
+            lsFun            = g.computeLevelSetFunction(obj.mesh);
+            levelSet         = lsFun.fValues;
+            s.backgroundMesh = obj.mesh;
+            s.boundaryMesh   = obj.mesh.createBoundaryMesh();
+            uMesh            = UnfittedMesh(s);
+            uMesh.compute(levelSet);
         end
 
         function createCost(obj)

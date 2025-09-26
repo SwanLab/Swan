@@ -87,16 +87,18 @@ classdef ThermalProblem < handle
             % lhs = LHSIntegrator.create(s);
             % obj.stiffness = lhs.compute();
 
-            obj.stiffness=integrateLHS
+            obj.stiffness=IntegrateLHS(@(u,v) kappa.*DP(Grad(u),Grad(v)),obj.test,obj.trial,obj.mesh,2);
         end
 
         function computeForces(obj)
-            s.type     = 'ShapeFunction';
-            s.mesh     = obj.mesh;
-            s.quadType = 2;
-            RHSint = RHSIntegrator.create(s);
-            rhs = RHSint.compute(obj.source, obj.test);
-            obj.forces = rhs;
+            % s.type     = 'ShapeFunction';
+            % s.mesh     = obj.mesh;
+            % s.quadType = 2;
+            % RHSint = RHSIntegrator.create(s);
+            % rhs = RHSint.compute(obj.source, obj.test);
+            % obj.forces = rhs;
+
+            obj.forces = IntegrateRHS(@(v) DP(obj.source,v), obj.test, obj.mesh, 2);
         end
 
         function u = computeTemperature(obj)
