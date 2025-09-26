@@ -66,10 +66,10 @@ classdef TopOptLevelSetConnectivity< handle
 
         function createMesh(obj)
 %             UnitMesh better
-%             x1      = linspace(0,6,180);
-%             x2      = linspace(0,1,30);
-            x1      = linspace(0,2,120);
-            x2      = linspace(0,1,60);
+% %             x1      = linspace(0,6,180);
+% %             x2      = linspace(0,1,30);
+            x1      = linspace(0,2,100);
+            x2      = linspace(0,1,50);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -98,7 +98,7 @@ classdef TopOptLevelSetConnectivity< handle
         end
 
         function createFilter(obj)
-            s.filterType = 'LUMP';
+            s.filterType = 'PDE';
             s.mesh  = obj.mesh;
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
@@ -122,29 +122,29 @@ classdef TopOptLevelSetConnectivity< handle
         end
 
         function createFilterConnectivity(obj)
-            s.filterType = 'LUMP';
+%             s.filterType = 'PDE';
+%             s.mesh       = obj.mesh;
+%             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+%             f            = Filter.create(s);
+%             obj.filterConnect = f;
+% 
+            s.filterType = 'FilterAndProject';
+%             s.filterType = 'CloseOperator'; %'FilterAndProject';
             s.mesh       = obj.mesh;
             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-            f            = Filter.create(s);
-            obj.filterConnect = f;
+            s.filterStep = 'PDE';
+            s.beta       = 4.0; % 1.0;
+%             s.eta        = 0.2;
+            obj.filterConnect = Filter.create(s);
 % 
-%             s.filterType = 'FilterAndProject';
-% %             s.filterType = 'CloseOperator'; %'FilterAndProject';
-%             s.mesh       = obj.mesh;
-%             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-%             s.filterStep = 'PDE';
-%             s.beta       = 4.0; % 1.0;
-% %             s.eta        = 0.2;
-%             obj.filterConnect = Filter.create(s);
-% % 
-%             s.filterType = 'FilterAdjointAndProject';   
-% %             s.filterType = 'CloseAdjointOperator'; %'FilterAdjointAndProject';   
-%             s.mesh       = obj.mesh;
-%             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-%             s.filterStep = 'PDE';
-%             s.beta       = 4.0; % 1.0;
-% %             s.eta        = 0.2;
-%             obj.filterAdjointConnect = Filter.create(s);
+            s.filterType = 'FilterAdjointAndProject';   
+%             s.filterType = 'CloseAdjointOperator'; %'FilterAdjointAndProject';   
+            s.mesh       = obj.mesh;
+            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.filterStep = 'PDE';
+            s.beta       = 4.0; % 1.0;
+%             s.eta        = 0.2;
+            obj.filterAdjointConnect = Filter.create(s);
         end
 
         function createMaterialInterpolator(obj)
@@ -240,21 +240,23 @@ classdef TopOptLevelSetConnectivity< handle
 
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
-            s.shapeFunctions{2} = obj.perimeter;
-%             s.shapeFunctions{3} = obj.eigenvalue;
-            s.weights           = [1.0,2.5]; %0.5,0.0,1.0v,1.0
+%             s.shapeFunctions{2} = obj.perimeter;
+%             s.shapeFunctions{2} = obj.eigenvalue;
+            s.weights           = [1.0]; %0.5,0.0,1.0v,1.0,5.0
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
 
         function M = createMassMatrix(obj)
-            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.mesh  = obj.mesh;
-            s.type  = 'MassMatrix';
-            LHS = LHSIntegrator.create(s);
-            M = LHS.compute;
+            test  = LagrangianFunction.create(obj.mesh,1,'P1');
+            trial = LagrangianFunction.create(obj.mesh,1,'P1');
+%             s.mesh  = obj.mesh;
+%             s.type  = 'MassMatrix';
+%             LHS = LHSIntegrator.create(s);
+%             M = LHS.compute;
+% 
 
+            M = IntegrateLHS(@(u,v) DP(v,u), test, trial, obj.mesh, 'Domain', 2);
             h = obj.mesh.computeMinCellSize();
             M = h^2*eye(size(M));
         end
@@ -278,7 +280,7 @@ classdef TopOptLevelSetConnectivity< handle
             s.designVariable   = obj.designVariable;
 %             s.GIFname        = '1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+string(obj.eta)+'GIF';
             s.GIFname           = '1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+'GIF';
-            s.maxIter           = 500;
+            s.maxIter           = 1000;
             s.tolerance         = 1e-3;
             s.constraintCase{1} = 'EQUALITY';
             s.constraintCase{2} = 'INEQUALITY';      

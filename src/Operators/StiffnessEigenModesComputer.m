@@ -75,14 +75,9 @@ classdef StiffnessEigenModesComputer < handle
         end            
 
         function K = createStiffnessMatrixWithFunction(obj,fun)
-            s.test  = obj.test;
-            s.trial = obj.trial;
-            s.mesh  = obj.mesh;
-            s.quadratureOrder = 2;
-            s.function        = obj.createDomainFunction(fun);
-            s.type            = 'StiffnessMatrixWithFunction';
-            lhs = LHSIntegrator.create(s);
-            K = lhs.compute();
+            alpha = obj.createDomainFunction(fun);
+            f = @(u,v) alpha.*DP(Grad(u),Grad(v));
+            K = IntegrateLHS(f,obj.test,obj.trial, obj.mesh, 'Domain',2);
         end
 
         function f = createDomainFunction(obj,fun)
@@ -116,14 +111,12 @@ classdef StiffnessEigenModesComputer < handle
         end
 
         function M = computeMassMatrixWithFunction(obj,fun)                
-            s.test  = obj.test;
-            s.trial = obj.trial;
-            s.mesh  = obj.mesh;
-            s.function = obj.createDomainFunction(fun);
-            s.quadratureOrder = 2;
-            s.type            = 'MassMatrixWithFunction';
-            lhs = LHSIntegrator.create(s);
-            M = lhs.compute();   
+            weight = obj.createDomainFunction(fun);
+%             s.quadratureOrder = 2;
+%             s.type            = 'MassMatrixWithFunction';
+%             lhs = LHSIntegrator.create(s);
+            f = @(u,v) weight.*DP(v,u);
+            M = IntegrateLHS(f,obj.test,obj.trial,obj.mesh,'Domain',2);
         end       
                 
         function [eigV1,eigF1] = obtainLowestEigenValuesAndFunction(obj,K,M,n)
