@@ -241,7 +241,7 @@ classdef NewHarmonicVectorProjectionExample < handle
             s.ndim   = 2;
         end
 
-        function f = createFunction(obj,value)
+        function f = createFunction(obj,value)  
             s.fValues = value;
             s.mesh    = obj.mesh;
             s.order   = 'P1';

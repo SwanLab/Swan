@@ -15,7 +15,7 @@ classdef MappingComputer < handle
         end
 
         function uF = compute(obj)
-            LHS = IntegrateLHS(@(u,v) DP(Grad(u),Grad(v)),obj.test,obj.test,obj.mesh,4);
+            LHS = IntegrateLHS(@(u,v) DP(Grad(u),Grad(v)),obj.test,obj.test,obj.mesh,'Domain',4);
             In  = obj.interpolator;
             for iDim = 1:obj.mesh.ndim
                 RHS = obj.computeRHS(iDim);
@@ -90,7 +90,7 @@ classdef MappingComputer < handle
         end
 
         function u = solveSaddleSystem(obj,LHS,RHS)
-            M = IntegrateLHS(@(u,v) DP(v,u),obj.test,obj.test,obj.mesh,4);
+            M = IntegrateLHS(@(u,v) DP(v,u),obj.test,obj.test,obj.mesh,'Domain',4);
             eta = 1e-2;%1e-2;%1e-15;%1e-2;%0.00000000000001;
             In = obj.interpolator;            
             LHS = In'*LHS*In+eta*In'*M*In;

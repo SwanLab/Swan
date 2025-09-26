@@ -43,7 +43,7 @@ classdef LinearizedHarmonicProjector3 < handle
             res = norm(LHS*x - RHS)/norm(x);
             [resL,resH,resB,resG] = obj.evaluateResidualNorms(bBar,b);
             i = 1;
-            theta = 0.5;
+            theta = 0.1;
             while res(i) > 1e-6
                 xNew   = LHS\RHS;
                 x = theta*xNew + (1-theta)*x;
@@ -57,6 +57,17 @@ classdef LinearizedHarmonicProjector3 < handle
             figure()
             plot(1:i,log([res; resL; resH; resB; resG]))
             legend('LHS*x-RHS','resDistance','resHarmonic','resUnitBall','resGradient')
+
+            % Mbb  = obj.massMatrixBB;
+            % Kbb  = obj.stiffnessMatrixBB;            
+            % A    = Mbb + obj.eta*Kbb;
+            % rhsB = IntegrateRHS(@(v) DP(v,obj.perimeter.*bBar),bBar,obj.mesh,3);   
+            % Z  = sparse(obj.fB.nDofs,obj.fB.nDofs);            
+            % xV    = [A Z; Z' A]\rhsB;
+            % s.fValues = reshape(full(xV),[],2);
+            % s.mesh    = obj.mesh;
+            % s.order   = obj.fB.order;
+            % b = LagrangianFunction(s);
         end
 
         function [resLnorm,resHnorm,resBnorm,resGnorm] = evaluateResidualNorms(obj,bBar,b)
@@ -126,8 +137,8 @@ classdef LinearizedHarmonicProjector3 < handle
             Mb2 = IntegrateLHS(@(u,v) DP(v,bs{2}.*u),obj.fB,obj.fG,obj.mesh,'Domain');
             Kb1 = IntegrateLHS(@(u,v) DP(Grad(v),bs{1}.*Grad(u)),obj.fB,obj.fS,obj.mesh,'Domain');
             Kb2 = IntegrateLHS(@(u,v) DP(Grad(v),bs{2}.*Grad(u)),obj.fB,obj.fS,obj.mesh,'Domain');
-            Nb1 = IntegrateLHS(@(u,v) DP(Grad(bs{1}),v.*Grad(u)),obj.fB,obj.fS,obj.mesh,'Domain');
-            Nb2 = IntegrateLHS(@(u,v) DP(Grad(bs{2}),v.*Grad(u)),obj.fB,obj.fS,obj.mesh,'Domain'); 
+            Nb1 = IntegrateLHS(@(u,v) DP(Grad(v),u.*Grad(bs{1})),obj.fB,obj.fS,obj.mesh,'Domain');
+            Nb2 = IntegrateLHS(@(u,v) DP(Grad(v),u.*Grad(bs{2})),obj.fB,obj.fS,obj.mesh,'Domain'); 
             iDOFs = obj.internalDOFs;
             Kb1 = Kb1(:,iDOFs);
             Kb2 = Kb2(:,iDOFs);
@@ -139,7 +150,7 @@ classdef LinearizedHarmonicProjector3 < handle
             Zgg = sparse(obj.fG.nDofs,obj.fG.nDofs);
             A  = Mbb + obj.eta*Kbb;
             LHS = [A          ,          Z, (-Kb2+Nb2),Mb1;...
-                   Z          ,          A,  (Kb1-Nb1),Mb2;...
+                   Z'         ,          A,  (Kb1-Nb1),Mb2;...
                    (-Kb2+Nb2)', (Kb1-Nb1)',         Zh,Zsg;...
                    Mb1'       ,       Mb2',       Zsg',Zgg];
         end
