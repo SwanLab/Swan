@@ -30,7 +30,7 @@ classdef LocalDamageFunctional < handle
             % RHS = RHSIntegrator.create(s);
             % J   = (obj.constant/obj.l0)*RHS.compute(dAlphaFun,obj.testPhi);
 
-            J = IntegrateRHS(@(v) (obj.constant/obj.l0).*DP(v,dAlphaFun),obj.testPhi,obj.mesh,quadOrder);
+            J = IntegrateRHS(@(v) (obj.constant/obj.l0).*DP(v,dAlphaFun),obj.testPhi,obj.mesh,'Domain',quadOrder);
         end
         
         function H = computeHessian(obj,phi,quadOrder)
