@@ -36,7 +36,7 @@ classdef PhaseFieldPlotter < handle
             obj.iter = cParams.iter;
             obj.costFun = cParams.cost;
             %obj.AT = cParams.inputParameters.dissipInfo.pExp;
-            obj.AT = 1;
+            obj.AT = 2;
         end
         
         function plotDamage(obj)

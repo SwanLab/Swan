@@ -82,8 +82,8 @@ classdef PhaseFieldMonitoring < handle
                     obj.monitor = Monitoring(s);
                 case 'reduced'
                     s.maxNColumns = 2;
-                    s.titles = [{'Force-displacement'},{'Damage-displacement'},{'Damage'}];
-                    s.chartTypes = [{'plot'},{'plot'},{'surf'}];
+                    s.titles = [{'Force-displacement'},{'Damage-displacement'}];
+                    s.chartTypes = [{'plot'},{'plot'}];
                     obj.monitor = Monitoring(s);
             end
             obj.data = [];

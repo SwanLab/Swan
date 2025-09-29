@@ -34,36 +34,82 @@ C11SIMP = @(phi) degSIMPkappa(phi) + degSIMPmu(phi);
 C11UB   = @(phi) kUB(phi) + muUB(phi);
 C11LB   = @(phi) kLB(phi) + muLB(phi);
 
-C11AT = @(phi) C11.*(1-phi).^2;
-C11Linear = @(phi) C11.*(1-phi);
-C11Rational1 = @(phi) C11.*(phi.^2 - 2.*phi + 1)./(1-(derivFactor1+2).*phi);
-C11Rational2 = @(phi) C11.*(phi.^2 - 2.*phi + 1)./(1-(derivFactor2+2).*phi);
+C11AT1 = @(phi) C11.*(1-phi).^2;
+kAT1  = @(phi) k.*(1-phi).^2;
+muAT1 = @(phi) mu.*(1-phi).^2;
 
-load('SquarePerimeter.mat')
+C11AT2 = @(phi) C11.*(1-sqrt(phi)).^2;
+kAT2  = @(phi) k.*(1-sqrt(phi)).^2;
+muAT2 = @(phi) mu.*(1-sqrt(phi)).^2;
+
+C11Linear = @(phi) C11.*(1-phi);
+kLinear  = @(phi) k.*(1-phi);
+muLinear = @(phi) m.*(1-phi);
+
+C11Rational1 = @(phi) C11.*(phi.^2 - 2.*phi + 1)./(1-(derivFactor1+2).*phi);
+kRational1  = @(phi) k.*(phi.^2 - 2.*phi + 1)./(1-(derivFactor1+2).*phi);
+muRational1 = @(phi) mu.*(phi.^2 - 2.*phi + 1)./(1-(derivFactor1+2).*phi);
+
+C11Rational2 = @(phi) C11.*(phi.^2 - 2.*phi + 1)./(1-(derivFactor2+2).*phi);
+kRational2  = @(phi) k.*(phi.^2 - 2.*phi + 1)./(1-(derivFactor2+2).*phi);
+muRational2 = @(phi) mu.*(phi.^2 - 2.*phi + 1)./(1-(derivFactor2+2).*phi);
+
+load('SquareArea.mat')
 C11square = @(phi) E.*degradation.fun{1,1,1,1}(phi);
-load('CirclePerimeter.mat')
+load('CircleArea.mat')
 C11circle = @(phi) E.*degradation.fun{1,1,1,1}(phi);
-load('HexagonPerimeter.mat')
+load('HexagonArea.mat')
 C11hexa = @(phi) E.*degradation.fun{1,1,1,1}(phi);
 
-%% Plots
+%% Plot degradation C11
 cmp = orderedcolors("gem");
 
 figure()
 hold on
-fplot(C11AT,[0 1],'Color',cmp(1,:))
+fplot(C11AT1,[0 1],'Color',cmp(1,:))
+fplot(C11AT2,[0 1],'Color',cmp(1,:),'LineStyle','--')
 fplot(C11Linear,[0 1],'Color',cmp(2,:));
 fplot(C11Rational1,[0 1],'Color',cmp(3,:),'LineStyle','--','Marker',"o")
 fplot(C11Rational2,[0 1],'Color',cmp(3,:),'LineStyle','--','Marker',"square")
+fplot(C11square,[0 1],'Color',cmp(5,:),'LineStyle','--','Marker',"square")
+fplot(C11circle,[0 1],'Color',cmp(5,:),'LineStyle','--','Marker',"o")
+fplot(C11hexa,[0 1],'Color',cmp(5,:),'LineStyle','--','Marker',"hexagram")
 fplot(C11SIMP,[0 1],'Color',cmp(4,:))
 fplot(C11UB,[0 1],'Color',cmp(4,:),'LineStyle','--')
 fplot(C11LB,[0 1],'Color',cmp(4,:),'LineStyle','--')
- fplot(C11square,[0 1],'Color',cmp(5,:),'LineStyle','--','Marker',"square")
- fplot(C11circle,[0 1],'Color',cmp(5,:),'LineStyle','--','Marker',"o")
- fplot(C11hexa,[0 1],'Color',cmp(5,:),'LineStyle','--','Marker',"hexagram")
-%legend('AT','Linear','Rational (1MPa)','Rational (2MPa)','SIMP','HS')
-legend('AT','Linear','Rational (1MPa)','Rational (2MPa)','SIMP','HS','Homogenized (Square)','Homogenized (Circle)','Homogenized (Hexagon)')
+legend('AT1','AT2','Linear','Rational (1MPa)','Rational (2MPa)','Homogenized (Square)','Homogenized (Circle)','Homogenized (Hexagon)','SIMP','HS')
 title('Degradation function ($\nu = 0.3$)','Interpreter','latex')
+
+%% Plot degradation mu
+
+figure()
+hold on
+fplot(muAT1,[0 1],'Color',cmp(1,:))
+fplot(muAT2,[0 1],'Color',cmp(1,:),'LineStyle','--')
+fplot(muLinear,[0 1],'Color',cmp(2,:));
+fplot(muRational1,[0 1],'Color',cmp(3,:),'LineStyle','--','Marker',"o")
+fplot(muRational2,[0 1],'Color',cmp(3,:),'LineStyle','--','Marker',"square")
+fplot(degSIMPmu,[0 1],'Color',cmp(4,:))
+fplot(muUB,[0 1],'Color',cmp(4,:),'LineStyle','--')
+fplot(muLB,[0 1],'Color',cmp(4,:),'LineStyle','--')
+legend('AT1','AT2','Linear','Rational (1MPa)','Rational (2MPa)','SIMP','HS')
+title('Shear degradation function ($\nu = 0.3$)','Interpreter','latex')
+
+
+%% Plot degradation kappa
+
+figure()
+hold on
+fplot(kAT1,[0 1],'Color',cmp(1,:))
+fplot(kAT2,[0 1],'Color',cmp(1,:),'LineStyle','--')
+fplot(kLinear,[0 1],'Color',cmp(2,:));
+fplot(kRational1,[0 1],'Color',cmp(3,:),'LineStyle','--','Marker',"o")
+fplot(kRational2,[0 1],'Color',cmp(3,:),'LineStyle','--','Marker',"square")
+fplot(degSIMPkappa,[0 1],'Color',cmp(4,:))
+fplot(kUB,[0 1],'Color',cmp(4,:),'LineStyle','--')
+fplot(kLB,[0 1],'Color',cmp(4,:),'LineStyle','--')
+legend('AT1','AT2','Linear','Rational (1MPa)','Rational (2MPa)','SIMP','HS')
+title('Bulk degradation function ($\nu = 0.3$)','Interpreter','latex')
 
 
 %% 1ELEM
