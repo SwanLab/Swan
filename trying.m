@@ -2,10 +2,11 @@ clear;
 clc;
 close all;
 
-filename = 'anisoCantilever';
+filename   = 'anisoCantilever';
 a.fileName = filename;
-gid = FemDataContainer(a);
-mesh = gid.mesh;
+gid        = FemDataContainer(a);
+mesh       = gid.mesh;
+h          = mesh.computeMinCellSize();
 
 s.fHandle = @(x) 1-heaviside((x(1,:,:)-1).^2+(x(2,:,:)-0.5).^2-0.3.^2);
 s.ndimf   = 1;
@@ -18,9 +19,10 @@ s.beta  = 1;
 s.theta = 90;
 filter  = NonLinearFilterSegment(s);
 filter.updateEpsilon(1);
-[fun{2},err] = filter.compute(fun{1},2);
 
-betaVec = 0.99:-0.01:0;
+err     = [];
+n       = 1:100;
+betaVec = [1,0.5,(0.98).^(n+50),0];
 for i = 1:length(betaVec)
     filter.updateBeta(betaVec(i));
     [fun{end+1},newErr] = filter.compute(fun{1},2);
