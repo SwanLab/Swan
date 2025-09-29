@@ -243,14 +243,14 @@ classdef UnfittedMesh < handle
         function mass = computeMass(obj)
             f    = CharacteristicFunction.create(obj);
             test = LagrangianFunction.create(obj.backgroundMesh,1,'P1');
-            fInt = IntegrateRHS(@(v) DP(f,v),test,obj,2);
+            fInt = IntegrateRHS(@(v) DP(f,v),test,obj,'Domain',2);
             mass = sum(fInt);
         end
         
         function mass = computePerimeter(obj)
             f    = CharacteristicFunction.createAtBoundary(obj);
             test = LagrangianFunction.create(obj.backgroundMesh,1,'P1');
-            fInt = IntegrateRHS(@(v) DP(f,v),test,obj,2);
+            fInt = IntegrateRHS(@(v) DP(f,v),test,obj,'Domain',2);
             mass = sum(fInt);
         end
         

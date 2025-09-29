@@ -12,7 +12,12 @@ classdef PhaseFieldFunctional < handle
         end
 
         function Etot = computeCost(obj,u,phi,bc)
-            fExt = bc.pointloadFun;
+            fExt = bc.tractionFun;
+            if ~isempty(bc.tractionFun)
+                vals = bc.tractionFun.computeRHS([]);
+                fExt = LagrangianFunction.create(u.mesh, u.mesh.ndim,'P1');
+                fExt.setFValues(reshape(vals,u.mesh.nnodes,u.mesh.ndim));
+            end
             E    = obj.computeEnergies(u,phi,fExt);
             Etot = sum(E);
         end
@@ -31,7 +36,12 @@ classdef PhaseFieldFunctional < handle
         end
         
         function RHS = computeElasticRHS(obj,u,phi,bc)
-            fExt = bc.pointloadFun;
+            fExt = bc.tractionFun;
+            if ~isempty(bc.tractionFun)
+                vals = bc.tractionFun.computeRHS([]);
+                fExt = LagrangianFunction.create(u.mesh, u.mesh.ndim,'P1');
+                fExt.setFValues(reshape(vals,u.mesh.nnodes,u.mesh.ndim));
+            end
             Fint = obj.functionals.energy.computeGradientDisplacement(u,phi,obj.quadOrder);
             Fext = obj.functionals.extWork.computeGradient(u,fExt,obj.quadOrder);
             RHS  = Fint - Fext;

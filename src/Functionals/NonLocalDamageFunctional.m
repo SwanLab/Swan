@@ -26,7 +26,7 @@ classdef NonLocalDamageFunctional < handle
             % s.test = obj.testPhi;
             % RHS = RHSIntegrator.create(s);
             % J = (obj.constant*obj.l0)*RHS.compute(Grad(phi));
-            J = IntegrateRHS(@(v) (obj.constant*obj.l0)*DP(Grad(v),Grad(phi)),obj.testPhi,obj.mesh,quadOrder);
+            J = IntegrateRHS(@(v) (obj.constant*obj.l0)*DP(Grad(v),Grad(phi)),obj.testPhi,obj.mesh,'Domain',quadOrder);
         end
         
         function H = computeHessian(obj,~,quadOrder)

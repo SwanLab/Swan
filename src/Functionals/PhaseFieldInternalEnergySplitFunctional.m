@@ -85,7 +85,7 @@ classdef PhaseFieldInternalEnergySplitFunctional < handle
         end        
 
         function F = computeShapeSymmetricDerivativeIntegralWithField(obj,f,quadOrder)
-            F = IntegrateRHS(@(v) DDP(SymGrad(v),f),obj.testU,obj.mesh,quadOrder);
+            F = IntegrateRHS(@(v) DDP(SymGrad(v),f),obj.testU,obj.mesh,'Domain',quadOrder);
         end 
 
 
@@ -104,7 +104,7 @@ classdef PhaseFieldInternalEnergySplitFunctional < handle
         end        
 
         function F = computeShapeIntegralWithField(obj,f,quadOrder)        
-            F = IntegrateRHS(@(v) DP(v,f),obj.testPhi,obj.mesh,quadOrder);
+            F = IntegrateRHS(@(v) DP(v,f),obj.testPhi,obj.mesh,'Domain',quadOrder);
         end        
 
 
