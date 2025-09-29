@@ -74,8 +74,8 @@ classdef TutorialEIFEM < handle
 
             %% Uncomment for meshes that have corners and generate the mesh with the updated coordinates
 %             tol = 1e-8;
-%             xmax = max(s.coord(:,1)); xmin = max(s.coord(:,1));
-%             ymax = max(s.coord(:,2)); ymin = max(s.coord(:,2));
+%             xmax = max(s.coord(:,1)); xmin = min(s.coord(:,1));
+%             ymax = max(s.coord(:,2)); ymin = mmin(s.coord(:,2));
 %              % Top-right corner (xmax, ymax)
 %             mask = abs(s.coord(:,1) - xmax) < tol & abs(s.coord(:,2) - ymax) < tol;
 %             s.coord(mask, :) = s.coord(mask, :) - [1e-9, 0];
