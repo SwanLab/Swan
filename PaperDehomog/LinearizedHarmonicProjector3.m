@@ -44,7 +44,7 @@ classdef LinearizedHarmonicProjector3 < handle
             [resL,resH,resB,resG] = obj.evaluateResidualNorms(bBar,b);
             i = 1;
             theta = 0.5;
-            while res(i) > 1e-1
+            while res(i) > 1e-12
                 xNew   = LHS\RHS;
                 x = theta*xNew + (1-theta)*x;
                 b   = obj.createVectorFromSolution(x);
@@ -137,6 +137,9 @@ classdef LinearizedHarmonicProjector3 < handle
             Mb2 = IntegrateLHS(@(u,v) DP(v,bs{2}.*u),obj.fB,obj.fG,obj.mesh,'Domain',4);
             Kb1 = IntegrateLHS(@(u,v) DP(Grad(v),bs{1}.*Grad(u)),obj.fB,obj.fS,obj.mesh,'Domain',4);
             Kb2 = IntegrateLHS(@(u,v) DP(Grad(v),bs{2}.*Grad(u)),obj.fB,obj.fS,obj.mesh,'Domain',4);
+            
+            Nbi = computeAdvection(Grad(bs{1}),obj.fB,obj.fB,obj.mesh,4);
+
             Nb1 = IntegrateLHS(@(u,v) DP(Grad(v),u.*Grad(bs{1})),obj.fB,obj.fS,obj.mesh,'Domain',4);
             Nb2 = IntegrateLHS(@(u,v) DP(Grad(u),v.*Grad(bs{2})),obj.fB,obj.fS,obj.mesh,'Domain',4); 
             iDOFs = obj.internalDOFs;
@@ -157,6 +160,8 @@ classdef LinearizedHarmonicProjector3 < handle
 
         function RHS = computeRHS(obj,bBar)
             rhsB = IntegrateRHS(@(v) DP(v,obj.perimeter.*bBar),bBar,obj.mesh,'Domain',3);
+            rhsB = reshape(rhsB,2,[])';
+            rhsB = rhsB(:);
             rhsH = zeros(size(obj.internalDOFs,2),1);
             rhsU = IntegrateRHS(@(v) v,obj.fG,obj.mesh,'Domain',2);
             RHS  = [rhsB;rhsH;rhsU];
