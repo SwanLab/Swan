@@ -27,7 +27,7 @@ classdef LinearizedHarmonicProjector3 < handle
             obj.fS = LagrangianFunction.create(obj.mesh, 1, 'P1');
             obj.fG = LagrangianFunction.create(obj.mesh, 1, 'P1');
             obj.createInternalDOFs();                        
-            obj.eta = (2*obj.mesh.computeMeanCellSize)^2;  
+            obj.eta = (100*obj.mesh.computeMeanCellSize)^2;  
             obj.perimeter = ConstantFunction.create(1,obj.mesh);%obj.density.*(1-obj.density);
             obj.massMatrixBB      = IntegrateLHS(@(u,v) DP(v,obj.perimeter.*u),obj.fB,obj.fB,obj.mesh,'Domain',4);
             obj.massMatrixGG      = IntegrateLHS(@(u,v) DP(v,u),obj.fG,obj.fG,obj.mesh,'Domain',4);
@@ -138,10 +138,15 @@ classdef LinearizedHarmonicProjector3 < handle
             Kb1 = IntegrateLHS(@(u,v) DP(Grad(v),bs{1}.*Grad(u)),obj.fB,obj.fS,obj.mesh,'Domain',4);
             Kb2 = IntegrateLHS(@(u,v) DP(Grad(v),bs{2}.*Grad(u)),obj.fB,obj.fS,obj.mesh,'Domain',4);
             
-            Nbi = computeAdvection(bs{1},obj.fB,obj.fB,obj.mesh,4);
+            Nb1 = computeAdvection(bs{1},obj.fB,obj.fB,obj.mesh,4);
+            Nb2 = computeAdvection(bs{2},obj.fB,obj.fB,obj.mesh,4);
 
-            Nb1 = IntegrateLHS(@(u,v) DP(Grad(v),u.*Grad(bs{1})),obj.fB,obj.fS,obj.mesh,'Domain',4);
-            Nb2 = IntegrateLHS(@(u,v) DP(Grad(u),v.*Grad(bs{2})),obj.fB,obj.fS,obj.mesh,'Domain',4); 
+            %v = LagrangianFunction.create(obj.mesh, 2, 'P1');
+
+            Nb1t = IntegrateLHS(@(u,v) DP(Grad(v),u.*Grad(bs{1})),obj.fB,obj.fS,obj.mesh,'Domain',4);
+            %
+            Nb2t = IntegrateLHS(@(u,v) DP(Grad(v),u.*Grad(bs{2})),obj.fB,obj.fS,obj.mesh,'Domain',4); 
+
             iDOFs = obj.internalDOFs;
             Kb1 = Kb1(:,iDOFs);
             Kb2 = Kb2(:,iDOFs);
