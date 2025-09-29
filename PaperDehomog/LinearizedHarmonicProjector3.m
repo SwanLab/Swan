@@ -138,7 +138,7 @@ classdef LinearizedHarmonicProjector3 < handle
             Kb1 = IntegrateLHS(@(u,v) DP(Grad(v),bs{1}.*Grad(u)),obj.fB,obj.fS,obj.mesh,'Domain',4);
             Kb2 = IntegrateLHS(@(u,v) DP(Grad(v),bs{2}.*Grad(u)),obj.fB,obj.fS,obj.mesh,'Domain',4);
             Nb1 = IntegrateLHS(@(u,v) DP(Grad(v),u.*Grad(bs{1})),obj.fB,obj.fS,obj.mesh,'Domain',4);
-            Nb2 = IntegrateLHS(@(u,v) DP(Grad(v),u.*Grad(bs{2})),obj.fB,obj.fS,obj.mesh,'Domain',4); 
+            Nb2 = IntegrateLHS(@(u,v) DP(Grad(u),v.*Grad(bs{2})),obj.fB,obj.fS,obj.mesh,'Domain',4); 
             iDOFs = obj.internalDOFs;
             Kb1 = Kb1(:,iDOFs);
             Kb2 = Kb2(:,iDOFs);
