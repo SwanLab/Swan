@@ -58,7 +58,7 @@ classdef DilationComputer < handle
             %s.test = test;
             %rhs  = RHSIntegrator.create(s);
             %rhsV = rhs.compute(fun);
-            rhsV = IntegrateRHS(@(v) DP(fun,Grad(v)),test,obj.mesh);
+            rhsV = IntegrateRHS(@(v) DP(fun,Grad(v)),test,obj.mesh,'Domain',4);
             obj.RHS = [rhsV;0];
         end
         

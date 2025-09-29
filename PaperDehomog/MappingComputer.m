@@ -84,7 +84,7 @@ classdef MappingComputer < handle
 
         function RHS = computeRHS(obj,iDim)
             aI = obj.dilatedOrientation{iDim};
-            rhsV = IntegrateRHS(@(v) DP(Grad(v),aI),obj.test,obj.mesh,4);
+            rhsV = IntegrateRHS(@(v) DP(Grad(v),aI),obj.test,obj.mesh,'Domain',4);
             In   = obj.interpolator;
             RHS = In'*rhsV;          
         end

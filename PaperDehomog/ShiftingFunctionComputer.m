@@ -44,7 +44,7 @@ classdef ShiftingFunctionComputer < handle
         end
          
         function computeLHS(obj)
-            K     = IntegrateLHS(@(u,v) DP(Grad(u),Grad(v)),obj.test,obj.test,obj.mesh,2);
+            K     = IntegrateLHS(@(u,v) DP(Grad(u),Grad(v)),obj.test,obj.test,obj.mesh,'Domain',2);
             In    = obj.interpolator;
             K = In'*K*In;
             obj.LHS = K;
@@ -52,7 +52,7 @@ classdef ShiftingFunctionComputer < handle
 
         function computeRHS(obj)
             gradC = Grad(obj.corrector);
-            rhsF = IntegrateRHS(@(v) DP(Grad(v),gradC),obj.test,obj.mesh,2); 
+            rhsF = IntegrateRHS(@(v) DP(Grad(v),gradC),obj.test,obj.mesh,'Domain',2); 
             In = obj.interpolator;
             rhsV = In'*rhsF;
             obj.RHS = rhsV;
