@@ -161,7 +161,7 @@ classdef TopOptGid3D < handle
             s.mesh                        = obj.mesh;
             s.filter                      = obj.filter;
             s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
-            s.material                    = obj.material; %obj.createMaterial();
+            s.material                    = obj.createMaterial();
             c = ComplianceFunctional(s);
             obj.compliance = c;
             %[J,dJ] = c.computeFunctionAndGradient(obj.designVariable);
@@ -259,7 +259,7 @@ classdef TopOptGid3D < handle
 
             pointloadFun = [];
             for i = 1:numel(sPL)
-                pl = PointLoad(obj.mesh, sPL{i});
+                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
                 pointloadFun = [pointloadFun, pl];
             end
             s.pointloadFun = pointloadFun;
