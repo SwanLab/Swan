@@ -13,7 +13,7 @@ classdef PhaseFieldInternalEnergySplitFunctional < handle
             obj.init(cParams)            
         end
         
-        function F = computeFunctional(obj,u,phi,quadOrder)
+        function F = computeCost(obj,u,phi,quadOrder)
             Fbulk  = obj.computeEnergyBulk(u,phi,quadOrder);
             Fshear = obj.computeEnergyShear(u,phi,quadOrder);
             F      = Fbulk + Fshear;
@@ -85,11 +85,7 @@ classdef PhaseFieldInternalEnergySplitFunctional < handle
         end        
 
         function F = computeShapeSymmetricDerivativeIntegralWithField(obj,f,quadOrder)
-            s.mesh = obj.mesh;
-            s.type = 'ShapeSymmetricDerivative';
-            s.quadratureOrder = quadOrder;
-            RHS = RHSIntegrator.create(s);
-            F   = RHS.compute(f,obj.testU);            
+            F = IntegrateRHS(@(v) DDP(SymGrad(v),f),obj.testU,obj.mesh,'Domain',quadOrder);
         end 
 
 
@@ -108,11 +104,7 @@ classdef PhaseFieldInternalEnergySplitFunctional < handle
         end        
 
         function F = computeShapeIntegralWithField(obj,f,quadOrder)        
-            s.mesh = obj.mesh;
-            s.type = 'ShapeFunction';
-            s.quadType = quadOrder;
-            RHS = RHSIntegrator.create(s);
-            F   =  RHS.compute(f,obj.testPhi);
+            F = IntegrateRHS(@(v) DP(v,f),obj.testPhi,obj.mesh,'Domain',quadOrder);
         end        
 
 
@@ -129,14 +121,7 @@ classdef PhaseFieldInternalEnergySplitFunctional < handle
         end        
 
         function K = computeElasticStiffnesMatrix(obj,C,quadOrder)
-            s.trial    = obj.testU;
-            s.test     = obj.testU;
-            s.material = C;
-            s.mesh     = obj.mesh;
-            s.type     = 'ElasticStiffnessMatrix';
-            s.quadratureOrder = quadOrder;
-            LHS = LHSIntegrator.create(s);
-            K   = LHS.compute();
+            K = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),obj.testU,obj.testU,obj.mesh,'Domain',quadOrder);
         end        
 
         function ddE = computeVolumetricEnergyDamageHessian(obj,u,phi,quadOrder)
@@ -154,14 +139,7 @@ classdef PhaseFieldInternalEnergySplitFunctional < handle
         end
 
         function Mf = computeMassWithFunction(obj,f,quadOrder)
-            s.function = f;
-            s.trial    = obj.testPhi;
-            s.test     = obj.testPhi;
-            s.mesh     = obj.mesh;
-            s.type     = 'MassMatrixWithFunction';
-            s.quadratureOrder = quadOrder;
-            LHS = LHSIntegrator.create(s);
-            Mf  = LHS.compute();
+            Mf = IntegrateLHS(@(u,v) f.*DP(v,u),obj.testPhi,obj.testPhi,obj.mesh,'Domain',quadOrder);
         end        
         
     end

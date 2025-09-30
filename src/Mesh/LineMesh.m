@@ -20,7 +20,7 @@ classdef LineMesh < Mesh
 
         function detJ = computeJacobianDeterminant(obj,xV)
             J = obj.computeJacobian(xV);
-            detJ = squeeze(pagenorm(J));
+            detJ(1,:,:) = squeeze(pagenorm(J));
         end
         
         function invJ = computeInverseJacobian(obj,xV)

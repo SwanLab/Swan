@@ -1,6 +1,6 @@
 classdef VolumeFunctional < handle
 
-     properties (Access = private)
+    properties (Access = private)
         mesh
         base
         test

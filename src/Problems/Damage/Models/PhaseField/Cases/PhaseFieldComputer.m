@@ -17,6 +17,9 @@ classdef PhaseFieldComputer < handle
 
         function obj = PhaseFieldComputer(cParams)
             obj.init(cParams)
+            obj.setMonitoring(cParams)
+            obj.setOptimizer(cParams)
+            obj.setStopConditions()
         end
 
         function outputData = compute(obj)
@@ -47,9 +50,6 @@ classdef PhaseFieldComputer < handle
             obj.initialGuess       = cParams.initialGuess;
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.functional         = cParams.functional;
-            obj.setMonitoring(cParams)
-            obj.setOptimizer(cParams)
-            obj.setStopConditions()
         end
 
         function setMonitoring(obj,cParams)
@@ -98,7 +98,12 @@ classdef PhaseFieldComputer < handle
         end
 
         function [E,totE,totF,uBC] = postprocess(obj,step,u,phi,F,bc)
-            fExt = bc.pointloadFun;
+            fExt = bc.tractionFun;
+            if ~isempty(bc.tractionFun)
+                vals = bc.tractionFun.computeRHS([]);
+                fExt = LagrangianFunction.create(u.mesh, u.mesh.ndim,'P1');
+                fExt.setFValues(reshape(vals,u.mesh.nnodes,u.mesh.ndim));
+            end
             E    = obj.functional.computeEnergies(u,phi,fExt);
             totE = sum(E);
             [totF,uBC] = obj.computeTotalReaction(step,F,u);
@@ -108,7 +113,7 @@ classdef PhaseFieldComputer < handle
             UpSide  = max(obj.mesh.coord(:,2));
             isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;
-            if obj.boundaryConditions.type == "forceTraction"
+            if obj.boundaryConditions.type == "ForceTractionY"
                 uBC = norm(mean(u.fValues(nodes(isInUp),2)));
                 totReact = obj.boundaryConditions.bcValues(step);
             else

@@ -9,6 +9,7 @@ classdef ElasticProblemMicro < handle
         mesh
         material
         trialFun
+        testFun
         boundaryConditions, bcApplier
         solverType, solverMode, solverCase
         lagrangeMultipliers
@@ -25,17 +26,17 @@ classdef ElasticProblemMicro < handle
         end
 
         function obj = solve(obj)
-            ndim = obj.mesh.ndim;
-            LHS = obj.computeLHS();
-            nBasis = obj.computeNbasis();
-            obj.Chomog = zeros(ndim, ndim, ndim, ndim);
-            for iB = 1:nBasis
-                [strainB,v] = obj.createDeformationBasis(iB);
-                RHS         = obj.computeRHS(strainB,LHS);
-                uF{iB}      = obj.computeDisplacement(LHS,RHS,iB,nBasis);
-                strainF{iB} = strainB+SymGrad(uF{iB});
+            C     = obj.material;
+            f     = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
+            LHS   = IntegrateLHS(f,obj.testFun,obj.trialFun,obj.mesh,'Domain',2);
+            for iB = 1:obj.computeNbasis()
+                [eB,v] = obj.createDeformationBasis(iB);
+                f = @(v) -DDP(SymGrad(v),DDP(C,eB));
+                RHS = IntegrateRHS(f,obj.testFun,obj.mesh,'Domain',2);    
+                uF{iB}      = obj.computeDisplacement(LHS,RHS,iB);
+                strainF{iB} = eB+SymGrad(uF{iB});
                 stressF{iB} = DDP(obj.material, strainF{iB});
-                ChiB        = obj.computeChomog(stressF{iB});
+                ChiB        = Integrator.compute(stressF{iB},obj.mesh,2);
                 obj.convertChomogToFourthOrder(ChiB,v,iB);
             end
             obj.uFluc  = uF;
@@ -76,6 +77,7 @@ classdef ElasticProblemMicro < handle
 
         function createTrialFun(obj)
             obj.trialFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
+            obj.testFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
         end
 
        function [s,v] = createDeformationBasis(obj,iBasis)
@@ -84,7 +86,7 @@ classdef ElasticProblemMicro < handle
            sV(v(iBasis,1),v(iBasis,2)) = 1;
            sHV = diag(diag(sV));
            sDV = sV-sHV;
-           sV = sHV+sDV+sDV';
+           sV = sHV+1*(sDV+sDV');
            s = ConstantFunction.create(sV,obj.mesh);
        end
 
@@ -130,45 +132,16 @@ classdef ElasticProblemMicro < handle
             obj.problemSolver = ProblemSolver(s);
         end
 
-        function LHS = computeLHS(obj)
-            ndimf = obj.trialFun.ndimf;
-            s.type     = 'ElasticStiffnessMatrix';
-            s.mesh     = obj.mesh;
-            s.test     = LagrangianFunction.create(obj.mesh,ndimf, 'P1');
-            s.trial    = obj.trialFun;
-            s.material = obj.material;
-            s.quadratureOrder = 2;
-            lhs = LHSIntegrator.create(s);
-            LHS = lhs.compute();
-        end
-
-        function rhs = computeRHS(obj,strainBase,LHS)
-            s.fun  = obj.trialFun;
-            s.type = 'ElasticMicro';
-            s.dim      = obj.getFunDims();
-            s.BC       = obj.boundaryConditions;
-            s.mesh     = obj.mesh;
-            s.material = obj.material;
-            s.globalConnec = obj.mesh.connec;
-            RHSint = RHSIntegrator.create(s);
-            rhs = RHSint.compute(strainBase,obj.trialFun);
-            R = RHSint.computeReactions(LHS); %%?
-        end
-
-        function uFun = computeDisplacement(obj, LHS, RHS, iB, nBasis)
+        function uFun = computeDisplacement(obj, LHS, RHS, iB)
             s.stiffness = LHS;
             s.forces    = RHS;
             s.iBase     = iB;
-            s.nBasis    = nBasis;
+            s.nBasis    = obj.computeNbasis();
             [u, L]      = obj.problemSolver.solve(s);
             obj.lagrangeMultipliers = L;
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             uFun = copy(obj.trialFun);
-            uFun.setFValues(uSplit);
-        end
-
-        function Chomog = computeChomog(obj,stress)
-            Chomog = Integrator.compute(stress,obj.mesh,2);
+            uFun.setFValues(full(uSplit));
         end
 
         function convertChomogToFourthOrder(obj,ChiB,v,iB)
