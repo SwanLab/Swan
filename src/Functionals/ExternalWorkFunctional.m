@@ -34,7 +34,7 @@ classdef ExternalWorkFunctional < handle
             % Ju = obj.reducedToFull(Ju);
 
             m = obj.bMesh.mesh;
-            Ju = IntegrateRHS(@(v) DP(v,obj.bFunfExt),obj.testU,m,quadOrder);
+            Ju = IntegrateRHS(@(v) DP(v,obj.bFunfExt),obj.testU,m,'Domain',quadOrder);
             Ju = obj.reducedToFull(Ju);
         end
         

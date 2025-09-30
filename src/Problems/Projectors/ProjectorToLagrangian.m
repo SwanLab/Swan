@@ -56,7 +56,7 @@ classdef ProjectorToLagrangian < Projector
         function RHS = computeRHS(obj,fun)
             test = LagrangianFunction.create(fun.mesh,fun.ndimf,obj.order);
             f    = @(v) DP(fun,v);
-            RHS  = IntegrateRHS(f,test,test.mesh,2);
+            RHS  = IntegrateRHS(f,test,test.mesh,'Domain',2);
         end
 
         function ord = createRHSQuadrature(obj, fun)
