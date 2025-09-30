@@ -44,7 +44,7 @@ muAT2 = @(phi) mu.*(1-sqrt(phi)).^2;
 
 C11Linear = @(phi) C11.*(1-phi);
 kLinear  = @(phi) k.*(1-phi);
-muLinear = @(phi) m.*(1-phi);
+muLinear = @(phi) mu.*(1-phi);
 
 C11Rational1 = @(phi) C11.*(phi.^2 - 2.*phi + 1)./(1-(derivFactor1+2).*phi);
 kRational1  = @(phi) k.*(phi.^2 - 2.*phi + 1)./(1-(derivFactor1+2).*phi);
@@ -116,6 +116,7 @@ title('Bulk degradation function ($\nu = 0.3$)','Interpreter','latex')
 figure()
 plot(uAT,FAT,'Color',cmp(1,:))
 hold on
+plot(uAT2,FAT2,'Color',cmp(1,:),'LineStyle','--')
 plot(uLinear,Flinear,'Color',cmp(2,:))
 plot(uRatio1,Fratio1,'Color',cmp(3,:),'LineStyle','--','Marker',"o","MarkerIndices",[1:2:length(Fratio1)])
 plot(uRatio2,Fratio2,'Color',cmp(3,:),'LineStyle','--','Marker',"square","MarkerIndices",[1:5:length(Fratio2)])
@@ -123,12 +124,13 @@ plot(uSIMP,Fsimp,'Color',cmp(4,:))
 plot(uSquare,Fsquare,'Color',cmp(5,:),'LineStyle','--','Marker',"square","MarkerIndices",[1:10:length(Fsquare)])
 plot(uCircle,FCircle,'Color',cmp(5,:),'LineStyle','--','Marker',"o","MarkerIndices",[1:10:length(FCircle)])
 plot(uHexa,Fhexa,'Color',cmp(5,:),'LineStyle','--','Marker',"hexagram","MarkerIndices",[1:10:length(Fhexa)])
-legend('AT1','Linear','Rational (1MPa)','Rational (2MPa)','SIMP','Homogenized (Square)','Homogenized (Circle)','Homogenized (Hexagon)')
+legend('AT1','AT2 sqrt','Linear','Rational (1MPa)','Rational (2MPa)','SIMP','Homogenized (Square)','Homogenized (Circle)','Homogenized (Hexagon)')
 title('Force-displacement 1Elem')
 
 figure()
 plot(uAT,dAT,'Color',cmp(1,:))
 hold on
+plot(uAT2,dAT2,'Color',cmp(1,:),'LineStyle','--')
 plot(uLinear,dLinear,'Color',cmp(2,:))
 plot(uRatio1,dRatio1,'Color',cmp(3,:),'LineStyle','--','Marker',"o","MarkerIndices",[1:2:length(Fratio1)])
 plot(uRatio2,dRatio2,'Color',cmp(3,:),'LineStyle','--','Marker',"square","MarkerIndices",[1:5:length(Fratio2)])
@@ -136,7 +138,7 @@ plot(uSIMP,dSIMP,'Color',cmp(4,:))
 plot(uSquare,dSquare,'Color',cmp(5,:),'LineStyle','--','Marker',"square","MarkerIndices",[1:10:length(Fsquare)])
 plot(uCircle,dCircle,'Color',cmp(5,:),'LineStyle','--','Marker',"o","MarkerIndices",[1:10:length(FCircle)])
 plot(uHexa,dHexa,'Color',cmp(5,:),'LineStyle','--','Marker',"hexagram","MarkerIndices",[1:10:length(Fhexa)])
-legend('AT1','Linear','Rational (1MPa)','Rational (2MPa)','SIMP','Homogenized (Square)','Homogenized (Circle)','Homogenized (Hexagon)')
+legend('AT1','AT2 sqrt','Linear','Rational (1MPa)','Rational (2MPa)','SIMP','Homogenized (Square)','Homogenized (Circle)','Homogenized (Hexagon)')
 title('Damage-displacement 1Elem')
 
 

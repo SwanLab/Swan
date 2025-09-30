@@ -12,7 +12,7 @@ clc,clear,close all
 s = []; 
 
 s.monitoring.set = true;
-s.monitoring.type = 'reduced'; %'reduced'
+s.monitoring.type = 'full'; %'reduced'
 s.monitoring.print = true;
 
 s.tolerance.u = 1e-6;
@@ -24,12 +24,12 @@ s.maxIter.stag = 300;
 
 s.benchmark.mesh.type = '1Elem';
 s.benchmark.bc.type   = 'DisplacementTractionX';
-s.benchmark.bc.values = [0.001:0.001:0.001];
+s.benchmark.bc.values = [0:1e-3:0.1];
 
-s.matInfo.matType = 'Analytic'; %'Analytic','Homogenized'
+s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'
 s.matInfo.degradationType = 'PhaseField'; %'PhaseField','SIMPALL'
 s.matInfo.degradationSubType = 'General'; %'AT','ATSplit',,'Rational','General'
-s.matInfo.fileName = 'HexagonPerimeter'; 
+s.matInfo.fileName = 'HexagonArea'; 
 s.matInfo.young   = 210;
 s.matInfo.poisson = 0.3;
 s.matInfo.Gc = 5e-3;
@@ -37,7 +37,7 @@ s.l0 = 0.1;
 
 s.dissipInfo.type = 'PhaseFieldDissipationAT';
 s.dissipInfo.pExp = 1;
-s.solver.type = 'Newton';
+s.solver.type = 'Gradient';
 s.solver.tau  = 150;
 
 

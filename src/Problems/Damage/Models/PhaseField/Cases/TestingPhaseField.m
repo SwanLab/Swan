@@ -76,12 +76,12 @@ classdef TestingPhaseField < handle
                 if isfield(cParams.initialGuess,'phi')
                     phi = cParams.initialGuess.phi;
                 else
-                    phi = LagrangianFunction.create(obj.mesh,1,'P0');
+                    phi = LagrangianFunction.create(obj.mesh,1,'P1');
                     phi = obj.setInitialDamage(phi);
                 end
             else
                 u = LagrangianFunction.create(obj.mesh,2,'P1');
-                phi = LagrangianFunction.create(obj.mesh,1,'P0');
+                phi = LagrangianFunction.create(obj.mesh,1,'P1');
                 phi = obj.setInitialDamage(phi);
             end
             obj.initialGuess.u = u;
@@ -90,7 +90,7 @@ classdef TestingPhaseField < handle
 
         function phi = setInitialDamage(obj,phi)
             fValues = phi.fValues;
-            fValues(:) = 1e-10;
+            fValues(:) = 1e-5;
             phi.setFValues(fValues);
         end
 
@@ -113,7 +113,7 @@ classdef TestingPhaseField < handle
             s.material      = obj.createMaterialPhaseField();
             s.dissipation   = obj.createDissipationInterpolation();
             s.l0            = obj.l0;
-            s.quadOrder     = 2;
+            s.quadOrder     = 3;
             s.testSpace.u   = obj.initialGuess.u;
             s.testSpace.phi = obj.initialGuess.phi.fun;
             s.energySplit   = (obj.matInfo.matType == "AnalyticSplit");
