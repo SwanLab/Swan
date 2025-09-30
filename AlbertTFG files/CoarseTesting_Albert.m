@@ -51,6 +51,8 @@ classdef CoarseTesting_Albert < handle
             obj.LHS = LHSf;
             %             LHS = 0.5*(LHS+LHS');
 
+
+
             LHSf = @(x) LHS*x;
             RHSf = RHS;
             Usol = LHS\RHS;
@@ -70,6 +72,23 @@ classdef CoarseTesting_Albert < handle
 
             Mmult = @(r) Preconditioner.multiplePrec(r,Milu,Mcoarse,Milu,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
             tic
+
+
+             [eigVALMA_min,eigVALMA_max] = obj.computeEigs(LHS,Mmult);
+%            eigMA = sort([diag(eigVALMA_min);diag(eigVALMA_max)]);
+            eigMA = [diag(eigVALMA_min)]%;diag(eigVALMA_max)];
+           [eigVALLHS_min,eigVALLHS_max] = obj.computeEigs(LHS);
+%            eigLHS = sort([diag(eigVALLHS_min);diag(eigVALLHS_max)]);
+            eigLHS = [diag(eigVALLHS_min)]%;diag(eigVALLHS_max)];
+            figure
+            plot((eigMA),'o','MarkerFaceColor', 'b')
+            hold on 
+            plot((eigLHS), 'o', 'MarkerFaceColor', 'r')
+            xlabel('Number')
+            ylabel('Eigenvalue')
+            legend({'Super element space','Coefficient matrix',},'FontSize',12)
+
+
             %           tau = @(r,A) 1;
             [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
             %            [uCG,residualPCG,errPCG,errAnormPCG] = RichardsonSolver.solve(LHSf,RHSf,x0,Mmult,tol,tau,Usol);
@@ -77,42 +96,38 @@ classdef CoarseTesting_Albert < handle
             
             xFull = obj.bcApplier.reducedToFullVectorDirichlet(uPCG);
             s.mesh = obj.meshDomain;
-            s.ndimf = obj.meshDomain.ndim
+            s.ndimf = obj.meshDomain.ndim;
             s.order = 'P1';
             s.fValues = reshape(xFull,2,[])';
             uFun = LagrangianFunction(s);
 
             obj.computeSubdomainCentroid();
-            CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'085 085 085', obj.r, obj.centroids);
+            CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'Real', obj.r, obj.centroids);
 
-            close all % Ho he afegit, cal borrar
             figure
             plot(residualPCG,'linewidth',2)
-         %   hold on
-         %   plot(residualCG,'linewidth',2)  SORTIA ERROR
-         %   legend({'CG + ILU-EIFEM-ILU','CG'},'FontSize',12)
+            hold on
+            plot(residualCG,'linewidth',2)
             set(gca, 'YScale', 'log')
-            legend({'CG + ILU-EIFEM-ILU'},'FontSize',12)
+            legend({'CG + ILU-EIFEM-ILU','CG'},'FontSize',12)
             xlabel('Iteration')
             ylabel('Residual')
 
             figure
             plot(errPCG,'linewidth',2)
-          %  hold on
-          %  plot(errCG,'linewidth',2) SORTIA ERROR
+            hold on
+            plot(errCG,'linewidth',2)
             set(gca, 'YScale', 'log')
-          %  legend('CG + EIFEM+ ILU(CG-90%-L2)','CG')
-            legend('CG + EIFEM+ ILU(CG-90%-L2)')
+            legend('CG + EIFEM+ ILU(CG-90%-L2)','CG')
             xlabel('Iteration')
             ylabel('||error||_{L2}')
 
             figure
             plot(errAnormPCG,'linewidth',2)
-         %   hold on
-         %   plot(errAnormCG,'linewidth',2)
+            hold on
+            plot(errAnormCG,'linewidth',2)
             set(gca, 'YScale', 'log')
-         %   legend('CG + EIFEM+ ILU(CG-90%-L2)','CG')
-            legend('CG + EIFEM+ ILU(CG-90%-L2)')
+            legend('CG + EIFEM+ ILU(CG-90%-L2)','CG')
             xlabel('Iteration')
             ylabel('Energy norm')
 
@@ -124,9 +139,12 @@ classdef CoarseTesting_Albert < handle
 
         function init(obj)
            % obj.nSubdomains    = [2 1]; %nx ny
-            %obj.fileNameCorase = ["UL_r0_1-20x20.mat", "UL_r0_15-20x20.mat", "UL_r0_2-20x20.mat", "UL_r0_25-20x20.mat", "UL_r0_3-20x20.mat", "UL_r0_35-20x20.mat", "UL_r0_45-20x20.mat", "UL_r0_5-20x20.mat", "UL_r0_55-20x20.mat", "UL_r0_6-20x20.mat", "UL_r0_65-20x20.mat", "UL_r0_7-20x20.mat", "UL_r0_75-20x20.mat", "UL_r0_8-20x20.mat", "UL_r0_85-20x20.mat"]; %
+            % obj.fileNameCorase = ["UL_r0_1-20x20.mat", "UL_r0_15-20x20.mat", "UL_r0_2-20x20.mat", "UL_r0_25-20x20.mat", "UL_r0_3-20x20.mat", "UL_r0_35-20x20.mat", "UL_r0_45-20x20.mat", "UL_r0_5-20x20.mat", "UL_r0_55-20x20.mat", "UL_r0_6-20x20.mat", "UL_r0_65-20x20.mat", "UL_r0_7-20x20.mat", "UL_r0_75-20x20.mat", "UL_r0_8-20x20.mat", "UL_r0_85-20x20.mat"]; %
             %obj.fileNameCorase = ["UL_r0_1-20x20.mat", "UL_r0_1-20x20.mat", "UL_r0_1-20x20.mat"];
-            obj.fileNameCorase = ["UL_r0_85-20x20.mat", "UL_r0_85-20x20.mat", "UL_r0_85-20x20.mat"];
+            %obj.fileNameCorase = ["r0_1-20x20.mat","r0_1-20x20.mat"];
+            %obj.fileNameCorase = ["r0_10-20x20.mat", "r0_15-20x20.mat", "r0_20-20x20.mat", "r0_25-20x20.mat", "r0_30-20x20.mat", "r0_35-20x20.mat", "r0_40-20x20.mat", "r0_45-20x20.mat", "r0_50-20x20.mat", "r0_55-20x20.mat", "r0_60-20x20.mat", "r0_65-20x20.mat", "r0_70-20x20.mat", "r0_75-20x20.mat", "r0_80-20x20.mat", "r0_85-20x20.mat"];
+           
+            obj.fileNameCorase = ["r0_1-20x20.mat", "r0_15-20x20.mat", "r0_2-20x20.mat", "r0_25-20x20.mat", "r0_3-20x20.mat", "r0_35-20x20.mat", "r0_45-20x20.mat", "r0_5-20x20.mat", "r0_55-20x20.mat", "r0_6-20x20.mat", "r0_65-20x20.mat", "r0_7-20x20.mat", "r0_75-20x20.mat", "r0_8-20x20.mat", "r0_85-20x20.mat"];
             %obj.fileNameCorase = ["UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat"];
             %obj.fileNameCorase = ["UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_85-20x20.mat"];
             %obj.fileNameCorase = ["UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_85-20x20.mat"]
@@ -313,7 +331,7 @@ classdef CoarseTesting_Albert < handle
         function [young,poisson] = computeElasticProperties(obj,mesh, radius)
             E1  = 1;
             E2 = E1/1000;
-            nu = 1/3; 
+            nu = 1/3;
             x0=mean(mesh.coord(:,1));
             y0=mean(mesh.coord(:,2));
 %             young   = ConstantFunction.create(E,mesh);
@@ -475,7 +493,8 @@ classdef CoarseTesting_Albert < handle
             Meifem = @(r,uk) eP.apply(r,uk);
         end
 
-         function Mcoarse = createCoarsePreconditioner(obj,mR,dir,iC,lG,bS,iCR,dMesh)
+
+        function Mcoarse = createCoarsePreconditioner(obj,mR,dir,iC,lG,bS,iCR,dMesh)
             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
             
@@ -483,8 +502,10 @@ classdef CoarseTesting_Albert < handle
 
             for i = 1:obj.nSubdomains(1,2)
                 for j = 1:obj.nSubdomains(1,1)
+                    
                     filename = obj.fileNameCorase(i,j);
-                    RVE{i,j} = CoarseTrainedRVE(filename);  %%Passar vector de filenames
+                    data = load(filename);
+                    RVE{i,j} = CoarseTrainedRVE(data);  %%Passar vector de filenames
                 end
             end
             
@@ -503,7 +524,7 @@ classdef CoarseTesting_Albert < handle
             ss.type = 'Coarse';
             eP = Preconditioner.create(ss);
             Mcoarse = @(r) eP.apply(r);
-        end
+         end
 
         function Mdn = createDirichletNeumannPreconditioner(obj,mR,dir,iC,lG,bS,lhs,mSb,iCR)
             s.ddDofManager  = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
@@ -516,6 +537,46 @@ classdef CoarseTesting_Albert < handle
             M = Preconditioner.create(s);
             Mdn = @(r) M.apply(r);
         end
+
+
+        function [eigValsMin,eigValsMax ] = computeEigs(obj,A,M)
+             opts = struct();
+                opts.tol = 1e-7;          % Reasonably tight tolerance
+                opts.maxit = 20000;        % More iterations than default
+                opts.issym = true;        % Matrix is symmetric
+                opts.isreal = true;       % Matrix is real
+            if nargin == 2
+
+                % Compute 6 largest-magnitude eigenvalues
+                [eigVecs, eigValsMin] = eigs(A, 22230, 'smallestreal', opts);
+                % [eigVecs, eigValsMax] = eigs(A, 4446, 'largestreal', opts);
+
+                % Extract eigenvalues from diagonal
+%                 eigenvalues = diag(eigVals);
+            else
+                for j = 1:size(A,1)
+                    MA(:, j) = M(A(:, j));
+                end
+                try
+                    chol(MA);  % Should succeed if truly SPD
+                    disp('Matrix is numerically SPD.');
+                catch
+                    disp('Matrix is not SPD numerically.');
+                end
+                [eigVecs, eigValsMin] = eigs(MA, 22230, 'smallestreal', opts);
+                 eigValsMin = real(eigValsMin);
+                %[eigVecs, eigValsMax] = eigs(MA, 4446, 'largestreal', opts);
+                
+            end
+
+
+
+
+
+            
+            eigValsMax=[];
+        end
+
 
         function d = createDomainDecompositionDofManager(obj,iC,lG,bS,mR,iCR)
             s.nSubdomains     = obj.nSubdomains;

@@ -11,6 +11,7 @@ classdef LevelSetInclusionAuto_raul < handle
     properties (Access = private)
         radius
         nodeDirection
+        nPoints
         physicalProblem
         
         boundaryConditions
@@ -33,19 +34,20 @@ classdef LevelSetInclusionAuto_raul < handle
 
     methods (Access = public)
 
-        function [obj, u, L, mesh] = LevelSetInclusionAuto_raul(r, i)
-            obj.init(r, i)
+        function [obj, u, L, mesh] = LevelSetInclusionAuto_raul(r, nPoints)
+            obj.init(r, nPoints)
             obj.createMesh();
             
             %% New ugly chunk of code warning
             [u, L] = obj.doElasticProblemHere();
             mesh = obj.mesh;
             
-             z.mesh      = obj.mesh;
-             z.fValues   = reshape(u(:,1),[obj.mesh.ndim,obj.mesh.nnodes])';
-             z.order     = 'P1';
-             uFeFun = LagrangianFunction(z);
-             
+            L = u' * obj.stiffness* u;
+            % z.mesh      = obj.mesh;
+            % z.fValues   = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
+            % z.order     = 'P1';
+            % uFeFun = LagrangianFunction(z);
+
             %obj.physicalProblem.solve();
 
             
@@ -61,7 +63,8 @@ classdef LevelSetInclusionAuto_raul < handle
             % close all;
             % clc;
             obj.radius = r;
-            obj.nodeDirection = i;
+            obj.nodeDirection = 1;
+            obj.nPoints = i;
         end
 
         function createMesh(obj)
@@ -75,11 +78,11 @@ classdef LevelSetInclusionAuto_raul < handle
             [obj.boundaryMeshJoined, obj.localGlobalConnecBd] = obj.mesh.createSingleBoundaryMesh();
         end
 
-        function mesh = createReferenceMesh(~)
+        function mesh = createReferenceMesh(obj)
            
              %UnitMesh better
-            x1      = linspace(-1,1,20);
-            x2      = linspace(-1,1,20);
+            x1      = linspace(-1,1,obj.nPoints);
+            x2      = linspace(-1,1,obj.nPoints);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
