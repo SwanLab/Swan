@@ -66,15 +66,15 @@ classdef LagrangianFunction < FeFunction
         end 
 
        function fVals = getFvaluesByElem(obj)
-            nDimF     = obj.ndimf;
-            nNode     = obj.interpolation.nnode;
-            nElem     = size(obj.mesh.connec, 1);            
-            iDof      = (0:nNode-1)*obj.ndimf + 1;
-            node      = (obj.dofConnec(:, iDof) - 1) / nDimF + 1;
-            fAll      = obj.fValues(node(:), :);
+            nDimF     = obj.ndimf;                     % # field components per node (e.g., 2 for ux,uy)
+            nNode     = obj.interpolation.nnode;       % # nodes per element (e.g., 4)
+            nElem     = size(obj.mesh.connec, 1);      % # elements (6030)
+            iDof      = (0:nNode-1)*obj.ndimf + 1;     % columns of dofConnec that correspond to the *first* dof of each node
+            node      = (obj.dofConnec(:, iDof) - 1) / nDimF + 1;  % map those dofs back to node IDs
+            fAll      = obj.fValues(node(:), :);       % gather nodal values for *all elements* and *all nodes*
             fReshaped = reshape(fAll, nElem, nNode, nDimF);
-            fVals     = permute(fReshaped, [3, 2, 1]);            
-       end   
+            fVals     = permute(fReshaped, [3, 2, 1]); % -> size = [nDimF, nNode, nElem]
+        end  
 
         function c = getDofCoord(obj)
             c = obj.dofCoord;

@@ -26,7 +26,7 @@ classdef TutorialEIFEM < handle
             close all
             obj.init()
 
-            obj.createReferenceMesh();
+            obj.createReferenceMesh(false);
             bS  = obj.referenceMesh.createBoundaryMesh();
             [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain();
             obj.meshDomain = mD;
@@ -64,35 +64,77 @@ classdef TutorialEIFEM < handle
             obj.solverType = 'REDUCED';
         end        
 
-        function createReferenceMesh(obj)
-            filename = obj.fileNameEIFEM;
-            load(filename);
-            s.coord    = EIFEoper.MESH.COOR;
-            s.connec   = EIFEoper.MESH.CN;
-            s.interType = 'QUADRATIC';
+        function createReferenceMesh(obj, loadfile)
+            if loadfile
+                filename = obj.fileNameEIFEM;
+                load(filename);  % must define EIFEoper with MESH.COOR and MESH.CN
+                s.coord     = EIFEoper.MESH.COOR;
+                s.connec    = EIFEoper.MESH.CN;
+                s.interType = 'QUADRATIC';
+                % If you also want to nudge corners for loaded meshes:
+                % s = obj.updateCoordsMesh(s);
+            else
+                holeMesh    = obj.createMesh();      % <-- need ()
+                s.coord     = holeMesh.coord;
+                s.connec    = holeMesh.connec;
+                s.interType = 'LINEAR';
+                s           = obj.updateCoordsMesh(s); % pass in & capture output
+            end
+        
             obj.referenceMesh = Mesh.create(s);
-
-            %% Uncomment for meshes that have corners and generate the mesh with the updated coordinates
-%             tol = 1e-8;
-%             xmax = max(s.coord(:,1)); xmin = min(s.coord(:,1));
-%             ymax = max(s.coord(:,2)); ymin = mmin(s.coord(:,2));
-%              % Top-right corner (xmax, ymax)
-%             mask = abs(s.coord(:,1) - xmax) < tol & abs(s.coord(:,2) - ymax) < tol;
-%             s.coord(mask, :) = s.coord(mask, :) - [1e-9, 0];
-% 
-%             % Bottom-right corner (xmax, ymin)
-%             mask = abs(s.coord(:,1) - xmax) < tol & abs(s.coord(:,2) - ymin) < tol;
-%             s.coord(mask, :) = s.coord(mask, :) - [1e-9, 0];
-% 
-%             % Top-left corner (xmin, ymax)
-%             mask = abs(s.coord(:,1) - xmin) < tol & abs(s.coord(:,2) - ymax) < tol;
-%             s.coord(mask, :) = s.coord(mask, :) + [1e-9, 0];
-% 
-%             % Bottom-left corner (xmin, ymin)
-%             mask = abs(s.coord(:,1) - xmin) < tol & abs(s.coord(:,2) - ymin) < tol;
-%             s.coord(mask, :) = s.coord(mask, :) + [1e-9, 0];
-%             obj.referenceMesh = Mesh.create(s);
         end
+        
+        function holeMesh = createMesh(obj)
+            fullmesh = UnitTriangleMesh(12,12);
+            ls = obj.computeCircleLevelSet(fullmesh);
+            sUm.backgroundMesh = fullmesh;
+            sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
+            uMesh              = UnfittedMesh(sUm);
+            uMesh.compute(ls);
+            holeMesh = uMesh.createInnerMesh();
+            
+        end
+  
+        function ls = computeCircleLevelSet(obj, mesh)
+            gPar.type          = 'Circle';
+            gPar.radius        = 0.25;
+            gPar.xCoorCenter   = 0.5;
+            gPar.yCoorCenter   = 0.5;
+            g                  = GeometricalFunction(gPar);
+            phiFun             = g.computeLevelSetFunction(mesh);
+            lsCircle           = phiFun.fValues;
+            ls = -lsCircle;
+        end
+
+        function s = updateCoordsMesh(obj, s)
+            % Nudge nodes at the four rectangle corners slightly in x to avoid
+            % exact coincidences. Works for 2D coordinates in s.coord (n x 2).
+            tol  = 1e-8;
+            epsx = 1e-9;
+        
+            x = s.coord(:,1); y = s.coord(:,2);
+            xmax = max(x); xmin = min(x);
+            ymax = max(y); ymin = min(y);
+        
+            % Top-right (xmax,ymax)
+            mask = abs(x - xmax) < tol & abs(y - ymax) < tol;
+            s.coord(mask, :) = s.coord(mask, :) - [epsx, 0];
+        
+            % Bottom-right (xmax,ymin)
+            mask = abs(x - xmax) < tol & abs(y - ymin) < tol;
+            s.coord(mask, :) = s.coord(mask, :) - [epsx, 0];
+        
+            % Top-left (xmin,ymax)
+            mask = abs(x - xmin) < tol & abs(y - ymax) < tol;
+            s.coord(mask, :) = s.coord(mask, :) + [epsx, 0];
+        
+            % Bottom-left (xmin,ymin)
+            mask = abs(x - xmin) < tol & abs(y - ymin) < tol;
+            s.coord(mask, :) = s.coord(mask, :) + [epsx, 0];
+        end
+      
+
+
 
         function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomain(obj)
             s.nsubdomains   = obj.nSubdomains;
