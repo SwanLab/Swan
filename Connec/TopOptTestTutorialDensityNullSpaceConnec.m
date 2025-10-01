@@ -54,32 +54,32 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(x(1,:,:)));
-            s.ndimf   = 1;
-            s.mesh    = obj.mesh;
-            aFun      = AnalyticalFunction(s);
-            d = aFun.project('P1');
+            % s.fHandle = @(x) ones(size(x(1,:,:)));
+            % s.ndimf   = 1;
+            % s.mesh    = obj.mesh;
+            % aFun      = AnalyticalFunction(s);
+            % d = aFun.project('P1');
 
-            % s.dim = obj.mesh.ndim;
-            % s.nHoles = [1 1];
-            % s.phases = [0 0]; 
-            % s.phiZero = 0.5;
-            % s.totalLengths = [1,1];
-            % s.type         = 'Holes';
-            % g              = GeometricalFunction(s);
-            % phiFun         = g.computeLevelSetFunction(obj.mesh);
-            % ls          = phiFun.fValues;
-            % lsInclusion = ls;
-            % sU.backgroundMesh = obj.mesh;
-            % sU.boundaryMesh   = obj.mesh.createBoundaryMesh;
-            % uMesh             = UnfittedMesh(sU);
-            % uMesh.compute(lsInclusion);           
-            % cFun = CharacteristicFunction.create(uMesh);
-            % s.filterType = 'LUMP';
-            % s.mesh  = obj.mesh;
-            % s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            % f = Filter.create(s);
-            % d = f.compute(cFun,2);            
+            s.dim = obj.mesh.ndim;
+            s.nHoles = [1 1];
+            s.phases = [0 0]; 
+            s.phiZero = 0.5;
+            s.totalLengths = [1,1];
+            s.type         = 'Holes';
+            g              = GeometricalFunction(s);
+            phiFun         = g.computeLevelSetFunction(obj.mesh);
+            ls          = phiFun.fValues;
+            lsInclusion = ls;
+            sU.backgroundMesh = obj.mesh;
+            sU.boundaryMesh   = obj.mesh.createBoundaryMesh;
+            uMesh             = UnfittedMesh(sU);
+            uMesh.compute(lsInclusion);           
+            cFun = CharacteristicFunction.create(uMesh);
+            s.filterType = 'LUMP';
+            s.mesh  = obj.mesh;
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            f = Filter.create(s);
+            d = f.compute(cFun,2);            
             
             sD.fun      = d;
             sD.mesh     = obj.mesh;

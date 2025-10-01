@@ -37,8 +37,8 @@ classdef EnclosedVoidFunctional < handle
           %  plot(phi)
           %  plot(rhoV) 
           %  plot(lam);
-            Dom = Integrator.compute(ConstantFunction.create(1,obj.mesh),obj.mesh,2);
-            J = Integrator.compute(rhoV,obj.mesh,2)/Dom - 0.1;
+            Dom   = Integrator.compute(ConstantFunction.create(1,obj.mesh),obj.mesh,2);
+            J     = Integrator.compute(rhoV,obj.mesh,2)/Dom - 0.1;
             dJ{1} = -phi + obj.dk(xR).*DP(Grad(lam),Grad(phi)) + DP(obj.dm(xR).*(phi-xR)-obj.m(xR),lam);
             dJ{1} = dJ{1}./Dom;
             dJ = obj.filterFields(dJ);
