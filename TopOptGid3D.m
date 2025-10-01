@@ -35,7 +35,7 @@ classdef TopOptGid3D < handle
             obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
-            obj.createDualVariable();
+            obj.createPrimalUpdater();
             obj.createOptimizer();     
         end
 
@@ -74,10 +74,13 @@ classdef TopOptGid3D < handle
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);
+
+            %bar1 = @(x) x(:,1)== 0;
             s.fun     = aFun.project('P1');
             s.mesh    = obj.mesh;
             s.type = 'Density';
             s.plotting = true;
+            %s.isFixed  = obj.computeFixedVolumeDomain(@(x) bar1(x), s.type);
             dens    = DesignVariable.create(s);
             obj.designVariable = dens;
         end
@@ -193,9 +196,9 @@ classdef TopOptGid3D < handle
         end
 
         function M = createMassMatrix(obj)
-            n = obj.mesh.nnodes;
-            h = obj.mesh.computeMinCellSize();
-            M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
+            test  = LagrangianFunction.create(obj.mesh,1,'P1');
+            trial = LagrangianFunction.create(obj.mesh,1,'P1'); 
+            M = IntegrateLHS(@(u,v) DP(v,u),test,trial,obj.mesh,'Domain');
         end
 
         function createConstraint(obj)
@@ -204,10 +207,12 @@ classdef TopOptGid3D < handle
             obj.constraint      = Constraint(s);
         end
 
-        function createDualVariable(obj)
-            s.nConstraints   = 1;
-            l                = DualVariable(s);
-            obj.dualVariable = l;
+       function createPrimalUpdater(obj)
+            s.ub     = 1;
+            s.lb     = 0;
+            s.tauMax = 1000;
+            s.tau    = [];
+            obj.primalUpdater = ProjectedGradient(s);
         end
 
         function createOptimizer(obj)
@@ -215,13 +220,14 @@ classdef TopOptGid3D < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.dualVariable   = obj.dualVariable;
             s.maxIter        = 100;
             s.tolerance      = 1e-8;
-            s.constraintCase = 'EQUALITY';
-            s.ub             = 1;
-            s.lb             = 0;
-            opt = OptimizerMMA(s);
+            s.constraintCase = {'EQUALITY'};
+            s.primal         = 'PROJECTED GRADIENT';
+            s.etaNorm        = 0.01;
+            s.gJFlowRatio    = 2;
+            s.primalUpdater  = obj.primalUpdater;
+            opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
         end
@@ -231,11 +237,11 @@ classdef TopOptGid3D < handle
             yMax    = max(obj.mesh.coord(:,2));
             zMax    = max(obj.mesh.coord(:,3));
             isDir   = @(coor)  coor(:,1)==0;
-            isForce = @(coor)  coor(:,1)>0.995*xMax;% & abs(coor(:,2))>=0.25*yMax & abs(coor(:,2))<=0.75*yMax); % & abs(coor(:,3))>=0.749*zMax & abs(coor(:,3))<=0.75*zMax);
+            isForce = @(coor)  (coor(:,1)>0.995*xMax & abs(coor(:,2))>=0 & abs(coor(:,2))<yMax) & abs(coor(:,3))>=0 & abs(coor(:,3))<=zMax); % & abs(coor(:,3))>=0.749*zMax & abs(coor(:,3))<=0.75*zMax);
             
             numNodes = sum(isForce(obj.mesh.coord));
          
-            s.fHandle = @(x)  (abs(x(1,:,:))>0.995*xMax); % & abs(x(2,:,:))>=0.25*yMax & abs(x(2,:,:))<=0.75*yMax); %  & abs(x(3,:,:))>=0.749*zMax & abs(x(3,:,:))<=0.75*zMax);
+            s.fHandle = @(x)  (abs(x(1,:,:))>0.995*xMax & abs(x(2,:,:))>=0.25*yMax & abs(x(2,:,:))<=0.75*yMax); %  & abs(x(3,:,:))>=0.749*zMax & abs(x(3,:,:))<=0.75*zMax);
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);
@@ -248,7 +254,7 @@ classdef TopOptGid3D < handle
 
             sPL{1}.domain    = @(coor) isForce(coor);
             sPL{1}.direction = 3;
-            sPL{1}.value     = -10000/numNodes;
+            sPL{1}.value     = -1;
 
             dirichletFun = [];
             for i = 1:numel(sDir)
