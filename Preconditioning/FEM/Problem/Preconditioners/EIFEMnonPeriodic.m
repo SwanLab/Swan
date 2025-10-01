@@ -21,12 +21,16 @@ classdef EIFEMnonPeriodic < handle
         LHSintegrator
         material
         meshRef
+        U
+        mu
     end
 
     methods (Access = public)
 
         function obj = EIFEMnonPeriodic(cParams)
             obj.init(cParams)
+            obj.LHS     = obj.computeLHS(obj.mu);
+            obj.computeDownscaling(obj.mu);
 %             LHS = obj.computeLHS();
 %             obj.LHS = LHS;
             obj.createBoundaryConditions();
@@ -36,10 +40,10 @@ classdef EIFEMnonPeriodic < handle
 %             obj.reactions           = obj.computeReactions();
         end
 
-        function u = apply(obj,r,mu)
+        function u = apply(obj,r)
             Fcoarse = obj.projectExternalForce(r);            
             RHS     = obj.assembleRHSvector(Fcoarse);
-            LHS     = obj.computeLHS(mu);
+
             LHSred  = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);
             RHSred  = obj.bcApplier.fullToReducedVectorDirichlet(RHS);
             uRed = LHSred\RHSred;
@@ -54,12 +58,31 @@ classdef EIFEMnonPeriodic < handle
 
         function init(obj,cParams)
             obj.mesh    = cParams.mesh;
-            obj.meshRef = cParams.meshRef;
+%             obj.meshRef = cParams.meshRef;
             obj.RVE     = cParams.RVE;
 %             obj.Kel     = repmat(obj.RVE.Kcoarse,[1,1,obj.mesh.nelem]);
             obj.DirCond = cParams.DirCond;
             obj.dispFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim,'P1');
-            obj.LHSintegrator = obj.createLHSintegrator();
+%             obj.LHSintegrator = obj.createLHSintegrator();
+            if length(cParams.mu) == 1
+                obj.mu = cParams.mu*ones(cParams.mesh.nelem,1);
+            end
+        end
+
+        function computeElementalLHS(obj,mu)
+            nelem = obj.mesh.nelem;
+            for i = 1:nelem
+                obj.Kel(:,:,i) = obj.RVE.Kcoarse(mu(i));
+            end
+        end
+
+        function computeDownscaling(obj,mu)
+            nelem = obj.mesh.nelem;
+            for i = 1:nelem
+                Udef = obj.RVE.Udef(mu(i));
+                Urb  = obj.RVE.Urb(mu(i));
+                obj.U(:,:,i) = Udef + Urb;
+            end
         end
 
         function LHSint = createLHSintegrator(obj)
@@ -82,23 +105,50 @@ classdef EIFEMnonPeriodic < handle
             end
         end
 
-        function LHS = computeLHS(obj)
-            LHS = obj.assembleMatrix();
+        function LHS = computeLHS(obj,mu)
+            obj.computeElementalLHS(mu)
+            LHS = obj.assembleMatrix(obj.Kel,obj.dispFun,obj.dispFun);
         end
 
-        function LHS = assembleMatrix(obj)
-            s.fun  = obj.dispFun; % !!!
-            trial  = s.fun;
-            test   = trial;
-            obj.assembler = AssemblerFun(s);
-            LHS = obj.assembler.assemble(obj.Kel, test, trial);
+        
+        function A = assembleMatrix(obj,Aelem,f1,f2)
+            dofsF1 = f1.getDofConnec();
+            if isequal(f1, f2)
+                dofsF2 = dofsF1;
+            else
+                dofsF2 = f2.getDofConnec();
+            end
+            nDofs1     = numel(f1.fValues);
+            nDofs2     = numel(f2.fValues);
+            ndofsElem1 = size(Aelem, 1);
+            ndofsElem2 = size(Aelem, 2);
+
+            [iElem, jElem] = meshgrid(1:ndofsElem1, 1:ndofsElem2);
+            iElem = iElem(:);
+            jElem = jElem(:);
+
+            dofsI = dofsF1(:, iElem);
+            dofsJ = dofsF2(:, jElem);
+
+            rowIdx = dofsI(:);
+            colIdx = dofsJ(:);
+            Aval   = permute(Aelem,[3 2 1]);
+            values = Aval(:);
+            A = sparse(rowIdx, colIdx, values, nDofs1, nDofs2);
         end
 
         function RHS = assembleRHSvector(obj,F)
             Fcoarse = reshape(F,1,obj.dispFun.nDofsElem,[]);
-            Fcoarse = permute(Fcoarse,[2 1 3]);
-            fun     = [];
-            RHS     = obj.assembler.assembleV(Fcoarse,fun);
+            Fcoarse = squeeze(Fcoarse);
+            RHS     = obj.assembleVector(Fcoarse,obj.dispFun);
+        end
+
+        function F = assembleVector(obj,Felem, f)
+            dofConnec = f.getDofConnec();
+            nDofs     = numel(f.fValues);
+            rowIdx    = dofConnec(:);
+            Felem = Felem';
+            F = sparse(rowIdx, 1, Felem(:), nDofs, 1);
         end
 
         function R = computeReactions(obj)
@@ -141,21 +191,26 @@ classdef EIFEMnonPeriodic < handle
         end
 
         function Fcoarse = projectExternalForce(obj,Ffine)
-            Udef    = obj.RVE.Udef;
-            Urb     = obj.RVE.Urb;
-            Ut      = (Udef + Urb)';
-            Fcoarse = Ut*Ffine;
+            nelem = obj.mesh.nelem;
+            for ielem = 1:nelem
+                Fcoarse(:,ielem) = obj.U(:,:,ielem)'*Ffine(:,ielem);
+            end
+% 
+%             Udef    = obj.RVE.Udef(mu);
+%             Urb     = obj.RVE.Urb(mu);
+%             Ut      = (Udef + Urb)';
+%             Fcoarse = Ut*Ffine;
         end
 
         function u = reconstructSolution(obj,uCoarse)
             nElem = obj.mesh.nelem;
-            Udef  = obj.RVE.Udef;
-            Urb   = obj.RVE.Urb;
-            U     = Udef + Urb;
+%             Udef  = obj.RVE.Udef;
+%             Urb   = obj.RVE.Urb;
+%             U     = Udef + Urb;
             dofConec = obj.dispFun.getDofConnec();
             for ielem = 1:nElem
                 uCelem = uCoarse(dofConec(ielem,:));
-                u(:,ielem) =  U*uCelem;
+                u(:,ielem) =  obj.U(:,:,ielem)*uCelem;
             end
         end
 

@@ -19,7 +19,7 @@ classdef Training < handle
 
         fileNameEIFEM
         tolSameNode
-
+        radius
     end
 
 
@@ -29,8 +29,8 @@ classdef Training < handle
 
     methods (Access = public)
 
-        function obj = Training(meshRef)
-            obj.init(meshRef)
+        function obj = Training(meshRef,r)
+            obj.init(meshRef,r)
             if sum(obj.nSubdomains > 1)>= 1
                 obj.repeatMesh();
             else
@@ -53,11 +53,12 @@ classdef Training < handle
 
     methods (Access = private)
 
-        function init(obj,mesh)
+        function init(obj,mesh,r)
             obj.nSubdomains  = [5 5]; %nx ny
             obj.tolSameNode = 1e-10;
             obj.domainIndices = [3 3];
             obj.mesh = mesh;
+            obj.radius = r;
         end
 
         function repeatMesh(obj)
@@ -86,13 +87,29 @@ classdef Training < handle
             material  = tensor;
         end
 
-        function [young,poisson] = computeElasticProperties(obj,mesh)
-            E  = 1;
+%         function [young,poisson] = computeElasticProperties(obj,mesh)
+%             E  = 1;
+%             nu = 1/3;
+%             Epstr  = E/(1-nu^2);
+%             nupstr = nu/(1-nu);
+%             young   = ConstantFunction.create(Epstr,mesh);
+%             poisson = ConstantFunction.create(nupstr,mesh);
+%         end
+
+         function [young,poisson] = computeElasticProperties(obj,mesh)
+            E1  = 1;
+            E2 = E1/1000;
             nu = 1/3;
-            Epstr  = E/(1-nu^2);
-            nupstr = nu/(1-nu);
-            young   = ConstantFunction.create(Epstr,mesh);
-            poisson = ConstantFunction.create(nupstr,mesh);
+            x0=0;
+            y0=0;
+%             young   = ConstantFunction.create(E,mesh);
+%             poisson = ConstantFunction.create(nu,mesh);
+            f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<obj.radius)*E2 + ...
+                        (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=obj.radius)*E1 ; 
+%                                      x(2,:,:).*0 ];
+
+            young   = AnalyticalFunction.create(f,mesh);
+            poisson = ConstantFunction.create(nu,mesh);            
         end
 
         function [LHS,RHS,u,dLambda] = createElasticProblem(obj)
@@ -148,7 +165,7 @@ classdef Training < handle
                 u   = obj.extractDomainDisplacements(uC);
                 lhs = obj.extractDomainLHS(LHS);
             else
-                u = uC;
+                u = full(uC);
                 lhs = LHS;
             end
         end

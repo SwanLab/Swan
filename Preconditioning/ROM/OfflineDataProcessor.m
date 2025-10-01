@@ -64,6 +64,8 @@ classdef OfflineDataProcessor < handle
             EIFEoper.Kcoarse = Kcoarse;
             EIFEoper.Urb = Ur;
             EIFEoper.Udef = Ud;
+            EIFEoper.PhiD = PhiD;
+            EIFEoper.PhiR = PhiR;
         end
 
     end
