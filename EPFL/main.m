@@ -1,7 +1,7 @@
 close all
 clear all
 % Specify the directory where the .mat files are located
-directory = '/home/raul/Documents/GitHub/EPFL/'; % Update this path as needed
+directory = './EPFL/'; % Update this path as needed
 
 % Get a list of all .mat files in the directory
 files = dir(fullfile(directory, 'data_*.mat'));
@@ -45,14 +45,14 @@ Kcoarse = fK(xdata);
 %     error2(i) = norm(t(:,i)-T(:,i))/norm(T(:,i));
 % end
 
-load('data_0.100.mat')
+%load('data_0.100.mat')
 % EIFEoper.U = reshape(def,[],8) + reshape(rb',[],8);
 % kcoarse = EIFEoper.U'*EIFEoper.Kfine*EIFEoper.U;
 EIFEoper.Kcoarse = fK;
 EIFEoper.Udef = Udef;
 EIFEoper.Urb  = Urb;
 
-filePath = '/home/raul/Documents/GitHub/EPFL/parametrizedEIFEM.mat';
+filePath = './EPFL/parametrizedEIFEM.mat';
 save(filePath,'EIFEoper')
 
 deim    = DEIM(var);
@@ -77,8 +77,8 @@ deim    = DEIM(var);
 
 coeff   = deim.basis(deim.indices,:)\var(deim.indices,:);
 rbf       = RBF(coeff',xdata,centers);
-% f = @ (r) deim.basis*rbf.evaluate(r) ;
-f = @ (r) reshape( deim.basis*rbf.evaluate(r),[],8);
+ f = @ (r) deim.basis*rbf.evaluate(r) ;
+%f = @ (r) reshape( deim.basis*rbf.evaluate(r),[],8);
 
 end
 
