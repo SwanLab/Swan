@@ -72,7 +72,7 @@ classdef DensityBasedMaterial < handle
             nGauss = size(rhoEv,2);
             nElem = size(rhoEv,3);
             rhoEv = reshape(rhoEv,[1 1 1 1 nGauss nElem]);
-            C = C.*(rhoEv.^3)+1e-3.*C;
+            C = (1-rhoEv.^3)*1e-3.*C + (rhoEv.^3).*C;
         end
         
         function dC = evaluateGradient(obj,dmu,dkappa,xV)
@@ -81,14 +81,14 @@ classdef DensityBasedMaterial < handle
             [mu,kappa] = mI.computeConsitutiveTensor(rho);
             m = obj.createMaterial(mu,kappa);
             C_voigt = [ 0.0022   0.001  0;
-                0.001  0.50 0;
-                0      0      0.19];
+                         0.001    0.50  0;
+                            0      0   0.19];
             C = m.evaluate(xV,C_voigt);
             rhoEv = rho{1}.evaluate(xV);
             nGauss = size(rhoEv,2);
             nElem = size(rhoEv,3);
             rhoEv = reshape(rhoEv,[1 1 1 1 nGauss nElem]);
-            dC = C.*(3.*rhoEv.^2);
+            dC = (-3.*rhoEv.^2)*1e-3.*C + 3.*(rhoEv.^2).*C; 
         end
 
         function ndim = computeNdim(obj)
