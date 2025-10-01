@@ -61,7 +61,7 @@ classdef AnisotropicSimulation < handle
             s.fun  = lsFun;
             s.mesh = obj.mesh;
             s.type = 'LevelSet';
-            s.plotting = false;
+            s.plotting = true;
             ls     = DesignVariable.create(s);
             obj.designVariable = ls;
         end
@@ -185,7 +185,7 @@ classdef AnisotropicSimulation < handle
             s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 1;
+            s.gJFlowRatio    = 0.1;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
             opt = OptimizerNullSpace(s);
