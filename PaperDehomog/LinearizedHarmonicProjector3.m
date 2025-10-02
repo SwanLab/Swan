@@ -91,7 +91,7 @@ classdef LinearizedHarmonicProjector3 < handle
             resL = project(DP(b-bBar,obj.perimeter.*(b-bBar)),'P1');
             resH = obj.evaluateHarmonicResidual(b);                
             resB = project(norm(b)- 1,'P1');
-            resG = project(DDP(Grad(b),Grad(b)),'P1');
+            resG = project(DDP(Grad(b),(1-obj.perimeter).*Grad(b)),'P1');
         end
 
         function resH = evaluateHarmonicResidual(obj,b)
@@ -146,8 +146,8 @@ classdef LinearizedHarmonicProjector3 < handle
             %Nb1t = IntegrateLHS(@(u,v) u.*DP(Grad(v),Grad(bs{1})),obj.fB,obj.fS,obj.mesh,'Domain',4)';            
             %Nb2t = IntegrateLHS(@(u,v) u.*DP(Grad(v),Grad(bs{2})),obj.fB,obj.fS,obj.mesh,'Domain',4)'; 
 
-            Nb1 = IntegrateLHS(@(u,v) u.*DP(Grad(bs{1}),Grad(v)),obj.fB,obj.fS,obj.mesh,'Domain',4)';
-            Nb2 = IntegrateLHS(@(u,v) u.*DP(Grad(bs{2}),Grad(v)),obj.fB,obj.fS,obj.mesh,'Domain',4)';
+            Nb1 = IntegrateLHS(@(u,v) DP(Grad(u),Grad(bs{1})).*v,obj.fB,obj.fS,obj.mesh,'Domain',4);
+            Nb2 = IntegrateLHS(@(u,v) DP(Grad(u),Grad(bs{2})).*v,obj.fB,obj.fS,obj.mesh,'Domain',4);
 
             iDOFs = obj.internalDOFs;
             Kb1 = Kb1(:,iDOFs);
