@@ -28,7 +28,7 @@ classdef EnclosedVoidFunctional < handle
             xD  = x.obtainDomainFunction();
             xR = obj.filterFields(xD);
             xR = xR{1};
-            phi = obj.solveState(xR);
+            phi = obj.solveState(xD{1});%xR
             lam = obj.solveAdjoint(xR);
          %   rhoV = (phi - xD{1});
             rhoV = phi.*(1-xD{1});
@@ -106,7 +106,7 @@ classdef EnclosedVoidFunctional < handle
             k   = obj.k(x);
             m   = obj.m(x);
             LHS = IntegrateLHS(@(u,v) DDP(Grad(v),k.*Grad(u)) + DP(v,m.*u),obj.test,obj.test,obj.mesh,'Domain');
-            RHS = IntegrateRHS(@(v) DP(v,m.*x),obj.test,obj.mesh);
+            RHS = IntegrateRHS(@(v) DP(v,m.*x),obj.test,obj.mesh,'Domain');
             s.stiffness = LHS;
             s.forces    = RHS;  
             [u,~]       = obj.problemSolver.solve(s); 
@@ -118,7 +118,7 @@ classdef EnclosedVoidFunctional < handle
             k   = obj.k(x);
             m   = obj.m(x);
             LHS = IntegrateLHS(@(u,v) DDP(Grad(v),k.*Grad(u)) + DP(v,m.*u),obj.test,obj.test,obj.mesh,'Domain');
-            RHS = IntegrateRHS(@(v) -DP(v,(1-x)),obj.test,obj.mesh);
+            RHS = IntegrateRHS(@(v) -DP(v,(1-x)),obj.test,obj.mesh,'Domain');
             s.stiffness = LHS;
             s.forces    = RHS;  
             [u,~]       = obj.problemSolver.solve(s); 

@@ -177,12 +177,12 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
         end
 
         function createEnclosedVoidFunctionalConstraint(obj)
-            e   = 1e-3;
+            e   = 1e-5;
             k0  = 1-e;
             k1  = e; 
-            m0  = e;
+            m0  = 0;%e;
             m1  = 1-e;
-            p  = 1;
+            p  = 8;
             s.diffCoef = @(x) k0*(1-x.^p)+k1*x.^p;
             s.massCoef = @(x) m0*(1-x.^p)+m1*x.^p;
             s.dm       = @(x) -m0*p*x.^(p-1)+m1*p.*x.^(p-1);
@@ -263,10 +263,10 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             s.dirichletFun = dirichletFun;
 
             pointloadFun = [];
-            for i = 1:numel(sPL)
-                pl = PointLoad(obj.mesh, sPL{i});
-                pointloadFun = [pointloadFun, pl];
-            end
+            % for i = 1:numel(sPL)
+            %     pl = PointLoad(obj.mesh, sPL{i});
+            %     pointloadFun = [pointloadFun, pl];
+            % end
             s.pointloadFun = pointloadFun;
 
             s.periodicFun  = [];
