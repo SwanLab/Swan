@@ -26,7 +26,7 @@ classdef TutorialEIFEM < handle
             close all
             obj.init()
 
-            obj.createReferenceMesh(false);
+            obj.createReferenceMesh(true);
             bS  = obj.referenceMesh.createBoundaryMesh();
             [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain();
             obj.meshDomain = mD;
@@ -42,7 +42,6 @@ classdef TutorialEIFEM < handle
             Milu         = obj.createILUpreconditioner(LHSr);
             Mmult        = @(r) Preconditioner.multiplePrec(r,LHSfun,Milu,Meifem,Milu);
             Mid          = @(r) r;
-
 
             tol = 1e-8;
             x0 = zeros(size(RHSr));
@@ -67,18 +66,17 @@ classdef TutorialEIFEM < handle
         function createReferenceMesh(obj, loadfile)
             if loadfile
                 filename = obj.fileNameEIFEM;
-                load(filename);  % must define EIFEoper with MESH.COOR and MESH.CN
+                load(filename); 
                 s.coord     = EIFEoper.MESH.COOR;
                 s.connec    = EIFEoper.MESH.CN;
                 s.interType = 'QUADRATIC';
-                % If you also want to nudge corners for loaded meshes:
-                % s = obj.updateCoordsMesh(s);
+                
             else
-                holeMesh    = obj.createMesh();      % <-- need ()
+                holeMesh    = obj.createMesh();      
                 s.coord     = holeMesh.coord;
                 s.connec    = holeMesh.connec;
                 s.interType = 'LINEAR';
-                s           = obj.updateCoordsMesh(s); % pass in & capture output
+                s           = obj.updateCoordsMesh(s); 
             end
         
             obj.referenceMesh = Mesh.create(s);
@@ -107,8 +105,8 @@ classdef TutorialEIFEM < handle
         end
 
         function s = updateCoordsMesh(obj, s)
-            % Nudge nodes at the four rectangle corners slightly in x to avoid
-            % exact coincidences. Works for 2D coordinates in s.coord (n x 2).
+            % Nudge nodes at the four rectangle corners in x to avoid
+            % exact coincidences.
             tol  = 1e-8;
             epsx = 1e-9;
         
@@ -144,7 +142,7 @@ classdef TutorialEIFEM < handle
             [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
         end
 
-
+        
         function mCoarse = createCoarseMesh(obj,mR)
             s.nsubdomains   = obj.nSubdomains; %nx ny
             s.meshReference = obj.createReferenceCoarseMesh(mR);
