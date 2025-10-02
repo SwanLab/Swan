@@ -1,4 +1,4 @@
-    classdef ElasticProblem < handle
+classdef ElasticProblem < handle
     
     properties (Access = public)
         uFun

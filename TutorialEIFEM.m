@@ -50,6 +50,10 @@ classdef TutorialEIFEM < handle
             [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSfun,RHSr,x0,Mmult,tol,xSol);     
             [uCG,residualCG,errCG,errAnormCG]    = PCG.solve(LHSfun,RHSr,x0,Mid,tol,xSol);     
             obj.plotResidual(residualPCG,errPCG,errAnormPCG,residualCG,errCG,errAnormCG)
+
+            uCGFull = obj.bcApplier.reducedToFullVectorDirichlet(uCG);
+            uF = saveDeformed(obj.meshDomain,uCGFull);
+            plot(uF)
         end
 
     end
