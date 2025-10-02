@@ -81,8 +81,11 @@ for kcp=1:1000
     Wx1=W1(:,1); Wy1=W1(:,2);
     xik=xi(:,1)*k(1)+xi(:,2)*k(2);
     nxi2=xix.^2+xiy.^2;
-    deltaWx2=(sigmacp/(alpha^2*(1+sigmacp)))*(xix+(alpha^2-2)*k(1)*xik-sqrt((alpha^2-1)./(nxi2-xik.^2+ep)).*((nxi2-2*xik.^2)*k(1)+xik.*xix));
-    deltaWy2=(sigmacp/(alpha^2*(1+sigmacp)))*(xiy+(alpha^2-2)*k(2)*xik-sqrt((alpha^2-1)./(nxi2-xik.^2+ep)).*((nxi2-2*xik.^2)*k(2)+xik.*xiy));
+    tA = (sigmacp/(alpha^2*(1+sigmacp)));
+    tB = sqrt((alpha^2-1)./(nxi2-xik.^2+ep));
+
+    deltaWx2=tA*(xix+(alpha^2-2)*k(1)*xik-tB.*((nxi2-2*xik.^2)*k(1)+xik.*xix));
+    deltaWy2=tA*(xiy+(alpha^2-2)*k(2)*xik-tB.*((nxi2-2*xik.^2)*k(2)+xik.*xiy));
     noxi=sqrt(nxi2);
     case2=real(alpha*xik-noxi>0);
     Wx=Wx1+case2.*deltaWx2; Wy=Wy1+case2.*deltaWy2;
