@@ -1,35 +1,23 @@
 function dropletperopt2
 
 nx=200; ny=150; nxy=nx*ny;
-eps=10;
 k=[1,1]; k=k'/norm(k); kx=k(1); ky=k(2);
 kperp=[-ky;kx];
 alpha=4;
 
-Dx=sparse(nxy,nxy); Dy=sparse(nxy,nxy);
-ep=1e-5;
-X=ones(ny,1)*[1:nx]; X=reshape(X',1,nx*ny)';
-Y=[1:ny]'*ones(1,nx); Y=reshape(Y',1,nx*ny)';
-%fidi=0.5*[-1 0 1];
-fidi=[-1 1 0];
-Dx=spdiags(ones(nxy,1)*fidi,-1:1,nxy,nxy);
-Dx([1:nx:nxy],:)=0; Dx([nx:nx:nxy],:)=0;
-Dy=spdiags(ones(nxy,1)*fidi,[-nx 0 nx],nxy,nxy);
-Dy([1:nx],:)=0; Dy([nxy-nx+1:nxy],:)=0;
+
+[Dx,Dy] = createDerivative(nx,nxy);
 
 % Initialization
-%U=real(X+Y<0.35*(nx+ny))+real(X+Y>0.65*(nx+ny)); % band
-%U=real((X-nx/2).^2+(Y-ny/2).^2<min(nx,ny)^2/16); % ball
-U=real(abs(X-nx/2)<min(nx,ny)/6).*real(abs(Y-ny/2)<min(nx,ny)/6); % square
+U = inizalization(nx,ny);
 vol=sum(U);
 
 % Main loop
 disp('main loop');
 %noDx=norm(full(Dx)); noDy=norm(full(Dy));
-sigmacp=0.25; taucp=0.25; thetacp=1;
-taucpe=taucp/eps^2;
+
 for iopt=1:20
-V = PerimeterMinimization(U,nx,ny,nxy,alpha,sigmacp,k,Dx,Dy,ep,taucp,taucpe,thetacp);
+V = PerimeterMinimization(U,nx,ny,nxy,alpha,k,Dx,Dy);
 %pause;
 U = ProjectToVolumeConstraint(V,vol);
 sum(U)
@@ -37,7 +25,41 @@ end
 
 end
 
-function V = PerimeterMinimization(U,nx,ny,nxy,alpha,sigmacp,k,Dx,Dy,ep,taucp,taucpe,thetacp)
+function U = inizalization(nx,ny)
+[X,Y] = createSquareDomain(nx,ny);
+%U=real(X+Y<0.35*(nx+ny))+real(X+Y>0.65*(nx+ny)); % band
+%U=real((X-nx/2).^2+(Y-ny/2).^2<min(nx,ny)^2/16); % ball
+U=real(abs(X-nx/2)<min(nx,ny)/6).*real(abs(Y-ny/2)<min(nx,ny)/6); % square
+end
+
+function [X,Y] = createSquareDomain(nx,ny)
+X=ones(ny,1)*[1:nx]; X=reshape(X',1,nx*ny)';
+Y=[1:ny]'*ones(1,nx); Y=reshape(Y',1,nx*ny)';
+end
+
+
+function [Dx,Dy] = createDerivative(nx,nxy)
+Dx=sparse(nxy,nxy); Dy=sparse(nxy,nxy);
+%fidi=0.5*[-1 0 1];
+fidi=[-1 1 0];
+Dx=spdiags(ones(nxy,1)*fidi,-1:1,nxy,nxy);
+Dx([1:nx:nxy],:)=0; Dx([nx:nx:nxy],:)=0;
+Dy=spdiags(ones(nxy,1)*fidi,[-nx 0 nx],nxy,nxy);
+Dy([1:nx],:)=0; Dy([nxy-nx+1:nxy],:)=0;
+end
+
+
+
+
+
+
+
+
+
+
+function V = PerimeterMinimization(U,nx,ny,nxy,alpha,k,Dx,Dy)
+sigmacp=0.25; taucp=0.25; thetacp=1;ep=1e-5;eps=10;
+taucpe=taucp/eps^2;
 % Chambolle Pock
 V=U; Vbar=U;
 %V=zeros(nxy,1); Vbar=zeros(nxy,1);
