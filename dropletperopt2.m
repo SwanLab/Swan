@@ -9,20 +9,25 @@ alpha=4;
 [Dx,Dy] = createDerivative(nx,nxy);
 
 % Initialization
-U = inizalization(nx,ny);
-vol=sum(U);
+rho = inizalization(nx,ny);
+vol=sum(rho);
 
 % Main loop
 disp('main loop');
 %noDx=norm(full(Dx)); noDy=norm(full(Dy));
 
 for iopt=1:20
-V = PerimeterMinimization(U,nx,ny,nxy,alpha,k,Dx,Dy);
-%pause;
-U = ProjectToVolumeConstraint(V,vol);
-sum(U)
+rho = PerimeterMinimization(rho,nxy,alpha,k,Dx,Dy);
+rho = ProjectToVolumeConstraint(rho,vol);
+plotSurf(rho,nx,ny)
+plot(rho,nx,ny)
+volCon = computeVolumeConstraint(rho,vol)
 end
 
+end
+
+function volCon = computeVolumeConstraint(rho,vol)
+volCon = sum(rho)/vol - 1;
 end
 
 function U = inizalization(nx,ny)
@@ -49,19 +54,24 @@ Dy([1:nx],:)=0; Dy([nxy-nx+1:nxy],:)=0;
 end
 
 
+function proxF()
+
+
+
+end
+
+function proxG()
+
+end
 
 
 
 
-
-
-
-
-function V = PerimeterMinimization(U,nx,ny,nxy,alpha,k,Dx,Dy)
+function rhoF = PerimeterMinimization(rho0,nxy,alpha,k,Dx,Dy)
 sigmacp=0.25; taucp=0.25; thetacp=1;ep=1e-5;eps=10;
 taucpe=taucp/eps^2;
 % Chambolle Pock
-V=U; Vbar=U;
+rhoF=rho0; Vbar=rho0;
 %V=zeros(nxy,1); Vbar=zeros(nxy,1);
 Wx=zeros(nxy,1); Wy=zeros(nxy,1);
 for kcp=1:1000
@@ -76,19 +86,24 @@ for kcp=1:1000
     noxi=sqrt(nxi2);
     case2=real(alpha*xik-noxi>0);
     Wx=Wx1+case2.*deltaWx2; Wy=Wy1+case2.*deltaWy2;
-    Vold=V;
+    Vold=rhoF;
     zeta=Vold-taucp*Dx'*Wx-taucp*Dy'*Wy;
-    V=(zeta+taucpe*U)/(1+taucpe);
-    Vbar=V+thetacp*(V-Vold);
+    rhoF=(zeta+taucpe*rho0)/(1+taucpe);
+    Vbar=rhoF+thetacp*(rhoF-Vold);
 end
-Ut=reshape(U,nx,ny)';
+end
+
+function plotSurf(rho,nx,ny)
+rhoT=reshape(rho,nx,ny)';
+figure(2); clf; surf(rhoT);
+end
+
+function plot(rho0,nx,ny)
+Ut=reshape(rho0,nx,ny)';
 figure(1); clf; surf(Ut);
 UC=0.8*flipud(-Ut+1);
 C=UC; C(:,:,2)=UC; C(:,:,3)=UC;
 figure(3); clf; image(C); set(gca,'xtick',[]); set(gca,'ytick',[]); axis image; 
-
-Vt=reshape(V,nx,ny)';
-figure(2); clf; surf(Vt);
 end
 
 function U = ProjectToVolumeConstraint(V,vol)
