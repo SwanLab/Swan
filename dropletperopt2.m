@@ -12,8 +12,6 @@ D = createDerivative(nx,nxy);
 rho0 = inizalization(nx,ny);
 vol=sum(rho0);
 
-% Main loop
-disp('main loop');
 %noDx=norm(full(Dx)); noDy=norm(full(Dy));
 
 tauF = 0.25; 
@@ -24,12 +22,15 @@ eps=10;
 taucpe=tauG/eps^2;
 
 proxF = @(rho)      proximalDroplet(rho,tauF,k,alpha,ep);
-proxGX = @(rho,rho0) proximalL2Projection(rho,rho0,taucpe);
+proxG = @(rho,rho0) proximalL2Projection(rho,rho0,taucpe);
+grad = @(u) Grad(D,u);
+div  = @(z) Div(D,z);
 
 rho = rho0;
+z0  = zeros(nxy,2);
+z = z0;
 for iopt=1:20
-proxG = @(rhoX) proxGX(rhoX,rho);   
-rho = PerimeterMinimization(rho,D,proxF,proxG,tauF,tauG,thetaRel);
+[rho,z] = PerimeterMinimization(rho,z0,grad,div,proxF,proxG,tauF,tauG,thetaRel);
 rho = ProjectToVolumeConstraint(rho,vol);
 plotSurf(rho,nx,ny)
 plot(rho,nx,ny)
@@ -50,22 +51,19 @@ U=real(abs(X-nx/2)<min(nx,ny)/6).*real(abs(Y-ny/2)<min(nx,ny)/6); % square
 end
 
 function [X,Y] = createSquareDomain(nx,ny)
-X=ones(ny,1)*[1:nx]; X=reshape(X',1,nx*ny)';
-Y=[1:ny]'*ones(1,nx); Y=reshape(Y',1,nx*ny)';
+X=ones(ny,1)*[1:nx];
+X=reshape(X',1,nx*ny)';
+Y=[1:ny]'*ones(1,nx); 
+Y=reshape(Y',1,nx*ny)';
 end
 
-
 function D = createDerivative(nx,nxy)
-Dx=sparse(nxy,nxy); 
-Dy=sparse(nxy,nxy);
-%fidi=0.5*[-1 0 1];
-fidi=[-1 1 0];
-Dx=spdiags(ones(nxy,1)*fidi,-1:1,nxy,nxy);
-Dx([1:nx:nxy],:)=0; 
-Dx([nx:nx:nxy],:)=0;
-Dy=spdiags(ones(nxy,1)*fidi,[-nx 0 nx],nxy,nxy);
-Dy([1:nx],:)=0; Dy([nxy-nx+1:nxy],:)=0;
-D = [Dx;Dy];
+    fidi = [-1 1 0];
+    D = [spdiags(ones(nxy,1)*fidi,-1:1,nxy,nxy); ...
+         spdiags(ones(nxy,1)*fidi,[-nx 0 nx],nxy,nxy)];
+    D(1:nx,:) = 0; 
+    D(nx:nx:end-nx,:) = 0; 
+    D(end-nx+1:end,:) = 0;
 end
 
 
@@ -83,18 +81,29 @@ function rho = proximalL2Projection(rho,rho0,taucpe)
 rho = (rho + taucpe*rho0)/(1+taucpe);
 end
 
-
-function uN = PerimeterMinimization(u0,D,proxF,proxG,tauF,tauG,thetaRel)
+function [u,z] = solveWithChambollePockAlgorithm(u0,z0,Grad,Div,proxF,proxG,tauF,tauG,thetaRel)
 u = u0; uN = u0;
-nxy = size(u0,1);
-z   = zeros(nxy,2);
+z   = z0; 
 for kcp=1:1000
-    DV     = reshape(D*uN,nxy,2);
-    z      = proxF(z + tauF*DV);
+    z      = proxF(z + tauF*Grad(uN));
     uOld   = u;
-    u      = proxG(u - tauG*(D.' * z(:)));
+    u      = proxG(u - tauG*Div(z));
     uN     = u + thetaRel*(u - uOld);
 end
+end
+
+function [u,z] = PerimeterMinimization(u0,z0,Grad,Div,proxF,proxGX,tauF,tauG,thetaRel)
+proxG = @(rhoX) proxGX(rhoX,u0);   
+[u,z] = solveWithChambollePockAlgorithm(u0,z0,Grad,Div,proxF,proxG,tauF,tauG,thetaRel);
+end
+
+function divZ = Div(D,z)
+divZ = D.'*z(:);
+end
+
+function gradU = Grad(D,u)
+nxy = size(u,1);
+gradU = reshape(D*u,nxy,2);
 end
 
 
@@ -111,18 +120,17 @@ C=UC; C(:,:,2)=UC; C(:,:,3)=UC;
 figure(3); clf; image(C); set(gca,'xtick',[]); set(gca,'ytick',[]); axis image; 
 end
 
-function U = ProjectToVolumeConstraint(V,vol)
-% Bissection
-lammMin=0; lamMax=1;
+function U = ProjectToVolumeConstraint(u,vol)
+lLb=0; lUb=1;
 for idic=1:100
-    lam=(lammMin+lamMax)/2;
-    Utest=real(V>lam);
-    voltest=sum(Utest);
-    if (voltest/vol-1>0)
-        lammMin=lam;
+    lam = (lLb+lUb)/2;
+    uTest=  u > lam;
+    constraint = computeVolumeConstraint(uTest,vol);
+    if (constraint > 0)
+        lLb =lam;
     else
-        lamMax=lam;
+        lUb =lam;
     end
 end
-U=Utest;
+U=real(uTest);
 end
