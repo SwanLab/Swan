@@ -67,64 +67,31 @@ end
 
 
 
-function rhoF = PerimeterMinimization(rho0,nxy,alpha,k,Dx,Dy)
+function rhoN = PerimeterMinimization(rho0,nxy,alpha,k,Dx,Dy)
 sigmacp=0.25; taucp=0.25; thetacp=1;ep=1e-5;eps=10;
 taucpe=taucp/eps^2;
-% Chambolle Pock
-rhoF=rho0; Vbar=rho0;
-%V=zeros(nxy,1); Vbar=zeros(nxy,1);
-W =zeros(nxy,2); %Wy=zeros(nxy,1); W  = [Wx, Wy];
+rho=rho0; rhoN=rho0;
+W =zeros(nxy,2);
+D = [Dx;Dy];
 
 for kcp=1:1000
-    % xix=Wx+sigmacp*Dx*Vbar; 
-    % xiy=Wy+sigmacp*Dy*Vbar;
-    % xi=[xix,xiy];
-    % W1=xi/(1+sigmacp);
-    % Wx1=W1(:,1); Wy1=W1(:,2);
-    % xik=xi(:,1)*k(1)+xi(:,2)*k(2);
-    % nxi2=xix.^2+xiy.^2;
-    % tA = (sigmacp/(alpha^2*(1+sigmacp)));
-    % tB = sqrt((alpha^2-1)./(nxi2-xik.^2+ep));
-    % 
-    % deltaWx2=tA*(xix+(alpha^2-2)*k(1)*xik-tB.*((nxi2-2*xik.^2)*k(1)+xik.*xix));
-    % deltaWy2=tA*(xiy+(alpha^2-2)*k(2)*xik-tB.*((nxi2-2*xik.^2)*k(2)+xik.*xiy));
-    % noxi=sqrt(nxi2);
-    % case2=real(alpha*xik-noxi>0);
-    % Wx=Wx1+case2.*deltaWx2; Wy=Wy1+case2.*deltaWy2;
-    % Vold=rhoF;
-    % zeta=Vold-taucp*Dx'*Wx-taucp*Dy'*Wy;
-    % rhoF=(zeta+taucpe*rho0)/(1+taucpe);
-    % Vbar=rhoF+thetacp*(rhoF-Vold);
-    % Pack x/y into matrices
-    %W  = [Wx, Wy];
-    D  = [Dx; Dy];           % stack operators
 
-    DV = [Dx*Vbar, Dy*Vbar];
+    DV  = reshape(D*rhoN,nxy,2);
+
     xi = W + sigmacp*DV;
     W1 = xi/(1+sigmacp);
-
-    % Scalars
-    xik  = xi*k(:);               % dot(xi,k)
+    xik  = xi*k(:);
     nxi2 = sum(xi.^2,2);
     tA   = sigmacp/(alpha^2*(1+sigmacp));
     tB   = sqrt((alpha^2-1)./(nxi2-xik.^2+ep));
-
-    % Update
     deltaW = tA*(xi + (alpha^2-2)*xik.*k.' - tB.*((nxi2-2*xik.^2).*k.' + xik.*xi));
     W      = W1 + (alpha*xik - sqrt(nxi2) > 0).*deltaW;
 
-    % Unpack and continue
-   % Wx = W(:,1); Wy = W(:,2);
-    Vold = rhoF;
-    %zeta = Vold - taucp*(Dx.'*Wx + Dy.'*Wy);
-    % Divergence in one shot
-    %zeta = Vold - taucp * ([Dx, Dy].' * W(:));
-    % Divergence
-    zeta = Vold - taucp * (D.' * W(:));
+    zeta   = rho - taucp * (D.' * W(:));
 
-
-    rhoF = (zeta + taucpe*rho0)/(1+taucpe);
-    Vbar = rhoF + thetacp*(rhoF - Vold);
+    rhoOld = rho;
+    rho    = (zeta + taucpe*rho0)/(1+taucpe);
+    rhoN   = rho + thetacp*(rho - rhoOld);
 
 end
 end
