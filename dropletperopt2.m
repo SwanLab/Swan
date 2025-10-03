@@ -9,15 +9,26 @@ alpha=4;
 [Dx,Dy] = createDerivative(nx,nxy);
 
 % Initialization
-rho = inizalization(nx,ny);
-vol=sum(rho);
+rho0 = inizalization(nx,ny);
+vol=sum(rho0);
 
 % Main loop
 disp('main loop');
 %noDx=norm(full(Dx)); noDy=norm(full(Dy));
 
+tauF = 0.25; 
+tauG = 0.25; 
+thetaRel = 1;
+ep=1e-5;
+eps=10; 
+taucpe=tauG/eps^2;
+
+proxF = @(rho)      proximalDroplet(rho,tauF,k,alpha,ep);
+proxG = @(rho,rho0) proximalL2Projection(rho,rho0,taucpe);
+
+rho = rho0;
 for iopt=1:20
-rho = PerimeterMinimization(rho,nxy,alpha,k,Dx,Dy);
+rho = PerimeterMinimization(rho,nxy,Dx,Dy,proxF,proxG,tauF,tauG,thetaRel);
 rho = ProjectToVolumeConstraint(rho,vol);
 plotSurf(rho,nx,ny)
 plot(rho,nx,ny)
@@ -54,47 +65,34 @@ Dy([1:nx],:)=0; Dy([nxy-nx+1:nxy],:)=0;
 end
 
 
-function proxF()
-
-
-
+function W = proximalDroplet(xi,sigmacp,k,alpha,ep)
+W1 = xi/(1+sigmacp);
+xik  = xi*k(:);
+nxi2 = sum(xi.^2,2);
+tA   = sigmacp/(alpha^2*(1+sigmacp));
+tB   = sqrt((alpha^2-1)./(nxi2-xik.^2+ep));
+deltaW = tA*(xi + (alpha^2-2)*xik.*k.' - tB.*((nxi2-2*xik.^2).*k.' + xik.*xi));
+W      = W1 + (alpha*xik - sqrt(nxi2) > 0).*deltaW;
 end
 
-function rho = proxG(rho,rho0,taucpe)
+function rho = proximalL2Projection(rho,rho0,taucpe)
 rho = (rho + taucpe*rho0)/(1+taucpe);
 end
 
 
 
 
-function rhoN = PerimeterMinimization(rho0,nxy,alpha,k,Dx,Dy)
-sigmacp=0.25; 
-taucp=0.25; 
-thetacp=1;
-ep=1e-5;
-eps=10; 
-taucpe=taucp/eps^2;
-rho=rho0; rhoN=rho0;
-W =zeros(nxy,2);
+function rhoN = PerimeterMinimization(rho0,nxy,Dx,Dy,proxF,proxG,tauF,tauG,thetaRel)
+u=rho0; rhoN=rho0;
+z =zeros(nxy,2);
 D = [Dx;Dy];
 
 for kcp=1:1000
-
-    DV  = reshape(D*rhoN,nxy,2);
-
-    xi = W + sigmacp*DV;
-    W1 = xi/(1+sigmacp);
-    xik  = xi*k(:);
-    nxi2 = sum(xi.^2,2);
-    tA   = sigmacp/(alpha^2*(1+sigmacp));
-    tB   = sqrt((alpha^2-1)./(nxi2-xik.^2+ep));
-    deltaW = tA*(xi + (alpha^2-2)*xik.*k.' - tB.*((nxi2-2*xik.^2).*k.' + xik.*xi));
-    W      = W1 + (alpha*xik - sqrt(nxi2) > 0).*deltaW;
-
-    rhoOld = rho;
-    rho    = proxG(rho - taucp * (D.' * W(:)),rho0,taucpe);
-    rhoN   = rho + thetacp*(rho - rhoOld);
-
+    DV     = reshape(D*rhoN,nxy,2);
+    z      = proxF(z + tauF*DV);
+    uOld   = u;
+    u      = proxG(u - tauG*(D.' * z(:)),rho0);
+    rhoN   = u + thetaRel*(u - uOld);
 end
 end
 
