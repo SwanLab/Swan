@@ -6,7 +6,7 @@ kperp=[-ky;kx];
 alpha=4;
 
 
-[Dx,Dy] = createDerivative(nx,nxy);
+D = createDerivative(nx,nxy);
 
 % Initialization
 rho0 = inizalization(nx,ny);
@@ -24,11 +24,12 @@ eps=10;
 taucpe=tauG/eps^2;
 
 proxF = @(rho)      proximalDroplet(rho,tauF,k,alpha,ep);
-proxG = @(rho,rho0) proximalL2Projection(rho,rho0,taucpe);
+proxGX = @(rho,rho0) proximalL2Projection(rho,rho0,taucpe);
 
 rho = rho0;
 for iopt=1:20
-rho = PerimeterMinimization(rho,nxy,Dx,Dy,proxF,proxG,tauF,tauG,thetaRel);
+proxG = @(rhoX) proxGX(rhoX,rho);   
+rho = PerimeterMinimization(rho,D,proxF,proxG,tauF,tauG,thetaRel);
 rho = ProjectToVolumeConstraint(rho,vol);
 plotSurf(rho,nx,ny)
 plot(rho,nx,ny)
@@ -54,14 +55,17 @@ Y=[1:ny]'*ones(1,nx); Y=reshape(Y',1,nx*ny)';
 end
 
 
-function [Dx,Dy] = createDerivative(nx,nxy)
-Dx=sparse(nxy,nxy); Dy=sparse(nxy,nxy);
+function D = createDerivative(nx,nxy)
+Dx=sparse(nxy,nxy); 
+Dy=sparse(nxy,nxy);
 %fidi=0.5*[-1 0 1];
 fidi=[-1 1 0];
 Dx=spdiags(ones(nxy,1)*fidi,-1:1,nxy,nxy);
-Dx([1:nx:nxy],:)=0; Dx([nx:nx:nxy],:)=0;
+Dx([1:nx:nxy],:)=0; 
+Dx([nx:nx:nxy],:)=0;
 Dy=spdiags(ones(nxy,1)*fidi,[-nx 0 nx],nxy,nxy);
 Dy([1:nx],:)=0; Dy([nxy-nx+1:nxy],:)=0;
+D = [Dx;Dy];
 end
 
 
@@ -82,17 +86,16 @@ end
 
 
 
-function rhoN = PerimeterMinimization(rho0,nxy,Dx,Dy,proxF,proxG,tauF,tauG,thetaRel)
-u=rho0; rhoN=rho0;
-z =zeros(nxy,2);
-D = [Dx;Dy];
-
+function uN = PerimeterMinimization(u0,D,proxF,proxG,tauF,tauG,thetaRel)
+u = u0; uN = u0;
+nxy = size(u0,1);
+z   = zeros(nxy,2);
 for kcp=1:1000
-    DV     = reshape(D*rhoN,nxy,2);
+    DV     = reshape(D*uN,nxy,2);
     z      = proxF(z + tauF*DV);
     uOld   = u;
-    u      = proxG(u - tauG*(D.' * z(:)),rho0);
-    rhoN   = u + thetaRel*(u - uOld);
+    u      = proxG(u - tauG*(D.' * z(:)));
+    uN     = u + thetaRel*(u - uOld);
 end
 end
 
@@ -113,15 +116,15 @@ end
 
 function U = ProjectToVolumeConstraint(V,vol)
 % Bissection
-lambdamin=0; lambdamax=1;
+lammMin=0; lamMax=1;
 for idic=1:100
-    lambda=(lambdamin+lambdamax)/2;
-    Utest=real(V>lambda);
+    lam=(lammMin+lamMax)/2;
+    Utest=real(V>lam);
     voltest=sum(Utest);
-    if (voltest>vol)
-        lambdamin=lambda;
+    if (voltest/vol-1>0)
+        lammMin=lam;
     else
-        lambdamax=lambda;
+        lamMax=lam;
     end
 end
 U=Utest;
