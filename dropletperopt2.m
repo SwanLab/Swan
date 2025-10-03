@@ -84,8 +84,6 @@ rho = (rho + taucpe*rho0)/(1+taucpe);
 end
 
 
-
-
 function uN = PerimeterMinimization(u0,D,proxF,proxG,tauF,tauG,thetaRel)
 u = u0; uN = u0;
 nxy = size(u0,1);
@@ -98,7 +96,6 @@ for kcp=1:1000
     uN     = u + thetaRel*(u - uOld);
 end
 end
-
 
 
 function plotSurf(rho,nx,ny)
