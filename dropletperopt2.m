@@ -60,15 +60,19 @@ function proxF()
 
 end
 
-function proxG()
-
+function rho = proxG(rho,rho0,taucpe)
+rho = (rho + taucpe*rho0)/(1+taucpe);
 end
 
 
 
 
 function rhoN = PerimeterMinimization(rho0,nxy,alpha,k,Dx,Dy)
-sigmacp=0.25; taucp=0.25; thetacp=1;ep=1e-5;eps=10;
+sigmacp=0.25; 
+taucp=0.25; 
+thetacp=1;
+ep=1e-5;
+eps=10; 
 taucpe=taucp/eps^2;
 rho=rho0; rhoN=rho0;
 W =zeros(nxy,2);
@@ -87,14 +91,14 @@ for kcp=1:1000
     deltaW = tA*(xi + (alpha^2-2)*xik.*k.' - tB.*((nxi2-2*xik.^2).*k.' + xik.*xi));
     W      = W1 + (alpha*xik - sqrt(nxi2) > 0).*deltaW;
 
-    zeta   = rho - taucp * (D.' * W(:));
-
     rhoOld = rho;
-    rho    = (zeta + taucpe*rho0)/(1+taucpe);
+    rho    = proxG(rho - taucp * (D.' * W(:)),rho0,taucpe);
     rhoN   = rho + thetacp*(rho - rhoOld);
 
 end
 end
+
+
 
 function plotSurf(rho,nx,ny)
 rhoT=reshape(rho,nx,ny)';
