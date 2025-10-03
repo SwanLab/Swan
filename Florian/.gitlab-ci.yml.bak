@@ -1,0 +1,29 @@
+image: python:3.6
+
+stages:
+    - test
+
+test_noextra:
+    stage: test
+    script:
+        - pip install -e . pytest
+        - pytest
+
+test_osqp:
+    stage: test
+    script:
+        - pip install -e .[osqp] pytest
+        - pytest
+
+test_matplotlib:
+    stage: test
+    script:
+        - pip install -e .[matplotlib] pytest
+        - pytest
+
+test_allextras:
+    stage: test
+    script:
+        - pip install -e .[matplotlib,colored,osqp] pytest
+        - pytest
+

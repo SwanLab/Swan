@@ -1,0 +1,7 @@
+# Defining the exact version will make sure things don't break
+sphinxawesome_theme==4.0.3
+sphinx==6.1.3
+sphinx-subfigure==0.2.4
+sphinxcontrib-katex==0.9.7
+sympy==1.3.0
+qpalm==1.2.1

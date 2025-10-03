@@ -1,0 +1,10 @@
+*.pyc
+launch.json
+settings.json
+dependency_links.txt
+PKG-INFO
+requires.txt
+SOURCES.txt
+top_level.txt
+*__pycache__
+*egg-info*
