@@ -28,19 +28,22 @@ classdef EnclosedVoidFunctional < handle
             xD  = x.obtainDomainFunction();
             xR = obj.filterFields(xD);
             xR = xR{1};
-            phi = obj.solveState(xD{1});%xR
+            phi = obj.solveState(xR);%xR
             lam = obj.solveAdjoint(xR);
          %   rhoV = (phi - xD{1});
-            rhoV = phi.*(1-xD{1});
+            rhoV = phi.*(1-xR);
             %rhoV = (1-phi).*massCoef(xR);
           %  plot(x.fun)
           %  plot(phi)
           %  plot(rhoV) 
           %  plot(lam);
             Dom   = Integrator.compute(ConstantFunction.create(1,obj.mesh),obj.mesh,2);
-            J     = Integrator.compute(rhoV,obj.mesh,2)/Dom - 0.1;
-            dJ{1} = -phi + obj.dk(xR).*DP(Grad(lam),Grad(phi)) + DP(obj.dm(xR).*(phi-xR)-obj.m(xR),lam);
-            dJ{1} = dJ{1}./Dom;
+            J     = Integrator.compute(rhoV,obj.mesh,2)/Dom;% - 0.1;
+            dJ{1} = -phi + 1.*obj.dk(xR).*DP(Grad(lam),Grad(phi)) + DP(obj.dm(xR).*(phi-xR)-obj.m(xR),lam);
+            %dJ{1} =  -phi.*(1-xR);
+            %dJ{1} =  -phi;%.*(1-xR);
+            dJ{1} = dJ{1}./Dom*1;
+
             dJ = obj.filterFields(dJ);
             %plot(dJ{1})
             %[J,dJ] = obj.computeComplianceFunctionAndGradient(x);

@@ -60,6 +60,7 @@ classdef OptimizerNullSpace < handle
                 obj.updateMonitoring();
                 obj.checkConvergence();
                 obj.designVariable.updateOld();
+                obj.designVariable.fun.print(['DesVarIter',num2str(obj.nIter)]);                
             end
         end
     end
