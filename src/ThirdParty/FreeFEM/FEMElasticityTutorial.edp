@@ -1,0 +1,46 @@
+load "iovtk"
+
+// Compute elastic properties
+real E = 21.5;
+real nu = 0.29;
+real traction = 10;
+
+// Create Mesh
+border a(t=1, 0){x=0; y=t; label=1;}
+border b(t=0, 2){x=t; y=0; label=2;}
+border c(t=0, 0.35){ x=2; y=t; label=3;}
+border d(t=0.35, 0.65){ x=2; y=t; label=4;}
+border e(t=0, 2){ x=2-t; y=1; label=5;}
+border f(t=0.65, 1){ x=2; y=t; label=6;}
+mesh th = buildmesh(b(200) + c(35) + d(30) + f(35) + e(200) + a(100));
+
+// Fespace
+fespace Vh(th, [P1, P1]);
+Vh [uu, vv];
+Vh [w, s];
+
+// Macro
+real sqrt2 = sqrt(2.);
+macro epsilon(u1, u2) [dx(u1), dy(u2), (dy(u1)+dx(u2))/sqrt2] //
+macro div(u,v) (dx(u) + dy(v)) //
+
+// Problem
+real mu = E/(2*(1+nu));
+real lambda = E*nu/((1+nu)*(1-2*nu));
+solve Elasticity ([uu, vv], [w, s])
+    = int2d(th)(
+          lambda*div(w,s)*div(uu,vv)
+        + 2.*mu*( epsilon(w,s)'*epsilon(uu,vv) )
+    )
+    + int1d(th,4)(
+        - traction*s
+    )
+    + on(1, uu=0, vv=0)
+;
+
+// Print the results
+savevtk("FEMElasticity_Result.vtu", th, [uu, vv], dataname="Displ");
+
+// Movemesh
+//mesh th1 = movemesh(th, [x+uu, y+vv]);
+//plot(th1, wait=true);
