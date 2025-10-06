@@ -20,6 +20,11 @@ classdef CloseOperator < handle
             xF = obj.dilation.getFilteredField();
             xFDF = obj.erotion.getFilteredField();
         end
+
+    function updateBeta(obj, beta)
+            obj.dilation.updateBeta(beta);
+            obj.erotion.updateBeta(beta);
+    end
     end
 
     methods (Access = private)

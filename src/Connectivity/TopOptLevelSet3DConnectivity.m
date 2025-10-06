@@ -193,7 +193,8 @@ classdef TopOptLevelSet3DConnectivity< handle
             s.filter            = obj.filterConnect;
             s.filterAdjoint     = obj.filterAdjointConnect;  
             s.boundaryConditions = obj.createEigenvalueBoundaryConditions();
-            s.targetEigenValue  = obj.lambda1min;       
+            s.targetEigenValue  = obj.lambda1min; 
+            s.dim               = '3D';
             obj.minimumEigenValue = StiffnessEigenModesConstraint(s);
         end
 

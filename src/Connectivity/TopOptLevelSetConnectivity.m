@@ -28,32 +28,41 @@ classdef TopOptLevelSetConnectivity< handle
         beta
         primalUpdater
         eigenvalue
+        c
+        type
+        p
     end 
 
     methods (Access = public)
         function obj = TopOptLevelSetConnectivity()
-                for lambda1min = [0.4] %0.15]0.05,0.15,0.5,
-                    obj.gJ = 1.0;
-                    obj.lambda1min = lambda1min;
-                    obj.init()
-                    obj.createMesh();
-                    obj.createDesignVariable();
-                    obj.createFilter();
-                    obj.createFilterConnectivity();
-                    obj.createMaterialInterpolator();
-                    obj.createElasticProblem();
-                    obj.createComplianceFromConstitutive();
-                    obj.createCompliance();
-                    obj.createEigenValueConstraint();   
-                    obj.createEigenValue()          
-                    obj.createPerimeter();                  
-                    obj.createVolumeConstraint();
-                    obj.createCost();
-                    obj.createConstraint();
-                    obj.createPrimalUpdater();
-                    obj.createOptimizer();
+            for type = ["cantilever"]
+%             for p = [2.5,0]
+                for c = [4] %0.15]0.05,0.15,0.5,1,3,4,"cantilever",
+                    for lambda1min = [0.1] %0.15]0.05,0.15,0.5,
+                        obj.c = c;
+                        obj.p = 0.0;
+                        obj.type = type;
+                        obj.lambda1min = lambda1min;
+                        obj.init()
+                        obj.createMesh();
+                        obj.createDesignVariable();
+                        obj.createFilter();
+                        obj.createFilterConnectivity();
+                        obj.createMaterialInterpolator();
+                        obj.createElasticProblem();
+                        obj.createComplianceFromConstitutive();
+                        obj.createCompliance();
+                        obj.createEigenValueConstraint();   
+                        obj.createEigenValue()          
+                        obj.createPerimeter();                  
+                        obj.createVolumeConstraint();
+                        obj.createCost();
+                        obj.createConstraint();
+                        obj.createPrimalUpdater();
+                        obj.createOptimizer();
+                    end
                 end
-%                 end
+            end
         end
 
     end
@@ -66,8 +75,8 @@ classdef TopOptLevelSetConnectivity< handle
 
         function createMesh(obj)
 %             UnitMesh better
-% %             x1      = linspace(0,6,180);
-% %             x2      = linspace(0,1,30);
+%             x1      = linspace(0,6,180);
+%             x2      = linspace(0,1,30);
             x1      = linspace(0,2,100);
             x2      = linspace(0,1,50);
             [xv,yv] = meshgrid(x1,x2);
@@ -86,13 +95,13 @@ classdef TopOptLevelSetConnectivity< handle
             g      = GeometricalFunction(s);
             lsFun  = g.computeLevelSetFunction(obj.mesh);
 %             lsFun = LagrangianFunction.create(obj.mesh,1,'P1');
-%             lsFun.setFValues(importdata('teste.txt'))
+%             lsFun.setFValues(importdata('_bridge_case_5_p_02.txt'))
             s.fun  = lsFun;
             s.mesh = obj.mesh;
             s.type = 'LevelSet';
             s.plotting = true;
             ls     = DesignVariable.create(s);
-%             ls.fun.setFValues(importdata('teste.txt'))
+%             ls.fun.setFValues(importdata('_cantilever_case_3_p_01.txt'))
             obj.designVariable = ls;
             ls.fun.print('teste2D','Paraview')
         end
@@ -109,7 +118,7 @@ classdef TopOptLevelSetConnectivity< handle
 %             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
 %             s.filterStep = 'PDE';
 %             s.beta       = 2.0; % 1.0;
-% %             s.eta        = 0.2;
+% %             s.eta        = 0.5;
 %             obj.filter = Filter.create(s);
 % % 
 %             s.filterType = 'FilterAdjointAndProject';   
@@ -117,34 +126,88 @@ classdef TopOptLevelSetConnectivity< handle
 %             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
 %             s.filterStep = 'PDE';
 %             s.beta       = 2.0; % 1.0;
-% %             s.eta        = 0.2;
+% %             s.eta        = 0.5;
 %             obj.filterAdjointComp = Filter.create(s);
+            if isequal(obj.c, 5)
+                s.filterType = 'LUMP';
+                s.mesh       = obj.mesh;
+                s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+                f            = Filter.create(s);
+                obj.filter = f;
+            end
         end
 
         function createFilterConnectivity(obj)
-%             s.filterType = 'PDE';
-%             s.mesh       = obj.mesh;
-%             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-%             f            = Filter.create(s);
-%             obj.filterConnect = f;
-% 
-            s.filterType = 'FilterAndProject';
-%             s.filterType = 'CloseOperator'; %'FilterAndProject';
-            s.mesh       = obj.mesh;
-            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.filterStep = 'PDE';
-            s.beta       = 4.0; % 1.0;
-%             s.eta        = 0.2;
-            obj.filterConnect = Filter.create(s);
-% 
-            s.filterType = 'FilterAdjointAndProject';   
-%             s.filterType = 'CloseAdjointOperator'; %'FilterAdjointAndProject';   
-            s.mesh       = obj.mesh;
-            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.filterStep = 'PDE';
-            s.beta       = 4.0; % 1.0;
-%             s.eta        = 0.2;
-            obj.filterAdjointConnect = Filter.create(s);
+            if isequal(obj.c, 3)
+                s.filterType = 'PDE';
+                s.mesh       = obj.mesh;
+                s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+                f            = Filter.create(s);
+                obj.filterConnect = f;
+                obj.filterAdjointConnect =[];
+            elseif isequal(obj.c, 1)
+                s.filterType = 'FilterAndProject';
+    %             s.filterType = 'CloseOperator'; %'FilterAndProject';
+                s.mesh       = obj.mesh;
+                s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+                s.filterStep = 'PDE';
+                s.beta       = 10.0; % 1.0;
+    %             s.eta        = 0.0;
+                obj.filterConnect = Filter.create(s);
+    % 
+                s.filterType = 'FilterAdjointAndProject';   
+    %             s.filterType = 'CloseAdjointOperator'; %'FilterAdjointAndProject';   
+                s.mesh       = obj.mesh;
+                s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+                s.filterStep = 'PDE';
+                s.beta       = 10.0; % 1.0;
+    %             s.eta        = 0.0;
+                obj.filterAdjointConnect = Filter.create(s);
+          elseif isequal(obj.c, 4)
+                s.filterType = 'FilterAndProject';
+    %             s.filterType = 'CloseOperator'; %'FilterAndProject';
+                s.mesh       = obj.mesh;
+                s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+                s.filterStep = 'PDE';
+                s.beta       = 20.0; % 1.0;
+                s.eta        = 0.5;
+                obj.filterConnect = Filter.create(s);
+    % 
+                s.filterType = 'FilterAdjointAndProject';   
+    %             s.filterType = 'CloseAdjointOperator'; %'FilterAdjointAndProject';   
+                s.mesh       = obj.mesh;
+                s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+                s.filterStep = 'PDE';
+                s.beta       = 20.0; % 1.0;
+                s.eta        = 0.5;
+                obj.filterAdjointConnect = Filter.create(s);
+          elseif isequal(obj.c, 2)
+                s.filterType = 'FilterAndProject';
+    %             s.filterType = 'CloseOperator'; %'FilterAndProject';
+                s.mesh       = obj.mesh;
+                s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+                s.filterStep = 'PDE';
+                s.beta       = 4.0; % 1.0;
+                s.eta        = 0.2;
+                obj.filterConnect = Filter.create(s);
+    % 
+                s.filterType = 'FilterAdjointAndProject';   
+    %             s.filterType = 'CloseAdjointOperator'; %'FilterAdjointAndProject';   
+                s.mesh       = obj.mesh;
+                s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+                s.filterStep = 'PDE';
+                s.beta       = 4.0; % 1.0;
+                s.eta        = 0.2;
+                obj.filterAdjointConnect = Filter.create(s);
+
+            elseif isequal(obj.c, 5)
+                s.filterType = 'LUMP';
+                s.mesh       = obj.mesh;
+                s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+                f            = Filter.create(s);
+                obj.filterConnect = f;
+                obj.filterAdjointConnect =[];
+            end
         end
 
         function createMaterialInterpolator(obj)
@@ -225,7 +288,8 @@ classdef TopOptLevelSetConnectivity< handle
         function createEigenValue(obj)                           
             s.mesh              = obj.mesh;
             s.designVariable    = obj.designVariable;
-            s.filter            = obj.filter;     
+            s.filter            = obj.filterConnect; 
+%             s.filterAdjoint     = obj.filterAdjointConnect;
             s.boundaryConditions= obj.createEigenvalueBoundaryConditions();
             s.isCompl           = true;
             obj.eigenvalue = MaximumEigenValueFunctional(s);
@@ -242,7 +306,7 @@ classdef TopOptLevelSetConnectivity< handle
             s.shapeFunctions{1} = obj.compliance;
 %             s.shapeFunctions{2} = obj.perimeter;
 %             s.shapeFunctions{2} = obj.eigenvalue;
-            s.weights           = [1.0]; %0.5,0.0,1.0v,1.0,5.0
+            s.weights           = [1.0]; %0.5,0.0,1.0v,1.0,5.0,3.0 ,2.5
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -255,7 +319,6 @@ classdef TopOptLevelSetConnectivity< handle
 %             LHS = LHSIntegrator.create(s);
 %             M = LHS.compute;
 % 
-
             M = IntegrateLHS(@(u,v) DP(v,u), test, trial, obj.mesh, 'Domain', 2);
             h = obj.mesh.computeMinCellSize();
             M = h^2*eye(size(M));
@@ -279,7 +342,7 @@ classdef TopOptLevelSetConnectivity< handle
             s.constraint       = obj.constraint;
             s.designVariable   = obj.designVariable;
 %             s.GIFname        = '1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+string(obj.eta)+'GIF';
-            s.GIFname           = '1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+'GIF';
+            s.GIFname           = '_'+string(obj.type)+'_case_'+string(obj.c)+'_p_'+string(obj.p)+string(obj.lambda1min);
             s.maxIter           = 1000;
             s.tolerance         = 1e-3;
             s.constraintCase{1} = 'EQUALITY';
@@ -287,8 +350,11 @@ classdef TopOptLevelSetConnectivity< handle
             s.primalUpdater     = obj.primalUpdater;
             s.etaNorm           = 0.02; 
             s.etaNormMin        = 0.02;
+%             s.gJFlowRatio       = 0.2; %obj.gJ;
+%             s.etaMax            = 0.6; %0.1;   %1.0 0.2
+%             s.etaMaxMin         = 0.02; %0.05; %0.01;
             s.gJFlowRatio       = 0.2; %obj.gJ;
-            s.etaMax            = 0.6; %0.1;   %1.0 0.2
+            s.etaMax            = 1.0; %0.1;   %1.0 0.2
             s.etaMaxMin         = 0.02; %0.05; %0.01;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
@@ -296,9 +362,9 @@ classdef TopOptLevelSetConnectivity< handle
 %             saveas(figure(1),'1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+'design'+string(obj.eta)+'.png','png')
 %             saveas(figure(2),'1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+'graficos'+string(obj.eta)+'.png','png')
 %             writematrix(obj.designVariable.fun.fValues,'1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+string(obj.eta)+'.txt')
-            saveas(figure(1),'1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+'design2.png','png')
-            saveas(figure(2),'1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+'graficos2.png','png')
-            writematrix(obj.designVariable.fun.fValues,'1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+'.txt')
+            saveas(figure(1),'_'+string(obj.type)+'_case_'+string(obj.c)+'_p_'+string(obj.p)+string(obj.lambda1min)+'design2.png','png')
+            saveas(figure(2),'_'+string(obj.type)+'_case_'+string(obj.c)+'_p_'+string(obj.p)+string(obj.lambda1min)+'graficos2.png','png')
+            writematrix(obj.designVariable.fun.fValues,'_'+string(obj.type)+'_case_'+string(obj.c)+'_p_'+string(obj.p)+string(obj.lambda1min)+'.txt')
         end
 
         function m = createMaterial(obj)
@@ -314,7 +380,8 @@ classdef TopOptLevelSetConnectivity< handle
         end
 
         function bc = createElasticBoundaryConditions(obj)
-            type = 'cantilever';%' 'bridge'; %  
+%             type = 'cantilever';%' 'bridge'; %  
+            type = obj.type;
             if isequal(type, 'cantilever')
                 xMax    = max(obj.mesh.coord(:,1));
                 yMax    = max(obj.mesh.coord(:,2));

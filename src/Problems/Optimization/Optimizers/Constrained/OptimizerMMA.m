@@ -71,6 +71,10 @@ classdef OptimizerMMA < Optimizer
                    fValues(obj.dofsNonDesign) = 1.0;
                    obj.designVariable.fun.setFValues(fValues);
                 end
+
+                if obj.nIter == 1 || mod(obj.nIter,20)== 0
+                    obj.designVariable.fun.print('design'+string(obj.nIter)) 
+                end
            end
             obj.designVariable.fun.print('dV','Paraview')
             obj.hasConverged = 0;

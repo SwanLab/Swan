@@ -1,4 +1,4 @@
-classdef TopOptTestTutorialThermal < handle
+classdef TopOptTestTutorialThermal3DLevelSet < handle
 
     properties (Access = private)
         mesh
@@ -14,23 +14,27 @@ classdef TopOptTestTutorialThermal < handle
         optimizer
         thermalCompliance
         source
+        primalUpdater
     end
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorialThermal()
-            obj.init()
-            obj.createMesh();
-            obj.createDesignVariable();
-            obj.createFilter();
-            obj.createMaterialInterpolator();
-            obj.createThermalProblem();
-            obj.createThermalCompliance();
-            obj.createVolumeConstraint();
-            obj.createCost();
-            obj.createConstraint();
-            obj.createDualVariable();
-            obj.createOptimizer();
+        function obj = TopOptTestTutorialThermal3DLevelSet()
+            for f0 = [1e-2, 1e-3, 1e-4]
+                obj.init()
+                obj.createMesh();
+                obj.createDesignVariable();
+                obj.createFilter();
+                obj.createMaterialInterpolator(f0);
+                obj.createThermalProblem();
+                obj.createThermalCompliance();
+                obj.createVolumeConstraint();
+                obj.createCost();
+                obj.createConstraint();
+                obj.createDualVariable();
+                obj.createPrimalUpdater();
+                obj.createOptimizer(f0);
+            end
         end
 
     end
@@ -42,44 +46,38 @@ classdef TopOptTestTutorialThermal < handle
         end
 
         function createMesh(obj)
-            %UnitMesh better
-            x1      = linspace(0,1,100);
-            x2      = linspace(0,1,100);
-            [xv,yv] = meshgrid(x1,x2);
-            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            s.coord  = V(:,1:2);
-            s.connec = F;
-            obj.mesh = Mesh.create(s);
+            obj.mesh = HexaMesh(1,1,1,30,30,30);
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(x(1,:,:)));
-            s.ndimf   = 1;
-            s.mesh    = obj.mesh;
-            aFun      = AnalyticalFunction(s);
-            s.fun     = aFun.project('P1');
-            s.mesh    = obj.mesh;
-            s.type = 'Density';
+
+            s.type = 'Full';
+            g      = GeometricalFunction(s);
+            lsFun  = g.computeLevelSetFunction(obj.mesh);
+            s.fun  = lsFun;
+            s.mesh = obj.mesh;
+            s.type = 'LevelSet';
             s.plotting = true;
-            dens    = DesignVariable.create(s);
-            obj.designVariable = dens;
+            ls     = DesignVariable.create(s);           
+            obj.designVariable = ls;
         end
 
         function createFilter(obj)
-            s.filterType = 'LUMP';
+            s.filterType = 'PDE';
             s.mesh  = obj.mesh;
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
+            f.updateEpsilon(2*obj.mesh.computeMinCellSize())
             obj.filter = f;
         end
 
-        function createMaterialInterpolator(obj) % Conductivity
+        function createMaterialInterpolator(obj,f0) % Conductivity
 %             s.interpolation  = 'SIMPThermal';   
             s.interpolation  = 'SimpAllThermal';
-            s.f0   = 0.05;                                             
-            s.f1   = 1;         
-%             s.pExp = 2;
-            s.dim = '2D';
+            s.f0   = f0;                                             
+            s.f1   = 1;  
+            s.dim  = '3D'
+%             s.pExp = 3;
             a = MaterialInterpolator.create(s);
             obj.materialInterpolator = a;            
         end         
@@ -91,7 +89,7 @@ classdef TopOptTestTutorialThermal < handle
             fValues = ones(Q.nDofs,1);
             Q.setFValues(fValues);
             s.source       = Q;  
-            s.dim = '2D';
+            s.dim = '3D';
             s.boundaryConditions = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
@@ -126,7 +124,7 @@ classdef TopOptTestTutorialThermal < handle
             s.uMesh  = obj.createBaseDomain();
             s.filter = obj.filter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;
+            s.volumeTarget = 0.2;
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -139,11 +137,9 @@ classdef TopOptTestTutorialThermal < handle
         end
 
         function M = createMassMatrix(obj)
-            test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            M = IntegrateLHS(@(u,v) DP(v,u), test, trial, obj.mesh, 'Domain', 2);
+            n = obj.mesh.nnodes;
             h = obj.mesh.computeMinCellSize();
-            M = h^2*eye(size(M));  
+            M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
         end
 
         function createConstraint(obj)
@@ -158,28 +154,46 @@ classdef TopOptTestTutorialThermal < handle
             obj.dualVariable = l;
         end
 
-        function createOptimizer(obj)
+        function createPrimalUpdater(obj)
+            s.mesh = obj.mesh;
+            obj.primalUpdater = SLERP(s);
+        end
+
+         function createOptimizer(obj,f0)
+            s.shallPrint     = true;
             s.monitoring     = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 2000;
+            s.primalUpdater     = obj.primalUpdater;
+            s.GIFname        = string(f0)+'-';
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
-            s.constraintCase = {'EQUALITY'};
-            s.ub             = 1;
-            s.lb             = 0;
-            s.volumeTarget   = 0.4;
-            s.primal         = 'PROJECTED GRADIENT';
-            opt              = OptimizerMMA(s);
+            s.constraintCase{1} = 'EQUALITY';
+            s.primal         = 'SLERP';
+            s.ub             = inf;
+            s.lb             = -inf;
+            s.etaNorm        = 0.02; % 0.5
+            s.etaNormMin     = 0.02;
+            s.gJFlowRatio    = 1.0; %5.0;    %0.2  2.0; 60.0
+            s.etaMax         = 40.0; %0.1;    % 1 - 5.0 5.0
+            s.etaMaxMin      = 0.02; %0.05; 
+            s.filter         = obj.filter;
+            opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
+            saveas(figure(1),string(f0)+'design.png','png')
+            saveas(figure(2),string(f0)+'graficos.png','png')
+            writematrix(obj.designVariable.fun.fValues,string(f0)+'.txt')
+            obj.designVariable.fun.print('level_set'+string(f0))
         end
 
+
         function bc = createBoundaryConditions(obj)
-            yMin    = min(obj.mesh.coord(:,2));
             xMax    = max(obj.mesh.coord(:,1));
-            isDir   = @(coor) abs(coor(:,2))==yMin & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax;  
+            yMax    = max(obj.mesh.coord(:,2));
+            zMin    = min(obj.mesh.coord(:,3));
+            isDir   = @(coor) abs(coor(:,3))==zMin & abs(coor(:,1))>=0.45*xMax & abs(coor(:,1))<=0.55*xMax & abs(coor(:,2))>=0.45*yMax & abs(coor(:,2))<=0.55*yMax;  
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = 1;
             sDir{1}.value     = 0;

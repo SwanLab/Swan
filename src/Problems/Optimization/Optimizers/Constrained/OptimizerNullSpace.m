@@ -68,13 +68,13 @@ classdef OptimizerNullSpace < handle
                 obj.designVariable.updateOld();
                 obj.saveFilesPosProcess();
                 if obj.nIter == 1 || mod(obj.nIter,20)== 0
-                    obj.designVariable.fun.print('dV'+string(obj.nIter),'Paraview') %+string(obj.typeBench)
+                    obj.designVariable.fun.print('dV'+string(obj.GIFname)+string(obj.nIter),'Paraview') 
                 end
             end
             cost = obj.saveCost; 
             constraint = obj.saveConstraint;
-            save('cost.mat','cost')
-            save('constraint.mat','constraint')
+            save('cost'+string(obj.GIFname)+'.mat','cost')
+            save('constraint'+string(obj.GIFname)+'.mat','constraint')
         end
     end
 
@@ -101,6 +101,7 @@ classdef OptimizerNullSpace < handle
             obj.initOtherParameters(cParams);
             obj.saveCost = [];
             obj.saveConstraint = [];
+            obj.GIFname = cParams.GIFname;
         end
 
 

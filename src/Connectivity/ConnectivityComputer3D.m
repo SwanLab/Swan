@@ -42,37 +42,35 @@ classdef ConnectivityComputer3D < handle
         end
 
         function createMesh(obj)
-            x1 = linspace(0,1,100);
-            x2 = linspace(0,1,100);
-            [xv,yv] = meshgrid(x1,x2);
-            [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            s.coord  = V(:,1:2);
-            s.connec = F;
-            m = Mesh.create(s);
-            obj.mesh = m;
+            obj.mesh = HexaMesh(1.0,1.0,1.0,40,40,40); %20,20,20);
         end
 
         function createLevelSet(obj)
-%             s.type        = 'RectangleInclusion';
+%             s.type        = 'RectangleInclus10^-3}, ion';
 %             s.xSide       = 0.5;
 %             s.ySide       = 0.5;
 %             s.xCoorCenter = 0.5;
 %             s.yCoorCenter = 0.5;
 
-            s.type        = 'ThreeRectanglesInclusion';
-            s.xSide1       = 0.3;
-            s.ySide1       = 0.3;
-            s.xCoorCenter1 = 0.35;
-            s.yCoorCenter1 = 0.5;
-            s.xSide2       = 0.1;
-            s.ySide2       = 0.1;
-            s.xCoorCenter2 = 0.6;
-            s.yCoorCenter2 = 0.5;
-            s.xSide3       = 1.0;
-            s.ySide3       = 0.1;
-            s.xCoorCenter3 = 0.5;
-            s.yCoorCenter3 = 0.2; 
-
+            s.type        = 'ThreePrisms';
+            s.xSide1       = 0.2;
+            s.ySide1       = 0.2;
+            s.zSide1       = 0.2;
+            s.xCoorCenter1 = 0.3;
+            s.yCoorCenter1 = 0.7;
+            s.zCoorCenter1 = 0.7;
+            s.xSide2       = 1.0;
+            s.ySide2       = 0.2;
+            s.zSide2       = 0.2;
+            s.xCoorCenter2 = 0.5;
+            s.yCoorCenter2 = 0.2;
+            s.zCoorCenter2 = 0.2;
+            s.xSide3       = 0.3;
+            s.ySide3       = 0.3;
+            s.zSide3       = 0.3;
+            s.xCoorCenter3 = 0.6;
+            s.yCoorCenter3 = 0.4; 
+            s.zCoorCenter3 = 0.6; 
             g             = GeometricalFunction(s);
             phi           = g.computeLevelSetFunction(obj.mesh);
             obj.levelSet = phi;
@@ -109,7 +107,7 @@ classdef ConnectivityComputer3D < handle
             s.mesh       = obj.mesh;
             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
             s.filterStep = 'LUMP';
-            s.beta       = 100.0;
+            s.beta       = 20.0;
             s.eta        = 0.5;
             f            = Filter.create(s);
             obj.filterConnect = f;
@@ -129,7 +127,7 @@ classdef ConnectivityComputer3D < handle
             s.boundaryConditions = obj.createEigenvalueBoundaryConditions();
             s.eigenModes = StiffnessEigenModesComputer(s);
             mE = MinimumEigenValueFunctional(s);
-            [lambda, dlambda] = mE.computeFunctionAndGradient({obj.designVariable,0});  
+            [lambda, dlambda] = mE.computeFunctionAndGradient(obj.designVariable);  
         end
 
         function  bc = createEigenvalueBoundaryConditions(obj)

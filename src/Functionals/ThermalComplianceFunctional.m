@@ -19,6 +19,9 @@ classdef ThermalComplianceFunctional < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
+            if size(x,2) == 2
+                x=x{1};
+            end
             xD      = x.obtainDomainFunction();
             xR      = obj.filterFields(xD);
             [J, dJ] = obj.computeThermalComplianceFunctionAndGradient(xR);

@@ -4,28 +4,48 @@
 % per = load('PDEincreasingConstraintPerimeter.mat');
 % noConst= load('PDEnoConst.mat');
 % cons = load('PDEincreasingConstraint.mat');
+% 
+% cost1 = load('cost_cantilever_case_1.mat')
+% constraint1 = load('constraint_cantilever_case_1.mat')
+% % cost2 = load('cost_cantilever_case_2.mat')
+% % constraint2 = load('constraint_cantilever_case_2.mat')
+% cost3 = load('cost_cantilever_case_3.mat')
+% constraint3 = load('constraint_cantilever_case_3.mat')
+% cost4 = load('cost_cantilever_case_4.mat')
+% constraint4 = load('constraint_cantilever_case_4.mat')
+% cost5 = load('cost_cantilever_case_5.mat')
+% constraint5 = load('constraint_cantilever_case_5.mat')
 
 figure;
-N = 500;
+N = 1000;
 iterations = 1:1:N;
 % lambda1min = min((0.5 * kron(0:ceil(N/20)-1, ones(1,20))), 6.0); hold on
-lambda1min = min(0.4+(0.2 * kron(0:ceil(N/20)-1, ones(1,20))), 4.0)
+% lambda1min = min(0.4+(0.2 * kron(0:ceil(N/20)-1, ones(1,20))), 4.0)
+lambda1min = min(0.4+(1.0 * kron(0:ceil(N/20)-1, ones(1,20))), 3.4);
+
+figure
+semilogy(iterations, -noCost.cost, 'k-'); hold on
+semilogy(iterations, 2.0 - constraintA.constraint(1:1000,2), '-'); hold on
+semilogy(iterations, 1.0 - constraintB.constraint(1:1000,2), '-');
+semilogy(iterations, 2.0 - constraintC.constraint(1:1000,2), '-');
+semilogy(iterations, 2.0 - constraintD.constraint(1:1000,2), '-');
+semilogy(iterations, lambda1min(:) - constraintE.constraint(1:1000,2), '-');
 
 % semilogy(iterations, lambda1min(:) - constraint(:,2), '-')
-semilogy(iterations, -noConst.cost, 'k-'); hold on
-semilogy(iterations, 0.4 - fixed04.constraint(1:500,2), '-')
-semilogy(iterations, 4 - fixed4.constraint(1:500,2), '-')
-semilogy(iterations, lambda1min(:) - increasing.constraint(1:500,2), '-')
+% semilogy(iterations, -noConst.cost, 'k-'); hold on
+% semilogy(iterations, 0.4 - fixed04.constraint(1:500,2), '-')
+% semilogy(iterations, 4 - fixed4.constraint(1:500,2), '-')
+% semilogy(iterations, lambda1min(:) - increasing.constraint(1:500,2), '-')
 % semilogy(iterations, 0.4*ones(size(iterations)),'--')
 % semilogy(iterations, 4.0*ones(size(iterations)),'--')
-
-lambda1min = min(0.2+(0.2 * kron(0:ceil(N/20)-1, ones(1,20))), 4.0)
-semilogy(iterations, lambda1min(:) - perIncreasing.constraint(1:500,2), '-')
+% lambda1min = min(0.2+(0.2 * kron(0:ceil(N/20)-1, ones(1,20))), 4.0)
+% semilogy(iterations, lambda1min(:) - perIncreasing.constraint(1:500,2), '-')
 
 
 ylabel('First Eigenvalue')
 xlabel('Iteration')
-legend({'No connectivity constraints','$\lambda_1^{\min} = 0.4$ fixed','$\lambda_1^{\min} = 4.0$ fixed','$\lambda_1^{\min}$ increasing from 0.2 to 4.0','$\lambda_1^{\min}$ increasing from 0.2 to 4.0 + perimeter penalization'},'Location','southoutside','Interpreter','latex')
+% legend({'No connectivity constraints','$\lambda_1^{\min} = 0.4$ fixed','$\lambda_1^{\min} = 4.0$ fixed','$\lambda_1^{\min}$ increasing from 0.2 to 4.0','$\lambda_1^{\min}$ increasing from 0.2 to 4.0 + perimeter penalization'},'Location','southoutside','Interpreter','latex')
+legend({'No connectivity constraints','Mass + $\lambda_1^{\min}=2.0$ fixed','PDE + $\lambda_1^{\min}=1.0$ fixed','PDE + $\lambda_1^{\min}=2.0$ fixed + perimeter penalization','PDE + HP + $\lambda_1^{\min}=2.0$ fixed + perimeter penalization','PDE + HP + $\lambda_1^{\min}$ increasing from 0.2 to 4.0 + perimeter penalization'},'Location','southoutside','Interpreter','latex')
 grid
 
 % save('PDEincreasingCost.mat','cost')

@@ -35,8 +35,8 @@ classdef ThermalProblem < handle
 
         function solve(obj, kappa)
             obj.computeStiffnessMatrix(kappa); % LHS
-            obj.computeForces();          % RHS
-            obj.computeTemperature();     % Solve PDE 
+            obj.computeForces();               % RHS
+            obj.computeTemperature();          % Solve PDE 
         end
 
     end
@@ -78,23 +78,11 @@ classdef ThermalProblem < handle
         end
 
         function computeStiffnessMatrix(obj, kappa)
-            s.test  = obj.test;
-            s.trial = obj.trial;
-            s.mesh  = obj.mesh;
-            s.quadratureOrder = 2;
-            s.function        = kappa; 
-            s.type            = 'StiffnessMatrixWithFunction';
-            lhs = LHSIntegrator.create(s);
-            obj.stiffness = lhs.compute();
+            obj.stiffness =IntegrateLHS(@(u,v) kappa.*DP(Grad(u),Grad(v)),obj.test,obj.trial,obj.mesh,'Domain',2);
         end
 
         function computeForces(obj)
-            s.type     = 'ShapeFunction';
-            s.mesh     = obj.mesh;
-            s.quadType = 2;
-            RHSint = RHSIntegrator.create(s);
-            rhs = RHSint.compute(obj.source, obj.test);
-            obj.forces = rhs;
+            obj.forces = IntegrateRHS(@(v) DP(obj.source,v), obj.test, obj.mesh, 2);
         end
 
         function u = computeTemperature(obj)

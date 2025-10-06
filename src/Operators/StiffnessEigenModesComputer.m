@@ -10,6 +10,7 @@ classdef StiffnessEigenModesComputer < handle
         boundaryConditions
         epsilon
         p
+        dim
         phiOld
     end
     
@@ -54,20 +55,23 @@ classdef StiffnessEigenModesComputer < handle
             obj.test  = LagrangianFunction.create(obj.mesh,1,'P1');
             obj.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             obj.phi =  LagrangianFunction.create(obj.mesh,1,'P1');
+            obj.dim = cParams.dim;
         end  
         
         function createConductivityInterpolator(obj)
-            s.interpolation  = 'SIMPThermal';   
-            s.f0   = 1e-3;                                             
-            s.f1   = 1;                                                    
-            s.pExp = 2;
+            s.interpolation  = 'SimpAllThermal';   
+%             s.interpolation  = 'SIMPThermal';   
+            s.f0   = 1e-9;                                             
+            s.f1   = 1;          
+            s.dim  = obj.dim;
+%             s.pExp = 2;
             a = MaterialInterpolator.create(s);
             obj.conductivity = a;            
         end            
 
         function createMassInterpolator(obj)
             s.interpolation  = 'SIMPThermal';                              
-            s.f0   = 1e-3;
+            s.f0   = 1e-9;
             s.f1   = 1;
             s.pExp = 1;
             a = MaterialInterpolator.create(s);

@@ -19,13 +19,12 @@ classdef SimplePerimeterFunctional < handle
             iter = x{2};
             x = x{1};
 %             if iter > 200 && obj.updated == 0
-%                 obj.weight =  10.0;
+%                 obj.weight =  5.0;
 %                 obj.updated = 1;
 %             end
 % %    
-%             if iter > 0 && iter > obj.iter && mod(iter,50)== 0 && obj.weight < 100
+%             if iter > 0 && iter > obj.iter && mod(iter,50)== 0 && obj.weight < 5
 %                 obj.iter = iter;
-% %                 obj.targetEigenValue = 2.5;
 %                 obj.weight = obj.weight*2;
 %             end
 
