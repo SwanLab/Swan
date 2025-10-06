@@ -23,9 +23,9 @@ classdef LinearizedHarmonicProjector3 < handle
 
         function obj = LinearizedHarmonicProjector3(cParams)
             obj.init(cParams);
-            obj.fB = LagrangianFunction.create(obj.mesh, 1, 'P1');
-            obj.fS = LagrangianFunction.create(obj.mesh, 1, 'P1');
-            obj.fG = LagrangianFunction.create(obj.mesh, 1, 'P1');
+            obj.fB = LagrangianFunction.create(obj.mesh, 1, 'P2');
+            obj.fS = LagrangianFunction.create(obj.mesh, 1, 'P2');
+            obj.fG = LagrangianFunction.create(obj.mesh, 1, 'P0');
             obj.createInternalDOFs();                        
             obj.eta = (100*obj.mesh.computeMeanCellSize)^2;  
             obj.perimeter = obj.density.*(1-obj.density);%ConstantFunction.create(1,obj.mesh);%
@@ -36,6 +36,8 @@ classdef LinearizedHarmonicProjector3 < handle
         end
 
         function b = solveProblem(obj,bBar,b)
+            b    = project(b,obj.fB.order);
+            bBar = project(bBar,obj.fB.order);
             RHS = obj.computeRHS(bBar);
             LHS = obj.computeLHS(b);
             nInt = size(obj.internalDOFs,2);
@@ -68,6 +70,7 @@ classdef LinearizedHarmonicProjector3 < handle
             % s.mesh    = obj.mesh;
             % s.order   = obj.fB.order;
             % b = LagrangianFunction(s);
+            b = project(b,'P1');
         end
 
         function [resLnorm,resHnorm,resBnorm,resGnorm] = evaluateResidualNorms(obj,bBar,b)
