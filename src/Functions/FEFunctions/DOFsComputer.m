@@ -98,7 +98,8 @@ classdef DOFsComputer < handle
                 case 'Cont'
                     ndofsE = size(dofs,2);
                     if obj.order~=1
-                        coor   = zeros(obj.ndofs/obj.ndimf,obj.mesh.ndim);
+                        %coor   = zeros(obj.ndofs/obj.ndimf,obj.mesh.ndim);
+                        coor   = zeros(obj.ndofs,obj.mesh.ndim);
                         sAF      = obj.computefHandlePosition();
                         sAF.mesh = obj.mesh;
                         func     = AnalyticalFunction(sAF);
