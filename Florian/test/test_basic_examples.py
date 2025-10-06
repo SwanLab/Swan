@@ -2,8 +2,6 @@ import numpy as np
 import numpy.testing as npt
 import sys
 
-sys.path.append("C:/Users/JOSE A. TORRES/Documents/GitHub/Swan/Florian"), \
-
 from nullspace_optimizer.examples.basic_examples import ex00_basic_problem, \
     ex01_basic_problem_2,\
     ex02_basic_problem_3, \
