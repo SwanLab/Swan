@@ -103,7 +103,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'CG';
+            s.solverCase = 'DIRECT';
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -124,7 +124,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         end
 
         function uMesh = createBaseDomain(obj)
-            sG.type          = 'Square';
+            sG.type          = 'Full';
             sG.length        = 1;
             sG.xCoorCenter   = 1.5;
             sG.yCoorCenter   = 0.5;
@@ -141,7 +141,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.3;
+            s.volumeTarget = 0.4;
             s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
@@ -203,24 +203,36 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         end
 
          function bc = createBoundaryConditions(obj)
-            yMin    = min(obj.mesh.coord(:,2));
-            xMax    = max(obj.mesh.coord(:,1));
-            isDir   = @(coor) abs(coor(:,2))==yMin & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax;  
-            sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = 1;
-            sDir{1}.value     = 0;
-            sDir{1}.ndim = 1;
-            
-            dirichletFun = [];
-            for i = 1:numel(sDir)
-                dir = DirichletCondition(obj.mesh, sDir{i});
-                dirichletFun = [dirichletFun, dir];
-            end
-            s.dirichletFun = dirichletFun;
-            s.pointloadFun = [];
+             xMax    = max(obj.mesh.coord(:,1));
+             yMax    = max(obj.mesh.coord(:,2));
 
-            s.periodicFun  = [];
-            s.mesh         = obj.mesh;
+             isDir   = @(coor)  coor(:,1)==0;
+             isForce = @(coor)  coor(:,1)==xMax & coor(:,2)>=0.4*yMax & coor(:,2)<=0.6*yMax;
+
+             sDir{1}.domain    = @(coor) isDir(coor);
+             sDir{1}.direction = [1,2];
+             sDir{1}.value     = 0;
+
+             sPL{1}.domain    = @(coor) isForce(coor);
+             sPL{1}.direction = 2;
+             sPL{1}.value     = -1;
+
+             dirichletFun = [];
+             for i = 1:numel(sDir)
+                 dir = DirichletCondition(obj.mesh, sDir{i});
+                 dirichletFun = [dirichletFun, dir];
+             end
+             s.dirichletFun = dirichletFun;
+
+             pointloadFun = [];
+             for i = 1:numel(sPL)
+                 pl = PointLoad(obj.mesh, sPL{i});
+                 pointloadFun = [pointloadFun, pl];
+             end
+             s.pointloadFun = pointloadFun;
+
+             s.periodicFun  = [];
+             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);  
         end
     end
