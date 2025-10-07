@@ -166,7 +166,7 @@ classdef TestingPhaseField < handle
             dissipation.interpolation = PhaseFieldDissipationInterpolator(s);
 
             if s.pExp == 1
-                dissipation.constant = (3/8)*obj.matInfo.Gc;
+                dissipation.constant = (1/2)*obj.matInfo.Gc;
             elseif s.pExp == 2
                 dissipation.constant = (1/2)*obj.matInfo.Gc;
             end

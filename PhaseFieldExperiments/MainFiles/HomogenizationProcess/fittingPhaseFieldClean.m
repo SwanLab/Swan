@@ -1,6 +1,6 @@
-function mat = fittingPhaseFieldClean()
-    matType = load('CircleArea.mat');
-    
+function fittingPhaseFieldClean()
+    matType = load('/home/gerard/Documents/GitHub/Swan/src/Problems/Damage/Models/PhaseField/PFVademecum/Degradation/HexagonArea.mat');
+
     phiData = matType.phi;
     C11data = squeeze(matType.mat(1,1,1,1,:));
     C12data = squeeze(matType.mat(1,1,2,2,:));
@@ -17,7 +17,7 @@ function mat = fittingPhaseFieldClean()
                        'Display','none');
 
     objBestResult=100;
-    for i=1:25
+    for i=1:100
         coeff0 = rand(1,60);
         [coeffOpt,fval,exitflag,output,lambda,grad,hessian] = fmincon(objective,coeff0,A,b,Aeq,beq,lb,ub,nonlcon,options);
         [~, ceq] = nonlcon(coeffOpt);
@@ -33,7 +33,7 @@ function mat = fittingPhaseFieldClean()
     disp(['MinObjective: ', num2str(objBestResult, '%.2e'), ' | MinCeq: [', num2str(abs(ceq), '%.2e '), ']']);        
 
     plotResults(objective,phiData,Cdata,coeff0BestResult,coeffBestResult)
-    generateConstitutiveTensor(coeffBestResult,matType,'CircleAreaDerivative');
+    generateConstitutiveTensor(coeffBestResult,matType,'HexagonAreaDerivative20');
 end
 
 function C = constitutiveTensor(coeff,phi)
@@ -108,10 +108,10 @@ function [c,ceq] = nonLinearCon(coeff,Cdata)
 
     E=210;
     Gc=5e-3; l0=0.1; cw=8/3;
-    sigCrit=[1.5 0 0];
+    sigCrit=[2 0 0];
     
     dC0 = cell2mat(dCfun(0));
-    ceq(7) = sigCrit*inv(C0)*dC0*inv(C0)*sigCrit' + 2*(Gc/(cw*l0))*(E);
+    ceq(7) = (1/2)*sigCrit*inv(C0)*dC0*inv(C0)*sigCrit' + E*Gc/(cw*l0);
 end
 
 function objFun = objectiveFun(coeff,phiData,Cdata)
@@ -156,7 +156,7 @@ function generateConstitutiveTensor(coeff, matType, name)
     degradation = matType.degradation;
 
     comps = {C11, C12, C33};
-    idx = {[1,1,1,1], [1,1,2,2], [2,2,1,1], [2,2,2,2], [1,2,1,2], [2,1,2,1]};
+    idx = {{1,1,1,1}, {1,1,2,2}, {2,2,1,1}, {2,2,2,2}, {1,2,1,2}, {2,1,2,1}};
     map = [1 2 2 1 3 3];
 
     for i = 1:length(idx)
