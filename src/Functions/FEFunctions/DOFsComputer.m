@@ -98,18 +98,19 @@ classdef DOFsComputer < handle
                 case 'Cont'
                     ndofsE = size(dofs,2);
                     if obj.order~=1
-                        %coor   = zeros(obj.ndofs/obj.ndimf,obj.mesh.ndim);
                         coor   = zeros(obj.ndofs,obj.mesh.ndim);
                         sAF      = obj.computefHandlePosition();
                         sAF.mesh = obj.mesh;
+                        sAF.ndimf = obj.ndimf;
                         func     = AnalyticalFunction(sAF);
                         c = func.evaluate(obj.interp.pos_nodes');
-                        c = reshape(c,obj.interp.nnode,obj.mesh.ndim,obj.mesh.nelem);
-                        c = permute(c,[3,1,2]);
-                        c = reshape(c,[],obj.mesh.ndim);
-                        newDofs = (dofs(:,1:obj.ndimf:ndofsE)-1)/obj.ndimf+1;
-                        newDofs = reshape(newDofs,[],1);
-                        coor(newDofs,:) = c;
+                        for idof = 1:ndofsE
+                            for idim = 1:obj.mesh.ndim
+                                nodes    = dofs(:,idof);
+                                iNode = ceil(idof/obj.ndimf);
+                                coor(nodes,idim) =  c(idim,iNode,:);
+                            end
+                        end
                         obj.coord = coor;
                     else
                         coor   = zeros(obj.ndofs,obj.mesh.ndim);
@@ -337,10 +338,10 @@ classdef DOFsComputer < handle
                     fh.fHandle = @(x) x(1,:,:);
                     fh.ndimf = 1;
                 case 2
-                    fh.fHandle = @(x) [x(1,:,:),x(2,:,:)];
+                    fh.fHandle = @(x) [x(1,:,:);x(2,:,:)];
                     fh.ndimf = 2;
                 case 3
-                    fh.fHandle = @(x) [x(1,:,:),x(2,:,:),x(3,:,:)];
+                    fh.fHandle = @(x) [x(1,:,:);x(2,:,:);x(3,:,:)];
                     fh.ndimf = 3;
             end
         end
