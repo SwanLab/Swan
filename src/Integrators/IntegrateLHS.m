@@ -60,7 +60,12 @@ function A = assembleMatrix(Aelem,f1,f2)
 end
 
 function [bTest, bTrial, iGlob, jGlob] = restrictTestTrialToBoundary(bMesh, test, trial, l2g)
-    l2g_dof        = (l2g * test.ndimf)' - (test.ndimf-1:-1:0)';
+    lastDofs = (l2g * test.ndimf)';
+    l2g_dof = zeros(length(lastDofs),test.ndimf);
+    for i = 1:test.ndimf
+        l2g_dof(:,i) = lastDofs - (test.ndimf-i);
+    end
+    l2g_dof = reshape(l2g_dof',[],1);
     [bTest, iGlob] = restrictFunc(bMesh,test,l2g_dof);
     [bTrial,jGlob] = restrictFunc(bMesh,trial,l2g_dof);
 end

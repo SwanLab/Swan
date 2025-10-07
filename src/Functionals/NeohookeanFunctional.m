@@ -22,7 +22,7 @@ classdef NeohookeanFunctional < handle
 
         function Fint = computeGradient(obj,uFun,quadOrder)
             PK1 = obj.computeFirstPiola(uFun);
-            Fint = IntegrateRHS(@(v) DDP(Grad(v),PK1),uFun,obj.mesh,quadOrder);
+            Fint = IntegrateRHS(@(v) DDP(Grad(v),PK1),uFun,obj.mesh,'Domain',quadOrder);
         end
 
         function hess = computeHessian(obj,uFun,quadOrder)

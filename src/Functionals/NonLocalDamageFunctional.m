@@ -20,7 +20,7 @@ classdef NonLocalDamageFunctional < handle
         end
         
         function J = computeGradient(obj,phi,quadOrder)
-            J = IntegrateRHS(@(v) (obj.constant*obj.l0)*DP(Grad(v),Grad(phi)),obj.testPhi,obj.mesh,quadOrder);
+            J = IntegrateRHS(@(v) (obj.constant*obj.l0)*DP(Grad(v),Grad(phi)),obj.testPhi,obj.mesh,'Domain',quadOrder);
         end
         
         function H = computeHessian(obj,~,quadOrder)

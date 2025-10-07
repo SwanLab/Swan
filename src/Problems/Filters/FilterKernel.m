@@ -91,7 +91,7 @@ classdef FilterKernel < handle
 
         function computeRHS(obj,fun,quadType)
             f       = @(v) DP(fun,v);
-            obj.RHS = IntegrateRHS(f,obj.test,obj.test.mesh,quadType);
+            obj.RHS = IntegrateRHS(f,obj.test,obj.test.mesh,'Domain',quadType);
         end
 
         function solveFilter(obj)
