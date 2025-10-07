@@ -194,11 +194,12 @@ class TO_problem(EuclideanOptimizable):
         plt.pause(0.01)
 
 # Optimization parameters
-optimization_params = {"dt": 0.3,
+optimization_params = {"dt": 0.05,
                         "itnormalisation": 50,
                         "save_only_N_iterations": 1,
                         "save_only_Q_constraints": 5,
-
+                        "alphaJ": 1.25,
+                        "alphaC": 1,
                         "maxit": 150}
 # Initialize and solve the TO problem
 init()
