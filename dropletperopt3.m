@@ -1,6 +1,6 @@
 function dropletperopt3
 
-nx=30; ny=30; nxy=nx*ny;
+nx=50; ny=50; nxy=nx*ny;
 k=[1,1]; k=k'/norm(k); kx=k(1); ky=k(2);
 kperp=[-ky;kx];
 alpha=4;
@@ -28,9 +28,19 @@ s.type = 'Rectangle';
 g = GeometricalFunction(s);
 ls = g.computeLevelSetFunction(m);
 
-rho = LagrangianFunction
-rho0 = inizalization(nx,ny,Lx,Ly);
-vol=sum(rho0);
+sU.backgroundMesh = m;
+sU.boundaryMesh   = m.createBoundaryMesh;
+uMesh             = UnfittedMesh(sU);
+uMesh.compute(ls.fValues);
+cFun = CharacteristicFunction.create(uMesh);
+s.filterType = 'LUMP';
+s.mesh  = m;
+s.trial = LagrangianFunction.create(m,1,'P1');
+f = Filter.create(s);
+d = f.compute(cFun,2);
+
+rho0 = d;
+vol= Integrator.compute(rho0,m,2);
 
 %noDx=norm(full(Dx)); noDy=norm(full(Dy));
 
@@ -41,15 +51,14 @@ ep=1e-5;
 eps=10; 
 taucpe=tauG/eps^2;
 
-proxF = @(z)  proximalDroplet(z,tauF,k,alpha,ep);
-%proxF = @(z)  proximalEllipse(z,tauF,alpha);
+%proxF = @(z)  proximalDroplet(z,tauF,k,alpha,ep);
+proxF = @(z)  proximalEllipse(z,tauF,alpha,m);
 proxG = @(rho,rho0) proximalL2Projection(rho,rho0,taucpe);
-grad = @(u) Grad(D,u);
-div  = @(z) Div(D,z);
+grad = @(u) Grad(u);
+div  = @(z) Div(z);
 
 rho = rho0;
-z0  = zeros(nxy,2);
-z = z0;
+z0 = LagrangianFunction.create(m,2,'P1');
 for iopt=1:20
 [rho,z] = PerimeterMinimization(rho,z0,grad,div,proxF,proxG,tauF,tauG,thetaRel);
 rho = ProjectToVolumeConstraint(rho,vol);
@@ -61,50 +70,17 @@ end
 end
 
 function volCon = computeVolumeConstraint(rho,vol)
-volCon = sum(rho)/vol - 1;
-end
-
-function U = inizalization(nx,ny,Lx,Ly)
-[X,Y] = createSquareDomain(nx,ny,Lx,Ly);
-%U=real(X+Y<0.35*(nx+ny))+real(X+Y>0.65*(nx+ny)); % band
-%U=real((X-nx/2).^2+(Y-ny/2).^2<min(nx,ny)^2/16); % ball
-%U=real(abs(X-nx/2)<min(nx,ny)/6).*real(abs(Y-ny/2)<min(nx,ny)/6); % square
-    fracx = 1/3;
-    fracy = 1/3;
-    cx = Lx/2; cy = Ly/2;                 % center
-    w  = fracx * Lx; h = fracy * Ly;      % sizes
-    U  = double(abs(X-cx)<=w/2 & abs(Y-cy)<=h/2);
-
-end
-
-function [X,Y] = createSquareDomain(nx,ny,Lx,Ly)
-% X=ones(ny,1)*[1:nx];
-% X=reshape(X',1,nx*ny)';
-% Y=[1:ny]'*ones(1,nx); 
-% Y=reshape(Y',1,nx*ny)';
-
-[XX,YY] = meshgrid(linspace(0,Lx,nx), linspace(0,Ly,ny));
-X = XX(:);
-Y = YY(:);
-end
-% 
-function D = createDerivative(nx,ny,nxy,Lx,Ly)
-    dx=1;Lx/(nx-1); dy=1;Ly/(ny-1);
-    fidi = [-1 1 0];
-    D = [spdiags(ones(nxy,1)*fidi*dx,-1:1,nxy,nxy); ...
-         spdiags(ones(nxy,1)*fidi*dy,[-nx 0 nx],nxy,nxy)];
-    D(1:nx,:) = 0; 
-    D(nx:nx:end-nx,:) = 0; 
-    D(end-nx+1:end,:) = 0;
+volCon = Integrator.compute(rho,rho.mesh,2)/vol - 1;
 end
 
 
-function s = proximalEllipse(z,tau,alpha)
+function s = proximalEllipse(z,tau,alpha,m)
 A = [1 0; 0 1];
 I = eye(2);
 r = alpha^2/tau;
 invM = inv((A+r*I));
-s = r*z*invM.';
+invMF = createTensorFunction(invM,m);
+s = r.*DDP(invMF,z);
 end
 
 
@@ -127,7 +103,7 @@ u  = u0;
 uN = u0;
 z   = z0; 
 for kcp=1:1000
-    z      = proxF(z + tauF*Grad(uN));
+    z      = proxF(z + tauF.*Grad(uN));
     uOld   = u;
     u      = proxG(u - tauG*Div(z));
     uN     = u + thetaRel*(u - uOld);
@@ -139,14 +115,17 @@ proxG = @(rhoX) proxGX(rhoX,u0);
 [u,z] = solveWithChambollePockAlgorithm(u0,z0,Grad,Div,proxF,proxG,tauF,tauG,thetaRel);
 end
 
-function divZ = Div(D,z)
-divZ = D.'*z(:);
+function Af = createTensorFunction(A,m)
+op = @(xV) evaluate(xV,A,m);
+Af = DomainFunction.create(op,m,2);
 end
 
-function gradU = Grad(D,u)
-nxy = size(u,1);
-gradU = reshape(D*u,nxy,2);
+function fV = evaluate(xV,A,m)
+nGauss = size(xV,2);
+nElem  = m.nelem;
+fV = repmat(A,[1 1 nGauss nElem]);
 end
+
 
 
 function plotSurf(rho,nx,ny)
@@ -166,7 +145,7 @@ function U = ProjectToVolumeConstraint(u,vol)
 lLb=0; lUb=1;
 for idic=1:100
     lam = (lLb+lUb)/2;
-    uTest=  u > lam;
+    uTest=  u.fValues > lam;
     constraint = computeVolumeConstraint(uTest,vol);
     if (constraint > 0)
         lLb =lam;
