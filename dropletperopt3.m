@@ -80,7 +80,9 @@ I = eye(2);
 r = alpha^2/tau;
 invM = inv((A+r*I));
 invMF = createTensorFunction(invM,m);
-s = r.*DDP(invMF,z);
+%invMF = ConstantFunction.create(invM,m);
+
+s = r.*DP(invMF,z');
 end
 
 
