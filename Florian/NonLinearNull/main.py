@@ -1,3 +1,6 @@
+import sys
+sys.path.append("C:/Users/JOSE A. TORRES/Documents/GitHub/Swan/Florian"), \
+
 from nullspace_optimizer import EuclideanOptimizable,\
 bound_constraints_optimizable, memoize, filtered_optimizable,\
 nlspace_solve
@@ -200,7 +203,7 @@ optimization_params = {"dt": 0.05,
                         "save_only_Q_constraints": 5,
                         "alphaJ": 1.25,
                         "alphaC": 1,
-                        "maxit": 150}
+                        "maxit": 10}
 # Initialize and solve the TO problem
 init()
 case = TO_problem()
