@@ -10,8 +10,6 @@ learningRate    = 0.2;
 hiddenLayers    = 128 .* ones(1, 6);
 
 %% INITIALIZATION 
-% Store dataset file name
-s.fileName = 'DB_ellipse_cHomog.csv';
 
 % Load model parameters
 s.polynomialOrder = pol_deg;
@@ -25,10 +23,41 @@ s.costParams.costType           = 'L2';
 s.networkParams.HUtype = 'ReLU';
 s.networkParams.OUtype = 'linear';
 
-% Select the model's features
-s.xFeatures = [1, 2];
-s.yFeatures = [3, 4, 5, 6];
-cHomogIdxs = [11, 12, 22, 33];
+%% Get Training Data Ready
+% I want to take advantage of physics
+% behind problem to simplify it: cholesky decomposition as matrix will be
+% SPD-> half of y features needed
+
+load("KcoarseTraining.mat") %loads Kc object with cells with 8x8 training matrices
+for i=1:length(Kc)
+    Kc{i} = Kc{i} + 1e-10*eye(size(Kc{i})); % regularization -> (extremely small negative smallest eigenvalue (- 10^-16)
+    Kc{i} = round(Kc{i},12); % if we don't round matrices are not SPD for some reason
+end
+
+processor = TrainingDataOrganizer(0.1:0.001:0.5,Kc);
+trainData = processor.generateTrainingMatrix(); % Generate training data
+
+%% Save Training Data as CSV
+% Number of unique components from the symmetric 8x8 matrix
+nFeatures = size(trainData,2) - 1;   % number of Y features (excluding Radius)
+
+% First column is the input variable
+colNames = ["Radius"];
+
+% Generate stiffness component names
+for i = 1:nFeatures
+    colNames(end+1) = sprintf('Kcomp_%02d', i);
+end
+
+T = array2table(trainData, 'VariableNames', colNames);
+writetable(T, 'trainData.csv'); % Save to CSV
+
+s.fileName = 'trainData.csv';
+%load("trainData.csv")
+% Select the model's features --- 
+s.xFeatures = 1;
+s.yFeatures = 2:(size(trainData,2));
+%cHomogIdxs = [11, 12, 22, 33];
 
 % Load data
 %data   = cHomogData(s);
@@ -40,18 +69,25 @@ opt = OptimizationProblemNN(s);
 opt.solve();
 opt.plotCostFnc();
 
-% Save the model
-save('Tutorials/ChomogNetworkTutorial/Networks/network_ellipse_cHomog.mat', 'opt')
+save('Kcoarse_predictor.mat', 'opt'); % Save the model
 
 %% Get Network Results
 
-Xin = [0.25, 0.25];
+Xin = [0.25];
 
 Y = opt.computeOutputValues(Xin);
 dY = opt.computeGradient(Xin);
+n = 8;
+L = zeros(n);
+idx = tril(true(n));
+L(idx) = Y(:);                        % fill lower triangle
+d = diag(L);
+d(d <= 0) = eps;                      
+L(1:n+1:end) = d;
+K_coarse_pred = L*L.';%revert cholesky decomposition                       
 
 fprintf('Output of the network:\n')
-disp(Y)
+disp(K_coarse_pred)
 
 fprintf('Jacobian of the network output w.r.t its input:\n')
 disp(dY)

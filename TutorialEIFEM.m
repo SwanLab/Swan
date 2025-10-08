@@ -25,35 +25,47 @@ classdef TutorialEIFEM < handle
         function obj = TutorialEIFEM()
             close all
             obj.init()
+            radius_to_analyse = 0.05:0.005:0.7;
+            Kc = cell(length(radius_to_analyse),1);
 
-            obj.createReferenceMesh(true);
-            bS  = obj.referenceMesh.createBoundaryMesh();
-            [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain();
-            obj.meshDomain = mD;
-            mD.plot()
-            [bC,dir] = obj.createBoundaryConditions();
-            obj.boundaryConditions = bC;
-            obj.createBCapplier()
+            for i = 1:length(radius_to_analyse)
+                obj.createReferenceMesh(false,radius_to_analyse(i));
+                bS  = obj.referenceMesh.createBoundaryMesh();
+                [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain();
+                obj.meshDomain = mD;
+                %mD.plot()
+                [bC,dir] = obj.createBoundaryConditions();
+                obj.boundaryConditions = bC;
+                obj.createBCapplier()
+    
+                [LHSr,RHSr] = obj.createElasticProblem();
+    
+                LHSfun = @(x) LHSr*x;
+                [Meifem,Kcoarse]       = obj.createEIFEMPreconditioner(dir,iC,lG,bS,iCR,discMesh);
+                
+                Kc{i} = Kcoarse;
+                if i == 500 || i == 1000 || i == 1500 || i == 2000
+                    save('KcoarseTraining.mat', 'Kc');
+                end
+                
+            end
 
-            [LHSr,RHSr] = obj.createElasticProblem();
-
-            LHSfun = @(x) LHSr*x;
-            Meifem       = obj.createEIFEMPreconditioner(dir,iC,lG,bS,iCR,discMesh);
-            Milu         = obj.createILUpreconditioner(LHSr);
-            Mmult        = @(r) Preconditioner.multiplePrec(r,LHSfun,Milu,Meifem,Milu);
-            Mid          = @(r) r;
-
-            tol = 1e-8;
-            x0 = zeros(size(RHSr));
-            xSol = LHSr\RHSr;
-
-            [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSfun,RHSr,x0,Mmult,tol,xSol);     
-            [uCG,residualCG,errCG,errAnormCG]    = PCG.solve(LHSfun,RHSr,x0,Mid,tol,xSol);     
-            obj.plotResidual(residualPCG,errPCG,errAnormPCG,residualCG,errCG,errAnormCG)
-
-            uCGFull = obj.bcApplier.reducedToFullVectorDirichlet(uCG);
-            uF = saveDeformed(obj.meshDomain,uCGFull);
-            plot(uF)
+            save('KcoarseTraining.mat', 'Kc');
+%             Milu         = obj.createILUpreconditioner(LHSr);
+%             Mmult        = @(r) Preconditioner.multiplePrec(r,LHSfun,Milu,Meifem,Milu);
+%             Mid          = @(r) r;
+% 
+%             tol = 1e-8;
+%             x0 = zeros(size(RHSr));
+%             xSol = LHSr\RHSr;
+% 
+%             [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSfun,RHSr,x0,Mmult,tol,xSol);     
+%             [uCG,residualCG,errCG,errAnormCG]    = PCG.solve(LHSfun,RHSr,x0,Mid,tol,xSol);     
+%             obj.plotResidual(residualPCG,errPCG,errAnormPCG,residualCG,errCG,errAnormCG)
+% 
+%             uCGFull = obj.bcApplier.reducedToFullVectorDirichlet(uCG);
+%             uF = saveDeformed(obj.meshDomain,uCGFull);
+%             plot(uF)
         end
 
     end
@@ -67,7 +79,7 @@ classdef TutorialEIFEM < handle
             obj.solverType = 'REDUCED';
         end        
 
-        function createReferenceMesh(obj, loadfile)
+        function createReferenceMesh(obj, loadfile, radius)
             if loadfile
                 filename = obj.fileNameEIFEM;
                 load(filename); 
@@ -76,7 +88,7 @@ classdef TutorialEIFEM < handle
                 s.interType = 'QUADRATIC';
                 
             else
-                holeMesh    = obj.createMesh();      
+                holeMesh    = obj.createMesh(radius);      
                 s.coord     = holeMesh.coord;
                 s.connec    = holeMesh.connec;
                 s.interType = 'LINEAR';
@@ -86,9 +98,9 @@ classdef TutorialEIFEM < handle
             obj.referenceMesh = Mesh.create(s);
         end
         
-        function holeMesh = createMesh(obj)
+        function holeMesh = createMesh(obj,radius)
             fullmesh = UnitTriangleMesh(12,12);
-            ls = obj.computeCircleLevelSet(fullmesh);
+            ls = obj.computeCircleLevelSet(fullmesh,radius);
             sUm.backgroundMesh = fullmesh;
             sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
             uMesh              = UnfittedMesh(sUm);
@@ -97,9 +109,9 @@ classdef TutorialEIFEM < handle
             
         end
   
-        function ls = computeCircleLevelSet(obj, mesh)
+        function ls = computeCircleLevelSet(obj, mesh,radius)
             gPar.type          = 'Circle';
-            gPar.radius        = 0.25;
+            gPar.radius        = radius;
             gPar.xCoorCenter   = 0.5;
             gPar.yCoorCenter   = 0.5;
             g                  = GeometricalFunction(gPar);
@@ -278,7 +290,7 @@ classdef TutorialEIFEM < handle
             RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
         end
 
-        function Meifem = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh)
+        function [Meifem,Kcoarse] = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh)
             mR = obj.referenceMesh;
 %             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
 %             EIFEMfilename = obj.fileNameEIFEM;
@@ -302,6 +314,7 @@ classdef TutorialEIFEM < handle
             ss.type = 'EIFEM';
             eP = Preconditioner.create(ss);
             Meifem = @(r) eP.apply(r);
+            Kcoarse = EIFEoper.Kcoarse;
         end
         
         function d = createDomainDecompositionDofManager(obj,iC,lG,bS,mR,iCR)
