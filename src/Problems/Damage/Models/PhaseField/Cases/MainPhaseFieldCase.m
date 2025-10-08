@@ -33,7 +33,7 @@ s.matInfo.fileName = 'SquareAreaDerivative10';
 s.matInfo.young   = 210;
 s.matInfo.poisson = 0.3; 
 s.matInfo.Gc = 5e-3;
-s.l0 = 0.1;
+s.l0 = 0.01;
 
 s.dissipInfo.type = 'PhaseFieldDissipationAT';
 s.dissipInfo.pExp = 1;

@@ -30,9 +30,9 @@ d20 = outputData.damage.maxValue;
 
 figure()
 hold on
-plot(u10,f10,'Color',cmp(1,:))
-plot(u15,f15,'Color',cmp(2,:))
-plot(u20,f20,'Color',cmp(3,:));
+plot(d10,f10,'Color',cmp(1,:))
+plot(d15,f15,'Color',cmp(2,:))
+plot(d20,f20,'Color',cmp(3,:));
 legend('$\sigma = 1MPa$','$\sigma = 1.5MPa$','$\sigma = 2MPa$','Interpreter','latex')
 title('Square One Element (Force)','Interpreter','latex')
 

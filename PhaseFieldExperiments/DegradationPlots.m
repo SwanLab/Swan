@@ -1,5 +1,5 @@
 E  = 210;
-nu = 0.3;
+nu = 0;
 k  = E./(2.*(1-nu));
 mu = E./(2.*(1+nu));
 C11 = E/((1+nu)*(1-nu));
@@ -122,16 +122,16 @@ load('AT2sqrt0.mat')
 uAT2 = outputData.displacement.value;
 dAT2 = outputData.damage.maxValue;
 fAT2 = outputData.force;
+% 
+% load('Linear.mat')
+% uLinear = outputData.displacement.value;
+% dLinear = outputData.damage.maxValue;
+% fLinear = outputData.force;
 
-load('Linear.mat')
-uLinear = outputData.displacement.value;
-dLinear = outputData.damage.maxValue;
-fLinear = outputData.force;
-
-load('Ratnu0_1.mat')
-uRatio1 = outputData.displacement.value;
-dRatio1 = outputData.damage.maxValue;
-fRatio1 = outputData.force;
+% load('Ratnu0_1.mat')
+% uRatio1 = outputData.displacement.value;
+% dRatio1 = outputData.damage.maxValue;
+% fRatio1 = outputData.force;
 
 load('Ratnu0_2.mat')
 uRatio2 = outputData.displacement.value;

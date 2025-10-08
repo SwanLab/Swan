@@ -91,16 +91,17 @@ classdef BoundaryConditionsCreator < handle
         function createDisplacementTractionXConditions(obj,uVal)
             isLeft = @(coor)  abs(coor(:,1)-min(coor(:,1))) < 1e-12;
             sDir.domain    = @(coor) isLeft(coor);
-            sDir.direction = [1,2];
+            sDir.direction = [1];
             sDir.value     = 0;
             Dir1 = DirichletCondition(obj.mesh,sDir);
 
-            isRight = @(coor)  abs(coor(:,1)-max(coor(:,1))) < 1e-12;
-            sDir.domain    = @(coor) isRight(coor);
+            isDown = @(coor) abs(coor(:,2) - min(coor(:,2))) < 1e-12;
+            sDir.domain    = @(coor) isDown(coor);
             sDir.direction = [2];
             sDir.value     = 0;
-            Dir2 = DirichletCondition(obj.mesh,sDir);
+            Dir2 = DirichletCondition(obj.mesh,sDir);            
 
+            isRight = @(coor)  abs(coor(:,1)-max(coor(:,1))) < 1e-12;
             sDir.domain    = @(coor) isRight(coor);
             sDir.direction = [1];
             sDir.value     = uVal;
