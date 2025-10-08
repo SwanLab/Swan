@@ -1,5 +1,5 @@
 function fittingPhaseFieldClean()
-    matType = load('/home/gerard/Documents/GitHub/Swan/src/Problems/Damage/Models/PhaseField/PFVademecum/Degradation/HexagonArea.mat');
+    matType = load('/home/gerard/Documents/GitHub/Swan/src/Problems/Damage/Models/PhaseField/PFVademecum/Degradation/CircleArea.mat');
 
     phiData = matType.phi;
     C11data = squeeze(matType.mat(1,1,1,1,:));
@@ -8,7 +8,8 @@ function fittingPhaseFieldClean()
     Cdata = [C11data';C12data';C33data'];
     
     A = []; b = []; Aeq = []; beq = []; lb = []; ub = [];
-    nonlcon = @(coeff) nonLinearCon(coeff,Cdata);
+    sigma = 1.5;
+    nonlcon = @(coeff) nonLinearCon(coeff,Cdata,sigma);
     objective = @(p) objectiveFun(p,phiData,Cdata);
     options = optimoptions(@fmincon, ...
                        'StepTolerance',1e-10, ...
@@ -17,23 +18,31 @@ function fittingPhaseFieldClean()
                        'Display','none');
 
     objBestResult=100;
-    for i=1:100
+    coeff0BestResult = rand(1,60);
+
+    % load('Degradation/CircleAreaDerivative10.mat')
+    % coeffBestResult = coeff;
+    % [~, ceq] = nonlcon(coeffBestResult);
+    % disp(['MinObjective: ', num2str(objBestResult, '%.2e'), ' | MinCeq: [', num2str(abs(ceq), '%.2e '), ']']);
+
+    for i=1:250
         coeff0 = rand(1,60);
         [coeffOpt,fval,exitflag,output,lambda,grad,hessian] = fmincon(objective,coeff0,A,b,Aeq,beq,lb,ub,nonlcon,options);
         [~, ceq] = nonlcon(coeffOpt);
         disp(['Objective: ', num2str(fval, '%.2e'), ' | ceq: [', num2str(abs(ceq), '%.2e '), ']']);        
 
-        if i==1 || fval<objBestResult
+        if fval<objBestResult
             objBestResult    = fval;
             coeffBestResult  = coeffOpt;
             coeff0BestResult = coeff0;
+            disp(['NEW VALUE OBTAINED']);
         end
     end
     [~, ceq] = nonlcon(coeffOpt);
-    disp(['MinObjective: ', num2str(objBestResult, '%.2e'), ' | MinCeq: [', num2str(abs(ceq), '%.2e '), ']']);        
+    disp(['MinObjective: ', num2str(objBestResult, '%.2e'), ' | MinCeq: [', num2str(abs(ceq), '%.2e '), ']']);
 
-    plotResults(objective,phiData,Cdata,coeff0BestResult,coeffBestResult)
-    generateConstitutiveTensor(coeffBestResult,matType,'HexagonAreaDerivative20');
+    degFuns = generateConstitutiveTensor(coeffBestResult,objBestResult,matType,'CircleAreaDerivative10');
+    plotResults(objective,phiData,Cdata,coeff0BestResult,coeffBestResult,degFuns)
 end
 
 function C = constitutiveTensor(coeff,phi)
@@ -92,7 +101,7 @@ function fun = polyFunDeriv(a,phi)
     end
 end
 
-function [c,ceq] = nonLinearCon(coeff,Cdata)
+function [c,ceq] = nonLinearCon(coeff,Cdata,sigma)
     dCfun = @(phi) constitutiveTensorDerivative(coeff,phi);
     Cfun  = @(phi) constitutiveTensor(coeff,phi);
    
@@ -108,10 +117,14 @@ function [c,ceq] = nonLinearCon(coeff,Cdata)
 
     E=210;
     Gc=5e-3; l0=0.1; cw=8/3;
-    sigCrit=[2 0 0];
+    sigCrit=[sigma 0 0];
     
     dC0 = cell2mat(dCfun(0));
     ceq(7) = (1/2)*sigCrit*inv(C0)*dC0*inv(C0)*sigCrit' + E*Gc/(cw*l0);
+    dC1 = cell2mat(dCfun(1));
+    ceq(8)  = dC1(1,1);
+    ceq(9)  = dC1(1,2);
+    ceq(10) = dC1(3,3);
 end
 
 function objFun = objectiveFun(coeff,phiData,Cdata)
@@ -123,8 +136,7 @@ function objFun = objectiveFun(coeff,phiData,Cdata)
     end
 end
 
-function plotResults(objective,phiData,Cdata,coeff0,coeffRes)
-    Cfit = constitutiveTensor(coeffRes,phiData);
+function plotResults(objective,phiData,Cdata,coeff0,coeffRes,degFuns)
     close all
     disp("Initial objective: " + num2str(objective(coeff0)));
     disp("Final objective: "   + num2str(objective(coeffRes)));
@@ -132,25 +144,25 @@ function plotResults(objective,phiData,Cdata,coeff0,coeffRes)
     figure()
     plot(phiData,Cdata(1,:),'ro')
     hold on
-    plot(phiData,Cfit{1,1},'-')
+    fplot(degFuns.fun{1,1,1,1},[0 1],'-')
     title('C11')
 
     figure()
     plot(phiData,Cdata(2,:),'ro')
     hold on
-    plot(phiData,Cfit{1,2},'-')
+    fplot(degFuns.fun{1,1,2,2},[0 1],'-')
     title('C12')
 
     figure()
     plot(phiData,Cdata(3,:),'ro')
     hold on
-    plot(phiData,Cfit{3,3},'-')
+    fplot(degFuns.fun{1,2,1,2},[0 1],'-')
     legend('measured','optimal')
     title('C33')
 end
 
-function generateConstitutiveTensor(coeff, matType, name)
-    [C11, C12, C33] = recoverTensorComponents(coeff);
+function degradation = generateConstitutiveTensor(coeffBestResult, objBestResult, matType, name)
+    [C11, C12, C33] = recoverTensorComponents(coeffBestResult);
     mat = matType.mat;
     phi = matType.phi;
     degradation = matType.degradation;
@@ -165,7 +177,7 @@ function generateConstitutiveTensor(coeff, matType, name)
         degradation.ddfun{idx{i}{:}} = matlabFunction(diff(diff(comps{map(i)})));
     end
 
-    save(name, 'mat', 'phi', 'degradation');
+    save(name, 'mat', 'phi', 'degradation','coeffBestResult','objBestResult');
 end
 
 

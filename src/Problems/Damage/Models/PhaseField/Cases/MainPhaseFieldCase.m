@@ -28,8 +28,8 @@ s.benchmark.bc.values = [0:1e-4:0.1];
 
 s.matInfo.matType = 'Analytic'; %'Analytic','Homogenized'
 s.matInfo.degradationType = 'PhaseField'; %'PhaseField','SIMPALL'
-s.matInfo.degradationSubType = 'General'; %'AT','ATSplit',,'Rational','General'
-s.matInfo.fileName = 'HexagonAreaDerivative20'; 
+s.matInfo.degradationSubType = 'Rational'; %'AT','ATSplit',,'Rational','General'
+s.matInfo.fileName = 'SquareAreaDerivative10'; 
 s.matInfo.young   = 210;
 s.matInfo.poisson = 0.3; 
 s.matInfo.Gc = 5e-3;
@@ -47,5 +47,5 @@ outputData = tester.compute();
 outputData.inputParameters = s;
 
 %% SAVE + PLOT
-%save("AT2sqrt0",'outputData') %ACTIVATE TO SAVE DATA!
+save("Ratnu0_1",'outputData') %ACTIVATE TO SAVE DATA!
 PhaseFieldPlotter(outputData);

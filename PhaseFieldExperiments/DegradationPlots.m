@@ -113,33 +113,73 @@ title('Bulk degradation function ($\nu = 0.3$)','Interpreter','latex')
 
 
 %% 1ELEM
-figure()
-plot(uAT,FAT,'Color',cmp(1,:))
-hold on
-plot(uAT2,FAT2,'Color',cmp(1,:),'LineStyle','--')
-plot(uLinear,Flinear,'Color',cmp(2,:))
-plot(uRatio1,Fratio1,'Color',cmp(3,:),'LineStyle','--','Marker',"o","MarkerIndices",[1:2:length(Fratio1)])
-plot(uRatio2,Fratio2,'Color',cmp(3,:),'LineStyle','--','Marker',"square","MarkerIndices",[1:5:length(Fratio2)])
-plot(uSIMP,Fsimp,'Color',cmp(4,:))
-plot(uSquare,Fsquare,'Color',cmp(5,:),'LineStyle','--','Marker',"square","MarkerIndices",[1:10:length(Fsquare)])
-plot(uCircle,FCircle,'Color',cmp(5,:),'LineStyle','--','Marker',"o","MarkerIndices",[1:10:length(FCircle)])
-plot(uHexa,Fhexa,'Color',cmp(5,:),'LineStyle','--','Marker',"hexagram","MarkerIndices",[1:10:length(Fhexa)])
-legend('AT1','AT2 sqrt','Linear','Rational (1MPa)','Rational (2MPa)','SIMP','Homogenized (Square)','Homogenized (Circle)','Homogenized (Hexagon)')
-title('Force-displacement 1Elem')
+load('AT1nu0.mat')
+uAT1 = outputData.displacement.value;
+dAT1 = outputData.damage.maxValue;
+fAT1 = outputData.force;
+
+load('AT2sqrt0.mat')
+uAT2 = outputData.displacement.value;
+dAT2 = outputData.damage.maxValue;
+fAT2 = outputData.force;
+
+load('Linear.mat')
+uLinear = outputData.displacement.value;
+dLinear = outputData.damage.maxValue;
+fLinear = outputData.force;
+
+load('Ratnu0_1.mat')
+uRatio1 = outputData.displacement.value;
+dRatio1 = outputData.damage.maxValue;
+fRatio1 = outputData.force;
+
+load('Ratnu0_2.mat')
+uRatio2 = outputData.displacement.value;
+dRatio2 = outputData.damage.maxValue;
+fRatio2 = outputData.force;
+
+load('SIMPnu0.mat')
+uSimp = outputData.displacement.value;
+dSimp = outputData.damage.maxValue;
+fSimp = outputData.force;
 
 figure()
-plot(uAT,dAT,'Color',cmp(1,:))
 hold on
-plot(uAT2,dAT2,'Color',cmp(1,:),'LineStyle','--')
-plot(uLinear,dLinear,'Color',cmp(2,:))
-plot(uRatio1,dRatio1,'Color',cmp(3,:),'LineStyle','--','Marker',"o","MarkerIndices",[1:2:length(Fratio1)])
-plot(uRatio2,dRatio2,'Color',cmp(3,:),'LineStyle','--','Marker',"square","MarkerIndices",[1:5:length(Fratio2)])
-plot(uSIMP,dSIMP,'Color',cmp(4,:))
-plot(uSquare,dSquare,'Color',cmp(5,:),'LineStyle','--','Marker',"square","MarkerIndices",[1:10:length(Fsquare)])
-plot(uCircle,dCircle,'Color',cmp(5,:),'LineStyle','--','Marker',"o","MarkerIndices",[1:10:length(FCircle)])
-plot(uHexa,dHexa,'Color',cmp(5,:),'LineStyle','--','Marker',"hexagram","MarkerIndices",[1:10:length(Fhexa)])
-legend('AT1','AT2 sqrt','Linear','Rational (1MPa)','Rational (2MPa)','SIMP','Homogenized (Square)','Homogenized (Circle)','Homogenized (Hexagon)')
-title('Damage-displacement 1Elem')
+plot(uAT1,fAT1,'Color',cmp(1,:))
+plot(uAT2,fAT2,'Color',cmp(1,:),'LineStyle','--')
+plot(uLinear,fLinear,'Color',cmp(2,:))
+plot(uRatio2,fRatio2,'Color',cmp(3,:),'LineStyle','--','Marker',"square","MarkerIndices",[1:5:length(fRatio2)])
+plot(uSimp,fSimp,'Color',cmp(4,:))
+legend('AT1','AT2','Rational (2MPa)','SIMPALL')
+title('Force-displacement 1Elem (nu = 0)')
+
+% figure()
+% hold on
+% plot(uAT1,fAT1,'Color',cmp(1,:))
+% plot(uAT2,fAT2,'Color',cmp(1,:),'LineStyle','--')
+% plot(uLinear,fLinear,'Color',cmp(2,:))
+% plot(uRatio1,fratio1,'Color',cmp(3,:),'LineStyle','--','Marker',"o","MarkerIndices",[1:2:length(Fratio1)])
+% plot(uRatio2,fratio2,'Color',cmp(3,:),'LineStyle','--','Marker',"square","MarkerIndices",[1:5:length(Fratio2)])
+% plot(uSimp,fSimp,'Color',cmp(4,:))
+% plot(uSquare,Fsquare,'Color',cmp(5,:),'LineStyle','--','Marker',"square","MarkerIndices",[1:10:length(Fsquare)])
+% plot(uCircle,FCircle,'Color',cmp(5,:),'LineStyle','--','Marker',"o","MarkerIndices",[1:10:length(FCircle)])
+% plot(uHexa,Fhexa,'Color',cmp(5,:),'LineStyle','--','Marker',"hexagram","MarkerIndices",[1:10:length(Fhexa)])
+% legend('AT1','AT2 sqrt','Linear','Rational (1MPa)','Rational (2MPa)','SIMP','Homogenized (Square)','Homogenized (Circle)','Homogenized (Hexagon)')
+% title('Force-displacement 1Elem')
+% 
+% figure()
+% plot(uAT,dAT,'Color',cmp(1,:))
+% hold on
+% plot(uAT2,dAT2,'Color',cmp(1,:),'LineStyle','--')
+% plot(uLinear,dLinear,'Color',cmp(2,:))
+% plot(uRatio1,dRatio1,'Color',cmp(3,:),'LineStyle','--','Marker',"o","MarkerIndices",[1:2:length(Fratio1)])
+% plot(uRatio2,dRatio2,'Color',cmp(3,:),'LineStyle','--','Marker',"square","MarkerIndices",[1:5:length(Fratio2)])
+% plot(uSIMP,dSIMP,'Color',cmp(4,:))
+% plot(uSquare,dSquare,'Color',cmp(5,:),'LineStyle','--','Marker',"square","MarkerIndices",[1:10:length(Fsquare)])
+% plot(uCircle,dCircle,'Color',cmp(5,:),'LineStyle','--','Marker',"o","MarkerIndices",[1:10:length(FCircle)])
+% plot(uHexa,dHexa,'Color',cmp(5,:),'LineStyle','--','Marker',"hexagram","MarkerIndices",[1:10:length(Fhexa)])
+% legend('AT1','AT2 sqrt','Linear','Rational (1MPa)','Rational (2MPa)','SIMP','Homogenized (Square)','Homogenized (Circle)','Homogenized (Hexagon)')
+% title('Damage-displacement 1Elem')
 
 
 
