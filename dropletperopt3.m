@@ -39,8 +39,8 @@ s.trial = createRho(m);
 f = Filter.create(s);
 d = f.compute(cFun,2);
 
-rho0 = d;
-vol= Integrator.compute(rho0,m,2);
+chi0 = d;
+vol= Integrator.compute(chi0,m,2);
 
 %noDx=norm(full(Dx)); noDy=norm(full(Dy));
 
@@ -57,15 +57,18 @@ proxG = @(rho,chi) proximalL2Projection(rho,chi,taucpe);
 %grad = @(u) Grad(u);
 %div  = @(z) Div(z);
 
-rho = rho0;
 z0 = createSigmaFunction(m);
+
+chi = chi0;
+rho = chi0;
+z = z0;
 for iopt=1:20
-[rho,z] = PerimeterMinimization(rho,z0,proxF,proxG,tauF,tauG,thetaRel);
-rho = ProjectToVolumeConstraint(rho,vol);
+[rho,z] = PerimeterComputation(chi,rho,z0,proxF,proxG,tauF,tauG,thetaRel);
+chi = ProjectToVolumeConstraint(rho,vol);
 close all
-rho.plot()
+chi.plot()
 drawnow
-volCon = computeVolumeConstraint(rho,vol)
+volCon = computeVolumeConstraint(chi,vol)
 end
 
 end
@@ -123,8 +126,8 @@ for kcp=1:10
 end
 end
 
-function [u,z] = PerimeterMinimization(u0,z0,proxF,proxGX,tauF,tauG,thetaRel)
-proxG = @(rhoX) proxGX(rhoX,u0);   
+function [u,z] = PerimeterComputation(chi,u0,z0,proxF,proxGX,tauF,tauG,thetaRel)
+proxG = @(rho) proxGX(rho,chi);   
 [u,z] = solveWithChambollePockAlgorithm(u0,z0,proxF,proxG,tauF,tauG,thetaRel);
 end
 

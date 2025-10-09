@@ -62,16 +62,11 @@ function U = inizalization(nx,ny,Lx,Ly)
 end
 
 function [X,Y] = createSquareDomain(nx,ny,Lx,Ly)
-% X=ones(ny,1)*[1:nx];
-% X=reshape(X',1,nx*ny)';
-% Y=[1:ny]'*ones(1,nx); 
-% Y=reshape(Y',1,nx*ny)';
-
 [XX,YY] = meshgrid(linspace(0,Lx,nx), linspace(0,Ly,ny));
 X = XX(:);
 Y = YY(:);
 end
-% 
+ 
 function D = createDerivative(nx,ny,nxy,Lx,Ly)
     dx=1;Lx/(nx-1); dy=1;Ly/(ny-1);
     fidi = [-1 1 0];
@@ -119,7 +114,7 @@ end
 end
 
 function [u,z] = PerimeterComputation(chi,u0,z0,Grad,Div,proxF,proxGX,tauF,tauG,thetaRel)
-proxG = @(rhoX) proxGX(rhoX,chi);   
+proxG = @(rho) proxGX(rho,chi);   
 [u,z] = solveWithChambollePockAlgorithm(u0,z0,Grad,Div,proxF,proxG,tauF,tauG,thetaRel);
 end
 
