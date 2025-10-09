@@ -282,7 +282,7 @@ classdef OfflineDataProcessor < handle
 
         function K  = computeLHS(obj,u)          
             C = obj.createMaterial(obj.mesh);
-            K = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),u,u,obj.mesh,2);
+            K = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),u,u,obj.mesh,2); %DP(u,v) 
         end
 
     end

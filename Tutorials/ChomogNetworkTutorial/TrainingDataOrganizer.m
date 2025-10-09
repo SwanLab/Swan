@@ -1,8 +1,5 @@
 classdef TrainingDataOrganizer
-    % SPDDataProcessor  Processes stiffness SPD matrices for NN training
-    %   Takes a cell array of 8x8 SPD matrices and their labels,
-    %   applies Cholesky decomposition, and outputs a numeric matrix
-    %   suitable for training neural networks.
+    % TrainingDataOrganizer  Processes stiffness SPD matrices for NN training
     
     properties
         Matrices   % Cell array of SPD matrices
@@ -37,17 +34,15 @@ classdef TrainingDataOrganizer
             for i = 1:n
                 A = obj.Matrices{i};
                 
-                % Check SPD via Cholesky
-                [L, p] = chol(A, 'lower');
+                                [L, p] = chol(A, 'lower'); % Check SPD via Cholesky decomsd
                 if p > 0
                     error('Matrix %d is not SPD.', i);
                 end
                 
-                % Extract lower-triangular part as feature vector
+                % Extract lower-triangular part
                 features = L(tril(true(size(L))))';
-                
-                % Combine with label
-                trainingMatrix(i, :) = [obj.Labels(i), features];
+                                
+                trainingMatrix(i, :) = [obj.Labels(i), features]; % Combine with label
             end
         end
     end
