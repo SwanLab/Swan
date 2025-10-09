@@ -42,7 +42,7 @@ classdef TutorialToPythonDensitySetting < handle
         end
 
         function x0 = getInitialGuess(obj)
-            x0 = 0.4 * ones(size(obj.designVariable.fun.fValues));
+            x0 = 0.99 * ones(size(obj.designVariable.fun.fValues));
         end
 
         function [j,dj] = computeCost(obj,xVal)
@@ -77,10 +77,12 @@ classdef TutorialToPythonDensitySetting < handle
             end
         end
 
-        function [x,patch] = filterRho(obj)
+        function [x,patch,xmax,ymax] = computePlotterParams(obj)
             xP0 = obj.filterPlotter.compute(obj.designVariable.fun,2);
             x   = xP0.fValues;
             patch = permute(obj.mesh.coordElem,[3 2 1]);
+            xmax    = max(obj.mesh.coord(:,1));
+            ymax    = max(obj.mesh.coord(:,2));
         end
 
     end
@@ -92,14 +94,10 @@ classdef TutorialToPythonDensitySetting < handle
         end
 
         function createMesh(obj)
-            %UnitMesh better
-            x1      = linspace(0,2,100);
-            x2      = linspace(0,1,50);
-            [xv,yv] = meshgrid(x1,x2);
-            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            s.coord  = V(:,1:2);
-            s.connec = F;
-            obj.mesh = Mesh.create(s);
+            % CANTILEVER
+            obj.mesh = TriangleMesh(2,1,100,50);
+
+            %
         end
 
         function createDesignVariable(obj)
@@ -205,7 +203,12 @@ classdef TutorialToPythonDensitySetting < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
+
+            % CANTILEVER
             s.volumeTarget = 0.4;
+
+            %
+
             s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
@@ -230,32 +233,27 @@ classdef TutorialToPythonDensitySetting < handle
             obj.constraint      = Constraint(s);
         end
 
-        function createPrimalUpdater(obj)
-            s.ub     = 1;
-            s.lb     = 0;
-            s.tauMax = 1000;
-            s.tau    = [];
-            obj.primalUpdater = ProjectedGradient(s);
-        end
-
-        function createOptimizer(obj)
-            s.monitoring     = true;
-            s.cost           = obj.cost;
-            s.constraint     = obj.constraint;
-            s.designVariable = obj.designVariable;
-            s.maxIter        = 3;
-            s.tolerance      = 1e-8;
-            s.constraintCase = {'EQUALITY'};
-            s.primal         = 'PROJECTED GRADIENT';
-            s.etaNorm        = 0.01;
-            s.gJFlowRatio    = 2;
-            s.primalUpdater  = obj.primalUpdater;
-            opt = OptimizerNullSpace(s);
-            opt.solveProblem();
-            obj.optimizer = opt;
-        end
-
         function bc = createBoundaryConditions(obj)
+            % CANTILEVER
+            bc = obj.createBCCantilever();
+
+            %
+        end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        function bc = createBCCantilever(obj)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
             isDir   = @(coor)  abs(coor(:,1))==0;

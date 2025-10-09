@@ -4,6 +4,7 @@ sys.path.append("C:/Users/JOSE A. TORRES/Documents/GitHub/Swan/Florian"), \
 from nullspace_optimizer import EuclideanOptimizable,\
 bound_constraints_optimizable, memoize, filtered_optimizable,\
 nlspace_solve
+
 import numpy as np
 import cvxopt
 import cvxopt.cholmod
@@ -11,32 +12,19 @@ import scipy.sparse as sp
 import matplotlib.pyplot as plt
 from matplotlib.collections import PolyCollection
 from matplotlib import colors
+
 import matlab.engine
 eng = matlab.engine.start_matlab()
 eng.addpath(eng.genpath('C:/Users/JOSE A. TORRES/Documents/GitHub/Swan'), nargout=0)
 tutorial = eng.TutorialToPythonDensitySetting(nargout=1)
  
-def init(**kwargs):
-# Initialized global variables
-    global nelx, nely, volfrac, rmin, penal
-    global H, Hs, ndof, KE, iK, jK, fixed, free
-    global edofMat, f, dofs
- 
- 
-# Default input parameters
-    nelx = kwargs.get("nelx", 180)
-    nely = kwargs.get("nely", 60)
-    volfrac = kwargs.get("volfrac", 0.4)
-    rmin = kwargs.get("rmin", 5.4)
-    penal = kwargs.get("penal", 3.0)
-
 def to_matlab(x):
     import matlab
     return matlab.double(np.atleast_2d(x).tolist())
 
-def from_matlab(x):
+def from_matlabVector(x):
     import numpy as np
-    return np.fromiter((v[0] for v in x),dtype=np.float64) #np.array(x)
+    return np.fromiter((v[0] for v in x),dtype=np.float64)
 
 
 # Definition of the optimization problem
@@ -44,7 +32,7 @@ def from_matlab(x):
 class TO_problem(EuclideanOptimizable):
     def x0(self):
         xI = eng.getInitialGuess(tutorial)
-        return from_matlab(xI)
+        return from_matlabVector(xI)
 
     def J(self, x):
         xM = to_matlab(x)
@@ -55,7 +43,7 @@ class TO_problem(EuclideanOptimizable):
     def dJ(self, x):
         xM = to_matlab(x)
         [j,dj] = eng.computeCost(tutorial,xM,nargout=2)
-        dc = from_matlab(dj)
+        dc = from_matlabVector(dj)
         return dc
 
     def G(self, x):
@@ -66,13 +54,15 @@ class TO_problem(EuclideanOptimizable):
     def dG(self, x):
         xM = to_matlab(x)
         [j,dj] = eng.computeConstraint(tutorial,xM,nargout=2)
-        dc = from_matlab(dj)
+        dc = from_matlabVector(dj)
         return dc
 
     def accept(self, params, results):
         # Plot the design at every iteration
-        [xM,patch] = eng.filterRho(tutorial,nargout=2)
-        x = from_matlab(xM)
+        [xM,patch,xmax,ymax] = eng.computePlotterParams(tutorial,nargout=4)
+        xmax = np.float64(xmax)
+        ymax = np.float64(ymax)
+        x = from_matlabVector(xM)
         if not hasattr(self, "fig"):
             self.fig, self.ax = plt.subplots()
             patches = np.array(patch)
@@ -86,8 +76,8 @@ class TO_problem(EuclideanOptimizable):
             self.ax.set_aspect('equal')
             self.ax.axis('off')
             self.fig.show()
-            self.ax.set_xlim(0, 2)
-            self.ax.set_ylim(0, 1)
+            self.ax.set_xlim(0, xmax)
+            self.ax.set_ylim(0, ymax)
             self.fig.canvas.draw()
             self.fig.canvas.flush_events()
         cmap = plt.get_cmap('gray')
@@ -98,17 +88,17 @@ class TO_problem(EuclideanOptimizable):
         plt.pause(0.01)
 
 # Optimization parameters
-optimization_params = {"dt": 0.05,
+optimization_params = {"dt": 0.01,
                         "itnormalisation": 50,
                         "save_only_N_iterations": 1,
                         "save_only_Q_constraints": 5,
-                        "alphaJ": 1.25,
+                        "alphaJ": 5,
                         "alphaC": 1,
-                        "maxit": 150}
-# Initialize and solve the TO problem
-init()
+                        "maxit": 500}
+
 case = TO_problem()
 results = nlspace_solve(case, optimization_params) 
+plt.ioff()
 
 it = results['it']
 J = results['J']
@@ -128,3 +118,5 @@ axes[1].grid(True, linestyle='--', alpha=0.6)
 
 plt.tight_layout()
 plt.show()
+
+end=True

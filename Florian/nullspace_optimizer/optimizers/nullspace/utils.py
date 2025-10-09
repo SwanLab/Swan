@@ -146,7 +146,7 @@ def get_gradient_transpose(A, dJ, dC, tildeEps):
     solve = factorized(A)
 
     dJT = solve(dJ)
-    dCT = np.zeros(dC.shape).T
+    dCT = np.zeros(dC.shape).T #sp.csc_matrix
     if hasattr(A, 'tocsc'):
         A = A.tocsc()
     tic()
