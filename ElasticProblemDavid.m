@@ -15,8 +15,8 @@ classdef ElasticProblemDavid < handle
     
     methods (Access = public)
         
-        function obj = ElasticProblemDavid()
-            obj.init()
+        function obj = ElasticProblemDavid(s)
+            obj.init(s)
             obj.createMesh()
             obj.createMaterial()
             obj.createBoundaryConditions()
