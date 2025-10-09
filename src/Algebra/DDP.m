@@ -10,6 +10,18 @@ function dom = DDP(varargin)
     else
         s.mesh = B.mesh;
     end
+    if isa(A,'Material')
+        nA = 0; 
+    else 
+        nA = A.ndimf;
+    end
+    if isa(B,'Material')
+        nB = 0;
+    else 
+        nB = B.ndimf;
+    end
+
+    s.ndimf = max(nA,nB);
     dom        = DomainFunction(s);
 end
 
