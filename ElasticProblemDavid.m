@@ -6,7 +6,12 @@ classdef ElasticProblemDavid < handle
     end
     
     properties (Access = private)
-        
+            
+
+
+
+
+
     end
     
     properties (Access = private)
@@ -15,8 +20,8 @@ classdef ElasticProblemDavid < handle
     
     methods (Access = public)
         
-        function obj = ElasticProblemDavid(s)
-            obj.init(s)
+        function obj = ElasticProblemDavid()
+            obj.init()
             obj.createMesh()
             obj.createMaterial()
             obj.createBoundaryConditions()
