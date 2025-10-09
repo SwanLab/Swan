@@ -12,8 +12,8 @@ dy = Ly/(ny-1);
 D = createDerivative(nx,ny,nxy,dx,dy);
 
 % Initialization
-rho0 = inizalization(nx,ny,Lx,Ly);
-vol=sum(rho0);
+chi0 = inizalization(nx,ny,Lx,Ly);
+vol  =sum(chi0);
 
 %noDx=norm(full(Dx)); noDy=norm(full(Dy));
 
@@ -24,27 +24,28 @@ ep=1e-5;
 eps=10; 
 taucpe=tauG/eps^2;
 
-%proxF = @(z)  proximalDroplet(z,tauF,k,alpha,ep);
-proxF = @(z)  proximalEllipse(z,tauF,alpha);
+proxF = @(z)  proximalDroplet(z,tauF,k,alpha,ep);
+%proxF = @(z)  proximalEllipse(z,tauF,alpha);
 proxG = @(rho,rho0) proximalL2Projection(rho,rho0,taucpe);
 grad = @(u) Grad(D,u);
 div  = @(z) Div(D,z);
 
-rho = rho0;
+chi = chi0;
+rho = chi0;
 z0  = zeros(nxy,2);
-z = z0;
+z   = z0;
 for iopt=1:20
-[rho,z] = PerimeterComputation(rho,z0,grad,div,proxF,proxG,tauF,tauG,thetaRel);
-rho = ProjectToVolumeConstraint(rho,vol);
-plotSurf(rho,nx,ny)
-plot(rho,nx,ny)
-volCon = computeVolumeConstraint(rho,vol)
+[rho,z] = PerimeterComputation(chi,rho,z0,grad,div,proxF,proxG,tauF,tauG,thetaRel);
+chi = ProjectToVolumeConstraint(rho,vol);
+plotSurf(chi,nx,ny)
+plot(chi,nx,ny)
+volCon = computeVolumeConstraint(chi,vol)
 end
 
 end
 
-function volCon = computeVolumeConstraint(rho,vol)
-volCon = sum(rho)/vol - 1;
+function volCon = computeVolumeConstraint(chi,vol)
+volCon = sum(chi)/vol - 1;
 end
 
 function U = inizalization(nx,ny,Lx,Ly)
@@ -109,7 +110,7 @@ function [u,z] = solveWithChambollePockAlgorithm(u0,z0,Grad,Div,proxF,proxG,tauF
 u  = u0; 
 uN = u0;
 z   = z0; 
-for kcp=1:1000
+for kcp=1:2000
     z      = proxF(z + tauF*Grad(uN));
     uOld   = u;
     u      = proxG(u - tauG*Div(z));
@@ -117,8 +118,8 @@ for kcp=1:1000
 end
 end
 
-function [u,z] = PerimeterComputation(u0,z0,Grad,Div,proxF,proxGX,tauF,tauG,thetaRel)
-proxG = @(rhoX) proxGX(rhoX,u0);   
+function [u,z] = PerimeterComputation(chi,u0,z0,Grad,Div,proxF,proxGX,tauF,tauG,thetaRel)
+proxG = @(rhoX) proxGX(rhoX,chi);   
 [u,z] = solveWithChambollePockAlgorithm(u0,z0,Grad,Div,proxF,proxG,tauF,tauG,thetaRel);
 end
 
@@ -145,11 +146,11 @@ C=UC; C(:,:,2)=UC; C(:,:,3)=UC;
 figure(3); clf; image(C); set(gca,'xtick',[]); set(gca,'ytick',[]); axis image; 
 end
 
-function U = ProjectToVolumeConstraint(u,vol)
+function chi = ProjectToVolumeConstraint(rho,vol)
 lLb=0; lUb=1;
 for idic=1:100
     lam = (lLb+lUb)/2;
-    uTest=  u > lam;
+    uTest=  rho > lam;
     constraint = computeVolumeConstraint(uTest,vol);
     if (constraint > 0)
         lLb =lam;
@@ -157,5 +158,5 @@ for idic=1:100
         lUb =lam;
     end
 end
-U=real(uTest);
+chi=real(uTest);
 end

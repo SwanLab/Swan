@@ -70,8 +70,8 @@ end
 
 end
 
-function volCon = computeVolumeConstraint(rho,vol)
-volCon = Integrator.compute(rho,rho.mesh,2)/vol - 1;
+function volCon = computeVolumeConstraint(chi,vol)
+volCon = Integrator.compute(chi,chi.mesh,2)/vol - 1;
 end
 
 
@@ -140,29 +140,27 @@ fV = repmat(A,[1 1 nGauss nElem]);
 end
 
 
-
-
-
-function plot(rho0,nx,ny)
-Ut=reshape(rho0,nx,ny)';
-figure(1); clf; surf(Ut);
-UC=0.8*flipud(-Ut+1);
-C=UC; C(:,:,2)=UC; C(:,:,3)=UC;
-figure(3); clf; image(C); set(gca,'xtick',[]); set(gca,'ytick',[]); axis image; 
-end
-
-function U = ProjectToVolumeConstraint(u,vol)
-U = createRho(u.mesh);
+function chi = ProjectToVolumeConstraint(u,vol)
+chi = createRho(u.mesh);
 lLb=0; lUb=1;
 for idic=1:100
     lam = (lLb+lUb)/2;
-    U.setFValues(u.fValues > lam);
-    constraint = computeVolumeConstraint(U,vol);
+    chi = createCharacteristicFunction(u,lam);
+    constraint = computeVolumeConstraint(chi,vol);
     if (constraint > 0)
         lLb =lam;
     else
         lUb =lam;
     end
 end
-U.setFValues(real(U.fValues));
+end
+
+
+function chi = createCharacteristicFunction(u,lambda)
+op = @(xV) evaluateCharact(xV,u,lambda);
+chi = DomainFunction.create(op,u.mesh,1);
+end
+
+function fV = evaluateCharact(xV,u,lambda)
+fV = real(u.evaluate(xV)-lambda>0);
 end
