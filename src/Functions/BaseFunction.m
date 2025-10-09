@@ -6,7 +6,7 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
 
     properties (GetAccess = protected, SetAccess = protected)
        fxVOld
-       xVOldfV
+       xVOld
     end
 
     properties (GetAccess = public, SetAccess = protected)
@@ -17,10 +17,10 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
     methods (Access = public)
 
         function fxV = evaluate(obj, xV)
-            if ~isequal(xV,obj.xVOldfV) || isempty(obj.fxVOld)
+            if ~isequal(xV,obj.xVOld) || isempty(obj.fxVOld)
                 fxV = obj.evaluateNew(xV);
                 obj.fxVOld  = fxV;
-                obj.xVOldfV = xV;
+                obj.xVOld = xV;
             else
                 fxV = obj.fxVOld;
             end

@@ -1,8 +1,8 @@
 classdef DOFsComputer < handle
-    
+
     properties (Access = public)
     end
-    
+
     properties (Access = private)
         dofs
         ndofs
@@ -13,47 +13,42 @@ classdef DOFsComputer < handle
         interp
         continuityType
     end
-    
+
     methods (Access = public)
-        
+
         function obj = DOFsComputer(cParams)
             obj.init(cParams);
         end
-        
-        
+
         function computeDofs(obj)
             obj.computeDofsPriv();
             obj.obtainDofsForVectorField();
         end
-        
-        
+
         function computeCoord(obj)
             if isempty(obj.dofs)
                 obj.computeDofs();
             end
 
-            if  isa(obj.mesh,'Mesh') 
+            if  isa(obj.mesh,'Mesh')
                 obj.computeCoordPriv(obj.dofs);
             end
         end
-        
-        
+
         function ndofs = getNumberDofs(obj)
             ndofs = obj.ndofs;
         end
-        
-        
+
         function dofs = getDofs(obj)
             dofs = obj.dofs;
         end
-        
-        
+
         function coord = getCoord(obj)
             coord = obj.coord;
         end
-        
+
     end
-        
+
     methods (Access = private)
 
         function init(obj,cParams)
@@ -66,33 +61,29 @@ classdef DOFsComputer < handle
             else
                 obj.continuityType = 'Cont';
             end
-            
+
             if any(contains(fieldnames(cParams),'interpolation'))
                 obj.interp = cParams.interpolation;
             end
         end
-        
-        
+
+
         function computeDofsPriv(obj)
             dofsVertices = obj.computeDofsVertices();
-            
             dofsEdges = obj.computeDofsEdges();
             ndofsEdges = max(max(dofsEdges));
-            
             if ~strcmp(obj.mesh.type,'LINE')
                 dofsFaces = obj.computeDofsFaces(ndofsEdges);
                 ndofsFaces = max(max(dofsFaces));
-            
                 dofsElements = obj.computeDofsElements(ndofsFaces);
             else
                 dofsFaces = [];
                 dofsElements = [];
             end
-
             obj.dofs = [dofsVertices,dofsEdges,dofsFaces,dofsElements];
         end
-        
-        
+
+
         function computeCoordPriv(obj,dofs)
             switch obj.continuityType
                 case 'Cont'
@@ -134,7 +125,7 @@ classdef DOFsComputer < handle
                     obj.coord = coorD;
             end
 
-            end
+        end
 
         function dofs = computeNodesToDofs(obj,nodes)
             for iDimf = 1:obj.ndimf
@@ -143,7 +134,6 @@ classdef DOFsComputer < handle
             dofs = dofs(:);
         end
 
-        
         function dofsVertices = computeDofsVertices(obj)
             switch obj.continuityType
                 case 'Cont'
@@ -154,20 +144,17 @@ classdef DOFsComputer < handle
                         dofsVertices = m.connec;
                     end
                 case 'Disc'
-                nDofs = obj.mesh.nnodeElem*obj.mesh.nelem;                    
-                nodes = 1:nDofs;
-                dofsVertices = reshape(nodes,obj.mesh.nnodeElem,obj.mesh.nelem)';        
+                    nDofs = obj.mesh.nnodeElem*obj.mesh.nelem;
+                    nodes = 1:nDofs;
+                    dofsVertices = reshape(nodes,obj.mesh.nnodeElem,obj.mesh.nelem)';
             end
         end
 
-
         function result = vectorUnion(~, v, n, fl)
-
             result = v + (0:n-1);
             result(fl,:) = flip(result(fl,:),2);
         end
 
-        
         function dofsEdges = computeDofsEdges(obj)
             if obj.order <= 1
                 dofsEdges = [];
@@ -177,7 +164,7 @@ classdef DOFsComputer < handle
                 edges = m.edges.edgesInElem;
                 ndofEdge = obj.order-1;
                 ndofsEdgeElem = obj.mesh.edges.nEdgeByElem;
-                
+
                 dofsEdges = zeros(obj.mesh.nelem,ndofsEdgeElem*ndofEdge);
                 locPointEdge = squeeze(obj.mesh.edges.localNodeByEdgeByElem(:,:,1));
                 locPointEdgeRef = obj.computeLocPointEdgeRef();
@@ -188,23 +175,21 @@ classdef DOFsComputer < handle
                     v = edges(:,iEdge)*ndofEdge-(ndofEdge-1);
                     dofsEdges(:,ind) = obj.vectorUnion(v, length(ind), fl);
                 end
-
                 dofsEdges = dofsEdges + m.nnodes;
             end
         end
-        
-        
+
         function dofsFaces = computeDofsFaces(obj,ndofsEdges)
             m = obj.mesh;
             polOrder = obj.order;
             if polOrder <= 1
                 dofsFaces = [];
-            else 
+            else
                 m.computeFaces();
                 faces = m.faces.facesInElem;
                 ndofFace = obj.computeNdofsFaces(polOrder);
                 ndofsFaceElem = ndofFace*obj.mesh.faces.nFaceByElem;
-                
+
                 dofsFaces = zeros(obj.mesh.nelem,ndofsFaceElem);
                 for iElem = 1:obj.mesh.nelem
                     for iFace = 1:obj.mesh.faces.nFaceByElem
@@ -212,11 +197,10 @@ classdef DOFsComputer < handle
                         dofsFaces(iElem,ind) = faces(iElem,iFace)*ndofFace-(ndofFace-1):faces(iElem,iFace)*ndofFace;
                     end
                 end
-                
                 dofsFaces = dofsFaces + ndofsEdges;
             end
         end
-        
+
         function ndofsFaces = computeNdofsFaces(obj,polOrder)
             switch obj.mesh.type
                 case {'TRIANGLE','TETRAHEDRA'}
@@ -224,7 +208,6 @@ classdef DOFsComputer < handle
                 case {'QUAD','HEXAHEDRA'}
                     d = 2;
             end
-            
             ord = polOrder - d;
             ndofsFaces = 0;
             if ord == 0
@@ -234,25 +217,24 @@ classdef DOFsComputer < handle
                 ndofsFaces = ndofsFaces + obj.computeNdofsFaces(ord-d);
             end
         end
-        
-        
+
         function dofsElements = computeDofsElements(obj,ndofsFaces)
             m = obj.mesh;
-            polOrder = obj.order; 
-            isNot3D = strcmp(m.type,'TRIANGLE') || strcmp(m.type,'LINE') || strcmp(m.type,'QUAD'); 
+            polOrder = obj.order;
+            isNot3D = strcmp(m.type,'TRIANGLE') || strcmp(m.type,'LINE') || strcmp(m.type,'QUAD');
             if polOrder <= 1 || isNot3D
                 dofsElements = [];
-            else 
+            else
                 ndofElement = obj.computeNdofsElements(polOrder);
                 dofsElements = zeros(obj.mesh.nelem,ndofElement);
                 for iElem = 1:obj.mesh.nelem
                     dofsElements(iElem,:) = (iElem-1)*ndofElement+1:iElem*ndofElement;
                 end
-                
+
                 dofsElements = dofsElements + ndofsFaces;
             end
         end
-        
+
         function ndofsElements = computeNdofsElements(obj,polOrder)
             switch obj.mesh.type
                 case 'TETRAHEDRA'
@@ -260,7 +242,6 @@ classdef DOFsComputer < handle
                 case 'HEXAHEDRA'
                     d = 2;
             end
-            
             ord = polOrder - d;
             ndofsElements = 0;
             if ord == 0
@@ -276,8 +257,7 @@ classdef DOFsComputer < handle
                 ndofsElements = ndofsElements + c.getNumberDofs();
             end
         end
-        
-        
+
         function obtainDofsForVectorField(obj)
             dofsDim =  obj.dofs;
             nDimf  = obj.ndimf;
@@ -295,8 +275,7 @@ classdef DOFsComputer < handle
             obj.dofs = dofsElem';
             obj.ndofs = max(max(obj.dofs));
         end
-        
-        
+
         function ord = convertOrder(~,order)
             if ischar(order)
                 switch order
@@ -313,8 +292,7 @@ classdef DOFsComputer < handle
                 ord = order;
             end
         end
-        
-        
+
         function loc = computeLocPointEdgeRef(obj)
             type = obj.mesh.type;
             switch type
@@ -330,7 +308,7 @@ classdef DOFsComputer < handle
                     loc = [1 4 1 2 2 3 3 4 5 8 6 7];
             end
         end
-        
+
         function fh = computefHandlePosition(obj)
             ndim = obj.mesh.ndim;
             switch ndim

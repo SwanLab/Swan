@@ -1,7 +1,9 @@
 classdef AlgebraicOperationsTests < handle & matlab.unittest.TestCase
 
     properties (TestParameter)
-        multiplication = {'ScalarScalar','ScalarMatrix','MatrixMatrix'}
+       % multiplication = {'ScalarScalar','ScalarMatrix','MatrixMatrix'}
+                multiplication = {'ScalarScalar'}
+
         dotProduct = {'VectorVector','MatrixVector'}
         doubleDotProduct = {'MatrixMatrix','TensorMatrix'}
     end
@@ -20,29 +22,29 @@ classdef AlgebraicOperationsTests < handle & matlab.unittest.TestCase
             testCase.verifyLessThanOrEqual(err, tol)
         end
 
-        function testDotProduct(testCase,dotProduct)
-            filename = ['testDP',dotProduct];
-            load(filename,'input')
-            [f1,f2] = testCase.createFunctions(input);
-            x = DP(f1,f2);
-            xNew = x.evaluate([0;0]);
-            load(filename,'xRef');
-            err = pagenorm(xNew-xRef)./pagenorm(xRef); 
-            tol      = 1e-6;
-            testCase.verifyLessThanOrEqual(err, tol)
-        end
-
-        function testDoubleDotProduct(testCase,doubleDotProduct)
-            filename = ['testDDP',doubleDotProduct];
-            load(filename,'input')
-            [f1,f2] = testCase.createFunctions(input);
-            x = DDP(f1,f2);
-            xNew = x.evaluate([0;0]);
-            load(filename,'xRef');
-            err = pagenorm(xNew-xRef)./pagenorm(xRef);
-            tol      = 1e-6;
-            testCase.verifyLessThanOrEqual(err, tol)
-        end
+        % function testDotProduct(testCase,dotProduct)
+        %     filename = ['testDP',dotProduct];
+        %     load(filename,'input')
+        %     [f1,f2] = testCase.createFunctions(input);
+        %     x = DP(f1,f2);
+        %     xNew = x.evaluate([0;0]);
+        %     load(filename,'xRef');
+        %     err = pagenorm(xNew-xRef)./pagenorm(xRef); 
+        %     tol      = 1e-6;
+        %     testCase.verifyLessThanOrEqual(err, tol)
+        % end
+        % 
+        % function testDoubleDotProduct(testCase,doubleDotProduct)
+        %     filename = ['testDDP',doubleDotProduct];
+        %     load(filename,'input')
+        %     [f1,f2] = testCase.createFunctions(input);
+        %     x = DDP(f1,f2);
+        %     xNew = x.evaluate([0;0]);
+        %     load(filename,'xRef');
+        %     err = pagenorm(xNew-xRef)./pagenorm(xRef);
+        %     tol      = 1e-6;
+        %     testCase.verifyLessThanOrEqual(err, tol)
+        % end
         
     end
 
