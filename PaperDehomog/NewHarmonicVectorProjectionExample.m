@@ -40,13 +40,13 @@ classdef NewHarmonicVectorProjectionExample < handle
 
         function init(obj)
             close all
-            obj.filePath = 'Old/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
-            obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
-            obj.iteration = 665;
+            % obj.filePath = 'Old/Topology Optimization/Applications/Dehomogenizing/ExampleLShape/';
+            % obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
+            % obj.iteration = 665;
 
-            % obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';
-            % obj.fileName = 'ExperimentingPlotSuperEllipse';
-            % obj.iteration = 64;
+            obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';
+            obj.fileName = 'ExperimentingPlotSuperEllipse';
+            obj.iteration = 64;
         end
 
         function loadDataExperiment(obj)
