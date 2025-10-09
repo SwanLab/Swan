@@ -24,7 +24,7 @@ s.maxIter.stag = 300;
 
 s.benchmark.mesh.type = '1Elem';
 s.benchmark.bc.type   = 'DisplacementTractionX';
-s.benchmark.bc.values = [0:1e-4:0.1];
+s.benchmark.bc.values = [0:1e-3:0.1];
 
 s.matInfo.matType = 'Analytic'; %'Analytic','Homogenized'
 s.matInfo.degradationType = 'PhaseField'; %'PhaseField','SIMPALL'

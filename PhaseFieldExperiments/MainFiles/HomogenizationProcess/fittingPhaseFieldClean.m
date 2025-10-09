@@ -20,16 +20,15 @@ function fittingPhaseFieldClean()
     objBestResult=100;
     coeff0BestResult = rand(1,60);
 
-    % load('Degradation/CircleAreaDerivative10.mat')
-    % coeffBestResult = coeff;
-    % [~, ceq] = nonlcon(coeffBestResult);
-    % disp(['MinObjective: ', num2str(objBestResult, '%.2e'), ' | MinCeq: [', num2str(abs(ceq), '%.2e '), ']']);
+    load('Degradation/CircleAreaDerivative15.mat')
+    [~, ceq] = nonlcon(coeffBestResult);
+    disp(['MinObjective: ', num2str(objBestResult, '%.2e'), ' | MinCeq: [', num2str(abs(ceq), '%.2e '), ']']);
 
     for i=1:250
         coeff0 = rand(1,60);
         [coeffOpt,fval,exitflag,output,lambda,grad,hessian] = fmincon(objective,coeff0,A,b,Aeq,beq,lb,ub,nonlcon,options);
         [~, ceq] = nonlcon(coeffOpt);
-        disp(['Objective: ', num2str(fval, '%.2e'), ' | ceq: [', num2str(abs(ceq), '%.2e '), ']']);        
+        disp(['Step: ',num2str(i),' | Objective: ', num2str(fval, '%.2e'), ' | ceq: [', num2str(abs(ceq), '%.2e '), ']']);        
 
         if fval<objBestResult
             objBestResult    = fval;
@@ -41,7 +40,7 @@ function fittingPhaseFieldClean()
     [~, ceq] = nonlcon(coeffOpt);
     disp(['MinObjective: ', num2str(objBestResult, '%.2e'), ' | MinCeq: [', num2str(abs(ceq), '%.2e '), ']']);
 
-    degFuns = generateConstitutiveTensor(coeffBestResult,objBestResult,matType,'CircleAreaDerivative10');
+    degFuns = generateConstitutiveTensor(coeffBestResult,objBestResult,matType,'CircleAreaDerivative15');
     plotResults(objective,phiData,Cdata,coeff0BestResult,coeffBestResult,degFuns)
 end
 
