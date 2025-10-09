@@ -154,13 +154,6 @@ classdef TopOptTestTutorial3DDensity < handle
         end
 
         function M = createMassMatrix(obj)
-%             s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
-%             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-%             s.mesh  = obj.mesh;
-%             s.type  = 'MassMatrix';
-%             LHS = LHSintegrator.create(s);
-%             M = LHS.compute;     
-
             n = obj.mesh.nnodes;
             h = obj.mesh.computeMinCellSize();
             M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
@@ -218,7 +211,7 @@ classdef TopOptTestTutorial3DDensity < handle
 
             pointloadFun = [];
             for i = 1:numel(sPL)
-                pl = PointLoad(obj.mesh, sPL{i});
+                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
                 pointloadFun = [pointloadFun, pl];
             end
             s.pointloadFun = pointloadFun;

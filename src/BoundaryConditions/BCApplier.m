@@ -12,8 +12,7 @@ classdef BCApplier < handle
 
         dirichlet_dofs, dirichlet_vals, dirichlet_domain
         dirichletFun
-        pointload_dofs, pointload_vals
-        pointloadFun
+        tractionFun
         periodic_leader, periodic_follower
     end
     
@@ -158,9 +157,7 @@ classdef BCApplier < handle
             obj.dirichlet_dofs  = inBC.dirichlet_dofs;
             obj.dirichlet_vals  = inBC.dirichlet_vals;
             obj.dirichlet_domain = inBC.dirichlet_domain;
-            obj.pointloadFun    = inBC.pointloadFun;
-            obj.pointload_dofs  = inBC.pointload_dofs;
-            obj.pointload_vals  = inBC.pointload_vals;
+            obj.tractionFun    = inBC.tractionFun;
             obj.periodic_leader = inBC.periodic_leader;
             obj.periodic_follower = inBC.periodic_follower;
         end
