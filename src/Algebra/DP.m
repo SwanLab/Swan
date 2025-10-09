@@ -10,7 +10,8 @@ function dom = DP(varargin)
     else
         s.mesh = B.mesh;
     end
-    dom        = DomainFunction(s);
+    s.ndimf = max(A.ndimf,B.ndimf);
+    dom     = DomainFunction(s);
 end
 
 function fVR = evaluate(A,B,dimA,dimB,xV)

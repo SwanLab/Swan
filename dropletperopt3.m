@@ -82,7 +82,7 @@ invM = inv((A+r*I));
 invMF = createTensorFunction(invM,m);
 %invMF = ConstantFunction.create(invM,m);
 
-s = r.*DP(invMF,z');
+s = r.*DP(invMF,z);
 end
 
 
