@@ -15,19 +15,21 @@ fun{1}    = AnalyticalFunction(s);
 
 s.mesh  = mesh;
 s.alpha = 4;
-s.beta  = 1;
+s.beta  = 0;
 s.theta = 90;
 filter  = NonLinearFilterSegment(s);
 filter.updateEpsilon(1);
 
-err     = [];
-n       = 1:100;
-betaVec = [1,0.5,(0.98).^(n+50),0];
-for i = 1:length(betaVec)
-    filter.updateBeta(betaVec(i));
-    [fun{end+1},newErr] = filter.compute(fun{1},2);
-    err = [err;newErr];
-end
+[fun{end+1},err] = filter.compute(fun{1},2);
+
+% err     = [];
+% n       = 1:100;
+% betaVec = [1,0.5,(0.98).^(n+50),0];
+% for i = 1:length(betaVec)
+%     filter.updateBeta(betaVec(i));
+%     [fun{end+1},newErr] = filter.compute(fun{1},2);
+%     err = [err;newErr];
+% end
 
 figure
 plot(err)
