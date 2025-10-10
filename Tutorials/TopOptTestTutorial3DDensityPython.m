@@ -131,8 +131,11 @@ classdef TopOptTestTutorial3DDensityPython < handle
         end
 
         function R = computeRigidBodyModes(obj,refPoint)
-            rigModes = RigidBodyModesComputer(obj.mesh);
-            R        = rigModes.compute(refPoint);
+            rigModes = RigidBodyFunction.create(obj.mesh,refPoint);
+            RFun = rigModes.projectBasisFunctions('P1');
+            for i = 1:length(RFun)
+                R(:,i) = reshape(RFun{i}.fValues',[],1);
+            end
         end
 
         function c = createComplianceFromConstiutive(obj)
@@ -233,7 +236,7 @@ classdef TopOptTestTutorial3DDensityPython < handle
 
             pointloadFun = [];
             for i = 1:numel(sPL)
-                pl = PointLoad(obj.mesh, sPL{i});
+                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
                 pointloadFun = [pointloadFun, pl];
             end
             s.pointloadFun = pointloadFun;
