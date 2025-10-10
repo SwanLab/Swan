@@ -34,6 +34,7 @@ TutorialXXPhaseFieldCase();
 TutorialXXPhaseFieldHomogenization();
 TutorialXXHyperelasticity();
 TutorialXXContinuumDamage();
+TutorialElasticityAMG();
 TopOptTestTutorial3DDensityPython();
 close all;
 
