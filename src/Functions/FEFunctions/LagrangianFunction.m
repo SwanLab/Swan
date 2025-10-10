@@ -3,6 +3,7 @@ classdef LagrangianFunction < FeFunction
     properties (GetAccess = public, SetAccess = private)
         nDofs
         nDofsElem
+        bFun
     end
 
     properties (Access = private)
@@ -20,7 +21,6 @@ classdef LagrangianFunction < FeFunction
         function obj = LagrangianFunction(cParams)
             obj.init(cParams);
             obj.createInterpolation();
-
             if not(contains(fieldnames(cParams),'dofs'))
                 obj.createDOFCoordConnec();
             else
@@ -276,6 +276,13 @@ classdef LagrangianFunction < FeFunction
             f.fValues = obj.fValues/fNorm;
         end
 
+        function bF = restrictBaseToBoundary(obj,bMesh)
+            if isempty(obj.bFun)
+                obj.bFun = LagrangianFunction.create(bMesh,obj.ndimf,obj.order);
+            end
+            bF = obj.bFun;
+        end
+
         % Operator overload
 
         function s = plus(a,b)
@@ -304,7 +311,7 @@ classdef LagrangianFunction < FeFunction
                 res.fValues = val1 + val2;
                 s = res;
             else % a will be lagrangian, otherwise won't enter here              
-                if isa(b, 'LagrangianFunction')
+                if isa(b, 'LagrangianFunction') & b.order == a.order
                     res = copy(a);
                     val1 = a.fValues;
                     fEv1 = a.fxVOld;
