@@ -29,7 +29,7 @@ classdef LinearizedHarmonicProjector3 < handle
             obj.fS = LagrangianFunction.create(obj.mesh, 1, 'P1');
             obj.fG = LagrangianFunction.create(obj.mesh, 1, 'P0');
             obj.createInternalDOFs();                        
-            obj.eta = (100*obj.mesh.computeMeanCellSize)^2;  
+            obj.eta = (0*obj.mesh.computeMeanCellSize)^2;  
             obj.perimeter = obj.density.*(1-obj.density);%ConstantFunction.create(1,obj.mesh);%
             obj.massMatrixBB      = IntegrateLHS(@(u,v) DP(v,obj.perimeter.*u),obj.fB,obj.fB,obj.mesh,'Domain',4);
             obj.massMatrixGG      = IntegrateLHS(@(u,v) DP(v,u),obj.fG,obj.fG,obj.mesh,'Domain',4);

@@ -44,18 +44,26 @@ classdef NewHarmonicVectorProjectionExample < handle
             % obj.fileName = 'LshapeCoarseSuperEllipseDesignVariable';
             % obj.iteration = 665;
 
-            obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';
-            obj.fileName = 'ExperimentingPlotSuperEllipse';
-            obj.iteration = 64;
+            %obj.filePath = 'Topology Optimization/Applications/Dehomogenizing/ExampleCompliance/';
+            %obj.fileName = 'ExperimentingPlotSuperEllipse';
+            %obj.iteration = 64;
+
+            %obj.iteration = 262;
+            %obj.fileName = 'CantileverSymmetricFixingMaxStressZone';
+            %obj.filePath = '/media/alex/MyPassport/LatticeResults/CantileverNoEnglishFlag/CantileverSymmetricFixingMaxStressZone';
+
+            % obj.iteration = 23;
+            % obj.fileName = 'LatticeExperimentInput';
+            % obj.filePath = '/media/alex/MyPassport/LatticeResults/CantileverComplianceRect';
         end
 
         function loadDataExperiment(obj)
-        %    s.fileName = [obj.fileName,num2str(obj.iteration)];
-        %    s.folderPath = fullfile(obj.filePath);
-        %    w = WrapperMshResFiles(s);
-        %    w.compute();
-           %d = load('DataExampleLshape.mat');
-           d = load('DataExampleCantilever.mat');
+           %s.fileName = [obj.fileName,num2str(obj.iteration)];
+           %s.folderPath = fullfile(obj.filePath);
+           %w = WrapperMshResFiles(s);
+           %w.compute();
+        %   d = load('DataExampleLshape.mat');        
+           d = load('DataExampleCantilever.mat');        
            w = d.w;
             obj.experimentData = w;
         end
@@ -96,6 +104,7 @@ classdef NewHarmonicVectorProjectionExample < handle
             [a,~] = pcomp.compute(sigma);
             a{1} = obj.projectInUnitBall(a{1});
             a{2} = obj.projectInUnitBall(a{2});
+            a{1}.plotVector
         end
 
         function createDensity(obj)
@@ -103,6 +112,7 @@ classdef NewHarmonicVectorProjectionExample < handle
             rho  = LagrangianFunction.create(obj.mesh,1,'P0');
             rho.setFValues(rhoV);
             obj.density = rho;
+            obj.density.plot
         end
 
         function createHarmonicProjection(obj)
