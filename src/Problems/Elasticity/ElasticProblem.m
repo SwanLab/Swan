@@ -105,12 +105,14 @@ classdef ElasticProblem < handle
         end
 
         function computeForces(obj)
-            bc            = obj.boundaryConditions;
-            neumann       = bc.pointload_dofs;
-            neumannValues = bc.pointload_vals;
+            bc  = obj.boundaryConditions;
+            t   = bc.tractionFun;
             rhs = zeros(obj.uFun.nDofs,1);
-            if ~isempty(neumann)
-                rhs(neumann) = neumannValues;
+            if ~isempty(t)
+                for i = 1:numel(t)
+                    rhsi = t(i).computeRHS(obj.uFun);
+                    rhs  = rhs + rhsi;
+                end
             end
             if strcmp(obj.solverType,'REDUCED')
                 bc      = obj.boundaryConditions;

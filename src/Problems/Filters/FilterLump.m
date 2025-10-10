@@ -47,7 +47,7 @@ classdef FilterLump < handle
 
         function RHS = computeRHS(obj,fun,quadType)
             f   = @(v) DP(fun,v);
-            RHS = IntegrateRHS(f,obj.trial,obj.mesh,quadType);
+            RHS = IntegrateRHS(f,obj.trial,obj.mesh,'Domain',quadType);
         end
 
     end
