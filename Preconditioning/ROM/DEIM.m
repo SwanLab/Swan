@@ -3,6 +3,8 @@ classdef DEIM < handle
     properties (GetAccess = public, SetAccess = private)
         basis
         indices
+        rightVectors
+        sValues
     end
     
     properties (Access = private)
@@ -28,11 +30,11 @@ classdef DEIM < handle
         
         function init(obj,data)
             obj.data = data;
-            obj.threshold = 0.999;
+            obj.threshold = 0.999999;
         end
         
         function computeBasis(obj)
-            [U,S,~]    = svd(obj.data,"econ");
+            [U,S,V]    = svd(obj.data,"econ");
             Svec       = diag(S);
             total      = sum(Svec.^2);
             recovered  = 0;
@@ -44,6 +46,8 @@ classdef DEIM < handle
             end
             obj.nBasis = n;
             obj.basis = U(:,1:obj.nBasis);
+            obj.sValues = S(1:obj.nBasis,1:obj.nBasis);
+            obj.rightVectors = V(:,1:obj.nBasis);
         end
         
         function computeMagicPoints(obj)
