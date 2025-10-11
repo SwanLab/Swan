@@ -66,6 +66,7 @@ classdef OfflineDataProcessor < handle
             EIFEoper.Udef = Ud;
             EIFEoper.PhiD = PhiD;
             EIFEoper.PhiR = PhiR;
+            EIFEoper.Kfine = obj.LHS;
         end
 
     end
