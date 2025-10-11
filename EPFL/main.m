@@ -1,5 +1,5 @@
 close all
-clear all
+clear
 % Specify the directory where the .mat files are located
 directory = './EPFL/'; % Update this path as needed
 
@@ -40,10 +40,11 @@ rb   = Urb(xdata);
 fK   = parameterizedData(Kcoase,xdata,centers);
 Kcoarse = fK(xdata);
 
-% for i=1:length(xdata)
-%     error(i) = norm(def(:,i)+rb(:,i)-T(:,i))/norm(T(:,i));
-%     error2(i) = norm(t(:,i)-T(:,i))/norm(T(:,i));
-% end
+for i=1:length(xdata)
+    error(i) = norm(def(:,i)+rb(:,i)-T(:,i))/norm(T(:,i));
+    error2(i) = norm(t(:,i)-T(:,i))/norm(T(:,i));
+    errorK(i) = norm(Kcoarse(:,i)-Kcoase(:,i))/norm(Kcoase(:,i));
+end
 
 %load('data_0.100.mat')
 % EIFEoper.U = reshape(def,[],8) + reshape(rb',[],8);
@@ -77,6 +78,7 @@ deim    = DEIM(var);
 
 coeff   = deim.basis(deim.indices,:)\var(deim.indices,:);
 rbf       = RBF(coeff',xdata,centers);
+% rbf       = RBF(deim.rightVectors*deim.sValues,xdata,centers);
  f = @ (r) deim.basis*rbf.evaluate(r) ;
 %f = @ (r) reshape( deim.basis*rbf.evaluate(r),[],8);
 
