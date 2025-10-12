@@ -72,10 +72,10 @@ classdef LevelSetInclusionAuto_abril < handle
 
         function createMesh(obj)
             bgMesh   = obj.createReferenceMesh();
-             %lvSet    = obj.createLevelSetFunction(bgMesh);
-             %uMesh    = obj.computeUnfittedMesh(bgMesh,lvSet);
-             %obj.mesh = uMesh.createInnerMesh();
-            obj.mesh = bgMesh;
+             lvSet    = obj.createLevelSetFunction(bgMesh);
+             uMesh    = obj.computeUnfittedMesh(bgMesh,lvSet);
+             obj.mesh = uMesh.createInnerMesh();
+            %obj.mesh = bgMesh;
             % 
             obj.boundaryMesh = obj.mesh.createBoundaryMesh();
             [obj.boundaryMeshJoined, obj.localGlobalConnecBd] = obj.mesh.createSingleBoundaryMesh();

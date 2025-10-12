@@ -89,28 +89,28 @@ classdef CoarseTestingNN_Albert < handle
 
             figure
             plot(residualPCG,'linewidth',2)
-            hold on
-            plot(residualCG,'linewidth',2)
+            %hold on
+            %plot(residualCG,'linewidth',2)
             set(gca, 'YScale', 'log')
-            legend({'CG + ILU-EIFEM-ILU','CG'},'FontSize',12)
+            %legend({'CG + ILU-EIFEM-ILU','CG'},'FontSize',12)
             xlabel('Iteration')
             ylabel('Residual')
 
             figure
             plot(errPCG,'linewidth',2)
-            hold on
-            plot(errCG,'linewidth',2)
+            %hold on
+            %plot(errCG,'linewidth',2)
             set(gca, 'YScale', 'log')
-            legend('CG + EIFEM+ ILU(CG-90%-L2)','CG')
+            %legend('CG + EIFEM+ ILU(CG-90%-L2)','CG')
             xlabel('Iteration')
             ylabel('||error||_{L2}')
 
             figure
             plot(errAnormPCG,'linewidth',2)
             hold on
-            plot(errAnormCG,'linewidth',2)
+            %plot(errAnormCG,'linewidth',2)
             set(gca, 'YScale', 'log')
-            legend('CG + EIFEM+ ILU(CG-90%-L2)','CG')
+            %legend('CG + EIFEM+ ILU(CG-90%-L2)','CG')
             xlabel('Iteration')
             ylabel('Energy norm')
 
@@ -121,11 +121,11 @@ classdef CoarseTestingNN_Albert < handle
     methods (Access = private)
 
         function init(obj)
-            % obj.NNcase = 1;
-            % nameNN = ["Kv1-0_1-NN20x20.mat","Kv1-0_15-NN20x20.mat","Kv1-0_2-NN20x20.mat","Kv1-0_25-NN20x20.mat","Kv1-0_3-NN20x20.mat","Kv1-0_35-NN20x20.mat","Kv1-0_4-NN20x20.mat","Kv1-0_45-NN20x20.mat","Kv1-0_5-NN20x20.mat","Kv1-0_55-NN20x20.mat","Kv1-0_6-NN20x20.mat","Kv1-0_65-NN20x20.mat","Kv1-0_7-NN20x20.mat","Kv1-0_75-NN20x20.mat","Kv1-0_8-NN20x20.mat","Kv1-0_85-NN20x20.mat"];
+             obj.NNcase = 1;
+             nameNN = ["Kv1-0_1-NN20x20.mat","Kv1-0_15-NN20x20.mat","Kv1-0_2-NN20x20.mat","Kv1-0_25-NN20x20.mat","Kv1-0_3-NN20x20.mat","Kv1-0_35-NN20x20.mat","Kv1-0_4-NN20x20.mat","Kv1-0_45-NN20x20.mat","Kv1-0_5-NN20x20.mat","Kv1-0_55-NN20x20.mat","Kv1-0_6-NN20x20.mat","Kv1-0_65-NN20x20.mat","Kv1-0_7-NN20x20.mat","Kv1-0_75-NN20x20.mat","Kv1-0_8-NN20x20.mat","Kv1-0_85-NN20x20.mat"];
 
-            obj.NNcase = 2;
-            nameNN = ["k case2 100x100"];
+            %obj.NNcase = 2;
+            %nameNN = ["k case2 100x100"];
 
             % obj.NNcase = 3;
             % nameNN = ["deg1 test50 lambda0 rate 0_01 layers256x1_16 err0.0058.mat"];
@@ -593,11 +593,12 @@ classdef CoarseTestingNN_Albert < handle
             for i = 1:obj.nSubdomains(1,2)
                 for j = 1:obj.nSubdomains(1,1)
                     
+                    
                     filename = obj.fileNameCorase(i,j);
                     data = load(filename);
                     %data.L = K(:,:,n);
-                    data.L = 0.5*(K(:,:,n)+K(:,:,n)');
-                    RVE{i,j} = CoarseTrainedRVE(data);  %%Passar vector de filenames
+                    data.L = 0.5*(K(:,:,n)+K(:,:,n).');  
+                    RVE{i,j} = CoarseTrainedRVE(obj.fileNameCorase(i,j));  %%Passar vector de filenames
                     n=n+1;
                 end
             end
