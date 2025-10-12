@@ -16,16 +16,9 @@ classdef ElasticProblemDavid < handle
     end
     
     properties (Access = private)
-            
-
-
-
 
     end
-    
-    properties (Access = private)
-        
-    end
+   
     
     methods (Access = public)
         
@@ -39,7 +32,7 @@ classdef ElasticProblemDavid < handle
             obj.createStiffness()
             obj.createForce()
             obj.computeNewDisplacement()
-            obj.computeStressStrain()
+            obj.computeStressAndStrain()
         end
         
     end
@@ -64,10 +57,11 @@ classdef ElasticProblemDavid < handle
         end
 
         function createMaterial(obj)
-            s.type = "ISOTROPIC";
+            s.type    = 'ISOTROPIC';
+            s.ptype   = 'ELASTIC';
+            s.ndim    = obj.mesh.ndim;
             s.young = obj.young;
             s.poisson = obj.poisson;
-            s.ndim = 3;
             obj.material = Material.create(s);
         end
 
@@ -144,19 +138,34 @@ classdef ElasticProblemDavid < handle
         function computeNewDisplacement(obj)
             dofs = 1:size(obj.stiffness,1);
             free_dofs = setdiff(dofs, obj.bc.dirichlet_dofs);
+
             obj.LHS = obj.stiffness(free_dofs, free_dofs);
-            obj.RHS = obj.RHS(free_dofs);
+            obj.RHS = obj.RHS(free_dofs); %obtingut a createForce
+
             u(free_dofs) = obj.LHS\obj.RHS; 
             u(obj.bc.dirichlet_dofs) = obj.bc.dirichlet_vals;
 
-                uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-                obj.uFun.setFValues(uSplit);
+            uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
+            obj.uFun.setFValues(uSplit);
             
         end
 
-        function obj = computeStressStrain(obj)
-            % strainFun = SymGrad(uFu )
+        function obj = computeStressAndStrain(obj)
+            obj.strainFun = SymGrad(obj.uFun);
+            C = obj.material;
+            obj.sigmaFun = DDP(C,obj.strainFun); 
+            
+                % strainFun te ndimf = 9
+                % pero sigmaFun té ndimf = 1 (no hauria de ser 9 ? )
+                % tampoc puc veure com és C, a l'explorar-ho em diu "val = "
 
+
+                % al codi original evalua strain i sigma a xV, punts de
+                % quadratura, pq no a les coordenades dels nodes?
+
+                % si evaluo strainFun: obj.strainFun.evaluate([1;1;1])
+                % surten 2 matrius 3x3 ??????
+            
         end
         
     end
