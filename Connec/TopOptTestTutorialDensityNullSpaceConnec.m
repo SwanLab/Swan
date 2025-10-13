@@ -85,21 +85,21 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             d = f.compute(cFun,2);            
             
 
-            s.fun  = phiFun;
-            s.mesh = obj.mesh;
-            s.type = 'LevelSet';
-            s.plotting = true;
-            ls     = DesignVariable.create(s);
-            obj.designVariable = ls;
+            % s.fun  = phiFun;
+            % s.mesh = obj.mesh;
+            % s.type = 'LevelSet';
+            % s.plotting = true;
+            % ls     = DesignVariable.create(s);
+            % obj.designVariable = ls;
 
 
-%             sD.fun      = d;
-%             sD.mesh     = obj.mesh;
-%             sD.type     = 'Density';
-%             sD.plotting = true;
-% %            sD.pr
-%             dens        = DesignVariable.create(sD);
-%             obj.designVariable = dens;
+            sD.fun      = d;
+            sD.mesh     = obj.mesh;
+            sD.type     = 'Density';
+            sD.plotting = true;
+%            sD.pr
+            dens        = DesignVariable.create(sD);
+            obj.designVariable = dens;
         end
 
         function createFilter(obj)
@@ -232,8 +232,8 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
 
         function createCost(obj)
             s.shapeFunctions{1} = obj.enclosedVoid;
-            s.shapeFunctions{2} = obj.perimeter;
-            s.weights           = [1 0.1];
+            %s.shapeFunctions{2} = obj.perimeter;
+            s.weights           = 1;%[1 0.1];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -251,48 +251,48 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
         end
 
         function createPrimalUpdater(obj)
-            % s.ub     = 1;
-            % s.lb     = 0;
-            % s.tauMax = 1000;
-            % s.tau    = [];
-            % obj.primalUpdater = ProjectedGradient(s);
+            s.ub     = 1;
+            s.lb     = 0;
+            s.tauMax = 1000;
+            s.tau    = [];
+            obj.primalUpdater = ProjectedGradient(s);
 
-
-            s.mesh = obj.mesh;
-            obj.primalUpdater = SLERP(s);            
+            % 
+            % s.mesh = obj.mesh;
+            % obj.primalUpdater = SLERP(s);            
         end
 
         function createOptimizer(obj)
-            s.monitoring     = true;
-            s.cost           = obj.cost;
-            s.constraint     = obj.constraint;
-            s.designVariable = obj.designVariable;
-            s.maxIter        = 300;
-            s.tolerance      = 1e-8;
-            s.constraintCase = {'EQUALITY'};
-            s.primalUpdater  = obj.primalUpdater;
-            s.etaNorm        = 0.02;
-            s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 20;
-            s.etaMax         = 1;
-            s.etaMaxMin      = 0.01;
-            opt = OptimizerNullSpace(s);
-            opt.solveProblem();
-            obj.optimizer = opt;
-
-
-          %  s.nConstraints   = 1;
-          %  l                = DualVariable(s);            
-
-
             % s.monitoring     = true;
             % s.cost           = obj.cost;
             % s.constraint     = obj.constraint;
             % s.designVariable = obj.designVariable;
-            % s.dualVariable   = l;
-            % s.maxIter        = 500;
+            % s.maxIter        = 3000;
             % s.tolerance      = 1e-8;
             % s.constraintCase = {'EQUALITY'};
+            % s.primalUpdater  = obj.primalUpdater;
+            % s.etaNorm        = 0.02;
+            % s.etaNormMin     = 0.02;
+            % s.gJFlowRatio    = 0.1;
+            % s.etaMax         = 1;
+            % s.etaMaxMin      = 0.01;
+            % opt = OptimizerNullSpace(s);
+            % opt.solveProblem();
+            % obj.optimizer = opt;
+
+
+            s.nConstraints   = 1;
+            l                = DualVariable(s);            
+
+
+            % s.monitoring     = true;
+            % s.cost           = obj.cost;
+            % s.constraint     = [];obj.constraint;
+            % s.designVariable = obj.designVariable;
+            % s.dualVariable   = [];%l;
+            % s.maxIter        = 500;
+            % s.tolerance      = 1e-8;
+            % s.constraintCase = [];{'EQUALITY'};
             % s.ub             = 1;
             % s.lb             = 0;
             % s.volumeTarget   = 0.4;
@@ -300,6 +300,24 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             % opt              = OptimizerMMA(s);
             % opt.solveProblem();
             % obj.optimizer = opt;
+            s.monitoring     = true;
+            s.cost           = obj.cost;
+            s.constraint     = obj.constraint;
+            s.designVariable = obj.designVariable;
+            s.dualVariable   = l;
+            s.maxIter        = 1000;
+            s.tolerance      = 1e-8;
+            s.constraintCase = {'EQUALITY'};
+            s.primal         = obj.primalUpdater;
+            s.ub             = 1;
+            s.lb             = 0;
+            s.rho            = obj.designVariable;
+            s.volumeTarget   = 0.4;
+            opt = OptimizerAugmentedLagrangian(s);
+            opt.solveProblem();
+            obj.optimizer = opt;
+            opt.solveProblem();
+            obj.optimizer = opt;
         end
 
         function bc = createBoundaryConditions(obj)
