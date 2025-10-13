@@ -79,7 +79,7 @@ classdef EllipseDbFEMElasticityMicro < handle
             s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
             % Options: REDUCED-FLUC / MONOLITHIC-FLUC / MONOLITHIC-DISP
-            s.solverCase = 'DIRECT';
+            s.solverCase = DirectSolver();
             s.solverType = 'REDUCED';
             s.solverMode = 'FLUC';
             fem = ElasticProblemMicro(s);

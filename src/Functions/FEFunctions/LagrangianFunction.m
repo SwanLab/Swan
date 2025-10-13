@@ -311,7 +311,7 @@ classdef LagrangianFunction < FeFunction
                 res.fValues = val1 + val2;
                 s = res;
             else % a will be lagrangian, otherwise won't enter here              
-                if isa(b, 'LagrangianFunction')
+                if isa(b, 'LagrangianFunction') & b.order == a.order
                     res = copy(a);
                     val1 = a.fValues;
                     fEv1 = a.fxVOld;

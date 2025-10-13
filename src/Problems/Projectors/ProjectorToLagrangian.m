@@ -26,6 +26,7 @@ classdef ProjectorToLagrangian < Projector
             s.mesh    = x.mesh;
             s.fValues = full(xProj);
             s.order = obj.order;
+            s.ndimf = x.ndimf;
             xFun = LagrangianFunction(s);
         end
 
