@@ -74,7 +74,7 @@ classdef DiffReactTests < matlab.unittest.TestCase
         
         function M = computeM(testCase, mesh)
             f = LagrangianFunction.create(mesh,1,'P1');
-            M = IntegrateLHS(@(u,v) DP(v,u),f,f,mesh,'Domain',2);
+            M = IntegrateLHS(@(u,v) DP(v,u),f,f,mesh,2);
         end
         
         function u = createDisplacement(testCase, M)

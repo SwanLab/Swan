@@ -55,11 +55,6 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             p1D.plot();
         end    
 
-        function print(obj,varargin)
-            p1D = project(obj,'P1D');
-            p1D.print(varargin{:});
-        end
-
         function plotVector(obj,varargin)
             if size(varargin, 1) == 1, n = varargin{1}; else, n = 2; end
             p1D = project(obj,'P1D');            

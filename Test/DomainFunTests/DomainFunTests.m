@@ -127,7 +127,7 @@ classdef DomainFunTests < handle & matlab.unittest.TestCase
 
             pointloadFun = [];
             for i = 1:numel(sPL)
-                pl = TractionLoad(m, sPL{i}, 'DIRAC');
+                pl = PointLoad(m, sPL{i});
                 pointloadFun = [pointloadFun, pl];
             end
             s.pointloadFun = pointloadFun;

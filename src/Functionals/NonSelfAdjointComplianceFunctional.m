@@ -96,7 +96,9 @@ classdef NonSelfAdjointComplianceFunctional < handle
             s.bc.pointload       = fAdj;
             s.newBC.pointloadFun = fAdj2;
             bcAdj = obj.getAdjointBoundaryConditions(fAdj2);
-            s.boundaryConditions.tractionFun   = bcAdj.tractionFun;
+            s.boundaryConditions.pointloadFun   = bcAdj.pointloadFun;
+            s.boundaryConditions.pointload_dofs = bcAdj.pointload_dofs;
+            s.boundaryConditions.pointload_vals = bcAdj.pointload_vals;
             obj.adjointProblem = PhysicalProblem.create(s);
         end
         

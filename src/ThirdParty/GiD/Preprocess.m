@@ -115,7 +115,7 @@ classdef Preprocess<handle
             run(filename)
             pl = [];
             for i = 1:numel(sPLAdj)
-                pl = [pl, TractionLoad(mesh, sPLAdj{i}, 'DIRAC')];
+                pl = [pl, PointLoad(mesh, sPLAdj{i})];
             end
             forces_adjoint = pointload_adjoint;
         end

@@ -1,5 +1,5 @@
 classdef ElasticProblem < handle
-
+    
     properties (Access = public)
         uFun
         strainFun
@@ -14,15 +14,15 @@ classdef ElasticProblem < handle
         stiffness
         solverType, solverMode, solverCase
         scale
-
+        
         strain, stress
 
         problemSolver
     end
 
     properties (Access = protected)
-        mesh
-        material
+        mesh 
+        material  
     end
 
     methods (Access = public)
@@ -45,7 +45,7 @@ classdef ElasticProblem < handle
         function updateMaterial(obj, mat)
             obj.material = mat;
         end
-
+       
         function print(obj, filename, software)
             if nargin == 2; software = 'Paraview'; end
             [fun, funNames] = obj.getFunsToPlot();
@@ -100,22 +100,20 @@ classdef ElasticProblem < handle
             obj.problemSolver    = ProblemSolver(s);
         end
 
-        function computeStiffnessMatrix(obj)
+        function computeStiffnessMatrix(obj)           
             C     = obj.material;
             f = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
-            obj.stiffness = IntegrateLHS(f,obj.uFun,obj.uFun,obj.mesh,'Domain',2);
+            obj.stiffness = IntegrateLHS(f,obj.uFun,obj.uFun,obj.mesh,2);
         end
 
         function computeForces(obj)
-            bc  = obj.boundaryConditions;
-            t   = bc.tractionFun;
+            bc            = obj.boundaryConditions;
+            neumann       = bc.pointload_dofs;
+            neumannValues = bc.pointload_vals;
             rhs = zeros(obj.uFun.nDofs,1);
-            if ~isempty(t)
-                for i = 1:numel(t)
-                    rhsi = t(i).computeRHS(obj.uFun);
-                    rhs  = rhs + rhsi;
-                end
-            end
+            if ~isempty(neumann)
+                rhs(neumann) = neumannValues;
+            end            
             if strcmp(obj.solverType,'REDUCED')
                 bc      = obj.boundaryConditions;
                 dirich  = bc.dirichlet_dofs;
@@ -134,7 +132,7 @@ classdef ElasticProblem < handle
         function u = computeDisplacement(obj)
             s.stiffness = obj.stiffness;
             s.forces    = obj.forces;
-            [u,~]       = obj.problemSolver.solve(s);
+            [u,~]       = obj.problemSolver.solve(s);           
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             obj.uFun.setFValues(uSplit);
         end
@@ -143,7 +141,7 @@ classdef ElasticProblem < handle
             quad = Quadrature.create(obj.mesh, 2);
             xV = quad.posgp;
             obj.strainFun = SymGrad(obj.uFun);
-            %             strFun = strFun.obtainVoigtFormat();
+%             strFun = strFun.obtainVoigtFormat();
             obj.strain = obj.strainFun.evaluate(xV);
         end
 

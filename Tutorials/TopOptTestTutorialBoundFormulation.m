@@ -316,7 +316,7 @@ classdef TopOptTestTutorialBoundFormulation < handle
 
             pointloadFun = [];
             for i = 1:numel(sPL)
-                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
+                pl = PointLoad(obj.mesh, sPL{i});
                 pointloadFun = [pointloadFun, pl];
             end
             s.pointloadFun = pointloadFun;

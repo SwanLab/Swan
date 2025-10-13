@@ -85,7 +85,7 @@ classdef PhaseFieldInternalEnergySplitFunctional < handle
         end        
 
         function F = computeShapeSymmetricDerivativeIntegralWithField(obj,f,quadOrder)
-            F = IntegrateRHS(@(v) DDP(SymGrad(v),f),obj.testU,obj.mesh,'Domain',quadOrder);
+            F = IntegrateRHS(@(v) DDP(SymGrad(v),f),obj.testU,obj.mesh,quadOrder);
         end 
 
 
@@ -93,26 +93,35 @@ classdef PhaseFieldInternalEnergySplitFunctional < handle
             mPF   = obj.materialPhaseField;
             dk    = mPF.obtainBulkDerivative(u,phi);
             deVol = VolumetricElasticEnergyDensity(u,dk);
-            dE    = IntegrateRHS(@(v) DP(v,deVol),obj.testPhi,obj.mesh,'Domain',quadOrder);
+            dE    =  obj.computeShapeIntegralWithField(deVol,quadOrder);
         end
 
         function dE = computeDeviatoricEnergyDamageGradient(obj,u,phi,quadOrder)
             mPF   = obj.materialPhaseField;
             dmu   = mPF.obtainShearDerivative(phi);
             deDev = DeviatoricElasticEnergyDensity(u,dmu);
-            dE    = IntegrateRHS(@(v) DP(v,deDev),obj.testPhi,obj.mesh,'Domain',quadOrder);
+            dE    =  obj.computeShapeIntegralWithField(deDev,quadOrder);
         end        
+
+        function F = computeShapeIntegralWithField(obj,f,quadOrder)        
+            F = IntegrateRHS(@(v) DP(v,f),obj.testPhi,obj.mesh,quadOrder);
+        end        
+
 
         function ddE = computeVolumetricEnergyDisplacementHessian(obj,u,phi,quadOrder)
             mPF   = obj.materialPhaseField;
             Cbulk = mPF.obtainTensorVolumetric(u,phi);
-            ddE   = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(Cbulk,SymGrad(u))),obj.testU,obj.testU,obj.mesh,'Domain',quadOrder);
+            ddE   = obj.computeElasticStiffnesMatrix(Cbulk,quadOrder);
         end
 
         function ddE = computeDeviatoricEnergyDisplacementHessian(obj,phi,quadOrder)
             mPF    = obj.materialPhaseField;
             Cshear = mPF.obtainTensorDeviatoric(phi);
-            ddE    = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(Cshear,SymGrad(u))),obj.testU,obj.testU,obj.mesh,'Domain',quadOrder);
+            ddE    = obj.computeElasticStiffnesMatrix(Cshear,quadOrder);
+        end        
+
+        function K = computeElasticStiffnesMatrix(obj,C,quadOrder)
+            K = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),obj.testU,obj.testU,obj.mesh,quadOrder);
         end        
 
         function ddE = computeVolumetricEnergyDamageHessian(obj,u,phi,quadOrder)
@@ -130,7 +139,7 @@ classdef PhaseFieldInternalEnergySplitFunctional < handle
         end
 
         function Mf = computeMassWithFunction(obj,f,quadOrder)
-            Mf = IntegrateLHS(@(u,v) f.*DP(v,u),obj.testPhi,obj.testPhi,obj.mesh,'Domain',quadOrder);
+            Mf = IntegrateLHS(@(u,v) f.*DP(v,u),obj.testPhi,obj.testPhi,obj.mesh,quadOrder);
         end        
         
     end

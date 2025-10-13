@@ -176,7 +176,7 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
         function M = createMassMatrix(obj)
             test  = LagrangianFunction.create(obj.mesh,1,'P1');
             trial = LagrangianFunction.create(obj.mesh,1,'P1'); 
-            M = IntegrateLHS(@(u,v) DP(v,u),test,trial,obj.mesh,'Domain');
+            M = IntegrateLHS(@(u,v) DP(v,u),test,trial,obj.mesh);
         end
 
         function createConstraint(obj)
@@ -245,7 +245,7 @@ classdef TopOptTestTutorialGlobalLengthScaleControl < handle
 
             pointloadFun = [];
             for i = 1:numel(sPL)
-                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
+                pl = PointLoad(obj.mesh, sPL{i});
                 pointloadFun = [pointloadFun, pl];
             end
             s.pointloadFun = pointloadFun;

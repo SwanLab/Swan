@@ -41,13 +41,21 @@ classdef FilterLump < handle
 
         function computeLHS(obj)
             f   = @(v,u) DP(v,u);
-            lhs = IntegrateLHS(f,obj.trial,obj.trial,obj.mesh,'Domain',2);
+            lhs = IntegrateLHS(f,obj.trial,obj.trial,obj.mesh,2);
             obj.LHS = obj.lumpMatrix(lhs);
         end
 
         function RHS = computeRHS(obj,fun,quadType)
-            f   = @(v) DP(fun,v);
-            RHS = IntegrateRHS(f,obj.trial,obj.mesh,'Domain',quadType);
+            switch class(fun)
+                case {'UnfittedFunction','UnfittedBoundaryFunction'}
+                    s.mesh = fun.unfittedMesh;
+                    s.quadType = quadType;
+                    int        = RHSIntegratorUnfitted(s);
+                    RHS    = int.compute(fun,obj.trial);
+                otherwise
+                    f = @(v) DP(v,fun);
+                    RHS = IntegrateRHS(f,obj.trial,obj.mesh,quadType);   
+            end  
         end
 
     end

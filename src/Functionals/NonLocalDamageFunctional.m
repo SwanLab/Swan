@@ -20,11 +20,24 @@ classdef NonLocalDamageFunctional < handle
         end
         
         function J = computeGradient(obj,phi,quadOrder)
-            J = IntegrateRHS(@(v) (obj.constant*obj.l0)*DP(Grad(v),Grad(phi)),obj.testPhi,obj.mesh,'Domain',quadOrder);
+            % s.mesh = obj.mesh;
+            % s.type = 'ShapeDerivative';
+            % s.quadratureOrder = quadOrder;
+            % s.test = obj.testPhi;
+            % RHS = RHSIntegrator.create(s);
+            % J = (obj.constant*obj.l0)*RHS.compute(Grad(phi));
+            J = IntegrateRHS(@(v) (obj.constant*obj.l0)*DP(Grad(v),Grad(phi)),obj.testPhi,obj.mesh,quadOrder);
         end
         
         function H = computeHessian(obj,~,quadOrder)
-            H = IntegrateLHS(@(u,v) (obj.constant*obj.l0)*DP(Grad(v),Grad(u)),obj.testPhi,obj.testPhi,obj.mesh,'Domain',quadOrder);
+            % s.trial = obj.testPhi;
+            % s.test  = obj.testPhi;
+            % s.quadratureOrder = quadOrder;
+            % s.mesh = obj.mesh;
+            % s.type = 'StiffnessMatrix';
+            % LHS = LHSIntegrator.create(s);
+            % H = (obj.constant*obj.l0)*LHS.compute();
+            H = IntegrateLHS(@(u,v) (obj.constant*obj.l0)*DP(Grad(v),Grad(u)),obj.testPhi,obj.testPhi,obj.mesh,quadOrder);
         end
     end
     

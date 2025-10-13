@@ -2,7 +2,7 @@ classdef BoundaryConditions < handle
     
     properties (Access = public)
         dirichletFun, dirichlet_dofs, dirichlet_vals, dirichlet_domain
-        tractionFun
+        pointloadFun, pointload_dofs, pointload_vals, pointload_domain
         periodic_leader, periodic_follower
 
         iVoigt, nVoigt
@@ -12,6 +12,7 @@ classdef BoundaryConditions < handle
     properties (Access = private)
         mesh
         dirichletInput
+        pointloadInput
         periodicInput
     end
     
@@ -24,6 +25,7 @@ classdef BoundaryConditions < handle
         function obj = BoundaryConditions(cParams)
             obj.init(cParams)
             obj.createDirichletFun();
+            obj.createPointloadFun();
             obj.createPeriodicConditions();
         end
 
@@ -39,17 +41,17 @@ classdef BoundaryConditions < handle
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
             obj.dirichletInput = cParams.dirichletFun;
-            obj.tractionFun = cParams.pointloadFun;
+            obj.pointloadInput  = cParams.pointloadFun;
             obj.periodicInput  = cParams.periodicFun;
         end
 
-%         function createPointloadFun(obj)
-%             [dofs,vals,domain,fun] = obj.createBCFun(obj.pointloadInput);
-%             obj.traction_dofs = dofs;
-%             obj.traction_vals = vals;
-%             obj.traction_domain = domain;
-%             obj.tractionFun = fun;
-%         end
+        function createPointloadFun(obj)
+            [dofs,vals,domain,fun] = obj.createBCFun(obj.pointloadInput);
+            obj.pointload_dofs = dofs;
+            obj.pointload_vals = vals;
+            obj.pointload_domain = domain;
+            obj.pointloadFun = fun;
+        end
 
         function createDirichletFun(obj)
             [dofs,vals,domain,fun] = obj.createBCFun(obj.dirichletInput);

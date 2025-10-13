@@ -38,10 +38,10 @@ classdef DiffReactProblem < handle
             ndof  = uF.nDofs;
             Mr    = sparse(ndof,ndof);
             if strcmp(obj.LHStype, "StiffnessMassBoundaryMass")
-                Mr = IntegrateLHS(@(u,v) DP(v,u),vF,uF,obj.mesh,'Boundary',3);
+                Mr = IntegrateLHSBoundary(@(u,v) DP(v,u),vF,uF,obj.mesh,3);
             end
-            K = IntegrateLHS(@(u,v) DP(Grad(v),Grad(u)),vF,uF,obj.mesh,'Domain');            
-            M = IntegrateLHS(@(u,v) DP(v,u),vF,uF,obj.mesh,'Domain',3);
+            K = IntegrateLHS(@(u,v) DP(Grad(v),Grad(u)),vF,uF,obj.mesh);            
+            M = IntegrateLHS(@(u,v) DP(v,u),vF,uF,obj.mesh,3);
             LHS = (obj.epsilon^2).*K + M + obj.epsilon*Mr;
         end
        

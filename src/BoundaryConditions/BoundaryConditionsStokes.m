@@ -185,7 +185,7 @@ classdef BoundaryConditionsStokes < handle
                 inod = data(:,1);
                 iunk = data(:,2);
                 vals = data(:,3);
-                dofs = inod;%obj.nod2dof(ndimf, inod,iunk);
+                dofs = obj.nod2dof(ndimf, inod,iunk);
             end
         end
 

@@ -71,7 +71,7 @@ classdef StokesProblem < handle
                         x0Tv = x0T(1:obj.velocityFun.nDofs);
                         v0F.setFValues(obj.splitVelocity(x0Tv));
 
-                        Fext = IntegrateRHS(@(v) DP(v,v0F)./obj.dtime,vF,obj.mesh,'Domain',3);            
+                        Fext = IntegrateRHS(@(v) DP(v,v0F)./obj.dtime,vF,obj.mesh,3);            
                         RHSt = Fext(freeV);                        
 
                         RHSr = zeros(size(RHS0));
@@ -176,9 +176,9 @@ classdef StokesProblem < handle
             vF = obj.velocityFun;
             uF = vF;
             pF = obj.pressureFun;
-            M = IntegrateLHS(@(u,v) DP(v,u)./obj.dtime,vF,uF,obj.mesh,'Domain',3);
-            K = IntegrateLHS(@(u,v) DDP(Grad(v),Grad(u)),vF,uF,obj.mesh,'Domain');            
-            D = IntegrateLHS(@(p,v) DP(v,Grad(p)),vF,pF,obj.mesh,'Domain');
+            M = IntegrateLHS(@(u,v) DP(v,u)./obj.dtime,vF,uF,obj.mesh,3);
+            K = IntegrateLHS(@(u,v) DDP(Grad(v),Grad(u)),vF,uF,obj.mesh);            
+            D = IntegrateLHS(@(p,v) DP(v,Grad(p)),vF,pF,obj.mesh);
             Z = sparse(size(D, 2),size(D, 2));
             obj.LHS = [K+M, D; D',Z];
         end
@@ -187,7 +187,7 @@ classdef StokesProblem < handle
             f = obj.inputBC.forcesFormula;
             vF = obj.velocityFun;
             pF = obj.pressureFun;
-            Fext = IntegrateRHS(@(v) DP(v,f),vF,obj.mesh,'Domain',3);            
+            Fext = IntegrateRHS(@(v) DP(v,f),vF,obj.mesh,3);            
             F = [Fext; zeros(pF.nDofs,1)];
 
 

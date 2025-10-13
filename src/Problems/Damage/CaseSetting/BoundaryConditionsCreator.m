@@ -124,7 +124,7 @@ classdef BoundaryConditionsCreator < handle
             sNeum.domain    = @(coor) isUp(coor);
             sNeum.direction = [2];
             sNeum.value     = fVal;
-            Neum1 = TractionLoad(obj.mesh,sNeum,'DIRAC');
+            Neum1 = PointLoad(obj.mesh,sNeum);
             % Remember change bMesh{4} in extWorkFunctional
 
             s.mesh = obj.mesh;

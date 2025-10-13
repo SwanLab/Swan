@@ -129,7 +129,7 @@ classdef FemInputReaderGiD < handle
 
             if ~isequal(sPL,[])
                 for i = 1:numel(sPL)
-                    pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
+                    pl = PointLoad(obj.mesh, sPL{i});
                     obj.pointloadFun = [obj.pointloadFun, pl];
                 end
             end

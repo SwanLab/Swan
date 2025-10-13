@@ -98,12 +98,7 @@ classdef PhaseFieldComputer < handle
         end
 
         function [E,totE,totF,uBC] = postprocess(obj,step,u,phi,F,bc)
-            fExt = bc.tractionFun;
-            if ~isempty(bc.tractionFun)
-                vals = bc.tractionFun.computeRHS([]);
-                fExt = LagrangianFunction.create(u.mesh, u.mesh.ndim,'P1');
-                fExt.setFValues(reshape(vals,u.mesh.nnodes,u.mesh.ndim));
-            end
+            fExt = bc.pointloadFun;
             E    = obj.functional.computeEnergies(u,phi,fExt);
             totE = sum(E);
             [totF,uBC] = obj.computeTotalReaction(step,F,u);
