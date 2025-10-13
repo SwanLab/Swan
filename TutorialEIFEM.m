@@ -25,47 +25,49 @@ classdef TutorialEIFEM < handle
         function obj = TutorialEIFEM()
             close all
             obj.init()
-            radius_to_analyse = 0.05:0.005:0.7;
-            Kc = cell(length(radius_to_analyse),1);
+            %radius_to_analyse = 0.05:0.005:0.7;
+            %Kc = cell(length(radius_to_analyse),1);
 
-            for i = 1:length(radius_to_analyse)
-                obj.createReferenceMesh(false,radius_to_analyse(i));
-                bS  = obj.referenceMesh.createBoundaryMesh();
-                [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain();
-                obj.meshDomain = mD;
-                %mD.plot()
-                [bC,dir] = obj.createBoundaryConditions();
-                obj.boundaryConditions = bC;
-                obj.createBCapplier()
-    
-                [LHSr,RHSr] = obj.createElasticProblem();
-    
-                LHSfun = @(x) LHSr*x;
-                [Meifem,Kcoarse]       = obj.createEIFEMPreconditioner(dir,iC,lG,bS,iCR,discMesh);
-                
-                Kc{i} = Kcoarse;
-                if i == 500 || i == 1000 || i == 1500 || i == 2000
-                    save('KcoarseTraining.mat', 'Kc');
-                end
-                
-            end
+            obj.createReferenceMesh(false,0.25);
+            bS  = obj.referenceMesh.createBoundaryMesh();
+            [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain();
+            obj.meshDomain = mD;
+            %mD.plot()
+            [bC,dir] = obj.createBoundaryConditions();
+            obj.boundaryConditions = bC;
+            obj.createBCapplier()
 
-            save('KcoarseTraining.mat', 'Kc');
-%             Milu         = obj.createILUpreconditioner(LHSr);
-%             Mmult        = @(r) Preconditioner.multiplePrec(r,LHSfun,Milu,Meifem,Milu);
-%             Mid          = @(r) r;
-% 
-%             tol = 1e-8;
-%             x0 = zeros(size(RHSr));
-%             xSol = LHSr\RHSr;
-% 
-%             [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSfun,RHSr,x0,Mmult,tol,xSol);     
-%             [uCG,residualCG,errCG,errAnormCG]    = PCG.solve(LHSfun,RHSr,x0,Mid,tol,xSol);     
-%             obj.plotResidual(residualPCG,errPCG,errAnormPCG,residualCG,errCG,errAnormCG)
-% 
-%             uCGFull = obj.bcApplier.reducedToFullVectorDirichlet(uCG);
-%             uF = saveDeformed(obj.meshDomain,uCGFull);
-%             plot(uF)
+            [LHSr,RHSr] = obj.createElasticProblem();
+
+            LHSfun = @(x) LHSr*x;
+            [Meifem,Kcoarse]       = obj.createEIFEMPreconditioner(dir,iC,lG,bS,iCR,discMesh);
+
+            % for i = 1:length(radius_to_analyse)
+            % 
+            % 
+            %     Kc{i} = Kcoarse;
+            %     if i == 500 || i == 1000 || i == 1500 || i == 2000
+            %         save('KcoarseTraining.mat', 'Kc');
+            %     end
+            % 
+            % end
+
+            %save('KcoarseTraining.mat', 'Kc');
+            Milu         = obj.createILUpreconditioner(LHSr);
+            Mmult        = @(r) Preconditioner.multiplePrec(r,LHSfun,Milu,Meifem,Milu);
+            Mid          = @(r) r;
+
+            tol = 1e-8;
+            x0 = zeros(size(RHSr));
+            xSol = LHSr\RHSr;
+
+            [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSfun,RHSr,x0,Mmult,tol,xSol);     
+            [uCG,residualCG,errCG,errAnormCG]    = PCG.solve(LHSfun,RHSr,x0,Mid,tol,xSol);     
+            %obj.plotResidual(residualPCG,errPCG,errAnormPCG,residualCG,errCG,errAnormCG)
+
+            uCGFull = obj.bcApplier.reducedToFullVectorDirichlet(uCG);
+            uF = saveDeformed(obj.meshDomain,uCGFull);
+            plot(uF)
         end
 
     end

@@ -7,8 +7,9 @@ classdef OfflineDataProcessor < handle
         mesh
         boundaryMeshJoined
         localGlobalConnecBd
-        LHS
-
+        K
+        M
+       
 
         fValuesTraining
         RigidBodyFun
@@ -25,7 +26,7 @@ classdef OfflineDataProcessor < handle
         end
 
         function EIFEoper = computeROMbasis(obj)
-            obj.LHS = createElasticProblem(obj);
+            [obj.K,obj.M] = createElasticProblem(obj);
 
             uFun         = obj.createDispFun();
             uRBfun       = obj.projectToRigidBodyFun(uFun);
@@ -59,11 +60,21 @@ classdef OfflineDataProcessor < handle
             Ud = PhiD*(Add'\Ldv);
             Ur = PhiR*inv(Arr')*(Lrv - Adr'*(Add'\Ldv));
 
-            Kcoarse = Ud'*obj.LHS*Ud;
-            
+            Kcoarse = Ud'*obj.K*Ud;
+            Mcoarse = Ud'*obj.M*Ud;
+
+            [eigenvalues, eigenvectors, natFreq] = obj.computeModalAnalysis(Kcoarse, Mcoarse);
+
+            ModalAnalysis.lambda = eigenvalues;
+            ModalAnalysis.Phi = eigenvectors;
+            ModalAnalysis.omega = natFreq;
+
             EIFEoper.Kcoarse = Kcoarse;
+            EIFEoper.Mcoarse = Mcoarse;
             EIFEoper.Urb = Ur;
             EIFEoper.Udef = Ud;
+            EIFEoper.ModalAnalysis = ModalAnalysis;
+
         end
 
     end
@@ -73,7 +84,7 @@ classdef OfflineDataProcessor < handle
         function init(obj,data)
             obj.mesh            = data.mesh;
             obj.fValuesTraining = data.uSbd;
-            obj.LHS             = data.LHSsbd;
+            obj.K             = data.LHSsbd;
         end
 
         function uFun = createDispFun(obj)
@@ -136,7 +147,7 @@ classdef OfflineDataProcessor < handle
         end
 
         function Psid = computeSelfEquilibratedLagrange(obj,phid)
-            Psid = obj.LHS*phid;
+            Psid = obj.K*phid;
         end
 
         function PhiR = getRigidBodyModes(obj,RBfun)
@@ -274,16 +285,39 @@ classdef OfflineDataProcessor < handle
             poisson = ConstantFunction.create(nupstr,mesh);
         end
 
-        function [LHS,u] = createElasticProblem(obj)
-            u = LagrangianFunction.create(obj.mesh,obj.mesh.ndim,'P1');
-            LHS = obj.computeLHS(u);
-%             RHS = obj.computeRHS(u,dLambda);
+        function rho = computeDensity(obj, mesh)
+            rho = 2700; % kg/m^3 - aluminium
+            rho  = ConstantFunction.create(rho, mesh);
         end
 
-        function K  = computeLHS(obj,u)          
-            C = obj.createMaterial(obj.mesh);
-            K = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),u,u,obj.mesh,2); %DP(u,v) 
+        function [K, M, u] = createElasticProblem(obj)
+            u = LagrangianFunction.create(obj.mesh,obj.mesh.ndim,'P1');
+            K = obj.computeStiffnessMatrix(u);
+            M = obj.computeMassMatrix(u);
+%             RHS = obj.computeRHS(u,dLambda);
         end
+         
+
+        function K  = computeStiffnessMatrix(obj,u)          
+            C = obj.createMaterial(obj.mesh);
+            K = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),u,u,obj.mesh,2); 
+        end
+
+        function M = computeMassMatrix(obj, u)
+            rho = obj.computeDensity(obj.mesh);
+            M = IntegrateLHS(@(u,v) rho .* DP(v,u),u,u,obj.mesh,2); %DP(u,v)           
+
+        end
+
+        function [lambda, Phi, omega] = computeModalAnalysis(obj, K, M)
+            [Phi, D] = eig(K, M);
+            lambda = diag(D); %extrtact eigenvalues
+            [lambda, idx] = sort(lambda, 'ascend'); 
+            Phi = Phi(:, idx); %sort eigenvectors
+            omega = sqrt(max(lambda,0));
+        end
+
+        
 
     end
 
