@@ -198,10 +198,12 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
         end
 
         function createEnclosedVoidFunctionalConstraint(obj)
-            e   = 1e-5;
+            %e   = 1e-5;
+            h = obj.mesh.computeMeanCellSize;
+            e = (h)^2;
             k0  = 1-e;
             k1  = e; 
-            m0  = 0;
+            m0  = e;
             m1  = 1-e;
             p  = 8;
             s.diffCoef = @(x) k0.*(1-x.^p)+k1*x.^p;
@@ -232,8 +234,8 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
 
         function createCost(obj)
             s.shapeFunctions{1} = obj.enclosedVoid;
-            %s.shapeFunctions{2} = obj.perimeter;
-            s.weights           = 1;%[1 0.1];
+            s.shapeFunctions{2} = obj.perimeter;
+            s.weights           = [1 100];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -285,40 +287,42 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             l                = DualVariable(s);            
 
 
-            % s.monitoring     = true;
-            % s.cost           = obj.cost;
-            % s.constraint     = [];obj.constraint;
-            % s.designVariable = obj.designVariable;
-            % s.dualVariable   = [];%l;
-            % s.maxIter        = 500;
-            % s.tolerance      = 1e-8;
-            % s.constraintCase = [];{'EQUALITY'};
-            % s.ub             = 1;
-            % s.lb             = 0;
-            % s.volumeTarget   = 0.4;
-            % s.primal         = 'PROJECTED GRADIENT';
-            % opt              = OptimizerMMA(s);
-            % opt.solveProblem();
-            % obj.optimizer = opt;
             s.monitoring     = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = l;
-            s.maxIter        = 1000;
+            s.maxIter        = 500;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.tauMax = 1000;
-            s.primal         = 'PROJECTED GRADIENT';
             s.ub             = 1;
             s.lb             = 0;
-            s.rho            = obj.designVariable;
             s.volumeTarget   = 0.4;
-            opt = OptimizerAugmentedLagrangian(s);
+            s.primal         = 'PROJECTED GRADIENT';
+            opt              = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
-            opt.solveProblem();
-            obj.optimizer = opt;
+
+            % 
+            % s.monitoring     = true;
+            % s.cost           = obj.cost;
+            % s.constraint     = obj.constraint;
+            % s.designVariable = obj.designVariable;
+            % s.dualVariable   = l;
+            % s.maxIter        = 1000;
+            % s.tolerance      = 1e-8;
+            % s.constraintCase = {'EQUALITY'};
+            % s.tauMax = 1000;
+            % s.primal         = 'PROJECTED GRADIENT';
+            % s.ub             = 1;
+            % s.lb             = 0;
+            % s.rho            = obj.designVariable;
+            % s.volumeTarget   = 0.4;
+            % opt = OptimizerAugmentedLagrangian(s);
+            % opt.solveProblem();
+            % obj.optimizer = opt;
+            % opt.solveProblem();
+            % obj.optimizer = opt;
         end
 
         function bc = createBoundaryConditions(obj)

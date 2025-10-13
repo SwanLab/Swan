@@ -20,12 +20,13 @@ classdef EnclosedVoidFunctional < handle
         function obj = EnclosedVoidFunctional(cParams)
             obj.init(cParams);
             obj.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            obj.createBoundaryConditions();
-            obj.createSolver();            
+            
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            xD  = x.obtainDomainFunction();
+            obj.createBoundaryConditions(x);
+            obj.createSolver();            
+            xD  = x.obtainDomainFunction();           
             xR = obj.filterFields(xD);
             xR = xR{1};
             phi = obj.solveState(xR);%xR
@@ -39,7 +40,7 @@ classdef EnclosedVoidFunctional < handle
           %  plot(lam);
             Dom   = Integrator.compute(ConstantFunction.create(1,obj.mesh),obj.mesh,2);
             J     = Integrator.compute(rhoV,obj.mesh,2)/Dom;% - 0.1;
-            dJ{1} = -phi + 1.*obj.dk(xR).*DP(Grad(lam),Grad(phi)) + DP(obj.dm(xR).*(phi-xR)-obj.m(xR),lam);
+            dJ{1} = -phi ;%+ 1.*obj.dk(xR).*DP(Grad(lam),Grad(phi)) + DP(obj.dm(xR).*(phi-xR)-obj.m(xR),lam);
             %dJ{1} =  -phi.*(1-xR);
             %dJ{1} =  -phi;%.*(1-xR);
             dJ{1} = dJ{1}./Dom*1;
@@ -65,14 +66,17 @@ classdef EnclosedVoidFunctional < handle
             end
         end
 
-        function createBoundaryConditions(obj)
+        function createBoundaryConditions(obj,x)
+            [bMesh, l2g]  = obj.mesh.createSingleBoundaryMesh();
+            fValues = x.fun.fValues(l2g);
+           % xB = x.fun.restrictBaseToBoundary(bMesh);
             isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
             isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
             isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2))) < 1e-12);
             isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2))) < 1e-12);
             sDir{1}.domain    = @(coor) isTop(coor) | isLeft(coor) | isBottom(coor) | isRight(coor);
             sDir{1}.direction = 1;
-            sDir{1}.value     = 0;
+            sDir{1}.value     = fValues(:);
             sDir{1}.ndim      = 1;
             dirichletFun = DirichletCondition(obj.mesh, sDir{1});
             s.dirichletFun = dirichletFun;
@@ -110,6 +114,12 @@ classdef EnclosedVoidFunctional < handle
             m   = obj.m(x);
             LHS = IntegrateLHS(@(u,v) DDP(Grad(v),k.*Grad(u)) + DP(v,m.*u),obj.test,obj.test,obj.mesh,'Domain');
             RHS = IntegrateRHS(@(v) DP(v,m.*x),obj.test,obj.mesh,'Domain');
+
+
+            %LHS2 = IntegrateLHS(@(u,v) DP(v,u),obj.test,obj.test,obj.mesh,'Boundary');
+            %RHS2 = IntegrateRHS(@(v) DP(v,x),obj.test,obj.mesh,'Boundary');
+
+
             s.stiffness = LHS;
             s.forces    = RHS;  
             [u,~]       = obj.problemSolver.solve(s); 

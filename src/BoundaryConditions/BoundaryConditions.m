@@ -28,8 +28,8 @@ classdef BoundaryConditions < handle
         end
 
         function updatePeriodicConditions(obj,MS)
-            obj.periodic_leader = obj.computePeriodicNodes(MS(:,1));
-            obj.periodic_follower   = obj.computePeriodicNodes(MS(:,2));
+            obj.periodic_leader   = obj.computePeriodicNodes(MS(:,1));
+            obj.periodic_follower = obj.computePeriodicNodes(MS(:,2));
         end
         
     end

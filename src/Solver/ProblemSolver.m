@@ -58,7 +58,7 @@ classdef ProblemSolver < handle
                     free_dofs = setdiff(dofs, bcs.dirichlet_dofs);
                     u = zeros(size(stiffness,1), 1);
                     u(free_dofs) = sol;
-                    u(bcs.dirichlet_dofs) = bcs.dirichlet_vals;
+                  %  u(bcs.dirichlet_dofs) = bcs.dirichlet_vals;
                     L = [];
                 case strcmp(obj.type, 'REDUCED') && strcmp(obj.mode, 'FLUC')
                     lead = bcs.periodic_leader;
@@ -138,7 +138,7 @@ classdef ProblemSolver < handle
 
         end
 
-        function RHS = assembleRHS(obj,cParams)
+        function RHS = assembleRHS(obj,cParams,LHS)
             stiffness = cParams.stiffness;
             forces    = cParams.forces;
             bcapp = obj.BCApplier;
@@ -162,6 +162,10 @@ classdef ProblemSolver < handle
                     dofs = 1:size(stiffness,1);
                     free_dofs = setdiff(dofs, bcs.dirichlet_dofs);
                     RHS = forces(free_dofs);
+                    dirich  = bcs.dirichlet_dofs;
+                    dirichV = bcs.dirichlet_vals;
+                    R = -stiffness(:,dirich)*dirichV;
+                    RHS = RHS + R(free_dofs,1);
                 case strcmp(obj.type, 'MONOLITHIC') && strcmp(obj.mode, 'FLUC')
                     nPer = length(bcs.periodic_leader);
                     RHS = [forces; zeros(nPer,1); bcs.dirichlet_vals];
