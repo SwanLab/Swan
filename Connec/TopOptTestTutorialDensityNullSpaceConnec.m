@@ -308,7 +308,8 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.primal         = obj.primalUpdater;
+            s.tauMax = 1000;
+            s.primal         = 'PROJECTED GRADIENT';
             s.ub             = 1;
             s.lb             = 0;
             s.rho            = obj.designVariable;
