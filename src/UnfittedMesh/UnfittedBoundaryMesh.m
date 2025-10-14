@@ -41,7 +41,7 @@ classdef UnfittedBoundaryMesh < handle
                     if ~isempty(connecLoc)
                         connecGlob = obj.getGlobalConnec{i};
                         glob2loc(connecLoc(:)) = connecGlob(:);
-                        s.fValues  = fP1.fValues(glob2loc);
+                        s.fValues  = fP1.fValues(glob2loc,:);
                         s.mesh     = uMeshi.backgroundMesh;
                         s.order    = 'P1';
                         fbackMeshi = LagrangianFunction(s);
