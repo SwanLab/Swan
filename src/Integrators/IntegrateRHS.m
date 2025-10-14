@@ -21,7 +21,7 @@ switch class(sample)
                 RHS = assembleVector(rhs, test);
             case 'Boundary'
                 [bMesh, l2g]  = mesh.createSingleBoundaryMesh();
-                [bTest,iGlob] = restrictTestToBoundary(bMesh,test,l2g);
+                [bTest,iGlob] = restrictTestToBoundary(test,l2g);
                 rhsLoc = IntegrateRHS(f,bTest,bMesh,'Domain',quadOrder);
                 [iLoc,~,vals] = find(rhsLoc);
                 RHS = sparse(iGlob(iLoc),1,vals, test.nDofs,1);
@@ -50,18 +50,18 @@ Felem = Felem';
 F = sparse(rowIdx, 1, Felem(:), nDofs, 1);
 end
 
-function [bTest, iGlob] = restrictTestToBoundary(bMesh, test, l2g)
+function [bTest, iGlob] = restrictTestToBoundary(test, l2g)
     lastDofs = (l2g * test.ndimf)';
     l2g_dof = zeros(length(lastDofs),test.ndimf);
     for i = 1:test.ndimf
         l2g_dof(:,i) = lastDofs - (test.ndimf-i);
     end
-    [bTest, iGlob] = restrictFunc(bMesh,test,l2g_dof);
+    [bTest, iGlob] = restrictFunc(test,l2g_dof);
 end
 
-function [bFunc, gFunc] = restrictFunc(bMesh,func,l2g_map)
+function [bFunc, gFunc] = restrictFunc(func,l2g_map)
     if func.mesh.kFace == 0
-        bFunc = func.restrictBaseToBoundary(bMesh,l2g_map);
+        bFunc = func.restrictToBoundary();
         l2g_map = reshape(l2g_map',[],1);
         gFunc = @(iLoc) l2g_map(iLoc);
     else
