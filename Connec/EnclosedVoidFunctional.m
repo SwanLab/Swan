@@ -69,6 +69,7 @@ classdef EnclosedVoidFunctional < handle
         function createBoundaryConditions(obj,x)
             [~, l2g]  = obj.mesh.createSingleBoundaryMesh();
 
+            l2g = unique(l2g);
             fValues = x.fun.fValues(l2g);
            % xB = x.fun.restrictBaseToBoundary(bMesh);
 

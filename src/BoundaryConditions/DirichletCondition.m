@@ -27,9 +27,8 @@ classdef DirichletCondition < BoundaryCondition
             % pl_dofs = find(s.domain(mesh.coord));
             % eval_values = s.value(mesh.coord);
             % fun.fValues(pl_dofs,s.direction) = eval_values(pl_dofs);
-            %pl_dofs = s.domain(mesh.coord);
-            [~,l2g] = mesh.createSingleBoundaryMesh();
-            fun.fValues(l2g,s.direction) = s.value;
+            pl_dofs = s.domain(mesh.coord);
+            fun.fValues(pl_dofs,s.direction) = s.value;
 
             obj.fun    = fun;
             obj.domain = s.domain;
