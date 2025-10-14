@@ -27,10 +27,11 @@ taucpe=tauG/eps^2;
 
 %proxF = @(z)  proximalDroplet(z,tauF,k,alpha,ep);
 proxF = @(z)  proximalEllipse(z,tauF,alpha,A);
-f     = @(z)  EllipseNormPrimal(z);
-df
-g
-dg
+f     = @(z)  EllipseNormPrimal(z,A);
+fd    = @(z)  EllipseNormtDual(z,A);
+g     = @(rho,chi) L2ProjectionPrimal(rho,chi);
+gd    = @(rho,chi) L2ProjectionDual(rho);
+
 
 proxG = @(rho,rho0) proximalL2Projection(rho,rho0,taucpe);
 grad = @(u) Grad(D,u);
@@ -41,7 +42,7 @@ rho = chi0;
 z0  = zeros(nxy,2);
 z   = z0;
 for iopt=1:20
-[rho,z] = PerimeterComputation(chi,rho,z0,grad,div,proxF,proxG,tauF,tauG,thetaRel);
+[rho,z] = PerimeterComputation(chi,rho,z0,grad,div,proxF,proxG,tauF,tauG,thetaRel,f,fd,g,gd);
 chi = ProjectToVolumeConstraint(rho,vol);
 plotSurf(chi,nx,ny)
 plot(chi,nx,ny)
@@ -120,13 +121,12 @@ J = 0.5*sum(sum((txi*A.').*txi));
 end
 
 
-function J = EllipseNormtDual(txi)
-A = [1 0; 0 1];
+function J = EllipseNormtDual(z,A)
 invA = inv(A);
-J = 0.5*sum(sum((txi*invA.').*txi));
+J = 0.5*sum(sum((z*invA.').*z));
 end
 
-function [u,z] = solveWithChambollePockAlgorithm(u0,z0,Grad,Div,proxF,proxG,tauF,tauG,thetaRel)
+function [u,z] = solveWithChambollePockAlgorithm(u0,z0,Grad,Div,proxF,proxG,tauF,tauG,thetaRel,f,fd,G,Gd)
 u  = u0; 
 uN = u0;
 z   = z0; 
@@ -135,12 +135,16 @@ for kcp=1:2000
     uOld   = u;
     [u,gd] = proxG(u - tauG*Div(z));
     uN     = u + thetaRel*(u - uOld);
+    primal = f(Grad(uN)) + G(uN)
+    dual   = fD(z) + GD(-Div(z))
 end
 end
 
-function [u,z] = PerimeterComputation(chi,u0,z0,Grad,Div,proxF,proxGX,tauF,tauG,thetaRel)
+function [u,z] = PerimeterComputation(chi,u0,z0,Grad,Div,proxF,proxGX,tauF,tauG,thetaRel,f,fd,g,gd)
 proxG = @(rho) proxGX(rho,chi);   
-[u,z] = solveWithChambollePockAlgorithm(u0,z0,Grad,Div,proxF,proxG,tauF,tauG,thetaRel);
+G  = @(rho) g(rho,chi);  
+GD = @(rho) gd(rho,chi);  
+[u,z] = solveWithChambollePockAlgorithm(u0,z0,Grad,Div,proxF,proxG,tauF,tauG,thetaRel,f,fd,G,Gd);
 end
 
 function divZ = Div(D,z)
