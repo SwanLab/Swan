@@ -16,10 +16,8 @@ classdef ElasticProblemDavid < handle
     end
     
     properties (Access = private)
-
     end
-   
-    
+
     methods (Access = public)
         
         function obj = ElasticProblemDavid()
@@ -44,8 +42,7 @@ classdef ElasticProblemDavid < handle
         end
 
         function createMesh(obj)
-            %Creo malla 2x1x1 amb 20 elements per unitat
-
+            %Creo malla 2x1x1 
             obj.mesh = HexaMesh(2,1,1,2,1,1);
         end
 
@@ -68,25 +65,25 @@ classdef ElasticProblemDavid < handle
         function createBoundaryConditions(obj)
             
             %AIXO HO HE COPIAT PARCIALMENT
-            xMax    = max(obj.mesh.coord(:,1));
+            right    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
             zMax    = max(obj.mesh.coord(:,3));
              
-            isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  abs(coor(:,1))==xMax;
+            isLeft   = @(coor)  abs(coor(:,1))==0;
+            isRight = @(coor)  abs(coor(:,1))==right;
 
 
-            sDir{1}.domain    = @(coor) isDir(coor);
+            sDir{1}.domain    = @(coor) isLeft(coor);
             sDir{1}.direction = [1,2,3];
             sDir{1}.value     = 0;
 
-            sPL{1}.domain    = @(coor) isForce(coor);
+            sPL{1}.domain    = @(coor) isRight(coor);
             sPL{1}.direction = 2;
             sPL{1}.value     = -1;
             
-                    sPL{2}.domain    = @(coor) isForce(coor);
-                    sPL{2}.direction = 3;
-                    sPL{2}.value     = -1;
+                    % % sPL{2}.domain    = @(coor) isRight(coor);
+                    % % sPL{2}.direction = 3;
+                    % % sPL{2}.value     = -1;
 
             dirichletFun = [];
             for i = 1:numel(sDir)
@@ -114,21 +111,24 @@ classdef ElasticProblemDavid < handle
 
         function displacementFunction(obj)
             nDimF = obj.mesh.ndim; 
-            obj.uFun = LagrangianFunction.create(obj.mesh,nDimF,'P1'); % el P1 què és ?? 
+            obj.uFun = LagrangianFunction.create(obj.mesh,nDimF,'P1'); 
         end
 
         function createStiffness(obj)
+
             C = obj.material;
             f = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
-            obj.stiffness = IntegrateLHS (f,obj.uFun,obj.uFun,obj.mesh,'Domain',2); % pq 'Domain'??
+            obj.stiffness = IntegrateLHS (f,obj.uFun,obj.uFun,obj.mesh,'Domain',2);
             
         end
 
         function createForce(obj)
             rhs = zeros(obj.uFun.nDofs,1);
+
             for i = 1:numel(obj.bc.tractionFun)
-                rhs = obj.bc.tractionFun(i).computeRHS(obj.uFun); % això és f
+                rhs = rhs + obj.bc.tractionFun(i).computeRHS(obj.uFun); % això és f
             end
+
             % SolverType --> Reduced
                 % rhs = f-Klr*ur
                 R = -obj.stiffness(:,obj.bc.dirichlet_dofs)*obj.bc.dirichlet_vals; % això és Klr*ur
