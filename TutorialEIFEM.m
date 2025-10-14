@@ -27,8 +27,9 @@ classdef TutorialEIFEM < handle
             obj.init()
             %radius_to_analyse = 0.05:0.005:0.7;
             %Kc = cell(length(radius_to_analyse),1);
+            radiusMesh = 0.25;
 
-            obj.createReferenceMesh(false,0.25);
+            obj.createReferenceMesh(false,radiusMesh);
             bS  = obj.referenceMesh.createBoundaryMesh();
             [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain();
             obj.meshDomain = mD;
@@ -40,7 +41,7 @@ classdef TutorialEIFEM < handle
             [LHSr,RHSr] = obj.createElasticProblem();
 
             LHSfun = @(x) LHSr*x;
-            [Meifem,Kcoarse]       = obj.createEIFEMPreconditioner(dir,iC,lG,bS,iCR,discMesh);
+            [Meifem,Kcoarse]       = obj.createEIFEMPreconditioner(dir,iC,lG,bS,iCR,discMesh,radiusMesh);
 
             % for i = 1:length(radius_to_analyse)
             % 
@@ -65,7 +66,7 @@ classdef TutorialEIFEM < handle
             [uCG,residualCG,errCG,errAnormCG]    = PCG.solve(LHSfun,RHSr,x0,Mid,tol,xSol);     
             %obj.plotResidual(residualPCG,errPCG,errAnormPCG,residualCG,errCG,errAnormCG)
 
-            uCGFull = obj.bcApplier.reducedToFullVectorDirichlet(uCG);
+            uCGFull = obj.bcApplier.reducedToFullVectorDirichlet(uCG); %reapply all dirichlett DOFs
             uF = saveDeformed(obj.meshDomain,uCGFull);
             plot(uF)
         end
@@ -292,7 +293,7 @@ classdef TutorialEIFEM < handle
             RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
         end
 
-        function [Meifem,Kcoarse] = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh)
+        function [Meifem,Kcoarse] = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh,radiusMesh)
             mR = obj.referenceMesh;
 %             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
 %             EIFEMfilename = obj.fileNameEIFEM;
@@ -301,7 +302,7 @@ classdef TutorialEIFEM < handle
 %             s.RVE           = TrainedRVE(filename);
             data = Training(mR);
             p = OfflineDataProcessor(data);
-            EIFEoper = p.computeROMbasis();
+            EIFEoper = p.computeROMbasis(radiusMesh);
             s.RVE           = TrainedRVE(EIFEoper);
             s.mesh          = obj.createCoarseMesh(mR);
 %            s.mesh          = obj.loadCoarseMesh(mR);

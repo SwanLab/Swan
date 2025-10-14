@@ -25,8 +25,10 @@ classdef OfflineDataProcessor < handle
             obj.init(data)
         end
 
-        function EIFEoper = computeROMbasis(obj)
-            [obj.K,obj.M] = createElasticProblem(obj);
+        function EIFEoper = computeROMbasis(obj, radiusMesh)
+            tic
+            %[obj.K,obj.M] = createElasticProblem(obj);
+            
 
             uFun         = obj.createDispFun();
             uRBfun       = obj.projectToRigidBodyFun(uFun);
@@ -57,23 +59,33 @@ classdef OfflineDataProcessor < handle
             Ldv = obj.computeBoundaryModalMassMatrixDirac(LMDefFunBd,Vfun);
             Lrv = obj.computeBoundaryModalMassMatrix(RBFunBd,Vfun);
 
-            Ud = PhiD*(Add'\Ldv);
+            Ud = PhiD*(Add'\Ldv); %% I still need these but they depend on mesh. How to use NN efficiently????
             Ur = PhiR*inv(Arr')*(Lrv - Adr'*(Add'\Ldv));
+            
 
-            Kcoarse = Ud'*obj.K*Ud;
-            Mcoarse = Ud'*obj.M*Ud;
 
-            [eigenvalues, eigenvectors, natFreq] = obj.computeModalAnalysis(Kcoarse, Mcoarse);
-
-            ModalAnalysis.lambda = eigenvalues;
-            ModalAnalysis.Phi = eigenvectors;
-            ModalAnalysis.omega = natFreq;
-
+            %Kcoarse = obj.computeKcoarseNN(radiusMesh); %uncomment to predict with NN
+            
+            %Kcoarse = Ud'*obj.K*Ud;
+            
             EIFEoper.Kcoarse = Kcoarse;
-            EIFEoper.Mcoarse = Mcoarse;
             EIFEoper.Urb = Ur;
             EIFEoper.Udef = Ud;
-            EIFEoper.ModalAnalysis = ModalAnalysis;
+
+            %% Modal Analysis
+            %Mcoarse = Ud'*obj.M*Ud;
+
+            %[eigenvalues, eigenvectors, natFreq] = obj.computeModalAnalysis(Kcoarse, Mcoarse);
+
+            % ModalAnalysis.lambda = eigenvalues;
+            % ModalAnalysis.Phi = eigenvectors;
+            % ModalAnalysis.omega = natFreq;
+
+            %EIFEoper.Mcoarse = Mcoarse;
+            %EIFEoper.ModalAnalysis = ModalAnalysis;
+            
+            
+            toc
 
         end
 
@@ -315,6 +327,21 @@ classdef OfflineDataProcessor < handle
             [lambda, idx] = sort(lambda, 'ascend'); 
             Phi = Phi(:, idx); %sort eigenvectors
             omega = sqrt(max(lambda,0));
+        end
+
+        function Kcoarse = computeKcoarseNN(obj, mesh)
+            load("Kcoarse_predictor.mat");
+
+            Y = opt.computeOutputValues(radiusMesh);
+
+            n = 8;
+            L = zeros(n);
+            idx = tril(true(n));
+            L(idx) = Y(:);                        % fill lower triangle
+            d = diag(L);
+            d(d <= 0) = eps;                      
+            L(1:n+1:end) = d;
+            Kcoarse = L*L.';%revert cholesky decomposition 
         end
 
         
