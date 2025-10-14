@@ -276,9 +276,12 @@ classdef LagrangianFunction < FeFunction
             f.fValues = obj.fValues/fNorm;
         end
 
-        function bF = restrictBaseToBoundary(obj,bMesh)
+        function bF = restrictBaseToBoundary(obj,bMesh,l2gdof)
             if isempty(obj.bFun)
-                obj.bFun = LagrangianFunction.create(bMesh,obj.ndimf,obj.order);
+                fun = LagrangianFunction.create(bMesh,obj.ndimf,obj.order);
+                val = obj.fValues(l2gdof);
+                fun.setFValues(val);
+                obj.bFun = fun;
             end
             bF = obj.bFun;
         end
