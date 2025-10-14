@@ -1,5 +1,5 @@
 function fittingPhaseFieldClean()
-    matType = load('/home/gerard/Documents/GitHub/Swan/src/Problems/Damage/Models/PhaseField/PFVademecum/Degradation/CircleArea.mat');
+    matType = load('/home/gerard/Documents/GitHub/Swan/src/Problems/Damage/Models/PhaseField/PFVademecum/Degradation/SquareArea.mat');
 
     phiData = matType.phi;
     C11data = squeeze(matType.mat(1,1,1,1,:));
@@ -8,7 +8,7 @@ function fittingPhaseFieldClean()
     Cdata = [C11data';C12data';C33data'];
     
     A = []; b = []; Aeq = []; beq = []; lb = []; ub = [];
-    sigma = 1.5;
+    sigma = 1;
     nonlcon = @(coeff) nonLinearCon(coeff,Cdata,sigma);
     objective = @(p) objectiveFun(p,phiData,Cdata);
     options = optimoptions(@fmincon, ...
@@ -20,9 +20,9 @@ function fittingPhaseFieldClean()
     objBestResult=100;
     coeff0BestResult = rand(1,60);
 
-    load('Degradation/CircleAreaDerivative15.mat')
-    [~, ceq] = nonlcon(coeffBestResult);
-    disp(['MinObjective: ', num2str(objBestResult, '%.2e'), ' | MinCeq: [', num2str(abs(ceq), '%.2e '), ']']);
+    % load('Degradation/SquareAreaDerivative10.mat')
+    % [~, ceq] = nonlcon(coeffBestResult);
+    % disp(['MinObjective: ', num2str(objBestResult, '%.2e'), ' | MinCeq: [', num2str(abs(ceq), '%.2e '), ']']);
 
     for i=1:250
         coeff0 = rand(1,60);
@@ -40,7 +40,7 @@ function fittingPhaseFieldClean()
     [~, ceq] = nonlcon(coeffOpt);
     disp(['MinObjective: ', num2str(objBestResult, '%.2e'), ' | MinCeq: [', num2str(abs(ceq), '%.2e '), ']']);
 
-    degFuns = generateConstitutiveTensor(coeffBestResult,objBestResult,matType,'CircleAreaDerivative15');
+    degFuns = generateConstitutiveTensor(coeffBestResult,objBestResult,matType,'SquareAreaDerivative10');
     plotResults(objective,phiData,Cdata,coeff0BestResult,coeffBestResult,degFuns)
 end
 

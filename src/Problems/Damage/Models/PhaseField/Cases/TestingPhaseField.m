@@ -90,7 +90,7 @@ classdef TestingPhaseField < handle
 
         function phi = setInitialDamage(obj,phi)
             fValues = phi.fValues;
-            fValues(:) = 1e-5;
+            fValues(:) = 0;
             phi.setFValues(fValues);
         end
 
@@ -104,7 +104,7 @@ classdef TestingPhaseField < handle
         function computeInitialDerivative(obj,cParams)
             Gc = cParams.matInfo.Gc;
             E = cParams.matInfo.young;
-            sigMax = 1;
+            sigMax = 2;
             obj.initialDerivative = -2*(3/8)*(Gc/obj.l0)*E*(1/sigMax)^2;
         end
 
@@ -166,7 +166,7 @@ classdef TestingPhaseField < handle
             dissipation.interpolation = PhaseFieldDissipationInterpolator(s);
 
             if s.pExp == 1
-                dissipation.constant = (1/2)*obj.matInfo.Gc;
+                dissipation.constant = (3/8)*obj.matInfo.Gc;
             elseif s.pExp == 2
                 dissipation.constant = (1/2)*obj.matInfo.Gc;
             end

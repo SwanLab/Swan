@@ -46,6 +46,8 @@ classdef BoundaryConditionsCreator < handle
             switch obj.type
                 case 'ForceTractionX'
                     obj.createBoundaryConditions = @obj.createForceTractionXConditions;
+                case 'DisplacementTractionXClamped'
+                    obj.createBoundaryConditions = @obj.createDisplacementTractionXClampedConditions;
                 case 'DisplacementTractionX'
                     obj.createBoundaryConditions = @obj.createDisplacementTractionXConditions;
                 case 'ForceTractionY'
@@ -102,6 +104,31 @@ classdef BoundaryConditionsCreator < handle
             Dir2 = DirichletCondition(obj.mesh,sDir);            
 
             isRight = @(coor)  abs(coor(:,1)-max(coor(:,1))) < 1e-12;
+            sDir.domain    = @(coor) isRight(coor);
+            sDir.direction = [1];
+            sDir.value     = uVal;
+            Dir3 = DirichletCondition(obj.mesh,sDir);
+
+            s.mesh         = obj.mesh;
+            s.dirichletFun = [Dir1 Dir2 Dir3];
+            s.pointloadFun = [];
+            s.periodicFun  = [];
+            obj.boundaryConditions = BoundaryConditions(s);
+        end
+
+        function createDisplacementTractionXClampedConditions(obj,uVal)
+            isLeft = @(coor)  abs(coor(:,1)-min(coor(:,1))) < 1e-12;
+            sDir.domain    = @(coor) isLeft(coor);
+            sDir.direction = [1 2];
+            sDir.value     = 0;
+            Dir1 = DirichletCondition(obj.mesh,sDir);           
+
+            isRight = @(coor)  abs(coor(:,1)-max(coor(:,1))) < 1e-12;
+            sDir.domain    = @(coor) isRight(coor);
+            sDir.direction = [2];
+            sDir.value     = 0;
+            Dir2 = DirichletCondition(obj.mesh,sDir);
+
             sDir.domain    = @(coor) isRight(coor);
             sDir.direction = [1];
             sDir.value     = uVal;
