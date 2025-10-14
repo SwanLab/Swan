@@ -12,7 +12,8 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             'test_anisotropy','test_anisotropy_interior','test_nullspace',...
             'test_interiorPerimeterPDErho','test_filterLump','test_cantilever_IPM',...
             'test_dirichletProjection','test_gripping','test_micro', 'test_micro2',...
-            'test_micro3','test_boundFormFilterAndProject','test_cantilever_SIMPP3'
+            'test_micro3','test_boundFormFilterAndProject','test_cantilever_SIMPP3',...
+            'test_infillLS','test_isoPerLS', 'test_PerpnormLS','test_segment','test_droplet'
             }
     end
 
@@ -47,8 +48,9 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             else
                 s = [];
             end
-            sFCost = obj.createCost(cost,weights,m,fem,filtersCost,mat,Msmooth,filename,s);
-            sFConstraint = obj.createConstraint(constraint,target,m,fem,filtersConstraint,mat,Msmooth);
+            base = obj.createChiOmega(m);
+            sFCost = obj.createCost(cost,weights,m,fem,filtersCost,mat,Msmooth,filename,s,base);
+            sFConstraint = obj.createConstraint(constraint,target,m,fem,filtersConstraint,mat,Msmooth,base);
             l.nConstraints = length(constraint);
             lam    = DualVariable(l);
             primal = optimizerUnconstrained;
@@ -143,20 +145,15 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
                 case 'MICRO'
                     s.solverMode = 'FLUC';
             end
-            s.solverCase         = 'DIRECT';
+            s.solverCase         = DirectSolver();
             s.type               = 'ELASTIC';
             fem                  = PhysicalProblem.create(s);
         end
 
         function M = createMassMatrix(mesh,x)
-            s.test  = LagrangianFunction.create(mesh,1,'P1');
-            s.trial = LagrangianFunction.create(mesh,1,'P1');
-            s.mesh  = mesh;
-            s.type  = 'MassMatrix';
-            LHS = LHSIntegrator.create(s);
-            M = LHS.compute;
+            vF = LagrangianFunction.create(mesh,1,'P1');
+            M = IntegrateLHS(@(u,v) DP(v,u),vF,vF,mesh,'Domain'); 
             M = eye(size(M));
-
             switch class(x)
                 case 'DensityAndBound'
                     n = mesh.nnodes;
@@ -164,7 +161,15 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             end
         end
 
-        function sFCost = createCost(cost,weights,mesh,fem,filter,mat,Msmooth,filename,s)
+        function base = createChiOmega(mesh)
+            levelSet         = -ones(mesh.nnodes,1);
+            s.backgroundMesh = mesh;
+            s.boundaryMesh   = mesh.createBoundaryMesh();
+            base             = UnfittedMesh(s);
+            base.compute(levelSet);
+        end
+
+        function sFCost = createCost(cost,weights,mesh,fem,filter,mat,Msmooth,filename,s,base)
             for i = 1:length(cost)
                 s.type            = cost{i};
                 s.mesh            = mesh;
@@ -172,6 +177,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
                 s.filter          = filter{i};
                 s.material        = mat;
                 s.filename        = filename;
+                s.base            = base;
                 sF{i}             = ShapeFunctional.create(s);
             end
             ss.shapeFunctions = sF;
@@ -180,7 +186,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             sFCost            = Cost(ss);
         end
 
-        function sFConstraint = createConstraint(constraint,target,mesh,fem,filter,mat,Msmooth)
+        function sFConstraint = createConstraint(constraint,target,mesh,fem,filter,mat,Msmooth,base)
             k = 1;
             for i = 1:length(constraint)
                 switch class(filter{k})
@@ -193,11 +199,12 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
                         k = k+1;
                 end
                 s.type            = constraint{i};
-                s.target          = target;
+                s.target          = target(i);
                 s.mesh            = mesh;
                 s.physicalProblem = fem;
                 s.material        = mat;
                 s.gradientTest    = LagrangianFunction.create(mesh,1,'P1');
+                s.base            = base;
                 sF{i}             = ShapeFunctional.create(s);
             end
             ss.shapeFunctions = sF;

@@ -108,7 +108,7 @@ classdef TopOptTestTutorial3DDensity < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'CG';
+            s.solverCase = CGsolver();
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -128,11 +128,20 @@ classdef TopOptTestTutorial3DDensity < handle
             obj.compliance = c;
         end
 
+        function uMesh = createBaseDomain(obj)
+            levelSet         = -ones(obj.mesh.nnodes,1);
+            s.backgroundMesh = obj.mesh;
+            s.boundaryMesh   = obj.mesh.createBoundaryMesh();
+            uMesh = UnfittedMesh(s);
+            uMesh.compute(levelSet);
+        end
+
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
-            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.test = LagrangianFunction.create(obj.mesh,1,'P1');
             s.volumeTarget = 0.4;
+            s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -145,13 +154,6 @@ classdef TopOptTestTutorial3DDensity < handle
         end
 
         function M = createMassMatrix(obj)
-%             s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
-%             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-%             s.mesh  = obj.mesh;
-%             s.type  = 'MassMatrix';
-%             LHS = LHSintegrator.create(s);
-%             M = LHS.compute;     
-
             n = obj.mesh.nnodes;
             h = obj.mesh.computeMinCellSize();
             M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
@@ -209,7 +211,7 @@ classdef TopOptTestTutorial3DDensity < handle
 
             pointloadFun = [];
             for i = 1:numel(sPL)
-                pl = PointLoad(obj.mesh, sPL{i});
+                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
                 pointloadFun = [pointloadFun, pl];
             end
             s.pointloadFun = pointloadFun;

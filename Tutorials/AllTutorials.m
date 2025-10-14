@@ -19,14 +19,23 @@ TopOptTestTutorialLevelSetNullSpace();
 TopOptTestTutorialLSPerimeter();
 TopOptTestTutorialMicro();
 TopOptTestTutorialWithGiD();
+TopOptTestTutorialLevelSetInfill();
+NullSpaceVerification();
 %TopOptViaHomogenizationTutorial(); % ALEX
 Tutorial02FEMElasticity();
 Tutorial02p2FEMElasticityMicro();
 Tutorial11Monitoring();
 TutorialRemeshing();
-ChomogNetworkTutorial();
-TutorialXXPhaseFieldCase;
-TutorialXXPhaseFieldHomogenization;
+verification_jacobian();
+testGenDB();
+OptimizeEllipseTutorial();
+OptimizeSuperformTutorial();
+TutorialXXPhaseFieldCase();
+TutorialXXPhaseFieldHomogenization();
+TutorialXXHyperelasticity();
+TutorialXXContinuumDamage();
+TutorialElasticityAMG();
+TopOptTestTutorial3DDensityPython();
 close all;
 
 % Output:

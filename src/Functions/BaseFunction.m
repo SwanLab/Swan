@@ -51,6 +51,11 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             p1D.plot();
         end    
 
+        function print(obj,varargin)
+            p1D = project(obj,'P1D');
+            p1D.print(varargin{:});
+        end
+
         function plotVector(obj,varargin)
             if size(varargin, 1) == 1, n = varargin{1}; else, n = 2; end
             p1D = project(obj,'P1D');            
@@ -152,6 +157,49 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             r = power(a,0.5);
         end
 
+        function r = gt(a,b)
+            aOp = BaseFunction.computeOperation(a);
+            bOp = BaseFunction.computeOperation(b);
+            s.operation = @(xV) aOp(xV) > bOp(xV);
+            s.mesh  = a.mesh;
+            s.ndimf = a.ndimf;
+            r = DomainFunction(s);
+        end
+
+        function r = ge(a,b)
+            aOp = BaseFunction.computeOperation(a);
+            bOp = BaseFunction.computeOperation(b);
+            s.operation = @(xV) aOp(xV) >= bOp(xV);
+            s.mesh  = a.mesh;
+            s.ndimf = a.ndimf;
+            r = DomainFunction(s);
+        end
+        function r = lt(a,b)
+            aOp = BaseFunction.computeOperation(a);
+            bOp = BaseFunction.computeOperation(b);
+            s.operation = @(xV) aOp(xV) < bOp(xV);
+            s.mesh  = a.mesh;
+            s.ndimf = a.ndimf;
+            r = DomainFunction(s);
+        end
+
+        function r = le(a,b)
+            aOp = BaseFunction.computeOperation(a);
+            bOp = BaseFunction.computeOperation(b);
+            s.operation = @(xV) aOp(xV) <= bOp(xV);
+            s.mesh  = a.mesh;
+            s.ndimf = a.ndimf;
+            r = DomainFunction(s);
+        end
+
+        function r = not(a)
+            aOp = BaseFunction.computeOperation(a);
+            s.operation = @(xV) ~aOp(xV);
+            s.mesh  = a.mesh;
+            s.ndimf = a.ndimf;
+            r = DomainFunction(s);
+        end
+
         function r = norm(varargin)
             a = varargin{1};
             if nargin == 1
@@ -206,6 +254,24 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             f = DomainFunction(s);
         end
 
+        function r = min(a,b)
+            aOp = BaseFunction.computeOperation(a);
+            bOp = BaseFunction.computeOperation(b);
+            s.operation = @(xV) min(aOp(xV),bOp(xV));
+            s.mesh  = a.mesh;
+            s.ndimf = a.ndimf;
+            r = DomainFunction(s);
+        end
+
+        function r = max(a,b)
+            aOp = BaseFunction.computeOperation(a);
+            bOp = BaseFunction.computeOperation(b);
+            s.operation = @(xV) max(aOp(xV),bOp(xV));
+            s.mesh  = a.mesh;
+            s.ndimf = a.ndimf;
+            r = DomainFunction(s);
+        end
+
     end
 
 
@@ -226,6 +292,8 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
                 ndimf = a.ndimf;
             elseif isnumeric(a)
                 ndimf = size(a,1);
+            elseif isa(a,'Material')
+                ndimf = 9;
             else
                 ndimf = a.ndimf;
             end
