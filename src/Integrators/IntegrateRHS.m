@@ -59,9 +59,9 @@ function [bTest, iGlob] = restrictTestToBoundary(bMesh, test, l2g)
     [bTest, iGlob] = restrictFunc(bMesh,test,l2g_dof);
 end
 
-function [bFunc, gFunc] = restrictFunc(bMesh,func,l2g_map)
+function [bFunc, gFunc] = restrictFunc(func,l2g_map)
     if func.mesh.kFace == 0
-        bFunc = func.restrictBaseToBoundary(bMesh,l2g_map);
+        bFunc = func.restrictBaseToBoundary();
         l2g_map = reshape(l2g_map',[],1);
         gFunc = @(iLoc) l2g_map(iLoc);
     else
