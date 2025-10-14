@@ -27,9 +27,8 @@ classdef OfflineDataProcessor < handle
 
         function EIFEoper = computeROMbasis(obj, radiusMesh)
             tic
-            %[obj.K,obj.M] = createElasticProblem(obj);
+            [obj.K,obj.M] = createElasticProblem(obj);
             
-
             uFun         = obj.createDispFun();
             uRBfun       = obj.projectToRigidBodyFun(uFun);
             uDEFSpaceFun = obj.projectToDeformationalSpace(uFun,uRBfun);
@@ -62,25 +61,24 @@ classdef OfflineDataProcessor < handle
             Ud = PhiD*(Add'\Ldv); %% I still need these but they depend on mesh. How to use NN efficiently????
             Ur = PhiR*inv(Arr')*(Lrv - Adr'*(Add'\Ldv));
                       
-            Kcoarse = obj.computeKcoarseNN(radiusMesh); %uncomment to predict with NN
-            %Kcoarse = Ud'*obj.K*Ud; %uncomment to use during offline assembly
+            %Kcoarse = obj.computeKcoarseNN(radiusMesh); %uncomment to predict with NN
+            Kcoarse = Ud'*obj.K*Ud; %uncomment to use during offline assembly
             
             EIFEoper.Kcoarse = Kcoarse;
             EIFEoper.Urb = Ur;
             EIFEoper.Udef = Ud;
 
             %% Modal Analysis
-            %Mcoarse = Ud'*obj.M*Ud;
+            Mcoarse = Ud'*obj.M*Ud;
 
-            %[eigenvalues, eigenvectors, natFreq] = obj.computeModalAnalysis(Kcoarse, Mcoarse);
+            [eigenvalues, eigenvectors, natFreq] = obj.computeModalAnalysis(Kcoarse, Mcoarse);
 
-            % ModalAnalysis.lambda = eigenvalues;
-            % ModalAnalysis.Phi = eigenvectors;
-            % ModalAnalysis.omega = natFreq;
+            ModalAnalysis.lambda = eigenvalues;
+            ModalAnalysis.Phi = eigenvectors;
+            ModalAnalysis.omega = natFreq;
 
-            %EIFEoper.Mcoarse = Mcoarse;
-            %EIFEoper.ModalAnalysis = ModalAnalysis;
-            
+            EIFEoper.Mcoarse = Mcoarse;
+            EIFEoper.ModalAnalysis = ModalAnalysis;
             
             toc
 
@@ -320,9 +318,9 @@ classdef OfflineDataProcessor < handle
 
         function [lambda, Phi, omega] = computeModalAnalysis(obj, K, M)
             [Phi, D] = eig(K, M);
-            lambda = diag(D); %extrtact eigenvalues
+            lambda = diag(D);
             [lambda, idx] = sort(lambda, 'ascend'); 
-            Phi = Phi(:, idx); %sort eigenvectors
+            Phi = Phi(:, idx); %sort
             omega = sqrt(max(lambda,0));
         end
 
@@ -334,11 +332,11 @@ classdef OfflineDataProcessor < handle
             n = 8;
             L = zeros(n);
             idx = tril(true(n));
-            L(idx) = Y(:);                        % fill lower triangle
+            L(idx) = Y(:); % fill lower triangle
             d = diag(L);
             d(d <= 0) = eps;                      
             L(1:n+1:end) = d;
-            Kcoarse = L*L.';%revert cholesky decomposition 
+            Kcoarse  = L*L.';%revert cholesky decomposition 
         end
 
         

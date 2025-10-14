@@ -301,7 +301,7 @@ classdef TutorialEIFEM < handle
 %             filename        = EIFEMfilename;
 %             s.RVE           = TrainedRVE(filename);
             data = Training(mR);
-            p = OfflineDataProcessor(data);
+            p = OfflineDataProcessor(data); % i don't want to have to run this if I use NN
             EIFEoper = p.computeROMbasis(radiusMesh);
             s.RVE           = TrainedRVE(EIFEoper);
             s.mesh          = obj.createCoarseMesh(mR);
