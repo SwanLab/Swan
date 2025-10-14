@@ -188,7 +188,7 @@ classdef TutorialXXPhaseFieldHomogenization < handle
             s.scale = 'MICRO';
             s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditions(obj.baseMesh);
-            s.solverCase = 'DIRECT';
+            s.solverCase = DirectSolver();
             s.solverType = 'REDUCED';
             s.solverMode = 'FLUC';
             fem = ElasticProblemMicro(s);

@@ -118,7 +118,7 @@ classdef TopOptTestTutorialMicro < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'FLUC';
-            s.solverCase = 'DIRECT';
+            s.solverCase = DirectSolver();
             fem = ElasticProblemMicro(s);
             obj.physicalProblem = fem;
         end
