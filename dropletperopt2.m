@@ -4,6 +4,7 @@ nx=300; ny=300; nxy=nx*ny;
 k=[1,1]; k=k'/norm(k); kx=k(1); ky=k(2);
 kperp=[-ky;kx];
 alpha=4;
+A = [1 0; 0 1];
 
 Lx = 1; Ly = 1;
 dx = Lx/(nx-1); 
@@ -13,7 +14,7 @@ D = createDerivative(nx,ny,nxy,dx,dy);
 
 % Initialization
 chi0 = inizalization(nx,ny,Lx,Ly);
-vol  =sum(chi0);
+vol  = sum(chi0);
 
 %noDx=norm(full(Dx)); noDy=norm(full(Dy));
 
@@ -25,8 +26,8 @@ eps=10;
 taucpe=tauG/eps^2;
 
 %proxF = @(z)  proximalDroplet(z,tauF,k,alpha,ep);
-proxF = @(z)  proximalEllipse(z,tauF,alpha);
-f     = 
+proxF = @(z)  proximalEllipse(z,tauF,alpha,A);
+f     = @(z)  EllipseNormPrimal(z);
 df
 g
 dg
@@ -84,7 +85,6 @@ end
 
 
 function [s,J] = proximalEllipse(z,tau,alpha)
-A = [1 0; 0 1];
 I = eye(2);
 r = alpha^2/tau;
 invM = inv((A+r*I));
@@ -115,13 +115,12 @@ function J = L2ProjectionDual(rho,Chi)
 J = 0.5*(rho-Chi)'*(rho-Chi);
 end
 
-function J = EllipseGradientPrimal(txi)
-A = [1 0; 0 1];
+function J = EllipseNormPrimal(txi,A)
 J = 0.5*sum(sum((txi*A.').*txi));
 end
 
 
-function J = EllipseGradientDual(txi)
+function J = EllipseNormtDual(txi)
 A = [1 0; 0 1];
 invA = inv(A);
 J = 0.5*sum(sum((txi*invA.').*txi));
