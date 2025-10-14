@@ -24,8 +24,13 @@ ep=1e-5;
 eps=10; 
 taucpe=tauG/eps^2;
 
-proxF = @(z)  proximalDroplet(z,tauF,k,alpha,ep);
-%proxF = @(z)  proximalEllipse(z,tauF,alpha);
+%proxF = @(z)  proximalDroplet(z,tauF,k,alpha,ep);
+proxF = @(z)  proximalEllipse(z,tauF,alpha);
+f     = 
+df
+g
+dg
+
 proxG = @(rho,rho0) proximalL2Projection(rho,rho0,taucpe);
 grad = @(u) Grad(D,u);
 div  = @(z) Div(D,z);
@@ -78,12 +83,13 @@ function D = createDerivative(nx,ny,nxy,Lx,Ly)
 end
 
 
-function s = proximalEllipse(z,tau,alpha)
+function [s,J] = proximalEllipse(z,tau,alpha)
 A = [1 0; 0 1];
 I = eye(2);
 r = alpha^2/tau;
 invM = inv((A+r*I));
 s = r*z*invM.';
+J = 0.5*sum(sum((z*invM.').*z));
 end
 
 
@@ -97,8 +103,28 @@ deltaS = tA*(z + (alpha^2-2)*zk.*k.' - tB.*((z2-2*zk.^2).*k.' + zk.*z));
 s      = s1 + (alpha*zk - sqrt(z2) > 0).*deltaS;
 end
 
-function rho = proximalL2Projection(rho,Chi,tauG)
-rho = (rho + tauG*Chi)/(1+tauG);
+function rhoN = proximalL2Projection(rho,Chi,tauG)
+rhoN = (rho + tauG*Chi)/(1+tauG);
+end
+
+function J = L2ProjectionPrimal(rho,Chi)
+J = 0.5*(rho-Chi)'*(rho-Chi);
+end
+
+function J = L2ProjectionDual(rho,Chi)
+J = 0.5*(rho-Chi)'*(rho-Chi);
+end
+
+function J = EllipseGradientPrimal(txi)
+A = [1 0; 0 1];
+J = 0.5*sum(sum((txi*A.').*txi));
+end
+
+
+function J = EllipseGradientDual(txi)
+A = [1 0; 0 1];
+invA = inv(A);
+J = 0.5*sum(sum((txi*invA.').*txi));
 end
 
 function [u,z] = solveWithChambollePockAlgorithm(u0,z0,Grad,Div,proxF,proxG,tauF,tauG,thetaRel)
@@ -106,9 +132,9 @@ u  = u0;
 uN = u0;
 z   = z0; 
 for kcp=1:2000
-    z      = proxF(z + tauF*Grad(uN));
+    [z,fd] = proxF(z + tauF*Grad(uN));
     uOld   = u;
-    u      = proxG(u - tauG*Div(z));
+    [u,gd] = proxG(u - tauG*Div(z));
     uN     = u + thetaRel*(u - uOld);
 end
 end
