@@ -81,9 +81,9 @@ classdef ElasticProblemDavid < handle
             sPL{1}.direction = 2;
             sPL{1}.value     = -1;
             
-                    % % sPL{2}.domain    = @(coor) isRight(coor);
-                    % % sPL{2}.direction = 3;
-                    % % sPL{2}.value     = -1;
+                    sPL{2}.domain    = @(coor) isRight(coor);
+                    sPL{2}.direction = 3;
+                    sPL{2}.value     = -1;
 
             dirichletFun = [];
             for i = 1:numel(sDir)
@@ -155,17 +155,8 @@ classdef ElasticProblemDavid < handle
             C = obj.material;
             obj.sigmaFun = DDP(C,obj.strainFun); 
             
-                % strainFun te ndimf = 9
-                % pero sigmaFun té ndimf = 1 (no hauria de ser 9 ? )
-                % tampoc puc veure com és C, a l'explorar-ho em diu "val = "
 
 
-                % al codi original evalua strain i sigma a xV, punts de
-                % quadratura, pq no a les coordenades dels nodes?
-
-                % si evaluo strainFun: obj.strainFun.evaluate([1;1;1])
-                % surten 2 matrius 3x3 ??????
-            
         end
         
     end
