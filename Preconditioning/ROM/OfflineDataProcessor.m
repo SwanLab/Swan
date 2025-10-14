@@ -61,12 +61,9 @@ classdef OfflineDataProcessor < handle
 
             Ud = PhiD*(Add'\Ldv); %% I still need these but they depend on mesh. How to use NN efficiently????
             Ur = PhiR*inv(Arr')*(Lrv - Adr'*(Add'\Ldv));
-            
-
-
-            %Kcoarse = obj.computeKcoarseNN(radiusMesh); %uncomment to predict with NN
-            
-            %Kcoarse = Ud'*obj.K*Ud;
+                      
+            Kcoarse = obj.computeKcoarseNN(radiusMesh); %uncomment to predict with NN
+            %Kcoarse = Ud'*obj.K*Ud; %uncomment to use during offline assembly
             
             EIFEoper.Kcoarse = Kcoarse;
             EIFEoper.Urb = Ur;
@@ -329,7 +326,7 @@ classdef OfflineDataProcessor < handle
             omega = sqrt(max(lambda,0));
         end
 
-        function Kcoarse = computeKcoarseNN(obj, mesh)
+        function Kcoarse = computeKcoarseNN(obj, radiusMesh)
             load("Kcoarse_predictor.mat");
 
             Y = opt.computeOutputValues(radiusMesh);
