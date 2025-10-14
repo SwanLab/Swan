@@ -56,13 +56,13 @@ function [bTest, iGlob] = restrictTestToBoundary(bMesh, test, l2g)
     for i = 1:test.ndimf
         l2g_dof(:,i) = lastDofs - (test.ndimf-i);
     end
-    l2g_dof = reshape(l2g_dof',[],1);
     [bTest, iGlob] = restrictFunc(bMesh,test,l2g_dof);
 end
 
 function [bFunc, gFunc] = restrictFunc(bMesh,func,l2g_map)
     if func.mesh.kFace == 0
-        bFunc = func.restrictBaseToBoundary(bMesh);
+        bFunc = func.restrictBaseToBoundary(bMesh,l2g_map);
+        l2g_map = reshape(l2g_map',[],1);
         gFunc = @(iLoc) l2g_map(iLoc);
     else
         bFunc = func;
