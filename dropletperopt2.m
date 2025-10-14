@@ -85,12 +85,11 @@ function D = createDerivative(nx,ny,nxy,Lx,Ly)
 end
 
 
-function [s,J] = proximalEllipse(z,tau,alpha)
+function s = proximalEllipse(z,tau,alpha)
 I = eye(2);
 r = alpha^2/tau;
 invM = inv((A+r*I));
 s = r*z*invM.';
-J = 0.5*sum(sum((z*invM.').*z));
 end
 
 
@@ -126,24 +125,24 @@ invA = inv(A);
 J = 0.5*sum(sum((z*invA.').*z));
 end
 
-function [u,z] = solveWithChambollePockAlgorithm(u0,z0,Grad,Div,proxF,proxG,tauF,tauG,thetaRel,f,fd,G,Gd)
+function [u,z] = solveWithChambollePockAlgorithm(u0,z0,Grad,Div,proxF,proxG,tauF,tauG,thetaRel,f,fd,G,GD)
 u  = u0; 
 uN = u0;
 z   = z0; 
 for kcp=1:2000
-    [z,fd] = proxF(z + tauF*Grad(uN));
+    z      = proxF(z + tauF*Grad(uN));
     uOld   = u;
-    [u,gd] = proxG(u - tauG*Div(z));
+    u      = proxG(u - tauG*Div(z));
     uN     = u + thetaRel*(u - uOld);
     primal = f(Grad(uN)) + G(uN)
-    dual   = fD(z) + GD(-Div(z))
+    dual   = fd(z) + GD(-Div(z))
 end
 end
 
 function [u,z] = PerimeterComputation(chi,u0,z0,Grad,Div,proxF,proxGX,tauF,tauG,thetaRel,f,fd,g,gd)
 proxG = @(rho) proxGX(rho,chi);   
 G  = @(rho) g(rho,chi);  
-GD = @(rho) gd(rho,chi);  
+Gd = @(rho) gd(rho,chi);  
 [u,z] = solveWithChambollePockAlgorithm(u0,z0,Grad,Div,proxF,proxG,tauF,tauG,thetaRel,f,fd,G,Gd);
 end
 
