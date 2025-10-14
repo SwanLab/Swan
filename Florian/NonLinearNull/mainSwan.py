@@ -16,7 +16,8 @@ from matplotlib import colors
 import matlab.engine
 eng = matlab.engine.start_matlab()
 eng.addpath(eng.genpath('C:/Users/JOSE A. TORRES/Documents/GitHub/Swan'), nargout=0)
-tutorial = eng.TutorialToPythonDensitySetting(nargout=1)
+#tutorial = eng.TutorialToPythonDensitySetting(nargout=1)
+tutorial = eng.TutorialToPythonDensitySettingGripper(nargout=1)
  
 def to_matlab(x):
     import matlab
@@ -92,7 +93,7 @@ optimization_params = {"dt": 0.01,
                         "itnormalisation": 50,
                         "save_only_N_iterations": 1,
                         "save_only_Q_constraints": 5,
-                        "alphaJ": 5,
+                        "alphaJ": 2,
                         "alphaC": 1,
                         "maxit": 500}
 

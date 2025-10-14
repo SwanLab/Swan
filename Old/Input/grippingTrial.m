@@ -20038,6 +20038,43 @@ pointload_adjoint = [
 10011 2 1 
 ];
 
+
+
+
+
+
+
+
+
+
+
+
+isPLTopRight      = @(coor)  (abs(coor(:,1)) >= 0.92 & coor(:,2) == 1 );
+isPLBottomRight   = @(coor)  (abs(coor(:,1)) >= 0.92 & abs(coor(:,2)) <= 1e-8 ); % not exactly 0 in the mesh
+isPLTopGripper    = @(coor)  (abs(coor(:,1)) < 0.1  & coor(:,2) == 0.6 );
+isPLBottomGripper = @(coor)  (abs(coor(:,1)) < 0.1  & coor(:,2) == 0.4 );
+
+sPLAdj{1}.domain    = @(coor) isPLTopRight(coor);
+sPLAdj{1}.direction = 2;
+sPLAdj{1}.value     = -1;
+
+sPLAdj{2}.domain    = @(coor) isPLBottomRight(coor);
+sPLAdj{2}.direction = 2;
+sPLAdj{2}.value     = +1;
+
+sPLAdj{3}.domain    = @(coor) isPLTopGripper(coor);
+sPLAdj{3}.direction = 2;
+sPLAdj{3}.value     = +2;
+
+sPLAdj{4}.domain    = @(coor) isPLBottomGripper(coor);
+sPLAdj{4}.direction = 2;
+sPLAdj{4}.value     = -2;
+
+
+
+
+
+
 %% Volumetric Force
 % Element        Dim                Force_Dim
 

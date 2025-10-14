@@ -1,7 +1,8 @@
-classdef TutorialToPythonDensitySetting < handle
+classdef TutorialToPythonDensitySettingGripper < handle
 
     properties (Access = private)
         mesh
+        filename
         filter
         designVariable
         materialInterpolator
@@ -24,7 +25,7 @@ classdef TutorialToPythonDensitySetting < handle
 
     methods (Access = public)
 
-        function obj = TutorialToPythonDensitySetting()
+        function obj = TutorialToPythonDensitySettingGripper()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -32,8 +33,7 @@ classdef TutorialToPythonDensitySetting < handle
             obj.createFilterPlotter();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
-            obj.createComplianceFromConstiutive();
-            obj.createCompliance();
+            obj.createNonSelfAdjCompliance();
             obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
@@ -94,11 +94,11 @@ classdef TutorialToPythonDensitySetting < handle
         end
 
         function createMesh(obj)
-%             % CANTILEVER
-%             obj.mesh = TriangleMesh(2,1,100,50);
-
-            % MBB BEAM
-            obj.mesh = TriangleMesh(6,1,180,30);
+            file = 'grippingTrial';
+            obj.filename = file;
+            a.fileName = file;
+            s = FemDataContainer(a);
+            obj.mesh = s.mesh;
         end
 
         function createDesignVariable(obj)
@@ -177,18 +177,13 @@ classdef TutorialToPythonDensitySetting < handle
             obj.physicalProblem = fem;
         end
 
-        function c = createComplianceFromConstiutive(obj)
+        function createNonSelfAdjCompliance(obj)
             s.mesh         = obj.mesh;
+            s.filter       = obj.filter;
+            s.material     = obj.createMaterial();
             s.stateProblem = obj.physicalProblem;
-            c = ComplianceFromConstitutiveTensor(s);
-        end
-
-        function createCompliance(obj)
-            s.mesh                        = obj.mesh;
-            s.filter                      = obj.filter;
-            s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
-            s.material                    = obj.createMaterial();
-            c = ComplianceFunctional(s);
+            s.filename     = obj.filename;
+            c = NonSelfAdjointComplianceFunctional(s);
             obj.compliance = c;
         end
 
@@ -204,13 +199,7 @@ classdef TutorialToPythonDensitySetting < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-
-%             % CANTILEVER
-%             s.volumeTarget = 0.4;
-
-            % MBB BEAM
-            s.volumeTarget = 0.4;
-
+            s.volumeTarget = 0.6;
             s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
@@ -236,39 +225,10 @@ classdef TutorialToPythonDensitySetting < handle
         end
 
         function bc = createBoundaryConditions(obj)
-%             % CANTILEVER
-%             bc = obj.createBCCantilever();
-
-            % MBB BEAM
-            bc = obj.createBCMBB();
-        end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        function bc = createBCCantilever(obj)
-            xMax    = max(obj.mesh.coord(:,1));
-            yMax    = max(obj.mesh.coord(:,2));
-            isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
-
-            sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [1,2];
-            sDir{1}.value     = 0;
-
-            sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 2;
-            sPL{1}.value     = -1;
+            femReader = FemInputReaderGiD();
+            s         = femReader.read(obj.filename);
+            sPL       = obj.computeCondition(s.pointload);
+            sDir      = obj.computeCondition(s.dirichlet);
 
             dirichletFun = [];
             for i = 1:numel(sDir)
@@ -288,42 +248,27 @@ classdef TutorialToPythonDensitySetting < handle
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
         end
-
-        function bc = createBCMBB(obj)
-            yMax    = max(obj.mesh.coord(:,2));
-            isDir1  = @(coor)  coor(:,2)==0 & coor(:,1)<=0.3;
-            isDir2  = @(coor)  coor(:,2)==0 & coor(:,1)>=5.7;
-            isForce = @(coor)  abs(coor(:,2))==yMax & abs(coor(:,1))>=2.85 & abs(coor(:,1))<=3.15;
-
-            sDir{1}.domain    = @(coor) isDir1(coor);
-            sDir{1}.direction = 2;
-            sDir{1}.value     = 0;
-
-            sDir{2}.domain    = @(coor) isDir2(coor);
-            sDir{2}.direction = [1,2];
-            sDir{2}.value     = 0;
-
-            sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 2;
-            sPL{1}.value     = -1;
-
-            dirichletFun = [];
-            for i = 1:numel(sDir)
-                dir = DirichletCondition(obj.mesh, sDir{i});
-                dirichletFun = [dirichletFun, dir];
-            end
-            s.dirichletFun = dirichletFun;
-
-            pointloadFun = [];
-            for i = 1:numel(sPL)
-                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
-                pointloadFun = [pointloadFun, pl];
-            end
-            s.pointloadFun = pointloadFun;
-
-            s.periodicFun  = [];
-            s.mesh = obj.mesh;
-            bc = BoundaryConditions(s);
-        end
     end
+
+    methods (Static, Access=private)
+        function sCond = computeCondition(conditions)
+            nodes = @(coor) 1:size(coor,1);
+            dirs  = unique(conditions(:,2));
+            j     = 0;
+            for k = 1:length(dirs)
+                rowsDirk = ismember(conditions(:,2),dirs(k));
+                u        = unique(conditions(rowsDirk,3));
+                for i = 1:length(u)
+                    rows   = conditions(:,3)==u(i) & rowsDirk;
+                    isCond = @(coor) ismember(nodes(coor),conditions(rows,1));
+                    j      = j+1;
+                    sCond{j}.domain    = @(coor) isCond(coor);
+                    sCond{j}.direction = dirs(k);
+                    sCond{j}.value     = u(i);
+                end
+            end
+        end
+
+    end
+
 end
