@@ -67,12 +67,12 @@ classdef EnclosedVoidFunctional < handle
         end
 
         function createBoundaryConditions(obj,x)
-            [bMesh, l2g]  = obj.mesh.createSingleBoundaryMesh();
+            [~, l2g]  = obj.mesh.createSingleBoundaryMesh();
 
             fValues = x.fun.fValues(l2g);
            % xB = x.fun.restrictBaseToBoundary(bMesh);
 
-            bF = x.fun.restrictBaseToBoundary(bMesh,l2g);
+            bF = x.fun.restrictToBoundary();
             isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
             isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
             isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2))) < 1e-12);
