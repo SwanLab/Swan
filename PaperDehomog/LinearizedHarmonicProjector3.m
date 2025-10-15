@@ -24,7 +24,7 @@ classdef LinearizedHarmonicProjector3 < handle
 
         function obj = LinearizedHarmonicProjector3(cParams)
             obj.init(cParams);
-            obj.fB = LagrangianFunction.create(obj.mesh, 1, 'P2');
+            obj.fB = LagrangianFunction.create(obj.mesh, 2, 'P2');
             obj.fBV = LagrangianFunction.create(obj.mesh, 2, 'P2');
             obj.fS = LagrangianFunction.create(obj.mesh, 1, 'P1');
             obj.fG = LagrangianFunction.create(obj.mesh, 1, 'P0');
@@ -59,7 +59,7 @@ classdef LinearizedHarmonicProjector3 < handle
                 disp(['iter ',num2str(i),' residual ',num2str(res(i))])
             end
             figure()
-            plot(1:i,log([res; resL; resH; resB; resG]))
+            plot(1:i,log10([res; resL; resH; resB; resG]))
             legend('LHS*x-RHS','resDistance','resHarmonic','resUnitBall','resGradient')
 
             % Mbb  = obj.massMatrixBB;
@@ -105,7 +105,10 @@ classdef LinearizedHarmonicProjector3 < handle
             rhsV = IntegrateRHS(@(v) DP(Grad(v),f),obj.fS,obj.mesh,'Domain',4);
             rhsV(obj.boundaryNodes) = 0;
             Mss = obj.massMatrixSS;
-            hf = Mss\rhsV;
+            Kss = IntegrateLHS(@(u,v) DP(Grad(v),Grad(u)),obj.fS,obj.fS,obj.mesh,'Domain');
+            eps = (1*obj.mesh.computeMeanCellSize)^2;
+            LHS = Mss+eps*Kss;
+            hf = LHS\rhsV;
             resH = obj.createFunction(full(hf),obj.fS.order);
         end
 
