@@ -16,7 +16,7 @@ fplot(C20,[0 1],'Color',cmp(3,:));
 legend('$\sigma = 1MPa$','$\sigma = 1.5MPa$','$\sigma = 2MPa$','Interpreter','latex')
 title('Circle Degradation function ($\nu = 0.3$)','Interpreter','latex')
 
-%% 1 ELEMENT COMPARISON (sigma max)
+%% 1 ELEMENT COMPARISON (same type - sigma max)
 
 load('Cir10.mat')
 u10 = outputData.displacement.value;
@@ -56,7 +56,7 @@ plot(u20,d20,'Color',cmp(3,:));
 legend('$\sigma = 1MPa$','$\sigma = 1.5MPa$','$\sigma = 2MPa$','Interpreter','latex')
 title('Circle One Element (Damage)','Interpreter','latex')
 
-%% 1 ELEMENT COMPARISON (poisson)
+%% 1 ELEMENT COMPARISON (same type - poisson)
 
 load('AT1nu05Clamped.mat')
 u05 = outputData.displacement.value;
@@ -102,3 +102,63 @@ plot(u0,d0,'Color',cmp(3,:))
 plot(u_05,d_05,'Color',cmp(4,:))
 legend('$\nu = 0.5$','$\nu = 0.3$','$\nu = 0$','$\nu = -0.5$','Interpreter','latex')
 title('AT1 One Element (damage-displacement)','Interpreter','latex')
+
+%% 1 ELEMENT COMPARISON (all types - poisson)
+load('AT1nu_05Clamped.mat')
+uAT1 = outputData.displacement.value;
+dAT1 = outputData.damage.maxValue;
+fAT1 = outputData.force;
+load('AT2nu_05Clamped.mat')
+uAT2 = outputData.displacement.value;
+dAT2 = outputData.damage.maxValue;
+fAT2 = outputData.force;
+load('Rat1nu_05Clamped.mat')
+uRat1 = outputData.displacement.value;
+dRat1 = outputData.damage.maxValue;
+fRat1 = outputData.force;
+load('Rat15nu_05Clamped.mat')
+uRat15 = outputData.displacement.value;
+dRat15 = outputData.damage.maxValue;
+fRat15 = outputData.force;
+load('Rat2nu_05Clamped.mat')
+uRat2 = outputData.displacement.value;
+dRat2 = outputData.damage.maxValue;
+fRat2 = outputData.force;
+load('SIMPALLnu_05Clamped.mat')
+uSimp = outputData.displacement.value;
+dSimp = outputData.damage.maxValue;
+fSimp = outputData.force;
+
+cmp = orderedcolors("gem");
+figure()
+hold on
+plot(uAT1,fAT1,'Color',cmp(1,:))
+plot(uAT2,fAT2,'Color',cmp(1,:),'LineStyle','--')
+plot(uRat1,fRat1,'Color',cmp(3,:),"Marker","o","MarkerIndices",[1:2:length(fRat1)])
+plot(uRat15,fRat15,'Color',cmp(3,:),"Marker","+","MarkerIndices",[1:2:length(fRat15)])
+plot(uRat2,fRat2,'Color',cmp(3,:),"Marker","*","MarkerIndices",[1:2:length(fRat2)])
+plot(uSimp,fSimp,'Color',cmp(4,:))
+legend('AT1','AT2','Rational (1MPa)','Rational (1.5MPa)','Rational (2MPa)','SIMPALL')
+title('Force-displacement 1Elem (nu = -0.5)')
+
+figure()
+hold on
+plot(dAT1,fAT1,'Color',cmp(1,:))
+plot(dAT2,fAT2,'Color',cmp(1,:),'LineStyle','--')
+plot(dRat1,fRat1,'Color',cmp(3,:),"Marker","o","MarkerIndices",[1:2:length(fRat1)])
+plot(dRat15,fRat15,'Color',cmp(3,:),"Marker","+","MarkerIndices",[1:2:length(fRat15)])
+plot(dRat2,fRat2,'Color',cmp(3,:),"Marker","*","MarkerIndices",[1:2:length(fRat2)])
+plot(dSimp,fSimp,'Color',cmp(4,:))
+legend('AT1','AT2','Rational (1MPa)','Rational (1.5MPa)','Rational (2MPa)','SIMPALL')
+title('Force-damage 1Elem (nu = -0.5)')
+
+figure()
+hold on
+plot(uAT1,dAT1,'Color',cmp(1,:))
+plot(uAT2,dAT2,'Color',cmp(1,:),'LineStyle','--')
+plot(uRat1,dRat1,'Color',cmp(3,:),"Marker","o","MarkerIndices",[1:2:length(fRat1)])
+plot(uRat15,dRat15,'Color',cmp(3,:),"Marker","+","MarkerIndices",[1:2:length(fRat15)])
+plot(uRat2,dRat2,'Color',cmp(3,:),"Marker","*","MarkerIndices",[1:2:length(fRat2)])
+plot(uSimp,dSimp,'Color',cmp(4,:))
+legend('AT1','AT2','Rational (1MPa)','Rational (1.5MPa)','Rational (2MPa)','SIMPALL')
+title('Damage-displacement 1Elem (nu = -0.5)')
