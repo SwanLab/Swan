@@ -276,9 +276,18 @@ classdef LagrangianFunction < FeFunction
             f.fValues = obj.fValues/fNorm;
         end
 
-        function bF = restrictBaseToBoundary(obj,bMesh)
+        function bF = restrictToBoundary(obj)
             if isempty(obj.bFun)
-                obj.bFun = LagrangianFunction.create(bMesh,obj.ndimf,obj.order);
+                [bMesh, l2g]  = obj.mesh.createSingleBoundaryMesh();
+                lastDofs = (l2g * obj.ndimf)';
+                l2gdof = zeros(length(lastDofs),obj.ndimf);
+                for i = 1:obj.ndimf
+                    l2gdof(:,i) = lastDofs - (obj.ndimf-i);
+                end
+                fun = LagrangianFunction.create(bMesh,obj.ndimf,obj.order);
+                val = obj.fValues(l2gdof);
+                fun.setFValues(val);
+                obj.bFun = fun;
             end
             bF = obj.bFun;
         end
@@ -311,7 +320,7 @@ classdef LagrangianFunction < FeFunction
                 res.fValues = val1 + val2;
                 s = res;
             else % a will be lagrangian, otherwise won't enter here              
-                if isa(b, 'LagrangianFunction')
+                if isa(b, 'LagrangianFunction') & b.order == a.order
                     res = copy(a);
                     val1 = a.fValues;
                     fEv1 = a.fxVOld;

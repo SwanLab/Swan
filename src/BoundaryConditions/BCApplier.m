@@ -126,6 +126,26 @@ classdef BCApplier < handle
             [RHSDir, RHSDirPer] = comp.getRHSVector();
             RHSC = [zerosRHS; per_vec; RHSDirPer; RHSDir];
         end
+
+        function rVec = fullToReducedVectorDirichlet(obj,fVec)
+            dofs      = 1:1:obj.dirichletFun.nDofs;
+            free_dofs = setdiff(dofs, obj.dirichlet_dofs);
+            rVec      = fVec(free_dofs);
+        end
+
+        function rMat = fullToReducedMatrixDirichlet(obj,fMat)
+            dofs      = 1:1:obj.dirichletFun.nDofs;
+            free_dofs = setdiff(dofs, obj.dirichlet_dofs);
+            rMat      = fMat(free_dofs,free_dofs);
+        end
+
+        function fVec = reducedToFullVectorDirichlet(obj,rVec)
+            dofs                     = 1:1:obj.dirichletFun.nDofs;
+            free_dofs                = setdiff(dofs, obj.dirichlet_dofs);
+            fVec                     = zeros(obj.dirichletFun.nDofs,1);
+            fVec(free_dofs)          = rVec;
+            fVec(obj.dirichlet_dofs) = obj.dirichlet_vals;
+        end
     end
 
     methods (Access = private)

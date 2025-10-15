@@ -30,10 +30,12 @@ verification_jacobian();
 testGenDB();
 OptimizeEllipseTutorial();
 OptimizeSuperformTutorial();
-TutorialXXPhaseFieldCase;
-TutorialXXPhaseFieldHomogenization;
-TutorialXXHyperelasticity;
-TutorialXXContinuumDamage;
+TutorialXXPhaseFieldCase();
+TutorialXXPhaseFieldHomogenization();
+TutorialXXHyperelasticity();
+TutorialXXContinuumDamage();
+TutorialElasticityAMG();
+TopOptTestTutorial3DDensityPython();
 close all;
 
 % Output:
