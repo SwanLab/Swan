@@ -30,7 +30,7 @@ classdef DEIM < handle
         
         function init(obj,data)
             obj.data = data;
-            obj.threshold = 0.9999;
+            obj.threshold = 0.9999999;
 
         end
         
@@ -45,8 +45,13 @@ classdef DEIM < handle
                 n=i;
                 i=i+1;
             end
-            obj.nBasis = n;
+            obj.nBasis = 50;
             obj.basis = U(:,1:obj.nBasis);
+%             obj.basis(:,end+1:end+3) = obj.data(:,1:3);
+%             obj.nBasis = obj.nBasis +3;
+%             [U,S,V]    = svd(obj.basis,"econ");
+%             obj.basis = U;
+%             obj.nBasis = size(U,2);
             obj.sValues = S(1:obj.nBasis,1:obj.nBasis);
             obj.rightVectors = V(:,1:obj.nBasis);
         end

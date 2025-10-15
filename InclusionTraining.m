@@ -50,7 +50,7 @@ classdef InclusionTraining < handle
                 EIFEoper.U = EIFEoper.U(:);
 %                 EIFEoper.Kfine = data.LHSsbd;
                 EIFEoper.snapshots = data.uSbd;
-                filePath = ['/home/raul/Documents/GitHub/EPFL/data_' num2str(obj.r(i), '%.3f') '.mat'];
+                filePath = ['/home/raul/Documents/GitHub/EPFL/test/data_' num2str(obj.r(i), '%.3f') '.mat'];
                 save(filePath,'EIFEoper')
             end
         end
@@ -60,7 +60,7 @@ classdef InclusionTraining < handle
     methods (Access = private)
 
         function init(obj)
-            obj.r    = 0.1:0.01:0.1;
+            obj.r    = 0.005:0.01:0.80;
             obj.xmin = -1;
             obj.xmax = 1;
             obj.ymin = -1;

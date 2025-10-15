@@ -123,26 +123,26 @@ classdef Training < handle
             material = obj.createMaterial(obj.meshDomain);
             K = obj.computeStiffnessMatrix(obj.meshDomain,u,material);          
             C = obj.computeConditionMatrix(obj.meshDomain,u,dLambda);
-            Z = zeros(size(C,2));
-            LHS = [K C; C' Z];
+            Z = zeros(dLambda.nDofs);
+            LHS = [K C'; C Z];
         end
 
         function LHS = computeStiffnessMatrix(obj,mesh,dispFun,C)
-            LHS = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),dispFun,dispFun,mesh,2);
+            LHS = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),dispFun,dispFun,mesh,'Domain',2);
         end
 
         function C = computeConditionMatrix(obj,mesh,dispFun,dLambda)
-            test     = LagrangianFunction.create(obj.boundaryMeshJoined, obj.meshDomain.ndim, 'P1'); % !!         
-            lhs = IntegrateLHS(@(u,v) DP(v,u),dLambda,test,obj.boundaryMeshJoined,2);
-
-            nDofs = obj.meshDomain.nnodes*dLambda.ndimf;
-            lhsg = sparse(nDofs,dLambda.nDofs);
-            [iLoc,jLoc,vals] = find(lhs);
-            l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
-            l2g_dof = l2g_dof(:);
-            jGlob = l2g_dof(jLoc);
-            iGlob = l2g_dof(iLoc);
-            C = lhsg + sparse(iGlob,jLoc,vals, nDofs,dLambda.nDofs);
+%             test     = LagrangianFunction.create(obj.boundaryMeshJoined, obj.meshDomain.ndim, 'P1'); % !!         
+            lhs = IntegrateLHS(@(u,v) DP(v,u),dLambda,dispFun,obj.meshDomain,'Boundary',2);
+            C = lhs;
+%             nDofs = obj.meshDomain.nnodes*dLambda.ndimf;
+%             lhsg = sparse(nDofs,dLambda.nDofs);
+%             [iLoc,jLoc,vals] = find(lhs);
+%             l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
+%             l2g_dof = l2g_dof(:);
+%             jGlob = l2g_dof(jLoc);
+%             iGlob = l2g_dof(iLoc);
+%             C = lhsg + sparse(iGlob,jLoc,vals, nDofs,dLambda.nDofs);
         end
 
         function RHS = computeRHS(obj,u,dLambda)
@@ -155,7 +155,7 @@ classdef Training < handle
             nfun = size(dir,2);
             uD = [];
             for i=1:nfun
-                rDiri = IntegrateRHS(@(v) DP(v,dir{i}),test,obj.boundaryMeshJoined,2);
+                rDiri = IntegrateRHS(@(v) DP(v,dir{i}),test,obj.meshDomain,'Boundary',2);
                 uD = [uD rDiri];
             end
         end

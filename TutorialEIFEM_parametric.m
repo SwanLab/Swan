@@ -74,7 +74,7 @@ classdef TutorialEIFEM_parametric < handle
 %             filePath = ['/home/raul/Documents/GitHub/EPFL/data_' num2str(obj.r(i), '%.3f') '.mat'];
             obj.tolSameNode = 1e-10;
             obj.solverType = 'REDUCED';
-            obj.r  = 0.8;
+            obj.r  = 0.1;
 %             obj.r  = [0.1 , 0.2; 0.3, 0.4];
             obj.xmin = -1; 
             obj.xmax = 1;
@@ -84,7 +84,7 @@ classdef TutorialEIFEM_parametric < handle
             obj.cy = 0;
             obj.Nr=7;
             obj.Ntheta=14;
-            obj.fileNameEIFEM = '/home/raul/Documents/GitHub/EPFL/parametrizedEIFEM.mat';
+            obj.fileNameEIFEM = '/home/raul/Documents/GitHub/EPFL/dataEIFEM.mat';
         end        
 
         function createReferenceMesh(obj)
@@ -344,11 +344,35 @@ classdef TutorialEIFEM_parametric < handle
             % lhs = LHSIntegrator.create(s);
             % LHS = lhs.compute();
 
-            LHS = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),dispFun,dispFun,mesh,2);
+            LHS = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),dispFun,dispFun,mesh,'Domain',2);
             LHSr = obj.bcApplier.fullToReducedMatrixDirichlet(LHS);
         end
 
-        function RHS = computeForces(obj,stiffness,u)
+        function RHS =  computeForces(obj,stiffness,u)
+            bc  = obj.boundaryConditions;
+            t   = bc.tractionFun;
+            rhs = zeros(u.nDofs,1);
+            if ~isempty(t)
+                for i = 1:numel(t)
+                    rhsi = t(i).computeRHS(u);
+                    rhs  = rhs + rhsi;
+                end
+            end
+            if strcmp(obj.solverType,'REDUCED')
+                bc      = obj.boundaryConditions;
+                dirich  = bc.dirichlet_dofs;
+                dirichV = bc.dirichlet_vals;
+                if ~isempty(dirich)
+                    R = -stiffness(:,dirich)*dirichV;
+                else
+                    R = zeros(sum(obj.uFun.nDofs(:)),1);
+                end
+                rhs = rhs+R;
+            end
+             RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
+        end
+
+        function RHS = computeForces1(obj,stiffness,u)
             % s.type      = 'Elastic';
             % s.scale     = 'MACRO';
             % s.dim.ndofs = u.nDofs;
