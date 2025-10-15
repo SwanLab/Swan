@@ -56,4 +56,10 @@ classdef ComplianceFromConstitutiveTensor < handle
             end
         end
     end
+
+    methods (Static, Access = public)
+        function title = getTitleToPlot()
+            title = 'Volume'; % Maybe a property in the future?
+        end
+    end
 end

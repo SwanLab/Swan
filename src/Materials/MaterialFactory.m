@@ -12,6 +12,8 @@ classdef MaterialFactory < handle
                         case 3
                             material = Isotropic3dElasticMaterial(cParams);
                     end
+                case 'ORTHOTROPIC'
+                    material = Orthotropic2dElasticMaterial(cParams);
                     
                 case 'HomogenizedMicrostructure'
                     material = HomogenizedMicrostructureInterpolator(cParams);
