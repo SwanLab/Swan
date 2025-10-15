@@ -23,15 +23,15 @@ s.maxIter.phi = 100;
 s.maxIter.stag = 300;
 
 s.benchmark.mesh.type = '1Elem';
-s.benchmark.bc.type   = 'DisplacementTractionX';
-s.benchmark.bc.values =  [0:1e-4:0.01,0.01:1e-3:0.1];
+s.benchmark.bc.type   = 'DisplacementTractionXClamped';
+s.benchmark.bc.values =  [0:1e-3:0.1];
 
-s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'
-s.matInfo.degradationType = 'PhaseField'; %'PhaseField','SIMPALL'
+s.matInfo.matType = 'Analytic'; %'Analytic','Homogenized'
+s.matInfo.degradationType = 'SIMPALL'; %'PhaseField','SIMPALL'
 s.matInfo.degradationSubType = 'Rational'; %'AT','ATSplit',,'Rational','General'
 s.matInfo.fileName = 'SquareAreaDerivative10'; 
 s.matInfo.young   = 210;
-s.matInfo.poisson = 0.3; 
+s.matInfo.poisson = 0; 
 s.matInfo.Gc = 5e-3;
 s.l0 = 0.1;
 
@@ -47,5 +47,5 @@ outputData = tester.compute();
 outputData.inputParameters = s;
 
 %% SAVE + PLOT
-save("Sqr10",'outputData') %ACTIVATE TO SAVE DATA!
-PhaseFieldPlotter(outputData);
+save("SIMPALLnu0Clamped",'outputData') %ACTIVATE TO SAVE DATA!
+%PhaseFieldPlotter(outputData);

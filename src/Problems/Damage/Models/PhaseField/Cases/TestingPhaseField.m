@@ -104,7 +104,7 @@ classdef TestingPhaseField < handle
         function computeInitialDerivative(obj,cParams)
             Gc = cParams.matInfo.Gc;
             E = cParams.matInfo.young;
-            sigMax = 2;
+            sigMax = 1.5;
             obj.initialDerivative = -2*(3/8)*(Gc/obj.l0)*E*(1/sigMax)^2;
         end
 
