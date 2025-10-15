@@ -24,7 +24,7 @@ classdef LinearizedHarmonicProjector3 < handle
 
         function obj = LinearizedHarmonicProjector3(cParams)
             obj.init(cParams);
-            obj.fB = LagrangianFunction.create(obj.mesh, 2, 'P2');
+            obj.fB = LagrangianFunction.create(obj.mesh, 1, 'P2');
             obj.fBV = LagrangianFunction.create(obj.mesh, 2, 'P2');
             obj.fS = LagrangianFunction.create(obj.mesh, 1, 'P1');
             obj.fG = LagrangianFunction.create(obj.mesh, 1, 'P0');
