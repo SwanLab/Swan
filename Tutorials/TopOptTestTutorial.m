@@ -113,7 +113,7 @@ classdef TopOptTestTutorial < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'DIRECT';
+            s.solverCase = DirectSolver();
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -159,12 +159,10 @@ classdef TopOptTestTutorial < handle
         end
 
         function M = createMassMatrix(obj)
-            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.mesh  = obj.mesh;
-            s.type  = 'MassMatrix';
-            LHS = LHSIntegrator.create(s);
-            M = LHS.compute;     
+            test   = LagrangianFunction.create(obj.mesh, 1, 'P1');
+            trial  = LagrangianFunction.create(obj.mesh, 1, 'P1');
+            f = @(u,v) DP(v,u);
+            M = IntegrateLHS(f,test,trial,obj.mesh,'Domain',2);
         end
 
         function createConstraint(obj)
@@ -201,15 +199,15 @@ classdef TopOptTestTutorial < handle
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
             isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax);
+            isForce = @(x)  x(1,:,:)==xMax & x(2,:,:)>=0.3*yMax & x(2,:,:)<=0.7*yMax;
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2];
             sDir{1}.value     = 0;
 
-            sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 2;
-            sPL{1}.value     = -1;
+            [bMesh, ~]  = obj.mesh.createSingleBoundaryMesh();
+            sPL{1}.domain = isForce;
+            sPL{1}.fun    = ConstantFunction.create([0,-1],bMesh);
 
             dirichletFun = [];
             for i = 1:numel(sDir)
@@ -220,7 +218,7 @@ classdef TopOptTestTutorial < handle
 
             pointloadFun = [];
             for i = 1:numel(sPL)
-                pl = PointLoad(obj.mesh, sPL{i});
+                pl = TractionLoad(obj.mesh,sPL{i},'FUNCTION');
                 pointloadFun = [pointloadFun, pl];
             end
             s.pointloadFun = pointloadFun;
