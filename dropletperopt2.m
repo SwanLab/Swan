@@ -30,7 +30,7 @@ proxF = @(z)  proximalEllipse(z,tauF,alpha,A);
 f     = @(z)  EllipseNormPrimal(z,A);
 fd    = @(z)  EllipseNormtDual(z,A);
 g     = @(rho,chi) L2ProjectionPrimal(rho,chi);
-gd    = @(rho,chi) L2ProjectionDual(rho);
+gd    = @(rho,chi) L2ProjectionDual(rho,chi);
 
 
 proxG = @(rho,rho0) proximalL2Projection(rho,rho0,taucpe);
@@ -45,7 +45,7 @@ for iopt=1:20
 [rho,z] = PerimeterComputation(chi,rho,z0,grad,div,proxF,proxG,tauF,tauG,thetaRel,f,fd,g,gd);
 chi = ProjectToVolumeConstraint(rho,vol);
 plotSurf(chi,nx,ny)
-plot(chi,nx,ny)
+plotRho(chi,nx,ny)
 volCon = computeVolumeConstraint(chi,vol)
 end
 
@@ -85,7 +85,7 @@ function D = createDerivative(nx,ny,nxy,Lx,Ly)
 end
 
 
-function s = proximalEllipse(z,tau,alpha)
+function s = proximalEllipse(z,tau,alpha,A)
 I = eye(2);
 r = alpha^2/tau;
 invM = inv((A+r*I));
@@ -161,7 +161,7 @@ rhoT=reshape(rho,nx,ny)';
 figure(2); clf; surf(rhoT);
 end
 
-function plot(rho0,nx,ny)
+function plotRho(rho0,nx,ny)
 Ut=reshape(rho0,nx,ny)';
 figure(1); clf; surf(Ut);
 UC=0.8*flipud(-Ut+1);
