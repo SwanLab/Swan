@@ -59,14 +59,17 @@ classdef Tutorial < handle
         end
 
         function createDesignVariable(obj)
-            % s.type = 'Full';
-            % g      = GeometricalFunction(s);
-            % lsFun  = g.computeLevelSetFunction(obj.mesh);
-            s.fun  = LagrangianFunction.create(obj.mesh,1,'P1');
-            % s.mesh = obj.mesh;
-            s.type = 'Density';
-            s.plotting = true;
-            rho     = DesignVariable.create(s);
+            s.fHandle = @(x) ones(size(x(1,:,:)));
+            s.ndimf   = 1;
+            s.mesh    = obj.mesh;
+            aFun      = AnalyticalFunction(s);
+            
+            sD.fun      = aFun.project('P1');
+            sD.mesh     = obj.mesh;
+            sD.type     = 'Density';
+            sD.plotting = true;
+            rho        = DesignVariable.create(sD);
+
             obj.designVariable = rho;
         end
 
@@ -186,7 +189,7 @@ classdef Tutorial < handle
         function createCost(obj)
             s.shapeFunctions{1} = obj.createCompliance();
             s.shapeFunctions{2} = obj.createVolumeFunctional();
-            s.weights           = [1 0.1];
+            s.weights           = [1 0.7];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -214,7 +217,7 @@ classdef Tutorial < handle
             s.cost           = obj.cost;
             % s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 30;
+            s.maxIter        = 300;
             s.ub              = 1;
             s.lb              = 0;
             % s.tolerance      = 1e-8;
