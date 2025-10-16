@@ -9,6 +9,8 @@ r=0.4130;
 K_all=zeros(8,8,length(r));
 
 % Obtains the K coarse for each radius
+guideElasticProblem_abril(0.1)
+
 for j = 1:size(r,2)
     K = [];
     auxl = [];
