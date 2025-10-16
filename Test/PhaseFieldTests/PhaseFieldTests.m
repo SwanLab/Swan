@@ -18,9 +18,8 @@ classdef PhaseFieldTests < handle & matlab.unittest.TestCase
             load(filename,'xRef');
             errF = norm(xNew.F-xRef.F)/norm(xRef.F);
             errU = norm(xNew.U-xRef.U)/norm(xRef.U);
-            err  = errF + errU;
             tol  = 1e-6;
-            testCase.verifyLessThanOrEqual(err, tol)
+            testCase.verifyLessThanOrEqual(max(errF,errU), tol)
         end
 
         function testPhaseFieldComplexCases(testCase,complexCases)

@@ -108,9 +108,12 @@ classdef HyperelasticityComputer < handle
             if ismember(obj.boundaryConditions.type, ["ForceTractionY", "ForceTractionYClamped"])
                 uBC = norm(mean(uFun.fValues(nodes(isInUp),2)));
                 rBC = obj.boundaryConditions.bcValues(step);
-            elseif ismember(obj.boundaryConditions.type, ["DisplacementTractionY","DisplacementTractionYClamped"]) 
+            elseif ismember(obj.boundaryConditions.type, ["DisplacementTractionY","DisplacementTractionYClamped"])
                 rBC = norm(sum(rFun.fValues(nodes(isInUp),2)));
                 uBC = obj.boundaryConditions.bcValues(step);
+            else
+                rBC = Norm(rFun,'L2');
+                uBC = Norm(uFun,'L2');
             end
         end
 
