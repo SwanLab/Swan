@@ -1,4 +1,4 @@
-classdef LinearizedHarmonicProjector3 < handle
+classdef LinearizedHarmonicProjector4 < handle
 
     properties (Access = private)
         eta
@@ -10,7 +10,6 @@ classdef LinearizedHarmonicProjector3 < handle
         fB
         fBV
         fS
-        fG
         perimeter
     end
 
@@ -22,19 +21,17 @@ classdef LinearizedHarmonicProjector3 < handle
 
     methods (Access = public)
 
-        function obj = LinearizedHarmonicProjector3(cParams)
+        function obj = LinearizedHarmonicProjector4(cParams)
             obj.init(cParams);
-            obj.fB = LagrangianFunction.create(obj.mesh, 1, 'P2');
-            obj.fBV = LagrangianFunction.create(obj.mesh, 2, 'P2');
+            obj.fB = LagrangianFunction.create(obj.mesh, 1, 'P1');
+            obj.fBV = LagrangianFunction.create(obj.mesh, 2, 'P1');
             obj.fS = LagrangianFunction.create(obj.mesh, 1, 'P1');
-            obj.fG = LagrangianFunction.create(obj.mesh, 1, 'P1');
             obj.createInternalDOFs();                        
-            obj.eta = (100*obj.mesh.computeMeanCellSize)^2;  
-            obj.perimeter = 4*obj.density.*(1-obj.density);%ConstantFunction.create(1,obj.mesh);%
+            obj.eta = (2*obj.mesh.computeMeanCellSize)^2;  
+            obj.perimeter = obj.density.*(1-obj.density);%ConstantFunction.create(1,obj.mesh);%
             obj.massMatrixBB      = IntegrateLHS(@(u,v) DP(v,obj.perimeter.*u),obj.fB,obj.fB,obj.mesh,'Domain',4);
-            obj.massMatrixGG      = IntegrateLHS(@(u,v) DP(v,u),obj.fG,obj.fG,obj.mesh,'Domain',4);
             obj.massMatrixSS      = IntegrateLHS(@(u,v) DP(v,u),obj.fS,obj.fS,obj.mesh,'Domain',4);
-            obj.stiffnessMatrixBB = IntegrateLHS(@(u,v) DP(Grad(v),((1-obj.perimeter).^8).*Grad(u)),obj.fB,obj.fB,obj.mesh,'Domain');
+            obj.stiffnessMatrixBB = IntegrateLHS(@(u,v) DP(Grad(v),(1-obj.perimeter).*Grad(u)),obj.fB,obj.fB,obj.mesh,'Domain');
         end
 
         function b = solveProblem(obj,bBar,b)
@@ -43,7 +40,7 @@ classdef LinearizedHarmonicProjector3 < handle
             RHS = obj.computeRHS(bBar);
             LHS = obj.computeLHS(b);
             nInt = size(obj.internalDOFs,2);
-            x = [b.fValues(:);zeros(nInt,1);zeros(obj.fG.nDofs,1)];
+            x = [b.fValues(:);zeros(nInt,1)];
             res = norm(LHS*x - RHS)/norm(x);
             [resL,resH,resB,resG] = obj.evaluateResidualNorms(bBar,b);
             i = 1;
@@ -52,11 +49,16 @@ classdef LinearizedHarmonicProjector3 < handle
                 xNew   = LHS\RHS;
                 x = theta*xNew + (1-theta)*x;
                 b   = obj.createVectorFromSolution(x);
+                b   = obj.projectInUnitBall(b);
                 LHS = obj.computeLHS(b);
                 i   = i+1;
                 res(i) = norm(LHS*x - RHS)/norm(x);
                 [resL(i),resH(i),resB(i),resG(i)] = obj.evaluateResidualNorms(bBar,b);
                 disp(['iter ',num2str(i),' residual ',num2str(res(i))])
+                close all
+                plotVector(b)
+                %fig = figure; set(fig, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
+                drawnow                
             end
             figure()
             plot(1:i,log10([res; resL; resH; resB; resG]))
@@ -141,8 +143,8 @@ classdef LinearizedHarmonicProjector3 < handle
             Kbb  = obj.stiffnessMatrixBB;
             nInt = size(obj.internalDOFs,2);
             bs = b.getVectorFields();
-            Mb1 = IntegrateLHS(@(u,v) DP(v,bs{1}.*u),obj.fB,obj.fG,obj.mesh,'Domain',4);
-            Mb2 = IntegrateLHS(@(u,v) DP(v,bs{2}.*u),obj.fB,obj.fG,obj.mesh,'Domain',4);
+            normB  = (norm(b) - 1);
+            MnormB = IntegrateLHS(@(u,v) DP(v,2*normB.*u),obj.fB,obj.fB,obj.mesh,'Domain',4);
             Kb1 = IntegrateLHS(@(u,v) DP(Grad(v),bs{1}.*Grad(u)),obj.fB,obj.fS,obj.mesh,'Domain',4);
             Kb2 = IntegrateLHS(@(u,v) DP(Grad(v),bs{2}.*Grad(u)),obj.fB,obj.fS,obj.mesh,'Domain',4);
             
@@ -164,13 +166,11 @@ classdef LinearizedHarmonicProjector3 < handle
             Nb2 = Nb2(:,iDOFs);
             Z  = sparse(obj.fB.nDofs,obj.fB.nDofs);
             Zh = sparse(nInt,nInt);
-            Zsg = sparse(nInt,obj.fG.nDofs);
-            Zgg = sparse(obj.fG.nDofs,obj.fG.nDofs);
-            A  = Mbb + obj.eta*Kbb;
-            LHS = [A          ,          Z, (-Kb2+Nb2),Mb1;...
-                   Z'         ,          A,  (Kb1-Nb1),Mb2;...
-                   (-Kb2+Nb2)', (Kb1-Nb1)',         Zh,Zsg;...
-                   Mb1'       ,       Mb2',       Zsg',Zgg];
+            eps = 0;
+            A  = Mbb + obj.eta*Kbb + eps*MnormB;
+            LHS = [A          ,          Z, (-Kb2+Nb2);...
+                   Z'         ,          A,  (Kb1-Nb1);...
+                   (-Kb2+Nb2)', (Kb1-Nb1)',         Zh];
         end
 
         function RHS = computeRHS(obj,bBar)
@@ -178,10 +178,21 @@ classdef LinearizedHarmonicProjector3 < handle
             rhsB = reshape(rhsB,2,[])';
             rhsB = rhsB(:);
             rhsH = zeros(size(obj.internalDOFs,2),1);
-            rhsU = IntegrateRHS(@(v) v,obj.fG,obj.mesh,'Domain',2);
-            RHS  = [rhsB;rhsH;rhsU];
+            RHS  = [rhsB;rhsH];
         end
 
     end
+
+    methods (Access = private, Static)
+
+        function vNF = projectInUnitBall(vF)
+            v    = vF.fValues;
+            norm = vecnorm(v,2,2);
+            v    = v./norm;
+            vNF = LagrangianFunction.create(vF.mesh,vF.ndimf,vF.order);
+            vNF.setFValues(v);
+        end
+
+    end    
 
 end

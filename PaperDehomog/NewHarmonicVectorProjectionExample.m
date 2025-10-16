@@ -120,6 +120,7 @@ classdef NewHarmonicVectorProjectionExample < handle
             s.boundaryMesh = obj.boundaryMesh;
             s.density      = obj.density;
             obj.harmonicProjector = LinearizedHarmonicProjector3(s);
+            %obj.harmonicProjector = LinearizedHarmonicProjector4(s);
         end
 
         function harmonize(obj)
