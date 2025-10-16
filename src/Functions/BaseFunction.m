@@ -12,6 +12,7 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
     properties (GetAccess = public, SetAccess = protected)
         mesh
         ndimf
+        ndimfTotal
     end
 
     methods (Access = public)
@@ -291,7 +292,7 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             if isa(a,'DomainFunction')
                 ndimf = a.ndimf;
             elseif isnumeric(a)
-                ndimf = size(a,1);
+                ndimf = size(a);
             elseif isa(a,'Material')
                 ndimf = 9;
             else

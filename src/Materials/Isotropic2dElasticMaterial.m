@@ -17,7 +17,7 @@ classdef Isotropic2dElasticMaterial < IsotropicElasticMaterial
             lambda = reshape(lambda,[1 1 1 1 nGauss nElem]);
             mu     = reshape(mu,[1 1 1 1 nGauss nElem]);
             I      = repmat(eye4D(N),[1 1 1 1 nGauss nElem]);
-            IxI    = repmat(kronEye(N),[1 1 1 1 nGauss nElem]);
+            IxI    = permute(repmat(kronEye(N),[1 1 1 1 nGauss nElem]),[4 3 2 1 5 6]);
             C = 2*mu.*I + lambda.*IxI;
         end
 

@@ -376,7 +376,8 @@ classdef Mesh < handle
         function computeCoordFEfunction(obj)
             s.mesh    = obj;
             s.order   = 'P1';
-            s.fValues = obj.coord;
+            s.ndimf   = size(obj.coord,2);
+            s.fValues = reshape(obj.coord',1,[]);
             coordP1   = LagrangianFunction(s);
             obj.xFE = coordP1.project('P1D');             
         end

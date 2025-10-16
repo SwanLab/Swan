@@ -1,50 +1,22 @@
 function dom = DDP(varargin)
     A = varargin{1}; B = varargin{2};
-    dimA = []; dimB = [];
+    ndimsA = length(A.ndimf); ndimsB = length(B.ndimf); 
+    dimA = [ndimsA-1 ndimsA]; dimB = [ndimsB-1 ndimsB];
     if nargin > 2, dimA = varargin{3}; end
     if nargin > 3, dimB = varargin{4}; end
 
-    s.operation = @(xV) evaluate(A,B,dimA,dimB,xV);
-    if isa(A,'DomainFunction')
-        s.mesh = A.mesh;
-    else
-        s.mesh = B.mesh;
-    end
-    dom        = DomainFunction(s);
+    ndimfRes = [A.ndimf(setdiff(1:end,dimA)), B.ndimf(setdiff(1:end,dimB))];
+    if isempty(ndimfRes) s.ndimf = 1; else s.ndimf = ndimfRes; end
+    s.operation = @(xV) evaluate(A,B,dimA,dimB,ndimsA,ndimsB,ndimfRes,xV);
+    s.mesh  = A.mesh;
+    dom     = DomainFunction(s);
 end
 
-function fVR = evaluate(A,B,dimA,dimB,xV)
+function fVR = evaluate(A,B,dimA,dimB,ndimsA,ndimsB,ndimfRes,xV)
     aEval = A.evaluate(xV);
     bEval = B.evaluate(xV);
-
-    extraDim = computeExtraDims(A,B,xV);
-    ndimsA = ndims(aEval)-extraDim; %To be adapted when ndimf is vector
-    ndimsB = ndims(bEval)-extraDim; %2 for nGaus and nElem
-    if isempty(dimA)
-        dimA = [ndimsA-1 ndimsA];
-    end
-    if isempty(dimB)
-        dimB = [ndimsB-1 ndimsB];
-    end
     fVR = pagetensorprod(aEval,bEval,dimA,dimB,ndimsA,ndimsB);
-    
-    if ndims(fVR) == 2
+    if isempty(ndimfRes)
         fVR = reshape(fVR,[1 size(fVR)]);
-    end
-end
-
-function extraDim = computeExtraDims(A,B,xV)
-    if any(strcmp('mesh', properties(A)))
-        nelem = A.mesh.nelem;
-    else
-        nelem = B.mesh.nelem;
-    end
-
-    extraDim = 2;
-    if nelem == 1
-        extraDim = extraDim - 1;
-        if size(xV,2) == 1
-            extraDim = extraDim -1;
-        end
     end
 end

@@ -18,6 +18,7 @@ classdef DomainFunction < BaseFunction
             obj.operation = cParams.operation;
             if isfield(cParams,'ndimf')
                 obj.ndimf = cParams.ndimf;
+                obj.ndimfTotal = prod(obj.ndimf);
             else
                 obj.ndimf = 1;
             end
@@ -29,9 +30,9 @@ classdef DomainFunction < BaseFunction
    methods (Access = public, Static)
 
        function f = create(operation, mesh, ndimf)
-           if nargin == 3, s.ndimf = ndimf; end
+           s.ndimf     = ndimf;
            s.operation = operation;
-           s.mesh = mesh;
+           s.mesh      = mesh;
            f = DomainFunction(s);
        end
 
@@ -41,9 +42,8 @@ classdef DomainFunction < BaseFunction
 
         function fxV = evaluateNew(obj, xV)
             fxV = obj.operation(xV);
-        end        
-
-    end
-   
+        end  
+        
+  end
 
 end
