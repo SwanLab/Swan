@@ -9,7 +9,8 @@ alpha=4;
 Lx = 1; Ly = 1;
 
 
-m = QuadMesh(Lx,Ly,nx,ny);
+%m = QuadMesh(Lx,Ly,nx,ny);
+m = TriangleMesh(Lx,Ly,nx,ny);
 
 %D = createDerivative(nx,ny,nxy,dx,dy);
 

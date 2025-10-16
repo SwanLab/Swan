@@ -112,7 +112,7 @@ J = 0.5*(rho-Chi)'*(rho-Chi);
 end
 
 function J = L2ProjectionDual(rho,Chi)
-J = 0.5*(rho-Chi)'*(rho-Chi);
+J = -0.5*(rho-Chi)'*(rho-Chi)+ 0.5*(Chi)'*(Chi);
 end
 
 function J = EllipseNormPrimal(txi,A)
@@ -129,14 +129,21 @@ function [u,z] = solveWithChambollePockAlgorithm(u0,z0,Grad,Div,proxF,proxG,tauF
 u  = u0; 
 uN = u0;
 z   = z0; 
-for kcp=1:2000
+for iter= 1:500
     z      = proxF(z + tauF*Grad(uN));
     uOld   = u;
     u      = proxG(u - tauG*Div(z));
     uN     = u + thetaRel*(u - uOld);
-    primal = f(Grad(uN)) + G(uN)
-    dual   = fd(z) + GD(-Div(z))
+    fi(iter) = f(Grad(uN));
+    gi(iter) = G(uN);
+    fdi(iter) = fd(z);
+    gdi(iter) = GD(Div(z));
+    primal(iter) = fi(iter) + gi(iter);
+    dual(iter)   = fdi(iter)+ gdi(iter);
 end
+plot(1:iter,[fi;gi;fdi;gdi;primal;dual])
+legend('f','g','fd','gd','f+g','gd+gd')
+set(findall(gcf, 'Type', 'line'), 'LineWidth', 2);
 end
 
 function [u,z] = PerimeterComputation(chi,u0,z0,Grad,Div,proxF,proxGX,tauF,tauG,thetaRel,f,fd,g,gd)
