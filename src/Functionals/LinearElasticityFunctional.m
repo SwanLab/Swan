@@ -15,30 +15,20 @@ classdef LinearElasticityFunctional < handle
             C = obj.material;
             eps = SymGrad(uFun);
             fun = DDP(DDP(eps,C),eps);
-            quadOrder = quadOrder;
             energy = 0.5*(Integrator.compute(fun,obj.mesh,quadOrder));
         end
 
         function Ju = computeGradient(obj,uFun,quadOrder)
-            eps = SymGrad(uFun);
-            sig = DDP(obj.material,eps);
-            test = LagrangianFunction.create(obj.mesh, uFun.ndimf, uFun.order);
-            s.mesh = obj.mesh;
-            s.quadratureOrder = quadOrder;
-            s.type = 'ShapeSymmetricDerivative';
-            RHS = RHSIntegrator.create(s);
-            Ju = RHS.compute(sig,test);
+            C = obj.material;
+            sigma = DDP(C,SymGrad(uFun));
+            f = @(v) DDP(SymGrad(v),sigma);
+            Ju = IntegrateRHS(f,uFun,obj.mesh,'Domain',quadOrder);
         end
 
         function Huu = computeHessian(obj,uFun,quadOrder)
-            s.material = obj.material;
-            s.test     = uFun;
-            s.trial    = uFun;
-            s.mesh     = obj.mesh;
-            s.quadratureOrder = quadOrder;
-            s.type     = 'ElasticStiffnessMatrix';
-            LHS = LHSIntegrator.create(s);
-            Huu = LHS.compute();
+            C     = obj.material;
+            f = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
+            Huu = IntegrateLHS(f,uFun,uFun,obj.mesh,'Domain',quadOrder);
         end
 
     end

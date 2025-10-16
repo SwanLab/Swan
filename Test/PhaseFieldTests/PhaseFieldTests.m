@@ -1,21 +1,25 @@
 classdef PhaseFieldTests < handle & matlab.unittest.TestCase
 
     properties (TestParameter)
-        singleElementCases = {'AT1','AT2','Force','Split','HomogGrad'}
+        singleElement = {'AT1','AT2','Force','Split','HomogGrad'}
+        singleElementForce = {'Force'}
         complexCases = {'SEN'}
         homogenizationCases = {'Square','Hexagon','Ellipse'}
     end
 
     methods (Test, TestTags = {'PF'})
-        function testPhaseFieldSingleElem(testCase,singleElementCases)
-            filename = ['testPhaseFieldSingleElem',singleElementCases];
+        function testPhaseFieldSingleElem(testCase,singleElement)
+            filename = ['testPhaseFieldSingleElem',singleElement];
             load(filename,'input');
             tester = TestingPhaseField(input);
             outputData = tester.compute();
-            xNew = outputData.force;
+            xNew.F = outputData.force;
+            xNew.U = outputData.displacement.value;
             load(filename,'xRef');
-            err = norm(xNew-xRef)/norm(xRef);
-            tol      = 1e-6;
+            errF = norm(xNew.F-xRef.F)/norm(xRef.F);
+            errU = norm(xNew.U-xRef.U)/norm(xRef.U);
+            err  = errF + errU;
+            tol  = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
         end
 
@@ -44,18 +48,6 @@ classdef PhaseFieldTests < handle & matlab.unittest.TestCase
             close all
         end
         
-    end
-
-    methods(Static,Access = private)
-
-        function computeTotalEnergy(energyCell)
-            E = struct2cell(energyCell);
-            totE = zeros(size(E{1}));
-            for i=1:length(E)
-                totE = totE + E{i};
-            end
-        end
-
     end
   
 end
