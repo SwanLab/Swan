@@ -62,8 +62,8 @@ classdef NewHarmonicVectorProjectionExample < handle
            %s.folderPath = fullfile(obj.filePath);
            %w = WrapperMshResFiles(s);
            %w.compute();
-        %   d = load('DataExampleLshape.mat');        
-           d = load('DataExampleCantilever.mat');        
+           d = load('DataExampleLshape.mat');        
+        %   d = load('DataExampleCantilever.mat');        
            w = d.w;
             obj.experimentData = w;
         end
@@ -119,8 +119,8 @@ classdef NewHarmonicVectorProjectionExample < handle
             s.mesh         = obj.mesh;
             s.boundaryMesh = obj.boundaryMesh;
             s.density      = obj.density;
-            obj.harmonicProjector = LinearizedHarmonicProjector3(s);
-            %obj.harmonicProjector = LinearizedHarmonicProjector4(s);
+            %obj.harmonicProjector = LinearizedHarmonicProjector3(s);
+            obj.harmonicProjector = LinearizedHarmonicProjector4(s);
         end
 
         function harmonize(obj)
