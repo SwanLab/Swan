@@ -476,7 +476,7 @@ classdef LagrangianFunction < FeFunction
             view(0,90)
             %colorbar
             shading interp
-            a.EdgeColor = [0 0 0];
+            %a.EdgeColor = [0 0 0];
             title(['dim = ', num2str(iDim)]);
         end
 
