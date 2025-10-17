@@ -94,7 +94,7 @@ classdef DomainFunTests < handle & matlab.unittest.TestCase
             nu  = ConstantFunction.create(nu1,m);
             s.type    = 'ISOTROPIC';
             s.ptype   = 'ELASTIC';
-            s.ndim    = m.ndim;
+            s.mesh    = m;
             s.young   = E;
             s.poisson = nu;
             mat       = Material.create(s);

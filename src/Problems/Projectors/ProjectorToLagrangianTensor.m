@@ -34,7 +34,7 @@ classdef ProjectorToLagrangianTensor < Projector
                     LHS = spdiags(a',0,length(a),length(a));
                 otherwise
                     test   = LagrangianFunction.create(fun.mesh, 1, obj.order);
-                    trial  = LagrangianFunction.create(fun.mesh, 1, obj.order);
+                    trial  = test;
                     f = @(u,v) DP(v,u);
                     LHS = IntegrateLHS(f,test,trial,fun.mesh,'Domain');                    
             end

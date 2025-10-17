@@ -34,11 +34,11 @@ function lhs = integrateElementalLHS(f,test,trial,mesh,quadOrder)
 end
 
 function A = assembleMatrix(Aelem,f1,f2)
-    dofsF1 = f1.getDofConnec();
+    dofsF1 = f1.dofConnec;
     if isequal(f1, f2)
         dofsF2 = dofsF1;
     else
-        dofsF2 = f2.getDofConnec();
+        dofsF2 = f2.dofConnec;
     end
     nDofs1     = numel(f1.fValues);
     nDofs2     = numel(f2.fValues);

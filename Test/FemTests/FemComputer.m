@@ -36,8 +36,7 @@ classdef FemComputer < handle
             s.solverMode = 'DISP';
             obj.computation = PhysicalProblem.create(s);
             obj.computation.solve();
-            d_u = obj.computation.uFun.fValues;
-            obj.variables.d_u = reshape(d_u', [numel(d_u) 1]);
+            obj.variables.d_u = obj.computation.uFun.fValues;
         end
     end
 

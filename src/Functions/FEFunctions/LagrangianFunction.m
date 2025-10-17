@@ -10,8 +10,8 @@ classdef LagrangianFunction < FeFunction
 
     properties (Access = private)
         interpolation
-       % dNdxOld
-       % xVOlddN
+        dNdxOld
+        xVOlddN
     end
 
     methods (Access = public, Static)
@@ -53,13 +53,12 @@ classdef LagrangianFunction < FeFunction
             nNode     = obj.interpolation.nnode;
             nElem     = obj.mesh.nelem;
             fVdofs    = obj.fValues(obj.dofConnec)';
-            fVreshaped = reshape(fVdofs,nDimTotal,nNode,nElem);
-            fVElem     = pagetranspose(fVreshaped);
+            fVElem = reshape(fVdofs,nDimTotal,nNode,nElem);
         end
 
         function fVNode = getFValuesByNode(obj)
-            nNode  = obj.interpolation.nnode;
-            fVNode = reshape(obj.fValues',nNode,obj.ndimfTotal)';
+            nnodes  = obj.mesh.nnodes;
+            fVNode = reshape(obj.fValues,obj.ndimfTotal,nnodes)';
         end
         
        %  function fxV = sampleFunction(obj,xP,cells)
@@ -79,29 +78,30 @@ classdef LagrangianFunction < FeFunction
        %      end
        %  end
        % 
-       %  function dNdx  = evaluateCartesianDerivatives(obj,xV)
-       %      if ~isequal(xV,obj.xVOlddN) || isempty(obj.dNdxOld)
-       %          invJ    = Inv(Jacobian(obj.mesh));
-       %          N       = obj.interpolation;
-       %          dShapes = invJ*obj.Gradient(N);
-       %          dNdx    = dShapes.evaluate(xV);
-       %          obj.dNdxOld = dNdx;
-       %          obj.xVOlddN = xV;
-       %      else
-       %          dNdx = obj.dNdxOld;
-       %      end
-       %  end 
-       
-       %  function N = computeShapeFunctions(obj, xV)
-       %      N = obj.interpolation.computeShapeFunctions(xV);
-       %  end
-       % 
-       % function gradF = computeGrad(obj,xV)
-       %      dNdx  = obj.evaluateCartesianDerivatives(xV);
-       %      fV    = obj.getFvaluesByElem();            
-       %      fV    = permute(fV,[2 1 4 3]);
-       %      gradF = squeezeParticular(pagemtimes(dNdx,fV),[1 2]);
-       %  end
+
+       function N = computeShapeFunctions(obj, xV)
+            N = obj.interpolation.computeShapeFunctions(xV);
+       end
+
+        function dNdx  = evaluateCartesianDerivatives(obj,xV)
+            if ~isequal(xV,obj.xVOlddN) || isempty(obj.dNdxOld)
+                invJ    = Inv(Jacobian(obj.mesh));
+                N       = obj.interpolation;
+                dShapes = invJ*obj.Gradient(N);
+                dNdx    = dShapes.evaluate(xV);
+                obj.dNdxOld = dNdx;
+                obj.xVOlddN = xV;
+            else
+                dNdx = obj.dNdxOld;
+            end
+        end 
+
+       function gradF = computeGrad(obj,xV)
+            dNdx  = obj.evaluateCartesianDerivatives(xV);
+            fV = obj.getFvaluesByElem(); 
+            fV = permute(fV,[2 1 4 3]);
+            gradF = squeezeParticular(pagemtimes(dNdx,fV),[1 2]);
+        end
        % 
        %  function div = computeDiv(obj)
        %      s.operation = @(xV) obj.computeDivFun(xV);
@@ -352,15 +352,15 @@ classdef LagrangianFunction < FeFunction
     methods (Access = protected)
 
         function fxV = evaluateNew(obj, xV)
-            nGauss  = size(xV,2);
-            nElem   = obj.mesh.nelem;
-            shapes  = obj.interpolation.computeShapeFunctions(xV);
-            fVal    = obj.getFvaluesByElem();
+            nGauss = size(xV,2);
+            nElem  = obj.mesh.nelem;
+            shapes = obj.interpolation.computeShapeFunctions(xV);
+            fVal   = pagetranspose(obj.getFvaluesByElem());
             fxVvec = pagetranspose(tensorprod(shapes,fVal,1,1));
             fxVmat = reshape(fxVvec,[obj.ndimf,nGauss,nElem]);
-            reorderedDims = length(obj.ndimf):-1:1;
-            extraDims     = length(obj.ndimf)+(1:2);
-            fxV = permute(fxVmat,[reorderedDims extraDims]);
+            transposedDims = length(obj.ndimf):-1:1;
+            extraDims      = length(obj.ndimf)+(1:2);
+            fxV = permute(fxVmat,[transposedDims extraDims]);
         end        
 
     end
@@ -395,7 +395,7 @@ classdef LagrangianFunction < FeFunction
 
         function createFValues(obj,cParams)
             obj.fValues = zeros(obj.nDofs,1);
-            if contains(fieldnames(cParams),'fValues')
+            if isfield(cParams,'fValues')
                 obj.fValues = cParams.fValues;
             end
         end
@@ -496,11 +496,11 @@ classdef LagrangianFunction < FeFunction
         %     end
         % end
         % 
-        % function gradN = Gradient(obj,N)
-        %     s.operation = @(xV) N.computeShapeDerivatives(xV);
-        %     s.mesh      = obj.mesh;
-        %     gradN       = DomainFunction(s);
-        % end
+        function gradN = Gradient(obj,N)
+            s.operation = @(xV) N.computeShapeDerivatives(xV);
+            s.mesh      = obj.mesh;
+            gradN       = DomainFunction(s);
+        end
 
     end
 

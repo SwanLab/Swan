@@ -32,8 +32,7 @@ classdef ProjectorComputer < handle
             computer.compute();
             obj.computation = computer.computation;
             obj.computeProjection();
-            nrows = numel(obj.funProj.fValues);
-            obj.variables.xP = reshape(obj.funProj.fValues,[nrows,1]);
+            obj.variables.xP = obj.funProj.fValues;
         end
 
     end

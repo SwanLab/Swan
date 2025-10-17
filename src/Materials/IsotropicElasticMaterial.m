@@ -1,24 +1,20 @@
 classdef IsotropicElasticMaterial < Material
     
-    properties (Access = private)
+    properties (GetAccess = public, SetAccess = private)
         young
         poisson
         bulk
         shear
     end
 
-    properties (Access = protected)
-        ndim
-    end
-    
-    methods (Access = protected)
+    methods (Access = public)
 
-        function init(obj,cParams)
-            obj.ndim    = cParams.ndim;
+        function obj = IsotropicElasticMaterial(cParams)
+            obj.init(cParams)
             if isfield(cParams,'young') && isfield(cParams,'poisson')
                 obj.young   = cParams.young;
                 obj.poisson = cParams.poisson;
-                obj.bulk  = obj.computeKappaFromYoungAndPoisson(obj.young,obj.poisson,obj.ndim);
+                obj.bulk  = obj.computeKappaFromYoungAndPoisson(obj.young,obj.poisson,obj.mesh.ndim);
                 obj.shear = obj.computeMuFromYoungAndPoisson(obj.young,obj.poisson);
             elseif isfield(cParams,'bulk') && isfield(cParams,'shear')
                 obj.bulk  = cParams.bulk;
@@ -28,13 +24,37 @@ classdef IsotropicElasticMaterial < Material
             end
         end
 
+    end
+
+    methods (Access = protected)
+
+        function C = evaluateNew(obj,xV)
+            [l,m] = computeLameParameters(obj);
+            lambda = l.evaluate(xV);
+            mu = m.evaluate(xV);
+
+            N = obj.mesh.ndim;
+            nGauss = size(mu,2);
+            nElem  = m.mesh.nelem;
+            lambda = reshape(lambda,[1 1 1 1 nGauss nElem]);
+            mu     = reshape(mu,[1 1 1 1 nGauss nElem]);
+            I      = repmat(eye4D(N),[1 1 1 1 nGauss nElem]);
+            IxI    = permute(repmat(kronEye(N),[1 1 1 1 nGauss nElem]),[4 3 2 1 5 6]);
+            C = 2*mu.*I + lambda.*IxI;
+        end
+
+    end
+
+    methods (Access = private)
+
         function [lambda,mu] = computeLameParameters(obj)
-            lambda = obj.computeLambdaFromShearAndBulk(obj.shear,obj.bulk,obj.ndim);
+            lambda = obj.computeLambdaFromShearAndBulk(obj.shear,obj.bulk,obj.mesh.ndim);
             mu     = obj.shear;
         end
 
     end
 
+    %Lame Parameters conversions
     methods (Access = public, Static)
        
         function mu = computeMuFromYoungAndPoisson(E,nu)

@@ -13,20 +13,19 @@ classdef ProjectorToLagrangian < Projector
         function xFun = project(obj, x)
 
             if obj.isP1toP1Dprojection(x)
-                f = x.fValues;
+                f = x.getFValuesByNode;
                 connec = x.mesh.connec;
                 dofsC = reshape(connec',1,[]);
-                xProj = f(dofsC,:);
+                xProj = reshape(f(dofsC,:)',1,[]);
             else
                 LHS = obj.computeLHS(x);
                 RHS = obj.computeRHS(x);
                 xProj = LHS\RHS;
-                xProj = reshape(xProj,[x.ndimf,numel(xProj)/x.ndimf])';
             end
-            s.mesh    = x.mesh;
-            s.fValues = full(xProj);
+            s.mesh  = x.mesh;
             s.order = obj.order;
             s.ndimf = x.ndimf;
+            s.fValues = full(xProj);
             xFun = LagrangianFunction(s);
         end
 
@@ -40,11 +39,11 @@ classdef ProjectorToLagrangian < Projector
                     quad = Quadrature.create(fun.mesh,1);
                     dv = fun.mesh.computeDvolume(quad);
                     a = sum(dv(1,:),1);
-                    a = repmat(a,1,fun.ndimf);
+                    a = repmat(a,1,fun.ndimfTotal);
                     LHS = spdiags(a',0,length(a),length(a));
                 otherwise
                     test   = LagrangianFunction.create(fun.mesh, fun.ndimf, obj.order);
-                    trial  = LagrangianFunction.create(fun.mesh, fun.ndimf, obj.order);
+                    trial  = test;
                     f = @(u,v) DP(v,u);
                     LHS = IntegrateLHS(f,test,trial,fun.mesh,'Domain',2);
             end

@@ -135,15 +135,13 @@ classdef ElasticProblem < handle
             s.stiffness = obj.stiffness;
             s.forces    = obj.forces;
             [u,~]       = obj.problemSolver.solve(s);
-            uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-            obj.uFun.setFValues(uSplit);
+            obj.uFun.setFValues(u);
         end
 
         function computeStrain(obj)
             quad = Quadrature.create(obj.mesh, 2);
             xV = quad.posgp;
             obj.strainFun = SymGrad(obj.uFun);
-            %             strFun = strFun.obtainVoigtFormat();
             obj.strain = obj.strainFun.evaluate(xV);
         end
 

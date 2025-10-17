@@ -115,11 +115,8 @@ classdef BoundaryConditions < handle
         
         function fV = addValues(obj,dirich,dofs,values)
             ndofs = dirich.nDofs;
-            ndimf = dirich.ndimf;
-
             fVdofs = zeros(ndofs,1);
             fVdofs(dofs) = values;
-            fVdofs = reshape(fVdofs,[ndimf ndofs/ndimf])';
             fV = dirich.fValues + fVdofs;
         end
     end

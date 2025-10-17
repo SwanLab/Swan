@@ -18,10 +18,10 @@ classdef DomainFunction < BaseFunction
             obj.operation = cParams.operation;
             if isfield(cParams,'ndimf')
                 obj.ndimf = cParams.ndimf;
-                obj.ndimfTotal = prod(obj.ndimf);
             else
                 obj.ndimf = 1;
             end
+            obj.ndimfTotal = prod(obj.ndimf);
             obj.mesh = cParams.mesh;
         end
 

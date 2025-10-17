@@ -1,14 +1,5 @@
 classdef Test < BaseFunction
-    
-    properties (Access = public)
-          %      mesh
-          %  ndimf
-    end
-    
-    properties (Access = private)
-        
-    end
-    
+
     properties (Access = private)
         uFun
         iDof
@@ -17,10 +8,10 @@ classdef Test < BaseFunction
     methods (Access = public)
         
         function obj = Test(uFun,i)
-            obj.uFun = uFun;
-            obj.mesh = uFun.mesh;
+            obj.uFun  = uFun;
+            obj.mesh  = uFun.mesh;
             obj.ndimf = uFun.ndimf;
-            obj.iDof = i; 
+            obj.iDof  = i; 
         end
         
         function gradN = computeGrad(obj,xV)
@@ -46,7 +37,7 @@ classdef Test < BaseFunction
 
         function Ni = evaluateNew(obj,xV)
             u     = obj.uFun;
-            ndimf = u.ndimf;
+            ndimf = u.ndimfTotal;
             node = ceil(obj.iDof/ndimf);
             dim  = obj.iDof - (node-1)*ndimf;
             if iscell(xV) % Sample of xV, not necessary all elements

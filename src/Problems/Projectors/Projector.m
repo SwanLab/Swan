@@ -28,9 +28,4 @@ classdef Projector < handle
 
     end
 
-    methods (Access = protected)
-
-
-    end
-
 end

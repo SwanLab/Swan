@@ -6,22 +6,13 @@ classdef MaterialFactory < handle
 
             switch cParams.type
                 case 'ISOTROPIC'
-                    switch cParams.ndim
-                        case 2
-                            material = Isotropic2dElasticMaterial(cParams);
-                        case 3
-                            material = Isotropic3dElasticMaterial(cParams);
-                    end
-                    
+                    material = IsotropicElasticMaterial(cParams);
                 case 'HomogenizedMicrostructure'
                     material = HomogenizedMicrostructureInterpolator(cParams);
-                    
                 case 'DensityBased'
                     material = DensityBasedMaterial(cParams);
-                
                 case 'STOKES'
                     material = MaterialStokes(cParams);
-                    
                 case 'PhaseField'
                     switch cParams.PFtype
                         case 'Analytic'

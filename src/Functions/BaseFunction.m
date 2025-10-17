@@ -30,12 +30,12 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
         function fun = project(obj,target)
             switch class(obj) % Parche 1: ndimF
                 case {'UnfittedFunction','UnfittedBoundaryFunction'}
-                    ndimF = 1;
+                    nTensor = 1;
                 otherwise
-                    ndimF = length(size(obj.evaluate(zeros(obj.mesh.ndim,1))));
+                    nTensor = length(obj.ndimf);
             end
 
-            if ndimF>=4 % Parche 2
+            if nTensor>=4 % Parche 2
                 s.projectorType = target;
                 proj = ProjectorToLagrangianTensor(s);
                 fun = proj.project(obj);
