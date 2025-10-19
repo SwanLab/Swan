@@ -1,11 +1,11 @@
 classdef guideElasticProblem_abril < handle
 
     properties (Access = public)
-    stiffness
-    strain
-    stress
-    dLambda
-    bcApplier
+        stiffness
+        strain
+        stress
+        dLambda
+        bcApplier
     end
     
     properties (Access = private)
@@ -32,19 +32,27 @@ classdef guideElasticProblem_abril < handle
 
     methods (Access = public)
 
-        function [obj,u,l]=guideElasticProblem_abril(r)
+        function [obj,u,L]=guideElasticProblem_abril(r)
             obj.init(r, 1)
             obj.createMesh();
             [u, L] = obj.doElasticProblemHere();
-            u=1;
-            l=2;
+            mesh = obj.mesh;
+
+            z.mesh      = obj.mesh;
+            z.order     = 'P1';
+
+            for i=1:8
+               z.fValues   = reshape(u(:,i),[obj.mesh.ndim,obj.mesh.nnodes])';
+               uFeFun = LagrangianFunction(z);%
+               fileName = ['intent' num2str(i)];
+               uFeFun.print(fileName,'Paraview');
+            end
         end
 
 
     end
 
     methods (Access=private)
-
         function init (obj,r,i)
             obj.radius=r;
             obj.nodeDirection = i;
@@ -55,6 +63,7 @@ classdef guideElasticProblem_abril < handle
             lvSet=obj.createlvSetFunction(bgMesh);  % Crea la levelSet per fer el forat
             uMesh=obj.computeUnfittedMesh(bgMesh,lvSet);  %Fa el forat
             obj.mesh = uMesh.createInnerMesh();    % guarda com a mesh el conjunt 
+
             obj.boundaryMesh = obj.mesh.createBoundaryMesh();   %crea el boundary de la mesh
             [obj.boundaryMeshJoined, obj.localGlobalConnecBd] = obj.mesh.createSingleBoundaryMesh(); %conectivitats
         end
@@ -62,8 +71,8 @@ classdef guideElasticProblem_abril < handle
 
             function bgMesh=createReferenceMesh(~)
                 % Generate coordinates and discretization
-                x1 = linspace(-5,5,20);
-                x2 = linspace(0,10,20);
+                x1 = linspace(-1,1,50);
+                x2 = linspace(-1,1,50);
             
                 % Create the grid
                 [xv,yv] = meshgrid(x1,x2);
@@ -78,7 +87,7 @@ classdef guideElasticProblem_abril < handle
             function levelSet=createlvSetFunction(obj,bgMesh)
                 sLS.type        = 'CircleInclusion';
                 sLS.xCoorCenter = 0;    %coordenada y del centre
-                sLS.yCoorCenter = 5;  %coordenada y del centre
+                sLS.yCoorCenter = 0;  %coordenada y del centre
                 sLS.radius      = obj.radius;
                 g               = GeometricalFunction(sLS);
                 lsFun           = g.computeLevelSetFunction(bgMesh);
@@ -227,8 +236,8 @@ classdef guideElasticProblem_abril < handle
             
                 end
 
-            function createDisplacementFunHere(obj)
-                obj.uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
+            function createDisplacementFunHere(obj) % Crea Funcio FEM pels elements finits
+                obj.displacementFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
             end
 
             function createBCApplyerHere(obj, cParams)
@@ -249,14 +258,16 @@ classdef guideElasticProblem_abril < handle
             end
 
 
-            function computeStiffnessMatrixHere(obj) % Per obtenir matriu K          
-                s.type     = 'ElasticStiffnessMatrix';
-                s.mesh     = obj.mesh;
-                s.test     = obj.uFun;
-                s.trial    = obj.uFun;
-                s.material = obj.material;
-                s.quadratureOrder = 2;
-                lhs = LHSIntegrator.create(s);
+            function computeStiffnessMatrixHere(obj) % Per obtenir matriu K   
+                ndimf      = obj.displacementFun.ndimf;
+                m.type     = 'ElasticStiffnessMatrix';
+                m.mesh     = obj.mesh;
+                m.test     = LagrangianFunction.create(obj.mesh,ndimf, 'P1');
+                m.trial    = obj.displacementFun;
+                m.material = obj.material;
+                m.quadratureOrder = 2;
+                
+                lhs = LHSIntegrator.create(m);
                 obj.stiffness = lhs.compute();
             end
 
