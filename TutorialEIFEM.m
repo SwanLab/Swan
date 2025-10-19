@@ -160,13 +160,19 @@ classdef TutorialEIFEM < handle
             PL.domain    = @(coor) isRight(coor);
             PL.direction = 2;
             PL.value     = -0.1;
-            pointload = PointLoad(mesh,PL);
-            % need this because force applied in the face not in a point
-            pointload.values        = pointload.values/size(pointload.dofs,1);
-            fvalues                 = zeros(mesh.nnodes*mesh.ndim,1);
-            fvalues(pointload.dofs) = pointload.values;
-            fvalues                 = reshape(fvalues,mesh.ndim,[])';
-            pointload.fun.setFValues(fvalues);
+            pointload = TractionLoad(mesh,PL,'DIRAC');
+
+%             mesh = obj.meshDomain;
+%             PL.domain    = @(coor) isRight(coor);
+%             PL.direction = 2;
+%             PL.value     = -0.1;
+%             pointload = PointLoad(mesh,PL);
+%             % need this because force applied in the face not in a point
+%             pointload.values        = pointload.values/size(pointload.dofs,1);
+%             fvalues                 = zeros(mesh.nnodes*mesh.ndim,1);
+%             fvalues(pointload.dofs) = pointload.values;
+%             fvalues                 = reshape(fvalues,mesh.ndim,[])';
+%             pointload.fun.setFValues(fvalues);
 
             s.pointloadFun = pointload;
             s.dirichletFun = dirichletFun;
@@ -194,31 +200,19 @@ classdef TutorialEIFEM < handle
             % lhs = LHSIntegrator.create(s);
             % LHS = lhs.compute();
 
-            LHS = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),dispFun,dispFun,mesh,2);
+            LHS = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),dispFun,dispFun,mesh,'Domain',2);
             LHSr = obj.bcApplier.fullToReducedMatrixDirichlet(LHS);
         end
 
-        function RHS = computeForces(obj,stiffness,u)
-            % s.type      = 'Elastic';
-            % s.scale     = 'MACRO';
-            % s.dim.ndofs = u.nDofs;
-            % s.BC        = obj.boundaryConditions;
-            % s.mesh      = obj.meshDomain;
-            % RHSint      = RHSIntegrator.create(s);
-            % rhs         = RHSint.compute();
-            % % Perhaps move it inside RHSint?
-            % R           = RHSint.computeReactions(stiffness);
-            % RHS = rhs+R;
-            
-
-
-            ndofs = u.nDofs;
-            bc            = obj.boundaryConditions;
-            neumann       = bc.pointload_dofs;
-            neumannValues = bc.pointload_vals;
-            rhs = zeros(ndofs,1);
-            if ~isempty(neumann)
-                rhs(neumann) = neumannValues;
+       function RHS =  computeForces(obj,stiffness,u)
+            bc  = obj.boundaryConditions;
+            t   = bc.tractionFun;
+            rhs = zeros(u.nDofs,1);
+            if ~isempty(t)
+                for i = 1:numel(t)
+                    rhsi = t(i).computeRHS(u);
+                    rhs  = rhs + rhsi;
+                end
             end
             if strcmp(obj.solverType,'REDUCED')
                 bc      = obj.boundaryConditions;
@@ -227,13 +221,13 @@ classdef TutorialEIFEM < handle
                 if ~isempty(dirich)
                     R = -stiffness(:,dirich)*dirichV;
                 else
-                    R = zeros(sum(ndofs(:)),1);
+                    R = zeros(sum(obj.uFun.nDofs(:)),1);
                 end
                 rhs = rhs+R;
             end
-            RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
-        end
-
+             RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
+       end
+       
         function Meifem = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh)
             mR = obj.referenceMesh;
 %             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';

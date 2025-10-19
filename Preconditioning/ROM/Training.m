@@ -29,8 +29,8 @@ classdef Training < handle
 
     methods (Access = public)
 
-        function obj = Training(meshRef,r)
-            obj.init(meshRef,r)
+        function obj = Training(meshRef)
+            obj.init(meshRef)
             if sum(obj.nSubdomains > 1)>= 1
                 obj.repeatMesh();
             else
@@ -42,6 +42,7 @@ classdef Training < handle
             [LHS,RHS,uFun,lambdaFun] = obj.createElasticProblem();
             sol  = LHS\RHS;
             uAll = sol(1:uFun.nDofs,:);
+%             EIFEMtesting.plotSolution(full(uAll(:,1)),obj.meshDomain,1,1,1,[])
             K = LHS(1:uFun.nDofs,1:uFun.nDofs);
             [obj.uSbd,obj.LHSsbd]    = obj.extractDomainData(uAll,K);
             
@@ -58,7 +59,7 @@ classdef Training < handle
             obj.tolSameNode = 1e-10;
             obj.domainIndices = [3 3];
             obj.mesh = mesh;
-            obj.radius = r;
+%             obj.radius = r;
         end
 
         function repeatMesh(obj)
@@ -102,14 +103,14 @@ classdef Training < handle
             nu = 1/3;
             x0=0;
             y0=0;
-%             young   = ConstantFunction.create(E,mesh);
-%             poisson = ConstantFunction.create(nu,mesh);
-            f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<obj.radius)*E2 + ...
-                        (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=obj.radius)*E1 ; 
-%                                      x(2,:,:).*0 ];
-
-            young   = AnalyticalFunction.create(f,mesh);
-            poisson = ConstantFunction.create(nu,mesh);            
+            young   = ConstantFunction.create(E1,mesh);
+            poisson = ConstantFunction.create(nu,mesh);
+%             f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<obj.radius)*E2 + ...
+%                         (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=obj.radius)*E1 ; 
+% %                                      x(2,:,:).*0 ];
+% 
+%             young   = AnalyticalFunction.create(f,mesh);
+%             poisson = ConstantFunction.create(nu,mesh);            
         end
 
         function [LHS,RHS,u,dLambda] = createElasticProblem(obj)

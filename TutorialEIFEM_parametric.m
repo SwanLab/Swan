@@ -35,11 +35,12 @@ classdef TutorialEIFEM_parametric < handle
             close all
             obj.init()
 
-            obj.createReferenceMesh();
-            bS  = obj.referenceMesh.createBoundaryMesh();
-            [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain();
-%             mSbd = obj.createSubDomainMeshes();
-%             [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain(mSbd);
+%             obj.createReferenceMesh();
+%             bS  = obj.referenceMesh.createBoundaryMesh();
+%             [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain();
+            mSbd = obj.createSubDomainMeshes();
+            bS = mSbd{1,1}.createBoundaryMesh();
+            [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomainJoiner(mSbd);
             obj.meshDomain = mD;
             mD.plot()
             [bC,dir] = obj.createBoundaryConditions();
@@ -59,7 +60,7 @@ classdef TutorialEIFEM_parametric < handle
             x0 = zeros(size(RHSr));
             xSol = LHSr\RHSr;
 
-            [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSfun,RHSr,x0,Mmult,tol,xSol);     
+            [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSfun,RHSr,x0,Mmult,tol,xSol,obj.meshDomain,obj.bcApplier);     
             [uCG,residualCG,errCG,errAnormCG]    = PCG.solve(LHSfun,RHSr,x0,Mid,tol,xSol);     
             obj.plotResidual(residualPCG,errPCG,errAnormPCG,residualCG,errCG,errAnormCG)
         end
@@ -71,11 +72,13 @@ classdef TutorialEIFEM_parametric < handle
         function init(obj)
             obj.nSubdomains  = [15 5]; %nx ny
             
-%             filePath = ['/home/raul/Documents/GitHub/EPFL/data_' num2str(obj.r(i), '%.3f') '.mat'];
+%             filePath = ['./EPFL/data_' num2str(obj.r(i), '%.3f') '.mat'];
             obj.tolSameNode = 1e-10;
             obj.solverType = 'REDUCED';
-            obj.r  = 0.1;
+%             obj.r  = 0.797227;
+             obj.r  = 0.1;
 %             obj.r  = [0.1 , 0.2; 0.3, 0.4];
+            obj.r= (0.1 - 0.1) * rand(obj.nSubdomains(2),obj.nSubdomains(1)) + 0.1;
             obj.xmin = -1; 
             obj.xmax = 1;
             obj.ymin = -1;
@@ -84,7 +87,8 @@ classdef TutorialEIFEM_parametric < handle
             obj.cy = 0;
             obj.Nr=7;
             obj.Ntheta=14;
-            obj.fileNameEIFEM = '/home/raul/Documents/GitHub/EPFL/dataEIFEM.mat';
+            obj.fileNameEIFEM = './EPFL/parametrizedEIFEM.mat';
+%             obj.fileNameEIFEM = './EPFL/dataEIFEM.mat';
         end        
 
         function createReferenceMesh(obj)
@@ -424,6 +428,7 @@ classdef TutorialEIFEM_parametric < handle
             s.DirCond       = dir;
             s.nSubdomains = obj.nSubdomains;
             s.mu          = obj.r;
+            s.meshRef      = dMesh;
             eifem           = EIFEMnonPeriodic(s);
 
             ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);

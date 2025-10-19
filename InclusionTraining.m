@@ -42,15 +42,16 @@ classdef InclusionTraining < handle
                 %                 m.plot()
                 %                 m.plotAllNodes();
                 %                 m = obj.createReferenceMesh();
-                data = Training(m,obj.r(i));
-                %                 obj.printdisplacements(data.uSbd,m,i)
+                data = Training(m);
+                                obj.printdisplacements(data.uSbd,m,i)
                 p = OfflineDataProcessor(data);
                 EIFEoper = p.computeROMbasis();
                 EIFEoper.U = EIFEoper.Udef + EIFEoper.Urb;
                 EIFEoper.U = EIFEoper.U(:);
 %                 EIFEoper.Kfine = data.LHSsbd;
                 EIFEoper.snapshots = data.uSbd;
-                filePath = ['/home/raul/Documents/GitHub/EPFL/test/data_' num2str(obj.r(i), '%.3f') '.mat'];
+%                 filePath = ['/home/raul/Documents/GitHub/EPFL/test/data_' num2str(obj.r(i), '%.3f') '.mat'];
+                filePath = ['./EPFL/data/data_' num2str(obj.r(i), '%.3f') '.mat'];
                 save(filePath,'EIFEoper')
             end
         end
@@ -60,7 +61,15 @@ classdef InclusionTraining < handle
     methods (Access = private)
 
         function init(obj)
-            obj.r    = 0.005:0.01:0.80;
+%             N = 80;
+%             % Interval bounds
+%             a = 1e-6;
+%             b = 0.8;
+%             % Index vector
+%             i = 0:N;
+%             % Cosine spacing formula
+%             obj.r = (a + b)/2 + (b - a)/2 * cos(pi * (1 - i / N));
+            obj.r    = 0.1:0.01:0.801;
             obj.xmin = -1;
             obj.xmax = 1;
             obj.ymin = -1;
@@ -100,13 +109,13 @@ classdef InclusionTraining < handle
             mesh = QuadMesh(2,2,50,50);
             s.coord = mesh.coord-[1,1];
             s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
-                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)-[1e-9,0];
+                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-1e-9,-1e-9];
             s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
-                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)-[1e-9,0];
+                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-1e-9,+1e-9];
             s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
-                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[1e-9,0];
+                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[+1e-9,-1e-9];
             s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
-                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[1e-9,0];
+                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[+1e-9,+1e-9];
             s.connec=mesh.connec;
             mesh = Mesh.create(s);
 
