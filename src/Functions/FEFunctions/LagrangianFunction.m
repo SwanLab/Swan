@@ -102,18 +102,18 @@ classdef LagrangianFunction < FeFunction
             fV = permute(fV,[2 1 4 3]);
             gradF = squeezeParticular(pagemtimes(dNdx,fV),[1 2]);
         end
-       % 
-       %  function div = computeDiv(obj)
-       %      s.operation = @(xV) obj.computeDivFun(xV);
-       %      s.ndimf     = 1;
-       %      s.mesh      = obj.mesh;
-       %      div         = DomainFunction(s);                   
-       %  end        
-       % 
-       %  function curl = computeCurl(obj) %only for 2D
-       %      fOrth = obj.createOrthogonalVector();            
-       %      curl  = Divergence(fOrth);            
-       %  end
+
+        function div = computeDiv(obj)
+            s.operation = @(xV) obj.computeDivFun(xV);
+            s.ndimf     = 1;
+            s.mesh      = obj.mesh;
+            div         = DomainFunction(s);                   
+        end        
+
+        % function curl = computeCurl(obj) %only for 2D
+        %     fOrth = obj.createOrthogonalVector();            
+        %     curl  = Divergence(fOrth);            
+        % end
        % 
        %  function setdNdxOld(obj,dNdx)
        %      obj.dNdxOld = dNdx;
@@ -400,22 +400,22 @@ classdef LagrangianFunction < FeFunction
             end
         end
 
-        % function divF = computeDivFun(obj,xV)
-        %     nP = size(xV,2);
-        %     dNdx  = obj.evaluateCartesianDerivatives(xV);
-        %     fV    = obj.getFvaluesByElem(); 
-        %     fV    = permute(fV,[2 1 4 3]);
-        %     fV    = pagetranspose(fV);
-        %     fV    = repmat(fV,[1 1 nP 1]);
-        %     divF(1,:,:) = squeeze(bsxfun(@(A,B) sum(A.*B, [1 2]), fV,dNdx));        
-        % end
-        % 
-        % function lapF = computeLaplacianFun(obj,xV)
-        %     gradF = Grad(obj);
-        %     gradF = gradF.project('P1',obj.mesh);
-        %     lapF  = Divergence(gradF); 
-        % end
-        % 
+        function divF = computeDivFun(obj,xV)
+            nP = size(xV,2);
+            dNdx  = obj.evaluateCartesianDerivatives(xV);
+            fV    = obj.getFvaluesByElem(); 
+            fV    = permute(fV,[2 1 4 3]);
+            fV    = pagetranspose(fV);
+            fV    = repmat(fV,[1 1 nP 1]);
+            divF(1,:,:) = squeeze(bsxfun(@(A,B) sum(A.*B, [1 2]), fV,dNdx));        
+        end
+
+        function lapF = computeLaplacianFun(obj,xV) %% (This should be a Function -> Laplacian) + (Not used anywhere)
+            gradF = Grad(obj);
+            gradF = gradF.project('P1',obj.mesh);
+            lapF  = Divergence(gradF); 
+        end
+         
         % function node = getDofConnecByVector(obj)
         %     nNode = obj.interpolation.nnode;
         %     nElem = size(obj.mesh.connec,1);
@@ -495,8 +495,8 @@ classdef LagrangianFunction < FeFunction
         %             plot(f);
         %     end
         % end
-        % 
-        function gradN = Gradient(obj,N)
+        %
+        function gradN = Gradient(obj,N) % This should be included in interpolation
             s.operation = @(xV) N.computeShapeDerivatives(xV);
             s.mesh      = obj.mesh;
             gradN       = DomainFunction(s);

@@ -6,6 +6,6 @@ function dom = Spherical(A)
 end
 
 function Asph = evaluate(A, xV)
-    ndim = sqrt(A.ndimf);
+    ndim = A.ndimf(1);
     Asph = (1/ndim).*TraceEye(A).evaluate(xV);
 end

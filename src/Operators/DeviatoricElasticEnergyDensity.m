@@ -1,6 +1,7 @@
 function dom = DeviatoricElasticEnergyDensity(u,mu)
     s.operation = @(xV) evaluate(u,mu,xV);
     s.mesh = u.mesh;
+    s.ndimf = 1;
     dom = DomainFunction(s);
 end
 

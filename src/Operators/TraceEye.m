@@ -6,7 +6,7 @@ function dom = TraceEye(A)
 end
 
 function trcMat = evaluate(A, xV)
-    ndim = sqrt(A.ndimf);
+    ndim = A.ndimf(1);
     trc = trace(A).evaluate(xV);
     trcMat = pagemtimes(eye(ndim),trc);
 end
