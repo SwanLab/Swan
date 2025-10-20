@@ -54,7 +54,7 @@ classdef Training < handle
 
     methods (Access = private)
 
-        function init(obj,mesh,r)
+        function init(obj,mesh)
             obj.nSubdomains  = [5 5]; %nx ny
             obj.tolSameNode = 1e-10;
             obj.domainIndices = [3 3];
