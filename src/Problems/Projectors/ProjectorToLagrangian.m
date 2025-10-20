@@ -44,7 +44,11 @@ classdef ProjectorToLagrangian < Projector
                 otherwise
                     test   = LagrangianFunction.create(fun.mesh, fun.ndimf, obj.order);
                     trial  = test;
-                    f = @(u,v) DP(v,u);
+                    if length(fun.ndimf) == 1
+                        f    = @(u,v) DP(v,u);
+                    else
+                        f    = @(u,v) DDP(v,u);
+                    end
                     LHS = IntegrateLHS(f,test,trial,fun.mesh,'Domain',2);
             end
         end
@@ -55,7 +59,11 @@ classdef ProjectorToLagrangian < Projector
 
         function RHS = computeRHS(obj,fun)
             test = LagrangianFunction.create(fun.mesh,fun.ndimf,obj.order);
-            f    = @(v) DP(fun,v);
+            if length(fun.ndimf) == 1
+                f    = @(v) DP(fun,v);
+            else
+                f    = @(v) DDP(fun,v);
+            end
             RHS  = IntegrateRHS(f,test,test.mesh,'Domain',2);
         end
 

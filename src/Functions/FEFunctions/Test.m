@@ -11,6 +11,7 @@ classdef Test < BaseFunction
             obj.uFun  = uFun;
             obj.mesh  = uFun.mesh;
             obj.ndimf = uFun.ndimf;
+            obj.ndimfTotal = uFun.ndimfTotal;
             obj.iDof  = i; 
         end
         
@@ -37,7 +38,7 @@ classdef Test < BaseFunction
 
         function Ni = evaluateNew(obj,xV)
             u     = obj.uFun;
-            ndimf = u.ndimfTotal;
+            ndimf = obj.ndimfTotal;
             node = ceil(obj.iDof/ndimf);
             dim  = obj.iDof - (node-1)*ndimf;
             if iscell(xV) % Sample of xV, not necessary all elements
@@ -54,6 +55,10 @@ classdef Test < BaseFunction
                 Ni = zeros(ndimf,nGauss,nEval);
                 Ni(dim,:,:) = repmat(N(node,:),[1 1 nEval]);
             end
+            % transposedDims = length(obj.ndimf):-1:1;
+            % extraDims      = length(obj.ndimf)+(1:2);
+            % Ni = permute(reshape(Ni,[u.ndimf,nGauss,nEval]),[transposedDims extraDims]);
+            Ni = reshape(Ni,[u.ndimf,nGauss,nEval]);
         end
 
     end
