@@ -47,13 +47,7 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,1,50);
-            x2      = linspace(0,1,50);
-            [xv,yv] = meshgrid(x1,x2);
-            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            s.coord  = V(:,1:2);
-            s.connec = F;
-            obj.mesh = Mesh.create(s);
+            obj.mesh = QuadMesh(1, 1, 50, 50);
         end
 
         function createDesignVariable(obj)
@@ -111,11 +105,14 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
 
 
             s.filterType        = 'PDE';
-            s.boundaryType      = 'Robin';
+            s.boundaryType      = 'Neumann';
             s.mesh              = obj.mesh;
             s.trial             = LagrangianFunction.create(obj.mesh,1,'P1');
             f                   = Filter.create(s);
-            obj.filterPDE     = f;            
+            obj.filterPDE     = f;  
+            
+
+          
         end
 
         function createMaterialInterpolator(obj)
@@ -191,7 +188,7 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;
+            s.volumeTarget = 0.82;
             s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
@@ -203,15 +200,18 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             e = (h)^2;
             k0  = 1-e;
             k1  = e; 
-            m0  = e;
+            m0  = 0;
             m1  = 1-e;
-            p  = 8;
+            p  = 1;
             s.diffCoef = @(x) k0.*(1-x.^p)+k1*x.^p;
+            %s.diffCoef = @(x) k0.*(1-x).^p+k1;
             s.massCoef = @(x) m0.*(1-x.^p)+m1*x.^p;
+            s.dk       = @(x) -k0.*p.*x.^(p-1)+k1.*p.*x.^(p-1);            
+            %s.dk       = @(x) k0.*p.*(1-x).^(p-1);            
             s.dm       = @(x) -m0.*p.*x.^(p-1)+m1.*p.*x.^(p-1);
-            s.dk       = @(x) -k0.*p.*x.^(p-1)+k1.*p.*x.^(p-1);
+            
             s.mesh   = obj.mesh;
-            s.filter = obj.filter;
+            s.filter = obj.filterPDE;
             s.test   = LagrangianFunction.create(obj.mesh,1,'P1');
             s.uMesh = obj.createBaseDomain();
             v = EnclosedVoidFunctional(s);
@@ -220,6 +220,8 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
         end        
 
         function createPerimeter(obj)
+
+            
             eOverhmin     = 10;
             epsilon       = eOverhmin*obj.mesh.computeMeanCellSize();
             s.mesh        = obj.mesh;
@@ -235,7 +237,7 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
         function createCost(obj)
             s.shapeFunctions{1} = obj.enclosedVoid;
             s.shapeFunctions{2} = obj.perimeter;
-            s.weights           = [1 100];
+            s.weights           = [1 0.0001];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -265,43 +267,43 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
         end
 
         function createOptimizer(obj)
-            % s.monitoring     = true;
-            % s.cost           = obj.cost;
-            % s.constraint     = obj.constraint;
-            % s.designVariable = obj.designVariable;
-            % s.maxIter        = 3000;
-            % s.tolerance      = 1e-8;
-            % s.constraintCase = {'EQUALITY'};
-            % s.primalUpdater  = obj.primalUpdater;
-            % s.etaNorm        = 0.02;
-            % s.etaNormMin     = 0.02;
-            % s.gJFlowRatio    = 0.1;
-            % s.etaMax         = 1;
-            % s.etaMaxMin      = 0.01;
-            % opt = OptimizerNullSpace(s);
-            % opt.solveProblem();
-            % obj.optimizer = opt;
-
-
-            s.nConstraints   = 1;
-            l                = DualVariable(s);            
-
-
             s.monitoring     = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.dualVariable   = l;
-            s.maxIter        = 500;
+            s.maxIter        = 3000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.ub             = 1;
-            s.lb             = 0;
-            s.volumeTarget   = 0.4;
-            s.primal         = 'PROJECTED GRADIENT';
-            opt              = OptimizerMMA(s);
+            s.primalUpdater  = obj.primalUpdater;
+            s.etaNorm        = 0.02;
+            s.etaNormMin     = 0.02;
+            s.gJFlowRatio    = 0.1;
+            s.etaMax         = 1;
+            s.etaMaxMin      = 0.01;
+            opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
+
+
+            % s.nConstraints   = 1;
+            % l                = DualVariable(s);            
+
+
+            % s.monitoring     = true;
+            % s.cost           = obj.cost;
+            % s.constraint     = obj.constraint;
+            % s.designVariable = obj.designVariable;
+            % s.dualVariable   = l;
+            % s.maxIter        = 5000;
+            % s.tolerance      = 1e-8;
+            % s.constraintCase = {'EQUALITY'};
+            % s.ub             = 1;
+            % s.lb             = 0;
+            % s.volumeTarget   = 0.4;
+            % s.primal         = 'PROJECTED GRADIENT';
+            % opt              = OptimizerMMA(s);
+            % opt.solveProblem();
+            % obj.optimizer = opt;
 
             % 
             % s.monitoring     = true;
