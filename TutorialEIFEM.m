@@ -38,10 +38,21 @@ classdef TutorialEIFEM < handle
             obj.boundaryConditions = bC;
             obj.createBCapplier()
 
-            [LHSr,RHSr] = obj.createElasticProblem();
+            [LHSr, Mr, RHSr] = obj.createElasticProblem();
 
+
+            %% Modal Analysis
+            
+            [eigenvalues, eigenvectors, natFreq] = obj.computeModalAnalysis(LHSr, Mr);
+
+            ModalAnalysis.lambda = eigenvalues;
+            ModalAnalysis.Phi = eigenvectors;
+            ModalAnalysis.omega = natFreq;
+
+            
             LHSfun = @(x) LHSr*x;
-            [Meifem,Kcoarse]       = obj.createEIFEMPreconditioner(dir,iC,lG,bS,iCR,discMesh,radiusMesh);
+            [Meifem,Kcoarse, Mcoarse]       = obj.createEIFEMPreconditioner(dir,iC,lG,bS,iCR,discMesh,radiusMesh);
+
 
             % for i = 1:length(radius_to_analyse)
             % 
@@ -63,7 +74,8 @@ classdef TutorialEIFEM < handle
             xSol = LHSr\RHSr;
 
             [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSfun,RHSr,x0,Mmult,tol,xSol);     
-            [uCG,residualCG,errCG,errAnormCG]    = PCG.solve(LHSfun,RHSr,x0,Mid,tol,xSol);     
+            [uCG,residualCG,errCG,errAnormCG]    = PCG.solve(LHSfun,RHSr,x0,Mid,tol,xSol);
+
             %obj.plotResidual(residualPCG,errPCG,errAnormPCG,residualCG,errCG,errAnormCG)
 
             uCGFull = obj.bcApplier.reducedToFullVectorDirichlet(uCG); %reapply all dirichlett DOFs
@@ -236,10 +248,11 @@ classdef TutorialEIFEM < handle
 
   
 
-        function [LHSr,RHSr] = createElasticProblem(obj)
+        function [LHSr,Mr, RHSr] = createElasticProblem(obj)
             u = LagrangianFunction.create(obj.meshDomain,obj.meshDomain.ndim,'P1');
             material = obj.createMaterial(obj.meshDomain);
             [lhs,LHSr] = obj.computeStiffnessMatrix(obj.meshDomain,u,material);
+            [M,Mr] = obj.computeMassMatrix(obj.meshDomain,u);
             RHSr       = obj.computeForces(lhs,u);
         end
 
@@ -255,6 +268,26 @@ classdef TutorialEIFEM < handle
 
             LHS = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),dispFun,dispFun,mesh,2);
             LHSr = obj.bcApplier.fullToReducedMatrixDirichlet(LHS);
+        end
+
+        function [M , Mr] = computeMassMatrix(obj, mesh, dispFun)
+            rho = obj.computeDensity(mesh);
+            M = IntegrateLHS(@(u,v) rho .* DP(v,u),dispFun,dispFun,mesh,2); %DP(u,v) 
+            Mr = obj.bcApplier.fullToReducedMatrixDirichlet(M);
+
+        end
+
+        function rho = computeDensity(obj, mesh)
+            rho = 1; % kg/m^3 -
+            rho  = ConstantFunction.create(rho, mesh);
+        end
+
+        function [lambda, Phi, omega] = computeModalAnalysis(obj, K, M)
+            [Phi, D] = eigs(K, M, 5, "smallestabs");
+            lambda = diag(D);
+            [lambda, idx] = sort(lambda, 'ascend'); 
+            Phi = Phi(:, idx); %sort
+            omega = sqrt(max(lambda,0));
         end
 
         function RHS = computeForces(obj,stiffness,u)
@@ -293,7 +326,7 @@ classdef TutorialEIFEM < handle
             RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
         end
 
-        function [Meifem,Kcoarse] = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh,radiusMesh)
+        function [Meifem,Kcoarse, Mcoarse] = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh,radiusMesh)
             mR = obj.referenceMesh;
 %             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
 %             EIFEMfilename = obj.fileNameEIFEM;
@@ -318,6 +351,7 @@ classdef TutorialEIFEM < handle
             eP = Preconditioner.create(ss);
             Meifem = @(r) eP.apply(r);
             Kcoarse = EIFEoper.Kcoarse;
+            Mcoarse = EIFEoper.Mcoarse;
         end
         
         function d = createDomainDecompositionDofManager(obj,iC,lG,bS,mR,iCR)

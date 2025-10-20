@@ -27,7 +27,9 @@ classdef OfflineDataProcessor < handle
 
         function EIFEoper = computeROMbasis(obj, radiusMesh)
             tic
+            
             [obj.K,obj.M] = createElasticProblem(obj);
+            
             
             uFun         = obj.createDispFun();
             uRBfun       = obj.projectToRigidBodyFun(uFun);
@@ -45,7 +47,7 @@ classdef OfflineDataProcessor < handle
             Vfun = obj.createInterfaceModesFun(bMesh);
 
             uDefFunBd  = obj.restrictToBoundary(uDefFun,bMesh);
-            RBFunBd    = obj.restrictToBoundary(uRBfun(1),bMesh); %only the first bevause we just want the basis!
+            RBFunBd    = obj.restrictToBoundary(uRBfun(1),bMesh);
             LMDefFunBd = obj.restrictToBoundary(LMDefFun,bMesh);
 
             Adr = obj.computeBoundaryModalMassMatrix(uDefFunBd,RBFunBd);
@@ -293,7 +295,7 @@ classdef OfflineDataProcessor < handle
         end
 
         function rho = computeDensity(obj, mesh)
-            rho = 2700; % kg/m^3 - aluminium
+            rho = 1; % kg/m^3 -
             rho  = ConstantFunction.create(rho, mesh);
         end
 
@@ -317,7 +319,8 @@ classdef OfflineDataProcessor < handle
         end
 
         function [lambda, Phi, omega] = computeModalAnalysis(obj, K, M)
-            [Phi, D] = eig(K, M);
+            K= (K + K')/2;
+            [Phi, D] = eigs(K, M , 5, "smallestabs");
             lambda = diag(D);
             [lambda, idx] = sort(lambda, 'ascend'); 
             Phi = Phi(:, idx); %sort
