@@ -13,12 +13,12 @@ classdef PrincipalDirectionComputerIn3D < PrincipalDirectionComputer
         
         function [dF,pF] = compute(obj,tensor)
             s = tensor.fValues;            
-            s1  = squeeze(s(:,1));
-            s2  = squeeze(s(:,2));
-            s3  = squeeze(s(:,3));
-            s12 = squeeze(s(:,4));
-            s13 = squeeze(s(:,5));
-            s23 = squeeze(s(:,6));
+            s1  = squeeze(s(1:6:end));
+            s2  = squeeze(s(2:6:end));
+            s3  = squeeze(s(3:6:end));
+            s12 = squeeze(s(4:6:end));
+            s13 = squeeze(s(5:6:end));
+            s23 = squeeze(s(6:6:end));
             eG = obj.eigenComputer;
             for i = 1:obj.ndim
                 for j = 1:obj.ndim
@@ -26,24 +26,22 @@ classdef PrincipalDirectionComputerIn3D < PrincipalDirectionComputer
                 end
                 p(i,:) = eG.eigenValueFunction{i}(s1,s12,s13,s2,s23,s3);                
             end
-            pF = obj.createP1Function(p',tensor.mesh);
+            pV = reshape(p,[],1);
+            pF = obj.createP1Function(pV,tensor);
             for j = 1:2
-                dF{j} = obj.createP1Function(squeeze(d(:,j,:))',tensor.mesh);
+                dV = reshape(squeeze(d(:,j,:)),[],1);
+                dF{j} = obj.createP1Function(dV,tensor);
             end
             
         end
 
     end
     
- 
-    
     methods (Access = private)
 
-        function f = createP1Function(obj,fV,mesh)
-            s.fValues = fV;
-            s.mesh    = mesh;
-            s.order   = 'P1';
-            f = LagrangianFunction(s);
+        function f = createP1Function(~,fV,fun)
+            f = LagrangianFunction.create(fun.mesh,fun.ndimf,'P1');
+            f.setFValues(fV);
         end        
         
     end

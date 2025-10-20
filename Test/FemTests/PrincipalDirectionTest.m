@@ -25,7 +25,7 @@ classdef PrincipalDirectionTest < handle
         
         function init(obj, cParams)
             obj.pdim      = cParams.pdim;
-            obj.mesh     = cParams.mesh;
+            obj.mesh      = cParams.mesh;
             obj.nGaus     = cParams.nGaus;
             obj.stressDim = cParams.stressDim;
             obj.createTensor();
@@ -50,10 +50,10 @@ classdef PrincipalDirectionTest < handle
     methods (Access = protected)
 
         function createTensor(obj)
-            s.fValues = rand(obj.mesh.nelem,obj.stressDim);
-            s.mesh    = obj.mesh;
-            s.order   = 'P0';
-            obj.tensor = LagrangianFunction(s);
+            ndimf = [obj.stressDim,obj.stressDim];
+            obj.tensor = LagrangianFunction.create(obj.mesh,ndimf,'P0');
+            fV = rand(size(obj.tensor.fValues));
+            obj.tensor.setFValues(fV);
         end            
         
         

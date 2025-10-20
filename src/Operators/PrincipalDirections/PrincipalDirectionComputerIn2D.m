@@ -17,9 +17,9 @@ classdef PrincipalDirectionComputerIn2D < PrincipalDirectionComputer
 
         function [dF,pF] = compute(obj,tensor)
             s = tensor.fValues;
-            s1  = s(:,1);
-            s2  = s(:,2);
-            s12 = s(:,3);
+            s1  = squeeze(s(1:3:end));
+            s2  = squeeze(s(2:3:end));
+            s12 = squeeze(s(3:3:end));
             eG = obj.eigenComputer;
             for i = 1:2
                 for j = 1:2
@@ -27,14 +27,16 @@ classdef PrincipalDirectionComputerIn2D < PrincipalDirectionComputer
                 end
                 p(i,:) = eG.eigenValueFunction{i}(s1,s12,s2);
             end
-            pF = obj.createP1Function(p',tensor.mesh);
+            pV = reshape(p,[],1);
+            pF = obj.createP1Function(pV,tensor);
             for j = 1:2
-                dF{j} = obj.createP1Function(squeeze(d(:,j,:))',tensor.mesh);
+                dV = reshape(squeeze(d(:,j,:)),[],1);
+                dF{j} = obj.createP1Function(dV,tensor);
             end
         end
         
         function [d,p] = computeFromP0(obj,tensor)
-            tensor = obj.computeAvarageTensor(tensor);
+            tensor = obj.computeAverageTensor(tensor);
             [d,p] = obj.compute(tensor);
         end
 
@@ -44,14 +46,12 @@ classdef PrincipalDirectionComputerIn2D < PrincipalDirectionComputer
     
     methods (Access = private)
 
-        function f = createP1Function(obj,fV,mesh)
-            s.fValues = fV;
-            s.mesh    = mesh;
-            s.order   = 'P1';
-            f = LagrangianFunction(s);
+        function f = createP1Function(~,fV,fun)
+            f = LagrangianFunction.create(fun.mesh,fun.ndimf,'P1');
+            f.setFValues(fV);
         end
 
-        function s = computeAvarageTensor(obj,tensor)            
+        function s = computeAverageTensor(obj,tensor)            
             t = zeros(1,size(tensor,2),size(tensor,3));
             ngaus = size(tensor,1);
             for igaus = 1 : ngaus
