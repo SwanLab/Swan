@@ -7,7 +7,7 @@ s.bcProp.type   = 'DisplacementTractionX';
 
 s.matProp.mu     = 1;
 s.matProp.lambda = 1;
-
+s.matProp.type   = 'Neohookean'; %Elastic
 s.monitoring.set       = true;
 s.monitoring.printInfo = true;
 s.monitoring.printFile = false;
