@@ -48,24 +48,80 @@ classdef NewHarmonicVectorProjectionExample < handle
             %obj.fileName = 'ExperimentingPlotSuperEllipse';
             %obj.iteration = 64;
 
-            %obj.iteration = 262;
-            %obj.fileName = 'CantileverSymmetricFixingMaxStressZone';
-            %obj.filePath = '/media/alex/MyPassport/LatticeResults/CantileverNoEnglishFlag/CantileverSymmetricFixingMaxStressZone';
 
-            % obj.iteration = 23;
-            % obj.fileName = 'LatticeExperimentInput';
-            % obj.filePath = '/media/alex/MyPassport/LatticeResults/CantileverComplianceRect';
+
+                      
+
+            % obj.iteration = 262;
+            % obj.fileName = 'CantileverSymmetricFixingMaxStressZone';
+            % obj.filePath = '/media/alex/MyPassport/LatticeResults/CantileverNoEnglishFlag/CantileverSymmetricFixingMaxStressZone';
+            % 
+            %  obj.iteration = 100;
+            % obj.fileName = 'ArchTriFineSuperEllipsePDEStressNormP64';
+            % obj.filePath = '/media/alex/MyPassport/LatticeResults/ArchTriFineSuperEllipsePDEStressNormP64_1000/';
+
+                            
+            % 
+            % obj.iteration = 100;
+            % obj.fileName = 'LatticeExperimentInputArchTriFineEllipse';
+            % obj.filePath = '/media/alex/MyPassport/LatticeResults/ArchTriPnormFineEllipseFine';
+
+
+            obj.iteration = 100;
+            obj.fileName = 'LatticeExperimentInputArchTriYSuperEllipse';
+            obj.filePath = '/media/alex/MyPassport/LatticeResults/ArchTriYPnorm32SuperEllipse';
+
+                % 'ArchTriPnormFineRectangleFine'                          
+                % 'ArchTriPnormFineSuperEllipseFine'                       
+                % 'ArchTriYPnorm32Rectangle'                               
+                % 'ArchTriYPnorm32SuperEllipse'                            
+                % 'BulkSymRectanglePnorm32'                                
+                % 'BulkSymSuperEllipsePNorm32'                             
+                % 'CantileverMeshNormalSymmetricSuperEllipse'              
+                % 'CantileverPnorm32StressRectangle'                       
+                % 'CantileverPnorm32StressRectanglePrueba'                 
+                % 'CantileverPnorm32StressSuperEllipse'                    
+                % 'CantileverPnormStressRectangle'                         
+                % 'CantileverPnormStressRectangleFine'                     
+                % 'CantileverPnormStressSuperEllipse'                      
+                % 'CantileverPnormStressSuperEllipseFine'                  
+                % 'CantileverSuperEllipsePDE'                              
+                % 'CantileverSymFineRectangle'                             
+                % 'CantileverSymRectangle'                                 
+                % 'CantileverSymRectangleDoubleLineSearch'                 
+                % 'CantileverTriFinePNorm32RectangleNew'                   
+                % 'CantileverTriFinePNorm32SuperEllipseNew'                
+                % 'CantileverTriFineSuperEllipseStressNormP64Iter5000'     
+                % 'CantileverTriNewRectanglePNorm64'                       
+                % 'CantileverTriRectangleSymmetricMeshCoarse5000Iterations'
+                % 'ComplianceTriangleCantilever'                           
+                % 'LShapePnormFineEllipseFine'                             
+                % 'LShapePnormFineRectangleFine'                           
+                % 'LShapePnormFineSuperEllipseFine'                        
+                % 'LshapeExtendedRectangleGoodVolume'                      
+                % 'LshapePNorm32TriFineRectangle'                          
+                % 'LshapePNorm32TriFineSuperEllipse'                       
+                % 'StressNormContinuationMethodRectangleCantilever'        
+                % 'StressNormP32BulkRectangle'                             
+                % 'StressNormP32BulkSuperEllipse'                          
+                % 'StressNormTriangleLBeamEllipseNew'                      
+                % 'StressNormTriangleLBeamRectNew'                         
+                % 'StressNormTriangleLbeamSuperNew'  
+
         end
 
         function loadDataExperiment(obj)
-           %s.fileName = [obj.fileName,num2str(obj.iteration)];
-           %s.folderPath = fullfile(obj.filePath);
-           %w = WrapperMshResFiles(s);
-           %w.compute();
-           d = load('DataExampleLshape.mat');        
-        %   d = load('DataExampleCantilever.mat');        
+           % s.fileName = [obj.fileName,num2str(obj.iteration)];
+           % s.folderPath = fullfile(obj.filePath);
+           % w = WrapperMshResFiles(s);
+           % w.compute();
+           
+           d = load('DataExampleArchCoarse.mat');  
+           %d = load('DataExampleArch.mat');  
+           %d = load('DataExampleLshape.mat');        
+           %d = load('DataExampleCantilever.mat');        
            w = d.w;
-            obj.experimentData = w;
+           obj.experimentData = w;
         end
 
         function createMesh(obj)
