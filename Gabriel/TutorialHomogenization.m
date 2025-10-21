@@ -1,285 +1,327 @@
 classdef TutorialHomogenization < handle
 
+    properties (Access = public)
+        paramHole
+        Chomog
+        volFrac
+    end
+
     properties (Access = private)
-        mesh
-        filterCompliance
-        filterPerimeter
-        designVariable
-        materialInterpolator
-        physicalProblem
-        compliance
-        volume
-        perimeter
-        cost
-        constraint
-        primalUpdater
-        optimizer
+        E
+        nu
+        meshType
+        meshN
+        holeType
+        nSteps
+        % damageType
+        pnorm
+        monitoring
+        Mmass
+    end
+
+    properties (Access = private)
+        baseMesh
+        masterSlave
+        test
+        maxParam
     end
 
     methods (Access = public)
-
+        
         function obj = TutorialHomogenization()
-            obj.init()
-            obj.createMesh();
-            obj.createDesignVariable();
-            obj.createFilterCompliance();
-            % obj.createFilterPerimeter();
-            obj.createMaterialInterpolator();
-            obj.createElasticProblem();
-            % obj.createBaseDomain();
-            obj.createComplianceFromConstiutive();
-            obj.createVolumeFunctional();
-            % obj.createComplianceConstraint();
-            % obj.createVolumeConstraint();
-            % obj.createPerimeter();
-            obj.createCost();
-            % obj.createConstraint();
-            % obj.createPrimalUpdater();
-            obj.createOptimizer();
+            obj.init();
+            obj.defineMesh();
+            obj.computeHoleParams();
+            obj.compute();
         end
-
+      
     end
-
+    
     methods (Access = private)
-
+        
         function init(obj)
-            close all;
+            obj.E          = 1;
+            obj.nu         = 0.3;
+            obj.meshType   = 'Square';
+            obj.meshN      = 100;
+
+            obj.holeType   = 'Square';
+            obj.pnorm      = 'Inf';
+            % obj.damageType = 'Area';
+            obj.nSteps     = 50;
+
+            obj.monitoring = true;
         end
 
-        function createMesh(obj)
-            %UnitMesh better
-            % x1      = linspace(0,2,100);
-            % x2      = linspace(0,1,50);
-            % [xv,yv] = meshgrid(x1,x2);
-            % [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            % s.coord  = V(:,1:2);
-            % s.connec = F;
-            % obj.mesh = Mesh.create(s);
-            obj.mesh = TriangleMesh(2,1,100,50);
+        function defineMesh(obj)
+            switch obj.meshType
+                case 'Square'
+                    s.c = [1,1];
+                    s.theta = [0,90];
+                    s.divUnit = obj.meshN;
+                    s.filename = '';
+                    MC = MeshCreator(s);
+                    MC.computeMeshNodes();
+                case 'Hexagon'
+                    s.c = [1,1,1];
+                    s.theta = [0,60,120];
+                    s.divUnit = obj.meshN;
+                    s.filename = '';
+                    MC = MeshCreator(s);
+                    MC.computeMeshNodes();
+            end
+            s.coord  = MC.coord;
+            s.connec = MC.connec;
+            obj.baseMesh = Mesh.create(s);
+            obj.masterSlave = MC.masterSlaveIndex;
+            obj.test = LagrangianFunction.create(obj.baseMesh,1,'P1');
+            obj.Mmass = IntegrateLHS(@(u,v) DP(v,u), obj.test, obj.test, obj.baseMesh, 'Domain');
         end
 
-        function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(x(1,:,:)));
-            s.ndimf   = 1;
-            s.mesh    = obj.mesh;
-            aFun      = AnalyticalFunction(s);
-            
-            sD.fun      = aFun.project('P1');
-            sD.mesh     = obj.mesh;
-            sD.type     = 'Density';
-            sD.plotting = true;
-            rho        = DesignVariable.create(sD);
-
-            obj.designVariable = rho;
+        function computeHoleParams(obj)
+            obj.maxParam = 0.979*ones(size(obj.nSteps));
+            nParam = length(obj.maxParam);
+            obj.paramHole = cell(1,nParam);
+            for i=1:nParam
+                obj.paramHole{i} = linspace(1e-5,obj.maxParam(i),obj.nSteps(i));
+            end
         end
 
-        function createFilterCompliance(obj)
-            s.filterType         = 'LUMP';
-            s.mesh               = obj.mesh;
-            s.trial              = LagrangianFunction.create(obj.mesh,1,'P1');
-            f                    = Filter.create(s);
-            obj.filterCompliance = f;
+        function compute(obj)
+            comb = table2array(combinations(obj.paramHole{:}));
+            nComb = size(comb,1);
+            mat = zeros(2,2,2,2,nComb);
+            rho = zeros(1,nComb);
+            for i=1:nComb
+                hole = comb(i,:);
+                if i==1
+                    hole = 1e-10*ones(size(hole));
+                end
+                mat(:,:,:,:,i) = obj.computeHomogenization(hole);
+                rho(i)     = obj.computeDensity(hole);
+            end
+            obj.Chomog = obj.assembleResults(mat);
+            obj.volFrac = obj.assembleResults(rho);
+        end
+        
+        function matHomog = computeHomogenization(obj,l)
+            dens = obj.createDensityLevelSet(l);
+            mat  = obj.createDensityMaterial(dens);
+            matHomog = obj.solveElasticMicroProblem(mat,dens);
         end
 
-        % function createFilterPerimeter(obj)
-        %     s.filterType        = 'PDE';
-        %     s.boundaryType      = 'Robin';
-        %     s.mesh              = obj.mesh;
-        %     s.trial             = LagrangianFunction.create(obj.mesh,1,'P1');
-        %     f                   = Filter.create(s);
-        %     obj.filterPerimeter = f;
-        % end
+        function lsf = createDensityLevelSet(obj,l)
+            ls = obj.computeLevelSet(obj.baseMesh,l);
+            sUm.backgroundMesh = obj.baseMesh;
+            sUm.boundaryMesh   = obj.baseMesh.createBoundaryMesh;
+            uMesh              = UnfittedMesh(sUm);
+            uMesh.compute(ls);
 
-        function createMaterialInterpolator(obj)
-            E0   = 1e-3;
-            nu0  = 1/3;
-            E1   = 1;
-            nu1  = 1/3;
-            ndim = 2;
+            ls = CharacteristicFunction.create(uMesh);
+            s.trial = obj.test;
+            s.mesh = obj.baseMesh;
+            f = FilterLump(s); 
+            lsf = f.compute(ls,2);
+        end
 
-            matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
-            matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
+        function ls = computeLevelSet(obj,mesh,l)
+            gPar.type = obj.holeType;
+            gPar.pnorm = obj.pnorm;
+            switch obj.meshType
+                case 'Square'
+                    gPar.xCoorCenter = 0.5;
+                    gPar.yCoorCenter = 0.5;
+                case 'Hexagon'
+                    gPar.xCoorCenter = 0.5;
+                    gPar.yCoorCenter = sqrt(1-0.5^2);
+            end
+            switch obj.holeType
+                case 'Circle'
+                    gPar.radius = l/2;
+                case 'Square'
+                    gPar.length = l;
+                case 'Rectangle'
+                    gPar.xSide  = l(1);
+                    gPar.ySide  = l(2);
+                case 'Ellipse'
+                    gPar.type = "SmoothRectangle";
+                    gPar.xSide  = l(1);
+                    gPar.ySide  = l(2);
+                    gPar.pnorm  = 2;  
+                case 'SmoothHexagon'
+                    gPar.radius = l;
+                    gPar.normal = [0 1; sqrt(3)/2 1/2; sqrt(3)/2 -1/2];
+            end
+            g                  = GeometricalFunction(gPar);
+            phiFun             = g.computeLevelSetFunction(mesh);
+            lsCircle           = phiFun.fValues;
+            ls = -lsCircle;
+        end
 
-            matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
-            matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
-
-            s.typeOfMaterial = 'ISOTROPIC';
+        function mat = createDensityMaterial(obj,lsf)
             s.interpolation  = 'SIMPALL';
             s.dim            = '2D';
-            s.matA = matA;
-            s.matB = matB;
+            s.matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(1e-6*obj.E,obj.nu,obj.baseMesh.ndim);
+            s.matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(1e-6*obj.E,obj.nu);
+            s.matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(obj.E,obj.nu,obj.baseMesh.ndim);
+            s.matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(obj.E,obj.nu);
+            mI = MaterialInterpolator.create(s);
 
-            m = MaterialInterpolator.create(s);
-            obj.materialInterpolator = m;
-        end
-
-        function createElasticProblem(obj)
-            s.mesh = obj.mesh;
-            s.scale = 'MACRO';
-            s.material = obj.createMaterial();
-            s.dim = '2D';
-            s.boundaryConditions = obj.createBoundaryConditions();
-            s.interpolationType = 'LINEAR';
-            s.solverType = 'REDUCED';
-            s.solverMode = 'DISP';
-            s.solverCase = DirectSolver();
-            fem = ElasticProblem(s);
-            obj.physicalProblem = fem;
-        end
-
-        function uMesh = createBaseDomain(obj)
-            levelSet         = -ones(obj.mesh.nnodes,1);
-            s.backgroundMesh = obj.mesh;
-            s.boundaryMesh   = obj.mesh.createBoundaryMesh();
-            uMesh = UnfittedMesh(s);
-            uMesh.compute(levelSet);
-        end
-
-        function c = createComplianceFromConstiutive(obj)
-            s.mesh         = obj.mesh;
-            s.stateProblem = obj.physicalProblem;
-            c = ComplianceFromConstitutiveTensor(s);
-        end
-        function c = createCompliance(obj)
-            s.mesh                        = obj.mesh;
-            s.filter                      = obj.filterCompliance;
-            s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
-            s.material                    = obj.createMaterial();
-            c = ComplianceFunctional(s);
-            
-        end
-        function c = createVolumeFunctional(obj)
-            s.mesh = obj.mesh;
-            s.uMesh = obj.createBaseDomain;
-            s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            c = VolumeFunctional(s);
-        end
-
-
-
-        % function createComplianceConstraint(obj)
-        %     s.mesh                       = obj.mesh;
-        %     s.filter                     = obj.filterCompliance;
-        %     s.complainceFromConstitutive = obj.createComplianceFromConstiutive();
-        %     s.material                   = obj.createMaterial();
-        %     s.complianceTarget           = 3;
-        %     c = ComplianceConstraint(s);
-        %     obj.compliance = c;
-        % end
-        % 
-        % function createVolumeConstraint(obj)
-        %     s.mesh   = obj.mesh;
-        %     s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-        %     s.volumeTarget = 0.4;
-        %     v = VolumeConstraint(s);
-        %     obj.volume = v;
-        % end
-
-        % function createPerimeter(obj)
-        %     eOverhmin     = 10; % 10
-        %     epsilon       = eOverhmin*obj.mesh.computeMeanCellSize();
-        %     s.mesh        = obj.mesh;
-        %     s.filter      = obj.filterPerimeter;
-        %     s.epsilon     = epsilon;
-        %     s.value0      = 6; % external Perimeter
-        %     P             = PerimeterFunctional(s);
-        %     obj.perimeter = P;
-        % end
-
-        function createCost(obj)
-            s.shapeFunctions{1} = obj.createCompliance();
-            s.shapeFunctions{2} = obj.createVolumeFunctional();
-            s.weights           = [1 0.7];
-            s.Msmooth           = obj.createMassMatrix();
-            obj.cost            = Cost(s);
-        end
-
-        function M = createMassMatrix(obj)
-            test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            trial = LagrangianFunction.create(obj.mesh,1,'P1'); 
-            M = IntegrateLHS(@(u,v) DP(v,u),test,trial,obj.mesh,'Domain');
-        end
-
-        % function createConstraint(obj)
-        %     s.shapeFunctions{1} = obj.compliance;
-        %     s.shapeFunctions{2} = obj.volume;
-        %     s.Msmooth           = obj.createMassMatrix();
-        %     obj.constraint      = Constraint(s);
-        % end
-
-        % function createPrimalUpdater(obj)
-        %     s.mesh = obj.mesh;
-        %     obj.primalUpdater = SLERP(s);
-        % end
-
-        function createOptimizer(obj)
-            s.monitoring     = true;
-            s.cost           = obj.cost;
-            % s.constraint     = obj.constraint;
-            s.designVariable = obj.designVariable;
-            s.maxIter        = 300;
-            s.ub              = 1;
-            s.lb              = 0;
-            % s.tolerance      = 1e-8;
-            % s.constraintCase = {'INEQUALITY','EQUALITY'};
-            % s.primalUpdater  = obj.primalUpdater;
-            % s.etaNorm        = 0.02;
-            % s.etaNormMin     = 0.02;
-            % s.gJFlowRatio    = 1;
-            % s.etaMax         = 1;
-            % s.etaMaxMin      = 0.01;
-            % opt = OptimizerNullSpace(s);
-            opt = OptimizerProjectedGradient(s);
-            opt.solveProblem();
-            obj.optimizer = opt;
-
-            
-        end
-
-        function m = createMaterial(obj)
-            x = obj.designVariable;
-            f = x.obtainDomainFunction();
-            f = f{1}.project('P1'); 
-            % f = obj.filterCompliance.compute(f{1},1);            
+            x{1} = lsf;
+            s.mesh                 = obj.baseMesh;
             s.type                 = 'DensityBased';
-            s.density              = f;
-            s.materialInterpolator = obj.materialInterpolator;
+            s.density              = x;
+            s.materialInterpolator = mI;
             s.dim                  = '2D';
-            s.mesh                 = obj.mesh;
-            m = Material.create(s);         
+            mat = Material.create(s);
         end
 
-        function bc = createBoundaryConditions(obj)
-            xMax    = max(obj.mesh.coord(:,1));
-            yMax    = max(obj.mesh.coord(:,2));
-            isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.35*yMax & abs(coor(:,2))<=0.65*yMax);
+        function matHomog = solveElasticMicroProblem(obj,material,dens)
+            if obj.monitoring == true
+                close all
+                dens.plot
+                shading interp
+                colormap (flipud(pink))
+                drawnow
+            end
 
-            sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [1,2];
-            sDir{1}.value     = 0;
+            s.mesh = obj.baseMesh;
+            s.material = material;
+            s.scale = 'MICRO';
+            s.dim = '2D';
+            s.boundaryConditions = obj.createBoundaryConditions(obj.baseMesh);
+            s.solverCase = DirectSolver();
+            s.solverType = 'REDUCED';
+            s.solverMode = 'FLUC';
+            fem = ElasticProblemMicro(s);
+            material.setDesignVariable({dens})
+            fem.updateMaterial(material.obtainTensor())
+            fem.solve();
 
-            sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 2;
-            sPL{1}.value     = -1;
+            totVol = obj.baseMesh.computeVolume();
+            matHomog = fem.Chomog/totVol;
+        end
+
+        function bc = createBoundaryConditions(obj,mesh)
+            switch obj.meshType
+                case 'Square'
+                    isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2))) < 1e-12);
+                    isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2))) < 1e-12);
+                    isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1))) < 1e-12);
+                    isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1))) < 1e-12);
+                    isVertex = @(coor) (isTop(coor) & isLeft(coor))    |...
+                                       (isTop(coor) & isRight(coor))   |...
+                                       (isBottom(coor) & isLeft(coor)) |...
+                                       (isBottom(coor) & isRight(coor));
+                    sDir{1}.domain    = @(coor) isVertex(coor);
+                    sDir{1}.direction = [1,2];
+                    sDir{1}.value     = 0;
+                case 'Hexagon'
+                    isBottom      = @(coor) (abs(coor(:,2) - min(coor(:,2))) < 1e-12);
+                    isTop         = @(coor) (abs(coor(:,2) - max(coor(:,2))) < 1e-12);
+                    
+                    coorRotY = obj.defineRotatedCoordinates(pi/3);
+                    isRightBottom = @(coor) (abs(coorRotY(coor) - min(coorRotY(coor))) < 1e-12);
+                    isLeftTop     = @(coor) (abs(coorRotY(coor) - max(coorRotY(coor))) < 1e-12);
+                    coorRotY = obj.defineRotatedCoordinates(-pi/3);
+                    isLeftBottom  = @(coor) (abs(coorRotY(coor) - min(coorRotY(coor))) < 1e-12);
+                    isRightTop    = @(coor) (abs(coorRotY(coor) - max(coorRotY(coor))) < 1e-12);
+                    isVertex = @(coor) (isBottom(coor) & isRightBottom(coor))  |...
+                                       (isRightBottom(coor) & isRightTop(coor))|...
+                                       (isRightTop(coor) & isTop(coor))        |...
+                                       (isTop(coor) & isLeftTop(coor))         |...
+                                       (isLeftTop(coor) & isLeftBottom(coor))  |...
+                                       (isLeftBottom(coor) & isBottom(coor))   ;
+                    sDir{1}.domain    = @(coor) isVertex(coor);
+                    sDir{1}.direction = [1,2];
+                    sDir{1}.value     = 0;
+            end
 
             dirichletFun = [];
             for i = 1:numel(sDir)
-                dir = DirichletCondition(obj.mesh, sDir{i});
+                dir = DirichletCondition(mesh, sDir{i});
                 dirichletFun = [dirichletFun, dir];
             end
             s.dirichletFun = dirichletFun;
-
-            pointloadFun = [];
-            for i = 1:numel(sPL)
-                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
-                pointloadFun = [pointloadFun, pl];
-            end
-            s.pointloadFun = pointloadFun;
-
-            s.periodicFun  = [];
-            s.mesh = obj.mesh;
+            s.pointloadFun = [];
+            s.periodicFun  = 1; %Set to not be empty
+            s.mesh = mesh;
             bc = BoundaryConditions(s);
+            bc.updatePeriodicConditions(obj.masterSlave);
         end
+
+        function coorRot = defineRotatedCoordinates(~,theta)
+            x0 = 0.5; y0 = sqrt(1-0.5^2);
+            coorRot = @(coor) feval(@(fun) fun(:,2),([cos(theta) sin(theta); sin(theta) cos(theta)]*(coor-[x0,y0])')');
+        end
+
+        function rho = computeDensity(obj,l)
+            % switch obj.damageType
+            %     case 'Area'
+            %         switch obj.holeType
+            %             case {'Circle','Square'}
+            %                 phi = l^2;
+            %             case {'Ellipse','Rectangle'}
+            %                 phi = l(1)*l(2);
+            %             case {'SmoothHexagon','Hexagon'}
+            %                 perimeter = 6*l;
+            %                 apothem   = sqrt(l^2 - (l/2)^2);
+            %                 phi = (perimeter*apothem)/(6*sqrt(3)/2);
+            %         end
+            %     case 'Perimeter'
+            %         switch obj.holeType
+            %             case {'Circle','Square','SmoothHexagon','Hexagon'}
+            %                 phi = l;
+            %             case 'Ellipse'
+            %                 phi = pi*(3*(l(1)+l(2))-sqrt((3*l(1)+l(2))*(l(1)+3*l(2))))/...
+            %                       pi*(3*(2)-sqrt((3+1)*(1+3)));
+            %             case 'Rectangle'
+            %                 phi = (l(1)+l(2))/2;
+            %         end
+            % end
+
+         lsf = obj.createDensityLevelSet(l);    % 'lsf' is a LagrangianFunction P1 with 0..1
+
+       
+         rho  = lsf.fValues(:);                 
+         one  = ones(size(rho));
+         volSolid = one' * (obj.Mmass * rho);  
+         volTotal = one' * (obj.Mmass * one);   
+         rho = volSolid / volTotal;             
+   
+        end
+        
+        function [mat] = assembleResults(obj,vec)
+            sizeRes = size(vec);
+            mat = zeros([sizeRes(1:end-1),obj.nSteps]);
+            nStepsLastParam = obj.nSteps(end);
+            nCombs = sizeRes(end);
+            idxVec = repmat({':'}, 1, ndims(vec));
+            idxMat = repmat({':'}, 1, ndims(mat));
+            for i=1:nStepsLastParam
+                idxVec{end} = i:nStepsLastParam:nCombs;
+                idxMat{end} = i;
+                mat(idxMat{:}) = vec(idxVec{:});
+            end
+        end
+
+        tiledlayout(1,3)
+        nexttile
+        hold on
+        plot(phi,squeeze(mat(1,1,1,1,:)),'LineStyle','none','Marker','o')
+        fplot(f(1,1,1,1),[0 1])
+        nexttile
+        hold on
+        plot(phi,squeeze(mat(1,1,2,2,:)),'LineStyle','none','Marker','o')
+        fplot(f(1,1,2,2),[0 1])
+        nexttile
+        hold on
+        plot(phi,squeeze(mat(1,2,1,2,:)),'LineStyle','none','Marker','o')
+        fplot(f(1,2,1,2),[0 1]) 
+        
     end
+
+   
+    
 end
+
