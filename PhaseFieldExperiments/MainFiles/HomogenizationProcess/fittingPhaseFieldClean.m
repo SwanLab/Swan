@@ -8,8 +8,9 @@ function fittingPhaseFieldClean()
     Cdata = [C11data';C12data';C33data'];
     
     A = []; b = []; Aeq = []; beq = []; lb = []; ub = [];
-    sigma = 1;
-    nonlcon = @(coeff) nonLinearCon(coeff,Cdata,sigma);
+    sigma = 1.5;
+    sigmach = 1;
+    nonlcon = @(coeff) nonLinearCon(coeff,Cdata,sigma,sigmach);
     objective = @(p) objectiveFun(p,phiData,Cdata);
     options = optimoptions(@fmincon, ...
                        'StepTolerance',1e-10, ...
@@ -24,7 +25,7 @@ function fittingPhaseFieldClean()
     % [~, ceq] = nonlcon(coeffBestResult);
     % disp(['MinObjective: ', num2str(objBestResult, '%.2e'), ' | MinCeq: [', num2str(abs(ceq), '%.2e '), ']']);
 
-    for i=1:250
+    for i=1:150
         coeff0 = rand(1,60);
         [coeffOpt,fval,exitflag,output,lambda,grad,hessian] = fmincon(objective,coeff0,A,b,Aeq,beq,lb,ub,nonlcon,options);
         [~, ceq] = nonlcon(coeffOpt);
@@ -40,7 +41,7 @@ function fittingPhaseFieldClean()
     [~, ceq] = nonlcon(coeffOpt);
     disp(['MinObjective: ', num2str(objBestResult, '%.2e'), ' | MinCeq: [', num2str(abs(ceq), '%.2e '), ']']);
 
-    degFuns = generateConstitutiveTensor(coeffBestResult,objBestResult,matType,'SquareAreaDerivative10');
+    degFuns = generateConstitutiveTensor(coeffBestResult,objBestResult,matType,'DegSqr15Lch10');
     plotResults(objective,phiData,Cdata,coeff0BestResult,coeffBestResult,degFuns)
 end
 
@@ -100,7 +101,7 @@ function fun = polyFunDeriv(a,phi)
     end
 end
 
-function [c,ceq] = nonLinearCon(coeff,Cdata,sigma)
+function [c,ceq] = nonLinearCon(coeff,Cdata,sigma,sigmach)
     dCfun = @(phi) constitutiveTensorDerivative(coeff,phi);
     Cfun  = @(phi) constitutiveTensor(coeff,phi);
    
@@ -115,15 +116,16 @@ function [c,ceq] = nonLinearCon(coeff,Cdata,sigma)
     ceq(6) = C1(3,3);
 
     E=210;
-    Gc=5e-3; l0=0.1; cw=8/3;
+    l0=0.1; cw=8/3;
+    Gc = 5e-3*(sigma^2/sigmach^2);
     sigCrit=[sigma 0 0];
     
     dC0 = cell2mat(dCfun(0));
     ceq(7) = (1/2)*sigCrit*inv(C0)*dC0*inv(C0)*sigCrit' + E*Gc/(cw*l0);
     dC1 = cell2mat(dCfun(1));
-    ceq(8)  = dC1(1,1);
-    ceq(9)  = dC1(1,2);
-    ceq(10) = dC1(3,3);
+    % ceq(8)  = dC1(1,1);
+    % ceq(9)  = dC1(1,2);
+    % ceq(10) = dC1(3,3);
 end
 
 function objFun = objectiveFun(coeff,phiData,Cdata)

@@ -1,5 +1,5 @@
 E  = 210;
-nu = 0;
+nu = -0.5;
 k  = E./(2.*(1-nu));
 mu = E./(2.*(1+nu));
 C11 = E/((1+nu)*(1-nu));
@@ -93,7 +93,7 @@ fplot(degSIMPmu,[0 1],'Color',cmp(4,:))
 fplot(muUB,[0 1],'Color',cmp(4,:),'LineStyle','--')
 fplot(muLB,[0 1],'Color',cmp(4,:),'LineStyle','--')
 legend('AT1','AT2','Linear','Rational (1MPa)','Rational (2MPa)','SIMP','HS')
-title('Shear degradation function ($\nu = 0.3$)','Interpreter','latex')
+title('Shear degradation function ($\nu = -0.5$)','Interpreter','latex')
 
 
 %% Plot degradation kappa
@@ -109,7 +109,7 @@ fplot(degSIMPkappa,[0 1],'Color',cmp(4,:))
 fplot(kUB,[0 1],'Color',cmp(4,:),'LineStyle','--')
 fplot(kLB,[0 1],'Color',cmp(4,:),'LineStyle','--')
 legend('AT1','AT2','Linear','Rational (1MPa)','Rational (2MPa)','SIMP','HS')
-title('Bulk degradation function ($\nu = 0.3$)','Interpreter','latex')
+title('Bulk degradation function ($\nu = -0.5$)','Interpreter','latex')
 
 
 
