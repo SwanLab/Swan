@@ -1,7 +1,7 @@
 close all
 clear all
 % Specify the directory where the .mat files are located
-directory = '/home/raul/Documents/GitHub/EPFL/data'; % Update this path as needed
+directory = './EPFL/data'; % Update this path as needed
 
 % Get a list of all .mat files in the directory
 files = dir(fullfile(directory, 'data_*.mat'));
@@ -29,8 +29,15 @@ for k = 1:length(files)
 
     disp(['Loaded: ', files(k).name]);  % Display the file being loaded
 end
-% T=T./vecnorm(T);
 xdata   = 1e-6:0.01:0.801;
+% N = 80;
+% % Interval bounds
+% a = 1e-6;
+% b = 0.8;
+% % Index vector
+% i = 0:N;
+% % Cosine spacing formula
+% xdata = (a + b)/2 + (b - a)/2 * cos(pi * (1 - i / N));
 centers = xdata;
 [fT,deim]   = parameterizedData(T,xdata,centers);
 t    = fT(xdata);
@@ -55,7 +62,7 @@ EIFEoper.Udef = Tdef;
 EIFEoper.Urb  = Trb;
 EIFEoper.U    = fT;
 EIFEoper.deim    = deim;
-filePath = '/home/raul/Documents/GitHub/EPFL/parametrizedEIFEM.mat';
+filePath = './EPFL/parametrizedEIFEM.mat';
 save(filePath,'EIFEoper')
 
 % load('data_0.800.mat')
@@ -77,12 +84,14 @@ save(filePath,'EIFEoper')
 % filePath = '/home/raul/Documents/GitHub/EPFL/parametrizedEIFEM_T_Kproj.mat';
 % save(filePath,'EIFEoper')
 
-load('data_0.100.mat')
+load('./EPFL/data2/data_0.79723.mat')
+% load('./EPFL/test/data_0.745.mat')
+load('./EPFL/data/data_0.100.mat')
 EIFEoper.Kcoarse = @(r) EIFEoper.Kcoarse;
 EIFEoper.Udef = @(r) EIFEoper.Udef;
 EIFEoper.Urb  = @(r) EIFEoper.Urb;
 
-filePath = '/home/raul/Documents/GitHub/EPFL/dataEIFEM.mat';
+filePath = './EPFL/dataEIFEM.mat';
 save(filePath,'EIFEoper')
 
 deim    = DEIM(var);
@@ -106,12 +115,20 @@ function [f,deim] = parameterizedData(var,xdata,centers)
 deim    = DEIM(var);
 
 coeff   = deim.basis(deim.indices,:)\var(deim.indices,:);
+% coeff = deim.rightVectors';
 rbf       = RBF(coeff',xdata,centers);
-f = @ (r) deim.basis*rbf.evaluate(r) ;
+% f = @ (r) deim.basis*rbf.evaluate(r) ;
 
 % basis = deim.basis;
+% for i = 1:size(deim.basis,2)
+%     figure
+%     plot(xdata,coeff(i,:))
+%     hold on
+%     plot(xdata,deim.rightVectors(:,i))
+%     legend('MP','Singular vectors')
+% end
 
-% % f = @ (r) reshape( deim.basis*rbf.evaluate(r),[],8);
+f = @ (r) reshape( deim.basis*rbf.evaluate(r),[],8);
 
 end
 

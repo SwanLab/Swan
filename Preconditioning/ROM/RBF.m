@@ -31,7 +31,8 @@ classdef RBF < handle
             obj.Xdata   = Xdata;
             obj.centers = centers;
             center_spacing = mean(diff(centers));
-            obj.sigma = center_spacing / sqrt(2);
+            nbasis = size(Ydata,2);
+            obj.sigma = 0.8*center_spacing*sqrt(nbasis);
         end
 
         function constructFunction(obj)
@@ -39,6 +40,12 @@ classdef RBF < handle
             Phi = exp(-R / (2 * obj.sigma^2));
             w = Phi\ obj.Ydata;
             obj.f = @(x)  w'*exp(-((x - obj.centers').^2) / (2 * obj.sigma^2));
+%             x_plot = linspace(min(obj.Xdata), max(obj.Xdata), 500);
+%             for i = 1:length(obj.centers)
+%                 Phi_plot(:, i) = exp(-((x_plot - obj.centers(i)).^2) / (2 * obj.sigma^2));
+%             end
+%             figure;
+%             plot( Phi_plot, 'LineWidth', 1.5);
         end
 
     end

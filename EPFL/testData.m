@@ -1,7 +1,7 @@
 close all
 clear all
 % Specify the directory where the .mat files are located
-directory = '/home/raul/Documents/GitHub/EPFL/test'; % Update this path as needed
+directory = './EPFL/data2'; % Update this path as needed
 
 % Get a list of all .mat files in the directory
 files = dir(fullfile(directory, 'data_*.mat'));
@@ -20,7 +20,7 @@ for k = 1:length(files)
     Td(:,k) = EIFEoper.Udef(:);
     Tr(:,k) = EIFEoper.Urb(:);
     Kcoase(:,k) = EIFEoper.Kcoarse(:);
-    Kfine(:,k) = EIFEoper.Kfine(:);
+    Kfine(:,:,k) = full(EIFEoper.Kfine);
     PhiD(:,k) = EIFEoper.PhiD(:);
     PhiR(:,k) = EIFEoper.PhiR(:);
     U(:,k) = EIFEoper.snapshots(:);
@@ -35,10 +35,19 @@ Tdef = EIFEoper.Udef;
 Trb = EIFEoper.Urb;
 fT   = EIFEoper.U;
 
-coeff  = EIFEoper.deim.basis(EIFEoper.deim.indices,:)\T(EIFEoper.deim.indices,:);
-t= EIFEoper.deim.basis*coeff;
-xdata   = 0.005:0.01:0.75;
-% t    = fT(xdata);
+% coeff  = EIFEoper.deim.basis(EIFEoper.deim.indices,:)\T(EIFEoper.deim.indices,:);
+% t= EIFEoper.deim.basis*coeff;
+
+N = 80;
+% Interval bounds
+a = 1e-6;
+b = 0.8;
+% Index vector
+i = 0:N;
+% Cosine spacing formula
+xdata = (a + b)/2 + (b - a)/2 * cos(pi * (1 - i / N));
+% xdata   = 1e-6:0.01:0.801;
+t    = fT(xdata);
 def  = Tdef(xdata);
 rb   = Trb(xdata);
 Kcoarse = EIFEoper.Kcoarse(xdata);
@@ -49,8 +58,13 @@ for i=1:length(xdata)
     error(i) = norm(def(:,i)+rb(:,i)-T(:,i))/norm(T(:,i));
     error2(i) = norm(t(:,i)-T(:,i))/norm(T(:,i));
     errorK(i) = norm(Kcoarse(:,i)-Kcoase(:,i))/norm(Kcoase(:,i));
+%     energyErr(i) = (t(:,i)-T(:,i))'*Kfine(:,:,i)*(t(:,i)-T(:,i));
 end
-
+plot(xdata,error2)
+xlim([min(xdata)-0.01,max(xdata)+0.01])
+figure
+plot(xdata,errorK)
+xlim([min(xdata)-0.01,max(xdata)+0.01])
 % load('data_0.100.mat')
 % EIFEoper.U = reshape(def,[],8) + reshape(rb',[],8);
 % kcoarse = EIFEoper.U'*EIFEoper.Kfine*EIFEoper.U;

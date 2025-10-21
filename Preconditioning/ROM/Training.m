@@ -98,19 +98,29 @@ classdef Training < handle
 %         end
 
          function [young,poisson] = computeElasticProperties(obj,mesh)
-            E1  = 1;
-            E2 = E1/1000;
-            nu = 1/3;
-            x0=0;
-            y0=0;
-            young   = ConstantFunction.create(E1,mesh);
-            poisson = ConstantFunction.create(nu,mesh);
-%             f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<obj.radius)*E2 + ...
-%                         (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=obj.radius)*E1 ; 
-% %                                      x(2,:,:).*0 ];
-% 
-%             young   = AnalyticalFunction.create(f,mesh);
-%             poisson = ConstantFunction.create(nu,mesh);            
+             E  = 1;
+             nu = 1/3;
+%             E  = 70000;
+%             nu = 0.3;
+            Epstr  = E/(1-nu^2);
+            nupstr = nu/(1-nu);
+            young   = ConstantFunction.create(Epstr,mesh);
+            poisson = ConstantFunction.create(nupstr,mesh);
+%             young   = ConstantFunction.create(E,mesh);
+%             poisson = ConstantFunction.create(nu,mesh);
+% %             E1  = 1;
+% %             E2 = E1/1000;
+% %             nu = 1/3;
+% %             x0=0;
+% %             y0=0;
+% %             young   = ConstantFunction.create(E1,mesh);
+% %             poisson = ConstantFunction.create(nu,mesh);
+% % %             f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<obj.radius)*E2 + ...
+% % %                         (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=obj.radius)*E1 ; 
+% % % %                                      x(2,:,:).*0 ];
+% % % 
+% % %             young   = AnalyticalFunction.create(f,mesh);
+% % %             poisson = ConstantFunction.create(nu,mesh);            
         end
 
         function [LHS,RHS,u,dLambda] = createElasticProblem(obj)
@@ -155,8 +165,13 @@ classdef Training < handle
         function uD = computeRHScondition(obj,test,dir)
             nfun = size(dir,2);
             uD = [];
+%                         for i=1:nfun
+%                             rDiri = IntegrateRHS(@(v) DP(v,dir{i}),test,obj.meshDomain,'Boundary',2);
+%                             uD = [uD rDiri];
+%                         end
             for i=1:nfun
-                rDiri = IntegrateRHS(@(v) DP(v,dir{i}),test,obj.meshDomain,'Boundary',2);
+                d = project(dir{i},'P1');
+                rDiri = IntegrateRHS(@(v) DP(v,d),test,obj.meshDomain,'Boundary',2);
                 uD = [uD rDiri];
             end
         end

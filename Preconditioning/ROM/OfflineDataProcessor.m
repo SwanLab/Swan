@@ -27,6 +27,7 @@ classdef OfflineDataProcessor < handle
         function EIFEoper = computeROMbasis(obj)
             obj.LHS = createElasticProblem(obj);
 
+
             uFun         = obj.createDispFun();
             uRBfun       = obj.projectToRigidBodyFun(uFun);
             uDEFSpaceFun = obj.projectToDeformationalSpace(uFun,uRBfun);
@@ -37,6 +38,10 @@ classdef OfflineDataProcessor < handle
             LMDefFun   = obj.createDeformationalFunction(PsiD);
 
             PhiR       = obj.getRigidBodyModes(uRBfun(1));
+
+%             u = LagrangianFunction.create(obj.mesh,obj.mesh.ndim,'P1');
+%             M = IntegrateLHS(@(u,v) DP(v,u),u,u,obj.mesh,'Domain',2);
+%             defSnap = obj.fValuesTraining - PhiR*inv(PhiR'*M*PhiR)*(PhiR'*M*obj.fValuesTraining);
 
             bMesh = obj.mesh.createBoundaryMesh();
 
@@ -271,6 +276,8 @@ classdef OfflineDataProcessor < handle
         function [young,poisson] = computeElasticProperties(obj,mesh)
             E  = 1;
             nu = 1/3;
+%            young   = ConstantFunction.create(E,mesh);
+%            poisson = ConstantFunction.create(nu,mesh);
             Epstr  = E/(1-nu^2);
             nupstr = nu/(1-nu);
             young   = ConstantFunction.create(Epstr,mesh);
@@ -287,6 +294,11 @@ classdef OfflineDataProcessor < handle
             C = obj.createMaterial(obj.mesh);
             K = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),u,u,obj.mesh,'Domain',2);
         end
+
+        function M  = computeM(obj,u)          
+            M = IntegrateLHS(@(u,v) DD(v,u),u,u,obj.mesh,'Domain',2);
+        end
+
 
     end
 
