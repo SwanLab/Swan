@@ -4,6 +4,7 @@ classdef TutorialHomogenization < handle
         paramHole
         Chomog
         volFrac
+        f,df,ddf
     end
 
     properties (Access = private)
@@ -33,6 +34,8 @@ classdef TutorialHomogenization < handle
             obj.defineMesh();
             obj.computeHoleParams();
             obj.compute();
+            obj.fitting();
+            obj.plot();
         end
       
     end
@@ -48,7 +51,7 @@ classdef TutorialHomogenization < handle
             obj.holeType   = 'Square';
             obj.pnorm      = 'Inf';
             % obj.damageType = 'Area';
-            obj.nSteps     = 50;
+            obj.nSteps     = 10;
 
             obj.monitoring = true;
         end
@@ -281,13 +284,13 @@ classdef TutorialHomogenization < handle
             % end
 
          lsf = obj.createDensityLevelSet(l);    % 'lsf' is a LagrangianFunction P1 with 0..1
-
+         rho = Integrator.compute(lsf,lsf.mesh,2);
        
-         rho  = lsf.fValues(:);                 
-         one  = ones(size(rho));
-         volSolid = one' * (obj.Mmass * rho);  
-         volTotal = one' * (obj.Mmass * one);   
-         rho = volSolid / volTotal;             
+         % rho  = lsf.fValues(:);                 
+         % one  = ones(size(rho));
+         % volSolid = one' * (obj.Mmass * rho);  
+         % volTotal = one' * (obj.Mmass * one);   
+         % rho = volSolid / volTotal;             
    
         end
         
@@ -305,19 +308,25 @@ classdef TutorialHomogenization < handle
             end
         end
 
-        tiledlayout(1,3)
-        nexttile
-        hold on
-        plot(phi,squeeze(mat(1,1,1,1,:)),'LineStyle','none','Marker','o')
-        fplot(f(1,1,1,1),[0 1])
-        nexttile
-        hold on
-        plot(phi,squeeze(mat(1,1,2,2,:)),'LineStyle','none','Marker','o')
-        fplot(f(1,1,2,2),[0 1])
-        nexttile
-        hold on
-        plot(phi,squeeze(mat(1,2,1,2,:)),'LineStyle','none','Marker','o')
-        fplot(f(1,2,1,2),[0 1]) 
+        function plot(obj)
+            tiledlayout(1,3)
+            nexttile
+            hold on
+            plot(obj.volFrac,squeeze(obj.Chomog(1,1,1,1,:)),'LineStyle','none','Marker','o')
+            fplot(obj.f(1,1,1,1),[0 1])
+            nexttile
+            hold on
+            plot(obj.volFrac,squeeze(obj.Chomog(1,1,2,2,:)),'LineStyle','none','Marker','o')
+            fplot(obj.f(1,1,2,2),[0 1])
+            nexttile
+            hold on
+            plot(obj.volFrac,squeeze(obj.Chomog(1,2,1,2,:)),'LineStyle','none','Marker','o')
+            fplot(obj.f(1,2,1,2),[0 1]) 
+        end
+
+        function fitting(obj)
+            [obj.f,obj.df,obj.ddf] = DamageHomogenizationFitter.computePolynomial(9,obj.volFrac,obj.Chomog);
+        end
         
     end
 

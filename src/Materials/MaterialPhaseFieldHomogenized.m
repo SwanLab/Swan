@@ -51,7 +51,7 @@ classdef MaterialPhaseFieldHomogenized < handle
         function loadVademecum(obj)
             fName = [obj.fileName];
             matFile   = [fName,'.mat'];
-            file2load = fullfile('PFVademecum','Degradation',matFile);
+            file2load = fullfile('TOVademecum','Interpolation',matFile);
             v = load(file2load);
             if isfield(v,'degradation')
                 E = obj.young;
