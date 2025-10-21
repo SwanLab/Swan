@@ -1,4 +1,4 @@
-classdef Tutorial < handle
+classdef TutorialFirst < handle
 
     properties (Access = private)
         mesh
@@ -18,7 +18,7 @@ classdef Tutorial < handle
 
     methods (Access = public)
 
-        function obj = Tutorial()
+        function obj = TutorialFirst()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
