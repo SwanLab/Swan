@@ -53,16 +53,16 @@ classdef MaterialPhaseFieldHomogenized < handle
             matFile   = [fName,'.mat'];
             file2load = fullfile('TOVademecum','Interpolation',matFile);
             v = load(file2load);
-            if isfield(v,'degradation')
+            if isfield(v,'Interpolation')
                 E = obj.young;
-                nStre = size(v.degradation.fun,1);
+                nStre = size(v.Interpolation.fun,1);
                 for i=1:nStre
                     for j=1:nStre
                         for k=1:nStre
                             for l=1:nStre
-                                obj.degradation.fun{i,j,k,l} = @(x) E.*v.degradation.fun{i,j,k,l}(x);
-                                obj.degradation.dfun{i,j,k,l} = @(x) E.*v.degradation.dfun{i,j,k,l}(x);
-                                obj.degradation.ddfun{i,j,k,l} = @(x) E.*v.degradation.ddfun{i,j,k,l}(x);
+                                obj.degradation.fun{i,j,k,l} = @(x) E.*v.Interpolation.fun{i,j,k,l}(x);
+                                obj.degradation.dfun{i,j,k,l} = @(x) E.*v.Interpolation.dfun{i,j,k,l}(x);
+                                obj.degradation.ddfun{i,j,k,l} = @(x) E.*v.Interpolation.ddfun{i,j,k,l}(x);
                             end
                         end
                     end
