@@ -9,6 +9,7 @@ classdef NonLinearFilterSegment < handle
         betaTar
         alpha
         beta
+        tol
         %ub
         %lb
     end
@@ -46,7 +47,7 @@ classdef NonLinearFilterSegment < handle
             error0 = Norm(dJ0,'L2');
             error  = inf;
             errorVec = [];
-            while error >= 1e-6  && iter<=10000
+            while error >= obj.tol  && iter<=10000 && error0>= obj.tol
                 valOld = obj.trial.fValues;
                 isAcceptable = false;
                 while not(isAcceptable)
@@ -80,6 +81,7 @@ classdef NonLinearFilterSegment < handle
             obj.lineSearch = obj.lineSearch*(obj.epsilon/eps);
             obj.epsilon    = eps;
             obj.filter.updateEpsilon(max(obj.alpha,obj.betaTar));
+            obj.tol = max(obj.tol/1.01,1e-6);
         end
     end
 
@@ -95,6 +97,7 @@ classdef NonLinearFilterSegment < handle
             obj.betaTar    = max(cParams.beta*obj.epsilon,h);
             obj.beta       = obj.alpha;
             obj.lineSearch = 10;
+            obj.tol        = cParams.tol0;
         end
 
         function createFilterInitialGuess(obj)
@@ -175,7 +178,7 @@ classdef NonLinearFilterSegment < handle
         end
 
         function updateBeta(obj)
-            obj.beta = max(obj.beta/1.01,obj.betaTar);
+            obj.beta = max(obj.beta/1.005,obj.betaTar);
         end
 
         function h = computeMeasure(obj)

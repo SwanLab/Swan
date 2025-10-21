@@ -6,6 +6,7 @@ classdef PerimeterConstraint < handle
         target
         perimeter
         value0
+        valueOld
     end
     
     methods (Access = public)
@@ -28,6 +29,7 @@ classdef PerimeterConstraint < handle
             obj.target     = cParams.target;
             obj.perimeter  = PerimeterFunctional(cParams);
             obj.value0     = cParams.value0;
+            obj.valueOld   = -inf;
         end
 
         function J = computeFunction(obj,P)
@@ -43,9 +45,12 @@ classdef PerimeterConstraint < handle
 
         function updateEpsilonForNextIteration(obj,J) % Cuando la suma de grays empieza a decaer puede provocar tmb la decay de epsilon
             %if abs(J)<=1e-2
+            if J-obj.valueOld<-1e-2 || abs(J)<=1e-2
                 obj.epsilon = obj.epsilon/1.01;
                 obj.epsilon = max(obj.epsilon,obj.minEpsilon);
                 obj.perimeter.updateEpsilon(obj.epsilon);
+            end
+            obj.valueOld = J;
             %end % Será preferible tener una decay constante al inicio y luego más notoria hacia el final (cuando el volumen esta por cumplirse y tenemos muchos grises)
         end
     end
