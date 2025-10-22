@@ -71,7 +71,7 @@ classdef OfflineDataProcessor < handle
             EIFEoper.Udef = Ud;
 
             %% Modal Analysis
-            Mcoarse = U'*obj.M*U;
+            Mcoarse = (Ud+Ur)'*obj.M*(Ud+Ur);
 
             [eigenvalues, eigenvectors, natFreq] = obj.computeModalAnalysis(Kcoarse, Mcoarse);
 

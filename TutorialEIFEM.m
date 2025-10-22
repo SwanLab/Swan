@@ -65,6 +65,8 @@ classdef TutorialEIFEM < handle
             % end
 
             %save('KcoarseTraining.mat', 'Kc');
+            plot([lambdaCoarse,eigenvalues])
+            
             Milu         = obj.createILUpreconditioner(LHSr);
             Mmult        = @(r) Preconditioner.multiplePrec(r,LHSfun,Milu,Meifem,Milu);
             Mid          = @(r) r;
