@@ -198,6 +198,21 @@ classdef GeometricalFunction < handle
                     fH = @(x) a*(x2(x)-ym).*(x2(x)-yM);
                     obj.fHandle = fH;
 
+                case 'PerperndicularNFiber'
+                    n    = cParams.nFibers;
+                    xmin = cParams.minxCoor;
+                    xmax = cParams.maxxCoor;
+                    k    = 2*pi*n/(xmax-xmin);
+                    fV   = @(x) sin(k*(x1(x)-xmin)+pi/2);
+
+                    n    = cParams.nFibers;
+                    ymin = cParams.minyCoor;
+                    ymax = cParams.maxyCoor;
+                    k    = 2*pi*n/(ymax-ymin);
+                    fH   = @(x) sin(k*(x2(x)-ymin)+pi/2);
+                    
+                    obj.fHandle = @(x) max(fV(x),fH(x));
+
                 case 'HorizontalInclusion'
                     s      = cParams;
                     s.type = 'HorizontalFiber';

@@ -33,10 +33,21 @@ classdef Tutorial02p2FEMElasticityMicro < handle
         end
 
         function ls = computeCircleLevelSet(obj, mesh)
-            gPar.type          = 'Circle';
-            gPar.radius        = 0.25;
-            gPar.xCoorCenter   = 0.5;
-            gPar.yCoorCenter   = 0.5;
+            % gPar.type          = 'Circle';
+            % gPar.radius        = 0.25;
+            % gPar.xCoorCenter   = 0.5;
+            % gPar.yCoorCenter   = 0.5;
+            % g                  = GeometricalFunction(gPar);
+            % phiFun             = g.computeLevelSetFunction(mesh);
+            % lsCircle           = phiFun.fValues;
+            % ls = -lsCircle;
+
+            gPar.type          = 'PerperndicularNFiber';
+            gPar.nFibers       = 5;
+            gPar.minxCoor      = 0;
+            gPar.maxxCoor      = 1;
+            gPar.minyCoor      = 0;
+            gPar.maxyCoor      = 1;
             g                  = GeometricalFunction(gPar);
             phiFun             = g.computeLevelSetFunction(mesh);
             lsCircle           = phiFun.fValues;

@@ -75,6 +75,9 @@ classdef AnisotropicSimulation < handle
             % sD.plotting = true;
             % dens        = DesignVariable.create(sD);
             % obj.designVariable = dens;
+
+
+            
         end
 
         function createFilter(obj)
