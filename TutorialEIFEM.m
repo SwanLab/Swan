@@ -40,6 +40,7 @@ classdef TutorialEIFEM < handle
 
             [LHSr, Mr, RHSr] = obj.createElasticProblem();
 
+            
 
             %% Modal Analysis
             

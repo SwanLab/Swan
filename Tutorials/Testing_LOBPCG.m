@@ -1,4 +1,4 @@
-classdef FourDOF_LOBPCG
+classdef Testing_LOBPCG
 % FOURDOF_LOBPCG
 %   Minimal, fully-commented LOBPCG implementation for a 4-DOF spring chain
 %   generalized eigenproblem:   K * u = lambda * M * u
@@ -28,31 +28,29 @@ classdef FourDOF_LOBPCG
 
         % Preconditioner data (Jacobi stand-in)
         Kdiag  (:,1) double   % diagonal of K for Jacobi
+    end
 
+    properties (SetAccess = public)
         % Solver controls
-        b        (1,1) double = 2      % block size (# eigenpairs per sweep)
-        maxit    (1,1) double = 50     % max outer iterations
-        tol      (1,1) double = 1e-10  % residual tolerance (2-norm, per vector)
+        b             (1,1) double = 2      % block size (# eigenpairs per sweep)
+        maxit         (1,1) double = 50     % max outer iterations
+        tol           (1,1) double = 1e-10  % residual tolerance (2-norm, per vector)
+        use_precond   (1,1) logical = true  % use preconditioner or simply I for residual
 
         % Diagnostics
         verbose  (1,1) logical = true
+
     end
 
     %% =======================
     %  Constructor
     %  =======================
     methods
-        function obj = FourDOF_LOBPCG()
+        function obj = Testing_LOBPCG(problem)
             % Build the 4-DOF example and a simple preconditioner
-            [obj.K,obj.M] = obj.setup_matrices_4dof();
+            [obj.K,obj.M] = obj.setup_matrices(problem);
             obj.Kdiag = full(diag(obj.K));
-            % --- Safety checks ---
-            if isempty(obj.K) || isempty(obj.M)
-                error('K or M not initialized properly.');
-            end
-            if any(obj.Kdiag <= 0)
-                error('Jacobi preconditioner invalid: K diagonal must be positive.');
-            end
+            
         end
     end
 
@@ -77,19 +75,19 @@ classdef FourDOF_LOBPCG
             [lambda, X, history] = obj.lobpcg_extremal();
 
             % Truth via dense eig (for demonstration/verification only)
-            [Vtrue, Dtrue] = eig(full(obj.K), full(obj.M));
+            [Vtrue, Dtrue] = eigs(full(obj.K), full(obj.M), obj.b, "smallestabs");
             [lam_true, p]  = sort(diag(Dtrue), 'ascend');
             Vtrue = Vtrue(:, p);
 
             if obj.verbose
                 fprintf('\n=== Converged eigenvalues (LOBPCG, smallest %d) ===\n', obj.b);
-                disp(lambda.');
+                disp(lambda);
 
                 fprintf('--- Reference (eig, smallest %d) ---\n', obj.b);
                 disp(lam_true(1:obj.b).');
 
                 % Residual checks
-                rnorms = vecnorm(obj.K*X - obj.M*X.*lambda.', 2, 1);
+                rnorms = vecnorm(obj.K*X - obj.M*X.*lambda, 2, 1);
                 fprintf('Residual 2-norms per eigenpair:\n');
                 disp(rnorms);
 
@@ -126,16 +124,10 @@ classdef FourDOF_LOBPCG
 
             K = obj.K; M = obj.M; b = obj.b;
             n = size(K,1);
-            if isempty(K) || isempty(M)
-                error('K and M must be initialized before running LOBPCG.');
-            end
-            if isempty(obj.Kdiag)
-                obj.Kdiag = full(diag(K)); % safety net
-            end
-
+            
             % --- Initialization: random block, then M-orthonormalize
             rng(4);
-            X = randn(n, b);
+            X = randn(n, b); %we sue reduced basis X random here but ideally this would be derived from physics and be made up of columns of coarse eigenvectors.
             X = obj.M_orth(X, M);
             W = [];  % conjugate block (None on first sweep)
 
@@ -151,7 +143,7 @@ classdef FourDOF_LOBPCG
                 [lambda, X] = obj.ritz_step(K, M, X);
 
                 % 2) Residuals
-                R = K*X - M*X.*lambda.';   % columns are residuals r_i
+                R = K*X - M*X.*lambda;   % columns are residuals r_i
                 rnorm = vecnorm(R, 2, 1);
                 hist.rnorms = [hist.rnorms; rnorm]; %#ok<AGROW>
 
@@ -188,7 +180,7 @@ classdef FourDOF_LOBPCG
                 % 5) Rayleigh–Ritz on expanded subspace and keep best b
                 AG = G.'*(K*G);
                 BG = G.'*(M*G);
-                [V,D] = eig(AG, BG);
+                [V,D] = eigs(AG, BG, obj.b, "smallestabs");
                 [lam_all, idx] = sort(diag(D), 'ascend');
                 V = V(:, idx);
 
@@ -210,15 +202,16 @@ classdef FourDOF_LOBPCG
     %  Linear algebra helpers
     %  =======================
     methods (Access = private)
-        function [theta, Xout] = ritz_step(~, K, M, Xin)
+        function [theta, Xout] = ritz_step(obj, K, M, Xin)
             % RITZ_STEP
             %   Small projected generalized eigenproblem on span(Xin).
-            A = Xin.' * (K*Xin);
-            B = Xin.' * (M*Xin);
-            [V,D] = eig(A,B);
+            A = Xin.' * (K*Xin); %reduced "condensed" stiffness matrix
+            B = Xin.' * (M*Xin); %reduced "condensed" mass matrix
+            % A y = lambda B y (ritz problem)
+            [V,D] = eigs(A,B,obj.b,"smallestabs");
             [theta, p] = sort(diag(D), 'ascend');
             Xout = Xin * V(:,p);
-            Xout = FourDOF_LOBPCG.M_orth(Xout, M); % static ok
+            Xout = Testing_LOBPCG.M_orth(Xout, M); % static ok
             theta = theta.';
         end
 
@@ -234,7 +227,11 @@ classdef FourDOF_LOBPCG
             %
             %   Note: For a robust AMG on elasticity, include RBMs as
             %   near-nullspace vectors in SA-AMG setup.
-            Z = R ./ obj.Kdiag;   % element-wise divide each row by diag(K)
+            if obj.use_precond == true
+                Z = R ./ obj.Kdiag;   % element-wise divide each row by diag(K)
+            else
+                Z = R;
+            end
         end
     end
 
@@ -263,31 +260,60 @@ classdef FourDOF_LOBPCG
     %  Problem setup & printing
     %  =======================
     methods (Access = private)
-        function [K,M] = setup_matrices_4dof(obj)
-            % SETUP_MATRICES_4DOF
-            %   4-DOF spring chain, fixed at the right end:
-            %     K = tridiag([ -1 2 -1 ]), M diagonal with varying masses
-            e = ones(4,1);
-            K = spdiags([-e 2*e -e], -1:1, 4,4);
-            M = spdiags([1; 2; 2; 1.5], 0, 4,4);
+        function [K,M] = setup_matrices(obj,problem)
 
-
+            switch(problem)
+                case 1 % SETUP_MATRICES_4DOF- 4-DOF spring chain, fixed at the right end:
+                    e = ones(40,1);
+                    K = spdiags([-e 2*e -e], -1:1, 4,4);
+                    M = spdiags([1; 2; 2; 1.5], 0, 4,4);
+                case 2 % SETUP_MATRICES_BEAM_BENDING
+                    n = 1000; % Number of DOFs (nodes along beam)
+                    L = 10;   % Beam length (m)
+                    h = L/(n+1); % Spatial step size
+                    
+                    % Physical parameters for a steel beam
+                    E = 200e9;      % Young's modulus (Pa)
+                    I = 1e-6;       % Second moment of area (m^4)
+                    rho = 7850;     % Density (kg/m^3)
+                    A = 0.01;       % Cross-sectional area (m^2)
+                    
+                    % Stiffness matrix: 4th order finite difference for beam bending
+                    % d^4w/dx^4 discretization: [1 -4 6 -4 1]/h^4
+                    e1 = ones(n,1);
+                    e2 = ones(n,1);
+                    K = (E*I/h^4) * spdiags([e1 -4*e1 6*e1 -4*e1 e1], [-2 -1 0 1 2], n, n);
+                    
+                    % Mass matrix: consistent mass (diagonal approximation)
+                    M = (rho*A*h) * speye(n);
+                    
+                    % Note: This gives eigenvalues related to natural frequencies
+                    % omega_i = sqrt(lambda_i) where lambda_i are eigenvalues of K*M^-1
+                case 3
+                    load("MassMatrixRed.mat")
+                    load("LHSRed.mat")
+                    K = LHSr;
+                    M = Mr;
+                case default
+                    e = ones(40,1);
+                    K = spdiags([-e 2*e -e], -1:1, 4,4);
+                    M = spdiags([1; 2; 2; 1.5], 0, 4,4);
+            end
         end
 
         function print_header(~)
             fprintf('=====================================================\n');
-            fprintf('  LOBPCG (preconditioned extremal) on 4-DOF example \n');
+            fprintf('  LOBPCG on 4-DOF example \n');
             fprintf('  Problem: K u = lambda M u (SPD)\n');
             fprintf('=====================================================\n');
         end
 
         function print_problem(obj)
-            fprintf('\n-- Matrices (sparse display) --\n');
-            disp(obj.K);
-            disp(obj.M);
+            fprintf('\n-- K & M Matrices ) --\n');
+            disp(full(obj.K));
+            disp(full(obj.M));
 
-            % Reference: true smallest few eigenvalues
-            [~, D] = eig(full(obj.K), full(obj.M));
+            [~, D] = eigs(full(obj.K), full(obj.M), obj.b, "smallestabs");
             lam = sort(diag(D), 'ascend');
             fprintf('Reference eigenvalues (all):\n');
             disp(lam.');
