@@ -51,7 +51,7 @@ classdef TutorialHomogenization < handle
             obj.holeType   = 'Square';
             obj.pnorm      = 'Inf';
             % obj.damageType = 'Area';
-            obj.nSteps     = 10;
+            obj.nSteps     = 15;
 
             obj.monitoring = true;
         end
@@ -94,17 +94,17 @@ classdef TutorialHomogenization < handle
             comb = table2array(combinations(obj.paramHole{:}));
             nComb = size(comb,1);
             mat = zeros(2,2,2,2,nComb);
-            rho = zeros(1,nComb);
+            volF = zeros(1,nComb);
             for i=1:nComb
                 hole = comb(i,:);
                 if i==1
                     hole = 1e-10*ones(size(hole));
                 end
                 mat(:,:,:,:,i) = obj.computeHomogenization(hole);
-                rho(i)     = obj.computeDensity(hole);
+                volF(i)    = obj.computeVolumeFraction(hole);
             end
             obj.Chomog = obj.assembleResults(mat);
-            obj.volFrac = obj.assembleResults(rho);
+            obj.volFrac = obj.assembleResults(volF);
         end
         
         function matHomog = computeHomogenization(obj,l)
@@ -258,7 +258,7 @@ classdef TutorialHomogenization < handle
             coorRot = @(coor) feval(@(fun) fun(:,2),([cos(theta) sin(theta); sin(theta) cos(theta)]*(coor-[x0,y0])')');
         end
 
-        function rho = computeDensity(obj,l)
+        function fracVol = computeVolumeFraction(obj,l)
             % switch obj.damageType
             %     case 'Area'
             %         switch obj.holeType
@@ -283,8 +283,9 @@ classdef TutorialHomogenization < handle
             %         end
             % end
 
-         lsf = obj.createDensityLevelSet(l);    % 'lsf' is a LagrangianFunction P1 with 0..1
-         rho = Integrator.compute(lsf,lsf.mesh,2);
+         rho = obj.createDensityLevelSet(l);    % 'lsf' is a LagrangianFunction P1 with 0..1
+         volDom = Integrator.compute(ConstantFunction.create(1,obj.baseMesh),obj.baseMesh,2);
+         fracVol = Integrator.compute(rho,rho.mesh,2);
        
          % rho  = lsf.fValues(:);                 
          % one  = ones(size(rho));

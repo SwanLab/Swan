@@ -241,22 +241,23 @@ classdef TutorialFirst < handle
             f = x.obtainDomainFunction();
             f = f{1}.project('P1'); 
             % f = obj.filterCompliance.compute(f{1},1);            
-            s.type                 = 'DensityBased';
-            s.density              = f;
-            s.materialInterpolator = obj.materialInterpolator;
-            s.dim                  = '2D';
-            s.mesh                 = obj.mesh;
+           % s.type                 = 'DensityBased';
+           % s.density              = f;
+           % s.materialInterpolator = obj.materialInterpolator;
+           % s.dim                  = '2D';
+           % s.mesh                 = obj.mesh;
                     
            
         
            
-            % s.type     = 'PhaseField';
-            % s.PFtype   = 'Homogenized';
-            % s.mesh     = obj.mesh;
-            % s.young    = 1.0;
-            % m = MaterialFactory.create(s);
+            s.type     = 'PhaseField';
+            s.PFtype   = 'Homogenized';
+            s.mesh     = obj.mesh;
+            s.young    = 1.0;
+            s.fileName = 'HomogenizationResults';
+            m = MaterialFactory.create(s);
 
-            m = Material.create(s);  
+           % m = Material.create(s);  
 
 
         end
