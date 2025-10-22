@@ -53,7 +53,7 @@ classdef TutorialEIFEM < handle
             LHSfun = @(x) LHSr*x;
             [Meifem,Kcoarse, Mcoarse]       = obj.createEIFEMPreconditioner(dir,iC,lG,bS,iCR,discMesh,radiusMesh);
 
-
+            [lambdaCoarse, PhiCoarse, omega] = obj.computeModalAnalysis(Kcoarse, Mcoarse);
             % for i = 1:length(radius_to_analyse)
             % 
             % 
@@ -283,7 +283,7 @@ classdef TutorialEIFEM < handle
         end
 
         function [lambda, Phi, omega] = computeModalAnalysis(obj, K, M)
-            [Phi, D] = eigs(K, M, 5, "smallestabs");
+            [Phi, D] = eigs(K, M, 15, "smallestabs");
             lambda = diag(D);
             [lambda, idx] = sort(lambda, 'ascend'); 
             Phi = Phi(:, idx); %sort
@@ -350,8 +350,14 @@ classdef TutorialEIFEM < handle
             ss.type = 'EIFEM';
             eP = Preconditioner.create(ss);
             Meifem = @(r) eP.apply(r);
-            Kcoarse = EIFEoper.Kcoarse;
-            Mcoarse = EIFEoper.Mcoarse;
+            u = LagrangianFunction.create(s.mesh, s.mesh.ndim,'P1');
+
+            Kcoarse = repmat(EIFEoper.Kcoarse,[1,1,s.mesh.nelem]);
+            Kcoarse = eifem.assembleMatrix(Kcoarse,u,u);
+            Kcoarse = eifem.reduceMatrix(Kcoarse);
+            Mcoarse = repmat(EIFEoper.Mcoarse,[1,1,s.mesh.nelem]);
+            Mcoarse = eifem.assembleMatrix(Mcoarse,u,u);
+            Mcoarse = eifem.reduceMatrix(Mcoarse);
         end
         
         function d = createDomainDecompositionDofManager(obj,iC,lG,bS,mR,iCR)

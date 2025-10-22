@@ -45,23 +45,10 @@ classdef EIFEM < handle
             u = obj.reconstructSolution(uCoarse);
         end
 
-    end
-
-    methods (Access = private)
-
-        function init(obj,cParams)
-            obj.mesh    = cParams.mesh;
-            obj.RVE     = cParams.RVE;
-            obj.Kel     = repmat(obj.RVE.Kcoarse,[1,1,obj.mesh.nelem]);
-            obj.DirCond = cParams.DirCond;
-%             obj.dispFun = LagrangianFunction.create(obj.mesh, obj.RVE.ndimf,'P1');
-            obj.dispFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim,'P1');
+        function M = reduceMatrix(obj,M)
+           M =  obj.bcApplier.fullToReducedMatrixDirichlet(M);
         end
-
-        function LHS = computeLHS(obj)
-            LHS = obj.assembleMatrix(obj.Kel,obj.dispFun,obj.dispFun);
-        end
-        
+           
         function A = assembleMatrix(obj,Aelem,f1,f2)
             dofsF1 = f1.getDofConnec();
             if isequal(f1, f2)
@@ -87,6 +74,25 @@ classdef EIFEM < handle
             values = Aval(:);
             A = sparse(rowIdx, colIdx, values, nDofs1, nDofs2);
         end
+
+    end
+
+    methods (Access = private)
+
+        function init(obj,cParams)
+            obj.mesh    = cParams.mesh;
+            obj.RVE     = cParams.RVE;
+            obj.Kel     = repmat(obj.RVE.Kcoarse,[1,1,obj.mesh.nelem]);
+            obj.DirCond = cParams.DirCond;
+%             obj.dispFun = LagrangianFunction.create(obj.mesh, obj.RVE.ndimf,'P1');
+            obj.dispFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim,'P1');
+        end
+
+        function LHS = computeLHS(obj)
+            LHS = obj.assembleMatrix(obj.Kel,obj.dispFun,obj.dispFun);
+        end
+        
+      
 
         function RHS = assembleRHSvector(obj,F)
             Fcoarse = reshape(F,1,obj.dispFun.nDofsElem,[]);
