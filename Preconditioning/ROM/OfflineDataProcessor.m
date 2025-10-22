@@ -71,7 +71,7 @@ classdef OfflineDataProcessor < handle
             EIFEoper.Udef = Ud;
 
             %% Modal Analysis
-            Mcoarse = Ud'*obj.M*Ud;
+            Mcoarse = (Ud+Ur)'*obj.M*(Ud+Ur);
 
             [eigenvalues, eigenvectors, natFreq] = obj.computeModalAnalysis(Kcoarse, Mcoarse);
 
@@ -288,10 +288,11 @@ classdef OfflineDataProcessor < handle
         function [young,poisson] = computeElasticProperties(obj,mesh)
             E  = 1;
             nu = 1/3;
-            Epstr  = E/(1-nu^2);
-            nupstr = nu/(1-nu);
-            young   = ConstantFunction.create(Epstr,mesh);
-            poisson = ConstantFunction.create(nupstr,mesh);
+            %Epstr  = E/(1-nu^2);
+            %nupstr = nu/(1-nu);
+            
+            young   = ConstantFunction.create(E,mesh);
+            poisson = ConstantFunction.create(nu,mesh);
         end
 
         function rho = computeDensity(obj, mesh)
