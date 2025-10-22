@@ -199,9 +199,9 @@ classdef AnisotropicSimulation < handle
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
-            s.etaNorm        = 0.01;
-            s.etaNormMin     = 0.01;
-            s.gJFlowRatio    = 0.7;
+            s.etaNorm        = 0.02;
+            s.etaNormMin     = 0.02;
+            s.gJFlowRatio    = 0.1;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
             opt = OptimizerNullSpace(s);
