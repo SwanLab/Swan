@@ -76,26 +76,23 @@ classdef StiffnessEigenModesDisplacementComputer < handle
 
         function createMassInterpolator(obj)
             s.interpolation  = 'SIMPThermal';                              
-            s.f0   = 1e-5;
-            s.f1   = 1;
+            s.f0   = 0;
+            s.f1   = 2.670e-6;
             s.pExp = 1;
             a = MaterialInterpolator.create(s);
             obj.massInterpolator = a;            
         end            
 
         function K = createStiffnessMatrixWithFunction(obj,fun)
-            s.test  = obj.test;
-            s.trial = obj.trial;
-            s.mesh  = obj.mesh;
-            s.material = obj.material;
-            s.quadratureOrder = 2;
-            s.function        = obj.createDomainFunction(fun);
-            s.type            = 'ElasticStiffnessMatrix'; %'StiffnessMatrixWithFunction';
+            % s.function        = obj.createDomainFunction(fun);
+            % s.type            = 'ElasticStiffnessMatrix'; %'StiffnessMatrixWithFunction';
             C   = obj.material.obtainTensor();
-            obj.material = C;
-            s.material = obj.material;
-            lhs = LHSIntegrator.create(s);
-            K = lhs.compute();
+            % obj.material = C;
+            % s.material = obj.material;
+            % lhs = LHSIntegrator.create(s);
+            % K = lhs.compute();
+            f     = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
+            K   = IntegrateLHS(f,obj.test,obj.trial,obj.mesh,'Domain',2);            
         end
 
         function f = createDomainFunction(obj,fun)

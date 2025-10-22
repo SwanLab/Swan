@@ -117,7 +117,7 @@ classdef ExploringOptimalShapeFromFusion < handle
         end
 
         function createMaterialInterpolator(obj)
-            E0 = 10;
+            E0 = 1e-3;
             nu0 = 1/3;
             ndim = obj.mesh.ndim;
             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
@@ -183,7 +183,12 @@ classdef ExploringOptimalShapeFromFusion < handle
             s.targetEigenValue  = (100*pi)^2; % Minim eigenvalue      
             s.boundaryConditions = obj.createBoundaryConditions();
             obj.minimumEigenValue = StiffnessEigenModesConstraint(s);
+
+            eigen = StiffnessEigenModesDisplacementComputer(s);
+            rho = obj.designVariable.obtainDomainFunction();            % rho
             n = 5;
+            [eigenVal,eigenF] = eigen.getEigenModesComputer(rho{1},n);
+
             epsilon = 1e-5;
             p=8;
             [obj.lambda,obj.phis] = obj.computeEigenValueFunctional(n,epsilon,p);
