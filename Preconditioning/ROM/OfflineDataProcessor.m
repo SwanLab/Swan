@@ -8,7 +8,8 @@ classdef OfflineDataProcessor < handle
         boundaryMeshJoined
         localGlobalConnecBd
         LHS
-
+        E
+        nu
 
         fValuesTraining
         RigidBodyFun
@@ -26,7 +27,6 @@ classdef OfflineDataProcessor < handle
 
         function EIFEoper = computeROMbasis(obj)
             obj.LHS = createElasticProblem(obj);
-
 
             uFun         = obj.createDispFun();
             uRBfun       = obj.projectToRigidBodyFun(uFun);
@@ -82,6 +82,8 @@ classdef OfflineDataProcessor < handle
             obj.mesh            = data.mesh;
             obj.fValuesTraining = data.uSbd;
             obj.LHS             = data.LHSsbd;
+            obj.E               = data.E;
+            obj.nu              = data.nu;
         end
 
         function uFun = createDispFun(obj)
@@ -274,14 +276,8 @@ classdef OfflineDataProcessor < handle
         end
 
         function [young,poisson] = computeElasticProperties(obj,mesh)
-            E  = 1;
-            nu = 1/3;
-%            young   = ConstantFunction.create(E,mesh);
-%            poisson = ConstantFunction.create(nu,mesh);
-            Epstr  = E/(1-nu^2);
-            nupstr = nu/(1-nu);
-            young   = ConstantFunction.create(Epstr,mesh);
-            poisson = ConstantFunction.create(nupstr,mesh);
+           young   = ConstantFunction.create(obj.E,mesh);
+           poisson = ConstantFunction.create(obj.nu,mesh);
         end
 
         function [LHS,u] = createElasticProblem(obj)
