@@ -31,11 +31,18 @@ classdef ThermalProblem < handle
             obj.createTemperatureFun(); 
             obj.createBCApplier();
             obj.createSolver();
+            obj.computeForces();  % Case where RHS is fixed. If updated, call update function before 'solve'
         end
 
-        function solve(obj, kappa)
+        function updateConductivity(obj,kappa)
             obj.computeStiffnessMatrix(kappa); % LHS
-            obj.computeForces();               % RHS
+        end
+
+        function updateRHSWithMass(obj, mass) 
+            obj.forces = IntegrateRHS(@(v) mass.* DP(obj.source,v), obj.test, obj.mesh, 2);
+        end
+
+        function solve(obj)
             obj.computeTemperature();          % Solve PDE 
         end
 
@@ -53,7 +60,7 @@ classdef ThermalProblem < handle
             obj.solverCase  = cParams.solverCase;
             obj.test  = LagrangianFunction.create(obj.mesh,1,'P1');
             obj.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-        end
+       end
 
         function createTemperatureFun(obj)
             obj.uFun = LagrangianFunction.create(obj.mesh, 1, 'P1');

@@ -5,7 +5,7 @@ classdef StiffnessEigenModesComputer < handle
     end
     
     properties (Access = private)
-        conductivity 
+        conductivityInterpolator 
         massInterpolator
         boundaryConditions
         epsilon
@@ -25,24 +25,16 @@ classdef StiffnessEigenModesComputer < handle
     methods (Access = public)
         
         function obj = StiffnessEigenModesComputer(cParams)
-            obj.init(cParams)  
-            obj.createConductivityInterpolator();   
-            obj.createMassInterpolator();                        
+            obj.init(cParams)                      
         end
 
-        function [lambda,dlambda]  = computeFunctionAndGradient(obj,dens)  
-            obj.density = dens;
-            alpha  = obj.conductivity.fun;
-            m      = obj.massInterpolator.fun;
-            K  = obj.createStiffnessMatrixWithFunction(alpha);
+        function [lambda,dlambda]  = computeFunctionAndGradient(obj,xR)  
+            K  = obj.createStiffnessMatrixWithFunction(xR);
+            M  = obj.computeMassMatrixWithFunction(xR);
             Kreduced = obj.fullToReduced(K);
-            M  = obj.computeMassMatrixWithFunction(m);
             Mreduced = obj.fullToReduced(M);
-            [lambdaD, phiD] = obj.obtainLowestEigenValuesAndFunction(Kreduced, Mreduced, 10); 
-            dalpha = obj.createDomainFunction(obj.conductivity.dfun);
-            dm     = obj.createDomainFunction(obj.massInterpolator.dfun);           
-            lambda  = lambdaD;
-            dlambda = obj.computeLowestEigenValueGradient(dalpha, dm, phiD, lambdaD); 
+            [lambda, phi] = obj.obtainLowestEigenValuesAndFunction(Kreduced, Mreduced, 4);          
+            dlambda = obj.computeLowestEigenValueGradient(lambda, phi, xR); 
         end
 
     end
@@ -55,43 +47,32 @@ classdef StiffnessEigenModesComputer < handle
             obj.test  = LagrangianFunction.create(obj.mesh,1,'P1');
             obj.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             obj.phi =  LagrangianFunction.create(obj.mesh,1,'P1');
-            obj.dim = cParams.dim;
+            obj.conductivityInterpolator = cParams.conductivityInterpolator;
+            obj.massInterpolator = cParams.massInterpolator;
         end  
-        
-        function createConductivityInterpolator(obj)
-            s.interpolation  = 'SimpAllThermal';   
-%             s.interpolation  = 'SIMPThermal';   
-            s.f0   = 1e-9;                                             
-            s.f1   = 1;          
-            s.dim  = obj.dim;
-%             s.pExp = 2;
-            a = MaterialInterpolator.create(s);
-            obj.conductivity = a;            
-        end            
 
-        function createMassInterpolator(obj)
-            s.interpolation  = 'SIMPThermal';                              
-            s.f0   = 1e-9;
-            s.f1   = 1;
-            s.pExp = 1;
-            a = MaterialInterpolator.create(s);
-            obj.massInterpolator = a;            
-        end            
-
-        function K = createStiffnessMatrixWithFunction(obj,fun)
-            alpha = obj.createDomainFunction(fun);
+        function K = createStiffnessMatrixWithFunction(obj,xR)
+            alphaFun = obj.conductivityInterpolator.fun;
+            alpha = obj.createDomainFunction(alphaFun,xR);                 % xR may be chi or 1 - chi
             f = @(u,v) alpha.*DP(Grad(u),Grad(v));
-            K = IntegrateLHS(f,obj.test,obj.trial, obj.mesh, 'Domain',2);
+            K = IntegrateLHS(f,obj.test,obj.trial, obj.mesh,'Domain',2);
         end
 
-        function f = createDomainFunction(obj,fun)
-            s.operation = @(xV) obj.createConductivityAsDomainFunction(fun,xV);
+        function M = computeMassMatrixWithFunction(obj,xR)          
+            weightFun = obj.massInterpolator.fun;
+            weight = obj.createDomainFunction(weightFun,xR);               % xR may be chi or 1 - chi
+            f = @(u,v) weight.*DP(v,u);
+            M = IntegrateLHS(f,obj.test,obj.trial,obj.mesh,'Domain',2);
+        end       
+
+        function f = createDomainFunction(obj,fun,xR)
+            s.operation = @(xV) obj.createConductivityAsDomainFunction(fun,xR,xV);
             s.mesh      = obj.mesh;
             f = DomainFunction(s);
         end
 
-        function fV = createConductivityAsDomainFunction(obj,fun,xV)
-            densV = obj.density.evaluate(xV);
+        function fV = createConductivityAsDomainFunction(obj,fun,xR,xV)
+            densV = xR.evaluate(xV);
             fV = fun(densV);
         end
 
@@ -113,46 +94,12 @@ classdef StiffnessEigenModesComputer < handle
             s.boundaryConditions = obj.boundaryConditions;
             bc = BCApplier(s);            
         end
-
-        function M = computeMassMatrixWithFunction(obj,fun)                
-            weight = obj.createDomainFunction(fun);
-%             s.quadratureOrder = 2;
-%             s.type            = 'MassMatrixWithFunction';
-%             lhs = LHSIntegrator.create(s);
-            f = @(u,v) weight.*DP(v,u);
-            M = IntegrateLHS(f,obj.test,obj.trial,obj.mesh,'Domain',2);
-        end       
                 
         function [eigV1,eigF1] = obtainLowestEigenValuesAndFunction(obj,K,M,n)
             [eigF,eigV] = eigs(K,M,n,'smallestabs');
-            i = 1; % modalAssuranceCriterion(obj,eigF)
-%             i = modalAssuranceCriterion(obj,eigF);
-            eigV1 = eigV(i,i);
-            eigF1 = eigF(:,i);
-            if i ~= 1
-                disp('SWITCHING, i ='+string(i)+'lambda = '+string(eigV1))
-            end
-%             if abs((eigV(1,1) - eigV(2,2))/eigV(2,2)) < 0.01
-%                 disp('MULTIPLICITY')
-%             end
+            eigV1 = eigV(1,1);
+            eigF1 = eigF(:,1);
             disp(diag(eigV))
-        end   
-
-        function [i] = modalAssuranceCriterion(obj,eigF)
-            if ~isempty(obj.phiOld)
-                old = obj.phiOld;
-                num = (old'*eigF).^2;
-                den = dot(old,old)*dot(eigF,eigF);
-                mac = num./den;
-                [m, i] = max(mac);
-                if m < 0.3
-                    obj.phiOld = eigF(:,i);
-                    disp('tracked eigenmode updated')
-                end
-            else
-                obj.phiOld = eigF(:,1);
-                i = 1;
-            end
         end   
 
         function fV = fillVectorWithHomogeneousDirichlet(obj,phi)
@@ -164,7 +111,9 @@ classdef StiffnessEigenModesComputer < handle
             fV(free,1) = phi;
         end
 
-        function dlambda = computeLowestEigenValueGradient(obj, dalpha, dm, phi, lambda)
+        function dlambda = computeLowestEigenValueGradient(obj, lambda, phi, xR)
+            dalpha = obj.createDomainFunction(obj.conductivityInterpolator.dfun, xR);
+            dm     = obj.createDomainFunction(obj.massInterpolator.dfun, xR);  
             fValues = obj.fillVectorWithHomogeneousDirichlet(phi);
             obj.phi.setFValues(fValues);
             dlambda = (dalpha.*DP(Grad(obj.phi), Grad(obj.phi)) - lambda*dm.*obj.phi.*obj.phi); 

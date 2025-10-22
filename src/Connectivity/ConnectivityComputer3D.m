@@ -25,11 +25,10 @@ classdef ConnectivityComputer3D < handle
         function obj = ConnectivityComputer3D()
             obj.init();
             obj.createMesh();
-            obj.createLevelSet();
             obj.createFilter();
-            obj.createCharacteristicFunction();
             obj.createDesignVariable();  
-            obj.createFilterConnectivity();
+            obj.createConductivityInterpolator();
+            obj.createMassInterpolator();
             obj.computeEigenValueFunctional();
         end
 
@@ -45,7 +44,7 @@ classdef ConnectivityComputer3D < handle
             obj.mesh = HexaMesh(1.0,1.0,1.0,40,40,40); %20,20,20);
         end
 
-        function createLevelSet(obj)
+        function createDesignVariable(obj)
 %             s.type        = 'RectangleInclus10^-3}, ion';
 %             s.xSide       = 0.5;
 %             s.ySide       = 0.5;
@@ -59,7 +58,7 @@ classdef ConnectivityComputer3D < handle
             s.xCoorCenter1 = 0.3;
             s.yCoorCenter1 = 0.7;
             s.zCoorCenter1 = 0.7;
-            s.xSide2       = 1.0;
+            s.xSide2       = 2.0;
             s.ySide2       = 0.2;
             s.zSide2       = 0.2;
             s.xCoorCenter2 = 0.5;
@@ -72,8 +71,13 @@ classdef ConnectivityComputer3D < handle
             s.yCoorCenter3 = 0.4; 
             s.zCoorCenter3 = 0.6; 
             g             = GeometricalFunction(s);
-            phi           = g.computeLevelSetFunction(obj.mesh);
-            obj.levelSet = phi;
+            lsFun          = g.computeLevelSetFunction(obj.mesh);
+            s.fun  = lsFun;
+            s.mesh = obj.mesh;
+            s.type = 'LevelSet';
+            s.plotting = true;
+            ls     = DesignVariable.create(s);
+            obj.designVariable = ls;
         end
 
         function createFilter(obj)
@@ -84,46 +88,28 @@ classdef ConnectivityComputer3D < handle
             obj.filter = f;
         end        
 
-        function createCharacteristicFunction(obj)
-            s.backgroundMesh = obj.mesh;
-            s.boundaryMesh   = obj.mesh.createBoundaryMesh;
-            uMesh            = UnfittedMesh(s);
-            uMesh.compute(obj.levelSet.fValues);
-            obj.characteristicFunction  = CharacteristicFunction.create(uMesh);
-        end
+        function createConductivityInterpolator(obj) 
+            s.interpolation  = 'SimpAllThermal';
+            s.f0   = 1e-3;                                             
+            s.f1   = 1;  
+            s.dim  = '2D';
+            a = MaterialInterpolator.create(s);
+            obj.conductivityInterpolator = a;            
+        end 
 
-        function createDesignVariable(obj)
-            s.fun  = obj.filter.compute(obj.characteristicFunction,3);
-            s.mesh = obj.mesh;
-            s.type = 'Density';
-            s.plotting = true;
-            dens    = DesignVariable.create(s);
-            dens.plot();
-            obj.designVariable = dens;
-        end
-
-        function createFilterConnectivity(obj)
-           s.filterType = 'FilterAndProject';
-            s.mesh       = obj.mesh;
-            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.filterStep = 'LUMP';
-            s.beta       = 20.0;
-            s.eta        = 0.5;
-            f            = Filter.create(s);
-            obj.filterConnect = f;
-
-%             s.filterType = 'PDE';
-%             s.mesh  = obj.mesh;
-%             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-%             f = Filter.create(s);
-%             f.updateEpsilon(1.0*obj   .mesh.computeMeanCellSize());
-%             obj.filterConnect = f;
-        end        
+        function createMassInterpolator(obj)
+            s.interpolation  = 'SIMPThermal';                              
+            s.f0   = 1e-3;
+            s.f1   = 1;
+            s.pExp = 1;
+            a = MaterialInterpolator.create(s);
+            obj.massInterpolator = a;            
+        end      
 
         function computeEigenValueFunctional(obj)
             s.mesh = obj.mesh;
             s.designVariable = obj.designVariable;
-            s.filter = obj.filterConnect;
+            s.filter = obj.filter;
             s.boundaryConditions = obj.createEigenvalueBoundaryConditions();
             s.eigenModes = StiffnessEigenModesComputer(s);
             mE = MinimumEigenValueFunctional(s);

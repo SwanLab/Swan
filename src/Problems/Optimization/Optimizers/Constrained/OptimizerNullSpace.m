@@ -2,8 +2,8 @@
 classdef OptimizerNullSpace < handle
 
     properties (Access = private)
-        tolCost   = 1e-5
-        tolConstr = 1e-4
+        tolCost   = 1e-8
+        tolConstr = 1e-8
     end
 
     properties (Access = private)
@@ -59,6 +59,7 @@ classdef OptimizerNullSpace < handle
             obj.computeNullSpaceFlow();
             obj.computeRangeSpaceFlow();
             obj.firstEstimation = false;
+            obj.designVariable.fun.print('dV'+string(obj.GIFname)+string(0),'Paraview') 
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();

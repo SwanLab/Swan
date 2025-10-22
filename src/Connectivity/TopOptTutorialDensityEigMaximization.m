@@ -15,17 +15,16 @@ classdef TopOptTutorialDensityEigMaximization < handle
         dofsNonDesign
         beta
         eta
+        characteristicFunction
     end 
 
     methods (Access = public)
         function obj = TopOptTutorialDensityEigMaximization()
-            obj.beta = 5.0;
-            obj.eta = 0.5;
             obj.init()
             obj.createMesh();
-            obj.createDesignVariable();
             obj.createFilter();
-            obj.createNonDesignableDomain();
+            obj.createDesignVariable();
+%             obj.createNonDesignableDomain();
             obj.createEigenValue();                             
             obj.createVolumeConstraint();
             obj.createCost();
@@ -52,11 +51,23 @@ classdef TopOptTutorialDensityEigMaximization < handle
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) 1.0*ones(size(x(1,:,:)));
-            s.ndimf   = 1;
-            s.mesh    = obj.mesh;
-            aFun      = AnalyticalFunction(s);
-            sD.fun      = aFun.project('P1');
+%             s.fHandle = @(x) 1.0*ones(size(x(1,:,:)));
+%             s.ndimf   = 1;
+%             s.mesh    = obj.mesh;
+           s.type = 'FiveCirclesInclusion';
+            s.height = 1.0;
+            s.width = 1.0;
+            s.radius = sqrt(0.6/(2*pi)); %0.2;
+            g      = GeometricalFunction(s);
+            phi           = g.computeLevelSetFunction(obj.mesh);
+            s.backgroundMesh = obj.mesh;
+            s.boundaryMesh   = obj.mesh.createBoundaryMesh;
+            uMesh            = UnfittedMesh(s);
+            uMesh.compute(phi.fValues);
+            obj.characteristicFunction  = CharacteristicFunction.create(uMesh);
+            sD.fun  = obj.filter.compute(obj.characteristicFunction,3);
+%             aFun      = AnalyticalFunction(s);
+%             sD.fun      = aFun.project('P1');
             sD.mesh     = obj.mesh;
             sD.type     = 'Density';
             sD.plotting = true;
@@ -65,7 +76,7 @@ classdef TopOptTutorialDensityEigMaximization < handle
         end
 
         function createFilter(obj)
-            s.filterType = 'LUMP';
+            s.filterType = 'PDE';
             s.mesh  = obj.mesh;
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
@@ -94,16 +105,28 @@ classdef TopOptTutorialDensityEigMaximization < handle
             s.designVariable    = obj.designVariable;
             s.filter            = obj.filter;
             s.filterAdjoint     = obj.filterAdjoint;
+            s.isCompl              = true;
+            s.dim               = '2D';
             s.boundaryConditions= obj.createEigenvalueBoundaryConditions();
             s.shift             = 0.0;
             obj.eigenvalue = MaximumEigenValueFunctional(s);
         end
 
+
+        function uMesh = createBaseDomain(obj)
+            levelSet         = -ones(obj.mesh.nnodes,1);
+            s.backgroundMesh = obj.mesh;
+            s.boundaryMesh   = obj.mesh.createBoundaryMesh();
+            uMesh = UnfittedMesh(s);
+            uMesh.compute(levelSet);
+        end
+
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
-            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.filter = obj.filter;
+            s.test = LagrangianFunction.create(obj.mesh,1,'P1');
             s.volumeTarget = 0.4;
-            s.dofsNonDesign = obj.dofsNonDesign;
+            s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -111,21 +134,15 @@ classdef TopOptTutorialDensityEigMaximization < handle
         function createCost(obj)
             s.shapeFunctions{1} = obj.eigenvalue;
             s.weights           = [1.0];
-            s.dofsNonDesign     = obj.dofsNonDesign;
+%             s.dofsNonDesign     = obj.dofsNonDesign;
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
 
         function M = createMassMatrix(obj)
-            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.mesh  = obj.mesh;
-            s.type  = 'MassMatrix';
-            LHS = LHSIntegrator.create(s);
-            M = LHS.compute;
-
+            n = obj.mesh.nnodes;
             h = obj.mesh.computeMinCellSize();
-            M = h^2*eye(size(M));
+            M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
         end
 
         function createConstraint(obj)
@@ -140,25 +157,51 @@ classdef TopOptTutorialDensityEigMaximization < handle
             obj.dualVariable = l;
         end
 
+%         function createOptimizer(obj)
+%             s.monitoring     = true;
+%             s.cost           = obj.cost;
+%             s.constraint     = obj.constraint;
+%             s.designVariable = obj.designVariable;
+%             s.dualVariable   = obj.dualVariable;
+%             s.maxIter        = 3000;
+%             s.tolerance      = 1e-8;
+%             s.constraintCase{1} = 'EQUALITY';
+%             s.ub             = 1;
+%             s.lb             = 0;
+%             opt              = OptimizerMMA(s);
+%             opt.solveProblem();
+%             obj.optimizer = opt;
+% %             saveas(figure(1),'eigMaxDesign.png','png')
+% %             saveas(figure(2),'1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+'graficos.png','png')
+% %             writematrix(obj.designVariable.fun.fValues,'1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+'.txt')
+%         end
+
+        function [primalUpdater] = createPrimalUpdater(obj)
+            s.ub     = 1;
+            s.lb     = 0;
+            s.tauMax = 1000;
+            s.tau    = [];
+            primalUpdater = ProjectedGradient(s);
+        end
+
         function createOptimizer(obj)
             s.monitoring     = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.dualVariable   = obj.dualVariable;
-%             s.dofsNonDesign  = obj.dofsNonDesign;
+            s.GIFname = 'eigMax';
             s.maxIter        = 3000;
             s.tolerance      = 1e-8;
-            s.constraintCase{1} = 'EQUALITY';
-            s.ub             = 1;
-            s.lb             = 0;
-            opt              = OptimizerMMA(s);
+            s.constraintCase = {'EQUALITY'};
+            s.primal         = 'PROJECTED GRADIENT';
+            s.etaNorm        = 0.01;
+            s.gJFlowRatio    = 2;
+            s.primalUpdater  = obj.createPrimalUpdater;
+            opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
-%             saveas(figure(1),'eigMaxDesign.png','png')
-%             saveas(figure(2),'1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+'graficos.png','png')
-%             writematrix(obj.designVariable.fun.fValues,'1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+'.txt')
         end
+
 
         function  bc = createEigenvalueBoundaryConditions(obj)
             xMin    = min(obj.mesh.coord(:,1));

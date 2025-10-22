@@ -20,20 +20,20 @@ classdef MaximumEigenValueFunctional < handle
         end   
 
         function [f, dfdx] = computeFunctionAndGradient(obj,x) 
-            xD  = x{1}.obtainDomainFunction();             
-            xR = obj.filter.compute(xD{1},2);  
+            if size(x,2) == 2
+                x = x{1};
+            end
+            xD  = x.obtainDomainFunction();             
+%             xR = obj.filter.compute(xD{1},2); 
+            xR = filterDesignVariable(obj,xD{1});
             if obj.isCompl == true
-                xR.setFValues(1 - xR.fValues);          % 1 - FP
+                xR.setFValues(1 - xR.fValues);                             % 1 - F(\chi)
             end
-            if ~isempty(obj.filterAdjoint)
-                xFiltered = obj.filter.getFilteredField();
-                obj.filterAdjoint.updateFilteredField(xFiltered);
-            end
-            [lambda,dlambda]= obj.eigModes.computeFunctionAndGradient(xR);
+            [lambda,dlambda]= obj.eigModes.computeFunctionAndGradient(xR); % In the 'isCompl' case, the material interpolator recieves 1 - F(\chi)
             f = obj.computeFunction(lambda);
             dfdx{1} = obj.computeGradient(dlambda, lambda);
             if obj.isCompl == true
-                dfdx{1}.setFValues(-dfdx{1}.fValues);   % Chain rule
+                dfdx{1}.setFValues(-dfdx{1}.fValues);                      % Chain rule for 1 - F(\chi)
             end
         end
 
@@ -55,13 +55,9 @@ classdef MaximumEigenValueFunctional < handle
         end
 
         function J = computeFunction(obj,lambda)
-%                  J = 1/lambda;
                 if isempty(obj.value0)
-                    obj.value0  =   1; %lambda; %lambda full domain;
+                    obj.value0  =   1;
                 end
-%                 if isempty(obj.lambdaOld)
-%                     obj.lambdaOld = lambda;
-%                 end
                 J = -lambda;  
                 J = J/obj.value0;
         end
@@ -73,8 +69,14 @@ classdef MaximumEigenValueFunctional < handle
                 dJ        = obj.filter.compute(dlambda,2);
             end
             fValues   = - dJ.fValues;
-%             fValues   = (-1/lambda^2 *dJ.fValues); %
             dJ.setFValues(fValues/obj.value0);   
+        end
+
+        function xR = filterDesignVariable(obj,x)
+            xR = obj.filter.compute(x,2);
+            if ~isempty(obj.filterAdjoint)
+                obj.filterAdjoint.updateFilteredField(obj.filter);
+            end
         end
 
     end

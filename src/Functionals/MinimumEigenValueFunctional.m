@@ -22,26 +22,38 @@ classdef MinimumEigenValueFunctional < handle
         end   
 
         function [f, dfdx] = computeFunctionAndGradient(obj,x) 
-            xD  = x.obtainDomainFunction();             % rho
-            xR = obj.filterDesignVariable(xD{1});       % FP rho
+            iter = x{2};
+            x = x{1};
+
+            xD  = x.obtainDomainFunction();                  % rho
+            xR = obj.filterDesignVariable(xD{1});            % FP rho
+            
+
+            beta = obj.filter.getBeta();
+            if iter >= 200 && mod(iter,20)== 0 && beta <= 10
+                obj.filter.updateBeta(beta*2.0);
+                obj.filterAdjoint.updateBeta(beta*2.0);
+            end
+
+%             sD.fun      = xR;
+%             sD.mesh     = obj.mesh;
+%             sD.type     = 'Density';
+%             sD.plotting = true;
+%             dens        = DesignVariable.create(sD);
+%             obj.designVariable = dens;
+%             obj.designVariable.plot()
+
             if obj.isCompl == true
-                xR.setFValues(max(min(1 - xR.fValues,1),0));
-%                 xR.setFValues(1 - xR.fValues);          % 1 - FP
+                xR.setFValues(max(min(1 - xR.fValues,1),0)); % 1 - FP
             end
             [f,dfdx]= obj.eigModes.computeFunctionAndGradient(xR);    
             if ~isempty(obj.filterAdjoint)
                 dfdx     = obj.filterAdjoint.compute(dfdx,2);
             else
-                if isa(obj.filter, 'HeavisideProjector')
-                    sensitVals         = obj.filter.derive(xR);
-                    dfdx     = dfdx.project('P1',obj.mesh);
-                    dfdx.fValues       = dfdx.fValues.*sensitVals;
-                else
-                    dfdx     = obj.filter.compute(dfdx,2);
-                end
+                dfdx     = obj.filter.compute(dfdx,2);
             end
             if obj.isCompl == true
-                dfdx.setFValues(-dfdx.fValues);          % Chain rule
+                dfdx.setFValues(-dfdx.fValues);              % Chain rule for (1 - FP)
             end
         end
                 
@@ -53,9 +65,7 @@ classdef MinimumEigenValueFunctional < handle
             obj.eigModes       = cParams.eigenModes;
             obj.designVariable = cParams.designVariable;
             obj.mesh           = cParams.mesh;
-            if isfield(cParams,'filter')
-                obj.filter = cParams.filter;
-            end
+            obj.filter = cParams.filter;
             if isfield(cParams,'filterAdjoint')
                 obj.filterAdjoint  = cParams.filterAdjoint;
             end
@@ -65,12 +75,7 @@ classdef MinimumEigenValueFunctional < handle
         end
       
         function xR = filterDesignVariable(obj,x)
-            if isa(obj.filter, 'HeavisideProjector')
-                fValues = obj.filter.project(x);
-                xR = FeFunction.create(x.order,fValues,obj.mesh);
-            else
-                xR = obj.filter.compute(x,2);
-            end
+            xR = obj.filter.compute(x,2);
             if ~isempty(obj.filterAdjoint)
                 obj.filterAdjoint.updateFilteredField(obj.filter);
             end

@@ -91,6 +91,57 @@ classdef GeometricalFunction < handle
                     fH = @(x) min(min(max(abs(x1(x)-x01)./sx1,abs(x2(x)-y01)./sy1), max(abs(x1(x)-x02)./sx2,abs(x2(x)-y02)./sy2)), max(abs(x1(x)-x03)./sx3,abs(x2(x)-y03)./sy3)) - 0.5;
                     obj.fHandle = fH;
 
+                case 'FourPerpendicularBars'
+                    xL2 = cParams.leftBar_xMax;   % right edge of left bar
+                    xR1 = cParams.rightBar_xMin;  % left edge of right bar
+                    yB2 = cParams.bottomBar_yMax; % top edge of bottom bar
+                    yT1 = cParams.topBar_yMin;    % bottom edge of top bar
+                    h = cParams.barWidth;
+
+                    xL1 = xL2 - h;   % left edge of left bar
+                    yT2 = yT1 + h;    % top edge of top bar
+                    yB1 = yB2 - h; % bottom edge of bottom bar
+                    xR2 = xR1 + h;  % right edge of right bar
+                
+                    fV1 = @(x) max( xL1 - x1(x), x1(x) - xL2 );
+                    fV2 = @(x) max( xR1 - x1(x), x1(x) - xR2 );
+                    fH1 = @(x) max( yB1 - x2(x), x2(x) - yB2 );
+                    fH2 = @(x) max( yT1 - x2(x), x2(x) - yT2 );
+      
+                    fH = @(x) min( min(fV1(x), fV2(x)), min(fH1(x), fH2(x)) );
+                
+                    obj.fHandle = fH;
+                                        
+
+                case 'FourPerpendicularBarsWithCrack'
+                    xL2 = cParams.leftBar_xMax;   % right edge of left bar
+                    xR1 = cParams.rightBar_xMin;  % left edge of right bar
+                    yB2 = cParams.bottomBar_yMax; % top edge of bottom bar
+                    yT1 = cParams.topBar_yMin;    % bottom edge of top bar
+                    h = cParams.barWidth;
+                    hCrack = cParams.hCrack;   % vertical thickness of the crack
+
+                    xL1 = xL2 - h;   % left edge of left bar
+                    yT2 = yT1 + h;    % top edge of top bar
+                    yB1 = yB2 - h; % bottom edge of bottom bar
+                    xR2 = xR1 + h;  % right edge of right bar
+
+                    fV1 = @(x) max( xL1 - x1(x), x1(x) - xL2 );
+                    fV2 = @(x) max( xR1 - x1(x), x1(x) - xR2 );
+                    fH1 = @(x) max( yB1 - x2(x), x2(x) - yB2 );
+                    fH2 = @(x) max( yT1 - x2(x), x2(x) - yT2 );
+                
+                    fBars = @(x) min( min(fV1(x), fV2(x)), min(fH1(x), fH2(x)) );
+                
+                    y0_crack = (yB2 + yT1) / 2;   % vertical center of crack
+                    yC1 = y0_crack - hCrack/2;
+                    yC2 = y0_crack + hCrack/2;
+                    delta = 0.05 * (xR2 - xR1);
+                    fCrack = @(x) max( max(xR1 - delta - x1(x), x1(x) - xR2 - delta), ...
+                                       max(yC1 - x2(x), x2(x) - yC2) );
+                
+                    fH = @(x) max( fBars(x), -fCrack(x) );
+                    obj.fHandle = fH;
 
                 case 'Prism'
                     sx = cParams.xSide;
@@ -210,6 +261,13 @@ classdef GeometricalFunction < handle
                     fH = @(x) min((x1(x)-x0).^2+(x2(x)-y0).^2-r^2, (x1(x)-x02).^2+(x2(x)-y02).^2-r^2);
                     obj.fHandle = fH;
 
+                                     
+                case 'TwoCirclesInclusion'
+                    s      = cParams;
+                    s.type = 'TwoCircles';
+                    obj.computeInclusion(s);
+
+
                 case 'RingSDF'
                     Rin = cParams.innerRadius;
                     Rout = cParams.outerRadius;
@@ -260,6 +318,33 @@ classdef GeometricalFunction < handle
                 case 'RingWithHorizontalCrackInclusion'
                     s      = cParams;
                     s.type = 'RingWithHorizontalCrack';
+                    obj.computeInclusion(s);
+
+                case 'FiveCircles'
+                    r  = cParams.radius;
+                    Lx = cParams.width;         % total width of domain
+                    Ly = cParams.height;        % total height of domain
+                
+                    % Corner and center circle coordinates
+                    centers = [ ...
+                        0,   0;    % bottom-left
+                        Lx,  0;    % bottom-right
+                        0,   Ly;   % top-left
+                        Lx,  Ly;   % top-right
+                        Lx/2, Ly/2 % center
+                    ];
+                
+                    fH = @(x) inf;
+                    for i = 1:size(centers,1)
+                        xc = centers(i,1);
+                        yc = centers(i,2);
+                        fH = @(x) min(fH(x), (x1(x)-xc).^2 + (x2(x)-yc).^2 - r^2);
+                    end
+                    obj.fHandle = fH;
+
+                case 'FiveCirclesInclusion'
+                    s      = cParams;
+                    s.type = 'FiveCircles';
                     obj.computeInclusion(s);
 
                 case 'CircleInclusion'

@@ -76,7 +76,7 @@ classdef TopOptTestTutorialThermal3DLevelSet < handle
             s.interpolation  = 'SimpAllThermal';
             s.f0   = f0;                                             
             s.f1   = 1;  
-            s.dim  = '3D'
+            s.dim  = '3D';
 %             s.pExp = 3;
             a = MaterialInterpolator.create(s);
             obj.materialInterpolator = a;            
