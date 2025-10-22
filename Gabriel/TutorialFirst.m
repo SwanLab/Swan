@@ -246,7 +246,19 @@ classdef TutorialFirst < handle
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '2D';
             s.mesh                 = obj.mesh;
-            m = Material.create(s);         
+                    
+           
+        
+           
+            % s.type     = 'PhaseField';
+            % s.PFtype   = 'Homogenized';
+            % s.mesh     = obj.mesh;
+            % s.young    = 1.0;
+            % m = MaterialFactory.create(s);
+
+            m = Material.create(s);  
+
+
         end
 
         function bc = createBoundaryConditions(obj)
