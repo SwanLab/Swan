@@ -157,7 +157,7 @@ classdef CantileverDensityGlobalSegment < handle
             s.alpha = 4;
             s.beta  = 0;
             s.theta = 90;
-            s.tol0  = 1e-2;
+            s.tol0  = 1e-6;
             obj.filterSegment  = NonLinearFilterSegment(s);
         end
 
@@ -166,10 +166,10 @@ classdef CantileverDensityGlobalSegment < handle
             s.mesh    = obj.mesh;
             s.uMesh   = obj.createBaseDomain();
             s.filter  = obj.filterSegment;
-            s.epsilon = 10*h;
-            s.minEpsilon = h;
+            s.epsilon = 2*h;
+            s.minEpsilon = 2*h;
             s.value0  = 1;
-            s.target = 4.1/10;
+            s.target = 17.2675/2;
             obj.perimeter = PerimeterConstraint(s);
         end
 

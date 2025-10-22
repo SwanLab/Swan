@@ -63,12 +63,12 @@ uMesh.compute(levelSet);
 ss.mesh    = mesh;
 ss.uMesh   = uMesh;
 ss.filter  = filter;
-ss.epsilon = h;
-ss.value0  = 6;
+ss.epsilon = 2*h;
+ss.value0  = 1;
 pF         = PerimeterFunctional(ss);
 
 sD.plotting = false;
 sD.type = 'Density';
 sD.fun = f;
 x = Density(sD);
-p          = pF.computeFunctionAndGradient(x); % 4.1
+p          = pF.computeFunctionAndGradient(x); % 17.2675
