@@ -31,8 +31,8 @@ classdef AnisotropicSimulation < handle
             obj.createPrimalUpdater();
             obj.createOptimizer();
 
-              saveas(gcf,['AnisotropicMonitoring90Deg.fig']);
-            obj.designVariable.fun.print(['AnisotropicfValues90Deg']);
+              saveas(gcf,['AnisotropicMonitoring90DegDensity.fig']);
+            obj.designVariable.fun.print(['AnisotropicfValues90DegDensity']);
         end
 
     end
@@ -64,6 +64,17 @@ classdef AnisotropicSimulation < handle
             s.plotting = true;
             ls     = DesignVariable.create(s);
             obj.designVariable = ls;
+            % s.fHandle = @(x) ones(size(x(1,:,:)));
+            % s.ndimf   = 1;
+            % s.mesh    = obj.mesh;
+            % aFun      = AnalyticalFunction(s);
+            % 
+            % sD.fun      = aFun.project('P1');
+            % sD.mesh     = obj.mesh;
+            % sD.type     = 'Density';
+            % sD.plotting = true;
+            % dens        = DesignVariable.create(sD);
+            % obj.designVariable = dens;
         end
 
         function createFilter(obj)
@@ -172,6 +183,11 @@ classdef AnisotropicSimulation < handle
         function createPrimalUpdater(obj)
             s.mesh = obj.mesh;
             obj.primalUpdater = SLERP(s);
+            s.ub     = 1;
+            s.lb     = 0;
+            s.tauMax = 1000;
+            s.tau    = [];
+            %obj.primalUpdater = ProjectedGradient(s);
         end
 
         function createOptimizer(obj)
