@@ -128,14 +128,9 @@ classdef StiffnessEigenModesDisplacementComputer < handle
         end
 
         function M = computeMassMatrixWithFunction(obj,fun)                
-            s.test  = obj.test;
-            s.trial = obj.trial;
-            s.mesh  = obj.mesh;
-            s.function = obj.createDomainFunction(fun);
-            s.quadratureOrder = 2;
-            s.type            = 'MassMatrixWithFunction';
-            lhs = LHSIntegrator.create(s);
-            M = lhs.compute();   
+            fun = obj.createDomainFunction(fun);
+            f   = @(u,v) fun.*DP(v,u);
+            M   = IntegrateLHS(f,obj.test,obj.trial,obj.mesh,'Domain',2);  
         end       
         
         function [eigV,eigF] = obtainEigenValuesAndFunction(obj,K,M,n)

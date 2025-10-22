@@ -26,7 +26,7 @@ function fEval = evaluate(stress, xV)
 end
 
 function base = createBaseFunction(m,i,j)
-    constant = zeros(2,2);
+    constant = zeros(m.ndim,m.ndim);
     constant(i,j) = 1;
     base = ConstantFunction.create(constant,m);
 end
