@@ -10,7 +10,7 @@ classdef OfflineDataProcessor < handle
         LHS
         E
         nu
-
+        Coarseorder
         fValuesTraining
         RigidBodyFun
         DeformationalFun
@@ -84,6 +84,7 @@ classdef OfflineDataProcessor < handle
             obj.LHS             = data.LHSsbd;
             obj.E               = data.E;
             obj.nu              = data.nu;
+            obj.Coarseorder     = data.Coarseorder;
         end
 
         function uFun = createDispFun(obj)
