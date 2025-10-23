@@ -42,12 +42,19 @@ classdef Tutorial02p2FEMElasticityMicro < handle
             % lsCircle           = phiFun.fValues;
             % ls = -lsCircle;
 
-            gPar.type          = 'PerperndicularNFiber';
-            gPar.nFibers       = 5;
-            gPar.minxCoor      = 0;
-            gPar.maxxCoor      = 1;
-            gPar.minyCoor      = 0;
-            gPar.maxyCoor      = 1;
+            gPar.type           = 'FourPerpendicularBars';
+            gPar.barWidth       = 1;
+            gPar.leftBar_xMax   = 0.2;
+            gPar.rightBar_xMin  = 0.6;
+            gPar.bottomBar_yMax = 0.2;
+            gPar.topBar_yMin    = 0.6;
+
+            % gPar.type          = 'PerperndicularNFiber';
+            % gPar.nFibers       = 5;
+            % gPar.minxCoor      = 0;
+            % gPar.maxxCoor      = 1;
+            % gPar.minyCoor      = 0;
+            % gPar.maxyCoor      = 1;
             g                  = GeometricalFunction(gPar);
             phiFun             = g.computeLevelSetFunction(mesh);
             lsCircle           = phiFun.fValues;
