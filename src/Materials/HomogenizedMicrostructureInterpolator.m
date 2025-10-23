@@ -41,6 +41,7 @@ classdef HomogenizedMicrostructureInterpolator < handle
 
         function setDesignVariable(obj,x)
             obj.density = x;
+            
         end
 
     end
