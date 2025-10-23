@@ -40,13 +40,26 @@ classdef EIFEM < handle
             LHSred = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);
             RHSred = obj.bcApplier.fullToReducedVectorDirichlet(RHS);
             uRed = LHSred\RHSred;
-            uCoarse = obj.bcApplier.reducedToFullVectorDirichlet(uRed);
+%             uCoarse = obj.bcApplier.reducedToFullVectorDirichlet(uRed);
 %             obj.plotSolution(uCoarse,obj.mesh,100,1,obj.iter,0)
-            u = obj.reconstructSolution(uCoarse);
+            u = obj.reconstructSolution(uRed);
         end
 
         function M = reduceMatrix(obj,M)
            M =  obj.bcApplier.fullToReducedMatrixDirichlet(M);
+        end
+
+         function u = reconstructSolution(obj,uCoarse)
+            uCoarse = obj.bcApplier.reducedToFullVectorDirichlet(uCoarse);
+            nElem = obj.mesh.nelem;
+            Udef  = obj.RVE.Udef;
+            Urb   = obj.RVE.Urb;
+            U     = Udef + Urb;
+            dofConec = obj.dispFun.getDofConnec();
+            for ielem = 1:nElem
+                uCelem = uCoarse(dofConec(ielem,:));
+                u(:,ielem) =  U*uCelem;
+            end
         end
            
         function A = assembleMatrix(obj,Aelem,f1,f2)
@@ -154,17 +167,17 @@ classdef EIFEM < handle
             Fcoarse = Ut*Ffine;
         end
 
-        function u = reconstructSolution(obj,uCoarse)
-            nElem = obj.mesh.nelem;
-            Udef  = obj.RVE.Udef;
-            Urb   = obj.RVE.Urb;
-            U     = Udef + Urb;
-            dofConec = obj.dispFun.getDofConnec();
-            for ielem = 1:nElem
-                uCelem = uCoarse(dofConec(ielem,:));
-                u(:,ielem) =  U*uCelem;
-            end
-        end
+%         function u = reconstructSolution(obj,uCoarse)
+%             nElem = obj.mesh.nelem;
+%             Udef  = obj.RVE.Udef;
+%             Urb   = obj.RVE.Urb;
+%             U     = Udef + Urb;
+%             dofConec = obj.dispFun.getDofConnec();
+%             for ielem = 1:nElem
+%                 uCelem = uCoarse(dofConec(ielem,:));
+%                 u(:,ielem) =  U*uCelem;
+%             end
+%         end
 
          function plotSolution(obj,x,mesh,row,col,iter,flag)
             if nargin <7
