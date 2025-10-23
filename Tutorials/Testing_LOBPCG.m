@@ -1,70 +1,42 @@
 classdef Testing_LOBPCG
-% FOURDOF_LOBPCG
-%   Minimal, fully-commented LOBPCG implementation for a 4-DOF spring chain
-%   generalized eigenproblem:   K * u = lambda * M * u
-%
-%   Target: smallest eigenvalues (extremal) using a simple "AMG-like"
-%   preconditioner (Jacobi here; plug in your AMG V-cycle in apply_prec).
-%
-%   Usage:
-%       solver = FourDOF_LOBPCG();
-%       results = solver.run_demo();
-%
-%   This class is written to be readable + instructional:
-%   - Every method is short and commented
-%   - All orthogonality is in the M-inner product
-%   - Preconditioner is a single "apply"; swap in AMG where noted
-%
-%   Author: (you)
-%   Date:   (today)
+% Testing_LOBPCG
+%   Locally Optimized Block Preconditioned Conjugate Gradient implementation
+%   for several different examples.
 
-    %% =======================
-    %  Properties (data)
-    %  =======================
     properties (SetAccess = private)
-        % Problem matrices (sparse, SPD)
+
         K   (:,:) double
         M   (:,:) double
-
-        % Preconditioner data (Jacobi stand-in)
         Kdiag  (:,1) double   % diagonal of K for Jacobi
+        Vtrue(:,1) double
+        
     end
 
     properties (SetAccess = public)
         % Solver controls
-        b             (1,1) double = 2      % block size (# eigenpairs per sweep)
-        maxit         (1,1) double = 50     % max outer iterations
-        tol           (1,1) double = 1e-10  % residual tolerance (2-norm, per vector)
-        use_precond   (1,1) logical = true  % use preconditioner or simply I for residual
+        b             (1,1) double = 2      % (# eigenpairs per sweep)
+        maxit         (1,1) double = 50     % max iterations
+        tol           (1,1) double = 1e-10  % converg criteria
+        use_precond   (1,1) logical = true  % use preconditioner (true) or simply I for residual (false)
+        use_physical_x (1,1) logical = false %use physics derived initial aproximation for ritz step
 
-        % Diagnostics
+        % Print diagnostics
         verbose  (1,1) logical = true
 
     end
 
-    %% =======================
-    %  Constructor
-    %  =======================
     methods
         function obj = Testing_LOBPCG(problem)
-            % Build the 4-DOF example and a simple preconditioner
+
             [obj.K,obj.M] = obj.setup_matrices(problem);
-            obj.Kdiag = full(diag(obj.K));
+            obj.Kdiag = full(diag(obj.K)); %simple preconditioner
             
         end
     end
 
-    %% =======================
-    %  Public API
-    %  =======================
+
     methods
         function results = run_demo(obj)
-            % RUN_DEMO
-            %   Complete workflow:
-            %     1) Print problem
-            %     2) Solve with LOBPCG (preconditioned extremal)
-            %     3) Verify vs MATLAB eig (small problem check)
-            %     4) Return a struct of results
 
             if obj.verbose
                 obj.print_header();
@@ -74,10 +46,12 @@ classdef Testing_LOBPCG
             % Solve
             [lambda, X, history] = obj.lobpcg_extremal();
 
-            % Truth via dense eig (for demonstration/verification only)
-            [Vtrue, Dtrue] = eigs(full(obj.K), full(obj.M), obj.b, "smallestabs");
-            [lam_true, p]  = sort(diag(Dtrue), 'ascend');
-            Vtrue = Vtrue(:, p);
+            % true values for comparison
+           % [Vtrue, Dtrue] = eigs(full(obj.K), full(obj.M), obj.b, "smallestabs");
+            %[lam_true, p]  = sort(diag(Dtrue), 'ascend');
+            %Vtrue = Vtrue(:, p);
+            % save('Vtrue_prob2.mat','Vtrue')
+            % save('lam_true_prob2.mat','lam_true')
 
             if obj.verbose
                 fprintf('\n=== Converged eigenvalues (LOBPCG, smallest %d) ===\n', obj.b);
@@ -102,18 +76,15 @@ classdef Testing_LOBPCG
             results.lambda   = lambda;
             results.X        = X;
             results.history  = history;
-            results.lambda_ref = lam_true;
-            results.V_ref      = Vtrue;
+            %results.lambda_ref = lam_true;
+            %results.V_ref      = Vtrue;
         end
     end
 
-    %% =======================
-    %  Core solver (LOBPCG)
-    %  =======================
     methods (Access = private)
-        function [lambda, X, hist] = lobpcg_extremal(obj)
+        function [lambda_ritz, X, hist] = lobpcg_extremal(obj) %  Core solver (LOBPCG)
             % LOBPCG_EXTREMAL
-            %   Block LOBPCG for smallest eigenvalues of K u = lambda M u.
+            %   LOBPCG for smallest eigenvalues of K u = lambda M u.
             %   Preconditioner P ~ K^{-1} is applied as a black-box "apply"
             %   to the block residuals (Jacobi here, replace with AMG).
             %
@@ -126,9 +97,17 @@ classdef Testing_LOBPCG
             n = size(K,1);
             
             % --- Initialization: random block, then M-orthonormalize
-            rng(4);
-            X = randn(n, b); %we sue reduced basis X random here but ideally this would be derived from physics and be made up of columns of coarse eigenvectors.
-            X = obj.M_orth(X, M);
+            if obj.use_physical_x == true
+                load("Vtrue_prob2.mat");
+                %load("lam_true_prob2.mat")
+                X = 0.9.*Vtrue;
+
+            else
+                rng(4);
+                X = randn(n, b); %we use reduced basis X random here but ideally this would be derived from physics and be made up of columns of coarse eigenvectors.
+                %X = obj.M_orth(X, M);
+            end
+            obj.M_orth(X,M);
             W = [];  % conjugate block (None on first sweep)
 
             hist.rnorms = [];
@@ -138,25 +117,25 @@ classdef Testing_LOBPCG
                     b, obj.tol, obj.maxit);
             end
 
+            tic
             for it = 1:obj.maxit
                 % 1) Ritz on current block (small projected GEP)
-                [lambda, X] = obj.ritz_step(K, M, X);
+                [lambda_ritz,u_ritz, X] = obj.ritz_step(K, M, X);
 
                 % 2) Residuals
-                R = K*X - M*X.*lambda;   % columns are residuals r_i
+                R = K*X - M*X.*lambda_ritz;  
                 rnorm = vecnorm(R, 2, 1);
-                hist.rnorms = [hist.rnorms; rnorm]; %#ok<AGROW>
+                hist.rnorms = [hist.rnorms; rnorm];
 
                 if obj.verbose
                     fprintf('  it=%2d | lambda=', it);
-                    fprintf(' %.6f', lambda);
+                    fprintf(' %.6f', lambda_ritz);
                     fprintf(' | ||r||2=');
                     fprintf(' %.2e', rnorm);
                     fprintf('\n');
                 end
 
-                % Convergence check
-                if all(rnorm < obj.tol)
+                if all(rnorm < obj.tol) %convergence
                     if obj.verbose
                         fprintf('  Converged: all residuals < tol.\n');
                     end
@@ -164,7 +143,7 @@ classdef Testing_LOBPCG
                 end
 
                 % 3) Precondition residuals: Z = P(R)
-                Z = obj.apply_prec(R);     % <-- AMG V-cycle goes here
+                Z = obj.apply_prec(R);     % <-- preconditioning cycle
                 Z = obj.M_proj_out(Z, X, M);
                 Z = obj.M_orth(Z, M);
 
@@ -186,7 +165,7 @@ classdef Testing_LOBPCG
 
                 X = G * V(:,1:b);
                 X = obj.M_orth(X, M);
-                lambda = lam_all(1:b).';
+                lambda_ritz = lambda_ritz';
 
                 % Next W: next set of Ritz vectors from G (or just Z)
                 if size(V,2) >= 2*b
@@ -195,6 +174,7 @@ classdef Testing_LOBPCG
                     W = Z;
                 end
             end
+            toc
         end
     end
 
@@ -202,10 +182,10 @@ classdef Testing_LOBPCG
     %  Linear algebra helpers
     %  =======================
     methods (Access = private)
-        function [theta, Xout] = ritz_step(obj, K, M, Xin)
+        function [theta, V, Xout] = ritz_step(obj, K, M, Xin)
             % RITZ_STEP
             %   Small projected generalized eigenproblem on span(Xin).
-            A = Xin.' * (K*Xin); %reduced "condensed" stiffness matrix
+            A = Xin.' * (K*Xin); %reduced "condensed" stiffness matrix\equa
             B = Xin.' * (M*Xin); %reduced "condensed" mass matrix
             % A y = lambda B y (ritz problem)
             [V,D] = eigs(A,B,obj.b,"smallestabs");
@@ -256,9 +236,6 @@ classdef Testing_LOBPCG
         end
     end
 
-    %% =======================
-    %  Problem setup & printing
-    %  =======================
     methods (Access = private)
         function [K,M] = setup_matrices(obj,problem)
 
@@ -287,8 +264,6 @@ classdef Testing_LOBPCG
                     % Mass matrix: consistent mass (diagonal approximation)
                     M = (rho*A*h) * speye(n);
                     
-                    % Note: This gives eigenvalues related to natural frequencies
-                    % omega_i = sqrt(lambda_i) where lambda_i are eigenvalues of K*M^-1
                 case 3
                     load("MassMatrixRed.mat")
                     load("LHSRed.mat")
