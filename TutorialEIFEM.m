@@ -52,9 +52,15 @@ classdef TutorialEIFEM < handle
 
             
             LHSfun = @(x) LHSr*x;
-            [Meifem,Kcoarse, Mcoarse]       = obj.createEIFEMPreconditioner(dir,iC,lG,bS,iCR,discMesh,radiusMesh);
+            [Meifem,Kcoarse, Mcoarse, EIFEM]       = obj.createEIFEMPreconditioner(dir,iC,lG,bS,iCR,discMesh,radiusMesh);
 
             [lambdaCoarse, PhiCoarse, omega] = obj.computeModalAnalysis(Kcoarse, Mcoarse);
+            for i=1:size(PhiCoarse,2)
+                 PhiFine(:,:,i) = EIFEM.reconstructSolution(PhiCoarse(:,i));
+                 uplot = PhiFine(:,:,i);
+                 uplot = uplot(:);
+                 EIFEMtesting.plotSolution(uplot,discMesh,15,2,i,[],0)
+            end
             % for i = 1:length(radius_to_analyse)
             % 
             % 
@@ -329,7 +335,7 @@ classdef TutorialEIFEM < handle
             RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
         end
 
-        function [Meifem,Kcoarse, Mcoarse] = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh,radiusMesh)
+        function [Meifem,Kcoarse, Mcoarse,eifem] = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh,radiusMesh)
             mR = obj.referenceMesh;
 %             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
 %             EIFEMfilename = obj.fileNameEIFEM;
