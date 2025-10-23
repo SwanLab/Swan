@@ -24,7 +24,7 @@ classdef TutorialFirst < handle
             obj.createDesignVariable();
             obj.createFilterCompliance();
             % obj.createFilterPerimeter();
-            obj.createMaterialInterpolator();
+            %obj.createMaterialInterpolator();
             obj.createElasticProblem();
             % obj.createBaseDomain();
             obj.createComplianceFromConstiutive();
@@ -63,7 +63,7 @@ classdef TutorialFirst < handle
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);
-            
+
             sD.fun      = aFun.project('P1');
             sD.mesh     = obj.mesh;
             sD.type     = 'Density';
@@ -90,28 +90,28 @@ classdef TutorialFirst < handle
         %     obj.filterPerimeter = f;
         % end
 
-        function createMaterialInterpolator(obj)
-            E0   = 1e-3;
-            nu0  = 1/3;
-            E1   = 1;
-            nu1  = 1/3;
-            ndim = 2;
-
-            matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
-            matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
-
-            matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
-            matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
-
-            s.typeOfMaterial = 'ISOTROPIC';
-            s.interpolation  = 'SIMPALL';
-            s.dim            = '2D';
-            s.matA = matA;
-            s.matB = matB;
-
-            m = MaterialInterpolator.create(s);
-            obj.materialInterpolator = m;
-        end
+        % function createMaterialInterpolator(obj)
+        %     E0   = 1e-3;
+        %     nu0  = 1/3;
+        %     E1   = 1;
+        %     nu1  = 1/3;
+        %     ndim = 2;
+        % 
+        %     matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
+        %     matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
+        % 
+        %     matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
+        %     matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
+        % 
+        %     s.typeOfMaterial = 'ISOTROPIC';
+        %     s.interpolation  = 'SIMPALL';
+        %     s.dim            = '2D';
+        %     s.matA = matA;
+        %     s.matB = matB;
+        % 
+        %     m = MaterialInterpolator.create(s);
+        %     obj.materialInterpolator = m;
+        % end
 
         function createElasticProblem(obj)
             s.mesh = obj.mesh;
@@ -249,9 +249,8 @@ classdef TutorialFirst < handle
                     
            
         
-           
-            s.type     = 'PhaseField';
-            s.PFtype   = 'Homogenized';
+            s.density  =  f;
+            s.type     = 'HomogenizedMicrostructure';
             s.mesh     = obj.mesh;
             s.young    = 1.0;
             s.fileName = 'HomogenizationResults';
