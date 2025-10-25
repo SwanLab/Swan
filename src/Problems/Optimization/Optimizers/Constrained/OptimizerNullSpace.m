@@ -89,7 +89,7 @@ classdef OptimizerNullSpace < handle
         end
 
         function obtainGIF(obj)
-            gifName = 'Prova';
+            gifName = 'ProvaGripperLevelSetSegment';
             deltaTime = 0.01;
             m = obj.designVariable.fun.mesh;
             xmin = min(m.coord(:,1));
