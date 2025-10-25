@@ -28,7 +28,7 @@ classdef PerimeterConstraint < handle
             obj.epsilon    = cParams.epsilon;
             obj.minEpsilon = cParams.minEpsilon;
             obj.target     = cParams.target;
-            obj.target0    = obj.target*100;
+            obj.target0    = obj.target*0.02;
             obj.perimeter  = PerimeterFunctional(cParams);
             obj.value0     = cParams.value0;
             obj.valueOld   = -inf;
@@ -51,7 +51,7 @@ classdef PerimeterConstraint < handle
                 obj.epsilon = obj.epsilon/1.01;
                 obj.epsilon = max(obj.epsilon,obj.minEpsilon);
                 obj.perimeter.updateEpsilon(obj.epsilon);
-                obj.target0 = max(obj.target0/1.25,obj.target);
+                obj.target0 = min(obj.target0*1.008,obj.target);
             end
             obj.valueOld = J;
             %end % Será preferible tener una decay constante al inicio y luego más notoria hacia el final (cuando el volumen esta por cumplirse y tenemos muchos grises)

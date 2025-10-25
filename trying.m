@@ -72,3 +72,99 @@ sD.type = 'Density';
 sD.fun = f;
 x = Density(sD);
 p          = pF.computeFunctionAndGradient(x); % 17.2675
+
+
+%% Iso and Ani
+
+clear;
+clc;
+close all;
+
+mesh = TriangleMesh(1,1,200,200);
+h    = mesh.computeMinCellSize();
+
+s.type = 'CircleInclusion';
+s.length = 0.5;
+s.xCoorCenter = 0.5;
+s.yCoorCenter = 0.5;
+s.radius = 0.25;
+g = GeometricalFunction(s);
+ls = g.computeLevelSetFunction(mesh);
+
+sU.backgroundMesh = mesh;
+sU.boundaryMesh = mesh.createBoundaryMesh();
+uMesh = UnfittedMesh(sU);
+uMesh.compute(ls.fValues);
+
+chi = CharacteristicFunction.create(uMesh);
+
+u = 80;
+alpha = 90;
+CAnisotropic = [tand(u),0;0,1/tand(u)];
+R = [cosd(alpha),-sind(alpha)
+    sind(alpha), cosd(alpha)];
+CGlobal = R*CAnisotropic*R';
+
+sF.A     = ConstantFunction.create(CGlobal,mesh);
+sF.trial = LagrangianFunction.create(mesh,1,'P1');
+sF.mesh = mesh;
+sF.filterType = 'PDE';
+sF.boundaryType = 'Neumann';
+sF.metric = 'Isotropy';
+filter = Filter.create(sF);
+filter.updateEpsilon(10*h);
+
+rhoEps = filter.compute(chi,3);
+rhoEps.print('RhoEps')
+
+fun = chi.*(1-rhoEps);
+
+sFF.trial = LagrangianFunction.create(mesh,1,'P1');
+sFF.mesh = mesh;
+filter = FilterLump(sFF);
+int = filter.compute(fun,3);
+int.print('Integrand');
+
+
+%% Segment
+
+clear;
+clc;
+close all;
+
+mesh = TriangleMesh(1,1,200,200);
+h    = mesh.computeMinCellSize();
+
+s.type = 'SquareInclusion';
+s.length = 0.5;
+s.xCoorCenter = 0.5;
+s.yCoorCenter = 0.5;
+s.radius = 0.25;
+g = GeometricalFunction(s);
+ls = g.computeLevelSetFunction(mesh);
+
+sU.backgroundMesh = mesh;
+sU.boundaryMesh = mesh.createBoundaryMesh();
+uMesh = UnfittedMesh(sU);
+uMesh.compute(ls.fValues);
+
+chi = CharacteristicFunction.create(uMesh);
+
+sF.mesh  = mesh;
+sF.alpha = 4;
+sF.beta  = 0;
+sF.theta = 90;
+sF.tol0  = 1e-6;
+filter  = NonLinearFilterSegment(sF);
+filter.updateEpsilon(10*h);
+
+rhoEps = filter.compute(chi,3);
+rhoEps.print('RhoEps')
+
+fun = chi.*(1-rhoEps);
+
+sFF.trial = LagrangianFunction.create(mesh,1,'P1');
+sFF.mesh = mesh;
+filter = FilterLump(sFF);
+int = filter.compute(fun,3);
+int.print('Integrand');

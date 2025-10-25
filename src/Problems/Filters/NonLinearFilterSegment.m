@@ -71,6 +71,7 @@ classdef NonLinearFilterSegment < handle
                 errorVec = [errorVec;error];
             end
             xF.setFValues(obj.trial.fValues);
+            obj.tol = max(obj.tol/1.01,1e-6);
         end
 
         function updateEpsilon(obj,eps)
