@@ -198,14 +198,16 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             %e   = 1e-5;
             h = obj.mesh.computeMeanCellSize;
             e = (h)^2;
-            k0  = 1-e;
+            k0  = 1*(1-e);
             k1  = e; 
-            m0  = 0;
-            m1  = 1-e;
-            p  = 1;
-            s.diffCoef = @(x) k0.*(1-x.^p)+k1*x.^p;
-            %s.diffCoef = @(x) k0.*(1-x).^p+k1;
-            s.massCoef = @(x) m0.*(1-x.^p)+m1*x.^p;
+            m0  = 1;
+            m1  = 1;%*(1-e);
+            p  = 8;
+           % s.diffCoef = @(x) k0.*(1-x.^p)+k1*x.^p;
+            s.diffCoef = @(x) k0.*(1-x).^p+k1;
+           % s.massCoef = @(x) m0.*(1-x.^p)+m1*x.^p;
+            s.massCoef = @(x) m0.*(1-x).^p+m1*x.^p;
+            
             s.dk       = @(x) -k0.*p.*x.^(p-1)+k1.*p.*x.^(p-1);            
             %s.dk       = @(x) k0.*p.*(1-x).^(p-1);            
             s.dm       = @(x) -m0.*p.*x.^(p-1)+m1.*p.*x.^(p-1);

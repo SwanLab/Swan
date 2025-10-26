@@ -8,19 +8,24 @@ classdef EnclosedVoidFunctional < handle
         mesh
         filter
         boundaryConditions
+        boundaryConditionsAdjont
         k
         m
         dm
         dk
         test
         problemSolver        
+        problemSolverAdjoint
+        
     end
 
     methods (Access = public)
         function obj = EnclosedVoidFunctional(cParams)
             obj.init(cParams);
             obj.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            
+            obj.createBoundaryConditionsAdjoint();
+            obj.createSolverAdjoint();
+
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
@@ -135,13 +140,54 @@ classdef EnclosedVoidFunctional < handle
             k   = obj.k(x);
             m   = obj.m(x);
             LHS = IntegrateLHS(@(u,v) DDP(Grad(v),k.*Grad(u)) + DP(v,m.*u),obj.test,obj.test,obj.mesh,'Domain');
-            RHS = IntegrateRHS(@(v) -DP(v,(1-x)),obj.test,obj.mesh,'Domain');
+            RHS = IntegrateRHS(@(v) -DP(v,m.*(1-x)),obj.test,obj.mesh,'Domain');
             s.stiffness = LHS;
             s.forces    = RHS;  
-            [u,~]       = obj.problemSolver.solve(s); 
+            [u,~]       = obj.problemSolverAdjoint.solve(s); 
             lam = LagrangianFunction.create(obj.mesh,1,'P1');
-            lam.setFValues(u);              
+            lam.setFValues(u);
+            plot(1-x)
+            plot(-lam)
+            plot(-lam.*(1-x))
         end
+
+        function createBoundaryConditionsAdjoint(obj)
+            %[~, l2g]  = obj.mesh.createSingleBoundaryMesh();
+
+            %l2g = unique(l2g);
+            %fValues = x.fun.fValues(l2g);
+           % xB = x.fun.restrictBaseToBoundary(bMesh);
+
+            %bF = x.fun.restrictToBoundary();
+            isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1)))   < 1e-12);
+            isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1)))   < 1e-12);
+            isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2))) < 1e-12);
+            isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2))) < 1e-12);
+            sDir{1}.domain    = @(coor) isTop(coor) | isLeft(coor) | isBottom(coor) | isRight(coor);
+            sDir{1}.direction = 1;
+            sDir{1}.value     = 0; %bF.fValues
+            sDir{1}.ndim      = 1;
+            dirichletFun = DirichletCondition(obj.mesh, sDir{1});
+            s.dirichletFun = dirichletFun;
+            s.pointloadFun = [];
+            s.periodicFun  = [];
+            s.mesh = obj.mesh;
+            obj.boundaryConditionsAdjont = BoundaryConditions(s);            
+        end        
+
+        function createSolverAdjoint(obj)
+            s.mesh = obj.mesh;
+            s.boundaryConditions = obj.boundaryConditionsAdjont;           
+            bcA = BCApplier(s);
+            sS.type      = 'DIRECT';
+            solver       = Solver.create(sS);
+            s.solverType = 'REDUCED';
+            s.solverMode = 'DISP';
+            s.solver     = solver;
+            s.boundaryConditions = obj.boundaryConditionsAdjont;
+            s.BCApplier          = bcA;
+            obj.problemSolverAdjoint    = ProblemSolver(s);   
+        end          
 
     end
 
