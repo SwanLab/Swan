@@ -26,6 +26,7 @@ s.mesh  = mesh;
 s.alpha = 4;
 s.beta  = 0;
 s.theta = 90;
+s.tol0   = 1e-6;
 filter  = NonLinearFilterSegment(s);
 filter.updateEpsilon(1);
 
@@ -119,12 +120,27 @@ close all;
 mesh = TriangleMesh(1,1,200,200);
 h    = mesh.computeMinCellSize();
 
-s.type = 'CircleInclusion';
-s.length = 0.5;
-s.xCoorCenter = 0.5;
-s.yCoorCenter = 0.5;
-s.radius = 0.25;
+% s.type = 'CircleInclusion';
+% s.length = 0.5;
+% s.xCoorCenter = 0.5;
+% s.yCoorCenter = 0.5;
+% s.radius = 0.25;
+% g = GeometricalFunction(s);
+
+
+s.type = 'FourPerpendicularBars';
+s.leftBar_xMax = 0.35;   % right edge of left bar
+s.barWidth = 0.1;
+
+s.rightBar_xMin = 1 - s.leftBar_xMax;  % left edge of right bar
+s.bottomBar_yMax = s.leftBar_xMax ; % top edge of bottom bar
+s.topBar_yMin = s.rightBar_xMin;    % bottom edge of top bar
 g = GeometricalFunction(s);
+
+
+
+
+
 ls = g.computeLevelSetFunction(mesh);
 
 sU.backgroundMesh = mesh;

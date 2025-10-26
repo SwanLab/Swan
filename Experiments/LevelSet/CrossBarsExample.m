@@ -25,6 +25,7 @@ classdef CrossBarsExample < handle
             obj.createFilter();
             obj.createSegmentFilter();
             obj.createPerimeter();
+            obj.perimeter.computeFunctionAndGradient(obj.designVariable)
             obj.designVariable.fun.print('Experiments/LevelSet/CantileverLevelSetGlobalSegmentfValues');
         end
 
@@ -37,19 +38,33 @@ classdef CrossBarsExample < handle
         end
 
         function createMesh(obj)
-            obj.mesh = TriangleMesh(2,1,100,50);
+            obj.mesh = TriangleMesh(1,1,100,50);
         end
 
         function createDesignVariable(obj)
-            s.type = 'Full';
-            g      = GeometricalFunction(s);
-            lsFun  = g.computeLevelSetFunction(obj.mesh);
+
+           
+            s.type = 'FourPerpendicularBars';
+            s.leftBar_xMax = 0.35;   % right edge of left bar
+            s.barWidth = 0.1;
+
+            s.rightBar_xMin = 1 - s.leftBar_xMax;  % left edge of right bar
+            s.bottomBar_yMax = s.leftBar_xMax ; % top edge of bottom bar
+            s.topBar_yMin = s.rightBar_xMin;    % bottom edge of top bar
+            
+            
+            
+            g              = GeometricalFunction(s);
+            lsFun          = g.computeLevelSetFunction(obj.mesh);
             s.fun  = lsFun;
             s.mesh = obj.mesh;
             s.type = 'LevelSet';
-            s.plotting = false;
+            s.plotting = true;
             ls     = DesignVariable.create(s);
             obj.designVariable = ls;
+
+
+
         end
 
         function createFilter(obj)
@@ -66,12 +81,26 @@ classdef CrossBarsExample < handle
             s.boundaryMesh   = obj.mesh.createBoundaryMesh();
             uMesh = UnfittedMesh(s);
             uMesh.compute(levelSet);
+       end
+
+        function createIsotropicFilter(obj)
+            s.mesh  = obj.mesh;
+            s.alpha = 4;
+            s.beta  = 2*obj.mesh.computeMeanCellSize();
+            s.theta = 90;
+            s.tol0  = 1e-6;
+            obj.filterIso  = NonLinearFilterSegment(s);
+        end       
+
+        function createAnisotropicFilter(obj)
+
+
         end
 
         function createSegmentFilter(obj)
             s.mesh  = obj.mesh;
             s.alpha = 4;
-            s.beta  = 0;
+            s.beta  = 2*obj.mesh.computeMeanCellSize();
             s.theta = 90;
             s.tol0  = 1e-6;
             obj.filterSegment  = NonLinearFilterSegment(s);
