@@ -1,4 +1,4 @@
-classdef PerimeterDensity < handle
+classdef PerimeterLevelSet < handle
 
     properties (Access = private)
         mesh
@@ -14,7 +14,7 @@ classdef PerimeterDensity < handle
 
     methods (Access = public)
 
-        function obj = PerimeterDensity()
+        function obj = PerimeterLevelSet()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -48,9 +48,9 @@ classdef PerimeterDensity < handle
             ls = g.computeLevelSetFunction(obj.mesh);
             
             sD.fun      = LagrangianFunction.create(obj.mesh,1,'P1');
-            sD.fun.setFValues(1-heaviside(ls.fValues));
+            sD.fun.setFValues(ls.fValues);
             sD.mesh     = obj.mesh;
-            sD.type     = 'Density';
+            sD.type     = 'LevelSet';
             sD.plotting = true;
             dens        = DesignVariable.create(sD);
             obj.designVariable = dens;
@@ -113,11 +113,8 @@ classdef PerimeterDensity < handle
         end
 
         function createPrimalUpdater(obj)
-            s.ub     = 1;
-            s.lb     = 0;
-            s.tauMax = 1000;
-            s.tau    = [];
-            obj.primalUpdater = ProjectedGradient(s);
+            s.mesh = obj.mesh;
+            obj.primalUpdater = SLERP(s);
         end
 
         function createOptimizer(obj)
@@ -129,10 +126,13 @@ classdef PerimeterDensity < handle
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.etaNorm        = 0.01;
+            s.etaNormMin = 0.01;
+            s.etaMax = 10;
+            s.etaMaxMin = 0.1;
             s.gif = false;
             s.gifName = [];
             s.printing = true;
-            s.printName = 'Results/DensitySegment';
+            s.printName = 'Results/LevelSetSegment';
             s.gJFlowRatio    = 2;
             s.primalUpdater  = obj.primalUpdater;
             opt = OptimizerNullSpace(s);
