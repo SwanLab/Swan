@@ -41,7 +41,7 @@ classdef PerimeterDensity < handle
 
         function createDesignVariable(obj)
             s.type = 'SquareInclusion';
-            s.length = sqrt(0.15);
+            s.length = 0.35;
             s.xCoorCenter = 0.5;
             s.yCoorCenter = 0.5;
             g = GeometricalFunction(s);
@@ -96,7 +96,7 @@ classdef PerimeterDensity < handle
             s.mesh    = obj.mesh;
             s.uMesh   = obj.createBaseDomain();
             s.filter  = obj.filter;
-            s.epsilon = 5*h;
+            s.epsilon = 10*h;
             s.value0  = 1;
             obj.perimeter = PerimeterFunctional(s);
         end
@@ -136,12 +136,12 @@ classdef PerimeterDensity < handle
             s.maxIter        = 1200;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.etaNorm        = 0.01;
+            s.etaNorm        = 0.1;
             s.gif = false;
             s.gifName = [];
             s.printing = true;
             s.printName = 'Results/DensityEllipseVertical';
-            s.gJFlowRatio    = 1;
+            s.gJFlowRatio    = 0.2;
             s.primalUpdater  = obj.primalUpdater;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();

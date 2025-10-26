@@ -101,6 +101,7 @@ classdef OptimizerNullSpace < handle
 
         function obtainGIF(obj)
             if obj.gif && obj.nIter/10==round(obj.nIter/10)
+                set(0,'DefaultFigureVisible','off');
                 deltaTime = 0.01;
                 m = obj.designVariable.fun.mesh;
                 xmin = min(m.coord(:,1));
@@ -149,6 +150,7 @@ classdef OptimizerNullSpace < handle
                     imwrite(A,map,gifname,"gif","WriteMode","append","DelayTime",deltaTime);
                 end
                 close(gifFig);
+                set(0,'DefaultFigureVisible','on');
             end
         end
 
