@@ -14,7 +14,7 @@ classdef PerimeterDensity < handle
 
     methods (Access = public)
 
-        function obj = PerimeterDensity() % filterType
+        function obj = PerimeterDensity()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -25,9 +25,6 @@ classdef PerimeterDensity < handle
             obj.createConstraint();
             obj.createPrimalUpdater();
             obj.createOptimizer();
-
-%             saveas(gcf,'Experiments/Density/PerimeterDensity.fig');
-%             obj.designVariable.fun.print('Experiments/Density/CantileverDensityGlobalSegmentfValues');
         end
 
     end
@@ -44,17 +41,16 @@ classdef PerimeterDensity < handle
 
         function createDesignVariable(obj)
             s.type = 'SquareInclusion';
-            s.length = 0.35;
+            s.length = sqrt(0.15);
             s.xCoorCenter = 0.5;
             s.yCoorCenter = 0.5;
             g = GeometricalFunction(s);
             ls = g.computeLevelSetFunction(obj.mesh);
             
             sD.fun      = LagrangianFunction.create(obj.mesh,1,'P1');
-            %sD.fun.setFValues(1-heaviside(ls.fValues));
-            sD.fun.setFValues(ls.fValues);
+            sD.fun.setFValues(1-heaviside(ls.fValues));
             sD.mesh     = obj.mesh;
-            sD.type     = 'LevelSet';
+            sD.type     = 'Density';
             sD.plotting = true;
             dens        = DesignVariable.create(sD);
             obj.designVariable = dens;
@@ -79,12 +75,20 @@ classdef PerimeterDensity < handle
         end
 
         function createFilter(obj)
-            s.mesh  = obj.mesh;
-            s.alpha = 1;
-            s.beta  = 0;
-            s.theta = 90;
-            s.tol0  = 1e-6;
-            obj.filter  = NonLinearFilterSegment(s);
+            u = 70;
+            alpha = 90;
+            CAnisotropic = [tand(u),0;0,1/tand(u)];
+            R = [cosd(alpha),-sind(alpha)
+                sind(alpha), cosd(alpha)];
+            CGlobal = R*CAnisotropic*R';
+
+            sF.A     = ConstantFunction.create(CGlobal,obj.mesh);
+            sF.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            sF.mesh = obj.mesh;
+            sF.filterType = 'PDE';
+            sF.boundaryType = 'Neumann';
+            sF.metric = 'Anisotropy';
+            obj.filter = Filter.create(sF);
         end
 
         function createPerimeter(obj)
@@ -117,14 +121,11 @@ classdef PerimeterDensity < handle
         end
 
         function createPrimalUpdater(obj)
-%             s.ub     = 1;
-%             s.lb     = 0;
-%             s.tauMax = 1000;
-%             s.tau    = [];
-%             obj.primalUpdater = ProjectedGradient(s);
-
-            s.mesh = obj.mesh;
-            obj.primalUpdater = SLERP(s);
+            s.ub     = 1;
+            s.lb     = 0;
+            s.tauMax = 1000;
+            s.tau    = [];
+            obj.primalUpdater = ProjectedGradient(s);
         end
 
         function createOptimizer(obj)
@@ -132,14 +133,15 @@ classdef PerimeterDensity < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 1200;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.etaNorm        = 0.01;
-            s.etaNormMin = 0.01;
-            s.etaMax = 1;
-            s.etaMaxMin = 0.05;
-            s.gJFlowRatio    = 0.2;
+            s.gif = false;
+            s.gifName = [];
+            s.printing = true;
+            s.printName = 'Results/DensityEllipseVertical';
+            s.gJFlowRatio    = 1;
             s.primalUpdater  = obj.primalUpdater;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
