@@ -36,7 +36,7 @@ classdef PerimeterDensity < handle
         end
 
         function createMesh(obj)
-            obj.mesh = TriangleMesh(1,1,200,200);
+            obj.mesh = TriangleMesh(1,1,80,80);
         end
 
         function createDesignVariable(obj)
