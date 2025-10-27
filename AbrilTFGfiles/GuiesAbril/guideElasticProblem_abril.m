@@ -1,5 +1,12 @@
 classdef guideElasticProblem_abril < handle
 
+    % This code is used to learn how to compute the Elastic Problem for a
+    % the coarse space. The mesh and geometry of the problem consists of a
+    % square with a circular hole of radius r inputted to the program. 
+    % There are slight variations from the original code, since it does not
+    % take into account the scaling problem between the cases of different
+    % r
+
     properties (Access = public)
         stiffness
         strain
@@ -44,7 +51,7 @@ classdef guideElasticProblem_abril < handle
             for i=1:8
                z.fValues   = reshape(u(:,i),[obj.mesh.ndim,obj.mesh.nnodes])';
                uFeFun = LagrangianFunction(z);%
-               fileName = ['intent' num2str(i)];
+               fileName = ['trialGuide' num2str(i)];
                uFeFun.print(fileName,'Paraview');
             end
         end
@@ -104,10 +111,12 @@ classdef guideElasticProblem_abril < handle
         function [u,L]=doElasticProblemHere(obj)
             s=obj.createFEMContainer();        % Inicialitza les dades pel solver
             obj.createDisplacementFunHere();   % Crea la funcion de FE pels desplaçaments
-            obj.createBCApplyerHere(s);        % Crea les BC --> dubte de si es necessari
+           % obj.createBCApplyerHere(s);        % Crea les BC --> dubte de si es necessari
             obj.createSolverHere(s)            
             obj.computeStiffnessMatrixHere();  % crea la matriu K
-            obj.computeForcesHere(s);          % crea el vector F
+           % obj.computeForcesHere(s);         % crea el vector F --> Aqui
+                                               % no es necessari pq ell el calcula diferent
+
              c = obj.computeCmatP1();          % crea la matriu c
              rdir = obj.RHSdir();              % crea els vectors u_d
             [u, L]  = obj.computeDisplacementHere(c, rdir);
@@ -120,7 +129,7 @@ classdef guideElasticProblem_abril < handle
                 obj.createMaterial();   % Defineix les propietats del material, si es isotropic, elastic, etc
                 s.material = obj.material;
                 s.dim      = '2D';          % Dimensions del problema
-                s.boundaryConditions = obj.createBoundaryConditions(); % Revisar perque no crec que sigui necessari
+               % s.boundaryConditions = obj.createBoundaryConditions(); % Revisar perque no crec que sigui necessari
                 s.interpolationType  = 'LINEAR';
                 s.solverType         = 'MONOLITHIC';
                 s.solverMode         = 'DISP';
@@ -252,9 +261,9 @@ classdef guideElasticProblem_abril < handle
                 p.solverType = cParams.solverType; % e.g 'Reduced' 'monolithic'
                 p.solverMode = cParams.solverMode; %'DIRECT'
                 p.solver     = solver;    
-                p.boundaryConditions = cParams.boundaryConditions;
+%                p.boundaryConditions = cParams.boundaryConditions;
                 p.BCApplier          = obj.bcApplier;
-                obj.problemSolver    = ProblemSolver(p);
+%                obj.problemSolver    = ProblemSolver(p);
             end
 
 
@@ -275,7 +284,7 @@ classdef guideElasticProblem_abril < handle
                 n.type     = 'Elastic';
                 n.scale    = 'MACRO';
                 n.dim      = obj.getFunDimsHere();
-                n.BC       = cParams.boundaryConditions;
+               % n.BC       = cParams.boundaryConditions;
                 n.mesh     = obj.mesh;
                 n.material = obj.material;
                 n.globalConnec = obj.mesh.connec;

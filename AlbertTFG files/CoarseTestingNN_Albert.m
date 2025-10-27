@@ -37,26 +37,26 @@ classdef CoarseTestingNN_Albert < handle
 
             mR = obj.createReferenceMesh();
             bS  = mR.createBoundaryMesh();
-            [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain(mR);
+            [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain(mR); 
             obj.meshDomain = mD;
-            obj.cellMeshes = mSb;
-            obj.ic = iC;
-            obj.icr = iCR;
-            obj.lg = lG;
-            obj.bs;
+            obj.cellMeshes = mSb; %???
+            obj.ic = iC;  %??
+            obj.icr = iCR; %??
+            obj.lg = lG; %??
+            obj.bs; %??
 
             [bC,dir] = obj.createBoundaryConditions(obj.meshDomain);
             obj.boundaryConditions = bC;
             obj.createBCapplier()
 
-            [LHS,RHS,LHSf] = obj.createElasticProblem();
+            [LHS,RHS,LHSf] = obj.createElasticProblem();  %QUE ES LHSF
             obj.LHS = LHSf;
             %             LHS = 0.5*(LHS+LHS');
 
             LHSf = @(x) LHS*x;
             RHSf = RHS;
             Usol = LHS\RHS;
-            Ufull = obj.bcApplier.reducedToFullVectorDirichlet(Usol);
+            Ufull = obj.bcApplier.reducedToFullVectorDirichlet(Usol);  %AIXO PQ SERVIEX???
             %obj.plotSolution(Ufull,obj.meshDomain,1,1,0,obj.bcApplier,0)
 
             % Meifem       = obj.createEIFEMPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
@@ -554,7 +554,7 @@ classdef CoarseTestingNN_Albert < handle
             if obj.NNcase == 1
                 for i = 1:obj.nSubdomains(1,2)
                     for j = 1:obj.nSubdomains(1,1)
-                        K = cat(3,K,obj.case12(obj.NN(i,j), identity )  );
+                        K = cat(3,K,obj.case12(obj.NN(i,j), identity )  ); %seria la K coarse
  
                    end
                 end
@@ -621,7 +621,7 @@ classdef CoarseTestingNN_Albert < handle
         end
 
 
-        function k = case12(~, NN, identity)
+        function k = case12(~, NN, identity) %Calcula columna K
             k = [];
             for l=1:8
                 k = cat(1, k, NN.computeOutputValues( identity(l,:) )  );
