@@ -3,6 +3,7 @@ classdef ElasticProblemMicro < handle
     properties (Access = public)
         uFluc, strain, stress
         Chomog
+        Cvoigt
     end
 
     properties (Access = private)
@@ -39,6 +40,8 @@ classdef ElasticProblemMicro < handle
                 obj.convertChomogToFourthOrder(ChiB,v,iB);
             end
             obj.uFluc  = uF;
+            % Convert tensor to voigt!
+            obj.convertChomogToVoigt;
             obj.strain = strainF;
             obj.stress = stressF;
         end
@@ -169,6 +172,27 @@ classdef ElasticProblemMicro < handle
 
         function Chomog = computeChomog(obj,stress)
             Chomog = Integrator.compute(stress,obj.mesh,2);
+        end
+
+        function convertChomogToVoigt(obj)
+            C = obj.Chomog;
+            C_voigt = zeros(3,3);
+        
+            map = [1 3; 3 2];  
+        
+            for i = 1:2
+                for j = 1:2
+                    m = map(i,j);
+                    for k = 1:2
+                        for l = 1:2
+                            n = map(k,l);
+                            C_voigt(m,n) = C_voigt(m,n) + C(i,j,k,l);
+                        end
+                    end
+                end
+            end
+            obj.Cvoigt = C_voigt;
+
         end
 
         function convertChomogToFourthOrder(obj,ChiB,v,iB)

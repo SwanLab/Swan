@@ -64,14 +64,19 @@ classdef DensityBasedMaterial < handle
             rho = obj.density;
             [mu,kappa] = mI.computeConsitutiveTensor(rho);
             m = obj.createMaterial(mu,kappa);
-            Rot = [cos(45) -sin(45) 0;
-                sin(45) cos(45) 0;
-                0 0 1];
+            % Rot = [cos(45) -sin(45) 0;
+            %     sin(45) cos(45) 0;
+            %     0 0 1];
+            % ZERO ORIENTATION 
             C_voigt = [ 0.5   0.001  0;
                 0.001  0.0022 0;
                 0      0      0.19];
-            C_voigtRot = Rot'*C_voigt*Rot;
-            C = m.evaluate(xV,C_voigtRot);
+            % C_voigtRot = Rot'*C_voigt*Rot;
+            % 0º AND 90º FIBERS 2 CAPES
+             C_voigt = [ 0.2076   0.0171  0;
+                0.0171  0.2076 0;
+                0      0      0.0175];
+            C = m.evaluate(xV,C_voigt);
             rhoEv = rho{1}.evaluate(xV);
             nGauss = size(rhoEv,2);
             nElem = size(rhoEv,3);
@@ -84,14 +89,19 @@ classdef DensityBasedMaterial < handle
             rho = obj.density;
             [mu,kappa] = mI.computeConsitutiveTensor(rho);
             m = obj.createMaterial(mu,kappa);
-            Rot = [cos(45) -sin(45) 0;
-                sin(45) cos(45) 0;
-                0 0 1];
+             % Rot = [cos(45) -sin(45) 0;
+            %     sin(45) cos(45) 0;
+            %     0 0 1];
+            % ZERO ORIENTATION 
             C_voigt = [ 0.5   0.001  0;
                 0.001  0.0022 0;
                 0      0      0.19];
-            C_voigtRot = Rot'*C_voigt*Rot;
-            C = m.evaluate(xV,C_voigtRot);
+            % C_voigtRot = Rot'*C_voigt*Rot;
+            % 0º AND 90º FIBERS 2 CAPES
+             C_voigt = [ 0.2076   0.0171  0;
+                0.0171  0.2076 0;
+                0      0      0.0175];
+            C = m.evaluate(xV,C_voigt);
             rhoEv = rho{1}.evaluate(xV);
             nGauss = size(rhoEv,2);
             nElem = size(rhoEv,3);

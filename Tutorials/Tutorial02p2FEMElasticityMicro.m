@@ -22,7 +22,7 @@ classdef Tutorial02p2FEMElasticityMicro < handle
     methods (Access = private)
         
         function createMesh(obj)
-            fullmesh = UnitTriangleMesh(20,20);
+            fullmesh = UnitTriangleMesh(200,200);
             ls = obj.computeCircleLevelSet(fullmesh);
             sUm.backgroundMesh = fullmesh;
             sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
