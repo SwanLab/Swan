@@ -7,7 +7,7 @@ clc; clear; close all;
 r=0.4130;
 
 K_all=zeros(8,8,length(r));
-
+U_all=zeros(880,8,length(r));
 % Obtains the K coarse for each radius
 guideElasticProblem_abril(0.1)
 
@@ -16,7 +16,11 @@ for j = 1:size(r,2)
     auxl = [];
     
     [~, u, l, mesh,Kcoarse] = LevelSetInclusionAuto_abril(r(j),1);
+
     K_all(:,:,j)=Kcoarse;
+    U_all(:,:,j)=u;
+    
+    coordReshape= mesh.coord(repelem(1:size(mesh.coord,1), 2), :);
 
     %Designa un nom per cada linea corresponent a un radi
     string = strrep("UL_r"+num2str(r(j), '%.4f'), ".", "_")+"-20x20"+".mat"; 
@@ -28,16 +32,16 @@ for j = 1:size(r,2)
 
     % Guarda el workspace per cert radi
     %FileName=fullfile('AbrilTFGfiles','DataVariables',string)
-    FileName=fullfile('AbrilTFGfiles','DataComparison',string)
-    save(FileName, "U", "L", "K","mesh","R"); 
+    kFileName=fullfile('AbrilTFGfiles','DataComparison',string)
+    save(kFileName, "U", "L", "K","mesh","R"); 
 end
 
 
 
 
-%% Reshapes the data and saves it in a csv file
+%% Reshapes the K data and saves it in a csv file
 
-data=zeros(size(r,2),36);
+kdata=zeros(size(r,2),36);
 for n=1:size(r,2)
     triangSup=triu(K_all(:,:,n));  %gets the triangular superior matrix
     clear row;
@@ -47,10 +51,17 @@ for n=1:size(r,2)
             row(end+1)=triangSup(i,j);
         end
     end
-    data(n,:)=row;
+    kdata(n,:)=row;
 end
 
-data=[r.',data];
+kdata=[r.',kdata];
+kFileName = fullfile('AbrilTFGfiles', 'Kdata.csv');
+writematrix(kdata,kFileName);
 
-FileName = fullfile('AbrilTFGfiles', 'Kdata.csv');
-writematrix(data,FileName);
+
+%% Reshapes the U data and saves it in a csv file
+
+%reshaping coordinates since the Us are disposed as [ux1,uy1,ux2,uy2] for
+%every coordinate
+
+coordReshape= mesh.coord(repelem(1:size(mesh.coord,1), 2), :);

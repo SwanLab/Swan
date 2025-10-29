@@ -76,7 +76,7 @@ classdef LevelSetInclusionAuto_abril < handle
              uMesh    = obj.computeUnfittedMesh(bgMesh,lvSet);
              obj.mesh = uMesh.createInnerMesh();
             %obj.mesh = bgMesh;
-            % 
+             
             obj.boundaryMesh = obj.mesh.createBoundaryMesh();
             [obj.boundaryMeshJoined, obj.localGlobalConnecBd] = obj.mesh.createSingleBoundaryMesh();
         end
@@ -253,10 +253,10 @@ classdef LevelSetInclusionAuto_abril < handle
         function [u, L] = doElasticProblemHere(obj)
             s = obj.createElasticProblem();
             obj.createDisplacementFunHere();
-            obj.createBCApplyerHere(s);
+            %obj.createBCApplyerHere(s);
             obj.createSolverHere(s)
             obj.computeStiffnessMatrixHere();
-            obj.computeForcesHere(s);
+            %obj.computeForcesHere(s);
              c = obj.computeCmatP1();
              rdir = obj.RHSdir();
             [u, L]  = obj.computeDisplacementHere(c, rdir);
@@ -364,7 +364,7 @@ classdef LevelSetInclusionAuto_abril < handle
             lhs = LHSintegrator_ShapeFunction_fun(s);
             % lhs = LHSintegrator_MassBoundary_albert(s);
             test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); % !!
-            ndimf  = 2;
+            ndimf  = 2; 
             Lx     = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
             Ly     = max(obj.mesh.coord(:,2)) - min(obj.mesh.coord(:,2));
 %             f1 = @(x) [1/(4*Lx/2*Ly/2)*(1-x(1,:,:)).*(1-x(2,:,:));...
