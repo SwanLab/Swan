@@ -10,7 +10,7 @@ function LHS = IntegrateLHS(f,test,trial,mesh,type,quadOrder)
             LHS = assembleMatrix(lhs,test,trial);
         case 'Boundary'
             [bMesh, l2g] = mesh.createSingleBoundaryMesh();
-            [bTest,bTrial,iGlob,jGlob] = restrictTestTrialToBoundary(bMesh,test,trial,l2g);
+            [bTest,bTrial,iGlob,jGlob] = restrictTestTrialToBoundary(test,trial,l2g);
             lhsLoc = IntegrateLHS(f,bTest,bTrial,bMesh,'Domain',quadOrder);
             [iLoc,jLoc,vals] = find(lhsLoc);
             LHS = sparse(iGlob(iLoc),jGlob(jLoc),vals, test.nDofs,trial.nDofs);
@@ -59,19 +59,19 @@ function A = assembleMatrix(Aelem,f1,f2)
     A = sparse(rowIdx, colIdx, values, nDofs1, nDofs2);
 end
 
-function [bTest, bTrial, iGlob, jGlob] = restrictTestTrialToBoundary(bMesh, test, trial, l2g)
+function [bTest, bTrial, iGlob, jGlob] = restrictTestTrialToBoundary(test, trial, l2g)
     lastDofs = (l2g * test.ndimf)';
     l2g_dof = zeros(length(lastDofs),test.ndimf);
     for i = 1:test.ndimf
         l2g_dof(:,i) = lastDofs - (test.ndimf-i);
     end
-    [bTest, iGlob] = restrictFunc(bMesh,test,l2g_dof);
-    [bTrial,jGlob] = restrictFunc(bMesh,trial,l2g_dof);
+    [bTest, iGlob] = restrictFunc(test,l2g_dof);
+    [bTrial,jGlob] = restrictFunc(trial,l2g_dof);
 end
 
-function [bFunc, gFunc] = restrictFunc(bMesh,func,l2g_map)
+function [bFunc, gFunc] = restrictFunc(func,l2g_map)
     if func.mesh.kFace == 0
-        bFunc = func.restrictBaseToBoundary(bMesh,l2g_map);
+        bFunc = func.restrictToBoundary();
         l2g_map = reshape(l2g_map',[],1);
         gFunc = @(iLoc) l2g_map(iLoc);
     else
