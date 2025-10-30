@@ -8,12 +8,14 @@ classdef EIFEM < handle
         RVE
         mesh
         DirCond
+        weight
     end
 
     properties (Access = private)
         LHS
         Kel
         boundaryConditions
+        ddDofManager
         bcApplier
         assembler
         dispFun
@@ -47,9 +49,9 @@ classdef EIFEM < handle
 
         function M = reduceMatrix(obj,M)
            M =  obj.bcApplier.fullToReducedMatrixDirichlet(M);
-        end
+        end       
 
-         function u = reconstructSolution(obj,uCoarse)
+        function u = reconstructSolution(obj,uCoarse)
             uCoarse = obj.bcApplier.reducedToFullVectorDirichlet(uCoarse);
             nElem = obj.mesh.nelem;
             Udef  = obj.RVE.Udef;
@@ -88,6 +90,33 @@ classdef EIFEM < handle
             A = sparse(rowIdx, colIdx, values, nDofs1, nDofs2);
         end
 
+        function uC = computeContinousField(obj,uD)
+            fS  = obj.ddDofManager.scaleInterfaceValues(uD,obj.weight);         %scale
+            fG  = obj.ddDofManager.local2global(fS);   %assemble
+            uC  = sum(fG,2);                           %assemble
+            %uC  = obj.bcApplier.fullToReducedVectorDirichlet(uC);
+        end
+
+        function uFine = injectCoarseToFineBoundary(obj, uCoarse)
+            % 1) undo Dirichlet reduction on the *coarse* vector
+            uCfull = obj.bcApplier.reducedToFullVectorDirichlet(uCoarse);
+        
+            % 2) build a local (discontinuous) vector with ONLY interface/boundary dofs set
+            %    (same shape you pass to ddDofManager.local2global later)
+            %    Start by expanding the *global* coarse values to local-by-subdomain copies:
+            %uD = obj.ddDofManager.global2local(uCfull);         % scatter to subdomains
+            uD = obj.ddDofManager.scaleInterfaceValues(uD, 0.5);% optional: same weights you use elsewhere
+        
+            % 3) assemble the discontinuous copies back to the global fine vector
+            fG  = obj.ddDofManager.local2global(uD);            % assemble (sum into global)
+            uFine = sum(fG,2);                                   % global fine vector length = discMesh.ndim*discMesh.nnodes
+        
+            % 4) zero out interior fine DOFs if needed (optional):
+            %    keep only boundary nodes; if you have a mask of interface dofs, apply it here
+            % mask = obj.ddDofManager.interfaceMaskGlobal();     % (illustrative)
+            % uFine(~mask) = 0;
+        end
+
     end
 
     methods (Access = private)
@@ -99,6 +128,8 @@ classdef EIFEM < handle
             obj.DirCond = cParams.DirCond;
 %             obj.dispFun = LagrangianFunction.create(obj.mesh, obj.RVE.ndimf,'P1');
             obj.dispFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim,'P1');
+            obj.ddDofManager = cParams.ddDofManager;
+            obj.weight       = 0.5;
         end
 
         function LHS = computeLHS(obj)

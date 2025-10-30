@@ -38,6 +38,13 @@ classdef PreconditionerEIFEM < handle
             z  = uC; 
         end
 
+        function uC = computeContinousField(obj,uD)
+            fS  = obj.ddDofManager.scaleInterfaceValues(uD,obj.weight);         %scale
+            fG  = obj.ddDofManager.local2global(fS);   %assemble
+            uC  = sum(fG,2);                           %assemble
+            uC  = obj.bcApplier.fullToReducedVectorDirichlet(uC);
+        end
+
     end
 
     methods (Access = private)
@@ -58,12 +65,7 @@ classdef PreconditionerEIFEM < handle
             Rd = obj.ddDofManager.scaleInterfaceValues(Rd,obj.weight);    %scale
         end
 
-        function uC = computeContinousField(obj,uD)
-            fS  = obj.ddDofManager.scaleInterfaceValues(uD,obj.weight);         %scale
-            fG  = obj.ddDofManager.local2global(fS);   %assemble
-            uC  = sum(fG,2);                           %assemble
-            uC  = obj.bcApplier.fullToReducedVectorDirichlet(uC);
-        end
+       
 
     end
 
