@@ -69,7 +69,7 @@ chi = ProjectToVolumeConstraint(rho,vol);
 close all
 chi.plot()
 drawnow
-volCon = computeVolumeConstraint(chi,vol)
+volCon = computeVolumeConstraint(chi,vol);
 end
 
 end
@@ -85,11 +85,12 @@ I = eye(2);
 r = alpha^2/tau;
 dm = createTensorFunction(A+r*I,m);
 s = createSigmaFunction(m);
-
 M  = IntegrateLHS(@(u,v) DP(v,DP(dm,u)),s,s,m,'Domain');
-eps = (4*m.computeMeanCellSize());
-K  = IntegrateLHS(@(u,v) eps*DDP(Grad(v),Grad(u)),s,s,m,'Domain');
-LHS = M + K;
+%eps = (4*m.computeMeanCellSize());
+%K  = IntegrateLHS(@(u,v) eps*DDP(Grad(v),Grad(u)),s,s,m,'Domain');
+%LHS = M + K;
+%LHS = diag(sum(M));
+LHS = M;
 F  = IntegrateRHS(@(v) DP(v,z),s,m,'Domain');
 sV = full(LHS\F);
 sV = reshape(sV,[s.ndimf,m.nnodes])';
@@ -115,8 +116,16 @@ deltaS = tA*(z + (alpha^2-2)*zk.*k.' - tB.*((z2-2*zk.^2).*k.' + zk.*z));
 s      = s1 + (alpha*zk - sqrt(z2) > 0).*deltaS;
 end
 
-function rho = proximalL2Projection(rho,Chi,tauG)
-rho = project(rho + tauG*Chi,'P1');
+function rhoN = proximalL2Projection(rho,Chi,tauG)
+M  = IntegrateLHS(@(u,v) DP(v,u),Chi,Chi,rho.mesh,'Domain');
+LHS = diag(sum(M));
+F  = IntegrateRHS(@(v) DP(v,rho + tauG*Chi),Chi,Chi.mesh,'Domain');
+rhoV = full(LHS\F);
+rhoV = reshape(rhoV,[rho.ndimf,Chi.mesh.nnodes])';
+rhoN = createRho(rho.mesh);
+rhoN.setFValues(rhoV);
+
+%rho = project(rho + tauG*Chi,'P1');
 end
 
 function [u,z] = solveWithChambollePockAlgorithm(u0,z0,proxF,proxG,tauF,tauG,thetaRel)
