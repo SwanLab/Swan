@@ -7,7 +7,7 @@ r = linspace(0,1,200);
 %r=0.4130;
 
 K_all=zeros(8,8,length(r));
-U_all=zeros(4901,19,length(r));
+U_all=zeros(761,19,length(r));
 
 % Obtains the K coarse for each radius
 guideElasticProblem_abril(0.1)
@@ -34,8 +34,8 @@ for j = 1:size(r,2)
     K         = Kcoarse;
 
     % Guarda el workspace per cert radi
-    %FileName=fullfile('AbrilTFGfiles','DataVariables',string)
-    FileName=fullfile('AbrilTFGfiles','DataComparison',string);
+    FileName=fullfile('AbrilTFGfiles','DataVariables',string)
+    %FileName=fullfile('AbrilTFGfiles','DataComparison',string);
     save(FileName, "U", "L", "K","mesh","R"); 
 end
 
@@ -53,8 +53,8 @@ T=array2table(Udata,"VariableNames",{'r','x','y','Tx1','Tx2','Tx3','Tx4','Tx5','
     'Ty1','Ty2','Ty3','Ty4','Ty5','Ty6','Ty7','Ty8'});
 
 uFileName = fullfile('AbrilTFGfiles', 'Udata.csv');
-writematrix(Udata,uFileName);
-%writetable(T,uFileName);
+%writematrix(Udata,uFileName);
+writetable(T,uFileName);
 
 
 

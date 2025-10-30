@@ -84,8 +84,8 @@ classdef LevelSetInclusionAuto_abril < handle
         function mesh = createReferenceMesh(~)
            
              %UnitMesh better
-            x1      = linspace(-1,1,50);
-            x2      = linspace(-1,1,50);
+            x1      = linspace(-1,1,20);
+            x2      = linspace(-1,1,20);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
