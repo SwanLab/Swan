@@ -1,4 +1,4 @@
-classdef GripperLevelSetGlobalSegment < handle
+classdef GripperLevelSetCircle < handle
 
     properties (Access = private)
         filename
@@ -9,8 +9,6 @@ classdef GripperLevelSetGlobalSegment < handle
         physicalProblem
         compliance
         volume
-        filterPerimeter
-        perimeter
         cost
         constraint
         primalUpdater
@@ -19,7 +17,7 @@ classdef GripperLevelSetGlobalSegment < handle
 
     methods (Access = public)
 
-        function obj = GripperLevelSetGlobalSegment()
+        function obj = GripperLevelSetCircle()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -28,15 +26,13 @@ classdef GripperLevelSetGlobalSegment < handle
             obj.createElasticProblem();
             obj.createCompliance();
             obj.createVolumeConstraint();
-            obj.createSegmentFilter();
-            obj.createPerimeterConstraint();
             obj.createCost();
             obj.createConstraint();
             obj.createPrimalUpdater();
             obj.createOptimizer();
 
-            saveas(gcf,'Experiments/LevelSet/GripperLevelSetGlobalSegment.fig');
-            obj.designVariable.fun.print('Experiments/LevelSet/GripperLevelSetGlobalSegmentfValues');
+            saveas(gcf,'Experiments/LevelSet/GripperLevelSetCircle.fig');
+            obj.designVariable.fun.print('Experiments/LevelSet/GripperLevelSetCirclefValues');
         end
 
     end
@@ -68,10 +64,12 @@ classdef GripperLevelSetGlobalSegment < handle
         end
 
         function createFilter(obj)
-            s.filterType = 'LUMP';
+            h = obj.mesh.computeMinCellSize();
+            s.filterType = 'PDE';
             s.mesh  = obj.mesh;
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
+            f.updateEpsilon(2.5*h);
             obj.filter = f;
         end
 
@@ -141,33 +139,11 @@ classdef GripperLevelSetGlobalSegment < handle
 
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
-            s.filter = obj.filterPerimeter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
             s.volumeTarget = 0.35;
             s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
-        end
-
-        function createSegmentFilter(obj)
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.mesh = obj.mesh;
-            s.filterType = 'PDE';
-            s.boundaryType = 'Neumann';
-            s.metric = 'Isotropy';
-            obj.filterPerimeter = Filter.create(s);
-        end
-
-        function createPerimeterConstraint(obj)
-            h         = obj.mesh.computeMinCellSize();
-            s.mesh    = obj.mesh;
-            s.uMesh   = obj.createBaseDomain();
-            s.filter  = obj.filter;
-            s.epsilon = 2*h;
-            s.minEpsilon = 2*h;
-            s.value0  = 1;
-            s.target = 6.2727*0.5;
-            obj.perimeter = PerimeterConstraint(s);
         end
 
         function createCost(obj)
@@ -185,7 +161,6 @@ classdef GripperLevelSetGlobalSegment < handle
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
-            s.shapeFunctions{2} = obj.perimeter;
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
@@ -202,13 +177,17 @@ classdef GripperLevelSetGlobalSegment < handle
             s.designVariable = obj.designVariable;
             s.maxIter        = 3000;
             s.tolerance      = 1e-8;
-            s.constraintCase = {'INEQUALITY','INEQUALITY'};
-            s.etaNorm        = 0.001;
-            s.etaNormMin = 0.001;
+            s.constraintCase = {'INEQUALITY'};
+            s.etaNorm        = 0.01;
+            s.etaNormMin = 0.01;
             s.etaMax = 10;
             s.etaMaxMin = 0.1;
-            s.gJFlowRatio    = 2.5;
+            s.gJFlowRatio    = 0.25;
             s.primalUpdater  = obj.primalUpdater;
+            s.gif = false;
+            s.gifName = [];
+            s.printing = false;
+            s.printName = [];
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

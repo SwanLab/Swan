@@ -165,7 +165,7 @@ classdef SLERP < handle
 
     methods (Static, Access = private)
         function [lsClass,gClass] = getLevelSetAndGradientForVolume(ls,g)
-            lsC     = ls{1}.obtainVariableInCell();
+            lsC     = ls.obtainVariableInCell();
             lsClass = lsC{1};
             n       = length(lsClass.fun.fValues);
             gClass  = g(1:n);
