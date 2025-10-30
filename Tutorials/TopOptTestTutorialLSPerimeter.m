@@ -136,8 +136,9 @@ classdef TopOptTestTutorialLSPerimeter < handle
             s.monitoring     = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
+            s.GIFname = 'per';
             s.designVariable = obj.designVariable;
-            s.maxIter        = 3;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.volumeTarget   = 0.85;

@@ -21,6 +21,7 @@ classdef PlotterDensity < handle
             funp0   = rho.project('P0');
             rhoElem = squeeze(funp0.fValues);
             set(obj.patchHandle,'FaceVertexAlphaData',rhoElem,'FaceAlpha','flat'); 
+%             hold on; plot([0 1 1 0 0], [0 0 1 1 0], 'k-', 'LineWidth', 1);
         end
         
     end

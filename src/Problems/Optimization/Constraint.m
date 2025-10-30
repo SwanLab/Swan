@@ -8,6 +8,7 @@ classdef Constraint < handle
     properties (Access = private)
         shapeFunctions
         Msmooth
+        dofsNonDesign
     end
 
     methods (Access = public)
@@ -33,6 +34,11 @@ classdef Constraint < handle
             end
             obj.value    = jV;
             obj.gradient = obj.Msmooth*djV;
+
+            if ~isempty(obj.dofsNonDesign) 
+               obj.gradient(obj.dofsNonDesign) = 0.0;
+            end
+
 %             obj.gradient = djV;
         end
 
@@ -47,12 +53,48 @@ classdef Constraint < handle
                 titles{iF} = obj.shapeFunctions{iF}.getTitleToPlot();
             end
         end
+
+        function j = getDesignVariable(obj,i)
+            j = obj.shapeFunctions{i}.getDesignVariable();
+        end
+
+        function j = getTargetEigenValue(obj,i)
+            j = obj.shapeFunctions{i}.getTargetEigenValue();
+        end
+
+        function j = getDirichletEigenMode(obj,i)
+            j = obj.shapeFunctions{i}.getDirichletEigenMode();
+        end
+
+        function j = getGradient(obj,i)
+            j = obj.shapeFunctions{i}.getGradient();
+        end
+
+        function j = getGradientUN(obj,i)
+            j = obj.shapeFunctions{i}.getGradientUN();
+        end
+
+        function j = getBeta(obj,i)
+            j = obj.shapeFunctions{i}.getBeta();
+        end
+
+        function j = getEigenModes(obj)
+            j = obj.shapeFunctions{2}.getEigenModes();
+        end
+
+        function j = getLambda1(obj)
+            j = obj.shapeFunctions{2}.getLambda1();
+        end
     end
 
     methods (Access = private)
         function obj = init(obj,cParams)
             obj.shapeFunctions = cParams.shapeFunctions;
             obj.Msmooth        = cParams.Msmooth;
+
+            if isfield(cParams,'dofsNonDesign') 
+                obj.dofsNonDesign = cParams.dofsNonDesign;
+            end
         end
     end
 
