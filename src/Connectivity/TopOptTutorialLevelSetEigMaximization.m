@@ -21,13 +21,14 @@ classdef TopOptTutorialLevelSetEigMaximization < handle
         etaMax
         gJFlowRatio
         perimeter
+        filterPer
     end 
 
     methods (Access = public)
         function obj = TopOptTutorialLevelSetEigMaximization()
-            for etaNorm = [0.01] %[0.005] 
-                for etaMax = [100.0] %0.15]0.05,0.15,0.5,1,3,4,"cantilever",
-                    for gJ = [2.0]
+            for etaNorm = [0.02] %[0.005] 
+                for etaMax = [1.0] %0.15]0.05,0.15,0.5,1,3,4,"cantilever",
+                    for gJ = [5.0]
                         obj.etaNorm = etaNorm;
                         obj.etaMax = etaMax;
                         obj.gJFlowRatio = gJ;
@@ -35,6 +36,7 @@ classdef TopOptTutorialLevelSetEigMaximization < handle
                         obj.createMesh();
                         obj.createDesignVariable();
                         obj.createFilter();
+                        obj.createFilterPerimeter();
                         obj.createConductivityInterpolator();
                         obj.createMassInterpolator();
                         obj.createBoundaryConditions();
@@ -109,6 +111,15 @@ classdef TopOptTutorialLevelSetEigMaximization < handle
 %             f.updateEpsilon(2*obj.mesh.computeMinCellSize())
             obj.filter = f;
         end
+
+       function createFilterPerimeter(obj)
+            s.filterType = 'PDE';
+            s.mesh       = obj.mesh;
+            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            f            = Filter.create(s);
+            f.updateEpsilon(2*obj.mesh.computeMinCellSize())
+            obj.filterPer = f;
+        end 
 
         function createEigenValue(obj)                           
             s.mesh              = obj.mesh;
@@ -190,17 +201,29 @@ classdef TopOptTutorialLevelSetEigMaximization < handle
             obj.volume = v;
         end
 
+%         function createPerimeter(obj)
+%             s.mesh                        = obj.mesh;
+%             s.filter                      = obj.filterPer;
+%             p = SimplePerimeterFunctional(s);
+%             obj.perimeter = p;
+%         end
+% % 
         function createPerimeter(obj)
-            s.mesh                        = obj.mesh;
-            s.filter                      = obj.filter;
-            p = SimplePerimeterFunctional(s);
-            obj.perimeter = p;
+            eOverhmin     = 1; % 10
+            epsilon       = eOverhmin*obj.mesh.computeMeanCellSize();
+            s.mesh        = obj.mesh;
+            s.filter      = obj.filterPer;
+            s.epsilon     = epsilon;
+            s.value0      = 4; % external Perimeter
+            s.uMesh       = obj.createBaseDomain();
+            P             = PerimeterFunctional(s);
+            obj.perimeter = P;
         end
 
         function createCost(obj)
             s.shapeFunctions{1} = obj.eigenvalue;
             s.shapeFunctions{2} = obj.perimeter;
-            s.weights           = [1.0,10.0];
+            s.weights           = [0.0,1.0];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end

@@ -2,7 +2,7 @@ classdef TopOptLevelSetConnectivity< handle
 
     properties (Access = private)
         mesh
-        filter
+        filterPerimeter
         filterComp
         filterAdjointComp
         filterConnect
@@ -38,34 +38,95 @@ classdef TopOptLevelSetConnectivity< handle
     methods (Access = public)
         function obj = TopOptLevelSetConnectivity()
             for type = ["cantilever"]
-%                 for p = [0.0]
-                for c = [2,1,4] %0.15]0.05,0.15,0.5,1,3,4,"cantilever",
-                    for lambda1min = [0.6] %0.15]0.05,0.15,0.5,
-                        obj.c = c;
-                        obj.p = 0.0;
-                        obj.type = type;
-                        obj.lambda1min = lambda1min;
-                        obj.init()
-                        obj.createMesh();
-                        obj.createDesignVariable();
-                        obj.createFilter();
-                        obj.createFilterConnectivity();
-                        obj.createMaterialInterpolator();
-                        obj.createElasticProblem();
-                        obj.createComplianceFromConstitutive();
-                        obj.createCompliance();
-                        obj.createConductivityInterpolator();
-                        obj.createMassInterpolator();
-                        obj.createEigenValueConstraint();   
-                        obj.createEigenValue()          
-                        obj.createPerimeter();                  
-                        obj.createVolumeConstraint();
-                        obj.createCost();
-                        obj.createConstraint();
-                        obj.createPrimalUpdater();
-                        obj.createOptimizer();
+                for c = [3]
+                    for p = [0.0] %0.15]0.05,0.15,0.5,1,3,4,"cantilever",
+                        for lambda1min = [0.6] %0.15]0.05,0.15,0.5,
+                            %l1min 1.0, p = 30; l1min 0.8, p = 5;
+                            obj.c = c;
+                            obj.p = p;
+                            obj.type = type;
+                            obj.lambda1min = lambda1min;
+                            obj.init()
+                            obj.createMesh();
+                            obj.createDesignVariable();
+                            obj.createFilterPerimeter();
+                            obj.createFilterCompliance();
+                            obj.createFilterConnectivity();
+                            obj.createMaterialInterpolator();
+                            obj.createElasticProblem();
+                            obj.createComplianceFromConstitutive();
+                            obj.createCompliance();
+                            obj.createConductivityInterpolator();
+                            obj.createMassInterpolator();
+                            obj.createEigenValueConstraint();   
+                            obj.createEigenValue()          
+                            obj.createPerimeter();                  
+                            obj.createVolumeConstraint();
+                            obj.createCost();
+                            obj.createConstraint();
+                            obj.createPrimalUpdater();
+                            obj.createOptimizer(1000);
+                        end
                     end
                 end
+%                 for p = [10.0] %0.15]0.05,0.15,0.5,1,3,4,"cantilever",
+%                     for lambda1min = [0.6,0.8,1.0] %0.15]0.05,0.15,0.5,
+%                         %l1min 1.0, p = 30; l1min 0.8, p = 5;
+%                         obj.c = 5;
+%                         obj.p = p;
+%                         obj.type = type;
+%                         obj.lambda1min = lambda1min;
+%                         obj.init()
+%                         obj.createMesh();
+%                         obj.createDesignVariable();
+%                         obj.createFilterPerimeter();
+%                         obj.createFilterCompliance();
+%                         obj.createFilterConnectivity();
+%                         obj.createMaterialInterpolator();
+%                         obj.createElasticProblem();
+%                         obj.createComplianceFromConstitutive();
+%                         obj.createCompliance();
+%                         obj.createConductivityInterpolator();
+%                         obj.createMassInterpolator();
+%                         obj.createEigenValueConstraint();   
+%                         obj.createEigenValue()          
+%                         obj.createPerimeter();                  
+%                         obj.createVolumeConstraint();
+%                         obj.createCost();
+%                         obj.createConstraint();
+%                         obj.createPrimalUpdater();
+%                         obj.createOptimizer(1000);
+%                     end
+%                 end
+%                 for p = [0.0] %0.15]0.05,0.15,0.5,1,3,4,"cantilever",
+%                     for lambda1min = [0.6,0.8,1.0] %0.15]0.05,0.15,0.5,
+%                         %l1min 1.0, p = 30; l1min 0.8, p = 5;
+%                         obj.c = 2;
+%                         obj.p = p;
+%                         obj.type = type;
+%                         obj.lambda1min = lambda1min;
+%                         obj.init()
+%                         obj.createMesh();
+%                         obj.createDesignVariable();
+%                         obj.createFilterPerimeter();
+%                         obj.createFilterCompliance();
+%                         obj.createFilterConnectivity();
+%                         obj.createMaterialInterpolator();
+%                         obj.createElasticProblem();
+%                         obj.createComplianceFromConstitutive();
+%                         obj.createCompliance();
+%                         obj.createConductivityInterpolator();
+%                         obj.createMassInterpolator();
+%                         obj.createEigenValueConstraint();   
+%                         obj.createEigenValue()          
+%                         obj.createPerimeter();                  
+%                         obj.createVolumeConstraint();
+%                         obj.createCost();
+%                         obj.createConstraint();
+%                         obj.createPrimalUpdater();
+%                         obj.createOptimizer(2000);
+%                     end
+%                 end
             end
         end
 
@@ -95,7 +156,7 @@ classdef TopOptLevelSetConnectivity< handle
             g      = GeometricalFunction(s);
             lsFun  = g.computeLevelSetFunction(obj.mesh);
 %             lsFun = LagrangianFunction.create(obj.mesh,1,'P1');
-%             lsFun.setFValues(importdata('_cantilever_case_5_p_00.8.txt'))
+%             lsFun.setFValues(importdata('_cantilever_case_2_p_01.txt'))
             s.fun  = lsFun;
             s.mesh = obj.mesh;
             s.type = 'LevelSet';
@@ -105,20 +166,21 @@ classdef TopOptLevelSetConnectivity< handle
             ls.fun.print('teste2D','Paraview')
         end
 
-        function createFilter(obj)
-            s.filterType = 'PDE';
-            s.mesh  = obj.mesh;
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            f = Filter.create(s);
-            obj.filter = f;
+        function createFilterCompliance(obj)
+            s.filterType = 'LUMP';
+            s.mesh       = obj.mesh;
+            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            f            = Filter.create(s);
+            obj.filterComp = f;           
+        end
 
-            if isequal(obj.c, 5)
-                s.filterType = 'PDE';
-                s.mesh       = obj.mesh;
-                s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-                f            = Filter.create(s);
-                obj.filter = f;
-            end
+       function createFilterPerimeter(obj)
+            s.filterType = 'PDE';
+            s.mesh       = obj.mesh;
+            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            f            = Filter.create(s);
+            f.updateEpsilon(1*obj.mesh.computeMinCellSize())
+            obj.filterPerimeter = f;           
         end
 
         function createFilterConnectivity(obj)
@@ -141,9 +203,10 @@ classdef TopOptLevelSetConnectivity< handle
                 s.mesh       = obj.mesh;
                 s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
                 s.filterStep = 'PDE';
-                s.beta       = 4.0; 
+                s.beta       = 4.0; % 4 2 
                 s.eta        = 0.2;
                 obj.filterConnect = Filter.create(s);
+%                 obj.filterConnect.updateEpsilon(2*obj.mesh.computeMinCellSize())
 
                 s.filterType = 'FilterAdjointAndProject';   
                 s.mesh       = obj.mesh;
@@ -152,6 +215,7 @@ classdef TopOptLevelSetConnectivity< handle
                 s.beta       = 4.0; 
                 s.eta        = 0.2;
                 obj.filterAdjointConnect = Filter.create(s);
+%                 obj.filterAdjointConnect.updateEpsilon(2*obj.mesh.computeMinCellSize())
 
            elseif isequal(obj.c, 3)
                 s.filterType = 'PDE';
@@ -250,8 +314,7 @@ classdef TopOptLevelSetConnectivity< handle
 
         function createCompliance(obj)
             s.mesh                       = obj.mesh;
-            s.filter                     = obj.filter;
-            s.filterAdjoint              = obj.filterAdjointComp;
+            s.filter                     = obj.filterComp;
             s.complainceFromConstitutive = obj.createComplianceFromConstitutive();
             s.material                   = obj.createMaterial();
             c = ComplianceFunctional(s);
@@ -272,7 +335,6 @@ classdef TopOptLevelSetConnectivity< handle
 
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
-            s.filter = obj.filter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
             s.volumeTarget = 0.4;
             s.uMesh = obj.createBaseDomain();
@@ -307,7 +369,7 @@ classdef TopOptLevelSetConnectivity< handle
 
         function createPerimeter(obj)
             s.mesh                        = obj.mesh;
-            s.filter                      = obj.filter;
+            s.filter                      = obj.filterPerimeter;
             p = SimplePerimeterFunctional(s);
             obj.perimeter = p;
         end
@@ -341,13 +403,13 @@ classdef TopOptLevelSetConnectivity< handle
             obj.primalUpdater = SLERP(s);
         end
 
-        function createOptimizer(obj)
+        function createOptimizer(obj,max)
             s.monitoring       = true;
             s.cost             = obj.cost;
             s.constraint       = obj.constraint;
             s.designVariable   = obj.designVariable;
-            s.GIFname           = 'beta20_'+string(obj.type)+'_case_'+string(obj.c)+'_p_'+string(obj.p)+'_lamb_'+string(obj.lambda1min)+'-';
-            s.maxIter           = 1500;
+            s.GIFname           = string(obj.type)+'_case_'+string(obj.c)+'_p_'+string(obj.p)+'_lamb_'+string(obj.lambda1min)+'-';
+            s.maxIter           = max;
             s.tolerance         = 1e-3;
             s.constraintCase{1} = 'EQUALITY';
             s.constraintCase{2} = 'INEQUALITY';      
@@ -357,24 +419,24 @@ classdef TopOptLevelSetConnectivity< handle
 %             s.gJFlowRatio       = 2.0; %obj.gJ;
 %             s.etaMax            = 0.6; %0.1;   %1.0 0.2
 %             s.etaMaxMin         = 0.02; %0.05; %0.01;
-            s.gJFlowRatio       = 2.0; %obj.gJ;
+            s.gJFlowRatio       = 0.2; %obj.gJ;
             s.etaMax            = 1.0; %1.0; %0.1;   %1.0 0.2
-            s.etaMaxMin         = 0.02; %0.05; %0.01;
+            s.etaMaxMin         = 0.02; %0.02; %0.05; %0.01;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
 %             saveas(figure(1),'1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+'design'+string(obj.eta)+'.png','png')
 %             saveas(figure(2),'1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+'graficos'+string(obj.eta)+'.png','png')
 %             writematrix(obj.designVariable.fun.fValues,'1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+string(obj.eta)+'.txt')
-            saveas(figure(1),'beta20_'+'_'+string(obj.type)+'_case_'+string(obj.c)+'_p_'+string(obj.p)+string(obj.lambda1min)+'design2.png','png')
-            saveas(figure(2),'beta20_'+'_'+string(obj.type)+'_case_'+string(obj.c)+'_p_'+string(obj.p)+string(obj.lambda1min)+'graficos2.png','png')
-            writematrix(obj.designVariable.fun.fValues,'beta20_'+'_'+string(obj.type)+'_case_'+string(obj.c)+'_p_'+string(obj.p)+string(obj.lambda1min)+'.txt')
+            saveas(figure(1),string(obj.type)+'_case_'+string(obj.c)+'_p_'+string(obj.p)+string(obj.lambda1min)+'design2.png','png')
+            saveas(figure(2),'_'+string(obj.type)+'_case_'+string(obj.c)+'_p_'+string(obj.p)+string(obj.lambda1min)+'graficos2.png','png')
+            writematrix(obj.designVariable.fun.fValues,'_'+string(obj.type)+'_case_'+string(obj.c)+'_p_'+string(obj.p)+string(obj.lambda1min)+'.txt')
         end
 
         function m = createMaterial(obj)
             x = obj.designVariable;
             f = x.obtainDomainFunction();
-            f = obj.filter.compute(f{1},1);            
+            f = obj.filterComp.compute(f{1},1);            
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;

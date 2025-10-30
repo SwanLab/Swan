@@ -77,10 +77,10 @@ classdef ConnectivityComputer < handle
 %             s.xCoorCenter = 0.5;
 %             s.yCoorCenter = 0.5;
 %             s.crackWidth = 0.02;
-
+% 
             s.type = 'FourPerpendicularBars';
             s.leftBar_xMax = 0.35;   % right edge of left bar
-            s.barWidth = 0.1;
+            s.barWidth = 0.05;
 
             s.rightBar_xMin = 1 - s.leftBar_xMax;  % left edge of right bar
             s.bottomBar_yMax = s.leftBar_xMax ; % top edge of bottom bar
@@ -88,12 +88,12 @@ classdef ConnectivityComputer < handle
 
 %             s.type = 'FourPerpendicularBarsWithCrack';
 %             s.leftBar_xMax = 0.35;   % right edge of left bar
-%             s.barWidth = 0.05;
+%             s.barWidth = 0.4;
 % 
 %             s.rightBar_xMin = 1 - s.leftBar_xMax;  % left edge of right bar
 %             s.bottomBar_yMax = s.leftBar_xMax ; % top edge of bottom bar
 %             s.topBar_yMin = s.rightBar_xMin;    % bottom edge of top bar
-%             s.hCrack = 0.02;
+%             s.hCrack = 0.04;
 
                 % % % % 
 %             s.type        = 'RingSDF';
@@ -139,8 +139,8 @@ classdef ConnectivityComputer < handle
             s.mesh       = obj.mesh;
             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
             s.filterStep = 'PDE';
-            s.beta       = 100.0; % 1.0;
-            s.eta        = 0.5;
+            s.beta       = 20.0; %100.0; % 1.0;
+            s.eta        = 0.1;
             obj.filter = Filter.create(s);
             obj.filter.updateEpsilon(1*obj.mesh.computeMinCellSize())
         end        
@@ -174,7 +174,7 @@ classdef ConnectivityComputer < handle
             s.eigenModes = StiffnessEigenModesComputer(s);
             s.isCompl  = true;
             mE = MinimumEigenValueFunctional(s);
-            [lambda, dlambda] = mE.computeFunctionAndGradient(obj.designVariable);  
+            [lambda, dlambda] = mE.computeFunctionAndGradient({obj.designVariable,1});  
         end
 
         function  bc = createEigenvalueBoundaryConditions(obj)
