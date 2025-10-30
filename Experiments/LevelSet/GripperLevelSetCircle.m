@@ -1,4 +1,4 @@
-classdef GripperLevelSetGlobalSegment < handle
+classdef GripperLevelSetCircle < handle
 
     properties (Access = private)
         filename
@@ -19,7 +19,7 @@ classdef GripperLevelSetGlobalSegment < handle
 
     methods (Access = public)
 
-        function obj = GripperLevelSetGlobalSegment()
+        function obj = GripperLevelSetCircle()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
