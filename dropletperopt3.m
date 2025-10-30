@@ -64,7 +64,7 @@ chi = chi0;
 rho = chi0;
 z = z0;
 for iopt=1:20
-[rho,z] = PerimeterComputation(chi,rho,z0,proxF,proxG,tauF,tauG,thetaRel);
+[rho,z] = proximalOfPerimeter(chi,rho,z0,proxF,proxG,tauF,tauG,thetaRel);
 chi = ProjectToVolumeConstraint(rho,vol);
 close all
 chi.plot()
@@ -85,9 +85,13 @@ I = eye(2);
 r = alpha^2/tau;
 dm = createTensorFunction(A+r*I,m);
 s = createSigmaFunction(m);
+
 M  = IntegrateLHS(@(u,v) DP(v,DP(dm,u)),s,s,m,'Domain');
+eps = (4*m.computeMeanCellSize());
+K  = IntegrateLHS(@(u,v) eps*DDP(Grad(v),Grad(u)),s,s,m,'Domain');
+LHS = M + K;
 F  = IntegrateRHS(@(v) DP(v,z),s,m,'Domain');
-sV = full(M\F);
+sV = full(LHS\F);
 sV = reshape(sV,[s.ndimf,m.nnodes])';
 s.setFValues(sV);
 end
@@ -127,7 +131,7 @@ for kcp=1:10
 end
 end
 
-function [u,z] = PerimeterComputation(chi,u0,z0,proxF,proxGX,tauF,tauG,thetaRel)
+function [u,z] = proximalOfPerimeter(chi,u0,z0,proxF,proxGX,tauF,tauG,thetaRel)
 proxG = @(rho) proxGX(rho,chi);   
 [u,z] = solveWithChambollePockAlgorithm(u0,z0,proxF,proxG,tauF,tauG,thetaRel);
 end
