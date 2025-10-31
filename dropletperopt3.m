@@ -4,7 +4,6 @@ nx=50; ny=50;
 %nxy=nx*ny;
 k=[1,1]; k=k'/norm(k); kx=k(1); ky=k(2);
 kperp=[-ky;kx];
-alpha=4;
 
 Lx = 1; Ly = 1;
 
@@ -48,7 +47,7 @@ vol= Integrator.compute(chi0,m,2);
 tauF = 0.025; 
 tauG = 0.25; 
 thetaRel = 1;
-ep=1e-5;
+alpha=1;
 eps=10; 
 eps2 = 1;(4*m.computeMeanCellSize())^2;
 taucpe=tauG/eps^2;
@@ -81,24 +80,6 @@ volCon = Integrator.compute(chi,chi.mesh,2)/vol - 1;
 end
 
 
-function s = proximalEllipse(z,tau,alpha,m)
-A = [1 0; 0 1];
-I = eye(2);
-r = alpha^2/tau;
-dm = createTensorFunction(A+r*I,m);
-s = createSigmaFunction(m);
-M  = IntegrateLHS(@(u,v) DP(v,DP(dm,u)),s,s,m,'Domain');
-%eps = (4*m.computeMeanCellSize());
-%K  = IntegrateLHS(@(u,v) eps*DDP(Grad(v),Grad(u)),s,s,m,'Domain');
-%LHS = M + K;
-%LHS = diag(sum(M));
-LHS = M;
-F  = IntegrateRHS(@(v) DP(v,z),s,m,'Domain');
-sV = full(LHS\F);
-sV = reshape(sV,[s.ndimf,m.nnodes])';
-s.setFValues(sV);
-end
-
 function s = createSigmaFunction(m)
 s = LagrangianFunction.create(m,2,'P1');
 end
@@ -118,14 +99,32 @@ deltaS = tA*(z + (alpha^2-2)*zk.*k.' - tB.*((z2-2*zk.^2).*k.' + zk.*z));
 s      = s1 + (alpha*zk - sqrt(z2) > 0).*deltaS;
 end
 
-function rhoN = proximalL2Projection(rho,Chi,tauG,eps2)
-M  = IntegrateLHS(@(u,v) DP(v,u),Chi,Chi,rho.mesh,'Domain');
-M  = IntegrateLHS(@(u,v) 1/((eps2*tauG)/(eps2 + tauG))*DP(v,u),Chi,Chi,rho.mesh,'Domain');
+
+function s = proximalEllipse(z,tau,alpha,m)
+A = [1 0; 0 1];
+I = eye(2);
+r = alpha^2/tau;
+dm = createTensorFunction(A+r*I,m);
+s = createSigmaFunction(m);
+M  = IntegrateLHS(@(u,v) DP(v,DP(dm,u)),s,s,m,'Domain');
+%eps = (4*m.computeMeanCellSize());
+%K  = IntegrateLHS(@(u,v) eps*DDP(Grad(v),Grad(u)),s,s,m,'Domain');
+%LHS = M + K;
 LHS = diag(sum(M));
-F  = IntegrateRHS(@(v) 1/(eps2+1*tauG)*DP(v,eps2*rho + tauG*Chi),Chi,Chi.mesh,'Domain');
-rhoV = full(LHS\F);
-rhoV = reshape(rhoV,[rho.ndimf,Chi.mesh.nnodes])';
+%LHS = M;
+F  = IntegrateRHS(@(v) DP(v,z),s,m,'Domain');
+sV = full(LHS\F);
+sV = reshape(sV,[s.ndimf,m.nnodes])';
+s.setFValues(sV);
+end
+
+function rhoN = proximalL2Projection(rho,Chi,tauG,eps)
 rhoN = createRho(rho.mesh);
+M  = IntegrateLHS(@(u,v) DP(v,u),rhoN,rhoN,rhoN.mesh,'Domain');
+LHS = diag(sum(M));
+F  = IntegrateRHS(@(v) 1/(eps+tauG)*DP(v,eps*rho + tauG*Chi),rhoN,rhoN.mesh,'Domain');
+rhoV = full(LHS\F);
+rhoV = reshape(rhoV,[rhoN.ndimf,rhoN.mesh.nnodes])';
 rhoN.setFValues(rhoV);
 
 %rho = project(rho + tauG*Chi,'P1');
@@ -135,7 +134,7 @@ function [u,z] = solveWithChambollePockAlgorithm(u0,z0,proxF,proxG,tauF,tauG,the
 u  = u0; 
 uN = u0;
 z   = z0; 
-for kcp=1:100
+for kcp=1:10
     z      = proxF(z + tauF.*Grad(uN));
     uOld   = u;
     u      = proxG(u - tauG*Divergence(z));
