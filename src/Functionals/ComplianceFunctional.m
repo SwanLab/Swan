@@ -20,7 +20,7 @@ classdef ComplianceFunctional < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            x = x{1};
+%             x = x{1};
             xD  = x.obtainDomainFunction();
             xR = obj.filterFields(xD);
             obj.material.setDesignVariable(xR);

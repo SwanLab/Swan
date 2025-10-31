@@ -178,6 +178,10 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.designVariable = obj.designVariable;
             s.maxIter        = 3;
             s.tolerance      = 1e-8;
+            s.gifName           = [];
+            s.gif               = false;
+            s.printing          = true;
+            s.printName = [];
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.02;

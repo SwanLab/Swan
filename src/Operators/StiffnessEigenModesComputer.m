@@ -77,8 +77,7 @@ classdef StiffnessEigenModesComputer < handle
         end
 
         function K = fullToReduced(obj,K)
-%             sS.type      = 'DIRECT';
-            sS.type      = 'CG';
+            sS.type      = 'DIRECT';
             solver       = Solver.create(sS);
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
@@ -99,7 +98,7 @@ classdef StiffnessEigenModesComputer < handle
             [eigF,eigV] = eigs(K,M,n,'smallestabs');
             eigV1 = eigV(1,1);
             eigF1 = eigF(:,1);
-            disp(diag(eigV))
+%             disp(diag(eigV))
         end   
 
         function fV = fillVectorWithHomogeneousDirichlet(obj,phi)

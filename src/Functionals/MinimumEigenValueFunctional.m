@@ -22,27 +22,9 @@ classdef MinimumEigenValueFunctional < handle
         end   
 
         function [f, dfdx] = computeFunctionAndGradient(obj,x) 
-            iter = x{2};
-            x = x{1};
-
             xD  = x.obtainDomainFunction();                  % rho
             xR = obj.filterDesignVariable(xD{1});            % FP rho
-            
-% 
-%             beta = obj.filter.getBeta();
-%             if iter >= 200 && mod(iter,20)== 0 && beta <= 10
-%                 obj.filter.updateBeta(beta*2.0);
-%                 obj.filterAdjoint.updateBeta(beta*2.0);
-%             end
-% % % 
-%             sD.fun      = xR;
-%             sD.mesh     = obj.mesh;
-%             sD.type     = 'Density';
-%             sD.plotting = true;
-%             dens        = DesignVariable.create(sD);
-%             obj.designVariable = dens;
-%             obj.designVariable.plot()
-
+         
             if obj.isCompl == true
                 xR.setFValues(max(min(1 - xR.fValues,1),0)); % 1 - FP
             end

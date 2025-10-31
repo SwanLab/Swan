@@ -24,7 +24,6 @@ classdef MaximumEigenValueFunctional < handle
                 x = x{1};
             end
             xD  = x.obtainDomainFunction();             
-%             xR = obj.filter.compute(xD{1},2); 
             xR = filterDesignVariable(obj,xD{1});
             if obj.isCompl == true
                 xR.setFValues(1 - xR.fValues);                             % 1 - F(\chi)

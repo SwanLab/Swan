@@ -17,8 +17,8 @@ classdef SimplePerimeterFunctional < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            iter = x{2};
-            x = x{1};
+%             iter = x{2};
+%             x = x{1};
             xD = x.obtainDomainFunction();
             xR = obj.filterFields(xD);
             J  = obj.computeFunction(xD{1},xR{1});

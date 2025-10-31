@@ -21,15 +21,6 @@ classdef StiffnessEigenModesConstraint < handle
         end
         
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            iter = x{2};
-% % %    
-%             if iter > 0 && iter > obj.iter && mod(iter,50)== 0 && obj.targetEigenValue < 2.0
-%                 obj.iter = iter;
-% %                 obj.targetEigenValue = 2.5;
-%                 obj.targetEigenValue = obj.targetEigenValue + 0.1;
-%                 disp(obj.targetEigenValue);
-%             end
-%    
             [lambda,dlambda] = obj.eigenModesFunctional.computeFunctionAndGradient(x);
             J      = obj.computeFunction(lambda);
             dJ{1}     = obj.computeGradient(lambda,dlambda);
