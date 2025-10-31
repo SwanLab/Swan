@@ -70,7 +70,7 @@ classdef FilterPDEChambollePock < handle
             u  = u0;
             uN = u0;
             z   = z0;
-            for kcp=1:10
+            for kcp=1:2
                 z      = proxF(z + tauF.*Grad(uN));
                 uOld   = u;
                 u      = proxG(u - tauG*Divergence(z));

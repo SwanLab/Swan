@@ -131,9 +131,9 @@ classdef PerimeterLevelSet < handle
             s.constraintCase = {'EQUALITY'};
             s.etaNorm        = 0.01;
             s.etaNormMin = 0.01;
-            s.etaMax = 10;
+            s.etaMax = 100;
             s.etaMaxMin = 0.1;
-            s.gif = false;
+            s.gif = true;
             s.gifName = [];
             s.printing = true;
             s.printName = 'Results/LevelSetSegment';
