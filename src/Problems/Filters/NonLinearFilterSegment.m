@@ -4,8 +4,12 @@ classdef NonLinearFilterSegment < handle
         mesh
         trial
         epsilon
+        alphaEps
+        betaEps
+        betaTar
         alpha
         beta
+        tol
         %ub
         %lb
     end
@@ -32,7 +36,7 @@ classdef NonLinearFilterSegment < handle
             obj.createDirectionalStiffnessMatrix();
         end
 
-        function xF = compute(obj,fun,quadOrder)
+        function [xF,errorVec] = compute(obj,fun,quadOrder)
             xF = copy(obj.trial);   
             obj.computeInitialGuess(fun,quadOrder);
             obj.updateDotProduct(obj.trial); 
@@ -42,7 +46,8 @@ classdef NonLinearFilterSegment < handle
             dJ0 = obj.computeCostGradient(quadOrder);
             error0 = Norm(dJ0,'L2');
             error  = inf;
-            while error >= 1e-6  && iter<=1000
+            errorVec = [];
+            while error >= obj.tol  && iter<=10000 && error0>= obj.tol
                 valOld = obj.trial.fValues;
                 isAcceptable = false;
                 while not(isAcceptable)
@@ -60,18 +65,24 @@ classdef NonLinearFilterSegment < handle
                         obj.updateDotProduct(obj.trial);
                     end
                 end
+                obj.updateBeta();
                 iter = iter + 1;
                 error0 = error;
+                errorVec = [errorVec;error];
             end
             xF.setFValues(obj.trial.fValues);
+            obj.tol = max(obj.tol/1.01,1e-6);
         end
 
         function updateEpsilon(obj,eps)
-            obj.alpha      = (obj.alpha/obj.epsilon)*eps;
+            h              = obj.mesh.computeMeanCellSize();
+            obj.alpha      = obj.alphaEps*eps;
+            obj.betaTar    = max(obj.betaEps*eps,h);
             obj.beta       = (obj.beta/obj.epsilon)*eps;
             obj.lineSearch = obj.lineSearch*(obj.epsilon/eps);
             obj.epsilon    = eps;
-            obj.filter.updateEpsilon(max(obj.alpha,obj.beta));
+            obj.filter.updateEpsilon(max(obj.alpha,obj.betaTar));
+            obj.tol = max(obj.tol/1.01,1e-6);
         end
     end
 
@@ -79,12 +90,15 @@ classdef NonLinearFilterSegment < handle
         function init(obj,cParams)
             obj.trial      = LagrangianFunction.create(cParams.mesh, 1, 'P1');
             obj.mesh       = cParams.mesh;
-            obj.epsilon    = obj.mesh.computeMeanCellSize();
+            h              = obj.mesh.computeMeanCellSize();
+            obj.epsilon    = h;
+            obj.alphaEps   = cParams.alpha;
+            obj.betaEps    = cParams.beta;
             obj.alpha      = cParams.alpha*obj.epsilon;
-            obj.beta       = cParams.beta*obj.epsilon;
-            %obj.ub         = cParams.ub;
-            %obj.lb         = cParams.lb;
+            obj.betaTar    = max(cParams.beta*obj.epsilon,h);
+            obj.beta       = obj.alpha;
             obj.lineSearch = 10;
+            obj.tol        = cParams.tol0;
         end
 
         function createFilterInitialGuess(obj)
@@ -92,7 +106,7 @@ classdef NonLinearFilterSegment < handle
             s.mesh  = obj.mesh;
             s.trial = LagrangianFunction.create(obj.mesh,1,obj.trial.order);
             f = Filter.create(s);
-            f.updateEpsilon(max(obj.alpha,obj.beta));
+            f.updateEpsilon(max(obj.alpha,obj.betaTar));
             obj.filter = f;
         end
 
@@ -164,10 +178,14 @@ classdef NonLinearFilterSegment < handle
             obj.sVar = DP(gradRho,k);
         end
 
+        function updateBeta(obj)
+            obj.beta = max(obj.beta/1.005,obj.betaTar);
+        end
+
         function h = computeMeasure(obj)
             s = obj.sVar;
             a = obj.alpha;
-            b = obj.beta;
+            b = obj.betaTar;
             maxFun = obj.createDomainMax(s);
             minFun = obj.createDomainMin(s);
             h = a.*maxFun - b.*minFun;
@@ -199,7 +217,7 @@ classdef NonLinearFilterSegment < handle
             x    = LHS\RHS;
             %rhoi = max(obj.lb,min(obj.ub,x));
             rhoi = x;
-            obj.trial.setFValues(rhoi);
+            obj.trial.setFValues(full(rhoi));
             %obj.isBoundFree = find((x-rhoi)==0);
         end
 
@@ -221,12 +239,12 @@ classdef NonLinearFilterSegment < handle
             Ms   = diag(sum(Ms,1));
             fVal = Ms\(rhs1+rhs2+rhs3);
             dJ   = copy(obj.trial);
-            dJ.setFValues(fVal);
+            dJ.setFValues(full(fVal));
         end
 
         function [rhs1,rhs2,rhs3] = computeCostGateaux(obj,quadOrder)
             a      = obj.alpha;
-            b      = obj.beta;
+            b      = obj.betaTar;
             s      = obj.sVar;
             k      = obj.direction;
             maxFun = obj.createDomainMax(s);

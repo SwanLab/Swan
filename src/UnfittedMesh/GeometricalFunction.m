@@ -264,6 +264,28 @@ classdef GeometricalFunction < handle
                     y0 = cParams.y0;
                     fH = @(x) obj.computeCircles(x,x0,y0,r);
                     obj.fHandle = fH;
+                case 'FourPerpendicularBars'
+                    xL2 = cParams.leftBar_xMax;   % right edge of left bar
+                    xR1 = cParams.rightBar_xMin;  % left edge of right bar
+                    yB2 = cParams.bottomBar_yMax; % top edge of bottom bar
+                    yT1 = cParams.topBar_yMin;    % bottom edge of top bar
+                    h = cParams.barWidth;
+
+                    xL1 = xL2 - h;   % left edge of left bar
+                    yT2 = yT1 + h;    % top edge of top bar
+                    yB1 = yB2 - h; % bottom edge of bottom bar
+                    xR2 = xR1 + h;  % right edge of right bar
+
+                    fV1 = @(x) max( xL1 - x1(x), x1(x) - xL2 );
+                    fV2 = @(x) max( xR1 - x1(x), x1(x) - xR2 );
+                    fH1 = @(x) max( yB1 - x2(x), x2(x) - yB2 );
+                    fH2 = @(x) max( yT1 - x2(x), x2(x) - yT2 );
+
+                    fH = @(x) min( min(fV1(x), fV2(x)), min(fH1(x), fH2(x)) );
+
+                    obj.fHandle = fH;
+
+
             end
         end
 
