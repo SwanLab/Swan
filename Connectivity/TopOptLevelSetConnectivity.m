@@ -38,9 +38,9 @@ classdef TopOptLevelSetConnectivity< handle
     methods (Access = public)
         function obj = TopOptLevelSetConnectivity()
             for type = ["cantilever"]
-                for c = [3]
+                for c = [2]
                     for p = [0.0] %0.15]0.05,0.15,0.5,1,3,4,"cantilever",
-                        for lambda1min = [0.6] %0.15]0.05,0.15,0.5,
+                        for lambda1min = [0.6,0.8,1.0] %0.15]0.05,0.15,0.5,
                             %l1min 1.0, p = 30; l1min 0.8, p = 5;
                             obj.c = c;
                             obj.p = p;
@@ -65,7 +65,7 @@ classdef TopOptLevelSetConnectivity< handle
                             obj.createCost();
                             obj.createConstraint();
                             obj.createPrimalUpdater();
-                            obj.createOptimizer(1000);
+                            obj.createOptimizer();
                         end
                     end
                 end
@@ -203,7 +203,7 @@ classdef TopOptLevelSetConnectivity< handle
                 s.mesh       = obj.mesh;
                 s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
                 s.filterStep = 'PDE';
-                s.beta       = 4.0; % 4 2 
+                s.beta       = 8.0; % 4 2 
                 s.eta        = 0.2;
                 obj.filterConnect = Filter.create(s);
 %                 obj.filterConnect.updateEpsilon(2*obj.mesh.computeMinCellSize())
@@ -212,7 +212,7 @@ classdef TopOptLevelSetConnectivity< handle
                 s.mesh       = obj.mesh;
                 s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
                 s.filterStep = 'PDE';
-                s.beta       = 4.0; 
+                s.beta       = 8.0; 
                 s.eta        = 0.2;
                 obj.filterAdjointConnect = Filter.create(s);
 %                 obj.filterAdjointConnect.updateEpsilon(2*obj.mesh.computeMinCellSize())
@@ -253,7 +253,7 @@ classdef TopOptLevelSetConnectivity< handle
 
         function createConductivityInterpolator(obj) 
             s.interpolation  = 'SimpAllThermal';
-            s.f0   = 1e-3;                                             
+            s.f0   = 1e-5;                                             
             s.f1   = 1;  
             s.dim  = '2D';
             a = MaterialInterpolator.create(s);
@@ -262,7 +262,7 @@ classdef TopOptLevelSetConnectivity< handle
 
         function createMassInterpolator(obj)
             s.interpolation  = 'SIMPThermal';                              
-            s.f0   = 1e-3;
+            s.f0   = 1e-5;
             s.f1   = 1;
             s.pExp = 1;
             a = MaterialInterpolator.create(s);
@@ -409,7 +409,7 @@ classdef TopOptLevelSetConnectivity< handle
             s.constraint       = obj.constraint;
             s.designVariable   = obj.designVariable;
             s.GIFname           = string(obj.type)+'_case_'+string(obj.c)+'_p_'+string(obj.p)+'_lamb_'+string(obj.lambda1min)+'-';
-            s.maxIter           = max;
+            s.maxIter           = 1000;
             s.tolerance         = 1e-3;
             s.constraintCase{1} = 'EQUALITY';
             s.constraintCase{2} = 'INEQUALITY';      
