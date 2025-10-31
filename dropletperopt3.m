@@ -4,7 +4,6 @@ nx=50; ny=50;
 %nxy=nx*ny;
 k=[1,1]; k=k'/norm(k); kx=k(1); ky=k(2);
 kperp=[-ky;kx];
-alpha=4;
 
 Lx = 1; Ly = 1;
 
@@ -49,7 +48,8 @@ tauF = 0.025;
 tauG = 0.25; 
 thetaRel = 1;
 ep=1e-5;
-eps=10; 
+eps=10;
+alpha=4;
 taucpe=tauG/eps^2;
 
 %proxF = @(z)  proximalDroplet(z,tauF,k,alpha,ep);
@@ -65,6 +65,7 @@ rho = chi0;
 z = z0;
 for iopt=1:20
 [rho,z] = proximalOfPerimeter(chi,rho,z0,proxF,proxG,tauF,tauG,thetaRel);
+plot(rho)
 chi = ProjectToVolumeConstraint(rho,vol);
 close all
 chi.plot()
@@ -86,11 +87,7 @@ r = alpha^2/tau;
 dm = createTensorFunction(A+r*I,m);
 s = createSigmaFunction(m);
 M  = IntegrateLHS(@(u,v) DP(v,DP(dm,u)),s,s,m,'Domain');
-%eps = (4*m.computeMeanCellSize());
-%K  = IntegrateLHS(@(u,v) eps*DDP(Grad(v),Grad(u)),s,s,m,'Domain');
-%LHS = M + K;
-%LHS = diag(sum(M));
-LHS = M;
+LHS = diag(sum(M));
 F  = IntegrateRHS(@(v) DP(v,z),s,m,'Domain');
 sV = full(LHS\F);
 sV = reshape(sV,[s.ndimf,m.nnodes])';
@@ -119,7 +116,7 @@ end
 function rhoN = proximalL2Projection(rho,Chi,tauG)
 M  = IntegrateLHS(@(u,v) DP(v,u),Chi,Chi,rho.mesh,'Domain');
 LHS = diag(sum(M));
-F  = IntegrateRHS(@(v) DP(v,rho + tauG*Chi),Chi,Chi.mesh,'Domain');
+F  = IntegrateRHS(@(v) (1/(1+tauG))*DP(v,rho + tauG*Chi),Chi,Chi.mesh,'Domain');
 rhoV = full(LHS\F);
 rhoV = reshape(rhoV,[rho.ndimf,Chi.mesh.nnodes])';
 rhoN = createRho(rho.mesh);
@@ -132,7 +129,7 @@ function [u,z] = solveWithChambollePockAlgorithm(u0,z0,proxF,proxG,tauF,tauG,the
 u  = u0; 
 uN = u0;
 z   = z0; 
-for kcp=1:10
+for kcp=1:100
     z      = proxF(z + tauF.*Grad(uN));
     uOld   = u;
     u      = proxG(u - tauG*Divergence(z));
