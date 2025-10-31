@@ -134,9 +134,9 @@ classdef PerimeterLevelSet < handle
             s.etaMax = 100;
             s.etaMaxMin = 0.1;
             s.gif = true;
-            s.gifName = [];
+            s.gifName = 'Ellipse';
             s.printing = true;
-            s.printName = 'Results/LevelSetSegment';
+            s.printName = 'Results/LevelSetEllipse';
             s.gJFlowRatio    = 2;
             s.primalUpdater  = obj.primalUpdater;
             opt = OptimizerNullSpace(s);
