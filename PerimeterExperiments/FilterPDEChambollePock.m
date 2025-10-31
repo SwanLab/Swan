@@ -46,7 +46,7 @@ classdef FilterPDEChambollePock < handle
 
         function init(obj,cParams)
            obj.mesh = cParams.mesh;
-           obj.tauF = 0.0025;
+           obj.tauF = 0.00025;
            obj.tauG = 0.25;
            obj.thetaRel = 1;
            obj.epsilon  = 10;
@@ -70,7 +70,7 @@ classdef FilterPDEChambollePock < handle
             u  = u0;
             uN = u0;
             z   = z0;
-            for kcp=1:2
+            for kcp=1:10
                 z      = proxF(z + tauF.*Grad(uN));
                 uOld   = u;
                 u      = proxG(u - tauG*Divergence(z));
@@ -80,7 +80,7 @@ classdef FilterPDEChambollePock < handle
         
 
       function s = proximalEllipse(obj,z,tau,alpha,m)
-            A = [1 0; 0 1];
+            A = inv([1 0; 0 1]);
             I = eye(2);
             r = alpha^2/tau;
             dm = obj.createTensorFunction(A+r*I);
