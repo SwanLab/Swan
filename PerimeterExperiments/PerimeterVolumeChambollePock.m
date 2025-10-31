@@ -6,6 +6,7 @@ classdef PerimeterVolumeChambollePock < handle
         tauG
         tauF
         mesh
+        filter
         chi0
         vol0
     end
@@ -19,8 +20,9 @@ classdef PerimeterVolumeChambollePock < handle
         function obj = PerimeterVolumeChambollePock()
             obj.init()
             k=[1,1]; k=k'/norm(k); kx=k(1); ky=k(2);
-            kperp=[-ky;kx];
-            obj.createMesh()
+            kperp=[-ky;kx];            
+            obj.createMesh();
+            obj.createFilter();
             obj.createInitialTopoloy();
             obj.obtianInitialVolum();
             obj.createProximals();
@@ -35,7 +37,7 @@ classdef PerimeterVolumeChambollePock < handle
             obj.tauF = 0.0025;
             obj.tauG = 0.25;
             obj.thetaRel = 1;
-            obj.eps  = 10;
+            obj.eps  = 1;
         end
 
         function createMesh(obj)
@@ -44,6 +46,12 @@ classdef PerimeterVolumeChambollePock < handle
             Lx = 1;
             Ly = 1;
             obj.mesh = TriangleMesh(Lx,Ly,nx,ny);
+        end
+
+        function createFilter(obj)
+            s.trial = obj.createRho();
+            s.mesh  = obj.mesh;
+            obj.filter = FilterLump(s);
         end
 
         function g = createGeometricalFunction(obj)
@@ -71,11 +79,7 @@ classdef PerimeterVolumeChambollePock < handle
             uMesh             = UnfittedMesh(sU);
             uMesh.compute(ls.fValues);
             cFun = CharacteristicFunction.create(uMesh);
-            s.filterType = 'LUMP';
-            s.mesh  = obj.mesh;
-            s.trial = obj.createRho();
-            f = Filter.create(s);
-            obj.chi0 = f.compute(cFun,2);            
+            obj.chi0 = obj.filter.compute(cFun,2);            
         end
 
         function obtianInitialVolum(obj)
@@ -119,11 +123,13 @@ classdef PerimeterVolumeChambollePock < handle
             dm = obj.createTensorFunction(A+r*I);
             s = obj.createSigmaFunction();
             M  = IntegrateLHS(@(u,v) DP(v,DP(dm,u)),s,s,m,'Domain');
-            LHS = diag(sum(M));
+            %LHS = diag(sum(M));
+            LHS = M;
             F  = IntegrateRHS(@(v) DP(v,z),s,m,'Domain');
             sV = full(LHS\F);
             sV = reshape(sV,[s.ndimf,m.nnodes])';
             s.setFValues(sV);
+
         end
 
         function s = proximalDroplet(obj,z,tau,k,alpha,ep)
@@ -137,14 +143,7 @@ classdef PerimeterVolumeChambollePock < handle
         end
 
         function rhoN = proximalL2Projection(obj,rho,Chi,tauG)
-            M  = IntegrateLHS(@(u,v) DP(v,u),Chi,Chi,rho.mesh,'Domain');
-            LHS = diag(sum(M));
-            F  = IntegrateRHS(@(v) (1/(1+tauG))*DP(v,rho + tauG*Chi),Chi,Chi.mesh,'Domain');
-            rhoV = full(LHS\F);
-            rhoV = reshape(rhoV,[rho.ndimf,Chi.mesh.nnodes])';
-            rhoN = obj.createRho();
-            rhoN.setFValues(rhoV);
-            %rho = project(rho + tauG*Chi,'P1');
+            rhoN = obj.filter.compute((1/(1+tauG))*(rho + tauG*Chi),2);
         end
 
         function [u,z] = solveWithChambollePockAlgorithm(obj,u0,z0,proxF,proxG,tauF,tauG,thetaRel)
