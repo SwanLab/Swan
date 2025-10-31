@@ -36,7 +36,7 @@ classdef PerimeterLevelSet < handle
         end
 
         function createMesh(obj)
-            obj.mesh = TriangleMesh(1,1,200,200);
+            obj.mesh = TriangleMesh(1,1,20,20);
         end
 
         function createDesignVariable(obj)
@@ -75,12 +75,16 @@ classdef PerimeterLevelSet < handle
         end
 
         function createFilter(obj)
+            % s.filterType = 'PDE';
+            % s.mesh       = obj.mesh;
+            % s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            % f            = Filter.create(s);
+            % epsilon = (4*obj.mesh.computeMeanCellSize())^2;
+            % f.updateEpsilon(epsilon);
+            % obj.filter = f;
+
             s.mesh  = obj.mesh;
-            s.alpha = 4;
-            s.beta  = 0;
-            s.theta = 90;
-            s.trial  = LagrangianFunction.create(obj.mesh,1,'P1');
-            obj.filter  = FilterPDE(s);
+            obj.filter = FilterPDEChambollePock(s);
         end
 
         function createPerimeter(obj)

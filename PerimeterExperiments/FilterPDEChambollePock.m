@@ -1,7 +1,7 @@
 classdef FilterPDEChambollePock < handle
 
     properties (Access = private)
-        eps
+        epsilon
         thetaRel
         tauG
         tauF
@@ -32,7 +32,13 @@ classdef FilterPDEChambollePock < handle
             [rho,sigma] = obj.solveWithChambollePockAlgorithm(obj.rho0,obj.sigma0,obj.proxF,proxG,obj.tauF,obj.tauG,obj.thetaRel);            
             obj.rho0 = rho;
             obj.sigma0 = sigma;
-         end        
+        end        
+
+        function obj = updateEpsilon(obj,epsilon)
+            if obj.hasEpsilonChanged(epsilon)
+                obj.epsilon = epsilon;
+            end 
+        end
 
     end
 
@@ -43,7 +49,7 @@ classdef FilterPDEChambollePock < handle
            obj.tauF = 0.0025;
            obj.tauG = 0.25;
            obj.thetaRel = 1;
-           obj.eps  = 10;
+           obj.epsilon  = 10;
         end
 
         function createFilter(obj)
@@ -56,7 +62,7 @@ classdef FilterPDEChambollePock < handle
             %proxF = @(z)  proximalDroplet(z,tauF,k,alpha,ep);
             epsF    = 1; 
             obj.proxF = @(z)  obj.proximalEllipse(z,obj.tauF,epsF,obj.mesh);           
-            tauGEps   = obj.tauG/obj.eps^2;
+            tauGEps   = obj.tauG/obj.epsilon^2;
             obj.proxG = @(rho,chi) obj.proximalL2Projection(rho,chi,tauGEps);
         end        
 
@@ -64,7 +70,7 @@ classdef FilterPDEChambollePock < handle
             u  = u0;
             uN = u0;
             z   = z0;
-            for kcp=1:100
+            for kcp=1:10
                 z      = proxF(z + tauF.*Grad(uN));
                 uOld   = u;
                 u      = proxG(u - tauG*Divergence(z));
@@ -111,9 +117,15 @@ classdef FilterPDEChambollePock < handle
         end
         
         function rhoN = proximalL2Projection(obj,rho,Chi,tauG)
-            rhoN = obj.filterLump.compute((1/(1+tauG))*(rho + tauG*Chi),2);
+            rhoF = (1./(1+tauG)).*obj.filterLump.compute(rho,2);
+            rhoChi = (1./(1+tauG)).*obj.filterLump.compute(Chi.*tauG,2);
+            rhoN = project(rhoF + rhoChi,'P1');
         end        
 
+        function itHas = hasEpsilonChanged(obj,eps)
+            var   = abs(eps - obj.epsilon)/eps;
+            itHas = var > 1e-15;
+        end        
 
 
     end
