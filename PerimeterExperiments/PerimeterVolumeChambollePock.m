@@ -32,10 +32,10 @@ classdef PerimeterVolumeChambollePock < handle
     methods (Access = private)
 
         function init(obj)
-            obj.tauF = 0.025;
+            obj.tauF = 0.0025;
             obj.tauG = 0.25;
             obj.thetaRel = 1;
-            obj.eps=10;
+            obj.eps  = 10;
         end
 
         function createMesh(obj)
@@ -53,8 +53,8 @@ classdef PerimeterVolumeChambollePock < handle
             Ly = max(obj.mesh.coord(:,2));
             cx = Lx/2;
             cy = Ly/2;
-            w  = fracx * Lx;
-            h = fracy * Ly;
+            w  = fracx*Lx;
+            h = fracy*Ly;
             s.xSide = w;
             s.ySide = h;
             s.xCoorCenter = cx;
