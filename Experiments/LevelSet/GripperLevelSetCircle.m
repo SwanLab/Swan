@@ -4,9 +4,13 @@ classdef GripperLevelSetCircle < handle
         filename
         mesh
         filter
+        filterConnectivity
         designVariable
         materialInterpolator
+        conductivityInterpolator
+        massInterpolator
         physicalProblem
+        eigenvalue
         compliance
         volume
         cost
@@ -22,9 +26,13 @@ classdef GripperLevelSetCircle < handle
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
+            obj.createFilterConnectivity();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
             obj.createCompliance();
+            obj.createConductivityInterpolator();
+            obj.createMassInterpolator();
+            obj.createEigenValue();
             obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
@@ -71,6 +79,15 @@ classdef GripperLevelSetCircle < handle
             f = Filter.create(s);
             f.updateEpsilon(2.5*h);
             obj.filter = f;
+        end
+
+
+        function createFilterConnectivity(obj)
+            s.filterType = 'LUMP';
+            s.mesh  = obj.mesh;
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            f = Filter.create(s);
+            obj.filterConnectivity = f;
         end
 
         function createMaterialInterpolator(obj)
@@ -129,6 +146,35 @@ classdef GripperLevelSetCircle < handle
             obj.compliance = c;
         end
 
+        function createConductivityInterpolator(obj) 
+            s.interpolation  = 'SimpAllThermal';
+            s.f0   = 1e-3;                                             
+            s.f1   = 1;  
+            s.dim  = '2D';
+            a = MaterialInterpolator.create(s);
+            obj.conductivityInterpolator = a;            
+        end 
+
+        function createMassInterpolator(obj)
+            s.interpolation  = 'SIMPThermal';                              
+            s.f0   = 1e-3;
+            s.f1   = 1;
+            s.pExp = 1;
+            a = MaterialInterpolator.create(s);
+            obj.massInterpolator = a;            
+        end   
+
+        function createEigenValue(obj)                           
+            s.mesh              = obj.mesh;
+            s.designVariable    = obj.designVariable;
+            s.filter            = obj.filterConnectivity; 
+            s.conductivityInterpolator = obj.conductivityInterpolator; 
+            s.massInterpolator         = obj.massInterpolator; 
+            s.boundaryConditions= obj.createEigenvalueBoundaryConditions();
+            s.isCompl           = false;
+            obj.eigenvalue = MaximumEigenValueFunctional(s);
+        end
+
         function uMesh = createBaseDomain(obj)
             levelSet         = -ones(obj.mesh.nnodes,1);
             s.backgroundMesh = obj.mesh;
@@ -148,7 +194,8 @@ classdef GripperLevelSetCircle < handle
 
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
-            s.weights           = 1;
+            s.shapeFunctions{2} = obj.eigenvalue;
+            s.weights           = [1.0, 0.0]; 
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -216,6 +263,41 @@ classdef GripperLevelSetCircle < handle
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
+        end
+
+        function  bc = createEigenvalueBoundaryConditions(obj)
+            xMin    = min(obj.mesh.coord(:,1));
+            yMin    = min(obj.mesh.coord(:,2));
+            xMax    = max(obj.mesh.coord(:,1));
+            yMax    = max(obj.mesh.coord(:,2));
+            isLeft  = @(coor) abs(coor(:,1))==xMin;
+            isRight = @(coor) abs(coor(:,1))==xMax;
+            isFront = @(coor) abs(coor(:,2))==yMin;
+            isBack = @(coor) abs(coor(:,2))== yMax;
+
+            isTopGripper    = @(coor)  (abs(coor(:,1)) < 0.1  & coor(:,2) == 0.6 );
+            isBottomGripper = @(coor)  (abs(coor(:,1)) < 0.1  & coor(:,2) == 0.4 );
+            isRightGripper = @(coor)  (abs(coor(:,1)) - 0.1 < 1e-6 & coor(:,2) > 0.4 & coor(:,2) < 0.6);
+
+%             isDir   = @(coor) isLeft(coor) | isRight(coor) | isFront(coor) | isBack(coor) | isTopGripper(coor) | isBottomGripper(coor) | isRightGripper(coor);  
+            isDir   = @(coor) isTopGripper(coor) | isBottomGripper(coor) | isRightGripper(coor);  
+            sDir{1}.domain    = @(coor) isDir(coor);
+            
+            sDir{1}.direction = 1;
+            sDir{1}.value     = 0;
+            sDir{1}.ndim = 1;
+            
+            dirichletFun = [];
+            for i = 1:numel(sDir)
+                dir = DirichletCondition(obj.mesh, sDir{i});
+                dirichletFun = [dirichletFun, dir];
+            end
+            s.dirichletFun = dirichletFun;
+            s.pointloadFun = [];
+
+            s.periodicFun  = [];
+            s.mesh         = obj.mesh;
+            bc = BoundaryConditions(s);  
         end
     end
 
