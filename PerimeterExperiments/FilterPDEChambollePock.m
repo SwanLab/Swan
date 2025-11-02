@@ -12,6 +12,7 @@ classdef FilterPDEChambollePock < handle
         rho0
         sigma0
         rhoExact
+        CGlobal
     end
 
     properties (Access = private)
@@ -48,13 +49,30 @@ classdef FilterPDEChambollePock < handle
 
         function init(obj,cParams)
            obj.mesh = cParams.mesh;
-           obj.tauF = 1e-10;
-           obj.tauG = 0.05;
+           obj.tauF = 2.5*1e4;
+           obj.tauG = 5*1e-5;
            obj.thetaRel = 2;
-           obj.epsilon  = 10; %%(4*obj.mesh.computeMeanCellSize())^2;
+           obj.epsilon  = (4*obj.mesh.computeMeanCellSize())^2;
+           u = 85;
+           alpha = 90;
+           CAnisotropic = [tand(u),0;0,1/tand(u)];
+           R = [cosd(alpha),-sind(alpha)
+               sind(alpha), cosd(alpha)];
+           obj.CGlobal = R*CAnisotropic*R';
         end
 
         function rho = computeExactSolution(obj,chi)
+
+
+            A       =  ConstantFunction.create(obj.CGlobal,obj.mesh);
+            s.A     = A;
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.mesh = obj.mesh;
+            s.filterType = 'PDE';
+            s.boundaryType = 'Neumann';
+            s.metric = 'Anisotropy';
+            f = Filter.create(s);
+
            s.filterType = 'PDE';
             s.mesh       = obj.mesh;
             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
@@ -96,7 +114,7 @@ classdef FilterPDEChambollePock < handle
         
 
       function s = proximalEllipse(obj,z,tau,alpha,m)
-            A = inv([1 0; 0 1]);
+            A = (obj.CGlobal);%inv([1 0; 0 1]);
             I = eye(2);
             r = alpha^2/tau;
             dm = obj.createTensorFunction(A+r*I);
