@@ -33,8 +33,8 @@ classdef PerimeterVolumeChambollePock < handle
         end
 
         function createMesh(obj)
-            nx=50;
-            ny=50;
+            nx=10;
+            ny=10;
             Lx = 1;
             Ly = 1;
             obj.mesh = TriangleMesh(Lx,Ly,nx,ny);

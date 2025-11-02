@@ -11,6 +11,7 @@ classdef FilterPDEChambollePock < handle
         filterLump
         rho0
         sigma0
+        rhoExact
     end
 
     properties (Access = private)
@@ -26,8 +27,9 @@ classdef FilterPDEChambollePock < handle
             obj.rho0   = LagrangianFunction.create(obj.mesh, 1, 'P1');
             obj.sigma0 = LagrangianFunction.create(obj.mesh, 2, 'P1');
         end
-
+    
         function rho = compute(obj,chi,quadType)
+            obj.rhoExact = obj.computeExactSolution(chi);
             proxG = @(rho) obj.proxG(rho,chi);
             [rho,sigma] = obj.solveWithChambollePockAlgorithm(obj.rho0,obj.sigma0,obj.proxF,proxG,obj.tauF,obj.tauG,obj.thetaRel);            
             obj.rho0 = rho;
@@ -46,10 +48,19 @@ classdef FilterPDEChambollePock < handle
 
         function init(obj,cParams)
            obj.mesh = cParams.mesh;
-           obj.tauF = 0.00025;
-           obj.tauG = 0.25;
-           obj.thetaRel = 1;
-           obj.epsilon  = 10;
+           obj.tauF = 1e-10;
+           obj.tauG = 0.05;
+           obj.thetaRel = 2;
+           obj.epsilon  = 10; %%(4*obj.mesh.computeMeanCellSize())^2;
+        end
+
+        function rho = computeExactSolution(obj,chi)
+           s.filterType = 'PDE';
+            s.mesh       = obj.mesh;
+            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            f            = Filter.create(s);
+            f.updateEpsilon(obj.epsilon);
+            rho = f.compute(chi,2);        
         end
 
         function createFilter(obj)
@@ -70,12 +81,17 @@ classdef FilterPDEChambollePock < handle
             u  = u0;
             uN = u0;
             z   = z0;
-            for kcp=1:10
+            for iter = 1:5000
                 z      = proxF(z + tauF.*Grad(uN));
                 uOld   = u;
                 u      = proxG(u - tauG*Divergence(z));
                 uN     = project(u + thetaRel.*(u - uOld),'P1');
+                err = Norm(u-obj.rhoExact,'L2')/Norm(obj.rhoExact,'L2')
+                error(iter) = err;
             end
+            plot(error)
+            plot(u)
+            plot(obj.rhoExact)
         end
         
 
@@ -86,24 +102,24 @@ classdef FilterPDEChambollePock < handle
             dm = obj.createTensorFunction(A+r*I);
             s = LagrangianFunction.create(obj.mesh,2,'P1');
             M  = IntegrateLHS(@(u,v) DP(v,DP(dm,u)),s,s,m,'Domain');
-            %LHS = diag(sum(M));
-            LHS = M;
-            F  = IntegrateRHS(@(v) DP(v,z),s,m,'Domain');
+            LHS = diag(sum(M));
+            %LHS = M;
+            F  = IntegrateRHS(@(v) r*DP(v,z),s,m,'Domain');
             sV = full(LHS\F);
             sV = reshape(sV,[s.ndimf,m.nnodes])';
             s.setFValues(sV);
 
         end
 
-        function s = proximalDroplet(obj,z,tau,k,alpha,ep)
-            s1 = z/(1+tau);
-            zk  = z*k(:);
-            z2 = sum(z.^2,2);
-            tA   = tau/(alpha^2*(1+tau));
-            tB   = sqrt((alpha^2-1)./(z2-zk.^2+ep));
-            deltaS = tA*(z + (alpha^2-2)*zk.*k.' - tB.*((z2-2*zk.^2).*k.' + zk.*z));
-            s      = s1 + (alpha*zk - sqrt(z2) > 0).*deltaS;
-        end
+        % function s = proximalDroplet(obj,z,tau,k,alpha,ep)
+        %     s1 = z/(1+tau);
+        %     zk  = z*k(:);
+        %     z2 = sum(z.^2,2);
+        %     tA   = tau/(alpha^2*(1+tau));
+        %     tB   = sqrt((alpha^2-1)./(z2-zk.^2+ep));
+        %     deltaS = tA*(z + (alpha^2-2)*zk.*k.' - tB.*((z2-2*zk.^2).*k.' + zk.*z));
+        %     s      = s1 + (alpha*zk - sqrt(z2) > 0).*deltaS;
+        % end
 
       function Af = createTensorFunction(obj,A)
             op = @(xV) obj.evaluate(xV,A);
