@@ -71,16 +71,16 @@ Udata2=[coarse,Udata2];
 T1=array2table(Udata1,"VariableNames",{'r','x','y','Tx1','Tx2','Tx3','Tx4','Tx5','Tx6','Tx7','Tx8' ...
     'Ty1','Ty2','Ty3','Ty4','Ty5','Ty6','Ty7','Ty8'});
 uFileName = fullfile('AbrilTFGfiles', 'Udata1.csv');
-%writematrix(Udata,uFileName);
-writetable(T1,uFileName);
+writematrix(Udata1,uFileName);
+%writetable(T1,uFileName);
 
 
 T2=array2table(Udata2,"VariableNames",{'coarse','r','x','y','Tx','Ty'});
 T2=T2(:,["r","x","y","coarse","Tx","Ty"]);
 
 uFileName = fullfile('AbrilTFGfiles', 'Udata2.csv');
-%writematrix(Udata,uFileName);
-writetable(T2,uFileName);
+writematrix(Udata2,uFileName);
+%writetable(T2,uFileName);
 
 
 %% Reshapes the K data and saves it in a csv file
