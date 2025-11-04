@@ -7,7 +7,7 @@ pol_deg         = 1;
 testratio       = 30;
 lambda          = 0.0;
 learningRate    = 0.2;
-hiddenLayers    = 36 .* ones(1, 0);
+hiddenLayers    = 36 .* ones(1, 2);
 
 %% INITIALIZATION 
 % Store dataset file name
@@ -22,7 +22,7 @@ s.optimizerParams.maxEpochs = 1000; % 1000 is the best option, but we use 10 to 
 s.costParams.lambda             = lambda;
 s.costParams.costType           = 'L2';
 
-s.networkParams.HUtype = 'sigmoid';
+s.networkParams.HUtype = 'ReLU';
 s.networkParams.OUtype = 'linear';
 
 % Select the model's features
@@ -36,15 +36,15 @@ data   = Data(s);
 s.data = data;
 
 % Train the model
-opt = OptimizationProblemNN(s);
-opt.solve();
-opt.plotCostFnc();
-MSETrain    = immse(opt.computeOutputValues(data.Xtrain), data.Ytrain);
+K_NN = OptimizationProblemNN(s);
+K_NN.solve();
+K_NN.plotCostFnc();
+MSETrain    = immse(K_NN.computeOutputValues(data.Xtrain), data.Ytrain);
 
-string ="NeuralNetwork1.mat"
+string ="K_NN.mat"
 
 FileName=fullfile('AbrilTFGfiles','NN',string)
-    save(FileName, "opt");
+    save(FileName, "K_NN");
 %% Plot surface
 
 % Load dataset from specified path
@@ -56,7 +56,7 @@ real = tempData(:,2:end);
 difference = zeros(size(real));
 
 for i = 1:size(difference,1)
-    Y = opt.computeOutputValues(tempData(i,1));
+    Y = K_NN.computeOutputValues(tempData(i,1));
     difference(i,:) = real(i, :)-Y;
 
 end

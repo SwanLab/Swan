@@ -1,3 +1,5 @@
+% This script is intended to train the NN for the Downscaling dataset V1
+
 clc;
 clear;
 close all;
@@ -35,15 +37,15 @@ data   = Data(s);
 s.data = data;
 
 % Train the model
-opt = OptimizationProblemNN(s);
-opt.solve();
-opt.plotCostFnc();
-MSETrain    = immse(opt.computeOutputValues(data.Xtrain), data.Ytrain);
+T1_NN = OptimizationProblemNN(s);
+T1_NN.solve();
+T1_NN.plotCostFnc();
+MSETrain    = immse(T1_NN.computeOutputValues(data.Xtrain), data.Ytrain);
 
 string ="T_NN1.mat"
 
 FileName=fullfile('AbrilTFGfiles','NN',string)
-    save(FileName, "opt");
+    save(FileName, "T1_NN");
 
 
 %% Plot surface
@@ -56,7 +58,7 @@ real = tempData(:, s.yFeatures);
 predicted = zeros(size(real));
 
 for i = 1:size(real,1)
-    predicted(i, :) = opt.computeOutputValues(tempData(i, s.xFeatures));
+    predicted(i, :) = T1_NN.computeOutputValues(tempData(i, s.xFeatures));
 end
 
 difference = real-predicted;
