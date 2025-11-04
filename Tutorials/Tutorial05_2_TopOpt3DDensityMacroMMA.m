@@ -1,7 +1,6 @@
-classdef TopOptTestTutorialWithGiD < handle
+classdef Tutorial05_2_TopOpt3DDensityMacroMMA < handle
 
     properties (Access = private)
-        filename
         mesh
         filter
         designVariable
@@ -17,7 +16,7 @@ classdef TopOptTestTutorialWithGiD < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorialWithGiD()
+        function obj = Tutorial05_2_TopOpt3DDensityMacroMMA()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -42,11 +41,7 @@ classdef TopOptTestTutorialWithGiD < handle
         end
 
         function createMesh(obj)
-            file = 'test2d_triangle';
-            obj.filename = file;
-            a.fileName = file;
-            s = FemDataContainer(a);
-            obj.mesh = s.mesh;
+            obj.mesh = HexaMesh(2,1,1,20,20,20);
         end
 
         function createDesignVariable(obj)
@@ -57,7 +52,7 @@ classdef TopOptTestTutorialWithGiD < handle
             s.fun     = aFun.project('P1');
             s.mesh    = obj.mesh;
             s.type = 'Density';
-            s.plotting = true;
+            s.plotting = false;
             dens    = DesignVariable.create(s);
             obj.designVariable = dens;
         end
@@ -84,7 +79,7 @@ classdef TopOptTestTutorialWithGiD < handle
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
             s.interpolation  = 'SIMPALL';
-            s.dim            = '2D';
+            s.dim            = '3D';
             s.matA = matA;
             s.matB = matB;
 
@@ -99,7 +94,7 @@ classdef TopOptTestTutorialWithGiD < handle
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
-            s.dim                  = '2D';
+            s.dim                  = '3D';
             s.mesh                 = obj.mesh;
             m = Material.create(s);
         end
@@ -108,12 +103,12 @@ classdef TopOptTestTutorialWithGiD < handle
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
             s.material = obj.createMaterial();
-            s.dim = '2D';
+            s.dim = '3D';
             s.boundaryConditions = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = DirectSolver();
+            s.solverCase = CGsolver();
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -159,9 +154,9 @@ classdef TopOptTestTutorialWithGiD < handle
         end
 
         function M = createMassMatrix(obj)
-            test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            trial = LagrangianFunction.create(obj.mesh,1,'P1'); 
-            M = IntegrateLHS(@(u,v) DP(v,u),test,trial,obj.mesh,'Domain');    
+            n = obj.mesh.nnodes;
+            h = obj.mesh.computeMinCellSize();
+            M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
         end
 
         function createConstraint(obj)
@@ -192,11 +187,20 @@ classdef TopOptTestTutorialWithGiD < handle
             obj.optimizer = opt;
         end
 
-        function newbcGiD = createBoundaryConditions(obj)
-            femReader = FemInputReaderGiD();
-            s         = femReader.read(obj.filename);
-            sPL       = obj.computeCondition(s.pointload);
-            sDir      = obj.computeCondition(s.dirichlet);
+        function bc = createBoundaryConditions(obj)
+            xMax = max(obj.mesh.coord(:,1));
+            yMax = max(obj.mesh.coord(:,2));
+            zMax = max(obj.mesh.coord(:,3));
+            isDir   = @(coor)  abs(coor(:,1))==0;
+            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax & abs(coor(:,3))>=0.3*zMax & abs(coor(:,3))<=0.7*zMax);
+
+            sDir{1}.domain    = @(coor) isDir(coor);
+            sDir{1}.direction = [1,2,3];
+            sDir{1}.value     = 0;
+
+            sPL{1}.domain    = @(coor) isForce(coor);
+            sPL{1}.direction = 3;
+            sPL{1}.value     = -1;
 
             dirichletFun = [];
             for i = 1:numel(sDir)
@@ -214,29 +218,7 @@ classdef TopOptTestTutorialWithGiD < handle
 
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
-            newbcGiD = BoundaryConditions(s);
+            bc = BoundaryConditions(s);
         end
-
-    end
-
-    methods (Static, Access=private)
-        function sCond = computeCondition(conditions)
-            nodes = @(coor) 1:size(coor,1);
-            dirs  = unique(conditions(:,2));
-            j     = 0;
-            for k = 1:length(dirs)
-                rowsDirk = ismember(conditions(:,2),dirs(k));
-                u        = unique(conditions(rowsDirk,3));
-                for i = 1:length(u)
-                    rows   = conditions(:,3)==u(i) & rowsDirk;
-                    isCond = @(coor) ismember(nodes(coor),conditions(rows,1));
-                    j      = j+1;
-                    sCond{j}.domain    = @(coor) isCond(coor);
-                    sCond{j}.direction = dirs(k);
-                    sCond{j}.value     = u(i);
-                end
-            end
-        end
-
     end
 end

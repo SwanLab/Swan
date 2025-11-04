@@ -9,17 +9,16 @@ run('Tutorial09_ProjectorsQuadrilaterals.mlx');
 run('Tutorial10_AcademicProblem.mlx');
 
 % M files
-TopOptTestTutorial();
-TopOptTestTutorial3DDensity();
-TopOptTestTutorialBoundFormulation();
-TopOptTestTutorialDensityNullSpace();
-TopOptTestTutorialGiD();
-TopOptTestTutorialGlobalLengthScaleControl();
-TopOptTestTutorialLevelSetNullSpace();
-TopOptTestTutorialLSPerimeter();
-TopOptTestTutorialMicro();
-TopOptTestTutorialWithGiD();
-TopOptTestTutorialLevelSetInfill();
+Tutorial05_1_TopOpt2DDensityMacroMMA();
+Tutorial05_2_TopOpt3DDensityMacroMMA();
+Tutorial05_3_TopOptDensityBoundFormulationMacro();
+Tutorial05_4_TopOpt2DDensityMacroNullSpace();
+Tutorial05_5_TopOptDensityMacroGiD();
+Tutorial05_6_TopOpt2DLevelSetMacroGlobalLengthControl();
+Tutorial05_7_TopOpt2DLevelSetMacroNullSpace();
+Tutorial05_8_TopOpt2DLevelSetPerimeter();
+Tutorial05_9_TopOpt2DDensityMicroNullSpace();
+Tutorial05_10_TopOpt2DLevelSetInfillNullSpace();
 NullSpaceVerification();
 %TopOptViaHomogenizationTutorial(); % ALEX
 Tutorial02FEMElasticity();
@@ -35,7 +34,7 @@ TutorialXXPhaseFieldHomogenization();
 TutorialXXHyperelasticity();
 TutorialXXContinuumDamage();
 TutorialElasticityAMG();
-TopOptTestTutorial3DDensityPython();
+Tutorial05_11_TopOpt3DDensityMacroPython();
 close all;
 
 % Output:
