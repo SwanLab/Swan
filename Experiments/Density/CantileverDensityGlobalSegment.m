@@ -34,9 +34,6 @@ classdef CantileverDensityGlobalSegment < handle
             obj.createConstraint();
             obj.createPrimalUpdater();
             obj.createOptimizer();
-
-            saveas(gcf,'Experiments/Density/CantileverDensityGlobalSegment.fig');
-            obj.designVariable.fun.print('Experiments/Density/CantileverDensityGlobalSegmentfValues');
         end
 
     end
@@ -52,14 +49,14 @@ classdef CantileverDensityGlobalSegment < handle
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(x(1,:,:)));
+            s.fHandle = @(x) -ones(size(x(1,:,:)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);
             
             sD.fun      = aFun.project('P1');
             sD.mesh     = obj.mesh;
-            sD.type     = 'Density';
+            sD.type     = 'LevelSet';
             sD.plotting = false;
             dens        = DesignVariable.create(sD);
             obj.designVariable = dens;
@@ -156,8 +153,8 @@ classdef CantileverDensityGlobalSegment < handle
             s.mesh  = obj.mesh;
             s.alpha = 4;
             s.beta  = 0;
-            s.theta = 90;
-            s.tol0  = 1e-6;
+            s.theta = 0;
+            s.tol0  = 1e-3;
             obj.filterSegment  = NonLinearFilterSegment(s);
         end
 
@@ -166,10 +163,10 @@ classdef CantileverDensityGlobalSegment < handle
             s.mesh    = obj.mesh;
             s.uMesh   = obj.createBaseDomain();
             s.filter  = obj.filterSegment;
-            s.epsilon = 2*h;
-            s.minEpsilon = 2*h;
+            s.epsilon = 5*h;
+            s.minEpsilon = 5*h;
             s.value0  = 1;
-            s.target = 17.2675/2;
+            s.target = 7.0708*0.12;
             obj.perimeter = PerimeterConstraint(s);
         end
 
@@ -181,9 +178,9 @@ classdef CantileverDensityGlobalSegment < handle
         end
 
         function M = createMassMatrix(obj)
-            test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            trial = LagrangianFunction.create(obj.mesh,1,'P1'); 
-            M = IntegrateLHS(@(u,v) DP(v,u),test,trial,obj.mesh,'Domain');
+            n = obj.mesh.nnodes;
+            h = obj.mesh.computeMinCellSize();
+            M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
         end
 
         function createConstraint(obj)
@@ -194,11 +191,8 @@ classdef CantileverDensityGlobalSegment < handle
         end
 
         function createPrimalUpdater(obj)
-            s.ub     = 1;
-            s.lb     = 0;
-            s.tauMax = 1000;
-            s.tau    = [];
-            obj.primalUpdater = ProjectedGradient(s);
+            s.mesh = obj.mesh;
+            obj.primalUpdater = SLERP(s);
         end
 
         function createOptimizer(obj)
@@ -209,10 +203,16 @@ classdef CantileverDensityGlobalSegment < handle
             s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY','INEQUALITY'};
-            s.primal         = 'PROJECTED GRADIENT';
             s.etaNorm        = 0.01;
-            s.gJFlowRatio    = 0.7;
+            s.etaNormMin = 0.01;
+            s.etaMax = 10;
+            s.etaMaxMin = 0.1;
+            s.gJFlowRatio    = 2;
             s.primalUpdater  = obj.primalUpdater;
+            s.gif = true;
+            s.gifName = 'VerticalCantLS';
+            s.printing = true;
+            s.printName = 'Results/VertCantLS';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
