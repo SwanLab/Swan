@@ -9,6 +9,7 @@ classdef TutorialXXContinuumDamage < handle
         boundaryConditions
         r0, internalDamageVariable
         functional
+        solverType
     end
 
     methods (Access = public)
@@ -33,6 +34,8 @@ classdef TutorialXXContinuumDamage < handle
             s.tolerance              = 1e-8;
             s.maxIter                = 20;
 
+            s.solverType             = obj.solverType;
+
             CDComp = ContinuumDamageComputer(s);
             obj.output = CDComp.compute();
         end
@@ -45,6 +48,7 @@ classdef TutorialXXContinuumDamage < handle
         end
 
         function defineCase(obj)
+            obj.solverType  = 'AdaptiveGradient';
             s.mesh.type   = 'Rectangle';
             s.mesh.length = 1;
             s.mesh.width  = 1;
