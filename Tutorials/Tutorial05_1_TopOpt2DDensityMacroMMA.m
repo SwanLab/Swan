@@ -156,6 +156,7 @@ classdef Tutorial05_1_TopOpt2DDensityMacroMMA < handle
             trial  = LagrangianFunction.create(obj.mesh, 1, 'P1');
             f = @(u,v) DP(v,u);
             M = IntegrateLHS(f,test,trial,obj.mesh,'Domain',2);
+            M = diag(sum(M,1));
         end
 
         function createConstraint(obj)

@@ -1,4 +1,4 @@
-classdef Tutorial05_4_TopOpt2DDensityMacroNullSpace < handle
+classdef Tutorial05_2_TopOpt2DDensityMacroNullSpace < handle
 
     properties (Access = private)
         mesh
@@ -16,7 +16,7 @@ classdef Tutorial05_4_TopOpt2DDensityMacroNullSpace < handle
 
     methods (Access = public)
 
-        function obj = Tutorial05_4_TopOpt2DDensityMacroNullSpace()
+        function obj = Tutorial05_2_TopOpt2DDensityMacroNullSpace()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();

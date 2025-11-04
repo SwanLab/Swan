@@ -1,4 +1,4 @@
-classdef Tutorial05_8_TopOpt2DLevelSetPerimeter < handle
+classdef Tutorial05_4_TopOpt2DLevelSetPerimeter < handle
 
     properties (Access = private)
         mesh
@@ -14,7 +14,7 @@ classdef Tutorial05_8_TopOpt2DLevelSetPerimeter < handle
 
     methods (Access = public)
 
-        function obj = Tutorial05_8_TopOpt2DLevelSetPerimeter()
+        function obj = Tutorial05_4_TopOpt2DLevelSetPerimeter()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();

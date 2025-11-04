@@ -1,4 +1,4 @@
-classdef Tutorial05_5_TopOptDensityMacroGiD < handle
+classdef Tutorial05_7_TopOptDensityMacroGiD < handle
 
     properties (Access = private)
         filename
@@ -17,7 +17,7 @@ classdef Tutorial05_5_TopOptDensityMacroGiD < handle
 
     methods (Access = public)
 
-        function obj = Tutorial05_5_TopOptDensityMacroGiD()
+        function obj = Tutorial05_7_TopOptDensityMacroGiD()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();

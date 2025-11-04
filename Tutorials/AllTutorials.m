@@ -10,15 +10,16 @@ run('Tutorial10_AcademicProblem.mlx');
 
 % M files
 Tutorial05_1_TopOpt2DDensityMacroMMA();
-Tutorial05_2_TopOpt3DDensityMacroMMA();
-Tutorial05_3_TopOptDensityBoundFormulationMacro();
-Tutorial05_4_TopOpt2DDensityMacroNullSpace();
-Tutorial05_5_TopOptDensityMacroGiD();
+Tutorial05_2_TopOpt2DDensityMacroNullSpace();
+Tutorial05_3_TopOpt2DLevelSetMacroNullSpace();
+Tutorial05_4_TopOpt2DLevelSetPerimeter();
+Tutorial05_5_TopOpt2DLevelSetInfillNullSpace();
 Tutorial05_6_TopOpt2DLevelSetMacroGlobalLengthControl();
-Tutorial05_7_TopOpt2DLevelSetMacroNullSpace();
-Tutorial05_8_TopOpt2DLevelSetPerimeter();
+Tutorial05_7_TopOptDensityMacroGiD();
+Tutorial05_8_TopOpt3DDensityMacroMMA();
 Tutorial05_9_TopOpt2DDensityMicroNullSpace();
-Tutorial05_10_TopOpt2DLevelSetInfillNullSpace();
+Tutorial05_10_TopOptDensityBoundFormulationMacro();
+Tutorial05_11_TopOpt3DDensityMacroPython();
 NullSpaceVerification();
 %TopOptViaHomogenizationTutorial(); % ALEX
 Tutorial02FEMElasticity();
@@ -34,7 +35,6 @@ TutorialXXPhaseFieldHomogenization();
 TutorialXXHyperelasticity();
 TutorialXXContinuumDamage();
 TutorialElasticityAMG();
-Tutorial05_11_TopOpt3DDensityMacroPython();
 close all;
 
 % Output:

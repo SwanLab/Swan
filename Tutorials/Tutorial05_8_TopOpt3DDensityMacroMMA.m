@@ -1,4 +1,4 @@
-classdef Tutorial05_2_TopOpt3DDensityMacroMMA < handle
+classdef Tutorial05_8_TopOpt3DDensityMacroMMA < handle
 
     properties (Access = private)
         mesh
@@ -16,7 +16,7 @@ classdef Tutorial05_2_TopOpt3DDensityMacroMMA < handle
 
     methods (Access = public)
 
-        function obj = Tutorial05_2_TopOpt3DDensityMacroMMA()
+        function obj = Tutorial05_8_TopOpt3DDensityMacroMMA()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();

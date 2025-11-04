@@ -1,15 +1,13 @@
-classdef Tutorial05_10_TopOpt2DLevelSetInfillNullSpace < handle
+classdef Tutorial05_3_TopOpt2DLevelSetMacroNullSpace < handle
 
     properties (Access = private)
         mesh
-        filterCompliance
-        filterVolume
+        filter
         designVariable
         materialInterpolator
         physicalProblem
         compliance
         volume
-        localVolume
         cost
         constraint
         primalUpdater
@@ -18,18 +16,16 @@ classdef Tutorial05_10_TopOpt2DLevelSetInfillNullSpace < handle
 
     methods (Access = public)
 
-        function obj = Tutorial05_10_TopOpt2DLevelSetInfillNullSpace()
+        function obj = Tutorial05_3_TopOpt2DLevelSetMacroNullSpace()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
-            obj.createFilterCompliance();
-            obj.createFilterVolume();
+            obj.createFilter();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
             obj.createVolumeConstraint();
-            obj.createLocalVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
             obj.createPrimalUpdater();
@@ -60,21 +56,12 @@ classdef Tutorial05_10_TopOpt2DLevelSetInfillNullSpace < handle
             obj.designVariable = ls;
         end
 
-        function createFilterCompliance(obj)
+        function createFilter(obj)
             s.filterType = 'LUMP';
             s.mesh  = obj.mesh;
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
-            obj.filterCompliance = f;
-        end
-
-        function createFilterVolume(obj)
-            s.filterType = 'PDE';
-            s.mesh  = obj.mesh;
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            f = Filter.create(s);
-            f.updateEpsilon(6*obj.mesh.computeMeanCellSize());
-            obj.filterVolume = f;
+            obj.filter = f;
         end
 
         function createMaterialInterpolator(obj)
@@ -109,7 +96,7 @@ classdef Tutorial05_10_TopOpt2DLevelSetInfillNullSpace < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = DirectSolver();
+            s.solverCase = CGsolver();
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -122,7 +109,7 @@ classdef Tutorial05_10_TopOpt2DLevelSetInfillNullSpace < handle
 
         function createCompliance(obj)
             s.mesh                       = obj.mesh;
-            s.filter                     = obj.filterCompliance;
+            s.filter                     = obj.filter;
             s.complainceFromConstitutive = obj.createComplianceFromConstiutive();
             s.material                   = obj.createMaterial();
             c = ComplianceFunctional(s);
@@ -130,7 +117,10 @@ classdef Tutorial05_10_TopOpt2DLevelSetInfillNullSpace < handle
         end
 
         function uMesh = createBaseDomain(obj)
-            sG.type          = 'Full';
+            sG.type          = 'Square';
+            sG.length        = 1;
+            sG.xCoorCenter   = 1.5;
+            sG.yCoorCenter   = 0.5;
             g                = GeometricalFunction(sG);
             lsFun            = g.computeLevelSetFunction(obj.mesh);
             levelSet         = lsFun.fValues;
@@ -142,21 +132,12 @@ classdef Tutorial05_10_TopOpt2DLevelSetInfillNullSpace < handle
 
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
+            s.filter = obj.filter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;
+            s.volumeTarget = 0.3;
             s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
-        end
-
-        function createLocalVolumeConstraint(obj)
-            s.mesh   = obj.mesh;
-            s.filter = obj.filterVolume;
-            s.p      = 4;
-            s.alpha  = 0.5;
-            s.uMesh  = obj.createBaseDomain();
-            v        = FilteredVolumeConstraint(s);
-            obj.localVolume = v;
         end
 
         function createCost(obj)
@@ -174,7 +155,6 @@ classdef Tutorial05_10_TopOpt2DLevelSetInfillNullSpace < handle
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
-            s.shapeFunctions{2} = obj.localVolume;
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
@@ -191,7 +171,7 @@ classdef Tutorial05_10_TopOpt2DLevelSetInfillNullSpace < handle
             s.designVariable = obj.designVariable;
             s.maxIter        = 3;
             s.tolerance      = 1e-8;
-            s.constraintCase = {'EQUALITY','INEQUALITY'};
+            s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.02;
@@ -206,7 +186,7 @@ classdef Tutorial05_10_TopOpt2DLevelSetInfillNullSpace < handle
         function m = createMaterial(obj)
             x = obj.designVariable;
             f = x.obtainDomainFunction();
-            f = obj.filterCompliance.compute(f{1},1);            
+            f = obj.filter.compute(f{1},1);            
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;

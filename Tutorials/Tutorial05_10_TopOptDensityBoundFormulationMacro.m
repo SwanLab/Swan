@@ -1,4 +1,4 @@
-classdef Tutorial05_3_TopOptDensityBoundFormulationMacro < handle
+classdef Tutorial05_10_TopOptDensityBoundFormulationMacro < handle
 
     properties (Access = private)
         mesh
@@ -24,7 +24,7 @@ classdef Tutorial05_3_TopOptDensityBoundFormulationMacro < handle
 
     methods (Access = public)
 
-        function obj = Tutorial05_3_TopOptDensityBoundFormulationMacro()
+        function obj = Tutorial05_10_TopOptDensityBoundFormulationMacro()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
