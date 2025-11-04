@@ -88,11 +88,12 @@ classdef Tutorial13_Hyperelasticity < handle
         end
 
         function createFunctional(obj)
-            s.matTensor   = obj.material;
-            s.quadOrder   = 3;
-            s.matProp     = obj.matProp;
-            s.mesh        = obj.mesh;
-            s.testSpace.u = LagrangianFunction.create(obj.mesh,2,'P1');
+            obj.matProp.type = 'Neohookean';
+            s.matTensor    = obj.material;
+            s.quadOrder    = 3;
+            s.matProp      = obj.matProp;
+            s.mesh         = obj.mesh;
+            s.testSpace.u  = LagrangianFunction.create(obj.mesh,2,'P1');
             obj.functional = ElasticityFunctional(s);
         end
 
