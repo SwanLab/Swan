@@ -44,7 +44,7 @@ classdef TutorialEIFEM < handle
 
             %% Modal Analysis
             
-            %[eigenvalues, eigenvectors, natFreq] = obj.computeModalAnalysis(LHSr, Mr);
+            [eigenvalues, eigenvectors, natFreq] = obj.computeModalAnalysis(LHSr, Mr);
             % 
             % ModalAnalysis.lambda = eigenvalues;
             % ModalAnalysis.Phi = eigenvectors;
@@ -57,9 +57,10 @@ classdef TutorialEIFEM < handle
             [lambdaCoarse, PhiCoarse, omega] = obj.computeModalAnalysis(Kcoarse, Mcoarse);
             
             %% Eigenvalues to print
-            %obj.printContinuousSolution(PhiCoarse);
-            %obj.printDiscontinuousSolution(PhiCoarse);
-            obj.printCoarseSolution(EIFEM,PhiCoarse);
+            obj.printContinuousSolution(EIFEM,PhiCoarse,mD);
+            %obj.printDiscontinuousSolution(EIFEM,PhiCoarse,discMesh);
+            %obj.printCoarseSolution(EIFEM,PhiCoarse,discMesh);
+            %obj.printFineSolution(eigenvectors,mD);
             
             % for i = 1:length(radius_to_analyse)
             % 
@@ -419,39 +420,39 @@ classdef TutorialEIFEM < handle
 
         end
        
-        function printContinuousSolution(obj,EIFEM,phiCoarse)
+        function printContinuousSolution(obj,EIFEM,phiCoarse,mesh)
             for i=1:size(phiCoarse,2)
                 PhiFineDisc(:,:,i) = EIFEM.reconstructSolution(phiCoarse(:,i));
                 PhiFineCont(:,:,i) = EIFEM.computeContinousField(PhiFineDisc(:,:,i));  
                 uplot = PhiFineCont(:,i);
-                EIFEMtesting.plotSolution(uplot,mD,15,2,i,[],0)
+                EIFEMtesting.plotSolution(uplot,mesh,5,2,i,[],0)
             end
         end
 
-        function printDiscontinuousSolution(obj,EIFEM, phiCoarse)
+        function printDiscontinuousSolution(obj,EIFEM, phiCoarse,mesh)
             for i=1:size(phiCoarse,2)
                 PhiFineDisc(:,:,i) = EIFEM.reconstructSolution(phiCoarse(:,i));
-                uplot = PhiFineCont(:,:,i);
+                uplot = PhiFineDisc(:,:,i);
                 uplot = uplot(:);
-                EIFEMtesting.plotSolution(uplot,discMesh,15,2,i,[],0)
+                EIFEMtesting.plotSolution(uplot,mesh,5,2,i,[],0)
             end
         end
 
-        function printCoarseSolution(obj,EIFEM, phiCoarse)
+        function printCoarseSolution(obj,EIFEM, phiCoarse,mesh)
             for i=1:size(phiCoarse,2)
                 PhiBoundary(:,:,i) = EIFEM.injectCoarseToFineBoundary(phiCoarse(:,i));
                 uplot = PhiFineCont(:,i);
                 %uplot = uplot(:);
-                EIFEMtesting.plotSolution(uplot,discMesh,15,2,i,[],0)
+                EIFEMtesting.plotSolution(uplot,mesh,5,2,i,[],0)
             end
         end
 
-        function printFineSolution(obj,phiFine)
+        function printFineSolution(obj,phiFine,mesh)
              for i=1:size(phiFine,2)
                  PhiFineFull(:,:,i) = obj.bcApplier.reducedToFullVectorDirichlet(phiFine(:,i));
                  uplot = PhiFineFull(:,:,i);
                  uplot = uplot(:);
-                 EIFEMtesting.plotSolution(uplot,mD,15,2,i,[],0)
+                 EIFEMtesting.plotSolution(uplot,mesh,5,2,i,[],0)
             end
         end
     end
