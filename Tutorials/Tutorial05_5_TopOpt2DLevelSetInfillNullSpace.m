@@ -1,4 +1,4 @@
-classdef TopOptTestTutorialLevelSetInfill < handle
+classdef Tutorial05_5_TopOpt2DLevelSetInfillNullSpace < handle
 
     properties (Access = private)
         mesh
@@ -18,7 +18,7 @@ classdef TopOptTestTutorialLevelSetInfill < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorialLevelSetInfill()
+        function obj = Tutorial05_5_TopOpt2DLevelSetInfillNullSpace()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -45,14 +45,7 @@ classdef TopOptTestTutorialLevelSetInfill < handle
         end
 
         function createMesh(obj)
-            %UnitMesh better
-            x1      = linspace(0,2,100);
-            x2      = linspace(0,1,50);
-            [xv,yv] = meshgrid(x1,x2);
-            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            s.coord  = V(:,1:2);
-            s.connec = F;
-            obj.mesh = Mesh.create(s);
+            obj.mesh = TriangleMesh(2,1,100,50);
         end
 
         function createDesignVariable(obj)

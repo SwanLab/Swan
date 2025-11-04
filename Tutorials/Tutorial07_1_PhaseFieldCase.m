@@ -1,4 +1,4 @@
-classdef TutorialXXPhaseFieldCase < handle
+classdef Tutorial07_1_PhaseFieldCase < handle
 
     properties (Access = public)
         initialGuess
@@ -15,7 +15,7 @@ classdef TutorialXXPhaseFieldCase < handle
 
     methods (Access = public)
 
-        function obj = TutorialXXPhaseFieldCase()
+        function obj = Tutorial07_1_PhaseFieldCase()
             obj.init()
             obj.defineCase();
             obj.createInitialGuess();

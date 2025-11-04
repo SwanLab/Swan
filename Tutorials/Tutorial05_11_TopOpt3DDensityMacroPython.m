@@ -1,4 +1,4 @@
-classdef TopOptTestTutorial3DDensityPython < handle
+classdef Tutorial05_11_TopOpt3DDensityMacroPython < handle
 
     properties (Access = private)
         mesh
@@ -16,7 +16,7 @@ classdef TopOptTestTutorial3DDensityPython < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorial3DDensityPython()
+        function obj = Tutorial05_11_TopOpt3DDensityMacroPython()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
