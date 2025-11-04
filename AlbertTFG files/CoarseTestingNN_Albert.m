@@ -35,15 +35,15 @@ classdef CoarseTestingNN_Albert < handle
             close all
             obj.init()
 
-            mR = obj.createReferenceMesh();
-            bS  = mR.createBoundaryMesh();
-            [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain(mR); 
-            obj.meshDomain = mD;
-            obj.cellMeshes = mSb; %???
-            obj.ic = iC;  %??
-            obj.icr = iCR; %??
+            mR = obj.createReferenceMesh();  %Crea la background mesh
+            bS  = mR.createBoundaryMesh();    %crea el boundary de la mesh
+            [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain(mR);  
+            obj.meshDomain = mD;        %mD:conj subdominis --> Tot el domini
+            obj.cellMeshes = mSb; %??? %mSb: info de la malla a cada subdimini
+            obj.ic = iC;  % info de les coordenades globals en tot el domini ???
+            obj.icr = iCR; % info de les coordenades del corresponent subdomini ???
             obj.lg = lG; %??
-            obj.bs; %??
+            obj.bs; 
 
             [bC,dir] = obj.createBoundaryConditions(obj.meshDomain);
             obj.boundaryConditions = bC;
