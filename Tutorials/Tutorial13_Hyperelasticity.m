@@ -1,4 +1,4 @@
-classdef TutorialXXHyperelasticity < handle
+classdef Tutorial13_Hyperelasticity < handle
     
     properties (Access = public)
         output
@@ -13,7 +13,7 @@ classdef TutorialXXHyperelasticity < handle
 
     methods (Access = public)
 
-        function obj = TutorialXXHyperelasticity()
+        function obj = Tutorial13_Hyperelasticity()
             obj.init()
             obj.createMesh();
             obj.createBoundaryConditions()
