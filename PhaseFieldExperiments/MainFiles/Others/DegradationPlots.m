@@ -13,9 +13,15 @@ etak1  = mu1;
 etamu0 = (k0.*mu0)./(2.*mu0+k0);
 etamu1 = (k1.*mu1)./(2.*mu1+k1);
 
-Gc = 5e-3; l0 = 0.1;
-derivFactor1 = -2*(3/8)*(Gc/l0)*E*(1/1)^2;
-derivFactor2 = -2*(3/8)*(Gc/l0)*E*(1/2)^2;
+Gc = 5e-3;
+sigma = 1.5;
+lch   = (2*E*Gc)/(sigma^2);
+slope = - k - k^2/mu - mu - (2*mu^2 + k)/k;
+lhs   = -2*(3/8)*(Gc/slope)*E*(1/sigma)^2;
+l0    = lhs;
+derivFactor1 = -2*(3/8)*(Gc/l0)*E*(1/sigma)^2;
+derivFactor2 = -2*(3/8)*(Gc/l0)*E*(1/sigma)^2;
+
 
 degSIMPmu = @(phi) ((mu1-mu0).*(etamu0-etamu1).*(phi).*(1-phi) + mu0.*(mu1+etamu0).*(phi) + mu1.*(mu0+etamu1).*(1-phi))./...
                       ((mu1+etamu0).*(phi) + (mu0+etamu1).*(1-phi));
@@ -34,7 +40,7 @@ C11SIMP = @(phi) degSIMPkappa(phi) + degSIMPmu(phi);
 C11UB   = @(phi) kUB(phi) + muUB(phi);
 C11LB   = @(phi) kLB(phi) + muLB(phi);
 
-C11AT1 = @(phi) C11.*(1-phi).^2;
+C11AT1 = @(phi) C11.*(1-phi).^2; 
 kAT1  = @(phi) k.*(1-phi).^2;
 muAT1 = @(phi) mu.*(1-phi).^2;
 

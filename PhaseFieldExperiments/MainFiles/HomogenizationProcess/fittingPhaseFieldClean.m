@@ -8,9 +8,9 @@ function fittingPhaseFieldClean()
     Cdata = [C11data';C12data';C33data'];
     
     A = []; b = []; Aeq = []; beq = []; lb = []; ub = [];
-    sigma = 1.5;
-    sigmach = 1;
-    nonlcon = @(coeff) nonLinearCon(coeff,Cdata,sigma,sigmach);
+
+    [sigma,E,Gc,l0] = computeProperties();
+    nonlcon = @(coeff) nonLinearCon(coeff,Cdata,sigma,E,Gc,l0);
     objective = @(p) objectiveFun(p,phiData,Cdata);
     options = optimoptions(@fmincon, ...
                        'StepTolerance',1e-10, ...
@@ -18,14 +18,14 @@ function fittingPhaseFieldClean()
                        'MaxFunctionEvaluations',10000, ...
                        'Display','none');
 
-    objBestResult=100;
+    objBestResult=10000;
     coeff0BestResult = rand(1,60);
 
     % load('Degradation/SquareAreaDerivative10.mat')
     % [~, ceq] = nonlcon(coeffBestResult);
     % disp(['MinObjective: ', num2str(objBestResult, '%.2e'), ' | MinCeq: [', num2str(abs(ceq), '%.2e '), ']']);
 
-    for i=1:150
+    for i=1:100
         coeff0 = rand(1,60);
         [coeffOpt,fval,exitflag,output,lambda,grad,hessian] = fmincon(objective,coeff0,A,b,Aeq,beq,lb,ub,nonlcon,options);
         [~, ceq] = nonlcon(coeffOpt);
@@ -41,9 +41,36 @@ function fittingPhaseFieldClean()
     [~, ceq] = nonlcon(coeffOpt);
     disp(['MinObjective: ', num2str(objBestResult, '%.2e'), ' | MinCeq: [', num2str(abs(ceq), '%.2e '), ']']);
 
-    degFuns = generateConstitutiveTensor(coeffBestResult,objBestResult,matType,'DegSqr15Lch10');
+    degFuns = generateConstitutiveTensor(coeffBestResult,objBestResult,matType,'DegSqr15L0095Lch');
     plotResults(objective,phiData,Cdata,coeff0BestResult,coeffBestResult,degFuns)
 end
+
+
+%% Input
+
+function [sigma,E,Gc,l0] = computeProperties()
+    E = 210;
+    nu = 0.3;
+    Gc0 = 5e-3;
+    sigma = 1.5;
+    % l0 constant
+        % sigmach = 1.5;
+        % Gc = Gc0*(sigma^2/sigmach^2);
+    
+    % l0(lch)
+        Gc = Gc0;
+        lch = (2*E*Gc)/(sigma^2);
+        l0 = 0.95*lch;
+
+    % l0(lHS)
+        % Gc = Gc0;
+        % k  = E./(2.*(1-nu));
+        % mu = E./(2.*(1+nu));
+        % slope = - k - k^2/mu - mu - (2*mu^2 + k)/k;
+        % l0 = -2*(3/8)*(Gc/slope)*(E/sigma^2);
+end
+
+%% Functions
 
 function C = constitutiveTensor(coeff,phi)
     a=coeff(1:20); b=coeff(21:40); c=coeff(41:60);
@@ -101,7 +128,7 @@ function fun = polyFunDeriv(a,phi)
     end
 end
 
-function [c,ceq] = nonLinearCon(coeff,Cdata,sigma,sigmach)
+function [c,ceq] = nonLinearCon(coeff,Cdata,sigma,E,Gc,l0)
     dCfun = @(phi) constitutiveTensorDerivative(coeff,phi);
     Cfun  = @(phi) constitutiveTensor(coeff,phi);
    
@@ -115,9 +142,7 @@ function [c,ceq] = nonLinearCon(coeff,Cdata,sigma,sigmach)
     ceq(5) = C1(1,2);
     ceq(6) = C1(3,3);
 
-    E=210;
-    l0=0.1; cw=8/3;
-    Gc = 5e-3*(sigma^2/sigmach^2);
+    cw=8/3;
     sigCrit=[sigma 0 0];
     
     dC0 = cell2mat(dCfun(0));

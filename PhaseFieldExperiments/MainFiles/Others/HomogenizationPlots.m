@@ -1,20 +1,23 @@
 %% DEGRADATION FUNCTION
 E = 210;
-load('CircleAreaDerivative10.mat')
-C10 = @(phi) E.*degradation.fun{1,1,1,1}(phi);
-load('CircleAreaDerivative15.mat')
-C15 = @(phi) E.*degradation.fun{1,1,1,1}(phi);
-load('CircleAreaDerivative20.mat')
-C20 = @(phi) E.*degradation.fun{1,1,1,1}(phi);
+load('DegSqr15L0Lch.mat')
+Lch = @(phi) E.*degradation.fun{1,1,1,1}(phi);
+load('DegSqr15L0LHS.mat')
+LHS = @(phi) E.*degradation.fun{1,1,1,1}(phi);
+load('DegSqr15L02Lch.mat')
+Lch2 = @(phi) E.*degradation.fun{1,1,1,1}(phi);
+load('DegSqr15L02Lch.mat')
+Lch095 = @(phi) E.*degradation.fun{1,1,1,1}(phi);
 
 cmp = orderedcolors("gem");
 figure()
 hold on
-fplot(C10,[0 1],'Color',cmp(1,:))
-fplot(C15,[0 1],'Color',cmp(2,:))
-fplot(C20,[0 1],'Color',cmp(3,:));
-legend('$\sigma = 1MPa$','$\sigma = 1.5MPa$','$\sigma = 2MPa$','Interpreter','latex')
-title('Circle Degradation function ($\nu = 0.3$)','Interpreter','latex')
+fplot(Lch,[0 1],'Color',cmp(1,:))
+fplot(Lch2,[0 1],'Color',cmp(2,:));
+fplot(Lch095,[0 1],'Color',cmp(3,:));
+fplot(LHS,[0 1],'Color',cmp(4,:))
+legend('Lch','Lch2','Lch095','LHS','Interpreter','latex')
+title('Square Degradation function ($\nu = 0.3$)','Interpreter','latex')
 
 %% 1 ELEMENT COMPARISON (same type - sigma max)
 
