@@ -425,7 +425,7 @@ classdef TutorialEIFEM < handle
                 PhiFineDisc(:,:,i) = EIFEM.reconstructSolution(phiCoarse(:,i));
                 PhiFineCont(:,:,i) = EIFEM.computeContinousField(PhiFineDisc(:,:,i));  
                 uplot = PhiFineCont(:,i);
-                EIFEMtesting.plotSolution(uplot,mesh,5,2,i,[],0)
+                EIFEMtesting.plotSolution(uplot,mesh,15,2,i,[],0)
             end
         end
 
@@ -434,7 +434,7 @@ classdef TutorialEIFEM < handle
                 PhiFineDisc(:,:,i) = EIFEM.reconstructSolution(phiCoarse(:,i));
                 uplot = PhiFineDisc(:,:,i);
                 uplot = uplot(:);
-                EIFEMtesting.plotSolution(uplot,mesh,5,2,i,[],0)
+                EIFEMtesting.plotSolution(uplot,mesh,15,2,i,[],0)
             end
         end
 
@@ -443,7 +443,7 @@ classdef TutorialEIFEM < handle
                 PhiBoundary(:,:,i) = EIFEM.injectCoarseToFineBoundary(phiCoarse(:,i));
                 uplot = PhiFineCont(:,i);
                 %uplot = uplot(:);
-                EIFEMtesting.plotSolution(uplot,mesh,5,2,i,[],0)
+                EIFEMtesting.plotSolution(uplot,mesh,15,2,i,[],0)
             end
         end
 
@@ -452,7 +452,7 @@ classdef TutorialEIFEM < handle
                  PhiFineFull(:,:,i) = obj.bcApplier.reducedToFullVectorDirichlet(phiFine(:,i));
                  uplot = PhiFineFull(:,:,i);
                  uplot = uplot(:);
-                 EIFEMtesting.plotSolution(uplot,mesh,5,2,i,[],0)
+                 EIFEMtesting.plotSolution(uplot,mesh,15,2,i,[],0)
             end
         end
     end
