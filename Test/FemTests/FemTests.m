@@ -1,18 +1,34 @@
 classdef FemTests < handle & matlab.unittest.TestCase
 
     properties (TestParameter)
-       triangle = {'test2d_triangle'}
-       quad = {'test2d_quad'}
-       tests2d = {'test2d_triangle', 'test2d_quad'}
-       tests3d = {'test3d_tetrahedra', 'test3d_hexahedra'}
-       hexahedra = {'test3d_hexahedra'}
-       duTests = {'test2d_triangle', 'test2d_quad', 'test3d_tetrahedra', 'test3d_hexahedra'}
-       stokesTests = {'test2d_stokes_triangle_steady', 'test2d_stokes_triangle_transient'}
+        triangle = {'test2d_triangle'}
+        quad = {'test2d_quad'}
+        tests2d = {'test2d_triangle', 'test2d_quad'}
+        tests3d = {'test3d_tetrahedra', 'test3d_hexahedra'}
+        hexahedra = {'test3d_hexahedra'}
+        duTests = {'test2d_triangle', 'test2d_quad', 'test3d_tetrahedra', 'test3d_hexahedra'}
+        stokesTests = {'test2d_stokes_triangle_steady', 'test2d_stokes_triangle_transient'}
         microTests = {'test2d_micro', 'test3d_micro_cube'}
-       thermalTests = {'test_thermal'}
-       hyperelasticTests = {'test_hyperelastic'}
+        thermalTests = {'test_thermal'}
+        hyperelasticTests = {'test_hyperelastic'}
+        solvers = {'test_pyAMG'};
     end
 
+    methods (Test, TestTags = {'FEM','Solvers'})
+
+        function testIterativeSolvers(testCase, solvers)
+            load('Por3D_LHS.mat','LHS');
+            load('Por3D_RHS.mat','RHS');
+            load([solvers,'.mat'],'xReal');
+            run(solvers);
+            solver = Solver.create(s);
+            xNew = solver.solve(LHS,RHS);
+            err = norm(xReal - xNew)/norm(xReal);
+            tol = 1e-6;
+            testCase.verifyLessThanOrEqual(err, tol);
+        end
+
+    end
 
     methods (Test, TestTags = {'Triangle'})
 
@@ -128,7 +144,7 @@ classdef FemTests < handle & matlab.unittest.TestCase
             testCase.verifyLessThanOrEqual(err, tol)
         end
 
-   end
+    end
 
     methods(Test, TestTags = {'FEM', 'Classic', 'Micro'})
 
@@ -196,6 +212,6 @@ classdef FemTests < handle & matlab.unittest.TestCase
             testCase.verifyLessThanOrEqual(err, tol)
         end
 
-   end
+    end
 
 end

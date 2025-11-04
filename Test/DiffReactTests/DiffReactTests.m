@@ -1,7 +1,6 @@
 classdef DiffReactTests < matlab.unittest.TestCase
 
     properties (TestParameter)
-%         file = {'testDiffReactHexagon', 'testDiffReactTorus', 'testDiffReactCube'}
         file = {'testDiffReactHexagon'}
         file3d = {'testDiffReactTorus', 'testDiffReactCube'}     
         LHStype = {'StiffnessMass', 'StiffnessMassBoundaryMass'}
@@ -15,7 +14,7 @@ classdef DiffReactTests < matlab.unittest.TestCase
             fem = PhysicalProblem.create(s);
             fem.computeLHS(0.1857);
             fem.computeVariables(RHS);
-%             fem.print(filename)
+            %fem.print(filename)
             err = testCase.computeError(file, LHStype, fem);
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
@@ -31,7 +30,7 @@ classdef DiffReactTests < matlab.unittest.TestCase
             fem = PhysicalProblem.create(s);
             fem.computeLHS(0.1857);
             fem.computeVariables(RHS);
-%             fem.print(filename)
+            %fem.print(filename)
             err = testCase.computeError(file3d, LHStype, fem);
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
@@ -74,7 +73,7 @@ classdef DiffReactTests < matlab.unittest.TestCase
         
         function M = computeM(testCase, mesh)
             f = LagrangianFunction.create(mesh,1,'P1');
-            M = IntegrateLHS(@(u,v) DP(v,u),f,f,mesh,2);
+            M = IntegrateLHS(@(u,v) DP(v,u),f,f,mesh,'Domain',2);
         end
         
         function u = createDisplacement(testCase, M)
