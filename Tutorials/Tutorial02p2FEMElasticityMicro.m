@@ -49,7 +49,7 @@ classdef Tutorial02p2FEMElasticityMicro < handle
             % gPar.bottomBar_yMax = 0.2;
             % gPar.topBar_yMin    = 0.6;
 
-            gPar.type = 'FourPerpendicularBars';
+            gPar.type = 'DiagonalBars';
             gPar.leftBar_xMax = 0.35;   % right edge of left bar
             gPar.barWidth = 0.1;
 

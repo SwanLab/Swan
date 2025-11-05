@@ -234,6 +234,33 @@ classdef GeometricalFunction < handle
 
                     obj.fHandle = fH;
 
+                 case 'DiagonalBars'
+                    xL2 = cParams.leftBar_xMax;   % right edge of left bar
+                    xR1 = cParams.rightBar_xMin;  % left edge of right bar
+                    yB2 = cParams.bottomBar_yMax; % top edge of bottom bar
+                    yT1 = cParams.topBar_yMin;    % bottom edge of top bar
+                    h = cParams.barWidth;
+
+                    %xL1 = xL2 - h;   % left edge of left bar
+                    yT2 = yT1 + h;    % top edge of top bar
+                    yB1 = yB2 - h; % bottom edge of bottom bar
+                    %xR2 = xR1 + h;  % right edge of right bar
+
+                    scale =sqrt(2);
+                    deltaY = yT1-yB2;
+                    deltaC = deltaY*sqrt(2);
+
+                    fH1 = @(x) max( yB1 - x2(x), x2(x) - yB2 );
+                    fH2 = @(x) max( yT1 - x2(x), x2(x) - yT2 );
+                    c1 = -0.15;
+                    c2 = c1+deltaC;
+                    fD1 = @(x) abs(x2(x)-x1(x)-c1) - (h/2)*scale;
+                    fD2 = @(x) abs(x2(x)-x1(x)-c2) - (h/2)*scale;
+
+                    fH = @(x) min( min(fH1(x), fH2(x)), min(fD1(x), fD2(x)) );
+
+                    obj.fHandle = fH;
+
                 case 'HorizontalInclusion'
                     s      = cParams;
                     s.type = 'HorizontalFiber';

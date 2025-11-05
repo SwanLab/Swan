@@ -31,8 +31,8 @@ classdef AnisotropicSimulation < handle
             obj.createPrimalUpdater();
             obj.createOptimizer();
 
-              saveas(gcf,['AnisotropicMonitoring90DegDensity.fig']);
-            obj.designVariable.fun.print(['AnisotropicfValues90DegDensity']);
+              %saveas(gcf,['Monitoring_0_90_LevelSet.fig']);
+            obj.designVariable.fun.print(['fValues_0_45_LevelSet']);
         end
 
     end
@@ -185,11 +185,11 @@ classdef AnisotropicSimulation < handle
 
         function createPrimalUpdater(obj)
             s.mesh = obj.mesh;
-            obj.primalUpdater = SLERP(s);
-            s.ub     = 1;
-            s.lb     = 0;
-            s.tauMax = 1000;
-            s.tau    = [];
+             obj.primalUpdater = SLERP(s);
+             s.ub     = 1;
+             s.lb     = 0;
+             s.tauMax = 1000;
+             s.tau    = [];
             %obj.primalUpdater = ProjectedGradient(s);
         end
 
