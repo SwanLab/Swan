@@ -189,7 +189,7 @@ classdef TutorialFirst < handle
         function createCost(obj)
             s.shapeFunctions{1} = obj.createCompliance();
             s.shapeFunctions{2} = obj.createVolumeFunctional();
-            s.weights           = [1 0.3];
+            s.weights           = [1 0.7];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -217,7 +217,7 @@ classdef TutorialFirst < handle
             s.cost           = obj.cost;
             % s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 400;
+            s.maxIter        = 200;
             s.ub              = 1;
             s.lb              = 0;
             % s.tolerance      = 1e-8;
@@ -252,7 +252,7 @@ classdef TutorialFirst < handle
             s.type     = 'HomogenizedMicrostructure';
             s.mesh     = obj.mesh;
             s.young    = 1.0;
-            s.fileName = 'HomogenizationResults';
+            s.fileName = 'HomogenizationResults4';
             m = MaterialFactory.create(s);
 
            % m = Material.create(s);  

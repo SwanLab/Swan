@@ -1,4 +1,4 @@
-load('HomogenizationResults.mat');
+load('HomogenizationResults4.mat');
 simp = @(x) x.^3;
 
 tiledlayout(1,3)

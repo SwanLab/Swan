@@ -56,8 +56,8 @@ classdef OptimizerProjectedGradient < handle
         function createPrimalUpdater(obj,cParams)
             s.ub              = cParams.ub;
             s.lb              = cParams.lb;
-            s.tauMax          = 10000;
-            s.tau             = 1;
+            s.tauMax          = 1000;
+            s.tau             = [];
             obj.primalUpdater = ProjectedGradient(s);
         end
 
@@ -103,7 +103,7 @@ classdef OptimizerProjectedGradient < handle
             x   = obj.designVariable;
             DmF = obj.meritGradient;
             if obj.nIter == 0
-                factor = 50;
+                factor = 500;
                 obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
             else
                 factor = 1.05;
@@ -121,6 +121,8 @@ classdef OptimizerProjectedGradient < handle
         function computeMeritGradient(obj)
             DJ = obj.cost.gradient;
             obj.meritGradient = DJ;
+            % f = LagrangianFunction.create(obj.designVariable.fun.mesh,1,'P1');f.setFValues(DJ)
+            % plot(f)
         end
 
         function checkStep(obj,x0)

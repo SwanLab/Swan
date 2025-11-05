@@ -45,13 +45,13 @@ classdef TutorialHomogenization < handle
         function init(obj)
             obj.E          = 1;
             obj.nu         = 0.3;
-            obj.meshType   = 'Square';
+            obj.meshType   = 'Hexagon';
             obj.meshN      = 100;
 
-            obj.holeType   = 'Square';
+            obj.holeType   = 'SmoothHexagon';
             obj.pnorm      = 'Inf';
             % obj.damageType = 'Area';
-            obj.nSteps     = 15;
+            obj.nSteps     = 100;
 
             obj.monitoring = true;
         end
@@ -285,7 +285,7 @@ classdef TutorialHomogenization < handle
 
          rho = obj.createDensityLevelSet(l);    % 'lsf' is a LagrangianFunction P1 with 0..1
          volDom = Integrator.compute(ConstantFunction.create(1,obj.baseMesh),obj.baseMesh,2);
-         fracVol = Integrator.compute(rho,rho.mesh,2);
+         fracVol = Integrator.compute(rho,rho.mesh,2)/volDom;
        
          % rho  = lsf.fValues(:);                 
          % one  = ones(size(rho));
