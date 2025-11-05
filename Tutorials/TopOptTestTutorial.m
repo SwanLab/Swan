@@ -176,7 +176,7 @@ classdef TopOptTestTutorial < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 3;
+            s.maxIter        = 100;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.ub             = 1;
@@ -189,30 +189,30 @@ classdef TopOptTestTutorial < handle
         end
 
         function bc = createBoundaryConditions(obj)
-            xMax    = max(obj.mesh.coord(:,1));
-            yMax    = max(obj.mesh.coord(:,2));
-            isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax);
+            xMax    = max(obj.mesh.coord(:,1));  % Calculates the max x coord
+            yMax    = max(obj.mesh.coord(:,2));  % Calculates the max y coord
+            isDir   = @(coor)  abs(coor(:,1))==0;  % Obtains the coords with x=0
+            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.3*yMax & abs(coor(:,2))<=0.7*yMax); % Obtains the coords with x=max and y between
+                                                                                                             % the 30-70% of height
+            sDir{1}.domain    = @(coor) isDir(coor); %stablishes the Dirichlet domain to input the condition
+            sDir{1}.direction = [1,2]; %imposes the condition to ux and uy directions
+            sDir{1}.value     = 0;  % fix nodes --> no displacement
 
-            sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [1,2];
-            sDir{1}.value     = 0;
-
-            sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 2;
-            sPL{1}.value     = -1;
+            sPL{1}.domain    = @(coor) isForce(coor);  % %stablishes the domain where the Point Loads will be imposed
+            sPL{1}.direction = 2; % defines the point loads in a vertical direction Fy
+            sPL{1}.value     = -1; % Value of -1 (down) --> case of cantilever beam
 
             dirichletFun = [];
             for i = 1:numel(sDir)
                 dir = DirichletCondition(obj.mesh, sDir{i});
-                dirichletFun = [dirichletFun, dir];
+                dirichletFun = [dirichletFun, dir];          % Creates the fem function for dirichlet condition
             end
             s.dirichletFun = dirichletFun;
 
             pointloadFun = [];
             for i = 1:numel(sPL)
                 pl = PointLoad(obj.mesh, sPL{i});
-                pointloadFun = [pointloadFun, pl];
+                pointloadFun = [pointloadFun, pl];  % Creates the fem function for point loads condition
             end
             s.pointloadFun = pointloadFun;
 
