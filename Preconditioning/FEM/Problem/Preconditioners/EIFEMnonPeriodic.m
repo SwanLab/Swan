@@ -23,6 +23,7 @@ classdef EIFEMnonPeriodic < handle
         meshRef
         U
         mu
+        iter
     end
 
     methods (Access = public)
@@ -50,6 +51,8 @@ classdef EIFEMnonPeriodic < handle
             uCoarse = obj.bcApplier.reducedToFullVectorDirichlet(uRed);
 %             obj.plotSolution(uCoarse,obj.mesh,100,1,obj.iter,0)
             u = obj.reconstructSolution(uCoarse);
+%                         obj.plotSolution(u(:),obj.meshRef,100,1,obj.iter,0)
+                        obj.iter = obj.iter+1;
         end
 
     end
@@ -58,7 +61,7 @@ classdef EIFEMnonPeriodic < handle
 
         function init(obj,cParams)
             obj.mesh    = cParams.mesh;
-%             obj.meshRef = cParams.meshRef;
+            obj.meshRef = cParams.meshRef;
             obj.RVE     = cParams.RVE;
 %             obj.Kel     = repmat(obj.RVE.Kcoarse,[1,1,obj.mesh.nelem]);
             obj.DirCond = cParams.DirCond;
@@ -66,7 +69,10 @@ classdef EIFEMnonPeriodic < handle
 %             obj.LHSintegrator = obj.createLHSintegrator();
             if length(cParams.mu) == 1
                 obj.mu = cParams.mu*ones(cParams.mesh.nelem,1);
+            else
+                obj.mu = reshape(cParams.mu',1,[]);
             end
+            obj.iter=1;
         end
 
         function computeElementalLHS(obj,mu)

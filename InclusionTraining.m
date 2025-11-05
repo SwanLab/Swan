@@ -43,7 +43,7 @@ classdef InclusionTraining < handle
                 %                 m.plotAllNodes();
                 %                 m = obj.createReferenceMesh();
                 data = Training(m);
-                                obj.printdisplacements(data.uSbd,m,i)
+%                                 obj.printdisplacements(data.uSbd,m,i)
                 p = OfflineDataProcessor(data);
                 EIFEoper = p.computeROMbasis();
                 EIFEoper.U = EIFEoper.Udef + EIFEoper.Urb;
@@ -51,7 +51,7 @@ classdef InclusionTraining < handle
 %                 EIFEoper.Kfine = data.LHSsbd;
                 EIFEoper.snapshots = data.uSbd;
 %                 filePath = ['/home/raul/Documents/GitHub/EPFL/test/data_' num2str(obj.r(i), '%.3f') '.mat'];
-                filePath = ['./EPFL/data/data_' num2str(obj.r(i), '%.3f') '.mat'];
+                filePath = ['./EPFL/data2/data_' num2str(obj.r(i), '%.5f') '.mat'];
                 save(filePath,'EIFEoper')
             end
         end
@@ -61,15 +61,15 @@ classdef InclusionTraining < handle
     methods (Access = private)
 
         function init(obj)
-%             N = 80;
-%             % Interval bounds
-%             a = 1e-6;
-%             b = 0.8;
-%             % Index vector
-%             i = 0:N;
-%             % Cosine spacing formula
-%             obj.r = (a + b)/2 + (b - a)/2 * cos(pi * (1 - i / N));
-            obj.r    = 0.1:0.01:0.801;
+            N = 80;
+            % Interval bounds
+            a = 0.99;
+            b = 0.8;
+            % Index vector
+            i = 0:N;
+            % Cosine spacing formula
+            obj.r = (a + b)/2 + (b - a)/2 * cos(pi * (1 - i / N));
+%             obj.r    = 1e-6:0.01:0.801;
             obj.xmin = -1;
             obj.xmax = 1;
             obj.ymin = -1;
@@ -107,15 +107,16 @@ classdef InclusionTraining < handle
             %             mesh = Mesh.create(s);
 
             mesh = QuadMesh(2,2,50,50);
+            delta= 1e-9;
             s.coord = mesh.coord-[1,1];
             s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
-                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-1e-9,-1e-9];
+                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-delta];
             s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
-                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-1e-9,+1e-9];
+                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-delta,+delta];
             s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
-                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[+1e-9,-1e-9];
+                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[+delta,-delta];
             s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
-                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[+1e-9,+1e-9];
+                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[+delta,+delta];
             s.connec=mesh.connec;
             mesh = Mesh.create(s);
 
@@ -137,9 +138,14 @@ classdef InclusionTraining < handle
 
                 % Normalize direction vector
                 dir = edge_vec / r_max;
+%                 r_inner = obj.ray_square_intersection(dir, r_inner);
+                r_inner_dir = r_inner / max(abs(dir)); 
 
                 % Create points from r_inner to r_max along dir
-                r_vals = linspace(r_inner, r_max, Nr + 1)';
+                r_vals = linspace(r_inner_dir, r_max, Nr + 1)';
+
+                %for circular inclusion
+%                 r_vals = linspace(r_inner, r_max, Nr + 1)';
                 pts = [cx, cy] + r_vals * dir;
 
                 nodes = [nodes; pts];
@@ -161,42 +167,42 @@ classdef InclusionTraining < handle
             end
         end
 
-        %         function [nodes, elements] = mesh_triangle_sector(obj,cx, cy, corner1, corner2, r_inner, Nr, Ntheta)
-        %     v1 = corner1 - [cx, cy];
-        %     v2 = corner2 - [cx, cy];
-        %
-        %     nodes = [];
-        %     for i = 0:Ntheta
-        %         t = i / Ntheta;
-        %         edge_vec = (1 - t) * v1 + t * v2;
-        %         r_max = norm(edge_vec);
-        %         dir = edge_vec / r_max;
-        %
-        %         % ✅ Fixed: consistent number and order of layers, adjustable r_inner
-        % %         alpha = linspace(0, 1, Nr + 1)';                      % always [0 ... 1]
-        %         r_vals = r_inner + (r_max - r_inner) * linspace(0, 1, Nr + 1)';
-        %
-        %         pts = [cx, cy] + r_vals * dir;
-        %
-        %         nodes = [nodes; pts];  % nodes always added in same order
-        %     end
-        %
-        %     % Node indices in radial grid
-        %     node_grid = reshape(1:size(nodes,1), Nr+1, Ntheta+1);
-        %
-        %     % Element connectivity (fixed structure)
-        %     elements = [];
-        %     for j = 1:Ntheta
-        %         for i = 1:Nr
-        %             n1 = node_grid(i, j);
-        %             n2 = node_grid(i+1, j);
-        %             n3 = node_grid(i+1, j+1);
-        %             n4 = node_grid(i, j+1);
-        %             elements(end+1, :) = [n1 n2 n3 n4];
-        %         end
-        %     end
-        % end
+        function r_inner = ray_square_intersection(obj,dir, a)
+    dx = dir(1);
+    dy = dir(2);
 
+    % Very small tolerance to avoid division issues
+    epsv = 1e-12;
+
+    % Compute intersection distances to all 4 sides
+    t = [];
+
+    if abs(dx) > epsv
+        t1 = ( a) / dx;
+        t2 = (-a) / dx;
+        t = [t, t1, t2];
+    end
+
+    if abs(dy) > epsv
+        t3 = ( a) / dy;
+        t4 = (-a) / dy;
+        t = [t, t3, t4];
+    end
+
+    % Keep only intersections in front of the ray (t > 0)
+    t = t(t > 0);
+
+    % Compute the hit coordinates for all candidate intersections
+    hits = [t' * dx, t' * dy];
+
+    % Keep only hits lying on the square boundary
+    valid = abs(hits(:,1)) <= a + 1e-10 & abs(hits(:,2)) <= a + 1e-10;
+
+    t = t(valid);
+
+    % Choose the smallest positive valid intersection
+    r_inner = min(t);
+        end
 
 
         function mesh = mesh_rectangle_via_triangles(obj,r)
@@ -249,14 +255,23 @@ classdef InclusionTraining < handle
             % %             elements_final = ic(elements_all);
 
             s.coord = nodes_final;
+            delta= 1e-9;
             s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
-                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)-[1e-9,0];
+                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-delta];
             s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
-                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)-[1e-9,0];
+                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-delta,+delta];
             s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
-                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[1e-9,0];
+                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[+delta,-delta];
             s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
-                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[1e-9,0];
+                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[+delta,+delta];
+%             s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
+%                 s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)-[1e-9,0];
+%             s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
+%                 s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)-[1e-9,0];
+%             s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
+%                 s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[1e-9,0];
+%             s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
+%                 s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[1e-9,0];
 
             %             if isempty(obj.connec)
             %                 s.connec = elements_final;

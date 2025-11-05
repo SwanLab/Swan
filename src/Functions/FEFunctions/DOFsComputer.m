@@ -308,6 +308,8 @@ classdef DOFsComputer < handle
                         ord = 2;
                     case 'P3'
                         ord = 3;
+                    case 'P8'
+                        ord = 8;
                 end
             else
                 ord = order;

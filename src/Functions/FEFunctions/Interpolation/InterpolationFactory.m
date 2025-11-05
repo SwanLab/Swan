@@ -18,6 +18,8 @@ classdef InterpolationFactory < handle
                             obj = LineQuadratic(cParams);
                         case 'CUBIC'
                             obj = LineCubic(cParams);
+                        case 'EIGHT'
+                            obj = LineDegree8(cParams);
                         otherwise
                             error('Invalid order for element LINE.');
                     end

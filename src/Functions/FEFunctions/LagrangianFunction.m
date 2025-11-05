@@ -387,6 +387,8 @@ classdef LagrangianFunction < FeFunction
                     ord = 'QUADRATIC';
                 case 'P3'
                     ord = 'CUBIC';
+                case 'P8'
+                    ord = 'EIGHT';
             end        
         end
 

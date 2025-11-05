@@ -42,7 +42,7 @@ classdef TutorialEIFEM_parametric < handle
             bS = mSbd{1,1}.createBoundaryMesh();
             [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomainJoiner(mSbd);
             obj.meshDomain = mD;
-            mD.plot()
+%             mD.plot()
             [bC,dir] = obj.createBoundaryConditions();
             obj.boundaryConditions = bC;
             obj.createBCapplier()
@@ -70,15 +70,17 @@ classdef TutorialEIFEM_parametric < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [15 5]; %nx ny
+            obj.nSubdomains  = [25 5]; %nx ny
             
 %             filePath = ['./EPFL/data_' num2str(obj.r(i), '%.3f') '.mat'];
             obj.tolSameNode = 1e-10;
             obj.solverType = 'REDUCED';
 %             obj.r  = 0.797227;
-             obj.r  = 0.1;
+%              obj.r  = 0.1;
 %             obj.r  = [0.1 , 0.2; 0.3, 0.4];
-            obj.r= (0.1 - 0.1) * rand(obj.nSubdomains(2),obj.nSubdomains(1)) + 0.1;
+            maxr = 0.4;
+            minr = 0.4;
+            obj.r= (maxr - minr) * rand(obj.nSubdomains(2),obj.nSubdomains(1)) + minr;
             obj.xmin = -1; 
             obj.xmax = 1;
             obj.ymin = -1;
@@ -87,7 +89,7 @@ classdef TutorialEIFEM_parametric < handle
             obj.cy = 0;
             obj.Nr=7;
             obj.Ntheta=14;
-            obj.fileNameEIFEM = './EPFL/parametrizedEIFEM.mat';
+            obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange20.mat';
 %             obj.fileNameEIFEM = './EPFL/dataEIFEM.mat';
         end        
 
@@ -289,6 +291,8 @@ classdef TutorialEIFEM_parametric < handle
         function material = createMaterial(obj,mesh)
             E  = 1;
             nu = 1/3;  
+%              Epstr  = E/(1-nu^2);
+%             nupstr = nu/(1-nu);
             s.type    = 'ISOTROPIC';
             s.ptype   = 'ELASTIC';
             s.ndim    = mesh.ndim;
