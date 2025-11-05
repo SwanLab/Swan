@@ -20,6 +20,7 @@ classdef StiffnessEigenModesComputer < handle
         test
         trial
         phi
+        BC
     end
     
     methods (Access = public)
@@ -33,7 +34,11 @@ classdef StiffnessEigenModesComputer < handle
             M  = obj.computeMassMatrixWithFunction(xR);
             Kreduced = obj.fullToReduced(K);
             Mreduced = obj.fullToReduced(M);
-            [lambda, phi] = obj.obtainLowestEigenValuesAndFunction(Kreduced, Mreduced, 4);          
+            if strcmp(obj.BC, 'Dirichlet')
+                [lambda, phi] = obj.obtainLowestEigenValuesAndFunction(Kreduced, Mreduced, 1);   
+            elseif strcmp(obj.BC, 'Neumann')
+                [lambda, phi] = obj.obtainLowestEigenValuesAndFunction(K, M, 2); 
+            end
             dlambda = obj.computeLowestEigenValueGradient(lambda, phi, xR); 
         end
 
@@ -49,6 +54,7 @@ classdef StiffnessEigenModesComputer < handle
             obj.phi =  LagrangianFunction.create(obj.mesh,1,'P1');
             obj.conductivityInterpolator = cParams.conductivityInterpolator;
             obj.massInterpolator = cParams.massInterpolator;
+            obj.BC = cParams.BC;
         end  
 
         function K = createStiffnessMatrixWithFunction(obj,xR)
@@ -94,11 +100,11 @@ classdef StiffnessEigenModesComputer < handle
             bc = BCApplier(s);            
         end
                 
-        function [eigV1,eigF1] = obtainLowestEigenValuesAndFunction(obj,K,M,n)
-            [eigF,eigV] = eigs(K,M,n,'smallestabs');
-            eigV1 = eigV(1,1);
-            eigF1 = eigF(:,1);
-%             disp(diag(eigV))
+        function [eigV1,eigF1] = obtainLowestEigenValuesAndFunction(obj,K,M,i)
+            [eigF,eigV] = eigs(K,M,4,'smallestabs');
+            eigV1 = eigV(i,i);
+            eigF1 = eigF(:,i);
+            disp(diag(eigV))
         end   
 
         function fV = fillVectorWithHomogeneousDirichlet(obj,phi)
@@ -113,7 +119,11 @@ classdef StiffnessEigenModesComputer < handle
         function dlambda = computeLowestEigenValueGradient(obj, lambda, phi, xR)
             dalpha = obj.createDomainFunction(obj.conductivityInterpolator.dfun, xR);
             dm     = obj.createDomainFunction(obj.massInterpolator.dfun, xR);  
-            fValues = obj.fillVectorWithHomogeneousDirichlet(phi);
+            if strcmp(obj.BC, 'Dirichlet')
+                fValues = obj.fillVectorWithHomogeneousDirichlet(phi);
+            elseif strcmp(obj.BC, 'Neumann')
+                fValues = phi;
+            end
             obj.phi.setFValues(fValues);
             dlambda = (dalpha.*DP(Grad(obj.phi), Grad(obj.phi)) - lambda*dm.*obj.phi.*obj.phi); 
         end

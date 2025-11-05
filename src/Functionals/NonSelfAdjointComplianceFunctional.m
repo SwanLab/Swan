@@ -83,7 +83,7 @@ classdef NonSelfAdjointComplianceFunctional < handle
             dCompliance   = DDP(stateStrain,stressA);
             J             = Integrator.compute(dCompliance,obj.mesh,obj.quadrature.order);
             if isempty(obj.value0)
-                obj.value0 = J;
+                obj.value0 = abs(J);
             end
             J = J/obj.value0;
         end

@@ -5,18 +5,21 @@ classdef GripperLevelSetCircle < handle
         mesh
         filter
         filterConnectivity
+        filterPerimeter
+        filterAdjointConnectivity 
         designVariable
         materialInterpolator
         conductivityInterpolator
         massInterpolator
         physicalProblem
-        eigenvalue
         compliance
+        perimeter
         volume
         cost
         constraint
         primalUpdater
         optimizer
+        minimumEigenValue
     end
 
     methods (Access = public)
@@ -27,20 +30,23 @@ classdef GripperLevelSetCircle < handle
             obj.createDesignVariable();
             obj.createFilter();
             obj.createFilterConnectivity();
+            obj.createFilterPerimeter();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
             obj.createCompliance();
             obj.createConductivityInterpolator();
             obj.createMassInterpolator();
-            obj.createEigenValue();
+            obj.createPerimeter();
+            obj.createEigenValueConstraint();
             obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
             obj.createPrimalUpdater();
             obj.createOptimizer();
-
-            saveas(gcf,'Experiments/LevelSet/GripperLevelSetCircle.fig');
-            obj.designVariable.fun.print('Experiments/LevelSet/GripperLevelSetCirclefValues');
+            saveas(figure(1),'GripperLevelSetCircle.fig');
+            saveas(figure(2),'GripperLevelSetCircleMonitoring.fig');
+            obj.designVariable.fun.print('GripperLevelSetCirclefValues');
+            writematrix(obj.designVariable.fun.fValues,'GripperLevelSetCirclefValues.txt');
         end
 
     end
@@ -60,26 +66,38 @@ classdef GripperLevelSetCircle < handle
         end
 
         function createDesignVariable(obj)
-            s.type = 'Full';
-            g      = GeometricalFunction(s);
-            lsFun  = g.computeLevelSetFunction(obj.mesh);
+%             s.type = 'Full';
+%             g      = GeometricalFunction(s);
+            lsFun = LagrangianFunction.create(obj.mesh,1,'P1');
+            lsFun.setFValues(importdata('GripperLevelSetCirclefValues.txt'))
+%             lsFun  = g.computeLevelSetFunction(obj.mesh);
             s.fun  = lsFun;
             s.mesh = obj.mesh;
             s.type = 'LevelSet';
-            s.plotting = false;
+            s.plotting = true;
             ls     = DesignVariable.create(s);
             obj.designVariable = ls;
         end
 
         function createFilter(obj)
             h = obj.mesh.computeMinCellSize();
-            s.filterType = 'PDE';
+            s.filterType = 'LUMP';
             s.mesh  = obj.mesh;
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
-            f.updateEpsilon(2.5*h);
+%             f.updateEpsilon(1.0*h);
             obj.filter = f;
         end
+
+       function createFilterPerimeter(obj)
+            s.filterType = 'PDE';
+            s.mesh       = obj.mesh;
+            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            f            = Filter.create(s);
+            f.updateEpsilon(1*obj.mesh.computeMinCellSize());
+            obj.filterPerimeter = f;           
+        end
+
 
 
         function createFilterConnectivity(obj)
@@ -88,6 +106,22 @@ classdef GripperLevelSetCircle < handle
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
             obj.filterConnectivity = f;
+
+%             s.filterType = 'CloseOperator';   
+%             s.mesh       = obj.mesh;
+%             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+%             s.filterStep = 'PDE';
+%             s.beta       = 2.0; % 4 2 
+%             s.eta        = 0.2;
+%             obj.filterConnectivity = Filter.create(s);
+% 
+%             s.filterType = 'CloseAdjointOperator';   
+%             s.mesh       = obj.mesh;
+%             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+%             s.filterStep = 'PDE';
+%             s.beta       = 2.0; 
+%             s.eta        = 0.2;
+%             obj.filterAdjointConnectivity = Filter.create(s);
         end
 
         function createMaterialInterpolator(obj)
@@ -164,15 +198,18 @@ classdef GripperLevelSetCircle < handle
             obj.massInterpolator = a;            
         end   
 
-        function createEigenValue(obj)                           
+        function createEigenValueConstraint(obj)                           
             s.mesh              = obj.mesh;
             s.designVariable    = obj.designVariable;
-            s.filter            = obj.filterConnectivity; 
+            s.filter            = obj.filterConnectivity;
+            s.filterAdjoint     = obj.filterAdjointConnectivity;
+            s.BC = 'Neumann';
+            s.boundaryConditions = obj.createEigenvalueBoundaryConditions();
             s.conductivityInterpolator = obj.conductivityInterpolator; 
             s.massInterpolator         = obj.massInterpolator; 
-            s.boundaryConditions= obj.createEigenvalueBoundaryConditions();
+            s.targetEigenValue  = 8.0;     
             s.isCompl           = false;
-            obj.eigenvalue = MaximumEigenValueFunctional(s);
+            obj.minimumEigenValue = StiffnessEigenModesConstraint(s);
         end
 
         function uMesh = createBaseDomain(obj)
@@ -186,16 +223,23 @@ classdef GripperLevelSetCircle < handle
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.35;
+            s.volumeTarget = 0.6; 
             s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
         end
 
+        function createPerimeter(obj)
+            s.mesh                        = obj.mesh;
+            s.filter                      = obj.filterPerimeter;
+            p = SimplePerimeterFunctional(s);
+            obj.perimeter = p;
+        end
+
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
-            s.shapeFunctions{2} = obj.eigenvalue;
-            s.weights           = [1.0, 0.0]; 
+            s.shapeFunctions{2} = obj.perimeter;
+            s.weights           = [1.0,4.0]; 
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -208,6 +252,7 @@ classdef GripperLevelSetCircle < handle
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
+            s.shapeFunctions{2} = obj.minimumEigenValue; 
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
@@ -224,15 +269,15 @@ classdef GripperLevelSetCircle < handle
             s.designVariable = obj.designVariable;
             s.maxIter        = 3000;
             s.tolerance      = 1e-8;
-            s.constraintCase = {'INEQUALITY'};
-            s.etaNorm        = 0.01;
-            s.etaNormMin = 0.01;
-            s.etaMax = 10;
+            s.constraintCase = {'INEQUALITY','INEQUALITY'};
+            s.etaNorm        = 0.05;
+            s.etaNormMin = 0.05;
+            s.etaMax = 10.0;
             s.etaMaxMin = 0.1;
-            s.gJFlowRatio    = 0.25;
+            s.gJFlowRatio    = 0.01;
             s.primalUpdater  = obj.primalUpdater;
-            s.gif = false;
-            s.gifName = [];
+            s.gif = true;
+            s.gifName = char("gripper");
             s.printing = false;
             s.printName = [];
             opt = OptimizerNullSpace(s);
@@ -279,8 +324,12 @@ classdef GripperLevelSetCircle < handle
             isBottomGripper = @(coor)  (abs(coor(:,1)) < 0.1  & coor(:,2) == 0.4 );
             isRightGripper = @(coor)  (abs(coor(:,1)) - 0.1 < 1e-6 & coor(:,2) > 0.4 & coor(:,2) < 0.6);
 
-%             isDir   = @(coor) isLeft(coor) | isRight(coor) | isFront(coor) | isBack(coor) | isTopGripper(coor) | isBottomGripper(coor) | isRightGripper(coor);  
-            isDir   = @(coor) isTopGripper(coor) | isBottomGripper(coor) | isRightGripper(coor);  
+            isTopRight      = @(coor)  (abs(coor(:,1)) >= 0.92 & coor(:,2) == 1 );
+            isBottomRight   = @(coor)  (abs(coor(:,1)) >= 0.92 & abs(coor(:,2)) <= 1e-8 ); % not exactly 0 in the mesh
+
+            isDir   = @(coor) isLeft(coor) | isRight(coor) | isFront(coor) | isBack(coor) | isTopGripper(coor) | isBottomGripper(coor) | isRightGripper(coor);  
+%             isDir   = @(coor) isTopGripper(coor) | isBottomGripper(coor) | isRightGripper(coor);  
+% %             isDir   = @(coor) isTopRight(coor) | isBottomRight(coor);  
             sDir{1}.domain    = @(coor) isDir(coor);
             
             sDir{1}.direction = 1;
