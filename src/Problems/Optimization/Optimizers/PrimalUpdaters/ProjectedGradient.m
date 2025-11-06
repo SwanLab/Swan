@@ -22,6 +22,9 @@ classdef ProjectedGradient < handle
             lb = obj.lowerBound;
             t  = obj.tau;
             y  = y - t*g;
+                % y=obj.gradient.update(g,rho);
+            
+
             x  = min(ub,max(y,lb));
             obj.updateBoundsMultipliers(x,y);
             rho.update(x);
@@ -64,6 +67,7 @@ classdef ProjectedGradient < handle
             obj.lowerBound = cParams.lb;
             obj.tauMax     = cParams.tauMax;
             obj.tau        = cParams.tau;
+            obj.gradient   = Gradient(cParams);
         end
 
         function updateBoundsMultipliers(obj,x,y)

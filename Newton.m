@@ -1,6 +1,6 @@
 classdef Newton
     methods
-        function [uOut, uOutVec] = computeDisplacement(obj, LHSfull, RHSfull, uIn, bc)
+        function [uOut, uOutVec] = computeDisplacement(obj, LHSfull, RHSfull, uIn, bc, costOld,r)
             [LHS, RHS] = obj.fullToReduced(LHSfull, RHSfull, bc);
 
             if ~isempty(LHS)

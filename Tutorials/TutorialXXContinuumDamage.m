@@ -48,14 +48,14 @@ classdef TutorialXXContinuumDamage < handle
         end
 
         function defineCase(obj)
-            obj.solverType  = 'AdaptiveGradient';
+            obj.solverType  = 'Newton';
             s.mesh.type   = 'Rectangle';
-            s.mesh.length = 1;
+            s.mesh.length = 10;
             s.mesh.width  = 1;
-            s.mesh.lN     = 1;
-            s.mesh.wN     = 1;
-            s.bc.type   = 'DisplacementTractionY';
-            s.bc.values = [0:1e-1:2];
+            s.mesh.lN     = 100;
+            s.mesh.wN     = 10;
+            s.bc.type   = 'DisplacementTractionX';
+            s.bc.values = [0:0.1:20];
             [obj.mesh, obj.boundaryConditions] = BenchmarkManager.create(s);
         end
 
@@ -101,7 +101,7 @@ classdef TutorialXXContinuumDamage < handle
             s.r0   = ConstantFunction.create(obj.r0,obj.mesh);
             s.type = 'Linear';
             s.params.r1 = 20;
-            s.params.hardening = -0.5;
+            s.params.hardening = -0.9;
             % s.params.A = 1;
             % s.params.qInf = 0;
             % s.params.w = 500;

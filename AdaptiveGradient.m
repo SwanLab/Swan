@@ -16,44 +16,37 @@ classdef AdaptiveGradient < handle
         end
 
         
-        function [uOutNew,uOutVec] = computeDisplacement (obj,Ktan,costOld,u,bc)
-            % res = costOld ???
-            % gradient =costOld
-            % falla pq crida a gradient() per algun motiu 
-            
+        function [uOutNew,uOutVec] = computeDisplacement (obj,LHSfull,RHSfull,u,bc,costOld,r)
+            [~,RHS] = obj.fullToReduced(LHSfull, RHSfull, bc);
+            uOld = u.fValues;
+            u = obj.update(RHS,u,bc);
 
-            u = obj.update(costOld,u); %    <------------- ERROR
-
-
-
-            [err,~] = computeErrorCost(obj,u,u,bc,costOld);
+            [err,~] = computeErrorCost(obj,u,r,bc,costOld);
             while(err>0 && ~obj.isTooSmall())
-                u.recoverOld();
+                u.setFValues(uOld);
                 obj.decreaseStepLength();
-                u = obj.update(g,u);
-                [err,~] = computeErrorCost(obj,u,u,bc,costOld);
+                u = obj.update(RHS,u,bc);
+                [err,~] = computeErrorCost(obj,u,r,bc,costOld);
             end
             obj.increaseStepLength(10);
-            uOutNew = u;
-            uOutVec = reshape(uIn.fValues', [uIn.nDofs 1]);
+            uOutNew = u.fValues;
+            uOutVec = reshape(u.fValues', [u.nDofs 1]);
         end
         
       
-        function u = update(obj,g,u)  
-            y  = u.fValues;
-                y = reshape(y.', [], 1);
-
-            t  = obj.tau;
+        function u = update(obj,RHS,u,bc)  
+            uInVec = reshape(u.fValues', [u.nDofs 1]);
+            uOutVec = uInVec;
             
-            y  = y - t*g;
-                y = reshape(y, 2, []).';
-            u.update(y);
+            uInFree = uInVec(bc.free_dofs);
+            uOutFree = obj.updateWithGradient(RHS,obj.tau,uInFree);
+
+            uOutVec(bc.free_dofs) = uOutFree;
+            uOut = reshape(uOutVec, [flip(size(u.fValues))])';
+
+            u.setFValues(uOut);
         end
 
-        function computeFirstStepLength(obj,g,x,f)
-            xVal    = x.fun.fValues;
-            obj.tau = min(f*sqrt(norm(g)/norm(xVal)),obj.tauMax);
-        end
         
         function increaseStepLength(obj,f)
             obj.tau = min(f*obj.tau,obj.tauMax);
@@ -67,18 +60,7 @@ classdef AdaptiveGradient < handle
             is = obj.tau < 1e-10;
         end
 
-        % function updateBounds(obj,ub,lb)
-        %     if ~isnumeric(ub)
-        %         obj.upperBound = ub.fValues;
-        %     else
-        %         obj.upperBound = ub;
-        %     end
-        %     if ~isnumeric(lb)
-        %         obj.lowerBound = lb.fValues;
-        %     else
-        %         obj.lowerBound = lb;
-        %     end
-        % end
+
     end
 
     methods (Access = private)
@@ -88,25 +70,22 @@ classdef AdaptiveGradient < handle
             obj.functional = cParams.functional;
         end
 
-        % function updateBoundsMultipliers(obj,x,y)
-        %     t          = obj.tau;
-        %     dyx        = y-x;
-        %     dxy        = x-y;
-        %     lUB        = zeros(size(x));
-        %     lLB        = zeros(size(x));
-        %     lUB(dyx>0) = dyx(dyx>0);
-        %     lLB(dxy>0) = dxy(dxy>0);
-        %     obj.boxConstraints.lUB    = lUB;
-        %     obj.boxConstraints.lLB    = lLB;
-        %     obj.boxConstraints.refTau = t;
-        % end
-        
-        
-        
-        function [e, cost] = computeErrorCost(obj,u,phi,bc,costOld)
-            cost = obj.functional.computeCost(u,phi,bc);
+        function [e, cost] = computeErrorCost(obj,u,r,bc,costOld)
+            cost = obj.functional.computeEnergy(u,r,bc);
             e = cost - costOld;
         end
+
+        function [LHS, RHS] = fullToReduced(~,LHS, RHS, bc)
+            free_dofs = bc.free_dofs;
+            LHS = LHS(free_dofs, free_dofs);
+            RHS = RHS(free_dofs);
+        end
+        
+        function u = updateWithGradient(~,RHS,t,u) 
+            u  = u - t*RHS;
+        end
+
+
     end
 
 

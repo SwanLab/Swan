@@ -26,7 +26,7 @@
     
                     [res]       = obj.functional.computeResidual(u,r,bc);
                     [Ktan,Ksec] = obj.functional.computeDerivativeResidual(u,r);
-                    [uNew,uVec] = obj.solver.computeDisplacement(Ktan,res,u,bc);
+                    [uNew,uVec] = obj.solver.computeDisplacement(Ktan,res,u,bc,costOld,r);
                     u.setFValues(uNew);
     
                     [err, cost] = obj.computeErrorCost(u,r,bc,costOld);
@@ -93,12 +93,10 @@
                     case 'Newton'
                         obj.solver = Newton();
                     case 'AdaptiveGradient'
-                        % s.ub            = 1;
-                        % s.lb            = initialGuess.fun.fValues;%????????????
                         s.tauMax        = 1e10;
-                        s.tau           = 100;%????????????
-                        s.functional    =   obj.functional;
-                        obj.solver = AdaptiveGradient(s);
+                        s.tau           = 100;
+                        s.functional    = obj.functional;
+                        obj.solver      = AdaptiveGradient(s);
                 end
             end
     
