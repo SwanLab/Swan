@@ -23,50 +23,24 @@ classdef PhaseFieldInternalEnergyFunctional < handle
         function Ju = computeGradientDisplacement(obj,u,phi,quadOrder)  
             C = obj.material.obtainTensor(phi);
             sigma = DDP(C,SymGrad(u));
-
-            s.mesh = obj.mesh;
-            s.type = 'ShapeSymmetricDerivative';
-            s.quadratureOrder = quadOrder;  
-            RHS = RHSIntegrator.create(s);
-            Ju  = RHS.compute(sigma,obj.testU);
+            Ju = IntegrateRHS(@(v) DDP(SymGrad(v),sigma),obj.testU,obj.mesh,'Domain',quadOrder);
         end
 
         function Jphi = computeGradientDamage(obj,u,phi,quadOrder)
             dC = obj.material.obtainTensorDerivative(phi);
             dEnergyFun = DDP(SymGrad(u),DDP(dC,SymGrad(u)));
-            
-            s.mesh     = obj.mesh;
-            s.type     = 'ShapeFunction';
-            s.quadType = quadOrder;
-            RHS  = RHSIntegrator.create(s);
-            Jphi = 0.5*RHS.compute(dEnergyFun,obj.testPhi);
+            Jphi = IntegrateRHS(@(v) (1/2)*DP(v,dEnergyFun),obj.testPhi,obj.mesh,'Domain',quadOrder);
         end
 
-        function Huu = computeHessianDisplacement(obj,u,phi,quadOrder)   
+        function Huu = computeHessianDisplacement(obj,~,phi,quadOrder)   
             C = obj.material.obtainTensor(phi);
-            
-            s.trial    = u;
-            s.test     = u;
-            s.material = C;
-            s.mesh     = obj.mesh;
-            s.type     = 'ElasticStiffnessMatrix';
-            s.quadratureOrder = quadOrder;
-            LHS = LHSIntegrator.create(s);
-            Huu = LHS.compute();
+            Huu = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),obj.testU,obj.testU,obj.mesh,'Domain',quadOrder);
         end
 
         function Hphiphi = computeHessianDamage(obj,u,phi,quadOrder)  
             ddC = obj.material.obtainTensorSecondDerivative(phi);
             ddEnergyFun = DDP(SymGrad(u),DDP(ddC,SymGrad(u)));
-            
-            s.function = ddEnergyFun;
-            s.trial    = obj.testPhi;
-            s.test     = obj.testPhi;
-            s.mesh     = obj.mesh;
-            s.type     = 'MassMatrixWithFunction';
-            s.quadratureOrder = quadOrder;
-            LHS = LHSIntegrator.create(s);
-            Hphiphi = 0.5*LHS.compute();
+            Hphiphi = IntegrateLHS(@(u,v) (1/2)*ddEnergyFun.*DP(u,v),obj.testPhi,obj.testPhi,obj.mesh,'Domain',quadOrder);
         end
     end
     

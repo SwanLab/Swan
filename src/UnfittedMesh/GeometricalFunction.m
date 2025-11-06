@@ -321,6 +321,12 @@ classdef GeometricalFunction < handle
                     p  = cParams.pnorm;
                     fH = @(x) obj.computeHexagonFunction(x,x1,x2,x0,y0,n,p,l);
                     obj.fHandle = fH;
+                case 'Circles'
+                    r = cParams.r;
+                    x0 = cParams.x0;
+                    y0 = cParams.y0;
+                    fH = @(x) obj.computeCircles(x,x0,y0,r);
+                    obj.fHandle = fH;
             end
         end
 
@@ -348,6 +354,14 @@ classdef GeometricalFunction < handle
             end
             normVn = vecnorm(vn,p,4);
             d = (normVn/(l*(sqrt(3)/2)))-1;
+        end
+
+        function fH = computeCircles(x,x0,y0,r)
+            n = length(r);
+            for i =1:n
+                f(:,:,:,i) = (x(1,:,:)-x0(i)).^2+(x(2,:,:)-y0(i)).^2-r(i)^2;
+            end   
+            fH = min(f,[],4);
         end
 
     end

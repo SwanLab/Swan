@@ -21,14 +21,24 @@ classdef ContinuumDamageFunctional < handle
         end
 
         function totEnergy = computeEnergy(obj,u,r,bc)
-           fExt = bc.pointloadFun;
+           fExt = bc.tractionFun;
+            if ~isempty(bc.tractionFun)
+                vals = bc.tractionFun.computeRHS([]);
+                fExt = LagrangianFunction.create(u.mesh, u.mesh.ndim,'P1');
+                fExt.setFValues(reshape(vals,u.mesh.nnodes,u.mesh.ndim));
+            end
            extE = obj.externalWork.computeCost(u,fExt,obj.quadOrder);
            intE = obj.internalEnergy.computeFunction(u,r);
            totEnergy = intE - extE;
        end
 
         function res = computeResidual(obj,u,r,bc)
-            fExt = bc.pointloadFun;
+            fExt = bc.tractionFun;
+            if ~isempty(bc.tractionFun)
+                vals = bc.tractionFun.computeRHS([]);
+                fExt = LagrangianFunction.create(u.mesh, u.mesh.ndim,'P1');
+                fExt.setFValues(reshape(vals,u.mesh.nnodes,u.mesh.ndim));
+            end
             Fext = obj.externalWork.computeGradient(u,fExt,obj.quadOrder);
             Fint = obj.internalEnergy.computeResidual(u,r);
             res  = Fint - Fext;

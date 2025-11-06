@@ -22,10 +22,9 @@ s.maxIter.u = 100;
 s.maxIter.phi = 300;
 s.maxIter.stag = 300;
 
-benchmark.mesh.type = '1Elem';
-benchmark.bc.type   = 'ForceTractionY';
-benchmark.bc.values = input.benchmark.bcValues;
-input.benchmark = benchmark;
+s.benchmark.mesh.type = '1Elem';
+s.benchmark.bc.type   = 'ForceTractionY';
+s.benchmark.bc.values = [0:1e-2:0.1];
 
 s.matInfo.matType = 'Analytic';
 s.matInfo.degradationType = 'AT';
