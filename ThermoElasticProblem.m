@@ -35,8 +35,14 @@ classdef ThermoElasticProblem < handle
         end
 
         function solve(obj)
+            % thermal problem
+            % LHS thermal
+            % RHS thermal
+            % computeTemperature - obj.temperature 
+
+            % for the thermo-elastic
             obj.computeStiffnessMatrix();   %LHS
-            obj.computeForces();            %RHS
+            obj.computeForces();            %RHS - you need the temperature! 
             obj.computeDisplacement();      %Solve PDE
             obj.computeStrain();
             obj.computeStress();
@@ -76,6 +82,12 @@ classdef ThermoElasticProblem < handle
             obj.solverMode  = cParams.solverMode;
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.solverCase  = cParams.solverCase;
+
+            % Temperature as a fixed function
+%             T = LagrangianFunction.create(obj.mesh,1,'P1');
+%             fValues = ones(Q.nDofs,1);
+%             T.setFValues(fValues);
+%             obj.temperature      = T;  
         end
 
         function createDisplacementFun(obj)
@@ -125,6 +137,10 @@ classdef ThermoElasticProblem < handle
                 end
                 rhs = rhs+R;
             end
+            %% - coupling term
+            % f = @(v) beta*delta obj.temperature * div(v) 
+            % rhs_coupling = IntegrateRHS(f,obj.testFun,obj.mesh,'Domain',2);    
+            % rhs = rhs + rhs_coupling
             obj.forces = rhs;
         end
 
