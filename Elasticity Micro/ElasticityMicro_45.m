@@ -1,4 +1,4 @@
-classdef Tutorial02p2FEMElasticityMicro < handle
+classdef ElasticityMicro_45 < handle
 
     properties (Access = private)
         mesh
@@ -10,7 +10,7 @@ classdef Tutorial02p2FEMElasticityMicro < handle
 
     methods (Access = public)
 
-        function obj = Tutorial02p2FEMElasticityMicro()
+        function obj = ElasticityMicro_45()
             obj.createMesh();
             obj.computeElasticProperties();
             obj.createMaterial();
@@ -23,50 +23,39 @@ classdef Tutorial02p2FEMElasticityMicro < handle
         
         function createMesh(obj)
             fullmesh = UnitTriangleMesh(200,200);
-            ls = obj.computeCircleLevelSet(fullmesh);
+            [ls,phiFun] = obj.computeLevelSet(fullmesh);
             sUm.backgroundMesh = fullmesh;
             sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(ls);
+            
+            close all;
+            % Plot mesh
+            uMesh.plot;
+
             holeMesh = uMesh.createInnerMesh();
             obj.mesh = holeMesh;
+
+            % Compute volume
+            %V  = Integrator.compute(phiFun,obj.mesh,2);
+
         end
 
-        function ls = computeCircleLevelSet(obj, mesh)
-            % gPar.type          = 'Circle';
-            % gPar.radius        = 0.25;
-            % gPar.xCoorCenter   = 0.5;
-            % gPar.yCoorCenter   = 0.5;
-            % g                  = GeometricalFunction(gPar);
-            % phiFun             = g.computeLevelSetFunction(mesh);
-            % lsCircle           = phiFun.fValues;
-            % ls = -lsCircle;
-            % 
-            gPar.type           = 'FourPerpendicularBars';
-            gPar.barWidth       = 1;
-            gPar.leftBar_xMax   = 0.2;
-            gPar.rightBar_xMin  = 0.6;
-            gPar.bottomBar_yMax = 0.2;
-            gPar.topBar_yMin    = 0.6;
+        function [ls,phiFun] = computeLevelSet(obj, mesh)
+            
+            gPar.type          = 'DiagonalNFibers';
+            gPar.nFibers       = 4;
+            gPar.minxCoor      = 0;
+            gPar.maxxCoor      = 1;
+            gPar.minyCoor      = 0;
+            gPar.maxyCoor      = 1; 
 
-            % gPar.type = 'DiagonalBars';
-            % gPar.leftBar_xMax = 0.35;   % right edge of left bar
-            % gPar.barWidth = 0.1;
-            % 
-            % gPar.rightBar_xMin = 1 - gPar.leftBar_xMax;  % left edge of right bar
-            % gPar.bottomBar_yMax = gPar.leftBar_xMax ; % top edge of bottom bar
-            % gPar.topBar_yMin = gPar.rightBar_xMin;    % bottom edge of top bar            
-
-            % gPar.type          = 'PerperndicularNFiber';
-            % gPar.nFibers       = 5;
-            % gPar.minxCoor      = 0;
-            % gPar.maxxCoor      = 1;
-            % gPar.minyCoor      = 0;
-            % gPar.maxyCoor      = 1;
             g                  = GeometricalFunction(gPar);
             phiFun             = g.computeLevelSetFunction(mesh);
-            lsCircle           = phiFun.fValues;
-            ls = lsCircle;
+            lsValues           = phiFun.fValues;
+            ls = lsValues;
+
+            
         end
 
 

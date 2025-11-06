@@ -207,6 +207,10 @@ classdef AnisotropicSimulation < handle
             s.gJFlowRatio    = 0.1;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
+            s.gif = true;
+            s.gifName = [];
+            s.printing = true;
+            s.printName = 'Results_0_90';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
