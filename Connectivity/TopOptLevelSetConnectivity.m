@@ -69,64 +69,6 @@ classdef TopOptLevelSetConnectivity< handle
                         end
                     end
                 end
-%                 for p = [10.0] %0.15]0.05,0.15,0.5,1,3,4,"cantilever",
-%                     for lambda1min = [0.6,0.8,1.0] %0.15]0.05,0.15,0.5,
-%                         %l1min 1.0, p = 30; l1min 0.8, p = 5;
-%                         obj.c = 5;
-%                         obj.p = p;
-%                         obj.type = type;
-%                         obj.lambda1min = lambda1min;
-%                         obj.init()
-%                         obj.createMesh();
-%                         obj.createDesignVariable();
-%                         obj.createFilterPerimeter();
-%                         obj.createFilterCompliance();
-%                         obj.createFilterConnectivity();
-%                         obj.createMaterialInterpolator();
-%                         obj.createElasticProblem();
-%                         obj.createComplianceFromConstitutive();
-%                         obj.createCompliance();
-%                         obj.createConductivityInterpolator();
-%                         obj.createMassInterpolator();
-%                         obj.createEigenValueConstraint();   
-%                         obj.createEigenValue()          
-%                         obj.createPerimeter();                  
-%                         obj.createVolumeConstraint();
-%                         obj.createCost();
-%                         obj.createConstraint();
-%                         obj.createPrimalUpdater();
-%                         obj.createOptimizer(1000);
-%                     end
-%                 end
-%                 for p = [0.0] %0.15]0.05,0.15,0.5,1,3,4,"cantilever",
-%                     for lambda1min = [0.6,0.8,1.0] %0.15]0.05,0.15,0.5,
-%                         %l1min 1.0, p = 30; l1min 0.8, p = 5;
-%                         obj.c = 2;
-%                         obj.p = p;
-%                         obj.type = type;
-%                         obj.lambda1min = lambda1min;
-%                         obj.init()
-%                         obj.createMesh();
-%                         obj.createDesignVariable();
-%                         obj.createFilterPerimeter();
-%                         obj.createFilterCompliance();
-%                         obj.createFilterConnectivity();
-%                         obj.createMaterialInterpolator();
-%                         obj.createElasticProblem();
-%                         obj.createComplianceFromConstitutive();
-%                         obj.createCompliance();
-%                         obj.createConductivityInterpolator();
-%                         obj.createMassInterpolator();
-%                         obj.createEigenValueConstraint();   
-%                         obj.createEigenValue()          
-%                         obj.createPerimeter();                  
-%                         obj.createVolumeConstraint();
-%                         obj.createCost();
-%                         obj.createConstraint();
-%                         obj.createPrimalUpdater();
-%                         obj.createOptimizer(2000);
-%                     end
-%                 end
             end
         end
 
@@ -139,9 +81,6 @@ classdef TopOptLevelSetConnectivity< handle
         end
 
         function createMesh(obj)
-%             UnitMesh better
-%             x1      = linspace(0,6,180);
-%             x2      = linspace(0,1,30);
             x1      = linspace(0,2,100);
             x2      = linspace(0,1,50);
             [xv,yv] = meshgrid(x1,x2);
@@ -203,7 +142,7 @@ classdef TopOptLevelSetConnectivity< handle
                 s.mesh       = obj.mesh;
                 s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
                 s.filterStep = 'PDE';
-                s.beta       = 8.0; % 4 2 
+                s.beta       = 4.0; % 4 2 
                 s.eta        = 0.2;
                 obj.filterConnect = Filter.create(s);
 %                 obj.filterConnect.updateEpsilon(2*obj.mesh.computeMinCellSize())
@@ -212,7 +151,7 @@ classdef TopOptLevelSetConnectivity< handle
                 s.mesh       = obj.mesh;
                 s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
                 s.filterStep = 'PDE';
-                s.beta       = 8.0; 
+                s.beta       = 4.0; 
                 s.eta        = 0.2;
                 obj.filterAdjointConnect = Filter.create(s);
 %                 obj.filterAdjointConnect.updateEpsilon(2*obj.mesh.computeMinCellSize())
@@ -253,7 +192,7 @@ classdef TopOptLevelSetConnectivity< handle
 
         function createConductivityInterpolator(obj) 
             s.interpolation  = 'SimpAllThermal';
-            s.f0   = 1e-5;                                             
+            s.f0   = 1e-3;                                             
             s.f1   = 1;  
             s.dim  = '2D';
             a = MaterialInterpolator.create(s);
@@ -262,7 +201,7 @@ classdef TopOptLevelSetConnectivity< handle
 
         function createMassInterpolator(obj)
             s.interpolation  = 'SIMPThermal';                              
-            s.f0   = 1e-5;
+            s.f0   = 1e-3;
             s.f1   = 1;
             s.pExp = 1;
             a = MaterialInterpolator.create(s);
@@ -409,7 +348,7 @@ classdef TopOptLevelSetConnectivity< handle
             s.constraint       = obj.constraint;
             s.designVariable   = obj.designVariable;
             s.GIFname           = string(obj.type)+'_case_'+string(obj.c)+'_p_'+string(obj.p)+'_lamb_'+string(obj.lambda1min)+'-';
-            s.maxIter           = 1000;
+            s.maxIter           = 3000;
             s.tolerance         = 1e-3;
             s.constraintCase{1} = 'EQUALITY';
             s.constraintCase{2} = 'INEQUALITY';      
@@ -419,8 +358,9 @@ classdef TopOptLevelSetConnectivity< handle
 %             s.gJFlowRatio       = 2.0; %obj.gJ;
 %             s.etaMax            = 0.6; %0.1;   %1.0 0.2
 %             s.etaMaxMin         = 0.02; %0.05; %0.01;
-            s.gJFlowRatio       = 0.2; %obj.gJ;
-            s.etaMax            = 1.0; %1.0; %0.1;   %1.0 0.2
+            s.gJFlowRatio       = 0.2; %0.2; %obj.gJ;
+            s.etaMax            = 0.1; %1.0; %1.0; %0.1;   %1.0 0.2
+%             s.etaMaxMin           = 0.1;
             s.etaMaxMin         = 0.02; %0.02; %0.05; %0.01;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();

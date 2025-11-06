@@ -29,7 +29,7 @@ classdef StiffnessEigenModesConstraint < handle
 %                 obj.targetEigenValue = obj.targetEigenValue + 0.1;
 %                 disp(obj.targetEigenValue);
 %             end
-%    
+   
             [lambda,dlambda] = obj.eigenModesFunctional.computeFunctionAndGradient(x);
             J      = obj.computeFunction(lambda);
             dJ{1}     = obj.computeGradient(lambda,dlambda);
