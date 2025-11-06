@@ -1,10 +1,11 @@
-classdef TopOptTestTutorialDensityNullSpace < handle
+classdef TopOptTestTutorialThermoMechanicalDensity < handle
 
     properties (Access = private)
         mesh
         filter
         designVariable
         materialInterpolator
+        materialThermalInterpolator
         physicalProblem
         compliance
         volume
@@ -13,17 +14,21 @@ classdef TopOptTestTutorialDensityNullSpace < handle
         primalUpdater
         optimizer
        
+        source
+        conductivity
     end
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorialDensityNullSpace()
+        function obj = TopOptTestTutorialThermoMechanicalDensity()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
+            obj.createThermalProblem();
+
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
             obj.createVolumeConstraint();
@@ -56,8 +61,7 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             s.fHandle = @(x) ones(size(x(1,:,:)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
-            aFun      = AnalyticalFunction(s);
-            
+            aFun      = AnalyticalFunction(s);        
             sD.fun      = aFun.project('P1');
             sD.mesh     = obj.mesh;
             sD.type     = 'Density';
@@ -75,15 +79,17 @@ classdef TopOptTestTutorialDensityNullSpace < handle
         end
 
         function createMaterialInterpolator(obj)
+            
             E0 = 1e-3;
             nu0 = 1/3;
             ndim = obj.mesh.ndim;
+
             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
             matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
 
-
             E1 = 1;
             nu1 = 1/3;
+
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
@@ -117,6 +123,32 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             s.solverMode = 'DISP';
             s.solverCase = DirectSolver();
             fem = ElasticProblem(s);
+            obj.physicalProblem = fem;
+        end
+
+        function createThermalMaterialInterpolator(obj) % Conductivity
+            s.interpolation  = 'SimpAllThermal';
+            s.f0   = 1e-2;
+            s.f1   = 1;
+            s.dim ='2D';
+            a = MaterialInterpolator.create(s);
+            obj.materialThermalInterpolator = a;
+        end
+
+        function createThermalProblem(obj)
+            s.mesh = obj.mesh;
+            s.conductivity = obj.materialThermalInterpolator;
+            Q = LagrangianFunction.create(obj.mesh,1,'P1');
+            fValues = ones(Q.nDofs,1);
+            Q.setFValues(fValues);
+            s.source       = Q;
+            s.dim = '2D';
+            s.boundaryConditions = obj.createBoundaryConditions();
+            s.interpolationType = 'LINEAR';
+            s.solverType = 'REDUCED';
+            s.solverMode = 'DISP';
+            s.solverCase = 'DIRECT';
+            fem = ThermalProblem(s);
             obj.physicalProblem = fem;
         end
 

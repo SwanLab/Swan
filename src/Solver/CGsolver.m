@@ -13,7 +13,7 @@ classdef CGsolver < handle
 
         function x = solve(obj,A,b)
             obj.prepareProblem(A);
-            tol = 1e-5;
+            tol = 1e-8;
             maxit = 15000; 
             L = ichol(A);
             x = pcg(A,b,tol,maxit,L,L',obj.x0);

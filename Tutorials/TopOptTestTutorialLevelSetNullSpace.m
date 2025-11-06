@@ -42,8 +42,8 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,2,100);
-            x2      = linspace(0,1,50);
+            x1      = linspace(0,1,80);
+            x2      = linspace(0,1,80);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -176,15 +176,19 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 3;
+            s.maxIter        = 300;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 0.2;
+            s.gJFlowRatio    = 1;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
+            s.gif=false;
+            s.gifName='ThermalDensity';
+            s.printing=true;
+            s.printName='Thermal Density';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

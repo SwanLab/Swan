@@ -42,8 +42,8 @@ classdef TopOptTestTutorialThermalLevelSet < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,1,50);
-            x2      = linspace(0,1,50);
+            x1      = linspace(0,1,80);
+            x2      = linspace(0,1,80);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -64,22 +64,23 @@ classdef TopOptTestTutorialThermalLevelSet < handle
         end
 
         function createFilter(obj)
-            s.filterType = 'LUMP';
+            s.filterType = 'PDE';
             s.mesh  = obj.mesh;
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
             obj.filter = f;
         end
 
-        function createMaterialInterpolator(obj)
+       function createMaterialInterpolator(obj) % Conductivity
             s.interpolation  = 'SIMPThermal';   
-            s.f0   = 0.01;                                             
-            s.f1   = 1;                                                    
-            s.pExp = 3;
+            s.f0   = 1e-2;
+            s.f1   = 1;
+            s.pExp=3;
+            %s.dim ='2D';
             a = MaterialInterpolator.create(s);
-            obj.materialInterpolator = a;            
-        end   
-
+            obj.materialInterpolator = a;
+       end
+     
         function createThermalProblem(obj)
             s.mesh = obj.mesh;
             s.conductivity = obj.materialInterpolator; 
@@ -163,14 +164,19 @@ classdef TopOptTestTutorialThermalLevelSet < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 700;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.etaNorm        = 0.02;
-            s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 0.2;
+            s.etaNormMin     = 0.002;
+            s.gJFlowRatio    = 1;
+            s.gif=false;
+            s.gifName='ElasticDensity';
+            s.printing=true;
+            s.printName='Elastic Density';
             s.etaMax         = 1;
-            s.etaMaxMin      = 0.01;
+            s.etaMaxMin      = 0.001;
+          
             s.primalUpdater  = obj.createPrimalUpdater();     
             opt              = OptimizerNullSpace(s);
             opt.solveProblem();

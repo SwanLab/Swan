@@ -1,4 +1,4 @@
-classdef ElasticProblem < handle
+classdef ThermoElasticProblem < handle
 
     properties (Access = public)
         uFun
@@ -27,7 +27,7 @@ classdef ElasticProblem < handle
 
     methods (Access = public)
 
-        function obj = ElasticProblem(cParams)
+        function obj = ThermoElasticProblem(cParams)
             obj.init(cParams);
             obj.createDisplacementFun();
             obj.createBCApplier();
@@ -104,7 +104,7 @@ classdef ElasticProblem < handle
             obj.stiffness = IntegrateLHS(f,obj.uFun,obj.uFun,obj.mesh,'Domain',2);
         end
 
-        function computeForces(obj)
+        function computeForces(obj)  %this has to be changed
             bc  = obj.boundaryConditions;
             t   = bc.tractionFun;
             rhs = zeros(obj.uFun.nDofs,1);

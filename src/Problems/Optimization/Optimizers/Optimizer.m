@@ -80,7 +80,7 @@ classdef Optimizer < handle
                 d.fields  = obj.designVariable.getVariablesToPlot();
                 d.cost = obj.cost;
                 d.constraint = obj.constraint;
-                %                 obj.postProcess.print(obj.nIter,d);
+                                % obj.postProcess.print(obj.nIter,d); %
                 [desFun, desName] = obj.designVariable.getFunsToPlot();
                 fun  = desFun;
                 name = desName;
@@ -99,15 +99,15 @@ classdef Optimizer < handle
                 pp.print();
                 obj.simulationPrinter.appendStep(file);
             end
-            %obj.obtainGIF();
+           % obj.obtainGIF();  %
             if ismethod(obj.designVariable,'plot')
                 obj.designVariable.plot();
             end
         end
 
         function obtainGIF(obj)
-            %set(0,'DefaultFigureVisible','off');
-            gifName = 'MasterThesis/Example1';
+             % set(0,'DefaultFigureVisible','off'); %
+            gifName = 'TD';
             deltaTime = 0.01;
             m = obj.designVariable.fun.mesh;
             xmin = min(m.coord(:,1));
@@ -157,7 +157,7 @@ classdef Optimizer < handle
             end
             close(gifFig);
 
-            %set(0,'DefaultFigureVisible','on');
+             %set(0,'DefaultFigureVisible','on'); %
         end
 
     end

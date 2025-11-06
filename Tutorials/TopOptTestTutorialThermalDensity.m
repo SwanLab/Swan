@@ -24,7 +24,6 @@ classdef TopOptTestTutorialThermalDensity < handle
             obj.createFilter();
             obj.createMaterialInterpolator();
             obj.createThermalProblem();
-
             obj.createThermalCompliance();
             obj.createVolumeConstraint();
             obj.createCost();
@@ -43,8 +42,8 @@ classdef TopOptTestTutorialThermalDensity < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,1,100);
-            x2      = linspace(0,1,100);
+            x1      = linspace(0,1,80);
+            x2      = linspace(0,1,80);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -66,7 +65,7 @@ classdef TopOptTestTutorialThermalDensity < handle
         end
 
         function createFilter(obj)
-            s.filterType = 'LUMP';
+            s.filterType = 'PDE';
             s.mesh  = obj.mesh;
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
@@ -74,13 +73,13 @@ classdef TopOptTestTutorialThermalDensity < handle
         end
 
         function createMaterialInterpolator(obj) % Conductivity
-            s.interpolation  = 'SIMPThermal';   
-            s.f0   = 0.01;                                             
-            s.f1   = 1;                                                    
-            s.pExp = 3;
+            s.interpolation  = 'SimpAllThermal';   
+            s.f0   = 1e-2;
+            s.f1   = 1;
+            s.dim ='2D';
             a = MaterialInterpolator.create(s);
-            obj.materialInterpolator = a;            
-        end   
+            obj.materialInterpolator = a;
+        end
 
         function createThermalProblem(obj)
             s.mesh = obj.mesh;
@@ -160,12 +159,16 @@ classdef TopOptTestTutorialThermalDensity < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 4000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.ub             = 1;
             s.lb             = 0;
             s.volumeTarget   = 0.4;
+            s.gif=false;
+            s.gifName='ThermalDensity';
+            s.printing=true;
+            s.printName='Thermal Density';
             s.primal         = 'PROJECTED GRADIENT';
             opt              = OptimizerMMA(s);
             opt.solveProblem();
