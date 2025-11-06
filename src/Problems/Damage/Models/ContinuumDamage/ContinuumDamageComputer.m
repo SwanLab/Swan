@@ -62,7 +62,6 @@ classdef ContinuumDamageComputer < handle
             s.tolerance  = cParams.tolerance;
             s.maxIter    = cParams.maxIter;
             s.solverType = cParams.solverType;
-            s.mesh       = obj.mesh;
             obj.updater  = ContinuumDamageDisplacementUpdater(s);
         end
 

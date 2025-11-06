@@ -16,16 +16,21 @@ classdef AdaptiveGradient < handle
         end
 
         
-        function [uOutNew,uOutVec] = computeDisplacement (obj,gradient,costOld,u,bc)
+        function [uOutNew,uOutVec] = computeDisplacement (obj,Ktan,costOld,u,bc)
             % res = costOld ???
-            % Ktan = gradient 
+            % gradient =costOld
+            % falla pq crida a gradient() per algun motiu 
             
-            u = obj.update(gradient,u);
+
+            u = obj.update(costOld,u); %    <------------- ERROR
+
+
+
             [err,~] = computeErrorCost(obj,u,u,bc,costOld);
             while(err>0 && ~obj.isTooSmall())
                 u.recoverOld();
                 obj.decreaseStepLength();
-                u = obj.update(gradient,u);
+                u = obj.update(g,u);
                 [err,~] = computeErrorCost(obj,u,u,bc,costOld);
             end
             obj.increaseStepLength(10);
@@ -36,8 +41,12 @@ classdef AdaptiveGradient < handle
       
         function u = update(obj,g,u)  
             y  = u.fValues;
+                y = reshape(y.', [], 1);
+
             t  = obj.tau;
+            
             y  = y - t*g;
+                y = reshape(y, 2, []).';
             u.update(y);
         end
 
