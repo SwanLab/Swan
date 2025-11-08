@@ -11,6 +11,7 @@ lambda          = 0.0;
 learningRate    = 0.05;
 hiddenLayers    = 6 .* ones(1,2);
  
+
 %% INITIALIZATION 
 % Store dataset file name
 s.fileName = 'Udata1.csv';
@@ -42,11 +43,6 @@ T1_NN.solve();
 T1_NN.plotCostFnc();
 MSETrain    = immse(T1_NN.computeOutputValues(data.Xtrain), data.Ytrain);
 
-string ="T_NN1.mat"
-
-FileName=fullfile('AbrilTFGfiles','NN',string)
-    save(FileName, "T1_NN");
-
 
 %% Plot surface
 
@@ -63,6 +59,13 @@ end
 
 difference = real-predicted;
 disp(max(abs(difference)));
+
+string ="T_NN1.mat";
+
+FileName=fullfile('AbrilTFGfiles','NN',string);
+    save(FileName, "T1_NN","real","predicted","difference");
+
+
 % figure
 % bar3(abs(difference))
 % title("Abs of real vs predicted")
