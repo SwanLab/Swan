@@ -62,6 +62,7 @@ classdef EIFEM < handle
                 uCelem = uCoarse(dofConec(ielem,:));
                 u(:,ielem) =  U*uCelem;
             end
+            
         end
            
         function A = assembleMatrix(obj,Aelem,f1,f2)
