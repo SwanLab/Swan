@@ -43,41 +43,21 @@ classdef Testing_LOBPCG
                 obj.print_problem();
             end
 
+             % true values for comparison
+            [Vtrue, Dtrue] = eigs(full(obj.K), full(obj.M), obj.b, "smallestabs");
+            [lam_true, p]  = sort(diag(Dtrue), 'ascend');
+            Vtrue = Vtrue(:, p);
+            save('Vtrue_prob2.mat','Vtrue')
+            save('lam_true_prob2.mat','lam_true')
             % Solve
             [lambda, X, history] = obj.lobpcg_extremal();
-
-            % true values for comparison
-           % [Vtrue, Dtrue] = eigs(full(obj.K), full(obj.M), obj.b, "smallestabs");
-            %[lam_true, p]  = sort(diag(Dtrue), 'ascend');
-            %Vtrue = Vtrue(:, p);
-            % save('Vtrue_prob2.mat','Vtrue')
-            % save('lam_true_prob2.mat','lam_true')
-
-            if obj.verbose
-                fprintf('\n=== Converged eigenvalues (LOBPCG, smallest %d) ===\n', obj.b);
-                disp(lambda);
-
-                fprintf('--- Reference (eig, smallest %d) ---\n', obj.b);
-                disp(lam_true(1:obj.b).');
-
-                % Residual checks
-                rnorms = vecnorm(obj.K*X - obj.M*X.*lambda, 2, 1);
-                fprintf('Residual 2-norms per eigenpair:\n');
-                disp(rnorms);
-
-                % M-orthogonality check
-                MX = obj.M*X;
-                Gram = X.'*MX;
-                fprintf('X^T M X (should be ~I):\n');
-                disp(Gram);
-            end
 
             % Package results
             results.lambda   = lambda;
             results.X        = X;
             results.history  = history;
-            %results.lambda_ref = lam_true;
-            %results.V_ref      = Vtrue;
+            results.lambda_ref = lam_true;
+            results.V_ref      = Vtrue;
         end
     end
 
@@ -99,23 +79,19 @@ classdef Testing_LOBPCG
             % --- Initialization: random block, then M-orthonormalize
             if obj.use_physical_x == true
                 load("Vtrue_prob2.mat");
-                %load("lam_true_prob2.mat")
-                X = 0.9.*Vtrue;
+                %perturbation = 0.9;
+                perturbation = 0.9 + 0.1 * (2*rand(size(Vtrue)) - 1);  % uniform in [0.8, 1.0]
+                X = perturbation .* Vtrue;
 
             else
                 rng(4);
                 X = randn(n, b); %we use reduced basis X random here but ideally this would be derived from physics and be made up of columns of coarse eigenvectors.
                 %X = obj.M_orth(X, M);
             end
-            obj.M_orth(X,M);
-            W = [];  % conjugate block (None on first sweep)
+            X = obj.M_orth(X,M);
+            P = [];  % <-- previous search directions (the conjugate block)
 
             hist.rnorms = [];
-
-            if obj.verbose
-                fprintf('\n>> LOBPCG (extremal) start: b=%d, tol=%.1e, maxit=%d\n', ...
-                    b, obj.tol, obj.maxit);
-            end
 
             tic
             for it = 1:obj.maxit
@@ -123,22 +99,13 @@ classdef Testing_LOBPCG
                 [lambda_ritz,u_ritz, X] = obj.ritz_step(K, M, X);
 
                 % 2) Residuals
-                R = K*X - M*X.*lambda_ritz;  
+                R = K*X - M*X*diag(lambda_ritz);  
                 rnorm = vecnorm(R, 2, 1);
-                hist.rnorms = [hist.rnorms; rnorm];
+                relres = rnorm ./ ( vecnorm(K*X,2,1) + abs(lambda_ritz).*vecnorm(M*X,2,1) );
+                hist.rnorms = [hist.rnorms; relres];
 
-                if obj.verbose
-                    fprintf('  it=%2d | lambda=', it);
-                    fprintf(' %.6f', lambda_ritz);
-                    fprintf(' | ||r||2=');
-                    fprintf(' %.2e', rnorm);
-                    fprintf('\n');
-                end
-
-                if all(rnorm < obj.tol) %convergence
-                    if obj.verbose
-                        fprintf('  Converged: all residuals < tol.\n');
-                    end
+                if all(relres < 1e-8)
+                    fprintf('  Converged: all residuals < rel tol.\n');
                     break;
                 end
 
@@ -147,31 +114,52 @@ classdef Testing_LOBPCG
                 Z = obj.M_proj_out(Z, X, M);
                 Z = obj.M_orth(Z, M);
 
-                % 4) Conjugate directions block W (optional but standard)
-                if ~isempty(W)
-                    W = obj.M_proj_out(W, [X Z], M);
-                    W = obj.M_orth(W, M);
-                    G = [X, Z, W];
-                else
+                % 4) Conjugate directions block P (previous search directions)
+                %    Build expanded subspace G = [X, Z, P]
+                if isempty(P)
                     G = [X, Z];
+                else
+                    % keep P independent of current [X,Z]
+                    P = obj.M_proj_out(P, [X Z], M);
+                    P = obj.M_orth(P, M);
+                    G = [X, Z, P];
                 end
 
                 % 5) Rayleigh–Ritz on expanded subspace and keep best b
-                AG = G.'*(K*G);
-                BG = G.'*(M*G);
-                [V,D] = eigs(AG, BG, obj.b, "smallestabs");
-                [lam_all, idx] = sort(diag(D), 'ascend');
-                V = V(:, idx);
+                %    ritz_step returns: (theta_all, Y, X_new) with Y the eigenvectors in basis G
+                [lam_all, Y, X] = obj.ritz_step(K, M, G);  % X is already M-orthonormal
 
-                X = G * V(:,1:b);
-                X = obj.M_orth(X, M);
-                lambda_ritz = lambda_ritz';
+                % Partition Y consistently with G = [X, Z, P]
+                % NOTE: sizes adapt if P is empty
+                bx = size(X,2);  % but X here is already updated; use block sizes from G:
+                bX = size(G,2);  % total columns in G
+                b  = obj.b;
+                hasP = (~isempty(P));
 
-                % Next W: next set of Ritz vectors from G (or just Z)
-                if size(V,2) >= 2*b
-                    W = G * V(:, b+1:2*b);
+                if hasP
+                    % sizes: [X,Z,P] = [b, b, b] in your current setup
+                    Ysel = Y(:,1:b);          % coefficients of selected Ritz vectors
+                    Yx = Ysel(1:b,         :);
+                    Yz = Ysel(b+1:2*b,     :);
+                    Yp = Ysel(2*b+1:3*b,   :);
+                    % Form new conjugate block from components that live in span{Z,P}
+                    P = [Z, P] * [Yz; Yp];
                 else
-                    W = Z;
+                    Ysel = Y(:,1:b);
+                    Yx = Ysel(1:b,     :);
+                    Yz = Ysel(b+1:2*b, :);
+                    % First iteration: no P yet; just carry Z-part
+                    P = Z * Yz;
+                end
+
+                % Make P M-orthogonal to the new X, and well-conditioned
+                P = obj.M_proj_out(P, X, M);
+                P = obj.M_orth(P, M);
+
+                % (Optional) Soft-restart if [X,P] Gram is ill-conditioned
+                Ggram = ( [X, P].' * (M*[X, P]) ); Ggram = (Ggram+Ggram.')/2;
+                if rcond(Ggram) < 1e-10 || norm(P,'fro') < 1e-14
+                    P = [];  % drop directions to avoid stagnation/instability
                 end
             end
             toc
@@ -187,12 +175,14 @@ classdef Testing_LOBPCG
             %   Small projected generalized eigenproblem on span(Xin).
             A = Xin.' * (K*Xin); %reduced "condensed" stiffness matrix\equa
             B = Xin.' * (M*Xin); %reduced "condensed" mass matrix
+            A = (A+A.')/2; B = (B+B.')/2;        % symmetrize for safety
             % A y = lambda B y (ritz problem)
-            [V,D] = eigs(A,B,obj.b,"smallestabs");
-            [theta, p] = sort(diag(D), 'ascend');
-            Xout = Xin * V(:,p);
+            [V,D] = eig(A,B,'vector');
+            [theta, p] = sort(real(D), 'ascend');
+            V = V(:,p);
+            Xout = Xin * V(:,1:obj.b);
             Xout = Testing_LOBPCG.M_orth(Xout, M); % static ok
-            theta = theta.';
+            theta = theta(1:obj.b).';
         end
 
         function Z = apply_prec(obj, R)
@@ -208,7 +198,9 @@ classdef Testing_LOBPCG
             %   Note: For a robust AMG on elasticity, include RBMs as
             %   near-nullspace vectors in SA-AMG setup.
             if obj.use_precond == true
-                Z = R ./ obj.Kdiag;   % element-wise divide each row by diag(K)
+                d = obj.Kdiag;
+                d(abs(d) < 1e-14) = 1e-14;
+                Z = R ./ d; % element-wise divide each row by diag(K)
             else
                 Z = R;
             end
@@ -219,6 +211,8 @@ classdef Testing_LOBPCG
     %  Orthonormalization / projections (M-inner product)
     %  =======================
     methods (Static, Access = private)
+
+
         function X = M_orth(X, M)
             % M_ORTH
             %   Mass-weighted orthonormalization: X' M X = I
@@ -226,6 +220,8 @@ classdef Testing_LOBPCG
             % Cholesky safer: assert SPD
             R = chol((G+G.')/2, 'lower');  % symmetrize for numerical safety
             X = X / R.';
+
+             
         end
 
         function Z = M_proj_out(Z, Q, M)
@@ -244,26 +240,68 @@ classdef Testing_LOBPCG
                     e = ones(40,1);
                     K = spdiags([-e 2*e -e], -1:1, 4,4);
                     M = spdiags([1; 2; 2; 1.5], 0, 4,4);
-                case 2 % SETUP_MATRICES_BEAM_BENDING
-                    n = 1000; % Number of DOFs (nodes along beam)
-                    L = 10;   % Beam length (m)
-                    h = L/(n+1); % Spatial step size
-                    
-                    % Physical parameters for a steel beam
-                    E = 200e9;      % Young's modulus (Pa)
-                    I = 1e-6;       % Second moment of area (m^4)
-                    rho = 7850;     % Density (kg/m^3)
-                    A = 0.01;       % Cross-sectional area (m^2)
-                    
-                    % Stiffness matrix: 4th order finite difference for beam bending
-                    % d^4w/dx^4 discretization: [1 -4 6 -4 1]/h^4
-                    e1 = ones(n,1);
-                    e2 = ones(n,1);
-                    K = (E*I/h^4) * spdiags([e1 -4*e1 6*e1 -4*e1 e1], [-2 -1 0 1 2], n, n);
-                    
-                    % Mass matrix: consistent mass (diagonal approximation)
-                    M = (rho*A*h) * speye(n);
-                    
+                case 2 % Euler–Bernoulli FE with BCs handled by DOF elimination
+                    % Discretization
+                    ne = 200;         % number of elements (adjust as you like)
+                    L  = 10;
+                    Le = L/ne;
+                    nn = ne + 1;      % number of nodes
+                    nd = 2*nn;        % DOFs: [w1,theta1, w2,theta2, ..., w_nn,theta_nn]
+
+                    % Beam parameters
+                    E = 200e9;  I = 1e-6;
+                    rho = 7850; A = 0.01;
+
+                    % Element stiffness & mass (Hermite cubic)
+                    Ke = (E*I/Le^3) * [ 12,   6*Le,  -12,   6*Le;
+                        6*Le, 4*Le^2, -6*Le, 2*Le^2;
+                        -12,  -6*Le,   12,  -6*Le;
+                        6*Le, 2*Le^2, -6*Le, 4*Le^2 ];
+
+                    Me = (rho*A*Le/420) * [156,   22*Le,   54,  -13*Le;
+                        22*Le, 4*Le^2, 13*Le, -3*Le^2;
+                        54,    13*Le, 156,   -22*Le;
+                        -13*Le, -3*Le^2, -22*Le, 4*Le^2 ];
+
+                    % Global assembly
+                    K = sparse(nd, nd);
+                    M = sparse(nd, nd);
+                    for e = 1:ne
+                        % dof map for element e
+                        n1 = e; n2 = e+1;
+                        idx = [ 2*n1-1, 2*n1, 2*n2-1, 2*n2 ];
+                        K(idx,idx) = K(idx,idx) + Ke;
+                        M(idx,idx) = M(idx,idx) + Me;
+                    end
+
+                    % === Pick BC type ===
+                    % "clamped-clamped": w=0 and theta=0 at both ends
+                    % "simply-supported": w=0 at both ends (rotations free)
+                    % "clamped-free": cantilever (left clamped, right free)
+                    bc_type = "clamped-clamped";
+
+                    switch bc_type
+                        case "clamped-clamped"
+                            fixed = [1, 2,  2*nn-1, 2*nn];     % [w1,theta1, wN,thetaN]
+
+                        case "simply-supported"
+                            fixed = [1, 2*nn-1];               % constrain only deflection at ends
+
+                        case "clamped-free"                    % cantilever
+                            fixed = [1, 2];                    % clamp left end; right end free
+
+                        otherwise
+                            error('Unknown bc_type');
+                    end
+
+                    % Eliminate constrained DOFs
+                    free = setdiff(1:nd, fixed);
+                    K = K(free, free);
+                    M = M(free, free);
+
+                    % (Optional) Symmetrize for numerical safety
+                    K = (K+K.')/2;  M = (M+M.')/2;
+
                 case 3
                     load("MassMatrixRed.mat")
                     load("LHSRed.mat")
