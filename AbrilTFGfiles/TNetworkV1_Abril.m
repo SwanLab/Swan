@@ -29,28 +29,28 @@ s.networkParams.HUtype = 'ReLU';
 s.networkParams.OUtype = 'linear';
 
 % Select the T column to train
-T_type='T2'
+T_type='T8'
 
 % Select the model's features
 s.xFeatures = 1:3;
 
 switch T_type
     case 'T1'
-        s.yFeatures = [4,12]; %T1
-    case 'T2'
-        s.yFeatures = [5,13]; %T2
-    case 'T3'
-        s.yFeatures = [6,14]; %T3
-    case 'T4'
-        s.yFeatures = [7,15]; %T4
-    case 'T5'
-        s.yFeatures = [8,16]; %T5
-    case 'T6'
-        s.yFeatures = [9,17]; %T6
+        s.yFeatures = [4,12];   %T1
+    case 'T2'   
+        s.yFeatures = [5,13];   %T2
+    case 'T3'   
+        s.yFeatures = [6,14];   %T3
+    case 'T4'   
+        s.yFeatures = [7,15];   %T4
+    case 'T5'   
+        s.yFeatures = [8,16];   %T5
+    case 'T6'   
+        s.yFeatures = [9,17];   %T6
     case 'T7'
-        s.yFeatures = [10,18]; %T7
-    case 'T8'
-        s.yFeatures = [11,19]; %T8
+        s.yFeatures = [10,18];  %T7
+    case 'T8'   
+        s.yFeatures = [11,19];  %T8
 end
 
 
@@ -103,7 +103,7 @@ end
 
 
 FileName=fullfile('AbrilTFGfiles','NN',string);
-    save(FileName, "T_NN","real","predicted","difference");
+    save(FileName, "T_NN","real","predicted","difference","T_type");
 
 
 % figure

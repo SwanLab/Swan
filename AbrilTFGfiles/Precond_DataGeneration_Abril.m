@@ -26,14 +26,14 @@ for j = 1:size(r,2)
     K_all(:,:,j)=Kcoarse;
 
     % Reshapes U data and adds coordinates
-    u_aux1=reshape(u.',8*2,[]).';                                  %Joins the Tx and Ty coeff at the same line
+    u_aux1=reshape(u.',8*2,[]).';                                  % Joins the Tx and Ty coeff at the same line
     u_aux2=[r(j)*ones(size(mesh.coord,1),1), mesh.coord, u_aux1];  % Adds the radius and coordinates column
     U_all1(:,:,j)=u_aux2;                                          % Saves the result for each radius
 
     ux=reshape(u_aux1(:,1:8).',[],1);                       %Puts all the Tx coeff of each coord in a column concatenated
     uy=reshape(u_aux1(:,9:16).',[],1);                      %Idem with Ty
     coords=repelem(mesh.coord,8,1);                         %Coordinates column for each Tx and Ty 
-    u_aux3=[r(j)*ones(size(coords,1),1),coords,ux,uy];    %concatenates the radius, coords and Tx Ty
+    u_aux3=[r(j)*ones(size(coords,1),1),coords,ux,uy];      %concatenates the radius, coords and Tx Ty
     U_all2(:,:,j)=u_aux3;                                   %Saves the result
     
     
