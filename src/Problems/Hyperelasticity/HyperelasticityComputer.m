@@ -26,7 +26,7 @@ classdef HyperelasticityComputer < handle
 
             nSteps = length(obj.boundaryConditions.bcValues);
             for iStep = 1:nSteps
-                [uFun,bc] = obj.preprocess(iStep,nSteps,uFun);
+                [bc] = obj.preprocess(iStep,nSteps);
                 [uFun,rFun,cost,iterMax] = obj.updater.update(uFun,bc,cost);
                 obj.postprocess(iStep,cost,uFun,rFun,iterMax);
             end
@@ -59,24 +59,9 @@ classdef HyperelasticityComputer < handle
             obj.updater = DisplacementUpdater(s);
         end
 
-        function [uFun,bc] = preprocess(obj,iStep,nSteps,uFun)
+        function [bc] = preprocess(obj,iStep,nSteps)
             obj.monitor.printStep(iStep,nSteps)
             bc = obj.boundaryConditions.nextStep();
-            uFun.setFValues(obj.updateInitialDisplacement(uFun,bc));
-        end
-
-        function u = updateInitialDisplacement(~,uOld,bc)
-            restrictedDofs = bc.dirichlet_dofs;
-            if isempty(restrictedDofs)
-                u = uOld;
-            else
-                dirich = bc.dirichletFun;
-                uVec = reshape(uOld.fValues',[uOld.nDofs 1]);
-                dirichVec = reshape(dirich.fValues',[dirich.nDofs 1]);
-
-                uVec(restrictedDofs) = dirichVec(restrictedDofs);
-                u = reshape(uVec,[flip(size(uOld.fValues))])';
-            end
         end
 
         function uElas = computeElasticProblem(obj,bc)

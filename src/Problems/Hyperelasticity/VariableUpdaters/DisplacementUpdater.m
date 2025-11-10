@@ -16,10 +16,17 @@ classdef DisplacementUpdater < handle
 
         function [u,rFun,costArray,iter] = update(obj,u,bc,costArray)
             i = 0; err = 1; costOld = costArray(end);
+
+            u0 = obj.updateDirichletValues(u,bc);
+
+
+
+            
+
             while (abs(err) > obj.tol) && (i < obj.maxIter)
                 LHS = obj.functional.computeHessian(u);
                 RHS = obj.functional.computeGradient(u,bc);
-                u.setFValues(obj.computeDisplacement(LHS,RHS,u,bc));
+                u   = obj.computeDisplacement(LHS,RHS,u,bc);
 
                 [err, cost] = obj.computeErrorCost(u,bc,costOld);
                 costArray(end+1) = cost;
@@ -45,20 +52,33 @@ classdef DisplacementUpdater < handle
             obj.maxIter    = cParams.maxIter;
         end
 
-        function uOut = computeDisplacement(obj,LHSfull, RHSfull,uIn,bc)
-            [LHS,RHS] = fullToReduced(obj,LHSfull,RHSfull,bc);
-            if ~isempty(LHS)
-                uInVec = reshape(uIn.fValues',[uIn.nDofs 1]);
-                uOutVec = uInVec;
+        function u = computeDisplacement(obj,LHS,RHS,u,bc)
+            [LHSr,RHSr] = obj.fullToReduced(LHS,RHS,bc);
+            if ~isempty(LHSr)
+                uV = reshape(u.fValues',[u.nDofs 1]);
+                uNewV = uV;
 
-                uInFree = uInVec(bc.free_dofs);
-                uOutFree = obj.updateWithNewton(LHS,RHS,uInFree);
-                uOutVec(bc.free_dofs) = uOutFree;
-                uOut = reshape(uOutVec,[flip(size(uIn.fValues))])';
+                uInFree = uV(bc.free_dofs);
+                uNewFree = obj.updateWithNewton(LHSr,RHSr,uInFree);
+                uNewV(bc.free_dofs) = uNewFree;
+                uNew = reshape(uNewV,[flip(size(u.fValues))])';
             else
-                uOut = uIn.fValues;
+                uNew = u.fValues;
             end
+            u.setFValues(uNew);
         end
+
+        function u = updateDirichletValues(~,u,bc)
+            fixedDofs = bc.dirichlet_dofs;
+            if ~isempty(fixedDofs)
+                dirich = bc.dirichletFun;
+                uV   = reshape(u.fValues',[u.nDofs 1]);
+                dirichVec = reshape(dirich.fValues',[dirich.nDofs 1]);
+                uV(fixedDofs) = dirichVec(fixedDofs);
+                uV = reshape(uV,[flip(size(u.fValues))])';
+            end
+            u.setFValues(uV);
+        end           
 
         function [LHS,RHS] = fullToReduced(~,LHS,RHS,bc)
             free_dofs = bc.free_dofs;
@@ -88,6 +108,8 @@ classdef DisplacementUpdater < handle
             s.mesh    = u.mesh;
             rFun = LagrangianFunction(s);
         end
+
+     
 
     end
 
