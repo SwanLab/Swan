@@ -75,14 +75,15 @@ classdef Testing_LOBPCG
             X = obj.M_orth(X,M);   % ensure X' M X = I
             P = [];                % conjugate/search directions
             hist.rnorm  = []; %structure to store residual information
-           
+            active = true(1, b);   % all eigenvectors active initially for refinement
+            
             for it = 1:obj.maxit
                 % 2) Ritz in span(X): best b modes in current subspace
-                [lambda_ritz, ~, X] = obj.ritz_step(K, M, X);
+                [lambda_ritz, ~, X] = obj.ritz_step(K, M, X, b);
 
                 % 3) Residual column
-                R      = K*X - M*X*diag(lambda_ritz);
-                rnorm  = vecnorm(R, 2, 1);
+                R = K*X - M*X*diag(lambda_ritz);
+                rnorm = vecnorm(R, 2, 1);
                 
                 hist.rnorm = [hist.rnorm; rnorm];
 
@@ -106,7 +107,7 @@ classdef Testing_LOBPCG
                 end
 
                 % 6) Ritz on span(G); keep best b; update conjugate block
-                [lam_all, Y, X] = obj.ritz_step(K, M, G);
+                [lam_all, Y, X] = obj.ritz_step(K, M, G, b);
 
                 % Partition Y according to G = [X,Z,P]
                 hasP = ~isempty(P);
@@ -148,7 +149,7 @@ classdef Testing_LOBPCG
                     end
                 elseif obj.problem == 3
                     try
-                        S = load('PhiCoarseProjected.mat',"PhiFineCont");
+                        S = load('PhiCoarseProjectedRed.mat',"PhiFineContRed");
                         X = S.PhiFineCont(:,1:b); %coarse eigenmode projected to fine
                     catch
                         rng(4); X = randn(n,b);
@@ -161,7 +162,7 @@ classdef Testing_LOBPCG
             end
         end
 
-        function [theta, V, Xout] = ritz_step(obj, K, M, Xin)
+        function [theta, V, Xout] = ritz_step(obj, K, M, Xin, b)
             % Build an M-orthonormal basis Q for span(Xin) (SVQB fallback inside)
             Q = Testing_LOBPCG.M_orth(Xin, M);        % Q' M Q = I
             % Project K; B = I implicitly
@@ -171,7 +172,6 @@ classdef Testing_LOBPCG
             [theta, p] = sort(real(D), 'ascend');
             V = V(:, p);
             % Lift back and re-orth
-            b = obj.b;
             Xout  = Q * V(:, 1:b);
             Xout  = Testing_LOBPCG.M_orth(Xout, M);
             theta = theta(1:b).';
@@ -284,11 +284,11 @@ classdef Testing_LOBPCG
                     M = M(free, free);
 
                 case 3
-                    S1 = load("MassMatrix.mat");
-                    S2 = load("LHS.mat");
+                    S1 = load("MassMatrixRed.mat");
+                    S2 = load("LHSRed.mat");
                     % Accept either variable names: Mr / M, lhs / LHSr
-                    M = S1.M;
-                    K = S2.lhs;
+                    M = S1.Mr;
+                    K = S2.LHSr;
 
                 otherwise
                     e = ones(40,1);
