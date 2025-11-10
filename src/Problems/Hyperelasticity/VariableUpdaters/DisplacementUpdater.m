@@ -16,12 +16,8 @@ classdef DisplacementUpdater < handle
 
         function [u,rFun,costArray,iter] = update(obj,u,bc,costArray)
             i = 0; err = 1; costOld = costArray(end);
-
-            u0 = obj.updateDirichletValues(u,bc);
-
-
-
             
+            u = obj.updateDirichletValues(u,bc);
 
             while (abs(err) > obj.tol) && (i < obj.maxIter)
                 LHS = obj.functional.computeHessian(u);
