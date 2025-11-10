@@ -76,19 +76,29 @@ classdef Testing_LOBPCG
             P = [];                % conjugate/search directions
             hist.rnorm  = []; %structure to store residual information
             active = true(1, b);   % all eigenvectors active initially for refinement
-            
+            lambda_ritz = zeros(1, b);  % initialize eigenvalues
+
             for it = 1:obj.maxit
                 % 2) Ritz in span(X): best b modes in current subspace
                 [lambda_ritz, ~, X] = obj.ritz_step(K, M, X, b);
 
                 % 3) Residual column
-                R = K*X - M*X*diag(lambda_ritz);
-                rnorm = vecnorm(R, 2, 1);
+                R = K*X(:,active) - M*X(:,active)*diag(lambda_ritz(active));
                 
-                hist.rnorm = [hist.rnorm; rnorm];
+                full_rnorm = obj.computeFullResidual(hist, R, active, b, it);                
+                hist.rnorm = [hist.rnorm; full_rnorm]; % append residual to structure
 
-                if all(rnorm < obj.tol)
-                    fprintf('  Converged: all relres < tol.\n');
+                % Update active set 
+                newly_converged = (full_rnorm < obj.tol ) & active;
+                if any(newly_converged)
+                    fprintf('Locking Mode %s (Converged)\n', ...
+                        mat2str(find(newly_converged)));
+                end 
+                active(full_rnorm < obj.tol) = false;
+
+                % Stop if all are converged
+                if ~any(active)
+                    fprintf('All modes converged.\n');
                     break;
                 end
 
@@ -97,34 +107,58 @@ classdef Testing_LOBPCG
                 Z = obj.M_proj_out(Z, X, M);
                 Z = obj.M_orth(Z, M);
 
+                % Combine active + locked
+                Xlocked = X(:, ~active);
+                Xactive = X(:, active);
+
                 % 5) Build expanded subspace with conjugate directions
                 if isempty(P)
-                    G = [X, Z];
+                    Gactive = [Xactive, Z];
                 else
-                    P = obj.M_proj_out(P, [X Z], M);
+                    P = obj.M_proj_out(P, [Xactive Z], M);
                     P = obj.M_orth(P, M);
-                    G = [X, Z, P];
+                    Gactive = [Xactive, Z, P];
                 end
 
                 % 6) Ritz on span(G); keep best b; update conjugate block
-                [lam_all, Y, X] = obj.ritz_step(K, M, G, b);
+                [lam_all, Y, Xactive] = obj.ritz_step(K, M, Gactive, sum(active));
 
-                % Partition Y according to G = [X,Z,P]
+                
+                % 7) Ritz on span(Gactive)
+                n_active = sum(active);
+                [lam_all, Y, Xactive] = obj.ritz_step(K, M, Gactive, n_active);
+
+                % 8) Partition Y according to Gactive = [Xactive,Z,P]
                 hasP = ~isempty(P);
-                Ysel = Y(:,1:b);
+                nX = size(Xactive,2);
+                nZ = size(Z,2);
+                nP = size(P,2);
+
+                % keep first n_active Ritz vectors (best eigenpairs)
+                Ysel = Y(:, 1:n_active);
+
                 if hasP
-                    Yz = Ysel(b+1:2*b, :);
-                    Yp = Ysel(2*b+1:3*b, :);
+                    % Split according to Gactive = [Xactive, Z, P]
+                    Yx = Ysel(1:nX, :);
+                    Yz = Ysel(nX+1 : nX+nZ, :);
+                    Yp = Ysel(nX+nZ+1 : nX+nZ+nP, :);
                     P  = [Z, P] * [Yz; Yp];
                 else
-                    Yz = Ysel(b+1:2*b, :);
+                    Yx = Ysel(1:nX, :);
+                    Yz = Ysel(nX+1 : nX+nZ, :);
                     P  = Z * Yz;
                 end
+
                 P = obj.M_proj_out(P, X, M);
                 P = obj.M_orth(P, M);
 
-                % Soft restart if ill-conditioned
-                Ggram = ([X P].'*(M*[X P])); Ggram = (Ggram+Ggram.')/2;
+                % 9) Update X and lambdas for active subset
+                X(:, active) = Xactive;
+                lambda_ritz(active) = lam_all(:).';
+
+                % 10) Soft restart if ill-conditioned
+                Ggram = ([X P].'*(M*[X P]));
+                Ggram = (Ggram+Ggram.')/2;
                 if rcond(Ggram) < 1e-10 || norm(P,'fro') < 1e-14
                     P = [];
                 end
@@ -133,6 +167,22 @@ classdef Testing_LOBPCG
     end
 
     methods (Access = private)
+
+        function full_rnorm = computeFullResidual(obj, hist, R, active, b, it)
+            
+            rnorm = vecnorm(R, 2, 1);
+            % Store full-length residual history (one row per iteration)
+            full_rnorm = zeros(1, b);
+            full_rnorm(active) = rnorm;
+
+            % For locked ones, carry previous value (for plotting continuity)
+            if it > 1
+                prev = hist.rnorm(end, :);
+                full_rnorm(~active) = prev(~active);
+            else
+                full_rnorm(~active) = NaN;  % first iteration
+            end
+        end
 
         function X = selectInitialGuess(obj,n,b)
             
@@ -151,6 +201,7 @@ classdef Testing_LOBPCG
                     try
                         S = load('PhiCoarseProjectedRed.mat',"PhiFineContRed");
                         X = S.PhiFineCont(:,1:b); %coarse eigenmode projected to fine
+                        
                     catch
                         rng(4); X = randn(n,b);
                     end

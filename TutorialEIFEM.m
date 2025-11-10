@@ -57,10 +57,10 @@ classdef TutorialEIFEM < handle
             [lambdaCoarse, PhiCoarse, omega] = obj.computeModalAnalysis(Kcoarse, Mcoarse);
             
             %% Eigenvalues to print
-            %obj.printContinuousSolution(EIFEM,PhiCoarse,mD);
+            obj.printContinuousSolution(EIFEM,PhiCoarse,mD);
             %obj.printDiscontinuousSolution(EIFEM,PhiCoarse,discMesh);
             %obj.printCoarseSolution(EIFEM,PhiCoarse,discMesh);
-            obj.printFineSolution(eigenvectors,mD);
+            %obj.printFineSolution(eigenvectors,mD);
             
             % for i = 1:length(radius_to_analyse)
             % 
@@ -441,8 +441,12 @@ classdef TutorialEIFEM < handle
             for i=1:size(phiCoarse,2)
                 PhiFineDisc(:,:,i) = EIFEM.reconstructSolution(phiCoarse(:,i));
                 PhiFineCont(:,:,i) = EIFEM.computeContinousField(PhiFineDisc(:,:,i));  
+                
                 uplot = PhiFineCont(:,i);
                 EIFEMtesting.plotSolution(uplot,mesh,15,2,i,[],0)
+                %PhiFineContRed(:,:,i) = obj.bcApplier.fullToReducedVectorDirichlet(PhiFineCont(:,:,i));
+                %save('PhiCoarseProjectedRed.mat','PhiFineContRed')
+
             end
         end
 
