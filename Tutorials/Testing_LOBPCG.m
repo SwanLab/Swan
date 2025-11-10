@@ -71,40 +71,16 @@ classdef Testing_LOBPCG
             n = size(K,1);
 
             % 1) Initial block
-            if obj.use_physical_x
-                if obj.problem == 2
-                    % If you have saved Vtrue, you can load and perturb it. Else random.
-                    try
-                        S = load("Vtrue_prob2.mat","Vtrue");
-                        Vtrue = S.Vtrue; %from saved results
-                        perturb = 0.9 + 0.1 * (2*rand(size(Vtrue)) - 1);
-                        X = perturb(:,1:b) .* Vtrue(:,1:b); %perturb to represent coarse 
-                    catch
-                        rng(4); X = randn(n,b);
-                    end
-                elseif obj.problem == 3
-                    try
-                        S = load('PhiCoarseProjected.mat',"PhiFineCont");
-                        X = S.PhiFineCont(:,1:b); %coarse eigenmode projected to fine
-                    catch
-                        rng(4); X = randn(n,b);
-                    end
-                else
-                    rng(4); X = randn(n,b);
-                end
-            else
-                rng(4); X = randn(n,b);
-            end
-
+            X = obj.selectInitialGuess(n,b);
             X = obj.M_orth(X,M);   % ensure X' M X = I
             P = [];                % conjugate/search directions
-            hist.rnorm  = [];
+            hist.rnorm  = []; %structure to store residual information
            
             for it = 1:obj.maxit
                 % 2) Ritz in span(X): best b modes in current subspace
                 [lambda_ritz, ~, X] = obj.ritz_step(K, M, X);
 
-                % 3) Residuals
+                % 3) Residual column
                 R      = K*X - M*X*diag(lambda_ritz);
                 rnorm  = vecnorm(R, 2, 1);
                 
@@ -133,7 +109,6 @@ classdef Testing_LOBPCG
                 [lam_all, Y, X] = obj.ritz_step(K, M, G);
 
                 % Partition Y according to G = [X,Z,P]
-                b  = obj.b;
                 hasP = ~isempty(P);
                 Ysel = Y(:,1:b);
                 if hasP
@@ -156,10 +131,36 @@ classdef Testing_LOBPCG
         end
     end
 
-    %% =======================
-    %  Linear algebra helpers
-    %  =======================
     methods (Access = private)
+
+        function X = selectInitialGuess(obj,n,b)
+            
+            if obj.use_physical_x
+                if obj.problem == 2
+                    % If you have saved Vtrue, you can load and perturb it. Else random.
+                    try
+                        S = load("Vtrue_prob2.mat","Vtrue");
+                        Vtrue = S.Vtrue; %from saved results
+                        perturb = 0.9 + 0.1 * (2*rand(size(Vtrue)) - 1);
+                        X = perturb(:,1:b) .* Vtrue(:,1:b); %perturb to represent coarse 
+                    catch
+                        rng(4); X = randn(n,b);
+                    end
+                elseif obj.problem == 3
+                    try
+                        S = load('PhiCoarseProjected.mat',"PhiFineCont");
+                        X = S.PhiFineCont(:,1:b); %coarse eigenmode projected to fine
+                    catch
+                        rng(4); X = randn(n,b);
+                    end
+                else
+                    rng(4); X = randn(n,b);
+                end
+            else
+                rng(4); X = randn(n,b);
+            end
+        end
+
         function [theta, V, Xout] = ritz_step(obj, K, M, Xin)
             % Build an M-orthonormal basis Q for span(Xin) (SVQB fallback inside)
             Q = Testing_LOBPCG.M_orth(Xin, M);        % Q' M Q = I
@@ -238,6 +239,9 @@ classdef Testing_LOBPCG
         end
     end
 
+    %% =======================
+    %  Problem Setup
+    %  =======================
     methods (Access = private)
         function [K,M] = setup_matrices(~,problem)
             switch(problem)
@@ -293,19 +297,5 @@ classdef Testing_LOBPCG
             end
         end
 
-        function print_header(~)
-            fprintf('=====================================================\n');
-            fprintf('  LOBPCG generalized eigenproblem K u = λ M u\n');
-            fprintf('=====================================================\n');
-        end
-
-        function print_problem(obj)
-            fprintf('\n-- K & M (symmetric parts) --\n');
-            disp(full(obj.K)); disp(full(obj.M));
-            [~, D] = eigs(full(obj.K), full(obj.M), obj.b, "smallestreal");
-            lam = sort(diag(D), 'ascend');
-            fprintf('Reference eigenvalues (smallest %d):\n', obj.b);
-            disp(lam.');
-        end
     end
 end
