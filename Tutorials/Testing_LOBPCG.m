@@ -77,7 +77,7 @@ classdef Testing_LOBPCG
             hist.rnorm  = []; %structure to store residual information
             active = true(1, b);   % all eigenvectors active initially for refinement
             lambda_ritz = zeros(1, b);  % initialize eigenvalues
-
+            tic
             for it = 1:obj.maxit
                 % 2) Ritz in span(X): best b modes in current subspace
                 [lambda_ritz, ~, X] = obj.ritz_step(K, M, X, b);
@@ -107,9 +107,7 @@ classdef Testing_LOBPCG
                 Z = obj.M_proj_out(Z, X, M);
                 Z = obj.M_orth(Z, M);
 
-                % Combine active + locked
-                Xlocked = X(:, ~active);
-                Xactive = X(:, active);
+                Xactive = X(:, active); %active modes to refine
 
                 % 5) Build expanded subspace with conjugate directions
                 if isempty(P)
@@ -122,7 +120,6 @@ classdef Testing_LOBPCG
 
                 % 6) Ritz on span(G); keep best b; update conjugate block
                 [lam_all, Y, Xactive] = obj.ritz_step(K, M, Gactive, sum(active));
-
                 
                 % 7) Ritz on span(Gactive)
                 n_active = sum(active);
@@ -163,6 +160,7 @@ classdef Testing_LOBPCG
                     P = [];
                 end
             end
+            toc
         end
     end
 
