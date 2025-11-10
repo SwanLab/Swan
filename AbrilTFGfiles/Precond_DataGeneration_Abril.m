@@ -4,7 +4,7 @@
 clc; clear; close all;
 
 r = 0:0.1:0.999; 
-%r=0.4130;
+%r=0.5;
 
 K_all=zeros(8,8,length(r));
 U_all1=zeros(761,19,length(r));

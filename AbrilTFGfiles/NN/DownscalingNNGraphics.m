@@ -6,7 +6,7 @@ clear
 
 %% Loads the data of the NN
 
-filename1='T_NN1.mat';
+filename1='T2.mat';
 filePath1 = fullfile('AbrilTFGfiles', 'NN', filename1);
 load(filePath1);
 
@@ -15,16 +15,16 @@ filename2='UL_r0_0000-20x20.mat';
 filePath2 = fullfile('AbrilTFGfiles', 'DataVariables', filename2);
 load(filePath2, 'mesh');
 
-real=reshape(real,mesh.nnodes,[]);
-predicted=reshape(predicted,mesh.nnodes,[]);
-difference=reshape(difference,mesh.nnodes,[]);
+real=reshape(real,mesh.nnodes,2,[]);
+predicted=reshape(predicted,mesh.nnodes,2,[]);
+difference=reshape(difference,mesh.nnodes,2,[]);
 
-idx=10; %radius to visualize
+idx=6; %radius to visualize 
 
 %% Real
 r.mesh=mesh;
 r.order='P1';
-r.fValues=real(:,idx);
+r.fValues=real(:,:,idx);
 
 r.function=LagrangianFunction(r);
 r.function.plot();
@@ -35,7 +35,7 @@ fig1=gcf;
 %% Predicted
 p.mesh=mesh;
 p.order='P1';
-p.fValues=predicted(:,idx);
+p.fValues=predicted(:,:,idx);
 
 p.function=LagrangianFunction(p);
 p.function.plot();
@@ -46,7 +46,7 @@ fig2=gcf;
 
 d.mesh=mesh;
 d.order='P1';
-d.fValues=difference(:,idx);
+d.fValues=difference(:,:,idx);
 
 d.function=LagrangianFunction(d);
 d.function.plot();
@@ -57,7 +57,7 @@ fig3=gcf;
 
 dA.mesh=mesh;
 dA.order='P1';
-dA.fValues=abs(difference(:,idx));
+dA.fValues=abs(difference(:,:,idx));
 dA.function=LagrangianFunction(dA);
 dA.function.plot();
 fig4=gcf;
@@ -101,4 +101,6 @@ copyobj(allchild(get(fig4,'CurrentAxes')), gca);
 title('Difference (ABS)');
 view(3);
 
-%% Slider interactiu
+
+fileName = ['Real'];
+r.function.print(fileName,'Paraview');
