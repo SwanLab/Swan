@@ -26,15 +26,15 @@ classdef TutorialFirst < handle
             % obj.createFilterPerimeter();
             %obj.createMaterialInterpolator();
             obj.createElasticProblem();
-            % obj.createBaseDomain();
+            obj.createBaseDomain();
             obj.createComplianceFromConstiutive();
-            obj.createVolumeFunctional();
+            % obj.createVolumeFunctional();
             % obj.createComplianceConstraint();
-            % obj.createVolumeConstraint();
+            obj.createVolumeConstraint();
             % obj.createPerimeter();
             obj.createCost();
-            % obj.createConstraint();
-            % obj.createPrimalUpdater();
+            obj.createConstraint();
+            obj.createPrimalUpdater();
             obj.createOptimizer();
         end
 
@@ -148,12 +148,12 @@ classdef TutorialFirst < handle
             c = ComplianceFunctional(s);
             
         end
-        function c = createVolumeFunctional(obj)
-            s.mesh = obj.mesh;
-            s.uMesh = obj.createBaseDomain;
-            s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            c = VolumeFunctional(s);
-        end
+        % function c = createVolumeFunctional(obj)
+        %     s.mesh = obj.mesh;
+        %     s.uMesh = obj.createBaseDomain;
+        %     s.test = LagrangianFunction.create(obj.mesh,1,'P1');
+        %     c = VolumeFunctional(s);
+        % end
 
 
 
@@ -167,13 +167,14 @@ classdef TutorialFirst < handle
         %     obj.compliance = c;
         % end
         % 
-        % function createVolumeConstraint(obj)
-        %     s.mesh   = obj.mesh;
-        %     s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
-        %     s.volumeTarget = 0.4;
-        %     v = VolumeConstraint(s);
-        %     obj.volume = v;
-        % end
+        function createVolumeConstraint(obj)
+            s.mesh   = obj.mesh;
+            s.test = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.volumeTarget = 0.4;
+            s.uMesh = obj.createBaseDomain();
+            v = VolumeConstraint(s);
+            obj.volume = v;
+        end
 
         % function createPerimeter(obj)
         %     eOverhmin     = 10; % 10
@@ -188,8 +189,8 @@ classdef TutorialFirst < handle
 
         function createCost(obj)
             s.shapeFunctions{1} = obj.createCompliance();
-            s.shapeFunctions{2} = obj.createVolumeFunctional();
-            s.weights           = [1 0.7];
+            % s.shapeFunctions{2} = obj.createVolumeFunctional();
+            s.weights           = 1;
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -200,36 +201,58 @@ classdef TutorialFirst < handle
             M = IntegrateLHS(@(u,v) DP(v,u),test,trial,obj.mesh,'Domain');
         end
 
-        % function createConstraint(obj)
-        %     s.shapeFunctions{1} = obj.compliance;
-        %     s.shapeFunctions{2} = obj.volume;
-        %     s.Msmooth           = obj.createMassMatrix();
-        %     obj.constraint      = Constraint(s);
-        % end
+        function createConstraint(obj)
+            % s.shapeFunctions{1} = obj.compliance;
+            s.shapeFunctions{1} = obj.volume;
+            s.Msmooth           = obj.createMassMatrix();
+            obj.constraint      = Constraint(s);
+        end
 
-        % function createPrimalUpdater(obj)
-        %     s.mesh = obj.mesh;
-        %     obj.primalUpdater = SLERP(s);
-        % end
+       function createPrimalUpdater(obj)
+            s.ub     = 1;
+            s.lb     = 0;
+            s.tauMax = 1000;
+            s.tau    = [];
+            obj.primalUpdater = ProjectedGradient(s);
+        end
 
         function createOptimizer(obj)
+            % s.monitoring     = true;
+            % s.cost           = obj.cost;
+            % s.constraint     = obj.constraint;
+            % s.designVariable = obj.designVariable;
+            % s.maxIter        = 400;
+            % s.ub              = 1;
+            % s.lb              = 0;
+            % % s.tolerance      = 1e-8;
+            % s.constraintCase = {'EQUALITY'};
+            % % s.primalUpdater  = obj.primalUpdater;
+            % % s.etaNorm        = 0.02;
+            % % s.etaNormMin     = 0.02;
+            % % s.gJFlowRatio    = 1;
+            % % s.etaMax         = 1;
+            % % s.etaMaxMin      = 0.01;
+            % opt = OptimizerNullSpace(s);
+            % % opt = OptimizerProjectedGradient(s);
+            % opt.solveProblem();
+            % obj.optimizer = opt;
+
             s.monitoring     = true;
             s.cost           = obj.cost;
-            % s.constraint     = obj.constraint;
+            s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 200;
-            s.ub              = 1;
-            s.lb              = 0;
-            % s.tolerance      = 1e-8;
-            % s.constraintCase = {'INEQUALITY','EQUALITY'};
-            % s.primalUpdater  = obj.primalUpdater;
-            % s.etaNorm        = 0.02;
-            % s.etaNormMin     = 0.02;
-            % s.gJFlowRatio    = 1;
-            % s.etaMax         = 1;
-            % s.etaMaxMin      = 0.01;
-            % opt = OptimizerNullSpace(s);
-            opt = OptimizerProjectedGradient(s);
+            s.maxIter        = 300;
+            s.tolerance      = 1e-8;
+            s.constraintCase = {'EQUALITY'};
+            s.primal         = 'PROJECTED GRADIENT';
+            s.etaNorm        = 0.01;
+            s.gJFlowRatio    = 2;
+            s.gif            = true;
+            s.gifName        = 'Tutorial_Homo_Hexagon';
+            s.printing       = true;
+            s.printName      = 'Tutorial_Homo_Hexagon';
+            s.primalUpdater  = obj.primalUpdater;
+            opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
 
