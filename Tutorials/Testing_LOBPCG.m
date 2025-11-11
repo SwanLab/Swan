@@ -71,15 +71,21 @@ classdef Testing_LOBPCG
             n = size(K,1);
 
             % 1) Initial block
-            X = obj.selectInitialGuess(n,b);
-            X = obj.M_orth(X,M);   % ensure X' M X = I
+            X = obj.selectInitialGuess(n,b); %select initial subspace
+            X = obj.M_orth(X,M);   % ensure X' M X = I -> we do this to keep problem well scaled and numerically stable. 
+            % (physically: modes do not share kinetic energy/are
+            % dynamically independent. If they are not orthogonal, energy leaks from one mode into another;
+            % solver’s subspace becomes coupled and unstable.
+
             P = [];                % conjugate/search directions
             hist.rnorm  = []; %structure to store residual information
             active = true(1, b);   % all eigenvectors active initially for refinement
-            lambda_ritz = zeros(1, b);  % initialize eigenvalues
+            lambda_ritz = zeros(1, b);  % initialize ritz values
+            
             tic
             for it = 1:obj.maxit
-                % 2) Ritz in span(X): best b modes in current subspace
+                % 2) Ritz in span(X): best mode approximation in current
+                % subspace X
                 [lambda_ritz, ~, X] = obj.ritz_step(K, M, X, b);
 
                 % 3) Residual column
@@ -103,29 +109,30 @@ classdef Testing_LOBPCG
                 end
 
                 % 4) Preconditioned residuals Z = P(R), then M-orth proj/out
+                % Physical meaning: Nudge each mode in the direction that
+                % would annihilate its imbalance 𝐾x = λMx, but only
+                % in directions not already spanned by X
                 Z = obj.apply_prec(R);
-                Z = obj.M_proj_out(Z, X, M);
+                Z = obj.M_proj_out(Z, X, M); % remove components of Z already in span(X) so subspace expands
                 Z = obj.M_orth(Z, M);
 
                 Xactive = X(:, active); %active modes to refine
 
-                % 5) Build expanded subspace with conjugate directions
-                if isempty(P)
+                % 5) Build expanded subspace with conjugate directions and
+                % store current 
+                if isempty(P) %first iteration
                     Gactive = [Xactive, Z];
                 else
                     P = obj.M_proj_out(P, [Xactive Z], M);
                     P = obj.M_orth(P, M);
                     Gactive = [Xactive, Z, P];
                 end
-
-                % 6) Ritz on span(G); keep best b; update conjugate block
-                [lam_all, Y, Xactive] = obj.ritz_step(K, M, Gactive, sum(active));
                 
-                % 7) Ritz on span(Gactive)
+                % 6) Ritz on span(Gactive) - expanded subspace; keep best b; update conjugate block
                 n_active = sum(active);
                 [lam_all, Y, Xactive] = obj.ritz_step(K, M, Gactive, n_active);
 
-                % 8) Partition Y according to Gactive = [Xactive,Z,P]
+                % 7) Partition Y according to Gactive = [Xactive,Z,P]
                 hasP = ~isempty(P);
                 nX = size(Xactive,2);
                 nZ = size(Z,2);
@@ -149,11 +156,11 @@ classdef Testing_LOBPCG
                 P = obj.M_proj_out(P, X, M);
                 P = obj.M_orth(P, M);
 
-                % 9) Update X and lambdas for active subset
+                % 8) Update X and lambdas for active subset
                 X(:, active) = Xactive;
                 lambda_ritz(active) = lam_all(:).';
 
-                % 10) Soft restart if ill-conditioned
+                % 9) Soft restart if ill-conditioned
                 Ggram = ([X P].'*(M*[X P]));
                 Ggram = (Ggram+Ggram.')/2;
                 if rcond(Ggram) < 1e-10 || norm(P,'fro') < 1e-14
@@ -163,8 +170,48 @@ classdef Testing_LOBPCG
             toc
         end
     end
+    %% =======================
+    %  Core Solver Stages
+    %  =======================
 
     methods (Access = private)
+
+        function [theta, V, Xout] = ritz_step(obj, K, M, Xin, b)
+            % Build an M-orthonormal basis Q for span(Xin) (SVQB fallback inside)
+            Q = Testing_LOBPCG.M_orth(Xin, M);        % Q' M Q = I -> means every colun has unit generalizedmass, and modes are mutually mass-orthogonal
+            % Project K; B = I implicitly
+            A = Q.' * (K * Q);  A = (A+A.')/2; %modified so more stable numerically than getting eig from A = (X^T K X) & B = (X^T M X)
+            
+            [V, D] = eig(A, 'vector');
+            [theta, p] = sort(real(D), 'ascend');
+            V = V(:, p);
+            % Lift back and re-orth
+            Xout  = Q * V(:, 1:b);
+            Xout  = Testing_LOBPCG.M_orth(Xout, M);
+            theta = theta(1:b).';
+        end
+
+        function Z = apply_prec(obj, R)
+            if ~obj.use_precond || strcmpi(obj.precond_type,'none')
+                Z = R;
+                return
+            end
+            switch lower(obj.precond_type)
+                case 'ichol'
+                    if isempty(obj.L)
+                        Z = R;  % safety
+                    else
+                        % Solve (L L^T) Z = R  column-wise
+                        Z = obj.L \ (obj.L.' \ R);
+                    end
+                case 'jacobi'
+                    d = obj.Kdiag;
+                    d(abs(d) < 1e-14) = 1e-14;
+                    Z = R ./ d;      % row-wise scaling (each row / diag(K))
+                otherwise
+                    Z = R;
+            end
+        end
 
         function full_rnorm = computeFullResidual(obj, hist, R, active, b, it)
             
@@ -210,50 +257,16 @@ classdef Testing_LOBPCG
                 rng(4); X = randn(n,b);
             end
         end
-
-        function [theta, V, Xout] = ritz_step(obj, K, M, Xin, b)
-            % Build an M-orthonormal basis Q for span(Xin) (SVQB fallback inside)
-            Q = Testing_LOBPCG.M_orth(Xin, M);        % Q' M Q = I
-            % Project K; B = I implicitly
-            A = Q.' * (K * Q);  A = (A+A.')/2;
-            % Dense symmetric eig (tiny)
-            [V, D] = eig(A, 'vector');
-            [theta, p] = sort(real(D), 'ascend');
-            V = V(:, p);
-            % Lift back and re-orth
-            Xout  = Q * V(:, 1:b);
-            Xout  = Testing_LOBPCG.M_orth(Xout, M);
-            theta = theta(1:b).';
-        end
-
-        function Z = apply_prec(obj, R)
-            if ~obj.use_precond || strcmpi(obj.precond_type,'none')
-                Z = R;
-                return
-            end
-            switch lower(obj.precond_type)
-                case 'ichol'
-                    if isempty(obj.L)
-                        Z = R;  % safety
-                    else
-                        % Solve (L L^T) Z = R  column-wise
-                        Z = obj.L \ (obj.L.' \ R);
-                    end
-                case 'jacobi'
-                    d = obj.Kdiag;
-                    d(abs(d) < 1e-14) = 1e-14;
-                    Z = R ./ d;      % row-wise scaling (each row / diag(K))
-                otherwise
-                    Z = R;
-            end
-        end
     end
 
     %% =======================
-    %  Orthonormalization / projections (M-inner product)
+    %  Orthonormalization / Projections (M-inner product)
     %  =======================
     methods (Static, Access = private)
         function X = M_orth(X, M)
+            %orthogonality of modes: each mode vibrates independently of
+            %others. Mathematically, independence is measured b y how
+            %kinetic energies overlap.
             % Mass-weighted orthonormalization: X' M X = I
             if isempty(X), return; end
             G = X.' * (M*X);
@@ -280,16 +293,20 @@ classdef Testing_LOBPCG
         end
 
         function Z = M_proj_out(Z, Q, M)
-            % Exact M-orthogonal projector even if Q' M Q ≠ I
+            % M_proj_out removes from new search directions any kinetic-energy overlap with the current subspace,
+            % keeps the subspace expanding and the solver converging.
+            % Q -> modes we already konw (or subspace they span)
+            % Z -> Matrix of new directions to add (proposed corrections oti mprove modes)
+            % Goal: remove from Z any component that lies in span(Q), but measured in the M-inner produc
             if isempty(Z) || isempty(Q), return; end
-            G = Q.' * (M * Q);  G = (G+G.')/2;
-            T = Q.' * (M * Z);
-            Z = Z - Q * (G \ T);
+            G = Q.' * (M * Q);  G = (G+G.')/2; % Compute the Gram matrix and symmetrize
+            T = Q.' * (M * Z); % compute cross gram
+            Z = Z - Q * (G \ T); % Projecting Z with respect to the mass inner product removes from each correction any overlap in kinetic energy with the existing modes
         end
     end
 
     %% =======================
-    %  Problem Setup
+    %  Problem Setup - Examples
     %  =======================
     methods (Access = private)
         function [K,M] = setup_matrices(~,problem)
