@@ -268,16 +268,9 @@ classdef guideElasticProblem_abril < handle
 
 
             function computeStiffnessMatrixHere(obj) % Per obtenir matriu K   
-                ndimf      = obj.displacementFun.ndimf;
-                m.type     = 'ElasticStiffnessMatrix';
-                m.mesh     = obj.mesh;
-                m.test     = LagrangianFunction.create(obj.mesh,ndimf, 'P1');
-                m.trial    = obj.displacementFun;
-                m.material = obj.material;
-                m.quadratureOrder = 2;
-                
-                lhs = LHSIntegrator.create(m);
-                obj.stiffness = lhs.compute();
+                C     = obj.material;
+                f = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
+                obj.stiffness = IntegrateLHS(f,obj.displacementFun,obj.displacementFun,obj.mesh,'Domain',2);
             end
 
             function computeForcesHere(obj,cParams)   % Per obtenir vector F

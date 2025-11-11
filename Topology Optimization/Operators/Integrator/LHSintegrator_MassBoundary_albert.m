@@ -33,16 +33,18 @@ classdef LHSintegrator_MassBoundary_albert < handle
         function Mr = computeBoundaryMassMatrix(obj,trial,test)
             nDofs = obj.nnodes*trial.ndimf;
             lhsg = sparse(nDofs,trial.nDofs);
-            a.type = 'MassMatrix';
-            a.mesh = obj.boundaryMeshJoined;
+            
+            % a.type = 'MassMatrix';
+            % a.mesh = obj.boundaryMeshJoined;
+            % a.test  = test;
+            % a.trial = trial;
+            % lhs = LHSIntegrator.create(a);
+            % lhs = lhs.compute();
 
-            a.test  = test;
-            a.trial = trial;
 
+            f = @(u,v) DP(v,u);
+            lhs = IntegrateLHS(f,test,trial,obj.boundaryMeshJoined,'Domain',2);
 
-            lhs = LHSIntegrator.create(a);
-
-            lhs = lhs.compute();
             [iLoc,jLoc,vals] = find(lhs);
             l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
             l2g_dof = l2g_dof(:);

@@ -17,7 +17,7 @@ coarse=erase(string(num2str(coarse_aux)),' ');
 
 
 % Obtains the K coarse for each radius
-guideElasticProblem_abril(0.1)
+%guideElasticProblem_abril(0.1)
 
 for j = 1:size(r,2)
     

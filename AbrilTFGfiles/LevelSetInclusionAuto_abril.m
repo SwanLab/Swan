@@ -147,7 +147,7 @@ classdef LevelSetInclusionAuto_abril < handle
             f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<obj.radius)*E2 + ...
                         (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=obj.radius)*E1 ; 
 %                                      x(2,:,:).*0 ];
-            young   = AnalyticalFunction.create(f,1,mesh);
+            young   = AnalyticalFunction.create(f,mesh);
             poisson = ConstantFunction.create(nu,mesh);            
         end
 
@@ -255,10 +255,10 @@ classdef LevelSetInclusionAuto_abril < handle
             obj.createDisplacementFunHere();
             %obj.createBCApplyerHere(s);
             obj.createSolverHere(s)
-            obj.computeStiffnessMatrixHere();
+            obj.computeStiffnessMatrix();
             %obj.computeForcesHere(s);
-             c = obj.computeCmatP1();
-             rdir = obj.RHSdir();
+            c = obj.computeConstraintMatrix();
+             rdir = obj.RHSdirichlet();
             [u, L]  = obj.computeDisplacementHere(c, rdir);
 
             if isa(obj.dLambda, "LagrangianFunction")
@@ -294,17 +294,10 @@ classdef LevelSetInclusionAuto_abril < handle
             obj.problemSolver    = ProblemSolver(p);
         end
 
-        function computeStiffnessMatrixHere(obj)
-            ndimf      = obj.displacementFun.ndimf;
-            m.type     = 'ElasticStiffnessMatrix';
-            m.mesh     = obj.mesh;
-            m.test     = LagrangianFunction.create(obj.mesh,ndimf, 'P1');
-            m.trial    = obj.displacementFun;
-            m.material = obj.material;
-
-            m.quadratureOrder = 2;
-            lhs               = LHSIntegrator.create(m);
-            obj.stiffness     = lhs.compute();
+        function computeStiffnessMatrix(obj)
+            C     = obj.material;
+            f = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
+            obj.stiffness = IntegrateLHS(f,obj.displacementFun,obj.displacementFun,obj.mesh,'Domain',2);
         end
 
         function computeForcesHere(obj, cParams)
@@ -328,7 +321,7 @@ classdef LevelSetInclusionAuto_abril < handle
             
         end
 
-        function Cg = computeCmatP1(obj)
+        function Cg = computeConstraintMatrix(obj)
             s.quadType = 2;
             s.boundaryMeshJoined    = obj.boundaryMeshJoined;
             s.localGlobalConnecBd   = obj.localGlobalConnecBd;
@@ -337,8 +330,12 @@ classdef LevelSetInclusionAuto_abril < handle
             % lhs = LHSintegrator_ShapeFunction_fun(s);
             lhs = LHSintegrator_MassBoundary_albert(s);
             test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); % !!
-             obj.dLambda  = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1');
-             Cg = lhs.compute(obj.dLambda,test);      
+            obj.dLambda  = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1');
+            Cg = lhs.compute(obj.dLambda,test); 
+
+            f = @(u,v) DP(v,u);
+            Cg2 = IntegrateLHS(f,test,obj.dLambda,obj.mesh,'Boundary',2);   
+
         end
 
         function Cg = computeCmatP2(obj)
@@ -608,11 +605,11 @@ classdef LevelSetInclusionAuto_abril < handle
         end
 
 
-        function rDir = RHSdir(obj)
+        function rDir = RHSdirichlet(obj)
             test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1');
-            s.mesh = obj.boundaryMeshJoined;
-            s.quadType = 2;
-            rhs = RHSIntegratorShapeFunction(s);
+           % s.mesh = obj.boundaryMeshJoined;
+           % s.quadType = 2;
+        %    rhs = RHSIntegratorShapeFunction(s);
 
             f1x = @(x) [1/(4)*(1-x(1,:,:)).*(1-x(2,:,:));...
                     0*x(2,:,:)  ];
@@ -633,16 +630,19 @@ classdef LevelSetInclusionAuto_abril < handle
                     1/(4)*(1-x(1,:,:)).*(1+x(2,:,:))  ];
 
 
-            f     = {f1x f1y f2x f2y f3x f3y f4x f4y}; %
-            nfun = size(f,2);
+            fB     = {f1x f1y f2x f2y f3x f3y f4x f4y}; %
+            nfun = size(fB,2);
             rDir = [];
             for i=1:nfun
-                Ud{i}  = AnalyticalFunction.create(f{i},obj.mesh.ndim,obj.boundaryMeshJoined);
+                Ud{i}  = AnalyticalFunction.create(fB{i},obj.boundaryMeshJoined);
                     
                 % %% Project to P1
                 % obj.dLambda{i} = obj.dLambda{i}.project('P1');
 
-                rDire = rhs.compute(Ud{i},test);
+
+          %      rDire = rhs.compute(Ud{i},test);
+                 f = @(v) DP(v,Ud{i});
+                 rDire = IntegrateRHS(f,test,obj.boundaryMeshJoined,'Domain',2);
 %                 [iLoc,jLoc,vals] = find(Ce);
 % 
 % %                 l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
