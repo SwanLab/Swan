@@ -5,7 +5,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
         filter
         designVariable
         materialInterpolator
-        materialThermalInterpolator
+        thermalmaterialInterpolator %
         physicalProblem
         compliance
         volume
@@ -13,9 +13,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
         constraint
         primalUpdater
         optimizer
-       
-        source
-        conductivity
+      
     end
 
     methods (Access = public)
@@ -26,9 +24,8 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             obj.createDesignVariable();
             obj.createFilter();
             obj.createMaterialInterpolator();
-            obj.createElasticProblem();
-            obj.createThermalProblem();
-
+            onj.createThermalMaterialInterpolator(); %
+            obj.createThermoElasticProblem();
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
             obj.createVolumeConstraint();
@@ -47,7 +44,6 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
         end
 
         function createMesh(obj)
-            %UnitMesh better
             x1      = linspace(0,1,80);
             x2      = linspace(0,1,80);
             [xv,yv] = meshgrid(x1,x2);
@@ -102,6 +98,16 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             obj.materialInterpolator = m;
         end
 
+        function createThermalMaterialInterpolator(obj) % Conductivity
+            s.interpolation  = 'SimpAllThermal';   
+            s.f0   = 1e-2;
+            s.f1   = 1;
+            s.dim ='2D';
+            a = MaterialInterpolator.create(s);
+            obj.thermalmaterialInterpolator = a;
+        end
+
+
         function m = createMaterial(obj)
             f = obj.designVariable.fun;           
             s.type                 = 'DensityBased';
@@ -112,7 +118,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             m = Material.create(s);
         end
 
-        function createElasticProblem(obj)
+        function createThermoElasticProblem(obj)
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
             s.material = obj.createMaterial();
@@ -122,33 +128,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
             s.solverCase = DirectSolver();
-            fem = ElasticProblem(s);
-            obj.physicalProblem = fem;
-        end
-
-        function createThermalMaterialInterpolator(obj) % Conductivity
-            s.interpolation  = 'SimpAllThermal';
-            s.f0   = 1e-2;
-            s.f1   = 1;
-            s.dim ='2D';
-            a = MaterialInterpolator.create(s);
-            obj.materialThermalInterpolator = a;
-        end
-
-        function createThermalProblem(obj)
-            s.mesh = obj.mesh;
-            s.conductivity = obj.materialThermalInterpolator;
-            Q = LagrangianFunction.create(obj.mesh,1,'P1');
-            fValues = ones(Q.nDofs,1);
-            Q.setFValues(fValues);
-            s.source       = Q;
-            s.dim = '2D';
-            s.boundaryConditions = obj.createBoundaryConditions();
-            s.interpolationType = 'LINEAR';
-            s.solverType = 'REDUCED';
-            s.solverMode = 'DISP';
-            s.solverCase = 'DIRECT';
-            fem = ThermalProblem(s);
+            fem = ThermoElasticProblem(s);
             obj.physicalProblem = fem;
         end
 
@@ -158,7 +138,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             c = ComplianceFromConstitutiveTensor(s);
         end
 
-        function createCompliance(obj)
+        function createCompliance(obj) %
             s.mesh                        = obj.mesh;
             s.filter                      = obj.filter;
             s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
@@ -185,7 +165,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             obj.volume = v;
         end
 
-        function createCost(obj)
+        function createCost(obj) %
             s.shapeFunctions{1} = obj.compliance;
             s.weights           = 1;
             s.Msmooth           = obj.createMassMatrix();
