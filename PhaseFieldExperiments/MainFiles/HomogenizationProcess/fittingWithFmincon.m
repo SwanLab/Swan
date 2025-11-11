@@ -1,4 +1,4 @@
-function fittingPhaseFieldClean()
+function fittingWithFmincon()
     matType = load('/home/gerard/Documents/GitHub/Swan/src/Problems/Damage/Models/PhaseField/PFVademecum/Degradation/SquareArea.mat');
 
     phiData = matType.phi;
