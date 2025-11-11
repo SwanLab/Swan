@@ -21,11 +21,11 @@ function fittingPhaseFieldClean()
     objBestResult=10000;
     coeff0BestResult = rand(1,60);
 
-    % load('Degradation/SquareAreaDerivative10.mat')
-    % [~, ceq] = nonlcon(coeffBestResult);
-    % disp(['MinObjective: ', num2str(objBestResult, '%.2e'), ' | MinCeq: [', num2str(abs(ceq), '%.2e '), ']']);
+    load('Degradation/L0_variation/DegSqr15lHS.mat')
+    [~, ceq] = nonlcon(coeffBestResult);
+    disp(['MinObjective: ', num2str(objBestResult, '%.2e'), ' | MinCeq: [', num2str(abs(ceq), '%.2e '), ']']);
 
-    for i=1:100
+    for i=1:250
         coeff0 = rand(1,60);
         [coeffOpt,fval,exitflag,output,lambda,grad,hessian] = fmincon(objective,coeff0,A,b,Aeq,beq,lb,ub,nonlcon,options);
         [~, ceq] = nonlcon(coeffOpt);
@@ -41,7 +41,7 @@ function fittingPhaseFieldClean()
     [~, ceq] = nonlcon(coeffOpt);
     disp(['MinObjective: ', num2str(objBestResult, '%.2e'), ' | MinCeq: [', num2str(abs(ceq), '%.2e '), ']']);
 
-    degFuns = generateConstitutiveTensor(coeffBestResult,objBestResult,matType,'DegSqr15L0095Lch');
+    degFuns = generateConstitutiveTensor(coeffBestResult,objBestResult,matType,'DegSqr15lHS');
     plotResults(objective,phiData,Cdata,coeff0BestResult,coeffBestResult,degFuns)
 end
 
@@ -56,18 +56,19 @@ function [sigma,E,Gc,l0] = computeProperties()
     % l0 constant
         % sigmach = 1.5;
         % Gc = Gc0*(sigma^2/sigmach^2);
+        % l0 = 0.1;
     
-    % l0(lch)
-        Gc = Gc0;
+    % l0 variable
+        Gc = Gc0; 
         lch = (2*E*Gc)/(sigma^2);
-        l0 = 0.95*lch;
 
-    % l0(lHS)
-        % Gc = Gc0;
-        % k  = E./(2.*(1-nu));
-        % mu = E./(2.*(1+nu));
-        % slope = - k - k^2/mu - mu - (2*mu^2 + k)/k;
-        % l0 = -2*(3/8)*(Gc/slope)*(E/sigma^2);
+        C11 = E/((1+nu)*(1-nu));
+        k  = E./(2.*(1-nu));
+        mu = E./(2.*(1+nu));
+        slope = (- k - k^2/mu - mu - (2*mu^2 + k)/k)/C11;
+        lhs = -2*(3/8)*(Gc/slope)*(E/sigma^2);
+
+        l0 = lhs;
 end
 
 %% Functions
