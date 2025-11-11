@@ -1,5 +1,6 @@
 import sys
-sys.path.append("C:/Users/JOSE A. TORRES/Documents/GitHub/Swan/Florian"), \
+sys.path.append("/home/joseantonio/Documentos/GitHub/Swan/Florian"), \
+    # C:/Users/JOSE A. TORRES/Documents/GitHub/Swan/Florian
 
 from nullspace_optimizer import EuclideanOptimizable,\
 bound_constraints_optimizable, memoize, filtered_optimizable,\
@@ -227,3 +228,5 @@ axes[1].grid(True, linestyle='--', alpha=0.6)
 
 plt.tight_layout()
 plt.show()
+
+end = true

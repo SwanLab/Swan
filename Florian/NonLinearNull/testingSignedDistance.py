@@ -1,5 +1,5 @@
 import sys
-sys.path.append("C:/Users/JOSE A. TORRES/Documents/GitHub/Swan/Florian"), \
+sys.path.append("/home/joseantonio/Documentos/GitHub/Swan/Florian"), \
 
 from nullspace_optimizer import EuclideanOptimizable,\
 bound_constraints_optimizable, memoize, filtered_optimizable,\

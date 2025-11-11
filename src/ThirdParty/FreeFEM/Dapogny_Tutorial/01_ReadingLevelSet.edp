@@ -1,0 +1,20 @@
+/* Load the macro file */
+include "tools.idp"
+
+/* Load the mesh */
+mesh Th = readmesh("box.mesh");
+
+/* Finite Element spaces */
+fespace Vh(Th,P1);
+fespace Vh0(Th,P0);
+
+/* Parameters and functions */
+real ers = 1.e^-3;
+Vh phi;
+Vh0 Achi;
+
+/* Read the level set function in the external file */
+readsol("box.sol",phi);
+
+/* Calculation of the P0 function Achi = volume fraction of material and ersatz inside each triangle */
+volfrac(Achi,hi,ers);
