@@ -112,7 +112,7 @@ classdef MultimaterialTesting < handle
 
             pointloadFun = [];
             for i = 1:numel(sPL)
-                pl = PointLoad(obj.mesh, sPL{i});
+                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
                 pointloadFun = [pointloadFun, pl];
             end
             s.pointloadFun = pointloadFun;
@@ -130,7 +130,7 @@ classdef MultimaterialTesting < handle
             s.boundaryConditions = obj.boundaryConditions;
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'DIRECT';
+            s.solverCase = DirectSolver();
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -156,12 +156,21 @@ classdef MultimaterialTesting < handle
             obj.volumeC = obj.createIndivVolumeConstraint(0.1,3);
         end
 
+        function uMesh = createBaseDomain(obj)
+            levelSet         = -ones(obj.mesh.nnodes,1);
+            s.backgroundMesh = obj.mesh;
+            s.boundaryMesh   = obj.mesh.createBoundaryMesh();
+            uMesh = UnfittedMesh(s);
+            uMesh.compute(levelSet);
+        end
+
         function v = createIndivVolumeConstraint(obj,target,ID)
             s.volumeTarget = target;
             s.nMat         = 4;
             s.matID        = ID;
             s.mesh         = obj.mesh;
-            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.test         = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.uMesh        = obj.createBaseDomain();
             v              = MultiMaterialVolumeConstraint(s);
          end
 

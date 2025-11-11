@@ -4,21 +4,19 @@ classdef FilterPDE < handle
         mesh
         trial
         epsilon
-        LHStype
+        LHSint
     end
 
     properties (Access = private)
-        problemLHS
         LHS
         RHS
-        % bc
+        bc
     end
 
     methods (Access = public)
         function obj = FilterPDE(cParams)
             obj.init(cParams);
-            % obj.computeBoundaryConditions(cParams);
-            obj.createProblemLHS(cParams);
+            obj.computeBoundaryConditions(cParams);
             obj.computeLHS();
         end
 
@@ -26,7 +24,7 @@ classdef FilterPDE < handle
             xF = LagrangianFunction.create(obj.mesh, fun.ndimf, obj.trial.order);
             obj.computeRHS(fun,quadType);
             obj.solveFilter();
-            xF.setFValues(obj.trial.fValues);
+            xF.setFValues(full(obj.trial.fValues));
         end
 
         function obj = updateEpsilon(obj,epsilon)
@@ -40,7 +38,7 @@ classdef FilterPDE < handle
     methods (Access = private)
         function init(obj,cParams)
             obj.trial   = LagrangianFunction.create(cParams.mesh, cParams.trial.ndimf, cParams.trial.order);
-            obj.LHStype = cParams.LHStype;
+            obj.LHSint  = cParams.LHSint;
             obj.mesh    = cParams.mesh;
             obj.epsilon = cParams.mesh.computeMeanCellSize();
         end
@@ -52,47 +50,34 @@ classdef FilterPDE < handle
             s.bc{1}.ndimf     = 1;
             s.bc{1}.ndofs     = [];
             s.ndofs           = obj.mesh.nnodes;
-            obj.bc            = BoundaryConditions(s);
+            obj.bc            = BoundaryConditionsStokes(s); % This does not make sense regarding clean code. Once ProblemSolver is refactored by Raul and Alex, this will be changed. Speak with Jose when you read this.
             obj.bc.compute();
         end
 
-        function createProblemLHS(obj,s)
-            s.trial        = obj.trial;
-            s.mesh         = obj.mesh;
-            s.type         = obj.LHStype;
-            obj.problemLHS = LHSIntegrator.create(s);
-        end
 
         function computeLHS(obj)
-            lhs     = obj.problemLHS.compute(obj.epsilon);
-            % lhs     = obj.bc.fullToReducedMatrix(lhs); % its the same
+            e   = obj.epsilon;
+            vF  = obj.trial;
+            uF  =  obj.trial;
+            lhs = IntegrateLHS(@(u,v) obj.LHSint.domain(e,u,v),vF,uF,obj.mesh,'Domain');
+            if ~isempty(obj.LHSint.boundary)
+                lhs = lhs + IntegrateLHS(@(u,v) obj.LHSint.boundary(e,u,v),vF,uF,obj.mesh,'Boundary');
+            end
+            lhs     = obj.bc.fullToReducedMatrix(lhs);
             obj.LHS = decomposition(lhs);
         end
 
         function computeRHS(obj,fun,quadType)
-            switch class(fun)
-                case {'UnfittedFunction','UnfittedBoundaryFunction'}
-                    s.mesh = fun.unfittedMesh;
-                    s.type = 'Unfitted';
-                otherwise
-                    s.mesh = obj.mesh;
-                    s.type = 'ShapeFunction';
-            end
-            s.quadType = quadType;
-            int        = RHSIntegrator.create(s);
-            test       = obj.trial;
-            rhs        = int.compute(fun,test);
-            % rhsR       = obj.bc.fullToReducedVector(rhs);
-            rhsR       = rhs; % its the same
-            obj.RHS    = rhsR;
+            f       = @(v) DP(fun,v);
+            rhs     = IntegrateRHS(f,obj.trial,obj.trial.mesh,'Domain',quadType);
+            obj.RHS = obj.bc.fullToReducedVector(rhs);
         end
 
         function solveFilter(obj)
             s.type = 'DIRECT';
             solver = Solver.create(s);
             x      = solver.solve(obj.LHS,obj.RHS);
-            % xR     = obj.bc.reducedToFullVector(x);
-            xR = x; % its the same
+            xR     = obj.bc.reducedToFullVector(x);
             obj.trial.setFValues(reshape(xR',obj.trial.ndimf,[])');
         end
 

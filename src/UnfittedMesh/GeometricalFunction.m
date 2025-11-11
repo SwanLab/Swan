@@ -301,6 +301,5 @@ classdef GeometricalFunction < handle
             fH = min(f,[],4);
         end
 
-
     end
 end

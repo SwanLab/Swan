@@ -1,6 +1,6 @@
 function dom = DP(varargin)
     A = varargin{1}; B = varargin{2};
-    dimA = 2; dimB = 1;
+    dimA = []; dimB = [];
     if nargin > 2, dimA = varargin{3}; end
     if nargin > 3, dimB = varargin{4}; end
 
@@ -10,55 +10,42 @@ function dom = DP(varargin)
     else
         s.mesh = B.mesh;
     end
-    dom         = DomainFunction(s);
+    dom        = DomainFunction(s);
 end
 
 function fVR = evaluate(A,B,dimA,dimB,xV)
-    aEval = computeLeftSideEvaluation(A,dimA,xV);
-    bEval = computeRightSideEvaluation(B,dimB,xV);
-    fVR = pagemtimes(aEval,bEval);
-    if size(fVR,1) == 1
-        fVR = squeezeParticular(fVR, 1);
-    elseif size(fVR,2) == 1
-        fVR = squeezeParticular(fVR, 2);
+    aEval = A.evaluate(xV);
+    bEval = B.evaluate(xV);
+
+    extraDim = computeExtraDims(A,B,xV);
+    ndimsA = ndims(aEval)-extraDim; %To be adapted when ndimf is vector
+    ndimsB = ndims(bEval)-extraDim; 
+    if isempty(dimA)
+        dimA = ndimsA;
+    end
+    if isempty(dimB)
+        dimB = ndimsB;
+    end
+    fVR = pagetensorprod(aEval,bEval,dimA,dimB,ndimsA,ndimsB);
+
+    if ndims(fVR) == 2
+        fVR = reshape(fVR,[1 size(fVR)]);
     end
 end
 
-function aEval = computeLeftSideEvaluation(A,dimA,xV)
-    res      = A.evaluate(xV);
-    isTensor = checkTensor(A,res);
-    if isTensor
-        aEval = res;
-        if dimA == 1
-            aEval = pagetranspose(aEval);
-        end
+function extraDim = computeExtraDims(A,B,xV)
+    if any(strcmp('mesh', properties(A)))
+        nelem = A.mesh.nelem;
     else
-        aEval(1,:,:,:) = res;
+        nelem = B.mesh.nelem;
     end
-end
 
-function bEval = computeRightSideEvaluation(B,dimB,xV)
-    res      = B.evaluate(xV);
-    isTensor = checkTensor(B,res);
-    if isTensor
-        bEval = res;
-        if dimB == 2
-            bEval = pagetranspose(bEval);
+    extraDim = 2;
+    if nelem == 1
+        extraDim = extraDim - 1;
+        if size(xV,2) == 1
+            extraDim = extraDim -1;
         end
-    else
-        bEval(:,1,:,:) = res;
     end
-end
 
-function isTensor = checkTensor(A,res)
-    n = ndims(res);
-    if isa(A,'Material')
-        isTensor = true;
-    else
-        if A.mesh.nelem == 1
-            isTensor = n>=3;
-        else
-            isTensor = n>=4;
-        end
-    end
 end

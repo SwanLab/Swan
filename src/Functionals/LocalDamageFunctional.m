@@ -14,7 +14,7 @@ classdef LocalDamageFunctional < handle
             obj.init(cParams)
         end
         
-        function F = computeFunctional(obj,phi,quadOrder)
+        function F = computeCost(obj,phi,quadOrder)
             alphaFun = obj.obtainDissipationFunction(phi,'Function');
 
             int = Integrator.create('Function',obj.mesh,quadOrder);
@@ -23,25 +23,12 @@ classdef LocalDamageFunctional < handle
         
         function J = computeGradient(obj,phi,quadOrder)
             dAlphaFun =  obj.obtainDissipationFunction(phi,'Jacobian');
-
-            s.mesh     = obj.mesh;
-            s.type     = 'ShapeFunction';
-            s.quadType = quadOrder;
-            RHS = RHSIntegrator.create(s);
-            J   = (obj.constant/obj.l0)*RHS.compute(dAlphaFun,obj.testPhi);
+            J = IntegrateRHS(@(v) (obj.constant/obj.l0).*DP(v,dAlphaFun),obj.testPhi,obj.mesh,'Domain',quadOrder);
         end
         
         function H = computeHessian(obj,phi,quadOrder)
-            ddAlphaFun =  obj.obtainDissipationFunction(phi,'Hessian');
-            
-            s.trial    = obj.testPhi;
-            s.test     = obj.testPhi;
-            s.function = ddAlphaFun;
-            s.mesh     = obj.mesh;
-            s.type     = 'MassMatrixWithFunction';
-            s.quadratureOrder = quadOrder;
-            LHS = LHSIntegrator.create(s);
-            H = (obj.constant/obj.l0)*LHS.compute();
+            ddAlphaFun =  obj.obtainDissipationFunction(phi,'Hessian');         
+            H = IntegrateLHS(@(u,v) (obj.constant/obj.l0).*ddAlphaFun.*DP(v,u),obj.testPhi,obj.testPhi,obj.mesh,'Domain',quadOrder);
         end
     end
     
