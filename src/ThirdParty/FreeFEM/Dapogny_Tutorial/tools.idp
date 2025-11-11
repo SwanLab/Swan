@@ -173,3 +173,14 @@ macro normalvec(phi) {
                                                 + nx*vx+ny*vy)
                                        - int2d(Th)(nx0*vx+ny0*vy);
 } // EOM
+
+macro curvature() {
+  kappa0 = dx(nx)+dy(ny);
+  solve reconsKappa(kappa,v) = int2d(Th)(alpha*(dx(kappa)*dx(v)+dy(kappa)*dy(v)) + kappa*v)
+                               - int2d(Th)(kappa0*v);
+} // EOM
+
+macro advectRedist(phio,phi,velx,vely,step) {
+   phitmp = convect([velx,vely],-step,phio);
+   distance(Th,phitmp,phi[]);
+} // EOM

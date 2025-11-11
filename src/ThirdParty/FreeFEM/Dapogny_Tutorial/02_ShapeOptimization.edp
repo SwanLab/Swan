@@ -1,4 +1,6 @@
-/* Load the macro file */
+// Make it like a tutorial
+
+load "distance"
 include "tools.idp"
 
 // Create Mesh Counterclockwise!!!
@@ -12,7 +14,20 @@ border g(t=0, 2){x=2-t; y=1.5; label=2;}
 border h(t=0, 1.5){x=0; y=1.5-t; label=2;}
 mesh Th = buildmesh(a(2)+b(19)+c(2)+d(19)+e(2)+f(30)+g(40)+h(30));
 plot(Th,wait=true);
+real deltah = 0.1/2;
 
 /* Finite Element spaces */
 fespace Vh(Th,P1);
 fespace Vh0(Th,P0);
+
+Vh nx, ny, v, vx, vy, kappa;
+Vh0 nx0, ny0, ngrphi, kappa0;
+
+Vh phi0, phi, phitmp;
+normalvec(phi);
+
+real alpha = deltah; // epsilon of a pde filter
+curvature;
+
+real step = 0.1;
+advectRedist(phi0,phi,nx,ny,step);
