@@ -1,4 +1,4 @@
-classdef TopOptTestTutorialBoundFormulation < handle
+classdef Tutorial05_10_TopOptDensityBoundFormulationMacro < handle
 
     properties (Access = private)
         mesh
@@ -24,7 +24,7 @@ classdef TopOptTestTutorialBoundFormulation < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorialBoundFormulation()
+        function obj = Tutorial05_10_TopOptDensityBoundFormulationMacro()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -56,14 +56,7 @@ classdef TopOptTestTutorialBoundFormulation < handle
         end
 
         function createMesh(obj)
-            %UnitMesh better
-            x1      = linspace(0,2,100);
-            x2      = linspace(0,1,50);
-            [xv,yv] = meshgrid(x1,x2);
-            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            s.coord  = V(:,1:2);
-            s.connec = F;
-            obj.mesh = Mesh.create(s);
+            obj.mesh = TriangleMesh(2,1,100,50);
         end
 
         function createDesignVariable(obj)
@@ -288,6 +281,10 @@ classdef TopOptTestTutorialBoundFormulation < handle
             s.constraintCase = {'INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY'};
             s.ub             = [ones(obj.mesh.nnodes,1);1000];
             s.lb             = [zeros(obj.mesh.nnodes,1);-1000];
+            s.gif            = false;
+            s.gifName        = [];
+            s.printing       = false;
+            s.printName      = [];
             opt              = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;

@@ -1,7 +1,6 @@
-classdef TopOptTestTutorialGiD < handle
+classdef Tutorial05_1_TopOpt2DDensityMacroMMA < handle
 
     properties (Access = private)
-        filename
         mesh
         filter
         designVariable
@@ -17,7 +16,7 @@ classdef TopOptTestTutorialGiD < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorialGiD()
+        function obj = Tutorial05_1_TopOpt2DDensityMacroMMA()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -42,11 +41,7 @@ classdef TopOptTestTutorialGiD < handle
         end
 
         function createMesh(obj)
-            file = 'anisoCantilever';
-            obj.filename = file;
-            a.fileName = file;
-            s = FemDataContainer(a);
-            obj.mesh = s.mesh;
+            obj.mesh = TriangleMesh(2,1,100,50);
         end
 
         function createDesignVariable(obj)
@@ -93,11 +88,9 @@ classdef TopOptTestTutorialGiD < handle
         end
 
         function m = createMaterial(obj)
-            x = obj.designVariable;
-            f = x.obtainDomainFunction();
-            f = f{1}.project('P1');            
+            x = obj.designVariable.fun;           
             s.type                 = 'DensityBased';
-            s.density              = f;
+            s.density              = x;
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '2D';
             s.mesh                 = obj.mesh;
@@ -140,7 +133,7 @@ classdef TopOptTestTutorialGiD < handle
             uMesh = UnfittedMesh(s);
             uMesh.compute(levelSet);
         end
-
+        
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
@@ -159,9 +152,11 @@ classdef TopOptTestTutorialGiD < handle
         end
 
         function M = createMassMatrix(obj)
-            test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            M = IntegrateLHS(@(u,v) DP(v,u),test,trial,obj.mesh,'Domain');
+            test   = LagrangianFunction.create(obj.mesh, 1, 'P1');
+            trial  = LagrangianFunction.create(obj.mesh, 1, 'P1');
+            f = @(u,v) DP(v,u);
+            M = IntegrateLHS(f,test,trial,obj.mesh,'Domain',2);
+            M = diag(sum(M,1));
         end
 
         function createConstraint(obj)
@@ -184,20 +179,33 @@ classdef TopOptTestTutorialGiD < handle
             s.dualVariable   = obj.dualVariable;
             s.maxIter        = 3;
             s.tolerance      = 1e-8;
-            s.constraintCase = 'EQUALITY';
+            s.constraintCase = {'EQUALITY'};
             s.ub             = 1;
             s.lb             = 0;
-            s.volumeTarget   = 0.4;                   %VOLUM FINAL
-            opt = OptimizerMMA(s);
+            s.volumeTarget   = 0.4;
+            s.primal         = 'PROJECTED GRADIENT';
+            s.gif            = true;
+            s.gifName        = 'Tutorial05_1';
+            s.printing       = true;
+            s.printName      = 'Tutorial05_1';
+            opt              = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
         end
 
         function bc = createBoundaryConditions(obj)
-            femReader = FemInputReaderGiD();
-            s         = femReader.read(obj.filename);
-            sPL       = obj.computeCondition(s.pointload);
-            sDir      = obj.computeCondition(s.dirichlet);
+            xMax    = max(obj.mesh.coord(:,1));
+            yMax    = max(obj.mesh.coord(:,2));
+            isDir   = @(coor)  abs(coor(:,1))==0;
+            isForce = @(x)  x(1,:,:)==xMax & x(2,:,:)>=0.3*yMax & x(2,:,:)<=0.7*yMax;
+
+            sDir{1}.domain    = @(coor) isDir(coor);
+            sDir{1}.direction = [1,2];
+            sDir{1}.value     = 0;
+
+            [bMesh, ~]  = obj.mesh.createSingleBoundaryMesh();
+            sPL{1}.domain = isForce;
+            sPL{1}.fun    = ConstantFunction.create([0,-1],bMesh);
 
             dirichletFun = [];
             for i = 1:numel(sDir)
@@ -208,7 +216,7 @@ classdef TopOptTestTutorialGiD < handle
 
             pointloadFun = [];
             for i = 1:numel(sPL)
-                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
+                pl = TractionLoad(obj.mesh,sPL{i},'FUNCTION');
                 pointloadFun = [pointloadFun, pl];
             end
             s.pointloadFun = pointloadFun;
@@ -216,26 +224,6 @@ classdef TopOptTestTutorialGiD < handle
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
-        end
-    end
-
-    methods (Static, Access=private)
-        function sCond = computeCondition(conditions)
-            nodes = @(coor) 1:size(coor,1);
-            dirs  = unique(conditions(:,2));
-            j     = 0;
-            for k = 1:length(dirs)
-                rowsDirk = ismember(conditions(:,2),dirs(k));
-                u        = unique(conditions(rowsDirk,3));
-                for i = 1:length(u)
-                    rows   = conditions(:,3)==u(i) & rowsDirk;
-                    isCond = @(coor) ismember(nodes(coor),conditions(rows,1));
-                    j      = j+1;
-                    sCond{j}.domain    = @(coor) isCond(coor);
-                    sCond{j}.direction = dirs(k);
-                    sCond{j}.value     = u(i);
-                end
-            end
         end
     end
 end

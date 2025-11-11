@@ -1,4 +1,4 @@
-classdef TutorialRemeshing < handle
+classdef Tutorial00_2_Remeshing < handle
     
 
     properties (Access = private)
@@ -12,7 +12,7 @@ classdef TutorialRemeshing < handle
     
     methods (Access = public)
         
-        function obj = TutorialRemeshing()
+        function obj = Tutorial00_2_Remeshing()
             obj.init();
             obj.createMesh();
             obj.createAnalyticalFunction();
