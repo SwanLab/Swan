@@ -184,6 +184,10 @@ classdef Tutorial05_1_TopOpt2DDensityMacroMMA < handle
             s.lb             = 0;
             s.volumeTarget   = 0.4;
             s.primal         = 'PROJECTED GRADIENT';
+            s.gif            = true;
+            s.gifName        = 'Tutorial05_1';
+            s.printing       = true;
+            s.printName      = 'Tutorial05_1';
             opt              = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;

@@ -178,6 +178,10 @@ classdef Tutorial05_3_TopOpt2DLevelSetMacroNullSpace < handle
             s.gJFlowRatio    = 0.2;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
+            s.gif            = true;
+            s.gifName        = 'Tutorial05_3';
+            s.printing       = true;
+            s.printName      = 'Tutorial05_3';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

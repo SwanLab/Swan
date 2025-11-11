@@ -77,6 +77,10 @@ classdef AcademicProblem < handle
             s.monitoring     = true;
             s.primal         = 'PROJECTED GRADIENT';
             s.tolerance      = 1e-8;
+            s.gif            = false;
+            s.gifName        = [];
+            s.printing       = false;
+            s.printName      = [];
             obj.optimizer    = Optimizer.create(s);
         end
 
