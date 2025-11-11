@@ -65,7 +65,10 @@ classdef ThermoElasticProblem < handle
             obj.materialElastic = mat;
         end
 
-        % updateExternalForces... Ask Giovanna
+        % updateExternalForces... from new "ComplianceFromConstitutitveTensorAndForce" Ask Giovanna
+        % input: kappa
+        % computeTemperature
+        % computeNewCouplingForce
 
         function print(obj, filename, software)
             if nargin == 2; software = 'Paraview'; end
