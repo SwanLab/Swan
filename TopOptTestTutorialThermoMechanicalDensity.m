@@ -120,10 +120,9 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
 
         function createThermoElasticProblem(obj)
             s.mesh = obj.mesh;
-            s.scale = 'MACRO';
             s.material = obj.createMaterial();
             s.dim = '2D';
-            s.boundaryConditions = obj.createBoundaryConditions();
+            s.boundaryConditions = obj.createBoundaryConditionsElastic();
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
@@ -213,7 +212,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             obj.optimizer = opt;
         end
 
-        function bc = createBoundaryConditions(obj)
+        function bc = createBoundaryConditionsElastic(obj)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
             isDir   = @(coor)  abs(coor(:,1))==0;
@@ -245,5 +244,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
         end
+
+        % createBCThermal...
     end
 end
