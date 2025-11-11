@@ -281,6 +281,10 @@ classdef Tutorial05_10_TopOptDensityBoundFormulationMacro < handle
             s.constraintCase = {'INEQUALITY','INEQUALITY','INEQUALITY','INEQUALITY'};
             s.ub             = [ones(obj.mesh.nnodes,1);1000];
             s.lb             = [zeros(obj.mesh.nnodes,1);-1000];
+            s.gif            = false;
+            s.gifName        = [];
+            s.printing       = false;
+            s.printName      = [];
             opt              = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;

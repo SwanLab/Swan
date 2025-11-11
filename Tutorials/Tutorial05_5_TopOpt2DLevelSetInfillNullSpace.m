@@ -198,6 +198,10 @@ classdef Tutorial05_5_TopOpt2DLevelSetInfillNullSpace < handle
             s.gJFlowRatio    = 0.2;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
+            s.gif            = false;
+            s.gifName        = [];
+            s.printing       = false;
+            s.printName      = [];
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
