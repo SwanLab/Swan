@@ -103,7 +103,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = CGsolver();
+            s.solverCase = DirectSolver();
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -124,10 +124,7 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
         end
 
         function uMesh = createBaseDomain(obj)
-            sG.type          = 'Square';
-            sG.length        = 1;
-            sG.xCoorCenter   = 1.5;
-            sG.yCoorCenter   = 0.5;
+            sG.type          = 'Full';
             g                = GeometricalFunction(sG);
             lsFun            = g.computeLevelSetFunction(obj.mesh);
             levelSet         = lsFun.fValues;
