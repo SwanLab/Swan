@@ -93,9 +93,8 @@ classdef Testing_LOBPCG
                 
                 full_rnorm = obj.computeFullResidual(hist, R, active, b, it);                
                 hist.rnorm = [hist.rnorm; full_rnorm]; % append residual to structure
-
-                % Update active set 
-                newly_converged = (full_rnorm < obj.tol ) & active;
+  
+                newly_converged = (full_rnorm < obj.tol ) & active; % update active set 
                 if any(newly_converged)
                     fprintf('Locking Mode %s (Converged)\n', ...
                         mat2str(find(newly_converged)));
@@ -112,18 +111,20 @@ classdef Testing_LOBPCG
                 % Physical meaning: Nudge each mode in the direction that
                 % would annihilate its imbalance 𝐾x = λMx, but only
                 % in directions not already spanned by X
-                Z = obj.apply_prec(R);
+                
+                Z = obj.apply_prec(R); % preconditioned residuals (steepest-descent corrections)
                 Z = obj.M_proj_out(Z, X, M); % remove components of Z already in span(X) so subspace expands
                 Z = obj.M_orth(Z, M);
 
                 Xactive = X(:, active); %active modes to refine
 
-                % 5) Build expanded subspace with conjugate directions and
-                % store current 
-                if isempty(P) %first iteration
-                    Gactive = [Xactive, Z];
+                % 5) Build expanded subspace with conjugate directions 
+                % P = previous conjugate directions. Gactive defines
+                % trial subspace for next ritz projection.
+                if isempty(P) 
+                    Gactive = [Xactive, Z]; %first iteration no P
                 else
-                    P = obj.M_proj_out(P, [Xactive Z], M);
+                    P = obj.M_proj_out(P, [Xactive Z], M); %remove from P any overlap with [X,Z]
                     P = obj.M_orth(P, M);
                     Gactive = [Xactive, Z, P];
                 end
@@ -134,24 +135,34 @@ classdef Testing_LOBPCG
 
                 % 7) Partition Y according to Gactive = [Xactive,Z,P]
                 hasP = ~isempty(P);
-                nX = size(Xactive,2);
+                nX = size(Xactive,2); %size 
                 nZ = size(Z,2);
                 nP = size(P,2);
 
                 % keep first n_active Ritz vectors (best eigenpairs)
                 Ysel = Y(:, 1:n_active);
 
+                %After Ritz step, each new eigenvector X is a combination:
+                % Xnew = X·Yx + Z·Yz + P·Yp
+
                 if hasP
                     % Split according to Gactive = [Xactive, Z, P]
                     Yx = Ysel(1:nX, :);
                     Yz = Ysel(nX+1 : nX+nZ, :);
                     Yp = Ysel(nX+nZ+1 : nX+nZ+nP, :);
-                    P  = [Z, P] * [Yz; Yp];
+                    P  = [Z, P] * [Yz; Yp]; %Pnew
+                    %in CG new search direction is a combination of new
+                    %residual + previous direction. Pnew combines the last
+                    %preconditioned residual and old conjugate directions P
                 else
                     Yx = Ysel(1:nX, :);
                     Yz = Ysel(nX+1 : nX+nZ, :);
                     P  = Z * Yz;
                 end
+
+                %conjugate direction P remembers where the structure was already successfully moving in the last iteration.
+                % If we only followed Z each time (pure steepest descent), you would keep “zig-zagging” — overcorrecting the same imbalance back and forth.
+                %By forming conjugate directions P, method ensures that the new motion you add does not disturb the energy balance already fixed by previous corrections.
 
                 P = obj.M_proj_out(P, X, M);
                 P = obj.M_orth(P, M);
@@ -160,7 +171,7 @@ classdef Testing_LOBPCG
                 X(:, active) = Xactive;
                 lambda_ritz(active) = lam_all(:).';
 
-                % 9) Soft restart if ill-conditioned
+                % 9) Soft restart if ill-conditioned (stabilizes convergence)
                 Ggram = ([X P].'*(M*[X P]));
                 Ggram = (Ggram+Ggram.')/2;
                 if rcond(Ggram) < 1e-10 || norm(P,'fro') < 1e-14
@@ -178,7 +189,7 @@ classdef Testing_LOBPCG
 
         function [theta, V, Xout] = ritz_step(obj, K, M, Xin, b)
             % Build an M-orthonormal basis Q for span(Xin) (SVQB fallback inside)
-            Q = Testing_LOBPCG.M_orth(Xin, M);        % Q' M Q = I -> means every colun has unit generalizedmass, and modes are mutually mass-orthogonal
+            Q = Testing_LOBPCG.M_orth(Xin, M);        % Q' M Q = I -> means every colun has unit generalized mass, and modes are mutually mass-orthogonal
             % Project K; B = I implicitly
             A = Q.' * (K * Q);  A = (A+A.')/2; %modified so more stable numerically than getting eig from A = (X^T K X) & B = (X^T M X)
             
@@ -208,6 +219,10 @@ classdef Testing_LOBPCG
                     d = obj.Kdiag;
                     d(abs(d) < 1e-14) = 1e-14;
                     Z = R ./ d;      % row-wise scaling (each row / diag(K))
+
+                case 'eifem'
+                    
+
                 otherwise
                     Z = R;
             end

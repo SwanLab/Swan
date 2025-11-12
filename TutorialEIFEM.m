@@ -57,7 +57,7 @@ classdef TutorialEIFEM < handle
             [lambdaCoarse, PhiCoarse, omega] = obj.computeModalAnalysis(Kcoarse, Mcoarse);
             
             %% Eigenvalues to print
-            obj.printContinuousSolution(EIFEM,PhiCoarse,mD);
+            %obj.printContinuousSolution(EIFEM,PhiCoarse,mD);
             %obj.printDiscontinuousSolution(EIFEM,PhiCoarse,discMesh);
             %obj.printCoarseSolution(EIFEM,PhiCoarse,discMesh);
             %obj.printFineSolution(eigenvectors,mD);
