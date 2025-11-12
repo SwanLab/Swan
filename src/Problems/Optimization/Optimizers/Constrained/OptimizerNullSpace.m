@@ -36,6 +36,7 @@ classdef OptimizerNullSpace < handle
         etaNormMin
         gJFlowRatio
         firstEstimation
+        fibreOrientation
     end
 
     methods (Access = public) 
@@ -66,6 +67,7 @@ classdef OptimizerNullSpace < handle
 
     methods(Access = private)
         function init(obj,cParams)
+            obj.fibreOrientation = cParams.type;
             obj.cost            = cParams.cost;
             obj.constraint      = cParams.constraint;
             obj.constraintCase  = cParams.constraintCase;
