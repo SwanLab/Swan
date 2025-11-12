@@ -1,12 +1,12 @@
 % PERFORMANCE OF THE DOWNSCALING NN AND GRAPHICS
 
-clc
-clear
+%clc
+%clear
 
 
 %% Loads the data of the NN
 
-filename1='T2.mat';
+filename1='T8.mat';
 filePath1 = fullfile('AbrilTFGfiles', 'NN', filename1);
 load(filePath1);
 
@@ -15,16 +15,19 @@ filename2='UL_r0_0000-20x20.mat';
 filePath2 = fullfile('AbrilTFGfiles', 'DataVariables', filename2);
 load(filePath2, 'mesh');
 
-real=reshape(real,mesh.nnodes,2,[]);
-predicted=reshape(predicted,mesh.nnodes,2,[]);
-difference=reshape(difference,mesh.nnodes,2,[]);
+real=reshape(real.',2,mesh.nnodes,[]);
+real=permute(real, [2 1 3]);
+predicted=reshape(predicted.',2,mesh.nnodes,[]);
+predicted=permute(predicted, [2 1 3]);
+difference=reshape(difference.',2,mesh.nnodes,[]);
+difference=permute(difference, [2 1 3]);
 
 idx=6; %radius to visualize 
 
 %% Real
 r.mesh=mesh;
 r.order='P1';
-r.fValues=real(:,:,idx);
+r.fValues=real(:,1,idx);
 
 r.function=LagrangianFunction(r);
 r.function.plot();
@@ -35,7 +38,7 @@ fig1=gcf;
 %% Predicted
 p.mesh=mesh;
 p.order='P1';
-p.fValues=predicted(:,:,idx);
+p.fValues=predicted(:,1,idx);
 
 p.function=LagrangianFunction(p);
 p.function.plot();
@@ -46,7 +49,7 @@ fig2=gcf;
 
 d.mesh=mesh;
 d.order='P1';
-d.fValues=difference(:,:,idx);
+d.fValues=difference(:,1,idx);
 
 d.function=LagrangianFunction(d);
 d.function.plot();
@@ -57,7 +60,7 @@ fig3=gcf;
 
 dA.mesh=mesh;
 dA.order='P1';
-dA.fValues=abs(difference(:,:,idx));
+dA.fValues=abs(difference(:,1,idx));
 dA.function=LagrangianFunction(dA);
 dA.function.plot();
 fig4=gcf;
@@ -101,6 +104,6 @@ copyobj(allchild(get(fig4,'CurrentAxes')), gca);
 title('Difference (ABS)');
 view(3);
 
-
-fileName = ['Real'];
+%% VTU FILE TO COMPARE
+fileName = ['Real8'];
 r.function.print(fileName,'Paraview');

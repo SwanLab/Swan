@@ -33,7 +33,7 @@ classdef LevelSetInclusionAuto_abril < handle
 
     methods (Access = public)
 
-        function [obj, u, L, mesh,Kcoarse] = LevelSetInclusionAuto_abril(r, i)
+        function [obj, u, L, mesh,Kcoarse] = LevelSetInclusionAuto_abril(r, i,doplot)
             obj.init(r, i)
             obj.createMesh();
             
@@ -44,11 +44,13 @@ classdef LevelSetInclusionAuto_abril < handle
              z.mesh      = obj.mesh;
              z.order     = 'P1';
 
-             for i=1:8
-               z.fValues   = reshape(u(:,i),[obj.mesh.ndim,obj.mesh.nnodes])';
-               uFeFun = LagrangianFunction(z);%
-               fileName = ['r05_test' num2str(i)];
-               uFeFun.print(fileName,'Paraview');
+             if doplot==true()
+                for i=1:8
+                  z.fValues   = reshape(u(:,i),[obj.mesh.ndim,obj.mesh.nnodes])';
+                  uFeFun = LagrangianFunction(z);%
+                  fileName = ['r05_test' num2str(i)];
+                  uFeFun.print(fileName,'Paraview');
+                end
              end
 
              Kcoarse=u.'*obj.stiffness*u;
@@ -117,12 +119,10 @@ classdef LevelSetInclusionAuto_abril < handle
             s.material = obj.material;
             s.dim      = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
-            s.interpolationType  = 'LINEAR';
+            %s.interpolationType  = 'LINEAR';
             s.solverType         = 'MONOLITHIC';
             s.solverMode         = 'DISP';
-            s.solverCase         = 'DIRECT';
-            % fem = ElasticProblem(s);
-            % obj.physicalProblem = fem;
+            s.solverCase         = DirectSolver();
         end
 
         function createMaterial(obj)
@@ -258,7 +258,7 @@ classdef LevelSetInclusionAuto_abril < handle
             obj.computeStiffnessMatrix();
             %obj.computeForcesHere(s);
             c = obj.computeConstraintMatrix();
-             rdir = obj.RHSdirichlet();
+            rdir = obj.RHSdirichlet();
             [u, L]  = obj.computeDisplacementHere(c, rdir);
 
             if isa(obj.dLambda, "LagrangianFunction")
@@ -270,6 +270,9 @@ classdef LevelSetInclusionAuto_abril < handle
             % obj.plotSolution(u,L);
             %obj.computeStrainHere();
             %obj.computeStressHere();
+
+            u=full(u);
+            L=full(L);
         end
 
         function createDisplacementFunHere(obj)
@@ -283,11 +286,10 @@ classdef LevelSetInclusionAuto_abril < handle
         end
 
         function createSolverHere(obj, cParams)
-            sS.type      = cParams.solverCase;
-            solver       = Solver.create(sS);
+           % sS.type      = cParams.solverCase;
             p.solverType = cParams.solverType;
             p.solverMode = cParams.solverMode;
-            p.solver     = solver;
+            p.solver     = cParams.solverCase;
 
             p.boundaryConditions = cParams.boundaryConditions;
             p.BCApplier          = obj.bcApplier;
@@ -327,12 +329,12 @@ classdef LevelSetInclusionAuto_abril < handle
             s.localGlobalConnecBd   = obj.localGlobalConnecBd;
             s.nnodes                 = obj.mesh.nnodes;
 
-            % lhs = LHSintegrator_ShapeFunction_fun(s);
             lhs = LHSintegrator_MassBoundary_albert(s);
             test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); % !!
             obj.dLambda  = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1');
             Cg = lhs.compute(obj.dLambda,test); 
 
+            test   = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
             f = @(u,v) DP(v,u);
             Cg2 = IntegrateLHS(f,test,obj.dLambda,obj.mesh,'Boundary',2);   
 
