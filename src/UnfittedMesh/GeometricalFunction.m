@@ -272,6 +272,39 @@ classdef GeometricalFunction < handle
                 
                     obj.fHandle = fH;
 
+                case 'DiagonalBarsv2'
+                    % === Horitzontals (0°) ===
+                    h = cParams.barWidth;
+                    yB2 = cParams.bottomBar_yMax;
+                    yT1 = cParams.topBar_yMin;
+                    yB1 = yB2 - h;
+                    yT2 = yT1 + h;
+                
+                    fH1 = @(x) max(yB1 - x2(x), x2(x) - yB2);
+                    fH2 = @(x) max(yT1 - x2(x), x2(x) - yT2);
+
+                    % Distància vertical entre les horitzontals
+                    deltaY = yT1 - yB2;
+
+                    % === Diagonals (+45° respecte a X) ===
+                    scale = sqrt(2); % Factor per mantenir el gruix correcte
+                    deltaC = deltaY * sqrt(2); % La relació entre la distància vertical i el desplaçament c és √2
+
+                    % Tres diagonals simètriques: inferior, central, superior
+                    c_center = 0.0;
+                    c_bottom = c_center - deltaC;
+                    c_top    = c_center + deltaC;
+                
+                    % Definició de les tres barres diagonals
+                    fD1 = @(x) abs(x2(x) - x1(x) - c_bottom) - (h/2)*scale;
+                    fD2 = @(x) abs(x2(x) - x1(x)) - (h/2)*scale;
+                    fD3 = @(x) abs(x2(x) - x1(x) - c_top) - (h/2)*scale;
+
+
+                    % === Combina totes ===
+                    fH = @(x) min(min(fH1(x), fH2(x)),fD2(x));
+                    obj.fHandle = fH;
+
                 case 'CrossDiagonalBars' % -45°/+45°
                     h     = cParams.barWidth;
                     yB2   = cParams.bottomBar_yMax;
@@ -308,6 +341,9 @@ classdef GeometricalFunction < handle
                 
                     fH = @(x) min(min(min(fP1(x), fP2(x)), fP3(x)), min(min(fN1(x), fN2(x)), fN3(x)) );
                     obj.fHandle = fH;
+
+
+                    
                 
                 case 'DiagonalNFibers'
                     n    = cParams.nFibers;
