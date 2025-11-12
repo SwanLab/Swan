@@ -37,6 +37,8 @@ classdef ElasticityMicro_0_45 < handle
             obj.mesh = holeMesh;
 
             % Compute volume
+            ls = CharacteristicFunction.create(uMesh);
+
             %V  = Integrator.compute(phiFun,obj.mesh,2);
 
         end
