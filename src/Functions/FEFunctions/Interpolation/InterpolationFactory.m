@@ -48,6 +48,8 @@ classdef InterpolationFactory < handle
                             obj = QuadrilateralBilinear(cParams);
                         case 'QUADRATIC'
                             obj = QuadrilateralQuadratic(cParams);
+                        case 'QUADRATICQ8'
+                            obj = QuadrilateralQ8(cParams);    
                         case 'CUBIC'
                             obj = QuadrilateralCubic(cParams);
                         otherwise

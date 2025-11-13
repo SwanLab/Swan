@@ -65,7 +65,7 @@ classdef EIFEMnonPeriodic < handle
             obj.RVE     = cParams.RVE;
 %             obj.Kel     = repmat(obj.RVE.Kcoarse,[1,1,obj.mesh.nelem]);
             obj.DirCond = cParams.DirCond;
-            obj.dispFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim,'P1');
+            obj.dispFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim,'P2Q8');
 %             obj.LHSintegrator = obj.createLHSintegrator();
             if length(cParams.mu) == 1
                 obj.mu = cParams.mu*ones(cParams.mesh.nelem,1);
@@ -79,6 +79,7 @@ classdef EIFEMnonPeriodic < handle
             nelem = obj.mesh.nelem;
             for i = 1:nelem
                 obj.Kel(:,:,i) = obj.RVE.Kcoarse(mu(i));
+%                   obj.Kel(:,:,i) = obj.RVE.Kcoarse(:,:,i);
             end
         end
 
@@ -87,6 +88,8 @@ classdef EIFEMnonPeriodic < handle
             for i = 1:nelem
                 Udef = obj.RVE.Udef(mu(i));
                 Urb  = obj.RVE.Urb(mu(i));
+%                 Udef = obj.RVE.Udef(:,:,i);
+%                 Urb  = obj.RVE.Urb(:,:,i);
                 obj.U(:,:,i) = Udef + Urb;
             end
         end
@@ -171,7 +174,7 @@ classdef EIFEMnonPeriodic < handle
         function createBoundaryConditions(obj)
             dirichletFun = [];
              for i = 1:numel(obj.DirCond)
-                dir = DirichletCondition(obj.mesh, obj.DirCond{i});
+                dir = DirichletCondition(obj.mesh, obj.DirCond{i},obj.dispFun.order);
                 dirichletFun = [dirichletFun, dir];
             end
 

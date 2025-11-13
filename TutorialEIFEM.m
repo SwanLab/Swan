@@ -48,7 +48,7 @@ classdef TutorialEIFEM < handle
             x0 = zeros(size(RHSr));
             xSol = LHSr\RHSr;
 
-            [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSfun,RHSr,x0,Mmult,tol,xSol);     
+            [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSfun,RHSr,x0,Mmult,tol,xSol,obj.meshDomain,obj.bcApplier);     
             [uCG,residualCG,errCG,errAnormCG]    = PCG.solve(LHSfun,RHSr,x0,Mid,tol,xSol);     
             obj.plotResidual(residualPCG,errPCG,errAnormPCG,residualCG,errCG,errAnormCG)
         end
@@ -58,7 +58,7 @@ classdef TutorialEIFEM < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [15 2]; %nx ny
+            obj.nSubdomains  = [15 5]; %nx ny
             obj.fileNameEIFEM = 'DEF_Q4porL_1.mat';
             obj.tolSameNode = 1e-10;
             obj.solverType = 'REDUCED';
@@ -148,19 +148,41 @@ classdef TutorialEIFEM < handle
         function [bC,Dir] = createBoundaryConditions(obj)
             minx = min(obj.meshDomain.coord(:,1));
             maxx = max(obj.meshDomain.coord(:,1));
+            miny = min(obj.meshDomain.coord(:,2));
+            maxy = max(obj.meshDomain.coord(:,2));
             tolBound = obj.tolSameNode;
             isLeft   = @(coor) (abs(coor(:,1) - minx)   < tolBound);
             isRight  = @(coor) (abs(coor(:,1) - maxx)   < tolBound);
-            Dir{1}.domain    = @(coor) isLeft(coor);%| isRight(coor) ;
+            isBottom = @(coor) (abs(coor(:,2) - miny)   < tolBound);
+            isTop    = @(coor) (abs(coor(:,2) - maxy)   < tolBound);
+%             Dir{1}.domain    = @(coor) isLeft(coor);%| isRight(coor) ;
+%             Dir{1}.direction = [1,2];
+%             Dir{1}.value     = 0;
+%             dirichletFun = DirichletCondition(obj.meshDomain, Dir{1});
+% 
+            mesh = obj.meshDomain;
+%             PL.domain    = @(coor) isRight(coor);
+%             PL.direction = 2;
+%             PL.value     = -0.1;
+%             pointload = TractionLoad(mesh,PL,'DIRAC');
+
+             Dir{1}.domain    = @(coor) isLeft(coor);%| isRight(coor) ;
             Dir{1}.direction = [1,2];
             Dir{1}.value     = 0;
-            dirichletFun = DirichletCondition(obj.meshDomain, Dir{1});
 
-            mesh = obj.meshDomain;
-            PL.domain    = @(coor) isRight(coor);
-            PL.direction = 2;
-            PL.value     = -0.1;
-            pointload = TractionLoad(mesh,PL,'DIRAC');
+                        Dir{2}.domain    = @(coor) isRight(coor) ;
+                        Dir{2}.direction = [1,2];
+                        Dir{2}.value     = 0;
+            dirichletFun=[];        
+            for i = 1:numel(Dir)
+                dir = DirichletCondition(obj.meshDomain, Dir{i});
+                dirichletFun = [dirichletFun, dir];
+            end
+
+            PL.domain    = @(coor) isTop(coor);
+            PL.direction = [2];
+            PL.value     = [-0.1];
+            pointload = TractionLoad(obj.meshDomain,PL,'DIRAC');
 
 %             mesh = obj.meshDomain;
 %             PL.domain    = @(coor) isRight(coor);
@@ -227,7 +249,7 @@ classdef TutorialEIFEM < handle
             end
              RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
        end
-       
+
         function Meifem = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh)
             mR = obj.referenceMesh;
 %             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';

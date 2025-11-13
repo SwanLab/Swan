@@ -50,7 +50,7 @@ classdef TutorialEIFEM_parametric < handle
             [LHSr,RHSr] = obj.createElasticProblem();
 
             LHSfun = @(x) LHSr*x;
-            Meifem       = obj.createEIFEMPreconditioner(dir,iC,lG,bS,iCR,discMesh);
+            Meifem       = obj.createEIFEMPreconditioner(dir,iC,lG,bS,iCR,discMesh,mSbd);
             Milu         = obj.createILUpreconditioner(LHSr);
             Mmult        = @(r) Preconditioner.multiplePrec(r,LHSfun,Milu,Meifem,Milu);
             Mid          = @(r) r;
@@ -70,7 +70,7 @@ classdef TutorialEIFEM_parametric < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [25 5]; %nx ny
+            obj.nSubdomains  = [15 5]; %nx ny
             
 %             filePath = ['./EPFL/data_' num2str(obj.r(i), '%.3f') '.mat'];
             obj.tolSameNode = 1e-10;
@@ -78,8 +78,9 @@ classdef TutorialEIFEM_parametric < handle
 %             obj.r  = 0.797227;
 %              obj.r  = 0.1;
 %             obj.r  = [0.1 , 0.2; 0.3, 0.4];
-            maxr = 0.4;
-            minr = 0.4;
+            rng(0);
+            maxr = 0.8;
+            minr = 0.8;
             obj.r= (maxr - minr) * rand(obj.nSubdomains(2),obj.nSubdomains(1)) + minr;
             obj.xmin = -1; 
             obj.xmax = 1;
@@ -89,8 +90,8 @@ classdef TutorialEIFEM_parametric < handle
             obj.cy = 0;
             obj.Nr=7;
             obj.Ntheta=14;
-            obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange20.mat';
-%             obj.fileNameEIFEM = './EPFL/dataEIFEM.mat';
+            obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange40.mat';
+            obj.fileNameEIFEM = './EPFL/dataEIFEMQ8.mat';
         end        
 
         function createReferenceMesh(obj)
@@ -262,6 +263,7 @@ classdef TutorialEIFEM_parametric < handle
         function mCoarse = createCoarseMesh(obj,mR)
             s.nsubdomains   = obj.nSubdomains; %nx ny
             s.meshReference = obj.createReferenceCoarseMesh(mR);
+%             s.meshReference = obj.createReferenceCoarseMesh2(mR,2);
             s.tolSameNode   = obj.tolSameNode;
             mRVECoarse      = MeshCreatorFromRVE.create(s);
             [mCoarse,~,~] = mRVECoarse.create();
@@ -276,11 +278,65 @@ classdef TutorialEIFEM_parametric < handle
             coord(2,1) = xmax;  coord(2,2) = ymin;
             coord(3,1) = xmax;  coord(3,2) = ymax;
             coord(4,1) = xmin;  coord(4,2) = ymax;
-            connec = [2 3 4 1];
+%             connec = [2 3 4 1];
+            connec = [1 2 3 4];
             s.coord = coord;
             s.connec = connec;
             cMesh = Mesh.create(s);
         end
+
+        function cMesh = createReferenceCoarseMesh2(obj, mR, p)
+    % createReferenceCoarseMesh - Creates a reference coarse mesh with only edge nodes
+    %
+    % Inputs:
+    %   obj - object (unused)
+    %   mR  - reference mesh (contains coord)
+    %   p   - order (1 = 4 nodes, 2 = 8 nodes, etc.)
+    %
+    % Output:
+    %   cMesh - coarse mesh with edge nodes only
+    
+    % Domain bounds
+    xmax = max(mR.coord(:,1));
+    xmin = min(mR.coord(:,1));
+    ymax = max(mR.coord(:,2));
+    ymin = min(mR.coord(:,2));
+    
+    % Parametric coordinates along edges
+    xi = linspace(xmin, xmax, p+1);
+    eta = linspace(ymin, ymax, p+1);
+    
+    coord = [];
+    
+    % --- Bottom edge (y = ymin)
+    xb = xi;
+    yb = ymin * ones(1, p+1);
+    coord = [coord; xb(:), yb(:)];
+    
+    % --- Right edge (x = xmax), skip first corner
+    xr = xmax * ones(1, p);
+    yr = eta(2:end);
+    coord = [coord; xr(:), yr(:)];
+    
+    % --- Top edge (y = ymax), skip first corner (moving right→left)
+    xt = xi(end-1:-1:1);
+    yt = ymax * ones(1, p);
+    coord = [coord; xt(:), yt(:)];
+    
+    % --- Left edge (x = xmin), skip first and last corner (moving top→bottom)
+    xl = xmin * ones(1, p-1);
+    yl = eta(end-1:-1:2);
+    coord = [coord; xl(:), yl(:)];
+    
+    % --- Connectivity (just one polygonal element)
+    connec = 1:size(coord,1);
+    
+    % Build structure
+    s.coord = coord;
+    s.connec = connec;
+    cMesh = Mesh.create(s);
+end
+
 
         function createBCapplier(obj)
             s.mesh                  = obj.meshDomain;
@@ -416,17 +472,22 @@ classdef TutorialEIFEM_parametric < handle
             RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
         end
 
-        function Meifem = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh)
+        function Meifem = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh,mSbd)
             mR = obj.referenceMesh;
             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
             EIFEMfilename = obj.fileNameEIFEM;
             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
             filename        = EIFEMfilename;
             s.RVE           = TrainedRVE(filename);
+            
 %             data = Training(mR);
 %             p = OfflineDataProcessor(data);
 %             EIFEoper = p.computeROMbasis();
 %             s.RVE           = TrainedRVE(EIFEoper);
+
+%             EIFEoper = obj.trainSubdomain(mSbd);
+%             s.RVE           = TrainedRVE(EIFEoper);
+
             s.mesh          = obj.createCoarseMesh(mR);
 %            s.mesh          = obj.loadCoarseMesh(mR);
             s.DirCond       = dir;
@@ -442,6 +503,22 @@ classdef TutorialEIFEM_parametric < handle
             ss.type = 'EIFEM';
             eP = Preconditioner.create(ss);
             Meifem = @(r) eP.apply(r);
+        end
+
+        function EIFEoper = trainSubdomain(obj,mSbd)
+            k = 1;
+            for j = 1:obj.nSubdomains(2)
+                for i= 1:obj.nSubdomains(1)
+                    m = mSbd{j,i};
+                    data = Training(m);
+                    p = OfflineDataProcessor(data);
+                    EIFE = p.computeROMbasis();
+                    EIFEoper.Kcoarse(:,:,k) = EIFE.Kcoarse;
+                    EIFEoper.Udef(:,:,k) = EIFE.Udef;
+                    EIFEoper.Urb(:,:,k) = EIFE.Urb;
+                    k=k+1;
+                end
+            end
         end
         
         function d = createDomainDecompositionDofManager(obj,iC,lG,bS,mR,iCR)

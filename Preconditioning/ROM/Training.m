@@ -47,7 +47,7 @@ classdef Training < handle
             [LHS,RHS,uFun,lambdaFun] = obj.createElasticProblem();
             sol  = LHS\RHS;
             uAll = sol(1:uFun.nDofs,:);
-            %             EIFEMtesting.plotSolution(full(uAll(:,1)),obj.meshDomain,1,1,1,[])
+                        EIFEMtesting.plotSolution(full(uAll(:,1)),obj.meshDomain,1,1,1,[])
             K = LHS(1:uFun.nDofs,1:uFun.nDofs);
             [obj.uSbd,obj.LHSsbd]    = obj.extractDomainData(uAll,K);
 
@@ -66,7 +66,7 @@ classdef Training < handle
             obj.mesh = mesh;
             obj.E    = 1;
             obj.nu   = 1/3;
-            obj.Coarseorder = 1;
+            obj.Coarseorder = 2;
         end
 
         function repeatMesh(obj)
