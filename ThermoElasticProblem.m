@@ -22,7 +22,7 @@ classdef ThermoElasticProblem < handle
         thermalProblemSolver
         thermoElasticProblemSolver
 
-        conductivity  %
+       
         test          %
         trial         %
         source        %
@@ -32,6 +32,7 @@ classdef ThermoElasticProblem < handle
     properties (Access = protected)
         mesh
         materialElastic
+        materialThermal
     end
 
     methods (Access = public)
@@ -39,7 +40,7 @@ classdef ThermoElasticProblem < handle
         function obj = ThermoElasticProblem(cParams)
             obj.init(cParams);
             obj.createDisplacementFun();
-            obj.createTemperatureFun();    %
+            obj.createTemperatureFun();    
             obj.createThermalSolver();
             obj.createThermoElasticSolver();
         end
@@ -54,9 +55,10 @@ classdef ThermoElasticProblem < handle
             obj.computeTemperature();     % Solve PDE 
 
             % for the thermo-elastic
-            obj.computeStiffnessMatrix();   %LHS
-            obj.computeForces();            %RHS - you need the temperature! 
-            obj.computeDisplacement();      %Solve PDE
+            obj.computeStiffnessMatrix();   
+            obj.computeForces();          
+            obj.computeDisplacement();
+
             obj.computeStrain();
             obj.computeStress();
         end
@@ -96,6 +98,7 @@ classdef ThermoElasticProblem < handle
             obj.mesh = cParams.mesh;
             obj.materialElastic = cParams.material;
             % Interpolator thermal problem
+            obj.materialThermal = cParams.materialThermal;
             obj.solverType  = cParams.solverType;
             obj.solverMode  = cParams.solverMode;
             obj.solverCase  = cParams.solverCase;
@@ -106,20 +109,20 @@ classdef ThermoElasticProblem < handle
             obj.trial = LagrangianFunction.create(obj.mesh,1,'P1');  %
 
             % Temperature as a fixed function
-            T = LagrangianFunction.create(obj.mesh,1,'P1');
-            fValues = ones(T.nDofs,1);
-            T.setFValues(fValues);
-            obj.temperature      = T;  
+            % T = LagrangianFunction.create(obj.mesh,1,'P1');
+            % fValues = ones(T.nDofs,1);
+            % T.setFValues(fValues);
+            % obj.temperature      = T;  
         end
 
         function createDisplacementFun(obj)
             obj.uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
         end
 
-        function bcAp = createBCApplier(obj,bc)
+        function bc = createBCApplier(obj,bc)
             s.mesh = obj.mesh;
             s.boundaryConditions = bc;
-            bcAp = BCApplier(s);
+            bc = BCApplier(s);
         end
 
         function createThermalSolver(obj)
@@ -147,8 +150,8 @@ classdef ThermoElasticProblem < handle
         end
 
         function computeForces(obj)  %this has to be changed
-            bc  = obj.boundaryConditionsElastic;
-            t   = bc.tractionFun;
+            bcE  = obj.boundaryConditionsElastic;
+            t   = bcE.tractionFun;
             rhs = zeros(obj.uFun.nDofs,1);
             if ~isempty(t)
                 for i = 1:numel(t)
@@ -157,9 +160,9 @@ classdef ThermoElasticProblem < handle
                 end
             end
             if strcmp(obj.solverType,'REDUCED')
-                bc      = obj.boundaryConditionsElastic;
-                dirich  = bc.dirichlet_dofs;
-                dirichV = bc.dirichlet_vals;
+                bcE      = obj.boundaryConditionsElastic;
+                dirich  = bcE.dirichlet_dofs;
+                dirichV = bcE.dirichlet_vals;
                 if ~isempty(dirich)
                     R = -obj.stiffness(:,dirich)*dirichV;
                 else
@@ -188,11 +191,11 @@ classdef ThermoElasticProblem < handle
             obj.forces = IntegrateRHS(@(v) DP(obj.source,v), obj.test, obj.mesh,'Domain',2);
         end
 
-        function u = computeTemperature(obj)
+        function t = computeTemperature(obj)
             s.stiffness = obj.stiffness;
             s.forces    = obj.forces;
-            [u,~]       = obj.thermalProblemSolver.solve(s);           
-            obj.tFun.setFValues(u);
+            [t,~]       = obj.thermalProblemSolver.solve(s);           
+            obj.tFun.setFValues(t);
         end
 
 

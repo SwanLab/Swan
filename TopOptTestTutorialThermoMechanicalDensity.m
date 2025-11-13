@@ -24,7 +24,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             obj.createDesignVariable();
             obj.createFilter();
             obj.createMaterialInterpolator();
-            onj.createThermalMaterialInterpolator(); %
+            onj.createThermalMaterialInterpolator(); 
             obj.createThermoElasticProblem();
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
@@ -74,6 +74,15 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             obj.filter = f;
         end
 
+         function createThermalMaterialInterpolator(obj) % Conductivity
+            s.interpolation  = 'SimpAllThermal';   
+            s.f0   = 1e-2;
+            s.f1   = 1;
+            s.dim ='2D';
+            a = MaterialInterpolator.create(s);
+            obj.thermalmaterialInterpolator = a;
+         end
+
         function createMaterialInterpolator(obj)
             
             E0 = 1e-3;
@@ -98,16 +107,6 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             obj.materialInterpolator = m;
         end
 
-        function createThermalMaterialInterpolator(obj) % Conductivity
-            s.interpolation  = 'SimpAllThermal';   
-            s.f0   = 1e-2;
-            s.f1   = 1;
-            s.dim ='2D';
-            a = MaterialInterpolator.create(s);
-            obj.thermalmaterialInterpolator = a;
-        end
-
-
         function m = createMaterial(obj)
             f = obj.designVariable.fun;           
             s.type                 = 'DensityBased';
@@ -121,8 +120,10 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
         function createThermoElasticProblem(obj)
             s.mesh = obj.mesh;
             s.material = obj.createMaterial();
+            s.materialThermal= obj.createThermalMaterialInterpolator();
             s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditionsElastic();
+            s.boundaryConditionsThermal = obj.createBoundaryConditionsThermal();
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
@@ -245,6 +246,37 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             bc = BoundaryConditions(s);
         end
 
-        % createBCThermal...
+         function bcT = createBoundaryConditionsThermal(obj)
+            xMax    = max(obj.mesh.coord(:,1));
+            yMax    = max(obj.mesh.coord(:,2));
+            isDir   = @(coor)  abs(coor(:,1))==0;
+            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
+
+            sDir{1}.domain    = @(coor) isDir(coor);
+            sDir{1}.direction = [1,2];
+            sDir{1}.value     = 0;
+
+            sPL{1}.domain    = @(coor) isForce(coor);
+            sPL{1}.direction = 2;
+            sPL{1}.value     = -1;
+
+            dirichletFun = [];
+            for i = 1:numel(sDir)
+                dir = DirichletCondition(obj.mesh, sDir{i});
+                dirichletFun = [dirichletFun, dir];
+            end
+            s.dirichletFun = dirichletFun;
+
+            pointloadFun = [];
+            for i = 1:numel(sPL)
+                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
+                pointloadFun = [pointloadFun, pl];
+            end
+            s.pointloadFun = pointloadFun;
+
+            s.periodicFun  = [];
+            s.mesh         = obj.mesh;
+            bcT = BoundaryConditions(s);
+         end
     end
 end
