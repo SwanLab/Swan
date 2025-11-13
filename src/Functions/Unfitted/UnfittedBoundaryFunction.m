@@ -62,10 +62,12 @@ classdef UnfittedBoundaryFunction < BaseFunction
             nNode      = size(coord,2);
             nElem      = size(coord,3);
             msh.connec = reshape(1:nElem*nNode,nNode,nElem)';
+            msh.nelem  = nElem;
             msh.type   = obj.unfittedMesh.boundaryCutMesh.mesh.type;
-            s.fValues  = reshape(coord,nDim,[])';
+            s.fValues  = reshape(coord,1,[])';
             s.mesh     = msh;
             s.order    = 'P1';
+            s.ndimf    = nDim;
             m          = LagrangianFunction(s);
         end
     end

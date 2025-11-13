@@ -27,6 +27,7 @@ classdef DiffReactProblem < handle
 
             a.mesh = obj.mesh;
             a.fValues = obj.variables.x;
+            a.ndimf = 1;
             a.order = 'P1';
             obj.x = LagrangianFunction(a);
         end

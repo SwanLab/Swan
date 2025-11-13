@@ -42,8 +42,6 @@ classdef StokesProblem < handle
 
             vF  = obj.velocityFun;
             v0F = LagrangianFunction.create(obj.mesh,vF.ndimf,vF.order);
-
-
             switch obj.state
                 case 'Steady'
                     x = obj.solver.solve(LHSr, RHSr);
@@ -190,13 +188,9 @@ classdef StokesProblem < handle
             Fext = IntegrateRHS(@(v) DP(v,f),vF,obj.mesh,'Domain',3);            
             F = [Fext; zeros(pF.nDofs,1)];
 
-
-
             dirichlet = obj.boundaryConditions.dirichlet;
             uD = obj.boundaryConditions.dirichlet_values;
             R  = -obj.LHS(:,dirichlet)*uD;
-
-
 
             obj.RHS = F + R;
         end

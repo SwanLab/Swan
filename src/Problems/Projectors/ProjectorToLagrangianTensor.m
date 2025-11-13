@@ -71,7 +71,7 @@ classdef ProjectorToLagrangianTensor < Projector
             nDofsEl  = test.nDofsElem;
             nElem    = test.mesh.nelem;
             int      = reshape(int,[nDim^2 nDofsEl nElem]);
-            connec   = test.getDofConnec();
+            connec   = test.dofConnec;
             ndofs    = max(max(connec));
             nDofElem = size(connec,2);
             f = zeros(ndofs,size(int,1));

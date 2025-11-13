@@ -63,6 +63,7 @@ classdef CutMeshProvisionalQuadrilater < CutMesh
             s.mesh   = obj.backgroundMesh;
             s.fValues = ls;
             s.order = 'P1';
+            s.ndimf = 1;
             f = LagrangianFunction(s);
             q = Quadrature.create(obj.backgroundMesh, 0);
             xV = q.posgp;

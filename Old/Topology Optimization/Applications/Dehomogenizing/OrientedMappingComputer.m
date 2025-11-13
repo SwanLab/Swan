@@ -63,7 +63,7 @@ classdef OrientedMappingComputer < handle
             nElemD    = obj.mesh.nelem;
             nnodesC   = obj.mesh.nnodes;
             connecC   = obj.mesh.connec;
-            connecD   = obj.isCoherent.getDofConnec();
+            connecD   = obj.isCoherent.dofConnec;
             sC = sparse(nnodeD*nElemD,nnodesC);
             isC = obj.isCoherent.getFvaluesByElem();
             for iNode = 1:nnodeD

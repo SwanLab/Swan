@@ -5,7 +5,7 @@ classdef LagrangianFunction < FeFunction
         nDofsElem
         dofCoord
         dofConnec
-        % bFun
+        bFun
     end
 
     properties (Access = private)
@@ -23,19 +23,10 @@ classdef LagrangianFunction < FeFunction
             fun = LagrangianFunction(s);
         end
 
-        function ord = getOrderTextual(order)
-            switch order
-                case 'P0';         ord = 'CONSTANT';
-                case {'P1','P1D'}; ord = 'LINEAR';
-                case 'P2';         ord = 'QUADRATIC';
-                case 'P3';         ord = 'CUBIC';
-            end        
-        end
-
     end
 
     methods (Access = public)
-
+        %%%%%%%%%%%%%%%%%%%% basic %%%%%%%%%%%%%%%%%%%%
         function obj = LagrangianFunction(cParams)
             obj.init(cParams);
             obj.createInterpolation();
@@ -47,7 +38,26 @@ classdef LagrangianFunction < FeFunction
             obj.fValues = fV;
             obj.fxVOld  = [];
         end
+        %%%%%%%%%%%%%%%%%%%% getOrder %%%%%%%%%%%%%%%%%%%%
+        function ord = getOrderNum(obj)
+            switch obj.order
+                case 'P1D'
+                    ord = 1;
+                otherwise
+                ord = str2double(obj.order(end));
+            end
+        end
 
+        function ord = getOrderTextual(~,order)
+            switch order
+                case 'P0';         ord = 'CONSTANT';
+                case {'P1','P1D'}; ord = 'LINEAR';
+                case 'P2';         ord = 'QUADRATIC';
+                case 'P3';         ord = 'CUBIC';
+            end        
+        end
+
+        %%%%%%%%%%%%%%%%%%%% getFValues %%%%%%%%%%%%%%%%%%%%
         function fVElem = getFvaluesByElem(obj)
             nDimTotal = obj.ndimfTotal;
             nNode     = obj.interpolation.nnode;
@@ -59,6 +69,14 @@ classdef LagrangianFunction < FeFunction
         function fVNode = getFValuesByNode(obj)
             nnodes  = obj.mesh.nnodes;
             fVNode = reshape(obj.fValues,obj.ndimfTotal,nnodes)';
+        end
+        %%%%%%%%%%%%%%%%%%%% getDofs %%%%%%%%%%%%%%%%%%%%
+        function dof = getDofsFromCondition(obj, condition)
+            nodes = condition(obj.dofCoord);
+            iNode = find(nodes==1);
+            dofElem = repmat(1:obj.ndimf, [length(iNode) 1]);
+            dofMat = obj.ndimf*(iNode - 1) + dofElem;
+            dof = sort(dofMat(:));
         end
         
        %  function fxV = sampleFunction(obj,xP,cells)
@@ -83,6 +101,7 @@ classdef LagrangianFunction < FeFunction
             N = obj.interpolation.computeShapeFunctions(xV);
        end
 
+        %%%%%%%%%%%%%%%%%%%% operations %%%%%%%%%%%%%%%%%%%%
         function dNdx  = evaluateCartesianDerivatives(obj,xV)
             if ~isequal(xV,obj.xVOlddN) || isempty(obj.dNdxOld)
                 invJ    = Inv(Jacobian(obj.mesh));
@@ -131,14 +150,7 @@ classdef LagrangianFunction < FeFunction
        %      ord = obj.getOrderTextual(obj.order);
        %  end
        % 
-       %  function ord = getOrderNum(obj)
-       %      switch obj.order
-       %          case 'P1D'
-       %              ord = 1;
-       %          otherwise
-       %          ord = str2double(obj.order(end));
-       %      end
-       %  end
+
        % 
        %  function plot(obj) % 2D domains only
        %      plotFun = @(tri,x,y,z,iDim) obj.plotF(tri,x,y,z,iDim);
@@ -194,13 +206,7 @@ classdef LagrangianFunction < FeFunction
        %    end         
        %  end        
        % 
-       %  function dof = getDofsFromCondition(obj, condition)
-       %      nodes = condition(obj.dofCoord);
-       %      iNode = find(nodes==1);
-       %      dofElem = repmat(1:obj.ndimf, [length(iNode) 1]);
-       %      dofMat = obj.ndimf*(iNode - 1) + dofElem;
-       %      dof = sort(dofMat(:));
-       %  end
+
        % 
        %  function print(obj, filename, software)
        %      if nargin == 2; software = 'Paraview'; end
@@ -284,12 +290,23 @@ classdef LagrangianFunction < FeFunction
        %      f.fValues = obj.fValues/fNorm;
        %  end
        % 
-       %  function bF = restrictBaseToBoundary(obj,bMesh)
-       %      if isempty(obj.bFun)
-       %          obj.bFun = LagrangianFunction.create(bMesh,obj.ndimf,obj.order);
-       %      end
-       %      bF = obj.bFun;
-       %  end
+
+       function bF = restrictToBoundary(obj)
+            if isempty(obj.bFun)
+                [bMesh, l2g]  = obj.mesh.createSingleBoundaryMesh();
+                lastDofs = (l2g * obj.ndimf)';
+                l2gdof = zeros(length(lastDofs),obj.ndimf);
+                for i = 1:obj.ndimf
+                    l2gdof(:,i) = lastDofs - (obj.ndimf-i);
+                end
+                fun = LagrangianFunction.create(bMesh,obj.ndimf,obj.order);
+                val = obj.fValues(l2gdof);
+                fun.setFValues(val);
+                obj.bFun = fun;
+            end
+            bF = obj.bFun;
+       end
+       
        % 
        %  % Operator overload
        % 
@@ -356,7 +373,7 @@ classdef LagrangianFunction < FeFunction
             nElem  = obj.mesh.nelem;
             shapes = obj.interpolation.computeShapeFunctions(xV);
             fVal   = pagetranspose(obj.getFvaluesByElem());
-            fxVvec = pagetranspose(tensorprod(shapes,fVal,1,1));
+            fxVvec = pagemtimes(pagetranspose(fVal),shapes);
             fxVmat = reshape(fxVvec,[obj.ndimf,nGauss,nElem]);
             transposedDims = length(obj.ndimf):-1:1;
             extraDims      = length(obj.ndimf)+(1:2);

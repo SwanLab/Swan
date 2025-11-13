@@ -70,8 +70,8 @@ classdef FilterKernel < handle
         end
 
         function locSM = createLocalSupportMatrix(obj,elems)
-            connecTrial  = obj.trial.getDofConnec()';
-            connecTest   = obj.test.getDofConnec()';
+            connecTrial  = obj.trial.dofConnec';
+            connecTest   = obj.test.dofConnec';
             nDofsTest    = max(max(connecTest));%obj.test.nDofs;
             nDofsField   = max(max(connecTrial));%obj.trial.nDofs;
             nDofElemTest = size(connecTest,1);

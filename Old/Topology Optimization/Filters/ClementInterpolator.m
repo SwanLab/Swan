@@ -41,9 +41,9 @@ classdef ClementInterpolator < handle
         end
 
         function createSupportMatrix(obj)
-            connecTrial = obj.trial.getDofConnec();
+            connecTrial = obj.trial.dofConnec;
             p0          = LagrangianFunction.create(obj.mesh,1,'P0');
-            connecElem  = p0.getDofConnec();
+            connecElem  = p0.dofConnec;
             nDofsP0     = obj.mesh.nelem;
             nDofsField  = max(connecTrial, [], 'all');
             nDofElemP0  = size(connecElem,1);

@@ -23,7 +23,7 @@ end
 end
 
 function F = assembleVector(Felem, f)
-dofConnec = f.getDofConnec();
+dofConnec = f.dofConnec;
 nDofs     = numel(f.fValues);
 rowIdx    = dofConnec(:);
 Felem = Felem';

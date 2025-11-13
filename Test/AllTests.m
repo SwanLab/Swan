@@ -1,8 +1,8 @@
 FemTestsSuite;
-MicroShapeTestsSuite;
-DiffReactTestsSuite;
-UnfittedIntegrationTestsSuite;
-VectorizedTriangulationTestsSuite;
+MicroShapeTestsSuite; %OK
+DiffReactTestsSuite; %OK
+UnfittedIntegrationTestsSuite; %OK
+VectorizedTriangulationTestsSuite; %OK
 close all;
 TopOptTestsSuite;
 MultimaterialTestsSuite;
@@ -16,13 +16,13 @@ ProjectorsTestsSuite;
 RemeshingTestsSuite;
 %DehomogenizationTestsSuite; % No funciona (issue Swan)
 close all;
-AcademicTestsSuite;
+AcademicTestsSuite; %OK
 close all;
 BoundaryCondTestsSuite;
-GeomFunTestsSuite;
+GeomFunTestsSuite; %OK
 close all;
-DomainFunTestsSuite;
-AlgebraicOperationsTestsSuite;
+DomainFunTestsSuite; %OK
+AlgebraicOperationsTestsSuite; %OK
 PhaseFieldTestsSuite;
 ContinuumDamageTestsSuite;
 HyperelasticityTestsSuite;
