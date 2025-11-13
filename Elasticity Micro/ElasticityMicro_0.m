@@ -22,7 +22,7 @@ classdef ElasticityMicro_0 < handle
     methods (Access = private)
         
         function createMesh(obj)
-            fullmesh = UnitTriangleMesh(200,200);
+            fullmesh = UnitTriangleMesh(500,500);
             [ls,phiFun] = obj.computeLevelSet(fullmesh);
             sUm.backgroundMesh = fullmesh;
             sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
@@ -44,7 +44,7 @@ classdef ElasticityMicro_0 < handle
         function [ls,phiFun] = computeLevelSet(obj, mesh)
             
             gPar.type          = 'HorizontalNFibers';
-            gPar.nFibers       = 5;
+            gPar.nFibers       = 4;
             gPar.minxCoor      = 0;
             gPar.maxxCoor      = 1;
             gPar.minyCoor      = 0;

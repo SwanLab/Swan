@@ -274,6 +274,7 @@ classdef GeometricalFunction < handle
 
                 case 'DiagonalBarsv2'
                     % === Horitzontals (0°) ===
+                    L=1;
                     h = cParams.barWidth;
                     yB2 = cParams.bottomBar_yMax;
                     yT1 = cParams.topBar_yMin;
@@ -292,17 +293,18 @@ classdef GeometricalFunction < handle
 
                     % Tres diagonals simètriques: inferior, central, superior
                     c_center = 0.0;
-                    c_bottom = c_center - deltaC;
-                    c_top    = c_center + deltaC;
+                    c_bottom = c_center - L/2;
+                    c_top    = c_center + L/2;
                 
                     % Definició de les tres barres diagonals
                     fD1 = @(x) abs(x2(x) - x1(x) - c_bottom) - (h/2)*scale;
-                    fD2 = @(x) abs(x2(x) - x1(x)) - (h/2)*scale;
+                    fD2 = @(x) abs(x2(x) - x1(x) - c_center) - (h/2)*scale;
                     fD3 = @(x) abs(x2(x) - x1(x) - c_top) - (h/2)*scale;
 
 
                     % === Combina totes ===
                     fH = @(x) min(min(fH1(x), fH2(x)),fD2(x));
+                    fH = @(x) min(min(fH1(x), fH2(x)), min(min(fD1(x), fD2(x)), fD3(x)));
                     obj.fHandle = fH;
 
                 case 'CrossDiagonalBars' % -45°/+45°
