@@ -89,7 +89,7 @@ classdef UnfittedMeshLagrangian < handle
                 connecLoc  = iMesh.mesh.connec;
                 connecGlob = iMesh.globalConnec;
                 glob2loc(connecLoc(:)) = connecGlob(:);
-                s.fValues = fP1.fValues(glob2loc);
+                s.fValues = fP1.fValues(glob2loc,:);
                 s.mesh    = iMesh.mesh;
                 s.order = 'P1';
                 fP1Inner  = LagrangianFunction(s);

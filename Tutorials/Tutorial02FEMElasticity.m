@@ -55,7 +55,7 @@ classdef Tutorial02FEMElasticity < handle
             s.boundaryConditions = obj.createBoundaryConditions();
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'DIRECT';
+            s.solverCase = DirectSolver();
             fem = ElasticProblem(s);
             fem.solve();
             obj.stateProblem = fem;
