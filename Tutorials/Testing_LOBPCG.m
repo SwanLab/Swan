@@ -17,7 +17,7 @@ classdef Testing_LOBPCG
         maxit           (1,1) double  = 20000        % max iterations
         tol             (1,1) double  = 1e-8      % *** relative residual tolerance ***
         use_precond     (1,1) logical = true
-        precond_type                 = 'ichol';   % 'ichol' | 'jacobi' | 'none'
+        precond_type                 = 'ichol';   % 'ichol' | 'jacobi' | 'none' | 'eifem
         use_physical_x  (1,1) logical = true
         problem         (1,1) double  = 2
 
@@ -48,6 +48,8 @@ classdef Testing_LOBPCG
                     obj.precond_type = 'jacobi';
                     obj.L = [];
                 end
+            elseif obj.use_precond && strcmpi(obj.precond_type,'eifem')
+                    
             end
         end
     end
@@ -82,6 +84,13 @@ classdef Testing_LOBPCG
             active = true(1, b);   % all eigenvectors active initially for refinement
             lambda_ritz = zeros(1, b);  % initialize ritz values
             
+            % eifem preconditioner initialization
+            LHSfun = @(x) K*x;
+            Milu         = obj.createILUpreconditioner(K);
+            load('eifemPreconditioner.mat')
+            Meifem = @(r) eP.apply(r);
+            Mmult        = @(r) Preconditioner.multiplePrec(r,LHSfun,Milu,Meifem,Milu);
+
             tic
             for it = 1:obj.maxit
                 % 2) Ritz in span(X): best mode approximation in current
@@ -112,7 +121,7 @@ classdef Testing_LOBPCG
                 % would annihilate its imbalance 𝐾x = λMx, but only
                 % in directions not already spanned by X
                 
-                Z = obj.apply_prec(R); % preconditioned residuals (steepest-descent corrections)
+                Z = obj.apply_prec(R, Mmult); % preconditioned residuals (steepest-descent corrections)
                 Z = obj.M_proj_out(Z, X, M); % remove components of Z already in span(X) so subspace expands
                 Z = obj.M_orth(Z, M);
 
@@ -202,7 +211,7 @@ classdef Testing_LOBPCG
             theta = theta(1:b).';
         end
 
-        function Z = apply_prec(obj, R)
+        function Z = apply_prec(obj, R, Mmult)
             if ~obj.use_precond || strcmpi(obj.precond_type,'none')
                 Z = R;
                 return
@@ -221,8 +230,10 @@ classdef Testing_LOBPCG
                     Z = R ./ d;      % row-wise scaling (each row / diag(K))
 
                 case 'eifem'
+                    for i=1:size(R,2)
+                        Z(:,i) = Mmult(R(:,i));
+                    end
                     
-
                 otherwise
                     Z = R;
             end
@@ -317,6 +328,20 @@ classdef Testing_LOBPCG
             G = Q.' * (M * Q);  G = (G+G.')/2; % Compute the Gram matrix and symmetrize
             T = Q.' * (M * Z); % compute cross gram
             Z = Z - Q * (G \ T); % Projecting Z with respect to the mass inner product removes from each correction any overlap in kinetic energy with the existing modes
+        end
+    end
+
+    %% =======================
+    %  Preconditioner Methods
+    %  =======================
+
+
+    methods (Access = private)
+        function Milu = createILUpreconditioner(obj,LHS)
+            s.LHS = LHS;
+            s.type = 'ILU';
+            M = Preconditioner.create(s);
+            Milu = @(r) M.apply(r);
         end
     end
 
