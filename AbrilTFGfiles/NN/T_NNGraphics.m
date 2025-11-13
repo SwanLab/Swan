@@ -6,7 +6,7 @@
 
 %% Loads the data of the NN
 
-filename1='T8.mat';
+filename1='T1.mat';
 filePath1 = fullfile('AbrilTFGfiles', 'NN', filename1);
 load(filePath1);
 
@@ -22,7 +22,7 @@ predicted=permute(predicted, [2 1 3]);
 difference=reshape(difference.',2,mesh.nnodes,[]);
 difference=permute(difference, [2 1 3]);
 
-idx=6; %radius to visualize 
+idx=1; %radius to visualize 
 
 %% Real
 r.mesh=mesh;

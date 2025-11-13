@@ -84,8 +84,6 @@ classdef LevelSetInclusionAuto_abril < handle
         end
 
         function mesh = createReferenceMesh(~)
-           
-             %UnitMesh better
             x1      = linspace(-1,1,20);
             x2      = linspace(-1,1,20);
             [xv,yv] = meshgrid(x1,x2);
@@ -142,11 +140,10 @@ classdef LevelSetInclusionAuto_abril < handle
             nu = 1/3;
             x0=0;
             y0=0;
-%             young   = ConstantFunction.create(E,mesh);
-%             poisson = ConstantFunction.create(nu,mesh);
+
             f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<obj.radius)*E2 + ...
                         (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=obj.radius)*E1 ; 
-%                                      x(2,:,:).*0 ];
+
             young   = AnalyticalFunction.create(f,mesh);
             poisson = ConstantFunction.create(nu,mesh);            
         end
@@ -229,26 +226,6 @@ classdef LevelSetInclusionAuto_abril < handle
             bc = BoundaryConditions(s);
         end
 
-%         function bc = createBoundaryConditions(obj)
-%             Lx = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
-%             Ly = max(obj.mesh.coord(:,2)) - min(obj.mesh.coord(:,2));
-%                 f1 = @(x) 1/(4*Lx/2*Ly/2)*(Lx/2 - x(1,:,:)+0.5).*(Ly/2 - x(2,:,:)+0.5);
-%                 f2 = @(x) 1/(4*Lx/2*Ly/2)*(Lx/2 + x(1,:,:)+0.5).*(Ly/2 - x(2,:,:)+0.5);
-%                 f3 = @(x) 1/(4*Lx/2*Ly/2)*(Lx/2 + x(1,:,:)+0.5).*(Ly/2 + x(2,:,:)+0.5);
-%                 f4 = @(x) 1/(4*Lx/2*Ly/2)*(Lx/2 - x(1,:,:)+0.5).*(Ly/2 + x(2,:,:)+0.5);
-%                 ndimf = 1;
-% 
-%                 N11 = AnalyticalFunction.create(f1,ndimf,obj.boundaryMesh{1}.mesh);
-%                 N13 = AnalyticalFunction.create(f1,ndimf,obj.boundaryMesh{3}.mesh);
-%                 N23 = AnalyticalFunction.create(f1,ndimf,obj.boundaryMesh{3}.mesh);
-%                 N22 = AnalyticalFunction.create(f1,ndimf,obj.boundaryMesh{2}.mesh);
-%                 N23 = AnalyticalFunction.create(f1,ndimf,obj.boundaryMesh{3}.mesh);
-%                 N22 = AnalyticalFunction.create(f1,ndimf,obj.boundaryMesh{2}.mesh);
-% 
-%                 coord = [obj.boundaryMesh{1}.mesh.coord]
-% 
-% 
-%         end
 
         function [u, L] = doElasticProblemHere(obj)
             s = obj.createElasticProblem();
@@ -286,7 +263,6 @@ classdef LevelSetInclusionAuto_abril < handle
         end
 
         function createSolverHere(obj, cParams)
-           % sS.type      = cParams.solverCase;
             p.solverType = cParams.solverType;
             p.solverMode = cParams.solverMode;
             p.solver     = cParams.solverCase;
@@ -330,7 +306,7 @@ classdef LevelSetInclusionAuto_abril < handle
             s.nnodes                 = obj.mesh.nnodes;
 
             lhs = LHSintegrator_MassBoundary_albert(s);
-            test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); % !!
+            test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); 
             obj.dLambda  = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1');
             Cg = lhs.compute(obj.dLambda,test); 
 
@@ -339,204 +315,6 @@ classdef LevelSetInclusionAuto_abril < handle
             Cg2 = IntegrateLHS(f,test,obj.dLambda,obj.mesh,'Boundary',2);   
 
         end
-
-        function Cg = computeCmatP2(obj)
-            s.quadType = 2;
-            s.boundaryMeshJoined    = obj.boundaryMeshJoined;
-            s.localGlobalConnecBd   = obj.localGlobalConnecBd;
-            s.nnodes                 = obj.mesh.nnodes;
-
-            % lhs = LHSintegrator_ShapeFunction_fun(s);
-            lhs = LHSintegrator_MassBoundary_albert(s);
-            test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); % !!
-             obj.dLambda  = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1');
-             Cg = lhs.compute(obj.dLambda,test);      
-        end
-
-        function Cg = computeCmat(obj)
-            s.quadType = 2;
-            s.boundaryMeshJoined    = obj.boundaryMeshJoined;
-            s.localGlobalConnecBd   = obj.localGlobalConnecBd;
-            s.nnodes                 = obj.mesh.nnodes;
-            s.mesh = obj.boundaryMeshJoined;
-
-            lhs = LHSintegrator_ShapeFunction_fun(s);
-            % lhs = LHSintegrator_MassBoundary_albert(s);
-            test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); % !!
-            ndimf  = 2; 
-            Lx     = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
-            Ly     = max(obj.mesh.coord(:,2)) - min(obj.mesh.coord(:,2));
-%             f1 = @(x) [1/(4*Lx/2*Ly/2)*(1-x(1,:,:)).*(1-x(2,:,:));...
-%                     1/(4*Lx/2*Ly/2)*(1-x(1,:,:)).*(1-x(2,:,:))  ];
-%             f2 = @(x) [1/(4*Lx/2*Ly/2)*(1+x(1,:,:)).*(1-x(2,:,:));...
-%                     1/(4*Lx/2*Ly/2)*(1+x(1,:,:)).*(1-x(2,:,:))  ];
-%             f3 = @(x) [1/(4*Lx/2*Ly/2)*(1+x(1,:,:)).*(1+x(2,:,:));...
-%                     1/(4*Lx/2*Ly/2)*(1+x(1,:,:)).*(1+x(2,:,:))  ];
-%             f4 = @(x) [1/(4*Lx/2*Ly/2)*(1-x(1,:,:)).*(1+x(2,:,:));...
-%                     1/(4*Lx/2*Ly/2)*(1-x(1,:,:)).*(1+x(2,:,:))  ];
-            f1 = @(x) [1/(4)*(1-x(1,:,:)).*(1-x(2,:,:));...
-                    1/(4)*(1-x(1,:,:)).*(1-x(2,:,:))  ];
-            f2 = @(x) [1/(4)*(1+x(1,:,:)).*(1-x(2,:,:));...
-                    1/(4)*(1+x(1,:,:)).*(1-x(2,:,:))  ];
-            f3 = @(x) [1/(4)*(1+x(1,:,:)).*(1+x(2,:,:));...
-                    1/(4)*(1+x(1,:,:)).*(1+x(2,:,:))  ];
-            f4 = @(x) [1/(4)*(1-x(1,:,:)).*(1+x(2,:,:));...
-                    1/(4)*(1-x(1,:,:)).*(1+x(2,:,:))  ];
-            f     = {f1 f2 f3 f4}; %
-            nfun = size(f,2);
-            Cg = [];
-            for i=1:nfun
-                obj.dLambda{i}  = AnalyticalFunction.create(f{i},ndimf,obj.boundaryMeshJoined);
-                    
-                %% Project to P1
-%                 obj.dLambda{i} = obj.dLambda{i}.project('P1');
-
-                Ce = lhs.compute(obj.dLambda{i},test);
-                [iLoc,jLoc,vals] = find(Ce);
-    
-%                 l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
-%                 l2g_dof = l2g_dof(:);
-%                 jGlob = l2g_dof(jLoc);
-%                 Cg = [Cg sparse(iLoc,jGlob,vals, obj.displacementFun.nDofs, dLambda.nDofs)];
-
-                l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
-                l2g_dof = l2g_dof(:);
-                iGlob = l2g_dof(iLoc);
-                Cg = [Cg sparse(iGlob,jLoc,vals, obj.displacementFun.nDofs, obj.dLambda{i}.ndimf)];
-            end
-
-        end
-
-        function Cg = computeCmatEdgeCorner(obj,data)
-            s.quadType = 2;
-            s.mesh     = obj.boundaryMeshJoined;
-            lhs = LHSintegrator_ShapeFunction_fun(s);
-            test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); % !!
-            ndimf  = 2;
-            Lx     = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
-            Ly     = max(obj.mesh.coord(:,2)) - min(obj.mesh.coord(:,2));
-%             f1 = @(x) [1/(4*Lx/2*Ly/2)*(1-x(1,:,:)).*(1-x(2,:,:));...
-%                     1/(4*Lx/2*Ly/2)*(1-x(1,:,:)).*(1-x(2,:,:))  ];
-%             f2 = @(x) [1/(4*Lx/2*Ly/2)*(1+x(1,:,:)).*(1-x(2,:,:));...
-%                     1/(4*Lx/2*Ly/2)*(1+x(1,:,:)).*(1-x(2,:,:))  ];
-%             f3 = @(x) [1/(4*Lx/2*Ly/2)*(1+x(1,:,:)).*(1+x(2,:,:));...
-%                     1/(4*Lx/2*Ly/2)*(1+x(1,:,:)).*(1+x(2,:,:))  ];
-%             f4 = @(x) [1/(4*Lx/2*Ly/2)*(1-x(1,:,:)).*(1+x(2,:,:));...
-%                     1/(4*Lx/2*Ly/2)*(1-x(1,:,:)).*(1+x(2,:,:))  ];
-            f1 = @(x) [1/(4)*(1-x(1,:,:)).*(1-x(2,:,:));...
-                    1/(4)*(1-x(1,:,:)).*(1-x(2,:,:))  ];
-            f2 = @(x) [1/(4)*(1+x(1,:,:)).*(1-x(2,:,:));...
-                    1/(4)*(1+x(1,:,:)).*(1-x(2,:,:))  ];
-            f3 = @(x) [1/(4)*(1+x(1,:,:)).*(1+x(2,:,:));...
-                    1/(4)*(1+x(1,:,:)).*(1+x(2,:,:))  ];
-            f4 = @(x) [1/(4)*(1-x(1,:,:)).*(1+x(2,:,:));...
-                    1/(4)*(1-x(1,:,:)).*(1+x(2,:,:))  ];
-            f     = {f1 f2 f3 f4}; %
-            nfun = size(f,2);
-            Cg = [];
-            for i=1:nfun
-                obj.dLambda{i}  = AnalyticalFunction.create(f{i},ndimf,obj.boundaryMeshJoined);
-                    
-                %% Project to P1
-%                  obj.dLambda{i} = obj.dLambda{i}.project('P1');
-
-                Ce = lhs.compute(obj.dLambda{i},test);
-                [iLoc,jLoc,vals] = find(Ce);
-    
-%                 l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
-%                 l2g_dof = l2g_dof(:);
-%                 jGlob = l2g_dof(jLoc);
-%                 Cg = [Cg sparse(iLoc,jGlob,vals, obj.displacementFun.nDofs, dLambda.nDofs)];
-
-                l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
-                l2g_dof = l2g_dof(:);
-                iGlob = l2g_dof(iLoc);
-                Cg = [Cg sparse(iGlob,jLoc,vals, obj.displacementFun.nDofs, obj.dLambda{i}.ndimf)];
-            end
-            cornerDof = data.boundaryConditions.dirichlet_dofs;
-            Cg(cornerDof,:) = 0;
-            Cg2 = zeros(size(Cg,1),size(cornerDof,1));
-            for i=1:length(cornerDof)
-               Cg2(cornerDof(i),i)=1; 
-            end
-            Cg = [Cg,Cg2];
-        end
-
-            function Cg = computeCmatRB(obj,data)
-            s.quadType = 2;
-            s.mesh     = obj.boundaryMeshJoined;
-            lhs = LHSintegrator_ShapeFunction_fun(s);
-            test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); % !!
-            ndimf  = 2;
-            minx   = min(obj.mesh.coord(:,1));
-            miny   = min(obj.mesh.coord(:,2));
-            maxx   = max(obj.mesh.coord(:,1));
-            maxy   = max(obj.mesh.coord(:,2));
-            x0     = (maxx+minx)/2;
-            y0     = (maxy+miny)/2;
-            Lx     = max(obj.mesh.coord(:,1)) - min(obj.mesh.coord(:,1));
-            Ly     = max(obj.mesh.coord(:,2)) - min(obj.mesh.coord(:,2));
-            theta  = 1*pi/180;
-            cond   = [minx, maxx, miny, maxy];
-            nrb=3;
-            k=1;
-            dof  = [1,1,2,2];
-            for i=1:length(obj.boundaryMesh)
-                x0 = (max(obj.boundaryMesh{i}.mesh.coord(:,1))+ min(obj.boundaryMesh{i}.mesh.coord(:,1)))/2;
-                y0 = (max(obj.boundaryMesh{i}.mesh.coord(:,2))+ min(obj.boundaryMesh{i}.mesh.coord(:,2)))/2;
-                    f{k}   = @(x) [(x(dof(i),:,:)==cond(i)).*(x(1,:,:)./x(1,:,:)) + (x(dof(i),:,:)~=cond(i)).*(x(1,:,:)*0);...
-                                     x(2,:,:).*0 ];
-                    f{k+1} = @(x) [x(dof(i),:,:).*0 ;...
-                                  (x(dof(i),:,:)==cond(i)).*(x(1,:,:)./x(1,:,:)) + (x(dof(i),:,:)~=cond(i)).*(x(1,:,:)*0) ];
-                    f{k+2} = @(x) [(x(dof(i),:,:)==cond(i)).*((x(1,:,:)-x0).*cos(theta) - (x(2,:,:)-y0).*sin(theta)) + (x(dof(i),:,:)~=cond(i)).*(x(1,:,:)*0) ;...
-                                   (x(dof(i),:,:)==cond(i)).*((x(1,:,:)-x0).*sin(theta) + (x(2,:,:)-y0).*cos(theta))*-1 + (x(dof(i),:,:)~=cond(i)).*(x(1,:,:)*0) ];
-%                     f{k+2} = @(x) [(x(dof(i),:,:)==cond(i)).*((x(2,:,:)-y0)) + (x(dof(i),:,:)~=cond(i)).*(x(1,:,:)*0) ;...
-%                                    (x(dof(i),:,:)==cond(i)).*(-(x(1,:,:)-x0)) + (x(dof(i),:,:)~=cond(i)).*(x(1,:,:)*0) ];
-                    k=k+3;
-            end            
-%             f1 = @(x) [(x(2,:,:)==miny).*(x(1,:,:)./x(1,:,:)) + (x(2,:,:)~=miny).*(x(1,:,:)*0);...
-%                         x(2,:,:).*0 ];
-%             f2 = @(x) [x(2,:,:).*0 ;...
-%                         (x(2,:,:)==miny).*(x(1,:,:)./x(1,:,:)) + (x(2,:,:)~=miny).*(x(1,:,:)*0) ];
-%              f3 = @(x) [(x(2,:,:)==miny).*((x(1,:,:)-x0).*cos(theta) - (x(2,:,:)-(-1)).*sin(theta)) + (x(2,:,:)~=miny).*(x(1,:,:)*0) ;...
-%                         (x(2,:,:)==miny).*((x(1,:,:)-x0).*sin(theta) + (x(2,:,:)-(-1)).*cos(theta)) + (x(2,:,:)~=miny).*(x(1,:,:)*0) ];
-% %             f2 = @(x) [1/(4)*(1+x(1,:,:)).*(1-x(2,:,:));...
-% %                     1/(4)*(1+x(1,:,:)).*(1-x(2,:,:))  ];
-% %             f3 = @(x) [1/(4)*(1+x(1,:,:)).*(1+x(2,:,:));...
-% %                     1/(4)*(1+x(1,:,:)).*(1+x(2,:,:))  ];
-%             f4 = @(x) [1/(4)*(1-x(1,:,:)).*(1+x(2,:,:));...
-%                     1/(4)*(1-x(1,:,:)).*(1+x(2,:,:))  ];
-%             f     = {f1 f2 f3 f4}; %
-            nfun = size(f,2);
-            Cg = [];
-            for i=1:nfun
-                obj.dLambda{i}  = AnalyticalFunction.create(f{i},ndimf,obj.boundaryMeshJoined);
-%                 dLambda = dLambda.project('P1');
-%                 obj.dLambda{i}.plot
-                Ce = lhs.compute(obj.dLambda{i},test);
-                Ce = sum(Ce,2);
-                [iLoc,jLoc,vals] = find(Ce);
-    
-%                 l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
-%                 l2g_dof = l2g_dof(:);
-%                 jGlob = l2g_dof(jLoc);
-%                 Cg = [Cg sparse(iLoc,jGlob,vals, obj.displacementFun.nDofs, dLambda.nDofs)];
-
-                l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
-                l2g_dof = l2g_dof(:);
-                iGlob = l2g_dof(iLoc);
-                Cg = [Cg sparse(iGlob,jLoc,vals, obj.displacementFun.nDofs, 1)];
-            end
-%             cornerDof = data.boundaryConditions.dirichlet_dofs;
-%             Cg(cornerDof,:) = 0;
-%             Cg2 = zeros(size(Cg,1),size(cornerDof,1));
-%             for i=1:length(cornerDof)
-%                Cg2(cornerDof(i),i)=1; 
-%             end
-%             Cg = [Cg,Cg2];
-        end
-
-     
 
         function dim = getFunDimsHere(obj)
             d.ndimf     = obj.displacementFun.ndimf;
@@ -547,26 +325,13 @@ classdef LevelSetInclusionAuto_abril < handle
             dim         = d;
         end
 
-%         function [u, L] = computeDisplacementHere(obj)
-%             o.stiffness = obj.stiffness;
-%             o.forces    = obj.forces;
-%             [u,L]       = obj.problemSolver.solve(o);
-%             z.mesh      = obj.mesh;
-%             z.fValues   = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-%             z.order     = 'P1';
-%             obj.uFun    = LagrangianFunction(z);
-%             uSplit      = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-%             obj.displacementFun.fValues = uSplit;
-%         end
 
         function [u, L] = computeDisplacementHere(obj,c, rdir)
             K = obj.stiffness;
             nC  = size(c,2);
             Z   = zeros(nC);
             LHS = [K, c; c' Z];
-            % ud = eye(nC);
-% %             ud(7) = 1;
-%             ud(1) = 1;
+
             forces = zeros(obj.displacementFun.nDofs, size(rdir, 2));
 
             RHS = [forces; rdir];
@@ -606,12 +371,9 @@ classdef LevelSetInclusionAuto_abril < handle
 
         end
 
-
-        function rDir = RHSdirichlet(obj)
+        
+        function rDir = RHSdirichlet(obj) %Son les u_d a sota del vector F
             test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1');
-           % s.mesh = obj.boundaryMeshJoined;
-           % s.quadType = 2;
-        %    rhs = RHSIntegratorShapeFunction(s);
 
             f1x = @(x) [1/(4)*(1-x(1,:,:)).*(1-x(2,:,:));...
                     0*x(2,:,:)  ];
@@ -631,42 +393,17 @@ classdef LevelSetInclusionAuto_abril < handle
             f4y = @(x) [0*x(1,:,:);...
                     1/(4)*(1-x(1,:,:)).*(1+x(2,:,:))  ];
 
-
-            fB     = {f1x f1y f2x f2y f3x f3y f4x f4y}; %
+            fB     = {f1x f1y f2x f2y f3x f3y f4x f4y}; 
             nfun = size(fB,2);
             rDir = [];
+
             for i=1:nfun
                 Ud{i}  = AnalyticalFunction.create(fB{i},obj.boundaryMeshJoined);
-                    
-                % %% Project to P1
-                % obj.dLambda{i} = obj.dLambda{i}.project('P1');
-
-
-          %      rDire = rhs.compute(Ud{i},test);
-                 f = @(v) DP(v,Ud{i});
-                 rDire = IntegrateRHS(f,test,obj.boundaryMeshJoined,'Domain',2);
-%                 [iLoc,jLoc,vals] = find(Ce);
-% 
-% %                 l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
-% %                 l2g_dof = l2g_dof(:);
-% %                 jGlob = l2g_dof(jLoc);
-% %                 Cg = [Cg sparse(iLoc,jGlob,vals, obj.displacementFun.nDofs, dLambda.nDofs)];
-% 
-%                 l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
-%                 l2g_dof = l2g_dof(:);
-%                 iGlob = l2g_dof(iLoc);
+                f = @(v) DP(v,Ud{i});
+                rDire = IntegrateRHS(f,test,obj.boundaryMeshJoined,'Domain',2);
                 rDir = [rDir rDire];
             end
-
-           
-
-
         end
-
-         function rDir = RHSweak(obj, c)
-                rDir = eye(size(c,2));
-
-         end
 
     end
 end

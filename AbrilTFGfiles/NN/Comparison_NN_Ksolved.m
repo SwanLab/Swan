@@ -7,14 +7,14 @@ close all;
 %% LOAD DATA
 
 %load the trained NN 
-fileName1="NeuralNetwork1.mat";
+fileName1="K_NN.mat";
 filePath1 = fullfile('AbrilTFGfiles', 'NN', fileName1);
 load(filePath1);
 
-%load K coarse dataset
-fileName2="UL_r0_4130-20x20.mat";
-filePath2 = fullfile('AbrilTFGfiles','DataComparison' ,fileName2);
-load(filePath2);
+%%load K coarse dataset
+%fileName2="UL_r0_4130-20x20.mat";
+%filePath2 = fullfile('AbrilTFGfiles','DataComparison' ,fileName2);
+%load(filePath2);
 
 
 %% RESTRUCTURE DATA
