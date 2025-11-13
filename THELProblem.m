@@ -8,11 +8,12 @@ classdef THELProblem < handle
 
         tFun            %
         tforces         %
+        T0
     end
 
     properties (Access = private)
         quadrature
-        boundaryConditions, bcApplier
+        boundaryConditionsElastic, bcApplierElastic
 
         stiffness
         solverType, solverMode, solverCase
@@ -20,16 +21,16 @@ classdef THELProblem < handle
 
         strain, stress
 
-        problemSolver
+        problemSolverElastic
 
         %alpha
         temperature                             %
-        boundaryConditionsThermal, bcTApplier   %
+        boundaryConditionsThermal, bcApplierThermal   %
         conductivity                            %
         test                                    %    
         trial                                   %
         source                                  %
-        problemThermalSolver                    %
+        problemSolverThermal                    %
         Tstiffness                              %
     end
 
@@ -45,17 +46,18 @@ classdef THELProblem < handle
         function obj = THELProblem(cParams)
             obj.init(cParams);
             obj.createDisplacementFun();
-            obj.createBCApplier();
-            obj.createSolver();
+            obj.createBCApplierElastic();
+            obj.createSolverElastic();
 
 
             
             obj.createTemperatureFun();           %
-            obj.createBCThermalApplier();         %
-            obj.createThermalSolver();            %
+            obj.createBCApplierThermal();         %
+            obj.createSolverThermal();            %
         end
 
         function solve(obj)
+            kappa  = obj.createDomainFunction(obj.conductivity.fun,xR);           % conductivity on the new domain
             obj.computeThermalStiffnessMatrix(kappa);         % LHS termico
             obj.computeThermalForces();                       % RHS termico
             obj.computeTemperature();                         % Solve PDE termico
@@ -66,6 +68,12 @@ classdef THELProblem < handle
 
             obj.computeStrain();
             obj.computeStress();
+        end
+
+        function f = createDomainFunction(obj,fun,xR)
+            s.operation = @(xV) obj.createConductivityAsDomainFunction(fun,xR{1},xV);
+            s.mesh      = obj.mesh;
+            f = DomainFunction(s);
         end
 
         function updateMaterial(obj, mat)
@@ -90,24 +98,31 @@ classdef THELProblem < handle
             funNames = {'displacement', 'strain', 'stress'};
         end
 
+        function [tFun, uFun] = getTemperatureAndDisplacement(obj)
+            tFun = obj.tFun;
+            uFun = obj.uFun;
+        end
     end
 
     methods (Access = private)
 
         function init(obj, cParams)
             obj.mesh        = cParams.mesh;
-            obj.material    = cParams.material;
-            obj.scale       = cParams.scale;
             obj.solverType  = cParams.solverType;
             obj.solverMode  = cParams.solverMode;
-            obj.boundaryConditions = cParams.boundaryConditionsElastic;
             obj.solverCase  = cParams.solverCase;
 
+            % Elastic
+            obj.scale       = cParams.scale;
+            obj.material    = cParams.material;
+            obj.boundaryConditionsElastic = cParams.boundaryConditionsElastic;
+
+            % Thermal
             %obj.alpha = cParams.alpha;
             obj.conductivity = cParams.conductivity;                              %
             obj.source       = cParams.source;                                    %
+            obj.T0           = cParams.T0;
             obj.boundaryConditionsThermal = cParams.boundaryConditionsThermal;    %
-            obj.solverCase  = cParams.solverCase;                                 %
             obj.test  = LagrangianFunction.create(obj.mesh,1,'P1');               %
             obj.trial = LagrangianFunction.create(obj.mesh,1,'P1');               %
         end
@@ -119,22 +134,20 @@ classdef THELProblem < handle
             obj.tFun = LagrangianFunction.create(obj.mesh, 1, 'P1');
         end
 
-        function createBCThermalApplier(obj)
+        function createBCApplierThermal(obj)
             s.mesh = obj.mesh;
             s.boundaryConditions = obj.boundaryConditionsThermal;
             bcT = BCApplier(s);
-            obj.bcTApplier = bcT;
+            obj.bcApplierThermal = bcT;
         end
 
-        function createThermalSolver(obj)
-            sS.type              = obj.solverCase;
-            solver               = Solver.create(sS);
+        function createSolverThermal(obj)
             s.solverType         = obj.solverType;
             s.solverMode         = obj.solverMode;
-            s.solver             = solver;
+            s.solver     = obj.solverCase;
             s.boundaryConditions = obj.boundaryConditionsThermal;
-            s.BCApplier          = obj.bcTApplier;
-            obj.problemThermalSolver    = ProblemSolver(s);
+            s.BCApplier          = obj.bcApplierThermal;
+            obj.problemSolverThermal    = ProblemSolver(s);
         end
 
         function computeThermalStiffnessMatrix(obj, kappa)
@@ -161,20 +174,20 @@ classdef THELProblem < handle
             obj.uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
         end
 
-        function createBCApplier(obj)
+        function createBCApplierElastic(obj)
             s.mesh = obj.mesh;
-            s.boundaryConditions = obj.boundaryConditions;
+            s.boundaryConditions = obj.boundaryConditionsElastic;
             bc = BCApplier(s);
-            obj.bcApplier = bc;
+            obj.bcApplierElastic = bc;
         end
 
-        function createSolver(obj)
+        function createSolverElastic(obj)
             s.solverType = obj.solverType;
             s.solverMode = obj.solverMode;
             s.solver     = obj.solverCase;
-            s.boundaryConditions = obj.boundaryConditions;
-            s.BCApplier          = obj.bcApplier;
-            obj.problemSolver    = ProblemSolver(s);
+            s.boundaryConditions = obj.boundaryConditionsElastic;
+            s.BCApplier          = obj.bcApplierElastic;
+            obj.problemSolverElastic    = ProblemSolver(s);
         end
 
         function computeStiffnessMatrix(obj)
@@ -208,7 +221,7 @@ classdef THELProblem < handle
   %COUPLING TERM
             
             beta=1;    % alpha*costitutivetensor*identitymatrix
-            f = @(v) -beta*obj.temperature*div(v); 
+            f = @(v) -beta*(obj.temperature - obj.T0)*div(v); 
             rhs_coupling = IntegrateRHS(f,obj.test,obj.mesh,'Domain',2);    
             rhs = rhs + rhs_coupling;
             obj.forces = rhs;
