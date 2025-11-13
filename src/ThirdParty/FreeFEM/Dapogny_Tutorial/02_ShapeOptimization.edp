@@ -1,33 +1,150 @@
-// Make it like a tutorial
-
+/* Shape optimization of a wheel bridge via the Level Set method */
+load "medit"
 load "distance"
-include "tools.idp"
 
-// Create Mesh Counterclockwise!!!
-border a(t=0, 0.1){ x=t; y=0; label=1;} // Gamma_S
-border b(t=0, 0.85){ x=0.1+t; y=0; label=2;}
-border c(t=0, 0.1){ x=0.95+t; y=0; label=3;} // Gamma_N
-border d(t=0, 0.85){ x=1.05+t; y=0; label=2;}
-border e(t=0, 0.1){ x=1.9+t; y=0; label=4;} // Gamma_D
-border f(t=0, 1.5){ x=2; y=t; label=2;}
-border g(t=0, 2){x=2-t; y=1.5; label=2;}
-border h(t=0, 1.5){x=0; y=1.5-t; label=2;}
-mesh Th = buildmesh(a(2)+b(19)+c(2)+d(19)+e(2)+f(30)+g(40)+h(30));
-plot(Th,wait=true);
-real deltah = 0.1/2;
+/* Create mesh */
+border left(t=0.0,1.5){ x=-1.0; y=1.5-t; label=0; };
+border botgl(t=0.0,0.1){ x=-1.0+t; y=0.0; label=1; };
+border botf1(t=0.1,0.95){ x=-1.0+t; y=0.0; label=0; };
+border botneu(t=0.95,1.05){ x=-1.0+t; y=0.0; label=3; };
+border botf2(t=1.05,1.9){ x=-1.0+t; y=0.0; label=0; };
+border botdir(t=1.9,2.0){ x=-1.0+t; y=0.0; label=2; };
+border right(t=0.0,1.5){ x=1.0; y=t; label=0; };
+border top(t=0.0,2.0){ x=1.0-t; y=1.5; label=0; };
+
+mesh Th = buildmesh(left(50)+botgl(5)+botf1(45)+botneu(5)+botf2(45)+botdir(5)+right(50)+top(100));
+savemesh(Th,"box.mesh");
 
 /* Finite Element spaces */
 fespace Vh(Th,P1);
 fespace Vh0(Th,P0);
 
-Vh nx, ny, v, vx, vy, kappa;
-Vh0 nx0, ny0, ngrphi, kappa0;
+/* Include toolbox */
+include "tools.idp"
 
-Vh phi0, phi, phitmp;
-normalvec(phi);
+/* Functions and other parameters */
+Vh phio,phi,ux,uy,uxo,uyo,vx,vy,v,g,nx,ny;
+Vh0 g0,Achi;
+real nt = Th.nt;
+real gx = 0.0;  // Load
+real gy = -1.0;
+real mu = 0.3846;   // Lamé coefficients
+real lambda = 0.5769;
+real ers = 1.e-3;   // Ersatz material parameter
+real eps = 1.e-6;  // To avoid divisions by 0
+real meshsiz = 0.02;
+real alpha = 4.0*meshsiz;  // Regularization / extension parameter
+real alphanor = 0.0001;   // Parameter for normal extension
+real ell = 0.2;   // Lagrange multiplier for the volume constraint
+real vol,obj,newobj;
+int maxit = 200, kmax = 10;
+real step;
+real gmax;
+real tol = 0.005;   // Tolerance for accepting steps that slightly increase the objective
+real coef = 1.0;   // Parameters for line search
+real maxcoef = 3.0;
+real mincoef = 0.1;
+string sout;
 
-real alpha = deltah; // epsilon of a pde filter
+/* Initialization of the Level Set function */
+phio = inils();
+distance(Th,phio,phi[]);
+
+/* Regularization of shape derivative */
+problem velext(g,v) = int2d(Th)(alpha^2*(dx(g)*dx(v)+dy(g)*dy(v)) + g*v)
+                      - int1d(Th,levelset=phi)(g0*v);
+
+/* Objective function */
+macro J() (int2d(Th)(Achi*mu*(2.0*dx(ux)*dx(ux) + (dx(uy)+dy(ux))*(dx(uy)+dy(ux))
+                              + 2.0*dy(uy)*dy(uy)) + Achi*lambda*(dx(ux)+dy(uy))*(dx(ux)+dy(uy)))) // EOM
+
+/* (Negative) shape gradient */
+macro dJ() {
+  g0 = mu*(2.0*dx(ux)*dx(ux) + (dx(uy)+dy(ux))*(dx(uy)+dy(ux)) + 2.0*dy(uy)*dy(uy))
+       + lambda*(dx(ux)+dy(uy))*(dx(ux)+dy(uy))  - ell;
+  velext;
+} // EOM
+
+/* State problem */
+problem elasticity([ux,uy],[vx,vy]) = int2d(Th)(Achi*mu*(2.0*dx(ux)*dx(vx) + (dx(uy)+dy(ux))*(dx(vy)+dy(vx))
+                                          + 2.0*dy(uy)*dy(vy)) + Achi*lambda*(dx(ux)+dy(uy))*(dx(vx)+dy(vy)) )
+                           - int1d(Th,3)(gx*vx+gy*vy)
+                           + on(1,uy=0.0)
+                           + on(2,ux=0.0,uy=0.0);
+
+/* Initialization */
+Achi[] = volfrac(Th,phi[],ers);
+elasticity;
+
+/* Initial value of the objective function */
+vol = int2d(Th)(Achi);
+newobj = J + ell*vol;
+sout = "box."+0+".sol";
+savesol(sout,Th,phi);
+
+/* Print initial objective and save initial level set function and density */
+cout<<"Initial value of the objective function: "<<newobj<<endl;
+
+/* Main loop */
+for (int it=0; it<maxit; it++) {
+  obj = newobj;
+  phio = phi;
+  uxo = ux;
+  uyo = uy;
+
+  /* Decrease tolerance after a few iterations have been made */
+  if ( it == 100 ) tol = 0.001;
+
+  /* Calculation of the shape gradient */
+  dJ;
+  gmax = max(g[].max,-g[].min);
+
+  /* Normal vector field to the shape */
+  normalvec(phi);
+
+  nx = g*nx;
+  ny = g*ny;
+
+  /* Line search */
+  for (int k=0; k<kmax; k++) {
+    /* Calculation of step: maximum amplitude of motion = meshsiz*coef */
+    step = coef*meshsiz / (eps^2+gmax);
+
+    /* Update of the shape */
+    phi[] = advectRedist(phio[],nx[],ny[],step);
+    phi[] = symmshape(phi[]);
+
+    /* Calculation of the new objective function */
+    Achi[] = volfrac(Th,phi[],ers);
+    elasticity;
+    vol = int2d(Th)(Achi);
+    newobj = J + ell*vol;
+
+    /* Decision */
+    /* Accept iteration */
+    if ( newobj < obj + tol*abs(obj) || coef <= mincoef ) {
+      coef = min(1.1*coef,maxcoef);
+      break;
+    }
+    /* Reject iteration */
+    else {
+      coef = max(0.6*coef,mincoef);
+      phi = phio;
+      ux = uxo;
+      uy = uyo;
+      newobj = obj;
+    }
+  }
+
+  /* Save shape (level set) and print new objective */
+  sout = "box."+(it+1)+".sol";
+  savesol(sout,Th,phi);
+
+  cout<<"Iteration "<<it<<" Objective : "<<newobj<<endl;
+}
+
+Vh kappa;
+Vh0 kappa0;
+real deltah = 0.05; // The min cell size
+alpha = deltah; // epsilon of a pde filter
 curvature;
-
-real step = 0.1;
-advectRedist(phi0,phi,nx,ny,step);

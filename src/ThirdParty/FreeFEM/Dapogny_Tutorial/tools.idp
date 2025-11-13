@@ -1,21 +1,16 @@
-/* Tools for handling the linear elasticity test case */
+/* Tools for the practice of the Level Set Method for shape optimization */
 
-/* Calculate the local volume fraction inside each triangle as a P0 function over the mesh */
-macro volfrac(Achi,phi,ers) {
-  for (int n=0; n<nt; n++) {
-    triav[0] = Th[n][0].x;
-    triav[1] = Th[n][0].y;
-    triav[2] = Th[n][1].x;
-    triav[3] = Th[n][1].y;
-    triav[4] = Th[n][2].x;
-    triav[5] = Th[n][2].y;
-    phiv[0]  = phi(triav[0],triav[1]);
-    phiv[1]  = phi(triav[2],triav[3]);
-    phiv[2]  = phi(triav[4],triav[5]);
-    loadAchi[n] = volfrac1tri(triav,phiv,ers);
+/* Symmetrize an input level set function */
+func real[int] symmshape(real[int] phit) {
+  Vh phitmp = phit,phi;
+  func real symfunc() {
+    if ( x > 0.0 ) return (phitmp(x,y));
+    else return(phitmp(-x,y));
   }
+  phi = symfunc();
   
-  Achi[] = loadAchi;
+  return phi[];
+
 } // EOM
 
 /* Calculate the volume fraction of the domain inside the triangle defined by triav; the domain is supplied by the 3 values of the level set function at the vertices of the triangle */
@@ -147,40 +142,97 @@ func real volfrac1tri(real[int] &triav,real[int] &phiv,real ers) {
   }
 }
 
-/* Load P1 function phi on mesh Th from the file sin */
-macro readsol(filename, phi) {
-    ifstream f(filename);
-    int np = phi[].n;
-    real[int] vals(np);
-    for (int i = 0; i < np; i++) {
-      f >> vals[i];
-    }
-    phi[] = vals;
-} //
+/* Calculate the local volume fraction inside each triangle as a P0 function over the mesh */
+func real[int] volfrac(mesh & Th, real[int] phitab, real ers) {
+  Vh phi = phitab;
+  Vh0 vol;
+  real[int] triav(6),phiv(3);
+  
+  for (int n=0; n<Th.nt; n++) {
+    triav[0] = Th[n][0].x;
+    triav[1] = Th[n][0].y;
+    triav[2] = Th[n][1].x;
+    triav[3] = Th[n][1].y;
+    triav[4] = Th[n][2].x;
+    triav[5] = Th[n][2].y;
+    phiv[0]  = phi(triav[0],triav[1]);
+    phiv[1]  = phi(triav[2],triav[3]);
+    phiv[2]  = phi(triav[4],triav[5]);
+    vol[][n] = volfrac1tri(triav,phiv,ers);
+  }
+  
+  return vol[];
+} // EOM
+
+/* Analytic initial level set function */
+func real inils() {
+  real d,dd,r;
+  d = 5.0;
+  r = 0.02;
+  
+  for(int j=0; j<=8; j++) {
+    dd = ((x-(-1.0 + 0.25*j))^2 + (y-1.5)^2 - r^2);
+    d = min(d,dd);
+  }
+  
+  for(int j=0; j<=7; j++) {
+    dd = ((x-(-0.83333 + 0.25*j))^2 + (y-1.25)^2 - r^2);
+    d = min(d,dd);
+  }
+  
+  for(int j=0; j<=8; j++) {
+    dd = ((x-(-1.0 + 0.25*j))^2 + (y-1.0)^2 - r^2);
+    d = min(d,dd);
+  }
+  
+  for(int j=0; j<=7; j++) {
+    dd = ((x-(-0.83333 + 0.25*j))^2 + (y-0.65)^2 - r^2);
+    d = min(d,dd);
+  }
+  
+  for(int j=0; j<=8; j++) {
+    dd = ((x-(-1.0 + 0.25*j))^2 + (y-0.35)^2 - r^2);
+    d = min(d,dd);
+  }
+  
+  return(-d);
+}
 
 /* Calculate the normal vector field to the shape as a P1 vector field [nx,ny] */
 macro normalvec(phi) {
-  real eps1 = 1.e-6;
-  real alpha = 1.e-4;
-  
-  /* Calculation of the normal vector as a P0 vector field */
-  ngrphi = dx(phi)*dx(phi)+dy(phi)*dy(phi);
-  nx0 = dx(phi) / (sqrt(eps1*eps1 + ngrphi));
-  ny0 = dy(phi) / (sqrt(eps1*eps1 + ngrphi));
-  
   /* Reconstruction as a P1 vector field */
-  solve reconsNor([nx,ny],[vx,vy]) = int2d(Th)(alpha*(dx(nx)*dx(vx)+dy(nx)*dy(vx)+dx(ny)*dx(vy)+dy(ny)*dy(vy))
-                                                + nx*vx+ny*vy)
-                                       - int2d(Th)(nx0*vx+ny0*vy);
+  solve reconsNor([nx,ny],[vx,vy]) = int2d(Th)(alphanor*(dx(nx)*dx(vx)+dy(nx)*dy(vx)+dx(ny)*dx(vy)+dy(ny)*dy(vy))
+                                            + nx*vx+ny*vy)
+                                  - int2d(Th)((dx(phi)*vx+dy(phi)*vy)/sqrt(dx(phi)*dx(phi)+dy(phi)*dy(phi) + eps^2));
+} // EOM
+
+/* Advection of function phi and redistancing */
+func real[int] advectRedist(real[int] phiot, real[int] vxt, real[int] vyt, real step) {
+   Vh phi,phitmp,phio=phiot,velx=vxt,vely=vyt;
+   phitmp = convect([velx,vely],-step,phio);
+   distance(Th,phitmp,phi[]);
+  
+   return phi[];
+} // EOM
+
+/* Save a P0 solution on mesh */
+macro savesolP0(s,Th,psi0) {
+  ofstream f(s);
+  real barx,bary;
+  f << "MeshVersionFormatted 1\n\nDimension 2\n\nSolAtTriangles\n"<<Th.nt<<"\n1 1\n"<<endl;
+  
+  for (int n=0; n<Th.nt; n++) {
+    barx = 1.0/3.0*(Th[n][0].x+Th[n][1].x+Th[n][2].x);
+    bary = 1.0/3.0*(Th[n][0].y+Th[n][1].y+Th[n][2].y);
+    f<<psi0(barx,bary)<<endl;
+  }
+  f<<"End"<<endl;
 } // EOM
 
 macro curvature() {
   kappa0 = dx(nx)+dy(ny);
   solve reconsKappa(kappa,v) = int2d(Th)(alpha*(dx(kappa)*dx(v)+dy(kappa)*dy(v)) + kappa*v)
                                - int2d(Th)(kappa0*v);
-} // EOM
+} // EOM                               
 
-macro advectRedist(phio,phi,velx,vely,step) {
-   phitmp = convect([velx,vely],-step,phio);
-   distance(Th,phitmp,phi[]);
-} // EOM
+                               
