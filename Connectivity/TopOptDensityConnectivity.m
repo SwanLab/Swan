@@ -4,11 +4,14 @@ classdef TopOptDensityConnectivity < handle
         mesh
         filter
         filterComp
+        filterPerimeter
         filterAdjointComp
         filterConnect
         filterAdjointConnect
         designVariable
         materialInterpolator
+        conductivityInterpolator
+        massInterpolator
         physicalProblem
         compliance
         volume
@@ -20,27 +23,39 @@ classdef TopOptDensityConnectivity < handle
         perimeter
         gJ
         lambda1min
+        primalUpdater
+        p
     end
 
     methods (Access = public)
 
         function obj = TopOptDensityConnectivity() 
-            obj.init()
-            obj.createMesh();
-            obj.createDesignVariable();
-            obj.createFilterCompliance();
-            obj.createFilterConnectivity();
-            obj.createMaterialInterpolator();
-            obj.createElasticProblem();
-            obj.createComplianceFromConstitutive();
-            obj.createCompliance();
-            obj.createPerimeter();
-            obj.createEigenValueConstraint();                             
-            obj.createVolumeConstraint();
-            obj.createCost();
-            obj.createConstraint();
-            obj.createDualVariable();
-            obj.createOptimizer();
+            for p = [0.0,3.0,10.0] 
+                for lambda1min = [0.6,0.8,1.0,2.0] 
+                    obj.p = p;
+                    obj.lambda1min = lambda1min;
+                    obj.init()
+                    obj.createMesh();
+                    obj.createDesignVariable();
+                    obj.createFilterPerimeter();
+                    obj.createFilterCompliance();
+                    obj.createFilterConnectivity();
+                    obj.createMaterialInterpolator();
+                    obj.createCompliance();
+                    obj.createConductivityInterpolator();
+                    obj.createMassInterpolator();
+                    obj.createElasticProblem();
+                    obj.createComplianceFromConstitutive();
+                    obj.createCompliance();
+                    obj.createPerimeter();
+                    obj.createEigenValueConstraint();                             
+                    obj.createVolumeConstraint();
+                    obj.createCost();
+                    obj.createConstraint();
+                    obj.createPrimalUpdater();
+                    obj.createOptimizer();
+                end
+            end
         end
 
     end
@@ -73,56 +88,32 @@ classdef TopOptDensityConnectivity < handle
             dens        = DesignVariable.create(sD);
             obj.designVariable = dens;
         end
-    
-        function createFilterCompliance(obj)
-% %             s.filterType = 'FilterAndProject';
-%             s.filterType = 'CloseOperator';
-%             s.mesh       = obj.mesh;
-%             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-%             s.filterStep = 'LUMP';
-%             s.beta       = 2.0;
-%             s.eta        = 0.0;
-%             obj.filterComp = Filter.create(s);
-%             
-% %             s.filterType = 'FilterAdjointAndProject';   
-%             s.filterType = 'CloseAdjointOperator';   
-%             s.mesh       = obj.mesh;
-%             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-%             s.filterStep = 'LUMP';
-%             s.beta       = 2.0;
-%             s.eta        = 0.0;
-%             obj.filterAdjointComp = Filter.create(s);
-            s.filterType = 'PDE';
-            s.mesh       = obj.mesh;
-            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-            f            = Filter.create(s);
-            obj.filterComp = f;
-        end
-        
+          
 
-        function createFilterConnectivity(obj)
-%             s.filterType = 'FilterAndProject';
-%             s.mesh       = obj.mesh;
-%             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-%             s.filterStep = 'LUMP';
-%             s.beta       = 20.0;
-%             s.eta        = 0.0;
-%             obj.filterConnect = Filter.create(s);
-% 
-%             s.filterType = 'FilterAdjointAndProject';   
-%             s.mesh       = obj.mesh;
-%             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-%             s.filterStep = 'LUMP';
-%             s.beta       = 20.0;
-%             s.eta        = 0.0;
-%             obj.filterAdjointConnect = Filter.create(s);
-
+      function createFilterCompliance(obj)
             s.filterType = 'LUMP';
             s.mesh       = obj.mesh;
             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
             f            = Filter.create(s);
-            obj.filterConnect = f;
+            obj.filterComp = f;           
         end
+
+       function createFilterPerimeter(obj)
+            s.filterType = 'PDE';
+            s.mesh       = obj.mesh;
+            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            f            = Filter.create(s);
+            f.updateEpsilon(1*obj.mesh.computeMinCellSize())
+            obj.filterPerimeter = f;           
+        end
+
+        function createFilterConnectivity(obj)
+            s.filterType = 'LUMP';
+            s.mesh       = obj.mesh;
+            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            f            = Filter.create(s);
+            obj.filterConnect = f; 
+         end
 
         function createMaterialInterpolator(obj)
             E0 = 1e-3;
@@ -154,6 +145,24 @@ classdef TopOptDensityConnectivity < handle
             s.dim                  = '2D';
             m = Material.create(s);
         end
+
+        function createConductivityInterpolator(obj) 
+            s.interpolation  = 'SimpAllThermal';
+            s.f0   = 1e-3;                                             
+            s.f1   = 1;  
+            s.dim  = '2D';
+            a = MaterialInterpolator.create(s);
+            obj.conductivityInterpolator = a;            
+        end 
+
+        function createMassInterpolator(obj)
+            s.interpolation  = 'SIMPThermal';                              
+            s.f0   = 1e-3;
+            s.f1   = 1;
+            s.pExp = 1;
+            a = MaterialInterpolator.create(s);
+            obj.massInterpolator = a;            
+        end      
 
         function createElasticProblem(obj)
             s.mesh = obj.mesh;
@@ -194,14 +203,23 @@ classdef TopOptDensityConnectivity < handle
             obj.perimeter = p;
         end
 
+        function uMesh = createBaseDomain(obj)
+            sG.type          = 'Full';
+            g                = GeometricalFunction(sG);
+            lsFun            = g.computeLevelSetFunction(obj.mesh);
+            levelSet         = lsFun.fValues;
+            s.backgroundMesh = obj.mesh;
+            s.boundaryMesh   = obj.mesh.createBoundaryMesh();
+            uMesh            = UnfittedMesh(s);
+            uMesh.compute(levelSet);
+        end
+
+
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
-            s.filter = obj.filterComp;
-            if ~isempty(obj.filterAdjointComp)
-                s.filterAdjoint               = obj.filterAdjointComp;
-            end
-            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.test = LagrangianFunction.create(obj.mesh,1,'P1');
             s.volumeTarget = 0.4;
+            s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -210,10 +228,12 @@ classdef TopOptDensityConnectivity < handle
             s.mesh              = obj.mesh;
             s.designVariable    = obj.designVariable;
             s.filter            = obj.filterConnect;
-            s.filterAdjoint     = obj.filterAdjointConnect;  
+            s.filterAdjoint     = obj.filterAdjointConnect;
             s.boundaryConditions = obj.createEigenvalueBoundaryConditions();
-            s.targetEigenValue  = 2.0;      
-            s.shift             = 0.0;
+            s.conductivityInterpolator = obj.conductivityInterpolator; 
+            s.massInterpolator         = obj.massInterpolator; 
+            s.targetEigenValue  = obj.lambda1min;    
+            s.isCompl           = true;
             obj.minimumEigenValue = StiffnessEigenModesConstraint(s);
         end
 
@@ -226,41 +246,57 @@ classdef TopOptDensityConnectivity < handle
 
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
-%             s.shapeFunctions{2} = obj.perimeter;
+            s.shapeFunctions{2} = obj.perimeter;
 %             s.shapeFunctions{3} = obj.minimumEigenValue;
-            s.weights           = [1.0];
+            s.weights           = [1.0,obj.p];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
 
         function M = createMassMatrix(obj)
-            s.test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.mesh  = obj.mesh;
-            s.type  = 'MassMatrix';
-            LHS = LHSIntegrator.create(s);
-            M = LHS.compute;     
+            test  = LagrangianFunction.create(obj.mesh,1,'P1');
+            trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            M = IntegrateLHS(@(u,v) DP(v,u), test, trial, obj.mesh, 'Domain', 2);
+            h = obj.mesh.computeMinCellSize();
+            M = h^2*eye(size(M));
         end
 
-        function createDualVariable(obj)
-            s.nConstraints   = 2;                                        
-            l                = DualVariable(s);
-            obj.dualVariable = l;
+        function createPrimalUpdater(obj)
+            s.ub     = 1;
+            s.lb     = 0;
+            s.tauMax = 1000;
+            s.tau    = [];
+            obj.primalUpdater = ProjectedGradient(s);
         end
 
         function createOptimizer(obj)
+%             s.monitoring     = true;
+%             s.cost           = obj.cost;
+%             s.constraint     = obj.constraint;
+%             s.designVariable = obj.designVariable;
+%             s.dualVariable   = obj.dualVariable;
+%             s.maxIter        = 1000;
+%             s.tolerance      = 1e-8;
+%             s.constraintCase{1} = 'EQUALITY';
+%             s.constraintCase{2} = 'INEQUALITY';                             
+%             s.ub             = 1;
+%             s.lb             = 0;
+%             opt              = OptimizerMMA(s);
+%             opt.solveProblem();
+%             obj.optimizer = opt;
             s.monitoring     = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
+            s.GIFname        = 'name';
             s.designVariable = obj.designVariable;
-            s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 2000;
             s.tolerance      = 1e-8;
-            s.constraintCase{1} = 'EQUALITY';
-            s.constraintCase{2} = 'INEQUALITY';                             
-            s.ub             = 1;
-            s.lb             = 0;
-            opt              = OptimizerMMA(s);
+            s.constraintCase = {'EQUALITY','INEQUALITY'};
+            s.primal         = 'PROJECTED GRADIENT';
+            s.etaNorm        = 0.01;
+            s.gJFlowRatio    = 2;
+            s.primalUpdater  = obj.primalUpdater;
+            opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
 
@@ -276,9 +312,10 @@ classdef TopOptDensityConnectivity < handle
 %             opt = OptimizerNullSpace(s);
 %             opt.solveProblem();
 %             obj.optimizer = opt;
-            saveas(figure(1),'DEN1e-3lambda1min'+string(obj.lambda1min)+'design.png','png')
-            saveas(figure(2),'DEN1e-3lambda1min'+string(obj.lambda1min)+'graficos.png','png')
-            writematrix(obj.designVariable.fun.fValues,'DEN1e-3lambda1min'+string(obj.lambda1min)+'.txt')
+            saveas(figure(1),'_p_'+string(obj.p)+string(obj.lambda1min)+'design.png','png')
+            saveas(figure(2),'_p_'+string(obj.p)+string(obj.lambda1min)+'graficos.png','png')
+            writematrix(obj.designVariable.fun.fValues,'_p_'+string(obj.p)+string(obj.lambda1min)+'.txt')
+
         end
 
         function bc = createElasticBoundaryConditions(obj)

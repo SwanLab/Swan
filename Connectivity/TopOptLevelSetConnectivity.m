@@ -40,7 +40,7 @@ classdef TopOptLevelSetConnectivity< handle
             for type = ["cantilever"]
                 for c = [2]
                     for p = [0.0] %0.15]0.05,0.15,0.5,1,3,4,"cantilever",
-                        for lambda1min = [0.6,0.8,1.0] %0.15]0.05,0.15,0.5,
+                        for lambda1min = [1.0] %0.15]0.05,0.15,0.5,
                             %l1min 1.0, p = 30; l1min 0.8, p = 5;
                             obj.c = c;
                             obj.p = p;
@@ -81,8 +81,8 @@ classdef TopOptLevelSetConnectivity< handle
         end
 
         function createMesh(obj)
-            x1      = linspace(0,2,100);
-            x2      = linspace(0,1,50);
+            x1      = linspace(0,6,180);
+            x2      = linspace(0,1,30);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -92,10 +92,10 @@ classdef TopOptLevelSetConnectivity< handle
 
         function createDesignVariable(obj)
             s.type = 'Full';
-            g      = GeometricalFunction(s);
-            lsFun  = g.computeLevelSetFunction(obj.mesh);
-%             lsFun = LagrangianFunction.create(obj.mesh,1,'P1');
-%             lsFun.setFValues(importdata('_cantilever_case_2_p_01.txt'))
+%             g      = GeometricalFunction(s);
+%             lsFun  = g.computeLevelSetFunction(obj.mesh);
+            lsFun = LagrangianFunction.create(obj.mesh,1,'P1');
+            lsFun.setFValues(importdata('_bridge_case_2_p_01.txt'))
             s.fun  = lsFun;
             s.mesh = obj.mesh;
             s.type = 'LevelSet';
@@ -128,22 +128,24 @@ classdef TopOptLevelSetConnectivity< handle
                 s.mesh       = obj.mesh;
                 s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
                 s.filterStep = 'PDE';
-                s.beta       = 20.0; 
+                s.beta       = 16.0; 
                 obj.filterConnect = Filter.create(s);
      
                 s.filterType = 'FilterAdjointAndProject';   
                 s.mesh       = obj.mesh;
                 s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
                 s.filterStep = 'PDE';
-                s.beta       = 20.0; 
+                s.beta       = 16.0; 
                 obj.filterAdjointConnect = Filter.create(s);
            elseif isequal(obj.c, 2)
                 s.filterType = 'FilterAndProject';
                 s.mesh       = obj.mesh;
                 s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
                 s.filterStep = 'PDE';
+%                 s.beta       = 10.0; % 4 2 
+%                 s.eta        = 0.3;
                 s.beta       = 4.0; % 4 2 
-                s.eta        = 0.2;
+                s.eta        = 0.0;
                 obj.filterConnect = Filter.create(s);
 %                 obj.filterConnect.updateEpsilon(2*obj.mesh.computeMinCellSize())
 
@@ -151,8 +153,10 @@ classdef TopOptLevelSetConnectivity< handle
                 s.mesh       = obj.mesh;
                 s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
                 s.filterStep = 'PDE';
-                s.beta       = 4.0; 
-                s.eta        = 0.2;
+%                 s.beta       = 10.0; 
+%                 s.eta        = 0.3;
+                s.beta       = 4.0; % 4 2 
+                s.eta        = 0.0;
                 obj.filterAdjointConnect = Filter.create(s);
 %                 obj.filterAdjointConnect.updateEpsilon(2*obj.mesh.computeMinCellSize())
 
@@ -358,10 +362,10 @@ classdef TopOptLevelSetConnectivity< handle
 %             s.gJFlowRatio       = 2.0; %obj.gJ;
 %             s.etaMax            = 0.6; %0.1;   %1.0 0.2
 %             s.etaMaxMin         = 0.02; %0.05; %0.01;
-            s.gJFlowRatio       = 0.2; %0.2; %obj.gJ;
-            s.etaMax            = 0.1; %1.0; %1.0; %0.1;   %1.0 0.2
+            s.gJFlowRatio       = 4.0; %0.2; %obj.gJ;
+            s.etaMax            = 0.5; %1.0; %1.0; %0.1;   %1.0 0.2
 %             s.etaMaxMin           = 0.1;
-            s.etaMaxMin         = 0.02; %0.02; %0.05; %0.01;
+            s.etaMaxMin         = 0.5; %0.02; %0.05; %0.01;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
