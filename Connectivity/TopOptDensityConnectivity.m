@@ -30,8 +30,8 @@ classdef TopOptDensityConnectivity < handle
     methods (Access = public)
 
         function obj = TopOptDensityConnectivity() 
-            for p = [0.0,3.0,10.0] 
-                for lambda1min = [0.6,0.8,1.0,2.0] 
+            for p = [3.0,10.0] 
+                for lambda1min = [1.0,0.8,0.6,2.0] 
                     obj.p = p;
                     obj.lambda1min = lambda1min;
                     obj.init()
@@ -198,7 +198,7 @@ classdef TopOptDensityConnectivity < handle
 
         function createPerimeter(obj)
             s.mesh                        = obj.mesh;
-            s.filter                      = obj.filterComp;
+            s.filter                      = obj.filterPerimeter;
             p = SimplePerimeterFunctional(s);
             obj.perimeter = p;
         end
@@ -289,12 +289,12 @@ classdef TopOptDensityConnectivity < handle
             s.constraint     = obj.constraint;
             s.GIFname        = 'name';
             s.designVariable = obj.designVariable;
-            s.maxIter        = 2000;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY','INEQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
             s.etaNorm        = 0.01;
-            s.gJFlowRatio    = 2;
+            s.gJFlowRatio    = 0.2;
             s.primalUpdater  = obj.primalUpdater;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
