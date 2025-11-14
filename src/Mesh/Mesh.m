@@ -251,6 +251,7 @@ classdef Mesh < handle
             if isSurfaceIn3D || isLineNotIn1D
                 s.operation  = @(xV) obj.computeJacobianDeterminant(xV);
                 s.mesh       = obj;
+                s.ndimf      = 1;
                 detJ         = DomainFunction(s);
             else
                 detJ = Det(Jacobian(obj));
@@ -260,6 +261,7 @@ classdef Mesh < handle
         function J = Jacobian(obj)
             s.operation  = @(xV) obj.computeJacobian(xV);
             s.mesh       = obj;
+            s.ndimf      = [obj.interpolation.ndime obj.ndim];
             J            = DomainFunction(s);            
         end        
 

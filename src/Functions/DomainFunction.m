@@ -12,20 +12,16 @@ classdef DomainFunction < BaseFunction
     
     end
 
-   methods (Access = private)
+    methods (Access = private)
 
         function init(obj,cParams)
             obj.operation = cParams.operation;
-            if isfield(cParams,'ndimf')
-                obj.ndimf = cParams.ndimf;
-            else
-                obj.ndimf = 1;
-            end
+            obj.ndimf = cParams.ndimf;
             obj.ndimfTotal = prod(obj.ndimf);
             obj.mesh = cParams.mesh;
         end
 
-   end
+    end
 
    methods (Access = public, Static)
 

@@ -36,6 +36,7 @@ classdef FilterPDE < handle
     end
 
     methods (Access = private)
+
         function init(obj,cParams)
             obj.trial   = LagrangianFunction.create(cParams.mesh, cParams.trial.ndimf, cParams.trial.order);
             obj.LHSint  = cParams.LHSint;
@@ -59,7 +60,8 @@ classdef FilterPDE < handle
             e   = obj.epsilon;
             vF  = obj.trial;
             uF  =  obj.trial;
-            lhs = IntegrateLHS(@(u,v) obj.LHSint.domain(e,u,v),vF,uF,obj.mesh,'Domain');
+            fun = @(e,u,v)e^2.*DP(Grad(v),Grad(u))+DP(v,u);
+            lhs = IntegrateLHS(@(u,v) fun(e,u,v),vF,uF,obj.mesh,'Domain');
             if ~isempty(obj.LHSint.boundary)
                 lhs = lhs + IntegrateLHS(@(u,v) obj.LHSint.boundary(e,u,v),vF,uF,obj.mesh,'Boundary');
             end

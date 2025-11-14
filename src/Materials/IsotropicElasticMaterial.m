@@ -58,31 +58,31 @@ classdef IsotropicElasticMaterial < Material
     methods (Access = public, Static)
        
         function mu = computeMuFromYoungAndPoisson(E,nu)
-            mu = E./(2*(1+nu));
+            mu = E./(2.*(1+nu));
         end
 
         function k = computeKappaFromYoungAndPoisson(E,nu,N)
-            k = E./(N*(1-(N-1)*nu));
+            k = E./(N.*(1-(N-1).*nu));
         end
 
         function E = computeYoungFromShearAndBulk(m,k,N)
-            E = ((N*N*k).*(2*m))./(2*m + N*(N-1)*k);
+            E = ((N.*N.*k).*(2.*m))./(2.*m + N.*(N-1).*k);
         end
         
         function nu = computePoissonFromFromShearAndBulk(m,k,N)
-            nu = ((N*k)-(2*m))./(2*m + N*(N-1)*k);
+            nu = ((N.*k)-(2.*m))./(2.*m + N.*(N-1).*k);
         end
 
         function lambda = computeLambdaFromShearAndBulk(m,k,N)
-            lambda = k - 2/N*m;
+            lambda = k - 2./N.*m;
         end
 
         function k = computeKappaFromShearAndLambda(m,l,N)
-            k = (2/N)*m + l;
+            k = (2./N).*m + l;
         end
 
         function mu = computeMuFromKappaAndLambda(k,l,N)
-            mu = (N/2)*(k-l);
+            mu = (N./2).*(k-l);
         end
         
     end

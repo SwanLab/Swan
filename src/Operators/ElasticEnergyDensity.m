@@ -1,6 +1,7 @@
 function dom = ElasticEnergyDensity(C,u)
     s.operation = @(xV) evaluate(C,u,xV);
     s.mesh = u.mesh;
+    s.ndimf = 1;
     dom = DomainFunction(s);
 end
 

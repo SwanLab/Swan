@@ -18,8 +18,7 @@ end
 function aEval = evaluate(a,ndim,xV)
     aEval         = a.evaluate(xV);
     extraDims     = computeExtraDims(a,xV);
-    expandTensor  = checkTensorSize(a,ndim,extraDims,aEval);
-    if expandTensor
+    if a.ndimf < ndim
         dims = size(aEval);
         extraDimTensor = ones(1,(ndim+extraDims)-ndims(aEval));
         aEval = reshape(aEval,[dims(1), extraDimTensor, dims(2:end)]);
@@ -33,16 +32,5 @@ function extraDim = computeExtraDims(a,xV)
         if size(xV,2) == 1
             extraDim = extraDim -1;
         end
-    end
-end
-
-function expandTensor = checkTensorSize(a,ndim,extraDims,res)
-    dimTensor = ndims(res);
-    if isa(a,'Material')
-        expandTensor = false;
-    elseif dimTensor-extraDims >= ndim
-        expandTensor = false;
-    else
-        expandTensor = true;
     end
 end

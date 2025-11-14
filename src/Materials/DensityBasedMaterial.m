@@ -1,21 +1,24 @@
-classdef DensityBasedMaterial < handle
+classdef DensityBasedMaterial < Material
     
     properties (Access = private)
        density 
        materialInterpolator
        dim
-       mesh
     end
     
     methods (Access = public)
         
         function obj = DensityBasedMaterial(cParams)
             obj.init(cParams)
+            obj.density              = cParams.density;
+            obj.materialInterpolator = cParams.materialInterpolator;
+            obj.dim                  = cParams.dim;
         end
         
         function C = obtainTensor(obj)
-            s.operation = @(xV) obj.evaluate(xV);
+            s.operation = @(xV) obj.evaluateNew(xV);
             s.mesh      = obj.mesh;
+            s.ndimf     = repmat(obj.mesh.ndim,1,4);
             C = DomainFunction(s);
         end
 
@@ -30,6 +33,7 @@ classdef DensityBasedMaterial < handle
                 for j = 1:n2
                     s.operation = @(xV) obj.evaluateGradient(dmu{i,j},dkappa{i,j},xV);
                     s.mesh      = obj.mesh;
+                    s.ndimf     = repmat(obj.mesh.ndim,1,4);
                     dC{i,j} = DomainFunction(s);
                 end
             end
@@ -40,15 +44,20 @@ classdef DensityBasedMaterial < handle
         end
         
     end
+
+    methods (Access =protected)
+
+        function C = evaluateNew(obj,xV)
+            mI  = obj.materialInterpolator;
+            rho = obj.density;
+            [mu,kappa] = mI.computeConsitutiveTensor(rho);
+            m = obj.createMaterial(mu,kappa);
+            C = m.evaluate(xV);
+        end
+
+    end
     
     methods (Access = private)
-        
-        function init(obj,cParams)
-            obj.density              = cParams.density;
-            obj.materialInterpolator = cParams.materialInterpolator;
-            obj.dim                  = cParams.dim;
-            obj.mesh                 = cParams.mesh;
-        end
         
         function m = createMaterial(obj,mu,kappa)
             s.type    = 'ISOTROPIC';
@@ -56,16 +65,10 @@ classdef DensityBasedMaterial < handle
             s.ndim    = obj.computeNdim();
             s.shear   = mu;
             s.bulk    = kappa;
+            s.mesh    = obj.mesh;
             m = Material.create(s);
         end
         
-        function C = evaluate(obj,xV)
-            mI  = obj.materialInterpolator;
-            rho = obj.density;
-            [mu,kappa] = mI.computeConsitutiveTensor(rho);
-            m = obj.createMaterial(mu,kappa);
-            C = m.evaluate(xV);
-        end
         
         function dC = evaluateGradient(obj,dmu,dkappa,xV)
             m  = obj.createMaterial(dmu,dkappa);

@@ -516,6 +516,7 @@ classdef LagrangianFunction < FeFunction
         function gradN = Gradient(obj,N) % This should be included in interpolation
             s.operation = @(xV) N.computeShapeDerivatives(xV);
             s.mesh      = obj.mesh;
+            s.ndimf     = [obj.ndimf obj.mesh.ndim obj.nDofsElem];
             gradN       = DomainFunction(s);
         end
 
