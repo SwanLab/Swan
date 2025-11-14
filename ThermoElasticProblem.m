@@ -23,7 +23,8 @@ classdef ThermoElasticProblem < handle
 
         problemSolverElastic
 
-        %alpha
+        alpha
+        kappa
         temperature                             
         boundaryConditionsThermal, bcApplierThermal   
         conductivity                            
@@ -54,8 +55,7 @@ classdef ThermoElasticProblem < handle
         end
 
         function solve(obj)
-            % kappa  = obj.createDomainFunction(obj.conductivity.fun,xR);           % conductivity on the new domain
-            obj.computeThermalStiffnessMatrix(kappa);         % LHS termico
+            obj.computeThermalStiffnessMatrix();              % LHS termico
             obj.computeThermalForces();                       % RHS termico
             obj.computeTemperature();                         % Solve PDE termico
 
@@ -67,14 +67,9 @@ classdef ThermoElasticProblem < handle
             obj.computeStress();
         end
 
-        % function f = createDomainFunction(obj,fun,xR)
-        %     s.operation = @(xV) obj.createConductivityAsDomainFunction(fun,xR{1},xV);
-        %     s.mesh      = obj.mesh;
-        %     f = DomainFunction(s);
-        % end
-
-        function updateMaterial(obj, mat)
+        function updateMaterial(obj, mat, kappa)
             obj.material = mat;
+            obj.kappa = kappa;  % right now, this is where kappa is being defined
         end
 
         function print(obj, filename, software)
@@ -115,8 +110,7 @@ classdef ThermoElasticProblem < handle
             obj.boundaryConditionsElastic = cParams.boundaryConditionsElastic;
 
             % Thermal
-            %obj.alpha = cParams.alpha;
-            obj.conductivity = cParams.conductivity;                              %
+            obj.alpha = cParams.alpha;
             obj.source       = cParams.source;                                    %
             obj.T0           = cParams.T0;
             obj.boundaryConditionsThermal = cParams.boundaryConditionsThermal;    %
@@ -147,8 +141,8 @@ classdef ThermoElasticProblem < handle
             obj.problemSolverThermal    = ProblemSolver(s);
         end
 
-        function computeThermalStiffnessMatrix(obj, kappa)
-            obj.Tstiffness=IntegrateLHS(@(u,v) kappa.*DP(Grad(u),Grad(v)),obj.test,obj.trial,obj.mesh,'Domain',2);
+        function computeThermalStiffnessMatrix(obj)
+            obj.Tstiffness=IntegrateLHS(@(u,v) obj.kappa.*DP(Grad(u),Grad(v)),obj.test,obj.trial,obj.mesh,'Domain',2);
         end
 
         function computeThermalForces(obj)
@@ -213,16 +207,18 @@ classdef ThermoElasticProblem < handle
                 end
                 rhs = rhs+R;
             end
+            obj.forces = rhs;
 
   %COUPLING TERM
-            % C = obj.material.obtainTensor();
-            % op = @(xV) repmat(eye(2),[1 1 size(xV,2) obj.mesh.nelem]);
-            % I = DomainFunction.create(op,obj.mesh,2);
-            % beta= alpha.*DDP(C,I);
-            f = @(v) -beta*(obj.tFun - obj.T0)*div(v); 
-            rhs_coupling = IntegrateRHS(f,obj.test,obj.mesh,'Domain',2);    
-            rhs = rhs + rhs_coupling;
-            obj.forces = rhs;
+%             testFun = LagrangianFunction.create(obj.mesh, 2, 'P1'); % vector test function
+%             C     = obj.material;
+%             op = @(xV) repmat(eye(2),[1 1 size(xV,2) obj.mesh.nelem]);
+%             I = DomainFunction.create(op,obj.mesh,2);
+%             beta= obj.alpha.*DDP(C,I);       % check dimensions
+%             f = @(v) -beta*(obj.tFun - obj.T0)*DDP(I,SymGrad(v)); % v should be a vector test function
+%             rhs_coupling = IntegrateRHS(f,testFun,obj.mesh,'Domain',2);    
+%             rhs = rhs + rhs_coupling;
+%             obj.forces = rhs;
         end
 
 

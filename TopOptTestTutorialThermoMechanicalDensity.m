@@ -24,7 +24,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             obj.createDesignVariable();
             obj.createFilter();
             obj.createMaterialInterpolator();
-            onj.createThermalMaterialInterpolator(); 
+            obj.createThermalMaterialInterpolator(); 
             obj.createThermoElasticProblem();
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
@@ -117,17 +117,28 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             m = Material.create(s);
         end
 
+%         function k = createThermalMaterial(obj) % check if we should create a material
+%         end
+
         function createThermoElasticProblem(obj)
             s.mesh = obj.mesh;
-            s.material = obj.createMaterial();
-            s.materialThermal= obj.createThermalMaterialInterpolator();
             s.dim = '2D';
-            s.boundaryConditions = obj.createBoundaryConditionsElastic();
-            s.boundaryConditionsThermal = obj.createBoundaryConditionsThermal();
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
             s.solverCase = DirectSolver();
+
+            % Elastic
+            s.scale = 'MACRO';
+            s.material = obj.createMaterial();
+            s.boundaryConditionsElastic = obj.createBoundaryConditionsElastic();
+
+            % Thermal
+            s.alpha = 1.0;  % check 
+            s.source  =  ConstantFunction.create(1,obj.mesh);
+            T0 = ConstantFunction.create(1,obj.mesh);
+            s.T0       = T0;
+            s.boundaryConditionsThermal = obj.createBoundaryConditionsThermal();
             fem = ThermoElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -135,15 +146,16 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
         function c = createComplianceFromConstiutive(obj)
             s.mesh         = obj.mesh;
             s.stateProblem = obj.physicalProblem;
-            c = ComplianceFromConstitutiveTensor(s);
+            c = ComplianceFromConstitutiveTensorThermoElastic(s);
         end
 
         function createCompliance(obj) %
             s.mesh                        = obj.mesh;
             s.filter                      = obj.filter;
-            s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
+            s.complianceFromConstitutive  = obj.createComplianceFromConstiutive();
             s.material                    = obj.createMaterial();
-            c = ComplianceFunctional(s);
+            s.conductivity                = obj.thermalmaterialInterpolator;
+            c = ComplianceFunctionalThermoElastic(s);
             obj.compliance = c;
         end
 
