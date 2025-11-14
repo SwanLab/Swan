@@ -69,6 +69,7 @@ classdef TestThermoMechanical < handle
             obj.thermalmaterialInterpolator = a;
          end
 
+
         function createMaterialInterpolator(obj) 
             
             E0 = 1e-3;
@@ -117,17 +118,20 @@ classdef TestThermoMechanical < handle
             s.boundaryConditionsElastic = obj.createBoundaryConditionsElastic();
 
             % Thermal
+            % s.alpha= ?
             s.conductivity = obj.thermalmaterialInterpolator;
             Q = LagrangianFunction.create(obj.mesh,1,'P1');
             fValues = ones(Q.nDofs,1);
             Q.setFValues(fValues);
             s.source       = Q; 
-            T0 = LagrangianFunction.create(obj.mesh,1,'P1');
-            fValues = ones(T0.nDofs,1);
-            T0.setFValues(fValues);
-            s.T0 = T0;
+            % T0 = LagrangianFunction.create(obj.mesh,1,'P1');
+            % fValues = ones(T0.nDofs,1);
+            % T0.setFValues(fValues);
+            % s.source       = T0; 
+            T0 = ConstantFunction.create(1,obj.mesh);
+            s.T0       = T0;
             s.boundaryConditionsThermal = obj.createBoundaryConditionsThermal();
-            fem = THELProblem(s);
+            fem = ThermoElasticProblem(s);
             obj.physicalProblem = fem;
         end
 

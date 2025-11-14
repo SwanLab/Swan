@@ -1,38 +1,43 @@
 classdef ThermoElasticProblem < handle
 
     properties (Access = public)
-        tFun  %
-
         uFun
         strainFun
         stressFun
         forces
+
+        tFun            %
+        tforces         %
+        T0
     end
 
     properties (Access = private)
         quadrature
-        boundaryConditionsThermal
-        boundaryConditionsElastic
+        boundaryConditionsElastic, bcApplierElastic
 
         stiffness
         solverType, solverMode, solverCase
+        scale
 
         strain, stress
 
-        thermalProblemSolver
-        thermoElasticProblemSolver
+        problemSolverElastic
 
-       
-        test          %
-        trial         %
-        source        %
-        temperature   %
+        %alpha
+        temperature                             
+        boundaryConditionsThermal, bcApplierThermal   
+        conductivity                            
+        test                                        
+        trial                                   
+        source                                  
+        problemSolverThermal                    
+        Tstiffness                              
     end
 
     properties (Access = protected)
         mesh
-        materialElastic
-        materialThermal
+        material
+        materialThermal     
     end
 
     methods (Access = public)
@@ -40,37 +45,37 @@ classdef ThermoElasticProblem < handle
         function obj = ThermoElasticProblem(cParams)
             obj.init(cParams);
             obj.createDisplacementFun();
-            obj.createTemperatureFun();    
-            obj.createThermalSolver();
-            obj.createThermoElasticSolver();
+            obj.createBCApplierElastic();
+            obj.createSolverElastic();
+            
+            obj.createTemperatureFun();           %
+            obj.createBCApplierThermal();         %
+            obj.createSolverThermal();            %
         end
 
         function solve(obj)
-            % thermal problem
-            % LHS thermal
-            % RHS thermal
-            % computeTemperature - obj.temperature 
-            obj.computeThermalStiffnessMatrix(kappa); % LHS
-            obj.computeThermalForces();          % RHS
-            obj.computeTemperature();     % Solve PDE 
+            % kappa  = obj.createDomainFunction(obj.conductivity.fun,xR);           % conductivity on the new domain
+            obj.computeThermalStiffnessMatrix(kappa);         % LHS termico
+            obj.computeThermalForces();                       % RHS termico
+            obj.computeTemperature();                         % Solve PDE termico
 
-            % for the thermo-elastic
-            obj.computeStiffnessMatrix();   
-            obj.computeForces();          
-            obj.computeDisplacement();
+            obj.computeStiffnessMatrix();                     
+            obj.computeForces();                              
+            obj.computeDisplacement();   
 
             obj.computeStrain();
             obj.computeStress();
         end
 
-        function updateMaterial(obj, mat)
-            obj.materialElastic = mat;
-        end
+        % function f = createDomainFunction(obj,fun,xR)
+        %     s.operation = @(xV) obj.createConductivityAsDomainFunction(fun,xR{1},xV);
+        %     s.mesh      = obj.mesh;
+        %     f = DomainFunction(s);
+        % end
 
-        % updateExternalForces... from new "ComplianceFromConstitutitveTensorAndForce" Ask Giovanna
-        % input: kappa
-        % computeTemperature
-        % computeNewCouplingForce
+        function updateMaterial(obj, mat)
+            obj.material = mat;
+        end
 
         function print(obj, filename, software)
             if nargin == 2; software = 'Paraview'; end
@@ -90,68 +95,106 @@ classdef ThermoElasticProblem < handle
             funNames = {'displacement', 'strain', 'stress'};
         end
 
+        function [tFun, uFun] = getTemperatureAndDisplacement(obj)
+            tFun = obj.tFun;
+            uFun = obj.uFun;
+        end
     end
 
     methods (Access = private)
 
         function init(obj, cParams)
-            obj.mesh = cParams.mesh;
-            obj.materialElastic = cParams.material;
-            % Interpolator thermal problem
-            obj.materialThermal = cParams.materialThermal;
+            obj.mesh        = cParams.mesh;
             obj.solverType  = cParams.solverType;
             obj.solverMode  = cParams.solverMode;
             obj.solverCase  = cParams.solverCase;
-            obj.boundaryConditionsThermal = cParams.boundaryConditionsThermal;
+
+            % Elastic
+            obj.scale       = cParams.scale;
+            obj.material    = cParams.material;
             obj.boundaryConditionsElastic = cParams.boundaryConditionsElastic;
 
-            obj.test  = LagrangianFunction.create(obj.mesh,1,'P1');   %
-            obj.trial = LagrangianFunction.create(obj.mesh,1,'P1');  %
-
-            % Temperature as a fixed function
-            % T = LagrangianFunction.create(obj.mesh,1,'P1');
-            % fValues = ones(T.nDofs,1);
-            % T.setFValues(fValues);
-            % obj.temperature      = T;  
+            % Thermal
+            %obj.alpha = cParams.alpha;
+            obj.conductivity = cParams.conductivity;                              %
+            obj.source       = cParams.source;                                    %
+            obj.T0           = cParams.T0;
+            obj.boundaryConditionsThermal = cParams.boundaryConditionsThermal;    %
+            obj.test  = LagrangianFunction.create(obj.mesh,1,'P1');               %
+            obj.trial = LagrangianFunction.create(obj.mesh,1,'P1');               %
         end
+
+        
+  %THERMAL PROBLEM
+
+        function createTemperatureFun(obj)
+            obj.tFun = LagrangianFunction.create(obj.mesh, 1, 'P1');
+        end
+
+        function createBCApplierThermal(obj)
+            s.mesh = obj.mesh;
+            s.boundaryConditions = obj.boundaryConditionsThermal;
+            bcT = BCApplier(s);
+            obj.bcApplierThermal = bcT;
+        end
+
+        function createSolverThermal(obj)
+            s.solverType         = obj.solverType;
+            s.solverMode         = obj.solverMode;
+            s.solver     = obj.solverCase;
+            s.boundaryConditions = obj.boundaryConditionsThermal;
+            s.BCApplier          = obj.bcApplierThermal;
+            obj.problemSolverThermal    = ProblemSolver(s);
+        end
+
+        function computeThermalStiffnessMatrix(obj, kappa)
+            obj.Tstiffness=IntegrateLHS(@(u,v) kappa.*DP(Grad(u),Grad(v)),obj.test,obj.trial,obj.mesh,'Domain',2);
+        end
+
+        function computeThermalForces(obj)
+            obj.tforces = IntegrateRHS(@(v) DP(obj.source,v), obj.test, obj.mesh,'Domain',2);
+        end
+
+        function t = computeTemperature(obj)
+            s.stiffness = obj.Tstiffness;
+            s.forces    = obj.tforces;
+            [t,~]       = obj.problemSolverThermal.solve(s);           
+            obj.tFun.setFValues(t);
+        end
+
+
+
+%THERMO_ELASTIC PROBLEM
 
         function createDisplacementFun(obj)
             obj.uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
         end
 
-        function bc = createBCApplier(obj,bc)
+        function createBCApplierElastic(obj)
             s.mesh = obj.mesh;
-            s.boundaryConditions = bc;
+            s.boundaryConditions = obj.boundaryConditionsElastic;
             bc = BCApplier(s);
+            obj.bcApplierElastic = bc;
         end
 
-        function createThermalSolver(obj)
-            s.solverType = obj.solverType;
-            s.solverMode = obj.solverMode;
-            s.solver     = obj.solverCase;
-            s.boundaryConditions = obj.boundaryConditionsThermal;
-            s.BCApplier          = obj.createBCApplier(obj.boundaryConditionsThermal);
-            obj.thermalProblemSolver    = ProblemSolver(s);
-        end
-
-        function createThermoElasticSolver(obj)
+        function createSolverElastic(obj)
             s.solverType = obj.solverType;
             s.solverMode = obj.solverMode;
             s.solver     = obj.solverCase;
             s.boundaryConditions = obj.boundaryConditionsElastic;
-            s.BCApplier          = obj.createBCApplier(obj.boundaryConditionsElastic);
-            obj.thermoElasticProblemSolver    = ProblemSolver(s);
+            s.BCApplier          = obj.bcApplierElastic;
+            obj.problemSolverElastic    = ProblemSolver(s);
         end
 
         function computeStiffnessMatrix(obj)
-            C     = obj.materialElastic;
+            C     = obj.material;
             f = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
             obj.stiffness = IntegrateLHS(f,obj.uFun,obj.uFun,obj.mesh,'Domain',2);
         end
 
-        function computeForces(obj)  %this has to be changed
-            bcE  = obj.boundaryConditionsElastic;
-            t   = bcE.tractionFun;
+        function computeForces(obj)
+            bc  = obj.boundaryConditionsElastic;
+            t   = bc.tractionFun;
             rhs = zeros(obj.uFun.nDofs,1);
             if ~isempty(t)
                 for i = 1:numel(t)
@@ -160,9 +203,9 @@ classdef ThermoElasticProblem < handle
                 end
             end
             if strcmp(obj.solverType,'REDUCED')
-                bcE      = obj.boundaryConditionsElastic;
-                dirich  = bcE.dirichlet_dofs;
-                dirichV = bcE.dirichlet_vals;
+                bc      = obj.boundaryConditionsElastic;
+                dirich  = bc.dirichlet_dofs;
+                dirichV = bc.dirichlet_vals;
                 if ~isempty(dirich)
                     R = -obj.stiffness(:,dirich)*dirichV;
                 else
@@ -170,41 +213,23 @@ classdef ThermoElasticProblem < handle
                 end
                 rhs = rhs+R;
             end
-            % - coupling term
-            f = @(v) beta*obj.temperature * div(v); 
+
+  %COUPLING TERM
+            % C = obj.material.obtainTensor();
+            % op = @(xV) repmat(eye(2),[1 1 size(xV,2) obj.mesh.nelem]);
+            % I = DomainFunction.create(op,obj.mesh,2);
+            % beta= alpha.*DDP(C,I);
+            f = @(v) -beta*(obj.tFun - obj.T0)*div(v); 
             rhs_coupling = IntegrateRHS(f,obj.test,obj.mesh,'Domain',2);    
             rhs = rhs + rhs_coupling;
             obj.forces = rhs;
         end
 
-        % THERMAL PROBLEM;
 
-        function createTemperatureFun(obj)
-            obj.tFun = LagrangianFunction.create(obj.mesh, 1, 'P1');
-        end
-
-         function computeThermalStiffnessMatrix(obj, kappa)
-            obj.stiffness=IntegrateLHS(@(u,v) kappa.*DP(Grad(u),Grad(v)),obj.test,obj.trial,obj.mesh,'Domain',2);
-        end
-
-        function computeThermalForces(obj)
-            obj.forces = IntegrateRHS(@(v) DP(obj.source,v), obj.test, obj.mesh,'Domain',2);
-        end
-
-        function t = computeTemperature(obj)
-            s.stiffness = obj.stiffness;
-            s.forces    = obj.forces;
-            [t,~]       = obj.thermalProblemSolver.solve(s);           
-            obj.tFun.setFValues(t);
-        end
-
-
-
-        % ELASTIC COMPUTATION
         function u = computeDisplacement(obj)
             s.stiffness = obj.stiffness;
             s.forces    = obj.forces;
-            [u,~]       = obj.thermoElasticProblemSolver.solve(s);
+            [u,~]       = obj.problemSolverElastic.solve(s);
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             obj.uFun.setFValues(uSplit);
         end
@@ -220,7 +245,7 @@ classdef ThermoElasticProblem < handle
         function computeStress(obj)
             quad = Quadrature.create(obj.mesh, 2);
             xV = quad.posgp;
-            obj.stressFun = DDP(obj.materialElastic, obj.strainFun);
+            obj.stressFun = DDP(obj.material, obj.strainFun);
             obj.stress = obj.stressFun.evaluate(xV);
         end
 
