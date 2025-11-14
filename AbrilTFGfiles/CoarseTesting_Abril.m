@@ -122,32 +122,34 @@ classdef CoarseTesting_Abril< handle
 
         function init(obj)
              obj.NNcase = 1;
-             nameNN = ["Kv1-0_1-NN20x20.mat","Kv1-0_15-NN20x20.mat","Kv1-0_2-NN20x20.mat","Kv1-0_25-NN20x20.mat","Kv1-0_3-NN20x20.mat","Kv1-0_35-NN20x20.mat","Kv1-0_4-NN20x20.mat","Kv1-0_45-NN20x20.mat","Kv1-0_5-NN20x20.mat","Kv1-0_55-NN20x20.mat","Kv1-0_6-NN20x20.mat","Kv1-0_65-NN20x20.mat","Kv1-0_7-NN20x20.mat","Kv1-0_75-NN20x20.mat","Kv1-0_8-NN20x20.mat","Kv1-0_85-NN20x20.mat"];
-
-            %obj.NNcase = 2;
-            %nameNN = ["k case2 100x100"];
-
-            % obj.NNcase = 3;
-            % nameNN = ["deg1 test50 lambda0 rate 0_01 layers256x1_16 err0.0058.mat"];
-
+             %nameNN = ["Kv1-0_1-NN20x20.mat","Kv1-0_15-NN20x20.mat","Kv1-0_2-NN20x20.mat","Kv1-0_25-NN20x20.mat","Kv1-0_3-NN20x20.mat","Kv1-0_35-NN20x20.mat","Kv1-0_4-NN20x20.mat","Kv1-0_45-NN20x20.mat","Kv1-0_5-NN20x20.mat","Kv1-0_55-NN20x20.mat","Kv1-0_6-NN20x20.mat","Kv1-0_65-NN20x20.mat","Kv1-0_7-NN20x20.mat","Kv1-0_75-NN20x20.mat","Kv1-0_8-NN20x20.mat","Kv1-0_85-NN20x20.mat"];
+             
+             nameNN = ["K_NN.mat","T1.mat","T2.mat","T3.mat","T4.mat","T5.mat","T6.mat","T7.mat","T8.mat"]
 
 
            % obj.nSubdomains    = [2 1]; %nx ny
             % obj.fileNameCorase = ["UL_r0_1-20x20.mat", "UL_r0_15-20x20.mat", "UL_r0_2-20x20.mat", "UL_r0_25-20x20.mat", "UL_r0_3-20x20.mat", "UL_r0_35-20x20.mat", "UL_r0_45-20x20.mat", "UL_r0_5-20x20.mat", "UL_r0_55-20x20.mat", "UL_r0_6-20x20.mat", "UL_r0_65-20x20.mat", "UL_r0_7-20x20.mat", "UL_r0_75-20x20.mat", "UL_r0_8-20x20.mat", "UL_r0_85-20x20.mat"]; %
             % obj.fileNameCorase = ["UL_r0_1-20x20.mat", "UL_r0_1-20x20.mat", "UL_r0_1-20x20.mat"];
-            obj.fileNameCorase = ["r0_10-20x20.mat", "r0_15-20x20.mat", "r0_20-20x20.mat", "r0_25-20x20.mat", "r0_30-20x20.mat", "r0_35-20x20.mat", "r0_40-20x20.mat", "r0_45-20x20.mat", "r0_50-20x20.mat", "r0_55-20x20.mat", "r0_60-20x20.mat", "r0_65-20x20.mat", "r0_70-20x20.mat", "r0_75-20x20.mat", "r0_80-20x20.mat", "r0_85-20x20.mat"];
+                obj.fileNameCorase = ["r0_10-20x20.mat", "r0_15-20x20.mat", "r0_20-20x20.mat", "r0_25-20x20.mat", "r0_30-20x20.mat", "r0_35-20x20.mat", "r0_40-20x20.mat", "r0_45-20x20.mat", "r0_50-20x20.mat", "r0_55-20x20.mat", "r0_60-20x20.mat", "r0_65-20x20.mat", "r0_70-20x20.mat", "r0_75-20x20.mat", "r0_80-20x20.mat", "r0_85-20x20.mat"];
             % obj.fileNameCorase = ["r0_1-20x20.mat", "r0_15-20x20.mat", "r0_2-20x20.mat", "r0_25-20x20.mat", "r0_3-20x20.mat", "r0_35-20x20.mat", "r0_45-20x20.mat", "r0_5-20x20.mat", "r0_55-20x20.mat", "r0_6-20x20.mat", "r0_65-20x20.mat", "r0_7-20x20.mat", "r0_75-20x20.mat", "r0_8-20x20.mat", "r0_85-20x20.mat"];
             %obj.fileNameCorase = ["UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat","UL_r0_85-20x20.mat"];
             %obj.fileNameCorase = ["UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_85-20x20.mat"];
             %obj.fileNameCorase = ["UL_r0_1-20x20.mat","UL_r0_1-20x20.mat","UL_r0_85-20x20.mat"]
             %obj.rSubdomains    = [0.1, 0.1, 0.1, 0.1];
-            obj.nSubdomains    = size(obj.fileNameCorase');
+
+            obj.r=[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
+
+            obj.nSubdomains    = size(obj.r');
             obj.mSubdomains    = [];
             obj.tolSameNode    = 1e-10;
-            obj.r = obj.loadRadius();
+            %obj.r = obj.loadRadius();
             obj.loadNN(nameNN);
                       
-
+            nameNN = ["Kv1-0_1-NN20x20.mat","Kv1-0_15-NN20x20.mat","Kv1-0_2-NN20x20.mat","Kv1-0_25-NN20x20.mat","Kv1-0_3-NN20x20.mat","Kv1-0_35-NN20x20.mat","Kv1-0_4-NN20x20.mat","Kv1-0_45-NN20x20.mat","Kv1-0_5-NN20x20.mat","Kv1-0_55-NN20x20.mat","Kv1-0_6-NN20x20.mat","Kv1-0_65-NN20x20.mat","Kv1-0_7-NN20x20.mat","Kv1-0_75-NN20x20.mat","Kv1-0_8-NN20x20.mat","Kv1-0_85-NN20x20.mat"];
+            obj.fileNameCorase = ["r0_10-20x20.mat", "r0_15-20x20.mat", "r0_20-20x20.mat", "r0_25-20x20.mat", "r0_30-20x20.mat", "r0_35-20x20.mat", "r0_40-20x20.mat", "r0_45-20x20.mat", "r0_50-20x20.mat", "r0_55-20x20.mat", "r0_60-20x20.mat", "r0_65-20x20.mat", "r0_70-20x20.mat", "r0_75-20x20.mat", "r0_80-20x20.mat", "r0_85-20x20.mat"];
+            obj.nSubdomains    = size(obj.fileNameCorase');
+            obj.r = obj.loadRadius();
+            obj.loadNN1(nameNN);
 
         end
 
@@ -163,7 +165,7 @@ classdef CoarseTesting_Abril< handle
 
         end
 
-        function loadNN(obj, nameNN)
+        function loadNN1(obj, nameNN)
             NN = [];
             sizeX = size(nameNN,2);
             sizeY = size(nameNN,1);
@@ -183,8 +185,20 @@ classdef CoarseTesting_Abril< handle
 
             obj.NN = NN;
 
+        end
 
+        function loadNN(obj,nameNN)
 
+             NN = [];
+
+             load(nameNN(1), 'K_NN');
+             obj.NN.K=K_NN;
+
+            for i=2:length(nameNN)
+                load(nameNN(1,i), 'T_NN');
+                NN=[NN,T_NN];
+            end
+            obj.NN.T=NN;
         end
 
 
@@ -571,18 +585,35 @@ classdef CoarseTesting_Abril< handle
 
 
         function Mcoarse = createCoarseNNPreconditioner(obj,mR,dir,iC,lG,bS,iCR,dMesh)
-            % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
-            % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
-            
-            RVE = cell(size(obj.nSubdomains));
-            K = [];
+            RVE = cell(obj.nSubdomains(1,2),obj.nSubdomains(1,1));
+            %K = [];
             identity = eye(8);
 
+            if obj.NNcase == 4
+                K=zeros(8,8,obj.nSubdomains(1,1));
+
+               for i = 1:obj.nSubdomains(1,2)
+                   for j = 1:obj.nSubdomains(1,1)
+                       K_aux1=obj.NN.K.computeOutputValues(obj.r(j));
+                       idx=1;
+                       K_aux2=zeros(8);
+                       for n=1:8
+                           for m=n:8
+                               K_aux2(n,m)=K_aux1(idx);
+                               idx=idx+1;
+                           end
+                       end
+                       K(:,:,j)=K_aux2+triu(K_aux2,1).';
+                        
+                  end
+               end
+            end
+
             if obj.NNcase == 1
+                K=[]
                 for i = 1:obj.nSubdomains(1,2)
                     for j = 1:obj.nSubdomains(1,1)
                         K = cat(3,K,obj.case12(obj.NN(i,j), identity )  ); %seria la K coarse
- 
                    end
                 end
 

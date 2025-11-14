@@ -22,7 +22,7 @@ predicted=permute(predicted, [2 1 3]);
 difference=reshape(difference.',2,mesh.nnodes,[]);
 difference=permute(difference, [2 1 3]);
 
-idx=1; %radius to visualize 
+idx=6; %radius to visualize 
 
 %% Real
 r.mesh=mesh;

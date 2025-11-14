@@ -67,8 +67,6 @@ classdef Coarse < handle
             end
 
             
-
-
             obj.dispFun = LagrangianFunction.create(obj.mesh,obj.RVE{1,1}.ndimf,'P1');
             %obj.dispFun = LagrangianFunction.create(obj.mesh, obj.RVE{1,1}.ndimf,'P1');
             
