@@ -9,6 +9,9 @@ classdef Testing_LOBPCG
         Kdiag  (:,1) double      % diagonal of K for Jacobi
         Vtrue(:,1) double
         L                        % ichol factor (optional)
+        Milu
+        Meifem
+        Mmult
     end
 
     properties (SetAccess = public)
@@ -17,7 +20,7 @@ classdef Testing_LOBPCG
         maxit           (1,1) double  = 20000        % max iterations
         tol             (1,1) double  = 1e-8      % *** relative residual tolerance ***
         use_precond     (1,1) logical = true
-        precond_type                 = 'ichol';   % 'ichol' | 'jacobi' | 'none' | 'eifem
+        precond_type                 = 'eifem';   % 'ichol' | 'jacobi' | 'none' | 'eifem
         use_physical_x  (1,1) logical = true
         problem         (1,1) double  = 2
 
@@ -31,11 +34,18 @@ classdef Testing_LOBPCG
             [obj.K,obj.M] = obj.setup_matrices(obj.problem);
 
             % Symmetrize once for safety
-            obj.K = (obj.K+obj.K.')/2;
-            obj.M = (obj.M+obj.M.')/2;
+            obj.K = Testing_LOBPCG.symmetrize(obj.K);
+            obj.M = Testing_LOBPCG.symmetrize(obj.M);
 
             obj.Kdiag = full(diag(obj.K));
 
+           
+        end
+    end
+
+    methods
+        function results = run_demo(obj)
+            
             % Try to build an incomplete Cholesky preconditioner if requested
             if obj.use_precond && strcmpi(obj.precond_type,'ichol')
                 try
@@ -49,13 +59,8 @@ classdef Testing_LOBPCG
                     obj.L = [];
                 end
             elseif obj.use_precond && strcmpi(obj.precond_type,'eifem')
-                    
+                    [obj.Mmult, obj.Meifem, obj.Milu] = obj.initEifemPreconditioner();
             end
-        end
-    end
-
-    methods
-        function results = run_demo(obj)
             % Solve
             [lambda, X, history] = obj.lobpcg_extremal();
 
@@ -85,12 +90,12 @@ classdef Testing_LOBPCG
             lambda_ritz = zeros(1, b);  % initialize ritz values
             
             % eifem preconditioner initialization
-            LHSfun = @(x) K*x;
-            Milu         = obj.createILUpreconditioner(K);
-            load('eifemPreconditioner.mat')
-            Meifem = @(r) eP.apply(r);
-            Mmult        = @(r) Preconditioner.multiplePrec(r,LHSfun,Milu,Meifem,Milu);
-
+            %LHSfun = @(x) K*x;
+            %Milu         = obj.createILUpreconditioner(K);
+            %load('eifemPreconditioner.mat')
+            %Meifem = @(r) eP.apply(r);
+            %Mmult        = @(r) Preconditioner.multiplePrec(r,LHSfun,Milu,Meifem,Milu);
+            
             tic
             for it = 1:obj.maxit
                 % 2) Ritz in span(X): best mode approximation in current
@@ -121,7 +126,7 @@ classdef Testing_LOBPCG
                 % would annihilate its imbalance 𝐾x = λMx, but only
                 % in directions not already spanned by X
                 
-                Z = obj.apply_prec(R, Mmult); % preconditioned residuals (steepest-descent corrections)
+                Z = obj.apply_prec(R); % preconditioned residuals (steepest-descent corrections)
                 Z = obj.M_proj_out(Z, X, M); % remove components of Z already in span(X) so subspace expands
                 Z = obj.M_orth(Z, M);
 
@@ -182,7 +187,7 @@ classdef Testing_LOBPCG
 
                 % 9) Soft restart if ill-conditioned (stabilizes convergence)
                 Ggram = ([X P].'*(M*[X P]));
-                Ggram = (Ggram+Ggram.')/2;
+                Ggram = Testing_LOBPCG.symmetrize(Ggram);
                 if rcond(Ggram) < 1e-10 || norm(P,'fro') < 1e-14
                     P = [];
                 end
@@ -200,7 +205,7 @@ classdef Testing_LOBPCG
             % Build an M-orthonormal basis Q for span(Xin) (SVQB fallback inside)
             Q = Testing_LOBPCG.M_orth(Xin, M);        % Q' M Q = I -> means every colun has unit generalized mass, and modes are mutually mass-orthogonal
             % Project K; B = I implicitly
-            A = Q.' * (K * Q);  A = (A+A.')/2; %modified so more stable numerically than getting eig from A = (X^T K X) & B = (X^T M X)
+            A = Q.' * (K * Q);  A = Testing_LOBPCG.symmetrize(A); %modified so more stable numerically than getting eig from A = (X^T K X) & B = (X^T M X)
             
             [V, D] = eig(A, 'vector');
             [theta, p] = sort(real(D), 'ascend');
@@ -231,7 +236,7 @@ classdef Testing_LOBPCG
 
                 case 'eifem'
                     for i=1:size(R,2)
-                        Z(:,i) = Mmult(R(:,i));
+                        Z(:,i) = obj.Mmult(R(:,i));
                     end
                     
                 otherwise
@@ -296,7 +301,7 @@ classdef Testing_LOBPCG
             % Mass-weighted orthonormalization: X' M X = I
             if isempty(X), return; end
             G = X.' * (M*X);
-            G = (G + G.')/2;
+            G = Testing_LOBPCG.symmetrize(G);
             % Try Cholesky first
             [R,p] = chol(G, 'lower');
             if p==0
@@ -325,7 +330,7 @@ classdef Testing_LOBPCG
             % Z -> Matrix of new directions to add (proposed corrections oti mprove modes)
             % Goal: remove from Z any component that lies in span(Q), but measured in the M-inner produc
             if isempty(Z) || isempty(Q), return; end
-            G = Q.' * (M * Q);  G = (G+G.')/2; % Compute the Gram matrix and symmetrize
+            G = Q.' * (M * Q);  Testing_LOBPCG.symmetrize(G); % Compute the Gram matrix and symmetrize
             T = Q.' * (M * Z); % compute cross gram
             Z = Z - Q * (G \ T); % Projecting Z with respect to the mass inner product removes from each correction any overlap in kinetic energy with the existing modes
         end
@@ -337,6 +342,13 @@ classdef Testing_LOBPCG
 
 
     methods (Access = private)
+        function [Mmult,Meifem, Milu] = initEifemPreconditioner(obj)
+            LHSfun = @(x) obj.K*x;
+            Milu = obj.createILUpreconditioner(obj.K);
+            load('eifemPreconditioner.mat')
+            Meifem = @(r) eP.apply(r);
+            Mmult = @(r) Preconditioner.multiplePrec(r,LHSfun,Milu,Meifem,Milu);
+        end
         function Milu = createILUpreconditioner(obj,LHS)
             s.LHS = LHS;
             s.type = 'ILU';
@@ -403,5 +415,15 @@ classdef Testing_LOBPCG
             end
         end
 
+    end
+
+    %% =======================
+    %  Helpers
+    %  =======================
+
+    methods (Static, Access = private)
+        function X = symmetrize(X)
+            X = (X+X.')/2;
+        end
     end
 end
