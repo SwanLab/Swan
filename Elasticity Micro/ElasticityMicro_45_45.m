@@ -42,7 +42,7 @@ classdef ElasticityMicro_45_45 < handle
         end
 
         function [ls,phiFun] = computeLevelSet(obj, mesh)
-            gPar.type = 'CrossDiagonalBars'; 
+            gPar.type = 'CrossDiagonalBarsv2'; 
             gPar.leftBar_xMax  = 0.35;
             gPar.barWidth      = 0.1;
         

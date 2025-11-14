@@ -328,8 +328,8 @@ classdef GeometricalFunction < handle
                     c_top_m      = c_center_m + deltaC_minus;
                 
 
-                    x1 = @(x) x(:,1);
-                    x2 = @(x) x(:,2);
+                    %x1 = @(x) x(:,1);
+                    %x2 = @(x) x(:,2);
                 
                     % +45° diagonals
                     fP1 = @(x) abs(x2(x) - x1(x) - c_bottom_p) - (h/2)*scale;
@@ -340,10 +340,44 @@ classdef GeometricalFunction < handle
                     fN1 = @(x) abs(x2(x) + x1(x) - c_bottom_m) - (h/2)*scale;
                     fN2 = @(x) abs(x2(x) + x1(x) - c_center_m) - (h/2)*scale;
                     fN3 = @(x) abs(x2(x) + x1(x) - c_top_m)    - (h/2)*scale;
-                
+
                     fH = @(x) min(min(min(fP1(x), fP2(x)), fP3(x)), min(min(fN1(x), fN2(x)), fN3(x)) );
                     obj.fHandle = fH;
+               
+                case 'CrossDiagonalBarsv2' % -45°/+45°
+                    h     = cParams.barWidth;
+                    yB2   = cParams.bottomBar_yMax;
+                    yT1   = cParams.topBar_yMin;
+                    scale = sqrt(2);
+                    L=1;
+                
+                    % +45°
+                    c_center_p  = 0.0;
+                    c_bottom_p  = c_center_p - L/2;
+                    c_top_p     = c_center_p + L/2;
+                
+                    % -45°
+                    c_center_m   = L;
+                    c_bottom_m   = c_center_m - L/2;
+                    c_top_m      = c_center_m + L/2;
+                
 
+                    %x1 = @(x) x(:,1);
+                    %x2 = @(x) x(:,2);
+                
+                    % +45° diagonals
+                    fP1 = @(x) abs(x2(x) - x1(x) - c_bottom_p) - (h/2)*scale;
+                    fP2 = @(x) abs(x2(x) - x1(x) - c_center_p) - (h/2)*scale;
+                    fP3 = @(x) abs(x2(x) - x1(x) - c_top_p)    - (h/2)*scale;
+                
+                    % -45° diagonals
+                    fN1 = @(x) abs(x2(x) + x1(x) - c_bottom_m) - (h/2)*scale;
+                    fN2 = @(x) abs(x2(x) + x1(x) - c_center_m) - (h/2)*scale;
+                    fN3 = @(x) abs(x2(x) + x1(x) - c_top_m)    - (h/2)*scale;
+
+
+                    fH = @(x) min(min(min(fP1(x), fP2(x)), fP3(x)), min(min(fN1(x), fN2(x)), fN3(x)) );
+                    obj.fHandle = fH;
 
                     
                 
