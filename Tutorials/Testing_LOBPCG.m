@@ -312,7 +312,7 @@ classdef Testing_LOBPCG
             [U,S] = eig(G);
             s = real(diag(S));
             % keep positive spectrum above tolerance
-            tol = max(s)*1e-12;
+            tol = eps(max(s));
             keep = (s > tol);
             U = U(:,keep); s = s(keep);
             if isempty(s)
@@ -320,7 +320,7 @@ classdef Testing_LOBPCG
                 X = zeros(size(X));
                 return
             end
-            X = X * U * diag(1./sqrt(s));
+            X = X * (U .* (1./sqrt(s)).');
         end
 
         function Z = M_proj_out(Z, Q, M)
