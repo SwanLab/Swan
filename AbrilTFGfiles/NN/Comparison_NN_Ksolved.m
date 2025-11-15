@@ -12,9 +12,9 @@ filePath1 = fullfile('AbrilTFGfiles', 'NN', fileName1);
 load(filePath1);
 
 %%load K coarse dataset
-%fileName2="UL_r0_4130-20x20.mat";
-%filePath2 = fullfile('AbrilTFGfiles','DataComparison' ,fileName2);
-%load(filePath2);
+fileName2="Kdata.csv";
+filePath2 = fullfile('AbrilTFGfiles',fileName2);
+load(filePath2);
 
 
 %% RESTRUCTURE DATA
@@ -31,7 +31,6 @@ for i=1:n
 end
 
 K_NN=K_NN+triu(K_NN,1).';
-
 
 %% COMPARISON ANALYTICAL VS TRAINED
 Err=max(max(abs(K_NN-K)));

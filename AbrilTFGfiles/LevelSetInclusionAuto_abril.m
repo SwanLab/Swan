@@ -117,7 +117,6 @@ classdef LevelSetInclusionAuto_abril < handle
             s.material = obj.material;
             s.dim      = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
-            %s.interpolationType  = 'LINEAR';
             s.solverType         = 'MONOLITHIC';
             s.solverMode         = 'DISP';
             s.solverCase         = DirectSolver();
@@ -256,11 +255,11 @@ classdef LevelSetInclusionAuto_abril < handle
             obj.displacementFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
         end
 
-        function createBCApplyerHere(obj, cParams)
-            s.mesh = obj.mesh;
-            s.boundaryConditions = cParams.boundaryConditions;
-            obj.bcApplier = BCApplier(s);
-        end
+        %function createBCApplyerHere(obj, cParams)
+        %    s.mesh = obj.mesh;
+        %    s.boundaryConditions = cParams.boundaryConditions;
+        %    obj.bcApplier = BCApplier(s);
+        %end
 
         function createSolverHere(obj, cParams)
             p.solverType = cParams.solverType;
@@ -278,26 +277,26 @@ classdef LevelSetInclusionAuto_abril < handle
             obj.stiffness = IntegrateLHS(f,obj.displacementFun,obj.displacementFun,obj.mesh,'Domain',2);
         end
 
-        function computeForcesHere(obj, cParams)
-            n.type         = 'Elastic';
-            n.scale        = 'MACRO';
-            n.dim          = obj.getFunDimsHere();
-            n.BC           = cParams.boundaryConditions;
-            n.mesh         = obj.mesh;
-            n.material     = obj.material;
-            n.globalConnec = obj.mesh.connec;
-
-            RHSint = RHSIntegrator.create(n);
-            rhs    = RHSint.compute();
-            % Perhaps move it inside RHSint?
-            if strcmp(cParams.solverType,'REDUCED')
-                R          = RHSint.computeReactions(obj.stiffness);
-                obj.forces = rhs+R;
-            else
-                obj.forces = rhs;
-            end
-            
-        end
+        %function computeForcesHere(obj, cParams)
+        %    n.type         = 'Elastic';
+        %    n.scale        = 'MACRO';
+        %    n.dim          = obj.getFunDimsHere();
+        %    n.BC           = cParams.boundaryConditions;
+        %    n.mesh         = obj.mesh;
+        %    n.material     = obj.material;
+        %    n.globalConnec = obj.mesh.connec;
+%
+        %    RHSint = RHSIntegrator.create(n);
+        %    rhs    = RHSint.compute();
+        %    % Perhaps move it inside RHSint?
+        %    if strcmp(cParams.solverType,'REDUCED')
+        %        R          = RHSint.computeReactions(obj.stiffness);
+        %        obj.forces = rhs+R;
+        %    else
+        %        obj.forces = rhs;
+        %    end
+        %    
+        %end
 
         function Cg = computeConstraintMatrix(obj)
             s.quadType = 2;
