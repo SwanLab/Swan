@@ -12,7 +12,7 @@ filePath1 = fullfile('AbrilTFGfiles', 'NN', fileName1);
 load(filePath1);
 
 % load K coarse dataset
-fileName2="Kdata.csv";
+fileName2="DataK.csv";
 filePath2 = fullfile('AbrilTFGfiles',fileName2);
 load(filePath2);
 

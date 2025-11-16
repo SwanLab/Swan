@@ -63,7 +63,7 @@ end
 T=array2table(TData,"VariableNames",{'r','x','y','Tx1','Ty1','Tx2','Ty2','Tx3','Ty3','Tx4','Ty4' ...
     'Tx5','Ty5','Tx6','Ty6','Tx7','Ty7','Tx8','Ty8'});
 
-uFileName = fullfile('AbrilTFGfiles', 'Tdata.csv');
+uFileName = fullfile('AbrilTFGfiles', 'DataT.csv');
 writematrix(TData,uFileName);
 %writetable(T,uFileName);
 
@@ -85,7 +85,7 @@ for n=1:size(r,2)
 end
 
 kdata=[r.',kdata];
-kFileName = fullfile('AbrilTFGfiles', 'Kdata.csv');
+kFileName = fullfile('AbrilTFGfiles', 'dataK.csv');
 writematrix(kdata,kFileName);
 
 

@@ -16,7 +16,7 @@ hiddenLayers    = [4,64,64,16];
 
 %% INITIALIZATION 
 % Store dataset file name
-s.fileName = 'Tdata.csv';
+s.fileName = 'DataT.csv';
 
 % Load model parameters
 s.polynomialOrder = pol_deg;
