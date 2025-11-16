@@ -1,4 +1,6 @@
-% This script is intended to train the NN for the Downscaling dataset V1
+% This script is intended to train the NN for the Downscaling dataset V1.
+% A more compact second version has been created but this one it allows to
+% create a more suitable data to do the graphics comparison
 
 clc;
 clear;
@@ -8,8 +10,8 @@ close all;
 pol_deg         = 1;
 testratio       = 20;
 lambda          = 0.0;
-learningRate    = 0.05;
-hiddenLayers    = 6 .* ones(1,2);
+learningRate    = 0.01;
+hiddenLayers    = [4,64,64,16];
  
 
 %% INITIALIZATION 
@@ -29,7 +31,7 @@ s.networkParams.HUtype = 'ReLU';
 s.networkParams.OUtype = 'linear';
 
 % Select the T column to train
-T_type='T8'
+T_type='All'
 
 % Select the model's features
 s.xFeatures = 1:3;
@@ -51,6 +53,8 @@ switch T_type
         s.yFeatures = [16,17];    %T7
     case 'T8'   
         s.yFeatures = [18,19];    %T8
+    case 'All'
+        s.yFeatures = [4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19];
 end
 
 
@@ -99,6 +103,8 @@ switch T_type
         string ="T7.mat"; %T7
     case 'T8'
         string ="T8.mat"; %T8
+    case 'All'
+        string="T_all.mat";
 end
 
 

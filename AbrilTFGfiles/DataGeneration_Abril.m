@@ -3,11 +3,9 @@
 
 clc; clear; close all;
 
-r = 0:0.1:0.999; 
+r = 0:0.05:0.999; 
 %r=0.1;
 
-
-T_all=zeros(761,19,length(r));
 
 doplot=false();
 

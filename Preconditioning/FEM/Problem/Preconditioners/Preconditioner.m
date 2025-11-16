@@ -73,7 +73,6 @@ classdef Preconditioner < handle
            x = RichardsonSolver.solve(A,r,x0,P,tol,tau);
 
 
-
         end
 
     end

@@ -65,11 +65,8 @@ classdef Coarse < handle
                     obj.U   = cat(3, obj.U, obj.RVE{i,j}.U);
                 end
             end
-
             
-            obj.dispFun = LagrangianFunction.create(obj.mesh,obj.RVE{1,1}.ndimf,'P1');
-            %obj.dispFun = LagrangianFunction.create(obj.mesh, obj.RVE{1,1}.ndimf,'P1');
-            
+            obj.dispFun = LagrangianFunction.create(obj.mesh,obj.RVE{1,1}.ndimf,'P1');            
         end
 
         function dim = getDims(obj)

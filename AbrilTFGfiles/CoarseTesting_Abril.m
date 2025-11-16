@@ -32,9 +32,7 @@ classdef CoarseTesting_Abril< handle
     methods (Access = public)
 
         function obj = CoarseTesting_Abril()
-            close all
             obj.init()
-
             mR = obj.createReferenceMesh();  %Crea la background mesh
             bS  = mR.createBoundaryMesh();    %crea el boundary de la mesh
             [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain(mR);  
@@ -51,7 +49,7 @@ classdef CoarseTesting_Abril< handle
 
             [LHS,RHS,LHSf] = obj.createElasticProblem();
             obj.LHS = LHSf;
-            %             LHS = 0.5*(LHS+LHS');
+            %  LHS = 0.5*(LHS+LHS');
 
             LHSf = @(x) LHS*x;
             RHSf = RHS;
@@ -59,7 +57,6 @@ classdef CoarseTesting_Abril< handle
             Ufull = obj.bcApplier.reducedToFullVectorDirichlet(Usol);  %AIXO PQ SERVIEX???
             %obj.plotSolution(Ufull,obj.meshDomain,1,1,0,obj.bcApplier,0)
 
-            % Meifem       = obj.createEIFEMPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
             Milu         = obj.createILUpreconditioner(LHS);
             Mcoarse       = obj.createCoarseNNPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
             Mid            = @(r) r;
@@ -86,9 +83,10 @@ classdef CoarseTesting_Abril< handle
             uFun.print('TestCoarseAbril','Paraview');
 
             % Compute hole
-            obj.computeSubdomainCentroid();
-            CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'Pred', obj.r, obj.centroids);
-
+            %obj.computeSubdomainCentroid();
+            %CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'Pred', obj.r, obj.centroids);
+            
+            close all
             figure
             plot(residualPCG,'linewidth',2)
             %hold on
@@ -97,6 +95,7 @@ classdef CoarseTesting_Abril< handle
             %legend({'CG + ILU-EIFEM-ILU','CG'},'FontSize',12)
             xlabel('Iteration')
             ylabel('Residual')
+            title("Residual PCG")
 
             figure
             plot(errPCG,'linewidth',2)
@@ -106,6 +105,7 @@ classdef CoarseTesting_Abril< handle
             %legend('CG + EIFEM+ ILU(CG-90%-L2)','CG')
             xlabel('Iteration')
             ylabel('||error||_{L2}')
+            title("error PCG")
 
             figure
             plot(errAnormPCG,'linewidth',2)
@@ -115,6 +115,7 @@ classdef CoarseTesting_Abril< handle
             %legend('CG + EIFEM+ ILU(CG-90%-L2)','CG')
             xlabel('Iteration')
             ylabel('Energy norm')
+            title("Err Anorm PCG")
 
         end
 
@@ -123,58 +124,38 @@ classdef CoarseTesting_Abril< handle
     methods (Access = private)
 
         function init(obj)
-             obj.NNcase = 1;
-             nameNN = ["K_NN.mat","T1.mat","T2.mat","T3.mat","T4.mat","T5.mat","T6.mat","T7.mat","T8.mat"]
-                obj.fileNameCorase = ["r0_10-20x20.mat", "r0_15-20x20.mat", "r0_20-20x20.mat", "r0_25-20x20.mat", "r0_30-20x20.mat", "r0_35-20x20.mat", "r0_40-20x20.mat", "r0_45-20x20.mat", "r0_50-20x20.mat", "r0_55-20x20.mat", "r0_60-20x20.mat", "r0_65-20x20.mat", "r0_70-20x20.mat", "r0_75-20x20.mat", "r0_80-20x20.mat", "r0_85-20x20.mat"];
+            obj.NNcase = 1;
+            nameNN= ["K_NN.mat","T_NN.mat"];
 
-            obj.r=[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
+            obj.r=[0.1,0.15,0.3,0.4,0.5,0.55,0.7,0.8,0.85];
 
             obj.nSubdomains    = size(obj.r');
             obj.mSubdomains    = [];
             obj.tolSameNode    = 1e-10;
-            %obj.r = obj.loadRadius();
             obj.loadNN(nameNN);
-                      
-            %nameNN = ["Kv1-0_1-NN20x20.mat","Kv1-0_15-NN20x20.mat","Kv1-0_2-NN20x20.mat","Kv1-0_25-NN20x20.mat","Kv1-0_3-NN20x20.mat","Kv1-0_35-NN20x20.mat","Kv1-0_4-NN20x20.mat","Kv1-0_45-NN20x20.mat","Kv1-0_5-NN20x20.mat","Kv1-0_55-NN20x20.mat","Kv1-0_6-NN20x20.mat","Kv1-0_65-NN20x20.mat","Kv1-0_7-NN20x20.mat","Kv1-0_75-NN20x20.mat","Kv1-0_8-NN20x20.mat","Kv1-0_85-NN20x20.mat"];
-            %obj.fileNameCorase = ["r0_10-20x20.mat", "r0_15-20x20.mat", "r0_20-20x20.mat", "r0_25-20x20.mat", "r0_30-20x20.mat", "r0_35-20x20.mat", "r0_40-20x20.mat", "r0_45-20x20.mat", "r0_50-20x20.mat", "r0_55-20x20.mat", "r0_60-20x20.mat", "r0_65-20x20.mat", "r0_70-20x20.mat", "r0_75-20x20.mat", "r0_80-20x20.mat", "r0_85-20x20.mat"];
-            %obj.nSubdomains    = size(obj.fileNameCorase');
-            %obj.r = obj.loadRadius();
-            %obj.loadNN1(nameNN);
 
-        end
-
-
-        function loadNN1(obj, nameNN)
-            NN = [];
-            sizeX = size(nameNN,2);
-            sizeY = size(nameNN,1);
+            nameT=["UL_r0_1000-20x20.mat","UL_r0_1500-20x20.mat","UL_r0_3000-20x20.mat","UL_r0_4000-20x20.mat",...
+                "UL_r0_5000-20x20.mat","UL_r0_5500-20x20.mat","UL_r0_7000-20x20.mat","UL_r0_8000-20x20.mat","UL_r0_8500-20x20.mat"];
             
-
-            for i = 1:sizeY
-                nn = [];
-                for j = 1:sizeX
-                    n = load(nameNN(i,j));
-                    nn = cat(2, nn, n.opt);
-                
-                end
-                NN = cat(1, NN, nn);
-            end
-            obj.NN = NN;
+            obj.loadT(nameT);
 
         end
 
         function loadNN(obj,nameNN)
+            load(nameNN(1,1), 'K_NN');
+            obj.NN.K=K_NN;
+            load(nameNN(1,2), 'T_NN');
+            obj.NN.T=T_NN;
+        end
 
-             NN = [];
-
-             load(nameNN(1), 'K_NN');
-             obj.NN.K=K_NN;
-
-            for i=2:length(nameNN)
-                load(nameNN(1,i), 'T_NN');
-                NN=[NN,T_NN];
+        function loadT(obj,nameT)
+            Taux=cell(1,length(nameT));
+            for i=1:length(nameT)
+                filePath = fullfile('AbrilTFGfiles', 'DataVariables', '20x20',nameT(i));
+                load(filePath,"T");
+                Taux{1,i}=T;
             end
-            obj.NN.T=NN;
+            obj.NN.Tprova=Taux;
         end
 
 
@@ -184,6 +165,7 @@ classdef CoarseTesting_Abril< handle
             s.tolSameNode = obj.tolSameNode;
             m = MeshCreatorFromRVE(s);
             [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
+            close all;
         end
 
 
@@ -245,16 +227,6 @@ classdef CoarseTesting_Abril< handle
         end
 
 
-        function mS = createEIFEMreferenceMesh(obj)
-            filename = obj.fileNameCorase;
-            load(filename);
-            s.coord    = EIFEoper.MESH.COOR;
-            isMin = s.coord==min(s.coord);
-            isMax = s.coord==max(s.coord);
-
-            s.connec   = EIFEoper.MESH.CN;
-            mS         = Mesh.create(s);
-        end
 
         function mCoarse = createCoarseMesh(obj,mR)
             s.nsubdomains   = obj.nSubdomains; %nx ny
@@ -263,7 +235,6 @@ classdef CoarseTesting_Abril< handle
             mRVECoarse      = MeshCreatorFromRVE(s);
             [mCoarse,~,~] = mRVECoarse.create();
         end
-
 
 
         function cMesh = createReferenceCoarseMesh(obj,mR)
@@ -345,7 +316,7 @@ classdef CoarseTesting_Abril< handle
 %             poisson = ConstantFunction.create(nu,mesh);
             f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<radius)*E2 + ...
                         (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=radius)*E1 ; 
-%                                      x(2,:,:).*0 ];
+
             young   = AnalyticalFunction.create(f,mesh);
             poisson = ConstantFunction.create(nu,mesh);
             
@@ -409,7 +380,7 @@ classdef CoarseTesting_Abril< handle
             %materialBasic = obj.createMaterialBasic(obj.meshDomain);
             [lhs,LHSr] = obj.computeStiffnessMatrix(u,material);
             %[lhsBasic,~] = obj.computeStiffnessMatrixBasic(uBasic,materialBasic);
-            RHSr       = obj.computeForces1(lhs,uBasic);
+            RHSr       = obj.computeForces(lhs,uBasic);
         end
 
 
@@ -446,12 +417,10 @@ classdef CoarseTesting_Abril< handle
             p.nNodes = obj.meshDomain.nnodes;
             p.nDimf = obj.meshDomain.ndim;
             
-            
-            
+
             dddm = DomainDecompositionDofManager(p);
             LHS = dddm.local2globalMatrix(LHSvect);
-            LHSr = obj.bcApplier.fullToReducedMatrixDirichlet(LHS);
-            
+            LHSr = obj.bcApplier.fullToReducedMatrixDirichlet(LHS);     
         end
 
 
@@ -468,21 +437,7 @@ classdef CoarseTesting_Abril< handle
         end
 
 
-        function RHS = computeForces(obj,stiffness,u)
-            s.type      = 'Elastic';
-            s.scale     = 'MACRO';
-            s.dim.ndofs = u.nDofs;
-            s.BC        = obj.boundaryConditions;
-            s.mesh      = obj.meshDomain;
-            RHSint      = RHSIntegrator.create(s);
-            rhs         = RHSint.compute();
-            % Perhaps move it inside RHSint?
-            R           = RHSint.computeReactions(stiffness);
-            RHS = rhs+R;
-            RHS = obj.bcApplier.fullToReducedVectorDirichlet(RHS);
-        end
-
-        function RHS =  computeForces1(obj,stiffness,u)
+        function RHS =  computeForces(obj,stiffness,u)
             bc  = obj.boundaryConditions;
             t   = bc.tractionFun;
             rhs = zeros(u.nDofs,1);
@@ -506,55 +461,6 @@ classdef CoarseTesting_Abril< handle
              RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
         end
 
-        function Meifem = createEIFEMPreconditioner(obj,mR,dir,iC,lG,bS,iCR,dMesh)
-            % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
-            EIFEMfilename = obj.fileNameCorase;
-            % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
-            filename        = EIFEMfilename;
-            s.RVE           = CoarseTrainedRVE(filename);
-            s.mesh          = obj.createCoarseMesh(mR);
-            s.DirCond       = dir;
-            s.nSubdomains = obj.nSubdomains;
-            eifem           = EIFEM(s);
-
-
-            ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
-            ss.EIFEMsolver = eifem;
-            ss.bcApplier = obj.bcApplier;
-            ss.dMesh     = dMesh;
-            ss.type = 'EIFEM';
-            eP = Preconditioner.create(ss);
-            Meifem = @(r,uk) eP.apply(r,uk);
-        end
-
-         function Mcoarse = createCoarsePreconditioner(obj,mR,dir,iC,lG,bS,iCR,dMesh)          
-            RVE = cell(size(obj.nSubdomains));
-
-            for i = 1:obj.nSubdomains(1,2)
-                for j = 1:obj.nSubdomains(1,1)
-                    
-                    filename = obj.fileNameCorase(i,j);
-                    data = load(filename);
-                    RVE{i,j} = CoarseTrainedRVE(data);  %%Passar vector de filenames
-                end
-            end
-            
-            s.RVE           = RVE;
-            s.mesh          = obj.createCoarseMesh(obj.cellMeshes{1,1});
-            s.DirCond       = dir;
-            s.nSubdomains   = obj.nSubdomains;
-            coarseSolver    = Coarse(s);
-
-
-            ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
-            ss.Coarsesolver = coarseSolver;
-            ss.bcApplier = obj.bcApplier;
-            ss.dMesh     = dMesh;
-            ss.type = 'Coarse';
-            eP = Preconditioner.create(ss);
-            Mcoarse = @(r) eP.apply(r);
-         end
-
 
         function Mcoarse = createCoarseNNPreconditioner(obj,mR,dir,iC,lG,bS,iCR,dMesh)
             RVE = cell(obj.nSubdomains(1,2),obj.nSubdomains(1,1));
@@ -563,6 +469,7 @@ classdef CoarseTesting_Abril< handle
                 for j = 1:obj.nSubdomains(1,1)
                     RVE{i,j}.Kcoarse = obj.computeKcoarse(obj.r(i,j)); 
                     RVE{i,j}.U       = obj.computeTdownscaling(obj.r(i,j),obj.cellMeshes{i,j});
+                    RVE{i,j}.U= obj.NN.Tprova{i,j}; % Aixo comentar q es nomes una prova per tenir T sense NN
                     RVE{i,j}.ndimf   = 2;
                 end
             end
@@ -573,7 +480,6 @@ classdef CoarseTesting_Abril< handle
             s.nSubdomains   = obj.nSubdomains;
             coarseSolver    = Coarse(s);
 
-
             ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
             ss.Coarsesolver = coarseSolver;
             ss.bcApplier = obj.bcApplier;
@@ -581,6 +487,8 @@ classdef CoarseTesting_Abril< handle
             ss.type = 'Coarse';
             eP = Preconditioner.create(ss);
             Mcoarse = @(r) eP.apply(r);
+
+            close all % Ho he afegit pq s'obren fig sense info
         end
 
 
@@ -604,7 +512,7 @@ classdef CoarseTesting_Abril< handle
                 Taux2=[];
                 for i=1:size(mesh.coord,1)  % Evaluates all the coordenates and obtains corresponding column
                     dataInput=[r,mesh.coord(i,:)];  %
-                    Taux1=obj.NN.T(1,j).computeOutputValues(dataInput).';
+                    Taux1=obj.NN.T{1,j}.computeOutputValues(dataInput).';
                     Taux2=cat(1,Taux2,Taux1);
                 end
                 T(:,j)=Taux2;
