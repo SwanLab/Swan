@@ -31,7 +31,7 @@ s.networkParams.HUtype = 'ReLU';
 s.networkParams.OUtype = 'linear';
 
 % Select the T column to train
-T_type='All'
+T_type='T8'
 
 % Select the model's features
 s.xFeatures = 1:3;
