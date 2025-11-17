@@ -117,10 +117,9 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             m = Material.create(s);
         end
 
-%         function k = createThermalMaterial(obj) % check if we should create a material
-%         end
+ 
 
-        function createThermoElasticProblem(obj)
+       function createThermoElasticProblem(obj)
             s.mesh = obj.mesh;
             s.dim = '2D';
             s.interpolationType = 'LINEAR';
@@ -134,7 +133,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             s.boundaryConditionsElastic = obj.createBoundaryConditionsElastic();
 
             % Thermal
- %          s.materialThermal = obj.createMaterialThermal();
+            s.materialInterpolator = obj.thermalmaterialInterpolator;
             s.alpha = 1.0;  % check 
             s.source  =  ConstantFunction.create(1,obj.mesh);
             s.T0 = ConstantFunction.create(25,obj.mesh);   
@@ -154,7 +153,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             s.filter                      = obj.filter;
             s.complianceFromConstitutive  = obj.createComplianceFromConstiutive();
             s.material                    = obj.createMaterial();
-            s.conductivity                = obj.thermalmaterialInterpolator;
+            s.conductivity                = obj.thermalmaterialInterpolator();
             c = ComplianceFunctionalThermoElastic(s);
             obj.compliance = c;
         end
