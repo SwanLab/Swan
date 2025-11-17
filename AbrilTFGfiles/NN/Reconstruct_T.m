@@ -12,7 +12,7 @@ load(filePath1);
 
 % load the T real and mesh
 fileName3="UL_r0_5000-20x20.mat";
-filePath1 = fullfile('AbrilTFGfiles', 'DataVariables', fileName3);
+filePath1 = fullfile('AbrilTFGfiles', 'DataVariables','20x20', fileName3);
 load(filePath1,"T","R","mesh");
 %% T reconstruct
 

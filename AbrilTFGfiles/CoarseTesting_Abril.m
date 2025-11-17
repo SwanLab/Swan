@@ -63,7 +63,7 @@ classdef CoarseTesting_Abril< handle
 
             MiluCG = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
 
-            tol = 1e-10;
+            tol = 1e-8;
             tic
             x0 = zeros(size(RHSf));
 
@@ -81,7 +81,10 @@ classdef CoarseTesting_Abril< handle
             s.fValues = reshape(xFull,2,[])';
             uFun = LagrangianFunction(s);
             uFun.print('TestCoarseAbril','Paraview');
-
+            
+            s.fValues = reshape(Ufull,2,[])';
+            Realfun=LagrangianFunction(s);
+            Realfun.print('TestRealAbril','Paraview');
             % Compute hole
             %obj.computeSubdomainCentroid();
             %CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'Pred', obj.r, obj.centroids);
@@ -129,13 +132,17 @@ classdef CoarseTesting_Abril< handle
 
             obj.r=[0.1,0.1,0.1,0.1, 0.1,0.1,0.1,0.1,0.1];
 
+            obj.r=16*ones(1,15); % Comentar, es per comparar amb el cas de l'Albert
+
             obj.nSubdomains    = size(obj.r');
             obj.mSubdomains    = [];
             obj.tolSameNode    = 1e-10;
             obj.loadNN(nameNN);
 
             nameT=["UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat",...
-                "UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat"];
+                "UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat",...
+                "UL_r0_1000-20x20.mat", "UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat"...
+                "UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat"];
             
             obj.loadT(nameT);
             obj.loadK(nameT);
