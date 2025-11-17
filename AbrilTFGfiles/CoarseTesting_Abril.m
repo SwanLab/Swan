@@ -368,12 +368,6 @@ classdef CoarseTesting_Abril< handle
             end
 
             pointload = TractionLoad(mesh,PL,'DIRAC');
-            % need this because force applied in the face not in a point
-            %pointload.values        = pointload.values/size(pointload.dofs,1);
-            %fvalues                 = zeros(mesh.nnodes*mesh.ndim,1);
-            %fvalues(pointload.dofs) = pointload.values;
-            %fvalues                 = reshape(fvalues,mesh.ndim,[])';
-            %pointload.fun.setFValues(fvalues);
 
             s.pointloadFun = pointload;
             s.dirichletFun = dirichletFun;
