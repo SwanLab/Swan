@@ -88,6 +88,7 @@ real maxcoef = 3.0;
 real mincoef = 0.1;
 
 int maxit = 200, kmax = 10;
+real[int] costPlot, volumePlot;
 for (int it=0; it<maxit; it++) {
   obj = newobj;
   phio = phi;
@@ -126,6 +127,10 @@ for (int it=0; it<maxit; it++) {
     /* Accept iteration */
     if ( newobj < obj + tol*abs(obj) || coef <= mincoef ) {
       coef = min(1.1*coef,maxcoef);
+      costPlot.resize(costPlot.n+1);
+      costPlot[costPlot.n-1] = J;
+      volumePlot.resize(volumePlot.n+1);
+      volumePlot[volumePlot.n-1] = vol;
       break;
     }
     /* Reject iteration */
@@ -144,6 +149,43 @@ for (int it=0; it<maxit; it++) {
 
   cout<<"Iteration "<<it<<" Objective : "<<newobj<<endl;
 }
+
+// write data file with "iteration value"
+string datafile = "objectiveHistory.gp";
+{
+    ofstream fout(datafile);
+    for (int i = 0; i < costPlot.n; ++i)
+        fout << i << " " << costPlot[i] << endl;
+}
+
+// create gnuplot command to plot the data with logscale on y-axis
+string gnuplotCmd = "gnuplot -e \"set term png size 800,600; set output 'costPlot.png'; set title 'Objective History'; set xlabel 'Iteration'; set ylabel 'Objective Value'; set logscale y; plot '" + datafile + "' with linespoints lw 2 pt 7 ps 1.5 title 'Objective'\"";
+
+// execute gnuplot command
+exec(gnuplotCmd);
+
+
+
+// write data file with "iteration value"
+{
+    ofstream fout(datafile);
+    for (int i = 0; i < volumePlot.n; ++i)
+        fout << i << " " << volumePlot[i] << endl;
+}
+
+// create gnuplot command to plot the data with logscale on y-axis
+gnuplotCmd = "gnuplot -e \"set term png size 800,600; set output 'volumePlot.png'; set title 'Objective History'; set xlabel 'Iteration'; set ylabel 'Volume Value'; set logscale y; plot '" + datafile + "' with linespoints lw 2 pt 7 ps 1.5 title 'Objective'\"";
+
+// execute gnuplot command
+exec(gnuplotCmd);
+
+
+
+
+
+
+
+
 
 
 
