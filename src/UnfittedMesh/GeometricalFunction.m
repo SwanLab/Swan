@@ -302,10 +302,10 @@ classdef GeometricalFunction < handle
                     fD3 = @(x) abs(x2(x) - x1(x) - c_top) - (h/2)*scale;
 
 
-                    % === Combina totes ===
-                    fH = @(x) min(min(fH1(x), fH2(x)),fD2(x));
                     fH = @(x) min(min(fH1(x), fH2(x)), min(min(fD1(x), fD2(x)), fD3(x)));
+
                     obj.fHandle = fH;
+                   
 
                 case 'CrossDiagonalBars' % -45°/+45°
                     h     = cParams.barWidth;
@@ -412,6 +412,33 @@ classdef GeometricalFunction < handle
                     ymax = cParams.maxyCoor;
                     k    = 2*pi*n/(ymax-ymin);
                     fH   = @(x) sin(k*(x2(x)-ymin)+pi/2);
+                    obj.fHandle = fH;
+
+                case 'HorizontalNFibersV2'
+                    h=0.1;
+                    n    = cParams.nFibers;
+                    ymin = cParams.minyCoor;
+                    ymax = cParams.maxyCoor;
+                    
+                    % Distancia entre les rectes
+                    dy= ymax/(n+1);
+
+                    % Centres de cada recta
+                    yCenters = dy*(1:n);
+                    
+                    % Crea el handle de totes les rectes
+                    fList = cell(1,n);
+                     for i = 1:n
+                        y0 = yCenters(i);
+                        fList{i} = @(x) abs(x2(x) - y0) - h/2;
+                     end
+                    
+                     % Combinació de totes elles:
+                    fH = @(x) fList{1}(x);
+                    for i = 2:n
+                        f_prev = fH;
+                        fH = @(x) min(f_prev(x), fList{i}(x));
+                    end
                     obj.fHandle = fH;
 
                 case 'Holes'

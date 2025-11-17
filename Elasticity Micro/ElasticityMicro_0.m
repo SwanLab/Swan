@@ -43,7 +43,7 @@ classdef ElasticityMicro_0 < handle
 
         function [ls,phiFun] = computeLevelSet(obj, mesh)
             
-            gPar.type          = 'HorizontalNFibers';
+            gPar.type          = 'HorizontalNFibersV2';
             gPar.nFibers       = 4;
             gPar.minxCoor      = 0;
             gPar.maxxCoor      = 1;
