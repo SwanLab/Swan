@@ -68,7 +68,7 @@ classdef Tutorial13_Hyperelasticity < handle
 
         function createBoundaryConditions(obj)
             s.type = 'DisplacementTractionX';
-            s.values = linspace(0,1,21);
+            s.values = linspace(0,1,101);
             obj.boundaryConditions = BoundaryConditionsCreator(obj.mesh,s);
         end
 
