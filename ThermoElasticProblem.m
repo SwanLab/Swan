@@ -6,8 +6,8 @@ classdef ThermoElasticProblem < handle
         stressFun
         forces
 
-        tFun            %
-        tforces         %
+        tFun            
+        tforces         
         T0
     end
 
@@ -24,10 +24,8 @@ classdef ThermoElasticProblem < handle
         problemSolverElastic
 
         alpha
-        kappa
-        temperature                             
-        boundaryConditionsThermal, bcApplierThermal   
-        conductivity                            
+        kappa                             
+        boundaryConditionsThermal, bcApplierThermal                               
         test                                        
         trial                                   
         source                                  
@@ -49,15 +47,15 @@ classdef ThermoElasticProblem < handle
             obj.createBCApplierElastic();
             obj.createSolverElastic();
             
-            obj.createTemperatureFun();           %
-            obj.createBCApplierThermal();         %
-            obj.createSolverThermal();            %
+            obj.createTemperatureFun();           
+            obj.createBCApplierThermal();         
+            obj.createSolverThermal();            
         end
 
         function solve(obj)
-            obj.computeThermalStiffnessMatrix();              % LHS termico
-            obj.computeThermalForces();                       % RHS termico
-            obj.computeTemperature();                         % Solve PDE termico
+            obj.computeThermalStiffnessMatrix();              
+            obj.computeThermalForces();                      
+            obj.computeTemperature();                         
 
             obj.computeStiffnessMatrix();                     
             obj.computeForces();                              
@@ -69,6 +67,7 @@ classdef ThermoElasticProblem < handle
 
         function updateMaterial(obj, mat, kappa)
             obj.material = mat;
+            %obj.materialThermal = kappa;
             obj.kappa = kappa;  % right now, this is where kappa is being defined
         end
 
@@ -110,12 +109,13 @@ classdef ThermoElasticProblem < handle
             obj.boundaryConditionsElastic = cParams.boundaryConditionsElastic;
 
             % Thermal
+            %obj.materialThermal = cParams.kappa;
             obj.alpha = cParams.alpha;
-            obj.source       = cParams.source;                                    %
+            obj.source       = cParams.source;                                    
             obj.T0           = cParams.T0;
-            obj.boundaryConditionsThermal = cParams.boundaryConditionsThermal;    %
-            obj.test  = LagrangianFunction.create(obj.mesh,1,'P1');               %
-            obj.trial = LagrangianFunction.create(obj.mesh,1,'P1');               %
+            obj.boundaryConditionsThermal = cParams.boundaryConditionsThermal;    
+            obj.test  = LagrangianFunction.create(obj.mesh,1,'P1');               
+            obj.trial = LagrangianFunction.create(obj.mesh,1,'P1');               
         end
 
         
@@ -210,15 +210,14 @@ classdef ThermoElasticProblem < handle
             obj.forces = rhs;
 
   %COUPLING TERM
-%             testFun = LagrangianFunction.create(obj.mesh, 2, 'P1'); % vector test function
-%             C     = obj.material;
-%             op = @(xV) repmat(eye(2),[1 1 size(xV,2) obj.mesh.nelem]);
-%             I = DomainFunction.create(op,obj.mesh,2);
-%             beta= obj.alpha.*DDP(C,I);       % check dimensions
-%             f = @(v) -beta*(obj.tFun - obj.T0)*DDP(I,SymGrad(v)); % v should be a vector test function
-%             rhs_coupling = IntegrateRHS(f,testFun,obj.mesh,'Domain',2);    
-%             rhs = rhs + rhs_coupling;
-%             obj.forces = rhs;
+
+            C     = obj.material;
+            I = ConstantFunction.create(eye(2),obj.mesh);
+            beta= obj.alpha.*DDP(C,I);       
+            f = @(v) DDP(-beta.*(obj.tFun - obj.T0),SymGrad(v));
+            rhs_coupling = IntegrateRHS(f,obj.uFun,obj.mesh,'Domain',2);    
+            rhs = rhs + rhs_coupling;
+            obj.forces = rhs;
         end
 
 

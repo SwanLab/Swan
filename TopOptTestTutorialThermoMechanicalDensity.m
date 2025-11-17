@@ -5,7 +5,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
         filter
         designVariable
         materialInterpolator
-        thermalmaterialInterpolator %
+        thermalmaterialInterpolator 
         physicalProblem
         compliance
         volume
@@ -134,10 +134,10 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             s.boundaryConditionsElastic = obj.createBoundaryConditionsElastic();
 
             % Thermal
+ %          s.materialThermal = obj.createMaterialThermal();
             s.alpha = 1.0;  % check 
             s.source  =  ConstantFunction.create(1,obj.mesh);
-            T0 = ConstantFunction.create(1,obj.mesh);
-            s.T0       = T0;
+            s.T0 = ConstantFunction.create(25,obj.mesh);   
             s.boundaryConditionsThermal = obj.createBoundaryConditionsThermal();
             fem = ThermoElasticProblem(s);
             obj.physicalProblem = fem;
@@ -149,7 +149,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             c = ComplianceFromConstitutiveTensorThermoElastic(s);
         end
 
-        function createCompliance(obj) %
+        function createCompliance(obj) 
             s.mesh                        = obj.mesh;
             s.filter                      = obj.filter;
             s.complianceFromConstitutive  = obj.createComplianceFromConstiutive();
