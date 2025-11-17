@@ -1,6 +1,7 @@
-/* Shape optimization of a wheel bridge via the Level Set method */
+/* 02. Shape optimization via the Level Set method - Tutorial */
 load "medit"
 load "distance"
+load "iovtk"
 
 /* Create mesh */
 border left(t=0.0,1.5){ x=-1.0; y=1.5-t; label=0; };
@@ -11,52 +12,60 @@ border botf2(t=1.05,1.9){ x=-1.0+t; y=0.0; label=0; };
 border botdir(t=1.9,2.0){ x=-1.0+t; y=0.0; label=2; };
 border right(t=0.0,1.5){ x=1.0; y=t; label=0; };
 border top(t=0.0,2.0){ x=1.0-t; y=1.5; label=0; };
-
-mesh Th = buildmesh(left(50)+botgl(5)+botf1(45)+botneu(5)+botf2(45)+botdir(5)+right(50)+top(100));
-savemesh(Th,"box.mesh");
+mesh Th = buildmesh(left(100)+botgl(10)+botf1(90)+botneu(10)+botf2(90)+botdir(10)+right(100)+top(200));
+savemesh(Th,"Tutorial02.mesh");
 
 /* Finite Element spaces */
 fespace Vh(Th,P1);
 fespace Vh0(Th,P0);
-
-/* Include toolbox */
 include "tools.idp"
 
-/* Functions and other parameters */
-Vh phio,phi,ux,uy,uxo,uyo,vx,vy,v,g,nx,ny;
-Vh0 g0,Achi;
-real nt = Th.nt;
-real gx = 0.0;  // Load
-real gy = -1.0;
-real mu = 0.3846;   // Lamé coefficients
-real lambda = 0.5769;
-real ers = 1.e-3;   // Ersatz material parameter
-real eps = 1.e-6;  // To avoid divisions by 0
-real meshsiz = 0.02;
-real alpha = 4.0*meshsiz;  // Regularization / extension parameter
-real alphanor = 0.0001;   // Parameter for normal extension
-real ell = 0.2;   // Lagrange multiplier for the volume constraint
-real vol,obj,newobj;
-int maxit = 200, kmax = 10;
-real step;
-real gmax;
-real tol = 0.005;   // Tolerance for accepting steps that slightly increase the objective
-real coef = 1.0;   // Parameters for line search
-real maxcoef = 3.0;
-real mincoef = 0.1;
-string sout;
-
 /* Initialization of the Level Set function */
+Vh phio, phi;
 phio = inils();
 distance(Th,phio,phi[]);
 
+/* State problem */
+Vh ux, uy, vx, vy;
+Vh0 Achi;
+real mu = 0.3846;   // Lamé coefficients
+real lambda = 0.5769;
+real gx = 0.0;  // Load
+real gy = -1.0;
+problem elasticity([ux,uy],[vx,vy]) = int2d(Th)(Achi*mu*(2.0*dx(ux)*dx(vx) + (dx(uy)+dy(ux))*(dx(vy)+dy(vx))
+                                          + 2.0*dy(uy)*dy(vy)) + Achi*lambda*(dx(ux)+dy(uy))*(dx(vx)+dy(vy)) )
+                           - int1d(Th,3)(gx*vx+gy*vy)
+                           + on(1,uy=0.0)
+                           + on(2,ux=0.0,uy=0.0);
+
+/* Initialization */
+real ers = 1.e-3;   // Ersatz material parameter
+Achi[] = volfrac(Th,phi[],ers);
+elasticity;
+
 /* Regularization of shape derivative */
+real meshsiz = 0.02;
+real alpha = 4.0*meshsiz;
+Vh g, v;
+Vh0 g0;
 problem velext(g,v) = int2d(Th)(alpha^2*(dx(g)*dx(v)+dy(g)*dy(v)) + g*v)
                       - int1d(Th,levelset=phi)(g0*v);
 
 /* Objective function */
 macro J() (int2d(Th)(Achi*mu*(2.0*dx(ux)*dx(ux) + (dx(uy)+dy(ux))*(dx(uy)+dy(ux))
-                              + 2.0*dy(uy)*dy(uy)) + Achi*lambda*(dx(ux)+dy(uy))*(dx(ux)+dy(uy)))) // EOM
+                      + 2.0*dy(uy)*dy(uy)) + Achi*lambda*(dx(ux)+dy(uy))*(dx(ux)+dy(uy)))) // EOM
+
+/* Initial value of the objective function */
+real vol, newobj;
+vol = int2d(Th)(Achi);
+real ell = 0.2;
+newobj = J + ell*vol;
+string sout;
+sout = "Tutorial02_."+0+".vtu";
+savevtk(sout, Th, phi, dataname="LevelSet");
+
+/* Print initial objective and save initial level set function and density */
+cout<<"Initial value of the objective function: "<<newobj<<endl;
 
 /* (Negative) shape gradient */
 macro dJ() {
@@ -65,27 +74,20 @@ macro dJ() {
   velext;
 } // EOM
 
-/* State problem */
-problem elasticity([ux,uy],[vx,vy]) = int2d(Th)(Achi*mu*(2.0*dx(ux)*dx(vx) + (dx(uy)+dy(ux))*(dx(vy)+dy(vx))
-                                          + 2.0*dy(uy)*dy(vy)) + Achi*lambda*(dx(ux)+dy(uy))*(dx(vx)+dy(vy)) )
-                           - int1d(Th,3)(gx*vx+gy*vy)
-                           + on(1,uy=0.0)
-                           + on(2,ux=0.0,uy=0.0);
-
-/* Initialization */
-Achi[] = volfrac(Th,phi[],ers);
-elasticity;
-
-/* Initial value of the objective function */
-vol = int2d(Th)(Achi);
-newobj = J + ell*vol;
-sout = "box."+0+".sol";
-savesol(sout,Th,phi);
-
-/* Print initial objective and save initial level set function and density */
-cout<<"Initial value of the objective function: "<<newobj<<endl;
-
 /* Main loop */
+Vh uxo,uyo,nx,ny;
+real nt = Th.nt;
+real eps = 1.e-6;  // To avoid divisions by 0
+real alphanor = 0.0001;   // Parameter for normal extension
+real obj;
+real step;
+real gmax;
+real tol = 0.005;   // Tolerance for accepting steps that slightly increase the objective
+real coef = 1.0;   // Parameters for line search
+real maxcoef = 3.0;
+real mincoef = 0.1;
+
+int maxit = 200, kmax = 10;
 for (int it=0; it<maxit; it++) {
   obj = newobj;
   phio = phi;
@@ -137,11 +139,17 @@ for (int it=0; it<maxit; it++) {
   }
 
   /* Save shape (level set) and print new objective */
-  sout = "box."+(it+1)+".sol";
-  savesol(sout,Th,phi);
+  sout = "Tutorial02_."+(it+1)+".vtu";
+  savevtk(sout, Th, phi, dataname="LevelSet");
 
   cout<<"Iteration "<<it<<" Objective : "<<newobj<<endl;
 }
+
+
+
+
+
+
 
 Vh kappa;
 Vh0 kappa0;
