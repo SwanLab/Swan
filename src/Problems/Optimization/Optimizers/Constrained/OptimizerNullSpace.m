@@ -36,7 +36,10 @@ classdef OptimizerNullSpace < handle
         etaNormMin
         gJFlowRatio
         firstEstimation
-        fibreOrientation
+        gif
+        gifName
+        printing
+        printName
     end
 
     methods (Access = public) 
@@ -56,6 +59,7 @@ classdef OptimizerNullSpace < handle
             obj.firstEstimation = false;
             while ~obj.hasFinished
                 obj.update();
+                obj.printResults();
                 obj.updateIterInfo();
                 obj.plotVariable();
                 obj.updateMonitoring();
@@ -67,7 +71,6 @@ classdef OptimizerNullSpace < handle
 
     methods(Access = private)
         function init(obj,cParams)
-            obj.fibreOrientation = cParams.type;
             obj.cost            = cParams.cost;
             obj.constraint      = cParams.constraint;
             obj.constraintCase  = cParams.constraintCase;
@@ -83,6 +86,10 @@ classdef OptimizerNullSpace < handle
             obj.etaNorm         = cParams.etaNorm;
             obj.eta             = 0;
             obj.etaMin          = 1e-6;
+            obj.gif             = cParams.gif;
+            obj.gifName         = cParams.gifName;
+            obj.printing        = cParams.printing;
+            obj.printName       = cParams.printName;
             obj.primalUpdater   = cParams.primalUpdater;
             obj.dualUpdater     = DualUpdaterNullSpace(cParams);
             obj.createDualVariable();
@@ -206,6 +213,17 @@ classdef OptimizerNullSpace < handle
             while ~obj.acceptableStep
                 obj.updatePrimal();
                 obj.checkStep(x0);
+            end
+        end
+
+        function printResults(obj)
+            if obj.nIter/10==round(obj.nIter/10)
+                if obj.gif
+                    obtainGIF(obj.gifName,obj.designVariable,obj.nIter);
+                end
+                if obj.printing
+                    obj.designVariable.fun.print([obj.printName,'Iter',num2str(obj.nIter/10)]);
+                end
             end
         end
 

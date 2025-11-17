@@ -5,7 +5,6 @@ classdef DensityBasedMaterial < handle
        materialInterpolator
        dim
        mesh
-       fibreOrientation
     end
     
     methods (Access = public)
@@ -21,19 +20,9 @@ classdef DensityBasedMaterial < handle
         end
 
         function dC = obtainTensorDerivative(obj)
-            mI  = obj.materialInterpolator;
-            rho = obj.density;
-            [dmu,dkappa] = mI.computeConsitutiveTensorDerivative(rho);
-            n1 = size(dmu,1);
-            n2 = size(dmu,2);
-            dC = cell(n1,n2);
-            for i = 1:n1
-                for j = 1:n2
-                    s.operation = @(xV) obj.evaluateGradient(dmu{i,j},dkappa{i,j},xV);
-                    s.mesh      = obj.mesh;
-                    dC{i,j} = DomainFunction(s);
-                end
-            end
+            s.operation = @(xV) obj.evaluateGradient(xV);
+            s.mesh      = obj.mesh;
+            dC{1} = DomainFunction(s);
         end
 
         function setDesignVariable(obj,x)
@@ -49,46 +38,19 @@ classdef DensityBasedMaterial < handle
             obj.materialInterpolator = cParams.materialInterpolator;
             obj.dim                  = cParams.dim;
             obj.mesh                 = cParams.mesh;
-            obj.fibreOrientation     = cParams.fibreOrientation
         end
         
-        function m = createMaterial(obj,mu,kappa)
-            s.type    = 'ANISOTROPIC';
-            s.ptype   = 'ELASTIC';
-            s.ndim    = obj.computeNdim();
-            s.shear   = mu;
-            s.bulk    = kappa;
-            m = Material.create(s);
-        end
         
         function C = evaluate(obj,xV)
             mI  = obj.materialInterpolator;
             rho = obj.density;
-            [mu,kappa] = mI.computeConsitutiveTensor(rho);
-            m = obj.createMaterial(mu,kappa);
-            type = obj.fibreOrientation;
-            C_voigt = Cvoigt.create(type);
-            C = m.evaluate(xV,C_voigt);
-            rhoEv = rho{1}.evaluate(xV);
-            nGauss = size(rhoEv,2);
-            nElem = size(rhoEv,3);
-            rhoEv = reshape(rhoEv,[1 1 1 1 nGauss nElem]);
-            C = (1-rhoEv.^3)*1e-3.*C + (rhoEv.^3).*C;
+            C = mI.computeConsitutiveTensor(rho,xV);
         end
         
-        function dC = evaluateGradient(obj,dmu,dkappa,xV)
+        function dC = evaluateGradient(obj,xV)
             mI  = obj.materialInterpolator;
             rho = obj.density;
-            [mu,kappa] = mI.computeConsitutiveTensor(rho);
-            m = obj.createMaterial(mu,kappa);
-            type = obj.fibreOrientation;
-            C_voigt = Cvoigt.create(type);
-            C = m.evaluate(xV,C_voigt);
-            rhoEv = rho{1}.evaluate(xV);
-            nGauss = size(rhoEv,2);
-            nElem = size(rhoEv,3);
-            rhoEv = reshape(rhoEv,[1 1 1 1 nGauss nElem]);
-            dC = (-3.*rhoEv.^2)*1e-3.*C + 3.*(rhoEv.^2).*C; 
+            dC = mI.computeConsitutiveTensorDerivative(rho,xV);
         end
 
         function ndim = computeNdim(obj)

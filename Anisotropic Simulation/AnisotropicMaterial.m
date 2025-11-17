@@ -1,18 +1,19 @@
-classdef AnisotropicMaterial < IsotropicElasticMaterial
+classdef AnisotropicMaterial < handle
+
+    properties (Access = private)
+        mesh
+    end
 
     methods (Access = public)
 
         function obj = AnisotropicMaterial(cParams)
-            obj.init(cParams);
+            obj.mesh = cParams.mesh;
         end
 
+        
         function C = evaluate(obj,xV,C_voigt)
-            [~,m] = computeLameParameters(obj);
-            mu = m.evaluate(xV);
-
-            N = obj.ndim;
-            nGauss = size(mu,2);
-            nElem  = m.mesh.nelem;
+            nGauss = size(xV,2);
+            nElem  = obj.mesh.nelem;
 
             % Matriz de rigidez en notación Voigt (2D, 3x3)
             % (ejemplo: valores arbitrarios, cambia por tu matriz homogeneizada)
