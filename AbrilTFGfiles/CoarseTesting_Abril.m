@@ -127,17 +127,18 @@ classdef CoarseTesting_Abril< handle
             obj.NNcase = 1;
             nameNN= ["K_NN.mat","T_NN.mat"];
 
-            obj.r=[0.1,0.15,0.3,0.4,0.5,0.55,0.7,0.8,0.85];
+            obj.r=[0.1,0.1,0.1,0.1, 0.1,0.1,0.1,0.1,0.1];
 
             obj.nSubdomains    = size(obj.r');
             obj.mSubdomains    = [];
             obj.tolSameNode    = 1e-10;
             obj.loadNN(nameNN);
 
-            nameT=["UL_r0_1000-20x20.mat","UL_r0_1500-20x20.mat","UL_r0_3000-20x20.mat","UL_r0_4000-20x20.mat",...
-                "UL_r0_5000-20x20.mat","UL_r0_5500-20x20.mat","UL_r0_7000-20x20.mat","UL_r0_8000-20x20.mat","UL_r0_8500-20x20.mat"];
+            nameT=["UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat",...
+                "UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat"];
             
             obj.loadT(nameT);
+            obj.loadK(nameT);
 
         end
 
@@ -158,6 +159,15 @@ classdef CoarseTesting_Abril< handle
             obj.NN.Tprova=Taux;
         end
 
+        function loadK(obj,nameT)
+            Kaux=cell(1,length(nameT));
+            for i=1:length(nameT)
+                filePath = fullfile('AbrilTFGfiles', 'DataVariables', '20x20',nameT(i));
+                load(filePath,"K");
+                Kaux{1,i}=K;
+            end
+            obj.NN.Kprova=Kaux;
+        end
 
         function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomain(obj,mR)
             s.nsubdomains   = obj.nSubdomains; %nx ny
@@ -469,8 +479,11 @@ classdef CoarseTesting_Abril< handle
                 for j = 1:obj.nSubdomains(1,1)
                     RVE{i,j}.Kcoarse = obj.computeKcoarse(obj.r(i,j)); 
                     RVE{i,j}.U       = obj.computeTdownscaling(obj.r(i,j),obj.cellMeshes{i,j});
-                    RVE{i,j}.U= obj.NN.Tprova{i,j}; % Aixo comentar q es nomes una prova per tenir T sense NN
                     RVE{i,j}.ndimf   = 2;
+
+                    RVE{i,j}.Kcoarse= obj.NN.Kprova{i,j}; % Aixo comentar q es nomes una prova per tenir K sense NN
+                    RVE{i,j}.U= obj.NN.Tprova{i,j}; % Aixo comentar q es nomes una prova per tenir T sense NN
+                    
                 end
             end
 
