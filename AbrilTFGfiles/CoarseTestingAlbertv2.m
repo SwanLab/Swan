@@ -513,7 +513,8 @@ classdef CoarseTestingAlbertv2 < handle
             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
             
-            RVE = cell(size(obj.nSubdomains));
+            %RVE = cell(size(obj.nSubdomains));
+            RVE = cell(obj.nSubdomains(1,2),obj.nSubdomains(1,1));
 
             for i = 1:obj.nSubdomains(1,2)
                 for j = 1:obj.nSubdomains(1,1)
@@ -521,6 +522,7 @@ classdef CoarseTestingAlbertv2 < handle
                     %filename = obj.fileNameCorase(i,j);
                     %data = load(filename);
                      filePath = fullfile('AlbertTFG files', 'mat files', 'Full',obj.fileNameCorase(i,j));
+                   %  filePath = fullfile('AbrilTFGfiles', 'DataVariables', '20x20',obj.fileNameCorase(i,j));
                     RVE{i,j} = CoarseTrainedRVE(filePath);  %%Passar vector de filenames
                 end
             end

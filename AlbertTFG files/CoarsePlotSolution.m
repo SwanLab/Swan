@@ -41,7 +41,6 @@ classdef CoarsePlotSolution < handle
             %uH = obj.createUHole();
             uMeshFun = obj.createUnfittedMeshFun();
             obj.plot(uMeshFun,outputFileName);
-
         end
 
         function init(obj, u, mesh, bcApplier,outputFileName,r,centroids)
