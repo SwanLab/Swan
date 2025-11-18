@@ -42,7 +42,7 @@ function fittingParallel()
     [~, ceq] = nonlcon(coeffOpt);
     disp(['MinObjective: ', num2str(costOpt, '%.2e'), ' | MinCeq: [', num2str(abs(ceq), '%.2e '), ']']);
 
-    degFuns = generateConstitutiveTensor(coeffOpt,costOpt,matType,'DegSqr15lHS');
+    degFuns = generateConstitutiveTensor(coeffOpt,costOpt,matType,'SquareAreaParallelHashimStrikman');
     plotResults(objective,phiData,Cdata,coeffOpt,degFuns)
 end
 
