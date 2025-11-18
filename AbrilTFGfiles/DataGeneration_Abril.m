@@ -45,7 +45,7 @@ for j = 1:size(r,2)
     K         = Kcoarse;
 
     % Guarda el workspace per cert radi
-    FileName=fullfile('AbrilTFGfiles','DataVariables',string);
+    FileName=fullfile('AbrilTFGfiles','DataVariables','hole',string);
     %FileName=fullfile('AbrilTFGfiles','DataComparison',string);
     save(FileName, "T", "L", "K","mesh","R"); 
 end

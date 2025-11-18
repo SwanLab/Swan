@@ -80,15 +80,16 @@ classdef CoarseTesting_Abril< handle
             s.order = 'P1';
             s.fValues = reshape(xFull,2,[])';
             uFun = LagrangianFunction(s);
-            uFun.print('TestCoarseAbril','Paraview');
-            
+       
+            uFun.print('TestCoarseAbril1','Paraview');
             s.fValues = reshape(Ufull,2,[])';
-            Realfun=LagrangianFunction(s);
-            Realfun.print('TestRealAbril','Paraview');
+            RealFun=LagrangianFunction(s);
+          
 
             % Compute hole
-            obj.computeSubdomainCentroid();
-            CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'Pred', obj.r, obj.centroids);
+            %obj.computeSubdomainCentroid();
+            %CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'TestCoarseAbril', obj.r, obj.centroids);
+            %CoarsePlotSolution(RealFun, obj.meshDomain, obj.bcApplier,'TestRealAbril', obj.r, obj.centroids);
             
             close all
             figure
@@ -131,9 +132,10 @@ classdef CoarseTesting_Abril< handle
             obj.NNcase = 1;
             nameNN= ["K_NN.mat","T_NN.mat"];
 
-            obj.r=[0.1,0.1,0.1,0.1, 0.1,0.1,0.1,0.1,0.1];
+            %obj.r=[0.1,0.1,0.1,0.1, 0.1,0.1,0.1,0.1,0.1];
 
             obj.r= 0.1*ones(1,15); % Comentar, es per comparar amb el cas de l'Albert
+            %obj.r=[0.1,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65,0.7,0.75,0.8,0.85];
 
             obj.nSubdomains    = size(obj.r');
             obj.mSubdomains    = [];
@@ -142,10 +144,18 @@ classdef CoarseTesting_Abril< handle
             obj.loadNN(nameNN);
 
             nameFile=["UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat",...
-                "UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat",...
-                "UL_r0_1000-20x20.mat", "UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat"...
-                "UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat"];
+                      "UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat",...
+                      "UL_r0_1000-20x20.mat", "UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat"...
+                      "UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat"];
             
+            %nameFile=["UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat"]
+
+            %nameFile=["UL_r0_1000-20x20.mat","UL_r0_2000-20x20.mat","UL_r0_2500-20x20.mat",...
+            %   "UL_r0_3000-20x20.mat","UL_r0_3500-20x20.mat","UL_r0_4000-20x20.mat","UL_r0_4500-20x20.mat",...
+            %   "UL_r0_5000-20x20.mat", "UL_r0_5500-20x20.mat","UL_r0_6000-20x20.mat","UL_r0_6500-20x20.mat"...
+            %   "UL_r0_7000-20x20.mat","UL_r0_7500-20x20.mat","UL_r0_8000-20x20.mat","UL_r0_8500-20x20.mat"];
+%
+
             obj.loadT(nameFile);
             obj.loadK(nameFile);
 
@@ -161,10 +171,10 @@ classdef CoarseTesting_Abril< handle
         function loadT(obj,name)
             Taux=cell(1,length(name));
             for i=1:length(name)
-                %filePath = fullfile('AbrilTFGfiles', 'DataVariables', '20x20',name(i));
-                filePath = fullfile('AlbertTFG files', 'mat files', 'Full',name(i));
-                load(filePath,"U");
-                Taux{1,i}=U;
+                filePath = fullfile('AbrilTFGfiles', 'DataVariables', '20x20',name(i));
+                %filePath = fullfile('AlbertTFG files', 'mat files', 'Full',name(i));
+                load(filePath,"T");
+                Taux{1,i}=T;
             end
             obj.NN.Tprova=Taux;
         end
@@ -172,10 +182,10 @@ classdef CoarseTesting_Abril< handle
         function loadK(obj,name)
             Kaux=cell(1,length(name));
             for i=1:length(name)
-                %filePath = fullfile('AbrilTFGfiles', 'DataVariables', '20x20',name(i));
-                filePath = fullfile('AlbertTFG files', 'mat files', 'Full',name(i));
-                load(filePath,"L");
-                Kaux{1,i}=L;
+                filePath = fullfile('AbrilTFGfiles', 'DataVariables', '20x20',name(i));
+                %filePath = fullfile('AlbertTFG files', 'mat files', 'Full',name(i));
+                load(filePath,"K");
+                Kaux{1,i}=K;
             end
             obj.NN.Kprova=Kaux;
         end
@@ -192,6 +202,10 @@ classdef CoarseTesting_Abril< handle
 
         function mS = createReferenceMesh(obj)
             mS = obj.createStructuredMesh();
+            %lvSet    = obj.createLevelSetFunction(mS);
+            %uMesh    = obj.computeUnfittedMesh(mS,lvSet);
+            %mS = uMesh.createInnerMesh();
+
             %   mS = obj.createMeshFromGid();
             % mS = obj.createEIFEMreferenceMesh();
         end

@@ -25,7 +25,7 @@ classdef PCG < handle
             z = P(r);
             p = z;
             rzold = r' * z;
-            while norm(r) > tol
+            while norm(r)/normB > tol
                 Ap = A(p);
                 alpha = rzold / (p' * Ap);
                 x = x + alpha * p;
