@@ -16,6 +16,7 @@ classdef ElasticityMicro_0 < handle
             obj.createMesh();
             obj.computeDensity();
             obj.computeElasticProperties();
+            obj.createMaterialInterpolator(); %Afegit Abril
             obj.createMaterial();
             obj.solveElasticProblem();
             obj.computeVolume();
@@ -78,7 +79,7 @@ classdef ElasticityMicro_0 < handle
             s.matA = matA;
             s.matB = matB;
 
-            m = MaterialInterpolator.create(s);
+            m = MaterialInterpolator.create(s); 
             obj.materialInterpolator = m;
         end
 
@@ -89,6 +90,7 @@ classdef ElasticityMicro_0 < handle
             s.dim                  = '2D';
             s.mesh                 = obj.mesh;
             m = Material.create(s);
+            obj.material=m; %Afegit Abril
         end        
 
 
