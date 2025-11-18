@@ -30,8 +30,10 @@ classdef DensityVerticalCantilever < handle
             obj.createConstraint();
             obj.createPrimalUpdater();
             obj.createOptimizer();
+            d = obj.designVariable;
 
             saveas(gcf,'Paper/Reference/MonitoringDensityVerticalCantilever.fig');
+            save('Paper/Reference/DensityVerticalCantilever.mat','d');
             obj.designVariable.fun.print('Paper/Reference/DensityVerticalCantileverfValues');
         end
 
@@ -180,7 +182,7 @@ classdef DensityVerticalCantilever < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 720;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
