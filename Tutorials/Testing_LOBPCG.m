@@ -105,7 +105,7 @@ classdef Testing_LOBPCG
                 % 3) Residual column
                 R = K*X(:,active) - M*X(:,active)*diag(lambda_ritz(active));
                 
-                full_rnorm = obj.computeFullResidual(hist, R, active, b, it);                
+                full_rnorm = obj.computeFullResidual(hist, R, active, b, it,lambda_ritz);                
                 hist.rnorm = [hist.rnorm; full_rnorm]; % append residual to structure
   
                 newly_converged = (full_rnorm < obj.tol ) & active; % update active set 
@@ -244,9 +244,12 @@ classdef Testing_LOBPCG
             end
         end
 
-        function full_rnorm = computeFullResidual(obj, hist, R, active, b, it)
+        function full_rnorm = computeFullResidual(obj, hist, R, active, b, it,lambda)
             
             rnorm = vecnorm(R, 2, 1);
+            if obj.problem == 2
+                rnorm =  rnorm ./ max(1, abs(lambda));
+            end
             % Store full-length residual history (one row per iteration)
             full_rnorm = zeros(1, b);
             full_rnorm(active) = rnorm;
