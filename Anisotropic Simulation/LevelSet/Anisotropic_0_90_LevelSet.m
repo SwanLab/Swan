@@ -181,7 +181,7 @@ classdef Anisotropic_0_90_LevelSet < handle
             %s.type           = '0_90';
             s.gif = true;
             s.gifName = 'Gif_0_90_LevelSet';
-            s.printing = true;
+            s.printing = false;
             s.printName = 'Results_0_90_LevelSet';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
@@ -192,7 +192,7 @@ classdef Anisotropic_0_90_LevelSet < handle
             x = obj.designVariable;
             f = x.obtainDomainFunction();
             f = obj.filter.compute(f{1},1);            
-            s.type                 = 'DensityBased';
+            s.type                 = 'DensityBasedMaterialAnisotropic';
             %s.fibreOrientation     = '0_90';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;

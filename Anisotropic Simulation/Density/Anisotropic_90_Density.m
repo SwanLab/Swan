@@ -197,7 +197,7 @@ classdef Anisotropic_90_Density < handle
             x = obj.designVariable;
             f = x.obtainDomainFunction();
             f = obj.filter.compute(f{1},1);            
-            s.type                 = 'DensityBased';
+            s.type                 = 'DensityBasedMaterialAnisotropic';
             %s.fibreOrientation     = '90';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
