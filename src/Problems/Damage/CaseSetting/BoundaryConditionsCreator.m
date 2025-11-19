@@ -70,6 +70,8 @@ classdef BoundaryConditionsCreator < handle
                     obj.createBoundaryConditions = @obj.createDamageFixedLimitsXConditions;
                 case 'DamageSEN'
                     obj.createBoundaryConditions = @obj.createDamageSENConditions;
+                case 'DamageFree'
+                    obj.createBoundaryConditions = @obj.createDamageFreeConditions;
             end
         end
 
@@ -422,15 +424,24 @@ classdef BoundaryConditionsCreator < handle
          end
 
          function createDamageSENConditions(obj,phiVal)
-            isMiddleY = @(coor)  abs(coor(:,1)-(max(coor(:,2)) + min(coor(:,2)))/2) < 1e-12;
+            isMiddleY = @(coor)  abs(coor(:,2)-(max(coor(:,2)) + min(coor(:,2)))/2) < 1e-12;
             isHalfLeft = @(coor)  coor(:,1)-((max(coor(:,1)) + min(coor(:,1)))/2) < 1e-12;
-            sNeum.domain    = @(coor) isHalfLeft(coor) && isMiddleY;
-            sNeum.direction = [1];
-            sNeum.value     = phiVal;
-            Dir1 = DirichletCondition(obj.mesh,sNeum);
+            sDir.domain    = @(coor) isHalfLeft(coor) & isMiddleY(coor);
+            sDir.direction = [1];
+            sDir.value     = phiVal;
+            sDir.ndim         = 1;
+            Dir1 = DirichletCondition(obj.mesh,sDir);
 
             s.mesh         = obj.mesh;
             s.dirichletFun = [Dir1];
+            s.pointloadFun = [];
+            s.periodicFun  = [];
+            obj.boundaryConditions = BoundaryConditions(s);
+         end
+
+         function createDamageFreeConditions(obj,~)
+            s.mesh         = obj.mesh;
+            s.dirichletFun = [];
             s.pointloadFun = [];
             s.periodicFun  = [];
             obj.boundaryConditions = BoundaryConditions(s);
