@@ -76,23 +76,12 @@ classdef Anisotropic_0_45_45_0_LevelSet < handle
         end
 
         function createMaterialInterpolator(obj)
-            E0   = 1e-3;
-            nu0  = 1/3;
-            E1   = 1;
-            nu1  = 1/3;
-            ndim = 2;
+            type = '0_45_45_0';
+            s.C1 = Cvoigt.create(type);
+            s.C0 = s.C1*1e-3; % This is not necessary
 
-            matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
-            matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
-
-            matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
-            matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
-
-            s.typeOfMaterial = 'ISOTROPIC';
-            s.interpolation  = 'SIMP_P3';
+            s.interpolation  = 'SIMP_P3_ANISOTROPIC';
             s.dim            = '2D';
-            s.matA = matA;
-            s.matB = matB;
 
             m = MaterialInterpolator.create(s);
             obj.materialInterpolator = m;
@@ -189,7 +178,7 @@ classdef Anisotropic_0_45_45_0_LevelSet < handle
             s.gJFlowRatio    = 0.1;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
-            s.type           = '0_45_45_0';
+           %s.type           = '0_45_45_0';
             s.gif = true;
             s.gifName = 'Gif_0_45_45_0_LevelSet';
             s.printing = true;
@@ -204,7 +193,7 @@ classdef Anisotropic_0_45_45_0_LevelSet < handle
             f = x.obtainDomainFunction();
             f = obj.filter.compute(f{1},1);            
             s.type                 = 'DensityBased';
-            s.fibreOrientation     = '0_45_45_0';
+            %s.fibreOrientation     = '0_45_45_0';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '2D';
