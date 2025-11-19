@@ -16,19 +16,25 @@ s.monitoring.type = 'full'; %'reduced'
 s.monitoring.print = true;
 
 s.tolerance.u = 1e-6;
-s.tolerance.phi = 1e-10;
+s.tolerance.phi = 1e-6;
 s.tolerance.stag = 1e-8;
 s.maxIter.u = 100;
 s.maxIter.phi = 100;
 s.maxIter.stag = 300;
 
-s.benchmark.mesh.type = '1Elem';
-s.benchmark.bc.type   = 'DisplacementTractionX';
-s.benchmark.bc.values =  [0:1e-4:0.2];
+s.benchmark.mesh.type   = 'Rectangle';
+s.benchmark.mesh.length = 200;
+s.benchmark.mesh.width  = 10;
+s.benchmark.mesh.lN     = 200;
+s.benchmark.mesh.wN     = 10;
+s.benchmark.bc.u.type   = 'DisplacementTractionXClamped';
+s.benchmark.bc.u.values =  [0:1e-2:1];
+s.benchmark.bc.phi.type   = 'DamageFixedLimitsX';
+s.benchmark.bc.phi.values = [0];
 
-s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'
+s.matInfo.matType = 'Analytic'; %'Analytic','Homogenized'
 s.matInfo.degradationType = 'PhaseField'; %'PhaseField','SIMPALL'
-s.matInfo.degradationSubType = 'Rational'; %'AT','ATSplit',,'Rational','General'
+s.matInfo.degradationSubType = 'AT'; %'AT','ATSplit',,'Rational','General'
 s.matInfo.fileName = 'L0_variation/DegSqr15lHS'; 
 s.matInfo.young   = 210;
 s.matInfo.poisson = 0.3;
@@ -36,6 +42,8 @@ s.matInfo.Gc      = 5e-3;
 s.matInfo.sigmaMax = 1.5;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 E = s.matInfo.young;
 nu = s.matInfo.poisson;
 Gc = s.matInfo.Gc;
@@ -53,15 +61,15 @@ lhs = -2*(3/8)*(Gc/slope)*(E/sigma^2);
 % s.matInfo.Gc = 5e-3*(sigma^2/sigmach^2);
 % s.l0 = 0.1;
 
-s.l0 = lhs;
+s.l0 = 100;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 s.dissipInfo.type = 'PhaseFieldDissipationAT';
-s.dissipInfo.pExp = 1;
-s.solver.type = 'Gradient';
+s.dissipInfo.pExp = 2;
+s.solver.type = 'Newton';
 s.solver.tau  = 150;
 
 

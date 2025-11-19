@@ -22,7 +22,7 @@ classdef PhaseFieldDamageUpdater < handle
                 RHS = obj.functional.computePhaseFieldRHS(u,phi);
                 [phi,tau] = obj.solver.update(LHS,RHS,phi,u,bc,costOld);
 
-                [err, cost] = obj.computeErrorCost(u,phi,bc,costOld);
+                [err, cost] = obj.computeErrorCost(u,phi,bc.u,costOld);
                 costArray(end+1) = cost;
                 costOld = cost;
 

@@ -25,13 +25,13 @@ classdef OptimizerPhaseField < handle
             iter.u = 1; iter.phi = 1; iter.stag = 1;
             i = 0; err = 1; costOld = costArray(end);
             while (abs(err) > obj.tol) && (i < obj.maxIter)
-                [u,F,costArray,iterU]   = obj.updateDisplacement(u,phi,bc,costArray);
+                [u,F,costArray,iterU]   = obj.updateDisplacement(u,phi,bc.u,costArray);
                 iter.u = max(iterU,iter.u);
 
                 [phi,costArray,iterPhi] = obj.updateDamage(u,phi,bc,costArray);
                 iter.phi = max(iterPhi,iter.phi);
 
-                [err, cost] = obj.computeErrorCost(u,phi,bc,costOld);
+                [err, cost] = obj.computeErrorCost(u,phi,bc.u,costOld);
                 costArray(end+1) = cost;
                 costOld = cost;
         

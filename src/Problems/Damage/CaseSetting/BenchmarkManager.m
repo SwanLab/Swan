@@ -38,7 +38,8 @@ classdef BenchmarkManager < handle
                     s = FemDataContainer(a);
                     mesh = s.mesh;
             end
-            bc = BoundaryConditionsCreator(mesh,cParams.bc);
+            bc.u   = BoundaryConditionsCreator(mesh,cParams.bc.u);
+            bc.phi = BoundaryConditionsCreator(mesh,cParams.bc.phi);
         end
 
     end

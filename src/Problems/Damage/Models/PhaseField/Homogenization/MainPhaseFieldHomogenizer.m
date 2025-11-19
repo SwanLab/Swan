@@ -13,7 +13,7 @@ PFH = TestingPhaseFieldHomogenizer(s);
 
 
 %% DERIVATIVE
-load('HexagonArea.mat')
+load('SquareArea.mat')
 [f,df,ddf] = DamageHomogenizationFitter.computePolynomial(9,phi,mat);
 degradation.fun = f;
 degradation.dfun = df;
@@ -38,3 +38,14 @@ title('C12')
 nexttile
 fplot(degradation.fun(1,2,1,2),[0 1])
 title('C33')
+
+tiledlayout(1,3)
+nexttile
+fplot(degradation.dfun(1,1,1,1),[0 1])
+title('dC11')
+nexttile
+fplot(degradation.dfun(1,1,2,2),[0 1])
+title('dC12')
+nexttile
+fplot(degradation.dfun(1,2,1,2),[0 1])
+title('dC33')

@@ -25,13 +25,14 @@ classdef PhaseFieldComputer < handle
         function outputData = compute(obj)
             u   = obj.initialGuess.u;
             phi = obj.initialGuess.phi;
+            bc.phi = obj.boundaryConditions.phi.nextStep();
             cost = 0; tauArray = [];
 
             step = 1;
-            maxSteps = length(obj.boundaryConditions.bcValues);
+            maxSteps = length(obj.boundaryConditions.u.bcValues);
             while(step<=maxSteps) && (obj.stop.noFailure)
                 obj.monitor.printStep(step,maxSteps)
-                [u,bc] = obj.updateBoundaryConditions(u);
+                [u,bc.u] = obj.updateBoundaryConditions(u);
                 [u,phi,F,cost,iterMax] = obj.optimizer.compute(u,phi,bc,cost);
                 [Evec,totE,totF,uBC] = obj.postprocess(step,u,phi,F,bc);
                 obj.printAndSave(step,totF,uBC,u,phi,Evec,totE,iterMax,cost,tauArray);
@@ -71,7 +72,7 @@ classdef PhaseFieldComputer < handle
         end
 
         function setStopConditions(obj)
-            maxSteps = length(obj.boundaryConditions.bcValues);
+            maxSteps = length(obj.boundaryConditions.u.bcValues);
             obj.stop.noFailure   = true;
             obj.stop.triggered   = false;
             obj.stop.maxF        = 0;
@@ -79,7 +80,7 @@ classdef PhaseFieldComputer < handle
         end
 
         function [u,bc] = updateBoundaryConditions(obj,u)
-            bc = obj.boundaryConditions.nextStep();
+            bc = obj.boundaryConditions.u.nextStep();
             u.setFValues(obj.updateInitialDisplacement(u,bc));
         end
 
@@ -98,9 +99,9 @@ classdef PhaseFieldComputer < handle
         end
 
         function [E,totE,totF,uBC] = postprocess(obj,step,u,phi,F,bc)
-            fExt = bc.tractionFun;
-            if ~isempty(bc.tractionFun)
-                vals = bc.tractionFun.computeRHS([]);
+            fExt = bc.u.tractionFun;
+            if ~isempty(bc.u.tractionFun)
+                vals = bc.u.tractionFun.computeRHS([]);
                 fExt = LagrangianFunction.create(u.mesh, u.mesh.ndim,'P1');
                 fExt.setFValues(reshape(vals,u.mesh.nnodes,u.mesh.ndim));
             end
@@ -128,14 +129,14 @@ classdef PhaseFieldComputer < handle
             RightSide  = max(obj.mesh.coord(:,1));
             isInRight = abs(obj.mesh.coord(:,1)-RightSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;
-            if obj.boundaryConditions.type == "ForceTractionY"
+            if obj.boundaryConditions.u.type == "ForceTractionY"
                 uBC = norm(mean(u.fValues(nodes(isInRight),2)));
-                totReact = obj.boundaryConditions.bcValues(step);
+                totReact = obj.boundaryConditions.u.bcValues(step);
             else
                 ReactX = sum(F(2*nodes(isInRight)-1));
                 ReactY = sum(F(2*nodes(isInRight)));
                 totReact = sqrt(ReactX^2+ReactY^2);
-                uBC = obj.boundaryConditions.bcValues(step);
+                uBC = obj.boundaryConditions.u.bcValues(step);
             end
         end
 

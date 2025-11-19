@@ -16,12 +16,13 @@ classdef ProjectedGradient < handle
             obj.init(cParams);
         end
 
-        function rho = update(obj,g,rho)  
-            y  = rho.fun.fValues;
+        function rho = update(obj,g,rho,bc)
+            fDofs = bc.free_dofs;
+            y     = rho.fun.fValues;
             ub = obj.upperBound;
             lb = obj.lowerBound;
             t  = obj.tau;
-            y  = y - t*g;
+            y(fDofs)  = y(fDofs) - t*g(fDofs);
             x  = min(ub,max(y,lb));
             obj.updateBoundsMultipliers(x,y);
             rho.update(x);
