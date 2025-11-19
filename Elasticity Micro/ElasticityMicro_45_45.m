@@ -1,20 +1,24 @@
 classdef ElasticityMicro_45_45 < handle
-
     properties (Access = private)
-        mesh
         young
         poisson
         material
         stateProblem
+        mesh
+        materialInterpolator
+        filter
+        designVariable
     end
 
     methods (Access = public)
 
         function obj = ElasticityMicro_45_45()
             obj.createMesh();
+            obj.computeDensity();
             obj.computeElasticProperties();
-            obj.createMaterial();
+            obj.createMaterialInterpolator(); 
             obj.solveElasticProblem();
+            obj.computeVolume();
         end
 
     end
@@ -22,39 +26,79 @@ classdef ElasticityMicro_45_45 < handle
     methods (Access = private)
         
         function createMesh(obj)
-            fullmesh = UnitTriangleMesh(200,200);
-            [ls,phiFun] = obj.computeLevelSet(fullmesh);
-            sUm.backgroundMesh = fullmesh;
-            sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
+            obj.mesh = UnitTriangleMesh(50,50);
+        end
+
+        function computeDensity(obj)
+            [ls,phiFun] = obj.computeLevelSet(obj.mesh);
+            sUm.backgroundMesh = obj.mesh;
+            sUm.boundaryMesh   = obj.mesh.createBoundaryMesh;
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(ls);
-            
+            %holeMesh = uMesh.createInnerMesh();
+            %obj.mesh = holeMesh;            
             close all;
-            % Plot mesh
             uMesh.plot;
-
-            holeMesh = uMesh.createInnerMesh();
-            obj.mesh = holeMesh;
-
-            % Compute volume
-            %V  = Integrator.compute(phiFun,obj.mesh,2);
-
+            funLS     = CharacteristicFunction.create(uMesh);          
+            s.filterType = 'LUMP';
+            s.mesh  = obj.mesh;
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            f = Filter.create(s); 
+            obj.filter = f;
+            %obj.density = f.compute(funLS,2);
+            s.fun = f.compute(funLS,2);
+            s.type = 'Density';
+            s.plotting = true;
+            dens               = DesignVariable.create(s);
+            obj.designVariable = dens;
+            obj.designVariable.fun.plot
         end
 
-        function [ls,phiFun] = computeLevelSet(obj, mesh)
-            gPar.type = 'CrossDiagonalBarsv2'; 
-            gPar.leftBar_xMax  = 0.35;
-            gPar.barWidth      = 0.1;
+        function [ls,phiFun] = computeLevelSet(obj, mesh)            
+            g.type = 'CrossDiagonalBarsv2'; 
+            g.leftBar_xMax  = 0.35;
+            g.barWidth      = 0.10356;
         
-            gPar.rightBar_xMin   = 1 - gPar.leftBar_xMax;
-            gPar.bottomBar_yMax  = gPar.leftBar_xMax;
-            gPar.topBar_yMin     = gPar.rightBar_xMin;
+            g.rightBar_xMin   = 1 - g.leftBar_xMax;
+            g.bottomBar_yMax  = g.leftBar_xMax;
+            g.topBar_yMin     = g.rightBar_xMin;
 
-            g = GeometricalFunction(gPar);
+            g                  = GeometricalFunction(g);
             phiFun             = g.computeLevelSetFunction(mesh);
             lsValues           = phiFun.fValues;
-            ls = lsValues; 
+            ls = lsValues;
         end
+
+        function createMaterialInterpolator(obj)
+            E0 = 1e-3;
+            nu0 = 1/3;
+            ndim = obj.mesh.ndim;
+            matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
+            matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
+
+
+            E1 = 1;
+            nu1 = 1/3;
+            matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
+            matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
+
+            s.interpolation  = 'SIMPALL';
+            s.dim            = '2D';
+            s.matA = matA;
+            s.matB = matB;
+
+            m = MaterialInterpolator.create(s); 
+            obj.materialInterpolator = m;
+        end
+
+        function m = createMaterial(obj)          
+            s.type                 = 'DensityBased';
+            s.density              = obj.designVariable;
+            s.materialInterpolator = obj.materialInterpolator;
+            s.dim                  = '2D';
+            s.mesh                 = obj.mesh;
+            m = Material.create(s);
+        end        
 
 
       function computeElasticProperties(obj)
@@ -64,28 +108,19 @@ classdef ElasticityMicro_45_45 < handle
             obj.poisson = ConstantFunction.create(nu,obj.mesh);
         end
 
-        function createMaterial(obj)
-            s.type    = 'ISOTROPIC';
-            s.ptype   = 'ELASTIC';
-            s.ndim    = obj.mesh.ndim;
-            s.young   = obj.young;
-            s.poisson = obj.poisson;
-            tensor    = Material.create(s);
-            obj.material = tensor;
-        end
-
-
         function solveElasticProblem(obj)
             s.mesh = obj.mesh;
             s.scale = 'MICRO';
-            s.material = obj.material;
+            s.material = obj.createMaterial();
             s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
             % Options: REDUCED-FLUC / MONOLITHIC-FLUC / MONOLITHIC-DISP
             s.solverCase = DirectSolver();
             s.solverType = 'REDUCED';
             s.solverMode = 'FLUC';
-            fem = ElasticProblemMicro(s);
+            s.density = obj.designVariable;
+            s.filter = obj.filter;
+            fem = ElasticProblemMicroAnisotropic(s);
             fem.solve();
             obj.stateProblem = fem;
         end
@@ -137,6 +172,10 @@ classdef ElasticityMicro_45_45 < handle
             s.periodicFun  = periodicFun;
             s.mesh = obj.mesh;
             bc = BoundaryConditions(s);
+        end
+
+        function computeVolume(obj)
+           V  = Integrator.compute(obj.designVariable.fun,obj.mesh,2);
         end
 
     end

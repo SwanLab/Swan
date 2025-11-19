@@ -1,7 +1,6 @@
 classdef ElasticityMicro_0 < handle
 
     properties (Access = private)
-        %density
         young
         poisson
         material
@@ -18,8 +17,7 @@ classdef ElasticityMicro_0 < handle
             obj.createMesh();
             obj.computeDensity();
             obj.computeElasticProperties();
-            obj.createMaterialInterpolator(); %Afegit Abril
-            %obj.createMaterial();            %Canvi de linia
+            obj.createMaterialInterpolator(); 
             obj.solveElasticProblem();
             obj.computeVolume();
         end
@@ -54,6 +52,7 @@ classdef ElasticityMicro_0 < handle
             s.plotting = true;
             dens               = DesignVariable.create(s);
             obj.designVariable = dens;
+            obj.designVariable.fun.plot
         end
 
         function [ls,phiFun] = computeLevelSet(obj, mesh)            
