@@ -17,7 +17,7 @@ classdef ElasticityMicro_0 < handle
             obj.computeDensity();
             obj.computeElasticProperties();
             obj.createMaterialInterpolator(); %Afegit Abril
-            obj.createMaterial();
+            %obj.createMaterial();            %Canvi de linia
             obj.solveElasticProblem();
             obj.computeVolume();
         end
@@ -90,7 +90,6 @@ classdef ElasticityMicro_0 < handle
             s.dim                  = '2D';
             s.mesh                 = obj.mesh;
             m = Material.create(s);
-            obj.material=m; %Afegit Abril
         end        
 
 
@@ -104,7 +103,7 @@ classdef ElasticityMicro_0 < handle
         function solveElasticProblem(obj)
             s.mesh = obj.mesh;
             s.scale = 'MICRO';
-            s.material = obj.material;
+                        s.material = obj.createMaterial();
             s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
             % Options: REDUCED-FLUC / MONOLITHIC-FLUC / MONOLITHIC-DISP
