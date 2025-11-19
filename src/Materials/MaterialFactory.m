@@ -22,6 +22,9 @@ classdef MaterialFactory < handle
                 case 'DensityBased'
                     material = DensityBasedMaterial(cParams);
                 
+                case 'DensityBasedMaterialAnisotropic'
+                    material = DensityBasedMaterialAnisotropic(cParams);
+                
                 case 'STOKES'
                     material = MaterialStokes(cParams);
                     

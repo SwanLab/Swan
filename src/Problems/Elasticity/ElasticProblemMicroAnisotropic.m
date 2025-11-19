@@ -1,8 +1,9 @@
-classdef ElasticProblemMicro < handle
+classdef ElasticProblemMicroAnisotropic < handle
     
     properties (Access = public)
         uFluc, strain, stress
         Chomog
+        Cvoigt
     end
 
     properties (Access = private)
@@ -14,11 +15,14 @@ classdef ElasticProblemMicro < handle
         solverType, solverMode, solverCase
         lagrangeMultipliers
         problemSolver
+        density
+        filter
+        fun
     end
 
     methods (Access = public)
 
-        function obj = ElasticProblemMicro(cParams)
+        function obj = ElasticProblemMicroAnisotropic(cParams)
             obj.init(cParams);
             obj.createTrialFun();
             obj.createBCApplier();
@@ -26,7 +30,13 @@ classdef ElasticProblemMicro < handle
         end
 
         function obj = solve(obj)
-            C     = obj.material;
+            x = obj.density;
+            xD = x.obtainDomainFunction();
+            xR = obj.filterField(xD);
+            obj.material.setDesignVariable(xR);
+            C  = obj.material.obtainTensor();
+            dC = obj.material.obtainTensorDerivative();
+            %C     = obj.material;
             f     = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
             LHS   = IntegrateLHS(f,obj.testFun,obj.trialFun,obj.mesh,'Domain',2);
             for iB = 1:obj.computeNbasis()
@@ -35,11 +45,14 @@ classdef ElasticProblemMicro < handle
                 RHS = IntegrateRHS(f,obj.testFun,obj.mesh,'Domain',2);    
                 uF{iB}      = obj.computeDisplacement(LHS,RHS,iB);
                 strainF{iB} = eB+SymGrad(uF{iB});
-                stressF{iB} = DDP(obj.material, strainF{iB});
+                %stressF{iB} = DDP(obj.material, strainF{iB});
+                stressF{iB} = DDP(C, strainF{iB});
                 ChiB        = Integrator.compute(stressF{iB},obj.mesh,2);
                 obj.convertChomogToFourthOrder(ChiB,v,iB);
             end
             obj.uFluc  = uF;
+            % Convert tensor to voigt!
+            obj.convertChomogToVoigt;
             obj.strain = strainF;
             obj.stress = stressF;
         end
@@ -67,12 +80,14 @@ classdef ElasticProblemMicro < handle
     methods (Access = private)
 
         function init(obj, cParams)
+            obj.density  = cParams.density;
             obj.mesh     = cParams.mesh;
             obj.material = cParams.material;
             obj.solverType = cParams.solverType;
             obj.solverMode = cParams.solverMode;
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.solverCase  = cParams.solverCase;
+            obj.filter = cParams.filter;
         end
 
         function createTrialFun(obj)
@@ -89,6 +104,14 @@ classdef ElasticProblemMicro < handle
            sV = sHV+1*(sDV+sDV');
            s = ConstantFunction.create(sV,obj.mesh);
        end
+
+       function xR = filterField(obj,x)
+            nDesVar = length(x);
+            xR      = cell(nDesVar,1);
+            for i = 1:nDesVar
+                xR{i} = obj.filter.compute(x{i},2);
+            end
+        end
 
        function v = computeBasesPosition(obj)
            switch obj.mesh.ndim
@@ -140,6 +163,27 @@ classdef ElasticProblemMicro < handle
             uSplit = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             uFun = copy(obj.trialFun);
             uFun.setFValues(full(uSplit));
+        end
+
+        function convertChomogToVoigt(obj)
+            C = obj.Chomog;
+            C_voigt = zeros(3,3);
+        
+            map = [1 3; 3 2];  
+        
+            for i = 1:2
+                for j = 1:2
+                    m = map(i,j);
+                    for k = 1:2
+                        for l = 1:2
+                            n = map(k,l);
+                            C_voigt(m,n) = C_voigt(m,n) + C(i,j,k,l);
+                        end
+                    end
+                end
+            end
+            obj.Cvoigt = C_voigt;
+
         end
 
         function convertChomogToFourthOrder(obj,ChiB,v,iB)

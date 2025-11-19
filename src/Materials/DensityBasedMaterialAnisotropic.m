@@ -1,4 +1,4 @@
-classdef DensityBasedMaterial < handle
+classdef DensityBasedMaterialAnisotropic < handle
     
     properties (Access = private)
        density 
@@ -9,7 +9,7 @@ classdef DensityBasedMaterial < handle
     
     methods (Access = public)
         
-        function obj = DensityBasedMaterial(cParams)
+        function obj = DensityBasedMaterialAnisotropic(cParams)
             obj.init(cParams)
         end
         
@@ -20,19 +20,9 @@ classdef DensityBasedMaterial < handle
         end
 
         function dC = obtainTensorDerivative(obj)
-            mI  = obj.materialInterpolator;
-            rho = obj.density;
-            [dmu,dkappa] = mI.computeConsitutiveTensorDerivative(rho);
-            n1 = size(dmu,1);
-            n2 = size(dmu,2);
-            dC = cell(n1,n2);
-            for i = 1:n1
-                for j = 1:n2
-                    s.operation = @(xV) obj.evaluateGradient(dmu{i,j},dkappa{i,j},xV);
-                    s.mesh      = obj.mesh;
-                    dC{i,j} = DomainFunction(s);
-                end
-            end
+            s.operation = @(xV) obj.evaluateGradient(xV);
+            s.mesh      = obj.mesh;
+            dC{1} = DomainFunction(s);
         end
 
         function setDesignVariable(obj,x)
@@ -50,26 +40,17 @@ classdef DensityBasedMaterial < handle
             obj.mesh                 = cParams.mesh;
         end
         
-        function m = createMaterial(obj,mu,kappa)
-            s.type    = 'ISOTROPIC';
-            s.ptype   = 'ELASTIC';
-            s.ndim    = obj.computeNdim();
-            s.shear   = mu;
-            s.bulk    = kappa;
-            m = Material.create(s);
-        end
         
         function C = evaluate(obj,xV)
             mI  = obj.materialInterpolator;
             rho = obj.density;
-            [mu,kappa] = mI.computeConsitutiveTensor(rho);
-            m = obj.createMaterial(mu,kappa);
-            C = m.evaluate(xV);
+            C = mI.computeConsitutiveTensor(rho,xV);
         end
         
-        function dC = evaluateGradient(obj,dmu,dkappa,xV)
-            m  = obj.createMaterial(dmu,dkappa);
-            dC = m.evaluate(xV);
+        function dC = evaluateGradient(obj,xV)
+            mI  = obj.materialInterpolator;
+            rho = obj.density;
+            dC = mI.computeConsitutiveTensorDerivative(rho,xV);
         end
 
         function ndim = computeNdim(obj)

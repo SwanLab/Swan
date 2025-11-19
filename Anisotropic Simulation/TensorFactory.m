@@ -6,9 +6,9 @@ classdef TensorFactory < handle
 
             switch cParams
                 case '0'
-                    tensor = [ 0.5   0.001  0;
-                               0.001  0.0022 0;
-                               0      0      0.19];
+                    tensor = [ 0.4283   0.0012  0;
+                               0.00012  0.0035 0;
+                               0      0      0.0048];
 
                 case '90'
                     tensor = [ 0.0022   0.001  0;

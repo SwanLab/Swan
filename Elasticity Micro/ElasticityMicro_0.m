@@ -1,13 +1,15 @@
 classdef ElasticityMicro_0 < handle
 
     properties (Access = private)
-        density
+        %density
         young
         poisson
         material
         stateProblem
         mesh
         materialInterpolator
+        filter
+        designVariable
     end
 
     methods (Access = public)
@@ -44,8 +46,14 @@ classdef ElasticityMicro_0 < handle
             s.filterType = 'LUMP';
             s.mesh  = obj.mesh;
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            f = Filter.create(s);                      
-            obj.density = f.compute(funLS,2);
+            f = Filter.create(s); 
+            obj.filter = f;
+            %obj.density = f.compute(funLS,2);
+            s.fun = f.compute(funLS,2);
+            s.type = 'Density';
+            s.plotting = true;
+            dens               = DesignVariable.create(s);
+            obj.designVariable = dens;
         end
 
         function [ls,phiFun] = computeLevelSet(obj, mesh)            
@@ -85,7 +93,7 @@ classdef ElasticityMicro_0 < handle
 
         function m = createMaterial(obj)          
             s.type                 = 'DensityBased';
-            s.density              = obj.density;
+            s.density              = obj.designVariable;
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '2D';
             s.mesh                 = obj.mesh;
@@ -103,14 +111,16 @@ classdef ElasticityMicro_0 < handle
         function solveElasticProblem(obj)
             s.mesh = obj.mesh;
             s.scale = 'MICRO';
-                        s.material = obj.createMaterial();
+            s.material = obj.createMaterial();
             s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
             % Options: REDUCED-FLUC / MONOLITHIC-FLUC / MONOLITHIC-DISP
             s.solverCase = DirectSolver();
             s.solverType = 'REDUCED';
             s.solverMode = 'FLUC';
-            fem = ElasticProblemMicro(s);
+            s.density = obj.designVariable;
+            s.filter = obj.filter;
+            fem = ElasticProblemMicroAnisotropic(s);
             fem.solve();
             obj.stateProblem = fem;
         end
@@ -165,7 +175,7 @@ classdef ElasticityMicro_0 < handle
         end
 
         function computeVolume(obj)
-           V  = Integrator.compute(obj.density,obj.mesh,2);
+           V  = Integrator.compute(obj.designVariable.fun,obj.mesh,2);
         end
 
     end
