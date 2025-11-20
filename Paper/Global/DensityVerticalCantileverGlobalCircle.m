@@ -1,4 +1,4 @@
-classdef DensityVerticalCantileverGlobal < handle
+classdef DensityVerticalCantileverGlobalCircle < handle
 
     properties (Access = private)
         mesh
@@ -17,7 +17,7 @@ classdef DensityVerticalCantileverGlobal < handle
 
     methods (Access = public)
 
-        function obj = DensityVerticalCantileverGlobal(pRelTar)
+        function obj = DensityVerticalCantileverGlobalCircle(pRelTar)
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -33,8 +33,8 @@ classdef DensityVerticalCantileverGlobal < handle
             obj.createPrimalUpdater();
             obj.createOptimizer();
 
-            saveas(gcf,['Paper/Global/MonitoringDensityVerticalCantileverGlobal',num2str(pRelTar),'.fig']);
-            obj.designVariable.fun.print(['Paper/Global/DensityVerticalCantileverGlobal',num2str(pRelTar),'fValues']);
+            saveas(gcf,['Paper/Global/MonitoringDensityVerticalCantileverGlobalCircle',num2str(pRelTar),'.fig']);
+            obj.designVariable.fun.print(['Paper/Global/DensityVerticalCantileverGlobalCircle',num2str(pRelTar),'fValues']);
         end
 
     end
