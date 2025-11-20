@@ -20,6 +20,7 @@ fespace Vh(Th,P1);
 fespace Vh0(Th,P0);
 include "tools.idp"
 
+
 /* Initialization of the Level Set function */
 Vh phio, phi;
 phio = inils();
@@ -86,7 +87,7 @@ real tol = 0.005;   // Tolerance for accepting steps that slightly increase the 
 real coef = 1.0;   // Parameters for line search
 real maxcoef = 3.0;
 real mincoef = 0.1;
-
+Vh X;
 int maxit = 200, kmax = 10;
 real[int] costPlot, volumePlot;
 for (int it=0; it<maxit; it++) {
@@ -94,7 +95,8 @@ for (int it=0; it<maxit; it++) {
   phio = phi;
   uxo = ux;
   uyo = uy;
-
+  X=(phio>0);
+  plot(X, fill=1, value=1);
   /* Decrease tolerance after a few iterations have been made */
   if ( it == 100 ) tol = 0.001;
 
@@ -149,6 +151,7 @@ for (int it=0; it<maxit; it++) {
 
   cout<<"Iteration "<<it<<" Objective : "<<newobj<<endl;
 }
+plot(X, fill=1, value=1, wait=1);
 
 // write data file with "iteration value"
 string datafile = "objectiveHistory.gp";
