@@ -17,7 +17,7 @@ function P = computeReferenceGlobalPerimeterCircle(matFile)
     ss.mesh    = mesh;
     ss.uMesh   = uMesh;
     ss.filter  = filter;
-    ss.epsilon = 2*h;
+    ss.epsilon = 3*h;
     ss.value0  = 1;
     pF         = PerimeterFunctional(ss);
     
