@@ -47,27 +47,35 @@ for j=1:8
         case 1
             s.yFeatures = [4,5];      %T1
             TitleName="Cost Function T1";
+            FileName="T1.mat";
         case 2         
             s.yFeatures = [6,7];      %T2
             TitleName="Cost Function T2";
+            FileName="T2.mat";
         case 3         
             s.yFeatures = [8,9];      %T3
             TitleName="Cost Function T3";
+            FileName="T3.mat";
         case 4   
             s.yFeatures = [10,11];    %T4
             TitleName="Cost Function T4";
+            FileName="T4.mat";
         case 5  
             s.yFeatures = [12,13];    %T5
             TitleName="Cost Function T5";
+            FileName="T5.mat";
         case 6   
             s.yFeatures = [14,15];    %T6
             TitleName="Cost Function T6";
+            FileName="T6.mat";
         case 7
             s.yFeatures = [16,17];    %T7
             TitleName="Cost Function T7";
+            FileName="T7.mat";
         case 8  
             s.yFeatures = [18,19];    %T8
             TitleName="Cost Function T8";
+            FileName="T8.mat";
     end
     
     
@@ -78,6 +86,10 @@ for j=1:8
     % Train the model
     T_NN{1,j} = OptimizationProblemNN(s);
     T_NN{1,j}.solve();
+    
+   % Mirar si funciona 
+   % FileName=fullfile('AbrilTFGfiles','NN',FileName);
+   % save(FileName, "T_NN{1,j}");
 
     T_NN{1,j}.plotCostFnc();
     title(TitleName);
@@ -101,6 +113,9 @@ for j=1:8
     comparison{1,j}.difference = comparison{1,j}.real-comparison{1,j}.predicted;
 
 end
+
+
+
 
 FileName=fullfile('AbrilTFGfiles','NN',"T_NN.mat");
     save(FileName, "T_NN","MSETrain","comparison");

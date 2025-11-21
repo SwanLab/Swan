@@ -6,13 +6,13 @@ classdef LevelSetInclusionAuto_abril < handle
         stress
         dLambda
         bcApplier
+        centroids
     end
     
     properties (Access = private)
         radius
         nodeDirection
         physicalProblem
-        
         boundaryConditions
         problemSolver
         forces
@@ -48,8 +48,12 @@ classdef LevelSetInclusionAuto_abril < handle
                 for i=1:8
                   z.fValues   = reshape(u(:,i),[obj.mesh.ndim,obj.mesh.nnodes])';
                   uFeFun = LagrangianFunction(z);%
-                  fileName = ['r05_test' num2str(i)];
-                  uFeFun.print(fileName,'Paraview');
+                  fileName = ['r03_Training' num2str(i)];
+
+                  obj.computeCentroid();
+                  CoarsePlotSolution(uFeFun, obj.mesh, obj.bcApplier,fileName, r, obj.centroids);
+
+                  %uFeFun.print(fileName,'Paraview');
                 end
              end
 
@@ -402,6 +406,12 @@ classdef LevelSetInclusionAuto_abril < handle
                 rDire = IntegrateRHS(f,test,obj.boundaryMeshJoined,'Domain',2);
                 rDir = [rDir rDire];
             end
+        end
+
+        function computeCentroid(obj)
+            x0=mean(obj.mesh.coord(:,1));
+            y0=mean(obj.mesh.coord(:,2));
+            obj.centroids = [x0,y0];
         end
 
     end

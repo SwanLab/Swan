@@ -285,13 +285,14 @@ classdef CoarseTesting < handle
                 dirichletFun = [dirichletFun, dir];
             end
 
-            pointload = PointLoad(mesh,PL);
+           
+            pointload = TractionLoad(mesh,PL,'DIRAC');
             % need this because force applied in the face not in a point
-            pointload.values        = pointload.values/size(pointload.dofs,1);
-            fvalues                 = zeros(mesh.nnodes*mesh.ndim,1);
-            fvalues(pointload.dofs) = pointload.values;
-            fvalues                 = reshape(fvalues,mesh.ndim,[])';
-            pointload.fun.setFValues(fvalues);
+            %pointload.values        = pointload.values/size(pointload.dofs,1);
+            %fvalues                 = zeros(mesh.nnodes*mesh.ndim,1);
+            %fvalues(pointload.dofs) = pointload.values;
+            %fvalues                 = reshape(fvalues,mesh.ndim,[])';
+            %pointload.fun.setFValues(fvalues);
 
             s.pointloadFun = pointload;
             s.dirichletFun = dirichletFun;
@@ -316,8 +317,13 @@ classdef CoarseTesting < handle
             s.trial    = dispFun;
             s.material = mat;
             s.quadratureOrder = 2;
-            lhs = LHSIntegrator.create(s);
-            LHS = lhs.compute();
+            C=mat;
+
+            f = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
+
+            lhs= IntegrateLHS(f,dispFun,dispFun,mesh,'Domain',2);
+            %lhs = LHSIntegrator.create(s);
+            %LHS = lhs.compute();
             LHSr = obj.bcApplier.fullToReducedMatrixDirichlet(LHS);
         end
 

@@ -86,9 +86,9 @@ classdef CoarseTesting_Abril< handle
             RealFun=LagrangianFunction(s);
           
 
-            % Compute hole
-            %obj.computeSubdomainCentroid();
-            %CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'TestCoarseAbril', obj.r, obj.centroids);
+            %Compute hole
+            obj.computeSubdomainCentroid();
+            CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'TestCoarseAbril', obj.r, obj.centroids);
             %CoarsePlotSolution(RealFun, obj.meshDomain, obj.bcApplier,'TestRealAbril', obj.r, obj.centroids);
             
             close all
@@ -237,11 +237,7 @@ classdef CoarseTesting_Abril< handle
                    y0=mean(obj.cellMeshes{i,j}.coord(:,2));
                    obj.centroids = cat(1,obj.centroids, [x0,y0]);
                 end
-
             end
-
-            
-
         end
 
         function levelSet = createLevelSetFunction(obj,bgMesh)
