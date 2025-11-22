@@ -157,7 +157,7 @@ classdef CoarseTesting_Abril< handle
 %
 
             obj.loadT(nameFile);
-            obj.loadK(nameFile);
+           % obj.loadK(nameFile);
 
         end
 
@@ -491,11 +491,11 @@ classdef CoarseTesting_Abril< handle
 
             for i = 1:obj.nSubdomains(1,2)
                 for j = 1:obj.nSubdomains(1,1)
-                    %RVE{i,j}.Kcoarse = obj.computeKcoarse(obj.r(i,j)); 
+                    RVE{i,j}.Kcoarse = obj.computeKcoarse(obj.r(i,j)); 
                     %RVE{i,j}.U       = obj.computeTdownscaling(obj.r(i,j),obj.cellMeshes{i,j});
                     RVE{i,j}.ndimf   = 2;
 
-                    RVE{i,j}.Kcoarse= obj.NN.Kprova{i,j}; % Aixo comentar q es nomes una prova per tenir K sense NN
+                    %RVE{i,j}.Kcoarse= obj.NN.Kprova{i,j}; % Aixo comentar q es nomes una prova per tenir K sense NN
                     RVE{i,j}.U= obj.NN.Tprova{i,j}; % Aixo comentar q es nomes una prova per tenir T sense NN
                     
                 end

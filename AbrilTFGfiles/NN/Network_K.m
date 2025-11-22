@@ -41,10 +41,9 @@ K_NN.solve();
 K_NN.plotCostFnc();
 MSETrain    = immse(K_NN.computeOutputValues(data.Xtrain), data.Ytrain);
 
-string ="K_NN.mat"
 
-FileName=fullfile('AbrilTFGfiles','NN',string)
     save(FileName, "K_NN");
+
 %% Plot surface
 
 % Load dataset from specified path
@@ -53,28 +52,28 @@ tempData = readmatrix(filePath);
 
 
 real = tempData(:,2:end);
-difference = zeros(size(real));
-
-for i = 1:size(difference,1)
-    Y = K_NN.computeOutputValues(tempData(i,1));
-    difference(i,:) = real(i, :)-Y;
-
+for i = 1:size(real,1)
+    predicted(i,:) = K_NN.computeOutputValues(tempData(i,s.xFeatures));
 end
 
-rVector = tempData(:,1);
-dataPoints = 1:1:size(difference,2);
+difference = real-predicted;
+disp(norm(difference));
 
-[x, y] = meshgrid(dataPoints, rVector');
 
-zero = zeros(size(difference));
-
-s = surf(x, y, abs(difference),'FaceAlpha',0.5)
-s.EdgeColor = 'none';
-hold on
-surf(x,y,zero)
-xlabel("position in K matrix")
-ylabel("radius")
-zlabel("difference between real and predicted")
+%rVector = tempData(:,1);
+%dataPoints = 1:1:size(difference,2);
+%
+%[x, y] = meshgrid(dataPoints, rVector');
+%
+%zero = zeros(size(difference));
+%
+%s = surf(x, y, abs(difference),'FaceAlpha',0.5)
+%s.EdgeColor = 'none';
+%hold on
+%surf(x,y,zero)
+%xlabel("position in K matrix")
+%ylabel("radius")
+%zlabel("difference between real and predicted")
 
 
 % Preallocate and evaluate y_data vector
