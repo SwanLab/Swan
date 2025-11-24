@@ -3,15 +3,15 @@
 
 clc; clear; close all;
 
-r = 0:0.05:0.999; 
+r = 0:0.1:0.999; 
 %r=0.1;
-
+nelem=40;
 
 doplot=false();
 
 for j = 1:size(r,2)
     
-    [~, u, l, mesh,Kcoarse] = LevelSetInclusionAuto_abril(r(j),1,doplot);
+    [~, u, l, mesh,Kcoarse] = LevelSetInclusionAuto_abril(r(j),1,nelem,doplot);
 
     % Initialization for K_all and T_all
     if j==1
@@ -37,7 +37,9 @@ for j = 1:size(r,2)
 
 
     %Designa un nom per cada linea corresponent a un radi
-    string = strrep("UL_r"+num2str(r(j), '%.4f'), ".", "_")+"-20x20"+".mat"; 
+    meshName=nelem+"x"+nelem;
+    %string = strrep("UL_r"+num2str(r(j), '%.4f'), ".", "_")+"-20x20"+".mat"; 
+    string = strrep("UL_r"+num2str(r(j), '%.4f'), ".", "_")+"-"+meshName+".mat";
 
     T         = u;
     L         = l;
@@ -45,7 +47,7 @@ for j = 1:size(r,2)
     K         = Kcoarse;
 
     % Guarda el workspace per cert radi
-    FileName=fullfile('AbrilTFGfiles','DataVariables','hole',string);
+    FileName=fullfile('AbrilTFGfiles','DataVariables',meshName,string);
     %FileName=fullfile('AbrilTFGfiles','DataComparison',string);
     save(FileName, "T", "L", "K","mesh","R"); 
 end

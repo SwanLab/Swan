@@ -41,7 +41,9 @@ K_NN.solve();
 K_NN.plotCostFnc();
 MSETrain    = immse(K_NN.computeOutputValues(data.Xtrain), data.Ytrain);
 
+string ="K_NN.mat";
 
+FileName=fullfile('AbrilTFGfiles','NN',string);
     save(FileName, "K_NN");
 
 %% Plot surface
@@ -50,8 +52,9 @@ MSETrain    = immse(K_NN.computeOutputValues(data.Xtrain), data.Ytrain);
 filePath = fullfile('AbrilTFGfiles', s.fileName);
 tempData = readmatrix(filePath);
 
+real = tempData(:,s.yFeatures);
+predicted = zeros(size(real));
 
-real = tempData(:,2:end);
 for i = 1:size(real,1)
     predicted(i,:) = K_NN.computeOutputValues(tempData(i,s.xFeatures));
 end

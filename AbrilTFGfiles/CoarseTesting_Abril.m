@@ -23,8 +23,9 @@ classdef CoarseTesting_Abril< handle
 
         fileNameCorase
         tolSameNode
-        NNcase
         NN
+        data
+        loadData
 
     end
 
@@ -36,8 +37,8 @@ classdef CoarseTesting_Abril< handle
             mR = obj.createReferenceMesh();  %Crea la background mesh
             bS  = mR.createBoundaryMesh();    %crea el boundary de la mesh
             [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain(mR);  
-            obj.meshDomain = mD;        %mD:conj subdominis --> Tot el domini
-            obj.cellMeshes = mSb; %??? %mSb: info de la malla a cada subdimini
+            obj.meshDomain = mD;        % mD:conj subdominis --> Tot el domini
+            obj.cellMeshes = mSb; %??? % mSb: info de la malla a cada subdimini
             obj.ic = iC;  % info de les coordenades globals en tot el domini ???
             obj.icr = iCR; % info de les coordenades del corresponent subdomini ???
             obj.lg = lG; %??
@@ -81,7 +82,7 @@ classdef CoarseTesting_Abril< handle
             s.fValues = reshape(xFull,2,[])';
             uFun = LagrangianFunction(s);
        
-            uFun.print('TestCoarseAbril1','Paraview');
+            %uFun.print('TestCoarseAbril1','Paraview');
             s.fValues = reshape(Ufull,2,[])';
             RealFun=LagrangianFunction(s);
           
@@ -89,25 +90,19 @@ classdef CoarseTesting_Abril< handle
             %Compute hole
             obj.computeSubdomainCentroid();
             CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'TestCoarseAbril', obj.r, obj.centroids);
-            %CoarsePlotSolution(RealFun, obj.meshDomain, obj.bcApplier,'TestRealAbril', obj.r, obj.centroids);
+            CoarsePlotSolution(RealFun, obj.meshDomain, obj.bcApplier,'TestRealAbril', obj.r, obj.centroids);
             
             close all
             figure
             plot(residualPCG,'linewidth',2)
-            %hold on
-            %plot(residualCG,'linewidth',2)
             set(gca, 'YScale', 'log')
-            %legend({'CG + ILU-EIFEM-ILU','CG'},'FontSize',12)
             xlabel('Iteration')
             ylabel('Residual')
             title("Residual PCG")
 
             figure
             plot(errPCG,'linewidth',2)
-            %hold on
-            %plot(errCG,'linewidth',2)
             set(gca, 'YScale', 'log')
-            %legend('CG + EIFEM+ ILU(CG-90%-L2)','CG')
             xlabel('Iteration')
             ylabel('||error||_{L2}')
             title("error PCG")
@@ -115,13 +110,10 @@ classdef CoarseTesting_Abril< handle
             figure
             plot(errAnormPCG,'linewidth',2)
             hold on
-            %plot(errAnormCG,'linewidth',2)
             set(gca, 'YScale', 'log')
-            %legend('CG + EIFEM+ ILU(CG-90%-L2)','CG')
             xlabel('Iteration')
             ylabel('Energy norm')
             title("Err Anorm PCG")
-
         end
 
     end
@@ -129,35 +121,30 @@ classdef CoarseTesting_Abril< handle
     methods (Access = private)
 
         function init(obj)
-            obj.NNcase = 1;
-            nameNN= ["K_NN.mat","T_NN.mat"];
-
-            %obj.r=[0.1,0.1,0.1,0.1, 0.1,0.1,0.1,0.1,0.1];
+            obj.loadData=true();  % true  --> DATASET
+                                  % false --> NN
 
             obj.r= 0.1*ones(1,15); % Comentar, es per comparar amb el cas de l'Albert
-            %obj.r=[0.1,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65,0.7,0.75,0.8,0.85];
+            %obj.r=[0.1,0.1,0.1];
 
             obj.nSubdomains    = size(obj.r');
             obj.mSubdomains    = [];
             obj.tolSameNode    = 1e-10;
-
-            obj.loadNN(nameNN);
-
-            nameFile=["UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat",...
-                      "UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat",...
-                      "UL_r0_1000-20x20.mat", "UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat"...
-                      "UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat"];
             
-            %nameFile=["UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat"]
+            if obj.loadData==true()  % Cargar del dataset
+                nameFile=["UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat",...
+                "UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat",...
+                "UL_r0_1000-20x20.mat", "UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat"...
+                "UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat"];
+            
+                %nameFile=["UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat","UL_r0_1000-20x20.mat"]
+                obj.loadT(nameFile);
+                obj.loadK(nameFile);
+            else                    %Cargar de la NN
+                nameNN= ["K_NN.mat","T_NN.mat"];
+                obj.loadNN(nameNN);
+            end
 
-            %nameFile=["UL_r0_1000-20x20.mat","UL_r0_2000-20x20.mat","UL_r0_2500-20x20.mat",...
-            %   "UL_r0_3000-20x20.mat","UL_r0_3500-20x20.mat","UL_r0_4000-20x20.mat","UL_r0_4500-20x20.mat",...
-            %   "UL_r0_5000-20x20.mat", "UL_r0_5500-20x20.mat","UL_r0_6000-20x20.mat","UL_r0_6500-20x20.mat"...
-            %   "UL_r0_7000-20x20.mat","UL_r0_7500-20x20.mat","UL_r0_8000-20x20.mat","UL_r0_8500-20x20.mat"];
-%
-
-            obj.loadT(nameFile);
-           % obj.loadK(nameFile);
 
         end
 
@@ -176,7 +163,7 @@ classdef CoarseTesting_Abril< handle
                 load(filePath,"T");
                 Taux{1,i}=T;
             end
-            obj.NN.Tprova=Taux;
+            obj.data.T=Taux;
         end
 
         function loadK(obj,name)
@@ -187,7 +174,7 @@ classdef CoarseTesting_Abril< handle
                 load(filePath,"K");
                 Kaux{1,i}=K;
             end
-            obj.NN.Kprova=Kaux;
+            obj.data.K=Kaux;
         end
 
         function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomain(obj,mR)
@@ -281,16 +268,8 @@ classdef CoarseTesting_Abril< handle
             coord(3,2) = ymax;
             coord(4,1) = xmin;
             coord(4,2) = ymax;
-            %             coord(1,1) = xmax;
-            %             coord(1,2) = ymin;
-            %             coord(2,1) = xmax;
-            %             coord(2,2) = ymax;
-            %             coord(3,1) = xmin;
-            %             coord(3,2) = ymax;
-            %             coord(4,1) = xmin;
-            %             coord(4,2) = ymin;
+
             connec = [1 2 3 4];    % crea conectivitats entre els 4 nodes
-            % connec = [2 3 4 1];
             s.coord = coord;
             s.connec = connec;
             cMesh = Mesh.create(s);  % crea la mesh de 4 nodes
@@ -491,13 +470,15 @@ classdef CoarseTesting_Abril< handle
 
             for i = 1:obj.nSubdomains(1,2)
                 for j = 1:obj.nSubdomains(1,1)
-                    RVE{i,j}.Kcoarse = obj.computeKcoarse(obj.r(i,j)); 
-                    %RVE{i,j}.U       = obj.computeTdownscaling(obj.r(i,j),obj.cellMeshes{i,j});
-                    RVE{i,j}.ndimf   = 2;
+                    RVE{i,j}.ndimf = 2;
 
-                    %RVE{i,j}.Kcoarse= obj.NN.Kprova{i,j}; % Aixo comentar q es nomes una prova per tenir K sense NN
-                    RVE{i,j}.U= obj.NN.Tprova{i,j}; % Aixo comentar q es nomes una prova per tenir T sense NN
-                    
+                    if obj.loadData==true()     % Case where we load direct from dataset
+                        RVE{i,j}.Kcoarse= obj.data.K{i,j};
+                        RVE{i,j}.U= obj.data.T{i,j}; 
+                    else                        % Case where we load from NN
+                        RVE{i,j}.Kcoarse = obj.computeKcoarse(obj.r(i,j)); 
+                        RVE{i,j}.U       = obj.computeTdownscaling(obj.r(i,j),obj.cellMeshes{i,j});
+                    end
                 end
             end
 
@@ -598,42 +579,6 @@ classdef CoarseTesting_Abril< handle
             M = Preconditioner.create(s);
             Mmodal = @(r) M.apply(r);
         end
-
-
-%         function plotSolution(obj,x,mesh,row,col,iter,flag)
-%             if nargin <7
-%                 flag =0;
-%             end
-%             %             xFull = bc.reducedToFullVector(x);
-%             if size(x,2)==1
-%                 s.fValues = reshape(x,2,[])';
-%             else
-%                 s.fValues = x;
-%             end
-%             %
-% 
-%             s.mesh = mesh;
-%             s.fValues(:,end+1) = 0;
-%             s.ndimf = 2;
-%             s.order = 'P1';
-%             xF = LagrangianFunction(s);
-%             %             xF.plot();
-%             if flag == 0
-%                 xF.print(['domain',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
-%             elseif flag == 1
-%                 xF.print(['DomainResidual',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
-%             elseif flag == 2
-%                 xF.print(['Residual',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
-%             elseif flag == 3
-%                 xF.print(['domainFine',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
-%             elseif flag == 4
-%                 xF.print(['domainNeuman',num2str(row),num2str(col),'_',num2str(iter)],'Paraview')
-%             end
-%             fclose('all');
-%         end
-
-
-
     end
 
     methods (Static, Access = public)

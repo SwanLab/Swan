@@ -28,13 +28,14 @@ classdef LevelSetInclusionAuto_abril < handle
         boundaryMesh
         boundaryMeshJoined
         localGlobalConnecBd
+        nelem
     end
 
 
     methods (Access = public)
 
-        function [obj, u, L, mesh,Kcoarse] = LevelSetInclusionAuto_abril(r, i,doplot)
-            obj.init(r, i)
+        function [obj, u, L, mesh,Kcoarse] = LevelSetInclusionAuto_abril(r, i,nelem,doplot)
+            obj.init(r, i,nelem)
             obj.createMesh();
             
             %% New ugly chunk of code warning
@@ -69,11 +70,12 @@ classdef LevelSetInclusionAuto_abril < handle
 
     methods (Access = private)
 
-        function init(obj, r, i)
+        function init(obj, r, i,nelem)
             % close all;
             % clc;
             obj.radius = r;
             obj.nodeDirection = i;
+            obj.nelem=nelem;
         end
 
         function createMesh(obj)
@@ -87,9 +89,10 @@ classdef LevelSetInclusionAuto_abril < handle
             [obj.boundaryMeshJoined, obj.localGlobalConnecBd] = obj.mesh.createSingleBoundaryMesh();
         end
 
-        function mesh = createReferenceMesh(~)
-            x1      = linspace(-1,1,20);
-            x2      = linspace(-1,1,20);
+        function mesh = createReferenceMesh(obj)
+            n       = obj.nelem;
+            x1      = linspace(-1,1,n);
+            x2      = linspace(-1,1,n);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -303,20 +306,10 @@ classdef LevelSetInclusionAuto_abril < handle
         %end
 
         function Cg = computeConstraintMatrix(obj)
-            s.quadType = 2;
-            s.boundaryMeshJoined    = obj.boundaryMeshJoined;
-            s.localGlobalConnecBd   = obj.localGlobalConnecBd;
-            s.nnodes                 = obj.mesh.nnodes;
-
-            lhs = LHSintegrator_MassBoundary_albert(s);
-            test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); 
-            obj.dLambda  = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1');
-            Cg = lhs.compute(obj.dLambda,test); 
-
+            obj.dLambda  = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); 
             test   = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
             f = @(u,v) DP(v,u);
-            Cg2 = IntegrateLHS(f,test,obj.dLambda,obj.mesh,'Boundary',2);   
-
+            Cg = IntegrateLHS(f,test,obj.dLambda,obj.mesh,'Boundary',2);   
         end
 
         function dim = getFunDimsHere(obj)
