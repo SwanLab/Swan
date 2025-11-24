@@ -23,7 +23,7 @@ classdef RichardsonSolver < handle
             r = B - A(x);      
             z = P(r);
             while norm(r) > tol
-                tau = 1*linesearch(r,A);
+                tau = 1*linesearch(z,r,A);
                 x = x + tau * z;
 %                EIFEMtesting.plotSolution(x,mesh,10,10,iter,bcApplier,0)
                 r = B - A(x); 

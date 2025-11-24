@@ -1,5 +1,5 @@
 classdef TrainedRVE < handle
-    
+
     properties (Access = public)
         ndimf
         Kcoarse
@@ -9,38 +9,45 @@ classdef TrainedRVE < handle
         PhiRb
         Grb
     end
-    
+
     properties (Access = private)
-        
-        
+
+
     end
-    
+
     properties (Access = private)
-        
+
     end
-    
+
     methods (Access = public)
-        
+
         function obj = TrainedRVE(filename)
             obj.init(filename)
-            
+
         end
-                
+
     end
-    
+
     methods (Access = private)
-        
-        function init(obj,filename)
-            load(filename);
-            obj.Kcoarse = EIFEoper.Kcoarse;
-            obj.Udef    = EIFEoper.Udef;
-            obj.Urb     = EIFEoper.Urb;
+
+        function init(obj,data)
+            if ischar(data)
+                load(data);
+                obj.Kcoarse = EIFEoper.Kcoarse;
+                obj.Udef    = EIFEoper.Udef;
+                obj.Urb     = EIFEoper.Urb;
+            else
+                obj.Kcoarse = data.Kcoarse;
+                obj.Udef    = data.Udef;
+                obj.Urb     = data.Urb;
+            end
+
             obj.ndimf   = 2;
-            obj.PhiDef  = EIFEoper.RECONSTRUCTION.DEF_DISP.BASIS;
-            obj.PhiRb   = EIFEoper.RECONSTRUCTION.RB_DISP.BASIS;
-            obj.Grb     = EIFEoper.Grb;
+            %             obj.PhiDef  = EIFEoper.RECONSTRUCTION.DEF_DISP.BASIS;
+            %             obj.PhiRb   = EIFEoper.RECONSTRUCTION.RB_DISP.BASIS;
+            %             obj.Grb     = EIFEoper.Grb;
         end
-        
+
     end
-    
+
 end

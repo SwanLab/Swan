@@ -26,7 +26,7 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             end
         end
 
-        function fun = project(obj,target)
+        function fun = project(obj, target, varargin)
             switch class(obj) % Parche 1: ndimF
                 case {'UnfittedFunction','UnfittedBoundaryFunction'}
                     ndimF = 1;
@@ -39,10 +39,13 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
                 proj = ProjectorToLagrangianTensor(s);
                 fun = proj.project(obj);
             else
-                s.mesh          = obj.mesh;
-                s.projectorType = target;
-                proj = Projector.create(s);
-                fun = proj.project(obj);
+               s.mesh          = obj.mesh;
+               s.projectorType = target;
+               if ~isempty(varargin)
+                  s.refPoint = varargin{1};
+               end
+               proj = Projector.create(s);
+               fun = proj.project(obj);
             end
         end
 

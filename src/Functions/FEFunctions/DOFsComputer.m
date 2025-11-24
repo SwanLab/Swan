@@ -197,7 +197,7 @@ classdef DOFsComputer < handle
         function dofsFaces = computeDofsFaces(obj,ndofsEdges)
             m = obj.mesh;
             polOrder = obj.order;
-            if polOrder <= 1
+            if polOrder <= 1 || strcmp(obj.interp.order,'QUADRATICQ8') 
                 dofsFaces = [];
             else 
                 m.computeFaces();
@@ -304,10 +304,12 @@ classdef DOFsComputer < handle
                         ord = 0;
                     case {'P1','P1D'}
                         ord = 1;
-                    case 'P2'
+                    case {'P2','P2Q8'}
                         ord = 2;
                     case 'P3'
                         ord = 3;
+                    case 'P8'
+                        ord = 8;
                 end
             else
                 ord = order;

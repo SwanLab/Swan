@@ -18,6 +18,8 @@ classdef InterpolationFactory < handle
                             obj = LineQuadratic(cParams);
                         case 'CUBIC'
                             obj = LineCubic(cParams);
+                        case 'EIGHT'
+                            obj = LineDegree8(cParams);
                         otherwise
                             error('Invalid order for element LINE.');
                     end
@@ -46,6 +48,8 @@ classdef InterpolationFactory < handle
                             obj = QuadrilateralBilinear(cParams);
                         case 'QUADRATIC'
                             obj = QuadrilateralQuadratic(cParams);
+                        case 'QUADRATICQ8'
+                            obj = QuadrilateralQ8(cParams);    
                         case 'CUBIC'
                             obj = QuadrilateralCubic(cParams);
                         otherwise
@@ -81,6 +85,8 @@ classdef InterpolationFactory < handle
                         otherwise
                             error('Invalid order for element HEXAHEDRA.');
                     end
+                case 'SUPERELEMENT'
+                    obj = SuperElement(cParams);
                 otherwise
                     error('Invalid mesh type.')
             end

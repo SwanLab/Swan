@@ -21,13 +21,15 @@ classdef PreconditionerEIFEMcontinous < handle
         LHS
         bcApplier        
         dir
+        KeifemContinuous
+        EIFEMprojection
     end    
     
     methods (Access = public)
         
          function obj = PreconditionerEIFEMcontinous(cParams)
             obj.init(cParams);
-            obj.createEIFEM();
+%             obj.createEIFEM();
         end
         
         
@@ -36,6 +38,16 @@ classdef PreconditionerEIFEMcontinous < handle
             uSbd =  obj.EIFEMsolver.apply(RGsbd);
             z = obj.computeContinousField(uSbd);
         end
+
+         function K = computeKEIFEMglobal(obj,LHS)
+            U = obj.computeAssembledProjectionMatrix();
+            %             U = U(:,9:end);
+            obj.EIFEMprojection = obj.computeReducedProjection(U);
+%             LHS = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);
+%             obj.KeifemContinuous = obj.EIFEMprojection'*LHS*obj.EIFEMprojection;
+            obj.KeifemContinuous = U'*LHS*U;
+
+        end
         
     end
     
@@ -43,26 +55,31 @@ classdef PreconditionerEIFEMcontinous < handle
         
         function init(obj,cParams)
             obj.LHS          = cParams.LHS;
-            obj.ddDofManager = cParams.ddDofManager;
+%             obj.ddDofManager = cParams.ddDofManager;
             obj.nSubdomains  = cParams.nSubdomains;
-            obj.coarseMesh   = cParams.coarseMesh;
-            obj.bcApplier     = cParams.bcApplier;
-            obj.dir = cParams.dir;
-            %             obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
-            obj.EIFEMfilename = 'DEF_Q4porL_1.mat';
-            %           obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
+%             obj.coarseMesh   = cParams.coarseMesh;
+%             obj.bcApplier     = cParams.bcApplier;
+%             obj.dir = cParams.dir;
+%             %             obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
+%             obj.EIFEMfilename = 'DEF_Q4porL_1.mat';
+%             %           obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
+%             obj.weight       = 0.5;
+            obj.ddDofManager = cParams.ddDofManager;
+            obj.EIFEMsolver  = cParams.EIFEMsolver;
+            obj.bcApplier    = cParams.bcApplier;
             obj.weight       = 0.5;
+%             obj.dMesh        = cParams.dMesh;
         end
 
-        function createEIFEM(obj)
-            filename        = obj.EIFEMfilename;
-            RVE             = TrainedRVE(filename);
-            s.RVE           = RVE;
-            s.mesh          = obj.coarseMesh;
-            s.DirCond       = obj.dir;
-            eifem           = EIFEM(s);
-            obj.EIFEMsolver = eifem;
-        end
+%         function createEIFEM(obj)
+%             filename        = obj.EIFEMfilename;
+%             RVE             = TrainedRVE(filename);
+%             s.RVE           = RVE;
+%             s.mesh          = obj.coarseMesh;
+%             s.DirCond       = obj.dir;
+%             eifem           = EIFEM(s);
+%             obj.EIFEMsolver = eifem;
+%         end
 
         function uInt = computeInterfaceDisp(obj,u)
             nint = size(obj.ddDofManager.interfaceDof,3);
@@ -135,10 +152,11 @@ classdef PreconditionerEIFEMcontinous < handle
         end
 
         function U = scaleProjectionMatrix(obj,U)
-            nDofcoarse = size(U,2)/obj.nSubdomains(1)*obj.nSubdomains(2);
+            nDofcoarse = size(U,2)/(obj.nSubdomains(1)*obj.nSubdomains(2));
             for i=1: nDofcoarse
                 Usbd = U(:,i:nDofcoarse:end);
-                Usbd = obj.scaleInterfaceValues(Usbd);
+%                 Usbd = obj.scaleInterfaceValues(Usbd);
+                Usbd = obj.ddDofManager.scaleInterfaceValues(Usbd,obj.weight);
                 U(:,i:nDofcoarse:end)= Usbd;
             end
         end
@@ -147,23 +165,24 @@ classdef PreconditionerEIFEMcontinous < handle
         function Ug = assembleProjectionMatrix(obj,U)
             nsbd = obj.nSubdomains(1)*obj.nSubdomains(2);
             nDofcoarse = size(U,2)/nsbd;
-            Ug = zeros(obj.ddDofManager.nDof,nDofcoarse*nsbd);
+            ndof = size(obj.LHS,1);
+            Ug = zeros(ndof,nDofcoarse*nsbd);
             for i=1: nDofcoarse
                 Usbd = U(:,i:nDofcoarse:end);
-                Uaux = obj.local2global(Usbd);
+                Uaux = obj.ddDofManager.local2global(Usbd);
                 Ug(:,i:nDofcoarse:end)= Uaux;
             end
             Ug = sparse(Ug);
         end
 
-        function computeKEIFEMglobal(obj)
-            U = obj.computeAssembledProjectionMatrix();
-            %             U = U(:,9:end);
-            obj.EIFEMprojection = obj.computeReducedProjection(U);
-            LHS = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);
-            obj.KeifemContinuous = obj.EIFEMprojection'*LHS*obj.EIFEMprojection;
-
-        end
+%         function computeKEIFEMglobal(obj)
+%             U = obj.computeAssembledProjectionMatrix();
+%             %             U = U(:,9:end);
+%             obj.EIFEMprojection = obj.computeReducedProjection(U);
+%             LHS = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);
+%             obj.KeifemContinuous = obj.EIFEMprojection'*LHS*obj.EIFEMprojection;
+% 
+%         end
 
         function Ured = computeReducedProjection(obj,U)
             ncol = size(U,2);

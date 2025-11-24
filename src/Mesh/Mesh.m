@@ -268,18 +268,12 @@ classdef Mesh < handle
 
         function [m, l2g] = createSingleBoundaryMesh(obj)
             % To BoundaryMesh
-            if isempty(obj.bMesh)
-                switch obj.ndim
-                    case 2
-                        [m, l2g] = obj.createSingleBoundaryMesh2D();
-                    case 3
-                        [m, l2g] = obj.createSingleBoundaryMesh3D();
-                end
-                obj.bMesh.mesh = m;
-                obj.bMesh.l2g  = l2g;
+            switch obj.ndim
+                case 2
+                    [m, l2g] = obj.createSingleBoundaryMesh2D();
+                case 3
+                    [m, l2g] = obj.createSingleBoundaryMesh3D();
             end
-            m = obj.bMesh.mesh;
-            l2g = obj.bMesh.l2g;
         end
         
         function [m, l2g] = getBoundarySubmesh(obj, domain)
@@ -406,7 +400,7 @@ classdef Mesh < handle
             x = obj.coord(:,1);
             y = obj.coord(:,2);
             
-            k = boundary(x,y);
+            k = boundary(x,y,0);
             k = k(1:end-1);
             originalNodes = k;
             newNodes = (1:length(k))';
