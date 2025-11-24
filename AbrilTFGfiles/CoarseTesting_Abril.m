@@ -58,6 +58,7 @@ classdef CoarseTesting_Abril< handle
             Ufull = obj.bcApplier.reducedToFullVectorDirichlet(Usol);  %AIXO PQ SERVIEX???
             %obj.plotSolution(Ufull,obj.meshDomain,1,1,0,obj.bcApplier,0)
 
+            % Meifem       = obj.createEIFEMPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);            
             Milu         = obj.createILUpreconditioner(LHS);
             Mcoarse       = obj.createCoarseNNPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
             Mid            = @(r) r;
