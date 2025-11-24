@@ -27,8 +27,8 @@ classdef LinearizedHarmonicProjector4 < handle
             obj.fBV = LagrangianFunction.create(obj.mesh, 2, 'P1');
             obj.fS = LagrangianFunction.create(obj.mesh, 1, 'P1');
             obj.createInternalDOFs();                        
-            obj.eta = (10*obj.mesh.computeMeanCellSize)^2;  
-            obj.perimeter = obj.density.*(1-obj.density);%ConstantFunction.create(1,obj.mesh);%
+            obj.eta = (100*obj.mesh.computeMeanCellSize)^2;  
+            obj.perimeter = 4*obj.density.*(1-obj.density);%ConstantFunction.create(1,obj.mesh);%
             obj.massMatrixBB      = IntegrateLHS(@(u,v) DP(v,obj.perimeter.*u),obj.fB,obj.fB,obj.mesh,'Domain',4);
             obj.massMatrixSS      = IntegrateLHS(@(u,v) DP(v,u),obj.fS,obj.fS,obj.mesh,'Domain',4);
             obj.stiffnessMatrixBB = IntegrateLHS(@(u,v) DP(Grad(v),(1-obj.perimeter).*Grad(u)),obj.fB,obj.fB,obj.mesh,'Domain');
