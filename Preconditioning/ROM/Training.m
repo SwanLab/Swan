@@ -61,12 +61,12 @@ classdef Training < handle
 
         function init(obj,mesh)
             obj.nSubdomains  = [5 5]; %nx ny
-            obj.tolSameNode = 1e-10;
+            obj.tolSameNode = 1e-12;
             obj.domainIndices = [3 3];
             obj.mesh = mesh;
             obj.E    = 1;
             obj.nu   = 1/3;
-            obj.Coarseorder = 2;
+            obj.Coarseorder = 1;
         end
 
         function repeatMesh(obj)

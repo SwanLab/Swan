@@ -13,6 +13,7 @@ classdef CoarseTesting_Abril< handle
         bs
 
         meshDomain
+        referenceMesh
         cellMeshes
         boundaryConditions
         bcApplier
@@ -27,6 +28,11 @@ classdef CoarseTesting_Abril< handle
         data
         loadData
 
+        xmin 
+        xmax 
+        ymin 
+        ymax         
+
     end
 
 
@@ -36,6 +42,7 @@ classdef CoarseTesting_Abril< handle
             obj.init()
             mR = obj.createReferenceMesh();  %Crea la background mesh
             bS  = mR.createBoundaryMesh();    %crea el boundary de la mesh
+            obj.referenceMesh = mR;
             [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain(mR);  
             obj.meshDomain = mD;        % mD:conj subdominis --> Tot el domini
             obj.cellMeshes = mSb; %??? % mSb: info de la malla a cada subdimini
@@ -58,7 +65,7 @@ classdef CoarseTesting_Abril< handle
             Ufull = obj.bcApplier.reducedToFullVectorDirichlet(Usol);  %AIXO PQ SERVIEX???
             %obj.plotSolution(Ufull,obj.meshDomain,1,1,0,obj.bcApplier,0)
 
-            % Meifem       = obj.createEIFEMPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);            
+            Meifem       = obj.createEIFEMPreconditioner(dir,iC,lG,bS,iCR,discMesh);            
             Milu         = obj.createILUpreconditioner(LHS);
             Mcoarse       = obj.createCoarseNNPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
             Mid            = @(r) r;
@@ -69,7 +76,7 @@ classdef CoarseTesting_Abril< handle
             tic
             x0 = zeros(size(RHSf));
 
-            Mmult = @(r) Preconditioner.multiplePrec(r,Milu,Mcoarse,Milu,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
+            Mmult = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Mcoarse,Milu);
             tic
             %           tau = @(r,A) 1;
             [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
@@ -182,7 +189,7 @@ classdef CoarseTesting_Abril< handle
             s.nsubdomains   = obj.nSubdomains; %nx ny
             s.meshReference = mR;
             s.tolSameNode = obj.tolSameNode;
-            m = MeshCreatorFromRVE(s);
+            m = MeshCreatorFromRVE2D(s);
             [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
             close all;
         end
@@ -214,7 +221,25 @@ classdef CoarseTesting_Abril< handle
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
             s.connec = F;
+
+            obj.xmin = min(x1);            
+            obj.xmax = max(x1);
+            obj.ymin = min(x2);
+            obj.ymax = min(x2);
+
+            s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
+                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)-[1e-9,0];
+            s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
+                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)-[1e-9,0];
+            s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
+                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[1e-9,0];
+            s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
+                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[1e-9,0];
+
+
             mS = Mesh.create(s);
+
+
           
         end
 
@@ -251,7 +276,7 @@ classdef CoarseTesting_Abril< handle
             s.nsubdomains   = obj.nSubdomains; %nx ny
             s.meshReference = obj.createReferenceCoarseMesh(mR);
             s.tolSameNode   = obj.tolSameNode;
-            mRVECoarse      = MeshCreatorFromRVE(s);
+            mRVECoarse      = MeshCreatorFromRVE2D(s);
             [mCoarse,~,~] = mRVECoarse.create();
         end
 
@@ -464,6 +489,39 @@ classdef CoarseTesting_Abril< handle
 
              RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
         end
+
+         function Meifem = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh,mSbd)
+            mR = obj.referenceMesh;
+            % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
+       %     EIFEMfilename = obj.fileNameEIFEM;
+            % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
+        %    filename        = EIFEMfilename;
+        %    s.RVE           = TrainedRVE(filename);
+            
+            data = Training(mR);
+            p = OfflineDataProcessor(data);
+            EIFEoper = p.computeROMbasis();
+            s.RVE           = TrainedRVE(EIFEoper);
+
+%             EIFEoper = obj.trainSubdomain(mSbd);
+%             s.RVE           = TrainedRVE(EIFEoper);
+
+            s.mesh          = obj.createCoarseMesh(mR);
+%            s.mesh          = obj.loadCoarseMesh(mR);
+            s.DirCond       = {dir};
+            s.nSubdomains = obj.nSubdomains;
+            s.mu          = obj.r;
+            s.meshRef      = dMesh;
+            eifem           = EIFEMnonPeriodic(s);
+
+            ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
+            ss.EIFEMsolver = eifem;
+            ss.bcApplier = obj.bcApplier;
+            ss.dMesh     = dMesh;
+            ss.type = 'EIFEM';
+            eP = Preconditioner.create(ss);
+            Meifem = @(r) eP.apply(r);
+        end        
 
 
         function Mcoarse = createCoarseNNPreconditioner(obj,mR,dir,iC,lG,bS,iCR,dMesh)

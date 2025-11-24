@@ -116,6 +116,7 @@ classdef DomainDecompositionDofManager < handle
             % 
             % end
             %mG = sum(mGs,3);
+        end
 
         function fG = AssembleLocal2GlobalVector(obj,fL)
             fG   = zeros(obj.nDof,1);
