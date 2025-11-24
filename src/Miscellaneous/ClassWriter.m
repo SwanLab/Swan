@@ -72,9 +72,8 @@ classdef ClassWriter < handle
         end
         
         function createNewFile(obj)
-            editorService = com.mathworks.mlservices.MLEditorServices;
-            editorApp = editorService.getEditorApplication();
-            editorApp.newEditor(obj.string2Print);
+            doc = matlab.desktop.editor.newDocument(obj.string2Print);
+            doc.makeActive();
         end
         
     end

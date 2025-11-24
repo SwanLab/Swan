@@ -1,4 +1,4 @@
-classdef TutorialXXPhaseFieldHomogenization < handle
+classdef Tutorial07_2_PhaseFieldHomogenization < handle
 
     properties (Access = public)
         paramHole
