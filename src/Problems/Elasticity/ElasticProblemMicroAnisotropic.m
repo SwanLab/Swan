@@ -52,7 +52,7 @@ classdef ElasticProblemMicroAnisotropic < handle
             end
             obj.uFluc  = uF;
             % Convert tensor to voigt!
-            obj.convertChomogToVoigt;
+            obj.convertChomogToVoigtv2;
             obj.strain = strainF;
             obj.stress = stressF;
         end
@@ -185,6 +185,47 @@ classdef ElasticProblemMicroAnisotropic < handle
             obj.Cvoigt = C_voigt;
 
         end
+
+
+         function convertChomogToVoigtv2(obj)
+            C = obj.Chomog;
+           % C_voigt = zeros(3,3);
+        %
+           % map = { [1 1], [2 2], [1 2] };
+        %
+           % % factores engineering shear
+           % s = [1 1 2];
+        %
+           % for I = 1:3
+           %     for J = 1:3
+           %         ij = map{I};
+           %         kl = map{J};
+           %         i = ij(1); j = ij(2);
+           %         k = kl(1); l = kl(2);
+           %         C_voigt(I,J) = s(I) * s(J) * C(i,j,k,l);
+        %
+           %     end
+           % end
+%
+           % % simetrizar por seguridad numérica
+           % C_voigt = 0.5 * (C_voigt + C_voigt.');
+           % obj.Cvoigt = C_voigt;
+
+               C_voigt = zeros(3,3);
+
+               C_voigt(1,1) = C(1,1,1,1);
+               C_voigt(1,2) = C(1,1,2,2);
+               C_voigt(1,3) = 2*C(1,1,1,2);
+           
+               C_voigt(2,1) = C(2,2,1,1);
+               C_voigt(2,2) = C(2,2,2,2);
+               C_voigt(2,3) = 2*C(2,2,1,2);
+           
+               C_voigt(3,1) = 2*C(1,2,1,1);
+               C_voigt(3,2) = 2*C(1,2,2,2);
+               C_voigt(3,3) = 4*C(1,2,1,2);
+               obj.Cvoigt = C_voigt;
+          end
 
         function convertChomogToFourthOrder(obj,ChiB,v,iB)
             Ch = obj.Chomog;
