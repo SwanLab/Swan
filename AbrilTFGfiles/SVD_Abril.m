@@ -19,7 +19,7 @@ for i=1:size(r,2)
 
 end
 
-[U,S,V]=svd(T_SVD,10);
+[U,S,V]=svd(T_SVD,'econ');
 
 %% Graphics
 
