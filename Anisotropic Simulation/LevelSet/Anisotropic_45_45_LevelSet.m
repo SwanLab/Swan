@@ -32,7 +32,7 @@ classdef Anisotropic_45_45_LevelSet < handle
             obj.createOptimizer();
 
             % Save monitoring and desginVariable fValues
-            saveas(gcf,'Monitoring_45_45_LevelSet.fig');
+            %saveas(gcf,'Monitoring_45_45_LevelSet.fig');
             obj.designVariable.fun.print('fValues_45_45_LevelSet');
         end
 
@@ -181,7 +181,7 @@ classdef Anisotropic_45_45_LevelSet < handle
             %s.type           = '-45_45';
             s.gif = true;
             s.gifName = 'Gif_45_45_LevelSet';
-            s.printing = true;
+            s.printing = false;
             s.printName = 'Results_45_45_LevelSet';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
