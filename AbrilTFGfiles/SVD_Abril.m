@@ -36,16 +36,27 @@ for j=1:Nwindow
         ax=nexttile;
         plot(r,V(:,idx), 'LineWidth', 1.5);
         xlabel('r');
-        ylabel("V(:,"+idx+")");
-        title("V column "+ idx);
+        ylabel("V(:,"+idx);
+        title("V-"+ idx+" ; r="+r(1,idx));
         grid on
         idx=idx+1;
     end
 end
 
+tiledlayout(10,5,'TileSpacing','compact','Padding','compact');
+for i=1:50
+    ax=nexttile;
+    plot(r,V(:,i), 'LineWidth', 1.5);
+    xlabel('r');
+    ylabel("V"+i);
+    title("V"+ i+" ; r="+r(1,i));
+    grid on
+    i=i+1;
+end
+
 % Plot the S
 figure
-plot(log(diag(S)));
+plot(log(diag(S)),'LineWidth',1.5);
 title("S singular values");
 ylabel('value');
 xlabel('column');
@@ -72,5 +83,5 @@ for i=1:10
 end
 
 
-
+    
 
