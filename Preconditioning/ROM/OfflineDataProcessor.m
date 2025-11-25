@@ -248,7 +248,7 @@ classdef OfflineDataProcessor < handle
             f4y = @(x) [0*x(1,:,:);...
                 1/(4)*(1-(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b)];
 
-            f     = { f2x f2y f3x f3y f4x f4y f1x f1y}; %
+            f     = {  f2x f2y f3x f3y f4x f4y f1x f1y}; %
             nfun = size(f,2);
             nbd = size(bMesh,1);
             for ibd=1:nbd
@@ -277,8 +277,21 @@ classdef OfflineDataProcessor < handle
         end
 
         function [young,poisson] = computeElasticProperties(obj,mesh)
-           young   = ConstantFunction.create(obj.E,mesh);
-           poisson = ConstantFunction.create(obj.nu,mesh);
+              E1  = 1;
+            E2 = E1/1000;
+            nu = 1/3;
+%            young   = ConstantFunction.create(obj.E,mesh);
+%            poisson = ConstantFunction.create(obj.nu,mesh);
+           radius = 0.1;
+           x0=mean(mesh.coord(:,1));
+            y0=mean(mesh.coord(:,2));
+%             young   = ConstantFunction.create(E,mesh);
+%             poisson = ConstantFunction.create(nu,mesh);
+            f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<radius)*E2 + ...
+                        (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=radius)*E1 ; 
+
+            young   = AnalyticalFunction.create(f,mesh);
+            poisson = ConstantFunction.create(nu,mesh);
         end
 
         function [LHS,u] = createElasticProblem(obj)

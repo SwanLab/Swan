@@ -37,7 +37,6 @@ classdef DomainMeshComputer < handle
             obj.connecGlob = obj.createGlobalConnec(obj.meshReference);
             obj.createGlobalCoord();
             obj.updateGlobalConnec();
-%             obj.updateGlobalConnecFast();
             obj.updateGlobalCoord();
             obj.computeLocalGlobalConnec()
             s.coord        = obj.updtCoordGlob;
@@ -106,180 +105,57 @@ classdef DomainMeshComputer < handle
             obj.coordGlob=coordGlob;
         end
 
-        function   updateGlobalConnec(obj)
-            obj.updtConnecGlob = updateGlobalConnec_mex(obj.connecGlob, obj.interfaceConnec);
-%             updtConnecGlob = obj.connecGlob;
-%             rCconnec       = obj.interfaceConnec;
-%             nref           = size(rCconnec,1);
-%             %             ncopies        = size(rCconnec,2);
-%             for iref=1:nref
-%                 aux = rCconnec(iref,:);
-%                 aux = aux(aux>0);
-%                 for icopy=2:length(aux)
-%                     updtConnecGlob(updtConnecGlob==aux(icopy))  = aux(1);
-%                     updtConnecGlob(updtConnecGlob>aux(icopy))   = updtConnecGlob(updtConnecGlob>aux(icopy))-1;
-%                     aux(aux>aux(icopy)) =  aux(aux>aux(icopy))-1;
-%                     rCconnec(rCconnec>aux(icopy)) = rCconnec(rCconnec>aux(icopy))-1;
-%                 end
-%             end
-%             obj.updtConnecGlob=updtConnecGlob;
+        function   updateGlobalConnecOriginal(obj)
+            %             obj.updtConnecGlob = updateGlobalConnec_mex(obj.connecGlob, obj.interfaceConnec);
+            updtConnecGlob = obj.connecGlob;
+            rCconnec       = obj.interfaceConnec;
+            nref           = size(rCconnec,1);
+            %             ncopies        = size(rCconnec,2);
+            for iref=1:nref
+                aux = rCconnec(iref,:);
+                aux = aux(aux>0);
+                for icopy=2:length(aux)
+                    updtConnecGlob(updtConnecGlob==aux(icopy))  = aux(1);
+                    updtConnecGlob(updtConnecGlob>aux(icopy))   = updtConnecGlob(updtConnecGlob>aux(icopy))-1;
+                    aux(aux>aux(icopy)) =  aux(aux>aux(icopy))-1;
+                    rCconnec(rCconnec>aux(icopy)) = rCconnec(rCconnec>aux(icopy))-1;
+                end
+            end
+            obj.updtConnecGlob=updtConnecGlob;
         end
 
- function updateGlobalConnec3(obj)
-       connec = obj.connecGlob;
-    iface  = obj.interfaceConnec;
+        function updateGlobalConnec(obj)
+            updtConnecGlob = obj.connecGlob;
+            rCconnec       = obj.interfaceConnec;
 
-    % Flatten connectivity for fast mapping
-    connecFlat = connec(:);
+            maxID = max(max(updtConnecGlob(:)), max(rCconnec(:)));
+            map = 1:maxID;
 
-    % Remove zero entries (no connection)
-    iface(iface == 0) = NaN;
+            nref = size(rCconnec, 1);
 
-    % Prepare node map (identity)
-    nNodes = max(connecFlat);
-    map = 1:nNodes;
+            for iref = 1:nref
+                aux = rCconnec(iref, :);
+                aux = aux(aux > 0);
 
-    % Loop over each interface row (master + possibly many slaves)
-    nref = size(iface,1);
-    for i = 1:nref
-        row = iface(i,:);
-        row = row(~isnan(row));
-        if isempty(row)
-            continue;
+                if length(aux) > 1
+                    master_node = aux(1);
+                    slave_nodes = aux(2:end);
+
+                    map(map(slave_nodes)) = map(master_node);
+                end
+            end
+
+            updtConnecGlob = map(updtConnecGlob);
+
+            unique_map_targets = unique(map);
+
+            renum_map = zeros(1, maxID);
+            renum_map(unique_map_targets) = 1:length(unique_map_targets);
+
+            updtConnecGlob = renum_map(updtConnecGlob);
+
+            obj.updtConnecGlob = updtConnecGlob;
         end
-        master = row(1);
-        slaves = row(2:end);
-
-        % Merge each slave into master
-        map(slaves) = master;
-    end
-
-    % Apply the mapping in one pass
-    newConnec = map(connecFlat);
-
-    % Compact numbering (keep original order)
-    [uniqueNodes, ~, compactIDs] = unique(newConnec, 'stable');
-
-    % Reshape back to original size
-    obj.updtConnecGlob = reshape(compactIDs, size(connec));
-
-    % Save the mapping for coordinates
-    obj.nodeOld2New = containers.Map(uniqueNodes, 1:numel(uniqueNodes));
-end
-
-function updateGlobalConnecFast(obj)
-%  updt = obj.connecGlob(:);
-%     iface = obj.interfaceConnec;
-%     nref = size(iface,1);
-% 
-%     for i = 1:nref
-%         aux = iface(i,:);
-%         aux = aux(aux > 0);
-%         if numel(aux) < 2, continue; end
-% 
-%         master = aux(1);
-%         for k = 2:numel(aux)
-%             slave = aux(k);
-% 
-%             % Merge slave → master
-%             updt(updt == slave) = master;
-% 
-%             % Shift numbering
-%             mask = updt > slave;
-%             updt(mask) = updt(mask) - 1;
-% 
-%             % Update all interface references
-%             iface(iface > slave) = iface(iface > slave) - 1;
-%             aux(aux > slave) = aux(aux > slave) - 1;
-%         end
-%     end
-% 
-%     % Reshape back
-%     obj.updtConnecGlob = reshape(updt, size(obj.connecGlob));
-% 
-%     % Create old→new mapping
-%     [uniqueNodes, ~, compactIDs] = unique(updt, 'stable');
-%     obj.nodeOld2New = containers.Map(uniqueNodes, 1:numel(uniqueNodes));
-
-%  connec = obj.connecGlob;
-%     iface  = obj.interfaceConnec;
-% 
-%     % --- Step 1: Build parent array (disjoint sets)
-%     iface(iface == 0) = NaN;
-%     nNodes = max(connec(:));
-%     parent = 1:nNodes;
-% 
-%     % Union operation for each interface row
-%     for i = 1:size(iface,1)
-%         aux = iface(i, :);
-%         aux = aux(~isnan(aux));
-%         if numel(aux) < 2, continue; end
-%         master = aux(1);
-%         for slave = aux(2:end)
-%             % Path compression union
-%             while parent(master) ~= master, master = parent(master); end
-%             while parent(slave)  ~= slave,  slave  = parent(slave);  end
-%             if master ~= slave
-%                 parent(slave) = master;
-%             end
-%         end
-%     end
-% 
-%     % --- Step 2: Find final representatives
-%     for i = 1:nNodes
-%         p = i;
-%         while parent(p) ~= p
-%             p = parent(p);
-%         end
-%         parent(i) = p;
-%     end
-% 
-%     % --- Step 3: Compact numbering (preserve order)
-%     merged = parent(connec(:));
-%     [uniqueNodes, ~, compactIDs] = unique(merged, 'stable');
-%     obj.updtConnecGlob = reshape(compactIDs, size(connec));
-% 
-%     obj.nodeOld2New = containers.Map(uniqueNodes, 1:numel(uniqueNodes));
-
-    updtConnecGlob = obj.connecGlob;
-    rCconnec       = obj.interfaceConnec;
-    nref           = size(rCconnec, 1);
-    
-    currentRConnec = rCconnec; 
-
-    for iref = 1:nref
-        aux = currentRConnec(iref, :);
-        validIndices = aux(aux > 0);
-        
-        if length(validIndices) < 2
-            continue;
-        end
-        
-        refIndex    = validIndices(1);
-        replaceIndices = validIndices(2:end);
-        
-        maxIdx = max(updtConnecGlob(:));
-        idxMap = 1:maxIdx;
-        
-        idxMap(replaceIndices) = refIndex;
-        
-        decrements = zeros(1, maxIdx);
-        decrements(replaceIndices) = 1;
-        
-        decrements = cumsum(decrements);
-        
-        idxMap = idxMap - decrements;
-        
-        updtConnecGlob = idxMap(updtConnecGlob);
-        
-        currentRConnec = idxMap(currentRConnec);
-        
-    end
-    
-    obj.updtConnecGlob = updtConnecGlob;
-end
-
-        
 
         function  updateGlobalCoord(obj)
             tol = obj.tolSameNode;
@@ -335,18 +211,18 @@ end
         end
 
         function updateGlobalCoord2(obj)
-    coord = obj.coordGlob;
-    map   = obj.nodeOld2New;
+            coord = obj.coordGlob;
+            map   = obj.nodeOld2New;
 
-    oldIDs = cell2mat(map.keys);
-    newIDs = cell2mat(map.values);
+            oldIDs = cell2mat(map.keys);
+            newIDs = cell2mat(map.values);
 
-    % Allocate and assign directly
-    updtCoord = zeros(max(newIDs), size(coord,2));
-    updtCoord(newIDs,:) = coord(oldIDs,:);
+            % Allocate and assign directly
+            updtCoord = zeros(max(newIDs), size(coord,2));
+            updtCoord(newIDs,:) = coord(oldIDs,:);
 
-    obj.updtCoordGlob = updtCoord;
-end
+            obj.updtCoordGlob = updtCoord;
+        end
 
 
         function  computeLocalGlobalConnec(obj)

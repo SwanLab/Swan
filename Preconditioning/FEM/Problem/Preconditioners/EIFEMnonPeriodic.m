@@ -65,7 +65,7 @@ classdef EIFEMnonPeriodic < handle
             obj.RVE     = cParams.RVE;
 %             obj.Kel     = repmat(obj.RVE.Kcoarse,[1,1,obj.mesh.nelem]);
             obj.DirCond = cParams.DirCond;
-            obj.dispFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim,'P2Q8');
+            obj.dispFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim,'P1');
 %             obj.LHSintegrator = obj.createLHSintegrator();
             if length(cParams.mu) == 1
                 obj.mu = cParams.mu*ones(cParams.mesh.nelem,1);
@@ -174,7 +174,7 @@ classdef EIFEMnonPeriodic < handle
         function createBoundaryConditions(obj)
             dirichletFun = [];
              for i = 1:numel(obj.DirCond)
-                dir = DirichletCondition(obj.mesh, obj.DirCond{i},obj.dispFun.order);
+                dir = DirichletCondition(obj.mesh, obj.DirCond{i}{1},obj.dispFun.order);
                 dirichletFun = [dirichletFun, dir];
             end
 
