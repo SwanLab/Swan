@@ -32,7 +32,7 @@ classdef Anisotropic_90_LevelSet < handle
             obj.createOptimizer();
 
             % Save monitoring and desginVariable fValues
-            saveas(gcf,'Monitoring_90_LevelSet.fig');
+            %saveas(gcf,'Monitoring_90_LevelSet.fig');
             obj.designVariable.fun.print('fValues_90_LevelSet');
         end
 
@@ -169,7 +169,7 @@ classdef Anisotropic_90_LevelSet < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 500;
+            s.maxIter        = 300;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
@@ -181,7 +181,7 @@ classdef Anisotropic_90_LevelSet < handle
             %s.type           = '90';
             s.gif = true;
             s.gifName = 'Gif_90_LevelSet';
-            s.printing = true;
+            s.printing = fakse;
             s.printName = 'Results_90_LevelSet';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
