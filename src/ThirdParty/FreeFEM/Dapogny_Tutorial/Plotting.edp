@@ -1,0 +1,32 @@
+// write data file with "iteration value"
+string datafile1 = "03_objectiveHistory.gp";
+string datafile2 = "04_objectiveHistory.gp";
+
+// create gnuplot command to plot the data with logscale on y-axis
+string gnuplotCmd = 
+    "gnuplot -e \"set term png size 800,600; " +
+    "set output 'comparisonCost.png'; " +
+    "set title 'Objective History'; " +
+    "set xlabel 'Iteration'; set ylabel 'Volume'; set logscale y; " +
+    "plot '" + datafile1 + "' with lines lw 2 title 'SLP', " +
+    "'" + datafile2 + "' with lines lw 2 title 'SQP'\"";
+
+// execute gnuplot command
+exec(gnuplotCmd);
+
+
+// write data file with "iteration value"
+datafile1 = "03_constraintHistory.gp";
+datafile2 = "04_constraintHistory.gp";
+
+// create gnuplot command to plot the data with logscale on y-axis
+gnuplotCmd = 
+    "gnuplot -e \"set term png size 800,600; " +
+    "set output 'comparisonConstraint.png'; " +
+    "set title 'Objective History'; " +
+    "set xlabel 'Iteration'; set ylabel 'Compliance'; set logscale y; " +
+    "plot '" + datafile1 + "' with lines lw 2 title 'SLP', " +
+    "'" + datafile2 + "' with lines lw 2 title 'SQP'\"";
+
+// execute gnuplot command
+exec(gnuplotCmd);
