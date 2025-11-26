@@ -15,6 +15,7 @@ classdef CoarseTesting_Abril< handle
         meshDomain
         referenceMesh
         cellMeshes
+        discMesh
         boundaryConditions
         bcApplier
         LHS
@@ -43,13 +44,14 @@ classdef CoarseTesting_Abril< handle
             mR = obj.createReferenceMesh();  %Crea la background mesh
             bS  = mR.createBoundaryMesh();    %crea el boundary de la mesh
             obj.referenceMesh = mR;
-            [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain(mR);  
-            obj.meshDomain = mD;        % mD:conj subdominis --> Tot el domini
-            obj.cellMeshes = mSb; %??? % mSb: info de la malla a cada subdimini
-            obj.ic = iC;  % info de les coordenades globals en tot el domini ???
-            obj.icr = iCR; % info de les coordenades del corresponent subdomini ???
-            obj.lg = lG; %??
-            obj.bs; 
+            %[mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain(mR);  
+            %obj.meshDomain = mD;        % mD:conj subdominis --> Tot el domini
+            %obj.cellMeshes = mSb; %??? % mSb: info de la malla a cada subdimini
+            %obj.ic = iC;  % info de les coordenades globals en tot el domini ???
+            %obj.icr = iCR; % info de les coordenades del corresponent subdomini ???
+            %obj.lg = lG; %??
+            %obj.bs; 
+            obj.repeatMesh(); % Crea tot el domini
 
             [bC,dir] = obj.createBoundaryConditions(obj.meshDomain);
             obj.boundaryConditions = bC;
@@ -65,9 +67,9 @@ classdef CoarseTesting_Abril< handle
             Ufull = obj.bcApplier.reducedToFullVectorDirichlet(Usol);  %AIXO PQ SERVIEX???
             %obj.plotSolution(Ufull,obj.meshDomain,1,1,0,obj.bcApplier,0)
 
-            Meifem       = obj.createEIFEMPreconditioner(dir,iC,lG,bS,iCR,discMesh);            
+            Meifem       = obj.createEIFEMPreconditioner(dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);            
             Milu         = obj.createILUpreconditioner(LHS);
-%             Mcoarse       = obj.createCoarseNNPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
+%           Mcoarse      = obj.createCoarseNNPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
             Mid            = @(r) r;
 
             MiluCG = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
@@ -152,47 +154,56 @@ classdef CoarseTesting_Abril< handle
                 nameNN= ["K_NN.mat","T_NN.mat"];
                 obj.loadNN(nameNN);
             end
-
-
         end
 
-        function loadNN(obj,nameNN)
-            load(nameNN(1,1), 'K_NN');
-            obj.NN.K=K_NN;
-            load(nameNN(1,2), 'T_NN');
-            obj.NN.T=T_NN;
-        end
-
-        function loadT(obj,name)
-            Taux=cell(1,length(name));
-            for i=1:length(name)
-                filePath = fullfile('AbrilTFGfiles', 'DataVariables', '20x20',name(i));
-                %filePath = fullfile('AlbertTFG files', 'mat files', 'Full',name(i));
-                load(filePath,"T");
-                Taux{1,i}=T;
+            function loadNN(obj,nameNN)
+                load(nameNN(1,1), 'K_NN');
+                obj.NN.K=K_NN;
+                load(nameNN(1,2), 'T_NN');
+                obj.NN.T=T_NN;
             end
-            obj.data.T=Taux;
-        end
-
-        function loadK(obj,name)
-            Kaux=cell(1,length(name));
-            for i=1:length(name)
-                filePath = fullfile('AbrilTFGfiles', 'DataVariables', '20x20',name(i));
-                %filePath = fullfile('AlbertTFG files', 'mat files', 'Full',name(i));
-                load(filePath,"K");
-                Kaux{1,i}=K;
+    
+            function loadT(obj,name)
+                Taux=cell(1,length(name));
+                for i=1:length(name)
+                    filePath = fullfile('AbrilTFGfiles', 'DataVariables', '20x20',name(i));
+                    %filePath = fullfile('AlbertTFG files', 'mat files', 'Full',name(i));
+                    load(filePath,"T");
+                    Taux{1,i}=T;
+                end
+                obj.data.T=Taux;
             end
-            obj.data.K=Kaux;
+    
+            function loadK(obj,name)
+                Kaux=cell(1,length(name));
+                for i=1:length(name)
+                    filePath = fullfile('AbrilTFGfiles', 'DataVariables', '20x20',name(i));
+                    %filePath = fullfile('AlbertTFG files', 'mat files', 'Full',name(i));
+                    load(filePath,"K");
+                    Kaux{1,i}=K;
+                end
+                obj.data.K=Kaux;
+            end
+
+        function repeatMesh(obj)
+            [mD,mSb,iC,lG,iCR,discmesh] = obj.createMeshDomain(obj.referenceMesh);  
+            obj.meshDomain = mD;        % mD:conj subdominis --> Tot el domini
+            obj.cellMeshes = mSb; %??? % mSb: info de la malla a cada subdimini
+            obj.ic = iC;  % info de les coordenades globals en tot el domini ???
+            obj.icr = iCR; % info de les coordenades del corresponent subdomini ???
+            obj.lg = lG; %??
+            obj.discMesh=discmesh;
+            obj.bs; 
         end
 
-        function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomain(obj,mR)
-            s.nsubdomains   = obj.nSubdomains; %nx ny
-            s.meshReference = mR;
-            s.tolSameNode = obj.tolSameNode;
-            m = MeshCreatorFromRVE2D(s);
-            [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
-            close all;
-        end
+            function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomain(obj,mR)
+                s.nsubdomains   = obj.nSubdomains; %nx ny
+                s.meshReference = mR;
+                s.tolSameNode = obj.tolSameNode;
+                m = MeshCreatorFromRVE2D(s);
+                [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
+                close all;
+            end
 
 
         function mS = createReferenceMesh(obj)
@@ -499,7 +510,7 @@ classdef CoarseTesting_Abril< handle
         %    filename        = EIFEMfilename;
         %    s.RVE           = TrainedRVE(filename);
             
-            data = Training(mR);
+            data = Training_Abril(obj,mR);
             p = OfflineDataProcessor(data);
             EIFEoper = p.computeROMbasis();
             s.RVE           = TrainedRVE(EIFEoper);
