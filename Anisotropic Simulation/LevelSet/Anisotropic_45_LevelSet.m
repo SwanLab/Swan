@@ -181,7 +181,7 @@ classdef Anisotropic_45_LevelSet < handle
             %s.type           = '45';
             s.gif = true;
             s.gifName = 'Gif_45_LevelSet';
-            s.printing = false;
+            s.printing = true;
             s.printName = 'Results_45_LevelSet';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
@@ -193,8 +193,8 @@ classdef Anisotropic_45_LevelSet < handle
             f = x.obtainDomainFunction();
             f = obj.filter.compute(f{1},1);            
             s.type                 = 'DensityBasedMaterialAnisotropic';
-            %s.fibreOrientation     = '45';
-            s.density              = f;
+            s.fibreOrientation     = '45';
+            %s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '2D';
             s.mesh                 = obj.mesh;

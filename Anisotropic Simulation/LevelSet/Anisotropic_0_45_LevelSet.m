@@ -181,7 +181,7 @@ classdef Anisotropic_0_45_LevelSet < handle
             %s.type           = '0_45';
             s.gif = true;
             s.gifName = 'Gif_0_45_LevelSet';
-            s.printing = false;
+            s.printing = true;
             s.printName = 'Results_0_45_LevelSet';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
