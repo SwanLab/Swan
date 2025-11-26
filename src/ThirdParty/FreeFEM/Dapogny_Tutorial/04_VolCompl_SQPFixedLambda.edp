@@ -105,7 +105,7 @@ for (int it=0; it<maxit; it++) {
   /* Normal vector field to the shape */
   normalvec(phi);
   curvature;
-  isNeg = kappa+0.3 <= 1e-6;
+  isNeg = kappa <= alpha;
   gN = g/(kappa+0.3);
 
   gReal = gN*(1-isNeg) + g*isNeg;
