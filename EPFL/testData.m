@@ -30,7 +30,7 @@ for k = 1:length(files)
     disp(['Loaded: ', files(k).name]);  % Display the file being loaded
 end
 % T=T./vecnorm(T);
-load('parametrizedEIFEM.mat')
+load('parametrizedEIFEMLagrange20.mat')
 Tdef = EIFEoper.Udef;
 Trb = EIFEoper.Urb;
 fT   = EIFEoper.U;
@@ -47,17 +47,19 @@ i = 0:N;
 % Cosine spacing formula
 xdata = (a + b)/2 + (b - a)/2 * cos(pi * (1 - i / N));
 % xdata   = 1e-6:0.01:0.801;
-t    = fT(xdata);
-def  = Tdef(xdata);
-rb   = Trb(xdata);
-Kcoarse = EIFEoper.Kcoarse(xdata);
+% t    = fT(xdata);
+% def  = Tdef(xdata);
+% rb   = Trb(xdata);
+% Kcoarse = EIFEoper.Kcoarse(xdata);
 % fK   = parameterizedData(Kcoase,xdata,centers);
 % Kcoarse = fK(xdata);
 
 for i=1:length(xdata)
-    error(i) = norm(def(:,i)+rb(:,i)-T(:,i))/norm(T(:,i));
+    aux = fT(xdata(i));
+    t(:,i) = aux(:);
+%     error(i) = norm(def(:,i)+rb(:,i)-T(:,i))/norm(T(:,i));
     error2(i) = norm(t(:,i)-T(:,i))/norm(T(:,i));
-    errorK(i) = norm(Kcoarse(:,i)-Kcoase(:,i))/norm(Kcoase(:,i));
+%     errorK(i) = norm(Kcoarse(:,i)-Kcoase(:,i))/norm(Kcoase(:,i));
 %     energyErr(i) = (t(:,i)-T(:,i))'*Kfine(:,:,i)*(t(:,i)-T(:,i));
 end
 plot(xdata,error2)
