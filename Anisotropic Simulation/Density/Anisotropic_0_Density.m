@@ -12,6 +12,7 @@ classdef Anisotropic_0_Density < handle
         constraint
         primalUpdater
         optimizer
+        perimeter
     end
 
     methods (Access = public)
@@ -21,6 +22,7 @@ classdef Anisotropic_0_Density < handle
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
+            obj.createPerimeter();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
             obj.createComplianceFromConstiutive();
@@ -32,7 +34,7 @@ classdef Anisotropic_0_Density < handle
             obj.createOptimizer();
 
             % Save monitoring and desginVariable fValues
-            saveas(gcf,'Monitoring_0_Density.fig');
+            %saveas(gcf,'Monitoring_0_Density.fig');
             obj.designVariable.fun.print('fValues_0_Density');
         end
 
@@ -76,6 +78,19 @@ classdef Anisotropic_0_Density < handle
             f = Filter.create(s);
             obj.filter = f;
         end
+
+        function createPerimeter(obj)
+            eOverhmin     = 10;
+            epsilon       = eOverhmin*obj.mesh.computeMeanCellSize();
+            s.mesh        = obj.mesh;
+            s.filter      = obj.filter;
+            s.epsilon     = epsilon;
+            s.value0      = 4; % external P - aqui s'ha de posar el perímetre després de iterar
+            s.uMesh       = obj.createBaseDomain();
+            P             = PerimeterFunctional(s);
+            obj.perimeter = P;
+        end
+
 
         function createMaterialInterpolator(obj)
             type = '0';
@@ -174,7 +189,7 @@ classdef Anisotropic_0_Density < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 500;
+            s.maxIter        = 300;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
@@ -186,7 +201,7 @@ classdef Anisotropic_0_Density < handle
             %s.type           = '0';
             s.gif = true;
             s.gifName = 'Gif_0_Density';
-            s.printing = true;
+            s.printing = false;
             s.printName = 'Results_0_Density';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
