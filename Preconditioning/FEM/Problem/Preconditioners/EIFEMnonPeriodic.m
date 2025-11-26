@@ -51,7 +51,7 @@ classdef EIFEMnonPeriodic < handle
             uCoarse = obj.bcApplier.reducedToFullVectorDirichlet(uRed);
 %             obj.plotSolution(uCoarse,obj.mesh,100,1,obj.iter,0)
             u = obj.reconstructSolution(uCoarse);
-%                         obj.plotSolution(u(:),obj.meshRef,100,1,obj.iter,0)
+%                         obj.plotSolution(u(:),obj.meshRef,5,1,obj.iter,0)
                         obj.iter = obj.iter+1;
         end
 
@@ -65,7 +65,8 @@ classdef EIFEMnonPeriodic < handle
             obj.RVE     = cParams.RVE;
 %             obj.Kel     = repmat(obj.RVE.Kcoarse,[1,1,obj.mesh.nelem]);
             obj.DirCond = cParams.DirCond;
-            obj.dispFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim,'P2Q8');
+%             obj.dispFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim,'P2Q8');
+            obj.dispFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim,'P1');
 %             obj.LHSintegrator = obj.createLHSintegrator();
             if length(cParams.mu) == 1
                 obj.mu = cParams.mu*ones(cParams.mesh.nelem,1);

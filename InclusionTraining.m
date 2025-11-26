@@ -19,6 +19,7 @@ classdef InclusionTraining < handle
         Nr
         Ntheta
         connec
+        CoarseOrder
     end
 
     methods (Access = public)
@@ -42,7 +43,7 @@ classdef InclusionTraining < handle
                 %                 m.plot()
                 %                 m.plotAllNodes();
                 %                 m = obj.createReferenceMesh();
-                data = Training(m);
+                data = Training(m,obj.CoarseOrder);
 %                                 obj.printdisplacements(data.uSbd,m,i)
                 p = OfflineDataProcessor(data);
                 EIFEoper = p.computeROMbasis();
@@ -51,7 +52,7 @@ classdef InclusionTraining < handle
 %                 EIFEoper.Kfine = data.LHSsbd;
                 EIFEoper.snapshots = data.uSbd;
 %                 filePath = ['/home/raul/Documents/GitHub/EPFL/test/data_' num2str(obj.r(i), '%.3f') '.mat'];
-                filePath = ['./EPFL/data2/data_' num2str(obj.r(i), '%.5f') '.mat'];
+                filePath = ['./EPFL/dataQ12/data_' num2str(obj.r(i), '%.3f') '_2.mat'];
                 save(filePath,'EIFEoper')
             end
         end
@@ -61,15 +62,15 @@ classdef InclusionTraining < handle
     methods (Access = private)
 
         function init(obj)
-            N = 80;
-            % Interval bounds
-            a = 0.99;
-            b = 0.8;
-            % Index vector
-            i = 0:N;
-            % Cosine spacing formula
-            obj.r = (a + b)/2 + (b - a)/2 * cos(pi * (1 - i / N));
-%             obj.r    = 1e-6:0.01:0.801;
+%             N = 80;
+%             % Interval bounds
+%             a = 0.99;
+%             b = 0.8;
+%             % Index vector
+%             i = 0:N;
+%             % Cosine spacing formula
+%             obj.r = (a + b)/2 + (b - a)/2 * cos(pi * (1 - i / N));
+            obj.r    = 0.8:0.01:0.801;
             obj.xmin = -1;
             obj.xmax = 1;
             obj.ymin = -1;
@@ -78,6 +79,7 @@ classdef InclusionTraining < handle
             obj.cy = 0;
             obj.Nr=7;
             obj.Ntheta=14;
+            obj.CoarseOrder = 3;
         end
 
         function printdisplacements(obj,Usbd,mesh,ind)
@@ -139,7 +141,9 @@ classdef InclusionTraining < handle
                 % Normalize direction vector
                 dir = edge_vec / r_max;
 %                 r_inner = obj.ray_square_intersection(dir, r_inner);
-                r_inner_dir = r_inner / max(abs(dir)); 
+                %uncomment for square
+                 r_inner_dir = r_inner;
+%                 r_inner_dir = r_inner / max(abs(dir)); 
 
                 % Create points from r_inner to r_max along dir
                 r_vals = linspace(r_inner_dir, r_max, Nr + 1)';

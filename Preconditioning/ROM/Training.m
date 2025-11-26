@@ -32,8 +32,8 @@ classdef Training < handle
 
     methods (Access = public)
 
-        function obj = Training(meshRef)
-            obj.init(meshRef)
+        function obj = Training(meshRef,coarseOrder)
+            obj.init(meshRef,coarseOrder)
             if sum(obj.nSubdomains > 1)>= 1
                 obj.repeatMesh();
             else
@@ -59,14 +59,14 @@ classdef Training < handle
 
     methods (Access = private)
 
-        function init(obj,mesh)
+        function init(obj,mesh,coarseOrder)
             obj.nSubdomains  = [5 5]; %nx ny
             obj.tolSameNode = 1e-10;
             obj.domainIndices = [3 3];
             obj.mesh = mesh;
             obj.E    = 1;
             obj.nu   = 1/3;
-            obj.Coarseorder = 2;
+            obj.Coarseorder = coarseOrder;
         end
 
         function repeatMesh(obj)
