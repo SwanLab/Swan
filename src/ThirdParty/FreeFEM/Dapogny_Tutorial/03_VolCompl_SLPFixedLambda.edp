@@ -4,6 +4,7 @@ load "distance"
 load "iovtk"
 
 /* Create mesh */
+real fac = 1;
 border left(t=0.0,1.5){ x=-1.0; y=1.5-t; label=0; };
 border botgl(t=0.0,0.1){ x=-1.0+t; y=0.0; label=1; };
 border botf1(t=0.1,0.95){ x=-1.0+t; y=0.0; label=0; };
@@ -12,7 +13,7 @@ border botf2(t=1.05,1.9){ x=-1.0+t; y=0.0; label=0; };
 border botdir(t=1.9,2.0){ x=-1.0+t; y=0.0; label=2; };
 border right(t=0.0,1.5){ x=1.0; y=t; label=0; };
 border top(t=0.0,2.0){ x=1.0-t; y=1.5; label=0; };
-mesh Th = buildmesh(left(50)+botgl(5)+botf1(45)+botneu(5)+botf2(45)+botdir(5)+right(50)+top(100));
+mesh Th = buildmesh(left(50*fac)+botgl(5*fac)+botf1(45*fac)+botneu(5*fac)+botf2(45*fac)+botdir(5*fac)+right(50*fac)+top(100*fac));
 
 /* Finite Element spaces */
 fespace Vh(Th,P1);
@@ -44,7 +45,7 @@ Achi[] = volfrac(Th,phi[],ers);
 elasticity;
 
 /* Regularization of shape derivative */
-real meshsiz = 0.02;
+real meshsiz = 1.5/(50*fac);
 real alpha = 4.0*meshsiz;
 Vh g, v;
 Vh0 g0;

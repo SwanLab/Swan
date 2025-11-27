@@ -1,19 +1,15 @@
-/* 04. Volume minimization s.t compliance with a fixed multiplier and using SQP */
+/* 05. Perimeter minimization s.t volume with a fixed multiplier and using SLP */
 load "medit"
 load "distance"
 load "iovtk"
 
 /* Create mesh */
-real fac = 1;
-border left(t=0.0,1.5){ x=-1.0; y=1.5-t; label=0; };
-border botgl(t=0.0,0.1){ x=-1.0+t; y=0.0; label=1; };
-border botf1(t=0.1,0.95){ x=-1.0+t; y=0.0; label=0; };
-border botneu(t=0.95,1.05){ x=-1.0+t; y=0.0; label=3; };
-border botf2(t=1.05,1.9){ x=-1.0+t; y=0.0; label=0; };
-border botdir(t=1.9,2.0){ x=-1.0+t; y=0.0; label=2; };
-border right(t=0.0,1.5){ x=1.0; y=t; label=0; };
-border top(t=0.0,2.0){ x=1.0-t; y=1.5; label=0; };
-mesh Th = buildmesh(left(50*fac)+botgl(5*fac)+botf1(45*fac)+botneu(5*fac)+botf2(45*fac)+botdir(5*fac)+right(50*fac)+top(100*fac));
+real fac = 3.0;
+border left(t=0.0,1.0){ x=-1.0; y=1.0-t; label=0; };
+border bot(t=0.0,2.0){ x=-1.0+t; y=0.0; label=0; };
+border right(t=0.0,1.0){ x=1.0; y=t; label=0; };
+border top(t=0.0,2.0){ x=1.0-t; y=1.0; label=0; };
+mesh Th = buildmesh(left(30*fac)+bot(60*fac)+right(30*fac)+top(60*fac));
 
 /* Finite Element spaces */
 fespace Vh(Th,P1);
@@ -22,30 +18,22 @@ include "tools.idp"
 
 
 /* Initialization of the Level Set function */
+func real initialGuess() {
+  real x0 = 0, y0 = 0.5, l = 0.75, ls;
+  ls = max(abs(x-x0),abs(y-y0))/l - 0.5;
+  return(ls);
+}
 Vh phio, phi;
-phio = inils();
+phio = initialGuess();
 distance(Th,phio,phi[]);
 
-/* State problem */
-Vh ux, uy, vx, vy;
-Vh0 Achi;
-real mu = 0.3846;   // Lamé coefficients
-real lambda = 0.5769;
-real gx = 0.0;  // Load
-real gy = -1.0;
-problem elasticity([ux,uy],[vx,vy]) = int2d(Th)(Achi*mu*(2.0*dx(ux)*dx(vx) + (dx(uy)+dy(ux))*(dx(vy)+dy(vx))
-                                          + 2.0*dy(uy)*dy(vy)) + Achi*lambda*(dx(ux)+dy(uy))*(dx(vx)+dy(vy)) )
-                           - int1d(Th,3)(gx*vx+gy*vy)
-                           + on(1,uy=0.0)
-                           + on(2,ux=0.0,uy=0.0);
-
 /* Initialization */
+Vh0 Achi;
 real ers = 1.e-3;   // Ersatz material parameter
 Achi[] = volfrac(Th,phi[],ers);
-elasticity;
 
 /* Regularization of shape derivative */
-real meshsiz = 1.5/(50*fac);
+real meshsiz = 1/(30*fac);
 real alpha = 4.0*meshsiz;
 Vh g, v;
 Vh0 g0;
@@ -53,28 +41,27 @@ problem velext(g,v) = int2d(Th)(alpha^2*(dx(g)*dx(v)+dy(g)*dy(v)) + g*v)
                       - int1d(Th,levelset=phi)(g0*v);
 
 /* Objective function */
-macro J() (int2d(Th)(Achi)) // EOM
+macro J() (int1d(Th,levelset=phi)(1)) // EOM
 
 /* Constraint */
-macro C() (int2d(Th)(Achi*mu*(2.0*dx(ux)*dx(ux) + (dx(uy)+dy(ux))*(dx(uy)+dy(ux))
-                      + 2.0*dy(uy)*dy(uy)) + Achi*lambda*(dx(ux)+dy(uy))*(dx(ux)+dy(uy)))) // EOM
+macro C() (int2d(Th)(Achi)) // EOM
 
 /* Initial value of the objective function */
-real newobj, ell = 5;
-newobj = J + ell*C;
+real newobj, ell;
+ell = 20*(C-0.5); // Variable lagrange multiplier
+newobj = J + ell*(C-0.5);
 
 /* Print initial objective and save initial level set function and density */
 cout<<"Initial value of the objective function: "<<newobj<<endl;
 
 /* (Negative) shape gradient */
 macro dJ() {
-  g0 = -1 + ell*(mu*(2.0*dx(ux)*dx(ux) + (dx(uy)+dy(ux))*(dx(uy)+dy(ux)) + 2.0*dy(uy)*dy(uy))
-       + lambda*(dx(ux)+dy(uy))*(dx(ux)+dy(uy)));
+  g0 = -kappa - ell;
   velext;
 } // EOM
 
 /* Main loop */
-Vh uxo,uyo,nx,ny;
+Vh nx,ny, vx, vy;
 real nt = Th.nt;
 real eps = 1.e-6;  // To avoid divisions by 0
 real alphanor = 0.0001;   // Parameter for normal extension
@@ -87,30 +74,29 @@ real maxcoef = 3.0;
 real mincoef = 0.1;
 Vh X;
 Vh kappa;
-Vh gN;
 Vh0 kappa0;
-int maxit = 50, kmax = 10;
+int maxit = 20, kmax = 10;
 real[int] costPlot, volumePlot;
+costPlot.resize(costPlot.n+1);
+costPlot[costPlot.n-1] = J;
+volumePlot.resize(volumePlot.n+1);
+volumePlot[volumePlot.n-1] = C;
 for (int it=0; it<maxit; it++) {
   obj = newobj;
   phio = phi;
-  uxo = ux;
-  uyo = uy;
   X=(phio>0);
   plot(X, fill=1, value=1);
   /* Decrease tolerance after a few iterations have been made */
   if ( it == 100 ) tol = 0.001;
 
   /* Calculation of the shape gradient */
-  dJ;
-  /* Normal vector field to the shape */
   normalvec(phi);
   curvature;
-  gN = g/max(kappa,alpha);
+  dJ;
 
-  gmax = max(gN[].max,-gN[].min);
-  nx = gN*nx;
-  ny = gN*ny;
+  gmax = max(g[].max,-g[].min);
+  nx = g*nx;
+  ny = g*ny;
 
   /* Line search */
   for (int k=0; k<kmax; k++) {
@@ -123,8 +109,8 @@ for (int it=0; it<maxit; it++) {
 
     /* Calculation of the new objective function */
     Achi[] = volfrac(Th,phi[],ers);
-    elasticity;
-    newobj = J + ell*C;
+    ell = 20*(C-0.5); // Variable lagrange multiplier
+    newobj = J + ell*(C-0.5);
 
     /* Decision */
     /* Accept iteration */
@@ -140,8 +126,6 @@ for (int it=0; it<maxit; it++) {
     else {
       coef = max(0.6*coef,mincoef);
       phi = phio;
-      ux = uxo;
-      uy = uyo;
       newobj = obj;
     }
   }
@@ -152,11 +136,11 @@ plot(X, fill=1, value=1, wait=1);
 
 /* Save shape (level set) */
   string sout;
-  sout = "04_Result.vtu";
+  sout = "05_Result.vtu";
   savevtk(sout, Th, phi, dataname="LevelSet");
 
 // write data file with "iteration value"
-string datafile = "04_objectiveHistory.gp";
+string datafile = "05_objectiveHistory.gp";
 {
     ofstream fout(datafile);
     for (int i = 0; i < costPlot.n; ++i)
@@ -164,7 +148,7 @@ string datafile = "04_objectiveHistory.gp";
 }
 
 // create gnuplot command to plot the data with logscale on y-axis
-string gnuplotCmd = "gnuplot -e \"set term png size 800,600; set output '04_costPlot.png'; set title 'Objective History'; set xlabel 'Iteration'; set ylabel 'Volume'; set logscale y; plot '" + datafile + "' with lines lw 2 title 'Objective'\"";
+string gnuplotCmd = "gnuplot -e \"set term png size 800,600; set output '05_costPlot.png'; set title 'Objective History'; set xlabel 'Iteration'; set ylabel 'Perimeter'; set logscale y; plot '" + datafile + "' with lines lw 2 title 'Objective'\"";
 
 // execute gnuplot command
 exec(gnuplotCmd);
@@ -172,7 +156,7 @@ exec(gnuplotCmd);
 
 
 // write data file with "iteration value"
-datafile = "04_constraintHistory.gp";
+datafile = "05_constraintHistory.gp";
 {
     ofstream fout(datafile);
     for (int i = 0; i < volumePlot.n; ++i)
@@ -180,7 +164,7 @@ datafile = "04_constraintHistory.gp";
 }
 
 // create gnuplot command to plot the data with logscale on y-axis
-gnuplotCmd = "gnuplot -e \"set term png size 800,600; set output '04_constraintPlot.png'; set title 'Constraint History'; set xlabel 'Iteration'; set ylabel 'Compliance'; set logscale y; plot '" + datafile + "' with lines lw 2 title 'Objective'\"";
+gnuplotCmd = "gnuplot -e \"set term png size 800,600; set output '05_constraintPlot.png'; set title 'Constraint History'; set xlabel 'Iteration'; set ylabel 'Volume'; set logscale y; plot '" + datafile + "' with lines lw 2 title 'Objective'\"";
 
 // execute gnuplot command
 exec(gnuplotCmd);
