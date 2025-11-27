@@ -27,8 +27,11 @@ classdef LinearizedHarmonicProjector4 < handle
             obj.fBV = LagrangianFunction.create(obj.mesh, 2, 'P1');
             obj.fS = LagrangianFunction.create(obj.mesh, 1, 'P1');
             obj.createInternalDOFs();                        
-            obj.eta = (100*obj.mesh.computeMeanCellSize)^2;  
-            obj.perimeter = 4*obj.density.*(1-obj.density);%ConstantFunction.create(1,obj.mesh);%
+            obj.eta = (2*obj.mesh.computeMeanCellSize)^2;
+            rhoEps = 1e-3;
+            rhoMin = min(obj.density.fValues) - rhoEps; 
+            rhoMax = max(obj.density.fValues) + rhoEps; 
+            obj.perimeter = 4*(obj.density-rhoMin).*(rhoMax-obj.density);%ConstantFunction.create(1,obj.mesh);%
             obj.massMatrixBB      = IntegrateLHS(@(u,v) DP(v,obj.perimeter.*u),obj.fB,obj.fB,obj.mesh,'Domain',4);
             obj.massMatrixSS      = IntegrateLHS(@(u,v) DP(v,u),obj.fS,obj.fS,obj.mesh,'Domain',4);
             obj.stiffnessMatrixBB = IntegrateLHS(@(u,v) DP(Grad(v),(1-obj.perimeter).*Grad(u)),obj.fB,obj.fB,obj.mesh,'Domain');
@@ -45,21 +48,27 @@ classdef LinearizedHarmonicProjector4 < handle
             [resL,resH,resB,resG] = obj.evaluateResidualNorms(bBar,b);
             i = 1;
             theta = 0.5;
+            thetaP = 0.5;
             while res(i) > 1e-12
                 xNew   = LHS\RHS;
                 x = theta*xNew + (1-theta)*x;
                 b   = obj.createVectorFromSolution(x);
-                b   = obj.projectInUnitBall(b);
+
+                if mod(i,1)==1
+                bNew   = obj.projectInUnitBall(b);
+                b      = thetaP*bNew + (1-thetaP)*b;
+                end
                 LHS = obj.computeLHS(b);
                 i   = i+1;
                 res(i) = norm(LHS*x - RHS)/norm(x);
                 [resL(i),resH(i),resB(i),resG(i)] = obj.evaluateResidualNorms(bBar,b);
                 disp(['iter ',num2str(i),' residual ',num2str(res(i))])
                 close all
-                plotVector(b)
+               % plotVector(b)
                 %fig = figure; set(fig, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
-                drawnow                
+               % drawnow                
             end
+            plotVector(obj.projectInUnitBall(b));
             figure()
             plot(1:i,log10([res; resL; resH; resB; resG]))
             legend('LHS*x-RHS','resDistance','resHarmonic','resUnitBall','resGradient')
@@ -166,7 +175,7 @@ classdef LinearizedHarmonicProjector4 < handle
             Nb2 = Nb2(:,iDOFs);
             Z  = sparse(obj.fB.nDofs,obj.fB.nDofs);
             Zh = sparse(nInt,nInt);
-            eps = 0;
+            eps = (10*obj.mesh.computeMeanCellSize)^2;  
             A  = Mbb + obj.eta*Kbb + eps*MnormB;
             LHS = [A          ,          Z, (-Kb2+Nb2);...
                    Z'         ,          A,  (Kb1-Nb1);...
