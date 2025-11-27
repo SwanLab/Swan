@@ -348,6 +348,44 @@ classdef LagrangianFunction < FeFunction
             s.setFValues(-a.fValues);
         end
 
+        function s = times(a,b)
+            if isnumeric(a) || isnumeric(b)
+                if isa(a, 'LagrangianFunction')
+                    res = copy(a);
+                    val1 = a.fValues;
+                    fEv1 = a.fxVOld;
+                else
+                    val1 = a;
+                    fEv1 = a;
+                end
+                if isa(b, 'LagrangianFunction')
+                    res = copy(b);
+                    val2 = b.fValues;
+                    fEv2 = b.fxVOld;
+                else
+                    val2 = b;
+                    fEv2 = b;
+                end
+                if ~isempty(fEv1) && ~isempty(fEv2)
+                    res.fxVOld = fEv1.*fEv2;
+                else
+                    res.fxVOld = [];
+                end
+                res.fValues = val1.*val2;
+                s = res;
+            else
+                s = times@BaseFunction(a,b);
+            end
+        end
+
+        function s = mtimes(a,b)
+            if isnumeric(a) || isnumeric(b)
+                s = times(a,b);
+            else
+                s = mtimes@BaseFunction(a,b);
+            end
+        end
+
     end
 
     methods (Access = protected)
