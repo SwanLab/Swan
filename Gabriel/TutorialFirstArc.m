@@ -1,4 +1,4 @@
-classdef TutorialFirst < handle
+classdef TutorialFirstArc < handle
 
     properties (Access = private)
         mesh
@@ -18,7 +18,7 @@ classdef TutorialFirst < handle
 
     methods (Access = public)
 
-        function obj = TutorialFirst()
+        function obj = TutorialFirstArc()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -248,9 +248,9 @@ classdef TutorialFirst < handle
             s.etaNorm        = 0.01;
             s.gJFlowRatio    = 2;
             s.gif            = true;
-            s.gifName        = 'Tutorial_Homo_ReinforcedHexagon_Beam';
+            s.gifName        = 'Tutorial_Homo_ReinforcedHexagon_Arch';
             s.printing       = true;
-            s.printName      = 'Tutorial_Homo_ReinforcedHexagon_Beam';
+            s.printName      = 'Tutorial_Homo_ReinforcedHexagon_Arch';
             s.primalUpdater  = obj.primalUpdater;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
@@ -284,35 +284,54 @@ classdef TutorialFirst < handle
         end
 
         function bc = createBoundaryConditions(obj)
-            xMax    = max(obj.mesh.coord(:,1));
-            yMax    = max(obj.mesh.coord(:,2));
-            isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.35*yMax & abs(coor(:,2))<=0.65*yMax);
-
-            sDir{1}.domain    = @(coor) isDir(coor);
+            xMin = min(obj.mesh.coord(:,1));
+            xMax = max(obj.mesh.coord(:,1));
+            yMin = min(obj.mesh.coord(:,2));
+        
+            % Base do domínio (y = 0)
+            isBottom = @(coor) abs(coor(:,2) - yMin) < 1e-12;
+        
+            % --- Arch: apoios em 0–0.2 e 1.8–2.0 na base ---
+            isDirLeft  = @(coor) isBottom(coor) & ...
+                                 coor(:,1) >= xMin        & coor(:,1) <= xMin + 0.2;
+            isDirRight = @(coor) isBottom(coor) & ...
+                                 coor(:,1) >= xMax - 0.2 & coor(:,1) <= xMax;
+        
+            % --- Arch: carga no trecho central da base (0.9–1.1) ---
+            isForce = @(coor) isBottom(coor) & ...
+                              coor(:,1) >= xMin + 0.9 & coor(:,1) <= xMin + 1.1;
+        
+            % Dirichlet: u = [0,0] nos apoios
+            sDir{1}.domain    = @(coor) isDirLeft(coor);
             sDir{1}.direction = [1,2];
             sDir{1}.value     = 0;
-
+        
+            sDir{2}.domain    = @(coor) isDirRight(coor);
+            sDir{2}.direction = [1,2];
+            sDir{2}.value     = 0;
+        
+            % Neumann: f = [0,-1] na parte central
             sPL{1}.domain    = @(coor) isForce(coor);
             sPL{1}.direction = 2;
             sPL{1}.value     = -1;
-
+        
+            % Montagem das condições de contorno
             dirichletFun = [];
             for i = 1:numel(sDir)
                 dir = DirichletCondition(obj.mesh, sDir{i});
                 dirichletFun = [dirichletFun, dir];
             end
             s.dirichletFun = dirichletFun;
-
+        
             pointloadFun = [];
             for i = 1:numel(sPL)
                 pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
                 pointloadFun = [pointloadFun, pl];
             end
             s.pointloadFun = pointloadFun;
-
+        
             s.periodicFun  = [];
-            s.mesh = obj.mesh;
+            s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
         end
     end

@@ -258,6 +258,15 @@ classdef GeometricalFunction < handle
                     p  = cParams.pnorm;
                     fH = @(x) obj.computeHexagonFunction(x,x1,x2,x0,y0,n,p,l);
                     obj.fHandle = fH;
+                case 'ReinforcedHoneycomb'
+                    theta = cParams.theta;       
+                    eps   = cParams.eps;         
+                    n     = cParams.normal;      
+                    x0    = cParams.xCoorCenter;
+                    y0    = cParams.yCoorCenter;
+                    lHex  = cParams.radius;            
+                    fH = @(x) obj.computeReinfHoneycomb(x,x1,x2,x0,y0,n,eps,theta,lHex);
+                    obj.fHandle = fH;
                 case 'Circles'
                     r = cParams.r;
                     x0 = cParams.x0;
@@ -292,6 +301,44 @@ classdef GeometricalFunction < handle
             normVn = vecnorm(vn,p,4);
             d = (normVn/(l*(sqrt(3)/2)))-1;
         end
+
+        function psi = computeReinfHoneycomb(x,x1,x2,x0,y0,n,eps,theta,lHex)
+
+            vx = x1(x) - x0;
+            vy = x2(x) - y0;            
+            nS     = size(n,1);
+            nGauss = size(x,2);
+            nElem  = size(x,3);            
+            mMax = 1/(2*sqrt(3));
+            m    = mMax*(1 - sqrt(1 - theta));            
+            cWidth = cos( 2*pi*(sqrt(3)/2)*m);            
+            psi_i = zeros(1,nGauss,nElem,nS);
+            for i = 1:nS
+                nx = n(i,1);
+                ny = n(i,2);
+                s  = vx*nx + vy*ny;                  
+                arg = (2*pi/eps)*(sqrt(3)/2)*s;                
+                psi_i(:,:,:,i) = -cos(arg) + cWidth;
+            end           
+            psiBars = min(psi_i,[],4);
+            pNorm  = 'Inf';
+            phiHex = GeometricalFunction.computeHexagonFunction(x,x1,x2,x0,y0,n,pNorm,1-m);
+            psi = max(phiHex, -psiBars);
+
+
+
+            
+            % phiHexExt = GeometricalFunction.computeHexagonFunction(x,x1,x2,x0,y0,n,pNorm,lHex);
+            % 
+            % h_int = lHex * m;
+            % phiHexInt = GeometricalFunction.computeHexagonFunction(x,x1,x2,x0,y0,n,pNorm,h_int);
+            % psi = max(phiHexExt, -psiBars);            
+            % psi = max(psi, phiHexInt);
+
+
+
+        end   
+
 
         function fH = computeCircles(x,x0,y0,r)
             n = length(r);

@@ -1,76 +1,86 @@
-load('HomogenizationResults3.mat');   
-% Parâmetros SIMP
+load('HomogenizationResultsReinforcedHexagon.mat');   
+
 E0   = 1.0;
 nu   = 0.30;
 p    = 3;
 Emin = 1e-6;
+
 Efun = @(phi) Emin + (E0 - Emin).*phi.^p;
 
-
-lam_psn = @(phi) Efun(phi).*nu./((1+nu).*(1-2*nu));
-mu_psn  = @(phi) Efun(phi)./(2*(1+nu));
-C1111_simp_raw = @(phi) lam_psn(phi) + 2.*mu_psn(phi);
-
-
-scale_C1111 = 1.1538 / C1111_simp_raw(1);
-C1111_simp  = @(phi) scale_C1111 * C1111_simp_raw(phi);   
-
-
-C1122_simp = @(phi) Efun(phi).*nu./(1 - nu^2);      
-
-
-C1212_simp = @(phi) 2.*mu(phi);   
-
-
-
-% --------- Plots ----------
+% ---- PLANE STRESS ----
+C1111_simp = @(phi) Efun(phi)./(1 - nu^2);
+C2222_simp = @(phi) Efun(phi)./(1 - nu^2);
+C1122_simp = @(phi) Efun(phi).*nu./(1 - nu^2);
 tiledlayout(1,3)
 
-
+% C1111
 nexttile; hold on; grid on
 plot(volFrac, squeeze(Chomog(1,1,1,1,:)), 'o', 'DisplayName','Homog C_{1111}')
-if exist('Interpolation','var'); fplot(Interpolation.fun(1,1,1,1), [0 1], 'DisplayName','Fit/Interp'); end
-fplot(C1111_simp, [0 1], 'DisplayName','SIMP')
+if exist('Interpolation','var')
+    fplot(Interpolation.fun(1,1,1,1), [0 1], 'DisplayName','Fit/Interp');
+end
+fplot(C1111_simp, [0 1], 'DisplayName','SIMP');
 xlabel('\phi'); ylabel('C_{1111}'); legend
 
+% C2222
+nexttile; hold on; grid on
+plot(volFrac, squeeze(Chomog(2,2,2,2,:)), 'o', 'DisplayName','Homog C_{2222}')
+if exist('Interpolation','var')
+    fplot(Interpolation.fun(2,2,2,2), [0 1], 'DisplayName','Fit/Interp');
+end
+fplot(C2222_simp, [0 1], 'DisplayName','SIMP');
+xlabel('\phi'); ylabel('C_{2222}'); legend
 
+% C1122
 nexttile; hold on; grid on
 plot(volFrac, squeeze(Chomog(1,1,2,2,:)), 'o', 'DisplayName','Homog C_{1122}')
-if exist('Interpolation','var'); fplot(Interpolation.fun(1,1,2,2), [0 1], 'DisplayName','Fit/Interp'); end
-fplot(C1122_simp, [0 1], 'DisplayName','SIMP')
+if exist('Interpolation','var')
+    fplot(Interpolation.fun(1,1,2,2), [0 1], 'DisplayName','Fit/Interp');
+end
+fplot(C1122_simp, [0 1], 'DisplayName','SIMP');
 xlabel('\phi'); ylabel('C_{1122}'); legend
 
 
-nexttile; hold on; grid on
-plot(volFrac, squeeze(Chomog(1,2,1,2,:)), 'o', 'DisplayName','Homog  C_{1212}')
-if exist('Interpolation','var'); fplot(Interpolation.fun(1,2,1,2), [0 1], 'DisplayName','Fit/Interp'); end
-fplot(C1212_simp, [0 1], 'DisplayName','SIMP')
-xlabel('\phi'); ylabel('C_{1212}'); legend
 
 
 
+%%%%SIMP%%%%%
 
-
-
-
-% load('HomogenizationResults4.mat');
-% simp = @(x) x.^3;
 % 
+% % --- SIMP parameters ---
+% E0   = 1.0;
+% nu   = 0.30;
+% p    = 3;
+% Emin = 1e-6;
+% 
+% % SIMP Young's modulus
+% Efun = @(phi) Emin + (E0 - Emin).*phi.^p;
+% 
+% % ---- Plane stress stiffnesses ----
+% C1111_simp = @(phi) Efun(phi)./(1 - nu^2);
+% C2222_simp = @(phi) Efun(phi)./(1 - nu^2);
+% C1122_simp = @(phi) Efun(phi).*nu./(1 - nu^2);
+% 
+% % Interval for plotting
+% phi_range = [0 1];
+% 
+% % --------- PLOTS ---------
 % tiledlayout(1,3)
-% nexttile
-% hold on
-% plot(volFrac,squeeze(Chomog(1,1,1,1,:)),'LineStyle','none','Marker','o')
-% fplot(Interpolation.fun(1,1,1,1),[0 1])
-% fplot(simp,[0 1])
 % 
-% nexttile
-% hold on
-% plot(volFrac,squeeze(Chomog(1,1,2,2,:)),'LineStyle','none','Marker','o')
-% fplot(Interpolation.fun(1,1,2,2),[0 1])
-% fplot(simp,[0 1])
+% % C1111
+% nexttile; hold on; grid on
+% fplot(C1111_simp, phi_range, 'LineWidth', 2)
+% xlabel('\phi'); ylabel('C_{1111}')
+% title('SIMP  C_{1111}')
 % 
-% nexttile
-% hold on
-% plot(volFrac,squeeze(Chomog(1,2,1,2,:)),'LineStyle','none','Marker','o')
-% fplot(Interpolation.fun(1,2,1,2),[0 1])
-% fplot(simp,[0 1])
+% % C2222
+% nexttile; hold on; grid on
+% fplot(C2222_simp, phi_range, 'LineWidth', 2)
+% xlabel('\phi'); ylabel('C_{2222}')
+% title('SIMP  C_{2222}')
+% 
+% % C1122
+% nexttile; hold on; grid on
+% fplot(C1122_simp, phi_range, 'LineWidth', 2)
+% xlabel('\phi'); ylabel('C_{1122}')
+% title('SIMP  C_{1122}')
