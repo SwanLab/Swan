@@ -193,12 +193,8 @@ classdef ElasticProblemMicroAnisotropic < handle
             if v1==v2
                 Ch(:,:,v1,v2) = ChiB;
             else
-                ChShear        = zeros(size(ChiB));
-                ChShear(v1,v2) = ChiB(v1,v2);
-                Ch(:,:,v1,v2)  = ChShear;
-                ChShear        = zeros(size(ChiB));
-                ChShear(v2,v1) = ChiB(v2,v1);
-                Ch(:,:,v2,v1)  = ChShear;
+                Ch(:,:,v1,v2) = ChiB./2;
+                Ch(:,:,v2,v1) = ChiB./2;
             end
             obj.Chomog = Ch;
         end
