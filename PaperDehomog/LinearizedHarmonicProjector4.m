@@ -48,13 +48,12 @@ classdef LinearizedHarmonicProjector4 < handle
             [resL,resH,resB,resG] = obj.evaluateResidualNorms(bBar,b);
             i = 1;
             theta = 0.5;
-            thetaP = 0.5;
+            thetaP = 0.01;
             while res(i) > 1e-12
                 xNew   = LHS\RHS;
                 x = theta*xNew + (1-theta)*x;
                 b   = obj.createVectorFromSolution(x);
-
-                if mod(i,1)==1
+                if mod(i,1)==0
                 bNew   = obj.projectInUnitBall(b);
                 b      = thetaP*bNew + (1-thetaP)*b;
                 end
