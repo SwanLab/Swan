@@ -37,6 +37,7 @@ classdef Training < handle
             if sum(obj.nSubdomains > 1)>= 1
                 obj.repeatMesh();
             else
+                obj.cellMeshes= {obj.mesh};
                 obj.meshDomain = obj.mesh;
             end
             [obj.boundaryMeshJoined, obj.localGlobalConnecBd] = obj.meshDomain.createSingleBoundaryMesh();
@@ -47,7 +48,7 @@ classdef Training < handle
             [LHS,RHS,uFun,lambdaFun] = obj.createElasticProblem();
             sol  = LHS\RHS;
             uAll = sol(1:uFun.nDofs,:);
-                        EIFEMtesting.plotSolution(full(uAll(:,1)),obj.meshDomain,1,1,1,[])
+             %           EIFEMtesting.plotSolution(full(uAll(:,1)),obj.meshDomain,1,1,1,[])
             K = LHS(1:uFun.nDofs,1:uFun.nDofs);
             [obj.uSbd,obj.LHSsbd]    = obj.extractDomainData(uAll,K);
 
@@ -71,7 +72,7 @@ classdef Training < handle
 
         function repeatMesh(obj)
             bS  = obj.mesh.createBoundaryMesh();
-            [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain(obj.mesh);
+            [mD,mSb,iC,lG,iCR,~] = obj.createMeshDomain(obj.mesh);
             obj.cellMeshes = mSb;
             obj.meshDomain = mD;
             obj.DDdofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,obj.mesh,iCR);
@@ -186,7 +187,13 @@ classdef Training < handle
                     
                 end
             end
-            LHS = obj.DDdofManager.local2globalMatrix(LHSl);
+
+            if sum(obj.nSubdomains > 1)>= 1
+                LHS = obj.DDdofManager.local2globalMatrix(LHSl);
+            else
+                LHS=LHSl;
+            end
+            
         end
 
 

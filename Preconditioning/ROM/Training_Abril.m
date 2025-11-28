@@ -32,22 +32,22 @@ classdef Training_Abril < handle
 
     methods (Access = public)
 
-        function obj = Training_Abril(s,meshRef)
-            obj.init(s,meshRef)
+        function obj = Training_Abril(meshRef)
+            obj.init(meshRef)
             if sum(obj.nSubdomains > 1)>= 1
                 obj.repeatMesh();
             else
+                obj.cellMeshes= {obj.mesh};
                 obj.meshDomain = obj.mesh;
             end
             [obj.boundaryMeshJoined, obj.localGlobalConnecBd] = obj.meshDomain.createSingleBoundaryMesh();
             cF = CoarseFunction(obj.boundaryMeshJoined,obj.Coarseorder);
             obj.DirFun = cF.f;
-%             obj.DirFun = obj.AnalyticalDirCondGeneralized(1);
 
-            [LHS,RHS,uFun,lambdaFun] = obj.createElasticProblem();
+            [LHS,RHS,uFun,~] = obj.createElasticProblem();
             sol  = LHS\RHS;
             uAll = sol(1:uFun.nDofs,:);
-                        EIFEMtesting.plotSolution(full(uAll(:,1)),obj.meshDomain,1,1,1,[])
+             %           EIFEMtesting.plotSolution(full(uAll(:,1)),obj.meshDomain,1,1,1,[])
             K = LHS(1:uFun.nDofs,1:uFun.nDofs);
             [obj.uSbd,obj.LHSsbd]    = obj.extractDomainData(uAll,K);
 
@@ -59,8 +59,8 @@ classdef Training_Abril < handle
 
     methods (Access = private)
 
-        function init(obj,s,mesh)
-            obj.nSubdomains  = s.nSubdomains; %nx ny
+        function init(obj,mesh)
+            obj.nSubdomains  = [5 5]; %nx ny
             obj.tolSameNode = 1e-10;
             obj.domainIndices = [3 3];
             obj.mesh = mesh;
@@ -71,7 +71,7 @@ classdef Training_Abril < handle
 
         function repeatMesh(obj)
             bS  = obj.mesh.createBoundaryMesh();
-            [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain(obj.mesh);
+            [mD,mSb,iC,lG,iCR,~] = obj.createMeshDomain(obj.mesh);
             obj.cellMeshes = mSb;
             obj.meshDomain = mD;
             obj.DDdofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,obj.mesh,iCR);
@@ -186,7 +186,13 @@ classdef Training_Abril < handle
                     
                 end
             end
-            LHS = obj.DDdofManager.local2globalMatrix(LHSl);
+
+            if sum(obj.nSubdomains > 1)>= 1
+                LHS = obj.DDdofManager.local2globalMatrix(LHSl);
+            else
+                LHS=LHSl;
+            end
+            
         end
 
 

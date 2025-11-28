@@ -44,15 +44,13 @@ classdef CoarseTesting_Abril< handle
             mR = obj.createReferenceMesh();  %Crea la background mesh
             bS  = mR.createBoundaryMesh();    %crea el boundary de la mesh
             obj.referenceMesh = mR;
-            %[mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain(mR);  
-            %obj.meshDomain = mD;        % mD:conj subdominis --> Tot el domini
-            %obj.cellMeshes = mSb; %??? % mSb: info de la malla a cada subdimini
-            %obj.ic = iC;  % info de les coordenades globals en tot el domini ???
-            %obj.icr = iCR; % info de les coordenades del corresponent subdomini ???
-            %obj.lg = lG; %??
-            %obj.bs; 
-            obj.repeatMesh(); % Crea tot el domini
 
+            if sum(obj.nSubdomains > 1)>= 1
+                obj.repeatMesh();  % Crea el domini
+            else
+                obj.meshDomain = mR;
+            end
+            
             [bC,dir] = obj.createBoundaryConditions(obj.meshDomain);
             obj.boundaryConditions = bC;
             obj.createBCapplier()
@@ -134,7 +132,7 @@ classdef CoarseTesting_Abril< handle
             obj.loadData=true();  % true  --> DATASET
                                   % false --> NN
 
-            obj.r= 0.1*ones(5,8); % Comentar, es per comparar amb el cas de l'Albert
+            obj.r= 0.1*ones(1,8); % Comentar, es per comparar amb el cas de l'Albert
             %obj.r=[0.1,0.1,0.1];
 
             obj.nSubdomains    = size(obj.r');
@@ -165,11 +163,13 @@ classdef CoarseTesting_Abril< handle
     
             function loadT(obj,name)
                 Taux=cell(1,length(name));
-                for i=1:length(name)
-                    filePath = fullfile('AbrilTFGfiles', 'DataVariables', '20x20',name(i));
-                    %filePath = fullfile('AlbertTFG files', 'mat files', 'Full',name(i));
-                    load(filePath,"T");
-                    Taux{1,i}=T;
+                for i=1:size(name,1)
+                    for j=1:size(name,2)
+                        filePath = fullfile('AbrilTFGfiles', 'DataVariables', '20x20',name(i));
+                        %filePath = fullfile('AlbertTFG files', 'mat files', 'Full',name(i));
+                        load(filePath,"T");
+                        Taux{i,j}=T;
+                    end
                 end
                 obj.data.T=Taux;
             end
@@ -510,7 +510,8 @@ classdef CoarseTesting_Abril< handle
         %    filename        = EIFEMfilename;
         %    s.RVE           = TrainedRVE(filename);
             
-            data = Training_Abril(obj,mR);
+            %data = Training_Abril(obj,mR);
+            data = Training(mR);
             p = OfflineDataProcessor(data);
             EIFEoper = p.computeROMbasis();
             s.RVE           = TrainedRVE(EIFEoper);
