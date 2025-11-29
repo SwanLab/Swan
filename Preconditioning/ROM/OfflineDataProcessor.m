@@ -30,7 +30,6 @@ classdef OfflineDataProcessor < handle
             
             [obj.K,obj.M] = createElasticProblem(obj);
             
-            
             uFun         = obj.createDispFun();
             uRBfun       = obj.projectToRigidBodyFun(uFun);
             uDEFSpaceFun = obj.projectToDeformationalSpace(uFun,uRBfun);

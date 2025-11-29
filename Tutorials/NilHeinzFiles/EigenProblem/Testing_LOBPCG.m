@@ -109,10 +109,10 @@ classdef Testing_LOBPCG
                 hist.rnorm = [hist.rnorm; full_rnorm]; % append residual to structure
   
                 newly_converged = (full_rnorm < obj.tol ) & active; % update active set 
-                if any(newly_converged)
-                    fprintf('Locking Mode %s (Converged)\n', ...
-                        mat2str(find(newly_converged)));
-                end 
+                % if any(newly_converged)
+                %     fprintf('Locking Mode %s (Converged)\n', ...
+                %         mat2str(find(newly_converged)));
+                % end 
                 active(full_rnorm < obj.tol) = false;
 
                 % Stop if all are converged

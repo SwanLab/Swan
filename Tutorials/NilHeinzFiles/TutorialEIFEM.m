@@ -73,8 +73,6 @@ classdef TutorialEIFEM < handle
             % end
 
             %save('KcoarseTraining.mat', 'Kc');
-            
-            
             errPct = abs(eigenvalues - lambdaCoarse) ./ abs(eigenvalues) * 100;
             
             figure;
@@ -141,7 +139,7 @@ classdef TutorialEIFEM < handle
         end
         
         function holeMesh = createMesh(obj,radius)
-            fullmesh = UnitTriangleMesh(12,12);
+            fullmesh = UnitTriangleMesh(48,48);
             ls = obj.computeCircleLevelSet(fullmesh,radius);
             sUm.backgroundMesh = fullmesh;
             sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
@@ -189,8 +187,6 @@ classdef TutorialEIFEM < handle
             s.coord(mask, :) = s.coord(mask, :) + [epsx, 0];
         end
       
-
-
 
         function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomain(obj)
             s.nsubdomains   = obj.nSubdomains;
