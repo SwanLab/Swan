@@ -1,15 +1,21 @@
 classdef Mesh < handle
+    
+    properties (GetAccess = public, SetAccess = public)
+
+        coord
+        connec
+        nnodes
+
+    end
+
 
     properties (GetAccess = public, SetAccess = private)
         type
         kFace
 
-        coord
-        connec
-
         ndim
         nelem
-        nnodes
+
         nnodeElem
 
        % remove (xFE)
