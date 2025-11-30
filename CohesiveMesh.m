@@ -27,8 +27,9 @@ classdef CohesiveMesh < handle
     methods (Access = public)
         
         function obj = CohesiveMesh()
-            obj.init()
-            obj.baseMesh()
+            n = 15;
+            obj.init(n)
+            obj.baseMesh(n)
             obj.duplicator()
             obj.updateConnec()        
         end
@@ -37,12 +38,12 @@ classdef CohesiveMesh < handle
     
     methods (Access = private)
         
-        function init(obj)
-            obj.separation = 0.1;
+        function init(obj,n)
+            obj.separation = 1/n/10;
         end
         
-        function baseMesh(obj)
-            obj.mesh = UnitQuadMesh(2,2);
+        function baseMesh(obj,n)
+            obj.mesh = UnitQuadMesh(n,n);
         end
 
         function duplicator(obj)
@@ -59,7 +60,7 @@ classdef CohesiveMesh < handle
             obj.newCoord = [obj.newCoord; duplicated];
 
             obj.pairsMatrix = [obj.listNodeCohesive , (size(obj.isCohesive,1)+1:1:obj.nnodeCohesive/2+size(obj.isCohesive,1))'];
-            obj.pairsMatrix = [obj.pairsMatrix , dispV(1)*ones(obj.nnodeCohesive/2,1), dispV(2)*ones(obj.nnodeCohesive/2,1)];
+                obj.pairsMatrix = [obj.pairsMatrix , dispV(1)*ones(obj.nnodeCohesive/2,1), dispV(2)*ones(obj.nnodeCohesive/2,1)];
 
             obj.isCohesive = [obj.isCohesive; ones(obj.nnodeCohesive/2,1)];
 
@@ -73,14 +74,75 @@ classdef CohesiveMesh < handle
             isCohesiveElem = any(obj.isCohesive(obj.newConnec),2);
             obj.listElemCohesive = find(isCohesiveElem == 1);
 
-            % No se com identificar quins s'han d'intercanviar d'una forma
-            % eficient
+
+
+            % MALAMENT
+            % for i = obj.listNodeCohesive'
+            %     for n = 1:4
+            %         if obj.isCohesive(obj.newConnec(i,n))
+            %             if n == 4
+            %                 vec1 = obj.newCoord(obj.newConnec(i,4),:) - obj.newCoord(obj.newConnec(i,1),:);
+            %             else
+            %                 vec1 = obj.newCoord(obj.newConnec(i,n),:) - obj.newCoord(obj.newConnec(i,n+1),:);
+            %             end
+            %         end
+            %         idx = find(obj.pairsMatrix(:,1) == obj.newConnec(i,n));
+            %         vec2 = obj.pairsMatrix(idx,3:end);
+            %         if dot(vec1',vec2') >0
+            %             obj.newConnec(i,n) = obj.pairsMatrix(idx,2);
+            %         end
+            %     end
+            % end
+
+            for e = obj.listElemCohesive'
+                nodes = obj.newConnec(e,:)';
+                coords = obj.newCoord(nodes,:);
+                
+                cohesiveNodes = nodes((obj.isCohesive(nodes) == 1));
+                originalArea = polyarea(coords(:,1), coords(:,2));
+                
+                for cn = cohesiveNodes'
+                    pair = getPair(obj,cn);
+
+                    checkNodes = nodes;
+                    checkNodes(checkNodes == cn) = pair;
+                    checkCoords = obj.newCoord(checkNodes,:);
+
+                    newArea = polyarea(checkCoords(:,1), checkCoords(:,2));
+
+                    if newArea<originalArea
+                        obj.newConnec(e,find(obj.newConnec(e,:) == cn)) = pair;
+                    end
+
+                end
+
+            end
 
             cohesiveConnec = [obj.pairsMatrix(1:end-1,1), obj.pairsMatrix(2:end,1), obj.pairsMatrix(2:end,2), obj.pairsMatrix(1:end-1,2)];
             obj.newConnec = [obj.newConnec; cohesiveConnec];
+            
+            obj.mesh.coord = obj.newCoord;
+            obj.mesh.connec = obj.newConnec;
+
+
+
+
 
         end
+
+
+
+        function pair = getPair(obj,n)
+            pair = obj.pairsMatrix(obj.pairsMatrix(:,1) == n, 2);
+        end
+
+
+
+    end
         
+    
+    
+    
+    
     end
     
-end
