@@ -7,6 +7,7 @@ classdef LevelSetInclusionAuto_abril < handle
         dLambda
         bcApplier
         centroids
+        nelem
     end
     
     properties (Access = private)
@@ -28,7 +29,7 @@ classdef LevelSetInclusionAuto_abril < handle
         boundaryMesh
         boundaryMeshJoined
         localGlobalConnecBd
-        nelem
+
     end
 
 
@@ -53,14 +54,12 @@ classdef LevelSetInclusionAuto_abril < handle
 
                   obj.computeCentroid();
                   CoarsePlotSolution(uFeFun, obj.mesh, obj.bcApplier,fileName, r, obj.centroids);
-
                   %uFeFun.print(fileName,'Paraview');
                 end
              end
 
              Kcoarse=u.'*obj.stiffness*u;
 
-             %disp(Kcoarse);
             
             %% 
             
@@ -79,13 +78,12 @@ classdef LevelSetInclusionAuto_abril < handle
         end
 
         function createMesh(obj)
-            bgMesh   = obj.createReferenceMesh();
-             %lvSet    = obj.createLevelSetFunction(bgMesh);
-             %uMesh    = obj.computeUnfittedMesh(bgMesh,lvSet);
-             %obj.mesh = uMesh.createInnerMesh();
-            obj.mesh = bgMesh;
+             obj.mesh   = obj.createReferenceMesh();
+             %lvSet     = obj.createLevelSetFunction(obj.mesh);
+             %uMesh     = obj.computeUnfittedMesh(obj.mesh,lvSet);
+             %obj.mesh  = uMesh.createInnerMesh();
              
-            obj.boundaryMesh = obj.mesh.createBoundaryMesh();
+             obj.boundaryMesh = obj.mesh.createBoundaryMesh();
             [obj.boundaryMeshJoined, obj.localGlobalConnecBd] = obj.mesh.createSingleBoundaryMesh();
         end
 
@@ -117,6 +115,31 @@ classdef LevelSetInclusionAuto_abril < handle
             uMesh.compute(levelSet);
         end
 
+        function [u, L] = doElasticProblemHere(obj)
+            s = obj.createElasticProblem();
+            obj.createDisplacementFunHere();
+            obj.createBCApplyerHere(s);
+            obj.createSolverHere(s)
+            obj.computeStiffnessMatrix();
+            %obj.computeForcesHere(s);
+            c = obj.computeConstraintMatrix();
+            rdir = obj.RHSdirichlet();
+            [u, L]  = obj.computeDisplacementHere(c, rdir);
+
+            if isa(obj.dLambda, "LagrangianFunction")
+                l2g_dof = ((obj.localGlobalConnecBd*obj.displacementFun.ndimf)' - ((obj.displacementFun.ndimf-1):-1:0))';
+                l2g_dof = l2g_dof(:);
+                uB = u(l2g_dof, :);
+                L = uB'*L;
+            end
+            %obj.computeStrainHere();
+            %obj.computeStressHere();
+
+            u=full(u);
+            L=full(L);
+        end
+
+
         function s = createElasticProblem(obj)
             s.mesh     = obj.mesh;
             s.scale    = 'MACRO';
@@ -141,21 +164,16 @@ classdef LevelSetInclusionAuto_abril < handle
         end
 
         function [young,poisson] = computeElasticProperties(obj,mesh)
-            E1  = 1;
-            E2 = E1/1000;
+            E1  = 1;  E2 = E1/1000;
             nu = 1/3;
-            x0=0;
-            y0=0;
-
-            f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<obj.radius)*E2 + ...
+            x0=0;  y0=0;
+            f       = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<obj.radius)*E2 + ...
                         (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=obj.radius)*E1 ; 
-
             young   = AnalyticalFunction.create(f,mesh);
             poisson = ConstantFunction.create(nu,mesh);            
         end
 
         function bc = createBoundaryConditions(obj)
-
             v                    = zeros(8,1);
             v(obj.nodeDirection) = 1;
             nRes                 = [1 1 2 2 3 3 4 4]*v;
@@ -184,14 +202,10 @@ classdef LevelSetInclusionAuto_abril < handle
 
             cornerVec = {corner1; corner2; corner3; corner4};
 
-            isForce = @(coor) (abs(coor(:,1) - xMin)   < 1e-10);
-
-
             sDir{1}.domain    = @(coor) cornerVec{1}(coor);
             sDir{1}.direction = cell2mat(dirs(1));
             sDir{1}.value     = 0;
 
-            
             sDir{2}.domain    = @(coor) cornerVec{2}(coor);
             sDir{2}.direction = cell2mat(dirs(2));
             sDir{2}.value     = 0;
@@ -208,6 +222,7 @@ classdef LevelSetInclusionAuto_abril < handle
             sDir{5}.direction = cell2mat(dirs(end));
             sDir{5}.value     = 1;
 
+            %isForce = @(coor) (abs(coor(:,1) - xMin)   < 1e-10);
             % sPL{1}.domain    = @(coor) isForce(coor);
             % sPL{1}.direction = 2;
             % sPL{1}.value     = 0;
@@ -233,40 +248,17 @@ classdef LevelSetInclusionAuto_abril < handle
         end
 
 
-        function [u, L] = doElasticProblemHere(obj)
-            s = obj.createElasticProblem();
-            obj.createDisplacementFunHere();
-            %obj.createBCApplyerHere(s);
-            obj.createSolverHere(s)
-            obj.computeStiffnessMatrix();
-            %obj.computeForcesHere(s);
-            c = obj.computeConstraintMatrix();
-            rdir = obj.RHSdirichlet();
-            [u, L]  = obj.computeDisplacementHere(c, rdir);
 
-            if isa(obj.dLambda, "LagrangianFunction")
-                l2g_dof = ((obj.localGlobalConnecBd*obj.displacementFun.ndimf)' - ((obj.displacementFun.ndimf-1):-1:0))';
-                l2g_dof = l2g_dof(:);
-                uB = u(l2g_dof, :);
-                L = uB'*L;
-            end
-            % obj.plotSolution(u,L);
-            %obj.computeStrainHere();
-            %obj.computeStressHere();
-
-            u=full(u);
-            L=full(L);
-        end
 
         function createDisplacementFunHere(obj)
             obj.displacementFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
         end
 
-        %function createBCApplyerHere(obj, cParams)
-        %    s.mesh = obj.mesh;
-        %    s.boundaryConditions = cParams.boundaryConditions;
-        %    obj.bcApplier = BCApplier(s);
-        %end
+        function createBCApplyerHere(obj, cParams)
+            s.mesh = obj.mesh;
+            s.boundaryConditions = cParams.boundaryConditions;
+            obj.bcApplier = BCApplier(s);
+        end
 
         function createSolverHere(obj, cParams)
             p.solverType = cParams.solverType;
@@ -338,17 +330,6 @@ classdef LevelSetInclusionAuto_abril < handle
 %             EIFEMtesting.plotSolution(u,obj.mesh,1,1,0,0)
         end
 
-        function plotSolution(obj,u,L)
-%             obj.displacementFun.fValues = u;
-%             EIFEMtesting.plotSolution(u,obj.mesh,1,1,0,0)
-             L = reshape(L,2,[])';
-            nbasis = size(obj.dLambda,2);
-            for i = 1:nbasis
-                lambda{i} = obj.dLambda{i}.*L(i,:)';
-                lambdaP1 = lambda{i}.project('P1');
-                EIFEMtesting.plotSolution(lambdaP1.fValues,obj.boundaryMeshJoined,2,1,i,0)
-            end
-        end
 
         function computeStrainHere(obj)
             quad = Quadrature.create(obj.mesh, 2);
@@ -367,7 +348,6 @@ classdef LevelSetInclusionAuto_abril < handle
 
         end
 
-        
         function rDir = RHSdirichlet(obj) %Son les u_d a sota del vector F
             test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1');
 

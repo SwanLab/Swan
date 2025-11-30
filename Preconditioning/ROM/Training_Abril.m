@@ -85,17 +85,6 @@ classdef Training_Abril < handle
             [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
         end
 
-%         function material = createMaterial(obj,mesh)
-%             [young,poisson] = obj.computeElasticProperties(mesh);
-%             s.type    = 'ISOTROPIC';
-%             s.ptype   = 'ELASTIC';
-%             s.ndim    = mesh.ndim;
-%             s.young   = young;
-%             s.poisson = poisson;
-%             tensor    = Material.create(s);
-%             material  = tensor;
-%         end
-
         function material = createMaterial(obj)
 
             for i = 1:obj.nSubdomains(1,2)
@@ -118,25 +107,13 @@ classdef Training_Abril < handle
 
 
         function [young,poisson] = computeElasticProperties(obj,mesh)
-%             young   = ConstantFunction.create(obj.E,mesh);
-%             poisson = ConstantFunction.create(obj.nu,mesh);
-            %             E  = 70000;
-            %             nu = 0.3;
-
-            % for plane strain
-            %             Epstr  = obj.E/(1-nu^2);
-            %             nupstr = obj.nu/(1-nu);
-            %             young   = ConstantFunction.create(Epstr,mesh);
-            %             poisson = ConstantFunction.create(nupstr,mesh);
-
             E1  = 1;
             E2 = E1/1000;
             nu = 1/3;
-           radius = 0.1;
-           x0=mean(mesh.coord(:,1));
+            radius = 0.1;
+            x0=mean(mesh.coord(:,1));
             y0=mean(mesh.coord(:,2));
-%             young   = ConstantFunction.create(E,mesh);
-%             poisson = ConstantFunction.create(nu,mesh);
+
             f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<radius)*E2 + ...
                         (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=radius)*E1 ; 
 
