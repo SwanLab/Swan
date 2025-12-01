@@ -1,4 +1,4 @@
-classdef TutorialXXContinuumDamage < handle
+classdef Tutorial08_ContinuumDamage < handle
 
     properties (Access = public)
         output
@@ -13,7 +13,7 @@ classdef TutorialXXContinuumDamage < handle
 
     methods (Access = public)
 
-        function obj = TutorialXXContinuumDamage()
+        function obj = Tutorial08_ContinuumDamage()
             obj.init();
             obj.defineCase();
             obj.createInternalDamageVariable();

@@ -32,6 +32,10 @@ classdef OptimizerMMA < Optimizer
         hasConverged
         historicalVariables
         KKTnorm
+        gif
+        gifName
+        printing
+        printName
     end
     
     methods (Access = public)
@@ -52,6 +56,7 @@ classdef OptimizerMMA < Optimizer
            obj.updateMonitoring();
            while ~obj.hasFinished
                obj.update();
+               obj.printResults();
                obj.updateIterInfo();
                obj.printOptimizerVariable();
                obj.updateMonitoring();
@@ -95,6 +100,17 @@ classdef OptimizerMMA < Optimizer
     end
     
     methods (Access = private)
+
+        function printResults(obj)
+            if obj.nIter/10==round(obj.nIter/10)
+                if obj.gif
+                    obtainGIF(obj.gifName,obj.designVariable,obj.nIter);
+                end
+                if obj.printing
+                    obj.designVariable.fun.print([obj.printName,'Iter',num2str(obj.nIter/10)]);
+                end
+            end
+        end
         
         function updateMonitoring(obj)
             data = obj.cost.value;
@@ -110,6 +126,10 @@ classdef OptimizerMMA < Optimizer
             obj.lowerBound   = cParams.lb;
             obj.hasConverged = false;
             obj.kkttol       = obj.tolerance;
+            obj.gif          = cParams.gif;
+            obj.gifName      = cParams.gifName;
+            obj.printing     = cParams.printing;
+            obj.printName    = cParams.printName;
             obj.createMonitoring(cParams);
         end
 

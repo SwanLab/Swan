@@ -1,4 +1,4 @@
-classdef TopOptTestTutorial3DDensity < handle
+classdef Tutorial05_11_TopOpt3DDensityMacroPython < handle
 
     properties (Access = private)
         mesh
@@ -16,14 +16,13 @@ classdef TopOptTestTutorial3DDensity < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorial3DDensity()
+        function obj = Tutorial05_11_TopOpt3DDensityMacroPython()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
-            obj.createComplianceFromConstiutive();
             obj.createCompliance();
             obj.createVolumeConstraint();
             obj.createCost();
@@ -41,7 +40,7 @@ classdef TopOptTestTutorial3DDensity < handle
         end
 
         function createMesh(obj)
-            obj.mesh = HexaMesh(2,1,1,20,20,20);
+            obj.mesh = HexaMesh(2,1,1,40,20,20);
         end
 
         function createDesignVariable(obj)
@@ -108,9 +107,35 @@ classdef TopOptTestTutorial3DDensity < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = CGsolver();
+            s.solverCase = obj.createSolver(s);
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
+        end
+
+        function solver = createSolver(obj,s)
+            BCAp = BCApplier(s);
+            Rfull  = obj.computeRigidBodyModes([1,0.5,0.5]);
+            for i = 1:size(Rfull,2)
+                R(:,i) = BCAp.fullToReducedVectorDirichlet(Rfull(:,i));
+            end
+            s.type = 'ELASTIC';
+            s.nullSpace = R;
+            s.nLevels = 5;
+            s.tol = 1e-8;
+            s.maxIter = 1;
+            p     = pyAMG.create(s);
+
+            sS.preconditioner = p;
+            sS.tol = 1e-5;
+            solver = PCG(sS);
+        end
+
+        function R = computeRigidBodyModes(obj,refPoint)
+            rigModes = RigidBodyFunction.create(obj.mesh,refPoint);
+            RFun = rigModes.projectBasisFunctions('P1');
+            for i = 1:length(RFun)
+                R(:,i) = reshape(RFun{i}.fValues',[],1);
+            end
         end
 
         function c = createComplianceFromConstiutive(obj)
@@ -177,11 +202,15 @@ classdef TopOptTestTutorial3DDensity < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 3;
+            s.maxIter        = 10;
             s.tolerance      = 1e-8;
             s.constraintCase = 'EQUALITY';
             s.ub             = 1;
             s.lb             = 0;
+            s.gif            = false;
+            s.gifName        = [];
+            s.printing       = false;
+            s.printName      = [];
             opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
