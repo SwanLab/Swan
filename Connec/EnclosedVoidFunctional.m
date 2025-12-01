@@ -16,16 +16,19 @@ classdef EnclosedVoidFunctional < handle
         test
         problemSolver        
         problemSolverAdjoint
-        
+        target0
+        target
+        valueOld
     end
 
     methods (Access = public)
         function obj = EnclosedVoidFunctional(cParams)
             obj.init(cParams);
+            obj.target = 0.05;
             obj.test = LagrangianFunction.create(obj.mesh,1,'P1');
             obj.createBoundaryConditionsAdjoint();
             obj.createSolverAdjoint();
-
+            obj.value0 = 1;
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
@@ -44,15 +47,22 @@ classdef EnclosedVoidFunctional < handle
           %  plot(rhoV) 
           %  plot(lam);
             Dom   = Integrator.compute(ConstantFunction.create(1,obj.mesh),obj.mesh,2);
-            J     = Integrator.compute(rhoV,obj.mesh,2)/Dom - 0.2;
+            J     = Integrator.compute(rhoV,obj.mesh,2)/Dom - obj.target0;
+
+            
+            %obj.updateEpsilonForNextIteration(J);
             dJ{1} = -phi ;%+ 1.*obj.dk(xR).*DP(Grad(lam),Grad(phi)) + DP(obj.dm(xR).*(phi-xR)-obj.m(xR),lam);
             %dJ{1} =  -phi.*(1-xR);
             %dJ{1} =  -phi;%.*(1-xR);
             dJ{1} = dJ{1}./Dom*1;
 
             dJ = obj.filterFields(dJ);
+
+            J  = obj.computeFunction(J);
+            dJ = obj.computeGradient(dJ);
             %plot(dJ{1})
             %[J,dJ] = obj.computeComplianceFunctionAndGradient(x);
+            obj.updateTarget0ForNextIteration(J);
         end
 
 
@@ -67,16 +77,12 @@ classdef EnclosedVoidFunctional < handle
             dJ{1}.setFValues(dP{1}.fValues/(pTar/obj.value0));
         end
 
-        function updateEpsilonForNextIteration(obj,J) % Cuando la suma de grays empieza a decaer puede provocar tmb la decay de epsilon
+        function updateTarget0ForNextIteration(obj,J) 
             %if abs(J)<=1e-2
-            if J-obj.valueOld<0 || abs(J)<=1e-2
-                obj.epsilon = obj.epsilon/1.01;
-                obj.epsilon = max(obj.epsilon,obj.minEpsilon);
-                obj.perimeter.updateEpsilon(obj.epsilon);
-                obj.target0 = min(obj.target0*1.008,obj.target);
+            if J-obj.valueOld<0 || abs(J) <= 1e-2              
+               obj.target0 = max(obj.target0*(1-0.008),obj.target);
             end
             obj.valueOld = J;
-            %end % Será preferible tener una decay constante al inicio y luego más notoria hacia el final (cuando el volumen esta por cumplirse y tenemos muchos grises)
         end        
 
     end
@@ -90,6 +96,7 @@ classdef EnclosedVoidFunctional < handle
             obj.m = cParams.massCoef;
             obj.dm       = cParams.dm;
             obj.dk       = cParams.dk;
+            obj.target0  = cParams.target0;
             if isfield(cParams,'value0')
                 obj.value0 = cParams.value0;
             end

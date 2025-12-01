@@ -211,7 +211,7 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             k1  = e; 
             m0  = 1;
             m1  = 1;%*(1-e);
-            p  = 8;
+            p  = 3;
            % s.diffCoef = @(x) k0.*(1-x.^p)+k1*x.^p;
             s.diffCoef = @(x) k0.*(1-x).^p+k1;
            % s.massCoef = @(x) m0.*(1-x.^p)+m1*x.^p;
@@ -225,6 +225,7 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             s.filter = obj.filterPDE;
             s.test   = LagrangianFunction.create(obj.mesh,1,'P1');
             s.uMesh = obj.createBaseDomain();
+            s.target0 = 1;
             v = EnclosedVoidFunctional(s);
             %v.computeFunctionAndGradient(obj.designVariable)
             obj.enclosedVoid = v;
