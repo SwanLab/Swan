@@ -110,41 +110,22 @@ classdef LevelSetInclusionAuto_abril < handle
         end
 
         function [u, L] = doElasticProblemHere(obj)
-            s = obj.createElasticProblem();
             obj.createDisplacementFunHere();
-            %obj.createBCApplyerHere(s);
-            %obj.createSolverHere(s)
             LHS=obj.computeLHS();
             RHS=obj.computeRHS();
-
             sol = LHS\RHS;
             u = sol(1:obj.displacementFun.nDofs,:);
             L = -sol(obj.displacementFun.nDofs+1:end,:); 
-            %obj.computeForcesHere(s);
-
             if isa(obj.dLambda, "LagrangianFunction")
                 l2g_dof = ((obj.localGlobalConnecBd*obj.displacementFun.ndimf)' - ((obj.displacementFun.ndimf-1):-1:0))';
                 l2g_dof = l2g_dof(:);
                 uB = u(l2g_dof, :);
                 L = uB'*L;
             end
-
             u=full(u);
             L=full(L);
         end
 
-
-        function s = createElasticProblem(obj)
-            s.mesh     = obj.mesh;
-            s.scale    = 'MACRO';
-            obj.createMaterial();
-            s.material = obj.material;
-            s.dim      = '2D';
-            s.boundaryConditions = obj.createBoundaryConditions();
-            s.solverType         = 'MONOLITHIC';
-            s.solverMode         = 'DISP';
-            s.solverCase         = DirectSolver();
-        end
 
         function createMaterial(obj)
             [young,poisson] = obj.computeElasticProperties(obj.mesh);
@@ -167,81 +148,6 @@ classdef LevelSetInclusionAuto_abril < handle
             poisson = ConstantFunction.create(nu,mesh);            
         end
 
-        function bc = createBoundaryConditions(obj)
-            v                    = zeros(8,1);
-            v(obj.nodeDirection) = 1;
-            nRes                 = [1 1 2 2 3 3 4 4]*v;
-            assignMatrix         = [2 1 0 0 0 0 0 0
-                                    0 0 2 1 0 0 0 0
-                                    0 0 0 0 2 1 0 0
-                                    0 0 0 0 0 0 2 1
-                                    1 2 1 2 1 2 1 2];
-
-            vSimp       = assignMatrix*v;
-            dirs        = cell(5,1);
-            [dirs{:,1}] = deal([1, 2]);
-            [dirs{nRes}]  = deal(vSimp(nRes));
-            [dirs{end}]   = deal(vSimp(end));
-
-            xMax    = max(obj.mesh.coord(:,1));
-            yMax    = max(obj.mesh.coord(:,2));
-            xMin    = min(obj.mesh.coord(:,1));
-            yMin    = min(obj.mesh.coord(:,2));
-            tol     = 1e-10;
-
-            corner1 = @(coor) abs(coor(:,1)-xMin) <= tol & abs(coor(:,2)-yMin)<= tol;
-            corner2 = @(coor) abs(coor(:,1)-xMax) <= tol & abs(coor(:,2)-yMin)<= tol;
-            corner3 = @(coor) abs(coor(:,1)-xMin) <= tol & abs(coor(:,2)-yMax)<= tol;
-            corner4 = @(coor) abs(coor(:,1)-xMax) <= tol & abs(coor(:,2)-yMax)<= tol;
-
-            cornerVec = {corner1; corner2; corner3; corner4};
-
-            sDir{1}.domain    = @(coor) cornerVec{1}(coor);
-            sDir{1}.direction = cell2mat(dirs(1));
-            sDir{1}.value     = 0;
-
-            sDir{2}.domain    = @(coor) cornerVec{2}(coor);
-            sDir{2}.direction = cell2mat(dirs(2));
-            sDir{2}.value     = 0;
-
-            sDir{3}.domain    = @(coor) cornerVec{3}(coor);
-            sDir{3}.direction = cell2mat(dirs(3));
-            sDir{3}.value     = 0;
-
-            sDir{4}.domain    = @(coor) cornerVec{4}(coor);
-            sDir{4}.direction = cell2mat(dirs(4));
-            sDir{4}.value     = 0;
-
-            sDir{5}.domain    = @(coor) cornerVec{nRes}(coor);
-            sDir{5}.direction = cell2mat(dirs(end));
-            sDir{5}.value     = 1;
-
-            %isForce = @(coor) (abs(coor(:,1) - xMin)   < 1e-10);
-            % sPL{1}.domain    = @(coor) isForce(coor);
-            % sPL{1}.direction = 2;
-            % sPL{1}.value     = 0;
-            sPL = {};
-
-            dirichletFun = [];
-            for i = 1:numel(sDir)
-                dir = DirichletCondition(obj.mesh, sDir{i});
-                dirichletFun = cat(2, dirichletFun, dir);
-            end
-            s.dirichletFun = dirichletFun;
-
-            pointloadFun = [];
-            for i = 1:numel(sPL)
-                pl = PointLoad(obj.mesh, sPL{i});
-                pointloadFun = cat(2, pointloadFun, pl);
-            end
-            s.pointloadFun = pointloadFun;
-
-            s.periodicFun  = [];
-            s.mesh = obj.mesh;
-            bc = BoundaryConditions(s);
-        end
-
-
         function createDisplacementFunHere(obj)
             obj.displacementFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
         end
@@ -252,17 +158,7 @@ classdef LevelSetInclusionAuto_abril < handle
             obj.bcApplier = BCApplier(s);
         end
 
-        %function createSolverHere(obj, cParams)
-        %    p.solverType = cParams.solverType;
-        %    p.solverMode = cParams.solverMode;
-        %    p.solver     = cParams.solverCase;
-%
-        %    p.boundaryConditions = cParams.boundaryConditions;
-        %    p.BCApplier          = obj.bcApplier;
-        %    obj.problemSolver    = ProblemSolver(p);
-        %end
-
-        function LHS=computeLHS(obj)
+            function LHS=computeLHS(obj)
             K=obj.computeStiffnessMatrix();
             C=obj.computeConstraintMatrix();
             Z=zeros(obj.dLambda.nDofs);
