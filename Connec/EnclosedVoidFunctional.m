@@ -29,6 +29,7 @@ classdef EnclosedVoidFunctional < handle
             obj.createBoundaryConditionsAdjoint();
             obj.createSolverAdjoint();
             obj.value0 = 1;
+            obj.valueOld = -1;
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
@@ -51,7 +52,7 @@ classdef EnclosedVoidFunctional < handle
 
             
             %obj.updateEpsilonForNextIteration(J);
-            dJ{1} = -phi ;%+ 1.*obj.dk(xR).*DP(Grad(lam),Grad(phi)) + DP(obj.dm(xR).*(phi-xR)-obj.m(xR),lam);
+            dJ{1} = -phi + 1.*obj.dk(xR).*DP(Grad(lam),Grad(phi)) + DP(obj.dm(xR).*(phi-xR)-obj.m(xR),lam);
             %dJ{1} =  -phi.*(1-xR);
             %dJ{1} =  -phi;%.*(1-xR);
             dJ{1} = dJ{1}./Dom*1;
@@ -80,7 +81,7 @@ classdef EnclosedVoidFunctional < handle
         function updateTarget0ForNextIteration(obj,J) 
             %if abs(J)<=1e-2
             if J-obj.valueOld<0 || abs(J) <= 1e-2              
-               obj.target0 = max(obj.target0*(1-0.008),obj.target);
+               obj.target0 = max(obj.target0*(1-0.1),obj.target);
             end
             obj.valueOld = J;
         end        

@@ -225,7 +225,7 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             s.filter = obj.filterPDE;
             s.test   = LagrangianFunction.create(obj.mesh,1,'P1');
             s.uMesh = obj.createBaseDomain();
-            s.target0 = 1;
+            s.target0 = 0.4;
             v = EnclosedVoidFunctional(s);
             %v.computeFunctionAndGradient(obj.designVariable)
             obj.enclosedVoid = v;
@@ -302,10 +302,10 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             obj.optimizer = opt;
 
 
-             % s.nConstraints   = 1;
-             % l                = DualVariable(s);            
-
-
+            %  s.nConstraints   = 1;
+            %  l                = DualVariable(s);            
+            % 
+            % 
             % s.monitoring     = true;
             % s.cost           = obj.cost;
             % s.constraint     = obj.constraint;
@@ -313,7 +313,7 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             % s.dualVariable   = l;
             % s.maxIter        = 5000;
             % s.tolerance      = 1e-8;
-            % s.constraintCase = {'EQUALITY'};
+            % s.constraintCase = {'EQUALITY','INEQUALITY'};
             % s.ub             = 1;
             % s.lb             = 0;
             % s.volumeTarget   = 0.4;
