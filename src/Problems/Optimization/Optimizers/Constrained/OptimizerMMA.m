@@ -60,7 +60,7 @@ classdef OptimizerMMA < Optimizer
                obj.updateIterInfo();
                obj.printOptimizerVariable();
                obj.updateMonitoring();
-               obj.designVariable.fun.print(['DesVarIter',num2str(obj.nIter)]);               
+             %  obj.designVariable.fun.print(['DesVarIter',num2str(obj.nIter)]);               
            end
             obj.hasConverged = 0;
        end

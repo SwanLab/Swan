@@ -44,7 +44,7 @@ classdef EnclosedVoidFunctional < handle
           %  plot(rhoV) 
           %  plot(lam);
             Dom   = Integrator.compute(ConstantFunction.create(1,obj.mesh),obj.mesh,2);
-            J     = Integrator.compute(rhoV,obj.mesh,2)/Dom;% - 0.1;
+            J     = Integrator.compute(rhoV,obj.mesh,2)/Dom - 0.2;
             dJ{1} = -phi ;%+ 1.*obj.dk(xR).*DP(Grad(lam),Grad(phi)) + DP(obj.dm(xR).*(phi-xR)-obj.m(xR),lam);
             %dJ{1} =  -phi.*(1-xR);
             %dJ{1} =  -phi;%.*(1-xR);
@@ -146,9 +146,9 @@ classdef EnclosedVoidFunctional < handle
             [u,~]       = obj.problemSolverAdjoint.solve(s); 
             lam = LagrangianFunction.create(obj.mesh,1,'P1');
             lam.setFValues(u);
-            plot(1-x)
-            plot(-lam)
-            plot(-lam.*(1-x))
+           % plot(1-x)
+           % plot(-lam)
+           % plot(-lam.*(1-x))
         end
 
         function createBoundaryConditionsAdjoint(obj)

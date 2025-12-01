@@ -47,7 +47,7 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
 
         function createMesh(obj)
             %UnitMesh better
-            obj.mesh = QuadMesh(1, 1, 50, 50);
+            obj.mesh = QuadMesh(2, 1, 50, 25);
         end
 
         function createDesignVariable(obj)
@@ -57,12 +57,21 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             % aFun      = AnalyticalFunction(s);
             % d = aFun.project('P1');
 
-            s.dim = obj.mesh.ndim;
-            s.nHoles = [1 1];
-            s.phases = [0 0]; 
-            s.phiZero = 0.5;
-            s.totalLengths = [1,1];
-            s.type         = 'Holes';
+        %    s.dim = obj.mesh.ndim;
+        %    s.nHoles = [1 1];
+        %    s.phases = [0 0]; 
+        %    s.phiZero = 0.5;
+        %    s.totalLengths = [1,1];
+        %    s.type         = 'Holes';
+
+
+
+        
+            s.type         = 'Full';
+
+
+
+
             g              = GeometricalFunction(s);
             phiFun         = g.computeLevelSetFunction(obj.mesh);
             ls          = phiFun.fValues;
@@ -156,7 +165,7 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'DIRECT';
+            s.solverCase = DirectSolver();
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -188,7 +197,7 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.82;
+            s.volumeTarget = 0.4;
             s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
@@ -217,7 +226,7 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             s.test   = LagrangianFunction.create(obj.mesh,1,'P1');
             s.uMesh = obj.createBaseDomain();
             v = EnclosedVoidFunctional(s);
-            v.computeFunctionAndGradient(obj.designVariable)
+            %v.computeFunctionAndGradient(obj.designVariable)
             obj.enclosedVoid = v;
         end        
 
@@ -237,9 +246,10 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
   
 
         function createCost(obj)
-            s.shapeFunctions{1} = obj.enclosedVoid;
-            s.shapeFunctions{2} = obj.perimeter;
-            s.weights           = [1 0.0001];
+            s.shapeFunctions{1} = obj.compliance;
+            %s.shapeFunctions{2} = obj.perimeter;
+            %s.weights           = [1 0.0001];
+            s.weights           = 1;
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -251,7 +261,8 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
         end
 
         function createConstraint(obj)
-            s.shapeFunctions{1} = obj.volume;          
+            s.shapeFunctions{1} = obj.volume; 
+            s.shapeFunctions{2} = obj.enclosedVoid;                      
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
@@ -273,22 +284,25 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 3000;
+            s.maxIter        = 300;
             s.tolerance      = 1e-8;
-            s.constraintCase = {'EQUALITY'};
+            s.constraintCase = {'EQUALITY','INEQUALITY'};
+            %s.constraintCase = {'EQUALITY'};
+            s.primal         = 'PROJECTED GRADIENT';
+            s.etaNorm        = 0.1;
+            s.gJFlowRatio    = 2;
             s.primalUpdater  = obj.primalUpdater;
-            s.etaNorm        = 0.02;
-            s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 0.1;
-            s.etaMax         = 1;
-            s.etaMaxMin      = 0.01;
+            s.gif            = false;
+            s.gifName        = [];
+            s.printing       = false;
+            s.printName      = [];       
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
 
 
-            % s.nConstraints   = 1;
-            % l                = DualVariable(s);            
+             % s.nConstraints   = 1;
+             % l                = DualVariable(s);            
 
 
             % s.monitoring     = true;
@@ -303,6 +317,10 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             % s.lb             = 0;
             % s.volumeTarget   = 0.4;
             % s.primal         = 'PROJECTED GRADIENT';
+            % s.gif            = false;
+            % s.gifName        = [];
+            % s.printing       = false;
+            % s.printName      = [];              
             % opt              = OptimizerMMA(s);
             % opt.solveProblem();
             % obj.optimizer = opt;
@@ -324,7 +342,7 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             % s.volumeTarget   = 0.4;
             % opt = OptimizerAugmentedLagrangian(s);
             % opt.solveProblem();
-            % obj.optimizer = opt;
+            % obj.optimizer = opt;w
             % opt.solveProblem();
             % obj.optimizer = opt;
         end
@@ -351,15 +369,16 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             s.dirichletFun = dirichletFun;
 
             pointloadFun = [];
-            % for i = 1:numel(sPL)
-            %     pl = PointLoad(obj.mesh, sPL{i});
-            %     pointloadFun = [pointloadFun, pl];
-            % end
+            for i = 1:numel(sPL)
+                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
+                pointloadFun = [pointloadFun, pl];
+            end
             s.pointloadFun = pointloadFun;
 
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
+
         end
     end
 end
