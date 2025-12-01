@@ -128,6 +128,7 @@ classdef CoarseTesting_Abril< handle
 
             obj.nelem=20; %mesh refining
             obj.r=[0.1,0.1,0.1];
+            obj.r= ones(1,15)*0.1;
             obj.nSubdomains    = size(obj.r');
             obj.mSubdomains    = [];
             obj.tolSameNode    = 1e-10;
@@ -382,25 +383,14 @@ classdef CoarseTesting_Abril< handle
 
 
         function [LHS,LHSr] = computeStiffnessMatrix(obj,dispFun,mat)
-            s.type     = 'ElasticStiffnessMatrix';
-            s.quadratureOrder = 2;
-            s.test     = dispFun;
-            s.trial    = dispFun;
-            % LHScell    = cell(size(obj.rSubdomains));
-            % LHScellGlobal = LHScell;
             LHSvect = [];
-
             for i = 1:obj.nSubdomains(1,2)
                 for j = 1:obj.nSubdomains(1,1)
-                    mesh     = obj.cellMeshes{i,j};
-                 
+                    mesh     = obj.cellMeshes{i,j};  
                     C     = mat{i,j};
                     f = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
                     lhs= IntegrateLHS(f,dispFun,dispFun,mesh,'Domain',2);
-
-                    % LHScell{i,j} = full(lhs.compute());
-                    LHSvect = cat(3, LHSvect, full(lhs) );
-                    
+                    LHSvect = cat(3, LHSvect, full(lhs) );  
                 end
             end
 
@@ -445,8 +435,7 @@ classdef CoarseTesting_Abril< handle
 
          function Meifem = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh)
             mR = obj.referenceMesh;
-
-            Data = Training(mR);
+            Data = OversamplingTraining(mR);
             p = OfflineDataProcessor(Data);
             EIFEoper = p.computeROMbasis();
             s.RVE           = TrainedRVE(EIFEoper);
@@ -552,7 +541,7 @@ classdef CoarseTesting_Abril< handle
             d = DomainDecompositionDofManager(s);
         end
 
-        function Milu = createILUpreconditioner(obj,LHS)
+        function Milu = createILUpreconditioner(~,LHS)
             s.LHS = sparse(LHS);
             s.type = 'ILU';
             M = Preconditioner.create(s);

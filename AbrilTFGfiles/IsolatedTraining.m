@@ -1,4 +1,4 @@
-classdef LevelSetInclusionAuto_abril < handle
+classdef IsolatedTraining < handle
     
     properties (Access = public)
         stiffness
@@ -18,8 +18,7 @@ classdef LevelSetInclusionAuto_abril < handle
         problemSolver
         forces
         uFun
-        strainFun
-        
+        strainFun 
     end
 
     properties  (Access = protected)
@@ -35,8 +34,8 @@ classdef LevelSetInclusionAuto_abril < handle
 
     methods (Access = public)
 
-        function [obj, u, L, mesh,Kcoarse] = LevelSetInclusionAuto_abril(r, i,nelem,doplot)
-            obj.init(r, i,nelem)
+        function [obj, u, L, mesh,Kcoarse] = IsolatedTraining(r,nelem,doplot)
+            obj.init(r,nelem)
             obj.createMesh();
             
             [u, L] = obj.doElasticProblemHere();
@@ -49,10 +48,9 @@ classdef LevelSetInclusionAuto_abril < handle
                for i=1:8
                  z.fValues   = reshape(u(:,i),[obj.mesh.ndim,obj.mesh.nnodes])';
                  uFeFun = LagrangianFunction(z);%
-                 fileName = ['r03_Training' num2str(i)];
+                 fileName = strrep("r" + num2str(r), '.', '_')+ "_IsolatedTraining" +num2str(i);
                  obj.computeCentroid();
                  CoarsePlotSolution(uFeFun, obj.mesh, obj.bcApplier,fileName, r, obj.centroids);
-                 %uFeFun.print(fileName,'Paraview');
                end
             end
             Kcoarse=u.'*obj.stiffness*u;
@@ -63,11 +61,11 @@ classdef LevelSetInclusionAuto_abril < handle
 
     methods (Access = private)
 
-        function init(obj, r, i,nelem)
+        function init(obj,r,nelem)
             % close all;
             % clc;
             obj.radius = r;
-            obj.nodeDirection = i;
+            obj.nodeDirection = 1;
             obj.nelem=nelem;
         end
 
@@ -166,6 +164,7 @@ classdef LevelSetInclusionAuto_abril < handle
         end
 
         function K=computeStiffnessMatrix(obj)
+            obj.createMaterial();
             C     = obj.material;
             f = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
             obj.stiffness = IntegrateLHS(f,obj.displacementFun,obj.displacementFun,obj.mesh,'Domain',2);
@@ -210,7 +209,7 @@ classdef LevelSetInclusionAuto_abril < handle
             fB     = {f1x f1y f2x f2y f3x f3y f4x f4y}; 
             nfun = size(fB,2);
             rDir = [];
-
+            Ud=cell(1,8);
             for i=1:nfun
                 Ud{i}  = AnalyticalFunction.create(fB{i},obj.boundaryMeshJoined);
                 f = @(v) DP(v,Ud{i});
@@ -226,4 +225,5 @@ classdef LevelSetInclusionAuto_abril < handle
         end
 
     end
+    
 end

@@ -1,4 +1,4 @@
-classdef Training_Abril < handle
+classdef OversamplingTraining < handle
 
     properties (GetAccess = public, SetAccess = private)
         uSbd
@@ -32,7 +32,7 @@ classdef Training_Abril < handle
 
     methods (Access = public)
 
-        function obj = Training_Abril(meshRef)
+        function obj = OversamplingTraining(meshRef)
             obj.init(meshRef)
             if sum(obj.nSubdomains > 1)>= 1
                 obj.repeatMesh();
@@ -47,11 +47,8 @@ classdef Training_Abril < handle
             [LHS,RHS,uFun,~] = obj.createElasticProblem();
             sol  = LHS\RHS;
             uAll = sol(1:uFun.nDofs,:);
-             %           EIFEMtesting.plotSolution(full(uAll(:,1)),obj.meshDomain,1,1,1,[])
             K = LHS(1:uFun.nDofs,1:uFun.nDofs);
             [obj.uSbd,obj.LHSsbd]    = obj.extractDomainData(uAll,K);
-
-            %             save('./Preconditioning/ROM/Training/PorousCell/OfflineData.mat','uSbd','meshRef','LHSsbd')
 
         end
 
@@ -86,11 +83,9 @@ classdef Training_Abril < handle
         end
 
         function material = createMaterial(obj)
-
             for i = 1:obj.nSubdomains(1,2)
                 for j = 1:obj.nSubdomains(1,1)
                     [young,poisson] = obj.computeElasticProperties(obj.cellMeshes{i,j} );
-
                     s.type        = 'ISOTROPIC';
                     s.ptype       = 'ELASTIC';
                     s.ndim        = obj.cellMeshes{i,j}.ndim;
@@ -98,11 +93,8 @@ classdef Training_Abril < handle
                     s.poisson     = poisson;
                     tensor        = Material.create(s);
                     material{i,j} = tensor;
-
                 end
             end
-      
-
         end
 
 
@@ -137,28 +129,18 @@ classdef Training_Abril < handle
             LHS = [K C'; C Z];
         end
 
-%         function LHS = computeStiffnessMatrix(obj,mesh,dispFun,C)
-%             LHS = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),dispFun,dispFun,mesh,'Domain',2);
-%         end
 
         function [LHS,LHSr] = computeStiffnessMatrix(obj,dispFun,mat)
-            s.type     = 'ElasticStiffnessMatrix';
-            s.quadratureOrder = 2;
-            s.test     = dispFun;
-            s.trial    = dispFun;
-            % LHScell    = cell(size(obj.rSubdomains));
-            % LHScellGlobal = LHScell;
             LHSl = [];
 
             for i = 1:obj.nSubdomains(1,2)
                 for j = 1:obj.nSubdomains(1,1)
                     mesh     = obj.cellMeshes{i,j};
-                    
                     C     = mat{i,j};
                     f = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
                     lhs= IntegrateLHS(f,dispFun,dispFun,mesh,'Domain',2);
 
-                    % LHScell{i,j} = full(lhs.compute());
+
                     LHSl = cat(3, LHSl, full(lhs) );
                     
                 end
@@ -174,17 +156,8 @@ classdef Training_Abril < handle
 
 
         function C = computeConditionMatrix(obj,mesh,dispFun,dLambda)
-            %             test     = LagrangianFunction.create(obj.boundaryMeshJoined, obj.meshDomain.ndim, 'P1'); % !!
             lhs = IntegrateLHS(@(u,v) DP(v,u),dLambda,dispFun,obj.meshDomain,'Boundary',2);
             C = lhs;
-            %             nDofs = obj.meshDomain.nnodes*dLambda.ndimf;
-            %             lhsg = sparse(nDofs,dLambda.nDofs);
-            %             [iLoc,jLoc,vals] = find(lhs);
-            %             l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
-            %             l2g_dof = l2g_dof(:);
-            %             jGlob = l2g_dof(jLoc);
-            %             iGlob = l2g_dof(iLoc);
-            %             C = lhsg + sparse(iGlob,jLoc,vals, nDofs,dLambda.nDofs);
         end
 
         function RHS = computeRHS(obj,u,dLambda)

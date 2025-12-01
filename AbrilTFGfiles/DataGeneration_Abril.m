@@ -11,7 +11,7 @@ doplot=false();
 
 for j = 1:size(r,2)
     
-    [~, u, l, mesh,Kcoarse] = LevelSetInclusionAuto_abril(r(j),1,nelem,doplot);
+    [~, u, l, mesh,Kcoarse] = IsolatedTraining(r(j),nelem,doplot);
 
     % Initialization for K_all and T_all
     if j==1
