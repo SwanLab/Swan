@@ -139,7 +139,7 @@ classdef TutorialEIFEM < handle
         end
         
         function holeMesh = createMesh(obj,radius)
-            fullmesh = UnitTriangleMesh(48,48);
+            fullmesh = UnitTriangleMesh(12,12);
             ls = obj.computeCircleLevelSet(fullmesh,radius);
             sUm.backgroundMesh = fullmesh;
             sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
