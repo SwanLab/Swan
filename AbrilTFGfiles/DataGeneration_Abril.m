@@ -3,9 +3,9 @@
 
 clc; clear; close all;
 
-r = 0:0.1:0.999; 
+r = 0:0.05:0.999; 
 %r=0.1;
-nelem=40;
+nelem=20;
 
 doplot=false();
 

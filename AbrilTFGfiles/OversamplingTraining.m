@@ -57,9 +57,9 @@ classdef OversamplingTraining < handle
     methods (Access = private)
 
         function init(obj,mesh)
-            obj.nSubdomains  = [5 5]; %nx ny
+            obj.nSubdomains  = [1 1]; %nx ny
             obj.tolSameNode = 1e-10;
-            obj.domainIndices = [3 3];
+            obj.domainIndices = [1 1];
             obj.mesh = mesh;
             obj.E    = 1;
             obj.nu   = 1/3;
@@ -100,15 +100,17 @@ classdef OversamplingTraining < handle
 
         function [young,poisson] = computeElasticProperties(obj,mesh)
             E1  = 1;
-            E2 = E1/1000;
             nu = 1/3;
+            %young   = ConstantFunction.create(E1,mesh);
+
+            E2 = E1/1000;
             radius = 0.1;
             x0=mean(mesh.coord(:,1));
             y0=mean(mesh.coord(:,2));
-
+            
             f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<radius)*E2 + ...
                         (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=radius)*E1 ; 
-
+            
             young   = AnalyticalFunction.create(f,mesh);
             poisson = ConstantFunction.create(nu,mesh);
         end

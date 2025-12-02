@@ -60,9 +60,10 @@ classdef CoarseTesting_Abril< handle
             Ufull  = obj.bcApplier.reducedToFullVectorDirichlet(Usol); 
 
             % PRECONDITIONERS
-            Meifem       = obj.createEIFEMPreconditioner(dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);            
+            %Meifem       = obj.createEIFEMPreconditioner(dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);            
             Milu         = obj.createILUpreconditioner(LHS);
-            Mcoarse     = obj.createCoarseNNPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
+            %Mcoarse     = obj.createCoarseNNPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
+            Mcoarse     = obj.createCoarseNNPreconditioner(mR,dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);
             %MiluCG      = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
             Mmult        = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Mcoarse,Milu);
 
@@ -127,7 +128,7 @@ classdef CoarseTesting_Abril< handle
                                   % false --> NN
 
             obj.nelem=20; %mesh refining
-            obj.r=[0.1,0.1,0.1];
+            %obj.r=[0.1,0.1,0.1];
             obj.r= ones(1,15)*0.1;
             obj.nSubdomains    = size(obj.r');
             obj.mSubdomains    = [];
@@ -321,16 +322,19 @@ classdef CoarseTesting_Abril< handle
             end
         end
 
+
+
         function [young,poisson] = computeElasticProperties(~,mesh, radius)
             E1  = 1;
-            E2 = E1/1000;
             nu = 1/3;
+            E2 = E1/1000;
             x0=mean(mesh.coord(:,1));
             y0=mean(mesh.coord(:,2));
             f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<radius)*E2 + ...
                         (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=radius)*E1 ; 
-
+            
             young   = AnalyticalFunction.create(f,mesh);
+            %young   = ConstantFunction.create(E1,mesh);
             poisson = ConstantFunction.create(nu,mesh);
             
         end
