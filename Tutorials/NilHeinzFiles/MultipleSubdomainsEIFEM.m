@@ -45,7 +45,6 @@ classdef MultipleSubdomainsEIFEM < handle
 
             [LHSr, Mr, RHSr] = obj.createElasticProblem();
 
-            
             LHSfun = @(x) LHSr*x;
             
             radiusMesh = mean(obj.radius(:));  % Average radius for EIFEM training

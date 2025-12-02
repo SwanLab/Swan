@@ -1,12 +1,11 @@
 classdef TrainingDataGenerator < handle
     % TRAININGDATAGENERATOR Generación optimizada de datos para entrenamiento de NNs
-    %
-    % Esta clase reutiliza Training.m y OfflineDataProcessor.m para generar
-    % datos de entrenamiento de forma eficiente.
     
     properties (Access = private)
         % Parámetros de generación
-        radii              % Vector de radios a procesar
+        radii              
+        referenceMesh      % Mesh de referencia fijo para todos los radios
+        referenceRadius    % Radio usado para crear el mesh de referencia
                
         % Datos generados
         TData              % Datos de T: [r, x, y, Tx1, Ty1, ..., Tx8, Ty8]
@@ -18,52 +17,41 @@ classdef TrainingDataGenerator < handle
         
         % Datos SVD
         T_SVD              % Matriz T_SVD: [nDofs×8 × nRadii]
-        U                  % Modos espaciales: [nDofs×8 × k]
+        U_full             % FUll Spatial Modes
+        U                  % Spatial Modes Keeping K modes [nDofs×8 × k]
         S                  % Valores singulares: [k × k] (diagonal)
         V                  % Modos paramétricos: [nRadii × k]
         k                  % Número de modos retenidos
         VTrainingData      % Datos de entrenamiento para V: [r, V1, V2, ..., Vk]
-        svdTolerance       % Tolerancia para truncamiento SVD (default: 1e-6)
-        svdEnergyRatio     % Ratio de energía para truncamiento (default: 0.99)
     end
     
     methods (Access = public)
         
         function obj = TrainingDataGenerator(radii, varargin)
-            % Constructor
-            % radii: Vector de radios (ej: 0:0.1:0.9)
-            % varargin: 
-            %   'svdTolerance': Tolerancia para truncamiento SVD (default: 1e-6)
-            %   'svdEnergyRatio': Ratio de energía para truncamiento (default: 0.99)
-            
+
             obj.radii = radii;
             
             % Parsear parámetros opcionales
             p = inputParser;
-            addParameter(p, 'svdTolerance', 1e-6, @isnumeric);
-            addParameter(p, 'svdEnergyRatio', 0.99, @isnumeric);
+            addParameter(p, 'referenceRadius', max(radii), @isnumeric);
             parse(p, varargin{:});
             
-            obj.svdTolerance = p.Results.svdTolerance;
-            obj.svdEnergyRatio = p.Results.svdEnergyRatio;
+            obj.referenceRadius = p.Results.referenceRadius;
+            
+            % Crear mesh de referencia una vez para garantizar dimensiones consistentes
+            fprintf('Creando mesh de referencia con radio %.4f...\n', obj.referenceRadius);
+            obj.referenceMesh = obj.createMesh(obj.referenceRadius);
+            fprintf('Mesh de referencia creado: %d nodos\n', obj.referenceMesh.nnodes);
         end
         
         function generateData(obj, computeSVD)
             % Genera todos los datos de entrenamiento
-            % computeSVD: (opcional) true para calcular SVD, false para omitir (default: false)
-            %
-            % Nota: Si los datos ya están generados, solo calculará SVD si computeSVD=true
-            %       y SVD aún no ha sido calculado. Para recalcular SVD, use computeSVDFromExistingData()
-            
+           
             if nargin < 2
                 computeSVD = false;
             end
             
-            % Verificar si los datos ya están generados
-            if ~isempty(obj.allResults) && length(obj.allResults) == length(obj.radii)
-                fprintf('Datos ya generados. Saltando generación...\n');
-            else
-                fprintf('Generando datos para %d radios...\n', length(obj.radii));
+            fprintf('Generando datos para %d radios...\n', length(obj.radii));
                 
                 % Pre-allocar resultados
                 nRadii = length(obj.radii);
@@ -79,16 +67,13 @@ classdef TrainingDataGenerator < handle
                 % Post-procesamiento
                 obj.processTData();
                 obj.processKMData();
-            end
             
-            % Calcular SVD si se solicita y aún no está calculado
-            if computeSVD && isempty(obj.U)
+            % SVD if requested
+            if computeSVD
                 fprintf('Calculando SVD...\n');
                 obj.computeSVD();
                 obj.processSVDData();
                 fprintf('SVD completado. Modos retenidos: %d\n', obj.k);
-            elseif computeSVD && ~isempty(obj.U)
-                fprintf('SVD ya calculado. Use computeSVDFromExistingData() para recalcular.\n');
             end
             
             fprintf('Generación completada.\n');
@@ -96,9 +81,7 @@ classdef TrainingDataGenerator < handle
         
         function exportToCSV(obj, outputDir)
             % Exporta datos a archivos CSV
-            % outputDir: Directorio de salida
             
-            % Export datos estándar
             TFile = fullfile(outputDir, 'TTrainingData.csv');
             writematrix(obj.TData, TFile);
 
@@ -110,23 +93,14 @@ classdef TrainingDataGenerator < handle
         end
         
         function exportSVDToCSV(obj, outputDir)
-            % Exporta datos de entrenamiento SVD a CSV
-            % outputDir: Directorio de salida
             % Genera: VTrainingData.csv con formato [r, V1, V2, ..., Vk]
-            
-            if isempty(obj.VTrainingData)
-                error('SVD no ha sido calculado. Llame a generateData(true) o computeSVDFromExistingData() primero.');
-            end
             
             VFile = fullfile(outputDir, 'VTrainingData.csv');
             writematrix(obj.VTrainingData, VFile);
             fprintf('Datos SVD exportados a: %s\n', VFile);
         end
         
-        function exportSVDToMAT(obj, outputDir, fileName)
-            % Exporta resultados SVD a archivo .mat para reconstrucción
-            % outputDir: Directorio de salida
-            % fileName: Nombre del archivo (default: 'SVD_Results.mat')
+        function exportSVDToMAT(obj,fileName, outputDir)
             
             if isempty(obj.U) || isempty(obj.S) || isempty(obj.V)
                 error('SVD no ha sido calculado. Llame a generateData(true) o computeSVDFromExistingData() primero.');
@@ -160,7 +134,7 @@ classdef TrainingDataGenerator < handle
         end
         
         function k = getNumberOfModes(obj)
-            % Retorna el número de modos retenidos
+            
             k = obj.k;
         end
         
@@ -172,20 +146,6 @@ classdef TrainingDataGenerator < handle
             k = obj.k;
         end
         
-        function computeSVDFromExistingData(obj)
-            % Calcula SVD a partir de datos ya generados
-            % Útil cuando se generaron datos sin SVD y luego se quiere calcular SVD
-            % independientemente
-            
-            if isempty(obj.allResults)
-                error('No hay datos generados. Llame a generateData() primero.');
-            end
-            
-            fprintf('Calculando SVD a partir de datos existentes...\n');
-            obj.computeSVD();
-            obj.processSVDData();
-            fprintf('SVD completado. Modos retenidos: %d\n', obj.k);
-        end
          
     end
     
@@ -251,22 +211,34 @@ classdef TrainingDataGenerator < handle
             % Resuelve el problema elástico para un radio dado usando Training
             % r: Radio de la inclusión
             % idx: Índice del radio (para logging)
+            %
+            % NOTA: Usa el mesh de referencia fijo para garantizar dimensiones consistentes
+            % El material se calcula según el radio, pero el mesh permanece constante
             
-            % Crear malla base
-            meshRef = obj.createMesh(r);
-                 
-            trainingData = Training(meshRef);  % Con radio, material variable
+            % Usar mesh de referencia fijo en lugar de crear uno nuevo por radio
+            % Esto garantiza que todos los resultados tengan la misma dimensión
+                        
+            meshRef = obj.referenceMesh;
+            trainingData = Training(meshRef, 'radius', r);  % Usa mesh de referencia fijo con material variable (r)
+            u = trainingData.uSbd;
             
-            % Extraer datos: uSbd tiene 8 columnas (una por modo), LHSsbd es K_fine
-            u = trainingData.uSbd;  % [nDofs × 8] - Esta es la matriz T
+            % Verificar dimensiones consistentes
+            if idx > 1
+                firstResult = obj.allResults{1};
+                expectedSize = size(firstResult.u);
+                actualSize = size(u);
+                if ~isequal(expectedSize, actualSize)
+                    warning('Dimensiones inconsistentes detectadas para radio %.4f: esperado [%d × %d], obtenido [%d × %d]', ...
+                        r, expectedSize(1), expectedSize(2), actualSize(1), actualSize(2));
+                end
+            end
             
-            % Calcular Kcoarse usando OfflineDataProcessor
+            % Obtain Kcoarse and Mcoasrse like for equilibrium problem
             processor = OfflineDataProcessor(trainingData);
             EIFEoper = processor.computeROMbasis(r);
             Kcoarse = EIFEoper.Kcoarse;
             Mcoarse = EIFEoper.Mcoarse;
             
-            % Almacenar resultado
             result.r = r;
             result.u = u;
             result.Kcoarse = Kcoarse;
@@ -277,13 +249,14 @@ classdef TrainingDataGenerator < handle
         function processTData(obj)
             % Procesa y formatea datos de T para CSV
             % Formato: [r, x, y, Tx1, Ty1, Tx2, Ty2, ..., Tx8, Ty8]
-            
+             nnodes = obj.allResults{1}.mesh.nnodes;
             TData = [];
+            T_svd = zeros(nnodes*16,size(obj.radii,2));
             
             for j = 1:length(obj.allResults)
                 result = obj.allResults{j};
                 r = result.r;
-                u = result.u;  % [nDofs × 8]
+                u = result.u; 
                 mesh = result.mesh;
                 
                 % Reshape u: cada columna tiene [u_x1, u_y1, u_x2, u_y2, ...]
@@ -291,7 +264,6 @@ classdef TrainingDataGenerator < handle
                 nnodes = mesh.nnodes;
                 ndim = mesh.ndim;
                 
-                % Para cada modo, extraer componentes x e y
                 t_reshaped = zeros(nnodes, 16);  % 8 modos × 2 componentes
                 for mode = 1:8
                     u_mode = u(:, mode);  % [nDofs × 1]
@@ -302,9 +274,11 @@ classdef TrainingDataGenerator < handle
                 % Combinar: [r, x, y, Tx1, Ty1, ..., Tx8, Ty8]
                 t_aux = [r * ones(nnodes, 1), mesh.coord, t_reshaped];
                 TData = [TData; t_aux];
+                T_svd(:,j) = u(:);
             end
             
-            obj.TData = TData;
+            obj.TData = TData; %used to train NN for Method A
+            obj.T_SVD = T_svd; %used for method B and C.
         end
         
         function processKMData(obj)
@@ -342,73 +316,22 @@ classdef TrainingDataGenerator < handle
             % Construye T_SVD y aplica descomposición SVD
             % Reutiliza los datos T ya generados en allResults
             
-            nRadii = length(obj.allResults);
-            
-            % Verificar que todos los resultados tienen la misma dimensión
-            firstResult = obj.allResults{1};
-            u_first = firstResult.u;  % [nDofs × 8]
-            nDofs = size(u_first, 1);
-            
-            % Pre-allocar T_SVD: [nDofs×8 filas × nRadii columnas]
-            obj.T_SVD = zeros(nDofs * 8, nRadii);
-            
-            % Construir T_SVD: cada columna es T vectorizado para un radio
-            for j = 1:nRadii
-                result = obj.allResults{j};
-                u = result.u;  % [nDofs × 8]
-                % Vectorizar: convertir [nDofs × 8] → [nDofs×8 × 1]
-                obj.T_SVD(:, j) = u(:);
-            end
-            
-            fprintf('  T_SVD construido: [%d × %d]\n', size(obj.T_SVD, 1), size(obj.T_SVD, 2));
-            
-            % Aplicar SVD
+            %load('TTrainingData.csv');
+            %T_svd = obj.TData(:,4:end);
+           
+           % Aplicar SVD
             fprintf('  Aplicando SVD...\n');
             [U_full, S_full, V_full] = svd(obj.T_SVD, 'econ');
             
-            % Determinar número de modos a retener
-            obj.k = obj.determineNumberOfModes(S_full);
-            
+            tol = 1e-6;
+            obj.k = sum(diag(S_full) > tol);  % Count significant singular values
+           
+                       
             % Truncar a k modos
             obj.U = U_full(:, 1:obj.k);
             obj.S = S_full(1:obj.k, 1:obj.k);
             obj.V = V_full(:, 1:obj.k);
-            
-            fprintf('  SVD completado. Modos retenidos: %d/%d\n', obj.k, min(size(obj.T_SVD)));
-        end
-        
-        function k = determineNumberOfModes(obj, S)
-            % Determina el número de modos a retener basado en tolerancia y energía
-            % S: Matriz de valores singulares (diagonal)
-            
-            sigma = diag(S);
-            sigma1 = sigma(1);
-            
-            % Criterio 1: Tolerancia relativa
-            k_tol = find(sigma / sigma1 > obj.svdTolerance, 1, 'last');
-            if isempty(k_tol)
-                k_tol = 1;
-            end
-            
-            % Criterio 2: Ratio de energía
-            energy = cumsum(sigma.^2) / sum(sigma.^2);
-            k_energy = find(energy >= obj.svdEnergyRatio, 1);
-            if isempty(k_energy)
-                k_energy = length(sigma);
-            end
-            
-            % Usar el mínimo de ambos criterios (más conservador)
-            k = min(k_tol, k_energy);
-            
-            % Asegurar al menos 1 modo y no más que el máximo disponible
-            k = max(1, min(k, length(sigma)));
-            
-            % Información de diagnóstico
-            fprintf('    Criterio tolerancia: %d modos (σ_%d/σ_1 = %.2e)\n', ...
-                k_tol, k_tol, sigma(k_tol)/sigma1);
-            fprintf('    Criterio energía: %d modos (%.1f%% energía)\n', ...
-                k_energy, energy(k_energy)*100);
-            fprintf('    Modos seleccionados: %d\n', k);
+            fprintf('SVD completed. Modos retenidos: %d/%d\n', obj.k, min(size(obj.T_SVD)));
         end
         
         function processSVDData(obj)
@@ -416,9 +339,6 @@ classdef TrainingDataGenerator < handle
             % Genera VTrainingData: [r, V1, V2, ..., Vk]
             % Cada fila corresponde a un radio, cada columna a un modo paramétrico
             
-            if isempty(obj.V)
-                error('SVD no ha sido calculado. Llame a computeSVD() primero.');
-            end
             
             % V ya tiene el formato correcto: [nRadii × k]
             % Agregar columna de radios

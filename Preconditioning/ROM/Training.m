@@ -19,6 +19,7 @@ classdef Training < handle
 
         fileNameEIFEM
         tolSameNode
+        radius              % Radio para material variable (opcional)
 
     end
 
@@ -29,7 +30,20 @@ classdef Training < handle
 
     methods (Access = public)
 
-        function obj = Training(meshRef)
+        function obj = Training(meshRef, varargin)
+            % Constructor
+            % meshRef: Mesh de referencia
+            % varargin: Parámetros opcionales
+            %   'radius': Radio para crear material variable (si se proporciona,
+            %              el material variará dentro/fuera del agujero)
+            
+            % Parsear parámetros opcionales
+            p = inputParser;
+            addParameter(p, 'radius', [], @isnumeric);
+            parse(p, varargin{:});
+            
+            obj.radius = p.Results.radius;
+            
             obj.init(meshRef)
             if sum(obj.nSubdomains > 1)>= 1
                 obj.repeatMesh();
@@ -87,13 +101,20 @@ classdef Training < handle
         end
 
         function [young,poisson] = computeElasticProperties(obj,mesh)
-            E  = 1;
+            
+            E1  = 1;
+            E2 = E1/1000;
             nu = 1/3;
-            %Epstr  = E/(1-nu^2);
-            %nupstr = nu/(1-nu);
-            young   = ConstantFunction.create(E,mesh);
+            x0=0;
+            y0=0;
+            f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<obj.radius)*E2 + ...
+                        (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=obj.radius)*E1 ; 
+
+            young   = AnalyticalFunction.create(f,mesh);
             poisson = ConstantFunction.create(nu,mesh);
         end
+        
+     
 
         function [LHS,RHS,u,dLambda] = createElasticProblem(obj)
             u = LagrangianFunction.create(obj.meshDomain,obj.meshDomain.ndim,'P1');

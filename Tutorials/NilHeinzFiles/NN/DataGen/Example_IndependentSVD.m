@@ -4,13 +4,12 @@
 % calcular SVD de forma independiente.
 
 close all;
-clear;
-clc;
+
 
 fprintf('=== Ejemplo: Generación Independiente de Datos y SVD ===\n\n');
 
 %% Configuración
-radii = 0.1:0.05:0.9;  % Radios para el conjunto de entrenamiento
+radii = 0.5*(0.05:0.05:0.95);  % Radios para el conjunto de entrenamiento
 
 %% ================================================================
 %% FLUJO 1: Generar datos SIN SVD primero
@@ -22,10 +21,11 @@ dataGen = TrainingDataGenerator(radii);
 
 % Generar datos SIN SVD
 fprintf('\nGenerando datos de entrenamiento (sin SVD)...\n');
-dataGen.generateData(false);  % false = no calcular SVD
+dataGen.generateData(true);  % false = no calcular SVD
+%% 
 
 % Exportar datos estándar
-outputDir = 'Tutorials/NilHeinzFiles';
+outputDir = [userpath '/Tutorials/NilHeinzFiles/NN/DataGen'];
 fprintf('\nExportando datos estándar a CSV...\n');
 dataGen.exportToCSV(outputDir);
 fprintf('  ✓ TTrainingData.csv\n');
@@ -35,6 +35,10 @@ fprintf('  ✓ McoarseTrainingData.csv\n');
 % Verificar que SVD NO está calculado
 fprintf('\nVerificación: SVD calculado? %s\n', ...
     mat2str(~isempty(dataGen.getSVDResults())));
+
+
+%%
+dataGen.exportSVDToMAT('SVD_Results.mat','')
 
 %% ================================================================
 %% FLUJO 2: Calcular SVD de forma independiente DESPUÉS
