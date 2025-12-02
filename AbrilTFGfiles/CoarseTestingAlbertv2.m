@@ -70,7 +70,7 @@ classdef CoarseTestingAlbertv2 < handle
             tic
             x0 = zeros(size(RHSf));
 
-            Mmult = @(r) Preconditioner.multiplePrec(r,Milu,Mcoarse,Milu,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
+            Mmult = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Mcoarse,Milu);
             tic
 
 
@@ -184,7 +184,7 @@ classdef CoarseTestingAlbertv2 < handle
             s.nsubdomains   = obj.nSubdomains; %nx ny
             s.meshReference = mR;
             s.tolSameNode = obj.tolSameNode;
-            m = MeshCreatorFromRVE(s);
+            m = MeshCreatorFromRVE2D(s);
             [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
         end
 
@@ -262,7 +262,7 @@ classdef CoarseTestingAlbertv2 < handle
             s.nsubdomains   = obj.nSubdomains; %nx ny
             s.meshReference = obj.createReferenceCoarseMesh(mR);
             s.tolSameNode   = obj.tolSameNode;
-            mRVECoarse      = MeshCreatorFromRVE(s);
+            mRVECoarse      = MeshCreatorFromRVE2D(s);
             [mCoarse,~,~] = mRVECoarse.create();
         end
 
