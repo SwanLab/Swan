@@ -40,8 +40,6 @@ classdef TutorialEIFEM < handle
 
             [LHSr, Mr, RHSr] = obj.createElasticProblem();
 
-            
-
             %% Modal Analysis
             
             [eigenvalues, eigenvectors, natFreq] = obj.computeModalAnalysis(LHSr, Mr);
@@ -62,18 +60,7 @@ classdef TutorialEIFEM < handle
             %obj.printCoarseSolution(EIFEM,PhiCoarse,discMesh);
             %obj.printFineSolution(eigenvectors,mD);
             
-            % for i = 1:length(radius_to_analyse)
-            % 
-            % 
-            %     Kc{i} = Kcoarse;
-            %     if i == 500 || i == 1000 || i == 1500 || i == 2000
-            %         save('KcoarseTraining.mat', 'Kc');
-            %     end
-            % 
-            % end
-
-            %save('KcoarseTraining.mat', 'Kc');
-            errPct = abs(eigenvalues - lambdaCoarse) ./ abs(eigenvalues) * 100;
+           errPct = abs(eigenvalues - lambdaCoarse) ./ abs(eigenvalues) * 100;
             
             figure;
             
@@ -314,19 +301,7 @@ classdef TutorialEIFEM < handle
         end
 
         function RHS = computeForces(obj,stiffness,u)
-            % s.type      = 'Elastic';
-            % s.scale     = 'MACRO';
-            % s.dim.ndofs = u.nDofs;
-            % s.BC        = obj.boundaryConditions;
-            % s.mesh      = obj.meshDomain;
-            % RHSint      = RHSIntegrator.create(s);
-            % rhs         = RHSint.compute();
-            % % Perhaps move it inside RHSint?
-            % R           = RHSint.computeReactions(stiffness);
-            % RHS = rhs+R;
-            
-
-
+  
             ndofs = u.nDofs;
             bc            = obj.boundaryConditions;
             neumann       = bc.pointload_dofs;
@@ -351,17 +326,11 @@ classdef TutorialEIFEM < handle
 
         function [Meifem,Kcoarse, Mcoarse,eifem, ss] = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh,radiusMesh)
             mR = obj.referenceMesh;
-%             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
-%             EIFEMfilename = obj.fileNameEIFEM;
-%             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
-%             filename        = EIFEMfilename;
-%             s.RVE           = TrainedRVE(filename);
             data = Training(mR);
-            p = OfflineDataProcessor(data); % i don't want to have to run this if I use NN
+            p = OfflineDataProcessor(data); % i don't want to have to run this -> build EIFEM with NN
             EIFEoper = p.computeROMbasis(radiusMesh);
             s.RVE           = TrainedRVE(EIFEoper);
             s.mesh          = obj.createCoarseMesh(mR);
-%            s.mesh          = obj.loadCoarseMesh(mR);
             s.DirCond       = dir;
             s.nSubdomains = obj.nSubdomains;
             s.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);

@@ -327,10 +327,11 @@ classdef TrainingDataGenerator < handle
             obj.k = sum(diag(S_full) > tol);  % Count significant singular values
            
                        
-            % Truncar a k modos
-            obj.U = U_full(:, 1:obj.k);
-            obj.S = S_full(1:obj.k, 1:obj.k);
-            obj.V = V_full(:, 1:obj.k);
+            % Truncar a k modos - for now we'll comment this and use the
+            % full results
+            obj.U = U_full; %(:, 1:obj.k);
+            obj.S = S_full; %(1:obj.k, 1:obj.k);
+            obj.V = V_full; %(:, 1:obj.k);
             fprintf('SVD completed. Modos retenidos: %d/%d\n', obj.k, min(size(obj.T_SVD)));
         end
         
