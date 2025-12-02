@@ -32,7 +32,7 @@ classdef Anisotropic_0_45_Density < handle
             obj.createOptimizer();
 
             % Save monitoring and desginVariable fValues
-            saveas(gcf,'Monitoring_0_45_Density.fig');
+            %saveas(gcf,'Monitoring_0_45_Density.fig');
             obj.designVariable.fun.print('fValues_0_45_Density');
         end
 
@@ -186,7 +186,7 @@ classdef Anisotropic_0_45_Density < handle
             %s.type           = '0_45';
             s.gif = true;
             s.gifName = 'Gif_0_45_Density';
-            s.printing = true;
+            s.printing = false;
             s.printName = 'Results_0_45_Density';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
