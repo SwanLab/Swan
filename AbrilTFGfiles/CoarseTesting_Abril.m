@@ -60,9 +60,8 @@ classdef CoarseTesting_Abril< handle
             Ufull  = obj.bcApplier.reducedToFullVectorDirichlet(Usol); 
 
             % PRECONDITIONERS
-            %Meifem       = obj.createEIFEMPreconditioner(dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);            
+            Meifem       = obj.createEIFEMPreconditioner(dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);            
             Milu         = obj.createILUpreconditioner(LHS);
-            %Mcoarse     = obj.createCoarseNNPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
             Mcoarse     = obj.createCoarseNNPreconditioner(mR,dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);
             %MiluCG      = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
             Mmult        = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Mcoarse,Milu);
@@ -232,14 +231,14 @@ classdef CoarseTesting_Abril< handle
             obj.ymin = min(x2);
             obj.ymax = max(x2);
             delta = 1e-9;
-            s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
-                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-0*delta];
-            s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
-                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-delta,0*delta];
-            s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
-                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[delta,-0*delta];
-            s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
-                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[delta,0*delta];
+            %s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
+            %    s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-0*delta];
+            %s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
+            %    s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-delta,0*delta];
+            %s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
+            %    s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[delta,-0*delta];
+            %s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
+            %    s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[delta,0*delta];
 
             mS = Mesh.create(s); 
         end
@@ -291,8 +290,8 @@ classdef CoarseTesting_Abril< handle
             coord(4,1) = obj.xmin;
             coord(4,2) = obj.ymax;
 
-            %connec = [1 2 3 4];    % crea conectivitats entre els 4 nodes
-            connec = [ 2 3 4 1];
+            connec = [1 2 3 4];    % crea conectivitats entre els 4 nodes
+            %connec = [ 2 3 4 1];
             s.coord = coord;
             s.connec = connec;
             cMesh = Mesh.create(s);  % crea la mesh de 4 nodes
