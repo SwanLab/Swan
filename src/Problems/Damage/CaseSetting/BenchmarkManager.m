@@ -37,6 +37,11 @@ classdef BenchmarkManager < handle
                     a.fileName = file;
                     s = FemDataContainer(a);
                     mesh = s.mesh;
+                case 'Xstructure'
+                    file = 'Xstructure';
+                    a.fileName = file;
+                    s = FemDataContainer(a);
+                    mesh = s.mesh;
             end
             bc.u   = BoundaryConditionsCreator(mesh,cParams.bc.u);
             bc.phi = BoundaryConditionsCreator(mesh,cParams.bc.phi);

@@ -38,7 +38,11 @@ classdef BoundaryConditionsCreator < handle
         function init(obj,mesh,cParams)
             obj.mesh     = mesh;
             obj.type     = cParams.type;
-            obj.bcValues = cParams.values;
+            if isfield(cParams,'values')
+                obj.bcValues = cParams.values;
+            else
+                obj.bcValues = [1]; % Value not used, is to do not have an empty array.
+            end
             obj.step     = 0;
         end
 
@@ -407,13 +411,13 @@ classdef BoundaryConditionsCreator < handle
          %     % obj.boundaryConditions = bc;
          % end
 
-         function createDamageFixedLimitsXConditions(obj,phiVal)
+         function createDamageFixedLimitsXConditions(obj,~)
             isLeft  = @(coor)  abs(coor(:,1)-min(coor(:,1))) < 1e-12;
             isRight = @(coor)  abs(coor(:,1)-max(coor(:,1))) < 1e-12;
             sDir.domain    = @(coor) isRight(coor) | isLeft(coor);
             sDir.direction = [1];
-            sDir.value     = phiVal;
-            sDir.ndim         = 1;
+            sDir.value     = 0;
+            sDir.ndim      = 1;
             Dir1 = DirichletCondition(obj.mesh,sDir);
 
             s.mesh         = obj.mesh;
@@ -423,13 +427,13 @@ classdef BoundaryConditionsCreator < handle
             obj.boundaryConditions = BoundaryConditions(s);
          end
 
-         function createDamageSENConditions(obj,phiVal)
-            isMiddleY = @(coor)  abs(coor(:,2)-(max(coor(:,2)) + min(coor(:,2)))/2) < 1e-12;
-            isHalfLeft = @(coor)  coor(:,1)-((max(coor(:,1)) + min(coor(:,1)))/2) < 1e-12;
+         function createDamageSENConditions(obj,~)
+            isMiddleY = @(coor)  abs(coor(:,2)-(max(coor(:,2)) + min(coor(:,2)))/2) < 1e-1;
+            isHalfLeft = @(coor)  coor(:,1)-0.5*((max(coor(:,1)) + min(coor(:,1)))/2) < 1e-1;
             sDir.domain    = @(coor) isHalfLeft(coor) & isMiddleY(coor);
             sDir.direction = [1];
-            sDir.value     = phiVal;
-            sDir.ndim         = 1;
+            sDir.value     = 0.99;
+            sDir.ndim      = 1;
             Dir1 = DirichletCondition(obj.mesh,sDir);
 
             s.mesh         = obj.mesh;
