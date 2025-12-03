@@ -193,8 +193,8 @@ classdef Anisotropic_45_LevelSet < handle
             f = x.obtainDomainFunction();
             f = obj.filter.compute(f{1},1);            
             s.type                 = 'DensityBasedMaterialAnisotropic';
-            s.fibreOrientation     = '45';
-            %s.density              = f;
+            %s.fibreOrientation     = '45';
+            s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '2D';
             s.mesh                 = obj.mesh;

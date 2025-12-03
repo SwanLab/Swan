@@ -186,6 +186,21 @@ classdef ElasticProblemMicroAnisotropic < handle
 
         end
 
+        function convertChomogToVoigt2(obj)
+            C = obj.Chomog;
+            C_voigt = zeros(3,3);
+            C_voigt(1,1)=C(1,1,1,1);
+            C_voigt(1,2)=C(2,2,1,1);
+            C_voigt(1,3)=C(1,2,1,1);
+            C_voigt(2,1)=C(1,1,2,2);
+            C_voigt(2,2)=C(2,2,2,2);
+            C_voigt(2,3)=C(1,2,2,2);
+            C_voigt(3,1)=C(1,1,1,2);
+            C_voigt(3,2)=C(2,2,1,2);
+            C_voigt(3,3)=C(1,2,1,2);
+            obj.Cvoigt = C_voigt;
+        end
+
 
         function convertChomogToFourthOrder(obj,ChiB,v,iB)
             Ch = obj.Chomog;
