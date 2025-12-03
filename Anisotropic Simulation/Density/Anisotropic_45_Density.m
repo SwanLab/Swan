@@ -185,7 +185,7 @@ classdef Anisotropic_45_Density < handle
             s.etaMaxMin      = 0.01;
             %s.type           = '45';
             s.gif = true;
-            s.gifName = 'Gif_45_Density';
+            s.gifName = 'Gif_45_Density_V2';
             s.printing = false;
             s.printName = 'Results_45_Density';
             opt = OptimizerNullSpace(s);
