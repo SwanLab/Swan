@@ -1,4 +1,4 @@
-classdef TutorialEIFEM_parametric < handle
+classdef LaticeMeshGen < handle
 
     properties (Access = public)
 
@@ -14,6 +14,7 @@ classdef TutorialEIFEM_parametric < handle
         tolSameNode
         solverType
         r
+        nCell
     end
 
 
@@ -31,7 +32,7 @@ classdef TutorialEIFEM_parametric < handle
 
     methods (Access = public)
 
-        function obj = TutorialEIFEM_parametric()
+        function obj = LaticeMeshGen()
             close all
             obj.init()
 
@@ -42,6 +43,36 @@ classdef TutorialEIFEM_parametric < handle
             bS = mSbd{1,1}.createBoundaryMesh();
             [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomainJoiner(mSbd);
             obj.meshDomain = mD;
+
+%             mfine = QuadMesh(-1,1,5,5);
+%             mFunfine = LagrangianFunction.create(mfine, mfine.ndim,'P1');
+%             mFunfine.setFValues(mfine.coord);
+%             mFunfine.evaluate(mSbd{1}.coord);
+%             coord =  mFunfine.evaluate(mSbd{1}.coord');
+%              for i = 1:size(coord,3)
+%                 s.coord = coord(:,:,i)';
+%                 s.connec = mSbd{1}.connec;
+%                 m = Mesh.create(s);
+%                 m.plot
+%                 hold on
+%             end
+
+            mcoarse = obj.createCoarseMesh(mSbd{1});
+            
+            mFun = LagrangianFunction.create(mcoarse, mcoarse.ndim,'P2');
+            fval = mFun.getDofCoord;
+            fval = fval(1:2:end,:);
+            fval(mcoarse.nnodes+1:end,:) = fval(mcoarse.nnodes+1:end,:) + 0.4*sin(fval(mcoarse.nnodes+1:end,:));
+            mFun.setFValues(fval);
+            mFun.evaluate(mSbd{1}.coord);
+            coord =  mFun.evaluate(mSbd{1}.coord');
+            for i = 1:size(coord,3)
+                s.coord = coord(:,:,i)';
+                s.connec = mSbd{1}.connec;
+                m = Mesh.create(s);
+                m.plot
+                hold on
+            end
             %             mD.plot()
             [bC,dir] = obj.createBoundaryConditions();
             obj.boundaryConditions = bC;
@@ -71,8 +102,8 @@ classdef TutorialEIFEM_parametric < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [15 5]; %nx ny
-
+            obj.nSubdomains  = [1 1]; %nx ny
+             obj.nCell  = [5 5]; %nx ny
             %             filePath = ['./EPFL/data_' num2str(obj.r(i), '%.3f') '.mat'];
             obj.tolSameNode = 1e-10;
             obj.solverType = 'REDUCED';
@@ -80,8 +111,8 @@ classdef TutorialEIFEM_parametric < handle
             %              obj.r  = 0.1;
             %             obj.r  = [0.1 , 0.2; 0.3, 0.4];
             rng(0);
-            maxr = 0.1;
-            minr = 0.1;
+            maxr = 0.4;
+            minr = 0.4;
             obj.r= (maxr - minr) * rand(obj.nSubdomains(2),obj.nSubdomains(1)) + minr;
             obj.xmin = -1;
             obj.xmax = 1;
@@ -92,7 +123,7 @@ classdef TutorialEIFEM_parametric < handle
             obj.Nr=7;
             obj.Ntheta=14;
             obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange40.mat';
-%             obj.fileNameEIFEM = './EPFL/dataEIFEMQ12_2.mat';
+%             obj.fileNameEIFEM = './EPFL/dataEIFEM.mat';
         end
 
         function createReferenceMesh(obj)
@@ -103,6 +134,8 @@ classdef TutorialEIFEM_parametric < handle
         function  mSbd= createSubDomainMeshes(obj)
             nX = obj.nSubdomains(1);
             nY = obj.nSubdomains(2);
+              nX =1;
+            nY = 1;
             Lx = obj.xmax-obj.xmin;
             Ly = obj.ymax-obj.ymin;
             for jDom = 1:nY
@@ -262,16 +295,13 @@ classdef TutorialEIFEM_parametric < handle
 
 
         function mCoarse = createCoarseMesh(obj,mR)
-            s.nsubdomains   = obj.nSubdomains; %nx ny
+            s.nsubdomains   = obj.nCell; %nx ny
             s.meshReference = obj.createReferenceCoarseMesh(mR);
 %                         s.meshReference = obj.createReferenceCoarseMesh2(mR,2);
 %             s.meshReference = obj.loadReferenceCoarseMesh(mR);
             s.tolSameNode   = obj.tolSameNode;
             mRVECoarse      = MeshCreatorFromRVE.create(s);
-%             tic
             [mCoarse,~,~] = mRVECoarse.create();
-%             tic
-%             mCoarse2 = QuadMesh((obj.xmax-obj.xmin)*obj.nSubdomains(1),(obj.ymax-obj.ymin)*obj.nSubdomains(2),obj.nSubdomains(1),obj.nSubdomains(2));toc
         end
 
                 function cMesh = createReferenceCoarseMesh(obj,mR)
@@ -283,13 +313,68 @@ classdef TutorialEIFEM_parametric < handle
                     coord(2,1) = xmax;  coord(2,2) = ymin;
                     coord(3,1) = xmax;  coord(3,2) = ymax;
                     coord(4,1) = xmin;  coord(4,2) = ymax;
-%                     connec = [2 3 4 1];
-                    connec = [1 2 3 4];
+                    connec = [2 3 4 1];
+%                     connec = [1 2 3 4];
                     s.coord = coord;
                     s.connec = connec;
                     cMesh = Mesh.create(s);
                 end
 
+%         function cMesh = createReferenceCoarseMesh(obj, mR, order)
+%             if nargin < 3
+%                 order = 1; % default to linear
+%             end
+% 
+%             % --- Bounding box from input mesh ---
+%             xmax = max(mR.coord(:,1));
+%             xmin = min(mR.coord(:,1));
+%             ymax = max(mR.coord(:,2));
+%             ymin = min(mR.coord(:,2));
+% 
+%             % --- Number of nodes per edge ---
+%             n = order + 1;
+%             t = linspace(0, 1, n); % interpolation parameter
+% 
+%             coord = [];
+% 
+%             % --- Bottom edge: (xmin → xmax, y = ymin) ---
+%             for i = 1:n
+%                 x = xmin + t(i)*(xmax - xmin);
+%                 y = ymin;
+%                 coord(end+1,:) = [x, y];
+%             end
+% 
+%             % --- Right edge: (x = xmax, ymin → ymax), skip first corner ---
+%             for i = 2:n
+%                 x = xmax;
+%                 y = ymin + t(i)*(ymax - ymin);
+%                 coord(end+1,:) = [x, y];
+%             end
+% 
+%             % --- Top edge: (xmax → xmin, y = ymax), skip first corner ---
+%             for i = n-1:-1:1
+%                 x = xmin + t(i)*(xmax - xmin);
+%                 y = ymax;
+%                 coord(end+1,:) = [x, y];
+%             end
+% 
+%             % --- Left edge: (x = xmin, ymax → ymin), skip first and last corners ---
+%             for i = n-1:-1:2
+%                 x = xmin;
+%                 y = ymin + t(i)*(ymax - ymin);
+%                 coord(end+1,:) = [x, y];
+%             end
+% 
+%             % --- Connectivity (single closed loop) ---
+%             connec = 1:size(coord,1);
+% 
+%             % --- Create mesh struct ---
+%             s.coord = coord;
+%             s.connec = connec;
+% 
+%             % --- Construct Mesh object (assuming Mesh.create exists) ---
+%             cMesh = Mesh.create(s);
+%         end
 
         function cMesh = createReferenceCoarseMesh2(obj, mR, p)
             % createReferenceCoarseMesh - Creates a reference coarse mesh with only edge nodes
@@ -531,16 +616,11 @@ classdef TutorialEIFEM_parametric < handle
             filename        = EIFEMfilename;
             s.RVE           = TrainedRVE(filename);
 
-%             training 1 subdomain
-                        data = Training(mR,1);
-                        p = OfflineDataProcessor(data);
-                        EIFEoper = p.computeROMbasis();
-                         EIFEoper.Kcoarse = @(r) EIFEoper.Kcoarse;
-                         EIFEoper.Udef   = @(r) EIFEoper.Udef;
-                         EIFEoper.Urb   = @(r) EIFEoper.Urb;
-                        s.RVE           = TrainedRVE(EIFEoper);
+            %             data = Training(mR);
+            %             p = OfflineDataProcessor(data);
+            %             EIFEoper = p.computeROMbasis();
+            %             s.RVE           = TrainedRVE(EIFEoper);
 
-            % training every subdomain
             %             EIFEoper = obj.trainSubdomain(mSbd);
             %             s.RVE           = TrainedRVE(EIFEoper);
 

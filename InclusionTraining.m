@@ -79,7 +79,7 @@ classdef InclusionTraining < handle
             obj.cy = 0;
             obj.Nr=7;
             obj.Ntheta=14;
-            obj.CoarseOrder = 3;
+            obj.CoarseOrder = 2;
         end
 
         function printdisplacements(obj,Usbd,mesh,ind)
