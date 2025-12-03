@@ -39,19 +39,13 @@ classdef TrainingDataGenerator < handle
             obj.referenceRadius = p.Results.referenceRadius;
             
             % Crear mesh de referencia una vez para garantizar dimensiones consistentes
-            fprintf('Creando mesh de referencia con radio %.4f...\n', obj.referenceRadius);
             obj.referenceMesh = obj.createMesh(obj.referenceRadius);
-            fprintf('Mesh de referencia creado: %d nodos\n', obj.referenceMesh.nnodes);
         end
         
         function generateData(obj, computeSVD)
             % Genera todos los datos de entrenamiento
            
-            if nargin < 2
-                computeSVD = false;
-            end
-            
-            fprintf('Generando datos para %d radios...\n', length(obj.radii));
+            fprintf('Generating training data for %d radius...\n', length(obj.radii));
                 
                 % Pre-allocar resultados
                 nRadii = length(obj.radii);
@@ -134,18 +128,8 @@ classdef TrainingDataGenerator < handle
         end
         
         function k = getNumberOfModes(obj)
-            
             k = obj.k;
-        end
-        
-        function [U, S, V, k] = getSVDResults(obj)
-            % Retorna los resultados SVD
-            U = obj.U;
-            S = obj.S;
-            V = obj.V;
-            k = obj.k;
-        end
-        
+        end        
          
     end
     
@@ -214,24 +198,21 @@ classdef TrainingDataGenerator < handle
             %
             % NOTA: Usa el mesh de referencia fijo para garantizar dimensiones consistentes
             % El material se calcula según el radio, pero el mesh permanece constante
-            
-            % Usar mesh de referencia fijo en lugar de crear uno nuevo por radio
-            % Esto garantiza que todos los resultados tengan la misma dimensión
                         
             meshRef = obj.referenceMesh;
             trainingData = Training(meshRef, 'radius', r);  % Usa mesh de referencia fijo con material variable (r)
             u = trainingData.uSbd;
             
-            % Verificar dimensiones consistentes
-            if idx > 1
-                firstResult = obj.allResults{1};
-                expectedSize = size(firstResult.u);
-                actualSize = size(u);
-                if ~isequal(expectedSize, actualSize)
-                    warning('Dimensiones inconsistentes detectadas para radio %.4f: esperado [%d × %d], obtenido [%d × %d]', ...
-                        r, expectedSize(1), expectedSize(2), actualSize(1), actualSize(2));
-                end
-            end
+%             % Verificar dimensiones consistentes
+%             if idx > 1
+%                 firstResult = obj.allResults{1};
+%                 expectedSize = size(firstResult.u);
+%                 actualSize = size(u);
+%                 if ~isequal(expectedSize, actualSize)
+%                     warning('Dimensiones inconsistentes detectadas para radio %.4f: esperado [%d × %d], obtenido [%d × %d]', ...
+%                         r, expectedSize(1), expectedSize(2), actualSize(1), actualSize(2));
+%                 end
+%             end
             
             % Obtain Kcoarse and Mcoasrse like for equilibrium problem
             processor = OfflineDataProcessor(trainingData);
@@ -271,7 +252,7 @@ classdef TrainingDataGenerator < handle
                     t_reshaped(:, 2*mode-1:2*mode) = u_reshaped;  % [Tx_mode, Ty_mode]
                 end
                 
-                % Combinar: [r, x, y, Tx1, Ty1, ..., Tx8, Ty8]
+                % COmbine to [r, x, y, Tx1, Ty1, ..., Tx8, Ty8]
                 t_aux = [r * ones(nnodes, 1), mesh.coord, t_reshaped];
                 TData = [TData; t_aux];
                 T_svd(:,j) = u(:);
@@ -283,7 +264,7 @@ classdef TrainingDataGenerator < handle
         
         function processKMData(obj)
             % Procesa y formatea datos de K para CSV
-            % Formato: [r, K11, K12, K13, ..., K88] (36 componentes únicas)
+            % format: [r, K11, K12, K13, ..., K88]
             
             nRadii = length(obj.radii);
             Kdata = zeros(nRadii, 36);  % 36 componentes únicas de K 8×8
@@ -315,13 +296,10 @@ classdef TrainingDataGenerator < handle
         function computeSVD(obj)
             % Construye T_SVD y aplica descomposición SVD
             % Reutiliza los datos T ya generados en allResults
-            
-            %load('TTrainingData.csv');
-            %T_svd = obj.TData(:,4:end);
-           
-           % Aplicar SVD
+                       
+           %
             fprintf('  Aplicando SVD...\n');
-            [U_full, S_full, V_full] = svd(obj.T_SVD, 'econ');
+            [U_full, S_full, V_full] = svd(obj.T_SVD, 'econ'); %apply SVD
             
             tol = 1e-6;
             obj.k = sum(diag(S_full) > tol);  % Count significant singular values
@@ -338,64 +316,15 @@ classdef TrainingDataGenerator < handle
         function processSVDData(obj)
             % Procesa datos SVD para entrenamiento de redes neuronales
             % Genera VTrainingData: [r, V1, V2, ..., Vk]
-            % Cada fila corresponde a un radio, cada columna a un modo paramétrico
-            
-            
-            % V ya tiene el formato correcto: [nRadii × k]
-            % Agregar columna de radios
+            % Each row is for a radius, each column for a mode
+
+            % add radius column for training inoput
             obj.VTrainingData = [obj.radii(:), obj.V];
             
             fprintf('  Datos de entrenamiento V generados: [%d × %d]\n', ...
                 size(obj.VTrainingData, 1), size(obj.VTrainingData, 2));
         end
-        
-        function T_reconstructed = reconstructT(obj, r_index)
-            % Reconstruye T para un radio dado usando SVD truncado
-            % r_index: Índice del radio en obj.radii (o puede ser el radio mismo)
-            
-            if isempty(obj.U) || isempty(obj.S) || isempty(obj.V)
-                error('SVD no ha sido calculado. Llame a computeSVD() primero.');
-            end
-            
-            % Si r_index es un radio, encontrar su índice
-            if isscalar(r_index) && r_index > 0 && r_index <= 1
-                [~, idx] = min(abs(obj.radii - r_index));
-                r_index = idx;
-            end
-            
-            if r_index < 1 || r_index > size(obj.V, 1)
-                error('Índice de radio fuera de rango.');
-            end
-            
-            % Reconstrucción: T = U × S × V'
-            V_row = obj.V(r_index, :)';  % [k × 1]
-            T_vec = obj.U * obj.S * V_row;  % [nDofs×8 × 1]
-            
-            % Reshape a [nDofs × 8]
-            firstResult = obj.allResults{1};
-            u_first = firstResult.u;
-            nDofs = size(u_first, 1);
-            T_reconstructed = reshape(T_vec, [nDofs, 8]);
-        end
-        
-        function error = computeReconstructionError(obj, r_index)
-            % Calcula el error de reconstrucción SVD para un radio
-            % error: Error relativo ||T_original - T_reconstructed|| / ||T_original||
-            
-            if r_index < 1 || r_index > length(obj.allResults)
-                error('Índice de radio fuera de rango.');
-            end
-            
-            % T original
-            T_original = obj.allResults{r_index}.u;  % [nDofs × 8]
-            
-            % T reconstruido
-            T_reconstructed = obj.reconstructT(r_index);
-            
-            % Error relativo
-            error = norm(T_original - T_reconstructed, 'fro') / norm(T_original, 'fro');
-        end
-        
+                
     end
     
 end
