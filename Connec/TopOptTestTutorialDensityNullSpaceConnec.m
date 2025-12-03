@@ -47,7 +47,7 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
 
         function createMesh(obj)
             %UnitMesh better
-            obj.mesh = QuadMesh(2, 1, 50, 25);
+            obj.mesh = QuadMesh(2, 1, 100, 50);
         end
 
         function createDesignVariable(obj)
@@ -209,9 +209,9 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             e = (h)^2;
             k0  = 1*(1-e);
             k1  = e; 
-            m0  = 1;
+            m0  = e;
             m1  = 1;%*(1-e);
-            p  = 3;
+            p  = 8;
            % s.diffCoef = @(x) k0.*(1-x.^p)+k1*x.^p;
             s.diffCoef = @(x) k0.*(1-x).^p+k1;
            % s.massCoef = @(x) m0.*(1-x.^p)+m1*x.^p;
@@ -225,7 +225,7 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             s.filter = obj.filterPDE;
             s.test   = LagrangianFunction.create(obj.mesh,1,'P1');
             s.uMesh = obj.createBaseDomain();
-            s.target0 = 0.4;
+            s.target0 = 0.5;
             v = EnclosedVoidFunctional(s);
             %v.computeFunctionAndGradient(obj.designVariable)
             obj.enclosedVoid = v;
@@ -234,7 +234,7 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
         function createPerimeter(obj)
 
             
-            eOverhmin     = 10;
+            eOverhmin     = 1;
             epsilon       = eOverhmin*obj.mesh.computeMeanCellSize();
             s.mesh        = obj.mesh;
             s.filter      = obj.filterPDE;
@@ -281,50 +281,50 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
         end
 
         function createOptimizer(obj)
-            s.monitoring     = true;
-            s.cost           = obj.cost;
-            s.constraint     = obj.constraint;
-            s.designVariable = obj.designVariable;
-            s.maxIter        = 300;
-            s.tolerance      = 1e-8;
-            s.constraintCase = {'EQUALITY','INEQUALITY'};
-            %s.constraintCase = {'EQUALITY'};
-            s.primal         = 'PROJECTED GRADIENT';
-            s.etaNorm        = 0.1;
-            s.gJFlowRatio    = 2;
-            s.primalUpdater  = obj.primalUpdater;
-            s.gif            = false;
-            s.gifName        = [];
-            s.printing       = false;
-            s.printName      = [];       
-            opt = OptimizerNullSpace(s);
-            opt.solveProblem();
-            obj.optimizer = opt;
-
-
-            %  s.nConstraints   = 1;
-            %  l                = DualVariable(s);            
-            % 
-            % 
             % s.monitoring     = true;
             % s.cost           = obj.cost;
             % s.constraint     = obj.constraint;
             % s.designVariable = obj.designVariable;
-            % s.dualVariable   = l;
-            % s.maxIter        = 5000;
+            % s.maxIter        = 300;
             % s.tolerance      = 1e-8;
             % s.constraintCase = {'EQUALITY','INEQUALITY'};
-            % s.ub             = 1;
-            % s.lb             = 0;
-            % s.volumeTarget   = 0.4;
+            % s.constraintCase = {'EQUALITY'};
             % s.primal         = 'PROJECTED GRADIENT';
+            % s.etaNorm        = 0.1;
+            % s.gJFlowRatio    = 2;
+            % s.primalUpdater  = obj.primalUpdater;
             % s.gif            = false;
             % s.gifName        = [];
             % s.printing       = false;
-            % s.printName      = [];              
-            % opt              = OptimizerMMA(s);
+            % s.printName      = [];       
+            % opt = OptimizerNullSpace(s);
             % opt.solveProblem();
             % obj.optimizer = opt;
+
+
+             s.nConstraints   = 1;
+             l                = DualVariable(s);            
+
+
+            s.monitoring     = true;
+            s.cost           = obj.cost;
+            s.constraint     = obj.constraint;
+            s.designVariable = obj.designVariable;
+            s.dualVariable   = l;
+            s.maxIter        = 300;
+            s.tolerance      = 1e-8;
+            s.constraintCase = {'EQUALITY','INEQUALITY'};
+            s.ub             = 1;
+            s.lb             = 0;
+            s.volumeTarget   = 0.4;
+            s.primal         = 'PROJECTED GRADIENT';
+            s.gif            = true;
+            s.gifName        = 'CantileverEnclosedVoid';
+            s.printing       = true;
+            s.printName      = 'CantileverEnclosedVoid';              
+            opt              = OptimizerMMA(s);
+            opt.solveProblem();
+            obj.optimizer = opt;
 
             % 
             % s.monitoring     = true;

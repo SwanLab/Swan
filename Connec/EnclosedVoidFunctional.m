@@ -24,7 +24,7 @@ classdef EnclosedVoidFunctional < handle
     methods (Access = public)
         function obj = EnclosedVoidFunctional(cParams)
             obj.init(cParams);
-            obj.target = 0.05;
+            obj.target = 0.01;
             obj.test = LagrangianFunction.create(obj.mesh,1,'P1');
             obj.createBoundaryConditionsAdjoint();
             obj.createSolverAdjoint();
@@ -48,11 +48,12 @@ classdef EnclosedVoidFunctional < handle
           %  plot(rhoV) 
           %  plot(lam);
             Dom   = Integrator.compute(ConstantFunction.create(1,obj.mesh),obj.mesh,2);
-            J     = Integrator.compute(rhoV,obj.mesh,2)/Dom - obj.target0;
+            J     = Integrator.compute(rhoV,obj.mesh,2)/Dom;
 
             
             %obj.updateEpsilonForNextIteration(J);
-            dJ{1} = -phi + 1.*obj.dk(xR).*DP(Grad(lam),Grad(phi)) + DP(obj.dm(xR).*(phi-xR)-obj.m(xR),lam);
+            %dJ{1} = -phi +  DP(obj.dm(xR).*(phi-xR)-obj.m(xR),lam) + 1.*obj.dk(xR).*DP(Grad(lam),Grad(phi));
+            dJ{1} = -phi;% +  DP(obj.dm(xR).*(phi-xR)-obj.m(xR),lam) + 1.*obj.dk(xR).*DP(Grad(lam),Grad(phi));
             %dJ{1} =  -phi.*(1-xR);
             %dJ{1} =  -phi;%.*(1-xR);
             dJ{1} = dJ{1}./Dom*1;
@@ -81,7 +82,7 @@ classdef EnclosedVoidFunctional < handle
         function updateTarget0ForNextIteration(obj,J) 
             %if abs(J)<=1e-2
             if J-obj.valueOld<0 || abs(J) <= 1e-2              
-               obj.target0 = max(obj.target0*(1-0.1),obj.target);
+               obj.target0 = max(obj.target0*(1-0.05),obj.target);
             end
             obj.valueOld = J;
         end        
