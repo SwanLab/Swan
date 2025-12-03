@@ -11,6 +11,7 @@ classdef FilterPDE < handle
         LHS
         RHS
         bc
+        rhsOld
     end
 
     methods (Access = public)
@@ -76,9 +77,12 @@ classdef FilterPDE < handle
         function solveFilter(obj)
             s.type = 'DIRECT';
             solver = Solver.create(s);
-            x      = solver.solve(obj.LHS,obj.RHS);
-            xR     = obj.bc.reducedToFullVector(x);
-            obj.trial.setFValues(reshape(xR',obj.trial.ndimf,[])');
+            if isempty(obj.rhsOld) || norm(obj.rhsOld-obj.RHS)/norm(obj.RHS)>=1e-6
+                x          = solver.solve(obj.LHS,obj.RHS);
+                xR         = obj.bc.reducedToFullVector(x);
+                obj.rhsOld = obj.RHS;
+                obj.trial.setFValues(reshape(xR',obj.trial.ndimf,[])');
+            end
         end
 
         function itHas = hasEpsilonChanged(obj,eps)
