@@ -19,12 +19,13 @@ classdef TensorFactory < handle
                     C_0 = [ 0.4283   0.0012  0;
                                0.0012  0.0035 0;
                                0      0      0.0048];
+                    theta=45;
 
-                    Rot = [cos(45) -sin(45) 0;
-                            sin(45) cos(45) 0;
-                            0         0     1];
+                    Rot = [0.5*(1+cosd(2*theta))  0.5*(1-cosd(2*theta))  sind(2*theta);
+                           0.5*(1-cosd(2*theta))  0.5*(1+cosd(2*theta))  -sind(2*theta);
+                           -0.5*sind(2*theta)       0.5*sind(2*theta)    cosd(2*theta)];
 
-                    tensor = Rot'*C_0*Rot;
+                    tensor = Rot*C_0*Rot.';
                     
                     % tensor = [ 0.1147   0.1127  0.2234;
                     %            0.1127  0.1147 0.2234;
