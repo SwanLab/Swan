@@ -87,13 +87,13 @@ classdef TutorialHomogenizationRe < handle
         function init(obj)
             obj.E          = 1;
             obj.nu         = 0.3;
-            obj.meshType   = 'Hexagon';
+            obj.meshType   = 'Square';
             obj.meshN      = 100;
 
-            obj.holeType   = 'ReinforcedHoneycomb';
+            obj.holeType   = 'Square';
             obj.pnorm      = 'Inf';
             % obj.damageType = 'Area';
-            obj.nSteps     = 100;
+            obj.nSteps     = 20;
 
             obj.monitoring = true;
         end
@@ -199,7 +199,7 @@ classdef TutorialHomogenizationRe < handle
                     gPar.normal = [0 1; sqrt(3)/2 1/2; sqrt(3)/2 -1/2];
                 case 'ReinforcedHoneycomb'
                     gPar.theta  = 1-l;                          
-                    gPar.eps    = 0.15;                        
+                    gPar.eps    = 1;                        
                     gPar.normal = [0 1; sqrt(3)/2 1/2; sqrt(3)/2 -1/2];
             
                     gPar.radius = l;  
@@ -207,11 +207,11 @@ classdef TutorialHomogenizationRe < handle
             g                  = GeometricalFunction(gPar);
             phiFun             = g.computeLevelSetFunction(mesh);
             lsCircle           = phiFun.fValues;
-            if l(1) <= 1e-9 && gPar.theta == 1
-                ls = ones(size(lsCircle));
-            else
-                ls = -lsCircle; 
-            end            
+            % if l(1) <= 1e-9 && gPar.theta == 1
+            %     ls = ones(size(lsCircle));
+            % else
+            ls = -lsCircle; 
+            % end            
         end
 
         function mat = createDensityMaterial(obj,lsf)
@@ -418,45 +418,45 @@ classdef TutorialHomogenizationRe < handle
             deviation = obj.computeIsotropyDeviation();
             % symDeviation = obj.checkSymmetry();
             
-            tiledlayout(2,3) 
+            tiledlayout(1,2) 
             
            
+            % nexttile(1)
+            % hold on
+            % plot(obj.volFrac,squeeze(obj.Chomog(1,1,1,1,:)),'LineStyle','none','Marker','o')
+            % fplot(obj.f(1,1,1,1),[0 1])
+            % title('C_{1111} vs. Vol. Frac')
+            % xlabel('Volume Fraction')
+            % ylabel('C_{1111}')
+            % 
+            % 
+            % nexttile(2)
+            % hold on
+            % plot(obj.volFrac,squeeze(obj.Chomog(2,2,2,2,:)),'LineStyle','none','Marker','o')
+            % fplot(obj.f(2,2,2,2),[0 1])
+            % title('C_{2222} vs. Vol. Frac')
+            % xlabel('Volume Fraction')
+            % ylabel('C_{2222}')
+            % 
+            % 
+            % nexttile(3)
+            % hold on
+            % plot(obj.volFrac,squeeze(obj.Chomog(1,1,2,2,:)),'LineStyle','none','Marker','o')
+            % fplot(obj.f(1,1,2,2),[0 1]) 
+            % title('C_{1122} vs. Vol. Frac')
+            % xlabel('Volume Fraction')
+            % ylabel('C_{1122}')
+            % 
+            % nexttile(4)
+            % hold on
+            % plot(obj.volFrac,squeeze(obj.Chomog(1,2,1,2,:)),'LineStyle','none','Marker','o')
+            % fplot(obj.f(1,2,1,2),[0 1]) 
+            % title('C_{1212} vs. Vol. Frac')
+            % xlabel('Volume Fraction')
+            % ylabel('C_{1212}')
+            
+            
             nexttile(1)
-            hold on
-            plot(obj.volFrac,squeeze(obj.Chomog(1,1,1,1,:)),'LineStyle','none','Marker','o')
-            fplot(obj.f(1,1,1,1),[0 1])
-            title('C_{1111} vs. Vol. Frac')
-            xlabel('Volume Fraction')
-            ylabel('C_{1111}')
-
-
-            nexttile(2)
-            hold on
-            plot(obj.volFrac,squeeze(obj.Chomog(2,2,2,2,:)),'LineStyle','none','Marker','o')
-            fplot(obj.f(2,2,2,2),[0 1])
-            title('C_{2222} vs. Vol. Frac')
-            xlabel('Volume Fraction')
-            ylabel('C_{2222}')
-
-
-            nexttile(3)
-            hold on
-            plot(obj.volFrac,squeeze(obj.Chomog(1,1,2,2,:)),'LineStyle','none','Marker','o')
-            fplot(obj.f(1,1,2,2),[0 1]) 
-            title('C_{1122} vs. Vol. Frac')
-            xlabel('Volume Fraction')
-            ylabel('C_{1122}')
-
-            nexttile(4)
-            hold on
-            plot(obj.volFrac,squeeze(obj.Chomog(1,2,1,2,:)),'LineStyle','none','Marker','o')
-            fplot(obj.f(1,2,1,2),[0 1]) 
-            title('C_{1212} vs. Vol. Frac')
-            xlabel('Volume Fraction')
-            ylabel('C_{1212}')
-            
-            
-            nexttile(5)
             hold on            
             plot(obj.volFrac, deviation(1,:), 'LineStyle','-','Marker','s', 'Color', [0.85 0.33 0.1])
             title('Iso Deviation (|C_{11}-C_{22}|)')
@@ -465,7 +465,7 @@ classdef TutorialHomogenizationRe < handle
             yline(0, 'k--'); 
             
             
-            nexttile(6)
+            nexttile(2)
             hold on            
             plot(obj.volFrac, deviation(2,:), 'LineStyle','-','Marker','d', 'Color', [0.47 0.67 0.18])
             title('Shear Modulus Deviation (Isotropy)')

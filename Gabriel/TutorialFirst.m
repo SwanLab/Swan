@@ -241,7 +241,7 @@ classdef TutorialFirst < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 800;
+            s.maxIter        = 600;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
@@ -275,7 +275,7 @@ classdef TutorialFirst < handle
             s.type     = 'HomogenizedMicrostructure';
             s.mesh     = obj.mesh;
             s.young    = 1.0;
-            s.fileName = 'HomogenizationResultsReinforcedHexagon';
+            s.fileName = 'HomogenizationResultsReinforcedHexagon15';
             m = MaterialFactory.create(s);
 
            % m = Material.create(s);  
