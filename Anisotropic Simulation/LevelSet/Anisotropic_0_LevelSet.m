@@ -222,7 +222,7 @@ classdef Anisotropic_0_LevelSet < handle
 
 
             sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = 1;
+            sDir{1}.direction = 2;
             sDir{1}.value     = 0;
             
             % Comentar sDir 2 quan es faci cantilever beam
