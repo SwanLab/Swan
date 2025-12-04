@@ -32,7 +32,7 @@ classdef Anisotropic_90_Density < handle
             obj.createOptimizer();
 
             % Save monitoring and desginVariable fValues
-            %saveas(gcf,'Monitoring_90_Density.fig');
+            % saveas(gcf,'Monitoring_90_Density.fig');
             obj.designVariable.fun.print('fValues_90_Density_MBB');
         end
 
