@@ -26,7 +26,7 @@ classdef InterfaceCoupling < handle
         
         function compute(obj)
             obj.coordNodeBoundary();
-            obj.computeCouplingConnec();
+            obj.computeCouplingConnec2();
          %   obj.reshapeConecPerInterface();
         end
 
@@ -82,8 +82,8 @@ classdef InterfaceCoupling < handle
             ninterface    = obj.ninterfaces;
             coordBdGl     = zeros(1,ndim);
             GlNodeBd      = zeros(1,1);
-                for jDom = 1:nY
-                    for iDom = 1:nX
+                for jDom = 1:nX
+                    for iDom = 1:nY
                         for iline=1:ninterface
                             bdcood    = interfaceMesh{jDom,iDom}{iline,1}.mesh.coord;
                             coordBdGl = [coordBdGl;bdcood];
@@ -134,6 +134,46 @@ classdef InterfaceCoupling < handle
             obj.interfaceConnec= unique(sameNodeOrdered,'rows','stable');
 %              obj.interfaceConnec= sameNodeOrdered;
          end
+function computeCouplingConnec2(obj)
+    ndim       = obj.meshReference.ndim;
+    nBdNode    = numel(obj.GlNodeBd);
+    globalNode = obj.GlNodeBd;
+    coordBdGl  = obj.coordBdGl;
+    tol        = obj.tolSameNode;
+
+    % --- Normalize dimension (pad to 3D for uniformity)
+    if ndim == 2
+        coord = [coordBdGl zeros(nBdNode,1)];
+    else
+        coord = coordBdGl;
+    end
+
+    % --- Quantize coordinates by tolerance
+    %     (nodes within tol map to same bin)
+    quantized = round(coord / tol) * tol;
+
+    % --- Find unique "bins" of coincident nodes
+    [~, ~, ic] = unique(quantized, 'rows', 'stable');
+
+    % --- Group nodes by unique coordinate bin
+    % Preallocate max group size (usually small)
+    nGroups = max(ic);
+    maxGroupSize = accumarray(ic, 1, [nGroups,1], @max);
+    maxSize = max(maxGroupSize);
+
+    % Initialize interface connection table
+    sameNodeOrdered = zeros(nGroups, maxSize);
+
+    % Fill each group row with sorted node IDs
+    for g = 1:nGroups
+        sameNode = sort(globalNode(ic == g));
+        sameNodeOrdered(g, 1:numel(sameNode)) = sameNode;
+    end
+
+    % --- Keep only rows with duplicates (same node sets)
+    hasDuplicates = sum(sameNodeOrdered > 0, 2) > 1;
+    obj.interfaceConnec = unique(sameNodeOrdered(hasDuplicates,:), 'rows', 'stable');
+end
 
    
 

@@ -1,0 +1,66 @@
+classdef VolumeFunctionalRadius < handle
+
+    properties (Access = private)
+        mesh
+        base
+        test
+    end
+
+    properties (Access = private)
+        baseFun
+        totalVolume
+    end
+
+    methods (Access = public)
+        function obj = VolumeFunctionalRadius(cParams)
+            obj.init(cParams);
+            obj.createBaseFunction();
+            obj.createTotalVolume();
+        end
+
+        function [J,dJ] = computeFunctionAndGradient(obj,x)
+            xD = x.obtainDomainFunction();
+            J  = obj.computeFunction(xD{1});
+            dJ{1} = obj.computeGradient();
+        end
+    end
+
+    methods (Access = private)
+        function init(obj,cParams)
+            obj.mesh = cParams.mesh;
+            obj.base = cParams.uMesh;
+            obj.test = cParams.test;
+        end
+        
+        function createBaseFunction(obj)
+            s.trial     = LagrangianFunction.create(obj.mesh,1,obj.test.order);
+            s.mesh      = obj.mesh;
+            riszFilter  = FilterLump(s);
+            f           = CharacteristicFunction.create(obj.base);
+            obj.baseFun = riszFilter.compute(f,2);
+        end
+
+        function createTotalVolume(obj)
+            dV = obj.baseFun;
+            V  = Integrator.compute(dV,obj.mesh,2);
+            obj.totalVolume = V;
+        end
+
+        function J = computeFunction(obj,x)
+            b      = obj.baseFun;
+            volume = Integrator.compute(x.*b,obj.mesh,2);
+            J      = volume/obj.totalVolume;
+        end
+
+        function dJ = computeGradient(obj)
+            dJ = copy(obj.baseFun);
+            dJ.setFValues(dJ.fValues./obj.totalVolume);
+        end
+    end
+
+    methods (Static, Access = public)
+        function title = getTitleToPlot()
+            title = 'Volume'; % Maybe a property in the future?
+        end
+    end
+end

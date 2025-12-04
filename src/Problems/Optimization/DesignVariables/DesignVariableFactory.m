@@ -18,6 +18,8 @@ classdef DesignVariableFactory < handle
                     designVar = MultiLevelSet(cParams);
                 case 'Damage'
                     designVar = Damage(cParams);
+                case 'Radius'
+                    designVar = Radius(cParams);
             end
         end
 

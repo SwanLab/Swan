@@ -11,6 +11,10 @@ classdef OfflineDataProcessor < handle
         M
        
 
+        LHS
+        E
+        nu
+        Coarseorder
         fValuesTraining
         RigidBodyFun
         DeformationalFun
@@ -41,6 +45,10 @@ classdef OfflineDataProcessor < handle
 
             PhiR       = obj.getRigidBodyModes(uRBfun(1));
 
+%             u = LagrangianFunction.create(obj.mesh,obj.mesh.ndim,'P1');
+%             M = IntegrateLHS(@(u,v) DP(v,u),u,u,obj.mesh,'Domain',2);
+%             defSnap = obj.fValuesTraining - PhiR*inv(PhiR'*M*PhiR)*(PhiR'*M*obj.fValuesTraining);
+
             bMesh = obj.mesh.createBoundaryMesh();
 
             Vfun = obj.createInterfaceModesFun(bMesh);
@@ -68,6 +76,9 @@ classdef OfflineDataProcessor < handle
             EIFEoper.Kcoarse = Kcoarse;
             EIFEoper.Urb = Ur;
             EIFEoper.Udef = Ud;
+            EIFEoper.PhiD = PhiD;
+            EIFEoper.PhiR = PhiR;
+            EIFEoper.Kfine = obj.LHS;
             EIFEoper.T = (Ur+Ud);
 
             %% Modal Analysis
@@ -93,7 +104,10 @@ classdef OfflineDataProcessor < handle
         function init(obj,data)
             obj.mesh            = data.mesh;
             obj.fValuesTraining = data.uSbd;
-            obj.K             = data.LHSsbd;
+            obj.LHS             = data.LHSsbd;
+            obj.E               = data.E;
+            obj.nu              = data.nu;
+            obj.Coarseorder     = data.Coarseorder;
         end
 
         function uFun = createDispFun(obj)
@@ -229,41 +243,44 @@ classdef OfflineDataProcessor < handle
         end
 
         function Vfun = createInterfaceModesFun(obj,bMesh)
-            xmax = max(obj.mesh.coord(:,1));
-            ymax = max(obj.mesh.coord(:,2));
-            xmin = min(obj.mesh.coord(:,1));
-            ymin = min(obj.mesh.coord(:,2));
-            a = (-xmin+xmax)/2;
-            b = (-ymin+ymax)/2;
-            x0 = xmin+a;
-            y0 = ymin+b;
-
-
-            f1x = @(x) [1/(4)*(1-(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b);...
-                0*x(2,:,:)  ];
-            f2x = @(x) [1/(4)*(1+(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b);...
-                0*x(2,:,:)  ];
-            f3x = @(x) [1/(4)*(1+(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b);...
-                0*x(2,:,:)  ];
-            f4x = @(x) [1/(4)*(1-(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b);...
-                0*x(2,:,:)  ];
-
-            f1y = @(x) [0*x(1,:,:);...
-                1/(4)*(1-(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b) ];
-            f2y = @(x) [0*x(1,:,:);...
-                1/(4)*(1+(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b) ];
-            f3y = @(x) [0*x(1,:,:);...
-                1/(4)*(1+(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b) ];
-            f4y = @(x) [0*x(1,:,:);...
-                1/(4)*(1-(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b)];
-
-            f     = { f2x f2y f3x f3y f4x f4y f1x f1y}; %
+%             xmax = max(obj.mesh.coord(:,1));
+%             ymax = max(obj.mesh.coord(:,2));
+%             xmin = min(obj.mesh.coord(:,1));
+%             ymin = min(obj.mesh.coord(:,2));
+%             a = (-xmin+xmax)/2;
+%             b = (-ymin+ymax)/2;
+%             x0 = xmin+a;
+%             y0 = ymin+b;
+% 
+% 
+%             f1x = @(x) [1/(4)*(1-(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b);...
+%                 0*x(2,:,:)  ];
+%             f2x = @(x) [1/(4)*(1+(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b);...
+%                 0*x(2,:,:)  ];
+%             f3x = @(x) [1/(4)*(1+(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b);...
+%                 0*x(2,:,:)  ];
+%             f4x = @(x) [1/(4)*(1-(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b);...
+%                 0*x(2,:,:)  ];
+% 
+%             f1y = @(x) [0*x(1,:,:);...
+%                 1/(4)*(1-(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b) ];
+%             f2y = @(x) [0*x(1,:,:);...
+%                 1/(4)*(1+(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b) ];
+%             f3y = @(x) [0*x(1,:,:);...
+%                 1/(4)*(1+(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b) ];
+%             f4y = @(x) [0*x(1,:,:);...
+%                 1/(4)*(1-(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b)];
+% 
+%             f     = { f2x f2y f3x f3y f4x f4y f1x f1y}; %
+            f = InterfaceFunctions(obj.mesh, obj.Coarseorder);
             nfun = size(f,2);
             nbd = size(bMesh,1);
             for ibd=1:nbd
                 mesh = bMesh{ibd}.mesh;
+%                 aa   = CoarseFunction2(mesh,2);
                 for i=1:nfun
                     uD        = AnalyticalFunction.create(f{i},mesh);
+%                     uD.plot
                     uD        = project(uD,'P1');
                     VCoeff{i} = uD.fValues;
                 end

@@ -64,7 +64,7 @@ classdef DifferentSubdomainsEIFEM < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [15 2]; %nx ny
+            obj.nSubdomains  = [15 5]; %nx ny
             obj.fileNameEIFEM = 'DEF_Q4porL_1.mat';
             obj.tolSameNode = 1e-10;
             obj.solverType = 'REDUCED';
@@ -193,25 +193,53 @@ classdef DifferentSubdomainsEIFEM < handle
         function [bC,Dir] = createBoundaryConditions(obj)
             minx = min(obj.meshDomain.coord(:,1));
             maxx = max(obj.meshDomain.coord(:,1));
+            miny = min(obj.meshDomain.coord(:,2));
+            maxy = max(obj.meshDomain.coord(:,2));
             tolBound = obj.tolSameNode;
             isLeft   = @(coor) (abs(coor(:,1) - minx)   < tolBound);
             isRight  = @(coor) (abs(coor(:,1) - maxx)   < tolBound);
-            Dir{1}.domain    = @(coor) isLeft(coor);%| isRight(coor) ;
+            isBottom = @(coor) (abs(coor(:,2) - miny)   < tolBound);
+            isTop    = @(coor) (abs(coor(:,2) - maxy)   < tolBound);
+%             Dir{1}.domain    = @(coor) isLeft(coor);%| isRight(coor) ;
+%             Dir{1}.direction = [1,2];
+%             Dir{1}.value     = 0;
+%             dirichletFun = DirichletCondition(obj.meshDomain, Dir{1});
+% 
+            mesh = obj.meshDomain;
+%             PL.domain    = @(coor) isRight(coor);
+%             PL.direction = 2;
+%             PL.value     = -0.1;
+%             pointload = TractionLoad(mesh,PL,'DIRAC');
+
+             Dir{1}.domain    = @(coor) isLeft(coor);%| isRight(coor) ;
             Dir{1}.direction = [1,2];
             Dir{1}.value     = 0;
-            dirichletFun = DirichletCondition(obj.meshDomain, Dir{1});
 
-            mesh = obj.meshDomain;
-            PL.domain    = @(coor) isRight(coor);
-            PL.direction = 2;
-            PL.value     = -0.1;
-            pointload = PointLoad(mesh,PL);
-            % need this because force applied in the face not in a point
-            pointload.values        = pointload.values/size(pointload.dofs,1);
-            fvalues                 = zeros(mesh.nnodes*mesh.ndim,1);
-            fvalues(pointload.dofs) = pointload.values;
-            fvalues                 = reshape(fvalues,mesh.ndim,[])';
-            pointload.fun.setFValues(fvalues);
+                        Dir{2}.domain    = @(coor) isRight(coor) ;
+                        Dir{2}.direction = [1,2];
+                        Dir{2}.value     = 0;
+            dirichletFun=[];        
+            for i = 1:numel(Dir)
+                dir = DirichletCondition(obj.meshDomain, Dir{i});
+                dirichletFun = [dirichletFun, dir];
+            end
+
+            PL.domain    = @(coor) isTop(coor);
+            PL.direction = [2];
+            PL.value     = [-0.1];
+            pointload = TractionLoad(obj.meshDomain,PL,'DIRAC');
+
+%             mesh = obj.meshDomain;
+%             PL.domain    = @(coor) isRight(coor);
+%             PL.direction = 2;
+%             PL.value     = -0.1;
+%             pointload = PointLoad(mesh,PL);
+%             % need this because force applied in the face not in a point
+%             pointload.values        = pointload.values/size(pointload.dofs,1);
+%             fvalues                 = zeros(mesh.nnodes*mesh.ndim,1);
+%             fvalues(pointload.dofs) = pointload.values;
+%             fvalues                 = reshape(fvalues,mesh.ndim,[])';
+%             pointload.fun.setFValues(fvalues);
 
             s.pointloadFun = pointload;
             s.dirichletFun = dirichletFun;
@@ -240,51 +268,19 @@ classdef DifferentSubdomainsEIFEM < handle
             % lhs = LHSIntegrator.create(s);
             % LHS = lhs.compute();
 
-            LHS = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),dispFun,dispFun,mesh,2);
+            LHS = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),dispFun,dispFun,mesh,'Domain',2);
             LHSr = obj.bcApplier.fullToReducedMatrixDirichlet(LHS);
         end
 
-        function [M , Mr] = computeMassMatrix(obj, mesh, dispFun)
-            rho = obj.computeDensity(mesh);
-            M = IntegrateLHS(@(u,v) rho .* DP(v,u),dispFun,dispFun,mesh,2); %DP(u,v) 
-            Mr = obj.bcApplier.fullToReducedMatrixDirichlet(M);
-
-        end
-
-        function rho = computeDensity(obj, mesh)
-            rho = 1; % kg/m^3 -
-            rho  = ConstantFunction.create(rho, mesh);
-        end
-
-        function [lambda, Phi, omega] = computeModalAnalysis(obj, K, M)
-            [Phi, D] = eigs(K, M, 15, "smallestabs");
-            lambda = diag(D);
-            [lambda, idx] = sort(lambda, 'ascend'); 
-            Phi = Phi(:, idx); %sort
-            omega = sqrt(max(lambda,0));
-        end
-
-        function RHS = computeForces(obj,stiffness,u)
-            % s.type      = 'Elastic';
-            % s.scale     = 'MACRO';
-            % s.dim.ndofs = u.nDofs;
-            % s.BC        = obj.boundaryConditions;
-            % s.mesh      = obj.meshDomain;
-            % RHSint      = RHSIntegrator.create(s);
-            % rhs         = RHSint.compute();
-            % % Perhaps move it inside RHSint?
-            % R           = RHSint.computeReactions(stiffness);
-            % RHS = rhs+R;
-            
-
-
-            ndofs = u.nDofs;
-            bc            = obj.boundaryConditions;
-            neumann       = bc.pointload_dofs;
-            neumannValues = bc.pointload_vals;
-            rhs = zeros(ndofs,1);
-            if ~isempty(neumann)
-                rhs(neumann) = neumannValues;
+       function RHS =  computeForces(obj,stiffness,u)
+            bc  = obj.boundaryConditions;
+            t   = bc.tractionFun;
+            rhs = zeros(u.nDofs,1);
+            if ~isempty(t)
+                for i = 1:numel(t)
+                    rhsi = t(i).computeRHS(u);
+                    rhs  = rhs + rhsi;
+                end
             end
             if strcmp(obj.solverType,'REDUCED')
                 bc      = obj.boundaryConditions;
@@ -293,12 +289,12 @@ classdef DifferentSubdomainsEIFEM < handle
                 if ~isempty(dirich)
                     R = -stiffness(:,dirich)*dirichV;
                 else
-                    R = zeros(sum(ndofs(:)),1);
+                    R = zeros(sum(obj.uFun.nDofs(:)),1);
                 end
                 rhs = rhs+R;
             end
-            RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
-        end
+             RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
+       end
 
         function [Meifem,Kcoarse, Mcoarse,eifem, ss] = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh,radiusMesh)
             mR = obj.referenceMesh;

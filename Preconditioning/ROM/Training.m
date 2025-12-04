@@ -4,6 +4,9 @@ classdef Training < handle
         uSbd
         LHSsbd
         mesh
+        E
+        nu
+        Coarseorder
     end
     properties (Access = private)
         meshDomain
@@ -48,18 +51,21 @@ classdef Training < handle
             if sum(obj.nSubdomains > 1)>= 1
                 obj.repeatMesh();
             else
-                obj.meshDomain = obj.mesh; 
+                obj.meshDomain = obj.mesh;
             end
             [obj.boundaryMeshJoined, obj.localGlobalConnecBd] = obj.meshDomain.createSingleBoundaryMesh();
-            obj.DirFun = obj.AnalyticalDirCond();
+            cF = CoarseFunction(obj.boundaryMeshJoined,obj.Coarseorder);
+            obj.DirFun = cF.f;
+%             obj.DirFun = obj.AnalyticalDirCondGeneralized(1);
 
             [LHS,RHS,uFun,lambdaFun] = obj.createElasticProblem();
             sol  = LHS\RHS;
             uAll = sol(1:uFun.nDofs,:);
+                        EIFEMtesting.plotSolution(full(uAll(:,1)),obj.meshDomain,1,1,1,[])
             K = LHS(1:uFun.nDofs,1:uFun.nDofs);
             [obj.uSbd,obj.LHSsbd]    = obj.extractDomainData(uAll,K);
-            
-%             save('./Preconditioning/ROM/Training/PorousCell/OfflineData.mat','uSbd','meshRef','LHSsbd')
+
+            %             save('./Preconditioning/ROM/Training/PorousCell/OfflineData.mat','uSbd','meshRef','LHSsbd')
 
         end
 
@@ -67,17 +73,20 @@ classdef Training < handle
 
     methods (Access = private)
 
-        function init(obj,mesh)
+        function init(obj,mesh,coarseOrder)
             obj.nSubdomains  = [5 5]; %nx ny
             obj.tolSameNode = 1e-10;
             obj.domainIndices = [3 3];
             obj.mesh = mesh;
+            obj.E    = 1;
+            obj.nu   = 1/3;
+            obj.Coarseorder = coarseOrder;
         end
 
         function repeatMesh(obj)
-             bS  = obj.mesh.createBoundaryMesh();
+            bS  = obj.mesh.createBoundaryMesh();
             [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain(obj.mesh);
-            obj.meshDomain = mD;         
+            obj.meshDomain = mD;
             obj.DDdofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,obj.mesh,iCR);
         end
 
@@ -126,30 +135,30 @@ classdef Training < handle
             RHS = obj.computeRHS(u,dLambda);
         end
 
-        function LHS  = computeLHS(obj,u,dLambda)          
+        function LHS  = computeLHS(obj,u,dLambda)
             material = obj.createMaterial(obj.meshDomain);
-            K = obj.computeStiffnessMatrix(obj.meshDomain,u,material);          
+            K = obj.computeStiffnessMatrix(obj.meshDomain,u,material);
             C = obj.computeConditionMatrix(obj.meshDomain,u,dLambda);
-            Z = zeros(size(C,2));
-            LHS = [K C; C' Z];
+            Z = zeros(dLambda.nDofs);
+            LHS = [K C'; C Z];
         end
 
         function LHS = computeStiffnessMatrix(obj,mesh,dispFun,C)
-            LHS = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),dispFun,dispFun,mesh,2);
+            LHS = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),dispFun,dispFun,mesh,'Domain',2);
         end
 
         function C = computeConditionMatrix(obj,mesh,dispFun,dLambda)
-            test     = LagrangianFunction.create(obj.boundaryMeshJoined, obj.meshDomain.ndim, 'P1'); % !!         
-            lhs = IntegrateLHS(@(u,v) DP(v,u),dLambda,test,obj.boundaryMeshJoined,2);
-
-            nDofs = obj.meshDomain.nnodes*dLambda.ndimf;
-            lhsg = sparse(nDofs,dLambda.nDofs);
-            [iLoc,jLoc,vals] = find(lhs);
-            l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
-            l2g_dof = l2g_dof(:);
-            jGlob = l2g_dof(jLoc);
-            iGlob = l2g_dof(iLoc);
-            C = lhsg + sparse(iGlob,jLoc,vals, nDofs,dLambda.nDofs);
+            %             test     = LagrangianFunction.create(obj.boundaryMeshJoined, obj.meshDomain.ndim, 'P1'); % !!
+            lhs = IntegrateLHS(@(u,v) DP(v,u),dLambda,dispFun,obj.meshDomain,'Boundary',2);
+            C = lhs;
+            %             nDofs = obj.meshDomain.nnodes*dLambda.ndimf;
+            %             lhsg = sparse(nDofs,dLambda.nDofs);
+            %             [iLoc,jLoc,vals] = find(lhs);
+            %             l2g_dof = ((obj.localGlobalConnecBd*test.ndimf)' - ((test.ndimf-1):-1:0))';
+            %             l2g_dof = l2g_dof(:);
+            %             jGlob = l2g_dof(jLoc);
+            %             iGlob = l2g_dof(iLoc);
+            %             C = lhsg + sparse(iGlob,jLoc,vals, nDofs,dLambda.nDofs);
         end
 
         function RHS = computeRHS(obj,u,dLambda)
@@ -157,12 +166,13 @@ classdef Training < handle
             uD = obj.computeRHScondition(dLambda,obj.DirFun);
             RHS = [F ; uD];
         end
-       
+
         function uD = computeRHScondition(obj,test,dir)
             nfun = size(dir,2);
             uD = [];
             for i=1:nfun
-                rDiri = IntegrateRHS(@(v) DP(v,dir{i}),test,obj.boundaryMeshJoined,2);
+                d = dir{i};
+                rDiri = IntegrateRHS(@(v) DP(v,d),test,obj.meshDomain,'Boundary',2);
                 uD = [uD rDiri];
             end
         end
@@ -172,7 +182,7 @@ classdef Training < handle
                 u   = obj.extractDomainDisplacements(uC);
                 lhs = obj.extractDomainLHS(LHS);
             else
-                u = uC;
+                u = full(uC);
                 lhs = LHS;
             end
         end
@@ -214,49 +224,49 @@ classdef Training < handle
             x0 = xmin+a;
             y0 = ymin+b;
 
-%             f1x = @(x) [1/(4)*(1-x(1,:,:)).*(1-x(2,:,:));...
-%                     0*x(2,:,:)  ];
-%             f2x = @(x) [1/(4)*(1+x(1,:,:)).*(1-x(2,:,:));...
-%                     0*x(2,:,:)  ];
-%             f3x = @(x) [1/(4)*(1+x(1,:,:)).*(1+x(2,:,:));...
-%                     0*x(2,:,:)  ];
-%             f4x = @(x) [1/(4)*(1-x(1,:,:)).*(1+x(2,:,:));...
-%                     0*x(2,:,:)  ];
-% 
-%             f1y = @(x) [0*x(1,:,:);...
-%                     1/(4)*(1-x(1,:,:)).*(1-x(2,:,:))  ];
-%             f2y = @(x) [0*x(1,:,:);...
-%                     1/(4)*(1+x(1,:,:)).*(1-x(2,:,:))  ];
-%             f3y = @(x) [0*x(1,:,:);...
-%                     1/(4)*(1+x(1,:,:)).*(1+x(2,:,:))  ];
-%             f4y = @(x) [0*x(1,:,:);...
-%                     1/(4)*(1-x(1,:,:)).*(1+x(2,:,:))  ];
+            %             f1x = @(x) [1/(4)*(1-x(1,:,:)).*(1-x(2,:,:));...
+            %                     0*x(2,:,:)  ];
+            %             f2x = @(x) [1/(4)*(1+x(1,:,:)).*(1-x(2,:,:));...
+            %                     0*x(2,:,:)  ];
+            %             f3x = @(x) [1/(4)*(1+x(1,:,:)).*(1+x(2,:,:));...
+            %                     0*x(2,:,:)  ];
+            %             f4x = @(x) [1/(4)*(1-x(1,:,:)).*(1+x(2,:,:));...
+            %                     0*x(2,:,:)  ];
+            %
+            %             f1y = @(x) [0*x(1,:,:);...
+            %                     1/(4)*(1-x(1,:,:)).*(1-x(2,:,:))  ];
+            %             f2y = @(x) [0*x(1,:,:);...
+            %                     1/(4)*(1+x(1,:,:)).*(1-x(2,:,:))  ];
+            %             f3y = @(x) [0*x(1,:,:);...
+            %                     1/(4)*(1+x(1,:,:)).*(1+x(2,:,:))  ];
+            %             f4y = @(x) [0*x(1,:,:);...
+            %                     1/(4)*(1-x(1,:,:)).*(1+x(2,:,:))  ];
 
-             f1x = @(x) [1/(4)*(1-(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b);...
-                    0*x(2,:,:)  ];
+            f1x = @(x) [1/(4)*(1-(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b);...
+                0*x(2,:,:)  ];
             f2x = @(x) [1/(4)*(1+(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b);...
-                    0*x(2,:,:)  ];
+                0*x(2,:,:)  ];
             f3x = @(x) [1/(4)*(1+(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b);...
-                    0*x(2,:,:)  ];
+                0*x(2,:,:)  ];
             f4x = @(x) [1/(4)*(1-(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b);...
-                    0*x(2,:,:)  ];
+                0*x(2,:,:)  ];
 
             f1y = @(x) [0*x(1,:,:);...
-                    1/(4)*(1-(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b) ];
+                1/(4)*(1-(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b) ];
             f2y = @(x) [0*x(1,:,:);...
-                    1/(4)*(1+(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b) ];
+                1/(4)*(1+(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b) ];
             f3y = @(x) [0*x(1,:,:);...
-                    1/(4)*(1+(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b) ];
+                1/(4)*(1+(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b) ];
             f4y = @(x) [0*x(1,:,:);...
-                    1/(4)*(1-(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b)];
+                1/(4)*(1-(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b)];
 
             f     = {f1x f1y f2x f2y f3x f3y f4x f4y}; %
             nfun = size(f,2);
             for i=1:nfun
-                uD{i}  = AnalyticalFunction.create(f{i},obj.boundaryMeshJoined);                   
+                uD{i}  = AnalyticalFunction.create(f{i},obj.boundaryMeshJoined);
             end
         end
 
-    end    
+    end
 
 end

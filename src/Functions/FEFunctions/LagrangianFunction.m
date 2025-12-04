@@ -187,11 +187,13 @@ classdef LagrangianFunction < FeFunction
         end        
 
         function dof = getDofsFromCondition(obj, condition)
-            nodes = condition(obj.dofCoord);
-            iNode = find(nodes==1);
-            dofElem = repmat(1:obj.ndimf, [length(iNode) 1]);
-            dofMat = obj.ndimf*(iNode - 1) + dofElem;
-            dof = sort(dofMat(:));
+%             nodes = condition(obj.dofCoord);
+%             iNode = find(nodes==1);
+%             dofElem = repmat(1:obj.ndimf, [length(iNode) 1]);
+%             dofMat = obj.ndimf*(iNode - 1) + dofElem;
+%             dof = sort(dofMat(:));
+              nodes = condition(obj.dofCoord);
+              dof = find(nodes==1);
         end
 
         function print(obj, filename, software)
@@ -378,8 +380,12 @@ classdef LagrangianFunction < FeFunction
                     ord = 'LINEAR';
                 case 'P2'
                     ord = 'QUADRATIC';
+                case 'P2Q8'
+                    ord = 'QUADRATICQ8';
                 case 'P3'
                     ord = 'CUBIC';
+                case 'P8'
+                    ord = 'EIGHT';
             end        
         end
 

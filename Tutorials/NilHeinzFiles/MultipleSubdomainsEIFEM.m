@@ -27,13 +27,12 @@ classdef MultipleSubdomainsEIFEM < handle
             close all
             obj.init()
 
-            obj.createReferenceMesh();
-            bS  = obj.referenceMesh.createBoundaryMesh();
-            [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain();
             mSubdomains = obj.createMeshSubdomains();
-
-            mD = obj.mergeSubdomainMeshes(mSubdomains);  %Merge all subdomains into a single mesh
+            obj.referenceMesh = mSubdomains{1,1};
+            bS  = mSubdomains{1,1}.createBoundaryMesh();
+            [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomainJoiner(mSubdomains);  %Merge all subdomains into a single mesh
             obj.meshDomain = mD;
+
             %mD.plot()
             [bC,dir] = obj.createBoundaryConditions();
             obj.boundaryConditions = bC;
@@ -67,14 +66,14 @@ classdef MultipleSubdomainsEIFEM < handle
     methods (Access = private)
 
         function init(obj)
-            
-            ny = 15;
             nx = 2;
+            ny = 15;
+            
             rMax = 0.85;
             rMin = 0.05;
             rInclusions = 0.5*(rMax - rMin) * 0.5.*ones(nx, ny);
             obj.radius =  rInclusions;
-            obj.nSubdomains = size(obj.radius); %nx ny
+            obj.nSubdomains = size(obj.radius)'; %nx ny
             obj.tolSameNode = 1e-10;
             obj.solverType = 'REDUCED';
         end        
@@ -119,6 +118,16 @@ classdef MultipleSubdomainsEIFEM < handle
             phiFun             = g.computeLevelSetFunction(mesh);
             lsCircle           = phiFun.fValues;
             ls = -lsCircle;
+        end
+
+        function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomainJoiner(obj,mSbd)
+            s.nsubdomains   = obj.nSubdomains;
+            s.meshReference = obj.referenceMesh;
+            s.tolSameNode = obj.tolSameNode;
+            s.meshSbd     = mSbd;
+            %             m = MeshCreatorFromRVE.create(s);
+            m = MeshJoiner(s);
+            [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
         end
         
         function mergedMesh = mergeSubdomainMeshes(obj, mSubdomains)
