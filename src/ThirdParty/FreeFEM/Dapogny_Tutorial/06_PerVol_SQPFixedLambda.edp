@@ -4,7 +4,7 @@ load "distance"
 load "iovtk"
 
 /* Create mesh */
-real fac = 1.0;
+real fac = 3.0;
 border left(t=0.0,1.0){ x=-1.0; y=1.0-t; label=0; };
 border bot(t=0.0,2.0){ x=-1.0+t; y=0.0; label=0; };
 border right(t=0.0,1.0){ x=1.0; y=t; label=0; };
@@ -35,8 +35,7 @@ Achi[] = volfrac(Th,phi[],ers);
 /* Regularization of shape derivative */
 real meshsiz = 1/(30*fac);
 real alpha = 4.0*meshsiz;
-Vh g, v;
-Vh0 g0, v0;
+Vh g, v, g0, v0;
 
 problem velext(g,v) = int2d(Th)(alpha^2*(dx(g)*dx(v)+dy(g)*dy(v)) + g*v)
                       - int1d(Th,levelset=phi)(g0*v);
@@ -60,10 +59,13 @@ Vh nx,ny, vx, vy, kappa;
 
 macro grad(g0) [dx(g0),dy(g0)] //
 macro gradN(g0,nx,ny) [nx*(dx(g0)*nx+dy(g0)*ny),ny*(dx(g0)*nx+dy(g0)*ny)] //
-problem computeShapeDerivative(g0,v0) = int1d(Th,levelset=phi)((grad(g0)-gradN(g0,nx,ny))'*(grad(v0)-gradN(v0,nx,ny))+g0*v0*(ell*kappa)) - int1d(Th,levelset=phi)(-v0*kappa-v0*ell);
+macro dHdn(nx,ny) (nx * dx(kappa) + ny * dy(kappa)) //
+problem computeShapeDerivative(g0,v0) = int2d(Th)(1e-6*g0*v0) + int1d(Th,levelset=phi)((grad(g0)-gradN(g0,nx,ny))'*(grad(v0)-gradN(v0,nx,ny))+g0*v0*(dHdn(nx,ny)+kappa^2+ell*kappa)) 
+                                          - int1d(Th,levelset=phi)(-v0*kappa-v0*ell);
 
 macro dJ() {
   computeShapeDerivative;
+  /*g0 = -kappa - ell;*/
   velext;
 } // EOM
 
@@ -80,12 +82,13 @@ real maxcoef = 3.0;
 real mincoef = 0.1;
 Vh X;
 Vh0 kappa0;
-int maxit = 20, kmax = 10;
+int maxit = 1, kmax = 10;
 real[int] costPlot, volumePlot;
 costPlot.resize(costPlot.n+1);
 costPlot[costPlot.n-1] = J;
 volumePlot.resize(volumePlot.n+1);
 volumePlot[volumePlot.n-1] = C;
+string sout;
 for (int it=0; it<maxit; it++) {
   obj = newobj;
   phio = phi;
@@ -98,6 +101,10 @@ for (int it=0; it<maxit; it++) {
   normalvec(phi);
   curvature;
   dJ;
+
+  sout = "ShapeGradient.vtu";
+  savevtk(sout, Th, g, dataname="Gradient");
+
 
   gmax = max(g[].max,-g[].min);
   nx = g*nx;
@@ -140,7 +147,6 @@ for (int it=0; it<maxit; it++) {
 plot(X, fill=1, value=1, wait=1);
 
 /* Save shape (level set) */
-  string sout;
   sout = "06_Result.vtu";
   savevtk(sout, Th, phi, dataname="LevelSet");
 

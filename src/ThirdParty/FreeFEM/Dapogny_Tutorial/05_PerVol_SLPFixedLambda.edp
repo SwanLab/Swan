@@ -35,8 +35,7 @@ Achi[] = volfrac(Th,phi[],ers);
 /* Regularization of shape derivative */
 real meshsiz = 1/(30*fac);
 real alpha = 4.0*meshsiz;
-Vh g, v;
-Vh0 g0;
+Vh g, v, g0;
 problem velext(g,v) = int2d(Th)(alpha^2*(dx(g)*dx(v)+dy(g)*dy(v)) + g*v)
                       - int1d(Th,levelset=phi)(g0*v);
 
