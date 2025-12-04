@@ -41,6 +41,7 @@ classdef TrainedRVE < handle
                 obj.Udef    = data.Udef;
                 obj.Urb     = data.Urb;
             end
+            T = obj.Udef+obj.Urb;
 
             obj.ndimf   = 2;
             %             obj.PhiDef  = EIFEoper.RECONSTRUCTION.DEF_DISP.BASIS;

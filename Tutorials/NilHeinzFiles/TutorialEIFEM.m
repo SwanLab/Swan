@@ -27,7 +27,7 @@ classdef TutorialEIFEM < handle
             obj.init()
             %radius_to_analyse = 0.05:0.005:0.7;
             %Kc = cell(length(radius_to_analyse),1);
-            radiusMesh = 0.25;
+            radiusMesh = 0.2;
 
             obj.createReferenceMesh(false,radiusMesh);
             bS  = obj.referenceMesh.createBoundaryMesh();
@@ -329,6 +329,12 @@ classdef TutorialEIFEM < handle
             data = Training(mR);
             p = OfflineDataProcessor(data); % i don't want to have to run this -> build EIFEM with NN
             EIFEoper = p.computeROMbasis(radiusMesh);
+            T = EIFEoper.T;
+            Udef =  EIFEoper.Udef;
+            Urb = EIFEoper.Urb;
+
+             
+
             s.RVE           = TrainedRVE(EIFEoper);
             s.mesh          = obj.createCoarseMesh(mR);
             s.DirCond       = dir;

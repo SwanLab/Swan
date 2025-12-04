@@ -54,13 +54,11 @@ classdef EIFEM < handle
         function u = reconstructSolution(obj,uCoarse)
             uCoarse = obj.bcApplier.reducedToFullVectorDirichlet(uCoarse);
             nElem = obj.mesh.nelem;
-            Udef  = obj.RVE.Udef;
-            Urb   = obj.RVE.Urb;
-            U     = Udef + Urb;
+            T  = obj.RVE.T;
             dofConec = obj.dispFun.getDofConnec();
             for ielem = 1:nElem
                 uCelem = uCoarse(dofConec(ielem,:));
-                u(:,ielem) =  U*uCelem;
+                u(:,ielem) =  T{ielem}*uCelem;
             end
             
         end
@@ -125,7 +123,8 @@ classdef EIFEM < handle
         function init(obj,cParams)
             obj.mesh    = cParams.mesh;
             obj.RVE     = cParams.RVE;
-            obj.Kel     = repmat(obj.RVE.Kcoarse,[1,1,obj.mesh.nelem]);
+            data_cells = obj.RVE.Kcoarse(:)'; %Ensure Kcoarse is a row cell array to order data correctly for reshape
+            obj.Kel = reshape([data_cells{:}], 8, 8, []);  %Convert to one long strip and force-fold into 3D
             obj.DirCond = cParams.DirCond;
 %             obj.dispFun = LagrangianFunction.create(obj.mesh, obj.RVE.ndimf,'P1');
             obj.dispFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim,'P1');
@@ -193,10 +192,15 @@ classdef EIFEM < handle
         end
 
         function Fcoarse = projectExternalForce(obj,Ffine)
-            Udef    = obj.RVE.Udef;
-            Urb     = obj.RVE.Urb;
-            Ut      = (Udef + Urb)';
-            Fcoarse = Ut*Ffine;
+
+            nSubdomains = size(Ffine, 2);   
+            nCoarseDOFs = size(obj.RVE.T{1}, 2);
+            
+            Fcoarse = zeros(nCoarseDOFs, nSubdomains); 
+            
+            for i = 1:nSubdomains 
+                Fcoarse(:, i) = obj.RVE.T{i}' * Ffine(:, i);
+            end
         end
 
 %         function u = reconstructSolution(obj,uCoarse)

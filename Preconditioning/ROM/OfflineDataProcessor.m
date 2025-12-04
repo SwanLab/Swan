@@ -68,6 +68,7 @@ classdef OfflineDataProcessor < handle
             EIFEoper.Kcoarse = Kcoarse;
             EIFEoper.Urb = Ur;
             EIFEoper.Udef = Ud;
+            EIFEoper.T = (Ur+Ud);
 
             %% Modal Analysis
             Mcoarse = (Ud+Ur)'*obj.M*(Ud+Ur);

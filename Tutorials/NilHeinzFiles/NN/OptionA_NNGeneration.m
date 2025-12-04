@@ -56,7 +56,7 @@ s2.networkParams.HUtype = 'ReLU';
 s2.networkParams.OUtype = 'linear';
 
 s2.fileName = 'McTrainingData.csv';
-s2.xFeatures = 1:3;
+s2.xFeatures = 1;
 s2.yFeatures = 2:37;
 
 % Load Data
@@ -68,7 +68,7 @@ McPredictorNN = OptimizationProblemNN(s2);
 McPredictorNN.solve();
 McPredictorNN.plotCostFnc();
 
-save('McoarsepredictorNN.mat', 'McPredictorNN'); % Save the model
+save('McoarsePredictorNN.mat', 'McPredictorNN'); % Save the model
 
 
 %% Method A- Direct NN to predict full T
@@ -78,7 +78,7 @@ s.polynomialOrder = pol_deg;
 s.testRatio       = testratio;
 s.networkParams.hiddenLayers    = hiddenLayers;
 s.optimizerParams.learningRate  = learningRate;
-s.optimizerParams.maxEpochs     = 2000; 
+s.optimizerParams.maxEpochs     = 500; 
 s.costParams.lambda             = lambda;
 s.costParams.costType           = 'L2';
 

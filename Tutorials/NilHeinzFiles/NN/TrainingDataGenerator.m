@@ -96,13 +96,6 @@ classdef TrainingDataGenerator < handle
         
         function exportSVDToMAT(obj,fileName, outputDir)
             
-            if isempty(obj.U) || isempty(obj.S) || isempty(obj.V)
-                error('SVD no ha sido calculado. Llame a generateData(true) o computeSVDFromExistingData() primero.');
-            end
-            
-            if nargin < 3
-                fileName = 'SVD_Results.mat';
-            end
             
             % Obtener mesh de referencia (del primer resultado)
             if ~isempty(obj.allResults)
@@ -137,7 +130,7 @@ classdef TrainingDataGenerator < handle
         
         function mesh = createMesh(obj,r)
             
-            fullmesh = UnitTriangleMesh(12,12);
+            fullmesh = UnitTriangleMesh(24,24);
             ls = obj.computeCircleLevelSet(fullmesh,r);
             sUm.backgroundMesh = fullmesh;
             sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
@@ -201,7 +194,6 @@ classdef TrainingDataGenerator < handle
                         
             meshRef = obj.referenceMesh;
             trainingData = Training(meshRef, 'radius', r);  % Usa mesh de referencia fijo con material variable (r)
-            u = trainingData.uSbd;
             
 %             % Verificar dimensiones consistentes
 %             if idx > 1
@@ -219,9 +211,11 @@ classdef TrainingDataGenerator < handle
             EIFEoper = processor.computeROMbasis(r);
             Kcoarse = EIFEoper.Kcoarse;
             Mcoarse = EIFEoper.Mcoarse;
+            T = EIFEoper.T;
+            
             
             result.r = r;
-            result.u = u;
+            result.u = T;
             result.Kcoarse = Kcoarse;
             result.Mcoarse = Mcoarse;
             result.mesh = trainingData.mesh;

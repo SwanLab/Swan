@@ -5,29 +5,39 @@ classdef RebuildKMTData < handle
         
     end
     
-    methods (Access = public)
+    methods (Static, Access = public)
         
-        function [K,M,T] = RebuildKMTData(K,M,method,T,U,S,V)
+        function [K,M,T] = compute(method,r,mesh)
+
+            % Initialize
+            K = []; M = []; T = [];
+
             %K: Kcoarse Prediction from NN after Chol
             %M: Mcoarse Prediction from NN after Chol
             %T: T prediction from NN
+            load('KcoarsePredictorNN.mat');
+            load('McoarsePredictorNN.mat');
 
-            K = rebuildMatrix(K);
-            M = rebuildMatrix(M);
+            Kc = KcPredictorNN.computeOutputValues([r]);
+            Mc = McPredictorNN.computeOutputValues([r]);
+
+            K = RebuildKMTData.rebuildMatrix(Kc);
+            M = RebuildKMTData.rebuildMatrix(Mc);
 
             if(method=='A')
-                T = rebuildTPrediction(T);
-            elseif(method=='B')
-                T = rebuildTMethodB(U,S,V);
-            else
-                T = rebuildTMethodC(U,S,V);
+                load('TpredictorNN.mat');
+                T = RebuildKMTData.rebuildTPrediction(r,mesh,tPredictorNN);
+            % elseif(method=='B')
+            %     T = rebuildTMethodB(U,S,V);
+            % else
+            %     T = rebuildTMethodC(U,S,V);
             end
 
         end
         
     end
     
-    methods (Access = private)
+    methods (Static, Access = private)
 
         function KMmatrix = rebuildMatrix(KM_NN)
             % Processes K or M prediction from NN and outputs a 8x8
@@ -44,8 +54,27 @@ classdef RebuildKMTData < handle
             
         end
         
-        function T = rebuildTPrediction(T)
+        function T = rebuildTPrediction(r, mesh, NN)
             
+            % Initialize empty matrix (or pre-allocate for speed if possible)
+            Taux2 = [];
+            
+            for i = 1:size(mesh.coord, 1)  % Evaluates all coordinates
+                dataInput = [r, mesh.coord(i,:)];  
+                
+                % Format: [Tx1, Ty1, Tx2, Ty2, ..., Tx8, Ty8]
+                T_NN = NN.computeOutputValues(dataInput);
+                
+                % Reshape into 2x8
+                T_block = reshape(T_NN, 2, 8);
+                
+                % 3. Stack vertically
+                % Final T will have dimensions [2*N_coords x 8]
+                Taux2 = cat(1, Taux2, T_block);
+            end
+            
+            T = Taux2;
+        
         end
                 
     end

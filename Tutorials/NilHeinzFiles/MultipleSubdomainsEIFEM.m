@@ -26,9 +26,6 @@ classdef MultipleSubdomainsEIFEM < handle
         function obj = MultipleSubdomainsEIFEM()
             close all
             obj.init()
-            %radius_to_analyse = 0.05:0.005:0.7;
-            %Kc = cell(length(radius_to_analyse),1);
-            %radiusMesh = 0.25;
 
             obj.createReferenceMesh();
             bS  = obj.referenceMesh.createBoundaryMesh();
@@ -47,10 +44,10 @@ classdef MultipleSubdomainsEIFEM < handle
 
             LHSfun = @(x) LHSr*x;
             
-            radiusMesh = mean(obj.radius(:));  % Average radius for EIFEM training
+           
             
             %% replace below with NN Options 2&3a
-            [Meifem, Kcoarse, Mcoarse, EIFEM, ss]       = obj.createEIFEMPreconditioner(dir,iC,lG,bS,iCR,discMesh,radiusMesh);
+            [Meifem, EIFEM, ss]       = obj.createEIFEMPreconditioner(dir,iC,lG,bS,iCR,discMesh,obj.radius);
 
             Milu         = obj.createILUpreconditioner(LHSr);
             Mmult        = @(r) Preconditioner.multiplePrec(r,LHSfun,Milu,Meifem,Milu);
@@ -71,11 +68,11 @@ classdef MultipleSubdomainsEIFEM < handle
 
         function init(obj)
             %obj.nSubdomains  = [15 2]; 
-            nx = 15;
+            nx = 5;
             ny = 2;
             rMax = 0.85;
             rMin = 0.05;
-            rInclusions = 0.5*(rMax - rMin) * rand(nx, ny);
+            rInclusions = 0.5*(rMax - rMin) * 0.5.*ones(nx, ny);
             obj.radius =  rInclusions;
             obj.nSubdomains = size(obj.radius); %nx ny
             obj.tolSameNode = 1e-10;
@@ -373,19 +370,11 @@ classdef MultipleSubdomainsEIFEM < handle
             RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
         end
 
-        function [Meifem,Kcoarse, Mcoarse,eifem, ss] = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh,radiusMesh)
+        function [Meifem,eifem, ss] = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh,radiusMesh)
             mR = obj.referenceMesh;
-%             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
-%             EIFEMfilename = obj.fileNameEIFEM;
-%             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
-%             filename        = EIFEMfilename;
-%             s.RVE           = TrainedRVE(filename);
-            data = Training(mR);
-            p = OfflineDataProcessor(data); % i don't want to have to run this if I use NN
-            EIFEoper = p.computeROMbasis(radiusMesh);
-            s.RVE           = TrainedRVE(EIFEoper);
+  
+            s.RVE           = TrainedRVEMultipleRadius(radiusMesh,mR);
             s.mesh          = obj.createCoarseMesh(mR);
-%            s.mesh          = obj.loadCoarseMesh(mR);
             s.DirCond       = dir;
             s.nSubdomains = obj.nSubdomains;
             s.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
@@ -398,14 +387,7 @@ classdef MultipleSubdomainsEIFEM < handle
             ss.type = 'EIFEM';
             eP = Preconditioner.create(ss);
             Meifem = @(r) eP.apply(r);
-            u = LagrangianFunction.create(s.mesh, s.mesh.ndim,'P1');
 
-            Kcoarse = repmat(EIFEoper.Kcoarse,[1,1,s.mesh.nelem]);
-            Kcoarse = eifem.assembleMatrix(Kcoarse,u,u);
-            Kcoarse = eifem.reduceMatrix(Kcoarse);
-            Mcoarse = repmat(EIFEoper.Mcoarse,[1,1,s.mesh.nelem]);
-            Mcoarse = eifem.assembleMatrix(Mcoarse,u,u);
-            Mcoarse = eifem.reduceMatrix(Mcoarse);
         end
         
         function d = createDomainDecompositionDofManager(obj,iC,lG,bS,mR,iCR)

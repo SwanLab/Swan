@@ -2,13 +2,13 @@
  close all;
 
 %% Configuración
-radii = 0.5*(0.1:0.01:0.95);  % Radius to include as training set
+radii = 0.5*(0.1:0.1:0.9);  % Radius to include as training set
 
 %% Crear generador de datos
 dataGen = TrainingDataGenerator(radii);
 
 %% Generar datos
-dataGen.generateData();  % Usar paralelización si está disponible
+dataGen.generateData(false); 
 
 %% Exportar
 outputDir = [userpath '\Tutorials\NilHeinzFiles\NN\TrainingDataFiles'];

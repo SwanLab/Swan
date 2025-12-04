@@ -101,16 +101,19 @@ classdef Training < handle
         end
 
         function [young,poisson] = computeElasticProperties(obj,mesh)
-            
-            E1  = 1;
-            E2 = E1/1000;
+            E = 1;
             nu = 1/3;
-            x0=0;
-            y0=0;
-            f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<obj.radius)*E2 + ...
-                        (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=obj.radius)*E1 ; 
+            young = ConstantFunction.create(E,mesh);
 
-            young   = AnalyticalFunction.create(f,mesh);
+            % E1  = 1;
+            % E2 = E1/1000;
+            % nu = 1/3;
+            % x0=0;
+            % y0=0;
+            % f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<obj.radius)*E2 + ...
+            %             (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=obj.radius)*E1 ; 
+            % 
+            % young   = AnalyticalFunction.create(f,mesh);
             poisson = ConstantFunction.create(nu,mesh);
         end
         
