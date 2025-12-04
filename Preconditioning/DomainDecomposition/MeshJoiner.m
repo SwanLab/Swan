@@ -59,9 +59,9 @@ classdef MeshJoiner < MeshCreatorFromRVE
             nY = obj.nSubdomains(2);
             for jDom = 1:nY
                 for iDom = 1:nX
-                    coordIJ = obj.computeSubdomainCoords(jDom,iDom);
+                    coordIJ = obj.computeSubdomainCoords(iDom,jDom);
                     mIJ     = obj.createSubdomainMesh(coordIJ);
-                    mD{jDom,iDom} = mIJ;
+                    mD{iDom,jDom} = mIJ;
                 end
             end
             obj.meshSubDomain = mD;

@@ -97,8 +97,8 @@ classdef DomainMeshComputer < handle
             meshsd = obj.meshSubDomain;
             %             dConnec = connec0 + nnodes*(nX*(jDom-1)+iDom-1);
             coordGlob=zeros(nX*nY*nnodes,ndim);
-            for jDom = 1:nX
-                for iDom = 1:nY
+            for jDom = 1:nY
+                for iDom = 1:nX
                     indLinear= nX*(jDom-1)+iDom;
                     rowIn=(indLinear-1)*nnodes+1;
                     rowEnd=indLinear*nnodes;
