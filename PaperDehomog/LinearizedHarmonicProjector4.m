@@ -40,8 +40,8 @@ classdef LinearizedHarmonicProjector4 < handle
         function x = relaxationInSphere(obj,xNew,x,theta)
             phiG = ScalarProduct(xNew,x,'L2');
             w    = max(acos(phiG),1e-14);
-            %x = (sin((1-theta)*w)/sin(w)).*x + (sin(theta*w)/sin(w)).*xNew;
-            x = (1-theta).*x + theta.*xNew;
+            x = (sin((1-theta)*w)/sin(w)).*x + (sin(theta*w)/sin(w)).*xNew;
+            %x = (1-theta).*x + theta.*xNew;
         end
 
         function b = solveProblem(obj,bBar,b)
