@@ -20,7 +20,7 @@ s1.polynomialOrder = pol_deg;
 s1.testRatio       = testratio;
 s1.networkParams.hiddenLayers    = hiddenLayers;
 s1.optimizerParams.learningRate  = learningRate;
-s1.optimizerParams.maxEpochs     = 2000; % 1000 is the best option, but we use 100 to pass the tutorial quickly
+s1.optimizerParams.maxEpochs     = 5000; % 1000 is the best option, but we use 100 to pass the tutorial quickly
 s1.costParams.lambda             = lambda;
 s1.costParams.costType           = 'L2';
 
@@ -102,21 +102,4 @@ save('TpredictorNN.mat', 'tPredictorNN'); % Save the model
 Xin = [0.25, 0.1,0.2];
 
 Y = tPredictorNN.computeOutputValues(Xin);
-
-
-%% Method C: SVD + HighOrder FE to predict radial dependence
-degree = 20;  % High Order
-VTrainingData = load('VTrainingData.csv');
-r = VTrainingData(:,1);
-v1 = VTrainingData(:,2);
-v2 = VTrainingData(:,3);
-p1 = polyfit(r, v1, degree);
-p2 = polyfit(r, v2, degree); %not the best approach, quite some error as badly conditioned
-
-% Save only these two tiny vectors (21 coefficients each)
-save('PolynomialCoeffs.mat', 'p1', 'p2', 'degree');
-
-% Online:
-r_new = 0.3; 
-v_new = [polyval(p1, r_new); polyval(p2, r_new)];
 

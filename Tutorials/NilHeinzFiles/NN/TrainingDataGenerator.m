@@ -52,7 +52,7 @@ classdef TrainingDataGenerator < handle
                 obj.allResults = cell(nRadii, 1);
                 
                 for j = 1:nRadii
-                    obj.allResults{j} = obj.solveForRadius(obj.radii(j), j);
+                    obj.allResults{j} = obj.solveForRadius(obj.radii(j));
                     if mod(j, 10) == 0
                         fprintf('  Procesado %d/%d radios\n', j, nRadii);
                     end
@@ -184,7 +184,7 @@ classdef TrainingDataGenerator < handle
             s.coord(mask, :) = s.coord(mask, :) + [epsx, 0];
         end
         
-        function result = solveForRadius(obj, r, idx)
+        function result = solveForRadius(obj, r)
             % Resuelve el problema elástico para un radio dado usando Training
             % r: Radio de la inclusión
             % idx: Índice del radio (para logging)
@@ -192,19 +192,8 @@ classdef TrainingDataGenerator < handle
             % NOTA: Usa el mesh de referencia fijo para garantizar dimensiones consistentes
             % El material se calcula según el radio, pero el mesh permanece constante
                         
-            meshRef = obj.referenceMesh;
-            trainingData = Training(meshRef, 'radius', r);  % Usa mesh de referencia fijo con material variable (r)
-            
-%             % Verificar dimensiones consistentes
-%             if idx > 1
-%                 firstResult = obj.allResults{1};
-%                 expectedSize = size(firstResult.u);
-%                 actualSize = size(u);
-%                 if ~isequal(expectedSize, actualSize)
-%                     warning('Dimensiones inconsistentes detectadas para radio %.4f: esperado [%d × %d], obtenido [%d × %d]', ...
-%                         r, expectedSize(1), expectedSize(2), actualSize(1), actualSize(2));
-%                 end
-%             end
+            meshRef = obj.createMesh(r);
+            trainingData = Training(meshRef);  % Usa mesh de referencia fijo con material variable (r)
             
             % Obtain Kcoarse and Mcoasrse like for equilibrium problem
             processor = OfflineDataProcessor(trainingData);
@@ -249,11 +238,11 @@ classdef TrainingDataGenerator < handle
                 % COmbine to [r, x, y, Tx1, Ty1, ..., Tx8, Ty8]
                 t_aux = [r * ones(nnodes, 1), mesh.coord, t_reshaped];
                 TData = [TData; t_aux];
-                T_svd(:,j) = u(:);
+                %T_svd(:,j) = u(:);
             end
             
             obj.TData = TData; %used to train NN for Method A
-            obj.T_SVD = T_svd; %used for method B and C.
+            %obj.T_SVD = T_svd; %used for method B and C.
         end
         
         function processKMData(obj)

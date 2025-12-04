@@ -60,6 +60,10 @@ classdef MultipleSubdomainsEIFEM < handle
             [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSfun,RHSr,x0,Mmult,tol,xSol);     
             [uCG,residualCG,errCG,errAnormCG]    = PCG.solve(LHSfun,RHSr,x0,Mid,tol,xSol);
 
+            uCGFull = obj.bcApplier.reducedToFullVectorDirichlet(uCG); %reapply all dirichlett DOFs
+            uF = saveDeformed(obj.meshDomain,uCGFull);
+            plot(uF)
+
         end
 
     end
