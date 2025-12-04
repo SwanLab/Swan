@@ -2,7 +2,7 @@
 clear all, close all, clc;
 
 % Lista de archivos .fig que quieres procesar
-files = {'Monitoring_0_Level_Set.fig', 'Monitoring_45_Level_Set.fig', 'Monitoring_90_Level_Set.fig','Monitoring_0_90_Level_Set.fig', 'Monitoring_45_45_Level_Set.fig'};
+files = {'Monitoring_0_LevelSet_MBB.fig', 'Monitoring_90_LevelSet_MBB.fig'};
 
 % Inicializamos estructura para guardar los datos
 allData = struct();
@@ -55,8 +55,8 @@ for f = 1:length(files)
     plot(data.x, data.y, 'LineWidth',1.5);
 end
 xlabel('Iteration')
-legend('Level Set 0º', 'Level Set 45º','Level Set 90º','Level Set 0/90º','Level Set -45/45º');
-title('Compliance comparison between orientations - Level Set study')
+legend('Level Set 0º', 'Level Set 90º');
+title('Compliance comparison between orientations - MBB Beam')
 
 % Subplot 2 (columna 3, fila 1)
 figure(2); hold on; grid minor;
@@ -65,5 +65,5 @@ for f = 1:length(files)
     plot(data.x, data.y, 'LineWidth',1.5);
 end
 xlabel('Iteration')
-legend('Level Set 0º', 'Level Set 45º','Level Set 90º','Level Set 0/90º','Level Set -45/45º');
-title('Volume Constraint comparison between orientations - Level Set study')
+legend('Level Set 0º', 'Level Set 90º');
+title('Volume Constraint comparison between orientations - MBB Beam')
