@@ -55,10 +55,10 @@ classdef LinearizedHarmonicProjector4 < handle
             [resL,resH,resB,resG] = obj.evaluateResidualNorms(bBar,b);
             i = 1;
             theta  = 0.5;
-            thetaP = 0;
+            thetaP = 0.5;
             while res(i) > 1e-12
-                xNew   = LHS\RHS;
-                bNew = obj.createVectorFromSolution(full(xNew));
+                x   = LHS\RHS;
+                bNew = obj.createVectorFromSolution(full(x));
                 b    = obj.relaxationInSphere(bNew,b,theta);
                 if mod(i,1)==0
                   bNew   = obj.projectInUnitBall(b);
