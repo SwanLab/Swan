@@ -102,7 +102,7 @@ classdef LaticeMeshGen < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [1 1]; %nx ny
+            obj.nSubdomains  = [5 2]; %nx ny
              obj.nCell  = [5 5]; %nx ny
             %             filePath = ['./EPFL/data_' num2str(obj.r(i), '%.3f') '.mat'];
             obj.tolSameNode = 1e-10;
@@ -134,8 +134,8 @@ classdef LaticeMeshGen < handle
         function  mSbd= createSubDomainMeshes(obj)
             nX = obj.nSubdomains(1);
             nY = obj.nSubdomains(2);
-              nX =1;
-            nY = 1;
+%               nX =1;
+%             nY = 1;
             Lx = obj.xmax-obj.xmin;
             Ly = obj.ymax-obj.ymin;
             for jDom = 1:nY

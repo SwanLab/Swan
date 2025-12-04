@@ -111,8 +111,8 @@ classdef MeshJoiner < MeshCreatorFromRVE
         function createInterfaceSubDomainMeshes(obj)
             nX = obj.nSubdomains(1);
             nY = obj.nSubdomains(2);
-            for jDom = 1:nY
-                for iDom = 1:nX
+            for jDom = 1:nX
+                for iDom = 1:nY
                     bIJ = obj.meshSubDomain{jDom,iDom}.createBoundaryMesh();
                     bD{jDom,iDom} = bIJ;
                 end

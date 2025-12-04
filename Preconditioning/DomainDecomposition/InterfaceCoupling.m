@@ -82,8 +82,8 @@ classdef InterfaceCoupling < handle
             ninterface    = obj.ninterfaces;
             coordBdGl     = zeros(1,ndim);
             GlNodeBd      = zeros(1,1);
-                for jDom = 1:nY
-                    for iDom = 1:nX
+                for jDom = 1:nX
+                    for iDom = 1:nY
                         for iline=1:ninterface
                             bdcood    = interfaceMesh{jDom,iDom}{iline,1}.mesh.coord;
                             coordBdGl = [coordBdGl;bdcood];
