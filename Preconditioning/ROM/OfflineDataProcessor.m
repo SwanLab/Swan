@@ -248,7 +248,7 @@ classdef OfflineDataProcessor < handle
             f4y = @(x) [0*x(1,:,:);...
                 1/(4)*(1-(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b)];
 
-            f     = {  f2x f2y f3x f3y f4x f4y f1x f1y}; %
+            f     = {f1x f1y  f2x f2y f3x f3y f4x f4y}; %
             nfun = size(f,2);
             nbd = size(bMesh,1);
             for ibd=1:nbd

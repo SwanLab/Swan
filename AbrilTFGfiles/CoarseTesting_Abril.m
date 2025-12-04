@@ -64,7 +64,7 @@ classdef CoarseTesting_Abril< handle
             Milu         = obj.createILUpreconditioner(LHS);
             Mcoarse     = obj.createCoarseNNPreconditioner(mR,dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);
             %MiluCG      = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
-            Mmult        = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Mcoarse,Milu);
+            Mmult        = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Meifem,Milu);
 
 
             % SOLVE THE CASE
@@ -128,7 +128,7 @@ classdef CoarseTesting_Abril< handle
 
             obj.nelem=20; %mesh refining
             %obj.r=[0.1,0.1,0.1];
-            obj.r= ones(1,15)*0.1;
+            obj.r= ones(5,15)*0.1;
             obj.nSubdomains    = size(obj.r');
             obj.mSubdomains    = [];
             obj.tolSameNode    = 1e-10;
@@ -211,9 +211,9 @@ classdef CoarseTesting_Abril< handle
 
         function mS = createReferenceMesh(obj)
             mS = obj.createStructuredMesh();
-            %lvSet    = obj.createLevelSetFunction(mS);
-            %uMesh    = obj.computeUnfittedMesh(mS,lvSet);
-            %mS = uMesh.createInnerMesh();
+            lvSet    = obj.createLevelSetFunction(mS);
+            uMesh    = obj.computeUnfittedMesh(mS,lvSet);
+            mS = uMesh.createInnerMesh();
 
         end
 
@@ -231,14 +231,14 @@ classdef CoarseTesting_Abril< handle
             obj.ymin = min(x2);
             obj.ymax = max(x2);
             delta = 1e-9;
-            %s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
-            %    s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-0*delta];
-            %s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
-            %    s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-delta,0*delta];
-            %s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
-            %    s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[delta,-0*delta];
-            %s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
-            %    s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[delta,0*delta];
+            s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
+                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-0*delta];
+            s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
+                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-delta,0*delta];
+            s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
+                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[delta,-0*delta];
+            s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
+                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[delta,0*delta];
 
             mS = Mesh.create(s); 
         end
@@ -291,7 +291,6 @@ classdef CoarseTesting_Abril< handle
             coord(4,2) = obj.ymax;
 
             connec = [1 2 3 4];    % crea conectivitats entre els 4 nodes
-            %connec = [ 2 3 4 1];
             s.coord = coord;
             s.connec = connec;
             cMesh = Mesh.create(s);  % crea la mesh de 4 nodes
@@ -332,8 +331,8 @@ classdef CoarseTesting_Abril< handle
             f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<radius)*E2 + ...
                         (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=radius)*E1 ; 
             
-            young   = AnalyticalFunction.create(f,mesh);
-            %young   = ConstantFunction.create(E1,mesh);
+            %young   = AnalyticalFunction.create(f,mesh);
+            young   = ConstantFunction.create(E1,mesh);
             poisson = ConstantFunction.create(nu,mesh);
             
         end

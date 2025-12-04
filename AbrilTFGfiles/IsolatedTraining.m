@@ -143,6 +143,7 @@ classdef IsolatedTraining < handle
             f       = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<obj.radius)*E2 + ...
                         (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=obj.radius)*E1 ; 
             young   = AnalyticalFunction.create(f,mesh);
+            %young   = ConstantFunction.create(E1,mesh);
             poisson = ConstantFunction.create(nu,mesh);            
         end
 
