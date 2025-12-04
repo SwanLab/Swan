@@ -37,6 +37,11 @@ classdef LinearizedHarmonicProjector4 < handle
             obj.stiffnessMatrixBB = IntegrateLHS(@(u,v) DP(Grad(v),(1-obj.perimeter).*Grad(u)),obj.fB,obj.fB,obj.mesh,'Domain');
         end
 
+        function x = relaxationInSphere(obj,xNew,x,theta)
+            w = acos(dot(x,xNew));%%%
+            x = (sin((1-theta)*w)/sin(w))*x + (sin(theta*w)/sin(w))*xNew;
+        end
+
         function b = solveProblem(obj,bBar,b)
             b    = project(b,obj.fB.order);
             %bBar = project(bBar,obj.fB.order);
@@ -51,11 +56,11 @@ classdef LinearizedHarmonicProjector4 < handle
             thetaP = 0.01;
             while res(i) > 1e-12
                 xNew   = LHS\RHS;
-                x = theta*xNew + (1-theta)*x;
-                b   = obj.createVectorFromSolution(x);
+                bNew = obj.createVectorFromSolution(xNew);
+                b    = obj.relaxationInSphere(bNew,b,theta);
                 if mod(i,1)==0
-                bNew   = obj.projectInUnitBall(b);
-                b      = thetaP*bNew + (1-thetaP)*b;
+                  bNew   = obj.projectInUnitBall(b);
+                  b = obj.relaxationInSphere(bNew,b,thetaP);
                 end
                 LHS = obj.computeLHS(b);
                 i   = i+1;
