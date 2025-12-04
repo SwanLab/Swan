@@ -1,4 +1,4 @@
-classdef EIFEM < handle
+classdef EIFEMdifferentSubd < handle
 
     properties (Access = public)
 
@@ -25,7 +25,7 @@ classdef EIFEM < handle
 
     methods (Access = public)
 
-        function obj = EIFEM(cParams)
+        function obj = EIFEMdifferentSubd(cParams)
             obj.init(cParams)
             LHS = obj.computeLHS();
             obj.LHS = LHS;

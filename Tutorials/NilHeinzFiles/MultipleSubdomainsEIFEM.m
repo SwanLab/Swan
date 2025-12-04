@@ -31,9 +31,8 @@ classdef MultipleSubdomainsEIFEM < handle
             bS  = obj.referenceMesh.createBoundaryMesh();
             [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain();
             mSubdomains = obj.createMeshSubdomains();
-            % Merge all subdomains into a single mesh
 
-            mD = obj.mergeSubdomainMeshes(mSubdomains);
+            mD = obj.mergeSubdomainMeshes(mSubdomains);  %Merge all subdomains into a single mesh
             obj.meshDomain = mD;
             %mD.plot()
             [bC,dir] = obj.createBoundaryConditions();
@@ -44,9 +43,6 @@ classdef MultipleSubdomainsEIFEM < handle
 
             LHSfun = @(x) LHSr*x;
             
-           
-            
-            %% replace below with NN Options 2&3a
             [Meifem, EIFEM, ss]       = obj.createEIFEMPreconditioner(dir,iC,lG,bS,iCR,discMesh,obj.radius);
 
             Milu         = obj.createILUpreconditioner(LHSr);
@@ -71,9 +67,9 @@ classdef MultipleSubdomainsEIFEM < handle
     methods (Access = private)
 
         function init(obj)
-            %obj.nSubdomains  = [15 2]; 
-            nx = 5;
-            ny = 2;
+            
+            ny = 15;
+            nx = 2;
             rMax = 0.85;
             rMin = 0.05;
             rInclusions = 0.5*(rMax - rMin) * 0.5.*ones(nx, ny);
@@ -150,10 +146,6 @@ classdef MultipleSubdomainsEIFEM < handle
                 for j = 1:ny  % Columns (x direction)
                     subMesh = mSubdomains{i, j};
                     
-                    % Calculate offset for this subdomain's position
-                    % Subdomain (i,j) is positioned at:
-                    % x: (j-1) * subdomainSizeX
-                    % y: (i-1) * subdomainSizeY
                     xOffset = (j - 1) * subdomainSizeX;
                     yOffset = (i - 1) * subdomainSizeY;
                     
@@ -382,7 +374,7 @@ classdef MultipleSubdomainsEIFEM < handle
             s.DirCond       = dir;
             s.nSubdomains = obj.nSubdomains;
             s.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
-            eifem           = EIFEM(s);
+            eifem           = EIFEMdifferentSubd(s);
 
             ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
             ss.EIFEMsolver = eifem;

@@ -50,9 +50,9 @@ classdef TutorialEIFEM < handle
 
             
             LHSfun = @(x) LHSr*x;
-            [Meifem, Kcoarse, Mcoarse, EIFEM, ss]       = obj.createEIFEMPreconditioner(dir,iC,lG,bS,iCR,discMesh,radiusMesh);
+            [Meifem, EIFEM, ss]       = obj.createEIFEMPreconditioner(dir,iC,lG,bS,iCR,discMesh,radiusMesh);
 
-            [lambdaCoarse, PhiCoarse, omega] = obj.computeModalAnalysis(Kcoarse, Mcoarse);
+            %[lambdaCoarse, PhiCoarse, omega] = obj.computeModalAnalysis(Kcoarse, Mcoarse);
             
             %% Eigenvalues to print
             %obj.printContinuousSolution(EIFEM,PhiCoarse,mD);
@@ -60,22 +60,22 @@ classdef TutorialEIFEM < handle
             %obj.printCoarseSolution(EIFEM,PhiCoarse,discMesh);
             %obj.printFineSolution(eigenvectors,mD);
             
-           errPct = abs(eigenvalues - lambdaCoarse) ./ abs(eigenvalues) * 100;
-            
-            figure;
-            
-            yyaxis left
-            plot(lambdaCoarse, 'LineWidth', 2, 'Marker', 'x'); hold on
-            plot(eigenvalues, 'LineWidth', 2, 'Marker', 'x');
-            ylabel('Eigenvalues')
-            xlabel('Mode Index')
-            legend('Coarse','Fine','Error','Location','best')
-            
-            yyaxis right
-            plot(errPct, 'LineWidth', 1, 'Marker', 'x');
-            ylabel('Error (%)')
-            title('Fine vs Coarse Eigenvalues and Percentage Error')
-            grid on
+%            errPct = abs(eigenvalues - lambdaCoarse) ./ abs(eigenvalues) * 100;
+%             
+%             figure;
+%             
+%             yyaxis left
+%             plot(lambdaCoarse, 'LineWidth', 2, 'Marker', 'x'); hold on
+%             plot(eigenvalues, 'LineWidth', 2, 'Marker', 'x');
+%             ylabel('Eigenvalues')
+%             xlabel('Mode Index')
+%             legend('Coarse','Fine','Error','Location','best')
+%             
+%             yyaxis right
+%             plot(errPct, 'LineWidth', 1, 'Marker', 'x');
+%             ylabel('Error (%)')
+%             title('Fine vs Coarse Eigenvalues and Percentage Error')
+%             grid on
             
             Milu         = obj.createILUpreconditioner(LHSr);
             Mmult        = @(r) Preconditioner.multiplePrec(r,LHSfun,Milu,Meifem,Milu);
@@ -324,23 +324,30 @@ classdef TutorialEIFEM < handle
             RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
         end
 
-        function [Meifem,Kcoarse, Mcoarse,eifem, ss] = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh,radiusMesh)
+        function [Meifem,eifem, ss] = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh,radiusMesh)
             mR = obj.referenceMesh;
-            data = Training(mR);
-            p = OfflineDataProcessor(data); % i don't want to have to run this -> build EIFEM with NN
-            EIFEoper = p.computeROMbasis(radiusMesh);
-            T = EIFEoper.T;
-            Udef =  EIFEoper.Udef;
-            Urb = EIFEoper.Urb;
+            nx = 15;
+            ny = 2;
+            rMax = 0.85;
+            rMin = 0.05;
+            rInclusions = radiusMesh.*ones(nx, ny);
+            %data = Training(rInclusions,mR);
+            %p = OfflineDataProcessor(data); % i don't want to have to run this -> build EIFEM with NN
+            %EIFEoper = p.computeROMbasis(radiusMesh);
+%             T = EIFEoper.T;
+%             Udef =  EIFEoper.Udef;
+%             Urb = EIFEoper.Urb;
+%             Kc = EIFEoper.Kcoarse;
+             %[s.RVE.Kcoarse, s.RVE.Mcoarse, s.RVE.T] = RebuildKMTData.compute('A', radiusMesh, mR);
 
-             
+             %s.RVE.ndimf = 2;
 
-            s.RVE           = TrainedRVE(EIFEoper);
+            s.RVE           = TrainedRVEMultipleRadius(rInclusions,mR);
             s.mesh          = obj.createCoarseMesh(mR);
             s.DirCond       = dir;
             s.nSubdomains = obj.nSubdomains;
             s.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
-            eifem           = EIFEM(s);
+            eifem           = EIFEMdifferentSubd(s);
 
             ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
             ss.EIFEMsolver = eifem;
@@ -351,12 +358,12 @@ classdef TutorialEIFEM < handle
             Meifem = @(r) eP.apply(r);
             u = LagrangianFunction.create(s.mesh, s.mesh.ndim,'P1');
 
-            Kcoarse = repmat(EIFEoper.Kcoarse,[1,1,s.mesh.nelem]);
-            Kcoarse = eifem.assembleMatrix(Kcoarse,u,u);
-            Kcoarse = eifem.reduceMatrix(Kcoarse);
-            Mcoarse = repmat(EIFEoper.Mcoarse,[1,1,s.mesh.nelem]);
-            Mcoarse = eifem.assembleMatrix(Mcoarse,u,u);
-            Mcoarse = eifem.reduceMatrix(Mcoarse);
+%             Kcoarse = repmat(EIFEoper.Kcoarse,[1,1,s.mesh.nelem]);
+%             Kcoarse = eifem.assembleMatrix(Kcoarse,u,u);
+%             Kcoarse = eifem.reduceMatrix(Kcoarse);
+%             Mcoarse = repmat(EIFEoper.Mcoarse,[1,1,s.mesh.nelem]);
+%             Mcoarse = eifem.assembleMatrix(Mcoarse,u,u);
+%             Mcoarse = eifem.reduceMatrix(Mcoarse);
         end
         
         function d = createDomainDecompositionDofManager(obj,iC,lG,bS,mR,iCR)

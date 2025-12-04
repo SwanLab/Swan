@@ -15,10 +15,10 @@ classdef RebuildKMTData < handle
             %K: Kcoarse Prediction from NN after Chol
             %M: Mcoarse Prediction from NN after Chol
             %T: T prediction from NN
-            load('KcoarsePredictorNN.mat');
+            load('Kcoarse_predictor.mat');
             load('McoarsePredictorNN.mat');
 
-            Kc = KcPredictorNN.computeOutputValues([r]);
+            Kc = opt.computeOutputValues([r]);
             Mc = McPredictorNN.computeOutputValues([r]);
 
             K = RebuildKMTData.rebuildMatrix(Kc);

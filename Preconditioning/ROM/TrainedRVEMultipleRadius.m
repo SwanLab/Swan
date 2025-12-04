@@ -36,7 +36,6 @@ classdef TrainedRVEMultipleRadius < handle
             K = cell(size(radius)); M = K; T = M;
             for i = 1:size(radius,1)
                 for j=1:size(radius,2)
-
                     [K{i,j}, M{i,j}, T{i,j}] = RebuildKMTData.compute('A', radius(i,j), mesh);
                 end
 
