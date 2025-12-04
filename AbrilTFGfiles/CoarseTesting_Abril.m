@@ -167,7 +167,7 @@ classdef CoarseTesting_Abril< handle
             meshName=obj.nelem+"x"+obj.nelem;
             for i=1:size(name,1)
                 for j=1:size(name,2)
-                    filePath = fullfile('AbrilTFGfiles', 'DataVariables', meshName,name(i,j));
+                    filePath = fullfile('AbrilTFGfiles', 'DataVariables',meshName,name(i,j));
                     load(filePath,"T");
                     Taux{i,j}=T;
                 end
@@ -211,9 +211,9 @@ classdef CoarseTesting_Abril< handle
 
         function mS = createReferenceMesh(obj)
             mS = obj.createStructuredMesh();
-            lvSet    = obj.createLevelSetFunction(mS);
-            uMesh    = obj.computeUnfittedMesh(mS,lvSet);
-            mS = uMesh.createInnerMesh();
+            %lvSet    = obj.createLevelSetFunction(mS);
+            %uMesh    = obj.computeUnfittedMesh(mS,lvSet);
+            %mS = uMesh.createInnerMesh();
 
         end
 
@@ -331,9 +331,9 @@ classdef CoarseTesting_Abril< handle
             f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<radius)*E2 + ...
                         (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=radius)*E1 ; 
             
-            %young   = AnalyticalFunction.create(f,mesh);
-            young   = ConstantFunction.create(E1,mesh);
+            young   = AnalyticalFunction.create(f,mesh);
             poisson = ConstantFunction.create(nu,mesh);
+            %young   = ConstantFunction.create(E1,mesh);
             
         end
 

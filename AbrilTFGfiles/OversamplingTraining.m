@@ -57,9 +57,9 @@ classdef OversamplingTraining < handle
     methods (Access = private)
 
         function init(obj,mesh)
-            obj.nSubdomains  = [5 5]; %nx ny
+            obj.nSubdomains  = [1 1]; %nx ny
             obj.tolSameNode = 1e-10;
-            obj.domainIndices = [3 3];
+            obj.domainIndices = [1 1];
             obj.mesh = mesh;
             obj.E    = 1;
             obj.nu   = 1/3;
@@ -109,9 +109,9 @@ classdef OversamplingTraining < handle
             f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<radius)*E2 + ...
                         (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=radius)*E1 ; 
 
-            young   = ConstantFunction.create(E1,mesh);
-            %young   = AnalyticalFunction.create(f,mesh);
+            young   = AnalyticalFunction.create(f,mesh);
             poisson = ConstantFunction.create(nu,mesh);
+            %young   = ConstantFunction.create(E1,mesh);
         end
 
         function [LHS,RHS,uGlobal,dLambda] = createElasticProblem(obj)
