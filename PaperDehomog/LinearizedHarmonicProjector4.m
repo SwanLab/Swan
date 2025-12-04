@@ -38,8 +38,10 @@ classdef LinearizedHarmonicProjector4 < handle
         end
 
         function x = relaxationInSphere(obj,xNew,x,theta)
-            w = acos(dot(x,xNew));%%%
-            x = (sin((1-theta)*w)/sin(w))*x + (sin(theta*w)/sin(w))*xNew;
+            phiG = ScalarProduct(xNew,x,'L2');
+            w    = max(acos(phiG),1e-14);
+            %x = (sin((1-theta)*w)/sin(w)).*x + (sin(theta*w)/sin(w)).*xNew;
+            x = (1-theta).*x + theta.*xNew;
         end
 
         function b = solveProblem(obj,bBar,b)
@@ -52,11 +54,11 @@ classdef LinearizedHarmonicProjector4 < handle
             res = norm(LHS*x - RHS)/norm(x);
             [resL,resH,resB,resG] = obj.evaluateResidualNorms(bBar,b);
             i = 1;
-            theta = 0.5;
-            thetaP = 0.01;
+            theta  = 0.5;
+            thetaP = 0;
             while res(i) > 1e-12
                 xNew   = LHS\RHS;
-                bNew = obj.createVectorFromSolution(xNew);
+                bNew = obj.createVectorFromSolution(full(xNew));
                 b    = obj.relaxationInSphere(bNew,b,theta);
                 if mod(i,1)==0
                   bNew   = obj.projectInUnitBall(b);
@@ -179,7 +181,7 @@ classdef LinearizedHarmonicProjector4 < handle
             Nb2 = Nb2(:,iDOFs);
             Z  = sparse(obj.fB.nDofs,obj.fB.nDofs);
             Zh = sparse(nInt,nInt);
-            eps = (10*obj.mesh.computeMeanCellSize)^2;  
+            eps = (0*obj.mesh.computeMeanCellSize)^2;  
             A  = Mbb + obj.eta*Kbb + eps*MnormB;
             LHS = [A          ,          Z, (-Kb2+Nb2);...
                    Z'         ,          A,  (Kb1-Nb1);...
