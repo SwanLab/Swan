@@ -19,6 +19,7 @@ classdef OversamplingTraining < handle
         RHS
         DDdofManager
         domainIndices
+        Inclusion
 
         fileNameEIFEM
         tolSameNode
@@ -32,14 +33,16 @@ classdef OversamplingTraining < handle
 
     methods (Access = public)
 
-        function obj = OversamplingTraining(meshRef)
-            obj.init(meshRef)
+        function obj = OversamplingTraining(meshRef,params)
+            obj.init(meshRef,params)
+
             if sum(obj.nSubdomains > 1)>= 1
                 obj.repeatMesh();
             else
                 obj.cellMeshes= {obj.mesh};
                 obj.meshDomain = obj.mesh;
             end
+            
             [obj.boundaryMeshJoined, obj.localGlobalConnecBd] = obj.meshDomain.createSingleBoundaryMesh();
             cF = CoarseFunction(obj.boundaryMeshJoined,obj.Coarseorder);
             obj.DirFun = cF.f;
@@ -56,14 +59,22 @@ classdef OversamplingTraining < handle
 
     methods (Access = private)
 
-        function init(obj,mesh)
-            obj.nSubdomains  = [1 1]; %nx ny
+        function init(obj,mesh,params)
+            switch params.Sampling
+                case 'Isolated'
+                    obj.nSubdomains   = [1 1]; %nx ny
+                    obj.domainIndices = [1 1];
+                case 'Oversampling'
+                    obj.nSubdomains   = [5 5]; %nx ny
+                    obj.domainIndices = [3 3];
+            end
+
             obj.tolSameNode = 1e-10;
-            obj.domainIndices = [1 1];
             obj.mesh = mesh;
             obj.E    = 1;
             obj.nu   = 1/3;
             obj.Coarseorder = 1;
+            obj.Inclusion=params.Inclusion;
         end
 
         function repeatMesh(obj)
@@ -99,20 +110,25 @@ classdef OversamplingTraining < handle
 
 
         function [young,poisson] = computeElasticProperties(obj,mesh)
-            E1  = 1;
-            nu = 1/3;
-            E2 = E1/1000;
+            E1  = obj.E;
+            nu = obj.nu;
             radius = 0.1;
-            x0=mean(mesh.coord(:,1));
-            y0=mean(mesh.coord(:,2));
-            
-            f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<radius)*E2 + ...
-                        (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=radius)*E1 ; 
 
-            young   = AnalyticalFunction.create(f,mesh);
-            poisson = ConstantFunction.create(nu,mesh);
-            %young   = ConstantFunction.create(E1,mesh);
+            switch obj.Inclusion
+                case 'Hole'
+                    young   = ConstantFunction.create(E1,mesh);
+                    poisson = ConstantFunction.create(nu,mesh);
+                case 'Material'
+                    E2 = E1/1000;
+                    x0=mean(mesh.coord(:,1));
+                    y0=mean(mesh.coord(:,2));
+                    f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<radius)*E2 + ...
+                                (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=radius)*E1 ; 
+                    young   = AnalyticalFunction.create(f,mesh);
+                    poisson = ConstantFunction.create(nu,mesh);
+            end   
         end
+
 
         function [LHS,RHS,uGlobal,dLambda] = createElasticProblem(obj)
             uGlobal = LagrangianFunction.create(obj.meshDomain,obj.meshDomain.ndim,'P1');
