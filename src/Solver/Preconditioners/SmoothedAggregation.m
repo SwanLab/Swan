@@ -74,6 +74,11 @@ classdef SmoothedAggregation < handle
             py_i      = obj.np.array(int32(i - 1));
             py_j      = obj.np.array(int32(j - 1));
             py_data   = obj.np.array(v);
+
+            py_i = py_i.flatten();
+            py_j = py_j.flatten();
+            py_data   = py_data.flatten();
+
             shape_py  = int32(size(A));
             coo       = obj.sp.coo_matrix(py.tuple({py_data, py.tuple({py_i, py_j})}), pyargs('shape', shape_py));
             pyVar     = coo.tocsr();
@@ -91,6 +96,7 @@ classdef SmoothedAggregation < handle
         function restartPython()
             terminate(pyenv);
             pyenv('ExecutionMode','OutOfProcess');
+            % Check 
         end
     end
 end
