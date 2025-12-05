@@ -11,6 +11,7 @@ classdef LinearizedHarmonicProjector4 < handle
         fBV
         fS
         perimeter
+        filter
     end
 
     properties (Access = private)
@@ -26,23 +27,20 @@ classdef LinearizedHarmonicProjector4 < handle
             obj.fB = LagrangianFunction.create(obj.mesh, 1, 'P1');
             obj.fBV = LagrangianFunction.create(obj.mesh, 2, 'P1');
             obj.fS = LagrangianFunction.create(obj.mesh, 1, 'P1');
-            obj.createInternalDOFs();                        
-            obj.eta = (2*obj.mesh.computeMeanCellSize)^2;
+            obj.createInternalDOFs();                      
+            obj.createFilter();
+            obj.eta = (0*obj.mesh.computeMeanCellSize)^2;
             rhoEps = 1e-3;
             rhoMin = min(obj.density.fValues) - rhoEps; 
             rhoMax = max(obj.density.fValues) + rhoEps; 
-            obj.perimeter = 4*(obj.density-rhoMin).*(rhoMax-obj.density);%ConstantFunction.create(1,obj.mesh);%
+            %obj.perimeter = 4*(obj.density-rhoMin).*(rhoMax-obj.density);
+            obj.perimeter = ConstantFunction.create(0.5,obj.mesh);%
             obj.massMatrixBB      = IntegrateLHS(@(u,v) DP(v,obj.perimeter.*u),obj.fB,obj.fB,obj.mesh,'Domain',4);
             obj.massMatrixSS      = IntegrateLHS(@(u,v) DP(v,u),obj.fS,obj.fS,obj.mesh,'Domain',4);
-            obj.stiffnessMatrixBB = IntegrateLHS(@(u,v) DP(Grad(v),(1-obj.perimeter).*Grad(u)),obj.fB,obj.fB,obj.mesh,'Domain');
+            obj.stiffnessMatrixBB = IntegrateLHS(@(u,v) DP(Grad(v),(1-obj.perimeter).*Grad(u)),obj.fB,obj.fB,obj.mesh,'Domain');            
         end
 
-        function x = relaxationInSphere(obj,xNew,x,theta)
-            phiG = ScalarProduct(xNew,x,'L2');
-            w    = max(acos(phiG),1e-14);
-            x = (sin((1-theta)*w)/sin(w)).*x + (sin(theta*w)/sin(w)).*xNew;
-            %x = (1-theta).*x + theta.*xNew;
-        end
+
 
         function b = solveProblem(obj,bBar,b)
             b    = project(b,obj.fB.order);
@@ -54,25 +52,34 @@ classdef LinearizedHarmonicProjector4 < handle
             res = norm(LHS*x - RHS)/norm(x);
             [resL,resH,resB,resG] = obj.evaluateResidualNorms(bBar,b);
             i = 1;
-            theta  = 0.5;
-            thetaP = 0.5;
+            thetaH = 0;
+            thetaB = 1;
+            thetaR = 1;
+
             while res(i) > 1e-12
+                
+                %iter Harmonic 
                 x   = LHS\RHS;
                 bNew = obj.createVectorFromSolution(full(x));
-                b    = obj.relaxationInSphere(bNew,b,theta);
-                if mod(i,1)==0
-                  bNew   = obj.projectInUnitBall(b);
-                  b = obj.relaxationInSphere(bNew,b,thetaP);
-                end
+                b    = obj.relaxationInSphere(bNew,b,thetaH);
+               
+                %iter Projection UnitBall
+                bNew   = obj.projectInUnitBall(b);
+                b = obj.relaxationInSphere(bNew,b,thetaB);
+               
+                %iter Filter
+                bNew = obj.filterVector(b);
+                b    = obj.relaxationInSphere(bNew,b,thetaR);
+
                 LHS = obj.computeLHS(b);
                 i   = i+1;
                 res(i) = norm(LHS*x - RHS)/norm(x);
                 [resL(i),resH(i),resB(i),resG(i)] = obj.evaluateResidualNorms(bBar,b);
                 disp(['iter ',num2str(i),' residual ',num2str(res(i))])
-                close all
-               % plotVector(b)
-                %fig = figure; set(fig, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
-               % drawnow                
+               % close all
+                % plotVector(b)
+                % fig = figure; set(fig, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
+                % drawnow                
             end
             plotVector(obj.projectInUnitBall(b));
             figure()
@@ -100,15 +107,6 @@ classdef LinearizedHarmonicProjector4 < handle
             resGnorm = Norm(resG,'L2');
         end
 
-        function b = createVectorFromSolution(obj,x)
-            nB = obj.fB.nDofs;
-            bV = x(1:2*nB);
-            s.fValues = reshape(bV,[],2);
-            s.mesh    = obj.mesh;
-            s.order   = obj.fB.order;
-            b = LagrangianFunction(s);
-        end
-
         function [resL,resH,resB,resG] = evaluateAllResiduals(obj,bBar,b)
             resL = project(DP(b-bBar,obj.perimeter.*(b-bBar)),'P1');
             resH = obj.evaluateHarmonicResidual(b);                
@@ -128,6 +126,8 @@ classdef LinearizedHarmonicProjector4 < handle
             hf = LHS\rhsV;
             resH = obj.createFunction(full(hf),obj.fS.order);
         end
+
+               
 
 
     end
@@ -151,6 +151,14 @@ classdef LinearizedHarmonicProjector4 < handle
             s.mesh    = obj.mesh;
             s.order   = order;
             f = LagrangianFunction(s);
+        end
+
+        function createFilter(obj)
+            s.filterType   = 'PDE';
+            s.mesh         = obj.mesh;
+            s.trial        = obj.fB;
+            f              = Filter.create(s);
+            obj.filter     = f;            
         end
 
         function LHS = computeLHS(obj,b)
@@ -196,9 +204,40 @@ classdef LinearizedHarmonicProjector4 < handle
             RHS  = [rhsB;rhsH];
         end
 
+        function b = createVectorFromSolution(obj,x)
+            nB = obj.fB.nDofs;
+            bV = x(1:2*nB);
+            s.fValues = reshape(bV,[],2);
+            s.mesh    = obj.mesh;
+            s.order   = obj.fB.order;
+            b = LagrangianFunction(s);
+        end        
+
+        function bNew = filterVector(obj,b)
+            %eps = obj.eta;
+            eps = (10*obj.mesh.computeMeanCellSize)^2;
+            obj.filter.updateEpsilon(eps);
+            bVector = b.getVectorFields;
+            bNew1 = obj.filter.compute(bVector{1},2);
+            bNew2 = obj.filter.compute(bVector{2},2);
+            bNew(:,1) = bNew1.fValues;
+            bNew(:,2) = bNew2.fValues;
+            s.fValues = reshape(bNew,[],2);
+            s.mesh    = obj.mesh;
+            s.order   = obj.fB.order;
+            bNew = LagrangianFunction(s);
+        end
+
     end
 
     methods (Access = private, Static)
+
+        function x = relaxationInSphere(xNew,x,theta)
+            phiG = ScalarProduct(xNew,x,'L2');
+            w    = max(acos(phiG),1e-14);
+            %x = (sin((1-theta)*w)/sin(w)).*x + (sin(theta*w)/sin(w)).*xNew;
+            x = (1-theta).*x + theta.*xNew;
+        end                 
 
         function vNF = projectInUnitBall(vF)
             v    = vF.fValues;

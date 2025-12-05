@@ -119,7 +119,7 @@ classdef NewHarmonicVectorProjectionExample < handle
            %d = load('DataExampleArchCoarse.mat');  
            %d = load('DataExampleArch.mat');  
            d = load('DataExampleLshape.mat');        
-           %d = load('DataExampleCantilever.mat');        
+          % d = load('DataExampleCantilever.mat');        
            w = d.w;
            obj.experimentData = w;
         end
