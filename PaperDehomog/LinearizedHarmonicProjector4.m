@@ -41,7 +41,6 @@ classdef LinearizedHarmonicProjector4 < handle
         end
 
 
-
         function b = solveProblem(obj,bBar,b)
             b    = project(b,obj.fB.order);
             %bBar = project(bBar,obj.fB.order);
@@ -56,7 +55,9 @@ classdef LinearizedHarmonicProjector4 < handle
             thetaB = 1;
             thetaR = 1;
 
-            while res(i) > 1e-12
+
+
+            while res(i) > 1e-12 && i<=165
                 
                 %iter Harmonic 
                 x   = LHS\RHS;
@@ -76,10 +77,13 @@ classdef LinearizedHarmonicProjector4 < handle
                 res(i) = norm(LHS*x - RHS)/norm(x);
                 [resL(i),resH(i),resB(i),resG(i)] = obj.evaluateResidualNorms(bBar,b);
                 disp(['iter ',num2str(i),' residual ',num2str(res(i))])
-               % close all
-                % plotVector(b)
-                % fig = figure; set(fig, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
-                % drawnow                
+                close all                
+                plotVector(b)
+                 fig = figure(1);  set(fig, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
+                 %drawnow  
+                  
+                 obj.plotgif(i-1,fig);
+
             end
             plotVector(obj.projectInUnitBall(b));
             figure()
@@ -246,6 +250,18 @@ classdef LinearizedHarmonicProjector4 < handle
             vNF = LagrangianFunction.create(vF.mesh,vF.ndimf,vF.order);
             vNF.setFValues(v);
         end
+
+
+        function plotgif(i,fig)
+            filename = 'anim.gif';
+            frame = getframe(fig);
+            [A,map] = rgb2ind(frame.cdata,256);
+            if i==1
+                imwrite(A,map,filename,"gif","LoopCount",0,"DelayTime",0.1);
+            else
+                imwrite(A,map,filename,"gif","WriteMode","append","DelayTime",0.1);
+            end
+        end        
 
     end    
 
