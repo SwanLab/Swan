@@ -1,4 +1,4 @@
-/* 02. Shape optimization via the Level Set method - Tutorial */
+/* 07. Shape optimization via the Level Set method - Multiple iters geom constr */
 load "medit"
 load "distance"
 load "iovtk"
@@ -22,9 +22,9 @@ include "tools.idp"
 
 
 /* Initialization of the Level Set function */
-Vh phio, phi;
-phio = inils();
-distance(Th,phio,phi[]);
+Vh phik, phik1, phikj, phikj1;
+phik = inils();
+distance(Th,phik,phik1[]);
 
 /* State problem */
 Vh ux, uy, vx, vy;
@@ -41,120 +41,141 @@ problem elasticity([ux,uy],[vx,vy]) = int2d(Th)(Achi*mu*(2.0*dx(ux)*dx(vx) + (dx
 
 /* Initialization */
 real ers = 1.e-3;   // Ersatz material parameter
-Achi[] = volfrac(Th,phi[],ers);
+Achi[] = volfrac(Th,phik1[],ers);
 elasticity;
 
 /* Regularization of shape derivative */
 real meshsiz = 1.5/(50*fac);
 real alpha = 4.0*meshsiz;
-Vh g, v;
-Vh0 g0;
+Vh g, v, g0, g0C, g0V;
 problem velext(g,v) = int2d(Th)(alpha^2*(dx(g)*dx(v)+dy(g)*dy(v)) + g*v)
-                      - int1d(Th,levelset=phi)(g0*v);
+                      - int1d(Th,levelset=phik1)(g0*v);
 
 /* Objective function */
 macro J() (int2d(Th)(Achi*mu*(2.0*dx(ux)*dx(ux) + (dx(uy)+dy(ux))*(dx(uy)+dy(ux))
                       + 2.0*dy(uy)*dy(uy)) + Achi*lambda*(dx(ux)+dy(uy))*(dx(ux)+dy(uy)))) // EOM
+/* Constraint */
+macro C() (int2d(Th)(Achi)) // EOM
 
 /* Initial value of the objective function */
-real vol, newobj;
-vol = int2d(Th)(Achi);
-real ell = 0.2;
-newobj = J + ell*vol;
+real vol, Jk1, ell = 0.2, Ck;
+Ck = J;
+Jk1 = Ck + ell*C;
 string sout;
-sout = "Tutorial02_."+0+".vtu";
-savevtk(sout, Th, phi, dataname="LevelSet");
 
 /* Print initial objective and save initial level set function and density */
-cout<<"Initial value of the objective function: "<<newobj<<endl;
+cout<<"Initial value of the objective function: "<<Jk1<<endl;
 
 /* (Negative) shape gradient */
+macro dJC() {
+  g0C = mu*(2.0*dx(ux)*dx(ux) + (dx(uy)+dy(ux))*(dx(uy)+dy(ux)) + 2.0*dy(uy)*dy(uy))
+       + lambda*(dx(ux)+dy(uy))*(dx(ux)+dy(uy));
+} // EOM
+
+macro dJV() {
+  g0V = -ell;
+} // EOM
+
 macro dJ() {
-  g0 = mu*(2.0*dx(ux)*dx(ux) + (dx(uy)+dy(ux))*(dx(uy)+dy(ux)) + 2.0*dy(uy)*dy(uy))
-       + lambda*(dx(ux)+dy(uy))*(dx(ux)+dy(uy))  - ell;
+  g0 = g0C + g0V;
   velext;
 } // EOM
 
 /* Main loop */
-Vh uxo,uyo,nx,ny;
+Vh nx,ny;
 real nt = Th.nt;
 real eps = 1.e-6;  // To avoid divisions by 0
 real alphanor = 0.0001;   // Parameter for normal extension
-real obj;
+real Jk, Jkj, Jkj1;
 real step;
 real gmax;
 real tol = 0.005;   // Tolerance for accepting steps that slightly increase the objective
-real coef = 3.0;   // Parameters for line search
-real maxcoef = 3.0;
-real mincoef = 0.1;
+real tk = 1.0;   // Parameters for line search
+real gk = 3.0;
+real maxtk = 1.0;
+real mintk = 0.1;
+real maxgk = 3.0;
+real mingk = 0.1;
 Vh X;
 int maxit = 20, kmax = 10;
+int j, jmax = 1;
 real[int] costPlot, volumePlot;
 for (int it=0; it<maxit; it++) {
-  obj = newobj;
-  phio = phi;
-  uxo = ux;
-  uyo = uy;
-  X=(phio>0);
+  Jk = Jk1;
+  phik = phik1;
+  phikj = phik1;
+  Jkj = Jk1;
+  X=(phik>0);
   plot(X, fill=1, value=1);
   /* Decrease tolerance after a few iterations have been made */
   if ( it == 100 ) tol = 0.001;
 
   /* Calculation of the shape gradient */
+  dJC;
+  dJV;
   dJ;
+      
   gmax = max(g[].max,-g[].min);
-
-  /* Normal vector field to the shape */
-  normalvec(phi);
-
+  normalvec(phikj);
   nx = g*nx;
   ny = g*ny;
 
-  /* Line search */
+  int j = 0;
+  while (j<jmax) {
+    step = gk*meshsiz / (eps^2+gmax);
+    phikj1[] = advectRedist(phikj[],nx[],ny[],step);
+    phikj1[] = symmshape(phikj1[]);
+
+    Achi[] = volfrac(Th,phikj1[],ers);
+    Jkj1 = Ck + ell*C;
+    if ( Jkj1 < Jkj + tol*abs(Jkj) || gk <= mingk ) {
+      gk = min(1.1*gk,maxgk);
+      j = j+1;
+      dJV;
+      dJ;
+
+      gmax = max(g[].max,-g[].min);
+      normalvec(phikj);
+      nx = g*nx;
+      ny = g*ny;
+
+      phikj = phikj1;
+      Jkj = Jkj1;
+    }
+    else {
+      gk = max(0.6*gk,mingk);
+    }
+  }
+
   for (int k=0; k<kmax; k++) {
-    /* Calculation of step: maximum amplitude of motion = meshsiz*coef */
-    step = coef*meshsiz / (eps^2+gmax);
-
-    /* Update of the shape */
-    phi[] = advectRedist(phio[],nx[],ny[],step);
-    phi[] = symmshape(phi[]);
-
-    /* Calculation of the new objective function */
-    Achi[] = volfrac(Th,phi[],ers);
+    phik1 = phik + tk*(phikj1 - phik);
+    Achi[] = volfrac(Th,phik1[],ers);
     elasticity;
-    vol = int2d(Th)(Achi);
-    newobj = J + ell*vol;
-
-    /* Decision */
-    /* Accept iteration */
-    if ( newobj < obj + tol*abs(obj) || coef <= mincoef ) {
-      coef = min(1.1*coef,maxcoef);
+    Ck = J;
+    Jk1 = Ck + ell*C;
+    if ( Jk1 < Jk + tol*abs(Jk) || tk <= mintk ) {
+      tk = min(1.1*tk,maxtk);
       costPlot.resize(costPlot.n+1);
       costPlot[costPlot.n-1] = J;
       volumePlot.resize(volumePlot.n+1);
       volumePlot[volumePlot.n-1] = vol;
       break;
     }
-    /* Reject iteration */
     else {
-      coef = max(0.6*coef,mincoef);
-      phi = phio;
-      ux = uxo;
-      uy = uyo;
-      newobj = obj;
+      tk = max(0.6*tk,mintk);
     }
   }
 
-  /* Save shape (level set) and print new objective */
-  sout = "Tutorial02_."+(it+1)+".vtu";
-  savevtk(sout, Th, phi, dataname="LevelSet");
-
-  cout<<"Iteration "<<it<<" Objective : "<<newobj<<endl;
+  cout<<"Iteration "<<it<<" Objective : "<<Jk1<<endl;
 }
 plot(X, fill=1, value=1, wait=1);
 
+/* Save shape (level set) */
+  sout = "07_Result.vtu";
+  savevtk(sout, Th, phik1, dataname="LevelSet");
+
 // write data file with "iteration value"
-string datafile = "objectiveHistory.gp";
+string datafile = "07_objectiveHistory.gp";
 {
     ofstream fout(datafile);
     for (int i = 0; i < costPlot.n; ++i)
@@ -162,7 +183,7 @@ string datafile = "objectiveHistory.gp";
 }
 
 // create gnuplot command to plot the data with logscale on y-axis
-string gnuplotCmd = "gnuplot -e \"set term png size 800,600; set output 'costPlot.png'; set title 'Objective History'; set xlabel 'Iteration'; set ylabel 'Objective Value'; set logscale y; plot '" + datafile + "' with lines lw 2 title 'Objective'\"";
+string gnuplotCmd = "gnuplot -e \"set term png size 800,600; set output '07_costPlot.png'; set title 'Objective History'; set xlabel 'Iteration'; set ylabel 'Compliance'; set logscale y; plot '" + datafile + "' with lines lw 2 title 'Objective'\"";
 
 // execute gnuplot command
 exec(gnuplotCmd);
@@ -170,6 +191,7 @@ exec(gnuplotCmd);
 
 
 // write data file with "iteration value"
+datafile = "07_constraintHistory.gp";
 {
     ofstream fout(datafile);
     for (int i = 0; i < volumePlot.n; ++i)
@@ -177,27 +199,7 @@ exec(gnuplotCmd);
 }
 
 // create gnuplot command to plot the data with logscale on y-axis
-gnuplotCmd = "gnuplot -e \"set term png size 800,600; set output 'volumePlot.png'; set title 'Objective History'; set xlabel 'Iteration'; set ylabel 'Volume Value'; set logscale y; plot '" + datafile + "' with lines lw 2 title 'Objective'\"";
+gnuplotCmd = "gnuplot -e \"set term png size 800,600; set output '07_constraintPlot.png'; set title 'Constraint History'; set xlabel 'Iteration'; set ylabel 'Volume'; set logscale y; plot '" + datafile + "' with lines lw 2 title 'Objective'\"";
 
 // execute gnuplot command
 exec(gnuplotCmd);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Vh kappa;
-Vh0 kappa0;
-real deltah = 0.05; // The min cell size
-alpha = deltah; // epsilon of a pde filter
-curvature;

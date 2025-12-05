@@ -55,7 +55,7 @@ newobj = J + ell*(C-0.5);
 cout<<"Initial value of the objective function: "<<newobj<<endl;
 
 /* (Negative) shape gradient */
-Vh nx,ny, vx, vy, kappa;
+Vh nx, ny, vx, vy, kappa;
 
 macro grad(g0) [dx(g0),dy(g0)] //
 macro gradN(g0,nx,ny) [nx*(dx(g0)*nx+dy(g0)*ny),ny*(dx(g0)*nx+dy(g0)*ny)] //
