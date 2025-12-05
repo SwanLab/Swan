@@ -211,7 +211,7 @@ classdef TutorialFirst < handle
        function createPrimalUpdater(obj)
             s.ub     = 1;
             s.lb     = 0;
-            s.tauMax = 1000;
+            s.tauMax = 5;
             s.tau    = [];
             obj.primalUpdater = ProjectedGradient(s);
         end
@@ -246,7 +246,7 @@ classdef TutorialFirst < handle
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
             s.etaNorm        = 0.01;
-            s.gJFlowRatio    = 2;
+            s.gJFlowRatio    = 0.5;
             s.gif            = true;
             s.gifName        = 'Tutorial_Homo_ReinforcedHexagon_Beam';
             s.printing       = true;
@@ -275,7 +275,7 @@ classdef TutorialFirst < handle
             s.type     = 'HomogenizedMicrostructure';
             s.mesh     = obj.mesh;
             s.young    = 1.0;
-            s.fileName = 'HomogenizationResultsReinforcedHexagon15';
+            s.fileName = 'HomogenizationResultsReinforcedHexagon';
             m = MaterialFactory.create(s);
 
            % m = Material.create(s);  

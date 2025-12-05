@@ -211,7 +211,7 @@ classdef TutorialFirstArc < handle
        function createPrimalUpdater(obj)
             s.ub     = 1;
             s.lb     = 0;
-            s.tauMax = 1000;
+            s.tauMax = 5;
             s.tau    = [];
             obj.primalUpdater = ProjectedGradient(s);
         end
