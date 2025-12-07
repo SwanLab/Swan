@@ -27,7 +27,13 @@ classdef Tutorial02FEMElasticity < handle
         end
 
         function createMesh(obj)
-            obj.mesh = UnitTriangleMesh(50,50);
+            obj.mesh = UnitQuadMesh(3,3);
+
+            s.separation = 0.1;
+            s.baseMesh   = obj.mesh;
+            cohesiveMesh = CohesiveMesh(s);
+
+            obj.mesh = cohesiveMesh.mesh;
         end
 
         function computeElasticProperties(obj)

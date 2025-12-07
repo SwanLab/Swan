@@ -1,7 +1,9 @@
 classdef CohesiveMesh < handle
     
     properties (Access = public)
+        baseMesh 
         mesh
+
         isCohesive
 
         newCoord
@@ -11,9 +13,17 @@ classdef CohesiveMesh < handle
         listElemCohesive
 
         nnodeCohesive
+        nElemCohesive
         pairsMatrix
 
         separation
+
+        % baseMesh i crear nova malla --> Mesh.create(s)
+        % arreglar 1x1
+        % cond contorn
+        % triangle
+        % logical
+
     end
     
     properties (Access = private)
@@ -26,37 +36,39 @@ classdef CohesiveMesh < handle
     
     methods (Access = public)
         
-        function obj = CohesiveMesh()
-            n = 15;
-            obj.init(n)
-            obj.baseMesh(n)
+        function obj = CohesiveMesh(cParams)
+            
+            obj.init(cParams)
+            % obj.baseMeshCreator(n)
             obj.duplicator()
-            obj.updateConnec()        
+            obj.updateConnec()
+            obj.newMesh()
         end
         
     end
     
     methods (Access = private)
         
-        function init(obj,n)
-            obj.separation = 1/n/10;
+        function init(obj,cParams)
+            obj.separation = cParams.separation;
+            obj.baseMesh   = cParams.baseMesh;
         end
         
-        function baseMesh(obj,n)
-            obj.mesh = UnitQuadMesh(n,n);
-        end
+        % function baseMeshCreator(obj,n)
+        %     obj.baseMesh = UnitQuadMesh(n,n);
+        % end
 
         function duplicator(obj)
 
-            ymin = min(obj.mesh.coord(:,2));
-            obj.isCohesive = abs(obj.mesh.coord(:,2)) == ymin; 
-            obj.nnodeCohesive = sum(obj.isCohesive == 1) * 2;
+            ymin = min(obj.baseMesh.coord(:,2));
+            obj.isCohesive = abs(obj.baseMesh.coord(:,2)) == ymin; 
+            obj.nnodeCohesive = sum(obj.isCohesive) * 2;
             obj.listNodeCohesive = find(obj.isCohesive == 1);
 
-            obj.newCoord = obj.mesh.coord;
+            obj.newCoord = obj.baseMesh.coord;
 
             dispV      = [0, 1];
-            duplicated = obj.newCoord(obj.isCohesive == 1, :) + obj.separation*dispV;
+            duplicated = obj.newCoord(obj.isCohesive, :) + obj.separation*dispV;
             obj.newCoord = [obj.newCoord; duplicated];
 
             obj.pairsMatrix = [obj.listNodeCohesive , (size(obj.isCohesive,1)+1:1:obj.nnodeCohesive/2+size(obj.isCohesive,1))'];
@@ -64,19 +76,16 @@ classdef CohesiveMesh < handle
 
             obj.isCohesive = [obj.isCohesive; ones(obj.nnodeCohesive/2,1)];
 
-                scatter(obj.newCoord(:,1), obj.newCoord(:,2), 'filled');
+                % scatter(obj.newCoord(:,1), obj.newCoord(:,2), 'filled');
 
         end
 
         function updateConnec(obj)
-            obj.newConnec = obj.mesh.connec;
+            obj.newConnec = obj.baseMesh.connec;
             
-            isCohesiveElem = any(obj.isCohesive(obj.newConnec),2);
-            obj.listElemCohesive = find(isCohesiveElem == 1);
+            isCohesiveElem = any(reshape(obj.isCohesive(obj.newConnec), size(obj.newConnec)),2);
+            obj.listElemCohesive = find(isCohesiveElem);
 
-
-
-            % MALAMENT
             % for i = obj.listNodeCohesive'
             %     for n = 1:4
             %         if obj.isCohesive(obj.newConnec(i,n))
@@ -98,8 +107,9 @@ classdef CohesiveMesh < handle
                 nodes = obj.newConnec(e,:)';
                 coords = obj.newCoord(nodes,:);
                 
-                cohesiveNodes = nodes((obj.isCohesive(nodes) == 1));
+                cohesiveNodes = nodes((obj.isCohesive(nodes)==1));
                 originalArea = polyarea(coords(:,1), coords(:,2));
+                
                 
                 for cn = cohesiveNodes'
                     pair = getPair(obj,cn);
@@ -120,29 +130,24 @@ classdef CohesiveMesh < handle
 
             cohesiveConnec = [obj.pairsMatrix(1:end-1,1), obj.pairsMatrix(2:end,1), obj.pairsMatrix(2:end,2), obj.pairsMatrix(1:end-1,2)];
             obj.newConnec = [obj.newConnec; cohesiveConnec];
+            obj.nElemCohesive = size(cohesiveConnec,1);
             
-            obj.mesh.coord = obj.newCoord;
-            obj.mesh.connec = obj.newConnec;
-
-
-
-
+            obj.baseMesh.coord = obj.newCoord;
+            obj.baseMesh.connec = obj.newConnec;
 
         end
-
-
 
         function pair = getPair(obj,n)
             pair = obj.pairsMatrix(obj.pairsMatrix(:,1) == n, 2);
         end
-
-
-
+    
+        function newMesh(obj)
+            s.connec = obj.newConnec;
+            s.coord  = obj.newCoord;
+            obj.mesh = Mesh.create(s);
+        end
     end
         
-    
-    
-    
-    
+
 end
     
