@@ -6,7 +6,7 @@ classdef VolumeFunctional < handle
         test
     end
 
-    properties (Access = private)
+    properties (Access = public)
         baseFun
         totalVolume
     end
