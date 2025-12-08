@@ -43,17 +43,21 @@ problem elasticity([ux,uy],[vx,vy]) = int2d(Th)(Achi*mu*(2.0*dx(ux)*dx(vx) + (dx
 real ers = 1.e-3;   // Ersatz material parameter
 Achi[] = volfrac(Th,phik1[],ers);
 elasticity;
-
 /* Regularization of shape derivative */
 real meshsiz = 1.5/(50*fac);
 real alpha = 4.0*meshsiz;
-Vh g, v, g0, g0C, g0V;
+Vh g, v;
+Vh0 g0, g0C, g0V;
 problem velext(g,v) = int2d(Th)(alpha^2*(dx(g)*dx(v)+dy(g)*dy(v)) + g*v)
-                      - int1d(Th,levelset=phik1)(g0*v);
+                      - int1d(Th,levelset=phikj)(g0*v);
 
 /* Objective function */
 macro J() (int2d(Th)(Achi*mu*(2.0*dx(ux)*dx(ux) + (dx(uy)+dy(ux))*(dx(uy)+dy(ux))
                       + 2.0*dy(uy)*dy(uy)) + Achi*lambda*(dx(ux)+dy(uy))*(dx(ux)+dy(uy)))) // EOM
+
+/* Linear variation of the objective function */
+macro dJ0k(xi,phi,step) (- int1d(Th,levelset=phi)((step*xi)^2)) // EOM
+
 /* Constraint */
 macro C() (int2d(Th)(Achi)) // EOM
 
@@ -93,11 +97,11 @@ real tol = 0.005;   // Tolerance for accepting steps that slightly increase the 
 real tk = 1.0;   // Parameters for line search
 real gk = 3.0;
 real maxtk = 1.0;
-real mintk = 0.1;
+real mintk = 1.0;
 real maxgk = 3.0;
 real mingk = 0.1;
 Vh X;
-int maxit = 20, kmax = 10;
+int maxit = 16, kmax = 10;
 int j, jmax = 1;
 real[int] costPlot, volumePlot;
 for (int it=0; it<maxit; it++) {
@@ -120,49 +124,52 @@ for (int it=0; it<maxit; it++) {
   nx = g*nx;
   ny = g*ny;
 
-  int j = 0;
-  while (j<jmax) {
-    step = gk*meshsiz / (eps^2+gmax);
-    phikj1[] = advectRedist(phikj[],nx[],ny[],step);
-    phikj1[] = symmshape(phikj1[]);
+  for (int k=0; k<kmax; k++) { /*In future this may be moved after volume LS loop */
 
-    Achi[] = volfrac(Th,phikj1[],ers);
-    Jkj1 = Ck + ell*C;
-    if ( Jkj1 < Jkj + tol*abs(Jkj) || gk <= mingk ) {
-      gk = min(1.1*gk,maxgk);
-      j = j+1;
-      dJV;
-      dJ;
+    int j = 0;
+    while (j<jmax) {
+      step = gk*meshsiz / (eps^2+gmax);
+      phikj1[] = advectRedist(phikj[],nx[],ny[],step);
+      phikj1[] = symmshape(phikj1[]);
 
-      gmax = max(g[].max,-g[].min);
-      normalvec(phikj);
-      nx = g*nx;
-      ny = g*ny;
+      Achi[] = volfrac(Th,phikj1[],ers);
+      Jkj1 = Ck + dJ0k(g,phik,step) + ell*C;
+      if ( Jkj1 < Jkj + tol*abs(Jkj) + 1e6 || gk <= mingk ) {
+        Ck = Ck + dJ0k(g,phik,step);
+        gk = min(1.0*gk,maxgk);
+        j = j+1;
+        /*phikj = phikj1;*/
+        dJV;
+        dJ;
 
-      phikj = phikj1;
-      Jkj = Jkj1;
+        /*gmax = max(g[].max,-g[].min);
+        normalvec(phikj);
+        nx = g*nx;
+        ny = g*ny;*/
+
+        Jkj = Jkj1;
+      }
+      else {
+        gk = max(0.6*gk,mingk);
+      }
     }
-    else {
-      gk = max(0.6*gk,mingk);
-    }
-  }
-
-  for (int k=0; k<kmax; k++) {
     phik1 = phik + tk*(phikj1 - phik);
     Achi[] = volfrac(Th,phik1[],ers);
     elasticity;
     Ck = J;
     Jk1 = Ck + ell*C;
-    if ( Jk1 < Jk + tol*abs(Jk) || tk <= mintk ) {
+    if ( Jk1 < Jk + tol*abs(Jk) ) {
       tk = min(1.1*tk,maxtk);
+      gk = min(1.1*gk,maxgk);
       costPlot.resize(costPlot.n+1);
       costPlot[costPlot.n-1] = J;
       volumePlot.resize(volumePlot.n+1);
-      volumePlot[volumePlot.n-1] = vol;
+      volumePlot[volumePlot.n-1] = C;
       break;
     }
     else {
       tk = max(0.6*tk,mintk);
+      gk = max(0.6*gk,mingk);
     }
   }
 
