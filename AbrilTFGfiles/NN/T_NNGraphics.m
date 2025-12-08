@@ -12,7 +12,7 @@ load(filePath1);
 
 % Mesh load
 filename2='UL_r0_0000-20x20.mat';
-filePath2 = fullfile('AbrilTFGfiles', 'DataVariables', filename2);
+filePath2 = fullfile('AbrilTFGfiles', 'Data', filename2);
 load(filePath2, 'mesh');
 
 real=reshape(real.',2,mesh.nnodes,[]);

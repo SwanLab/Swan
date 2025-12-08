@@ -139,14 +139,14 @@ classdef CoarseTesting_Abril< handle
 
         function init(obj)
             % Case Parameters
-            p.Inclusion = 'Material';         % 'Hole'/'Material'
+            p.Inclusion = 'Hole';         % 'Hole'/'Material'
             p.Sampling  = 'Oversampling'; % 'Isolated'/'Oversampling'
             p.loadData  = 'Dataset';      % 'Dataset'/'NN'
             p.nelem     =  20;            %  Mesh refining
             obj.params  =  p;
 
             % Definition of Subdomain
-            obj.r              = ones(5,15)*0.1;
+            obj.r              = ones(5,15)*0.3;
             obj.nSubdomains    = size(obj.r');
             obj.mSubdomains    = [];
             obj.tolSameNode    = 1e-10;
@@ -191,9 +191,9 @@ classdef CoarseTesting_Abril< handle
                 for j=1:size(name,2)
                     switch inclusion
                         case 'Material'
-                                filePath = fullfile('AbrilTFGfiles', 'DataVariables',meshName,name(i,j));
+                                filePath = fullfile('AbrilTFGfiles', 'Data',meshName,name(i,j));
                         case 'Hole'
-                                filePath = fullfile('AbrilTFGfiles', 'DataVariables','hole',name(i,j));
+                                filePath = fullfile('AbrilTFGfiles', 'Data','hole',name(i,j));
                     end
                     load(filePath,"T");
                     Taux{i,j}=T;
@@ -210,9 +210,9 @@ classdef CoarseTesting_Abril< handle
                 for j=1:size(name,2)
                     switch inclusion
                         case 'Material'
-                                filePath = fullfile('AbrilTFGfiles', 'DataVariables',meshName,name(i,j));
+                                filePath = fullfile('AbrilTFGfiles', 'Data',meshName,name(i,j));
                         case 'Hole'
-                                filePath = fullfile('AbrilTFGfiles', 'DataVariables','hole',name(i,j));
+                                filePath = fullfile('AbrilTFGfiles', 'Data','hole',name(i,j));
                     end
                     load(filePath,"K");
                     Kaux{i,j}=K;
@@ -293,11 +293,11 @@ classdef CoarseTesting_Abril< handle
             end
         end
 
-        function levelSet = createLevelSetFunction(~,bgMesh)
+        function levelSet = createLevelSetFunction(obj,bgMesh)
             sLS.type        = 'CircleInclusion';
             sLS.xCoorCenter = 0;
             sLS.yCoorCenter = 0;
-            sLS.radius      = 0.1;
+            sLS.radius      = obj.r(1,1);
             g               = GeometricalFunction(sLS);
             lsFun           = g.computeLevelSetFunction(bgMesh);
             levelSet        = lsFun.fValues;

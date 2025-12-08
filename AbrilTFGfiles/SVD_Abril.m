@@ -7,7 +7,7 @@ r=0:0.02:0.999;
 
 for i=1:size(r,2)
     string = strrep("UL_r"+num2str(r(i), '%.4f'), ".", "_")+"-50x50"+".mat"; 
-    FileName=fullfile('AbrilTFGfiles','DataVariables','50x50',string);
+    FileName=fullfile('AbrilTFGfiles','Data','50x50',string);
     
     load(FileName,"T","mesh");
 

@@ -18,7 +18,7 @@ load(filePath2);
 
 % load the K real
 fileName3="UL_r0_5000-20x20.mat";
-filePath1 = fullfile('AbrilTFGfiles', 'DataVariables', '20x20',fileName3);
+filePath1 = fullfile('AbrilTFGfiles', 'Data', '20x20',fileName3);
 load(filePath1,"K","R");
 
 

@@ -86,15 +86,15 @@ save(filePath,'EIFEoper')
 % filePath = '/home/raul/Documents/GitHub/EPFL/parametrizedEIFEM_T_Kproj.mat';
 % save(filePath,'EIFEoper')
 
-load('./EPFL/data2/data_0.79723.mat')
+%load('./EPFL/data2/data_0.79723.mat')
 % load('./EPFL/test/data_0.745.mat')
-load('./EPFL/dataQ8/data_0.800.mat')
-EIFEoper.Kcoarse = @(r) EIFEoper.Kcoarse;
-EIFEoper.Udef = @(r) EIFEoper.Udef;
-EIFEoper.Urb  = @(r) EIFEoper.Urb + Urb1;
-
-filePath = './EPFL/dataEIFEMQ8_3.mat';
-save(filePath,'EIFEoper')
+%load('./EPFL/dataQ8/data_0.800.mat')
+%EIFEoper.Kcoarse = @(r) EIFEoper.Kcoarse;
+%EIFEoper.Udef = @(r) EIFEoper.Udef;
+%EIFEoper.Urb  = @(r) EIFEoper.Urb + Urb1;
+%
+%filePath = './EPFL/dataEIFEMQ8_3.mat';
+%save(filePath,'EIFEoper')
 
 deim    = DEIM(var);
 xdata   = 0.06:0.004:0.24;
