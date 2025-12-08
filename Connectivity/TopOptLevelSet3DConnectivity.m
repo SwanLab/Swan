@@ -9,6 +9,8 @@ classdef TopOptLevelSet3DConnectivity< handle
         filterAdjointConnect
         designVariable
         materialInterpolator
+        conductivityInterpolator
+        massInterpolator
         physicalProblem
         compliance
         volume
@@ -31,7 +33,7 @@ classdef TopOptLevelSet3DConnectivity< handle
 
     methods (Access = public)
         function obj = TopOptLevelSet3DConnectivity()
-            for type = ["torqueBeam"] %,] %, "cornersSupport","cornersSupport","centralSupport",
+            for type = ["cornersSupport"]%""]%,"cornersSupport",
                 for lambda1min = [2.0]
                     obj.lambda1min = lambda1min;
                     obj.type = convertStringsToChars(type);
@@ -42,6 +44,8 @@ classdef TopOptLevelSet3DConnectivity< handle
                     obj.createFilterCompliance();
                     obj.createFilterConnectivity();
                     obj.createMaterialInterpolator();
+                    obj.createConductivityInterpolator();
+                    obj.createMassInterpolator();
                     obj.createElasticProblem();
                     obj.createComplianceFromConstitutive();
                     obj.createNonDesignableDomain();
@@ -67,9 +71,10 @@ classdef TopOptLevelSet3DConnectivity< handle
         function createMesh(obj)
             if isequal(obj.type, 'cornersSupport') 
                 obj.mesh = HexaMesh(1,1,1,30,30,30);
+%                 obj.mesh = HexaMesh(1,1,1,15,15,15);
             elseif isequal(obj.type,'centralSupport')
 %                 obj.mesh = HexaMesh(4,4,3,32,32,24);
-                obj.mesh = HexaMesh(1,1,0.75,30,30,24);
+%                 obj.mesh = HexaMesh(1,1,0.75,30,30,24);
 %                 obj.mesh = HexaMesh(1,1,0.75,40,40,30);
             elseif isequal(obj.type, 'torqueBeam')
 %                 obj.mesh = HexaMesh(3,1,1,90,30,30);
@@ -143,6 +148,25 @@ classdef TopOptLevelSet3DConnectivity< handle
             obj.materialInterpolator = m;
         end
 
+
+        function createConductivityInterpolator(obj) 
+            s.interpolation  = 'SimpAllThermal';
+            s.f0   = 1e-3;                                             
+            s.f1   = 1;  
+            s.dim  = '3D';
+            a = MaterialInterpolator.create(s);
+            obj.conductivityInterpolator = a;            
+        end 
+
+        function createMassInterpolator(obj)
+            s.interpolation  = 'SIMPThermal';                              
+            s.f0   = 1e-3;
+            s.f1   = 1;
+            s.pExp = 1;
+            a = MaterialInterpolator.create(s);
+            obj.massInterpolator = a;            
+        end      
+
         function createElasticProblem(obj)
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
@@ -173,9 +197,22 @@ classdef TopOptLevelSet3DConnectivity< handle
             obj.compliance = c;
         end
      
+
+        function uMesh = createBaseDomain(obj)
+            sG.type          = 'Full';
+            g                = GeometricalFunction(sG);
+            lsFun            = g.computeLevelSetFunction(obj.mesh);
+            levelSet         = lsFun.fValues;
+            s.backgroundMesh = obj.mesh;
+            s.boundaryMesh   = obj.mesh.createBoundaryMesh();
+            uMesh            = UnfittedMesh(s);
+            uMesh.compute(levelSet);
+        end
+
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
-            s.gradientTest = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.test = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.uMesh = obj.createBaseDomain();
             if isequal(obj.type, 'bridge')
                 s.volumeTarget = 0.4;
 %             elseif isequal(obj.type, 'torqueBeam')
@@ -193,7 +230,10 @@ classdef TopOptLevelSet3DConnectivity< handle
             s.filter            = obj.filterConnect;
             s.filterAdjoint     = obj.filterAdjointConnect;  
             s.boundaryConditions = obj.createEigenvalueBoundaryConditions();
-            s.targetEigenValue  = obj.lambda1min; 
+            s.conductivityInterpolator = obj.conductivityInterpolator; 
+            s.massInterpolator         = obj.massInterpolator; 
+            s.targetEigenValue  = obj.lambda1min;    
+            s.isCompl           = true;
             s.dim               = '3D';
             obj.minimumEigenValue = StiffnessEigenModesConstraint(s);
         end
@@ -218,11 +258,11 @@ classdef TopOptLevelSet3DConnectivity< handle
             obj.constraint      = Constraint(s);
         end
 
-%       function createDualVariable(obj)
-%             s.nConstraints   = 2;
-%             l                = DualVariable(s);
-%             obj.dualVariable = l;
-%         end  
+      function createDualVariable(obj)
+            s.nConstraints   = 2;
+            l                = DualVariable(s);
+            obj.dualVariable = l;
+        end  
 
         function createPrimalUpdater(obj)
             s.mesh = obj.mesh;
@@ -249,7 +289,6 @@ classdef TopOptLevelSet3DConnectivity< handle
             s.gJFlowRatio    = 1.0;  
             s.etaMax         = 60.0; 
             s.etaMaxMin      = 1.0;  
-            s.filter         = obj.filterComp;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

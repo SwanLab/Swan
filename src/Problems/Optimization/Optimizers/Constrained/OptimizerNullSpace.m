@@ -42,6 +42,7 @@ classdef OptimizerNullSpace < handle
         typeBench
         saveCost
         saveConstraint
+        savePer
     end
 
     methods (Access = public) 
@@ -73,8 +74,10 @@ classdef OptimizerNullSpace < handle
                 end
             end
             cost = obj.saveCost; 
+            per = obj.savePer;
             constraint = obj.saveConstraint;
             save('cost'+string(obj.GIFname)+'.mat','cost')
+%             save('per'+string(obj.GIFname)+'.mat','per')
             save('constraint'+string(obj.GIFname)+'.mat','constraint')
         end
     end
@@ -101,6 +104,7 @@ classdef OptimizerNullSpace < handle
             obj.createDualVariable();
             obj.initOtherParameters(cParams);
             obj.saveCost = [];
+            obj.savePer = [];
             obj.saveConstraint = [];
             obj.GIFname = cParams.GIFname;
         end
@@ -108,6 +112,7 @@ classdef OptimizerNullSpace < handle
 
         function saveFilesPosProcess(obj)
             obj.saveCost(end+1) = obj.cost.getFields(1);
+%             obj.savePer(end+1) = obj.cost.getFields(2);
             obj.saveConstraint(end+1,:) = obj.constraint.value;
         end
 

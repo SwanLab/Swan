@@ -1,25 +1,242 @@
-% yyaxis left
-plot(cp1.cost); hold on;  
-plot(cp08.cost);  
-plot(cp06.cost);
-% yyaxis right
-% yyaxis right
-plot(-p1.constraint(:,2)+1); hold on;  
-plot(-p08.constraint(:,2)+0.8);  
-plot(-p06.constraint(:,2)+0.6);
-ylabel('First Eigenvalue', 'FontSize', 14)
-xlabel('Iteration', 'FontSize', 14)
-grid on
-legend({'$\lambda_1^{\min} = 1.0$ ','$\lambda_1^{\min} = 0.8$ ','$\lambda_1^{\min} = 0.6$ '},'Interpreter','latex','Location','northeast', 'FontSize', 14)
+Colors = get(groot, 'defaultAxesColorOrder');
+% set(groot,'DefaultAxesFontSize',14);
+% set(groot,'DefaultTextFontSize',15);
+% set(groot,'DefaultLineLineWidth',1.2);
+% set(groot,'DefaultAxesLineWidth',1.2);
 
-figure; 
-plot(-np1.constraint(:,2)+1); hold on;  
-plot(-np08.constraint(:,2)+0.8);  
-plot(-np06.constraint(:,2)+0.6);
-ylabel('First Eigenvalue', 'FontSize', 14)
-xlabel('Iteration', 'FontSize', 14)
+set(groot,'DefaultAxesFontSize',14);     % axis numbers
+set(groot,'DefaultAxesLabelFontSizeMultiplier',1.2);
+set(groot,'DefaultAxesTitleFontSizeMultiplier',1.3);
+set(groot,'DefaultTextFontSize',14);     % text, legends, annotations
+set(groot,'DefaultLegendFontSize',14);
+set(groot,'DefaultLineLineWidth',1.4);   % thicker lines
+
+
+% %%%%% ONLY COMPLIANCE, VOLUME, EIG %%%%%%%%%%%%%
+fig = figure('Units','centimeters','Position',[1 2 24 6]);
+t = tiledlayout(1,2);
+t.TileSpacing = 'loose';
+t.Padding = 'compact';
+% 
+% % =====================================================
+% % TOP LEFT: Compliance
+% =====================================================
+nexttile
+plot(-1.*cost(1:2000),  'Color', Colors(1,:), 'LineStyle','-'); hold on
+% plot((constraint(1:2000,1)+1)*0.4, 'Color', Colors(2,:), 'LineStyle',':');
 grid on
-legend({'$\lambda_1^{\min} = 1.0$ ','$\lambda_1^{\min} = 0.8$ ','$\lambda_1^{\min} = 0.6$ '},'Interpreter','latex','Location','northeast', 'FontSize', 14)
+xlabel('Iteration'); 
+ylabel('First Eigenvalue'); 
+ylim([-1 80])
+% legend({'First Eigenvalue','Volume'}, 'Location','best','Box','off');
+
+% =====================================================
+% BOTTOM CENTERED: First Eigenvalue
+% =====================================================
+nexttile
+plot((constraint(1:2000,1)+1)*0.4,  'Color', Colors(2,:), 'LineStyle','-'); hold on;ylim([0,1])
+% plot(constraint2.constraint(:,1), 'Color', Colors(2,:), 'LineStyle','-');
+grid on
+xlabel('Iteration'); ylabel('Volume');
+% legend({'Mass','PDE'}, 'Location','best','Box','off');
+
+% =====================================================
+% % BOTTOM CENTERED: First Eigenvalue
+% % =====================================================
+% ax3 = axes('Parent',fig,'Position',[xCenter yBottom w h]);
+% plot(-constraint(:,2)+1,  'Color', Colors(5,:), 'LineStyle','-'); hold on
+% % plot(-constraint2.constraint(:,2)+1, 'Color', Colors(5,:), 'LineStyle','-');
+% grid on
+% xlabel('Iteration'); ylabel('First Eigenvalue');
+% % legend({'Mass','PDE'}, 'Location','best','Box','off');
+
+% =====================================================
+% EXPORT PDF WITHOUT MARGINS
+% =====================================================
+figPos = get(fig,'Position');
+set(fig,'PaperUnits','centimeters');
+set(fig,'PaperSize',figPos(3:4));
+set(fig,'PaperPosition',[0 0 figPos(3:4)]);
+
+print(fig, 'eigMax.pdf', '-dpdf', '-painters');
+
+% % 
+% % %%%%% ONLY COMPLIANCE, VOLUME, EIG %%%%%%%%%%%%%
+% fig = figure('Units','centimeters','Position',[2 2 24 12]);
+% % ---- layout parameters (normalized) ----
+% w  = 0.38;           % width of each plot  (same for all)
+% h  = 0.32;           % height of each plot (same for all)
+% 
+% xLeft  = 0.07;       % x for plot 1 (top-left)
+% xRight = 1 - xLeft - w;   % x for plot 2 (top-right)
+% 
+% % center position for bottom plot:
+% xCenter = 0.5 - w/2;   
+% 
+% yTop    = 0.57;      % y for top row
+% yBottom = 0.12;      % y for bottom row
+% 
+% % =====================================================
+% % TOP LEFT: Compliance
+% % =====================================================
+% ax1 = axes('Parent',fig,'Position',[xLeft yTop w h]);
+% plot(costMass(1:1000),'k:'); hold on
+% plot(costPDE(1:1000), 'Color', Colors(1,:), 'LineStyle','-');
+% grid on
+% xlabel('Iteration'); ylabel('Compliance');
+% legend({'Mass','PDE'}, 'Location','best','Box','off');
+% 
+% % =====================================================
+% % BOTTOM CENTERED: First Eigenvalue
+% % =====================================================
+% ax2 = axes('Parent',fig,'Position',[xRight yTop w h]);
+% plot((constraintMass(1:1000,1)+1)*0.4, 'k:' ); hold on
+% plot((constraintPDE(1:1000,1)+1)*0.4,'Color', Colors(2,:), 'LineStyle','-' ); ylim([0,1])
+% grid on
+% xlabel('Iteration'); ylabel('Volume');
+% legend({'Mass','PDE'}, 'Location','best','Box','off');
+% 
+% % =====================================================
+% % BOTTOM CENTERED: First Eigenvalue
+% % =====================================================
+% ax3 = axes('Parent',fig,'Position',[xCenter yBottom w h]);
+% plot(-constraintMass(1:100,2)+1, 'k:'); hold on
+% plot(-constraintPDE(1:1000,2)+1, 'Color', Colors(5,:),  'LineStyle','-');
+% grid on
+% xlabel('Iteration'); ylabel('First Eigenvalue');
+% legend({'Mass','PDE'}, 'Location','best','Box','off');
+% 
+% % =====================================================
+% % EXPORT PDF WITHOUT MARGINS
+% % =====================================================
+% figPos = get(fig,'Position');
+% set(fig,'PaperUnits','centimeters');
+% set(fig,'PaperSize',figPos(3:4));
+% set(fig,'PaperPosition',[0 0 figPos(3:4)]);
+% 
+% print(fig, 'massPDE.pdf', '-dpdf', '-painters');
+
+
+% %%%%% COMPLIANCE, PERIMETER, VOLUME, EIG %%%%%%%%%%%%%
+% % 
+% fig = figure('Units','centimeters','Position',[2 2 24 12]);
+% t = tiledlayout(2,2);
+% t.TileSpacing = 'loose';
+% t.Padding = 'compact';
+% 
+% % ----- TOP LEFT: Compliance -----
+% nexttile
+% plot(cost,  'k:');  hold on
+% plot(costPDE, 'Color', Colors(1,:),'LineStyle','-');
+% grid on
+% xlabel('Iteration'); ylabel('Compliance');
+% legend({'Mass','PDE'}, 'Location','best', 'Box','off');
+% 
+% % ----- TOP RIGHT: Perimeter -----
+% nexttile
+% plot(per(1:1000),  'k:'); hold on
+% plot(perPDE(1:1000), 'Color', Colors(3,:), 'LineStyle','-');
+% grid on
+% xlabel('Iteration'); ylabel('Perimeter');
+% legend({'Mass','PDE'}, 'Location','best', 'Box','off');
+% 
+% % ----- BOTTOM LEFT: Volume -----
+% nexttile
+% plot((constraint(:,1)+1)*0.4,   'k:'); hold on
+% plot((constPDE(:,1)+1)*0.4,  'Color', Colors(2,:),  'LineStyle','-'); ylim([0.0,1.0])
+% grid on
+% xlabel('Iteration'); ylabel('Volume');
+% legend({'Mass','PDE'}, 'Location','best', 'Box','off');
+% 
+% % ----- BOTTOM RIGHT: First Eigenvalue -----
+% nexttile  % <---- THIS CENTERS PLOT #3
+% plot(-constraint(:,2)+1,   'k:'); hold on
+% plot(-constPDE(:,2)+1,  'Color', Colors(5,:), 'LineWidth',1.6, 'LineStyle','-');
+% grid on
+% xlabel('Iteration'); ylabel('First Eigenvalue');
+% legend({'Mass','PDE'}, 'Location','best', 'Box','off');
+% 
+% 
+% % ----- EXPORT PDF WITHOUT MARGINS -----
+% fig = gcf;
+% figPos = get(fig,'Position');          % [x y width height]
+% set(fig,'PaperUnits','centimeters');
+% set(fig,'PaperSize',figPos(3:4));
+% set(fig,'PaperPosition',[0 0 figPos(3:4)]);
+% 
+% print(fig, 'Perimeter.pdf', '-dpdf', '-painters');
+
+% print(figure(1),'figure2x2','-dpdf');   % best for papers
+% exportgraphics(gcf, 'myFigure.pdf', 'ContentType','vector', 'BackgroundColor','none');
+
+% set(groot, 'DefaultAxesFontSize', 16);        % axis numbers
+% set(groot, 'DefaultAxesLabelFontSizeMultiplier', 1.2);
+% set(groot, 'DefaultAxesTitleFontSizeMultiplier', 1.2);
+% 
+% set(groot, 'DefaultLineLineWidth', 1.8);      % all lines
+% set(groot, 'DefaultAxesLineWidth', 1.2);      % axis box
+% 
+% set(groot, 'DefaultTextFontSize', 16);        % text, legend, colorbar
+% set(groot, 'DefaultLegendFontSize', 16);
+% 
+% set(groot, 'DefaultAxesFontName', 'Times');   % optional (for papers)
+% set(groot, 'DefaultTextFontName', 'Times');
+% 
+% figure(1);
+% tiledlayout(2,2)
+% nexttileti
+% plot(cost,'Color', Colors(1,:)); ylabel('Compliance'); xlabel('Iteration'); grid on
+% nexttile
+% plot(cost,'Color', Colors(2,:)); ylabel('Perimeter'); xlabel('Iteration'); grid on
+% 
+% nexttile
+% plot(constraint(:,1),'Color', Colors(3,:)); ylabel('Volume'); xlabel('Iteration'); grid on
+% nexttile
+% plot(-constraint(:,2)+1.0,'Color', Colors(4,:)); ylabel('First Eigenvalue'); xlabel('Iteration'); grid on
+% saveas(figure(1),'PDEperimeter','png')
+% 
+
+% % ---- Figure 2 ----
+% f2 = figure(2);
+% % yyaxis left
+% plot(constraint(:,1), 'Color', Colors(5,:)); hold on;
+% ylabel('Volume', 'FontSize', 14)
+% 
+% % yyaxis right
+% plot(-constraint(:,2)+1, 'Color', Colors(4,:)); hold on;
+% ylabel('First Eigenvalue', 'FontSize', 14)
+% xlabel('Iteration', 'FontSize', 14)
+% grid on
+% 
+% % ax = gca;
+% % ax.YAxis(1).Color = Colors(5,:);  % left axis same as left line
+% % ax.YAxis(2).Color = Colors(4,:);  % right axis same as right line
+% 
+% saveas(f2,'constraintPDEperimeter','png')
+% 
+
+% % yyaxis left
+% plot(cp1.cost); hold on;  
+% plot(cp08.cost);  
+% plot(cp06.cost);
+% % yyaxis right
+% % yyaxis right
+% plot(-p1.constraint(:,2)+1); hold on;  
+% plot(-p08.constraint(:,2)+0.8);  
+% plot(-p06.constraint(:,2)+0.6);
+% ylabel('First Eigenvalue', 'FontSize', 14)
+% xlabel('Iteration', 'FontSize', 14)
+% grid on
+% legend({'$\lambda_1^{\min} = 1.0$ ','$\lambda_1^{\min} = 0.8$ ','$\lambda_1^{\min} = 0.6$ '},'Interpreter','latex','Location','northeast', 'FontSize', 14)
+% 
+% figure; 
+% plot(-np1.constraint(:,2)+1); hold on;  
+% plot(-np08.constraint(:,2)+0.8);  
+% plot(-np06.constraint(:,2)+0.6);
+% ylabel('First Eigenvalue', 'FontSize', 14)
+% xlabel('Iteration', 'FontSize', 14)
+% grid on
+% legend({'$\lambda_1^{\min} = 1.0$ ','$\lambda_1^{\min} = 0.8$ ','$\lambda_1^{\min} = 0.6$ '},'Interpreter','latex','Location','northeast', 'FontSize', 14)
 
 
 

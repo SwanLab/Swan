@@ -120,7 +120,7 @@ classdef OptimizerMMA < Optimizer
         function updateMonitoring(obj)
             data = obj.cost.value;
             data = [data;obj.cost.getFields(1)];
-%             data = [data;obj.cost.getFields(2)];
+            data = [data;obj.cost.getFields(2)];
 %             data = [data;obj.cost.getFields(3)];
             data = [data;obj.constraint.value];
 %             data = [data;obj.constraint.getLambda1()];
