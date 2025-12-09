@@ -233,24 +233,40 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
 
         function createPerimeter(obj)
 
-            
-            eOverhmin     = 1;
-            epsilon       = eOverhmin*obj.mesh.computeMeanCellSize();
-            s.mesh        = obj.mesh;
-            s.filter      = obj.filterPDE;
-            s.epsilon     = epsilon;
-            s.value0      = 4; % external P
-            s.uMesh       = obj.createBaseDomain();
-            P             = PerimeterConstraint(s);
-            obj.perimeter = P;
+            sF.mesh       = obj.mesh;
+            sF.filterType = 'PDE';
+            sF.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            f             = Filter.create(sF);
+
+            h         = obj.mesh.computeMeanCellSize();
+            s.mesh    = obj.mesh;
+            s.uMesh   = obj.createBaseDomain();
+            s.filter  = f;
+            s.epsilon = 3*h;
+            s.minEpsilon = 3*h;
+            s.value0 = 1;
+            s.target = 20;
+            obj.perimeter = PerimeterConstraint(s);
+
+
+            % 
+            % eOverhmin     = 1;
+            % epsilon       = eOverhmin*obj.mesh.computeMeanCellSize();
+            % s.mesh        = obj.mesh;
+            % s.filter      = obj.filterPDE;
+            % s.epsilon     = epsilon;
+            % s.value0      = 4; % external P
+            % s.uMesh       = obj.createBaseDomain();
+            % P             = PerimeterConstraint(s);
+            % obj.perimeter = P;
         end   
   
 
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
-            s.shapeFunctions{2} = obj.perimeter;
+        %    s.shapeFunctions{2} = obj.perimeter;
             s.weights           = [1 1];
-            %s.weights           = 1;
+            s.weights           = 1;
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -263,7 +279,8 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume; 
-            s.shapeFunctions{2} = obj.enclosedVoid;                      
+            s.shapeFunctions{2} = obj.enclosedVoid;    
+            s.shapeFunctions{3} = obj.perimeter;    
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
