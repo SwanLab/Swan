@@ -26,7 +26,7 @@ classdef EnclosedVoidFunctional < handle
         function obj = EnclosedVoidFunctional(cParams)
             obj.init(cParams);
             obj.target = 0.01;
-            obj.qExp   = 3;
+            obj.qExp   = 8;
             obj.test = LagrangianFunction.create(obj.mesh,1,'P1');
             obj.createBoundaryConditionsAdjoint();
             obj.createSolverAdjoint();
@@ -55,7 +55,7 @@ classdef EnclosedVoidFunctional < handle
             
             %obj.updateEpsilonForNextIteration(J);
             %dJ{1} = -phi +  DP(obj.dm(xR).*(phi-xR)-obj.m(xR),lam) + 1.*obj.dk(xR).*DP(Grad(lam),Grad(phi));
-            dJ{1} = -phi.*((1-xR).^(obj.qExp-1))*obj.qExp;% +  DP(obj.dm(xR).*(phi-xR)-obj.m(xR),lam) + 1.*obj.dk(xR).*DP(Grad(lam),Grad(phi));
+            dJ{1} = -phi.*((1-xR).^(obj.qExp-1))*obj.qExp;% + DP(obj.dm(xR).*(phi-xR)-obj.m(xR),lam) + 1.*obj.dk(xR).*DP(Grad(lam),Grad(phi));
             %dJ{1} =  -phi.*(1-xR);
             %dJ{1} =  -phi;%.*(1-xR);
             dJ{1} = dJ{1}./Dom*1;
