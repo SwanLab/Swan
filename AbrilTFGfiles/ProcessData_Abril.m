@@ -17,8 +17,6 @@ for k = 1:1:length(files)
     data=load(filePath);
 
     T(:,i) = data.T(:);  % This stores each file's contents in the cell array 'allData'
-    Kcoarse(:,i) = data.K(:);
-
     disp(['Loaded: ', files(k).name]);  % Display the file being loaded
     i=i+1;
 end
@@ -28,7 +26,6 @@ end
 xdata   = linspace(1e-6,0.999,20);
 centers = xdata;
 [fT,deim]   = parameterizedDataLagrange(T,xdata);
-fK   = parameterizedDataLagrange(Kcoarse,xdata);
 
 r=0.3;
 

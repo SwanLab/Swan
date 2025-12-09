@@ -7,11 +7,11 @@ pol_deg         = 1;
 testratio       = 30;
 lambda          = 0.0;
 learningRate    = 0.2;
-hiddenLayers    = 36 .* ones(1, 2);
+hiddenLayers    =[10 10];
 
 %% INITIALIZATION 
 % Store dataset file name
-s.fileName = 'DataK.csv';
+s.fileName = 'DataQ.csv';
 
 % Load model parameters
 s.polynomialOrder = pol_deg;
@@ -27,7 +27,7 @@ s.networkParams.OUtype = 'linear';
 
 % Select the model's features
 s.xFeatures = [1];
-s.yFeatures = [2:1:37];
+s.yFeatures = [2:1:11];
 cHomogIdxs = [11, 12, 22, 33];
 
 % Load data
@@ -36,15 +36,15 @@ data   = Data(s);
 s.data = data;
 
 % Train the model
-K_NN = OptimizationProblemNN(s);
-K_NN.solve();
-K_NN.plotCostFnc();
-MSETrain    = immse(K_NN.computeOutputValues(data.Xtrain), data.Ytrain);
+Q_NN = OptimizationProblemNN(s);
+Q_NN.solve();
+Q_NN.plotCostFnc();
+MSETrain    = immse(Q_NN.computeOutputValues(data.Xtrain), data.Ytrain);
 
-string ="K_NN.mat";
+string ="Q_NN.mat";
 
 FileName=fullfile('AbrilTFGfiles','NN',string);
-    save(FileName, "K_NN");
+    save(FileName, "Q_NN");
 
 %% Plot surface
 
@@ -56,7 +56,7 @@ real = tempData(:,s.yFeatures);
 predicted = zeros(size(real));
 
 for i = 1:size(real,1)
-    predicted(i,:) = K_NN.computeOutputValues(tempData(i,s.xFeatures));
+    predicted(i,:) = Q_NN.computeOutputValues(tempData(i,s.xFeatures));
 end
 
 difference = real-predicted;

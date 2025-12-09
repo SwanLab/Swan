@@ -111,23 +111,3 @@ end
 FileName=fullfile('AbrilTFGfiles','NN',string);
     save(FileName, "T_NN","real","predicted","difference","T_type");
 
-
-% figure
-% bar3(abs(difference))
-% title("Abs of real vs predicted")
-% xlabel("Position i in array")
-% ylabel("Position j in array")
-% 
-% 
-% predictedHalf = zeros(size(real));
-% 
-% for i = 1:size(real,1)
-%     predictedHalf(i, :) = opt.computeOutputValues(0.5.*tempData(i, s.xFeatures));
-% end
-% differenceHalf = 0.5.*real-predictedHalf;
-% 
-% figure
-% bar3(abs(differenceHalf))
-% title("Abs of real vs predicted when input is 0.5")
-% xlabel("Position i in array")
-% ylabel("Position j in array")
