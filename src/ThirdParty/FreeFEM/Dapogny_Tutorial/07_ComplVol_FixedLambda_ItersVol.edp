@@ -106,7 +106,7 @@ int maxit = 50, kmax = 10;
 int j, jmax = 5;
 real[int] costPlot, volumePlot;
 costPlot.resize(costPlot.n+1);
-costPlot[costPlot.n-1] = J;
+costPlot[costPlot.n-1] = Jk1;
 volumePlot.resize(volumePlot.n+1);
 volumePlot[volumePlot.n-1] = C;
 for (int it=0; it<maxit; it++) {
@@ -166,7 +166,7 @@ for (int it=0; it<maxit; it++) {
       tk = min(1.1*tk,maxtk);
       gk = min(1.1*gk,maxgk);
       costPlot.resize(costPlot.n+1);
-      costPlot[costPlot.n-1] = J;
+      costPlot[costPlot.n-1] = Jk1;
       volumePlot.resize(volumePlot.n+1);
       volumePlot[volumePlot.n-1] = C;
       break;
