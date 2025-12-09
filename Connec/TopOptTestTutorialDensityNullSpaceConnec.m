@@ -47,7 +47,7 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
 
         function createMesh(obj)
             %UnitMesh better
-            obj.mesh = QuadMesh(2, 1, 100, 50);
+            obj.mesh = QuadMesh(2, 1, 150, 75);
         end
 
         function createDesignVariable(obj)
@@ -281,50 +281,50 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
         end
 
         function createOptimizer(obj)
-            % s.monitoring     = true;
-            % s.cost           = obj.cost;
-            % s.constraint     = obj.constraint;
-            % s.designVariable = obj.designVariable;
-            % s.maxIter        = 300;
-            % s.tolerance      = 1e-8;
-            % s.constraintCase = {'EQUALITY','INEQUALITY'};
-            % s.constraintCase = {'EQUALITY'};
-            % s.primal         = 'PROJECTED GRADIENT';
-            % s.etaNorm        = 0.1;
-            % s.gJFlowRatio    = 2;
-            % s.primalUpdater  = obj.primalUpdater;
-            % s.gif            = false;
-            % s.gifName        = [];
-            % s.printing       = false;
-            % s.printName      = [];       
-            % opt = OptimizerNullSpace(s);
-            % opt.solveProblem();
-            % obj.optimizer = opt;
-
-
-             s.nConstraints   = 1;
-             l                = DualVariable(s);            
-
-
             s.monitoring     = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.dualVariable   = l;
             s.maxIter        = 300;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY','INEQUALITY'};
-            s.ub             = 1;
-            s.lb             = 0;
-            s.volumeTarget   = 0.4;
+%            s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
-            s.gif            = true;
-            s.gifName        = 'CantileverEnclosedVoid';
-            s.printing       = true;
-            s.printName      = 'CantileverEnclosedVoid';              
-            opt              = OptimizerMMA(s);
+            s.etaNorm        = 0.1;
+            s.gJFlowRatio    = 2;
+            s.primalUpdater  = obj.primalUpdater;
+            s.gif            = false;
+            s.gifName        = [];
+            s.printing       = false;
+            s.printName      = [];       
+            opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
+
+
+            %  s.nConstraints   = 1;
+            %  l                = DualVariable(s);            
+            % 
+            % 
+            % s.monitoring     = true;
+            % s.cost           = obj.cost;
+            % s.constraint     = obj.constraint;
+            % s.designVariable = obj.designVariable;
+            % s.dualVariable   = l;
+            % s.maxIter        = 1000;
+            % s.tolerance      = 1e-8;
+            % s.constraintCase = {'EQUALITY','INEQUALITY'};
+            % s.ub             = 1;
+            % s.lb             = 0;
+            % s.volumeTarget   = 0.4;
+            % s.primal         = 'PROJECTED GRADIENT';
+            % s.gif            = true;
+            % s.gifName        = 'CantileverEnclosedVoid';
+            % s.printing       = false;
+            % s.printName      = 'CantileverEnclosedVoid';              
+            % opt              = OptimizerMMA(s);
+            % opt.solveProblem();
+            % obj.optimizer = opt;
 
             % 
             % s.monitoring     = true;
