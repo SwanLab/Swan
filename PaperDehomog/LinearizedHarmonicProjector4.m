@@ -51,9 +51,10 @@ classdef LinearizedHarmonicProjector4 < handle
             res = norm(LHS*x - RHS)/norm(x);
             [resL,resH,resB,resG] = obj.evaluateResidualNorms(bBar,b);
             i = 1;
-            thetaH = 0;
-            thetaB = 1;
+            thetaH = 0.3;
             thetaR = 1;
+            thetaB = 1;
+            
 
 
 
@@ -64,22 +65,36 @@ classdef LinearizedHarmonicProjector4 < handle
                 bNew = obj.createVectorFromSolution(full(x));
                 b    = obj.relaxationInSphere(bNew,b,thetaH);
                
+              
                 %iter Projection UnitBall
                 bNew   = obj.projectInUnitBall(b);
-                b = obj.relaxationInSphere(bNew,b,thetaB);
-               
+                b = obj.relaxationInSphere(bNew,b,thetaB);                
+
+                sCf   = obj.createSingularities(b);
+                nSing = sum(sCf.fValues);
                 %iter Filter
+                if nSing >= 1
                 bNew = obj.filterVector(b);
                 b    = obj.relaxationInSphere(bNew,b,thetaR);
-
+                end                
+                
+                %iter Projection UnitBall
+                bNew   = obj.projectInUnitBall(b);
+                b = obj.relaxationInSphere(bNew,b,thetaB);          
+               
                 LHS = obj.computeLHS(b);
                 i   = i+1;
                 res(i) = norm(LHS*x - RHS)/norm(x);
                 [resL(i),resH(i),resB(i),resG(i)] = obj.evaluateResidualNorms(bBar,b);
-                disp(['iter ',num2str(i),' residual ',num2str(res(i))])
-                close all                
-                plotVector(b)
-                 fig = figure(1);  set(fig, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
+              %  disp(['iter ', num2str(i),'  resL = ', num2str(resL(i)),'  resH = ', num2str(resH(i)),'  resB = ', num2str(resB(i)), '  resG = ', num2str(resG(i))])
+                fprintf('iter %3d | nSing = %3d |  res = %10.4e | resL = %10.4e | resH = %10.4e | resB = %10.4e | resG = %10.4e\n', ...
+                i, nSing, res(i), resL(i), resH(i), resB(i), resG(i));
+              close all             
+
+
+                 plotVector(b)
+                % obj.plotSingularities(b)
+                 fig = figure(1);  set(fig, 'Units', 'normalized', 'OuterPosition', [0.5 0 0.5 1]);
                  %drawnow  
                   
                  obj.plotgif(i-1,fig);
@@ -219,7 +234,7 @@ classdef LinearizedHarmonicProjector4 < handle
 
         function bNew = filterVector(obj,b)
             %eps = obj.eta;
-            eps = (10*obj.mesh.computeMeanCellSize)^2;
+            eps = (20*obj.mesh.computeMeanCellSize)^2;
             obj.filter.updateEpsilon(eps);
             bVector = b.getVectorFields;
             bNew1 = obj.filter.compute(bVector{1},2);
@@ -232,6 +247,32 @@ classdef LinearizedHarmonicProjector4 < handle
             bNew = LagrangianFunction(s);
         end
 
+        function sCf = createSingularities(obj,b)
+            a1   = obj.createHalfOrientationVectorP1(b);
+            s.mesh        = obj.mesh;
+            s.orientation = a1;
+            sC = SingularitiesComputer(s);
+            sCf = sC.compute();
+        end
+
+        function plotSingularities(obj,b)
+            sCf = obj.createSingularities(b);
+            plot(sCf);            
+        end
+
+        function a1 = createHalfOrientationVectorP1(obj,b1)
+            bX = b1.fValues(:,1);
+            bY = b1.fValues(:,2);
+            beta   = atan2(bY,bX);
+            alpha  = beta/2;
+            aV(:,1) = cos(alpha);
+            aV(:,2) = sin(alpha);
+            s.fValues = aV;
+            s.mesh    = obj.mesh;
+            s.order   = 'P1';
+            a1 = LagrangianFunction(s);
+        end        
+
     end
 
     methods (Access = private, Static)
@@ -239,8 +280,8 @@ classdef LinearizedHarmonicProjector4 < handle
         function x = relaxationInSphere(xNew,x,theta)
             phiG = ScalarProduct(xNew,x,'L2');
             w    = max(acos(phiG),1e-14);
-            %x = (sin((1-theta)*w)/sin(w)).*x + (sin(theta*w)/sin(w)).*xNew;
-            x = (1-theta).*x + theta.*xNew;
+            x = (sin((1-theta)*w)/sin(w)).*x + (sin(theta*w)/sin(w)).*xNew;
+            %x = (1-theta).*x + theta.*xNew;
         end                 
 
         function vNF = projectInUnitBall(vF)
