@@ -1,4 +1,4 @@
-classdef TopOptTestTutorialLSPerimeter < handle
+classdef Tutorial05_4_TopOpt2DLevelSetPerimeter < handle
 
     properties (Access = private)
         mesh
@@ -14,7 +14,7 @@ classdef TopOptTestTutorialLSPerimeter < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorialLSPerimeter()
+        function obj = Tutorial05_4_TopOpt2DLevelSetPerimeter()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -36,13 +36,7 @@ classdef TopOptTestTutorialLSPerimeter < handle
         end
 
         function createMesh(obj)
-            x1      = linspace(0,1,50);
-            x2      = linspace(0,1,50);
-            [xv,yv] = meshgrid(x1,x2);
-            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            s.coord  = V(:,1:2);
-            s.connec = F;
-            obj.mesh = Mesh.create(s);
+            obj.mesh = TriangleMesh(1,1,50,50);
         end
 
         function createDesignVariable(obj)
@@ -147,6 +141,10 @@ classdef TopOptTestTutorialLSPerimeter < handle
             s.gJFlowRatio    = 5;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
+            s.gif            = false;
+            s.gifName        = [];
+            s.printing       = false;
+            s.printName      = [];
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

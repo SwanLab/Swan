@@ -1,4 +1,4 @@
-classdef TutorialElasticityAMG < handle
+classdef Tutorial02p3ElasticityAMG < handle
 
 % WARNING!
 % - Install a valid python version (3.8 for example)
@@ -15,7 +15,7 @@ classdef TutorialElasticityAMG < handle
 
     methods (Access = public)
 
-        function obj = TutorialElasticityAMG()
+        function obj = Tutorial02p3ElasticityAMG()
             obj.init();
             obj.createMesh();
             obj.computeElasticProperties();

@@ -1,4 +1,4 @@
-classdef TutorialXXHyperelasticity < handle
+classdef Tutorial13_Hyperelasticity < handle
     
     properties (Access = public)
         output
@@ -13,7 +13,7 @@ classdef TutorialXXHyperelasticity < handle
 
     methods (Access = public)
 
-        function obj = TutorialXXHyperelasticity()
+        function obj = Tutorial13_Hyperelasticity()
             obj.init()
             obj.createMesh();
             obj.createBoundaryConditions()
@@ -88,11 +88,12 @@ classdef TutorialXXHyperelasticity < handle
         end
 
         function createFunctional(obj)
-            s.matTensor   = obj.material;
-            s.quadOrder   = 3;
-            s.matProp     = obj.matProp;
-            s.mesh        = obj.mesh;
-            s.testSpace.u = LagrangianFunction.create(obj.mesh,2,'P1');
+            obj.matProp.type = 'Neohookean';
+            s.matTensor    = obj.material;
+            s.quadOrder    = 3;
+            s.matProp      = obj.matProp;
+            s.mesh         = obj.mesh;
+            s.testSpace.u  = LagrangianFunction.create(obj.mesh,2,'P1');
             obj.functional = ElasticityFunctional(s);
         end
 
