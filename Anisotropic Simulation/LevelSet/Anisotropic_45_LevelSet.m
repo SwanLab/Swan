@@ -32,8 +32,8 @@ classdef Anisotropic_45_LevelSet < handle
             obj.createOptimizer();
 
             % Save monitoring and desginVariable fValues
-            %saveas(gcf,'Monitoring_45_LevelSet.fig');
-            obj.designVariable.fun.print('fValues_45_LevelSet');
+            %saveas(gcf,'Monitoring_45_LevelSetV2.fig');
+            obj.designVariable.fun.print('fValues_45_LevelSetV2');
         end
 
     end
@@ -173,16 +173,16 @@ classdef Anisotropic_45_LevelSet < handle
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
-            s.etaNorm        = 0.02;
+            s.etaNorm        = 0.1;
             s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 0.1;
-            s.etaMax         = 1;
-            s.etaMaxMin      = 0.01;
+            s.gJFlowRatio    = 0.2;
+            s.etaMax         = 10;
+            s.etaMaxMin      = 0.05;
             %s.type           = '45';
             s.gif = true;
-            s.gifName = 'Gif_45_LevelSet';
+            s.gifName = 'Gif_45_LevelSetV2';
             s.printing = false;
-            s.printName = 'Results_45_LevelSet';
+            s.printName = 'Results_45_LevelSetV2';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
