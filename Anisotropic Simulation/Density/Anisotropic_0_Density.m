@@ -83,18 +83,7 @@ classdef Anisotropic_0_Density < handle
             obj.filter = f;
         end
 
-        % function createPerimeter(obj)
-        %     eOverhmin     = 10;
-        %     epsilon       = eOverhmin*obj.mesh.computeMeanCellSize();
-        %     s.mesh        = obj.mesh;
-        %     s.filter      = obj.filter;
-        %     s.epsilon     = epsilon;
-        %     s.value0      = 4; % external P - aqui s'ha de posar el perímetre després de iterar
-        %     s.uMesh       = obj.createBaseDomain();
-        %     P             = PerimeterFunctional(s);
-        %     obj.perimeter = P;
-        % end
-
+     
 
         function createMaterialInterpolator(obj)
             type = '0';

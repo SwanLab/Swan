@@ -12,6 +12,7 @@ classdef Anisotropic_90_Density < handle
         constraint
         primalUpdater
         optimizer
+        perimeter
     end
 
     methods (Access = public)
@@ -21,6 +22,7 @@ classdef Anisotropic_90_Density < handle
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
+            obj.createPerimeter();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
             obj.createComplianceFromConstiutive();
@@ -33,7 +35,7 @@ classdef Anisotropic_90_Density < handle
 
             % Save monitoring and desginVariable fValues
             % saveas(gcf,'Monitoring_90_Density.fig');
-            obj.designVariable.fun.print('fValues_90_Density_MBB');
+            %obj.designVariable.fun.print('fValues_90_Density_MBB');
         end
 
     end
@@ -46,12 +48,12 @@ classdef Anisotropic_90_Density < handle
 
         function createMesh(obj)
             %UnitMesh better
-            % Cantilever beam
-            % x1      = linspace(0,2,150);
-            % x2      = linspace(0,1,75);
-            % MBB Beam
-            x1      = linspace(0,6,500);
+            %Cantilever beam
+            x1      = linspace(0,2,150);
             x2      = linspace(0,1,75);
+            % MBB Beam
+            % x1      = linspace(0,6,500);
+            % x2      = linspace(0,1,75);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -73,13 +75,45 @@ classdef Anisotropic_90_Density < handle
             obj.designVariable = dens; 
         end
 
+        % function createFilter(obj)
+        %     s.filterType = 'LUMP';
+        %     s.mesh  = obj.mesh;
+        %     s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+        %     f = Filter.create(s);
+        %     obj.filter = f;
+        % end
+           % what is this
         function createFilter(obj)
-            s.filterType = 'LUMP';
-            s.mesh  = obj.mesh;
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            f = Filter.create(s);
-            obj.filter = f;
+            u = 65;
+            alpha = 90;
+            CAnisotropic = [tand(u),0;0,1/tand(u)];
+            R = [cosd(alpha),-sind(alpha)
+                sind(alpha), cosd(alpha)];
+            CGlobal = R*CAnisotropic*R';
+
+            s.filterType   = 'PDE';
+            s.boundaryType = 'Neumann';
+            s.metric       = 'Anisotropy';
+            s.A            = ConstantFunction.create(CGlobal,obj.mesh);
+            s.mesh         = obj.mesh;
+            s.trial        = LagrangianFunction.create(obj.mesh,1,'P1');
+            f              = Filter.create(s);
+            obj.filter     = f;
         end
+
+
+          function createPerimeter(obj)
+            eOverhmin     = 10;
+            epsilon       = eOverhmin*obj.mesh.computeMeanCellSize();
+            s.mesh        = obj.mesh;
+            s.filter      = obj.filter;
+            s.epsilon     = epsilon;
+            s.value0      = 100; % external P - aqui s'ha de posar el perímetre després de iterar
+            s.uMesh       = obj.createBaseDomain();
+            P             = PerimeterFunctional(s);
+            obj.perimeter = P;
+        end
+
 
         function createMaterialInterpolator(obj)
             type = '90';
@@ -148,7 +182,9 @@ classdef Anisotropic_90_Density < handle
 
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
-            s.weights           = 1;
+            s.shapeFunctions{2} = obj.perimeter;
+            s.weights(1)           = 1; % 1
+            s.weights(2)           = 1; % 1
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -188,7 +224,7 @@ classdef Anisotropic_90_Density < handle
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
             %s.type           = '90';
-            s.gif = true;
+            s.gif = false;
             s.gifName = 'Gif_90_Density_MBB';
             s.printing = false;
             s.printName = 'Results_90_Density';
@@ -212,27 +248,27 @@ classdef Anisotropic_90_Density < handle
 
         function bc = createBoundaryConditions(obj)
             % Cantilever beam
-            % xMax    = max(obj.mesh.coord(:,1));
-            % yMax    = max(obj.mesh.coord(:,2));
-            % isDir   = @(coor)  abs(coor(:,1))==0;
-            % isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
-            
-            % MBB beam
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
-            isDir   = @(coor)  (abs(coor(:,1))==0 & abs(coor(:,2)) == 0);
-            isDir2  = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2)) == 0);
-            isForce = @(coor)  (abs(coor(:,2))==yMax & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax);
+            isDir   = @(coor)  abs(coor(:,1))==0;
+            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
+            
+            % MBB beam
+            % xMax    = max(obj.mesh.coord(:,1));
+            % yMax    = max(obj.mesh.coord(:,2));
+            % isDir   = @(coor)  (abs(coor(:,1))==0 & abs(coor(:,2)) == 0);
+            % isDir2  = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2)) == 0);
+            % isForce = @(coor)  (abs(coor(:,2))==yMax & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax);
 
 
             sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = 2;
+            sDir{1}.direction = [1,2];
             sDir{1}.value     = 0;
             
             % Comentar sDir 2 quan es faci cantilever beam
-            sDir{2}.domain    = @(coor) isDir2(coor);
-            sDir{2}.direction = [1,2];
-            sDir{2}.value     = 0;
+            % sDir{2}.domain    = @(coor) isDir2(coor);
+            % sDir{2}.direction = [1,2];
+            % sDir{2}.value     = 0;
 
             sPL{1}.domain    = @(coor) isForce(coor);
             sPL{1}.direction = 2;
