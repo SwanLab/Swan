@@ -73,6 +73,7 @@ classdef LaticeMeshGen < handle
                 m.plot
                 hold on
             end
+
             %             mD.plot()
             [bC,dir] = obj.createBoundaryConditions();
             obj.boundaryConditions = bC;
@@ -112,14 +113,14 @@ classdef LaticeMeshGen < handle
             %             obj.r  = [0.1 , 0.2; 0.3, 0.4];
             rng(0);
             maxr = 0.4;
-            minr = 0.4;
-            obj.r= (maxr - minr) * rand(obj.nSubdomains(2),obj.nSubdomains(1)) + minr;
-            obj.xmin = -1;
+            minr = 0.1;
+            obj.r= (maxr - minr) * rand(obj.nSubdomains(1),obj.nSubdomains(2)) + minr;
+            obj.xmin = 0;
             obj.xmax = 1;
-            obj.ymin = -1;
+            obj.ymin = 0;
             obj.ymax = 1;
-            obj.cx = 0;
-            obj.cy = 0;
+            obj.cx = (obj.xmax-obj.xmin)/2;
+            obj.cy = (obj.ymax-obj.ymin)/2;
             obj.Nr=7;
             obj.Ntheta=14;
             obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange40.mat';
@@ -131,6 +132,39 @@ classdef LaticeMeshGen < handle
             obj.referenceMesh = obj.mesh_rectangle_via_triangles(obj.r);
         end
 
+        function mSubdoms = createMeshSubdomains(obj)
+            [nx,ny] = size(obj.r);
+            mSubdoms = cell(nx,ny);
+            fullmesh = UnitTriangleMesh(12,12);
+            radiusSubdomain = obj.r;
+            for i=1:nx
+                for j=1:ny
+                    
+                    ls = obj.computeCircleLevelSet(fullmesh,radiusSubdomain(i,j));
+                    sUm.backgroundMesh = fullmesh;
+                    sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
+                    uMesh              = UnfittedMesh(sUm);
+                    uMesh.compute(ls);
+                    mSubdoms{i,j} = uMesh.createInnerMesh();
+                end
+
+            end
+
+            obj.referenceMesh = mSubdoms{1,1};
+        end
+
+        function ls = computeCircleLevelSet(obj, mesh, radius)
+            % Original method for single radius (backward compatibility)
+            gPar.type          = 'Circle';
+            gPar.radius        = radius;
+            gPar.xCoorCenter   = 0.5;
+            gPar.yCoorCenter   = 0.5;
+            g                  = GeometricalFunction(gPar);
+            phiFun             = g.computeLevelSetFunction(mesh);
+            lsCircle           = phiFun.fValues;
+            ls = -lsCircle;
+        end
+
         function  mSbd= createSubDomainMeshes(obj)
             nX = obj.nSubdomains(1);
             nY = obj.nSubdomains(2);
@@ -140,7 +174,7 @@ classdef LaticeMeshGen < handle
             Ly = obj.ymax-obj.ymin;
             for jDom = 1:nY
                 for iDom = 1:nX
-                    refMesh = obj.mesh_rectangle_via_triangles(obj.r(jDom,iDom));
+                    refMesh = obj.mesh_rectangle_via_triangles(obj.r(iDom,jDom));
                     coord0 = refMesh.coord;
                     s.coord(:,1) = coord0(:,1)+Lx*(iDom-1);
                     s.coord(:,2) = coord0(:,2)+Ly*(jDom-1);
@@ -148,7 +182,7 @@ classdef LaticeMeshGen < handle
                     mIJ     = Mesh.create(s);
                     %                     plot(mIJ)
                     %                     hold on;
-                    mSbd{jDom,iDom} = mIJ;
+                    mSbd{iDom,jDom} = mIJ;
                 end
             end
             obj.referenceMesh = mSbd{1,1};
