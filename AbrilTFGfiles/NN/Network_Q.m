@@ -3,11 +3,11 @@ clear;
 close all;
 
 %% Initialization of hyperparameters
-pol_deg         = 1;
+pol_deg         = 2;
 testratio       = 30;
 lambda          = 0.0;
 learningRate    = 0.2;
-hiddenLayers    =[10 10];
+hiddenLayers    =[20 20];
 
 %% INITIALIZATION 
 % Store dataset file name
@@ -27,22 +27,26 @@ s.networkParams.OUtype = 'linear';
 
 % Select the model's features
 s.xFeatures = [1];
-s.yFeatures = [2:1:11];
 cHomogIdxs = [11, 12, 22, 33];
 
 % Load data
 %data   = cHomogData(s);
-data   = Data(s);
-s.data = data;
+
 
 % Train the model
-Q_NN = OptimizationProblemNN(s);
-Q_NN.solve();
-Q_NN.plotCostFnc();
-MSETrain    = immse(Q_NN.computeOutputValues(data.Xtrain), data.Ytrain);
+
+for i=1:20
+    s.yFeatures = [i+1];
+    data   = Data(s);
+    s.data = data;
+    Q_NN{i} = OptimizationProblemNN(s);
+    Q_NN{i}.solve();
+    Q_NN{i}.plotCostFnc();
+
+    %MSETrain    = immse(Q_NN(i).computeOutputValues(data.Xtrain), data.Ytrain);
+end
 
 string ="Q_NN.mat";
-
 FileName=fullfile('AbrilTFGfiles','NN',string);
     save(FileName, "Q_NN");
 
