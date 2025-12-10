@@ -51,14 +51,14 @@ classdef LinearizedHarmonicProjector4 < handle
             res = norm(LHS*x - RHS)/norm(x);
             [resL,resH,resB,resG] = obj.evaluateResidualNorms(bBar,b);
             i = 1;
-            thetaH = 0.3;
-            thetaR = 1;
+            thetaH = 0.5;
+            thetaR = 0.1;
             thetaB = 1;
             
 
+            nSing = 100;
 
-
-            while res(i) > 1e-12 && i<=165
+            while res(i) > 1e-12 && i<=3000
                 
                 %iter Harmonic 
                 x   = LHS\RHS;
@@ -70,8 +70,9 @@ classdef LinearizedHarmonicProjector4 < handle
                 bNew   = obj.projectInUnitBall(b);
                 b = obj.relaxationInSphere(bNew,b,thetaB);                
 
-                sCf   = obj.createSingularities(b);
-                nSing = sum(sCf.fValues);
+
+               % sCf   = obj.createSingularities(b);
+               % nSing = sum(sCf.fValues);
                 %iter Filter
                 if nSing >= 1
                 bNew = obj.filterVector(b);
@@ -80,24 +81,34 @@ classdef LinearizedHarmonicProjector4 < handle
                 
                 %iter Projection UnitBall
                 bNew   = obj.projectInUnitBall(b);
-                b = obj.relaxationInSphere(bNew,b,thetaB);          
+                b = obj.relaxationInSphere(bNew,b,thetaB); 
+
+                sCf   = obj.createSingularities(b);
+                nSing = sum(sCf.fValues);
                
                 LHS = obj.computeLHS(b);
+                RHS = obj.computeRHS(bBar);
+
                 i   = i+1;
                 res(i) = norm(LHS*x - RHS)/norm(x);
                 [resL(i),resH(i),resB(i),resG(i)] = obj.evaluateResidualNorms(bBar,b);
+
+              
               %  disp(['iter ', num2str(i),'  resL = ', num2str(resL(i)),'  resH = ', num2str(resH(i)),'  resB = ', num2str(resB(i)), '  resG = ', num2str(resG(i))])
                 fprintf('iter %3d | nSing = %3d |  res = %10.4e | resL = %10.4e | resH = %10.4e | resB = %10.4e | resG = %10.4e\n', ...
                 i, nSing, res(i), resL(i), resH(i), resB(i), resG(i));
-              close all             
+                close all             
 
 
                  plotVector(b)
-                % obj.plotSingularities(b)
+                 %obj.plotSingularities(b)
                  fig = figure(1);  set(fig, 'Units', 'normalized', 'OuterPosition', [0.5 0 0.5 1]);
                  %drawnow  
                   
                  obj.plotgif(i-1,fig);
+
+                
+                 
 
             end
             plotVector(obj.projectInUnitBall(b));
