@@ -13,6 +13,7 @@ classdef Anisotropic_90_Density < handle
         primalUpdater
         optimizer
         perimeter
+        filterPDE
     end
 
     methods (Access = public)
@@ -22,6 +23,7 @@ classdef Anisotropic_90_Density < handle
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
+            obj.createFilterPDE();
             obj.createPerimeter();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
@@ -75,30 +77,20 @@ classdef Anisotropic_90_Density < handle
             obj.designVariable = dens; 
         end
 
-        % function createFilter(obj)
-        %     s.filterType = 'LUMP';
-        %     s.mesh  = obj.mesh;
-        %     s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-        %     f = Filter.create(s);
-        %     obj.filter = f;
-        % end
+         function createFilter(obj)
+             s.filterType = 'LUMP';
+             s.mesh  = obj.mesh;
+             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+             f = Filter.create(s);
+             obj.filter = f;
+         end
            % what is this
-        function createFilter(obj)
-            u = 65;
-            alpha = 90;
-            CAnisotropic = [tand(u),0;0,1/tand(u)];
-            R = [cosd(alpha),-sind(alpha)
-                sind(alpha), cosd(alpha)];
-            CGlobal = R*CAnisotropic*R';
-
+        function createFilterPDE(obj)
             s.filterType   = 'PDE';
-            s.boundaryType = 'Neumann';
-            s.metric       = 'Anisotropy';
-            s.A            = ConstantFunction.create(CGlobal,obj.mesh);
             s.mesh         = obj.mesh;
             s.trial        = LagrangianFunction.create(obj.mesh,1,'P1');
             f              = Filter.create(s);
-            obj.filter     = f;
+            obj.filterPDE     = f;
         end
 
 
@@ -106,11 +98,13 @@ classdef Anisotropic_90_Density < handle
             eOverhmin     = 10;
             epsilon       = eOverhmin*obj.mesh.computeMeanCellSize();
             s.mesh        = obj.mesh;
-            s.filter      = obj.filter;
+            s.filter      = obj.filterPDE;
             s.epsilon     = epsilon;
-            s.value0      = 100; % external P - aqui s'ha de posar el perímetre després de iterar
+            s.minEpsilon  = epsilon;
+            s.target      = 100; % external P - aqui s'ha de posar el perímetre després de iterar
+            s.value0      = 1;
             s.uMesh       = obj.createBaseDomain();
-            P             = PerimeterFunctional(s);
+            P             = PerimeterConstraint(s);
             obj.perimeter = P;
         end
 
@@ -181,10 +175,8 @@ classdef Anisotropic_90_Density < handle
         end
 
         function createCost(obj)
-            s.shapeFunctions{1} = obj.compliance;
-            s.shapeFunctions{2} = obj.perimeter;
-            s.weights(1)           = 1; % 1
-            s.weights(2)           = 1; % 1
+            s.shapeFunctions{1} = obj.compliance;            
+            s.weights           = 1; % 1
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -197,6 +189,7 @@ classdef Anisotropic_90_Density < handle
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
+            s.shapeFunctions{2} = obj.perimeter;            
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
@@ -216,7 +209,7 @@ classdef Anisotropic_90_Density < handle
             s.designVariable = obj.designVariable;
             s.maxIter        = 300;
             s.tolerance      = 1e-8;
-            s.constraintCase = {'EQUALITY'};
+            s.constraintCase = {'EQUALITY','INEQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.02;

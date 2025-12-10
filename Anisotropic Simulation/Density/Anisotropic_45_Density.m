@@ -80,6 +80,8 @@ classdef Anisotropic_45_Density < handle
         function createMaterialInterpolator(obj)
             type = '45';
             s.C1 = Cvoigt.create(type);
+
+        %    C0 = Cvoigt.create(type)
             s.C0 = s.C1*1e-3; % This is not necessary
 
             s.interpolation  = 'SIMP_P3_ANISOTROPIC';
