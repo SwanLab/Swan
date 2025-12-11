@@ -40,6 +40,16 @@ classdef CohesiveMesh < handle
             
             obj.init(cParams)
             % obj.baseMeshCreator(n)
+            
+            % detectFracturedEdges()
+            % computeCenterEdge()
+            % computeCenterElemnts (of fractureEdge)
+            % computeNormals()
+            % computeIsLeftIsRight()
+            % addDuplicateCoords();
+            % updateConnecOfLeftElements()
+            % shiftCoordOfLeftAndRightElements();
+            
             obj.duplicator()
             obj.updateConnec()
             obj.newMesh()
