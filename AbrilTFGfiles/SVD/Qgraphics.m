@@ -9,7 +9,7 @@ clc; clear;
 %% LOAD DATA
 
 % NN
-NNname=fullfile("AbrilTFGfiles/NN/Q_NN.mat");
+NNname=fullfile("AbrilTFGfiles/NN/Q_NN2.mat");
 load(NNname);
 
 % High Order function
@@ -28,20 +28,16 @@ r=SVDdata.r;
 svdValues=SVDdata.V*SVDdata.S;
 
 % NN
-%NNvalues=zeros(size(r,1),20);
-%for i=1:size(r,1)
-%    NNvalues(i,:)=Q_NN.computeOutputValues(r(i))
+rFull = Data.buildModel(r,6);
+NNvalues=Q_NN.computeOutputValues(rFull);
+
+
+
+%NNvalues=zeros(size(r,1),size(Q_NN,2));
+%for j=1:size(Q_NN,2)     
+%    rFul = Data.buildModel(r,9);
+%    NNvalues(:,j)=Q_NN{j}.computeOutputValues(rFul);
 %end
-
-
-NNvalues=zeros(size(r,1),size(Q_NN,2));
-for j=1:size(Q_NN,2)        
-    for i=1:size(r,1)
-        rFul = Data.buildModel(r,8);
-        NNvalues(:,j)=Q_NN{j}.computeOutputValues(rFul);
-    end
-end
-
 
 
 % HO (Esta a escalat al domini -1 1)
@@ -56,8 +52,8 @@ end
 %% Graphics
 
 % Q graphic
-tiledlayout(3,5,'TileSpacing','compact','Padding','compact');
-for i=1:15
+tiledlayout(2,5,'TileSpacing','compact','Padding','compact');
+for i=1:10
     ax=nexttile;
     plot(r,svdValues(:,i),r,HOvalues(:,i), r,NNvalues(:,i),'LineWidth', 1);
     xlabel('r');
