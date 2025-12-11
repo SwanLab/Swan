@@ -24,7 +24,12 @@ classdef ElasticityFunctional < handle
         end
 
         function RHS = computeGradient(obj,u,bc)
-            fExt = bc.pointloadFun;
+            fExt = bc.tractionFun;
+            if ~isempty(bc.tractionFun)
+                vals = bc.tractionFun.computeRHS([]);
+                fExt = LagrangianFunction.create(u.mesh, u.mesh.ndim,'P1');
+                fExt.setFValues(reshape(vals,u.mesh.ndim,u.mesh.nnodes)');
+            end
             Fint = obj.functionals.intE.computeGradient(u,obj.quadOrder);
             Fext = obj.functionals.extWork.computeGradient(u,fExt,obj.quadOrder);
             RHS  = Fint - Fext;
@@ -40,12 +45,14 @@ classdef ElasticityFunctional < handle
 
         function init(obj,cParams)
             obj.quadOrder = cParams.quadOrder;
-            cParams.material = cParams.matProp;
-            obj.functionals.intE = NeohookeanFunctional(cParams);
-            % cParams.material = cParams.matTensor;
-            % obj.functionals.intE = LinearElasticityFunctional(cParams);
+            if strcmp(cParams.matProp.type,'Neohookean')
+                cParams.material = cParams.matProp;
+                obj.functionals.intE = NeohookeanFunctional(cParams);
+            elseif strcmp(cParams.matProp.type,'Elastic')
+                cParams.material = cParams.matTensor;
+                obj.functionals.intE = LinearElasticityFunctional(cParams);
+            end
             obj.functionals.extWork = ExternalWorkFunctional(cParams);
-
         end
 
     end

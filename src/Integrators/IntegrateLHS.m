@@ -1,9 +1,21 @@
-function LHS = IntegrateLHS(f,test,trial,mesh,quadOrder)
-if nargin < 5 || isempty(quadOrder)
-    qTe = test.getOrderNum();
-    qTr = trial.getOrderNum();
-    quadOrder = qTe + qTr;
-end
+function LHS = IntegrateLHS(f,test,trial,mesh,type,quadOrder)
+    if nargin < 6 || isempty(quadOrder)
+        qTe = test.getOrderNum();
+        qTr = trial.getOrderNum();
+        quadOrder = qTe + qTr;
+    end
+    switch type
+        case 'Domain'
+            lhs = integrateElementalLHS(f,test,trial,mesh,quadOrder);
+            LHS = assembleMatrix(lhs,test,trial);
+        case 'Boundary'
+            [bMesh, l2g] = mesh.createSingleBoundaryMesh();
+            [bTest,bTrial,iGlob,jGlob] = restrictTestTrialToBoundary(test,trial,l2g);
+            lhsLoc = IntegrateLHS(f,bTest,bTrial,bMesh,'Domain',quadOrder);
+            [iLoc,jLoc,vals] = find(lhsLoc);
+            LHS = sparse(iGlob(iLoc),jGlob(jLoc),vals, test.nDofs,trial.nDofs);
+    end
+
 lhs = integrateElementalLHS(f,test,trial,mesh,quadOrder);
 LHS = assembleMatrix(lhs,test, trial);
 end
@@ -37,16 +49,37 @@ ndofsElem1 = size(Aelem, 1);
 ndofsElem2 = size(Aelem, 2);
 
 [iElem, jElem] = meshgrid(1:ndofsElem1, 1:ndofsElem2);
-iElem = iElem(:);
-jElem = jElem(:);
+    iElem = iElem(:);
+    jElem = jElem(:);
+    
+    dofsI = dofsF1(:, iElem);
+    dofsJ = dofsF2(:, jElem);
+    
+    rowIdx = dofsI(:);
+    colIdx = dofsJ(:);
+    Aval   = permute(Aelem,[3 2 1]);
+    values = Aval(:);
+    A = sparse(rowIdx, colIdx, values, nDofs1, nDofs2);
+end
 
-dofsI = dofsF1(:, iElem);
-dofsJ = dofsF2(:, jElem);
+function [bTest, bTrial, iGlob, jGlob] = restrictTestTrialToBoundary(test, trial, l2g)
+    lastDofs = (l2g * test.ndimf)';
+    l2g_dof = zeros(length(lastDofs),test.ndimf);
+    for i = 1:test.ndimf
+        l2g_dof(:,i) = lastDofs - (test.ndimf-i);
+    end
+    [bTest, iGlob] = restrictFunc(test,l2g_dof);
+    [bTrial,jGlob] = restrictFunc(trial,l2g_dof);
+end
 
-rowIdx = dofsI(:);
-colIdx = dofsJ(:);
-Aval   = permute(Aelem,[3 2 1]);
-values = Aval(:);
-A = sparse(rowIdx, colIdx, values, nDofs1, nDofs2);
+function [bFunc, gFunc] = restrictFunc(func,l2g_map)
+    if func.mesh.kFace == 0
+        bFunc = func.restrictToBoundary();
+        l2g_map = reshape(l2g_map',[],1);
+        gFunc = @(iLoc) l2g_map(iLoc);
+    else
+        bFunc = func;
+        gFunc = @(iLoc) iLoc;
+    end
 end
 
