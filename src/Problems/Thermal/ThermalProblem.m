@@ -86,6 +86,10 @@ classdef ThermalProblem < handle
             obj.forces = IntegrateRHS(@(v) DP(obj.source,v), obj.test, obj.mesh,'Domain',2);
         end
 
+        function updateSource(obj, newSource)
+            obj.source = newSource;
+        end
+
         function u = computeTemperature(obj)
             s.stiffness = obj.stiffness;
             s.forces    = obj.forces;
