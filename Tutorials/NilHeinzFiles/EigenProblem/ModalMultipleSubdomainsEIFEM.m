@@ -70,6 +70,9 @@ classdef ModalMultipleSubdomainsEIFEM < handle
             solver.precond_type = 'eifem';
 
             results = solver.run_demo();
+            
+            obj.printFineSolution(results.X,mD);
+            
 
         end
 
@@ -78,7 +81,7 @@ classdef ModalMultipleSubdomainsEIFEM < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains = [5,3];
+            obj.nSubdomains = [15,3];
             obj.r = 1e-6*ones(obj.nSubdomains)'; 
             obj.r= (0.6 - 0.2) * rand(obj.nSubdomains(2),obj.nSubdomains(1)) + 0.1;
             obj.xmax=1; obj.xmin=-1; obj.ymax = 1; obj.ymin=-1;
