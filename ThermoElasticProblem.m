@@ -119,7 +119,7 @@ classdef ThermoElasticProblem < handle
         end
 
         
-  %THERMAL PROBLEM
+  %THERMAL PROBLEM (use thermalProblem problem)
 
         function createTemperatureFun(obj)
             obj.tFun = LagrangianFunction.create(obj.mesh, 1, 'P1');
@@ -135,7 +135,7 @@ classdef ThermoElasticProblem < handle
         function createSolverThermal(obj)
             s.solverType         = obj.solverType;
             s.solverMode         = obj.solverMode;
-            s.solver     = obj.solverCase;
+            s.solver             = obj.solverCase;
             s.boundaryConditions = obj.boundaryConditionsThermal;
             s.BCApplier          = obj.bcApplierThermal;
             obj.problemSolverThermal    = ProblemSolver(s);
@@ -209,8 +209,7 @@ classdef ThermoElasticProblem < handle
             end
             obj.forces = rhs;
 
-  %COUPLING TERM
-
+           %COUPLING TERM
             C     = obj.material;
             I = ConstantFunction.create(eye(2),obj.mesh);
             beta= obj.alpha.*DDP(C,I);       

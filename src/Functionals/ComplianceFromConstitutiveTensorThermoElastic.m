@@ -7,6 +7,7 @@ classdef ComplianceFromConstitutiveTensorThermoElastic < handle
     properties (Access = private)
         mesh
         stateProblem
+        adjointProblem
     end
 
     methods (Access = public)
@@ -39,6 +40,7 @@ classdef ComplianceFromConstitutiveTensorThermoElastic < handle
             % define bcs + use structure from thermal Problems
             
             obj.adjointProblem = ThermalProblem(s); 
+            
         end
 
         function [u,T] = computeStateVariable(obj,C,kappa)
@@ -72,7 +74,7 @@ classdef ComplianceFromConstitutiveTensorThermoElastic < handle
                 dStress = DDP(dC{i},strain);
                 I = ConstantFunction.create(eye(2),obj.mesh);
                 dbeta = obj.alpha.*DDP(dC{i},I);       
-                dj{i}   = -0.5.*DDP(strain, dStress) + DDP(dbeta.*T,SymGrad(u)) - times(dkappa,DP(Grad(T),Grad(p))); %T*dkappa12*u + T*dkappa*p + (-dQ*p+df*u)
+                dj{i}   = -0.5.*DDP(strain, dStress) + DDP(dbeta.*Grad(T),SymGrad(u)) + DP(Grad(T),dkappa.*Grad(p)); %T*dkappa12*u + T*dkappa*p + (-dQ*p+df*u)
             end
         end
     end

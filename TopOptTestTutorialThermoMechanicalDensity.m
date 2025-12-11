@@ -138,6 +138,8 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             s.source  =  ConstantFunction.create(1,obj.mesh);
             s.T0 = ConstantFunction.create(25,obj.mesh);   
             s.boundaryConditionsThermal = obj.createBoundaryConditionsThermal();
+            
+           
             fem = ThermoElasticProblem(s);
             obj.physicalProblem = fem;
         end
