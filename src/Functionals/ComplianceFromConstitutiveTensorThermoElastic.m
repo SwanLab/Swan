@@ -48,13 +48,12 @@ classdef ComplianceFromConstitutiveTensorThermoElastic < handle
 
     methods (Static, Access = private)
         function dj = computeGradient(dC,u,dkappa,T)
-            % change the gradient!
             nDesVar = length(dC);
             dj      = cell(nDesVar,1);
             for i = 1:nDesVar
                 strain  = SymGrad(u);
                 dStress = DDP(dC{i},strain);
-                dj{i}   = -0.5.*DDP(strain, dStress);
+                dj{i}   = -0.5.*DDP(strain, dStress); % +T*dkappa12*u+T*dkappa*p + (-dQ*p+df*u)
             end
         end
     end

@@ -134,7 +134,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
 
             % Thermal
             s.materialInterpolator = obj.thermalmaterialInterpolator;
-            s.alpha = 1.0;  % check 
+            s.alpha = 1.0; % 2.3 1e-6 
             s.source  =  ConstantFunction.create(1,obj.mesh);
             s.T0 = ConstantFunction.create(25,obj.mesh);   
             s.boundaryConditionsThermal = obj.createBoundaryConditionsThermal();
@@ -176,7 +176,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             obj.volume = v;
         end
 
-        function createCost(obj) %
+        function createCost(obj) 
             s.shapeFunctions{1} = obj.compliance;
             s.weights           = 1;
             s.Msmooth           = obj.createMassMatrix();
@@ -215,9 +215,9 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             s.etaNorm        = 0.01;
             s.gJFlowRatio    = 1;
             s.gif=false;
-            s.gifName='ElasticDensity';
+            s.gifName='ThermoElastic';
             s.printing=true;
-            s.printName='Elastic Density';
+            s.printName='ThermoElastic';
             s.primalUpdater  = obj.primalUpdater;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();

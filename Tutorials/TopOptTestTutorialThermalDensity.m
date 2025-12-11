@@ -73,10 +73,11 @@ classdef TopOptTestTutorialThermalDensity < handle
         end
 
         function createMaterialInterpolator(obj) % Conductivity
-            s.interpolation  = 'SimpAllThermal';   
+            s.interpolation  = 'SIMPThermal';   
             s.f0   = 1e-2;
             s.f1   = 1;
-            s.dim ='2D';
+            s.pExp = 3;
+            s.dim  ='2D';
             a = MaterialInterpolator.create(s);
             obj.materialInterpolator = a;
         end
@@ -159,7 +160,7 @@ classdef TopOptTestTutorialThermalDensity < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 4000;
+            s.maxIter        = 2000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.ub             = 1;
