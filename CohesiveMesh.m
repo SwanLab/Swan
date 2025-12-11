@@ -42,6 +42,7 @@ classdef CohesiveMesh < handle
             % obj.baseMeshCreator(n)
             
             % detectFracturedEdges()
+                % fer lo del boundary amb els punts mitjos dels edges
             % computeCenterEdge()
             % computeCenterElemnts (of fractureEdge)
             % computeNormals()
