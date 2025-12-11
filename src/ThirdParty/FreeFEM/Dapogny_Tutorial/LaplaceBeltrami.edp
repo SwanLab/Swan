@@ -1,0 +1,87 @@
+/* Laplace-Beltrami operator example*/
+load "medit"
+load "distance"
+load "iovtk"
+
+/* Create interior */
+border left(t=0.0,1.0){ x=-1.0; y=1.0-t; label=0; };
+border bot(t=0.0,2.0){ x=-1.0+t; y=0.0; label=0; };
+border right(t=0.0,1.0){ x=1.0; y=t; label=0; };
+border top(t=0.0,2.0){ x=1.0-t; y=1.0; label=0; };
+
+/* Create hole */
+int div;
+border circle(t=0.0,2*pi){x=0.375*cos(t); y=0.5-0.375*sin(t); label=1; };
+div = 30*0.75*pi;
+
+/* Mesh */
+real fac = 3.0;
+mesh Th = buildmesh(left(30*fac)+bot(60*fac)+right(30*fac)+top(60*fac)+circle(div*fac));
+
+/* Diffusion penalty */
+real meshsiz = 1/(30*fac);
+real alpha = 2.5*meshsiz;
+
+/* Extracting boundary from domain */
+meshL ThLInt;
+int[int] L(1);
+L[0] = 1;
+ThLInt = extract(Th, label = L);
+
+/* Discretization of parametrization variable t */
+int NbVertices = ThLInt.nv;
+real[int] t(NbVertices);
+t[0] = 0;
+for (int i = 1; i < NbVertices; i++) {
+  t[i] = t[i-1] + 2*pi/(NbVertices-1);
+}
+
+/* Finite Element spaces */
+fespace Vh(ThLInt,P1);
+
+Vh g0, v0, source, nx, ny;
+
+func real computeSourceTerm() {
+  real s;
+  s = sin(8*pi*(x/2))*cos(8*pi*y);
+  return(s);
+}
+
+macro tanGrad(f,nx,ny) [-ny*dx(f) + nx*dy(f)] //
+problem solveLaplaceBeltrami(g0,v0) = int1d(ThLInt)(alpha^2*tanGrad(g0,nx,ny)*tanGrad(v0,nx,ny) + g0*v0) 
+                                          - int1d(ThLInt)(v0*source);
+
+source = computeSourceTerm();
+real avg = int1d(ThLInt)(source) / int1d(ThLInt)(1);
+source = (source - avg);
+
+nx = -2*x/sqrt((2*x)^2 + (2*(y-0.5))^2);
+ny = -2*(y-0.5)/sqrt((2*x)^2 + (2*(y-0.5))^2);
+
+solveLaplaceBeltrami;
+
+string datafile1 = "data1.gp";
+{
+    ofstream fout(datafile1);
+    for (int i = 0; i < NbVertices; ++i)
+        fout << t[i]<< " " << source[][i] << endl;
+}
+
+string datafile2 = "data2.gp";
+{
+    ofstream fout(datafile2);
+    for (int i = 0; i < NbVertices; ++i)
+        fout << t[i]<< " " << g0[][i] << endl;
+}
+
+// create gnuplot command to plot the data
+string gnuplotCmd = 
+    "gnuplot -e \"set term png size 800,600; " +
+    "set output 'sourceComparison.png'; " +
+    "set title 'Laplace Beltrami operator'; " +
+    "set xlabel 't'; set ylabel 'Source'; " +
+    "plot '" + datafile1 + "' with lines lw 2 title 'Original', " +
+    "'" + datafile2 + "' with lines lw 2 title 'Smoothed'\"";
+
+// execute gnuplot command
+exec(gnuplotCmd);
