@@ -35,9 +35,10 @@ svdValues=SVDdata.V*SVDdata.S;
 
 
 NNvalues=zeros(size(r,1),size(Q_NN,2));
-for i=1:size(r,1)
-    for j=1:size(Q_NN,2)
-        NNvalues(i,j)=Q_NN{j}.computeOutputValues(r(i));
+for j=1:size(Q_NN,2)        
+    for i=1:size(r,1)
+        rFul = Data.buildModel(r,8);
+        NNvalues(:,j)=Q_NN{j}.computeOutputValues(rFul);
     end
 end
 

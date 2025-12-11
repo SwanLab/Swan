@@ -3,11 +3,11 @@ clear;
 close all;
 
 %% Initialization of hyperparameters
-pol_deg         = 2;
+pol_deg         = 8;
 testratio       = 30;
 lambda          = 0.0;
-learningRate    = 0.2;
-hiddenLayers    =[20 20];
+learningRate    = 0.01;
+hiddenLayers    =[16 20 16 6 3];
 
 %% INITIALIZATION 
 % Store dataset file name
@@ -18,7 +18,7 @@ s.polynomialOrder = pol_deg;
 s.testRatio       = testratio;
 s.networkParams.hiddenLayers    = hiddenLayers;
 s.optimizerParams.learningRate  = learningRate;
-s.optimizerParams.maxEpochs = 1000; % 1000 is the best option, but we use 10 to pass the tutorial quickly
+s.optimizerParams.maxEpochs = 20000; % 1000 is the best option, but we use 10 to pass the tutorial quickly
 s.costParams.lambda             = lambda;
 s.costParams.costType           = 'L2';
 
@@ -35,7 +35,7 @@ cHomogIdxs = [11, 12, 22, 33];
 
 % Train the model
 
-for i=1:20
+for i=1:15
     s.yFeatures = [i+1];
     data   = Data(s);
     s.data = data;
