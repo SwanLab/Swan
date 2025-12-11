@@ -17,8 +17,9 @@ classdef ComplianceFromConstitutiveTensorThermoElastic < handle
 
         function [J,dJ] = computeFunctionAndGradient(obj,C,dC,kappa, dkappa)
             [u,T] = obj.computeStateVariable(C,kappa);
+%             [p] = obj.computeAdjointVariable(kappa,C,u);
             J  = obj.computeFunction(C,u);
-            dJ = obj.computeGradient(dC,u,dkappa,T);
+            dJ = obj.computeGradient(dC,u,dkappa,T,p);
         end
     end
 
@@ -53,7 +54,9 @@ classdef ComplianceFromConstitutiveTensorThermoElastic < handle
             for i = 1:nDesVar
                 strain  = SymGrad(u);
                 dStress = DDP(dC{i},strain);
-                dj{i}   = -0.5.*DDP(strain, dStress); % +T*dkappa12*u+T*dkappa*p + (-dQ*p+df*u)
+                I = ConstantFunction.create(eye(2),obj.mesh);
+                dbeta = obj.alpha.*DDP(dC{i},I);       
+                dj{i}   = -0.5.*DDP(strain, dStress) + DDP(dbeta.*T,SymGrad(u)) - times(dkappa,DP(Grad(T),Grad(p))); %T*dkappa12*u + T*dkappa*p + (-dQ*p+df*u)
             end
         end
     end
