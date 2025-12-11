@@ -12,6 +12,7 @@ classdef LOBPCG
         Milu
         Meifem
         Mmult
+        
     end
 
     properties (SetAccess = public)
@@ -29,8 +30,9 @@ classdef LOBPCG
     end
 
     methods
-        function obj = LOBPCG(problem)
+        function obj = LOBPCG(problem,K,M,Mmult)
             if nargin>0, obj.problem = problem; end
+            if nargin>1, obj.K = K; obj.M = M; obj.Mmult = Mmult; end
             [obj.K,obj.M] = obj.setup_matrices(obj.problem);
 
             % Symmetrize once for safety
@@ -59,7 +61,9 @@ classdef LOBPCG
                     obj.L = [];
                 end
             elseif obj.use_precond && strcmpi(obj.precond_type,'eifem')
-                    [obj.Mmult, obj.Meifem, obj.Milu] = obj.initEifemPreconditioner();
+                    %[obj.Mmult, obj.Meifem, obj.Milu] = obj.initEifemPreconditioner();
+                    obj.Mmult = obj.Mmult;
+
             end
             % Solve
             [lambda, X, history] = obj.lobpcg_extremal();
@@ -364,7 +368,7 @@ classdef LOBPCG
     %  Problem Setup - Examples
     %  =======================
     methods (Access = private)
-        function [K,M] = setup_matrices(~,problem)
+        function [K,M] = setup_matrices(obj,problem,K,M)
             switch(problem)
                 case 1 % 4-DOF toy
                     e = ones(40,1);
@@ -405,12 +409,9 @@ classdef LOBPCG
                     M = M(free, free);
 
                 case 3
-                    S1 = load("MassMatrixRed.mat");
-                    S2 = load("LHSRed.mat");
-                    % Accept either variable names: Mr / M, lhs / LHSr
-                    M = S1.Mr;
-                    K = S2.LHSr;
-
+                    K = obj.K;
+                    M = obj.M;
+                    
                 otherwise
                     e = ones(40,1);
                     K = spdiags([-e 2*e -e], -1:1, 4,4);
@@ -429,4 +430,6 @@ classdef LOBPCG
             X = (X+X.')/2;
         end
     end
+
+  
 end
