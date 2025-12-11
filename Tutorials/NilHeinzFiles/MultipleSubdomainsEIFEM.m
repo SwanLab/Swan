@@ -13,7 +13,17 @@ classdef MultipleSubdomainsEIFEM < handle
         fileNameEIFEM
         tolSameNode
         solverType
-        radius
+        subdomainMeshes
+        r
+        xmin
+        xmax
+        ymin
+        ymax
+        Nr
+        Ntheta
+        x0
+        y0
+        iC
     end
 
 
@@ -27,13 +37,11 @@ classdef MultipleSubdomainsEIFEM < handle
             close all
             obj.init()
 
-            mSubdomains = obj.createMeshSubdomains();
-            obj.referenceMesh = mSubdomains{1,1};
-            bS  = mSubdomains{1,1}.createBoundaryMesh();
-            [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomainJoiner(mSubdomains);  %Merge all subdomains into a single mesh
+            [mD,mSb,iC,lG,iCR,discMesh,bS] = obj.createMesh();
             obj.meshDomain = mD;
+            obj.subdomainMeshes = mSb;
+            
 
-            %mD.plot()
             [bC,dir] = obj.createBoundaryConditions();
             obj.boundaryConditions = bC;
             obj.createBCapplier()
@@ -42,7 +50,7 @@ classdef MultipleSubdomainsEIFEM < handle
 
             LHSfun = @(x) LHSr*x;
             
-            [Meifem, EIFEM, ss]       = obj.createEIFEMPreconditioner(dir,iC,lG,bS,iCR,discMesh,obj.radius);
+            [Meifem, EIFEM, ss]       = obj.createEIFEMPreconditioner(dir,iC,lG,bS,iCR,discMesh,obj.r);
 
             Milu         = obj.createILUpreconditioner(LHSr);
             Mmult        = @(r) Preconditioner.multiplePrec(r,LHSfun,Milu,Meifem,Milu);
@@ -55,6 +63,8 @@ classdef MultipleSubdomainsEIFEM < handle
             [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSfun,RHSr,x0,Mmult,tol,xSol);     
             [uCG,residualCG,errCG,errAnormCG]    = PCG.solve(LHSfun,RHSr,x0,Mid,tol,xSol);
 
+            obj.plotResidual(residualPCG,errPCG,errAnormPCG,residualCG,errCG,errAnormCG)
+
             uCGFull = obj.bcApplier.reducedToFullVectorDirichlet(uCG); %reapply all dirichlett DOFs
             uF = saveDeformed(obj.meshDomain,uCGFull);
             plot(uF)
@@ -66,17 +76,53 @@ classdef MultipleSubdomainsEIFEM < handle
     methods (Access = private)
 
         function init(obj)
-            nx = 2;
-            ny = 15;
-            
-            rMax = 0.85;
-            rMin = 0.05;
-            rInclusions = 0.5*(rMax - rMin) * 0.5.*ones(nx, ny);
-            obj.radius =  rInclusions;
-            obj.nSubdomains = size(obj.radius)'; %nx ny
+            obj.nSubdomains = [5,3];
+            obj.r = 1e-6*ones(obj.nSubdomains)'; 
+            obj.r= (0.6 - 0.2) * rand(obj.nSubdomains(2),obj.nSubdomains(1)) + 0.1;
+            obj.xmax=1; obj.xmin=-1; obj.ymax = 1; obj.ymin=-1;
+            obj.Nr = 7; obj.Ntheta = 14; 
+            obj.x0 = 0; obj.y0=0;
             obj.tolSameNode = 1e-10;
             obj.solverType = 'REDUCED';
-        end        
+        end  
+
+        function [mD,mSb,iC,lG,iCR,discMesh,bS] = createMesh(obj)
+            mSbd = obj.createSubDomainMeshes();
+            bS = mSbd{1,1}.createBoundaryMesh();
+            [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomainJoiner(mSbd);
+            
+        end
+
+         function  mSbd = createSubDomainMeshes(obj)
+            nX = obj.nSubdomains(1);
+            nY = obj.nSubdomains(2);
+            Lx = obj.xmax-obj.xmin;
+            Ly = obj.ymax-obj.ymin;
+            for jDom = 1:nY
+                for iDom = 1:nX
+                    refMesh = mesh_rectangle_via_triangles(obj.r(jDom,iDom),obj.xmax,obj.xmin,obj.ymax,obj.ymin,obj.Nr,obj.Ntheta,obj.x0,obj.y0);
+                    coord0 = refMesh.coord;
+                    s.coord(:,1) = coord0(:,1)+Lx*(iDom-1);
+                    s.coord(:,2) = coord0(:,2)+Ly*(jDom-1);
+                    s.connec = refMesh.connec;
+                    mIJ     = Mesh.create(s);
+                    %                     plot(mIJ)
+                    %                     hold on;
+                    mSbd{jDom,iDom} = mIJ;
+                end
+            end
+            obj.referenceMesh = mSbd{1,1};
+        end
+
+         function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomainJoiner(obj,mSbd)
+            s.nsubdomains   = obj.nSubdomains;
+            s.meshReference = obj.referenceMesh;
+            s.tolSameNode = obj.tolSameNode;
+            s.meshSbd     = mSbd;
+            %             m = MeshCreatorFromRVE.create(s);
+            m = MeshJoiner(s);
+            [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
+         end
 
         function createReferenceMesh(obj)
 
@@ -86,142 +132,7 @@ classdef MultipleSubdomainsEIFEM < handle
             s.interType = 'LINEAR';
             s           = obj.updateCoordsMesh(s);
             obj.referenceMesh = Mesh.create(s);
-        end
-
-        function mSubdoms = createMeshSubdomains(obj)
-            [nx,ny] = size(obj.radius);
-            mSubdoms = cell(nx,ny);
-            fullmesh = UnitTriangleMesh(12,12);
-            radiusSubdomain = obj.radius;
-            for i=1:nx
-                for j=1:ny
-                    
-                    ls = obj.computeCircleLevelSet(fullmesh,radiusSubdomain(i,j));
-                    sUm.backgroundMesh = fullmesh;
-                    sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
-                    uMesh              = UnfittedMesh(sUm);
-                    uMesh.compute(ls);
-                    mSubdoms{i,j} = uMesh.createInnerMesh();
-                end
-
-            end
-        end
-        
-  
-        function ls = computeCircleLevelSet(obj, mesh, radius)
-            % Original method for single radius (backward compatibility)
-            gPar.type          = 'Circle';
-            gPar.radius        = radius;
-            gPar.xCoorCenter   = 0.5;
-            gPar.yCoorCenter   = 0.5;
-            g                  = GeometricalFunction(gPar);
-            phiFun             = g.computeLevelSetFunction(mesh);
-            lsCircle           = phiFun.fValues;
-            ls = -lsCircle;
-        end
-
-        function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomainJoiner(obj,mSbd)
-            s.nsubdomains   = obj.nSubdomains;
-            s.meshReference = obj.referenceMesh;
-            s.tolSameNode = obj.tolSameNode;
-            s.meshSbd     = mSbd;
-            %             m = MeshCreatorFromRVE.create(s);
-            m = MeshJoiner(s);
-            [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
-        end
-        
-        function mergedMesh = mergeSubdomainMeshes(obj, mSubdomains)
-            % Merge all subdomain meshes into a single mesh
-            % Subdomains are positioned next to each other according to nx and ny
-            % mSubdomains: cell array {i,j} with each subdomain mesh
-            
-            [nx, ny] = size(mSubdomains);
-            
-            firstSubdomain = mSubdomains{1, 1};
-            xMin = min(firstSubdomain.coord(:, 1));
-            xMax = max(firstSubdomain.coord(:, 1));
-            yMin = min(firstSubdomain.coord(:, 2));
-            yMax = max(firstSubdomain.coord(:, 2));
-            subdomainSizeX = xMax - xMin;
-            subdomainSizeY = yMax - yMin;
-            
-            % Initialize arrays for merged mesh
-            allCoords = [];
-            allConnec = [];
-            nodeOffset = 0;  % Track node numbering offset for connectivity
-            
-            % Iterate through subdomains and merge them
-            for i = 1:nx  % Rows (y direction)
-                for j = 1:ny  % Columns (x direction)
-                    subMesh = mSubdomains{i, j};
-                    
-                    xOffset = (j - 1) * subdomainSizeX;
-                    yOffset = (i - 1) * subdomainSizeY;
-                    
-                    % Get the local coordinates and shift to start at (0,0)
-                    localCoords = subMesh.coord;
-                    localCoords(:, 1) = localCoords(:, 1) - xMin;  % Shift x to start at 0
-                    localCoords(:, 2) = localCoords(:, 2) - yMin;  % Shift y to start at 0
-                    
-                    % Apply global offset to position this subdomain in the grid
-                    globalCoords = localCoords;
-                    globalCoords(:, 1) = globalCoords(:, 1) + xOffset;
-                    globalCoords(:, 2) = globalCoords(:, 2) + yOffset;
-                    
-                    % Add coordinates to merged array
-                    allCoords = [allCoords; globalCoords];
-                    
-                    % Add connectivity with node offset
-                    subConnec = subMesh.connec + nodeOffset;
-                    allConnec = [allConnec; subConnec];
-                    
-                    % Update node offset for next subdomain
-                    nodeOffset = nodeOffset + subMesh.nnodes;
-                end
-            end
-            
-            % Create merged mesh
-            s.coord = allCoords;
-            s.connec = allConnec;
-            mergedMesh = Mesh.create(s);
-        end
-
-        function s = updateCoordsMesh(obj, s)
-            % Nudge nodes at the four rectangle corners in x to avoid
-            % exact coincidences.
-            tol  = 1e-8;
-            epsx = 1e-9;
-        
-            x = s.coord(:,1); y = s.coord(:,2);
-            xmax = max(x); xmin = min(x);
-            ymax = max(y); ymin = min(y);
-        
-            % Top-right (xmax,ymax)
-            mask = abs(x - xmax) < tol & abs(y - ymax) < tol;
-            s.coord(mask, :) = s.coord(mask, :) - [epsx, 0];
-        
-            % Bottom-right (xmax,ymin)
-            mask = abs(x - xmax) < tol & abs(y - ymin) < tol;
-            s.coord(mask, :) = s.coord(mask, :) - [epsx, 0];
-        
-            % Top-left (xmin,ymax)
-            mask = abs(x - xmin) < tol & abs(y - ymax) < tol;
-            s.coord(mask, :) = s.coord(mask, :) + [epsx, 0];
-        
-            % Bottom-left (xmin,ymin)
-            mask = abs(x - xmin) < tol & abs(y - ymin) < tol;
-            s.coord(mask, :) = s.coord(mask, :) + [epsx, 0];
-        end
-      
-
-        function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomain(obj)
-            s.nsubdomains   = obj.nSubdomains;
-            s.meshReference = obj.referenceMesh;
-            s.tolSameNode = obj.tolSameNode;
-            m = MeshCreatorFromRVE.create(s);
-            [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
-        end
-
+        end       
         
         function mCoarse = createCoarseMesh(obj,mR)
             s.nsubdomains   = obj.nSubdomains; %nx ny

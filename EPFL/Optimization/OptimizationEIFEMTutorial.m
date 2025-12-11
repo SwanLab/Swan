@@ -57,7 +57,7 @@ classdef OptimizationEIFEMTutorial < handle
             close all;
             obj.nSubdomains = [5,3];
             obj.r = 1e-6*ones(obj.nSubdomains)'; 
-            obj.r= (0.8 - 0.1) * rand(obj.nSubdomains(2),obj.nSubdomains(1)) + 0.1;
+            obj.r= (0.6 - 0.2) * rand(obj.nSubdomains(2),obj.nSubdomains(1)) + 0.1;
             obj.xmax=1; obj.xmin=-1; obj.ymax = 1; obj.ymin=-1; 
             obj.Nr = 7; obj.Ntheta = 14; 
             obj.x0 = 0; obj.y0=0;
