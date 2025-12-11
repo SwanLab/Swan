@@ -66,11 +66,11 @@ classdef GripperLevelSetCircle < handle
         end
 
         function createDesignVariable(obj)
-%             s.type = 'Full';
-%             g      = GeometricalFunction(s);
-            lsFun = LagrangianFunction.create(obj.mesh,1,'P1');
-            lsFun.setFValues(importdata('GripperLevelSetCirclefValues.txt'))
-%             lsFun  = g.computeLevelSetFunction(obj.mesh);
+            s.type = 'Full';
+            g      = GeometricalFunction(s);
+%             lsFun = LagrangianFunction.create(obj.mesh,1,'P1');
+%             lsFun.setFValues(importdata('GripperLevelSetCirclefValues.txt'))
+            lsFun  = g.computeLevelSetFunction(obj.mesh);
             s.fun  = lsFun;
             s.mesh = obj.mesh;
             s.type = 'LevelSet';
@@ -101,27 +101,27 @@ classdef GripperLevelSetCircle < handle
 
 
         function createFilterConnectivity(obj)
-            s.filterType = 'LUMP';
-            s.mesh  = obj.mesh;
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            f = Filter.create(s);
-            obj.filterConnectivity = f;
+%             s.filterType = 'LUMP';
+%             s.mesh  = obj.mesh;
+%             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+%             f = Filter.create(s);
+%             obj.filterConnectivity = f;
+% % 
+            s.filterType = 'CloseOperator';   
+            s.mesh       = obj.mesh;
+            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.filterStep = 'PDE';
+            s.beta       = 10.0; % 4 2 
+            s.eta        = 0.8;
+            obj.filterConnectivity = Filter.create(s);
 
-%             s.filterType = 'CloseOperator';   
-%             s.mesh       = obj.mesh;
-%             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-%             s.filterStep = 'PDE';
-%             s.beta       = 2.0; % 4 2 
-%             s.eta        = 0.2;
-%             obj.filterConnectivity = Filter.create(s);
-% 
-%             s.filterType = 'CloseAdjointOperator';   
-%             s.mesh       = obj.mesh;
-%             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-%             s.filterStep = 'PDE';
-%             s.beta       = 2.0; 
-%             s.eta        = 0.2;
-%             obj.filterAdjointConnectivity = Filter.create(s);
+            s.filterType = 'CloseAdjointOperator';   
+            s.mesh       = obj.mesh;
+            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.filterStep = 'PDE';
+            s.beta       = 10.0; 
+            s.eta        = 0.8;
+            obj.filterAdjointConnectivity = Filter.create(s);
         end
 
         function createMaterialInterpolator(obj)
@@ -207,8 +207,8 @@ classdef GripperLevelSetCircle < handle
             s.boundaryConditions = obj.createEigenvalueBoundaryConditions();
             s.conductivityInterpolator = obj.conductivityInterpolator; 
             s.massInterpolator         = obj.massInterpolator; 
-            s.targetEigenValue  = 8.0;     
-            s.isCompl           = false;
+            s.targetEigenValue  = 2.0;     
+            s.isCompl           = true;
             obj.minimumEigenValue = StiffnessEigenModesConstraint(s);
         end
 
@@ -238,8 +238,8 @@ classdef GripperLevelSetCircle < handle
 
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
-            s.shapeFunctions{2} = obj.perimeter;
-            s.weights           = [1.0,4.0]; 
+%             s.shapeFunctions{2} = obj.perimeter;
+            s.weights           = [1.0]; 
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -267,7 +267,7 @@ classdef GripperLevelSetCircle < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 3000;
+            s.maxIter        = 4000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'INEQUALITY','INEQUALITY'};
             s.etaNorm        = 0.05;
