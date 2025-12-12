@@ -242,7 +242,15 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             s.mesh  = a.mesh;
             s.ndimf = a.ndimf;            
             r = DomainFunction(s);
-        end        
+        end   
+
+        function r = tan(a)
+            aOp = BaseFunction.computeOperation(a);
+            s.operation = @(xV) tan(aOp(xV));
+            s.mesh  = a.mesh;
+            s.ndimf = a.ndimf;            
+            r = DomainFunction(s);
+        end             
 
         function r = trace(a)
             aOp = BaseFunction.computeOperation(a);

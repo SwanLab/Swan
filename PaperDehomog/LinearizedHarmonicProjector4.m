@@ -29,7 +29,7 @@ classdef LinearizedHarmonicProjector4 < handle
             obj.fS = LagrangianFunction.create(obj.mesh, 1, 'P1');
             obj.createInternalDOFs();                      
             obj.createFilter();
-            obj.eta = (0*obj.mesh.computeMeanCellSize)^2;
+            obj.eta = (2*obj.mesh.computeMeanCellSize)^2;
             rhoEps = 1e-3;
             rhoMin = min(obj.density.fValues) - rhoEps; 
             rhoMax = max(obj.density.fValues) + rhoEps; 
@@ -51,14 +51,14 @@ classdef LinearizedHarmonicProjector4 < handle
             res = norm(LHS*x - RHS)/norm(x);
             [resL,resH,resB,resG] = obj.evaluateResidualNorms(bBar,b);
             i = 1;
-            thetaH = 0.5;
-            thetaR = 0.1;
+            thetaH = 1;
+            thetaR = 0;
             thetaB = 1;
             
 
             nSing = 100;
 
-            while res(i) > 1e-12 && i<=3000
+            while res(i) > 1e-12 && i<=14
                 
                 %iter Harmonic 
                 x   = LHS\RHS;
@@ -105,7 +105,7 @@ classdef LinearizedHarmonicProjector4 < handle
                  fig = figure(1);  set(fig, 'Units', 'normalized', 'OuterPosition', [0.5 0 0.5 1]);
                  %drawnow  
                   
-                 obj.plotgif(i-1,fig);
+                 %obj.plotgif(i-1,fig);
 
                 
                  

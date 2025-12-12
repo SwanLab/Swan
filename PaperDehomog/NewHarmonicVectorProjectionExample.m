@@ -118,10 +118,12 @@ classdef NewHarmonicVectorProjectionExample < handle
            
            %d = load('DataExampleArchCoarse.mat');  
            %d = load('DataExampleArch.mat');  
-           d = load('DataExampleLshape.mat');        
-          % d = load('DataExampleCantilever.mat');        
+        %   d = load('DataExampleLshape.mat');        
+           d = load('DataExampleCantilever.mat');        
            w = d.w;
            obj.experimentData = w;
+
+
         end
 
         function createMesh(obj)
@@ -177,6 +179,11 @@ classdef NewHarmonicVectorProjectionExample < handle
             s.density      = obj.density;
             %obj.harmonicProjector = LinearizedHarmonicProjector3(s);
             obj.harmonicProjector = LinearizedHarmonicProjector4(s);
+        end
+
+        function c = cFunction(obj,xV,q)
+            qV = q.evaluate(xV);
+            c = gamma((1+1./qV).^2)./gamma(1+2./qV);
         end
 
         function harmonize(obj)
@@ -290,7 +297,7 @@ classdef NewHarmonicVectorProjectionExample < handle
 
         function dehomogenize(obj)
             a = obj.harmonicVector;
-            s.nCells             = 75;
+            s.nCells             = 25;
             s.cellLevelSetParams = obj.createLevelSetCellParams();
             s.mesh               = obj.mesh;
             s.orientationA       = obj.harmonicVector;
@@ -302,8 +309,19 @@ classdef NewHarmonicVectorProjectionExample < handle
         function s = createLevelSetCellParams(obj)
             s.type   = 'smoothRectangle';
             % s.type   = 'rectangleInclusion';
-            s.xSide = obj.createFunction(obj.experimentData.dataRes.DesignVar1);%0.85*ones(size(obj.mesh.coord,1),1);
-            s.ySide = obj.createFunction(obj.experimentData.dataRes.DesignVar2);%0.85*ones(size(obj.mesh.coord,1),1);
+
+           xi  = obj.createFunction(obj.experimentData.dataRes.XiSymmetry);
+           rho = obj.createFunction(obj.experimentData.dataRes.DensityGauss);
+           q   = obj.createFunction(obj.experimentData.dataRes.SuperEllipseExponent);
+
+
+           c = DomainFunction.create(@(xV) obj.cFunction(xV,q),obj.mesh,1);           
+           m1 = project(sqrt((1-rho)./(c.*tan(xi))),'P1D');
+           m2 = project(sqrt((1-rho)./c),'P1D');
+
+
+            s.xSide = m1;%obj.createFunction(obj.experimentData.dataRes.DesignVar1);%0.85*ones(size(obj.mesh.coord,1),1);
+            s.ySide = m2;%obj.createFunction(obj.experimentData.dataRes.DesignVar2);%0.85*ones(size(obj.mesh.coord,1),1);
             s.pnorm  = obj.createFunction(obj.experimentData.dataRes.SuperEllipseExponent);
             s.ndim   = 2;
         end
