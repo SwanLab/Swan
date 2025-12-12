@@ -7,6 +7,7 @@ classdef LengthScaleConstraint < handle
         target0
         epsilon
         minEpsilon
+        delta
         valueOld
     end
 
@@ -19,11 +20,11 @@ classdef LengthScaleConstraint < handle
             [V,dV] = obj.volume.computeFunctionAndGradient(x);
             V      = V*obj.volume.totalVolume;
             [P,dP] = obj.perimeter.computeFunctionAndGradient(x);
-            J      = -V/((P+0.1)*obj.target0) + 1;
+            J      = -V/((P+obj.delta)*obj.target0) + 1;
             dJ{1}  = copy(dV{1});
             dV     = dV{1}.fValues*obj.volume.totalVolume;
             dP     = dP{1}.fValues;
-            dJ{1}.setFValues(-dV./((P+0.1)*obj.target0) + dP.*(V/((P+0.1)^2*obj.target0)));
+            dJ{1}.setFValues(-dV./((P+obj.delta)*obj.target0) + dP.*(V/((P+obj.delta)^2*obj.target0)));
             obj.updateForNextIteration(J);
         end
     end
@@ -36,6 +37,7 @@ classdef LengthScaleConstraint < handle
             obj.target0    = obj.target*100;
             obj.epsilon    = cParams.epsilon;
             obj.minEpsilon = cParams.minEpsilon;
+            obj.delta      = cParams.delta;
             obj.valueOld   = -inf;
         end
 

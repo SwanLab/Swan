@@ -1,4 +1,4 @@
-classdef DensityVerticalCantileverLengthScale < handle
+classdef DensityVerticalCantilever4x4LengthScale < handle
 
     properties (Access = private)
         mesh
@@ -17,7 +17,7 @@ classdef DensityVerticalCantileverLengthScale < handle
 
     methods (Access = public)
 
-        function obj = DensityVerticalCantileverLengthScale(pRelTar)
+        function obj = DensityVerticalCantilever4x4LengthScale(pRelTar)
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -33,8 +33,8 @@ classdef DensityVerticalCantileverLengthScale < handle
             obj.createPrimalUpdater();
             obj.createOptimizer();
 
-            saveas(gcf,['Paper/Global/MonitoringDensityVerticalCantileverLengthScale',num2str(pRelTar),'.fig']);
-            obj.designVariable.fun.print(['Paper/Global/DensityVerticalCantileverLengthScale',num2str(pRelTar),'fValues']);
+            saveas(gcf,['Paper/Domain4x4/MonitoringDensityVerticalCantilever4x4LengthScale',num2str(pRelTar),'.fig']);
+            obj.designVariable.fun.print(['Paper/Domain4x4/DensityVerticalCantilever4x4LengthScale',num2str(pRelTar),'fValues']);
         end
 
     end
@@ -140,6 +140,20 @@ classdef DensityVerticalCantileverLengthScale < handle
             uMesh.compute(levelSet);
         end
 
+        function uMesh = createBaseDomainPerimeter(obj,x0,y0)
+            s.type             = 'Rectangle';
+            s.xCoorCenter      = x0;
+            s.yCoorCenter      = y0;
+            s.xSide            = 0.25;
+            s.ySide            = 0.50;
+            g                  = GeometricalFunction(s);
+            lsFun              = g.computeLevelSetFunction(obj.mesh);
+            sUm.backgroundMesh = obj.mesh;
+            sUm.boundaryMesh   = obj.mesh.createBoundaryMesh();
+            uMesh              = UnfittedMesh(sUm);
+            uMesh.compute(lsFun.fValues);
+        end
+
         function createIsoPerimetric(obj,p)
             sF.mesh       = obj.mesh;
             sF.filterType = 'PDE';
@@ -148,15 +162,20 @@ classdef DensityVerticalCantileverLengthScale < handle
 
             h         = obj.mesh.computeMeanCellSize();
             s.mesh    = obj.mesh;
-            s.uMesh   = obj.createBaseDomain();
             s.filter  = f;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
             s.epsilon = 3*h;
             s.minEpsilon = 3*h;
             s.value0 = 1;
             s.target = 0.066*p;
-            s.delta = 0.1;
-            obj.isoPer = LengthScaleConstraint(s);
+            s.delta = 0.025; % 10% del tamaño minimo de subdominio
+
+            x0 = repmat([0.125,0.375,0.625,0.875],[1,4]);
+            y0 = [repmat(1.75,[1,4]),repmat(1.25,[1,4]),repmat(0.75,[1,4]),repmat(0.25,[1,4])];
+            for i = 1:length(x0)
+                s.uMesh       = obj.createBaseDomainPerimeter(x0(i),y0(i));
+                obj.isoPer{i} = LengthScaleConstraint(s);
+            end
         end
 
         function createVolumeConstraint(obj)
@@ -184,7 +203,9 @@ classdef DensityVerticalCantileverLengthScale < handle
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
-            s.shapeFunctions{2} = obj.isoPer;
+            for i = 1:length(obj.isoPer)
+                s.shapeFunctions{i+1} = obj.isoPer{i};
+            end
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
@@ -204,7 +225,7 @@ classdef DensityVerticalCantileverLengthScale < handle
             s.designVariable = obj.designVariable;
             s.maxIter        = 1500;
             s.tolerance      = 1e-8;
-            s.constraintCase = {'EQUALITY','INEQUALITY'};
+            s.constraintCase = [{'EQUALITY'},repmat({'INEQUALITY'},[1,16])];
             s.primal         = 'PROJECTED GRADIENT';
             s.etaNorm        = 0.01;
             s.gJFlowRatio    = 0.7;
