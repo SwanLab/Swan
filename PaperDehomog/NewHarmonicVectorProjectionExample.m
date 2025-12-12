@@ -319,9 +319,10 @@ classdef NewHarmonicVectorProjectionExample < handle
            m1 = project(sqrt((1-rho)./(c.*tan(xi))),'P1D');
            m2 = project(sqrt((1-rho)./c),'P1D');
 
-
-            s.xSide = m1;%obj.createFunction(obj.experimentData.dataRes.DesignVar1);%0.85*ones(size(obj.mesh.coord,1),1);
-            s.ySide = m2;%obj.createFunction(obj.experimentData.dataRes.DesignVar2);%0.85*ones(size(obj.mesh.coord,1),1);
+            %s.xSide = m1;%obj.createFunction(obj.experimentData.dataRes.DesignVar1);%0.85*ones(size(obj.mesh.coord,1),1);
+            %s.ySide = m2;%obj.createFunction(obj.experimentData.dataRes.DesignVar1);%0.85*ones(size(obj.mesh.coord,1),1);
+            s.xSide = obj.createFunction(obj.experimentData.dataRes.DesignVar1);%0.85*ones(size(obj.mesh.coord,1),1);
+            s.ySide = obj.createFunction(obj.experimentData.dataRes.DesignVar2);%0.85*ones(size(obj.mesh.coord,1),1);
             s.pnorm  = obj.createFunction(obj.experimentData.dataRes.SuperEllipseExponent);
             s.ndim   = 2;
         end

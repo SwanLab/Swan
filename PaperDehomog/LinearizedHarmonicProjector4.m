@@ -29,7 +29,7 @@ classdef LinearizedHarmonicProjector4 < handle
             obj.fS = LagrangianFunction.create(obj.mesh, 1, 'P1');
             obj.createInternalDOFs();                      
             obj.createFilter();
-            obj.eta = (2*obj.mesh.computeMeanCellSize)^2;
+            obj.eta = (0*obj.mesh.computeMeanCellSize)^2;
             rhoEps = 1e-3;
             rhoMin = min(obj.density.fValues) - rhoEps; 
             rhoMax = max(obj.density.fValues) + rhoEps; 
