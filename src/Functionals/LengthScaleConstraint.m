@@ -20,11 +20,14 @@ classdef LengthScaleConstraint < handle
             [V,dV] = obj.volume.computeFunctionAndGradient(x);
             V      = V*obj.volume.totalVolume;
             [P,dP] = obj.perimeter.computeFunctionAndGradient(x);
-            J      = -V/((P+obj.delta)*obj.target0) + 1;
+            h0     = obj.target0;
+            h      = obj.target;
+            t      = obj.delta;
+            J      = -(V+2*t*h)/((P+t)*h0) + 1;
             dJ{1}  = copy(dV{1});
             dV     = dV{1}.fValues*obj.volume.totalVolume;
             dP     = dP{1}.fValues;
-            dJ{1}.setFValues(-dV./((P+obj.delta)*obj.target0) + dP.*(V/((P+obj.delta)^2*obj.target0)));
+            dJ{1}.setFValues(-dV./((P+t)*h0) + dP.*((V+2*t*h)/((P+t)^2*h0)));
             obj.updateForNextIteration(J);
         end
     end
