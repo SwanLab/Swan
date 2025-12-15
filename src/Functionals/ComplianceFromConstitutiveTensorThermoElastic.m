@@ -8,13 +8,15 @@ classdef ComplianceFromConstitutiveTensorThermoElastic < handle
         mesh
         stateProblem
         adjointProblem
+        materialInterpolator
     end
 
     methods (Access = public)
         function obj = ComplianceFromConstitutiveTensorThermoElastic(cParams)
             obj.init(cParams);
             obj.createQuadrature();
-            obj.createAdjointProblem(cParams);
+            obj.createAdjointProblem();
+            obj.createAdjointBoundaryConditions();
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,C,dC,kappa, dkappa)
@@ -36,9 +38,19 @@ classdef ComplianceFromConstitutiveTensorThermoElastic < handle
             obj.quadrature = quad;
         end
 
-        function createAdjointProblem(obj,cParams)
-            % define bcs + use structure from thermal Problems
-            
+        function createAdjointProblem(obj)
+            s.mesh = obj.mesh;
+            s.conductivity = obj.materialInterpolator; 
+            Q = LagrangianFunction.create(obj.mesh,1,'P1');
+            fValues = ones(Q.nDofs,1);
+            Q.setFValues(fValues);
+            s.source       = Q;  
+            s.dim = '2D';
+            s.boundaryConditions = obj.createAdjointBoundaryConditions();
+            s.interpolationType = 'LINEAR';
+            s.solverType = 'REDUCED';
+            s.solverMode = 'DISP';
+            s.solverCase = 'DIRECT';         
             obj.adjointProblem = ThermalProblem(s); 
             
         end
@@ -57,6 +69,29 @@ classdef ComplianceFromConstitutiveTensorThermoElastic < handle
             obj.adjointProblem.updateSource(newSource);
             obj.adjointProblem.solve(kappa);
             p = obj.adjointProblem.pFun;
+        end
+
+        function bcAdj = createAdjointBoundaryConditions(obj)
+            yMin    = min(obj.mesh.coord(:,2));
+            xMax    = max(obj.mesh.coord(:,1));
+            isDir   = @(coor) abs(coor(:,2))==yMin & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax;  
+            
+            sDir{1}.domain    = @(coor) isDir(coor);
+            sDir{1}.direction = 1;
+            sDir{1}.value     = 0;
+            sDir{1}.ndim = 1;
+            
+            dirichletFun = [];
+            for i = 1:numel(sDir)
+                dir = DirichletCondition(obj.mesh, sDir{i});
+                dirichletFun = [dirichletFun, dir];
+            end
+            s.dirichletFun = dirichletFun;
+            s.pointloadFun = [];
+
+            s.periodicFun  = [];
+            s.mesh         = obj.mesh;
+            bcAdj = BoundaryConditions(s); 
         end
 
         function J = computeFunction(obj,C,u)

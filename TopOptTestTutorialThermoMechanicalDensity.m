@@ -260,36 +260,26 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
         end
 
          function bcT = createBoundaryConditionsThermal(obj)
+            yMin    = min(obj.mesh.coord(:,2));
             xMax    = max(obj.mesh.coord(:,1));
-            yMax    = max(obj.mesh.coord(:,2));
-            isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
-
+            isDir   = @(coor) abs(coor(:,2))==yMin & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax;  
+            
             sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [1,2];
+            sDir{1}.direction = 1;
             sDir{1}.value     = 0;
-
-            sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 2;
-            sPL{1}.value     = -1;
-
+            sDir{1}.ndim = 1;
+            
             dirichletFun = [];
             for i = 1:numel(sDir)
                 dir = DirichletCondition(obj.mesh, sDir{i});
                 dirichletFun = [dirichletFun, dir];
             end
             s.dirichletFun = dirichletFun;
-
-            pointloadFun = [];
-            for i = 1:numel(sPL)
-                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
-                pointloadFun = [pointloadFun, pl];
-            end
-            s.pointloadFun = pointloadFun;
+            s.pointloadFun = [];
 
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
-            bcT = BoundaryConditions(s);
+            bcT = BoundaryConditions(s); 
          end
     end
 end
