@@ -63,7 +63,11 @@ classdef OptimizationProblemNN < handle
            yOut = obj.network.computeYOut(X);
        end
 
-       function dY = computeGradient(obj,X)
+       
+       
+       
+       
+      function dY = computeGradient(obj,X)
            dY = obj.network.networkJacobian(X);
        end
 
