@@ -55,7 +55,7 @@ classdef ElasticityMicro_45_45 < handle
         end
 
         function [ls,phiFun] = computeLevelSet(obj, mesh)            
-            g.type = 'DiagonalNfibers'; 
+            g.type = 'CrossDiagonalBars'; 
             g.nFibers  = 5;
             g.minxCoor = 0;
             g.maxxCoor = 1;

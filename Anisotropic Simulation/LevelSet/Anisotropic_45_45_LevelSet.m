@@ -33,7 +33,7 @@ classdef Anisotropic_45_45_LevelSet < handle
 
             % Save monitoring and desginVariable fValues
             %saveas(gcf,'Monitoring_45_45_LevelSet.fig');
-            obj.designVariable.fun.print('fValues_45_45_LevelSetV2');
+            %obj.designVariable.fun.print('fValues_45_45_LevelSetV2');
         end
 
     end
@@ -179,7 +179,7 @@ classdef Anisotropic_45_45_LevelSet < handle
             s.etaMax         = 0.1;
             s.etaMaxMin      =0.05;
             %s.type           = '-45_45';
-            s.gif = true;
+            s.gif = false;
             s.gifName = 'Gif_45_45_LevelSetv2';
             s.printing = false;
             s.printName = 'Results_45_45_LevelSetv2';

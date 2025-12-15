@@ -225,7 +225,7 @@ classdef Anisotropic_90_LevelSet < handle
             sDir{1}.value     = 0;
             
             % Comentar sDir 2 quan es faci cantilever beam
-            sDir{2}.domain    = @(coor) isDir2(coor);
+            %sDir{2}.domain    = @(coor) isDir2(coor);
             %sDir{2}.direction = [1,2];
             %sDir{2}.value     = 0;
 

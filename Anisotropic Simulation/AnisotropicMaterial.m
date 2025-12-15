@@ -15,63 +15,30 @@ classdef AnisotropicMaterial < handle
             nGauss = size(xV,2);
             nElem  = obj.mesh.nelem;
 
-            % Matriz de rigidez en notación Voigt (2D, 3x3)
-            % (ejemplo: valores arbitrarios, cambia por tu matriz homogeneizada)
-
-            % Mapeo Voigt 2D
-            % 1->11, 2->22, 3->12
-            % map = [1 1; 2 2; 1 2];
-
-            % Inicializar tensor de 4º orden (2D)
-            C_tensor = zeros(2,2,2,2);
-
-            %for I = 1:3
-            %    for J = 1:3
-            %        i = map(I,1); j = map(I,2);
-            %        k = map(J,1); l = map(J,2);
-
-            %        % Factores de corte (Voigt usa ingenieril γ12, con factor 2)
-            %        facI = 1; if I==3, facI = sqrt(2); end
-            %        facJ = 1; if J==3, facJ = sqrt(2); end
-
-            %        val = C_voigt(I,J) / (facI*facJ);
-
-            %        % Asignar respetando simetrías
-            %        C_tensor(i,j,k,l) = val;
-            %        C_tensor(j,i,k,l) = val;
-            %        C_tensor(i,j,l,k) = val;
-            %        C_tensor(j,i,l,k) = val;
-
-            %        C_tensor(k,l,i,j) = val;
-            %        C_tensor(l,k,i,j) = val;
-            %        C_tensor(k,l,j,i) = val;
-            %        C_tensor(l,k,j,i) = val;
-            %    end
-            %end
-            %C_tensor(1,2,2,1) = 0;
-            %C_tensor(2,1,1,2) = 0;
-
-            %C_tensor = zeros(2,2,2,2);        % tensor 4º orden
-
-
-            C_tensor = zeros(2,2,2,2);
-            map = [1 3; 3 2];
-        
-            % multiplicidad por índice Voigt: 1 para 1 y 2, 2 para 3 (1,2 y 2,1)
-            mult = [1, 1, 2];
-        
-            for i = 1:2
-                for j = 1:2
-                    m = map(i,j);     
-                    for k = 1:2
-                        for l = 1:2
-                            n = map(k,l);
-                            C_tensor(i,j,k,l) = C_voigt(m,n) / ( mult(m) * mult(n) );
-                        end
-                    end
-                end
+            dim=2;
+            if dim == 2
+                pairs = [1 1; 2 2; 1 2];
+            elseif dim == 3
+                pairs = [1 1; 2 2; 3 3; 2 3; 1 3; 1 2];
+            else
+                error('Tensor must be 2D or 3D.');
             end
 
+            dimVoigt = size(pairs,1);
+            C_tensor = zeros(dim, dim, dim, dim);
+        
+            for m = 1:dimVoigt
+                for n = 1:dimVoigt
+                    i = pairs(m,1); j = pairs(m,2);
+                    k = pairs(n,1); l = pairs(n,2);
+        
+                    C_tensor(i,j,k,l) = C_voigt(m,n);
+                    C_tensor(j,i,k,l) = C_voigt(m,n);
+                    C_tensor(i,j,l,k) = C_voigt(m,n);
+                    C_tensor(j,i,l,k) = C_voigt(m,n);
+                end
+            end
+        
             C = repmat(C_tensor,[1 1 1 1 nGauss nElem]);
         end
 

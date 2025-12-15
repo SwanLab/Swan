@@ -179,7 +179,7 @@ classdef Anisotropic_45_LevelSet < handle
             s.etaMax         = 10;
             s.etaMaxMin      = 0.05;
             %s.type           = '45';
-            s.gif = true;
+            s.gif = false;
             s.gifName = 'Gif_45_LevelSetV2';
             s.printing = false;
             s.printName = 'Results_45_LevelSetV2';
