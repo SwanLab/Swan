@@ -6,7 +6,7 @@
 
 %% Loads the data of the NN
 
-filename1='T1.mat';
+filename1='T_NN.mat';
 filePath1 = fullfile('AbrilTFGfiles', 'NN', filename1);
 load(filePath1);
 

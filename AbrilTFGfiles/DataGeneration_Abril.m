@@ -3,14 +3,13 @@
 
 clc; clear; close all;
 
-%r = 0:0.1:0.999; 
-r=0.1;
-nelem=10;
+r = 0:0.02:0.98; 
+%r=0.1;
+nelem=50;
 
 doplot=false();
 
 for j = 1:size(r,2)
-    
     [~, u, l, mesh,Kcoarse] = IsolatedTraining(r(j),nelem,doplot);
 
     % Initialization for K_all and T_all
@@ -47,14 +46,14 @@ for j = 1:size(r,2)
     K         = Kcoarse;
 
     % Guarda el workspace per cert radi
+
     FileName=fullfile('AbrilTFGfiles','Data',meshName,string);
-    %FileName=fullfile('AbrilTFGfiles','DataComparison',string);
-    save(FileName, "T", "L", "K","mesh","R"); 
+    %save(FileName, "T", "L", "K","mesh","R"); 
 end
 
 
 
-%% Reshapes the U data and saves it in a csv file
+%% Reshapes the T data and saves it in a csv file
 
 % Redimensioning the U_all1
 TData=[];

@@ -189,7 +189,7 @@ classdef Data < handle
             end
             E = [];
             for k = 0:g
-                S = genExp(n-1,g-k);
+                S = Data.genExp(n-1,g-k);
                 E = [E; k*ones(size(S,1),1) S];
             end
         end       

@@ -21,7 +21,7 @@ end
 
 %% Data to train
 [U,S,V]    = svd(T,"econ");
-nBasis=20;
+nBasis=10;
 
 basis = U(:,1:nBasis);
 sValues = S(1:nBasis,1:nBasis);
@@ -33,57 +33,17 @@ table=[r q];
 %save(fileName,"U","S","V","r");
 %QFileName = fullfile('AbrilTFGfiles', 'DataQ.csv');
 %writematrix(table,QFileName);
-%% Graphics
-
-% PLot the V columns grouped in 10
-%step=10;
-%Nwindow=ceil(size(V,2)/step);
-%idx=1;
-
-%for j=1:Nwindow
-%    figure('Position',[75 100 1400 600]);
-%    tiledlayout(2,5,'TileSpacing','compact','Padding','compact');
-%    for i=1:step
-%        ax=nexttile;
-%        plot(r,V(:,idx), 'LineWidth', 1.5);
-%        xlabel('r');
-%        ylabel("V(:,"+idx);
-%        title("V-"+ idx+" ; r="+r(1,idx));
-%        grid on
-%        idx=idx+1;
-%    end
-%end
-
-tiledlayout(3,5,'TileSpacing','compact','Padding','compact');
-for i=1:15
-    ax=nexttile;
-    plot(r,V(:,i), 'LineWidth', 1.5);
-    xlabel('r');
-    ylabel("V"+i);
-    title("V"+ i);
-    legend('Exact')
-    grid on
-end
-
-% Plot the S
-figure
-plot(log(diag(S)),'LineWidth',1.5);
-title("S singular values");
-ylabel('value');
-xlabel('column');
 
 
 %% Export NN paraview file
-NNname=fullfile("AbrilTFGfiles/NN/Q_NN.mat");
+NNname=fullfile("AbrilTFGfiles/NN/Q_NN2.mat");
 load(NNname);
 
 
-
 rad=0.3;
-qNN=zeros(15,1);
-for i=1:size(Q_NN,2)
-    qNN(i)=Q_NN{i}.computeOutputValues(rad).';
-end
+rFull = Data.buildModel(rad,6);
+qNN=Q_NN.computeOutputValues(rFull).';
+
 
 T_NN=basis*qNN;
 
@@ -92,6 +52,7 @@ u=reshape(T_NN,[],8);
 % Export vtu file
  z.mesh      = data.mesh;
  z.order     = 'P1';
+ 
  for i=1:8
    z.fValues   = reshape(u(:,i),[data.mesh.ndim,data.mesh.nnodes])';
    uFeFun = LagrangianFunction(z);%
