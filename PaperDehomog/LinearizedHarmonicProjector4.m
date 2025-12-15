@@ -51,8 +51,8 @@ classdef LinearizedHarmonicProjector4 < handle
             res = norm(LHS*x - RHS)/norm(x);
             [resL,resH,resB,resG] = obj.evaluateResidualNorms(bBar,b);
             i = 1;
-            thetaH = 1;
-            thetaR = 0;
+            thetaH = 0.01;
+            thetaR = 1;
             thetaB = 1;
             
 
