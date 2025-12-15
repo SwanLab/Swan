@@ -33,7 +33,7 @@ classdef Anisotropic_45_45_LevelSet < handle
 
             % Save monitoring and desginVariable fValues
             %saveas(gcf,'Monitoring_45_45_LevelSet.fig');
-            %obj.designVariable.fun.print('fValues_45_45_LevelSetV2');
+            obj.designVariable.fun.print('fValues_45_45_LevelSet_MBB');
         end
 
     end
@@ -46,7 +46,11 @@ classdef Anisotropic_45_45_LevelSet < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,2,150);
+            % Cantilever beam
+            %x1      = linspace(0,2,150);
+            %x2      = linspace(0,1,75);
+            % MBB Beam
+            x1      = linspace(0,6,500);
             x2      = linspace(0,1,75);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
@@ -179,10 +183,10 @@ classdef Anisotropic_45_45_LevelSet < handle
             s.etaMax         = 0.1;
             s.etaMaxMin      =0.05;
             %s.type           = '-45_45';
-            s.gif = false;
-            s.gifName = 'Gif_45_45_LevelSetv2';
+            s.gif = true;
+            s.gifName = 'Gif_45_45_LevelSet_MBB';
             s.printing = false;
-            s.printName = 'Results_45_45_LevelSetv2';
+            s.printName = 'Results_45_45_LevelSet_MBB';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -202,14 +206,27 @@ classdef Anisotropic_45_45_LevelSet < handle
         end
 
         function bc = createBoundaryConditions(obj)
+            % Cantilever beam
+            %xMax    = max(obj.mesh.coord(:,1));
+            %yMax    = max(obj.mesh.coord(:,2));
+            %isDir   = @(coor)  abs(coor(:,1))==0;
+            %isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
+            
+            % MBB beam
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
-            isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
+            isDir   = @(coor)  (abs(coor(:,1))==0 & abs(coor(:,2)) == 0);
+            isDir2  = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2)) == 0);
+            isForce = @(coor)  (abs(coor(:,2))==yMax & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax);
 
             sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [1,2];
+            sDir{1}.direction = 2; % Cantilever--> [1,2]   MBB--> 2
             sDir{1}.value     = 0;
+
+            % Comentar sDir 2 quan es faci cantilever beam
+            sDir{2}.domain    = @(coor) isDir2(coor);
+            sDir{2}.direction = [1,2];
+            sDir{2}.value     = 0;
 
             sPL{1}.domain    = @(coor) isForce(coor);
             sPL{1}.direction = 2;

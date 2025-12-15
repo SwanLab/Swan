@@ -33,7 +33,7 @@ classdef Anisotropic_45_Density < handle
 
             % Save monitoring and desginVariable fValues
             %saveas(gcf,'Monitoring_45_Density.fig');
-            obj.designVariable.fun.print('fValues_45_Density');
+            obj.designVariable.fun.print('fValues_45_DensityV2');
         end
 
     end
@@ -176,7 +176,7 @@ classdef Anisotropic_45_Density < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 300;
+            s.maxIter        = 500;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;

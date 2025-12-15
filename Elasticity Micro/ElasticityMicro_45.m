@@ -26,7 +26,7 @@ classdef ElasticityMicro_45 < handle
 
     methods (Access = private)
         
-                function createMesh(obj)
+        function createMesh(obj)
             obj.mesh = UnitTriangleMesh(50,50);
         end
 
