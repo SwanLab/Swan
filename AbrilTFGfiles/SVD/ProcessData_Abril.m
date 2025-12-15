@@ -27,7 +27,7 @@ xdata   = linspace(0,0.98,50);
 centers = xdata;
 [fT,deim,fR]   = parameterizedDataLagrange(T,xdata);
 fileName=fullfile("AbrilTFGfiles","SVD","HOfunction.mat");
-save(fileName,"fR");
+save(fileName,"fR","fT","deim");
 r=0.3;
 
 u=fT(r);

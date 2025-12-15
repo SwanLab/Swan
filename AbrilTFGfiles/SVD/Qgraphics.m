@@ -14,7 +14,7 @@ load(NNname);
 
 % High Order function
 HOname=fullfile("AbrilTFGfiles/SVD/HOfunction.mat");
-load(HOname);
+load(HOname,"fR");
 
 % SVD
 SVDname=fullfile("AbrilTFGfiles/SVD/SVD.mat");

@@ -67,15 +67,16 @@ classdef CoarseTesting_Abril< handle
             % EXACT SOLUTION
             LHSf   = @(x) LHS*x;
             RHSf   = RHS;
-            Usol   = LHS\RHS;
+            %Usol   = LHS\RHS;
+            Usol=zeros(size(RHSf,1),1);
             Ufull  = obj.bcApplier.reducedToFullVectorDirichlet(Usol); 
-
+            
 
             % PRECONDITIONERS
             Meifem       = obj.createEIFEMPreconditioner(dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);            
             Milu         = obj.createILUpreconditioner(LHS);
             Mcoarse     = obj.createCoarseNNPreconditioner(mR,dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);
-            %MiluCG      = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
+            MiluCG      = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
             Mmult        = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Meifem,Milu);
 
 
@@ -97,7 +98,7 @@ classdef CoarseTesting_Abril< handle
             s.fValues = reshape(xFull,2,[])';
             uFun = LagrangianFunction(s);
             
-            uFun.print('ProvaIter1','Paraview');
+            %uFun.print('ProvaIter1','Paraview');
 
             s.fValues = reshape(Ufull,2,[])';
             RealFun=LagrangianFunction(s);
@@ -140,27 +141,27 @@ classdef CoarseTesting_Abril< handle
         function init(obj)
             % Case Parameters
             p.Inclusion = 'Hole';         % 'Hole'/'Material'
-            p.Sampling  = 'Oversampling'; % 'Isolated'/'Oversampling'
+            p.Sampling  = 'Isolated'; % 'Isolated'/'Oversampling'
             p.loadData  = 'Dataset';      % 'Dataset'/'NN'
-            p.nelem     =  20;            %  Mesh refining
+            p.nelem     =  10;            %  Mesh refining
             obj.params  =  p;
 
             % Definition of Subdomain
-            obj.r              = ones(5,15)*0.3;
+            obj.r              = ones(30,60)*0.3;
             obj.nSubdomains    = size(obj.r');
             obj.mSubdomains    = [];
             obj.tolSameNode    = 1e-10;
             
             % Load the data of the case
-            switch p.loadData
-                case 'Dataset'
-                    nameFile=obj.computeNameFile();
-                    obj.loadT(nameFile,p.Inclusion);
-                    obj.loadK(nameFile,p.Inclusion);  
-                case 'NN'
-                    nameNN= ["K_NN.mat","T_NN.mat"];
-                    obj.loadNN(nameNN);
-            end
+            %switch p.loadData
+            %    case 'Dataset'
+            %        nameFile=obj.computeNameFile();
+            %        obj.loadT(nameFile,p.Inclusion);
+            %        obj.loadK(nameFile,p.Inclusion);  
+            %    case 'NN'
+            %        nameNN= ["K_NN.mat","T_NN.mat"];
+            %        obj.loadNN(nameNN);
+            %end
         end
 
         function NameFile=computeNameFile(obj)
