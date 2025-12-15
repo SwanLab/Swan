@@ -40,6 +40,7 @@ opt = OptimizationProblemNN(s);
 opt.solve();
 opt.plotCostFnc();
 
+
 % Save the model
 save('Tutorials/ChomogNetworkTutorial/Networks/network_ellipse_cHomog.mat', 'opt')
 
