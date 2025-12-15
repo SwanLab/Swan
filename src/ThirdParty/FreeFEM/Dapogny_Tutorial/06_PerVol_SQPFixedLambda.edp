@@ -11,6 +11,7 @@ border right(t=0.0,1.0){ x=1.0; y=t; label=0; };
 border top(t=0.0,2.0){ x=1.0-t; y=1.0; label=0; };
 mesh Th = buildmesh(left(30*fac)+bot(60*fac)+right(30*fac)+top(60*fac));
 
+/* Label corresponding to level-set boundary */
 mesh ThInt;
 meshL ThLInt;
 int[int] L(1);
@@ -21,11 +22,10 @@ fespace Vh(Th,P1);
 fespace Vh0(Th,P0);
 include "tools.idp"
 
-
 /* Initialization of the Level Set function */
 func real initialGuess() {
-  real x0 = 0, y0 = 0.5, l = 0.75, p = 4, ls;
-  ls = ((abs(x-x0)^p+abs(y-y0)^p)^(1/p))/l - 0.5;
+  real x0 = 0, y0 = 0.5, lx = 1.5, ly = 0.4, p = 4, ls;
+  ls = ((abs((x-x0)/lx)^p+abs((y-y0)/ly)^p)^(1/p)) - 0.5;
   return(ls);
 }
 Vh phio, phi;
@@ -42,39 +42,37 @@ real meshsiz = 1/(30*fac);
 real alpha = 4.0*meshsiz;
 Vh g, v;
 
-fespace Vh1(ThLInt,P1);
-Vh1 g0Teo, g0, v0;
-
-problem velext(g,v) = int2d(Th)(alpha^2*(dx(g)*dx(v)+dy(g)*dy(v)) + g*v)
-                      - int1d(Th,levelset=phi)(g0*v);
-
 /* Objective function */
 macro J() (int1d(Th,levelset=phi)(1)) // EOM
 
 /* Constraint */
-macro C() (int2d(Th)(Achi)) // EOM
+macro C() (int2d(Th)(Achi) - 0.5) // EOM
 
 /* Initial value of the objective function */
-real newobj, ell;
-ell = 20*(C-0.5); // Variable lagrange multiplier
-newobj = J + ell*(C-0.5);
+real newobj, ell, constr;
+ell = 50; // Fixed Lagrange multiplier
+constr = C;
+newobj = J + 0.5*ell*constr^2;
 
 /* Print initial objective and save initial level set function and density */
 cout<<"Initial value of the objective function: "<<newobj<<endl;
 
-/* (Negative) shape gradient */
 Vh nx, ny, vx, vy, kappa;
 
 macro updateBoundary() {
   ThInt = trunc(Th, phi<=0);
   ThLInt = extract(ThInt, label = L);
-  plot(ThLInt, wait=true);
+  /* plot(ThLInt, wait=true); */
 } //
 
 macro tanGrad(f,nx,ny) [-ny*dx(f) + nx*dy(f)] //
-macro dHdn(nx,ny) (nx * dx(kappa) + ny * dy(kappa)) //
-problem computeShapeDerivative(g0,v0) = int1d(ThLInt)(tanGrad(g0,nx,ny)*tanGrad(v0,nx,ny)+g0*v0*(dHdn(nx,ny)+kappa^2+ell*kappa)) 
-                                          - int1d(ThLInt)(-v0*kappa-v0*ell);
+/* macro dHdn(nx,ny) (nx * dx(kappa) + ny * dy(kappa)) // */
+
+varf KM(g0,v0) = int1d(ThLInt)(tanGrad(g0,nx,ny)*tanGrad(v0,nx,ny) + g0*v0*(max(ell*constr*kappa,60*alpha)));
+
+varf F(g0,v0) = int1d(ThLInt)(v0*(-kappa-ell*constr));
+
+varf Lr(unused,v0) = int1d(ThLInt)(v0);
 
 /* Temporal stuff */
 string datafile1 = "data1.gp";
@@ -89,7 +87,30 @@ string gnuplotCmd =
 
 macro dJ() {
   updateBoundary;
-  computeShapeDerivative;
+
+  fespace Vh1(ThLInt,P1);
+  Vh1 g0Teo, g0, v0;
+
+  problem velext(g,v) = int2d(Th)(alpha^2*(dx(g)*dx(v)+dy(g)*dy(v)) + g*v)
+                      - int1d(Th,levelset=phi)(g0*v);
+
+  constr = C;
+ 
+  /* rank 1 operator */
+  real[int] b(Vh1.ndof);
+  b = Lr(0,Vh1);
+
+  matrix lhs1 = KM(Vh1,Vh1);
+
+  real[int] rhs = F(0,Vh1);
+  
+  real[int] y1 = lhs1^-1 * rhs;
+
+  real[int] z1 = lhs1^-1 * b;
+
+  real den = 1.0 + b' * z1;
+
+  g0[] = y1 - ( (b' * y1) / den ) * z1; /* Sherman–Morrison formula */
 
   /* Temporal stuff */
   int NbVertices = ThLInt.nv;
@@ -98,7 +119,7 @@ macro dJ() {
   for (int i = 1; i < NbVertices; i++) {
     t[i] = t[i-1] + 3.0/(NbVertices-1);
   }
-  g0Teo = -kappa - ell;
+  g0Teo = -kappa - ell*constr;
   cout<<"MIN: "<<g0Teo[].min<<" MAX: "<<g0Teo[].max<<endl;
   {
     ofstream fout(datafile1);
@@ -128,12 +149,12 @@ real maxcoef = 3.0;
 real mincoef = 0.1;
 Vh X;
 Vh0 kappa0;
-int maxit = 1, kmax = 10;
+int maxit = 30, kmax = 10;
 real[int] costPlot, volumePlot;
 costPlot.resize(costPlot.n+1);
-costPlot[costPlot.n-1] = J;
+costPlot[costPlot.n-1] = newobj;
 volumePlot.resize(volumePlot.n+1);
-volumePlot[volumePlot.n-1] = C;
+volumePlot[volumePlot.n-1] = constr;
 string sout;
 for (int it=0; it<maxit; it++) {
   obj = newobj;
@@ -148,8 +169,8 @@ for (int it=0; it<maxit; it++) {
   curvature;
   dJ;
 
-  sout = "ShapeGradient.vtu";
-  savevtk(sout, Th, g, dataname="Gradient");
+  /*sout = "ShapeGradient.vtu";
+  savevtk(sout, Th, g, dataname="Gradient");*/
 
 
   gmax = max(g[].max,-g[].min);
@@ -167,17 +188,17 @@ for (int it=0; it<maxit; it++) {
 
     /* Calculation of the new objective function */
     Achi[] = volfrac(Th,phi[],ers);
-    ell = 20*(C-0.5); // Variable lagrange multiplier
-    newobj = J + ell*(C-0.5);
+    constr = C;
+    newobj = J + 0.5*ell*constr^2;
 
     /* Decision */
     /* Accept iteration */
     if ( newobj < obj + tol*abs(obj) || coef <= mincoef ) {
       coef = min(1.1*coef,maxcoef);
       costPlot.resize(costPlot.n+1);
-      costPlot[costPlot.n-1] = J;
+      costPlot[costPlot.n-1] = newobj;
       volumePlot.resize(volumePlot.n+1);
-      volumePlot[volumePlot.n-1] = C;
+      volumePlot[volumePlot.n-1] = constr;
       break;
     }
     /* Reject iteration */
@@ -205,7 +226,7 @@ string datafile = "06_objectiveHistory.gp";
 }
 
 // create gnuplot command to plot the data with logscale on y-axis
-gnuplotCmd = "gnuplot -e \"set term png size 800,600; set output '06_costPlot.png'; set title 'Objective History'; set xlabel 'Iteration'; set ylabel 'Perimeter'; set logscale y; plot '" + datafile + "' with lines lw 2 title 'Objective'\"";
+gnuplotCmd = "gnuplot -e \"set term png size 800,600; set output '06_costPlot.png'; set title 'Objective History'; set xlabel 'Iteration'; set ylabel 'Perimeter'; plot '" + datafile + "' with lines lw 2 title 'Objective'\"";
 
 // execute gnuplot command
 exec(gnuplotCmd);
@@ -221,7 +242,7 @@ datafile = "06_constraintHistory.gp";
 }
 
 // create gnuplot command to plot the data with logscale on y-axis
-gnuplotCmd = "gnuplot -e \"set term png size 800,600; set output '06_constraintPlot.png'; set title 'Constraint History'; set xlabel 'Iteration'; set ylabel 'Volume'; set logscale y; plot '" + datafile + "' with lines lw 2 title 'Objective'\"";
+gnuplotCmd = "gnuplot -e \"set term png size 800,600; set output '06_constraintPlot.png'; set title 'Constraint History'; set xlabel 'Iteration'; set ylabel 'Volume'; plot '" + datafile + "' with lines lw 2 title 'Objective'\"";
 
 // execute gnuplot command
 exec(gnuplotCmd);

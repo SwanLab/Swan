@@ -16,11 +16,10 @@ fespace Vh(Th,P1);
 fespace Vh0(Th,P0);
 include "tools.idp"
 
-
 /* Initialization of the Level Set function */
 func real initialGuess() {
-  real x0 = 0, y0 = 0.5, l = 0.75, ls;
-  ls = max(abs(x-x0),abs(y-y0))/l - 0.5;
+  real x0 = 0, y0 = 0.5, lx = 1.5, ly = 0.4, p = 4, ls;
+  ls = ((abs((x-x0)/lx)^p+abs((y-y0)/ly)^p)^(1/p)) - 0.5;
   return(ls);
 }
 Vh phio, phi;
@@ -43,19 +42,20 @@ problem velext(g,v) = int2d(Th)(alpha^2*(dx(g)*dx(v)+dy(g)*dy(v)) + g*v)
 macro J() (int1d(Th,levelset=phi)(1)) // EOM
 
 /* Constraint */
-macro C() (int2d(Th)(Achi)) // EOM
+macro C() (int2d(Th)(Achi) - 0.5) // EOM
 
 /* Initial value of the objective function */
-real newobj, ell;
-ell = 20*(C-0.5); // Variable lagrange multiplier
-newobj = J + ell*(C-0.5);
+real newobj, ell, constr;
+ell = 50; // Fixed Lagrange multiplier
+constr = C;
+newobj = J + 0.5*ell*constr^2;
 
 /* Print initial objective and save initial level set function and density */
 cout<<"Initial value of the objective function: "<<newobj<<endl;
 
 /* (Negative) shape gradient */
-macro dJ() {
-  g0 = -kappa - ell;
+macro dJ(constr) {
+  g0 = -kappa - ell*constr;
   velext;
 } // EOM
 
@@ -74,12 +74,12 @@ real mincoef = 0.1;
 Vh X;
 Vh kappa;
 Vh0 kappa0;
-int maxit = 20, kmax = 10;
+int maxit = 30, kmax = 10;
 real[int] costPlot, volumePlot;
 costPlot.resize(costPlot.n+1);
-costPlot[costPlot.n-1] = J;
+costPlot[costPlot.n-1] = newobj;
 volumePlot.resize(volumePlot.n+1);
-volumePlot[volumePlot.n-1] = C;
+volumePlot[volumePlot.n-1] = constr;
 for (int it=0; it<maxit; it++) {
   obj = newobj;
   phio = phi;
@@ -91,7 +91,8 @@ for (int it=0; it<maxit; it++) {
   /* Calculation of the shape gradient */
   normalvec(phi);
   curvature;
-  dJ;
+  constr = C;
+  dJ(constr);
 
   gmax = max(g[].max,-g[].min);
   nx = g*nx;
@@ -108,17 +109,17 @@ for (int it=0; it<maxit; it++) {
 
     /* Calculation of the new objective function */
     Achi[] = volfrac(Th,phi[],ers);
-    ell = 20*(C-0.5); // Variable lagrange multiplier
-    newobj = J + ell*(C-0.5);
+    constr = C;
+    newobj = J + 0.5*ell*constr^2;
 
     /* Decision */
     /* Accept iteration */
     if ( newobj < obj + tol*abs(obj) || coef <= mincoef ) {
       coef = min(1.1*coef,maxcoef);
       costPlot.resize(costPlot.n+1);
-      costPlot[costPlot.n-1] = J;
+      costPlot[costPlot.n-1] = newobj;
       volumePlot.resize(volumePlot.n+1);
-      volumePlot[volumePlot.n-1] = C;
+      volumePlot[volumePlot.n-1] = constr;
       break;
     }
     /* Reject iteration */
@@ -147,7 +148,7 @@ string datafile = "05_objectiveHistory.gp";
 }
 
 // create gnuplot command to plot the data with logscale on y-axis
-string gnuplotCmd = "gnuplot -e \"set term png size 800,600; set output '05_costPlot.png'; set title 'Objective History'; set xlabel 'Iteration'; set ylabel 'Perimeter'; set logscale y; plot '" + datafile + "' with lines lw 2 title 'Objective'\"";
+string gnuplotCmd = "gnuplot -e \"set term png size 800,600; set output '05_costPlot.png'; set title 'Objective History'; set xlabel 'Iteration'; set ylabel 'Perimeter'; plot '" + datafile + "' with lines lw 2 title 'Objective'\"";
 
 // execute gnuplot command
 exec(gnuplotCmd);
@@ -163,7 +164,7 @@ datafile = "05_constraintHistory.gp";
 }
 
 // create gnuplot command to plot the data with logscale on y-axis
-gnuplotCmd = "gnuplot -e \"set term png size 800,600; set output '05_constraintPlot.png'; set title 'Constraint History'; set xlabel 'Iteration'; set ylabel 'Volume'; set logscale y; plot '" + datafile + "' with lines lw 2 title 'Objective'\"";
+gnuplotCmd = "gnuplot -e \"set term png size 800,600; set output '05_constraintPlot.png'; set title 'Constraint History'; set xlabel 'Iteration'; set ylabel 'Volume'; plot '" + datafile + "' with lines lw 2 title 'Objective'\"";
 
 // execute gnuplot command
 exec(gnuplotCmd);
