@@ -7,11 +7,11 @@ clear;
 close all;
 
 %% Initialization of hyperparameters
-pol_deg         = 1;
+pol_deg         = 6;
 testratio       = 30;
 lambda          = 0.0;
-learningRate    = 0.01;
-hiddenLayers    = [16 20 20 16 6 3];
+learningRate    = 0.1;
+hiddenLayers    = [24 40 60 60 40 24 12];
  
 
 %% INITIALIZATION 
@@ -23,7 +23,7 @@ s.polynomialOrder = pol_deg;
 s.testRatio       = testratio;
 s.networkParams.hiddenLayers    = hiddenLayers;
 s.optimizerParams.learningRate  = learningRate;
-s.optimizerParams.maxEpochs = 1000; % 1000 is the best option, but we use 10 to pass the tutorial quickly
+s.optimizerParams.maxEpochs = 50; % 1000 is the best option, but we use 10 to pass the tutorial quickly
 s.costParams.lambda             = lambda;
 s.costParams.costType           = 'L2';
 
@@ -36,9 +36,7 @@ s.xFeatures = 1:3;
 
 
 %% Initialization of variables to save
-MSETrain=zeros(1,8);
 T_NN=cell(1,8);
-comparison=cell(1,8);
 
 %% Loop for the 8 coarse modes
 
@@ -76,40 +74,13 @@ for j=1:8
     s.data = data;
     
     % Train the model
-    T_NN{1,j} = OptimizationProblemNN(s);
-    T_NN{1,j}.solve();
-    T_NN{1,j}.plotCostFnc();
+    T_NN{j} = OptimizationProblemNN(s);
+    T_NN{j}.solve();
+    T_NN{j}.plotCostFnc();
     title(TitleName);
-    
-   % Mirar si funciona 
-   % FileName=fullfile('AbrilTFGfiles','NN',FileName);
-   % save(FileName, "T_NN{1,j}");
-
-
-    
-    %MSETrain(1,j) = immse(T_NN{1,j}.computeOutputValues(data.Xtrain), data.Ytrain);
-    
-    
-    % --- COMPARISON ---
-    
-    % Load dataset from specified path
-    %filePath = fullfile('AbrilTFGfiles', s.fileName);
-    %tempData = readmatrix(filePath);
-    %
-    %comparison{1,j}.real = tempData(:, s.yFeatures);
-    %comparison{1,j}.predicted = zeros(size(comparison{1,j}.real));
-    %
-    %for i = 1:size(comparison{1,j}.real,1)
-    %    comparison{1,j}.predicted(i, :) = T_NN{1,j}.computeOutputValues(tempData(i, s.xFeatures));
-    %end
-    %
-    %comparison{1,j}.difference = comparison{1,j}.real-comparison{1,j}.predicted;
 
 end
 
-
-
-
-FileName=fullfile('AbrilTFGfiles','NN',"T_NN.mat");
-    save(FileName, "T_NN2","MSETrain","comparison");
+FileName=fullfile('AbrilTFGfiles','NN',"T_NN2.mat");
+save(FileName, "T_NN");
 
