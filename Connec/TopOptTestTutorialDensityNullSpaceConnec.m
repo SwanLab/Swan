@@ -47,7 +47,7 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
 
         function createMesh(obj)
             %UnitMesh better
-            obj.mesh = QuadMesh(2, 1, 50, 25);
+            obj.mesh = QuadMesh(2, 1, 100, 50);
         end
 
         function createDesignVariable(obj)
@@ -209,11 +209,11 @@ classdef TopOptTestTutorialDensityNullSpaceConnec < handle
             e = (h)^2;
             k0  = 1*(1-e);
             k1  = e; 
-            m0  = e;
+            m0  = 0;
             m1  = 1;%*(1-e);
             p  = 8;
            % s.diffCoef = @(x) k0.*(1-x.^p)+k1*x.^p;
-            s.diffCoef = @(x) k0.*(1-x).^p+k1;
+            s.diffCoef = @(x) k0.*(1-x).^p+k1*x.^p;
            % s.massCoef = @(x) m0.*(1-x.^p)+m1*x.^p;
             s.massCoef = @(x) m0.*(1-x).^p+m1*x.^p;
             

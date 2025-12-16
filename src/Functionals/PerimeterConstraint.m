@@ -28,7 +28,7 @@ classdef PerimeterConstraint < handle
             obj.epsilon    = cParams.epsilon;
             obj.minEpsilon = cParams.minEpsilon;
             obj.target0     = cParams.target;
-            obj.target     = 5;
+            obj.target     = 20;
             obj.perimeter  = PerimeterFunctional(cParams);
             obj.value0     = cParams.value0;
             obj.valueOld = -1;

@@ -26,7 +26,7 @@ classdef EnclosedVoidFunctional < handle
         function obj = EnclosedVoidFunctional(cParams)
             obj.init(cParams);
             obj.target = 0.01;
-            obj.qExp   = 8;
+            obj.qExp   = 2;
             obj.test = LagrangianFunction.create(obj.mesh,1,'P1');
             obj.createBoundaryConditionsAdjoint();
             obj.createSolverAdjoint();
@@ -55,7 +55,7 @@ classdef EnclosedVoidFunctional < handle
             
             %obj.updateEpsilonForNextIteration(J);
             %dJ{1} = -phi +  DP(obj.dm(xR).*(phi-xR)-obj.m(xR),lam) + 1.*obj.dk(xR).*DP(Grad(lam),Grad(phi));
-            dJ{1} = -phi.*((1-xR).^(obj.qExp-1))*obj.qExp;% + DP(obj.dm(xR).*(phi-xR)-obj.m(xR),lam) + 1.*obj.dk(xR).*DP(Grad(lam),Grad(phi));
+            dJ{1} = -phi.*((1-xR).^(obj.qExp-1))*obj.qExp;% + DP(obj.dm(xR).*(phi-xR)-obj.m(xR),lam) ;%+ 1.*obj.dk(xR).*DP(Grad(lam),Grad(phi));
             %dJ{1} =  -phi.*(1-xR);
             %dJ{1} =  -phi;%.*(1-xR);
             dJ{1} = dJ{1}./Dom*1;
@@ -72,19 +72,19 @@ classdef EnclosedVoidFunctional < handle
 
        function J = computeFunction(obj,P)
             pTar = obj.target0;
-            J    = P/(pTar/obj.value0) - 1; % P-pTar/obj.value0 if pTar is close to zero!!
+            J    = P/(obj.value0) - pTar; % P-pTar/obj.value0 if pTar is close to zero!!
         end
 
         function dJ = computeGradient(obj,dP)
-            pTar = obj.target0;
+            %pTar = obj.target0;
             dJ   = dP;
-            dJ{1}.setFValues(dP{1}.fValues/(pTar/obj.value0));
+            dJ{1}.setFValues(dP{1}.fValues/(obj.value0));
         end
 
         function updateTarget0ForNextIteration(obj,J) 
             %if abs(J)<=1e-2
             if J-obj.valueOld<0 || abs(J) <= 1e-2              
-               obj.target0 = max(obj.target0*(1-0.05),obj.target);
+               obj.target0 = max(obj.target0*(1-0.04),obj.target);
             end
             obj.valueOld = J;
         end        
