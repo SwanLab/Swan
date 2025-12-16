@@ -3,10 +3,11 @@ clear;
 close all;
 
 %% Initialization of hyperparameters
-pol_deg         = 9;
+pol_deg         = 6;
 testratio       = 30;
 lambda          = 0.0;
-hiddenLayers    =[16 20 16 6 3];
+learningRate    = 0.0001;
+hiddenLayers    =[20 40 100 100 40 20];
 
 %% INITIALIZATION 
 % Store dataset file name
@@ -16,8 +17,8 @@ s.fileName = 'DataQ.csv';
 s.polynomialOrder = pol_deg;
 s.testRatio       = testratio;
 s.networkParams.hiddenLayers    = hiddenLayers;
-%s.optimizerParams.learningRate  = learningRate;
-%s.optimizerParams.maxEpochs = 100000; % 1000 is the best option, but we use 10 to pass the tutorial quickly
+s.optimizerParams.learningRate  = learningRate;
+s.optimizerParams.maxEpochs = 5000000; % 1000 is the best option, but we use 10 to pass the tutorial quickly
 s.costParams.lambda             = lambda;
 s.costParams.costType           = 'L2';
 
@@ -26,44 +27,23 @@ s.networkParams.OUtype = 'linear';
 
 % Select the model's features
 s.xFeatures = [1];
+s.yFeatures = [2:1:11];
 cHomogIdxs = [11, 12, 22, 33];
 
 % Load data
-%data   = cHomogData(s);
-
+data   = Data(s);
+s.data = data;
 
 % Train the model
 
-for i=1:15
-    s.yFeatures = [i+1];
+Q_NN = OptimizationProblemNN(s);
+Q_NN.solve();
+Q_NN.plotCostFnc();
 
-    switch i
-        case 1
-            s.optimizerParams.learningRate  = 0.0001;
-            s.optimizerParams.maxEpochs     = 100000;
-        case 7
-            s.optimizerParams.learningRate  = 0.01;
-            s.optimizerParams.maxEpochs     = 50000;
-        case {8,9,10}
-            s.optimizerParams.learningRate  = 0.1;
-            s.optimizerParams.maxEpochs     = 80000;
-        otherwise
-            s.optimizerParams.learningRate  = 0.005;
-            s.optimizerParams.maxEpochs     = 50000;
-    end
 
-    data   = Data(s);
-    s.data = data;
-    Q_NN{i} = OptimizationProblemNN(s);
-    Q_NN{i}.solve();
-    Q_NN{i}.plotCostFnc();
-
-    %MSETrain    = immse(Q_NN(i).computeOutputValues(data.Xtrain), data.Ytrain);
-end
-
-string ="Q_NN.mat";
+string ="Q_NN2.mat";
 FileName=fullfile('AbrilTFGfiles','NN',string);
-%    save(FileName, "Q_NN");
+    save(FileName, "Q_NN");
 
 %% Plot surface
 

@@ -13,7 +13,7 @@ clc; clear;
 %% LOAD DATA
 
 % 1. NN
-filename='T_NN3.mat';
+filename='T_NN.mat';
 filePath = fullfile('AbrilTFGfiles', 'NN', filename);
 load(filePath,'T_NN');
 
@@ -48,7 +48,7 @@ T1= zeros(mesh.nnodes*mesh.ndim*8,length(r));
 T2= zeros(mesh.nnodes*mesh.ndim*8,length(r));
 T3= zeros(mesh.nnodes*mesh.ndim*8,length(r));
 
-Tprova=computeT2(mesh,0.3,T_NN);
+%Tprova=computeT2(mesh,0.3,T_NN);
 % 1. NN
 for i=1:length(r)
     aux=computeT2(mesh,r(i),T_NN);

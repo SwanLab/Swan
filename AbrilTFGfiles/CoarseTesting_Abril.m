@@ -75,7 +75,7 @@ classdef CoarseTesting_Abril< handle
             % PRECONDITIONERS
             Meifem       = obj.createEIFEMPreconditioner(dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);            
             Milu         = obj.createILUpreconditioner(LHS);
-            Mcoarse     = obj.createCoarseNNPreconditioner(mR,dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);
+            %Mcoarse     = obj.createCoarseNNPreconditioner(mR,dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);
             MiluCG      = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
             Mmult        = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Meifem,Milu);
 
@@ -140,14 +140,14 @@ classdef CoarseTesting_Abril< handle
 
         function init(obj)
             % Case Parameters
-            p.Inclusion = 'Hole';         % 'Hole'/'Material'
+            p.Inclusion = 'HoleRaul';         % 'Hole'/'Material'/'HoleRaul'
             p.Sampling  = 'Isolated'; % 'Isolated'/'Oversampling'
             p.loadData  = 'Dataset';      % 'Dataset'/'NN'
             p.nelem     =  10;            %  Mesh refining
             obj.params  =  p;
 
             % Definition of Subdomain
-            obj.r              = ones(30,60)*0.3;
+            obj.r              = ones(1,15)*0.3;
             obj.nSubdomains    = size(obj.r');
             obj.mSubdomains    = [];
             obj.tolSameNode    = 1e-10;
@@ -253,6 +253,11 @@ classdef CoarseTesting_Abril< handle
                     lvSet    = obj.createLevelSetFunction(mS);
                     uMesh    = obj.computeUnfittedMesh(mS,lvSet);
                     mS = uMesh.createInnerMesh();
+                case 'HoleRaul'
+                    mS=mesh_rectangle_via_triangles(obj.r(1,1),1,-1,1,-1,15,12,0,0); % 20x20
+                    %mS=mesh_rectangle_via_triangles(obj.r(1,1),1,-1,1,-1,34,35,0,0)  % 50x50
+                    obj.xmin =-1; obj.xmax = 1;
+                    obj.ymin =-1; obj.ymax = 1;
             end
         end
 
@@ -283,6 +288,7 @@ classdef CoarseTesting_Abril< handle
 
             mS = Mesh.create(s); 
         end
+        
 
         function computeSubdomainCentroid(obj)
             for i = 1:obj.nSubdomains(1,2)

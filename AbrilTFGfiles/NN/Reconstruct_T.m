@@ -11,11 +11,23 @@ filePath1 = fullfile('AbrilTFGfiles', 'NN', filename1);
 load(filePath1,'T_NN');
 
 % load the T real and mesh
-fileName3="UL_r0_0000-50x50.mat";
+fileName3="UL_r0_3000-50x50.mat";
 filePath1 = fullfile('AbrilTFGfiles', 'Data','50x50', fileName3);
 load(filePath1,"T","R","mesh");
 
+%% Export
+z.mesh      = mesh;
+z.order     = 'P1';
 
+
+for i=1:8
+  z.fValues   = reshape(Tprova(:,i),[mesh.ndim,mesh.nnodes])';
+  uFeFun = LagrangianFunction(z);%
+  fileName = ['r03_T_NN' num2str(i)];
+  centroids=computeCentroid(mesh);
+  CoarsePlotSolution(uFeFun, mesh,[],fileName, R, centroids);
+  %uFeFun.print(fileName,'Paraview');
+end
 
 %% T reconstruct
 T_trained=zeros(mesh.nnodes*mesh.ndim,8);
@@ -44,15 +56,6 @@ disp(ErrMax);
 z.mesh      = mesh;
 z.order     = 'P1';
 
-
-for i=1:8
-  z.fValues   = reshape(Tprova(:,i),[mesh.ndim,mesh.nnodes])';
-  uFeFun = LagrangianFunction(z);%
-  fileName = ['r03_T_NN' num2str(i)];
-  centroids=computeCentroid(mesh);
-  CoarsePlotSolution(uFeFun, mesh,[],fileName, R, centroids);
-  %uFeFun.print(fileName,'Paraview');
-end
 
 
 for i=1:8
