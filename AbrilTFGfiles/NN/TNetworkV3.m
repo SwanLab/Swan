@@ -7,7 +7,7 @@ clear;
 close all;
 
 %% Initialization of hyperparameters
-pol_deg         = 1;
+pol_deg         = 6;
 testratio       = 30;
 lambda          = 0.0;
 learningRate    = 0.1;

@@ -48,6 +48,7 @@ T1= zeros(mesh.nnodes*mesh.ndim*8,length(r));
 T2= zeros(mesh.nnodes*mesh.ndim*8,length(r));
 T3= zeros(mesh.nnodes*mesh.ndim*8,length(r));
 
+Tprova=computeT2(mesh,0.3,T_NN);
 % 1. NN
 for i=1:length(r)
     aux=computeT2(mesh,r(i),T_NN);
@@ -107,7 +108,7 @@ function T_trained=computeT2(mesh,R,T_NN)
         Taux2=[];
         for i=1:size(mesh.coord,1)  % Evaluates all the coordenates
             dataInput=[R,mesh.coord(i,:)];
-            dataFull=Data.buildModel(dataInput,1);
+            dataFull=Data.buildModel(dataInput,6);
             Taux1=T_NN.computeOutputValues(dataFull).';
             Taux2=reshape(Taux1,2,[]);
             T_trained=[T_trained;Taux2];
