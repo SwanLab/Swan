@@ -104,7 +104,6 @@ end
 
 function T_trained=computeT2(mesh,R,T_NN)
     T_trained=[];
-    for j=1:8 % Constructs the 8 columns    
         Taux2=[];
         for i=1:size(mesh.coord,1)  % Evaluates all the coordenates
             dataInput=[R,mesh.coord(i,:)];
@@ -113,6 +112,4 @@ function T_trained=computeT2(mesh,R,T_NN)
             Taux2=reshape(Taux1,2,[]);
             T_trained=[T_trained;Taux2];
         end
-        
-    end
 end
