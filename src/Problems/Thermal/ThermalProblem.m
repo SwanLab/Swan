@@ -37,7 +37,11 @@ classdef ThermalProblem < handle
         function solve(obj, kappa)
             obj.computeStiffnessMatrix(kappa); % LHS
             obj.computeForces();          % RHS
-            obj.computeTemperature();     % Solve PDE 
+            obj.computeTemperature();     % Solve PDE
+        end
+
+        function updateSource(obj, newSource)
+            obj.source = newSource;
         end
 
     end
@@ -84,10 +88,6 @@ classdef ThermalProblem < handle
 
         function computeForces(obj)
             obj.forces = IntegrateRHS(@(v) DP(obj.source,v), obj.test, obj.mesh,'Domain',2);
-        end
-
-        function updateSource(obj, newSource)
-            obj.source = newSource;
         end
 
         function u = computeTemperature(obj)

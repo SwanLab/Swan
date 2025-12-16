@@ -62,13 +62,13 @@ classdef ComplianceFromConstitutiveTensorThermoElastic < handle
             T = obj.stateProblem.tFun;
         end
 
-        function [p] = computeAdjointVariable(kappa,C,u)
+        function [p] = computeAdjointVariable(obj,kappa,C,u)
             I = ConstantFunction.create(eye(2),obj.mesh);
-            beta = obj.alpha.*DDP(C,I);    
+            beta = obj.stateProblem.alpha.*DDP(C,I);    
             newSource =  DDP(beta,SymGrad(u));        % updating RHS
             obj.adjointProblem.updateSource(newSource);
             obj.adjointProblem.solve(kappa);
-            p = obj.adjointProblem.pFun;
+            p = obj.adjointProblem.uFun;
         end
 
         function bcAdj = createAdjointBoundaryConditions(obj)
@@ -98,19 +98,18 @@ classdef ComplianceFromConstitutiveTensorThermoElastic < handle
             dCompliance = ElasticEnergyDensity(C,u);
             J           = Integrator.compute(dCompliance,obj.mesh,obj.quadrature.order);
         end
-    end
 
-    methods (Static, Access = private)
-        function dj = computeGradient(dC,u,dkappa,T)
+        function dj = computeGradient(obj,dC,u,dkappa,T,p)
             nDesVar = length(dC);
             dj      = cell(nDesVar,1);
             for i = 1:nDesVar
                 strain  = SymGrad(u);
                 dStress = DDP(dC{i},strain);
                 I = ConstantFunction.create(eye(2),obj.mesh);
-                dbeta = obj.alpha.*DDP(dC{i},I);       
+                dbeta = obj.stateProblem.alpha.*DDP(dC{i},I);
                 dj{i}   = -0.5.*DDP(strain, dStress) + DDP(dbeta.*Grad(T),SymGrad(u)) + DP(Grad(T),dkappa.*Grad(p)); %T*dkappa12*u + T*dkappa*p + (-dQ*p+df*u)
             end
         end
+
     end
 end

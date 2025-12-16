@@ -9,6 +9,7 @@ classdef ThermoElasticProblem < handle
         tFun            
         tforces         
         T0
+        alpha
     end
 
     properties (Access = private)
@@ -23,7 +24,6 @@ classdef ThermoElasticProblem < handle
 
         problemSolverElastic
 
-        alpha
         kappa                             
         boundaryConditionsThermal, bcApplierThermal                               
         test                                        
