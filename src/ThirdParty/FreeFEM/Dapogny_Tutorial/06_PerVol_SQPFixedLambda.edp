@@ -2,8 +2,9 @@
 load "medit"
 load "distance"
 load "iovtk"
+load "mmg"
 
-/* Create mesh */
+/* Create background mesh */
 real fac = 3.0;
 border left(t=0.0,1.0){ x=-1.0; y=1.0-t; label=0; };
 border bot(t=0.0,2.0){ x=-1.0+t; y=0.0; label=0; };
@@ -11,11 +12,8 @@ border right(t=0.0,1.0){ x=1.0; y=t; label=0; };
 border top(t=0.0,2.0){ x=1.0-t; y=1.0; label=0; };
 mesh Th = buildmesh(left(30*fac)+bot(60*fac)+right(30*fac)+top(60*fac));
 
-/* Label corresponding to level-set boundary */
-mesh ThInt;
-meshL ThLInt;
-int[int] L(1);
-L[0] = 2;
+mesh Th2; /* Th mesh after remeshing it near phi=0 */
+meshL ThLInt; /* Boundary phi=0 of Th2 */
 
 /* Finite Element spaces */
 fespace Vh(Th,P1);
@@ -50,7 +48,7 @@ macro C() (int2d(Th)(Achi) - 0.5) // EOM
 
 /* Initial value of the objective function */
 real newobj, ell, constr;
-ell = 50; // Fixed Lagrange multiplier
+ell = 15; // Fixed Lagrange multiplier
 constr = C;
 newobj = J + 0.5*ell*constr^2;
 
@@ -58,17 +56,20 @@ newobj = J + 0.5*ell*constr^2;
 cout<<"Initial value of the objective function: "<<newobj<<endl;
 
 Vh nx, ny, vx, vy, kappa;
+int [int] lsLabel(1);
+lsLabel[0] = 10;
 
 macro updateBoundary() {
-  ThInt = trunc(Th, phi<=0);
-  ThLInt = extract(ThInt, label = L);
-  /* plot(ThLInt, wait=true); */
+  Th2 = mmg2d(Th, iso = 1, ls = 0.0, metric = phi[], hmax = 0.05);
+  Th2 = trunc(Th2, region == 3);
+  ThLInt = extract(Th2,label = lsLabel);
+  /*plot(ThLInt, wait=true);*/
 } //
 
 macro tanGrad(f,nx,ny) [-ny*dx(f) + nx*dy(f)] //
 /* macro dHdn(nx,ny) (nx * dx(kappa) + ny * dy(kappa)) // */
 
-varf KM(g0,v0) = int1d(ThLInt)(tanGrad(g0,nx,ny)*tanGrad(v0,nx,ny) + g0*v0*(max(ell*constr*kappa,60*alpha)));
+varf KM(g0,v0) = int1d(ThLInt)(tanGrad(g0,nx,ny)*tanGrad(v0,nx,ny) + g0*v0*(ell*constr*kappa));
 
 varf F(g0,v0) = int1d(ThLInt)(v0*(-kappa-ell*constr));
 
@@ -99,6 +100,7 @@ macro dJ() {
   /* rank 1 operator */
   real[int] b(Vh1.ndof);
   b = Lr(0,Vh1);
+  b = sqrt(ell)*b;
 
   matrix lhs1 = KM(Vh1,Vh1);
 
@@ -149,7 +151,7 @@ real maxcoef = 3.0;
 real mincoef = 0.1;
 Vh X;
 Vh0 kappa0;
-int maxit = 30, kmax = 10;
+int maxit = 80, kmax = 10;
 real[int] costPlot, volumePlot;
 costPlot.resize(costPlot.n+1);
 costPlot[costPlot.n-1] = newobj;

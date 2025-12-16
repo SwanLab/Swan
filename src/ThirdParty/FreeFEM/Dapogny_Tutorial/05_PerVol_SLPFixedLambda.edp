@@ -46,7 +46,7 @@ macro C() (int2d(Th)(Achi) - 0.5) // EOM
 
 /* Initial value of the objective function */
 real newobj, ell, constr;
-ell = 50; // Fixed Lagrange multiplier
+ell = 15; // Fixed Lagrange multiplier
 constr = C;
 newobj = J + 0.5*ell*constr^2;
 
@@ -60,7 +60,7 @@ macro dJ(constr) {
 } // EOM
 
 /* Main loop */
-Vh nx,ny, vx, vy;
+Vh nx, ny, vx, vy;
 real nt = Th.nt;
 real eps = 1.e-6;  // To avoid divisions by 0
 real alphanor = 0.0001;   // Parameter for normal extension
@@ -74,7 +74,7 @@ real mincoef = 0.1;
 Vh X;
 Vh kappa;
 Vh0 kappa0;
-int maxit = 30, kmax = 10;
+int maxit = 80, kmax = 10;
 real[int] costPlot, volumePlot;
 costPlot.resize(costPlot.n+1);
 costPlot[costPlot.n-1] = newobj;
