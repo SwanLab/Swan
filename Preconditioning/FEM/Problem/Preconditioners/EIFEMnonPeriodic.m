@@ -1,7 +1,7 @@
 classdef EIFEMnonPeriodic < handle
 
-    properties (Access = public)
-
+    properties (GetAccess = public, SetAccess = private)
+        
     end
 
     properties (Access = private)
@@ -24,13 +24,14 @@ classdef EIFEMnonPeriodic < handle
         U
         mu
         iter
+        Fext
     end
 
     methods (Access = public)
 
         function obj = EIFEMnonPeriodic(cParams)
             obj.init(cParams)
-            obj.LHS     = obj.computeLHS(obj.mu);
+            obj.computeLHS(obj.mu);
             obj.computeDownscaling(obj.mu);
 %             LHS = obj.computeLHS();
 %             obj.LHS = LHS;
@@ -41,18 +42,49 @@ classdef EIFEMnonPeriodic < handle
 %             obj.reactions           = obj.computeReactions();
         end
 
-        function u = apply(obj,r)
-            Fcoarse = obj.projectExternalForce(r);            
-            RHS     = obj.assembleRHSvector(Fcoarse);
+        function [u,uCoarse]  = apply(obj,r)
+            [u,uCoarse]  = obj.solve(r);
+            % %             obj.plotSolution(uCoarse,obj.mesh,100,1,obj.iter,0)
+            %             u = obj.reconstructSolution(uCoarse);
+            % %                         obj.plotSolution(u(:),obj.meshRef,5,1,obj.iter,0)
+            %                         obj.iter = obj.iter+1;
+        end
 
+        function [u,uCoarse] = solve(obj,Fext)
+            Fcoarse = obj.projectExternalForce(Fext);
+            RHS     = obj.assembleRHSvector(Fcoarse);
             LHSred  = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);
             RHSred  = obj.bcApplier.fullToReducedVectorDirichlet(RHS);
-            uRed = LHSred\RHSred;
+            uRed    = LHSred\RHSred;
             uCoarse = obj.bcApplier.reducedToFullVectorDirichlet(uRed);
-%             obj.plotSolution(uCoarse,obj.mesh,100,1,obj.iter,0)
             u = obj.reconstructSolution(uCoarse);
-%                         obj.plotSolution(u(:),obj.meshRef,5,1,obj.iter,0)
-                        obj.iter = obj.iter+1;
+        end
+
+        function updateDownscaling(obj,mu)
+            nelem = obj.mesh.nelem;
+            for i = 1:nelem
+                obj.U(:,:,i) = obj.RVE.U(mu(i));
+            end
+        end
+
+        function computeLHS(obj,mu)
+            obj.computeElementalLHS(mu)
+            obj.LHS = obj.assembleMatrix(obj.Kel,obj.dispFun,obj.dispFun);
+        end
+        
+        function dK = computeGradK(obj,mu)
+            nelem = obj.mesh.nelem;
+            for i = 1:nelem
+                dK(:,:,i) = obj.RVE.dKcoarse(mu(i));
+            end
+        end
+
+        function uL = global2local(obj,uG)
+            nElem = obj.mesh.nelem;
+            dofConec = obj.dispFun.getDofConnec();
+            for ielem = 1:nElem
+                uL(:,ielem) = uG(dofConec(ielem,:));
+            end
         end
 
     end
@@ -73,6 +105,9 @@ classdef EIFEMnonPeriodic < handle
             else
                 obj.mu = reshape(cParams.mu',1,[]);
             end
+%             if isfield(cParams,'Fext')
+%                 obj.Fext = cParams.Fext;
+%             end
             obj.iter=1;
         end
 
@@ -86,13 +121,20 @@ classdef EIFEMnonPeriodic < handle
 
         function computeDownscaling(obj,mu)
             nelem = obj.mesh.nelem;
-            for i = 1:nelem
-                Udef = obj.RVE.Udef(mu(i));
-                Urb  = obj.RVE.Urb(mu(i));
-%                 Udef = obj.RVE.Udef(:,:,i);
-%                 Urb  = obj.RVE.Urb(:,:,i);
-                obj.U(:,:,i) = Udef + Urb;
+            if ~isempty(obj.RVE.U)
+                for i = 1:nelem
+                    obj.U(:,:,i) = obj.RVE.U(mu(i));
+                end
+            else
+                for i = 1:nelem
+                    Udef = obj.RVE.Udef(mu(i));
+                    Urb  = obj.RVE.Urb(mu(i));
+                    %                 Udef = obj.RVE.Udef(:,:,i);
+                    %                 Urb  = obj.RVE.Urb(:,:,i);
+                    obj.U(:,:,i) = Udef + Urb;
+                end
             end
+
         end
 
         function LHSint = createLHSintegrator(obj)
@@ -113,11 +155,6 @@ classdef EIFEMnonPeriodic < handle
              U       = Urb + Udef; 
              T = ModalFunction.create(obj.meshRef,U,functionType);
             end
-        end
-
-        function LHS = computeLHS(obj,mu)
-            obj.computeElementalLHS(mu)
-            LHS = obj.assembleMatrix(obj.Kel,obj.dispFun,obj.dispFun);
         end
 
         

@@ -146,8 +146,8 @@ classdef LaticeMeshGen < handle
                     s.coord(:,2) = coord0(:,2)+Ly*(jDom-1);
                     s.connec = refMesh.connec;
                     mIJ     = Mesh.create(s);
-                    %                     plot(mIJ)
-                    %                     hold on;
+                                        plot(mIJ)
+                                        hold on;
                     mSbd{jDom,iDom} = mIJ;
                 end
             end

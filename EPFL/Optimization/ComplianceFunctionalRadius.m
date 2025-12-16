@@ -7,6 +7,7 @@ classdef ComplianceFunctionalRadius < handle
     properties (Access = private)
         mesh
         stateProblem
+        value0
     end
 
     methods (Access = public)
@@ -15,11 +16,19 @@ classdef ComplianceFunctionalRadius < handle
             obj.createQuadrature();
         end
 
-        function [J,dJ] = computeFunctionAndGradient(obj,C,dC)
-            u  = obj.computeStateVariable(C);
-            J  = obj.computeFunction(C,u);
-            dJ = obj.computeGradient(dC,u);
+        function [J,dJ] = computeFunctionAndGradient(obj,mu)
+            [u,uC] = obj.computeStateVariable(mu.fun.fValues);
+            dK     = obj.stateProblem.computeGradK(mu.fun.fValues);
+            J      = obj.computeFunction(u);
+            dJ     = obj.computeGradient(dK,uC,mu);
+            if isempty(obj.value0)
+                obj.value0 = J;
+            end
+            J  = obj.computeNonDimensionalValue(J);
+            dJ = obj.computeNonDimensionalGradient(dJ);
         end
+
+
     end
 
     methods (Access = private)
@@ -33,27 +42,66 @@ classdef ComplianceFunctionalRadius < handle
             obj.quadrature = quad;
         end
 
-        function u = computeStateVariable(obj,C)
-            obj.stateProblem.updateMaterial(C);
-            obj.stateProblem.solve();
-            u = obj.stateProblem.uFun;
+        function [u,uC] = computeStateVariable(obj,mu)
+            obj.stateProblem.computeLHS(mu);
+            obj.stateProblem.updateDownscaling(mu)
+            [u,uC]= obj.stateProblem.solve();
+            %             u = obj.stateProblem.uFun;
         end
 
-        function J = computeFunction(obj,C,u)
-            dCompliance = ElasticEnergyDensity(C,u);
-            J           = Integrator.compute(dCompliance,obj.mesh,obj.quadrature.order);
+        function J = computeFunction(obj,u)
+            %             dCompliance = ElasticEnergyDensity(C,u);
+            %             J           = Integrator.compute(dCompliance,obj.mesh,obj.quadrature.order);
+
+            % I do u'*F because i don't need to create the mesh this way.
+            % It is true that to get uFine there is a reconstruction, but since
+            % we are only interested in the nodal values, can use the
+            % orignial mesh to get the vector.
+            J = u'*obj.stateProblem.Fext;
         end
+
+        function dJ = computeGradient(obj,dK,u,mu)
+            uL = obj.stateProblem.EIFEMsolver.global2local(u);
+            nelem = size(uL,2);
+            for ielem = 1:nelem
+                dj(ielem) = -uL(:,ielem)'*dK(:,:,ielem)*uL(:,ielem);
+            end
+            s.mesh = mu.fun.mesh;
+            s.order = mu.fun.order;
+            s.fValues = dj;
+            dJ = {LagrangianFunction(s)};
+        end
+
+        function x = computeNonDimensionalValue(obj,x)
+            refX = obj.value0;
+            x    = x/refX;
+        end
+
+        function dx = computeNonDimensionalGradient(obj,dx)
+            refX = obj.value0;
+            for i = 1:length(dx)
+                dx{i}.setFValues(dx{i}.fValues/refX);
+            end
+        end
+
     end
 
     methods (Static, Access = private)
-        function dj = computeGradient(dC,u)
-            nDesVar = length(dC);
-            dj      = cell(nDesVar,1);
-            for i = 1:nDesVar
-                strain  = SymGrad(u);
-                dStress = DDP(dC{i},strain);
-                dj{i}   = -0.5.*DDP(strain, dStress);
-            end
+        %         function dj = computeGradient(dK,u)
+        %             uL = obj.stateProblem.EIFEMsolver.global2local(u);
+        %             nelem = size(uL,2);
+        %             for ielem = 1:nelem
+        %                 dj(ielem) = uL(:,ielem)'*dK(:,:,ielem)*uL(:,ielem)
+        %             end
+        %             dj = u'*dK*u;
+        %         end
+
+       
+    end
+
+     methods (Static, Access = public)
+        function title = getTitleToPlot()
+            title = 'Compliance';
         end
     end
 end

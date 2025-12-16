@@ -14,6 +14,7 @@ classdef OptimizationEIFEMTutorial < handle
         optimizer
 
         referenceMesh 
+        boundaryRefMesh
         coarseMesh
         subdomainMeshes
         nSubdomains
@@ -27,7 +28,18 @@ classdef OptimizationEIFEMTutorial < handle
         Ntheta
         x0
         y0
+        BC
+        sDir
+        bcApplier
         fileNameEIFEM
+        EIFEM
+        solverType
+        interfaceConnec 
+        localGlobal     
+        iCR             
+        discMesh        
+        EIFEMprecontitioner
+        volumeTarget
     end
 
     methods (Access = public)
@@ -38,10 +50,12 @@ classdef OptimizationEIFEMTutorial < handle
             obj.createCoarseMesh();
             obj.createDesignVariable();
 %             obj.createFilter();
-            obj.createMaterialInterpolator();
-            obj.createElasticProblem();
-            obj.createComplianceFromConstiutive();
-            obj.createCompliance();
+%             obj.createMaterialInterpolator();
+            [LHSr,RHSr]= obj.createElasticProblem();
+            obj.createEIFEMPreconditioner(RHSr);
+%             obj.createComplianceFromConstiutive();
+%             obj.createCompliance();
+            obj.createComplianceRadius();
             obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
@@ -55,14 +69,16 @@ classdef OptimizationEIFEMTutorial < handle
 
         function init(obj)
             close all;
-            obj.nSubdomains = [5,3];
+            obj.nSubdomains = [30,10];
             obj.r = 1e-6*ones(obj.nSubdomains)'; 
-            obj.r= (0.8 - 0.1) * rand(obj.nSubdomains(2),obj.nSubdomains(1)) + 0.1;
+            obj.r= (1e-6 - 1e-6) * rand(obj.nSubdomains(2),obj.nSubdomains(1)) + 1e-6;
             obj.xmax=1; obj.xmin=-1; obj.ymax = 1; obj.ymin=-1; 
             obj.Nr = 7; obj.Ntheta = 14; 
             obj.x0 = 0; obj.y0=0;
             obj.tolSameNode = 1e-10;
-            obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange40.mat';
+            obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange20_der.mat';
+            obj.solverType = 'REDUCED';
+            obj.volumeTarget = 0.8;
         end
 
         function createMesh(obj)
@@ -71,6 +87,10 @@ classdef OptimizationEIFEMTutorial < handle
             [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomainJoiner(mSbd);
             obj.mesh = mD;
             obj.subdomainMeshes = mSb;
+            obj.interfaceConnec = iC;
+            obj.localGlobal     = lG;
+            obj.iCR             = iCR;
+            obj.discMesh        = discMesh;
         end
 
          function  mSbd = createSubDomainMeshes(obj)
@@ -92,6 +112,7 @@ classdef OptimizationEIFEMTutorial < handle
                 end
             end
             obj.referenceMesh = mSbd{1,1};
+            obj.boundaryRefMesh = obj.referenceMesh.createBoundaryMesh();
         end
 
          function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomainJoiner(obj,mSbd)
@@ -167,53 +188,136 @@ classdef OptimizationEIFEMTutorial < handle
             obj.materialInterpolator = m;
         end
 
-        function m = createMaterial(obj)
-            x = obj.designVariable.fun;           
-            s.type                 = 'DensityBased';
-            s.density              = x;
-            s.materialInterpolator = obj.materialInterpolator;
-            s.dim                  = '2D';
-            s.mesh                 = obj.mesh;
-            m = Material.create(s);
+%         function m = createMaterial(obj)
+%             x = obj.designVariable.fun;           
+%             s.type                 = 'DensityBased';
+%             s.density              = x;
+%             s.materialInterpolator = obj.materialInterpolator;
+%             s.dim                  = '2D';
+%             s.mesh                 = obj.mesh;
+%             m = Material.create(s);
+%         end
+
+        function material = createMaterial(obj)
+            E  = 1;
+            nu = 1/3;
+            %              Epstr  = E/(1-nu^2);
+            %             nupstr = nu/(1-nu);
+            s.type    = 'ISOTROPIC';
+            s.ptype   = 'ELASTIC';
+            s.ndim    = obj.mesh.ndim;
+            s.young   = ConstantFunction.create(E,obj.mesh);
+            s.poisson = ConstantFunction.create(nu,obj.mesh);
+            tensor    = Material.create(s);
+            material  = tensor;
         end
 
-        function createElasticProblem(obj)
-            s.mesh = obj.mesh;
-            s.scale = 'MACRO';
-            s.material = obj.createMaterial();
-            s.dim = '2D';
-            s.boundaryConditions = obj.createBoundaryConditions();
-            s.interpolationType = 'LINEAR';
-            s.solverType = 'REDUCED';
-            s.solverMode = 'DISP';
-            s.solverCase = 'DIRECT';
-            fem = ElasticProblem(s);
-            obj.physicalProblem = fem;
+%         function createElasticProblem(obj)
+%             s.mesh = obj.mesh;
+%             s.scale = 'MACRO';
+%             s.material = obj.createMaterial();
+%             s.dim = '2D';
+%             s.boundaryConditions = obj.createBoundaryConditions();
+%             s.interpolationType = 'LINEAR';
+%             s.solverType = 'REDUCED';
+%             s.solverMode = 'DISP';
+%             s.solverCase = 'DIRECT';
+%             fem = ElasticProblem(s);
+%             obj.physicalProblem = fem;
+%         end
+
+         function [LHSr,RHSr] = createElasticProblem(obj)
+            obj.BC = obj.createBoundaryConditions(); 
+            obj.createBCapplier();
+            material = obj.createMaterial();
+            u = LagrangianFunction.create(obj.mesh,obj.mesh.ndim,'P1');            
+            [lhs,LHSr] = obj.computeStiffnessMatrix(obj.mesh,u,material);
+            [RHS,RHSr]       = obj.computeForces(lhs,u);
+         end
+
+           function [LHS,LHSr] = computeStiffnessMatrix(obj,mesh,dispFun,C)
+            LHS = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),dispFun,dispFun,mesh,'Domain',2);
+            LHSr = obj.bcApplier.fullToReducedMatrixDirichlet(LHS);
+           end
+
+             function [RHS, RHSr] =  computeForces(obj,stiffness,u)
+            bc  = obj.BC;
+            t   = bc.tractionFun;
+            rhs = zeros(u.nDofs,1);
+            if ~isempty(t)
+                for i = 1:numel(t)
+                    rhsi = t(i).computeRHS(u);
+                    rhs  = rhs + rhsi;
+                end
+            end
+            if strcmp(obj.solverType,'REDUCED')
+                bc      = obj.BC;
+                dirich  = bc.dirichlet_dofs;
+                dirichV = bc.dirichlet_vals;
+                if ~isempty(dirich)
+                    R = -stiffness(:,dirich)*dirichV;
+                else
+                    R = zeros(sum(obj.uFun.nDofs(:)),1);
+                end
+                rhs = rhs+R;
+            end
+            RHS  = rhs;
+            RHSr = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
         end
 
-        function Meifem = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh,mSbd)
+        function createBCapplier(obj)
+            s.mesh                  = obj.mesh;
+            s.boundaryConditions    = obj.BC;
+            obj.bcApplier           = BCApplier(s);
+        end
+
+        function Meifem = createEIFEMPreconditioner(obj,RHSr)
             mR            = obj.referenceMesh;
             s.RVE         = TrainedRVE(obj.fileNameEIFEM);
-            s.mesh        = obj.createCoarseMesh(mR);
-            s.DirCond     = dir;
+            s.mesh        = obj.coarseMesh;
+            s.DirCond     = obj.sDir;
             s.nSubdomains = obj.nSubdomains;
             s.mu          = obj.r;
-            s.meshRef     = dMesh;
+            s.meshRef     = obj.discMesh;
             eifem         = EIFEMnonPeriodic(s);
 
+            iC  = obj.interfaceConnec;
+            lG  = obj.localGlobal;
+            iCR = obj.iCR; 
+            bS  = obj.boundaryRefMesh;
             ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
-            ss.EIFEMsolver = eifem;
-            ss.bcApplier = obj.bcApplier;
-            ss.dMesh     = dMesh;
-            ss.type = 'EIFEM';
-            eP = Preconditioner.create(ss);
-            Meifem = @(r) eP.apply(r);
+            ss.EIFEMsolver  = eifem;
+            ss.bcApplier    = obj.bcApplier;
+            ss.dMesh        = obj.discMesh;
+            ss.type         = 'EIFEM';
+            ss.Fext         = RHSr;
+            eP     = Preconditioner.create(ss);
+            obj.EIFEMprecontitioner = eP;
+%             obj.EIFEMprecontitioner = @(r) eP.apply(r);
+        end
+
+         function d = createDomainDecompositionDofManager(obj,iC,lG,bS,mR,iCR)
+            s.nSubdomains     = obj.nSubdomains;
+            s.interfaceConnec = iC;
+            s.interfaceConnecReshaped = iCR;
+            s.locGlobConnec   = lG;
+            s.nBoundaryNodes  = bS{1}.mesh.nnodes;
+            s.nReferenceNodes = mR.nnodes;
+            s.nNodes          = obj.mesh.nnodes;
+            s.nDimf           = obj.mesh.ndim;
+            d = DomainDecompositionDofManager(s);
         end
 
         function c = createComplianceFromConstiutive(obj)
             s.mesh         = obj.mesh;
             s.stateProblem = obj.physicalProblem;
             c = ComplianceFromConstitutiveTensor(s);
+        end
+
+        function createComplianceRadius(obj)
+            s.mesh         = obj.mesh;
+            s.stateProblem = obj.EIFEMprecontitioner;
+            obj.compliance = ComplianceFunctionalRadius(s);
         end
 
         function createCompliance(obj)
@@ -226,20 +330,21 @@ classdef OptimizationEIFEMTutorial < handle
         end
 
         function uMesh = createBaseDomain(obj)
-            levelSet         = -ones(obj.mesh.nnodes,1);
-            s.backgroundMesh = obj.mesh;
-            s.boundaryMesh   = obj.mesh.createBoundaryMesh();
-            uMesh = UnfittedMesh(s);
-            uMesh.compute(levelSet);
+%             levelSet         = -ones(obj.mesh.nnodes,1);
+%             s.backgroundMesh = obj.mesh;
+%             s.boundaryMesh   = obj.mesh.createBoundaryMesh();
+%             uMesh = UnfittedMesh(s);
+%             uMesh.compute(levelSet);
+              uMesh = obj.designVariable.fun;
         end
         
         function createVolumeConstraint(obj)
-            s.mesh   = obj.mesh;
+            s.mesh   = obj.coarseMesh;
             s.filter = obj.filter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;
+            s.volumeTarget = obj.volumeTarget;
             s.uMesh = obj.createBaseDomain();
-            v = VolumeConstraint(s);
+            v = VolumeConstraintRadius(s);
             obj.volume = v;
         end
 
@@ -275,12 +380,12 @@ classdef OptimizationEIFEMTutorial < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 3;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.ub             = 1;
+            s.ub             = 0.8;
             s.lb             = 0;
-            s.volumeTarget   = 0.4;
+            s.volumeTarget   = obj.volumeTarget;
             s.primal         = 'PROJECTED GRADIENT';
             opt              = OptimizerMMA(s);
             opt.solveProblem();
@@ -288,9 +393,10 @@ classdef OptimizationEIFEMTutorial < handle
         end
 
         function bc = createBoundaryConditions(obj)
+            xMin    = min(obj.mesh.coord(:,1));
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
-            isDir   = @(coor)  abs(coor(:,1))==0;
+            isDir   = @(coor)  abs(coor(:,1)-xMin) < 1e-12;
             isForce = @(x)  x(1,:,:)==xMax & x(2,:,:)>=0.3*yMax & x(2,:,:)<=0.7*yMax;
 
             sDir{1}.domain    = @(coor) isDir(coor);
@@ -318,6 +424,7 @@ classdef OptimizationEIFEMTutorial < handle
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
+            obj.sDir = sDir;
         end
     end
 end

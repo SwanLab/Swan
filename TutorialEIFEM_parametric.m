@@ -283,8 +283,8 @@ classdef TutorialEIFEM_parametric < handle
                     coord(2,1) = xmax;  coord(2,2) = ymin;
                     coord(3,1) = xmax;  coord(3,2) = ymax;
                     coord(4,1) = xmin;  coord(4,2) = ymax;
-%                     connec = [2 3 4 1];
-                    connec = [1 2 3 4];
+                    connec = [2 3 4 1];
+%                     connec = [1 2 3 4];
                     s.coord = coord;
                     s.connec = connec;
                     cMesh = Mesh.create(s);
@@ -532,13 +532,13 @@ classdef TutorialEIFEM_parametric < handle
             s.RVE           = TrainedRVE(filename);
 
 %             training 1 subdomain
-                        data = Training(mR,1);
-                        p = OfflineDataProcessor(data);
-                        EIFEoper = p.computeROMbasis();
-                         EIFEoper.Kcoarse = @(r) EIFEoper.Kcoarse;
-                         EIFEoper.Udef   = @(r) EIFEoper.Udef;
-                         EIFEoper.Urb   = @(r) EIFEoper.Urb;
-                        s.RVE           = TrainedRVE(EIFEoper);
+%                         data = Training(mR,1);
+%                         p = OfflineDataProcessor(data);
+%                         EIFEoper = p.computeROMbasis();
+%                          EIFEoper.Kcoarse = @(r) EIFEoper.Kcoarse;
+%                          EIFEoper.Udef   = @(r) EIFEoper.Udef;
+%                          EIFEoper.Urb   = @(r) EIFEoper.Urb;
+%                         s.RVE           = TrainedRVE(EIFEoper);
 
             % training every subdomain
             %             EIFEoper = obj.trainSubdomain(mSbd);

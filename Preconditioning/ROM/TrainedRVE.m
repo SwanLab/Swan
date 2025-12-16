@@ -1,13 +1,18 @@
 classdef TrainedRVE < handle
 
-    properties (Access = public)
+    properties (GetAccess = public , SetAccess = private)
         ndimf
         Kcoarse
         Udef
         Urb
+        U
         PhiDef
         PhiRb
         Grb
+        dKcoarse
+        dUrb
+        dUdef
+        dU
     end
 
     properties (Access = private)
@@ -36,6 +41,21 @@ classdef TrainedRVE < handle
                 obj.Kcoarse = EIFEoper.Kcoarse;
                 obj.Udef    = EIFEoper.Udef;
                 obj.Urb     = EIFEoper.Urb;
+                if isfield(EIFEoper,'U')
+                    obj.U = EIFEoper.U;
+                end
+                if isfield(EIFEoper,'dKcoarse')
+                    obj.dKcoarse = EIFEoper.dKcoarse;
+                end
+                if isfield(EIFEoper,'dUdef')
+                    obj.dUdef = EIFEoper.dUdef;
+                end
+                if isfield(EIFEoper,'dUrb')
+                    obj.dUrb = EIFEoper.dUrb;
+                end
+                if isfield(EIFEoper,'dU')
+                    obj.dU = EIFEoper.dU;
+                end
             else
                 obj.Kcoarse = data.Kcoarse;
                 obj.Udef    = data.Udef;

@@ -1,5 +1,4 @@
 classdef LineDegree8 < Interpolation
-    % 1D 8th-degree Lagrange interpolation using Chebyshev nodes in [-1,1]
     
     methods (Access = public)
         function obj = LineDegree8(cParams)
@@ -12,34 +11,28 @@ classdef LineDegree8 < Interpolation
         
         function computeParams(obj)
             obj.ndime = 1;
-            obj.nnode = 9; % degree 8 => 9 nodes
+            obj.nnode = 9;
             n = obj.nnode;
-
-            % Chebyshev nodes in [-1,1]
             k = (1:n)';
-            obj.pos_nodes = -cos((2*k - 1)*pi/(2*n));
+            obj.pos_nodes = -cos(pi * (k-1) / (n-1));
         end
 
         function shape = evaluateShapeFunctions(obj,posgp)
-            % Vectorized, MATLAB-style (like your quadratic version)
             ngaus = size(posgp,2);
             nelem = size(posgp,3);
-            s = posgp(1,:,:); % size [1,ngauss,nelem]
+            s = posgp(1,:,:); 
             shape = zeros(obj.nnode,ngaus,nelem);
 
             xnodes = obj.pos_nodes(:);
             n = obj.nnode;
 
-            % Precompute denominators
             denom = ones(n,1);
             for i = 1:n
                 denom(i) = prod(xnodes(i) - xnodes([1:i-1,i+1:end]));
             end
 
-            % Compute each Lagrange polynomial in vectorized form
             for i = 1:n
                 others = xnodes([1:i-1,i+1:end]);
-                % Elementwise product over (s - others(j))
                 term = ones(size(s));
                 for j = 1:numel(others)
                     term = term .* (s - others(j));
@@ -57,24 +50,24 @@ classdef LineDegree8 < Interpolation
 
             deriv = zeros(obj.ndime,n,ngaus,nelem);
 
-            % Precompute denominators
             denom = ones(n,1);
             for i = 1:n
                 denom(i) = prod(xnodes(i) - xnodes([1:i-1,i+1:end]));
             end
 
-            % Derivative of Lagrange polynomials
             for i = 1:n
                 dLi = zeros(size(s));
                 for k = 1:n
                     if k == i, continue; end
+                    
                     others = xnodes([1:i-1,i+1:end]);
-                    others(others == xnodes(k)) = []; % exclude k-th node
+                    others(others == xnodes(k)) = [];
+                    
                     term = ones(size(s));
                     for j = 1:numel(others)
                         term = term .* (s - others(j));
                     end
-                    dLi = dLi + term / (xnodes(i) - xnodes(k));
+                    dLi = dLi + term;
                 end
                 deriv(1,i,:,:) = dLi / denom(i);
             end
