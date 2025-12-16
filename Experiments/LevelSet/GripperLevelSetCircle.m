@@ -66,11 +66,11 @@ classdef GripperLevelSetCircle < handle
         end
 
         function createDesignVariable(obj)
-            s.type = 'Full';
-            g      = GeometricalFunction(s);
-%             lsFun = LagrangianFunction.create(obj.mesh,1,'P1');
-%             lsFun.setFValues(importdata('GripperLevelSetCirclefValues.txt'))
-            lsFun  = g.computeLevelSetFunction(obj.mesh);
+%             s.type = 'Full';
+%             g      = GeometricalFunction(s);
+            lsFun = LagrangianFunction.create(obj.mesh,1,'P1');
+            lsFun.setFValues(importdata('GripperLevelSetCirclefValues.txt'))
+%             lsFun  = g.computeLevelSetFunction(obj.mesh);
             s.fun  = lsFun;
             s.mesh = obj.mesh;
             s.type = 'LevelSet';
@@ -106,21 +106,24 @@ classdef GripperLevelSetCircle < handle
 %             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
 %             f = Filter.create(s);
 %             obj.filterConnectivity = f;
-% % 
-            s.filterType = 'CloseOperator';   
+% 
+            s.filterType = 'FilterAndProject';
+%             s.filterType = 'CloseOperator';   
             s.mesh       = obj.mesh;
             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
             s.filterStep = 'PDE';
-            s.beta       = 10.0; % 4 2 
-            s.eta        = 0.8;
+            s.beta       = 4.0; % 4 2 
+            s.eta        = 0.2;
             obj.filterConnectivity = Filter.create(s);
+            
+            s.filterType = 'FilterAdjointAndProject';
 
-            s.filterType = 'CloseAdjointOperator';   
+%             s.filterType = 'CloseAdjointOperator';   
             s.mesh       = obj.mesh;
             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
             s.filterStep = 'PDE';
-            s.beta       = 10.0; 
-            s.eta        = 0.8;
+            s.beta       = 4.0; 
+            s.eta        = 0.2;
             obj.filterAdjointConnectivity = Filter.create(s);
         end
 
@@ -207,8 +210,8 @@ classdef GripperLevelSetCircle < handle
             s.boundaryConditions = obj.createEigenvalueBoundaryConditions();
             s.conductivityInterpolator = obj.conductivityInterpolator; 
             s.massInterpolator         = obj.massInterpolator; 
-            s.targetEigenValue  = 2.0;     
-            s.isCompl           = true;
+            s.targetEigenValue  = 3.0;     
+            s.isCompl           = false;
             obj.minimumEigenValue = StiffnessEigenModesConstraint(s);
         end
 
@@ -238,8 +241,8 @@ classdef GripperLevelSetCircle < handle
 
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
-%             s.shapeFunctions{2} = obj.perimeter;
-            s.weights           = [1.0]; 
+            s.shapeFunctions{2} = obj.perimeter;
+            s.weights           = [1.0,5.0]; 
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -274,7 +277,8 @@ classdef GripperLevelSetCircle < handle
             s.etaNormMin = 0.05;
             s.etaMax = 10.0;
             s.etaMaxMin = 0.1;
-            s.gJFlowRatio    = 0.01;
+%             s.gJFlowRatio    = 0.01;
+            s.gJFlowRatio = 0.5;
             s.primalUpdater  = obj.primalUpdater;
             s.gif = true;
             s.gifName = char("gripper");
