@@ -10,3 +10,4 @@ AlbertTFG files/opt Kv3_long pol1 test30 learning0_05 hidden1024x1_1 error1e-5.f
 AlbertTFG files/opt Kv3_long pol1 test30 learning0_05 hidden1024x1_1 error1e-5.mat
 AbrilTFGfiles/NN/T_NN2.mat
 AbrilTFGfiles/NN/T_NN3.mat
+AbrilTFGfiles/NN/T_NN.mat
