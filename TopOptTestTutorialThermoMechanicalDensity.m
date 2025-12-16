@@ -44,8 +44,8 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
         end
 
         function createMesh(obj)
-            x1      = linspace(0,1,80);
-            x2      = linspace(0,1,80);
+            x1      = linspace(0,1,100);
+            x2      = linspace(0,1,100);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -92,7 +92,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
             matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
 
-            E1 = 1;
+            E1 = 200e9;
             nu1 = 1/3;
 
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
@@ -134,9 +134,11 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
 
             % Thermal
             s.materialInterpolator = obj.thermalmaterialInterpolator;
-            s.alpha = 1.0; % 2.3 1e-6 
-            s.source  =  ConstantFunction.create(1,obj.mesh);
-            s.T0 = ConstantFunction.create(25,obj.mesh);   
+            s.alpha = 1.1e-5; %1.0; % 2.3 1e-6 
+%             s.source  =  ConstantFunction.create(1,obj.mesh);
+%             s.T0 = ConstantFunction.create(25,obj.mesh);   
+            s.source  =  ConstantFunction.create(0,obj.mesh);
+            s.T0 = ConstantFunction.create(0,obj.mesh);   
             s.boundaryConditionsThermal = obj.createBoundaryConditionsThermal();
             
            
@@ -229,8 +231,14 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
         function bc = createBoundaryConditionsElastic(obj)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
-            isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
+
+%             Cantilever beam
+%             isDir   = @(coor)  abs(coor(:,1))==0;
+%             isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
+
+%             Clampled beam
+            isDir   = @(coor)  abs(coor(:,1))==0 | abs(coor(:,1))==xMax;
+            isForce = @(coor)  (abs(coor(:,2))==0.0 & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax);
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2];
@@ -238,7 +246,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
 
             sPL{1}.domain    = @(coor) isForce(coor);
             sPL{1}.direction = 2;
-            sPL{1}.value     = -1;
+            sPL{1}.value     = 4e7; 
 
             dirichletFun = [];
             for i = 1:numel(sDir)
@@ -260,13 +268,18 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
         end
 
          function bcT = createBoundaryConditionsThermal(obj)
+            xMin    = min(obj.mesh.coord(:,1));
             yMin    = min(obj.mesh.coord(:,2));
             xMax    = max(obj.mesh.coord(:,1));
-            isDir   = @(coor) abs(coor(:,2))==yMin & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax;  
+            yMax    = max(obj.mesh.coord(:,2));
+
+%             isDir   = @(coor) abs(coor(:,2))==yMin & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax;  
             
+            isDir   = @(coor) abs(coor(:,2))==yMin | abs(coor(:,2))==yMax | abs(coor(:,1))==xMin | abs(coor(:,1))==xMax;  
+
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = 1;
-            sDir{1}.value     = 0;
+            sDir{1}.value     = 20;
             sDir{1}.ndim = 1;
             
             dirichletFun = [];
