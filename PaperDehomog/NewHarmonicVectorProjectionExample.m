@@ -116,9 +116,9 @@ classdef NewHarmonicVectorProjectionExample < handle
            % w = WrapperMshResFiles(s);
            % w.compute();
            
-           %d = load('DataExampleArchCoarse.mat');  
+           d = load('DataExampleArchCoarse.mat');  
           % d = load('DataExampleArch.mat');  
-           d = load('DataExampleLshape.mat');        
+          % d = load('DataExampleLshape.mat');        
           % d = load('DataExampleCantilever.mat');        
            w = d.w;
            obj.experimentData = w;
@@ -304,34 +304,34 @@ classdef NewHarmonicVectorProjectionExample < handle
             d = Dehomogenizer(s);
             d.compute();
             d.plot();
-        end
+        end 
 
         function s = createLevelSetCellParams(obj)
             s.type   = 'smoothRectangle';
             % s.type   = 'rectangleInclusion';
 
            %xi  = obj.createFunction(obj.experimentData.dataRes.XiSymmetry);
-           xi = ConstantFunction.create(1,obj.mesh);
-           rho = obj.createFunction(obj.experimentData.dataRes.DensityGauss);
-           q   = obj.createFunction(obj.experimentData.dataRes.SuperEllipseExponent);
+           % xi = ConstantFunction.create(1,obj.mesh);
+           % rho = obj.createFunction(obj.experimentData.dataRes.DensityGauss);
+           % q   = obj.createFunction(obj.experimentData.dataRes.SuperEllipseExponent);
+           % 
+           % 
+           % c = DomainFunction.create(@(xV) obj.cFunction(xV,q),obj.mesh,1);   
+           % 
+           %  s.filterType   = 'PDE';
+           %  s.mesh         = obj.mesh;
+           %  s.trial        = LagrangianFunction.create(obj.mesh,1,'P1');
+           %  f              = Filter.create(s);
+           % 
+           % 
+           % 
+           % m1 = project(f.compute(sqrt((1-rho)./(c.*tan(xi))),2),'P1D');
+           % m2 = project(f.compute(sqrt((1-rho)./c),2),'P1D');
+           %  s.xSide = m1;
+           %  s.ySide = m2;
 
-
-           c = DomainFunction.create(@(xV) obj.cFunction(xV,q),obj.mesh,1);   
-
-            s.filterType   = 'PDE';
-            s.mesh         = obj.mesh;
-            s.trial        = LagrangianFunction.create(obj.mesh,1,'P1');
-            f              = Filter.create(s);
-
-
-
-           m1 = project(f.compute(sqrt((1-rho)./(c.*tan(xi))),2),'P1D');
-           m2 = project(f.compute(sqrt((1-rho)./c),2),'P1D');
-            s.xSide = m1;
-            s.ySide = m2;
-
-           % s.xSide = obj.createFunction(obj.experimentData.dataRes.DesignVar1);%0.85*ones(size(obj.mesh.coord,1),1);
-           % s.ySide = obj.createFunction(obj.experimentData.dataRes.DesignVar2);%0.85*ones(size(obj.mesh.coord,1),1);
+            s.xSide = obj.createFunction(obj.experimentData.dataRes.DesignVar1);%0.85*ones(size(obj.mesh.coord,1),1);
+            s.ySide = obj.createFunction(obj.experimentData.dataRes.DesignVar2);%0.85*ones(size(obj.mesh.coord,1),1);
             s.pnorm  = obj.createFunction(obj.experimentData.dataRes.SuperEllipseExponent);
             s.ndim   = 2;
         end

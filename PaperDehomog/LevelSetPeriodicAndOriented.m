@@ -10,6 +10,7 @@ classdef LevelSetPeriodicAndOriented < handle
         deformedCoord
         m1
         m2
+        r
         fineMesh
     end
 
@@ -26,6 +27,7 @@ classdef LevelSetPeriodicAndOriented < handle
         function obj = LevelSetPeriodicAndOriented(cParams)
             obj.init(cParams);
             obj.createDeformedCoord();
+            obj.r  = project(obj.orientationVectors.getDilation(),'P1D'); 
             obj.remeshAndInterpolate();
         end
 
@@ -48,7 +50,7 @@ classdef LevelSetPeriodicAndOriented < handle
     methods (Access = protected)
 
         function ls = computeLevelSet(obj,eps)
-            obj.thresholdParameters();
+            obj.thresholdParameters(eps);
             ls = obj.createCellLevelSet(eps);
         end
 
@@ -77,7 +79,8 @@ classdef LevelSetPeriodicAndOriented < handle
                 m = m.remesh();
                 obj.deformedCoord = obj.deformedCoord.refine(m);
                 obj.m1            = obj.m1.refine(m);
-                obj.m2            = obj.m2.refine(m);                
+                obj.m2            = obj.m2.refine(m);  
+                obj.r             = obj.r.refine(m);  
             end
             obj.fineMesh = m;
         end
@@ -125,23 +128,23 @@ classdef LevelSetPeriodicAndOriented < handle
             fH = f(x);
         end
 
-        function thresholdParameters(obj)
-            mL = obj.computeMinLengthInUnitCell();
+        function thresholdParameters(obj,eps)
+            mL = obj.computeMinLengthInUnitCell(eps);
             s.minLengthInUnitCell = mL;
             t = MparameterThresholder(s);
             obj.m1.setFValues(t.thresh(obj.m1.fValues));
             obj.m2.setFValues(t.thresh(obj.m2.fValues));
         end
 
-        function t = computeMinLengthInUnitCell(obj)
-%            r = obj.dilation;
-%            hC = obj.epsilon*exp(-r);
+        function t = computeMinLengthInUnitCell(obj,epsilon)
+             hC = epsilon*exp(-obj.r);
 %            hmin = min(hC);
 %            hmax = max(hC);
 %             hcut = (hmax+hmin)/4;%/4;%/2;
-%            %hcut = 0;%0.00001*obj.epsilon;
-%            t = hcut./hC;
-            t = 0;
+            hcut = 0.05*epsilon;
+            t = hcut./hC;
+            t = project(t,'P1D');
+            t = t.fValues;
         end
 
         function y = computeMicroCoordinate(obj,x,eps)

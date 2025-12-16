@@ -33,6 +33,10 @@ classdef OrientedMappingComputer < handle
             obj.totalCorrector        = obj.computeTotalCorrector(a1);
             dCoord                    = obj.phiMapping;% + obj.totalCorrector;
         end
+
+        function r = getDilation(obj)
+            r = obj.dilation;
+        end
         
     end
     
