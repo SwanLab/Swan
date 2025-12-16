@@ -7,7 +7,7 @@ clear;
 close all;
 
 %% Initialization of hyperparameters
-pol_deg         = 6;
+pol_deg         = 1;
 testratio       = 30;
 lambda          = 0.0;
 learningRate    = 0.1;
@@ -23,7 +23,7 @@ s.polynomialOrder = pol_deg;
 s.testRatio       = testratio;
 s.networkParams.hiddenLayers    = hiddenLayers;
 s.optimizerParams.learningRate  = learningRate;
-s.optimizerParams.maxEpochs = 50; % 1000 is the best option, but we use 10 to pass the tutorial quickly
+s.optimizerParams.maxEpochs = 1000; % 1000 is the best option, but we use 10 to pass the tutorial quickly
 s.costParams.lambda             = lambda;
 s.costParams.costType           = 'L2';
 
@@ -40,7 +40,7 @@ T_NN=cell(1,8);
 
 %% Loop for the 8 coarse modes
 
-for j=1:8
+for j=8:8
     switch j
         case 1
             s.yFeatures = [4,5];     

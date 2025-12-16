@@ -13,7 +13,7 @@ clc; clear;
 %% LOAD DATA
 
 % 1. NN
-filename='T_NN.mat';
+filename='T_NN3.mat';
 filePath = fullfile('AbrilTFGfiles', 'NN', filename);
 load(filePath,'T_NN');
 
@@ -50,7 +50,7 @@ T3= zeros(mesh.nnodes*mesh.ndim*8,length(r));
 
 % 1. NN
 for i=1:length(r)
-    aux=computeT(mesh,r(i),T_NN);
+    aux=computeT2(mesh,r(i),T_NN);
     T1(:,i)=aux(:);
 end
 
@@ -102,3 +102,17 @@ function T_trained=computeT(mesh,R,T_NN)
     end
 end
 
+function T_trained=computeT2(mesh,R,T_NN)
+    T_trained=[];
+    for j=1:8 % Constructs the 8 columns    
+        Taux2=[];
+        for i=1:size(mesh.coord,1)  % Evaluates all the coordenates
+            dataInput=[R,mesh.coord(i,:)];
+            dataFull=Data.buildModel(dataInput,1);
+            Taux1=T_NN.computeOutputValues(dataFull).';
+            Taux2=reshape(Taux1,2,[]);
+            T_trained=[T_trained;Taux2];
+        end
+        
+    end
+end

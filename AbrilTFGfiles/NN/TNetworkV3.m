@@ -10,8 +10,8 @@ close all;
 pol_deg         = 1;
 testratio       = 30;
 lambda          = 0.0;
-learningRate    = 0.01;
-hiddenLayers    = [16 20 20 16 6 3];
+learningRate    = 0.1;
+hiddenLayers    = [24 40 60 60 40 24 12];
  
 
 %% INITIALIZATION 
@@ -51,7 +51,6 @@ s.data = data;
 T_NN = OptimizationProblemNN(s);
 T_NN.solve();
 T_NN.plotCostFnc();
-title(TitleName);
     
-FileName=fullfile('AbrilTFGfiles','NN',"T_NN_All.mat");
+FileName=fullfile('AbrilTFGfiles','NN',"T_NN3.mat");
     save(FileName, "T_NN");
