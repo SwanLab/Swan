@@ -70,8 +70,50 @@ classdef ModalMultipleSubdomainsEIFEM < handle
             solver.precond_type = 'eifem';
 
             results = solver.run_demo();
+
+            %% Jacobi with EIFEM initial guess 
+            solver2 = LOBPCG(3,LHSr,Mr);
+            solver2.b      = 5;        % number of modes 
+            solver2.use_precond = true;
+            solver2.use_physical_x = true; % feed aproximation to eigenvaluees (simulating coarse from superelement) as starting point
+            solver2.tol    = 1e-8;    % residual tolerance
+            solver2.maxit  = 20000;       % max iterations
+            solver2.verbose = false;
+            solver2.precond_type ='jacobi';
+            results2 = solver2.run_demo();
+
+            tol = 1e-8; 
+            tol2 = 1e-8;
+            for i = 1:5
+                figure(i)
+                
+                % --- Strategy 1: Jacobi + EIFEM Init
+                raw_res1 = results2.history.rnorm(:,i);
+                % Filter: keep only values strictly greater than tolerance
+                res_1 = raw_res1(raw_res1 > tol); 
+                x_axis1 = 1:length(res_1);
             
-            obj.printFineSolution(results.X,mD);
+                % --- Strategy 2: No Prec + EIFEM Init (results4) ---
+                raw_res2 = results.history.rnorm(:,i);
+                res_2 = raw_res2(raw_res2 > tol2);
+                x_axis2 = 1:length(res_2);
+            
+                % Plotting with dynamic lengths
+                semilogy(x_axis1, res_1, ...
+                         x_axis2, res_2, ...
+                         'LineWidth', 1)
+                         
+                xlabel('Iterations')
+                ylabel('Residual')
+                grid on
+                title(['Residual Evolution For Different Strategies (Mode ' num2str(i) ')'])
+                
+                legend('Jacobi + EIFEM Init', ...
+                       'EIFEM + EIFEM Init', ...
+                       'Location', 'best') 
+            end
+            
+            PROobj.printFineSolution(results.X,mD);
             
 
         end
@@ -81,7 +123,7 @@ classdef ModalMultipleSubdomainsEIFEM < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains = [15,3];
+            obj.nSubdomains = [15,6];
             obj.r = 1e-6*ones(obj.nSubdomains)'; 
             obj.r= (0.6 - 0.2) * rand(obj.nSubdomains(2),obj.nSubdomains(1)) + 0.1;
             obj.xmax=1; obj.xmin=-1; obj.ymax = 1; obj.ymin=-1;
@@ -128,16 +170,7 @@ classdef ModalMultipleSubdomainsEIFEM < handle
             m = MeshJoiner(s);
             [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
          end
-
-        function createReferenceMesh(obj)
-
-            squareMesh  = UnitTriangleMesh(12,12);
-            s.coord     = squareMesh.coord;
-            s.connec    = squareMesh.connec;
-            s.interType = 'LINEAR';
-            s           = obj.updateCoordsMesh(s);
-            obj.referenceMesh = Mesh.create(s);
-        end       
+     
         
         function mCoarse = createCoarseMesh(obj,mR)
             s.nsubdomains   = obj.nSubdomains; %nx ny

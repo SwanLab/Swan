@@ -32,7 +32,8 @@ classdef LOBPCG
     methods
         function obj = LOBPCG(problem,K,M,Mmult)
             if nargin>0, obj.problem = problem; end
-            if nargin>1, obj.K = K; obj.M = M; obj.Mmult = Mmult; end
+            if nargin>=2, obj.K = K; obj.M = M; end
+            if nargin > 3, obj.Mmult = Mmult; end
             [obj.K,obj.M] = obj.setup_matrices(obj.problem);
 
             % Symmetrize once for safety
