@@ -51,7 +51,7 @@ classdef VolumeFunctionalRadius < handle
 
         function J = computeFunction(obj,x)
             dV = obj.baseFun-pi*x.*x;
-            volume = Integrator.compute(dV,obj.mesh,2);
+%             volume = Integrator.compute(dV,obj.mesh,2);
             volume = obj.totalVolume- pi*x.fValues'*x.fValues;
             J      = volume/obj.totalVolume;
         end

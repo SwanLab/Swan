@@ -69,14 +69,14 @@ classdef OptimizationEIFEMTutorial < handle
 
         function init(obj)
             close all;
-            obj.nSubdomains = [30,10];
+            obj.nSubdomains = [10,3];
             obj.r = 1e-6*ones(obj.nSubdomains)'; 
             obj.r= (1e-6 - 1e-6) * rand(obj.nSubdomains(2),obj.nSubdomains(1)) + 1e-6;
             obj.xmax=1; obj.xmin=-1; obj.ymax = 1; obj.ymin=-1; 
             obj.Nr = 7; obj.Ntheta = 14; 
             obj.x0 = 0; obj.y0=0;
             obj.tolSameNode = 1e-10;
-            obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange20_der.mat';
+            obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange20_der2.mat';
             obj.solverType = 'REDUCED';
             obj.volumeTarget = 0.8;
         end
@@ -152,8 +152,18 @@ classdef OptimizationEIFEMTutorial < handle
             s.order    = 'P0';
             s.fun      = LagrangianFunction(s);
             s.type     = 'Radius';
-            s.plotting = false;
-            radius    = DesignVariable.create(s);
+            s.plotting = true;
+            s.nSubdomains = obj.nSubdomains;
+            s.Nr       = obj.Nr;
+            s.Ntheta   = obj.Ntheta;
+            s.xmax     = obj.xmax;
+            s.xmin     = obj.xmin;
+            s.ymax     = obj.ymax;
+            s.ymin     = obj.ymin;
+            s.x0       = obj.x0;
+            s.y0       = obj.y0;
+            s.discMesh = obj.discMesh;
+            radius     = DesignVariable.create(s);
             obj.designVariable = radius;
         end
 
