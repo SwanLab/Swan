@@ -42,16 +42,8 @@ classdef IsolatedTraining < handle
             mesh = obj.mesh;
             
             % EXPORT TO PARAVIEW
-            z.mesh      = obj.mesh;
-            z.order     = 'P1';
             if doplot==true()
-               for i=1:8
-                 z.fValues   = reshape(u(:,i),[obj.mesh.ndim,obj.mesh.nnodes])';
-                 uFeFun = LagrangianFunction(z);%
-                 fileName = strrep("r" + num2str(r), '.', '_')+ "_IsolatedTraining" +num2str(i);
-                 obj.computeCentroid();
-                 CoarsePlotSolution(uFeFun, obj.mesh, obj.bcApplier,fileName, r, obj.centroids);
-               end
+                exportT_weakInclusion(u,r,mesh,"_IsolatedTraining")
             end
             Kcoarse=u.'*obj.stiffness*u;
             
@@ -217,12 +209,6 @@ classdef IsolatedTraining < handle
                 rDire = IntegrateRHS(f,test,obj.boundaryMeshJoined,'Domain',2);
                 rDir = [rDir rDire];
             end
-        end
-
-        function computeCentroid(obj)
-            x0=mean(obj.mesh.coord(:,1));
-            y0=mean(obj.mesh.coord(:,2));
-            obj.centroids = [x0,y0];
         end
 
     end

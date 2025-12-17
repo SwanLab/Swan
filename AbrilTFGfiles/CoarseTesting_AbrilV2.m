@@ -1,4 +1,4 @@
-classdef CoarseTesting_Abril< handle
+classdef CoarseTesting_AbrilV2< handle
 
     properties (Access = public)
 
@@ -38,7 +38,7 @@ classdef CoarseTesting_Abril< handle
 
     methods (Access = public)
 
-        function obj = CoarseTesting_Abril()
+        function obj = CoarseTesting_AbrilV2()
             obj.init()
 
             % COMPUTE MESH  
@@ -58,7 +58,8 @@ classdef CoarseTesting_Abril< handle
             % EXACT SOLUTION
             LHSf   = @(x) LHS*x;
             RHSf   = RHS;
-            Usol   = LHS\RHS;
+            %Usol   = LHS\RHS;
+            Usol=zeros(size(RHSf,1),1);
             Ufull  = obj.bcApplier.reducedToFullVectorDirichlet(Usol); 
             
 
@@ -130,14 +131,14 @@ classdef CoarseTesting_Abril< handle
 
         function init(obj)
             % Case Parameters
-            p.Inclusion = 'Hole';         % 'Hole'/'Material'/'HoleRaul'
+            p.Inclusion = 'HoleRaul';         % 'Hole'/'Material'/'HoleRaul'
             p.Sampling  = 'Isolated'; % 'Isolated'/'Oversampling'
             p.loadData  = 'Dataset';      % 'Dataset'/'NN'
-            p.nelem     =  20;            %  Mesh refining
+            p.nelem     =  10;            %  Mesh refining
             obj.params  =  p;
 
             % Definition of Subdomain
-            obj.r              = ones(10,15)*0.1;
+            obj.r              = ones(1,15)*0.3;
             obj.nSubdomains    = size(obj.r');
             obj.mSubdomains    = [];
             obj.tolSameNode    = 1e-10;
@@ -244,7 +245,6 @@ classdef CoarseTesting_Abril< handle
                     uMesh    = obj.computeUnfittedMesh(mS,lvSet);
                     mS = uMesh.createInnerMesh();
                 case 'HoleRaul'
-                    %mS=mesh_rectangle_via_triangles(obj.r(1,1),1,-1,1,-1,7,6,0,0); % 10x10
                     mS=mesh_rectangle_via_triangles(obj.r(1,1),1,-1,1,-1,15,12,0,0); % 20x20
                     %mS=mesh_rectangle_via_triangles(obj.r(1,1),1,-1,1,-1,34,35,0,0)  % 50x50
                     obj.xmin =-1; obj.xmax = 1;
@@ -259,7 +259,7 @@ classdef CoarseTesting_Abril< handle
             x1      = linspace(-1,1,n);
             x2      = linspace(-1,1,n);
             [xv,yv] = meshgrid(x1,x2);
-            [F,V]   = mesh2quad(xv,yv,zeros(size(xv)),'x');
+            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
             s.connec = F;
 
@@ -366,7 +366,7 @@ classdef CoarseTesting_Abril< handle
             p=obj.params;
 
             switch p.Inclusion
-                case {'Hole','HoleRaul'}
+                case 'Hole'
                     young   = ConstantFunction.create(E1,mesh);
                     poisson = ConstantFunction.create(nu,mesh);
                 case 'Material'

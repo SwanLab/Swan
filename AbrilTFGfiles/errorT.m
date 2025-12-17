@@ -22,7 +22,7 @@ HOname=fullfile("AbrilTFGfiles/SVD/HOfunction.mat");
 load(HOname,"fT","deim");
 
 % 3. SVD +NN
-NNname=fullfile("AbrilTFGfiles/NN/Q_NN2.mat");
+NNname=fullfile("AbrilTFGfiles/NN/Q_NN.mat");
 load(NNname);
 U=deim.basis(:,1:10);
 
@@ -48,10 +48,9 @@ T1= zeros(mesh.nnodes*mesh.ndim*8,length(r));
 T2= zeros(mesh.nnodes*mesh.ndim*8,length(r));
 T3= zeros(mesh.nnodes*mesh.ndim*8,length(r));
 
-%Tprova=computeT2(mesh,0.3,T_NN);
 % 1. NN
 for i=1:length(r)
-    aux=computeT2(mesh,r(i),T_NN);
+    aux=computeT(mesh,r(i),T_NN);
     T1(:,i)=aux(:);
 end
 
@@ -85,25 +84,9 @@ xlabel('r');
 ylabel('error');
 
 
-
-
-
-
 %% Functions
-function T_trained=computeT(mesh,R,T_NN)
-    T_trained=zeros(mesh.nnodes*mesh.ndim,8);
-    for j=1:8 % Constructs the 8 columns    
-        Taux2=[];
-        for i=1:size(mesh.coord,1)  % Evaluates all the coordenates
-            dataInput=[R,mesh.coord(i,:)];  
-            Taux1=T_NN{1,j}.computeOutputValues(dataInput).';
-            Taux2=cat(1,Taux2,Taux1);
-        end
-        T_trained(:,j)=Taux2;
-    end
-end
 
-function T_trained=computeT2(mesh,R,T_NN)
+function T_trained=computeT(mesh,R,T_NN)
     T_trained=[];
         Taux2=[];
         for i=1:size(mesh.coord,1)  % Evaluates all the coordenates

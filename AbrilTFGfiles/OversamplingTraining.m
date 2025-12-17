@@ -115,7 +115,7 @@ classdef OversamplingTraining < handle
             radius = 0.1;
 
             switch obj.Inclusion
-                case 'Hole'
+                case {'Hole','HoleRaul'}
                     young   = ConstantFunction.create(E1,mesh);
                     poisson = ConstantFunction.create(nu,mesh);
                 case 'Material'
