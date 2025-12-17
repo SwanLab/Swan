@@ -33,7 +33,7 @@ classdef Anisotropic_90_LevelSet < handle
 
             % Save monitoring and desginVariable fValues
             %saveas(gcf,'Monitoring_90_LevelSet.fig');
-            %obj.designVariable.fun.print('fValues_90_LevelSet_MBB');
+            obj.designVariable.fun.print('fValues_90_LevelSet');
         end
 
     end
@@ -47,8 +47,8 @@ classdef Anisotropic_90_LevelSet < handle
         function createMesh(obj)
             %UnitMesh better
             % Cantilever beam
-             x1      = linspace(0,2,150);
-             x2      = linspace(0,1,75);
+            x1      = linspace(0,2,150);
+            x2      = linspace(0,1,75);
             % MBB Beam
             %x1      = linspace(0,6,500);
             %x2      = linspace(0,1,75);
@@ -177,14 +177,14 @@ classdef Anisotropic_90_LevelSet < handle
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
-            s.etaNorm        = 0.02;
+            s.etaNorm        = 0.1;
             s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 0.1;
-            s.etaMax         = 1;
-            s.etaMaxMin      = 0.01;
+            s.gJFlowRatio    = 1;
+            s.etaMax         = 0.1;
+            s.etaMaxMin      = 0.05;
             %s.type           = '90';
             s.gif = true;
-            s.gifName = 'Gif_90_LevelSet_MBB';
+            s.gifName = 'Gif_90_LevelSet';
             s.printing = false;
             s.printName = 'Results_90_LevelSet';
             opt = OptimizerNullSpace(s);
@@ -207,10 +207,10 @@ classdef Anisotropic_90_LevelSet < handle
 
         function bc = createBoundaryConditions(obj)
             % Cantilever beam
-             xMax    = max(obj.mesh.coord(:,1));
-             yMax    = max(obj.mesh.coord(:,2));
-             isDir   = @(coor)  abs(coor(:,1))==0;
-             isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
+            xMax    = max(obj.mesh.coord(:,1));
+            yMax    = max(obj.mesh.coord(:,2));
+            isDir   = @(coor)  abs(coor(:,1))==0;
+            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
             
             % MBB beam
             %xMax    = max(obj.mesh.coord(:,1));
@@ -221,7 +221,7 @@ classdef Anisotropic_90_LevelSet < handle
 
 
             sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [1, 2];
+            sDir{1}.direction = [1,2]; % Cantilever--> [1,2]   MBB--> 2
             sDir{1}.value     = 0;
             
             % Comentar sDir 2 quan es faci cantilever beam

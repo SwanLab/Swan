@@ -179,9 +179,9 @@ classdef Anisotropic_45_45_LevelSet < handle
             s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.1;
             s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 1;
+            s.gJFlowRatio    = 0.2;
             s.etaMax         = 0.1;
-            s.etaMaxMin      =0.05;
+            s.etaMaxMin      =0.0001;
             %s.type           = '-45_45';
             s.gif = true;
             s.gifName = 'Gif_45_45_LevelSet_MBB';

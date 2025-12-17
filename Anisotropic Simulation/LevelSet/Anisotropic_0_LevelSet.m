@@ -178,11 +178,11 @@ classdef Anisotropic_0_LevelSet < handle
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
-            s.etaNorm        = 0.02;
+            s.etaNorm        = 0.1;
             s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 0.1;
-            s.etaMax         = 1;
-            s.etaMaxMin      = 0.01;
+            s.gJFlowRatio    = 0.05;
+            s.etaMax         = 0.1;
+            s.etaMaxMin      = 0.001;
             %s.type           = '0';
             s.gif = true;
             s.gifName = 'Gif_0_LevelSet_MBB';
