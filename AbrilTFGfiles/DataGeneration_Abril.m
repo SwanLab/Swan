@@ -3,14 +3,24 @@
 
 clc; clear; close all;
 
-r = 0:0.02:0.98; 
-%r=0.1;
-nelem=50;
+%r = 0:0.02:0.98; 
+r=0.5;
+
+p.Sampling='Oversampling'; %'Isolated'/'OverSampling'
+p.Inclusion='Material';    %'Material'/'Hole'/'HoleRaul
+p.nelem=50;
 
 doplot=false();
 
 for j = 1:size(r,2)
-    [~, u, l, mesh,Kcoarse] = IsolatedTraining(r(j),nelem,doplot);
+    %[~, u, l, mesh,Kcoarse] = IsolatedTraining(r(j),p.nelem,doplot);
+
+    mR=createReferenceMesh(p,r(j));
+    results=OversamplingTraining(mR,p);
+
+    T=results.uSbd;
+    Kfine=results.LHSsbd;
+    Kcoarse=T.'*Kfine*T;
 
     % Initialization for K_all and T_all
     if j==1
@@ -90,3 +100,71 @@ kFileName = fullfile('AbrilTFGfiles', 'dataK.csv');
 writematrix(kdata,kFileName);
 
 
+
+
+%% FUNCTIONS
+
+function mS = createReferenceMesh(p,r)
+    
+    switch p.Inclusion
+        case 'Material'
+            mS = createStructuredMesh(p);
+        case 'Hole'
+            mS = createStructuredMesh(p);
+            lvSet    = createLevelSetFunction(mS,r);
+            uMesh    = computeUnfittedMesh(mS,lvSet);
+            mS       = uMesh.createInnerMesh();
+        case 'HoleRaul'
+            %mS=mesh_rectangle_via_triangles(obj.r(1,1),1,-1,1,-1,7,6,0,0);   % 10x10
+            mS=mesh_rectangle_via_triangles(r,1,-1,1,-1,15,12,0,0);  % 20x20
+            %mS=mesh_rectangle_via_triangles(obj.r(1,1),1,-1,1,-1,34,35,0,0)  % 50x50
+            % obj.xmin =-1; obj.xmax = 1;
+            % obj.ymin =-1; obj.ymax = 1;
+    end
+end
+
+
+function mS = createStructuredMesh(p)
+    n =p.nelem;
+    x1      = linspace(-1,1,n);
+    x2      = linspace(-1,1,n);
+    [xv,yv] = meshgrid(x1,x2);
+    [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
+    s.coord  = V(:,1:2);
+    s.connec = F;
+   
+    obj.xmin = min(x1);            
+    obj.xmax = max(x1);
+    obj.ymin = min(x2);
+    obj.ymax = max(x2);
+
+    delta = 1e-9;
+    s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
+        s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-0*delta];
+    s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
+        s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-delta,0*delta];
+    s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
+        s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[delta,-0*delta];
+    s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
+        s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[delta,0*delta];
+
+    mS = Mesh.create(s); 
+   
+end
+
+function levelSet = createLevelSetFunction(bgMesh,r)
+    sLS.type        = 'CircleInclusion';
+    sLS.xCoorCenter = 0;
+    sLS.yCoorCenter = 0;
+    sLS.radius      = r;
+    g               = GeometricalFunction(sLS);
+    lsFun           = g.computeLevelSetFunction(bgMesh);
+    levelSet        = lsFun.fValues;
+end
+
+function uMesh = computeUnfittedMesh(bgMesh,levelSet)
+    sUm.backgroundMesh = bgMesh;
+    sUm.boundaryMesh   = bgMesh.createBoundaryMesh();
+    uMesh              = UnfittedMesh(sUm);
+    uMesh.compute(levelSet);
+end

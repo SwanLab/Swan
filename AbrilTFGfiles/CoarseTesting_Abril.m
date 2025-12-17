@@ -43,9 +43,9 @@ classdef CoarseTesting_Abril< handle
 
             % COMPUTE MESH  
             mR  = obj.createReferenceMesh();  % Crea la reference mesh
-            bS  = mR.createBoundaryMesh();   % Crea el boundary de la mesh
-            obj.referenceMesh = mR;          % Guarda la reference Mesh   
-            obj.repeatMesh();                % Crea el domini
+            bS  = mR.createBoundaryMesh();    % Crea el boundary de la mesh
+            obj.referenceMesh = mR;           % Guarda la reference Mesh   
+            obj.repeatMesh();                 % Crea el domini
             
             [bC,dir] = obj.createBoundaryConditions(obj.meshDomain);
             obj.boundaryConditions = bC;
@@ -130,14 +130,14 @@ classdef CoarseTesting_Abril< handle
 
         function init(obj)
             % Case Parameters
-            p.Inclusion = 'Hole';         % 'Hole'/'Material'/'HoleRaul'
-            p.Sampling  = 'Isolated'; % 'Isolated'/'Oversampling'
-            p.loadData  = 'Dataset';      % 'Dataset'/'NN'
-            p.nelem     =  20;            %  Mesh refining
+            p.Inclusion = 'Material';         % 'Hole'/'Material'/'HoleRaul'
+            p.Sampling  = 'Oversampling';         % 'Isolated'/'Oversampling'
+            p.loadData  = 'Dataset';          % 'Dataset'/'NN'
+            p.nelem     =  50;                %  Mesh refining
             obj.params  =  p;
 
             % Definition of Subdomain
-            obj.r              = ones(10,15)*0.1;
+            obj.r              = ones(5,10)*0.5;
             obj.nSubdomains    = size(obj.r');
             obj.mSubdomains    = [];
             obj.tolSameNode    = 1e-10;
@@ -259,14 +259,23 @@ classdef CoarseTesting_Abril< handle
             x1      = linspace(-1,1,n);
             x2      = linspace(-1,1,n);
             [xv,yv] = meshgrid(x1,x2);
-            [F,V]   = mesh2quad(xv,yv,zeros(size(xv)),'x');
+            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
             s.connec = F;
-
+           
             obj.xmin = min(x1);            
             obj.xmax = max(x1);
             obj.ymin = min(x2);
             obj.ymax = max(x2);
+
+            %mS= QuadMesh(2, 2, n, n);
+            %s.coord=mS.coord;
+            %s.connec=mS.connec;
+            %obj.xmin = 0;
+            %obj.xmax = 2;
+            %obj.ymin = 0;
+            %obj.ymax = 2;
+
             delta = 1e-9;
             s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
                 s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-0*delta];
@@ -278,6 +287,7 @@ classdef CoarseTesting_Abril< handle
                 s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[delta,0*delta];
 
             mS = Mesh.create(s); 
+           
         end
         
 
