@@ -1,0 +1,10 @@
+IMPORT "io.edp"
+
+real fac = 3.0;
+border left(t=0.0,1.0){ x=-1.0; y=1.0-t; label=0; };
+border bot(t=0.0,2.0){ x=-1.0+t; y=0.0; label=0; };
+border right(t=0.0,1.0){ x=1.0; y=t; label=0; };
+border top(t=0.0,2.0){ x=1.0-t; y=1.0; label=0; };
+mesh Th = buildmesh(left(30*fac)+bot(60*fac)+right(30*fac)+top(60*fac));
+
+exportMesh(Th);

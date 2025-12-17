@@ -1,0 +1,19 @@
+IMPORT "io.edp"
+
+mesh Th=importMesh("Th");
+plot(Th,cmm="Th");
+
+/* Finite Element spaces */
+fespace Vh(Th,P1);
+fespace Vh0(Th,P0);
+
+/* Initialization of the Level Set function */
+func real initialGuess() {
+  real x0 = 0, y0 = 0.5, lx = 1.5, ly = 0.4, p = 4, ls;
+  ls = ((abs((x-x0)/lx)^p+abs((y-y0)/ly)^p)^(1/p)) - 0.5;
+  return(ls);
+}
+Vh phio;
+phio = initialGuess();
+
+exportArray(phio[]);
