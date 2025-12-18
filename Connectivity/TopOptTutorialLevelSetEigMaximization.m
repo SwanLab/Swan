@@ -305,32 +305,30 @@ classdef TopOptTutorialLevelSetEigMaximization < handle
         end
 
         function [dofsNonDesign] = createNonDesignableDomain(obj)
+            centers = [0.5 0.5;
+                       0.25 0.25;
+                       0.25 0.75;
+                       0.75 0.25;
+                       0.75 0.75];            
+            isNonDesign = @(coor) any( (coor(:,1) - centers(:,1)').^2 + ...
+                                       (coor(:,2) - centers(:,2)').^2 <= r^2, 2);
+            dofsNonDesign = isNonDesign(obj.mesh.coord);
+        end
+
 %             isNonDesign =  @(coor) ((abs(coor(:,1)) >= 0.48 & abs(coor(:,1)) <= 0.52) & (abs(coor(:,2)) >= 0.48 & abs(coor(:,2)) <= 0.52)) | ((abs(coor(:,1)) >= 0.25 & abs(coor(:,1)) <= 0.29) & (abs(coor(:,2)) >= 0.25 & abs(coor(:,2)) <= 0.29))  | ((abs(coor(:,1)) >= 0.71 & abs(coor(:,1)) <= 0.75) & (abs(coor(:,2)) >= 0.71 & abs(coor(:,2)) <= 0.75));
 %             isNonDesign =  @(coor) ((abs(coor(:,1)) >= 0.48 & abs(coor(:,1)) <= 0.52) & (abs(coor(:,2)) >= 0.48 & abs(coor(:,2)) <= 0.52));
-            r = 0.08;
+%             r = 0.08;
 %             x0 = 0.5; y0 = 0.5;
 %             isNonDesign =  @(coor) (((coor(:,1)-x0).^2+(coor(:,2)-y0).^2-r^2 <= 0));
 %             r = 0.05;
 %             x0 = 0.1; y0 = 0.1;
 %             x02 = 0.3; y02 = 0.3;
 %             isNonDesign =  @(coor) (((coor(:,1)-x0).^2+(coor(:,2)-y0).^2-r^2 <= 0) | ((coor(:,1)-x02).^2+(coor(:,2)-y02).^2-r^2 <= 0));
-%             centers = [0.5 0.5;
-%                        0.25 0.25;
-%                        0.25 0.75;
-%                        0.75 0.25;
-%                        0.75 0.75];
 %             centers = [0.1,0.1;
 %                        0.1,0.9;
 %                        0.9,0.1;
 %                        0.9,0.9];
-            centers = [0.5 0.5];
-            
-            isNonDesign = @(coor) any( (coor(:,1) - centers(:,1)').^2 + ...
-                                       (coor(:,2) - centers(:,2)').^2 <= r^2, 2);
-
-            dofsNonDesign = isNonDesign(obj.mesh.coord);
-        end
-
+%             centers = [0.5 0.5];
 
     end
 end

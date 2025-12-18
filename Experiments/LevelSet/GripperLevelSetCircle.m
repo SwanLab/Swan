@@ -107,23 +107,23 @@ classdef GripperLevelSetCircle < handle
 %             f = Filter.create(s);
 %             obj.filterConnectivity = f;
 % 
-            s.filterType = 'FilterAndProject';
-%             s.filterType = 'CloseOperator';   
+%             s.filterType = 'FilterAndProject';
+            s.filterType = 'CloseOperator';   
             s.mesh       = obj.mesh;
             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
             s.filterStep = 'PDE';
-            s.beta       = 4.0; % 4 2 
-            s.eta        = 0.2;
+            s.beta       = 10.0; % 4 2 
+            s.eta        = 0.9;
             obj.filterConnectivity = Filter.create(s);
             
-            s.filterType = 'FilterAdjointAndProject';
+%             s.filterType = 'FilterAdjointAndProject';
 
-%             s.filterType = 'CloseAdjointOperator';   
+            s.filterType = 'CloseAdjointOperator';   
             s.mesh       = obj.mesh;
             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
             s.filterStep = 'PDE';
-            s.beta       = 4.0; 
-            s.eta        = 0.2;
+            s.beta       = 10.0; 
+            s.eta        = 0.9;
             obj.filterAdjointConnectivity = Filter.create(s);
         end
 
@@ -210,7 +210,7 @@ classdef GripperLevelSetCircle < handle
             s.boundaryConditions = obj.createEigenvalueBoundaryConditions();
             s.conductivityInterpolator = obj.conductivityInterpolator; 
             s.massInterpolator         = obj.massInterpolator; 
-            s.targetEigenValue  = 3.0;     
+            s.targetEigenValue  = 6.0;     
             s.isCompl           = false;
             obj.minimumEigenValue = StiffnessEigenModesConstraint(s);
         end
@@ -242,7 +242,7 @@ classdef GripperLevelSetCircle < handle
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
             s.shapeFunctions{2} = obj.perimeter;
-            s.weights           = [1.0,5.0]; 
+            s.weights           = [1.0,10.0]; 
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -278,7 +278,7 @@ classdef GripperLevelSetCircle < handle
             s.etaMax = 10.0;
             s.etaMaxMin = 0.1;
 %             s.gJFlowRatio    = 0.01;
-            s.gJFlowRatio = 0.5;
+            s.gJFlowRatio = 0.1;
             s.primalUpdater  = obj.primalUpdater;
             s.gif = true;
             s.gifName = char("gripper");
