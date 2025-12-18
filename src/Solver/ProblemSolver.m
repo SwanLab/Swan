@@ -163,7 +163,7 @@ classdef ProblemSolver < handle
                     free_dofs = setdiff(dofs, bcs.dirichlet_dofs);
                     drch = bcs.dirichlet_dofs;
                     %                     RHS = forces(free_dofs);
-                    RHS = forces(free_dofs)- stiffness(free_dofs, drch) * bcs.dirichlet_vals;
+                    RHS = forces(free_dofs) - stiffness(free_dofs, drch) * bcs.dirichlet_vals;
                 case strcmp(obj.type, 'MONOLITHIC') && strcmp(obj.mode, 'FLUC')
                     nPer = length(bcs.periodic_leader);
                     RHS = [forces; zeros(nPer,1); bcs.dirichlet_vals];
