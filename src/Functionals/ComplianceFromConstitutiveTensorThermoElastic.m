@@ -107,7 +107,7 @@ classdef ComplianceFromConstitutiveTensorThermoElastic < handle
                 dStress = DDP(dC{i},strain);
                 I = ConstantFunction.create(eye(2),obj.mesh);
                 dbeta = obj.stateProblem.alpha.*DDP(dC{i},I);
-                dj{i}   = -0.5.*DDP(strain, dStress) + DDP(dbeta.*Grad(T),SymGrad(u)) + DP(Grad(T),dkappa.*Grad(p)); %T*dkappa12*u + T*dkappa*p + (-dQ*p+df*u)
+                dj{i}   = -0.5.*DDP(strain, dStress) + DDP(dbeta.*(T-T0),SymGrad(u)) + DP(Grad(T),dkappa.*Grad(p)); %T*dkappa12*u + T*dkappa*p + (-dQ*p+df*u)
             end
         end
 
