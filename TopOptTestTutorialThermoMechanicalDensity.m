@@ -13,7 +13,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
         constraint
         primalUpdater
         optimizer
-      
+        chiB
     end
 
     methods (Access = public)
@@ -53,6 +53,26 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             obj.mesh = Mesh.create(s);
         end
 
+
+         function createBatteryDomain()
+
+             s.type        = 'Holes';
+         %    s.radius      = 0.3;
+         %    s.xCoorCenter = 0.5;
+         %    s.yCoorCenter = 0.5;
+             g                = GeometricalFunction(s);
+             phiFun           = g.computeLevelSetFunction(obj.mesh);
+             phi              = phiFun.fValues;
+
+             sm.backgroundMesh = obj.mesh;
+             sm.boundaryMesh   = obj.mesh.createBoundaryMesh;
+             uMesh              = UnfittedMesh(sm);
+             uMesh.compute(phi);
+
+             obj.chiB     = CharacteristicFunction.create(uMesh);
+
+         end        
+
         function createDesignVariable(obj)
             s.fHandle = @(x) ones(size(x(1,:,:)));
             s.ndimf   = 1;
@@ -62,6 +82,11 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             sD.mesh     = obj.mesh;
             sD.type     = 'Density';
             sD.plotting = true;
+            chiB0 = project(obj.chiB,'P1');
+            plot(chiB0)
+            sD.isFixed.nodes  = obj.chiB0.fValues > 0;
+            sD.isFixed.values = (obj.chiB0.fValues > 0); %Density
+            %sD.isFixed.values = -1*(obj.chiB0.fValues > 0); %LevelSet
             dens        = DesignVariable.create(sD);
             obj.designVariable = dens;
         end
@@ -83,6 +108,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             obj.thermalmaterialInterpolator = a;
          end
 
+
         function createMaterialInterpolator(obj)
             
             E0 = 1e-3;
@@ -92,9 +118,13 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
             matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
 
-            E1 = 200e9;
-            nu1 = 1/3;
+            Ea = ConstantFunction.create(200e9,obj.mesh);
+            Eb = ConstantFunction.create(200e9,obj.mesh);
+            chi = obj.createBatteryDomain();
+            E1 = (1-Ea).*chi + Eb*chi;
 
+
+            nu1 = 1/3;
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
