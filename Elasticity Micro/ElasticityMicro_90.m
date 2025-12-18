@@ -120,6 +120,9 @@ classdef ElasticityMicro_90 < handle
             fem = ElasticProblemMicroAnisotropic(s);
             fem.solve();
             obj.stateProblem = fem;
+            fileName=fullfile("Elasticity Micro/HomogTensors/","C_90.mat");
+            C=fem.Chomog;
+            save(fileName,"C");
         end
 
         function bc = createBoundaryConditions(obj)
