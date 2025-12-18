@@ -27,7 +27,7 @@ function Avoigt = convert2Voigt(A,type)
                     Avoigt(m) = A(i,j);
             end
 
-        case 'Material'
+        case 'Constitutive'
             Avoigt = zeros(dimVoigt);
             for m = 1:dimVoigt
                 for n = 1:dimVoigt
@@ -36,6 +36,18 @@ function Avoigt = convert2Voigt(A,type)
                     Avoigt(m,n) = A(i,j,k,l);
                 end
             end
+
+        case 'Compliance'
+            Avoigt = zeros(dimVoigt);
+            for m = 1:dimVoigt
+                for n = 1:dimVoigt
+                    i = pairs(m,1); j = pairs(m,2);
+                    k = pairs(n,1); l = pairs(n,2);
+                    Avoigt(m,n) = A(i,j,k,l);
+                end
+            end
+            Avoigt(dim+1:end,:) = 2*Avoigt(dim+1:end,:);
+            Avoigt(:,dim+1:end) = 2*Avoigt(:,dim+1:end);
     end
 
 end
