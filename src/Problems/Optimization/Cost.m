@@ -39,7 +39,7 @@ classdef Cost < handle
                 djV = djV + wI*dJc{iF};
             end
             obj.value    = jV;
-%             obj.gradient = obj.Msmooth*djV;
+            obj.gradient = obj.Msmooth*djV;
             obj.gradient = djV;
         end
 

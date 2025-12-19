@@ -71,7 +71,7 @@ classdef OptimizationEIFEMTutorial < handle
 
         function init(obj)
             close all;
-            obj.nSubdomains = [20,9];
+            obj.nSubdomains = [30,10];
             obj.r = 1e-6*ones(obj.nSubdomains)'; 
             obj.r= (1e-6 - 1e-6) * rand(obj.nSubdomains(2),obj.nSubdomains(1)) + 1e-6;
             obj.xmax=1; obj.xmin=-1; obj.ymax = 1; obj.ymin=-1; 
@@ -368,10 +368,10 @@ classdef OptimizationEIFEMTutorial < handle
         end
 
         function M = createMassMatrix(obj)
-            test   = LagrangianFunction.create(obj.mesh, 1, 'P1');
-            trial  = LagrangianFunction.create(obj.mesh, 1, 'P1');
+            test   = LagrangianFunction.create(obj.coarseMesh, 1, 'P0');
+            trial  = LagrangianFunction.create(obj.coarseMesh, 1, 'P0');
             f = @(u,v) DP(v,u);
-            M = IntegrateLHS(f,test,trial,obj.mesh,'Domain',2);
+            M = IntegrateLHS(f,test,trial,obj.coarseMesh,'Domain',2);
         end
 
         function createConstraint(obj)

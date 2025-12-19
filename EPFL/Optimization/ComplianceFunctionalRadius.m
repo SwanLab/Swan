@@ -64,7 +64,7 @@ classdef ComplianceFunctionalRadius < handle
             uL = obj.stateProblem.EIFEMsolver.global2local(u);
             nelem = size(uL,2);
             for ielem = 1:nelem
-                dj(ielem) = -uL(:,ielem)'*dK(:,:,ielem)*uL(:,ielem);
+                dj(ielem,1) = -uL(:,ielem)'*dK(:,:,ielem)*uL(:,ielem);
             end
             s.mesh = mu.fun.mesh;
             s.order = mu.fun.order;
