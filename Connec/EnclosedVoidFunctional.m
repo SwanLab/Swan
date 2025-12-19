@@ -20,6 +20,7 @@ classdef EnclosedVoidFunctional < handle
         target
         valueOld
         qExp
+        qph
     end
 
     methods (Access = public)
@@ -27,6 +28,8 @@ classdef EnclosedVoidFunctional < handle
             obj.init(cParams);
             obj.target = 0.01;
             obj.qExp   = 2;
+            obj.qph = 3;
+
             obj.test = LagrangianFunction.create(obj.mesh,1,'P1');
             obj.createBoundaryConditionsAdjoint();
             obj.createSolverAdjoint();
@@ -41,9 +44,9 @@ classdef EnclosedVoidFunctional < handle
             xR = obj.filterFields(xD);
             xR = xR{1};
             phi = obj.solveState(xR);%xR
-            lam = obj.solveAdjoint(xR);
+            lam = obj.solveAdjoint(xR,phi);
          %   rhoV = (phi - xD{1});
-            rhoV = phi.*(1-xR).^obj.qExp;
+            rhoV = (phi.^obj.qph).*(1-xR).^obj.qExp;
             %rhoV = (1-phi).*massCoef(xR);
           %  plot(x.fun)
           %  plot(phi)
@@ -55,7 +58,7 @@ classdef EnclosedVoidFunctional < handle
             
             %obj.updateEpsilonForNextIteration(J);
             %dJ{1} = -phi +  DP(obj.dm(xR).*(phi-xR)-obj.m(xR),lam) + 1.*obj.dk(xR).*DP(Grad(lam),Grad(phi));
-            dJ{1} = -phi.*((1-xR).^(obj.qExp-1))*obj.qExp;% + DP(obj.dm(xR).*(phi-xR)-obj.m(xR),lam) ;%+ 1.*obj.dk(xR).*DP(Grad(lam),Grad(phi));
+            dJ{1} = -(phi.^obj.qph).*((1-xR).^(obj.qExp-1))*obj.qExp;% + DP(obj.dm(xR).*(phi-xR)-obj.m(xR),lam) ;%+ 1.*obj.dk(xR).*DP(Grad(lam),Grad(phi));
             %dJ{1} =  -phi.*(1-xR);
             %dJ{1} =  -phi;%.*(1-xR);
             dJ{1} = dJ{1}./Dom*1;
@@ -171,11 +174,11 @@ classdef EnclosedVoidFunctional < handle
             uFun.setFValues(u);  
         end        
 
-        function lam = solveAdjoint(obj,x)
+        function lam = solveAdjoint(obj,x,phi)
             k   = obj.k(x);
             m   = obj.m(x);
             LHS = IntegrateLHS(@(u,v) DDP(Grad(v),k.*Grad(u)) + DP(v,m.*u),obj.test,obj.test,obj.mesh,'Domain');
-            RHS = IntegrateRHS(@(v) -DP(v,m.*((1-x).^obj.qExp)),obj.test,obj.mesh,'Domain');
+            RHS = IntegrateRHS(@(v) -DP(v,m.*((1-x).^obj.qExp).*(phi.^(obj.qph-1))),obj.test,obj.mesh,'Domain');
             s.stiffness = LHS;
             s.forces    = RHS;  
             [u,~]       = obj.problemSolverAdjoint.solve(s); 
