@@ -326,18 +326,14 @@ classdef TutorialEIFEM < handle
 
         function [Meifem,eifem, ss] = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh,radiusMesh)
             mR = obj.referenceMesh;
-            nx = 15;
-            ny = 2;
-            rMax = 0.85;
-            rMin = 0.05;
-            rInclusions = radiusMesh.*ones(nx, ny);
-            %data = Training(rInclusions,mR);
-            %p = OfflineDataProcessor(data); % i don't want to have to run this -> build EIFEM with NN
-            %EIFEoper = p.computeROMbasis(radiusMesh);
-%             T = EIFEoper.T;
-%             Udef =  EIFEoper.Udef;
-%             Urb = EIFEoper.Urb;
-%             Kc = EIFEoper.Kcoarse;
+            
+            data = Training(mR);
+            p = OfflineDataProcessor(data); % i don't want to have to run this -> build EIFEM with NN
+            EIFEoper = p.computeROMbasis(radiusMesh);
+            T = EIFEoper.T;
+            Udef =  EIFEoper.Udef;
+            Urb = EIFEoper.Urb;
+            Kc = EIFEoper.Kcoarse;
              %[s.RVE.Kcoarse, s.RVE.Mcoarse, s.RVE.T] = RebuildKMTData.compute('A', radiusMesh, mR);
 
              %s.RVE.ndimf = 2;
