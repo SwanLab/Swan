@@ -52,7 +52,7 @@ classdef ElasticProblemMicroAnisotropic < handle
             end
             obj.uFluc  = uF;
             % Convert tensor to voigt!
-            obj.convertChomogToVoigt;
+            obj.Cvoigt=convert2Voigt(obj.Chomog,'Constitutive');
             obj.strain = strainF;
             obj.stress = stressF;
         end
@@ -165,50 +165,7 @@ classdef ElasticProblemMicroAnisotropic < handle
             uFun.setFValues(full(uSplit));
         end
 
-        function convertChomogToVoigt(obj)
-            
-            %C_voigt = zeros(3,3);
-        
-            %map = [1 3; 3 2];  
-        %
-            %for i = 1:2
-            %    for j = 1:2
-            %        m = map(i,j);
-            %        for k = 1:2
-            %            for l = 1:2
-            %                n = map(k,l);
-            %                C_voigt(m,n) = C_voigt(m,n) + C(i,j,k,l);
-            %            end
-            %        end
-            %    end
-            %end
-            %obj.Cvoigt = C_voigt;
-            
-            A = obj.Chomog;
-            dim=2;
-            if dim == 2
-                pairs = [1 1; 2 2; 1 2];
-            elseif dim == 3
-                pairs = [1 1; 2 2; 3 3; 2 3; 1 3; 1 2];
-            else
-                error('Tensor must be 2D or 3D.');
-            end
-            dimVoigt = size(pairs,1);
-            
-            % ----- Convert 4th-order tensor to Voigt matrix -----
-            Avoigt = zeros(dimVoigt);
-            for m = 1:dimVoigt
-                for n = 1:dimVoigt
-                    i = pairs(m,1); j = pairs(m,2);
-                    k = pairs(n,1); l = pairs(n,2);
-                    Avoigt(m,n) = A(i,j,k,l);
-                end
-        
-            end
-            obj.Cvoigt=Avoigt;
-        end
-        
-  
+
         function convertChomogToFourthOrder(obj,ChiB,v,iB)
             Ch = obj.Chomog;
             v1 = v(iB,1);    v2 = v(iB,2);

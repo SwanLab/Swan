@@ -183,7 +183,7 @@ classdef Anisotropic_0_45_LevelSet < handle
             s.etaMax         = 1;
             s.etaMaxMin      = 0.005;
             %s.type           = '0_45';
-            s.gif = true;
+            s.gif = false;
             s.gifName = 'Gif_0_45_LevelSet_MBB';
             s.printing = false;
             s.printName = 'Results_0_45_LevelSet';
