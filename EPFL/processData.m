@@ -41,13 +41,13 @@ xdata   = 1e-6:0.04:0.801;
 % % Cosine spacing formula
 % xdata = (a + b)/2 + (b - a)/2 * cos(pi * (1 - i / N));
 centers = xdata;
-[fT,deim]   = parameterizedDataLagrange(T,xdata);
+[fT,deim,dfT]   = parameterizedDataLagrange(T,xdata);
 % t    = fT(xdata);
-Tdef  = parameterizedDataLagrange(Td,xdata);
+[Tdef,~,dTdef]  = parameterizedDataLagrange(Td,xdata);
 % def  = Tdef(xdata);
-Trb  = parameterizedDataLagrange(Tr,xdata);
+[Trb,~,dTrb]  = parameterizedDataLagrange(Tr,xdata);
 % rb   = Trb(xdata);
-fK   = parameterizedDataLagrange(Kcoase,xdata);
+[fK,~,dfK]   = parameterizedDataLagrange(Kcoase,xdata);
 % Kcoarse = fK(xdata);
 
 % for i=1:length(xdata)
@@ -63,8 +63,13 @@ EIFEoper.Kcoarse = fK;
 EIFEoper.Udef = Tdef;
 EIFEoper.Urb  = Trb;
 EIFEoper.U    = fT;
+EIFEoper.dKcoarse = dfK;
+EIFEoper.dUdef = dTdef;
+EIFEoper.dUrb  = dTrb;
+EIFEoper.dU    = dfT;
+
 EIFEoper.deim    = deim;
-filePath = './EPFL/parametrizedEIFEMLagrange20.mat';
+filePath = './EPFL/parametrizedEIFEMLagrange20_der2.mat';
 save(filePath,'EIFEoper')
 
 % load('data_0.800.mat')
@@ -88,12 +93,12 @@ save(filePath,'EIFEoper')
 
 load('./EPFL/data2/data_0.79723.mat')
 % load('./EPFL/test/data_0.745.mat')
-load('./EPFL/dataQ8/data_0.800.mat')
+load('./EPFL/dataQ12/data_0.800_2.mat')
 EIFEoper.Kcoarse = @(r) EIFEoper.Kcoarse;
 EIFEoper.Udef = @(r) EIFEoper.Udef;
-EIFEoper.Urb  = @(r) EIFEoper.Urb + Urb1;
+EIFEoper.Urb  = @(r) EIFEoper.Urb;
 
-filePath = './EPFL/dataEIFEMQ8_3.mat';
+filePath = './EPFL/dataEIFEMQ12_2.mat';
 save(filePath,'EIFEoper')
 
 deim    = DEIM(var);
@@ -134,7 +139,7 @@ f = @ (r) reshape( deim.basis*rbf.evaluate(r),[],8);
 
 end
 
-function [f,deim] = parameterizedDataLagrange(var,xdata)
+function [f,deim,df] = parameterizedDataLagrange(var,xdata)
 deim    = DEIM(var);
 
 coeff   = deim.basis(deim.indices,:)\var(deim.indices,:);
@@ -166,15 +171,66 @@ fR = [fR{:}];
 % %     yplot2(i) = bFun.evaluate(xdata(i)); 
 % end
 % values = arrayfun(@(fun) evaluate(fun, 2*(0.1 - min(xdata)) / (max(xdata) - min(xdata)) - 1), fR, 'UniformOutput', false);
+x_min = min(xdata);
+L_dom = max(xdata) - x_min;
 
-f = @(r) reshape( ...
-        deim.basis * cell2mat(arrayfun(@(fun) evaluate(fun, 2*(r - min(xdata)) / (max(xdata) - min(xdata)) - 1), ...
-        fR, 'UniformOutput', false)).', ...
-        [], 8);
+scale = 2 / L_dom;
+shift = - (2 * x_min / L_dom) - 1;
+B = deim.basis;
+numFuns = length(fR);
+f = @(r) reshape(B * evaluateAll(fR, r * scale + shift, numFuns), [], 8);
+
+% f = @(r) reshape( ...
+%         deim.basis * cell2mat(arrayfun(@(fun) evaluate(fun, 2*(r - x_min) / L_dom - 1), ...
+%         fR, 'UniformOutput', false)).', ...
+%         [], 8);
+% 
+gR_cell = arrayfun(@(fun) Grad(fun), fR, 'UniformOutput', false);
+gR = [gR_cell{:}]; 
+% --- Optimized Anonymous Function ---
+
+
+% 3. Define the gradient function handle
+% Note the multiplication by 'Jacobian' at the end of the inner calculation
+% df = @(r) reshape( ...
+%         deim.basis * (cell2mat(arrayfun(@(fun) evaluate(fun, 2*(r - x_min) / L_dom - 1), ...
+%         gR, 'UniformOutput', false))'), ...
+%         [], 8);
+
+numGrads = length(gR);
+df = @(r) reshape((B * evaluateAllGrads(gR, r * scale + shift, numGrads)), [], 8);
 
 % f = @(r) deim.basis * cell2mat(arrayfun(@(fun) evaluate(fun, 2*(r - min(xdata)) / (max(xdata) - min(xdata)) - 1), ...
 %         fR, 'UniformOutput', false)).';
 
+end
+
+
+% --- Helper Function (Place at end of script or in separate file) ---
+function vals = evaluateAll(fR, s, n)
+    % Pre-allocate the matrix: rows = functions, cols = points
+    % This assumes evaluate returns a scalar or row vector per point
+    numPoints = length(s);
+    vals = zeros(n, numPoints);
+    for i = 1:n
+        vals(i, :) = evaluate(fR(i), s);
+    end
+end
+
+
+% --- 2. Optimized Anonymous Function ---
+% Note: We multiply the result by 'jac' to transform from local to global space
+
+
+% --- Helper Function (Place at end of script) ---
+function vals = evaluateAllGrads(gR, s, n)
+    % Pre-allocate matrix: [Number of Basis Functions x Number of Points]
+    numPoints = length(s);
+    vals = zeros(n, numPoints);
+    for i = 1:n
+        % Direct assignment is significantly faster than cell2mat
+        vals(i, :) = evaluate(gR(i), s);
+    end
 end
 
 % function dataFun = constructDataFEFunction(coeff,xdata)

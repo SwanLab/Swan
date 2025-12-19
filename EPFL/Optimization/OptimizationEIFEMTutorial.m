@@ -40,6 +40,7 @@ classdef OptimizationEIFEMTutorial < handle
         discMesh        
         EIFEMprecontitioner
         volumeTarget
+        primalUpdater
     end
 
     methods (Access = public)
@@ -60,6 +61,7 @@ classdef OptimizationEIFEMTutorial < handle
             obj.createCost();
             obj.createConstraint();
             obj.createDualVariable();
+            obj.createPrimalUpdater()
             obj.createOptimizer();
         end
 
@@ -69,7 +71,7 @@ classdef OptimizationEIFEMTutorial < handle
 
         function init(obj)
             close all;
-            obj.nSubdomains = [10,3];
+            obj.nSubdomains = [20,9];
             obj.r = 1e-6*ones(obj.nSubdomains)'; 
             obj.r= (1e-6 - 1e-6) * rand(obj.nSubdomains(2),obj.nSubdomains(1)) + 1e-6;
             obj.xmax=1; obj.xmin=-1; obj.ymax = 1; obj.ymin=-1; 
@@ -78,7 +80,7 @@ classdef OptimizationEIFEMTutorial < handle
             obj.tolSameNode = 1e-10;
             obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange20_der2.mat';
             obj.solverType = 'REDUCED';
-            obj.volumeTarget = 0.8;
+            obj.volumeTarget = 0.7;
         end
 
         function createMesh(obj)
@@ -384,20 +386,43 @@ classdef OptimizationEIFEMTutorial < handle
             obj.dualVariable = l;
         end
 
+         function createPrimalUpdater(obj)
+            s.ub     = 0.8;
+            s.lb     = 1e-6;
+            s.tauMax = 1000;
+            s.tau    = [];
+            obj.primalUpdater = ProjectedGradient(s);
+        end
+
         function createOptimizer(obj)
+%             s.monitoring     = true;
+%             s.cost           = obj.cost;
+%             s.constraint     = obj.constraint;
+%             s.designVariable = obj.designVariable;
+%             s.dualVariable   = obj.dualVariable;
+%             s.maxIter        = 1000;
+%             s.tolerance      = 1e-8;
+%             s.constraintCase = {'EQUALITY'};
+%             s.ub             = 0.8;
+%             s.lb             = 1e-6;
+%             s.volumeTarget   = obj.volumeTarget;
+%             s.primal         = 'PROJECTED GRADIENT';
+%             opt              = OptimizerMMA(s);
+%             opt.solveProblem();
+%             obj.optimizer = opt;
+           
             s.monitoring     = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.dualVariable   = obj.dualVariable;
             s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.ub             = 0.8;
-            s.lb             = 0;
-            s.volumeTarget   = obj.volumeTarget;
             s.primal         = 'PROJECTED GRADIENT';
-            opt              = OptimizerMMA(s);
+            s.etaNorm        = 0.3;
+            s.gJFlowRatio    = 5;
+            s.primalUpdater  = obj.primalUpdater;
+            opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
         end

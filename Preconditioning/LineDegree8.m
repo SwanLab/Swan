@@ -1,8 +1,9 @@
 classdef LineDegree8 < Interpolation
     
-    % Add a property to store denominators so we compute them only once
     properties (Access = protected)
-        denom
+        % Matrix of derivative coefficients [nNode x (Degree)]
+        % Row i contains coefficients for the derivative of shape function i
+        deriv_coeffs 
     end
     
     methods (Access = public)
@@ -18,77 +19,82 @@ classdef LineDegree8 < Interpolation
             obj.ndime = 1;
             obj.nnode = 9;
             n = obj.nnode;
+            degree = n - 1;
             
             % 1. Chebyshev-Gauss-Lobatto nodes
             k = (1:n)';
-            obj.pos_nodes = -cos(pi * (k-1) / (n-1));
+            x = -cos(pi * (k-1) / degree);
+            obj.pos_nodes = x;
             
-            % 2. Precompute Denominators (Optimization)
-            % This is O(N^2) but runs only once during initialization
-            x = obj.pos_nodes;
-            obj.denom = zeros(n,1);
+            % 2. Pre-compute Derivative Coefficients
+            % We fit a polynomial for each node (delta function) and differentiate it
+            obj.deriv_coeffs = zeros(n, degree); % Derivative is degree 7 (N-2)
+            
             for i = 1:n
-                % Product of (xi - xj) for all j != i
-                obj.denom(i) = prod(x(i) - x([1:i-1, i+1:end]));
+                % Create target values (1 at node i, 0 elsewhere)
+                y = zeros(size(x));
+                y(i) = 1;
+                
+                % Get polynomial coeffs (p) for shape function i
+                % and then the derivative coeffs (dp)
+                p = polyfit(x, y, degree); 
+                dp = polyder(p);
+                
+                % Store in matrix (pad if necessary, though degree is fixed)
+                obj.deriv_coeffs(i, :) = dp;
             end
         end
 
         function shape = evaluateShapeFunctions(obj, posgp)
-            % s: [1, nGaus, nElem]
-            s = posgp(1,:,:); 
-            x = obj.pos_nodes; % [nNode, 1]
-            n = obj.nnode;
+            % This can also be optimized similarly, but let's stick 
+            % to the derivative request first.
+            % (Keeping your existing logic or the previous optimization here)
             
-            % 1. Create Difference Matrix [nNode, nGaus, nElem]
-            % Uses Implicit Expansion (s - x) automatically broadcasts dimensions
+            % ... [Previous implementation of evaluateShapeFunctions] ... 
+            % For consistency, I will paste the fast Vectorized version here:
+            s = posgp(1,:,:); 
+            x = obj.pos_nodes; 
+            n = obj.nnode;
             Diff = s - x; 
             
-            shape = zeros(n, size(s,2), size(s,3));
+            % Re-calculate denom since we aren't using polyval here for consistency
+            denom = zeros(n,1);
+            for i = 1:n, denom(i) = prod(x(i) - x([1:i-1, i+1:end])); end
 
-            % 2. Compute Shape Functions
+            shape = zeros(n, size(s,2), size(s,3));
             for i = 1:n
-                % Vectorized Product: Compute product across the node dimension (dim 1)
-                % We select all rows of Diff except row 'i'
                 numerator = prod(Diff([1:i-1, i+1:end], :, :), 1);
-                
-                % Apply precomputed denominator
-                shape(i,:,:) = numerator / obj.denom(i);
+                shape(i,:,:) = numerator / denom(i);
             end
         end
 
         function deriv = evaluateShapeDerivatives(obj, posgp)
-            s = posgp(1,:,:);
-            x = obj.pos_nodes;
-            n = obj.nnode;
+            % s: [1, nGaus, nElem]
+            s = posgp(1,:,:); 
             
-            % 1. Difference Matrix [nNode, nGaus, nElem]
-            Diff = s - x;
+            % Flatten s for vectorized evaluation: [M x 1]
+            s_flat = s(:);
+            M = length(s_flat);
             
-            deriv = zeros(obj.ndime, n, size(s,2), size(s,3));
-
-            % 2. Compute Derivatives (Sum of Products)
-            for i = 1:n
-                % We need the sum of terms where each term excludes 'i' and one 'k'
-                sum_terms = zeros(size(s));
-                
-                % Create indices for row 'i' to exclude it easily below
-                all_idx = 1:n;
-                idx_no_i = all_idx(all_idx ~= i); 
-                
-                for k_idx = 1:length(idx_no_i)
-                    k = idx_no_i(k_idx);
-                    
-                    % We want product of (s - xj) for all j != i AND j != k
-                    % This creates the indices excluding i and k
-                    idx_prod = idx_no_i(idx_no_i ~= k);
-                    
-                    % Vectorized product over the remaining nodes
-                    term = prod(Diff(idx_prod, :, :), 1);
-                    sum_terms = sum_terms + term;
-                end
-                
-                deriv(1,i,:,:) = sum_terms / obj.denom(i);
+            % 1. Construct Vandermonde-like matrix for the derivative powers
+            % The derivative of degree 8 is degree 7.
+            % Powers needed: [s^7, s^6, ..., s^1, 1]
+            current_degree = obj.nnode - 2; % 9 nodes -> degree 8 -> deriv degree 7
+            
+            % Create powers matrix: [M x 8]
+            % This is much faster than loops
+            S_powers = ones(M, current_degree + 1);
+            for p = 1:current_degree
+                S_powers(:, end - p) = s_flat.^p;
             end
+            
+            % 2. Matrix Multiply: [nNode x 8] * [8 x M] = [nNode x M]
+            % deriv_coeffs is [9 x 8]
+            % S_powers'    is [8 x M]
+            d_shapes_flat = obj.deriv_coeffs * S_powers';
+            
+            % 3. Reshape back to [1, nNode, nGaus, nElem]
+            deriv = reshape(d_shapes_flat, [1, obj.nnode, size(s,2), size(s,3)]);
         end
     end
 end

@@ -35,6 +35,7 @@ classdef PlotterRadius < handle
 %             rhoElem = squeeze(funp0.fValues);
 %             set(obj.patchHandle,'FaceVertexAlphaData',rhoElem,'FaceAlpha','flat');
             set(obj.patchHandle, 'Vertices', m.coord);
+%             set(obj.patchHandle,'Vertices', m.coord, 'Faces', m.connec, 'FaceColor', 'red', 'EdgeColor', 'black');
         end
 
     end
@@ -67,7 +68,7 @@ classdef PlotterRadius < handle
             coord = [];
             for jDom = 1:nY
                 for iDom = 1:nX
-                    ind = (iDom-1)*nY + jDom;
+                    ind = (jDom-1)*nX + iDom;
                     refMesh = mesh_rectangle_via_triangles(r(ind),obj.xmax,obj.xmin,obj.ymax,obj.ymin,obj.Nr,obj.Ntheta,obj.x0,obj.y0);
                     coord0 = refMesh.coord;
                     s.coord(:,1) = coord0(:,1)+Lx*(iDom-1);
@@ -92,8 +93,14 @@ classdef PlotterRadius < handle
             axis off
             axis equal
             axes = gcf().Children;
-            obj.patchHandle = patch(axes,'Faces',obj.discMesh.connec,'Vertices',obj.discMesh.coord,...
-                'EdgeColor','none','LineStyle','none','FaceLighting','none' ,'AmbientStrength', .75);
+%             obj.patchHandle = patch(axes,'Faces',obj.discMesh.connec,'Vertices',obj.discMesh.coord,...
+%                 'EdgeColor','none','LineStyle','none','FaceLighting','none' ,'AmbientStrength', .75);
+obj.patchHandle = patch(axes, 'Faces', obj.discMesh.connec, 'Vertices', obj.discMesh.coord, ...
+    'EdgeColor', 'k', ...          % Changed from 'none' to 'k' (black)
+    'LineStyle', '-', ...          % Changed from 'none' to '-' (solid line)
+    'FaceColor', [1.0, 0.4, 0.4], ... % Optional: add a light gray face color
+    'FaceLighting', 'none', ...
+    'AmbientStrength', .75);
         end
 
     end
