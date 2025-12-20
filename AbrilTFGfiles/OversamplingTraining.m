@@ -141,7 +141,7 @@ classdef OversamplingTraining < handle
         function LHS  = computeLHS(obj,uLocal,uGlobal,dLambda)
             material = obj.createMaterial();
             K = obj.computeStiffnessMatrix(uLocal,material);
-            C = obj.computeConditionMatrix(obj.meshDomain,uGlobal,dLambda);
+            C = obj.computeConditionMatrix(uGlobal,dLambda);
             Z = zeros(dLambda.nDofs);
             LHS = [K C'; C Z];
         end
@@ -157,7 +157,6 @@ classdef OversamplingTraining < handle
                     f = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
                     lhs= IntegrateLHS(f,dispFun,dispFun,mesh,'Domain',2);
 
-
                     LHSl = cat(3, LHSl, full(lhs) );
                     
                 end
@@ -172,7 +171,7 @@ classdef OversamplingTraining < handle
         end
 
 
-        function C = computeConditionMatrix(obj,mesh,dispFun,dLambda)
+        function C = computeConditionMatrix(obj,dispFun,dLambda)
             lhs = IntegrateLHS(@(u,v) DP(v,u),dLambda,dispFun,obj.meshDomain,'Boundary',2);
             C = lhs;
         end

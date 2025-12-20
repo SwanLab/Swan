@@ -14,7 +14,7 @@ classdef CoarseTesting_AbrilV2< handle
         
         meshDomain
         referenceMesh
-        cellMeshes
+        subdomainMeshes
         discMesh
         boundaryConditions
         bcApplier
@@ -42,11 +42,10 @@ classdef CoarseTesting_AbrilV2< handle
             obj.init()
 
             % COMPUTE MESH  
-            mR  = obj.createReferenceMesh();  % Crea la reference mesh
-            bS  = mR.createBoundaryMesh();   % Crea el boundary de la mesh
-            obj.referenceMesh = mR;          % Guarda la reference Mesh   
-            obj.repeatMesh();                % Crea el domini
-            
+            obj.createMesh();
+            mR  = obj.referenceMesh;  % Crea la reference mesh
+            bS  = mR.createBoundaryMesh();    % Crea el boundary de la mesh
+                       
             [bC,dir] = obj.createBoundaryConditions(obj.meshDomain);
             obj.boundaryConditions = bC;
             obj.createBCapplier()
@@ -58,16 +57,15 @@ classdef CoarseTesting_AbrilV2< handle
             % EXACT SOLUTION
             LHSf   = @(x) LHS*x;
             RHSf   = RHS;
-            %Usol   = LHS\RHS;
-            Usol=zeros(size(RHSf,1),1);
+            Usol   = LHS\RHS;
             Ufull  = obj.bcApplier.reducedToFullVectorDirichlet(Usol); 
             
 
             % PRECONDITIONERS
             Meifem       = obj.createEIFEMPreconditioner(dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);            
             Milu         = obj.createILUpreconditioner(LHS);
-            %Mcoarse     = obj.createCoarseNNPreconditioner(mR,dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);
-            MiluCG      = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
+            Mcoarse     = obj.createCoarseNNPreconditioner(mR,dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);
+            %MiluCG      = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
             Mmult        = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Meifem,Milu);
 
 
@@ -89,10 +87,10 @@ classdef CoarseTesting_AbrilV2< handle
             s.fValues = reshape(xFull,2,[])';
             uFun = LagrangianFunction(s);
             
-            %uFun.print('ProvaIter1','Paraview');
+            uFun.print('ProvaIter1','Paraview');
 
-            s.fValues = reshape(Ufull,2,[])';
-            RealFun=LagrangianFunction(s);
+            %s.fValues = reshape(Ufull,2,[])';
+            %RealFun=LagrangianFunction(s);
 
             %obj.computeSubdomainCentroid();
             %CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'TestCoarseAbril', obj.r, obj.centroids);
@@ -100,28 +98,8 @@ classdef CoarseTesting_AbrilV2< handle
             
 
             % PLOTS
-            close all
-            figure
-            plot(residualPCG,'linewidth',2)
-            set(gca, 'YScale', 'log')
-            xlabel('Iteration')
-            ylabel('Residual')
-            title("Residual PCG")
+            createPlots(residualPCG,errPCG,errAnormPCG);
 
-            figure
-            plot(errPCG,'linewidth',2)
-            set(gca, 'YScale', 'log')
-            xlabel('Iteration')
-            ylabel('||error||_{L2}')
-            title("error PCG")
-
-            figure
-            plot(errAnormPCG,'linewidth',2)
-            hold on
-            set(gca, 'YScale', 'log')
-            xlabel('Iteration')
-            ylabel('Energy norm')
-            title("Err Anorm PCG")
         end
 
     end
@@ -132,13 +110,15 @@ classdef CoarseTesting_AbrilV2< handle
         function init(obj)
             % Case Parameters
             p.Inclusion = 'HoleRaul';         % 'Hole'/'Material'/'HoleRaul'
-            p.Sampling  = 'Isolated'; % 'Isolated'/'Oversampling'
-            p.loadData  = 'Dataset';      % 'Dataset'/'NN'
-            p.nelem     =  10;            %  Mesh refining
+            p.Sampling  = 'Oversampling';     % 'Isolated'/'Oversampling'
+            p.Option    = 'Dataset';          % 'Dataset'/'NN'/'SVD'/ 'Hybrid'
+            p.nelem     =  5;                 %  Mesh refining
             obj.params  =  p;
 
             % Definition of Subdomain
-            obj.r              = ones(1,15)*0.3;
+            obj.r              = ones(5,10)*0.5;
+            obj.r = [0.1, 0.2,0.3, 0.4;
+                     0.5, 0.6, 0.7, 0.8];
             obj.nSubdomains    = size(obj.r');
             obj.mSubdomains    = [];
             obj.tolSameNode    = 1e-10;
@@ -213,40 +193,70 @@ classdef CoarseTesting_AbrilV2< handle
             obj.data.K=Kaux;
         end
 
-        function repeatMesh(obj)
-            [mD,mSb,iC,lG,iCR,discmesh] = obj.createMeshDomain(obj.referenceMesh);  
+        function createMesh(obj)
+            mSbd = obj.createSubDomainMeshes();
+            [mD,mSb,iC,lG,iCR,discmesh] = obj.createMeshDomainJoiner(mSbd);
             obj.meshDomain = mD;        % mD:conj subdominis --> Tot el domini
-            obj.cellMeshes = mSb; %??? % mSb: info de la malla a cada subdimini
-            obj.ic = iC;  % info de les coordenades globals en tot el domini ???
-            obj.icr = iCR; % info de les coordenades del corresponent subdomini ???
-            obj.lg = lG; %??
-            obj.discMesh=discmesh;
+            obj.subdomainMeshes = mSb;  %??? % mSb: subdonain Meshes
+            obj.ic              = iC;   % interface Connectivities ???
+            obj.icr             = iCR;  % info de les coordenades del corresponent subdomini 
+            obj.lg              = lG;   % localGlobal 
+            obj.discMesh        =discmesh;
             obj.bs; 
         end
 
-            function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomain(obj,mR)
-                s.nsubdomains   = obj.nSubdomains; %nx ny
-                s.meshReference = mR;
-                s.tolSameNode = obj.tolSameNode;
-                m = MeshCreatorFromRVE2D(s);
-                [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
-                close all;
+
+        function  mSbd = createSubDomainMeshes(obj)
+            nX = obj.nSubdomains(1);
+            nY = obj.nSubdomains(2);
+            Lx = 2; Ly = 2;
+            mSbd=cell(nY,nX);
+            for jDom = 1:nY
+                for iDom = 1:nX
+                    refMesh = obj.createReferenceMesh(obj.r(jDom,iDom));
+                    coord0  = refMesh.coord;
+                    s.coord(:,1) = coord0(:,1)+Lx*(iDom-1);
+                    s.coord(:,2) = coord0(:,2)+Ly*(jDom-1);
+                    s.connec = refMesh.connec;
+                    mIJ     = Mesh.create(s);
+                    %                     plot(mIJ)
+                    %                     hold on;
+                    mSbd{jDom,iDom} = mIJ;
+                end
             end
+            obj.referenceMesh = mSbd{1,1};
+        end
 
 
-        function mS = createReferenceMesh(obj)
+        function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomainJoiner(obj,mSbd)
+           s.nsubdomains   = obj.nSubdomains; %nx ny
+           s.meshReference = obj.referenceMesh;
+           s.tolSameNode   = obj.tolSameNode;
+           s.meshSbd       = mSbd;
+           m = MeshJoiner(s);
+           [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
+        end
+
+
+        function mS = createReferenceMesh(obj,r)
             p=obj.params;
             switch p.Inclusion
                 case 'Material'
                     mS = obj.createStructuredMesh();
                 case 'Hole'
                     mS = obj.createStructuredMesh();
-                    lvSet    = obj.createLevelSetFunction(mS);
+                    lvSet    = obj.createLevelSetFunction(mS,r);
                     uMesh    = obj.computeUnfittedMesh(mS,lvSet);
                     mS = uMesh.createInnerMesh();
                 case 'HoleRaul'
-                    mS=mesh_rectangle_via_triangles(obj.r(1,1),1,-1,1,-1,15,12,0,0); % 20x20
-                    %mS=mesh_rectangle_via_triangles(obj.r(1,1),1,-1,1,-1,34,35,0,0)  % 50x50
+                    switch p.nelem
+                        case 10
+                            mS=mesh_rectangle_via_triangles(r,1,-1,1,-1,7,6,0,0);   % 10x10
+                        case 20
+                            mS=mesh_rectangle_via_triangles(r,1,-1,1,-1,15,12,0,0); % 20x20
+                        case 50
+                            mS=mesh_rectangle_via_triangles(r,1,-1,1,-1,34,35,0,0);  % 50x50
+                    end
                     obj.xmin =-1; obj.xmax = 1;
                     obj.ymin =-1; obj.ymax = 1;
             end
@@ -262,11 +272,20 @@ classdef CoarseTesting_AbrilV2< handle
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
             s.connec = F;
-
+           
             obj.xmin = min(x1);            
             obj.xmax = max(x1);
             obj.ymin = min(x2);
             obj.ymax = max(x2);
+
+            %mS= QuadMesh(2, 2, n, n);
+            %s.coord=mS.coord;
+            %s.connec=mS.connec;
+            %obj.xmin = 0;
+            %obj.xmax = 2;
+            %obj.ymin = 0;
+            %obj.ymax = 2;
+
             delta = 1e-9;
             s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
                 s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-0*delta];
@@ -278,24 +297,25 @@ classdef CoarseTesting_AbrilV2< handle
                 s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[delta,0*delta];
 
             mS = Mesh.create(s); 
+           
         end
         
 
         function computeSubdomainCentroid(obj)
             for i = 1:obj.nSubdomains(1,2)
                 for j = 1:obj.nSubdomains(1,1)
-                   x0=mean(obj.cellMeshes{i,j}.coord(:,1));
-                   y0=mean(obj.cellMeshes{i,j}.coord(:,2));
+                   x0=mean(obj.subdomainMeshes{i,j}.coord(:,1));
+                   y0=mean(obj.subdomainMeshes{i,j}.coord(:,2));
                    obj.centroids = cat(1,obj.centroids, [x0,y0]);
                 end
             end
         end
 
-        function levelSet = createLevelSetFunction(obj,bgMesh)
+        function levelSet = createLevelSetFunction(~,bgMesh,r)
             sLS.type        = 'CircleInclusion';
             sLS.xCoorCenter = 0;
             sLS.yCoorCenter = 0;
-            sLS.radius      = obj.r(1,1);
+            sLS.radius      = r;
             g               = GeometricalFunction(sLS);
             lsFun           = g.computeLevelSetFunction(bgMesh);
             levelSet        = lsFun.fValues;
@@ -346,10 +366,10 @@ classdef CoarseTesting_AbrilV2< handle
 
             for i = 1:obj.nSubdomains(1,2)
                 for j = 1:obj.nSubdomains(1,1)
-                    [young,poisson] = obj.computeElasticProperties(obj.cellMeshes{i,j}, obj.r(i,j) );
+                    [young,poisson] = obj.computeElasticProperties(obj.subdomainMeshes{i,j}, obj.r(i,j) );
                     s.type        = 'ISOTROPIC';
                     s.ptype       = 'ELASTIC';
-                    s.ndim        = obj.cellMeshes{i,j}.ndim;
+                    s.ndim        = obj.subdomainMeshes{i,j}.ndim;
                     s.young       = young;
                     s.poisson     = poisson;
                     tensor        = Material.create(s);
@@ -366,7 +386,7 @@ classdef CoarseTesting_AbrilV2< handle
             p=obj.params;
 
             switch p.Inclusion
-                case 'Hole'
+                case {'Hole','HoleRaul'}
                     young   = ConstantFunction.create(E1,mesh);
                     poisson = ConstantFunction.create(nu,mesh);
                 case 'Material'
@@ -399,8 +419,8 @@ classdef CoarseTesting_AbrilV2< handle
             Dir{1}.value     = 0;
 
             PL.domain    = @(coor) isRight(coor);
-            PL.direction = [2];
-            PL.value     = [1];       %Set displacement intensity ------------------------------------------------------------
+            PL.direction = 2;
+            PL.value     = 1;       %Set displacement intensity ------------------------------------------------------------
         end 
 
         function [bc,Dir,PL] = createBoundaryConditions(obj,mesh)
@@ -422,7 +442,7 @@ classdef CoarseTesting_AbrilV2< handle
 
 
         function [LHSr,RHSr,lhs] = createElasticProblem(obj)
-            u = LagrangianFunction.create(obj.cellMeshes{1,1},obj.cellMeshes{1,1}.ndim,'P1');
+            u = LagrangianFunction.create(obj.subdomainMeshes{1,1},obj.subdomainMeshes{1,1}.ndim,'P1');
             uBasic = LagrangianFunction.create(obj.meshDomain,obj.meshDomain.ndim,'P1');
             material = obj.createMaterial();
             [lhs,LHSr] = obj.computeStiffnessMatrix(u,material);
@@ -434,7 +454,7 @@ classdef CoarseTesting_AbrilV2< handle
             LHSvect = [];
             for i = 1:obj.nSubdomains(1,2)
                 for j = 1:obj.nSubdomains(1,1)
-                    mesh     = obj.cellMeshes{i,j};  
+                    mesh     = obj.subdomainMeshes{i,j};  
                     C     = mat{i,j};
                     f = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
                     lhs= IntegrateLHS(f,dispFun,dispFun,mesh,'Domain',2);
@@ -447,7 +467,7 @@ classdef CoarseTesting_AbrilV2< handle
             p.interfaceConnecReshaped = obj.icr;
             p.locGlobConnec = obj.lg;
             p.nBoundaryNodes = obj.bs;
-            p.nReferenceNodes = obj.cellMeshes{1,1}.nnodes;
+            p.nReferenceNodes = obj.subdomainMeshes{1,1}.nnodes;
             p.nNodes = obj.meshDomain.nnodes;
             p.nDimf = obj.meshDomain.ndim;
             
@@ -517,7 +537,7 @@ classdef CoarseTesting_AbrilV2< handle
                             RVE{i,j}.U= obj.data.T{i,j}; 
                         case 'NN'
                             RVE{i,j}.Kcoarse = obj.computeKcoarse(obj.r(i,j)); 
-                            RVE{i,j}.U       = obj.computeTdownscaling(obj.r(i,j),obj.cellMeshes{i,j});
+                            RVE{i,j}.U       = obj.computeTdownscaling(obj.r(i,j),obj.subdomainMeshes{i,j});
                     end
                 end
             end
@@ -604,6 +624,31 @@ classdef CoarseTesting_AbrilV2< handle
 
         function J = computeTotalEnergy(x,A,b)
             J = 0.5*x'*A(x)-b'*x;
+        end
+    
+        function createPlots(residualPCG,errPCG,errAnormPCG)
+            close all
+            figure
+            plot(residualPCG,'linewidth',2)
+            set(gca, 'YScale', 'log')
+            xlabel('Iteration')
+            ylabel('Residual')
+            title("Residual PCG")
+
+            figure
+            plot(errPCG,'linewidth',2)
+            set(gca, 'YScale', 'log')
+            xlabel('Iteration')
+            ylabel('||error||_{L2}')
+            title("error PCG")
+
+            figure
+            plot(errAnormPCG,'linewidth',2)
+            hold on
+            set(gca, 'YScale', 'log')
+            xlabel('Iteration')
+            ylabel('Energy norm')
+            title("Err Anorm PCG")
         end
 
     end

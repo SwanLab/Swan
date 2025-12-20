@@ -3,12 +3,12 @@
 
 clc; clear; close all;
 
-%r = 0:0.02:0.98; 
-r=0.5;
+r = 0:0.05:0.95; 
+%r=0.5;
 
-p.Sampling='Oversampling'; %'Isolated'/'OverSampling'
+p.Sampling='Isolated'; %'Isolated'/'OverSampling'
 p.Inclusion='Material';    %'Material'/'Hole'/'HoleRaul
-p.nelem=50;
+p.nelem=20;
 
 doplot=false();
 
@@ -18,9 +18,11 @@ for j = 1:size(r,2)
     mR=createReferenceMesh(p,r(j));
     results=OversamplingTraining(mR,p);
 
-    T=results.uSbd;
-    Kfine=results.LHSsbd;
-    Kcoarse=T.'*Kfine*T;
+    T        = results.uSbd;
+    Kfine    = results.LHSsbd;
+    mesh     = results.mesh;
+    Kcoarse  = T.'*Kfine*T;
+    R        = r(j);
 
     % Initialization for K_all and T_all
     if j==1
@@ -31,14 +33,14 @@ for j = 1:size(r,2)
     K_all(:,:,j)=Kcoarse;
     
     % Reshapes U data and adds coordinates
-    t1=reshape(u(:,1).',2,[]).';     % Joins the Tx and Ty coeff at the same line
-    t2=reshape(u(:,2).',2,[]).';                                  
-    t3=reshape(u(:,3).',2,[]).';                                  
-    t4=reshape(u(:,4).',2,[]).';                                  
-    t5=reshape(u(:,5).',2,[]).';                                  
-    t6=reshape(u(:,6).',2,[]).';   
-    t7=reshape(u(:,7).',2,[]).';
-    t8=reshape(u(:,8).',2,[]).';
+    t1=reshape(T(:,1).',2,[]).';   % Joins the Tx and Ty coeff at the same line
+    t2=reshape(T(:,2).',2,[]).';                                  
+    t3=reshape(T(:,3).',2,[]).';                                  
+    t4=reshape(T(:,4).',2,[]).';                                  
+    t5=reshape(T(:,5).',2,[]).';                                  
+    t6=reshape(T(:,6).',2,[]).';   
+    t7=reshape(T(:,7).',2,[]).';
+    t8=reshape(T(:,8).',2,[]).';
 
     t_aux=[r(j)*ones(size(mesh.coord,1),1), mesh.coord, t1,t2,t3,t4,t5,t6,t7,t8];  % Adds the radius and coordinates column
 
@@ -46,19 +48,12 @@ for j = 1:size(r,2)
 
 
     %Designa un nom per cada linea corresponent a un radi
-    meshName=nelem+"x"+nelem;
-    %string = strrep("UL_r"+num2str(r(j), '%.4f'), ".", "_")+"-20x20"+".mat"; 
-    string = strrep("UL_r"+num2str(r(j), '%.4f'), ".", "_")+"-"+meshName+".mat";
+    meshName=p.nelem+"x"+p.nelem;
+    string = strrep("r"+num2str(r(j), '%.4f'), ".", "_")+"-"+meshName+".mat";
 
-    T         = u;
-    L         = l;
-    R         = r(j);
-    K         = Kcoarse;
-
-    % Guarda el workspace per cert radi
-
-    FileName=fullfile('AbrilTFGfiles','Data',meshName,string);
-    %save(FileName, "T", "L", "K","mesh","R"); 
+    % Guarda el .mat per cert radi
+    FileName=fullfile('AbrilTFGfiles','Data',p.Inclusion,p.Sampling,meshName,string);
+    save(FileName, "T", "Kfine", "Kcoarse","mesh","R"); 
 end
 
 
@@ -74,7 +69,7 @@ end
 T=array2table(TData,"VariableNames",{'r','x','y','Tx1','Ty1','Tx2','Ty2','Tx3','Ty3','Tx4','Ty4' ...
     'Tx5','Ty5','Tx6','Ty6','Tx7','Ty7','Tx8','Ty8'});
 
-uFileName = fullfile('AbrilTFGfiles', 'DataT.csv');
+uFileName = fullfile('AbrilTFGfiles','Data',p.Inclusion,p.Sampling,'DataT.csv');
 writematrix(TData,uFileName);
 %writetable(T,uFileName);
 
@@ -96,7 +91,7 @@ for n=1:size(r,2)
 end
 
 kdata=[r.',kdata];
-kFileName = fullfile('AbrilTFGfiles', 'dataK.csv');
+kFileName = fullfile('AbrilTFGfiles','Data',p.Inclusion,p.Sampling,'dataK.csv');
 writematrix(kdata,kFileName);
 
 
@@ -115,11 +110,14 @@ function mS = createReferenceMesh(p,r)
             uMesh    = computeUnfittedMesh(mS,lvSet);
             mS       = uMesh.createInnerMesh();
         case 'HoleRaul'
-            %mS=mesh_rectangle_via_triangles(obj.r(1,1),1,-1,1,-1,7,6,0,0);   % 10x10
-            mS=mesh_rectangle_via_triangles(r,1,-1,1,-1,15,12,0,0);  % 20x20
-            %mS=mesh_rectangle_via_triangles(obj.r(1,1),1,-1,1,-1,34,35,0,0)  % 50x50
-            % obj.xmin =-1; obj.xmax = 1;
-            % obj.ymin =-1; obj.ymax = 1;
+            switch p.nelem
+                case 10
+                    mS=mesh_rectangle_via_triangles(r,1,-1,1,-1,7,6,0,0);   % 10x10
+                case 20
+                    mS=mesh_rectangle_via_triangles(r,1,-1,1,-1,15,12,0,0); % 20x20
+                case 50
+                    mS=mesh_rectangle_via_triangles(r,1,-1,1,-1,34,35,0,0)  % 50x50
+            end
     end
 end
 
