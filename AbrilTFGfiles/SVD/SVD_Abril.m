@@ -5,8 +5,12 @@ clear;
 close all;
 
 %% Load Data
-directory = './AbrilTFGfiles/Data/50x50';
-files     = dir(fullfile(directory, 'UL_*.mat'));
+p.nelem     =  20;
+p.Inclusion = 'HoleRaul';         % 'Hole'/'Material'/'HoleRaul'
+p.Sampling  = 'Isolated';     % 'Isolated'/'Oversampling'
+meshName    = p.nelem+"x"+p.nelem;
+
+files = dir(fullfile("AbrilTFGfiles/Data/",p.Inclusion,p.Sampling,meshName, 'r0_*.mat'));
 
 r=zeros(length(files),1);
 for k = 1:1:length(files)
@@ -29,14 +33,14 @@ q = V(:,1:nBasis)*sValues;
 
 table=[r q];
 
-%fileName=fullfile("AbrilTFGfiles","SVD","SVD.mat");
-%save(fileName,"U","S","V","r");
-%QFileName = fullfile('AbrilTFGfiles', 'DataQ.csv');
-%writematrix(table,QFileName);
+fileName=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,"SVD.mat");
+save(fileName,"U","S","V","r");
+QFileName = fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,"DataQ.csv");
+writematrix(table,QFileName);
 
 
 %% Export NN paraview file
-NNname=fullfile("AbrilTFGfiles/NN/Q_NN2.mat");
+NNname=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,"Q_NN.mat");
 load(NNname);
 
 
@@ -46,24 +50,6 @@ qNN=Q_NN.computeOutputValues(rFull).';
 
 
 T_NN=basis*qNN;
-
 u=reshape(T_NN,[],8);
 
-% Export vtu file
- z.mesh      = data.mesh;
- z.order     = 'P1';
- 
- for i=1:8
-   z.fValues   = reshape(u(:,i),[data.mesh.ndim,data.mesh.nnodes])';
-   uFeFun = LagrangianFunction(z);%
-   fileName = strrep("r" + num2str(rad), '.', '_')+ "_SVD_NN_Training" +num2str(i);
-   centroids=computeCentroid(data.mesh);
-   CoarsePlotSolution(uFeFun, data.mesh,[],fileName, rad, centroids);
- end
-
-function centroids=computeCentroid(mesh)
-    x0=mean(mesh.coord(:,1));
-    y0=mean(mesh.coord(:,2));
-    centroids = [x0,y0];
-end
-    
+exportT_weakInclusion(u,rad, data.mesh,"TestNN");

@@ -34,7 +34,7 @@ classdef IsolatedTraining < handle
 
     methods (Access = public)
 
-        function [obj, u, L, mesh,Kcoarse] = IsolatedTraining(r,nelem,doplot)
+        function [obj, K, u, L, mesh,Kcoarse] = IsolatedTraining(r,nelem,doplot)
             obj.init(r,nelem)
             obj.createMesh();
             
@@ -45,6 +45,7 @@ classdef IsolatedTraining < handle
             if doplot==true()
                 exportT_weakInclusion(u,r,mesh,"_IsolatedTraining")
             end
+            K=obj.stiffness;
             Kcoarse=u.'*obj.stiffness*u;
             
         end
@@ -100,7 +101,9 @@ classdef IsolatedTraining < handle
         end
 
         function [u, L] = doElasticProblemHere(obj)
-            obj.createDisplacementFunHere();
+            obj.displacementFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
+            obj.dLambda  = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); 
+            
             LHS=obj.computeLHS();
             RHS=obj.computeRHS();
             sol = LHS\RHS;
@@ -139,17 +142,13 @@ classdef IsolatedTraining < handle
             poisson = ConstantFunction.create(nu,mesh);            
         end
 
-        function createDisplacementFunHere(obj)
-            obj.displacementFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
-        end
-
         function createBCApplyerHere(obj, cParams)
             s.mesh = obj.mesh;
             s.boundaryConditions = cParams.boundaryConditions;
             obj.bcApplier = BCApplier(s);
         end
 
-            function LHS=computeLHS(obj)
+        function LHS=computeLHS(obj)
             K=obj.computeStiffnessMatrix();
             C=obj.computeConstraintMatrix();
             Z=zeros(obj.dLambda.nDofs);
@@ -165,7 +164,6 @@ classdef IsolatedTraining < handle
         end
 
         function Cg = computeConstraintMatrix(obj)
-            obj.dLambda  = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); 
             test   = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
             f = @(u,v) DP(v,u);
             Cg = IntegrateLHS(f,test,obj.dLambda,obj.mesh,'Boundary',2);   

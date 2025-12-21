@@ -7,13 +7,18 @@
 clc; clear;
 
 %% LOAD DATA
+p.nelem=20;
+p.Sampling ='Isolated';     %'Isolated'/'Oversampling'
+p.Inclusion='Material';    %'Material'/'Hole'/'HoleRaul
+p.nelem=50;
+meshName    = p.nelem+"x"+p.nelem;
 
 % NN
-NNname=fullfile("AbrilTFGfiles/NN/Q_NN2.mat");
+NNname=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,"Q_NN.mat");
 load(NNname);
 
 % High Order function
-HOname=fullfile("AbrilTFGfiles/SVD/HOfunction.mat");
+HOname=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,"HOfunction.mat");
 load(HOname,"fR");
 
 % SVD

@@ -3,20 +3,22 @@
 
 clc; clear; close all;
 
-r = 0:0.05:0.95; 
-%r=0.5;
+%r = 1e-6:0.05:0.999; 
+r=0.05:0.02:0.999;
+%r=0.35;
 
-p.Sampling='Isolated'; %'Isolated'/'OverSampling'
+p.Sampling ='Isolated';     %'Isolated'/'Oversampling'
 p.Inclusion='Material';    %'Material'/'Hole'/'HoleRaul
-p.nelem=20;
+p.nelem=50;
+meshName    = p.nelem+"x"+p.nelem;
 
 doplot=false();
 
 for j = 1:size(r,2)
-    %[~, u, l, mesh,Kcoarse] = IsolatedTraining(r(j),p.nelem,doplot);
+    %[~, Kfine, T, l, mesh,Kcoarse] = IsolatedTraining(r(j),p.nelem,doplot);
 
     mR=createReferenceMesh(p,r(j));
-    results=OversamplingTraining(mR,p);
+    results=OversamplingTraining(mR,r(j),p);
 
     T        = results.uSbd;
     Kfine    = results.LHSsbd;
@@ -93,8 +95,6 @@ end
 kdata=[r.',kdata];
 kFileName = fullfile('AbrilTFGfiles','Data',p.Inclusion,p.Sampling,'dataK.csv');
 writematrix(kdata,kFileName);
-
-
 
 
 %% FUNCTIONS

@@ -4,11 +4,10 @@ classdef OversamplingTraining < handle
         uSbd
         LHSsbd
         mesh
-        E
-        nu
         Coarseorder
     end
     properties (Access = private)
+        radius
         meshDomain
         boundaryMeshJoined
         localGlobalConnecBd
@@ -24,17 +23,14 @@ classdef OversamplingTraining < handle
         fileNameEIFEM
         tolSameNode
         cellMeshes
-    end
-
-
-    properties (Access = private)
         nSubdomains
     end
 
+
     methods (Access = public)
 
-        function obj = OversamplingTraining(meshRef,params)
-            obj.init(meshRef,params)
+        function obj = OversamplingTraining(meshRef,r,params)
+            obj.init(meshRef,r,params)
 
             if sum(obj.nSubdomains > 1)>= 1
                 obj.repeatMesh();
@@ -59,7 +55,7 @@ classdef OversamplingTraining < handle
 
     methods (Access = private)
 
-        function init(obj,mesh,params)
+        function init(obj,mesh,r,params)
             switch params.Sampling
                 case 'Isolated'
                     obj.nSubdomains   = [1 1]; %nx ny
@@ -68,11 +64,10 @@ classdef OversamplingTraining < handle
                     obj.nSubdomains   = [5 5]; %nx ny
                     obj.domainIndices = [3 3];
             end
-
+            
+            obj.radius=r;
             obj.tolSameNode = 1e-10;
             obj.mesh = mesh;
-            obj.E    = 1;
-            obj.nu   = 1/3;
             obj.Coarseorder = 1;
             obj.Inclusion=params.Inclusion;
         end
@@ -110,9 +105,9 @@ classdef OversamplingTraining < handle
 
 
         function [young,poisson] = computeElasticProperties(obj,mesh)
-            E1  = obj.E;
-            nu = obj.nu;
-            radius = 0.1;
+            E1  = 1;
+            nu  = 1/3;
+            r   = obj.radius;
 
             switch obj.Inclusion
                 case {'Hole','HoleRaul'}
@@ -122,8 +117,8 @@ classdef OversamplingTraining < handle
                     E2 = E1/1000;
                     x0=mean(mesh.coord(:,1));
                     y0=mean(mesh.coord(:,2));
-                    f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<radius)*E2 + ...
-                                (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=radius)*E1 ; 
+                    f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<r)*E2 + ...
+                                (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=r)*E1 ; 
                     young   = AnalyticalFunction.create(f,mesh);
                     poisson = ConstantFunction.create(nu,mesh);
             end   
@@ -152,10 +147,10 @@ classdef OversamplingTraining < handle
 
             for i = 1:obj.nSubdomains(1,2)
                 for j = 1:obj.nSubdomains(1,1)
-                    mesh     = obj.cellMeshes{i,j};
+                    Mesh     = obj.cellMeshes{i,j};
                     C     = mat{i,j};
                     f = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
-                    lhs= IntegrateLHS(f,dispFun,dispFun,mesh,'Domain',2);
+                    lhs= IntegrateLHS(f,dispFun,dispFun,Mesh,'Domain',2);
 
                     LHSl = cat(3, LHSl, full(lhs) );
                     

@@ -161,7 +161,7 @@ classdef CoarseTesting_Abril< handle
             name=strings(size(rad,1),size(rad,2));
             for i=1:size(rad,1)
                 for j=1:size(rad,2)
-                    name(i,j) = strrep("UL_r"+num2str(rad(i,j), '%.4f'), ".", "_")+"-"+meshName+".mat";
+                    name(i,j) = strrep("r"+num2str(rad(i,j), '%.4f'), ".", "_")+"-"+meshName+".mat";
                 end
             end
             NameFile=name;
