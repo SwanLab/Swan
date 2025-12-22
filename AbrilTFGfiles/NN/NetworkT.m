@@ -6,6 +6,10 @@ clc;
 clear;
 close all;
 
+%% Case parameters
+p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
+p.Inclusion  ='Material';    %'Material'/'Hole'/'HoleRaul
+
 %% Initialization of hyperparameters
 pol_deg         = 6;
 testratio       = 30;
@@ -16,7 +20,7 @@ hiddenLayers    = [24 40 60 60 40 24 12];
 
 %% INITIALIZATION 
 % Store dataset file name
-s.fileName = 'DataT.csv';
+s.fileName = fullfile('AbrilTFGfiles',"Data",p.Inclusion,p.Sampling,'DataT.csv');
 
 % Load model parameters
 s.polynomialOrder = pol_deg;
@@ -38,7 +42,6 @@ s.yFeatures=[4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19];
 
 %% Initialization of variables to save
 MSETrain=zeros(1,8);
-T_NN=cell(1,8);
 comparison=cell(1,8);
 
 %% Loop for the 8 coarse modes
@@ -52,5 +55,5 @@ T_NN = OptimizationProblemNN(s);
 T_NN.solve();
 T_NN.plotCostFnc();
     
-FileName=fullfile('AbrilTFGfiles','NN',"T_NN3.mat");
+FileName=fullfile('AbrilTFGfiles',"Data",p.Inclusion,p.Sampling,"T_NN.mat");
     save(FileName, "T_NN");

@@ -2,6 +2,10 @@ clc;
 clear;
 close all;
 
+%% Case parameters
+p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
+p.Inclusion  ='Material';    %'Material'/'Hole'/'HoleRaul
+
 %% Initialization of hyperparameters
 pol_deg         = 1;
 testratio       = 30;
@@ -11,7 +15,7 @@ hiddenLayers    = 36 .* ones(1, 2);
 
 %% INITIALIZATION 
 % Store dataset file name
-s.fileName = 'DataK.csv';
+s.fileName = fullfile('AbrilTFGfiles',"Data",p.Inclusion,p.Sampling,'DataK.csv');
 
 % Load model parameters
 s.polynomialOrder = pol_deg;
@@ -42,8 +46,7 @@ K_NN.plotCostFnc();
 MSETrain    = immse(K_NN.computeOutputValues(data.Xtrain), data.Ytrain);
 
 string ="K_NN.mat";
-
-FileName=fullfile('AbrilTFGfiles','NN',string);
+FileName=fullfile('AbrilTFGfiles',"Data",p.Inclusion,p.Sampling,string);
     save(FileName, "K_NN");
 
 %% Plot surface

@@ -22,7 +22,7 @@ HOname=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,"HOfunction.mat");
 load(HOname,"fR");
 
 % SVD
-SVDname=fullfile("AbrilTFGfiles/SVD/SVD.mat");
+SVDname=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,"SVD.mat");
 SVDdata=load(SVDname);
 
 

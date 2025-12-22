@@ -4,11 +4,17 @@ clc;
 clear;
 close all;
 
+%% Case parameters
+p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
+p.Inclusion  ='Material';    %'Material'/'Hole'/'HoleRaul
+p.nelem      = 50;
+meshName    =  p.nelem+"x"+p.nelem;
+
+
 %% LOAD DATA
 
 % load the trained NN 
-fileName1="K_NN.mat";
-filePath1 = fullfile('AbrilTFGfiles', 'NN', fileName1);
+filePath = fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,"K_NN.mat");
 load(filePath1);
 
 % load K coarse dataset

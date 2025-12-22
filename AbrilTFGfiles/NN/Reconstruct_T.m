@@ -3,11 +3,15 @@
 clc 
 clear
 
+%% Case parameters
+p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
+p.Inclusion  ='Material';    %'Material'/'Hole'/'HoleRaul
+p.nelem      = 50;
+meshName    =  p.nelem+"x"+p.nelem;
 
 %% Loading Variables
 % Load T NN
-filename1='T_NN.mat';
-filePath1 = fullfile('AbrilTFGfiles', 'NN', filename1);
+filePath = fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,"T_NN.mat");
 load(filePath1,'T_NN');
 
 % load the T real and mesh

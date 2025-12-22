@@ -3,7 +3,7 @@ clear all
 
 % Specify case parameters
 p.nelem     =  20;
-p.Inclusion = 'Material';         % 'Hole'/'Material'/'HoleRaul'
+p.Inclusion = 'HoleRaul';         % 'Hole'/'Material'/'HoleRaul'
 p.Sampling  = 'Oversampling';     % 'Isolated'/'Oversampling'
 meshName    = p.nelem+"x"+p.nelem;
 
@@ -28,15 +28,16 @@ for k = 1:1:length(files)
     i=i+1;
 end
 
-
 xdata   = linspace(0,0.95,20);
 %xdata   = linspace(0,0.98,50);
 
 centers = xdata;
+mesh=data.mesh;
+
 [fT,deim,dfT,fR]   = parameterizedDataLagrange(T,xdata);
 [fK,~,dfK,~]   = parameterizedDataLagrange(Kcoarse,xdata);
 fileName=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,"HOfunction.mat");
-save(fileName,"fR","fT","deim");
+save(fileName,"fR","fT","deim","mesh");
 
 
 EIFEoper.Kcoarse     = fK;
