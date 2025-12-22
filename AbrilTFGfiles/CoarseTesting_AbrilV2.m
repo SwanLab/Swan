@@ -27,6 +27,7 @@ classdef CoarseTesting_AbrilV2< handle
         NN
         data
         params
+        fileNameEIFEM
 
         xmin 
         xmax 
@@ -62,11 +63,17 @@ classdef CoarseTesting_AbrilV2< handle
             
 
             % PRECONDITIONERS
-            Meifem       = obj.createEIFEMPreconditioner(dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);            
             Milu         = obj.createILUpreconditioner(LHS);
-            Mcoarse     = obj.createCoarseNNPreconditioner(mR,dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);
             %MiluCG      = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
-            Mmult        = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Meifem,Milu);
+
+            switch obj.params.Option
+                case {'Dataset','NN'}
+                    Mcoarse     = obj.createCoarseNNPreconditioner(mR,dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);
+                    Mmult        = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Mcoarse,Milu);
+                case {'HO','Hybrid'}
+                    Meifem       = obj.createEIFEMPreconditioner(dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);
+                    Mmult        = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Meifem,Milu);
+            end
 
 
             % SOLVE THE CASE
@@ -87,7 +94,7 @@ classdef CoarseTesting_AbrilV2< handle
             s.fValues = reshape(xFull,2,[])';
             uFun = LagrangianFunction(s);
             
-            uFun.print('ProvaIter1','Paraview');
+            uFun.print('ProvaHoleRaul','Paraview');
 
             %s.fValues = reshape(Ufull,2,[])';
             %RealFun=LagrangianFunction(s);
@@ -98,7 +105,7 @@ classdef CoarseTesting_AbrilV2< handle
             
 
             % PLOTS
-            createPlots(residualPCG,errPCG,errAnormPCG);
+            obj.createPlots(residualPCG,errPCG,errAnormPCG);
 
         end
 
@@ -111,28 +118,21 @@ classdef CoarseTesting_AbrilV2< handle
             % Case Parameters
             p.Inclusion = 'HoleRaul';         % 'Hole'/'Material'/'HoleRaul'
             p.Sampling  = 'Oversampling';     % 'Isolated'/'Oversampling'
-            p.Option    = 'Dataset';          % 'Dataset'/'NN'/'SVD'/ 'Hybrid'
-            p.nelem     =  5;                 %  Mesh refining
+            p.Option    = 'HO';          % 'Dataset'/'NN'/'HO'/ 'Hybrid'
+            p.nelem     =  20;                 %  Mesh refining
             obj.params  =  p;
+            meshName    =  p.nelem+"x"+p.nelem;
 
             % Definition of Subdomain
-            obj.r              = ones(5,10)*0.5;
-            obj.r = [0.1, 0.2,0.3, 0.4;
-                     0.5, 0.6, 0.7, 0.8];
+            %obj.r = ones(5,10)*0.5;
+            obj.r = [0.1,0.2,0.3,0.4,0.5
+                     0.1,0.2,0.3,0.4,0.5
+                     0.1,0.2,0.3,0.4,0.5];
+
             obj.nSubdomains    = size(obj.r');
             obj.mSubdomains    = [];
             obj.tolSameNode    = 1e-10;
-            
-            % Load the data of the case
-            %switch p.loadData
-            %    case 'Dataset'
-            %        nameFile=obj.computeNameFile();
-            %        obj.loadT(nameFile,p.Inclusion);
-            %        obj.loadK(nameFile,p.Inclusion);  
-            %    case 'NN'
-            %        nameNN= ["K_NN.mat","T_NN.mat"];
-            %        obj.loadNN(nameNN);
-            %end
+            obj.fileNameEIFEM  = fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"parametrizedEIFEMLagrange.mat");
         end
 
         function NameFile=computeNameFile(obj)
@@ -503,21 +503,23 @@ classdef CoarseTesting_AbrilV2< handle
 
          function Meifem = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh)
             mR = obj.referenceMesh;
-            Data = OversamplingTraining(mR,obj.params);
-            p = OfflineDataProcessor(Data);
-            EIFEoper = p.computeROMbasis();
-            s.RVE           = TrainedRVE(EIFEoper);
+            %Data = OversamplingTraining(mR,obj.r(1,1),obj.params);
+            %p = OfflineDataProcessor(Data);
+            %EIFEoper = p.computeROMbasis();
+            %s.RVE          = TrainedRVE(EIFEoper);
+            s.RVE           = TrainedRVE(obj.fileNameEIFEM);
             s.mesh          = obj.createCoarseMesh();
-            s.DirCond       = {dir};
-            s.nSubdomains = obj.nSubdomains;
-            s.mu          = obj.r;
-            s.meshRef      = dMesh;
+            s.DirCond       = dir;
+            s.nSubdomains   = obj.nSubdomains;
+            s.mu            = obj.r;
+            s.meshRef       = dMesh;
             eifem           = EIFEMnonPeriodic(s);
+            
             ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
-            ss.EIFEMsolver = eifem;
-            ss.bcApplier = obj.bcApplier;
-            ss.dMesh     = dMesh;
-            ss.type = 'EIFEM';
+            ss.EIFEMsolver  = eifem;
+            ss.bcApplier    = obj.bcApplier;
+            ss.dMesh        = dMesh;
+            ss.type         = 'EIFEM';
             eP = Preconditioner.create(ss);
             Meifem = @(r) eP.apply(r);
         end        
@@ -525,13 +527,23 @@ classdef CoarseTesting_AbrilV2< handle
 
         function Mcoarse = createCoarseNNPreconditioner(obj,mR,dir,iC,lG,bS,iCR,dMesh)
             p=obj.params;
+            switch p.Option
+                case 'Dataset'
+                    nameFile=obj.computeNameFile();
+                    obj.loadT(nameFile,p.Inclusion);
+                    obj.loadK(nameFile,p.Inclusion);
+                case 'NN'
+                    nameNN= ["K_NN.mat","T_NN.mat"];
+                    obj.loadNN(nameNN);
+            end
+
             RVE = cell(obj.nSubdomains(1,2),obj.nSubdomains(1,1));
 
             for i = 1:obj.nSubdomains(1,2)
                 for j = 1:obj.nSubdomains(1,1)
                     RVE{i,j}.ndimf = 2;
 
-                    switch p.loadData
+                    switch p.Option
                         case 'Dataset'
                             RVE{i,j}.Kcoarse= obj.data.K{i,j};
                             RVE{i,j}.U= obj.data.T{i,j}; 
@@ -563,7 +575,6 @@ classdef CoarseTesting_AbrilV2< handle
         function K=computeKcoarse(obj,r)
             K_aux1=obj.NN.K.computeOutputValues(r);
             K_aux2=zeros(8);
-
             idx=1;
             for n=1:8
                 for m=n:8

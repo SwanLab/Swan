@@ -45,7 +45,7 @@ classdef DEIM < handle
                 n=i;
                 i=i+1;
             end
-            obj.nBasis = 15;
+            obj.nBasis = 10;
             obj.basis = U(:,1:obj.nBasis);
 %             obj.basis(:,end+1:end+3) = obj.data(:,1:3);
 %             obj.nBasis = obj.nBasis +3;

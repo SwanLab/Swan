@@ -493,7 +493,7 @@ classdef CoarseTesting_Abril< handle
 
          function Meifem = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh)
             mR = obj.referenceMesh;
-            Data = OversamplingTraining(mR,obj.params);
+            Data = OversamplingTraining(mR,obj.r(1,1),obj.params);
             p = OfflineDataProcessor(Data);
             EIFEoper = p.computeROMbasis();
             s.RVE           = TrainedRVE(EIFEoper);

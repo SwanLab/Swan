@@ -2,7 +2,7 @@ close all
 clear all
 
 % Specify case parameters
-p.nelem     =  20;
+p.nelem     =  10;
 p.Inclusion = 'HoleRaul';         % 'Hole'/'Material'/'HoleRaul'
 p.Sampling  = 'Oversampling';     % 'Isolated'/'Oversampling'
 meshName    = p.nelem+"x"+p.nelem;
@@ -28,6 +28,7 @@ for k = 1:1:length(files)
     i=i+1;
 end
 
+%xdata   = linspace(0,0.9,10);
 xdata   = linspace(0,0.95,20);
 %xdata   = linspace(0,0.98,50);
 
@@ -46,13 +47,13 @@ EIFEoper.dKcoarse    = dfK;
 EIFEoper.dU          = dfT;
 EIFEoper.deim        = deim;
 
-filePath = fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,"parametrizedEIFEMLagrange.mat");
+filePath = fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"parametrizedEIFEMLagrange.mat");
 save(filePath,'EIFEoper');
 
 
 function [f,deim,df,fR] = parameterizedDataLagrange(var,xdata)
 deim    = DEIM(var);
-coeff   = deim.basis(deim.indices,:)\var(deim.indices,:);;
+coeff   = deim.basis(deim.indices,:)\var(deim.indices,:);
 s.coord = [xdata(1); xdata(end)];
 s.connec = [1,2];
 mesh = Mesh.create(s);
