@@ -1,4 +1,4 @@
-classdef EdgesConnectivitiesComputer < handle
+    classdef EdgesConnectivitiesComputer < handle
     
     properties (GetAccess = public, SetAccess = private)
         nodesInEdges

@@ -34,6 +34,7 @@ classdef SplitterInConnectedComponents < handle
         end
         
         function computeEdges(obj)
+            s.type = 'TRIANGLE';
             s.nodesByElem = obj.faces;
             edge = EdgesConnectivitiesComputer(s);
             edge.compute();

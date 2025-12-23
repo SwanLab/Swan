@@ -34,7 +34,7 @@ classdef Dehomogenizer < handle
                 uM = obj.createUnfittedMesh(ls{i});
                 uM.plotStructureInColor('black');
                 drawnow
-                %uM.plotComponents();
+                uM.plotComponents();
              %   obj.saveImage()
            %     fh.WindowState = 'maximized';
            %     axis off

@@ -115,7 +115,7 @@ classdef MeshPlotter < handle
                 p = trisurf(m.connec,x,y,z);
                 p.FaceColor = [1 0 0];
                 p.FaceAlpha = 1;
-                p.EdgeColor = 'none';
+                p.EdgeColor = 'b';
                 hold on
             else
                 p = patch('vertices',m.coord,'faces',m.connec);

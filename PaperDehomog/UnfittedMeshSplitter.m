@@ -127,7 +127,7 @@ classdef UnfittedMeshSplitter < handle
                 s.edgeAlpha = 0;
                 s.faceAlpha = 1;
                 s.faceColor = 'black';
-                s = SettingsMeshPlotter(s);
+                s.isBackground = false;
                 mP = MeshPlotter(s);
                 mP.plot();
             end
