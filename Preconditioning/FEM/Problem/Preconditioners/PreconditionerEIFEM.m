@@ -72,8 +72,9 @@ classdef PreconditionerEIFEM < handle
             obj.weight       = 0.5;
             obj.dMesh        = cParams.dMesh;
             obj.iter         = 1;
-            if isfield(cParams,'Fext')
+            if isfield(cParams,'Fext') % for optimization
                 obj.Fext         = cParams.Fext;
+                obj.FextCoarse   = obj.computeDiscontinousField(obj.Fext);
             end
         end
 

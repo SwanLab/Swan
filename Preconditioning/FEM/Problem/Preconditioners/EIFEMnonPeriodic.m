@@ -43,28 +43,29 @@ classdef EIFEMnonPeriodic < handle
         end
 
         function [u,uCoarse]  = apply(obj,r)
-            [u,uCoarse]  = obj.solve(r);
+            obj.Fext = r;
+            [u,uCoarse]  = obj.solve();
             % %             obj.plotSolution(uCoarse,obj.mesh,100,1,obj.iter,0)
             %             u = obj.reconstructSolution(uCoarse);
             % %                         obj.plotSolution(u(:),obj.meshRef,5,1,obj.iter,0)
             %                         obj.iter = obj.iter+1;
         end
 
-        function [u,uCoarse] = solve(obj,Fext)
-            Fcoarse = obj.projectExternalForce(Fext);
+        function [u,uCoarse] = solve(obj)
+            Fcoarse = obj.projectExternalForce(obj.Fext);
             RHS     = obj.assembleRHSvector(Fcoarse);
             LHSred  = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);
             RHSred  = obj.bcApplier.fullToReducedVectorDirichlet(RHS);
+            LHSred = (LHSred + LHSred.') / 2;
             uRed    = LHSred\RHSred;
             uCoarse = obj.bcApplier.reducedToFullVectorDirichlet(uRed);
             u = obj.reconstructSolution(uCoarse);
         end
 
         function updateDownscaling(obj,mu)
-            nelem = obj.mesh.nelem;
-            for i = 1:nelem
-                obj.U(:,:,i) = obj.RVE.U(mu(i));
-            end
+            [nRow,nCol,~] = size(obj.U);
+            obj.U = reshape(obj.RVE.U(mu(:)),[nRow nCol length(mu)]);
+%             obj.U(:) = obj.RVE.U(mu(:));
         end
 
         function computeLHS(obj,mu)
@@ -74,7 +75,7 @@ classdef EIFEMnonPeriodic < handle
         
         function dK = computeGradK(obj,mu)
            [ndof,ndof,~] = size(obj.Kel);
-           dK =  reshape(obj.RVE.dKcoarse(mu(:)),[ndof ndof length(mu)]);
+           dK =  reshape(obj.RVE.dKcoarse(mu(:)'),[ndof ndof length(mu)]);
         end
 
         function uL = global2local(obj,uG)
@@ -103,18 +104,22 @@ classdef EIFEMnonPeriodic < handle
             else
                 obj.mu = reshape(cParams.mu',1,[]);
             end
-%             if isfield(cParams,'Fext')
-%                 obj.Fext = cParams.Fext;
-%             end
+            if isfield(cParams,'Fext')
+                obj.Fext = cParams.Fext;
+            end
             obj.iter=1;
         end
 
         function computeElementalLHS(obj,mu)
-            nelem = obj.mesh.nelem;
-            for i = 1:nelem
-                obj.Kel(:,:,i) = obj.RVE.Kcoarse(mu(i));
-%                   obj.Kel(:,:,i) = obj.RVE.Kcoarse(:,:,i);
-            end
+%             nelem = obj.mesh.nelem;
+%             
+%             for i = 1:nelem
+%                 obj.Kel(:,:,i) = obj.RVE.Kcoarse(mu(i));
+% %                   obj.Kel(:,:,i) = obj.RVE.Kcoarse(:,:,i);
+%             end
+            ndof = obj.dispFun.nDofsElem;
+            obj.Kel = reshape(obj.RVE.Kcoarse(mu(:)'),[ndof ndof length(mu)]);
+
         end
 
         function computeDownscaling(obj,mu)
@@ -236,10 +241,15 @@ classdef EIFEMnonPeriodic < handle
         end
 
         function Fcoarse = projectExternalForce(obj,Ffine)
-            nelem = obj.mesh.nelem;
-            for ielem = 1:nelem
-                Fcoarse(:,ielem) = obj.U(:,:,ielem)'*Ffine(:,ielem);
-            end
+%             nelem = obj.mesh.nelem;
+%             for ielem = 1:nelem
+%                 Fcoarse(:,ielem) = obj.U(:,:,ielem)'*Ffine(:,ielem);
+%             end
+
+            % 1. Reshape Ffine to [nFine x 1 x nElem] to treat cols as 'pages'
+            Ffine_page = reshape(Ffine, size(Ffine,1), 1, []);
+            Fcoarse_page = pagemtimes(obj.U, 'ctranspose', Ffine_page, 'none');
+            Fcoarse = reshape(Fcoarse_page, size(obj.U, 2), []);
 % 
 %             Udef    = obj.RVE.Udef(mu);
 %             Urb     = obj.RVE.Urb(mu);
@@ -248,15 +258,22 @@ classdef EIFEMnonPeriodic < handle
         end
 
         function u = reconstructSolution(obj,uCoarse)
-            nElem = obj.mesh.nelem;
-%             Udef  = obj.RVE.Udef;
-%             Urb   = obj.RVE.Urb;
-%             U     = Udef + Urb;
-            dofConec = obj.dispFun.getDofConnec();
-            for ielem = 1:nElem
-                uCelem = uCoarse(dofConec(ielem,:));
-                u(:,ielem) =  obj.U(:,:,ielem)*uCelem;
-            end
+%             nElem = obj.mesh.nelem;
+% %             Udef  = obj.RVE.Udef;
+% %             Urb   = obj.RVE.Urb;
+% %             U     = Udef + Urb;
+%             dofConec = obj.dispFun.getDofConnec();
+%             for ielem = 1:nElem
+%                 uCelem = uCoarse(dofConec(ielem,:));
+%                 u(:,ielem) =  obj.U(:,:,ielem)*uCelem;
+%             end
+
+    dofConec = obj.dispFun.getDofConnec();
+    uCelem_batch = uCoarse(dofConec).';
+    uCelem_page = reshape(uCelem_batch, size(uCelem_batch, 1), 1, []);
+    u_page = pagemtimes(obj.U, uCelem_page);
+    u = reshape(u_page, size(obj.U, 1), []);
+
         end
 
          function plotSolution(obj,x,mesh,row,col,iter,flag)

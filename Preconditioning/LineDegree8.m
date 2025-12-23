@@ -1,9 +1,12 @@
 classdef LineDegree8 < Interpolation
     
     properties (Access = protected)
-        % Matrix of derivative coefficients [nNode x (Degree)]
-        % Row i contains coefficients for the derivative of shape function i
+        % Matrix of coefficients for the Derivatives [9 x 8]
+        % Row i contains the polynomial coefficients for the derivative of shape function i
         deriv_coeffs 
+        
+        % Matrix of coefficients for the Shape Functions [9 x 9] (Optional, for speed)
+        shape_coeffs
     end
     
     methods (Access = public)
@@ -19,81 +22,86 @@ classdef LineDegree8 < Interpolation
             obj.ndime = 1;
             obj.nnode = 9;
             n = obj.nnode;
-            degree = n - 1;
+            degree = n - 1; % Degree 8
             
             % 1. Chebyshev-Gauss-Lobatto nodes
             k = (1:n)';
             x = -cos(pi * (k-1) / degree);
             obj.pos_nodes = x;
             
-            % 2. Pre-compute Derivative Coefficients
-            % We fit a polynomial for each node (delta function) and differentiate it
-            obj.deriv_coeffs = zeros(n, degree); % Derivative is degree 7 (N-2)
+            % 2. Pre-compute Polynomial Coefficients (The "Monomial Basis")
+            % We find the coefficients that define each Lagrange polynomial.
+            obj.shape_coeffs = zeros(n, n);      % Degree 8 (9 coeffs)
+            obj.deriv_coeffs = zeros(n, degree); % Derivative is Degree 7 (8 coeffs)
             
             for i = 1:n
-                % Create target values (1 at node i, 0 elsewhere)
+                % Create the "target": 1 at node i, 0 at all other nodes
                 y = zeros(size(x));
                 y(i) = 1;
                 
-                % Get polynomial coeffs (p) for shape function i
-                % and then the derivative coeffs (dp)
+                % Fit polynomial (find coefficients for this shape function)
                 p = polyfit(x, y, degree); 
-                dp = polyder(p);
                 
-                % Store in matrix (pad if necessary, though degree is fixed)
+                % Store Shape Coeffs
+                obj.shape_coeffs(i, :) = p;
+                
+                % Calculate and Store Derivative Coeffs
+                dp = polyder(p);
                 obj.deriv_coeffs(i, :) = dp;
             end
         end
 
         function shape = evaluateShapeFunctions(obj, posgp)
-            % This can also be optimized similarly, but let's stick 
-            % to the derivative request first.
-            % (Keeping your existing logic or the previous optimization here)
+            % s: [1, nGaus, nElem]
+            s = posgp(1,:,:);
             
-            % ... [Previous implementation of evaluateShapeFunctions] ... 
-            % For consistency, I will paste the fast Vectorized version here:
-            s = posgp(1,:,:); 
-            x = obj.pos_nodes; 
-            n = obj.nnode;
-            Diff = s - x; 
+            % Flatten s for matrix operation
+            s_flat = s(:);
+            M = length(s_flat);
             
-            % Re-calculate denom since we aren't using polyval here for consistency
-            denom = zeros(n,1);
-            for i = 1:n, denom(i) = prod(x(i) - x([1:i-1, i+1:end])); end
-
-            shape = zeros(n, size(s,2), size(s,3));
-            for i = 1:n
-                numerator = prod(Diff([1:i-1, i+1:end], :, :), 1);
-                shape(i,:,:) = numerator / denom(i);
+            % 1. Create Powers Matrix (Vandermonde-like)
+            % We need [s^8, s^7, ... s^1, 1]
+            % Doing this explicitly is faster than `vander`
+            pow_matrix = zeros(9, M); 
+            pow_matrix(9, :) = 1;      % s^0
+            pow_matrix(8, :) = s_flat; % s^1
+            
+            % Compute higher powers iteratively (faster than .^)
+            for p = 2:8
+                pow_matrix(9-p, :) = s_flat .* pow_matrix(9-p+1, :).'; 
             end
+            
+            % 2. Matrix Multiply: [9x9] * [9xM] = [9xM]
+            shapes_flat = obj.shape_coeffs * pow_matrix;
+            
+            % 3. Reshape result
+            shape = reshape(shapes_flat, [obj.nnode, size(s,2), size(s,3)]);
         end
 
         function deriv = evaluateShapeDerivatives(obj, posgp)
             % s: [1, nGaus, nElem]
-            s = posgp(1,:,:); 
+            s = posgp(1,:,:);
             
-            % Flatten s for vectorized evaluation: [M x 1]
+            % Flatten s
             s_flat = s(:);
             M = length(s_flat);
             
-            % 1. Construct Vandermonde-like matrix for the derivative powers
-            % The derivative of degree 8 is degree 7.
-            % Powers needed: [s^7, s^6, ..., s^1, 1]
-            current_degree = obj.nnode - 2; % 9 nodes -> degree 8 -> deriv degree 7
+            % 1. Create Powers Matrix for Derivative (Degree 7)
+            % We need [s^7, s^6, ..., s^1, 1]
+            pow_matrix = zeros(8, M);
+            pow_matrix(8, :) = 1;      % s^0
+            pow_matrix(7, :) = s_flat; % s^1
             
-            % Create powers matrix: [M x 8]
-            % This is much faster than loops
-            S_powers = ones(M, current_degree + 1);
-            for p = 1:current_degree
-                S_powers(:, end - p) = s_flat.^p;
+            % Compute higher powers iteratively
+            for p = 2:7
+                pow_matrix(8-p, :) = s_flat .* pow_matrix(8-p+1, :).';
             end
             
-            % 2. Matrix Multiply: [nNode x 8] * [8 x M] = [nNode x M]
-            % deriv_coeffs is [9 x 8]
-            % S_powers'    is [8 x M]
-            d_shapes_flat = obj.deriv_coeffs * S_powers';
+            % 2. Matrix Multiply: [9x8] * [8xM] = [9xM]
+            % This computes all derivatives for all nodes at all points instantly
+            d_shapes_flat = obj.deriv_coeffs * pow_matrix;
             
-            % 3. Reshape back to [1, nNode, nGaus, nElem]
+            % 3. Reshape result [nDime, nNode, nGauss, nElem]
             deriv = reshape(d_shapes_flat, [1, obj.nnode, size(s,2), size(s,3)]);
         end
     end

@@ -1,12 +1,12 @@
 classdef BCApplier < handle
-    
+
     % Goal: group dirichlet and neumann conditions
     % to allow multiple boundary conditions at the same time
     % Use: BCApplier.computeLinearConditionsMatrix()
 
     properties (Access = public)
     end
-    
+
     properties (Access = private)
         mesh
 
@@ -15,17 +15,17 @@ classdef BCApplier < handle
         tractionFun
         periodic_leader, periodic_follower
     end
-    
+
     properties (Access = private)
-        
+
     end
-    
+
     methods (Access = public)
-        
+
         function obj = BCApplier(cParams)
             obj.init(cParams)
         end
-        
+
         function Ct = computeLinearConditionsMatrix(obj, order)
             switch order
                 case 'Dirac'
@@ -37,10 +37,10 @@ classdef BCApplier < handle
                 otherwise
                     dir_dom = obj.dirichlet_domain;
                     [mesh_left2, l2g_mesh] = obj.mesh.getBoundarySubmesh(dir_dom);
-        
+
                     dLambda = LagrangianFunction.create(mesh_left2, obj.mesh.ndim, order); % !!
                     uFun    = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1'); % !!
-        
+
                     b.mesh  = mesh_left2;
                     b.test  = dLambda;
                     b.trial = uFun.restrictTo(dir_dom);
@@ -84,18 +84,18 @@ classdef BCApplier < handle
             yy_bottom = 2*nDofsPerBorder + 1 : 3*nDofsPerBorder;
             yy_left   = 3*nDofsPerBorder + 1 : 4*nDofsPerBorder;
             CtPer = sparse([(1:nDofsPerBorder)', (1:nDofsPerBorder)'; ... % xx
-                         (nDofsPerBorder+1:2*nDofsPerBorder)', (nDofsPerBorder+1:2*nDofsPerBorder)'; ... % xy
-                         (nDofsPerBorder+1:2*nDofsPerBorder)', (nDofsPerBorder+1:2*nDofsPerBorder)'; ... % xy
-                         (2*nDofsPerBorder+1:3*nDofsPerBorder)', (2*nDofsPerBorder+1:3*nDofsPerBorder)'; ... % yy
-                         ], ...
-                         [per_lead(xx_bottom), per_fllw(xx_bottom); ... % xx
-                         per_lead(xx_left), per_fllw(xx_left); ... % xy
-                         per_lead(yy_bottom), per_fllw(yy_bottom); ... % xy
-                         per_lead(yy_left), per_fllw(yy_left) % yy
-                         ], ...
-                         [ones(length(per_lead),1), -ones(length(per_lead),1); ...
-                         ], ...
-                         nDofsPerBorder*nVoigt, nDofs);
+                (nDofsPerBorder+1:2*nDofsPerBorder)', (nDofsPerBorder+1:2*nDofsPerBorder)'; ... % xy
+                (nDofsPerBorder+1:2*nDofsPerBorder)', (nDofsPerBorder+1:2*nDofsPerBorder)'; ... % xy
+                (2*nDofsPerBorder+1:3*nDofsPerBorder)', (2*nDofsPerBorder+1:3*nDofsPerBorder)'; ... % yy
+                ], ...
+                [per_lead(xx_bottom), per_fllw(xx_bottom); ... % xx
+                per_lead(xx_left), per_fllw(xx_left); ... % xy
+                per_lead(yy_bottom), per_fllw(yy_bottom); ... % xy
+                per_lead(yy_left), per_fllw(yy_left) % yy
+                ], ...
+                [ones(length(per_lead),1), -ones(length(per_lead),1); ...
+                ], ...
+                nDofsPerBorder*nVoigt, nDofs);
             Ct =  [CtPer; CtDirPer; CtDir];
         end
 
@@ -127,10 +127,21 @@ classdef BCApplier < handle
             RHSC = [zerosRHS; per_vec; RHSDirPer; RHSDir];
         end
 
-        function rVec = fullToReducedVectorDirichlet(obj,fVec)
-            dofs      = 1:1:obj.dirichletFun.nDofs;
-            free_dofs = setdiff(dofs, obj.dirichlet_dofs);
-            rVec      = fVec(free_dofs);
+        %         function rVec = fullToReducedVectorDirichlet(obj,fVec)
+        %             dofs      = 1:1:obj.dirichletFun.nDofs;
+        %             free_dofs = setdiff(dofs, obj.dirichlet_dofs);
+        %             rVec      = fVec(free_dofs);
+        %         end
+
+        function rVec = fullToReducedVectorDirichlet(obj, fVec)
+            % Create a boolean mask initialized to true
+            isFree = true(obj.dirichletFun.nDofs, 1);
+
+            % Mark Dirichlet DOFs as false
+            isFree(obj.dirichlet_dofs) = false;
+
+            % Extract using the mask
+            rVec = fVec(isFree);
         end
 
         function rMat = fullToReducedMatrixDirichlet(obj,fMat)
@@ -139,17 +150,34 @@ classdef BCApplier < handle
             rMat      = fMat(free_dofs,free_dofs);
         end
 
-        function fVec = reducedToFullVectorDirichlet(obj,rVec)
-            dofs                     = 1:1:obj.dirichletFun.nDofs;
-            free_dofs                = setdiff(dofs, obj.dirichlet_dofs);
-            fVec                     = zeros(obj.dirichletFun.nDofs,1);
-            fVec(free_dofs)          = rVec;
-            fVec(obj.dirichlet_dofs) = obj.dirichlet_vals;
-        end
+%         function fVec = reducedToFullVectorDirichlet(obj,rVec)
+%             dofs                     = 1:1:obj.dirichletFun.nDofs;
+%             free_dofs                = setdiff(dofs, obj.dirichlet_dofs);
+%             fVec                     = zeros(obj.dirichletFun.nDofs,1);
+%             fVec(free_dofs)          = rVec;
+%             fVec(obj.dirichlet_dofs) = obj.dirichlet_vals;
+%         end
+
+function fVec = reducedToFullVectorDirichlet(obj, rVec)
+    nDofs = obj.dirichletFun.nDofs;
+    
+    % Create a boolean mask (faster than setdiff)
+    isFree = true(nDofs, 1);
+    isFree(obj.dirichlet_dofs) = false;
+    
+    % Preallocate output
+    fVec = zeros(nDofs, 1);
+    
+    % Assign Reduced Vector to Free DOFs
+    fVec(isFree) = rVec;
+    
+    % Assign Dirichlet Values to Constrained DOFs
+    fVec(obj.dirichlet_dofs) = obj.dirichlet_vals;
+end
     end
 
     methods (Access = private)
-        
+
         function init(obj,cParams)
             inBC = cParams.boundaryConditions;
             obj.mesh = cParams.mesh;
@@ -163,5 +191,5 @@ classdef BCApplier < handle
         end
 
     end
-    
+
 end

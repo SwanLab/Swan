@@ -16,9 +16,10 @@ classdef PreconditionerILU < handle
         end
         
         function z = apply(obj,r)
-            L = obj.Lchol;
-            z = L\r;
-            z = (L')\z;
+%             L = obj.Lchol;
+%             z = L\r;
+%             z = (L')\z;
+            z = obj.Lchol' \ (obj.Lchol \ r);
         end        
         
     end

@@ -30,11 +30,11 @@ classdef PlotterRadius < handle
 
         function plot(obj)
 %             rho     = obj.designVariable.fun;
-            m       = obj.updateDiscMesh();
+            coord       = obj.updateDiscMesh();
 %             funp0   = rho.project('P0');
 %             rhoElem = squeeze(funp0.fValues);
 %             set(obj.patchHandle,'FaceVertexAlphaData',rhoElem,'FaceAlpha','flat');
-            set(obj.patchHandle, 'Vertices', m.coord);
+            set(obj.patchHandle, 'Vertices', coord);
 %             set(obj.patchHandle,'Vertices', m.coord, 'Faces', m.connec, 'FaceColor', 'red', 'EdgeColor', 'black');
         end
 
@@ -59,7 +59,7 @@ classdef PlotterRadius < handle
             obj.Ly = obj.ymax - obj.ymin;
         end
 
-        function  dmesh = updateDiscMesh(obj)
+        function  coord = updateDiscMesh(obj)
             r = obj.designVariable.fValues;
             nX = obj.nSubdomains(1);
             nY = obj.nSubdomains(2);
@@ -81,9 +81,9 @@ classdef PlotterRadius < handle
                     %                     mSbd{jDom,iDom} = mIJ;
                 end
             end
-            s.coord = coord;
-            s.connec = obj.mesh.connec;
-            dmesh = Mesh.create(s);
+%             s.coord = coord;
+%             s.connec = obj.mesh.connec;
+%             dmesh = Mesh.create(s);
         end
 
         function createFigure(obj)

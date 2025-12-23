@@ -91,7 +91,7 @@ classdef TutorialEIFEM_parametric < handle
             obj.cy = 0;
             obj.Nr=7;
             obj.Ntheta=14;
-            obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange40.mat';
+            obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange20_der2.mat';
 %             obj.fileNameEIFEM = './EPFL/dataEIFEMQ12_2.mat';
         end
 

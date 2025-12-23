@@ -50,7 +50,7 @@ classdef VolumeFunctionalRadius < handle
         end
 
         function J = computeFunction(obj,x)
-            dV = obj.baseFun-pi*x.*x;
+%             dV = obj.baseFun-pi*x.*x;
 %             volume = Integrator.compute(dV,obj.mesh,2);
             volume = obj.totalVolume- pi*x.fValues'*x.fValues;
             J      = volume/obj.totalVolume;
@@ -61,7 +61,7 @@ classdef VolumeFunctionalRadius < handle
         function dJ = computeGradient(obj,x)
             dJ = copy(x);
             fValues = -2*pi*dJ.fValues;
-            dJ.setFValues(fValues./obj.totalVolume);
+%             dJ.setFValues(fValues./obj.totalVolume);
             dJ.setFValues(fValues./norm(fValues));
         end
     end

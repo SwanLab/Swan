@@ -62,10 +62,14 @@ classdef ComplianceFunctionalRadius < handle
 
         function dJ = computeGradient(obj,dK,u,mu)
             uL = obj.stateProblem.EIFEMsolver.global2local(u);
-            nelem = size(uL,2);
-            for ielem = 1:nelem
-                dj(ielem,1) = -uL(:,ielem)'*dK(:,:,ielem)*uL(:,ielem);
-            end
+%             nelem = size(uL,2);
+            [nDof, nElem] = size(uL);
+            u_pages = reshape(uL, nDof, 1, nElem);
+            Ku = pagemtimes(dK, u_pages);
+            dj = -reshape(sum(u_pages .* Ku, 1), nElem, 1);
+%             for ielem = 1:nelem
+%                 dj(ielem,1) = -uL(:,ielem)'*dK(:,:,ielem)*uL(:,ielem);
+%             end
             s.mesh = mu.fun.mesh;
             s.order = mu.fun.order;
             s.fValues = dj;
