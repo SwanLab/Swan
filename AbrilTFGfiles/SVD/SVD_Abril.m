@@ -5,8 +5,8 @@ clear;
 close all;
 
 %% Load Data
-p.nelem     =  20;
-p.Inclusion = 'HoleRaul';         % 'Hole'/'Material'/'HoleRaul'
+p.nelem     =  50;
+p.Inclusion = 'Material';         % 'Hole'/'Material'/'HoleRaul'
 p.Sampling  = 'Isolated';     % 'Isolated'/'Oversampling'
 meshName    = p.nelem+"x"+p.nelem;
 
@@ -33,14 +33,14 @@ q = V(:,1:nBasis)*sValues;
 
 table=[r q];
 
-fileName=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,"SVD.mat");
-save(fileName,"U","S","V","r");
-QFileName = fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,"DataQ.csv");
+fileName=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"SVD.mat");
+save(fileName,"U","S","V","r","basis","nBasis");
+QFileName = fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"DataQ.csv");
 writematrix(table,QFileName);
 
 
 %% Export NN paraview file
-NNname=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,"Q_NN.mat");
+NNname=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"Q_NN.mat");
 load(NNname);
 
 

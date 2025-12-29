@@ -14,15 +14,15 @@ p.nelem=50;
 meshName    = p.nelem+"x"+p.nelem;
 
 % NN
-NNname=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,"Q_NN.mat");
+NNname=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"Q_NN.mat");
 load(NNname);
 
 % High Order function
-HOname=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,"HOfunction.mat");
+HOname=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"HOfunction.mat");
 load(HOname,"fR");
 
 % SVD
-SVDname=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,"SVD.mat");
+SVDname=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"SVD.mat");
 SVDdata=load(SVDname);
 
 
@@ -35,14 +35,6 @@ svdValues=SVDdata.V*SVDdata.S;
 % NN
 rFull = Data.buildModel(r,6);
 NNvalues=Q_NN.computeOutputValues(rFull);
-
-
-
-%NNvalues=zeros(size(r,1),size(Q_NN,2));
-%for j=1:size(Q_NN,2)     
-%    rFul = Data.buildModel(r,9);
-%    NNvalues(:,j)=Q_NN{j}.computeOutputValues(rFul);
-%end
 
 
 % HO (Esta a escalat al domini -1 1)

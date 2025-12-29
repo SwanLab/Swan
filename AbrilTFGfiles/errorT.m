@@ -18,16 +18,18 @@ meshName    =  p.nelem+"x"+p.nelem;
 
 % 1. NN
 filePath = fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,"T_NN.mat");
-load(filePath,'T_NN');
+load(filePath);
+pol_deg1=pol_deg;
 
 % 2. High Order function
-HOname=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,"HOfunction.mat");
+HOname=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"HOfunction.mat");
 load(HOname,"fT","deim");
 
 % 3. SVD +NN
-NNname=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,"Q_NN.mat");
+NNname=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"Q_NN.mat");
 load(NNname);
 U=deim.basis(:,1:10);
+pol_deg2=pol_deg;
 
 
 % Dataset
@@ -68,14 +70,15 @@ test.T3= zeros(mesh.nnodes*mesh.ndim*8,length(test.r));
 
 % 1. NN
 for i=1:length(training.r)
-    aux=computeT(mesh,training.r(i),T_NN);
+    aux=computeT_NN(mesh,training.r(i),T_NN,pol_deg1);
     training.T1(:,i)=aux(:);
 end
 
 for i=1:length(test.r)
-    aux=computeT(mesh,test.r(i),T_NN);
+    aux=computeT_NN(mesh,test.r(i),T_NN,pol_deg1);
     test.T1(:,i)=aux(:);
 end
+
 
 % 2. High Order function
 for i=1:length(training.r)
@@ -88,17 +91,16 @@ for i=1:length(test.r)
     test.T2(:,i)=aux(:);
 end
 
+
 % 3. SVD + NN
 for i=1:length(training.r)
-    rFull = Data.buildModel(training.r(i),6);
-    q=Q_NN.computeOutputValues(rFull).';
-    training.T3(:,i)=U*q;
+    aux=computeT_Hybrid(basis,training.r(i),Q_NN,pol_deg2);
+    training.T3(:,i)=aux(:);
 end
 
 for i=1:length(test.r)
-    rFull = Data.buildModel(test.r(i),6);
-    q=Q_NN.computeOutputValues(rFull).';
-    test.T3(:,i)=U*q;
+    aux=computeT_Hybrid(basis,test.r(i),Q_NN,pol_deg2);
+    test.T3(:,i)=aux(:);
 end
 
 
@@ -130,18 +132,3 @@ legend("NN","HO","SVD+NN");
 title("Test Error vs r for 50x50 mesh");
 xlabel('r');
 ylabel('error');
-
-
-%% Functions
-
-function T_trained=computeT(mesh,R,T_NN)
-    T_trained=[];
-        Taux2=[];
-        for i=1:size(mesh.coord,1)  % Evaluates all the coordenates
-            dataInput=[R,mesh.coord(i,:)];
-            dataFull=Data.buildModel(dataInput,6);
-            Taux1=T_NN.computeOutputValues(dataFull).';
-            Taux2=reshape(Taux1,2,[]);
-            T_trained=[T_trained;Taux2];
-        end
-end

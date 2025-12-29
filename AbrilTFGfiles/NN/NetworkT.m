@@ -11,7 +11,7 @@ p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
 p.Inclusion  ='HoleRaul';    %'Material'/'Hole'/'HoleRaul
 
 %% Initialization of hyperparameters
-pol_deg         = 9;
+pol_deg         = 6;
 testratio       = 30;
 lambda          = 0.0;
 learningRate    = 0.1;
@@ -56,4 +56,4 @@ T_NN.solve();
 T_NN.plotCostFnc();
     
 FileName=fullfile('AbrilTFGfiles',"Data",p.Inclusion,p.Sampling,"T_NN.mat");
-    save(FileName, "T_NN");
+    save(FileName, "T_NN","pol_deg");

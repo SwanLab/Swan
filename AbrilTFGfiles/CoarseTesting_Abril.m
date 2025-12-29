@@ -130,8 +130,8 @@ classdef CoarseTesting_Abril< handle
 
         function init(obj)
             % Case Parameters
-            p.Inclusion = 'Material';         % 'Hole'/'Material'/'HoleRaul'
-            p.Sampling  = 'Oversampling';         % 'Isolated'/'Oversampling'
+            p.Inclusion = 'HoleRaul';         % 'Hole'/'Material'/'HoleRaul'
+            p.Sampling  = 'Isolated';         % 'Isolated'/'Oversampling'
             p.loadData  = 'Dataset';          % 'Dataset'/'NN'
             p.nelem     =  50;                %  Mesh refining
             obj.params  =  p;

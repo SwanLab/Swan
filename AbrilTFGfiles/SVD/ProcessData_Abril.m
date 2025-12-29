@@ -21,9 +21,9 @@ for k = 1:1:length(files)
     % Load the file
     data=load(filePath);
 
-    T(:,i) = data.T(:);  % This stores each file's contents in the cell array 'allData'
+    T(:,i)       = data.T(:);  % This stores each file's contents in the cell array 'allData'
     Kcoarse(:,i) = data.Kcoarse(:);
-    Kfine(:,i) = data.Kfine(:);
+    Kfine(:,i)   = data.Kfine(:);
     disp(['Loaded: ', files(k).name]);  % Display the file being loaded
     i=i+1;
 end
@@ -37,7 +37,7 @@ mesh=data.mesh;
 
 [fT,deim,dfT,fR]   = parameterizedDataLagrange(T,xdata);
 [fK,~,dfK,~]   = parameterizedDataLagrange(Kcoarse,xdata);
-fileName=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,"HOfunction.mat");
+fileName=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"HOfunction.mat");
 save(fileName,"fR","fT","deim","mesh");
 
 
