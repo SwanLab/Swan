@@ -3,19 +3,20 @@ clear;
 close all;
 
 %% Case parameters
+p.nelem      = 20;
 p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
 p.Inclusion  ='HoleRaul';    %'Material'/'Hole'/'HoleRaul
-
+meshName     = p.nelem+"x"+p.nelem;
 %% Initialization of hyperparameters
 pol_deg         = 6;
 testratio       = 30;
 lambda          = 0.0;
-learningRate    = 0.0001;
-hiddenLayers    =[20 40 100 100 40 20];
+learningRate    = 0.001;
+hiddenLayers    =[100 150 200 250 200 150 100 60 40 24 20];
 
 %% INITIALIZATION 
 % Store dataset file name
-s.fileName = fullfile('AbrilTFGfiles',"Data",p.Inclusion,p.Sampling,'DataQ.csv');
+s.fileName = fullfile('AbrilTFGfiles',"Data",p.Inclusion,p.Sampling,meshName,'DataQ.csv');
 
 % Load model parameters
 s.polynomialOrder = pol_deg;
@@ -47,12 +48,12 @@ Q_NN.plotCostFnc();
 
 string ="Q_NN.mat";
 FileName=fullfile('AbrilTFGfiles',"Data",p.Inclusion,p.Sampling,string);
-save(FileName, "Q_NN");
+save(FileName, "Q_NN","pol_deg");
 
 %% Plot surface
 
 % Load dataset from specified path
-filePath = fullfile('AbrilTFGfiles',"Data",p.Inclusion,p.Sampling, s.fileName);
+filePath = s.fileName;
 tempData = readmatrix(filePath);
 
 real = tempData(:,s.yFeatures);
