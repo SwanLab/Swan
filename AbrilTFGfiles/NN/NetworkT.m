@@ -15,8 +15,8 @@ pol_deg         = 6;
 testratio       = 30;
 lambda          = 0.0;
 learningRate    = 0.1;
-hiddenLayers    = [230 250 300 250 230 100 60 40 24 12];
- 
+hiddenLayers    = [100 150 200 250 200 150 100 60 40 24 20];
+
 
 %% INITIALIZATION 
 % Store dataset file name

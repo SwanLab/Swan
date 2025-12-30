@@ -10,7 +10,6 @@ clc; clear;
 p.nelem=20;
 p.Sampling ='Isolated';     %'Isolated'/'Oversampling'
 p.Inclusion='Material';    %'Material'/'Hole'/'HoleRaul
-p.nelem=50;
 meshName    = p.nelem+"x"+p.nelem;
 
 % NN
