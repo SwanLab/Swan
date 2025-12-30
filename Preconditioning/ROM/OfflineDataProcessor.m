@@ -63,15 +63,17 @@ classdef OfflineDataProcessor < handle
 
             Ud = PhiD*(Add'\Ldv);
             Ur = PhiR*inv(Arr')*(Lrv - Adr'*(Add'\Ldv));
+            U  = Ur+Ud;
 
             Kcoarse = Ud'*obj.LHS*Ud;
 
-            EIFEoper.Kcoarse = @(x) Kcoarse;
-            EIFEoper.Urb = @(x) Ur;
-            EIFEoper.Udef = @(x) Ud;
-            EIFEoper.PhiD = @(x) PhiD;
-            EIFEoper.PhiR = @(x) PhiR;
-            EIFEoper.Kfine = @(x) obj.LHS;
+            EIFEoper.Kcoarse = Kcoarse;
+            EIFEoper.U       = U;
+            EIFEoper.Urb     = Ur;
+            EIFEoper.Udef    = Ud;
+            EIFEoper.PhiD    = PhiD;
+            EIFEoper.PhiR    = PhiR;
+            EIFEoper.Kfine   = obj.LHS;
         end
 
     end
@@ -277,7 +279,7 @@ classdef OfflineDataProcessor < handle
         end
 
         function [young,poisson] = computeElasticProperties(obj,mesh)
-              E1  = 1;
+            E1  = 1;
             E2 = E1/1000;
             nu = 1/3;
 %            young   = ConstantFunction.create(obj.E,mesh);

@@ -3,13 +3,14 @@
 
 clc; clear; close all;
 
-r = 1e-6:0.1:0.999; 
-%r=0.05:0.02:0.999;
+%r = 1e-6:0.05
+% :0.999; 
+r=0:0.05:0.999;
 %r=0.35;
 
 p.Sampling ='Isolated';     %'Isolated'/'Oversampling'
-p.Inclusion='HoleRaul';    %'Material'/'Hole'/'HoleRaul
-p.nelem=10;
+p.Inclusion='Material';    %'Material'/'Hole'/'HoleRaul
+p.nelem=20;
 meshName    = p.nelem+"x"+p.nelem;
 
 doplot=false();
@@ -18,12 +19,13 @@ for j = 1:size(r,2)
     %[~, Kfine, T, l, mesh,Kcoarse] = IsolatedTraining(r(j),p.nelem,doplot);
 
     mR=createReferenceMesh(p,r(j));
-    results=OversamplingTraining(mR,r(j),p);
+    data=OversamplingTraining(mR,r(j),p);
+    z=OfflineDataProcessor(data);
+    EIFEoper = z.computeROMbasis();
 
-    T        = results.uSbd;
-    Kfine    = results.LHSsbd;
-    mesh     = results.mesh;
-    Kcoarse  = T.'*Kfine*T;
+    T        = EIFEoper.U;
+    mesh     = data.mesh;
+    Kcoarse  = EIFEoper.Kcoarse;
     R        = r(j);
 
     % Initialization for K_all and T_all
@@ -55,7 +57,7 @@ for j = 1:size(r,2)
 
     % Guarda el .mat per cert radi
     FileName=fullfile('AbrilTFGfiles','Data',p.Inclusion,p.Sampling,meshName,string);
-    save(FileName, "T", "Kfine", "Kcoarse","mesh","R"); 
+    save(FileName, "EIFEoper","T","Kcoarse","mesh","R"); 
 end
 
 

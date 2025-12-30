@@ -28,6 +28,7 @@ load(HOname,"fT","deim");
 % 3. SVD +NN
 NNname=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"Q_NN.mat");
 load(NNname);
+
 U=deim.basis(:,1:10);
 pol_deg2=pol_deg;
 

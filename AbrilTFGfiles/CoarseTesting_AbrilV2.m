@@ -496,7 +496,7 @@ classdef CoarseTesting_AbrilV2< handle
              else
                  R = zeros(sum(u.nDofs(:)),1);
              end
-             rhs = rhs+R;
+             rhs = rhs+R;AHH
 
              RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
         end

@@ -4,6 +4,8 @@ classdef OversamplingTraining < handle
         uSbd
         LHSsbd
         mesh
+        E
+        nu
         Coarseorder
     end
     properties (Access = private)
@@ -105,22 +107,22 @@ classdef OversamplingTraining < handle
 
 
         function [young,poisson] = computeElasticProperties(obj,mesh)
-            E1  = 1;
-            nu  = 1/3;
+            obj.E  = 1;
+            obj.nu  = 1/3;
             r   = obj.radius;
 
             switch obj.Inclusion
                 case {'Hole','HoleRaul'}
-                    young   = ConstantFunction.create(E1,mesh);
-                    poisson = ConstantFunction.create(nu,mesh);
+                    young   = ConstantFunction.create(obj.E,mesh);
+                    poisson = ConstantFunction.create(obj.nu,mesh);
                 case 'Material'
-                    E2 = E1/1000;
+                    E2 = obj.E/1000;
                     x0=mean(mesh.coord(:,1));
                     y0=mean(mesh.coord(:,2));
                     f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<r)*E2 + ...
-                                (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=r)*E1 ; 
+                                (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=r)*obj.E ; 
                     young   = AnalyticalFunction.create(f,mesh);
-                    poisson = ConstantFunction.create(nu,mesh);
+                    poisson = ConstantFunction.create(obj.nu,mesh);
             end   
         end
 

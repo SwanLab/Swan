@@ -5,7 +5,7 @@ clear;
 close all;
 
 %% Load Data
-p.nelem     =  50;
+p.nelem     =  20;
 p.Inclusion = 'Material';         % 'Hole'/'Material'/'HoleRaul'
 p.Sampling  = 'Isolated';     % 'Isolated'/'Oversampling'
 meshName    = p.nelem+"x"+p.nelem;
@@ -37,19 +37,3 @@ fileName=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"SVD.ma
 save(fileName,"U","S","V","r","basis","nBasis");
 QFileName = fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"DataQ.csv");
 writematrix(table,QFileName);
-
-
-%% Export NN paraview file
-NNname=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"Q_NN.mat");
-load(NNname);
-
-
-rad=0.3;
-rFull = Data.buildModel(rad,6);
-qNN=Q_NN.computeOutputValues(rFull).';
-
-
-T_NN=basis*qNN;
-u=reshape(T_NN,[],8);
-
-exportT_weakInclusion(u,rad, data.mesh,"TestNN");

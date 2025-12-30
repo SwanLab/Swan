@@ -2,9 +2,9 @@ close all
 clear all
 
 % Specify case parameters
-p.nelem     =  10;
-p.Inclusion = 'HoleRaul';         % 'Hole'/'Material'/'HoleRaul'
-p.Sampling  = 'Oversampling';     % 'Isolated'/'Oversampling'
+p.nelem     =  20;
+p.Inclusion = 'Material';         % 'Hole'/'Material'/'HoleRaul'
+p.Sampling  = 'Isolated';     % 'Isolated'/'Oversampling'
 meshName    = p.nelem+"x"+p.nelem;
 
 % Specify the directory where the .mat files are located
@@ -19,11 +19,16 @@ for k = 1:1:length(files)
     filePath = fullfile(files(k).folder, files(k).name);
 
     % Load the file
-    data=load(filePath);
+    load(filePath,'EIFEoper',"mesh");
 
-    T(:,i)       = data.T(:);  % This stores each file's contents in the cell array 'allData'
-    Kcoarse(:,i) = data.Kcoarse(:);
-    Kfine(:,i)   = data.Kfine(:);
+    T(:,i) = EIFEoper.U(:);  % This stores each file's contents in the cell array 'allData'
+    Td(:,i) = EIFEoper.Udef(:);
+    Tr(:,i) = EIFEoper.Urb(:);
+    Kcoarse(:,i) = EIFEoper.Kcoarse(:);
+    Kfine(:,i) = EIFEoper.Kfine(:);
+    PhiD(:,i) = EIFEoper.PhiD(:);
+    PhiR(:,i) = EIFEoper.PhiR(:);
+
     disp(['Loaded: ', files(k).name]);  % Display the file being loaded
     i=i+1;
 end
@@ -33,21 +38,28 @@ xdata   = linspace(0,0.95,20);
 %xdata   = linspace(0,0.98,50);
 
 centers = xdata;
-mesh=data.mesh;
+%mesh=data.mesh;
 
 [fT,deim,dfT,fR]   = parameterizedDataLagrange(T,xdata);
+[Tdef,~,dTdef]  = parameterizedDataLagrange(Td,xdata);
+[Trb,~,dTrb]  = parameterizedDataLagrange(Tr,xdata);
 [fK,~,dfK,~]   = parameterizedDataLagrange(Kcoarse,xdata);
+
 fileName=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"HOfunction.mat");
 save(fileName,"fR","fT","deim","mesh");
 
+EIFEoper.Kcoarse    = fK;
+EIFEoper.Udef       = Tdef;
+EIFEoper.Urb        = Trb;
+EIFEoper.U          = fT;
+EIFEoper.dKcoarse   = dfK;
+EIFEoper.dUdef      = dTdef;
+EIFEoper.dUrb       = dTrb;
+EIFEoper.dU         = dfT;
+EIFEoper.deim       = deim;
 
-EIFEoper.Kcoarse     = fK;
-EIFEoper.U           = fT;
-EIFEoper.dKcoarse    = dfK;
-EIFEoper.dU          = dfT;
-EIFEoper.deim        = deim;
 
-filePath = fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"parametrizedEIFEMLagrange.mat");
+filePath = fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"parametrizedEIFEM.mat");
 save(filePath,'EIFEoper');
 
 
