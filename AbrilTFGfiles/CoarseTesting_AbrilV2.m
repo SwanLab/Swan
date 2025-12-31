@@ -27,7 +27,6 @@ classdef CoarseTesting_AbrilV2< handle
         NN
         data
         params
-        fileNameEIFEM
 
         xmin 
         xmax 
@@ -116,10 +115,10 @@ classdef CoarseTesting_AbrilV2< handle
 
         function init(obj)
             % Case Parameters
-            p.Inclusion = 'HoleRaul';         % 'Hole'/'Material'/'HoleRaul'
-            p.Sampling  = 'Oversampling';     % 'Isolated'/'Oversampling'
-            p.Option    = 'HO';          % 'Dataset'/'NN'/'HO'/ 'Hybrid'
-            p.nelem     =  20;                 %  Mesh refining
+            p.Inclusion = 'Material';         % 'Hole'/'Material'/'HoleRaul'   --> Hole: just for constant r
+            p.Sampling  = 'Isolated';     % 'Isolated'/'Oversampling'
+            p.Option    = 'NN';          % 'Dataset'/'NN'/'HO'/ 'Hybrid'
+            p.nelem     =  50;                 %  Mesh refining
             obj.params  =  p;
             meshName    =  p.nelem+"x"+p.nelem;
 
@@ -132,7 +131,6 @@ classdef CoarseTesting_AbrilV2< handle
             obj.nSubdomains    = size(obj.r');
             obj.mSubdomains    = [];
             obj.tolSameNode    = 1e-10;
-            obj.fileNameEIFEM  = fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"parametrizedEIFEMLagrange.mat");
         end
 
         function NameFile=computeNameFile(obj)
@@ -149,49 +147,39 @@ classdef CoarseTesting_AbrilV2< handle
         end
 
         function loadNN(obj,nameNN)
-            load(nameNN(1,1), 'K_NN');
+            p=obj.params;
+            filePath = fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,nameNN(1,1));
+            load(filePath,"K_NN");
+            filePath = fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,nameNN(1,2));
+            load(filePath,"T_NN","pol_deg");
             obj.NN.K=K_NN;
-            load(nameNN(1,2), 'T_NN');
             obj.NN.T=T_NN;
+            obj.NN.poldeg=pol_deg;
         end
 
-        function loadT(obj,name,inclusion)
-            n=obj.params.nelem;
+        function loadDataset(obj,name)
+            p=obj.params;
+            n=p.nelem;
             Taux=cell(size(name,1),size(name,2));
+            Kaux=cell(size(name,1),size(name,2));
             meshName=n+"x"+n;
             for i=1:size(name,1)
                 for j=1:size(name,2)
-                    switch inclusion
-                        case 'Material'
-                                filePath = fullfile('AbrilTFGfiles', 'Data',meshName,name(i,j));
+                    switch p.Inclusion
+                        case {'Material','HoleRaul'}
+                                filePath = fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,name(i,j));
                         case 'Hole'
                                 filePath = fullfile('AbrilTFGfiles', 'Data','hole',name(i,j));
                     end
-                    load(filePath,"T");
+                    load(filePath,"T","Kcoarse");
                     Taux{i,j}=T;
+                    Kaux{i,j}=Kcoarse;
                 end
             end
             obj.data.T=Taux;
-        end
-
-        function loadK(obj,name,inclusion)
-            n=obj.params.nelem;
-            Kaux=cell(1,length(name));
-            meshName=n+"x"+n;
-            for i=1:size(name,1)
-                for j=1:size(name,2)
-                    switch inclusion
-                        case 'Material'
-                                filePath = fullfile('AbrilTFGfiles', 'Data',meshName,name(i,j));
-                        case 'Hole'
-                                filePath = fullfile('AbrilTFGfiles', 'Data','hole',name(i,j));
-                    end
-                    load(filePath,"K");
-                    Kaux{i,j}=K;
-                end
-            end
             obj.data.K=Kaux;
         end
+
 
         function createMesh(obj)
             mSbd = obj.createSubDomainMeshes();
@@ -496,18 +484,19 @@ classdef CoarseTesting_AbrilV2< handle
              else
                  R = zeros(sum(u.nDofs(:)),1);
              end
-             rhs = rhs+R;AHH
-
+             rhs = rhs+R;
              RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
         end
 
          function Meifem = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh)
+            p=obj.params;
             mR = obj.referenceMesh;
+            fileNameEIFEM  = fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"parametrizedEIFEM.mat");
             %Data = OversamplingTraining(mR,obj.r(1,1),obj.params);
             %p = OfflineDataProcessor(Data);
             %EIFEoper = p.computeROMbasis();
             %s.RVE          = TrainedRVE(EIFEoper);
-            s.RVE           = TrainedRVE(obj.fileNameEIFEM);
+            s.RVE           = TrainedRVE(fileNameEIFEM);
             s.mesh          = obj.createCoarseMesh();
             s.DirCond       = dir;
             s.nSubdomains   = obj.nSubdomains;
@@ -530,8 +519,7 @@ classdef CoarseTesting_AbrilV2< handle
             switch p.Option
                 case 'Dataset'
                     nameFile=obj.computeNameFile();
-                    obj.loadT(nameFile,p.Inclusion);
-                    obj.loadK(nameFile,p.Inclusion);
+                    obj.loadDataset(nameFile);
                 case 'NN'
                     nameNN= ["K_NN.mat","T_NN.mat"];
                     obj.loadNN(nameNN);
@@ -548,8 +536,8 @@ classdef CoarseTesting_AbrilV2< handle
                             RVE{i,j}.Kcoarse= obj.data.K{i,j};
                             RVE{i,j}.U= obj.data.T{i,j}; 
                         case 'NN'
-                            RVE{i,j}.Kcoarse = obj.computeKcoarse(obj.r(i,j)); 
-                            RVE{i,j}.U       = obj.computeTdownscaling(obj.r(i,j),obj.subdomainMeshes{i,j});
+                            RVE{i,j}.Kcoarse = computeKcoarse_NN(obj.NN.K,obj.r(i,j));
+                            RVE{i,j}.U       = computeT_NN(obj.subdomainMeshes{i,j},obj.r(i,j),obj.NN.T,obj.NN.poldeg);
                     end
                 end
             end
@@ -572,31 +560,6 @@ classdef CoarseTesting_AbrilV2< handle
         end
 
 
-        function K=computeKcoarse(obj,r)
-            K_aux1=obj.NN.K.computeOutputValues(r);
-            K_aux2=zeros(8);
-            idx=1;
-            for n=1:8
-                for m=n:8
-                    K_aux2(n,m)=K_aux1(idx);
-                    idx=idx+1;
-                end
-            end
-            K=K_aux2+triu(K_aux2,1).';
-        end
-
-        function T=computeTdownscaling(obj,r,mesh)
-            T=zeros(mesh.nnodes*mesh.ndim,8);
-            for j=1:8                       % Constructs the 8 columns    
-                Taux2=[];
-                for i=1:size(mesh.coord,1)  % Evaluates all the coordenates and obtains corresponding column
-                    dataInput=[r,mesh.coord(i,:)];  
-                    Taux1=obj.NN.T{1,j}.computeOutputValues(dataInput).';
-                    Taux2=cat(1,Taux2,Taux1);
-                end
-                T(:,j)=Taux2;
-            end
-        end
 
         function Mdn = createDirichletNeumannPreconditioner(obj,mR,dir,iC,lG,bS,lhs,mSb,iCR)
             s.ddDofManager  = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);

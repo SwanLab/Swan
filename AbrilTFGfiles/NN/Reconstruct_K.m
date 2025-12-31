@@ -7,7 +7,7 @@ close all;
 %% Case parameters
 p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
 p.Inclusion  ='Material';    %'Material'/'Hole'/'HoleRaul
-p.nelem      = 50;
+p.nelem      = 20;
 meshName    =  p.nelem+"x"+p.nelem;
 
 
@@ -25,7 +25,7 @@ load(filePath2);
 % load the K real
 fileName3="UL_r0_5000-20x20.mat";
 filePath1 = fullfile('AbrilTFGfiles', 'Data', '20x20',fileName3);
-load(filePath1,"K","R");
+load(filePath1,"Kcoarse","R");
 
 
 

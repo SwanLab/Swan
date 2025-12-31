@@ -65,8 +65,8 @@ classdef CoarseTesting_Abril< handle
             % PRECONDITIONERS
             Meifem       = obj.createEIFEMPreconditioner(dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);            
             Milu         = obj.createILUpreconditioner(LHS);
-            Mcoarse     = obj.createCoarseNNPreconditioner(mR,dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);
-            MiluCG      = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
+            Mcoarse      = obj.createCoarseNNPreconditioner(mR,dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);
+            MiluCG       = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
             Mmult        = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Meifem,Milu);
 
 

@@ -34,17 +34,13 @@ classdef IsolatedTraining < handle
 
     methods (Access = public)
 
-        function [obj, K, u, L, mesh,Kcoarse] = IsolatedTraining(r,nelem,doplot)
+        function [obj, K, u, L, mesh,Kcoarse] = IsolatedTraining(r,nelem)
             obj.init(r,nelem)
             obj.createMesh();
             
             [u, L] = obj.doElasticProblemHere();
             mesh = obj.mesh;
             
-            % EXPORT TO PARAVIEW
-            if doplot==true()
-                exportT_weakInclusion(u,r,mesh,"_IsolatedTraining")
-            end
             K=obj.stiffness;
             Kcoarse=u.'*obj.stiffness*u;
             

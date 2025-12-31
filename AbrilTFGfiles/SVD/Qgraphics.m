@@ -51,7 +51,8 @@ end
 tiledlayout(2,5,'TileSpacing','compact','Padding','compact');
 for i=1:10
     ax=nexttile;
-    plot(r,svdValues(:,i),r,HOvalues(:,i), r,NNvalues(:,i),'LineWidth', 1);
+    %plot(r,svdValues(:,i),r,HOvalues(:,i), r,NNvalues(:,i),'LineWidth', 1);
+    plot(r,svdValues(:,i),r,HOvalues(:,i),'LineWidth', 1);
     xlabel('r');
     ylabel("Q"+i);
     title("Q"+ i);
