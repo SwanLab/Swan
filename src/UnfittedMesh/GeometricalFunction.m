@@ -198,6 +198,18 @@ classdef GeometricalFunction < handle
                     fH = @(x) a*(x2(x)-ym).*(x2(x)-yM);
                     obj.fHandle = fH;
 
+                case 'DiagonalFiber'
+                    l     = cParams.width;
+                    x0    = cParams.xVertex;
+                    y0    = cParams.yVertex;
+                    alpha = cParams.alpha;
+                    a     = 4/l^2;
+                    R     = [cos(alpha), sin(alpha); -sin(alpha), cos(alpha)];
+                    xLoc  = @(x) pagemtimes(R,[x1(x)-x0;x2(x)-y0]);
+                    x2Loc = @(x) pagemtimes([0,1],xLoc(x));
+                    fH    = @(x) a*x2Loc(x).*(x2Loc(x)-l);
+                    obj.fHandle = fH;
+
                 case 'HorizontalInclusion'
                     s      = cParams;
                     s.type = 'HorizontalFiber';
@@ -205,10 +217,12 @@ classdef GeometricalFunction < handle
 
                 case 'HorizontalNFibers'
                     n    = cParams.nFibers;
+                    l    = cParams.width;
                     ymin = cParams.minyCoor;
                     ymax = cParams.maxyCoor;
                     k    = 2*pi*n/(ymax-ymin);
-                    fH   = @(x) sin(k*(x2(x)-ymin)+pi/2);
+                    y0   = cos(pi - l*k/2);
+                    fH   = @(x) sin(k*(x2(x)-ymin)+pi/2) - y0;
                     obj.fHandle = fH;
 
                 case 'Holes'
