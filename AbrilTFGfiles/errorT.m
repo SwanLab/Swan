@@ -13,7 +13,7 @@ clc; clear;
 %% LOAD DATA
 p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
 p.Inclusion  ='Material';    %'Material'/'Hole'/'HoleRaul
-p.nelem      = 50;
+p.nelem      = 20;
 meshName    =  p.nelem+"x"+p.nelem;
 
 % 1. NN
@@ -34,7 +34,7 @@ pol_deg2=pol_deg;
 
 
 % Dataset
-directory = './AbrilTFGfiles/Data/Material/Isolated/50x50';
+directory= fullfile("AbrilTFGfiles/Data",p.Inclusion,p.Sampling,meshName);
 files = dir(fullfile(directory, 'r0_*.mat'));
 i=1;
 for k = 1:1:length(files)
@@ -49,17 +49,19 @@ mesh=data.mesh;
 
 %% TEST DATA GENERATION 
 
-test.r=0.05:0.02:0.999;
+test.r=0.025:0.05:0.999;
 
 test.T=zeros(size(training.T,1),size(test.r,2));
 for i=1:size(test.r,2)
-    [~, ~, Ttest, ~, ~,~] = IsolatedTraining(test.r(i),p.nelem,0);
-    test.T(:,i)=Ttest(:);
+    data=OversamplingTraining(mesh,test.r(i),p);
+    z=OfflineDataProcessor(data);
+    EIFEoper = z.computeROMbasis();
+    test.T(:,i)=EIFEoper.U(:);
 end
 
 
 %% RECONSTRUCT T DATA
-training.r=0:0.02:0.98;
+training.r=0:0.05:0.999;
 
 training.T1= zeros(mesh.nnodes*mesh.ndim*8,length(training.r));
 training.T2= zeros(mesh.nnodes*mesh.ndim*8,length(training.r));
