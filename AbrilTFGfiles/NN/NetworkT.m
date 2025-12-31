@@ -7,7 +7,7 @@ clear;
 close all;
 
 %% Case parameters
-p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
+p.Sampling   ='Oversampling';     %'Isolated'/'Oversampling'
 p.Inclusion  ='Material';    %'Material'/'Hole'/'HoleRaul
 
 %% Initialization of hyperparameters
