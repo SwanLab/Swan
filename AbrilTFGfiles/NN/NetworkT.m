@@ -8,14 +8,14 @@ close all;
 
 %% Case parameters
 p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
-p.Inclusion  ='HoleRaul';    %'Material'/'Hole'/'HoleRaul
+p.Inclusion  ='Material';    %'Material'/'Hole'/'HoleRaul
 
 %% Initialization of hyperparameters
-pol_deg         = 6;
+pol_deg         = 9;
 testratio       = 30;
 lambda          = 0.0;
-learningRate    = 0.1;
-hiddenLayers    = [100 150 200 250 200 150 100 60 40 24 20];
+learningRate    = 0.01;
+hiddenLayers    = [224 250 280 300 280 250 224 200 150 100 72 50 20];
 
 
 %% INITIALIZATION 
@@ -27,7 +27,7 @@ s.polynomialOrder = pol_deg;
 s.testRatio       = testratio;
 s.networkParams.hiddenLayers    = hiddenLayers;
 s.optimizerParams.learningRate  = learningRate;
-s.optimizerParams.maxEpochs = 100000; % 1000 is the best option, but we use 10 to pass the tutorial quickly
+s.optimizerParams.maxEpochs = 10000; % 1000 is the best option, but we use 10 to pass the tutorial quickly
 s.costParams.lambda             = lambda;
 s.costParams.costType           = 'L2';
 

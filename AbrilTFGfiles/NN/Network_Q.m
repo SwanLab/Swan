@@ -5,14 +5,14 @@ close all;
 %% Case parameters
 p.nelem      = 20;
 p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
-p.Inclusion  ='HoleRaul';    %'Material'/'Hole'/'HoleRaul
+p.Inclusion  ='Material';    %'Material'/'Hole'/'HoleRaul
 meshName     = p.nelem+"x"+p.nelem;
 %% Initialization of hyperparameters
-pol_deg         = 6;
+pol_deg         = 9;
 testratio       = 30;
 lambda          = 0.0;
 learningRate    = 0.001;
-hiddenLayers    =[100 150 200 250 200 150 100 60 40 24 20];
+hiddenLayers    =[12 20 30 50 100 50 30 20];
 
 %% INITIALIZATION 
 % Store dataset file name
@@ -47,7 +47,7 @@ Q_NN.plotCostFnc();
 
 
 string ="Q_NN.mat";
-FileName=fullfile('AbrilTFGfiles',"Data",p.Inclusion,p.Sampling,string);
+FileName=fullfile('AbrilTFGfiles',"Data",p.Inclusion,p.Sampling,meshName,string);
 save(FileName, "Q_NN","pol_deg");
 
 %% Plot surface

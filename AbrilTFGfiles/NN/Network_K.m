@@ -10,8 +10,8 @@ p.Inclusion  ='Material';    %'Material'/'Hole'/'HoleRaul
 pol_deg         = 1;
 testratio       = 30;
 lambda          = 0.0;
-learningRate    = 0.2;
-hiddenLayers    = 36 .* ones(1, 2);
+learningRate    = 0.1;
+hiddenLayers    = [40 60 80 100 80 60 40];
 
 %% INITIALIZATION 
 % Store dataset file name
@@ -22,7 +22,7 @@ s.polynomialOrder = pol_deg;
 s.testRatio       = testratio;
 s.networkParams.hiddenLayers    = hiddenLayers;
 s.optimizerParams.learningRate  = learningRate;
-s.optimizerParams.maxEpochs = 1000; % 1000 is the best option, but we use 10 to pass the tutorial quickly
+s.optimizerParams.maxEpochs = 500000; % 1000 is the best option, but we use 10 to pass the tutorial quickly
 s.costParams.lambda             = lambda;
 s.costParams.costType           = 'L2';
 
@@ -49,18 +49,18 @@ string ="K_NN.mat";
 FileName=fullfile('AbrilTFGfiles',"Data",p.Inclusion,p.Sampling,string);
     save(FileName, "K_NN");
 
-%% Plot surface
-
-% Load dataset from specified path
-filePath = fullfile('AbrilTFGfiles', s.fileName);
-tempData = readmatrix(filePath);
-
-real = tempData(:,s.yFeatures);
-predicted = zeros(size(real));
-
-for i = 1:size(real,1)
-    predicted(i,:) = K_NN.computeOutputValues(tempData(i,s.xFeatures));
-end
-
-difference = real-predicted;
-disp(norm(difference));
+%%% Plot surface
+%
+%% Load dataset from specified path
+%filePath = fullfile('AbrilTFGfiles', s.fileName);
+%tempData = readmatrix(filePath);
+%
+%real = tempData(:,s.yFeatures);
+%predicted = zeros(size(real));
+%
+%for i = 1:size(real,1)
+%    predicted(i,:) = K_NN.computeOutputValues(tempData(i,s.xFeatures));
+%end
+%
+%difference = real-predicted;
+%disp(norm(difference));

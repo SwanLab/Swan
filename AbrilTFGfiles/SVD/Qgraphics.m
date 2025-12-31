@@ -32,7 +32,7 @@ r=SVDdata.r;
 svdValues=SVDdata.V*SVDdata.S;
 
 % NN
-rFull = Data.buildModel(r,6);
+rFull = Data.buildModel(r,pol_deg);
 NNvalues=Q_NN.computeOutputValues(rFull);
 
 
