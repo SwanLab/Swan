@@ -2,8 +2,8 @@ close all
 clear all
 
 % Specify case parameters
-p.nelem     =  20;
-p.Inclusion = 'Material';         % 'Hole'/'Material'/'HoleRaul'
+p.nelem     =  10;
+p.Inclusion = 'HoleRaul';         % 'Hole'/'Material'/'HoleRaul'
 p.Sampling  = 'Isolated';     % 'Isolated'/'Oversampling'
 meshName    = p.nelem+"x"+p.nelem;
 
