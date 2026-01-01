@@ -1,8 +1,7 @@
 %% T error Graphics Comparison
 
 % This script has the purpose to visualize the error between the different
-% options along the radius. It is initially intended just to study for the
-% mesh 50x50 case
+% options along the radius.
 
 % 1. T NN 
 % 2. HO FE aproximation
@@ -12,7 +11,7 @@ clc; clear;
 
 %% LOAD DATA
 p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
-p.Inclusion  ='Material';    %'Material'/'Hole'/'HoleRaul
+p.Inclusion  ='HoleRaul';    %'Material'/'Hole'/'HoleRaul
 p.nelem      = 20;
 meshName    =  p.nelem+"x"+p.nelem;
 
@@ -122,7 +121,7 @@ test.err3=vecnorm(abs(test.T-test.T3))/norm(test.T);
 figure
 plot(training.r,training.err1,training.r,training.err2,training.r,training.err3,LineWidth=1.5);
 legend("NN","HO","SVD+NN");
-title("Error vs r for 50x50 mesh");
+title("Training Error vs r");
 xlabel('r');
 ylabel('error');
 
@@ -132,6 +131,6 @@ ylabel('error');
 figure
 plot(test.r,test.err1,test.r,test.err2,test.r,test.err3,LineWidth=1.5);
 legend("NN","HO","SVD+NN");
-title("Test Error vs r for 50x50 mesh");
+title("Test Error vs r ");
 xlabel('r');
 ylabel('error');
