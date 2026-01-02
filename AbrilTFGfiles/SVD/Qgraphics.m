@@ -8,20 +8,23 @@ clc; clear;
 
 %% LOAD DATA
 p.nelem=20;
-p.Sampling ='Isolated';     %'Isolated'/'Oversampling'
+p.Sampling ='Oversampling';     %'Isolated'/'Oversampling'
 p.Inclusion='HoleRaul';    %'Material'/'Hole'/'HoleRaul
 meshName    = p.nelem+"x"+p.nelem;
 
 % NN
 NNname=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"Q_NN.mat");
+% NNname=fullfile("AbrilTFGfiles","Data","Multiscale","Q_NN.mat");
 load(NNname);
 
 % High Order function
 HOname=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"HOfunction.mat");
+% HOname=fullfile("AbrilTFGfiles","Data","Multiscale","HOfunction.mat");
 load(HOname,"fR");
 
 % SVD
 SVDname=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"SVD.mat");
+% SVDname=fullfile("AbrilTFGfiles","Data","Multiscale","SVD.mat");
 SVDdata=load(SVDname);
 
 
@@ -52,7 +55,6 @@ tiledlayout(2,5,'TileSpacing','compact','Padding','compact');
 for i=1:10
     ax=nexttile;
     plot(r,svdValues(:,i),r,HOvalues(:,i), r,NNvalues(:,i),'LineWidth', 1);
-    %plot(r,svdValues(:,i),r,HOvalues(:,i),'LineWidth', 1);
     xlabel('r');
     ylabel("Q"+i);
     title("Q"+ i);
