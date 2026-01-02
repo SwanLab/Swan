@@ -9,7 +9,7 @@ clc; clear;
 %% LOAD DATA
 p.nelem=20;
 p.Sampling ='Isolated';     %'Isolated'/'Oversampling'
-p.Inclusion='Material';    %'Material'/'Hole'/'HoleRaul
+p.Inclusion='HoleRaul';    %'Material'/'Hole'/'HoleRaul
 meshName    = p.nelem+"x"+p.nelem;
 
 % NN
