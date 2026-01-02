@@ -11,6 +11,7 @@ p.Sampling  = 'Isolated';     % 'Isolated'/'Oversampling'
 meshName    = p.nelem+"x"+p.nelem;
 
 files = dir(fullfile("AbrilTFGfiles/Data/",p.Inclusion,p.Sampling,meshName, 'r0_*.mat'));
+%files = dir(fullfile("AbrilTFGfiles/Data/",'Multiscale', 'r0_*.mat'));
 
 r=zeros(length(files),1);
 for k = 1:1:length(files)
@@ -34,6 +35,8 @@ q = V(:,1:nBasis)*sValues;
 table=[r q];
 
 fileName=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"SVD.mat");
+% fileName=fullfile("AbrilTFGfiles","Data",'Multiscale',"SVD.mat");
 save(fileName,"U","S","V","r","basis","nBasis");
 QFileName = fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"DataQ.csv");
+%QFileName = fullfile("AbrilTFGfiles","Data",'Multiscale',"DataQ.csv");
 writematrix(table,QFileName);

@@ -3,9 +3,9 @@
 
 clc; clear; close all;
 
-r=1e-6:0.05:0.999; 
+%r=1e-6:0.05:0.999; 
 %r=1e-6:0.1:0.999; 
-%r=0:0.05:0.999;
+r=0:0.05:0.999;
 %r=0.35;
 
 p.Sampling ='Isolated';     %'Isolated'/'Oversampling'
@@ -16,7 +16,7 @@ meshName    = p.nelem+"x"+p.nelem;
 doplot=false();
 
 for j = 1:size(r,2)
-    %[~, Kfine, T, l, mesh,Kcoarse] = IsolatedTraining(r(j),p.nelem,doplot);
+    %[~, Kfine, T, l, mesh,Kcoarse] = IsolatedTraining(r(j),p.nelem);
 
     mR=createReferenceMesh(p,r(j));
     data=OversamplingTraining(mR,r(j),p);
@@ -58,6 +58,9 @@ for j = 1:size(r,2)
     % Guarda el .mat per cert radi
     FileName=fullfile('AbrilTFGfiles','Data',p.Inclusion,p.Sampling,meshName,string);
     save(FileName, "EIFEoper","T","Kcoarse","mesh","R"); 
+
+    %FileName=fullfile('AbrilTFGfiles','Data','Multiscale',string);
+    %save(FileName, "T","Kcoarse","mesh","R"); 
 end
 
 
@@ -74,9 +77,8 @@ T=array2table(TData,"VariableNames",{'r','x','y','Tx1','Ty1','Tx2','Ty2','Tx3','
     'Tx5','Ty5','Tx6','Ty6','Tx7','Ty7','Tx8','Ty8'});
 
 uFileName = fullfile('AbrilTFGfiles','Data',p.Inclusion,p.Sampling,'DataT.csv');
+%uFileName = fullfile('AbrilTFGfiles','Data','Multiscale','DataT.csv');
 writematrix(TData,uFileName);
-%writetable(T,uFileName);
-
 
 
 %% Reshapes the K data and saves it in a csv file
@@ -96,6 +98,7 @@ end
 
 kdata=[r.',kdata];
 kFileName = fullfile('AbrilTFGfiles','Data',p.Inclusion,p.Sampling,'dataK.csv');
+%kFileName = fullfile('AbrilTFGfiles','Data','Multiscale','DataK.csv');
 writematrix(kdata,kFileName);
 
 

@@ -20,7 +20,8 @@ hiddenLayers    = [224 250 280 300 280 250 224 200 150 100 72 50 20];
 
 %% INITIALIZATION 
 % Store dataset file name
-s.fileName = fullfile('AbrilTFGfiles',"Data",p.Inclusion,p.Sampling,'DataT.csv');
+%s.fileName = fullfile('AbrilTFGfiles',"Data",p.Inclusion,p.Sampling,'DataT.csv');
+s.fileName = fullfile('AbrilTFGfiles',"Data",'Multiscale','DataT.csv');
 
 % Load model parameters
 s.polynomialOrder = pol_deg;
@@ -55,5 +56,6 @@ T_NN = OptimizationProblemNN(s);
 T_NN.solve();
 T_NN.plotCostFnc();
     
-FileName=fullfile('AbrilTFGfiles',"Data",p.Inclusion,p.Sampling,"T_NN.mat");
+%FileName=fullfile('AbrilTFGfiles',"Data",p.Inclusion,p.Sampling,"T_NN.mat");
+FileName=fullfile('AbrilTFGfiles',"Data",'Multiscale',"T_NN.mat");
     save(FileName, "T_NN","pol_deg");
