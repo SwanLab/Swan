@@ -20,30 +20,33 @@ fespace Vh(Th,P1);
 fespace Vh0(Th,P0);
 include "tools.idp"
 
+/* Variables definition */
+Vh phi, phio, /*Test function for a velocity component:*/ v;
+Vh /*Velocity components:*/ gx, gy, /*Cutoff function:*/ w;
+Vh0 Achi;
+
 /* Initialization of the Level Set function */
 func real initialGuess() {
   real x0 = 0, y0 = 0.5, lx = 1.5, ly = 0.4, p = 4, ls;
   ls = ((abs((x-x0)/lx)^p+abs((y-y0)/ly)^p)^(1/p)) - 0.5;
   return(ls);
 }
-Vh phio, phi;
 phio = initialGuess();
+phio[] = phio[]/sqrt(int2d(Th)(phio^2));
 distance(Th,phio,phi[]);
 
 /* Initialization */
-Vh0 Achi;
 real ers = 1.e-3;   // Ersatz material parameter
 Achi[] = volfrac(Th,phi[],ers);
 
 /* Regularization of shape derivative */
 real meshsiz = 1/(30*fac);
-real alpha = 4.0*meshsiz;
-Vh g, v;
+real alpha = 2.0*meshsiz;
 
-/* Objective function */
+/* Perimeter function */
 macro J() (int1d(Th,levelset=phi)(1)) // EOM
 
-/* Constraint */
+/* Volume constraint */
 macro C() (int2d(Th)(Achi) - 0.5) // EOM
 
 /* Initial value of the objective function */
@@ -55,7 +58,6 @@ newobj = J + 0.5*ell*constr^2;
 /* Print initial objective and save initial level set function and density */
 cout<<"Initial value of the objective function: "<<newobj<<endl;
 
-Vh nx, ny, vx, vy, kappa;
 int [int] lsLabel(1);
 lsLabel[0] = 10;
 
@@ -69,64 +71,64 @@ macro updateBoundary() {
 macro tanGrad(f,nx,ny) [-ny*dx(f) + nx*dy(f)] //
 /* macro dHdn(nx,ny) (nx * dx(kappa) + ny * dy(kappa)) // */
 
-varf KM(g0,v0) = int1d(ThLInt)(tanGrad(g0,nx,ny)*tanGrad(v0,nx,ny) + g0*v0*(ell*constr*kappa));
+varf Lr(unused,v0) = int1d(ThLInt)(sqrt(ell)*v0);
 
-varf F(g0,v0) = int1d(ThLInt)(v0*(-kappa-ell*constr));
+macro curvature1D() {
+  kappa = dx(nx)+dy(ny);
+} // EOM   
 
-varf Lr(unused,v0) = int1d(ThLInt)(v0);
-
-/* Temporal stuff */
-string datafile1 = "data1.gp";
-string datafile2 = "data2.gp";
-string gnuplotCmd = 
-    "gnuplot -e \"set term png size 800,600; " +
-    "set output 'sourceComparison2.png'; " +
-    "set title 'Laplace Beltrami operator'; " +
-    "set xlabel 't'; set ylabel 'Shape derivative'; " +
-    "plot '" + datafile1 + "' with lines lw 2 title 'Original', " +
-    "'" + datafile2 + "' with lines lw 2 title 'Smoothed'\"";
+string sout;
 
 macro dJ() {
   updateBoundary;
   
-  fespace Vh1(ThLInt,P1);
-  Vh1 g0Teo, g0, v0, nx0, ny0, gx = dx(phi), gy = dy(phi);
+  fespace Vh1D(ThLInt,P1);
+  Vh1D /*Velocity magnitude*/ g0;
+  Vh1D v0, nx, ny, gx0 = dx(phi), gy0 = dy(phi);
 
-  problem projNx(nx0,v0) = int1d(ThLInt)(alpha^2*(dx(nx0)*dx(v0)+dy(nx0)*dy(v0)) + nx0*v0) 
+  fespace Vh1D0(ThLInt,P0);
+  Vh1D0 kappa;
+
+  varf KM(g0,v0) = int1d(ThLInt)(tanGrad(g0,nx,ny)*tanGrad(v0,nx,ny) + g0*v0*(ell*abs(constr)*kappa));
+
+  varf F(g0,v0) = int1d(ThLInt)(v0*(-kappa-ell*constr));
+
+  problem projNx(nx,v0) = int1d(ThLInt)(alpha^2*(dx(nx)*dx(v0)+dy(nx)*dy(v0)) + nx*v0) 
                           - int1d(ThLInt)(Tl.y*v0);
 
-  problem projNy(ny0,v0) = int1d(ThLInt)(alpha^2*(dx(ny0)*dx(v0)+dy(ny0)*dy(v0)) + ny0*v0) 
+  problem projNy(ny,v0) = int1d(ThLInt)(alpha^2*(dx(ny)*dx(v0)+dy(ny)*dy(v0)) + ny*v0) 
                             - int1d(ThLInt)(-Tl.x*v0);
 
-  problem velext(g,v) = int2d(Th)(alpha^2*(dx(g)*dx(v)+dy(g)*dy(v)) + g*v)
-                      - int1d(Th,levelset=phi)(g0*v);
+  problem velextx(gx,v) = int2d(Th)(alpha^2*(dx(gx)*dx(v)+dy(gx)*dy(v)) + gx*v)
+                      - int2d(Th)(g0*nx*w*v);
+
+  problem velexty(gy,v) = int2d(Th)(alpha^2*(dx(gy)*dx(v)+dy(gy)*dy(v)) + gy*v)
+                      - int2d(Th)(g0*ny*w*v);
 
   projNx;
   projNy;
-  nx0 = nx0/sqrt(nx0^2+ny0^2+1e-6);
-  ny0 = ny0/sqrt(nx0^2+ny0^2+1e-6);
-  Vh1 sgn = nx0*gx + ny0*gy;
+  nx = nx/sqrt(nx^2+ny^2+1e-6);
+  ny = ny/sqrt(nx^2+ny^2+1e-6);
+  Vh1D sgn = nx*gx0 + ny*gy0;
 
-for (int i = 0; i < Vh1.ndof; ++i) {
+for (int i = 0; i < Vh1D.ndof; ++i) {
     if (sgn[][i] < 0) {
-        nx0[][i] = -nx0[][i];
-        ny0[][i] = -ny0[][i];
+        nx[][i] = -nx[][i];
+        ny[][i] = -ny[][i];
     }
 }
-  nx = nx0;
-  ny = ny0;
-  curvature;
+
+  curvature1D;
+
 
   constr = C;
  
-  /* rank 1 operator */
-  real[int] b(Vh1.ndof);
-  b = Lr(0,Vh1);
-  b = sqrt(ell)*b;
+  real[int] b(Vh1D.ndof);
+  b = Lr(0,Vh1D);
 
-  matrix lhs1 = KM(Vh1,Vh1);
+  matrix lhs1 = KM(Vh1D,Vh1D);
 
-  real[int] rhs = F(0,Vh1);
+  real[int] rhs = F(0,Vh1D);
   
   real[int] y1 = lhs1^-1 * rhs;
 
@@ -136,28 +138,40 @@ for (int i = 0; i < Vh1.ndof; ++i) {
 
   g0[] = y1 - ( (b' * y1) / den ) * z1; /* Sherman–Morrison formula */
 
-  /* Temporal stuff */
-  int NbVertices = ThLInt.nv;
-  real[int] t(NbVertices);
-  t[0] = 0;
-  for (int i = 1; i < NbVertices; i++) {
-    t[i] = t[i-1] + 3.0/(NbVertices-1);
-  }
-  g0Teo = -kappa - ell*constr;
-  cout<<"MIN: "<<g0Teo[].min<<" MAX: "<<g0Teo[].max<<endl;
-  {
-    ofstream fout(datafile1);
-    for (int i = 0; i < NbVertices; ++i)
-        fout << t[i]<< " " << g0Teo[][i] << endl;
-  }
-  {
-    ofstream fout(datafile2);
-    for (int i = 0; i < NbVertices; ++i)
-        fout << t[i]<< " " << g0[][i] << endl;
-  }
-  exec(gnuplotCmd);
+normPlot.resize(normPlot.n+1);
+normPlot[normPlot.n-1] = max(rhs.max,-rhs.min);
 
-  velext;
+real kappaAv = int1d(ThLInt)(kappa)/int1d(ThLInt)(1);
+kappaPlot.resize(kappaPlot.n+1);
+kappaPlot[kappaPlot.n-1] = kappaAv;
+
+w = exp(- (phi/(3.0*alpha))^2 );
+
+velextx;
+velexty;
+Vh gNorm = sqrt(gx^2+gy^2);
+real g0Max = max(g0[].max,-g0[].min);
+real gMax  = gNorm[].max;
+gx = gx*(g0Max/gMax);
+gy = gy*(g0Max/gMax);
+savevtk("VelocityX.vtu", Th, gx, dataname="vx");
+
+Vh1D g0TM, g0M, gM;
+g0TM = abs(-kappa-ell*constr);
+g0M = abs(g0);
+gM = sqrt(gx^2+gy^2);
+
+real g0TeoAv = int1d(ThLInt)(-kappa-ell*constr)/int1d(ThLInt)(1);
+g1Plot.resize(g1Plot.n+1);
+g1Plot[g1Plot.n-1] = g0TM[].max;
+
+real g0Av = int1d(ThLInt)(g0)/int1d(ThLInt)(1);
+g2Plot.resize(g2Plot.n+1);
+g2Plot[g2Plot.n-1] = g0M[].max;
+
+real gAv = int2d(Th)(sqrt(gx^2+gy^2))/int2d(Th)(1);
+g3Plot.resize(g3Plot.n+1);
+g3Plot[g3Plot.n-1] = gM[].max;
 } // EOM
 
 /* Main loop */
@@ -167,16 +181,14 @@ real obj;
 real tol = 0.005;   // Tolerance for accepting steps that slightly increase the objective
 real step = 1.0;   // Parameters for line search
 real maxstep = 1.0;
-real minstep = 0.01;
+real minstep = 1.0;
 Vh X;
-Vh0 kappa0;
-int maxit = 30, kmax = 10;
-real[int] costPlot, volumePlot;
+int maxit = 18, kmax = 10;
+real[int] costPlot, volumePlot, normPlot, kappaPlot, g1Plot, g2Plot, g3Plot;
 costPlot.resize(costPlot.n+1);
 costPlot[costPlot.n-1] = newobj;
 volumePlot.resize(volumePlot.n+1);
 volumePlot[volumePlot.n-1] = constr;
-string sout;
 for (int it=0; it<maxit; it++) {
   obj = newobj;
   phio = phi;
@@ -188,17 +200,10 @@ for (int it=0; it<maxit; it++) {
   /* Calculation of the shape gradient */
   dJ;
 
-  /*sout = "ShapeGradient.vtu";
-  savevtk(sout, Th, g, dataname="Gradient");*/
-
-  nx = g*nx;
-  ny = g*ny;
-
   /* Line search */
   for (int k=0; k<kmax; k++) {
     /* Update of the shape */
-    phi[] = advectRedist(phio[],nx[],ny[],step);
-    phi[] = symmshape(phi[]);
+    phi[] = advectRedist(phio[],gx[],gy[],step);
 
     /* Calculation of the new objective function */
     Achi[] = volfrac(Th,phi[],ers);
@@ -208,7 +213,7 @@ for (int it=0; it<maxit; it++) {
     /* Decision */
     /* Accept iteration */
     if ( newobj < obj + tol*abs(obj) || step <= minstep ) {
-      step = min(1.02*step,maxstep);
+      step = min(2*step,maxstep);
       costPlot.resize(costPlot.n+1);
       costPlot[costPlot.n-1] = newobj;
       volumePlot.resize(volumePlot.n+1);
@@ -217,7 +222,7 @@ for (int it=0; it<maxit; it++) {
     }
     /* Reject iteration */
     else {
-      step = max(0.6*step,minstep);
+      step = max(0.1*step,minstep);
       phi = phio;
       newobj = obj;
     }
@@ -240,7 +245,7 @@ string datafile = "06_objectiveHistory.gp";
 }
 
 // create gnuplot command to plot the data with logscale on y-axis
-gnuplotCmd = "gnuplot -e \"set term png size 800,600; set output '06_costPlot.png'; set title 'Objective History'; set xlabel 'Iteration'; set ylabel 'Perimeter'; plot '" + datafile + "' with lines lw 2 title 'Objective'\"";
+string gnuplotCmd = "gnuplot -e \"set term png size 800,600; set output '06_costPlot.png'; set title 'Objective History'; set xlabel 'Iteration'; set ylabel 'Perimeter'; plot '" + datafile + "' with lines lw 2 title 'Objective'\"";
 
 // execute gnuplot command
 exec(gnuplotCmd);
@@ -258,5 +263,81 @@ datafile = "06_constraintHistory.gp";
 // create gnuplot command to plot the data with logscale on y-axis
 gnuplotCmd = "gnuplot -e \"set term png size 800,600; set output '06_constraintPlot.png'; set title 'Constraint History'; set xlabel 'Iteration'; set ylabel 'Volume'; plot '" + datafile + "' with lines lw 2 title 'Objective'\"";
 
+// execute gnuplot command
+exec(gnuplotCmd);
+
+
+
+// write data file with "iteration value"
+datafile = "06_rhsNorm.gp";
+{
+    ofstream fout(datafile);
+    for (int i = 0; i < normPlot.n; ++i)
+        fout << i << " " << normPlot[i] << endl;
+}
+
+// create gnuplot command to plot the data with logscale on y-axis
+gnuplotCmd = "gnuplot -e \"set term png size 800,600; set output '06_normPlot.png'; set title 'RHS Norm History'; set xlabel 'Iteration'; set ylabel 'RHS Norm'; plot '" + datafile + "' with lines lw 2 title 'Objective'\"";
+
+// execute gnuplot command
+exec(gnuplotCmd);
+
+
+
+
+
+
+// write data file with "iteration value"
+datafile = "06_kappa.gp";
+{
+    ofstream fout(datafile);
+    for (int i = 0; i < kappaPlot.n; ++i)
+        fout << i << " " << kappaPlot[i] << endl;
+}
+
+// create gnuplot command to plot the data with logscale on y-axis
+gnuplotCmd = "gnuplot -e \"set term png size 800,600; set output '06_kappaPlot.png'; set title 'Mean curvature av. History'; set xlabel 'Iteration'; set ylabel 'Mean curv'; plot '" + datafile + "' with lines lw 2 title 'Objective'\"";
+
+// execute gnuplot command
+exec(gnuplotCmd);
+
+
+
+
+
+
+// write data file with "iteration value"
+string datafile1 = "DifferentVelocities1.gp";
+{
+    ofstream fout(datafile1);
+    for (int i = 0; i < g1Plot.n; ++i)
+        fout << i << " " << g1Plot[i] << endl;
+}
+
+// write data file with "iteration value"
+string datafile2 = "DifferentVelocities2.gp";
+{
+    ofstream fout(datafile2);
+    for (int i = 0; i < g2Plot.n; ++i)
+        fout << i << " " << g2Plot[i] << endl;
+}
+
+// write data file with "iteration value"
+string datafile3 = "DifferentVelocities3.gp";
+{
+    ofstream fout(datafile3);
+    for (int i = 0; i < g3Plot.n; ++i)
+        fout << i << " " << g3Plot[i] << endl;
+}
+
+// create gnuplot command to plot the data with logscale on y-axis
+gnuplotCmd = 
+    "gnuplot -e \"set term png size 800,600; " +
+    "set output 'DiffVelocities.png'; " +
+    "set title 'Velocities av. History'; " +
+    "set xlabel 'Iteration'; set ylabel 'Velocities'; set logscale y; " +
+    "plot '" + datafile1 + "' with lines lw 2 title 'Teo', " +
+    "'" + datafile2 + "' with lines lw 2 title 'New', " +
+    "'" + datafile3 + "' with lines lw 2 title 'New extended'\"";
 // execute gnuplot command
 exec(gnuplotCmd);

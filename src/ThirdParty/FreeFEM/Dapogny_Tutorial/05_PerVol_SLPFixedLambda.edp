@@ -24,6 +24,7 @@ func real initialGuess() {
 }
 Vh phio, phi;
 phio = initialGuess();
+phio[] = phio[]/sqrt(int2d(Th)(phio^2));
 distance(Th,phio,phi[]);
 
 /* Initialization */
@@ -33,7 +34,7 @@ Achi[] = volfrac(Th,phi[],ers);
 
 /* Regularization of shape derivative */
 real meshsiz = 1/(30*fac);
-real alpha = 4.0*meshsiz;
+real alpha = 2.0*meshsiz;
 Vh g, v, g0;
 problem velext(g,v) = int2d(Th)(alpha^2*(dx(g)*dx(v)+dy(g)*dy(v)) + g*v)
                       - int1d(Th,levelset=phi)(g0*v);
@@ -68,13 +69,13 @@ real obj;
 real step;
 real gmax;
 real tol = 0.005;   // Tolerance for accepting steps that slightly increase the objective
-real coef = 3.0;   // Parameters for line search
-real maxcoef = 3.0;
-real mincoef = 0.1;
+real coef = 20.0;   // Parameters for line search
+real maxcoef = 20.0;
+real mincoef = 0.01;
 Vh X;
 Vh kappa;
 Vh0 kappa0;
-int maxit = 80, kmax = 10;
+int maxit = 18, kmax = 10;
 real[int] costPlot, volumePlot;
 costPlot.resize(costPlot.n+1);
 costPlot[costPlot.n-1] = newobj;
