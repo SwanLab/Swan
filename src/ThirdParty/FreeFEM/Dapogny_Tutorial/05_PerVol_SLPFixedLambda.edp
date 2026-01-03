@@ -69,8 +69,8 @@ real obj;
 real step;
 real gmax;
 real tol = 0.005;   // Tolerance for accepting steps that slightly increase the objective
-real coef = 20.0;   // Parameters for line search
-real maxcoef = 20.0;
+real coef = 10.0;   // Parameters for line search.  20 is good competitor for SQP
+real maxcoef = 10.0;
 real mincoef = 0.01;
 Vh X;
 Vh kappa;

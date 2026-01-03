@@ -13,6 +13,7 @@ border top(t=0.0,2.0){ x=1.0-t; y=1.0; label=0; };
 mesh Th = buildmesh(left(30*fac)+bot(60*fac)+right(30*fac)+top(60*fac));
 
 mesh Th2; /* Th mesh after remeshing it near phi=0 */
+mesh Th3; /* Inner part of Th2*/
 meshL ThLInt; /* Boundary phi=0 of Th2 */
 
 /* Finite Element spaces */
@@ -22,7 +23,7 @@ include "tools.idp"
 
 /* Variables definition */
 Vh phi, phio, /*Test function for a velocity component:*/ v;
-Vh /*Velocity components:*/ gx, gy, /*Cutoff function:*/ w;
+Vh /*Velocity components:*/ gx, gy;
 Vh0 Achi;
 
 /* Initialization of the Level Set function */
@@ -61,11 +62,15 @@ cout<<"Initial value of the objective function: "<<newobj<<endl;
 int [int] lsLabel(1);
 lsLabel[0] = 10;
 
+real rInner, rOuter;
+rOuter = 2;
+rInner = 3;
+
 macro updateBoundary() {
   Th2 = mmg2d(Th, iso = 1, ls = 0.0, metric = phi[], hmax = 0.05);
-  Th2 = trunc(Th2, region == 3);
-  ThLInt = extract(Th2,label = lsLabel);
-  /*plot(ThLInt, wait=true);*/
+  Th3 = trunc(Th2, region == rInner);
+  ThLInt = extract(Th3,label = lsLabel);
+  /*plot(Th3, wait=true);*/
 } //
 
 macro tanGrad(f,nx,ny) [-ny*dx(f) + nx*dy(f)] //
@@ -82,6 +87,9 @@ string sout;
 macro dJ() {
   updateBoundary;
   
+  fespace Vh2(Th2,P1);
+  Vh2 v2, gx2, gy2;
+
   fespace Vh1D(ThLInt,P1);
   Vh1D /*Velocity magnitude*/ g0;
   Vh1D v0, nx, ny, gx0 = dx(phi), gy0 = dy(phi);
@@ -99,11 +107,13 @@ macro dJ() {
   problem projNy(ny,v0) = int1d(ThLInt)(alpha^2*(dx(ny)*dx(v0)+dy(ny)*dy(v0)) + ny*v0) 
                             - int1d(ThLInt)(-Tl.x*v0);
 
-  problem velextx(gx,v) = int2d(Th)(alpha^2*(dx(gx)*dx(v)+dy(gx)*dy(v)) + gx*v)
-                      - int2d(Th)(g0*nx*w*v);
+  problem velextx(gx2,v2,tgv=-1) = int2d(Th2,rInner)(alpha^2*(dx(gx2)*dx(v2)+dy(gx2)*dy(v2)) + gx2*v2)
+                      + int2d(Th2,rOuter)(alpha^2*(dx(gx2)*dx(v2)+dy(gx2)*dy(v2)) + gx2*v2)
+                      + on(lsLabel[0],gx2 = g0*nx);
 
-  problem velexty(gy,v) = int2d(Th)(alpha^2*(dx(gy)*dx(v)+dy(gy)*dy(v)) + gy*v)
-                      - int2d(Th)(g0*ny*w*v);
+  problem velexty(gy2,v2,tgv=-1) = int2d(Th2,rInner)(alpha^2*(dx(gy2)*dx(v2)+dy(gy2)*dy(v2)) + gy2*v2)
+                      + int2d(Th2,rOuter)(alpha^2*(dx(gy2)*dx(v2)+dy(gy2)*dy(v2)) + gy2*v2)
+                      + on(lsLabel[0],gy2 = g0*ny);
 
   projNx;
   projNy;
@@ -145,15 +155,13 @@ real kappaAv = int1d(ThLInt)(kappa)/int1d(ThLInt)(1);
 kappaPlot.resize(kappaPlot.n+1);
 kappaPlot[kappaPlot.n-1] = kappaAv;
 
-w = exp(- (phi/(3.0*alpha))^2 );
-
 velextx;
 velexty;
+gx = gx2;
+gy = gy2;
 Vh gNorm = sqrt(gx^2+gy^2);
 real g0Max = max(g0[].max,-g0[].min);
 real gMax  = gNorm[].max;
-gx = gx*(g0Max/gMax);
-gy = gy*(g0Max/gMax);
 savevtk("VelocityX.vtu", Th, gx, dataname="vx");
 
 Vh1D g0TM, g0M, gM;
