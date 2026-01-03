@@ -532,8 +532,8 @@ classdef TutorialEIFEM_parametric < handle
             s.RVE           = TrainedRVE(filename);
 
 %             training 1 subdomain
-%                         data = Training(mR,1);
-%                         p = OfflineDataProcessor(data);
+                         data = Training(mR,1);
+                         p = OfflineDataProcessor(data);
 %                         EIFEoper = p.computeROMbasis();
 %                          EIFEoper.Kcoarse = @(r) EIFEoper.Kcoarse;
 %                          EIFEoper.Udef   = @(r) EIFEoper.Udef;

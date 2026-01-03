@@ -1,15 +1,13 @@
 classdef PreconditionerEIFEM < handle
 
-    properties (GetAccess = public, SetAccess = private)
-        Fext
-        EIFEMsolver
+    properties (Access = public)
+
     end
 
     properties (Access = private)
         EIFEMfilename
         weight
-        
-        
+        EIFEMsolver
     end
 
     properties (Access = private)
@@ -27,38 +25,24 @@ classdef PreconditionerEIFEM < handle
             obj.init(cParams);
         end
 
-        function [z,uCoarse] = apply(obj,r,uk)
-% %             uk = obj.bcApplier.reducedToFullVectorDirichlet(uk);
-% %             uk = obj.ddDofManager.global2local(uk);  %dissemble
-% %             uk = reshape(uk,[],1);
-%             Rd = obj.computeDiscontinousField(r);
-%             uD = obj.EIFEMsolver.apply(Rd);
-% %             u = reshape(uD,[],1);
-% %             EIFEMtesting.plotSolution(u+uk,obj.dMesh,21,5,obj.iter,[],0)
-%             obj.iter = obj.iter+1;
-%             uC = obj.computeContinousField(uD);
-%             z  = uC; 
-              obj.Fext = r;
-              [z,uCoarse] = obj.solve();
+        function z = apply(obj,r,uk)
+%             uk = obj.bcApplier.reducedToFullVectorDirichlet(uk);
+%             uk = obj.ddDofManager.global2local(uk);  %dissemble
+%             uk = reshape(uk,[],1);
+            Rd = obj.computeDiscontinousField(r);
+            uD = obj.EIFEMsolver.apply(Rd);
+%             u = reshape(uD,[],1);
+%             EIFEMtesting.plotSolution(u+uk,obj.dMesh,21,5,obj.iter,[],0)
+            obj.iter = obj.iter+1;
+            uC = obj.computeContinousField(uD);
+            z  = uC; 
         end
 
-        function [uC,uCoarse]= solve(obj)
-            Rd           = obj.computeDiscontinousField(obj.Fext);
-            [uD,uCoarse] = obj.EIFEMsolver.apply(Rd);
-            uC           = obj.computeContinousField(uD);
-        end
-
-
-        function updateDownscaling(obj,mu)
-            obj.EIFEMsolver.updateDownscaling(mu)
-        end
-
-        function computeLHS(obj,mu)
-           obj.EIFEMsolver.computeLHS(mu)
-        end
-        
-        function dK = computeGradK(obj,mu)
-           dK = obj.EIFEMsolver.computeGradK(mu);
+        function uC = computeContinousField(obj,uD)
+            fS  = obj.ddDofManager.scaleInterfaceValues(uD,obj.weight);         %scale
+            fG  = obj.ddDofManager.local2global(fS);   %assemble
+            uC  = sum(fG,2);                           %assemble
+            uC  = obj.bcApplier.fullToReducedVectorDirichlet(uC);
         end
 
     end
@@ -72,9 +56,6 @@ classdef PreconditionerEIFEM < handle
             obj.weight       = 0.5;
             obj.dMesh        = cParams.dMesh;
             obj.iter         = 1;
-            if isfield(cParams,'Fext')
-                obj.Fext         = cParams.Fext;
-            end
         end
 
 
@@ -84,13 +65,13 @@ classdef PreconditionerEIFEM < handle
             Rd = obj.ddDofManager.scaleInterfaceValues(Rd,obj.weight);    %scale
         end
 
-        function uC = computeContinousField(obj,uD)
-            fS  = obj.ddDofManager.scaleInterfaceValues(uD,obj.weight);         %scale
-            uC  = obj.ddDofManager.AssembleLocal2GlobalVector(fS);
-%             fG  = obj.ddDofManager.local2global(fS);   %assemble
-%             uC  = sum(fG,2);                           %assemble
-            uC  = obj.bcApplier.fullToReducedVectorDirichlet(uC);
-        end
+%         function uC = computeContinousField(obj,uD)
+%             fS  = obj.ddDofManager.scaleInterfaceValues(uD,obj.weight);         %scale
+%             uC  = obj.ddDofManager.AssembleLocal2GlobalVector(fS);
+% %             fG  = obj.ddDofManager.local2global(fS);   %assemble
+% %             uC  = sum(fG,2);                           %assemble
+%             uC  = obj.bcApplier.fullToReducedVectorDirichlet(uC);
+%         end
 
     end
 
