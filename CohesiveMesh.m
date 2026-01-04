@@ -4,19 +4,27 @@ classdef CohesiveMesh < handle
         baseMesh 
         mesh
 
-        isCohesive
+        isNodeCohesive
+        isElemCohesive
+        isEdgeCohesive
 
         newCoord
         newConnec
 
         listNodeCohesive
         listElemCohesive
+        listEdgeCohesive
 
         nnodeCohesive
         nElemCohesive
         pairsMatrix
 
         separation
+
+
+        
+        
+        centerEdges
 
         % baseMesh i crear nova malla --> Mesh.create(s)
         % arreglar 1x1
@@ -36,56 +44,89 @@ classdef CohesiveMesh < handle
     
     methods (Access = public)
         
-        function obj = CohesiveMesh(cParams)
+        function obj = CohesiveMesh()
             
-            obj.init(cParams)
-            % obj.baseMeshCreator(n)
+            obj.init()
+            obj.baseMeshCreator(3)
             
-            % detectFracturedEdges()
+            obj.detectFracturedEdges()
                 % fer lo del boundary amb els punts mitjos dels edges
-            % computeCenterEdge()
-            % computeCenterElemnts (of fractureEdge)
+
+
+            obj.computeCenterElements %(of fractureEdge)
             % computeNormals()
             % computeIsLeftIsRight()
             % addDuplicateCoords();
             % updateConnecOfLeftElements()
             % shiftCoordOfLeftAndRightElements();
             
-            obj.duplicator()
-            obj.updateConnec()
-            obj.newMesh()
+            % obj.duplicator()
+            % obj.updateConnec()
+            % obj.newMesh()
         end
         
     end
     
     methods (Access = private)
         
-        function init(obj,cParams)
-            obj.separation = cParams.separation;
-            obj.baseMesh   = cParams.baseMesh;
+        function init(obj)
+            obj.separation = 0.1;
         end
         
-        % function baseMeshCreator(obj,n)
-        %     obj.baseMesh = UnitQuadMesh(n,n);
-        % end
+        function baseMeshCreator(obj,n)
+            obj.baseMesh = UnitQuadMesh(n,n);
+        end
+
+        function detectFracturedEdges(obj)
+            ymin = min(obj.baseMesh.coord(:,2));
+            obj.centerEdges=obj.computeCenterEdge;
+            obj.isEdgeCohesive = abs(obj.centerEdges(:,2)) == ymin;
+            obj.listEdgeCohesive = find(obj.isEdgeCohesive==1);
+
+            obj.isNodeCohesive = abs(obj.baseMesh.coord(:,2)) == ymin;
+            obj.listNodeCohesive = find(obj.isNodeCohesive == 1);
+
+            obj.isElemCohesive = any(reshape(obj.isNodeCohesive(obj.baseMesh.connec), size(obj.baseMesh.connec)),2);
+        end
+
+        function computeCenterElements(obj)
+            edgesInElem = obj.baseMesh.edges.edgesInElem;
+            nEdges = max(edgesInElem(:));
+               
+            E = repelem((1:obj.baseMesh.nelem)', obj.baseMesh.edges.nEdgeByElem);   
+            G = edgesInElem(:);
+
+            edgeElemMat = sparse(G, E, true, nEdges, obj.baseMesh.nelem);
+            
+            for e = obj.listEdgeCohesive
+                elemsInCohesiveEdge{e} = find(edgeElemMat(e,:));
+            end
+
+            for i=1:length(obj.listEdgeCohesive)
+                centerElemsInCohesiveEdge{i}=elemsInCohesiveEdge{i}(:)
+
+            end
+        end
+
+
 
         function duplicator(obj)
 
-            ymin = min(obj.baseMesh.coord(:,2));
-            obj.isCohesive = abs(obj.baseMesh.coord(:,2)) == ymin; 
-            obj.nnodeCohesive = sum(obj.isCohesive) * 2;
-            obj.listNodeCohesive = find(obj.isCohesive == 1);
+            % ymin = min(obj.baseMesh.coord(:,2));
+            % obj.isCohesive = abs(obj.baseMesh.coord(:,2)) == ymin; 
+            % obj.nnodeCohesive = sum(obj.isCohesive) * 2;
+            % obj.listNodeCohesive = find(obj.isCohesive == 1);
 
             obj.newCoord = obj.baseMesh.coord;
 
             dispV      = [0, 1];
-            duplicated = obj.newCoord(obj.isCohesive, :) + obj.separation*dispV;
+            duplicated = obj.newCoord(obj.isNodeCohesive, :) + obj.separation*dispV;
             obj.newCoord = [obj.newCoord; duplicated];
 
-            obj.pairsMatrix = [obj.listNodeCohesive , (size(obj.isCohesive,1)+1:1:obj.nnodeCohesive/2+size(obj.isCohesive,1))'];
+            obj.pairsMatrix = [obj.listNodeCohesive , (size(obj.isNodeCohesive,1)+1:1:obj.nnodeCohesive/2+size(obj.isNodeCohesive,1))'];
                 obj.pairsMatrix = [obj.pairsMatrix , dispV(1)*ones(obj.nnodeCohesive/2,1), dispV(2)*ones(obj.nnodeCohesive/2,1)];
 
-            obj.isCohesive = [obj.isCohesive; ones(obj.nnodeCohesive/2,1)];
+            obj.isNodeCohesive = [obj.isNodeCohesive; ones(obj.nnodeCohesive/2,1)];
 
                 % scatter(obj.newCoord(:,1), obj.newCoord(:,2), 'filled');
 
@@ -93,8 +134,8 @@ classdef CohesiveMesh < handle
 
         function updateConnec(obj)
             obj.newConnec = obj.baseMesh.connec;
-            
-            isCohesiveElem = any(reshape(obj.isCohesive(obj.newConnec), size(obj.newConnec)),2);
+
+            isCohesiveElem = any(reshape(obj.isNodeCohesive(obj.newConnec), size(obj.newConnec)),2);
             obj.listElemCohesive = find(isCohesiveElem);
 
             % for i = obj.listNodeCohesive'
@@ -118,7 +159,7 @@ classdef CohesiveMesh < handle
                 nodes = obj.newConnec(e,:)';
                 coords = obj.newCoord(nodes,:);
                 
-                cohesiveNodes = nodes((obj.isCohesive(nodes)==1));
+                cohesiveNodes = nodes((obj.isNodeCohesive(nodes)==1));
                 originalArea = polyarea(coords(:,1), coords(:,2));
                 
                 
@@ -157,6 +198,17 @@ classdef CohesiveMesh < handle
             s.coord  = obj.newCoord;
             obj.mesh = Mesh.create(s);
         end
+    
+        function centerEdges = computeCenterEdge(obj)
+            obj.baseMesh.computeEdges;
+            nodes = obj.baseMesh.edges.nodesInEdges;    
+            coord1 = obj.baseMesh.coord(nodes(:,1),:);
+            coord2 = obj.baseMesh.coord(nodes(:,2),:);
+            
+            centerEdges = 0.5*(coord1 + coord2);            
+        end
+    
+    
     end
         
 
