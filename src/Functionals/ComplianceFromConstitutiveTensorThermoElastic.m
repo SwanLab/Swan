@@ -9,6 +9,7 @@ classdef ComplianceFromConstitutiveTensorThermoElastic < handle
         stateProblem
         adjointProblem
         materialInterpolator
+        T0      
     end
 
     methods (Access = public)
@@ -31,6 +32,7 @@ classdef ComplianceFromConstitutiveTensorThermoElastic < handle
         function init(obj,cParams)
             obj.mesh         = cParams.mesh;
             obj.stateProblem = cParams.stateProblem;
+            obj.T0           = cParams.T0;
         end
 
         function createQuadrature(obj)
@@ -65,7 +67,7 @@ classdef ComplianceFromConstitutiveTensorThermoElastic < handle
         function [p] = computeAdjointVariable(obj,kappa,C,u)
             I = ConstantFunction.create(eye(2),obj.mesh);
             beta = obj.stateProblem.alpha.*DDP(C,I);    
-            newSource =  DDP(beta,SymGrad(u));        % updating RHS
+            newSource = -DDP(beta,SymGrad(u));        % updating RHS
             obj.adjointProblem.updateSource(newSource);
             obj.adjointProblem.solve(kappa);
             p = obj.adjointProblem.uFun;
@@ -107,7 +109,7 @@ classdef ComplianceFromConstitutiveTensorThermoElastic < handle
                 dStress = DDP(dC{i},strain);
                 I = ConstantFunction.create(eye(2),obj.mesh);
                 dbeta = obj.stateProblem.alpha.*DDP(dC{i},I);
-                dj{i}   = -0.5.*DDP(strain, dStress) + DDP(dbeta.*(T-T0),SymGrad(u)) + DP(Grad(T),dkappa.*Grad(p)); %T*dkappa12*u + T*dkappa*p + (-dQ*p+df*u)
+                dj{i}   = -0.5.*DDP(strain, dStress) + DDP(dbeta.*(T-obj.T0),SymGrad(u)) + DP(Grad(T),dkappa.*Grad(p)); 
             end
         end
 

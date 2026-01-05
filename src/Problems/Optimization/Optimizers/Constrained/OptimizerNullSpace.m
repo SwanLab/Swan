@@ -65,9 +65,9 @@ classdef OptimizerNullSpace < handle
                 obj.updateMonitoring();
                 obj.checkConvergence();
                 obj.designVariable.updateOld();
-                % if obj.nIter == 1 || mod(obj.nIter,20)== 0
-                %     obj.designVariable.fun.print('EL.'+string(obj.nIter),'Paraview') 
-                % end 
+                if obj.nIter == 1 || mod(obj.nIter,20)== 0
+                    obj.designVariable.fun.print('TLS.'+string(obj.nIter),'Paraview') 
+                end 
                 obj.obtainGIF()
             end
         end
