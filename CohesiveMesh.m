@@ -21,9 +21,10 @@ classdef CohesiveMesh < handle
 
         separation
 
-
+        normals
         
-        
+        elemsInCohesiveEdge
+        centerElemsInCohesiveEdge
         centerEdges
 
         % baseMesh i crear nova malla --> Mesh.create(s)
@@ -47,15 +48,15 @@ classdef CohesiveMesh < handle
         function obj = CohesiveMesh()
             
             obj.init()
-            obj.baseMeshCreator(3)
+            obj.baseMeshCreator(2)
             
             obj.detectFracturedEdges()
                 % fer lo del boundary amb els punts mitjos dels edges
 
 
             obj.computeCenterElements %(of fractureEdge)
-            % computeNormals()
-            % computeIsLeftIsRight()
+            obj.computenormals()
+            obj.computeIsLeftIsRight()
             % addDuplicateCoords();
             % updateConnecOfLeftElements()
             % shiftCoordOfLeftAndRightElements();
@@ -91,23 +92,86 @@ classdef CohesiveMesh < handle
 
         function computeCenterElements(obj)
             edgesInElem = obj.baseMesh.edges.edgesInElem;
-            nEdges = max(edgesInElem(:));
-               
-            E = repelem((1:obj.baseMesh.nelem)', obj.baseMesh.edges.nEdgeByElem);   
-            G = edgesInElem(:);
-
-            edgeElemMat = sparse(G, E, true, nEdges, obj.baseMesh.nelem);
             
-            for e = obj.listEdgeCohesive
-                elemsInCohesiveEdge{e} = find(edgeElemMat(e,:));
-            end
+            nElem  = size(edgesInElem,1);
+            nEdges = max(edgesInElem(:));
+            
+            E = repelem((1:nElem)', size(edgesInElem,2));  % NOT nEdgeByElem
+            temp = edgesInElem';
+            G = temp(:);
+            
+            edgeElemMat = sparse(G, E, true, nEdges, nElem);
 
+            bariCenters = obj.baseMesh.computeBaricenter;
             for i=1:length(obj.listEdgeCohesive)
-                centerElemsInCohesiveEdge{i}=elemsInCohesiveEdge{i}(:)
-
+                obj.elemsInCohesiveEdge{i} = find(edgeElemMat(obj.listEdgeCohesive(i),:));
+                obj.centerElemsInCohesiveEdge{i} = num2cell(bariCenters(:, obj.elemsInCohesiveEdge{i}), 1);
             end
+            obj.centerElemsInCohesiveEdge=obj.centerElemsInCohesiveEdge';
+
+            %centerElemsInCohesiveEdge{cohesive edge}{element(1 o 2)} es una cell array, solament
+            %apareixen les coordenades dels elements cohesius, ordenats per
+            %edges cohesius, contempla la possibilitat de que un edge
+            %tingui mes de 1 elements
+
         end
 
+        
+        function computenormals(obj)
+            
+            for i=1:length(obj.listEdgeCohesive)
+            
+
+                for t = 1:length(obj.elemsInCohesiveEdge{i})
+                    centerEdge = obj.centerEdges(obj.listEdgeCohesive(i),:)';
+                
+                    obj.normals{i}{t} = obj.centerElemsInCohesiveEdge{i}{t}-centerEdge;
+                    obj.normals{i}{t} = obj.normals{i}{t}/norm(obj.normals{i}{t});
+
+                end
+            
+
+            end
+
+
+
+        end
+
+        function computeIsLeftIsRight(obj)
+        
+        % obj.isElemLeft;
+        % obj.isElemRight;
+
+
+
+
+            for i=1:length(obj.listEdgeCohesive)
+                nodesEdge = obj.baseMesh.edges.nodesInEdges(i,:);
+                coords    = obj.baseMesh.coord(nodesEdge,:);
+                advanceVector = coords(2,:)-coords(1,:);
+
+
+            
+
+                for t = 1:length(obj.elemsInCohesiveEdge{i})
+                    normalVector = obj.normals{i}{t};
+                    s = advanceVector(1)*normalVector(2) - advanceVector(2)*normalVector(1);
+                end
+
+            end
+
+
+
+
+
+
+
+
+
+
+
+
+        end
 
 
         function duplicator(obj)
