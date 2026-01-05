@@ -145,20 +145,17 @@ classdef CohesiveMesh < handle
 
 
 
-            for k = 1:numel(obj.listEdgeCohesive)
-                e = obj.listEdgeCohesive(k);
-            
-                nodesEdge = obj.baseMesh.edges.nodesInEdges(e,:);
+            for i=1:length(obj.listEdgeCohesive)
+                nodesEdge = obj.baseMesh.edges.nodesInEdges(i,:);
                 coords    = obj.baseMesh.coord(nodesEdge,:);
-                a         = coords(2,:) - coords(1,:);   % advanceVector
-            
-                N = cell2mat(obj.normals{k}');            % n x 2
-            
-                s = a(1)*N(:,2) - a(2)*N(:,1);
-            
-                obj.signCohesiveEdge{k} = sign(s);
-            end
+                advanceVector = coords(2,:)-coords(1,:);
 
+                for t = 1:length(obj.elemsInCohesiveEdge{i})
+                    normalVector = obj.normals{i}{t};
+                    s = advanceVector(1)*normalVector(2) - advanceVector(2)*normalVector(1);
+                end
+
+            end
 
 
 
