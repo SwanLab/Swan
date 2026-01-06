@@ -10,24 +10,25 @@
 clc; clear;
 
 %% LOAD DATA
+p.Training  = 'EIFEM';            % 'EIFEM'/'Multiscale'
 p.Sampling   ='Oversampling';     %'Isolated'/'Oversampling'
-p.Inclusion  ='HoleRaul';    %'Material'/'Hole'/'HoleRaul
+p.Inclusion  ='HoleRaul';         %'Material'/'Hole'/'HoleRaul
 p.nelem      = 20;
 meshName    =  p.nelem+"x"+p.nelem;
 
 % 1. NN
-filePath = fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,"T_NN.mat");
+filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,"T_NN.mat");
 % filePath = fullfile("AbrilTFGfiles","Data","Multiscale","T_NN.mat");
 load(filePath);
 pol_deg1=pol_deg;
 
 % 2. High Order function
-HOname=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"HOfunction.mat");
+HOname=fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,"HOfunction.mat");
 % HOname=fullfile("AbrilTFGfiles","Data","Multiscale","HOfunction.mat");
 load(HOname,"fT","deim");
 
 % 3. SVD +NN
-NNname=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"Q_NN.mat");
+NNname=fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,"Q_NN.mat");
 % NNname=fullfile("AbrilTFGfiles","Data","Multiscale","Q_NN.mat");
 load(NNname);
 
@@ -36,7 +37,7 @@ pol_deg2=pol_deg;
 
 
 % Dataset
-directory= fullfile("AbrilTFGfiles/Data",p.Inclusion,p.Sampling,meshName);
+directory= fullfile("AbrilTFGfiles/Data",p.Training,p.Inclusion,p.Sampling,meshName);
 % directory= fullfile("AbrilTFGfiles/Data/Multiscale/");
 files = dir(fullfile(directory, 'r0_*.mat'));
 i=1;

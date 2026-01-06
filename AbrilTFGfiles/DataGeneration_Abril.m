@@ -1,32 +1,41 @@
+%% DATA GENERATION
 
-% DATA GENERATION
+% This script has the purpose to create the necessary data related to the
+% coarse training in order to obtain the NN and inputs for the
+% preconditioner
 
 clc; clear; close all;
 
-%r=1e-6:0.05:0.999; 
+%% INPUTS
+r=1e-6:0.05:0.999; 
 %r=1e-6:0.1:0.999; 
-r=0:0.05:0.999;
+%r=0:0.05:0.999;
 %r=0.35;
 
-p.Sampling ='Isolated';     %'Isolated'/'Oversampling'
-p.Inclusion='HoleRaul';    %'Material'/'Hole'/'HoleRaul
-p.nelem=20;
-meshName    = p.nelem+"x"+p.nelem;
+p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale'
+p.Sampling   = 'Isolated';        %'Isolated'/'Oversampling'
+p.Inclusion  = 'HoleRaul';        %'Material'/'Hole'/'HoleRaul'
+p.nelem      = 20;
+meshName     = p.nelem+"x"+p.nelem;
 
-doplot=false();
 
+%% DATA GENERATION
 for j = 1:size(r,2)
-    %[~, Kfine, T, l, mesh,Kcoarse] = IsolatedTraining(r(j),p.nelem);
-
     mR=createReferenceMesh(p,r(j));
-    data=OversamplingTraining(mR,r(j),p);
-    z=OfflineDataProcessor(data);
-    EIFEoper = z.computeROMbasis();
 
-    T        = EIFEoper.U;
-    mesh     = data.mesh;
-    Kcoarse  = EIFEoper.Kcoarse;
-    R        = r(j);
+    switch p.Training
+        case 'Multiscale'
+            [~, Kfine, T, l, mesh,Kcoarse] = MultiscaleTraining(mR,r(j),p);
+            R = r(j);
+        case 'EIFEM'
+            data=EIFEMTraining(mR,r(j),p);
+            z=OfflineDataProcessor(data);
+            EIFEoper = z.computeROMbasis();
+            T        = EIFEoper.U;
+            mesh     = data.mesh;
+            Kcoarse  = EIFEoper.Kcoarse;
+            R        = r(j);
+    end
 
     % Initialization for K_all and T_all
     if j==1
@@ -56,11 +65,17 @@ for j = 1:size(r,2)
     string = strrep("r"+num2str(r(j), '%.4f'), ".", "_")+"-"+meshName+".mat";
 
     % Guarda el .mat per cert radi
-    FileName=fullfile('AbrilTFGfiles','Data',p.Inclusion,p.Sampling,meshName,string);
-    save(FileName, "EIFEoper","T","Kcoarse","mesh","R"); 
+    FileName=fullfile('AbrilTFGfiles','Data',p.Training,p.Inclusion,p.Sampling,meshName,string);
 
-    %FileName=fullfile('AbrilTFGfiles','Data','Multiscale',string);
-    %save(FileName, "T","Kcoarse","mesh","R"); 
+
+    switch p.Training
+        case 'Multiscale'
+            save(FileName,"T","Kcoarse","mesh","R"); 
+        case 'EIFEM'
+            save(FileName, "EIFEoper","T","Kcoarse","mesh","R"); 
+    end
+
+    
 end
 
 
@@ -76,8 +91,7 @@ end
 T=array2table(TData,"VariableNames",{'r','x','y','Tx1','Ty1','Tx2','Ty2','Tx3','Ty3','Tx4','Ty4' ...
     'Tx5','Ty5','Tx6','Ty6','Tx7','Ty7','Tx8','Ty8'});
 
-uFileName = fullfile('AbrilTFGfiles','Data',p.Inclusion,p.Sampling,'DataT.csv');
-%uFileName = fullfile('AbrilTFGfiles','Data','Multiscale','DataT.csv');
+uFileName = fullfile('AbrilTFGfiles','Data',p.Training,p.Inclusion,p.Sampling,'DataT.csv');
 writematrix(TData,uFileName);
 
 
@@ -97,8 +111,7 @@ for n=1:size(r,2)
 end
 
 kdata=[r.',kdata];
-kFileName = fullfile('AbrilTFGfiles','Data',p.Inclusion,p.Sampling,'dataK.csv');
-%kFileName = fullfile('AbrilTFGfiles','Data','Multiscale','DataK.csv');
+kFileName = fullfile('AbrilTFGfiles','Data',p.Training,p.Inclusion,p.Sampling,'dataK.csv');
 writematrix(kdata,kFileName);
 
 

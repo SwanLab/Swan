@@ -3,6 +3,7 @@ clear;
 close all;
 
 %% Case parameters
+p.Training  = 'EIFEM';        % 'EIFEM'/'Multiscale'
 p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
 p.Inclusion  ='Material';    %'Material'/'Hole'/'HoleRaul
 
@@ -15,7 +16,7 @@ hiddenLayers    = [40 60 80 100 80 60 40];
 
 %% INITIALIZATION 
 % Store dataset file name
-s.fileName = fullfile('AbrilTFGfiles',"Data",p.Inclusion,p.Sampling,'DataK.csv');
+s.fileName = fullfile('AbrilTFGfiles',"Data",p.Training,p.Inclusion,p.Sampling,'DataK.csv');
 
 % Load model parameters
 s.polynomialOrder = pol_deg;
@@ -46,7 +47,7 @@ K_NN.plotCostFnc();
 MSETrain    = immse(K_NN.computeOutputValues(data.Xtrain), data.Ytrain);
 
 string ="K_NN.mat";
-FileName=fullfile('AbrilTFGfiles',"Data",p.Inclusion,p.Sampling,string);
+FileName=fullfile('AbrilTFGfiles',"Data",p.Training,p.Inclusion,p.Sampling,string);
     save(FileName, "K_NN");
 
 %%% Plot surface

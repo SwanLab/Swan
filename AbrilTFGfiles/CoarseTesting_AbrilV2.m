@@ -115,10 +115,11 @@ classdef CoarseTesting_AbrilV2< handle
 
         function init(obj)
             % Case Parameters
+            p.Training  = 'EIFEM';         % 'EIFEM'/'Multiscale'
             p.Inclusion = 'Material';         % 'Hole'/'Material'/'HoleRaul'   --> Hole: just for constant r
             p.Sampling  = 'Isolated';     % 'Isolated'/'Oversampling'
             p.Option    = 'NN';          % 'Dataset'/'NN'/'HO'/ 'Hybrid'
-            p.nelem     =  50;                 %  Mesh refining
+            p.nelem     =  20;                 %  Mesh refining
             obj.params  =  p;
             meshName    =  p.nelem+"x"+p.nelem;
 
@@ -148,9 +149,9 @@ classdef CoarseTesting_AbrilV2< handle
 
         function loadNN(obj,nameNN)
             p=obj.params;
-            filePath = fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,nameNN(1,1));
+            filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,nameNN(1,1));
             load(filePath,"K_NN");
-            filePath = fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,nameNN(1,2));
+            filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,nameNN(1,2));
             load(filePath,"T_NN","pol_deg");
             obj.NN.K=K_NN;
             obj.NN.T=T_NN;
@@ -167,9 +168,9 @@ classdef CoarseTesting_AbrilV2< handle
                 for j=1:size(name,2)
                     switch p.Inclusion
                         case {'Material','HoleRaul'}
-                                filePath = fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,name(i,j));
+                                filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,name(i,j));
                         case 'Hole'
-                                filePath = fullfile('AbrilTFGfiles', 'Data','hole',name(i,j));
+                                filePath = fullfile('AbrilTFGfiles', 'Data',p.Training,'hole',name(i,j));
                     end
                     load(filePath,"T","Kcoarse");
                     Taux{i,j}=T;
@@ -491,8 +492,8 @@ classdef CoarseTesting_AbrilV2< handle
          function Meifem = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh)
             p=obj.params;
             mR = obj.referenceMesh;
-            fileNameEIFEM  = fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"parametrizedEIFEM.mat");
-            %Data = OversamplingTraining(mR,obj.r(1,1),obj.params);
+            fileNameEIFEM  = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,"parametrizedEIFEM.mat");
+            %Data = EIFEMTraining(mR,obj.r(1,1),obj.params);
             %p = OfflineDataProcessor(Data);
             %EIFEoper = p.computeROMbasis();
             %s.RVE          = TrainedRVE(EIFEoper);

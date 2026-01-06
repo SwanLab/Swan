@@ -2,7 +2,8 @@ close all
 clear all
 
 % Specify case parameters
-p.nelem     =  10;
+p.nelem     =  20;
+p.Training  = 'EIFEM';         % 'EIFEM'/'Multiscale'
 p.Inclusion = 'HoleRaul';         % 'Hole'/'Material'/'HoleRaul'
 p.Sampling  = 'Isolated';     % 'Isolated'/'Oversampling'
 meshName    = p.nelem+"x"+p.nelem;
@@ -10,7 +11,7 @@ meshName    = p.nelem+"x"+p.nelem;
 % Specify the directory where the .mat files are located
 
 % Get a list of all .mat files in the directory
-files = dir(fullfile("AbrilTFGfiles/Data/",p.Inclusion,p.Sampling,meshName, 'r0_*.mat'));
+files = dir(fullfile("AbrilTFGfiles/Data/",p.Training,p.Inclusion,p.Sampling,meshName, 'r0_*.mat'));
 
 % Loop through each file and load it
 i=1;
@@ -45,7 +46,7 @@ centers = xdata;
 [Trb,~,dTrb]  = parameterizedDataLagrange(Tr,xdata);
 [fK,~,dfK,~]   = parameterizedDataLagrange(Kcoarse,xdata);
 
-fileName=fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"HOfunction.mat");
+fileName=fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,"HOfunction.mat");
 save(fileName,"fR","fT","deim","mesh");
 
 EIFEoper.Kcoarse    = fK;
@@ -59,7 +60,7 @@ EIFEoper.dU         = dfT;
 EIFEoper.deim       = deim;
 
 
-filePath = fullfile("AbrilTFGfiles","Data",p.Inclusion,p.Sampling,meshName,"parametrizedEIFEM.mat");
+filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,"parametrizedEIFEM.mat");
 save(filePath,'EIFEoper');
 
 

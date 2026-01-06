@@ -3,9 +3,10 @@ clear;
 close all;
 
 %% Case parameters
-p.nelem      = 20;
+p.Training  = 'EIFEM';         % 'EIFEM'/'Multiscale'
 p.Sampling   ='Oversampling';     %'Isolated'/'Oversampling'
 p.Inclusion  ='Material';    %'Material'/'Hole'/'HoleRaul
+p.nelem      = 20;
 meshName     = p.nelem+"x"+p.nelem;
 
 %% Initialization of hyperparameters
@@ -17,8 +18,7 @@ hiddenLayers    =[12 20 30 50 100 50 30 20];
 
 %% INITIALIZATION 
 % Store dataset file name
-% s.fileName = fullfile('AbrilTFGfiles',"Data",p.Inclusion,p.Sampling,meshName,'DataQ.csv');
-s.fileName = fullfile('AbrilTFGfiles',"Data",'Multiscale','DataQ.csv');
+ s.fileName = fullfile('AbrilTFGfiles',"Data",p.Training,p.Inclusion,p.Sampling,meshName,'DataQ.csv');
 
 % Load model parameters
 s.polynomialOrder = pol_deg;
@@ -49,8 +49,7 @@ Q_NN.plotCostFnc();
 
 
 string ="Q_NN.mat";
-% FileName=fullfile('AbrilTFGfiles',"Data",p.Inclusion,p.Sampling,meshName,string);
-FileName=fullfile('AbrilTFGfiles',"Data",'Multiscale',string);
+FileName=fullfile('AbrilTFGfiles',"Data",p.Training,p.Inclusion,p.Sampling,meshName,string);
 save(FileName, "Q_NN","pol_deg");
 
 %% Plot surface
