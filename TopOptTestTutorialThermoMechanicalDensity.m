@@ -43,8 +43,8 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
         end
 
         function createMesh(obj)
-            x1      = linspace(0,2,100);
-            x2      = linspace(0,1,100);
+            x1      = linspace(0,2,60);
+            x2      = linspace(0,1,30);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -75,7 +75,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
 
          function createThermalMaterialInterpolator(obj) % Conductivity
             s.interpolation  = 'SimpAllThermal';   
-            s.f0   = 1e-2;
+            s.f0   = 90e-3;
             s.f1   = 90;
             s.dim ='2D';
             a = MaterialInterpolator.create(s);
@@ -84,17 +84,16 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
 
 
         function createMaterialInterpolator(obj)
-            
-            E0 = 1e-3;
-            nu0 = 1/3;
+            E0 =  199.5e3; 
+            nu0 = 0.3;
             ndim = obj.mesh.ndim;
 
             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
             matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
 
             
-            E1 = 200e9;
-            nu1 = 1/3;
+            E1 =  199.5e9; 
+            nu1 = 0.3;
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
@@ -132,7 +131,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
 
             % Thermal
             s.materialInterpolator = obj.thermalmaterialInterpolator;
-            s.alpha = 1.1e-5; %1.0; % 2.3 1e-6 
+            s.alpha = 15.4e-6; 
 %             s.source  =  ConstantFunction.create(1,obj.mesh);
 %             s.T0 = ConstantFunction.create(25,obj.mesh);   
             s.source  =  ConstantFunction.create(0,obj.mesh);
@@ -211,9 +210,9 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 500;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
-            s.constraintCase = {'EQUALITY'};
+            s.constraintCase = {'INEQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
             s.etaNorm        = 0.01;
             s.gJFlowRatio    = 1;
@@ -229,15 +228,16 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
 
         function bc = createBoundaryConditionsElastic(obj)
             xMax    = max(obj.mesh.coord(:,1));
-            yMax    = max(obj.mesh.coord(:,2));
+            xMin    = min(obj.mesh.coord(:,1));
+            yMin    = min(obj.mesh.coord(:,2));
 
 %             Cantilever beam
 %             isDir   = @(coor)  abs(coor(:,1))==0;
 %             isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
 
 %             Clampled beam
-            isDir   = @(coor)  abs(coor(:,1))==0 | abs(coor(:,1))==xMax;
-            isForce = @(coor)  (abs(coor(:,2))==0.0 & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax);
+            isDir   = @(coor)  abs(coor(:,1))== xMin | abs(coor(:,1))==xMax;
+            isForce = @(coor)  (abs(coor(:,2))== yMin & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax);
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2];
@@ -245,7 +245,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
 
             sPL{1}.domain    = @(coor) isForce(coor);
             sPL{1}.direction = 2;
-            sPL{1}.value     = 4e7; 
+            sPL{1}.value     = -4.5e6; 
 
             dirichletFun = [];
             for i = 1:numel(sDir)
@@ -264,6 +264,13 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
+
+            % Maybe it would be better to use option 'FUNCTION' in
+            % TractionLoad (for mesh independency). With something like:
+            % [bMesh, ~]  = obj.mesh.createSingleBoundaryMesh();
+            % sPL{1}.domain = isForce;
+            % sPL{1}.fun    = ConstantFunction.create([0,-5e7/0.2],bMesh);
+
         end
 
          function bcT = createBoundaryConditionsThermal(obj)
@@ -278,7 +285,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = 1;
-            sDir{1}.value     = 150;
+            sDir{1}.value     = 5;
             sDir{1}.ndim = 1;
             
             dirichletFun = [];

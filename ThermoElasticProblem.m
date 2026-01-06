@@ -213,7 +213,7 @@ classdef ThermoElasticProblem < handle
             C     = obj.material;
             I = ConstantFunction.create(eye(2),obj.mesh);
             beta= obj.alpha.*DDP(C,I);       
-            f = @(v) DDP(-beta.*(obj.tFun - obj.T0),SymGrad(v));
+            f = @(v) DDP(beta.*(obj.tFun - obj.T0),SymGrad(v));
             rhs_coupling = IntegrateRHS(f,obj.uFun,obj.mesh,'Domain',2);    
             rhs = rhs + rhs_coupling;
             obj.forces = rhs;

@@ -43,11 +43,8 @@ classdef ComplianceFromConstitutiveTensorThermoElastic < handle
         function createAdjointProblem(obj)
             s.mesh = obj.mesh;
             s.conductivity = obj.materialInterpolator; 
-            Q = LagrangianFunction.create(obj.mesh,1,'P1');
-            fValues = ones(Q.nDofs,1);
-            Q.setFValues(fValues);
-            s.source       = Q;  
             s.dim = '2D';
+            s.source = [];
             s.boundaryConditions = obj.createAdjointBoundaryConditions();
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
@@ -74,10 +71,13 @@ classdef ComplianceFromConstitutiveTensorThermoElastic < handle
         end
 
         function bcAdj = createAdjointBoundaryConditions(obj)
+            xMin    = min(obj.mesh.coord(:,1));
             yMin    = min(obj.mesh.coord(:,2));
             xMax    = max(obj.mesh.coord(:,1));
-            isDir   = @(coor) abs(coor(:,2))==yMin & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax;  
-            
+            yMax    = max(obj.mesh.coord(:,2));
+
+            isDir   = @(coor) abs(coor(:,2))==yMin | abs(coor(:,2))==yMax | abs(coor(:,1))==xMin | abs(coor(:,1))==xMax;  
+
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = 1;
             sDir{1}.value     = 0;
