@@ -37,7 +37,8 @@ classdef Radius < DesignVariable
         function createPlotter(obj,cParams)
             obj.plotting = cParams.plotting;
             if obj.plotting
-                obj.plotter  = PlotterRadius(cParams);
+%                 obj.plotter  = PlotterRadius(cParams);
+                obj.plotter  = PlotterLattice(cParams);
             end
         end
 

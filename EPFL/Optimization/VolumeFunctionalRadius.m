@@ -41,6 +41,9 @@ classdef VolumeFunctionalRadius < handle
                 case 'Square'
                     obj.volumeHole = @(x) 4*x.fValues'*x.fValues;
                     obj.gradJ      = @(x) -8*x.fValues;
+                case 'Lattice'
+                    obj.volumeHole = @(x) 4*x.fValues'*x.fValues;
+                    obj.gradJ      = @(x) -8*x.fValues;
             end
         end
         
