@@ -7,9 +7,9 @@ clear;
 close all;
 
 %% Case parameters
-p.Training  = 'EIFEM';        % 'EIFEM'/'Multiscale'
-p.Sampling   ='Oversampling';     %'Isolated'/'Oversampling'
-p.Inclusion  ='Material';    %'Material'/'Hole'/'HoleRaul
+p.Training  = 'Multiscale';        % 'EIFEM'/'Multiscale'
+p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
+p.Inclusion  ='HoleRaul';    %'Material'/'Hole'/'HoleRaul
 
 %% Initialization of hyperparameters
 pol_deg         = 9;
