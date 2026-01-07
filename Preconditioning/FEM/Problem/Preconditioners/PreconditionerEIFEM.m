@@ -2,6 +2,7 @@ classdef PreconditionerEIFEM < handle
 
     properties (GetAccess = public, SetAccess = private)
         Fext
+        FextDisc
         EIFEMsolver
     end
 
@@ -19,6 +20,7 @@ classdef PreconditionerEIFEM < handle
         ddDofManager
         dMesh
         iter
+        
     end
 
     methods (Access = public)
@@ -39,15 +41,20 @@ classdef PreconditionerEIFEM < handle
 %             uC = obj.computeContinousField(uD);
 %             z  = uC; 
               obj.Fext = r;
+              obj.FextDisc = obj.computeDiscontinousField(obj.Fext);
               [z,uCoarse] = obj.solve();
         end
 
         function [uC,uCoarse]= solve(obj)
-            Rd           = obj.computeDiscontinousField(obj.Fext);
+%             Rd           = obj.computeDiscontinousField(obj.Fext);
+            Rd = obj.FextDisc;
             [uD,uCoarse] = obj.EIFEMsolver.apply(Rd);
             uC           = obj.computeContinousField(uD);
         end
 
+        function uCoarse = coarseSolve(obj)
+            uCoarse = obj.EIFEMsolver.coarseSolve(obj.FextDisc);
+        end
 
         function updateDownscaling(obj,mu)
             obj.EIFEMsolver.updateDownscaling(mu)
@@ -73,8 +80,8 @@ classdef PreconditionerEIFEM < handle
             obj.dMesh        = cParams.dMesh;
             obj.iter         = 1;
             if isfield(cParams,'Fext') % for optimization
-                obj.Fext         = cParams.Fext;
-                obj.FextCoarse   = obj.computeDiscontinousField(obj.Fext);
+                obj.Fext      = cParams.Fext;
+                obj.FextDisc  = obj.computeDiscontinousField(obj.Fext);
             end
         end
 

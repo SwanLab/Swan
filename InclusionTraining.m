@@ -52,7 +52,7 @@ classdef InclusionTraining < handle
 %                 EIFEoper.Kfine = data.LHSsbd;
                 EIFEoper.snapshots = data.uSbd;
 %                 filePath = ['/home/raul/Documents/GitHub/EPFL/test/data_' num2str(obj.r(i), '%.3f') '.mat'];
-                filePath = ['./EPFL/dataQ12/data_' num2str(obj.r(i), '%.3f') '_2.mat'];
+                filePath = ['./EPFL/dataSquare/data_' num2str(obj.r(i), '%.3f') '.mat'];
                 save(filePath,'EIFEoper')
             end
         end
@@ -70,7 +70,7 @@ classdef InclusionTraining < handle
 %             i = 0:N;
 %             % Cosine spacing formula
 %             obj.r = (a + b)/2 + (b - a)/2 * cos(pi * (1 - i / N));
-            obj.r    = 0.8:0.01:0.801;
+            obj.r    = 1e-6:0.01:0.961;
             obj.xmin = -1;
             obj.xmax = 1;
             obj.ymin = -1;
@@ -79,7 +79,7 @@ classdef InclusionTraining < handle
             obj.cy = 0;
             obj.Nr=7;
             obj.Ntheta=14;
-            obj.CoarseOrder = 2;
+            obj.CoarseOrder = 1;
         end
 
         function printdisplacements(obj,Usbd,mesh,ind)
@@ -143,7 +143,7 @@ classdef InclusionTraining < handle
 %                 r_inner = obj.ray_square_intersection(dir, r_inner);
                 %uncomment for square
                  r_inner_dir = r_inner;
-%                 r_inner_dir = r_inner / max(abs(dir)); 
+                r_inner_dir = r_inner / max(abs(dir)); 
 
                 % Create points from r_inner to r_max along dir
                 r_vals = linspace(r_inner_dir, r_max, Nr + 1)';

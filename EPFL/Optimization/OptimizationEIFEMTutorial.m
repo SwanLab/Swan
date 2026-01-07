@@ -71,16 +71,16 @@ classdef OptimizationEIFEMTutorial < handle
 
         function init(obj)
             close all;
-            obj.nSubdomains = [14,7]; %50 15
+            obj.nSubdomains = [24,12]; %50 15
             obj.r = 1e-6*ones(obj.nSubdomains)'; 
             obj.r= (1e-6 - 1e-6) * rand(obj.nSubdomains(2),obj.nSubdomains(1)) + 1e-6;
             obj.xmax=1; obj.xmin=-1; obj.ymax = 1; obj.ymin=-1; 
             obj.Nr = 7; obj.Ntheta = 14; 
             obj.x0 = 0; obj.y0=0;
             obj.tolSameNode = 1e-10;
-            obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange20_der2.mat';
+            obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange20_der2_square.mat';
             obj.solverType = 'REDUCED';
-            obj.volumeTarget = 0.7;
+            obj.volumeTarget = 0.7; %0.7
         end
 
         function createMesh(obj)
@@ -154,7 +154,7 @@ classdef OptimizationEIFEMTutorial < handle
             s.order    = 'P0';
             s.fun      = LagrangianFunction(s);
             s.type     = 'Radius';
-            s.plotting = false;
+            s.plotting = true;
             s.nSubdomains = obj.nSubdomains;
             s.Nr       = obj.Nr;
             s.Ntheta   = obj.Ntheta;
@@ -238,7 +238,7 @@ classdef OptimizationEIFEMTutorial < handle
 %             obj.physicalProblem = fem;
 %         end
 
-         function [LHSr,RHS] = createElasticProblem(obj)
+         function [LHSr,RHSr] = createElasticProblem(obj)
             obj.BC = obj.createBoundaryConditions(); 
             obj.createBCapplier();
             material = obj.createMaterial();
@@ -291,9 +291,9 @@ classdef OptimizationEIFEMTutorial < handle
             s.nSubdomains = obj.nSubdomains;
             s.mu          = obj.r;
             s.meshRef     = obj.discMesh;
-            s.Fext        = RHSr;
+%             s.Fext        = RHSr;
             eifem         = EIFEMnonPeriodic(s);
-            obj.EIFEMprecontitioner = eifem;
+%             obj.EIFEMprecontitioner = eifem;
 
             iC  = obj.interfaceConnec;
             lG  = obj.localGlobal;
@@ -306,7 +306,7 @@ classdef OptimizationEIFEMTutorial < handle
             ss.type         = 'EIFEM';
             ss.Fext         = RHSr;
             eP     = Preconditioner.create(ss);
-%             obj.EIFEMprecontitioner = eP;
+            obj.EIFEMprecontitioner = eP;
 %             obj.EIFEMprecontitioner = @(r) eP.apply(r);
         end
 
@@ -358,6 +358,7 @@ classdef OptimizationEIFEMTutorial < handle
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
             s.volumeTarget = obj.volumeTarget;
             s.uMesh = obj.createBaseDomain();
+            s.geomType = 'Square';
             v = VolumeConstraintRadius(s);
             obj.volume = v;
         end
@@ -389,7 +390,7 @@ classdef OptimizationEIFEMTutorial < handle
         end
 
          function createPrimalUpdater(obj)
-            s.ub     = 0.8;
+            s.ub     = 0.96;
             s.lb     = 1e-6;
             s.tauMax = 1000;
             s.tau    = [];
@@ -397,44 +398,47 @@ classdef OptimizationEIFEMTutorial < handle
         end
 
         function createOptimizer(obj)
-            s.monitoring     = false;
-            s.cost           = obj.cost;
-            s.constraint     = obj.constraint;
-            s.designVariable = obj.designVariable;
-            s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 3000;
-            s.tolerance      = 1e-8;
-            s.constraintCase = {'EQUALITY'};
-            s.ub             = 0.8;
-            s.lb             = 1e-6;
-            s.volumeTarget   = obj.volumeTarget;
-            s.primal         = 'PROJECTED GRADIENT';
-            opt              = OptimizerMMA(s);
-            opt.solveProblem();
-            obj.optimizer = opt;
-           
 %             s.monitoring     = true;
 %             s.cost           = obj.cost;
 %             s.constraint     = obj.constraint;
 %             s.designVariable = obj.designVariable;
-%             s.maxIter        = 1500;
+%             s.dualVariable   = obj.dualVariable;
+%             s.maxIter        = 3000;
 %             s.tolerance      = 1e-8;
 %             s.constraintCase = {'EQUALITY'};
+%             s.ub             = 0.8;
+%             s.lb             = 1e-6;
+%             s.volumeTarget   = obj.volumeTarget;
 %             s.primal         = 'PROJECTED GRADIENT';
-%             s.etaNorm        = 0.05;%0.05
-%             s.gJFlowRatio    = 0.9;
-%             s.primalUpdater  = obj.primalUpdater;
-%             opt = OptimizerNullSpace(s);
+%             opt              = OptimizerMMA(s);
 %             opt.solveProblem();
 %             obj.optimizer = opt;
+           
+            s.monitoring     = true;
+            s.cost           = obj.cost;
+            s.constraint     = obj.constraint;
+            s.designVariable = obj.designVariable;
+            s.maxIter        = 2000; %150
+            s.tolerance      = 1e-8;
+            s.constraintCase = {'EQUALITY'};
+            s.primal         = 'PROJECTED GRADIENT';
+            s.etaNorm        = 1;%0.05
+            s.gJFlowRatio    = 0.5; %3
+            s.primalUpdater  = obj.primalUpdater;
+            s.etaMaxMin      = 0.05;
+            opt = OptimizerNullSpace(s);
+            opt.solveProblem();
+            obj.optimizer = opt;
         end
 
         function bc = createBoundaryConditions(obj)
             xMin    = min(obj.mesh.coord(:,1));
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
+            yMin    = min(obj.mesh.coord(:,2)); 
+            Ly      = yMax-yMin;
             isDir   = @(coor)  abs(coor(:,1)-xMin) < 1e-12;
-            isForce = @(x)  x(1,:,:)==xMax & x(2,:,:)>=0.3*yMax & x(2,:,:)<=0.7*yMax;
+            isForce = @(x)  abs(x(1,:,:)-xMax) < 1e-12 & x(2,:,:)>=yMin+0.3*Ly & x(2,:,:)<=yMin+0.7*Ly;
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2];

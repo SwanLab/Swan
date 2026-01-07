@@ -1,7 +1,7 @@
 classdef EIFEMnonPeriodic < handle
 
     properties (GetAccess = public, SetAccess = private)
-        
+        Fcoarse
     end
 
     properties (Access = private)
@@ -44,22 +44,37 @@ classdef EIFEMnonPeriodic < handle
 
         function [u,uCoarse]  = apply(obj,r)
             obj.Fext = r;
-            [u,uCoarse]  = obj.solve();
+            [u,uCoarse]  = obj.solve(obj.Fext);
             % %             obj.plotSolution(uCoarse,obj.mesh,100,1,obj.iter,0)
             %             u = obj.reconstructSolution(uCoarse);
             % %                         obj.plotSolution(u(:),obj.meshRef,5,1,obj.iter,0)
             %                         obj.iter = obj.iter+1;
         end
 
-        function [u,uCoarse] = solve(obj)
-            Fcoarse = obj.projectExternalForce(obj.Fext);
-            RHS     = obj.assembleRHSvector(Fcoarse);
+        function [u,uCoarse] = solve(obj,Ffine)
+%             Fcoarse = obj.projectExternalForce(obj.Fext);
+%             RHS     = obj.assembleRHSvector(Fcoarse);
+%             LHSred  = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);
+%             RHSred  = obj.bcApplier.fullToReducedVectorDirichlet(RHS);
+%             LHSred = (LHSred + LHSred.') / 2;
+%             uRed    = LHSred\RHSred;
+%             uCoarse = obj.bcApplier.reducedToFullVectorDirichlet(uRed);
+            uCoarse = obj.coarseSolve(Ffine);
+            u = obj.reconstructSolution(uCoarse);
+        end
+
+        function uCoarse = coarseSolve(obj,Ffine)
+            if isempty(obj.Fcoarse)
+                FcoarseD = obj.projectExternalForce(Ffine);
+                obj.Fcoarse = obj.assembleRHSvector(FcoarseD);
+            end
+%             FcoarseD = obj.projectExternalForce(Ffine);
+%             obj.Fcoarse = obj.assembleRHSvector(FcoarseD);
             LHSred  = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);
-            RHSred  = obj.bcApplier.fullToReducedVectorDirichlet(RHS);
+            RHSred  = obj.bcApplier.fullToReducedVectorDirichlet(obj.Fcoarse);
             LHSred = (LHSred + LHSred.') / 2;
             uRed    = LHSred\RHSred;
             uCoarse = obj.bcApplier.reducedToFullVectorDirichlet(uRed);
-            u = obj.reconstructSolution(uCoarse);
         end
 
         function updateDownscaling(obj,mu)

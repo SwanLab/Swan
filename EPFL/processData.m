@@ -1,7 +1,7 @@
 close all
 clear all
 % Specify the directory where the .mat files are located
-directory = './EPFL/data'; % Update this path as needed
+directory = './EPFL/dataSquare'; % Update this path as needed
 
 % Get a list of all .mat files in the directory
 files = dir(fullfile(directory, 'data_*.mat'));
@@ -31,7 +31,7 @@ for k = 1:4:length(files)
     disp(['Loaded: ', files(k).name]);  % Display the file being loaded
     i=i+1;
 end
-xdata   = 1e-6:0.04:0.801;
+xdata   = 1e-6:0.04:0.961;
 % N = 80;
 % % Interval bounds
 % a = 1e-6;
@@ -69,7 +69,7 @@ EIFEoper.dUrb  = dTrb;
 EIFEoper.dU    = dfT;
 
 EIFEoper.deim    = deim;
-filePath = './EPFL/parametrizedEIFEMLagrange20_der2.mat';
+filePath = './EPFL/parametrizedEIFEMLagrange20_der2_square.mat';
 save(filePath,'EIFEoper')
 
 % load('data_0.800.mat')

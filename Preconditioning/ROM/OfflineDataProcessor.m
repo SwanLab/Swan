@@ -220,36 +220,36 @@ classdef OfflineDataProcessor < handle
         end
 
         function Vfun = createInterfaceModesFun(obj,bMesh)
-%             xmax = max(obj.mesh.coord(:,1));
-%             ymax = max(obj.mesh.coord(:,2));
-%             xmin = min(obj.mesh.coord(:,1));
-%             ymin = min(obj.mesh.coord(:,2));
-%             a = (-xmin+xmax)/2;
-%             b = (-ymin+ymax)/2;
-%             x0 = xmin+a;
-%             y0 = ymin+b;
-% 
-% 
-%             f1x = @(x) [1/(4)*(1-(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b);...
-%                 0*x(2,:,:)  ];
-%             f2x = @(x) [1/(4)*(1+(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b);...
-%                 0*x(2,:,:)  ];
-%             f3x = @(x) [1/(4)*(1+(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b);...
-%                 0*x(2,:,:)  ];
-%             f4x = @(x) [1/(4)*(1-(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b);...
-%                 0*x(2,:,:)  ];
-% 
-%             f1y = @(x) [0*x(1,:,:);...
-%                 1/(4)*(1-(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b) ];
-%             f2y = @(x) [0*x(1,:,:);...
-%                 1/(4)*(1+(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b) ];
-%             f3y = @(x) [0*x(1,:,:);...
-%                 1/(4)*(1+(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b) ];
-%             f4y = @(x) [0*x(1,:,:);...
-%                 1/(4)*(1-(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b)];
-% 
-%             f     = { f2x f2y f3x f3y f4x f4y f1x f1y}; %
-            f = InterfaceFunctions(obj.mesh, obj.Coarseorder);
+            xmax = max(obj.mesh.coord(:,1));
+            ymax = max(obj.mesh.coord(:,2));
+            xmin = min(obj.mesh.coord(:,1));
+            ymin = min(obj.mesh.coord(:,2));
+            a = (-xmin+xmax)/2;
+            b = (-ymin+ymax)/2;
+            x0 = xmin+a;
+            y0 = ymin+b;
+
+
+            f1x = @(x) [1/(4)*(1-(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b);...
+                0*x(2,:,:)  ];
+            f2x = @(x) [1/(4)*(1+(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b);...
+                0*x(2,:,:)  ];
+            f3x = @(x) [1/(4)*(1+(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b);...
+                0*x(2,:,:)  ];
+            f4x = @(x) [1/(4)*(1-(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b);...
+                0*x(2,:,:)  ];
+
+            f1y = @(x) [0*x(1,:,:);...
+                1/(4)*(1-(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b) ];
+            f2y = @(x) [0*x(1,:,:);...
+                1/(4)*(1+(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b) ];
+            f3y = @(x) [0*x(1,:,:);...
+                1/(4)*(1+(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b) ];
+            f4y = @(x) [0*x(1,:,:);...
+                1/(4)*(1-(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b)];
+
+            f     = { f2x f2y f3x f3y f4x f4y f1x f1y}; %
+%             f = InterfaceFunctions(obj.mesh, obj.Coarseorder);
             nfun = size(f,2);
             nbd = size(bMesh,1);
             for ibd=1:nbd

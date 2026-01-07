@@ -1,7 +1,7 @@
 close all
 clear all
 % Specify the directory where the .mat files are located
-directory = './EPFL/data2'; % Update this path as needed
+directory = './EPFL/dataSquare'; % Update this path as needed
 
 % Get a list of all .mat files in the directory
 files = dir(fullfile(directory, 'data_*.mat'));
@@ -30,7 +30,7 @@ for k = 1:length(files)
     disp(['Loaded: ', files(k).name]);  % Display the file being loaded
 end
 % T=T./vecnorm(T);
-load('parametrizedEIFEMLagrange20.mat')
+load('parametrizedEIFEMLagrange20_der2_square.mat')
 Tdef = EIFEoper.Udef;
 Trb = EIFEoper.Urb;
 fT   = EIFEoper.U;
@@ -38,15 +38,15 @@ fT   = EIFEoper.U;
 % coeff  = EIFEoper.deim.basis(EIFEoper.deim.indices,:)\T(EIFEoper.deim.indices,:);
 % t= EIFEoper.deim.basis*coeff;
 
-N = 80;
+N = 24;
 % Interval bounds
 a = 1e-6;
 b = 0.8;
 % Index vector
 i = 0:N;
 % Cosine spacing formula
-xdata = (a + b)/2 + (b - a)/2 * cos(pi * (1 - i / N));
-% xdata   = 1e-6:0.01:0.801;
+% xdata = (a + b)/2 + (b - a)/2 * cos(pi * (1 - i / N));
+xdata   = 1e-6:0.01:0.961;
 % t    = fT(xdata);
 % def  = Tdef(xdata);
 % rb   = Trb(xdata);

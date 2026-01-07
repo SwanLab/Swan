@@ -17,9 +17,10 @@ classdef ComplianceFunctionalRadius < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,mu)
-            [u,uC] = obj.computeStateVariable(mu.fun.fValues);
+%             [u,uC] = obj.computeStateVariable(mu.fun.fValues);
+            [u,uC] =   obj.computeStateVariable(mu.fun.fValues);
             dK     = obj.stateProblem.computeGradK(mu.fun.fValues);
-            J      = obj.computeFunction(u);
+            J      = obj.computeFunction(uC);
             dJ     = obj.computeGradient(dK,uC,mu);
             if isempty(obj.value0)
                 obj.value0 = J;
@@ -44,8 +45,10 @@ classdef ComplianceFunctionalRadius < handle
 
         function [u,uC] = computeStateVariable(obj,mu)
             obj.stateProblem.computeLHS(mu);
-            obj.stateProblem.updateDownscaling(mu)
-            [u,uC]= obj.stateProblem.solve();
+%             obj.stateProblem.updateDownscaling(mu)
+%             [u,uC]= obj.stateProblem.solve();
+            uC = obj.stateProblem.coarseSolve();
+            u=0;
             %             u = obj.stateProblem.uFun;
         end
 
@@ -57,7 +60,12 @@ classdef ComplianceFunctionalRadius < handle
             % It is true that to get uFine there is a reconstruction, but since
             % we are only interested in the nodal values, can use the
             % orignial mesh to get the vector.
-            J = u'*obj.stateProblem.Fext;
+            %continuous reconstructed
+%             J = u'*obj.stateProblem.Fext;
+            %discontinuous reconstructed
+%              J = u(:)'*obj.stateProblem.FextDisc(:);
+             %coarse
+            J = u'*obj.stateProblem.EIFEMsolver.Fcoarse;
         end
 
         function dJ = computeGradient(obj,dK,u,mu)
@@ -84,7 +92,9 @@ classdef ComplianceFunctionalRadius < handle
         function dx = computeNonDimensionalGradient(obj,dx)
             refX = obj.value0;
             for i = 1:length(dx)
-                dx{i}.setFValues(dx{i}.fValues/refX);
+                dx{i}.setFValues(dx{i}.fValues/(refX));
+%                 dx{i}.setFValues(dx{i}.fValues);
+%                 dx{i}.setFValues(dx{i}.fValues/norm(dx{i}.fValues));
             end
         end
 

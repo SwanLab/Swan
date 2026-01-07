@@ -40,7 +40,7 @@ classdef Cost < handle
             end
             obj.value    = jV;
             obj.gradient = obj.Msmooth*djV;
-            obj.gradient = djV;
+%             obj.gradient = djV;
         end
 
         function nF = obtainNumberFields(obj)

@@ -9,6 +9,8 @@ classdef VolumeFunctionalRadius < handle
     properties (Access = private)
         baseFun
         totalVolume
+        volumeHole
+        gradJ
     end
 
     methods (Access = public)
@@ -30,9 +32,16 @@ classdef VolumeFunctionalRadius < handle
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
 %             obj.base = cParams.uMesh;
-            obj.test = cParams.test;
-            
+            obj.test = cParams.test;            
             obj.baseFun = ConstantFunction.create(1,obj.mesh);
+            switch cParams.geomType
+                case 'Circle'
+                    obj.volumeHole = @(x) pi*x.fValues'*x.fValues;
+                    obj.gradJ      = @(x) -2*pi*x.fValues;
+                case 'Square'
+                    obj.volumeHole = @(x) 4*x.fValues'*x.fValues;
+                    obj.gradJ      = @(x) -8*x.fValues;
+            end
         end
         
 %         function createBaseFunction(obj)
@@ -52,7 +61,8 @@ classdef VolumeFunctionalRadius < handle
         function J = computeFunction(obj,x)
 %             dV = obj.baseFun-pi*x.*x;
 %             volume = Integrator.compute(dV,obj.mesh,2);
-            volume = obj.totalVolume- pi*x.fValues'*x.fValues;
+%             volume = obj.totalVolume- 4*x.fValues'*x.fValues;
+            volume = obj.totalVolume - obj.volumeHole(x);
             J      = volume/obj.totalVolume;
            % rho = (L^2-x)./L^2;
 %            J   = Integrator.compute(rho,obj.mesh,2)/obj.totalVolume;
@@ -60,9 +70,11 @@ classdef VolumeFunctionalRadius < handle
 
         function dJ = computeGradient(obj,x)
             dJ = copy(x);
-            fValues = -2*pi*dJ.fValues;
-%             dJ.setFValues(fValues./obj.totalVolume);
-            dJ.setFValues(fValues./norm(fValues));
+%             fValues = -8*dJ.fValues;
+            fValues = obj.gradJ(x);
+            dJ.setFValues(fValues./(obj.totalVolume));
+%              dJ.setFValues(fValues);
+%             dJ.setFValues(fValues./norm(fValues));
         end
     end
 

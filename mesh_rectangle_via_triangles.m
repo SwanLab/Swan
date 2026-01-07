@@ -84,9 +84,10 @@ function mesh = mesh_rectangle_via_triangles(r,xmax,xmin,ymax,ymin,Nr,Ntheta,x0,
 
                 % Normalize direction vector
                 dir = edge_vec / r_max;
-
+%                 r_inner_dir = r_inner; % for circular inclusion
+                 r_inner_dir = r_inner / max(abs(dir)); % for sqaure
                 % Create points from r_inner to r_max along dir
-                r_vals = linspace(r_inner, r_max, Nr + 1)';
+                r_vals = linspace(r_inner_dir, r_max, Nr + 1)';
                 pts = [cx, cy] + r_vals * dir;
 
                 nodes = [nodes; pts];
