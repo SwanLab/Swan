@@ -3,7 +3,7 @@ clear all
 
 % Specify case parameters
 p.nelem     =  20;
-p.Training  = 'EIFEM';         % 'EIFEM'/'Multiscale'
+p.Training  = 'Multiscale';         % 'EIFEM'/'Multiscale'
 p.Inclusion = 'HoleRaul';         % 'Hole'/'Material'/'HoleRaul'
 p.Sampling  = 'Isolated';     % 'Isolated'/'Oversampling'
 meshName    = p.nelem+"x"+p.nelem;

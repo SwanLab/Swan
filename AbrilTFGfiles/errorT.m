@@ -10,26 +10,23 @@
 clc; clear;
 
 %% LOAD DATA
-p.Training  = 'EIFEM';            % 'EIFEM'/'Multiscale'
-p.Sampling   ='Oversampling';     %'Isolated'/'Oversampling'
+p.Training  = 'Multiscale';            % 'EIFEM'/'Multiscale'
+p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
 p.Inclusion  ='HoleRaul';         %'Material'/'Hole'/'HoleRaul
 p.nelem      = 20;
 meshName    =  p.nelem+"x"+p.nelem;
 
 % 1. NN
 filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,"T_NN.mat");
-% filePath = fullfile("AbrilTFGfiles","Data","Multiscale","T_NN.mat");
 load(filePath);
 pol_deg1=pol_deg;
 
 % 2. High Order function
 HOname=fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,"HOfunction.mat");
-% HOname=fullfile("AbrilTFGfiles","Data","Multiscale","HOfunction.mat");
 load(HOname,"fT","deim");
 
 % 3. SVD +NN
 NNname=fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,"Q_NN.mat");
-% NNname=fullfile("AbrilTFGfiles","Data","Multiscale","Q_NN.mat");
 load(NNname);
 
 U=deim.basis(:,1:10);
@@ -38,7 +35,6 @@ pol_deg2=pol_deg;
 
 % Dataset
 directory= fullfile("AbrilTFGfiles/Data",p.Training,p.Inclusion,p.Sampling,meshName);
-% directory= fullfile("AbrilTFGfiles/Data/Multiscale/");
 files = dir(fullfile(directory, 'r0_*.mat'));
 i=1;
 for k = 1:1:length(files)
@@ -56,15 +52,16 @@ test.r=0.025:0.05:0.999;
 
 test.T=zeros(size(training.T,1),size(test.r,2));
 for i=1:size(test.r,2)
-    % EIFEM:
-    %data=OversamplingTraining(mesh,test.r(i),p);
-    %z=OfflineDataProcessor(data);
-    %EIFEoper = z.computeROMbasis();
-    %test.T(:,i)=EIFEoper.U(:);
-    
-    % MULTISCALE:
-    [~, ~, T, ~, ~,~] = IsolatedTraining(test.r(i),p.nelem);
-    test.T(:,i)= T(:);
+    switch p.Training
+        case 'EIFEM'
+            sol=EIFEMTraining(mesh,test.r(i),p);
+            z=OfflineDataProcessor(sol);
+            EIFEoper = z.computeROMbasis();
+            test.T(:,i)=EIFEoper.U(:);
+        case 'Multiscale'
+            [~, ~, T, ~, ~,~] = MultiscaleTraining(mesh,test.r(i),p);
+            test.T(:,i)= T(:);
+    end
 end
 
 

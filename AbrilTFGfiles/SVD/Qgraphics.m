@@ -8,8 +8,8 @@ clc; clear;
 
 %% LOAD DATA
 p.nelem=20;
-p.Training  = 'EIFEM';         % 'EIFEM'/'Multiscale'
-p.Sampling ='Oversampling';     %'Isolated'/'Oversampling'
+p.Training  = 'Multiscale';         % 'EIFEM'/'Multiscale'
+p.Sampling ='Isolated';     %'Isolated'/'Oversampling'
 p.Inclusion='HoleRaul';    %'Material'/'Hole'/'HoleRaul
 meshName    = p.nelem+"x"+p.nelem;
 
