@@ -258,6 +258,13 @@ classdef GeometricalFunction < handle
                     p  = cParams.pnorm;
                     fH = @(x) obj.computeHexagonFunction(x,x1,x2,x0,y0,n,p,l);
                     obj.fHandle = fH;
+                case 'ReinforcedHoneycomb'   
+                    l  = cParams.radius;   
+                    n   = cParams.normal;      
+                    x0  = cParams.xCoorCenter;
+                    y0  = cParams.yCoorCenter;
+                    fH = @(x) obj.computeReinfHoneycomb(x,x1,x2,x0,y0,n,l);
+                    obj.fHandle = fH;
                 case 'Circles'
                     r = cParams.r;
                     x0 = cParams.x0;
@@ -292,6 +299,25 @@ classdef GeometricalFunction < handle
             normVn = vecnorm(vn,p,4);
             d = (normVn/(l*(sqrt(3)/2)))-1;
         end
+
+        function d = computeReinfHoneycomb(x,x1,x2,x0,y0,n,l)
+            m = l/(2*sqrt(3));
+            vx = x1(x) - x0;
+            vy = x2(x) - y0;            
+            nS     = size(n,1);
+            nGauss = size(x,2);
+            nElem  = size(x,3);  
+            vn = zeros(1,nGauss,nElem,nS);
+            for i = 1:nS
+                nx = n(i,1);
+                ny = n(i,2);
+                vn(:,:,:,i)  = (abs(vx*nx + vy*ny)/m)-1;
+            end
+            dBars = min(vn,[],4);
+            dHex  = GeometricalFunction.computeHexagonFunction(x,x1,x2,x0,y0,n,'Inf',1-l/3);
+            d     = max(dHex,-dBars);
+        end   
+
 
         function fH = computeCircles(x,x0,y0,r)
             n = length(r);

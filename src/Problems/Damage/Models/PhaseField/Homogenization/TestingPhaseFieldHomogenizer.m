@@ -85,7 +85,7 @@ classdef TestingPhaseFieldHomogenizer < handle
         end
 
         function paramHole = computeHoleParams(obj)
-            obj.maxParam = 0.99*ones(size(obj.nSteps));
+            obj.maxParam = 0.975*ones(size(obj.nSteps));
             nParam = length(obj.maxParam);
             paramHole = cell(1,nParam);
             for i=1:nParam
@@ -140,9 +140,13 @@ classdef TestingPhaseFieldHomogenizer < handle
                 case {'SmoothHexagon','Hexagon'}
                     gPar.radius = l;
                     gPar.normal = [0 1; sqrt(3)/2 1/2; sqrt(3)/2 -1/2];
+                case 'ReinforcedHoneycomb'
+                    gPar.radius = l;
+                    gPar.normal = [0 1; sqrt(3)/2 1/2; sqrt(3)/2 -1/2];
             end
             g                  = GeometricalFunction(gPar);
             phiFun             = g.computeLevelSetFunction(mesh);
+            phiFun.plot
             lsCircle           = phiFun.fValues;
             ls = -lsCircle;
         end
@@ -256,6 +260,8 @@ classdef TestingPhaseFieldHomogenizer < handle
                             perimeter = 6*l;
                             apothem   = sqrt(l^2 - (l/2)^2);
                             phi = (perimeter*apothem)/(6*sqrt(3)/2);
+                        case {'ReinforcedHoneycomb'}
+                            phi = l; %% Wrong
                     end
                 case 'Perimeter'
                     switch obj.holeType
@@ -266,6 +272,8 @@ classdef TestingPhaseFieldHomogenizer < handle
                                   pi*(3*(2)-sqrt((3+1)*(1+3)));
                         case 'Rectangle'
                             phi = (l(1)+l(2))/2;
+                        case {'ReinforcedHoneycomb'}
+                            phi = l; %% Wrong
                     end
             end
         end
