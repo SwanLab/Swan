@@ -85,7 +85,7 @@ classdef TestingPhaseFieldHomogenizer < handle
         end
 
         function paramHole = computeHoleParams(obj)
-            obj.maxParam = 1e-5*ones(size(obj.nSteps));
+            obj.maxParam = 0.99*ones(size(obj.nSteps));
             nParam = length(obj.maxParam);
             paramHole = cell(1,nParam);
             for i=1:nParam
