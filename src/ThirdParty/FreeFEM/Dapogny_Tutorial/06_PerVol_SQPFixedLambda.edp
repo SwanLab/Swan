@@ -42,7 +42,8 @@ Achi[] = volfrac(Th,phi[],ers);
 
 /* Regularization of shape derivative */
 real meshsiz = 1/(30*fac);
-real alpha = 2.0*meshsiz;
+real alpha   = 2.0*meshsiz;
+real beta    = 8.0*meshsiz;
 
 /* Perimeter function */
 macro J() (int1d(Th,levelset=phi)(1)) // EOM
@@ -97,7 +98,7 @@ macro dJ() {
   fespace Vh1D0(ThLInt,P0);
   Vh1D0 kappa;
 
-  varf KM(g0,v0) = int1d(ThLInt)(tanGrad(g0,nx,ny)*tanGrad(v0,nx,ny) + g0*v0*(ell*abs(constr)*kappa));
+  varf KM(g0,v0) = int1d(ThLInt)(tanGrad(g0,nx,ny)*tanGrad(v0,nx,ny) + g0*v0*(ell*constr*kappa));
 
   varf F(g0,v0) = int1d(ThLInt)(v0*(-kappa-ell*constr));
 
@@ -107,12 +108,12 @@ macro dJ() {
   problem projNy(ny,v0) = int1d(ThLInt)(alpha^2*(dx(ny)*dx(v0)+dy(ny)*dy(v0)) + ny*v0) 
                             - int1d(ThLInt)(-Tl.x*v0);
 
-  problem velextx(gx2,v2,tgv=-1) = int2d(Th2,rInner)(alpha^2*(dx(gx2)*dx(v2)+dy(gx2)*dy(v2)) + gx2*v2)
-                      + int2d(Th2,rOuter)(alpha^2*(dx(gx2)*dx(v2)+dy(gx2)*dy(v2)) + gx2*v2)
+  problem velextx(gx2,v2,tgv=-1) = int2d(Th2,rInner)(beta^2*(dx(gx2)*dx(v2)+dy(gx2)*dy(v2)) + gx2*v2)
+                      + int2d(Th2,rOuter)(beta^2*(dx(gx2)*dx(v2)+dy(gx2)*dy(v2)) + gx2*v2)
                       + on(lsLabel[0],gx2 = g0*nx);
 
-  problem velexty(gy2,v2,tgv=-1) = int2d(Th2,rInner)(alpha^2*(dx(gy2)*dx(v2)+dy(gy2)*dy(v2)) + gy2*v2)
-                      + int2d(Th2,rOuter)(alpha^2*(dx(gy2)*dx(v2)+dy(gy2)*dy(v2)) + gy2*v2)
+  problem velexty(gy2,v2,tgv=-1) = int2d(Th2,rInner)(beta^2*(dx(gy2)*dx(v2)+dy(gy2)*dy(v2)) + gy2*v2)
+                      + int2d(Th2,rOuter)(beta^2*(dx(gy2)*dx(v2)+dy(gy2)*dy(v2)) + gy2*v2)
                       + on(lsLabel[0],gy2 = g0*ny);
 
   projNx;
