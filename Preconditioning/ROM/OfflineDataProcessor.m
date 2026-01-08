@@ -65,6 +65,23 @@ classdef OfflineDataProcessor < handle
             Ur = PhiR*inv(Arr')*(Lrv - Adr'*(Add'\Ldv));
             U  = Ur+Ud;
 
+
+            ndof = 8;
+            Kdd = phiD'*obj.LHS*phiD;
+            
+            Keif = [Kdd Zdr;Zrd Zrr];
+            C    = [Adr Add;...
+                    Arr S];
+
+            LHS = [K C; C.' Z];
+            Lug = [Lrv;Ldv]*eye(8);
+            RHS = -[Zd;Zr;Lug];
+
+            x = LHS\RHS;
+            
+            U2 = x(1:ndof*2,1);
+
+
             Kcoarse = Ud'*obj.LHS*Ud;
 
             EIFEoper.Kcoarse = Kcoarse;
