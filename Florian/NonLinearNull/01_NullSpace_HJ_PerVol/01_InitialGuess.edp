@@ -1,4 +1,5 @@
 IMPORT "io.edp"
+load "distance"
 
 mesh Th=importMesh("Th");
 plot(Th,cmm="Th");
@@ -13,7 +14,8 @@ func real initialGuess() {
   ls = ((abs((x-x0)/lx)^p+abs((y-y0)/ly)^p)^(1/p)) - 0.5;
   return(ls);
 }
-Vh phio;
+Vh phio, phi;
 phio = initialGuess();
+distance(Th,phio,phi[]);
 
-exportArray(phio[]);
+exportArray(phi[]);

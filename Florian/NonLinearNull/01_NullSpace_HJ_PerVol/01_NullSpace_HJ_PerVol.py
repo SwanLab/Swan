@@ -31,18 +31,21 @@ class TO_problem(EuclideanOptimizable):
     def x0(self):
         runner = FreeFemRunner(path+"01_InitialGuess.edp")
         runner.import_variables(Th=Th)
-        return runner.execute()['phio[]']
+        return runner.execute()['phi[]']
 
     def J(self, x):
-        (obj, dc) = solve_state(x)
-        return obj
+        runner = FreeFemRunner(path+"01_Cost.edp")
+        runner.import_variables(Th=Th,phiVal=x)
+        return runner.execute()['J']
 
     def dJ(self, x):
         (obj, dc) = solve_state(x)
         return dc
 
     def G(self, x):
-        return [np.sum(x)/(nelx*nely)-volfrac]
+        runner = FreeFemRunner(path+"01_Constraint.edp")
+        runner.import_variables(Th=Th,phiVal=x)
+        return [runner.execute()['C']]
 
     def dG(self, x):
         dv = np.ones(nelx*nely)/(nelx*nely)

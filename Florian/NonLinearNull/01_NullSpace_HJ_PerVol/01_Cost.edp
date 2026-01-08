@@ -1,0 +1,12 @@
+IMPORT "io.edp"
+
+mesh Th=importMesh("Th");
+real [int] phiVal = importArray("phiVal");
+
+fespace Vh(Th,P1);
+Vh phi;
+phi[] = phiVal;
+
+real J = (int1d(Th,levelset=phi)(1));
+
+exportVar(J);

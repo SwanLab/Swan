@@ -1,0 +1,167 @@
+IMPORT "io.edp"
+
+mesh Th=importMesh("Th");
+real [int] phiVal = importArray("phiVal");
+
+fespace Vh(Th,P1);
+fespace Vh0(Th,P0);
+
+func real volfrac1tri(real[int] &triav,real[int] &phiv,real ers) {
+  real        x0,y0,x1,y1,x2,y2;
+  real[int]   a(3);
+  int         nplus,nminus,nzeros,imin1,imin2,ip1,ip2,iz;
+  real        dd,rap,voltri,volsstri,pint1x,pint1y,pint2x,pint2y;
+  real        THRES = 1.e-12;
+  
+  x0 = triav[0];
+  y0 = triav[1];
+  
+  x1 = triav[2];
+  y1 = triav[3];
+  
+  x2 = triav[4];
+  y2 = triav[5];
+  
+  nplus = 0;
+  nminus = 0;
+  nzeros =0;
+  
+  imin1 = -1;
+  imin2 = -1;
+  ip1 = -1;
+  ip2 = -1;
+  iz = -1;
+  
+  for (int i=0; i<3; i++) {
+    if ( phiv[i] < THRES ) {
+      nminus++;
+      if ( imin1 < 0 ) imin1 = i;
+      else imin2 = i;
+    }
+    else if ( phiv[i] > THRES ) {
+      nplus++;
+      if ( ip1 < 0 ) ip1 = i;
+      else ip2 = i;
+    }
+    else {
+      nzeros++;
+      iz = i;
+    }
+  }
+  
+  if ( nminus == 0 ) return(ers);
+  if ( nminus == 3 ) return(1.0);
+  if ( nzeros == 3 ) exit(0);
+  
+  if ( nminus == 1 ) {
+    x0 = triav[2*imin1+0];
+    y0 = triav[2*imin1+1];
+    
+    x1 = triav[2*ip1+0];
+    y1 = triav[2*ip1+1];
+    
+    a[0] = phiv[imin1];
+    a[1] = phiv[ip1];
+    
+    if ( nzeros == 0) {
+      assert ( ip2 != -1 );
+      x2 = triav[2*ip2+0];
+      y2 = triav[2*ip2+1];
+      a[2] = phiv[ip2];
+    }
+    else {
+      assert( iz != -1);
+      x2 = triav[2*iz+0];
+      y2 = triav[2*iz+1];
+      a[2] = phiv[iz];
+    }
+    
+    dd = - a[0] / (a[1] - a[0]);
+    pint1x = x0 + dd*(x1-x0);
+    pint1y = y0 + dd*(y1-y0);
+    
+    dd = - a[0] / (a[2] - a[0]);
+    pint2x = x0 + dd*(x2-x0);
+    pint2y = y0 + dd*(y2-y0);
+    
+    volsstri = 0.5*abs((pint1x-x0)*(pint2y-y0)-(pint1y-y0)*(pint2x-x0));
+    voltri =  0.5*abs((x1-x0)*(y2-y0)-(y1-y0)*(x2-x0));
+    rap = volsstri / voltri;
+    if ( rap > 1.0 ) exit(0);
+    
+    return ( rap + ers*(1.0 - rap) );
+  }
+  
+  if ( nminus == 2 ) {
+    
+    if ( nzeros == 0 ) {
+      assert ( ip1 != -1 );
+      x0 = triav[2*ip1+0];
+      y0 = triav[2*ip1+1];
+      a[0] = phiv[ip1];
+    }
+    else {
+      assert( iz != -1 );
+      x0 = triav[2*iz+0];
+      y0 = triav[2*iz+1];
+      a[0] = phiv[iz];
+    }
+    
+    x1 = triav[2*imin1+0];
+    y1 = triav[2*imin1+1];
+    
+    
+    x2 = triav[2*imin2+0];
+    y2 = triav[2*imin2+1];
+    
+    a[1] = phiv[imin1];
+    a[2] = phiv[imin2];
+    
+    dd = - a[0] / (a[1] - a[0]);
+    pint1x = x0 + dd*(x1-x0);
+    pint1y = y0 + dd*(y1-y0);
+    
+    dd = - a[0] / (a[2] - a[0]);
+    pint2x = x0 + dd*(x2-x0);
+    pint2y = y0 + dd*(y2-y0);
+    
+    volsstri = 0.5*abs((pint1x-x0)*(pint2y-y0)-(pint1y-y0)*(pint2x-x0));
+    voltri =  0.5*abs((x1-x0)*(y2-y0)-(y1-y0)*(x2-x0));
+    rap = volsstri / voltri;
+    if ( rap > 1.0 ) exit(0);
+    
+    return( (1.0-rap) + ers*rap );
+  }
+}
+
+func real[int] volfrac(mesh & Th, real[int] phitab, real ers) {
+  Vh phi = phitab;
+  Vh0 vol;
+  real[int] triav(6),phiv(3);
+  
+  for (int n=0; n<Th.nt; n++) {
+    triav[0] = Th[n][0].x;
+    triav[1] = Th[n][0].y;
+    triav[2] = Th[n][1].x;
+    triav[3] = Th[n][1].y;
+    triav[4] = Th[n][2].x;
+    triav[5] = Th[n][2].y;
+    phiv[0]  = phi(triav[0],triav[1]);
+    phiv[1]  = phi(triav[2],triav[3]);
+    phiv[2]  = phi(triav[4],triav[5]);
+    vol[][n] = volfrac1tri(triav,phiv,ers);
+  }
+  
+  return vol[];
+} // EOM
+
+Vh phi;
+phi[] = phiVal;
+
+Vh0 Achi;
+real ers = 1.e-3;
+Achi[] = volfrac(Th,phi[],ers);
+
+real C = (int2d(Th)(Achi) - 0.5);
+
+exportVar(C);
