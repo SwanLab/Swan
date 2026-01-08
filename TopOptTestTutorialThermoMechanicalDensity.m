@@ -237,15 +237,15 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
 
 %             Clampled beam
             isDir   = @(coor)  abs(coor(:,1))== xMin | abs(coor(:,1))==xMax;
-            isForce = @(coor)  (abs(coor(:,2))== yMin & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax);
+            isForce = @(x)  (abs(x(2,:,:))== yMin & abs(x(1,:,:))>=0.4*xMax & abs(x(1,:,:))<=0.6*xMax);
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2];
             sDir{1}.value     = 0;
 
-            sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 2;
-            sPL{1}.value     = -4.5e6; 
+            [bMesh, ~]  = obj.mesh.createSingleBoundaryMesh();
+            sPL{1}.domain = isForce;
+            sPL{1}.fun    = ConstantFunction.create([0,-0.5e7/0.2],bMesh);
 
             dirichletFun = [];
             for i = 1:numel(sDir)
@@ -256,7 +256,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
 
             pointloadFun = [];
             for i = 1:numel(sPL)
-                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
+                pl = TractionLoad(obj.mesh, sPL{i}, 'FUNCTION');
                 pointloadFun = [pointloadFun, pl];
             end
             s.pointloadFun = pointloadFun;
@@ -264,12 +264,6 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
-
-            % Maybe it would be better to use option 'FUNCTION' in
-            % TractionLoad (for mesh independency). With something like:
-            % [bMesh, ~]  = obj.mesh.createSingleBoundaryMesh();
-            % sPL{1}.domain = isForce;
-            % sPL{1}.fun    = ConstantFunction.create([0,-5e7/0.2],bMesh);
 
         end
 
@@ -285,7 +279,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = 1;
-            sDir{1}.value     = 5;
+            sDir{1}.value     = 30;
             sDir{1}.ndim = 1;
             
             dirichletFun = [];
