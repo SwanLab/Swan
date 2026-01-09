@@ -17,6 +17,8 @@ import scipy.sparse as sp
 import matplotlib.pyplot as plt
 from matplotlib import colors
 from pyfreefem import FreeFemRunner
+from pymedit import P1Function
+
 
 
 
@@ -39,8 +41,9 @@ class TO_problem(EuclideanOptimizable):
         return runner.execute()['J']
 
     def dJ(self, x):
-        (obj, dc) = solve_state(x)
-        return dc
+        runner = FreeFemRunner(path+"01_CostGradient.edp")
+        runner.import_variables(Th=Th,phiVal=x)
+        return runner.execute()['g[]']
 
     def G(self, x):
         runner = FreeFemRunner(path+"01_Constraint.edp")
@@ -48,27 +51,20 @@ class TO_problem(EuclideanOptimizable):
         return [runner.execute()['C']]
 
     def dG(self, x):
-        dv = np.ones(nelx*nely)/(nelx*nely)
-        return dv
+        runner = FreeFemRunner(path+"01_ConstraintGradient.edp")
+        runner.import_variables(Th=Th,phiVal=x)
+        return runner.execute()['g[]']
 
     def accept(self, params, results):
         # Plot the design at every iteration
         x = results["x"][-1]
         if not hasattr(self, "im"):
-            plt.ion() # Ensure that redrawing is possible
-            self.fig, self.ax = plt.subplots()
-            self.im = self.ax.imshow(-x.reshape((nelx, nely)).T,\
-            cmap="gray",
-            interpolation="none",
-            norm=colors.Normalize(vmin=-1, vmax=0))
-            self.ax.axis("off")
-            self.fig.show()
+            u = P1Function(Th,x<=0)
+            plt.ion()
+            u.plot(title="u")
         else:
             self.im.set_array(-x.reshape((nelx, nely)).T)
             self.fig.canvas.draw()
-        plt.pause(0.01)
-
-
 
 ## OPTIMIZATION PARAMETERS
 params = {"dt": 0.05,

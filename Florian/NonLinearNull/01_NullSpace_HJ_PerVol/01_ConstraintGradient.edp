@@ -1,0 +1,20 @@
+IMPORT "io.edp"
+
+mesh Th=importMesh("Th");
+real [int] phiVal = importArray("phiVal");
+
+fespace Vh(Th,P1);
+fespace Vh0(Th,P0);
+Vh phi, g, g0, v;
+phi[] = phiVal;
+
+real fac = 3.0;
+real meshsiz = 1/(30*fac);
+real alpha = 4.0*meshsiz;
+problem velext(g,v) = int2d(Th)(alpha^2*(dx(g)*dx(v)+dy(g)*dy(v)) + g*v)
+                      - int1d(Th,levelset=phi)(g0*v);
+
+g0 = -1;
+velext;
+
+exportArray(g[]);

@@ -1,0 +1,37 @@
+IMPORT "io.edp"
+
+mesh Th=importMesh("Th");
+real [int] phiVal = importArray("phiVal");
+
+fespace Vh(Th,P1);
+fespace Vh0(Th,P0);
+Vh phi, g, g0, v, nx, ny, vx, vy, kappa;
+Vh0 kappa0;
+phi[] = phiVal;
+
+real eps = 1.e-6;
+real alphanor = 0.0001;
+macro normalvec(phi) {
+  solve reconsNor([nx,ny],[vx,vy]) = int2d(Th)(alphanor*(dx(nx)*dx(vx)+dy(nx)*dy(vx)+dx(ny)*dx(vy)+dy(ny)*dy(vy))
+                                            + nx*vx+ny*vy)
+                                  - int2d(Th)((dx(phi)*vx+dy(phi)*vy)/sqrt(dx(phi)*dx(phi)+dy(phi)*dy(phi) + eps^2));
+} // EOM
+
+real fac = 3.0;
+real meshsiz = 1/(30*fac);
+real alpha = 4.0*meshsiz;
+macro curvature() {
+  kappa0 = dx(nx)+dy(ny);
+  solve reconsKappa(kappa,v) = int2d(Th)(alpha*(dx(kappa)*dx(v)+dy(kappa)*dy(v)) + kappa*v)
+                               - int2d(Th)(kappa0*v);
+} // EOM   
+
+problem velext(g,v) = int2d(Th)(alpha^2*(dx(g)*dx(v)+dy(g)*dy(v)) + g*v)
+                      - int1d(Th,levelset=phi)(g0*v);
+
+normalvec(phi);
+curvature;
+g0 = -kappa;
+velext;
+
+exportArray(g[]);
