@@ -14,10 +14,9 @@ classdef ElasticHarmonicExtension < handle
 
         function obj = ElasticHarmonicExtension(cParams)
             obj.init(cParams)
-
         end
 
-        function [u,L,K] = solve(obj)
+        function [u,L,Kc] = solve(obj)
             K = obj.computeKfine();
             LHS=obj.computeLHS(K);
             RHS=obj.computeRHS();
@@ -32,6 +31,7 @@ classdef ElasticHarmonicExtension < handle
             end
             u=full(u);
             L=full(L);
+            Kc = u.'*K*u;
         end
 
     end
@@ -61,16 +61,15 @@ classdef ElasticHarmonicExtension < handle
             LHS = [K C; C' Z];
         end   
 
-        function RHS=computeRHS(obj)
-            test   = LagrangianFunction.create(obj.boundaryMesh, obj.mesh.ndim, 'P1');
-            rDir = [];
-            uD = obj.dirichletFun;
-            for i=1:numel(uD)
-                f = @(v) DP(v,uD{i});
-                rDire = IntegrateRHS(f,test,obj.boundaryMesh,'Domain',2);
-                rDir = [rDir rDire];
+        function RHS=computeRHS(obj)            
+            uD   = obj.dirichletFun;
+            test = LagrangianFunction.create(obj.boundaryMesh, obj.mesh.ndim, 'P1');            
+            rDir = zeros(test.nDofs,numel(uD));
+            for iD = 1:numel(uD)
+                f = @(v) DP(v,uD{iD});
+                rDir(:,iD) = IntegrateRHS(f,test,obj.boundaryMesh,'Domain',2);
             end
-            Z   = zeros(obj.uFun.nDofs, size(rDir, 2));
+            Z   = zeros(obj.uFun.nDofs,numel(uD));
             RHS = [Z; rDir];
         end        
 

@@ -21,22 +21,26 @@ meshName     = p.nelem+"x"+p.nelem;
 
 %% DATA GENERATION
 for j = 1:size(r,2)
-    mR=createReferenceMesh(p,r(j));
-
+    radius = r(j);
+    mR              = createReferenceMesh(p,radius);
+    [young,poisson] = computeElasticProperties(mR,radius,p.Inclusion);
+    material        = createMaterial(mR,young,poisson); 
     switch p.Training
         case 'Multiscale'
-            [~, Kfine, T, lambda, mesh,Kcoarse] = MultiscaleTraining(mR,r(j),p);
-            Kcoarse
-            R = r(j);
+            s.mesh     = mR;
+            s.material = material;
+            [~, T, lambda, Kcoarse] = MultiscaleTraining(s);
+            mesh = mR;
         case 'EIFEM'
-            data=EIFEMTraining(mR,r(j),p);
+            data = EIFEMTraining(mR,r(j),p);
             z=OfflineDataProcessor(data);
             EIFEoper = z.computeROMbasis();
             T        = EIFEoper.U;
             mesh     = data.mesh;
             Kcoarse  = EIFEoper.Kcoarse;
-            R        = r(j);
+            
     end
+    R        = r(j);
 
     % Initialization for K_all and T_all
     if j==1
@@ -117,6 +121,36 @@ writematrix(kdata,kFileName);
 
 
 %% FUNCTIONS
+
+function material = createMaterial(mesh,young,poisson)
+
+s.type       = 'ISOTROPIC';
+s.ptype      = 'ELASTIC';
+s.ndim       = mesh.ndim;
+s.young      = young;
+s.poisson    = poisson;
+material = Material.create(s);
+end
+
+
+function  [young,poisson] = computeElasticProperties(mesh,radius,inclusionType)
+E  = 1;
+nu = 1/3;
+r  = radius;
+switch inclusionType
+    case {'Hole','HoleRaul'}
+        young   = ConstantFunction.create(E,mesh);
+        poisson = ConstantFunction.create(nu,mesh);
+    case 'Material'
+        E2 = E/1000;
+        x0=mean(mesh.coord(:,1));
+        y0=mean(mesh.coord(:,2));
+        f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<r)*E2 + ...
+            (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=r)*obj.E ;
+        young   = AnalyticalFunction.create(f,mesh);
+        poisson = ConstantFunction.create(nu,mesh);
+end
+end
 
 function mS = createReferenceMesh(p,r)
     
