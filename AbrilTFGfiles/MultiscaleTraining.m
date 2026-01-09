@@ -36,7 +36,6 @@ classdef MultiscaleTraining < handle
 
         function [u,L,K] = solveElasticHarmonicExtenstion(obj)
             s.mesh         = obj.mesh;
-            s.boundaryMesh = obj.boundaryMeshJoined;
             s.uFun         = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
             s.lambdaFun    = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); 
             s.material      = obj.material;   

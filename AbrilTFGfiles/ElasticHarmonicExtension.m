@@ -2,7 +2,6 @@ classdef ElasticHarmonicExtension < handle
 
     properties (Access = private)
         mesh
-        boundaryMesh
         uFun
         lambdaFun
         material
@@ -40,7 +39,6 @@ classdef ElasticHarmonicExtension < handle
 
         function init(obj,cParams)
             obj.mesh         = cParams.mesh;
-            obj.boundaryMesh = cParams.boundaryMesh;
             obj.uFun         = cParams.uFun;
             obj.lambdaFun    = cParams.lambdaFun;
             obj.material     = cParams.material;
@@ -63,11 +61,10 @@ classdef ElasticHarmonicExtension < handle
 
         function RHS=computeRHS(obj)            
             uD   = obj.dirichletFun;
-            test = LagrangianFunction.create(obj.boundaryMesh, obj.mesh.ndim, 'P1');            
-            rDir = zeros(test.nDofs,numel(uD));
+            rDir = zeros(obj.lambdaFun.nDofs,numel(uD));
             for iD = 1:numel(uD)
                 f = @(v) DP(v,uD{iD});
-                rDir(:,iD) = IntegrateRHS(f,test,obj.boundaryMesh,'Domain',2);
+                rDir(:,iD)= IntegrateRHS(f,obj.lambdaFun,obj.mesh,'Boundary',2);
             end
             Z   = zeros(obj.uFun.nDofs,numel(uD));
             RHS = [Z; rDir];
