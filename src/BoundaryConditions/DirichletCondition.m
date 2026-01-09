@@ -35,26 +35,19 @@ classdef DirichletCondition < BoundaryCondition
                idx = sub2ind(size(fun.fValues), nodes, direction);
                fun.fValues(idx) = value;
                obj.dofs = fun.ndimf*(nodes - 1) + direction;
-                obj.values = value;
+               obj.values = value;
                % fun.fValues(nodes,direction) = value;
             else
                pl_dofs = s.domain(mesh.coord);
                fun.fValues(pl_dofs,s.direction) = s.value;
-               obj.dofs = obj.getDofs();
-               obj.values = obj.getValues();
+                obj.fun    = fun;
+                obj.domain = s.domain;
+                obj.mesh   = mesh;
+                obj.direction = s.direction;
+                obj.dofs = obj.getDofs();
+                obj.values = obj.getValues();
+               
             end
-             obj.fun    = fun;
-            pl_dofs = s.domain(mesh.coord);
-               fun.fValues(pl_dofs,s.direction) = s.value;
-               % obj.dofs = obj.getDofs();
-               % obj.values = obj.getValues();
-
-            % obj.fun    = fun;
-            obj.domain = s.domain;
-            obj.mesh   = mesh;
-            obj.direction = s.direction;
-            obj.dofs = obj.getDofs();
-            obj.values = obj.getValues();
         end
 
         function dofs = getDofs(obj)

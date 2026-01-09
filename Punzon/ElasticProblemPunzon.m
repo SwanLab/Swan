@@ -5,7 +5,12 @@ close all;
 file = 'punzon';
 a.fileName = file;
 s = FemDataContainer(a);
-s.boundaryConditions.dirichlet_dofs
+d = DirichletCondition(s.mesh,[],s.bc.dirichlet);
+s.boundaryConditions.dirichlet_dofs = d.dofs;
+s.boundaryConditions.dirichlet_vals = d.values;
+
+t = TractionLoad(s.mesh,s.bc,'DIRAC');
+s.boundaryConditions.tractionFun = t;
 
 fem = PhysicalProblem.create(s);
 fem.solve();

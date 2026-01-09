@@ -12,9 +12,19 @@ classdef TractionLoad < BoundaryCondition
             obj.type = type;
             switch type
                 case 'DIRAC'
-                    pl_dofs = s.domain(mesh.coord);
-                    vals = zeros(length(pl_dofs),mesh.ndim);
-                    vals(pl_dofs,s.direction) = s.value;
+                    if isfield(s,'domain')
+                        nodes   = s.domain(mesh.coord);
+                        dir     = repmat(s.direction,length(nodes),1);
+                        value   = s.value;
+                    else
+                        nodes   = s.pointload(:,1);
+                        dir     = s.pointload(:,2);
+                        value   = s.pointload(:,3);
+                    end
+                    vals = zeros(length(nodes),mesh.ndim);
+                    for i = 1:length(value)
+                        vals(nodes(i),dir(i)) = value(i);
+                    end
                     obj.values = reshape(vals',[],1);
                 case 'FUNCTION'
                     dom     = s.domain;
