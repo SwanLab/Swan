@@ -34,6 +34,7 @@ fplot(gAT1,[0 1],'Color',cmp(1,:),'LineStyle','-','Marker','+')
 fplot(gAT2,[0 1],'Color',cmp(1,:),'LineStyle','-','Marker','o')
 fplot(@(phi) kUB(phi,0.3),[0 1],'Color',cmp(4,:),'LineStyle','-');
 fplot(@(phi) kLB(phi,0.3),[0 1],'Color',cmp(4,:),'LineStyle','-');
+fontsize(gcf,25,'points')
 title('Bulk modulus degradation function ($\nu = 0.3$)','Interpreter','latex')
 ylabel('Degradation $g(\phi)$','Interpreter','latex');
 xlabel('Damage $\phi$','Interpreter','latex');
@@ -43,6 +44,7 @@ fplot(gAT1,[0 1],'Color',cmp(1,:),'LineStyle','-','Marker','+')
 fplot(gAT2,[0 1],'Color',cmp(1,:),'LineStyle','-','Marker','o')
 fplot(@(phi) muUB(phi,0.3),[0 1],'Color',cmp(4,:),'LineStyle','-');
 fplot(@(phi) muLB(phi,0.3),[0 1],'Color',cmp(4,:),'LineStyle','-');
+fontsize(gcf,25,'points')
 title('Shear modulus degradation function ($\nu = 0.3$)','Interpreter','latex')
 ylabel('Degradation $g(\phi)$','Interpreter','latex');
 xlabel('Damage $\phi$','Interpreter','latex');
@@ -62,6 +64,7 @@ fplot(@(phi) kUB(phi,0.3),[0 1],'Color',cmp(4,:),'LineStyle','-');
 fplot(@(phi) kUB(phi,0.5),[0 1],'Color',cmp(4,:),'LineStyle','-');
 fplot(@(phi) kUB(phi,0.9),[0 1],'Color',cmp(4,:),'LineStyle','-');
 fplot(@(phi) kLB(phi,0.3),[0 1],'Color',cmp(4,:),'LineStyle','-');
+fontsize(gcf,25,'points')
 title('Bulk modulus degradation function ($\nu = 0.3$)','Interpreter','latex')
 ylabel('Degradation $g(\phi)$','Interpreter','latex');
 xlabel('Damage $\phi$','Interpreter','latex');
@@ -76,6 +79,7 @@ fplot(@(phi) muUB(phi,0.3),[0 1],'Color',cmp(4,:),'LineStyle','-');
 fplot(@(phi) muUB(phi,0.5),[0 1],'Color',cmp(4,:),'LineStyle','-');
 fplot(@(phi) muUB(phi,0.9),[0 1],'Color',cmp(4,:),'LineStyle','-');
 fplot(@(phi) muLB(phi,0.3),[0 1],'Color',cmp(4,:),'LineStyle','-');
+fontsize(gcf,25,'points')
 title('Shear modulus degradation function ($\nu = 0.3$)','Interpreter','latex')
 ylabel('Degradation $g(\phi)$','Interpreter','latex');
 xlabel('Damage $\phi$','Interpreter','latex');
@@ -98,6 +102,7 @@ fplot(@(phi) gAlessi(phi,5),[0 1],'Color',cmp(1,:),'LineStyle','-')
 fplot(@(phi) gAlessi(phi,10),[0 1],'Color',cmp(1,:),'LineStyle','-')
 fplot(@(phi) gAlessi(phi,50),[0 1],'Color',cmp(1,:),'LineStyle','-')
 fplot(@(phi) kLB(phi,0.3),[0 1],'Color',cmp(4,:),'LineStyle','-');
+fontsize(gcf,25,'points')
 title('Bulk modulus degradation function ($\nu = 0.3$)','Interpreter','latex')
 ylabel('Degradation $g(\phi)$','Interpreter','latex');
 xlabel('Damage $\phi$','Interpreter','latex');
@@ -111,6 +116,7 @@ fplot(@(phi) gAlessi(phi,5),[0 1],'Color',cmp(1,:),'LineStyle','-')
 fplot(@(phi) gAlessi(phi,10),[0 1],'Color',cmp(1,:),'LineStyle','-')
 fplot(@(phi) gAlessi(phi,50),[0 1],'Color',cmp(1,:),'LineStyle','-')
 fplot(@(phi) muLB(phi,0.3),[0 1],'Color',cmp(4,:),'LineStyle','-');
+fontsize(gcf,25,'points')
 title('Shear modulus degradation function ($\nu = 0.3$)','Interpreter','latex')
 ylabel('Degradation $g(\phi)$','Interpreter','latex');
 xlabel('Damage $\phi$','Interpreter','latex');
@@ -128,6 +134,7 @@ fplot(@(phi) gWu(phi,5),[0 1],'Color',cmp(1,:),'LineStyle','-')
 fplot(@(phi) gWu(phi,10),[0 1],'Color',cmp(1,:),'LineStyle','-')
 fplot(@(phi) gWu(phi,50),[0 1],'Color',cmp(1,:),'LineStyle','-')
 fplot(@(phi) kLB(phi,0.3),[0 1],'Color',cmp(4,:),'LineStyle','-');
+fontsize(gcf,25,'points')
 title('Bulk modulus degradation function ($\nu = 0.3$)','Interpreter','latex')
 ylabel('Degradation $g(\phi)$','Interpreter','latex');
 xlabel('Damage $\phi$','Interpreter','latex');
@@ -140,7 +147,60 @@ fplot(@(phi) gWu(phi,5),[0 1],'Color',cmp(1,:),'LineStyle','-')
 fplot(@(phi) gWu(phi,10),[0 1],'Color',cmp(1,:),'LineStyle','-')
 fplot(@(phi) gWu(phi,50),[0 1],'Color',cmp(1,:),'LineStyle','-')
 fplot(@(phi) muLB(phi,0),[0 1],'Color',cmp(4,:),'LineStyle','-');
+fontsize(gcf,25,'points')
 title('Shear modulus degradation function ($\nu = 0.3$)','Interpreter','latex')
 ylabel('Degradation $g(\phi)$','Interpreter','latex');
 xlabel('Damage $\phi$','Interpreter','latex');
 legend({'Wu','H-S bounds'},'Interpreter','latex')
+
+%% Figure 5 Constitutive tensor homogenized
+[dataHexa]  = load('HexagonArea.mat');
+C11hexa = squeeze(dataHexa.mat(1,1,1,1,:));
+C12hexa = squeeze(dataHexa.mat(2,2,1,1,:));
+C33hexa = squeeze(dataHexa.mat(1,2,1,2,:));
+[dataHoney] = load('HoneycombArea2.mat');
+C11honey= squeeze(dataHoney.mat(1,1,1,1,:));
+C12honey= squeeze(dataHoney.mat(2,2,1,1,:));
+C33honey= squeeze(dataHoney.mat(1,2,1,2,:));
+
+figure(5)
+tiledlayout(1,3)
+nexttile
+hold on
+plot(dataHexa.phi,C11hexa)
+plot(dataHoney.phi,C11honey)
+ylabel(char(8450)+"11 [GPa]");
+ylim([0,inf])
+xlabel("Damage "+char(632)+" [-]");
+fontsize(gcf,25,'points')
+nexttile
+hold on
+plot(dataHexa.phi,C12hexa)
+plot(dataHoney.phi,C12honey)
+ylabel(char(8450)+"12 [GPa]");
+ylim([0,inf])
+xlabel("Damage "+char(632)+" [-]");
+fontsize(gcf,25,'points')
+nexttile
+hold on
+plot(dataHexa.phi,C33hexa)
+plot(dataHoney.phi,C33honey)
+ylabel(char(8450)+"33 [GPa]");
+ylim([0,inf])
+xlabel("Damage "+char(632)+" [-]");
+fontsize(gcf,25,'points')
+legend('Hexagon','Reinforced hexagon')
+
+%% Figure 6 Zener Ratio
+ZenerRatioHexa = 2*C33hexa./(C11hexa-C12hexa);
+ZenerRatioHoney = 2*C33honey./(C11honey-C12honey);
+
+figure(6)
+hold on
+plot(dataHexa.phi,ZenerRatioHexa);
+plot(dataHoney.phi,ZenerRatioHoney);
+ylabel("Zener Ratio [-]");
+%ylim([1-1e-5,1+1e-5])
+xlabel("Damage "+char(632)+" [-]");
+fontsize(gcf,25,'points')
+legend('Hexagon','Reinforced hexagon')

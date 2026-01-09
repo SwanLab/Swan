@@ -146,7 +146,6 @@ classdef TestingPhaseFieldHomogenizer < handle
             end
             g                  = GeometricalFunction(gPar);
             phiFun             = g.computeLevelSetFunction(mesh);
-            phiFun.plot
             lsCircle           = phiFun.fValues;
             ls = -lsCircle;
         end
@@ -259,9 +258,11 @@ classdef TestingPhaseFieldHomogenizer < handle
                         case {'SmoothHexagon','Hexagon'}
                             perimeter = 6*l;
                             apothem   = sqrt(l^2 - (l/2)^2);
-                            phi = (perimeter*apothem)/(6*sqrt(3)/2);
+                            phi = (perimeter*apothem/2)/(3*sqrt(3)/2);
                         case {'ReinforcedHoneycomb'}
-                            phi = l; %% Wrong
+                            m = l/(2*sqrt(3));
+                            h = sqrt(3)/2 - 3*m;
+                            phi = (6*(h^2)/sqrt(3))/(3*sqrt(3)/2);
                     end
                 case 'Perimeter'
                     switch obj.holeType
@@ -273,7 +274,10 @@ classdef TestingPhaseFieldHomogenizer < handle
                         case 'Rectangle'
                             phi = (l(1)+l(2))/2;
                         case {'ReinforcedHoneycomb'}
-                            phi = l; %% Wrong
+                            m = l/(2*sqrt(3));
+                            h = sqrt(3)/2 - 3*m;
+                            a = h*(2/sqrt(3));
+                            phi = 3*6*a/(3*6*1);
                     end
             end
         end
