@@ -94,15 +94,67 @@ classdef UnfittedMeshSplitter < handle
             A = A+A';
         end
 
+        function mI = computeSubMeshComponents(obj,subMesh)
+            m         = subMesh;
+            faces     = m.mesh.connec;
+            compLabel = obj.computeComponentLabel(faces);
+            nComp = unique(compLabel);
+            mI    = cell(length(nComp),1);
+            for iComp = 1:length(nComp)
+                isComp = compLabel == nComp(iComp);
+                sM = obj.createSubMeshComponent(m,isComp);
+                mI{iComp} = sM;
+            end
+        end    
+
+        function plotMeshGroup(obj,mG)
+            figure()
+            hold on
+            for j = 1:length(mG)
+                s.mesh = mG{j}.mesh;
+                s.edgeAlpha = 0;
+                s.faceAlpha = 1;
+                s.faceColor = 'black';
+                s.isBackground = false;
+                mP = MeshPlotter(s);
+                mP.plot();
+                xmax = max(obj.uMesh.backgroundMesh.coord(:,1));
+                xmin = min(obj.uMesh.backgroundMesh.coord(:,1));
+                ymax = max(obj.uMesh.backgroundMesh.coord(:,2));
+                ymin = min(obj.uMesh.backgroundMesh.coord(:,2));
+                axis([xmin xmax ymin ymax])
+            end
+
+        end
+        
+
     end
     
     methods (Static, Access = private)
         
-        function sM = computeSubMeshComponents(subMesh)
-            s.subMesh = subMesh;
-            uS = SubUnfittedMeshSplitter.create(s);
-            sM = uS.split();
-        end        
+        function sM = createSubMeshComponent(m,nodes)
+            switch class(m)
+                case 'InnerMesh'
+                    s.fullCells      = m.fullCells(nodes);
+                    s.backgroundMesh = m.backgroundMesh;
+                    sM = InnerMesh(s);
+                case 'InnerCutMesh'
+                    s.connec  = m.mesh.connec(nodes,:);
+                    s.coord   = m.mesh.coord;
+                    s.mesh                  = Mesh.create(s);
+                    s.xCoordsIso            = m.xCoordsIso(:,:,nodes);
+                    s.cellContainingSubcell = m.cellContainingSubcell(nodes,:);
+                    sM = InnerCutMesh(s);
+            end
+
+        end
+
+       function compID = computeComponentLabel(faces)
+            s.faces = faces;
+            sp = SplitterInConnectedComponents(s);
+            mComp = sp.split();
+            compID = mComp(faces(:,1))';
+        end            
         
         function nodes = obtainNodes(mesh)
             m = mesh{1};
@@ -119,19 +171,6 @@ classdef UnfittedMeshSplitter < handle
             theyAre = ~isempty(nodesAB);
         end
         
-        function plotMeshGroup(mG)
-            figure()
-            hold on
-            for j = 1:length(mG)
-                s.mesh = mG{j}.mesh;
-                s.edgeAlpha = 0;
-                s.faceAlpha = 1;
-                s.faceColor = 'black';
-                s.isBackground = false;
-                mP = MeshPlotter(s);
-                mP.plot();
-            end
-        end
         
     end
     

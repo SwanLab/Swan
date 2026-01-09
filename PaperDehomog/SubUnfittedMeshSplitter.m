@@ -20,17 +20,7 @@ classdef SubUnfittedMeshSplitter < handle
     methods (Access = public)
         
         function mI = split(obj)
-            m         = obj.subMesh;
-            faces     = m.mesh.connec;
-            compLabel = obj.computeComponentLabel(faces);
-            nComp = unique(compLabel);
-            mI    = cell(length(nComp),1);
-            for iComp = 1:length(nComp)
-                isComp = compLabel == nComp(iComp);
-                sM = obj.createSubMeshComponent(m,isComp);
-                mI{iComp} = sM;
-            end
-        end            
+          
         
     end
     
@@ -44,12 +34,7 @@ classdef SubUnfittedMeshSplitter < handle
     
     methods (Access = private, Static)
         
-       function compID = computeComponentLabel(faces)
-            s.faces = faces;
-            sp = SplitterInConnectedComponents(s);
-            mComp = sp.split();
-            compID = mComp(faces(:,1))';
-        end                
+            
         
     end
     

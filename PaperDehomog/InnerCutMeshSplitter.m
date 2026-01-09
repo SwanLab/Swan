@@ -12,12 +12,7 @@ classdef InnerCutMeshSplitter < SubUnfittedMeshSplitter
     methods (Access = protected, Static)
         
         function sM = createSubMeshComponent(m,nodes)
-            s.connec  = m.mesh.connec(nodes,:);
-            s.coord   = m.mesh.coord;
-            s.mesh                  = Mesh.create(s);
-            s.xCoordsIso            = m.xCoordsIso(:,:,nodes);
-            s.cellContainingSubcell = m.cellContainingSubcell(nodes,:);
-            sM = InnerCutMesh(s);
+
         end        
         
     end
