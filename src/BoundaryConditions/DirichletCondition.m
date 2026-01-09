@@ -16,7 +16,7 @@ classdef DirichletCondition < BoundaryCondition
     
     methods (Access = public)
         
-        function obj = DirichletCondition(mesh, s, varargin)
+        function obj = DirichletCondition(mesh, s)
             % P1
             if isfield(s,'ndim')
                 ndim = s.ndim;
@@ -27,27 +27,15 @@ classdef DirichletCondition < BoundaryCondition
             % pl_dofs = find(s.domain(mesh.coord));
             % eval_values = s.value(mesh.coord);
             % fun.fValues(pl_dofs,s.direction) = eval_values(pl_dofs);
-            if nargin > 2
-               dirData = varargin{1};
-               nodes  = dirData(:,1);
-               direction = dirData(:,2);
-               value  = dirData(:,3);
-               idx = sub2ind(size(fun.fValues), nodes, direction);
-               fun.fValues(idx) = value;
-               obj.dofs = fun.ndimf*(nodes - 1) + direction;
-               obj.values = value;
-               % fun.fValues(nodes,direction) = value;
-            else
-               pl_dofs = s.domain(mesh.coord);
-               fun.fValues(pl_dofs,s.direction) = s.value;
-                obj.fun    = fun;
-                obj.domain = s.domain;
-                obj.mesh   = mesh;
-                obj.direction = s.direction;
-                obj.dofs = obj.getDofs();
-                obj.values = obj.getValues();
-               
-            end
+            pl_dofs = s.domain(mesh.coord);
+            fun.fValues(pl_dofs,s.direction) = s.value;
+
+            obj.fun    = fun;
+            obj.domain = s.domain;
+            obj.mesh   = mesh;
+            obj.direction = s.direction;
+            obj.dofs = obj.getDofs();
+            obj.values = obj.getValues();
         end
 
         function dofs = getDofs(obj)
