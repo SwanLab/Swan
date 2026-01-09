@@ -25,7 +25,8 @@ for j = 1:size(r,2)
 
     switch p.Training
         case 'Multiscale'
-            [~, Kfine, T, l, mesh,Kcoarse] = MultiscaleTraining(mR,r(j),p);
+            [~, Kfine, T, lambda, mesh,Kcoarse] = MultiscaleTraining(mR,r(j),p);
+            Kcoarse
             R = r(j);
         case 'EIFEM'
             data=EIFEMTraining(mR,r(j),p);
@@ -43,7 +44,7 @@ for j = 1:size(r,2)
         T_all=zeros(mesh.nnodes,19,length(r));
     end
 
-    K_all(:,:,j)=Kcoarse;
+    K_all(:,:,j)=Kcoarse;   
     
     % Reshapes U data and adds coordinates
     t1=reshape(T(:,1).',2,[]).';   % Joins the Tx and Ty coeff at the same line

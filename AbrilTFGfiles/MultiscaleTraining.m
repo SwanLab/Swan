@@ -1,16 +1,13 @@
 classdef MultiscaleTraining < handle
     
     properties (Access = public)
-        stiffness
-        strain
-        stress
-        dLambda
         bcApplier
         centroids
         nelem
     end
     
     properties (Access = private)
+        stiffness
         radius
         nodeDirection
         physicalProblem
@@ -42,11 +39,11 @@ classdef MultiscaleTraining < handle
             [obj.boundaryMeshJoined, obj.localGlobalConnecBd] = obj.mesh.createSingleBoundaryMesh();
 
             
-            [u, L] = obj.doElasticProblemHere();
+            [u, L,K] = obj.solveElasticHarmonicExtenstion();
             mesh = obj.mesh;
             
-            K=obj.stiffness;
-            Kcoarse=u.'*obj.stiffness*u;
+            %K=obj.stiffness;
+            Kcoarse=u.'*K*u;
             
         end
     end
@@ -97,42 +94,33 @@ classdef MultiscaleTraining < handle
             uMesh.compute(levelSet);
         end
 
-        function [u, L] = doElasticProblemHere(obj)
-            obj.displacementFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
-            obj.dLambda  = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); 
-            
-            LHS=obj.computeLHS();
-            RHS=obj.computeRHS();
-            sol = LHS\RHS;
-            u = sol(1:obj.displacementFun.nDofs,:);
-            L = -sol(obj.displacementFun.nDofs+1:end,:); 
-            if isa(obj.dLambda, "LagrangianFunction")
-                l2g_dof = ((obj.localGlobalConnecBd*obj.displacementFun.ndimf)' - ((obj.displacementFun.ndimf-1):-1:0))';
-                l2g_dof = l2g_dof(:);
-                uB = u(l2g_dof, :);
-                L = uB'*L;
-            end
-            u=full(u);
-            L=full(L);
+        function [u,L,K] = solveElasticHarmonicExtenstion(obj)
+            s.mesh         = obj.mesh;
+            s.boundaryMesh = obj.boundaryMeshJoined;
+            s.uFun      = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
+            s.lambdaFun = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); 
+            s.material  = obj.createMaterial();   
+            s.dirichletFun = obj.createDirichletFunctions();
+            s.localGlobalConnecBd = obj.localGlobalConnecBd;
+            e  = ElasticHarmonicExtension(s);
+            [u,L,K] = e.solve();
         end
 
 
-        function createMaterial(obj)
+        function material = createMaterial(obj)
             [young,poisson] = obj.computeElasticProperties(obj.mesh);
             s.type       = 'ISOTROPIC';
             s.ptype      = 'ELASTIC';
             s.ndim       = obj.mesh.ndim;
             s.young      = young;
             s.poisson    = poisson;
-            obj.material = Material.create(s);
-            
+            material = Material.create(s);            
         end
 
         function [young,poisson] = computeElasticProperties(obj,mesh)
             E  = 1;
             nu = 1/3;
             r  = obj.radius;
-
             switch obj.Inclusion
                 case {'Hole','HoleRaul'}
                     young   = ConstantFunction.create(E,mesh);
@@ -154,37 +142,7 @@ classdef MultiscaleTraining < handle
             obj.bcApplier = BCApplier(s);
         end
 
-        function LHS=computeLHS(obj)
-            K=obj.computeStiffnessMatrix();
-            C=obj.computeConstraintMatrix();
-            Z=zeros(obj.dLambda.nDofs);
-            LHS = [K C; C.' Z];
-        end
-
-        function K=computeStiffnessMatrix(obj)
-            obj.createMaterial();
-            C     = obj.material;
-            f = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
-            obj.stiffness = IntegrateLHS(f,obj.displacementFun,obj.displacementFun,obj.mesh,'Domain',2);
-            K=obj.stiffness;
-        end
-
-        function Cg = computeConstraintMatrix(obj)
-            test   = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
-            f = @(u,v) DP(v,u);
-            Cg = IntegrateLHS(f,test,obj.dLambda,obj.mesh,'Boundary',2);   
-        end
-        
-        function RHS=computeRHS(obj)
-            rdir = obj.RHSdirichlet();
-            F=zeros(obj.displacementFun.nDofs, size(rdir, 2));
-            RHS = [F; rdir];
-        end
-
-
-        function rDir = RHSdirichlet(obj) %Son les u_d a sota del vector F
-            test   = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1');
-
+        function uD = createDirichletFunctions(obj)
             f1x = @(x) [1/(4)*(1-x(1,:,:)).*(1-x(2,:,:));...
                     0*x(2,:,:)  ];
             f2x = @(x) [1/(4)*(1+x(1,:,:)).*(1-x(2,:,:));...
@@ -205,13 +163,9 @@ classdef MultiscaleTraining < handle
 
             fB     = {f1x f1y f2x f2y f3x f3y f4x f4y}; 
             nfun = size(fB,2);
-            rDir = [];
-            Ud=cell(1,8);
+            uD=cell(1,8);
             for i=1:nfun
-                Ud{i}  = AnalyticalFunction.create(fB{i},obj.boundaryMeshJoined);
-                f = @(v) DP(v,Ud{i});
-                rDire = IntegrateRHS(f,test,obj.boundaryMeshJoined,'Domain',2);
-                rDir = [rDir rDire];
+                uD{i}  = AnalyticalFunction.create(fB{i},obj.boundaryMeshJoined);
             end
         end
 
