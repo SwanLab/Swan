@@ -13,7 +13,8 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
         constraint
         primalUpdater
         optimizer
-        chiB
+        chiB    %Battery
+        chiAl  %Corona
         chiB0
     end
 
@@ -46,8 +47,8 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
         end
 
         function createMesh(obj)
-            x1      = linspace(0,1,100);
-            x2      = linspace(0,1,100);
+            x1      = linspace(0,0.1,100);
+            x2      = linspace(0,0.1,100);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -57,9 +58,9 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
 
          function createBatteryDomain(obj)
              s.type        = 'Circles';
-             s.r           = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1];
-             s.x0 = [0, 0, 0, 0.4, 0.8, 0.4, 0.8, 0.4, 0.8];
-             s.y0 = [0, 0.4, 0.8, 0, 0, 0.4, 0.8, 0.8, 0.4];
+             s.r           = [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01];
+             s.x0 = [0, 0, 0, 0.04, 0.08, 0.04, 0.08, 0.04, 0.08];
+             s.y0 = [0, 0.04, 0.08, 0, 0, 0.04, 0.08, 0.08, 0.04];
              g                = GeometricalFunction(s);
              phiFun           = g.computeLevelSetFunction(obj.mesh);
              phi              = phiFun.fValues;
@@ -71,6 +72,22 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
 
              obj.chiB     = CharacteristicFunction.create(uMesh).project('P1');
              
+             %corona di alluminio
+             sR.type        = 'Circles';
+             sR.r           = [0.013, 0.013, 0.013, 0.013, 0.013, 0.013, 0.013, 0.013, 0.013];
+             sR.x0 = [0, 0, 0, 0.04, 0.08, 0.04, 0.08, 0.04, 0.08];
+             sR.y0 = [0, 0.04, 0.08, 0, 0, 0.04, 0.08, 0.08, 0.04];
+             gR                = GeometricalFunction(sR);
+             phiFunR           = gR.computeLevelSetFunction(obj.mesh);
+             phiR              = phiFunR.fValues;
+
+             smR.backgroundMesh = obj.mesh;
+             smR.boundaryMesh   = obj.mesh.createBoundaryMesh;
+             uMeshR              = UnfittedMesh(smR);
+             uMeshR.compute(phiR);
+
+             obj.chiAl     = CharacteristicFunction.create(uMeshR).project('P1')- obj.chiB;
+
          end        
 
         function createDesignVariable(obj)
@@ -82,9 +99,9 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
             sD.mesh     = obj.mesh;
             sD.type     = 'Density';
             sD.plotting = true;
-            obj.chiB0 = project(obj.chiB,'P1');
-            plot(obj.chiB0);
-            sD.isFixed.nodes  = obj.chiB0.fValues > 0;
+            %obj.chiB0 = project(obj.chiB,'P1');
+            plot(obj.chiB);
+            sD.isFixed.nodes  = (obj.chiB.fValues > 0)| (obj.chiAl.fValues > 0) ;
             sD.isFixed.values = 1; %(obj.chiB0.fValues > 0); %Density
             %sD.isFixed.values = -1*(obj.chiB0.fValues > 0); %LevelSet
             dens        = DesignVariable.create(sD);
@@ -92,7 +109,7 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
         end
 
         function createFilter(obj)
-            s.filterType = 'LUMP';
+            s.filterType = 'PDE';
             s.mesh  = obj.mesh;
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
@@ -101,8 +118,8 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
 
          function createThermalMaterialInterpolator(obj) % Conductivity
             s.interpolation  = 'SimpAllThermal';   
-            s.f0   = 1e-2;
-            s.f1   = 1;
+            s.f0   = 220e-3;
+            s.f1   = 220;
             s.dim ='2D';
             a = MaterialInterpolator.create(s);
             obj.thermalmaterialInterpolator = a;
@@ -110,17 +127,19 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
 
         function createMaterialInterpolator(obj)
             
-            E0 = 1e-3;
+            E0 = 68e3;
             nu0 = 1/3;
             ndim = obj.mesh.ndim;
 
             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
             matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
 
-            Ea = ConstantFunction.create(200e9,obj.mesh); % Aluminium
-            Eb = ConstantFunction.create(200e9,obj.mesh); % Battery
+            Ea = ConstantFunction.create(68e9,obj.mesh); % Aluminium
+            Eb = ConstantFunction.create(1.5e9,obj.mesh); % Battery
             obj.createBatteryDomain();
-            E1 = (1-Ea).*obj.chiB + Eb.*obj.chiB;
+            E1=Ea.*(1 - obj.chiB - obj.chiAl) + Eb.*obj.chiB + Ea.*obj.chiAl;
+            %E1 = Ea.*(1 - obj.chiB) + Eb.*obj.chiB;
+            %E1 = (1-Ea).*obj.chiB + Eb.*obj.chiB; written by Alex
 
 
             nu1 = 1/3;
@@ -161,8 +180,8 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
 
             % Thermal
             s.materialInterpolator = obj.thermalmaterialInterpolator;
-            s.alpha = 1.1e-5; %1.0; % 2.3 1e-6; 
-            s.source  =  ConstantFunction.create(5,obj.mesh).*obj.chiB.project('P1'); % change the source value
+            s.alpha = 21e-6; 
+            s.source  =  ConstantFunction.create(0,obj.mesh).*obj.chiB.project('P1'); %P=2.5
             s.T0 = ConstantFunction.create(0,obj.mesh);   
             s.boundaryConditionsThermal = obj.createBoundaryConditionsThermal();
             
@@ -238,7 +257,7 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 500;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
@@ -261,24 +280,30 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
             yMax    = max(obj.mesh.coord(:,2));
 
             % using a 1/4 of the structure exploiting the simmetries
-            isDir   = @(coor)  abs(coor(:,2))==yMax | abs(coor(:,1))==xMax;   % up and right
-            isDirLeft  = @(coor)  abs(coor(:,2))==yMin;     
-            isDirDown  = @(coor)  abs(coor(:,2))==xMin;   
-            isForce = @(coor)  (abs(coor(:,2))==0.0 & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax);  % up and right Neumann!
-
-            sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [1,2];
+            isDirDown  = @(coor)  abs(coor(:,2))==yMin;     
+            isDirLeft  = @(coor)  abs(coor(:,1))==xMin;   
+            isForceRight = @(x)  abs(x(1,:,:))==xMax;  % up and right Neumann!
+            isForceUp = @(x)  abs(x(2,:,:))==yMax;
+           
+            sDir{1}.domain    = @(coor) isDirLeft(coor);
+            sDir{1}.direction = 1;
             sDir{1}.value     = 0;
-            sDir{2}.domain    = @(coor) isDirLeft(coor);
-            sDir{2}.direction = 1;
+            sDir{2}.domain    = @(coor) isDirDown(coor);
+            sDir{2}.direction = 2;
             sDir{2}.value     = 0;
-            sDir{3}.domain    = @(coor) isDirDown(coor);
-            sDir{3}.direction = 2;
-            sDir{3}.value     = 0;
 
-            sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 2;
-            sPL{1}.value     = 4e7; 
+            [bMesh, ~]  = obj.mesh.createSingleBoundaryMesh();
+            sPL{1}.domain = isForceRight;
+            sPL{1}.fun    = ConstantFunction.create([-1.5e7,0],bMesh);
+            sPL{2}.domain = isForceUp;
+            sPL{2}.fun    = ConstantFunction.create([0,-1.5e7],bMesh);
+
+            % sPL{1}.domain    = @(coor) isForceRight(coor);
+            % sPL{1}.direction = 1;
+            % sPL{1}.value     = -4e7; 
+            % sPL{2}.domain    = @(coor) isForceUp(coor);
+            % sPL{2}.direction = 2;
+            % sPL{2}.value     = -4e7; 
 
             dirichletFun = [];
             for i = 1:numel(sDir)
@@ -289,7 +314,7 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
 
             pointloadFun = [];
             for i = 1:numel(sPL)
-                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
+                pl = TractionLoad(obj.mesh, sPL{i}, 'FUNCTION');
                 pointloadFun = [pointloadFun, pl];
             end
             s.pointloadFun = pointloadFun;
@@ -299,18 +324,18 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
             bc = BoundaryConditions(s);
         end
 
-        function bcT = createBoundaryConditionsThermal(obj) % controlla come mettere (k*Grad(T))*n=0 a sinistra e sotto
+        function bcT = createBoundaryConditionsThermal(obj) 
             xMin    = min(obj.mesh.coord(:,1));
             yMin    = min(obj.mesh.coord(:,2));
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
             
             % dirichlet on up and right
-            isDir   = @(coor) abs(coor(:,2))==yMin | abs(coor(:,2))==yMax | abs(coor(:,1))==xMin | abs(coor(:,1))==xMax;  
+            isDir   = @(coor)  abs(coor(:,2))==yMax | abs(coor(:,1))==xMax;  
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = 1;
-            sDir{1}.value     = 100;
+            sDir{1}.value     = 20;
             sDir{1}.ndim = 1;
             
             dirichletFun = [];

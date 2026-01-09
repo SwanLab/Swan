@@ -43,8 +43,8 @@ classdef TopOptTestTutorialDensityNullSpace < handle
 
         function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,1,80);
-            x2      = linspace(0,1,80);
+            x1      = linspace(0,1,100);
+            x2      = linspace(0,1,100);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -185,7 +185,7 @@ classdef TopOptTestTutorialDensityNullSpace < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 500;
+            s.maxIter        = 600;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
@@ -213,7 +213,7 @@ classdef TopOptTestTutorialDensityNullSpace < handle
 
             sPL{1}.domain    = @(coor) isForce(coor);
             sPL{1}.direction = 2;
-            sPL{1}.value     = -1;
+            sPL{1}.value     = -4.5e6;
 
             dirichletFun = [];
             for i = 1:numel(sDir)
