@@ -1,0 +1,9 @@
+function [U,S,V,eSVD] = SVD_accuracy_project(SNAP,DATA,COLUMNS_RVEloc)
+
+ROWDIV = size(SNAP,1);  ;
+COLDIV = cellfun(@length,COLUMNS_RVEloc) ;
+SNAP = mat2cell(SNAP,ROWDIV,COLDIV) ;
+epsilon = DATA.TOLERANCE_SVD_PROJECT ;
+DATASVD.RELATIVE_SVD = 1 ;
+DATASVD.COMPLETE_SVD = 0;
+[U,S,V,ETIME,RankR,eSVD] = RSVDqpGEN(SNAP,epsilon,DATASVD) ;

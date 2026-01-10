@@ -1,0 +1,60 @@
+*Set Cond DOMAIN3D-1 *elems
+*loop elems *OnlyInCond
+*format "%5i%5i"
+*elemsNum *cond(1,int)
+*end
+   
+*Set Cond DOMAIN3D-2 *elems
+*loop elems *OnlyInCond
+*format "%5i%5i"
+*elemsNum *cond(1,int)
+*end
+   
+*Set Cond DOMAIN3D-3 *elems
+*loop elems *OnlyInCond
+*format "%5i%5i"
+*elemsNum *cond(1,int)
+*end
+   
+*Set Cond DOMAIN3D-4 *elems
+*loop elems *OnlyInCond
+*format "%5i%5i"
+*elemsNum *cond(1,int)
+*end
+   
+*Set Cond DOMAIN3D-5 *elems
+*loop elems *OnlyInCond
+*format "%5i%5i"
+*elemsNum *cond(1,int)
+*end
+   
+*Set Cond DOMAIN3D-6 *elems
+*loop elems *OnlyInCond
+*format "%5i%5i"
+*elemsNum *cond(1,int)
+*end
+   
+*Set Cond DOMAIN3D-7 *elems
+*loop elems *OnlyInCond
+*format "%5i%5i"
+*elemsNum *cond(1,int)
+*end
+   
+*Set Cond DOMAIN3D-8 *elems
+*loop elems *OnlyInCond
+*format "%5i%5i"
+*elemsNum *cond(1,int)
+*end
+   
+*Set Cond DOMAIN3D-9 *elems
+*loop elems *OnlyInCond
+*format "%5i%5i"
+*elemsNum *cond(1,int)
+*end
+   
+*Set Cond DOMAIN3D-10 *elems
+*loop elems *OnlyInCond
+*format "%5i%5i"
+*elemsNum *cond(1,int)
+*end
+   

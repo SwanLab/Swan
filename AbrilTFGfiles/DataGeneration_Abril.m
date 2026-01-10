@@ -146,7 +146,7 @@ switch inclusionType
         x0=mean(mesh.coord(:,1));
         y0=mean(mesh.coord(:,2));
         f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<r)*E2 + ...
-            (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=r)*obj.E ;
+            (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=r)*E ;
         young   = AnalyticalFunction.create(f,mesh);
         poisson = ConstantFunction.create(nu,mesh);
 end

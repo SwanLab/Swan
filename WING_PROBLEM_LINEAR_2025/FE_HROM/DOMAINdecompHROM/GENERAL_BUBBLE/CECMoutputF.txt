@@ -1,0 +1,564 @@
+SVD of Aw 
+iter = 1  nC =2.2152  dR =5 R =5
+iter = 2  nC =0.40642  dR =21 R =26
+iter = 3  nC =0.076675  dR =21 R =47
+iter = 4  nC =0.0046398  dR =21 R =68
+Elapsed time is 0.026796 seconds.
+Number of left singular vectors  = 70
+k = 1, m=1 ,; error n(res)/n(b) (%) = 97.47479886
+k = 2, m=2 ,; error n(res)/n(b) (%) = 94.54568873
+k = 3, m=3 ,; error n(res)/n(b) (%) = 91.04844819
+k = 4, m=4 ,; error n(res)/n(b) (%) = 88.11189182
+k = 5, m=5 ,; error n(res)/n(b) (%) = 84.25032735
+k = 6, m=6 ,; error n(res)/n(b) (%) = 80.20769735
+k = 7, m=7 ,; error n(res)/n(b) (%) = 75.95460934
+k = 8, m=8 ,; error n(res)/n(b) (%) = 72.11904733
+k = 9, m=9 ,; error n(res)/n(b) (%) = 68.6897757
+k = 10, m=10 ,; error n(res)/n(b) (%) = 65.57540469
+k = 11, m=11 ,; error n(res)/n(b) (%) = 61.47019219
+k = 12, m=12 ,; error n(res)/n(b) (%) = 58.61736218
+k = 13, m=13 ,; error n(res)/n(b) (%) = 55.57193666
+k = 14, m=14 ,; error n(res)/n(b) (%) = 52.79092038
+k = 15, m=15 ,; error n(res)/n(b) (%) = 50.09953698
+k = 16, m=16 ,; error n(res)/n(b) (%) = 47.80403886
+k = 17, m=17 ,; error n(res)/n(b) (%) = 45.50702521
+k = 18, m=18 ,; error n(res)/n(b) (%) = 42.74932697
+k = 19, m=19 ,; error n(res)/n(b) (%) = 40.8933119
+k = 20, m=20 ,; error n(res)/n(b) (%) = 38.91441788
+k = 21, m=21 ,; error n(res)/n(b) (%) = 37.09994005
+k = 22, m=22 ,; error n(res)/n(b) (%) = 35.37215176
+k = 23, m=23 ,; error n(res)/n(b) (%) = 33.8488513
+k = 24, m=24 ,; error n(res)/n(b) (%) = 32.23482904
+k = 25, m=25 ,; error n(res)/n(b) (%) = 30.54456976
+k = 26, m=26 ,; error n(res)/n(b) (%) = 29.22645821
+k = 27, m=27 ,; error n(res)/n(b) (%) = 27.96706252
+k = 28, m=28 ,; error n(res)/n(b) (%) = 26.86492984
+k = 29, m=29 ,; error n(res)/n(b) (%) = 25.69774003
+k = 30, m=30 ,; error n(res)/n(b) (%) = 24.42989552
+k = 31, m=31 ,; error n(res)/n(b) (%) = 23.22641202
+k = 32, m=32 ,; error n(res)/n(b) (%) = 21.82789292
+k = 33, m=33 ,; error n(res)/n(b) (%) = 20.51488821
+k = 34, m=34 ,; error n(res)/n(b) (%) = 19.38389062
+k = 35, m=35 ,; error n(res)/n(b) (%) = 18.03357594
+k = 36, m=36 ,; error n(res)/n(b) (%) = 16.86807569
+k = 37, m=37 ,; error n(res)/n(b) (%) = 15.73453153
+k = 38, m=38 ,; error n(res)/n(b) (%) = 14.51521173
+k = 39, m=39 ,; error n(res)/n(b) (%) = 13.68850297
+k = 40, m=40 ,; error n(res)/n(b) (%) = 12.40423594
+k = 41, m=41 ,; error n(res)/n(b) (%) = 11.35671797
+k = 42, m=42 ,; error n(res)/n(b) (%) = 10.42541763
+k = 43, m=43 ,; error n(res)/n(b) (%) = 9.480415046
+k = 44, m=44 ,; error n(res)/n(b) (%) = 8.719145168
+k = 45, m=45 ,; error n(res)/n(b) (%) = 7.827648389
+k = 46, m=46 ,; error n(res)/n(b) (%) = 7.102588657
+k = 47, m=47 ,; error n(res)/n(b) (%) = 6.411834525
+k = 48, m=48 ,; error n(res)/n(b) (%) = 5.682474694
+k = 49, m=49 ,; error n(res)/n(b) (%) = 5.234770624
+k = 50, m=50 ,; error n(res)/n(b) (%) = 4.806440657
+k = 51, m=51 ,; error n(res)/n(b) (%) = 4.274618834
+k = 52, m=52 ,; error n(res)/n(b) (%) = 3.882828353
+k = 53, m=53 ,; error n(res)/n(b) (%) = 3.325300084
+k = 54, m=54 ,; error n(res)/n(b) (%) = 3.032729194
+k = 55, m=55 ,; error n(res)/n(b) (%) = 2.576488482
+k = 56, m=56 ,; error n(res)/n(b) (%) = 2.10429287
+k = 57, m=57 ,; error n(res)/n(b) (%) = 1.800854305
+k = 58, m=58 ,; error n(res)/n(b) (%) = 1.578774806
+k = 59, m=59 ,; error n(res)/n(b) (%) = 1.274009995
+k = 60, m=60 ,; error n(res)/n(b) (%) = 1.086898968
+k = 61, m=61 ,; error n(res)/n(b) (%) = 0.9308951553
+k = 62, m=62 ,; error n(res)/n(b) (%) = 0.6715816143
+k = 63, m=63 ,; error n(res)/n(b) (%) = 0.5500313411
+k = 64, m=64 ,; error n(res)/n(b) (%) = 0.348158683
+k = 65, m=65 ,; error n(res)/n(b) (%) = 0.2623614675
+k = 66, m=66 ,; error n(res)/n(b) (%) = 0.1406810173
+k = 67, m=67 ,; error n(res)/n(b) (%) = 0.09910600078
+k = 68, m=68 ,; error n(res)/n(b) (%) = 0.07117336792
+k = 69, m=69 ,; error n(res)/n(b) (%) = 0.03181134642
+k = 70, m=70 ,; error n(res)/n(b) (%) = 0.009976597786
+k = 71, m=71 ,; error n(res)/n(b) (%) = 1.258515636e-13
+Total number of iterations =72
+****************************+
+List of selected m = 45 elements
+3  18  35  19  60  52  47  29  33  21  13  22  54  53  23  41  11  58  40  15  44  51  34  27  20  39  32  48   5   4  38  50  28   7   9  25  31  57  10   1  36  43  59  26  56
+----------------------------------------------------------------------------------------
+Integration Error associated to the SVD =5.8361e-14 % (for a SVD tolerance =0.0001 )
+----------------------------------------------------------------------------------------
+Actual integration error using DECM= 0.0057117 % (prescribed tolerance fint =0.01%
+istep=1
+open GID FILE:
+/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/DOMAINdecompHROM/GENERAL_BUBBLE/MODES/GIDPOST/MOD_fINT_ModesInt.res
+--------------------------------------------
+Integration appr. error at k= 0 -->1.3653e-13 %(  it measures the quality in evaluating the function via   fitting, if any)
+*********************************************************************************************
+ CUB. RULE  with    70 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =71 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.0002035 MAX NORM incre DISPL =0.00012886
+Iteration k=2,  error residual =2.7985e-07 MAX NORM incre DISPL =6.9189e-08
+Iteration k=3,  error residual =5.5814e-14 MAX NORM incre DISPL =1.18e-14
+*********************************************************************************************
+ CUB. RULE  with    69 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =70 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.00056067 MAX NORM incre DISPL =0.00040827
+Iteration k=2,  error residual =3.5633e-06 MAX NORM incre DISPL =4.5838e-07
+Iteration k=3,  error residual =1.2108e-11 MAX NORM incre DISPL =5.9842e-12
+*********************************************************************************************
+ CUB. RULE  with    68 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =69 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.001554 MAX NORM incre DISPL =0.00053561
+Iteration k=2,  error residual =7.7461e-06 MAX NORM incre DISPL =1.7555e-06
+Iteration k=3,  error residual =1.2203e-10 MAX NORM incre DISPL =4.4882e-11
+*********************************************************************************************
+ CUB. RULE  with    67 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =68 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.0010005 MAX NORM incre DISPL =0.0004728
+Iteration k=2,  error residual =5.9975e-06 MAX NORM incre DISPL =2.8262e-06
+Iteration k=3,  error residual =1.7597e-10 MAX NORM incre DISPL =3.7887e-11
+*********************************************************************************************
+ CUB. RULE  with    66 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =67 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.0014025 MAX NORM incre DISPL =0.0005555
+Iteration k=2,  error residual =3.9191e-06 MAX NORM incre DISPL =1.373e-06
+Iteration k=3,  error residual =3.4747e-11 MAX NORM incre DISPL =1.2397e-11
+*********************************************************************************************
+ CUB. RULE  with    65 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =66 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.0039481 MAX NORM incre DISPL =0.0017419
+Iteration k=2,  error residual =3.7588e-05 MAX NORM incre DISPL =1.852e-05
+Iteration k=3,  error residual =4.8603e-09 MAX NORM incre DISPL =1.4742e-09
+*********************************************************************************************
+ CUB. RULE  with    64 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =65 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.0022153 MAX NORM incre DISPL =0.00078449
+Iteration k=2,  error residual =2.1168e-05 MAX NORM incre DISPL =6.1932e-06
+Iteration k=3,  error residual =9.0448e-10 MAX NORM incre DISPL =3.0331e-10
+*********************************************************************************************
+ CUB. RULE  with    63 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =63 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.0057307 MAX NORM incre DISPL =0.0022017
+Iteration k=2,  error residual =0.00015886 MAX NORM incre DISPL =2.9413e-05
+Iteration k=3,  error residual =1.297e-08 MAX NORM incre DISPL =4.7687e-09
+Iteration k=4,  error residual =6.159e-16 MAX NORM incre DISPL =1.2413e-16
+*********************************************************************************************
+ CUB. RULE  with    62 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =61 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.0097942 MAX NORM incre DISPL =0.0049322
+Iteration k=2,  error residual =0.00048319 MAX NORM incre DISPL =0.00013287
+Iteration k=3,  error residual =3.7227e-07 MAX NORM incre DISPL =6.5752e-08
+Iteration k=4,  error residual =1.5503e-13 MAX NORM incre DISPL =5.0182e-14
+*********************************************************************************************
+ CUB. RULE  with    61 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =62 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.014708 MAX NORM incre DISPL =0.0062651
+Iteration k=2,  error residual =0.00031738 MAX NORM incre DISPL =8.0909e-05
+Iteration k=3,  error residual =1.3973e-07 MAX NORM incre DISPL =4.3701e-08
+Iteration k=4,  error residual =2.5169e-14 MAX NORM incre DISPL =3.6637e-15
+*********************************************************************************************
+ CUB. RULE  with    60 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =60 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.005695 MAX NORM incre DISPL =0.003693
+Iteration k=2,  error residual =0.00034904 MAX NORM incre DISPL =8.546e-05
+Iteration k=3,  error residual =2.6349e-07 MAX NORM incre DISPL =8.935e-08
+Iteration k=4,  error residual =2.0199e-13 MAX NORM incre DISPL =1.4511e-13
+*********************************************************************************************
+ CUB. RULE  with    59 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =49 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.02168 MAX NORM incre DISPL =0.014268
+Iteration k=2,  error residual =0.0045459 MAX NORM incre DISPL =0.0013915
+Iteration k=3,  error residual =2.286e-05 MAX NORM incre DISPL =1.0814e-05
+Iteration k=4,  error residual =7.5103e-10 MAX NORM incre DISPL =9.8915e-11
+*********************************************************************************************
+ CUB. RULE  with    58 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =52 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.0034553 MAX NORM incre DISPL =0.0019456
+Iteration k=2,  error residual =8.8898e-05 MAX NORM incre DISPL =2.9577e-05
+Iteration k=3,  error residual =1.2762e-08 MAX NORM incre DISPL =4.757e-09
+Iteration k=4,  error residual =5.0025e-16 MAX NORM incre DISPL =1.1102e-16
+*********************************************************************************************
+ CUB. RULE  with    57 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =51 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.019575 MAX NORM incre DISPL =0.0056639
+Iteration k=2,  error residual =0.0014598 MAX NORM incre DISPL =0.00034056
+Iteration k=3,  error residual =4.1168e-06 MAX NORM incre DISPL =1.0364e-06
+Iteration k=4,  error residual =2.4483e-11 MAX NORM incre DISPL =8.7136e-12
+*********************************************************************************************
+ CUB. RULE  with    56 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =56 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.020074 MAX NORM incre DISPL =0.008752
+Iteration k=2,  error residual =0.0013403 MAX NORM incre DISPL =0.00039765
+Iteration k=3,  error residual =2.6069e-06 MAX NORM incre DISPL =5.4171e-07
+Iteration k=4,  error residual =1.4695e-11 MAX NORM incre DISPL =7.1952e-12
+*********************************************************************************************
+ CUB. RULE  with    55 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =57 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.018072 MAX NORM incre DISPL =0.011809
+Iteration k=2,  error residual =0.0050344 MAX NORM incre DISPL =0.0012196
+Iteration k=3,  error residual =5.9942e-05 MAX NORM incre DISPL =2.0536e-05
+Iteration k=4,  error residual =6.6281e-09 MAX NORM incre DISPL =1.4764e-09
+*********************************************************************************************
+ CUB. RULE  with    54 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =47 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.0032549 MAX NORM incre DISPL =0.0013533
+Iteration k=2,  error residual =5.3462e-05 MAX NORM incre DISPL =2.3231e-05
+Iteration k=3,  error residual =9.4195e-09 MAX NORM incre DISPL =4.1279e-09
+*********************************************************************************************
+ CUB. RULE  with    53 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =59 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.016685 MAX NORM incre DISPL =0.009335
+Found 3 negative weights
+Iteration k=2,  error residual =0.26561 MAX NORM incre DISPL =0.065736
+Found 8 negative weights
+Number of negative points above the imposed threshold
+Iteration k=3,  error residual =0.56252 MAX NORM incre DISPL =0.14962
+----------------------------------------
+Removing point =50 (irem =2)
+---------------------------------------
+Iteration k=1,  error residual =0.034053 MAX NORM incre DISPL =0.011019
+Iteration k=2,  error residual =0.0056287 MAX NORM incre DISPL =0.0016343
+Iteration k=3,  error residual =6.5392e-05 MAX NORM incre DISPL =2.6542e-05
+Iteration k=4,  error residual =1.2034e-08 MAX NORM incre DISPL =3.2892e-09
+Iteration k=5,  error residual =7.0624e-16 MAX NORM incre DISPL =1.7772e-16
+*********************************************************************************************
+ CUB. RULE  with    52 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =59 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.016907 MAX NORM incre DISPL =0.0094337
+Found 3 negative weights
+Iteration k=2,  error residual =0.26779 MAX NORM incre DISPL =0.063908
+Found 10 negative weights
+Number of negative points above the imposed threshold
+Iteration k=3,  error residual =0.58957 MAX NORM incre DISPL =0.20608
+----------------------------------------
+Removing point =44 (irem =2)
+---------------------------------------
+Iteration k=1,  error residual =0.030022 MAX NORM incre DISPL =0.016015
+Iteration k=2,  error residual =0.0087055 MAX NORM incre DISPL =0.0027255
+Iteration k=3,  error residual =0.00015222 MAX NORM incre DISPL =6.5922e-05
+Iteration k=4,  error residual =7.2011e-08 MAX NORM incre DISPL =2.5472e-08
+Iteration k=5,  error residual =1.7628e-14 MAX NORM incre DISPL =4.4162e-15
+*********************************************************************************************
+ CUB. RULE  with    51 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =48 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.014542 MAX NORM incre DISPL =0.0082404
+Iteration k=2,  error residual =0.0011114 MAX NORM incre DISPL =0.00038448
+Iteration k=3,  error residual =3.2673e-06 MAX NORM incre DISPL =1.2152e-06
+Iteration k=4,  error residual =8.7962e-12 MAX NORM incre DISPL =4.599e-12
+*********************************************************************************************
+ CUB. RULE  with    50 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =59 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.024223 MAX NORM incre DISPL =0.017687
+Iteration k=2,  error residual =0.0066511 MAX NORM incre DISPL =0.0032149
+Iteration k=3,  error residual =0.00028252 MAX NORM incre DISPL =6.6659e-05
+Iteration k=4,  error residual =2.4882e-07 MAX NORM incre DISPL =8.1017e-08
+Iteration k=5,  error residual =2.0857e-13 MAX NORM incre DISPL =5.9161e-14
+*********************************************************************************************
+ CUB. RULE  with    49 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =28 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.0090458 MAX NORM incre DISPL =0.0042385
+Iteration k=2,  error residual =0.00023796 MAX NORM incre DISPL =7.6196e-05
+Iteration k=3,  error residual =1.6545e-07 MAX NORM incre DISPL =5.8605e-08
+Iteration k=4,  error residual =6.8263e-14 MAX NORM incre DISPL =3.586e-14
+*********************************************************************************************
+ CUB. RULE  with    48 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =46 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.013743 MAX NORM incre DISPL =0.0056596
+Iteration k=2,  error residual =0.0011281 MAX NORM incre DISPL =0.00039001
+Iteration k=3,  error residual =3.4847e-06 MAX NORM incre DISPL =1.5803e-06
+Iteration k=4,  error residual =1.8244e-11 MAX NORM incre DISPL =4.7743e-12
+*********************************************************************************************
+ CUB. RULE  with    47 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =38 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.010721 MAX NORM incre DISPL =0.0087816
+Iteration k=2,  error residual =0.0050572 MAX NORM incre DISPL =0.0011522
+Iteration k=3,  error residual =3.9054e-05 MAX NORM incre DISPL =1.1498e-05
+Iteration k=4,  error residual =5.1113e-09 MAX NORM incre DISPL =1.2185e-09
+*********************************************************************************************
+ CUB. RULE  with    46 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =55 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.043215 MAX NORM incre DISPL =0.014739
+Found 1 negative weights
+Iteration k=2,  error residual =0.14812 MAX NORM incre DISPL =0.053555
+Found 1 negative weights
+Iteration k=3,  error residual =0.052656 MAX NORM incre DISPL =0.021009
+Found 1 negative weights
+Iteration k=4,  error residual =0.0096797 MAX NORM incre DISPL =0.0032578
+Found 1 negative weights
+Iteration k=5,  error residual =0.00030802 MAX NORM incre DISPL =0.00014571
+Found 1 negative weights
+Iteration k=6,  error residual =2.4424e-07 MAX NORM incre DISPL =9.1383e-08
+Found 1 negative weights
+Iteration k=7,  error residual =1.1927e-13 MAX NORM incre DISPL =5.6462e-14
+*********************************************************************************************
+ CUB. RULE  with    45 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =39 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.050218 MAX NORM incre DISPL =0.032148
+Iteration k=2,  error residual =0.022883 MAX NORM incre DISPL =0.0075432
+Iteration k=3,  error residual =0.00097763 MAX NORM incre DISPL =0.00051599
+Iteration k=4,  error residual =1.8594e-05 MAX NORM incre DISPL =6.1575e-06
+Iteration k=5,  error residual =9.759e-10 MAX NORM incre DISPL =2.6751e-10
+*********************************************************************************************
+ CUB. RULE  with    44 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =23 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.015559 MAX NORM incre DISPL =0.0075806
+Iteration k=2,  error residual =0.002916 MAX NORM incre DISPL =0.0010279
+Iteration k=3,  error residual =1.2808e-05 MAX NORM incre DISPL =2.7469e-06
+Iteration k=4,  error residual =3.7273e-10 MAX NORM incre DISPL =1.4157e-10
+*********************************************************************************************
+ CUB. RULE  with    43 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =64 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.020563 MAX NORM incre DISPL =0.017709
+Found 1 negative weights
+Iteration k=2,  error residual =0.16897 MAX NORM incre DISPL =0.11872
+Found 4 negative weights
+Iteration k=3,  error residual =0.42292 MAX NORM incre DISPL =0.16344
+Found 11 negative weights
+Number of negative points above the imposed threshold
+Iteration k=4,  error residual =0.668 MAX NORM incre DISPL =0.22946
+----------------------------------------
+Removing point =31 (irem =2)
+---------------------------------------
+Found 1 negative weights
+Iteration k=1,  error residual =0.052725 MAX NORM incre DISPL =0.084577
+Found 3 negative weights
+Iteration k=2,  error residual =0.4848 MAX NORM incre DISPL =0.1167
+Found 6 negative weights
+Number of negative points above the imposed threshold
+Iteration k=3,  error residual =0.59642 MAX NORM incre DISPL =0.30044
+----------------------------------------
+Removing point =40 (irem =3)
+---------------------------------------
+Iteration k=1,  error residual =0.069679 MAX NORM incre DISPL =0.036683
+Iteration k=2,  error residual =0.064586 MAX NORM incre DISPL =0.011371
+Iteration k=3,  error residual =0.0056985 MAX NORM incre DISPL =0.001985
+Iteration k=4,  error residual =6.7087e-05 MAX NORM incre DISPL =3.2991e-05
+Iteration k=5,  error residual =1.6929e-08 MAX NORM incre DISPL =5.2125e-09
+Iteration k=6,  error residual =8.1605e-16 MAX NORM incre DISPL =2.7756e-16
+*********************************************************************************************
+ CUB. RULE  with    42 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =64 (irem =1)
+---------------------------------------
+Iteration k=1,  error residual =0.019259 MAX NORM incre DISPL =0.015287
+Iteration k=2,  error residual =0.060124 MAX NORM incre DISPL =0.013773
+Iteration k=3,  error residual =0.007987 MAX NORM incre DISPL =0.0034803
+Iteration k=4,  error residual =0.00032626 MAX NORM incre DISPL =0.00014406
+Iteration k=5,  error residual =5.0308e-07 MAX NORM incre DISPL =1.9519e-07
+Iteration k=6,  error residual =1.1278e-12 MAX NORM incre DISPL =3.4996e-13
+*********************************************************************************************
+ CUB. RULE  with    41 points ( of 71)
+**********************************************************************************************
+----------------------------------------
+Removing point =31 (irem =1)
+---------------------------------------
+Found 4 negative weights
+Iteration k=1,  error residual =0.079656 MAX NORM incre DISPL =0.16946
+Found 4 negative weights
+Points: 9  24 are outside   the domain ....
+Repeating the iteration by freezing the position of   points outside or in critical regions  
+Iteration k=2,  error residual =0.72564 MAX NORM incre DISPL =0
+Found 10 negative weights
+Number of negative points above the imposed threshold
+Iteration k=3,  error residual =0.72564 MAX NORM incre DISPL =0.32979
+----------------------------------------
+Removing point =26 (irem =2)
+---------------------------------------
+Iteration k=1,  error residual =0.04912 MAX NORM incre DISPL =0.049873
+Iteration k=2,  error residual =0.12944 MAX NORM incre DISPL =0.054246
+Found 6 negative weights
+Number of negative points above the imposed threshold
+Iteration k=3,  error residual =0.19249 MAX NORM incre DISPL =0.16113
+----------------------------------------
+Removing point =17 (irem =3)
+---------------------------------------
+Found 2 negative weights
+Points: 24 are outside   the domain ....
+Repeating the iteration by freezing the position of   points outside or in critical regions  
+Iteration k=1,  error residual =0.08739 MAX NORM incre DISPL =0
+Found 5 negative weights
+Iteration k=2,  error residual =0.08739 MAX NORM incre DISPL =0.14018
+Found 9 negative weights
+Number of negative points above the imposed threshold
+Iteration k=3,  error residual =0.60547 MAX NORM incre DISPL =0.41242
+----------------------------------------
+Removing point =29 (irem =4)
+---------------------------------------
+Found 3 negative weights
+Iteration k=1,  error residual =0.10351 MAX NORM incre DISPL =0.21572
+Found 7 negative weights
+Number of negative points above the imposed threshold
+Iteration k=2,  error residual =0.82433 MAX NORM incre DISPL =0.16071
+----------------------------------------
+Removing point =18 (irem =5)
+---------------------------------------
+Found 1 negative weights
+Iteration k=1,  error residual =0.0899 MAX NORM incre DISPL =0.087481
+Found 9 negative weights
+Number of negative points above the imposed threshold
+Iteration k=2,  error residual =0.43857 MAX NORM incre DISPL =0.481
+----------------------------------------
+Removing point =36 (irem =6)
+---------------------------------------
+Iteration k=1,  error residual =0.14132 MAX NORM incre DISPL =0.064047
+Found 1 negative weights
+Iteration k=2,  error residual =0.2583 MAX NORM incre DISPL =0.10401
+Found 8 negative weights
+Number of negative points above the imposed threshold
+Iteration k=3,  error residual =0.35494 MAX NORM incre DISPL =0.17336
+----------------------------------------
+Removing point =20 (irem =7)
+---------------------------------------
+Found 2 negative weights
+Iteration k=1,  error residual =0.077505 MAX NORM incre DISPL =0.063028
+Found 5 negative weights
+Iteration k=2,  error residual =0.58127 MAX NORM incre DISPL =0.31466
+Found 4 negative weights
+Points: 9  11 are outside   the domain ....
+Repeating the iteration by freezing the position of   points outside or in critical regions  
+Iteration k=3,  error residual =0.84888 MAX NORM incre DISPL =0
+Found 7 negative weights
+Number of negative points above the imposed threshold
+Iteration k=4,  error residual =0.84888 MAX NORM incre DISPL =0.26873
+----------------------------------------
+Removing point =58 (irem =8)
+---------------------------------------
+Iteration k=1,  error residual =0.036209 MAX NORM incre DISPL =0.039274
+Found 2 negative weights
+Iteration k=2,  error residual =0.062366 MAX NORM incre DISPL =0.07024
+Found 6 negative weights
+Number of negative points above the imposed threshold
+Iteration k=3,  error residual =0.41163 MAX NORM incre DISPL =0.22575
+----------------------------------------
+Removing point =42 (irem =9)
+---------------------------------------
+{Operation terminated by user during <a href="matlab:matlab.internal.language.introspective.errorDocCallback('unique>uniqueR2012a', '/usr/local/MATLAB/R2020b/toolbox/matlab/ops/unique.m', 205)" style="font-weight:bold">unique>uniqueR2012a</a> (<a href="matlab: opentoline('/usr/local/MATLAB/R2020b/toolbox/matlab/ops/unique.m',205,0)">line 205</a>)
+
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('unique', '/usr/local/MATLAB/R2020b/toolbox/matlab/ops/unique.m', 155)" style="font-weight:bold">unique</a> (<a href="matlab: opentoline('/usr/local/MATLAB/R2020b/toolbox/matlab/ops/unique.m',155,0)">line 155</a>)
+        [varargout{1:nlhs}] = uniqueR2012a(varargin{1},logical(flaginds(1:5)));
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('WhichElementInside2023', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/SVDlibrary/CECM_2023/WhichElementInside2023.m', 19)" style="font-weight:bold">WhichElementInside2023</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/SVDlibrary/CECM_2023/WhichElementInside2023.m',19,0)">line 19</a>)
+        ELEMnear = unique([ELEMnear;NEIGH_elemes(:)],'stable') ;
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('EvaluateBasisFunctionDIRECTFIT2023', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/SVDlibrary/CECM_2023/EvaluateBasisFunctionDIRECTFIT2023.m', 46)" style="font-weight:bold">EvaluateBasisFunctionDIRECTFIT2023</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/SVDlibrary/CECM_2023/EvaluateBasisFunctionDIRECTFIT2023.m',46,0)">line 46</a>)
+    [elemCONTAINER,POLYINFO ]= WhichElementInside2023(xLOC,INDnear,VAR_SMOOTH_FE,IND_POLYG,POLYINFO,inew) ;
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('EVALBASIS', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/SVDlibrary/CECM_2023/EVALBASIS.m', 15)" style="font-weight:bold">EVALBASIS</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/SVDlibrary/CECM_2023/EVALBASIS.m',15,0)">line 15</a>)
+    [PHIk_y,dPHIk_y,POLYINFO]=  EvaluateBasisFunctionDIRECTFIT2023(xNEW,DATA,VAR_SMOOTH_FE,POLYINFO) ;
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('UPDATEPOSW', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/SVDlibrary/CECM_2023/UPDATEPOSW.m', 9)" style="font-weight:bold">UPDATEPOSW</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/SVDlibrary/CECM_2023/UPDATEPOSW.m',9,0)">line 9</a>)
+[PHIk_y,dPHIk_y,POLYINFO]=     EVALBASIS(xNEW,DATALOC,VAR_SMOOTH_FE,POLYINFO);
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('MAKE1ZERO_1STEP', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/SVDlibrary/CECM_2023/MAKE1ZERO_1STEP.m', 45)" style="font-weight:bold">MAKE1ZERO_1STEP</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/SVDlibrary/CECM_2023/MAKE1ZERO_1STEP.m',45,0)">line 45</a>)
+            UPDATEPOSW(wNEW,b,xNEW,DATALOC,VAR_SMOOTH_FE,POLYINFO,VARCnew) ;
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('SPARSIF_1stStage', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/SVDlibrary/CECM_2023/SPARSIF_1stStage.m', 21)" style="font-weight:bold">SPARSIF_1stStage</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/SVDlibrary/CECM_2023/SPARSIF_1stStage.m',21,0)">line 21</a>)
+    [xNEW,wNEW,CONVERGENCE,DATALOC,POLYINFO,VARC] = MAKE1ZERO_1STEP(xOLD,wOLD,b,DATALOC,VAR_SMOOTH_FE,VARC,POLYINFO) ;
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('SPARSIFglo', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/SVDlibrary/CECM_2023/SPARSIFglo.m', 43)" style="font-weight:bold">SPARSIFglo</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/SVDlibrary/CECM_2023/SPARSIFglo.m',43,0)">line 43</a>)
+[xFIRSTS,wFIRSTS,DATA_ECM,POLYINFO,VARC,HISTORY] = SPARSIF_1stStage(xOLD,wOLD,b,DATA_ECM,VAR_SMOOTH_FE,VARC,HISTORY) ;
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ContinuousECM2023', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/SVDlibrary/CECM_2023/ContinuousECM2023.m', 40)" style="font-weight:bold">ContinuousECM2023</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/SVDlibrary/CECM_2023/ContinuousECM2023.m',40,0)">line 40</a>)
+[xNEW,wNEW,DATA_ECM,VAR_SMOOTH_FE,POLYINFO,AUXVAR] = SPARSIFglo(w,DATA_ECM,coorECM,VAR_SMOOTH_FE) ;
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ContinuousECMgen2023', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/SVDlibrary/CECM_2023/ContinuousECMgen2023.m', 47)" style="font-weight:bold">ContinuousECMgen2023</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/SVDlibrary/CECM_2023/ContinuousECMgen2023.m',47,0)">line 47</a>)
+    [xNEW,wNEW,POLYINFO ,VAR_SMOOTH_FE,Ninterpolation,DATA_ECM,AUXVAR ] = ContinuousECM2023...
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('CECM_internal_forces', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/DOMAINdecompHROM/MultiHROM/CECM_internal_forces.m', 31)" style="font-weight:bold">CECM_internal_forces</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/DOMAINdecompHROM/MultiHROM/CECM_internal_forces.m',31,0)">line 31</a>)
+[CECMoutput,DATA_AUX]= ContinuousECMgen2023(A,xFE,wFE,DATAloc,MESH,DATA_ECM) ;
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ContinuousECM_multi', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/DOMAINdecompHROM/MultiHROM/ContinuousECM_multi.m', 67)" style="font-weight:bold">ContinuousECM_multi</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/DOMAINdecompHROM/MultiHROM/ContinuousECM_multi.m',67,0)">line 67</a>)
+    CECM_INTERNAL_FORCES=  CECM_internal_forces(OPERFE,PhiDEF,BasisPone,DATA,MESH,DATA_ECM) ;
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('OFFLINE_STEPSbub', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/DOMAINdecompHROM/GENERAL_BUBBLE/OFFLINE_STEPSbub.m', 139)" style="font-weight:bold">OFFLINE_STEPSbub</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/DOMAINdecompHROM/GENERAL_BUBBLE/OFFLINE_STEPSbub.m',139,0)">line 139</a>)
+CECM= ContinuousECM_multi(OPERFE,[PhiDEF,GammaBUB],BasisSTRESS,DATA,DATAcommon,MESHdom,DATAoffline,MATPRO,PhiRB) ;
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train1dom_BUB', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/DOMAINdecompHROM/GENERAL_BUBBLE/Train1dom_BUB.m', 64)" style="font-weight:bold">Train1dom_BUB</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/DOMAINdecompHROM/GENERAL_BUBBLE/Train1dom_BUB.m',64,0)">line 64</a>)
+    OFFLINE_STEPSbub(INPUT_PROBLEMS,DATAoffline) ;
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('TRAIN_bubble', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/104_EIFEM_plast2D/04_GeneralTheory/TRAIN_bubble.m', 66)" style="font-weight:bold">TRAIN_bubble</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/104_EIFEM_plast2D/04_GeneralTheory/TRAIN_bubble.m',66,0)">line 66</a>)
+Train1dom_BUB(DATAlauch,INPUT_PROBLEMS,NameWS_EIFE_oper,DATAoffline)  ;
+} 
+TRAIN_bubble

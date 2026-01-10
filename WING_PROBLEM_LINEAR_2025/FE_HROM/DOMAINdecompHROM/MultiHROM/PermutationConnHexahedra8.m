@@ -1,0 +1,39 @@
+function      PERMUT = PermutationConnHexahedra8 
+% See /home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/101_MULTI2D_2023/06_3D_27_HEXAHEDRA/01_8nodeHEX.mlx
+
+
+% BASIC PERMUTATIONS
+% -------------------
+PERMUT_base = cell(1,8) ; 
+%
+PERMUT_base{1} =  [1,2,3,4,   5,6,7,8] ; 
+PERMUT_base{2} =  [2,3,4,1    6,7,8,5] ; 
+PERMUT_base{3} =  [3,4,1,2    7,8,5,6] ; 
+PERMUT_base{4} =  [4,1,2,3    8,5,6,7] ; 
+%  
+PERMUT_base{5} = [8,7,6,5,4,3,2,1] ;  
+PERMUT_base{6} = [7,6,5,8,3,2,1,4] ;  
+PERMUT_base{7} = [6,5,8,7,2,1,4,3] ;  
+PERMUT_base{8} = [5,8,7,6,1,4,3,2] ;  
+
+
+% INITIAL CONFIGURATIONS (depending on the plane one chooses as "bottom" plane, x =0, y= 0, or z=0)
+% -----------------------------
+INIT_CONFIG = cell(1,3) ; 
+INIT_CONFIG{1} = [1:8] ; 
+INIT_CONFIG{2} = [2,1,5,6,3,4,8,7] ; 
+INIT_CONFIG{3} = [2,6,7,3,1,5,8,4] ; 
+PERMUT= cell(1,24) ; 
+
+iacum = 1 ; 
+
+for iconf = 1:length(INIT_CONFIG)
+    CCONF = INIT_CONFIG{iconf} ; 
+    for iperm = 1:length(PERMUT_base)
+        PERMUT{iacum} = CCONF(PERMUT_base{iperm}) ; 
+        iacum = iacum + 1; 
+    end
+end
+
+
+ 

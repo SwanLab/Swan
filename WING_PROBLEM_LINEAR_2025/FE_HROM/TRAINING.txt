@@ -1,0 +1,14 @@
+{'BCfe_beam_F' is not found in the current folder or on the MATLAB path, but exists in:
+    /home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/112_NonLIN_ROM_RBF/06_PLAST
+
+<a href = "matlab:matlab.internal.language.commandline.executeCode('cd ''/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/112_NonLIN_ROM_RBF/06_PLAST''')">Change the MATLAB current folder</a> or <a href = "matlab:matlab.internal.language.commandline.executeCode('addpath ''/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/112_NonLIN_ROM_RBF/06_PLAST''')">add its folder to the MATLAB path</a>.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('FEvectorized_GEN3', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/DOMAINdecompHROM/GENERAL_BUBBLE/FEvectorized_GEN3.m', 29)" style="font-weight:bold">FEvectorized_GEN3</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/DOMAINdecompHROM/GENERAL_BUBBLE/FEvectorized_GEN3.m',29,0)">line 29</a>)
+DATAcommon =    feval(TrainingTrajectoryFun,DATALOC) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Run_nonHROM_orthK_F', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/112_NonLIN_ROM_RBF/06_PLAST/Run_nonHROM_orthK_F.m', 38)" style="font-weight:bold">Run_nonHROM_orthK_F</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/112_NonLIN_ROM_RBF/06_PLAST/Run_nonHROM_orthK_F.m',38,0)">line 38</a>)
+        FEvectorized_GEN3(DATALOC.NAME_inputs_fe,DATALOC.Trajectories,MATERIAL_FILE,DATALOC) ;
+} 
+Run_nonHROM_orthK_F
+<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/112_NonLIN_ROM_RBF/06_PLAST/Run_nonHROM_orthK_F.m',38,1)">38  </a>        FEvectorized_GEN3(DATALOC.NAME_inputs_fe,DATALOC.Trajectories,MATERIAL_FILE,DATALOC) ;
+if system_dependent('IsDebugMode')==1, dbcont; end

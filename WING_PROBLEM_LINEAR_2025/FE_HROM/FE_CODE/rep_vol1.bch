@@ -1,0 +1,53 @@
+*****FIGURE2_CREATION
+Mescape Geometry Create Object rectangle
+0 0
+2.236068e-01 2.236068e-01
+Mescape
+Mescape Geometry Create Object circle
+0 0
+old
+0.0 0.0 1.0
+1.500000e-01
+Mescape
+Mescape Geometry Create Object circle
+2.236068e-01 2.236068e-01
+old
+0.0 0.0 1.0
+1.500000e-01
+Mescape
+Mescape Geometry Create IntSolid2d substract
+1
+escape
+2 3
+Mescape
+Mescape Geometry Create Line
+2.236068e-01,2.236068e-01,0to0.075
+2.236068e-01,7.360680e-02,0to0.075
+old
+escape
+Mescape Geometry Create Line
+2.236068e-01,2.236068e-01,0to0.075
+old
+7.360680e-02,2.236068e-01,0to0.075
+old
+escape
+Mescape Geometry Create NurbsSurface
+20 21 22
+escape
+Mescape
+Mescape Utilities Copy Surfaces MaintainLayers Mirror FJoin 4 FJoin 7 TwoDim
+5 6 
+Mescape
+Mescape
+Mescape Utilities Copy Surfaces MaintainLayers Mirror FJoin 5 FJoin 2 TwoDim
+5 6 7 8
+Mescape
+Mescape
+Mescape Geometry Create NurbsSurface
+11 24 31 37
+escape
+Mescape
+Mescape Utilities Copy Surfaces DoExtrude Volumes MaintainLayers Translation FNoJoin 0.0,0.0,0.0 FNoJoin 0.0,0.0,1.0000
+5 6 7 8 9 10 11 12 13
+escape
+Mescape

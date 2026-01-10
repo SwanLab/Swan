@@ -1,0 +1,63 @@
+*****FIGURE1_CREATION
+Mescape Geometry Create Object rectangle
+-5.000000e-01 -5.000000e-01
+5.000000e-01 5.000000e-01
+Mescape
+Mescape Geometry Create Object circle
+0 0
+0.0 0.0 1.0
+3.000000e-01
+Mescape
+Mescape Geometry Create IntSolid2d substract
+1
+escape
+2
+Mescape
+Mescape Geometry Create NurbsSurface
+5
+escape
+Mescape
+Mescape Utilities Copy Surfaces DoExtrude Volumes MaintainLayers Translation FNoJoin 0.0,0.0,0.0 FNoJoin 0.0,0.0,1.0000
+3 4
+escape
+Mescape
+'Layers New Fibre escape
+'Layers Entities Fibre LowerEntities Volumes
+2
+escape
+Mescape
+'Layers New Matrix escape
+'Layers Entities Matrix LowerEntities Volumes
+1
+escape
+Mescape
+'Layers Delete Layer0 escape
+Mescape Data Defaults ProblemType yes Examples/problem_type_solid1 escape
+Mescape Data Materials AssignMaterial Steel Volumes
+2
+Mescape
+Mescape
+Mescape Data Materials AssignMaterial Concrete Volumes
+1
+Mescape
+Mescape
+Mescape Utilities Move Volumes MaintainLayers Rotation FNoJoin 0.0,1.0,0.0 FNoJoin 0.0,0.0,0.0 90
+1 2
+Mescape
+Mescape Meshing SemiStructured Volumes
+1000
+1
+2
+escape
+escape
+Mescape Meshing ElemType Hexahedra
+1
+2
+escape
+Mescape Meshing Generate
+0.000 MeshingParametersFrom=Model
+Mescape Meshing MeshView
+Mescape Meshing CreateBoundary
+Yes
+Mescape Files WriteMesh
+/home/joaquin/Desktop/CURRENT_TASKS/COMPOSITE_MATERIALS_DOCENCIA/APUNTES_LATEX/DOCUMENTOS_anexos/MATLAB/ELASTOSTATIC_GEN/FE_CODE/NEWCELL.msh

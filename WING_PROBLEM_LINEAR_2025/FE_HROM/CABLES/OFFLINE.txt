@@ -1,0 +1,14 @@
+REACTIONS
+H_0 =-11.8305
+H_L =11.8305
+V_0 =1.6909
+V_L =4.1362
+
+LLL =
+
+  1×3 <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+    {'FE R_x'}    {'FE R_y'}    {'FE R (norm)'}
+
+Maximum displacement
+y_max = 3.3

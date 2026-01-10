@@ -1,0 +1,64 @@
+------------------------------------------
+SVD modes displacements (before alignment)
+------------------------------------------
+/home/joaquin/Desktop/CURRENT_TASKS/DOCTORAL_THESIS_SUPERVISED/RUBIO_RAUL_2021/AUXETIC_CELL_MODES_DEC_2024/07_2020_method_aux/MODES/GIDPOST//MODES_Basis_SYMdomDisplacements.res
+------------------------------------------
+SVD modes reactions  
+------------------------------------------
+/home/joaquin/Desktop/CURRENT_TASKS/DOCTORAL_THESIS_SUPERVISED/RUBIO_RAUL_2021/AUXETIC_CELL_MODES_DEC_2024/07_2020_method_aux/MODES/GIDPOST//MODES_Basis_SYMdomReactions.res
+------------------------------------------
+SVD modes stresses 
+------------------------------------------
+/home/joaquin/Desktop/CURRENT_TASKS/DOCTORAL_THESIS_SUPERVISED/RUBIO_RAUL_2021/AUXETIC_CELL_MODES_DEC_2024/07_2020_method_aux/MODES/GIDPOST//MODES_Basis_SYMdomStresses.res
+Number react modes = Number displ. modes = 16
+Checking angles between subspace REACT and DEF = 37.2155      59.8435      60.3788      68.9881       70.675      71.1978      74.1197       74.374      74.3791      75.7127      76.0494      79.2033      79.8747      80.5505      80.8153      85.3233
+/home/joaquin/Desktop/CURRENT_TASKS/DOCTORAL_THESIS_SUPERVISED/RUBIO_RAUL_2021/AUXETIC_CELL_MODES_DEC_2024/07_2020_method_aux/MODES/GIDPOST//MODES_Basis_SYMdomDISP_ALIGNED.res
+CANDIDATES FOR BEING INTERFACE MODES
+faces = 1 and 3
+********************************************
+Total number of candidates for INTEFACE MODES =  3 + 5 = 8
+--------------------------------------------
+------------------------------------------------------------
+------------------------INTERFACE MODES-------------------------
+INTERFACE =1
+------------------------------------------------------------
+Number of reaction modes  = 16
+Number of reaction modes after truncation FACE -  = 5
+Number of reaction modes after truncation FACE +  = 5
+Dimension of reactions intersection space = 3
+------------------------------------------------------------
+Number of deformational  modes (after alignment) = 0
+CANDIDATES FOR BEING INTERFACE MODES
+faces = 2 and 4
+********************************************
+Total number of candidates for INTEFACE MODES =  3 + 9 = 12
+--------------------------------------------
+------------------------------------------------------------
+------------------------INTERFACE MODES-------------------------
+INTERFACE =2
+------------------------------------------------------------
+Number of reaction modes  = 16
+Number of reaction modes after truncation FACE -  = 10
+Number of reaction modes after truncation FACE +  = 10
+Dimension of reactions intersection space = 9
+------------------------------------------------------------
+Number of deformational  modes (after alignment) = 6
+MASTER DOFs = 1   2   3   9  10  11  12  13  15  21  22  23  29  30  31  32  33  35
+MASTER DOFs (of rigid body type) = 1   2   3   9  10  11  21  22  23  29  30  31
+Ratio SV(end)/SV(1)= 0.010357 (matrix Dcomp_m)
+/home/joaquin/Desktop/CURRENT_TASKS/DOCTORAL_THESIS_SUPERVISED/RUBIO_RAUL_2021/AUXETIC_CELL_MODES_DEC_2024/07_2020_method_aux/MODES/GIDPOST//MODES_Basis_SYMdomINTF_MODES_1_3.res
+/home/joaquin/Desktop/CURRENT_TASKS/DOCTORAL_THESIS_SUPERVISED/RUBIO_RAUL_2021/AUXETIC_CELL_MODES_DEC_2024/07_2020_method_aux/MODES/GIDPOST//MODES_Basis_SYMdomINTF_MODES_2_4.res
+________________ SUMMARY __________________
+Number of interface modes = 3 6 3 6 
+RANK Tcomp = 16
+s(end)/s(end-1) = 9.1705e-10
+Number of stress modes  = 16
+List of selected m = 85 elements
+14   17   23   40   56   66   73   77   79   95  103  110  139  144  148  151  152  161  168  188  206  211  229  244  251  301  306  310  314  321  329  337  339  343  362  367  371  389  423  427  428  432  456  457  477  493  501  522  524  535  540  543  558  589  614  618  622  645  659  678  683  710  734  743  766  770  784  794  799  807  826  829  841  857  873  878  884  912  918  930  944  949  956  992  995
+Difference between HROM and FE Stiff Matrix = 42.1121 -----------------------------------------
+Position ECM points (ans weights )
+-----------------------------------------
+---------------------------------------------------
+To see reduced set of integration points, open
+/home/joaquin/Desktop/CURRENT_TASKS/DOCTORAL_THESIS_SUPERVISED/RUBIO_RAUL_2021/AUXETIC_CELL_MODES_DEC_2024/07_2020_method_aux/MODES/GIDPOST//ECM_ELEMENTS.msh
+-----------------------------------------

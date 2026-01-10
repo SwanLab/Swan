@@ -1,0 +1,17 @@
+{'DEF_LINLARGE' is not found in the current folder or on the MATLAB path, but exists in:
+    /home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/108_EIFEM_metamat/03_EIFEM_large
+
+<a href = "matlab:matlab.internal.language.commandline.executeCode('cd ''/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/108_EIFEM_metamat/03_EIFEM_large''')">Change the MATLAB current folder</a> or <a href = "matlab:matlab.internal.language.commandline.executeCode('addpath ''/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/108_EIFEM_metamat/03_EIFEM_large''')">add its folder to the MATLAB path</a>.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('OFFLINE_STEPSbubCOMPL', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/DOMAINdecompHROM/GENERAL_BUBBLE/OFFLINE_STEPSbubCOMPL.m', 40)" style="font-weight:bold">OFFLINE_STEPSbubCOMPL</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/DOMAINdecompHROM/GENERAL_BUBBLE/OFFLINE_STEPSbubCOMPL.m',40,0)">line 40</a>)
+DATAcommon = feval(TrainingTrajectoryINP) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train1dom_BUBcomp', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/DOMAINdecompHROM/GENERAL_BUBBLE/Train1dom_BUBcomp.m', 64)" style="font-weight:bold">Train1dom_BUBcomp</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/DOMAINdecompHROM/GENERAL_BUBBLE/Train1dom_BUBcomp.m',64,0)">line 64</a>)
+    OFFLINE_STEPSbubCOMPL(INPUT_PROBLEMS,DATAoffline) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train_LINLARG', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/108_EIFEM_metamat/03_EIFEM_large/Train_LINLARG.m', 83)" style="font-weight:bold">Train_LINLARG</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/108_EIFEM_metamat/03_EIFEM_large/Train_LINLARG.m',83,0)">line 83</a>)
+    Train1dom_BUBcomp(DATAlauch,INPUT_PROBLEMS,NameWS_EIFE_oper,DATAoffline)  ;
+} 
+Train_LINLARG
+if system_dependent('IsDebugMode')==1, dbcont; end
+if system_dependent('IsDebugMode')==1, dbcont; end

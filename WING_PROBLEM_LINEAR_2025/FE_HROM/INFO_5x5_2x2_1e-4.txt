@@ -1,0 +1,64 @@
+------------------------------------------
+SVD modes displacements (before alignment)
+------------------------------------------
+/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/107_EIFEM_plast3D/07_2020_method_aux/MODES/GIDPOST//MODES_Basis_SYMdomDisplacements.res
+------------------------------------------
+SVD modes reactions  
+------------------------------------------
+/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/107_EIFEM_plast3D/07_2020_method_aux/MODES/GIDPOST//MODES_Basis_SYMdomReactions.res
+------------------------------------------
+SVD modes stresses 
+------------------------------------------
+/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/107_EIFEM_plast3D/07_2020_method_aux/MODES/GIDPOST//MODES_Basis_SYMdomStresses.res
+Number react modes = Number displ. modes = 16
+Checking angles between subspace REACT and DEF = 45.287      54.2436      55.0372      65.8554      68.1501      68.1937      70.5648      71.6782      71.9587      72.6217      73.2652      77.2997      78.1793      78.8159      79.3104      84.7515
+/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/107_EIFEM_plast3D/07_2020_method_aux/MODES/GIDPOST//MODES_Basis_SYMdomDISP_ALIGNED.res
+CANDIDATES FOR BEING INTERFACE MODES
+faces = 1 and 3
+********************************************
+Total number of candidates for INTEFACE MODES =  3 + 8 = 11
+--------------------------------------------
+------------------------------------------------------------
+------------------------INTERFACE MODES-------------------------
+INTERFACE =1
+------------------------------------------------------------
+Number of reaction modes  = 16
+Number of reaction modes after truncation FACE -  = 5
+Number of reaction modes after truncation FACE +  = 5
+Dimension of reactions intersection space = 4
+------------------------------------------------------------
+Number of deformational  modes (after alignment) = 1
+CANDIDATES FOR BEING INTERFACE MODES
+faces = 2 and 4
+********************************************
+Total number of candidates for INTEFACE MODES =  3 + 9 = 12
+--------------------------------------------
+------------------------------------------------------------
+------------------------INTERFACE MODES-------------------------
+INTERFACE =2
+------------------------------------------------------------
+Number of reaction modes  = 16
+Number of reaction modes after truncation FACE -  = 10
+Number of reaction modes after truncation FACE +  = 10
+Dimension of reactions intersection space = 9
+------------------------------------------------------------
+Number of deformational  modes (after alignment) = 6
+MASTER DOFs = 1   2   3  12  13  14  15  16  18  24  25  26  35  36  37  38  39  41
+MASTER DOFs (of rigid body type) = 1   2   3  12  13  14  24  25  26  35  36  37
+Ratio SV(end)/SV(1)= 0.0079879 (matrix Dcomp_m)
+/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/107_EIFEM_plast3D/07_2020_method_aux/MODES/GIDPOST//MODES_Basis_SYMdomINTF_MODES_1_3.res
+/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/107_EIFEM_plast3D/07_2020_method_aux/MODES/GIDPOST//MODES_Basis_SYMdomINTF_MODES_2_4.res
+________________ SUMMARY __________________
+Number of interface modes = 3 6 3 6 
+RANK Tcomp = 16
+s(end)/s(end-1) = 2.2468e-10
+Number of stress modes  = 16
+List of selected m = 80 elements
+1    3    5    8    9   11   17   24   28   32   38   44   47   73   74   75   76   78   84   91  103  104  111  112  113  121  133  140  150  168  176  178  183  190  191  195  199  211  213  214  222  224  247  248  250  252  253  260  262  263  277  284  288  306  311  324  339  345  350  357  363  366  380  403  414  420  426  429  439  442  443  444  448  452  465  468  474  480  485  493
+Difference between HROM and FE Stiff Matrix = 18.0363 -----------------------------------------
+Position ECM points (ans weights )
+-----------------------------------------
+---------------------------------------------------
+To see reduced set of integration points, open
+/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/107_EIFEM_plast3D/07_2020_method_aux/MODES/GIDPOST//ECM_ELEMENTS.msh
+-----------------------------------------

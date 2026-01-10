@@ -1,0 +1,213 @@
+*************************************
+Reading and constructing input data
+*************************************
+[Warning: Ill-constructed Boundary COnnectivity Matrix. REmoving repeated elements. ] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ReadMeshFileStr_MULT', '/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/FE_HROM/FE_CODE/ReadMeshFileStr_MULT.m', 189)" style="font-weight:bold">ReadMeshFileStr_MULT</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/FE_HROM/FE_CODE/ReadMeshFileStr_MULT.m',189,0)">line 189</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('GeometryMeshUNC', '/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/FE_HROM/LARGE_STRAINS/InputDataFunctions/GeometryMeshUNC.m', 28)" style="font-weight:bold">GeometryMeshUNC</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/FE_HROM/LARGE_STRAINS/InputDataFunctions/GeometryMeshUNC.m',28,0)">line 28</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('PreProcessInputDataDyn1_EIFEbub', '/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/FE_HROM/DOMAINdecompHROM/GENERAL_BUBBLE/PreProcessInputDataDyn1_EIFEbub.m', 26)" style="font-weight:bold">PreProcessInputDataDyn1_EIFEbub</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/FE_HROM/DOMAINdecompHROM/GENERAL_BUBBLE/PreProcessInputDataDyn1_EIFEbub.m',26,0)">line 26</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('INPUTS_EIFE_shapeBUBloc', '/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/FE_HROM/DOMAINdecompHROM/GENERAL_BUBBLE/INPUTS_EIFE_shapeBUBloc.m', 154)" style="font-weight:bold">INPUTS_EIFE_shapeBUBloc</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/FE_HROM/DOMAINdecompHROM/GENERAL_BUBBLE/INPUTS_EIFE_shapeBUBloc.m',154,0)">line 154</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('EIFECODElargeDYN', '/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/FE_HROM/DOMAINdecompHROM/MultiHROM/EIFECODElargeDYN.m', 23)" style="font-weight:bold">EIFECODElargeDYN</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/FE_HROM/DOMAINdecompHROM/MultiHROM/EIFECODElargeDYN.m',23,0)">line 23</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('EIFEvectorizedGEN1', '/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/FE_HROM/DOMAINdecompHROM/GENERAL_BUBBLE/EIFEvectorizedGEN1.m', 47)" style="font-weight:bold">EIFEvectorizedGEN1</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/FE_HROM/DOMAINdecompHROM/GENERAL_BUBBLE/EIFEvectorizedGEN1.m',47,0)">line 47</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('EIFE_wingW', '/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/EIFE_wingW.m', 27)" style="font-weight:bold">EIFE_wingW</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/EIFE_wingW.m',27,0)">line 27</a>)] 
+---------- CECM ONLY FOR NONLINEAR PART OF STRESSES -----
+Coarse-scale stiffness matrix   defined in  PROPMAT(imat).EIFE_prop.Kcoarse  (parent domain ) uses the same elastic constant
+as thosed used in training... Do  not change them !  !!!! 
+-----------------------------------------------------------
+Determination parent domains + Bmat, Nmat matrices
+-----------------------------------------------------------
+e=1
+e=2
+e=3
+e=4
+e=5
+e=6
+e=7
+e=8
+e=9
+e=10
+e=11
+e=12
+e=13
+e=14
+e=15
+e=16
+e=17
+e=18
+e=19
+e=20
+e=21
+e=22
+e=23
+e=24
+e=25
+e=26
+e=27
+e=28
+e=29
+e=30
+e=31
+e=32
+e=33
+e=34
+e=35
+e=36
+e=37
+e=38
+e=39
+e=40
+e=41
+e=42
+e=43
+e=44
+e=45
+e=46
+e=47
+e=48
+e=49
+e=50
+e=51
+e=52
+e=53
+e=54
+e=55
+e=56
+e=57
+e=58
+e=59
+e=60
+e=61
+e=62
+e=63
+e=64
+e=65
+e=66
+e=67
+e=68
+e=69
+e=70
+e=71
+e=72
+e=73
+e=74
+e=75
+e=76
+e=77
+e=78
+e=79
+e=80
+e=81
+e=82
+e=83
+e=84
+e=85
+e=86
+e=87
+e=88
+e=89
+e=90
+e=91
+e=92
+e=93
+e=94
+e=95
+e=96
+e=97
+e=98
+e=99
+e=100
+Assemblying Kstiff global, using elemental Kelem
+...Done
+Assembly of Bst (stacked B-matrix)...
+Assembly of NstBw...
+Total volume = 0.19697
+Dirichlet boundary conditions (nothing to be done for linear elements...revise it for quadratic elements ! )
+Nodal body forces due to gravity (self-weight) ---only valid for linear elements, revise it for quadratic 
+...done in (1.5861 s)
+*************************************
+*************************************
+INITIALIZATIONS
+*************************************
+*************************************
+LOOP over time steps (NSTEPS =2)
+*************************************
+--------------------------------------------------
+istep = 2      t_i = 1.00000 
+--------------------------------------------------
+iter=1  resf =2.60668e-04  resf_ad=2.60668e-04  res_disp_abs=1.00000e+20   
+iter=2  resf =3.78512e-13  resf_ad=3.78512e-13  res_disp_abs=3.23324e+00   
+Compressing snapshots cluster = 1...
+DISP RANK = 1
+PK2STRESS RANK = 1
+RESID RANK = 1
+STRAIN_ENERGY RANK = 1
+VONMISES_CAUCHY_STRESS RANK = 1
+Done in 0.014607
+...done in (0.036559 s)
+Postprocess with GID
+Printing GID files ...
+Recovering fine-scale variables domain =
+e =1
+Global elasticity matrix    ...
+Rotation of stresses not implemented yet in 3D
+e =2
+Global elasticity matrix    ...
+Rotation of stresses not implemented yet in 3D
+e =3
+Global elasticity matrix    ...
+Rotation of stresses not implemented yet in 3D
+e =4
+Global elasticity matrix    ...
+Rotation of stresses not implemented yet in 3D
+e =5
+Global elasticity matrix    ...
+Rotation of stresses not implemented yet in 3D
+e =6
+Global elasticity matrix    ...
+Rotation of stresses not implemented yet in 3D
+e =8
+Global elasticity matrix    ...
+Rotation of stresses not implemented yet in 3D
+e =10
+Global elasticity matrix    ...
+Rotation of stresses not implemented yet in 3D
+e =40
+Global elasticity matrix    ...
+Rotation of stresses not implemented yet in 3D
+e =41
+Global elasticity matrix    ...
+Rotation of stresses not implemented yet in 3D
+e =90
+Global elasticity matrix    ...
+Rotation of stresses not implemented yet in 3D
+e =91
+Global elasticity matrix    ...
+Rotation of stresses not implemented yet in 3D
+e =92
+Global elasticity matrix    ...
+Rotation of stresses not implemented yet in 3D
+e =93
+Global elasticity matrix    ...
+Rotation of stresses not implemented yet in 3D
+e =94
+Global elasticity matrix    ...
+Rotation of stresses not implemented yet in 3D
+e =95
+Global elasticity matrix    ...
+Rotation of stresses not implemented yet in 3D
+e =96
+Global elasticity matrix    ...
+Rotation of stresses not implemented yet in 3D
+e =97
+Global elasticity matrix    ...
+Rotation of stresses not implemented yet in 3D
+e =98
+Global elasticity matrix    ...
+Rotation of stresses not implemented yet in 3D
+e =99
+Global elasticity matrix    ...
+Rotation of stresses not implemented yet in 3D
+e =100
+Global elasticity matrix    ...
+Rotation of stresses not implemented yet in 3D
+open GID FILE:
+/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/GIDPOST//BCeifem_CWeight_param_1/BCeifem_CWeight_param_1_clus_1EIFE.res
