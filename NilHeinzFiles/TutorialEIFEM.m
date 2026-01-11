@@ -56,26 +56,26 @@ classdef TutorialEIFEM < handle
             
             %% Eigenvalues to print
             %obj.printContinuousSolution(EIFEM,PhiCoarse,mD);
-            obj.printDiscontinuousSolution(EIFEM,PhiCoarse,discMesh);
+            % obj.printDiscontinuousSolution(EIFEM,PhiCoarse,discMesh);
             %obj.printCoarseSolution(EIFEM,PhiCoarse,discMesh);
             %obj.printFineSolution(eigenvectors,mD);
             
-%            errPct = abs(eigenvalues - lambdaCoarse) ./ abs(eigenvalues) * 100;
-%             
-%             figure;
-%             
-%             yyaxis left
-%             plot(lambdaCoarse, 'LineWidth', 2, 'Marker', 'x'); hold on
-%             plot(eigenvalues, 'LineWidth', 2, 'Marker', 'x');
-%             ylabel('Eigenvalues')
-%             xlabel('Mode Index')
-%             legend('Coarse','Fine','Error','Location','best')
-%             
-%             yyaxis right
-%             plot(errPct, 'LineWidth', 1, 'Marker', 'x');
-%             ylabel('Error (%)')
-%             title('Fine vs Coarse Eigenvalues and Percentage Error')
-%             grid on
+           errPct = abs(eigenvalues - lambdaCoarse) ./ abs(eigenvalues) * 100;
+
+            figure;
+
+            yyaxis left
+            plot(lambdaCoarse, 'LineWidth', 2, 'Marker', 'x'); hold on
+            plot(eigenvalues, 'LineWidth', 2, 'Marker', 'x');
+            ylabel('Eigenvalues')
+            xlabel('Mode Index')
+            legend('Coarse','Fine','Error','Location','best')
+
+            yyaxis right
+            plot(errPct, 'LineWidth', 1, 'Marker', 'x');
+            ylabel('Error (%)')
+            title('Fine vs Coarse Eigenvalues and Percentage Error')
+            grid on
             
             Milu         = obj.createILUpreconditioner(LHSr);
             Mmult        = @(r) Preconditioner.multiplePrec(r,LHSfun,Milu,Meifem,Milu);

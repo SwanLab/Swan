@@ -94,13 +94,6 @@ classdef LOBPCG
             active = true(1, b);   % all eigenvectors active initially for refinement
             lambda_ritz = zeros(1, b);  % initialize ritz values
             
-            % eifem preconditioner initialization
-            %LHSfun = @(x) K*x;
-            %Milu         = obj.createILUpreconditioner(K);
-            %load('eifemPreconditioner.mat')
-            %Meifem = @(r) eP.apply(r);
-            %Mmult        = @(r) Preconditioner.multiplePrec(r,LHSfun,Milu,Meifem,Milu);
-            
             tic
             for it = 1:obj.maxit
                 % 2) Ritz in span(X): best mode approximation in current

@@ -127,7 +127,7 @@ classdef EIFEMtesting_3D < handle
 
         function init(obj)
             obj.nSubdomains  = [3 3 1]; %nx ny
-            obj.fileNameEIFEM = 'DEF_por3D.mat';
+            obj.fileNameEIFEM = 'DEF_Q8_wing_1.mat';
             %             obj.fileNameEIFEM = 'DEF_auxNew_2.mat';
             %obj.fileNameEIFEM = 'DEF_Q4porL_1_raul.mat';
             obj.tolSameNode = 1e-6;
@@ -238,6 +238,7 @@ classdef EIFEMtesting_3D < handle
             load(filename);
             s.coord    = EIFEoper.MESH.COOR;
             s.connec   = EIFEoper.MESH.CN;
+            s.interType = 'QUADRATIC';
 
             maxC= max(s.coord);
             minC = min(s.coord);
@@ -267,9 +268,7 @@ classdef EIFEMtesting_3D < handle
 
             mS = Mesh.create(s);
 
-            %             s.connec   = EIFEoper.MESH.CN;
-            %             s.interType = 'QUADRATIC';
-            %             mS         = Mesh.create(s);
+
         end
 
         function mCoarse = createCoarseMesh(obj,mR)
