@@ -58,22 +58,26 @@ class TO_problem(EuclideanOptimizable):
     def accept(self, params, results):
         # Plot the design at every iteration
         x = results["x"][-1]
-        if not hasattr(self, "im"):
-            u = P1Function(Th,x<=0)
-            plt.ion()
-            u.plot(title="u")
-        else:
-            self.im.set_array(-x.reshape((nelx, nely)).T)
-            self.fig.canvas.draw()
+        u = P1Function(Th,x<=0)
+        fig = params['fig']
+        ax = params['ax']
+        ax.clear()
+        u.plot(
+          fig=fig,
+          ax=ax,
+          title="Design variable"
+        )
+        plt.pause(0.05)
 
 ## OPTIMIZATION PARAMETERS
 params = {"dt": 0.05,
           "itnormalisation": 50,
           "save_only_N_iterations": 1,
           "save_only_Q_constraints": 5,
-          "alphaJ": 1.25,
-          "alphaC": 1,
-          "maxit": 10}
+          "alphaJ": 1,
+          "alphaC": 2,
+          "maxit": 20,
+          "CFL": 0.9}
 problem:Optimizable = TO_problem()
 
 
@@ -161,6 +165,11 @@ if params['provide_gradients']:
         dCT = np.hstack((dGT,dHT))
         return dJT, dCT
     utils.get_gradient_transpose = get_gradient_transpose 
+
+plt.ion()
+fig, ax = plt.subplots()
+params['fig'] = fig
+params['ax'] = ax
 
 # Load previous results
 group1 = ['x','J', 'G', 'H', 's', 'it','normxiJ_save','muls']
@@ -256,7 +265,11 @@ while normdx > params['tol'] and it <= params['maxit']:
     AC = min(params['CFL'], params['alphaC']*params['dt'] / max(compute_norm(xiC, params['normalisation_norm']), 1e-9))
 
     # Update step
-    dx = -AJ*xiJ-AC*xiC
+    g = AJ*xiJ+AC*xiC
+    runner = FreeFemRunner(path+"01_HJ.edp")
+    runner.import_variables(Th=Th,phiVal=x,gVal=g)
+    x1 = runner.execute()['phi[]']
+    dx = (x1-x)
     #if p>0:
     #    assert np.isclose(dC[:p,:] @ xiJ,0,atol=1e-15) 
     #if dC[tildeEps,:][p:,:].size > 0:

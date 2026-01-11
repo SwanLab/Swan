@@ -1,0 +1,35 @@
+IMPORT "io.edp"
+load "distance"
+
+mesh Th=importMesh("Th");
+real [int] phiVal = importArray("phiVal");
+real [int] gVal = importArray("gVal");
+
+fespace Vh(Th,P1);
+Vh phio, phi, g, nx, ny, vx, vy;
+phio[] = phiVal;
+g[] = gVal;
+
+real eps = 1.e-6;
+real alphanor = 0.0001;
+macro normalvec(phi) {
+  solve reconsNor([nx,ny],[vx,vy]) = int2d(Th)(alphanor*(dx(nx)*dx(vx)+dy(nx)*dy(vx)+dx(ny)*dx(vy)+dy(ny)*dy(vy))
+                                            + nx*vx+ny*vy)
+                                  - int2d(Th)((dx(phi)*vx+dy(phi)*vy)/sqrt(dx(phi)*dx(phi)+dy(phi)*dy(phi) + eps^2));
+} // EOM
+
+normalvec(phio);
+nx = g*nx;
+ny = g*ny;
+
+func real[int] advectRedist(real[int] phiot, real[int] vxt, real[int] vyt, real step) {
+   Vh phi,phitmp,phio=phiot,velx=vxt,vely=vyt;
+   phitmp = convect([velx,vely],-step,phio);
+   distance(Th,phitmp,phi[]);
+  
+   return phi[];
+} // EOM
+
+phi[] = advectRedist(phio[],nx[],ny[],1);
+
+exportArray(phi[]);
