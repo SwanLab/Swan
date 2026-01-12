@@ -53,12 +53,12 @@ classdef OfflineDataProcessor < handle
 
             Adr = obj.computeBoundaryModalMassMatrix(uDefFunBd,RBFunBd);
             Arr = obj.computeBoundaryModalMassMatrix(RBFunBd,RBFunBd);
-            %             Add = obj.computeBoundaryModalMassMatrix(uDefFunBd,LMDefFunBd);
-            Add = obj.computeBoundaryModalMassMatrixDirac(uDefFunBd,LMDefFunBd);
+            Add = obj.computeBoundaryModalMassMatrix(uDefFunBd,LMDefFunBd);
+            %Add = obj.computeBoundaryModalMassMatrixDirac(uDefFunBd,LMDefFunBd);
             %             Add = PhiD'*PsiD;
             % Add with dirac integrator and PhiD'*PsiD are the same!
-%             Ldv = obj.computeBoundaryModalMassMatrix(LMDefFunBd,Vfun);
-            Ldv = obj.computeBoundaryModalMassMatrixDirac(LMDefFunBd,Vfun);
+            Ldv = obj.computeBoundaryModalMassMatrix(LMDefFunBd,Vfun);
+            %Ldv = obj.computeBoundaryModalMassMatrixDirac(LMDefFunBd,Vfun);
             Lrv = obj.computeBoundaryModalMassMatrix(RBFunBd,Vfun);
 
             Ud = PhiD*(Add'\Ldv);
@@ -66,20 +66,36 @@ classdef OfflineDataProcessor < handle
             U  = Ur+Ud;
 
 
-            %ndof = 8;
-            %Kdd = PhiD'*obj.LHS*phiD;
+            nB = 8;
+            Kdd = PhiD'*obj.LHS*PhiD;
             %
-            %Keif = [Kdd Zdr;Zrd Zrr];
-            %C    = [Adr Add;...
-            %        Arr S];
+            nld = LMDefFun.nbasis;
+            nlr = uRBfun(1).nbasis;            
+            Zrd = zeros(nlr,nld);
+            Zd = zeros(nld,nB);
+            Zr = zeros(nlr,nB);
+            Zrr = zeros(nlr,nlr);
+
+            Keif = [Kdd Zrd';Zrd Zrr];
+            C    = [Adr Add;...
+                    Arr Zrd];
+ 
+            
+
+            Z  = zeros(nld+nlr,nld+nlr);
 %
-            %LHS = [K C; C.' Z];
-            %Lug = [Lrv;Ldv]*eye(8);
-            %RHS = -[Zd;Zr;Lug];
+            LHS = [Keif C; C.' Z];
+            Lug = [Lrv;Ldv]*eye(8);
+            RHS = [Zd;Zr;Lug];
 %
-            %x = LHS\RHS;
+            x = LHS\RHS;
             %
-            %U2 = x(1:ndof*2,1);
+            
+            uEifD = x(1:nld,:);
+            uEifR = x(nld+1:nld+nlr,:);
+            
+            U2 = PhiD*uEifD + PhiR*uEifR;
+
 
 
             Kcoarse = Ud'*obj.LHS*Ud;

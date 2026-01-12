@@ -12,7 +12,7 @@ clc; clear; close all;
 %r=0:0.05:0.999;
 r=0.35;
 
-p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale'
+p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
 p.Sampling   = 'Oversampling';        %'Isolated'/'Oversampling'
 p.Inclusion  = 'HoleRaul';        %'Material'/'Hole'/'HoleRaul'
 p.nelem      = 20;
