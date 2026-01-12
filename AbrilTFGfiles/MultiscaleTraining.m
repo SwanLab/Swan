@@ -5,18 +5,22 @@ classdef MultiscaleTraining < handle
         material
     end
 
-    properties  (Access = private)
-        boundaryMeshJoined
-        localGlobalConnecBd
-    end
-
-
     methods (Access = public)
 
-        function [obj, u, L, Kc] = MultiscaleTraining(cParams)
-            obj.init(cParams)
-            [obj.boundaryMeshJoined, obj.localGlobalConnecBd] = obj.mesh.createSingleBoundaryMesh();           
-            [u,L,Kc] = obj.solveElasticHarmonicExtenstion();
+        function obj = MultiscaleTraining(cParams)
+            obj.init(cParams);
+        end
+
+        function [u,L,Kc] = train(obj)
+            [bMesh,lGCBd]   = obj.mesh.createSingleBoundaryMesh();
+            s.mesh          = obj.mesh;
+            s.uFun          = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
+            s.lambdaFun     = LagrangianFunction.create(bMesh,obj.mesh.ndim, 'P1');
+            s.material      = obj.material;
+            s.dirichletFun  = obj.createDirichletFunctions(bMesh);
+            s.localGlobalConnecBd = lGCBd;
+            e  = ElasticHarmonicExtension(s);
+            [u,L,Kc] = e.solve();
         end
     end
 
@@ -27,25 +31,7 @@ classdef MultiscaleTraining < handle
             obj.material = cParams.material;
         end
 
-        function uMesh = computeUnfittedMesh(~,bgMesh,levelSet)
-            sUm.backgroundMesh = bgMesh;
-            sUm.boundaryMesh   = bgMesh.createBoundaryMesh();
-            uMesh              = UnfittedMesh(sUm);
-            uMesh.compute(levelSet);
-        end
-
-        function [u,L,K] = solveElasticHarmonicExtenstion(obj)
-            s.mesh         = obj.mesh;
-            s.uFun         = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
-            s.lambdaFun    = LagrangianFunction.create(obj.boundaryMeshJoined, obj.mesh.ndim, 'P1'); 
-            s.material      = obj.material;   
-            s.dirichletFun = obj.createDirichletFunctions();
-            s.localGlobalConnecBd = obj.localGlobalConnecBd;
-            e  = ElasticHarmonicExtension(s);
-            [u,L,K] = e.solve();
-        end
-
-        function uD = createDirichletFunctions(obj)
+        function uD = createDirichletFunctions(obj,bMesh)
             f1x = @(x) [1/(4)*(1-x(1,:,:)).*(1-x(2,:,:));...
                     0*x(2,:,:)  ];
             f2x = @(x) [1/(4)*(1+x(1,:,:)).*(1-x(2,:,:));...
@@ -66,7 +52,7 @@ classdef MultiscaleTraining < handle
             nfun = size(fB,2);
             uD=cell(1,8);
             for i=1:nfun
-                uD{i}  = AnalyticalFunction.create(fB{i},obj.boundaryMeshJoined);
+                uD{i}  = AnalyticalFunction.create(fB{i},bMesh);
             end
         end
 

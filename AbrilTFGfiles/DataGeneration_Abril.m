@@ -29,11 +29,12 @@ for j = 1:size(r,2)
         case 'Multiscale'
             s.mesh     = mR;
             s.material = material;
-            [~, T, lambda, Kcoarse] = MultiscaleTraining(s);
+            m = MultiscaleTraining(s);
+            [T,lambda,Kcoarse] = m.train();
             mesh = mR;
         case 'EIFEM'
             data = EIFEMTraining(mR,r(j),p);
-            z=OfflineDataProcessor(data);
+            z = OfflineDataProcessor(data);
             EIFEoper = z.computeROMbasis();
             T        = EIFEoper.U;
             mesh     = data.mesh;
