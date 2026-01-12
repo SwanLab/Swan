@@ -16,6 +16,7 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
         chiB    %Battery
         chiAl  %Corona
         chiB0
+        dualVariable
     end
 
     methods (Access = public)
@@ -24,6 +25,7 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
             obj.init()
             obj.createMesh();
             obj.createBatteryDomain();
+            obj.createNonDesignableDomain();
             obj.createDesignVariable();
             obj.createFilter();
             obj.createMaterialInterpolator();
@@ -34,7 +36,8 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
             obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
-            obj.createPrimalUpdater();
+%             obj.createPrimalUpdater();
+            obj.createDualVariable();
             obj.createOptimizer();
         end
 
@@ -47,8 +50,10 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
         end
 
         function createMesh(obj)
-            x1      = linspace(0,0.1,100);
-            x2      = linspace(0,0.1,100);
+%             x1      = linspace(0,0.1,100);
+%             x2      = linspace(0,0.1,100);
+            x1      = linspace(0,1,100);
+            x2      = linspace(0,1,100);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -58,9 +63,9 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
 
          function createBatteryDomain(obj)
              s.type        = 'Circles';
-             s.r           = [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01];
-             s.x0 = [0, 0, 0, 0.04, 0.08, 0.04, 0.08, 0.04, 0.08];
-             s.y0 = [0, 0.04, 0.08, 0, 0, 0.04, 0.08, 0.08, 0.04];
+             s.r           = [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01].*10;
+             s.x0 = [0, 0, 0, 0.04, 0.08, 0.04, 0.08, 0.04, 0.08].*10;
+             s.y0 = [0, 0.04, 0.08, 0, 0, 0.04, 0.08, 0.08, 0.04].*10;
              g                = GeometricalFunction(s);
              phiFun           = g.computeLevelSetFunction(obj.mesh);
              phi              = phiFun.fValues;
@@ -71,12 +76,14 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
              uMesh.compute(phi);
 
              obj.chiB     = CharacteristicFunction.create(uMesh).project('P1');
-             
+         end        
+
+        function createNonDesignableDomain(obj)
              %corona di alluminio
              sR.type        = 'Circles';
-             sR.r           = [0.013, 0.013, 0.013, 0.013, 0.013, 0.013, 0.013, 0.013, 0.013];
-             sR.x0 = [0, 0, 0, 0.04, 0.08, 0.04, 0.08, 0.04, 0.08];
-             sR.y0 = [0, 0.04, 0.08, 0, 0, 0.04, 0.08, 0.08, 0.04];
+             sR.r           = [0.013, 0.013, 0.013, 0.013, 0.013, 0.013, 0.013, 0.013, 0.013].*10;
+             sR.x0 = [0, 0, 0, 0.04, 0.08, 0.04, 0.08, 0.04, 0.08].*10;
+             sR.y0 = [0, 0.04, 0.08, 0, 0, 0.04, 0.08, 0.08, 0.04].*10;
              gR                = GeometricalFunction(sR);
              phiFunR           = gR.computeLevelSetFunction(obj.mesh);
              phiR              = phiFunR.fValues;
@@ -86,9 +93,10 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
              uMeshR              = UnfittedMesh(smR);
              uMeshR.compute(phiR);
 
-             obj.chiAl     = CharacteristicFunction.create(uMeshR).project('P1')- obj.chiB;
+             obj.chiAl     = CharacteristicFunction.create(uMeshR).project('P1'); %- obj.chiB;
 
-         end        
+
+        end
 
         function createDesignVariable(obj)
             s.fHandle = @(x) ones(size(x(1,:,:)));
@@ -99,11 +107,29 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
             sD.mesh     = obj.mesh;
             sD.type     = 'Density';
             sD.plotting = true;
-            %obj.chiB0 = project(obj.chiB,'P1');
+%             obj.chiB0 = project(obj.chiB,'P1');
             plot(obj.chiB);
-            sD.isFixed.nodes  = (obj.chiB.fValues > 0)| (obj.chiAl.fValues > 0) ;
-            sD.isFixed.values = 1; %(obj.chiB0.fValues > 0); %Density
+            
+            x0 = [0, 0, 0, 0.04, 0.08, 0.04, 0.08, 0.04, 0.08].*10;
+            y0 = [0, 0.04, 0.08, 0, 0, 0.04, 0.08, 0.08, 0.04].*10;
+            centers = [x0;y0]'; r = 0.13;
+            isNonDesign =  @(coor) any( (coor(:,1) - centers(:,1)').^2 + ...
+                                       (coor(:,2) - centers(:,2)').^2 <= r^2, 2)| coor(:,1) > 0.97 | coor(:,2) > 0.97;
+            isNonDesign = @(coor) obj.chiAl.fValues > 0 | coor(:,1) > 0.97 | coor(:,2) > 0.97;
+
+%             isNonDesign =  @(coor)  coor(:,1) > 0.97 | coor(:,2) > 0.97;
+
+            sD.isFixed.nodes  =  isNonDesign(obj.mesh.coord);
+            sD.isFixed.values = 1; 
+%             sD.isFixed.values = 1*(obj.chiB0.fValues > 0); %Density
             %sD.isFixed.values = -1*(obj.chiB0.fValues > 0); %LevelSet
+
+            a =LagrangianFunction.create(obj.mesh,1,'P1');
+            values = zeros*obj.mesh.coord(:,1);
+            values(isNonDesign(obj.mesh.coord)) = 1;
+            a.setFValues(values);
+            a.plot();
+
             dens        = DesignVariable.create(sD);
             obj.designVariable = dens;
         end
@@ -113,6 +139,7 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
             s.mesh  = obj.mesh;
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
+            f.updateEpsilon(3*obj.mesh.computeMinCellSize)
             obj.filter = f;
         end
 
@@ -127,7 +154,7 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
 
         function createMaterialInterpolator(obj)
             
-            E0 = 68e3;
+            E0 =  ConstantFunction.create(68e6,obj.mesh);
             nu0 = 1/3;
             ndim = obj.mesh.ndim;
 
@@ -137,10 +164,10 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
             Ea = ConstantFunction.create(68e9,obj.mesh); % Aluminium
             Eb = ConstantFunction.create(1.5e9,obj.mesh); % Battery
             obj.createBatteryDomain();
-            E1=Ea.*(1 - obj.chiB - obj.chiAl) + Eb.*obj.chiB + Ea.*obj.chiAl;
-            %E1 = Ea.*(1 - obj.chiB) + Eb.*obj.chiB;
+            E1 = Ea.*(1 - obj.chiB) + Eb.*obj.chiB;
+            E1 = Ea;
+%             E1=Ea.*(1 - obj.chiB - obj.chiAl) + Eb.*obj.chiB + Ea.*obj.chiAl;
             %E1 = (1-Ea).*obj.chiB + Eb.*obj.chiB; written by Alex
-
 
             nu1 = 1/3;
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
@@ -244,12 +271,39 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
             obj.constraint      = Constraint(s);
         end
 
-        function createPrimalUpdater(obj)
-            s.ub     = 1;
-            s.lb     = 0;
-            s.tauMax = 1000;
-            s.tau    = [];
-            obj.primalUpdater = ProjectedGradient(s);
+%         function createPrimalUpdater(obj)
+%             s.ub     = 1;
+%             s.lb     = 0;
+%             s.tauMax = 1000;
+%             s.tau    = [];
+%             obj.primalUpdater = ProjectedGradient(s);
+%         end
+% 
+%         function createOptimizer(obj)
+%             s.monitoring     = true;
+%             s.cost           = obj.cost;
+%             s.constraint     = obj.constraint;
+%             s.designVariable = obj.designVariable;
+%             s.maxIter        = 1000;
+%             s.tolerance      = 1e-8;
+%             s.constraintCase = {'EQUALITY'};
+%             s.primal         = 'PROJECTED GRADIENT';
+%             s.etaNorm        = 0.01;
+%             s.gJFlowRatio    = 1;
+%             s.gif=false;
+%             s.gifName='ThermoElastic';
+%             s.printing=true;
+%             s.printName='ThermoElastic';
+%             s.primalUpdater  = obj.primalUpdater;
+%             opt = OptimizerNullSpace(s);
+%             opt.solveProblem();
+%             obj.optimizer = opt;
+%         end
+
+        function createDualVariable(obj)
+            s.nConstraints   = 1;
+            l                = DualVariable(s);
+            obj.dualVariable = l;
         end
 
         function createOptimizer(obj)
@@ -257,18 +311,19 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 1000;
+            s.dualVariable   = obj.dualVariable;
+            s.maxIter        = 2000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
-            s.primal         = 'PROJECTED GRADIENT';
-            s.etaNorm        = 0.01;
-            s.gJFlowRatio    = 1;
+            s.ub             = 1;
+            s.lb             = 0;
+            s.volumeTarget   = 0.4;
             s.gif=false;
-            s.gifName='ThermoElastic';
+            s.gifName='ThermalDensity';
             s.printing=true;
-            s.printName='ThermoElastic';
-            s.primalUpdater  = obj.primalUpdater;
-            opt = OptimizerNullSpace(s);
+            s.printName='Thermal Density';
+            s.primal         = 'PROJECTED GRADIENT';
+            opt              = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
         end
@@ -335,7 +390,7 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = 1;
-            sDir{1}.value     = 20;
+            sDir{1}.value     = 0; %20;
             sDir{1}.ndim = 1;
             
             dirichletFun = [];
