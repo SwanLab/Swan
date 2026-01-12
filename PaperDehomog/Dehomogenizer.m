@@ -78,7 +78,7 @@ classdef Dehomogenizer < handle
             s.m1                 = obj.cellLevelSetParams.xSide;
             s.m2                 = obj.cellLevelSetParams.ySide;
             s.density            = obj.density;
-            s.nRemeshLevels      = 3;
+            s.nRemeshLevels      = 4;
             ls                   = LevelSetPeriodicAndOriented(s);
             obj.levelSet = ls.computeLS(obj.epsilons);  
             obj.fineMesh = ls.getFineMesh();
