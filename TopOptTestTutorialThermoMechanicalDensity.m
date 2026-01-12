@@ -43,8 +43,8 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
         end
 
         function createMesh(obj)
-            x1      = linspace(0,2,60);
-            x2      = linspace(0,1,30);
+            x1      = linspace(0,1,60);
+            x2      = linspace(0,1,60);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -134,7 +134,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             s.alpha = 15.4e-6; 
 %             s.source  =  ConstantFunction.create(1,obj.mesh);
 %             s.T0 = ConstantFunction.create(25,obj.mesh);   
-            s.source  =  ConstantFunction.create(0,obj.mesh);
+            s.source  =  ConstantFunction.create(1000,obj.mesh);
             s.T0 = ConstantFunction.create(0,obj.mesh);   
             s.boundaryConditionsThermal = obj.createBoundaryConditionsThermal();
             
@@ -230,14 +230,15 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             xMax    = max(obj.mesh.coord(:,1));
             xMin    = min(obj.mesh.coord(:,1));
             yMin    = min(obj.mesh.coord(:,2));
+            yMax    = max(obj.mesh.coord(:,2));
 
 %             Cantilever beam
-%             isDir   = @(coor)  abs(coor(:,1))==0;
-%             isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
+            isDir   = @(coor)  abs(coor(:,1))==0;
+            isForce = @(x)  (abs(x(1,:,:))==xMax & abs(x(2,:,:))>=0.4*yMax & abs(x(2,:,:))<=0.6*yMax);
 
 %             Clampled beam
-            isDir   = @(coor)  abs(coor(:,1))== xMin | abs(coor(:,1))==xMax;
-            isForce = @(x)  (abs(x(2,:,:))== yMin & abs(x(1,:,:))>=0.4*xMax & abs(x(1,:,:))<=0.6*xMax);
+%             isDir   = @(coor)  abs(coor(:,1))== xMin | abs(coor(:,1))==xMax;
+%             isForce = @(x)  (abs(x(2,:,:))== yMin & abs(x(1,:,:))>=0.4*xMax & abs(x(1,:,:))<=0.6*xMax);
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2];
@@ -279,7 +280,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = 1;
-            sDir{1}.value     = 30;
+            sDir{1}.value     = 0;
             sDir{1}.ndim = 1;
             
             dirichletFun = [];

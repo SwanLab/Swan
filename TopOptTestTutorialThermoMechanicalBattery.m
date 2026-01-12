@@ -115,7 +115,7 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
             centers = [x0;y0]'; r = 0.13;
             isNonDesign =  @(coor) any( (coor(:,1) - centers(:,1)').^2 + ...
                                        (coor(:,2) - centers(:,2)').^2 <= r^2, 2)| coor(:,1) > 0.97 | coor(:,2) > 0.97;
-            isNonDesign = @(coor) obj.chiAl.fValues > 0 | coor(:,1) > 0.97 | coor(:,2) > 0.97;
+%             isNonDesign = @(coor) obj.chiAl.fValues > 0 | coor(:,1) > 0.97 | coor(:,2) > 0.97;
 
 %             isNonDesign =  @(coor)  coor(:,1) > 0.97 | coor(:,2) > 0.97;
 
@@ -139,7 +139,7 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
             s.mesh  = obj.mesh;
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
-            f.updateEpsilon(3*obj.mesh.computeMinCellSize)
+            f.updateEpsilon(1*obj.mesh.computeMinCellSize); % filter radius
             obj.filter = f;
         end
 
@@ -154,7 +154,7 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
 
         function createMaterialInterpolator(obj)
             
-            E0 =  ConstantFunction.create(68e6,obj.mesh);
+            E0 =  ConstantFunction.create(68e3,obj.mesh);
             nu0 = 1/3;
             ndim = obj.mesh.ndim;
 
@@ -164,9 +164,8 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
             Ea = ConstantFunction.create(68e9,obj.mesh); % Aluminium
             Eb = ConstantFunction.create(1.5e9,obj.mesh); % Battery
             obj.createBatteryDomain();
-            E1 = Ea.*(1 - obj.chiB) + Eb.*obj.chiB;
-            E1 = Ea;
-%             E1=Ea.*(1 - obj.chiB - obj.chiAl) + Eb.*obj.chiB + Ea.*obj.chiAl;
+            E1 = Ea.*(1 - obj.chiB) + Eb.*obj.chiB; 
+
             %E1 = (1-Ea).*obj.chiB + Eb.*obj.chiB; written by Alex
 
             nu1 = 1/3;
@@ -246,7 +245,7 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;
+            s.volumeTarget = 0.5;
             s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
