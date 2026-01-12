@@ -58,7 +58,7 @@ classdef LinearizedHarmonicProjector4 < handle
 
             nSing = 100;
 
-            while res(i) > 1e-12 && i<=14
+            while res(i) > 1e-12 && i<=2
                 
                 %iter Harmonic 
                 x   = LHS\RHS;

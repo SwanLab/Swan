@@ -10,6 +10,7 @@ classdef LevelSetPeriodicAndOriented < handle
         deformedCoord
         m1
         m2
+        density
         r
         fineMesh
     end
@@ -45,6 +46,10 @@ classdef LevelSetPeriodicAndOriented < handle
            fM = obj.fineMesh;
         end
 
+        function rho = getFineDensity(obj)
+           rho = obj.density;
+        end
+
     end
 
     methods (Access = protected)
@@ -65,6 +70,7 @@ classdef LevelSetPeriodicAndOriented < handle
             obj.nRemeshLevels      = cParams.nRemeshLevels;
             obj.m1                 = cParams.m1;
             obj.m2                 = cParams.m2;
+            obj.density            = cParams.density;
         end
 
         function createDeformedCoord(obj)
@@ -81,6 +87,7 @@ classdef LevelSetPeriodicAndOriented < handle
                 obj.m1            = obj.m1.refine(m);
                 obj.m2            = obj.m2.refine(m);  
                 obj.r             = obj.r.refine(m);  
+                obj.density       = obj.density.refine(m);  
             end
             obj.fineMesh = m;
         end

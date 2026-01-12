@@ -12,6 +12,7 @@ classdef Dehomogenizer < handle
         orientationA
         mesh
         remesher
+        density
     end
 
     methods (Access = public)
@@ -20,10 +21,12 @@ classdef Dehomogenizer < handle
             obj.init(cParams);
         end
 
-        function ls = compute(obj)
+        function [ls,dens] = compute(obj)
             obj.createEpsilons();
             obj.computeLevelSet();
-            ls = obj.levelSet;            
+            ls = obj.levelSet;
+            dens = obj.density;
+
         end
 
         function plot(obj)
@@ -52,6 +55,7 @@ classdef Dehomogenizer < handle
             obj.orientationA       = cParams.orientationA;
             obj.cellLevelSetParams = cParams.cellLevelSetParams;
             obj.mesh               = cParams.mesh;
+            obj.density            = cParams.density;
         end
 
         function createEpsilons(obj)
@@ -73,10 +77,12 @@ classdef Dehomogenizer < handle
             s.orientationVectors = obj.computeOrientedMappingComputer();
             s.m1                 = obj.cellLevelSetParams.xSide;
             s.m2                 = obj.cellLevelSetParams.ySide;
+            s.density            = obj.density;
             s.nRemeshLevels      = 3;
             ls                   = LevelSetPeriodicAndOriented(s);
             obj.levelSet = ls.computeLS(obj.epsilons);  
             obj.fineMesh = ls.getFineMesh();
+            obj.density  = ls.getFineDensity();
         end
 
         function uM = createUnfittedMesh(obj,ls)

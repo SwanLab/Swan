@@ -301,11 +301,13 @@ classdef NewHarmonicVectorProjectionExample < handle
             s.cellLevelSetParams = obj.createLevelSetCellParams();
             s.mesh               = obj.mesh;
             s.orientationA       = obj.harmonicVector;
+            s.density            = project(obj.density,'P1D');
             d = Dehomogenizer(s);
             %d.plot();
-            ls1 = d.compute();
+            [ls1,dens] = d.compute();
 
-            ls2 = 1-2*Heaviside(obj.density - 0.05);
+  
+            ls2 = 1-2*Heaviside(dens - 0.05);
             ls2 = project(ls2,'P1');
 
             levelSet = project(max(ls1{1},ls2),'P1');
@@ -315,7 +317,7 @@ classdef NewHarmonicVectorProjectionExample < handle
             s.boundaryMesh   = obj.mesh.createBoundaryMesh();
             uMesh = UnfittedMesh(s);
             uMesh.compute(levelSet.fValues);            
-            uMesh.plot            
+            uMesh.plotStructureInColor('black');
  
             
         end 
