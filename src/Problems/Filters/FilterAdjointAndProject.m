@@ -4,6 +4,7 @@ classdef FilterAdjointAndProject < handle
         filter
         projector
         filteredField
+        projSensit
     end
 
     properties (Access = private)
@@ -17,16 +18,39 @@ classdef FilterAdjointAndProject < handle
             obj.createProjector(cParams);
         end
 
-        function updateFilteredField(obj,xF)
+        function xF = compute(obj,fun,quadOrder)
+            if isempty(obj.projSensit)
+                obj.projSensit = LagrangianFunction.create(obj.mesh,fun.ndimf,'P1');
+            end
+            sensitVals = obj.projector.derive(obj.filteredField);
+            obj.projSensit.setFValues(sensitVals);
+            regFun = fun.*obj.projSensit;
+            xF     = obj.filter.compute(regFun,quadOrder);
+        end
+
+%         function updateFilteredField(obj,xF)
+%             obj.filteredField = xF;
+%         end
+
+        function updateFilteredField(obj,filter)
+           xF = filter.getFilteredField();
+           obj.setFilteredField(xF);
+        end
+
+        function setFilteredField(obj,xF)
             obj.filteredField = xF;
         end
 
-        function xF = compute(obj,fun,quadOrder)
-            sensitVals = obj.projector.derive(obj.filteredField);
-            projSensit = LagrangianFunction.create(obj.mesh,fun.ndimf,obj.filteredField.order);
-            projSensit.setFValues(sensitVals);
-            regFun = fun.*projSensit;
-            xF     = obj.filter.compute(regFun,quadOrder);
+        function updateBeta(obj, beta)
+            obj.projector.updateBeta(beta);
+        end
+
+        function updateEpsilon(obj,epsilon)
+            obj.filter.updateEpsilon(epsilon);
+        end
+
+        function beta = getBeta(obj)
+            beta = obj.projector.getBeta();
         end
     end
 
@@ -42,9 +66,12 @@ classdef FilterAdjointAndProject < handle
         end
 
         function createProjector(obj,cParams)
-            s.eta  = cParams.eta;
             s.beta = cParams.beta;
+            if isfield(cParams, 'eta')
+                s.eta  = cParams.eta;
+            end
             obj.projector = HeavisideProjector(s);
         end
+
     end
 end

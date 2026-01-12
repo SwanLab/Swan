@@ -26,7 +26,11 @@ classdef ProblemSolver < handle
             sol        = obj.solver.solve(LHS, RHS);
             [u, L]     = obj.cleanupSolution(sol,cParams.stiffness);
         end
-        
+
+        function LHS = full2Reduced(obj,K)
+            cParams.stiffness = K;
+            LHS = obj.assembleLHS(cParams);
+        end
     end
     
     methods (Access = private)

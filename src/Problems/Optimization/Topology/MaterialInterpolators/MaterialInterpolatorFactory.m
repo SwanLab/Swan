@@ -31,6 +31,8 @@ classdef MaterialInterpolatorFactory < handle
                     obj = SimpInterpolationP3Anisotropic(cParams);
                 case 'SIMPThermal'
                     obj = SIMPThermalInterpolation(cParams);
+                case 'SimpAllThermal'
+                    obj = SimpAllThermalInterpolation(cParams);
                 case 'HomogenizedMicrostructure'
                     obj = HomogenizedMicrostructureInterpolator(cParams);
                 case 'PhaseFieldDegradation'

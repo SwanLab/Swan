@@ -146,6 +146,7 @@ classdef Tutorial05_8_TopOpt3DDensityMacroMMA < handle
             obj.volume = v;
         end
 
+        
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
             s.weights           = 1;
