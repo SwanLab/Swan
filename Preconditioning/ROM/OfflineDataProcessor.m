@@ -97,6 +97,8 @@ classdef OfflineDataProcessor < handle
             U2 = PhiD*uEifD + PhiR*uEifR;
 
 
+          %x  ElasticHarmonicExtension
+
 
             Kcoarse = Ud'*obj.LHS*Ud;
 
