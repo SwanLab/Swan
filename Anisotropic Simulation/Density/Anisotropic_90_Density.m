@@ -36,8 +36,8 @@ classdef Anisotropic_90_Density < handle
             obj.createOptimizer();
 
             % Save monitoring and desginVariable fValues
-            % saveas(gcf,'Monitoring_90_Density.fig');
-            %obj.designVariable.fun.print('fValues_90_Density_MBB');
+            %saveas(gcf,'Monitoring_90_Density.fig');
+            obj.designVariable.fun.print('fValues_90_Density_MBB');
         end
 
     end
@@ -207,7 +207,7 @@ classdef Anisotropic_90_Density < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 300;
+            s.maxIter        = 500;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY','INEQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
@@ -217,8 +217,8 @@ classdef Anisotropic_90_Density < handle
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
             %s.type           = '90';
-            s.gif = false;
-            s.gifName = 'Gif_90_Density_MBB';
+            s.gif = true;
+            s.gifName = 'Gif_90_Density';
             s.printing = false;
             s.printName = 'Results_90_Density';
             opt = OptimizerNullSpace(s);
@@ -255,7 +255,7 @@ classdef Anisotropic_90_Density < handle
 
 
             sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [1,2];
+            sDir{1}.direction = [1,2]; % Cantilever--> [1,2]   MBB--> 2
             sDir{1}.value     = 0;
             
             % Comentar sDir 2 quan es faci cantilever beam

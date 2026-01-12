@@ -35,7 +35,7 @@ classdef Anisotropic_0_Density < handle
 
             % Save monitoring and desginVariable fValues
             %saveas(gcf,'Monitoring_0_Density.fig');
-            obj.designVariable.fun.print('fValues_0_Density_MBB');
+            obj.designVariable.fun.print('fValues_0_Density');
         end
 
     end
@@ -49,11 +49,11 @@ classdef Anisotropic_0_Density < handle
         function createMesh(obj)
             %UnitMesh better
             % Cantilever beam
-            % x1      = linspace(0,2,150);
-            % x2      = linspace(0,1,75);
-            % MBB Beam
-            x1      = linspace(0,6,500);
+            x1      = linspace(0,2,150);
             x2      = linspace(0,1,75);
+            % MBB Beam
+            %x1      = linspace(0,6,500);
+            %x2      = linspace(0,1,75);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -182,7 +182,7 @@ classdef Anisotropic_0_Density < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 300;
+            s.maxIter        = 500;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
@@ -193,7 +193,7 @@ classdef Anisotropic_0_Density < handle
             s.etaMaxMin      = 0.01;
             %s.type           = '0';
             s.gif = true;
-            s.gifName = 'Gif_0_Density_MBB';
+            s.gifName = 'Gif_0_Density';
             s.printing = false;
             s.printName = 'Results_0_Density';
             opt = OptimizerNullSpace(s);
@@ -216,27 +216,27 @@ classdef Anisotropic_0_Density < handle
 
         function bc = createBoundaryConditions(obj)
             % Cantilever beam
-            % xMax    = max(obj.mesh.coord(:,1));
-            % yMax    = max(obj.mesh.coord(:,2));
-            % isDir   = @(coor)  abs(coor(:,1))==0;
-            % isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
-            
-            % MBB beam
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
-            isDir   = @(coor)  (abs(coor(:,1))==0 & abs(coor(:,2)) == 0);
-            isDir2  = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2)) == 0);
-            isForce = @(coor)  (abs(coor(:,2))==yMax & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax);
+            isDir   = @(coor)  abs(coor(:,1))==0;
+            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
+            
+            % MBB beam
+            % xMax    = max(obj.mesh.coord(:,1));
+            % yMax    = max(obj.mesh.coord(:,2));
+            % isDir   = @(coor)  (abs(coor(:,1))==0 & abs(coor(:,2)) == 0);
+            % isDir2  = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2)) == 0);
+            % isForce = @(coor)  (abs(coor(:,2))==yMax & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax);
 
 
             sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = 2;
+            sDir{1}.direction = [1,2]; % Cantilever--> [1,2]   MBB--> 2
             sDir{1}.value     = 0;
             
             % Comentar sDir 2 quan es faci cantilever beam
-            sDir{2}.domain    = @(coor) isDir2(coor);
-            sDir{2}.direction = [1,2];
-            sDir{2}.value     = 0;
+            %sDir{2}.domain    = @(coor) isDir2(coor);
+            %sDir{2}.direction = [1,2];
+            %sDir{2}.value     = 0;
 
             sPL{1}.domain    = @(coor) isForce(coor);
             sPL{1}.direction = 2;
