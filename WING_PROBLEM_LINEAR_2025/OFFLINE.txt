@@ -1,183 +1,43 @@
-Assembly of Bst (stacked B-matrix)...
-Assembly of NstBw...
-istep=1
-open GID FILE:
-/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/MODES/wingQ8_param_DispIntfhexa.res
-Recovering stiffness matrix...
-Computing Choleski Decomposition ....
-Singular Values Deformational Modes (in the search for invariant modes)
-
-ans =
-
-                         1
-         0.398705001396433
-         0.300272299901592
-         0.130105032825604
-        0.0655806246865245
-        0.0187644788908276
-
-***********************************************************************************************************
-Searching for invariant modes
-Total number of  deformational modes (for the first set of training tests) = 6
-Number of  deformational modes that may be deemed INVARIANT = 6
-tolerance SVD = 1e-05
-istep=1
-open GID FILE:
-/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/MODES/Deformational_ALLDEFmodes.res
-*****************************************************************************************
-Singular values   PhiDEFbs_INV(b,:)
-
-ans =
-
-                         1
-         0.984432151964143
-         0.807555472767803
-         0.746959014129823
-         0.700971411428433
-          0.62720852322814
-
-Cosine angles formed by invariant deformational modes and their conjugate interface forces
-
-Sconj =
-
-         0.487558839536061
-         0.484077111143102
-         0.339090639529557
-         0.240661860478621
-         0.140116115816831
-        0.0972406040028675
-
-Deformational component of the interface modes
-Computing Choleski Decomposition ....
-Number of deformational interface modes = 18  (see GID plot below)
-Deformed shapes of deformational interface modes (GID) --> 
-istep=1
-open GID FILE:
-/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/MODES/wingQ8_param_DispIntf_DEF.res
--------------------------------------
-Computing Choleski Decomposition ....
-Cosine angles  formed by INVARIANT fict. def. interface modes and  invariant reactive forces
-
-S_v =
-
-         0.999999442330145
-         0.999780723155799
-         0.998495200801148
-         0.848694783271458
-         0.636089738246022
-         0.297137213328939
-
-Number of invariant modes = 6
-istep=1
-open GID FILE:
-/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/MODES/AlignedDEFmodesDEFmodes.res
-istep=1
-open GID FILE:
-/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/MODES/AlignedDEFmodesAlignedDEFmodes_interf.res
-----------------------------------------------------------------------------------------------
-Computing complementary basic modes (aside from those regarded as "invariant")    
-Number of such complementary deformational modes =12
-Angles (in degrees) formed by COMPLEMENTARY fict. def. interface modes and  invariant reactive forces
-
-ans =
-
-          89.9999999999998
-                        90
-                        90
-                        90
-                        90
-                        90
-
-Deformed shapes of the  deformational fict. interface modes: first 6 most aligned with invariant modes 
-Remaining  12 most orthogonal to invariants 
-istep=1
-open GID FILE:
-/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/MODES/AlignedDEFmodesFictDEFModAlignINVARIANTS+Complem.res
-Searching for the complementary modes...
----------------------------------------------------
-Deformed shapes PhiDEFcompl before orthogonalization 
-istep=1
-open GID FILE:
-/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/MODES/PhiDEFcomplDEFmodes.res
-Deformed shapes PhiDEFcompl after orthogonalization 
-Number of available deformational modes complementary to the invariants = 12
-istep=1
-open GID FILE:
-/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/MODES/PhiDEF_inv_and_complDEFmodes.res
------------------------------------------------------------------
-REACTION FORCES CAUSED BY basic deformational modes  REACT =  K*PhiDEFbs
------------------------------------------------------------------------------------
-istep=1
-open GID FILE:
-/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/MODES/Reac_PhiDEFbs.res
------------------------------------------------
-Determining nonlinear strain modes 
--------------------------------------------------
-Purging of rigid body modes is still done assuming strains are small (23-Feb-2025)...
-This should be modified in future versions of the program
-istep=1
-open GID FILE:
-/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/MODES/AllDEFORMATIONALDEFmodes.res
-There are no complementary (inelastic modes ) here, only elastic
-Project = 1; ERROR stress PK2= 1.6148e-13
-Project = 2; ERROR stress PK2= 6.345e-11
-Project = 3; ERROR stress PK2= 3.7165e-12
-Project = 4; ERROR stress PK2= 5.0146e-12
-Project = 5; ERROR stress PK2= 7.4417e-13
-Project = 6; ERROR stress PK2= 7.8987e-12
------------------------------------------------------------
-Determination of self-equilibrated modes
------------------------------------------------------------
-Norm PsISEs / Norm PsISEb = 3.354e-11
-istep=1
-open GID FILE:
-/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/MODES/REACTmodesBasic.res
-RECALL THAT THE APPROACH USED IS THAT IN WHICH THE  ONLY Self-equilibrated modes IN THE FORMULATION ARE BasiC Modes (ELASTIC)
-------------------------------------------------------------------------------------------------
-Cosine principal angles  formed by basic deformational and self-equilibrated modes
-
-PrincipalAngles_cosines =
-
-         0.702595903604718
-         0.517043546373499
-         0.514099718973091
-         0.471413780627821
-         0.469568930187752
-         0.410906612360581
-         0.341368494768483
-          0.22035554619328
-         0.202971323829457
-         0.183438530734804
-         0.156680490914679
-          0.15377047931624
-         0.142661705643448
-         0.137115087433548
-        0.0897271648591996
-        0.0844725403946251
-         0.082454830842352
-        0.0204971118239926
-
-------------------------------------------------------------------------------------------------
------------------------------------------
-STRESS MODES INELASTIC STRESSES
------------------------------------------
-Problem with no inelastic stresses
-Using elastic stresses for computing CECM points (use low tolerance for internal forces if you want to reduce the number of points)
-Number of nonlinear stress modes =5
-Singular values
-
-S =
-
-          2772466.42808268
-          2462506.53793588
-          1918081.97888854
-          1627185.02190192
-          1345186.48465254
-
-PLotting stress modes...(nonlinear contribution)
-istep=1
-open GID FILE:
-/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/MODES/AllDEFORMATIONALSTRESSmodesInelastic_stress ().res
-----------------------------------------
-HYPERREDUCTION INTERNAL FORCES
-------------------------------------------
+if system_dependent('IsDebugMode')==1, dbcont; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbquit; end
