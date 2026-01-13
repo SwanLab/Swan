@@ -109,7 +109,9 @@ classdef EIFEM < handle
             if ~isempty(dirich)
                 R = -obj.LHS(:,dirich)*dirichV;
             else
-                R = zeros(sum(obj.dim.ndofs(:)),1);
+                % Usar nDofs del dispFun en lugar de obj.dim.ndofs
+                nDofs = obj.dispFun.nDofs;
+                R = zeros(nDofs, 1);
             end
         end
 

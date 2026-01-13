@@ -89,13 +89,21 @@ classdef DomainDecompositionDofManager3D < handle
 
         function fL = global2local(obj,fG)
             ndimf  = obj.nDimf;
-            fL     = zeros(obj.nReferenceNodes*ndimf,obj.nSubdomains(1)*obj.nSubdomains(2));
+            nRefDofs = obj.nReferenceNodes*ndimf;
+            fL     = zeros(nRefDofs,obj.nSubdomains(1)*obj.nSubdomains(2));
             ind    = 1;
             for kdom=1:obj.nSubdomains(3)
                 for jdom = 1:obj.nSubdomains(2)
                     for idom = 1:obj.nSubdomains(1)
                         lGconnec = obj.localGlobalDof{jdom,idom,kdom};
-                        fL(lGconnec(:,2),ind) = fG(lGconnec(:,1));
+                        % Validar que los índices locales estén en rango válido
+                        validLocalIdx = (lGconnec(:,2) >= 1) & (lGconnec(:,2) <= nRefDofs);
+                        validGlobalIdx = (lGconnec(:,1) >= 1) & (lGconnec(:,1) <= length(fG));
+                        validMask = validLocalIdx & validGlobalIdx;
+                        
+                        if any(validMask)
+                            fL(lGconnec(validMask,2),ind) = fG(lGconnec(validMask,1));
+                        end
                         ind=ind+1;
                     end
                 end
@@ -147,11 +155,23 @@ classdef DomainDecompositionDofManager3D < handle
                        
             intConecResh = obj.interfaceConnecReshaped;
 
-
+            % Inicializar variables antes del bucle
+            intConecLiint = {};
+            interfaceDofIint = {};
+            interfaceDom = [];
 
             nint = numel(intConecResh);
             ndimf = obj.nDimf;
             ndofs = obj.nReferenceNodes*ndimf;
+            
+            % Si no hay interfaces, inicializar con arrays vacíos
+            if nint == 0
+                obj.interfaceDof = {};
+                obj.interfaceDom = [];
+                obj.intConecLocal = {};
+                return;
+            end
+            
             for iint=1:nint
                 intConecIint = intConecResh{iint};                
                 ndom = size(intConecIint,2); %length(intConec(1,:,iint));

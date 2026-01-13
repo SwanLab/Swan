@@ -150,11 +150,23 @@ classdef DomainDecompositionDofManager < handle
                        
             intConecResh = obj.interfaceConnecReshaped;
 
-
+            % Inicializar variables antes del bucle
+            intConecLiint = {};
+            interfaceDofIint = {};
+            interfaceDom = [];
 
             nint = numel(intConecResh);
             ndimf = obj.nDimf;
             ndofs = obj.nReferenceNodes*ndimf;
+            
+            % Si no hay interfaces, inicializar con arrays vacíos
+            if nint == 0
+                obj.interfaceDof = {};
+                obj.interfaceDom = [];
+                obj.intConecLocal = {};
+                return;
+            end
+            
             for iint=1:nint
                 intConecIint = intConecResh{iint};                
                 ndom = size(intConecIint,2); %length(intConec(1,:,iint));

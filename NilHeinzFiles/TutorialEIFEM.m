@@ -330,7 +330,6 @@ classdef TutorialEIFEM < handle
             data = Training(mR,1);
             p = OfflineDataProcessor(data); % i don't want to have to run this -> build EIFEM with NN
             EIFEoper = p.computeROMbasis();
-            T = EIFEoper.T;
             Udef =  EIFEoper.Udef;
             Urb = EIFEoper.Urb;
             Kc = EIFEoper.Kcoarse;
@@ -338,12 +337,12 @@ classdef TutorialEIFEM < handle
 
              %s.RVE.ndimf = 2;
 
-            s.RVE           = TrainedRVEMultipleRadius(rInclusions,mR);
+            s.RVE           = TrainedRVE(mR);
             s.mesh          = obj.createCoarseMesh(mR);
             s.DirCond       = dir;
             s.nSubdomains = obj.nSubdomains;
             s.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
-            eifem           = EIFEMdifferentSubd(s);
+            eifem           = EIFEM(s);
 
             ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
             ss.EIFEMsolver = eifem;

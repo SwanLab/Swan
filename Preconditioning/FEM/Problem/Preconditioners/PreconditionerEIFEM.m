@@ -29,8 +29,17 @@ classdef PreconditionerEIFEM < handle
 %             uk = obj.bcApplier.reducedToFullVectorDirichlet(uk);
 %             uk = obj.ddDofManager.global2local(uk);  %dissemble
 %             uk = reshape(uk,[],1);
-            Rd = obj.computeDiscontinousField(r);
-            uD = obj.EIFEMsolver.apply(Rd);
+            % Convertir r (reducido) a completo para EIFEM
+            % EIFEM trabaja con el dominio completo, no con subdominios descompuestos
+            RG = obj.bcApplier.reducedToFullVectorDirichlet(r);
+            
+            % Aplicar EIFEM al vector completo
+            uG = obj.EIFEMsolver.apply(RG);
+            
+            % Descomponer resultado para escalar interfaces
+            uD = obj.ddDofManager.global2local(uG);
+            uD = obj.ddDofManager.scaleInterfaceValues(uD, obj.weight);
+            
 %             u = reshape(uD,[],1);
 %             EIFEMtesting.plotSolution(u+uk,obj.dMesh,21,5,obj.iter,[],0)
             obj.iter = obj.iter+1;

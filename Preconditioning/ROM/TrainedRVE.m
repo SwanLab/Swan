@@ -6,6 +6,8 @@ classdef TrainedRVE < handle
         Udef
         Urb
         U
+        DOFl
+        DOFr
         PhiDef
         PhiRb
         Grb
@@ -41,6 +43,8 @@ classdef TrainedRVE < handle
                 obj.Kcoarse = EIFEoper.Kcoarse;
                 obj.Udef    = EIFEoper.Udef;
                 obj.Urb     = EIFEoper.Urb;
+                obj.DOFl  = EIFEoper.DOFl;
+                obj.DOFr = EIFEoper.DOFr;
                 if isfield(EIFEoper,'U')
                     obj.U = EIFEoper.U;
                 end
@@ -60,6 +64,8 @@ classdef TrainedRVE < handle
                 obj.Kcoarse = data.Kcoarse;
                 obj.Udef    = data.Udef;
                 obj.Urb     = data.Urb;
+                obj.DOFl  = data.DOFl;
+                obj.DOFr = data.DOFr;
             end
 
             obj.ndimf   = 2;

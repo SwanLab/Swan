@@ -257,7 +257,7 @@ classdef TutorialEIFEM < handle
 %             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
 %             filename        = EIFEMfilename;
 %             s.RVE           = TrainedRVE(filename);
-            data = Training(mR);
+            data = Training(mR,1);
             p = OfflineDataProcessor(data);
             EIFEoper = p.computeROMbasis();
             s.RVE           = TrainedRVE(EIFEoper);
