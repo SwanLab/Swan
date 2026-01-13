@@ -107,9 +107,7 @@ classdef GeometricalFunction < handle
                     fV2 = @(x) max( xR1 - x1(x), x1(x) - xR2 );
                     fH1 = @(x) max( yB1 - x2(x), x2(x) - yB2 );
                     fH2 = @(x) max( yT1 - x2(x), x2(x) - yT2 );
-      
-                    fH = @(x) min( min(fV1(x), fV2(x)), min(fH1(x), fH2(x)) );
-                
+                    fH = @(x) min([fV1(x),fV2(x),fH1(x),fH2(x)]);
                     obj.fHandle = fH;
                                         
 
@@ -425,151 +423,64 @@ classdef GeometricalFunction < handle
                     
                     obj.fHandle = @(x) max(fV(x),fH(x));
 
-                case 'FourPerpendicularBars'
-                    xL2 = cParams.leftBar_xMax;   % right edge of left bar
-                    xR1 = cParams.rightBar_xMin;  % left edge of right bar
-                    yB2 = cParams.bottomBar_yMax; % top edge of bottom bar
-                    yT1 = cParams.topBar_yMin;    % bottom edge of top bar
-                    h = cParams.barWidth;
 
-                    xL1 = xL2 - h;   % left edge of left bar
-                    yT2 = yT1 + h;    % top edge of top bar
-                    yB1 = yB2 - h; % bottom edge of bottom bar
-                    xR2 = xR1 + h;  % right edge of right bar
-
-                    fV1 = @(x) max( xL1 - x1(x), x1(x) - xL2 );
-                    fV2 = @(x) max( xR1 - x1(x), x1(x) - xR2 );
-                    fH1 = @(x) max( yB1 - x2(x), x2(x) - yB2 );
-                    fH2 = @(x) max( yT1 - x2(x), x2(x) - yT2 );
-
-                    fH = @(x) min( min(fV1(x), fV2(x)), min(fH1(x), fH2(x)) );
-
-                    obj.fHandle = fH;
-
-                 case 'DiagonalBars'
-
-                     % === Horitzontals (0°) ===
-                    h = cParams.barWidth;
-                    yB2 = cParams.bottomBar_yMax;
-                    yT1 = cParams.topBar_yMin;
-                    yB1 = yB2 - h;
-                    yT2 = yT1 + h;
-                
-                    fH1 = @(x) max(yB1 - x2(x), x2(x) - yB2);
-                    fH2 = @(x) max(yT1 - x2(x), x2(x) - yT2);
-                
-                    % === Diagonals (+45° respecte a X) ===
-                    % Factor per mantenir el gruix correcte
-                    scale = sqrt(2);
-                
-                    % Distància vertical entre les horitzontals
-                    deltaY = yT1 - yB2;
-                
-                    % Separació equivalent entre diagonals (en coordenades c)
-                    % La relació entre la distància vertical i el desplaçament c és √2
-                    deltaC = deltaY * sqrt(2);
-                
-                    % Tres diagonals simètriques: inferior, central, superior
-                    c_center = 0.0;
-                    c_bottom = c_center - deltaC;
-                    c_top    = c_center + deltaC;
-                
-                    % Definició de les tres barres diagonals
-                    fD1 = @(x) abs(x2(x) - x1(x) - c_bottom) - (h/2)*scale;
-                    fD2 = @(x) abs(x2(x) - x1(x) - c_center) - (h/2)*scale;
-                    fD3 = @(x) abs(x2(x) - x1(x) - c_top) - (h/2)*scale;
-                
-                    % === Combina totes ===
-                    fH = @(x) min(min(fH1(x), fH2(x)), min(min(fD1(x), fD2(x)), fD3(x)));
-                
-                    obj.fHandle = fH;
-
-                case 'DiagonalBarsv2'
-                    % === Horitzontals (0°) ===
+                case 'DiagonalBars' % 0°/+45°
                     L=1;
                     h = cParams.barWidth;
                     yB2 = cParams.bottomBar_yMax;
                     yT1 = cParams.topBar_yMin;
                     yB1 = yB2 - h;
                     yT2 = yT1 + h;
-                
-                    fH1 = @(x) max(yB1 - x2(x), x2(x) - yB2);
-                    fH2 = @(x) max(yT1 - x2(x), x2(x) - yT2);
-
-                    % Distància vertical entre les horitzontals
                     deltaY = yT1 - yB2;
 
-                    % === Diagonals (+45° respecte a X) ===
-                    scale = sqrt(2); % Factor per mantenir el gruix correcte
-                    deltaC = deltaY * sqrt(2); % La relació entre la distància vertical i el desplaçament c és √2
-
-                    % Tres diagonals simètriques: inferior, central, superior
+                    scale = sqrt(2);
+                    deltaC = deltaY * sqrt(2); 
                     c_center = 0.0;
                     c_bottom = c_center - L/2;
                     c_top    = c_center + L/2;
-                
-                    % Definició de les tres barres diagonals
+
+                    fH1 = @(x) max(yB1 - x2(x), x2(x) - yB2);
+                    fH2 = @(x) max(yT1 - x2(x), x2(x) - yT2);
                     fD1 = @(x) abs(x2(x) - x1(x) - c_bottom) - (h/2)*scale;
                     fD2 = @(x) abs(x2(x) - x1(x) - c_center) - (h/2)*scale;
                     fD3 = @(x) abs(x2(x) - x1(x) - c_top) - (h/2)*scale;
 
-
-                    fH = @(x) min(min(fH1(x), fH2(x)), min(min(fD1(x), fD2(x)), fD3(x)));
-
+                    fH = @(x) min([fH1(x),fH2(x),fD1(x),fD2(x),fD3(x)]);
                     obj.fHandle = fH;
                    
-
                
                 case 'CrossDiagonalBars' % -45°/+45°
                     h     = cParams.barWidth;
                     scale = sqrt(2);
                     L=1;
-                
-                    % +45°
-                    c_center_p  = 0.0;
-                    c_bottom_p  = c_center_p - L/2;
-                    c_top_p     = c_center_p + L/2;
-                
-                    % -45°
-                    c_center_m   = L;
-                    c_bottom_m   = c_center_m - L/2;
-                    c_top_m      = c_center_m + L/2;
-                
 
-                    % +45° diagonals
-                    fP1 = @(x) abs(x2(x) - x1(x) - c_bottom_p) - (h/2)*scale;
-                    fP2 = @(x) abs(x2(x) - x1(x) - c_center_p) - (h/2)*scale;
-                    fP3 = @(x) abs(x2(x) - x1(x) - c_top_p)    - (h/2)*scale;
-                
-                    % -45° diagonals
-                    fN1 = @(x) abs(x2(x) + x1(x) - c_bottom_m) - (h/2)*scale;
-                    fN2 = @(x) abs(x2(x) + x1(x) - c_center_m) - (h/2)*scale;
-                    fN3 = @(x) abs(x2(x) + x1(x) - c_top_m)    - (h/2)*scale;
+                    cCenterP  = 0.0;
+                    cBottomP  = cCenterP - L/2;
+                    cTopP     = cCenterP + L/2;
+                    cCenterM   = L;
+                    cBottomM   = cCenterM - L/2;
+                    cTopM      = cCenterM + L/2;
 
+                    fP1 = @(x) abs(x2(x) - x1(x) - cBottomP) - (h/2)*scale;
+                    fP2 = @(x) abs(x2(x) - x1(x) - cCenterP) - (h/2)*scale;
+                    fP3 = @(x) abs(x2(x) - x1(x) - cTopP)    - (h/2)*scale;
+                    fN1 = @(x) abs(x2(x) + x1(x) - cBottomM) - (h/2)*scale;
+                    fN2 = @(x) abs(x2(x) + x1(x) - cCenterM) - (h/2)*scale;
+                    fN3 = @(x) abs(x2(x) + x1(x) - cTopM)    - (h/2)*scale;
 
-                    fH = @(x) min(min(min(fP1(x), fP2(x)), fP3(x)), min(min(fN1(x), fN2(x)), fN3(x)) );
+                    fH= @(x) min([fP1(x), fP2(x), fP3(x), fN1(x), fN2(x), fN3(x)]);
                     obj.fHandle = fH;
 
-                    
-                
+
                 case 'DiagonalNFibers'
                     n    = cParams.nFibers;
                     xmin = cParams.minxCoor;
                     xmax = cParams.maxxCoor;
                     ymin = cParams.minyCoor;
                     ymax = cParams.maxyCoor;
-                
-                    % Longitud efectiva en direcció perpendicular a les diagonals
-                    % (combinació de les dues coordenades)
                     L = (xmax - xmin + ymax - ymin) / sqrt(2);
-                
-                    % Definim el nombre d’ones equivalent al nombre de fibres
                     k = 2*pi*n / L;
-                
-                    % Definició del nivell de camp per línies a 45° (y = x + c)
-                    % Aquí x2 - x1 és constant per a les línies de pendent 1
                     fH = @(x) sin(k * ((x2(x) - x1(x)) / sqrt(2)) + pi/2);
-                
                     obj.fHandle = fH;
 
                 case 'HorizontalInclusion'
@@ -585,32 +496,24 @@ classdef GeometricalFunction < handle
                     fH   = @(x) sin(k*(x2(x)-ymin)+pi/2);
                     obj.fHandle = fH;
 
-                case 'HorizontalNFibersV2'
-                    h=0.1;
-                    n    = cParams.nFibers;
+                case 'HorizontalNFibers_3D'
                     ymin = cParams.minyCoor;
                     ymax = cParams.maxyCoor;
-                    
-                    % Distancia entre les rectes
-                    dy= ymax/(n+1);
+                    zmin = cParams.minzCoor;
+                    zmax = cParams.maxzCoor;
+                    nY = cParams.nFibersY;
+                    nZ = cParams.nFibersZ;
+                    R  = cParams.radius;
+                    Ly = ymax - ymin;
+                    Lz = zmax - zmin;
+                    fH = @(x) ...
+                        sqrt( ...
+                        (mod(x2(x)-ymin, Ly/nY) - Ly/(2*nY)).^2 + ...
+                        (mod(x3(x)-zmin, Lz/nZ) - Lz/(2*nZ)).^2 ...
+                        ) - R;
 
-                    % Centres de cada recta
-                    yCenters = dy*(1:n);
-                    
-                    % Crea el handle de totes les rectes
-                    fList = cell(1,n);
-                     for i = 1:n
-                        y0 = yCenters(i);
-                        fList{i} = @(x) abs(x2(x) - y0) - h/2;
-                     end
-                    
-                     % Combinació de totes elles:
-                    fH = @(x) fList{1}(x);
-                    for i = 2:n
-                        f_prev = fH;
-                        fH = @(x) min(f_prev(x), fList{i}(x));
-                    end
                     obj.fHandle = fH;
+
 
                 case 'Holes'
                     dim = cParams.dim;
