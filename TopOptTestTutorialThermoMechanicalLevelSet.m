@@ -1,4 +1,4 @@
-classdef TopOptTestTutorialThermoMechanicalDensity < handle
+classdef TopOptTestTutorialThermoMechanicalLevelSet < handle
 
     properties (Access = private)
         mesh
@@ -17,7 +17,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
 
     methods (Access = public)
 
-        function obj = TopOptTestTutorialThermoMechanicalDensity()
+        function obj = TopOptTestTutorialThermoMechanicalLevelSet()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -42,27 +42,27 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             close all;
         end
 
-        function createMesh(obj)
-            x1      = linspace(0,2,100);
-            x2      = linspace(0,1,50);
+       function createMesh(obj)
+            %UnitMesh better
+            x1      = linspace(0,1,100);
+            x2      = linspace(0,1,100);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
             s.connec = F;
             obj.mesh = Mesh.create(s);
-        end       
+        end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(x(1,:,:)));
-            s.ndimf   = 1;
-            s.mesh    = obj.mesh;
-            aFun      = AnalyticalFunction(s);        
-            sD.fun      = aFun.project('P1');
-            sD.mesh     = obj.mesh;
-            sD.type     = 'Density';
-            sD.plotting = true;
-            dens        = DesignVariable.create(sD);
-            obj.designVariable = dens;
+            s.type = 'Full';
+            g      = GeometricalFunction(s);
+            lsFun  = g.computeLevelSetFunction(obj.mesh);
+            s.fun  = lsFun;
+            s.mesh = obj.mesh;
+            s.type = 'LevelSet';
+            s.plotting = true;
+            ls     = DesignVariable.create(s);
+            obj.designVariable = ls;
         end
 
         function createFilter(obj)
@@ -195,12 +195,9 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             obj.constraint      = Constraint(s);
         end
 
-        function createPrimalUpdater(obj)
-            s.ub     = 1;
-            s.lb     = 0;
-            s.tauMax = 1000;
-            s.tau    = [];
-            obj.primalUpdater = ProjectedGradient(s);
+       function createPrimalUpdater(obj)
+            s.mesh = obj.mesh;
+            obj.primalUpdater = SLERP(s);
         end
 
         function createOptimizer(obj)
@@ -208,17 +205,20 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 400;
             s.tolerance      = 1e-8;
             s.constraintCase = {'INEQUALITY'};
-            s.primal         = 'PROJECTED GRADIENT';
-            s.etaNorm        = 0.01;
-            s.gJFlowRatio    = 1;
-            s.gif=false;
-            s.gifName='ThermoElastic';
-            s.printing=true;
-            s.printName='ThermoElastic';
             s.primalUpdater  = obj.primalUpdater;
+            s.etaNorm        = 0.02;
+            s.etaNormMin     = 0.02;
+            s.gJFlowRatio    = 1;
+            s.etaMax         = 1;
+            s.etaMaxMin      = 0.01;
+            
+            s.gif=false;
+            s.gifName='ThermalDensity';
+            s.printing=true;
+            s.printName='Thermal Density';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -277,8 +277,8 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             isDir   = @(coor) abs(coor(:,2))==yMin | abs(coor(:,2))==yMax | abs(coor(:,1))==xMin | abs(coor(:,1))==xMax;  
 
             sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = 1;
-            sDir{1}.value     = 20;
+            sDir{1}.direction = 10;
+            sDir{1}.value     = 0;
             sDir{1}.ndim = 1;
             
             dirichletFun = [];
