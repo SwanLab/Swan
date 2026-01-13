@@ -12,6 +12,11 @@ classdef PhaseFieldInternalEnergyFunctional < handle
         function obj = PhaseFieldInternalEnergyFunctional(cParams)
             obj.init(cParams)            
         end
+
+        function sigma = computeSigma(obj,u,phi)
+            C = obj.material.obtainTensor(phi);
+            sigma = project(DDP(C,SymGrad(u)),'P0');
+        end
         
         function F = computeCost(obj,u,phi,quadOrder)
             C = obj.material.obtainTensor(phi);

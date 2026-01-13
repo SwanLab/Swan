@@ -1,9 +1,8 @@
-classdef PhaseFieldDissipationInterpolator < handle
+classdef PhaseFieldAmbrossioTortorelliDissipation < handle
 
     properties (Access = public)
-        fun
-        dfun
-        ddfun
+        interpolation
+        constant
     end
 
     properties (Access = private)
@@ -13,9 +12,10 @@ classdef PhaseFieldDissipationInterpolator < handle
 
     methods (Access = public)
 
-        function obj = PhaseFieldDissipationInterpolator(cParams)
+        function obj = PhaseFieldAmbrossioTortorelliDissipation(cParams)
             obj.init(cParams)
             obj.computeDissipationFunctionAndDerivatives();
+            obj.computeDissipationConstant();
         end
         
     end
@@ -23,8 +23,17 @@ classdef PhaseFieldDissipationInterpolator < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.pExp = cParams.pExp;
-            obj.mesh = cParams.mesh;
+            if ~ismember(cParams.pExp, [1 2])
+                error('Exponent must be 1 or 2');
+            else
+                obj.pExp = cParams.pExp;
+                obj.mesh = cParams.mesh;
+
+            end
+        end
+
+        function computeDissipationConstant(obj)
+            obj.constant = 4*(2/(obj.pExp+2));
         end
 
         function computeDissipationFunctionAndDerivatives(obj)
@@ -34,18 +43,17 @@ classdef PhaseFieldDissipationInterpolator < handle
             s.operation = @(phi) abs(phi+e).^p;
             s.ndimf = 1;
             s.mesh = obj.mesh;
-            obj.fun = DomainFunction(s);
+            obj.interpolation.fun = DomainFunction(s);
 
             s.operation = @(phi) p*(abs(phi+e)).^(p-1);
             s.ndimf = 1;
             s.mesh = obj.mesh;
-            obj.dfun = DomainFunction(s);
+            obj.interpolation.dfun = DomainFunction(s);
 
             s.operation = @(phi) p*(p-1)*(abs(phi+e)).^(p-2);
             s.ndimf = 1;
             s.mesh = obj.mesh;
-            obj.ddfun = DomainFunction(s);
-
+            obj.interpolation.ddfun = DomainFunction(s);
         end
 
     end

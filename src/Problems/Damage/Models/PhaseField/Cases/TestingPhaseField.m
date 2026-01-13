@@ -160,19 +160,20 @@ classdef TestingPhaseField < handle
                     degParams.ndim    = ndim;
                     degParams.young   = ConstantFunction.create(E,obj.mesh);
                     degParams.poisson = ConstantFunction.create(nu,obj.mesh);
-                    degParams.initialDerivative = obj.initialDerivative;
+                    degParams.params  = obj.matInfo.params;
             end
         end
 
         function dissipation = createDissipationInterpolation(obj)
-            s.pExp = obj.dissipInfo.pExp;
             s.mesh = obj.mesh;
-            dissipation.interpolation = PhaseFieldDissipationInterpolator(s);
-
-            if s.pExp == 1
-                dissipation.constant = (3/8)*obj.matInfo.Gc;
-            elseif s.pExp == 2
-                dissipation.constant = (1/2)*obj.matInfo.Gc;
+            if obj.dissipInfo.type == "AT"
+                s.pExp = obj.dissipInfo.pExp;
+                dissipation = PhaseFieldAmbrossioTortorelliDissipation(s);
+            elseif obj.dissipInfo.type == "FullQuadratic"
+                s.xi = obj.dissipInfo.xi;
+                dissipation = PhaseFieldFullQuadraticDissipation(s);
+            else
+                error('Dissipation type not found')
             end
         end
 

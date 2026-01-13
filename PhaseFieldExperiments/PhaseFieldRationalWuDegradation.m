@@ -1,13 +1,13 @@
-classdef PhaseFieldRationalDegradation < handle
+classdef PhaseFieldRationalWuDegradation < handle
     
    properties (Access = private)
         shear
         bulk
-        initDeriv
+        degFun
    end
 
     methods (Access = public)
-        function obj = PhaseFieldRationalDegradation(cParams)
+        function obj = PhaseFieldRationalWuDegradation(cParams)
             obj.init(cParams)
         end
 
@@ -39,7 +39,17 @@ classdef PhaseFieldRationalDegradation < handle
                 obj.shear = cParams.shear;
                 obj.bulk  = cParams.bulk;
             end
-            obj.initDeriv = cParams.params.initialDerivative;
+            obj.defineDegradationFunction(cParams.params)
+        end
+
+        function defineDegradationFunction(obj,cParams)
+            syms phi
+            Q(phi) = 0*phi;
+            for i=1:length(cParams.coeffs)
+                Q(phi) = Q(phi) + prod(cParams.coeffs(1:i))*phi^i;
+            end
+            g(phi) = ((1-phi)^cParams.exp)/((1-phi)^cParams.exp + Q(phi));
+            obj.degFun = g;
         end
 
         function mu = computeMuFunction(obj,phi)
@@ -74,23 +84,20 @@ classdef PhaseFieldRationalDegradation < handle
 
 
         function f = interpolate(obj,phi,f0)
-            k = obj.initDeriv;
-            f = (((phi.fun).^2 - 2.*phi.fun + 1)./(1-(k+2).*phi.fun)).*f0;
+           g = matlabFunction(obj.degFun);
+           f = g(phi.fun).*f0;
         end
         
         function f = derive(obj,phi,f0)
-            k = obj.initDeriv;
-            num = -(k+2).*phi.fun.^2 + 2.*phi.fun + k;
-            den = (1 - (k+2).*phi.fun).^2;
-            f   = (num./den).*f0;
+           dg = matlabFunction(diff(obj.degFun));
+           f = dg(phi.fun).*f0;
         end
 
         function f = derive2(obj,phi,f0)
-            k = obj.initDeriv;
-            num = (-4*(k+2)^2).*phi.fun.^2 + (2*(k+2)*(1-k*(k+2))).*phi.fun + 2*(1+k*(k+2));
-            den = (1 - (k+2).*phi.fun).^4;
-            f   = (num./den).*f0;
+           d2g = matlabFunction(diff(diff(obj.degFun)));
+           f = d2g(phi.fun).*f0;
         end
+
     end
 
 end

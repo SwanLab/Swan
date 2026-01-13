@@ -28,15 +28,19 @@ classdef PhaseFieldComputer < handle
             cost = 0; tauArray = [];
 
             step = 1;
-            maxSteps = length(obj.boundaryConditions.bcValues);
+            maxSteps = length(obj.boundaryConditions.u.bcValues);
+            bc.phi = obj.boundaryConditions.phi.nextStep();
             while(step<=maxSteps) && (obj.stop.noFailure)
                 obj.monitor.printStep(step,maxSteps)
-                [u,bc] = obj.updateBoundaryConditions(u);
+                [u,bc] = obj.updateBoundaryConditions(u,bc);
                 [u,phi,F,cost,iterMax] = obj.optimizer.compute(u,phi,bc,cost);
                 [Evec,totE,totF,uBC] = obj.postprocess(step,u,phi,F,bc);
                 obj.printAndSave(step,totF,uBC,u,phi,Evec,totE,iterMax,cost,tauArray);
                 obj.checkStopCondition(step,totF);
                 step = step + 1;
+
+                sig = obj.functional.computeStress(u,phi);
+                max(sig.fValues(:,1))
             end
             outputData = obj.monitor.data;
         end
@@ -71,24 +75,24 @@ classdef PhaseFieldComputer < handle
         end
 
         function setStopConditions(obj)
-            maxSteps = length(obj.boundaryConditions.bcValues);
+            maxSteps = length(obj.boundaryConditions.u.bcValues);
             obj.stop.noFailure   = true;
             obj.stop.triggered   = false;
             obj.stop.maxF        = 0;
             obj.stop.stepTrigger = maxSteps;
         end
 
-        function [u,bc] = updateBoundaryConditions(obj,u)
-            bc = obj.boundaryConditions.nextStep();
+        function [u,bc] = updateBoundaryConditions(obj,u,bc)
+            bc.u = obj.boundaryConditions.u.nextStep();
             u.setFValues(obj.updateInitialDisplacement(u,bc));
         end
 
         function u = updateInitialDisplacement(~,uOld,bc)
-            restrictedDofs = bc.dirichlet_dofs;
+            restrictedDofs = bc.u.dirichlet_dofs;
             if isempty(restrictedDofs)
                 u = uOld;
             else
-                dirich = bc.dirichletFun;
+                dirich = bc.u.dirichletFun;
                 uVec = reshape(uOld.fValues',[uOld.nDofs 1]);
                 dirichVec = reshape(dirich.fValues',[dirich.nDofs 1]);
 
@@ -98,9 +102,9 @@ classdef PhaseFieldComputer < handle
         end
 
         function [E,totE,totF,uBC] = postprocess(obj,step,u,phi,F,bc)
-            fExt = bc.tractionFun;
-            if ~isempty(bc.tractionFun)
-                vals = bc.tractionFun.computeRHS([]);
+            fExt = bc.u.tractionFun;
+            if ~isempty(bc.u.tractionFun)
+                vals = bc.u.tractionFun.computeRHS([]);
                 fExt = LagrangianFunction.create(u.mesh, u.mesh.ndim,'P1');
                 fExt.setFValues(reshape(vals,u.mesh.nnodes,u.mesh.ndim));
             end
@@ -110,15 +114,27 @@ classdef PhaseFieldComputer < handle
         end
 
         function [totReact,uBC] = computeTotalReaction(obj,step,F,u)
-            UpSide = max(obj.mesh.coord(:,2));
-            isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
+            LeftSide = max(obj.mesh.coord(:,2));
+            isInUp = abs(obj.mesh.coord(:,2)-LeftSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;
-            if ismember(obj.boundaryConditions.type, ["ForceTractionY", "ForceTractionYClamped"])
+            if ismember(obj.boundaryConditions.u.type, ["ForceTractionY", "ForceTractionYClamped"])
                 uBC = norm(mean(u.fValues(nodes(isInUp),2)));
-                totReact = obj.boundaryConditions.bcValues(step);
-            elseif ismember(obj.boundaryConditions.type, ["DisplacementTractionY","DisplacementTractionYClamped"]) 
+                totReact = obj.boundaryConditions.u.bcValues(step);
+            elseif ismember(obj.boundaryConditions.u.type, ["DisplacementTractionY","DisplacementTractionYClamped"]) 
                 totReact = norm(sum(F(2*nodes(isInUp))));
-                uBC = obj.boundaryConditions.bcValues(step);
+                uBC = obj.boundaryConditions.u.bcValues(step);
+            end
+
+            LeftSide = min(obj.mesh.coord(:,1));
+            isInLeft = abs(obj.mesh.coord(:,1)-LeftSide)< 1e-12;
+            nodes = 1:obj.mesh.nnodes;
+            if ismember(obj.boundaryConditions.u.type, ["ForceTractionX","ForceTractionXClamped"])
+                uBC = norm(mean(u.fValues(nodes(isInLeft),2)));
+                totReact = obj.boundaryConditions.u.bcValues(step);
+            elseif ismember(obj.boundaryConditions.u.type, ["DisplacementTractionX","DisplacementTractionXClamped"])
+                dofsXleft = (nodes(isInLeft)-1)*u.ndimf + 1;
+                totReact = abs(sum(F(dofsXleft)));
+                uBC = obj.boundaryConditions.u.bcValues(step);
             end
             
 

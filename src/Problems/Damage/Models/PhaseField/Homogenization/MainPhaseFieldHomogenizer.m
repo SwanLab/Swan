@@ -1,11 +1,11 @@
 clc,clear,close all
-s.monitoring = false;
+s.monitoring = true;
 s.E          = 1;
 s.nu         = 0.3;
 s.meshType   = 'Hexagon';
-s.meshN      = 400;
+s.meshN      = 100;
 s.holeType   = 'ReinforcedHoneycomb';
-s.nSteps     = [200];
+s.nSteps     = [5];
 s.pnorm      = 'Inf';
 s.damageType = 'Area';
 PFH = TestingPhaseFieldHomogenizer(s);

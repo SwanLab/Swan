@@ -11,6 +11,10 @@ classdef PhaseFieldFunctional < handle
             obj.init(cParams)
         end
 
+        function sig = computeStress(obj,u,phi)
+            sig = obj.functionals.energy.computeSigma(u,phi);
+        end
+
         function Etot = computeCost(obj,u,phi,bc)
             fExt = bc.tractionFun;
             if ~isempty(bc.tractionFun)
