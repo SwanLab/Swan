@@ -137,7 +137,7 @@ classdef EIFEMtesting_3D < handle
             s.nsubdomains   = obj.nSubdomains; %nx ny
             s.meshReference = mR;
             s.tolSameNode = obj.tolSameNode;
-            m = MeshCreatorFromRVE3D.create(s);
+            m = MeshCreatorFromRVE3D(s);
             [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
         end
 
@@ -277,7 +277,7 @@ classdef EIFEMtesting_3D < handle
             s.meshReference = obj.createReferenceCoarseMesh(mR);
             %             s.meshReference = obj.loadReferenceCoarseMesh(mR);
             s.tolSameNode   = obj.tolSameNode;
-            mRVECoarse      = MeshCreatorFromRVE3D.create(s);
+            mRVECoarse      = MeshCreatorFromRVE3D(s);
             [mCoarse,~,~] = mRVECoarse.create();
         end
 
