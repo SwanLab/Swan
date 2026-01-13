@@ -72,16 +72,28 @@ classdef DomainDecompositionDofManager3D < handle
             end
         end
 
-        function fG = local2global(obj,fL)
-            fG   = zeros(obj.nDof,obj.nSubdomains(1)*obj.nSubdomains(2));
+        function fG = AssembleLocal2GlobalVector(obj,fL)
+%             fG   = zeros(obj.nDof,obj.nSubdomains(1)*obj.nSubdomains(2));
+%             ind    = 1;
+%             for kdom = 1:obj.nSubdomains(3)
+%                 for jdom = 1: obj.nSubdomains(2)
+%                     for idom = 1: obj.nSubdomains(1)
+%                         lDof  = obj.localGlobalDof{jdom,idom,kdom}(:,1);
+%                         gDof = obj.localGlobalDof{jdom,idom,kdom}(:,2);
+%                         fG(lDof,ind) = fL(gDof,ind);
+%                         ind=ind+1;
+%                     end
+%                 end
+%             end
+            fG   = zeros(obj.nDof,1);
             ind    = 1;
             for kdom = 1:obj.nSubdomains(3)
                 for jdom = 1: obj.nSubdomains(2)
                     for idom = 1: obj.nSubdomains(1)
                         lDof  = obj.localGlobalDof{jdom,idom,kdom}(:,1);
                         gDof = obj.localGlobalDof{jdom,idom,kdom}(:,2);
-                        fG(lDof,ind) = fL(gDof,ind);
-                        ind=ind+1;
+                        fG(lDof,1) = fG(lDof,1) + fL(gDof,1);
+%                         ind=ind+1;
                     end
                 end
             end

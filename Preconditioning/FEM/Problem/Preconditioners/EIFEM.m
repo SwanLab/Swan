@@ -34,7 +34,7 @@ classdef EIFEM < handle
             obj.reactions           = obj.computeReactions();
         end
 
-        function u = apply(obj,r)
+        function [u,uCoarse] = apply(obj,r)
             Fcoarse = obj.projectExternalForce(r);            
             RHS     = obj.assembleRHSvector(Fcoarse);
             LHSred = obj.bcApplier.fullToReducedMatrixDirichlet(obj.LHS);

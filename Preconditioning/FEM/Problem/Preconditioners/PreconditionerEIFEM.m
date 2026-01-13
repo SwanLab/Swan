@@ -29,7 +29,7 @@ classdef PreconditionerEIFEM < handle
             obj.init(cParams);
         end
 
-        function [z,uCoarse] = apply(obj,r,uk)
+        function [z,uCoarse] = apply(obj,r)
 % %             uk = obj.bcApplier.reducedToFullVectorDirichlet(uk);
 % %             uk = obj.ddDofManager.global2local(uk);  %dissemble
 % %             uk = reshape(uk,[],1);

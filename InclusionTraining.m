@@ -70,7 +70,7 @@ classdef InclusionTraining < handle
 %             i = 0:N;
 %             % Cosine spacing formula
 %             obj.r = (a + b)/2 + (b - a)/2 * cos(pi * (1 - i / N));
-            obj.r    = 1e-6:0.01:0.961;
+            obj.r    = 0.8:0.01:0.961;
             obj.xmin = -1;
             obj.xmax = 1;
             obj.ymin = -1;
@@ -143,7 +143,7 @@ classdef InclusionTraining < handle
 %                 r_inner = obj.ray_square_intersection(dir, r_inner);
                 %uncomment for square
                  r_inner_dir = r_inner;
-                r_inner_dir = r_inner / max(abs(dir)); 
+%                 r_inner_dir = r_inner / max(abs(dir)); 
 
                 % Create points from r_inner to r_max along dir
                 r_vals = linspace(r_inner_dir, r_max, Nr + 1)';
