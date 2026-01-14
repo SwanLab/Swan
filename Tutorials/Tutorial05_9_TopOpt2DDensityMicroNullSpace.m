@@ -182,6 +182,10 @@ classdef Tutorial05_9_TopOpt2DDensityMicroNullSpace < handle
             s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.02;
             s.gJFlowRatio    = 0.2;
+            s.gif            = false;
+            s.gifName        = [];
+            s.printing       = false;
+            s.printName      = [];
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

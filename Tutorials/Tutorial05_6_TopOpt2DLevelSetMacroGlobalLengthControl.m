@@ -198,6 +198,10 @@ classdef Tutorial05_6_TopOpt2DLevelSetMacroGlobalLengthControl < handle
             s.gJFlowRatio    = 1;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
+            s.gif            = false;
+            s.gifName        = [];
+            s.printing       = false;
+            s.printName      = [];
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

@@ -187,6 +187,10 @@ classdef Tutorial05_7_TopOptDensityMacroGiD < handle
             s.constraintCase = 'EQUALITY';
             s.ub             = 1;
             s.lb             = 0;
+            s.gif            = false;
+            s.gifName        = [];
+            s.printing       = false;
+            s.printName      = [];
             opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;

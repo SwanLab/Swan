@@ -141,6 +141,10 @@ classdef Tutorial05_4_TopOpt2DLevelSetPerimeter < handle
             s.gJFlowRatio    = 5;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
+            s.gif            = false;
+            s.gifName        = [];
+            s.printing       = false;
+            s.printName      = [];
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
