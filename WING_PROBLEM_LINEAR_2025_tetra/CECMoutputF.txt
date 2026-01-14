@@ -1,0 +1,32 @@
+SVD of Aw 
+iter = 1  nC =2679.9902  dR =5 R =5
+iter = 2  nC =626.3791  dR =23 R =28
+iter = 3  nC =221.8214  dR =23 R =51
+iter = 4  nC =52.9606  dR =23 R =74
+Elapsed time is 0.063244 seconds.
+Number of left singular vectors  = 4
+k = 1, m=1 ,; error n(res)/n(b) (%) = 10.75411135
+k = 2, m=2 ,; error n(res)/n(b) (%) = 1.996123425
+k = 3, m=3 ,; error n(res)/n(b) (%) = 0.1538119478
+k = 4, m=4 ,; error n(res)/n(b) (%) = 0.001279242572
+k = 5, m=5 ,; error n(res)/n(b) (%) = 3.10853861e-14
+Total number of iterations =6
+****************************+
+List of selected m = 5 elements
+315  373    9  671  331
+----------------------------------------------------------------------------------------
+Integration Error associated to the SVD =7.4753e-14 % (for a SVD tolerance =0.5 )
+----------------------------------------------------------------------------------------
+Actual integration error using DECM= 157.4972 % (prescribed tolerance fint =50%
+istep=1
+open GID FILE:
+C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\MODES\GIDPOST\MOD_fINT_ModesInt.res
+-----------------------------------------
+Material type for each ECM integration point (internal forces)
+----------------------------------------------------
+Material 1 = 5 points
+Material 2 = 0 points
+-----------------------------------------
+----------------------------------------
+HYPERREDUCTION mass matrix/ BODY FORCES (ASSUMING ONLY GRAVITY IS ACTING)
+------------------------------------------

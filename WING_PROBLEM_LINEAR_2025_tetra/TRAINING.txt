@@ -1,0 +1,243 @@
+*************************************
+Reading and constructing input data
+*************************************
+[Warning: Ill-constructed Boundary COnnectivity Matrix. REmoving repeated elements. ] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ReadMeshFileStr_MULT', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadMeshFileStr_MULT.m', 189)" style="font-weight:bold">ReadMeshFileStr_MULT</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadMeshFileStr_MULT.m',189,0)">line 189</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('GeometryMesh', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\GeometryMesh.m', 20)" style="font-weight:bold">GeometryMesh</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\GeometryMesh.m',20,0)">line 20</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('PreProcessInputDataDyn1', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\PreProcessInputDataDyn1.m', 102)" style="font-weight:bold">PreProcessInputDataDyn1</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\PreProcessInputDataDyn1.m',102,0)">line 102</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('INPUTS_TRAIN_Q8plate', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\TypeInputDATA\INPUTS_TRAIN_Q8plate.m', 148)" style="font-weight:bold">INPUTS_TRAIN_Q8plate</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\TypeInputDATA\INPUTS_TRAIN_Q8plate.m',148,0)">line 148</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('FECODElargeDYN', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\FECODElargeDYN.m', 92)" style="font-weight:bold">FECODElargeDYN</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\FECODElargeDYN.m',92,0)">line 92</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Training_MULTI', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m', 86)" style="font-weight:bold">Training_MULTI</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m',86,0)">line 86</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train1dom_BUBcomp', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m', 105)" style="font-weight:bold">Train1dom_BUBcomp</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m',105,0)">line 105</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train_Q8_wing', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\Train_Q8_wing.m', 89)" style="font-weight:bold">Train_Q8_wing</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\Train_Q8_wing.m',89,0)">line 89</a>)] 
+Renumering elements
+Assembly of Bst (stacked B-matrix)...
+Assembly of NstBw...
+Total volume = 0.066183
+Global elasticity matrix    ...
+...done in (7.4563 s)
+*************************************
+*************************************
+INITIALIZATIONS
+*************************************
+*************************************
+LOOP over time steps (NSTEPS =2)
+*************************************
+--------------------------------------------------
+istep = 2      t_i = 1.00000 
+--------------------------------------------------
+iter=1  resf =1.19574e+03  resf_ad=1.19574e+03  res_disp_abs=1.00000e+20   
+iter=2  resf =2.44531e-06  resf_ad=2.44531e-06  res_disp_abs=1.15390e+01   
+iter=3  resf =1.20323e-06  resf_ad=1.20323e-06  res_disp_abs=6.16047e-07   
+iter=4  resf =1.20159e-06  resf_ad=1.20159e-06  res_disp_abs=1.01377e-12   
+Compressing snapshots cluster = 1...
+DISP RANK = 1
+PK2STRESS RANK = 1
+VONMISES_CAUCHY_STRESS RANK = 1
+Done in 0.19468
+...done in (18.1317 s)
+Postprocess with GID
+open GID FILE:
+C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\GIDPOST\\wingQ8_param_1\wingQ8_param_1_clus_1.res
+*************************************
+Reading and constructing input data
+*************************************
+[Warning: Ill-constructed Boundary COnnectivity Matrix. REmoving repeated elements. ] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ReadMeshFileStr_MULT', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadMeshFileStr_MULT.m', 189)" style="font-weight:bold">ReadMeshFileStr_MULT</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadMeshFileStr_MULT.m',189,0)">line 189</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('GeometryMesh', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\GeometryMesh.m', 20)" style="font-weight:bold">GeometryMesh</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\GeometryMesh.m',20,0)">line 20</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('PreProcessInputDataDyn1', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\PreProcessInputDataDyn1.m', 102)" style="font-weight:bold">PreProcessInputDataDyn1</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\PreProcessInputDataDyn1.m',102,0)">line 102</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('INPUTS_TRAIN_Q8plate', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\TypeInputDATA\INPUTS_TRAIN_Q8plate.m', 148)" style="font-weight:bold">INPUTS_TRAIN_Q8plate</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\TypeInputDATA\INPUTS_TRAIN_Q8plate.m',148,0)">line 148</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('FECODElargeDYN', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\FECODElargeDYN.m', 92)" style="font-weight:bold">FECODElargeDYN</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\FECODElargeDYN.m',92,0)">line 92</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Training_MULTI', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m', 86)" style="font-weight:bold">Training_MULTI</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m',86,0)">line 86</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train1dom_BUBcomp', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m', 105)" style="font-weight:bold">Train1dom_BUBcomp</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m',105,0)">line 105</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train_Q8_wing', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\Train_Q8_wing.m', 89)" style="font-weight:bold">Train_Q8_wing</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\Train_Q8_wing.m',89,0)">line 89</a>)] 
+Renumering elements
+Assembly of Bst (stacked B-matrix)...
+Assembly of NstBw...
+Total volume = 0.066183
+Global elasticity matrix    ...
+...done in (5.2732 s)
+*************************************
+*************************************
+INITIALIZATIONS
+*************************************
+*************************************
+LOOP over time steps (NSTEPS =2)
+*************************************
+--------------------------------------------------
+istep = 2      t_i = 1.00000 
+--------------------------------------------------
+iter=1  resf =9.82328e+02  resf_ad=9.82328e+02  res_disp_abs=1.00000e+20   
+iter=2  resf =9.78179e-06  resf_ad=9.78179e-06  res_disp_abs=1.21319e+01   
+iter=3  resf =3.80970e-06  resf_ad=3.80970e-06  res_disp_abs=3.14973e-05   
+iter=4  resf =4.99011e-07  resf_ad=4.99011e-07  res_disp_abs=7.48441e-10   
+Compressing snapshots cluster = 1...
+DISP RANK = 1
+PK2STRESS RANK = 1
+VONMISES_CAUCHY_STRESS RANK = 1
+Done in 0.12268
+...done in (17.1868 s)
+Postprocess with GID
+open GID FILE:
+C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\GIDPOST\\wingQ8_param_2\wingQ8_param_2_clus_1.res
+*************************************
+Reading and constructing input data
+*************************************
+[Warning: Ill-constructed Boundary COnnectivity Matrix. REmoving repeated elements. ] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ReadMeshFileStr_MULT', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadMeshFileStr_MULT.m', 189)" style="font-weight:bold">ReadMeshFileStr_MULT</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadMeshFileStr_MULT.m',189,0)">line 189</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('GeometryMesh', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\GeometryMesh.m', 20)" style="font-weight:bold">GeometryMesh</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\GeometryMesh.m',20,0)">line 20</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('PreProcessInputDataDyn1', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\PreProcessInputDataDyn1.m', 102)" style="font-weight:bold">PreProcessInputDataDyn1</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\PreProcessInputDataDyn1.m',102,0)">line 102</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('INPUTS_TRAIN_Q8plate', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\TypeInputDATA\INPUTS_TRAIN_Q8plate.m', 148)" style="font-weight:bold">INPUTS_TRAIN_Q8plate</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\TypeInputDATA\INPUTS_TRAIN_Q8plate.m',148,0)">line 148</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('FECODElargeDYN', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\FECODElargeDYN.m', 92)" style="font-weight:bold">FECODElargeDYN</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\FECODElargeDYN.m',92,0)">line 92</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Training_MULTI', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m', 86)" style="font-weight:bold">Training_MULTI</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m',86,0)">line 86</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train1dom_BUBcomp', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m', 105)" style="font-weight:bold">Train1dom_BUBcomp</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m',105,0)">line 105</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train_Q8_wing', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\Train_Q8_wing.m', 89)" style="font-weight:bold">Train_Q8_wing</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\Train_Q8_wing.m',89,0)">line 89</a>)] 
+Renumering elements
+Assembly of Bst (stacked B-matrix)...
+Assembly of NstBw...
+Total volume = 0.066183
+Global elasticity matrix    ...
+...done in (5.2905 s)
+*************************************
+*************************************
+INITIALIZATIONS
+*************************************
+*************************************
+LOOP over time steps (NSTEPS =2)
+*************************************
+--------------------------------------------------
+istep = 2      t_i = 1.00000 
+--------------------------------------------------
+iter=1  resf =5.89279e+02  resf_ad=5.89279e+02  res_disp_abs=1.00000e+20   
+iter=2  resf =1.15328e-06  resf_ad=1.15328e-06  res_disp_abs=1.21152e+01   
+iter=3  resf =5.69671e-07  resf_ad=5.69671e-07  res_disp_abs=7.72507e-07   
+Compressing snapshots cluster = 1...
+DISP RANK = 1
+PK2STRESS RANK = 1
+VONMISES_CAUCHY_STRESS RANK = 1
+Done in 0.12436
+...done in (14.4077 s)
+Postprocess with GID
+open GID FILE:
+C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\GIDPOST\\wingQ8_param_3\wingQ8_param_3_clus_1.res
+*************************************
+Reading and constructing input data
+*************************************
+[Warning: Ill-constructed Boundary COnnectivity Matrix. REmoving repeated elements. ] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ReadMeshFileStr_MULT', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadMeshFileStr_MULT.m', 189)" style="font-weight:bold">ReadMeshFileStr_MULT</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadMeshFileStr_MULT.m',189,0)">line 189</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('GeometryMesh', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\GeometryMesh.m', 20)" style="font-weight:bold">GeometryMesh</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\GeometryMesh.m',20,0)">line 20</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('PreProcessInputDataDyn1', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\PreProcessInputDataDyn1.m', 102)" style="font-weight:bold">PreProcessInputDataDyn1</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\PreProcessInputDataDyn1.m',102,0)">line 102</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('INPUTS_TRAIN_Q8plate', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\TypeInputDATA\INPUTS_TRAIN_Q8plate.m', 148)" style="font-weight:bold">INPUTS_TRAIN_Q8plate</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\TypeInputDATA\INPUTS_TRAIN_Q8plate.m',148,0)">line 148</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('FECODElargeDYN', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\FECODElargeDYN.m', 92)" style="font-weight:bold">FECODElargeDYN</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\FECODElargeDYN.m',92,0)">line 92</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Training_MULTI', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m', 86)" style="font-weight:bold">Training_MULTI</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m',86,0)">line 86</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train1dom_BUBcomp', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m', 105)" style="font-weight:bold">Train1dom_BUBcomp</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m',105,0)">line 105</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train_Q8_wing', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\Train_Q8_wing.m', 89)" style="font-weight:bold">Train_Q8_wing</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\Train_Q8_wing.m',89,0)">line 89</a>)] 
+Renumering elements
+Assembly of Bst (stacked B-matrix)...
+Assembly of NstBw...
+Total volume = 0.066183
+Global elasticity matrix    ...
+...done in (7.0421 s)
+*************************************
+*************************************
+INITIALIZATIONS
+*************************************
+*************************************
+LOOP over time steps (NSTEPS =2)
+*************************************
+--------------------------------------------------
+istep = 2      t_i = 1.00000 
+--------------------------------------------------
+iter=1  resf =3.03865e+02  resf_ad=3.03865e+02  res_disp_abs=1.00000e+20   
+iter=2  resf =2.78268e-07  resf_ad=2.78268e-07  res_disp_abs=3.63037e+00   
+Compressing snapshots cluster = 1...
+DISP RANK = 1
+PK2STRESS RANK = 1
+VONMISES_CAUCHY_STRESS RANK = 1
+Done in 0.13146
+...done in (8.0709 s)
+Postprocess with GID
+open GID FILE:
+C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\GIDPOST\\wingQ8_param_4\wingQ8_param_4_clus_1.res
+*************************************
+Reading and constructing input data
+*************************************
+[Warning: Ill-constructed Boundary COnnectivity Matrix. REmoving repeated elements. ] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ReadMeshFileStr_MULT', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadMeshFileStr_MULT.m', 189)" style="font-weight:bold">ReadMeshFileStr_MULT</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadMeshFileStr_MULT.m',189,0)">line 189</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('GeometryMesh', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\GeometryMesh.m', 20)" style="font-weight:bold">GeometryMesh</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\GeometryMesh.m',20,0)">line 20</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('PreProcessInputDataDyn1', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\PreProcessInputDataDyn1.m', 102)" style="font-weight:bold">PreProcessInputDataDyn1</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\PreProcessInputDataDyn1.m',102,0)">line 102</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('INPUTS_TRAIN_Q8plate', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\TypeInputDATA\INPUTS_TRAIN_Q8plate.m', 148)" style="font-weight:bold">INPUTS_TRAIN_Q8plate</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\TypeInputDATA\INPUTS_TRAIN_Q8plate.m',148,0)">line 148</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('FECODElargeDYN', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\FECODElargeDYN.m', 92)" style="font-weight:bold">FECODElargeDYN</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\FECODElargeDYN.m',92,0)">line 92</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Training_MULTI', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m', 86)" style="font-weight:bold">Training_MULTI</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m',86,0)">line 86</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train1dom_BUBcomp', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m', 105)" style="font-weight:bold">Train1dom_BUBcomp</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m',105,0)">line 105</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train_Q8_wing', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\Train_Q8_wing.m', 89)" style="font-weight:bold">Train_Q8_wing</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\Train_Q8_wing.m',89,0)">line 89</a>)] 
+Renumering elements
+Assembly of Bst (stacked B-matrix)...
+Assembly of NstBw...
+Total volume = 0.066183
+Global elasticity matrix    ...
+...done in (6.2126 s)
+*************************************
+*************************************
+INITIALIZATIONS
+*************************************
+*************************************
+LOOP over time steps (NSTEPS =2)
+*************************************
+--------------------------------------------------
+istep = 2      t_i = 1.00000 
+--------------------------------------------------
+iter=1  resf =3.29534e+02  resf_ad=3.29534e+02  res_disp_abs=1.00000e+20   
+iter=2  resf =2.97285e-06  resf_ad=2.97285e-06  res_disp_abs=6.88555e+00   
+iter=3  resf =3.25098e-07  resf_ad=3.25098e-07  res_disp_abs=1.22581e-06   
+Compressing snapshots cluster = 1...
+DISP RANK = 1
+PK2STRESS RANK = 1
+VONMISES_CAUCHY_STRESS RANK = 1
+Done in 0.18894
+...done in (14.5991 s)
+Postprocess with GID
+open GID FILE:
+C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\GIDPOST\\wingQ8_param_5\wingQ8_param_5_clus_1.res
+*************************************
+Reading and constructing input data
+*************************************
+[Warning: Ill-constructed Boundary COnnectivity Matrix. REmoving repeated elements. ] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ReadMeshFileStr_MULT', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadMeshFileStr_MULT.m', 189)" style="font-weight:bold">ReadMeshFileStr_MULT</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadMeshFileStr_MULT.m',189,0)">line 189</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('GeometryMesh', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\GeometryMesh.m', 20)" style="font-weight:bold">GeometryMesh</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\GeometryMesh.m',20,0)">line 20</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('PreProcessInputDataDyn1', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\PreProcessInputDataDyn1.m', 102)" style="font-weight:bold">PreProcessInputDataDyn1</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\PreProcessInputDataDyn1.m',102,0)">line 102</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('INPUTS_TRAIN_Q8plate', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\TypeInputDATA\INPUTS_TRAIN_Q8plate.m', 148)" style="font-weight:bold">INPUTS_TRAIN_Q8plate</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\TypeInputDATA\INPUTS_TRAIN_Q8plate.m',148,0)">line 148</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('FECODElargeDYN', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\FECODElargeDYN.m', 92)" style="font-weight:bold">FECODElargeDYN</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\FECODElargeDYN.m',92,0)">line 92</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Training_MULTI', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m', 86)" style="font-weight:bold">Training_MULTI</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m',86,0)">line 86</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train1dom_BUBcomp', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m', 105)" style="font-weight:bold">Train1dom_BUBcomp</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m',105,0)">line 105</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train_Q8_wing', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\Train_Q8_wing.m', 89)" style="font-weight:bold">Train_Q8_wing</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\Train_Q8_wing.m',89,0)">line 89</a>)] 
+Renumering elements
+Assembly of Bst (stacked B-matrix)...
+Assembly of NstBw...
+Total volume = 0.066183
+Global elasticity matrix    ...
+...done in (5.8527 s)
+*************************************
+*************************************
+INITIALIZATIONS
+*************************************
+*************************************
+LOOP over time steps (NSTEPS =2)
+*************************************
+--------------------------------------------------
+istep = 2      t_i = 1.00000 
+--------------------------------------------------
+iter=1  resf =4.67742e+01  resf_ad=4.67742e+01  res_disp_abs=1.00000e+20   
+iter=2  resf =5.25025e-06  resf_ad=5.25025e-06  res_disp_abs=6.75603e+00   
+iter=3  resf =2.36623e-06  resf_ad=2.36623e-06  res_disp_abs=2.01786e-05   
+iter=4  resf =4.27131e-06  resf_ad=4.27131e-06  res_disp_abs=3.26763e-10   
+iter=5  resf =9.55309e-07  resf_ad=9.55309e-07  res_disp_abs=2.09088e-15   
+Compressing snapshots cluster = 1...
+DISP RANK = 1
+PK2STRESS RANK = 1
+VONMISES_CAUCHY_STRESS RANK = 1
+Done in 0.12534
+...done in (27.956 s)
+Postprocess with GID
+open GID FILE:
+C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\GIDPOST\\wingQ8_param_6\wingQ8_param_6_clus_1.res
