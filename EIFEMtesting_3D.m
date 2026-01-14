@@ -53,7 +53,7 @@ classdef EIFEMtesting_3D < handle
             RBbasisFree  = forAlgebraicMultigrid(obj);
             Mid          = @(r) r;
             Meifem       = obj.createEIFEMPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
-            Milu         = obj.createILUpreconditioner(LHS);
+            %Milu         = obj.createILUpreconditioner(LHS);
             MgaussSeidel = obj.createGaussSeidelpreconditioner(LHS);
             MJacobi      = obj.createJacobipreconditioner(LHS);
             Mmodal       = obj.createModalpreconditioner(LHS);
@@ -66,16 +66,17 @@ classdef EIFEMtesting_3D < handle
 
             x0 = zeros(size(RHSf));
             tic
-%             [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
+            [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHSf,x0,MJacobi ...
+                ,tol,Usol,obj.meshDomain,obj.bcApplier);
             toc
             %             [uCG,residualCG,errCG,errAnormCG] = RichardsonSolver.solve(LHSf,RHSf,x0,P,tol,0.1,Usol);
 
-            tol = 1e-8;
+            tol = 1e-6;
 
             %Mmult = MdirNeu;
             x0 = zeros(size(RHSf));
             r = RHSf - LHSf(x0);
-            Mmult = @(r) Preconditioner.multiplePrec(r,Milu,Meifem,Milu,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
+            Mmult = @(r) Preconditioner.multiplePrec(r,Mid,Meifem,Mid,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
             %              Mmult = @(r) Preconditioner.multiplePrec(r,Mid,Meifem,Mid,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
             %             zmult = Mmult(r);
 
@@ -126,8 +127,8 @@ classdef EIFEMtesting_3D < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [3 3 1]; %nx ny
-            obj.fileNameEIFEM = 'DEF_por3D.mat';
+            obj.nSubdomains  = [5 1 1]; %nx ny
+            obj.fileNameEIFEM = 'MESHdom.mat';
             %             obj.fileNameEIFEM = 'DEF_auxNew_2.mat';
             %obj.fileNameEIFEM = 'DEF_Q4porL_1_raul.mat';
             obj.tolSameNode = 1e-6;
@@ -236,8 +237,8 @@ classdef EIFEMtesting_3D < handle
         function mS = createEIFEMreferenceMesh(obj)
             filename = obj.fileNameEIFEM;
             load(filename);
-            s.coord    = EIFEoper.MESH.COOR;
-            s.connec   = EIFEoper.MESH.CN;
+            s.coord    = MESHdom.COOR;
+            s.connec   = MESHdom.CN;
 
             maxC= max(s.coord);
             minC = min(s.coord);
@@ -471,7 +472,7 @@ classdef EIFEMtesting_3D < handle
 
         function Meifem = createEIFEMPreconditioner(obj,mR,dir,iC,lG,bS,iCR,dMesh)
             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
-            EIFEMfilename = obj.fileNameEIFEM;
+            EIFEMfilename = 'DEF_Q8_wing_1.mat';
             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
             filename        = EIFEMfilename;
             s.RVE           = TrainedRVE(filename);
