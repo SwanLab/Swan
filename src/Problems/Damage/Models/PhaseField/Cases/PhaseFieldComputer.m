@@ -40,7 +40,7 @@ classdef PhaseFieldComputer < handle
                 step = step + 1;
 
                 sig = obj.functional.computeStress(u,phi);
-                max(sig.fValues(:,1))
+                max(sig.evaluate([0;0]),[],'all')
             end
             outputData = obj.monitor.data;
         end
@@ -133,7 +133,7 @@ classdef PhaseFieldComputer < handle
                 totReact = obj.boundaryConditions.u.bcValues(step);
             elseif ismember(obj.boundaryConditions.u.type, ["DisplacementTractionX","DisplacementTractionXClamped"])
                 dofsXleft = (nodes(isInLeft)-1)*u.ndimf + 1;
-                totReact = abs(sum(F(dofsXleft)));
+                totReact = abs(sum(F(dofsXleft)))/10;
                 uBC = obj.boundaryConditions.u.bcValues(step);
             end
             

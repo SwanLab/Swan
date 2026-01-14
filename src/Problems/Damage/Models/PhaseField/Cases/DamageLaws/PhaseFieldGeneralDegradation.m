@@ -3,6 +3,7 @@ classdef PhaseFieldGeneralDegradation < handle
    properties (Access = private)
         shear
         bulk
+        degFun
    end
 
     methods (Access = public)
@@ -38,6 +39,14 @@ classdef PhaseFieldGeneralDegradation < handle
                 obj.shear = cParams.shear;
                 obj.bulk  = cParams.bulk;
             end
+            obj.defineDegradationFunction(cParams.params)
+        end
+
+        function defineDegradationFunction(obj,cParams)
+            syms phi
+            g(phi) = (1-phi)./((1-phi) + phi*cParams.coeffs(1)/2);
+            %g(phi) = (1-sqrt(phi))^2;
+            obj.degFun = g;
         end
 
         function mu = computeMuFunction(obj,phi)
@@ -70,17 +79,19 @@ classdef PhaseFieldGeneralDegradation < handle
             ddk = obj.derive2(phi,k0);
         end
 
-
-        function f = interpolate(~,phi,f0)
-            f = ((1 - (phi.fun).^(0.5)).^2).*f0;
+        function f = interpolate(obj,phi,f0)
+           g = matlabFunction(obj.degFun);
+           f = g(phi.fun).*f0;
         end
         
-        function f = derive(~,phi,f0)
-            f = (1 - phi.fun.^(-0.5)).*f0;
+        function f = derive(obj,phi,f0)
+           dg = matlabFunction(diff(obj.degFun));
+           f = dg(phi.fun).*f0;
         end
 
-        function f = derive2(~,phi,f0)
-            f = (0.5*(phi.fun).^(-1.5)).*f0;
+        function f = derive2(obj,phi,f0)
+           d2g = matlabFunction(diff(diff(obj.degFun)));
+           f = d2g(phi.fun).*f0;
         end
     end
 

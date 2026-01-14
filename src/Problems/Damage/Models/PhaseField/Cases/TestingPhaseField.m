@@ -116,6 +116,7 @@ classdef TestingPhaseField < handle
             s.mesh          = obj.mesh;
             s.material      = obj.createMaterialPhaseField();
             s.dissipation   = obj.createDissipationInterpolation();
+            s.Gc            = obj.matInfo.Gc;
             s.l0            = obj.l0;
             s.quadOrder     = 3;
             s.testSpace.u   = obj.initialGuess.u;

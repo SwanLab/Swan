@@ -540,8 +540,15 @@ classdef BoundaryConditionsCreator < handle
          end
 
          function createDamageFreeConditions(obj,~)
+            isNowhere = @(coor) (abs(coor(:,2) - 1e20)  < 1e-12);
+            sDir.domain    = @(coor) isNowhere(coor);
+            sDir.direction = [1];
+            sDir.value     = 0;
+            sDir.ndim      = 1;
+            Dir1 = DirichletCondition(obj.mesh,sDir);
+
             s.mesh         = obj.mesh;
-            s.dirichletFun = [];
+            s.dirichletFun = [Dir1];
             s.pointloadFun = [];
             s.periodicFun  = [];
             obj.boundaryConditions = BoundaryConditions(s);

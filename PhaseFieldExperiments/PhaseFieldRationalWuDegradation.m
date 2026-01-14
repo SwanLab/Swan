@@ -82,7 +82,6 @@ classdef PhaseFieldRationalWuDegradation < handle
             ddk = obj.derive2(phi,k0);
         end
 
-
         function f = interpolate(obj,phi,f0)
            g = matlabFunction(obj.degFun);
            f = g(phi.fun).*f0;

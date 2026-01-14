@@ -3,7 +3,8 @@ classdef LocalDamageFunctional < handle
     properties (Access = private)
         mesh
         dissipation
-        constant
+        cw
+        Gc
         l0
         testPhi
     end
@@ -16,19 +17,18 @@ classdef LocalDamageFunctional < handle
         
         function F = computeCost(obj,phi,quadOrder)
             alphaFun = obj.obtainDissipationFunction(phi,'Function');
-
             int = Integrator.create('Function',obj.mesh,quadOrder);
-            F   = (obj.constant/obj.l0)*int.compute(alphaFun);
+            F   = (obj.Gc/(obj.cw*obj.l0))*int.compute(alphaFun);
         end
         
         function J = computeGradient(obj,phi,quadOrder)
             dAlphaFun =  obj.obtainDissipationFunction(phi,'Jacobian');
-            J = IntegrateRHS(@(v) (obj.constant/obj.l0).*DP(v,dAlphaFun),obj.testPhi,obj.mesh,'Domain',quadOrder);
+            J = IntegrateRHS(@(v) (obj.Gc/(obj.cw*obj.l0)).*DP(v,dAlphaFun),obj.testPhi,obj.mesh,'Domain',quadOrder);
         end
         
         function H = computeHessian(obj,phi,quadOrder)
             ddAlphaFun =  obj.obtainDissipationFunction(phi,'Hessian');         
-            H = IntegrateLHS(@(u,v) (obj.constant/obj.l0).*ddAlphaFun.*DP(v,u),obj.testPhi,obj.testPhi,obj.mesh,'Domain',quadOrder);
+            H = IntegrateLHS(@(u,v) (obj.Gc/(obj.cw*obj.l0)).*ddAlphaFun.*DP(v,u),obj.testPhi,obj.testPhi,obj.mesh,'Domain',quadOrder);
         end
     end
     
@@ -38,7 +38,8 @@ classdef LocalDamageFunctional < handle
             obj.mesh        = cParams.mesh;
             obj.testPhi     = copy(cParams.testSpace.phi);          
             obj.dissipation = cParams.dissipation.interpolation;
-            obj.constant    = cParams.dissipation.constant;
+            obj.cw          = cParams.dissipation.constant;
+            obj.Gc          = cParams.Gc;
             obj.l0          = cParams.l0;
         end
 

@@ -2,7 +2,8 @@ classdef NonLocalDamageFunctional < handle
     
     properties (Access = private)
         mesh
-        constant
+        cw
+        Gc
         l0
         testPhi
     end
@@ -16,15 +17,15 @@ classdef NonLocalDamageFunctional < handle
         function F = computeCost(obj,phi,quadOrder)        
             phiGradSquaredFun = norm(Grad(phi)).^2;
             int = Integrator.create('Function',obj.mesh,quadOrder);
-            F   = (obj.constant*(obj.l0/2))*int.compute(phiGradSquaredFun);
+            F   = ((obj.Gc*obj.l0)/(2*obj.cw))*int.compute(phiGradSquaredFun);
         end
         
         function J = computeGradient(obj,phi,quadOrder)
-            J = IntegrateRHS(@(v) (obj.constant*obj.l0)*DP(Grad(v),Grad(phi)),obj.testPhi,obj.mesh,'Domain',quadOrder);
+            J = IntegrateRHS(@(v) ((obj.Gc*obj.l0)/(obj.cw))*DP(Grad(v),Grad(phi)),obj.testPhi,obj.mesh,'Domain',quadOrder);
         end
         
         function H = computeHessian(obj,~,quadOrder)
-            H = IntegrateLHS(@(u,v) (obj.constant*obj.l0)*DP(Grad(v),Grad(u)),obj.testPhi,obj.testPhi,obj.mesh,'Domain',quadOrder);
+            H = IntegrateLHS(@(u,v) ((obj.Gc*obj.l0)/(obj.cw))*DP(Grad(v),Grad(u)),obj.testPhi,obj.testPhi,obj.mesh,'Domain',quadOrder);
         end
     end
     
@@ -33,7 +34,8 @@ classdef NonLocalDamageFunctional < handle
         function init(obj,cParams)
             obj.mesh     = cParams.mesh;            
             obj.testPhi  = copy(cParams.testSpace.phi);
-            obj.constant = cParams.dissipation.constant;
+            obj.cw       = cParams.dissipation.constant;
+            obj.Gc       = cParams.Gc;
             obj.l0       = cParams.l0;
         end
         
