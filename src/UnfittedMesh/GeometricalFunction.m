@@ -109,6 +109,36 @@ classdef GeometricalFunction < handle
                     fH2 = @(x) max( yT1 - x2(x), x2(x) - yT2 );
                     fH = @(x) min([fV1(x),fV2(x),fH1(x),fH2(x)]);
                     obj.fHandle = fH;
+
+                case 'FourPerpendicularBars_3D'
+                    xmin = cParams.minxCoor;
+                    xmax = cParams.maxxCoor;
+                    ymin = cParams.minyCoor;
+                    ymax = cParams.maxyCoor;
+                    zmin = cParams.minzCoor;
+                    zmax = cParams.maxzCoor;
+                    nX = cParams.nFibersX;
+                    nY = cParams.nFibersY;
+                    nZ = cParams.nFibersZ;
+                    R  = cParams.radius;
+                    Lx = xmax - xmin;
+                    Ly = ymax - ymin;
+                    Lz = zmax - zmin;
+                    nLayers = cParams.nLayers;    
+                    tLayer  = (ymax - ymin)/nLayers;
+                    layer = @(x) floor((x3(x) - zmin)/tLayer);
+                    f0 = @(x) sqrt( ...
+                        (mod(x2(x)-ymin, Ly/nY) - Ly/(2*nY)).^2 + ...
+                        (mod(x3(x)-zmin, Lz/nZ) - Lz/(2*nZ)).^2 ...
+                        ) - R;
+                    f90 = @(x) sqrt( ...
+                        (mod(x1(x)-xmin, Lx/nX) - Lx/(2*nX)).^2 + ...
+                        (mod(x3(x)-zmin, Lz/nZ) - Lz/(2*nZ)).^2 ...
+                        ) - R;
+                    fH = @(x) ...
+                        (mod(layer(x),2)==0).*f0(x) + (mod(layer(x),2)==1).*f90(x);
+
+                    obj.fHandle = fH;
                                         
 
                 case 'FourPerpendicularBarsWithCrack'
@@ -397,6 +427,24 @@ classdef GeometricalFunction < handle
                     xmax = cParams.maxxCoor;
                     k    = 2*pi*n/(xmax-xmin);
                     fH   = @(x) sin(k*(x1(x)-xmin)+pi/2);
+                    obj.fHandle = fH;
+
+                case 'VerticalNFibers_3D'
+                    xmin = cParams.minxCoor;
+                    xmax = cParams.maxxCoor;
+                    zmin = cParams.minzCoor;
+                    zmax = cParams.maxzCoor;
+                    nX = cParams.nFibersX;
+                    nZ = cParams.nFibersZ;
+                    R  = cParams.radius;
+                    Lx = xmax - xmin;
+                    Lz = zmax - zmin;
+                    fH = @(x) ...
+                        sqrt( ...
+                        (mod(x1(x)-xmin, Lx/nX) - Lx/(2*nX)).^2 + ...
+                        (mod(x3(x)-zmin, Lz/nZ) - Lz/(2*nZ)).^2 ...
+                        ) - R;
+
                     obj.fHandle = fH;
 
                 case 'HorizontalFiber'

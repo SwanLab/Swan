@@ -1,4 +1,4 @@
-classdef ElasticityMicro_0_3D < handle
+classdef ElasticityMicro_90_3D < handle
 
     properties (Access = private)
         young
@@ -13,7 +13,7 @@ classdef ElasticityMicro_0_3D < handle
 
     methods (Access = public)
 
-        function obj = ElasticityMicro_0_3D()
+        function obj = ElasticityMicro_90_3D()
             obj.createMesh();
             obj.computeDensity();
             obj.computeElasticProperties();
@@ -56,7 +56,7 @@ classdef ElasticityMicro_0_3D < handle
         end
 
         function [ls,phiFun] = computeLevelSet(obj, mesh)            
-            g.type          = 'HorizontalNFibers_3D';
+            g.type          = 'VerticalNFibers_3D';
             g.minxCoor      = 0;
             g.maxxCoor      = 1;
             g.minyCoor      = 0;
@@ -64,7 +64,7 @@ classdef ElasticityMicro_0_3D < handle
             g.minzCoor      = 0;
             g.maxzCoor      = 1; 
             g.width         = 0.5;
-            g.nFibersY      = 4;    
+            g.nFibersX      = 4;    
             g.nFibersZ      = 4;
             g.radius        = 0.075;
             g               = GeometricalFunction(g);
