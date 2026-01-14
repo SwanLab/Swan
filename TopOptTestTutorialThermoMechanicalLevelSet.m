@@ -97,6 +97,7 @@ classdef TopOptTestTutorialThermoMechanicalLevelSet < handle
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
+            s.typeOfMaterial = 'ISOTROPIC';
             s.interpolation  = 'SIMPALL';
             s.dim            = '2D';
             s.matA = matA;
@@ -107,7 +108,10 @@ classdef TopOptTestTutorialThermoMechanicalLevelSet < handle
         end
 
         function m = createMaterial(obj)
-            f = obj.designVariable.fun;           
+%             f = obj.designVariable.fun;           
+            x = obj.designVariable;
+            f = x.obtainDomainFunction();
+            f = obj.filter.compute(f{1},1);
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
@@ -214,11 +218,10 @@ classdef TopOptTestTutorialThermoMechanicalLevelSet < handle
             s.gJFlowRatio    = 1;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
-            
             s.gif=false;
-            s.gifName='ThermalDensity';
+            s.gifName='ThermalLS';
             s.printing=true;
-            s.printName='Thermal Density';
+            s.printName='Thermal LS';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -277,7 +280,7 @@ classdef TopOptTestTutorialThermoMechanicalLevelSet < handle
             isDir   = @(coor) abs(coor(:,2))==yMin | abs(coor(:,2))==yMax | abs(coor(:,1))==xMin | abs(coor(:,1))==xMax;  
 
             sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = 10;
+            sDir{1}.direction = 1;
             sDir{1}.value     = 0;
             sDir{1}.ndim = 1;
             
