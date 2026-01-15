@@ -33,8 +33,8 @@ classdef PerimeterVolumeChambollePock < handle
         end
 
         function createMesh(obj)
-            nx=10;
-            ny=10;
+            nx=20;
+            ny=20;
             Lx = 1;
             Ly = 1;
             obj.mesh = TriangleMesh(Lx,Ly,nx,ny);
@@ -42,7 +42,7 @@ classdef PerimeterVolumeChambollePock < handle
 
         function createFilterChambollePock(obj)
             s.mesh  = obj.mesh;
-            obj.filter = FilterPDEChambollePock(s);
+            obj.filter = FilterPDEChambollePockContinue(s);
         end
 
         function g = createGeometricalFunction(obj)
