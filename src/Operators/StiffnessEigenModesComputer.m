@@ -5,7 +5,7 @@ classdef StiffnessEigenModesComputer < handle
     end
     
     properties (Access = private)
-        conductivityInterpolator 
+        elasticityInterpolator 
         massInterpolator
         boundaryConditions
         epsilon
@@ -44,15 +44,16 @@ classdef StiffnessEigenModesComputer < handle
         function init(obj,cParams)
             obj.mesh    = cParams.mesh;
             obj.boundaryConditions = cParams.boundaryConditions;
-            obj.test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            obj.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            obj.phi =  LagrangianFunction.create(obj.mesh,1,'P1');
-            obj.conductivityInterpolator = cParams.conductivityInterpolator;
+            obj.test  = LagrangianFunction.create(obj.mesh,1,'P3');
+            obj.trial = LagrangianFunction.create(obj.mesh,1,'P3');
+            obj.phi =  LagrangianFunction.create(obj.mesh,1,'P3');
+            obj.elasticityInterpolator = cParams.elasticityInterpolator;
             obj.massInterpolator = cParams.massInterpolator;
         end  
 
         function K = createStiffnessMatrixWithFunction(obj,xR)
-            alphaFun = obj.conductivityInterpolator.fun;
+            %alphaFun = obj.elasticityInterpolator.fun;
+            alphaFun = obj.elasticityInterpolator;
             alpha = obj.createDomainFunction(alphaFun,xR);                 % xR may be chi or 1 - chi
             f = @(u,v) alpha.*DP(Grad(u),Grad(v));
             K = IntegrateLHS(f,obj.test,obj.trial, obj.mesh,'Domain',2);
@@ -112,7 +113,7 @@ classdef StiffnessEigenModesComputer < handle
         end
 
         function dlambda = computeLowestEigenValueGradient(obj, lambda, phi, xR)
-            dalpha = obj.createDomainFunction(obj.conductivityInterpolator.dfun, xR);
+            dalpha = obj.createDomainFunction(obj.elasticityInterpolator.dfun, xR);
             dm     = obj.createDomainFunction(obj.massInterpolator.dfun, xR);  
             fValues = obj.fillVectorWithHomogeneousDirichlet(phi);
             obj.phi.setFValues(fValues);

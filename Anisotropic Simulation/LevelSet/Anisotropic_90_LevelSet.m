@@ -33,7 +33,7 @@ classdef Anisotropic_90_LevelSet < handle
 
             % Save monitoring and desginVariable fValues
             %saveas(gcf,'Monitoring_90_LevelSet.fig');
-            obj.designVariable.fun.print('fValues_90_LevelSet');
+            %obj.designVariable.fun.print('fValues_90_LevelSet');
         end
 
     end
@@ -184,9 +184,9 @@ classdef Anisotropic_90_LevelSet < handle
             s.etaMaxMin      = 0.05;
             %s.type           = '90';
             s.gif = true;
-            s.gifName = 'Gif_90_LevelSet';
+            s.gifName = 'Prova';
             s.printing = false;
-            s.printName = 'Results_90_LevelSet';
+            s.printName = 'Prova';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
