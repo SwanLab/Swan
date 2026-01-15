@@ -33,8 +33,16 @@ classdef TrainedRVE < handle
         function init(obj,filename)
             load(filename);
             obj.Kcoarse = EIFEoper.Kcoarse;
-            obj.Udef    = EIFEoper.Udef;
-            obj.Urb     = EIFEoper.Urb;
+            if isfield(EIFEoper,'Udef')
+                obj.Udef    = EIFEoper.Udef;
+                obj.Urb     = EIFEoper.Urb;
+            else
+                obj.Udef    = EIFEoper.RECONSTRUCTION.DEF_DISP.BASIS*...
+                              EIFEoper.RECONSTRUCTION.DEF_DISP.coeff;
+                obj.Urb     = EIFEoper.RECONSTRUCTION.RB_DISP.BASIS*...
+                              EIFEoper.RECONSTRUCTION.RB_DISP.coeff;
+            end
+            
             obj.ndimf   = 2;
 %             obj.PhiDef  = EIFEoper.RECONSTRUCTION.DEF_DISP.BASIS;
 %             obj.PhiRb   = EIFEoper.RECONSTRUCTION.RB_DISP.BASIS;

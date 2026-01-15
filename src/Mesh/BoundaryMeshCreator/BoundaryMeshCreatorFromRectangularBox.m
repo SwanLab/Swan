@@ -63,7 +63,13 @@ classdef BoundaryMeshCreatorFromRectangularBox < BoundaryMeshCreator
                 case 2
                     connec = obj.computeConnectivities1D(facetCoords);
                 case 3
-                    connec = obj.computeConnectivities2D(facetCoords);
+                    tf = all(facetCoords(:,1) == facetCoords(1,1)) || all(facetCoords(:,2) == facetCoords(1,2));
+                    if tf
+                        connec = obj.computeConnectivities1D(facetCoords);
+                    else
+                         connec = obj.computeConnectivities2D(facetCoords);
+                    end
+                   
             end
         end
         
