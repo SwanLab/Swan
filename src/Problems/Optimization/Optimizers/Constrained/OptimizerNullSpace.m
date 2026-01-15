@@ -271,7 +271,7 @@ classdef OptimizerNullSpace < handle
             mNew = obj.computeMeritFunction();
             x    = obj.designVariable.fun.fValues;
             etaN = obj.obtainTrustRegion();
-            if mNew <= obj.mOldPrimal+1e-3  &&  norm(x-x0)/(norm(x0)+1) < etaN
+            if mNew <= obj.mOldPrimal+1e-1  &&  norm(x-x0)/(norm(x0)+1) < etaN
                 obj.acceptableStep = true;
                 obj.meritNew       = mNew;
                 obj.updateEtaMax();

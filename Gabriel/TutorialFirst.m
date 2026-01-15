@@ -241,11 +241,11 @@ classdef TutorialFirst < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 600;
+            s.maxIter        = 800;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
-            s.etaNorm        = 0.01;
+            s.etaNorm        = 0.1;
             s.gJFlowRatio    = 0.5;
             s.gif            = true;
             s.gifName        = 'Tutorial_Homo_ReinforcedHexagon_Beam';
@@ -259,28 +259,47 @@ classdef TutorialFirst < handle
             
         end
 
+        % function m = createMaterial(obj)
+        %     x = obj.designVariable;
+        %     f = x.obtainDomainFunction();
+        %     f = f{1}.project('P1'); 
+        %     % f = obj.filterCompliance.compute(f{1},1);            
+        %    % s.type                 = 'DensityBased';
+        %    % s.density              = f;
+        %    % s.materialInterpolator = obj.materialInterpolator;
+        %    % s.dim                  = '2D';
+        %    % s.mesh                 = obj.mesh;
+        % 
+        % 
+        %     s.density  =  f;
+        %     s.type     = 'HomogenizedMicrostructure';
+        %     s.mesh     = obj.mesh;
+        %     s.young    = 1.0;
+        %     s.fileName = 'HomogenizationResultsReinforcedHexagon';
+        %     m = MaterialFactory.create(s);
+        % 
+        %    % m = Material.create(s);  
+        % 
+        % 
+        % end
         function m = createMaterial(obj)
             x = obj.designVariable;
             f = x.obtainDomainFunction();
             f = f{1}.project('P1'); 
-            % f = obj.filterCompliance.compute(f{1},1);            
-           % s.type                 = 'DensityBased';
-           % s.density              = f;
-           % s.materialInterpolator = obj.materialInterpolator;
-           % s.dim                  = '2D';
-           % s.mesh                 = obj.mesh;
-           
-        
-            s.density  =  f;
+            
+            sFilter.filterType = 'LUMP'; 
+            sFilter.mesh = obj.mesh;
+            sFilter.trial = LagrangianFunction.create(obj.mesh, 1, 'P1');
+            filterRho = Filter.create(sFilter);
+            
+            f_filtered = filterRho.compute(f, 1); 
+
+            s.density  =  f_filtered; 
             s.type     = 'HomogenizedMicrostructure';
             s.mesh     = obj.mesh;
             s.young    = 1.0;
             s.fileName = 'HomogenizationResultsReinforcedHexagon';
             m = MaterialFactory.create(s);
-
-           % m = Material.create(s);  
-
-
         end
 
         function bc = createBoundaryConditions(obj)
