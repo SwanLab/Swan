@@ -277,7 +277,7 @@ classdef TestingPhaseFieldHomogenizer < handle
                             m = l/(2*sqrt(3));
                             h = sqrt(3)/2 - 3*m;
                             a = h*(2/sqrt(3));
-                            phi = 3*6*a/(3*6*1);
+                            phi = 6*3*a/(6*3*1);
                     end
             end
         end
