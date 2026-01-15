@@ -2,8 +2,8 @@
 clear all, close all, clc;
 
 % Lista de archivos .fig que quieres procesar
-files = {'Monitoring_Isotropic_Density.fig','Monitoring_0_Density.fig', 'Monitoring_45_Density.fig','Monitoring_90_Density.fig',...
-         'Monitoring_0_90_Density.fig', 'Monitoring_45_45_Density.fig','Monitoring_0_45_Density.fig'};
+files = {'Monitoring_Isotropic_MBB_Level_Set.fig','Monitoring_0_Level_Set_MBB.fig', 'Monitoring_45_Level_Set_MBB.fig','Monitoring_90_LevelSet_MBB.fig',...
+         'Monitoring_0_90_Level_Set_MBB.fig', 'Monitoring_45_45_Level_Set_MBB.fig','Monitoring_0_45_Level_Set_MBB.fig'};
 
 % Inicializamos estructura para guardar los datos
 allData = struct();
@@ -56,8 +56,9 @@ for f = 1:length(files)
     plot(data.x, data.y, 'LineWidth',1.5);
 end
 xlabel('Iteration')
+ylim([1, 3])
 legend('Isotropic','0º', '45º','90º','0º/90º','45º/45º','0º/45º');
-title('Compliance comparison - Cantilever Beam, Density')
+title('Compliance comparison - MBB, Level Set')
 
 % Subplot 2 (columna 3, fila 1)
 figure(2); hold on; grid minor;
@@ -67,4 +68,4 @@ for f = 1:length(files)
 end
 xlabel('Iteration')
 legend('Isotropic','0º', '45º','90º','0º/90º','45º/45º','0º/45º');
-title('Volume Constraint comparison - Cantilever Beam, Density')
+title('Volume Constraint comparison - MBB, Level Set')
