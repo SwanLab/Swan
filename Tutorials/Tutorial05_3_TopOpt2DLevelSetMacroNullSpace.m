@@ -30,6 +30,7 @@ classdef Tutorial05_3_TopOpt2DLevelSetMacroNullSpace < handle
             obj.createConstraint();
             obj.createPrimalUpdater();
             obj.createOptimizer();
+            obj.designVariable.fun.print('fValues_Isotropic_LevelSet');
         end
 
     end
@@ -41,7 +42,7 @@ classdef Tutorial05_3_TopOpt2DLevelSetMacroNullSpace < handle
         end
 
         function createMesh(obj)
-<<<<<<< HEAD:Tutorials/TopOptTestTutorialLevelSetNullSpace.m
+
             %UnitMesh better
             x1      = linspace(0,2,150);
             x2      = linspace(0,1,75);
@@ -50,9 +51,7 @@ classdef Tutorial05_3_TopOpt2DLevelSetMacroNullSpace < handle
             s.coord  = V(:,1:2);
             s.connec = F;
             obj.mesh = Mesh.create(s);
-=======
-            obj.mesh = TriangleMesh(2,1,100,50);
->>>>>>> master:Tutorials/Tutorial05_3_TopOpt2DLevelSetMacroNullSpace.m
+
         end
 
         function createDesignVariable(obj)
@@ -107,7 +106,7 @@ classdef Tutorial05_3_TopOpt2DLevelSetMacroNullSpace < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = CGsolver();
+            s.solverCase = DirectSolver();
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -128,7 +127,7 @@ classdef Tutorial05_3_TopOpt2DLevelSetMacroNullSpace < handle
         end
 
         function uMesh = createBaseDomain(obj)
-            sG.type          = 'Square';
+            sG.type          = 'Full';
             sG.length        = 1;
             sG.xCoorCenter   = 1.5;
             sG.yCoorCenter   = 0.5;
@@ -180,7 +179,7 @@ classdef Tutorial05_3_TopOpt2DLevelSetMacroNullSpace < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 500;
+            s.maxIter        = 300;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
@@ -190,9 +189,9 @@ classdef Tutorial05_3_TopOpt2DLevelSetMacroNullSpace < handle
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
             s.gif            = true;
-            s.gifName        = 'Tutorial05_3';
-            s.printing       = true;
-            s.printName      = 'Tutorial05_3';
+            s.gifName        = 'Beam_Isotropic_LevelSet';
+            s.printing       = false;
+            s.printName      = 'Beam_Isotropic';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

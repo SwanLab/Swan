@@ -23,7 +23,7 @@ classdef Anisotropic_90_Density < handle
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
-            obj.createFilterPDE();
+           % obj.createFilterPDE();
             %obj.createPerimeter();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
@@ -209,7 +209,7 @@ classdef Anisotropic_90_Density < handle
             s.designVariable = obj.designVariable;
             s.maxIter        = 500;
             s.tolerance      = 1e-8;
-            s.constraintCase = {'EQUALITY','INEQUALITY'};
+            s.constraintCase = {'EQUALITY'}; %{'EQUALITY','INEQUALITY'}; for perimeter
             s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.02;

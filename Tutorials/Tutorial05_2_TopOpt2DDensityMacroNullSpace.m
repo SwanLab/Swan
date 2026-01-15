@@ -30,6 +30,7 @@ classdef Tutorial05_2_TopOpt2DDensityMacroNullSpace < handle
             obj.createConstraint();
             obj.createPrimalUpdater();
             obj.createOptimizer();
+            obj.designVariable.fun.print('fValues_Isotropic_Density_MBB');
         end
 
     end
@@ -41,7 +42,18 @@ classdef Tutorial05_2_TopOpt2DDensityMacroNullSpace < handle
         end
 
         function createMesh(obj)
-            obj.mesh = TriangleMesh(2,1,100,50);
+            %UnitMesh better
+            %Cantilever beam
+            % x1      = linspace(0,2,150);
+            % x2      = linspace(0,1,75);
+            % MBB Beam
+            x1      = linspace(0,6,500);
+            x2      = linspace(0,1,75);
+            [xv,yv] = meshgrid(x1,x2);
+            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
+            s.coord  = V(:,1:2);
+            s.connec = F;
+            obj.mesh = Mesh.create(s);
         end
 
         function createDesignVariable(obj)
@@ -128,10 +140,16 @@ classdef Tutorial05_2_TopOpt2DDensityMacroNullSpace < handle
         end
 
         function uMesh = createBaseDomain(obj)
-            levelSet         = -ones(obj.mesh.nnodes,1);
+            sG.type          = 'Full';
+            sG.length        = 1;
+            sG.xCoorCenter   = 1.5;
+            sG.yCoorCenter   = 0.5;
+            g                = GeometricalFunction(sG);
+            lsFun            = g.computeLevelSetFunction(obj.mesh);
+            levelSet         = lsFun.fValues;
             s.backgroundMesh = obj.mesh;
             s.boundaryMesh   = obj.mesh.createBoundaryMesh();
-            uMesh = UnfittedMesh(s);
+            uMesh            = UnfittedMesh(s);
             uMesh.compute(levelSet);
         end
 
@@ -153,9 +171,9 @@ classdef Tutorial05_2_TopOpt2DDensityMacroNullSpace < handle
         end
 
         function M = createMassMatrix(obj)
-            test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            trial = LagrangianFunction.create(obj.mesh,1,'P1'); 
-            M = IntegrateLHS(@(u,v) DP(v,u),test,trial,obj.mesh,'Domain');
+            n = obj.mesh.nnodes;
+            h = obj.mesh.computeMinCellSize();
+            M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
         end
 
         function createConstraint(obj)
@@ -177,15 +195,15 @@ classdef Tutorial05_2_TopOpt2DDensityMacroNullSpace < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 3;
+            s.maxIter        = 500;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
             s.etaNorm        = 0.01;
             s.gJFlowRatio    = 2;
             s.primalUpdater  = obj.primalUpdater;
-            s.gif            = false;
-            s.gifName        = [];
+            s.gif            = true;
+            s.gifName        = 'MBB_Isotropic_Density';
             s.printing       = false;
             s.printName      = [];
             opt = OptimizerNullSpace(s);
@@ -194,14 +212,28 @@ classdef Tutorial05_2_TopOpt2DDensityMacroNullSpace < handle
         end
 
         function bc = createBoundaryConditions(obj)
+            % Cantilever beam
+            % xMax    = max(obj.mesh.coord(:,1));
+            % yMax    = max(obj.mesh.coord(:,2));
+            % isDir   = @(coor)  abs(coor(:,1))==0;
+            % isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
+            % 
+            % MBB beam
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
-            isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
+            isDir   = @(coor)  (abs(coor(:,1))==0 & abs(coor(:,2)) == 0);
+            isDir2  = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2)) == 0);
+            isForce = @(coor)  (abs(coor(:,2))==yMax & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax);
+
 
             sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [1,2];
+            sDir{1}.direction = [2]; % Cantilever--> [1,2]   MBB--> 2
             sDir{1}.value     = 0;
+            
+            % Comentar sDir 2 quan es faci cantilever beam
+            sDir{2}.domain    = @(coor) isDir2(coor);
+            sDir{2}.direction = [1,2];
+            sDir{2}.value     = 0;
 
             sPL{1}.domain    = @(coor) isForce(coor);
             sPL{1}.direction = 2;
@@ -216,13 +248,13 @@ classdef Tutorial05_2_TopOpt2DDensityMacroNullSpace < handle
 
             pointloadFun = [];
             for i = 1:numel(sPL)
-                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
+                pl = TractionLoad(obj.mesh, sPL{i},'DIRAC');
                 pointloadFun = [pointloadFun, pl];
             end
             s.pointloadFun = pointloadFun;
 
             s.periodicFun  = [];
-            s.mesh         = obj.mesh;
+            s.mesh = obj.mesh;
             bc = BoundaryConditions(s);
         end
     end

@@ -20,11 +20,12 @@ classdef ComplianceFunctional < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            x = x{1};
+           % x = x{1};
             xD  = x.obtainDomainFunction();
             xR = obj.filterFields(xD);
             obj.material.setDesignVariable(xR);
             [J,dJ] = obj.computeComplianceFunctionAndGradient(x);
+            %obj.filteredDesignVariable = xR{1};
             obj.filteredDesignVariable = xR{1};
         end
 

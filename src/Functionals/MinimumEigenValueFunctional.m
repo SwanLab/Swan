@@ -22,8 +22,8 @@ classdef MinimumEigenValueFunctional < handle
         end   
 
         function [f, dfdx] = computeFunctionAndGradient(obj,x) 
-            iter = x{2};
-            x = x{1};
+            %iter = x{2};
+            %x = x{1};
 
             xD  = x.obtainDomainFunction();                  % rho
             xR = obj.filterDesignVariable(xD{1});            % FP rho
