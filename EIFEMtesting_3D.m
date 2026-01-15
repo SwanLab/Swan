@@ -53,7 +53,7 @@ classdef EIFEMtesting_3D < handle
             RBbasisFree  = forAlgebraicMultigrid(obj);
             Mid          = @(r) r;
             Meifem       = obj.createEIFEMPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
-            %Milu         = obj.createILUpreconditioner(LHS);
+            Milu         = obj.createILUpreconditioner((LHS'+LHS)/2);
             MgaussSeidel = obj.createGaussSeidelpreconditioner(LHS);
             MJacobi      = obj.createJacobipreconditioner(LHS);
             Mmodal       = obj.createModalpreconditioner(LHS);
@@ -66,8 +66,7 @@ classdef EIFEMtesting_3D < handle
 
             x0 = zeros(size(RHSf));
             tic
-            [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHSf,x0,MJacobi ...
-                ,tol,Usol,obj.meshDomain,obj.bcApplier);
+            [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
             toc
             %             [uCG,residualCG,errCG,errAnormCG] = RichardsonSolver.solve(LHSf,RHSf,x0,P,tol,0.1,Usol);
 
@@ -127,8 +126,9 @@ classdef EIFEMtesting_3D < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [5 1 1]; %nx ny
-            obj.fileNameEIFEM = 'MESHdom.mat';
+            obj.nSubdomains  = [20 1 1]; %nx ny
+            % obj.fileNameEIFEM = 'DEF_por3D.mat'; % article
+            obj.fileNameEIFEM = 'DEF_Q8_wing_1.mat';
             %             obj.fileNameEIFEM = 'DEF_auxNew_2.mat';
             %obj.fileNameEIFEM = 'DEF_Q4porL_1_raul.mat';
             obj.tolSameNode = 1e-6;
@@ -237,8 +237,8 @@ classdef EIFEMtesting_3D < handle
         function mS = createEIFEMreferenceMesh(obj)
             filename = obj.fileNameEIFEM;
             load(filename);
-            s.coord    = MESHdom.COOR;
-            s.connec   = MESHdom.CN;
+            s.coord    = EIFEoper.MESH.COOR;
+            s.connec   = EIFEoper.MESH.CN;
 
             maxC= max(s.coord);
             minC = min(s.coord);
@@ -289,13 +289,23 @@ classdef EIFEMtesting_3D < handle
             ymin = min(mR.coord(:,2));
             zmax = max(mR.coord(:,3));
             zmin = min(mR.coord(:,3));
-            coord(1,1) = xmax;  coord(1,2) = ymax;   coord(1,3) = zmax;
+            % uncomment for the case of the article
+            % coord(1,1) = xmax;  coord(1,2) = ymax;   coord(1,3) = zmax;
+            % coord(2,1) = xmin;  coord(2,2) = ymax;   coord(2,3) = zmax;
+            % coord(3,1) = xmin;  coord(3,2) = ymax;   coord(3,3) = zmin;
+            % coord(4,1) = xmax;  coord(4,2) = ymax;   coord(4,3) = zmin;
+            % coord(5,1) = xmax;  coord(5,2) = ymin;   coord(5,3) = zmax;
+            % coord(6,1) = xmin;  coord(6,2) = ymin;   coord(6,3) = zmax;
+            % coord(7,1) = xmin;  coord(7,2) = ymin;   coord(7,3) = zmin;
+            % coord(8,1) = xmax;  coord(8,2) = ymin;   coord(8,3) = zmin;
+
+            coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmax;
             coord(2,1) = xmin;  coord(2,2) = ymax;   coord(2,3) = zmax;
-            coord(3,1) = xmin;  coord(3,2) = ymax;   coord(3,3) = zmin;
-            coord(4,1) = xmax;  coord(4,2) = ymax;   coord(4,3) = zmin;
-            coord(5,1) = xmax;  coord(5,2) = ymin;   coord(5,3) = zmax;
-            coord(6,1) = xmin;  coord(6,2) = ymin;   coord(6,3) = zmax;
-            coord(7,1) = xmin;  coord(7,2) = ymin;   coord(7,3) = zmin;
+            coord(3,1) = xmax;  coord(3,2) = ymax;   coord(3,3) = zmax;
+            coord(4,1) = xmax;  coord(4,2) = ymin;   coord(4,3) = zmax;
+            coord(5,1) = xmin;  coord(5,2) = ymin;   coord(5,3) = zmin;
+            coord(6,1) = xmin;  coord(6,2) = ymax;   coord(6,3) = zmin;
+            coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmin;
             coord(8,1) = xmax;  coord(8,2) = ymin;   coord(8,3) = zmin;
 
             connec = [1 2 3 4 5 6 7 8];
@@ -369,12 +379,12 @@ classdef EIFEMtesting_3D < handle
         end
 
         function [young,poisson] = computeElasticProperties(obj,mesh)
-            E  = 1;
-            nu = 1/3;
-            %             E  = 70000;
-            %             nu = 0.3;
-            Epstr  = E/(1-nu^2);
-            nupstr = nu/(1-nu);
+            % E  = 1;
+            % nu = 1/3;
+                        E  = 70000;
+                        nu = 0.3;
+            % Epstr  = E/(1-nu^2);
+            % nupstr = nu/(1-nu);
             %             young   = ConstantFunction.create(Epstr,mesh);
             %             poisson = ConstantFunction.create(nupstr,mesh);
             young   = ConstantFunction.create(E,mesh);

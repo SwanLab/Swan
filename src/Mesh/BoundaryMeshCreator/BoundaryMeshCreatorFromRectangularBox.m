@@ -69,7 +69,7 @@ classdef BoundaryMeshCreatorFromRectangularBox < BoundaryMeshCreator
                     else
                          connec = obj.computeConnectivities2D(facetCoords);
                     end
-
+                   
             end
         end
         
