@@ -66,7 +66,7 @@ classdef EIFEMtesting_3D < handle
 
             x0 = zeros(size(RHSf));
             tic
-            [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
+            [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
             toc
             %             [uCG,residualCG,errCG,errAnormCG] = RichardsonSolver.solve(LHSf,RHSf,x0,P,tol,0.1,Usol);
 
@@ -74,7 +74,7 @@ classdef EIFEMtesting_3D < handle
 
             %Mmult = MdirNeu;
             x0 = zeros(size(RHSf));
-            r = RHSf - LHSf(x0);
+            
             Mmult = @(r) Preconditioner.multiplePrec(r,Milu,Meifem,Milu,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
             %              Mmult = @(r) Preconditioner.multiplePrec(r,Mid,Meifem,Mid,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
             %             zmult = Mmult(r);
@@ -126,7 +126,7 @@ classdef EIFEMtesting_3D < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [20 1 1]; %nx ny
+            obj.nSubdomains  = [5 1 1]; %nx ny
             % obj.fileNameEIFEM = 'DEF_por3D.mat'; % article
             obj.fileNameEIFEM = 'DEF_Q8_wing_1.mat';
             %             obj.fileNameEIFEM = 'DEF_auxNew_2.mat';
