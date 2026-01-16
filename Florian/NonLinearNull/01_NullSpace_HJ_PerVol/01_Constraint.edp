@@ -162,6 +162,6 @@ Vh0 Achi;
 real ers = 1.e-3;
 Achi[] = volfrac(Th,phi[],ers);
 
-real C = (int2d(Th)(Achi) - 0.5575);
+real C = (int2d(Th)(Achi) - 0.4);
 
 exportVar(C);

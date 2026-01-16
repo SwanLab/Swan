@@ -1,26 +1,78 @@
 IMPORT "io.edp"
 load "distance"
+load "mmg"
 
-mesh Th=importMesh("Th");
+mesh Th = importMesh("Th");
 real [int] phiVal = importArray("phiVal");
 real [int] gVal = importArray("gVal");
 
 fespace Vh(Th,P1);
-Vh phio, phi, g, nx, ny, vx, vy;
+Vh phio, phi, g, nx1, ny1, gx, gy;
 phio[] = phiVal;
+
 g[] = gVal;
 
-real eps = 1.e-6;
-real alphanor = 0.0001;
-macro normalvec(phi) {
-  solve reconsNor([nx,ny],[vx,vy]) = int2d(Th)(alphanor*(dx(nx)*dx(vx)+dy(nx)*dy(vx)+dx(ny)*dx(vy)+dy(ny)*dy(vy))
-                                            + nx*vx+ny*vy)
-                                  - int2d(Th)((dx(phi)*vx+dy(phi)*vy)/sqrt(dx(phi)*dx(phi)+dy(phi)*dy(phi) + eps^2));
-} // EOM
+real fac = 3.0;
+real meshsiz = 1/(30*fac);
+real alpha = 2.0*meshsiz;
+real beta  = 8.0*meshsiz;
 
-normalvec(phio);
-nx = g*nx;
-ny = g*ny;
+mesh Th2, Th3;
+meshL ThLInt;
+int [int] lsLabel(1);
+lsLabel[0] = 10;
+
+real rInner;
+rInner = 3;
+
+macro updateBoundary() {
+  Th2 = mmg2d(Th, iso = 1, ls = 0.0, metric = phio[], hmax = 0.05);
+  Th3 = trunc(Th2, region == rInner);
+  ThLInt = extract(Th3,label = lsLabel);
+} //
+
+updateBoundary;
+
+fespace Vh2(Th2,P1);
+Vh2 nx2, ny2, v2;
+
+fespace Vh1D(ThLInt,P1);
+Vh1D nx, ny, v0, gx0 = dx(phi), gy0 = dy(phi);
+
+problem projNx(nx,v0) = int1d(ThLInt)(alpha^2*(dx(nx)*dx(v0)+dy(nx)*dy(v0)) + nx*v0) 
+                        - int1d(ThLInt)(Tl.y*v0);
+
+problem projNy(ny,v0) = int1d(ThLInt)(alpha^2*(dx(ny)*dx(v0)+dy(ny)*dy(v0)) + ny*v0) 
+                          - int1d(ThLInt)(-Tl.x*v0);
+
+projNx;
+projNy;
+
+nx = nx/sqrt(nx^2+ny^2+1e-6);
+ny = ny/sqrt(nx^2+ny^2+1e-6);
+
+Vh1D sgn = nx*gx0 + ny*gy0;
+
+for (int i = 0; i < Vh1D.ndof; ++i) {
+    if (sgn[][i] < 0) {
+        nx[][i] = -nx[][i];
+        ny[][i] = -ny[][i];
+    }
+}
+
+problem velextx(nx2,v2) = int2d(Th2)(beta^2*(dx(nx2)*dx(v2)+dy(nx2)*dy(v2)) + nx2*v2)
+                    - int1d(Th2,lsLabel)(beta*nx*v2);
+
+problem velexty(ny2,v2) = int2d(Th2)(beta^2*(dx(ny2)*dx(v2)+dy(ny2)*dy(v2)) + ny2*v2)
+                    - int1d(Th2,lsLabel)(beta*ny*v2);
+
+velextx;
+velexty;
+nx1 = nx2;
+ny1 = ny2;
+
+gx = g*nx1;
+gy = g*ny1;
 
 func real[int] advectRedist(real[int] phiot, real[int] vxt, real[int] vyt, real step) {
    Vh phi,phitmp,phio=phiot,velx=vxt,vely=vyt;
@@ -30,6 +82,6 @@ func real[int] advectRedist(real[int] phiot, real[int] vxt, real[int] vyt, real 
    return phi[];
 } // EOM
 
-phi[] = advectRedist(phio[],nx[],ny[],1);
+phi[] = advectRedist(phio[],gx[],gy[],(1/0.001));
 
 exportArray(phi[]);

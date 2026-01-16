@@ -28,7 +28,7 @@ path = "NonLinearNull/01_NullSpace_HJ_PerVol/"
 
 Th = FreeFemRunner(path+"01_Mesh.edp").execute()['Th']
 
-@bound_constraints_optimizable(l=float('-inf'), u=float('inf'))
+@bound_constraints_optimizable()
 class TO_problem(EuclideanOptimizable):
     def x0(self):
         runner = FreeFemRunner(path+"01_InitialGuess.edp")
@@ -70,13 +70,14 @@ class TO_problem(EuclideanOptimizable):
         plt.pause(0.05)
 
 ## OPTIMIZATION PARAMETERS
-params = {"dt": 0.05,
-          "itnormalisation": 50,
+hmin = 1/90
+params = {"dt": 0.001*hmin*10,
+          "itnormalisation": 3,
           "save_only_N_iterations": 1,
           "save_only_Q_constraints": 5,
           "alphaJ": 1,
-          "alphaC": 2,
-          "maxit": 20,
+          "alphaC": 1,
+          "maxit": 25,
           "CFL": 0.9}
 problem:Optimizable = TO_problem()
 

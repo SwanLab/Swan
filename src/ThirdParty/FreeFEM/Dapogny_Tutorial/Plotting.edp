@@ -16,17 +16,17 @@ exec(gnuplotCmd);
 
 
 // write data file with "iteration value"
-datafile1 = "constraintHistory.gp";
-datafile2 = "07_constraintHistory.gp";
+datafile1 = "05_objectiveHistory.gp";
+datafile2 = "06_objectiveHistory.gp";
 
 // create gnuplot command to plot the data with logscale on y-axis
 gnuplotCmd = 
     "gnuplot -e \"set term png size 800,600; " +
-    "set output '07_comparisonConstraint.png'; " +
+    "set output 'Newton.png'; " +
     "set title 'Objective History'; " +
-    "set xlabel 'Iteration'; set ylabel 'Volume'; set logscale y; " +
-    "plot '" + datafile1 + "' with lines lw 2 title 'Linear', " +
-    "'" + datafile2 + "' with lines lw 2 title 'Non-linear'\"";
+    "set xlabel 'Iteration'; set ylabel 'Cost';" +
+    "plot '" + datafile1 + "' with lines lw 2 title 'Gradient method (large line search)', " +
+    "'" + datafile2 + "' with lines lw 2 title 'Newton'\"";
 
 // execute gnuplot command
 exec(gnuplotCmd);
