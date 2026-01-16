@@ -5,7 +5,8 @@ classdef FilterPDEChambollePockContinue < handle
         thetaRel
         tauG
         tauF
-        alpha
+        eta
+        k
         mesh
         proxF
         proxG
@@ -14,6 +15,11 @@ classdef FilterPDEChambollePockContinue < handle
         sigma0
         rhoExact
         CGlobal
+        alpha
+        beta
+        tol
+        MassRho
+        MassSigma
     end
 
     properties (Access = private)
@@ -24,14 +30,14 @@ classdef FilterPDEChambollePockContinue < handle
 
         function obj = FilterPDEChambollePockContinue(cParams)
             obj.init(cParams);
-            obj.createFilter();
+            %obj.createFilter();
             obj.createProximals();
             obj.rho0   = LagrangianFunction.create(obj.mesh, 1, 'P1');
             obj.sigma0 = LagrangianFunction.create(obj.mesh, 2, 'P0');
         end
     
         function rho = compute(obj,chi,quadType)
-            obj.rhoExact = obj.computeExactSolution(chi);
+         %   obj.rhoExact = obj.computeExactSolution(chi);
             proxG = @(rho) obj.proxG(rho,chi);
             [rho,sigma] = obj.solveWithChambollePockAlgorithm(obj.rho0,obj.sigma0,obj.proxF,proxG,obj.tauF,obj.tauG,obj.thetaRel);            
             obj.rho0 = rho;
@@ -52,27 +58,44 @@ classdef FilterPDEChambollePockContinue < handle
            obj.mesh = cParams.mesh;
            obj.thetaRel = 1;
            h = obj.mesh.computeMeanCellSize();
-           obj.epsilon  = (4*h)^2;
-           obj.tauF = 0.1*h; obj.epsilon;
-           obj.tauG = 0.1*h; obj.epsilon;  
-           obj.alpha = 0;%obj.epsilon;
-           u = 45;
-           alpha = 90;
+           obj.epsilon  = 0.1;%(4*h)^2;
+           obj.tauF = 0.1*h;% obj.epsilon; 
+           obj.tauG = 0.1*h;% obj.epsilon;  
+           obj.eta = 0;%obj.epsilon; %0
+           obj.k = [1 1]';
+           obj.k = obj.k/norm(obj.k);
+           obj.alpha = 1;
+           obj.beta  = obj.epsilon;0.001;
+           obj.tol   = 0.001;%99;%1e0;
+           u = 85;
+           gamma = 90;
            CAnisotropic = [tand(u),0;0,1/tand(u)];
-           R = [cosd(alpha),-sind(alpha)
-               sind(alpha), cosd(alpha)];
+           R = [cosd(gamma),-sind(gamma)
+               sind(gamma), cosd(gamma)];
            obj.CGlobal = R*CAnisotropic*R';
+           rhoN = LagrangianFunction.create(obj.mesh,1,'P1');
+           obj.MassRho = IntegrateLHS(@(u,v) DP(v,u),rhoN,rhoN,obj.mesh,'Domain');
         end
 
         function rho = computeExactSolution(obj,chi)
-            A       =  ConstantFunction.create(obj.CGlobal,obj.mesh);
-            s.A     = A;
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.mesh = obj.mesh;
-            s.filterType = 'PDE';
-            s.boundaryType = 'Neumann';
-            s.metric = 'Anisotropy';
+            % A       =  ConstantFunction.create(obj.CGlobal,obj.mesh);
+            % s.A     = A;
+            % s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            % s.mesh = obj.mesh;
+            % s.filterType = 'PDE';
+            % s.boundaryType = 'Neumann';
+            % s.metric = 'Anisotropy';
+            % f = Filter.create(s);
+
+
+            s.alpha = obj.alpha;
+            s.beta  = obj.beta;
+            s.mesh  = obj.mesh;
+            s.theta = obj.k;
+            s.filterType = 'Segment';
+            s.tol0  = obj.tol;
             f = Filter.create(s);
+
 
             %s.filterType = 'PDE';
             %s.mesh       = obj.mesh;
@@ -91,52 +114,61 @@ classdef FilterPDEChambollePockContinue < handle
         function  createProximals(obj)
             %proxF = @(z)  proximalDroplet(z,tauF,k,alpha,ep);
             epsF    = obj.epsilon;%;1; 
-            obj.proxF = @(z)  obj.proximalEllipse(z,obj.tauF,epsF,obj.mesh);           
+            %obj.proxF = @(z)  obj.proxEllipse(z,obj.tauF,epsF,obj.mesh);           
+            obj.proxF = @(z)  obj.proxSegment(z,obj.tauF,epsF,obj.mesh);           
             tauGEps   = obj.tauG;%/obj.epsilon^2;
             obj.proxG = @(rho,chi) obj.proximalL2Distance(rho,chi,tauGEps);
-        end        
+        end          
 
         function [u,z] = solveWithChambollePockAlgorithm(obj,u0,z0,proxF,proxG,tauF,tauG,thetaRel)
             u  = u0;
             uN = u0;
             z   = z0;
-            err = 1; 
+            stopCrit = 1; 
             iter = 1;
-            while err > 1e-8
+            while stopCrit > obj.tol
                 z      = proxF(z + tauF.*Grad(uN));
                 uOld   = u;
                 divZ   = obj.computeDivergence(z);%Divergence(z)
-                u      = proxG(project(u - tauG.*divZ,'P1'));
-                uN     = project(u + thetaRel.*(u - uOld),'P1');
-                err = Norm(u-obj.rhoExact,'L2')/Norm(obj.rhoExact,'L2')
-                error(iter) = err;
-                iter = iter+1;
+
+                uStar = copy(u);
+                uStar.setFValues(u.fValues - tauG.*divZ.fValues);
+                u      = proxG(uStar);
+                
+                uN.setFValues(u.fValues + thetaRel.*(u.fValues - uOld.fValues));
+                stopCrit = Norm(u-uOld,'H1',obj.eta)/(Norm(uOld,'H1',obj.eta)+1e-5);
+                error(iter) = stopCrit;
+                iter = iter+1
             end
-            plot(log10(error))
-            plot(u)
-            plot(obj.rhoExact)
+           % plot(log10(error))
+           % plot(u)
+           % plot(obj.rhoExact)
         end
 
         function rhoN = computeDivergence(obj,z)
-            a = obj.alpha;            
+            a = obj.eta;            
             m = obj.mesh;
-            rhoN = LagrangianFunction.create(obj.mesh,1,'P1');
-            M  = IntegrateLHS(@(u,v) DP(v,u),rhoN,rhoN,m,'Domain');
-            K  = IntegrateLHS(@(u,v) (a^2).*DP(Grad(v),Grad(u)),rhoN,rhoN,m,'Domain');
-            F = IntegrateRHS(@(v) DP(Grad(v),z),rhoN,m,'Domain');
-            rhoV = full((K+M)\F);
+           % rhoN = LagrangianFunction.create(obj.mesh,1,'P1');
+          %  M  = IntegrateLHS(@(u,v) DP(v,u),rhoN,rhoN,m,'Domain');
+            %K  = IntegrateLHS(@(u,v) (a^2).*DP(Grad(v),Grad(u)),rhoN,rhoN,m,'Domain');
+            F = IntegrateRHS(@(v) DP(Grad(v),z),obj.rho0,m,'Domain');
+            %LHS = M+K;
+            LHS = obj.MassRho;
+           % LHS = diag(sum(M));
+            rhoN = copy(obj.rho0);
+            rhoV = full(LHS\F);
             rhoV = reshape(rhoV,rhoN.ndimf,[])';
             rhoN.setFValues(rhoV);           
         end
         
 
-      function s = proximalEllipse(obj,z,tau,eps,m)
-            %A = (obj.CGlobal);%inv([1 0; 0 1]);
+      function s = proxEllipse(obj,z,tau,eps,m)
+            Ainv = inv(obj.CGlobal);%inv([1 0; 0 1]);
             I = eye(2);
             %r = eps^2/tau;
  %          dm = obj.createTensorFunction(A+r*I);
             r = tau/eps;
-            dm = obj.createTensorFunction(I+r*I);
+            dm = obj.createTensorFunction(r*Ainv+I);
             s = LagrangianFunction.create(obj.mesh,2,'P0');
             M  = IntegrateLHS(@(u,v) DP(v,DP(dm,u)),s,s,m,'Domain');
            % LHS = diag(sum(M));
@@ -145,7 +177,23 @@ classdef FilterPDEChambollePockContinue < handle
             sV = full(LHS\F);
             sV = reshape(sV,s.ndimf,[])';
             s.setFValues(sV);
-        end
+      end
+
+      function s = proxSegment(obj,z,tau,eps,m)
+            a = obj.alpha;
+            b = obj.beta;
+            k = obj.k;
+            %r = eps^2/tau;
+ %          dm = obj.createTensorFunction(A+r*I);
+            ra = 1/(tau/(eps*a^2)+1);
+            rb = 1/(tau/(eps*b^2)+1);
+            z = project(z,'P0');
+            sV  = (ra*max(0,z.fValues*k) + rb*min(0,z.fValues*k))*k';
+
+
+            s = LagrangianFunction.create(obj.mesh,2,'P0');
+            s.setFValues(sV);
+      end
 
         % function s = proximalDroplet(obj,z,tau,k,alpha,ep)
         %     s1 = z/(1+tau);
@@ -169,17 +217,23 @@ classdef FilterPDEChambollePockContinue < handle
         end
         
         function rhoN = proximalL2Distance(obj,rho,chi,tauG)
-            rhoN = LagrangianFunction.create(obj.mesh,1,'P1');
-            m    = obj.mesh;            
+           % A       =  ConstantFunction.create(obj.CGlobal,obj.mesh);
             e = obj.epsilon;
-            a = obj.alpha;
-            M  = IntegrateLHS(@(u,v) (1+e/tauG).*DP(v,u),rhoN,rhoN,m,'Domain');
-            K  = IntegrateLHS(@(u,v) (e*a^2/tauG).*DP(Grad(v),Grad(u)),rhoN,rhoN,m,'Domain');
-            F1 = IntegrateRHS(@(v) DP(v,chi+e/tauG*rho),rhoN,m,'Domain');
-            F2 = IntegrateRHS(@(v) e*a^2/tauG.*DP(Grad(v),Grad(rho)),rhoN,m,'Domain');
-            rhoV = full((K+M)\(F1+F2));
+            % a = obj.eta;
+            rhoN = copy(obj.rho0);
+            % m    = obj.mesh;            
+           
+            % M  = IntegrateLHS(@(u,v) (1+e/tauG).*DP(v,u),rhoN,rhoN,m,'Domain');
+            % K  = IntegrateLHS(@(u,v) (e*a^2/tauG).*DP(Grad(v),Grad(u)),rhoN,rhoN,m,'Domain');
+            % F1 = IntegrateRHS(@(v) DP(v,chi+e/tauG*rho),rhoN,m,'Domain');
+            % F2 = IntegrateRHS(@(v) e*a^2/tauG.*DP(Grad(v),Grad(rho)),rhoN,m,'Domain');
+            % rhoV = full((K+M)\(F1+F2));
+            
+
+            rhoV = (chi.fValues+e/tauG*rho.fValues)/(1+e/tauG);
             rhoV = reshape(rhoV,rhoN.ndimf,[])';
             rhoN.setFValues(rhoV);
+
         end        
 
         function itHas = hasEpsilonChanged(obj,eps)

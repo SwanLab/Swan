@@ -33,8 +33,8 @@ classdef PerimeterVolumeChambollePock < handle
         end
 
         function createMesh(obj)
-            nx=20;
-            ny=20;
+            nx=60;
+            ny=60;
             Lx = 1;
             Ly = 1;
             obj.mesh = TriangleMesh(Lx,Ly,nx,ny);
@@ -87,19 +87,24 @@ classdef PerimeterVolumeChambollePock < handle
             chi = obj.chi0;
             rho = obj.chi0;
             z = z0;
-            for iopt=1:20
+            vol = obj.vol0;
+            for iopt=1:4000
+                chiOld = chi;
                 rho = obj.proximalOfPerimeter(chi);
-                plot(rho)
+               % plot(rho)
                 chi = obj.projectToVolumeConstraint(rho,vol);
+                chi = project(chi,'P1');
                 close all
-                chi.plot()
-                drawnow
+               % chi.plot()
+               % drawnow
                 volCon = obj.computeVolumeConstraint(chi,vol);
+                stopCrit = Norm(chi-chiOld,'L2')/(Norm(chiOld,'L2')+1e-5)
+
             end
 
         end
      
-        function volCon = computeVolumeConstraint(chi,vol)
+        function volCon = computeVolumeConstraint(obj,chi,vol)
             volCon = Integrator.compute(chi,chi.mesh,2)/vol - 1;
         end
 
@@ -108,12 +113,12 @@ classdef PerimeterVolumeChambollePock < handle
         end
 
         function chi = projectToVolumeConstraint(obj,u,vol)
-            chi = createRho(u.mesh);
+            chi = obj.createRho();
             lLb=0; lUb=1;
             for idic=1:100
                 lam = (lLb+lUb)/2;
-                chi = createCharacteristicFunction(u,lam);
-                constraint = computeVolumeConstraint(chi,vol);
+                chi = obj.createCharacteristicFunction(u,lam);
+                constraint = obj.computeVolumeConstraint(chi,vol);
                 if (constraint > 0)
                     lLb =lam;
                 else
