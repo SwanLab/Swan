@@ -92,9 +92,9 @@ classdef ComplianceFunctionalRadius < handle
         function dx = computeNonDimensionalGradient(obj,dx)
             refX = obj.value0;
             for i = 1:length(dx)
-                dx{i}.setFValues(dx{i}.fValues/(refX));
+%                 dx{i}.setFValues(dx{i}.fValues/(refX));
 %                 dx{i}.setFValues(dx{i}.fValues);
-%                 dx{i}.setFValues(dx{i}.fValues/norm(dx{i}.fValues));
+                dx{i}.setFValues(dx{i}.fValues/norm(dx{i}.fValues));
             end
         end
 

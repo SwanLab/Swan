@@ -52,7 +52,7 @@ classdef InclusionTraining < handle
 %                 EIFEoper.Kfine = data.LHSsbd;
                 EIFEoper.snapshots = data.uSbd;
 %                 filePath = ['/home/raul/Documents/GitHub/EPFL/test/data_' num2str(obj.r(i), '%.3f') '.mat'];
-                filePath = ['./EPFL/dataSquare/data_' num2str(obj.r(i), '%.3f') '.mat'];
+                filePath = ['./EPFL/data/data_' num2str(obj.r(i), '%.3f') '.mat'];
                 save(filePath,'EIFEoper')
             end
         end
@@ -70,7 +70,7 @@ classdef InclusionTraining < handle
 %             i = 0:N;
 %             % Cosine spacing formula
 %             obj.r = (a + b)/2 + (b - a)/2 * cos(pi * (1 - i / N));
-            obj.r    = 0.8:0.01:0.961;
+            obj.r    = 1e-6:0.01:0.961;
             obj.xmin = -1;
             obj.xmax = 1;
             obj.ymin = -1;

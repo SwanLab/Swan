@@ -55,9 +55,14 @@ classdef OptimizerNullSpace < handle
             obj.firstEstimation = false;
             while ~obj.hasFinished
                 obj.update();
-                obj.updateIterInfo();
+                obj.updateIterInfo();               
+                if mod(obj.nIter,50)==0
                 obj.plotVariable();
-                obj.updateMonitoring();
+                end
+                if mod(obj.nIter,5)==0
+                 obj.updateMonitoring();
+                end
+               
                 obj.checkConvergence();
                 obj.designVariable.updateOld();
             end

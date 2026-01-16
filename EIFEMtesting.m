@@ -12,7 +12,7 @@ classdef EIFEMtesting < handle
 
         fileNameEIFEM
         tolSameNode
-
+         solverType
     end
 
 
@@ -140,11 +140,12 @@ classdef EIFEMtesting < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [15 1]; %nx ny
+            obj.nSubdomains  = [25 5]; %nx ny
 %             obj.fileNameEIFEM = 'DEF_Q4auxL_1.mat';
 %             obj.fileNameEIFEM = 'DEF_auxNew_2.mat';
             obj.fileNameEIFEM = 'DEF_Q4porL_1_raul.mat';
             obj.tolSameNode = 1e-10;
+             obj.solverType = 'REDUCED';
         end
 
         function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomain(obj,mR)
@@ -236,6 +237,7 @@ classdef EIFEMtesting < handle
             s.connec = connec;
             cMesh = Mesh.create(s);
         end
+        
 
         function cMesh = loadReferenceCoarseMesh(obj,mR)
             bS  = mR.createBoundaryMesh();
@@ -349,13 +351,13 @@ classdef EIFEMtesting < handle
                 dirichletFun = [dirichletFun, dir];
             end
 
-            pointload = PointLoad(mesh,PL);
-            % need this because force applied in the face not in a point
-            pointload.values        = pointload.values/size(pointload.dofs,1);
-            fvalues                 = zeros(mesh.nnodes*mesh.ndim,1);
-            fvalues(pointload.dofs) = pointload.values;
-            fvalues                 = reshape(fvalues,mesh.ndim,[])';
-            pointload.fun.setFValues(fvalues);
+            pointload = TractionLoad(mesh,PL,'DIRAC');
+%             % need this because force applied in the face not in a point
+%             pointload.values        = pointload.values/size(pointload.dofs,1);
+%             fvalues                 = zeros(mesh.nnodes*mesh.ndim,1);
+%             fvalues(pointload.dofs) = pointload.values;
+%             fvalues                 = reshape(fvalues,mesh.ndim,[])';
+%             pointload.fun.setFValues(fvalues);
 
             s.pointloadFun = pointload;
             s.dirichletFun = dirichletFun;
@@ -373,19 +375,46 @@ classdef EIFEMtesting < handle
         end
 
 
-        function [LHS,LHSr] = computeStiffnessMatrix(obj,mesh,dispFun,mat)
-            s.type     = 'ElasticStiffnessMatrix';
-            s.mesh     = mesh;
-            s.test     = dispFun;
-            s.trial    = dispFun;
-            s.material = mat;
-            s.quadratureOrder = 2;
-            lhs = LHSIntegrator.create(s);
-            LHS = lhs.compute();
+        function [LHS,LHSr] = computeStiffnessMatrix(obj,mesh,dispFun,C)
+%             s.type     = 'ElasticStiffnessMatrix';
+%             s.mesh     = mesh;
+%             s.test     = dispFun;
+%             s.trial    = dispFun;
+%             s.material = mat;
+%             s.quadratureOrder = 2;
+%             lhs = LHSIntegrator.create(s);
+%             LHS = lhs.compute();
+%             LHSr = obj.bcApplier.fullToReducedMatrixDirichlet(LHS);
+
+            LHS = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),dispFun,dispFun,mesh,'Domain',2);
             LHSr = obj.bcApplier.fullToReducedMatrixDirichlet(LHS);
         end
 
-        function RHS = computeForces(obj,stiffness,u)
+         function RHS =  computeForces(obj,stiffness,u)
+            bc  = obj.boundaryConditions;
+            t   = bc.tractionFun;
+            rhs = zeros(u.nDofs,1);
+            if ~isempty(t)
+                for i = 1:numel(t)
+                    rhsi = t(i).computeRHS(u);
+                    rhs  = rhs + rhsi;
+                end
+            end
+            if strcmp(obj.solverType,'REDUCED')
+                bc      = obj.boundaryConditions;
+                dirich  = bc.dirichlet_dofs;
+                dirichV = bc.dirichlet_vals;
+                if ~isempty(dirich)
+                    R = -stiffness(:,dirich)*dirichV;
+                else
+                    R = zeros(sum(obj.uFun.nDofs(:)),1);
+                end
+                rhs = rhs+R;
+            end
+             RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
+        end
+
+        function RHS = computeForces1(obj,stiffness,u)
             s.type      = 'Elastic';
             s.scale     = 'MACRO';
             s.dim.ndofs = u.nDofs;
@@ -398,6 +427,8 @@ classdef EIFEMtesting < handle
             RHS = rhs+R;
             RHS = obj.bcApplier.fullToReducedVectorDirichlet(RHS);
         end
+
+        
 
         function Meifem = createEIFEMPreconditioner(obj,mR,dir,iC,lG,bS,iCR,dMesh)
             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';

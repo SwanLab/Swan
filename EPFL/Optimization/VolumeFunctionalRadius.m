@@ -75,9 +75,9 @@ classdef VolumeFunctionalRadius < handle
             dJ = copy(x);
 %             fValues = -8*dJ.fValues;
             fValues = obj.gradJ(x);
-            dJ.setFValues(fValues./(obj.totalVolume));
+%             dJ.setFValues(fValues./(obj.totalVolume));
 %              dJ.setFValues(fValues);
-%             dJ.setFValues(fValues./norm(fValues));
+            dJ.setFValues(fValues./norm(fValues));
         end
     end
 

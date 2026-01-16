@@ -71,18 +71,20 @@ classdef OptimizationEIFEMTutorial < handle
 
         function init(obj)
             close all;
-            obj.nSubdomains = [28,15]; %50 15
-            rmin = 0.5;
+            obj.nSubdomains = [28,14]; %50 15
+            rmin = 1e-6;
             obj.r = rmin*ones(obj.nSubdomains)'; 
 %             obj.r= (1e-6 - 1e-6) * rand(obj.nSubdomains(2),obj.nSubdomains(1)) + 1e-6;
             obj.xmax=1; obj.xmin=-1; obj.ymax = 1; obj.ymin=-1; 
             obj.Nr = 7; obj.Ntheta = 14; % for circle/square
-            obj.Nr = 10; obj.Ntheta = 10;% for lattice
+%             obj.Nr = 10; obj.Ntheta = 10;% for lattice
             obj.x0 = 0; obj.y0=0;
             obj.tolSameNode = 1e-10;
-            obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange20_der2_lattice.mat';
+%             obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange20_der2_lattice.mat';
+%             obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange20_der2_092.mat';
+            obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange20_der2_092.mat';
             obj.solverType = 'REDUCED';
-            obj.volumeTarget = 0.6; %0.7
+            obj.volumeTarget = 0.5; %0.7
         end
 
         function createMesh(obj)
@@ -104,8 +106,8 @@ classdef OptimizationEIFEMTutorial < handle
             Ly = obj.ymax-obj.ymin;
             for jDom = 1:nY
                 for iDom = 1:nX
-%                     refMesh = mesh_rectangle_via_triangles(obj.r(jDom,iDom),obj.xmax,obj.xmin,obj.ymax,obj.ymin,obj.Nr,obj.Ntheta,obj.x0,obj.y0);
-                    refMesh = mesh_square_X_solid(1,obj.r(jDom,iDom),obj.Nr,obj.Ntheta);
+                    refMesh = mesh_rectangle_via_triangles(obj.r(jDom,iDom),obj.xmax,obj.xmin,obj.ymax,obj.ymin,obj.Nr,obj.Ntheta,obj.x0,obj.y0);
+%                     refMesh = mesh_square_X_solid(1,obj.r(jDom,iDom),obj.Nr,obj.Ntheta);
                     coord0 = refMesh.coord;
                     s.coord(:,1) = coord0(:,1)+Lx*(iDom-1);
                     s.coord(:,2) = coord0(:,2)+Ly*(jDom-1);
@@ -144,7 +146,7 @@ classdef OptimizationEIFEMTutorial < handle
             coord(3,1) = obj.xmax;  coord(3,2) = obj.ymax;
             coord(4,1) = obj.xmin;  coord(4,2) = obj.ymax;
             connec = [2 3 4 1];
-            %                     connec = [1 2 3 4];
+%                                 connec = [1 2 3 4];
             s.coord = coord;
             s.connec = connec;
             cMesh = Mesh.create(s);
@@ -157,7 +159,7 @@ classdef OptimizationEIFEMTutorial < handle
             s.order    = 'P0';
             s.fun      = LagrangianFunction(s);
             s.type     = 'Radius';
-            s.plotting = false;
+            s.plotting = true;
             s.nSubdomains = obj.nSubdomains;
             s.Nr       = obj.Nr;
             s.Ntheta   = obj.Ntheta;
@@ -361,7 +363,7 @@ classdef OptimizationEIFEMTutorial < handle
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
             s.volumeTarget = obj.volumeTarget;
             s.uMesh = obj.createBaseDomain();
-            s.geomType = 'Lattice';
+            s.geomType = 'Circle';
             v = VolumeConstraintRadius(s);
             obj.volume = v;
         end
@@ -394,7 +396,7 @@ classdef OptimizationEIFEMTutorial < handle
 
          function createPrimalUpdater(obj)
             s.ub     = 0.96;
-            s.lb     = 0.01;
+            s.lb     = 1e-6; % fro lattice 0.01;
             s.tauMax = 1000;
             s.tau    = [];
             obj.primalUpdater = ProjectedGradient(s);
@@ -425,10 +427,11 @@ classdef OptimizationEIFEMTutorial < handle
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
-            s.etaNorm        = 0.5;%0.05
-            s.gJFlowRatio    = 2; %3
+            s.etaNorm        = 10;%0.05
+            s.gJFlowRatio    = 10; %3
             s.primalUpdater  = obj.primalUpdater;
-            s.etaMaxMin      = 0.05;
+%             s.etaMaxMin      = 0.05;
+%             s.etaMax      = 200;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
