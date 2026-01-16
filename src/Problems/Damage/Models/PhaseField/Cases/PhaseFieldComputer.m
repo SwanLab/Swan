@@ -110,16 +110,14 @@ classdef PhaseFieldComputer < handle
         end
 
         function [totReact,uBC] = computeTotalReaction(obj,step,F,u)
-            UpSide  = max(obj.mesh.coord(:,2));
+            UpSide = max(obj.mesh.coord(:,2));
             isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;
-            if obj.boundaryConditions.type == "ForceTractionY"
+            if ismember(obj.boundaryConditions.type, ["ForceTractionY", "ForceTractionYClamped"])
                 uBC = norm(mean(u.fValues(nodes(isInUp),2)));
                 totReact = obj.boundaryConditions.bcValues(step);
-            else
-                ReactX = sum(F(2*nodes(isInUp)-1));
-                ReactY = sum(F(2*nodes(isInUp)));
-                totReact = sqrt(ReactX^2+ReactY^2);
+            elseif ismember(obj.boundaryConditions.type, ["DisplacementTractionY","DisplacementTractionYClamped"]) 
+                totReact = norm(sum(F(2*nodes(isInUp))));
                 uBC = obj.boundaryConditions.bcValues(step);
             end
             
