@@ -91,6 +91,10 @@ class Optimizable:
                pass
     """
 
+    def __init__(self):
+
+        return None
+
     def x0(self):
         """
         :return: Initial value for the optimization algorithm.     

@@ -26,10 +26,19 @@ from pymedit import P1Function
 ## FREEFEM PROBLEM DEFINITION
 path = "NonLinearNull/01_NullSpace_HJ_PerVol/"
 
-Th = FreeFemRunner(path+"01_Mesh.edp").execute()['Th']
+exports = FreeFemRunner(path+"01_Mesh.edp").execute()
+Th = exports['Th']
+alpha = exports['alpha']
+beta = exports['beta']
+lsLabel = 10
+rInner = 3
 
 @bound_constraints_optimizable()
 class TO_problem(EuclideanOptimizable):
+    def __init__(self):
+        self.Th2 = []
+        self.nx = []
+        self.ny = []
     def x0(self):
         runner = FreeFemRunner(path+"01_InitialGuess.edp")
         runner.import_variables(Th=Th)
@@ -42,7 +51,9 @@ class TO_problem(EuclideanOptimizable):
 
     def dJ(self, x):
         runner = FreeFemRunner(path+"01_CostGradient.edp")
-        runner.import_variables(Th=Th,phiVal=x)
+        runner.import_variables(Th=Th,Th2=self.Th2,phiVal=x,nxVal=self.nx,
+                                nyVal=self.ny,alpha=alpha,beta=beta,
+                                lsLab=lsLabel,rInner=rInner)
         return runner.execute()['g[]']
 
     def G(self, x):
@@ -52,7 +63,8 @@ class TO_problem(EuclideanOptimizable):
 
     def dG(self, x):
         runner = FreeFemRunner(path+"01_ConstraintGradient.edp")
-        runner.import_variables(Th=Th,phiVal=x)
+        runner.import_variables(Th=Th,Th2=self.Th2,phiVal=x,beta=beta,
+                                lsLab=lsLabel,rInner=rInner)
         return runner.execute()['g[]']
 
     def accept(self, params, results):
@@ -70,8 +82,10 @@ class TO_problem(EuclideanOptimizable):
         plt.pause(0.05)
 
 ## OPTIMIZATION PARAMETERS
+dTime = 0.001
 hmin = 1/90
-params = {"dt": 0.001*hmin*10,
+elRadius = 10
+params = {"dt": dTime*hmin*elRadius,
           "itnormalisation": 3,
           "save_only_N_iterations": 1,
           "save_only_Q_constraints": 5,
@@ -226,6 +240,14 @@ while normdx > params['tol'] and it <= params['maxit']:
 
     io.display_iteration(it, J, G, H, x, level = 0,  debug = params['debug'])
 
+    runner = FreeFemRunner(path+"01_BoundaryRefinement.edp")
+    runner.import_variables(Th=Th,phiVal=x,alpha=alpha,lsLab=lsLabel,rInner=rInner)
+    exports = runner.execute()
+
+    problem._problem.Th2 = exports['Th2']
+    problem._problem.nx = exports['nx[]']
+    problem._problem.ny = exports['ny[]']
+
     A = problem.inner_product(x)
 
     dJ = problem.dJ(x)
@@ -268,7 +290,8 @@ while normdx > params['tol'] and it <= params['maxit']:
     # Update step
     g = AJ*xiJ+AC*xiC
     runner = FreeFemRunner(path+"01_HJ.edp")
-    runner.import_variables(Th=Th,phiVal=x,gVal=g)
+    runner.import_variables(Th=Th,Th2=problem._problem.Th2,gVal = g,phiVal=x,nxVal=problem._problem.nx,
+                            nyVal=problem._problem.ny,beta=beta,lsLab=lsLabel,rInner=rInner,dTime=dTime)
     x1 = runner.execute()['phi[]']
     dx = (x1-x)
     #if p>0:

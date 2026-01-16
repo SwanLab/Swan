@@ -7,4 +7,10 @@ border right(t=0.0,1.0){ x=1.0; y=t; label=0; };
 border top(t=0.0,2.0){ x=1.0-t; y=1.0; label=0; };
 mesh Th = buildmesh(left(30*fac)+bot(60*fac)+right(30*fac)+top(60*fac));
 
+real meshsiz = 1/(30*fac);
+real alpha = 2.0*meshsiz;
+real beta  = 8.0*meshsiz;
+
 exportMesh(Th);
+exportVar(alpha);
+exportVar(beta);

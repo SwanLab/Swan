@@ -2,29 +2,25 @@ IMPORT "io.edp"
 load "mmg"
 
 mesh Th = importMesh("Th");
+mesh Th2 = importMesh("Th2");
 real [int] phiVal = importArray("phiVal");
+real beta = importVar("beta");
+real lsLab = importVar("lsLab");
+real rInner = importVar("rInner");
 
 fespace Vh(Th,P1);
 Vh phi, g;
 phi[] = phiVal;
 
-mesh Th2, Th3;
+mesh Th3;
 meshL ThLInt;
 int [int] lsLabel(1);
-lsLabel[0] = 10;
-
-real rInner;
-rInner = 3;
+lsLabel[0] = lsLab;
 
 macro updateBoundary() {
-  Th2 = mmg2d(Th, iso = 1, ls = 0.0, metric = phi[], hmax = 0.05);
   Th3 = trunc(Th2, region == rInner);
   ThLInt = extract(Th3,label = lsLabel);
 } //
-
-real fac = 3.0;
-real meshsiz = 1/(30*fac);
-real beta  = 8.0*meshsiz;
 
 updateBoundary;
 

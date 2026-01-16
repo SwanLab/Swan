@@ -2,30 +2,28 @@ IMPORT "io.edp"
 load "mmg"
 
 mesh Th = importMesh("Th");
+mesh Th2 = importMesh("Th2");
 real [int] phiVal = importArray("phiVal");
+real [int] nxVal = importArray("nxVal");
+real [int] nyVal = importArray("nyVal");
+real alpha = importVar("alpha");
+real beta = importVar("beta");
+real lsLab = importVar("lsLab");
+real rInner = importVar("rInner");
 
 fespace Vh(Th,P1);
 Vh phi, g;
 phi[] = phiVal;
 
-mesh Th2, Th3;
+mesh Th3;
 meshL ThLInt;
 int [int] lsLabel(1);
-lsLabel[0] = 10;
-
-real rInner;
-rInner = 3;
+lsLabel[0] = lsLab;
 
 macro updateBoundary() {
-  Th2 = mmg2d(Th, iso = 1, ls = 0.0, metric = phi[], hmax = 0.05);
   Th3 = trunc(Th2, region == rInner);
   ThLInt = extract(Th3,label = lsLabel);
 } //
-
-real fac = 3.0;
-real meshsiz = 1/(30*fac);
-real alpha = 2.0*meshsiz;
-real beta  = 8.0*meshsiz;
 
 updateBoundary;
 
@@ -33,27 +31,9 @@ fespace Vh2(Th2,P1);
 Vh2 g2, v2;
 
 fespace Vh1D(ThLInt,P1);
-Vh1D g0, nx, ny, v0, gx0 = dx(phi), gy0 = dy(phi);
-
-problem projNx(nx,v0) = int1d(ThLInt)(alpha^2*(dx(nx)*dx(v0)+dy(nx)*dy(v0)) + nx*v0) 
-                        - int1d(ThLInt)(Tl.y*v0);
-
-problem projNy(ny,v0) = int1d(ThLInt)(alpha^2*(dx(ny)*dx(v0)+dy(ny)*dy(v0)) + ny*v0) 
-                          - int1d(ThLInt)(-Tl.x*v0);
-
-projNx;
-projNy;
-nx = nx/sqrt(nx^2+ny^2+1e-6);
-ny = ny/sqrt(nx^2+ny^2+1e-6);
-
-Vh1D sgn = nx*gx0 + ny*gy0;
-
-for (int i = 0; i < Vh1D.ndof; ++i) {
-    if (sgn[][i] < 0) {
-        nx[][i] = -nx[][i];
-        ny[][i] = -ny[][i];
-    }
-}
+Vh1D g0, nx, ny;
+nx[] = nxVal;
+ny[] = nyVal;
 
 fespace Vh1D0(ThLInt,P0);
 Vh1D0 kappa;

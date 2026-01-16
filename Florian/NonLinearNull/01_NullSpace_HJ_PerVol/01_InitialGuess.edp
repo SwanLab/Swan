@@ -1,8 +1,7 @@
 IMPORT "io.edp"
 load "distance"
 
-mesh Th=importMesh("Th");
-plot(Th,cmm="Th");
+mesh Th = importMesh("Th");
 
 /* Finite Element spaces */
 fespace Vh(Th,P1);

@@ -1,6 +1,6 @@
 IMPORT "io.edp"
 
-mesh Th=importMesh("Th");
+mesh Th = importMesh("Th");
 real [int] phiVal = importArray("phiVal");
 
 fespace Vh(Th,P1);
