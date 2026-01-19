@@ -112,17 +112,17 @@ classdef OfflineDataProcessor < handle
 
 
 
-            s.mesh         = obj.mesh;
-            s.uFun         = cParams.uFun;
-            s.lambdaFun    = cParams.lambdaFun;
-            s.material     = cParams.material;
-            s.dirichletFun = cParams.dirichletFun;
-            s.localGlobalConnecBd = cParams.localGlobalConnecBd;
-
-
-
-            %ElasticHarmonicExtension
-
+            % s.mesh         = obj.mesh;
+            % s.uFun         = cParams.uFun;
+            % s.lambdaFun    = cParams.lambdaFun;
+            % s.material     = cParams.material;
+            % s.dirichletFun = cParams.dirichletFun;
+            % s.localGlobalConnecBd = cParams.localGlobalConnecBd;
+            % 
+            % 
+            % 
+            % %ElasticHarmonicExtension
+            % 
 
             Kcoarse = Ud'*obj.LHS*Ud;
 

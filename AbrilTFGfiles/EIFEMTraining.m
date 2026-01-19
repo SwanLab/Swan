@@ -51,6 +51,14 @@ classdef EIFEMTraining < handle
             K = LHS(1:uFun.nDofs,1:uFun.nDofs);
             [obj.uSbd,obj.LHSsbd]    = obj.extractDomainData(uAll,K);
 
+            % outputs
+            % data.mesh= obj.mesh;
+            % data.uSbd= obj.uSbd;
+            % data.LHSsbd= obj.LHSsbd;
+            % data.E= obj.E;
+            % data.nu = obj.nu;
+            % data.Coarseorder= obj.Coarseorder;
+
         end
 
     end
@@ -63,8 +71,8 @@ classdef EIFEMTraining < handle
                     obj.nSubdomains   = [1 1]; %nx ny
                     obj.domainIndices = [1 1];
                 case 'Oversampling'
-                    obj.nSubdomains   = [5 5]; %nx ny
-                    obj.domainIndices = [3 3];
+                    obj.nSubdomains   = [3 3]; %nx ny
+                    obj.domainIndices = [2 2];
             end
             
             obj.radius=r;
@@ -72,6 +80,7 @@ classdef EIFEMTraining < handle
             obj.mesh = mesh;
             obj.Coarseorder = 1;
             obj.Inclusion=params.Inclusion;
+            
         end
 
         function repeatMesh(obj)
@@ -91,80 +100,68 @@ classdef EIFEMTraining < handle
         end
 
         function material = createMaterial(obj)
-            for i = 1:obj.nSubdomains(1,2)
-                for j = 1:obj.nSubdomains(1,1)
-                    [young,poisson] = obj.computeElasticProperties(obj.cellMeshes{i,j} );
-                    s.type        = 'ISOTROPIC';
-                    s.ptype       = 'ELASTIC';
-                    s.ndim        = obj.cellMeshes{i,j}.ndim;
-                    s.young       = young;
-                    s.poisson     = poisson;
-                    tensor        = Material.create(s);
-                    material{i,j} = tensor;
-                end
-            end
+                    [young,poisson] = obj.computeElasticProperties();
+                    s.type          = 'ISOTROPIC';
+                    s.ptype         = 'ELASTIC';
+                    s.ndim          = obj.mesh.ndim;
+                    s.young         = young;
+                    s.poisson       = poisson;
+                    tensor          = Material.create(s);
+                    material        = tensor;
         end
 
 
-        function [young,poisson] = computeElasticProperties(obj,mesh)
+        function [young,poisson] = computeElasticProperties(obj)
             obj.E  = 1;
             obj.nu  = 1/3;
             r   = obj.radius;
 
             switch obj.Inclusion
                 case {'Hole','HoleRaul'}
-                    young   = ConstantFunction.create(obj.E,mesh);
-                    poisson = ConstantFunction.create(obj.nu,mesh);
+                    young   = ConstantFunction.create(obj.E,obj.meshDomain);
+                    poisson = ConstantFunction.create(obj.nu,onj.meshDomain);
                 case 'Material'
                     E2 = obj.E/1000;
-                    x0=mean(mesh.coord(:,1));
-                    y0=mean(mesh.coord(:,2));
-                    f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<r)*E2 + ...
-                                (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=r)*obj.E ; 
-                    young   = AnalyticalFunction.create(f,mesh);
-                    poisson = ConstantFunction.create(obj.nu,mesh);
+                    xmax = max(obj.mesh.coord(:,1));
+                    ymax = max(obj.mesh.coord(:,2));
+                    xmin = min(obj.mesh.coord(:,1));
+                    ymin = min(obj.mesh.coord(:,2));
+                    Lx = xmax-xmin;
+                    Ly = ymax-ymin;
+
+                    f = @(x) ...
+                        ( sqrt( ...
+                        (mod(x(1,:,:) - xmin, Lx) - Lx/2).^2 + ...
+                        (mod(x(2,:,:) - ymin, Ly) - Ly/2).^2 ) < r ) * E2 + ...
+                        ( sqrt( ...
+                        (mod(x(1,:,:) - xmin, Lx) - Lx/2).^2 + ...
+                        (mod(x(2,:,:) - ymin, Ly) - Ly/2).^2 ) >= r ) * obj.E;
+                
+                    young   = AnalyticalFunction.create(f, obj.meshDomain);
+                    poisson = ConstantFunction.create(obj.nu, obj.meshDomain);
             end   
         end
 
 
-        function [LHS,RHS,uGlobal,dLambda] = createElasticProblem(obj)
-            uGlobal = LagrangianFunction.create(obj.meshDomain,obj.meshDomain.ndim,'P1');
-            uLocal = LagrangianFunction.create(obj.cellMeshes{1,1},obj.cellMeshes{1,1}.ndim,'P1');
+        function [LHS,RHS,u,dLambda] = createElasticProblem(obj)
+            u = LagrangianFunction.create(obj.meshDomain,obj.meshDomain.ndim,'P1');
             dLambda = LagrangianFunction.create(obj.boundaryMeshJoined,obj.meshDomain.ndim,'P1');
-            LHS = obj.computeLHS(uLocal,uGlobal,dLambda);
-            RHS = obj.computeRHS(uGlobal,dLambda);
+            LHS = obj.computeLHS(u,dLambda);
+            RHS = obj.computeRHS(u,dLambda);
         end
 
-        function LHS  = computeLHS(obj,uLocal,uGlobal,dLambda)
+        function LHS  = computeLHS(obj,u,dLambda)
             material = obj.createMaterial();
-            K = obj.computeStiffnessMatrix(uLocal,material);
-            C = obj.computeConditionMatrix(uGlobal,dLambda);
+            K = obj.computeStiffnessMatrix(u,material);
+            C = obj.computeConditionMatrix(u,dLambda);
             Z = zeros(dLambda.nDofs);
             LHS = [K C'; C Z];
         end
 
 
-        function [LHS,LHSr] = computeStiffnessMatrix(obj,dispFun,mat)
-            LHSl = [];
-
-            for i = 1:obj.nSubdomains(1,2)
-                for j = 1:obj.nSubdomains(1,1)
-                    Mesh     = obj.cellMeshes{i,j};
-                    C     = mat{i,j};
-                    f = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
-                    lhs= IntegrateLHS(f,dispFun,dispFun,Mesh,'Domain',2);
-
-                    LHSl = cat(3, LHSl, full(lhs) );
-                    
-                end
-            end
-
-            if sum(obj.nSubdomains > 1)>= 1
-                LHS = obj.DDdofManager.local2globalMatrix(LHSl);
-            else
-                LHS=LHSl;
-            end
-            
+        function LHS= computeStiffnessMatrix(obj,dispFun,C)
+            f = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
+            LHS= IntegrateLHS(f,dispFun,dispFun,obj.meshDomain,'Domain',2);
         end
 
 
@@ -236,24 +233,6 @@ classdef EIFEMTraining < handle
             x0 = xmin+a;
             y0 = ymin+b;
 
-            %             f1x = @(x) [1/(4)*(1-x(1,:,:)).*(1-x(2,:,:));...
-            %                     0*x(2,:,:)  ];
-            %             f2x = @(x) [1/(4)*(1+x(1,:,:)).*(1-x(2,:,:));...
-            %                     0*x(2,:,:)  ];
-            %             f3x = @(x) [1/(4)*(1+x(1,:,:)).*(1+x(2,:,:));...
-            %                     0*x(2,:,:)  ];
-            %             f4x = @(x) [1/(4)*(1-x(1,:,:)).*(1+x(2,:,:));...
-            %                     0*x(2,:,:)  ];
-            %
-            %             f1y = @(x) [0*x(1,:,:);...
-            %                     1/(4)*(1-x(1,:,:)).*(1-x(2,:,:))  ];
-            %             f2y = @(x) [0*x(1,:,:);...
-            %                     1/(4)*(1+x(1,:,:)).*(1-x(2,:,:))  ];
-            %             f3y = @(x) [0*x(1,:,:);...
-            %                     1/(4)*(1+x(1,:,:)).*(1+x(2,:,:))  ];
-            %             f4y = @(x) [0*x(1,:,:);...
-            %                     1/(4)*(1-x(1,:,:)).*(1+x(2,:,:))  ];
-
             f1x = @(x) [1/(4)*(1-(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b);...
                 0*x(2,:,:)  ];
             f2x = @(x) [1/(4)*(1+(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b);...
@@ -279,6 +258,13 @@ classdef EIFEMTraining < handle
             end
         end
 
+        function [centroids] =computeCentroid(obj)
+            x0=mean(obj.mesh.coord(:,1));
+            y0=mean(obj.mesh.coord(:,2));
+            centroids = [x0,y0];
+        end
+
     end
+
 
 end
