@@ -111,10 +111,10 @@ params = {"dt": dTime*hmin*elRadius,
           "save_only_Q_constraints": 5,
           "alphaJ": 1,
           "alphaC": 1,
-          "maxit": 50,
+          "maxit": 100,
           "CFL": 0.9}
 problem:Optimizable = TO_problem()
-
+maxItj = 1
 
 
 
@@ -283,7 +283,7 @@ while normdx > params['tol'] and it <= params['maxit']:
 
     itj = 1
     xj = x
-    while itj<=1:
+    while itj<=maxItj:
         dG = problem.dG(xj)
         dH = problem.dH(xj)
 
@@ -340,6 +340,9 @@ while normdx > params['tol'] and it <= params['maxit']:
 
         xj = x1
         itj = itj + 1
+
+        if abs(G)<0.01 & H<-0.01:
+            maxItj = 1
     dx = (x1-x)
     #if p>0:
     #    assert np.isclose(dC[:p,:] @ xiJ,0,atol=1e-15) 
@@ -414,24 +417,6 @@ Comp  = results['J']
 Vol  = results['G']
 Per = results['H']
 
-fig, axes = plt.subplots(1, 3, figsize=(10, 4))
-
-axes[0].plot(iter, Comp, color='b')
-axes[0].set_xlabel('Iter')
-axes[0].set_ylabel('Compliance')
-axes[0].grid(True, linestyle='--', alpha=0.6)
-
-axes[1].plot(iter, Vol, color='b')
-axes[1].set_xlabel('Iter')
-axes[1].set_ylabel('Volume constraint')
-axes[1].grid(True, linestyle='--', alpha=0.6)
-
-axes[2].plot(iter, Per, color='b')
-axes[2].set_xlabel('Iter')
-axes[2].set_ylabel('Perimeter constraint')
-axes[2].grid(True, linestyle='--', alpha=0.6)
-
-plt.tight_layout()
-plt.show()
+np.savez(path+"03_Result1",xF=x,it=iter,c=Comp,v=Vol,p=Per)
 
 a = 1

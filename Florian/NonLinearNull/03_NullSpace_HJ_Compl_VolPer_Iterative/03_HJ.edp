@@ -62,6 +62,6 @@ func real[int] advectRedist(real[int] phiot, real[int] vxt, real[int] vyt, real 
    return phi[];
 } // EOM
 
-phi[] = advectRedist(phio[],gx[],gy[],1/dt);
+phi[] = advectRedist(phio[],gx[],gy[],0.3/dt);
 
 exportArray(phi[]);
