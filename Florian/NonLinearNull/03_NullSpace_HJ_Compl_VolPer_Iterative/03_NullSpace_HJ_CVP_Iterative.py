@@ -269,55 +269,77 @@ while normdx > params['tol'] and it <= params['maxit']:
     runner.import_variables(Th=Th,phiVal=x,alpha=alpha,lsLab=lsLabel,rInner=rInner)
     exports = runner.execute()
 
-    problem._problem.Th2 = exports['Th2']
-    problem._problem.nx = exports['nx[]']
-    problem._problem.ny = exports['ny[]']
+    Th2Old = exports['Th2']
+    nxOld = exports['nx[]']
+    nyOld = exports['ny[]']
+    
+    problem._problem.Th2 = Th2Old
+    problem._problem.nx = nxOld
+    problem._problem.ny = nyOld
 
     A = problem.inner_product(x)
 
     dJ = problem.dJ(x)
-    dG = problem.dG(x)
-    dH = problem.dH(x)
 
-    J, G, H, dJ, dG, dH, C, dC, n, p, q = pack_constraints(J, G, H, dJ, dG, dH)
+    itj = 1
+    xj = x
+    while itj<=1:
+        dG = problem.dG(xj)
+        dH = problem.dH(xj)
 
-    prevmuls = muls.copy()
+        J, G, H, dJ, dG, dH, C, dC, n, p, q = pack_constraints(J, G, H, dJ, dG, dH)
 
-    # Null space direction xiJ and range space direction xiC
-    tic()
-    xiJ, xiC, eps, tildeEps, muls = get_xiJ_xiC(J, G, H, dJ, dG, dH, A,  
-                                        h=params['K']*params['dt'],        
-                                        alphas = params['alphas'](x),
-                                        dual_norm=params['dual_norm'],   
-                                        qp_solver = params['qp_solver'],     
-                                        qp_solver_options = params['qp_solver_options'], 
-                                        method_xiC = params['method_xiC'])
-    
-    abstract_results.save('eps', eps)
-    io.display(f"Lagrange multipliers: {muls[:10]}", 5, params['debug'], "magenta")
+        prevmuls = muls.copy()
 
-    normxiJ = compute_norm(xiJ, params['normalisation_norm'])
-    abstract_results.save('normxiJ', normxiJ)
+        # Null space direction xiJ and range space direction xiC
+        tic()
+        xiJ, xiC, eps, tildeEps, muls = get_xiJ_xiC(J, G, H, dJ, dG, dH, A,  
+                                            h=params['K']*params['dt'],        
+                                            alphas = params['alphas'](xj),
+                                            dual_norm=params['dual_norm'],   
+                                            qp_solver = params['qp_solver'],     
+                                            qp_solver_options = params['qp_solver_options'], 
+                                            method_xiC = params['method_xiC'])
         
-    # Rescalings 
-    if it < params['itnormalisation'] or \
-    (params['normalize_tol'] >= 0 and
-        not np.all((muls[p:] > params['normalize_tol'])
-                == (prevmuls[p:] > params['normalize_tol']))):
-        io.display(f"Normalisation of the xiJ direction, params['itnormalisation']={max(params['itnormalisation'], it + 1)}",
-                level=5)
-        normxiJ_save = normxiJ
-        AJ = (params['alphaJ'] * params['dt']) / (1e-9 + normxiJ)
-    else:
-        AJ = params['alphaJ']*params['dt'] / max(1e-9 + normxiJ, normxiJ_save)
-    AC = min(params['CFL'], params['alphaC']*params['dt'] / max(compute_norm(xiC, params['normalisation_norm']), 1e-9))
+        abstract_results.save('eps', eps)
+        io.display(f"Lagrange multipliers: {muls[:10]}", 5, params['debug'], "magenta")
 
-    # Update step
-    g = AJ*xiJ+AC*xiC
-    runner = FreeFemRunner(path+"03_HJ.edp")
-    runner.import_variables(Th=Th,Th2=problem._problem.Th2,gVal = g,phiVal=x,nxVal=problem._problem.nx,
-                            nyVal=problem._problem.ny,beta=beta,lsLab=lsLabel,rInner=rInner,dTime=dTime)
-    x1 = runner.execute()['phi[]']
+        normxiJ = compute_norm(xiJ, params['normalisation_norm'])
+        abstract_results.save('normxiJ', normxiJ)
+            
+        # Rescalings 
+        if it < params['itnormalisation'] or \
+        (params['normalize_tol'] >= 0 and
+            not np.all((muls[p:] > params['normalize_tol'])
+                    == (prevmuls[p:] > params['normalize_tol']))):
+            io.display(f"Normalisation of the xiJ direction, params['itnormalisation']={max(params['itnormalisation'], it + 1)}",
+                    level=5)
+            normxiJ_save = normxiJ
+            AJ = (params['alphaJ'] * params['dt']) / (1e-9 + normxiJ)
+        else:
+            AJ = params['alphaJ']*params['dt'] / max(1e-9 + normxiJ, normxiJ_save)
+        AC = min(params['CFL'], params['alphaC']*params['dt'] / max(compute_norm(xiC, params['normalisation_norm']), 1e-9))
+
+        # Update step
+        g = AJ*xiJ+AC*xiC
+        runner = FreeFemRunner(path+"03_HJ.edp")
+        runner.import_variables(Th=Th,Th2=problem._problem.Th2,gVal = g,phiVal=xj,nxVal=problem._problem.nx,
+                                nyVal=problem._problem.ny,beta=beta,lsLab=lsLabel,rInner=rInner,dTime=dTime)
+        x1 = runner.execute()['phi[]']
+
+        runner = FreeFemRunner(path+"03_BoundaryRefinement.edp")
+        runner.import_variables(Th=Th,phiVal=x1,alpha=alpha,lsLab=lsLabel,rInner=rInner)
+        exports = runner.execute()
+
+        problem._problem.Th2 = exports['Th2']
+        problem._problem.nx = exports['nx[]']
+        problem._problem.ny = exports['ny[]']
+
+        G = problem.G(x1)
+        H = problem.H(x1)
+
+        xj = x1
+        itj = itj + 1
     dx = (x1-x)
     #if p>0:
     #    assert np.isclose(dC[:p,:] @ xiJ,0,atol=1e-15) 

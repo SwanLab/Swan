@@ -106,10 +106,10 @@ dTime = 0.001
 hmin = 1/90
 elRadius = 10
 params = {"dt": dTime*hmin*elRadius,
-          "itnormalisation": 12,
+          "itnormalisation": 16,
           "save_only_N_iterations": 1,
           "save_only_Q_constraints": 5,
-          "alphaJ": 3,
+          "alphaJ": 1,
           "alphaC": 1,
           "maxit": 50,
           "CFL": 0.9}
