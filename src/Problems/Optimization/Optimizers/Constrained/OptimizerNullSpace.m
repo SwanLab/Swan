@@ -36,6 +36,10 @@ classdef OptimizerNullSpace < handle
         etaNormMin
         gJFlowRatio
         firstEstimation
+        gif
+        gifName
+        printing
+        printName
     end
 
     methods (Access = public) 
@@ -55,14 +59,10 @@ classdef OptimizerNullSpace < handle
             obj.firstEstimation = false;
             while ~obj.hasFinished
                 obj.update();
-                obj.updateIterInfo();               
-                if mod(obj.nIter,50)==0
+                obj.printResults();
+                obj.updateIterInfo();
                 obj.plotVariable();
-                end
-                if mod(obj.nIter,5)==0
-                 obj.updateMonitoring();
-                end
-               
+                obj.updateMonitoring();
                 obj.checkConvergence();
                 obj.designVariable.updateOld();
             end
@@ -86,6 +86,10 @@ classdef OptimizerNullSpace < handle
             obj.etaNorm         = cParams.etaNorm;
             obj.eta             = 0;
             obj.etaMin          = 1e-6;
+            obj.gif             = cParams.gif;
+            obj.gifName         = cParams.gifName;
+            obj.printing        = cParams.printing;
+            obj.printName       = cParams.printName;
             obj.primalUpdater   = cParams.primalUpdater;
             obj.dualUpdater     = DualUpdaterNullSpace(cParams);
             obj.createDualVariable();
@@ -209,6 +213,17 @@ classdef OptimizerNullSpace < handle
             while ~obj.acceptableStep
                 obj.updatePrimal();
                 obj.checkStep(x0);
+            end
+        end
+
+        function printResults(obj)
+            if obj.nIter/10==round(obj.nIter/10)
+                if obj.gif
+                    obtainGIF(obj.gifName,obj.designVariable,obj.nIter);
+                end
+                if obj.printing
+                    obj.designVariable.fun.print([obj.printName,'Iter',num2str(obj.nIter/10)]);
+                end
             end
         end
 

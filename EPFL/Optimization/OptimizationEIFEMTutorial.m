@@ -84,7 +84,7 @@ classdef OptimizationEIFEMTutorial < handle
 %             obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange20_der2_092.mat';
             obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange20_der2_092.mat';
             obj.solverType = 'REDUCED';
-            obj.volumeTarget = 0.5; %0.7
+            obj.volumeTarget = 0.6; %0.7
         end
 
         function createMesh(obj)

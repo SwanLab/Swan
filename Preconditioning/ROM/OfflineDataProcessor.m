@@ -100,7 +100,8 @@ classdef OfflineDataProcessor < handle
         end
 
         function RBfun = projectToRigidBodyFun(obj,uFun)
-            refPoint = (max(obj.mesh.coord)+min(obj.mesh.coord))/2;
+%             refPoint = (max(obj.mesh.coord)+min(obj.mesh.coord))/2;
+            refPoint = obj.computeCentroid();
             ntest    = size(uFun,2);
             for i = 1:ntest
                 RBfun(i) = project(uFun(i),'RigidBody',refPoint);
@@ -297,6 +298,17 @@ classdef OfflineDataProcessor < handle
 
         function M  = computeM(obj,u)          
             M = IntegrateLHS(@(u,v) DD(v,u),u,u,obj.mesh,'Domain',2);
+        end
+
+        function coord = computeCentroid(obj)
+%             oneF = ConstantFunction.create(1,obj.mesh); %for volume
+            vol = obj.mesh.computeVolume();
+            fx = @(x) x(1,:,:);
+            fy = @(x) x(2,:,:);
+            cFx = AnalyticalFunction.create(fx,obj.mesh);
+            cFy = AnalyticalFunction.create(fy,obj.mesh);
+            coord(1) = Integrator.compute(cFx,obj.mesh,2)/vol;
+            coord(2) = Integrator.compute(cFy,obj.mesh,2)/vol;
         end
 
 
