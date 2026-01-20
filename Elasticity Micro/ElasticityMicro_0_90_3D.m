@@ -27,7 +27,7 @@ classdef ElasticityMicro_0_90_3D < handle
     methods (Access = private)
         
         function createMesh(obj)
-            obj.mesh = UnitTetraMesh(50,50,50);
+            obj.mesh = UnitTetraMesh(20,20,20);
         end
 
         function computeDensity(obj)
@@ -89,7 +89,7 @@ classdef ElasticityMicro_0_90_3D < handle
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
             s.interpolation  = 'SIMPALL';
-            s.dim            = '2D';
+            s.dim            = '3D';
             s.matA = matA;
             s.matB = matB;
 
@@ -101,7 +101,7 @@ classdef ElasticityMicro_0_90_3D < handle
             s.type                 = 'DensityBased';
             s.density              = obj.designVariable;
             s.materialInterpolator = obj.materialInterpolator;
-            s.dim                  = '2D';
+            s.dim                  = '3D';
             s.mesh                 = obj.mesh;
             m = Material.create(s);
         end        
@@ -118,7 +118,7 @@ classdef ElasticityMicro_0_90_3D < handle
             s.mesh = obj.mesh;
             s.scale = 'MICRO';
             s.material = obj.createMaterial();
-            s.dim = '2D';
+            s.dim = '3D';
             s.boundaryConditions = obj.createBoundaryConditions();
             % Options: REDUCED-FLUC / MONOLITHIC-FLUC / MONOLITHIC-DISP
             s.solverCase = DirectSolver();
