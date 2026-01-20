@@ -21,6 +21,7 @@ classdef EIFEMTraining < handle
         DDdofManager
         domainIndices
         Inclusion
+        material
 
         fileNameEIFEM
         tolSameNode
@@ -44,7 +45,9 @@ classdef EIFEMTraining < handle
             [obj.boundaryMeshJoined, obj.localGlobalConnecBd] = obj.meshDomain.createSingleBoundaryMesh();
             cF = CoarseFunction(obj.boundaryMeshJoined,obj.Coarseorder);
             obj.DirFun = cF.f;
-
+            
+            obj.material=obj.createMaterial();
+            s.mesh=obj.meshDomain;
             [LHS,RHS,uFun,~] = obj.createElasticProblem();
             sol  = LHS\RHS;
             uAll = sol(1:uFun.nDofs,:);
