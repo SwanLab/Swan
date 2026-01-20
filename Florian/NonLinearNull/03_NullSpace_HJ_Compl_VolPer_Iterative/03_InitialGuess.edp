@@ -15,7 +15,7 @@ func real initialGuessX() {
   return(lsx);
 }
 func real initialGuessY() {
-  real nHY = 2.0, lY = 1.0, fY = 0.0;
+  real nHY = 2.0, lY = 1.0, fY = pi/2;
   real lsy;
   lsy = cos((nHY+1)*y*pi/lY+fY);
   return(lsy);

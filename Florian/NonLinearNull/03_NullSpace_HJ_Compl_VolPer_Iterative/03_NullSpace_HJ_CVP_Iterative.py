@@ -106,12 +106,12 @@ dTime = 0.001
 hmin = 1/90
 elRadius = 10
 params = {"dt": dTime*hmin*elRadius,
-          "itnormalisation": 16,
+          "itnormalisation": 6,
           "save_only_N_iterations": 1,
           "save_only_Q_constraints": 5,
           "alphaJ": 1,
           "alphaC": 1,
-          "maxit": 100,
+          "maxit": 60,
           "CFL": 0.9}
 problem:Optimizable = TO_problem()
 maxItj = 1
@@ -341,7 +341,7 @@ while normdx > params['tol'] and it <= params['maxit']:
         xj = x1
         itj = itj + 1
 
-        if abs(G)<0.01 & H<-0.01:
+        if np.linalg.norm(G,ord=np.inf)<0.01 and max(H)<0.01:
             maxItj = 1
     dx = (x1-x)
     #if p>0:
