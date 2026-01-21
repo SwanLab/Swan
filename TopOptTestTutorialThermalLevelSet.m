@@ -170,10 +170,10 @@ classdef TopOptTestTutorialThermalLevelSet < handle
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.002;
             s.gJFlowRatio    = 1;
-            s.gif=false;
-            s.gifName='ElasticDensity';
+            s.gif=true;
+            s.gifName='ThermalLevelSet';
             s.printing=true;
-            s.printName='Elastic Density';
+            s.printName='ThermalLevelSet';
             s.etaMax         = 1;
             s.etaMaxMin      = 0.001;
           

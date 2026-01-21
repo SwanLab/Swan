@@ -182,10 +182,10 @@ classdef TopOptTestTutorialLevelSetNullSpace < handle
             s.gJFlowRatio    = 1;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
-            s.gif=false;
-            s.gifName='ThermalDensity';
+            s.gif=true;
+            s.gifName='ElasticLevelSet';
             s.printing=true;
-            s.printName='Thermal Density';
+            s.printName='ElasticLevelSet';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

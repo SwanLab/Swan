@@ -61,9 +61,9 @@ classdef OptimizerMMA < Optimizer
                % obj.obtainGIF()
 
                
-               if obj.nIter == 1 || mod(obj.nIter,50)== 0
-                   obj.designVariable.fun.print('TD.'+string(obj.nIter),'Paraview')
-               end
+               % if obj.nIter == 1 || mod(obj.nIter,50)== 0
+               %     obj.designVariable.fun.print('TD.'+string(obj.nIter),'Paraview')
+               % end
            end
             obj.hasConverged = 0;
        end

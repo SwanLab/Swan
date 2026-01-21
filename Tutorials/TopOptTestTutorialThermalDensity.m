@@ -166,7 +166,7 @@ classdef TopOptTestTutorialThermalDensity < handle
             s.ub             = 1;
             s.lb             = 0;
             s.volumeTarget   = 0.4;
-            s.gif=false;
+            s.gif=true;
             s.gifName='ThermalDensity';
             s.printing=true;
             s.printName='Thermal Density';

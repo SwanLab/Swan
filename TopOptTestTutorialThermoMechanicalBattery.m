@@ -50,8 +50,6 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
         end
 
         function createMesh(obj)
-%             x1      = linspace(0,0.1,100);
-%             x2      = linspace(0,0.1,100);
             x1      = linspace(0,1,100);
             x2      = linspace(0,1,100);
             [xv,yv] = meshgrid(x1,x2);
@@ -94,9 +92,7 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
              uMeshR.compute(phiR);
 
              obj.chiAl     = CharacteristicFunction.create(uMeshR).project('P1'); %- obj.chiB;
-
-
-        end
+         end
 
         function createDesignVariable(obj)
             s.fHandle = @(x) ones(size(x(1,:,:)));
@@ -125,7 +121,7 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
             %sD.isFixed.values = -1*(obj.chiB0.fValues > 0); %LevelSet
 
             a =LagrangianFunction.create(obj.mesh,1,'P1');
-            values = zeros*obj.mesh.coord(:,1);
+            values = zeros(size(obj.mesh.coord,1),1);
             values(isNonDesign(obj.mesh.coord)) = 1;
             a.setFValues(values);
             a.plot();
@@ -135,11 +131,11 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
         end
 
         function createFilter(obj)
-            s.filterType = 'PDE';
+            s.filterType = 'LUMP';
             s.mesh  = obj.mesh;
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
-            f.updateEpsilon(1*obj.mesh.computeMinCellSize); % filter radius
+            %f.updateEpsilon(1*obj.mesh.computeMinCellSize); % filter radius
             obj.filter = f;
         end
 
