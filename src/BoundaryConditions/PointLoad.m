@@ -56,8 +56,20 @@ classdef PointLoad < BoundaryCondition
             vals = obj.fun.fValues(dofs, obj.direction);
             v = vals(:);
         end
+
+        function rhs = computeRHS(obj,test)
+            % switch obj.type
+                % case 'DIRAC'
+                    rhs = obj.values;
+                % case 'FUNCTION'
+            %         f   = obj.fun;
+            %         rhs = IntegrateRHS(@(v) DP(f,v),test,obj.mesh,'Boundary');
+            % end
+        end
         
     end
+
+
     
     methods (Access = private)
         
