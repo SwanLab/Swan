@@ -122,7 +122,8 @@ classdef FemInputReaderGiD < handle
             obj.periodicFun  = [];
             if ~isequal(sDir,[])
                 for i = 1:numel(sDir)
-                    dir = DirichletCondition(obj.mesh, sDir{i},data.dirichlet_data);
+                    dir = DirichletCondition(obj.mesh, sDir{i});
+                    % dir = DirichletCondition(obj.mesh, sDir{i},data.dirichlet_data);
                     obj.dirichletFun = [obj.dirichletFun, dir];
                 end
             end
