@@ -163,6 +163,7 @@ P(8,:) = P(4,:) + [-t_frame,  t_frame];
 %% bar offsets
 a = (h1/2)/sin(pi/4);   % bar 1 offset
 b = (h2/2)/sin(pi/4);   % bar 2 offset
+c = max(a,b);
 
 %% bar–frame intersection points
 P(9,:)  = P(5,:) - [0, a];
@@ -199,6 +200,15 @@ P(30,:) = P(13,:) + [ - t_frame,0];
 P(31,:) = P(14,:) + [ 0,-t_frame] ;
 P(32,:) = P(15,:) + [ 0, - t_frame];
 P(33,:) = P(16,:) + [ t_frame,0] ;
+% delta = (a+b)/2;
+% P(26,:) = P(1,:) + [ 0,-delta] ;
+% P(27,:) = P(1,:) + [  -delta,0] ;
+% P(28,:) = P(2,:) + [  delta,0];
+% P(29,:) = P(2,:) + [  0, -delta] ;
+% P(30,:) = P(3,:) + [ 0, delta];
+% P(31,:) = P(3,:) + [ delta,0] ;
+% P(32,:) = P(4,:) + [ -delta,0];
+% P(33,:) = P(4,:) + [ 0,delta] ;
 end
 
 function plotPoints(P)

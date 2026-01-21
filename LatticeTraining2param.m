@@ -14,6 +14,7 @@ classdef LatticeTraining2param < handle
         tFrame
         Nr
         Ntheta
+        nFrame
         connec
         CoarseOrder
         Length
@@ -48,6 +49,8 @@ classdef LatticeTraining2param < handle
                     EIFEoper.U = EIFEoper.U(:);
                     %                 EIFEoper.Kfine = data.LHSsbd;
                     EIFEoper.snapshots = data.uSbd;
+                    EIFEoper.h1 = obj.h1(i);
+                    EIFEoper.h2 = obj.h2(j);
                     %                 filePath = ['/home/raul/Documents/GitHub/EPFL/test/data_' num2str(obj.r(i), '%.3f') '.mat'];
                     filePath = ['./EPFL/dataLattice2param/data_h1_' num2str(obj.h1(i), '%.3f') '_h2_' num2str(obj.h2(j), '%.3f') '.mat'];
                     save(filePath,'EIFEoper')
@@ -68,11 +71,12 @@ classdef LatticeTraining2param < handle
             %             i = 0:N;
             %             % Cosine spacing formula
             %             obj.r = (a + b)/2 + (b - a)/2 * cos(pi * (1 - i / N));
-            obj.h1    = 0.6:0.04:1.38;
-            obj.h2    = 0.6:0.04:1.38;
-            obj.tFrame = 0.2;
-            obj.Nr=6;
-            obj.Ntheta=6;
+            obj.h1    = 0.01:0.1:1.95;
+            obj.h2    = 0.01:0.1:1.95;
+            obj.tFrame = 0.02;
+            obj.Nr=10;
+            obj.Ntheta=10;
+            obj.nFrame = 1;
             obj.CoarseOrder = 1;
             obj.Length = 2; 
         end
@@ -85,9 +89,10 @@ classdef LatticeTraining2param < handle
         end
 
         function mesh = createReferenceMesh(obj,h1,h2)
-
-            mesh =  meshLattice2param(obj.Length/2,obj.tFrame,h1,h2,obj.Nr,obj.Ntheta);
-
+            % X mesh
+%             mesh =  meshLattice2param(obj.Length/2,obj.tFrame,h1,h2,obj.Nr,obj.Ntheta);
+            % + mesh
+            mesh = meshCrossLattice(obj.Length/2,obj.tFrame,h1,h2,obj.Nr,obj.Ntheta,obj.nFrame);
 
         end
 

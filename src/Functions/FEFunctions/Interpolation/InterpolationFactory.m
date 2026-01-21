@@ -52,6 +52,8 @@ classdef InterpolationFactory < handle
                             obj = QuadrilateralQ8(cParams);    
                         case 'CUBIC'
                             obj = QuadrilateralCubic(cParams);
+                         case 'EIGHT'
+                            obj = QuadrilateralDegree8(cParams);
                         otherwise
                             error('Invalid order for element QUADRILATERAL.');
                     end

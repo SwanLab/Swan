@@ -30,7 +30,7 @@ classdef DEIM < handle
         
         function init(obj,data)
             obj.data = data;
-            obj.threshold = 0.9999999;
+            obj.threshold = 0.99;
 
         end
         

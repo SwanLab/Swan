@@ -231,7 +231,7 @@ classdef DOFsComputer < handle
                 ndofsFaces = ndofsFaces + 1;
             elseif ord > 0
                 ndofsFaces = ndofsFaces + obj.mesh.faces.nNodeByFace + obj.mesh.faces.nEdgeByFace*(ord-1);
-                ndofsFaces = ndofsFaces + obj.computeNdofsFaces(ord-d);
+                ndofsFaces = ndofsFaces + obj.computeNdofsFaces(ord);
             end
         end
         
