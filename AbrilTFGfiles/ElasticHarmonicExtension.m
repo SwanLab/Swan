@@ -15,7 +15,7 @@ classdef ElasticHarmonicExtension < handle
             obj.init(cParams)
         end
 
-        function [u,L,Kc] = solve(obj)
+        function [u,L,K] = solve(obj)
             K = obj.computeKfine();
             LHS=obj.computeLHS(K);
             RHS=obj.computeRHS();

@@ -20,7 +20,8 @@ classdef MultiscaleTraining < handle
             s.dirichletFun  = obj.createDirichletFunctions(bMesh);
             s.localGlobalConnecBd = lGCBd;
             e  = ElasticHarmonicExtension(s);
-            [u,L,Kc] = e.solve();
+            [u,L,K] = e.solve();
+            Kc=u.'*K*u;
         end
     end
 

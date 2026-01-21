@@ -38,8 +38,8 @@ classdef TrainedRVE < handle
         function init(obj,data)
                 load(data);
                 obj.Kcoarse = EIFEoper.Kcoarse;
-                %obj.Udef    = EIFEoper.Udef;
-                %obj.Urb     = EIFEoper.Urb;
+                obj.Udef    = EIFEoper.Udef;
+                obj.Urb     = EIFEoper.Urb;
 
                 if isfield(EIFEoper,'U')
                     obj.U = EIFEoper.U;

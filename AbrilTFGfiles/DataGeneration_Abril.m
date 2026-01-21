@@ -13,7 +13,7 @@ clc; clear; close all;
 r=0.35;
 
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
-p.Sampling   = 'Isolated';        %'Isolated'/'Oversampling'
+p.Sampling   = 'Oversampling';        %'Isolated'/'Oversampling'
 p.Inclusion  = 'Material';        %'Material'/'Hole'/'HoleRaul'
 p.nelem      = 20;
 meshName     = p.nelem+"x"+p.nelem;
@@ -33,10 +33,13 @@ for j = 1:size(r,2)
             [T,lambda,Kcoarse] = m.train();
             mesh = mR;
         case 'EIFEM'
-            s.mesh     = mR;
-            s.material = material;
-            %data= EIFEMTraining(s);
-            data = EIFEMTraining(mR,r(j),p);
+            s.mesh      = mR;
+            s.r         = radius;
+            s.Inclusion = p.Inclusion;
+            s.Sampling  = p.Sampling;
+            m= EIFEMTraining(s);
+            data=m.train();
+            %data = EIFEMTraining(mR,r(j),p);
             z = OfflineDataProcessor(data);
             EIFEoper = z.computeROMbasis();
             T        = EIFEoper.U;

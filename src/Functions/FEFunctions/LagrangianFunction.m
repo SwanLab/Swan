@@ -187,11 +187,13 @@ classdef LagrangianFunction < FeFunction
         end        
 
         function dof = getDofsFromCondition(obj, condition)
+            % nodes = condition(obj.dofCoord);
+            % iNode = find(nodes==1);
+            % dofElem = repmat(1:obj.ndimf, [length(iNode) 1]);
+            % dofMat = obj.ndimf*(iNode - 1) + dofElem;
+            % dof = sort(dofMat(:));
             nodes = condition(obj.dofCoord);
-            iNode = find(nodes==1);
-            dofElem = repmat(1:obj.ndimf, [length(iNode) 1]);
-            dofMat = obj.ndimf*(iNode - 1) + dofElem;
-            dof = sort(dofMat(:));
+              dof = find(nodes==1);
         end
 
         function print(obj, filename, software)
