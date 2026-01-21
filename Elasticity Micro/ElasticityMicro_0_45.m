@@ -55,7 +55,7 @@ classdef ElasticityMicro_0_45 < handle
         end
 
         function [ls,phiFun] = computeLevelSet(obj, mesh)            
-            g.type          = 'DiagonalBars';
+            g.type          = 'HorizontalDiagonalBars';
             g.leftBar_xMax = 0.35;   % right edge of left bar
             g.barWidth = 0.12275;
             g.rightBar_xMin = 1 - g.leftBar_xMax;  % left edge of right bar

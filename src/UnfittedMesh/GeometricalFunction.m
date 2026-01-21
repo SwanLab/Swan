@@ -469,10 +469,10 @@ classdef GeometricalFunction < handle
                     k    = 2*pi*n/(ymax-ymin);
                     fH   = @(x) sin(k*(x2(x)-ymin)+pi/2);
                     
-                    obj.fHandle = @(x) max(fV(x),fH(x));
+                    obj.fHandle = @(x) min(fV(x),fH(x));
 
 
-                case 'DiagonalBars' % 0°/+45°
+                case 'HorizontalDiagonalBars' % 0°/+45°
                     L=1;
                     h = cParams.barWidth;
                     yB2 = cParams.bottomBar_yMax;
@@ -495,7 +495,44 @@ classdef GeometricalFunction < handle
 
                     fH = @(x) min([fH1(x),fH2(x),fD1(x),fD2(x),fD3(x)]);
                     obj.fHandle = fH;
-                   
+
+                case 'HorizontalDiagonalBars_3D'
+                    xmin = cParams.minxCoor;
+                    xmax = cParams.maxxCoor;
+                    ymin = cParams.minyCoor;
+                    ymax = cParams.maxyCoor;
+                    zmin = cParams.minzCoor;
+                    zmax = cParams.maxzCoor;
+
+                    nY  = cParams.nFibersY;    % para 0°
+                    nXY = cParams.nFibersXY;   % para 45°
+                    nZ  = cParams.nFibersZ;
+                    R   = cParams.radius;
+
+                    nLayers = cParams.nLayers;
+                    tLayer  = (zmax - zmin)/nLayers;
+
+                    Ly = ymax - ymin;
+                    Lz = zmax - zmin;
+                    Ls = ((xmax - xmin) + (ymax - ymin)) / sqrt(2);
+
+                    layer = @(x) floor((x3(x) - zmin)/tLayer);
+
+                    f0 = @(x) sqrt(...
+                        (mod(x2(x)-ymin, Ly/nY) - Ly/(2*nY)).^2 + ...
+                        (mod(x3(x)-zmin, Lz/nZ) - Lz/(2*nZ)).^2 ) - R;
+
+                    s = @(x) (x1(x) - x2(x)) / sqrt(2);
+                    f45 = @(x) sqrt( ...
+                        (mod(s(x) - xmin/sqrt(2), Ls/nXY) - Ls/(2*nXY)).^2 + ...
+                        (mod(x3(x) - zmin, Lz/nZ) - Lz/(2*nZ)).^2) - R;
+
+                    fH = @(x) ...
+                        (mod(layer(x),2)==0).*f0(x) + ...
+                        (mod(layer(x),2)==1).*f45(x);
+
+                    obj.fHandle = fH;
+
                
                 case 'CrossDiagonalBars' % -45°/+45°
                     h     = cParams.barWidth;
@@ -519,6 +556,40 @@ classdef GeometricalFunction < handle
                     fH= @(x) min([fP1(x), fP2(x), fP3(x), fN1(x), fN2(x), fN3(x)]);
                     obj.fHandle = fH;
 
+                case 'CrossDiagonalBars_3D' % -45°/+45°
+                    xmin = cParams.minxCoor;
+                    xmax = cParams.maxxCoor;
+                    ymin = cParams.minyCoor;
+                    ymax = cParams.maxyCoor;
+                    zmin = cParams.minzCoor;
+                    zmax = cParams.maxzCoor;
+                    nXY  = cParams.nFibersXY;  
+                    nZ   = cParams.nFibersZ;
+                    R    = cParams.radius;
+  
+                    nLayers = cParams.nLayers;
+                    tLayer  = (zmax - zmin)/nLayers;
+                    Ls      = ((xmax - xmin) + (ymax - ymin)) / sqrt(2);
+                    Lz      = zmax - zmin;
+
+                    layer = @(x) floor((x3(x) - zmin)/tLayer);
+
+                    sP = @(x) (x1(x) - x2(x)) / sqrt(2);  % +45
+                    sN = @(x) (x1(x) + x2(x)) / sqrt(2);  % -45
+
+                    fP = @(x) sqrt( ...
+                        (mod(sP(x) - xmin/sqrt(2), Ls/nXY) - Ls/(2*nXY)).^2 + ...
+                        (mod(x3(x) - zmin, Lz/nZ) - Lz/(2*nZ)).^2) - R;
+
+                    fN = @(x) sqrt( ...
+                        (mod(sN(x) - xmin/sqrt(2), Ls/nXY) - Ls/(2*nXY)).^2 + ...
+                        (mod(x3(x) - zmin, Lz/nZ) - Lz/(2*nZ)).^2) - R;
+
+                    fH = @(x) (mod(layer(x),2)==0).*fP(x) + ...
+                        (mod(layer(x),2)==1).*fN(x);
+
+                    obj.fHandle = fH;
+
 
                 case 'DiagonalNFibers'
                     n    = cParams.nFibers;
@@ -539,15 +610,12 @@ classdef GeometricalFunction < handle
                     ymax = cParams.maxyCoor;
                     zmin = cParams.minzCoor;
                     zmax = cParams.maxzCoor;
-
-                    nXY = cParams.nFibersXY;   % número de fibras en la dirección normal
-                    nZ  = cParams.nFibersZ;
-                    R   = cParams.radius;
+                    nXY  = cParams.nFibersXY; 
+                    nZ   = cParams.nFibersZ;
+                    R    = cParams.radius;
 
                     Ls = ((xmax - xmin) + (ymax - ymin)) / sqrt(2);
                     Lz = zmax - zmin;
-
-                    % coordenada normal a la fibra (45 grados)
                     s = @(x) (x1(x) - x2(x)) / sqrt(2);
 
                     fH = @(x) sqrt( ...
