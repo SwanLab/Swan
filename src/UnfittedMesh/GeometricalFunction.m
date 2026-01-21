@@ -531,6 +531,32 @@ classdef GeometricalFunction < handle
                     fH = @(x) sin(k * ((x2(x) - x1(x)) / sqrt(2)) + pi/2);
                     obj.fHandle = fH;
 
+
+                case 'DiagonalNFibers_3D'
+                    xmin = cParams.minxCoor;
+                    xmax = cParams.maxxCoor;
+                    ymin = cParams.minyCoor;
+                    ymax = cParams.maxyCoor;
+                    zmin = cParams.minzCoor;
+                    zmax = cParams.maxzCoor;
+
+                    nXY = cParams.nFibersXY;   % número de fibras en la dirección normal
+                    nZ  = cParams.nFibersZ;
+                    R   = cParams.radius;
+
+                    Ls = ((xmax - xmin) + (ymax - ymin)) / sqrt(2);
+                    Lz = zmax - zmin;
+
+                    % coordenada normal a la fibra (45 grados)
+                    s = @(x) (x1(x) - x2(x)) / sqrt(2);
+
+                    fH = @(x) sqrt( ...
+                        (mod(s(x) - xmin/sqrt(2), Ls/nXY) - Ls/(2*nXY)).^2 + ...
+                        (mod(x3(x) - zmin, Lz/nZ) - Lz/(2*nZ)).^2 ...
+                        ) - R;
+
+                    obj.fHandle = fH;
+
                 case 'HorizontalInclusion'
                     s      = cParams;
                     s.type = 'HorizontalFiber';
