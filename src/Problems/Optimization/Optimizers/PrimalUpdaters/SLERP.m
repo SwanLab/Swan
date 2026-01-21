@@ -18,6 +18,8 @@ classdef SLERP < handle
         end
 
         function phi = update(obj,g,phi)
+            isFixed = phi.getFixedNodes();
+            g(isFixed) = - abs(g(isFixed)); %should be positive if we want to fix as void
             ls                = phi.obtainVariableInCell();
             phiN              = obj.normalizeLevelSets(ls);
             gN                = obj.createNormalizedGradient(ls,g);

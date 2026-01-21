@@ -112,37 +112,25 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
             centers = [x0;y0]'; r = 0.13;
             isNonDesign =  @(coor) any( (coor(:,1) - centers(:,1)').^2 + ...
                                        (coor(:,2) - centers(:,2)').^2 <= r^2, 2)| coor(:,1) > 0.97 | coor(:,2) > 0.97;
-%             isNonDesign = @(coor) obj.chiAl.fValues > 0 | coor(:,1) > 0.97 | coor(:,2) > 0.97;
-
-%             isNonDesign =  @(coor)  coor(:,1) > 0.97 | coor(:,2) > 0.97;
 
             s.isFixed.nodes  =  isNonDesign(obj.mesh.coord);
             s.isFixed.values = -1; 
-%             sD.isFixed.values = 1*(obj.chiB.fValues > 0); %Density
-            %sD.isFixed.values = -1*(obj.chiB.fValues > 0); %LevelSet
-
-            a =LagrangianFunction.create(obj.mesh,1,'P1');
-            values = zeros*obj.mesh.coord(:,1);
-            values(isNonDesign(obj.mesh.coord)) = 1;
-            a.setFValues(values);
-            a.plot();
 
             dens        = DesignVariable.create(s);
             obj.designVariable = dens;
         end
 
         function createFilter(obj)
-            s.filterType = 'PDE';
+            s.filterType = 'LUMP';
             s.mesh  = obj.mesh;
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
-            f.updateEpsilon(1*obj.mesh.computeMinCellSize); % filter radius
             obj.filter = f;
         end
 
          function createThermalMaterialInterpolator(obj) % Conductivity
             s.interpolation  = 'SimpAllThermal';   
-            s.f0   = 0;
+            s.f0   = 1e-2;
             s.f1   = 1;
             s.dim ='2D';
             a = MaterialInterpolator.create(s);
@@ -151,7 +139,7 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
 
         function createMaterialInterpolator(obj)
             
-            E0 =  ConstantFunction.create(0,obj.mesh);
+            E0 =  ConstantFunction.create(1e-3,obj.mesh);
             nu0 = 1/3;
             ndim = obj.mesh.ndim;
 
@@ -159,7 +147,8 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
             matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
 
             Ea = ConstantFunction.create(1,obj.mesh); % Aluminium
-            Eb = ConstantFunction.create(1,obj.mesh); % Battery
+            Eb = ConstantFunction.create(1.5/68,obj.mesh); % Battery
+            
             obj.createBatteryDomain();
             E1 = Ea.*(1 - obj.chiB) + Eb.*obj.chiB; 
 
@@ -177,7 +166,9 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
         end
 
         function m = createMaterial(obj)
-            f = obj.designVariable.fun;           
+            x = obj.designVariable;
+            f = x.obtainDomainFunction();
+            f = obj.filter.compute(f{1},1);
             s.type                 = 'DensityBased';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
@@ -240,7 +231,7 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;
+            s.volumeTarget = 0.5;
             s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
@@ -284,10 +275,10 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
             s.gJFlowRatio    = 1;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
-            s.gif=true;
-            s.gifName='BatteryLevelSet';
-            s.printing=true;
-            s.printName='Battery Level Set';
+            s.gif            =true;
+            s.gifName        ='BatteryLevelSet';
+            s.printing       =true;
+            s.printName      ='Battery Level Set';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -300,10 +291,10 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
             yMax    = max(obj.mesh.coord(:,2));
 
             % using a 1/4 of the structure exploiting the simmetries
-            isDirDown  = @(coor)  abs(coor(:,2))==yMin;     
-            isDirLeft  = @(coor)  abs(coor(:,1))==xMin;   
+            isDirDown    = @(coor)  abs(coor(:,2))==yMin;     
+            isDirLeft    = @(coor)  abs(coor(:,1))==xMin;   
             isForceRight = @(x)  abs(x(1,:,:))==xMax;  % up and right Neumann!
-            isForceUp = @(x)  abs(x(2,:,:))==yMax;
+            isForceUp    = @(x)  abs(x(2,:,:))==yMax;
            
             sDir{1}.domain    = @(coor) isDirLeft(coor);
             sDir{1}.direction = 1;
@@ -317,13 +308,6 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
             sPL{1}.fun    = ConstantFunction.create([-1,0],bMesh);
             sPL{2}.domain = isForceUp;
             sPL{2}.fun    = ConstantFunction.create([0,-1],bMesh);
-
-            % sPL{1}.domain    = @(coor) isForceRight(coor);
-            % sPL{1}.direction = 1;
-            % sPL{1}.value     = -4e7; 
-            % sPL{2}.domain    = @(coor) isForceUp(coor);
-            % sPL{2}.direction = 2;
-            % sPL{2}.value     = -4e7; 
 
             dirichletFun = [];
             for i = 1:numel(sDir)

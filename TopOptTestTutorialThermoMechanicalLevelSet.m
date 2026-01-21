@@ -108,7 +108,6 @@ classdef TopOptTestTutorialThermoMechanicalLevelSet < handle
         end
 
         function m = createMaterial(obj)
-%             f = obj.designVariable.fun;           
             x = obj.designVariable;
             f = x.obtainDomainFunction();
             f = obj.filter.compute(f{1},1);
