@@ -5,6 +5,19 @@ close all;
 file = 'punzon';
 a.fileName = file;
 s = FemDataContainer(a);
+m=s.mesh;
+con = m.connec;
+q = Quadrature.create(m,0);
+dv = m.computeDvolume(q);
+negElem=find(dv<=0);
+con(negElem,:) = [];
+sM.coord = m.coord;
+sM.connec = con;
+m2 = Mesh.create(sM);
+m2 = m2.computeCanonicalMesh();
+obj.mesh = m2;
+
+
 d = DirichletCondition(s.mesh,[],s.bc.dirichlet);
 s.boundaryConditions.dirichlet_dofs = d.dofs;
 s.boundaryConditions.dirichlet_vals = d.values;
