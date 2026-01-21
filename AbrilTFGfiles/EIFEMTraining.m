@@ -2,19 +2,16 @@ classdef EIFEMTraining < handle
 
     properties (GetAccess = public, SetAccess = private)
         mesh
-        E
-        nu
         Coarseorder
     end
     properties (Access = private)
-        radius
         meshDomain
         DDdofManager
         domainIndices
-        Inclusion
         tolSameNode
         cellMeshes
         nSubdomains
+        material
     end
 
 
@@ -26,31 +23,21 @@ classdef EIFEMTraining < handle
 
 
         function data=train(obj)
-            % create MeshDomain
-            if sum(obj.nSubdomains > 1)>= 1
-                obj.repeatMesh();
-            else
-                obj.cellMeshes= {obj.mesh};
-                obj.meshDomain = obj.mesh;
-            end
-            
+            obj.repeatMesh();  %create MeshDomain
             [bMesh, lGCBd] = obj.meshDomain.createSingleBoundaryMesh();
             cF = CoarseFunction(bMesh,obj.Coarseorder);
 
-            % ELASTIC HARMONIC EXTENSION
             s.mesh=obj.meshDomain;
             s.uFun=LagrangianFunction.create(obj.meshDomain,obj.meshDomain.ndim,'P1');
             s.lambdaFun=LagrangianFunction.create(bMesh,obj.meshDomain.ndim,'P1');
-            s.material=obj.createMaterial();
+            s.material=obj.material;
             s.dirichletFun=cF.f;
             s.localGlobalConnecBd = lGCBd;
             e  = ElasticHarmonicExtension(s);
             [u,~,K] = e.solve();
 
-            [data.uSbd,data.LHSsbd]    = obj.extractDomainData(u,K);
+            [data.uSbd,data.LHSsbd] = obj.extractDomainData(u,K);
              data.mesh= obj.mesh;
-             data.E= obj.E;
-             data.nu = obj.nu;
              data.Coarseorder= obj.Coarseorder;
         end
     end
@@ -59,27 +46,25 @@ classdef EIFEMTraining < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.mesh = cParams.mesh;
-            obj.radius=cParams.r;
-            obj.Inclusion=cParams.Inclusion;
-            switch cParams.Sampling
-                case 'Isolated'
-                    obj.nSubdomains   = [1 1]; %nx ny
-                    obj.domainIndices = [1 1];
-                case 'Oversampling'
-                    obj.nSubdomains   = [3 3]; %nx ny
-                    obj.domainIndices = [2 2];
-            end
-            obj.tolSameNode = 1e-10;
-            obj.Coarseorder = 1;
+            obj.mesh           = cParams.mesh;
+            obj.nSubdomains    = cParams.nSubdomains;
+            obj.domainIndices  = cParams.domainIndices;
+            obj.material       = cParams.material;
+            obj.tolSameNode    = 1e-10;
+            obj.Coarseorder    = 1;
         end
 
         function repeatMesh(obj)
-            bS  = obj.mesh.createBoundaryMesh();
-            [mD,mSb,iC,lG,iCR,~] = obj.createMeshDomain(obj.mesh);
-            obj.cellMeshes = mSb;
-            obj.meshDomain = mD;
-            obj.DDdofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,obj.mesh,iCR);
+            if sum(obj.nSubdomains > 1)>= 1
+                bS  = obj.mesh.createBoundaryMesh();
+                [mD,mSb,iC,lG,iCR,~] = obj.createMeshDomain(obj.mesh);
+                obj.cellMeshes = mSb;
+                obj.meshDomain = mD;
+                obj.DDdofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,obj.mesh,iCR);
+            else
+                obj.cellMeshes= {obj.mesh};
+                obj.meshDomain = obj.mesh;
+            end
         end
 
         function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomain(obj,mR)
@@ -89,50 +74,6 @@ classdef EIFEMTraining < handle
             m = MeshCreatorFromRVE2D(s);
             [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
         end
-
-        function material = createMaterial(obj)
-                    [young,poisson] = obj.computeElasticProperties();
-                    s.type          = 'ISOTROPIC';
-                    s.ptype         = 'ELASTIC';
-                    s.ndim          = obj.mesh.ndim;
-                    s.young         = young;
-                    s.poisson       = poisson;
-                    tensor          = Material.create(s);
-                    material        = tensor;
-        end
-
-
-        function [young,poisson] = computeElasticProperties(obj)
-            obj.E  = 1;
-            obj.nu  = 1/3;
-            r   = obj.radius;
-
-            switch obj.Inclusion
-                case {'Hole','HoleRaul'}
-                    young   = ConstantFunction.create(obj.E,obj.meshDomain);
-                    poisson = ConstantFunction.create(obj.nu,onj.meshDomain);
-                case 'Material'
-                    E2 = obj.E/1000;
-                    xmax = max(obj.mesh.coord(:,1));
-                    ymax = max(obj.mesh.coord(:,2));
-                    xmin = min(obj.mesh.coord(:,1));
-                    ymin = min(obj.mesh.coord(:,2));
-                    Lx = xmax-xmin;
-                    Ly = ymax-ymin;
-
-                    f = @(x) ...
-                        ( sqrt( ...
-                        (mod(x(1,:,:) - xmin, Lx) - Lx/2).^2 + ...
-                        (mod(x(2,:,:) - ymin, Ly) - Ly/2).^2 ) < r ) * E2 + ...
-                        ( sqrt( ...
-                        (mod(x(1,:,:) - xmin, Lx) - Lx/2).^2 + ...
-                        (mod(x(2,:,:) - ymin, Ly) - Ly/2).^2 ) >= r ) * obj.E;
-                
-                    young   = AnalyticalFunction.create(f, obj.meshDomain);
-                    poisson = ConstantFunction.create(obj.nu, obj.meshDomain);
-            end   
-        end
-
 
         function [u,lhs] = extractDomainData(obj,uC,LHS)
             if sum(obj.nSubdomains > 1)>= 1

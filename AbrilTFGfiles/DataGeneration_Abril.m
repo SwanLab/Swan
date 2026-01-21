@@ -10,7 +10,7 @@ clc; clear; close all;
 %r=1e-6:0.05:0.999; 
 %r=1e-6:0.1:0.999; 
 %r=0:0.05:0.999;
-r=0.35;
+r=0.5;
 
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
 p.Sampling   = 'Oversampling';        %'Isolated'/'Oversampling'
@@ -20,27 +20,32 @@ meshName     = p.nelem+"x"+p.nelem;
 
 
 %% DATA GENERATION
+
+s=defineSubdomain(p.Sampling);
+
 for j = 1:size(r,2)
     radius = r(j);
     mR              = createReferenceMesh(p,radius);
-    [young,poisson] = computeElasticProperties(mR,radius,p.Inclusion);
-    material        = createMaterial(mR,young,poisson); 
     switch p.Training
         case 'Multiscale'
+            [material,~,~]=createMaterial_Training(mR, radius,[1 1],p.Inclusion);
             s.mesh     = mR;
             s.material = material;
             m = MultiscaleTraining(s);
             [T,lambda,Kcoarse] = m.train();
             mesh = mR;
         case 'EIFEM'
+            [material,young,poisson]=createMaterial_Training(mR, radius,s.nSubdomains,p.Inclusion);
             s.mesh      = mR;
             s.r         = radius;
-            s.Inclusion = p.Inclusion;
-            s.Sampling  = p.Sampling;
+            s.material  = material;
             m= EIFEMTraining(s);
-            data=m.train();
-            %data = EIFEMTraining(mR,r(j),p);
+
+            data    = m.train();
+            data.E  = young;
+            data.nu = poisson;
             z = OfflineDataProcessor(data);
+
             EIFEoper = z.computeROMbasis();
             T        = EIFEoper.U;
             mesh     = data.mesh;
@@ -129,36 +134,6 @@ writematrix(kdata,kFileName);
 
 %% FUNCTIONS
 
-function material = createMaterial(mesh,young,poisson)
-
-s.type       = 'ISOTROPIC';
-s.ptype      = 'ELASTIC';
-s.ndim       = mesh.ndim;
-s.young      = young;
-s.poisson    = poisson;
-material = Material.create(s);
-end
-
-
-function  [young,poisson] = computeElasticProperties(mesh,radius,inclusionType)
-E  = 1;
-nu = 1/3;
-r  = radius;
-switch inclusionType
-    case {'Hole','HoleRaul'}
-        young   = ConstantFunction.create(E,mesh);
-        poisson = ConstantFunction.create(nu,mesh);
-    case 'Material'
-        E2 = E/1000;
-        x0=mean(mesh.coord(:,1));
-        y0=mean(mesh.coord(:,2));
-        f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<r)*E2 + ...
-            (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=r)*E ;
-        young   = AnalyticalFunction.create(f,mesh);
-        poisson = ConstantFunction.create(nu,mesh);
-end
-end
-
 function mS = createReferenceMesh(p,r)
     
     switch p.Inclusion
@@ -225,4 +200,15 @@ function uMesh = computeUnfittedMesh(bgMesh,levelSet)
     sUm.boundaryMesh   = bgMesh.createBoundaryMesh();
     uMesh              = UnfittedMesh(sUm);
     uMesh.compute(levelSet);
+end
+
+function s=defineSubdomain(samplingType)
+    switch samplingType
+        case 'Isolated'
+            s.nSubdomains   = [1 1]; %nx ny
+            s.domainIndices = [1 1];
+        case 'Oversampling'
+            s.nSubdomains   = [5 5]; %nx ny
+            s.domainIndices = [3 3];
+    end
 end
