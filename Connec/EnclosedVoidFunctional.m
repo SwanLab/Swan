@@ -87,7 +87,7 @@ classdef EnclosedVoidFunctional < handle
         function updateTarget0ForNextIteration(obj,J) 
             %if abs(J)<=1e-2
             if J-obj.valueOld<0 || abs(J) <= 1e-2              
-               obj.target0 = max(obj.target0*(1-0.04),obj.target);
+               obj.target0 = max(obj.target0*(1-0.1),obj.target);
             end
             obj.valueOld = J;
         end        
