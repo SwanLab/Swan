@@ -68,11 +68,11 @@ classdef GripperLevelSetCircle < handle
         end
 
         function createDesignVariable(obj)
-%             s.type = 'Full';
-%             g      = GeometricalFunction(s);
-            lsFun = LagrangianFunction.create(obj.mesh,1,'P1');
-            lsFun.setFValues(importdata('GripperLevelSetCirclefValues.txt'))
-%             lsFun  = g.computeLevelSetFunction(obj.mesh);
+            s.type = 'Full';
+            g      = GeometricalFunction(s);
+%             lsFun = LagrangianFunction.create(obj.mesh,1,'P1');
+%             lsFun.setFValues(importdata('GripperLevelSetCirclefValues.txt'))
+            lsFun  = g.computeLevelSetFunction(obj.mesh);
             s.fun  = lsFun;
             s.mesh = obj.mesh;
             s.type = 'LevelSet';
@@ -98,9 +98,7 @@ classdef GripperLevelSetCircle < handle
             f            = Filter.create(s);
             f.updateEpsilon(1*obj.mesh.computeMinCellSize());
             obj.filterPerimeter = f;           
-        end
-
-
+       end
 
         function createFilterConnectivity(obj)
             s.filterType = 'LUMP';
@@ -108,8 +106,8 @@ classdef GripperLevelSetCircle < handle
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
             obj.filterConnectivity = f;
-% 
-% %             s.filterType = 'FilterAndProject';
+
+            % %             s.filterType = 'FilterAndProject';
 %             s.filterType = 'CloseOperator';   
 %             s.mesh       = obj.mesh;
 %             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
@@ -257,8 +255,8 @@ classdef GripperLevelSetCircle < handle
 
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
-            s.shapeFunctions{2} = obj.eigenvalue;
-            s.weights           = [1.0,1.0]; 
+%             s.shapeFunctions{2} = obj.eigenvalue;
+            s.weights           = [1.0]; 
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
