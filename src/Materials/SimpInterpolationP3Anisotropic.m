@@ -4,15 +4,18 @@ classdef SimpInterpolationP3Anisotropic < handle
         C1
         C0
         pExp
+        mesh
+        materialBase
    end
 
     methods (Access = public)
         function obj = SimpInterpolationP3Anisotropic(cParams)
             obj.init(cParams)
+            obj.createMaterialBase();
         end
 
         function C = computeConsitutiveTensor(obj,rho,xV)
-            m = obj.createMaterial(rho{1});
+            m = obj.materialBase;
             C = m.evaluate(xV,obj.C1);
             rhoEv = rho{1}.evaluate(xV);
             nGauss = size(rhoEv,2);
@@ -22,7 +25,7 @@ classdef SimpInterpolationP3Anisotropic < handle
         end
 
         function dC = computeConsitutiveTensorDerivative(obj,rho,xV)
-            m = obj.createMaterial(rho{1});
+            m = obj.materialBase;
             C = m.evaluate(xV,obj.C1);
             rhoEv = rho{1}.evaluate(xV);
             nGauss = size(rhoEv,2);
@@ -40,13 +43,14 @@ classdef SimpInterpolationP3Anisotropic < handle
             obj.C1 = cParams.C1;
             obj.C0 = cParams.C0;
             obj.pExp = 3;
+            obj.mesh = cParams.mesh;
         end
 
-         function m = createMaterial(obj,rho)
+         function createMaterialBase(obj)
             s.type    = 'ANISOTROPIC';
             s.ptype   = 'ELASTIC';
-            s.mesh    = rho.mesh;
-            m = Material.create(s);
+            s.mesh    = obj.mesh;
+            obj.materialBase = Material.create(s);
         end
     end
 end

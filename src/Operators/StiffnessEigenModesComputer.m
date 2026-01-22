@@ -5,7 +5,7 @@ classdef StiffnessEigenModesComputer < handle
     end
     
     properties (Access = private)
-        elasticityInterpolator 
+        material 
         massInterpolator
         boundaryConditions
         epsilon
@@ -28,8 +28,9 @@ classdef StiffnessEigenModesComputer < handle
             obj.init(cParams)                      
         end
 
-        function [lambda,dlambda]  = computeFunctionAndGradient(obj,xR)  
-            K  = obj.createStiffnessMatrixWithFunction(xR);
+        function [lambda,dlambda]  = computeFunctionAndGradient(obj,xR)
+            obj.material.setDesignVariable({xR});
+            K  = obj.createStiffnessMatrixWithFunction();
             M  = obj.computeMassMatrixWithFunction(xR);
             Kreduced = obj.fullToReduced(K);
             Mreduced = obj.fullToReduced(M);
@@ -44,18 +45,16 @@ classdef StiffnessEigenModesComputer < handle
         function init(obj,cParams)
             obj.mesh    = cParams.mesh;
             obj.boundaryConditions = cParams.boundaryConditions;
-            obj.test  = LagrangianFunction.create(obj.mesh,1,'P3');
-            obj.trial = LagrangianFunction.create(obj.mesh,1,'P3');
-            obj.phi =  LagrangianFunction.create(obj.mesh,1,'P3');
-            obj.elasticityInterpolator = cParams.elasticityInterpolator;
+            obj.test  = LagrangianFunction.create(obj.mesh,obj.mesh.ndim,'P1');
+            obj.trial = LagrangianFunction.create(obj.mesh,obj.mesh.ndim,'P1');
+            obj.phi =  LagrangianFunction.create(obj.mesh,obj.mesh.ndim,'P1');
+            obj.material = cParams.material;
             obj.massInterpolator = cParams.massInterpolator;
         end  
 
-        function K = createStiffnessMatrixWithFunction(obj,xR)
-            %alphaFun = obj.elasticityInterpolator.fun;
-            alphaFun = obj.elasticityInterpolator;
-            alpha = obj.createDomainFunction(alphaFun,xR);                 % xR may be chi or 1 - chi
-            f = @(u,v) alpha.*DP(Grad(u),Grad(v));
+        function K = createStiffnessMatrixWithFunction(obj)
+            C   = obj.material.obtainTensor();
+            f = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
             K = IntegrateLHS(f,obj.test,obj.trial, obj.mesh,'Domain',2);
         end
 
@@ -78,8 +77,8 @@ classdef StiffnessEigenModesComputer < handle
         end
 
         function K = fullToReduced(obj,K)
-%             sS.type      = 'DIRECT';
-            sS.type      = 'CG';
+            sS.type      = 'DIRECT';
+            %sS.type      = 'CG';
             solver       = Solver.create(sS);
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';

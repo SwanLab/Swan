@@ -6,7 +6,6 @@ classdef Eigs_Anisotropic_0_Density < handle
         filterConnect
         designVariable
         materialInterpolator
-        elasticityInterpolator
         massInterpolator
         physicalProblem
         compliance
@@ -32,7 +31,6 @@ classdef Eigs_Anisotropic_0_Density < handle
             obj.createFilterConnectivity();
             %obj.createPerimeter();
             obj.createMaterialInterpolator();
-            obj.createElasticityInterpolator();
             obj.createMassInterpolator();
             obj.createElasticProblem();
             obj.createComplianceFromConstiutive();
@@ -106,7 +104,7 @@ classdef Eigs_Anisotropic_0_Density < handle
             type = '0';
             s.C1 = Cvoigt.create(type);
             s.C0 = s.C1*1e-3; % This is not necessary
-
+            s.mesh = obj.mesh;
             s.interpolation  = 'SIMP_P3_ANISOTROPIC';
             s.dim            = '2D';
 
@@ -114,18 +112,6 @@ classdef Eigs_Anisotropic_0_Density < handle
             obj.materialInterpolator = m;
         end
 
-        function createElasticityInterpolator(obj) 
-            type = '0';
-            s.C1 = Cvoigt.create(type);
-            s.C0 = s.C1*1e-3; % This is not necessary
-
-            s.interpolation  = 'SIMP_P3_ANISOTROPIC';
-            % s.f0   = C0;                                             
-            % s.f1   = 1;  
-            s.dim  = '2D';
-            a = MaterialInterpolator.create(s);
-            obj.elasticityInterpolator = a;            
-        end 
 
         function createMassInterpolator(obj)
             s.interpolation  = 'SIMPThermal';                              
@@ -194,13 +180,13 @@ classdef Eigs_Anisotropic_0_Density < handle
             s.designVariable    = obj.designVariable;
             s.filter            = obj.filterConnect;
             s.boundaryConditions = obj.createEigenvalueBoundaryConditions();
-            s.elasticityInterpolator = obj.elasticityInterpolator; 
-            s.massInterpolator         = obj.massInterpolator; 
+            s.material           = obj.createMaterial(); 
+            s.massInterpolator   = obj.massInterpolator; 
             s.targetEigenValue  = obj.lambda1min;    
             s.isCompl           = true;
             obj.minimumEigenValue = StiffnessEigenModesConstraint(s);
         end
-
+    
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
             s.weights           = 1;
