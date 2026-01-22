@@ -106,7 +106,7 @@ dTime = 0.001
 hmin = 1/90
 elRadius = 10
 params = {"dt": dTime*hmin*elRadius,
-          "itnormalisation": 6,
+          "itnormalisation": 20,
           "save_only_N_iterations": 1,
           "save_only_Q_constraints": 5,
           "alphaJ": 1,
@@ -114,8 +114,8 @@ params = {"dt": dTime*hmin*elRadius,
           "maxit": 60,
           "CFL": 0.9}
 problem:Optimizable = TO_problem()
-maxItj = 1
-
+maxItj = 10
+stepHJ = 0.3/maxItj
 
 
 
@@ -324,8 +324,14 @@ while normdx > params['tol'] and it <= params['maxit']:
         g = AJ*xiJ+AC*xiC
         runner = FreeFemRunner(path+"03_HJ.edp")
         runner.import_variables(Th=Th,Th2=problem._problem.Th2,gVal = g,phiVal=xj,nxVal=problem._problem.nx,
-                                nyVal=problem._problem.ny,beta=beta,lsLab=lsLabel,rInner=rInner,dTime=dTime)
+                                nyVal=problem._problem.ny,beta=beta,lsLab=lsLabel,rInner=rInner,dTime=dTime,
+                                stepHJ=stepHJ, isLs=1)
         x1 = runner.execute()['phi[]']
+
+        runner.import_variables(Th=Th,Th2=problem._problem.Th2,gVal = g,phiVal=dJ,nxVal=problem._problem.nx,
+                                nyVal=problem._problem.ny,beta=beta,lsLab=lsLabel,rInner=rInner,dTime=dTime,
+                                stepHJ=stepHJ, isLs=0)
+        dJ = runner.execute()['phi[]']
 
         runner = FreeFemRunner(path+"03_BoundaryRefinement.edp")
         runner.import_variables(Th=Th,phiVal=x1,alpha=alpha,lsLab=lsLabel,rInner=rInner)
@@ -341,8 +347,9 @@ while normdx > params['tol'] and it <= params['maxit']:
         xj = x1
         itj = itj + 1
 
-        if np.linalg.norm(G,ord=np.inf)<0.01 and max(H)<0.01:
-            maxItj = 1
+        #if np.linalg.norm(G,ord=np.inf)<0.01 and max(H)<0.01:
+            #maxItj = 1
+            #params['alphaJ'] = 1
     dx = (x1-x)
     #if p>0:
     #    assert np.isclose(dC[:p,:] @ xiJ,0,atol=1e-15) 
@@ -417,6 +424,7 @@ Comp  = results['J']
 Vol  = results['G']
 Per = results['H']
 
-np.savez(path+"03_Result1",xF=x,it=iter,c=Comp,v=Vol,p=Per)
+np.savez(path+"03_ResultIts"+str(maxItj)+"Step"+str(stepHJ),
+         xF=x,it=iter,c=Comp,v=Vol,p=Per)
 
 a = 1
