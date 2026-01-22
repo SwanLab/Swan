@@ -16,7 +16,6 @@ classdef CohesiveMesh < handle
         listEdgeCohesive
 
         nNodeCohesive
-        nElemCohesive
         pairsMatrix
 
         separation
@@ -27,19 +26,12 @@ classdef CohesiveMesh < handle
         cohElem2Edge
 
 
-        elemsInCohesiveEdge
         centerElemsInCohesiveEdge
         centerEdges
 
         isLeft
         isRight
 
-
-        % baseMesh i crear nova malla --> Mesh.create(s)
-        % arreglar 1x1
-        % cond contorn
-        % triangle
-        % logical
 
     end
     
@@ -59,18 +51,13 @@ classdef CohesiveMesh < handle
             obj.baseMeshCreator(2)
             
             obj.detectFracturedEdges()
-                % fer lo del boundary amb els punts mitjos dels edges
-
-
-            obj.computeCenterElements %(of fractureEdge)
+            obj.computeCenterElements 
             obj.computenormals()
             obj.computeIsLeftIsRight()
             obj.duplicator()
             obj.updateConnecOfLeftElements()
             % shiftCoordOfLeftAndRightElements();
             
-
-            % obj.updateConnec()
             % obj.newMesh()
         end
         
@@ -109,63 +96,9 @@ classdef CohesiveMesh < handle
         end
 
         function computeCenterElements(obj)
-
+            
             bariCenters = obj.baseMesh.computeBaricenter';
             obj.centerElemsInCohesiveEdge = bariCenters(obj.listElemCohesive,:); %Ordenats segons obj.listElemCohesive
-
-            % edgesInElem = obj.baseMesh.edges.edgesInElem;
-            % 
-            % nElem  = size(edgesInElem,1);
-            % nEdges = max(edgesInElem(:));
-            % 
-            % E = repelem((1:nElem)', size(edgesInElem,2));  % NOT nEdgeByElem
-            % temp = edgesInElem';
-            % G = temp(:);
-            % 
-            % edgeElemMat = sparse(G, E, true, nEdges, nElem);
-            % 
-            % 
-            % 
-            % 
-            % 
-            %                 edgesInCohElem = edgesInElem(obj.isElemCohesive,:);
-            % 
-            %                 nElem  = size(edgesInCohElem,1);
-            %                 nEdges = max(edgesInCohElem(:));
-            % 
-            %                 E = repelem((1:nElem)', size(edgesInCohElem,2));  % NOT nEdgeByElem
-            %                 temp = edgesInCohElem';
-            %                 G = temp(:);
-            % 
-            %                 edgeCohElemMat = sparse(G, E, true, nEdges, nElem);
-            % 
-            % 
-            % 
-            % 
-            % 
-            % 
-            % 
-            % 
-            % 
-            % 
-            % 
-            % 
-            % 
-            % for i=1:length(obj.listEdgeCohesive)
-            %     obj.elemsInCohesiveEdge{i} = find(edgeElemMat(obj.listEdgeCohesive(i),:));
-            %     % obj.centerElemsInCohesiveEdge{i} = num2cell(bariCenters(:, obj.elemsInCohesiveEdge{i}), 1);
-            % end
-            % % obj.centerElemsInCohesiveEdge=obj.centerElemsInCohesiveEdge';
-            % 
-            % %centerElemsInCohesiveEdge{cohesive edge}{element(1 o 2)} es una cell array, solament
-            % %apareixen les coordenades dels elements cohesius, ordenats per
-            % %edges cohesius, contempla la possibilitat de que un edge
-            % %tingui mes de 1 elements
-            % 
-            % 
-            % 
-
-
 
         end
 
@@ -187,6 +120,9 @@ classdef CohesiveMesh < handle
 
 
         function computeIsLeftIsRight(obj)
+        
+            
+
             edges = obj.cohElem2Edge;                 % (nElemCoh x 1)
             centerElem = obj.centerElemsInCohesiveEdge; % (nElemCoh x ndim)
             centerEdge = obj.centerEdges(edges,:);      % (nElemCoh x ndim)
@@ -226,7 +162,7 @@ classdef CohesiveMesh < handle
             for i =1:length(listLeftElems)
                 e = listLeftElems(i);
 
-                edge = obj.cohElem2Edge(e);
+                edge = obj.cohElem2Edge(i);
                 replacedNodes = nodesInEdges(edge,:)';
 
                 newNodes = obj.getPair(replacedNodes)';

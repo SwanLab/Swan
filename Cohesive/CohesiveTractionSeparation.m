@@ -16,6 +16,11 @@ classdef CohesiveTractionSeparation < handle
         function t = evaluate(obj, disp)
             t = obj.law.evaluate(disp);
         end
+
+        function d = derivative(obj,disp)
+            d=obj.law.derivative(disp);
+        end
+
         
     end
     
