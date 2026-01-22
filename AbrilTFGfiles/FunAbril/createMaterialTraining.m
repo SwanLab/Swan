@@ -1,4 +1,4 @@
-function [material,young,poisson]=createMaterial_Training(mesh, r,nSubdomains,inclusionType)
+function material = createMaterialTraining(mesh, r,nSubdomains,inclusionType)
     [young,poisson] = computeElasticProperties(mesh,r,nSubdomains,inclusionType);
     s.type          = 'ISOTROPIC';
     s.ptype         = 'ELASTIC';

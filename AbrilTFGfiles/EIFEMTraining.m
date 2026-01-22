@@ -26,12 +26,13 @@ classdef EIFEMTraining < handle
             obj.repeatMesh();  %create MeshDomain
             [bMesh, lGCBd] = obj.meshDomain.createSingleBoundaryMesh();
             cF = CoarseFunction(bMesh,obj.Coarseorder);
+            dirchletFun = cF.f;
 
-            s.mesh=obj.meshDomain;
-            s.uFun=LagrangianFunction.create(obj.meshDomain,obj.meshDomain.ndim,'P1');
-            s.lambdaFun=LagrangianFunction.create(bMesh,obj.meshDomain.ndim,'P1');
-            s.material=obj.material;
-            s.dirichletFun=cF.f;
+            s.mesh      = obj.meshDomain;
+            s.uFun      = LagrangianFunction.create(obj.meshDomain,obj.meshDomain.ndim,'P1');
+            s.lambdaFun = LagrangianFunction.create(bMesh,obj.meshDomain.ndim,'P1');
+            s.material  = obj.material;
+            s.dirichletFun = dirchletFun;
             s.localGlobalConnecBd = lGCBd;
             e  = ElasticHarmonicExtension(s);
             [u,~,K] = e.solve();
@@ -111,41 +112,6 @@ classdef EIFEMTraining < handle
             s.nDimf           = obj.meshDomain.ndim;
             d = DomainDecompositionDofManager(s);
         end
-
-        % function uD = AnalyticalDirCond(obj)
-        %     xmax = max(obj.meshDomain.coord(:,1));
-        %     ymax = max(obj.meshDomain.coord(:,2));
-        %     xmin = min(obj.meshDomain.coord(:,1));
-        %     ymin = min(obj.meshDomain.coord(:,2));
-        %     a = (-xmin+xmax)/2;
-        %     b = (-ymin+ymax)/2;
-        %     x0 = xmin+a;
-        %     y0 = ymin+b;
-        % 
-        %     f1x = @(x) [1/(4)*(1-(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b);...
-        %         0*x(2,:,:)  ];
-        %     f2x = @(x) [1/(4)*(1+(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b);...
-        %         0*x(2,:,:)  ];
-        %     f3x = @(x) [1/(4)*(1+(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b);...
-        %         0*x(2,:,:)  ];
-        %     f4x = @(x) [1/(4)*(1-(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b);...
-        %         0*x(2,:,:)  ];
-        % 
-        %     f1y = @(x) [0*x(1,:,:);...
-        %         1/(4)*(1-(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b) ];
-        %     f2y = @(x) [0*x(1,:,:);...
-        %         1/(4)*(1+(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b) ];
-        %     f3y = @(x) [0*x(1,:,:);...
-        %         1/(4)*(1+(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b) ];
-        %     f4y = @(x) [0*x(1,:,:);...
-        %         1/(4)*(1-(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b)];
-        % 
-        %     f     = {f1x f1y f2x f2y f3x f3y f4x f4y}; %
-        %     nfun = size(f,2);
-        %     for i=1:nfun
-        %         uD{i}  = AnalyticalFunction.create(f{i},bMesh);
-        %     end
-        % end
 
     end
 

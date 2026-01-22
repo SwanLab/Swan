@@ -12,8 +12,7 @@ clc; clear; close all;
 %r=0:0.05:0.999;
 r=0.5;
 
-p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
-p.Sampling   = 'Oversampling';        %'Isolated'/'Oversampling'
+p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale'
 p.Inclusion  = 'Material';        %'Material'/'Hole'/'HoleRaul'
 p.nelem      = 20;
 meshName     = p.nelem+"x"+p.nelem;
@@ -21,24 +20,36 @@ meshName     = p.nelem+"x"+p.nelem;
 
 %% DATA GENERATION
 
-s=defineSubdomain(p.Sampling);
-
 for j = 1:size(r,2)
     radius = r(j);
     mR              = createReferenceMesh(p,radius);
     switch p.Training
         case 'Multiscale'
-            [material,~,~]=createMaterial_Training(mR, radius,[1 1],p.Inclusion);
-            s.mesh     = mR;
-            s.material = material;
-            m = MultiscaleTraining(s);
-            [T,lambda,Kcoarse] = m.train();
-            mesh = mR;
+            material = createMaterialTraining(mR, radius,[1 1],p.Inclusion);
+            mesh           = mR;
+            [bMesh,lGCBd]   = mesh.createSingleBoundaryMesh();
+            cF = CoarseFunction(bMesh,1);
+            s.mesh          = mesh;
+            s.uFun          = LagrangianFunction.create(mesh, mesh.ndim, 'P1');
+            s.lambdaFun     = LagrangianFunction.create(bMesh,mesh.ndim, 'P1');
+            s.material      = material;
+            s.dirichletFun  = cF.f;
+            s.localGlobalConnecBd = lGCBd;
+            e  = ElasticHarmonicExtension(s);
+            [T,lambda,K,Kcoarse] = e.solve();
+
         case 'EIFEM'
-            [material,young,poisson]=createMaterial_Training(mR, radius,s.nSubdomains,p.Inclusion);
+            samplingType = 'Oversampling'; %'Isolated'/'Oversampling'
+            p.Inclusion = fullfile(p.Inclusion,samplingType);
+            [nS,dI] = defineNumberOfSubdomains(samplingType);
+
+            
+            material = createMaterialTraining(mR, radius,s.nSubdomains,p.Inclusion);
             s.mesh      = mR;
             s.r         = radius;
             s.material  = material;
+            s.domainIndices = dI;
+            s.nSubdomains   = nS;            
             m= EIFEMTraining(s);
 
             data    = m.train();
@@ -82,7 +93,7 @@ for j = 1:size(r,2)
     string = strrep("r"+num2str(r(j), '%.4f'), ".", "_")+"-"+meshName+".mat";
 
     % Guarda el .mat per cert radi
-    FileName=fullfile('AbrilTFGfiles','Data',p.Training,p.Inclusion,p.Sampling,meshName,string);
+    FileName=fullfile('AbrilTFGfiles','Data',p.Training,p.Inclusion,meshName,string);
 
 
     switch p.Training
@@ -108,7 +119,7 @@ end
 T=array2table(TData,"VariableNames",{'r','x','y','Tx1','Ty1','Tx2','Ty2','Tx3','Ty3','Tx4','Ty4' ...
     'Tx5','Ty5','Tx6','Ty6','Tx7','Ty7','Tx8','Ty8'});
 
-uFileName = fullfile('AbrilTFGfiles','Data',p.Training,p.Inclusion,p.Sampling,'DataT.csv');
+uFileName = fullfile('AbrilTFGfiles','Data',p.Training,p.Inclusion,samplingType,'DataT.csv');
 writematrix(TData,uFileName);
 
 
@@ -202,13 +213,13 @@ function uMesh = computeUnfittedMesh(bgMesh,levelSet)
     uMesh.compute(levelSet);
 end
 
-function s=defineSubdomain(samplingType)
-    switch samplingType
+function [nS,dI] = defineNumberOfSubdomains(type)
+    switch type
         case 'Isolated'
-            s.nSubdomains   = [1 1]; %nx ny
-            s.domainIndices = [1 1];
+            nS = [1 1]; %nx ny
+            dI = [1 1];
         case 'Oversampling'
-            s.nSubdomains   = [5 5]; %nx ny
-            s.domainIndices = [3 3];
+            nS = [5 5]; %nx ny
+            dI = [3 3];
     end
 end

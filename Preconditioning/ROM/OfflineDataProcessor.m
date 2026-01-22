@@ -8,8 +8,6 @@ classdef OfflineDataProcessor < handle
         boundaryMeshJoined
         localGlobalConnecBd
         LHS
-        E
-        nu
         Coarseorder
         fValuesTraining
         RigidBodyFun
@@ -21,8 +19,8 @@ classdef OfflineDataProcessor < handle
 
     methods (Access = public)
 
-        function obj = OfflineDataProcessor(data)
-            obj.init(data)
+        function obj = OfflineDataProcessor(cParams)
+            obj.init(cParams)
         end
 
         function EIFEoper = computeROMbasis(obj)
@@ -139,13 +137,11 @@ classdef OfflineDataProcessor < handle
 
     methods (Access = private)
 
-        function init(obj,data)
-            obj.mesh            = data.mesh;
-            obj.fValuesTraining = data.uSbd;
-            obj.LHS             = data.LHSsbd;
-            obj.E               = data.E;
-            obj.nu              = data.nu;
-            obj.Coarseorder     = data.Coarseorder;
+        function init(obj,cParams)
+            obj.mesh            = cParams.mesh;
+            obj.fValuesTraining = cParams.uSbd;
+            obj.LHS             = cParams.LHSsbd;
+            obj.Coarseorder     = cParams.Coarseorder;
         end
 
         function uFun = createDispFun(obj)
@@ -326,6 +322,10 @@ classdef OfflineDataProcessor < handle
                 1/(4)*(1-(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b)];
 
             f     = {f1x f1y  f2x f2y f3x f3y f4x f4y}; %
+
+            %CoarseFunction 
+            %Netejar Coarse funciton
+
             nfun = size(f,2);
             nbd = size(bMesh,1);
             for ibd=1:nbd
