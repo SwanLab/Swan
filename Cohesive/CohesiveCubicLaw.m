@@ -1,4 +1,4 @@
-classdef CubicCohesiveLaw < handle
+classdef CohesiveCubicLaw < handle
 
     properties (Access = private)
         sigmaMax

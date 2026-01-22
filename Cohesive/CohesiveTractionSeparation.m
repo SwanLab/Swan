@@ -27,17 +27,13 @@ classdef CohesiveTractionSeparation < handle
             obj.tangencialCharLength = cParams.tangencialCharLength;
             obj.sigmaMax = cParams.sigmaMax;
             
-            switch obj.lawType
-                case 'Cubic'
-                    s.normalCharLength = obj.normalCharLength;
-                    s.tangencialCharLength = obj.tangencialCharLength;
-                    s.sigmaMax = obj.sigmaMax;
-                    obj.law = CubicCohesiveLaw(s);
-                case 'Bilinear'
-                    s.a = cParams.a;
-                    s.b = cParams.b;
-                    obj.law = BilinearCohesiveLaw(s);
-            end
+            s.normalCharLength = obj.normalCharLength;
+            s.tangencialCharLength = obj.tangencialCharLength;
+            s.sigmaMax = obj.sigmaMax;
+            if isfield(cParams,'a'), s.a = cParams.a; end
+            if isfield(cParams,'b'), s.b = cParams.b; end
+        
+            obj.law = CohesiveLawFactory.create(obj.lawType, s); 
               
         end
         
