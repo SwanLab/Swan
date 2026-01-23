@@ -21,8 +21,27 @@ classdef TutorialShells < handle
             obj.createSolutionField()
             
             obj.createBoundaryConditions()
-            obj.createLHS();
-            obj.createRHS();
+            LHS = obj.createLHS();
+            RHS = obj.createRHS();
+
+            x = LHS\RHS;
+
+            nTheta = length(obj.computeFreeDofs(obj.bcT));
+            nU     = length(obj.computeFreeDofs(obj.bcU));
+            nW     = length(obj.computeFreeDofs(obj.bcW));            
+            uF = x(1:nU,1);
+            tF = x((nU+1):(nU+nTheta),1);
+            wF = x((nU+nTheta+1):(nU+nTheta+nW),1);
+
+            dofFT = obj.computeFreeDofs(obj.bcT);
+            dofFU = obj.computeFreeDofs(obj.bcU);
+            dofFW = obj.computeFreeDofs(obj.bcW);
+
+            uT = zeros(obj.uFun.nDofs,1);
+            uT(dofFT,1) = uF; 
+            uT = reshape(uT,[], obj.uFun.ndimf);
+            obj.uFun.setFValues(uT);
+            plot(obj.uFun)
         end
 
     end
@@ -47,7 +66,7 @@ classdef TutorialShells < handle
           obj.inertia = ConstantFunction.create(1,obj.mesh);
         end
 
-        function createLHS(obj)
+        function LHS = createLHS(obj)
             E = obj.young;
             A = obj.area;
             f = @(u,v) E.*A.*DDP(SymGrad(v),SymGrad(u));
@@ -81,16 +100,16 @@ classdef TutorialShells < handle
             Kw = IntegrateLHS(f,obj.wFun,obj.wFun,obj.mesh,'Domain',2);  
             Kw = obj.reduceMatrix(Kw,obj.bcW,obj.bcW);
 
-            nTheta = obj.thetaFun.nDofs;
-            nU     = obj.uFun.nDofs;
-            nW     = obj.wFun.nDofs;
+            nTheta = length(obj.computeFreeDofs(obj.bcT));
+            nU     = length(obj.computeFreeDofs(obj.bcU));
+            nW     = length(obj.computeFreeDofs(obj.bcW));
 
             Zut = zeros(nU,nTheta);
             Zuw = zeros(nU,nW);
             LHS = [Ku Zut Zuw; Zut' (Ktheta+Mtheta) Nthetaw; Zuw' Nthetaw' Kw];
         end
 
-        function createRHS(obj)
+        function RHS = createRHS(obj)
             p = ConstantFunction.create([0 0],obj.mesh);
             m = ConstantFunction.create([0 0],obj.mesh);
             q = ConstantFunction.create(1,obj.mesh);
@@ -109,9 +128,6 @@ classdef TutorialShells < handle
             
 
             RHS = [RHSu;RHStheta;RHSw];
-
-
-
         end
 
         function createBoundaryConditions(obj)
@@ -133,7 +149,8 @@ classdef TutorialShells < handle
 
             sDir{1}.domain    = @(coor) isLeft(coor) | isRight(coor) | isTop(coor) | isBotom(coor);
             sDir{1}.direction = direct;
-            sDir{1}.value     = 0;
+            sDir{1}.value     = 0;                    
+            sDir{1}.ndim = length(direct);
 
 
             dirichletFun = [];
@@ -149,17 +166,19 @@ classdef TutorialShells < handle
             bc = BoundaryConditions(s);            
         end
 
+        function fD = computeFreeDofs(obj,bC)
+            dofs = 1:bC.dirichletFun.nDofs;
+            fD   = setdiff(dofs,bC.dirichlet_dofs); 
+        end
+
         function LHSred = reduceMatrix(obj,LHS,bcV,bcU)
-            dofsV = 1:bcV.dirichletFun.nDofs;
-            dofsU = 1:bcU.dirichletFun.nDofs;
-            fdofV = setdiff(dofsV,bcV.dirichlet_dofs);
-            fdofU = setdiff(dofsU,bcU.dirichlet_dofs);
+            fdofV = obj.computeFreeDofs(bcV);
+            fdofU = obj.computeFreeDofs(bcU);
             LHSred = LHS(fdofV,fdofU);
         end
 
         function RHSred = reduceVector(obj,RHS,bc)
-            dofsV = 1:bc.dirichletFun.nDofs;
-            fdofV = setdiff(dofsV,bc.dirichlet_dofs);
+            fdofV = obj.computeFreeDofs(bc);
             RHSred = RHS(fdofV,1);
         end
 
