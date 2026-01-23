@@ -31,6 +31,10 @@ classdef CohesiveFunctional < handle
         function F = computeGradient(obj,u,quadOrder, ????)
                 
         end
+
+        function H = computeHessian(obj,u,quadOrder,?)
+        
+        end
         
     end
     
