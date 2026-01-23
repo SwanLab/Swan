@@ -58,7 +58,7 @@ classdef CohesiveMesh < handle
             obj.updateConnecOfLeftElements()
             % shiftCoordOfLeftAndRightElements();
             
-            % obj.newMesh()
+            obj.newMesh()
         end
         
     end
@@ -84,6 +84,7 @@ classdef CohesiveMesh < handle
             obj.listNodeCohesive = find(obj.isNodeCohesive);
             obj.nNodeCohesive = sum(obj.isNodeCohesive);
 
+            % fer ho mb edges aixo
             obj.isElemCohesive = any(reshape(obj.isNodeCohesive(obj.baseMesh.connec), size(obj.baseMesh.connec)),2);
             obj.listElemCohesive = find(obj.isElemCohesive);
 
@@ -120,9 +121,6 @@ classdef CohesiveMesh < handle
 
 
         function computeIsLeftIsRight(obj)
-        
-            
-
             edges = obj.cohElem2Edge;                 % (nElemCoh x 1)
             centerElem = obj.centerElemsInCohesiveEdge; % (nElemCoh x ndim)
             centerEdge = obj.centerEdges(edges,:);      % (nElemCoh x ndim)
@@ -158,6 +156,10 @@ classdef CohesiveMesh < handle
 
             listLeftElems = obj.listElemCohesive(obj.isLeft);
             nodesInEdges = obj.baseMesh.edges.nodesInEdges; 
+
+            %[idx, loc] = ismember(A, M(:,1));
+            %A(idx) = M(loc(idx), 2);
+
 
             for i =1:length(listLeftElems)
                 e = listLeftElems(i);

@@ -31,7 +31,8 @@ classdef CohesiveProblemFunctional < handle
         end
 
         function LHS = computeLHS(obj,u)
-            LHS = obj.functionals.energy.computeHessianDisplacement(u,obj.quadOrder);
+            Kelas = obj.functionals.energy.computeHessian(u,obj.quadOrder);
+            Kcoh  = obj.functionals.cohesive.computeHessian(u,obj.quadOrder);
         end
 
         function RHS = computeRHS(obj,u,bc)
@@ -41,7 +42,7 @@ classdef CohesiveProblemFunctional < handle
                 fExt = LagrangianFunction.create(u.mesh, u.mesh.ndim,'P1');
                 fExt.setFValues(reshape(vals,u.mesh.nnodes,u.mesh.ndim));
             end
-            Fint = obj.functionals.energy.computeGradientDisplacement(u,obj.quadOrder);
+            Fint = obj.functionals.energy.computeGradient(u,obj.quadOrder);
             Fext = obj.functionals.extWork.computeGradient(u,fExt,obj.quadOrder);
             Fcoh = obj.functionals.cohesive.computeGradient(u,obj.quadOrder, ????);
             RHS = Fint-Fext+Fcoh;
