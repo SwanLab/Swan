@@ -37,6 +37,7 @@ classdef EIFEMtesting_3D < handle
             close all
             tic
             [LHS,RHS,LHSf] = obj.createElasticProblem();
+            
             toc
             obj.LHS = LHSf;
             %             LHS = 0.5*(LHS+LHS');
@@ -292,13 +293,23 @@ classdef EIFEMtesting_3D < handle
             ymin = min(mR.coord(:,2));
             zmax = max(mR.coord(:,3));
             zmin = min(mR.coord(:,3));
-            coord(1,1) = xmax;  coord(1,2) = ymax;   coord(1,3) = zmax;
+            % uncomment for the case of the article
+            % coord(1,1) = xmax;  coord(1,2) = ymax;   coord(1,3) = zmax;
+            % coord(2,1) = xmin;  coord(2,2) = ymax;   coord(2,3) = zmax;
+            % coord(3,1) = xmin;  coord(3,2) = ymax;   coord(3,3) = zmin;
+            % coord(4,1) = xmax;  coord(4,2) = ymax;   coord(4,3) = zmin;
+            % coord(5,1) = xmax;  coord(5,2) = ymin;   coord(5,3) = zmax;
+            % coord(6,1) = xmin;  coord(6,2) = ymin;   coord(6,3) = zmax;
+            % coord(7,1) = xmin;  coord(7,2) = ymin;   coord(7,3) = zmin;
+            % coord(8,1) = xmax;  coord(8,2) = ymin;   coord(8,3) = zmin;
+
+            coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmax;
             coord(2,1) = xmin;  coord(2,2) = ymax;   coord(2,3) = zmax;
-            coord(3,1) = xmin;  coord(3,2) = ymax;   coord(3,3) = zmin;
-            coord(4,1) = xmax;  coord(4,2) = ymax;   coord(4,3) = zmin;
-            coord(5,1) = xmax;  coord(5,2) = ymin;   coord(5,3) = zmax;
-            coord(6,1) = xmin;  coord(6,2) = ymin;   coord(6,3) = zmax;
-            coord(7,1) = xmin;  coord(7,2) = ymin;   coord(7,3) = zmin;
+            coord(3,1) = xmax;  coord(3,2) = ymax;   coord(3,3) = zmax;
+            coord(4,1) = xmax;  coord(4,2) = ymin;   coord(4,3) = zmax;
+            coord(5,1) = xmin;  coord(5,2) = ymin;   coord(5,3) = zmin;
+            coord(6,1) = xmin;  coord(6,2) = ymax;   coord(6,3) = zmin;
+            coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmin;
             coord(8,1) = xmax;  coord(8,2) = ymin;   coord(8,3) = zmin;
 
             connec = [1 2 3 4 5 6 7 8];
