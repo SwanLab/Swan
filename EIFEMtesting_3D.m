@@ -33,7 +33,8 @@ classdef EIFEMtesting_3D < handle
             [bC,dir] = obj.createBoundaryConditions(obj.meshDomain);
             obj.boundaryConditions = bC;
             obj.createBCapplier()
-
+            
+            close all
             tic
             [LHS,RHS,LHSf] = obj.createElasticProblem();
             toc
@@ -53,7 +54,7 @@ classdef EIFEMtesting_3D < handle
             RBbasisFree  = forAlgebraicMultigrid(obj);
             Mid          = @(r) r;
             Meifem       = obj.createEIFEMPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
-            Milu         = obj.createILUpreconditioner(LHS);
+            Milu         = obj.createILUpreconditioner((LHS'+LHS)/2);
             MgaussSeidel = obj.createGaussSeidelpreconditioner(LHS);
             MJacobi      = obj.createJacobipreconditioner(LHS);
             Mmodal       = obj.createModalpreconditioner(LHS);
@@ -127,7 +128,7 @@ classdef EIFEMtesting_3D < handle
 
         function init(obj)
             obj.nSubdomains  = [3 1 1]; %nx ny
-            obj.fileNameEIFEM = 'DEF_por3D.mat';
+            obj.fileNameEIFEM = 'DEF_Q8_wing_1.mat';
             %             obj.fileNameEIFEM = 'DEF_auxNew_2.mat';
             %obj.fileNameEIFEM = 'DEF_Q4porL_1_raul.mat';
             obj.tolSameNode = 1e-6;
@@ -454,8 +455,9 @@ classdef EIFEMtesting_3D < handle
 %             lhs = LHSIntegrator.create(s);
 %             LHS = lhs.compute();
 %             LHSr = obj.bcApplier.fullToReducedMatrixDirichlet(LHS);
+              f = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
+              LHS = IntegrateLHS(f,dispFun,dispFun,mesh,'Domain',2);
 
-            LHS = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),dispFun,dispFun,mesh,'Domain',2);
             LHSr = obj.bcApplier.fullToReducedMatrixDirichlet(LHS);
         end
 
@@ -490,7 +492,7 @@ classdef EIFEMtesting_3D < handle
                 if ~isempty(dirich)
                     R = -stiffness(:,dirich)*dirichV;
                 else
-                    R = zeros(sum(obj.uFun.nDofs(:)),1);
+                    R = zeros(sum(u.nDofs(:)),1);
                 end
                 rhs = rhs+R;
             end

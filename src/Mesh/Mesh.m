@@ -35,18 +35,14 @@ classdef Mesh < handle
     methods (Static, Access = public)
         
         function obj = create(cParams)
-            if ~(isfield(cParams,'kFace'))
-                cParams.kFace = 0;
-            end
-            g = GeometryType.compute(cParams);
-            cParams.type = MeshTypeComputer.compute(cParams.connec,g);
-            switch g
+            s = SettingsMesh(cParams);
+            switch s.geometryType
                 case 'Line'
-                    obj = LineMesh(cParams);
+                    obj = LineMesh(s);
                 case 'Surface'
-                    obj = SurfaceMesh(cParams);
+                    obj = SurfaceMesh(s);
                 case 'Volume'
-                    obj = VolumeMesh(cParams);
+                    obj = VolumeMesh(s);
             end
         end
         

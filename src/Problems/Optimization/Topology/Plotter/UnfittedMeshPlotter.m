@@ -88,10 +88,16 @@ classdef UnfittedMeshPlotter < handle
         end
         
         function plotSubMesh(obj,uM)
-            s.faceColor = obj.faceColor;
-            s.edgeAlpha = obj.edgeAlpha;
-            s.faceAlpha = obj.faceAlpha;
-            s.isBackground = false;
+            if ~isempty(obj.faceColor)
+                s.faceColor = obj.faceColor;
+            end
+            if ~isempty(obj.edgeAlpha)
+                s.edgeAlpha = obj.edgeAlpha;
+            end            
+            if ~isempty(obj.faceAlpha)
+                s.faceAlpha = obj.faceAlpha;
+            end
+            
             if ~isempty(uM)
                 s.mesh = uM.mesh;
                 obj.plotMesh(s);
@@ -124,6 +130,7 @@ classdef UnfittedMeshPlotter < handle
     methods (Access = private, Static)
         
         function plotMesh(s)
+            s = SettingsMeshPlotter(s);
             if ~isempty(s.mesh)
                 mP = MeshPlotter(s);
                 mP.plot();

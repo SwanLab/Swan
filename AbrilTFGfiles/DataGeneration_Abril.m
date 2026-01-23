@@ -12,7 +12,7 @@ clc; clear; close all;
 %r=0:0.05:0.999;
 r=0.5;
 
-p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale'
+p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
 p.Inclusion  = 'Material';        %'Material'/'Hole'/'HoleRaul'
 p.nelem      = 20;
 meshName     = p.nelem+"x"+p.nelem;
@@ -40,18 +40,14 @@ for j = 1:size(r,2)
 
         case 'EIFEM'
             samplingType = 'Oversampling'; %'Isolated'/'Oversampling'
-            p.Inclusion = fullfile(p.Inclusion,samplingType);
             [nS,dI] = defineNumberOfSubdomains(samplingType);
-
-            
-            material = createMaterialTraining(mR, radius,s.nSubdomains,p.Inclusion);
+            material = createMaterialTraining(mR, radius,nS,p.Inclusion);
             s.mesh      = mR;
             s.r         = radius;
             s.material  = material;
             s.domainIndices = dI;
             s.nSubdomains   = nS;            
             m= EIFEMTraining(s);
-
             data    = m.train();
             data.E  = young;
             data.nu = poisson;
@@ -61,6 +57,7 @@ for j = 1:size(r,2)
             T        = EIFEoper.U;
             mesh     = data.mesh;
             Kcoarse  = EIFEoper.Kcoarse;
+            p.Inclusion = fullfile(p.Inclusion,samplingType);
             
     end
     R        = r(j);
@@ -119,7 +116,7 @@ end
 T=array2table(TData,"VariableNames",{'r','x','y','Tx1','Ty1','Tx2','Ty2','Tx3','Ty3','Tx4','Ty4' ...
     'Tx5','Ty5','Tx6','Ty6','Tx7','Ty7','Tx8','Ty8'});
 
-uFileName = fullfile('AbrilTFGfiles','Data',p.Training,p.Inclusion,samplingType,'DataT.csv');
+uFileName = fullfile('AbrilTFGfiles','Data',p.Training,p.Inclusion,'DataT.csv');
 writematrix(TData,uFileName);
 
 
@@ -139,7 +136,7 @@ for n=1:size(r,2)
 end
 
 kdata=[r.',kdata];
-kFileName = fullfile('AbrilTFGfiles','Data',p.Training,p.Inclusion,p.Sampling,'dataK.csv');
+kFileName = fullfile('AbrilTFGfiles','Data',p.Training,p.Inclusion,'dataK.csv');
 writematrix(kdata,kFileName);
 
 
@@ -162,7 +159,7 @@ function mS = createReferenceMesh(p,r)
                 case 20
                     mS=mesh_rectangle_via_triangles(r,1,-1,1,-1,15,12,0,0); % 20x20
                 case 50
-                    mS=mesh_rectangle_via_triangles(r,1,-1,1,-1,34,35,0,0)  % 50x50
+                    mS=mesh_rectangle_via_triangles(r,1,-1,1,-1,34,35,0,0);  % 50x50
             end
     end
 end

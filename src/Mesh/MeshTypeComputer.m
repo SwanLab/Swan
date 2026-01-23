@@ -1,14 +1,22 @@
 classdef MeshTypeComputer < handle
     
-    methods (Static, Access = public)
+    properties (Access = private)
+        nnodeElem
+        geometryType
+    end
+    
+    methods (Access = public)
         
-        function type = compute(connec,g)
-            nnodeElem = size(connec,2);
-            switch g
+        function obj = MeshTypeComputer(cParams)
+            obj.init(cParams)
+        end
+        
+        function type = compute(obj)
+            switch obj.geometryType
                 case 'Line'
                     type = 'LINE';
                 case 'Surface'
-                    switch nnodeElem
+                    switch obj.nnodeElem
                         case 3
                             type = 'TRIANGLE';
                         case {4,9}
@@ -17,13 +25,22 @@ classdef MeshTypeComputer < handle
                             type = 'SUPERELEMENT';
                     end
                 case 'Volume'
-                    switch nnodeElem
+                    switch obj.nnodeElem
                         case 4
                             type = 'TETRAHEDRA';
                         case 8
                             type = 'HEXAHEDRA';
                     end
             end
+        end
+        
+    end
+    
+    methods (Access = private)
+        
+        function init(obj,cParams)
+            obj.geometryType = cParams.geometryType;
+            obj.nnodeElem    = cParams.nnodeElem;
         end
         
     end
