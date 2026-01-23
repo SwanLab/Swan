@@ -42,6 +42,12 @@ classdef TutorialShells < handle
             uT = reshape(uT,[], obj.uFun.ndimf);
             obj.uFun.setFValues(uT);
             plot(obj.uFun)
+
+            wT = zeros(obj.wFun.nDofs,1);
+            wT(dofFW,1) = wF; 
+            wT = reshape(wT,[], obj.wFun.ndimf);
+            obj.wFun.setFValues(wT);
+            plot(obj.wFun)
         end
 
     end
