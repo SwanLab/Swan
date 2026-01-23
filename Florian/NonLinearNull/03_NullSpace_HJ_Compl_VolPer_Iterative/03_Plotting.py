@@ -29,31 +29,31 @@ exports = FreeFemRunner(path+"03_Mesh.edp").execute()
 Th = exports['Th']
 
 ## POSTPROCESS
-data = np.load(path+"03_Result1.npz")
+data = np.load(path+"03_ResultIts1Step3.npz")
 iter1 = data['it']
 Comp1  = data['c']
 Vol1  = data['v']
 Per1 = data['p']
 
-data = np.load(path+"03_Result2.npz")
+data = np.load(path+"03_ResultIts2Step3.npz")
 iter2 = data['it']
 Comp2  = data['c']
 Vol2  = data['v']
 Per2 = data['p']
 
-data = np.load(path+"03_Result3.npz")
+data = np.load(path+"03_ResultIts3Step3.npz")
 iter3 = data['it']
 Comp3  = data['c']
 Vol3  = data['v']
 Per3 = data['p']
 
-data = np.load(path+"03_Result10.npz")
+data = np.load(path+"03_ResultIts10Step3.npz")
 iter10 = data['it']
 Comp10  = data['c']
 Vol10  = data['v']
 Per10 = data['p']
 
-data = np.load(path+"03_Result10.npz")
+data = np.load(path+"03_ResultIts1Step3.npz")
 fig0, ax0 = plt.subplots()
 x = data["xF"]
 u = P1Function(Th,x<=0)
@@ -64,8 +64,8 @@ fig, axes = plt.subplots(1, 3, figsize=(10, 4))
 
 axes[0].plot(iter1, Comp1, color='b', label='1 geo it')
 axes[0].plot(iter2, Comp2, color='r', label='2 geo it')
-axes[0].plot(iter3, Comp3, color='g', label='3 geo it')
-axes[0].plot(iter10, Comp10, color='m', label='10 geo it')
+axes[0].plot(iter3, Comp3, color='g', label='4 geo it')
+axes[0].plot(iter10, Comp10, color='m', label='8 geo it')
 axes[0].legend()
 axes[0].set_xlabel('Iter')
 axes[0].set_ylabel('Compliance')
@@ -73,8 +73,8 @@ axes[0].grid(True, linestyle='--', alpha=0.6)
 
 axes[1].plot(iter1, Vol1, color='b', label='1 geo it')
 axes[1].plot(iter2, Vol2, color='r', label='2 geo it')
-axes[1].plot(iter3, Vol3, color='g', label='3 geo it')
-axes[1].plot(iter10, Vol10, color='m', label='10 geo it')
+axes[1].plot(iter3, Vol3, color='g', label='4 geo it')
+axes[1].plot(iter10, Vol10, color='m', label='8 geo it')
 axes[1].legend()
 axes[1].set_xlabel('Iter')
 axes[1].set_ylabel('Volume constraint')
@@ -82,8 +82,8 @@ axes[1].grid(True, linestyle='--', alpha=0.6)
 
 axes[2].plot(iter1, Per1, color='b', label='1 geo it')
 axes[2].plot(iter2, Per2, color='r', label='2 geo it')
-axes[2].plot(iter3, Per3, color='g', label='3 geo it')
-axes[2].plot(iter10, Per10, color='m', label='10 geo it')
+axes[2].plot(iter3, Per3, color='g', label='4 geo it')
+axes[2].plot(iter10, Per10, color='m', label='8 geo it')
 axes[2].legend()
 axes[2].set_xlabel('Iter')
 axes[2].set_ylabel('Perimeter constraint')

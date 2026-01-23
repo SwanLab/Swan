@@ -21,3 +21,4 @@ exportVar(alpha);
 exportVar(beta);
 exportVar(labelDir);
 exportVar(labelNeu);
+exportVar(meshsiz);
