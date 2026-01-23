@@ -36,7 +36,6 @@ classdef ThermoElasticProblem < handle
     properties (Access = protected)
         mesh
         material
-        materialThermal     
     end
 
     methods (Access = public)
@@ -67,7 +66,6 @@ classdef ThermoElasticProblem < handle
 
         function updateMaterial(obj, mat, kappa)
             obj.material = mat;
-            %obj.materialThermal = kappa;
             obj.kappa = kappa;  % right now, this is where kappa is being defined
         end
 
@@ -109,7 +107,6 @@ classdef ThermoElasticProblem < handle
             obj.boundaryConditionsElastic = cParams.boundaryConditionsElastic;
 
             % Thermal
-            %obj.materialThermal = cParams.kappa;
             obj.alpha = cParams.alpha;
             obj.source       = cParams.source;                                    
             obj.T0           = cParams.T0;

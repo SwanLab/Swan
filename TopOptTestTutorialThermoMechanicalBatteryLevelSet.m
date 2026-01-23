@@ -16,6 +16,7 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
         chiB    %Battery
         chiAl  %Corona
         chiB0
+        kappaB
         dualVariable
     end
 
@@ -130,8 +131,8 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
 
          function createThermalMaterialInterpolator(obj) % Conductivity
             s.interpolation  = 'SimpAllThermal';   
-            s.f0   = 1e-2;
-            s.f1   = 1;
+            s.f0   = 1e-2; %ConstantFunction.create(1e-3,obj.mesh); %1e-2;
+            s.f1   = 1.0; %ConstantFunction.create(1,obj.mesh); 
             s.dim ='2D';
             a = MaterialInterpolator.create(s);
             obj.thermalmaterialInterpolator = a;
@@ -192,8 +193,8 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
 
             % Thermal
             s.materialInterpolator = obj.thermalmaterialInterpolator;
-            s.alpha = 3e-2; 
-            s.source  =  ConstantFunction.create(0,obj.mesh).*obj.chiB.project('P1'); %P=2.5
+            s.alpha = 4.0; 
+            s.source  =  ConstantFunction.create(1,obj.mesh).*obj.chiB.project('P1'); %P=2.5
             s.T0 = ConstantFunction.create(0,obj.mesh);   
             s.boundaryConditionsThermal = obj.createBoundaryConditionsThermal();
             
@@ -214,6 +215,8 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
             s.filter                      = obj.filter;
             s.complianceFromConstitutive  = obj.createComplianceFromConstiutive();
             s.material                    = obj.createMaterial();
+            s.chiB                        = obj.chiB;
+            s.kappaB                      = 1.25/220;
             s.conductivity                = obj.thermalmaterialInterpolator();
             c = ComplianceFunctionalThermoElastic(s);
             obj.compliance = c;
