@@ -21,7 +21,7 @@ from pymedit import P1Function
 
 
 
-def FunctionCase03(maxItj,elRadius,No,maxIter):
+def FunctionCase03(maxItj,stepHJ,No,maxIter):
 
     ## FREEFEM PROBLEM DEFINITION
     path = "NonLinearNull/03_NullSpace_HJ_Compl_VolPer_Iterative/"
@@ -105,6 +105,7 @@ def FunctionCase03(maxItj,elRadius,No,maxIter):
     ## OPTIMIZATION PARAMETERS
     dTime = 0.001
     hmin = meshsiz
+    elRadius = 10
     params = {"dt": dTime*hmin*elRadius,
             "itnormalisation": No,
             "save_only_N_iterations": 1,
@@ -114,7 +115,7 @@ def FunctionCase03(maxItj,elRadius,No,maxIter):
             "maxit": maxIter,
             "CFL": 0.9}
     problem:Optimizable = TO_problem()
-    elRadius = elRadius/maxItj
+    stepHJj = stepHJ/maxItj
 
 
 
@@ -324,12 +325,12 @@ def FunctionCase03(maxItj,elRadius,No,maxIter):
             runner = FreeFemRunner(path+"03_HJ.edp")
             runner.import_variables(Th=Th,Th2=problem._problem.Th2,gVal = g,phiVal=xj,nxVal=problem._problem.nx,
                                     nyVal=problem._problem.ny,beta=beta,lsLab=lsLabel,rInner=rInner,dTime=dTime,
-                                    isLs=1)
+                                    stepHJ=stepHJj, isLs=1)
             x1 = runner.execute()['phi[]']
 
             runner.import_variables(Th=Th,Th2=problem._problem.Th2,gVal = g,phiVal=dJ,nxVal=problem._problem.nx,
                                     nyVal=problem._problem.ny,beta=beta,lsLab=lsLabel,rInner=rInner,dTime=dTime,
-                                    isLs=0)
+                                    stepHJ=stepHJj, isLs=0)
             dJ = runner.execute()['phi[]']
 
             runner = FreeFemRunner(path+"03_BoundaryRefinement.edp")
@@ -423,5 +424,5 @@ def FunctionCase03(maxItj,elRadius,No,maxIter):
     Vol  = results['G']
     Per = results['H']
 
-    np.savez(path+"03_ResultIts"+str(maxItj)+"Step"+str(elRadius),
+    np.savez(path+"03_ResultIts"+str(maxItj)+"Step"+str(stepHJ),
             xF=x,it=iter,c=Comp,v=Vol,p=Per)

@@ -12,6 +12,7 @@ real beta = importVar("beta");
 real lsLab = importVar("lsLab");
 real rInner = importVar("rInner");
 real dt = importVar("dTime");
+real stepHJ = importVar("stepHJ");
 real isLs = importVar("isLs");
 
 fespace Vh(Th,P1);
@@ -61,7 +62,7 @@ func real[int] advectRedist(real[int] phiot, real[int] vxt, real[int] vyt, real 
    return phitmp[];
 } // EOM
 
-phio[] = advectRedist(phio[],gx[],gy[],1/dt);
+phio[] = advectRedist(phio[],gx[],gy[],stepHJ/dt);
 if (isLs==1) {
   distance(Th,phio,phi[]); 
 } else {

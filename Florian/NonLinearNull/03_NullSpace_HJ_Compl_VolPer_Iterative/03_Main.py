@@ -4,11 +4,11 @@ import matplotlib.pyplot as plt
 
 from fun03_NullSpace_HJ_CVP_Iterative import FunctionCase03
 
-maxItj   = [1,2,4,8]
-elRadius = 10
-No       = 10
-maxIter  = 30
+maxItj  = [1,2,4,8]
+stepHJ  = 1
+No      = 12
+maxIter = 40
 
 for i in range(len(maxItj)):
-    FunctionCase03(maxItj[i],elRadius,No,maxIter)
+    FunctionCase03(maxItj[i],stepHJ,No,maxIter)
     plt.close('all')
