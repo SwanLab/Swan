@@ -73,10 +73,8 @@ classdef EIFEMnonPeriodic < handle
         end
         
         function dK = computeGradK(obj,mu)
-            nelem = obj.mesh.nelem;
-            for i = 1:nelem
-                dK(:,:,i) = obj.RVE.dKcoarse(mu(i));
-            end
+           [ndof,ndof,~] = size(obj.Kel);
+           dK =  reshape(obj.RVE.dKcoarse(mu(:)),[ndof ndof length(mu)]);
         end
 
         function uL = global2local(obj,uG)

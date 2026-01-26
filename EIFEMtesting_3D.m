@@ -12,7 +12,7 @@ classdef EIFEMtesting_3D < handle
 
         fileNameEIFEM
         tolSameNode
-
+        solverType
     end
 
 
@@ -33,9 +33,11 @@ classdef EIFEMtesting_3D < handle
             [bC,dir] = obj.createBoundaryConditions(obj.meshDomain);
             obj.boundaryConditions = bC;
             obj.createBCapplier()
-
+            
+            close all
             tic
             [LHS,RHS,LHSf] = obj.createElasticProblem();
+            
             toc
             obj.LHS = LHSf;
             %             LHS = 0.5*(LHS+LHS');
@@ -53,7 +55,7 @@ classdef EIFEMtesting_3D < handle
             RBbasisFree  = forAlgebraicMultigrid(obj);
             Mid          = @(r) r;
             Meifem       = obj.createEIFEMPreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
-            Milu         = obj.createILUpreconditioner(LHS);
+            Milu         = obj.createILUpreconditioner((LHS'+LHS)/2);
             MgaussSeidel = obj.createGaussSeidelpreconditioner(LHS);
             MJacobi      = obj.createJacobipreconditioner(LHS);
             Mmodal       = obj.createModalpreconditioner(LHS);
@@ -66,7 +68,7 @@ classdef EIFEMtesting_3D < handle
 
             x0 = zeros(size(RHSf));
             tic
-%             [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
+            [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
             toc
             %             [uCG,residualCG,errCG,errAnormCG] = RichardsonSolver.solve(LHSf,RHSf,x0,P,tol,0.1,Usol);
 
@@ -75,7 +77,7 @@ classdef EIFEMtesting_3D < handle
             %Mmult = MdirNeu;
             x0 = zeros(size(RHSf));
             r = RHSf - LHSf(x0);
-            Mmult = @(r) Preconditioner.multiplePrec(r,Milu,Meifem,Milu,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
+            Mmult = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Meifem,Milu);
             %              Mmult = @(r) Preconditioner.multiplePrec(r,Mid,Meifem,Mid,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
             %             zmult = Mmult(r);
 
@@ -126,18 +128,19 @@ classdef EIFEMtesting_3D < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [3 3 1]; %nx ny
-            obj.fileNameEIFEM = 'DEF_por3D.mat';
+            obj.nSubdomains  = [3 1 1]; %nx ny
+            obj.fileNameEIFEM = 'DEF_Q8_wing_1.mat';
             %             obj.fileNameEIFEM = 'DEF_auxNew_2.mat';
             %obj.fileNameEIFEM = 'DEF_Q4porL_1_raul.mat';
             obj.tolSameNode = 1e-6;
+            obj.solverType = 'REDUCED';
         end
 
         function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomain(obj,mR)
             s.nsubdomains   = obj.nSubdomains; %nx ny
             s.meshReference = mR;
             s.tolSameNode = obj.tolSameNode;
-            m = MeshCreatorFromRVE3D.create(s);
+            m = MeshCreatorFromRVE3D(s);
             [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
         end
 
@@ -277,7 +280,7 @@ classdef EIFEMtesting_3D < handle
             s.meshReference = obj.createReferenceCoarseMesh(mR);
             %             s.meshReference = obj.loadReferenceCoarseMesh(mR);
             s.tolSameNode   = obj.tolSameNode;
-            mRVECoarse      = MeshCreatorFromRVE3D.create(s);
+            mRVECoarse      = MeshCreatorFromRVE3D(s);
             [mCoarse,~,~] = mRVECoarse.create();
         end
 
@@ -290,13 +293,23 @@ classdef EIFEMtesting_3D < handle
             ymin = min(mR.coord(:,2));
             zmax = max(mR.coord(:,3));
             zmin = min(mR.coord(:,3));
-            coord(1,1) = xmax;  coord(1,2) = ymax;   coord(1,3) = zmax;
+            % uncomment for the case of the article
+            % coord(1,1) = xmax;  coord(1,2) = ymax;   coord(1,3) = zmax;
+            % coord(2,1) = xmin;  coord(2,2) = ymax;   coord(2,3) = zmax;
+            % coord(3,1) = xmin;  coord(3,2) = ymax;   coord(3,3) = zmin;
+            % coord(4,1) = xmax;  coord(4,2) = ymax;   coord(4,3) = zmin;
+            % coord(5,1) = xmax;  coord(5,2) = ymin;   coord(5,3) = zmax;
+            % coord(6,1) = xmin;  coord(6,2) = ymin;   coord(6,3) = zmax;
+            % coord(7,1) = xmin;  coord(7,2) = ymin;   coord(7,3) = zmin;
+            % coord(8,1) = xmax;  coord(8,2) = ymin;   coord(8,3) = zmin;
+
+            coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmax;
             coord(2,1) = xmin;  coord(2,2) = ymax;   coord(2,3) = zmax;
-            coord(3,1) = xmin;  coord(3,2) = ymax;   coord(3,3) = zmin;
-            coord(4,1) = xmax;  coord(4,2) = ymax;   coord(4,3) = zmin;
-            coord(5,1) = xmax;  coord(5,2) = ymin;   coord(5,3) = zmax;
-            coord(6,1) = xmin;  coord(6,2) = ymin;   coord(6,3) = zmax;
-            coord(7,1) = xmin;  coord(7,2) = ymin;   coord(7,3) = zmin;
+            coord(3,1) = xmax;  coord(3,2) = ymax;   coord(3,3) = zmax;
+            coord(4,1) = xmax;  coord(4,2) = ymin;   coord(4,3) = zmax;
+            coord(5,1) = xmin;  coord(5,2) = ymin;   coord(5,3) = zmin;
+            coord(6,1) = xmin;  coord(6,2) = ymax;   coord(6,3) = zmin;
+            coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmin;
             coord(8,1) = xmax;  coord(8,2) = ymin;   coord(8,3) = zmin;
 
             connec = [1 2 3 4 5 6 7 8];
@@ -370,12 +383,12 @@ classdef EIFEMtesting_3D < handle
         end
 
         function [young,poisson] = computeElasticProperties(obj,mesh)
-            E  = 1;
-            nu = 1/3;
-            %             E  = 70000;
-            %             nu = 0.3;
-            Epstr  = E/(1-nu^2);
-            nupstr = nu/(1-nu);
+%             E  = 1;
+%             nu = 1/3;
+                        E  = 70000;
+                        nu = 0.3;
+%             Epstr  = E/(1-nu^2);
+%             nupstr = nu/(1-nu);
             %             young   = ConstantFunction.create(Epstr,mesh);
             %             poisson = ConstantFunction.create(nupstr,mesh);
             young   = ConstantFunction.create(E,mesh);
@@ -419,13 +432,13 @@ classdef EIFEMtesting_3D < handle
                 dirichletFun = [dirichletFun, dir];
             end
 
-            pointload = PointLoad(mesh,PL);
+            pointload = TractionLoad(mesh,PL,'DIRAC');
             % need this because force applied in the face not in a point
-            pointload.values        = pointload.values/size(pointload.dofs,1);
-            fvalues                 = zeros(mesh.nnodes*mesh.ndim,1);
-            fvalues(pointload.dofs) = pointload.values;
-            fvalues                 = reshape(fvalues,mesh.ndim,[])';
-            pointload.fun.setFValues(fvalues);
+%             pointload.values        = pointload.values/size(pointload.dofs,1);
+%             fvalues                 = zeros(mesh.nnodes*mesh.ndim,1);
+%             fvalues(pointload.dofs) = pointload.values;
+%             fvalues                 = reshape(fvalues,mesh.ndim,[])';
+%             pointload.fun.setFValues(fvalues);
 
             s.pointloadFun = pointload;
             s.dirichletFun = dirichletFun;
@@ -443,30 +456,58 @@ classdef EIFEMtesting_3D < handle
         end
 
 
-        function [LHS,LHSr] = computeStiffnessMatrix(obj,mesh,dispFun,mat)
-            s.type     = 'ElasticStiffnessMatrix';
-            s.mesh     = mesh;
-            s.test     = dispFun;
-            s.trial    = dispFun;
-            s.material = mat;
-            s.quadratureOrder = 2;
-            lhs = LHSIntegrator.create(s);
-            LHS = lhs.compute();
+        function [LHS,LHSr] = computeStiffnessMatrix(obj,mesh,dispFun,C)
+%             s.type     = 'ElasticStiffnessMatrix';
+%             s.mesh     = mesh;
+%             s.test     = dispFun;
+%             s.trial    = dispFun;
+%             s.material = mat;
+%             s.quadratureOrder = 2;
+%             lhs = LHSIntegrator.create(s);
+%             LHS = lhs.compute();
+%             LHSr = obj.bcApplier.fullToReducedMatrixDirichlet(LHS);
+              f = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
+              LHS = IntegrateLHS(f,dispFun,dispFun,mesh,'Domain',2);
+
             LHSr = obj.bcApplier.fullToReducedMatrixDirichlet(LHS);
         end
 
-        function RHS = computeForces(obj,stiffness,u)
-            s.type      = 'Elastic';
-            s.scale     = 'MACRO';
-            s.dim.ndofs = u.nDofs;
-            s.BC        = obj.boundaryConditions;
-            s.mesh      = obj.meshDomain;
-            RHSint      = RHSIntegrator.create(s);
-            rhs         = RHSint.compute();
-            % Perhaps move it inside RHSint?
-            R           = RHSint.computeReactions(stiffness);
-            RHS = rhs+R;
-            RHS = obj.bcApplier.fullToReducedVectorDirichlet(RHS);
+%         function RHS = computeForces(obj,stiffness,u)
+%             s.type      = 'Elastic';
+%             s.scale     = 'MACRO';
+%             s.dim.ndofs = u.nDofs;
+%             s.BC        = obj.boundaryConditions;
+%             s.mesh      = obj.meshDomain;
+%             RHSint      = RHSIntegrator.create(s);
+%             rhs         = RHSint.compute();
+%             % Perhaps move it inside RHSint?
+%             R           = RHSint.computeReactions(stiffness);
+%             RHS = rhs+R;
+%             RHS = obj.bcApplier.fullToReducedVectorDirichlet(RHS);
+%         end
+
+        function RHS =  computeForces(obj,stiffness,u)
+            bc  = obj.boundaryConditions;
+            t   = bc.tractionFun;
+            rhs = zeros(u.nDofs,1);
+            if ~isempty(t)
+                for i = 1:numel(t)
+                    rhsi = t(i).computeRHS(u);
+                    rhs  = rhs + rhsi;
+                end
+            end
+            if strcmp(obj.solverType,'REDUCED')
+                bc      = obj.boundaryConditions;
+                dirich  = bc.dirichlet_dofs;
+                dirichV = bc.dirichlet_vals;
+                if ~isempty(dirich)
+                    R = -stiffness(:,dirich)*dirichV;
+                else
+                    R = zeros(sum(u.nDofs(:)),1);
+                end
+                rhs = rhs+R;
+            end
+            RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
         end
 
         function Meifem = createEIFEMPreconditioner(obj,mR,dir,iC,lG,bS,iCR,dMesh)

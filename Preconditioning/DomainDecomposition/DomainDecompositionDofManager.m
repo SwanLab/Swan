@@ -85,6 +85,39 @@ classdef DomainDecompositionDofManager < handle
             end
         end
 
+        function mGs = local2globalMatrix(obj, mL)
+            ndimf = obj.nDimf;
+            %mG    = zeros(size(mL(:,:,1))*ndimf);
+            mGs = [];
+            ind   = 1;
+            %mGsSparse = cell(size(mL,3),1);
+            mGs = sparse(obj.nDof, obj.nDof);
+
+            for jdom = 1:obj.nSubdomains(2)
+                for idom = 1:obj.nSubdomains(1)
+                    gGconnec = obj.localGlobalDof{jdom,idom};
+                    %mGs(gGconnec(:,1),gGconnec(:,1), ind) = mL(gGconnec(:,2),gGconnec(:,2), ind);
+                    mGs(gGconnec(:,1),gGconnec(:,1) ) = mGs(gGconnec(:,1),gGconnec(:,1)) +  mL(gGconnec(:,2),gGconnec(:,2), ind);
+                    
+                    % %-------------------------
+                    % mGs(gGconnec(:,1),gGconnec(:,1)) = mL(gGconnec(:,2),gGconnec(:,2), ind);
+                    % mGsSparse{ind} = sparse(mGs );
+                    % %-------------------------
+
+                    % mG(gGconnec(:,1),gGconnec(:,1)) = mG(gGconnec(:,1),gGconnec(:,1)) + mL(gGconnec(:,2),gGconnec(:,2), ind);
+                    ind=ind+1;
+                end
+                
+            end
+            
+            % mG = ;
+            % for i = 1:(ind-1)
+            %     mG = mG + full(mGsSparse{i});
+            % 
+            % end
+            %mG = sum(mGs,3);
+        end
+
         function fG = AssembleLocal2GlobalVector(obj,fL)
             fG   = zeros(obj.nDof,1);
             ind    = 1;

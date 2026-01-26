@@ -1,0 +1,16 @@
+*************************************
+Reading and constructing input data
+*************************************
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('fgets')" style="font-weight:bold">fgets</a>
+Invalid file identifier. Use fopen to generate a valid file identifier.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('FECODElargeDYN', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/LARGE_STRAINS/FECODElargeDYN.m', 21)" style="font-weight:bold">FECODElargeDYN</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/LARGE_STRAINS/FECODElargeDYN.m',21,0)">line 21</a>)
+    feval(DATAFILE,PARAMETERS) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('FEvectorized', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/109_EIFEM_largeROT/13_auxALEX/FEvectorized.m', 44)" style="font-weight:bold">FEvectorized</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/109_EIFEM_largeROT/13_auxALEX/FEvectorized.m',44,0)">line 44</a>)
+            FECODElargeDYN(NAME_INPUT_FILE,DATALOC) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('FE_shearRC', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/109_EIFEM_largeROT/13_auxALEX/FE_shearRC.m', 22)" style="font-weight:bold">FE_shearRC</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/109_EIFEM_largeROT/13_auxALEX/FE_shearRC.m',22,0)">line 22</a>)
+    FEvectorized('INPUTS_FE_LOCgen',BOUNDARY_CONDIDITONS,MATERIAL_FILE,DATALOC) ;
+} 
+FE_shearRC

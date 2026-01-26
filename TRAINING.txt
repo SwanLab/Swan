@@ -1,0 +1,182 @@
+*************************************
+Reading and constructing input data
+*************************************
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('fgets')" style="font-weight:bold">fgets</a>
+Invalid file identifier. Use fopen to generate a valid file identifier.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ReadUntilToken', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadUntilToken.m', 11)" style="font-weight:bold">ReadUntilToken</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadUntilToken.m',11,0)">line 11</a>)
+    TokenRead = fgets(fid);
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ReadMeshFileStr_MULT', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadMeshFileStr_MULT.m', 40)" style="font-weight:bold">ReadMeshFileStr_MULT</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadMeshFileStr_MULT.m',40,0)">line 40</a>)
+[OkFindRes RestLine] = ReadUntilToken(fid,'MESH'); % Find word "MESH"
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('GeometryMesh', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\GeometryMesh.m', 20)" style="font-weight:bold">GeometryMesh</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\GeometryMesh.m',20,0)">line 20</a>)
+        [MESH]= ReadMeshFileStr_MULT(DATA.NameFileMeshDATA,'READ_MATERIAL_COLUMN',1)  ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('PreProcessInputDataDyn1', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\PreProcessInputDataDyn1.m', 102)" style="font-weight:bold">PreProcessInputDataDyn1</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\PreProcessInputDataDyn1.m',102,0)">line 102</a>)
+    MESH = GeometryMesh(DATA) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('INPUTS_TRAIN_Q8plate', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\TypeInputDATA\INPUTS_TRAIN_Q8plate.m', 148)" style="font-weight:bold">INPUTS_TRAIN_Q8plate</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\TypeInputDATA\INPUTS_TRAIN_Q8plate.m',148,0)">line 148</a>)
+    =  PreProcessInputDataDyn1(DATA,PROPMAT,DIRICHLET,NEUMANN,INITIAL_CONDITIONS,OTHER_INPUTS) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('FECODElargeDYN', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\FECODElargeDYN.m', 92)" style="font-weight:bold">FECODElargeDYN</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\FECODElargeDYN.m',92,0)">line 92</a>)
+    feval(DATAFILE,PARAMETERS) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Training_MULTI', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m', 86)" style="font-weight:bold">Training_MULTI</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m',86,0)">line 86</a>)
+            FECODElargeDYN(DATALOC.InputDataFile_FE ,DATALOC) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train1dom_BUBcomp', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m', 105)" style="font-weight:bold">Train1dom_BUBcomp</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m',105,0)">line 105</a>)
+    Training_MULTI(INPUT_PROBLEMS,DATAoffline) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train_Q8_wing', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\Train_Q8_wing.m', 89)" style="font-weight:bold">Train_Q8_wing</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\Train_Q8_wing.m',89,0)">line 89</a>)
+Train1dom_BUBcomp(DATAlauch,INPUT_PROBLEMS,NameWS_EIFE_oper,DATAoffline)  ;
+} 
+Train_Q8_wing
+[Warning: File not found or permission denied] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Training_MULTI', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m', 68)" style="font-weight:bold">Training_MULTI</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m',68,0)">line 68</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train1dom_BUBcomp', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m', 105)" style="font-weight:bold">Train1dom_BUBcomp</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m',105,0)">line 105</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train_Q8_wing', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\Train_Q8_wing.m', 89)" style="font-weight:bold">Train_Q8_wing</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\Train_Q8_wing.m',89,0)">line 89</a>)] 
+*************************************
+Reading and constructing input data
+*************************************
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('fgets')" style="font-weight:bold">fgets</a>
+Invalid file identifier. Use fopen to generate a valid file identifier.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ReadUntilToken', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadUntilToken.m', 11)" style="font-weight:bold">ReadUntilToken</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadUntilToken.m',11,0)">line 11</a>)
+    TokenRead = fgets(fid);
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ReadMeshFileStr_MULT', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadMeshFileStr_MULT.m', 40)" style="font-weight:bold">ReadMeshFileStr_MULT</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadMeshFileStr_MULT.m',40,0)">line 40</a>)
+[OkFindRes RestLine] = ReadUntilToken(fid,'MESH'); % Find word "MESH"
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('GeometryMesh', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\GeometryMesh.m', 20)" style="font-weight:bold">GeometryMesh</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\GeometryMesh.m',20,0)">line 20</a>)
+        [MESH]= ReadMeshFileStr_MULT(DATA.NameFileMeshDATA,'READ_MATERIAL_COLUMN',1)  ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('PreProcessInputDataDyn1', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\PreProcessInputDataDyn1.m', 102)" style="font-weight:bold">PreProcessInputDataDyn1</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\PreProcessInputDataDyn1.m',102,0)">line 102</a>)
+    MESH = GeometryMesh(DATA) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('INPUTS_TRAIN_Q8plate', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\TypeInputDATA\INPUTS_TRAIN_Q8plate.m', 148)" style="font-weight:bold">INPUTS_TRAIN_Q8plate</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\TypeInputDATA\INPUTS_TRAIN_Q8plate.m',148,0)">line 148</a>)
+    =  PreProcessInputDataDyn1(DATA,PROPMAT,DIRICHLET,NEUMANN,INITIAL_CONDITIONS,OTHER_INPUTS) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('FECODElargeDYN', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\FECODElargeDYN.m', 92)" style="font-weight:bold">FECODElargeDYN</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\FECODElargeDYN.m',92,0)">line 92</a>)
+    feval(DATAFILE,PARAMETERS) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Training_MULTI', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m', 86)" style="font-weight:bold">Training_MULTI</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m',86,0)">line 86</a>)
+            FECODElargeDYN(DATALOC.InputDataFile_FE ,DATALOC) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train1dom_BUBcomp', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m', 105)" style="font-weight:bold">Train1dom_BUBcomp</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m',105,0)">line 105</a>)
+    Training_MULTI(INPUT_PROBLEMS,DATAoffline) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train_Q8_wing', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\Train_Q8_wing.m', 89)" style="font-weight:bold">Train_Q8_wing</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\Train_Q8_wing.m',89,0)">line 89</a>)
+Train1dom_BUBcomp(DATAlauch,INPUT_PROBLEMS,NameWS_EIFE_oper,DATAoffline)  ;
+} 
+opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m',105,0)
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('open')" style="font-weight:bold">open</a>
+File '/home/joaquin/Desktop/WING_PROBLEM_LINEAR_2025/Train_Q8_wing.m' not found.
+} 
+Train_Q8_wing
+[Warning: File not found or permission denied] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Training_MULTI', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m', 68)" style="font-weight:bold">Training_MULTI</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m',68,0)">line 68</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train1dom_BUBcomp', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m', 105)" style="font-weight:bold">Train1dom_BUBcomp</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m',105,0)">line 105</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train_Q8_wing', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\Train_Q8_wing.m', 89)" style="font-weight:bold">Train_Q8_wing</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\Train_Q8_wing.m',89,0)">line 89</a>)] 
+*************************************
+Reading and constructing input data
+*************************************
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('fgets')" style="font-weight:bold">fgets</a>
+Invalid file identifier. Use fopen to generate a valid file identifier.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ReadUntilToken', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadUntilToken.m', 11)" style="font-weight:bold">ReadUntilToken</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadUntilToken.m',11,0)">line 11</a>)
+    TokenRead = fgets(fid);
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ReadMeshFileStr_MULT', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadMeshFileStr_MULT.m', 40)" style="font-weight:bold">ReadMeshFileStr_MULT</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadMeshFileStr_MULT.m',40,0)">line 40</a>)
+[OkFindRes RestLine] = ReadUntilToken(fid,'MESH'); % Find word "MESH"
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('GeometryMesh', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\GeometryMesh.m', 20)" style="font-weight:bold">GeometryMesh</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\GeometryMesh.m',20,0)">line 20</a>)
+        [MESH]= ReadMeshFileStr_MULT(DATA.NameFileMeshDATA,'READ_MATERIAL_COLUMN',1)  ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('PreProcessInputDataDyn1', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\PreProcessInputDataDyn1.m', 102)" style="font-weight:bold">PreProcessInputDataDyn1</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\PreProcessInputDataDyn1.m',102,0)">line 102</a>)
+    MESH = GeometryMesh(DATA) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('INPUTS_TRAIN_Q8plate', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\TypeInputDATA\INPUTS_TRAIN_Q8plate.m', 148)" style="font-weight:bold">INPUTS_TRAIN_Q8plate</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\TypeInputDATA\INPUTS_TRAIN_Q8plate.m',148,0)">line 148</a>)
+    =  PreProcessInputDataDyn1(DATA,PROPMAT,DIRICHLET,NEUMANN,INITIAL_CONDITIONS,OTHER_INPUTS) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('FECODElargeDYN', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\FECODElargeDYN.m', 92)" style="font-weight:bold">FECODElargeDYN</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\FECODElargeDYN.m',92,0)">line 92</a>)
+    feval(DATAFILE,PARAMETERS) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Training_MULTI', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m', 86)" style="font-weight:bold">Training_MULTI</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m',86,0)">line 86</a>)
+            FECODElargeDYN(DATALOC.InputDataFile_FE ,DATALOC) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train1dom_BUBcomp', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m', 105)" style="font-weight:bold">Train1dom_BUBcomp</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m',105,0)">line 105</a>)
+    Training_MULTI(INPUT_PROBLEMS,DATAoffline) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train_Q8_wing', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\Train_Q8_wing.m', 89)" style="font-weight:bold">Train_Q8_wing</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\Train_Q8_wing.m',89,0)">line 89</a>)
+Train1dom_BUBcomp(DATAlauch,INPUT_PROBLEMS,NameWS_EIFE_oper,DATAoffline)  ;
+} 
+opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\Train_Q8_wing.m',89,0)
+opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\Train_Q8_wing.m',89,0)
+opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\Train_Q8_wing.m',89,0)
+opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\Train_Q8_wing.m',89,0)
+opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m',68,0)
+Train_Q8_wing
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+[Warning: File not found or permission denied] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Training_MULTI', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m', 68)" style="font-weight:bold">Training_MULTI</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m',68,0)">line 68</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train1dom_BUBcomp', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m', 105)" style="font-weight:bold">Train1dom_BUBcomp</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m',105,0)">line 105</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train_Q8_wing', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\Train_Q8_wing.m', 89)" style="font-weight:bold">Train_Q8_wing</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\Train_Q8_wing.m',89,0)">line 89</a>)] 
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+*************************************
+Reading and constructing input data
+*************************************
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('fgets')" style="font-weight:bold">fgets</a>
+Invalid file identifier. Use fopen to generate a valid file identifier.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ReadUntilToken', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadUntilToken.m', 11)" style="font-weight:bold">ReadUntilToken</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadUntilToken.m',11,0)">line 11</a>)
+    TokenRead = fgets(fid);
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ReadMeshFileStr_MULT', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadMeshFileStr_MULT.m', 40)" style="font-weight:bold">ReadMeshFileStr_MULT</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\FE_CODE\ReadMeshFileStr_MULT.m',40,0)">line 40</a>)
+[OkFindRes RestLine] = ReadUntilToken(fid,'MESH'); % Find word "MESH"
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('GeometryMesh', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\GeometryMesh.m', 20)" style="font-weight:bold">GeometryMesh</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\GeometryMesh.m',20,0)">line 20</a>)
+        [MESH]= ReadMeshFileStr_MULT(DATA.NameFileMeshDATA,'READ_MATERIAL_COLUMN',1)  ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('PreProcessInputDataDyn1', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\PreProcessInputDataDyn1.m', 102)" style="font-weight:bold">PreProcessInputDataDyn1</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\InputDataFunctions\PreProcessInputDataDyn1.m',102,0)">line 102</a>)
+    MESH = GeometryMesh(DATA) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('INPUTS_TRAIN_Q8plate', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\TypeInputDATA\INPUTS_TRAIN_Q8plate.m', 148)" style="font-weight:bold">INPUTS_TRAIN_Q8plate</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\TypeInputDATA\INPUTS_TRAIN_Q8plate.m',148,0)">line 148</a>)
+    =  PreProcessInputDataDyn1(DATA,PROPMAT,DIRICHLET,NEUMANN,INITIAL_CONDITIONS,OTHER_INPUTS) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('FECODElargeDYN', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\FECODElargeDYN.m', 92)" style="font-weight:bold">FECODElargeDYN</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\LARGE_STRAINS\FECODElargeDYN.m',92,0)">line 92</a>)
+    feval(DATAFILE,PARAMETERS) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Training_MULTI', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m', 86)" style="font-weight:bold">Training_MULTI</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m',86,0)">line 86</a>)
+            FECODElargeDYN(DATALOC.InputDataFile_FE ,DATALOC) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train1dom_BUBcomp', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m', 105)" style="font-weight:bold">Train1dom_BUBcomp</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m',105,0)">line 105</a>)
+    Training_MULTI(INPUT_PROBLEMS,DATAoffline) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train_Q8_wing', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\Train_Q8_wing.m', 89)" style="font-weight:bold">Train_Q8_wing</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\Train_Q8_wing.m',89,0)">line 89</a>)
+Train1dom_BUBcomp(DATAlauch,INPUT_PROBLEMS,NameWS_EIFE_oper,DATAoffline)  ;
+} 
+Train_Q8_wing
+if system_dependent('IsDebugMode')==1, dbcont; end
+[Warning: File not found or permission denied] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Training_MULTI', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m', 68)" style="font-weight:bold">Training_MULTI</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\MultiHROM\Training_MULTI.m',68,0)">line 68</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train1dom_BUBcomp', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m', 105)" style="font-weight:bold">Train1dom_BUBcomp</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\FE_HROM\DOMAINdecompHROM\GENERAL_BUBBLE\Train1dom_BUBcomp.m',105,0)">line 105</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train_Q8_wing', 'C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\Train_Q8_wing.m', 89)" style="font-weight:bold">Train_Q8_wing</a> (<a href="matlab: opentoline('C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025\Train_Q8_wing.m',89,0)">line 89</a>)] 
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbquit; end

@@ -8,12 +8,11 @@ classdef OfflineDataProcessor < handle
         boundaryMeshJoined
         localGlobalConnecBd
         LHS
-        E
-        nu
         Coarseorder
         fValuesTraining
         RigidBodyFun
         DeformationalFun
+        material
 
         fileNameData
 
@@ -21,8 +20,8 @@ classdef OfflineDataProcessor < handle
 
     methods (Access = public)
 
-        function obj = OfflineDataProcessor(data)
-            obj.init(data)
+        function obj = OfflineDataProcessor(cParams)
+            obj.init(cParams)
         end
 
         function EIFEoper = computeROMbasis(obj)
@@ -45,7 +44,7 @@ classdef OfflineDataProcessor < handle
 
             bMesh = obj.mesh.createBoundaryMesh();
 
-            Vfun = obj.createInterfaceModesFun(bMesh);
+            [Vfun,Vfun2] = obj.createInterfaceModesFun(bMesh);
 
             uDefFunBd  = obj.restrictToBoundary(uDefFun,bMesh);
             RBFunBd    = obj.restrictToBoundary(uRBfun(1),bMesh); %only the first bevause we just want the basis!
@@ -53,38 +52,98 @@ classdef OfflineDataProcessor < handle
 
             Adr = obj.computeBoundaryModalMassMatrix(uDefFunBd,RBFunBd);
             Arr = obj.computeBoundaryModalMassMatrix(RBFunBd,RBFunBd);
-            %             Add = obj.computeBoundaryModalMassMatrix(uDefFunBd,LMDefFunBd);
-            Add = obj.computeBoundaryModalMassMatrixDirac(uDefFunBd,LMDefFunBd);
-            %             Add = PhiD'*PsiD;
-            % Add with dirac integrator and PhiD'*PsiD are the same!
-%             Ldv = obj.computeBoundaryModalMassMatrix(LMDefFunBd,Vfun);
-            Ldv = obj.computeBoundaryModalMassMatrixDirac(LMDefFunBd,Vfun);
-            Lrv = obj.computeBoundaryModalMassMatrix(RBFunBd,Vfun);
+            Add = obj.computeBoundaryModalMassMatrix(uDefFunBd,LMDefFunBd);
+            Ldv = obj.computeBoundaryModalMassMatrix(LMDefFunBd,Vfun);
+            Lrv = obj.computeBoundaryModalMassMatrix(RBFunBd,Vfun);            
+
+            RBFun = uRBfun(1);
+            RBFun2.basisFunctions{1} = project(RBFun.basisFunctions{1},'P1');
+            RBFun2.basisFunctions{2} = project(RBFun.basisFunctions{2},'P1');
+            RBFun2.basisFunctions{3} = project(RBFun.basisFunctions{3},'P1');
+
+            uDefFunBd2 = obj.restrictToBoundary2(uDefFun);            
+            LMDefFunBd2 = obj.restrictToBoundary2(LMDefFun);
+            RBFunBd2    = obj.restrictToBoundary2(RBFun2);
+
+            
+            Adr2 = obj.computeBoundaryModalMassMatrix2(uDefFunBd2,RBFunBd2);           
+            Arr2 = obj.computeBoundaryModalMassMatrix2(RBFunBd2,RBFunBd2);
+            Add2 = obj.computeBoundaryModalMassMatrix2(uDefFunBd2,LMDefFunBd2);          
+            Ldv2 = obj.computeBoundaryModalMassMatrix2(LMDefFunBd2,Vfun2);
+            Lrv2 = obj.computeBoundaryModalMassMatrix2(RBFunBd2,Vfun2);            
+
+
 
             Ud = PhiD*(Add'\Ldv);
             Ur = PhiR*inv(Arr')*(Lrv - Adr'*(Add'\Ldv));
+            U  = Ur+Ud;
+
+
+            nB = 8;
+            Kdd = PhiD'*obj.LHS*PhiD;
+            %
+            nld = LMDefFun.nbasis;
+            nlr = uRBfun(1).nbasis;            
+            Zrd = zeros(nlr,nld);
+            Zd = zeros(nld,nB);
+            Zr = zeros(nlr,nB);
+            Zrr = zeros(nlr,nlr);
+
+            Keif = [Kdd Zrd';Zrd Zrr];
+            C    = [Adr Add;...
+                    Arr Zrd];
+ 
+            
+
+            Z  = zeros(nld+nlr,nld+nlr);
+%
+            LHS = [Keif C; C.' Z];
+            Lug = [Lrv;Ldv]*eye(8);
+            RHS = [Zd;Zr;Lug];
+%
+            x = LHS\RHS;
+            %
+            
+            uEifD = x(1:nld,:);
+            uEifR = x(nld+1:nld+nlr,:);
+            
+            U2 = PhiD*uEifD + PhiR*uEifR;
+
+
+
+            % s.mesh         = obj.mesh;
+            % s.uFun         = cParams.uFun;
+            % s.lambdaFun    = cParams.lambdaFun;
+            % s.material     = cParams.material;
+            % s.dirichletFun = cParams.dirichletFun;
+            % s.localGlobalConnecBd = cParams.localGlobalConnecBd;
+            % 
+            % 
+            % 
+            % %ElasticHarmonicExtension
+            % 
 
             Kcoarse = Ud'*obj.LHS*Ud;
 
             EIFEoper.Kcoarse = Kcoarse;
-            EIFEoper.Urb = Ur;
-            EIFEoper.Udef = Ud;
-            EIFEoper.PhiD = PhiD;
-            EIFEoper.PhiR = PhiR;
-            EIFEoper.Kfine = obj.LHS;
+            EIFEoper.U       = U;
+            EIFEoper.Urb     = Ur;
+            EIFEoper.Udef    = Ud;
+            EIFEoper.PhiD    = PhiD;
+            EIFEoper.PhiR    = PhiR;
+            EIFEoper.Kfine   = obj.LHS;
         end
 
     end
 
     methods (Access = private)
 
-        function init(obj,data)
-            obj.mesh            = data.mesh;
-            obj.fValuesTraining = data.uSbd;
-            obj.LHS             = data.LHSsbd;
-            obj.E               = data.E;
-            obj.nu              = data.nu;
-            obj.Coarseorder     = data.Coarseorder;
+        function init(obj,cParams)
+            obj.mesh            = cParams.mesh;
+            obj.fValuesTraining = cParams.uSbd;
+            obj.LHS             = cParams.LHSsbd;
+            obj.Coarseorder     = cParams.Coarseorder;
+            obj.material        = cParams.material;
         end
 
         function uFun = createDispFun(obj)
@@ -161,6 +220,13 @@ classdef OfflineDataProcessor < handle
 
         end
 
+        function BdFun = restrictToBoundary2(obj,fun)
+            nboundary = numel(fun.basisFunctions);
+            for i = 1:nboundary
+                BdFun{i} = fun.basisFunctions{i}.restrictToBoundary();
+            end
+        end        
+
         function BdFun = restrictToBoundary(obj,fun,bMesh)
             nboundary = size(bMesh,1);
             for i = 1:nboundary
@@ -169,25 +235,34 @@ classdef OfflineDataProcessor < handle
             end
         end
 
+        function M = computeBoundaryModalMassMatrix2(obj,test,trial)
+            nTest  = numel(test);
+            nTrial = numel(trial);
+            M = zeros(nTest,nTrial);
+            quadOrder = 2;
+            for i = 1:nTest
+                for j = 1:nTrial
+                    v = test{i};
+                    u = trial{j};
+                    int = DP(u,v);
+                    M(i,j) = Integrator.compute(int,int.mesh,quadOrder);
+                end
+            end
+        end
+
         function M = computeBoundaryModalMassMatrix(obj,test,trial)
-            nbasistest  = test{1}.nbasis;
-            nbasistrial = trial{1}.nbasis;
-            M   = zeros(nbasistest,nbasistrial);
-            nFlds = test{1}.ndimf;
+            nTest  = test{1}.nbasis;
+            nTrial = trial{1}.nbasis;
+            M = zeros(nTest,nTrial);
             nbd = size(test,2);
+            quadOrder = 2;
             for ibd = 1:nbd
-                bMesh = test{ibd}.mesh;
-                quad  = obj.createQuadrature(bMesh);
-                xV    = quad.posgp;
-                dV    = bMesh.computeDvolume(quad);
-                basisTest   = test{ibd}.evaluateBasisFunctions(xV);
-                basisTrial  = trial{ibd}.evaluateBasisFunctions(xV);
-                for i = 1:nbasistest
-                    for j = 1:nbasistrial
-                        for iField = 1:nFlds
-                            basisProd = squeeze(basisTest{i}(iField,:,:).*basisTrial{j}(iField,:,:));
-                            M(i,j)  = M(i,j) + sum(basisProd.*dV,'all');
-                        end
+                for i = 1:nTest
+                    for j = 1:nTrial
+                        v = test{ibd}.basisFunctions{i};
+                        u = trial{ibd}.basisFunctions{j};
+                        int = DP(u,v);
+                        M(i,j) = M(i,j) + Integrator.compute(int,int.mesh,quadOrder);
                     end
                 end
             end
@@ -219,45 +294,46 @@ classdef OfflineDataProcessor < handle
             q = Quadrature.create(mesh,order);
         end
 
-        function Vfun = createInterfaceModesFun(obj,bMesh)
-%             xmax = max(obj.mesh.coord(:,1));
-%             ymax = max(obj.mesh.coord(:,2));
-%             xmin = min(obj.mesh.coord(:,1));
-%             ymin = min(obj.mesh.coord(:,2));
-%             a = (-xmin+xmax)/2;
-%             b = (-ymin+ymax)/2;
-%             x0 = xmin+a;
-%             y0 = ymin+b;
-% 
-% 
-%             f1x = @(x) [1/(4)*(1-(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b);...
-%                 0*x(2,:,:)  ];
-%             f2x = @(x) [1/(4)*(1+(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b);...
-%                 0*x(2,:,:)  ];
-%             f3x = @(x) [1/(4)*(1+(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b);...
-%                 0*x(2,:,:)  ];
-%             f4x = @(x) [1/(4)*(1-(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b);...
-%                 0*x(2,:,:)  ];
-% 
-%             f1y = @(x) [0*x(1,:,:);...
-%                 1/(4)*(1-(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b) ];
-%             f2y = @(x) [0*x(1,:,:);...
-%                 1/(4)*(1+(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b) ];
-%             f3y = @(x) [0*x(1,:,:);...
-%                 1/(4)*(1+(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b) ];
-%             f4y = @(x) [0*x(1,:,:);...
-%                 1/(4)*(1-(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b)];
-% 
-%             f     = { f2x f2y f3x f3y f4x f4y f1x f1y}; %
-            f = InterfaceFunctions(obj.mesh, obj.Coarseorder);
+        function [Vfun,Vfun2] = createInterfaceModesFun(obj,bMesh)
+            xmax = max(obj.mesh.coord(:,1));
+            ymax = max(obj.mesh.coord(:,2));
+            xmin = min(obj.mesh.coord(:,1));
+            ymin = min(obj.mesh.coord(:,2));
+            a = (-xmin+xmax)/2;
+            b = (-ymin+ymax)/2;
+            x0 = xmin+a;
+            y0 = ymin+b;
+
+
+            f1x = @(x) [1/(4)*(1-(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b);...
+                0*x(2,:,:)  ];
+            f2x = @(x) [1/(4)*(1+(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b);...
+                0*x(2,:,:)  ];
+            f3x = @(x) [1/(4)*(1+(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b);...
+                0*x(2,:,:)  ];
+            f4x = @(x) [1/(4)*(1-(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b);...
+                0*x(2,:,:)  ];
+
+            f1y = @(x) [0*x(1,:,:);...
+                1/(4)*(1-(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b) ];
+            f2y = @(x) [0*x(1,:,:);...
+                1/(4)*(1+(x(1,:,:)-x0)/a).*(1-(x(2,:,:)-y0)/b) ];
+            f3y = @(x) [0*x(1,:,:);...
+                1/(4)*(1+(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b) ];
+            f4y = @(x) [0*x(1,:,:);...
+                1/(4)*(1-(x(1,:,:)-x0)/a).*(1+(x(2,:,:)-y0)/b)];
+
+            f     = {f1x f1y  f2x f2y f3x f3y f4x f4y}; %
+
+            %CoarseFunction 
+            %Netejar Coarse funciton
+
             nfun = size(f,2);
             nbd = size(bMesh,1);
             for ibd=1:nbd
                 mesh = bMesh{ibd}.mesh;
-%                 aa   = CoarseFunction2(mesh,2);
                 for i=1:nfun
                     uD        = AnalyticalFunction.create(f{i},mesh);
-%                     uD.plot
                     uD        = project(uD,'P1');
                     VCoeff{i} = uD.fValues;
                 end
@@ -266,22 +342,31 @@ classdef OfflineDataProcessor < handle
                 functionType = repelem(functionType,size(VCoeff,2));
                 Vfun{ibd} = ModalFunction.create(mesh,VCoeff,functionType);
             end
+
+            [bMesh2,lGCBd]   = obj.mesh.createSingleBoundaryMesh();            
+            Vfun2=cell(1,8);
+            for i=1:nfun
+                Vfun2{i}  = AnalyticalFunction.create(f{i},bMesh2);
+            end            
         end
 
-         function material = createMaterial(obj,mesh)
-            [young,poisson] = obj.computeElasticProperties(mesh);
-            s.type    = 'ISOTROPIC';
-            s.ptype   = 'ELASTIC';
-            s.ndim    = mesh.ndim;
-            s.young   = young;
-            s.poisson = poisson;
-            tensor    = Material.create(s);
-            material  = tensor;
-        end
 
         function [young,poisson] = computeElasticProperties(obj,mesh)
-           young   = ConstantFunction.create(obj.E,mesh);
-           poisson = ConstantFunction.create(obj.nu,mesh);
+            E1  = 1;
+            E2 = E1/1000;
+            nu = 1/3;
+%            young   = ConstantFunction.create(obj.E,mesh);
+%            poisson = ConstantFunction.create(obj.nu,mesh);
+           radius = 0.1;
+           x0=mean(mesh.coord(:,1));
+            y0=mean(mesh.coord(:,2));
+%             young   = ConstantFunction.create(E,mesh);
+%             poisson = ConstantFunction.create(nu,mesh);
+            f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<radius)*E2 + ...
+                        (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=radius)*E1 ; 
+
+            young   = AnalyticalFunction.create(f,mesh);
+            poisson = ConstantFunction.create(nu,mesh);
         end
 
         function [LHS,u] = createElasticProblem(obj)
@@ -291,7 +376,7 @@ classdef OfflineDataProcessor < handle
         end
 
         function K  = computeLHS(obj,u)          
-            C = obj.createMaterial(obj.mesh);
+            C = obj.material;
             K = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),u,u,obj.mesh,'Domain',2);
         end
 

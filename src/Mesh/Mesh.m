@@ -25,7 +25,7 @@ classdef Mesh < handle
     properties (Access = private)
         xVOld
         dVOld
-        
+        bMesh
     end    
 
     properties (Access = protected)
@@ -268,12 +268,18 @@ classdef Mesh < handle
 
         function [m, l2g] = createSingleBoundaryMesh(obj)
             % To BoundaryMesh
-            switch obj.ndim
-                case 2
-                    [m, l2g] = obj.createSingleBoundaryMesh2D();
-                case 3
-                    [m, l2g] = obj.createSingleBoundaryMesh3D();
+            if isempty(obj.bMesh)
+                switch obj.ndim
+                    case 2
+                        [m, l2g] = obj.createSingleBoundaryMesh2D();
+                    case 3
+                        [m, l2g] = obj.createSingleBoundaryMesh3D();
+                end
+                obj.bMesh.mesh = m;
+                obj.bMesh.l2g  = l2g;
             end
+            m = obj.bMesh.mesh;
+            l2g = obj.bMesh.l2g;
         end
         
         function [m, l2g] = getBoundarySubmesh(obj, domain)

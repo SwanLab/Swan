@@ -1,0 +1,183 @@
+Assembly of Bst (stacked B-matrix)...
+Assembly of NstBw...
+istep=1
+open GID FILE:
+C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\MODES\wingQ8_param_DispIntfhexa.res
+Recovering stiffness matrix...
+Computing Choleski Decomposition ....
+Singular Values Deformational Modes (in the search for invariant modes)
+
+ans =
+
+                         1
+         0.382755629562193
+         0.299206249882414
+         0.136092761155879
+         0.065255886301957
+        0.0194111164035634
+
+***********************************************************************************************************
+Searching for invariant modes
+Total number of  deformational modes (for the first set of training tests) = 6
+Number of  deformational modes that may be deemed INVARIANT = 6
+tolerance SVD = 1e-05
+istep=1
+open GID FILE:
+C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\MODES\Deformational_ALLDEFmodes.res
+*****************************************************************************************
+Singular values   PhiDEFbs_INV(b,:)
+
+ans =
+
+                         1
+         0.936061625531922
+         0.796867822595161
+         0.777316309798907
+         0.736892488947678
+         0.658642298560452
+
+Cosine angles formed by invariant deformational modes and their conjugate interface forces
+
+Sconj =
+
+         0.627734619332861
+         0.614351702059198
+         0.411000618858172
+         0.279741434543587
+         0.161795082114497
+         0.149623277156315
+
+Deformational component of the interface modes
+Computing Choleski Decomposition ....
+Number of deformational interface modes = 18  (see GID plot below)
+Deformed shapes of deformational interface modes (GID) --> 
+istep=1
+open GID FILE:
+C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\MODES\wingQ8_param_DispIntf_DEF.res
+-------------------------------------
+Computing Choleski Decomposition ....
+Cosine angles  formed by INVARIANT fict. def. interface modes and  invariant reactive forces
+
+S_v =
+
+         0.999999971735796
+         0.999048578158471
+         0.918491932919076
+         0.853425958680124
+         0.663879712070355
+         0.567863061928195
+
+Number of invariant modes = 6
+istep=1
+open GID FILE:
+C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\MODES\AlignedDEFmodesDEFmodes.res
+istep=1
+open GID FILE:
+C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\MODES\AlignedDEFmodesAlignedDEFmodes_interf.res
+----------------------------------------------------------------------------------------------
+Computing complementary basic modes (aside from those regarded as "invariant")    
+Number of such complementary deformational modes =12
+Angles (in degrees) formed by COMPLEMENTARY fict. def. interface modes and  invariant reactive forces
+
+ans =
+
+          89.9999999999995
+          89.9999999999999
+                        90
+                        90
+                        90
+                        90
+
+Deformed shapes of the  deformational fict. interface modes: first 6 most aligned with invariant modes 
+Remaining  12 most orthogonal to invariants 
+istep=1
+open GID FILE:
+C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\MODES\AlignedDEFmodesFictDEFModAlignINVARIANTS+Complem.res
+Searching for the complementary modes...
+---------------------------------------------------
+Deformed shapes PhiDEFcompl before orthogonalization 
+istep=1
+open GID FILE:
+C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\MODES\PhiDEFcomplDEFmodes.res
+Deformed shapes PhiDEFcompl after orthogonalization 
+Number of available deformational modes complementary to the invariants = 12
+istep=1
+open GID FILE:
+C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\MODES\PhiDEF_inv_and_complDEFmodes.res
+-----------------------------------------------------------------
+REACTION FORCES CAUSED BY basic deformational modes  REACT =  K*PhiDEFbs
+-----------------------------------------------------------------------------------
+istep=1
+open GID FILE:
+C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\MODES\Reac_PhiDEFbs.res
+-----------------------------------------------
+Determining nonlinear strain modes 
+-------------------------------------------------
+Purging of rigid body modes is still done assuming strains are small (23-Feb-2025)...
+This should be modified in future versions of the program
+istep=1
+open GID FILE:
+C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\MODES\AllDEFORMATIONALDEFmodes.res
+There are no complementary (inelastic modes ) here, only elastic
+Project = 1; ERROR stress PK2= 1.1458e-13
+Project = 2; ERROR stress PK2= 2.5981e-11
+Project = 3; ERROR stress PK2= 1.7133e-12
+Project = 4; ERROR stress PK2= 1.6618e-12
+Project = 5; ERROR stress PK2= 3.0186e-13
+Project = 6; ERROR stress PK2= 3.4991e-12
+-----------------------------------------------------------
+Determination of self-equilibrated modes
+-----------------------------------------------------------
+Norm PsISEs / Norm PsISEb = 2.357e-12
+istep=1
+open GID FILE:
+C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\MODES\REACTmodesBasic.res
+RECALL THAT THE APPROACH USED IS THAT IN WHICH THE  ONLY Self-equilibrated modes IN THE FORMULATION ARE BasiC Modes (ELASTIC)
+------------------------------------------------------------------------------------------------
+Cosine principal angles  formed by basic deformational and self-equilibrated modes
+
+PrincipalAngles_cosines =
+
+         0.855439973230838
+         0.644968430754079
+         0.642192948513797
+         0.609405481115611
+         0.565705030720074
+         0.560471776887947
+         0.470672025298245
+         0.249343288018396
+         0.228368486943568
+         0.198334945084373
+         0.196568096383242
+         0.184347939715361
+         0.172666987823305
+         0.154270107144684
+         0.126727619923642
+         0.123146958934734
+         0.106277180971469
+        0.0297232843409069
+
+------------------------------------------------------------------------------------------------
+-----------------------------------------
+STRESS MODES INELASTIC STRESSES
+-----------------------------------------
+Problem with no inelastic stresses
+Using elastic stresses for computing CECM points (use low tolerance for internal forces if you want to reduce the number of points)
+Number of nonlinear stress modes =5
+Singular values
+
+S =
+
+           2881895.2825188
+          2600754.76468191
+          2246200.19093818
+          2035363.78625604
+          1700566.38976731
+
+PLotting stress modes...(nonlinear contribution)
+istep=1
+open GID FILE:
+C:\Users\Usuario\Documents\GitHub\Swan\WING_PROBLEM_LINEAR_2025_tetra\MODES\AllDEFORMATIONALSTRESSmodesInelastic_stress ().res
+----------------------------------------
+HYPERREDUCTION INTERNAL FORCES
+------------------------------------------

@@ -1,0 +1,1710 @@
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+    1            -0.1          0.0795         -0.9939
+    2               0          0.0795         -0.9939
+    3            -0.1         -0.0402         -0.9939
+    4               0         -0.0402         -0.9939
+    5             0.1          0.0795         -0.9939
+    6             0.1         -0.0402         -0.9939
+    7             0.2          0.0795         -0.9939
+    8             0.2         -0.0402         -0.9939
+    9             0.3          0.0795         -0.9939
+   10             0.3         -0.0402         -0.9939
+   11             0.4          0.0795         -0.9939
+   12             0.4         -0.0402         -0.9939
+   13             0.5          0.0795         -0.9939
+   14             0.5         -0.0402         -0.9939
+   15             0.6          0.0795         -0.9939
+   16             0.6         -0.0402         -0.9939
+   17             0.7          0.0795         -0.9939
+   18             0.7         -0.0402         -0.9939
+   19             0.8          0.0795         -0.9939
+   20             0.8         -0.0402         -0.9939
+   21            -0.1          0.0795               0
+   22               0          0.0795               0
+   23             0.9          0.0795         -0.9939
+   24            -0.1         -0.0402               0
+   25               0         -0.0402               0
+   26             0.9         -0.0402         -0.9939
+   27             0.1          0.0795               0
+   28             0.1         -0.0402               0
+   29             0.2          0.0795               0
+   30             0.2         -0.0402               0
+   31             0.3          0.0795               0
+   32             0.3         -0.0402               0
+   33               1          0.0795         -0.9939
+   34               1         -0.0402         -0.9939
+   35             0.4          0.0795               0
+   36             0.4         -0.0402               0
+   37             0.5          0.0795               0
+   38             0.5         -0.0402               0
+   39             1.1          0.0795         -0.9939
+   40             1.1         -0.0402         -0.9939
+   41             0.6          0.0795               0
+   42             0.6         -0.0402               0
+   43             0.7          0.0795               0
+   44             0.7         -0.0402               0
+   45             1.2          0.0795         -0.9939
+   46             1.2         -0.0402         -0.9939
+   47             0.8          0.0795               0
+   48             0.8         -0.0402               0
+   49             1.3          0.0795         -0.9939
+   50             1.3         -0.0402         -0.9939
+   51             0.9          0.0795               0
+   52             0.9         -0.0402               0
+   53               1          0.0795               0
+   54               1         -0.0402               0
+   55             1.4          0.0795         -0.9939
+   56             1.4         -0.0402         -0.9939
+   57             1.1          0.0795               0
+   58             1.1         -0.0402               0
+   59             1.5          0.0795         -0.9939
+   60             1.5         -0.0402         -0.9939
+   61             1.2          0.0795               0
+   62             1.2         -0.0402               0
+   63             1.6          0.0795         -0.9939
+   64             1.6         -0.0402         -0.9939
+   65             1.3          0.0795               0
+   66             1.3         -0.0402               0
+   67             1.4          0.0795               0
+   68             1.7          0.0795         -0.9939
+   69             1.4         -0.0402               0
+   70             1.7         -0.0402         -0.9939
+   71             1.5          0.0795               0
+   72             1.5         -0.0402               0
+   73             1.8          0.0795         -0.9939
+   74             1.8         -0.0402         -0.9939
+   75             1.6          0.0795               0
+   76             1.6         -0.0402               0
+   77             1.9          0.0795         -0.9939
+   78             1.9         -0.0402         -0.9939
+   79             1.7          0.0795               0
+   80             1.7         -0.0402               0
+   81               2          0.0795         -0.9939
+   82               2         -0.0402         -0.9939
+   83             1.8          0.0795               0
+   84             1.8         -0.0402               0
+   85             2.1          0.0795         -0.9939
+   86             2.1         -0.0402         -0.9939
+   87             1.9          0.0795               0
+   88             1.9         -0.0402               0
+   89             2.2          0.0795         -0.9939
+   90             2.2         -0.0402         -0.9939
+   91               2          0.0795               0
+   92               2         -0.0402               0
+   93             2.3          0.0795         -0.9939
+   94             2.3         -0.0402         -0.9939
+   95             2.1          0.0795               0
+   96             2.1         -0.0402               0
+   97             2.4          0.0795         -0.9939
+   98             2.4         -0.0402         -0.9939
+   99             2.2          0.0795               0
+  100             2.2         -0.0402               0
+  101             2.3          0.0795               0
+  102             2.5          0.0795         -0.9939
+  103             2.3         -0.0402               0
+  104             2.5         -0.0402         -0.9939
+  105             2.4          0.0795               0
+  106             2.4         -0.0402               0
+  107             2.6          0.0795         -0.9939
+  108             2.6         -0.0402         -0.9939
+  109             2.5          0.0795               0
+  110             2.5         -0.0402               0
+  111             2.7          0.0795         -0.9939
+  112             2.7         -0.0402         -0.9939
+  113             2.6          0.0795               0
+  114             2.6         -0.0402               0
+  115             2.8          0.0795         -0.9939
+  116             2.8         -0.0402         -0.9939
+  117             2.7          0.0795               0
+  118             2.7         -0.0402               0
+  119             2.9          0.0795         -0.9939
+  120             2.9         -0.0402         -0.9939
+  121             2.8          0.0795               0
+  122             2.8         -0.0402               0
+  123               3          0.0795         -0.9939
+  124               3         -0.0402         -0.9939
+  125             2.9          0.0795               0
+  126             2.9         -0.0402               0
+  127             3.1          0.0795         -0.9939
+  128             3.1         -0.0402         -0.9939
+  129               3          0.0795               0
+  130               3         -0.0402               0
+  131             3.2          0.0795         -0.9939
+  132             3.2         -0.0402         -0.9939
+  133             3.1          0.0795               0
+  134             3.1         -0.0402               0
+  135             3.3          0.0795         -0.9939
+  136             3.3         -0.0402         -0.9939
+  137             3.2          0.0795               0
+  138             3.2         -0.0402               0
+  139             3.4          0.0795         -0.9939
+  140             3.4         -0.0402         -0.9939
+  141             3.3          0.0795               0
+  142             3.3         -0.0402               0
+  143             3.5          0.0795         -0.9939
+  144             3.5         -0.0402         -0.9939
+  145             3.4          0.0795               0
+  146             3.4         -0.0402               0
+  147             3.6          0.0795         -0.9939
+  148             3.6         -0.0402         -0.9939
+  149             3.5          0.0795               0
+  150             3.5         -0.0402               0
+  151             3.7          0.0795         -0.9939
+  152             3.7         -0.0402         -0.9939
+  153             3.6          0.0795               0
+  154             3.6         -0.0402               0
+  155             3.8          0.0795         -0.9939
+  156             3.8         -0.0402         -0.9939
+  157             3.7          0.0795               0
+  158             3.7         -0.0402               0
+  159             3.9          0.0795         -0.9939
+  160             3.9         -0.0402         -0.9939
+  161             3.8          0.0795               0
+  162             3.8         -0.0402               0
+  163               4          0.0795         -0.9939
+  164               4         -0.0402         -0.9939
+  165             3.9          0.0795               0
+  166             3.9         -0.0402               0
+  167             4.1          0.0795         -0.9939
+  168             4.1         -0.0402         -0.9939
+  169               4          0.0795               0
+  170               4         -0.0402               0
+  171             4.2          0.0795         -0.9939
+  172             4.2         -0.0402         -0.9939
+  173             4.1          0.0795               0
+  174             4.1         -0.0402               0
+  175             4.3          0.0795         -0.9939
+  176             4.3         -0.0402         -0.9939
+  177             4.2          0.0795               0
+  178             4.2         -0.0402               0
+  179             4.4          0.0795         -0.9939
+  180             4.4         -0.0402         -0.9939
+  181             4.3          0.0795               0
+  182             4.3         -0.0402               0
+  183             4.5          0.0795         -0.9939
+  184             4.5         -0.0402         -0.9939
+  185             4.4          0.0795               0
+  186             4.4         -0.0402               0
+  187             4.6          0.0795         -0.9939
+  188             4.6         -0.0402         -0.9939
+  189             4.5          0.0795               0
+  190             4.5         -0.0402               0
+  191             4.7          0.0795         -0.9939
+  192             4.7         -0.0402         -0.9939
+  193             4.6          0.0795               0
+  194             4.6         -0.0402               0
+  195             4.8          0.0795         -0.9939
+  196             4.8         -0.0402         -0.9939
+  197             4.7          0.0795               0
+  198             4.7         -0.0402               0
+  199             4.8          0.0795               0
+  200             4.9          0.0795         -0.9939
+  201             4.8         -0.0402               0
+  202             4.9         -0.0402         -0.9939
+  203             4.9          0.0795               0
+  204             4.9         -0.0402               0
+  205               5          0.0795         -0.9939
+  206               5         -0.0402         -0.9939
+  207               5          0.0795               0
+  208               5         -0.0402               0
+  209             5.1          0.0795         -0.9939
+  210             5.1         -0.0402         -0.9939
+  211             5.1          0.0795               0
+  212             5.1         -0.0402               0
+  213             5.2          0.0795         -0.9939
+  214             5.2         -0.0402         -0.9939
+  215             5.2          0.0795               0
+  216             5.2         -0.0402               0
+  217             5.3          0.0795         -0.9939
+  218             5.3         -0.0402         -0.9939
+  219             5.3          0.0795               0
+  220             5.3         -0.0402               0
+  221             5.4          0.0795         -0.9939
+  222             5.4         -0.0402         -0.9939
+  223             5.4          0.0795               0
+  224             5.4         -0.0402               0
+  225             5.5          0.0795         -0.9939
+  226             5.5         -0.0402         -0.9939
+  227             5.5          0.0795               0
+  228             5.5         -0.0402               0
+  229             5.6          0.0795         -0.9939
+  230             5.6         -0.0402         -0.9939
+  231             5.6          0.0795               0
+  232             5.6         -0.0402               0
+  233             5.7          0.0795         -0.9939
+  234             5.7         -0.0402         -0.9939
+  235             5.7          0.0795               0
+  236             5.7         -0.0402               0
+  237             5.8          0.0795         -0.9939
+  238             5.8         -0.0402         -0.9939
+  239             5.8          0.0795               0
+  240             5.8         -0.0402               0
+  241             5.9          0.0795         -0.9939
+  242             5.9         -0.0402         -0.9939
+  243             5.9          0.0795               0
+  244             5.9         -0.0402               0
+  245               6          0.0795         -0.9939
+  246               6         -0.0402         -0.9939
+  247               6          0.0795               0
+  248               6         -0.0402               0
+  249             6.1          0.0795         -0.9939
+  250             6.1         -0.0402         -0.9939
+  251             6.1          0.0795               0
+  252             6.1         -0.0402               0
+  253             6.2          0.0795         -0.9939
+  254             6.2         -0.0402         -0.9939
+  255             6.2          0.0795               0
+  256             6.2         -0.0402               0
+  257             6.3          0.0795         -0.9939
+  258             6.3         -0.0402         -0.9939
+  259             6.3          0.0795               0
+  260             6.3         -0.0402               0
+  261             6.4          0.0795         -0.9939
+  262             6.4         -0.0402         -0.9939
+  263             6.4          0.0795               0
+  264             6.4         -0.0402               0
+  265             6.5          0.0795         -0.9939
+  266             6.5         -0.0402         -0.9939
+  267             6.5          0.0795               0
+  268             6.5         -0.0402               0
+  269             6.6          0.0795         -0.9939
+  270             6.6         -0.0402         -0.9939
+  271             6.6          0.0795               0
+  272             6.6         -0.0402               0
+  273             6.7          0.0795         -0.9939
+  274             6.7         -0.0402         -0.9939
+  275             6.7          0.0795               0
+  276             6.7         -0.0402               0
+  277             6.8          0.0795         -0.9939
+  278             6.8         -0.0402         -0.9939
+  279             6.8          0.0795               0
+  280             6.8         -0.0402               0
+  281             6.9          0.0795         -0.9939
+  282             6.9         -0.0402         -0.9939
+  283             6.9          0.0795               0
+  284             6.9         -0.0402               0
+  285               7          0.0795         -0.9939
+  286               7         -0.0402         -0.9939
+  287               7          0.0795               0
+  288               7         -0.0402               0
+  289             7.1          0.0795         -0.9939
+  290             7.1         -0.0402         -0.9939
+  291             7.1          0.0795               0
+  292             7.1         -0.0402               0
+  293             7.2          0.0795         -0.9939
+  294             7.2         -0.0402         -0.9939
+  295             7.2          0.0795               0
+  296             7.2         -0.0402               0
+  297             7.3          0.0795         -0.9939
+  298             7.3         -0.0402         -0.9939
+  299             7.3          0.0795               0
+  300             7.3         -0.0402               0
+  301             7.4          0.0795         -0.9939
+  302             7.4         -0.0402         -0.9939
+  303             7.4          0.0795               0
+  304             7.4         -0.0402               0
+  305             7.5          0.0795         -0.9939
+  306             7.5         -0.0402         -0.9939
+  307             7.5          0.0795               0
+  308             7.5         -0.0402               0
+  309             7.6          0.0795         -0.9939
+  310             7.6         -0.0402         -0.9939
+  311             7.6          0.0795               0
+  312             7.6         -0.0402               0
+  313             7.7          0.0795         -0.9939
+  314             7.7         -0.0402         -0.9939
+  315             7.7          0.0795               0
+  316             7.7         -0.0402               0
+  317             7.8          0.0795         -0.9939
+  318             7.8         -0.0402         -0.9939
+  319             7.8          0.0795               0
+  320             7.8         -0.0402               0
+  321             7.9          0.0795         -0.9939
+  322             7.9         -0.0402         -0.9939
+  323             7.9          0.0795               0
+  324             7.9         -0.0402               0
+  325               8          0.0795         -0.9939
+  326               8         -0.0402         -0.9939
+  327               8          0.0795               0
+  328               8         -0.0402               0
+  329             8.1          0.0795         -0.9939
+  330             8.1         -0.0402         -0.9939
+  331             8.1          0.0795               0
+  332             8.1         -0.0402               0
+  333             8.2          0.0795         -0.9939
+  334             8.2         -0.0402         -0.9939
+  335             8.2          0.0795               0
+  336             8.2         -0.0402               0
+  337             8.3          0.0795         -0.9939
+  338             8.3         -0.0402         -0.9939
+  339             8.3          0.0795               0
+  340             8.3         -0.0402               0
+  341             8.4          0.0795         -0.9939
+  342             8.4         -0.0402         -0.9939
+  343             8.4          0.0795               0
+  344             8.4         -0.0402               0
+  345             8.5          0.0795         -0.9939
+  346             8.5         -0.0402         -0.9939
+  347             8.5          0.0795               0
+  348             8.5         -0.0402               0
+  349             8.6          0.0795         -0.9939
+  350             8.6         -0.0402         -0.9939
+  351             8.6          0.0795               0
+  352             8.6         -0.0402               0
+  353             8.7          0.0795         -0.9939
+  354             8.7         -0.0402         -0.9939
+  355             8.7          0.0795               0
+  356             8.7         -0.0402               0
+  357             8.8          0.0795         -0.9939
+  358             8.8         -0.0402         -0.9939
+  359             8.8          0.0795               0
+  360             8.8         -0.0402               0
+  361             8.9          0.0795         -0.9939
+  362             8.9         -0.0402         -0.9939
+  363             8.9          0.0795               0
+  364             8.9         -0.0402               0
+  365               9          0.0795         -0.9939
+  366               9         -0.0402         -0.9939
+  367               9          0.0795               0
+  368               9         -0.0402               0
+  369             9.1          0.0795         -0.9939
+  370             9.1         -0.0402         -0.9939
+  371             9.1          0.0795               0
+  372             9.1         -0.0402               0
+  373             9.2          0.0795         -0.9939
+  374             9.2         -0.0402         -0.9939
+  375             9.2          0.0795               0
+  376             9.2         -0.0402               0
+  377             9.3          0.0795         -0.9939
+  378             9.3         -0.0402         -0.9939
+  379             9.3          0.0795               0
+  380             9.3         -0.0402               0
+  381             9.4          0.0795         -0.9939
+  382             9.4         -0.0402         -0.9939
+  383             9.4          0.0795               0
+  384             9.4         -0.0402               0
+  385             9.5          0.0795         -0.9939
+  386             9.5         -0.0402         -0.9939
+  387             9.5          0.0795               0
+  388             9.5         -0.0402               0
+  389             9.6          0.0795         -0.9939
+  390             9.6         -0.0402         -0.9939
+  391             9.6          0.0795               0
+  392             9.6         -0.0402               0
+  393             9.7          0.0795         -0.9939
+  394             9.7         -0.0402         -0.9939
+  395             9.7          0.0795               0
+  396             9.7         -0.0402               0
+  397             9.8          0.0795         -0.9939
+  398             9.8         -0.0402         -0.9939
+  399             9.8          0.0795               0
+  400             9.8         -0.0402               0
+  401             9.9          0.0795         -0.9939
+  402             9.9         -0.0402         -0.9939
+  403             9.9          0.0795               0
+  404             9.9         -0.0402               0
+End Coordinates
+
+Elements
+1 25 4 3 24 22 2 1 21 2
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+2 5 27 22 2 6 28 25 4 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+3 7 29 27 5 8 30 28 6 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+4 9 31 29 7 10 32 30 8 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+5 11 35 31 9 12 36 32 10 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+6 13 37 35 11 14 38 36 12 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+7 15 41 37 13 16 42 38 14 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+8 17 43 41 15 18 44 42 16 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+9 19 47 43 17 20 48 44 18 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+10 23 51 47 19 26 52 48 20 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+11 33 53 51 23 34 54 52 26 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+12 39 57 53 33 40 58 54 34 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+13 45 61 57 39 46 62 58 40 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+14 49 65 61 45 50 66 62 46 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+15 55 67 65 49 56 69 66 50 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+16 59 71 67 55 60 72 69 56 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+17 63 75 71 59 64 76 72 60 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+18 68 79 75 63 70 80 76 64 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+19 73 83 79 68 74 84 80 70 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+20 77 87 83 73 78 88 84 74 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+21 81 91 87 77 82 92 88 78 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+22 85 95 91 81 86 96 92 82 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+23 89 99 95 85 90 100 96 86 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+24 93 101 99 89 94 103 100 90 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+25 97 105 101 93 98 106 103 94 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+26 102 109 105 97 104 110 106 98 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+27 107 113 109 102 108 114 110 104 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+28 111 117 113 107 112 118 114 108 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+29 115 121 117 111 116 122 118 112 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+30 119 125 121 115 120 126 122 116 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+31 123 129 125 119 124 130 126 120 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+32 127 133 129 123 128 134 130 124 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+33 131 137 133 127 132 138 134 128 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+34 135 141 137 131 136 142 138 132 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+35 139 145 141 135 140 146 142 136 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+36 143 149 145 139 144 150 146 140 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+37 147 153 149 143 148 154 150 144 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+38 151 157 153 147 152 158 154 148 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+39 155 161 157 151 156 162 158 152 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+40 159 165 161 155 160 166 162 156 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+41 163 169 165 159 164 170 166 160 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+42 167 173 169 163 168 174 170 164 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+43 171 177 173 167 172 178 174 168 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+44 175 181 177 171 176 182 178 172 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+45 179 185 181 175 180 186 182 176 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+46 183 189 185 179 184 190 186 180 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+47 187 193 189 183 188 194 190 184 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+48 191 197 193 187 192 198 194 188 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+49 195 199 197 191 196 201 198 192 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+50 200 203 199 195 202 204 201 196 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+51 205 207 203 200 206 208 204 202 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+52 209 211 207 205 210 212 208 206 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+53 213 215 211 209 214 216 212 210 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+54 217 219 215 213 218 220 216 214 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+55 221 223 219 217 222 224 220 218 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+56 225 227 223 221 226 228 224 222 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+57 229 231 227 225 230 232 228 226 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+58 233 235 231 229 234 236 232 230 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+59 237 239 235 233 238 240 236 234 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+60 241 243 239 237 242 244 240 238 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+61 245 247 243 241 246 248 244 242 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+62 249 251 247 245 250 252 248 246 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+63 253 255 251 249 254 256 252 250 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+64 257 259 255 253 258 260 256 254 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+65 261 263 259 257 262 264 260 258 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+66 265 267 263 261 266 268 264 262 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+67 269 271 267 265 270 272 268 266 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+68 273 275 271 269 274 276 272 270 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+69 277 279 275 273 278 280 276 274 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+70 281 283 279 277 282 284 280 278 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+71 285 287 283 281 286 288 284 282 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+72 289 291 287 285 290 292 288 286 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+73 293 295 291 289 294 296 292 290 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+74 297 299 295 293 298 300 296 294 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+75 301 303 299 297 302 304 300 298 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+76 305 307 303 301 306 308 304 302 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+77 309 311 307 305 310 312 308 306 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+78 313 315 311 309 314 316 312 310 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+79 317 319 315 313 318 320 316 314 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+80 321 323 319 317 322 324 320 318 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+81 325 327 323 321 326 328 324 322 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+82 329 331 327 325 330 332 328 326 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+83 333 335 331 329 334 336 332 330 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+84 337 339 335 333 338 340 336 334 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+85 341 343 339 337 342 344 340 338 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+86 345 347 343 341 346 348 344 342 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+87 349 351 347 345 350 352 348 346 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+88 353 355 351 349 354 356 352 350 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+89 357 359 355 353 358 360 356 354 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+90 361 363 359 357 362 364 360 358 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+91 365 367 363 361 366 368 364 362 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+92 369 371 367 365 370 372 368 366 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+93 373 375 371 369 374 376 372 370 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+94 377 379 375 373 378 380 376 374 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+95 381 383 379 377 382 384 380 378 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+96 385 387 383 381 386 388 384 382 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+97 389 391 387 385 390 392 388 386 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+98 393 395 391 389 394 396 392 390 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+99 397 399 395 393 398 400 396 394 1
+End Elements
+MESH dimension 3 ElemType Hexahedra Nnode 8
+Coordinates
+End Coordinates
+
+Elements
+100 401 403 399 397 402 404 400 398 1
+End Elements
+MESH dimension 3 ElemType Quadrilateral Nnode 4
+Coordinates
+End Coordinates
+
+Elements
+101 25 22 2 4
+102 25 4 3 24
+103 4 2 1 3
+104 25 24 21 22
+105 22 21 1 2
+106 3 1 21 24
+107 5 2 4 6
+108 5 6 28 27
+109 5 27 22 2
+110 6 4 25 28
+111 22 25 4 2
+112 27 28 25 22
+113 27 28 6 5
+114 7 5 6 8
+115 7 29 27 5
+116 8 6 28 30
+117 29 30 28 27
+118 7 8 30 29
+119 9 31 29 7
+120 31 32 30 29
+121 29 30 8 7
+122 9 10 32 31
+123 9 7 8 10
+124 10 8 30 32
+125 11 12 36 35
+126 12 10 32 36
+127 35 36 32 31
+128 11 9 10 12
+129 11 35 31 9
+130 31 32 10 9
+131 35 36 12 11
+132 14 12 36 38
+133 37 38 36 35
+134 13 11 12 14
+135 13 37 35 11
+136 13 14 38 37
+137 41 42 38 37
+138 15 16 42 41
+139 16 14 38 42
+140 15 41 37 13
+141 37 38 14 13
+142 15 13 14 16
+143 41 42 16 15
+144 43 44 42 41
+145 18 16 42 44
+146 17 43 41 15
+147 17 15 16 18
+148 17 18 44 43
+149 19 20 48 47
+150 47 48 44 43
+151 20 18 44 48
+152 19 47 43 17
+153 19 17 18 20
+154 43 44 18 17
+155 47 48 20 19
+156 26 20 48 52
+157 51 52 48 47
+158 23 19 20 26
+159 23 51 47 19
+160 23 26 52 51
+161 51 52 26 23
+162 33 23 26 34
+163 33 53 51 23
+164 34 26 52 54
+165 53 54 52 51
+166 33 34 54 53
+167 40 34 54 58
+168 39 40 58 57
+169 57 58 54 53
+170 39 33 34 40
+171 53 54 34 33
+172 39 57 53 33
+173 61 62 58 57
+174 45 46 62 61
+175 45 61 57 39
+176 46 40 58 62
+177 57 58 40 39
+178 45 39 40 46
+179 49 50 66 65
+180 49 45 46 50
+181 50 46 62 66
+182 49 65 61 45
+183 65 66 62 61
+184 61 62 46 45
+185 65 66 50 49
+186 55 49 50 56
+187 56 50 66 69
+188 55 67 65 49
+189 67 69 66 65
+190 55 56 69 67
+191 59 60 72 71
+192 60 56 69 72
+193 59 55 56 60
+194 71 72 69 67
+195 59 71 67 55
+196 67 69 56 55
+197 75 76 72 71
+198 63 75 71 59
+199 63 64 76 75
+200 71 72 60 59
+201 64 60 72 76
+202 63 59 60 64
+203 68 70 80 79
+204 68 63 64 70
+205 70 64 76 80
+206 68 79 75 63
+207 79 80 76 75
+208 75 76 64 63
+209 79 80 70 68
+210 73 68 70 74
+211 74 70 80 84
+212 73 83 79 68
+213 83 84 80 79
+214 73 74 84 83
+215 77 78 88 87
+216 78 74 84 88
+217 77 73 74 78
+218 87 88 84 83
+219 77 87 83 73
+220 83 84 74 73
+221 87 88 78 77
+222 82 78 88 92
+223 81 77 78 82
+224 91 92 88 87
+225 81 91 87 77
+226 81 82 92 91
+227 85 86 96 95
+228 85 95 91 81
+229 85 81 82 86
+230 95 96 92 91
+231 86 82 92 96
+232 91 92 82 81
+233 89 90 100 99
+234 99 100 96 95
+235 90 86 96 100
+236 89 99 95 85
+237 89 85 86 90
+238 95 96 86 85
+239 99 100 90 89
+240 101 103 100 99
+241 94 90 100 103
+242 93 101 99 89
+243 93 89 90 94
+244 93 94 103 101
+245 98 94 103 106
+246 105 106 103 101
+247 101 103 94 93
+248 97 98 106 105
+249 97 93 94 98
+250 97 105 101 93
+251 102 97 98 104
+252 105 106 98 97
+253 104 98 106 110
+254 102 109 105 97
+255 102 104 110 109
+256 109 110 106 105
+257 107 102 104 108
+258 107 108 114 113
+259 108 104 110 114
+260 107 113 109 102
+261 109 110 104 102
+262 113 114 110 109
+263 111 107 108 112
+264 113 114 108 107
+265 112 108 114 118
+266 111 117 113 107
+267 111 112 118 117
+268 117 118 114 113
+269 115 116 122 121
+270 116 112 118 122
+271 115 111 112 116
+272 121 122 118 117
+273 115 121 117 111
+274 117 118 112 111
+275 121 122 116 115
+276 120 116 122 126
+277 119 115 116 120
+278 125 126 122 121
+279 119 125 121 115
+280 119 120 126 125
+281 123 124 130 129
+282 123 129 125 119
+283 129 130 126 125
+284 123 119 120 124
+285 124 120 126 130
+286 125 126 120 119
+287 133 134 130 129
+288 127 128 134 133
+289 127 133 129 123
+290 128 124 130 134
+291 129 130 124 123
+292 127 123 124 128
+293 131 137 133 127
+294 137 138 134 133
+295 133 134 128 127
+296 131 132 138 137
+297 131 127 128 132
+298 132 128 134 138
+299 135 131 132 136
+300 135 141 137 131
+301 137 138 132 131
+302 135 136 142 141
+303 136 132 138 142
+304 141 142 138 137
+305 145 146 142 141
+306 139 140 146 145
+307 139 145 141 135
+308 140 136 142 146
+309 141 142 136 135
+310 139 135 136 140
+311 149 150 146 145
+312 143 149 145 139
+313 145 146 140 139
+314 143 144 150 149
+315 144 140 146 150
+316 143 139 140 144
+317 153 154 150 149
+318 147 153 149 143
+319 147 148 154 153
+320 149 150 144 143
+321 148 144 150 154
+322 147 143 144 148
+323 151 157 153 147
+324 157 158 154 153
+325 151 152 158 157
+326 153 154 148 147
+327 151 147 148 152
+328 152 148 154 158
+329 155 161 157 151
+330 157 158 152 151
+331 161 162 158 157
+332 155 151 152 156
+333 155 156 162 161
+334 156 152 158 162
+335 159 155 156 160
+336 159 160 166 165
+337 159 165 161 155
+338 160 156 162 166
+339 161 162 156 155
+340 165 166 162 161
+341 163 159 160 164
+342 165 166 160 159
+343 163 169 165 159
+344 164 160 166 170
+345 163 164 170 169
+346 169 170 166 165
+347 167 168 174 173
+348 173 174 170 169
+349 167 173 169 163
+350 168 164 170 174
+351 167 163 164 168
+352 169 170 164 163
+353 177 178 174 173
+354 173 174 168 167
+355 171 177 173 167
+356 172 168 174 178
+357 171 172 178 177
+358 171 167 168 172
+359 176 172 178 182
+360 175 171 172 176
+361 175 176 182 181
+362 177 178 172 171
+363 181 182 178 177
+364 175 181 177 171
+365 180 176 182 186
+366 179 175 176 180
+367 181 182 176 175
+368 179 180 186 185
+369 185 186 182 181
+370 179 185 181 175
+371 189 190 186 185
+372 183 184 190 189
+373 183 189 185 179
+374 184 180 186 190
+375 185 186 180 179
+376 183 179 180 184
+377 187 193 189 183
+378 187 188 194 193
+379 187 183 184 188
+380 193 194 190 189
+381 189 190 184 183
+382 188 184 190 194
+383 191 192 198 197
+384 197 198 194 193
+385 192 188 194 198
+386 191 197 193 187
+387 191 187 188 192
+388 193 194 188 187
+389 195 196 201 199
+390 195 191 192 196
+391 195 199 197 191
+392 196 192 198 201
+393 199 201 198 197
+394 197 198 192 191
+395 200 203 199 195
+396 200 195 196 202
+397 199 201 196 195
+398 200 202 204 203
+399 203 204 201 199
+400 202 196 201 204
+401 205 207 203 200
+402 207 208 204 203
+403 203 204 202 200
+404 205 206 208 207
+405 205 200 202 206
+406 206 202 204 208
+407 209 210 212 211
+408 211 212 208 207
+409 210 206 208 212
+410 209 211 207 205
+411 209 205 206 210
+412 207 208 206 205
+413 211 212 210 209
+414 215 216 212 211
+415 214 210 212 216
+416 213 215 211 209
+417 213 209 210 214
+418 213 214 216 215
+419 217 213 214 218
+420 217 218 220 219
+421 217 219 215 213
+422 218 214 216 220
+423 215 216 214 213
+424 219 220 216 215
+425 221 222 224 223
+426 222 218 220 224
+427 223 224 220 219
+428 221 217 218 222
+429 221 223 219 217
+430 219 220 218 217
+431 223 224 222 221
+432 227 228 224 223
+433 226 222 224 228
+434 225 227 223 221
+435 225 221 222 226
+436 225 226 228 227
+437 231 232 228 227
+438 229 231 227 225
+439 229 230 232 231
+440 227 228 226 225
+441 230 226 228 232
+442 229 225 226 230
+443 231 232 230 229
+444 235 236 232 231
+445 233 235 231 229
+446 234 230 232 236
+447 233 229 230 234
+448 233 234 236 235
+449 237 233 234 238
+450 237 238 240 239
+451 237 239 235 233
+452 238 234 236 240
+453 235 236 234 233
+454 239 240 236 235
+455 241 237 238 242
+456 239 240 238 237
+457 241 243 239 237
+458 242 238 240 244
+459 241 242 244 243
+460 243 244 240 239
+461 245 241 242 246
+462 245 246 248 247
+463 246 242 244 248
+464 245 247 243 241
+465 243 244 242 241
+466 247 248 244 243
+467 249 245 246 250
+468 247 248 246 245
+469 250 246 248 252
+470 249 251 247 245
+471 249 250 252 251
+472 251 252 248 247
+473 254 250 252 256
+474 253 249 250 254
+475 253 254 256 255
+476 251 252 250 249
+477 255 256 252 251
+478 253 255 251 249
+479 257 259 255 253
+480 257 258 260 259
+481 257 253 254 258
+482 259 260 256 255
+483 255 256 254 253
+484 258 254 256 260
+485 261 263 259 257
+486 259 260 258 257
+487 261 257 258 262
+488 263 264 260 259
+489 261 262 264 263
+490 262 258 260 264
+491 266 262 264 268
+492 267 268 264 263
+493 265 266 268 267
+494 263 264 262 261
+495 265 261 262 266
+496 265 267 263 261
+497 271 272 268 267
+498 269 270 272 271
+499 269 271 267 265
+500 270 266 268 272
+501 267 268 266 265
+502 269 265 266 270
+503 271 272 270 269
+504 275 276 272 271
+505 273 275 271 269
+506 274 270 272 276
+507 273 269 270 274
+508 273 274 276 275
+509 275 276 274 273
+510 278 274 276 280
+511 277 273 274 278
+512 279 280 276 275
+513 277 279 275 273
+514 277 278 280 279
+515 283 284 280 279
+516 281 283 279 277
+517 281 282 284 283
+518 279 280 278 277
+519 282 278 280 284
+520 281 277 278 282
+521 285 287 283 281
+522 287 288 284 283
+523 283 284 282 281
+524 285 286 288 287
+525 285 281 282 286
+526 286 282 284 288
+527 289 290 292 291
+528 290 286 288 292
+529 291 292 288 287
+530 289 285 286 290
+531 289 291 287 285
+532 287 288 286 285
+533 291 292 290 289
+534 295 296 292 291
+535 294 290 292 296
+536 293 295 291 289
+537 293 289 290 294
+538 293 294 296 295
+539 297 299 295 293
+540 297 293 294 298
+541 297 298 300 299
+542 295 296 294 293
+543 299 300 296 295
+544 298 294 296 300
+545 301 302 304 303
+546 301 303 299 297
+547 301 297 298 302
+548 303 304 300 299
+549 302 298 300 304
+550 299 300 298 297
+551 306 302 304 308
+552 307 308 304 303
+553 305 306 308 307
+554 303 304 302 301
+555 305 301 302 306
+556 305 307 303 301
+557 311 312 308 307
+558 310 306 308 312
+559 307 308 306 305
+560 309 310 312 311
+561 309 311 307 305
+562 309 305 306 310
+563 311 312 310 309
+564 313 315 311 309
+565 315 316 312 311
+566 313 309 310 314
+567 314 310 312 316
+568 313 314 316 315
+569 317 313 314 318
+570 317 318 320 319
+571 317 319 315 313
+572 318 314 316 320
+573 315 316 314 313
+574 319 320 316 315
+575 319 320 318 317
+576 321 317 318 322
+577 321 323 319 317
+578 322 318 320 324
+579 323 324 320 319
+580 321 322 324 323
+581 325 326 328 327
+582 325 327 323 321
+583 325 321 322 326
+584 327 328 324 323
+585 326 322 324 328
+586 323 324 322 321
+587 329 325 326 330
+588 329 330 332 331
+589 330 326 328 332
+590 329 331 327 325
+591 327 328 326 325
+592 331 332 328 327
+593 333 329 330 334
+594 333 335 331 329
+595 333 334 336 335
+596 331 332 330 329
+597 334 330 332 336
+598 335 336 332 331
+599 335 336 334 333
+600 337 333 334 338
+601 337 339 335 333
+602 338 334 336 340
+603 339 340 336 335
+604 337 338 340 339
+605 341 342 344 343
+606 343 344 340 339
+607 341 343 339 337
+608 342 338 340 344
+609 341 337 338 342
+610 339 340 338 337
+611 345 346 348 347
+612 347 348 344 343
+613 345 347 343 341
+614 346 342 344 348
+615 345 341 342 346
+616 343 344 342 341
+617 349 350 352 351
+618 351 352 348 347
+619 349 351 347 345
+620 350 346 348 352
+621 349 345 346 350
+622 347 348 346 345
+623 353 354 356 355
+624 355 356 352 351
+625 353 355 351 349
+626 354 350 352 356
+627 353 349 350 354
+628 351 352 350 349
+629 357 358 360 359
+630 359 360 356 355
+631 357 359 355 353
+632 358 354 356 360
+633 357 353 354 358
+634 355 356 354 353
+635 361 362 364 363
+636 363 364 360 359
+637 361 363 359 357
+638 362 358 360 364
+639 361 357 358 362
+640 359 360 358 357
+641 365 366 368 367
+642 367 368 364 363
+643 365 367 363 361
+644 366 362 364 368
+645 365 361 362 366
+646 363 364 362 361
+647 369 370 372 371
+648 371 372 368 367
+649 369 371 367 365
+650 370 366 368 372
+651 369 365 366 370
+652 367 368 366 365
+653 373 374 376 375
+654 375 376 372 371
+655 373 375 371 369
+656 374 370 372 376
+657 373 369 370 374
+658 371 372 370 369
+659 377 378 380 379
+660 377 379 375 373
+661 377 373 374 378
+662 379 380 376 375
+663 378 374 376 380
+664 375 376 374 373
+665 381 382 384 383
+666 383 384 380 379
+667 381 383 379 377
+668 382 378 380 384
+669 381 377 378 382
+670 379 380 378 377
+671 385 386 388 387
+672 387 388 384 383
+673 385 387 383 381
+674 386 382 384 388
+675 385 381 382 386
+676 383 384 382 381
+677 389 390 392 391
+678 391 392 388 387
+679 389 391 387 385
+680 390 386 388 392
+681 389 385 386 390
+682 387 388 386 385
+683 393 394 396 395
+684 395 396 392 391
+685 393 395 391 389
+686 394 390 392 396
+687 393 389 390 394
+688 391 392 390 389
+689 397 398 400 399
+690 399 400 396 395
+691 397 399 395 393
+692 398 394 396 400
+693 397 393 394 398
+694 395 396 394 393
+695 401 402 404 403
+696 401 403 399 397
+697 403 404 400 399
+698 401 397 398 402
+699 402 398 400 404
+700 399 400 398 397
+End Elements

@@ -1,0 +1,6 @@
+CauchyStress(CROWS{1}) = (FgradST(FROWS{1}).*PoneST(FROWS{1}) + FgradST(FROWS{8}).*PoneST(FROWS{8}) + FgradST(FROWS{9}).*PoneST(FROWS{9}))./detF;
+CauchyStress(CROWS{2}) = (FgradST(FROWS{2}).*PoneST(FROWS{2}) + FgradST(FROWS{6}).*PoneST(FROWS{6}) + FgradST(FROWS{7}).*PoneST(FROWS{7}))./detF;
+CauchyStress(CROWS{3}) = (FgradST(FROWS{3}).*PoneST(FROWS{3}) + FgradST(FROWS{4}).*PoneST(FROWS{4}) + FgradST(FROWS{5}).*PoneST(FROWS{5}))./detF;
+CauchyStress(CROWS{4}) = (FgradST(FROWS{2}).*PoneST(FROWS{4}) + FgradST(FROWS{7}).*PoneST(FROWS{3}) + FgradST(FROWS{6}).*PoneST(FROWS{5}))./detF;
+CauchyStress(CROWS{5}) = (FgradST(FROWS{1}).*PoneST(FROWS{5}) + FgradST(FROWS{8}).*PoneST(FROWS{3}) + FgradST(FROWS{9}).*PoneST(FROWS{4}))./detF;
+CauchyStress(CROWS{6}) = (FgradST(FROWS{1}).*PoneST(FROWS{6}) + FgradST(FROWS{9}).*PoneST(FROWS{2}) + FgradST(FROWS{8}).*PoneST(FROWS{7}))./detF;

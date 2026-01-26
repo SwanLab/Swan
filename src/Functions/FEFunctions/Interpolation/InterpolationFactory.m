@@ -19,7 +19,8 @@ classdef InterpolationFactory < handle
                         case 'CUBIC'
                             obj = LineCubic(cParams);
                         case 'EIGHT'
-                            obj = LineDegree8(cParams);
+                            %obj = LineDegree8(cParams);
+                            obj = LineDegree8V2(cParams);
                         otherwise
                             error('Invalid order for element LINE.');
                     end

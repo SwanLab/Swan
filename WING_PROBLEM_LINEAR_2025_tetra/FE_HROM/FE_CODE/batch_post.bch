@@ -1,0 +1,104 @@
+*****SAVE MARK 
+*****SAVE STATE
+Encoding utf-8
+LoadMeshingPrefOfModel 1
+GID_OMP_NUM_THREADS 1
+BoundaryLayer(GrowLaw) 0
+BoundaryLayer(GrowFactor) 2
+BoundaryLayer(AllowPrismaticElements) 0
+BoundaryLayer(MeshInSpecificLayer) 0
+MaintainProblemTypeInNew 1
+DefaultFileNameInCalcFile 0
+ImportTolerance 0.0001
+FastSelection 0
+CreateAlwaysNewPoint 0
+MeshUntilEnd 1
+AdvancingfrontMapper 1
+TypeOfQuadMesher 1
+SymmetricalStructuredTriangles 0
+SymmetricalStructuredTetrahedra 0
+AvoidElementsInBoundary 0
+OctreeMesherForInnerPartOfVolumes 0
+ChordalError(ApplyChordalErrorToModel) 0
+ChordalError(RelativeChordalError) 0
+AllowQuadTriMeshes 0
+AllowAutomaticStructured 0
+MaintainOldMesh 0
+NoMeshFrozenLayers 1
+AutomaticCorrectSizes 2
+HighQualitySmoothing 0
+SplashWindow 1
+BatchFileToWrite /home/joaquin/Desktop/CURRENT_TASKS/COMPOSITE_MATERIALS_DOCENCIA/APUNTES_LATEX/DOCUMENTOS_anexos/PRACTICA1/ELASTOSTATIC_PROGRAM_VECT/batch_post.bch
+SizeTransitionsFactor 0.6
+BoundaryWeightedTransition 1
+QuadraticType 0
+Preferences(QuadraticType) 0
+SurfaceMesher 0
+VolumeMesher 0
+SphereMesher 0
+RenumberMethod 0
+WriteRotationsInBatch 0
+AutoCollapseAfterImport 1
+SeeMsgRenderVolume 1
+Sound 0
+SmallWinSelecting 0
+CollapseIgnoringLayers 1
+IGESIgnoreInvisible 1
+IGESSolidsManifoldBRep 1
+IGESCreateAllInLayerToUse 0
+IGESCurveOnSurfaceFrom3D 1
+AutoImportTolerance 1
+PropertyToPostSave 0
+QuickConnectTestTimeOutSec 3
+CommentsFont -adobe-helvetica-medium-r-normal--12-120-75-75-p-67-iso8859-1
+LabelsFont -misc-fixed-medium-r-normal--13-120-75-75-c-80-iso8859-1
+AsianFont Japanese {Kochi Gothic} /home/joaquin/GID_CODE_v12/Fonts/Japanese/ttf-kochi-1.0.20030809.orig/kochi-substitute-nonaga10-20030809/kochi-gothic-subst.ttf 0
+PGF_DefaultFont {/usr/share/fonts/truetype/freefont/FreeMono.ttf} 0 14 {{FreeMono} {Medium}}
+PGF_AxisFont {/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf} 0 14 {{FreeMono} {Bold}}
+PGF_LegendFont {/usr/share/fonts/truetype/freefont/FreeSans.ttf} 0 14 {{FreeSans} {Medium}}
+PGF_LabelFont {/usr/share/fonts/truetype/freefont/FreeSerif.ttf} 0 14 {{FreeSerif} {Medium}}
+PGF_AsianFont {/home/joaquin/GID_CODE_v12/Fonts/Japanese/ttf-kochi-1.0.20030809.orig/kochi-substitute-nonaga10-20030809/kochi-gothic-subst.ttf} 0 14 {{Kochi Gothic} {Regular}}
+PGF_TkDrawOGLFont {/usr/share/fonts/truetype/freefont/FreeSerifItalic.ttf} 0 14 {{FreeSerif} {Italic}}
+PGF_PMFont {fixed8x13} 0 0 {{fixed8x13} {fixed} {Fixed width}}
+PGF_ModoRender PGF_Bitmap
+OGL_useMeshObjects 3
+OGL_usePreMeshObjects 3
+OGL_emulateFrontBuffer 0
+OGL_useCFillTexture 1
+OGL_configured 1
+Theme_configured 1
+PostBinFormat 1.1
+PostResOverRes no
+PostMaxNumComponents 50
+PostFilterHealthyPoints 0
+PostFltHealthyValue 1e+30
+PostDrawBackFace 0
+PostLegendFormat %.5g
+PostDefaultRealFormat %.5g
+PostScalarFormat %.5g
+PostVectorFormat %.4g
+PostMatrixFormat %.4g
+PostCutToMesh 0
+PostDelaunauCullBigElements 10
+PostReadResultState 1
+ReadViewWithModel 0
+SaveViewAutomatic 0
+ReadSaveViewAutomatic 0
+PostUseResultCache 1
+PostMaxMemResultCache 1024
+PostUseBinaryIndex 1
+PostUseBinaryIndexResults 1
+PositionAxes 0 0 0 1
+PositionCoord 0 0 0 1
+PositionComments 0 0 0 0
+PositionResultsLegend 0 0 0 1
+ForceMeshEntities 0
+DrawBorderElementVol 0
+DrawQuadraticElements AsCurve
+JPEGQuality 90
+FLVBlockSize 256
+AviMSVCUsePreviousInfo 1
+AutomaticRotationCenter 1
+UsingNowState GEOMETRYUSE
+*****END SAVE STATE
+-rebuildIndex:0

@@ -49,7 +49,6 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             end
         end
 
-
         function plot(obj)
             p1D = project(obj,'P1D');
             p1D.plot();

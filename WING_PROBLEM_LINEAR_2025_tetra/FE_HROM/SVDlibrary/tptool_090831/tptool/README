@@ -1,0 +1,26 @@
+TP Tool is a MATLAB toolbox for tensor product model transformation based controller design
+
+requirements:
+	MATLAB (at least R14)
+	YALMIP
+	LMI solver for YALMIP (recommended: SeDuMi or Robust Control Toolbox)
+license:
+	see LICENSE file
+more information:
+	http://tptool.sztaki.hu
+
+
+directories:
+
+example:
+	example usage of the toolbox on different controller design problems
+array:
+	functions related to multidimensional array manipulations
+hull:
+	functions related to polytopic model generation (convex hull)
+lmi:
+	functions related to linear matrix inequalities
+lpv:
+	lpv model representation, sampling and hosvd
+util:
+	miscellaneous utilities

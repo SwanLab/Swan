@@ -1,0 +1,22 @@
+Isym(SROWS{1},1) = Cb(,ROWS{1}).^2; 
+Isym(SROWS{1},2) = Cb(,ROWS{3}).^2; 
+Isym(SROWS{1},3) = Cb(,ROWS{1}).*Cb(,ROWS{3}); 
+Isym(SROWS{2},1) = Cb(,ROWS{3}).^2; 
+Isym(SROWS{2},2) = Cb(,ROWS{2}).^2; 
+Isym(SROWS{2},3) = Cb(,ROWS{2}).*Cb(,ROWS{3}); 
+Isym(SROWS{3},1) = Cb(,ROWS{1}).*Cb(,ROWS{3}); 
+Isym(SROWS{3},2) = Cb(,ROWS{2}).*Cb(,ROWS{3}); 
+Isym(SROWS{3},3) = Cb(,ROWS{3}).^2./2 + (Cb(,ROWS{1}).*Cb(,ROWS{2}))./2; 
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbstep; end
+if system_dependent('IsDebugMode')==1, dbquit all; end
+Ivol_LargeStrains_aux

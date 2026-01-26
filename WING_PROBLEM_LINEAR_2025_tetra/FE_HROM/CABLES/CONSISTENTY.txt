@@ -1,0 +1,14 @@
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('load')" style="font-weight:bold">load</a>
+Unable to read file '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/CABLES/SNAPSHOTS/ELASTCATDYN_param_OFFLINE.mat'. No such file or
+directory.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('CHECK_CONSISTENCYfun', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/ContinuousEmpiricalCubatureM/Paper_hernandez2021ecm/09_ASSESSMENTpaper/FE1D_mooring/CHECK_CONSISTENCYfun.m', 33)" style="font-weight:bold">CHECK_CONSISTENCYfun</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/ContinuousEmpiricalCubatureM/Paper_hernandez2021ecm/09_ASSESSMENTpaper/FE1D_mooring/CHECK_CONSISTENCYfun.m',33,0)">line 33</a>)
+load(NAMEOFFLINEstore,'BasisUall','ECMdata','BasisU','DATAoffline','RECONS_TENSIONV')
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('RunAll', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/ContinuousEmpiricalCubatureM/Paper_hernandez2021ecm/09_ASSESSMENTpaper/FE1D_mooring/RunAll.m', 54)" style="font-weight:bold">RunAll</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/ContinuousEmpiricalCubatureM/Paper_hernandez2021ecm/09_ASSESSMENTpaper/FE1D_mooring/RunAll.m',54,0)">line 54</a>)
+CHECK_CONSISTENCYfun(TrainingTrajectoryINP,DATAoffline)  ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('MultipleAssessmentHROM', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/ContinuousEmpiricalCubatureM/Paper_hernandez2021ecm/09_ASSESSMENTpaper/FE1D_mooring/MultipleAssessmentHROM.m', 27)" style="font-weight:bold">MultipleAssessmentHROM</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/ContinuousEmpiricalCubatureM/Paper_hernandez2021ecm/09_ASSESSMENTpaper/FE1D_mooring/MultipleAssessmentHROM.m',27,0)">line 27</a>)
+RunAll(TrainingTrajectoryINP,FILE_MATERIAL_DATA,DATAoffline);
+} 
+MultipleAssessmentHROM

@@ -1,0 +1,148 @@
+function [MESH,MATPRO,OPERFE,DATA,TIME_COMPUT,DISP_CONDITIONS,OTHER_output] =  EIFECODElargeDYN_COROT2(DATAFILE,PARAMETERS)
+% EMPIRICAL INTERSCALE FINITE ELEMENT CODE,  dynamic regime, co-rotational,
+% large strains 
+% Copy of EIFECODElargeDYN, and then EIFECODElargeDYN_COROT.m
+% JAHO, 02-12-2024, Balmes 185,  Barcelona
+% Theory developed in
+% /home/joaquin/Desktop/CURRENT_TASKS/PAPERS_2020_onwards/12_EIFEM_EXTENS/EIFEM_largeROTexAPPV.pdf
+% 
+if nargin ==0
+    load('tmp3.mat')
+end
+TIME_COMPUT=[] ;
+format long g
+
+% READING AND CONSTRUCTING INPUT DATA FOR THE FE CODE
+% -----------------------------------------------------------
+% Prototypical file, see
+% /home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/PENDULUM/INPUTS_1.m
+disp('*************************************')
+disp('Reading and constructing input data')
+disp('*************************************')
+
+if PARAMETERS.ONLY_PRINT_GID == 0
+    
+    TIME_COMPUT.INPUTS = tic ;
+    [MESH,MATPRO,OPERFE,Fbody,...
+        Ftrac,DISP_CONDITIONS,INICOND,DATA,OTHER_output] = ...
+        feval(DATAFILE,PARAMETERS) ;
+    OTHER_output.Ftrac = Ftrac;
+    OTHER_output.Fbody = Fbody;
+    TIME_COMPUT.INPUTS = toc(TIME_COMPUT.INPUTS) ;
+    disp(['...done in (',num2str(TIME_COMPUT.INPUTS ),' s)'])
+    disp('*************************************')
+    DATA = DefaultField(DATA,'SMALL_STRAIN_KINEMATICS',0) ;
+    DATA = DefaultField(DATA,'PRECOMPUTE_ELASTIC_STIFFNESS_MATRIX',0) ; % 9-Feb-2022.
+    PARAMETERS = DefaultField(PARAMETERS,'OnlyComputeMassAndStiffnessMatricesSmallStrains',0) ; % 19-Feb-2022.
+    OPERFE = DefaultField(OPERFE,'KinternalFORCES_given',[]) ; % 25-Feb-2022.
+    PARAMETERS = DefaultField(PARAMETERS,'INTERNAL_FORCES_USING_precomputed_Kstiff',0) ; % 24-May-2022. Avoid computing stresses in linear problems
+    DATA = DefaultField(DATA,'INTERNAL_FORCES_USING_precomputed_Kstiff',PARAMETERS.INTERNAL_FORCES_USING_precomputed_Kstiff) ; % 24-May-2022. Avoid computing stresses in linear problems
+    DATA = DefaultField(DATA,'CECM_ONLY_FOR_NONLINEAR_STRESSES',0) ; % See /home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/104_EIFEM_plast2D/19_ExactLinearStiff.mlx
+    
+    % Some variants require computing the initial stiffness matrix, among
+    % other variables
+     [OTHER_output,OPERFE]= ComputeKiniCheck(DATA,PARAMETERS,OTHER_output,OPERFE,MATPRO) ; 
+     
+    
+    disp('*************************************')
+    disp('INITIALIZATIONS')
+    disp('*************************************')
+    % Variables at time n (and previous time steps if required. Initialization of
+    % snapshots )
+    [DATA,VAR,SNAP] = INITIALIZATIONvar(DATA,INICOND)   ;
+    
+    [ OPERFE]= ComputeCini_B_COROT(DATA,OPERFE,MATPRO,VAR) ; 
+
+    %
+    
+    %d = VAR_n.DISP(:,istep-1) ;
+    TIME_COMPUT.TIME_STEP_LOOP = tic ;
+    PARAMETERS = DefaultField(PARAMETERS,'ONLY_PRINT_GID',0) ;
+    if PARAMETERS.ONLY_PRINT_GID == 0
+        if DATA.ISDYNAMIC == 0
+            [DATA,CONVERGED,QrotTIME,QrotINI]=NONLINEARstaticLARGE_COROT2(DATA,DISP_CONDITIONS,VAR,OPERFE,SNAP,Fbody,Ftrac,MATPRO) ;
+        else
+            error('Option not implemented yet')
+            [DATA,CONVERGED]=NONLINEARdynamicLARGE(DATA,DISP_CONDITIONS,VAR,OPERFE,SNAP,Fbody,Ftrac,MATPRO) ;
+        end
+    else
+        disp('...Using results already calculated..')
+    end
+    TIME_COMPUT.TIME_STEP_LOOP = toc(TIME_COMPUT.TIME_STEP_LOOP) ;
+    OTHER_output.TIME_COMPUT = TIME_COMPUT;
+    OTHER_output.DATA = DATA ; % 25-May-2022 ************************
+    disp(['...done in (',num2str(TIME_COMPUT.TIME_STEP_LOOP ),' s)'])
+    
+    
+else
+    disp('RETRIEVING INFORMATION FOR PRINTING GID FILES')
+    FOLDER = [cd,filesep,'SNAPSHOTS',filesep]  ;
+    FE_VARIABLES_NAMEstore = [FOLDER,filesep,PARAMETERS.NameParamStudy,'_FEoper','.mat'] ;
+    
+    load(FE_VARIABLES_NAMEstore,'MESH','OTHER_output') ;
+    DATA = OTHER_output.DATA;
+    DISP_CONDITIONS = [] ;
+    MATPRO = [] ; OPERFE = [] ; TIME_COMPUT = [] ; DISP_CONDITIONS = [] ;
+end
+
+
+
+
+
+disp('Postprocess with GID')
+% POST-PROCESS WITH GID
+
+DATAinpGID = [] ;
+PARAMETERS = DefaultField(PARAMETERS,'PRINT_RIGID_BODY',1 ) ;
+if PARAMETERS.PRINT_RIGID_BODY == 1 && ~isempty(DISP_CONDITIONS)
+    DATAinpGID.ADDITION_VARIABLE.DISP = DISP_CONDITIONS.RIGID_BODY_MOTION ;
+end
+ for icluster = 1:length(DATA.STORE.NSTEPS_CLUSTER)
+    if  isempty(DATA.FOLLOWER_LOADS) ||  isempty(DATA.FOLLOWER_LOADS.HYDROSTATIC.NAME_MESH_WATERLINE)
+        %   GidPostProcessLARGE(MESH,DATA,icluster,DATAinpGID);
+        disp('Printing GID files ...')
+        DATA =DefaultField(DATA,'MESHextended',[]);
+        if ~isempty(DATA.MESHextended)
+       OTHER_output.strainCOARSE_history =   ...
+           GidPostProcess_VECT_EIFEbubCOROT(MESH,DATA,icluster,DATAinpGID,OTHER_output.PROPMAT,PARAMETERS,QrotTIME,QrotINI,...
+           OPERFE.LboolCall);
+        else
+            error('Option  not implemented')
+         OTHER_output.strainCOARSE_history =    GidPostProcess_VECT_EIFE(MESH,DATA,icluster,DATAinpGID,OTHER_output.PROPMAT,PARAMETERS);
+         % This output is temporary....30-Oct-2023
+        end
+        return
+        
+    else
+        error('Option not implemented')
+        %    GidPostProcessLARGE_waterline(MESH,DATA,icluster,DATAinpGID);
+    end
+end
+
+if ~isempty(DATA.SNAP_ITER)
+    disp('Printing non-converged results')
+    disp('___________________________________')
+    DATAlocc= [] ;
+    
+    
+    GidPostProcessLARGE_iterations(MESH,DATA,DATAinpGID);
+    
+    % GidPostProcess_Iterations(MESH.COOR,MESH.CN,MESH.TypeElement,DATA.SNAP_ITER.DISP,DATA.MESH.posgp,'NonConverged',DATAlocc);
+end
+
+
+
+DATA.SNAP_ITER = [] ;
+if iscell(DATA.PRINT.NAME_FILE_MSH)
+    fff= DATA.PRINT.NAME_FILE_MSH{1} ;
+else
+    fff= DATA.PRINT.NAME_FILE_MSH ;
+end
+BASE_FOLDER = fileparts(fff) ;
+DATA.PRINT = DefaultField(DATA.PRINT,'BASE_FOLDER',BASE_FOLDER)  ;
+DATA.PRINT = DefaultField(DATA.PRINT,'SAVE_AS_BINARY_FILE',0)  ;
+if DATA.PRINT.SAVE_AS_BINARY_FILE == 1
+    GIDres2bin(DATA.PRINT.BASE_FOLDER) ;
+end
+
+

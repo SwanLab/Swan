@@ -1,0 +1,3 @@
+function [DATAOUT] = LOAD_DATAOUT(NAMEWS)
+
+load(NAMEWS) ; 

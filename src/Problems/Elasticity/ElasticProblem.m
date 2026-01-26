@@ -90,11 +90,9 @@ classdef ElasticProblem < handle
         end
 
         function createSolver(obj)
-            sS.type      = obj.solverCase;
-            solver       = Solver.create(sS);
             s.solverType = obj.solverType;
             s.solverMode = obj.solverMode;
-            s.solver     = solver;
+            s.solver     = obj.solverCase;
             s.boundaryConditions = obj.boundaryConditions;
             s.BCApplier          = obj.bcApplier;
             obj.problemSolver    = ProblemSolver(s);
@@ -105,7 +103,7 @@ classdef ElasticProblem < handle
             f = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
             obj.stiffness = IntegrateLHS(f,obj.uFun,obj.uFun,obj.mesh,'Domain',2);
         end
-
+    
         function computeForces(obj)
             bc  = obj.boundaryConditions;
             t   = bc.tractionFun;

@@ -1,0 +1,34 @@
+-------------------------------------------------
+Effective Green-Lagrange strain tensor  
+E = 0.2           0           0
+-------------------------------------------------
+-------------------------------------------------
+Effective Green-Lagrange strain tensor  
+E = 0         0.2           0
+-------------------------------------------------
+-------------------------------------------------
+Effective Green-Lagrange strain tensor  
+E = -0.2           0           0
+-------------------------------------------------
+-------------------------------------------------
+Effective Green-Lagrange strain tensor  
+E = -1.1102e-16        -0.2           0
+-------------------------------------------------
+*************************************
+Reading and constructing HROM input data
+*************************************
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('load')" style="font-weight:bold">load</a>
+Unable to read file
+'/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/LARGE_STRAINS/HROM/SNAPSHOTS/BASICTR2P_param_OFFLINE.mat'. No such file
+or directory.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('HROMCODElargeDYN', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/LARGE_STRAINS/HROM/HROMCODElargeDYN.m', 20)" style="font-weight:bold">HROMCODElargeDYN</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/LARGE_STRAINS/HROM/HROMCODElargeDYN.m',20,0)">line 20</a>)
+    feval(DATAFILE,PARAMETERS) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Testing_HROM_stand', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/ContinuousEmpiricalCubatureM/Paper_hernandez2021ecm/06_HROM_homog2D/HROM_homog2D_1/Testing_HROM_stand.m', 41)" style="font-weight:bold">Testing_HROM_stand</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/ContinuousEmpiricalCubatureM/Paper_hernandez2021ecm/06_HROM_homog2D/HROM_homog2D_1/Testing_HROM_stand.m',41,0)">line 41</a>)
+    [ BasisUall,RECONS_PK2stress,OTHER_output]=    HROMCODElargeDYN(NAME_INPUT_FILE,DATALOC) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Run2PARAM', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/ContinuousEmpiricalCubatureM/Paper_hernandez2021ecm/06_HROM_homog2D/HROM_homog2D_1/Run2PARAM.m', 18)" style="font-weight:bold">Run2PARAM</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/ContinuousEmpiricalCubatureM/Paper_hernandez2021ecm/06_HROM_homog2D/HROM_homog2D_1/Run2PARAM.m',18,0)">line 18</a>)
+    Testing_HROM_stand(DATAINPUTloc) ;
+} 
+Run2PARAM

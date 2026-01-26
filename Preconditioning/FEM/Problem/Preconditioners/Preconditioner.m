@@ -13,8 +13,8 @@ classdef Preconditioner < handle
                     M = PreconditionerILU(cParams);
                 case {'EIFEM'}
                     M = PreconditionerEIFEM(cParams);
-                case {'EIFEMcont'}
-                    M = PreconditionerEIFEMcontinous(cParams);
+                case {'Coarse'}
+                    M = PreconditionerCoarse(cParams);
                 case {'MODAL'}
                     M = PreconditionerModalApproximation(cParams);
                 case {'DirichletNeumann'}
@@ -69,7 +69,7 @@ classdef Preconditioner < handle
 %             tol = 1;
             
       %      x = PCG.solve(A,r,x0,P,tol);
-            
+           
             %tau = @(r,A) 1;
            %tau = @(z,r,A) r'*z/(z'*A(z)); 
            tau = @(z,r,A) 1; 

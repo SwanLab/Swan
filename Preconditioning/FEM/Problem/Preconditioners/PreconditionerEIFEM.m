@@ -2,6 +2,7 @@ classdef PreconditionerEIFEM < handle
 
     properties (GetAccess = public, SetAccess = private)
         Fext
+        FextDisc
         EIFEMsolver
     end
 
@@ -19,6 +20,7 @@ classdef PreconditionerEIFEM < handle
         ddDofManager
         dMesh
         iter
+        
     end
 
     methods (Access = public)
@@ -27,7 +29,7 @@ classdef PreconditionerEIFEM < handle
             obj.init(cParams);
         end
 
-        function [z,uCoarse] = apply(obj,r,uk)
+        function [z,uCoarse] = apply(obj,r)
 % %             uk = obj.bcApplier.reducedToFullVectorDirichlet(uk);
 % %             uk = obj.ddDofManager.global2local(uk);  %dissemble
 % %             uk = reshape(uk,[],1);
@@ -39,15 +41,20 @@ classdef PreconditionerEIFEM < handle
 %             uC = obj.computeContinousField(uD);
 %             z  = uC; 
               obj.Fext = r;
+              obj.FextDisc = obj.computeDiscontinousField(obj.Fext);
               [z,uCoarse] = obj.solve();
         end
 
         function [uC,uCoarse]= solve(obj)
-            Rd           = obj.computeDiscontinousField(obj.Fext);
+%             Rd           = obj.computeDiscontinousField(obj.Fext);
+            Rd = obj.FextDisc;
             [uD,uCoarse] = obj.EIFEMsolver.apply(Rd);
             uC           = obj.computeContinousField(uD);
         end
 
+        function uCoarse = coarseSolve(obj)
+            uCoarse = obj.EIFEMsolver.coarseSolve(obj.FextDisc);
+        end
 
         function updateDownscaling(obj,mu)
             obj.EIFEMsolver.updateDownscaling(mu)
@@ -72,8 +79,9 @@ classdef PreconditionerEIFEM < handle
             obj.weight       = 0.5;
             obj.dMesh        = cParams.dMesh;
             obj.iter         = 1;
-            if isfield(cParams,'Fext')
-                obj.Fext         = cParams.Fext;
+            if isfield(cParams,'Fext') % for optimization
+                obj.Fext      = cParams.Fext;
+                obj.FextDisc  = obj.computeDiscontinousField(obj.Fext);
             end
         end
 
@@ -86,9 +94,9 @@ classdef PreconditionerEIFEM < handle
 
         function uC = computeContinousField(obj,uD)
             fS  = obj.ddDofManager.scaleInterfaceValues(uD,obj.weight);         %scale
-            uC  = obj.ddDofManager.AssembleLocal2GlobalVector(fS);
-%             fG  = obj.ddDofManager.local2global(fS);   %assemble
-%             uC  = sum(fG,2);                           %assemble
+            % uC  = obj.ddDofManager.AssembleLocal2GlobalVector(fS);&comment
+            fG  = obj.ddDofManager.local2global(fS);   %assemble
+            uC  = sum(fG,2);                           %assemble
             uC  = obj.bcApplier.fullToReducedVectorDirichlet(uC);
         end
 

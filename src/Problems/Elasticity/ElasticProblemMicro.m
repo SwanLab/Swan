@@ -105,15 +105,6 @@ classdef ElasticProblemMicro < handle
             nBasis = homogOrder*nDim*(nDim+1)/2;
         end
 
-        function dim = getFunDims(obj)
-            d.ndimf  = obj.trialFun.ndimf;
-            d.nnodes = size(obj.trialFun.fValues, 1);
-            d.ndofs  = d.nnodes*d.ndimf;
-            d.nnodeElem = obj.mesh.nnodeElem; % should come from interp..
-            d.ndofsElem = d.nnodeElem*d.ndimf;
-            dim = d;
-        end
-
         function createBCApplier(obj)
             s.mesh = obj.mesh;
             s.boundaryConditions = obj.boundaryConditions;
@@ -122,11 +113,9 @@ classdef ElasticProblemMicro < handle
         end
 
         function createSolver(obj)
-            sS.type =  obj.solverCase;
-            solver = Solver.create(sS);
             s.solverType = obj.solverType;
             s.solverMode = obj.solverMode;
-            s.solver     = solver;
+            s.solver     = obj.solverCase;
             s.boundaryConditions = obj.boundaryConditions;
             s.BCApplier = obj.bcApplier;
             obj.problemSolver = ProblemSolver(s);
@@ -150,12 +139,14 @@ classdef ElasticProblemMicro < handle
             if v1==v2
                 Ch(:,:,v1,v2) = ChiB;
             else
-                ChShear        = zeros(size(ChiB));
-                ChShear(v1,v2) = ChiB(v1,v2);
-                Ch(:,:,v1,v2)  = ChShear;
-                ChShear        = zeros(size(ChiB));
-                ChShear(v2,v1) = ChiB(v2,v1);
-                Ch(:,:,v2,v1)  = ChShear;
+                Ch(:,:,v1,v2) = ChiB./2;
+                Ch(:,:,v2,v1) = ChiB./2;
+                % ChShear        = zeros(size(ChiB));
+                % ChShear(v1,v2) = ChiB(v1,v2);
+                % Ch(:,:,v1,v2)  = ChShear;
+                % ChShear        = zeros(size(ChiB));
+                % ChShear(v2,v1) = ChiB(v2,v1);
+                % Ch(:,:,v2,v1)  = ChShear;
             end
             obj.Chomog = Ch;
         end

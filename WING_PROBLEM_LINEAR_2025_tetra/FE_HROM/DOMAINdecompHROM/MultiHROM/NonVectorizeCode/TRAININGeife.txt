@@ -1,0 +1,19 @@
+*************************************
+Reading and constructing input data
+*************************************
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('load')" style="font-weight:bold">load</a>
+'EIFE_LIBRARY/DEF_Q26_shell_1.mat' is not found in the current folder or on the MATLAB path, but exists in:
+    /home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/107_EIFEM_plast3D/04_HIGHOR
+
+<a href = "matlab:matlab.internal.language.commandline.executeCode('cd ''/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/107_EIFEM_plast3D/04_HIGHOR''')">Change the MATLAB current folder</a> or <a href = "matlab:matlab.internal.language.commandline.executeCode('addpath ''/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/107_EIFEM_plast3D/04_HIGHOR''')">add its folder to the MATLAB path</a>.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('EIFECODElargeDYN', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/DOMAINdecompHROM/MultiHROM/EIFECODElargeDYN.m', 23)" style="font-weight:bold">EIFECODElargeDYN</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/DOMAINdecompHROM/MultiHROM/EIFECODElargeDYN.m',23,0)">line 23</a>)
+        feval(DATAFILE,PARAMETERS) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('EIFEvectorizedGEN1', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/DOMAINdecompHROM/GENERAL_BUBBLE/EIFEvectorizedGEN1.m', 47)" style="font-weight:bold">EIFEvectorizedGEN1</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/DOMAINdecompHROM/GENERAL_BUBBLE/EIFEvectorizedGEN1.m',47,0)">line 47</a>)
+            EIFECODElargeDYN(NAME_INPUT_FILE,DATALOC) ;
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('EIFE_shellBENDq', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/107_EIFEM_plast3D/04_HIGHOR/EIFE_shellBENDq.m', 28)" style="font-weight:bold">EIFE_shellBENDq</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/107_EIFEM_plast3D/04_HIGHOR/EIFE_shellBENDq.m',28,0)">line 28</a>)
+    EIFEvectorizedGEN1('INPUTS_EIFE_shapeBUBloc',BOUNDARY_CONDIDITONS,MATERIAL_FILE,DATALOC) ;
+} 
+EIFE_shellBENDq

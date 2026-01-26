@@ -145,6 +145,7 @@ classdef EIFEMtesting < handle
 %             obj.fileNameEIFEM = 'DEF_auxNew_2.mat';
             obj.fileNameEIFEM = 'DEF_Q4porL_1_raul.mat';
             obj.tolSameNode = 1e-10;
+
         end
 
         function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomain(obj,mR)
@@ -157,9 +158,9 @@ classdef EIFEMtesting < handle
 
 
         function mS = createReferenceMesh(obj)
-%                 mS = obj.createStructuredMesh();
-%               mS = obj.createMeshFromGid();
-            mS = obj.createEIFEMreferenceMesh();
+            mS = obj.createStructuredMesh();
+            %   mS = obj.createMeshFromGid();
+            % mS = obj.createEIFEMreferenceMesh();
         end
 
 
@@ -171,20 +172,40 @@ classdef EIFEMtesting < handle
         end
 
         function mS = createStructuredMesh(obj)
-
-            % Generate coordinates
-            x1 = linspace(0,1,2);
-            x2 = linspace(0,1,2);
-            % Create the grid
+             %UnitMesh better
+            x1      = linspace(0,1,50);
+            x2      = linspace(0,1,50);
             [xv,yv] = meshgrid(x1,x2);
-            % Triangulate the mesh to obtain coordinates and connectivities
-            [F,coord] = mesh2tri(xv,yv,zeros(size(xv)),'x');
+            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
+            s.coord  = V(:,1:2);
+            s.connec = F;
+            bgMesh = Mesh.create(s);
 
             s.coord    = coord(:,1:2);
             s.connec   = F;
             s.interpType = 'LINEAR';
             mS         = Mesh.create(s);
         end
+
+
+
+        function levelSet = createLevelSetFunction(obj,bgMesh)
+            sLS.type        = 'CircleInclusion';
+            sLS.xCoorCenter = 0.5;
+            sLS.yCoorCenter = 0.5;
+            sLS.radius      = 0.2;
+            g               = GeometricalFunction(sLS);
+            lsFun           = g.computeLevelSetFunction(bgMesh);
+            levelSet        = lsFun.fValues;
+        end
+        
+        function uMesh = computeUnfittedMesh(~,bgMesh,levelSet)
+            sUm.backgroundMesh = bgMesh;
+            sUm.boundaryMesh   = bgMesh.createBoundaryMesh();
+            uMesh              = UnfittedMesh(sUm);
+            uMesh.compute(levelSet);
+        end
+
 
         function mS = createEIFEMreferenceMesh(obj)
             filename = obj.fileNameEIFEM;
@@ -598,11 +619,11 @@ classdef EIFEMtesting < handle
             J = 0.5*x'*A(x)-b'*x;
         end
 
+
         function plotSolution(x,mesh,row,col,iter,bcApplier,flag)
             if ~isempty(bcApplier)
                 x = bcApplier.reducedToFullVectorDirichlet(x);
             end
-            
             if nargin <7
                 flag =0;
             end

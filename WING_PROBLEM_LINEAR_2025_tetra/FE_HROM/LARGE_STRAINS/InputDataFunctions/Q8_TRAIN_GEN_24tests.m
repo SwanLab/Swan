@@ -1,0 +1,38 @@
+function [DATAOUT] = Q8_TRAIN_GEN_24tests(AMPLITUDE_alltests,DATAOUT,index_SURFACES_PRESCRIBED_DISP)
+% See /home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/107_EIFEM_plast3D/02_BEAMQ8_IprofE.mlx
+% JAHO, 26-March-2024, plane from Barcelona to Tenerife
+%------------------------------------------------
+
+if nargin == 0
+    load('tmp1.mat')
+end
+ % -----------------------------------------------
+INPUTS_PARAMETERS = [] ;
+INFO_BASIC_DEFORMATIONAL_MODES = [] ; 
+
+DATAOUT.NORMALIZATION_SNAPSHOTS_PER_PROJECT = 0 ; 
+
+% 
+ 
+ini  = 0 ;
+ntests = 24; 
+AMPLITUDE = AMPLITUDE_alltests*eye(ntests) ;  
+
+ for itestLOC = 1:size(AMPLITUDE,2)
+    itest = ini + itestLOC ;
+    INPUTS_PARAMETERS(itest).DIRICHLET.AMPLITUDE = AMPLITUDE(:,itestLOC) ;
+    INPUTS_PARAMETERS(itest).DIRICHLET.TIMEFUN = @(t) t/DATAOUT.tEND ;  %
+    INPUTS_PARAMETERS(itest).DIRICHLET.INTERVAL =[DATAOUT.t0,DATAOUT.tEND];  %
+    INPUTS_PARAMETERS(itest).TypeFunctionDisplacementTRAINING = 'FE_SHAPE_functions_only_selected_surfaces'; %
+    INPUTS_PARAMETERS(itest).DIRICHLET.BOUNDARY_SURFACES_TO_INCLUDE = index_SURFACES_PRESCRIBED_DISP; %
+    INPUTS_PARAMETERS(itest).NEUMANN = [] ; 
+end
+
+INFO_BASIC_DEFORMATIONAL_MODES.NUMBER_OF_DEFORMATIONAL_MODES = 18 ;  % 24-6 
+ 
+ 
+DATAOUT.INPUTS_PARAMETERS = INPUTS_PARAMETERS; 
+DATAOUT.INFO_BASIC_DEFORMATIONAL_MODES = INFO_BASIC_DEFORMATIONAL_MODES; 
+DATAOUT.METHOD_TRAINING_ELASTIC_RANGE = 'INVARIANT_MODES'; 
+
+ 

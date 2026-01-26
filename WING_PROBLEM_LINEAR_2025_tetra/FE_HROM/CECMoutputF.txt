@@ -1,0 +1,35 @@
+SVD of Aw 
+iter = 1  nC =0.23204  dR =5 R =5
+iter = 2  nC =0.00020942  dR =21 R =26
+iter = 3  nC =3.18e-16  dR =21 R =47
+Elapsed time is 0.011831 seconds.
+Number of left singular vectors  = 17
+k = 1, m=1 ,; error n(res)/n(b) (%) = 92.65842463
+k = 2, m=2 ,; error n(res)/n(b) (%) = 84.05679571
+k = 3, m=3 ,; error n(res)/n(b) (%) = 75.36875043
+k = 4, m=4 ,; error n(res)/n(b) (%) = 62.26027209
+k = 5, m=5 ,; error n(res)/n(b) (%) = 53.89993261
+k = 6, m=6 ,; error n(res)/n(b) (%) = 42.51743805
+k = 7, m=7 ,; error n(res)/n(b) (%) = 33.96249468
+k = 8, m=8 ,; error n(res)/n(b) (%) = 26.98758114
+k = 9, m=9 ,; error n(res)/n(b) (%) = 13.77394049
+k = 10, m=10 ,; error n(res)/n(b) (%) = 8.237398699
+k = 11, m=11 ,; error n(res)/n(b) (%) = 5.765369196
+k = 12, m=12 ,; error n(res)/n(b) (%) = 3.770777315
+k = 13, m=13 ,; error n(res)/n(b) (%) = 1.153599578
+k = 14, m=14 ,; error n(res)/n(b) (%) = 0.7507500851
+k = 15, m=15 ,; error n(res)/n(b) (%) = 0.4367658885
+k = 16, m=16 ,; error n(res)/n(b) (%) = 0.2061118006
+k = 17, m=17 ,; error n(res)/n(b) (%) = 0.07411846987
+k = 18, m=18 ,; error n(res)/n(b) (%) = 4.180232636e-14
+Total number of iterations =19
+****************************+
+List of selected m = 16 elements
+28  26   6   9  34  43  48  19   2  42  36  14  47  20   8  27
+----------------------------------------------------------------------------------------
+Integration Error associated to the SVD =9.2134e-13 % (for a SVD tolerance =0.005 )
+----------------------------------------------------------------------------------------
+Actual integration error using DECM= 0.35962 % (prescribed tolerance fint =0.5%
+istep=1
+open GID FILE:
+/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/MODES/GIDPOST/MOD_fINT_ModesBODYfo.res

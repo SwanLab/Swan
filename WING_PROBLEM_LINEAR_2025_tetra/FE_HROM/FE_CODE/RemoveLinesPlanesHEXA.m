@@ -1,0 +1,67 @@
+function NODESplNEW = RemoveLinesPlanesHEXA(NODESpl,NODESln,PLANES)
+
+%dbstop('4')
+if nargin == 0
+    load('tmp.mat')
+end
+
+NODESplNEW  = cell(size(NODESpl))  ; 
+PLANES = cell2mat(PLANES) ; 
+
+for i = 1:length(NODESpl)
+    
+    [LOClines b]= find(PLANES==i) ;  % Lines intersecting with plane i
+    
+    NODES2remove = [] ; 
+    for  j =1:length(LOClines)
+        NODES2remove = [NODES2remove; NODESln{LOClines(j)}] ; 
+    end
+    
+    NODES2remove = unique(NODES2remove) ; 
+    
+    NODESplNEW{i}  = setdiff(  NODESpl{i},NODES2remove) ; 
+    
+end
+
+end
+
+% 
+% 
+% NODESplNEW = cell(size(NODESpl)) ; 
+%  for idimA = 1:size(NODESpl,1)
+%     for jdimA = 1:2
+%         NODA = NODESpl{idimA,jdimA} ;  % Plane A
+%         CommonNodes = [] ;
+%         for idimB =1:size(NODESpl,1)
+%             if  idimA~=idimB
+%                 for jdimB = 1:2
+%                     NODB = NODESpl{idimB,jdimB} ;  % Plane B
+%                     CommonNodes = [CommonNodes; intersect(NODA,NODB)];
+%                     
+%                 end
+%             end
+%         end
+%         NODESplNEW{idimA,jdimA} = setdiff(NODA,CommonNodes) ;
+%         
+%         
+%     end
+% end
+% 
+% end
+
+
+
+%
+% for iplane = 1:length(PLANESf)
+%     iname = PLANESf{iplane} ;
+%     for jplane = 1:length(PLANESf)
+%         jname = PLANESf{jplane} ;
+%         ijname = [iname,'_',jname] ;
+%         iijj = intersect(NODESpl.(iname),NODESpl.(jname));
+%         if  jplane>iplane && ~isempty(iijj) && length(iijj) ~= length(NODESpl.(iname))
+%
+%             NODESln = setfield(NODESln,ijname,iijj) ;
+%
+%         end
+%     end
+% end

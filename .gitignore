@@ -3,5 +3,8 @@
 # Directories
 Output/*
 Videos/*
+__pycache__/*
 *.m~
 *.asv
+AlbertTFG files/opt Kv3_long pol1 test30 learning0_05 hidden1024x1_1 error1e-5.fig
+AlbertTFG files/opt Kv3_long pol1 test30 learning0_05 hidden1024x1_1 error1e-5.mat

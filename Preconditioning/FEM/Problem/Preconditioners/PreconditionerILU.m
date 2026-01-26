@@ -30,7 +30,10 @@ classdef PreconditionerILU < handle
         end
         
         function computeCholeskyFactorization(obj)
-            L = ichol(obj.LHS);        
+            opts.type     = 'ict';
+            opts.droptol  = 1e-3;
+            opts.diagcomp = 1e-2;
+            L = ichol(obj.LHS, opts);        
             obj.Lchol = L ;
         end
     end

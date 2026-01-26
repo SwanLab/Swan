@@ -19,6 +19,7 @@ classdef PCG < handle
         function [x,residual,err,errAnorm] = solve(A,B,x0,P,tol,xsol,mesh,bcApplier)
             if nargin == 5, xsol = zeros(size(B)); end
             iter = 0;
+            normB = norm(B);
             x = x0;
 %             EIFEMtesting.plotSolution(x,mesh,25,5,iter,bcApplier,0)
             r = B - A(x);
@@ -37,7 +38,7 @@ classdef PCG < handle
                 p = z + beta * p;
                 rzold = rznew;
                 iter = iter + 1;
-%                  EIFEMtesting.plotSolution(x,mesh,25,5,iter,bcApplier,0)
+%               EIFEMtesting.plotSolution(x,mesh,25,5,iter,bcApplier,0)
                 residual(iter) = norm(r)/normB;
                 err(iter)=norm(x-xsol);
                 errAnorm(iter)=((x-xsol)')*A(x-xsol);

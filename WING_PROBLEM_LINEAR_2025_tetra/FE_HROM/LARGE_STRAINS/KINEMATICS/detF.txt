@@ -1,0 +1,7 @@
+{Unrecognized function or variable 'C_loc'.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Determinant_F', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/LARGE_STRAINS/SYMBOLIC/Determinant_F.m', 72)" style="font-weight:bold">Determinant_F</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/LARGE_STRAINS/SYMBOLIC/Determinant_F.m',72,0)">line 72</a>)
+        disp([C_loc,Cstr,';']) ;
+} 
+Determinant_F
+detF =FgradST(FROWS{1}).*FgradST(FROWS{2}).*FgradST(FROWS{3}) - FgradST(FROWS{1}).*FgradST(FROWS{4}).*FgradST(FROWS{7}) - FgradST(FROWS{2}).*FgradST(FROWS{5}).*FgradST(FROWS{8}) - FgradST(FROWS{3}).*FgradST(FROWS{6}).*FgradST(FROWS{9}) + FgradST(FROWS{4}).*FgradST(FROWS{6}).*FgradST(FROWS{8}) + FgradST(FROWS{5}).*FgradST(FROWS{7}).*FgradST(FROWS{9});

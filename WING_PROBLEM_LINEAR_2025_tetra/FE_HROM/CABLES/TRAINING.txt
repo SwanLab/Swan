@@ -1,0 +1,27 @@
+*************************************
+Reading and constructing input data
+*************************************
+<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/ContinuousEmpiricalCubatureM/Paper_hernandez2021ecm/09_ASSESSMENTpaper/FE1D_mooring/INPUTS_FE_cable.m',62,1)">62  </a>if  DATAINPUT.DATAcommon.TypeElement_order_polynomial_1D == 1
+if system_dependent('IsDebugMode')==1, dbcont; end
+<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/CABLES/PreProcessInputDataCABLE.m',374,1)">374 </a>    if ~isempty(dR.U)
+if system_dependent('IsDebugMode')==1, dbcont; end
+Boundary conditions not consistent with initial condition
+{Operation terminated by user during <a href="matlab:matlab.internal.language.introspective.errorDocCallback('PreProcessInputDataCABLE', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/CABLES/PreProcessInputDataCABLE.m', 382)" style="font-weight:bold">PreProcessInputDataCABLE</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/CABLES/PreProcessInputDataCABLE.m',382,0)">line 382</a>)
+
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('INPUTS_FE_cable', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/ContinuousEmpiricalCubatureM/Paper_hernandez2021ecm/09_ASSESSMENTpaper/FE1D_mooring/INPUTS_FE_cable.m', 166)" style="font-weight:bold">INPUTS_FE_cable</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/ContinuousEmpiricalCubatureM/Paper_hernandez2021ecm/09_ASSESSMENTpaper/FE1D_mooring/INPUTS_FE_cable.m',166,0)">line 166</a>)
+    =  PreProcessInputDataCABLE(DATA,PROPMAT,DIRICHLET,NEUMANN,INITIAL_CONDITIONS,OTHER_INPUTS) ;
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('FEcableslargeDYN', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/CABLES/FEcableslargeDYN.m', 23)" style="font-weight:bold">FEcableslargeDYN</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/FE_HROM/CABLES/FEcableslargeDYN.m',23,0)">line 23</a>)
+    feval(DATAFILE,PARAMETERS) ;
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ParamRUN_1PARAMfun', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/ContinuousEmpiricalCubatureM/Paper_hernandez2021ecm/09_ASSESSMENTpaper/FE1D_mooring/ParamRUN_1PARAMfun.m', 53)" style="font-weight:bold">ParamRUN_1PARAMfun</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/ContinuousEmpiricalCubatureM/Paper_hernandez2021ecm/09_ASSESSMENTpaper/FE1D_mooring/ParamRUN_1PARAMfun.m',53,0)">line 53</a>)
+            FEcableslargeDYN(NAME_INPUT_FILE,DATALOC) ;
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('RunAll', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/ContinuousEmpiricalCubatureM/Paper_hernandez2021ecm/09_ASSESSMENTpaper/FE1D_mooring/RunAll.m', 37)" style="font-weight:bold">RunAll</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/ContinuousEmpiricalCubatureM/Paper_hernandez2021ecm/09_ASSESSMENTpaper/FE1D_mooring/RunAll.m',37,0)">line 37</a>)
+    ParamRUN_1PARAMfun(TrainingTrajectoryINP,FILE_MATERIAL_DATA,DATAINI) ;
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('MultipleAssessmentHROM', '/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/ContinuousEmpiricalCubatureM/Paper_hernandez2021ecm/09_ASSESSMENTpaper/FE1D_mooring/MultipleAssessmentHROM.m', 27)" style="font-weight:bold">MultipleAssessmentHROM</a> (<a href="matlab: opentoline('/home/joaquin/Desktop/CURRENT_TASKS/MATLAB_CODES/TESTING_PROBLEMS_FEHROM/ContinuousEmpiricalCubatureM/Paper_hernandez2021ecm/09_ASSESSMENTpaper/FE1D_mooring/MultipleAssessmentHROM.m',27,0)">line 27</a>)
+RunAll(TrainingTrajectoryINP,FILE_MATERIAL_DATA,DATAoffline);
+} 
+MultipleAssessmentHROM

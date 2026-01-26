@@ -1,0 +1,289 @@
+function [F,fextBEAMr_glo,rRB_glo,fextDOMred_glo,FORCES_2_PRINT_glo]= ...
+    AssemblyFdomains_vector(DATAROM,MESH1D,DATAIN,FORCES,ndim,DATA_REFMESH_glo)
+
+if nargin == 0
+    load('tmp2.mat')
+    DATAIN.INCLUDE_GRAVITY = 1; 
+end
+
+ndimSP = size(MESH1D.COOR,2) ;
+
+
+nnode = size(MESH1D.COOR,1) ; % Number of 1D nodes (interfaces)
+nelem = size(MESH1D.CN,1)  ; % Number of elements (slices)
+nnodeE = 2; % Number of nodes per element (number of interfaces per element)
+nmodes(1).REACTION=[] ;
+nmodes(1).DISPLACEMENT=[] ;
+for i = 1:length(DATAROM)
+    
+    nmodes(i).REACTION = size(DATAROM{i} .BasisRdef,2) ;
+    nmodes(i).DISPLACEMENT = size(DATAROM{i} .BasisUdef,2) ;
+end
+
+% ROTATIONS
+% ---------
+
+% -----------------------
+% LOOP OVER DOMAINS
+% -----------------------
+% Since all domains are assumed to be identical, the contribution to the
+% external force vector due to gravity forces is computed just once
+% JAHO, 3-December-2018
+% This hypothesis should be revised in the case of curved domains 
+% ---------------------------------------------------------------
+
+
+DATAIN = DefaultField(DATAIN,'INCLUDE_GRAVITY',1) ;
+if DATAIN.INCLUDE_GRAVITY == 1
+    %  if size(DATAROM{1}.GAMMAforce{1},2) == 3
+    FORCES = DefaultField(FORCES,'GRAVITY', [0 -9.81  0]) ;
+    FORCES.GRAVITY = FORCES.GRAVITY(1:ndimSP) ;
+    
+    %DATA_REFMESH_glo{1} = DefaultField( DATA_REFMESH_glo{1},'RotationMatrixFace',[]) ;
+ 
+    % else
+    %    FORCES = DefaultField(FORCES,'GRAVITY', [0 -9.81  ]) ;
+    % end
+    for istructure = 1:length(DATAROM)
+        Fgravity{istructure} = cell(nnodeE,1);
+        for inode = 1:nnodeE
+            Fgravity{istructure}{inode} = DATAROM{istructure}.GAMMAforce{inode}*FORCES.GRAVITY(:) ;
+        end
+        Fgravity{istructure} = cell2mat(Fgravity{istructure}) ;
+        fextBEAMr_gravity{istructure}  = DATAROM{istructure}.Lgravity*FORCES.GRAVITY(:)   ;
+        rRB_gravity{istructure} = DATAROM{istructure}.BETA_gravity*FORCES.GRAVITY(:)   ;
+        fextDOMred_gravity{istructure} =  DATAROM{istructure}.Dgravity*FORCES.GRAVITY(:)   ;
+    end
+else
+    nstructures = length(DATAROM) ;
+    Fgravity = cell(1,nstructures);
+    Fgravity(:) = {0} ;
+    fextBEAMr_gravity  = Fgravity  ;
+    rRB_gravity = Fgravity ;
+    fextDOMred_gravity = Fgravity;
+end
+
+
+
+FORCES.TRACTIONS = DefaultField(FORCES.TRACTIONS,'ISLOCAL',zeros(size(FORCES.TRACTIONS.LOADS))) ;
+
+%DATAIN = DefaultField(DATAIN,'PRINT_DISTRIBUTED_FORCES',0)  ;
+
+FORCES_2_PRINT = cell(size(FORCES.TRACTIONS.LOADS)) ;  % Traction forces on each slice and each surface (per unit area)
+
+nlines = size(FORCES.TRACTIONS.LOADS,1) ;  % Each line is assumed to have a uniform load
+%
+%  nlines2 = length(MESH1D.NODES_LINES) ; %{iline} ;
+%
+%  nlines = min(nlines,nlines2) ;
+
+STRUCTURES = unique(MESH1D.MaterialType ) ;
+nstructures = length(STRUCTURES) ;
+F  =zeros(ndim*nnode,1) ;
+fextBEAMr = cell(nlines,nstructures) ; % Variable R^*
+fextDOMred =  cell(nlines,nstructures) ; % Variable F*
+rRB = cell(nlines,nstructures) ; % Amplitude resultant reactions
+Fbe = cell(nlines,nstructures) ;
+
+% Loop over lines
+for e = 1:nlines
+    %    CNlocNOD = MESH1D.CN(e,:) ;
+    %   CNloc = Nod2DOF(CNlocNOD,ndim) ;
+    %
+    % Computation of traction forces
+    for ielemtype=1:length(STRUCTURES)
+        elemtype = STRUCTURES(ielemtype) ;
+        
+        [FtractionE fextBEAMr_traction,rRB_traction,fextDOMred_traction,FORCES_2_PRINT_local]= ...
+            TractionForcesDomain(DATAROM{elemtype}.UPSILONforceTRAC,FORCES.TRACTIONS.LOADS(e,:),...
+            FORCES.TRACTIONS.COOR(e,:),nnodeE,ndim,DATAROM{elemtype}.Q_tractions,...
+            DATAROM{elemtype}.BETA_tractions,DATAROM{elemtype}.D_tractions,nmodes(elemtype),...
+            FORCES.TRACTIONS.ISLOCAL(e,:),ndimSP) ;
+        nfacesLOC = min(size(FORCES_2_PRINT,2),length(FORCES_2_PRINT_local)) ;
+        
+        FORCES_2_PRINT(e,1:nfacesLOC) = FORCES_2_PRINT_local(1:nfacesLOC) ;
+        fextBEAMr{e,ielemtype} = fextBEAMr_traction ; %+ fextBEAMr_gravity{elemtype} ;
+        fextDOMred{e,ielemtype} = fextDOMred_traction ; %+ fextDOMred_gravity{elemtype} ;
+        Fbe{e,ielemtype} =   FtractionE ; % + Fgravity{elemtype};
+        rRB{e,ielemtype} =   rRB_traction ; %rRB_gravity{elemtype} ;
+    end
+    
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% --------------------------------
+% Construction of elemental arrays
+% --------------------------------
+%F,fextBEAMr,rRB,fextDOMred,FORCES_2_PRINT
+fextDOMred_glo = cell(nelem,1) ;
+ssCC = size(fextDOMred{1,1}) ;
+fextDOMred_glo(:) = {zeros(ssCC)} ;
+
+fextBEAMr_glo = cell(nelem,1) ;
+ssDD = size(fextBEAMr{1,1}) ;
+fextBEAMr_glo(:) = {zeros(ssDD)} ;
+Fbe_glo = cell(nelem,1) ;
+ssAA = size(Fbe{1,1}) ;
+Fbe_glo(:) = {zeros(ssAA)} ;
+rRB_glo = cell(nelem,1) ;
+ssBB= size(rRB{1,1}) ;
+rRB_glo(:) = {zeros((ssBB))} ;
+
+FORCES_2_PRINT_glo = cell(nelem,size(FORCES.TRACTIONS.LOADS,2)) ;
+for iline = 1:nlines
+    NODES_LINE = MESH1D.NODES_LINES{iline} ;
+    %         % Elements corresponding to these nodes
+    [~,ELEM_LINE ]= ElemBnd(MESH1D.CN,NODES_LINE) ;
+    for istructure =1:nstructures
+        ELEMS = find(MESH1D.MaterialType(ELEM_LINE)==istructure); % Elements pertaining to this line and also to entity "istructure"
+        ELEMS_LOC = ELEM_LINE(ELEMS) ;
+        %  CUMULATIVE = 1 ;
+        FA = {Fbe{iline,istructure}}  ;
+        FB = {rRB{iline,istructure}}  ;
+        FC = {fextDOMred{iline,istructure}} ;
+        FD =  {fextBEAMr{iline,istructure}}  ;
+        
+        if ~isempty(ELEMS_LOC)
+            %             if CUMULATIVE == 0
+            %                 Fbe_glo(ELEMS_LOC) =  {Fbe{iline,istructure}}  ;
+            %                 rRB_glo(ELEMS_LOC) = {rRB{iline,istructure}}  ;
+            %                 fextDOMred_glo(ELEMS_LOC) = {fextDOMred{iline,istructure}}  ;
+            %                 fextBEAMr_glo(ELEMS_LOC) = {fextBEAMr{iline,istructure}}  ;
+            %             else
+            Fbe_glo = AddCellsValues(Fbe_glo,ELEMS_LOC,FA,ssAA) ;
+            rRB_glo = AddCellsValues(rRB_glo,ELEMS_LOC,FB,ssBB) ;
+            fextDOMred_glo = AddCellsValues(fextDOMred_glo,ELEMS_LOC,FC,ssCC) ;
+            fextBEAMr_glo = AddCellsValues(fextBEAMr_glo,ELEMS_LOC,FD,ssDD) ;
+            % end
+        end
+        
+        
+        
+        for iface =1:size(FORCES.TRACTIONS.LOADS,2)
+            FORCES_2_PRINT_glo(ELEMS_LOC,iface) = {FORCES_2_PRINT{iline,istructure}}  ;
+        end
+        
+    end
+    
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% ADDING GRAVITY
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if DATAIN.INCLUDE_GRAVITY == 1
+    for istructure =1:nstructures
+        %  elemtype = STRUCTURES(ielemtype) ;
+        ELEMS = find(MESH1D.MaterialType ==istructure); % Elements pertaining to this line and also to entity "istructure"
+        
+        %  CUMULATIVE = 1 ;
+        FA = { Fgravity{istructure}}  ;
+        FB = {rRB_gravity{istructure}}  ;
+        FC = {fextDOMred_gravity{istructure}} ;
+        FD =  {fextBEAMr_gravity{istructure}}  ;
+        
+        %            fextBEAMr{e,ielemtype} = fextBEAMr_traction ; %+ fextBEAMr_gravity{elemtype} ;
+        %         fextDOMred{e,ielemtype} = fextDOMred_traction ; %+ fextDOMred_gravity{elemtype} ;
+        %         Fbe{e,ielemtype} =   FtractionE ; % + Fgravity{elemtype};
+        %         rRB{e,ielemtype} =   rRB_traction ; %rRB_gravity{elemtype} ;
+        
+        %if ~isempty(ELEMS)
+        
+        Fbe_glo = AddCellsValues(Fbe_glo,ELEMS,FA,ssAA) ;
+        rRB_glo = AddCellsValues(rRB_glo,ELEMS,FB,ssBB) ;
+        fextDOMred_glo = AddCellsValues(fextDOMred_glo,ELEMS,FC,ssCC) ;
+        fextBEAMr_glo = AddCellsValues(fextBEAMr_glo,ELEMS,FD,ssDD) ;
+        
+        %end
+        
+        
+    end
+    
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%% ASSEMBLY
+% -----------------
+%
+%    for anod=1:nnodeE
+%         a = Nod2DOF(anod,ndim) ;
+%         Anod = MESH1D.CN(e,anod) ; A = Nod2DOF(Anod,ndim) ;
+%         F(A) = F(A) + Fbe(a) ;
+%     end
+
+% EMPTYINDEX_1 = cellfun(@isempty,Fbe_glo) ;
+% EMPTYINDEX = find(EMPTYINDEX_1==1) ;
+% NEM = find(EMPTYINDEX_1==0) ;
+%
+% Fbe_glo(EMPTYINDEX) = {zeros(size(Fbe_glo{NEM(1)}))};
+% rRB_glo(EMPTYINDEX) = {zeros(size(rRB_glo{NEM(1)}))};
+% fextDOMred_glo(EMPTYINDEX) = {zeros(size(fextDOMred_glo{NEM(1)}))};
+% fextBEAMr_glo(EMPTYINDEX) = {zeros(size(fextBEAMr_glo{NEM(1)}))};
+
+Fbe = cell2mat(Fbe_glo) ;
+
+for anod=1:nnodeE
+    a = Nod2DOFelem(anod,ndim,nnodeE,nelem) ;
+    Anod = MESH1D.CN(:,anod) ; A = Nod2DOF(Anod,ndim) ;
+    F(A) = F(A) + Fbe(a) ;
+end
+
+end
+
+function Fbe_glo = AddCellsValues(Fbe_glo,ELEMS_LOC,FA,ssAA)
+
+FA = cell2mat(Fbe_glo(ELEMS_LOC)) + repmat(cell2mat(FA),length(ELEMS_LOC),1) ;
+FA = mat2cell(FA,ssAA(1)*ones(length(ELEMS_LOC),1),1) ;
+Fbe_glo(ELEMS_LOC) = FA ;
+
+end
+
+%
+% %
+% m = nnode*ndim ; % Number of rows
+% n = 1 ;          % Number of columns
+% nzmaxLOC = size(Fbe,1)*size(Fbe,2) ;   % Maximum number of zeros (number of entries of Belems)
+% F = sparse([],[],[],m,n,nzmaxLOC); % Allocating memory for Bst
+%
+% for anod=1:nnodeE % Loop over element nodes (rows)
+%     a = Nod2DOFelem(anod,ndim,nnodeE,nelem) ;  % ROWS number (in Kelem) for node   "anod" (for all elements)
+%     %   for bnod= 1:nnodeE  % Loop over element nodes (columns)
+%     %    b = 1 ; Nod2DOF(bnod,ndim) ;
+%     Anod = MESH1D.CN(:,anod) ;  A = Nod2DOF(Anod,ndim) ;  % DOFs in the global K matrix
+%     %     Bnod = MESH1D.CN(:,bnod) ;  B = Nod2DOF(Bnod,ndim) ;
+%     %%%%%
+%     %  K(A,B) = K(A,B) + Kelem(a,b) ;
+%     %%%%%
+%     s = Fbe(a) ;
+%     s=s(:) ;
+%     % Indices "i" and "j"
+%     i = repmat(A,ndim,1);
+%     j = ones(size(i)) ;
+%     %%%%
+%
+%     F = F + sparse(i,j,s,m,n,length(s)) ;
+%     % end
+% end
+%
+% F = full(F) ;
+%
+% %
+% %    for anod=1:nnodeE
+% %         a = Nod2DOF(anod,ndim) ;
+% %         Anod = MESH1D.CN(e,anod) ; A = Nod2DOF(Anod,ndim) ;
+% %         F(A) = F(A) + Fbe(a) ;
+% %     end

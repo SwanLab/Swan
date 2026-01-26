@@ -1,0 +1,12 @@
+Cinv(CROWS{1}) = (2.*E(EROWS{2}) + 2.*E(EROWS{3}) - E(EROWS{4}).^2 + 4.*E(EROWS{2}).*E(EROWS{3}) + 1)./detC; 
+Cinv(CROWS{2}) = (2.*E(EROWS{1}) + 2.*E(EROWS{3}) - E(EROWS{5}).^2 + 4.*E(EROWS{1}).*E(EROWS{3}) + 1)./detC; 
+Cinv(CROWS{3}) = (2.*E(EROWS{1}) + 2.*E(EROWS{2}) - E(EROWS{6}).^2 + 4.*E(EROWS{1}).*E(EROWS{2}) + 1)./detC; 
+Cinv(CROWS{4}) = (E(EROWS{5}).*E(EROWS{6}) - 2.*E(EROWS{1}).*E(EROWS{4}) - E(EROWS{4}))./detC; 
+Cinv(CROWS{5}) = (E(EROWS{4}).*E(EROWS{6}) - 2.*E(EROWS{2}).*E(EROWS{5}) - E(EROWS{5}))./detC; 
+Cinv(CROWS{6}) = (E(EROWS{4}).*E(EROWS{5}) - 2.*E(EROWS{3}).*E(EROWS{6}) - E(EROWS{6}))./detC; 
+Cinv(SROWS{1}) = (2.*E(SROWS{2}) + 2.*E(SROWS{3}) - E(SROWS{4}).^2 + 4.*E(SROWS{2}).*E(SROWS{3}) + 1)./detC; 
+Cinv(SROWS{2}) = (2.*E(SROWS{1}) + 2.*E(SROWS{3}) - E(SROWS{5}).^2 + 4.*E(SROWS{1}).*E(SROWS{3}) + 1)./detC; 
+Cinv(SROWS{3}) = (2.*E(SROWS{1}) + 2.*E(SROWS{2}) - E(SROWS{6}).^2 + 4.*E(SROWS{1}).*E(SROWS{2}) + 1)./detC; 
+Cinv(SROWS{4}) = (E(SROWS{5}).*E(SROWS{6}) - 2.*E(SROWS{1}).*E(SROWS{4}) - E(SROWS{4}))./detC; 
+Cinv(SROWS{5}) = (E(SROWS{4}).*E(SROWS{6}) - 2.*E(SROWS{2}).*E(SROWS{5}) - E(SROWS{5}))./detC; 
+Cinv(SROWS{6}) = (E(SROWS{4}).*E(SROWS{5}) - 2.*E(SROWS{3}).*E(SROWS{6}) - E(SROWS{6}))./detC; 

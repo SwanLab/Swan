@@ -1,0 +1,50 @@
+\subsection{SVD selection mode}
+
+\bbii
+\item QUESTION: Is there any conceptual impediment to set always $\nmodesUdom{e} = \nmodesRdom{e}$  ? Perhaps the criterion for filtering out modes should be led by the reactions modes rather than from displacements, isn't it ?  
+\item Goal: devise method for ensuring  $\nmodesUdom{e} = \nmodesRdom{e}$. 
+\item  Rationale: Deformational modes should do work to contiguous domains to be included in the corresponding matrix. 
+ 
+\eeii
+
+
+\subsubsection{Proposed procedure}
+
+
+\bbii
+\item  $\Y$: Snapshot matrix deformational displacements;    $\Z_f$: Snapshot matrix self-equilibrated forces
+\item  Given a tolerance TOL, calculate $\z \S_z \V_z^T =   \Z_f + \E(TOL)$,  where $\z \in \RRn{M}{r}$ (left-singular vectors)
+\item  Calculate $\y \S \V^T = \Y_f$,  where $\y \in \RRn{M}{n}$  ($n>r$). 
+\item  The column space of $\y$ maybe decomposed as 
+
+\begin{equation}
+ \y = \z \z^T \y  + (\ident - \z\z^T)\y
+\end{equation}
+
+We seek a basis matrix for displacements $\u$ of the form $\u = \y \A$, where $\A \in \RRn{n}{r}$ is a coefficient matrix. The displacement component $(\ident - \z\z^T)\y$ does not do any work.  Hence, $\u$ should be as\footnote{How to formalize this notion ? } ``aligned'' as possible to $\z$. Mathematically, this can be posed as the problem of minimizing the frobenius norm of $\z   -\y \A $. This is a standard minimization problem; its solution reads 
+\begin{equation}
+ \A = (\y^T \z)  
+\end{equation}
+Since $\y = \Y_f \V \S$, it follows that 
+\begin{equation}
+ \u =  \Y_f (\V \S \A)
+\end{equation}
+
+We are interested in global vectors (including all DOFs). Hence, the desired basis matrix is given  by 
+\begin{equation}
+ \U = \Y (\V \S \A)
+\end{equation}
+
+Matrix $\U$ is not orthogonal; therefore, a final SVD is required to turn it orthogonal. 
+ 
+
+
+
+
+ 
+
+
+
+\eeii
+
+ 

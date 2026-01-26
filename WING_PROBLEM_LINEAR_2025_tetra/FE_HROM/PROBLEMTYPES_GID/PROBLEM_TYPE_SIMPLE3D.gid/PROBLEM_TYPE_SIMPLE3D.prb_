@@ -1,0 +1,28 @@
+PROBLEM DATA
+QUESTION: No_Problemas
+VALUE: 1
+QUESTION: TITULO
+VALUE: Title_name
+QUESTION: Casos_De_Carga
+VALUE: 1
+QUESTION: Gr_Libertad_Nodo
+VALUE: 1
+QUESTION: No_Propiedades
+VALUE: 5
+QUESTION: No_Gauss#CB#(1,2,3,7)
+VALUE: 1
+QUESTION: Tipo_Problema#CB#(Tens-Plana,Def-Plana,Sol-Revol,Sol-Tridim,Placas,Laminas-Rev)
+VALUE: Tens-Plana
+QUESTION: Fichero_Result#CB#(Si,No)
+VALUE: Si
+QUESTION: Solver#CB#(1,2,3,4,5,6,7,8,9,10)
+VALUE: 10
+END PROBLEM DATA
+INTERVAL DATA
+QUESTION: Titulo_caso_carga
+VALUE: title
+QUESTION: Peso_Propio#CB#(si,no)
+VALUE: no
+QUESTION: Nombre_Femview
+VALUE: pepe
+END INTERVAL DATA

@@ -1,0 +1,2 @@
+detF =FgradST(FROWS{1}).*FgradST(FROWS{2}).*FgradST(FROWS{3}) - FgradST(FROWS{1}).*FgradST(FROWS{4}).*FgradST(FROWS{7}) - FgradST(FROWS{2}).*FgradST(FROWS{5}).*FgradST(FROWS{8}) - FgradST(FROWS{3}).*FgradST(FROWS{6}).*FgradST(FROWS{9}) + FgradST(FROWS{4}).*FgradST(FROWS{6}).*FgradST(FROWS{8}) + FgradST(FROWS{5}).*FgradST(FROWS{7}).*FgradST(FROWS{9});
+detF =FgradST(FROWS{1}).*FgradST(FROWS{2}) - FgradST(FROWS{3}).*FgradST(FROWS{4});

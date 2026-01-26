@@ -27,7 +27,7 @@ classdef Data < handle
         function obj = Data(cParams)            
             obj.init(cParams)
             obj.loadData();
-            %obj.buildModel();
+            obj.X = obj.buildModel(obj.X,obj.polynomialOrder);
             obj.splitdata()
             obj.nLabels   = size(obj.Ytrain,2);                        
             obj.nFeatures = size(obj.Xtrain,2);
@@ -74,6 +74,9 @@ classdef Data < handle
            end
         end
 
+
+        
+
     end
 
     methods (Access = private)
@@ -104,21 +107,24 @@ classdef Data < handle
         end
         
 
-        function Xful = buildModel(obj)
-            x  = obj.X;
-            d  = obj.polynomialOrder;
-            x1 = x(:,1);
-            x2 = x(:,2);
-            cont = 1;
-            for g = 1:d
-                for a = 0:g
-                    Xful(:,cont) = x2.^(a).*x1.^(g-a);
-                    cont = cont+1;
-                end
-            end
-            obj.X = Xful;
-        end
-        
+        % function Xful = buildModel(obj)
+        %     x  = obj.X;
+        %     d  = obj.polynomialOrder;
+        %     x1 = x(:,1);
+        %     x2 = x(:,2);
+        %     cont = 1;
+        %     for g = 1:d
+        %         for a = 0:g
+        %             Xful(:,cont) = x2.^(a).*x1.^(g-a);
+        %             cont = cont+1;
+        %         end
+        %     end
+        %     obj.X = Xful;
+        % end
+
+  
+
+
         function exponents = generateExponents(obj,targetDeg)
             % Initialization of parameters
             exponents = [];
@@ -157,4 +163,37 @@ classdef Data < handle
             obj.Ntest = ntest;
         end
     end
+
+
+    methods (Access = public, Static)
+
+       function Xful = buildModel(x,d)
+            [N,n] = size(x);
+            Xful = [];
+            for g = 1:d
+                E = Data.genExp(n,g);
+                for k = 1:size(E,1)
+                    c = ones(N,1);
+                    for j = 1:n
+                        c = c .* x(:,j).^E(k,j);
+                    end
+                    Xful = [Xful c];
+                end
+            end
+       end
+
+        function E = genExp(n,g)
+            if n==1
+                E = g;
+                return
+            end
+            E = [];
+            for k = 0:g
+                S = Data.genExp(n-1,g-k);
+                E = [E; k*ones(size(S,1),1) S];
+            end
+        end       
+
+    end
+
 end

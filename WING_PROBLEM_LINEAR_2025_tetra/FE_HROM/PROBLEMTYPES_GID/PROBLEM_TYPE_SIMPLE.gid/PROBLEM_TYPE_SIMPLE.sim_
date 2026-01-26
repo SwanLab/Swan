@@ -1,0 +1,64 @@
+cond Point-Constraints
+3
+global
+cond(int,5)
+1
+0
+0
+apoio3d.geo
+global
+cond(int,1) && cond(int,3)
+1
+0
+0
+apoio.geo
+global
+cond(int,1) || cond(int,3) 
+cond(int,3)
+cond(int,1)*(-1)
+0
+apoio-rodillo.geo
+cond Point-Load
+1
+global
+1
+cond(real,1)
+cond(real,2)
+cond(real,3)
+fletxa.geo
+cond Face-Load
+3
+local
+fabs(cond(real,1))>1e-5 && fabs(cond(real,2))<1e-5 
+1
+0
+0
+Normal.geo
+local
+fabs(cond(real,1))<1e-5 && fabs(cond(real,2))>1e-5 
+1
+0
+0
+Tangencial.geo
+local
+fabs(cond(real,1))>1e-5 && fabs(cond(real,2))>1e-5
+1
+0
+0
+Normal-Tangen.geo
+cond Line-Constraints
+1
+local
+1
+1
+0
+0
+apoioL.geo
+cond Surface-Constraints
+1
+local
+1
+1
+0
+0
+apoioS.geo
