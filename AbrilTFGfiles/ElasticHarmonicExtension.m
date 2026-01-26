@@ -6,7 +6,6 @@ classdef ElasticHarmonicExtension < handle
         lambdaFun
         material
         dirichletFun
-        localGlobalConnecBd
     end
 
     methods (Access = public)
@@ -15,21 +14,12 @@ classdef ElasticHarmonicExtension < handle
             obj.init(cParams)
         end
 
-        function [u,L,K,Kc] = solve(obj)
-            K = obj.computeKfine();
-            LHS=obj.computeLHS(K);
-            RHS=obj.computeRHS();
+        function [u,lambda,K,Kc] = solve(obj)
+            K   = obj.computeKfine();
+            LHS = obj.computeLHS(K);
+            RHS = obj.computeRHS();
             sol = LHS\RHS;
-            u = sol(1:obj.uFun.nDofs,:);
-            L = -sol(obj.uFun.nDofs+1:end,:);
-            if isa(obj.lambdaFun, "LagrangianFunction")
-                l2g_dof = ((obj.localGlobalConnecBd*obj.uFun.ndimf)' - ((obj.uFun.ndimf-1):-1:0))';
-                l2g_dof = l2g_dof(:);
-                uB = u(l2g_dof, :);
-                L = uB'*L;
-            end
-            u=full(u);
-            L=full(L);
+            [u,lambda] = obj.computeFunctions(sol);
             Kc = u.'*K*u;
         end
 
@@ -43,7 +33,6 @@ classdef ElasticHarmonicExtension < handle
             obj.lambdaFun    = cParams.lambdaFun;
             obj.material     = cParams.material;
             obj.dirichletFun = cParams.dirichletFun;
-            obj.localGlobalConnecBd = cParams.localGlobalConnecBd;
         end
 
         function K = computeKfine(obj)
@@ -59,7 +48,7 @@ classdef ElasticHarmonicExtension < handle
             LHS = [K C; C' Z];
         end   
 
-        function RHS=computeRHS(obj)            
+        function RHS = computeRHS(obj)            
             uD   = obj.dirichletFun;
             rDir = zeros(obj.lambdaFun.nDofs,numel(uD));
             for iD = 1:numel(uD)
@@ -68,7 +57,19 @@ classdef ElasticHarmonicExtension < handle
             end
             Z   = zeros(obj.uFun.nDofs,numel(uD));
             RHS = [Z; rDir];
-        end        
+        end      
+
+        function [uFun,lambdaFun] = computeFunctions(obj,sol)
+            u = sol(1:obj.uFun.nDofs,:);
+            L = -sol(obj.uFun.nDofs+1:end,:);
+            u=full(u);
+            L=full(L);
+            %loop
+            % u = copy(obj.uFun);
+            % uFun{i} = u.setFValues();
+            %u, L as uFun and lambdFun
+
+        end
 
     end
 

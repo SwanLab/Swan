@@ -24,16 +24,15 @@ classdef EIFEMTraining < handle
 
         function data=train(obj)
             obj.repeatMesh();  %create MeshDomain
-            [bMesh, lGCBd] = obj.meshDomain.createSingleBoundaryMesh();
+            bMesh = obj.meshDomain.createSingleBoundaryMesh();
             cF = CoarseFunction(bMesh,obj.Coarseorder);
             dirchletFun = cF.f;
 
-            s.mesh      = obj.meshDomain;
-            s.uFun      = LagrangianFunction.create(obj.meshDomain,obj.meshDomain.ndim,'P1');
-            s.lambdaFun = LagrangianFunction.create(bMesh,obj.meshDomain.ndim,'P1');
-            s.material  = obj.material;
+            s.mesh         = obj.meshDomain;
+            s.uFun         = LagrangianFunction.create(obj.meshDomain,obj.meshDomain.ndim,'P1');
+            s.lambdaFun    = LagrangianFunction.create(bMesh,obj.meshDomain.ndim,'P1');
+            s.material     = obj.material;
             s.dirichletFun = dirchletFun;
-            s.localGlobalConnecBd = lGCBd;
             e  = ElasticHarmonicExtension(s);
             [u,~,K] = e.solve();
 

@@ -26,15 +26,14 @@ for j = 1:size(r,2)
     switch p.Training
         case 'Multiscale'
             material = createMaterialTraining(mR, radius,[1 1],p.Inclusion);
-            mesh           = mR;
-            [bMesh,lGCBd]   = mesh.createSingleBoundaryMesh();
+            mesh    = mR;
+            bMesh   = mesh.createSingleBoundaryMesh();
             cF = CoarseFunction(bMesh,1);
             s.mesh          = mesh;
             s.uFun          = LagrangianFunction.create(mesh, mesh.ndim, 'P1');
             s.lambdaFun     = LagrangianFunction.create(bMesh,mesh.ndim, 'P1');
             s.material      = material;
             s.dirichletFun  = cF.f;
-            s.localGlobalConnecBd = lGCBd;
             e  = ElasticHarmonicExtension(s);
             [T,lambda,K,Kcoarse] = e.solve();
 
