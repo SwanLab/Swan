@@ -117,7 +117,7 @@ classdef StiffnessEigenModesComputer < handle
             dm     = obj.createDomainFunction(obj.massInterpolator.dfun, xR);  
             fValues = obj.fillVectorWithHomogeneousDirichlet(phi);
             obj.phi.setFValues(fValues);
-            dlambda = (dC.*DDP(SymGrad(obj.phi), SymGrad(obj.phi)) - lambda*dm.*obj.phi.*obj.phi);
+            dlambda = (dC*DDP(SymGrad(obj.phi), SymGrad(obj.phi)) - lambda*dm.*obj.phi.*obj.phi);
             %dlambda = (dalpha.*DP(Grad(obj.phi), Grad(obj.phi)) - lambda*dm.*obj.phi.*obj.phi); 
         end
         
