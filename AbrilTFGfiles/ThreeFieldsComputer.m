@@ -18,7 +18,7 @@ classdef ThreeFieldsComputer < handle
 
         function [u,lambda,K,Kc] = solve(obj)
             K   = obj.computeKfine();
-            A   = obj.computeLambdaUdom();
+            A   = obj.computeConditionMatrix(obj.lambdaFun,obj.uFun);
             LHS = obj.computeLHS(K);
             RHS = obj.computeRHS();
             sol = LHS\RHS;
@@ -51,6 +51,11 @@ classdef ThreeFieldsComputer < handle
              % uBdFun = obj.uFun.restrictToBoundary();
              f = @(v,u) DP(v,u);
              A= IntegrateLHS(f,obj.lambdaFun,obj.uFun,obj.singleBdMesh,'Boundary',2);
+        end
+
+        function A = computeConditionMatrix(obj,u,v)
+             f = @(v,u) DP(v,u);
+             A= IntegrateLHS(f,v,u,obj.singleBdMesh,'Boundary',2);
         end
 
         function LHS=computeLHS(obj,K)
