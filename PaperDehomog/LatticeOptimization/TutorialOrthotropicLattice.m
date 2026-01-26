@@ -100,6 +100,8 @@ classdef TutorialOrthotropicLattice < handle
             % s.Chomog.dfun = df;
             % s.Chomog.ddfun = ddf;
 
+            %create Interpolator Based on StructuredMesh
+
             
             s.type     = 'HomogenizedMicrostructure';
             s.mesh     = obj.mesh;
