@@ -55,12 +55,12 @@ classdef HomogenizedMicrostructureInterpolator < handle
             nGaus = size(xV,2);
             nElem = obj.mesh.nelem;
             C = zeros(nStre,nStre,nStre,nStre,nGaus,nElem);
-            phiV = obj.density{1}.evaluate(xV);
+            rhoV = obj.density{1}.evaluate(xV);
             for i = 1:nStre
                 for j = 1:nStre
                     for k=1:nStre
                         for l=1:nStre
-                            C(i,j,k,l,:,:) = fun{i,j,k,l}(phiV);
+                            C(i,j,k,l,:,:) = fun{i,j,k,l}(rhoV);
                         end
                     end
                 end
