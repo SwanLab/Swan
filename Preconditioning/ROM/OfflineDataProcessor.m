@@ -12,6 +12,7 @@ classdef OfflineDataProcessor < handle
         fValuesTraining
         RigidBodyFun
         DeformationalFun
+        material
 
         fileNameData
 
@@ -142,6 +143,7 @@ classdef OfflineDataProcessor < handle
             obj.fValuesTraining = cParams.uSbd;
             obj.LHS             = cParams.LHSsbd;
             obj.Coarseorder     = cParams.Coarseorder;
+            obj.material        = cParams.material;
         end
 
         function uFun = createDispFun(obj)
@@ -348,16 +350,6 @@ classdef OfflineDataProcessor < handle
             end            
         end
 
-         function material = createMaterial(obj,mesh)
-            [young,poisson] = obj.computeElasticProperties(mesh);
-            s.type    = 'ISOTROPIC';
-            s.ptype   = 'ELASTIC';
-            s.ndim    = mesh.ndim;
-            s.young   = young;
-            s.poisson = poisson;
-            tensor    = Material.create(s);
-            material  = tensor;
-        end
 
         function [young,poisson] = computeElasticProperties(obj,mesh)
             E1  = 1;
@@ -384,7 +376,7 @@ classdef OfflineDataProcessor < handle
         end
 
         function K  = computeLHS(obj,u)          
-            C = obj.createMaterial(obj.mesh);
+            C = obj.material;
             K = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),u,u,obj.mesh,'Domain',2);
         end
 
