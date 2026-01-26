@@ -41,7 +41,7 @@ classdef TutorialOrthotropicLattice < handle
         end
 
         function createMesh(obj)
-            obj.mesh = TriangleMesh(2,1,100,50);
+            obj.mesh = TriangleMesh(2,1,50,25);
         end
 
         function createDesignVariable(obj)
@@ -197,11 +197,11 @@ classdef TutorialOrthotropicLattice < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 3;
+            s.maxIter        = 500;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
-            s.etaNorm        = 0.01;
+            s.etaNorm        = 0.1;
             s.gJFlowRatio    = 2;
             s.primalUpdater  = obj.primalUpdater;
             s.gif            = false;
@@ -211,6 +211,31 @@ classdef TutorialOrthotropicLattice < handle
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
+
+
+            % 
+            % s.nConstraints   = 1;
+            % l                = DualVariable(s);
+            % dualVariable = l;            
+            % s.monitoring     = true;
+            % s.cost           = obj.cost;
+            % s.constraint     = obj.constraint;
+            % s.designVariable = obj.designVariable;
+            % s.dualVariable   = dualVariable;
+            % s.maxIter        = 1000;
+            % s.tolerance      = 1e-8;
+            % s.constraintCase = 'EQUALITY';
+            % s.ub             = 1;
+            % s.lb             = 0;
+            % s.gif            = false;
+            % s.gifName        = [];
+            % s.printing       = false;
+            % s.printName      = [];
+            % opt = OptimizerMMA(s);
+            % opt.solveProblem();
+            % obj.optimizer = opt;
+
+
         end
 
         function bc = createBoundaryConditions(obj)

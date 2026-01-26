@@ -58,7 +58,7 @@ classdef HomogenizedMicrostructureInterpolator < handle
         function loadVademecum(obj)
             fName = [obj.fileName];
             matFile   = [fName,'.mat'];
-            file2load = fullfile('TOVademecum','Interpolation',matFile);
+            file2load = matFile;%fullfile('TOVademecum','Interpolation',matFile);
             v = load(file2load);
             if isfield(v,'Interpolation')
                 E = obj.young;
