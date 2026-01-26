@@ -58,8 +58,8 @@ classdef Eigs_Anisotropic_0_Density < handle
         function createMesh(obj)
             %UnitMesh better
             % Cantilever beam
-            x1      = linspace(0,2,150);
-            x2      = linspace(0,1,75);
+            x1      = linspace(0,2,50);
+            x2      = linspace(0,1,25);
             % MBB Beam
             % x1      = linspace(0,6,500);
             % x2      = linspace(0,1,75);
@@ -308,11 +308,11 @@ classdef Eigs_Anisotropic_0_Density < handle
             isRight = @(coor) abs(coor(:,1))==xMax;
             isFront = @(coor) abs(coor(:,2))==yMin;
             isBack = @(coor) abs(coor(:,2))== yMax;
-            isDir   = @(coor) isLeft(coor) | isRight(coor) | isFront(coor) | isBack(coor);  
+            isDir   = @(coor) isLeft(coor);% | isRight(coor) | isFront(coor) | isBack(coor);  
             sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = 1;
+            sDir{1}.direction = [1,2];
             sDir{1}.value     = 0;
-            sDir{1}.ndim = 1;
+            sDir{1}.ndim = 2;
             
             dirichletFun = [];
             for i = 1:numel(sDir)

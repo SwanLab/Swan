@@ -116,9 +116,13 @@ classdef StiffnessEigenModesComputer < handle
             %dalpha = obj.createDomainFunction(obj.elasticityInterpolator.dfun, xR);
             dm     = obj.createDomainFunction(obj.massInterpolator.dfun, xR);  
             fValues = obj.fillVectorWithHomogeneousDirichlet(phi);
+            fValues = reshape(fValues,obj.mesh.ndim,obj.mesh.nnodes)';
             obj.phi.setFValues(fValues);
-            dlambda = (dC*DDP(SymGrad(obj.phi),DDP(dC,SymGrad(obj.phi))) - lambda*dm.*obj.phi.*obj.phi);
-            %dlambda = (dalpha.*DP(Grad(obj.phi), Grad(obj.phi)) - lambda*dm.*obj.phi.*obj.phi); 
+            strain = SymGrad(obj.phi);
+            dsigma  = DDP(dC{1},strain);
+            dlambda = DDP(strain,dsigma)-lambda.*dm.*DP(obj.phi,obj.phi); 
+            %dlambda = (DP(Grad(obj.phi), dalpha.*Grad(obj.phi)) - lambda*dm.*obj.phi.*
+            % obj.phi); 
         end
         
     end
