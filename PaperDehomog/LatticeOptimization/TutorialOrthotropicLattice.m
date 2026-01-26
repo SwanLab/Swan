@@ -89,33 +89,23 @@ classdef TutorialOrthotropicLattice < handle
         end
 
         function m = createMaterial(obj)
+            fName = 'HomogenizationResultsReinforcedHexagon';
+            matFile   = [fName,'.mat'];
+            v = load(matFile);
 
-            x = obj.designVariable;
-            f = x.obtainDomainFunction();
-            f = f{1}.project('P1'); 
-            
-            sFilter.filterType = 'LUMP'; 
-            sFilter.mesh = obj.mesh;
-            sFilter.trial = LagrangianFunction.create(obj.mesh, 1, 'P1');
-            filterRho = Filter.create(sFilter);
-            
-            f_filtered = filterRho.compute(f, 1); 
+            % phi = v.phi; mat = v.mat;
+            % DHF = DamageHomogenizationFitter();
+            % [f,df,ddf] = DHF.computePolynomialFitting(9,phi,mat);
+            % s.Chomog.fun = f;
+            % s.Chomog.dfun = df;
+            % s.Chomog.ddfun = ddf;
 
-            s.density  =  f_filtered; 
+            
             s.type     = 'HomogenizedMicrostructure';
             s.mesh     = obj.mesh;
-            s.young    = 1.0;
-            s.fileName = 'HomogenizationResultsReinforcedHexagon';
+            s.Chomog   = v.Interpolation;
             m = MaterialFactory.create(s);
 
-
-            % f = obj.designVariable.fun;           
-            % s.type                 = 'DensityBased';
-            % s.density              = f;
-            % s.materialInterpolator = obj.materialInterpolator;
-            % s.dim                  = '2D';
-            % s.mesh                 = obj.mesh;
-            % m = Material.create(s);
         end
 
         function createElasticProblem(obj)
@@ -186,7 +176,7 @@ classdef TutorialOrthotropicLattice < handle
 
         function createPrimalUpdater(obj)
             s.ub     = 1;
-            s.lb     = 0;
+            s.lb     = 0.01;
             s.tauMax = 1000;
             s.tau    = [];
             obj.primalUpdater = ProjectedGradient(s);
@@ -213,7 +203,7 @@ classdef TutorialOrthotropicLattice < handle
             obj.optimizer = opt;
 
 
-            % 
+
             % s.nConstraints   = 1;
             % l                = DualVariable(s);
             % dualVariable = l;            
