@@ -35,14 +35,18 @@ classdef Mesh < handle
     methods (Static, Access = public)
         
         function obj = create(cParams)
-            s = SettingsMesh(cParams);
-            switch s.geometryType
+            if ~(isfield(cParams,'kFace'))
+                cParams.kFace = 0;
+            end
+            g = GeometryType.compute(cParams);
+            cParams.type = MeshTypeComputer.compute(cParams.connec,g);
+            switch g
                 case 'Line'
-                    obj = LineMesh(s);
+                    obj = LineMesh(cParams);
                 case 'Surface'
-                    obj = SurfaceMesh(s);
+                    obj = SurfaceMesh(cParams);
                 case 'Volume'
-                    obj = VolumeMesh(s);
+                    obj = VolumeMesh(cParams);
             end
         end
         
@@ -264,12 +268,18 @@ classdef Mesh < handle
 
         function [m, l2g] = createSingleBoundaryMesh(obj)
             % To BoundaryMesh
-            switch obj.ndim
-                case 2
-                    [m, l2g] = obj.createSingleBoundaryMesh2D();
-                case 3
-                    [m, l2g] = obj.createSingleBoundaryMesh3D();
+            if isempty(obj.bMesh)
+                switch obj.ndim
+                    case 2
+                        [m, l2g] = obj.createSingleBoundaryMesh2D();
+                    case 3
+                        [m, l2g] = obj.createSingleBoundaryMesh3D();
+                end
+                obj.bMesh.mesh = m;
+                obj.bMesh.l2g  = l2g;
             end
+            m = obj.bMesh.mesh;
+            l2g = obj.bMesh.l2g;
         end
         
         function [m, l2g] = getBoundarySubmesh(obj, domain)
