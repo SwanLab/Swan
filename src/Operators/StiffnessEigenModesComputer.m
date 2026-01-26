@@ -112,11 +112,13 @@ classdef StiffnessEigenModesComputer < handle
         end
 
         function dlambda = computeLowestEigenValueGradient(obj, lambda, phi, xR)
-            dalpha = obj.createDomainFunction(obj.elasticityInterpolator.dfun, xR);
+            dC   = obj.material.obtainTensorDerivative();
+            %dalpha = obj.createDomainFunction(obj.elasticityInterpolator.dfun, xR);
             dm     = obj.createDomainFunction(obj.massInterpolator.dfun, xR);  
             fValues = obj.fillVectorWithHomogeneousDirichlet(phi);
             obj.phi.setFValues(fValues);
-            dlambda = (dalpha.*DP(Grad(obj.phi), Grad(obj.phi)) - lambda*dm.*obj.phi.*obj.phi); 
+            dlambda = (dC.*DDP(SymGrad(obj.phi), SymGrad(obj.phi)) - lambda*dm.*obj.phi.*obj.phi);
+            %dlambda = (dalpha.*DP(Grad(obj.phi), Grad(obj.phi)) - lambda*dm.*obj.phi.*obj.phi); 
         end
         
     end
