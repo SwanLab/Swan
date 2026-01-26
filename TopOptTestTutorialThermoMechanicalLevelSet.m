@@ -44,8 +44,8 @@ classdef TopOptTestTutorialThermoMechanicalLevelSet < handle
 
        function createMesh(obj)
             %UnitMesh better
-            x1      = linspace(0,2,60);
-            x2      = linspace(0,1,30);
+            x1      = linspace(0,1,100);
+            x2      = linspace(0,1,100);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -135,7 +135,7 @@ classdef TopOptTestTutorialThermoMechanicalLevelSet < handle
             % Thermal
             s.materialInterpolator = obj.thermalmaterialInterpolator;
             s.alpha = 3e-2;  
-            s.source  =  ConstantFunction.create(100,obj.mesh);
+            s.source  =  ConstantFunction.create(0,obj.mesh);
             s.T0 = ConstantFunction.create(0,obj.mesh);   
             s.boundaryConditionsThermal = obj.createBoundaryConditionsThermal();
             
@@ -208,7 +208,7 @@ classdef TopOptTestTutorialThermoMechanicalLevelSet < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 700;
+            s.maxIter        = 600;
             s.tolerance      = 1e-8;
             s.constraintCase = {'INEQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
@@ -234,12 +234,12 @@ classdef TopOptTestTutorialThermoMechanicalLevelSet < handle
             yMax    = max(obj.mesh.coord(:,2));
 
 %             Cantilever beam
-            % isDir   = @(coor)  abs(coor(:,1))==0;
-            % isForce = @(x)  (abs(x(1,:,:))==xMax & abs(x(2,:,:))>=0.4*yMax & abs(x(2,:,:))<=0.6*yMax);
+            isDir   = @(coor)  abs(coor(:,1))==xMin;
+            isForce = @(x)  (abs(x(1,:,:))==xMax & abs(x(2,:,:))>=0.4*yMax & abs(x(2,:,:))<=0.6*yMax);
 
 %             Clampled beam
-            isDir   = @(coor)  abs(coor(:,1))== xMin | abs(coor(:,1))==xMax;
-            isForce = @(x)  (abs(x(2,:,:))== yMin & abs(x(1,:,:))>=0.4*xMax & abs(x(1,:,:))<=0.6*xMax);
+            % isDir   = @(coor)  abs(coor(:,1))== xMin | abs(coor(:,1))==xMax;
+            % isForce = @(x)  (abs(x(2,:,:))== yMin & abs(x(1,:,:))>=0.4*xMax & abs(x(1,:,:))<=0.6*xMax);
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2];
@@ -275,13 +275,13 @@ classdef TopOptTestTutorialThermoMechanicalLevelSet < handle
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
 
-%             isDir   = @(coor) abs(coor(:,2))==yMin & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax;  
+             isDir   = @(coor) abs(coor(:,2))==yMin & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax;  
             
-            isDir   = @(coor) abs(coor(:,2))==yMin | abs(coor(:,2))==yMax | abs(coor(:,1))==xMin | abs(coor(:,1))==xMax;  
+             %isDir   = @(coor) abs(coor(:,2))==yMin | abs(coor(:,2))==yMax | abs(coor(:,1))==xMin | abs(coor(:,1))==xMax;  
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = 1;
-            sDir{1}.value     = 0;
+            sDir{1}.value     = 5;
             sDir{1}.ndim = 1;
             
             dirichletFun = [];

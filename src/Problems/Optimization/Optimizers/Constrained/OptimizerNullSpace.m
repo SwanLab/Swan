@@ -66,7 +66,7 @@ classdef OptimizerNullSpace < handle
                 obj.checkConvergence();
                 obj.designVariable.updateOld();
                 % if obj.nIter == 1 || mod(obj.nIter,50)== 0
-                %     obj.designVariable.fun.print('TED.'+string(obj.nIter),'Paraview') 
+                %     obj.designVariable.fun.print('TE-LS.'+string(obj.nIter),'Paraview') 
                 % end 
                 obj.obtainGIF()
             end

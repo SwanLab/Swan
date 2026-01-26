@@ -133,7 +133,7 @@ classdef TopOptTestTutorialThermoMechanicalDensity < handle
             s.materialInterpolator = obj.thermalmaterialInterpolator;
             s.alpha = 3e-2;  
             s.source  =  ConstantFunction.create(0,obj.mesh);
-            s.T0 = ConstantFunction.create(5,obj.mesh);   
+            s.T0 = ConstantFunction.create(0,obj.mesh);   
             s.boundaryConditionsThermal = obj.createBoundaryConditionsThermal();
             
            

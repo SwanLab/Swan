@@ -120,12 +120,6 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
 %             sD.isFixed.values = 1*(obj.chiB0.fValues > 0); %Density
             %sD.isFixed.values = -1*(obj.chiB0.fValues > 0); %LevelSet
 
-            a =LagrangianFunction.create(obj.mesh,1,'P1');
-            values = zeros(size(obj.mesh.coord,1),1);
-            values(isNonDesign(obj.mesh.coord)) = 1;
-            a.setFValues(values);
-            a.plot();
-
             dens        = DesignVariable.create(sD);
             obj.designVariable = dens;
         end
@@ -150,7 +144,7 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
 
         function createMaterialInterpolator(obj)
             
-            E0 =  ConstantFunction.create(1e-3,obj.mesh);
+            E0 =  ConstantFunction.create(1e-5,obj.mesh);
             nu0 = 1/3;
             ndim = obj.mesh.ndim;
 
@@ -161,8 +155,6 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
             Eb = ConstantFunction.create(1.5/68,obj.mesh); % Battery E_bat_ = 1.5e09
             obj.createBatteryDomain();
             E1 = Ea.*(1 - obj.chiB) + Eb.*obj.chiB; 
-
-            %E1 = (1-Ea).*obj.chiB + Eb.*obj.chiB; written by Alex
 
             nu1 = 1/3;
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
@@ -202,8 +194,8 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
 
             % Thermal
             s.materialInterpolator = obj.thermalmaterialInterpolator;
-            s.alpha = 3e-2; 
-            s.source  =  ConstantFunction.create(0,obj.mesh).*obj.chiB.project('P1'); %P=2.5
+            s.alpha = 50; 
+            s.source  =  ConstantFunction.create(1,obj.mesh).*obj.chiB.project('P1'); %P=2.5
             s.T0 = ConstantFunction.create(0,obj.mesh);   
             s.boundaryConditionsThermal = obj.createBoundaryConditionsThermal();
             
@@ -225,6 +217,8 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
             s.complianceFromConstitutive  = obj.createComplianceFromConstiutive();
             s.material                    = obj.createMaterial();
             s.conductivity                = obj.thermalmaterialInterpolator();
+            s.chiB                        = obj.chiB;
+            s.kappaB                      = 1.25/220;
             c = ComplianceFunctionalThermoElastic(s);
             obj.compliance = c;
         end
@@ -307,12 +301,13 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 2000;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.ub             = 1;
             s.lb             = 0;
-            s.volumeTarget   = 0.4;
+            s.volumeTarget   = 0.5;
+
             s.gif=false;
             s.gifName='ThermalDensity';
             s.printing=true;
