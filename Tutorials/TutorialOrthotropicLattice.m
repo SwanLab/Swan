@@ -89,13 +89,33 @@ classdef TutorialOrthotropicLattice < handle
         end
 
         function m = createMaterial(obj)
-            f = obj.designVariable.fun;           
-            s.type                 = 'DensityBased';
-            s.density              = f;
-            s.materialInterpolator = obj.materialInterpolator;
-            s.dim                  = '2D';
-            s.mesh                 = obj.mesh;
-            m = Material.create(s);
+
+            x = obj.designVariable;
+            f = x.obtainDomainFunction();
+            f = f{1}.project('P1'); 
+            
+            sFilter.filterType = 'LUMP'; 
+            sFilter.mesh = obj.mesh;
+            sFilter.trial = LagrangianFunction.create(obj.mesh, 1, 'P1');
+            filterRho = Filter.create(sFilter);
+            
+            f_filtered = filterRho.compute(f, 1); 
+
+            s.density  =  f_filtered; 
+            s.type     = 'HomogenizedMicrostructure';
+            s.mesh     = obj.mesh;
+            s.young    = 1.0;
+            s.fileName = 'HomogenizationResultsReinforcedHexagon';
+            m = MaterialFactory.create(s);
+
+
+            % f = obj.designVariable.fun;           
+            % s.type                 = 'DensityBased';
+            % s.density              = f;
+            % s.materialInterpolator = obj.materialInterpolator;
+            % s.dim                  = '2D';
+            % s.mesh                 = obj.mesh;
+            % m = Material.create(s);
         end
 
         function createElasticProblem(obj)
