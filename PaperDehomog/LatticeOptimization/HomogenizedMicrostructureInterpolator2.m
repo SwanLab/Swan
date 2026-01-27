@@ -1,4 +1,4 @@
-classdef HomogenizedMicrostructureInterpolator < Material
+classdef HomogenizedMicrostructureInterpolator2 < Material
     
     properties (Access = private)
         fileName
@@ -9,7 +9,7 @@ classdef HomogenizedMicrostructureInterpolator < Material
     
     methods (Access = public)
         
-        function obj = HomogenizedMicrostructureInterpolator(cParams)
+        function obj = HomogenizedMicrostructureInterpolator2(cParams)
             obj.init(cParams);
             [mx,my,C] = obj.loadVademecum();
             obj.createStructuredMesh(mx,my);
