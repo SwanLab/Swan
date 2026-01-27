@@ -48,8 +48,6 @@ for j = 1:size(r,2)
             s.nSubdomains    = nS;            
             m= EIFEMTraining(s);
             data          = m.train();
-            data.E        = young;
-            data.nu       = poisson;
             data.material = createMaterialTraining(mR, radius,[1 1],p.Inclusion);
             z = OfflineDataProcessor(data);
 

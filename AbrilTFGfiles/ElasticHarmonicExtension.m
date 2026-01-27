@@ -64,6 +64,10 @@ classdef ElasticHarmonicExtension < handle
             L = -sol(obj.uFun.nDofs+1:end,:);
             u=full(u);
             L=full(L);
+            
+            % canviar
+            uFun=u;
+            lambdaFun=L;
             %loop
             % u = copy(obj.uFun);
             % uFun{i} = u.setFValues();

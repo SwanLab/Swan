@@ -46,6 +46,7 @@ classdef OfflineDataProcessor < handle
 
             [Vfun,Vfun2] = obj.createInterfaceModesFun(bMesh);
 
+
             uDefFunBd  = obj.restrictToBoundary(uDefFun,bMesh);
             RBFunBd    = obj.restrictToBoundary(uRBfun(1),bMesh); %only the first bevause we just want the basis!
             LMDefFunBd = obj.restrictToBoundary(LMDefFun,bMesh);
@@ -325,6 +326,18 @@ classdef OfflineDataProcessor < handle
 
             f     = {f1x f1y  f2x f2y f3x f3y f4x f4y}; %
 
+            boundMesh=obj.mesh.createSingleBoundaryMesh();
+                  nfun = length(f);
+              for k = 1:nfun
+                  uD{k} = AnalyticalFunction.create(f{k}, boundMesh);
+              end
+              f = uD;
+
+            
+            cf=CoarseFunction(boundMesh,1);
+            f2=cf.f;
+            f3=InterfaceFunctions(boundMesh, 1);
+
             %CoarseFunction 
             %Netejar Coarse funciton
 
@@ -343,31 +356,13 @@ classdef OfflineDataProcessor < handle
                 Vfun{ibd} = ModalFunction.create(mesh,VCoeff,functionType);
             end
 
-            [bMesh2,lGCBd]   = obj.mesh.createSingleBoundaryMesh();            
+            bMesh2   = obj.mesh.createSingleBoundaryMesh();            
             Vfun2=cell(1,8);
             for i=1:nfun
                 Vfun2{i}  = AnalyticalFunction.create(f{i},bMesh2);
             end            
         end
 
-
-        function [young,poisson] = computeElasticProperties(obj,mesh)
-            E1  = 1;
-            E2 = E1/1000;
-            nu = 1/3;
-%            young   = ConstantFunction.create(obj.E,mesh);
-%            poisson = ConstantFunction.create(obj.nu,mesh);
-           radius = 0.1;
-           x0=mean(mesh.coord(:,1));
-            y0=mean(mesh.coord(:,2));
-%             young   = ConstantFunction.create(E,mesh);
-%             poisson = ConstantFunction.create(nu,mesh);
-            f   = @(x) (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)<radius)*E2 + ...
-                        (sqrt((x(1,:,:)-x0).^2+(x(2,:,:)-y0).^2)>=radius)*E1 ; 
-
-            young   = AnalyticalFunction.create(f,mesh);
-            poisson = ConstantFunction.create(nu,mesh);
-        end
 
         function [LHS,u] = createElasticProblem(obj)
             u = LagrangianFunction.create(obj.mesh,obj.mesh.ndim,'P1');

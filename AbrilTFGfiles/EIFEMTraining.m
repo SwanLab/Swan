@@ -34,7 +34,7 @@ classdef EIFEMTraining < handle
             s.material     = obj.material;
             s.dirichletFun = dirchletFun;
             e  = ElasticHarmonicExtension(s);
-            [u,~,K] = e.solve();
+            [u,~,K,~] = e.solve();
 
             [data.uSbd,data.LHSsbd] = obj.extractDomainData(u,K);
              data.mesh= obj.mesh;
