@@ -48,7 +48,7 @@ classdef CohesiveMesh < handle
         function obj = CohesiveMesh()
             
             obj.init()
-            obj.baseMeshCreator(2)
+            obj.baseMeshCreator(3)
             
             obj.detectFracturedEdges()
             obj.computeCenterElements 
@@ -56,7 +56,7 @@ classdef CohesiveMesh < handle
             obj.computeIsLeftIsRight()
             obj.duplicator()
             obj.updateConnecOfLeftElements()
-            % shiftCoordOfLeftAndRightElements();
+            obj.shiftCoordOfLeftAndRightElements();
             
             obj.newMesh()
         end
@@ -160,7 +160,8 @@ classdef CohesiveMesh < handle
             %[idx, loc] = ismember(A, M(:,1));
             %A(idx) = M(loc(idx), 2);
 
-
+            
+            
             for i =1:length(listLeftElems)
                 e = listLeftElems(i);
 
@@ -194,7 +195,23 @@ classdef CohesiveMesh < handle
             
             centerEdges = 0.5*(coord1 + coord2);            
         end
-    
+        
+        function shiftCoordOfLeftAndRightElements(obj,separation)
+                        
+            normal = obj.normals;
+
+            shiftVector = 0.5*([normal;zeros(1,size(normal,2))]+[zeros(1,size(normal,2));normal]);
+            shiftVector(1,:) = normal(1,:); shiftVector(end,:) = normal(end,:);
+            shiftVector = shiftVector./vecnorm(shiftVector,2,2); %esta ordenat segons listCohesiveNodes
+            
+            rightNodes = obj.listNodeCohesive;
+            leftNodes = getPair(rightNodes);
+
+            obj.newCoord(rightNodes,:) = obj.newCoord(rightNodes,:) - shiftVector*separation/2;
+            obj.newCoord(leftNodes,:) = obj.newCoord(leftNodes,:) + shiftVector*separation/2;
+
+        end
+
     
     end
         
