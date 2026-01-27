@@ -1,0 +1,35 @@
+IMPORT "io.edp"
+
+mesh Th = importMesh("Th");
+real [int] phiVal = importArray("phiVal");
+int labelDir = importVar("labelDir");
+int labelNeu = importVar("labelNeu");
+real [int] AchiVal = importArray("AchiVal");
+
+fespace Vh(Th,P1);
+fespace Vh0(Th,P0);
+Vh phi;
+Vh0 Achi;
+phi[] = phiVal;
+
+Achi[] = AchiVal;
+
+/* State problem */
+Vh ux, uy, vx, vy;
+real mu = 0.3846;   // Lamé coefficients
+real lambda = 0.5769;
+real gx = 0.0;  // Load
+real gy = -1.0;
+problem elasticity([ux,uy],[vx,vy]) = int2d(Th)(Achi*mu*(2.0*dx(ux)*dx(vx) + (dx(uy)+dy(ux))*(dx(vy)+dy(vx))
+                                          + 2.0*dy(uy)*dy(vy)) + Achi*lambda*(dx(ux)+dy(uy))*(dx(vx)+dy(vy)) )
+                           - int1d(Th,labelNeu)(gx*vx+gy*vy)
+                           + on(labelDir,ux=0.0,uy=0.0);
+
+elasticity;
+
+real J = (int2d(Th)(Achi*mu*(2.0*dx(ux)*dx(ux) + (dx(uy)+dy(ux))*(dx(uy)+dy(ux))
+                      + 2.0*dy(uy)*dy(uy)) + Achi*lambda*(dx(ux)+dy(uy))*(dx(ux)+dy(uy))));
+
+exportVar(J);
+exportArray(ux[]);
+exportArray(uy[]);

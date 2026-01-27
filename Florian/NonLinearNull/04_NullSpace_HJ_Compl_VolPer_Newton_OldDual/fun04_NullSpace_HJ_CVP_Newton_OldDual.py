@@ -21,12 +21,12 @@ from pymedit import P1Function
 
 
 
-def FunctionCase03(maxItj,stepHJ,No,maxIter):
+def FunctionCase04(case,No,maxIter):
 
     ## FREEFEM PROBLEM DEFINITION
-    path = "NonLinearNull/03_NullSpace_HJ_Compl_VolPer_Iterative/"
+    path = "NonLinearNull/04_NullSpace_HJ_Compl_VolPer_Newton_OldDual/"
 
-    exports = FreeFemRunner(path+"03_Mesh.edp").execute()
+    exports = FreeFemRunner(path+"04_Mesh.edp").execute()
     Th = exports['Th']
     alpha = exports['alpha']
     beta = exports['beta']
@@ -46,12 +46,12 @@ def FunctionCase03(maxItj,stepHJ,No,maxIter):
             self.nx = []
             self.ny = []
         def x0(self):
-            runner = FreeFemRunner(path+"03_InitialGuess.edp")
+            runner = FreeFemRunner(path+"04_InitialGuess.edp")
             runner.import_variables(Th=Th)
             return runner.execute()['phi[]']
 
         def J(self, x):
-            runner = FreeFemRunner(path+"03_Cost.edp")
+            runner = FreeFemRunner(path+"04_Cost.edp")
             runner.import_variables(Th=Th,phiVal=x,labelDir=labelDir,labelNeu=labelNeu,
                                     AchiVal=self.volFrac)
             exports = runner.execute()
@@ -60,29 +60,29 @@ def FunctionCase03(maxItj,stepHJ,No,maxIter):
             return exports['J']
 
         def dJ(self, x):
-            runner = FreeFemRunner(path+"03_CostGradient.edp")
+            runner = FreeFemRunner(path+"04_CostGradient.edp")
             runner.import_variables(Th=Th,Th2=self.Th2,beta=beta,lsLab=lsLabel,
                                     uxVal=self.ux,uyVal=self.uy)
             return runner.execute()['g[]']
 
         def G(self, x):
-            runner = FreeFemRunner(path+"03_ConstraintEq.edp")
+            runner = FreeFemRunner(path+"04_ConstraintEq.edp")
             runner.import_variables(Th=Th,AchiVal=self.volFrac)
             return [runner.execute()['C']]
 
         def dG(self, x):
-            runner = FreeFemRunner(path+"03_ConstraintEqGradient.edp")
+            runner = FreeFemRunner(path+"04_ConstraintEqGradient.edp")
             runner.import_variables(Th=Th,Th2=self.Th2,phiVal=x,beta=beta,
                                     lsLab=lsLabel,rInner=rInner)
             return runner.execute()['g[]']
         
         def H(self, x):
-            runner = FreeFemRunner(path+"03_ConstraintIneq.edp")
+            runner = FreeFemRunner(path+"04_ConstraintIneq.edp")
             runner.import_variables(Th=Th,phiVal=x)
             return [runner.execute()['H']]
 
         def dH(self, x):
-            runner = FreeFemRunner(path+"03_ConstraintIneqGradient.edp")
+            runner = FreeFemRunner(path+"04_ConstraintIneqGradient.edp")
             runner.import_variables(Th=Th,Th2=self.Th2,phiVal=x,nxVal=self.nx,
                                     nyVal=self.ny,alpha=alpha,beta=beta,
                                     lsLab=lsLabel,rInner=rInner)
@@ -115,8 +115,6 @@ def FunctionCase03(maxItj,stepHJ,No,maxIter):
             "maxit": maxIter,
             "CFL": 0.9}
     problem:Optimizable = TO_problem()
-    stepHJj = stepHJ/maxItj
-
 
 
 
@@ -236,7 +234,7 @@ def FunctionCase03(maxItj,stepHJ,No,maxIter):
 
     ## NULLSPACE ALGORITHM
 
-    runner = FreeFemRunner(path+"03_VolFracComputer.edp")
+    runner = FreeFemRunner(path+"04_VolFracComputer.edp")
     runner.import_variables(Th=Th,phiVal=x)
     problem._problem.volFrac = runner.execute()['Achi[]']
 
@@ -265,7 +263,7 @@ def FunctionCase03(maxItj,stepHJ,No,maxIter):
 
         io.display_iteration(it, J, G, H, x, level = 0,  debug = params['debug'])
 
-        runner = FreeFemRunner(path+"03_BoundaryRefinement.edp")
+        runner = FreeFemRunner(path+"04_BoundaryRefinement.edp")
         runner.import_variables(Th=Th,phiVal=x,alpha=alpha,lsLab=lsLabel,rInner=rInner)
         exports = runner.execute()
 
@@ -283,77 +281,61 @@ def FunctionCase03(maxItj,stepHJ,No,maxIter):
 
         itj = 1
         xj = x
-        while itj<=maxItj:
-            dG = problem.dG(xj)
-            dH = problem.dH(xj)
 
-            J, G, H, dJ, dG, dH, C, dC, n, p, q = pack_constraints(J, G, H, dJ, dG, dH)
+        dG = problem.dG(xj)
+        dH = problem.dH(xj)
 
-            prevmuls = muls.copy()
+        J, G, H, dJ, dG, dH, C, dC, n, p, q = pack_constraints(J, G, H, dJ, dG, dH)
 
-            # Null space direction xiJ and range space direction xiC
-            tic()
-            xiJ, xiC, eps, tildeEps, muls = get_xiJ_xiC(J, G, H, dJ, dG, dH, A,  
-                                                h=params['K']*params['dt'],        
-                                                alphas = params['alphas'](xj),
-                                                dual_norm=params['dual_norm'],   
-                                                qp_solver = params['qp_solver'],     
-                                                qp_solver_options = params['qp_solver_options'], 
-                                                method_xiC = params['method_xiC'])
+        prevmuls = muls.copy()
+
+        # Null space direction xiJ and range space direction xiC
+        tic()
+        xiJ, xiC, eps, tildeEps, muls = get_xiJ_xiC(J, G, H, dJ, dG, dH, A,  
+                                            h=params['K']*params['dt'],        
+                                            alphas = params['alphas'](xj),
+                                            dual_norm=params['dual_norm'],   
+                                            qp_solver = params['qp_solver'],     
+                                            qp_solver_options = params['qp_solver_options'], 
+                                            method_xiC = params['method_xiC'])
             
-            abstract_results.save('eps', eps)
-            io.display(f"Lagrange multipliers: {muls[:10]}", 5, params['debug'], "magenta")
+        abstract_results.save('eps', eps)
+        io.display(f"Lagrange multipliers: {muls[:10]}", 5, params['debug'], "magenta")
 
-            normxiJ = compute_norm(xiJ, params['normalisation_norm'])
-            abstract_results.save('normxiJ', normxiJ)
+        normxiJ = compute_norm(xiJ, params['normalisation_norm'])
+        abstract_results.save('normxiJ', normxiJ)
                 
-            # Rescalings 
-            if it < params['itnormalisation'] or \
-            (params['normalize_tol'] >= 0 and
-                not np.all((muls[p:] > params['normalize_tol'])
-                        == (prevmuls[p:] > params['normalize_tol']))):
-                io.display(f"Normalisation of the xiJ direction, params['itnormalisation']={max(params['itnormalisation'], it + 1)}",
-                        level=5)
-                normxiJ_save = normxiJ
-                AJ = (params['alphaJ'] * params['dt']) / (1e-9 + normxiJ)
-            else:
-                AJ = params['alphaJ']*params['dt'] / max(1e-9 + normxiJ, normxiJ_save)
-            AC = min(params['CFL'], params['alphaC']*params['dt'] / max(compute_norm(xiC, params['normalisation_norm']), 1e-9))
+        # Rescalings 
+        if it < params['itnormalisation'] or \
+        (params['normalize_tol'] >= 0 and
+            not np.all((muls[p:] > params['normalize_tol'])
+                    == (prevmuls[p:] > params['normalize_tol']))):
+            io.display(f"Normalisation of the xiJ direction, params['itnormalisation']={max(params['itnormalisation'], it + 1)}",
+                     level=5)
+            normxiJ_save = normxiJ
+            AJ = (params['alphaJ'] * params['dt']) / (1e-9 + normxiJ)
+        else:
+            AJ = params['alphaJ']*params['dt'] / max(1e-9 + normxiJ, normxiJ_save)
+        AC = min(params['CFL'], params['alphaC']*params['dt'] / max(compute_norm(xiC, params['normalisation_norm']), 1e-9))
 
-            # Update step
-            g = AJ*xiJ+AC*xiC
-            runner = FreeFemRunner(path+"03_HJ.edp")
-            runner.import_variables(Th=Th,Th2=problem._problem.Th2,gVal = g,phiVal=xj,nxVal=problem._problem.nx,
-                                    nyVal=problem._problem.ny,beta=beta,lsLab=lsLabel,rInner=rInner,dTime=dTime,
-                                    stepHJ=stepHJj, isLs=1)
-            x1 = runner.execute()['phi[]']
+        # Update step
+        g = AJ*xiJ+AC*xiC
+        runner = FreeFemRunner(path+"04_HJ.edp")
+        runner.import_variables(Th=Th,Th2=problem._problem.Th2,gVal = g,phiVal=xj,nxVal=problem._problem.nx,
+                                    nyVal=problem._problem.ny,beta=beta,lsLab=lsLabel,rInner=rInner,dTime=dTime)
+        x1 = runner.execute()['phi[]']
 
-            runner.import_variables(Th=Th,Th2=problem._problem.Th2,gVal = g,phiVal=dJ,nxVal=problem._problem.nx,
-                                    nyVal=problem._problem.ny,beta=beta,lsLab=lsLabel,rInner=rInner,dTime=dTime,
-                                    stepHJ=stepHJj, isLs=0)
-            dJ = runner.execute()['phi[]']
+        runner = FreeFemRunner(path+"04_BoundaryRefinement.edp")
+        runner.import_variables(Th=Th,phiVal=x1,alpha=alpha,lsLab=lsLabel,rInner=rInner)
+        exports = runner.execute()
 
-            runner = FreeFemRunner(path+"03_BoundaryRefinement.edp")
-            runner.import_variables(Th=Th,phiVal=x1,alpha=alpha,lsLab=lsLabel,rInner=rInner)
-            exports = runner.execute()
+        problem._problem.Th2 = exports['Th2']
+        problem._problem.nx = exports['nx[]']
+        problem._problem.ny = exports['ny[]']
 
-            problem._problem.Th2 = exports['Th2']
-            problem._problem.nx = exports['nx[]']
-            problem._problem.ny = exports['ny[]']
-
-            runner = FreeFemRunner(path+"03_VolFracComputer.edp")
-            runner.import_variables(Th=Th,phiVal=x1)
-            problem._problem.volFrac = runner.execute()['Achi[]']
-
-            G = problem.G(x1)
-            H = problem.H(x1)
-
-            xj = x1
-            itj = itj + 1
-
-            #if np.linalg.norm(G,ord=np.inf)<0.01 and max(H)<0.01:
-                #maxItj = 1
-                #params['alphaJ'] = 1
+        #if np.linalg.norm(G,ord=np.inf)<0.01 and max(H)<0.01:
+            #maxItj = 1
+            #params['alphaJ'] = 1
         dx = (x1-x)
         #if p>0:
         #    assert np.isclose(dC[:p,:] @ xiJ,0,atol=1e-15) 
@@ -371,7 +353,7 @@ def FunctionCase03(maxItj,stepHJ,No,maxIter):
         for k in range(params['maxtrials']):
             newx = problem.retract(x, (0.5**k)*dx)
 
-            runner = FreeFemRunner(path+"03_VolFracComputer.edp")
+            runner = FreeFemRunner(path+"04_VolFracComputer.edp")
             runner.import_variables(Th=Th,phiVal=newx)
             problem._problem.volFrac = runner.execute()['Achi[]']
 
@@ -428,5 +410,5 @@ def FunctionCase03(maxItj,stepHJ,No,maxIter):
     Vol  = results['G']
     Per = results['H']
 
-    np.savez(path+"03_ResultIts"+str(maxItj)+"Step"+str(stepHJ),
+    np.savez(path+"04_ResultCase"+str(case),
             xF=x,it=iter,c=Comp,v=Vol,p=Per)
