@@ -81,7 +81,7 @@ classdef Anisotropic_0_LevelSet_3D < handle
 
             s.interpolation  = 'SIMP_P3_ANISOTROPIC';
             s.dim            = '3D';
-
+            s.mesh           = obj.mesh;
             m = MaterialInterpolator.create(s);
             obj.materialInterpolator = m;
         end

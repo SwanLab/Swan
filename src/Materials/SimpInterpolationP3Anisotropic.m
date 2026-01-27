@@ -43,7 +43,7 @@ classdef SimpInterpolationP3Anisotropic < handle
             obj.C1 = cParams.C1;
             obj.C0 = cParams.C0;
             obj.pExp = 3;
-            % obj.mesh = cParams.mesh;
+            obj.mesh = cParams.mesh;
         end
 
          function createMaterialBase(obj)
