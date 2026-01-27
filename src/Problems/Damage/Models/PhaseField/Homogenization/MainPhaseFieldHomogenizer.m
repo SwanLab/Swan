@@ -13,12 +13,12 @@ PFH = TestingPhaseFieldHomogenizer(s);
 
 
 %% DERIVATIVE
-%load('SquareArea.mat')
+load('HoneycombAreaNew.mat')
 [f,df,ddf] = DamageHomogenizationFitter.computePolynomial(9,phi,mat);
 degradation.fun = f;
 degradation.dfun = df;
 degradation.ddfun = ddf;
-save('HoneycombArea400_200','mat','phi','degradation')
+save('HoneycombAreaNew','mat','phi','degradation')
 % 
 % tiledlayout(1,3)
 % nexttile

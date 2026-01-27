@@ -39,8 +39,8 @@ classdef PhaseFieldComputer < handle
                 obj.checkStopCondition(step,totF);
                 step = step + 1;
 
-                sig = obj.functional.computeStress(u,phi);
-                max(sig.evaluate([0;0]),[],'all')
+                %sig = obj.functional.computeStress(u,phi);
+                %max(sig.evaluate([0;0]),[],'all')
             end
             outputData = obj.monitor.data;
         end
@@ -133,19 +133,9 @@ classdef PhaseFieldComputer < handle
                 totReact = obj.boundaryConditions.u.bcValues(step);
             elseif ismember(obj.boundaryConditions.u.type, ["DisplacementTractionX","DisplacementTractionXClamped"])
                 dofsXleft = (nodes(isInLeft)-1)*u.ndimf + 1;
-                totReact = abs(sum(F(dofsXleft)))/10;
+                totReact = abs(sum(F(dofsXleft)));
                 uBC = obj.boundaryConditions.u.bcValues(step);
             end
-            
-
-            % DownSide  = min(obj.mesh.coord(:,2));
-            % isInDown = abs(obj.mesh.coord(:,2)-DownSide)< 1e-12;
-            % nodes = 1:obj.mesh.nnodes;
-            % totReact = -sum(F(2*nodes(isInDown)));
-
-            % isInTip = (abs(obj.mesh.coord(:,2)-(max(obj.mesh.coord(:,2))+min(obj.mesh.coord(:,2)))/2) < 1e-12) & (abs(obj.mesh.coord(:,1)-max(obj.mesh.coord(:,1))) < 30);
-            % nodes = 1:obj.mesh.nnodes;
-            % totReact = sum(F(2*nodes(isInTip)));
         end
 
         function printAndSave(obj,step,totF,uBC,u,phi,Evec,totE,iterMax,cost,tauArray)
@@ -172,7 +162,7 @@ classdef PhaseFieldComputer < handle
                 obj.stop.maxF = totF;
             elseif step>5 && totF<0.01*obj.stop.maxF && ~obj.stop.triggered
                 obj.stop.stepTrigger = step;
-                obj.stop.triggered = true;
+                obj.stop.triggered = false;
             end
 
             if step==obj.stop.stepTrigger+10

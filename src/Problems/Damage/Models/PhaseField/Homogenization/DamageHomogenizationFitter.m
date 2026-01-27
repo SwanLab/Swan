@@ -31,8 +31,8 @@ classdef DamageHomogenizationFitter < handle
                         for l=1:nStre
                             fixedPointX = [0,1];
                             fixedPointY = [squeeze(C(i,j,k,l,1)),0];
-                            fixedDerivX = 0;
-                            fixedDerivY = initDeriv;
+                            %fixedDerivX = 0;
+                            %fixedDerivY = initDeriv;
                             coeffs = polyfix(phi,squeeze(C(i,j,k,l,:)),degPoly,fixedPointX,fixedPointY);
                             fun{i,j,k,l} = poly2sym(coeffs);
                             if isempty(symvar(fun{i,j,k,l}))

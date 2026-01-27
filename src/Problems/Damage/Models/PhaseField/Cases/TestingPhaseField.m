@@ -96,6 +96,7 @@ classdef TestingPhaseField < handle
                 phiVal(restrictedDofs) = bc.dirichlet_vals;
                 phi.setFValues(phiVal);
             end
+            phi.setFValues(1e-10*ones(size(phi.fValues)));
         end
 
         function phi = createDamageVariable(obj,phi)
@@ -169,6 +170,7 @@ classdef TestingPhaseField < handle
             s.mesh = obj.mesh;
             if obj.dissipInfo.type == "AT"
                 s.pExp = obj.dissipInfo.pExp;
+                s.constant = obj.dissipInfo.constant;
                 dissipation = PhaseFieldAmbrossioTortorelliDissipation(s);
             elseif obj.dissipInfo.type == "FullQuadratic"
                 s.xi = obj.dissipInfo.xi;

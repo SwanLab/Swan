@@ -25,65 +25,64 @@ gAT2 = @(phi) (1-sqrt(phi))^2;
 
 %% Figure 1: AT1/AT2 vs H-S bounds
 cmp = orderedcolors("gem");
-
+cmpGrad = gray(10);
 figure(1)
-tiledlayout(1,2)
+t = tiledlayout(1,2);
 nexttile
 hold on
-fplot(gAT1,[0 1],'Color',cmp(1,:),'LineStyle','-','Marker','+')
-fplot(gAT2,[0 1],'Color',cmp(1,:),'LineStyle','-','Marker','o')
-fplot(@(phi) kUB(phi,0.3),[0 1],'Color',cmp(4,:),'LineStyle','-');
-fplot(@(phi) kLB(phi,0.3),[0 1],'Color',cmp(4,:),'LineStyle','-');
-fontsize(gcf,25,'points')
-title('Bulk modulus degradation function ($\nu = 0.3$)','Interpreter','latex')
-ylabel('Degradation $g(\phi)$ [-]','Interpreter','latex');
-xlabel("Damage ($\phi$) [-]",'Interpreter','latex');
+grid minor
+fplot(@(phi) kUB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
+fplot(@(phi) kLB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
+fplot(gAT1,[0 1],'Color',cmp(1,:),'LineStyle','-','Marker','diamond','MarkerSize',7,'LineWidth',3)
+fplot(gAT2,[0 1],'Color',cmp(2,:),'LineStyle','-','Marker','o','MarkerSize',7,'LineWidth',3)
+fontsize(gcf,40,'points')
+ylabel('$\kappa(\phi)/\kappa_0$','Interpreter','latex');
 nexttile
 hold on
-fplot(gAT1,[0 1],'Color',cmp(1,:),'LineStyle','-','Marker','+')
-fplot(gAT2,[0 1],'Color',cmp(1,:),'LineStyle','-','Marker','o')
-fplot(@(phi) muUB(phi,0.3),[0 1],'Color',cmp(4,:),'LineStyle','-');
-fplot(@(phi) muLB(phi,0.3),[0 1],'Color',cmp(4,:),'LineStyle','-');
-fontsize(gcf,25,'points')
-title('Shear modulus degradation function ($\nu = 0.3$)','Interpreter','latex')
-ylabel('Degradation $g(\phi)$ [-]','Interpreter','latex');
-xlabel("Damage ($\phi$) [-]",'Interpreter','latex');
-legend('AT1','AT2','H-S bounds')
+grid minor
+
+fplot(@(phi) muUB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
+p3 = fplot(@(phi) muLB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
+p1 = fplot(gAT1,[0 1],'Color',cmp(1,:),'LineStyle','-','Marker','diamond','MarkerSize',7,'LineWidth',3)
+p2 = fplot(gAT2,[0 1],'Color',cmp(2,:),'LineStyle','-','Marker','o','MarkerSize',7,'LineWidth',3)
+fontsize(gcf,40,'points')
+ylabel('$\mu(\phi)/\mu_0$','Interpreter','latex');
+xlabel(t,"Damage ($\phi$)",'Interpreter','latex');
+legend([p1,p2,p3],'AT1','AT2','H-S bounds')
 
 %% Figure 2: AT vs H-S bounds for different Possion
+
+cmpGrad = gray(10)
 figure(2)
-tiledlayout(1,2)
+t = tiledlayout(1,2);
 nexttile
 hold on
-fplot(gAT1,[0 1],'Color',cmp(1,:),'LineStyle','-','Marker','+')
-fplot(gAT2,[0 1],'Color',cmp(1,:),'LineStyle','-','Marker','o')
-fplot(@(phi) kUB(phi,-0.9),[0 1],'Color',cmp(4,:),'LineStyle','-');
-fplot(@(phi) kUB(phi,-0.5),[0 1],'Color',cmp(4,:),'LineStyle','-');
-fplot(@(phi) kUB(phi,0),[0 1],'Color',cmp(4,:),'LineStyle','-');
-fplot(@(phi) kUB(phi,0.3),[0 1],'Color',cmp(4,:),'LineStyle','-');
-fplot(@(phi) kUB(phi,0.5),[0 1],'Color',cmp(4,:),'LineStyle','-');
-fplot(@(phi) kUB(phi,0.9),[0 1],'Color',cmp(4,:),'LineStyle','-');
-fplot(@(phi) kLB(phi,0.3),[0 1],'Color',cmp(4,:),'LineStyle','-');
-fontsize(gcf,25,'points')
-title('Bulk modulus degradation function','Interpreter','latex')
-ylabel('Degradation $g(\phi)$ [-]','Interpreter','latex');
-xlabel("Damage ($\phi$) [-]",'Interpreter','latex');
+grid minor
+fplot(@(phi) kUB(phi,-0.9),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
+fplot(@(phi) kUB(phi,-0.5),[0 1],'Color',cmpGrad(2,:),'LineStyle','-','LineWidth',3);
+fplot(@(phi) kUB(phi,0),[0 1],'Color',cmpGrad(3,:),'LineStyle','-','LineWidth',3);
+fplot(@(phi) kUB(phi,0.3),[0 1],'Color',cmpGrad(4,:),'LineStyle','-','LineWidth',3);
+fplot(@(phi) kUB(phi,0.5),[0 1],'Color',cmpGrad(5,:),'LineStyle','-','LineWidth',3);
+fplot(@(phi) kLB(phi,0.3),[0 1],'Color',cmpGrad(6,:),'LineStyle','-','LineWidth',3);
+fplot(gAT1,[0 1],'Color',cmp(1,:),'LineStyle','-','Marker','diamond','MarkerSize',7,'LineWidth',3)
+fplot(gAT2,[0 1],'Color',cmp(2,:),'LineStyle','-','Marker','o','MarkerSize',7,'LineWidth',3)
+fontsize(gcf,40,'points')
+ylabel('$\kappa(\phi)/\kappa_0$','Interpreter','latex');
 nexttile
 hold on
-fplot(gAT1,[0 1],'Color',cmp(1,:),'LineStyle','-','Marker','+')
-fplot(gAT2,[0 1],'Color',cmp(1,:),'LineStyle','-','Marker','o')
-fplot(@(phi) muUB(phi,-0.9),[0 1],'Color',cmp(4,:),'LineStyle','-');
-fplot(@(phi) muUB(phi,-0.5),[0 1],'Color',cmp(4,:),'LineStyle','-');
-fplot(@(phi) muUB(phi,0),[0 1],'Color',cmp(4,:),'LineStyle','-');
-fplot(@(phi) muUB(phi,0.3),[0 1],'Color',cmp(4,:),'LineStyle','-');
-fplot(@(phi) muUB(phi,0.5),[0 1],'Color',cmp(4,:),'LineStyle','-');
-fplot(@(phi) muUB(phi,0.9),[0 1],'Color',cmp(4,:),'LineStyle','-');
-fplot(@(phi) muLB(phi,0.3),[0 1],'Color',cmp(4,:),'LineStyle','-');
-fontsize(gcf,25,'points')
-title('Shear modulus degradation function','Interpreter','latex')
-ylabel('Degradation $g(\phi)$ [-]','Interpreter','latex');
-xlabel("Damage ($\phi$) [-]",'Interpreter','latex');
-legend('AT1','AT2','H-S bounds')
+grid minor
+p3 = fplot(@(phi) muUB(phi,-0.9),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
+fplot(@(phi) muUB(phi,-0.5),[0 1],'Color',cmpGrad(2,:),'LineStyle','-','LineWidth',3);
+fplot(@(phi) muUB(phi,0),[0 1],'Color',cmpGrad(3,:),'LineStyle','-','LineWidth',3);
+fplot(@(phi) muUB(phi,0.3),[0 1],'Color',cmpGrad(4,:),'LineStyle','-','LineWidth',3);
+fplot(@(phi) muUB(phi,0.5),[0 1],'Color',cmpGrad(5,:),'LineStyle','-','LineWidth',3);
+fplot(@(phi) muLB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
+p1 = fplot(gAT1,[0 1],'Color',cmp(1,:),'LineStyle','-','Marker','diamond','MarkerSize',7,'LineWidth',3)
+p2 = fplot(gAT2,[0 1],'Color',cmp(2,:),'LineStyle','-','Marker','o','MarkerSize',7,'LineWidth',3)
+fontsize(gcf,40,'points')
+ylabel('$\mu(\phi)/\mu_0$','Interpreter','latex');
+xlabel(t,"Damage ($\phi$)",'Interpreter','latex');
+legend([p1,p2,p3],'AT1','AT2','H-S bounds')
 
 %% Alessi and Wu functions
 gRational = @(phi,gamma) (1-phi)/((1-phi)+gamma*phi);
@@ -121,11 +120,11 @@ xlabel("Damage ($\phi$) [-]",'Interpreter','latex');
 legend({'Wu','H-S bounds'},'Interpreter','latex')
 
 %% Figure 5 Constitutive tensor homogenized
-[dataHexa]  = load('HexagonArea.mat');
+[dataHexa]  = load('HexagonAreaNew.mat');
 C11hexa = squeeze(dataHexa.mat(1,1,1,1,:));
 C12hexa = squeeze(dataHexa.mat(2,2,1,1,:));
 C33hexa = squeeze(dataHexa.mat(1,2,1,2,:));
-[dataHoney] = load('HoneycombArea.mat');
+[dataHoney] = load('HoneycombAreaNew.mat');
 C11honey= squeeze(dataHoney.mat(1,1,1,1,:));
 C12honey= squeeze(dataHoney.mat(2,2,1,1,:));
 C33honey= squeeze(dataHoney.mat(1,2,1,2,:));
@@ -172,7 +171,7 @@ xlabel("Damage ($\phi$) [-]",'Interpreter','latex');
 fontsize(gcf,25,'points')
 legend('Hexagon','Reinforced hexagon')
 
-%% Figure 7 homogenized bulk and shear
+%% Figure 7 Homogenized bulk and shear
 bulkHexa   = C11hexa - C33hexa;
 shearHexa  = C33hexa;
 bulkHoney  = C11honey - C33honey;

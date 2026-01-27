@@ -15,7 +15,7 @@ classdef PhaseFieldAmbrossioTortorelliDissipation < handle
         function obj = PhaseFieldAmbrossioTortorelliDissipation(cParams)
             obj.init(cParams)
             obj.computeDissipationFunctionAndDerivatives();
-            obj.computeDissipationConstant();
+            obj.computeDissipationConstant(cParams);
         end
         
     end
@@ -28,12 +28,15 @@ classdef PhaseFieldAmbrossioTortorelliDissipation < handle
             else
                 obj.pExp = cParams.pExp;
                 obj.mesh = cParams.mesh;
-
             end
         end
 
-        function computeDissipationConstant(obj)
-            obj.constant = 4*(2/(obj.pExp+2));
+        function computeDissipationConstant(obj,cParams)
+            if isfield(cParams,'constant')
+                obj.constant = cParams.constant;
+            else
+                obj.constant = 4*(2/(obj.pExp+2));
+            end
         end
 
         function computeDissipationFunctionAndDerivatives(obj)
