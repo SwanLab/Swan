@@ -1,18 +1,28 @@
-classdef CoarseFunction < handle
+classdef CoarseFunctions < handle
 
     properties (GetAccess = public, SetAccess = private)
         f
     end
 
+    properties (Access=private)
+        mesh
+        dim
+        order
+        range
+        activeDims
+        dB
+    end
+
     methods (Access = public)
 
-        function obj = CoarseFunction(bMesh,order)
-            % order: polynomial order (1 = linear, 2 = quadratic, 3 = cubic)
-            if nargin < 2
-                order = 1;
-            end
+        function obj = CoarseFunctions(cParams)
+            obj.init(cParams);
+        end
 
-            % Mesh normalization
+        function f= compute(obj)
+            % order: polynomial order (1 = linear, 2 = quadratic, 3 = cubic)
+            bMesh=obj.mesh;
+             % Extract geometry from mesh 
             xmax = max(bMesh.coord(:,1));
             ymax = max(bMesh.coord(:,2));
             xmin = min(bMesh.coord(:,1));
@@ -21,32 +31,16 @@ classdef CoarseFunction < handle
             b = (ymax - ymin)/2;
             x0 = xmin + a;
             y0 = ymin + b;
-            % 1D reference node positions
-            xi = linspace(-1, 1, order+1);
-            L = cell(order+1, 1);
-            for i = 1:order+1
-                L{i} = @(s) obj.lagrangeBasis(s, xi, i);
-            end
-            %             % Loop only over boundary node indices
-            %             f = {};
-            %             for i = 1:order+1
-            %                 for j = 1:order+1
-            %                     if obj.isBoundaryNode(i, j, order+1)
-            %                         N = @(x) L{i}((x(1,:,:)-x0)/a) .* L{j}((x(2,:,:)-y0)/b);
-            %                         fx = @(x) [N(x); 0*x(2,:,:)];
-            %                         fy = @(x) [0*x(1,:,:); N(x)];
-            %                         f{end+1} = fx;
-            %                         f{end+1} = fy;
-            %                     end
-            %                 end
-            %             end
+
+            L=obj.createBasisFunctions(); 
+
  % --- Detect if it's a line or full boundary ---
             if (abs(xmax - xmin) < 1e-12) || (abs(ymax - ymin) < 1e-12)
-                % ✅ 1D case (single line)
+                % 1D case (single line)
                 f = {};
                 if abs(xmax - xmin) < 1e-12
                     % vertical line (x constant)
-                    for j = 1:order+1
+                    for j = 1:obj.order+1
                         N = @(x) L{j}((x(2,:,:)-y0)/b);
                         fx = @(x) [N(x); 0*x(2,:,:)];
                         fy = @(x) [0*x(1,:,:); N(x)];
@@ -55,7 +49,7 @@ classdef CoarseFunction < handle
                     end
                 else
                     % horizontal line (y constant)
-                    for i = 1:order+1
+                    for i = 1:obj.order+1
                         N = @(x) L{i}((x(1,:,:)-x0)/a);
                         fx = @(x) [N(x); 0*x(2,:,:)];
                         fy = @(x) [0*x(1,:,:); N(x)];
@@ -64,8 +58,8 @@ classdef CoarseFunction < handle
                     end
                 end
             else
-                % ✅ 2D case (4 edges)
-                n = order + 1;
+                % 2D case (4 edges)
+                n = obj.order + 1;
                 boundaryNodes = [];
 
                 % bottom edge
@@ -97,19 +91,45 @@ classdef CoarseFunction < handle
                 end
             end
 
-            nfun = length(f);
-            for k = 1:nfun
+            uD= cell(size(f));
+            for k = 1:length(f)
                 uD{k} = AnalyticalFunction.create(f{k}, bMesh);
 %                                 uD{k}.plot()
             end
-            obj.f = uD;
+            f = uD;
         end
 
     end
 
     methods (Access = private)
 
-        function val = lagrangeBasis(obj,s, nodes, i)
+        function init(obj,cParams)
+            obj.mesh =cParams.mesh;
+            if isfield(cParams,'order')
+                obj.order= cParams.order;
+            else
+                obj.order = 1;
+            end
+
+            obj.dim= size(cParams.mesh.coord,2);
+            obj.range = max(obj.mesh.coord) - min(obj.mesh.coord);
+            obj.activeDims = find(obj.range > 1e-12);
+            obj.dB = numel(obj.activeDims);
+        end
+
+        function L=createBasisFunctions(obj)
+            xi = linspace(-1, 1, obj.order+1);
+            L = cell(obj.order+1, 1);
+            for i = 1:obj.order+1
+                L{i} = @(s) obj.lagrangeBasis(s, xi, i);
+            end
+        end
+
+
+    end
+
+    methods (Access=private,Static)
+        function val = lagrangeBasis(s, nodes, i)
             n = length(nodes);
             val = ones(size(s));
             for j = 1:n
@@ -118,12 +138,6 @@ classdef CoarseFunction < handle
                 end
             end
         end
-
-        function isB = isBoundaryNode(obj,i, j, n)
-            % n = order + 1
-            isB = (i == 1 || i == n || j == 1 || j == n);
-        end
-
     end
 
 end

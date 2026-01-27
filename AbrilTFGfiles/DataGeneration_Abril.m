@@ -28,12 +28,14 @@ for j = 1:size(r,2)
             material = createMaterialTraining(mR, radius,[1 1],p.Inclusion);
             mesh    = mR;
             bMesh   = mesh.createSingleBoundaryMesh();
-            cF = CoarseFunction(bMesh,1);
+            s.mesh=bMesh;
+            cf=CoarseFunctions(s);
+            f = cf.compute();
             s.mesh          = mesh;
             s.uFun          = LagrangianFunction.create(mesh, mesh.ndim, 'P1');
             s.lambdaFun     = LagrangianFunction.create(bMesh,mesh.ndim, 'P1');
             s.material      = material;
-            s.dirichletFun  = cF.f;
+            s.dirichletFun  = f;
             e  = ElasticHarmonicExtension(s);
             [T,lambda,K,Kcoarse] = e.solve();
 

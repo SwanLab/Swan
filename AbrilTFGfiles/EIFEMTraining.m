@@ -25,8 +25,12 @@ classdef EIFEMTraining < handle
         function data=train(obj)
             obj.repeatMesh();  %create MeshDomain
             bMesh = obj.meshDomain.createSingleBoundaryMesh();
-            cF = CoarseFunction(bMesh,obj.Coarseorder);
-            dirchletFun = cF.f;
+            %cF = CoarseFunctions(bMesh,obj.Coarseorder);
+            s.mesh=bMesh;
+            s.order=1;
+            cf=CoarseFunctions(s);
+            f=cf.compute();
+            dirchletFun = f;
 
             s.mesh         = obj.meshDomain;
             s.uFun         = LagrangianFunction.create(obj.meshDomain,obj.meshDomain.ndim,'P1');

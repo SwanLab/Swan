@@ -68,8 +68,8 @@ function f = InterfaceFunctions(mesh, order)
         f{2*k}   = fy;
     end
 
-       nfun = length(f);
-   for k = 1:nfun
+   uD= cell(size(f));
+   for k = 1:length(f)
        uD{k} = AnalyticalFunction.create(f{k}, mesh);
    end
    f = uD;

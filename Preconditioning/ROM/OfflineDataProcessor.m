@@ -333,10 +333,11 @@ classdef OfflineDataProcessor < handle
               end
               f = uD;
 
-            
-            cf=CoarseFunction(boundMesh,1);
-            f2=cf.f;
-            f3=InterfaceFunctions(boundMesh, 1);
+            s.mesh=boundMesh;
+            s.order=1;
+            cf=CoarseFunctions(s);
+            f2=cf.compute();
+            f3=InterfaceFunctions(boundMesh);
 
             %CoarseFunction 
             %Netejar Coarse funciton
