@@ -283,7 +283,7 @@ classdef TutorialHomogenization < handle
             %         end
             % end
 
-         rho = obj.createDensityLevelSet(l);    % 'lsf' is a LagrangianFunction P1 with 0..1
+         rho = obj.createDensityLevelSet(l);    
          volDom = Integrator.compute(ConstantFunction.create(1,obj.baseMesh),obj.baseMesh,2);
          fracVol = Integrator.compute(rho,rho.mesh,2)/volDom;
        

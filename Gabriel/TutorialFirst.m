@@ -210,7 +210,7 @@ classdef TutorialFirst < handle
 
        function createPrimalUpdater(obj)
             s.ub     = 1;
-            s.lb     = 0;
+            s.lb     = 0.001;
             s.tauMax = 5;
             s.tau    = [];
             obj.primalUpdater = ProjectedGradient(s);
@@ -245,8 +245,8 @@ classdef TutorialFirst < handle
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
-            s.etaNorm        = 0.1;
-            s.gJFlowRatio    = 0.5;
+            s.etaNorm        = 0.01;
+            s.gJFlowRatio    = 2;
             s.gif            = true;
             s.gifName        = 'Tutorial_Homo_ReinforcedHexagon_Beam';
             s.printing       = true;
