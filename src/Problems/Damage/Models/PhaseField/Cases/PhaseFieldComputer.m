@@ -114,26 +114,27 @@ classdef PhaseFieldComputer < handle
         end
 
         function [totReact,uBC] = computeTotalReaction(obj,step,F,u)
-            LeftSide = max(obj.mesh.coord(:,2));
-            isInUp = abs(obj.mesh.coord(:,2)-LeftSide)< 1e-12;
+            DownSide = min(obj.mesh.coord(:,2));
+            isInDown = abs(obj.mesh.coord(:,2)-DownSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;
             if ismember(obj.boundaryConditions.u.type, ["ForceTractionY", "ForceTractionYClamped"])
                 uBC = norm(mean(u.fValues(nodes(isInUp),2)));
                 totReact = obj.boundaryConditions.u.bcValues(step);
             elseif ismember(obj.boundaryConditions.u.type, ["DisplacementTractionY","DisplacementTractionYClamped"]) 
-                totReact = norm(sum(F(2*nodes(isInUp))));
+                dofsXdown = (nodes(isInDown)-1)*u.ndimf + 1;
+                totReact = abs(sum(F(dofsXdown)));
                 uBC = obj.boundaryConditions.u.bcValues(step);
             end
 
-            LeftSide = min(obj.mesh.coord(:,1));
-            isInLeft = abs(obj.mesh.coord(:,1)-LeftSide)< 1e-12;
+            DownSide = min(obj.mesh.coord(:,1));
+            isInLeft = abs(obj.mesh.coord(:,1)-DownSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;
             if ismember(obj.boundaryConditions.u.type, ["ForceTractionX","ForceTractionXClamped"])
                 uBC = norm(mean(u.fValues(nodes(isInLeft),2)));
                 totReact = obj.boundaryConditions.u.bcValues(step);
-            elseif ismember(obj.boundaryConditions.u.type, ["DisplacementTractionX","DisplacementTractionXClamped"])
-                dofsXleft = (nodes(isInLeft)-1)*u.ndimf + 1;
-                totReact = abs(sum(F(dofsXleft)));
+            elseif ismember(obj.boundaryConditions.u.type, ["DisplacementTractionX","DisplacementTractionXClamped","DisplacementShear"])
+                dofsXdown = (nodes(isInLeft)-1)*u.ndimf + 1;
+                totReact = abs(sum(F(dofsXdown)));
                 uBC = obj.boundaryConditions.u.bcValues(step);
             end
         end
@@ -162,7 +163,7 @@ classdef PhaseFieldComputer < handle
                 obj.stop.maxF = totF;
             elseif step>5 && totF<0.01*obj.stop.maxF && ~obj.stop.triggered
                 obj.stop.stepTrigger = step;
-                obj.stop.triggered = false;
+                obj.stop.triggered = true;
             end
 
             if step==obj.stop.stepTrigger+10
