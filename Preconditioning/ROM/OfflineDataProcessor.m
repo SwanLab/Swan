@@ -333,8 +333,8 @@ classdef OfflineDataProcessor < handle
               end
               f = uD;
 
-            s.mesh=boundMesh;
-            s.order=1;
+            s.mesh=obj.mesh;
+            s.type='line';
             cf=CoarseFunctions(s);
             f2=cf.compute();
             f3=InterfaceFunctions(boundMesh);

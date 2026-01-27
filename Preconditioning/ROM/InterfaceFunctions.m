@@ -1,3 +1,4 @@
+
 function f = InterfaceFunctions(mesh, order)
    % Ensure default order
     if nargin < 2
@@ -68,8 +69,8 @@ function f = InterfaceFunctions(mesh, order)
         f{2*k}   = fy;
     end
 
-   uD= cell(size(f));
-   for k = 1:length(f)
+       nfun = length(f);
+   for k = 1:nfun
        uD{k} = AnalyticalFunction.create(f{k}, mesh);
    end
    f = uD;
