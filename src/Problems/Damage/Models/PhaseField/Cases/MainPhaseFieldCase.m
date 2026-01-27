@@ -59,3 +59,5 @@ outputData.inputParameters = s;
 %% SAVE + PLOT
 save("1ElemHoney",'outputData') %ACTIVATE TO SAVE DATA!
 PhaseFieldPlotter(outputData);
+
+% Check reactions, and initial damage
