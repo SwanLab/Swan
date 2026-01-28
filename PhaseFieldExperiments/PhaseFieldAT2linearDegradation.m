@@ -1,4 +1,4 @@
-classdef PhaseFieldGeneralDegradation < handle
+classdef PhaseFieldAT2linearDegradation < handle
     
    properties (Access = private)
         shear
@@ -7,7 +7,7 @@ classdef PhaseFieldGeneralDegradation < handle
    end
 
     methods (Access = public)
-        function obj = PhaseFieldGeneralDegradation(cParams)
+        function obj = PhaseFieldAT2linearDegradation(cParams)
             obj.init(cParams)
         end
 
@@ -39,12 +39,12 @@ classdef PhaseFieldGeneralDegradation < handle
                 obj.shear = cParams.shear;
                 obj.bulk  = cParams.bulk;
             end
-            obj.defineDegradationFunction(cParams.params)
+            obj.defineDegradationFunction()
         end
 
-        function defineDegradationFunction(obj,cParams)
+        function defineDegradationFunction(obj)
             syms phi
-            g(phi) = (1-phi)./((1-phi) + phi*cParams.coeffs(1)/2) + 1e-10;
+            g(phi) = (1-sqrt(phi))^2;
             obj.degFun = g;
         end
 

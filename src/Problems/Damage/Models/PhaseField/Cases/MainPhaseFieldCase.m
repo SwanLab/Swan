@@ -30,7 +30,7 @@ s.benchmark.bc.phi.type = 'DamageFree';%'DamageFixedLimitsX'; %DamageFree
 
 s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'
 s.matInfo.degradationType = 'PhaseField'; %'PhaseField','SIMPALL'
-s.matInfo.degradationSubType = 'AT'; %'AT','ATSplit','Rational','General'
+s.matInfo.degradationSubType = 'AT2linear'; %'AT','ATSplit','Rational','General'
 s.matInfo.fileName = 'HexagonAreaNew'; 
 s.matInfo.young   = 210; %3*1e4
 s.matInfo.poisson = 0.3; %0.2
@@ -54,19 +54,36 @@ outputData = tester.compute();
 outputData.inputParameters = s;
 
 %% SAVE + PLOT
-% save("SENshearHoney",'outputData') %ACTIVATE TO SAVE DATA!
-% PhaseFieldPlotter(outputData);
-% 
-% 
-% s.matInfo.fileName = 'HexagonAreaNew'; 
-% tester = TestingPhaseField(s);
-% outputData = tester.compute();
-% outputData.inputParameters = s;
-% save("SENshearHexa",'outputData')
-% 
-% s.matInfo.matType = 'Analytic';
-% s.dissipInfo.constant = pi;
-% tester = TestingPhaseField(s);
-% outputData = tester.compute();
-% outputData.inputParameters = s;
-% save("SENshearRational",'outputData')
+save("SENshearHoney",'outputData') %ACTIVATE TO SAVE DATA!
+PhaseFieldPlotter(outputData);
+
+
+s.matInfo.fileName = 'HexagonAreaNew'; 
+tester = TestingPhaseField(s);
+outputData = tester.compute();
+outputData.inputParameters = s;
+save("SENshearHexa",'outputData')
+
+s.matInfo.matType = 'Analytic';
+s.matInfo.degradationSubType = 'General'; 
+s.dissipInfo.constant = pi;
+tester = TestingPhaseField(s);
+outputData = tester.compute();
+outputData.inputParameters = s;
+save("SENshearRational",'outputData')
+
+s.matInfo.matType = 'Analytic';
+s.matInfo.degradationSubType = 'AT';
+s.dissipInfo.constant = 8/3;
+tester = TestingPhaseField(s);
+outputData = tester.compute();
+outputData.inputParameters = s;
+save("SENshearAT1",'outputData')
+
+s.matInfo.matType = 'Analytic';
+s.matInfo.degradationSubType = 'AT2linear';
+s.dissipInfo.constant = 2;
+tester = TestingPhaseField(s);
+outputData = tester.compute();
+outputData.inputParameters = s;
+save("SENshearAT2",'outputData')

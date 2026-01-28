@@ -257,7 +257,7 @@ classdef TestingPhaseFieldHomogenizer < handle
                             phi = l(1)*l(2);
                         case {'SmoothHexagon','Hexagon'}
                             perimeter = 6*l;
-                            apothem   = sqrt(l^2 - (l/2)^2);
+                            apothem   = sqrt(3)/2 - sqrt(l^2 - (l/2)^2);
                             phi = (perimeter*apothem/2)/(3*sqrt(3)/2);
                         case {'ReinforcedHoneycomb'}
                             m = l/(2*sqrt(3));

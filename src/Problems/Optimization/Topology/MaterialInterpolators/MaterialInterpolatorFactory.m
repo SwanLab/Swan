@@ -40,6 +40,8 @@ classdef MaterialInterpolatorFactory < handle
                             obj = PhaseFieldAmbrosioTortorelliDegradation(cParams);
                         case 'ATSplit'
                             obj = PhaseFieldAmbrosioTortorelliSplitDegradation(cParams);
+                        case 'AT2linear'
+                            obj = PhaseFieldAT2linearDegradation(cParams);
                         case 'Rational'
                             obj = PhaseFieldRationalDegradation(cParams);
                         case 'General'
