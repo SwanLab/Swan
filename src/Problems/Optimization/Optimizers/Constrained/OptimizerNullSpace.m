@@ -61,7 +61,9 @@ classdef OptimizerNullSpace < handle
                 obj.update();
                 obj.printResults();
                 obj.updateIterInfo();
+                if mod(obj.nIter,50)== 0
                 obj.plotVariable();
+                end
                 obj.updateMonitoring();
                 obj.checkConvergence();
                 obj.designVariable.updateOld();
@@ -86,10 +88,10 @@ classdef OptimizerNullSpace < handle
             obj.etaNorm         = cParams.etaNorm;
             obj.eta             = 0;
             obj.etaMin          = 1e-6;
-            obj.gif             = cParams.gif;
-            obj.gifName         = cParams.gifName;
-            obj.printing        = cParams.printing;
-            obj.printName       = cParams.printName;
+            % obj.gif             = cParams.gif;
+            % obj.gifName         = cParams.gifName;
+            % obj.printing        = cParams.printing;
+            % obj.printName       = cParams.printName;
             obj.primalUpdater   = cParams.primalUpdater;
             obj.dualUpdater     = DualUpdaterNullSpace(cParams);
             obj.createDualVariable();

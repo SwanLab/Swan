@@ -17,7 +17,7 @@ classdef ProjectedGradient < handle
         end
 
         function rho = update(obj,g,rho)  
-            y  = rho.fun.fValues;
+            y  = rho.fun.fValues(:);
             ub = obj.upperBound;
             lb = obj.lowerBound;
             t  = obj.tau;

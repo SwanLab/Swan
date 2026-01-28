@@ -41,6 +41,8 @@ classdef OptimizationEIFEMTutorial2param < handle
         EIFEMprecontitioner
         volumeTarget
         primalUpdater
+        length
+        tFrame
     end
 
     methods (Access = public)
@@ -56,7 +58,7 @@ classdef OptimizationEIFEMTutorial2param < handle
             obj.createEIFEMPreconditioner(RHSr);
 %             obj.createComplianceFromConstiutive();
 %             obj.createCompliance();
-            obj.createComplianceRadius();
+            obj.createComplianceParameter();
             obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
@@ -72,17 +74,17 @@ classdef OptimizationEIFEMTutorial2param < handle
         function init(obj)
             close all;
             obj.nSubdomains = [28,14]; %50 15
-            muMax = 1.9;
+            muMax = 1.3;
             obj.r = muMax*ones(obj.nSubdomains)'; 
 %             obj.r= (1e-6 - 1e-6) * rand(obj.nSubdomains(2),obj.nSubdomains(1)) + 1e-6;
             obj.xmax=1; obj.xmin=-1; obj.ymax = 1; obj.ymin=-1; 
-            obj.Nr = 7; obj.Ntheta = 14; % for circle/square
-%             obj.Nr = 10; obj.Ntheta = 10;% for lattice
+            obj.length = 2;
+            obj.tFrame = 0.02;
+            % obj.Nr = 7; obj.Ntheta = 14; % for circle/square
+            obj.Nr = 10; obj.Ntheta = 10;% for lattice
             obj.x0 = 0; obj.y0=0;
             obj.tolSameNode = 1e-10;
-%             obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange20_der2_lattice.mat';
-%             obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange20_der2_092.mat';
-            obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange20_der2_092.mat';
+            obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange_2params.mat';
             obj.solverType = 'REDUCED';
             obj.volumeTarget = 0.6; %0.7
         end
@@ -106,7 +108,7 @@ classdef OptimizationEIFEMTutorial2param < handle
             Ly = obj.ymax-obj.ymin;
             for jDom = 1:nY
                 for iDom = 1:nX
-                    refMesh = meshCrossLattice(1,0.02,obj.r(jDom,iDom),obj.r(jDom,iDom),obj.Nr,obj.Ntheta,1);
+                    refMesh = meshCrossLattice(obj.length/2,obj.tFrame,obj.r(jDom,iDom),obj.r(jDom,iDom),obj.Nr,obj.Ntheta,1);
                     coord0 = refMesh.coord;
                     s.coord(:,1) = coord0(:,1)+Lx*(iDom-1);
                     s.coord(:,2) = coord0(:,2)+Ly*(jDom-1);
@@ -169,8 +171,10 @@ classdef OptimizationEIFEMTutorial2param < handle
             s.x0       = obj.x0;
             s.y0       = obj.y0;
             s.discMesh = obj.discMesh;
-            radius     = DesignVariable.create(s);
-            obj.designVariable = radius;
+            s.length   = obj.length;
+            s.tFrame   = obj.tFrame;
+            parameter     = DesignVariable.create(s);
+            obj.designVariable = parameter;
         end
 
         function createFilter(obj)
@@ -293,7 +297,9 @@ classdef OptimizationEIFEMTutorial2param < handle
             s.mesh        = obj.coarseMesh;
             s.DirCond     = obj.sDir;
             s.nSubdomains = obj.nSubdomains;
-            s.mu          = obj.r;
+            s.mu          = obj.designVariable;
+            % mu           = reshape(obj.r',1,[])';
+            % s.mu          = [mu,mu];
             s.meshRef     = obj.discMesh;
 %             s.Fext        = RHSr;
             eifem         = EIFEMnonPeriodic(s);
@@ -332,19 +338,16 @@ classdef OptimizationEIFEMTutorial2param < handle
             c = ComplianceFromConstitutiveTensor(s);
         end
 
-        function createComplianceRadius(obj)
+        function createComplianceParameter(obj)
             s.mesh         = obj.mesh;
             s.stateProblem = obj.EIFEMprecontitioner;
-            obj.compliance = ComplianceFunctionalRadius(s);
+            obj.compliance = ComplianceFunctionalParameter(s);
         end
 
-        function createCompliance(obj)
-            s.mesh                        = obj.mesh;
-            s.filter                      = obj.filter;
-            s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
-            s.material                    = obj.createMaterial();
-            c = ComplianceFunctional(s);
-            obj.compliance = c;
+        function createPerimeterParameter(obj)
+            s.mesh         = obj.mesh;
+            s.stateProblem = obj.EIFEMprecontitioner;
+            obj.compliance = ComplianceFunctionalParameter(s);
         end
 
         function uMesh = createBaseDomain(obj)
@@ -362,8 +365,14 @@ classdef OptimizationEIFEMTutorial2param < handle
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
             s.volumeTarget = obj.volumeTarget;
             s.uMesh = obj.createBaseDomain();
-            s.geomType = 'Circle';
-            v = VolumeConstraintRadius(s);
+            % s.geomType = 'Circle';
+            s.volume  = @(mu) sum((obj.length-2*obj.tFrame)*mu.fValues(:,1) ...
+                                + (obj.length-2*obj.tFrame)*mu.fValues(:,2) ... 
+                                - mu.fValues(:,1).*mu.fValues(:,2)) ...
+                                + obj.length^2 - (obj.length-2*obj.tFrame)^2;
+            s.gradJ   =  @(mu) [(obj.length-2*obj.tFrame) - mu.fValues(:,2), ...
+                                (obj.length-2*obj.tFrame) - mu.fValues(:,1) ];
+            v = VolumeConstraintParameter(s);
             obj.volume = v;
         end
 
@@ -394,9 +403,9 @@ classdef OptimizationEIFEMTutorial2param < handle
         end
 
          function createPrimalUpdater(obj)
-            s.ub     = 0.96;
-            s.lb     = 1e-6; % fro lattice 0.01;
-            s.tauMax = 1000;
+            s.ub     = 1.5;
+            s.lb     = 0.3; % fro lattice 0.01;
+            s.tauMax = 100;
             s.tau    = [];
             obj.primalUpdater = ProjectedGradient(s);
         end
@@ -426,10 +435,10 @@ classdef OptimizationEIFEMTutorial2param < handle
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
-            s.etaNorm        = 10;%0.05
-            s.gJFlowRatio    = 10; %3
+            s.etaNorm        = 3;%0.05
+            s.gJFlowRatio    = 3; %3
             s.primalUpdater  = obj.primalUpdater;
-%             s.etaMaxMin      = 0.05;
+            s.etaMaxMin      = 0.01;
 %             s.etaMax      = 200;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();

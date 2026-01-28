@@ -21,7 +21,11 @@ classdef Parameter < DesignVariable
             if ~isempty(obj.isFixed)
                 value(obj.isFixed.nodes) = obj.isFixed.values;
             end
+            if size(value,2) < obj.fun.ndimf
+                value = reshape(value,[],obj.fun.ndimf);
+            end
             obj.fun.setFValues(value);
+            
         end
 
         function plot(obj)
@@ -37,8 +41,8 @@ classdef Parameter < DesignVariable
         function createPlotter(obj,cParams)
             obj.plotting = cParams.plotting;
             if obj.plotting
-                obj.plotter  = PlotterRadius(cParams);
-%                 obj.plotter  = PlotterLattice(cParams);
+                % obj.plotter  = PlotterRadius(cParams);
+                obj.plotter  = PlotterLatticeCross(cParams);
             end
         end
 

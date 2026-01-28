@@ -73,13 +73,13 @@ classdef Cost < handle
     methods (Static,Access=private)
         function dJm = mergeGradient(dJ)
             nDV   = length(dJ);
-            nDim1 = length(dJ{1}.fValues);
-            dJm   = zeros(nDV*nDim1,1);
+            [nDim1,nDim2] = size(dJ{1}.fValues);
+            dJm   = zeros(nDV*nDim1,nDim2);
             for i = 1:nDV
                 ind1           = 1+nDim1*(i-1);
                 ind2           = nDim1+nDim1*(i-1);
                 indices        = ind1:ind2;
-                dJm(indices,1) = dJ{i}.fValues;
+                dJm(indices,:) = dJ{i}.fValues;
             end
         end
     end

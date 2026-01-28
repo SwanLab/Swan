@@ -88,7 +88,7 @@ classdef EdgesConnectivitiesComputer < handle
         
         function computeUniqueEdgesIndex(obj)
             nE = obj.nodesInAllEdges;
-            [nE] = sort(nE,2);
+            % [nE] = sort(nE,2);
             [~,a2u,u2a] = unique(nE,'rows');
             obj.allToUnique = a2u;
             obj.uniqueToAll = u2a;

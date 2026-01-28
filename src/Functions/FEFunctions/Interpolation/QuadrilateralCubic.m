@@ -14,7 +14,7 @@ classdef QuadrilateralCubic < Interpolation
             obj.type = 'QUADRILATERAL_CUBIC';
             obj.ndime = 2;
             obj.nnode = 16;
-            obj.pos_nodes = [-1,-1 ; 1 -1 ; 1,1 ; -1,1 ; -1/3,-1 ; 1/3,-1 ; 1,-1/3 ; 1,1/3 ; 1/3,1 ; -1/3,1 ; -1,1/3 ; -1,-1/3 ; -1/3,-1/3 ; 1/3,-1/3 ; -1/3,1/3 ; 1/3,1/3];
+            obj.pos_nodes = [-1,-1 ; 1 -1 ; 1,1 ; -1,1 ; -1/3,-1 ; 1/3,-1 ; 1,-1/3 ; 1,1/3 ; 1/3,1 ; -1/3,1 ; -1,1/3 ; -1,-1/3 ; -1/3,-1/3 ; 1/3,-1/3 ; 1/3,1/3 ; -1/3,1/3];
         end
 
         function shape = evaluateShapeFunctions(obj,xV)

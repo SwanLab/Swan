@@ -79,7 +79,7 @@ classdef EIFEMnonPeriodic < handle
 
         function updateDownscaling(obj,mu)
             [nRow,nCol,~] = size(obj.U);
-            obj.U = reshape(obj.RVE.U(mu(:)),[nRow nCol length(mu)]);
+            obj.U = reshape(obj.RVE.U(mu.fValues(:)),[nRow nCol length(mu)]);
 %             obj.U(:) = obj.RVE.U(mu(:));
         end
 
@@ -90,8 +90,11 @@ classdef EIFEMnonPeriodic < handle
         
         function dK = computeGradK(obj,mu)
            [ndof,ndof,~] = size(obj.Kel);
-           dK =  reshape(obj.RVE.dKcoarse(mu(:)'),[ndof ndof length(mu)]);
+           % dK =  reshape(obj.RVE.dKcoarse(mu.fValues'),[ndof ndof size(mu.fValues)]);
+            dK =  obj.RVE.dKcoarse(mu.fValues');
         end
+        %% 
+        %% 
 
         function uL = global2local(obj,uG)
             nElem = obj.mesh.nelem;
@@ -114,11 +117,12 @@ classdef EIFEMnonPeriodic < handle
 %             obj.dispFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim,'P2Q8');
             obj.dispFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim,'P1');
 %             obj.LHSintegrator = obj.createLHSintegrator();
-            if length(cParams.mu) == 1
-                obj.mu = cParams.mu*ones(cParams.mesh.nelem,1);
-            else
-                obj.mu = reshape(cParams.mu',1,[]);
-            end
+            % if length(cParams.mu) == 1
+            %     obj.mu = cParams.mu*ones(cParams.mesh.nelem,1);
+            % else
+                % obj.mu = reshape(cParams.mu',1,[]);
+                obj.mu = cParams.mu.fun;
+            % end
             if isfield(cParams,'Fext')
                 obj.Fext = cParams.Fext;
             end
@@ -133,7 +137,7 @@ classdef EIFEMnonPeriodic < handle
 % %                   obj.Kel(:,:,i) = obj.RVE.Kcoarse(:,:,i);
 %             end
             ndof = obj.dispFun.nDofsElem;
-            obj.Kel = reshape(obj.RVE.Kcoarse(mu(:)'),[ndof ndof length(mu)]);
+            obj.Kel = reshape(obj.RVE.Kcoarse(mu.fValues'),[ndof ndof length(mu.fValues)]);
 
         end
 
@@ -141,12 +145,12 @@ classdef EIFEMnonPeriodic < handle
             nelem = obj.mesh.nelem;
             if ~isempty(obj.RVE.U)
                 for i = 1:nelem
-                    obj.U(:,:,i) = obj.RVE.U(mu(i));
+                    obj.U(:,:,i) = obj.RVE.U(mu.fValues(i,:)');
                 end
             else
                 for i = 1:nelem
-                    Udef = obj.RVE.Udef(mu(i));
-                    Urb  = obj.RVE.Urb(mu(i));
+                    Udef = obj.RVE.Udef(mu.fValues(i,:));
+                    Urb  = obj.RVE.Urb(mu.fValues(i,:));
                     %                 Udef = obj.RVE.Udef(:,:,i);
                     %                 Urb  = obj.RVE.Urb(:,:,i);
                     obj.U(:,:,i) = Udef + Urb;

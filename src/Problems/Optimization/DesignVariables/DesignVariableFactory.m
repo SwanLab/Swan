@@ -20,6 +20,8 @@ classdef DesignVariableFactory < handle
                     designVar = Damage(cParams);
                 case 'Radius'
                     designVar = Radius(cParams);
+                case 'Parameter'
+                    designVar = Parameter(cParams);
             end
         end
 

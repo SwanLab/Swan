@@ -45,7 +45,7 @@ classdef DEIM < handle
                 n=i;
                 i=i+1;
             end
-            obj.nBasis = 10;
+            obj.nBasis = min(10,sum(Svec>1e-6));
             obj.basis = U(:,1:obj.nBasis);
 %             obj.basis(:,end+1:end+3) = obj.data(:,1:3);
 %             obj.nBasis = obj.nBasis +3;
