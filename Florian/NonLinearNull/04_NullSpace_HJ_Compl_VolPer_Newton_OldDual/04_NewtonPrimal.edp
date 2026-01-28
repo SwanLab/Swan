@@ -1,0 +1,71 @@
+IMPORT "io.edp"
+load "mmg"
+
+mesh Th = importMesh("Th");
+mesh Th2 = importMesh("Th2");
+real [int] nxVal = importArray("nxVal");
+real [int] nyVal = importArray("nyVal");
+real [int] g1st = importArray("g1st");
+real beta = importVar("beta");
+real lsLab = importVar("lsLab");
+real rInner = importVar("rInner");
+real rOuter = importVar("rOuter");
+real aJ = importVar("aJ");
+real aC = importVar("aC");
+real lam1 = importVar("lam1");
+real lam2 = importVar("lam2");
+
+fespace Vh(Th,P1);
+Vh gx, gy, g1;
+g1[] = g1st;
+
+mesh Th3;
+meshL ThLInt;
+int [int] lsLabel(1);
+lsLabel[0] = lsLab;
+
+macro updateBoundary() {
+  Th3 = trunc(Th2, region == rInner);
+  ThLInt = extract(Th3,label = lsLabel);
+} //
+
+updateBoundary;
+
+fespace Vh2(Th2,P1);
+Vh2 gx2, gy2, v2;
+
+fespace Vh1D(ThLInt,P1);
+Vh1D g0, v0, nx, ny;
+nx[] = nxVal;
+ny[] = nyVal;
+
+fespace Vh1D0(ThLInt,P0);
+Vh1D0 kappa;
+
+kappa = dx(nx)+dy(ny);
+
+macro tanGrad(f,nx,ny) [-ny*dx(f) + nx*dy(f)] //
+
+problem newton(g0,v0) = int1d(ThLInt)((aJ*lam1/aC)*g0*v0*kappa +
+                          (aJ*lam2/aC)*tanGrad(g0,nx,ny)*tanGrad(v0,nx,ny) + g0*v0)
+                          - int1d(ThLInt)(g1*v0);
+
+
+newton;
+
+problem velextx(gx2,v2,tgv=-1) = int2d(Th2,rInner)(beta^2*(dx(gx2)*dx(v2)+dy(gx2)*dy(v2)) + gx2*v2)
+                    + int2d(Th2,rOuter)(beta^2*(dx(gx2)*dx(v2)+dy(gx2)*dy(v2)) + gx2*v2)
+                    + on(lsLabel[0],gx2 = g0*nx);
+
+problem velexty(gy2,v2,tgv=-1) = int2d(Th2,rInner)(beta^2*(dx(gy2)*dx(v2)+dy(gy2)*dy(v2)) + gy2*v2)
+                    + int2d(Th2,rOuter)(beta^2*(dx(gy2)*dx(v2)+dy(gy2)*dy(v2)) + gy2*v2)
+                    + on(lsLabel[0],gy2 = g0*ny);
+
+velextx;
+velexty;
+
+gx = gx2;
+gy = gy2;
+
+exportArray(gx[]);
+exportArray(gy[]);

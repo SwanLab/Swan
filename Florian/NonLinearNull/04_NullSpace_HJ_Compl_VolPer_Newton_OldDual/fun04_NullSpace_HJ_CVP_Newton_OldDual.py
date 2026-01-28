@@ -35,6 +35,7 @@ def FunctionCase04(case,No,maxIter):
     meshsiz = exports['meshsiz']
     lsLabel = 10
     rInner = 3
+    rOuter = 2
 
     @bound_constraints_optimizable()
     class TO_problem(EuclideanOptimizable):
@@ -105,7 +106,7 @@ def FunctionCase04(case,No,maxIter):
     ## OPTIMIZATION PARAMETERS
     dTime = 0.001
     hmin = meshsiz
-    elRadius = 10
+    elRadius = 3
     params = {"dt": dTime*hmin*elRadius,
             "itnormalisation": No,
             "save_only_N_iterations": 1,
@@ -320,9 +321,25 @@ def FunctionCase04(case,No,maxIter):
 
         # Update step
         g = AJ*xiJ+AC*xiC
+
+        # Updated primal (original or newton)
+        if case=="Original":
+            runner = FreeFemRunner(path+"04_OriginalPrimal.edp")
+            runner.import_variables(Th=Th,Th2=problem._problem.Th2,nxVal=problem._problem.nx,
+                                    nyVal=problem._problem.ny,g1st=g,beta=beta,lsLab=lsLabel,
+                                    rInner=rInner)
+            gx = runner.execute()['gx[]']
+            gy = runner.execute()['gy[]']
+        elif case=="Newton":
+            runner = FreeFemRunner(path+"04_NewtonPrimal.edp")
+            runner.import_variables(Th=Th,Th2=problem._problem.Th2,nxVal=problem._problem.nx,
+                                    nyVal=problem._problem.ny,g1st=g,beta=beta,lsLab=lsLabel,
+                                    rInner=rInner,rOuter=rOuter,aJ=AJ,aC=AC,lam1=muls[0],lam2=muls[1])
+            gx = runner.execute()['gx[]']
+            gy = runner.execute()['gy[]']
+
         runner = FreeFemRunner(path+"04_HJ.edp")
-        runner.import_variables(Th=Th,Th2=problem._problem.Th2,gVal = g,phiVal=xj,nxVal=problem._problem.nx,
-                                    nyVal=problem._problem.ny,beta=beta,lsLab=lsLabel,rInner=rInner,dTime=dTime)
+        runner.import_variables(Th=Th,phiVal=xj,gxVal=gx,gyVal=gy,dTime=dTime)
         x1 = runner.execute()['phi[]']
 
         runner = FreeFemRunner(path+"04_BoundaryRefinement.edp")

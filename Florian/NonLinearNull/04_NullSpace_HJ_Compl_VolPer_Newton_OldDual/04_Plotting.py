@@ -23,37 +23,25 @@ from pymedit import P1Function
 
 
 
-path = "NonLinearNull/03_NullSpace_HJ_Compl_VolPer_Iterative/"
+path = "NonLinearNull/04_NullSpace_HJ_Compl_VolPer_Newton_OldDual/"
 
-exports = FreeFemRunner(path+"03_Mesh.edp").execute()
+exports = FreeFemRunner(path+"04_Mesh.edp").execute()
 Th = exports['Th']
 
 ## POSTPROCESS
-data  = np.load(path+"03_ResultIts1Step0.8.npz")
+data  = np.load(path+"04_ResultCaseOriginal.npz")
 iter1 = data['it']
 Comp1 = data['c']
 Vol1  = data['v']
 Per1  = data['p']
 
-data  = np.load(path+"03_ResultIts2Step0.8.npz")
+data  = np.load(path+"04_ResultCaseNewton.npz")
 iter2 = data['it']
 Comp2 = data['c']
 Vol2  = data['v']
 Per2  = data['p']
 
-data  = np.load(path+"03_ResultIts4Step0.8.npz")
-iter4 = data['it']
-Comp4 = data['c']
-Vol4  = data['v']
-Per4  = data['p']
-
-data  = np.load(path+"03_ResultIts8Step0.8.npz")
-iter8 = data['it']
-Comp8 = data['c']
-Vol8  = data['v']
-Per8  = data['p']
-
-data = np.load(path+"03_ResultIts1Step0.8.npz")
+data = np.load(path+"04_ResultCaseNewton.npz")
 fig0, ax0 = plt.subplots()
 x = data["xF"]
 u = P1Function(Th,x<=0)
@@ -62,28 +50,22 @@ plt.pause(0.05)
 
 fig, axes = plt.subplots(1, 3, figsize=(10, 4))
 
-axes[0].plot(iter1, Comp1, color='b', label='1 geo it')
-axes[0].plot(iter2, Comp2, color='r', label='2 geo it')
-axes[0].plot(iter4, Comp4, color='g', label='4 geo it')
-axes[0].plot(iter8, Comp8, color='m', label='8 geo it')
+axes[0].plot(iter1, Comp1, color='b', label='Original')
+axes[0].plot(iter2, Comp2, color='r', label='Almost Newton')
 axes[0].legend()
 axes[0].set_xlabel('Iter')
 axes[0].set_ylabel('Compliance')
 axes[0].grid(True, linestyle='--', alpha=0.6)
 
-axes[1].plot(iter1, Vol1, color='b', label='1 geo it')
-axes[1].plot(iter2, Vol2, color='r', label='2 geo it')
-axes[1].plot(iter4, Vol4, color='g', label='4 geo it')
-axes[1].plot(iter8, Vol8, color='m', label='8 geo it')
+axes[1].plot(iter1, Vol1, color='b', label='Original')
+axes[1].plot(iter2, Vol2, color='r', label='Almost Newton')
 axes[1].legend()
 axes[1].set_xlabel('Iter')
 axes[1].set_ylabel('Volume constraint')
 axes[1].grid(True, linestyle='--', alpha=0.6)
 
-axes[2].plot(iter1, Per1, color='b', label='1 geo it')
-axes[2].plot(iter2, Per2, color='r', label='2 geo it')
-axes[2].plot(iter4, Per4, color='g', label='4 geo it')
-axes[2].plot(iter8, Per8, color='m', label='8 geo it')
+axes[2].plot(iter1, Per1, color='b', label='Original')
+axes[2].plot(iter2, Per2, color='r', label='Almost Newton')
 axes[2].legend()
 axes[2].set_xlabel('Iter')
 axes[2].set_ylabel('Perimeter constraint')

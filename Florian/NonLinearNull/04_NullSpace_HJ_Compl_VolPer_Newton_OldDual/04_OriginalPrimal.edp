@@ -1,0 +1,53 @@
+IMPORT "io.edp"
+load "mmg"
+
+mesh Th = importMesh("Th");
+mesh Th2 = importMesh("Th2");
+real [int] nxVal = importArray("nxVal");
+real [int] nyVal = importArray("nyVal");
+real [int] g1st = importArray("g1st");
+real beta = importVar("beta");
+real lsLab = importVar("lsLab");
+real rInner = importVar("rInner");
+
+fespace Vh(Th,P1);
+Vh gx, gy, g1, nx1, ny1;
+g1[] = g1st;
+
+mesh Th3;
+meshL ThLInt;
+int [int] lsLabel(1);
+lsLabel[0] = lsLab;
+
+macro updateBoundary() {
+  Th3 = trunc(Th2, region == rInner);
+  ThLInt = extract(Th3,label = lsLabel);
+} //
+
+updateBoundary;
+
+fespace Vh2(Th2,P1);
+Vh2 nx2, ny2, v2;
+
+fespace Vh1D(ThLInt,P1);
+Vh1D nx, ny;
+nx[] = nxVal;
+ny[] = nyVal;
+
+problem velextx(nx2,v2) = int2d(Th2)(beta^2*(dx(nx2)*dx(v2)+dy(nx2)*dy(v2)) + nx2*v2)
+                    - int1d(Th2,lsLabel)(beta*nx*v2);
+
+problem velexty(ny2,v2) = int2d(Th2)(beta^2*(dx(ny2)*dx(v2)+dy(ny2)*dy(v2)) + ny2*v2)
+                    - int1d(Th2,lsLabel)(beta*ny*v2);
+
+velextx;
+velexty;
+
+nx1 = nx2;
+ny1 = ny2;
+
+gx = g1*nx1;
+gy = g1*ny1;
+
+exportArray(gx[]);
+exportArray(gy[]);
