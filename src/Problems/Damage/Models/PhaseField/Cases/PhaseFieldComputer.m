@@ -121,19 +121,25 @@ classdef PhaseFieldComputer < handle
                 uBC = norm(mean(u.fValues(nodes(isInUp),2)));
                 totReact = obj.boundaryConditions.u.bcValues(step);
             elseif ismember(obj.boundaryConditions.u.type, ["DisplacementTractionY","DisplacementTractionYClamped"]) 
-                dofsXdown = (nodes(isInDown)-1)*u.ndimf + 1;
-                totReact = abs(sum(F(dofsXdown)));
+                dofsYdown = (nodes(isInDown)-1)*u.ndimf + 2;
+                totReact = abs(sum(F(dofsYdown)));
                 uBC = obj.boundaryConditions.u.bcValues(step);
             end
 
-            DownSide = min(obj.mesh.coord(:,1));
-            isInLeft = abs(obj.mesh.coord(:,1)-DownSide)< 1e-12;
+            LeftSide = min(obj.mesh.coord(:,1));
+            isInLeft = abs(obj.mesh.coord(:,1)-LeftSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;
             if ismember(obj.boundaryConditions.u.type, ["ForceTractionX","ForceTractionXClamped"])
                 uBC = norm(mean(u.fValues(nodes(isInLeft),2)));
                 totReact = obj.boundaryConditions.u.bcValues(step);
-            elseif ismember(obj.boundaryConditions.u.type, ["DisplacementTractionX","DisplacementTractionXClamped","DisplacementShear"])
-                dofsXdown = (nodes(isInLeft)-1)*u.ndimf + 1;
+            elseif ismember(obj.boundaryConditions.u.type, ["DisplacementTractionX","DisplacementTractionXClamped"])
+                dofsXleft = (nodes(isInLeft)-1)*u.ndimf + 1;
+                totReact = abs(sum(F(dofsXleft)));
+                uBC = obj.boundaryConditions.u.bcValues(step);
+            end
+
+            if ismember(obj.boundaryConditions.u.type, "DisplacementShear")
+                dofsXdown = (nodes(isInDown)-1)*u.ndimf + 1;
                 totReact = abs(sum(F(dofsXdown)));
                 uBC = obj.boundaryConditions.u.bcValues(step);
             end

@@ -44,7 +44,7 @@ classdef PhaseFieldGeneralDegradation < handle
 
         function defineDegradationFunction(obj,cParams)
             syms phi
-            g(phi) = (1-phi)./((1-phi) + phi*cParams.coeffs(1)/2);
+            g(phi) = (1-phi)./((1-phi) + phi*cParams.coeffs(1)/2) + 1e-10;
             %g(phi) = (1-sqrt(phi))^2;
             obj.degFun = g;
         end

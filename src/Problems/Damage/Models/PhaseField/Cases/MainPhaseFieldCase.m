@@ -19,24 +19,24 @@ s.maxIter.u = 100;
 s.maxIter.phi = 100;
 s.maxIter.stag = 300;
 
-s.benchmark.mesh.type   = 'SENtraction';
+s.benchmark.mesh.type   = 'SENshear';
 s.benchmark.mesh.length = 200;
 s.benchmark.mesh.width  = 10;
 s.benchmark.mesh.lN     = 200;
 s.benchmark.mesh.wN     = 10;
-s.benchmark.bc.u.type   = 'DisplacementTractionY';
-s.benchmark.bc.u.values =  [0:1e-5:0.005,0.005:1e-6:0.1];
+s.benchmark.bc.u.type   = 'DisplacementShear';
+s.benchmark.bc.u.values =  [0:1e-4:0.05,0.05:1e-5:0.02];
 s.benchmark.bc.phi.type = 'DamageFree';%'DamageFixedLimitsX'; %DamageFree
 
 s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'
 s.matInfo.degradationType = 'PhaseField'; %'PhaseField','SIMPALL'
-s.matInfo.degradationSubType = 'General'; %'AT','ATSplit','Rational','General'
-s.matInfo.fileName = 'HoneycombAreaNew'; 
+s.matInfo.degradationSubType = 'AT'; %'AT','ATSplit','Rational','General'
+s.matInfo.fileName = 'HexagonAreaNew'; 
 s.matInfo.young   = 210; %3*1e4
 s.matInfo.poisson = 0.3; %0.2
 s.matInfo.Gc      = 2.7e-3; %0.008
-s.matInfo.sigmaMax = 1.984; %3
-s.l0 = 0.01; %10/5
+s.matInfo.sigmaMax = 2.44542; %3
+s.l0 = 0.005; %10/5
 s.matInfo.params.coeffs = [(4/pi)*(s.matInfo.Gc*s.matInfo.young)/(s.matInfo.sigmaMax^2 * s.l0), -0.5]; %(4/pi)
 s.matInfo.params.exp = 2;
 
@@ -54,7 +54,19 @@ outputData = tester.compute();
 outputData.inputParameters = s;
 
 %% SAVE + PLOT
-save("SENtractionHoney",'outputData') %ACTIVATE TO SAVE DATA!
-PhaseFieldPlotter(outputData);
-
-% Check reactions, and initial damage
+% save("SENshearHoney",'outputData') %ACTIVATE TO SAVE DATA!
+% PhaseFieldPlotter(outputData);
+% 
+% 
+% s.matInfo.fileName = 'HexagonAreaNew'; 
+% tester = TestingPhaseField(s);
+% outputData = tester.compute();
+% outputData.inputParameters = s;
+% save("SENshearHexa",'outputData')
+% 
+% s.matInfo.matType = 'Analytic';
+% s.dissipInfo.constant = pi;
+% tester = TestingPhaseField(s);
+% outputData = tester.compute();
+% outputData.inputParameters = s;
+% save("SENshearRational",'outputData')
