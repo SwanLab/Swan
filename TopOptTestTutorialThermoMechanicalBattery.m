@@ -73,7 +73,11 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
              uMesh              = UnfittedMesh(sm);
              uMesh.compute(phi);
 
-             obj.chiB     = CharacteristicFunction.create(uMesh).project('P1');
+             obj.chiB         = LagrangianFunction.create(obj.mesh,1,'P1');
+             fValues          = zeros(obj.mesh.nnodes,1);
+             fValues(phi < 0) = 1.0;
+             obj.chiB.setFValues(fValues);
+%              obj.chiB     = CharacteristicFunction.create(uMesh).project('P1');
          end        
 
         function createNonDesignableDomain(obj)
@@ -202,8 +206,8 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
 
             % Thermal
             s.materialInterpolator = obj.thermalmaterialInterpolator;
-            s.alpha = 3e-2; 
-            s.source  =  ConstantFunction.create(0,obj.mesh).*obj.chiB.project('P1'); %P=2.5
+            s.alpha = 4.0; %3e-2; 
+            s.source  =  ConstantFunction.create(1,obj.mesh).*obj.chiB.project('P1'); %P=2.5
             s.T0 = ConstantFunction.create(0,obj.mesh);   
             s.boundaryConditionsThermal = obj.createBoundaryConditionsThermal();
             
@@ -224,6 +228,8 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
             s.filter                      = obj.filter;
             s.complianceFromConstitutive  = obj.createComplianceFromConstiutive();
             s.material                    = obj.createMaterial();
+            s.chiB                        = obj.chiB;
+            s.kappaB                      = 1.25/220;
             s.conductivity                = obj.thermalmaterialInterpolator();
             c = ComplianceFunctionalThermoElastic(s);
             obj.compliance = c;
@@ -241,7 +247,7 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.5;
+            s.volumeTarget = 0.7;
             s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
@@ -312,7 +318,6 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
             s.constraintCase = {'EQUALITY'};
             s.ub             = 1;
             s.lb             = 0;
-            s.volumeTarget   = 0.4;
             s.gif=false;
             s.gifName='ThermalDensity';
             s.printing=true;

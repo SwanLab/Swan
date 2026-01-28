@@ -18,12 +18,19 @@ classdef SLERP < handle
         end
 
         function phi = update(obj,g,phi)
-            isFixed = phi.getFixedNodes();
-            g(isFixed) = - abs(g(isFixed)); %should be positive if we want to fix as void
+            isFixed    = phi.getFixedNodes();
+            g(isFixed) = - abs(g(isFixed)); 
+
+            % Characteristic function for designable domain ----
+            chiDesignable = LagrangianFunction.create(obj.mesh,1,'P1');
+            fValues = 1 + chiDesignable.fValues; 
+%             fValues(isFixed) = 0.0;
+            chiDesignable.setFValues(fValues);
+
             ls                = phi.obtainVariableInCell();
-            phiN              = obj.normalizeLevelSets(ls);
-            gN                = obj.createNormalizedGradient(ls,g);
-            theta             = obj.computeThetaNorm(phiN,gN);
+            phiN              = obj.normalizeLevelSets(ls, chiDesignable);
+            gN                = obj.createNormalizedGradient(ls,g,chiDesignable);
+            theta             = obj.computeThetaNorm(phiN,gN,chiDesignable);
             obj.Theta         = theta;
             [phiNvals,gNvals] = obj.computePhiAndGradientValues(phiN,gN);
             phiNew            = obj.computeNewLevelSet(phiNvals,gNvals,theta);
@@ -101,28 +108,30 @@ classdef SLERP < handle
             V     = lsAux.computeVolume();
         end
 
-        function fN = createNormalizedGradient(obj,ls,fV)
+        function fN = createNormalizedGradient(obj,ls,fV, chiDesignable)
             s.mesh  = obj.mesh;
             s.order = 'P1';
             nLS     = length(ls);
             fV      = reshape(fV,[],nLS);
             fN      = cell(nLS,1);
             for i = 1:nLS
-                s.fValues = fV(:,i);
+%                 s.fValues = fV(:,i);
+                s.fValues = fV(:,i).*chiDesignable.fValues;
                 f         = LagrangianFunction(s);
                 fN{i}     = f.normalize('L2');
             end
         end
 
-        function t = computeTheta(obj,phi,g)
-            phiG = ScalarProduct(phi,g,'L2');
+        function t = computeTheta(obj,phi,g,chiDesignable)
+%             phiG = ScalarProduct(phi,g,'L2');
+            phiG = ScalarProduct(chiDesignable.*phi,g,'L2');
             t    = max(acos(phiG),1e-14);
         end
 
-        function t = computeThetaNorm(obj,phiN,gN)
+        function t = computeThetaNorm(obj,phiN,gN,chiDesignable)
             t = 0;
             for i = 1:length(phiN)
-                ti = obj.computeTheta(phiN{i},gN{i});
+                ti = obj.computeTheta(phiN{i},gN{i},chiDesignable);
                 t  = norm([t,ti]);
             end
         end
@@ -154,11 +163,16 @@ classdef SLERP < handle
             gClass  = g(1:n);
         end
 
-        function phiN = normalizeLevelSets(ls)
+        function phiN = normalizeLevelSets(ls,chiDesignable)
             nLS   = length(ls);
             phiN  = cell(nLS,1);
             for i = 1:nLS
-                phiN{i} = ls{i}.fun.normalize('L2');
+%                 phiN{i} = ls{i}.fun.normalize('L2');
+                norm = ScalarProduct(chiDesignable.*ls{i}.fun,ls{i}.fun,'L2');
+                norm = sqrt(norm);
+                f = LagrangianFunction.create(ls{i}.fun.mesh,1,'P1');
+                f.setFValues(ls{i}.fun.fValues/norm);
+                phiN{i} = f;
             end
         end
 

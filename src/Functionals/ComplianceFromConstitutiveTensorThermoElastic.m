@@ -76,7 +76,7 @@ classdef ComplianceFromConstitutiveTensorThermoElastic < handle
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
 
-            isDir   = @(coor) abs(coor(:,2))==yMin | abs(coor(:,2))==yMax | abs(coor(:,1))==xMin | abs(coor(:,1))==xMax;  
+            isDir   = @(coor) abs(coor(:,2))==yMax | abs(coor(:,1))==xMax;  
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = 1;
