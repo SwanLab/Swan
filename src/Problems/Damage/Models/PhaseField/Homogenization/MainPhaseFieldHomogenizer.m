@@ -1,24 +1,24 @@
 clc,clear,close all
-s.monitoring = true;
+s.monitoring = false;
 s.E          = 1;
 s.nu         = 0.3;
 s.meshType   = 'Hexagon';
-s.meshN      = 100;
-s.holeType   = 'ReinforcedHoneycomb';
-s.nSteps     = [5];
+s.meshN      = 300;
+s.holeType   = 'Hexagon';
+s.nSteps     = [100];
 s.pnorm      = 'Inf';
 s.damageType = 'Area';
 PFH = TestingPhaseFieldHomogenizer(s);
 [mat,phi,holeParam] = PFH.compute();
-
+save('HexaNu','mat','phi')
 
 %% DERIVATIVE
-load('HoneycombAreaNew.mat')
-[f,df,ddf] = DamageHomogenizationFitter.computePolynomial(9,phi,mat);
-degradation.fun = f;
-degradation.dfun = df;
-degradation.ddfun = ddf;
-save('HoneycombAreaNew','mat','phi','degradation')
+%load('SquareArea.mat')
+% [f,df,ddf] = DamageHomogenizationFitter.computePolynomial(9,phi,mat);
+% degradation.fun = f;
+% degradation.dfun = df;
+% degradation.ddfun = ddf;
+
 % 
 % tiledlayout(1,3)
 % nexttile
