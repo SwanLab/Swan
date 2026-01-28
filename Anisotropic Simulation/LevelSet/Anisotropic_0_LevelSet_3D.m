@@ -51,7 +51,7 @@ classdef Anisotropic_0_LevelSet_3D < handle
             % x1      = linspace(0,2,120);
             % x2      = linspace(0,1,60);
             % MBB Beam
-            obj.mesh = HexaMesh(2,1,1,40,20,20);
+            obj.mesh = HexaMesh(2,0.05,1,40,20,20);
         end
 
         function createDesignVariable(obj)
@@ -180,7 +180,7 @@ classdef Anisotropic_0_LevelSet_3D < handle
             %s.type           = '0';
             s.gif = true;
             s.gifName = 'Gif_0_3D_LevelSet';
-            s.printing = false;
+            s.printing = true;
             s.printName = 'Results_0_LevelSet';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
