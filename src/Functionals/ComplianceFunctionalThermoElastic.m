@@ -10,8 +10,8 @@ classdef ComplianceFunctionalThermoElastic < handle
         compliance
         material
         conductivity
-        %chiB
-        %kappaB
+        chiB
+        kappaB
     end
 
     methods (Access = public)
@@ -33,8 +33,8 @@ classdef ComplianceFunctionalThermoElastic < handle
             obj.mesh       = cParams.mesh;
             obj.filter     = cParams.filter;
             obj.material   = cParams.material;
-            % obj.chiB       = cParams.chiB;
-            % obj.kappaB     = cParams.kappaB;
+             obj.chiB       = cParams.chiB;
+             obj.kappaB     = cParams.kappaB;
             obj.conductivity = cParams.conductivity;
             obj.compliance = cParams.complianceFromConstitutive;
             if isfield(cParams,'value0')
@@ -68,9 +68,9 @@ classdef ComplianceFunctionalThermoElastic < handle
         function f = createDomainFunction(obj,fun,xR)
             s.operation = @(xV) obj.createConductivityAsDomainFunction(fun,xR{1},xV);
             s.mesh      = obj.mesh;
-            %kappa = DomainFunction(s);
-            %s.operation = @(xV) kappa.evaluate(xV).*(1-obj.chiB.evaluate(xV)) + obj.kappaB.*obj.chiB.evaluate(xV);
-            %s.mesh      = obj.mesh;
+            kappa = DomainFunction(s);
+            s.operation = @(xV) kappa.evaluate(xV).*(1-obj.chiB.evaluate(xV)) + obj.kappaB.*obj.chiB.evaluate(xV);
+            s.mesh      = obj.mesh;
             f = DomainFunction(s);
         end
 

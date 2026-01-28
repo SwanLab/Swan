@@ -69,15 +69,24 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
              phiFun           = g.computeLevelSetFunction(obj.mesh);
              phi              = phiFun.fValues;
              % Chi for batteries
-             obj.chiB         = LagrangianFunction.create(obj.mesh,1,'P1');
-             fValues          = zeros(obj.mesh.nnodes,1);
-             fValues(phi < 0) = 1.0;
-             obj.chiB.setFValues(fValues);
-%              sm.backgroundMesh = obj.mesh;
-%              sm.boundaryMesh   = obj.mesh.createBoundaryMesh;
-%              uMesh              = UnfittedMesh(sm);
-%              uMesh.compute(phi);
-%              obj.chiB     = CharacteristicFunction.create(uMesh).project('P1');
+     %        obj.chiB         = LagrangianFunction.create(obj.mesh,1,'P1');
+     %        fValues          = zeros(obj.mesh.nnodes,1);
+     %        fValues(phi < 0) = 1.0;
+     %        obj.chiB.setFValues(fValues);
+             sm.backgroundMesh = obj.mesh;
+             sm.boundaryMesh   = obj.mesh.createBoundaryMesh;
+             uMesh              = UnfittedMesh(sm);
+             uMesh.compute(phi);
+             obj.chiB     = CharacteristicFunction.create(uMesh);%.project('P1');
+
+
+            s.filterType = 'LUMP';
+            s.mesh  = obj.mesh;
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            f = Filter.create(s);
+
+            obj.chiB = f.compute(obj.chiB,2);
+
          end        
 
 %         function createNonDesignableDomain(obj)
