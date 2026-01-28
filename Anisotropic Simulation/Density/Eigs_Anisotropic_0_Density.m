@@ -23,7 +23,7 @@ classdef Eigs_Anisotropic_0_Density < handle
     methods (Access = public)
 
         function obj = Eigs_Anisotropic_0_Density()
-            obj.lambda1min = 1e-5; % To change with the 50 Hz minimum
+            obj.lambda1min = 1e-3; % To change with the 50 Hz minimum
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -44,7 +44,7 @@ classdef Eigs_Anisotropic_0_Density < handle
 
             % Save monitoring and desginVariable fValues
             %saveas(gcf,'Monitoring_0_Density.fig');
-            obj.designVariable.fun.print('fValues_0_Density_Eigs_Lambda_1minus5');
+            obj.designVariable.fun.print('fValues_0_Density_Eigs_Lambda_1minus3');
         end
 
     end
@@ -220,7 +220,7 @@ classdef Eigs_Anisotropic_0_Density < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 500;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY', 'INEQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
@@ -231,9 +231,9 @@ classdef Eigs_Anisotropic_0_Density < handle
             s.etaMaxMin      = 0.01;
             %s.type           = '0';
             s.gif = true;
-            s.gifName = 'Eigs_Gif_0_Density_Lambda_1minus5';
+            s.gifName = 'Eigs_Gif_0_Density_Lambda_1minus3';
             s.printing = false;
-            s.printName = 'Eigs_Results_0_Density_Lambda_1minus5';
+            s.printName = 'Eigs_Results_0_Density_Lambda_1minus3';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
