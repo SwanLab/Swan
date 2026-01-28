@@ -84,8 +84,7 @@ classdef CohesiveMesh < handle
             obj.listNodeCohesive = find(obj.isNodeCohesive);
             obj.nNodeCohesive = sum(obj.isNodeCohesive);
 
-            % fer ho mb edges aixo
-            obj.isElemCohesive = any(reshape(obj.isNodeCohesive(obj.baseMesh.connec), size(obj.baseMesh.connec)),2);
+            obj.isElemCohesive = any(ismember(obj.baseMesh.edges.edgesInElem,obj.listEdgeCohesive),2);
             obj.listElemCohesive = find(obj.isElemCohesive);
 
             edgesInElem = obj.baseMesh.edges.edgesInElem;
@@ -146,9 +145,7 @@ classdef CohesiveMesh < handle
 
             obj.isNodeCohesive = [obj.isNodeCohesive; ones(obj.nNodeCohesive,1)];
 
-            obj.newConnec = obj.baseMesh.connec;
-            cohesiveConnec = [obj.pairsMatrix(1:end-1,1), obj.pairsMatrix(2:end,1), obj.pairsMatrix(2:end,2), obj.pairsMatrix(1:end-1,2)];
-            obj.newConnec = [obj.newConnec; cohesiveConnec];
+
 
         end
 
@@ -157,22 +154,34 @@ classdef CohesiveMesh < handle
             listLeftElems = obj.listElemCohesive(obj.isLeft);
             nodesInEdges = obj.baseMesh.edges.nodesInEdges; 
 
-            %[idx, loc] = ismember(A, M(:,1));
-            %A(idx) = M(loc(idx), 2);
+            connec = obj.baseMesh.connec;
+            cohesiveConnec = [obj.pairsMatrix(1:end-1,1), obj.pairsMatrix(2:end,1), obj.pairsMatrix(2:end,2), obj.pairsMatrix(1:end-1,2)];
+            connec = [connec; cohesiveConnec];
+            
+            oldLeftConnec = connec(listLeftElems,:);
+            idx = ismember(oldLeftConnec,obj.pairsMatrix(:,1));
 
+            newLeftConnec = oldLeftConnec;
+            newLeftConnec(idx) = arrayfun(@(x) obj.getPair(x), oldLeftConnec(idx));
+
+            connec(obj.isLeft,:) = newLeftConnec;
             
             
-            for i =1:length(listLeftElems)
-                e = listLeftElems(i);
+            obj.newConnec = connec;
 
-                edge = obj.cohElem2Edge(i);
-                replacedNodes = nodesInEdges(edge,:)';
 
-                newNodes = obj.getPair(replacedNodes)';
 
-                idx = ismember(obj.newConnec(e,:),replacedNodes');
-                obj.newConnec(e,idx) = newNodes;
-            end
+            % for i =1:length(listLeftElems)
+            %     e = listLeftElems(i);
+            % 
+            %     edge = obj.cohElem2Edge(i);
+            %     replacedNodes = nodesInEdges(edge,:)';
+            % 
+            %     newNodes = obj.getPair(replacedNodes)';
+            % 
+            %     idx = ismember(obj.newConnec(e,:),replacedNodes');
+            %     obj.newConnec(e,idx) = newNodes;
+            % end
 
         end
 
