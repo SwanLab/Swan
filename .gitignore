@@ -6,3 +6,4 @@ Videos/*
 __pycache__/*
 *.m~
 *.asv
+src/Problems/Damage/Models/PhaseField/Cases/MainPhaseFieldCase.m
