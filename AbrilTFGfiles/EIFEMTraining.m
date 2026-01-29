@@ -29,7 +29,7 @@ classdef EIFEMTraining < handle
             s.mesh=bMesh;
             s.type='quad';
             cf=CoarseFunctions(s);
-            f=cf.compute();
+            f=cf.getAnalytical();
             dirchletFun = f;
 
             s.mesh         = obj.meshDomain;

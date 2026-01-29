@@ -17,14 +17,38 @@ classdef CoarseFunctions < handle
             obj.init(cParams);
         end
 
-        function f= compute(obj)
+        function fH = compute(obj)
             switch obj.type
                 case 'line'
-                    f=obj.createLineFunction();
+                    fH=obj.createLineFunction();
                 case 'quad'
-                    f=obj.createQuadFunction();
+                    fH=obj.createQuadFunction();
                 otherwise
                     error('Unknown coarse function type');
+            end
+        end
+
+        function f=getAnalytical(obj)
+            fH = obj.compute();
+            nf = numel(fH);
+            f  = cell(1,nf);
+            switch obj.type
+                case 'line'
+                    nPerSegment=obj.dim*(obj.order+1); %2fx+2fy x bmesh{i}
+                    idx=1;
+                    for k=1:numel(obj.mesh)
+                        bMesh = obj.mesh{k}.mesh;
+                        for j=1:nPerSegment
+                            f{idx}=AnalyticalFunction.create(fH{idx}, bMesh);
+                            idx=idx+1;
+                        end
+                    end
+
+                case 'quad'
+                    bMesh=obj.mesh;
+                    for i=1:nf
+                        f{i}=AnalyticalFunction.create(fH{i}, bMesh);
+                    end
             end
         end
 
@@ -72,8 +96,8 @@ classdef CoarseFunctions < handle
                     N = @(x) L{i}( local(x) );
                     fx = @(x) [N(x); 0*x(2,:,:)];
                     fy = @(x) [0*x(1,:,:); N(x)];
-                    f{1,n} = AnalyticalFunction.create(fx, bMesh); n=n+1;
-                    f{1,n} = AnalyticalFunction.create(fy, bMesh); n=n+1;
+                    f{1,n} = fx; n=n+1;
+                    f{1,n} = fy; n=n+1;
                 end
             end
         end
@@ -93,11 +117,10 @@ classdef CoarseFunctions < handle
                 N = @(x) L{i}((x(1,:,:)-x0)/a) .* L{j}((x(2,:,:)-y0)/b);
                 fx = @(x) [N(x); 0*x(2,:,:)];
                 fy = @(x) [0*x(1,:,:); N(x)];
-                f{1,n} = AnalyticalFunction.create(fx, bMesh); n=n+1;
-                f{1,n} = AnalyticalFunction.create(fy, bMesh); n=n+1;
+                f{1,n} = fx;   n=n+1;
+                f{1,n} = fy;   n=n+1;
             end
         end
-
 
 
         function L=createBasisFunctions(obj)

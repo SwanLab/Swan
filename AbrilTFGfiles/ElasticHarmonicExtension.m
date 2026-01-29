@@ -64,14 +64,24 @@ classdef ElasticHarmonicExtension < handle
             L = -sol(obj.uFun.nDofs+1:end,:);
             u=full(u);
             L=full(L);
+
+            uFun=cell(1,size(u,2));
+            lambdaFun=cell(1,size(L,2));
+
+            for i=1:size(u,2)
+                uFun{i}=copy(obj.uFun);
+                fV= reshape(u(:,i),[obj.mesh.ndim,obj.mesh.nnodes])';
+                uFun{i}.setFValues(fV);
+            end
             
-            % canviar
+            for i=1:size(L,2)
+                lambdaFun{i}=copy(obj.lambdaFun);
+                fV= reshape(L(:,i),2,[]).';
+                lambdaFun{i}.setFValues(fV);
+            end
+            
             uFun=u;
             lambdaFun=L;
-            %loop
-            % u = copy(obj.uFun);
-            % uFun{i} = u.setFValues();
-            %u, L as uFun and lambdFun
 
         end
 
