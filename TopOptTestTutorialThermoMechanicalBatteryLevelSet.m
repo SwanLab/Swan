@@ -8,7 +8,8 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
         thermalmaterialInterpolator 
         physicalProblem
         compliance
-        volume
+        volumeFunc
+        volumeConst
         cost
         constraint
         primalUpdater
@@ -26,7 +27,6 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
             obj.init()
             obj.createMesh();
             obj.createBatteryDomain();
-%             obj.createNonDesignableDomain();
             obj.createDesignVariable();
             obj.createFilter();
             obj.createMaterialInterpolator();
@@ -35,6 +35,7 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
             obj.createVolumeConstraint();
+            obj.createVolumeFunctional();
             obj.createCost();
             obj.createConstraint();
             obj.createPrimalUpdater();
@@ -68,43 +69,21 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
              g                = GeometricalFunction(s);
              phiFun           = g.computeLevelSetFunction(obj.mesh);
              phi              = phiFun.fValues;
-             % Chi for batteries
-     %        obj.chiB         = LagrangianFunction.create(obj.mesh,1,'P1');
-     %        fValues          = zeros(obj.mesh.nnodes,1);
-     %        fValues(phi < 0) = 1.0;
-     %        obj.chiB.setFValues(fValues);
+
              sm.backgroundMesh = obj.mesh;
              sm.boundaryMesh   = obj.mesh.createBoundaryMesh;
              uMesh              = UnfittedMesh(sm);
              uMesh.compute(phi);
              obj.chiB     = CharacteristicFunction.create(uMesh);%.project('P1');
 
+             s.filterType = 'LUMP';
+             s.mesh  = obj.mesh;
+             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+             f = Filter.create(s);
 
-            s.filterType = 'LUMP';
-            s.mesh  = obj.mesh;
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            f = Filter.create(s);
-
-            obj.chiB = f.compute(obj.chiB,2);
-
+             obj.chiB = f.compute(obj.chiB,2);
          end        
 
-%         function createNonDesignableDomain(obj)
-%              sR.type        = 'Circles';
-%              sR.r           = [0.13, 0.13, 0.13, 0.13, 0.13, 0.13, 0.13, 0.13, 0.13];
-%              sR.x0 = [0, 0, 0, 0.4, 0.8, 0.4, 0.8, 0.4, 0.8];
-%              sR.y0 = [0, 0.4, 0.8, 0, 0, 0.4, 0.8, 0.8, 0.4];
-%              gR                = GeometricalFunction(sR);
-%              % Level set function for non designable domain
-%              phiFunR           = gR.computeLevelSetFunction(obj.mesh);
-%              phiR              = phiFunR.fValues;
-%              % Characteristic function for non designable domain
-%              smR.backgroundMesh = obj.mesh;
-%              smR.boundaryMesh   = obj.mesh.createBoundaryMesh;
-%              uMeshR              = UnfittedMesh(smR);
-%              uMeshR.compute(phiR);
-%              obj.chiAl     = CharacteristicFunction.create(uMeshR).project('P1'); %- obj.chiB;
-%         end
 
         function createDesignVariable(obj)
             s.type = 'Full';
@@ -136,8 +115,8 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
 
          function createThermalMaterialInterpolator(obj) % Conductivity
             s.interpolation  = 'SimpAllThermal';   
-            s.f0   = 5e-2; %ConstantFunction.create(1e-3,obj.mesh); %1e-2;
-            s.f1   = 1.0; %ConstantFunction.create(1,obj.mesh); 
+            s.f0   = 5e-2; 
+            s.f1   = 1.0;  
             s.dim  = '2D';
             a = MaterialInterpolator.create(s);
             obj.thermalmaterialInterpolator = a;
@@ -198,7 +177,7 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
 
             % Thermal
             s.materialInterpolator = obj.thermalmaterialInterpolator;
-            s.alpha = 10.0; 
+            s.alpha = 100.0; 
             s.source  =  ConstantFunction.create(1,obj.mesh).*obj.chiB.project('P1'); %P=2.5
             s.T0 = ConstantFunction.create(0,obj.mesh);   
             s.boundaryConditionsThermal = obj.createBoundaryConditionsThermal();
@@ -221,7 +200,7 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
             s.complianceFromConstitutive  = obj.createComplianceFromConstiutive();
             s.material                    = obj.createMaterial();
             s.chiB                        = obj.chiB;
-            s.kappaB                      = 1.25/220;
+            s.kappaB                      = 1.0; %1.25/220;
             s.conductivity                = obj.thermalmaterialInterpolator();
             c = ComplianceFunctionalThermoElastic(s);
             obj.compliance = c;
@@ -239,15 +218,24 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.5;
+            s.volumeTarget = 0.6;
             s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
-            obj.volume = v;
+            obj.volumeConst = v;
+        end
+
+        function createVolumeFunctional(obj)
+            s.mesh   = obj.mesh;
+            s.test = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.uMesh = obj.createBaseDomain();
+            v = VolumeFunctional(s);
+            obj.volumeFunc = v;
         end
 
         function createCost(obj) 
             s.shapeFunctions{1} = obj.compliance;
-            s.weights           = 1;
+%             s.shapeFunctions{2} = obj.volumeFunc;
+            s.weights           = [1];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -259,7 +247,7 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
         end
 
         function createConstraint(obj)
-            s.shapeFunctions{1} = obj.volume;
+            s.shapeFunctions{1} = obj.volumeConst;
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
@@ -285,7 +273,7 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
             s.etaMaxMin      = 0.01;
             s.gif            = true;
             s.gifName        ='BatteryLevelSet';
-            s.printing       =true;
+            s.printing       = true;
             s.printName      ='Battery Level Set';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
@@ -347,7 +335,7 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = 1;
-            sDir{1}.value     = 0; %20;
+            sDir{1}.value     = 0;  
             sDir{1}.ndim = 1;
             
             dirichletFun = [];

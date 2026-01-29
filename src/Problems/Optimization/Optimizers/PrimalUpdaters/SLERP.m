@@ -24,7 +24,7 @@ classdef SLERP < handle
             % Characteristic function for designable domain ----
             chiDesignable = LagrangianFunction.create(obj.mesh,1,'P1');
             fValues = 1 + chiDesignable.fValues; 
-%             fValues(isFixed) = 0.0;
+            fValues(isFixed) = 0.0;
             chiDesignable.setFValues(fValues);
 
             ls                = phi.obtainVariableInCell();

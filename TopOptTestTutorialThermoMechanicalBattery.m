@@ -14,7 +14,7 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
         primalUpdater
         optimizer
         chiB    %Battery
-        chiAl  %Corona
+        chiAl   %Corona
         chiB0
         dualVariable
     end
@@ -74,6 +74,13 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
              uMesh.compute(phi);
 
              obj.chiB     = CharacteristicFunction.create(uMesh).project('P1');
+
+             s.filterType = 'LUMP';
+             s.mesh  = obj.mesh;
+             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+             f = Filter.create(s);
+
+             obj.chiB = f.compute(obj.chiB,2);
          end        
 
         function createNonDesignableDomain(obj)
@@ -135,7 +142,7 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
 
          function createThermalMaterialInterpolator(obj) % Conductivity
             s.interpolation  = 'SimpAllThermal';   
-            s.f0   = 1e-2;
+            s.f0   = 5e-2;
             s.f1   = 1;
             s.dim ='2D';
             a = MaterialInterpolator.create(s);
@@ -194,7 +201,7 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
 
             % Thermal
             s.materialInterpolator = obj.thermalmaterialInterpolator;
-            s.alpha = 50; 
+            s.alpha = ConstantFunction.create(100,obj.mesh); 
             s.source  =  ConstantFunction.create(1,obj.mesh).*obj.chiB.project('P1'); %P=2.5
             s.T0 = ConstantFunction.create(0,obj.mesh);   
             s.boundaryConditionsThermal = obj.createBoundaryConditionsThermal();
@@ -235,7 +242,7 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.5;
+            s.volumeTarget = 0.6;
             s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
@@ -306,8 +313,6 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
             s.constraintCase = {'EQUALITY'};
             s.ub             = 1;
             s.lb             = 0;
-            s.volumeTarget   = 0.5;
-
             s.gif=false;
             s.gifName='ThermalDensity';
             s.printing=true;

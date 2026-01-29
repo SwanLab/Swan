@@ -66,7 +66,7 @@ classdef ThermoElasticProblem < handle
 
         function updateMaterial(obj, mat, kappa)
             obj.material = mat;
-            obj.kappa = kappa;  % right now, this is where kappa is being defined
+            obj.kappa = kappa;  
         end
 
         function print(obj, filename, software)
@@ -209,7 +209,7 @@ classdef ThermoElasticProblem < handle
            %COUPLING TERM
             C     = obj.material;
             I = ConstantFunction.create(eye(2),obj.mesh);
-            beta= obj.alpha.*DDP(C,I);       
+            beta = obj.alpha.*DDP(C,I);       
             f = @(v) DDP(beta.*(obj.tFun - obj.T0),SymGrad(v));
             rhs_coupling = IntegrateRHS(f,obj.uFun,obj.mesh,'Domain',2);    
             rhs = rhs + rhs_coupling;
