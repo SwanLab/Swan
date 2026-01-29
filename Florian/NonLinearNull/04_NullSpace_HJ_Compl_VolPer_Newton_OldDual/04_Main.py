@@ -4,9 +4,10 @@ import matplotlib.pyplot as plt
 
 from fun04_NullSpace_HJ_CVP_Newton_OldDual import FunctionCase04
 
-case    = "Original"
-No      = 100
+case    = ["Original","Newton"]
+No      = [40,40]
 maxIter = 100
 
-FunctionCase04(case,No,maxIter)
-plt.close('all')
+for i in range(len(case)):
+    FunctionCase04(case[i],No[i],maxIter)
+    plt.close('all')
