@@ -331,10 +331,10 @@ classdef OfflineDataProcessor < handle
               for k = 1:nfun
                   uD{k} = AnalyticalFunction.create(f{k}, boundMesh);
               end
-              f = uD;
-
-            s.mesh=obj.mesh;
-            s.type='line';
+            f = uD;
+            bMesh= bMesh([1 3 2 4]); %Reorder to get anticlock wise boundary functions
+            s.mesh=boundMesh;
+            s.type='quad';
             cf=CoarseFunctions(s);
             f2=cf.compute();
             f3=InterfaceFunctions(boundMesh);

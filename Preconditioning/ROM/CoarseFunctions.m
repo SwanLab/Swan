@@ -34,39 +34,33 @@ classdef CoarseFunctions < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.mesh =cParams.mesh;
+            obj.mesh = cParams.mesh;
+            obj.type = cParams.type;
+
             if isfield(cParams,'order')
                 obj.order= cParams.order;
             else
                 obj.order = 1;
             end
-            obj.type = cParams.type;
-        end
 
-        function L=createBasisFunctions(obj)
-            xi = linspace(-1, 1, obj.order+1);
-            L = cell(obj.order+1, 1);
-            for i = 1:obj.order+1
-                L{i} = @(s) obj.lagrangeBasis(s, xi, i);
+            if iscell(obj.mesh)
+                obj.dim = obj.mesh{1}.mesh.ndim;
+            else
+                obj.dim = obj.mesh.ndim;
             end
+
         end
 
-        function f=createLineFunction(obj)
-            globalMesh=obj.mesh.createSingleBoundaryMesh();
-            bMesh=obj.mesh.createBoundaryMesh();
-            L=obj.createBasisFunctions();
-            f = {};
 
-            for s=1:numel(bMesh)
-                bLocal=bMesh{s}.mesh;
-                xmax = max(bLocal.coord(:,1));
-                ymax = max(bLocal.coord(:,2));
-                xmin = min(bLocal.coord(:,1));
-                ymin = min(bLocal.coord(:,2));
-                a = (xmax - xmin)/2;
-                b = (ymax - ymin)/2;
-                x0 = xmin + a;
-                y0 = ymin + b;
+        function f=createLineFunction(obj)  
+            L=obj.createBasisFunctions();
+            nf = numel(obj.mesh) *obj.dim* (obj.order + 1);
+            f  = cell(1,nf);
+            n  = 1;
+            for k=1:numel(obj.mesh)
+                bMesh=obj.mesh{k}.mesh;
+
+                [xmax,xmin,a,b,x0,y0]=obj.NormalizeMesh(bMesh);
 
                 if abs(xmax - xmin) < 1e-12
                     local=  @(x) (x(2,:,:)-y0)/b; %vertical
@@ -78,90 +72,46 @@ classdef CoarseFunctions < handle
                     N = @(x) L{i}( local(x) );
                     fx = @(x) [N(x); 0*x(2,:,:)];
                     fy = @(x) [0*x(1,:,:); N(x)];
-                    f{end+1} = fx;
-                    f{end+1} = fy;
+                    f{1,n} = AnalyticalFunction.create(fx, bMesh); n=n+1;
+                    f{1,n} = AnalyticalFunction.create(fy, bMesh); n=n+1;
                 end
             end
-
-            uD= cell(size(f));
-            for k = 1:length(f)
-                uD{k} = AnalyticalFunction.create(f{k}, globalMesh);
-            end
-            f = uD;
-
-            % 
-            %     % vertical line (x constant)
-            %     for j = 1:obj.order+1
-            %         N = @(x) L{j}((x(2,:,:)-y0)/b);
-            %         fx = @(x) [N(x); 0*x(2,:,:)];
-            %         fy = @(x) [0*x(1,:,:); N(x)];
-            % 
-            %     end
-            % else
-            %     % horizontal line (y constant)
-            %     for i = 1:obj.order+1
-            %         N = @(x) L{i}((x(1,:,:)-x0)/a);
-            %         fx = @(x) [N(x); 0*x(2,:,:)];
-            %         fy = @(x) [0*x(1,:,:); N(x)];
-            %         f{end+1} = fx;
-            %         f{end+1} = fy;
-            %    end 
         end
 
         function f=createQuadFunction(obj)
             bMesh=obj.mesh;
             L=obj.createBasisFunctions(); 
-            xmax = max(bMesh.coord(:,1));
-            ymax = max(bMesh.coord(:,2));
-            xmin = min(bMesh.coord(:,1));
-            ymin = min(bMesh.coord(:,2));
-            a = (xmax - xmin)/2;
-            b = (ymax - ymin)/2;
-            x0 = xmin + a;
-            y0 = ymin + b;
+            [~,~,a,b,x0,y0]=obj.NormalizeMesh(bMesh);
+            bn=obj.getBoundaryNodes(obj.order);
 
-            n = obj.order + 1;
-            boundaryNodes = [];
-            
-            % bottom edge
-            for i = 1:n
-                boundaryNodes(end+1,:) = [i, 1];
-            end
-            % right edge
-            for j = 2:n
-                boundaryNodes(end+1,:) = [n, j];
-            end
-            % top edge
-            for i = n-1:-1:1
-                boundaryNodes(end+1,:) = [i, n];
-            end
-            % left edge
-            for j = n-1:-1:2
-                boundaryNodes(end+1,:) = [1, j];
-            end
-
-            f = {};
-            for k = 1:size(boundaryNodes,1)
-                i = boundaryNodes(k,1);
-                j = boundaryNodes(k,2);
+            nf=size(bn,1)*obj.dim;
+            f = cell(1,nf);
+            n=1;
+            for k = 1:size(bn,1)
+                i = bn(k,1);
+                j = bn(k,2);
                 N = @(x) L{i}((x(1,:,:)-x0)/a) .* L{j}((x(2,:,:)-y0)/b);
                 fx = @(x) [N(x); 0*x(2,:,:)];
                 fy = @(x) [0*x(1,:,:); N(x)];
-                f{end+1} = fx;
-                f{end+1} = fy;
+                f{1,n} = AnalyticalFunction.create(fx, bMesh); n=n+1;
+                f{1,n} = AnalyticalFunction.create(fy, bMesh); n=n+1;
             end
-
-            uD= cell(size(f));
-            for k = 1:length(f)
-                uD{k} = AnalyticalFunction.create(f{k}, bMesh);
-            end
-            f = uD;
         end
 
+
+
+        function L=createBasisFunctions(obj)
+            xi = linspace(-1, 1, obj.order+1);
+            L = cell(obj.order+1, 1);
+            for i = 1:obj.order+1
+                L{i} = @(s) obj.lagrangeBasis(s, xi, i);
+            end
+        end
 
     end
 
     methods (Access=private,Static)
+
         function val = lagrangeBasis(s, nodes, i)
             n = length(nodes);
             val = ones(size(s));
@@ -170,6 +120,38 @@ classdef CoarseFunctions < handle
                     val = val .* (s - nodes(j)) / (nodes(i) - nodes(j));
                 end
             end
+        end
+
+
+        function [xmax,xmin,a,b,x0,y0]=NormalizeMesh(bMesh)
+            xmax = max(bMesh.coord(:,1));
+            ymax = max(bMesh.coord(:,2));
+            xmin = min(bMesh.coord(:,1));
+            ymin = min(bMesh.coord(:,2));
+            a = (xmax - xmin)/2;
+            b = (ymax - ymin)/2;
+            x0 = xmin + a;
+            y0 = ymin + b;
+        end
+
+        function bn=getBoundaryNodes(order)
+            k = order + 1;
+            bn = zeros(4*order,2);
+            n= 1;
+            
+            for i = 1:k                  % bottom edge
+                bn(n,:) = [i, 1]; n=n+1;
+            end
+            for j = 2:k                  % right edge
+                bn(n,:) = [k, j]; n=n+1;
+            end
+            for i = k-1:-1:1             % top edge
+                bn(n,:) = [i, k]; n=n+1;
+            end
+            for j = k-1:-1:2             % left edge
+                bn(n,:) = [1, j]; n=n+1;
+            end
+
         end
     end
 
