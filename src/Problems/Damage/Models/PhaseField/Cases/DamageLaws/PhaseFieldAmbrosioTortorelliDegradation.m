@@ -75,7 +75,7 @@ classdef PhaseFieldAmbrosioTortorelliDegradation < handle
 
         function f = interpolate(obj,phi,f0)
             p = obj.pExp;
-            f = ((1-phi.fun).^p).*f0;
+            f = ((1-phi.fun).^p).*f0 + 1e-10;
         end
         
         function f = derive(obj,phi,f0)
