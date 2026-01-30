@@ -38,6 +38,7 @@ classdef AnalyticalFunction < BaseFunction
 
         function computeNdimf(obj)
             ndim = obj.mesh.ndim;
+            % obj.ndimf=ndim;
             obj.ndimf = size(obj.fHandle(zeros(ndim,1)),1);
         end
 
