@@ -51,7 +51,8 @@ classdef Anisotropic_0_LevelSet_3D < handle
             % x1      = linspace(0,2,120);
             % x2      = linspace(0,1,60);
             % MBB Beam
-            obj.mesh = HexaMesh(2,0.05,1,40,20,20);
+            % obj.mesh = TetraMesh(2,0.005,1,200,5,100);
+            obj.mesh = TetraMesh(2,1,0.005,100,50,10);
         end
 
         function createDesignVariable(obj)
@@ -174,14 +175,14 @@ classdef Anisotropic_0_LevelSet_3D < handle
             s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.1;
             s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 0.05;
-            s.etaMax         = 0.1;
-            s.etaMaxMin      = 0.001;
+            s.gJFlowRatio    = 2;
+            s.etaMax         = 50;
+            s.etaMaxMin      = 1;
             %s.type           = '0';
             s.gif = true;
             s.gifName = 'Gif_0_3D_LevelSet';
             s.printing = true;
-            s.printName = 'Results_0_LevelSet';
+            s.printName = 'Results_0_3D_v2_LevelSet';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -213,7 +214,7 @@ classdef Anisotropic_0_LevelSet_3D < handle
             sDir{1}.value     = 0;
 
             sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 3;
+            sPL{1}.direction = 2;
             sPL{1}.value     = -1;
 
             dirichletFun = [];

@@ -52,7 +52,7 @@ classdef ElasticityMicro_0_90_3D < handle
             s.plotting = true;
             dens               = DesignVariable.create(s);
             obj.designVariable = dens;
-            obj.designVariable.fun.plot
+            % obj.designVariable.fun.plot
         end
 
         function [ls,phiFun] = computeLevelSet(obj, mesh)            
@@ -67,8 +67,8 @@ classdef ElasticityMicro_0_90_3D < handle
             g.nFibersX      = 5;
             g.nFibersY      = 5; 
             g.nFibersZ      = 5;
-            g.radius        = 0.07952;;
-            g.nLayers      = 4;
+            g.radius        = 0.080106;
+            g.nLayers      = 5;
             g               = GeometricalFunction(g);
             phiFun          = g.computeLevelSetFunction(mesh);
             lsValues        = phiFun.fValues;

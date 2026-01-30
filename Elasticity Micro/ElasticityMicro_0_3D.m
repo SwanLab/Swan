@@ -20,7 +20,7 @@ classdef ElasticityMicro_0_3D < handle
             obj.createMaterialInterpolator(); 
             obj.solveElasticProblem();
             obj.computeVolume();
-        end
+        end 
 
     end
 
