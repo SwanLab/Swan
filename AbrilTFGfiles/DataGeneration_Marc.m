@@ -101,9 +101,6 @@ meshName     = p.nelem+"x"+p.nelem;
     end
 
 
-
-
-
 %% Reshapes the T data and saves it in a csv file
 
 % Redimensioning the U_all1
