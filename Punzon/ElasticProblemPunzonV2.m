@@ -91,13 +91,14 @@ classdef ElasticProblemPunzonV2 < handle
             zMax = max(obj.mesh.coord(:,3));
 
             isBottom = @(coor) abs(coor(:,3) - zMin) < 1e-6; % cara llisa
+            isTop = @(coor) abs(coor(:,3) - zMax) < 1e-6; % tornillos
             isGuide1 = @(coor) abs(coor(:,1) - xMin) < 1e-6 & abs(coor(:,2) - yMin) < 1e-6;
             isGuide2 = @(coor) abs(coor(:,1) - xMin) < 1e-6 & abs(coor(:,2) - yMax) < 1e-6;
             isGuide3 = @(coor) abs(coor(:,1) - xMax) < 1e-6 & abs(coor(:,2) - yMin) < 1e-6;
             isGuide4 = @(coor) abs(coor(:,1) - xMax) < 1e-6 & abs(coor(:,2) - yMax) < 1e-6;
 
-            sDir{1}.domain    = @(coor) isBottom(coor);
-            sDir{1}.direction = 3;
+            sDir{1}.domain    = @(coor) isTop(coor);
+            sDir{1}.direction = [1,2,3];
             sDir{1}.value     = 0;
 
             sDir{2}.domain    = @(coor) isGuide1(coor);
@@ -117,11 +118,11 @@ classdef ElasticProblemPunzonV2 < handle
             sDir{5}.value     = 0;
 
 
-            isForce = @(coor) abs(coor(:,3) - zMax) < 1e-6;
+            isForce = @(coor) abs(coor(:,3) - zMin) < 1e-6;
 
             sPL{1}.domain    = @(coor) isForce(coor);
             sPL{1}.direction = 3;
-            sPL{1}.value     = -312e3;   % N
+            sPL{1}.value     = 312e3;   % N
 
             dirichletFun = [];
             for i = 1:numel(sDir)
