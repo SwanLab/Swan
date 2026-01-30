@@ -22,6 +22,7 @@ classdef ElasticProblemPunzonV2 < handle
             %obj.createElasticProblem();
             fem = PhysicalProblem.create(s);
             fem.solve();
+            fem.print('prova1','Paraview');
         end
 
     end
@@ -82,10 +83,45 @@ classdef ElasticProblemPunzonV2 < handle
         % end
 
         function bc = createBoundaryConditions(obj)
-            femReader = FemInputReaderGiD();
-            s         = femReader.read(obj.filename);
-            sPL       = obj.computeCondition(s.pointload);
-            sDir      = obj.computeCondition(s.dirichlet);
+            xMin = min(obj.mesh.coord(:,1));
+            xMax = max(obj.mesh.coord(:,1));
+            yMin = min(obj.mesh.coord(:,2));
+            yMax = max(obj.mesh.coord(:,2));
+            zMin = min(obj.mesh.coord(:,3));
+            zMax = max(obj.mesh.coord(:,3));
+
+            isBottom = @(coor) abs(coor(:,3) - zMin) < 1e-6; % cara llisa
+            isGuide1 = @(coor) abs(coor(:,1) - xMin) < 1e-6 & abs(coor(:,2) - yMin) < 1e-6;
+            isGuide2 = @(coor) abs(coor(:,1) - xMin) < 1e-6 & abs(coor(:,2) - yMax) < 1e-6;
+            isGuide3 = @(coor) abs(coor(:,1) - xMax) < 1e-6 & abs(coor(:,2) - yMin) < 1e-6;
+            isGuide4 = @(coor) abs(coor(:,1) - xMax) < 1e-6 & abs(coor(:,2) - yMax) < 1e-6;
+
+            sDir{1}.domain    = @(coor) isBottom(coor);
+            sDir{1}.direction = 3;
+            sDir{1}.value     = 0;
+
+            sDir{2}.domain    = @(coor) isGuide1(coor);
+            sDir{2}.direction = [1,2];
+            sDir{2}.value     = 0;
+
+            sDir{3}.domain    = @(coor) isGuide2(coor);
+            sDir{3}.direction = [1,2];
+            sDir{3}.value     = 0;
+
+            sDir{4}.domain    = @(coor) isGuide3(coor);
+            sDir{4}.direction = [1,2];
+            sDir{4}.value     = 0;
+
+            sDir{5}.domain    = @(coor) isGuide4(coor);
+            sDir{5}.direction = [1,2];
+            sDir{5}.value     = 0;
+
+
+            isForce = @(coor) abs(coor(:,3) - zMax) < 1e-6;
+
+            sPL{1}.domain    = @(coor) isForce(coor);
+            sPL{1}.direction = 3;
+            sPL{1}.value     = -312e3;   % N
 
             dirichletFun = [];
             for i = 1:numel(sDir)
@@ -96,14 +132,16 @@ classdef ElasticProblemPunzonV2 < handle
 
             pointloadFun = [];
             for i = 1:numel(sPL)
-                pl = PointLoad(obj.mesh, sPL{i});
+                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
                 pointloadFun = [pointloadFun, pl];
             end
             s.pointloadFun = pointloadFun;
 
-            s.periodicFun  = [];
-            s.mesh         = obj.mesh;
+            s.periodicFun = [];
+            s.mesh        = obj.mesh;
+
             bc = BoundaryConditions(s);
+    
         end
 
     end
