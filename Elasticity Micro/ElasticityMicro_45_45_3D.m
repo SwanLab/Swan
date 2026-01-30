@@ -63,10 +63,10 @@ classdef ElasticityMicro_45_45_3D < handle
             g.maxyCoor      = 1;
             g.minzCoor      = 0;
             g.maxzCoor      = 1; 
-            g.nFibersXY     = 4;
-            g.nFibersZ      = 4;
-            g.radius        = 0.075;
-            g.nLayers       = 4;
+            g.nFibersXY     = 5;
+            g.nFibersZ      = 5;
+            g.radius        = 0.09722575;
+            g.nLayers       = 5;
             g               = GeometricalFunction(g);
             phiFun          = g.computeLevelSetFunction(mesh);
             lsValues        = phiFun.fValues;

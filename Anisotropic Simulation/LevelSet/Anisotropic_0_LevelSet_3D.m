@@ -32,9 +32,10 @@ classdef Anisotropic_0_LevelSet_3D < handle
             obj.createOptimizer();
 
             % Save monitoring and desginVariable fValues
-            %saveas(gcf,'Monitoring_0_LevelSet.fig');
-            %obj.designVariable.fun.print('fValues_0_LevelSet');
-            obj.designVariable.fun.print('fValues_0_LevelSet_MBB');
+            figure(2);
+            saveas(gcf,'Monitoring_0_3D_LevelSet.fig');
+            obj.designVariable.fun.print('fValues_0_3D_LevelSet');
+            % obj.designVariable.fun.print('fValues_0_LevelSet_MBB');
         end
 
     end
