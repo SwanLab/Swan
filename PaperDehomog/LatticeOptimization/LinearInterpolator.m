@@ -17,12 +17,12 @@ classdef LinearInterpolator < handle
     methods (Access = public)
 
         function obj = LinearInterpolator()
-             d = load('PaperDehomog/MicroStructureOptimization/OfflineRectangularChomog.mat');
+            d = load('PaperDehomog/MicroStructureOptimization/OfflineRectangularChomog.mat');
             obj.mx = d.mx;
             obj.my = d.my;
             obj.Ch = d.Ch;
             obj.createStructuredMesh(obj.mx,obj.my);
-            obj.createCtensorFunction(C);
+            obj.createCtensorFunction();
         end
 
     end
@@ -40,20 +40,25 @@ classdef LinearInterpolator < handle
             obj.sMesh = m;
         end
 
-        function  createCtensorFunction(obj,C)
+        function  createCtensorFunction(obj)
+            C = obj.Ch;
             m = obj.sMesh.mesh;
-             for i = 1:size(C,1)
-                 for j = 1:size(C,2)
-                     for k = 1:size(C,3)
-                         for l = 1:size(C,4)
-                     Cij = squeeze(C(i,j,:,:));
-                     CijF = LagrangianFunction.create(m, 1, 'P1');
-                     CijF.fValues  = Cij(:);
-                     obj.f{i,j} = CijF;
-                         end
-                     end
-                 end
-             end
+            for i = 1:size(C{1,1},1)
+                for j = 1:size(C{1,1},2)
+                    for k = 1:size(C{1,1},3)
+                        for l = 1:size(C{1,1},4)
+                            for ix = 1:size(C,1)
+                                for iy = 1:size(C,2)
+                                    Cij(ix,iy) = C{ix,iy}(i,j,k,l);
+                                end
+                            end
+                            CijF = LagrangianFunction.create(m, 1, 'P1');
+                            CijF.setFValues(Cij(:));
+                            obj.f{i,j,k,l} = CijF;
+                        end
+                    end
+                end
+            end
         end
         
         function C = computeValues(obj,xV)
