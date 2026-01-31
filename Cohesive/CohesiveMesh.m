@@ -48,7 +48,7 @@ classdef CohesiveMesh < handle
         function obj = CohesiveMesh()
             
             obj.init()
-            obj.baseMeshCreator(5)
+            obj.baseMeshCreator(2)
             
             obj.detectFracturedEdges()
             obj.computeCenterElements 
@@ -166,19 +166,6 @@ classdef CohesiveMesh < handle
             
             obj.newConnec = connec;
 
-
-
-            % for i =1:length(listLeftElems)
-            %     e = listLeftElems(i);
-            % 
-            %     edge = obj.cohElem2Edge(i);
-            %     replacedNodes = nodesInEdges(edge,:)';
-            % 
-            %     newNodes = obj.getPair(replacedNodes)';
-            % 
-            %     idx = ismember(obj.newConnec(e,:),replacedNodes');
-            %     obj.newConnec(e,idx) = newNodes;
-            % end
 
         end
 

@@ -33,7 +33,7 @@ classdef CohesiveFunctional < handle
         end
 
         function H = computeHessian(obj,u,quadOrder,?)
-        
+            
         end
         
     end
