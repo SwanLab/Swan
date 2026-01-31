@@ -1,33 +1,77 @@
-function disp = CohesiveSeparationComputer(u,cohesiveMesh)
-% u es una LagrangianFunction definida sobre una cohesive mesh
+classdef CohesiveSeparationComputer < handle
+    properties (Access = public)
+        cohesiveMesh
+        subMesh
+        globalSeparations % nCohElem x nMidNodesPerElem(2) x nSeparations(2)
 
-%Necessito crear una malla 1D sobre els punts mitjos dels 
+    end
 
-coord = cohesiveMesh.mesh.coord;
-nMidNodes = size(cohesiveMesh.pairsMatrix,1);
+    methods (Access = public)
 
-midCoord= (coord(cohesiveMesh.listNodeCohesive,:)+ ...
-    coord(cohesiveMesh.pairsMatrix(:,2),:))/2;
-
-    midCoord = midCoord(:,1);
-
-
-
-midConnec =  [(1:nMidNodes-1)' (2:nMidNodes)'];
-
-s.connec = midConnec;
-s.coord = midCoord;
-
+        function obj = CohesiveSeparationComputer(cParams)
+            obj.init(cParams);
+            obj.createSubMesh();
+            obj.ComputeGlobalSeparations()
+        end
         
 
-midMesh = Mesh.create(s);
-
-sep = LagrangianFunction.create(midMesh,2,'P1');
-
-% posar setFValues al disp
-% he de mirar com es defineixen els separations
 
 
-disp =1;
+
+
+
+
+
+
+
+        function globalSeps = ComputeGlobalSeparations(obj)
+        
+            connec = obj.subMesh.connec;   % (nElem × 4)
+            coords = obj.subMesh.coord;    % (nNodes × ndim)
+        
+            B = [-1 0 0 1;
+                  0 -1 1 0];                         % (2×4)
+        
+            
+        end
+
+
+
+
+   end
+
+
+    methods (Access = private)
+        function init(obj,cParams)
+            obj.cohesiveMesh = cParams.cohesiveMesh;
+        end
+
+        function createSubMesh(obj)
+
+            coord = obj.cohesiveMesh.mesh.coord;
+            nMidNodes = size(obj.cohesiveMesh.pairsMatrix,1);
+            
+            midCoord= (coord(obj.cohesiveMesh.listNodeCohesive,:)+ ...
+                coord(obj.cohesiveMesh.pairsMatrix(:,2),:))/2;
+            
+                % midCoord = midCoord(:,1);
+            
+            midConnec =  [(1:nMidNodes-1)' (2:nMidNodes)'];
+            
+                s.connec = midConnec;
+                s.coord = midCoord;
+                s.kFace = -1;
+            obj.subMesh = Mesh.create(s);
+
+        end
+
+
+    end
+
+
+
+
+
+
 
 end
