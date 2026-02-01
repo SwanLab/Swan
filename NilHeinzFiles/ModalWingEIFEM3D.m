@@ -46,31 +46,31 @@ classdef ModalWingEIFEM3D < handle
 
             Milu         = obj.createILUpreconditioner((LHS'+LHS)/2);
             
-             Mmult = @(r) Preconditioner.multiplePrec(r,Milu,Meifem,Milu,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
+            Mmult = @(r) Preconditioner.multiplePrec(r,Milu,Meifem,Milu,LHSf,RHSf,obj.meshDomain,obj.bcApplier);
             Mid          = @(r) r;
-            %% Solve Stastic Problem
-
-            
-            tol = 1e-8;
-            x0 = zeros(size(RHSf));
-            tic
-            [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHS,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
-            toc
-
-            x0 = zeros(size(RHSf));
-
-            tic
-            [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
-            toc
-
-            figure
-            plot(residualPCG,'linewidth',2)
-            hold on
-            plot(residualCG,'linewidth',2)
-            set(gca, 'YScale', 'log')
-            legend({'CG + ILU-EIFEM-ILU','CG'},'FontSize',12)
-            xlabel('Iteration')
-            ylabel('Residual')
+            % %% Solve Stastic Problem
+            % 
+            % 
+            % tol = 1e-8;
+            % x0 = zeros(size(RHSf));
+            % tic
+            % [uCG,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHS,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
+            % toc
+            % 
+            % x0 = zeros(size(RHSf));
+            % 
+            % tic
+            % [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
+            % toc
+            % 
+            % figure
+            % plot(residualPCG,'linewidth',2)
+            % hold on
+            % plot(residualCG,'linewidth',2)
+            % set(gca, 'YScale', 'log')
+            % legend({'CG + ILU-EIFEM-ILU','CG'},'FontSize',12)
+            % xlabel('Iteration')
+            % ylabel('Residual')
 
 
             %% Solver modal Problem
@@ -91,14 +91,13 @@ classdef ModalWingEIFEM3D < handle
             results = solver.run_demo();
 
             %% Jacobi with EIFEM initial guess 
-            solver2 = LOBPCG(problem,LHS,Mr);
+            solver2 = LOBPCG(problem,LHS,Mr,Milu);
             solver2.b      = 5;        % number of modes 
-            solver2.use_precond = true;
             solver2.use_physical_x = true; % feed aproximation to eigenvaluees (simulating coarse from superelement) as starting point
             solver2.tol    = 1e-8;    % residual tolerance
             solver2.maxit  = 20000;       % max iterations
             solver2.verbose = false;
-            solver2.precond_type ='jacobi';
+            
             results2 = solver2.run_demo();
 
             tol = 1e-8; 
@@ -142,7 +141,7 @@ classdef ModalWingEIFEM3D < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [5 1 1]; %nx ny
+            obj.nSubdomains  = [2 1 1]; %nx ny
             obj.fileNameEIFEM = 'DEF_Q8_wing_1.mat';
             obj.tolSameNode = 1e-6;
         end  

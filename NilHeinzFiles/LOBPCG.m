@@ -11,7 +11,7 @@ classdef LOBPCG
         L                        % ichol factor (optional)
         Milu
         Meifem
-        Mmult
+        Prec
         
     end
 
@@ -30,10 +30,14 @@ classdef LOBPCG
     end
 
     methods
-        function obj = LOBPCG(problem,K,M,Mmult)
+        function obj = LOBPCG(problem,K,M,Preconditioner)
             if nargin>0, obj.problem = problem; end
             if nargin>=2, obj.K = K; obj.M = M; end
-            if nargin > 3, obj.Mmult = Mmult; end
+            if nargin > 3
+                obj.Prec = Preconditioner;
+            else 
+                obj.Prec = @(r) r;
+            end
             [obj.K,obj.M] = obj.setup_matrices(obj.problem);
 
             % Symmetrize once for safety
@@ -49,23 +53,7 @@ classdef LOBPCG
     methods
         function results = run_demo(obj)
             
-            % Try to build an incomplete Cholesky preconditioner if requested
-            if obj.use_precond && strcmpi(obj.precond_type,'ichol')
-                try
-                    opts.type     = 'ict';     % incomplete Cholesky with threshold
-                    opts.droptol  = 1e-3;
-                    opts.diagcomp = 0.1;       % diagonal compensation
-                    obj.L = ichol(obj.K, opts);
-                catch
-                    warning('ichol failed; falling back to Jacobi preconditioner.');
-                    obj.precond_type = 'jacobi';
-                    obj.L = [];
-                end
-            elseif obj.use_precond && strcmpi(obj.precond_type,'eifem')
-                    %[obj.Mmult, obj.Meifem, obj.Milu] = obj.initEifemPreconditioner();
-                    obj.Mmult = obj.Mmult;
-
-            end
+            obj.Prec = obj.Prec;
             % Solve
             [lambda, X, history] = obj.lobpcg_extremal();
 
@@ -214,32 +202,35 @@ classdef LOBPCG
             theta = theta(1:b).';
         end
 
-        function Z = apply_prec(obj, R, Mmult)
-            if ~obj.use_precond || strcmpi(obj.precond_type,'none')
-                Z = R;
-                return
+        function Z = apply_prec(obj, R)
+            for i=1:size(R,2)
+                Z(:,i) = obj.Prec(R(:,i));
             end
-            switch lower(obj.precond_type)
-                case 'ichol'
-                    if isempty(obj.L)
-                        Z = R;  % safety
-                    else
-                        % Solve (L L^T) Z = R  column-wise
-                        Z = obj.L \ (obj.L.' \ R);
-                    end
-                case 'jacobi'
-                    d = obj.Kdiag;
-                    d(abs(d) < 1e-14) = 1e-14;
-                    Z = R ./ d;      % row-wise scaling (each row / diag(K))
-
-                case 'eifem'
-                    for i=1:size(R,2)
-                        Z(:,i) = obj.Mmult(R(:,i));
-                    end
-                    
-                otherwise
-                    Z = R;
-            end
+            % if ~obj.use_precond || strcmpi(obj.precond_type,'none')
+            %     Z = R;
+            %     return
+            % end
+            % switch lower(obj.precond_type)
+            %     case 'ichol'
+            %         if isempty(obj.L)
+            %             Z = R;  % safety
+            %         else
+            %             % Solve (L L^T) Z = R  column-wise
+            %             Z = obj.L \ (obj.L.' \ R);
+            %         end
+            %     case 'jacobi'
+            %         d = obj.Kdiag;
+            %         d(abs(d) < 1e-14) = 1e-14;
+            %         Z = R ./ d;      % row-wise scaling (each row / diag(K))
+            % 
+            %     case 'eifem'
+            %         for i=1:size(R,2)
+            %             Z(:,i) = obj.Prec(R(:,i));
+            %         end
+            % 
+            %     otherwise
+            %         Z = R;
+            % end
         end
 
         function full_rnorm = computeFullResidual(obj, hist, R, active, b, it,lambda)
