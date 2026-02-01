@@ -12,7 +12,8 @@ classdef CohesiveMesh < handle
         newConnec
 
         listNodeCohesive
-        listElemCohesive
+        listElemNextCohesive
+        listCohesiveElems
         listEdgeCohesive
 
         nNodeCohesive
@@ -85,7 +86,7 @@ classdef CohesiveMesh < handle
             obj.nNodeCohesive = sum(obj.isNodeCohesive);
 
             obj.isElemCohesive = any(ismember(obj.baseMesh.edges.edgesInElem,obj.listEdgeCohesive),2);
-            obj.listElemCohesive = find(obj.isElemCohesive);
+            obj.listElemNextCohesive = find(obj.isElemCohesive);
 
             edgesInElem = obj.baseMesh.edges.edgesInElem;
             edgesInCohElem = edgesInElem(obj.isElemCohesive,:);
@@ -98,7 +99,7 @@ classdef CohesiveMesh < handle
         function computeCenterElements(obj)
             
             bariCenters = obj.baseMesh.computeBaricenter';
-            obj.centerElemsInCohesiveEdge = bariCenters(obj.listElemCohesive,:); %Ordenats segons obj.listElemCohesive
+            obj.centerElemsInCohesiveEdge = bariCenters(obj.listElemNextCohesive,:); %Ordenats segons obj.listElemCohesive
 
         end
 
@@ -149,11 +150,13 @@ classdef CohesiveMesh < handle
 
         function updateConnecOfLeftElements(obj)
 
-            listLeftElems = obj.listElemCohesive(obj.isLeft);
+            listLeftElems = obj.listElemNextCohesive(obj.isLeft);
 
             connec = obj.baseMesh.connec;
             cohesiveConnec = [obj.pairsMatrix(1:end-1,1), obj.pairsMatrix(2:end,1), obj.pairsMatrix(2:end,2), obj.pairsMatrix(1:end-1,2)];
             connec = [connec; cohesiveConnec];
+
+            obj.listCohesiveElems = ((size(connec,1)-size(cohesiveConnec,1)+1):size(connec,1))';
             
             oldLeftConnec = connec(listLeftElems,:);
             idx = ismember(oldLeftConnec,obj.pairsMatrix(:,1));

@@ -3,6 +3,7 @@ classdef CohesiveSeparationComputer < handle
         cohesiveMesh
         subMesh
         globalSeparations % nCohElem x nMidNodesPerElem(2) x nSeparations(2)
+        lagrangianSeparation
 
     end
 
@@ -11,32 +12,29 @@ classdef CohesiveSeparationComputer < handle
         function obj = CohesiveSeparationComputer(cParams)
             obj.init(cParams);
             obj.createSubMesh();
-            obj.ComputeGlobalSeparations()
+            obj.globalSeparations = obj.ComputeGlobalSeparations();
+            obj.lagrangianSeparation = obj.ComputeLagrangianSeparation();
         end
         
-
-
-
-
-
-
-
-
-
-
         function globalSeps = ComputeGlobalSeparations(obj)
         
-            connec = obj.subMesh.connec;   % (nElem × 4)
-            coords = obj.subMesh.coord;    % (nNodes × ndim)
+            connec = obj.cohesiveMesh.mesh.connec;   % (nElem × 4)
+            coords = obj.cohesiveMesh.mesh.coord;    % (nNodes × ndim)
         
-            B = [-1 0 0 1;
+            L = [-1 0 0 1;
                   0 -1 1 0];                         % (2×4)
         
+            nelem = length(obj.cohesiveMesh.listCohesiveElems);
+            globalSeps = zeros(nelem,2,2);
+
+            for i = 1:nelem
+                e = obj.cohesiveMesh.listCohesiveElems(i);
+                R = obj.rotationMatrix(i);
+                Xe = coords(connec(e,:)',:);
+                globalSeps(i,:,:) = L*Xe*R';
+            end
             
         end
-
-
-
 
    end
 
@@ -65,13 +63,46 @@ classdef CohesiveSeparationComputer < handle
 
         end
 
+        function R = rotationMatrix(obj,i)
+            connec = obj.subMesh.connec(i,:);
+            coords = obj.subMesh.coord(connec',:);
+            
+            m = [coords(2,1)-coords(1,1),coords(2,2)-coords(1,2)];
+                mx = m(1);
+                my = m(2);
+            R = [mx, -my; my, mx] / sqrt(mx^2 + my^2);
+
+        end
+
+
+
+
+        function lagrangianSeparation = ComputeLagrangianSeparation(obj)
+            
+            globalSeps = reshape(obj.globalSeparations, [], 2)';
+            tmp = globalSeps(:,2:(size(globalSeps,2)-1));
+            pairs = tmp(:,2:2:end);
+            odds = tmp(:,1:2:end);
+            tmp = (pairs+odds)/2;
+            meanSeps = [globalSeps(:,1), tmp, globalSeps(:,end)]';
+            fValues = meanSeps;
+            
+            lagrangianSeparation = LagrangianFunction.create(obj.subMesh,2,'P1');
+            lagrangianSeparation.setFValues(fValues);
+
+
+        end
+
+
+
+
+
+
+
+
+
 
     end
-
-
-
-
-
 
 
 end
