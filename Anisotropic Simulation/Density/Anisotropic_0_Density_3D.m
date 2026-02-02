@@ -1,4 +1,4 @@
-classdef Anisotropic_45_45_LevelSet_3D < handle
+classdef Anisotropic_0_Density_3D < handle
 
     properties (Access = private)
         mesh
@@ -12,15 +12,17 @@ classdef Anisotropic_45_45_LevelSet_3D < handle
         constraint
         primalUpdater
         optimizer
+        perimeter
     end
 
     methods (Access = public)
 
-        function obj = Anisotropic_45_45_LevelSet_3D()
+        function obj = Anisotropic_0_Density_3D()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
+            %obj.createPerimeter();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
             obj.createComplianceFromConstiutive();
@@ -33,9 +35,8 @@ classdef Anisotropic_45_45_LevelSet_3D < handle
 
             % Save monitoring and desginVariable fValues
             figure(2);
-            saveas(gcf,'Monitoring_45_45_3D_LevelSet.fig');
-            obj.designVariable.fun.print('fValues_45_45_3D_LevelSet');
-            obj.designVariable.fun.print('fValues_45_45_LevelSet_MBB');
+            saveas(gcf,'Monitoring_0_3D_Density.fig');
+            obj.designVariable.fun.print('fValues_0_3D_Density_MBB');
         end
 
     end
@@ -49,23 +50,22 @@ classdef Anisotropic_45_45_LevelSet_3D < handle
         function createMesh(obj)
             %UnitMesh better
             % Cantilever beam
-            % x1      = linspace(0,2,120);
-            % x2      = linspace(0,1,60);
-            % MBB Beam
-            % obj.mesh = TetraMesh(2,0.005,1,200,5,100);
             obj.mesh = TetraMesh(2,1,0.005,80,40,10);
+            % MBB Beam
         end
 
         function createDesignVariable(obj)
-            s.type = 'Full';
-            g      = GeometricalFunction(s);
-            lsFun  = g.computeLevelSetFunction(obj.mesh);
-            s.fun  = lsFun;
-            s.mesh = obj.mesh;
-            s.type = 'LevelSet';
-            s.plotting = true;
-            ls     = DesignVariable.create(s);
-            obj.designVariable = ls;
+            s.fHandle = @(x) ones(size(x(1,:,:)));
+            s.ndimf   = 1;
+            s.mesh    = obj.mesh;
+            aFun      = AnalyticalFunction(s);
+
+            sD.fun      = aFun.project('P1');
+            sD.mesh     = obj.mesh;
+            sD.type     = 'Density';
+            sD.plotting = true;
+            dens        = DesignVariable.create(sD);
+            obj.designVariable = dens; 
         end
 
         function createFilter(obj)
@@ -76,14 +76,16 @@ classdef Anisotropic_45_45_LevelSet_3D < handle
             obj.filter = f;
         end
 
+    
         function createMaterialInterpolator(obj)
-            type = '45_45_3D';
+            type = '0_3D';
             s.C1 = Cvoigt.create(type);
             s.C0 = s.C1*1e-3; % This is not necessary
 
             s.interpolation  = 'SIMP_P3_ANISOTROPIC';
             s.dim            = '3D';
             s.mesh           = obj.mesh;
+
             m = MaterialInterpolator.create(s);
             obj.materialInterpolator = m;
         end
@@ -161,8 +163,11 @@ classdef Anisotropic_45_45_LevelSet_3D < handle
         end
 
         function createPrimalUpdater(obj)
-            s.mesh = obj.mesh;
-            obj.primalUpdater = SLERP(s);
+             s.ub     = 1;
+             s.lb     = 0;
+             s.tauMax = 1000;
+             s.tau    = [];
+             obj.primalUpdater = ProjectedGradient(s);
         end
 
         function createOptimizer(obj)
@@ -170,20 +175,20 @@ classdef Anisotropic_45_45_LevelSet_3D < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 400;
+            s.maxIter        = 500;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
-            s.etaNorm        = 0.1;
+            s.etaNorm        = 0.02;
             s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 2;
-            s.etaMax         = 50;
-            s.etaMaxMin      = 1.2;
+            s.gJFlowRatio    = 0.1;
+            s.etaMax         = 1;
+            s.etaMaxMin      = 0.01;
             %s.type           = '0';
             s.gif = false;
-            s.gifName = 'Gif_45_45_3D_LevelSet';
+            s.gifName = 'Gif_0_3D_Density_MBB';
             s.printing = true;
-            s.printName = 'Results_45_45_3D_LevelSet';
+            s.printName = 'Results_0_3D_Density_MBB';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

@@ -35,7 +35,7 @@ classdef Anisotropic_0_45_LevelSet_3D < handle
             figure(2);
             saveas(gcf,'Monitoring_0_45_3D_LevelSet.fig');
             obj.designVariable.fun.print('fValues_0_45_3D_LevelSet');
-            obj.designVariable.fun.print('fValues_0_45_LevelSet_MBB');
+            % obj.designVariable.fun.print('fValues_0_45_LevelSet_MBB');
         end
 
     end
@@ -170,7 +170,7 @@ classdef Anisotropic_0_45_LevelSet_3D < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 300;
+            s.maxIter        = 400;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
@@ -178,9 +178,9 @@ classdef Anisotropic_0_45_LevelSet_3D < handle
             s.etaNormMin     = 0.02;
             s.gJFlowRatio    = 2;
             s.etaMax         = 50;
-            s.etaMaxMin      = 1.5;
+            s.etaMaxMin      = 1.2;
             %s.type           = '0';
-            s.gif = true;
+            s.gif = false;
             s.gifName = 'Gif_0_45_3D_LevelSet';
             s.printing = true;
             s.printName = 'Results_0_45_3D_LevelSet';

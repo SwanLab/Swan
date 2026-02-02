@@ -53,7 +53,7 @@ classdef Anisotropic_0_LevelSet_3D < handle
             % x2      = linspace(0,1,60);
             % MBB Beam
             % obj.mesh = TetraMesh(2,0.005,1,200,5,100);
-            obj.mesh = TetraMesh(2,1,0.005,100,50,10);
+            obj.mesh = TetraMesh(2,1,0.005,80,40,10);
         end
 
         function createDesignVariable(obj)
@@ -170,17 +170,17 @@ classdef Anisotropic_0_LevelSet_3D < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 300;
+            s.maxIter        = 400;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.1;
-            s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 2;
+            s.etaNormMin     = 0.05;
+            s.gJFlowRatio    = 3;
             s.etaMax         = 50;
-            s.etaMaxMin      = 1;
+            s.etaMaxMin      = 1.5;
             %s.type           = '0';
-            s.gif = true;
+            s.gif = false;
             s.gifName = 'Gif_0_3D_LevelSet';
             s.printing = true;
             s.printName = 'Results_0_3D_v2_LevelSet';
