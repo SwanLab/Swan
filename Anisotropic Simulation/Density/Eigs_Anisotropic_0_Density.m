@@ -23,7 +23,7 @@ classdef Eigs_Anisotropic_0_Density < handle
     methods (Access = public)
 
         function obj = Eigs_Anisotropic_0_Density()
-            obj.lambda1min = 1e-3; % To change with the 50 Hz minimum
+            obj.lambda1min = 1e-5; % To change with the 50 Hz minimum
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -58,8 +58,8 @@ classdef Eigs_Anisotropic_0_Density < handle
         function createMesh(obj)
             %UnitMesh better
             % Cantilever beam
-            x1      = linspace(0,2,150);
-            x2      = linspace(0,1,75);
+            x1      = linspace(0,2,50);
+            x2      = linspace(0,1,25);
             % MBB Beam
             % x1      = linspace(0,6,500);
             % x2      = linspace(0,1,75);
@@ -226,7 +226,7 @@ classdef Eigs_Anisotropic_0_Density < handle
             s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 0.1;
+            s.gJFlowRatio    = 5;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
             %s.type           = '0';
