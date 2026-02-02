@@ -73,7 +73,7 @@ classdef OptimizationEIFEMTutorial2param < handle
 
         function init(obj)
             close all;
-            obj.nSubdomains = [28,15]; %50 15
+            obj.nSubdomains = [28,14]; %50 15
             muMax = 0.4;
             obj.r = muMax*ones(obj.nSubdomains)'; 
 %             obj.r= (1e-6 - 1e-6) * rand(obj.nSubdomains(2),obj.nSubdomains(1)) + 1e-6;
@@ -412,27 +412,28 @@ classdef OptimizationEIFEMTutorial2param < handle
          function createPrimalUpdater(obj)
             s.ub     = 0.4;
             s.lb     = 0.065; % fro lattice 0.01;
-            s.tauMax = 3;
+            s.tauMax = 10;
             s.tau    = [];
             obj.primalUpdater = ProjectedGradient(s);
         end
 
         function createOptimizer(obj)
-%             s.monitoring     = true;
-%             s.cost           = obj.cost;
-%             s.constraint     = obj.constraint;
-%             s.designVariable = obj.designVariable;
-%             s.dualVariable   = obj.dualVariable;
-%             s.maxIter        = 3000;
-%             s.tolerance      = 1e-8;
-%             s.constraintCase = {'EQUALITY'};
-%             s.ub             = 0.8;
-%             s.lb             = 1e-6;
-%             s.volumeTarget   = obj.volumeTarget;
-%             s.primal         = 'PROJECTED GRADIENT';
-%             opt              = OptimizerMMA(s);
-%             opt.solveProblem();
-%             obj.optimizer = opt;
+            % s.monitoring     = true;
+            % s.cost           = obj.cost;
+            % s.constraint     = obj.constraint;
+            % s.designVariable = obj.designVariable;
+            % s.dualVariable   = obj.dualVariable;
+            % s.maxIter        = 3000;
+            % s.tolerance      = 1e-8;
+            % s.constraintCase = {'EQUALITY'};
+            % s.ub             = 0.8;
+            % s.lb             = 1e-6;
+            % s.volumeTarget   = obj.volumeTarget;
+            % s.primal         = 'PROJECTED GRADIENT';
+            % s.printing       = true;
+            % opt              = OptimizerMMA(s);
+            % opt.solveProblem();
+            % obj.optimizer = opt;
            
             s.monitoring     = true;
             s.cost           = obj.cost;
@@ -442,8 +443,8 @@ classdef OptimizationEIFEMTutorial2param < handle
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
-            s.etaNorm        = 0.02;%0.05
-            s.gJFlowRatio    = 0.5; %3
+            s.etaNorm        = 0.1;%0.05
+            s.gJFlowRatio    = 3; %3
             s.primalUpdater  = obj.primalUpdater;
             s.etaMaxMin      = 0.01;
 %             s.etaMax      = 200;

@@ -65,7 +65,7 @@ classdef OptimizerMMA < Optimizer
        end
         
         function update(obj)
-            x = obj.designVariable.fun.fValues;
+            x = obj.designVariable.fun.fValues(:);
             obj.checkInitial(x);
             obj.outit = obj.outit+1;
             obj.outeriter = obj.outeriter+1;
@@ -125,10 +125,10 @@ classdef OptimizerMMA < Optimizer
             obj.lowerBound   = cParams.lb;
             obj.hasConverged = false;
             obj.kkttol       = obj.tolerance;
-            obj.gif          = cParams.gif;
-            obj.gifName      = cParams.gifName;
-            obj.printing     = cParams.printing;
-            obj.printName    = cParams.printName;
+           % obj.gif          = cParams.gif;
+           % obj.gifName      = cParams.gifName;
+%            obj.printing     = cParams.printing;
+%            obj.printName    = cParams.printName;
             obj.createMonitoring(cParams);
         end
 

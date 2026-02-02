@@ -31,8 +31,11 @@ classdef Parameter < DesignVariable
         function plot(obj)
             if obj.plotting
                 obj.plotter.plot();
-            end
+            end            
         end
+
+        %rho = LagrangianFunction.create(x.mesh,1,'P0');
+        %rho.setFValues(fV);rho.plot
     
     end
 

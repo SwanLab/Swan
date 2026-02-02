@@ -77,8 +77,8 @@ classdef VolumeFunctionalParameter < handle
             nparam  = x.ndimf; 
             fValues = obj.gradJ(x);
             for i = 1:nparam
-                s.fValues = fValues(:,i)/norm(fValues(:,i));
-                % s.fValues = fValues(:,i)/obj.totalVolume;
+                %s.fValues = fValues(:,i)/norm(fValues(:,i));
+                 s.fValues = fValues(:,i)/obj.totalVolume;
                 dJ{i} = LagrangianFunction(s);
             end
 
