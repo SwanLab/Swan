@@ -176,9 +176,9 @@ classdef Anisotropic_0_LevelSet_3D < handle
             s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.1;
             s.etaNormMin     = 0.05;
-            s.gJFlowRatio    = 3;
+            s.gJFlowRatio    = 2.5;
             s.etaMax         = 10;
-            s.etaMaxMin      = 1;
+            s.etaMaxMin      = 0.5;
             %s.type           = '0';
             s.gif = false;
             s.gifName = 'Gif_0_3D_LevelSet';

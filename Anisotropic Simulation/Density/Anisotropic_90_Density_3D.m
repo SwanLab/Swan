@@ -36,7 +36,7 @@ classdef Anisotropic_90_Density_3D < handle
             % Save monitoring and desginVariable fValues
             figure(2);
             saveas(gcf,'Monitoring_90_3D_Density.fig');
-            obj.designVariable.fun.print('fValues_90_3D_Density_MBB');
+            obj.designVariable.fun.print('fValues_90_3D_Density');
         end
 
     end
@@ -186,9 +186,9 @@ classdef Anisotropic_90_Density_3D < handle
             s.etaMaxMin      = 0.01;
             %s.type           = '0';
             s.gif = false;
-            s.gifName = 'Gif_90_3D_Density_MBB';
+            s.gifName = 'Gif_90_3D_Density';
             s.printing = true;
-            s.printName = 'Results_90_3D_Density_MBB';
+            s.printName = 'Results_90_3D_Density';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

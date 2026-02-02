@@ -225,7 +225,7 @@ classdef OptimizerNullSpace < handle
 
             if obj.nIter/2==round(obj.nIter/2)
                 if obj.printing
-                    obj.designVariable.fun.print([obj.printName,'Iter',num2str(obj.nIter/2)]);
+                    obj.designVariable.fun.print([obj.printName,'Iter',num2str(obj.nIter)]);
                 end
             end
 
