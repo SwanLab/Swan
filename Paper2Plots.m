@@ -1,5 +1,5 @@
 close all
-E  = 210;
+E  = 1;
 %nu = 0.3;
 k  = @(nu) E./(2.*(1-nu));
 mu = @(nu) E./(2.*(1+nu));
@@ -89,35 +89,36 @@ gRational = @(phi,gamma) (1-phi)/((1-phi)+gamma*phi);
 
 
 %% Figure 4_ Rational vs H-S bounds
+cmpGamma = sky(10);
+
 figure(4)
-tiledlayout(1,2)
+t = tiledlayout(1,2);
 nexttile
 hold on
-fplot(@(phi) gRational(phi,1),[0 1],'Color',cmp(1,:),'LineStyle','-')
-fplot(@(phi) kUB(phi,0),[0 1],'Color',cmp(4,:),'LineStyle','-');
-fplot(@(phi) gRational(phi,3),[0 1],'Color',cmp(1,:),'LineStyle','-')
-fplot(@(phi) gRational(phi,5),[0 1],'Color',cmp(1,:),'LineStyle','-')
-fplot(@(phi) gRational(phi,10),[0 1],'Color',cmp(1,:),'LineStyle','-')
-fplot(@(phi) gRational(phi,50),[0 1],'Color',cmp(1,:),'LineStyle','-')
-fplot(@(phi) kLB(phi,0.3),[0 1],'Color',cmp(4,:),'LineStyle','-');
-fontsize(gcf,25,'points')
-title('Bulk modulus degradation function ($\nu = 0.3$)','Interpreter','latex')
-ylabel('Degradation $g(\phi)$ [-]','Interpreter','latex');
-xlabel("Damage ($\phi$) [-]",'Interpreter','latex');
+grid minor
+p2 = fplot(@(phi) kLB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
+fplot(@(phi) kUB(phi,0),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
+fplot(@(phi) gRational(phi,1),[0 1],'Color',cmpGamma(6,:),'LineStyle','-','LineWidth',3);
+fplot(@(phi) gRational(phi,3),[0 1],'Color',cmpGamma(7,:),'LineStyle','-','LineWidth',3)
+fplot(@(phi) gRational(phi,5),[0 1],'Color',cmpGamma(8,:),'LineStyle','-','LineWidth',3)
+fplot(@(phi) gRational(phi,10),[0 1],'Color',cmpGamma(9,:),'LineStyle','-','LineWidth',3)
+p1 = fplot(@(phi) gRational(phi,50),[0 1],'Color',cmpGamma(10,:),'LineStyle','-','LineWidth',3);
+fontsize(gcf,40,'points')
+ylabel('$\kappa(\phi)/\kappa_0$','Interpreter','latex');
 nexttile
 hold on
-fplot(@(phi) gRational(phi,1),[0 1],'Color',cmp(1,:),'LineStyle','-')
-fplot(@(phi) muUB(phi,0),[0 1],'Color',cmp(4,:),'LineStyle','-');
-fplot(@(phi) gRational(phi,3),[0 1],'Color',cmp(1,:),'LineStyle','-')
-fplot(@(phi) gRational(phi,5),[0 1],'Color',cmp(1,:),'LineStyle','-')
-fplot(@(phi) gRational(phi,10),[0 1],'Color',cmp(1,:),'LineStyle','-')
-fplot(@(phi) gRational(phi,50),[0 1],'Color',cmp(1,:),'LineStyle','-')
-fplot(@(phi) muLB(phi,0),[0 1],'Color',cmp(4,:),'LineStyle','-');
-fontsize(gcf,25,'points')
-title('Shear modulus degradation function ($\nu = 0.3$)','Interpreter','latex')
-ylabel('Degradation $g(\phi)$ [-]','Interpreter','latex');
-xlabel("Damage ($\phi$) [-]",'Interpreter','latex');
-legend({'Wu','H-S bounds'},'Interpreter','latex')
+grid minor
+p2 = fplot(@(phi) kLB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
+fplot(@(phi) kUB(phi,0),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
+fplot(@(phi) gRational(phi,1),[0 1],'Color',cmpGamma(6,:),'LineStyle','-','LineWidth',3);
+fplot(@(phi) gRational(phi,3),[0 1],'Color',cmpGamma(7,:),'LineStyle','-','LineWidth',3)
+fplot(@(phi) gRational(phi,5),[0 1],'Color',cmpGamma(8,:),'LineStyle','-','LineWidth',3)
+fplot(@(phi) gRational(phi,10),[0 1],'Color',cmpGamma(9,:),'LineStyle','-','LineWidth',3)
+p1 = fplot(@(phi) gRational(phi,50),[0 1],'Color',cmpGamma(10,:),'LineStyle','-','LineWidth',3);
+fontsize(gcf,40,'points')
+ylabel('$\mu(\phi)/\mu_0$','Interpreter','latex');
+xlabel(t,"Damage ($\phi$)",'Interpreter','latex');
+legend([p1,p2],{'Rational','H-S bounds'},'Interpreter','latex')
 
 %% Figure 5 Constitutive tensor homogenized
 [dataHexa]  = load('HexagonAreaNew.mat');
@@ -130,67 +131,147 @@ C12honey= squeeze(dataHoney.mat(2,2,1,1,:));
 C33honey= squeeze(dataHoney.mat(1,2,1,2,:));
 
 figure(5)
-tiledlayout(1,3)
+t = tiledlayout(1,3);
 nexttile
 hold on
-plot(dataHexa.phi,C11hexa)
-plot(dataHoney.phi,C11honey)
+grid minor
+fplot(dataHexa.degradation.fun{1,1,1,1},[0 1],'Color',cmp(1,:),'LineStyle','-','LineWidth',3)
+fplot(dataHoney.degradation.fun{1,1,1,1},[0 1],'Color',cmp(2,:),'LineStyle','-','LineWidth',3)
 ylabel(char(8450)+"11 [GPa]");
 ylim([0,inf])
-xlabel("Damage ($\phi$) [-]",'Interpreter','latex');
-fontsize(gcf,25,'points')
+fontsize(gcf,40,'points')
 nexttile
 hold on
-plot(dataHexa.phi,C12hexa)
-plot(dataHoney.phi,C12honey)
+grid minor
+fplot(dataHexa.degradation.fun{2,2,1,1},[0 1],'Color',cmp(1,:),'LineStyle','-','LineWidth',3)
+fplot(dataHoney.degradation.fun{2,2,1,1},[0 1],'Color',cmp(2,:),'LineStyle','-','LineWidth',3)
 ylabel(char(8450)+"12 [GPa]");
 ylim([0,inf])
-xlabel("Damage ($\phi$) [-]",'Interpreter','latex');
-fontsize(gcf,25,'points')
+fontsize(gcf,40,'points')
 nexttile
 hold on
-plot(dataHexa.phi,C33hexa)
-plot(dataHoney.phi,C33honey)
+grid minor
+fplot(dataHexa.degradation.fun{1,2,1,2},[0 1],'Color',cmp(1,:),'LineStyle','-','LineWidth',3)
+fplot(dataHoney.degradation.fun{1,2,1,2},[0 1],'Color',cmp(2,:),'LineStyle','-','LineWidth',3)
 ylabel(char(8450)+"33 [GPa]");
 ylim([0,inf])
-xlabel("Damage ($\phi$) [-]",'Interpreter','latex');
+xlabel(t,"Damage ($\phi$)",'Interpreter','latex');
 fontsize(gcf,25,'points')
 legend('Hexagon','Reinforced hexagon')
 
 %% Figure 6 Zener Ratio
-ZenerRatioHexa = 2*C33hexa./(C11hexa-C12hexa);
-ZenerRatioHoney = 2*C33honey./(C11honey-C12honey);
+C11hexa = dataHexa.degradation.fun{1,1,1,1};
+C12hexa = dataHexa.degradation.fun{2,2,1,1};
+C33hexa = dataHexa.degradation.fun{1,2,1,2};
+C11honey = dataHoney.degradation.fun{1,1,1,1};
+C12honey = dataHoney.degradation.fun{2,2,1,1};
+C33honey = dataHoney.degradation.fun{1,2,1,2};
+ZenerRatioHexa = @(phi) 2*C33hexa(phi)./(C11hexa(phi)-C12hexa(phi));
+ZenerRatioHoney = @(phi) 2*C33honey(phi)./(C11honey(phi)-C12honey(phi));
 
 figure(6)
 hold on
-plot(dataHexa.phi,ZenerRatioHexa);
-plot(dataHoney.phi,ZenerRatioHoney);
-ylabel("Zener Ratio [-]");
-%ylim([1-1e-5,1+1e-5])
-xlabel("Damage ($\phi$) [-]",'Interpreter','latex');
-fontsize(gcf,25,'points')
+grid minor
+fplot(ZenerRatioHexa,[0 1],'Color',cmp(1,:),'LineStyle','-','LineWidth',3);
+fplot(ZenerRatioHoney,[0 1],'Color',cmp(2,:),'LineStyle','-','LineWidth',3);
+ylabel("Zener Ratio");
+ylim([1-1e-4,1+1e-4])
+xlabel("Damage ($\phi$)",'Interpreter','latex');
+fontsize(gcf,40,'points')
 legend('Hexagon','Reinforced hexagon')
 
 %% Figure 7 Homogenized bulk and shear
-bulkHexa   = C11hexa - C33hexa;
-shearHexa  = C33hexa;
-bulkHoney  = C11honey - C33honey;
-shearHoney = C33honey;
+bulkHexa   = @(phi) (C11hexa(phi)-C33hexa(phi))/(C11hexa(0)-C33hexa(0));
+shearHexa  = @(phi) C33hexa(phi)/C33hexa(0);
+bulkHoney  = @(phi) (C11honey(phi)-C33honey(phi))/(C11honey(0)-C33honey(0));
+shearHoney = @(phi) C33honey(phi)/C33honey(0);
 
 figure(7)
+t = tiledlayout(1,2);
+nexttile
+hold on
+grid minor
+p3 = fplot(@(phi) kLB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
+fplot(@(phi) kUB(phi,0),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
+p1 = fplot(bulkHexa,[0,1],'Color',cmp(1,:),'LineStyle','-','LineWidth',3);
+p2 = fplot(bulkHoney,[0 1],'Color',cmp(2,:),'LineStyle','-','LineWidth',3);
+ylabel('$\kappa(\phi)/\kappa_0$','Interpreter','latex');
+fontsize(gcf,40,'points')
+nexttile
+hold on
+grid minor
+fplot(@(phi) kLB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
+fplot(@(phi) kUB(phi,0),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
+fplot(shearHexa,[0 1],'Color',cmp(1,:),'LineStyle','-','LineWidth',3)
+fplot(shearHoney,[0 1],'Color',cmp(2,:),'LineStyle','-','LineWidth',3)
+ylabel('$\mu(\phi)/\mu_0$','Interpreter','latex');
+xlabel(t,"Damage ($\phi$)",'Interpreter','latex');
+fontsize(gcf,40,'points')
+legend([p1,p2,p3],'Hexagon','Reinforced hexagon','H-S bound')
+
+
+%% Figure 8 initial derivative for different Poisson
+kPrimeUB  = @(nu) (-k1(nu)-(k1(nu)^2)/etak1(nu))*(1/k1(nu));
+muPrimeUB = @(nu) (-mu1(nu)-(mu1(nu)^2)/etamu1(nu))*(1/mu1(nu));
+gPrimeAT1 = @(nu) -2;
+gPrimeAT2 = @(nu) -Inf;
+gPrimeRational = @(nu,gamma) -gamma;
+
+[dataHexa]  = load('HexaNu.mat');
+C11hexaNu = squeeze(dataHexa.mat(1,1,1,1,:));
+C12hexaNu = squeeze(dataHexa.mat(2,2,1,1,:));
+C33hexaNu = squeeze(dataHexa.mat(1,2,1,2,:));
+[dataHoney] = load('HoneyNu.mat');
+C11honeyNu= squeeze(dataHoney.mat(1,1,1,1,:));
+C12honeyNu= squeeze(dataHoney.mat(2,2,1,1,:));
+C33honeyNu= squeeze(dataHoney.mat(1,2,1,2,:));
+nuV = linspace(-0.99,0.5,100);
+
+bulkHexaNu   = (C11hexaNu - C33hexaNu)./k1(nuV)';
+shearHexaNu  = C33hexaNu./mu1(nuV)';
+bulkHoneyNu  = (C11honeyNu - C33honeyNu)./k1(nuV)';
+shearHoneyNu = C33honeyNu./mu1(nuV)';
+
+bulkPrimeHexa   = -(1-bulkHexaNu)/dataHexa.phi;
+shearPrimeHexa  = -(1-shearHexaNu)/dataHexa.phi;
+bulkPrimeHoney  = -(1-bulkHoneyNu)/dataHoney.phi;
+shearPrimeHoney = -(1-shearHoneyNu)/dataHoney.phi;
+
+figure(8)
 tiledlayout(1,2)
 nexttile
 hold on
-plot(dataHexa.phi,bulkHexa)
-plot(dataHoney.phi,bulkHoney)
-ylabel("Bulk modulus ($\kappa$) [MPa]",'Interpreter','latex');
-xlabel("Damage ($\phi$) [-]",'Interpreter','latex');
-fontsize(gcf,25,'points')
+fplot(kPrimeUB,[-0.99,0.5],'Color',cmp(4,:))
+fplot(gPrimeAT1,[-1,0.5],'Color',cmp(1,:),'LineStyle','-','Marker','+')
+fplot(gPrimeAT2,[-1,0.5],'Color',cmp(1,:),'LineStyle','-','Marker','o')
+fplot(@(nu) gPrimeRational(nu,1),[-1,0.5],'Color',cmp(2,:))
+plot(nuV,bulkPrimeHexa,'Color',cmp(3,:),'LineStyle','-','Marker','+')
+plot(nuV,bulkPrimeHoney,'Color',cmp(3,:),'LineStyle','-','Marker','o')
+fplot(@(nu) gPrimeRational(nu,3),[-1,0.5],'Color',cmp(2,:))
+fplot(@(nu) gPrimeRational(nu,5),[-1,0.5],'Color',cmp(2,:))
+fplot(@(nu) gPrimeRational(nu,10),[-1,0.5],'Color',cmp(2,:))
+ylabel("Bulk modulus initial derivative $(g_{\kappa}'(0))$",'Interpreter','latex');
+xlabel("Poisson ratio ($\nu$) [-]",'Interpreter','latex');
+ylim([-25 0])
+fontsize(gcf,40,'points')
 nexttile
 hold on
-plot(dataHexa.phi,shearHexa)
-plot(dataHoney.phi,shearHoney)
-ylabel("Shear modulus ($\kappa$) [MPa]",'Interpreter','latex');
-xlabel("Damage ($\phi$) [-]",'Interpreter','latex');
-fontsize(gcf,25,'points')
-legend('Hexagon','Reinforced hexagon')
+fplot(muPrimeUB,[-0.99,0.5],'Color',cmp(4,:))
+fplot(gPrimeAT1,[-1,0.5],'Color',cmp(1,:),'LineStyle','-','Marker','+')
+fplot(gPrimeAT2,[-1,0.5],'Color',cmp(1,:),'LineStyle','-','Marker','o')
+fplot(@(nu) gPrimeRational(nu,1),[-1,0.5],'Color',cmp(2,:))
+plot(nuV,shearPrimeHexa,'Color',cmp(3,:),'LineStyle','-','Marker','+')
+plot(nuV,shearPrimeHoney,'Color',cmp(3,:),'LineStyle','-','Marker','o')
+fplot(@(nu) gPrimeRational(nu,3),[-1,0.5],'Color',cmp(2,:))
+fplot(@(nu) gPrimeRational(nu,5),[-1,0.5],'Color',cmp(2,:))
+fplot(@(nu) gPrimeRational(nu,10),[-1,0.5],'Color',cmp(2,:))
+ylim([-25 0])
+ylabel("Shear modulus initial derivative ($(g_{\mu}'(0)$)",'Interpreter','latex');
+xlabel("Poisson ratio ($\nu$) [-]",'Interpreter','latex');
+fontsize(gcf,40,'points')
+legend('H-S upper bound','AT1','AT2','Rational','Hexagon','Reinforced hexagon')
+
+eq = @(nu) kPrimeUB(nu)-muPrimeUB(nu);
+fzero(eq,0.3)
+kPrimeUB(fzero(eq,0.3))
+muPrimeUB(fzero(eq,0.3))
