@@ -58,7 +58,7 @@ classdef PlotterLatticeCross < handle
             obj.Lx = obj.xmax - obj.xmin;
             obj.Ly = obj.ymax - obj.ymin;
             obj.length         = cParams.length;
-            obj.tFrame         = cParams.tFrame;
+            obj.tFrame         = 1e-10;%cParams.tFrame;
         end
 
         function  coord = updateDiscMesh(obj)
@@ -101,7 +101,7 @@ classdef PlotterLatticeCross < handle
 obj.patchHandle = patch(axes, 'Faces', obj.discMesh.connec, 'Vertices', obj.discMesh.coord, ...
     'EdgeColor', 'k', ...          % Changed from 'none' to 'k' (black)
     'LineStyle', '-', ...          % Changed from 'none' to '-' (solid line)
-    'FaceColor', [1.0, 0.4, 0.4], ... % Optional: add a light gray face color
+    'FaceColor', 'k', ... % Optional: add a light gray face color
     'FaceLighting', 'none', ...
     'AmbientStrength', .75);
         end

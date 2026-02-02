@@ -5,7 +5,7 @@ directory = './EPFL/dataLattice2param'; % Update this path as needed
 
 % Get a list of all .mat files in the directory
 files = dir(fullfile(directory, 'data_*.mat'));
-
+i=1;
 % Loop through each file and load it
 for k = 1:length(files)
     % Get the full path to the file
@@ -14,19 +14,25 @@ for k = 1:length(files)
     % Load the file
     load(filePath);
 
-    % Optionally, store each loaded variable into a structure or cell array
+     if EIFEoper.h1 > 0.1 && EIFEoper.h2 > 0.1
+
+          % Optionally, store each loaded variable into a structure or cell array
     % For example, you could store the variables in a cell array:
-    T(:,k) = EIFEoper.U;  % This stores each file's contents in the cell array 'allData'
-    Td(:,k) = EIFEoper.Udef(:);
-    Tr(:,k) = EIFEoper.Urb(:);
-    Kcoase(:,k) = EIFEoper.Kcoarse(:);
-    Kfine(:,:,k) = full(EIFEoper.Kfine);
-    PhiD(:,k) = EIFEoper.PhiD(:);
-    PhiR(:,k) = EIFEoper.PhiR(:);
-    U(:,k) = EIFEoper.snapshots(:);
-     coord(k,:) = [EIFEoper.h1,EIFEoper.h2 ];
+    T(:,i) = EIFEoper.U;  % This stores each file's contents in the cell array 'allData'
+    Td(:,i) = EIFEoper.Udef(:);
+    Tr(:,i) = EIFEoper.Urb(:);
+    Kcoase(:,i) = EIFEoper.Kcoarse(:);
+    Kfine(:,:,i) = full(EIFEoper.Kfine);
+    PhiD(:,i) = EIFEoper.PhiD(:);
+    PhiR(:,i) = EIFEoper.PhiR(:);
+    U(:,i) = EIFEoper.snapshots(:);
+     coord(i,:) = [EIFEoper.h1,EIFEoper.h2 ];
+     i=i+1;
     % If you want to work with specific variables in each file, you can access them like:
     % data.variableName
+     end
+
+   
 
     disp(['Loaded: ', files(k).name]);  % Display the file being loaded
 end

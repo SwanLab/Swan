@@ -61,7 +61,7 @@ classdef OptimizerNullSpace < handle
                 obj.update();
                 obj.printResults();
                 obj.updateIterInfo();
-                if mod(obj.nIter,50)== 0
+                if mod(obj.nIter,10)== 0
                 obj.plotVariable();
                 end
                 obj.updateMonitoring();

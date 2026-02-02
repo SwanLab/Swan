@@ -1,21 +1,23 @@
 close all
 clear all
 % Specify the directory where the .mat files are located
-directory = './EPFL/dataLattice2param'; % Update this path as needed
+directory = './EPFL/dataLattice2paramFrame'; % Update this path as needed
 
 % Get a list of all .mat files in the directory
 files = dir(fullfile(directory, 'data_*.mat'));
 
 % Loop through each file and load it
 i=1;
-for k = 1:3:length(files)
+for k = 1:1:length(files)
     % Get the full path to the file
     filePath = fullfile(files(k).folder, files(k).name);
 
     % Load the file
     load(filePath);
 
-    % Optionally, store each loaded variable into a structure or cell array
+     if EIFEoper.h1 > 0.0 && EIFEoper.h2 > 0.0
+
+          % Optionally, store each loaded variable into a structure or cell array
     % For example, you could store the variables in a cell array:
     T(:,i) = EIFEoper.U;  % This stores each file's contents in the cell array 'allData'
     Td(:,i) = EIFEoper.Udef(:);
@@ -26,11 +28,15 @@ for k = 1:3:length(files)
     PhiR(:,i) = EIFEoper.PhiR(:);
     U(:,i) = EIFEoper.snapshots(:);
     coord(i,:) = [EIFEoper.h1,EIFEoper.h2 ];
+    i=i+1;
     % If you want to work with specific variables in each file, you can access them like:
     % data.variableName
+     end
+
+   
 
     disp(['Loaded: ', files(k).name]);  % Display the file being loaded
-    i=i+1;
+    
 end
 
 [fT,deim,dfT]   = parameterizedDataLagrange(T,coord);
@@ -52,7 +58,7 @@ EIFEoper.dUrb  = dTrb;
 EIFEoper.dU    = dfT;
 
 EIFEoper.deim    = deim;
-filePath = './EPFL/parametrizedEIFEMLagrange_2params.mat';
+filePath = './EPFL/parametrizedEIFEMLagrange_2paramsFrame.mat';
 save(filePath,'EIFEoper')
 
 function [f,deim,df] = parameterizedDataLagrange(var,xdata)
@@ -80,13 +86,13 @@ fR = [fR{:}];
 %     figure
 %     % plot(xdata,yplot(:,i))
 %      % trisurf(tri, xdata(:,1), xdata(:,2), yplot);
-%     scatter3(xdata(:,1), xdata(:,2), yplot);
+%     scatter3(xdata(:,1), xdata(:,2), yplot,'black');
 %     hold on
 %      % plot(xdata,coeff(i,:))
 %      trisurf(tri, xdata(:,1), xdata(:,2), coeff(i,:));
 % %     yplot2(i) = bFun.evaluate(xdata(i)); 
 % end
-% values = arrayfun(@(fun) evaluate(fun, 2*(0.1 - min(xdata)) / (max(xdata) - min(xdata)) - 1), fR, 'UniformOutput', false);
+% % % values = arrayfun(@(fun) evaluate(fun, 2*(0.1 - min(xdata)) / (max(xdata) - min(xdata)) - 1), fR, 'UniformOutput', false);
 
 x_min = min(xdata)';
 L_dom = max(xdata)' - x_min;

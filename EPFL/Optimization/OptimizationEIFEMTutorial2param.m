@@ -73,18 +73,18 @@ classdef OptimizationEIFEMTutorial2param < handle
 
         function init(obj)
             close all;
-            obj.nSubdomains = [28,14]; %50 15
-            muMax = 1.3;
+            obj.nSubdomains = [28,15]; %50 15
+            muMax = 0.4;
             obj.r = muMax*ones(obj.nSubdomains)'; 
 %             obj.r= (1e-6 - 1e-6) * rand(obj.nSubdomains(2),obj.nSubdomains(1)) + 1e-6;
             obj.xmax=1; obj.xmin=-1; obj.ymax = 1; obj.ymin=-1; 
             obj.length = 2;
-            obj.tFrame = 0.02;
+            obj.tFrame = 0.4;
             % obj.Nr = 7; obj.Ntheta = 14; % for circle/square
-            obj.Nr = 10; obj.Ntheta = 10;% for lattice
+            obj.Nr = 4; obj.Ntheta = 4;% for lattice
             obj.x0 = 0; obj.y0=0;
             obj.tolSameNode = 1e-10;
-            obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange_2params.mat';
+            obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange_2paramsFrame.mat';
             obj.solverType = 'REDUCED';
             obj.volumeTarget = 0.6; %0.7
         end
@@ -108,7 +108,8 @@ classdef OptimizationEIFEMTutorial2param < handle
             Ly = obj.ymax-obj.ymin;
             for jDom = 1:nY
                 for iDom = 1:nX
-                    refMesh = meshCrossLattice(obj.length/2,obj.tFrame,obj.r(jDom,iDom),obj.r(jDom,iDom),obj.Nr,obj.Ntheta,1);
+                    % refMesh = meshCrossLattice(obj.length/2,obj.tFrame,obj.r(jDom,iDom),obj.r(jDom,iDom),obj.Nr,obj.Ntheta,1);
+                    refMesh =  meshLattice2param(obj.length/2,obj.tFrame,obj.r(jDom,iDom),obj.r(jDom,iDom),obj.Nr,obj.Ntheta);
                     coord0 = refMesh.coord;
                     s.coord(:,1) = coord0(:,1)+Lx*(iDom-1);
                     s.coord(:,2) = coord0(:,2)+Ly*(jDom-1);
@@ -366,12 +367,18 @@ classdef OptimizationEIFEMTutorial2param < handle
             s.volumeTarget = obj.volumeTarget;
             s.uMesh = obj.createBaseDomain();
             % s.geomType = 'Circle';
-            s.volume  = @(mu) sum((obj.length-2*obj.tFrame)*mu.fValues(:,1) ...
-                                + (obj.length-2*obj.tFrame)*mu.fValues(:,2) ... 
-                                - mu.fValues(:,1).*mu.fValues(:,2)) ...
-                                + obj.length^2 - (obj.length-2*obj.tFrame)^2;
-            s.gradJ   =  @(mu) [(obj.length-2*obj.tFrame) - mu.fValues(:,2), ...
-                                (obj.length-2*obj.tFrame) - mu.fValues(:,1) ];
+            %% for cross
+            % s.volume  = @(mu) sum((obj.length-2*obj.tFrame)*mu.fValues(:,1) ...
+            %                     + (obj.length-2*obj.tFrame)*mu.fValues(:,2) ... 
+            %                     - mu.fValues(:,1).*mu.fValues(:,2)) ...
+            %                     + obj.length^2 - (obj.length-2*obj.tFrame)^2;
+            % s.gradJ   =  @(mu) [(obj.length-2*obj.tFrame) - mu.fValues(:,2), ...
+            %                     (obj.length-2*obj.tFrame) - mu.fValues(:,1) ];
+            %% for 45 degree bars
+             s.volume  = @(mu) sum(8*mu.fValues(:,1) - 4*mu.fValues(:,1).^2 ...
+                               +4*sqrt(2)*(1-mu.fValues(:,1)).*mu.fValues(:,2)-3/2*mu.fValues(:,2).^2);
+            s.gradJ   =  @(mu) [4*sqrt(2)*(1-mu.fValues(:,1)-3*mu.fValues(:,2)), ...
+                                8-8*mu.fValues(:,1)-4*sqrt(2)*mu.fValues(:,2) ];
             v = VolumeConstraintParameter(s);
             obj.volume = v;
         end
@@ -403,9 +410,9 @@ classdef OptimizationEIFEMTutorial2param < handle
         end
 
          function createPrimalUpdater(obj)
-            s.ub     = 1.5;
-            s.lb     = 0.3; % fro lattice 0.01;
-            s.tauMax = 100;
+            s.ub     = 0.4;
+            s.lb     = 0.065; % fro lattice 0.01;
+            s.tauMax = 3;
             s.tau    = [];
             obj.primalUpdater = ProjectedGradient(s);
         end
@@ -431,12 +438,12 @@ classdef OptimizationEIFEMTutorial2param < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 2000; %150
+            s.maxIter        = 3000; %150
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
-            s.etaNorm        = 3;%0.05
-            s.gJFlowRatio    = 3; %3
+            s.etaNorm        = 0.02;%0.05
+            s.gJFlowRatio    = 0.5; %3
             s.primalUpdater  = obj.primalUpdater;
             s.etaMaxMin      = 0.01;
 %             s.etaMax      = 200;
@@ -451,12 +458,21 @@ classdef OptimizationEIFEMTutorial2param < handle
             yMax    = max(obj.mesh.coord(:,2));
             yMin    = min(obj.mesh.coord(:,2)); 
             Ly      = yMax-yMin;
+             Lx      = xMax-xMin;
             isDir   = @(coor)  abs(coor(:,1)-xMin) < 1e-12;
             isForce = @(x)  abs(x(1,:,:)-xMax) < 1e-12 & x(2,:,:)>=yMin+0.3*Ly & x(2,:,:)<=yMin+0.7*Ly;
+
+            % isDir   = @(coor)  abs(coor(:,1)-xMin) < 1e-12 | abs(coor(:,1)-xMax) < 1e-12;
+            % isForce = @(x)  abs(x(2,:,:)-yMax) < 1e-12 & x(1,:,:)>=xMin+0.45*Lx & x(1,:,:)<=xMin+0.55*Lx;
+
+             % isDir1   = @(coor)  abs(coor(:,1)-xMin) < 1e-12;
+              % isDir2   = @(coor)  abs(coor(:,2)-yMin) < 1e-12;
+                       % isForce = @(x)  abs(x(1,:,:)-xMax) < 1e-12 & x(2,:,:)>=yMin+0.3*Ly & x(2,:,:)<=yMin+0.7*Ly;
 
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2];
             sDir{1}.value     = 0;
+
 
             [bMesh, ~]  = obj.mesh.createSingleBoundaryMesh();
             sPL{1}.domain = isForce;

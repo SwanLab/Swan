@@ -7,7 +7,7 @@ function mesh = meshLattice2param(L,t_frame,h1,h2,n1,n2)
 % n1 = 7;
 % n2 = 7;
 
-P = createPoints(L,t_frame,h1,h2);
+P = createPoints(L,t_frame+0.1,h1+0.1,h2+0.1);
 
 
 %% ---------------------------------------------------------
@@ -90,43 +90,76 @@ function [n, e] = mesh_quad(p1, p2, p3, p4, n1, n2)
     end
 end
 
-function mesh = createMesh(blocks,L)
-coord = [];
-connec = [];
-
-node_offset = 0;
-
-for i = 1:numel(blocks)
-    p = blocks{i}.p;
-    [n, e] = mesh_quad(p(1,:), p(2,:), p(3,:), p(4,:), ...
-        blocks{i}.n1, blocks{i}.n2);
-
-    coord = [coord; n];
-    connec = [connec; e + node_offset];
-
-    node_offset = node_offset + size(n,1);
-end
-tol = 1e-10;  % geometric tolerance
-
-[coord, ~, ic] = uniquetol(coord, tol, 'ByRows', true);
-
-% Remap element connectivity
-connec = ic(connec);
-
-s.connec = connec;
-s.coord = coord;
- delta= 1e-9;
- xmax = L; xmin = -L; ymax = L; ymin = -L;
-            s.coord(s.coord(:,1)== xmax & s.coord(:,2)==ymax,:) =...
-                s.coord(s.coord(:,1)== xmax & s.coord(:,2)==ymax,:)+[-delta,-delta];
-            s.coord(s.coord(:,1)== xmax & s.coord(:,2)==ymin,:) =...
-                s.coord(s.coord(:,1)== xmax & s.coord(:,2)==ymin,:)+[-delta,+delta];
-            s.coord(s.coord(:,1)== xmin & s.coord(:,2)==ymax,:) =...
-                s.coord(s.coord(:,1)== xmin & s.coord(:,2)==ymax,:)+[+delta,-delta];
-            s.coord(s.coord(:,1)== xmin & s.coord(:,2)==ymin,:) =...
-                s.coord(s.coord(:,1)== xmin & s.coord(:,2)==ymin,:)+[+delta,+delta];
-
-mesh = Mesh.create(s);
+function mesh = createMesh(blocks, L)
+    coord = [];
+    connec = [];
+    
+    node_offset = 0;
+    
+    % 1. Stack all nodes from all blocks blindly
+    for i = 1:numel(blocks)
+        p = blocks{i}.p;
+        [n, e] = mesh_quad(p(1,:), p(2,:), p(3,:), p(4,:), ...
+            blocks{i}.n1, blocks{i}.n2);
+        
+        coord = [coord; n];
+        connec = [connec; e + node_offset];
+        node_offset = node_offset + size(n,1);
+    end
+    
+    % 2. Merge duplicate nodes STABLY
+    % 'uniquetol' sorts by coordinate value. We need to unsort it to match
+    % the original creation order (topology first, geometry second).
+    tol = 1e-10;
+    
+    % Get Unique sorted nodes (C), index of first appearance (ia), and map (ic)
+    [C, ia, ic] = uniquetol(coord, tol, 'ByRows', true, 'DataScale', 1);
+    
+    % Sort 'ia' to find the order in which unique nodes actually appeared
+    [~, perm] = sort(ia);
+    
+    % Reorder coordinates to match appearance order
+    coord_clean = C(perm, :);
+    
+    % Create an inverse permutation map to fix connectivity
+    % We map the Sorted Index -> Stable Index
+    inv_perm = zeros(size(perm));
+    inv_perm(perm) = 1:length(perm);
+    
+    % Remap connectivity: 
+    % Original connectivity pointed to 'coord' -> 'ic' points to 'C' ->
+    % 'inv_perm' points to 'coord_clean'
+    connec_clean = inv_perm(ic(connec));
+    
+    % Ensure connectivity is shaped correctly
+    connec_clean = reshape(connec_clean, size(connec));
+    
+    s.connec = connec_clean;
+    s.coord = coord_clean;
+    
+    % 3. Apply Boundary Shifts
+    % Fixed: Use tolerance check instead of '==' for floating point numbers
+    delta = 1e-9;
+    xmax = L; xmin = -L; ymax = L; ymin = -L;
+    geo_tol = 1e-8; 
+    
+    % Top Right Corner
+    mask = abs(s.coord(:,1) - xmax) < geo_tol & abs(s.coord(:,2) - ymax) < geo_tol;
+    s.coord(mask, :) = s.coord(mask, :) + [-delta, -delta];
+    
+    % Bottom Right Corner
+    mask = abs(s.coord(:,1) - xmax) < geo_tol & abs(s.coord(:,2) - ymin) < geo_tol;
+    s.coord(mask, :) = s.coord(mask, :) + [-delta, +delta];
+    
+    % Top Left Corner
+    mask = abs(s.coord(:,1) - xmin) < geo_tol & abs(s.coord(:,2) - ymax) < geo_tol;
+    s.coord(mask, :) = s.coord(mask, :) + [+delta, -delta];
+    
+    % Bottom Left Corner
+    mask = abs(s.coord(:,1) - xmin) < geo_tol & abs(s.coord(:,2) - ymin) < geo_tol;
+    s.coord(mask, :) = s.coord(mask, :) + [+delta, +delta];
+    
+    mesh = Mesh.create(s);
 end
 
 function blk = add_block(p1,p2,p3,p4,n1,n2,name)

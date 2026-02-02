@@ -23,7 +23,7 @@ classdef PlotterLatticeCross2param < handle
 
     methods (Access = public)
 
-        function obj = PlotterLattice(cParams)
+        function obj = PlotterLatticeCross2param(cParams)
             obj.init(cParams);
             obj.createFigure();
         end
@@ -69,7 +69,7 @@ classdef PlotterLatticeCross2param < handle
             for jDom = 1:nY
                 for iDom = 1:nX
                     ind = (jDom-1)*nX + iDom;
-                    refMesh = meshCrossLattice(1,0.02,h(ind,1),h(ind,2),obj.Nr,obj.Ntheta,1);
+                    refMesh = meshLattice2param(1,h(ind,1),h(ind,2),h(ind,2),obj.Nr,obj.Ntheta);
                     coord0 = refMesh.coord;
                     s.coord(:,1) = coord0(:,1)+Lx*(iDom-1);
                     s.coord(:,2) = coord0(:,2)+Ly*(jDom-1);
@@ -98,7 +98,7 @@ classdef PlotterLatticeCross2param < handle
 obj.patchHandle = patch(axes, 'Faces', obj.discMesh.connec, 'Vertices', obj.discMesh.coord, ...
     'EdgeColor', 'k', ...          % Changed from 'none' to 'k' (black)
     'LineStyle', '-', ...          % Changed from 'none' to '-' (solid line)
-    'FaceColor', [1.0, 0.4, 0.4], ... % Optional: add a light gray face color
+    'FaceColor', 'k', ... % Optional: add a light gray face color
     'FaceLighting', 'none', ...
     'AmbientStrength', .75);
         end

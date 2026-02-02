@@ -42,7 +42,8 @@ classdef Parameter < DesignVariable
             obj.plotting = cParams.plotting;
             if obj.plotting
                 % obj.plotter  = PlotterRadius(cParams);
-                obj.plotter  = PlotterLatticeCross(cParams);
+                obj.plotter    = PlotterLatticeCross2param(cParams);
+                % obj.plotter  = PlotterLatticeCross(cParams);
             end
         end
 

@@ -71,7 +71,7 @@ classdef OptimizationEIFEMTutorial < handle
 
         function init(obj)
             close all;
-            obj.nSubdomains = [28,14]; %50 15
+            obj.nSubdomains = [10,5]; %50 15
             rmin = 1e-6;
             obj.r = rmin*ones(obj.nSubdomains)'; 
 %             obj.r= (1e-6 - 1e-6) * rand(obj.nSubdomains(2),obj.nSubdomains(1)) + 1e-6;
@@ -82,7 +82,7 @@ classdef OptimizationEIFEMTutorial < handle
             obj.tolSameNode = 1e-10;
 %             obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange20_der2_lattice.mat';
 %             obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange20_der2_092.mat';
-            obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange20_der2_092.mat';
+            obj.fileNameEIFEM = './EPFL/parametrizedEIFEMLagrange20_der2_096.mat'; % for circle
             obj.solverType = 'REDUCED';
             obj.volumeTarget = 0.6; %0.7
         end
@@ -294,7 +294,9 @@ classdef OptimizationEIFEMTutorial < handle
             s.mesh        = obj.coarseMesh;
             s.DirCond     = obj.sDir;
             s.nSubdomains = obj.nSubdomains;
-            s.mu          = obj.r;
+            s.mu          = obj.designVariable;
+            % s.mu            = reshape(obj.r',1,[]);
+            % s.mu          = obj.r;
             s.meshRef     = obj.discMesh;
 %             s.Fext        = RHSr;
             eifem         = EIFEMnonPeriodic(s);

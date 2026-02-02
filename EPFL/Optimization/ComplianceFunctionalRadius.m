@@ -18,8 +18,8 @@ classdef ComplianceFunctionalRadius < handle
 
         function [J,dJ] = computeFunctionAndGradient(obj,mu)
 %             [u,uC] = obj.computeStateVariable(mu.fun.fValues);
-            [u,uC] =   obj.computeStateVariable(mu.fun.fValues);
-            dK     = obj.stateProblem.computeGradK(mu.fun.fValues);
+            [u,uC] =   obj.computeStateVariable(mu.fun);
+            dK     = obj.stateProblem.computeGradK(mu.fun);
             J      = obj.computeFunction(uC);
             dJ     = obj.computeGradient(dK,uC,mu);
             if isempty(obj.value0)
