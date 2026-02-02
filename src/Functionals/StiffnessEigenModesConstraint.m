@@ -85,17 +85,17 @@ classdef StiffnessEigenModesConstraint < handle
 
         function J = computeFunction(obj,lambda)
               % if its close to zero, use 1
-              %J    = (obj.targetEigenValue - lambda);
-              J    = 1 - lambda/obj.targetEigenValue;
+              J    = (obj.targetEigenValue - lambda);
+              %J    = 1 - lambda/obj.targetEigenValue;
               if isempty(obj.value0)
-                obj.value0 = 1; %abs(J); %
+                obj.value0 = abs(J); %1
               end
               J = J/obj.value0;
         end
 
         function dlambda = computeGradient(obj, lambda, dlambda)
-            %fValues = - dlambda.fValues/obj.value0;
-          fValues = - dlambda.fValues/obj.targetEigenValue;
+            fValues = - dlambda.fValues/obj.value0;
+          %fValues = - dlambda.fValues/obj.targetEigenValue;
 %             dJ      = FeFunction.create(dlambda.order,fValues,obj.mesh);     
             dlambda.setFValues(fValues);
         end
