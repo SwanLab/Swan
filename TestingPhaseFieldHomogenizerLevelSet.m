@@ -1,4 +1,4 @@
-classdef TestingPhaseFieldHomogenizer < handle
+classdef TestingPhaseFieldHomogenizerLevelSet < handle
 
     properties (Access = private)
         E
@@ -18,16 +18,14 @@ classdef TestingPhaseFieldHomogenizer < handle
         masterSlave
         maxParam
 
-        density
-        monitor
+        InnerMesh
     end
 
     methods (Access = public)
         
-        function obj = TestingPhaseFieldHomogenizer(cParams)
+        function obj = TestingPhaseFieldHomogenizerLevelSet(cParams)
             obj.init(cParams);
             obj.defineMesh();
-            obj.createMonitoring(cParams);
         end
         
         function [mat,phi,holeParams] = compute(obj)
@@ -43,7 +41,7 @@ classdef TestingPhaseFieldHomogenizer < handle
                 if i==1
                     hole = 0.9*ones(size(hole));
                 end
-                mat(:,:,:,:,i) = obj.computeHomogenization(hole,i);
+                mat(:,:,:,:,i) = obj.computeHomogenization(hole);
                 phi(i)     = obj.computeDamageMetric(hole);
             end
             
@@ -75,16 +73,6 @@ classdef TestingPhaseFieldHomogenizer < handle
             obj.damageType = cParams.damageType;
             obj.pnorm      = cParams.pnorm;
             obj.monitoring = cParams.monitoring;
-        end
-
-        function createMonitoring(obj,cParams)
-            s.shallDisplay = cParams.monitoring;
-            s.funs = {LagrangianFunction.create(obj.baseMesh,1,'P1')};
-            s.barLims = {[0,1]};
-            s.maxNColumns = 1;
-            s.titles = {'Density'};
-            s.chartTypes = {'surf'};
-            obj.monitor = Monitoring(s);
         end
 
         function defineMesh(obj)
@@ -120,25 +108,20 @@ classdef TestingPhaseFieldHomogenizer < handle
             end
         end
 
-        function matHomog = computeHomogenization(obj,l,step)
-            obj.density = obj.createDensityLevelSet(l);
-            obj.updateMonitoring(step);
-            mat  = obj.createDensityMaterial(obj.density);
-            matHomog = obj.solveElasticMicroProblem(mat,obj.density);
+        function matHomog = computeHomogenization(obj,l)
+            obj.createUnfittedMesh(l);
+            mat  = obj.createMaterial();
+            matHomog = obj.solveElasticMicroProblem(mat);
         end
 
-        function lsf = createDensityLevelSet(obj,l)
+        function createUnfittedMesh(obj,l)
             ls = obj.computeLevelSet(obj.baseMesh,l);
             sUm.backgroundMesh = obj.baseMesh;
             sUm.boundaryMesh   = obj.baseMesh.createBoundaryMesh;
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(ls);
+            obj.InnerMesh = uMesh.createInnerMeshGoodConditioning();
 
-            ls = CharacteristicFunction.create(uMesh);
-            s.trial = obj.test;
-            s.mesh = obj.baseMesh;
-            f = FilterLump(s); 
-            lsf = f.compute(ls,2);
         end
 
         function ls = computeLevelSet(obj,mesh,l)
@@ -178,46 +161,27 @@ classdef TestingPhaseFieldHomogenizer < handle
             ls = -lsCircle;
         end
 
-        function mat = createDensityMaterial(obj,lsf)
-            s.interpolation  = 'SIMPALL';
-            s.dim            = 2;
-            s.matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(0.01*obj.E,obj.nu,obj.baseMesh.ndim);
-            s.matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(0.01*obj.E,obj.nu);
-            s.matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(obj.E,obj.nu,obj.baseMesh.ndim);
-            s.matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(obj.E,obj.nu);
-            mI = MaterialInterpolator.create(s);
-
-            x{1} = lsf;
-            s.mesh                 = obj.baseMesh;
-            s.type                 = 'DensityBased';
-            s.density              = x;
-            s.materialInterpolator = mI;
-            s.dim                  = '2D';
+        function mat = createMaterial(obj)
+            s.type    = 'ISOTROPIC';
+            s.ptype   = 'ELASTIC';
+            s.ndim    = obj.InnerMesh.ndim;
+            s.young   = ConstantFunction.create(obj.E,obj.InnerMesh);
+            s.poisson    = ConstantFunction.create(obj.nu,obj.InnerMesh);
             mat = Material.create(s);
         end
 
-        function updateMonitoring(obj,step)
-            if obj.monitoring == true
-                obj.monitor.update(step,{obj.density.fValues});
-                obj.monitor.refresh();
-            end
-        end
-
-        function matHomog = solveElasticMicroProblem(obj,material,dens)
-            s.mesh = obj.baseMesh;
+        function matHomog = solveElasticMicroProblem(obj,material)
+            s.mesh = obj.InnerMesh;
             s.material = material;
             s.scale = 'MICRO';
             s.dim = '2D';
-            s.boundaryConditions = obj.createBoundaryConditions(obj.baseMesh);
+            s.boundaryConditions = obj.createBoundaryConditions(obj.InnerMesh);
             s.solverCase = DirectSolver();
             s.solverType = 'REDUCED';
             s.solverMode = 'FLUC';
             fem = ElasticProblemMicro(s);
-            material.setDesignVariable({dens})
-            fem.updateMaterial(material.obtainTensor())
             fem.solve();
-
-            totVol = obj.baseMesh.computeVolume();
+            totVol = obj.InnerMesh.computeVolume();
             matHomog = fem.Chomog/totVol;
         end
 
@@ -286,12 +250,14 @@ classdef TestingPhaseFieldHomogenizer < handle
                             % perimeter = 6*l;
                             % apothem   = sqrt(l^2 - (l/2)^2);
                             % phi = (perimeter*apothem/2)/(3*sqrt(3)/2);
-                            phi = 1 - Integrator.compute(obj.density,obj.baseMesh,1)/(3*sqrt(3)/2);
+                            f = ConstantFunction.create(1,obj.InnerMesh);
+                            phi = 1 - Integrator.compute(f,obj.InnerMesh,1)/(3*sqrt(3)/2);
                         case {'ReinforcedHoneycomb'}
                             % m = l/(2*sqrt(3));
                             % h = sqrt(3)/2 - 3*m;
                             % phi = (6*(h^2)/sqrt(3))/(3*sqrt(3)/2);
-                            phi = 1 - Integrator.compute(obj.density,obj.baseMesh,1)/(3*sqrt(3)/2);
+                            f = ConstantFunction.create(1,obj.InnerMesh);
+                            phi = 1 - Integrator.compute(f,obj.InnerMesh,1)/(3*sqrt(3)/2);
                     end
                 case 'Perimeter'
                     switch obj.holeType

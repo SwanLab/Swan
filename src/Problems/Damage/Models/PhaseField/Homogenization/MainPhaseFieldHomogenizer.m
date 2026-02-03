@@ -5,10 +5,10 @@ s.nu         = 0.35;
 s.meshType   = 'Hexagon';
 s.meshN      = 100;
 s.holeType   = 'Hexagon';
-s.nSteps     = [100];
+s.nSteps     = [1];
 s.pnorm      = 4+20*(1/100)^2;
 s.damageType = 'Area';
-PFH = TestingPhaseFieldHomogenizer(s);
+PFH = TestingPhaseFieldHomogenizerLevelSet(s);
 [mat,phi,holeParam] = PFH.compute();
 %save('HexaNu','mat','phi')
 
@@ -16,5 +16,5 @@ PFH = TestingPhaseFieldHomogenizer(s);
 degradation.fun = f;
 degradation.dfun = df;
 degradation.ddfun = ddf;
-save('SmoothHexagonPerle','mat','phi','degradation')
+%save('SmoothHexagonPerle','mat','phi','degradation')
 
