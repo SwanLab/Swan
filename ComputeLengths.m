@@ -34,8 +34,8 @@ k  = E./(2.*(1-nu));
 mu = E./(2.*(1+nu));
 etak  = mu;
 etamu = (k.*mu)./(2.*mu+k);
-HSk = (etak/(etak*k+k^2));
-HSmu = (etamu/(etamu*mu+mu^2));
+HSk = (etak/(etak*k+k^2))*k;
+HSmu = (etamu/(etamu*mu+mu^2))*mu;
 
 
 lHSAT1mu = lchAT1*HSmu*(1/(8/3))
