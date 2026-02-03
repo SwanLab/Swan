@@ -1,7 +1,7 @@
-E = 210;
-nu = 0.3;
-Gc = 5e-3;
-l0 = 0.1;
+E = 1;
+nu = 0.5;
+Gc = 0.1;
+l0 =  0.03;
 
 sigC = @(gPrime,cOmega) sqrt(((2*Gc*E)/(l0*cOmega))*((1)/(gPrime)));
 
@@ -12,21 +12,21 @@ lchAT1 = Gc/(0.5*sigC(gPrimeAT1,8/3)^2/E)
 lchAT2 = Gc/(0.5*sigC(gPrimeAT2,2)^2/E)
 
 sigCRat = sigC(gPrimeAT1,8/3);
-sigCRat = 2.44542;
+sigCRat = 1;
 lchRat = Gc/(0.5*sigCRat^2/E)
 
 fHex = load('HexagonAreaNew.mat');
 C11PrimeHexa = fHex.degradation.dfun{1,1,1,1}(0);
 C12PrimeHexa = fHex.degradation.dfun{1,1,2,2}(0);
 derivFactorHexa = (2*nu*C12PrimeHexa - (1+nu^2)*C11PrimeHexa);
-%sigCHexa = sqrt(((2*Gc*E)/(l0*(8/3)))*(1/derivFactorHexa))
+sigCHexa = sqrt(((2*Gc*E)/(l0*(8/3)))*(1/derivFactorHexa));
 lchHexa = Gc/(0.5*sigCHexa^2/E)
 
 fHoney = load('HoneycombAreaNew.mat');
 C11PrimeHoney = fHoney.degradation.dfun{1,1,1,1}(0);
 C12PrimeHoney = fHoney.degradation.dfun{1,1,2,2}(0);
 derivFactorHoney = 2*nu*C12PrimeHoney - (1+nu^2)*C11PrimeHoney;
-%sigCHoney = sqrt(((2*Gc*E)/(l0*(8/3))*(1/(derivFactorHoney))))
+sigCHoney = sqrt(((2*Gc*E)/(l0*(8/3))*(1/(derivFactorHoney))));
 lchHoney = Gc/(0.5*sigCHoney^2/E)
 
 
