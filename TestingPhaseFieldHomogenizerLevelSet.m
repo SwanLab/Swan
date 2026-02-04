@@ -17,8 +17,10 @@ classdef TestingPhaseFieldHomogenizerLevelSet < handle
         test
         masterSlave
         maxParam
+    end
 
-        InnerMesh
+    properties (Access = public)
+        
     end
 
     methods (Access = public)
@@ -39,7 +41,7 @@ classdef TestingPhaseFieldHomogenizerLevelSet < handle
             for i=1:nComb
                 hole = comb(i,:);
                 if i==1
-                    hole = 0.9*ones(size(hole));
+                    hole = 0.933*ones(size(hole));
                 end
                 mat(:,:,:,:,i) = obj.computeHomogenization(hole);
                 phi(i)     = obj.computeDamageMetric(hole);
@@ -120,8 +122,8 @@ classdef TestingPhaseFieldHomogenizerLevelSet < handle
             sUm.boundaryMesh   = obj.baseMesh.createBoundaryMesh;
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(ls);
-            obj.InnerMesh = uMesh.createInnerMeshGoodConditioning();
-
+            %obj.InnerMesh = uMesh.createInnerMeshGoodConditioning();
+            obj.InnerMesh = uMesh.createInnerMesh();
         end
 
         function ls = computeLevelSet(obj,mesh,l)
