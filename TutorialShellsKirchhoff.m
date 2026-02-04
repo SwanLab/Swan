@@ -75,14 +75,14 @@ classdef TutorialShellsKirchhoff < handle
     methods (Access = private)
 
         function createMesh(obj)
-          obj.mesh = UnitTriangleMesh(20,20);
-          %obj.mesh = UnitQuadMesh(20,20);
+          %obj.mesh = UnitTriangleMesh(20,20);
+          obj.mesh = UnitQuadMesh(50,50);
         end
 
         function createSolutionField(obj)
            obj.uFun     = LagrangianFunction.create(obj.mesh,2,'P1');
-           obj.thetaFun = LagrangianFunction.create(obj.mesh,2,'P1');
-           obj.wFun     = LagrangianFunction.create(obj.mesh,1,'P1');
+           obj.thetaFun = LagrangianFunction.create(obj.mesh,2,'P2');
+           obj.wFun     = LagrangianFunction.create(obj.mesh,1,'P2');
            obj.tauFun   = LagrangianFunction.create(obj.mesh,2,'P0');
         end
 
@@ -108,6 +108,16 @@ classdef TutorialShellsKirchhoff < handle
             Ktheta = obj.reduceMatrix(Ktheta,obj.bcT,obj.bcT);
 
 
+            gamma = 15.5;
+            f = @(u,v) gamma.*DP(v,u);
+            KthetaStab = IntegrateLHS(f,obj.thetaFun,obj.thetaFun,obj.mesh,'Domain',2);
+            KthetaStab = obj.reduceMatrix(KthetaStab,obj.bcT,obj.bcT);
+
+            f = @(u,v) gamma.*DP(v,Grad(u));
+            NthetawStab = IntegrateLHS(f,obj.thetaFun,obj.wFun,obj.mesh,'Domain',2);            
+            NthetawStab = obj.reduceMatrix(NthetawStab,obj.bcT,obj.bcW);
+
+
             %A = obj.area;
             %G = obj.shear;
             %f = @(u,v) G.*A.*DP(v,u);
@@ -118,6 +128,10 @@ classdef TutorialShellsKirchhoff < handle
             f = @(u,v) DP(v,u);
             Mthetatau = IntegrateLHS(f,obj.thetaFun,obj.tauFun,obj.mesh,'Domain',2);
             Mthetatau = obj.reduceMatrix(Mthetatau,obj.bcT,obj.bcTau);
+
+            f = @(u,v) gamma.*DP(Grad(v),Grad(u));
+            KwStab = IntegrateLHS(f,obj.wFun,obj.wFun,obj.mesh,'Domain',2);            
+            KwStab = obj.reduceMatrix(KwStab,obj.bcW,obj.bcW);
 
 
             f = @(u,v) DP(u,Grad(v));
@@ -138,6 +152,10 @@ classdef TutorialShellsKirchhoff < handle
             % Kw = IntegrateLHS(f,obj.wFun,obj.wFun,obj.mesh,'Domain',2);  
             % Kw = obj.reduceMatrix(Kw,obj.bcW,obj.bcW);
 
+            %f = @(u,v) A.*DP(u,v);
+            %Ktautau = IntegrateLHS(f,obj.tauFun,obj.tauFun,obj.mesh,'Domain',2);
+            %Ktautau = obj.reduceMatrix(Ktautau,obj.bcTau,obj.bcTau);
+
             nTheta = length(obj.computeFreeDofs(obj.bcT));
             nU     = length(obj.computeFreeDofs(obj.bcU));
             nW     = length(obj.computeFreeDofs(obj.bcW));
@@ -152,9 +170,9 @@ classdef TutorialShellsKirchhoff < handle
 
 
             LHS = [Ku Zut Zuw Zutau;
-                    Zut' Ktheta Zthetaw Mthetatau;
-                    Zuw' Zthetaw' Zww Nwtau;
-                    Zutau' Mthetatau' Nwtau' Ztautau];
+                    Zut' Ktheta+KthetaStab Zthetaw-NthetawStab -Mthetatau;
+                    Zuw' Zthetaw'-NthetawStab' Zww+KwStab Nwtau;
+                    Zutau' -Mthetatau' Nwtau' Ztautau];
         end
 
         function RHS = createRHS(obj)
@@ -214,6 +232,7 @@ classdef TutorialShellsKirchhoff < handle
             sDir{1}.direction = direct;
             sDir{1}.value     = 0;                    
             sDir{1}.ndim = length(direct);
+            
 
 
             dirichletFun = [];
