@@ -48,7 +48,7 @@ classdef PhaseFieldRationalWuDegradation < handle
             for i=1:length(cParams.coeffs)
                 Q(phi) = Q(phi) + prod(cParams.coeffs(1:i))*phi^i;
             end
-            g(phi) = ((1-phi)^cParams.exp)/((1-phi)^cParams.exp + Q(phi));
+            g(phi) = ((1-phi)^cParams.exp)/((1-phi)^cParams.exp + Q(phi)) + 1e-10;
             obj.degFun = g;
         end
 
