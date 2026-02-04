@@ -23,7 +23,7 @@ classdef Eigs_Isotropic_Density < handle
     methods (Access = public)
 
         function obj = Eigs_Isotropic_Density()
-            obj.lambda1min = 1e-5; % To change with the 50 Hz minimum
+            obj.lambda1min = 1e-4; % To change with the 50 Hz minimum
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -44,8 +44,8 @@ classdef Eigs_Isotropic_Density < handle
 
             % Save monitoring and desginVariable fValues
             figure(2);
-            saveas(gcf,'Monitoring_Isotropic_Density_Eigs_Lambda_1minus5.fig');
-            obj.designVariable.fun.print('fValues_Isotropic_Density_Eigs_Lambda_1minus5');
+            saveas(gcf,'Monitoring_Isotropic_Density_Eigs_Lambda_1minus4.fig');
+            obj.designVariable.fun.print('fValues_Isotropic_Density_Eigs_Lambda_1minus4');
         end
 
     end
@@ -242,9 +242,9 @@ classdef Eigs_Isotropic_Density < handle
             s.etaMaxMin      = 0.01;
             %s.type           = '0';
             s.gif = true;
-            s.gifName = 'Eigs_Gif_Isotropic_Density_Lambda_1minus5';
+            s.gifName = 'Eigs_Gif_Isotropic_Density_Lambda_1minus4';
             s.printing = false;
-            s.printName = 'Eigs_Results_Isotropic_Density_Lambda_1minus5';
+            s.printName = 'Eigs_Results_Isotropic_Density_Lambda_1minus4';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
