@@ -177,8 +177,8 @@ classdef Anisotropic_0_90_LevelSet_3D < handle
             s.etaNorm        = 0.1;
             s.etaNormMin     = 0.02;
             s.gJFlowRatio    = 2;
-            s.etaMax         = 50;
-            s.etaMaxMin      = 1.2;
+            s.etaMax         = 10;
+            s.etaMaxMin      = 0.5;
             %s.type           = '0';
             s.gif = false;
             s.gifName = 'Gif_0_90_3D_LevelSet';

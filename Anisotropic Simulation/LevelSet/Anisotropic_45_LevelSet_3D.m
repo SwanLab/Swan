@@ -174,11 +174,11 @@ classdef Anisotropic_45_LevelSet_3D < handle
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
-            s.etaNorm        = 0.1;
+            s.etaNorm        = 0.01;
             s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 2;
-            s.etaMax         = 50;
-            s.etaMaxMin      = 1.2;
+            s.gJFlowRatio    = 5;
+            s.etaMax         = 10;
+            s.etaMaxMin      = 0.5;
             %s.type           = '0';
             s.gif = false;
             s.gifName = 'Gif_45_3D_LevelSet';
