@@ -10,18 +10,25 @@ classdef TutorialShells < handle
         uFun
         thetaFun
         wFun
-        bcU,bcT,bcW
+        bcU,bcT,bcW,bcq
+        lhs,RHSS
+        solverType
+        type, values, fun
     end
 
     methods (Access = public)
 
         function obj = TutorialShells()
+            clc; close all; 
             obj.createMesh()
             obj.createMaterialProperties()
             obj.createSolutionField()
+
+            obj.solverType = 'REDUCED';
             
             obj.createBoundaryConditions()
             LHS = obj.createLHS();
+            obj.lhs = LHS;
             RHS = obj.createRHS();
 
             x = LHS\RHS;
@@ -41,13 +48,25 @@ classdef TutorialShells < handle
             uT(dofFT,1) = uF; 
             uT = reshape(uT,[], obj.uFun.ndimf);
             obj.uFun.setFValues(uT);
-            plot(obj.uFun)
+            
 
             wT = zeros(obj.wFun.nDofs,1);
             wT(dofFW,1) = wF; 
             wT = reshape(wT,[], obj.wFun.ndimf);
             obj.wFun.setFValues(wT);
+            
+            % wT = zeros(obj.wFun.nDofs,1);    CAMBIAR PARA THETA
+            % wT(dofFW,1) = wF; 
+            % wT = reshape(wT,[], obj.wFun.ndimf);
+            % obj.wFun.setFValues(wT);
+            
             plot(obj.wFun)
+            plot(obj.uFun)
+            plot(obj.thetaFun)
+            
+            obj.wFun.print('wfun print','Paraview')
+            obj.uFun.print('ufun print','Paraview')
+            obj.thetaFun.print('thetafun print','Paraview')
         end
 
     end
@@ -118,7 +137,7 @@ classdef TutorialShells < handle
         function RHS = createRHS(obj)
             p = ConstantFunction.create([0 0],obj.mesh);
             m = ConstantFunction.create([0 0],obj.mesh);
-            q = ConstantFunction.create(1,obj.mesh);
+            q = ConstantFunction.create([0],obj.mesh);   
 
             fu = @(v) DP(p,v);
             RHSu = IntegrateRHS(fu,obj.uFun,obj.mesh,'Domain',2);
@@ -131,16 +150,51 @@ classdef TutorialShells < handle
             fw = @(v) q.*v;
             RHSw = IntegrateRHS(fw,obj.wFun,obj.mesh,'Domain',2);
             RHSw = obj.reduceVector(RHSw,obj.bcW);
+
+            obj.computeForces();
+            RHSq = obj.RHSS;
+            RHSq = obj.reduceVector(RHSq,obj.bcW);
             
 
-            RHS = [RHSu;RHStheta;RHSw];
+            RHS = [RHSu;RHStheta;RHSq];
         end
 
-        function createBoundaryConditions(obj)
+
+        function computeForces(obj)
+            bc  = obj.bcq;
+            t   = bc.tractionFun;
+            rhs = zeros(obj.wFun.nDofs,1);
+            if ~isempty(t)
+                for i = 1:numel(t)
+                    rhsi = t(i).computeRHS(obj.wFun);
+                    rhs  = rhs + rhsi;
+                end
+            end
+            if strcmp(obj.solverType,'REDUCED')
+                bc      = obj.bcq;
+                dirich  = bc.dirichlet_dofs;
+                dirichV = bc.dirichlet_vals;
+                if ~isempty(dirich)
+                    R = -obj.lhs(obj.wFun.nDofs(:),dirich)*dirichV; %??????
+                else
+                    R = zeros(sum(obj.wFun.nDofs(:)),1);
+                end
+                rhs = rhs+R;
+            end
+            obj.RHSS = rhs;
+        end
+
+        function createBoundaryConditions(obj)            
             obj.bcU = obj.createGeneralBoundaryConditions([1 2]);
             obj.bcT = obj.createGeneralBoundaryConditions([1 2]);
             obj.bcW = obj.createGeneralBoundaryConditions([1]);
+            obj.bcq = obj.bcW;
+            
         end
+
+
+        % ============================================================================================================================================================
+        % ============================================================================================================================================================
 
         function bc = createGeneralBoundaryConditions(obj,direct)
             TOL = 1e-12;
@@ -153,10 +207,13 @@ classdef TutorialShells < handle
             isTop   = @(coor)  abs(coor(:,2)-yMax)< TOL;
             isBotom = @(coor)  abs(coor(:,2)-yMin)< TOL;
 
-            sDir{1}.domain    = @(coor) isLeft(coor) | isRight(coor) | isTop(coor) | isBotom(coor);
+
+            % MODIFICATIONS: Embedded beam on one side ant with punctual load on the other  
+
+            sDir{1}.domain    = @(coor) isLeft(coor);
             sDir{1}.direction = direct;
-            sDir{1}.value     = 0;                    
-            sDir{1}.ndim = length(direct);
+            sDir{1}.value     = 0; 
+            sDir{1}.ndim      = length(direct);
 
 
             dirichletFun = [];
@@ -166,11 +223,71 @@ classdef TutorialShells < handle
             end
             s.dirichletFun = dirichletFun;
 
+            
+            %% Apply point load to a single node on the right boundary
+            
+            % % Find right boundary nodes
+            % rightNodes = find(isRight(obj.mesh.coord));
+            % if isempty(rightNodes)
+            %     error('No nodes found on the right boundary.');
+            % end
+            % % Choose one node: here pick the middle one (can change as needed)
+            % idx = ceil(numel(rightNodes)/2);
+            % singleNode = rightNodes(idx);
+            % 
+            % % Define point load structure for that single node
+            % sPL{1}.domain    = @(coor) (1:size(coor,1))'==singleNode;
+            % sPL{1}.direction = 2;
+            % sPL{1}.value     = 1;
+
+            %%
+
+            sPL{1}.domain    = @(coor) isRight(coor);
+            sPL{1}.direction = 2;
+            sPL{1}.value     = 1;
+
+            %%
+
+            pointloadFun = [];
+            for i = 1:numel(sPL)
+                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
+                pointloadFun = [pointloadFun, pl];
+
+            end
+            s.pointloadFun = pointloadFun;
+
+
             s.periodicFun  = [];
-            s.pointloadFun    = [];
             s.mesh = obj.mesh;
             bc = BoundaryConditions(s);            
         end
+
+
+        % ============================================================================================================================================================
+        % ============================================================================================================================================================
+
+        function obj = TractionLoad2(mesh,s,type)
+         
+            obj.type = type;
+            switch type
+                case 'DIRAC'
+                    pl_dofs = s.domain(mesh.coord);
+                    vals = zeros(length(pl_dofs),1);
+                    vals(pl_dofs,1) = s.value;
+                    obj.values = reshape(vals',[],1);
+                case 'FUNCTION'
+                    dom     = s.domain;
+                    f       = s.fun;
+                    neuFun  = AnalyticalFunction.create(dom,f.mesh);
+                    obj.fun = f.*neuFun;
+                    obj.mesh = mesh;
+            end
+        end
+
+
+        % ============================================================================================================================================================
+        % ============================================================================================================================================================
+        
 
         function fD = computeFreeDofs(obj,bC)
             dofs = 1:bC.dirichletFun.nDofs;
