@@ -1,4 +1,4 @@
-classdef Eigs_Anisotropic_90_Density < handle
+classdef Eigs_Anisotropic_45_Density < handle
 
     properties (Access = private)
         mesh
@@ -22,7 +22,7 @@ classdef Eigs_Anisotropic_90_Density < handle
 
     methods (Access = public)
 
-        function obj = Eigs_Anisotropic_90_Density()
+        function obj = Eigs_Anisotropic_45_Density()
             obj.lambda1min = 1e-4; % To change with the 50 Hz minimum
             obj.init()
             obj.createMesh();
@@ -44,8 +44,8 @@ classdef Eigs_Anisotropic_90_Density < handle
 
             % Save monitoring and desginVariable fValues
             figure(2);
-            saveas(gcf,'Monitoring_90_Density_Eigs_Lambda_1minus4.fig');
-            obj.designVariable.fun.print('fValues_90_Density_Eigs_Lambda_1minus4');
+            saveas(gcf,'Monitoring_45_Density_Eigs_Lambda_1minus4.fig');
+            obj.designVariable.fun.print('fValues_45_Density_Eigs_Lambda_1minus4');
         end
 
     end
@@ -102,7 +102,7 @@ classdef Eigs_Anisotropic_90_Density < handle
         end
   
         function createMaterialInterpolator(obj)
-            type = '90';
+            type = '45';
             s.C1 = Cvoigt.create(type);
             s.C0 = s.C1*1e-3; % This is not necessary
             s.mesh = obj.mesh;
@@ -232,9 +232,9 @@ classdef Eigs_Anisotropic_90_Density < handle
             s.etaMaxMin      = 0.01;
             %s.type           = '0';
             s.gif = true;
-            s.gifName = 'Eigs_Gif_90_Density_Lambda_1minus4';
+            s.gifName = 'Eigs_Gif_45_Density_Lambda_1minus4';
             s.printing = false;
-            s.printName = 'Eigs_Results_90_Density_Lambda_1minus4';
+            s.printName = 'Eigs_Results_45_Density_Lambda_1minus4';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

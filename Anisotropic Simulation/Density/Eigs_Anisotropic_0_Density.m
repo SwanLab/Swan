@@ -23,7 +23,7 @@ classdef Eigs_Anisotropic_0_Density < handle
     methods (Access = public)
 
         function obj = Eigs_Anisotropic_0_Density()
-            obj.lambda1min = 1e-5; % To change with the 50 Hz minimum
+            obj.lambda1min = 1e-4; % To change with the 50 Hz minimum
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -43,8 +43,9 @@ classdef Eigs_Anisotropic_0_Density < handle
             obj.createOptimizer();
 
             % Save monitoring and desginVariable fValues
-            %saveas(gcf,'Monitoring_0_Density.fig');
-            obj.designVariable.fun.print('fValues_0_Density_Eigs_Lambda_1minus3');
+            figure(2);
+            saveas(gcf,'Monitoring_0_Density_Eigs_Lambda_1minus4.fig');
+            obj.designVariable.fun.print('fValues_0_Density_Eigs_Lambda_1minus4');
         end
 
     end
@@ -58,8 +59,8 @@ classdef Eigs_Anisotropic_0_Density < handle
         function createMesh(obj)
             %UnitMesh better
             % Cantilever beam
-            x1      = linspace(0,2,50);
-            x2      = linspace(0,1,25);
+            x1      = linspace(0,2,150);
+            x2      = linspace(0,1,75);
             % MBB Beam
             % x1      = linspace(0,6,500);
             % x2      = linspace(0,1,75);
@@ -220,20 +221,20 @@ classdef Eigs_Anisotropic_0_Density < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 600;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY', 'INEQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 5;
+            s.gJFlowRatio    = 1;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
             %s.type           = '0';
             s.gif = true;
-            s.gifName = 'Eigs_Gif_0_Density_Lambda_1minus3';
+            s.gifName = 'Eigs_Gif_0_Density_Lambda_1minus4';
             s.printing = false;
-            s.printName = 'Eigs_Results_0_Density_Lambda_1minus3';
+            s.printName = 'Eigs_Results_0_Density_Lambda_1minus4';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
