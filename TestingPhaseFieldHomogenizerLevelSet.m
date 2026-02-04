@@ -20,7 +20,7 @@ classdef TestingPhaseFieldHomogenizerLevelSet < handle
     end
 
     properties (Access = public)
-        
+        InnerMesh
     end
 
     methods (Access = public)
@@ -41,7 +41,7 @@ classdef TestingPhaseFieldHomogenizerLevelSet < handle
             for i=1:nComb
                 hole = comb(i,:);
                 if i==1
-                    hole = 0.933*ones(size(hole));
+                    hole = 0.95*ones(size(hole));
                 end
                 mat(:,:,:,:,i) = obj.computeHomogenization(hole);
                 phi(i)     = obj.computeDamageMetric(hole);
@@ -102,7 +102,7 @@ classdef TestingPhaseFieldHomogenizerLevelSet < handle
         end
 
         function paramHole = computeHoleParams(obj)
-            obj.maxParam = 0.975*ones(size(obj.nSteps));
+            obj.maxParam = 0.067*ones(size(obj.nSteps));
             nParam = length(obj.maxParam);
             paramHole = cell(1,nParam);
             for i=1:nParam
