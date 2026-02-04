@@ -257,7 +257,6 @@ function bc = createBoundaryConditions1(mesh)
     dirichletFun = DirichletCondition.empty(0, numDir);
 
     for i = 1:numDir
-        % Assign directly to the index instead of concatenating [a, b]
         dirichletFun(i) = DirichletCondition(mesh, sDir{i});
     end
 

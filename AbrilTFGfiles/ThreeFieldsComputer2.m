@@ -26,7 +26,7 @@ classdef ThreeFieldsComputer2 < handle
             L2 = obj.computeConditionMatrix2(obj.lambdaFun2, obj.uGamma2);
             
             LHS = obj.computeLHS(K1, K2, A1, A2, L1, L2);
-            RHS = obj.computeRHS(L1, L2);
+            RHS = obj.computeRHS();
 
             RHS = obj.applyNeumann(RHS);
 
@@ -106,36 +106,31 @@ classdef ThreeFieldsComputer2 < handle
                    sparse(nUG,nU1),  sparse(nUG,nU2), -L1',             -L2',           sparse(nUG,nUG)];
         end
         
-        function RHS = computeRHS(obj, L1, L2)
+        function RHS = computeRHS(obj)
             nU1  = obj.uFun1.nDofs;
             nU2  = obj.uFun2.nDofs;
             nL1  = obj.lambdaFun1.nDofs;
             nL2  = obj.lambdaFun2.nDofs;
             nUG  = obj.uGamma1.nDofs;
             totalDofs = nU1 + nU2 + nL1 + nL2 + nUG;
-            nModes    = 8;
-            RHS       = sparse(totalDofs, nModes);
-            startIdx  = nU1 + nU2 + nL1 + nL2 + 1;
-            for i = 1:min(nModes, nUG)
-                RHS(startIdx + i - 1, i) = 1.0;
-            end
+            RHS = sparse(totalDofs, 1);
         end
 
         function RHS = applyNeumann(obj, RHS)
-            % Neumann force lives in the subdomain 2 block
-            % Offset = nDofs of subdomain 1
             nU1   = obj.uFun1.nDofs;
             t     = obj.bc2.tractionFun;
             rhs2  = zeros(obj.uFun2.nDofs, 1);
+            
             if ~isempty(t)
                 for i = 1:numel(t)
                     rhs2 = rhs2 + t(i).computeRHS(obj.uFun2);
                 end
             end
-            % Add to all nModes columns
-            RHS(nU1+1:nU1+obj.uFun2.nDofs, :) = RHS(nU1+1:nU1+obj.uFun2.nDofs, :) + rhs2;
+            
+            RHS(nU1+1:nU1+obj.uFun2.nDofs) = ...
+                RHS(nU1+1:nU1+obj.uFun2.nDofs) + rhs2;
         end
-        
+                
         function [LHS, RHS] = applyDirichlet(obj, LHS, RHS)
             dirichDofs = obj.bc1.dirichlet_dofs;
             dirichVals = obj.bc1.dirichlet_vals;
