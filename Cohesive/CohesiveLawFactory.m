@@ -6,6 +6,8 @@ classdef CohesiveLawFactory
                     law = CohesiveCubicLaw(params);
                 case 'Bilinear'
                     law = CohesiveBilinearLaw(params);
+                case 'PPR'
+                    law = CohesiveLawPPR(params);
                 otherwise
                     error('Unknown law type %s', lawType);
             end

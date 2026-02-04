@@ -4,7 +4,7 @@ classdef CohesiveSeparationComputer < handle
         subMesh
         globalSeparations % nCohElem x nMidNodesPerElem(2) x nSeparations(2)
         lagrangianSeparation
-
+        u
     end
 
     methods (Access = public)
@@ -31,7 +31,8 @@ classdef CohesiveSeparationComputer < handle
                 e = obj.cohesiveMesh.listCohesiveElems(i);
                 R = obj.rotationMatrix(i);
                 Xe = coords(connec(e,:)',:);
-                globalSeps(i,:,:) = L*Xe*R';
+                Ue = obj.u.fValues(connec(e,:)',:);
+                globalSeps(i,:,:) = L*(Xe+Ue)*R';
             end
             
         end
@@ -42,6 +43,7 @@ classdef CohesiveSeparationComputer < handle
     methods (Access = private)
         function init(obj,cParams)
             obj.cohesiveMesh = cParams.cohesiveMesh;
+            obj.u = cParams.u;
         end
 
         function createSubMesh(obj)
@@ -76,18 +78,32 @@ classdef CohesiveSeparationComputer < handle
 
 
 
-
         function lagrangianSeparation = ComputeLagrangianSeparation(obj)
             
-            globalSeps = reshape(obj.globalSeparations, [], 2)';
-            tmp = globalSeps(:,2:(size(globalSeps,2)-1));
-            pairs = tmp(:,2:2:end);
-            odds = tmp(:,1:2:end);
-            tmp = (pairs+odds)/2;
-            meanSeps = [globalSeps(:,1), tmp, globalSeps(:,end)]';
-            fValues = meanSeps;
-            
-            lagrangianSeparation = LagrangianFunction.create(obj.subMesh,2,'P1');
+
+
+
+
+            %                   AMB MITJA
+
+            % globalSeps = reshape(obj.globalSeparations, [], 2)';
+            % tmp = globalSeps(:,2:(size(globalSeps,2)-1));
+            % pairs = tmp(:,2:2:end);
+            % odds = tmp(:,1:2:end);
+            % tmp = (pairs+odds)/2;
+            % meanSeps = [globalSeps(:,1), tmp, globalSeps(:,end)]';
+            % fValues = meanSeps;
+            % lagrangianSeparation = LagrangianFunction.create(obj.subMesh,2,'P1');
+            % lagrangianSeparation.setFValues(fValues);
+
+
+
+
+
+            %                   AMB FUNCIO DISCONTINUA
+
+            fValues = globalSeps';
+            lagrangianSeparation = LagrangianFunction.create(obj.subMesh,2,'P1D');
             lagrangianSeparation.setFValues(fValues);
 
 

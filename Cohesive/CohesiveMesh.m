@@ -49,7 +49,7 @@ classdef CohesiveMesh < handle
         function obj = CohesiveMesh()
             
             obj.init()
-            obj.baseMeshCreator(2)
+            obj.baseMeshCreator(3)
             
             obj.detectFracturedEdges()
             obj.computeCenterElements 
