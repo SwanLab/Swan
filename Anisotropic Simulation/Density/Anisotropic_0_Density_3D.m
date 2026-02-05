@@ -50,7 +50,7 @@ classdef Anisotropic_0_Density_3D < handle
         function createMesh(obj)
             %UnitMesh better
             % Cantilever beam
-            obj.mesh = TetraMesh(2,1,0.005,80,40,10);
+            obj.mesh = TetraMesh(2,1,0.005,70,35,10);
             % MBB Beam
         end
 

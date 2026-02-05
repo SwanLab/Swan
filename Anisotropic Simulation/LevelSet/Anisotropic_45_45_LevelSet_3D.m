@@ -35,7 +35,7 @@ classdef Anisotropic_45_45_LevelSet_3D < handle
             figure(2);
             saveas(gcf,'Monitoring_45_45_3D_LevelSet.fig');
             obj.designVariable.fun.print('fValues_45_45_3D_LevelSet');
-            obj.designVariable.fun.print('fValues_45_45_LevelSet_MBB');
+            % obj.designVariable.fun.print('fValues_45_45_3DLevelSet_MBB');
         end
 
     end
@@ -49,11 +49,8 @@ classdef Anisotropic_45_45_LevelSet_3D < handle
         function createMesh(obj)
             %UnitMesh better
             % Cantilever beam
-            % x1      = linspace(0,2,120);
-            % x2      = linspace(0,1,60);
+            obj.mesh = TetraMesh(2,1,0.005,70,35,10);
             % MBB Beam
-            % obj.mesh = TetraMesh(2,0.005,1,200,5,100);
-            obj.mesh = TetraMesh(2,1,0.005,80,40,10);
         end
 
         function createDesignVariable(obj)
@@ -176,9 +173,9 @@ classdef Anisotropic_45_45_LevelSet_3D < handle
             s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.1;
             s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 2;
-            s.etaMax         = 10;
-            s.etaMaxMin      = 0.5;
+            s.gJFlowRatio    = 0.8;
+            s.etaMax         = 5;
+            s.etaMaxMin      = 0.1;
             %s.type           = '0';
             s.gif = false;
             s.gifName = 'Gif_45_45_3D_LevelSet';

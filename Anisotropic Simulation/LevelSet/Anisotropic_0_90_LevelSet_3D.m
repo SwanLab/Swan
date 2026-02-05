@@ -35,7 +35,7 @@ classdef Anisotropic_0_90_LevelSet_3D < handle
             figure(2);
             saveas(gcf,'Monitoring_0_90_3D_LevelSet.fig');
             obj.designVariable.fun.print('fValues_0_90_3D_LevelSet');
-            % obj.designVariable.fun.print('fValues_0_90_LevelSet_MBB');
+            % obj.designVariable.fun.print('fValues_0_90_3D_LevelSet_MBB');
         end
 
     end
