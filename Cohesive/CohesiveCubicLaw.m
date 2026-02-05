@@ -12,11 +12,12 @@ classdef CohesiveCubicLaw < handle
             obj.init(cParams)            
         end
 
-        function t = evaluate(obj,disp)
+        function t = computeFunction(obj,disp)
+            % norm(disp)
             t = 6.75*obj.sigmaMax*disp*(1-2*disp+disp^2); % no se si aixo esta be
         end
 
-        function d = derivative(obj,disp)
+        function d = computeDerivative(obj,disp)
             d = 6.75 * obj.sigmaMax * (1 - 4*disp + 3*disp^2);
         end
         

@@ -14,10 +14,27 @@ classdef CohesiveSeparationComputer < handle
             obj.createSubMesh();
             obj.globalSeparations = obj.ComputeGlobalSeparations();
             obj.lagrangianSeparation = obj.ComputeLagrangianSeparation();
+
+            % init(Cohesive(subMesh),ndimf,order)
+            % (obj.fun) obj.computeJumpFunction (initialize the fun with
+            % zeros
+            % L = obj.computeGlobalSeparationMatrix()
         end
+
+        function compute(obj,u)
+            % R = computeRotationMatrix(u)
+            % update of jump fValues(u)
+        end
+
+        function fV = evaluate(obj,xV)
+            fV = obj.fun.evaluate(xV);
+        end
+
+        % validate by setting down face displacement to: 1) x=-1, 2) y=1, 3) x=[-1:-4], 4) y[-1:-4]  
         
         function globalSeps = ComputeGlobalSeparations(obj)
-        
+            %%%% uInVec = reshape(uIn.fValues',[uIn.nDofs 1]); 
+            %%%% uOut = reshape(uOutVec,[flip(size(uIn.fValues))])';
             connec = obj.cohesiveMesh.mesh.connec;   % (nElem × 4)
             coords = obj.cohesiveMesh.mesh.coord;    % (nNodes × ndim)
         
@@ -30,9 +47,11 @@ classdef CohesiveSeparationComputer < handle
             for i = 1:nelem
                 e = obj.cohesiveMesh.listCohesiveElems(i);
                 R = obj.rotationMatrix(i);
-                Xe = coords(connec(e,:)',:);
+
+
+                
                 Ue = obj.u.fValues(connec(e,:)',:);
-                globalSeps(i,:,:) = L*(Xe+Ue)*R';
+                globalSeps(i,:,:) = L*Ue*R';
             end
             
         end
@@ -53,9 +72,7 @@ classdef CohesiveSeparationComputer < handle
             
             midCoord= (coord(obj.cohesiveMesh.listNodeCohesive,:)+ ...
                 coord(obj.cohesiveMesh.pairsMatrix(:,2),:))/2;
-            
-                % midCoord = midCoord(:,1);
-            
+                        
             midConnec =  [(1:nMidNodes-1)' (2:nMidNodes)'];
             
                 s.connec = midConnec;
