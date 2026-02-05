@@ -10,7 +10,7 @@ classdef TutorialShells < handle
         uFun
         thetaFun
         wFun
-        bcU,bcT,bcW,bcq
+        bcU,bcT,bcW
         lhs,RHSS
         solverType
         type, values, fun
@@ -45,7 +45,7 @@ classdef TutorialShells < handle
             dofFW = obj.computeFreeDofs(obj.bcW);
 
             uT = zeros(obj.uFun.nDofs,1);
-            uT(dofFT,1) = uF; 
+            uT(dofFU,1) = uF; 
             uT = reshape(uT,[], obj.uFun.ndimf);
             obj.uFun.setFValues(uT);
             
@@ -55,10 +55,10 @@ classdef TutorialShells < handle
             wT = reshape(wT,[], obj.wFun.ndimf);
             obj.wFun.setFValues(wT);
             
-            % wT = zeros(obj.wFun.nDofs,1);    CAMBIAR PARA THETA
-            % wT(dofFW,1) = wF; 
-            % wT = reshape(wT,[], obj.wFun.ndimf);
-            % obj.wFun.setFValues(wT);
+            thetaT = zeros(obj.thetaFun.nDofs,1);    
+            thetaT(dofFT,1) = tF; 
+            thetaT = reshape(thetaT,[], obj.thetaFun.ndimf);
+            obj.thetaFun.setFValues(thetaT);
             
             plot(obj.wFun)
             plot(obj.uFun)
@@ -74,7 +74,7 @@ classdef TutorialShells < handle
     methods (Access = private)
 
         function createMesh(obj)
-          obj.mesh = UnitTriangleMesh(50,50);
+          obj.mesh = UnitTriangleMesh(5,5);
         end
 
         function createSolutionField(obj)
@@ -160,8 +160,41 @@ classdef TutorialShells < handle
         end
 
 
+        % function computeForces(obj)
+        %     bc  = obj.bcW;
+        %     t   = bc.tractionFun;
+        %     rhs = zeros(obj.wFun.nDofs,1);
+        %     if ~isempty(t)
+        %         for i = 1:numel(t)
+        %             rhsi = t(i).computeRHS(obj.wFun);
+        %             rhs  = rhs + rhsi;
+        %         end
+        %     end
+        %     if strcmp(obj.solverType,'REDUCED')
+        %         bc      = obj.bcW;
+        %         dirich  = bc.dirichlet_dofs;
+        %         dirichV = bc.dirichlet_vals;
+        % 
+        %         if ~isempty(dirich)
+        %             % Indices de w en la matriz global LHS
+        %             nU = length(obj.computeFreeDofs(obj.bcU));
+        %             nTheta = length(obj.computeFreeDofs(obj.bcT));
+        %             nW = obj.wFun.nDofs;
+        % 
+        %             wStart = nU + nTheta + 1;
+        %             wEnd = nU + nTheta + nW;
+        % 
+        %             R = -obj.lhs(wStart:wEnd, dirich) * dirichV;
+        %         else
+        %             R = zeros(sum(obj.wFun.nDofs(:)),1);
+        %         end
+        %         rhs = rhs+R;
+        %     end
+        %     obj.RHSS = rhs;
+        % end
+
         function computeForces(obj)
-            bc  = obj.bcq;
+            bc  = obj.bcW;
             t   = bc.tractionFun;
             rhs = zeros(obj.wFun.nDofs,1);
             if ~isempty(t)
@@ -171,11 +204,15 @@ classdef TutorialShells < handle
                 end
             end
             if strcmp(obj.solverType,'REDUCED')
-                bc      = obj.bcq;
+                bc      = obj.bcW;
                 dirich  = bc.dirichlet_dofs;
                 dirichV = bc.dirichlet_vals;
                 if ~isempty(dirich)
-                    R = -obj.lhs(obj.wFun.nDofs(:),dirich)*dirichV; %??????
+                    % Convertir DOFs locales de w a globales
+                    freeDofsW = obj.computeFreeDofs(obj.bcW);
+                    globalDofsW = obj.localToGlobalDofs(freeDofsW, 'w');
+
+                    R = -obj.lhs(globalDofsW, dirich)*dirichV;
                 else
                     R = zeros(sum(obj.wFun.nDofs(:)),1);
                 end
@@ -184,12 +221,33 @@ classdef TutorialShells < handle
             obj.RHSS = rhs;
         end
 
+        function globalDofs = localToGlobalDofs(obj, localDofs, field)
+            % Convierte DOFs locales a DOFs globales en la matriz reducida
+            % field puede ser 'u', 'theta' o 'w'
+
+            nU = length(obj.bcU.free_dofs);
+            nTheta = length(obj.bcT.free_dofs); 
+
+            switch field
+                case 'u'
+                    offset = 0;
+                case 'theta'
+                    offset = nU;
+                case 'w'
+                    offset = nU + nTheta;
+                otherwise
+                    error('Field must be u, theta or w');
+            end
+
+            % Los localDofs ya son índices dentro del conjunto de DOFs libres
+            % Solo necesitamos sumarles el offset
+            globalDofs = length(localDofs) + offset;
+        end
+
         function createBoundaryConditions(obj)            
             obj.bcU = obj.createGeneralBoundaryConditions([1 2]);
             obj.bcT = obj.createGeneralBoundaryConditions([1 2]);
-            obj.bcW = obj.createGeneralBoundaryConditions([1]);
-            obj.bcq = obj.bcW;
-            
+            obj.bcW = obj.createGeneralBoundaryConditions([1]);            
         end
 
 
@@ -223,34 +281,37 @@ classdef TutorialShells < handle
             end
             s.dirichletFun = dirichletFun;
 
-            
-            %% Apply point load to a single node on the right boundary
-            
-            % % Find right boundary nodes
-            % rightNodes = find(isRight(obj.mesh.coord));
-            % if isempty(rightNodes)
-            %     error('No nodes found on the right boundary.');
-            % end
-            % % Choose one node: here pick the middle one (can change as needed)
-            % idx = ceil(numel(rightNodes)/2);
-            % singleNode = rightNodes(idx);
-            % 
-            % % Define point load structure for that single node
-            % sPL{1}.domain    = @(coor) (1:size(coor,1))'==singleNode;
-            % sPL{1}.direction = 2;
-            % sPL{1}.value     = 1;
+            applyedForce = 1; 
 
-            %%
+            switch applyedForce
+                case 1
+                    
+                    % Apply point load to a single node on the right boundary
+                    % Find right boundary nodes
+                    rightNodes = find(isRight(obj.mesh.coord));
+                    if isempty(rightNodes)
+                        error('No nodes found on the right boundary.');
+                    end
+                    % Choose one node: here pick the middle one (can change as needed)
+                    idx = ceil(numel(rightNodes)/2);
+                    singleNode = rightNodes(idx);
 
-            sPL{1}.domain    = @(coor) isRight(coor);
-            sPL{1}.direction = 2;
-            sPL{1}.value     = 1;
+                    % Define point load structure for that single node
+                    sPL{1}.domain    = @(coor) (1:size(coor,1))'==singleNode;
+                    sPL{1}.direction = 2;
+                    sPL{1}.value     = 1;
 
-            %%
+                case 2
+
+                    % Load on Right edge 
+                    sPL{1}.domain    = @(coor) isRight(coor);
+                    sPL{1}.direction = 2;
+                    sPL{1}.value     = 1;
+            end
 
             pointloadFun = [];
             for i = 1:numel(sPL)
-                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
+                pl = TractionLoad2(obj.mesh, sPL{i}, 'DIRAC');
                 pointloadFun = [pointloadFun, pl];
 
             end
@@ -266,28 +327,6 @@ classdef TutorialShells < handle
         % ============================================================================================================================================================
         % ============================================================================================================================================================
 
-        function obj = TractionLoad2(mesh,s,type)
-         
-            obj.type = type;
-            switch type
-                case 'DIRAC'
-                    pl_dofs = s.domain(mesh.coord);
-                    vals = zeros(length(pl_dofs),1);
-                    vals(pl_dofs,1) = s.value;
-                    obj.values = reshape(vals',[],1);
-                case 'FUNCTION'
-                    dom     = s.domain;
-                    f       = s.fun;
-                    neuFun  = AnalyticalFunction.create(dom,f.mesh);
-                    obj.fun = f.*neuFun;
-                    obj.mesh = mesh;
-            end
-        end
-
-
-        % ============================================================================================================================================================
-        % ============================================================================================================================================================
-        
 
         function fD = computeFreeDofs(obj,bC)
             dofs = 1:bC.dirichletFun.nDofs;
@@ -304,9 +343,6 @@ classdef TutorialShells < handle
             fdofV = obj.computeFreeDofs(bc);
             RHSred = RHS(fdofV,1);
         end
-
-
-
 
 
     end
