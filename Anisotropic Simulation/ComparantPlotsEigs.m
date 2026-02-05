@@ -2,7 +2,7 @@
 clear all, close all, clc;
 
 % Lista de archivos .fig que quieres procesar
-files = {'Monitoring_0_Density_Eigs_Lambda_1minus5','Monitoring_45_Density_Eigs_Lambda_1minus5', 'Monitoring_90_Density_Eigs_Lambda_1minus5'};
+files = {'Monitoring_0_90_Density_Eigs_Lambda_1minus5', 'Monitoring_45_45_Density_Eigs_Lambda_1minus5','Monitoring_0_45_Density_Eigs_Lambda_1minus5'};
 
 % Inicializamos estructura para guardar los datos
 allData = struct();
@@ -57,7 +57,7 @@ for f = 1:length(files)
 end
 xlabel('Iteration')
 %ylim([1, 3])
-legend('0º', '45º','90º');
+legend('0º/90º', '45º/45º','0º/45º');
 title('Compliance comparison - Cantilever Beam, Density with \lambda_{min} = 1e-5')
 
 % Subplot 2 (columna 3, fila 1)
@@ -67,7 +67,7 @@ for f = 1:length(files)
     plot(data.x, data.y, 'LineWidth',1.5);
 end
 xlabel('Iteration')
-legend('0º', '45º','90º');
+legend('0º/90º', '45º/45º','0º/45º');
 title('Volume Constraint comparison - Cantilever Beam, Density with \lambda_{min} = 1e-5')
 
 % Subplot 3 (columna 4, fila 1)
@@ -77,5 +77,5 @@ for f = 1:length(files)
     plot(data.x, data.y, 'LineWidth',1.5);
 end
 xlabel('Iteration')
-legend('0º', '45º','90º');
+legend('0º/90º', '45º/45º','0º/45º');
 title('Eigenvalue Constraint comparison - Cantilever Beam, Density with \lambda_{min} = 1e-5')
