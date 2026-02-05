@@ -10,3 +10,5 @@ wfun print.vtu
 ufun print.vtu
 ufun print.vtu
 thetafun print.vtu
+thetafun print.vtu
+ufun print.vtu

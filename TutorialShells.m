@@ -14,6 +14,7 @@ classdef TutorialShells < handle
         lhs,RHSS
         solverType
         type, values, fun
+        bcCase
     end
 
     methods (Access = public)
@@ -74,7 +75,7 @@ classdef TutorialShells < handle
     methods (Access = private)
 
         function createMesh(obj)
-          obj.mesh = UnitTriangleMesh(5,5);
+          obj.mesh = UnitTriangleMesh(50,50);
         end
 
         function createSolutionField(obj)
@@ -137,7 +138,7 @@ classdef TutorialShells < handle
         function RHS = createRHS(obj)
             p = ConstantFunction.create([0 0],obj.mesh);
             m = ConstantFunction.create([0 0],obj.mesh);
-            q = ConstantFunction.create([0],obj.mesh);   
+            q = ConstantFunction.create(1,obj.mesh);   
 
             fu = @(v) DP(p,v);
             RHSu = IntegrateRHS(fu,obj.uFun,obj.mesh,'Domain',2);
@@ -151,47 +152,15 @@ classdef TutorialShells < handle
             RHSw = IntegrateRHS(fw,obj.wFun,obj.mesh,'Domain',2);
             RHSw = obj.reduceVector(RHSw,obj.bcW);
 
-            obj.computeForces();
-            RHSq = obj.RHSS;
-            RHSq = obj.reduceVector(RHSq,obj.bcW);
-            
+            if obj.bcCase == 1
+                obj.computeForces();
+                RHSq = obj.RHSS;
+                RHSq = obj.reduceVector(RHSq,obj.bcW);
+                RHSw = RHSw + RHSq;
+            end            
 
-            RHS = [RHSu;RHStheta;RHSq];
+            RHS = [RHSu;RHStheta;RHSw];
         end
-
-
-        % function computeForces(obj)
-        %     bc  = obj.bcW;
-        %     t   = bc.tractionFun;
-        %     rhs = zeros(obj.wFun.nDofs,1);
-        %     if ~isempty(t)
-        %         for i = 1:numel(t)
-        %             rhsi = t(i).computeRHS(obj.wFun);
-        %             rhs  = rhs + rhsi;
-        %         end
-        %     end
-        %     if strcmp(obj.solverType,'REDUCED')
-        %         bc      = obj.bcW;
-        %         dirich  = bc.dirichlet_dofs;
-        %         dirichV = bc.dirichlet_vals;
-        % 
-        %         if ~isempty(dirich)
-        %             % Indices de w en la matriz global LHS
-        %             nU = length(obj.computeFreeDofs(obj.bcU));
-        %             nTheta = length(obj.computeFreeDofs(obj.bcT));
-        %             nW = obj.wFun.nDofs;
-        % 
-        %             wStart = nU + nTheta + 1;
-        %             wEnd = nU + nTheta + nW;
-        % 
-        %             R = -obj.lhs(wStart:wEnd, dirich) * dirichV;
-        %         else
-        %             R = zeros(sum(obj.wFun.nDofs(:)),1);
-        %         end
-        %         rhs = rhs+R;
-        %     end
-        %     obj.RHSS = rhs;
-        % end
 
         function computeForces(obj)
             bc  = obj.bcW;
@@ -208,7 +177,7 @@ classdef TutorialShells < handle
                 dirich  = bc.dirichlet_dofs;
                 dirichV = bc.dirichlet_vals;
                 if ~isempty(dirich)
-                    % Convertir DOFs locales de w a globales
+                    % Convertir DOFs locales de w a globales (solo libres)
                     freeDofsW = obj.computeFreeDofs(obj.bcW);
                     globalDofsW = obj.localToGlobalDofs(freeDofsW, 'w');
 
@@ -268,60 +237,90 @@ classdef TutorialShells < handle
 
             % MODIFICATIONS: Embedded beam on one side ant with punctual load on the other  
 
-            sDir{1}.domain    = @(coor) isLeft(coor);
-            sDir{1}.direction = direct;
-            sDir{1}.value     = 0; 
-            sDir{1}.ndim      = length(direct);
+            obj.bcCase = 1;
 
-
-            dirichletFun = [];
-            for i = 1:numel(sDir)
-                dir = DirichletCondition(obj.mesh, sDir{i});
-                dirichletFun = [dirichletFun, dir];
-            end
-            s.dirichletFun = dirichletFun;
-
-            applyedForce = 1; 
-
-            switch applyedForce
+            switch obj.bcCase
                 case 1
-                    
-                    % Apply point load to a single node on the right boundary
-                    % Find right boundary nodes
-                    rightNodes = find(isRight(obj.mesh.coord));
-                    if isempty(rightNodes)
-                        error('No nodes found on the right boundary.');
-                    end
-                    % Choose one node: here pick the middle one (can change as needed)
-                    idx = ceil(numel(rightNodes)/2);
-                    singleNode = rightNodes(idx);
 
-                    % Define point load structure for that single node
-                    sPL{1}.domain    = @(coor) (1:size(coor,1))'==singleNode;
-                    sPL{1}.direction = 2;
-                    sPL{1}.value     = 1;
+                    sDir{1}.domain    = @(coor) isLeft(coor);
+                    sDir{1}.direction = direct;
+                    sDir{1}.value     = 0;
+                    sDir{1}.ndim      = length(direct);
+
+
+                    dirichletFun = [];
+                    for i = 1:numel(sDir)
+                        dir = DirichletCondition(obj.mesh, sDir{i});
+                        dirichletFun = [dirichletFun, dir];
+                    end
+                    s.dirichletFun = dirichletFun;
+
+                    %% APPLYED FORCE 
+
+                    applyedForce = 2;
+
+                    switch applyedForce
+                        case 1
+
+                            % Apply point load to a single node on the right boundary
+                            % Find right boundary nodes
+                            rightNodes = find(isRight(obj.mesh.coord));
+                            if isempty(rightNodes)
+                                error('No nodes found on the right boundary.');
+                            end
+                            % Choose one node: here pick the middle one (can change as needed)
+                            idx = ceil(numel(rightNodes)/2);
+                            singleNode = rightNodes(idx);
+
+                            % Define point load structure for that single node
+                            sPL{1}.domain    = @(coor) (1:size(coor,1))'==singleNode;
+                            sPL{1}.direction = 2;
+                            sPL{1}.value     = 1;
+
+                        case 2
+
+                            % Load on Right edge
+                            sPL{1}.domain    = @(coor) isRight(coor);
+                            sPL{1}.direction = 2;
+                            sPL{1}.value     = 1;
+                    end
+
+                    pointloadFun = [];
+                    for i = 1:numel(sPL)
+                        pl = TractionLoad2(obj.mesh, sPL{i}, 'DIRAC');
+                        pointloadFun = [pointloadFun, pl];
+
+                    end
+                    s.pointloadFun = pointloadFun;
+
+
+                    s.periodicFun  = [];
+                    s.mesh = obj.mesh;
+                    bc = BoundaryConditions(s);
 
                 case 2
 
-                    % Load on Right edge 
-                    sPL{1}.domain    = @(coor) isRight(coor);
-                    sPL{1}.direction = 2;
-                    sPL{1}.value     = 1;
+                    sDir{1}.domain    = @(coor) isLeft(coor) | isRight(coor) | isBotom(coor) | isTop(coor);
+                    sDir{1}.direction = direct;
+                    sDir{1}.value     = 0;
+                    sDir{1}.ndim      = length(direct);
+
+                    dirichletFun = [];
+                    for i = 1:numel(sDir)
+                        dir = DirichletCondition(obj.mesh, sDir{i});
+                        dirichletFun = [dirichletFun, dir];
+                    end
+                    s.dirichletFun = dirichletFun;
+
+                    s.pointloadFun = [];
+                    s.periodicFun  = [];
+                    s.mesh = obj.mesh;
+                    bc = BoundaryConditions(s);
+
             end
 
-            pointloadFun = [];
-            for i = 1:numel(sPL)
-                pl = TractionLoad2(obj.mesh, sPL{i}, 'DIRAC');
-                pointloadFun = [pointloadFun, pl];
-
-            end
-            s.pointloadFun = pointloadFun;
-
-
-            s.periodicFun  = [];
-            s.mesh = obj.mesh;
-            bc = BoundaryConditions(s);            
         end
+        
 
 
         % ============================================================================================================================================================
