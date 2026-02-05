@@ -74,10 +74,10 @@ classdef ThreeFieldsComputer2 < handle
             globalNodes = bdSubmesh.globalConnec(:);
         
             % Expand nodes to DOFs: node k -> DOFs [(k-1)*nDim+1, ..., k*nDim]
-            localDofs  = (localNodes - 1) * nDim + (1:nDim);   % each row: DOFs of one node
+            localDofs  = (localNodes - 1) * nDim + (1:nDim);   
             globalDofs = (globalNodes - 1) * nDim + (1:nDim);
         
-            localDofs  = localDofs(:);   % flatten, preserving node-major order
+            localDofs  = localDofs(:);   
             globalDofs = globalDofs(:);
         
             % Assemble: rows stay local (Lambda), cols map to global (U)
@@ -97,7 +97,7 @@ classdef ThreeFieldsComputer2 < handle
             nU2  = size(K2, 1);
             nL1  = size(A1, 1);
             nL2  = size(A2, 1);
-            nUG  = size(L1, 2);   % L1 is (nL1 x nUG)
+            nUG  = size(L1, 2);   
         
             LHS = [K1,               sparse(nU1,nU2), A1',              sparse(nU1,nL2), sparse(nU1,nUG);
                    sparse(nU2,nU1),  K2,              sparse(nU2,nL1),  A2',            sparse(nU2,nUG);

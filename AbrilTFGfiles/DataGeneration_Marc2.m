@@ -28,8 +28,8 @@ meshName     = p.nelem+"x"+p.nelem;
             sSplit.meshReference = mR;
             sSplit.tolSameNode   = 1e-10;
             splitter             = MeshCreatorFromRVE2D(sSplit);
-            [mD, subMeshes, ~, bdSubmesh] = splitter.create(); 
-            
+            [mD, subMeshes, ~, bdSubmesh] = splitter.create();
+
             mesh1          = subMeshes{1};
             mesh2          = subMeshes{2};
            
@@ -65,30 +65,20 @@ meshName     = p.nelem+"x"+p.nelem;
             s.bc2          = createBoundaryConditions2(mesh2);
 
             e = ThreeFieldsComputer2(s);
-            [T, lambda1, lambda2, K, Kcoarse] = e.solve();                   
-
-        case 'EIFEM'
-            samplingType = 'Oversampling'; %'Isolated'/'Oversampling'
-            [nS,dI] = defineNumberOfSubdomains(samplingType);
-            material = createMaterialTraining(mR, radius,nS,p.Inclusion);
-            s.mesh           = mR;
-            s.r              = radius;
-            s.material       = material;
-            s.domainIndices  = dI;
-            s.nSubdomains    = nS;            
-            m= EIFEMTraining(s);
-            data          = m.train();
-            data.E        = young;
-            data.nu       = poisson;
-            data.material = createMaterialTraining(mR, radius,[1 1],p.Inclusion);
-            z = OfflineDataProcessor(data);
-
-            EIFEoper = z.computeROMbasis();
-            T        = EIFEoper.U;
-            mesh     = data.mesh;
-            Kcoarse  = EIFEoper.Kcoarse;
-            p.Inclusion = fullfile(p.Inclusion,samplingType);
+            [T, lambda1, lambda2, K, Kcoarse] = e.solve();
             
+            %% COMPARACIÓ AMB SOLVER DIRECTE
+
+            materialDirect = createMaterialTraining(mD, radius, [1 1], p.Inclusion);
+            [uDirect] = solveDirectly(mD, materialDirect);
+
+            uyDirect = max(abs(uDirect(2:2:end)));
+
+            unDOFs = (mesh1.nnodes + mesh2.nnodes) * 2;
+            uyTF  = max(abs(T(2:2:unDOFs)));
+
+            fprintf('Max Uy -> Direct: %.4e | 3Fields: %.4e | Error: %.2f%%\n', uyDirect, uyTF, abs(uyTF-uyDirect)/uyDirect*100);
+
     end
     R        = r(j);
 
@@ -249,7 +239,7 @@ end
 function bc = createBoundaryConditions1(mesh)
     % Subdomain 1: Dirichlet clamped on LEFT face (x = xMin)
     xMin = min(mesh.coord(:,1));
-    sDir{1}.domain    = @(coor) abs(coor(:,1) - xMin) < 1e-10;
+    sDir{1}.domain    = @(coor) abs(coor(:,1) - xMin) < 1;
     sDir{1}.direction = [1, 2];
     sDir{1}.value     = 0;
 
@@ -270,9 +260,9 @@ end
 function bc = createBoundaryConditions2(mesh)
     % Subdomain 2: Neumann (traction) on RIGHT face (x = xMax), force downward
     xMax = max(mesh.coord(:,1));
-    sPL{1}.domain    = @(coor) abs(coor(:,1) - xMax) < 1e-10;
+    sPL{1}.domain    = @(coor) abs(coor(:,1) - xMax) < 1;
     sPL{1}.direction = 2;
-    sPL{1}.value     = -0.004;
+    sPL{1}.value     = -0.005;
     
     % --- Preallocation ---
     numPL = numel(sPL);
@@ -288,3 +278,49 @@ function bc = createBoundaryConditions2(mesh)
     s.mesh         = mesh;
     bc = BoundaryConditions(s);
 end
+
+
+function uDirect = solveDirectly(mD, material)
+    
+    uFun = LagrangianFunction.create(mD, mD.ndim, 'P1');
+    
+    C = material;
+    f = @(u,v) DDP(SymGrad(v), DDP(C, SymGrad(u)));
+    K = IntegrateLHS(f, uFun, uFun, mD, 'Domain', 2);
+    
+    RHS = zeros(uFun.nDofs, 1);
+    
+    % Dirichlet
+    xMin = min(mD.coord(:,1));
+    sDir{1}.domain    = @(coor) abs(coor(:,1) - xMin) < 1;
+    sDir{1}.direction = [1, 2];
+    sDir{1}.value     = 0;
+    dirichletFun = DirichletCondition(mD, sDir{1});
+    s.dirichletFun = dirichletFun;
+    s.pointloadFun = [];
+    s.periodicFun  = [];
+    s.mesh         = mD;
+    bc = BoundaryConditions(s);
+    
+    % Neumann 
+    xMax = max(mD.coord(:,1));
+    sPL{1}.domain    = @(coor) abs(coor(:,1) - xMax) < 1;
+    sPL{1}.direction = 2;
+    sPL{1}.value     = -0.005;
+    pointloadFun = TractionLoad(mD, sPL{1}, 'DIRAC');
+    rhsNeumann = pointloadFun.computeRHS(uFun);
+    RHS = RHS + rhsNeumann;
+    
+    % Aplicar Dirichlet
+    dirichDofs = bc.dirichlet_dofs;
+    dirichVals = bc.dirichlet_vals;
+    
+    RHS = RHS - K(:, dirichDofs) * dirichVals;
+    K(dirichDofs, :) = 0;
+    K(:, dirichDofs) = 0;
+    K(sub2ind(size(K), dirichDofs, dirichDofs)) = 1;
+    RHS(dirichDofs) = dirichVals;
+    
+    uDirect = K \ RHS;  
+end
+
