@@ -1,0 +1,78 @@
+IMPORT "io.edp"
+load "distance"
+
+mesh Th = importMesh("Th");
+mesh Th2 = importMesh("Th2");
+real [int] phiVal = importArray("phiVal");
+real alpha = importVar("alpha");
+real beta = importVar("beta");
+real lsLab = importVar("lsLab");
+real rInner = importVar("rInner");
+real meshsiz = importVar("meshsiz");
+real dmax = importVar("dmax");
+
+fespace Vh(Th,P1);
+fespace Vh0(Th,P0);
+Vh phi, g, dOmR, dOm, fOm, sig, fd, v;
+phi[] = phiVal;
+
+problem regSignedDist(dOmR,v) = int2d(Th)(dOmR*v+alpha^2*(dx(dOmR)*dx(v)+dy(dOmR)*dy(v)))
+                                -int2d(Th)(phi*v) + on(0,dOmR=0);
+
+regSignedDist;
+distance(Th,dOmR,dOm[]);
+
+mesh Th3;
+meshL ThLInt;
+int [int] lsLabel(1);
+lsLabel[0] = lsLab;
+
+macro updateBoundary() {
+  Th3 = trunc(Th2, region == rInner);
+} //
+
+updateBoundary;
+
+real af = 1*(4*meshsiz/(5*dmax));
+fOm = 0.5*(1+tanh((abs(dOm)-dmax/2)/(af*dmax/2)));
+real F = int2d(Th3)(fOm) + 0.01;
+real FD = int2d(Th3)(fOm*(dOm^2));
+real Jo =  (FD/F)^(0.5) + 1e-6;
+
+Vh dxdOm, dydOm, w, lapldOm;
+
+problem gradxPhi(dxdOm,v) = int2d(Th)(dxdOm*v + alpha^2*(dx(dxdOm)*dx(v)+dy(dxdOm)*dy(v)))
+                        -int2d(Th)(dx(dOm)*v);
+
+problem gradyPhi(dydOm,v) = int2d(Th)(dydOm*v + alpha^2*(dx(dydOm)*dx(v)+dy(dydOm)*dy(v)))
+                        -int2d(Th)(dy(dOm)*v);
+
+gradxPhi;
+gradyPhi;
+
+problem laplace(lapldOm,v) = int2d(Th)(lapldOm*v + alpha^2*(dx(lapldOm)*dx(v)+dy(lapldOm)*dy(v)))
+                        -int2d(Th)((dx(dxdOm) + dy(dydOm))*v);
+
+laplace;
+
+real q = 3.5, r = 3.5;
+w = 2/(1+abs(dOm)^q*abs(lapldOm)^r);
+
+fespace Vh2(Th2,P1);
+Vh2 u2, g2, v2;
+
+sig = dOm/(abs(dOm)+1e-6);
+
+fd = 0.5*((1/cosh((abs(dOm)-dmax/2)/(af*dmax/2)))^2)*sig/(af*dmax/2);
+problem uTerm(u2,v2) = int1d(Th2,lsLabel)(u2*v2) + int2d(Th2)(w*(dxdOm*dx(u2)+dydOm*dy(u2))*(dxdOm*dx(v2)+dydOm*dy(v2)))
+                        +int2d(Th2,rInner)((1/(2*Jo*F^2)*(F*(fd*dOm+2*fOm)*dOm-FD*fd))*v2);
+
+uTerm;
+
+problem velext(g2,v2) = int2d(Th2)(g2*v2 + beta^2*(dx(g2)*dx(v2)+dy(g2)*dy(v2)))
+                        -int1d(Th2,lsLabel)(-u2*beta*v2);
+
+velext;
+g = g2;
+
+exportArray(g[]);
