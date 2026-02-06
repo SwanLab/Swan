@@ -28,7 +28,8 @@ classdef TutorialShells < handle
 
             nTheta = length(obj.computeFreeDofs(obj.bcT));
             nU     = length(obj.computeFreeDofs(obj.bcU));
-            nW     = length(obj.computeFreeDofs(obj.bcW));            
+            nW     = length(obj.computeFreeDofs(obj.bcW)); 
+
             uF = x(1:nU,1);
             tF = x((nU+1):(nU+nTheta),1);
             wF = x((nU+nTheta+1):(nU+nTheta+nW),1);
@@ -38,8 +39,8 @@ classdef TutorialShells < handle
             dofFW = obj.computeFreeDofs(obj.bcW);
 
             uT = zeros(obj.uFun.nDofs,1);
-            uT(dofFT,1) = uF; 
-            uT = reshape(uT,[], obj.uFun.ndimf);
+            uT(dofFU,1) = uF; 
+            uT = reshape(uT,obj.uFun.ndimf,[])';
             obj.uFun.setFValues(uT);
             plot(obj.uFun)
 
@@ -48,6 +49,13 @@ classdef TutorialShells < handle
             wT = reshape(wT,[], obj.wFun.ndimf);
             obj.wFun.setFValues(wT);
             plot(obj.wFun)
+
+            thetaT = zeros(obj.thetaFun.nDofs,1);
+            thetaT(dofFT,1) = tF; 
+            thetaT = reshape(thetaT,obj.thetaFun.ndimf,[])';
+            obj.thetaFun.setFValues(thetaT);
+            plot(obj.thetaFun)
+
         end
 
     end

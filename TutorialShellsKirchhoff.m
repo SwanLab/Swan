@@ -45,13 +45,13 @@ classdef TutorialShellsKirchhoff < handle
 
             uT = zeros(obj.uFun.nDofs,1);
             uT(dofFU,1) = uF; 
-            uT = reshape(uT,[], obj.uFun.ndimf);
+            uT = reshape(uT,obj.uFun.ndimf,[])';
             obj.uFun.setFValues(uT);
             plot(obj.uFun)
 
             thetaT = zeros(obj.thetaFun.nDofs,1);
             thetaT(dofFT,1) = tF; 
-            thetaT = reshape(thetaT,[], obj.thetaFun.ndimf);
+            thetaT = reshape(thetaT,obj.thetaFun.ndimf,[])';
             obj.thetaFun.setFValues(thetaT);
             plot(obj.thetaFun)
 
@@ -64,7 +64,7 @@ classdef TutorialShellsKirchhoff < handle
 
             tauT = zeros(obj.tauFun.nDofs,1);
             tauT(dofFTau,1) = tauF; 
-            tauT = reshape(tauT,[], obj.tauFun.ndimf);
+            tauT = reshape(tauT,obj.tauFun.ndimf,[])';
             obj.tauFun.setFValues(tauT);
             plot(obj.tauFun)
 
@@ -75,19 +75,19 @@ classdef TutorialShellsKirchhoff < handle
     methods (Access = private)
 
         function createMesh(obj)
-          %obj.mesh = UnitTriangleMesh(20,20);
-          obj.mesh = UnitQuadMesh(50,50);
+          %obj.mesh = UnitTriangleMesh(30,30);
+          obj.mesh = UnitQuadMesh(30,30);
         end
 
         function createSolutionField(obj)
            obj.uFun     = LagrangianFunction.create(obj.mesh,2,'P1');
-           obj.thetaFun = LagrangianFunction.create(obj.mesh,2,'P2');
-           obj.wFun     = LagrangianFunction.create(obj.mesh,1,'P2');
+           obj.thetaFun = LagrangianFunction.create(obj.mesh,2,'P1');
+           obj.wFun     = LagrangianFunction.create(obj.mesh,1,'P1');
            obj.tauFun   = LagrangianFunction.create(obj.mesh,2,'P0');
         end
 
         function createMaterialProperties(obj)
-          E = 3;
+          E = 1/(1-0.3^2);
           obj.young = ConstantFunction.create(E,obj.mesh);
           obj.area = ConstantFunction.create(1,obj.mesh);
           obj.shear = ConstantFunction.create(1,obj.mesh);
@@ -108,7 +108,7 @@ classdef TutorialShellsKirchhoff < handle
             Ktheta = obj.reduceMatrix(Ktheta,obj.bcT,obj.bcT);
 
 
-            gamma = 15.5;
+            gamma = 0.00001;
             f = @(u,v) gamma.*DP(v,u);
             KthetaStab = IntegrateLHS(f,obj.thetaFun,obj.thetaFun,obj.mesh,'Domain',2);
             KthetaStab = obj.reduceMatrix(KthetaStab,obj.bcT,obj.bcT);
@@ -173,6 +173,12 @@ classdef TutorialShellsKirchhoff < handle
                     Zut' Ktheta+KthetaStab Zthetaw-NthetawStab -Mthetatau;
                     Zuw' Zthetaw'-NthetawStab' Zww+KwStab Nwtau;
                     Zutau' -Mthetatau' Nwtau' Ztautau];
+
+
+            % LHS = [Ku Zut Zuw Zutau;
+                    % Zut' Ktheta Zthetaw -Mthetatau;
+                    % Zuw' Zthetaw' Zww Nwtau;
+                    % Zutau' -Mthetatau' Nwtau' Ztautau];
         end
 
         function RHS = createRHS(obj)
@@ -203,8 +209,19 @@ classdef TutorialShellsKirchhoff < handle
         function createBoundaryConditions(obj)
             obj.bcU = obj.createGeneralBoundaryConditions([1 2]);
             obj.bcT = obj.createGeneralBoundaryConditions([1 2]);
+            %obj.bcT = obj.createLagrangeMultiplierConditionTheta();
             obj.bcW = obj.createGeneralBoundaryConditions([1]);
             obj.bcTau = obj.createLagrangeMultiplierCondition();
+        end
+
+        function bc = createLagrangeMultiplierConditionTheta(obj)
+
+            bc.dirichletFun.nDofs = obj.thetaFun.nDofs;
+            
+            bc.free_dofs=1:obj.thetaFun.nDofs;
+            bc.dirichlet_dofs = [];
+            bc.dirichlet_vals = [];
+
         end
 
         function bc = createLagrangeMultiplierCondition(obj)
