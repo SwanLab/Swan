@@ -493,10 +493,6 @@ classdef CoarseTesting_AbrilV2< handle
             p=obj.params;
             mR = obj.referenceMesh;
             fileNameEIFEM  = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,"parametrizedEIFEM.mat");
-            %Data = EIFEMTraining(mR,obj.r(1,1),obj.params);
-            %p = OfflineDataProcessor(Data);
-            %EIFEoper = p.computeROMbasis();
-            %s.RVE          = TrainedRVE(EIFEoper);
             s.RVE           = TrainedRVE(fileNameEIFEM);
             s.mesh          = obj.createCoarseMesh();
             s.DirCond       = dir;
