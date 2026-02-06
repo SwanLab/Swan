@@ -10,8 +10,6 @@ classdef CohesiveSeparationComputer < handle
         order
 
         L
-
-
     end
 
     methods (Access = public)
@@ -25,8 +23,13 @@ classdef CohesiveSeparationComputer < handle
 
         function compute(obj,uIn)
             uInVec = reshape(uIn.fValues',[uIn.nDofs 1]);
-            R = computeRotationMatrix(uInVec)
-            % update of jump fValues(u) -- ComputeGlobalSeparations
+
+            R = obj.rotationMatrix(uIn);
+
+            funOutVec = obj.L * R * uInVec; % ndofDisp x 1
+
+            funOut = funOutVec;
+
         end
 
         function fV = evaluate(obj,xV)
@@ -66,53 +69,36 @@ classdef CohesiveSeparationComputer < handle
         function init(obj,cParams)
             obj.cohesiveMesh = cParams.cohesiveMesh;
             obj.ndimf = cParams.ndimf;
-            obj.order = cParams.order;
+            % obj.order = cParams.order;
         end
 
-        function R = rotationMatrix(obj,uInVec)
-            % connec = obj.cohesiveMesh.subMesh.connec(i,:);
-            % coords = obj.cohesiveMesh.subMesh.coord(connec',:);
-            % 
-            % m = [coords(2,1)-coords(1,1),coords(2,2)-coords(1,2)];
-            %     mx = m(1);
-            %     my = m(2);
-            % R = [mx, -my; my, mx] / sqrt(mx^2 + my^2);
-            
-            nDofsU = length(uInVec);
+        function R = rotationMatrix(obj,uIn)
+
+            nDofsU = uIn.nDofs;
             R = sparse(nDofsU,nDofsU);
-            nCohElem = length(obj.cohesiveMesh.listCohesiveElem);
+            nCohElem = length(obj.cohesiveMesh.listCohesiveElems);
 
             for j=1:nCohElem
                 e = obj.cohesiveMesh.listCohesiveElems(j);
-                connec = obj.cohesiveMesh.connec(e,:);
+                connecSub = obj.cohesiveMesh.subMesh.connec(j,:);
 
-                coords = obj.cohesiveMesh.coord(connec',:);
+                coords = obj.cohesiveMesh.subMesh.coord(connecSub',:)+uIn.fValues(connecSub',:);
 
-                dofsU =  reshape((connec(:)-1)*ndim + (1:ndim), 1, []);
+                ndim = obj.cohesiveMesh.mesh.ndim;
+                
+                connecFull = obj.cohesiveMesh.mesh.connec(e,:);
+                dofsU =  reshape((connecFull(:)-1)*ndim + (1:ndim), 1, []);
 
-
-
-                % SUMAR DESPLAÇAMENTS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 m = [coords(2,1)-coords(1,1),coords(2,2)-coords(1,2)];
                     mx = m(1);
                     my = m(2);
+                    
                 Re = [mx, -my; my, mx] / sqrt(mx^2 + my^2);
-                
-                R(dofsU,dofsU);
+                ReBig = kron(eye(4), Re); %generalitzar el 4
 
-
-
-
-
-
+                R(dofsU,dofsU) = ReBig;
 
             end
-
-
-
-
-
-
 
         end
 
@@ -124,17 +110,17 @@ classdef CohesiveSeparationComputer < handle
         end
 
         function createJumpFunction(obj)
-            obj.fun = LagrangianFunction.create(obj.cohesiveMesh.subMesh,2,'Pi1D');
+            obj.fun = LagrangianFunction.create(obj.cohesiveMesh.subMesh,2,'P1D');
         end
 
 
-        function L = obj.computeGlobalSeparationMatrix(obj)
+        function L = computeGlobalSeparationMatrix(obj)
             % L -- ndofJump x ndofu
-            nCohElem = length(obj.cohesiveMesh.listCohesiveElem);
+            nCohElem = length(obj.cohesiveMesh.listCohesiveElems);
         
             nJumpPerElem = 4;
 
-            nDofU = obj.u.nDofs;
+            nDofU = obj.cohesiveMesh.mesh.nnodes * obj.cohesiveMesh.mesh.ndim;
             nDofJump = 4* nCohElem; % arreglar
       
             ndim = obj.cohesiveMesh.mesh.ndim;
@@ -148,12 +134,12 @@ classdef CohesiveSeparationComputer < handle
      
             for j = 1:nCohElem
                 elem = obj.cohesiveMesh.listCohesiveElems(j);
-                connec = obj.cohesiveMesh.mesh.connec(elem);
+                connec = obj.cohesiveMesh.mesh.connec(elem,:);
 
-                dofsU = reshape((connec(:)-1)*ndim + (1:ndim), 1, []);
-                dofsJump = (j-1)*ones(nJumpPerElem)+(1:nJumpPerElem);
+                dofsU = reshape(((connec(:)-1)*ndim + (1:ndim)).', 1, []);
+                dofsJump = 2*(j-1)*ones(nJumpPerElem,1).'+(1:nJumpPerElem);
 
-                L(dofsU,dofsJump) = Le;
+                L(dofsJump,dofsU) = Le;
 
             end
 
@@ -164,13 +150,6 @@ classdef CohesiveSeparationComputer < handle
 
 
         end
-
-
-
-
-
-
-
 
 
     end

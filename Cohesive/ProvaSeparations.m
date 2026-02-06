@@ -11,5 +11,9 @@ u   = LagrangianFunction.create(cohesiveMesh.mesh,2,'P1');
 
 s.cohesiveMesh = cohesiveMesh;
 s.u = u;
+s.ndimf = 2;
 disp = CohesiveSeparationComputer(s);
+
+
+disp.compute(u);
 

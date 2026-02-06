@@ -61,6 +61,7 @@ classdef CohesiveMesh < handle
             obj.shiftCoordOfLeftAndRightElements();
             
             obj.newMesh()
+            obj.createSubMesh();
         end
         
     end
@@ -183,13 +184,13 @@ classdef CohesiveMesh < handle
             s.coord  = obj.newCoord;
             obj.mesh = Mesh.create(s);
 
-            subplot(1,2,1)
-            obj.baseMesh.plot;
-            title('BaseMesh')
-            
-            subplot(1,2,2)
-            obj.mesh.plot;
-            title('CohesiveMesh')
+            % subplot(1,2,1)
+            % obj.baseMesh.plot;
+            % title('BaseMesh')
+            % 
+            % subplot(1,2,2)
+            % obj.mesh.plot;
+            % title('CohesiveMesh')
 
         end
     
