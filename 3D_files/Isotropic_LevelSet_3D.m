@@ -47,12 +47,6 @@ classdef Isotropic_LevelSet_3D < handle
         end
 
         function createMesh(obj)
-            %UnitMesh better
-            % Cantilever beam
-            % x1      = linspace(0,2,120);
-            % x2      = linspace(0,1,60);
-            % MBB Beam
-            % obj.mesh = TetraMesh(2,0.005,1,200,5,100);
             obj.mesh = TetraMesh(2,1,0.005,80,40,10);
         end
 

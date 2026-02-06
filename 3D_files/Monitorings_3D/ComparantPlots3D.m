@@ -2,8 +2,7 @@
 clear all, close all, clc;
 
 % Lista de archivos .fig que quieres procesar
-files = {'0_3D_LevelSet_try3.fig','Monitoring_45_3D_LevelSet.fig', 'Monitoring_90_3D_LevelSet.fig','Monitoring_0_90_3D_LevelSet',...
-         'Monitoring_45_45_3D_LevelSet.fig', 'Monitoring_0_45_3D_LevelSet.fig'};
+files = {'Monitoring_Isotropic_3D_LevelSet.fig','Monitoring_0_3D_LevelSet.fig','Monitoring_45_3D_LevelSet.fig', 'Monitoring_90_3D_LevelSet.fig'};
 
 % Inicializamos estructura para guardar los datos
 allData = struct();
@@ -57,7 +56,7 @@ for f = 1:length(files)
 end
 xlabel('Iteration')
 %ylim([1, 3])
-legend('0º', '45º','90º','0º/90º','-45º/45º','0º/45º');
+legend('Isotropic','0º', '45º','90º');
 title('Compliance comparison - Cantilever, LevelSet')
 
 % Subplot 2 (columna 3, fila 1)
@@ -66,6 +65,6 @@ for f = 1:length(files)
     data = allData.(sprintf('fig%d', f)){2}; % segundo subplot
     plot(data.x, data.y, 'LineWidth',1.5);
 end
-xlabel('Iteration')
-legend('0º', '45º','90º','0º/90º','45º/45º','0º/45º');
+xlabel('Iteration');
+legend('Isotropic','0º', '45º','90º');
 title('Volume Constraint comparison - Cantilever, LevelSet')
