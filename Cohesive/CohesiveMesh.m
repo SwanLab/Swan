@@ -3,6 +3,7 @@ classdef CohesiveMesh < handle
     properties (Access = public)
         baseMesh 
         mesh
+        subMesh
 
         isNodeCohesive
         isElemCohesive
@@ -217,6 +218,24 @@ classdef CohesiveMesh < handle
             obj.newCoord(rightNodes,:) = obj.newCoord(rightNodes,:) - shiftVector*obj.separation/2;
             obj.newCoord(leftNodes,:) = obj.newCoord(leftNodes,:) + shiftVector*obj.separation/2;
             
+        end
+
+
+        function createSubMesh(obj)
+
+            coord = obj.mesh.coord;
+            nMidNodes = size(obj.pairsMatrix,1);
+            
+            midCoord= (coord(obj.listNodeCohesive,:)+ ...
+                coord(obj.pairsMatrix(:,2),:))/2;
+                        
+            midConnec =  [(1:nMidNodes-1)' (2:nMidNodes)'];
+            
+                s.connec = midConnec;
+                s.coord = midCoord;
+                s.kFace = -1;
+            obj.subMesh = Mesh.create(s);
+
         end
 
     

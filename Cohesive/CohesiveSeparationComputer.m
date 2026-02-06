@@ -1,29 +1,32 @@
 classdef CohesiveSeparationComputer < handle
     properties (Access = public)
         cohesiveMesh
-        subMesh
         globalSeparations % nCohElem x nMidNodesPerElem(2) x nSeparations(2)
         lagrangianSeparation
-        u
+        
+        fun
+
+        ndimf
+        order
+
+        L
+
+
     end
 
     methods (Access = public)
 
         function obj = CohesiveSeparationComputer(cParams)
-            obj.init(cParams);
-            obj.createSubMesh();
-            obj.globalSeparations = obj.ComputeGlobalSeparations();
-            obj.lagrangianSeparation = obj.ComputeLagrangianSeparation();
 
-            % init(Cohesive(subMesh),ndimf,order)
-            % (obj.fun) obj.computeJumpFunction (initialize the fun with
-            % zeros
-            % L = obj.computeGlobalSeparationMatrix()
+            obj.init(cParams);
+            obj.createJumpFunction %(initialize the fun with zeros
+            obj.L = obj.computeGlobalSeparationMatrix();
         end
 
-        function compute(obj,u)
-            % R = computeRotationMatrix(u)
-            % update of jump fValues(u)
+        function compute(obj,uIn)
+            uInVec = reshape(uIn.fValues',[uIn.nDofs 1]);
+            R = computeRotationMatrix(uInVec)
+            % update of jump fValues(u) -- ComputeGlobalSeparations
         end
 
         function fV = evaluate(obj,xV)
@@ -62,70 +65,105 @@ classdef CohesiveSeparationComputer < handle
     methods (Access = private)
         function init(obj,cParams)
             obj.cohesiveMesh = cParams.cohesiveMesh;
-            obj.u = cParams.u;
+            obj.ndimf = cParams.ndimf;
+            obj.order = cParams.order;
         end
 
-        function createSubMesh(obj)
+        function R = rotationMatrix(obj,uInVec)
+            % connec = obj.cohesiveMesh.subMesh.connec(i,:);
+            % coords = obj.cohesiveMesh.subMesh.coord(connec',:);
+            % 
+            % m = [coords(2,1)-coords(1,1),coords(2,2)-coords(1,2)];
+            %     mx = m(1);
+            %     my = m(2);
+            % R = [mx, -my; my, mx] / sqrt(mx^2 + my^2);
+            
+            nDofsU = length(uInVec);
+            R = sparse(nDofsU,nDofsU);
+            nCohElem = length(obj.cohesiveMesh.listCohesiveElem);
 
-            coord = obj.cohesiveMesh.mesh.coord;
-            nMidNodes = size(obj.cohesiveMesh.pairsMatrix,1);
-            
-            midCoord= (coord(obj.cohesiveMesh.listNodeCohesive,:)+ ...
-                coord(obj.cohesiveMesh.pairsMatrix(:,2),:))/2;
-                        
-            midConnec =  [(1:nMidNodes-1)' (2:nMidNodes)'];
-            
-                s.connec = midConnec;
-                s.coord = midCoord;
-                s.kFace = -1;
-            obj.subMesh = Mesh.create(s);
+            for j=1:nCohElem
+                e = obj.cohesiveMesh.listCohesiveElems(j);
+                connec = obj.cohesiveMesh.connec(e,:);
+
+                coords = obj.cohesiveMesh.coord(connec',:);
+
+                dofsU =  reshape((connec(:)-1)*ndim + (1:ndim), 1, []);
+
+
+
+                % SUMAR DESPLAÇAMENTS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                m = [coords(2,1)-coords(1,1),coords(2,2)-coords(1,2)];
+                    mx = m(1);
+                    my = m(2);
+                Re = [mx, -my; my, mx] / sqrt(mx^2 + my^2);
+                
+                R(dofsU,dofsU);
+
+
+
+
+
+
+
+            end
+
+
+
+
+
+
 
         end
-
-        function R = rotationMatrix(obj,i)
-            connec = obj.subMesh.connec(i,:);
-            coords = obj.subMesh.coord(connec',:);
-            
-            m = [coords(2,1)-coords(1,1),coords(2,2)-coords(1,2)];
-                mx = m(1);
-                my = m(2);
-            R = [mx, -my; my, mx] / sqrt(mx^2 + my^2);
-
-        end
-
-
 
         function lagrangianSeparation = ComputeLagrangianSeparation(obj)
-            
-
-
-
-
-            %                   AMB MITJA
-
-            % globalSeps = reshape(obj.globalSeparations, [], 2)';
-            % tmp = globalSeps(:,2:(size(globalSeps,2)-1));
-            % pairs = tmp(:,2:2:end);
-            % odds = tmp(:,1:2:end);
-            % tmp = (pairs+odds)/2;
-            % meanSeps = [globalSeps(:,1), tmp, globalSeps(:,end)]';
-            % fValues = meanSeps;
-            % lagrangianSeparation = LagrangianFunction.create(obj.subMesh,2,'P1');
-            % lagrangianSeparation.setFValues(fValues);
-
-
-
-
-
-            %                   AMB FUNCIO DISCONTINUA
 
             fValues = globalSeps';
-            lagrangianSeparation = LagrangianFunction.create(obj.subMesh,2,'P1D');
-            lagrangianSeparation.setFValues(fValues);
-
+            obj.fun.setFValues(fValues);
 
         end
 
+        function createJumpFunction(obj)
+            obj.fun = LagrangianFunction.create(obj.cohesiveMesh.subMesh,2,'Pi1D');
+        end
+
+
+        function L = obj.computeGlobalSeparationMatrix(obj)
+            % L -- ndofJump x ndofu
+            nCohElem = length(obj.cohesiveMesh.listCohesiveElem);
+        
+            nJumpPerElem = 4;
+
+            nDofU = obj.u.nDofs;
+            nDofJump = 4* nCohElem; % arreglar
+      
+            ndim = obj.cohesiveMesh.mesh.ndim;
+
+            L = sparse(nDofJump, nDofU);
+
+            Le = [-1,0,0,0,0,0,1,0;
+                   0,-1,0,0,0,0,0,1;
+                   0,0,-1,0,1,0,0,0;
+                   0,0,0,-1,0,1,0,0];
+     
+            for j = 1:nCohElem
+                elem = obj.cohesiveMesh.listCohesiveElems(j);
+                connec = obj.cohesiveMesh.mesh.connec(elem);
+
+                dofsU = reshape((connec(:)-1)*ndim + (1:ndim), 1, []);
+                dofsJump = (j-1)*ones(nJumpPerElem)+(1:nJumpPerElem);
+
+                L(dofsU,dofsJump) = Le;
+
+            end
+
+
+
+
+
+
+
+        end
 
 
 
