@@ -6,6 +6,8 @@ classdef CohesiveSeparationComputer < handle
         
         fun
 
+        jumpDim
+
         ndimf
         order
 
@@ -15,9 +17,9 @@ classdef CohesiveSeparationComputer < handle
     methods (Access = public)
 
         function obj = CohesiveSeparationComputer(cParams)
-
+            cParams.jumpDim = 2;
             obj.init(cParams);
-            obj.createJumpFunction %(initialize the fun with zeros
+            obj.createJumpFunction();
             obj.L = obj.computeGlobalSeparationMatrix();
         end
 
@@ -28,7 +30,10 @@ classdef CohesiveSeparationComputer < handle
 
             funOutVec = obj.L * R * uInVec; % ndofDisp x 1
 
-            funOut = funOutVec;
+            funOut = reshape(funOutVec,[obj.fun.nDofs/obj.jumpDim obj.jumpDim])';
+
+            obj.updateJumps(funOut);
+
 
         end
 
@@ -44,7 +49,7 @@ classdef CohesiveSeparationComputer < handle
             connec = obj.cohesiveMesh.mesh.connec;   % (nElem × 4)
             coords = obj.cohesiveMesh.mesh.coord;    % (nNodes × ndim)
         
-            L = [-1 0 0 1;
+            obj.L = [-1 0 0 1;
                   0 -1 1 0];                         % (2×4)
         
             nelem = length(obj.cohesiveMesh.listCohesiveElems);
@@ -57,7 +62,7 @@ classdef CohesiveSeparationComputer < handle
 
                 
                 Ue = obj.u.fValues(connec(e,:)',:);
-                globalSeps(i,:,:) = L*Ue*R';
+                globalSeps(i,:,:) = obj.L*Ue*R';
             end
             
         end
@@ -69,6 +74,7 @@ classdef CohesiveSeparationComputer < handle
         function init(obj,cParams)
             obj.cohesiveMesh = cParams.cohesiveMesh;
             obj.ndimf = cParams.ndimf;
+            obj.jumpDim = cParams.jumpDim;
             % obj.order = cParams.order;
         end
 
@@ -77,14 +83,24 @@ classdef CohesiveSeparationComputer < handle
             nDofsU = uIn.nDofs;
             R = sparse(nDofsU,nDofsU);
             nCohElem = length(obj.cohesiveMesh.listCohesiveElems);
+            
+
+            % actualitzar submesh
 
             for j=1:nCohElem
                 e = obj.cohesiveMesh.listCohesiveElems(j);
                 connecSub = obj.cohesiveMesh.subMesh.connec(j,:);
 
-                coords = obj.cohesiveMesh.subMesh.coord(connecSub',:)+uIn.fValues(connecSub',:);
-
                 ndim = obj.cohesiveMesh.mesh.ndim;
+                dofsSub = reshape(((connecSub(:)-1)*ndim + (1:ndim)).', 1, []);
+
+                % s'ha d'arreglar això, estaria bé sumar els desplaçaments
+                % a les coordenades i calcular els midpoints des d'alla,
+                % potser fins i tot amb la formula del paper (L+)
+
+                coords = obj.cohesiveMesh.subMesh.coord(connecSub',:)+uIn.fValues(dofsSub',:);% AQUESTA, connecSub esta en nodes, i uIn fValues esta en dofs
+
+                
                 
                 connecFull = obj.cohesiveMesh.mesh.connec(e,:);
                 dofsU =  reshape((connecFull(:)-1)*ndim + (1:ndim), 1, []);
@@ -102,15 +118,16 @@ classdef CohesiveSeparationComputer < handle
 
         end
 
-        function lagrangianSeparation = ComputeLagrangianSeparation(obj)
+        function updateJumps(obj,funOut)
 
-            fValues = globalSeps';
+            fValues = funOut';
             obj.fun.setFValues(fValues);
 
         end
 
+
         function createJumpFunction(obj)
-            obj.fun = LagrangianFunction.create(obj.cohesiveMesh.subMesh,2,'P1D');
+            obj.fun = LagrangianFunction.create(obj.cohesiveMesh.subMesh,obj.jumpDim,'P1D');
         end
 
 
