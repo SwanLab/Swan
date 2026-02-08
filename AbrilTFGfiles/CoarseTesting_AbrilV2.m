@@ -117,17 +117,18 @@ classdef CoarseTesting_AbrilV2< handle
             % Case Parameters
             p.Training  = 'EIFEM';         % 'EIFEM'/'Multiscale'
             p.Inclusion = 'Material';         % 'Hole'/'Material'/'HoleRaul'   --> Hole: just for constant r
-            p.Sampling  = 'Isolated';     % 'Isolated'/'Oversampling'
-            p.Option    = 'NN';          % 'Dataset'/'NN'/'HO'/ 'Hybrid'
+            p.Sampling  = 'Oversampling';     % 'Isolated'/'Oversampling'
+            p.Option    = 'HO';          % 'Dataset'/'NN'/'HO'/ 'Hybrid'
             p.nelem     =  20;                 %  Mesh refining
             obj.params  =  p;
             meshName    =  p.nelem+"x"+p.nelem;
 
             % Definition of Subdomain
             %obj.r = ones(5,10)*0.5;
-            obj.r = [0.1,0.2,0.3,0.4,0.5
-                     0.1,0.2,0.3,0.4,0.5
-                     0.1,0.2,0.3,0.4,0.5];
+            % obj.r = [0.1,0.2,0.3,0.4,0.5
+            %          0.1,0.2,0.3,0.4,0.5
+            %          0.1,0.2,0.3,0.4,0.5];
+            obj.r= ones(1,15)*0.1;
 
             obj.nSubdomains    = size(obj.r');
             obj.mSubdomains    = [];
@@ -491,6 +492,7 @@ classdef CoarseTesting_AbrilV2< handle
 
          function Meifem = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh)
             p=obj.params;
+            meshName    =  p.nelem+"x"+p.nelem;
             mR = obj.referenceMesh;
             fileNameEIFEM  = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,"parametrizedEIFEM.mat");
             s.RVE           = TrainedRVE(fileNameEIFEM);

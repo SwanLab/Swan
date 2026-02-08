@@ -4,15 +4,15 @@ close all;
 
 %% Case parameters
 p.Training  = 'EIFEM';        % 'EIFEM'/'Multiscale'
+p.Inclusion  ='HoleRaul';    %'Material'/'Hole'/'HoleRaul
 p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
-p.Inclusion  ='Material';    %'Material'/'Hole'/'HoleRaul
 
 %% Initialization of hyperparameters
 pol_deg         = 1;
 testratio       = 30;
 lambda          = 0.0;
 learningRate    = 0.1;
-hiddenLayers    = [40 60 80 100 80 60 40];
+hiddenLayers    = [8 20 40 80 100 80 40];
 
 %% INITIALIZATION 
 % Store dataset file name

@@ -7,13 +7,14 @@
 clc; clear; close all;
 
 %% INPUTS
-%r=1e-6:0.05:0.999; 
+r=1e-6:0.05:0.999; 
 %r=1e-6:0.1:0.999; 
 %r=0:0.05:0.999;
-r=0.5;
+% r=0.5;
 
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
-p.Inclusion  = 'Material';        %'Material'/'Hole'/'HoleRaul'
+p.Inclusion  = 'HoleRaul';        %'Material'/'Hole'/'HoleRaul'
+p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
 p.nelem      = 20;
 meshName     = p.nelem+"x"+p.nelem;
 
@@ -25,9 +26,10 @@ for j = 1:size(r,2)
     mR              = createReferenceMesh(p,radius);
     switch p.Training
         case 'Multiscale'
-            material = createMaterialTraining(mR, radius,[1 1],p.Inclusion);
-            mesh    = mR;
-            bMesh   = mesh.createSingleBoundaryMesh();
+            p.Sampling = 'Isolated';
+            material   = createMaterialTraining(mR, radius,[1 1],p.Inclusion);
+            mesh       = mR;
+            bMesh      = mesh.createSingleBoundaryMesh();
             s.mesh=bMesh;
             cf=CoarseFunctions(s);
             f = cf.getAnalytical();
@@ -40,9 +42,9 @@ for j = 1:size(r,2)
             [T,lambda,K,Kcoarse] = e.solve();
 
         case 'EIFEM'
-            samplingType = 'Oversampling'; %'Isolated'/'Oversampling'
-            [nS,dI] = defineNumberOfSubdomains(samplingType);
-            material = createMaterialTraining(mR, radius,nS,p.Inclusion);
+            samplingType = 'Isolated'; %'Isolated'/'Oversampling'
+            [nS,dI]      = defineNumberOfSubdomains(samplingType);
+            material     = createMaterialTraining(mR, radius,nS,p.Inclusion);
             s.mesh           = mR;
             s.r              = radius;
             s.material       = material;
@@ -57,7 +59,6 @@ for j = 1:size(r,2)
             T        = EIFEoper.U;
             mesh     = data.mesh;
             Kcoarse  = EIFEoper.Kcoarse;
-            p.Inclusion = fullfile(p.Inclusion,samplingType);
             
     end
     R        = r(j);
@@ -90,7 +91,7 @@ for j = 1:size(r,2)
     string = strrep("r"+num2str(r(j), '%.4f'), ".", "_")+"-"+meshName+".mat";
 
     % Guarda el .mat per cert radi
-    FileName=fullfile('AbrilTFGfiles','Data',p.Training,p.Inclusion,meshName,string);
+    FileName=fullfile('AbrilTFGfiles','Data',p.Training,p.Inclusion,p.Sampling,meshName,string);
 
 
     switch p.Training
@@ -136,7 +137,7 @@ for n=1:size(r,2)
 end
 
 kdata=[r.',kdata];
-kFileName = fullfile('AbrilTFGfiles','Data',p.Training,p.Inclusion,'dataK.csv');
+kFileName = fullfile('AbrilTFGfiles','Data',p.Training,p.Inclusion,p.Sampling,'dataK.csv');
 writematrix(kdata,kFileName);
 
 

@@ -61,9 +61,9 @@ classdef OfflineDataProcessor < handle
             Add = obj.computeBoundaryModalMassMatrix(uDefFunBd,LMDefFunBd);
             Ldv = obj.computeBoundaryModalMassMatrix(LMDefFunBd,Vfun);
             Lrv = obj.computeBoundaryModalMassMatrix(RBFunBd,Vfun); 
-
-            Add3 = obj.computeBoundaryModalMassMatrixDirac(uDefFunBd,LMDefFunBd);
-            Ldv3 = obj.computeBoundaryModalMassMatrixDirac(LMDefFunBd,Vfun);
+            % 
+            % Add3 = obj.computeBoundaryModalMassMatrixDirac(uDefFunBd,LMDefFunBd);
+            % Ldv3 = obj.computeBoundaryModalMassMatrixDirac(LMDefFunBd,Vfun);
 
             RBFun = uRBfun(1);
             RBFun2.basisFunctions{1} = project(RBFun.basisFunctions{1},'P1');
@@ -103,17 +103,17 @@ classdef OfflineDataProcessor < handle
 
             Z  = zeros(nld+nlr,nld+nlr);
 %
-            LHS = [Keif C; C.' Z];
+            LHS2 = [Keif C; C.' Z];
             Lug = [Lrv;Ldv]*eye(8);
             RHS = [Zd;Zr;Lug];
-            x = LHS\RHS;
+            x = LHS2\RHS;
 
             C2=  [Adr2 Add2;...
                   Arr2 Zrd];
-            LHS2 = [Keif C2; C2.' Z];
+            LHS3 = [Keif C2; C2.' Z];
             Lug2 = [Lrv2;Ldv2]*eye(8);
             RHS2 = [Zd;Zr;Lug2];
-            x2 = LHS2\RHS2;
+            x2 = LHS3\RHS2;
 
             %
             
@@ -218,7 +218,7 @@ classdef OfflineDataProcessor < handle
             Psid = obj.LHS*phid;
         end
 
-        function PhiR = getRigidBodyModes(obj,RBfun)
+        function PhiR = getRigidBodyModes(~,RBfun)
             nbasis = RBfun.nbasis;
             for i = 1:nbasis
                 fun = project(RBfun.basisFunctions{i},'P1');
@@ -229,22 +229,22 @@ classdef OfflineDataProcessor < handle
 
         end
 
-        function BdFun = restrictToBoundary2(obj,fun)
+        function BdFun = restrictToBoundary2(~,fun)
             nboundary = numel(fun.basisFunctions);
             for i = 1:nboundary
                 BdFun{i} = fun.basisFunctions{i}.restrictToBoundary();
             end
         end        
 
-        function BdFun = restrictToBoundary(obj,fun,bMesh)
+        function BdFun = restrictToBoundary(~,fun,bMesh)
             nboundary = size(bMesh,1);
             for i = 1:nboundary
-                mesh  = bMesh{i};
-                BdFun{i} = fun.restrictBasisToBoundaryMesh(mesh);
+                Mesh  = bMesh{i};
+                BdFun{i} = fun.restrictBasisToBoundaryMesh(Mesh);
             end
         end
 
-        function M = computeBoundaryModalMassMatrix2(obj,test,trial)
+        function M = computeBoundaryModalMassMatrix2(~,test,trial)
             nTest  = numel(test);
             nTrial = numel(trial);
             M = zeros(nTest,nTrial);
