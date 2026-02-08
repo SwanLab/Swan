@@ -27,7 +27,6 @@ classdef CohesiveMesh < handle
         
         cohElem2Edge
 
-
         centerElemsInCohesiveEdge
         centerEdges
 
@@ -47,9 +46,9 @@ classdef CohesiveMesh < handle
     
     methods (Access = public)
         
-        function obj = CohesiveMesh()
+        function obj = CohesiveMesh(cParams)
             
-            obj.init()
+            obj.init(cParams)
             obj.baseMeshCreator(3)
             
             obj.detectFracturedEdges()
@@ -63,13 +62,26 @@ classdef CohesiveMesh < handle
             obj.newMesh()
             obj.createSubMesh();
         end
+
+
+        function plot(obj)
+            
+            subplot(1,2,1)
+            obj.baseMesh.plot;
+            title('BaseMesh')
+
+            subplot(1,2,2)
+            obj.mesh.plot;
+            title('CohesiveMesh')
+        end
         
     end
     
     methods (Access = private)
         
-        function init(obj)
-            obj.separation = 0.1;
+        function init(obj,cParams)
+            obj.separation = 0.001;
+            obj.baseMesh = cParams.baseMesh;
         end
         
         function baseMeshCreator(obj,n)
@@ -183,15 +195,6 @@ classdef CohesiveMesh < handle
             s.connec = obj.newConnec;
             s.coord  = obj.newCoord;
             obj.mesh = Mesh.create(s);
-
-            % subplot(1,2,1)
-            % obj.baseMesh.plot;
-            % title('BaseMesh')
-            % 
-            % subplot(1,2,2)
-            % obj.mesh.plot;
-            % title('CohesiveMesh')
-
         end
     
         function centerEdges = computeCenterEdge(obj)
