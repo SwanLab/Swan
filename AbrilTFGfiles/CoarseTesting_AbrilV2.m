@@ -93,7 +93,7 @@ classdef CoarseTesting_AbrilV2< handle
             s.fValues = reshape(xFull,2,[])';
             uFun = LagrangianFunction(s);
             
-            uFun.print('ProvaHoleRaul','Paraview');
+            % uFun.print('SolExacta','Paraview');
 
             %s.fValues = reshape(Ufull,2,[])';
             %RealFun=LagrangianFunction(s);
@@ -115,11 +115,11 @@ classdef CoarseTesting_AbrilV2< handle
 
         function init(obj)
             % Case Parameters
-            p.Training  = 'EIFEM';         % 'EIFEM'/'Multiscale'
+            p.Training  = 'EIFEM';            % 'EIFEM'/'Multiscale'
             p.Inclusion = 'Material';         % 'Hole'/'Material'/'HoleRaul'   --> Hole: just for constant r
             p.Sampling  = 'Oversampling';     % 'Isolated'/'Oversampling'
-            p.Option    = 'HO';          % 'Dataset'/'NN'/'HO'/ 'Hybrid'
-            p.nelem     =  20;                 %  Mesh refining
+            p.Option    = 'NN';          % 'Dataset'/'NN'/'HO'/ 'Hybrid'
+            p.nelem     =  20;                %  Mesh refining
             obj.params  =  p;
             meshName    =  p.nelem+"x"+p.nelem;
 
@@ -520,6 +520,8 @@ classdef CoarseTesting_AbrilV2< handle
                     nameFile=obj.computeNameFile();
                     obj.loadDataset(nameFile);
                 case 'NN'
+                    nameFile=obj.computeNameFile();
+                    obj.loadDataset(nameFile);
                     nameNN= ["K_NN.mat","T_NN.mat"];
                     obj.loadNN(nameNN);
             end
@@ -537,6 +539,8 @@ classdef CoarseTesting_AbrilV2< handle
                         case 'NN'
                             RVE{i,j}.Kcoarse = computeKcoarse_NN(obj.NN.K,obj.r(i,j));
                             RVE{i,j}.U       = computeT_NN(obj.subdomainMeshes{i,j},obj.r(i,j),obj.NN.T,obj.NN.poldeg);
+                            U2= obj.data.T{i,j}; 
+                            errU= norm(abs(RVE{i,j}.U-U2));
                     end
                 end
             end

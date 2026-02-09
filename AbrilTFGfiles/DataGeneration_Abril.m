@@ -7,13 +7,13 @@
 clc; clear; close all;
 
 %% INPUTS
-r=1e-6:0.05:0.999; 
+% r=1e-6:0.05:0.999; 
 %r=1e-6:0.1:0.999; 
-%r=0:0.05:0.999;
+r=0:0.05:0.999;
 % r=0.5;
 
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
-p.Inclusion  = 'HoleRaul';        %'Material'/'Hole'/'HoleRaul'
+p.Inclusion  = 'Material';        %'Material'/'Hole'/'HoleRaul'
 p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
 p.nelem      = 20;
 meshName     = p.nelem+"x"+p.nelem;
@@ -42,8 +42,7 @@ for j = 1:size(r,2)
             [T,lambda,K,Kcoarse] = e.solve();
 
         case 'EIFEM'
-            samplingType = 'Isolated'; %'Isolated'/'Oversampling'
-            [nS,dI]      = defineNumberOfSubdomains(samplingType);
+            [nS,dI]      = defineNumberOfSubdomains(p.Sampling);
             material     = createMaterialTraining(mR, radius,nS,p.Inclusion);
             s.mesh           = mR;
             s.r              = radius;
@@ -107,18 +106,18 @@ end
 
 
 %% Reshapes the T data and saves it in a csv file
-
-% Redimensioning the U_all1
-TData=[];
-for n=1:size(T_all,3)
-    TData=[TData;T_all(:,:,n)];
-end
-
-T=array2table(TData,"VariableNames",{'r','x','y','Tx1','Ty1','Tx2','Ty2','Tx3','Ty3','Tx4','Ty4' ...
-    'Tx5','Ty5','Tx6','Ty6','Tx7','Ty7','Tx8','Ty8'});
-
-uFileName = fullfile('AbrilTFGfiles','Data',p.Training,p.Inclusion,'DataT.csv');
-writematrix(TData,uFileName);
+% 
+% % Redimensioning the U_all1
+% TData=[];
+% for n=1:size(T_all,3)
+%     TData=[TData;T_all(:,:,n)];
+% end
+% 
+% T=array2table(TData,"VariableNames",{'r','x','y','Tx1','Ty1','Tx2','Ty2','Tx3','Ty3','Tx4','Ty4' ...
+%     'Tx5','Ty5','Tx6','Ty6','Tx7','Ty7','Tx8','Ty8'});
+% 
+% uFileName = fullfile('AbrilTFGfiles','Data',p.Training,p.Inclusion,'DataT.csv');
+% writematrix(TData,uFileName);
 
 
 %% Reshapes the K data and saves it in a csv file

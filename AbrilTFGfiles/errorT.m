@@ -11,8 +11,8 @@ clc; clear;
 
 %% LOAD DATA
 p.Training  = 'EIFEM';            % 'EIFEM'/'Multiscale'
-p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
-p.Inclusion  ='HoleRaul';         %'Material'/'Hole'/'HoleRaul
+p.Inclusion  ='Material';         % 'Material'/'Hole'/'HoleRaul
+p.Sampling   ='Isolated';         % 'Isolated'/'Oversampling'
 p.nelem      = 20;
 meshName    =  p.nelem+"x"+p.nelem;
 
@@ -56,12 +56,34 @@ for i=1:size(test.r,2)
      test.mesh{i}=mR;
     switch p.Training
         case 'EIFEM'
-            sol=EIFEMTraining(mR,test.r(i),p);
-            z=OfflineDataProcessor(sol);
+            [nS,dI]      = defineNumberOfSubdomains(p.Sampling);
+            material     = createMaterialTraining(mR, test.r(i),nS,p.Inclusion);
+            s.mesh           = mR;
+            s.r              = test.r(i);
+            s.material       = material;
+            s.domainIndices  = dI;
+            s.nSubdomains    = nS;            
+            m= EIFEMTraining(s);
+            data          = m.train();
+            data.material = createMaterialTraining(mR, test.r(i) ,[1 1],p.Inclusion);
+            z = OfflineDataProcessor(data);
             EIFEoper = z.computeROMbasis();
             test.T(:,i)=EIFEoper.U(:);
         case 'Multiscale'
-            [~, ~, T, ~, ~,~] = MultiscaleTraining(mR,test.r(i),p);
+            p.Sampling = 'Isolated';
+            material   = createMaterialTraining(mR, test.r(i),[1 1],p.Inclusion);
+            mesh       = mR;
+            bMesh      = mesh.createSingleBoundaryMesh();
+            s.mesh=bMesh;
+            cf=CoarseFunctions(s);
+            f = cf.getAnalytical();
+            s.mesh          = mesh;
+            s.uFun          = LagrangianFunction.create(mesh, mesh.ndim, 'P1');
+            s.lambdaFun     = LagrangianFunction.create(bMesh,mesh.ndim, 'P1');
+            s.material      = material;
+            s.dirichletFun  = f;
+            e  = ElasticHarmonicExtension(s);
+            [T,~,~,~] = e.solve();
             test.T(:,i)= T(:);
     end
 end
@@ -152,18 +174,6 @@ xlabel('r');
 ylabel('error');
 
 
-%% Prova plots
-
-
-ri = linspace(min(test.r), max(test.r), 500);   % más puntos
-err2i = interp1(test.r, test.err2, ri, 'spline');     % o 'pchip'
-
-figure
-plot(test.r, test.err2, 'o', ri, err2i, '-')
-
-err2_s = smoothdata(y, 'sgolay');
-
-
 %% FUNCTIONS
 
 function mS = createReferenceMesh(p,r)
@@ -232,4 +242,15 @@ function uMesh = computeUnfittedMesh(bgMesh,levelSet)
     sUm.boundaryMesh   = bgMesh.createBoundaryMesh();
     uMesh              = UnfittedMesh(sUm);
     uMesh.compute(levelSet);
+end
+
+function [nS,dI] = defineNumberOfSubdomains(type)
+    switch type
+        case 'Isolated'
+            nS = [1 1]; %nx ny
+            dI = [1 1];
+        case 'Oversampling'
+            nS = [5 5]; %nx ny
+            dI = [3 3];
+    end
 end

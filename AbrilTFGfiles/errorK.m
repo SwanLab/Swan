@@ -3,16 +3,15 @@
 % This script has the purpose to visualize the error between the different
 % options along the radius.
 
-% 1. T NN 
+% 1. K NN 
 % 2. HO FE aproximation
-% 3. Hybrid SVD + NN
 
 clc; clear;
 
 %% LOAD DATA
 p.Training  = 'EIFEM';            % 'EIFEM'/'Multiscale'
-p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
-p.Inclusion  ='HoleRaul';         %'Material'/'Hole'/'HoleRaul
+p.Sampling   ='Isolated';         %'Isolated'/'Oversampling'
+p.Inclusion  ='Material';         %'Material'/'Hole'/'HoleRaul
 p.nelem      = 20;
 meshName    =  p.nelem+"x"+p.nelem;
 
@@ -48,12 +47,34 @@ for i=1:size(test.r,2)
      test.mesh{i}=mR;
     switch p.Training
         case 'EIFEM'
-            sol=EIFEMTraining(mR,test.r(i),p);
-            z=OfflineDataProcessor(sol);
+            [nS,dI]      = defineNumberOfSubdomains(p.Sampling);
+            material     = createMaterialTraining(mR, test.r(i),nS,p.Inclusion);
+            s.mesh           = mR;
+            s.r              = test.r(i);
+            s.material       = material;
+            s.domainIndices  = dI;
+            s.nSubdomains    = nS;            
+            m= EIFEMTraining(s);
+            data          = m.train();
+            data.material = createMaterialTraining(mR, test.r(i) ,[1 1],p.Inclusion);
+            z = OfflineDataProcessor(data);
             EIFEoper = z.computeROMbasis();
             test.Kcoarse(:,i)=EIFEoper.Kcoarse(:);
         case 'Multiscale'
-            [~, ~, T, ~, ~,~] = MultiscaleTraining(mR,test.r(i),p);
+            p.Sampling = 'Isolated';
+            material   = createMaterialTraining(mR, test.r(i),[1 1],p.Inclusion);
+            mesh       = mR;
+            bMesh      = mesh.createSingleBoundaryMesh();
+            s.mesh=bMesh;
+            cf=CoarseFunctions(s);
+            f = cf.getAnalytical();
+            s.mesh          = mesh;
+            s.uFun          = LagrangianFunction.create(mesh, mesh.ndim, 'P1');
+            s.lambdaFun     = LagrangianFunction.create(bMesh,mesh.ndim, 'P1');
+            s.material      = material;
+            s.dirichletFun  = f;
+            e  = ElasticHarmonicExtension(s);
+            [~,~,~,Kcoarse] = e.solve();
             test.Kcoarse(:,i)= T(:);
     end
 end
@@ -63,20 +84,20 @@ end
 training.r=0:0.05:0.999;
 mesh=training.mesh{1}; % Totes tenen mateix num de dofs;
 
-training.K1= zeros(mesh.nnodes*mesh.ndim*8,length(training.r));
-training.K2= zeros(mesh.nnodes*mesh.ndim*8,length(training.r));
+training.K1= zeros(8*8,length(training.r));
+training.K2= zeros(8*8,length(training.r));
 
-test.T1= zeros(mesh.nnodes*mesh.ndim*8,length(test.r));
-test.T2= zeros(mesh.nnodes*mesh.ndim*8,length(test.r));
+test.T1= zeros(8*8,length(test.r));
+test.T2= zeros(8*8,length(test.r));
 
 % 1. NN
 for i=1:length(training.r)
-    aux=computeKcoarse_NN(training.r(i));
+    aux=computeKcoarse_NN(K_NN,training.r(i));
     training.K1(:,i)=aux(:);
 end
 
 for i=1:length(test.r)
-    aux=computeKcoarse_NN(test.r(i));
+    aux=computeKcoarse_NN(K_NN,test.r(i));
     test.T1(:,i)=aux(:);
 end
 
@@ -104,7 +125,7 @@ test.err2=vecnorm(abs(test.Kcoarse-test.T2))/norm(test.Kcoarse);
 %% PLOT ERROR
 
 figure
-plot(training.r,training.err1,training.r,training.err2,training.r,training.err3,LineWidth=1.5);
+plot(training.r,training.err1,training.r,training.err2,LineWidth=1.5);
 legend("NN","HO");
 title("Training Error vs r");
 xlabel('r');
@@ -114,7 +135,7 @@ ylabel('error');
 %% PLOT TEST
 
 figure
-plot(test.r,test.err1,test.r,test.err2,test.r,test.err3,LineWidth=1.5);
+plot(test.r,test.err1,test.r,test.err2,LineWidth=1.5);
 legend("NN","HO");
 title("Test Error vs r ");
 xlabel('r');
@@ -201,4 +222,15 @@ function uMesh = computeUnfittedMesh(bgMesh,levelSet)
     sUm.boundaryMesh   = bgMesh.createBoundaryMesh();
     uMesh              = UnfittedMesh(sUm);
     uMesh.compute(levelSet);
+end
+
+function [nS,dI] = defineNumberOfSubdomains(type)
+    switch type
+        case 'Isolated'
+            nS = [1 1]; %nx ny
+            dI = [1 1];
+        case 'Oversampling'
+            nS = [5 5]; %nx ny
+            dI = [3 3];
+    end
 end
