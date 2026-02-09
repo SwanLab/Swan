@@ -1,0 +1,36 @@
+IMPORT "io.edp"
+load "distance"
+
+mesh Th = importMesh("Th");
+mesh Th2 = importMesh("Th2");
+real [int] phiVal = importArray("phiVal");
+real dmax = importVar("dmax");
+real rInner = importVar("rInner");
+real alpha = importVar("alpha");
+real meshsiz = importVar("meshsiz");
+
+fespace Vh(Th,P1);
+Vh phi, dOmR, dOm, fOm, v;
+phi[] = phiVal;
+
+problem regSignedDist(dOmR,v) = int2d(Th)(dOmR*v+alpha^2*(dx(dOmR)*dx(v)+dy(dOmR)*dy(v)))
+                                -int2d(Th)(phi*v) + on(0,dOmR=0);
+
+regSignedDist;
+distance(Th,dOmR,dOm[]);
+
+mesh Th3;
+
+macro updateBoundary() {
+  Th3 = trunc(Th2, region == rInner);
+} //
+
+updateBoundary;
+
+real af = 1*(4*meshsiz/(5*dmax));
+fOm = 0.5*(1+tanh((abs(dOm)-dmax/2)/(af*dmax/2)));
+real F = int2d(Th3)(fOm) + 0.01;
+real FD = int2d(Th3)(fOm*(dOm^2));
+real H =  (FD/F)^(0.5) - dmax/2;
+
+exportVar(H);
