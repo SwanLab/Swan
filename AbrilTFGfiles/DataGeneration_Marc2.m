@@ -239,7 +239,7 @@ end
 function bc = createBoundaryConditions1(mesh)
     % Subdomain 1: Dirichlet clamped on LEFT face (x = xMin)
     xMin = min(mesh.coord(:,1));
-    sDir{1}.domain    = @(coor) abs(coor(:,1) - xMin) < 1;
+    sDir{1}.domain    = @(coor) abs(coor(:,1) - xMin) < 1e-7;
     sDir{1}.direction = [1, 2];
     sDir{1}.value     = 0;
 
@@ -260,11 +260,10 @@ end
 function bc = createBoundaryConditions2(mesh)
     % Subdomain 2: Neumann (traction) on RIGHT face (x = xMax), force downward
     xMax = max(mesh.coord(:,1));
-    sPL{1}.domain    = @(coor) abs(coor(:,1) - xMax) < 1;
+    sPL{1}.domain    = @(coor) abs(coor(:,1) - xMax) < 1e-7;
     sPL{1}.direction = 2;
     sPL{1}.value     = -0.005;
     
-    % --- Preallocation ---
     numPL = numel(sPL);
     pointloadFun = TractionLoad.empty(0, numPL);
     
@@ -292,7 +291,7 @@ function uDirect = solveDirectly(mD, material)
     
     % Dirichlet
     xMin = min(mD.coord(:,1));
-    sDir{1}.domain    = @(coor) abs(coor(:,1) - xMin) < 1;
+    sDir{1}.domain    = @(coor) abs(coor(:,1) - xMin) < 1e-7;
     sDir{1}.direction = [1, 2];
     sDir{1}.value     = 0;
     dirichletFun = DirichletCondition(mD, sDir{1});
@@ -304,7 +303,7 @@ function uDirect = solveDirectly(mD, material)
     
     % Neumann 
     xMax = max(mD.coord(:,1));
-    sPL{1}.domain    = @(coor) abs(coor(:,1) - xMax) < 1;
+    sPL{1}.domain    = @(coor) abs(coor(:,1) - xMax) < 1e-7;
     sPL{1}.direction = 2;
     sPL{1}.value     = -0.005;
     pointloadFun = TractionLoad(mD, sPL{1}, 'DIRAC');
@@ -314,13 +313,23 @@ function uDirect = solveDirectly(mD, material)
     % Aplicar Dirichlet
     dirichDofs = bc.dirichlet_dofs;
     dirichVals = bc.dirichlet_vals;
+
+    dofs = 1:uFun.nDofs;
+    free_dofs = setdiff(dofs, dirichDofs);
+    Kf = K(free_dofs, free_dofs);
     
     RHS = RHS - K(:, dirichDofs) * dirichVals;
-    K(dirichDofs, :) = 0;
-    K(:, dirichDofs) = 0;
-    K(sub2ind(size(K), dirichDofs, dirichDofs)) = 1;
-    RHS(dirichDofs) = dirichVals;
+
+    forces = RHS(free_dofs);
+    u = Kf \ forces;
+    uDirect(free_dofs) = u;
+    uDirect(dirichDofs) = dirichVals;
+
+
+    % K(dirichDofs, :) = 0;
+    % K(:, dirichDofs) = 0;
+    % K(sub2ind(size(K), dirichDofs, dirichDofs)) = 1;
+    % RHS(dirichDofs) = dirichVals;
     
-    uDirect = K \ RHS;  
 end
 

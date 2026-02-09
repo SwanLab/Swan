@@ -147,13 +147,34 @@ classdef ThreeFieldsComputer2 < handle
             LHS(sub2ind(size(LHS), dirichDofs, dirichDofs)) = 1;
         
             RHS(dirichDofs, :) = dirichVals * ones(1, nModes);
+
+            dofs = 1:size(LHS,1);
+            free_dofs = setdiff(dofs, dirichDofs);
+            Kf = LHS(free_dofs, free_dofs);
+                    
+            LHS = Kf;
+            RHS = RHS(free_dofs);
         end
         
 
-        function [u, lambda1, lambda2] = computeFunctions(obj, sol)
+        function [u, lambda1, lambda2] = computeFunctions(obj, solution)
+            dirichDofs = obj.bc1.dirichlet_dofs;
+            dirichVals = obj.bc1.dirichlet_vals;
             nU1 = obj.uFun1.nDofs;
             nU2 = obj.uFun2.nDofs;
             nL1 = obj.lambdaFun1.nDofs;
+            uGammaDofs = obj.uGamma1.nDofs;
+            totaldofs = nU1 + nU2 + 2*nL1 + uGammaDofs;
+            dofs = 1:totaldofs;
+            free_dofs = setdiff(dofs, dirichDofs);
+
+            sol(free_dofs,1) = solution;
+            sol(dirichDofs,1) = dirichVals;
+
+            
+            
+
+            
             u1      = sol(1:nU1, :);
             u2      = sol(nU1+1:nU1+nU2, :);
             lambda1 = sol(nU1+nU2+1:nU1+nU2+nL1, :);
