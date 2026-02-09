@@ -41,7 +41,7 @@ classdef TestingPhaseFieldHomogenizer < handle
             for i=1:nComb
                 hole = comb(i,:);
                 if i==1
-                    hole = 0.9*ones(size(hole));
+                    hole = 1e-5*ones(size(hole));
                 end
                 mat(:,:,:,:,i) = obj.computeHomogenization(hole,i);
                 phi(i)     = obj.computeDamageMetric(hole);
@@ -112,7 +112,7 @@ classdef TestingPhaseFieldHomogenizer < handle
         end
 
         function paramHole = computeHoleParams(obj)
-            obj.maxParam = 0.975*ones(size(obj.nSteps));
+            obj.maxParam = 0.99*ones(size(obj.nSteps));
             nParam = length(obj.maxParam);
             paramHole = cell(1,nParam);
             for i=1:nParam
@@ -181,8 +181,8 @@ classdef TestingPhaseFieldHomogenizer < handle
         function mat = createDensityMaterial(obj,lsf)
             s.interpolation  = 'SIMPALL';
             s.dim            = 2;
-            s.matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(0.01*obj.E,obj.nu,obj.baseMesh.ndim);
-            s.matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(0.01*obj.E,obj.nu);
+            s.matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(1e-12*obj.E,obj.nu,obj.baseMesh.ndim);
+            s.matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(1e-12*obj.E,obj.nu);
             s.matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(obj.E,obj.nu,obj.baseMesh.ndim);
             s.matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(obj.E,obj.nu);
             mI = MaterialInterpolator.create(s);
@@ -245,12 +245,12 @@ classdef TestingPhaseFieldHomogenizer < handle
                     coorRotY = obj.defineRotatedCoordinates(-pi/3);
                     isLeftBottom  = @(coor) (abs(coorRotY(coor) - min(coorRotY(coor))) < 1e-12);
                     isRightTop    = @(coor) (abs(coorRotY(coor) - max(coorRotY(coor))) < 1e-12);
-                    isVertex = @(coor) (isBottom(coor) & isRightBottom(coor))  |...
-                                       (isRightBottom(coor) & isRightTop(coor))|...
-                                       (isRightTop(coor) & isTop(coor))        |...
-                                       (isTop(coor) & isLeftTop(coor))         |...
-                                       (isLeftTop(coor) & isLeftBottom(coor))  |...
-                                       (isLeftBottom(coor) & isBottom(coor))   ;
+                    isVertex = @(coor) (isBottom(coor) & isRightBottom(coor)); %|...
+                                       %(isRightBottom(coor) & isRightTop(coor))|...
+                                       %(isRightTop(coor) & isTop(coor))        |...
+                                       %(isTop(coor) & isLeftTop(coor))         |...
+                                       %(isLeftTop(coor) & isLeftBottom(coor))  |...
+                                       %(isLeftBottom(coor) & isBottom(coor))   ;
                     sDir{1}.domain    = @(coor) isVertex(coor);
                     sDir{1}.direction = [1,2];
                     sDir{1}.value     = 0;

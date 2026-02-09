@@ -14,10 +14,10 @@ etak1  = @(nu) mu1(nu);
 etamu0 = (k0.*mu0)./(2.*mu0+k0);
 etamu1 = @(nu) (k1(nu).*mu1(nu))./(2.*mu1(nu)+k1(nu));
 
-kUB  = @(phi,nu) (1/k1(nu))*(k0.*(phi) + k1(nu).*(1-phi) - ((1-phi).*phi.*(k1(nu)-k0).^2)./(k0.*(1-phi) + k1(nu).*phi + etak1(nu)));
-muUB = @(phi,nu) (1/mu1(nu))*(mu0.*(phi) + mu1(nu).*(1-phi) - ((1-phi).*phi.*(mu1(nu)-mu0).^2)./(mu0.*(1-phi) + mu1(nu).*phi + etamu1(nu)));
-kLB  = @(phi,nu) (1/k1(nu))*(k0.*(phi) + k1(nu).*(1-phi) - ((1-phi).*phi.*(k1(nu)-k0).^2)./(k0.*(1-phi) + k1(nu).*phi + etak0));
-muLB = @(phi,nu) (1/mu1(nu))*(mu0.*(phi) + mu1(nu).*(1-phi) - ((1-phi).*phi.*(mu1(nu)-mu0).^2)./(mu0.*(1-phi) + mu1(nu).*phi + etamu0));
+kUB  = @(phi,nu) (k0.*(phi) + k1(nu).*(1-phi) - ((1-phi).*phi.*(k1(nu)-k0).^2)./(k0.*(1-phi) + k1(nu).*phi + etak1(nu)));
+muUB = @(phi,nu) (mu0.*(phi) + mu1(nu).*(1-phi) - ((1-phi).*phi.*(mu1(nu)-mu0).^2)./(mu0.*(1-phi) + mu1(nu).*phi + etamu1(nu)));
+kLB  = @(phi,nu) (k0.*(phi) + k1(nu).*(1-phi) - ((1-phi).*phi.*(k1(nu)-k0).^2)./(k0.*(1-phi) + k1(nu).*phi + etak0));
+muLB = @(phi,nu) (mu0.*(phi) + mu1(nu).*(1-phi) - ((1-phi).*phi.*(mu1(nu)-mu0).^2)./(mu0.*(1-phi) + mu1(nu).*phi + etamu0));
 
 %% AT1 and AT2 functions
 gAT1 = @(phi) (1-phi)^2;
@@ -126,14 +126,14 @@ xlabel({"Damage $(\phi)$ [-]";"(b)"},'Interpreter','latex');
 legend([p1,p2],{'Rational','H-S bounds'},'Interpreter','latex')
 
 %% Figure 4 Constitutive tensor homogenized
-[dataHexa]  = load('HexagonAreaNew.mat');
-C11hexa = squeeze(dataHexa.mat(1,1,1,1,:));
-C12hexa = squeeze(dataHexa.mat(2,2,1,1,:));
-C33hexa = squeeze(dataHexa.mat(1,2,1,2,:));
-[dataHoney] = load('HoneycombAreaNew.mat');
-C11honey= squeeze(dataHoney.mat(1,1,1,1,:));
-C12honey= squeeze(dataHoney.mat(2,2,1,1,:));
-C33honey= squeeze(dataHoney.mat(1,2,1,2,:));
+[dataHexa]  = load('HexagonBenchmark03.mat');
+C11hexaMat = squeeze(dataHexa.mat(1,1,1,1,:));
+C12hexaMat = squeeze(dataHexa.mat(2,2,1,1,:));
+C33hexaMat = squeeze(dataHexa.mat(1,2,1,2,:));
+[dataHoney] = load('HoneycombBenchmark03.mat');
+C11honeyMat = squeeze(dataHoney.mat(1,1,1,1,:));
+C12honeyMat = squeeze(dataHoney.mat(2,2,1,1,:));
+C33honeyMat = squeeze(dataHoney.mat(1,2,1,2,:));
 
 figure(4)
 t = tiledlayout(1,3);
@@ -188,10 +188,15 @@ fontsize(gcf,25,'points')
 legend('Hexagon','Reinforced hexagon')
 
 %% Figure 7 Homogenized bulk and shear
-bulkHexa   = @(phi) (C11hexa(phi)-C33hexa(phi))/(C11hexa(0)-C33hexa(0));
-shearHexa  = @(phi) C33hexa(phi)/C33hexa(0);
-bulkHoney  = @(phi) (C11honey(phi)-C33honey(phi))/(C11honey(0)-C33honey(0));
-shearHoney = @(phi) C33honey(phi)/C33honey(0);
+bulkHexa   = @(phi) (C11hexa(phi)-C33hexa(phi));
+shearHexa  = @(phi) C33hexa(phi);
+bulkHoney  = @(phi) (C11honey(phi)-C33honey(phi));
+shearHoney = @(phi) C33honey(phi);
+
+bulkHexaMat = C11hexaMat - C33hexaMat;
+shearHexaMat = C33hexaMat;
+bulkHoneyMat = C11honeyMat - C33honeyMat;
+shearHoneyMat = C33honeyMat;
 
 figure(7)
 t = tiledlayout(1,2);
@@ -199,19 +204,24 @@ nexttile
 hold on
 grid minor
 fplot(@(phi) kLB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',1.5);
-fplot(@(phi) kUB(phi,0),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',1.5);
+fplot(@(phi) kUB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',1.5);
 fplot(bulkHexa,[0,1],'Color',cmp(4,:),'LineStyle','-','Marker','+','LineWidth',1.5);
-fplot(bulkHoney,[0 1],'Color',cmp(4,:),'LineStyle','-','Marker','+','LineWidth',1.5);
+fplot(bulkHoney,[0 1],'Color',cmp(4,:),'LineStyle','--','Marker','o','LineWidth',1.5);
+plot(dataHexa.phi,bulkHexaMat)
+plot(dataHoney.phi,bulkHoneyMat)
+
 ylabel('$\kappa(\phi)/\kappa_0$ [-]','Interpreter','latex');
 xlabel({"Damage $(\phi)$ [-]";"(a)"},'Interpreter','latex');
 fontsize(gcf,30,'points')
 nexttile
 hold on
 grid minor
-p3 = fplot(@(phi) kLB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',1.5);
-fplot(@(phi) kUB(phi,0),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',1.5);
-p1 = fplot(shearHexa,[0 1],'Color',cmp(4,:),'LineStyle','-','Marker','+','LineWidth',1.5)
-p2 = fplot(shearHoney,[0 1],'Color',cmp(4,:),'LineStyle','-','Marker','+','LineWidth',1.5)
+p3 = fplot(@(phi) muLB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',1.5);
+fplot(@(phi) muUB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',1.5);
+p1 = fplot(shearHexa,[0 1],'Color',cmp(4,:),'LineStyle','-','Marker','+','LineWidth',1.5);
+p2 = fplot(shearHoney,[0 1],'Color',cmp(4,:),'LineStyle','--','Marker','o','LineWidth',1.5);
+plot(dataHexa.phi,shearHexaMat)
+plot(dataHoney.phi,shearHoneyMat)
 ylabel('$\mu(\phi)/\mu_0$ [-]','Interpreter','latex');
 xlabel({"Damage $(\phi)$ [-]";"(b)"},'Interpreter','latex');
 fontsize(gcf,30,'points')

@@ -285,6 +285,7 @@ classdef GeometricalFunction < handle
     methods (Access = private, Static)
 
         function d = computeHexagonFunction(x,x1,x2,x0,y0,n,p,l)
+            apothem = l*(sqrt(3)/2);
             vx     = x1(x)-x0;
             vy     = x2(x)-y0;
             nS     = size(n,1);
@@ -297,11 +298,12 @@ classdef GeometricalFunction < handle
                 vn(:,:,:,i) = abs(vx*nx + vy*ny);
             end
             normVn = vecnorm(vn,p,4);
-            d = (normVn/(l*(sqrt(3)/2)))-1;
+            d = (normVn/apothem)-1;
         end
 
         function d = computeReinfHoneycomb(x,x1,x2,x0,y0,n,l)
-            m = l/(2*sqrt(3));
+            m = (1-l)/(2*sqrt(3));
+            lHexa = (1 - m/(sqrt(3)/2));
             vx = x1(x) - x0;
             vy = x2(x) - y0;            
             nS     = size(n,1);
@@ -311,11 +313,11 @@ classdef GeometricalFunction < handle
             for i = 1:nS
                 nx = n(i,1);
                 ny = n(i,2);
-                vn(:,:,:,i)  = (abs(vx*nx + vy*ny)/m)-1;
+                vn(:,:,:,i)  = 1-(abs(vx*nx + vy*ny)/m);
             end
-            dBars = min(vn,[],4);
-            dHex  = GeometricalFunction.computeHexagonFunction(x,x1,x2,x0,y0,n,'Inf',1-l/3);
-            d     = max(dHex,-dBars);
+            dBars = max(vn,[],4);
+            dHex  = GeometricalFunction.computeHexagonFunction(x,x1,x2,x0,y0,n,'Inf',lHexa);
+            d     = max(dHex,dBars);
         end   
 
 
