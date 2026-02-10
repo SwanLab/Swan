@@ -12,7 +12,7 @@ u   = LagrangianFunction.create(cohesiveMesh.mesh,2,'P1');
 %% Comprovacions de separacions
 fValues = u.fValues;
 
-comprovacio = 4;
+comprovacio = 1;
 
 if comprovacio == 1
     separacio = -0.1;
