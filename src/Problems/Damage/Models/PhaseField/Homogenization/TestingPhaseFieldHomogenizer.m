@@ -37,25 +37,27 @@ classdef TestingPhaseFieldHomogenizer < handle
             mat = zeros(2,2,2,2,nComb);
 
             %% Regular homogenization
-            phi = zeros(1,nComb);
-            for i=1:nComb
-                hole = comb(i,:);
-                if i==1
-                    hole = 1e-5*ones(size(hole));
-                end
-                mat(:,:,:,:,i) = obj.computeHomogenization(hole,i);
-                phi(i)     = obj.computeDamageMetric(hole);
-            end
+            % phi = zeros(1,nComb);
+            % for i=1:nComb
+            %     hole = comb(i,:);
+            %     if i==1
+            %         hole = 1e-5*ones(size(hole));
+            %     end
+            %     mat(:,:,:,:,i) = obj.computeHomogenization(hole,i);
+            %     phi(i)     = obj.computeDamageMetric(hole);
+            % end
             
             %% Initial degradation (tiniest possible hole)
-            % nuArray = linspace(-0.99,0.5,obj.nSteps);
-            % dens = obj.createDensityLevelSet(1e-3);
-            % phi  = obj.computeDamageMetric(1e-3);
-            % for i=1:nComb
-            %     obj.nu = nuArray(i);
-            %     material  = obj.createDensityMaterial(dens);
-            %     mat(:,:,:,:,i) = obj.solveElasticMicroProblem(material,dens);
-            % end
+            l = 1e-5;
+            nuArray = linspace(-0.99,0.5,obj.nSteps);
+            obj.density = obj.createDensityLevelSet(l);
+            for i=1:nComb
+                obj.nu = nuArray(i);
+                obj.updateMonitoring(i);
+                material  = obj.createDensityMaterial(obj.density);
+                mat(:,:,:,:,i) = obj.solveElasticMicroProblem(material,obj.density);
+            end
+            phi  = obj.computeDamageMetric(1e-2);
 
             %mat = obj.assembleResults(mat);
             %phi = obj.assembleResults(phi);
