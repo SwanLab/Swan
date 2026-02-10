@@ -10,11 +10,11 @@ clc; clear; close all;
 %r=1e-6:0.05:0.999; 
 %r=1e-6:0.1:0.999; 
 %r=0:0.05:0.999;
-r=0.5;
+r=1e-6;
 
 p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale'
 p.Inclusion  = 'Material';        %'Material'/'Hole'/'HoleRaul'
-p.nelem      = 2;
+p.nelem      = 25;
 meshName     = p.nelem+"x"+p.nelem;
 
 
@@ -28,7 +28,7 @@ meshName     = p.nelem+"x"+p.nelem;
             sSplit.meshReference = mR;
             sSplit.tolSameNode   = 1e-10;
             splitter             = MeshCreatorFromRVE2D(sSplit);
-            [mD, subMeshes, ~, bdSubmesh] = splitter.create();
+            [mD, subMeshes, ~, bdSubmesh,~,~,dMesh] = splitter.create();
 
             mesh1          = subMeshes{1};
             mesh2          = subMeshes{2};
@@ -66,7 +66,7 @@ meshName     = p.nelem+"x"+p.nelem;
 
             e = ThreeFieldsComputer2(s);
             [T, lambda1, lambda2, K, Kcoarse] = e.solve();
-            
+                      
             %% COMPARACIÓ AMB SOLVER DIRECTE
 
             materialDirect = createMaterialTraining(mD, radius, [1 1], p.Inclusion);
@@ -79,6 +79,8 @@ meshName     = p.nelem+"x"+p.nelem;
 
             fprintf('Max Uy -> Direct: %.4e | 3Fields: %.4e | Error: %.2f%%\n', uyDirect, uyTF, abs(uyTF-uyDirect)/uyDirect*100);
 
+
+        
     end
     R        = r(j);
 
@@ -194,15 +196,15 @@ function mS = createStructuredMesh(p)
     obj.ymin = min(x2);
     obj.ymax = max(x2);
 
-    delta = 1e-9;
-    s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
-        s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-0*delta];
-    s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
-        s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-delta,0*delta];
-    s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
-        s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[delta,-0*delta];
-    s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
-        s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[delta,0*delta];
+    % delta = 1e-9;
+    % s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
+    %     s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-0*delta];
+    % s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
+    %     s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-delta,0*delta];
+    % s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
+    %     s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[delta,-0*delta];
+    % s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
+    %     s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[delta,0*delta];
 
     mS = Mesh.create(s); 
    
@@ -324,12 +326,6 @@ function uDirect = solveDirectly(mD, material)
     u = Kf \ forces;
     uDirect(free_dofs) = u;
     uDirect(dirichDofs) = dirichVals;
-
-
-    % K(dirichDofs, :) = 0;
-    % K(:, dirichDofs) = 0;
-    % K(sub2ind(size(K), dirichDofs, dirichDofs)) = 1;
-    % RHS(dirichDofs) = dirichVals;
-    
+   
 end
 

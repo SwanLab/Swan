@@ -67,28 +67,30 @@ classdef ThreeFieldsComputer2 < handle
 
         function Mglob = computeConditionMatrix(obj, testFun, trialFun, uDomain, bdSubmesh) 
             f = @(v,u) DP(v,u);
-            M = IntegrateLHS(f, testFun, trialFun, testFun.mesh, 'Domain', 2);
-        
+            M = IntegrateLHS(f, testFun, trialFun, bdSubmesh.mesh, 'Domain', 2);
+            %M = eye(bdSubmesh.mesh.nnodes*testFun.ndimf);
+
             nDim        = testFun.ndimf;
             localNodes  = unique(testFun.mesh.connec(:), 'Stable');
-            globalNodes = bdSubmesh.globalConnec(:);
-        
+            globalNodes = unique(bdSubmesh.globalConnec(:),'Stable');
+
             % Expand nodes to DOFs: node k -> DOFs [(k-1)*nDim+1, ..., k*nDim]
             localDofs  = (localNodes - 1) * nDim + (1:nDim);   
             globalDofs = (globalNodes - 1) * nDim + (1:nDim);
-        
+
             localDofs  = localDofs(:);   
             globalDofs = globalDofs(:);
-        
+
             % Assemble: rows stay local (Lambda), cols map to global (U)
             Mglob = sparse(testFun.nDofs, uDomain.nDofs);
             Mglob(:, globalDofs) = M(:, localDofs);
         end
-        
+               
         function M2 = computeConditionMatrix2(obj, testFun, trialFun)
             f = @(v,u) DP(v,u);
             integrationMesh = testFun.mesh; 
             M2 = IntegrateLHS(f, testFun, trialFun, integrationMesh, 'Domain', 2);
+            %M2 = eye(integrationMesh.nnodes*testFun.ndimf);
 
         end
         
@@ -134,28 +136,27 @@ classdef ThreeFieldsComputer2 < handle
         function [LHS, RHS] = applyDirichlet(obj, LHS, RHS)
             dirichDofs = obj.bc1.dirichlet_dofs;
             dirichVals = obj.bc1.dirichlet_vals;
-   
+
             if isempty(dirichDofs)
                 return;
             end
-        
+
             nModes = size(RHS, 2);
             RHS = RHS - LHS(:, dirichDofs) * dirichVals * ones(1, nModes);
-        
+
             LHS(dirichDofs, :) = 0;
             LHS(:, dirichDofs) = 0;
             LHS(sub2ind(size(LHS), dirichDofs, dirichDofs)) = 1;
-        
+
             RHS(dirichDofs, :) = dirichVals * ones(1, nModes);
 
             dofs = 1:size(LHS,1);
             free_dofs = setdiff(dofs, dirichDofs);
             Kf = LHS(free_dofs, free_dofs);
-                    
+
             LHS = Kf;
             RHS = RHS(free_dofs);
         end
-        
 
         function [u, lambda1, lambda2] = computeFunctions(obj, solution)
             dirichDofs = obj.bc1.dirichlet_dofs;
@@ -171,10 +172,8 @@ classdef ThreeFieldsComputer2 < handle
             sol(free_dofs,1) = solution;
             sol(dirichDofs,1) = dirichVals;
 
-            
-            
 
-            
+
             u1      = sol(1:nU1, :);
             u2      = sol(nU1+1:nU1+nU2, :);
             lambda1 = sol(nU1+nU2+1:nU1+nU2+nL1, :);
