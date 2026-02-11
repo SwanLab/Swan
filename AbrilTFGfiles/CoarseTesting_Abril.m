@@ -1,30 +1,35 @@
 classdef CoarseTesting_Abril< handle
 
     properties (Access = public)
-
+        SolExact
+        Sol
+        residualPCG
+        errPCG
+        errAnormPCG
+        residualCG
+        errCG
+        errAnormCG
     end
+
     properties (Access = private)
         nSubdomains
-        rSubdomains
-        mSubdomains
+        r
+        centroids
+        Print
+
         ic
         icr
         lg
         bs
-        
         meshDomain
         referenceMesh
-        cellMeshes
+        subdomainMeshes
+        cellMesh
         discMesh
         boundaryConditions
         bcApplier
-        LHS
-        RHS
-        r
-        centroids
 
         tolSameNode
-        NN
         data
         params
 
@@ -38,22 +43,18 @@ classdef CoarseTesting_Abril< handle
 
     methods (Access = public)
 
-        function obj = CoarseTesting_Abril()
-            obj.init()
+        function obj = CoarseTesting_Abril(cParams)
+            obj.init(cParams)
+        end
 
-            % COMPUTE MESH  
-            mR  = obj.createReferenceMesh();  % Crea la reference mesh
-            bS  = mR.createBoundaryMesh();    % Crea el boundary de la mesh
-            obj.referenceMesh = mR;           % Guarda la reference Mesh   
-            obj.repeatMesh();                 % Crea el domini
-            
+        function compute(obj)
+            obj.createMesh();
+            mR  = obj.referenceMesh;
+            bS  = mR.createBoundaryMesh();                         
             [bC,dir] = obj.createBoundaryConditions(obj.meshDomain);
             obj.boundaryConditions = bC;
             obj.createBCapplier()
-
-            [LHS,RHS,LHSf] = obj.createElasticProblem();
-            obj.LHS        = LHSf;
-
+            [LHS,RHS,~] = obj.createElasticProblem();
 
             % EXACT SOLUTION
             LHSf   = @(x) LHS*x;
@@ -63,64 +64,76 @@ classdef CoarseTesting_Abril< handle
             
 
             % PRECONDITIONERS
-            Meifem       = obj.createEIFEMPreconditioner(dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);            
             Milu         = obj.createILUpreconditioner(LHS);
-            Mcoarse      = obj.createCoarseNNPreconditioner(mR,dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);
-            MiluCG       = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
-            Mmult        = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Meifem,Milu);
+            switch obj.params.Option
+                case {'Dataset','NN','Hybrid'}
+                    Mcoarse     = obj.createCoarseNNPreconditioner(mR,dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);
+                    Mmult        = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Mcoarse,Milu);
+                case {'HO'}
+                    Meifem       = obj.createEIFEMPreconditioner(dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);
+                    Mmult        = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Meifem,Milu);
+            end
 
-
-            % SOLVE THE CASE
             tol = 1e-8;
             x0  = zeros(size(RHSf));
-            tic
-            [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
-            %   tau = @(r,A) 1;
-            %   [uCG,residualPCG,errPCG,errAnormPCG] = RichardsonSolver.solve(LHSf,RHSf,x0,Mmult,tol,tau,Usol);
+            
+            tic  % SOLVE THE CASE WITH STANDARD ITERATIVE SOLVER
+            [~,obj.residualCG,obj.errCG, obj.errAnormCG] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier,false);
+            toc
+            tic % SOLVE THE CASE WITH PRECONDITIONING
+            [uPCG,obj.residualPCG,obj.errPCG,obj.errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier,obj.Print);
             toc
             xFull = obj.bcApplier.reducedToFullVectorDirichlet(uPCG);
-
-
-            % EXPORT TO PARAVIEW
-            s.mesh = obj.meshDomain;
-            s.ndimf = obj.meshDomain.ndim;
-            s.order = 'P1';
-            s.fValues = reshape(xFull,2,[])';
-            uFun = LagrangianFunction(s);
             
-            %uFun.print('ProvaIter1','Paraview');
 
+            % LAGRANGIAN FUN SOLUTIONS
+            s.mesh     = obj.meshDomain;
+            s.ndimf    = obj.meshDomain.ndim;
+            s.order    = 'P1';
+            s.fValues  = reshape(xFull,2,[])';
+            obj.Sol    = LagrangianFunction(s); %Preconditioned sol  
             s.fValues = reshape(Ufull,2,[])';
-            RealFun=LagrangianFunction(s);
+            obj.SolExact=LagrangianFunction(s); %Exact sol
 
             %obj.computeSubdomainCentroid();
             %CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'TestCoarseAbril', obj.r, obj.centroids);
             %CoarsePlotSolution(RealFun, obj.meshDomain, obj.bcApplier,'TestRealAbril', obj.r, obj.centroids);
-            
 
-            % PLOTS
-            close all
-            figure
-            plot(residualPCG,'linewidth',2)
+        end
+
+        function PlotSolution(obj)
+            figure('Position',[65 280 1800 600])
+            tiledlayout(1,3)
+
+            nexttile
+            plot(obj.residualPCG,'linewidth',2)
+            hold on
+            plot(obj.residualCG,'linewidth',2)
             set(gca, 'YScale', 'log')
             xlabel('Iteration')
             ylabel('Residual')
-            title("Residual PCG")
+            title("Residual")
+            legend({'CG + ILU-EIFEM-ILU','CG'})
 
-            figure
-            plot(errPCG,'linewidth',2)
+            nexttile
+            plot(obj.errPCG,'linewidth',2)
+            hold on
+            plot(obj.errCG,'linewidth',2)
             set(gca, 'YScale', 'log')
             xlabel('Iteration')
             ylabel('||error||_{L2}')
-            title("error PCG")
+            title("error")
+            legend({'CG + ILU-EIFEM-ILU','CG'})
 
-            figure
-            plot(errAnormPCG,'linewidth',2)
+            nexttile
+            plot(obj.errAnormPCG,'linewidth',2)
             hold on
+            plot(obj.errAnormCG,'linewidth',2)
             set(gca, 'YScale', 'log')
             xlabel('Iteration')
             ylabel('Energy norm')
-            title("Err Anorm PCG")
+            title("Err Anorm")
+            legend({'CG + ILU-EIFEM-ILU','CG'})
         end
 
     end
@@ -128,125 +141,85 @@ classdef CoarseTesting_Abril< handle
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     methods (Access = private)
 
-        function init(obj)
-            % Case Parameters
-            p.Inclusion = 'HoleRaul';         % 'Hole'/'Material'/'HoleRaul'
-            p.Sampling  = 'Isolated';         % 'Isolated'/'Oversampling'
-            p.loadData  = 'Dataset';          % 'Dataset'/'NN'
-            p.nelem     =  50;                %  Mesh refining
-            obj.params  =  p;
-
-            % Definition of Subdomain
-            obj.r              = ones(5,10)*0.5;
-            obj.nSubdomains    = size(obj.r');
-            obj.mSubdomains    = [];
-            obj.tolSameNode    = 1e-10;
-            
-            % Load the data of the case
-            %switch p.loadData
-            %    case 'Dataset'
-            %        nameFile=obj.computeNameFile();
-            %        obj.loadT(nameFile,p.Inclusion);
-            %        obj.loadK(nameFile,p.Inclusion);  
-            %    case 'NN'
-            %        nameNN= ["K_NN.mat","T_NN.mat"];
-            %        obj.loadNN(nameNN);
-            %end
+        function init(obj,cParams)
+            p.Training      = cParams.Training;    % 'EIFEM'/'Multiscale'
+            p.Inclusion     = cParams.Inclusion;   % 'Hole'/'Material'/'HoleRaul'   --> Hole: just for constant r
+            p.Sampling      = cParams.Sampling;    % 'Isolated'/'Oversampling'
+            p.Option        = cParams.Option;      % 'Dataset'/'NN'/'HO'/ 'Hybrid'
+            p.nelem         = cParams.nelem;       %  Mesh refining
+            obj.params      = p;
+            obj.r           = cParams.r;
+            obj.nSubdomains = size(obj.r');
+            obj.tolSameNode = 1e-10;
+            obj.Print       = cParams.Print;
         end
 
-        function NameFile=computeNameFile(obj)
-            n=obj.params.nelem;
-            rad=obj.r;
-            meshName=n+"x"+n;
-            name=strings(size(rad,1),size(rad,2));
-            for i=1:size(rad,1)
-                for j=1:size(rad,2)
-                    name(i,j) = strrep("r"+num2str(rad(i,j), '%.4f'), ".", "_")+"-"+meshName+".mat";
-                end
-            end
-            NameFile=name;
-        end
-
-        function loadNN(obj,nameNN)
-            load(nameNN(1,1), 'K_NN');
-            obj.NN.K=K_NN;
-            load(nameNN(1,2), 'T_NN');
-            obj.NN.T=T_NN;
-        end
-
-        function loadT(obj,name,inclusion)
-            n=obj.params.nelem;
-            Taux=cell(size(name,1),size(name,2));
-            meshName=n+"x"+n;
-            for i=1:size(name,1)
-                for j=1:size(name,2)
-                    switch inclusion
-                        case 'Material'
-                                filePath = fullfile('AbrilTFGfiles', 'Data',meshName,name(i,j));
-                        case 'Hole'
-                                filePath = fullfile('AbrilTFGfiles', 'Data','hole',name(i,j));
-                    end
-                    load(filePath,"T");
-                    Taux{i,j}=T;
-                end
-            end
-            obj.data.T=Taux;
-        end
-
-        function loadK(obj,name,inclusion)
-            n=obj.params.nelem;
-            Kaux=cell(1,length(name));
-            meshName=n+"x"+n;
-            for i=1:size(name,1)
-                for j=1:size(name,2)
-                    switch inclusion
-                        case 'Material'
-                                filePath = fullfile('AbrilTFGfiles', 'Data',meshName,name(i,j));
-                        case 'Hole'
-                                filePath = fullfile('AbrilTFGfiles', 'Data','hole',name(i,j));
-                    end
-                    load(filePath,"K");
-                    Kaux{i,j}=K;
-                end
-            end
-            obj.data.K=Kaux;
-        end
-
-        function repeatMesh(obj)
-            [mD,mSb,iC,lG,iCR,discmesh] = obj.createMeshDomain(obj.referenceMesh);  
+        function createMesh(obj)
+            mSbd = obj.createSubDomainMeshes();
+            [mD,mSb,iC,lG,iCR,discmesh] = obj.createMeshDomainJoiner(mSbd);
             obj.meshDomain = mD;        % mD:conj subdominis --> Tot el domini
-            obj.cellMeshes = mSb; %??? % mSb: info de la malla a cada subdimini
-            obj.ic = iC;  % info de les coordenades globals en tot el domini ???
-            obj.icr = iCR; % info de les coordenades del corresponent subdomini ???
-            obj.lg = lG; %??
-            obj.discMesh=discmesh;
-            obj.bs; 
+            obj.subdomainMeshes = mSb;  %??? % mSb: subdonain Meshes
+            obj.ic              = iC;   % interface Connectivities ???
+            obj.icr             = iCR;  % info de les coordenades del corresponent subdomini 
+            obj.lg              = lG;   % localGlobal 
+            obj.discMesh        =discmesh;
         end
 
-            function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomain(obj,mR)
-                s.nsubdomains   = obj.nSubdomains; %nx ny
-                s.meshReference = mR;
-                s.tolSameNode = obj.tolSameNode;
-                m = MeshCreatorFromRVE2D(s);
-                [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
-                close all;
+
+        function  mSbd = createSubDomainMeshes(obj)
+            nX = obj.nSubdomains(1);
+            nY = obj.nSubdomains(2);
+            Lx = 2; Ly = 2;
+            cM=cell(nY,nX);
+            mSbd=cell(nY,nX);
+            for jDom = 1:nY
+                for iDom = 1:nX
+                    refMesh = obj.createReferenceMesh(obj.r(jDom,iDom));
+                    coord0  = refMesh.coord;
+                    s.coord(:,1) = coord0(:,1)+Lx*(iDom-1);
+                    s.coord(:,2) = coord0(:,2)+Ly*(jDom-1);
+                    s.connec = refMesh.connec;
+                    mIJ     = Mesh.create(s);
+                    %                     plot(mIJ)
+                    %                     hold on;
+                    mSbd{jDom,iDom} = mIJ;
+                    cM{jDom,iDom} = refMesh;  %same but with local coordinates
+                end
             end
+            obj.referenceMesh = mSbd{1,1};
+            obj.cellMesh=cM;   
+        end
 
 
-        function mS = createReferenceMesh(obj)
+        function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomainJoiner(obj,mSbd)
+           s.nsubdomains   = obj.nSubdomains; %nx ny
+           s.meshReference = obj.referenceMesh;
+           s.tolSameNode   = obj.tolSameNode;
+           s.meshSbd       = mSbd;
+           m = MeshJoiner(s);
+           [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
+        end
+
+
+        function mS = createReferenceMesh(obj,r)
             p=obj.params;
             switch p.Inclusion
                 case 'Material'
                     mS = obj.createStructuredMesh();
                 case 'Hole'
                     mS = obj.createStructuredMesh();
-                    lvSet    = obj.createLevelSetFunction(mS);
+                    lvSet    = obj.createLevelSetFunction(mS,r);
                     uMesh    = obj.computeUnfittedMesh(mS,lvSet);
                     mS = uMesh.createInnerMesh();
                 case 'HoleRaul'
-                    %mS=mesh_rectangle_via_triangles(obj.r(1,1),1,-1,1,-1,7,6,0,0); % 10x10
-                    mS=mesh_rectangle_via_triangles(obj.r(1,1),1,-1,1,-1,15,12,0,0); % 20x20
-                    %mS=mesh_rectangle_via_triangles(obj.r(1,1),1,-1,1,-1,34,35,0,0)  % 50x50
+                    switch p.nelem
+                        case 10
+                            mS=mesh_rectangle_via_triangles(r,1,-1,1,-1,7,6,0,0);   % 10x10
+                        case 20
+                            mS=mesh_rectangle_via_triangles(r,1,-1,1,-1,15,12,0,0); % 20x20
+                        case 50
+                            mS=mesh_rectangle_via_triangles(r,1,-1,1,-1,34,35,0,0);  % 50x50
+                    end
                     obj.xmin =-1; obj.xmax = 1;
                     obj.ymin =-1; obj.ymax = 1;
             end
@@ -255,27 +228,16 @@ classdef CoarseTesting_Abril< handle
 
         function mS = createStructuredMesh(obj)
             n =obj.params.nelem;
-
             x1      = linspace(-1,1,n);
             x2      = linspace(-1,1,n);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
             s.connec = F;
-           
             obj.xmin = min(x1);            
             obj.xmax = max(x1);
             obj.ymin = min(x2);
             obj.ymax = max(x2);
-
-            %mS= QuadMesh(2, 2, n, n);
-            %s.coord=mS.coord;
-            %s.connec=mS.connec;
-            %obj.xmin = 0;
-            %obj.xmax = 2;
-            %obj.ymin = 0;
-            %obj.ymax = 2;
-
             delta = 1e-9;
             s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
                 s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-0*delta];
@@ -285,27 +247,25 @@ classdef CoarseTesting_Abril< handle
                 s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[delta,-0*delta];
             s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
                 s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[delta,0*delta];
-
-            mS = Mesh.create(s); 
-           
+            mS = Mesh.create(s);
         end
-        
+
 
         function computeSubdomainCentroid(obj)
             for i = 1:obj.nSubdomains(1,2)
                 for j = 1:obj.nSubdomains(1,1)
-                   x0=mean(obj.cellMeshes{i,j}.coord(:,1));
-                   y0=mean(obj.cellMeshes{i,j}.coord(:,2));
+                   x0=mean(obj.subdomainMeshes{i,j}.coord(:,1));
+                   y0=mean(obj.subdomainMeshes{i,j}.coord(:,2));
                    obj.centroids = cat(1,obj.centroids, [x0,y0]);
                 end
             end
         end
 
-        function levelSet = createLevelSetFunction(obj,bgMesh)
+        function levelSet = createLevelSetFunction(~,bgMesh,r)
             sLS.type        = 'CircleInclusion';
             sLS.xCoorCenter = 0;
             sLS.yCoorCenter = 0;
-            sLS.radius      = obj.r(1,1);
+            sLS.radius      = r;
             g               = GeometricalFunction(sLS);
             lsFun           = g.computeLevelSetFunction(bgMesh);
             levelSet        = lsFun.fValues;
@@ -356,10 +316,10 @@ classdef CoarseTesting_Abril< handle
 
             for i = 1:obj.nSubdomains(1,2)
                 for j = 1:obj.nSubdomains(1,1)
-                    [young,poisson] = obj.computeElasticProperties(obj.cellMeshes{i,j}, obj.r(i,j) );
+                    [young,poisson] = obj.computeElasticProperties(obj.subdomainMeshes{i,j}, obj.r(i,j) );
                     s.type        = 'ISOTROPIC';
                     s.ptype       = 'ELASTIC';
-                    s.ndim        = obj.cellMeshes{i,j}.ndim;
+                    s.ndim        = obj.subdomainMeshes{i,j}.ndim;
                     s.young       = young;
                     s.poisson     = poisson;
                     tensor        = Material.create(s);
@@ -367,8 +327,6 @@ classdef CoarseTesting_Abril< handle
                 end
             end
         end
-
-
 
         function [young,poisson] = computeElasticProperties(obj,mesh, radius)
             E1  = 1;
@@ -391,8 +349,6 @@ classdef CoarseTesting_Abril< handle
             end            
         end
 
-
-
         function [Dir,PL] = createRawBoundaryConditions(obj)
             minx = min(obj.meshDomain.coord(:,1));
             maxx = max(obj.meshDomain.coord(:,1));
@@ -409,8 +365,8 @@ classdef CoarseTesting_Abril< handle
             Dir{1}.value     = 0;
 
             PL.domain    = @(coor) isRight(coor);
-            PL.direction = [2];
-            PL.value     = [1];       %Set displacement intensity ------------------------------------------------------------
+            PL.direction = 2;
+            PL.value     = 1;       %Set displacement intensity 
         end 
 
         function [bc,Dir,PL] = createBoundaryConditions(obj,mesh)
@@ -420,9 +376,7 @@ classdef CoarseTesting_Abril< handle
                 dir = DirichletCondition(obj.meshDomain, Dir{i});
                 dirichletFun = [dirichletFun, dir];
             end
-
             pointload = TractionLoad(mesh,PL,'DIRAC');
-
             s.pointloadFun = pointload;
             s.dirichletFun = dirichletFun;
             s.periodicFun  =[];
@@ -432,7 +386,7 @@ classdef CoarseTesting_Abril< handle
 
 
         function [LHSr,RHSr,lhs] = createElasticProblem(obj)
-            u = LagrangianFunction.create(obj.cellMeshes{1,1},obj.cellMeshes{1,1}.ndim,'P1');
+            u = LagrangianFunction.create(obj.subdomainMeshes{1,1},obj.subdomainMeshes{1,1}.ndim,'P1');
             uBasic = LagrangianFunction.create(obj.meshDomain,obj.meshDomain.ndim,'P1');
             material = obj.createMaterial();
             [lhs,LHSr] = obj.computeStiffnessMatrix(u,material);
@@ -444,7 +398,7 @@ classdef CoarseTesting_Abril< handle
             LHSvect = [];
             for i = 1:obj.nSubdomains(1,2)
                 for j = 1:obj.nSubdomains(1,1)
-                    mesh     = obj.cellMeshes{i,j};  
+                    mesh     = obj.subdomainMeshes{i,j};  
                     C     = mat{i,j};
                     f = @(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u)));
                     lhs= IntegrateLHS(f,dispFun,dispFun,mesh,'Domain',2);
@@ -457,7 +411,7 @@ classdef CoarseTesting_Abril< handle
             p.interfaceConnecReshaped = obj.icr;
             p.locGlobConnec = obj.lg;
             p.nBoundaryNodes = obj.bs;
-            p.nReferenceNodes = obj.cellMeshes{1,1}.nnodes;
+            p.nReferenceNodes = obj.subdomainMeshes{1,1}.nnodes;
             p.nNodes = obj.meshDomain.nnodes;
             p.nDimf = obj.meshDomain.ndim;
             
@@ -477,7 +431,6 @@ classdef CoarseTesting_Abril< handle
                     rhs  = rhs + rhsi;
                 end
             end
-   
              bc      = obj.boundaryConditions;
              dirich  = bc.dirichlet_dofs;
              dirichV = bc.dirichlet_vals;
@@ -487,27 +440,27 @@ classdef CoarseTesting_Abril< handle
                  R = zeros(sum(u.nDofs(:)),1);
              end
              rhs = rhs+R;
-
              RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
         end
 
          function Meifem = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh)
+            p=obj.params;
+            meshName    =  p.nelem+"x"+p.nelem;
             mR = obj.referenceMesh;
-            Data = OversamplingTraining(mR,obj.r(1,1),obj.params);
-            p = OfflineDataProcessor(Data);
-            EIFEoper = p.computeROMbasis();
-            s.RVE           = TrainedRVE(EIFEoper);
+            fileNameEIFEM  = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,"parametrizedEIFEM.mat");
+            s.RVE           = TrainedRVE(fileNameEIFEM);
             s.mesh          = obj.createCoarseMesh();
-            s.DirCond       = {dir};
-            s.nSubdomains = obj.nSubdomains;
-            s.mu          = obj.r;
-            s.meshRef      = dMesh;
+            s.DirCond       = dir;
+            s.nSubdomains   = obj.nSubdomains;
+            s.mu            = obj.r;
+            s.meshRef       = dMesh;
             eifem           = EIFEMnonPeriodic(s);
+            
             ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
-            ss.EIFEMsolver = eifem;
-            ss.bcApplier = obj.bcApplier;
-            ss.dMesh     = dMesh;
-            ss.type = 'EIFEM';
+            ss.EIFEMsolver  = eifem;
+            ss.bcApplier    = obj.bcApplier;
+            ss.dMesh        = dMesh;
+            ss.type         = 'EIFEM';
             eP = Preconditioner.create(ss);
             Meifem = @(r) eP.apply(r);
         end        
@@ -515,19 +468,40 @@ classdef CoarseTesting_Abril< handle
 
         function Mcoarse = createCoarseNNPreconditioner(obj,mR,dir,iC,lG,bS,iCR,dMesh)
             p=obj.params;
+            meshName    =  p.nelem+"x"+p.nelem;
+            switch p.Option
+                case 'Dataset'
+                    nameFile=obj.computeNameFile();
+                    obj.loadDataset(nameFile);
+                case 'NN'
+                    filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,"K_NN.mat");
+                    load(filePath,"K_NN");
+                    filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,"T_NN.mat");
+                    load(filePath,"T_NN","pol_deg");
+                    
+                case 'Hybrid'
+                    filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,"K_NN.mat");
+                    load(filePath,"K_NN");
+                    filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,"Q_NN.mat");
+                    load(filePath,"basis","Q_NN","pol_deg");
+            end
+
             RVE = cell(obj.nSubdomains(1,2),obj.nSubdomains(1,1));
 
             for i = 1:obj.nSubdomains(1,2)
                 for j = 1:obj.nSubdomains(1,1)
                     RVE{i,j}.ndimf = 2;
 
-                    switch p.loadData
+                    switch p.Option
                         case 'Dataset'
                             RVE{i,j}.Kcoarse= obj.data.K{i,j};
                             RVE{i,j}.U= obj.data.T{i,j}; 
                         case 'NN'
-                            RVE{i,j}.Kcoarse = obj.computeKcoarse(obj.r(i,j)); 
-                            RVE{i,j}.U       = obj.computeTdownscaling(obj.r(i,j),obj.cellMeshes{i,j});
+                            RVE{i,j}.Kcoarse = computeKcoarse_NN(K_NN,obj.r(i,j));
+                            RVE{i,j}.U       = computeT_NN(obj.cellMesh{i,j},obj.r(i,j),T_NN,pol_deg);
+                        case 'Hybrid'
+                            RVE{i,j}.Kcoarse = computeKcoarse_NN(K_NN,obj.r(i,j));
+                            RVE{i,j}.U       = computeT_Hybrid(basis,obj.r(i,j),Q_NN,pol_deg);
                     end
                 end
             end
@@ -549,45 +523,43 @@ classdef CoarseTesting_Abril< handle
             close all % Ho he afegit pq s'obren fig sense info
         end
 
-
-        function K=computeKcoarse(obj,r)
-            K_aux1=obj.NN.K.computeOutputValues(r);
-            K_aux2=zeros(8);
-
-            idx=1;
-            for n=1:8
-                for m=n:8
-                    K_aux2(n,m)=K_aux1(idx);
-                    idx=idx+1;
+        function NameFile=computeNameFile(obj)
+            n=obj.params.nelem;
+            rad=obj.r;
+            meshName=n+"x"+n;
+            name=strings(size(rad,1),size(rad,2));
+            for i=1:size(rad,1)
+                for j=1:size(rad,2)
+                    name(i,j) = strrep("r"+num2str(rad(i,j), '%.4f'), ".", "_")+"-"+meshName+".mat";
                 end
             end
-            K=K_aux2+triu(K_aux2,1).';
+            NameFile=name;
         end
 
-        function T=computeTdownscaling(obj,r,mesh)
-            T=zeros(mesh.nnodes*mesh.ndim,8);
-            for j=1:8                       % Constructs the 8 columns    
-                Taux2=[];
-                for i=1:size(mesh.coord,1)  % Evaluates all the coordenates and obtains corresponding column
-                    dataInput=[r,mesh.coord(i,:)];  
-                    Taux1=obj.NN.T{1,j}.computeOutputValues(dataInput).';
-                    Taux2=cat(1,Taux2,Taux1);
+
+        function loadDataset(obj,name)
+            p=obj.params;
+            n=p.nelem;
+            Taux=cell(size(name,1),size(name,2));
+            Kaux=cell(size(name,1),size(name,2));
+            meshName=n+"x"+n;
+            for i=1:size(name,1)
+                for j=1:size(name,2)
+                    switch p.Inclusion
+                        case {'Material','HoleRaul'}
+                                filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,name(i,j));
+                        case 'Hole'
+                                filePath = fullfile('AbrilTFGfiles', 'Data',p.Training,'hole',name(i,j));
+                    end
+                    load(filePath,"T","Kcoarse");
+                    Taux{i,j}=T;
+                    Kaux{i,j}=Kcoarse;
                 end
-                T(:,j)=Taux2;
             end
+            obj.data.T=Taux;
+            obj.data.K=Kaux;
         end
 
-        function Mdn = createDirichletNeumannPreconditioner(obj,mR,dir,iC,lG,bS,lhs,mSb,iCR)
-            s.ddDofManager  = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
-            s.DirCond       = dir;
-            s.bcApplier     = obj.bcApplier;
-            s.LHS           = lhs;
-            s.subdomainMesh = mSb;
-            s.meshDomain = obj.meshDomain;
-            s.type = 'DirichletNeumann';
-            M = Preconditioner.create(s);
-            Mdn = @(r) M.apply(r);
-        end
 
         function d = createDomainDecompositionDofManager(obj,iC,lG,bS,mR,iCR)
             s.nSubdomains     = obj.nSubdomains;
