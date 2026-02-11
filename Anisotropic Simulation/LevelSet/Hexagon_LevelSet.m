@@ -1,4 +1,4 @@
-classdef Hexagon_Density < handle
+classdef Hexagon_LevelSet < handle
 
     properties (Access = private)
         mesh
@@ -12,17 +12,15 @@ classdef Hexagon_Density < handle
         constraint
         primalUpdater
         optimizer
-        perimeter
     end
 
     methods (Access = public)
 
-        function obj = Hexagon_Density()
+        function obj = Hexagon_LevelSet()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
-            %obj.createPerimeter();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
             obj.createComplianceFromConstiutive();
@@ -35,8 +33,9 @@ classdef Hexagon_Density < handle
 
             % Save monitoring and desginVariable fValues
             figure(2)
-            saveas(gcf,'Monitoring_Hexagon_Density_MBB.fig');
-            obj.designVariable.fun.print('fValues_Hexagon_Density_MBB');
+            saveas(gcf,'Monitoring_Hexagon_LevelSet.fig');
+            %obj.designVariable.fun.print('fValues_0_LevelSet');
+            obj.designVariable.fun.print('fValues_Hexagon_LevelSet');
         end
 
     end
@@ -50,11 +49,11 @@ classdef Hexagon_Density < handle
         function createMesh(obj)
             %UnitMesh better
             % Cantilever beam
-            % x1      = linspace(0,2,150);
-            % x2      = linspace(0,1,75);
-            % MBB Beam
-            x1      = linspace(0,6,500);
+            x1      = linspace(0,2,150);
             x2      = linspace(0,1,75);
+            % MBB Beam
+            % x1      = linspace(0,6,500);
+            % x2      = linspace(0,1,75);
             [xv,yv] = meshgrid(x1,x2);
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
@@ -63,17 +62,15 @@ classdef Hexagon_Density < handle
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(x(1,:,:)));
-            s.ndimf   = 1;
-            s.mesh    = obj.mesh;
-            aFun      = AnalyticalFunction(s);
-
-            sD.fun      = aFun.project('P1');
-            sD.mesh     = obj.mesh;
-            sD.type     = 'Density';
-            sD.plotting = true;
-            dens        = DesignVariable.create(sD);
-            obj.designVariable = dens; 
+            s.type = 'Full';
+            g      = GeometricalFunction(s);
+            lsFun  = g.computeLevelSetFunction(obj.mesh);
+            s.fun  = lsFun;
+            s.mesh = obj.mesh;
+            s.type = 'LevelSet';
+            s.plotting = true;
+            ls     = DesignVariable.create(s);
+            obj.designVariable = ls;
         end
 
         function createFilter(obj)
@@ -84,7 +81,6 @@ classdef Hexagon_Density < handle
             obj.filter = f;
         end
 
-    
         function createMaterialInterpolator(obj)
             type = 'Hexagon';
             s.C1 = Cvoigt.create(type);
@@ -171,11 +167,8 @@ classdef Hexagon_Density < handle
         end
 
         function createPrimalUpdater(obj)
-             s.ub     = 1;
-             s.lb     = 0;
-             s.tauMax = 1000;
-             s.tau    = [];
-             obj.primalUpdater = ProjectedGradient(s);
+            s.mesh = obj.mesh;
+            obj.primalUpdater = SLERP(s);
         end
 
         function createOptimizer(obj)
@@ -183,20 +176,20 @@ classdef Hexagon_Density < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 500;
+            s.maxIter        = 300;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
-            s.etaNorm        = 0.02;
+            s.etaNorm        = 0.1;
             s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 0.1;
-            s.etaMax         = 1;
-            s.etaMaxMin      = 0.01;
+            s.gJFlowRatio    = 0.05;
+            s.etaMax         = 0.1;
+            s.etaMaxMin      = 0.001;
             %s.type           = '0';
             s.gif = true;
-            s.gifName = 'Gif_Hexagon_Density_MBB';
+            s.gifName = 'Gif_Hexagon_LevelSet';
             s.printing = false;
-            s.printName = 'Results_Hexagon_Density_MBB';
+            s.printName = 'Results_Hexagon_LevelSet';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -217,27 +210,27 @@ classdef Hexagon_Density < handle
 
         function bc = createBoundaryConditions(obj)
             % Cantilever beam
-            % xMax    = max(obj.mesh.coord(:,1));
-            % yMax    = max(obj.mesh.coord(:,2));
-            % isDir   = @(coor)  abs(coor(:,1))==0;
-            % isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
-            % 
-            % MBB beam
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
-            isDir   = @(coor)  (abs(coor(:,1))==0 & abs(coor(:,2)) == 0);
-            isDir2  = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2)) == 0);
-            isForce = @(coor)  (abs(coor(:,2))==yMax & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax);
+            isDir   = @(coor)  abs(coor(:,1))==0;
+            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
+            
+            % MBB beam
+            % xMax    = max(obj.mesh.coord(:,1));
+            % yMax    = max(obj.mesh.coord(:,2));
+            % isDir   = @(coor)  (abs(coor(:,1))==0 & abs(coor(:,2)) == 0);
+            % isDir2  = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2)) == 0);
+            % isForce = @(coor)  (abs(coor(:,2))==yMax & abs(coor(:,1))>=0.4*xMax & abs(coor(:,1))<=0.6*xMax);
 
 
             sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [2]; % Cantilever--> [1,2]   MBB--> 2
+            sDir{1}.direction = [1,2];  % Cantilever--> [1,2]   MBB--> 2
             sDir{1}.value     = 0;
             
             % Comentar sDir 2 quan es faci cantilever beam
-            sDir{2}.domain    = @(coor) isDir2(coor);
-            sDir{2}.direction = [1,2];
-            sDir{2}.value     = 0;
+            % sDir{2}.domain    = @(coor) isDir2(coor);
+            % sDir{2}.direction = [1,2];
+            % sDir{2}.value     = 0;
 
             sPL{1}.domain    = @(coor) isForce(coor);
             sPL{1}.direction = 2;
