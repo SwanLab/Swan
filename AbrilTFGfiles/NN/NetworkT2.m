@@ -8,14 +8,14 @@ close all;
 
 %% Case parameters
 p.Training  = 'EIFEM';   % 'EIFEM'/'Multiscale'
-p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
+p.Sampling   ='Oversampling';     %'Isolated'/'Oversampling'
 p.Inclusion  ='Material';    %'Material'/'Hole'/'HoleRaul
 
 %% Initialization of hyperparameters
-pol_deg         = 9;
+pol_deg         = 6;
 testratio       = 30;
 lambda          = 0.0;
-learningRate    = 0.01;
+learningRate    = 0.05;
 hiddenLayers    = [224 250 280 300 280 250 224 200 150 100 72 50 20];
 
 
@@ -56,5 +56,5 @@ T_NN = OptimizationProblemNN(s);
 T_NN.solve();
 T_NN.plotCostFnc();
     
-FileName=fullfile('AbrilTFGfiles',"Data",p.Training,p.Inclusion,p.Sampling,"T_NN.mat");
+FileName=fullfile('AbrilTFGfiles',"Data",p.Training,p.Inclusion,p.Sampling,"T_NN.mat")
     save(FileName, "T_NN","pol_deg");
