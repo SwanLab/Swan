@@ -12,3 +12,7 @@ ufun print.vtu
 thetafun print.vtu
 thetafun print.vtu
 ufun print.vtu
+strain.vtu
+stress.vtu
+thetafun print.vtu
+ufun print.vtu

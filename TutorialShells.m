@@ -27,10 +27,10 @@ classdef TutorialShells < handle
 
             obj.solverType = 'REDUCED';
             
-            obj.createBoundaryConditions()
+            obj.createBoundaryConditions()  % BOUNDARY CONDITIONS 
             LHS = obj.createLHS();
             obj.lhs = LHS;
-            RHS = obj.createRHS();
+            RHS = obj.createRHS();          % BC --> Distributed forces 
 
             x = LHS\RHS;
 
@@ -47,9 +47,8 @@ classdef TutorialShells < handle
 
             uT = zeros(obj.uFun.nDofs,1);
             uT(dofFU,1) = uF; 
-            uT = reshape(uT,[], obj.uFun.ndimf);
+            uT = reshape(uT,obj.uFun.ndimf,[])';
             obj.uFun.setFValues(uT);
-            
 
             wT = zeros(obj.wFun.nDofs,1);
             wT(dofFW,1) = wF; 
@@ -58,16 +57,39 @@ classdef TutorialShells < handle
             
             thetaT = zeros(obj.thetaFun.nDofs,1);    
             thetaT(dofFT,1) = tF; 
-            thetaT = reshape(thetaT,[], obj.thetaFun.ndimf);
+            thetaT = reshape(thetaT,obj.thetaFun.ndimf,[])';
             obj.thetaFun.setFValues(thetaT);
-            
-            plot(obj.wFun)
-            plot(obj.uFun)
-            plot(obj.thetaFun)
-            
-            obj.wFun.print('wfun print','Paraview')
-            obj.uFun.print('ufun print','Paraview')
-            obj.thetaFun.print('thetafun print','Paraview')
+
+            z{1} = 0;
+            z{2} = 0.1/2;
+
+            [strainFun, stressFun] = obj.createStrainStressFunctions(z);
+
+            %% PLOT AND PRINT 
+
+            plotMatlab = true;
+            printParaview = false;
+
+            if plotMatlab == true 
+                plot(obj.uFun)
+                plot(obj.wFun)
+                plot(obj.thetaFun)
+
+                kappa = 1;
+                plot(strainFun{kappa});
+                title('Epsilon xx')
+                plot(stressFun{kappa});
+                
+            end
+
+            if printParaview == true
+                obj.wFun.print('wfun print','Paraview')
+                obj.uFun.print('ufun print','Paraview')
+                obj.thetaFun.print('thetafun print','Paraview')
+                strainFun{kappa}.print('strain', 'Paraview'); % Kappa defined on plots
+                stressFun{kappa}.print('stress', 'Paraview');
+
+            end
         end
 
     end
@@ -75,7 +97,7 @@ classdef TutorialShells < handle
     methods (Access = private)
 
         function createMesh(obj)
-          obj.mesh = UnitTriangleMesh(50,50);
+          obj.mesh = UnitTriangleMesh(5,5);
         end
 
         function createSolutionField(obj)
@@ -136,9 +158,10 @@ classdef TutorialShells < handle
         end
 
         function RHS = createRHS(obj)
+
             p = ConstantFunction.create([0 0],obj.mesh);
             m = ConstantFunction.create([0 0],obj.mesh);
-            q = ConstantFunction.create(1,obj.mesh);   
+            q = ConstantFunction.create(0,obj.mesh);   
 
             fu = @(v) DP(p,v);
             RHSu = IntegrateRHS(fu,obj.uFun,obj.mesh,'Domain',2);
@@ -237,7 +260,7 @@ classdef TutorialShells < handle
 
             % MODIFICATIONS: Embedded beam on one side ant with punctual load on the other  
 
-            obj.bcCase = 1;
+            obj.bcCase = 1;  % 1 --> Modified bc // 2 --> Original bc (change q) 
 
             switch obj.bcCase
                 case 1
@@ -257,7 +280,10 @@ classdef TutorialShells < handle
 
                     %% APPLYED FORCE 
 
-                    applyedForce = 2;
+                    applyedForce = 1;
+
+                    % 1 --> Single node
+                    % 2 --> Right edge 
 
                     switch applyedForce
                         case 1
@@ -342,6 +368,133 @@ classdef TutorialShells < handle
             fdofV = obj.computeFreeDofs(bc);
             RHSred = RHS(fdofV,1);
         end
+
+        function [strainFun, stressFun] = createStrainStressFunctions(obj, z)
+
+            nNodes = size(obj.mesh.coord, 1);
+
+            nu = 0.3;
+            lambda = obj.young.constant / (1+nu) / (1-2*nu);
+
+            C = lambda* [1-nu, nu, nu, 0, 0, 0;
+                nu, 1-nu, nu, 0, 0, 0;
+                nu, nu, 1-nu, 0, 0, 0;
+                0, 0, 0, 0.5*(1-2*nu), 0, 0;
+                0, 0, 0, 0, 0.5*(1-2*nu), 0;
+                0, 0, 0, 0, 0, 0.5*(1-2*nu)];
+
+            for i = 1:numel(z)
+                % Obtain strain
+                up = obj.uFun.fValues + z{i} * obj.thetaFun.fValues;
+                uField = LagrangianFunction.create(obj.mesh,obj.uFun.ndimf,'P1');
+                uField.setFValues(up);
+                strainDomainFun = SymGrad(uField);
+
+                coords = obj.mesh.coord;
+
+                strainValues = strainDomainFun.evaluate(coords);
+                epsilon_xx = squeeze(strainValues(1,1,:,:));
+                epsilon_yy = squeeze(strainValues(2,2,:,:));
+                epsilon_xy = squeeze(strainValues(1,2,:,:));
+
+                gradW = Grad(obj.wFun);
+                gradWvalues = gradW.evaluate(coords);
+                dw_dx = squeeze(gradWvalues(1,:,:));
+                dw_dy = squeeze(gradWvalues(2,:,:));
+
+                thetaValues = obj.thetaFun.evaluate(coords);
+                theta_x = squeeze(thetaValues(1,:,:));
+                theta_y = squeeze(thetaValues(2,:,:));
+
+                epsilon_xz = 0.5 * (dw_dx + theta_x);
+                epsilon_yz = 0.5 * (dw_dy + theta_y);
+                epsilon_zz = zeros(size(epsilon_xx));
+
+                strain = [epsilon_xx(:).'; epsilon_yy(:).'; epsilon_zz(:).'; epsilon_xy(:).'; epsilon_xz(:).'; epsilon_yz(:).'];
+
+                % Obtain stress
+                stress = C * strain;
+
+                % Obtain dimensions
+                nGauss = size(strainValues,3);
+                nElem = size(obj.mesh.connec, 1);
+
+                % Initialize nodal values for strains (nNodes x 6)
+                strain_nodal = zeros(nNodes, 6);
+                node_count = zeros(nNodes, 1);
+
+                % Reshape strain components
+                strain_xx_gauss = reshape(strain(1,:), nGauss, nElem);
+                strain_yy_gauss = reshape(strain(2,:), nGauss, nElem);
+                strain_zz_gauss = reshape(strain(3,:), nGauss, nElem);
+                strain_xy_gauss = reshape(strain(4,:), nGauss, nElem);
+                strain_xz_gauss = reshape(strain(5,:), nGauss, nElem);
+                strain_yz_gauss = reshape(strain(6,:), nGauss, nElem);
+
+                % Project Gauss points to nodes
+                for e = 1:nElem
+                    elemNodes = obj.mesh.connec(e, :);
+                    for n = 1:length(elemNodes)
+                        nodeIdx = elemNodes(n);
+                        strain_nodal(nodeIdx, 1) = strain_nodal(nodeIdx, 1) + mean(strain_xx_gauss(:, e));
+                        strain_nodal(nodeIdx, 2) = strain_nodal(nodeIdx, 2) + mean(strain_yy_gauss(:, e));
+                        strain_nodal(nodeIdx, 3) = strain_nodal(nodeIdx, 3) + mean(strain_zz_gauss(:, e));
+                        strain_nodal(nodeIdx, 4) = strain_nodal(nodeIdx, 4) + mean(strain_xy_gauss(:, e));
+                        strain_nodal(nodeIdx, 5) = strain_nodal(nodeIdx, 5) + mean(strain_xz_gauss(:, e));
+                        strain_nodal(nodeIdx, 6) = strain_nodal(nodeIdx, 6) + mean(strain_yz_gauss(:, e));
+                        node_count(nodeIdx) = node_count(nodeIdx) + 1;
+                    end
+                end
+
+                % Normalize all components
+                strain_nodal = strain_nodal ./ node_count;
+
+                % Create single LagrangianFunction for strains with 6 components
+                % Order: [exx, eyy, ezz, exy, exz, eyz]
+                strainFun{i} = LagrangianFunction.create(obj.mesh, 6, 'P1');
+                strainFun{i}.setFValues(strain_nodal);
+
+                % Initialize nodal values for stress (nNodes x 6)
+                stress_nodal = zeros(nNodes, 6);
+                node_count = zeros(nNodes, 1);
+
+                % Reshape stress components
+                stress_xx_gauss = reshape(stress(1,:), nGauss, nElem);
+                stress_yy_gauss = reshape(stress(2,:), nGauss, nElem);
+                stress_zz_gauss = reshape(stress(3,:), nGauss, nElem);
+                stress_xy_gauss = reshape(stress(4,:), nGauss, nElem);
+                stress_xz_gauss = reshape(stress(5,:), nGauss, nElem);
+                stress_yz_gauss = reshape(stress(6,:), nGauss, nElem);
+
+                % Project Gauss points to nodes
+                for e = 1:nElem
+                    elemNodes = obj.mesh.connec(e, :);
+                    for n = 1:length(elemNodes)
+                        nodeIdx = elemNodes(n);
+                        stress_nodal(nodeIdx, 1) = stress_nodal(nodeIdx, 1) + mean(stress_xx_gauss(:, e));
+                        stress_nodal(nodeIdx, 2) = stress_nodal(nodeIdx, 2) + mean(stress_yy_gauss(:, e));
+                        stress_nodal(nodeIdx, 3) = stress_nodal(nodeIdx, 3) + mean(stress_zz_gauss(:, e));
+                        stress_nodal(nodeIdx, 4) = stress_nodal(nodeIdx, 4) + mean(stress_xy_gauss(:, e));
+                        stress_nodal(nodeIdx, 5) = stress_nodal(nodeIdx, 5) + mean(stress_xz_gauss(:, e));
+                        stress_nodal(nodeIdx, 6) = stress_nodal(nodeIdx, 6) + mean(stress_yz_gauss(:, e));
+                        node_count(nodeIdx) = node_count(nodeIdx) + 1;
+                    end
+                end
+
+                % Normalize all components
+                stress_nodal = stress_nodal ./ node_count;
+
+                % Create single LagrangianFunction for stresses with 6 components
+                % Order: [sxx, syy, szz, sxy, sxz, syz]
+                stressFun{i} = LagrangianFunction.create(obj.mesh, 6, 'P1');
+                stressFun{i}.setFValues(stress_nodal);
+            end
+        end
+
+        function a = getStrainStress2(obj, z)
+
+        end
+
 
 
     end
