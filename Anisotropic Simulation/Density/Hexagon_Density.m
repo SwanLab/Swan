@@ -92,6 +92,7 @@ classdef Hexagon_Density < handle
 
             s.interpolation  = 'SIMP_P3_ANISOTROPIC';
             s.dim            = '2D';
+            s.mesh           = obj.mesh;
 
             m = MaterialInterpolator.create(s);
             obj.materialInterpolator = m;
