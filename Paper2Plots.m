@@ -225,21 +225,21 @@ legend([p1,p2,p3],'Hexagon','Reinforced hexagon','H-S bound')
 
 
 %% Figure 7 initial derivative for different Poisson
-kPrimeUB = @(nu) -(k1(nu)+etak1(nu))/etak1(nu);
-muPrimeUB = @(nu) -(mu1(nu)+etamu1(nu))/etamu1(nu);
+kPrimeUB = @(nu) -1-k1(nu)/etak1(nu);
+muPrimeUB = @(nu) -1-mu1(nu)/etamu1(nu);
 gPrimeAT1 = @(nu) -2;
-gPrimeAT2 = @(nu) -Inf;
+gPrimeAT2 = @(nu) -24;
 gPrimeRational = @(nu,gamma) -gamma;
 
-[dataHexa]  = load('HexaNu.mat');
+[dataHexa]  = load('HexagonDerivativeNu');
 C11hexaNu = squeeze(dataHexa.mat(1,1,1,1,:));
 C12hexaNu = squeeze(dataHexa.mat(2,2,1,1,:));
 C33hexaNu = squeeze(dataHexa.mat(1,2,1,2,:));
-[dataHoney] = load('HoneyNu.mat');
+[dataHoney] = load('HoneycombDerivativeNu');
 C11honeyNu= squeeze(dataHoney.mat(1,1,1,1,:));
 C12honeyNu= squeeze(dataHoney.mat(2,2,1,1,:));
 C33honeyNu= squeeze(dataHoney.mat(1,2,1,2,:));
-nuV = linspace(-0.99,0.5,100);
+nuV = linspace(-0.99,0.5,200);
 
 bulkHexaNu   = (C11hexaNu - C33hexaNu)./k1(nuV)';
 shearHexaNu  = C33hexaNu./mu1(nuV)';
@@ -255,35 +255,37 @@ figure(8)
 tiledlayout(1,2)
 nexttile
 hold on
-fplot(kPrimeUB,[-0.99,0.5],'Color',cmp(4,:))
-fplot(gPrimeAT1,[-1,0.5],'Color',cmp(1,:),'LineStyle','-','Marker','+')
-fplot(gPrimeAT2,[-1,0.5],'Color',cmp(1,:),'LineStyle','-','Marker','o')
-fplot(@(nu) gPrimeRational(nu,1),[-1,0.5],'Color',cmp(2,:))
-plot(nuV,bulkPrimeHexa,'Color',cmp(3,:),'LineStyle','-','Marker','+')
-plot(nuV,bulkPrimeHoney,'Color',cmp(3,:),'LineStyle','-','Marker','o')
-fplot(@(nu) gPrimeRational(nu,3),[-1,0.5],'Color',cmp(2,:))
-fplot(@(nu) gPrimeRational(nu,5),[-1,0.5],'Color',cmp(2,:))
-fplot(@(nu) gPrimeRational(nu,10),[-1,0.5],'Color',cmp(2,:))
-ylabel("Bulk modulus initial derivative $(g_{\kappa}'(0))$",'Interpreter','latex');
+grid minor
+fplot(kPrimeUB,[-0.99,0.5],'Color',cmpGrad(1,:),'LineWidth',1.5)
+fplot(gPrimeAT1,[-1,0.5],'Color',cmp(1,:),'LineStyle','-','Marker','+','LineWidth',1.5)
+fplot(gPrimeAT2,[-1,0.5],'Color',cmp(1,:),'LineStyle','--','Marker','o','LineWidth',1.5)
+fplot(@(nu) gPrimeRational(nu,1),[-1,0.5],'Color',cmpGamma(6,:),'LineWidth',1.5)
+fplot(@(nu) gPrimeRational(nu,3),[-1,0.5],'Color',cmpGamma(7,:),'LineWidth',1.5)
+fplot(@(nu) gPrimeRational(nu,5),[-1,0.5],'Color',cmpGamma(8,:),'LineWidth',1.5)
+fplot(@(nu) gPrimeRational(nu,9),[-1,0.5],'Color',cmpGamma(9,:),'LineWidth',1.5)
+plot(nuV,bulkPrimeHexa,'Color',cmp(4,:),'LineStyle','-','Marker','+','LineWidth',1.5,'MarkerIndices',1:10:200)
+plot(nuV,bulkPrimeHoney,'Color',cmp(4,:),'LineStyle','--','Marker','o','LineWidth',1.5,'MarkerIndices',1:10:200)
+ylabel('$\kappa''(\phi)/\kappa_0$ [-]','Interpreter','latex');
 xlabel("Poisson ratio ($\nu$) [-]",'Interpreter','latex');
 ylim([-25 0])
-fontsize(gcf,25,'points')
+fontsize(gcf,30,'points')
 nexttile
 hold on
-fplot(muPrimeUB,[-0.99,0.5],'Color',cmp(4,:))
-fplot(gPrimeAT1,[-1,0.5],'Color',cmp(1,:),'LineStyle','-','Marker','+')
-fplot(gPrimeAT2,[-1,0.5],'Color',cmp(1,:),'LineStyle','-','Marker','o')
-fplot(@(nu) gPrimeRational(nu,1),[-1,0.5],'Color',cmp(2,:))
-plot(nuV,shearPrimeHexa,'Color',cmp(3,:),'LineStyle','-','Marker','+')
-plot(nuV,shearPrimeHoney,'Color',cmp(3,:),'LineStyle','-','Marker','o')
-fplot(@(nu) gPrimeRational(nu,3),[-1,0.5],'Color',cmp(2,:))
-fplot(@(nu) gPrimeRational(nu,5),[-1,0.5],'Color',cmp(2,:))
-fplot(@(nu) gPrimeRational(nu,10),[-1,0.5],'Color',cmp(2,:))
+grid minor
+p6 = fplot(muPrimeUB,[-0.81,0.5],'Color',cmpGrad(1,:),'LineWidth',1.5)
+p1 = fplot(gPrimeAT1,[-1,0.5],'Color',cmp(1,:),'LineStyle','-','Marker','+','LineWidth',1.5)
+p2 = fplot(gPrimeAT2,[-1,0.5],'Color',cmp(1,:),'LineStyle','--','Marker','o','LineWidth',1.5)
+p3 = fplot(@(nu) gPrimeRational(nu,1),[-1,0.5],'Color',cmpGamma(6,:),'LineWidth',1.5)
+fplot(@(nu) gPrimeRational(nu,3),[-1,0.5],'Color',cmpGamma(7,:),'LineWidth',1.5)
+fplot(@(nu) gPrimeRational(nu,5),[-1,0.5],'Color',cmpGamma(8,:),'LineWidth',1.5)
+fplot(@(nu) gPrimeRational(nu,9),[-1,0.5],'Color',cmpGamma(9,:),'LineWidth',1.5)
+p4 = plot(nuV(24:end),shearPrimeHexa(24:end),'Color',cmp(4,:),'LineStyle','-','Marker','+','LineWidth',1.5,'MarkerIndices',1:10:200)
+p5 = plot(nuV(21:end),shearPrimeHoney(21:end),'Color',cmp(4,:),'LineStyle','--','Marker','o','LineWidth',1.5,'MarkerIndices',1:10:200)
 ylim([-25 0])
-ylabel("Shear modulus initial derivative ($(g_{\mu}'(0)$)",'Interpreter','latex');
+ylabel('$\mu''(\phi)/\mu_0$ [-]','Interpreter','latex');
 xlabel("Poisson ratio ($\nu$) [-]",'Interpreter','latex');
 fontsize(gcf,25,'points')
-legend('H-S upper bound','AT1','AT2','Rational','Hexagon','Reinforced hexagon')
+legend([p1,p2,p3,p4,p5,p6],'AT1','AT2','Rational','Hexagon','Reinforced hexagon','H-S Upper bound')
 
 eq = @(nu) kPrimeUB(nu)-muPrimeUB(nu);
 fzero(eq,0.3)

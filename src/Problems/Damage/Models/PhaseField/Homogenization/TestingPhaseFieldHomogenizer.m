@@ -48,7 +48,7 @@ classdef TestingPhaseFieldHomogenizer < handle
             % end
             
             %% Initial degradation (tiniest possible hole)
-            l = 1e-5;
+            l = 5e-3;
             nuArray = linspace(-0.99,0.5,obj.nSteps);
             obj.density = obj.createDensityLevelSet(l);
             for i=1:nComb
@@ -57,7 +57,7 @@ classdef TestingPhaseFieldHomogenizer < handle
                 material  = obj.createDensityMaterial(obj.density);
                 mat(:,:,:,:,i) = obj.solveElasticMicroProblem(material,obj.density);
             end
-            phi  = obj.computeDamageMetric(1e-2);
+            phi  = obj.computeDamageMetric(5e-3);
 
             %mat = obj.assembleResults(mat);
             %phi = obj.assembleResults(phi);

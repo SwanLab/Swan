@@ -15,4 +15,4 @@ PFH = TestingPhaseFieldHomogenizer(s);
 degradation.fun = f;
 degradation.dfun = df;
 degradation.ddfun = ddf;
-save('HoneycombDerivativeNu','mat','phi','degradation')
+save('HexagonDerivativeNu','mat','phi')
