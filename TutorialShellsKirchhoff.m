@@ -91,7 +91,7 @@ classdef TutorialShellsKirchhoff < handle
           obj.young = ConstantFunction.create(E,obj.mesh);
           obj.area = ConstantFunction.create(1,obj.mesh);
           obj.shear = ConstantFunction.create(1,obj.mesh);
-          obj.inertia = ConstantFunction.create(1,obj.mesh);
+          obj.inertia = ConstantFunction.create(1/12,obj.mesh);
         end
 
         function LHS = createLHS(obj)
@@ -107,8 +107,9 @@ classdef TutorialShellsKirchhoff < handle
             Ktheta = IntegrateLHS(f,obj.thetaFun,obj.thetaFun,obj.mesh,'Domain',2);
             Ktheta = obj.reduceMatrix(Ktheta,obj.bcT,obj.bcT);
 
-
-            gamma = 0.00001;
+            h=obj.mesh.computeMeanCellSize();
+            eps=(2*h)^2;
+            gamma = eps;
             f = @(u,v) gamma.*DP(v,u);
             KthetaStab = IntegrateLHS(f,obj.thetaFun,obj.thetaFun,obj.mesh,'Domain',2);
             KthetaStab = obj.reduceMatrix(KthetaStab,obj.bcT,obj.bcT);
@@ -167,12 +168,19 @@ classdef TutorialShellsKirchhoff < handle
             Zthetaw = zeros(nTheta,nW);
             Zww     = zeros(nW,nW);
             Ztautau = zeros(nTau,nTau);
+            Otautau = 1e-16*eye(nTau,nTau);
+
+            tauOnes = ones(1,nTau);
+            ZonesU  = zeros(1,nU);
+            ZonesW  = zeros(1,nW);
+            ZonesT  = zeros(1,nTheta);
 
 
-            LHS = [Ku Zut Zuw Zutau;
-                    Zut' Ktheta+KthetaStab Zthetaw-NthetawStab -Mthetatau;
-                    Zuw' Zthetaw'-NthetawStab' Zww+KwStab Nwtau;
-                    Zutau' -Mthetatau' Nwtau' Ztautau];
+            LHS = [Ku Zut Zuw Zutau ZonesU';
+                    Zut' Ktheta+KthetaStab Zthetaw-NthetawStab -Mthetatau ZonesT';
+                    Zuw' Zthetaw'-NthetawStab' Zww+KwStab Nwtau ZonesW';
+                    Zutau' -Mthetatau' Nwtau' Otautau tauOnes';
+                    ZonesU ZonesT ZonesW tauOnes 0];
 
 
             % LHS = [Ku Zut Zuw Zutau;
@@ -203,7 +211,8 @@ classdef TutorialShellsKirchhoff < handle
             RHStau = zeros(nTau,1);
             
 
-            RHS = [RHSu;RHStheta;RHSw;RHStau];
+            RHS = [RHSu;RHStheta;RHSw;RHStau;0];
+
         end
 
         function createBoundaryConditions(obj)
@@ -212,6 +221,7 @@ classdef TutorialShellsKirchhoff < handle
             %obj.bcT = obj.createLagrangeMultiplierConditionTheta();
             obj.bcW = obj.createGeneralBoundaryConditions([1]);
             obj.bcTau = obj.createLagrangeMultiplierCondition();
+            %obj.bcTau = obj.createGeneralBoundaryConditions([1 2]);
         end
 
         function bc = createLagrangeMultiplierConditionTheta(obj)
@@ -228,7 +238,7 @@ classdef TutorialShellsKirchhoff < handle
 
             bc.dirichletFun.nDofs = obj.tauFun.nDofs;
             
-            bc.free_dofs=1:obj.tauFun.nDofs;
+            bc.free_dofs=10:obj.tauFun.nDofs;
             bc.dirichlet_dofs = [];
             bc.dirichlet_vals = [];
 

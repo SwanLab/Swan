@@ -56,6 +56,8 @@ classdef TutorialShells < handle
             obj.thetaFun.setFValues(thetaT);
             plot(obj.thetaFun)
 
+            
+
         end
 
     end
