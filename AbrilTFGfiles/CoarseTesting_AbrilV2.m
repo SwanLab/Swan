@@ -15,6 +15,7 @@ classdef CoarseTesting_AbrilV2< handle
         meshDomain
         referenceMesh
         subdomainMeshes
+        cellMesh
         discMesh
         boundaryConditions
         bcApplier
@@ -66,10 +67,10 @@ classdef CoarseTesting_AbrilV2< handle
             %MiluCG      = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
 
             switch obj.params.Option
-                case {'Dataset','NN'}
+                case {'Dataset','NN','Hybrid'}
                     Mcoarse     = obj.createCoarseNNPreconditioner(mR,dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);
                     Mmult        = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Mcoarse,Milu);
-                case {'HO','Hybrid'}
+                case {'HO'}
                     Meifem       = obj.createEIFEMPreconditioner(dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);
                     Mmult        = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Meifem,Milu);
             end
@@ -117,11 +118,10 @@ classdef CoarseTesting_AbrilV2< handle
             % Case Parameters
             p.Training  = 'EIFEM';            % 'EIFEM'/'Multiscale'
             p.Inclusion = 'Material';         % 'Hole'/'Material'/'HoleRaul'   --> Hole: just for constant r
-            p.Sampling  = 'Oversampling';     % 'Isolated'/'Oversampling'
-            p.Option    = 'NN';          % 'Dataset'/'NN'/'HO'/ 'Hybrid'
+            p.Sampling  = 'Isolated';     % 'Isolated'/'Oversampling'
+            p.Option    = 'Dataset';             % 'Dataset'/'NN'/'HO'/ 'Hybrid'
             p.nelem     =  20;                %  Mesh refining
             obj.params  =  p;
-            meshName    =  p.nelem+"x"+p.nelem;
 
             % Definition of Subdomain
             %obj.r = ones(5,10)*0.5;
@@ -148,16 +148,6 @@ classdef CoarseTesting_AbrilV2< handle
             NameFile=name;
         end
 
-        function loadNN(obj,nameNN)
-            p=obj.params;
-            filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,nameNN(1,1));
-            load(filePath,"K_NN");
-            filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,nameNN(1,2));
-            load(filePath,"T_NN","pol_deg");
-            obj.NN.K=K_NN;
-            obj.NN.T=T_NN;
-            obj.NN.poldeg=pol_deg;
-        end
 
         function loadDataset(obj,name)
             p=obj.params;
@@ -200,6 +190,7 @@ classdef CoarseTesting_AbrilV2< handle
             nX = obj.nSubdomains(1);
             nY = obj.nSubdomains(2);
             Lx = 2; Ly = 2;
+            cM=cell(nY,nX);
             mSbd=cell(nY,nX);
             for jDom = 1:nY
                 for iDom = 1:nX
@@ -212,9 +203,11 @@ classdef CoarseTesting_AbrilV2< handle
                     %                     plot(mIJ)
                     %                     hold on;
                     mSbd{jDom,iDom} = mIJ;
+                    cM{jDom,iDom} = refMesh;  %same but with local coordinates
                 end
             end
             obj.referenceMesh = mSbd{1,1};
+            obj.cellMesh=cM;   
         end
 
 
@@ -289,7 +282,7 @@ classdef CoarseTesting_AbrilV2< handle
             mS = Mesh.create(s); 
            
         end
-        
+
 
         function computeSubdomainCentroid(obj)
             for i = 1:obj.nSubdomains(1,2)
@@ -390,8 +383,6 @@ classdef CoarseTesting_AbrilV2< handle
                     poisson = ConstantFunction.create(nu,mesh);
             end            
         end
-
-
 
         function [Dir,PL] = createRawBoundaryConditions(obj)
             minx = min(obj.meshDomain.coord(:,1));
@@ -515,15 +506,22 @@ classdef CoarseTesting_AbrilV2< handle
 
         function Mcoarse = createCoarseNNPreconditioner(obj,mR,dir,iC,lG,bS,iCR,dMesh)
             p=obj.params;
+            meshName    =  p.nelem+"x"+p.nelem;
             switch p.Option
                 case 'Dataset'
                     nameFile=obj.computeNameFile();
                     obj.loadDataset(nameFile);
                 case 'NN'
-                    nameFile=obj.computeNameFile();
-                    obj.loadDataset(nameFile);
-                    nameNN= ["K_NN.mat","T_NN.mat"];
-                    obj.loadNN(nameNN);
+                    filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,"K_NN.mat");
+                    load(filePath,"K_NN");
+                    filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,"T_NN.mat");
+                    load(filePath,"T_NN","pol_deg");
+                    
+                case 'Hybrid'
+                    filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,"K_NN.mat");
+                    load(filePath,"K_NN");
+                    filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,"Q_NN.mat");
+                    load(filePath,"basis","Q_NN","pol_deg");
             end
 
             RVE = cell(obj.nSubdomains(1,2),obj.nSubdomains(1,1));
@@ -537,10 +535,11 @@ classdef CoarseTesting_AbrilV2< handle
                             RVE{i,j}.Kcoarse= obj.data.K{i,j};
                             RVE{i,j}.U= obj.data.T{i,j}; 
                         case 'NN'
-                            RVE{i,j}.Kcoarse = computeKcoarse_NN(obj.NN.K,obj.r(i,j));
-                            RVE{i,j}.U       = computeT_NN(obj.subdomainMeshes{i,j},obj.r(i,j),obj.NN.T,obj.NN.poldeg);
-                            U2= obj.data.T{i,j}; 
-                            errU= norm(abs(RVE{i,j}.U-U2));
+                            RVE{i,j}.Kcoarse = computeKcoarse_NN(K_NN,obj.r(i,j));
+                            RVE{i,j}.U       = computeT_NN(obj.cellMesh{i,j},obj.r(i,j),T_NN,pol_deg);
+                        case 'Hybrid'
+                            RVE{i,j}.Kcoarse = computeKcoarse_NN(K_NN,obj.r(i,j));
+                            RVE{i,j}.U       = computeT_Hybrid(basis,obj.r(i,j),Q_NN,pol_deg);
                     end
                 end
             end
