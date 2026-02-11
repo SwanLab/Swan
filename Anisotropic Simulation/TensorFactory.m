@@ -6,6 +6,15 @@ classdef TensorFactory < handle
         function tensor = create(cParams)
 
             switch cParams
+
+                case 'Hexagon'
+                    % fileName=fullfile("Elasticity Micro/HomogTensors/C_0.mat");
+                    % load(fileName);
+                    % tensor=C;
+                    tensor = [ 0.2510   0.0994     0;
+                               0.0994   0.2510     0;
+                               0          0      0.0758];
+
                 case '0'
                     % fileName=fullfile("Elasticity Micro/HomogTensors/C_0.mat");
                     % load(fileName);
