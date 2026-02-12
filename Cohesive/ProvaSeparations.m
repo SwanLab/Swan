@@ -4,11 +4,17 @@ clc;
 close all;
 
 % Crear LagrangianFunction sobre una cohesiveMesh
-s.baseMesh = UnitQuadMesh(4,4);
+mesh = UnitQuadMesh(4,4);
+
+ymin = min(mesh.coord(:,2));
+isFractured = @(coord) abs(coord(:,2)) == ymin;
+
+s.baseMesh    = mesh;
+s.isFractured = isFractured;
 cohesiveMesh = CohesiveMesh(s);
-u   = LagrangianFunction.create(cohesiveMesh.mesh,2,'P1');
 
 
+u  = LagrangianFunction.create(cohesiveMesh.mesh,2,'P1');
 %% Comprovacions de separacions
 fValues = u.fValues;
 
@@ -48,9 +54,9 @@ end
 
 %%
 
-    s.cohesiveMesh = cohesiveMesh;
-    s.u = u;
-    s.ndimf = 2;
+s.cohesiveMesh = cohesiveMesh;
+s.u = u;
+s.ndimf = 2;
 separator = CohesiveSeparationComputer(s);
 
 separator.compute(u);

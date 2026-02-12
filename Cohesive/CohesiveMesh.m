@@ -1,20 +1,25 @@
 classdef CohesiveMesh < handle
-    
-    properties (Access = public)
-        baseMesh 
-        mesh
-        subMesh
 
+    properties (Access = public)
+        mesh
+        subMesh  
+        listCohesiveElems
+    end
+    
+    properties (Access = private)
+        isFractured
+        baseMesh 
+    end
+    
+    properties (Access = private)
         isNodeCohesive
         isElemCohesive
-        isEdgeCohesive
 
         newCoord
         newConnec
 
         listNodeCohesive
         listElemNextCohesive
-        listCohesiveElems
         listEdgeCohesive
 
         nNodeCohesive
@@ -32,12 +37,6 @@ classdef CohesiveMesh < handle
 
         isLeft
         isRight
-
-
-    end
-    
-    properties (Access = private)
-
     end
     
     properties (Access = private)
@@ -46,21 +45,19 @@ classdef CohesiveMesh < handle
     
     methods (Access = public)
         
-        function obj = CohesiveMesh(cParams)
-            
+        function obj = CohesiveMesh(cParams)            
             obj.init(cParams)
-            obj.baseMeshCreator(3)
-            
             obj.detectFracturedEdges()
-            obj.computeCenterElements 
-            obj.computenormals()
+            obj.computeCenterElements() 
+            obj.computeNormals()
             obj.computeIsLeftIsRight()
-            obj.duplicator()
+            obj.duplicateNodes()
             obj.updateConnecOfLeftElements()
             obj.shiftCoordOfLeftAndRightElements();
             
-            obj.newMesh()
+            obj.createNewMesh()
             obj.createSubMesh();
+            obj.mesh.plot()
         end
 
 
@@ -80,22 +77,17 @@ classdef CohesiveMesh < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.separation = 0.001;
-            obj.baseMesh = cParams.baseMesh;
-        end
-        
-        function baseMeshCreator(obj,n)
-            obj.baseMesh = UnitQuadMesh(n,n);
-        end
+            obj.isFractured = cParams.isFractured;
+            obj.baseMesh    = cParams.baseMesh;
+            obj.separation  = 0.05*obj.baseMesh.computeMeanCellSize();           
+        end        
 
         function detectFracturedEdges(obj)
-            obj.centerEdges=obj.computeCenterEdge;
+            obj.centerEdges = obj.computeCenterEdge();
+            isEdgeCohesive  = obj.isFractured(obj.centerEdges);
+            obj.listEdgeCohesive = find(isEdgeCohesive);
 
-            ymin = min(obj.baseMesh.coord(:,2));
-            obj.isEdgeCohesive = abs(obj.centerEdges(:,2)) == ymin;
-            obj.listEdgeCohesive = find(obj.isEdgeCohesive);
-
-            obj.isNodeCohesive = abs(obj.baseMesh.coord(:,2)) == ymin;
+            obj.isNodeCohesive = obj.isFractured(obj.baseMesh.coord);
             obj.listNodeCohesive = find(obj.isNodeCohesive);
             obj.nNodeCohesive = sum(obj.isNodeCohesive);
 
@@ -118,7 +110,7 @@ classdef CohesiveMesh < handle
         end
 
         
-        function computenormals(obj)
+        function computeNormals(obj)
             nodesInEdges = obj.baseMesh.edges.nodesInEdges;
 
             coord = obj.baseMesh.coord;
@@ -148,7 +140,7 @@ classdef CohesiveMesh < handle
         end
 
 
-        function duplicator(obj)
+        function duplicateNodes(obj)
 
             obj.newCoord = obj.baseMesh.coord;
             duplicated = obj.newCoord(obj.isNodeCohesive, :);
@@ -191,21 +183,18 @@ classdef CohesiveMesh < handle
 
         end
     
-        function newMesh(obj)
+        function createNewMesh(obj)
             s.connec = obj.newConnec;
             s.coord  = obj.newCoord;
             obj.mesh = Mesh.create(s);
         end
     
         function centerEdges = computeCenterEdge(obj)
-
             obj.baseMesh.computeEdges;
             nodes = obj.baseMesh.edges.nodesInEdges;    
             coord1 = obj.baseMesh.coord(nodes(:,1),:);
-            coord2 = obj.baseMesh.coord(nodes(:,2),:);
-            
+            coord2 = obj.baseMesh.coord(nodes(:,2),:);            
             centerEdges = 0.5*(coord1 + coord2);
-
         end
         
         function shiftCoordOfLeftAndRightElements(obj)
