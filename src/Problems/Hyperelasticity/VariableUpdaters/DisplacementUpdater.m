@@ -72,7 +72,7 @@ classdef DisplacementUpdater < handle
             
             tol=10^(-8);
             maxIter = 1000000;
-            %Milu = obj.createILUpreconditioner(LHS);
+            Milu = obj.createILUpreconditioner(LHS);
             
             
 
