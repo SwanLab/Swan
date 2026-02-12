@@ -69,9 +69,6 @@ classdef DisplacementUpdater < handle
         function xNew = updateWithNewton(~,LHS,RHS,x)
     
 
-
-            obj.init()
-
             mR = obj.createReferenceMesh();
             bS  = mR.createBoundaryMesh();
             [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain(mR);
