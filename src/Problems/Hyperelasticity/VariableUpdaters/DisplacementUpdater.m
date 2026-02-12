@@ -67,8 +67,53 @@ classdef DisplacementUpdater < handle
         end
 
         function xNew = updateWithNewton(~,LHS,RHS,x)
-            deltaX = -LHS\RHS;
-            xNew = x + deltaX;
+    
+
+
+            obj.init()
+
+            mR = obj.createReferenceMesh();
+            bS  = mR.createBoundaryMesh();
+            [mD,mSb,iC,lG,iCR,discMesh] = obj.createMeshDomain(mR);
+            obj.meshDomain = mD;
+            obj.cellMeshes = mSb;
+            obj.ic = iC;
+            obj.icr = iCR;
+            obj.lg = lG;
+            obj.bs;
+
+            [bC,dir] = obj.createBoundaryConditions(obj.meshDomain);
+            obj.boundaryConditions = bC;
+            obj.createBCapplier()
+
+            [LHS,RHS,LHSf] = obj.createElasticProblem();
+
+            obj.LHS = LHSf;
+            LHSf = @(x) LHS*x;
+            RHSf = RHS;
+            Usol = LHS\RHS;
+            Ufull = obj.bcApplier.reducedToFullVectorDirichlet(Usol);
+
+            Milu = obj.createILUpreconditioner(LHS);
+            Mcoarse = obj.createCoarsePreconditioner(mR,dir,iC,lG,bS,iCR,discMesh);
+            Mid = @(r) r;
+
+            MiluCG = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
+
+            tol = 1e-8;
+            tic
+            x0 = zeros(size(RHSf));
+
+            Mmult = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Mcoarse,Milu);
+            tic
+
+
+            [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
+            
+
+
+            % deltaX = -LHS\RHS;
+            % xNew = x + deltaX;
         end
 
         function [e, cost] = computeErrorCost(obj,u,bc,costOld)
