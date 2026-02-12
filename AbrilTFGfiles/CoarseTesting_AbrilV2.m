@@ -64,7 +64,7 @@ classdef CoarseTesting_AbrilV2< handle
 
             % PRECONDITIONERS
             Milu         = obj.createILUpreconditioner(LHS);
-            %MiluCG      = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
+            MiluCG      = @(r,iter) Preconditioner.InexactCG(r,LHSf,Milu,RHSf);
 
             switch obj.params.Option
                 case {'Dataset','NN','Hybrid'}
@@ -75,12 +75,18 @@ classdef CoarseTesting_AbrilV2< handle
                     Mmult        = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Meifem,Milu);
             end
 
-
-            % SOLVE THE CASE
+            % SOLVE THE EXACT CASE
             tol = 1e-8;
             x0  = zeros(size(RHSf));
             tic
-            [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
+            [~,residualCG,errCG,errAnormCG] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier,false);
+            toc
+
+            % SOLVE THE CASE with PCG
+            tol = 1e-8;
+            x0  = zeros(size(RHSf));
+            tic
+            [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier,false);
             %   tau = @(r,A) 1;
             %   [uCG,residualPCG,errPCG,errAnormPCG] = RichardsonSolver.solve(LHSf,RHSf,x0,Mmult,tol,tau,Usol);
             toc
@@ -93,11 +99,10 @@ classdef CoarseTesting_AbrilV2< handle
             s.order = 'P1';
             s.fValues = reshape(xFull,2,[])';
             uFun = LagrangianFunction(s);
-            
-            % uFun.print('SolExacta','Paraview');
-
-            %s.fValues = reshape(Ufull,2,[])';
-            %RealFun=LagrangianFunction(s);
+           
+            % uFun.print('ExactSolution')
+            s.fValues = reshape(Ufull,2,[])';
+            RealFun=LagrangianFunction(s);
 
             %obj.computeSubdomainCentroid();
             %CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'TestCoarseAbril', obj.r, obj.centroids);
@@ -105,7 +110,7 @@ classdef CoarseTesting_AbrilV2< handle
             
 
             % PLOTS
-            obj.createPlots(residualPCG,errPCG,errAnormPCG);
+            obj.createPlots(residualPCG,errPCG,errAnormPCG,residualCG,errCG,errAnormCG);
 
         end
 
@@ -116,15 +121,16 @@ classdef CoarseTesting_AbrilV2< handle
 
         function init(obj)
             % Case Parameters
-            p.Training  = 'EIFEM';            % 'EIFEM'/'Multiscale'
+            p.Training  = 'Multiscale';            % 'EIFEM'/'Multiscale'
             p.Inclusion = 'Material';         % 'Hole'/'Material'/'HoleRaul'   --> Hole: just for constant r
-            p.Sampling  = 'Isolated';     % 'Isolated'/'Oversampling'
-            p.Option    = 'Dataset';             % 'Dataset'/'NN'/'HO'/ 'Hybrid'
+            p.Sampling  = 'Oversampling';         % 'Isolated'/'Oversampling'
+            p.Option    = 'Dataset';          % 'Dataset'/'NN'/'HO'/ 'Hybrid'/'All'
+            % p.Option    =  cParams.Option;
             p.nelem     =  20;                %  Mesh refining
             obj.params  =  p;
 
             % Definition of Subdomain
-            %obj.r = ones(5,10)*0.5;
+            % obj.r = ones(5,20)*0.1;
             % obj.r = [0.1,0.2,0.3,0.4,0.5
             %          0.1,0.2,0.3,0.4,0.5
             %          0.1,0.2,0.3,0.4,0.5];
@@ -602,29 +608,36 @@ classdef CoarseTesting_AbrilV2< handle
             J = 0.5*x'*A(x)-b'*x;
         end
     
-        function createPlots(residualPCG,errPCG,errAnormPCG)
-            close all
+        function createPlots(residualPCG,errPCG,errAnormPCG,residualCG,errCG,errAnormCG)
             figure
             plot(residualPCG,'linewidth',2)
+            hold on
+            plot(residualCG,'linewidth',2)
             set(gca, 'YScale', 'log')
             xlabel('Iteration')
             ylabel('Residual')
-            title("Residual PCG")
+            title("Residual")
+            legend({'CG + ILU-EIFEM-ILU','CG'})
 
             figure
             plot(errPCG,'linewidth',2)
+            hold on
+            plot(errCG,'linewidth',2)
             set(gca, 'YScale', 'log')
             xlabel('Iteration')
             ylabel('||error||_{L2}')
-            title("error PCG")
+            title("error")
+            legend({'CG + ILU-EIFEM-ILU','CG'})
 
             figure
             plot(errAnormPCG,'linewidth',2)
             hold on
+            plot(errAnormCG,'linewidth',2)
             set(gca, 'YScale', 'log')
             xlabel('Iteration')
             ylabel('Energy norm')
-            title("Err Anorm PCG")
+            title("Err Anorm")
+            legend({'CG + ILU-EIFEM-ILU','CG'})
         end
 
     end
