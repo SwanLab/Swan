@@ -113,7 +113,7 @@ classdef CoarseTesting_Abril< handle
             xlabel('Iteration')
             ylabel('Residual')
             title("Residual")
-            legend({'CG + ILU-EIFEM-ILU','CG'})
+            legend({'PCG','CG'})
 
             nexttile
             plot(obj.errPCG,'linewidth',2)
@@ -123,7 +123,7 @@ classdef CoarseTesting_Abril< handle
             xlabel('Iteration')
             ylabel('||error||_{L2}')
             title("error")
-            legend({'CG + ILU-EIFEM-ILU','CG'})
+            legend({'PCG','CG'})
 
             nexttile
             plot(obj.errAnormPCG,'linewidth',2)
@@ -133,7 +133,7 @@ classdef CoarseTesting_Abril< handle
             xlabel('Iteration')
             ylabel('Energy norm')
             title("Err Anorm")
-            legend({'CG + ILU-EIFEM-ILU','CG'})
+            legend({'PCG','CG'})
         end
 
     end

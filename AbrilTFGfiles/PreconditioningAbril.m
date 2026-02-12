@@ -14,8 +14,8 @@ s.nelem     =  20;                %  Mesh refining
 s.Print     = false;
 
 % Definition of Subdomains
-s.r= ones(1,15)*0.1;
-% s.r = ones(5,20)*0.1;
+s.r= ones(10,10)*0.1;
+% s.r = ones(5,15)*0.1;
 % s.r = [0.1,0.2,0.3,0.4,0.5
 %          0.1,0.2,0.3,0.4,0.5
 %          0.1,0.2,0.3,0.4,0.5];
@@ -62,6 +62,6 @@ plot(NN.residualPCG,'linewidth',1.5)
 set(gca, 'YScale', 'log')
 xlabel('Iteration')
 ylabel('Residual')
-title("Residual")
-legend({'CG Dataset', 'CG HO', 'CG Hybrid','CG NN'});
+title("Residual 10x10, r=0.1 - EIFEM Oversampling")
+legend({'PCG Dataset', 'PCG HO', 'PCG Hybrid','PCG NN'});
 % legend({'CG Dataset', 'CG HO', 'CG Hybrid','CG NN','CG + ILU-EIFEM-ILU'});
