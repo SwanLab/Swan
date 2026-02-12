@@ -52,7 +52,7 @@ classdef CohesiveSeparationComputer < handle
             obj.computeLHS(uIn);
             fValues = obj.fun.fValues;
             effectiveFValues = vecnorm(fValues,2,2);
-            obj.effectiveFun = LagrangianFunction.create(obj.cohesiveMesh.subMesh,obj.jumpDim,'P1D');
+            obj.effectiveFun = LagrangianFunction.create(obj.cohesiveMesh.subMesh,uIn.ndimf,'P1D');
             obj.effectiveFun.setFValues(effectiveFValues);
         end
 
