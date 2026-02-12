@@ -113,14 +113,14 @@ params = {"dt": dTime*hmin*elRadius,
           "itnormalisation": No,
           "save_only_N_iterations": 1,
           "save_only_Q_constraints": 5,
-          "alphaJ": 1,
+          "alphaJ": 2,
           "alphaC": 1,
-          "maxit": 180,
+          "maxit": 200,
           "CFL": 0.9}
 problem:Optimizable = TO_problem()
 
-dmax = 6
-fact = pow(dmax/dmaxmin,1/No)
+dmax = 6.0
+fact = pow(dmax/dmaxmin,2/No)
 
 
 

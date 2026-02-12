@@ -15,7 +15,7 @@ border topLeft(t=1.06,2.0){ x=3.0-3*t; y=1.0; label=0; };
 mesh Th = buildmesh(left(17*fac)+botLeft(fac)+bot(98*fac)+botRight(fac)+right(17*fac)+
           topRight(47*fac)+top(6*fac)+topLeft(47*fac));
 
-real meshsiz = 0.02*3/fac;
+real meshsiz = 0.02*3.0/fac;
 real alpha = 2.0*meshsiz;
 real beta  = 8.0*meshsiz;
 
