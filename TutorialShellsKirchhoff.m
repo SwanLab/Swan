@@ -170,23 +170,30 @@ classdef TutorialShellsKirchhoff < handle
             Ztautau = zeros(nTau,nTau);
             Otautau = 1e-16*eye(nTau,nTau);
 
-            tauOnes = ones(1,nTau);
+            q = ConstantFunction.create([1 1],obj.mesh);            
+            tauOnes = IntegrateRHS(@(v) DP(q,v),obj.tauFun,obj.mesh,'Domain',2)';            
             ZonesU  = zeros(1,nU);
             ZonesW  = zeros(1,nW);
             ZonesT  = zeros(1,nTheta);
 
 
-            LHS = [Ku Zut Zuw Zutau ZonesU';
-                    Zut' Ktheta+KthetaStab Zthetaw-NthetawStab -Mthetatau ZonesT';
-                    Zuw' Zthetaw'-NthetawStab' Zww+KwStab Nwtau ZonesW';
-                    Zutau' -Mthetatau' Nwtau' Otautau tauOnes';
-                    ZonesU ZonesT ZonesW tauOnes 0];
+            % LHS = [Ku Zut Zuw Zutau ZonesU';
+            %         Zut' Ktheta+KthetaStab Zthetaw-NthetawStab -Mthetatau ZonesT';
+            %         Zuw' Zthetaw'-NthetawStab' Zww+KwStab Nwtau ZonesW';
+            %         Zutau' -Mthetatau' Nwtau' Otautau tauOnes';
+            %         ZonesU ZonesT ZonesW tauOnes 0];
+             % 
+             % LHS = [Ku Zut Zuw Zutau ZonesU';
+             %        Zut' Ktheta+KthetaStab Zthetaw-NthetawStab -Mthetatau ZonesT';
+             %        Zuw' Zthetaw'-NthetawStab' Zww+KwStab Nwtau ZonesW';
+             %        Zutau' -Mthetatau' Nwtau' Otautau ;
+             %        ZonesU ZonesT ZonesW  0];            
 
 
-            % LHS = [Ku Zut Zuw Zutau;
-                    % Zut' Ktheta Zthetaw -Mthetatau;
-                    % Zuw' Zthetaw' Zww Nwtau;
-                    % Zutau' -Mthetatau' Nwtau' Ztautau];
+             LHS = [Ku Zut Zuw Zutau;
+                    Zut' Ktheta Zthetaw -Mthetatau;
+                    Zuw' Zthetaw' Zww Nwtau;
+                    Zutau' -Mthetatau' Nwtau' Otautau];
         end
 
         function RHS = createRHS(obj)
@@ -211,7 +218,9 @@ classdef TutorialShellsKirchhoff < handle
             RHStau = zeros(nTau,1);
             
 
-            RHS = [RHSu;RHStheta;RHSw;RHStau;0];
+%            RHS = [RHSu;RHStheta;RHSw;RHStau;0];
+            RHS = [RHSu;RHStheta;RHSw;RHStau];
+            
 
         end
 
