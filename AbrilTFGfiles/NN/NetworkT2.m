@@ -15,7 +15,7 @@ p.Inclusion  ='Material';    %'Material'/'Hole'/'HoleRaul
 pol_deg         = 6;
 testratio       = 30;
 lambda          = 0.0;
-learningRate    = 0.05;
+learningRate    = 0.1;
 hiddenLayers    = [224 250 280 300 280 250 224 200 150 100 72 50 20];
 
 
@@ -28,7 +28,7 @@ s.polynomialOrder = pol_deg;
 s.testRatio       = testratio;
 s.networkParams.hiddenLayers    = hiddenLayers;
 s.optimizerParams.learningRate  = learningRate;
-s.optimizerParams.maxEpochs = 500000; % 1000 is the best option, but we use 10 to pass the tutorial quickly
+s.optimizerParams.maxEpochs = 100000; % 1000 is the best option, but we use 10 to pass the tutorial quickly
 s.costParams.lambda             = lambda;
 s.costParams.costType           = 'L2';
 
