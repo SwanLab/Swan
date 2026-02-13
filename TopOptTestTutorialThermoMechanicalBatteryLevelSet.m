@@ -3,6 +3,7 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
     properties (Access = private)
         mesh
         filter
+        filterPerimeter
         designVariable
         materialInterpolator
         thermalmaterialInterpolator 
@@ -19,6 +20,7 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
         chiB0
         kappaB
         dualVariable
+        perimeter
     end
 
     methods (Access = public)
@@ -29,11 +31,13 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
             obj.createBatteryDomain();
             obj.createDesignVariable();
             obj.createFilter();
+            obj.createFilterPerimeter();
             obj.createMaterialInterpolator();
             obj.createThermalMaterialInterpolator(); 
             obj.createThermoElasticProblem();
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
+            obj.createPerimeter();
             obj.createVolumeConstraint();
             obj.createVolumeFunctional();
             obj.createCost();
@@ -74,14 +78,19 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
              sm.boundaryMesh   = obj.mesh.createBoundaryMesh;
              uMesh              = UnfittedMesh(sm);
              uMesh.compute(phi);
-             obj.chiB     = CharacteristicFunction.create(uMesh);%.project('P1');
+             obj.chiB     = CharacteristicFunction.create(uMesh).project('P1');
 
-             s.filterType = 'LUMP';
-             s.mesh  = obj.mesh;
-             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-             f = Filter.create(s);
+%              % Chi for batteries
+%             obj.chiB         = LagrangianFunction.create(obj.mesh,1,'P1');
+%             fValues          = zeros(obj.mesh.nnodes,1);
+%             fValues(phi < 0) = 1.0;
+%             obj.chiB.setFValues(fValues);
 
-             obj.chiB = f.compute(obj.chiB,2);
+%              s.filterType = 'LUMP';
+%              s.mesh  = obj.mesh;
+%              s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+%              f = Filter.create(s);
+%              obj.chiB = f.compute(obj.chiB,1);
          end        
 
 
@@ -113,9 +122,18 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
             obj.filter = f;
         end
 
+        function createFilterPerimeter(obj)
+            s.filterType = 'PDE';
+            s.mesh  = obj.mesh;
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            f = Filter.create(s);
+            obj.filterPerimeter = f;
+        end
+
+
          function createThermalMaterialInterpolator(obj) % Conductivity
             s.interpolation  = 'SimpAllThermal';   
-            s.f0   = 5e-2; 
+            s.f0   = 1e-3; 
             s.f1   = 1.0;  
             s.dim  = '2D';
             a = MaterialInterpolator.create(s);
@@ -124,7 +142,7 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
 
         function createMaterialInterpolator(obj)
             
-            E0 =  ConstantFunction.create(1e-5,obj.mesh);
+            E0 =  ConstantFunction.create(1e-3,obj.mesh);
             nu0 = 1/3;
             ndim = obj.mesh.ndim;
 
@@ -177,8 +195,8 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
 
             % Thermal
             s.materialInterpolator = obj.thermalmaterialInterpolator;
-            s.alpha = 100.0; 
-            s.source  =  ConstantFunction.create(1,obj.mesh).*obj.chiB.project('P1'); %P=2.5
+            s.alpha = 0.0; 
+            s.source  =  ConstantFunction.create(0,obj.mesh).*obj.chiB.project('P0'); %P=2.5
             s.T0 = ConstantFunction.create(0,obj.mesh);   
             s.boundaryConditionsThermal = obj.createBoundaryConditionsThermal();
             
@@ -200,7 +218,7 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
             s.complianceFromConstitutive  = obj.createComplianceFromConstiutive();
             s.material                    = obj.createMaterial();
             s.chiB                        = obj.chiB;
-            s.kappaB                      = 1.0; %1.25/220;
+            s.kappaB                      = 1.25/220;
             s.conductivity                = obj.thermalmaterialInterpolator();
             c = ComplianceFunctionalThermoElastic(s);
             obj.compliance = c;
@@ -232,10 +250,17 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
             obj.volumeFunc = v;
         end
 
+        function createPerimeter(obj)
+            s.mesh                        = obj.mesh;
+            s.filter                      = obj.filterPerimeter;
+            p = SimplePerimeterFunctional(s);
+            obj.perimeter = p;
+        end
+
         function createCost(obj) 
             s.shapeFunctions{1} = obj.compliance;
-%             s.shapeFunctions{2} = obj.volumeFunc;
-            s.weights           = [1];
+            s.shapeFunctions{2} = obj.perimeter;
+            s.weights           = [1,0]; %, 20
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -262,14 +287,14 @@ classdef TopOptTestTutorialThermoMechanicalBatteryLevelSet < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 400;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.02;
             s.gJFlowRatio    = 1.0;
-            s.etaMax         = 1;
+            s.etaMax         = 1.0;
             s.etaMaxMin      = 0.01;
             s.gif            = true;
             s.gifName        ='BatteryLevelSet';

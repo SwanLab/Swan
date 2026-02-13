@@ -36,7 +36,6 @@ classdef TopOptTestTutorialThermoMechanicalBattery < handle
             obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
-%             obj.createPrimalUpdater();
             obj.createDualVariable();
             obj.createOptimizer();
         end

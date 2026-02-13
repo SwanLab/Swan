@@ -10,6 +10,7 @@ classdef SLERP < handle
 
     properties (Access = private)
         mesh
+        chiDesignable
     end
 
     methods (Access = public)
@@ -21,16 +22,15 @@ classdef SLERP < handle
             isFixed    = phi.getFixedNodes();
             g(isFixed) = - abs(g(isFixed)); 
 
-            % Characteristic function for designable domain ----
-            chiDesignable = LagrangianFunction.create(obj.mesh,1,'P1');
-            fValues = 1 + chiDesignable.fValues; 
-            fValues(isFixed) = 0.0;
-            chiDesignable.setFValues(fValues);
+            %             Characteristic function for designable domain ----
+            fValues = ones(obj.mesh.nnodes,1);
+%             fValues(isFixed) = 0.0;
+            obj.chiDesignable.setFValues(fValues);
 
             ls                = phi.obtainVariableInCell();
-            phiN              = obj.normalizeLevelSets(ls, chiDesignable);
-            gN                = obj.createNormalizedGradient(ls,g,chiDesignable);
-            theta             = obj.computeThetaNorm(phiN,gN,chiDesignable);
+            phiN              = obj.normalizeLevelSets(ls, obj.chiDesignable);
+            gN                = obj.createNormalizedGradient(ls,g, obj.chiDesignable);
+            theta             = obj.computeThetaNorm(phiN,gN, obj.chiDesignable);
             obj.Theta         = theta;
             [phiNvals,gNvals] = obj.computePhiAndGradientValues(phiN,gN);
             phiNew            = obj.computeNewLevelSet(phiNvals,gNvals,theta);
@@ -65,6 +65,7 @@ classdef SLERP < handle
 
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
+            obj.chiDesignable = LagrangianFunction.create(obj.mesh,1,'P1');
         end
 
         function computeLineSearchInBounds(obj,g,ls)
