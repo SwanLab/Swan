@@ -7,15 +7,15 @@ clc,clear,close all
 
 %% GENERAL SETTINGS
 
-s.monitoring.set = true;
+s.monitoring.set = false;
 s.monitoring.type = 'full'; %'reduced'
-s.monitoring.print = true;
+s.monitoring.print = false;
 
 s.tolerance.u = 1e-6;
 s.tolerance.phi = 1e-6;
 s.tolerance.stag = 1e-6;
 s.maxIter.u = 100;
-s.maxIter.phi = 100;
+s.maxIter.phi = 300;
 s.maxIter.stag = 300;
 
 s.benchmark.mesh.type   = 'SENshear';%'SENshear';
@@ -48,33 +48,10 @@ s.solver.tau  = 150;
 
 
 %% RUN
-tester = TestingPhaseField(s);
-outputData = tester.compute();
-outputData.inputParameters = s;
+% tester = TestingPhaseField(s);
+% outputData = tester.compute();
+% outputData.inputParameters = s;
 
 %% SAVE + PLOT
-save("SENshear001AT1.mat",'outputData') %ACTIVATE TO SAVE DATA!
-PhaseFieldPlotter(outputData);
-
-s.matInfo.degradationSubType = 'AT2linear';
-s.dissipInfo.constant = 2;
-s.benchmark.bc.u.values =  [0:1e-5:0.02];
-tester = TestingPhaseField(s);
-outputData = tester.compute();
-outputData.inputParameters = s;
-save("SENshear001AT2.mat",'outputData') 
-
-s.matInfo.degradationSubType = 'General';
-s.matInfo.sigmaMax =2.44542;
-s.dissipInfo.constant = pi;
-tester = TestingPhaseField(s);
-outputData = tester.compute();
-outputData.inputParameters = s;
-save("SENshear001Rational24.mat",'outputData') 
-
-s.matInfo.sigmaMax = 5;
-s.dissipInfo.constant = pi;
-tester = TestingPhaseField(s);
-outputData = tester.compute();
-outputData.inputParameters = s;
-save("SENshear001Rational5.mat",'outputData') 
+% save("SENshear001AT1.mat",'outputData') %ACTIVATE TO SAVE DATA!
+% PhaseFieldPlotter(outputData); 
