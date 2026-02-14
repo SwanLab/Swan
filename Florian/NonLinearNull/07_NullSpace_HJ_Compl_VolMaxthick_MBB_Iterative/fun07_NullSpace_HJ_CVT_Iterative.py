@@ -212,7 +212,7 @@ def FunctionCase07(maxItj,stepHJ,No,maxIter):
 
     # Load previous results
     group1 = ['x','J', 'G', 'H', 's', 'it','normxiJ_save','muls']
-    group2 = ['normxiJ', 'eps', 'tolerance']
+    group2 = ['normxiJ', 'eps', 'tolerance','dmax','AJ','AC']
     abstract_results = OptimizationResults(group1, group2,  
                                         results, params['save_only_N_iterations'], 
                                         params['save_only_Q_constraints'],   
@@ -261,6 +261,8 @@ def FunctionCase07(maxItj,stepHJ,No,maxIter):
         muls = np.zeros(len(G) + len(H))
 
     #Optimization loop
+    AJ = 0
+    AC = 0
     while normdx > params['tol'] and it <= params['maxit']:
         abstract_results.save('it', it)
         abstract_results.save('J', J)
@@ -269,6 +271,9 @@ def FunctionCase07(maxItj,stepHJ,No,maxIter):
         abstract_results.save('x', x)
         abstract_results.save('s', s)
         abstract_results.save('muls', muls)
+        abstract_results.save('dmax',dmax)
+        abstract_results.save('AJ',AJ)
+        abstract_results.save('AC',AC)
         abstract_results.save('normxiJ_save', normxiJ_save)
         tic()
         problem.accept(params, abstract_results.implementation())
@@ -432,6 +437,9 @@ def FunctionCase07(maxItj,stepHJ,No,maxIter):
     abstract_results.save('it', it)
     abstract_results.save('s', s)
     abstract_results.save('muls', muls)
+    abstract_results.save('dmax',dmax)
+    abstract_results.save('AJ',AJ)
+    abstract_results.save('AC',AC)
     abstract_results.save('normxiJ_save', normxiJ_save)
     problem.accept(params, abstract_results.implementation())
 
@@ -447,6 +455,10 @@ def FunctionCase07(maxItj,stepHJ,No,maxIter):
     iter = results['it']
     Comp  = results['J']
     VT = results['H']
+    dmaxVec = results['dmax']
+    muls = results['muls']
+    AJVec = results['AJ']
+    ACVec = results['AC']
 
     np.savez(path+"07_ResultIts"+str(maxItj)+"Step"+str(stepHJ),
-            xF=x,it=iter,c=Comp,vt=VT)
+            xF=x,it=iter,c=Comp,vt=VT,dmax=dmaxVec,muls=muls,AJ=AJVec,AC=ACVec)
