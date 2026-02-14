@@ -58,7 +58,7 @@ classdef ElasticityMicro_0_90 < handle
         function [ls,phiFun] = computeLevelSet(obj, mesh)            
             g.type = 'FourPerpendicularBars';
             g.leftBar_xMax = 0.35;   % right edge of left bar
-            g.barWidth = 0.14645;
+            g.barWidth = 0.137825;
 
             g.rightBar_xMin = 1 - g.leftBar_xMax;  % left edge of right bar
             g.bottomBar_yMax = g.leftBar_xMax ; % top edge of bottom bar

@@ -51,7 +51,7 @@ classdef ElasticityMicro_45_45 < handle
             s.plotting = true;
             dens               = DesignVariable.create(s);
             obj.designVariable = dens;
-            obj.designVariable.fun.plot
+            % obj.designVariable.fun.plot
         end
 
         function [ls,phiFun] = computeLevelSet(obj, mesh)            
@@ -62,7 +62,7 @@ classdef ElasticityMicro_45_45 < handle
             g.minyCoor = 0;
             g.maxyCoor = 1;
             g.leftBar_xMax  = 0.35;
-            g.barWidth      = 0.10356;
+            g.barWidth      = 0.0956;
         
             g.rightBar_xMin   = 1 - g.leftBar_xMax;
             g.bottomBar_yMax  = g.leftBar_xMax;
