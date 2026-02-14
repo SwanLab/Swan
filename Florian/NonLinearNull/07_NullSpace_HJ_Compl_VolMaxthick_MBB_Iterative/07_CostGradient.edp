@@ -1,0 +1,35 @@
+IMPORT "io.edp"
+
+mesh Th = importMesh("Th");
+mesh Th2 = importMesh("Th2");
+real beta = importVar("beta");
+real lsLab = importVar("lsLab");
+real [int] uxVal = importArray("uxVal");
+real [int] uyVal = importArray("uyVal");
+
+fespace Vh(Th,P1);
+fespace Vh0(Th,P0);
+Vh g, ux, uy;
+Vh0 g0;
+ux[] = uxVal;
+uy[] = uyVal;
+
+int [int] lsLabel(1);
+lsLabel[0] = lsLab;
+
+fespace Vh2(Th2,P1);
+Vh2 g2, v2;
+
+real mu = 0.3846;   // Lamé coefficients
+real lambda = 0.5769;
+g0 = mu*(2.0*dx(ux)*dx(ux) + (dx(uy)+dy(ux))*(dx(uy)+dy(ux)) + 2.0*dy(uy)*dy(uy))
+       + lambda*(dx(ux)+dy(uy))*(dx(ux)+dy(uy));
+
+problem velext(g2,v2) = int2d(Th2)(beta^2*(dx(g2)*dx(v2)+dy(g2)*dy(v2)) + g2*v2)
+                    - int1d(Th2,lsLabel)(beta*g0*v2);
+
+velext;
+
+g = g2;
+
+exportArray(g[]);
