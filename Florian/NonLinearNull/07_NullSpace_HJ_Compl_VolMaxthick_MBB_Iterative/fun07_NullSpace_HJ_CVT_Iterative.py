@@ -461,4 +461,5 @@ def FunctionCase07(maxItj,stepHJ,No,maxIter):
     ACVec = results['AC']
 
     np.savez(path+"07_ResultIts"+str(maxItj)+"Step"+str(stepHJ),
-            xF=x,it=iter,c=Comp,vt=VT,dmax=dmaxVec,muls=muls,AJ=AJVec,AC=ACVec)
+            xF=x,it=iter,c=Comp,vt=VT,dmax=dmaxVec,muls=muls,
+            AJ=AJVec,AC=ACVec,dH=dH)
