@@ -177,15 +177,15 @@ classdef Tutorial05_8_TopOpt3DDensityMacroMMA < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 3;
+            s.maxIter        = 50;
             s.tolerance      = 1e-8;
             s.constraintCase = 'EQUALITY';
             s.ub             = 1;
             s.lb             = 0;
             s.gif            = false;
             s.gifName        = [];
-            s.printing       = false;
-            s.printName      = [];
+            s.printing       = true;
+            s.printName      = ['TutorialGiF'];
             opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
