@@ -126,6 +126,8 @@ axes[1][3].grid(True, linestyle='--', alpha=0.6)
 
 funV1 = P1Function(Th,dV1.toarray()[0])
 funT1 = P1Function(Th,dT1.toarray()[0])
+funV5 = P1Function(Th,dV5.toarray()[0])
+funT5 = P1Function(Th,dT5.toarray()[0])
 
 plt.tight_layout()
 plt.show()
