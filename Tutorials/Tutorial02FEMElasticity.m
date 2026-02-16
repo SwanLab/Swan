@@ -73,7 +73,9 @@ classdef Tutorial02FEMElasticity < handle
 
             sPL{1}.domain    = @(coor) isForce(coor);
             sPL{1}.direction = 2;
-            sPL{1}.value     = -1;
+            % sPL{1}.value     = -1;
+            [bMesh,~]=obj.mesh.createSingleBoundaryMesh();
+            sPL{1}.fun       = ConstantFunction.create([0,-1],bMesh);
 
             dirichletFun = [];
             for i = 1:numel(sDir)
@@ -84,7 +86,7 @@ classdef Tutorial02FEMElasticity < handle
 
             pointloadFun = [];
             for i = 1:numel(sPL)
-                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
+                pl = TractionLoad(obj.mesh, sPL{i}, 'FUNCTION');
                 pointloadFun = [pointloadFun, pl];
             end
             s.pointloadFun = pointloadFun;
