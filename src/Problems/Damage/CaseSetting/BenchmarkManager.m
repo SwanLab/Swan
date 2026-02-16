@@ -11,7 +11,12 @@ classdef BenchmarkManager < handle
                     w = cParams.mesh.width;
                     N = cParams.mesh.lN;
                     M = cParams.mesh.wN;
-                    mesh = QuadMesh(l,w,N,M);
+                    mesh = TriangleMesh(l,w,N,M);
+                case 'Uniaxial'
+                    file = 'Uniaxial_unstructured';
+                    a.fileName = file;
+                    s = FemDataContainer(a);
+                    mesh = s.mesh;
                 case 'SENtest'
                     file = 'SENtest0_05';
                     a.fileName = file;

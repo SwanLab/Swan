@@ -44,7 +44,7 @@ classdef PhaseFieldAT2linearDegradation < handle
 
         function defineDegradationFunction(obj)
             syms phi
-            g(phi) = (1-sqrt(phi))^2 + 1e-10;
+            g(phi) = (1-sqrt(phi+1e-25))^2;
             obj.degFun = g;
         end
 
