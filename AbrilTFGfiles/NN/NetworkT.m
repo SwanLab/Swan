@@ -7,7 +7,7 @@ clear;
 close all;
 
 %% Case parameters
-p.Training  = 'EIFEM';   % 'EIFEM'/'Multiscale'
+p.Training  = 'Multiscale';   % 'EIFEM'/'Multiscale'
 p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
 p.Inclusion  ='Material';    %'Material'/'Hole'/'HoleRaul
 
