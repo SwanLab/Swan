@@ -47,40 +47,7 @@ classdef ElasticProblemPunzon < handle
             obj.mesh = m2;
         end
 
-        % function computeElasticProperties(obj)
-        %     E  = 1;
-        %     nu = 1/3;
-        %     obj.young   = ConstantFunction.create(E,obj.mesh);
-        %     obj.poisson = ConstantFunction.create(nu,obj.mesh);
-        % end
 
-        % function createMaterial(obj)
-        %     s.type    = 'ISOTROPIC';
-        %     s.ptype   = 'ELASTIC';
-        %     s.ndim    = obj.mesh.ndim;
-        %     s.young   = obj.young;
-        %     s.poisson = obj.poisson;
-        %     tensor    = Material.create(s);
-        %     obj.material = tensor;
-        % end
-
-        % function createElasticProblem(obj)
-        %     file = 'punzon';
-        %     a.fileName = file;
-        %     s = FemDataContainer(a)
-        %     s.mesh = obj.mesh;
-        %     s.scale = 'MACRO';
-        %     s.material = obj.material;
-        %     s.dim = '2D';
-        %     s.boundaryConditions = obj.createBoundaryConditions();
-        %     s.solverType = 'REDUCED';
-        %     s.solverMode = 'DISP';
-        %     s.solverCase = DirectSolver();
-        %     fem = ElasticProblem(s);
-        %     fem.solve();
-        %     fem.uFun.print('results_fem_dispPunzon', 'Paraview') % print using Paraview
-        %     obj.stateProblem = fem;
-        % end
 
         function bc = createBoundaryConditions(obj)
             xMin = min(obj.mesh.coord(:,1));

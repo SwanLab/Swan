@@ -105,8 +105,10 @@ classdef OptimizerMMA < Optimizer
                 if obj.gif
                     obtainGIF(obj.gifName,obj.designVariable,obj.nIter);
                 end
+            end
+            if obj.nIter/2==round(obj.nIter/2)
                 if obj.printing
-                    obj.designVariable.fun.print([obj.printName,'Iter',num2str(obj.nIter/10)]);
+                    obj.designVariable.fun.print([obj.printName,'Iter',num2str(obj.nIter)]);
                 end
             end
         end
