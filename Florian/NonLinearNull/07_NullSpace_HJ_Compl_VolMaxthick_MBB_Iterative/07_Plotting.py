@@ -43,6 +43,9 @@ dH1 = data['dH']
 dH1 = dH1.item()
 dV1 = dH1[0]
 dT1 = dH1[1]
+xiC1 = data['xiC']
+xiJ1 = data['xiJ']
+g1 = data['g']
 
 data  = np.load(path+"07_ResultIts5Step0.2.npz",allow_pickle=True)
 iter5 = data['it']
@@ -58,6 +61,9 @@ dH5 = data['dH']
 dH5 = dH5.item()
 dV5 = dH5[0]
 dT5 = dH5[1]
+xiC5 = data['xiC']
+xiJ5 = data['xiJ']
+g5 = data['g']
 
 data = np.load(path+"07_ResultIts1Step0.2.npz")
 fig0, ax0 = plt.subplots()

@@ -462,4 +462,4 @@ def FunctionCase07(maxItj,stepHJ,No,maxIter):
 
     np.savez(path+"07_ResultIts"+str(maxItj)+"Step"+str(stepHJ),
             xF=x,it=iter,c=Comp,vt=VT,dmax=dmaxVec,muls=muls,
-            AJ=AJVec,AC=ACVec,dH=dH)
+            AJ=AJVec,AC=ACVec,dH=dH,xiJ=xiJ,xiC=xiC,g=g)
