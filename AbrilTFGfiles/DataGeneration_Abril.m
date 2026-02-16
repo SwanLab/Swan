@@ -9,8 +9,8 @@ clc; clear; close all;
 %% INPUTS
 % r=1e-6:0.05:0.999; 
 %r=1e-6:0.1:0.999; 
-r=0:0.05:0.999;
-% r=0.5;
+% r=0:0.05:0.999;
+r=0.5;
 
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
 p.Inclusion  = 'Material';        %'Material'/'Hole'/'HoleRaul'
@@ -31,6 +31,7 @@ for j = 1:size(r,2)
             mesh       = mR;
             bMesh      = mesh.createSingleBoundaryMesh();
             s.mesh=bMesh;
+            s.type='continuous';
             cf=CoarseFunctions(s);
             f = cf.getAnalytical();
             s.mesh          = mesh;

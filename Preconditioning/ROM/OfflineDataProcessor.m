@@ -38,6 +38,7 @@ classdef OfflineDataProcessor < handle
 
             PhiR       = obj.getRigidBodyModes(uRBfun(1));
 
+
 %             u = LagrangianFunction.create(obj.mesh,obj.mesh.ndim,'P1');
 %             M = IntegrateLHS(@(u,v) DP(v,u),u,u,obj.mesh,'Domain',2);
 %             defSnap = obj.fValuesTraining - PhiR*inv(PhiR'*M*PhiR)*(PhiR'*M*obj.fValuesTraining);
@@ -48,7 +49,7 @@ classdef OfflineDataProcessor < handle
 
             joinedBMesh=obj.mesh.createSingleBoundaryMesh();
             s.mesh=joinedBMesh;
-            s.type='quad';
+            s.type='continuous';
             cf=CoarseFunctions(s);
             Vfun2=cf.getAnalytical();
 
@@ -305,7 +306,7 @@ classdef OfflineDataProcessor < handle
         function Vfun = createInterfaceModesFun(obj,bMesh)
             joinedBMesh=obj.mesh.createSingleBoundaryMesh();
             s.mesh=joinedBMesh;
-            s.type='quad';
+            s.type='continuous';
             cf=CoarseFunctions(s);
             f=cf.compute();
             nfun = size(f,2);

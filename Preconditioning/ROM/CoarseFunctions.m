@@ -8,7 +8,7 @@ classdef CoarseFunctions < handle
         mesh
         dim
         order
-        type  % "line" / "quad"
+        type  % "discontinous" / "continous"
     end
 
     methods (Access = public)
@@ -19,10 +19,10 @@ classdef CoarseFunctions < handle
 
         function fH = compute(obj)
             switch obj.type
-                case 'line'
-                    fH=obj.createLineFunction();
-                case 'quad'
-                    fH=obj.createQuadFunction();
+                case 'discontinuous'
+                    fH=obj.createDiscontinuousFunction();
+                case 'continuous'
+                    fH=obj.createContinuousFunction();
                 otherwise
                     error('Unknown coarse function type');
             end
@@ -33,7 +33,7 @@ classdef CoarseFunctions < handle
             nf = numel(fH);
             f  = cell(1,nf);
             switch obj.type
-                case 'line'
+                case 'discontinuous'
                     nPerSegment=obj.dim*(obj.order+1); %2fx+2fy x bmesh{i}
                     idx=1;
                     for k=1:numel(obj.mesh)
@@ -44,7 +44,7 @@ classdef CoarseFunctions < handle
                         end
                     end
 
-                case 'quad'
+                case 'continuous'
                     bMesh=obj.mesh;
                     for i=1:nf
                         f{i}=AnalyticalFunction.create(fH{i}, bMesh);
@@ -76,7 +76,7 @@ classdef CoarseFunctions < handle
         end
 
 
-        function f=createLineFunction(obj)  
+        function f=createDiscontinuousFunction(obj)  
             L=obj.createBasisFunctions();
             nf = numel(obj.mesh) *obj.dim* (obj.order + 1);
             f  = cell(1,nf);
@@ -102,7 +102,7 @@ classdef CoarseFunctions < handle
             end
         end
 
-        function f=createQuadFunction(obj)
+        function f=createContinuousFunction(obj)
             bMesh=obj.mesh;
             L=obj.createBasisFunctions(); 
             [~,~,a,b,x0,y0]=obj.NormalizeMesh(bMesh);

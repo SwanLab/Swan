@@ -27,7 +27,7 @@ classdef EIFEMTraining < handle
             bMesh = obj.meshDomain.createSingleBoundaryMesh();
             %cF = CoarseFunctions(bMesh,obj.Coarseorder);
             s.mesh=bMesh;
-            s.type='quad';
+            s.type='continuous';
             cf=CoarseFunctions(s);
             f=cf.getAnalytical();
             dirchletFun = f;
