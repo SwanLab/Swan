@@ -34,8 +34,8 @@ classdef TopOptPunzonLevelSetV2 < handle
 
             % Save monitoring and desginVariable fValues
             figure(2)
-            saveas(gcf,'Monitoring_PunzonLevelSet.fig');
-            obj.designVariable.fun.print('fValues_PunzonLevelSet');
+            saveas(gcf,'Monitoring_PunzonLevelSet_Intent2.fig');
+            obj.designVariable.fun.print('fValues_PunzonLevelSet_Intent2');
         end
 
     end
@@ -43,7 +43,7 @@ classdef TopOptPunzonLevelSetV2 < handle
     methods (Access = private)
 
         function createMesh(obj)
-            file = 'punzon';
+            file = 'punzon2';
             obj.filename = file;
             a.fileName = file;
             s = FemDataContainer(a);
@@ -51,29 +51,27 @@ classdef TopOptPunzonLevelSetV2 < handle
         end
 
         function createDesignVariable(obj)
-            % s.type = 'Full';
-            % g      = GeometricalFunction(s);
-            % lsFun  = g.computeLevelSetFunction(obj.mesh);
-            % s.fun  = lsFun;
+            s.type = 'Full';
+            g      = GeometricalFunction(s);
+            lsFun  = g.computeLevelSetFunction(obj.mesh);
+            s.fun  = lsFun;
+            % 
+            % s.fHandle = @(x) ones(size(x(1,:,:)));
+            % s.ndimf   = 1;
+            % s.mesh    = obj.mesh;
+            % aFun      = AnalyticalFunction(s);
+            % s.fun     = aFun.project('P1');
 
-            s.fHandle = @(x) ones(size(x(1,:,:)));
-            s.ndimf   = 1;
-            s.mesh    = obj.mesh;
-            aFun      = AnalyticalFunction(s);
-
-
-            s.fun     = aFun.project('P1');
             s.mesh = obj.mesh;
             s.type = 'LevelSet';
             s.plotting = true;
 
 
-            zMin     = min(obj.mesh.coord(:,3));
-            isBottom = @(x) abs(x(:,3) - zMin) < 1e-6; % cara llisa
-            guide1   = @(x) x(:,2)<= 20.179;
-            guide2   = @(x) x(:,2)>= 76.729;
-
-            s.isFixed  = obj.computeFixedVolumeDomain(@(x) guide1(x) | guide2(x) | isBottom(x), s.type);
+            % zMin     = min(obj.mesh.coord(:,3));
+            % isBottom = @(x) abs(x(:,3) - zMin) < 1e-6; % cara llisa
+            % guide1   = @(x) x(:,2)<= 20.179;
+            % guide2   = @(x) x(:,2)>= 76.729;
+            % s.isFixed  = obj.computeFixedVolumeDomain(@(x) guide1(x) | guide2(x) | isBottom(x), s.type);
             ls     = DesignVariable.create(s);
             obj.designVariable = ls;
         end
@@ -190,15 +188,15 @@ classdef TopOptPunzonLevelSetV2 < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 20;
+            s.maxIter        = 300;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.1;
-            s.etaNormMin     = 0.05;
-            s.gJFlowRatio    = 0.8;
-            s.etaMax         = 10;
-            s.etaMaxMin      = 0.5;
+            s.etaNormMin     = 0.01;
+            s.gJFlowRatio    = 0.1;
+            s.etaMax         = 1;
+            s.etaMaxMin      = 0.01;
             %s.type           = '0';
             s.gif = false;
             s.gifName = [];
