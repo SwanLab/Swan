@@ -82,8 +82,8 @@ classdef TutorialShellsKirchhoff < handle
         function createSolutionField(obj)
            obj.uFun     = LagrangianFunction.create(obj.mesh,2,'P1');
            obj.thetaFun = LagrangianFunction.create(obj.mesh,2,'P1');
-           obj.wFun     = LagrangianFunction.create(obj.mesh,1,'P1');
-           obj.tauFun   = LagrangianFunction.create(obj.mesh,2,'P0');
+           obj.wFun     = LagrangianFunction.create(obj.mesh,1,'P2');
+           obj.tauFun   = LagrangianFunction.create(obj.mesh,2,'P1');
         end
 
         function createMaterialProperties(obj)
@@ -168,7 +168,7 @@ classdef TutorialShellsKirchhoff < handle
             Zthetaw = zeros(nTheta,nW);
             Zww     = zeros(nW,nW);
             Ztautau = zeros(nTau,nTau);
-            Otautau = 1e-16*eye(nTau,nTau);
+            Otautau = 1e-10*eye(nTau,nTau);
 
             tauOnes = ones(1,nTau);
             ZonesU  = zeros(1,nU);
@@ -176,11 +176,10 @@ classdef TutorialShellsKirchhoff < handle
             ZonesT  = zeros(1,nTheta);
 
 
-            LHS = [Ku Zut Zuw Zutau ZonesU';
-                    Zut' Ktheta+KthetaStab Zthetaw-NthetawStab -Mthetatau ZonesT';
-                    Zuw' Zthetaw'-NthetawStab' Zww+KwStab Nwtau ZonesW';
-                    Zutau' -Mthetatau' Nwtau' Otautau tauOnes';
-                    ZonesU ZonesT ZonesW tauOnes 0];
+            LHS = [Ku Zut Zuw Zutau;
+                    Zut' Ktheta+KthetaStab Zthetaw-NthetawStab -Mthetatau;
+                    Zuw' Zthetaw'-NthetawStab' Zww+KwStab Nwtau;
+                    Zutau' -Mthetatau' Nwtau' Otautau ];
 
 
             % LHS = [Ku Zut Zuw Zutau;
@@ -211,7 +210,7 @@ classdef TutorialShellsKirchhoff < handle
             RHStau = zeros(nTau,1);
             
 
-            RHS = [RHSu;RHStheta;RHSw;RHStau;0];
+            RHS = [RHSu;RHStheta;RHSw;RHStau];
 
         end
 

@@ -55,6 +55,7 @@ classdef TutorialShells < handle
             thetaT = reshape(thetaT,obj.thetaFun.ndimf,[])';
             obj.thetaFun.setFValues(thetaT);
             plot(obj.thetaFun)
+            title('thetax')
 
             
 
@@ -65,7 +66,7 @@ classdef TutorialShells < handle
     methods (Access = private)
 
         function createMesh(obj)
-          obj.mesh = UnitTriangleMesh(50,50);
+          obj.mesh = UnitTriangleMesh(5,5);
         end
 
         function createSolutionField(obj)
