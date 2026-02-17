@@ -242,8 +242,11 @@ classdef Eigs_Hexagon_Density_Lambda5 < handle
         end
 
         function m = createMaterial(obj)
-            f = obj.designVariable.fun;           
-            s.type                 = 'DensityBased';
+            x = obj.designVariable;
+            f = x.obtainDomainFunction();
+            f = obj.filter.compute(f{1},1);            
+            s.type                 = 'DensityBasedMaterialAnisotropic';
+            %s.fibreOrientation     = '0';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '2D';

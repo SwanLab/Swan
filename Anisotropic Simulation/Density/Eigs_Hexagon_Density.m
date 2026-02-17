@@ -228,7 +228,7 @@ classdef Eigs_Hexagon_Density < handle
             s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 0.1;
+            s.gJFlowRatio    = 1;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
             %s.type           = '0';
@@ -242,8 +242,11 @@ classdef Eigs_Hexagon_Density < handle
         end
 
         function m = createMaterial(obj)
-            f = obj.designVariable.fun;           
-            s.type                 = 'DensityBased';
+            x = obj.designVariable;
+            f = x.obtainDomainFunction();
+            f = obj.filter.compute(f{1},1);            
+            s.type                 = 'DensityBasedMaterialAnisotropic';
+            %s.fibreOrientation     = '0';
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '2D';
