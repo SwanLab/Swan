@@ -28,7 +28,7 @@ classdef BenchmarkManager < handle
                     s = FemDataContainer(a);
                     mesh = s.mesh;
                 case 'SENshear'
-                    file = 'SENshear0_0025';
+                    file = 'SENshearFine_v2';
                     a.fileName = file;
                     s = FemDataContainer(a);
                     mesh = s.mesh;

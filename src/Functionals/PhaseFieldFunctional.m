@@ -15,6 +15,14 @@ classdef PhaseFieldFunctional < handle
             sig = obj.functionals.energy.computeSigma(u,phi);
         end
 
+        function energy = computeEnergyFun(obj,u)
+            energy = obj.functionals.energy.computeEnergyFun(u);
+        end
+
+        function gDeriv = computeDegradationDerivative(obj,phi)
+            gDeriv = obj.functionals.energy.computeDegradationDerivative(phi);
+        end
+
         function Etot = computeCost(obj,u,phi,bc)
             fExt = bc.tractionFun;
             if ~isempty(bc.tractionFun)

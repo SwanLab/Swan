@@ -12,8 +12,8 @@ s.monitoring.type = 'full'; %'reduced'
 s.monitoring.print = true;
 
 s.tolerance.u = 1e-6;
-s.tolerance.phi = 1e-6;
-s.tolerance.stag = 1e-6;
+s.tolerance.phi = 1e-8;
+s.tolerance.stag = 1e-8;
 s.maxIter.u = 100;
 s.maxIter.phi = 300;
 s.maxIter.stag = 300;
@@ -29,7 +29,7 @@ s.benchmark.bc.phi.type = 'DamageFree';
 
 s.matInfo.matType = 'Analytic'; %'Analytic','Homogenized'
 s.matInfo.degradationType = 'PhaseField'; %'PhaseField','SIMPALL'
-s.matInfo.degradationSubType = 'AT2linear'; %'AT','AT2linear','General'
+s.matInfo.degradationSubType = 'AT'; %'AT','AT2linear','General'
 s.matInfo.fileName = 'HoneycombBenchmark02'; 
 s.matInfo.young   = 210;
 s.matInfo.poisson = 0.3;
@@ -41,7 +41,7 @@ s.matInfo.params.exp = 2;
 
 s.dissipInfo.type = 'AT';
 s.dissipInfo.constant = 2; % 2 AT2 / 8/3 AT1 / pi Wu 
-s.dissipInfo.pExp = 1;
+s.dissipInfo.pExp = 2;
 s.dissipInfo.xi = 1; % 0 AT2 / 1 AT1 / 2 Mix in type FullQuadratic
 s.solver.type = 'Gradient';
 s.solver.tau  = 150;
@@ -53,5 +53,5 @@ outputData = tester.compute();
 outputData.inputParameters = s;
 
 %% SAVE + PLOT
-save("SENshear001AT2_v3.mat",'outputData') %ACTIVATE TO SAVE DATA!
+save("SENshear001AT2original_v3.mat",'outputData') %ACTIVATE TO SAVE DATA!
 PhaseFieldPlotter(outputData); 

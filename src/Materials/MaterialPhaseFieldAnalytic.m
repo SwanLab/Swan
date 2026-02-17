@@ -11,6 +11,11 @@ classdef MaterialPhaseFieldAnalytic < Material
             obj.init(cParams)
         end
 
+        function gDeriv = computeDegradationDerivative(obj,phi)
+            mI = obj.materialInterpolator;
+            gDeriv = mI.computeDegradationDerivative(phi);
+        end
+
         function C = obtainTensor(obj,phi)
             mI = obj.materialInterpolator;
             if isa(mI,'SimpAllExplicitInterpolator')
