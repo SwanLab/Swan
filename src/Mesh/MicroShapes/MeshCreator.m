@@ -12,6 +12,7 @@ classdef MeshCreator < handle
         coord
         connec
         masterSlaveIndex
+        lattice
     end
     
     methods (Access = public)
@@ -26,6 +27,11 @@ classdef MeshCreator < handle
             obj.connectNodes();
             obj.obtainMasterSlaveNodes();
 %             obj.writeFEMreadingArchive();
+            
+            % v = obj.coord(1:obj.nodes.vert,:);
+            % a1 = v(2,:) - v(1,:);
+            % a2 = v(3,:) - v(2,:);
+            % obj.lattice = LatticeVectors(a1,a2);
         end
         
         function drawMesh(obj)

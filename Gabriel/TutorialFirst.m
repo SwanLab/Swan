@@ -210,8 +210,8 @@ classdef TutorialFirst < handle
 
        function createPrimalUpdater(obj)
             s.ub     = 1;
-            s.lb     = 0.001;
-            s.tauMax = 5;
+            s.lb     = 1e-8;
+            s.tauMax = 10;
             s.tau    = [];
             obj.primalUpdater = ProjectedGradient(s);
         end
@@ -241,7 +241,7 @@ classdef TutorialFirst < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 800;
+            s.maxIter        = 1200;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';

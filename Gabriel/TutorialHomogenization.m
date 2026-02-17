@@ -18,6 +18,7 @@ classdef TutorialHomogenization < handle
         pnorm
         monitoring
         Mmass
+        % lattice
     end
 
     properties (Access = private)
@@ -34,7 +35,7 @@ classdef TutorialHomogenization < handle
             obj.defineMesh();
             obj.computeHoleParams();
             obj.compute();
-            obj.fitting();
+            % obj.fitting();
             obj.plot();
         end
       
@@ -45,13 +46,13 @@ classdef TutorialHomogenization < handle
         function init(obj)
             obj.E          = 1;
             obj.nu         = 0.3;
-            obj.meshType   = 'Hexagon';
-            obj.meshN      = 100;
+            obj.meshType   = 'Square';
+            obj.meshN      = 40;
 
-            obj.holeType   = 'SmoothHexagon';
+            obj.holeType   = 'SmoothRectangle';
             obj.pnorm      = 'Inf';
             % obj.damageType = 'Area';
-            obj.nSteps     = 30;
+            obj.nSteps     = 15;
 
             obj.monitoring = true;
         end
@@ -60,18 +61,20 @@ classdef TutorialHomogenization < handle
             switch obj.meshType
                 case 'Square'
                     s.c = [1,1];
-                    s.theta = [0,90];
+                    s.theta = [30,120];
                     s.divUnit = obj.meshN;
                     s.filename = '';
                     MC = MeshCreator(s);
                     MC.computeMeshNodes();
+                    % obj.lattice = MC.lattice;
                 case 'Hexagon'
                     s.c = [1,1,1];
-                    s.theta = [0,60,120];
+                    s.theta = [30,90,150];
                     s.divUnit = obj.meshN;
                     s.filename = '';
                     MC = MeshCreator(s);
                     MC.computeMeshNodes();
+                    % obj.lattice = MC.lattice;
             end
             s.coord  = MC.coord;
             s.connec = MC.connec;
@@ -86,7 +89,7 @@ classdef TutorialHomogenization < handle
             nParam = length(obj.maxParam);
             obj.paramHole = cell(1,nParam);
             for i=1:nParam
-                obj.paramHole{i} = linspace(1e-5,obj.maxParam(i),obj.nSteps(i));
+                obj.paramHole{i} = linspace(1e-9,obj.maxParam(i),obj.nSteps(i));
             end
         end
 
@@ -128,24 +131,99 @@ classdef TutorialHomogenization < handle
         end
 
         function ls = computeLevelSet(obj,mesh,l)
-            gPar.type = obj.holeType;
-            gPar.pnorm = obj.pnorm;
+           gPar.type = obj.holeType;
+           gPar.pnorm = obj.pnorm;   
+           % a1 = obj.lattice.a1;
+           % phi = atan2(a1(2), a1(1));
+           % gPar.rotation = phi;
+            coord = mesh.coord;
+            xmin = min(coord(:,1));
+            xmax = max(coord(:,1));
+            ymin = min(coord(:,2));
+            ymax = max(coord(:,2));          
+            center_x = (xmin + xmax)/2;
+            center_y = (ymin + ymax)/2;
+            gPar.xCoorCenter = center_x;
+            gPar.yCoorCenter = center_y;
+          
             switch obj.meshType
                 case 'Square'
-                    gPar.xCoorCenter = 0.5;
-                    gPar.yCoorCenter = 0.5;
+                    % % gPar.xCoorCenter = 0.5;
+                    % % gPar.yCoorCenter = 0.5;
+                    % % a1 = obj.lattice.a1;
+                    % % a2 = obj.lattice.a2;
+                    % 
+                    % % alpha = 0.5;
+                    % % beta  = 0.5;
+                    % 
+                    % % center = alpha*a1 + beta*a2;
+                    % 
+                    % gPar.xCoorCenter = 0.5;
+                    % gPar.yCoorCenter = 0.5;
+                    if size(coord,1) >= 4
+                        v1 = coord(1,:);
+                        v2 = coord(2,:);
+                        v3 = coord(3,:);          
+                        side1 = v2 - v1;
+                        phi = atan2(side1(2), side1(1));
+                    else
+                        phi = 0;
+                    end
+                   
                 case 'Hexagon'
-                    gPar.xCoorCenter = 0.5;
-                    gPar.yCoorCenter = sqrt(1-0.5^2);
+                    
+                    if size(coord,1) >= 6
+                        v1 = coord(1,:);
+                        v2 = coord(2,:);
+                        side1 = v2 - v1;
+                        phi = atan2(side1(2), side1(1));
+                    else
+                        phi = 0;
+                    end           
             end
+            gPar.rotation = phi;
+            
             switch obj.holeType
                 case 'Circle'
                     gPar.radius = l/2;
                 case 'Square'
                     gPar.length = l;
-                case 'Rectangle'
-                    gPar.xSide  = l(1);
-                    gPar.ySide  = l(2);
+                case 'SmoothRectangle'
+                   % a1 = obj.lattice.a1(:);
+                   % 
+                   % 
+                   %  Lc = norm(a1);  
+                   % 
+                   % 
+                   %  ratio = 1.2 / 0.6;
+                   % 
+                   % 
+                   %  sx = l(1) * Lc;
+                   %  sy = sx / ratio;
+                   % 
+                   %  gPar.xSide = sx;
+                   %  gPar.ySide = sy;
+                    % gPar.pnorm = 16;
+
+                                
+                    Lx = xmax - xmin;
+                    Ly = ymax - ymin;
+                    
+                    
+                    if length(l) == 1
+                        
+                        ratio = 1.2 / 0.6;  
+                        sx = l * Lx;
+                        sy = sx / ratio;
+                    else
+                        
+                        sx = l(1) * Lx;
+                        sy = l(2) * Ly;
+                    end
+                    
+                    gPar.xSide = sx;
+                    gPar.ySide = sy;
+                    gPar.pnorm = 16;
                 case 'Ellipse'
                     gPar.type = "SmoothRectangle";
                     gPar.xSide  = l(1);
@@ -154,11 +232,21 @@ classdef TutorialHomogenization < handle
                 case 'SmoothHexagon'
                     gPar.radius = l;
                     gPar.normal = [0 1; sqrt(3)/2 1/2; sqrt(3)/2 -1/2];
-            end
+                case 'ReinforcedHoneycomb'
+                    gPar.theta  = 1-l;                          
+                    gPar.eps    = 1;                        
+                    gPar.normal = [0 1; sqrt(3)/2 1/2; sqrt(3)/2 -1/2];            
+                    gPar.radius = l;    
+                    gPar.rotation = phi;
+            end  
             g                  = GeometricalFunction(gPar);
             phiFun             = g.computeLevelSetFunction(mesh);
             lsCircle           = phiFun.fValues;
-            ls = -lsCircle;
+            % if l(1) <= 1e-9 && gPar.theta == 1
+            %     ls = ones(size(lsCircle));
+            % else
+            ls = -lsCircle; 
+            % end            
         end
 
         function mat = createDensityMaterial(obj,lsf)
@@ -179,7 +267,7 @@ classdef TutorialHomogenization < handle
             mat = Material.create(s);
         end
 
-        function matHomog = solveElasticMicroProblem(obj,material,dens)
+        function matHomog = solveElasticMicroProblem(obj,material,dens)           
             if obj.monitoring == true
                 close all
                 dens.plot
@@ -205,7 +293,7 @@ classdef TutorialHomogenization < handle
             matHomog = fem.Chomog/totVol;
         end
 
-        function bc = createBoundaryConditions(obj,mesh)
+function bc = createBoundaryConditions(obj,mesh)
             switch obj.meshType
                 case 'Square'
                     isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2))) < 1e-12);
@@ -221,20 +309,20 @@ classdef TutorialHomogenization < handle
                     sDir{1}.value     = 0;
                 case 'Hexagon'
                     isBottom      = @(coor) (abs(coor(:,2) - min(coor(:,2))) < 1e-12);
-                    isTop         = @(coor) (abs(coor(:,2) - max(coor(:,2))) < 1e-12);
+                    % isTop         = @(coor) (abs(coor(:,2) - max(coor(:,2))) < 1e-12);
                     
                     coorRotY = obj.defineRotatedCoordinates(pi/3);
                     isRightBottom = @(coor) (abs(coorRotY(coor) - min(coorRotY(coor))) < 1e-12);
-                    isLeftTop     = @(coor) (abs(coorRotY(coor) - max(coorRotY(coor))) < 1e-12);
-                    coorRotY = obj.defineRotatedCoordinates(-pi/3);
-                    isLeftBottom  = @(coor) (abs(coorRotY(coor) - min(coorRotY(coor))) < 1e-12);
-                    isRightTop    = @(coor) (abs(coorRotY(coor) - max(coorRotY(coor))) < 1e-12);
-                    isVertex = @(coor) (isBottom(coor) & isRightBottom(coor))  |...
-                                       (isRightBottom(coor) & isRightTop(coor))|...
-                                       (isRightTop(coor) & isTop(coor))        |...
-                                       (isTop(coor) & isLeftTop(coor))         |...
-                                       (isLeftTop(coor) & isLeftBottom(coor))  |...
-                                       (isLeftBottom(coor) & isBottom(coor))   ;
+                    % isLeftTop     = @(coor) (abs(coorRotY(coor) - max(coorRotY(coor))) < 1e-12);
+                    % coorRotY = obj.defineRotatedCoordinates(-pi/3);
+                    % isLeftBottom  = @(coor) (abs(coorRotY(coor) - min(coorRotY(coor))) < 1e-12);
+                    % isRightTop    = @(coor) (abs(coorRotY(coor) - max(coorRotY(coor))) < 1e-12);
+                    isVertex = @(coor) (isBottom(coor) & isRightBottom(coor))  ; 
+                                       % (isRightBottom(coor) & isRightTop(coor))|...
+                                       % (isRightTop(coor) & isTop(coor))        |...
+                                       % (isTop(coor) & isLeftTop(coor))         |...
+                                       % (isLeftTop(coor) & isLeftBottom(coor))  |...
+                                       % (isLeftBottom(coor) & isBottom(coor))   ;
                     sDir{1}.domain    = @(coor) isVertex(coor);
                     sDir{1}.direction = [1,2];
                     sDir{1}.value     = 0;
@@ -251,6 +339,7 @@ classdef TutorialHomogenization < handle
             s.mesh = mesh;
             bc = BoundaryConditions(s);
             bc.updatePeriodicConditions(obj.masterSlave);
+            
         end
 
         function coorRot = defineRotatedCoordinates(~,theta)
@@ -286,6 +375,8 @@ classdef TutorialHomogenization < handle
          rho = obj.createDensityLevelSet(l);    
          volDom = Integrator.compute(ConstantFunction.create(1,obj.baseMesh),obj.baseMesh,2);
          fracVol = Integrator.compute(rho,rho.mesh,2)/volDom;
+         
+         
        
          % rho  = lsf.fValues(:);                 
          % one  = ones(size(rho));
@@ -314,20 +405,21 @@ classdef TutorialHomogenization < handle
             nexttile
             hold on
             plot(obj.volFrac,squeeze(obj.Chomog(1,1,1,1,:)),'LineStyle','none','Marker','o')
-            fplot(obj.f(1,1,1,1),[0 1])
+            % fplot(obj.f(1,1,1,1),[0 1])
+            nexttile
+            hold on
+            plot(obj.volFrac,squeeze(obj.Chomog(2,2,2,2,:)),'LineStyle','none','Marker','o')
+            % fplot(obj.f(1,1,2,2),[0 1])
             nexttile
             hold on
             plot(obj.volFrac,squeeze(obj.Chomog(1,1,2,2,:)),'LineStyle','none','Marker','o')
-            fplot(obj.f(1,1,2,2),[0 1])
-            nexttile
-            hold on
-            plot(obj.volFrac,squeeze(obj.Chomog(1,2,1,2,:)),'LineStyle','none','Marker','o')
-            fplot(obj.f(1,2,1,2),[0 1]) 
+            % fplot(obj.f(1,2,1,2),[0 1]) 
+           
         end
 
-        function fitting(obj)
-            [obj.f,obj.df,obj.ddf] = DamageHomogenizationFitter.computePolynomial(9,obj.volFrac,obj.Chomog);
-        end
+        % function fitting(obj)
+        %     [obj.f,obj.df,obj.ddf] = DamageHomogenizationFitter.computePolynomial(8,obj.volFrac,obj.Chomog);
+        % end
         
     end
 

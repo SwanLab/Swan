@@ -11,6 +11,7 @@ classdef BoundaryConditions < handle
     
     properties (Access = private)
         mesh
+        % lattice
         dirichletInput
         periodicInput
     end
@@ -24,7 +25,7 @@ classdef BoundaryConditions < handle
         function obj = BoundaryConditions(cParams)
             obj.init(cParams)
             obj.createDirichletFun();
-            obj.createPeriodicConditions();
+            % obj.createPeriodicConditions();
         end
 
         function updatePeriodicConditions(obj,MS)
@@ -38,6 +39,7 @@ classdef BoundaryConditions < handle
 
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
+            % obj.lattice = cParams.lattice;
             obj.dirichletInput = cParams.dirichletFun;
             obj.tractionFun = cParams.pointloadFun;
             obj.periodicInput  = cParams.periodicFun;
@@ -94,6 +96,9 @@ classdef BoundaryConditions < handle
             if ~isequal(obj.periodicInput, [])
                 mR = MasterSlaveRelator(obj.mesh.coord);
                 MS = mR.getRelation();
+                % mR = MasterSlaveRelatorLattice(obj.mesh.coord,obj.lattice.a1,obj.lattice.a2 );
+                % MS = mR.getRelation();
+                MS = unique(MS,'rows');
                 obj.periodic_leader   = obj.computePeriodicNodes(MS(:,1));
                 obj.periodic_follower = obj.computePeriodicNodes(MS(:,2));
             end

@@ -273,20 +273,20 @@ classdef TutorialHomogenizationRe < handle
                     sDir{1}.value     = 0;
                 case 'Hexagon'
                     isBottom      = @(coor) (abs(coor(:,2) - min(coor(:,2))) < 1e-12);
-                    isTop         = @(coor) (abs(coor(:,2) - max(coor(:,2))) < 1e-12);
+                    % isTop         = @(coor) (abs(coor(:,2) - max(coor(:,2))) < 1e-12);
                     
                     coorRotY = obj.defineRotatedCoordinates(pi/3);
                     isRightBottom = @(coor) (abs(coorRotY(coor) - min(coorRotY(coor))) < 1e-12);
-                    isLeftTop     = @(coor) (abs(coorRotY(coor) - max(coorRotY(coor))) < 1e-12);
-                    coorRotY = obj.defineRotatedCoordinates(-pi/3);
-                    isLeftBottom  = @(coor) (abs(coorRotY(coor) - min(coorRotY(coor))) < 1e-12);
-                    isRightTop    = @(coor) (abs(coorRotY(coor) - max(coorRotY(coor))) < 1e-12);
-                    isVertex = @(coor) (isBottom(coor) & isRightBottom(coor))  |...
-                                       (isRightBottom(coor) & isRightTop(coor))|...
-                                       (isRightTop(coor) & isTop(coor))        |...
-                                       (isTop(coor) & isLeftTop(coor))         |...
-                                       (isLeftTop(coor) & isLeftBottom(coor))  |...
-                                       (isLeftBottom(coor) & isBottom(coor))   ;
+                    % isLeftTop     = @(coor) (abs(coorRotY(coor) - max(coorRotY(coor))) < 1e-12);
+                    % coorRotY = obj.defineRotatedCoordinates(-pi/3);
+                    % isLeftBottom  = @(coor) (abs(coorRotY(coor) - min(coorRotY(coor))) < 1e-12);
+                    % isRightTop    = @(coor) (abs(coorRotY(coor) - max(coorRotY(coor))) < 1e-12);
+                    isVertex = @(coor) (isBottom(coor) & isRightBottom(coor))  ; 
+                                       % (isRightBottom(coor) & isRightTop(coor))|...
+                                       % (isRightTop(coor) & isTop(coor))        |...
+                                       % (isTop(coor) & isLeftTop(coor))         |...
+                                       % (isLeftTop(coor) & isLeftBottom(coor))  |...
+                                       % (isLeftBottom(coor) & isBottom(coor))   ;
                     sDir{1}.domain    = @(coor) isVertex(coor);
                     sDir{1}.direction = [1,2];
                     sDir{1}.value     = 0;
@@ -303,6 +303,7 @@ classdef TutorialHomogenizationRe < handle
             s.mesh = mesh;
             bc = BoundaryConditions(s);
             bc.updatePeriodicConditions(obj.masterSlave);
+            
         end
 
         function coorRot = defineRotatedCoordinates(~,theta)
@@ -335,7 +336,7 @@ classdef TutorialHomogenizationRe < handle
             %         end
             % end
 
-         rho = obj.createDensityLevelSet(l);    % 'lsf' is a LagrangianFunction P1 with 0..1
+         rho = obj.createDensityLevelSet(l);    
          volDom = Integrator.compute(ConstantFunction.create(1,obj.baseMesh),obj.baseMesh,2);
          fracVol = Integrator.compute(rho,rho.mesh,2)/volDom;
        
