@@ -11,6 +11,10 @@ classdef PhaseFieldAT2linearDegradation < handle
             obj.init(cParams)
         end
 
+        function gDeriv = computeDegradationDerivative(obj,phi)
+            gDeriv = obj.derive(phi,1);
+        end
+
         function [mu,kappa] = computeConstitutiveTensor(obj,phi)
             mu    = obj.computeMuFunction(phi);
             kappa = obj.computeKappaFunction(phi);

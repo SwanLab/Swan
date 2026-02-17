@@ -294,11 +294,11 @@ muPrimeUB(fzero(eq,0.3))
 
 %% Figure 9 Results 1Elem 
 % (LOAD DATA)
-% resAT1 = load('1ElemAT1.mat');
-% resAT2 = load('1ElemAT2.mat');
-% resRat = load('1ElemRational.mat');
-% resHexa = load('1ElemHexa.mat');
-% resHoney = load('1ElemHoney.mat');
+resAT1 = load('1ElemAT1.mat');
+resAT2 = load('1ElemAT2.mat');
+resRat = load('1ElemRational.mat');
+resHexa = load('1ElemHexa.mat');
+resHoney = load('1ElemHoney.mat');
 
 % (PLOT)
 
@@ -334,12 +334,13 @@ fontsize(gcf,25,'points')
 legend({'AT1','AT2','Rational ($\sigma_c = 3$)','Rational ($\sigma_c = 2$)','Hexagon','Reinforced Hexagon'},'Interpreter','latex')
 legend('Location', 'eastoutside')
 %% Figure 10 Results others
-resAT1 = load('UniaxialAT1_v2.mat');
-resAT2 = load('UniaxialAT2_v2.mat');
-resRat1 = load('UniaxialRational3_v2.mat');
-resRat2 = load('UniaxialRational2_v2.mat');
-resHexa = load('UniaxialHexa_v2.mat');
-resHoney = load('UniaxialHoney_v2.mat');
+
+resAT1 = load('SENshear001AT1.mat');
+resAT2 = load('SENshear001AT2_v2.mat');
+resRat1 = load('SENshear001Rational24.mat');
+resRat2 = load('SENshear001Rational5.mat');
+resHexa = load('SENshearHexaNew.mat');
+resHoney = load('SENshearHoneyNew.mat');
 
 
 figure(9)
@@ -347,12 +348,12 @@ t = tiledlayout(1,2);
 nexttile
 hold on
 grid minor
-plot(resAT1.outputData.displacement.value,resAT1.outputData.force,'Color',cmp(1,:),'LineStyle','-','LineWidth',1.5,'Marker','+','MarkerIndices',1:10:length(resAT1.outputData.force))
-plot(resAT2.outputData.displacement.value,resAT2.outputData.force,'Color',cmp(1,:),'LineStyle','--','LineWidth',1.5,'Marker','o','MarkerIndices',1:10:length(resAT2.outputData.force))
-plot([resRat1.outputData.displacement.value, 0.04],[resRat1.outputData.force,0],'Color',cmpGamma(6,:),'LineStyle','-','LineWidth',1.5,'Marker','+','MarkerIndices',1:10:length(resRat1.outputData.force))
-plot([resRat2.outputData.displacement.value, 0.04],[resRat2.outputData.force,0],'Color',cmpGamma(6,:),'LineStyle','--','LineWidth',1.5,'Marker','o','MarkerIndices',1:10:length(resRat2.outputData.force))
-plot(resHexa.outputData.displacement.value,resHexa.outputData.force,'Color',cmp(4,:),'LineStyle','-','LineWidth',1.5,'Marker','+','MarkerIndices',1:10:length(resHexa.outputData.force))
-plot(resHoney.outputData.displacement.value,resHoney.outputData.force,'Color',cmp(4,:),'LineStyle','--','LineWidth',1.5,'Marker','o','MarkerIndices',1:10:length(resHoney.outputData.force))
+plot(resAT1.outputData.displacement.value,resAT1.outputData.force,'Color',cmp(1,:),'LineStyle','-','LineWidth',1.5,'Marker','+','MarkerIndices',1:round(length(resAT1.outputData.force)/50):length(resAT1.outputData.force))
+plot(resAT2.outputData.displacement.value,resAT2.outputData.force,'Color',cmp(1,:),'LineStyle','--','LineWidth',1.5,'Marker','o','MarkerIndices',1:round(length(resAT2.outputData.force)/50):length(resAT2.outputData.force))
+plot([resRat1.outputData.displacement.value, 0.04],[resRat1.outputData.force,0],'Color',cmpGamma(6,:),'LineStyle','-','LineWidth',1.5,'Marker','+','MarkerIndices',1:round(length(resRat1.outputData.force)/50):length(resRat1.outputData.force))
+plot([resRat2.outputData.displacement.value, 0.04],[resRat2.outputData.force,0],'Color',cmpGamma(6,:),'LineStyle','--','LineWidth',1.5,'Marker','o','MarkerIndices',1:round(length(resRat2.outputData.force)/50):length(resRat2.outputData.force))
+plot(resHexa.outputData.displacement.value,resHexa.outputData.force,'Color',cmp(4,:),'LineStyle','-','LineWidth',1.5,'Marker','+','MarkerIndices',1:round(length(resHexa.outputData.force)/50):length(resHexa.outputData.force))
+plot(resHoney.outputData.displacement.value,resHoney.outputData.force,'Color',cmp(4,:),'LineStyle','--','LineWidth',1.5,'Marker','o','MarkerIndices',1:round(length(resHoney.outputData.force)/50):length(resHoney.outputData.force))
 ylabel("\textbf{Force [kN]}",'Interpreter','latex');
 xlabel({"\textbf{Displacement [mm]}";"\textbf{(a)}"},'interpreter','latex')
 %xlim([0,0.03])
@@ -363,13 +364,13 @@ fontsize(gcf,20,'points')
 nexttile
 hold on
 grid minor
-plot(resAT1.outputData.displacement.value,resAT1.outputData.damage.maxValue,'Color',cmp(1,:),'LineStyle','-','LineWidth',1.5,'Marker','+','MarkerIndices',1:10:length(resAT1.outputData.force))
-plot(resAT2.outputData.displacement.value,resAT2.outputData.damage.maxValue,'Color',cmp(1,:),'LineStyle','--','LineWidth',1.5,'Marker','o','MarkerIndices',1:10:length(resAT2.outputData.force))
-plot([resRat1.outputData.displacement.value,0.04],[resRat1.outputData.damage.maxValue,1],'Color',cmpGamma(6,:),'LineStyle','-','LineWidth',1.5,'Marker','+','MarkerIndices',1:10:length(resRat1.outputData.force))
-plot([resRat2.outputData.displacement.value,0.04],[resRat2.outputData.damage.maxValue,1],'Color',cmpGamma(6,:),'LineStyle','--','LineWidth',1.5,'Marker','o','MarkerIndices',1:10:length(resRat2.outputData.force))
-plot(resHexa.outputData.displacement.value,resHexa.outputData.damage.maxValue,'Color',cmp(4,:),'LineStyle','-','LineWidth',1.5,'Marker','+','MarkerIndices',1:10:length(resHexa.outputData.force))
-plot(resHoney.outputData.displacement.value,resHoney.outputData.damage.maxValue,'Color',cmp(4,:),'LineStyle','--','LineWidth',1.5,'Marker','o','MarkerIndices',1:10:length(resHoney.outputData.force))
-legend('AT1','AT2','Rational','Hexagon','Reinforced Hexagon')
+plot(resAT1.outputData.displacement.value,resAT1.outputData.damage.maxValue,'Color',cmp(1,:),'LineStyle','-','LineWidth',1.5,'Marker','+','MarkerIndices',1:100:length(resAT1.outputData.force))
+plot(resAT2.outputData.displacement.value,resAT2.outputData.damage.maxValue,'Color',cmp(1,:),'LineStyle','--','LineWidth',1.5,'Marker','o','MarkerIndices',1:100:length(resAT2.outputData.force))
+plot([resRat1.outputData.displacement.value,0.04],[resRat1.outputData.damage.maxValue,1],'Color',cmpGamma(6,:),'LineStyle','-','LineWidth',1.5,'Marker','+','MarkerIndices',1:100:length(resRat1.outputData.force))
+plot([resRat2.outputData.displacement.value,0.04],[resRat2.outputData.damage.maxValue,1],'Color',cmpGamma(6,:),'LineStyle','--','LineWidth',1.5,'Marker','o','MarkerIndices',1:100:length(resRat2.outputData.force))
+plot(resHexa.outputData.displacement.value,resHexa.outputData.damage.maxValue,'Color',cmp(4,:),'LineStyle','-','LineWidth',1.5,'Marker','+','MarkerIndices',1:100:length(resHexa.outputData.force))
+plot(resHoney.outputData.displacement.value,resHoney.outputData.damage.maxValue,'Color',cmp(4,:),'LineStyle','--','LineWidth',1.5,'Marker','o','MarkerIndices',1:100:length(resHoney.outputData.force))
+legend({'AT1','AT2','Rational ($\sigma_c = 2.4 MPa$)','Rational ($\sigma_c = 5 MPa$)','Hexagon','Reinforced Hexagon'},'Interpreter','latex')
 legend('Location', 'eastoutside')
 ylabel("\textbf{Damage [-]}",'Interpreter','latex');
 xlabel({"\textbf{Displacement [mm]}";"\textbf{(b)}"},'interpreter','latex')
@@ -378,24 +379,27 @@ xlabel({"\textbf{Displacement [mm]}";"\textbf{(b)}"},'interpreter','latex')
 xlim([0,0.02])
 fontsize(gcf,20,'points')
 
-% dmgAT1 = resAT1.outputData.damage.field.fun;
-% dmgAT2 = resAT2.outputData.damage.field.fun;
-% dmgRat = resRat.outputData.damage.field.fun;
-% dmgHexa = resHexa.outputData.damage.field.fun;
-% dmgHoney = resHoney.outputData.damage.field.fun;
-% 
-% 
-% uAT1 = resAT1.outputData.displacement.field;
-% uAT2 = resAT2.outputData.displacement.field;
-% uRat = resRat.outputData.displacement.field;
-% uHexa = resHexa.outputData.displacement.field;
-% uHoney = resHoney.outputData.displacement.field;
-% 
-% printResult(dmgAT1,uAT1,'AT1')
-% printResult(dmgAT2,uAT2,'AT2')
-% printResult(dmgRat,uRat,'Rat')
-% printResult(dmgHexa,uHexa,'Hexa')
-% printResult(dmgHoney,uHoney,'Honey')
+dmgAT1 = resAT1.outputData.damage.field.fun;
+dmgAT2 = resAT2.outputData.damage.field.fun;
+dmgRat1 = resRat1.outputData.damage.field.fun;
+dmgRat2 = resRat2.outputData.damage.field.fun;
+dmgHexa = resHexa.outputData.damage.field.fun;
+dmgHoney = resHoney.outputData.damage.field.fun;
+
+
+uAT1 = resAT1.outputData.displacement.field;
+uAT2 = resAT2.outputData.displacement.field;
+uRat1 = resRat1.outputData.displacement.field;
+uRat2 = resRat2.outputData.displacement.field;
+uHexa = resHexa.outputData.displacement.field;
+uHoney = resHoney.outputData.displacement.field;
+
+printResult(dmgAT1,uAT1,'AT1')
+printResult(dmgAT2,uAT2,'AT2')
+printResult(dmgRat1,uRat1,'Rat1')
+printResult(dmgRat2,uRat2,'Rat2')
+printResult(dmgHexa,uHexa,'Hexa')
+printResult(dmgHoney,uHoney,'Honey')
 
 
 

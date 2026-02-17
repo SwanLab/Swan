@@ -41,6 +41,13 @@ classdef PhaseFieldComputer < handle
 
                 %sig = obj.functional.computeStress(u,phi);
                 %max(sig.evaluate([0;0]),[],'all')
+
+                % eFun = obj.functional.computeEnergyFun(u);
+                % gDeriv = obj.functional.computeDegradationDerivative(phi);
+                % figure(2)
+                % eFun.plot;
+                % figure(3)
+                % gDeriv.plot;
             end
             outputData = obj.monitor.data;
         end
