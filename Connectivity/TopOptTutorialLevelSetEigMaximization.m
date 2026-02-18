@@ -26,8 +26,8 @@ classdef TopOptTutorialLevelSetEigMaximization < handle
 
     methods (Access = public)
         function obj = TopOptTutorialLevelSetEigMaximization()
-            for etaNorm = [0.005] %[0.005] 
-                for etaMax = [1.0] %0.15]0.05,0.15,0.5,1,3,4,"cantilever",
+            for etaNorm = [0.02] %[0.005] 
+                for etaMax = [10.0] 
                     for gJ =[2.0] % [5.0]
                         obj.etaNorm = etaNorm;
                         obj.etaMax = etaMax;
@@ -256,10 +256,10 @@ classdef TopOptTutorialLevelSetEigMaximization < handle
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = obj.etaNorm;
-            s.etaNormMin     = obj.etaNorm;
+            s.etaNormMin     = 0.0005;% obj.etaNorm;
             s.gJFlowRatio    = obj.gJFlowRatio;
             s.etaMax         = obj.etaMax;
-            s.etaMaxMin      = 0.02;
+            s.etaMaxMin      = 10.0;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;

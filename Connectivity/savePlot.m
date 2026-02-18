@@ -9,7 +9,7 @@ set(groot,'DefaultAxesLabelFontSizeMultiplier',1.2);
 set(groot,'DefaultAxesTitleFontSizeMultiplier',1.3);
 set(groot,'DefaultTextFontSize',14);     % text, legends, annotations
 set(groot,'DefaultLegendFontSize',14);
-set(groot,'DefaultLineLineWidth',1.4);   % thicker lines
+set(groot,'DefaultLineLineWidth',1.2);   % thicker lines
 
 
 % %%%%% ONLY COMPLIANCE, VOLUME, EIG %%%%%%%%%%%%%
@@ -22,7 +22,7 @@ t.Padding = 'compact';
 % % TOP LEFT: Compliance
 % =====================================================
 nexttile
-plot(-1.*cost(1:2000),  'Color', Colors(1,:), 'LineStyle','-'); hold on
+plot(-1.*cost(1:3000),  'Color', Colors(1,:), 'LineStyle','-'); hold on
 % plot((constraint(1:2000,1)+1)*0.4, 'Color', Colors(2,:), 'LineStyle',':');
 grid on
 xlabel('Iteration'); 
@@ -34,7 +34,7 @@ ylim([-1 80])
 % BOTTOM CENTERED: First Eigenvalue
 % =====================================================
 nexttile
-plot((constraint(1:2000,1)+1)*0.4,  'Color', Colors(2,:), 'LineStyle','-'); hold on;ylim([0,1])
+plot((constraint(1:3000,1)+1)*0.4,  'Color', Colors(2,:), 'LineStyle','-'); hold on;ylim([0,1])
 % plot(constraint2.constraint(:,1), 'Color', Colors(2,:), 'LineStyle','-');
 grid on
 xlabel('Iteration'); ylabel('Volume');

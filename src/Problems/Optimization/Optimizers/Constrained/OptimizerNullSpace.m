@@ -310,7 +310,8 @@ classdef OptimizerNullSpace < handle
                     if isAlmostFeasible && isAlmostOptimal
 %                         obj.etaMax  = max(obj.etaMax/1.05,obj.etaMaxMin);
                         obj.etaMax  = max(obj.etaMax/1.1,obj.etaMaxMin);
-                        obj.etaNorm = max(obj.etaNorm/1.1,obj.etaNormMin);
+%                         obj.etaNorm = max(obj.etaNorm/1.1,obj.etaNormMin);
+                        obj.etaNorm = max(obj.etaNorm/1.5,obj.etaNormMin);
                     end
                 case 'HAMILTON-JACOBI'
                     obj.etaMax = Inf; % Not verified
