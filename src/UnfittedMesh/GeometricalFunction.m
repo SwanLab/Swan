@@ -267,19 +267,21 @@ classdef GeometricalFunction < handle
                      
                 case 'CrossedSquare'
                     L  = cParams.length;
+                    t1 = cParams.tFrame;
+                    t2 = cParams.tCross;
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
-                    t1 = cParams.tFrame;   
-                    t2 = cParams.tCross; 
-                    phiOuter = @(x) max(abs(x1(x)-x0),abs(x2(x)-y0)) - L/2;
-                    phiInner = @(x) max(abs(x1(x)-x0),abs(x2(x)-y0)) - (L/2 - t1);
-                    phiFrame = @(x) max(phiOuter(x), -phiInner(x));
-                    phiDiag1 = @(x) abs((x1(x)-x0)-(x2(x)-y0))/sqrt(2) - t2/2;
-                    phiDiag2 = @(x) abs((x1(x)-x0)+(x2(x)-y0))/sqrt(2) - t2/2;
-                    phiCross = @(x) min(phiDiag1(x),phiDiag2(x));
-                    phiCrossLimited = @(x) max(phiCross(x),phiOuter(x));
-                    fH = @(x) -min(phiFrame(x),phiCrossLimited(x));
 
+                    s= cParams;
+                    s.type = 'Square';
+                    s.length = L-2*t1;
+
+                    obj.selectHandle(s);
+                    fFrame= obj.fHandle;
+                    fDiag1 = @(x) abs((x1(x)-x0)-(x2(x)-y0))/sqrt(2) - t2/2;
+                    fDiag2 = @(x) abs((x1(x)-x0)+(x2(x)-y0))/sqrt(2) - t2/2;
+                    fCross = @(x) -min(fDiag1(x),fDiag2(x));
+                    fH = @(x) max(fFrame(x),fCross(x));
                     obj.fHandle = fH;
 
             end
