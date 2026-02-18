@@ -264,7 +264,26 @@ classdef GeometricalFunction < handle
                     y0 = cParams.y0;
                     fH = @(x) obj.computeCircles(x,x0,y0,r);
                     obj.fHandle = fH;
+                     
+                case 'CrossedSquare'
+                    L  = cParams.length;
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+                    t1 = cParams.tFrame;   
+                    t2 = cParams.tCross; 
+                    phiOuter = @(x) max(abs(x1(x)-x0),abs(x2(x)-y0)) - L/2;
+                    phiInner = @(x) max(abs(x1(x)-x0),abs(x2(x)-y0)) - (L/2 - t1);
+                    phiFrame = @(x) max(phiOuter(x), -phiInner(x));
+                    phiDiag1 = @(x) abs((x1(x)-x0)-(x2(x)-y0))/sqrt(2) - t2/2;
+                    phiDiag2 = @(x) abs((x1(x)-x0)+(x2(x)-y0))/sqrt(2) - t2/2;
+                    phiCross = @(x) min(phiDiag1(x),phiDiag2(x));
+                    phiCrossLimited = @(x) max(phiCross(x),phiOuter(x));
+                    fH = @(x) -min(phiFrame(x),phiCrossLimited(x));
+
+                    obj.fHandle = fH;
+
             end
+
         end
 
         function computeInclusion(obj,s)

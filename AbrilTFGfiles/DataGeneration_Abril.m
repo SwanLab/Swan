@@ -10,7 +10,7 @@ clc; clear; close all;
 % r=1e-6:0.05:0.999; 
 %r=1e-6:0.1:0.999; 
 % r=0:0.05:0.999;
-r=0.5;
+r=0.2;
 
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
 p.Inclusion  = 'Material';        %'Material'/'Hole'/'HoleRaul'
