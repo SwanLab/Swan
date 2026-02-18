@@ -228,7 +228,7 @@ classdef Eigs_Hexagon_Density_Lambda5 < handle
             s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 0.1;
+            s.gJFlowRatio    = 1;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
             %s.type           = '0';
