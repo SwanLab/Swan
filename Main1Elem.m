@@ -15,7 +15,7 @@ s.maxIter.stag = 300;
 
 s.benchmark.mesh.type   = '1Elem';
 s.benchmark.bc.u.type   = 'DisplacementTractionX';
-s.benchmark.bc.u.values =  [0:1e-4:0.04];
+s.benchmark.bc.u.values =  [0:1e-4:0.1];
 s.benchmark.bc.phi.type = 'DamageFree';
 
 s.matInfo.matType = 'Analytic'; %'Analytic','Homogenized'
@@ -77,7 +77,7 @@ s.dissipInfo.constant = 8/3;
 tester = TestingPhaseField(s);
 outputData = tester.compute();
 outputData.inputParameters = s;
-save("1ElemHexagon_v2.mat",'outputData')
+save("1ElemHexagon_v3.mat",'outputData')
 
 s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'
 s.matInfo.fileName = 'HoneycombBenchmark03';
@@ -85,4 +85,4 @@ s.dissipInfo.constant = 8/3;
 tester = TestingPhaseField(s);
 outputData = tester.compute();
 outputData.inputParameters = s;
-save("1ElemHoneycomb_v2.mat",'outputData')
+save("1ElemHoneycomb_v3.mat",'outputData')

@@ -294,11 +294,12 @@ muPrimeUB(fzero(eq,0.3))
 
 %% Figure 9 Results 1Elem 
 % (LOAD DATA)
-resAT1 = load('1ElemAT1.mat');
-resAT2 = load('1ElemAT2.mat');
-resRat = load('1ElemRational.mat');
-resHexa = load('1ElemHexa.mat');
-resHoney = load('1ElemHoney.mat');
+resAT1 = load('1ElemAT1_v2.mat');
+resAT2 = load('1ElemAT2_v2.mat');
+resRat1 = load('1ElemRational1_v2.mat');
+resRat2 = load('1ElemRational198_v2.mat');
+resHexa = load('1ElemHexagon_v2.mat');
+resHoney = load('1ElemHoneycomb_v2.mat');
 
 % (PLOT)
 
@@ -315,7 +316,7 @@ plot(resHexa.outputData.displacement.value,resHexa.outputData.force,'Color',cmp(
 plot(resHoney.outputData.displacement.value,resHoney.outputData.force,'Color',cmp(4,:),'LineStyle','--','LineWidth',1.5,'Marker','o','MarkerIndices',1:10:length(resHoney.outputData.force))
 ylabel("\textbf{Force [kN]}",'Interpreter','latex');
 xlabel({"\textbf{Displacement [mm]}";"\textbf{(a)}"},'interpreter','latex')
-xlim([0,0.0065])
+xlim([0,0.04])
 fontsize(gcf,25,'points')
 
 nexttile
@@ -329,7 +330,7 @@ plot(resHexa.outputData.displacement.value,resHexa.outputData.damage.maxValue,'C
 plot(resHoney.outputData.displacement.value,resHoney.outputData.damage.maxValue,'Color',cmp(4,:),'LineStyle','--','LineWidth',1.5,'Marker','o','MarkerIndices',1:10:length(resHoney.outputData.force))
 ylabel("\textbf{Damage [-]}",'Interpreter','latex');
 xlabel({"\textbf{Displacement [mm]}";"\textbf{(b)}"},'interpreter','latex')
-xlim([0,0.0065])
+xlim([0,0.04])
 fontsize(gcf,25,'points')
 legend({'AT1','AT2','Rational ($\sigma_c = 3$)','Rational ($\sigma_c = 2$)','Hexagon','Reinforced Hexagon'},'Interpreter','latex')
 legend('Location', 'eastoutside')
