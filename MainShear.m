@@ -7,22 +7,18 @@ clc,clear,close all
 
 %% GENERAL SETTINGS
 
-s.monitoring.set = true;
+s.monitoring.set = false;
 s.monitoring.type = 'full'; %'reduced'
-s.monitoring.print = true;
+s.monitoring.print = false;
 
 s.tolerance.u = 1e-6;
-s.tolerance.phi = 1e-8;
-s.tolerance.stag = 1e-8;
+s.tolerance.phi = 1e-6;
+s.tolerance.stag = 1e-6;
 s.maxIter.u = 100;
 s.maxIter.phi = 300;
 s.maxIter.stag = 300;
 
 s.benchmark.mesh.type   = 'SENshear';%'SENshear';
-s.benchmark.mesh.length = 200;
-s.benchmark.mesh.width  = 10;
-s.benchmark.mesh.lN     = 200;
-s.benchmark.mesh.wN     = 10;
 s.benchmark.bc.u.type   = 'DisplacementShear';
 s.benchmark.bc.u.values =  [0:1e-5:0.02];
 s.benchmark.bc.phi.type = 'DamageFree';
@@ -34,14 +30,14 @@ s.matInfo.fileName = 'HoneycombBenchmark02';
 s.matInfo.young   = 210;
 s.matInfo.poisson = 0.3;
 s.matInfo.Gc      = 2.7e-3;
-s.matInfo.sigmaMax =2.44542;
+s.matInfo.sigmaMax = 2.44542;
 s.l0 = 0.01;
 s.matInfo.params.coeffs = [(4/pi)*(s.matInfo.Gc*s.matInfo.young)/(s.matInfo.sigmaMax^2 * s.l0), -0.5]; %(4/pi)
 s.matInfo.params.exp = 2;
 
 s.dissipInfo.type = 'AT';
-s.dissipInfo.constant = 2; % 2 AT2 / 8/3 AT1 / pi Wu 
-s.dissipInfo.pExp = 2;
+s.dissipInfo.constant = 8/3; % 2 AT2 / 8/3 AT1 / pi Wu 
+s.dissipInfo.pExp = 1;
 s.dissipInfo.xi = 1; % 0 AT2 / 1 AT1 / 2 Mix in type FullQuadratic
 s.solver.type = 'Gradient';
 s.solver.tau  = 150;
@@ -53,5 +49,38 @@ outputData = tester.compute();
 outputData.inputParameters = s;
 
 %% SAVE + PLOT
-save("SENshear001AT2original_v3.mat",'outputData') %ACTIVATE TO SAVE DATA!
-PhaseFieldPlotter(outputData); 
+% save("SENshearNewMeshAT1.mat",'outputData') %ACTIVATE TO SAVE DATA!
+% PhaseFieldPlotter(outputData); 
+
+s.matInfo.degradationSubType = 'General';
+s.matInfo.sigmaMax = 2.44542;
+s.dissipInfo.constant = pi;
+tester = TestingPhaseField(s);
+outputData = tester.compute();
+outputData.inputParameters = s;
+save("SENshearNewMeshRational24.mat",'outputData')
+
+
+s.matInfo.degradationSubType = 'General'; 
+s.matInfo.sigmaMax = 5;
+s.dissipInfo.constant = pi;
+tester = TestingPhaseField(s);
+outputData = tester.compute();
+outputData.inputParameters = s;
+save("SENshearNewMeshRational5.mat",'outputData')
+
+s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'
+s.matInfo.fileName = 'HexagonBenchmark03';
+s.dissipInfo.constant = 8/3;
+tester = TestingPhaseField(s);
+outputData = tester.compute();
+outputData.inputParameters = s;
+save("SENshearNewMeshHexagon.mat",'outputData')
+
+s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'
+s.matInfo.fileName = 'HoneycombBenchmark03';
+s.dissipInfo.constant = 8/3;
+tester = TestingPhaseField(s);
+outputData = tester.compute();
+outputData.inputParameters = s;
+save("SENshearNewMeshHoneycomb.mat",'outputData')
