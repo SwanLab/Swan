@@ -1,7 +1,7 @@
 classdef RigidBodyFunction < BaseFunction
 
     properties (Access = public)
-        ndim
+%                  ndimf
         nbasis
         basisFunctions
     end
@@ -9,7 +9,6 @@ classdef RigidBodyFunction < BaseFunction
     properties (Access = private)
         fvalues
         refPoint
-        % mesh
         fun
 
     end
@@ -22,27 +21,28 @@ classdef RigidBodyFunction < BaseFunction
 
         function obj = RigidBodyFunction(cParams)
             obj.init(cParams)
-
-            if obj.ndim ==2
-            obj.nbasis = 3;
-            obj.basisFunctions{1} = obj.computeHorizontalTranslationBase();
-            obj.basisFunctions{2} = obj.computeVerticalTranslationBase();
-            obj.basisFunctions{3} = obj.computeRotationBase();
-
-            elseif obj.ndim==3
-            obj.nbasis = 6;
-            obj.basisFunctions{1} = obj.computeTranslationXBase();
-            obj.basisFunctions{2} = obj.computeTranslationYBase();
-            obj.basisFunctions{3} = obj.computeTranslationZBase();
-            obj.basisFunctions{4} = obj.computeRotationXBase();
-            obj.basisFunctions{5} = obj.computeRotationYBase();
-            obj.basisFunctions{6} = obj.computeRotationZBase();
-            end
+            obj.computeBasisFunctions();
         end
+
+%         function fxV = evaluateNew(obj, xGLoc)
+%             phiU = obj.basisFunctions{1}.evaluate(xGLoc);
+%             phiV = obj.basisFunctions{2}.evaluate(xGLoc);
+%             phiT = obj.basisFunctions{3}.evaluate(xGLoc);
+%             u     = obj.fvalues(1);
+%             v     = obj.fvalues(2);
+%             theta = obj.fvalues(3);
+%             fxV = u*phiU + v*phiV + theta*phiT;
+%         end
 
         function bE = evaluateBasisFunctions(obj,xGloc)
             for i=1:obj.nbasis
                 bE{i} = obj.basisFunctions{i}.evaluate(xGloc);
+            end
+        end
+
+        function R = projectBasisFunctions(obj,interp)
+            for i = 1:obj.nbasis
+                R{i} = obj.basisFunctions{i}.project(interp);
             end
         end
 
@@ -51,19 +51,19 @@ classdef RigidBodyFunction < BaseFunction
             p1DiscFun.plot();
         end
 
-%          function RB = restrictBasisToBoundaryMesh(obj,bMesh)
-% %              nodes      = unique(bMesh.globalConnec(:));
-%              mesh       = bMesh.mesh;
-%              RB = RigidBodyFunction.create(mesh,obj.refPoint);
-% %              s.fValues  = zeros(obj.nbasis,1);
-% %              s.ndimf    = obj.ndimf;  
-% %              s.refPoint = obj.refPoint;
-% % %              functionType = obj.functionType;
-% %              for i=1:obj.nbasis
-% %                  basis{i} = obj.basisFunctions{i}.fValues(nodes,:);                 
-% %              end
-% %              RB = RigidBodyFunction.create(bMesh.mesh,basis,obj.functionType);
-%          end
+         function RB = restrictBasisToBoundaryMesh(obj,bMesh)
+%              nodes      = unique(bMesh.globalConnec(:));
+             mesh       = bMesh.mesh;
+             RB = RigidBodyFunction.create(mesh,obj.refPoint);
+%              s.fValues  = zeros(obj.nbasis,1);
+%              s.ndimf    = obj.ndimf;  
+%              s.refPoint = obj.refPoint;
+% %              functionType = obj.functionType;
+%              for i=1:obj.nbasis
+%                  basis{i} = obj.basisFunctions{i}.fValues(nodes,:);                 
+%              end
+%              RB = RigidBodyFunction.create(bMesh.mesh,basis,obj.functionType);
+         end
          
     end
 
@@ -99,74 +99,80 @@ classdef RigidBodyFunction < BaseFunction
             obj.fvalues  = cParams.fvalues;
             obj.refPoint = cParams.refPoint;
             obj.mesh     = cParams.mesh;
-            obj.ndim    = cParams.ndimf;
+            obj.ndimf    = cParams.ndimf;
         end
 
-        function f = computeHorizontalTranslationBase(obj)
-            s.fHandle = @(x) [ones(size(x(1,:,:)));zeros(size(x(1,:,:)))];
-            s.mesh    = obj.mesh;
-            f = AnalyticalFunction(s);
+        function computeBasisFunctions(obj)
+            switch obj.mesh.ndim
+                case 2
+                    obj.basisFunctions{1} = obj.computeXTranslationBase2D();
+                    obj.basisFunctions{2} = obj.computeYTranslationBase2D();
+                    obj.basisFunctions{3} = obj.computeRotationBase2D();
+                case 3
+                    obj.basisFunctions{1} = obj.computeXTranslationBase3D();
+                    obj.basisFunctions{2} = obj.computeYTranslationBase3D();
+                    obj.basisFunctions{3} = obj.computeZTranslationBase3D();
+                    obj.basisFunctions{4} = obj.computeXRotationBase3D();
+                    obj.basisFunctions{5} = obj.computeYRotationBase3D();
+                    obj.basisFunctions{6} = obj.computeZRotationBase3D();
+            end
+            obj.nbasis = length(obj.basisFunctions);
         end
 
-        function f = computeVerticalTranslationBase(obj)
-            s.fHandle = @(x) [zeros(size(x(1,:,:)));ones(size(x(2,:,:)))];
-            s.mesh    = obj.mesh;
-            f = AnalyticalFunction(s);
+        function f = computeXTranslationBase2D(obj)
+            f = ConstantFunction.create([1;0],obj.mesh);
         end
 
-        function f = computeRotationBase(obj)
+        function f = computeYTranslationBase2D(obj)
+            f = ConstantFunction.create([0;1],obj.mesh);
+        end
+
+        function f = computeRotationBase2D(obj)
             x0 = obj.refPoint(1);
             y0 = obj.refPoint(2);
             s.fHandle = @(x) [-(x(2,:,:)-y0);x(1,:,:)-x0];
+            s.ndimf   = obj.ndimf;
             s.mesh    = obj.mesh;
             f= AnalyticalFunction(s);
         end
 
-        function f = computeTranslationXBase(obj)
-            s.fHandle = @(x) [ones(size(x(1,:,:))); zeros(2,size(x,2),size(x,3))];
-            s.mesh    = obj.mesh;
-            f = AnalyticalFunction(s);
+        function f = computeXTranslationBase3D(obj)
+            f = ConstantFunction.create([1;0;0],obj.mesh);
         end
 
-        function f = computeTranslationYBase(obj)
-            s.fHandle = @(x) [zeros(1,size(x,2),size(x,3));
-                              ones(1,size(x,2),size(x,3));
-                              zeros(1,size(x,2),size(x,3))];
-            s.mesh    = obj.mesh;
-            f = AnalyticalFunction(s);
+        function f = computeYTranslationBase3D(obj)
+            f = ConstantFunction.create([0;1;0],obj.mesh);
         end
 
-        function f = computeTranslationZBase(obj)
-            s.fHandle = @(x) [zeros(2,size(x,2),size(x,3));
-                              ones(1,size(x,2),size(x,3))];
-            s.mesh    = obj.mesh;
-            f = AnalyticalFunction(s);
+        function f = computeZTranslationBase3D(obj)
+            f = ConstantFunction.create([0;0;1],obj.mesh);
         end
 
-        function f = computeRotationXBase(obj)
+        function f = computeXRotationBase3D(obj)
             y0 = obj.refPoint(2);
             z0 = obj.refPoint(3);
-            s.fHandle = @(x) [zeros(size(x(1,:,:)));-(x(3,:,:)-z0); x(2,:,:)-y0];
-            s.mesh    = obj.mesh;
-            f = AnalyticalFunction(s);
-        end
-    
-        function f = computeRotationYBase(obj)
-            x0 = obj.refPoint(1);
-            z0 = obj.refPoint(3);
-            s.fHandle = @(x) [ x(3,:,:)-z0; zeros(size(x(2,:,:))); -(x(1,:,:)-x0)];
+            s.fHandle = @(x) [zeros(size(x(1,:,:)));-(x(3,:,:)-z0);x(2,:,:)-y0];
             s.ndimf   = obj.ndimf;
             s.mesh    = obj.mesh;
-            f = AnalyticalFunction(s);
+            f= AnalyticalFunction(s);
         end
 
-        function f = computeRotationZBase(obj)
+        function f = computeYRotationBase3D(obj)
             x0 = obj.refPoint(1);
-            y0 = obj.refPoint(2);
-            s.fHandle = @(x) [-(x(2,:,:)-y0);x(1,:,:)-x0; zeros(size(x(3,:,:)))];
+            z0 = obj.refPoint(3);
+            s.fHandle = @(x) [x(3,:,:)-z0;zeros(size(x(1,:,:)));-(x(1,:,:)-x0)];
             s.ndimf   = obj.ndimf;
             s.mesh    = obj.mesh;
-            f = AnalyticalFunction(s);
+            f= AnalyticalFunction(s);
+        end
+
+        function f = computeZRotationBase3D(obj)
+            x0 = obj.refPoint(1);
+            y0 = obj.refPoint(2);
+            s.fHandle = @(x) [-(x(2,:,:)-y0);x(1,:,:)-x0;zeros(size(x(1,:,:)))];
+            s.ndimf   = obj.ndimf;
+            s.mesh    = obj.mesh;
+            f= AnalyticalFunction(s);
         end
 
     end
@@ -174,13 +180,17 @@ classdef RigidBodyFunction < BaseFunction
     methods(Access=protected)
 
         function fxV = evaluateNew(obj, xGLoc)
-            phiU = obj.basisFunctions{1}.evaluate(xGLoc);
-            phiV = obj.basisFunctions{2}.evaluate(xGLoc);
-            phiT = obj.basisFunctions{3}.evaluate(xGLoc);
-            u     = obj.fvalues(1);
-            v     = obj.fvalues(2);
-            theta = obj.fvalues(3);
-            fxV = u*phiU + v*phiV + theta*phiT;
+            switch obj.mesh.ndim
+                case 2
+                    phiU = obj.basisFunctions{1}.evaluate(xGLoc);
+                    phiV = obj.basisFunctions{2}.evaluate(xGLoc);
+                    phiT = obj.basisFunctions{3}.evaluate(xGLoc);
+                    u     = obj.fvalues(1);
+                    v     = obj.fvalues(2);
+                    theta = obj.fvalues(3);
+                    fxV = u*phiU + v*phiV + theta*phiT;
+                case 3
+            end
         end
 
     end

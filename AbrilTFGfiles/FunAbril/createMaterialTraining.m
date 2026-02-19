@@ -1,5 +1,5 @@
-function material = createMaterialTraining(mesh, r,nSubdomains,inclusionType)
-    [young,poisson] = computeElasticProperties(mesh,r,nSubdomains,inclusionType);
+function material = createMaterialTraining(mesh,nSubdomains,inclusionType,geomFun)
+    [young,poisson] = computeElasticProperties(mesh,nSubdomains,inclusionType,geomFun);
     s.type          = 'ISOTROPIC';
     s.ptype         = 'ELASTIC';
     s.ndim          = mesh.ndim;
@@ -9,7 +9,7 @@ function material = createMaterialTraining(mesh, r,nSubdomains,inclusionType)
     material        = tensor;
 end
 
-function [young,poisson] = computeElasticProperties(mesh,r,nSubdomains,inclusionType)
+function [young,poisson] = computeElasticProperties(mesh,nSubdomains,inclusionType,geomFun)
     E  = 1;
     nu  = 1/3;
     mD = createMeshDomain(mesh,nSubdomains);
@@ -20,18 +20,20 @@ function [young,poisson] = computeElasticProperties(mesh,r,nSubdomains,inclusion
             poisson = ConstantFunction.create(nu,mD);
         case 'Material'
             E2 = E/1000;
-            xmax = max(mesh.coord(:,1));
-            ymax = max(mesh.coord(:,2));
+
             xmin = min(mesh.coord(:,1));
+            xmax = max(mesh.coord(:,1));
             ymin = min(mesh.coord(:,2));
-            Lx = xmax-xmin;
-            Ly = ymax-ymin;
-    
-            f = @(x) ...
-                ( sqrt( (mod(x(1,:,:) - xmin, Lx) - Lx/2).^2 + ...
-                        (mod(x(2,:,:) - ymin, Ly) - Ly/2).^2 ) < r ) * E2 + ...
-                ( sqrt((mod(x(1,:,:) - xmin, Lx) - Lx/2).^2 + ...
-                       (mod(x(2,:,:) - ymin, Ly) - Ly/2).^2 ) >= r ) * E;
+            ymax = max(mesh.coord(:,2));
+            Lx = xmax - xmin; % tamaño real en X
+            Ly = ymax - ymin; % tamaño real en Y
+
+            fBase             = geomFun;
+            fPeriodic = @(x) fBase( cat(1, xmin + mod(x(1,:,:) - xmin, Lx), ...
+                                        ymin + mod(x(2,:,:) - ymin, Ly) ));
+            
+            f = @(x) (fPeriodic(x) <= 0)*E2 + ...
+                     (fPeriodic(x) > 0)*E;
     
             young   = AnalyticalFunction.create(f, mD);
             poisson = ConstantFunction.create(nu, mD);

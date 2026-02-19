@@ -1,8 +1,8 @@
 clear;
 close all;
 
-x1       = linspace(0,1,40);
-x2       = linspace(0,1,40);
+x1       = linspace(0,1,30);
+x2       = linspace(0,1,30);
 [xv,yv]  = meshgrid(x1,x2);
 [F,V]    = mesh2tri(xv,yv,zeros(size(xv)),'x');
 m.coord  = V(:,1:2);
@@ -13,8 +13,8 @@ gPar.type         = 'CrossedSquare';
 gPar.length       = 1;
 gPar.xCoorCenter  = 0.5;
 gPar.yCoorCenter  = 0.5;
-gPar.tFrame       = 0.1;
-gPar.tCross       = 0.1;
+gPar.tFrame       = 0.01;
+gPar.tCross       = 0.01;
 % 
 % gPar.type       = 'Square';
 % gPar.length     =   0.5 ;
@@ -27,6 +27,7 @@ gPar.tCross       = 0.1;
 % gPar.yCoorCenter  = 0.5;
 
 g                 = GeometricalFunction(gPar);
+
 phiFun            = g.computeLevelSetFunction(mesh);
 lsCircle          = phiFun.fValues;
 lsCircleInclusion = -lsCircle;
