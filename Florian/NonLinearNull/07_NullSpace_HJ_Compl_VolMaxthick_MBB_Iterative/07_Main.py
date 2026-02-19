@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 from fun07_NullSpace_HJ_CVT_Iterative import FunctionCase07
 
 maxItj  = [1,5]
-stepHJ  = 0.2
-No      = 50
-maxIter = 80
+stepHJ  = 1
+No      = 10
+maxIter = 40
 
 for i in range(len(maxItj)):
     FunctionCase07(maxItj[i],stepHJ,No,maxIter)

@@ -1,0 +1,12 @@
+real aR = 0.2;
+real bR = 2;
+int aI = 2;
+real res1, res2;
+
+res1 = (1/2)*aR;
+res2 = aR*bR;
+
+cout<<"Given a real number "<<aR<<", an integer number "<<aI<<"\n";
+cout<<"and a real number "<<bR<<", then the following operations return: \n";
+cout<<"real "<<aR<<" times int "<<aI<<" = "<<res1<<"\n";
+cout<<"real "<<aR<<" times real "<<bR<<" = "<<res2<<"\n";

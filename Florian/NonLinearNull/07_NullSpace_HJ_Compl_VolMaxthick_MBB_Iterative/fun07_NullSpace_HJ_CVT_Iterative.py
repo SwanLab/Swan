@@ -36,7 +36,7 @@ def FunctionCase07(maxItj,stepHJ,No,maxIter):
     meshsiz = exports['meshsiz']
     lsLabel = 10
     rInner = 3
-    dmaxmin = 0.1
+    dmaxmin = 0.10
 
     @bound_constraints_optimizable()
     class TO_problem(EuclideanOptimizable):
@@ -47,6 +47,8 @@ def FunctionCase07(maxItj,stepHJ,No,maxIter):
             self.Th2 = []
             self.nx = []
             self.ny = []
+            self.fOm = []
+            self.fd = []
         def x0(self):
             runner = FreeFemRunner(path+"07_InitialGuess.edp")
             runner.import_variables(Th=Th)
@@ -87,7 +89,11 @@ def FunctionCase07(maxItj,stepHJ,No,maxIter):
             runner = FreeFemRunner(path+"07_ConstraintIneqGradient.edp")
             runner.import_variables(Th=Th,Th2=self.Th2,phiVal=x,alpha=alpha,beta=beta,
                                 lsLab=lsLabel,rInner=rInner,meshsiz=hmin,dmax=dmax)
-            dH2 = runner.execute()['g[]']
+            res = runner.execute()
+
+            dH2 = res['g[]']
+            self.fOm = res['fOm[]']
+            self.fd = res['fd[]']
 
             return np.vstack((dH1,dH2))
 
@@ -113,14 +119,14 @@ def FunctionCase07(maxItj,stepHJ,No,maxIter):
             "itnormalisation": No,
             "save_only_N_iterations": 1,
             "save_only_Q_constraints": 5,
-            "alphaJ": 2,
+            "alphaJ": 5,
             "alphaC": 1,
             "maxit": maxIter,
             "CFL": 0.9}
     problem:Optimizable = TO_problem()
     stepHJj = stepHJ/maxItj
 
-    dmax = 6.0
+    dmax = 1.0
     fact = pow(dmax/dmaxmin,2/No)
 
 
@@ -462,4 +468,5 @@ def FunctionCase07(maxItj,stepHJ,No,maxIter):
 
     np.savez(path+"07_ResultIts"+str(maxItj)+"Step"+str(stepHJ),
             xF=x,it=iter,c=Comp,vt=VT,dmax=dmaxVec,muls=muls,
-            AJ=AJVec,AC=ACVec,dH=dH,xiJ=xiJ,xiC=xiC,g=g)
+            AJ=AJVec,AC=ACVec,dH=dH,xiJ=xiJ,xiC=xiC,g=g,
+            fOm=problem._problem.fOm,fd=problem._problem.fd)

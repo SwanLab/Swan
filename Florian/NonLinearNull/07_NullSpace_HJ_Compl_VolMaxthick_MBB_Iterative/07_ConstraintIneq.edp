@@ -13,10 +13,11 @@ fespace Vh(Th,P1);
 Vh phi, dOmR, dOm, fOm, v;
 phi[] = phiVal;
 
-problem regSignedDist(dOmR,v) = int2d(Th)(dOmR*v+alpha^2*(dx(dOmR)*dx(v)+dy(dOmR)*dy(v)))
-                                -int2d(Th)(phi*v) + on(0,dOmR=0);
-
-regSignedDist;
+dOmR = phi;
+for (int i = 0; i < Th.nbe; i++) {
+    dOmR[][Th.be(i)[0]] = 0.;
+    dOmR[][Th.be(i)[1]] = 0.;
+}
 distance(Th,dOmR,dOm[]);
 
 mesh Th3;
