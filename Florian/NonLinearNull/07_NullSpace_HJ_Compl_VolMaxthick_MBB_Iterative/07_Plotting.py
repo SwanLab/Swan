@@ -29,7 +29,7 @@ exports = FreeFemRunner(path+"07_Mesh.edp").execute()
 Th = exports['Th']
 
 ## POSTPROCESS
-data  = np.load(path+"07_ResultIts1Step1.npz",allow_pickle=True)
+data  = np.load(path+"07_ResultIts1Step0.5.npz",allow_pickle=True)
 iter1 = data['it']
 Comp1 = data['c']
 VT1  = data['vt']
@@ -49,7 +49,7 @@ g1 = data['g']
 fOm1 = data['fOm']
 fd1 = data['fd']
 
-data  = np.load(path+"07_ResultIts5Step1.npz",allow_pickle=True)
+data  = np.load(path+"07_ResultIts5Step0.5.npz",allow_pickle=True)
 iter5 = data['it']
 Comp5 = data['c']
 VT5  = data['vt']
@@ -69,7 +69,7 @@ g5 = data['g']
 fOm5 = data['fOm']
 fd5 = data['fd']
 
-data = np.load(path+"07_ResultIts1Step0.3.npz")
+data = np.load(path+"07_ResultIts5Step0.5.npz")
 fig0, ax0 = plt.subplots()
 x = data["xF"]
 u = P1Function(Th,x<=0)

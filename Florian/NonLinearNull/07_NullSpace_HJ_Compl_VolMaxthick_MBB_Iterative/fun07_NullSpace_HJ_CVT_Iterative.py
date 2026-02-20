@@ -126,7 +126,7 @@ def FunctionCase07(maxItj,stepHJ,No,maxIter):
     problem:Optimizable = TO_problem()
     stepHJj = stepHJ/maxItj
 
-    dmax = 1.0
+    dmax = dmaxmin
     fact = pow(dmax/dmaxmin,2/No)
 
 
