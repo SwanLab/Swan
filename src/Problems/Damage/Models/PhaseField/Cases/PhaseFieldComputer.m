@@ -176,7 +176,7 @@ classdef PhaseFieldComputer < handle
                 obj.stop.maxF = totF;
             elseif step>5 && totF<0.01*obj.stop.maxF && ~obj.stop.triggered
                 obj.stop.stepTrigger = step;
-                obj.stop.triggered = false;
+                obj.stop.triggered = true;
             end
 
             if step==obj.stop.stepTrigger+10

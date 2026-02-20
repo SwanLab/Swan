@@ -7,9 +7,9 @@ clc,clear,close all
 
 %% GENERAL SETTINGS
 
-s.monitoring.set = true;
+s.monitoring.set = false;
 s.monitoring.type = 'full'; %'reduced'
-s.monitoring.print = true;
+s.monitoring.print = false;
 
 s.tolerance.u = 1e-6;
 s.tolerance.phi = 1e-6;
