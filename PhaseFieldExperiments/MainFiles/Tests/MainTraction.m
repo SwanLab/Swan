@@ -1,6 +1,6 @@
 clc,clear,close all
 
-% GENERAL SETTINGS
+%% GENERAL SETTINGS
 
 s.monitoring.set = false;
 s.monitoring.type = 'full'; %'reduced'

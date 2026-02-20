@@ -42,10 +42,7 @@ s.solver.tau  = 150;
 tester = TestingPhaseField(s);
 outputData = tester.compute();
 outputData.inputParameters = s;
-
-%% SAVE + PLOT
-save("UniaxialNewMeshAT1.mat",'outputData') %ACTIVATE TO SAVE DATA!
-PhaseFieldPlotter(outputData); 
+save("UniaxialNewMeshAT1.mat",'outputData')
 
 s.matInfo.degradationSubType = 'General';
 s.matInfo.sigmaMax = 3;
