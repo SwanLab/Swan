@@ -1,0 +1,267 @@
+/* 09. Simple Geom Constr using Signed Distance */
+load "medit"
+load "distance"
+load "iovtk"
+load "mmg"
+
+/* Create background mesh */
+real R = 2;
+real Nc = 80;
+border C1(t=0,2*pi){ x=R*cos(t); y=R*sin(t); label=0; };
+mesh Th = buildmesh(C1(2*pi*R*Nc));
+
+mesh Th2; /* Th mesh after remeshing it near phi=0 */
+mesh Th3; /* Inner part of Th2*/
+meshL ThLInt; /* Boundary phi=0 of Th2 */
+
+/* Finite Element spaces */
+fespace Vh(Th,P1);
+fespace Vh0(Th,P0);
+include "tools.idp"
+
+/* Variables definition */
+Vh phi, phio, dOmR, dOm, /*Test function for a velocity component:*/ v;
+Vh /*Velocity components:*/ g;
+
+/* Initialization of the Level Set function */
+func real borderInitialGuess() {
+  real R1 = 1.9, ls;
+  ls = -1000*(x^2+y^2-R1^2);
+  return(ls);
+}
+func real initialGuessX() {
+  real nHX = 1.0, lX = 4.0, fX = -pi/2; /* 12, 4 pi/8,0 */
+  real lsx;
+  lsx = cos((nHX+1)*(x+1)*pi/lX+fX);
+  return(lsx);
+}
+func real initialGuessY() {
+  real nHY = 1.0, lY = 4.0, fY = 0;
+  real lsy;
+  lsy = cos((nHY+1)*y*pi/lY+fY);
+  return(lsy);
+}
+Vh phioI, phiox, phioy;
+phioI = borderInitialGuess();
+phiox = initialGuessX();
+phioy = initialGuessY();
+for (int i = 0; i < Vh.ndof; ++i) {
+  phio[][i] = min(phioI[][i],phiox[][i]*phioy[][i] - 0.6);
+}
+distance(Th,phio,phi[]);
+phio = phi;
+
+string sout = "09_PhiInitial.vtu";
+savevtk(sout, Th, phi, dataname="Phi");
+
+/* Regularization parameters */
+real meshsiz = 1/Nc;
+real alpha   = 1.0*meshsiz;
+real beta    = 8.0*meshsiz;
+
+dOmR = phi;
+for (int i = 0; i < Th.nbe; i++) {
+    dOmR[][Th.be(i)[0]] = 0.;
+    dOmR[][Th.be(i)[1]] = 0.;
+}
+
+distance(Th,dOmR,dOm[]);
+
+sout = "09_SignedDistance.vtu";
+savevtk(sout, Th, dOm, dataname="SignedDist");
+
+int [int] lsLabel(1), pOmega(2);
+lsLabel[0] = 10;
+pOmega[0] = 0;
+pOmega[1] = 10;
+
+real rInner, rOuter;
+rOuter = 2;
+rInner = 3;
+
+macro updateBoundary(phi) {
+  Th2 = mmg2d(Th, iso = 1, ls = 0.0, metric = phi[], hmax = 0.05);
+  Th3 = trunc(Th2, region == rInner);
+  ThLInt = extract(Th3,label = lsLabel);
+} //
+
+updateBoundary(phi);
+
+real Jo = 0.5*int2d(Th)(dOm^2.0);
+
+Vh dxdOm, dydOm, w, lapldOm;
+
+problem gradxPhi(dxdOm,v) = int2d(Th)(dxdOm*v + alpha^2*(dx(dxdOm)*dx(v)+dy(dxdOm)*dy(v)))
+                        -int2d(Th)(dx(dOm)*v);
+
+problem gradyPhi(dydOm,v) = int2d(Th)(dydOm*v + alpha^2*(dx(dydOm)*dx(v)+dy(dydOm)*dy(v)))
+                        -int2d(Th)(dy(dOm)*v);
+
+gradxPhi;
+gradyPhi;
+
+sout = "09_graddOm.vtu";
+savevtk(sout, Th, [dxdOm,dydOm], dataname="graddOm");
+
+problem laplace(lapldOm,v) = int2d(Th)(lapldOm*v + alpha^2*(dx(lapldOm)*dx(v)+dy(lapldOm)*dy(v)))
+                        -int2d(Th)((dx(dxdOm) + dy(dydOm))*v);
+
+laplace;
+sout = "09_LaplacianPhi.vtu";
+savevtk(sout, Th, lapldOm, dataname="Laplacian");
+
+real q = 3.5, r = 3.5;
+w = 2/(1+abs(dOm)^q*abs(lapldOm)^r);
+
+sout = "09_WeightFunction.vtu";
+savevtk(sout, Th, w, dataname="Weight");
+
+fespace Vh2(Th2,P1);
+Vh2 u2, v2, g2;
+
+problem uTerm(u2,v2) = int1d(Th2,pOmega)(u2*v2) + int2d(Th2)(w*(dxdOm*dx(u2)+dydOm*dy(u2))*(dxdOm*dx(v2)+dydOm*dy(v2)))
+                        -int2d(Th2)(-dOm*v2);
+
+uTerm;
+
+problem velext(g2,v2) = int2d(Th2)(g2*v2 + beta^2*(dx(g2)*dx(v2)+dy(g2)*dy(v2)))
+                        -int1d(Th2,lsLabel)(-u2*beta*v2);
+
+velext;
+g = g2;
+
+sout = "09_uTerm.vtu";
+savevtk(sout, Th2, u2, dataname="uTerm");
+
+sout = "09_Velocity.vtu";
+savevtk(sout, Th, g, dataname="Velocity");
+
+
+
+
+
+
+
+
+
+
+Vh nx1, ny1, gx, gy;
+
+Vh2 nx2, ny2;
+
+fespace Vh1D(ThLInt,P1);
+Vh1D nx, ny, v0, gx0 = dx(phi), gy0 = dy(phi);
+
+problem projNx(nx,v0) = int1d(ThLInt)(alpha^2*(dx(nx)*dx(v0)+dy(nx)*dy(v0)) + nx*v0) 
+                        - int1d(ThLInt)(Tl.y*v0);
+
+problem projNy(ny,v0) = int1d(ThLInt)(alpha^2*(dx(ny)*dx(v0)+dy(ny)*dy(v0)) + ny*v0) 
+                          - int1d(ThLInt)(-Tl.x*v0);
+
+projNx;
+projNy;
+nx = nx/sqrt(nx^2+ny^2+1e-6);
+ny = ny/sqrt(nx^2+ny^2+1e-6);
+
+Vh1D sgn = nx*gx0 + ny*gy0;
+
+for (int i = 0; i < Vh1D.ndof; ++i) {
+    if (sgn[][i] < 0) {
+        nx[][i] = -nx[][i];
+        ny[][i] = -ny[][i];
+    }
+}
+
+problem velextx(nx2,v2) = int2d(Th2)(beta^2*(dx(nx2)*dx(v2)+dy(nx2)*dy(v2)) + nx2*v2)
+                    - int1d(Th2,lsLabel)(beta*nx*v2);
+
+problem velexty(ny2,v2) = int2d(Th2)(beta^2*(dx(ny2)*dx(v2)+dy(ny2)*dy(v2)) + ny2*v2)
+                    - int1d(Th2,lsLabel)(beta*ny*v2);
+
+velextx;
+velexty;
+nx1 = nx2;
+ny1 = ny2;
+
+gx = g*dxdOm;
+gy = g*dydOm;
+
+sout = "09_gVec.vtu";
+savevtk(sout, Th, [gx,gy], dataname="gVec");
+
+real dJ;
+real [int] n, dtVec(101), JJoVec(101), dJVec(101), resVec(101);
+
+real dJo = int1d(ThLInt)(g*u2);
+for (int j = 0; j < dtVec.n; ++j) {
+  dtVec[j] = 0.01*pow(1.065,j);
+}
+
+real gmax, step;
+for (int i = 0; i < dtVec.n; ++i) {
+
+phi[] = advectRedist(phio[],gx[],gy[],dtVec[i]);
+dOmR = phi;
+for (int i = 0; i < Th.nbe; i++) {
+    dOmR[][Th.be(i)[0]] = 0.;
+    dOmR[][Th.be(i)[1]] = 0.;
+}
+distance(Th,dOmR,dOm[]);
+real J = 0.5*int2d(Th)(dOm^2.0);
+JJoVec[i] = J-Jo;
+dJVec[i] = dtVec[i]*dJo;
+resVec[i] = abs(JJoVec[i]-dJVec[i]);
+}
+
+sout = "09_SignedDistanceFinal.vtu";
+savevtk(sout, Th, dOm, dataname="SignedDistance");
+
+// write data file with "iteration value"
+string datafile1 = "TaylorTest.gp";
+
+{
+    ofstream fout(datafile1);
+    for (int i = 0; i < dtVec.n; ++i)
+        fout << dtVec[i] << " " << resVec[i] << endl;
+}
+
+string datafile2 = "TaylorTest2.gp";
+
+{
+    ofstream fout(datafile2);
+    for (int i = 0; i < dtVec.n; ++i)
+        fout << dtVec[i] << " " << abs(JJoVec[i]) << endl;
+}
+
+string datafile3 = "TaylorTest3.gp";
+
+{
+    ofstream fout(datafile3);
+    for (int i = 0; i < dtVec.n; ++i)
+        fout << dtVec[i] << " " << abs(dJVec[i]) << endl;
+}
+
+// create gnuplot command to plot the data with logscale on y-axis
+string gnuplotCmd = 
+    "gnuplot -e \"set term png size 800,600; " +
+    "set output '09_TaylorTest.png'; " +
+    "set title 'Taylor Test'; " +
+    "set xlabel 'dt'; set ylabel 'Error'; " +
+    "plot '" + datafile1 + "' with lines lw 2 title 'Residual', " + 
+    "'" + datafile2 + "' with lines lw 2 title 'J-Jo', " +
+    "'" + datafile3 + "' with lines lw 2 title 'ShapeDer'\"";
+
+// execute gnuplot command
+exec(gnuplotCmd);
+
+gnuplotCmd = 
+    "gnuplot -e \"set term png size 800,600; " +
+    "set output '09_TaylorTestLogLog.png'; " +
+    "set title 'Taylor Test'; " +
+    "set xlabel 'dt'; set logscale x 2; set ylabel 'Error'; set logscale y 2; set ytics 2; " +
+    "plot '" + datafile1 + "' with lines lw 2 title 'Residual', " + 
+    "'" + datafile2 + "' with lines lw 2 title 'J-Jo', " +
+    "'" + datafile3 + "' with lines lw 2 title 'ShapeDer'\"";
+
+// execute gnuplot command
+exec(gnuplotCmd);

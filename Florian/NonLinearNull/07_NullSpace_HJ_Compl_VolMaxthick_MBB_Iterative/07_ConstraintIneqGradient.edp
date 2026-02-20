@@ -65,7 +65,7 @@ Vh2 u2, g2, v2;
 sig = dOm/(abs(dOm)+1e-6);
 
 fd = 0.5*((1/cosh((abs(dOm)-dmax/2)/(af*dmax/2)))^2)*sig/(af*dmax/2);
-problem uTerm(u2,v2) = int1d(Th2,lsLabel)(u2*v2) + int2d(Th2)(w*(dxdOm*dx(u2)+dydOm*dy(u2))*(dxdOm*dx(v2)+dydOm*dy(v2)))
+problem uTerm(u2,v2) = int1d(Th2,pOmega)(u2*v2) + int2d(Th2)(w*(dxdOm*dx(u2)+dydOm*dy(u2))*(dxdOm*dx(v2)+dydOm*dy(v2)))
                         +int2d(Th2,rInner)((1/(2*Jo*F^2)*(F*(fd*dOm+2*fOm)*dOm-FD*fd))*v2);
 
 uTerm;
