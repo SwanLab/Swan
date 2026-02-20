@@ -1,7 +1,6 @@
 classdef TopOptPunzonLevelSet < handle
 
     properties (Access = private)
-        filename
         mesh
         filter
         designVariable
@@ -12,8 +11,8 @@ classdef TopOptPunzonLevelSet < handle
         cost
         constraint
         primalUpdater
-        % dualVariable
         optimizer
+        filename
     end
 
     methods (Access = public)
@@ -31,52 +30,48 @@ classdef TopOptPunzonLevelSet < handle
             obj.createCost();
             obj.createConstraint();
             obj.createPrimalUpdater();
-            % obj.createDualVariable();
             obj.createOptimizer();
 
+            % Save monitoring and desginVariable fValues
             figure(2)
-            saveas(gcf,'Monitoring_PunzonLevelSet.fig');
-            obj.designVariable.fun.print('fValues_PunzonLevelSet');
+            saveas(gcf,'Monitoring_PunzonLevelSet_Intent3.fig');
+            obj.designVariable.fun.print('fValues_PunzonLevelSet_Intent3');
         end
 
     end
 
     methods (Access = private)
 
-        function init(obj)
-            close all;
-        end
-
         function createMesh(obj)
-            file = 'punzon';
+            file = 'punzon3';
             obj.filename = file;
             a.fileName = file;
             s = FemDataContainer(a);
             obj.mesh = s.mesh;
         end
 
-        % function createDesignVariable(obj)
-        %     s.fHandle = @(x) ones(size(x(1,:,:)));
-        %     s.ndimf   = 1;
-        %     s.mesh    = obj.mesh;
-        %     aFun      = AnalyticalFunction(s);
-        %     s.fun     = aFun.project('P1');
-        %     s.fun.setFValues(0.4*ones(size(s.fun.fValues,1),1));
-        %     s.mesh    = obj.mesh;
-        %     s.type = 'Density';
-        %     s.plotting = true;
-        %     dens    = DesignVariable.create(s);
-        %     obj.designVariable = dens;
-        % end
-
         function createDesignVariable(obj)
             s.type = 'Full';
             g      = GeometricalFunction(s);
             lsFun  = g.computeLevelSetFunction(obj.mesh);
             s.fun  = lsFun;
+            % 
+            % s.fHandle = @(x) ones(size(x(1,:,:)));
+            % s.ndimf   = 1;
+            % s.mesh    = obj.mesh;
+            % aFun      = AnalyticalFunction(s);
+            % s.fun     = aFun.project('P1');
+
             s.mesh = obj.mesh;
             s.type = 'LevelSet';
             s.plotting = true;
+
+
+            % zMin     = min(obj.mesh.coord(:,3));
+            % isBottom = @(x) abs(x(:,3) - zMin) < 1e-6; % cara llisa
+            % guide1   = @(x) x(:,2)<= 20.179;
+            % guide2   = @(x) x(:,2)>= 76.729;
+            % s.isFixed  = obj.computeFixedVolumeDomain(@(x) guide1(x) | guide2(x) | isBottom(x), s.type);
             ls     = DesignVariable.create(s);
             obj.designVariable = ls;
         end
@@ -111,18 +106,6 @@ classdef TopOptPunzonLevelSet < handle
             obj.materialInterpolator = m;
         end
 
-        function m = createMaterial(obj)
-            x = obj.designVariable;
-            f = x.obtainDomainFunction();
-            f = f{1}.project('P1');            
-            s.type                 = 'DensityBased';
-            s.density              = f;
-            s.materialInterpolator = obj.materialInterpolator;
-            s.dim                  = '3D';
-            s.mesh                 = obj.mesh;
-            m = Material.create(s);
-        end
-
         function createElasticProblem(obj)
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
@@ -144,10 +127,10 @@ classdef TopOptPunzonLevelSet < handle
         end
 
         function createCompliance(obj)
-            s.mesh                        = obj.mesh;
-            s.filter                      = obj.filter;
-            s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
-            s.material                    = obj.createMaterial();
+            s.mesh                       = obj.mesh;
+            s.filter                     = obj.filter;
+            s.complainceFromConstitutive = obj.createComplianceFromConstiutive();
+            s.material                   = obj.createMaterial();
             c = ComplianceFunctional(s);
             obj.compliance = c;
         end
@@ -184,9 +167,9 @@ classdef TopOptPunzonLevelSet < handle
         end
 
         function M = createMassMatrix(obj)
-            test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            M = IntegrateLHS(@(u,v) DP(v,u),test,trial,obj.mesh,'Domain');
+            n = obj.mesh.nnodes;
+            h = obj.mesh.computeMinCellSize();
+            M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
         end
 
         function createConstraint(obj)
@@ -194,12 +177,6 @@ classdef TopOptPunzonLevelSet < handle
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
-
-        % function createDualVariable(obj)
-        %     s.nConstraints   = 1;
-        %     l                = DualVariable(s);
-        %     obj.dualVariable = l;
-        % end
 
         function createPrimalUpdater(obj)
             s.mesh = obj.mesh;
@@ -211,13 +188,13 @@ classdef TopOptPunzonLevelSet < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 15;
+            s.maxIter        = 50;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.1;
-            s.etaNormMin     = 0.05;
-            s.gJFlowRatio    = 0.05;
+            s.etaNormMin     = 0.01;
+            s.gJFlowRatio    = 0.2;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.1;
             %s.type           = '0';
@@ -228,6 +205,19 @@ classdef TopOptPunzonLevelSet < handle
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
+        end
+
+        function m = createMaterial(obj)
+            x = obj.designVariable;
+            f = x.obtainDomainFunction();
+            f = f{1}.project('P1');
+            % f = obj.filter.compute(f{1},1);            
+            s.type                 = 'DensityBased';
+            s.density              = f;
+            s.materialInterpolator = obj.materialInterpolator;
+            s.dim                  = '3D';
+            s.mesh                 = obj.mesh;
+            m = Material.create(s);
         end
 
         function bc = createBoundaryConditions(obj)
@@ -265,25 +255,25 @@ classdef TopOptPunzonLevelSet < handle
 
             bc = BoundaryConditions(s);
         end
+
+
+        function isFixed = computeFixedVolumeDomain(obj,cond,type)
+            coor  = obj.mesh.coord;
+            nodes = find(cond(coor));
+            isFixed.nodes = nodes;
+            switch type
+                case 'Density'
+                    values = ones(size(nodes));
+                case 'LevelSet'
+                    values = -ones(size(nodes));
+            end
+            isFixed.values = values;
+        end
     end
 
-    methods (Static, Access=private)
-        function sCond = computeCondition(conditions)
-            nodes = @(coor) 1:size(coor,1);
-            dirs  = unique(conditions(:,2));
-            j     = 0;
-            for k = 1:length(dirs)
-                rowsDirk = ismember(conditions(:,2),dirs(k));
-                u        = unique(conditions(rowsDirk,3));
-                for i = 1:length(u)
-                    rows   = conditions(:,3)==u(i) & rowsDirk;
-                    isCond = @(coor) ismember(nodes(coor),conditions(rows,1));
-                    j      = j+1;
-                    sCond{j}.domain    = @(coor) isCond(coor);
-                    sCond{j}.direction = dirs(k);
-                    sCond{j}.value     = u(i);
-                end
-            end
+    methods(Access=private,Static)
+        function init()
+            close all;
         end
     end
 end
