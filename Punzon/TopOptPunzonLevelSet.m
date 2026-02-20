@@ -43,35 +43,40 @@ classdef TopOptPunzonLevelSet < handle
     methods (Access = private)
 
         function createMesh(obj)
-            file = 'punzon3';
-            obj.filename = file;
+            file = 'punzon4';
             a.fileName = file;
             s = FemDataContainer(a);
             obj.mesh = s.mesh;
         end
 
         function createDesignVariable(obj)
+            % NON FIXED
             s.type = 'Full';
             g      = GeometricalFunction(s);
             lsFun  = g.computeLevelSetFunction(obj.mesh);
             s.fun  = lsFun;
-            % 
+
+            % FIXED
             % s.fHandle = @(x) ones(size(x(1,:,:)));
             % s.ndimf   = 1;
             % s.mesh    = obj.mesh;
             % aFun      = AnalyticalFunction(s);
             % s.fun     = aFun.project('P1');
 
+            %---------------------------------------------------
             s.mesh = obj.mesh;
             s.type = 'LevelSet';
             s.plotting = true;
 
 
+            % DESCOMENTAR PER FIXED
             % zMin     = min(obj.mesh.coord(:,3));
             % isBottom = @(x) abs(x(:,3) - zMin) < 1e-6; % cara llisa
             % guide1   = @(x) x(:,2)<= 20.179;
             % guide2   = @(x) x(:,2)>= 76.729;
             % s.isFixed  = obj.computeFixedVolumeDomain(@(x) guide1(x) | guide2(x) | isBottom(x), s.type);
+
+            %---------------------------------------------------
             ls     = DesignVariable.create(s);
             obj.designVariable = ls;
         end
