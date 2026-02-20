@@ -96,7 +96,7 @@ classdef TestingPhaseField < handle
                 phiVal(restrictedDofs) = bc.dirichlet_vals;
                 phi.setFValues(phiVal);
             end
-            %phi.setFValues(0.3*ones(size(phi.fValues)));
+            %phi.setFValues(0.01*ones(size(phi.fValues)));
         end
 
         function phi = createDamageVariable(obj,phi)

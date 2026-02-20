@@ -1,10 +1,5 @@
 clc,clear,close all
 
-%% INITIAL CONDITIONS FOR CONTINUING AN UNFINISHED ANALYSIS
-% load("SENshearAT2_v2.mat")
-% s.initialGuess.u = outputData.displacement.field;
-% s.initialGuess.phi = outputData.damage.field.fun;
-
 %% GENERAL SETTINGS
 
 s.monitoring.set = false;
@@ -18,20 +13,20 @@ s.maxIter.u = 100;
 s.maxIter.phi = 300;
 s.maxIter.stag = 300;
 
-s.benchmark.mesh.type   = 'SENshear';%'SENshear';
-s.benchmark.bc.u.type   = 'DisplacementShear';
-s.benchmark.bc.u.values =  [0:1e-5:0.02];
-s.benchmark.bc.phi.type = 'DamageFree';
+s.benchmark.mesh.type   = 'Uniaxial';%'SENshear';
+s.benchmark.bc.u.type   = 'DisplacementTractionX';%'DisplacementShear';
+s.benchmark.bc.u.values =  [0:1e-4:0.03];
+s.benchmark.bc.phi.type = 'DamageFixedLimitsX';
 
 s.matInfo.matType = 'Analytic'; %'Analytic','Homogenized'
 s.matInfo.degradationType = 'PhaseField'; %'PhaseField','SIMPALL'
 s.matInfo.degradationSubType = 'AT'; %'AT','AT2linear','General'
 s.matInfo.fileName = 'HoneycombBenchmark02'; 
-s.matInfo.young   = 210;
-s.matInfo.poisson = 0.3;
-s.matInfo.Gc      = 2.7e-3;
-s.matInfo.sigmaMax = 2.44542;
-s.l0 = 0.01;
+s.matInfo.young   = 3e4;
+s.matInfo.poisson = 0.2;
+s.matInfo.Gc      = 8e-3;
+s.matInfo.sigmaMax = 3;
+s.l0 = 10;
 s.matInfo.params.coeffs = [(4/pi)*(s.matInfo.Gc*s.matInfo.young)/(s.matInfo.sigmaMax^2 * s.l0), -0.5]; %(4/pi)
 s.matInfo.params.exp = 2;
 
@@ -49,38 +44,37 @@ outputData = tester.compute();
 outputData.inputParameters = s;
 
 %% SAVE + PLOT
-% save("SENshearNewMeshAT1.mat",'outputData') %ACTIVATE TO SAVE DATA!
-% PhaseFieldPlotter(outputData); 
+save("UniaxialNewMeshAT1.mat",'outputData') %ACTIVATE TO SAVE DATA!
+PhaseFieldPlotter(outputData); 
 
 s.matInfo.degradationSubType = 'General';
-s.matInfo.sigmaMax = 2.44542;
+s.matInfo.sigmaMax = 3;
 s.dissipInfo.constant = pi;
 tester = TestingPhaseField(s);
 outputData = tester.compute();
 outputData.inputParameters = s;
-save("SENshearNewMeshRational24.mat",'outputData')
-
+save("UniaxialNewMeshRational3.mat",'outputData')
 
 s.matInfo.degradationSubType = 'General'; 
-s.matInfo.sigmaMax = 5;
+s.matInfo.sigmaMax = 2;
 s.dissipInfo.constant = pi;
 tester = TestingPhaseField(s);
 outputData = tester.compute();
 outputData.inputParameters = s;
-save("SENshearNewMeshRational5.mat",'outputData')
+save("UniaxialNewMeshRational2.mat",'outputData')
 
 s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'
-s.matInfo.fileName = 'HexagonBenchmark03';
+s.matInfo.fileName = 'HexagonBenchmark02';
 s.dissipInfo.constant = 8/3;
 tester = TestingPhaseField(s);
 outputData = tester.compute();
 outputData.inputParameters = s;
-save("SENshearNewMeshHexagon.mat",'outputData')
+save("UniaxialNewMeshHexagon.mat",'outputData')
 
 s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'
-s.matInfo.fileName = 'HoneycombBenchmark03';
+s.matInfo.fileName = 'HoneycombBenchmark02';
 s.dissipInfo.constant = 8/3;
 tester = TestingPhaseField(s);
 outputData = tester.compute();
 outputData.inputParameters = s;
-save("SENshearNewMeshHoneycomb.mat",'outputData')
+save("UniaxialNewMeshHoneycomb.mat",'outputData')
