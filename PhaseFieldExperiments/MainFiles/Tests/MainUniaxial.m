@@ -46,6 +46,7 @@ save("UniaxialNewMeshAT1.mat",'outputData')
 
 s.matInfo.degradationSubType = 'General';
 s.matInfo.sigmaMax = 3;
+s.matInfo.params.coeffs = [(4/pi)*(s.matInfo.Gc*s.matInfo.young)/(s.matInfo.sigmaMax^2 * s.l0), -0.5]; 
 s.dissipInfo.constant = pi;
 tester = TestingPhaseField(s);
 outputData = tester.compute();
@@ -54,6 +55,7 @@ save("UniaxialNewMeshRational3.mat",'outputData')
 
 s.matInfo.degradationSubType = 'General'; 
 s.matInfo.sigmaMax = 2;
+s.matInfo.params.coeffs = [(4/pi)*(s.matInfo.Gc*s.matInfo.young)/(s.matInfo.sigmaMax^2 * s.l0), -0.5]; 
 s.dissipInfo.constant = pi;
 tester = TestingPhaseField(s);
 outputData = tester.compute();

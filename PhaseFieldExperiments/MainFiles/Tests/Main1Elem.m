@@ -53,6 +53,7 @@ save("1ElemAT2_v2.mat",'outputData')
 
 s.matInfo.degradationSubType = 'General';
 s.matInfo.sigmaMax = 1.984;
+s.matInfo.params.coeffs = [(4/pi)*(s.matInfo.Gc*s.matInfo.young)/(s.matInfo.sigmaMax^2 * s.l0), -0.5]; 
 s.dissipInfo.constant = pi;
 tester = TestingPhaseField(s);
 outputData = tester.compute();
@@ -61,6 +62,7 @@ save("1ElemRational198_v2.mat",'outputData')
 
 s.matInfo.degradationSubType = 'General'; 
 s.matInfo.sigmaMax = 1;
+s.matInfo.params.coeffs = [(4/pi)*(s.matInfo.Gc*s.matInfo.young)/(s.matInfo.sigmaMax^2 * s.l0), -0.5]; 
 s.dissipInfo.constant = pi;
 tester = TestingPhaseField(s);
 outputData = tester.compute();

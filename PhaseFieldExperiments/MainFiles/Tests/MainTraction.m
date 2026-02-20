@@ -39,39 +39,41 @@ s.solver.tau  = 150;
 
 
 %% RUN
-tester = TestingPhaseField(s);
-outputData = tester.compute();
-outputData.inputParameters = s;
-save("SENtractionNewMeshAT1.mat",'outputData')
-
-s.matInfo.degradationSubType = 'General';
-s.matInfo.sigmaMax = 2.44542;
-s.dissipInfo.constant = pi;
-tester = TestingPhaseField(s);
-outputData = tester.compute();
-outputData.inputParameters = s;
-save("SENtractionNewMeshRational24.mat",'outputData')
+% tester = TestingPhaseField(s);
+% outputData = tester.compute();
+% outputData.inputParameters = s;
+% save("SENtractionNewMeshAT1.mat",'outputData')
+% 
+% s.matInfo.degradationSubType = 'General';
+% s.matInfo.sigmaMax = 2.44542;
+% s.matInfo.params.coeffs = [(4/pi)*(s.matInfo.Gc*s.matInfo.young)/(s.matInfo.sigmaMax^2 * s.l0), -0.5]; 
+% s.dissipInfo.constant = pi;
+% tester = TestingPhaseField(s);
+% outputData = tester.compute();
+% outputData.inputParameters = s;
+% save("SENtractionNewMeshRational24.mat",'outputData')
 
 s.matInfo.degradationSubType = 'General'; 
 s.matInfo.sigmaMax = 5;
+s.matInfo.params.coeffs = [(4/pi)*(s.matInfo.Gc*s.matInfo.young)/(s.matInfo.sigmaMax^2 * s.l0), -0.5]; 
 s.dissipInfo.constant = pi;
 tester = TestingPhaseField(s);
 outputData = tester.compute();
 outputData.inputParameters = s;
 save("SENtractionNewMeshRational5.mat",'outputData')
 
-s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'
-s.matInfo.fileName = 'HexagonBenchmark03';
-s.dissipInfo.constant = 8/3;
-tester = TestingPhaseField(s);
-outputData = tester.compute();
-outputData.inputParameters = s;
-save("SENtractionNewMeshHexagon.mat",'outputData')
-
-s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'
-s.matInfo.fileName = 'HoneycombBenchmark03';
-s.dissipInfo.constant = 8/3;
-tester = TestingPhaseField(s);
-outputData = tester.compute();
-outputData.inputParameters = s;
-save("SENtractionNewMeshHoneycomb.mat",'outputData')
+% s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'
+% s.matInfo.fileName = 'HexagonBenchmark03';
+% s.dissipInfo.constant = 8/3;
+% tester = TestingPhaseField(s);
+% outputData = tester.compute();
+% outputData.inputParameters = s;
+% save("SENtractionNewMeshHexagon.mat",'outputData')
+% 
+% s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'
+% s.matInfo.fileName = 'HoneycombBenchmark03';
+% s.dissipInfo.constant = 8/3;
+% tester = TestingPhaseField(s);
+% outputData = tester.compute();
+% outputData.inputParameters = s;
+% save("SENtractionNewMeshHoneycomb.mat",'outputData')
