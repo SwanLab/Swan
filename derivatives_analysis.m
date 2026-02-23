@@ -24,6 +24,7 @@ fplot(ratFun2,[0 1])
 fplot(ratWu,[0 1])
 fplot(@(x) 210*C11hexa(x),[0 1])
 fplot(@(x) 210*C11honey(x),[0 1])
+title('Function')
 
 nexttile
 hold on
@@ -32,6 +33,7 @@ fplot(diff(ratFun2),[0 1])
 fplot(diff(ratWu),[0 1])
 fplot(@(x) 210*dC11hexa(x),[0 1])
 fplot(@(x) 210*dC11honey(x),[0 1])
+title('First derivative')
 
 nexttile
 hold on
@@ -40,6 +42,6 @@ fplot(diff(diff(ratFun2)),[0 1])
 fplot(diff(diff(ratWu)),[0 1])
 fplot(@(x) 210*d2C11hexa(x),[0 1])
 fplot(@(x) 210*d2C11honey(x),[0 1])
-
+title('Second derivative')
 
 legend('Rational 1.98','Rational 1','Rational Wu 1.98','Hexagon','Honeycomb')
