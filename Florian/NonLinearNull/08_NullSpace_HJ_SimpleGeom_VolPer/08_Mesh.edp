@@ -1,0 +1,15 @@
+IMPORT "io.edp"
+
+real R = 2;
+real Nc = 40;
+border C1(t=0,2*pi){ x=R*cos(t); y=R*sin(t); label=0; };
+mesh Th = buildmesh(C1(2*pi*R*Nc));
+
+real meshsiz = 1/Nc;
+real alpha   = 1.0*meshsiz;
+real beta    = 8.0*meshsiz;
+
+exportMesh(Th);
+exportVar(alpha);
+exportVar(beta);
+exportVar(meshsiz);
