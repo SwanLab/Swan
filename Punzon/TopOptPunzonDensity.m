@@ -34,8 +34,8 @@ classdef TopOptPunzonDensity < handle
             obj.createOptimizer();
 
             figure(2)
-            saveas(gcf,'Monitoring_PunzonDensity_Intent1.fig');
-            obj.designVariable.fun.print('fValues_PunzonDensity_Intent1');
+            saveas(gcf,'Monitoring_PunzonDensity_Intent3.fig');
+            obj.designVariable.fun.print('fValues_PunzonDensity_Intent3');
         end
 
     end
@@ -47,7 +47,7 @@ classdef TopOptPunzonDensity < handle
         end
 
         function createMesh(obj)
-            file = 'punzon4';
+            file = 'punzon3';
             a.fileName = file;
             s = FemDataContainer(a);
             obj.mesh = s.mesh;
@@ -55,30 +55,30 @@ classdef TopOptPunzonDensity < handle
 
         function createDesignVariable(obj)
             % NON FIXED
-            s.type = 'Full';
-            g      = GeometricalFunction(s);
-            lsFun  = g.computeLevelSetFunction(obj.mesh);
-            s.fun  = lsFun;
+            % s.type = 'Full';
+            % g      = GeometricalFunction(s);
+            % lsFun  = g.computeLevelSetFunction(obj.mesh);
+            % s.fun  = lsFun;
 
             % FIXED
-            % s.fHandle = @(x) ones(size(x(1,:,:)));
-            % s.ndimf   = 1;
-            % s.mesh    = obj.mesh;
-            % aFun      = AnalyticalFunction(s);
-            % s.fun     = aFun.project('P1');
+            s.fHandle = @(x) ones(size(x(1,:,:)));
+            s.ndimf   = 1;
+            s.mesh    = obj.mesh;
+            aFun      = AnalyticalFunction(s);
+            s.fun     = aFun.project('P1');
 
             %---------------------------------------------------
             s.mesh = obj.mesh;
-            s.type = 'LevelSet';
+            s.type = 'Density';
             s.plotting = true;
 
 
             % DESCOMENTAR PER FIXED
-            % zMin     = min(obj.mesh.coord(:,3));
-            % isBottom = @(x) abs(x(:,3) - zMin) < 1e-6; % cara llisa
-            % guide1   = @(x) x(:,2)<= 20.179;
-            % guide2   = @(x) x(:,2)>= 76.729;
-            % s.isFixed  = obj.computeFixedVolumeDomain(@(x) guide1(x) | guide2(x) | isBottom(x), s.type);
+            zMin     = min(obj.mesh.coord(:,3));
+            isBottom = @(x) x(:,3)<= -17.5; 
+            guide1   = @(x) x(:,2)<= 20.179;
+            guide2   = @(x) x(:,2)>= 76.729;
+            s.isFixed  = obj.computeFixedVolumeDomain(@(x) guide1(x) | guide2(x) | isBottom(x), s.type);
 
             %---------------------------------------------------
             ls     = DesignVariable.create(s);
@@ -202,16 +202,15 @@ classdef TopOptPunzonDensity < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 50;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
-            s.etaNorm        = 0.02;
+            s.etaNorm        = 0.1;
             s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 0.1;
+            s.gJFlowRatio    = 0.4;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
-            %s.type           = '0';
             s.gif = false;
             s.gifName = [];
             s.printing = true;
