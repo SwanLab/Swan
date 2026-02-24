@@ -12,6 +12,7 @@ classdef EIFEMTraining < handle
         cellMeshes
         nSubdomains
         material
+        geometryType
     end
 
 
@@ -25,7 +26,6 @@ classdef EIFEMTraining < handle
         function data=train(obj)
             obj.repeatMesh();  %create MeshDomain
             bMesh = obj.meshDomain.createSingleBoundaryMesh();
-            %cF = CoarseFunctions(bMesh,obj.Coarseorder);
             s.mesh=bMesh;
             s.type='continuous';
             cf=CoarseFunctions(s);
@@ -75,7 +75,8 @@ classdef EIFEMTraining < handle
             s.nsubdomains   = obj.nSubdomains; %nx ny
             s.meshReference = mR;
             s.tolSameNode = obj.tolSameNode;
-            m = MeshCreatorFromRVE2D(s);
+            s.geometryType = obj.geometryType;
+            m = MeshCreatorFromRVE.create(s);
             [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
         end
 

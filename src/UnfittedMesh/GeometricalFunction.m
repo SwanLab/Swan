@@ -284,6 +284,18 @@ classdef GeometricalFunction < handle
                     fH = @(x) max(fFrame(x),fCross(x));
                     obj.fHandle = fH;
 
+                case 'Periodic'
+                    xmin   = cParams.xmin;
+                    xmax   = cParams.xmax;
+                    ymin   = cParams.ymin; 
+                    ymax   = cParams.ymax;  
+                    Lx     = xmax - xmin;
+                    Ly     = ymax - ymin;
+                    fBase  = cParams.fBase;
+                    fH = @(x) fBase( cat(1, xmin + mod(x(1,:,:) - xmin, Lx), ...
+                                     ymin + mod(x(2,:,:) - ymin, Ly) ));
+                    obj.fHandle = fH;
+
             end
 
         end

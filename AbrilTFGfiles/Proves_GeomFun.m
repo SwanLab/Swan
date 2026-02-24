@@ -37,4 +37,33 @@ sUm.boundaryMesh   = mesh.createBoundaryMesh;
 uMesh              = UnfittedMesh(sUm);
 uMesh.compute(lsCircleInclusion);
 
+
+
+            % 
+            % [ls,phiFun] = obj.computeLevelSet(obj.mesh);
+            % sUm.backgroundMesh = obj.mesh;
+            % sUm.boundaryMesh   = obj.mesh.createBoundaryMesh;
+            % uMesh              = UnfittedMesh(sUm);
+            % uMesh.compute(ls);
+            % %holeMesh = uMesh.createInnerMesh();
+            % %obj.mesh = holeMesh;            
+            % close all;
+            % uMesh.plot;
+            % funLS     = CharacteristicFunction.create(uMesh);          
+            % s.filterType = 'LUMP';
+            % s.mesh  = obj.mesh;
+            % s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            % f = Filter.create(s); 
+            % obj.filter = f;
+            % %obj.density = f.compute(funLS,2);
+            % s.fun = f.compute(funLS,2);
+            % s.type = 'Density';
+            % s.plotting = true;
+            % dens               = DesignVariable.create(s);
+            % obj.designVariable = dens;
+            % 
+
+
+
+
 uMesh.plot;

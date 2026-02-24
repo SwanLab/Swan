@@ -9,11 +9,11 @@ clc; clear; close all;
 %% INPUTS
 % r=1e-6:0.05:0.999; 
 %r=1e-6:0.1:0.999; 
-r=0:0.05:0.999;
-% r=0.5;
+% r=0:0.05:0.999;
+r=0.5;
 
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
-p.Inclusion  = 'Material';        %'Material'/'Hole'/'HoleRaul'
+p.Inclusion  = 'HoleRaul';        %'Material'/'Hole'/'HoleRaul'
 p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
 p.nelem      = 20;
 meshName     = p.nelem+"x"+p.nelem;
@@ -24,28 +24,28 @@ meshName     = p.nelem+"x"+p.nelem;
 for j = 1:size(r,2)
     radius = r(j);
     mR              = createReferenceMesh(p,radius);
-    f=computeLevelSet(radius);
+    g=computeLevelSet(radius);
     switch p.Training
         case 'Multiscale'
             p.Sampling = 'Isolated';
-            material   = createMaterialTraining(mR,[1 1],p.Inclusion,f);
+            material   = createMaterial(mR,[1 1],p.Inclusion,g);
             mesh       = mR;
             bMesh      = mesh.createSingleBoundaryMesh();
             s.mesh=bMesh;
             s.type='continuous';
             cf=CoarseFunctions(s);
-            f = cf.getAnalytical();
+            g = cf.getAnalytical();
             s.mesh          = mesh;
             s.uFun          = LagrangianFunction.create(mesh, mesh.ndim, 'P1');
             s.lambdaFun     = LagrangianFunction.create(bMesh,mesh.ndim, 'P1');
             s.material      = material;
-            s.dirichletFun  = f;
+            s.dirichletFun  = g;
             e  = ElasticHarmonicExtension(s);
             [T,lambda,K,Kcoarse] = e.solve();
 
         case 'EIFEM'
             [nS,dI]      = defineNumberOfSubdomains(p.Sampling);
-            material     = createMaterialTraining(mR,nS,p.Inclusion,f);
+            material     = createMaterial(mR,nS,p.Inclusion,g);
             s.mesh           = mR;
             s.r              = radius;
             s.material       = material;
@@ -53,7 +53,7 @@ for j = 1:size(r,2)
             s.nSubdomains    = nS;            
             m= EIFEMTraining(s);
             data          = m.train();
-            data.material = createMaterialTraining(mR,[1 1],p.Inclusion,f);
+            data.material = createMaterial(mR,[1 1],p.Inclusion,g);
             z = OfflineDataProcessor(data);
 
             EIFEoper = z.computeROMbasis();
@@ -223,11 +223,19 @@ function [nS,dI] = defineNumberOfSubdomains(type)
     end
 end
 
-function f=computeLevelSet(r)
+function g=computeLevelSet(r)
     gPar.type         = 'Circle';
     gPar.radius       = r;
     gPar.xCoorCenter  = 0;
     gPar.yCoorCenter  = 0;
     g                 = GeometricalFunction(gPar);
-    f=g.getHandle;
+end
+
+function material = createMaterial(mesh,nSubdomains,inclusionType,g)
+    s.mesh           = mesh;
+    s.inclusionType  = inclusionType;
+    s.nSubdomains    = nSubdomains;
+    s.geomFun        = g;
+    m = MaterialTraining(s);
+    material = m.create();
 end
