@@ -66,7 +66,7 @@ classdef DisplacementUpdater < handle
             RHS = RHS(free_dofs);
         end
 
-        function xNew = updateWithNewton(~,LHS,RHS,x)
+        function xNew = updateWithNewton(obj,LHS,RHS,x)
     
     
             tol=10^(-8);
@@ -74,15 +74,11 @@ classdef DisplacementUpdater < handle
             Milu = obj.createILUpreconditioner(LHS);
             
             
-
             % LHSf = @(x) LHS*x;
             % 
             % [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSf,RHSf,x);
             
-            [deltaX,flag,relres,iter,resvec] = pcg(LHS,-RHS,tol,maxIter); 
-
-
-            [deltaX] = -pcg(LHS,RHS,tol,maxIter,[],[]);
+            [deltaX,flag,relres,iter,resvec] = pcg(LHS,-RHS,tol,maxIter,[],[]); 
             deltaX2 = -(LHS\RHS);
 
 
