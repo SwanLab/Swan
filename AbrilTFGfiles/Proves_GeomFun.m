@@ -8,6 +8,14 @@ x2       = linspace(0,1,30);
 m.coord  = V(:,1:2);
 m.connec = F;
 mesh     = Mesh.create(m);
+bmesh= mesh.createBoundaryMesh();
+
+s.mesh=bmesh;
+s.type='discontinuous';
+
+cf=CoarseFunctions(s);
+cf.compute;
+
 
 gPar.type         = 'CrossedSquare';
 gPar.length       = 1;

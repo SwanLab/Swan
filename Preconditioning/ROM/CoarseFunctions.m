@@ -6,7 +6,7 @@ classdef CoarseFunctions < handle
 
     properties (Access=private)
         mesh
-        dim
+        ndim
         order
         type           % "discontinous" / "continous"
         elementType 
@@ -19,7 +19,7 @@ classdef CoarseFunctions < handle
         end
 
         function fH = compute(obj)
-            switch obj.dim
+            switch obj.ndim
                 case 2
                     switch obj.type
                         case 'discontinuous'
@@ -30,9 +30,18 @@ classdef CoarseFunctions < handle
                 case 3
                     switch obj.elementType
                         case 'hex'
-                            fH=obj.createDiscontinuous3DHexa();
+                            switch obj.type
+                                case 'discontinuous'
+                                    fH=obj.createDiscontinuous3DHexa();
+                                case 'continous'
+                                    fH=obj.createContinuousFunction3DHexa();
+                            end
                         case 'tetra'
+                            switch  obj.type
+                                case 'discontinous'
                             fH=obj.createDiscontinuous3DTetra();
+                                case 'continous'
+                            end
                     end
             end
         end
@@ -43,7 +52,7 @@ classdef CoarseFunctions < handle
             f  = cell(1,nf);
             switch obj.type
                 case 'discontinuous'
-                    nPerSegment=obj.dim*(obj.order+1); %2fx+2fy x bmesh{i}
+                    nPerSegment=obj.ndim*(obj.order+1); %2fx+2fy x bmesh{i}
                     idx=1;
                     for k=1:numel(obj.mesh)
                         bMesh = obj.mesh{k}.mesh;
@@ -77,18 +86,18 @@ classdef CoarseFunctions < handle
             end
 
             if iscell(obj.mesh)
-                obj.dim = obj.mesh{1}.mesh.ndim;
+                obj.ndim = obj.mesh{1}.mesh.ndim;
             else
-                obj.dim = obj.mesh.ndim;
+                obj.ndim = obj.mesh.ndim;
             end
 
-            if obj.dim ==2
+            if obj.ndim ==2
                 if isfield(cParams,'type')
                     obj.type = cParams.type; % continuous / discontinuous
                 else
                     obj.type = 'discontinuous'; % default discontinuous
                 end
-            elseif obj.dim == 3
+            elseif obj.ndim == 3
                 if isfield(cParams,'elementType')
                     obj.elementType = cParams.elementType; % hex / tetra
                 else
@@ -101,13 +110,13 @@ classdef CoarseFunctions < handle
 
         function f=createDiscontinuousFunction2D(obj)  
             L=obj.createBasisFunctions();
-            nf = numel(obj.mesh) *obj.dim* (obj.order + 1);
+            nf = numel(obj.mesh) *obj.ndim* (obj.order + 1);
             f  = cell(1,nf);
             n  = 1;
             for k=1:numel(obj.mesh)
                 bMesh=obj.mesh{k}.mesh;
 
-                [xmax,xmin,a,b,x0,y0]=obj.NormalizeMesh(bMesh);
+                [xmax,xmin,a,b,x0,y0,~,~]=obj.NormalizeMesh(bMesh);
 
                 if abs(xmax - xmin) < 1e-12
                     local=  @(x) (x(2,:,:)-y0)/b; %vertical
@@ -128,10 +137,10 @@ classdef CoarseFunctions < handle
         function f=createContinuousFunction2D(obj)
             bMesh=obj.mesh;
             L=obj.createBasisFunctions(); 
-            [~,~,a,b,x0,y0]=obj.NormalizeMesh(bMesh);
+            [~,~,a,b,x0,y0,~,~]=obj.NormalizeMesh(bMesh);
             bn=obj.getBoundaryNodes(obj.order);
 
-            nf=size(bn,1)*obj.dim;
+            nf=size(bn,1)*obj.ndim;
             f = cell(1,nf);
             n=1;
             for k = 1:size(bn,1)
@@ -162,8 +171,66 @@ classdef CoarseFunctions < handle
         function createDiscontinuous3DTetra(obj)
 
         end
-    end
 
+        function f = createContinuousFunction3DHexa(obj)
+
+            bMesh = obj.mesh;
+            L = obj.createBasisFunctions();
+
+            [~,~,a,b,x0,y0,c,z0] = obj.NormalizeMesh(bMesh);
+
+            nf = (obj.order+1)^3 * obj.ndim;
+            f = cell(1,nf);
+            n = 1;
+
+            for i = 1:obj.order+1
+                for j = 1:obj.order+1
+                    for k = 1:obj.order+1
+
+                        N = @(x) ...
+                            L{i}((x(1,:,:)-x0)/a) .* ...
+                            L{j}((x(2,:,:)-y0)/b) .* ...
+                            L{k}((x(3,:,:)-z0)/c);
+
+                        fx = @(x) [N(x); 0; 0];
+                        fy = @(x) [0; N(x); 0];
+                        fz = @(x) [0; 0; N(x)];
+
+                        f{n} = fx; n=n+1;
+                        f{n} = fy; n=n+1;
+                        f{n} = fz; n=n+1;
+                    end
+                end
+            end
+        end
+
+        function f = createContinuous3DTetra(obj)
+
+            f = cell(1,12);
+            n = 1;
+
+            N1 = @(x) 1 - x(1,:,:) - x(2,:,:) - x(3,:,:);
+            N2 = @(x) x(1,:,:);
+            N3 = @(x) x(2,:,:);
+            N4 = @(x) x(3,:,:);
+
+            Nlist = {N1,N2,N3,N4};
+
+            for i = 1:4
+                Ni = Nlist{i};
+
+                fx = @(x) [Ni(x); 0; 0];
+                fy = @(x) [0; Ni(x); 0];
+                fz = @(x) [0; 0; Ni(x)];
+
+                f{n}=fx; n=n+1;
+                f{n}=fy; n=n+1;
+                f{n}=fz; n=n+1;
+            end
+        end
+
+
+    end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     methods (Access=private,Static)
@@ -179,7 +246,7 @@ classdef CoarseFunctions < handle
         end
 
 
-        function [xmax,xmin,a,b,x0,y0]=NormalizeMesh(bMesh)
+        function [xmax,xmin,a,b,x0,y0,c,z0]=NormalizeMesh(bMesh)
             xmax = max(bMesh.coord(:,1));
             ymax = max(bMesh.coord(:,2));
             xmin = min(bMesh.coord(:,1));
@@ -188,7 +255,22 @@ classdef CoarseFunctions < handle
             b = (ymax - ymin)/2;
             x0 = xmin + a;
             y0 = ymin + b;
+
+            if obj.ndim==3
+                zmax = max(bMesh.coord(:,3));
+                zmin = min(bMesh.coord(:,3));
+                c = (zmax - zmin)/2;
+                z0 = zmin + c;
+            else
+                c=[]; z0=[];
+            end
         end
+
+        function [xmax,xmin,a,b,x0,y0] = NormalizeFaceMesh(obj,faceMesh)
+            xi = (x - x0)/a;
+            eta = (y - y0)/b;
+        end
+        
 
         function bn=getBoundaryNodes(order)
             k = order + 1;
