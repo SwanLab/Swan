@@ -1,0 +1,51 @@
+IMPORT "io.edp"
+load "mmg"
+
+mesh Th = importMesh("Th");
+mesh Th2 = importMesh("Th2");
+real [int] phiVal = importArray("phiVal");
+real [int] nxVal = importArray("nxVal");
+real [int] nyVal = importArray("nyVal");
+real alpha = importVar("alpha");
+real beta = importVar("beta");
+real lsLab = importVar("lsLab");
+real rInner = importVar("rInner");
+
+fespace Vh(Th,P1);
+Vh phi, g;
+phi[] = phiVal;
+
+mesh Th3;
+meshL ThLInt;
+int [int] lsLabel(1);
+lsLabel[0] = lsLab;
+
+macro updateBoundary() {
+  Th3 = trunc(Th2, region == rInner);
+  ThLInt = extract(Th3,label = lsLabel);
+} //
+
+updateBoundary;
+
+fespace Vh2(Th2,P1);
+Vh2 g2, v2;
+
+fespace Vh1D(ThLInt,P1);
+Vh1D g0, nx, ny;
+nx[] = nxVal;
+ny[] = nyVal;
+
+fespace Vh1D0(ThLInt,P0);
+Vh1D0 kappa;
+
+kappa = dx(nx)+dy(ny);
+
+g0 = -kappa;
+
+problem velext(g2,v2) = int2d(Th2)(beta^2*(dx(g2)*dx(v2)+dy(g2)*dy(v2)) + g2*v2)
+                    - int1d(Th2,lsLabel)(beta*g0*v2);
+
+velext;
+g = g2;
+
+exportArray(g[]);

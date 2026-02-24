@@ -1,0 +1,27 @@
+IMPORT "io.edp"
+load "distance"
+load "mmg"
+
+mesh Th = importMesh("Th");
+real [int] phiVal = importArray("phiVal");
+real [int] gxVal = importArray("gxVal");
+real [int] gyVal = importArray("gyVal");
+real dt = importVar("dTime");
+
+fespace Vh(Th,P1);
+Vh phio, phi, gx, gy;
+phio[] = phiVal;
+
+gx[] = gxVal;
+gy[] = gyVal;
+
+func real[int] advectRedist(real[int] phiot, real[int] vxt, real[int] vyt, real step) {
+   Vh phi,phitmp,phio=phiot,velx=vxt,vely=vyt;
+   phitmp = convect([velx,vely],-step,phio);  
+   return phitmp[];
+} // EOM
+
+phio[] = advectRedist(phio[],gx[],gy[],1/dt);
+distance(Th,phio,phi[]); 
+
+exportArray(phi[]);
