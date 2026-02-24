@@ -39,8 +39,8 @@ classdef PhaseFieldComputer < handle
                 obj.checkStopCondition(step,totF);
                 step = step + 1;
 
-                %sig = obj.functional.computeStress(u,phi);
-                %max(sig.evaluate([0;0]),[],'all')
+                % sig = obj.functional.computeStress(u,phi);
+                % max(sig.evaluate([0;0]),[],'all')
 
                 % eFun = obj.functional.computeEnergyFun(u);
                 % gDeriv = obj.functional.computeDegradationDerivative(phi);
@@ -49,6 +49,8 @@ classdef PhaseFieldComputer < handle
                 % figure(3)
                 % gDeriv.plot;
             end
+            % if you want to retrieve the data at any point of the
+            % simulation, just save the obj.monitor.data at any step!
             outputData = obj.monitor.data;
         end
 
