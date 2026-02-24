@@ -68,8 +68,7 @@ classdef DisplacementUpdater < handle
 
         function xNew = updateWithNewton(~,LHS,RHS,x)
     
-
-            
+    
             tol=10^(-8);
             maxIter = 1000000;
             Milu = obj.createILUpreconditioner(LHS);
@@ -80,10 +79,27 @@ classdef DisplacementUpdater < handle
             % 
             % [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSf,RHSf,x);
             
-            [deltaX]= -pcg(LHS,RHS,tol,maxIter,[],[]);
+            [deltaX,flag,relres,iter,resvec] = pcg(LHS,-RHS,tol,maxIter); 
 
 
-            deltaX2 = -LHS\RHS;
+            [deltaX] = -pcg(LHS,RHS,tol,maxIter,[],[]);
+            deltaX2 = -(LHS\RHS);
+
+            % 
+            % resSol = norm(deltaX - deltaX2) / norm(deltaX2); 
+            % resPcg = resvec / norm(-RHS);
+
+
+            % figure(101); clf;
+            % semilogy(resPcg,'LineWidth',1.5); hold on;
+            % semilogy(length(resPcg), resSol, 'o', 'MarkerSize',8, 'LineWidth',1.5);
+            % grid on;
+            % xlabel('iteration');
+            % ylabel('residual / error');
+            % legend('PCG relative residual ||b-Ax||/||b||','||deltaX - deltaX2|| / ||deltaX2||','Location','best');
+            % title(sprintf('pcg: flag=%d, relres=%.3e, iter=%d',flag,relres,iter));
+
+
             xNew = x + deltaX;
         end
 
