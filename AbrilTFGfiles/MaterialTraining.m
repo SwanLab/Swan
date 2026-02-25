@@ -1,4 +1,9 @@
 classdef MaterialTraining < handle
+   
+    properties (Access = public)
+        designVariable
+    end
+
     properties (Access = private)
         fHandle
         mesh
@@ -6,7 +11,6 @@ classdef MaterialTraining < handle
         inclusionType
         nSubdomains
         dim
-        designVariable
         materialInterpolator
     end
 
@@ -37,6 +41,8 @@ classdef MaterialTraining < handle
                     s.dim                  = obj.dim;
                     s.mesh                 = obj.mesh;
                     material = Material.create(s);
+                    material.setDesignVariable({obj.designVariable.fun})
+                    material = material.obtainTensor();
             end
         end
 

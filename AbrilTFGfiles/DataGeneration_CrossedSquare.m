@@ -8,13 +8,13 @@ clc; clear; close all;
 
 %% INPUTS
 
-% t1=0.01:0.05:0.499;
-% t2=0.01:0.05:0.7;
-t1=0.1;
-t2=0.1;
+ t1=0.06:0.05:0.499;
+ t2=0.06:0.05:0.7;
+%t1=0.1;
+%t2=0.1;
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
 p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
-p.nelem      = 30;
+p.nelem      = 100;
 meshName     = p.nelem+"x"+p.nelem;
 
 
@@ -29,15 +29,11 @@ for i=1:size(t1,2)
                 material   = createMaterial(mR,[1 1],'Material',g);
                 mesh       = mR;
                 bMesh      = mesh.createSingleBoundaryMesh();
-                s.mesh=bMesh;
-                s.type='continuous';
-                cf=CoarseFunctions(s);
-                g = cf.getAnalytical();
                 s.mesh          = mesh;
                 s.uFun          = LagrangianFunction.create(mesh, mesh.ndim, 'P1');
                 s.lambdaFun     = LagrangianFunction.create(bMesh,mesh.ndim, 'P1');
                 s.material      = material;
-                s.dirichletFun  = g;
+                s.dirichletFun  = obj.createDirichletFunction(bMesh);
                 e  = ElasticHarmonicExtension(s);
                 [T,lambda,K,Kcoarse] = e.solve();
                 V   = material.computeVolume();
@@ -51,15 +47,16 @@ for i=1:size(t1,2)
                 s.nSubdomains    = nS;            
                 m= EIFEMTraining(s);
                 data          = m.train();
-                data.material = createMaterial(mR,[1 1],'Material',g);
+                [data.material,mTr] = createMaterial(mR,[1 1],'Material',g);
                 z = OfflineDataProcessor(data);
     
                 EIFEoper = z.computeROMbasis();
                 T        = EIFEoper.U;
                 mesh     = data.mesh;
                 Kcoarse  = EIFEoper.Kcoarse;
-                V        = data.material.computeVolume();
-    
+                vT      = mR.computeVolume();
+                V        = Integrator.compute(mTr.designVariable.fun,mR,2);
+                Vfr = V/vT;
         end
         tFrame  = t1(i);
         tCross  = t2(j);
@@ -113,6 +110,13 @@ function mS = createReferenceMesh(p)
 
 end
 
+function dF = createDirichletFunction(bMesh)
+s.mesh = bMesh;
+s.type = 'continuous';
+cf = CoarseFunctions(s);
+dF = cf.getAnalytical();
+end	
+
 
 function [nS,dI] = defineNumberOfSubdomains(type)
     switch type
@@ -135,7 +139,7 @@ function g=computeLevelSet(t1,t2)
     g                 = GeometricalFunction(gPar);
 end
 
-function material = createMaterial(mesh,nSubdomains,inclusionType,g)
+function [material,m] = createMaterial(mesh,nSubdomains,inclusionType,g)
     s.mesh           = mesh;
     s.inclusionType  = inclusionType;
     s.nSubdomains    = nSubdomains;

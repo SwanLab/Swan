@@ -256,7 +256,7 @@ classdef CoarseFunctions < handle
             x0 = xmin + a;
             y0 = ymin + b;
 
-            if obj.ndim==3
+            if bMesh.ndim==3
                 zmax = max(bMesh.coord(:,3));
                 zmin = min(bMesh.coord(:,3));
                 c = (zmax - zmin)/2;
