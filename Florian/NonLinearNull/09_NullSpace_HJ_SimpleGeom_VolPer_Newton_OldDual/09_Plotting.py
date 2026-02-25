@@ -27,6 +27,8 @@ path = "NonLinearNull/09_NullSpace_HJ_SimpleGeom_VolPer_Newton_OldDual/"
 
 exports = FreeFemRunner(path+"09_Mesh.edp").execute()
 Th = exports['Th']
+alpha = exports['alpha']
+beta = exports['beta']
 
 ## POSTPROCESS
 data  = np.load(path+"09_ResultCaseOriginal.npz")
@@ -41,7 +43,7 @@ Cost2 = data['c']
 Vol2  = data['v']
 Per2  = data['p']
 
-data = np.load(path+"09_ResultCaseOriginal.npz")
+data = np.load(path+"09_ResultCaseNewton.npz")
 fig0, ax0 = plt.subplots()
 x = data["xF"]
 u = P1Function(Th,x<=0)
@@ -74,5 +76,38 @@ axes[2].grid(True, linestyle='--', alpha=0.6)
 plt.tight_layout()
 plt.show()
 plt.pause(0.1)
+
+runner = FreeFemRunner(path+"09_BoundaryRefinement.edp")
+runner.import_variables(Th=Th,phiVal=x,alpha=alpha,lsLab=10,rInner=3)
+exports = runner.execute()
+
+Th2 = exports['Th2']
+nx = exports['nx[]']
+ny = exports['ny[]']
+
+g = data["g"]
+AJ = data["AJ"]
+AC = data["AC"]
+muls = data["muls"]
+wVal = data["wVal"]
+dOmVal = data["dOmVal"]
+dxdOmVal = data["dxdOmVal"]
+dydOmVal = data["dydOmVal"]
+runner = FreeFemRunner(path+"09_NewtonPlotting.edp")
+runner.import_variables(Th=Th,Th2=Th2,nxVal=nx,
+                        nyVal=ny,g1st=g,beta=beta,lsLab=10,
+                        rInner=3,rOuter=2,aJ=AJ.item(),aC=AC.item(),lam1=muls[0],lam2=muls[1],
+                        wVal=wVal,dOmVal=dOmVal,
+                        dxdOmVal=dxdOmVal,dydOmVal=dydOmVal)
+g0 = runner.execute()['g[]']
+
+runner = FreeFemRunner(path+"09_NewtonPrimal.edp")
+runner.import_variables(Th=Th,Th2=Th2,nxVal=nx,
+                        nyVal=ny,g1st=g,beta=beta,lsLab=10,
+                        rInner=3,rOuter=2,aJ=AJ.item(),aC=AC.item(),lam1=muls[0],lam2=muls[1],
+                        wVal=wVal,dOmVal=dOmVal,
+                        dxdOmVal=dxdOmVal,dydOmVal=dydOmVal)
+gx = runner.execute()['gx[]']
+gy = runner.execute()['gy[]']
 
 a = 1

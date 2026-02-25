@@ -8,30 +8,13 @@ fespace Vh(Th,P1);
 fespace Vh0(Th,P0);
 
 /* Initialization of the Level Set function */
-func real borderInitialGuess() {
-  real R1 = 1.9, ls;
-  ls = -1000*(x^2+y^2-R1^2);
+func real initialGuess() {
+  real ls;
+  ls = sqrt(x^2+y^2)-(1+0.35*cos(5*atan2(y,x)));
   return(ls);
 }
-func real initialGuessX() {
-  real nHX = 12.0, lX = 4.0, fX = pi/8;
-  real lsx;
-  lsx = cos((nHX+1)*(x+1)*pi/lX+fX);
-  return(lsx);
-}
-func real initialGuessY() {
-  real nHY = 12.0, lY = 4.0, fY = 0;
-  real lsy;
-  lsy = cos((nHY+1)*y*pi/lY+fY);
-  return(lsy);
-}
-Vh phioI, phiox, phioy, phio, phi;
-phioI = borderInitialGuess();
-phiox = initialGuessX();
-phioy = initialGuessY();
-for (int i = 0; i < Vh.ndof; ++i) {
-  phio[][i] = min(phioI[][i],phiox[][i]*phioy[][i] - 0.6);
-}
+Vh phio, phi;
+phio = initialGuess();
 
 distance(Th,phio,phi[]);
 
