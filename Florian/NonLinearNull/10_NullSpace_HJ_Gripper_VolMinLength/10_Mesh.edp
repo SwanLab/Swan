@@ -1,0 +1,40 @@
+IMPORT "io.edp"
+
+real fac       = 2.0;
+int labelDir   = 1;
+int labelNeu1u = 2;
+int labelNeu1d = 3;
+int labelNeu2u = 4;
+int labelNeu2d = 5;
+border L1(t=0, 0.4){x=0; y=1-t; label=0;}
+border L2(t=0, 0.4){x=0; y=0.4-t; label=0;}
+border Bl(t=0, 0.9){x=t; y=0; label=0;}
+border Br(t=0, 0.1){x=0.9+t; y=0; label=labelNeu1d;}
+border C1(t=0, 0.1){x=t; y=0.6; label=labelNeu2u;}
+border C2u(t=0, 0.09){x=0.1; y=0.6-t; label=0;}
+border C2(t=0, 0.02){x=0.1; y=0.51-t; label=labelDir;}
+border C2d(t=0, 0.09){x=0.1; y=0.49-t; label=0;}
+border C3(t=0, 0.1){x=0.1-t; y=0.4;; label=labelNeu2d;}
+border Rd(t=0, 0.49){x=1; y=t; label=0;}
+border R(t=0, 0.02){x=1; y=0.49+t; label=labelDir;}
+border Ru(t=0, 0.49){x=1; y=0.51+t; label=0;}
+border Tr(t=0, 0.1){x=1-t; y=1; label=labelNeu1u;}
+border Tl(t=0, 0.9){x=0.9-t; y=1; label=0;}
+mesh Th = buildmesh(L1(40*fac)+C1(10*fac)+C2u(9*fac)+C2(2*fac)
+                    +C2d(9*fac)+C3(10*fac)+L2(40*fac)+Bl(90*fac)
+                    +Br(10*fac)+Rd(49*fac)+R(2*fac)+Ru(49*fac)
+                    +Tr(10*fac)+Tl(90*fac));
+
+real meshsiz = 0.02/(2*fac);
+real alpha = 2.0*meshsiz;
+real beta  = 8.0*meshsiz;
+
+exportMesh(Th);
+exportVar(alpha);
+exportVar(beta);
+exportVar(labelDir);
+exportVar(labelNeu1u);
+exportVar(labelNeu1d);
+exportVar(labelNeu2u);
+exportVar(labelNeu2d);
+exportVar(meshsiz);

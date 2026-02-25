@@ -1,0 +1,35 @@
+IMPORT "io.edp"
+
+mesh Th = importMesh("Th");
+real [int] phiVal = importArray("phiVal");
+int labelDir = importVar("labelDir");
+int labelNeu1u = importVar("labelNeu1u");
+int labelNeu1d = importVar("labelNeu1d");
+int labelNeu2u = importVar("labelNeu2u");
+int labelNeu2d = importVar("labelNeu2d");
+real [int] AchiVal = importArray("AchiVal");
+
+fespace Vh(Th,P1);
+fespace Vh0(Th,P0);
+Vh phi;
+Vh0 Achi;
+phi[] = phiVal;
+
+Achi[] = AchiVal;
+
+/* State problem */
+Vh ux, uy, vx, vy;
+real mu = 0.3846;   // Lamé coefficients
+real lambda = 0.5769;
+problem elasticity([ux,uy],[vx,vy]) = int2d(Th)(Achi*mu*(2.0*dx(ux)*dx(vx) + (dx(uy)+dy(ux))*(dx(vy)+dy(vx))
+                                          + 2.0*dy(uy)*dy(vy)) + Achi*lambda*(dx(ux)+dy(uy))*(dx(vx)+dy(vy)) )
+                           - int1d(Th,labelNeu1u)(-10*vy) - int1d(Th,labelNeu1d)(10*vy) - int1d(Th,labelNeu2u)(vy) - int1d(Th,labelNeu2d)(-vy)
+                           + on(labelDir,ux=0.0,uy=0.0);
+
+elasticity;
+
+real J = int1d(Th,labelNeu1u)(-uy) + int1d(Th,labelNeu1d)(uy) + int1d(Th,labelNeu2u)(2*uy) + int1d(Th,labelNeu2d)(-2*uy);
+
+exportVar(J);
+exportArray(ux[]);
+exportArray(uy[]);

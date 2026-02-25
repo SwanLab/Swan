@@ -1,0 +1,73 @@
+IMPORT "io.edp"
+load "distance"
+
+mesh Th = importMesh("Th");
+
+/* Finite Element spaces */
+fespace Vh(Th,P1);
+fespace Vh0(Th,P0);
+
+/* Initialization of the Level Set function */
+func real border1InitialGuess() {
+  real ls;
+  ls = y - 0.65 - (2.0/3.0)*x;
+  return(ls);
+}
+func real border2InitialGuess() {
+  real ls;
+  ls = 0.35 - (2.0/3.0)*x - y;
+  return(ls);
+}
+func real border3InitialGuess() {
+  real ls;
+  ls = -0.15 - (4.0/9.0)*x + y;
+  return(ls);
+}
+func real border4InitialGuess() {
+  real ls;
+  ls = -y + 0.85 - (4.0/9.0)*x;
+  return(ls);
+}
+func real initialGuessX() {
+  real nHX = 12.0, lX = 1.0, fX = 0;
+  real lsx;
+  lsx = cos((nHX+1)*(x+1)*pi/lX+fX);
+  return(lsx);
+}
+func real initialGuessY() {
+  real nHY = 12.0, lY = 1.0, fY = -pi/2;
+  real lsy;
+  lsy = cos((nHY+1)*y*pi/lY+fY);
+  return(lsy);
+}
+
+Vh phio1, phio2, phio3, phio4, phioI, phioI2, phiox, phioy, phio, phi;
+phio1 = border1InitialGuess();
+phio2 = border2InitialGuess();
+phio3 = border3InitialGuess();
+phio4 = border4InitialGuess();
+phiox = initialGuessX();
+phioy = initialGuessY();
+
+/* phioI, Level set 1*/
+for (int i = 0; i < Vh.ndof; ++i) {
+  phioI[][i] = max(phio1[][i],phio2[][i]);
+  phioI[][i] = max(phioI[][i],-100*max(phio3[][i],phio4[][i]));
+}
+
+/* Level set 2*/
+phioI2 = phioI;
+for (int i = 0; i < Th.nbe; i++) {
+    phioI2[][Th.be(i)[0]] = 0.;
+    phioI2[][Th.be(i)[1]] = 0.;
+}
+distance(Th,phioI2,phi[]);
+for (int i = 0; i < Vh.ndof; ++i) {
+  phio[][i] = phiox[][i]*phioy[][i] - 0.8;
+  phio[][i] = min(phio[][i],1000*phi[][i]*(phi[][i]+0.05));
+
+  phio[][i] = max(phioI[][i],phio[][i]); /* Intersection */
+}
+distance(Th,phio,phi[]);
+
+exportArray(phi[]);

@@ -1,0 +1,51 @@
+IMPORT "io.edp"
+
+mesh Th = importMesh("Th");
+mesh Th2 = importMesh("Th2");
+real beta = importVar("beta");
+real lsLab = importVar("lsLab");
+int labelDir = importVar("labelDir");
+int labelNeu1u = importVar("labelNeu1u");
+int labelNeu1d = importVar("labelNeu1d");
+int labelNeu2u = importVar("labelNeu2u");
+int labelNeu2d = importVar("labelNeu2d");
+real [int] uxVal = importArray("uxVal");
+real [int] uyVal = importArray("uyVal");
+real [int] AchiVal = importArray("AchiVal");
+
+fespace Vh(Th,P1);
+fespace Vh0(Th,P0);
+Vh g, ux, uy, px, py;
+Vh0 Achi, g0;
+ux[] = uxVal;
+uy[] = uyVal;
+Achi[] = AchiVal;
+
+/* Adjoint problem */
+Vh vx, vy;
+real mu = 0.3846;   // Lamé coefficients
+real lambda = 0.5769;
+problem adjoint([px,py],[vx,vy]) = int2d(Th)(Achi*mu*(2.0*dx(px)*dx(vx) + (dx(py)+dy(px))*(dx(vy)+dy(vx))
+                                          + 2.0*dy(py)*dy(vy)) + Achi*lambda*(dx(px)+dy(py))*(dx(vx)+dy(vy)) )
+                           - int1d(Th,labelNeu1u)(vy) - int1d(Th,labelNeu1d)(-vy) - int1d(Th,labelNeu2u)(-2*vy) - int1d(Th,labelNeu2d)(2*vy)
+                           + on(labelDir,px=0.0,py=0.0);
+
+adjoint;
+
+int [int] lsLabel(1);
+lsLabel[0] = lsLab;
+
+fespace Vh2(Th2,P1);
+Vh2 g2, v2;
+
+g0 = -mu*(2.0*dx(px)*dx(ux) + (dx(py)+dy(px))*(dx(uy)+dy(ux)) + 2.0*dy(py)*dy(uy))
+       - lambda*(dx(px)+dy(py))*(dx(ux)+dy(uy));
+
+problem velext(g2,v2) = int2d(Th2)(beta^2*(dx(g2)*dx(v2)+dy(g2)*dy(v2)) + g2*v2)
+                    - int1d(Th2,lsLabel)(beta*g0*v2);
+
+velext;
+
+g = g2;
+
+exportArray(g[]);
