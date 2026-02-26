@@ -15,9 +15,9 @@ classdef ElasticHarmonicExtension < handle
         end
 
         function [u,lambda,K,Kc] = solve(obj)
+            RHS = obj.computeRHS();            
             K   = obj.computeKfine();
             LHS = obj.computeLHS(K);
-            RHS = obj.computeRHS();
             sol = LHS\RHS;
             [u,lambda] = obj.computeFunctions(sol);
             Kc = u.'*K*u;

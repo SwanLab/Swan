@@ -12,8 +12,8 @@ clc; clear; close all;
 r=0.5;
 
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
-p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
-p.nelem      = 20;
+p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
+p.nelem      = 5;
 meshName     = p.nelem+"x"+p.nelem;
 
 %% DATA GENERATION
@@ -38,11 +38,12 @@ for j = 1:size(r,2)
     
             case 'EIFEM'
                 [nS,dI]      = defineNumberOfSubdomains(p.Sampling);
-                material     = createMaterial(mR,nS,'Material',g);
+                [material,mT]     = createMaterial(mR,nS,'Material',g);
                 s.mesh           = mR;
                 s.material       = material;
                 s.domainIndices  = dI;
-                s.nSubdomains    = nS;            
+                s.nSubdomains    = nS;  
+                s.levelSet = mT.levelSet;
                 m= EIFEMTraining(s);
                 data          = m.train();
                 [data.material,mTr] = createMaterial(mR,[1 1],'Material',g);

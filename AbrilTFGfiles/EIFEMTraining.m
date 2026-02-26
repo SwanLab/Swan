@@ -13,6 +13,7 @@ classdef EIFEMTraining < handle
         nSubdomains
         material
         geometryType
+        levelSet
     end
 
 
@@ -41,6 +42,9 @@ classdef EIFEMTraining < handle
             [u,~,K,~] = e.solve();
 
             [data.uSbd,data.LHSsbd] = obj.extractDomainData(u,K);
+
+            obj.print(data.uSbd);
+
              data.mesh= obj.mesh;
              data.Coarseorder= obj.Coarseorder;
         end
@@ -49,11 +53,42 @@ classdef EIFEMTraining < handle
     
     methods (Access = private)
 
+        function print(obj,T)
+           z.mesh      = obj.mesh;
+           z.order     = 'P1';
+           z.fValues   = reshape(T(:,1),[obj.mesh.ndim,obj.mesh.nnodes])';
+            uFeFun = LagrangianFunction(z);%            
+            
+            uMeshFun = obj.unfittedMesh.obtainFunctionAtUnfittedMesh(uFeFun);
+
+            fvalues = [uMeshFun.innerMeshFunction.fValues;
+                         uMeshFun.innerCutMeshFunction.fValues];
+
+            s.coord = [uMeshFun.innerMeshFunction.mesh.coord;
+                         uMeshFun.innerCutMeshFunction.mesh.coord];
+
+            s.connec = [uMeshFun.innerMeshFunction.mesh.connec;
+                         uMeshFun.innerCutMeshFunction.mesh.connec  + max(uMeshFun.innerMeshFunction.mesh.connec(:))];
+
+            mh = Mesh.create(s);
+
+            ss.mesh = mh;
+            ss.fValues = fvalues;
+            ss.order = 'P1';
+            ss.ndimf = size(fvalues,2)
+
+            u = LagrangianFunction(ss);
+
+            u.print(["dsafaf"],'Paraview')
+
+        end
+
         function init(obj,cParams)
             obj.mesh           = cParams.mesh;
             obj.nSubdomains    = cParams.nSubdomains;
             obj.domainIndices  = cParams.domainIndices;
             obj.material       = cParams.material;
+            obj.levelSet       = cParams.levelSet;
             obj.tolSameNode    = 1e-10;
             obj.Coarseorder    = 1;
         end

@@ -2,6 +2,7 @@ classdef MaterialTraining < handle
    
     properties (Access = public)
         designVariable
+        levelSet
     end
 
     properties (Access = private)
@@ -124,6 +125,7 @@ classdef MaterialTraining < handle
             s.fBase  = obj.fHandle;
             g        = GeometricalFunction(s);
             phiFun   = g.computeLevelSetFunction(obj.mD);
+            obj.levelSet = phiFun;
             ls       = phiFun.fValues;
         end
 
