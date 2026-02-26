@@ -80,8 +80,8 @@ classdef MaterialTraining < handle
             if sum(obj.nSubdomains > 1)>= 1
                 s.nsubdomains   = obj.nSubdomains; %nx ny
                 s.meshReference = obj.mesh;
-                s.tolSameNode   = 1e-10;
-                m = MeshCreatorFromRVE2D(s);
+                s.tolSameNode   = 1e-6;
+                m = MeshCreatorFromRVE.create(s);
                 [meshDom,~,~,~,~,~,~] = m.create();
             else
                 meshDom = obj.mesh;
@@ -109,7 +109,14 @@ classdef MaterialTraining < handle
         end
 
         function ls=computeLevelSet(obj)
-            s.type   = 'Periodic';
+            switch obj.mesh.ndim
+                case 2
+                    s.type   = 'Periodic';
+                case 3
+                    s.type   = 'Periodic3D';
+                    s.zmin   = min(obj.mesh.coord(:,3));
+                    s.zmax   = max(obj.mesh.coord(:,3));
+            end
             s.xmin   = min(obj.mesh.coord(:,1));
             s.xmax   = max(obj.mesh.coord(:,1));
             s.ymin   = min(obj.mesh.coord(:,2));

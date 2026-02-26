@@ -296,6 +296,24 @@ classdef GeometricalFunction < handle
                                      ymin + mod(x(2,:,:) - ymin, Ly) ));
                     obj.fHandle = fH;
 
+                case 'Periodic3D'
+                    xmin   = cParams.xmin;
+                    xmax   = cParams.xmax;
+                    ymin   = cParams.ymin;
+                    ymax   = cParams.ymax;
+                    zmin   = cParams.zmin;
+                    zmax   = cParams.zmax;
+                    Lx     = xmax - xmin;
+                    Ly     = ymax - ymin;
+                    Lz     = zmax - zmin;
+                    fBase  = cParams.fBase;
+                    fH = @(x) fBase( cat(1, ...
+                        xmin + mod(x(1,:,:,:) - xmin, Lx), ...
+                        ymin + mod(x(2,:,:,:) - ymin, Ly), ...
+                        zmin + mod(x(3,:,:,:) - zmin, Lz)  ...
+                        ));
+                    obj.fHandle = fH;
+
             end
 
         end

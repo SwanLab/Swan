@@ -1,7 +1,7 @@
 function mesh = HexaMesh(length, height, width, nx, ny, nz)
-    x = linspace(0, length, nx+1);
-    y = linspace(0, height, ny+1);
-    z = linspace(0, width, nz+1);
+    x = linspace(-1, length, nx+1);
+    y = linspace(-1, height, ny+1);
+    z = linspace(-1, width, nz+1);
     [X, Y, Z] = meshgrid(x, y, z);
     Xr = X(:); Yr = Y(:); Zr = Z(:);
     coor = [Xr, Yr, Zr];

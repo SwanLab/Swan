@@ -28,20 +28,11 @@ classdef CoarseFunctions < handle
                             fH=obj.createContinuousFunction2D();
                     end
                 case 3
-                    switch obj.elementType
-                        case 'hex'
-                            switch obj.type
-                                case 'discontinuous'
-                                    fH=obj.createDiscontinuous3DHexa();
-                                case 'continous'
-                                    fH=obj.createContinuousFunction3DHexa();
-                            end
-                        case 'tetra'
-                            switch  obj.type
-                                case 'discontinous'
-                            fH=obj.createDiscontinuous3DTetra();
-                                case 'continous'
-                            end
+                    switch obj.type
+                        case 'discontinuous'
+                            fH=obj.createDiscontinuous3DHexa();
+                        case 'continuous'
+                            fH=obj.createContinuousFunction3DHexa();
                     end
             end
         end
@@ -91,18 +82,10 @@ classdef CoarseFunctions < handle
                 obj.ndim = obj.mesh.ndim;
             end
 
-            if obj.ndim ==2
-                if isfield(cParams,'type')
-                    obj.type = cParams.type; % continuous / discontinuous
-                else
-                    obj.type = 'discontinuous'; % default discontinuous
-                end
-            elseif obj.ndim == 3
-                if isfield(cParams,'elementType')
-                    obj.elementType = cParams.elementType; % hex / tetra
-                else
-                    obj.elementType = 'hex'; % default hexa
-                end
+            if isfield(cParams,'type')
+                obj.type = cParams.type; % continuous / discontinuous
+            else
+                obj.type = 'discontinuous'; % default discontinuous
             end
 
         end
@@ -168,12 +151,7 @@ classdef CoarseFunctions < handle
 
         end
 
-        function createDiscontinuous3DTetra(obj)
-
-        end
-
         function f = createContinuousFunction3DHexa(obj)
-
             bMesh = obj.mesh;
             L = obj.createBasisFunctions();
 
@@ -204,30 +182,6 @@ classdef CoarseFunctions < handle
             end
         end
 
-        function f = createContinuous3DTetra(obj)
-
-            f = cell(1,12);
-            n = 1;
-
-            N1 = @(x) 1 - x(1,:,:) - x(2,:,:) - x(3,:,:);
-            N2 = @(x) x(1,:,:);
-            N3 = @(x) x(2,:,:);
-            N4 = @(x) x(3,:,:);
-
-            Nlist = {N1,N2,N3,N4};
-
-            for i = 1:4
-                Ni = Nlist{i};
-
-                fx = @(x) [Ni(x); 0; 0];
-                fy = @(x) [0; Ni(x); 0];
-                fz = @(x) [0; 0; Ni(x)];
-
-                f{n}=fx; n=n+1;
-                f{n}=fy; n=n+1;
-                f{n}=fz; n=n+1;
-            end
-        end
 
 
     end
@@ -265,12 +219,6 @@ classdef CoarseFunctions < handle
                 c=[]; z0=[];
             end
         end
-
-        function [xmax,xmin,a,b,x0,y0] = NormalizeFaceMesh(obj,faceMesh)
-            xi = (x - x0)/a;
-            eta = (y - y0)/b;
-        end
-        
 
         function bn=getBoundaryNodes(order)
             k = order + 1;
