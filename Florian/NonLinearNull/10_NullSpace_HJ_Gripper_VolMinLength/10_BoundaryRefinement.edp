@@ -2,27 +2,46 @@ IMPORT "io.edp"
 load "mmg"
 
 mesh Th = importMesh("Th");
-real [int] phiVal = importArray("phiVal");
+real [int] phiVal1 = importArray("phiVal1");
+real [int] phiVal2 = importArray("phiVal2");
+real [int] phiVal;
 real alpha = importVar("alpha");
+real beta = importVar("beta");
 real lsLab = importVar("lsLab");
 real rInner = importVar("rInner");
 
 fespace Vh(Th,P1);
-Vh phi;
-phi[] = phiVal;
+Vh phi, phi1, phi2, nx1, ny1;
+phi1[] = phiVal1;
+phi2[] = phiVal2;
+for (int i = 0; i < Vh.ndof; ++i) {
+  phi[][i] = max(phiVal1[i],phiVal2[i]); /* Intersection */
+}
 
-mesh Th2, Th3;
+mesh Th12, Th1, Th2, Th3;
 meshL ThLInt;
 int [int] lsLabel(1);
 lsLabel[0] = lsLab;
 
-macro updateBoundary() {
-  Th2 = mmg2d(Th, iso = 1, ls = 0.0, metric = phi[], hmax = 0.05);
-  Th3 = trunc(Th2, region == rInner);
+macro updateBoundary12() {
+  Th12 = mmg2d(Th, iso = 1, ls = 0.0, metric = phi[], hmax = 0.05);
+  Th3 = trunc(Th12, region == rInner);
   ThLInt = extract(Th3,label = lsLabel);
 } //
 
-updateBoundary;
+updateBoundary12;
+
+macro updateBoundary1() {
+  Th1 = mmg2d(Th, iso = 1, ls = 0.0, metric = phi1[], hmax = 0.05);
+} //
+
+updateBoundary1;
+
+macro updateBoundary2() {
+  Th2 = mmg2d(Th, iso = 1, ls = 0.0, metric = phi2[], hmax = 0.05);
+} //
+
+updateBoundary2;
 
 fespace Vh1D(ThLInt,P1);
 Vh1D nx, ny, v0, gx0 = dx(phi), gy0 = dy(phi);
@@ -47,6 +66,22 @@ for (int i = 0; i < Vh1D.ndof; ++i) {
     }
 }
 
+fespace Vh12(Th12,P1);
+Vh12 nx12, ny12, v12;
+
+problem velextx(nx12,v12) = int2d(Th12)(beta^2*(dx(nx12)*dx(v12)+dy(nx12)*dy(v12)) + nx12*v12)
+                    - int1d(Th12,lsLabel)(beta*nx*v12);
+
+problem velexty(ny12,v12) = int2d(Th12)(beta^2*(dx(ny12)*dx(v12)+dy(ny12)*dy(v12)) + ny12*v12)
+                    - int1d(Th12,lsLabel)(beta*ny*v12);
+
+velextx;
+velexty;
+nx1 = nx12;
+ny1 = ny12;
+
+exportMesh(Th1);
 exportMesh(Th2);
-exportArray(nx[]);
-exportArray(ny[]);
+exportMesh(Th12);
+exportArray(nx1[]);
+exportArray(ny1[]);

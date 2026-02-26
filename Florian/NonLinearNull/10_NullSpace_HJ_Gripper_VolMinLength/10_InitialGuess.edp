@@ -65,9 +65,8 @@ distance(Th,phioI2,phi[]);
 for (int i = 0; i < Vh.ndof; ++i) {
   phio[][i] = phiox[][i]*phioy[][i] - 0.8;
   phio[][i] = min(phio[][i],1000*phi[][i]*(phi[][i]+0.05));
-
-  phio[][i] = max(phioI[][i],phio[][i]); /* Intersection */
 }
 distance(Th,phio,phi[]);
 
+exportArray(phioI[]);
 exportArray(phi[]);

@@ -1,7 +1,8 @@
 IMPORT "io.edp"
 
 mesh Th = importMesh("Th");
-real [int] phiVal = importArray("phiVal");
+real [int] phiVal1 = importArray("phiVal1");
+real [int] phiVal2 = importArray("phiVal2");
 
 fespace Vh(Th,P1);
 fespace Vh0(Th,P0);
@@ -156,7 +157,9 @@ func real[int] volfrac(mesh & Th, real[int] phitab, real ers) {
 } // EOM
 
 Vh phi;
-phi[] = phiVal;
+for (int i = 0; i < Vh.ndof; ++i) {
+  phi[][i] = max(phiVal1[i],phiVal2[i]); /* Intersection */
+}
 
 Vh0 Achi;
 real ers = 1.e-3;

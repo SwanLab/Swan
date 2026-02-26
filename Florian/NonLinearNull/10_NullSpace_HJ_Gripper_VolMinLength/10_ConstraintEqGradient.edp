@@ -3,14 +3,12 @@ load "mmg"
 
 mesh Th = importMesh("Th");
 mesh Th2 = importMesh("Th2");
-real [int] phiVal = importArray("phiVal");
 real beta = importVar("beta");
 real lsLab = importVar("lsLab");
 real rInner = importVar("rInner");
 
 fespace Vh(Th,P1);
-Vh phi, g;
-phi[] = phiVal;
+Vh g;
 
 mesh Th3;
 meshL ThLInt;

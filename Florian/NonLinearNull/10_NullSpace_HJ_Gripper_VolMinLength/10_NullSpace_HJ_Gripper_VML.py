@@ -43,7 +43,9 @@ rInner = 3
 class TO_problem(EuclideanOptimizable):
     def __init__(self):
         self.volFrac = []
+        self.Th1 = []
         self.Th2 = []
+        self.Th12 = []
         self.nx = []
         self.ny = []
         self.ux = []
@@ -51,11 +53,14 @@ class TO_problem(EuclideanOptimizable):
     def x0(self):
         runner = FreeFemRunner(path+"10_InitialGuess.edp")
         runner.import_variables(Th=Th)
-        return runner.execute()['phi[]']
+        x01 = runner.execute()['phioI[]']
+        x02 = runner.execute()['phi[]']
+    
+        return np.hstack((x01,x02))
 
     def J(self, x):
         runner = FreeFemRunner(path+"10_Cost.edp")
-        runner.import_variables(Th=Th,phiVal=x,labelDir=labelDir,labelNeu1u=labelNeu1u,
+        runner.import_variables(Th=Th,labelDir=labelDir,labelNeu1u=labelNeu1u,
                                 labelNeu1d=labelNeu1d,labelNeu2u=labelNeu2u,
                                 labelNeu2d=labelNeu2d,AchiVal=self.volFrac)
         exports = runner.execute()
@@ -65,7 +70,7 @@ class TO_problem(EuclideanOptimizable):
 
     def dJ(self, x):
         runner = FreeFemRunner(path+"10_CostGradient.edp")
-        runner.import_variables(Th=Th,Th2=self.Th2,beta=beta,lsLab=lsLabel,labelDir=labelDir,
+        runner.import_variables(Th=Th,Th2=self.Th12,beta=beta,lsLab=lsLabel,labelDir=labelDir,
                                 labelNeu1u=labelNeu1u,labelNeu1d=labelNeu1d,labelNeu2u=labelNeu2u,
                                 labelNeu2d=labelNeu2d,uxVal=self.ux,uyVal=self.uy,AchiVal=self.volFrac)
         return runner.execute()['g[]']
@@ -77,13 +82,15 @@ class TO_problem(EuclideanOptimizable):
     
     def dG(self, x):
         runner = FreeFemRunner(path+"10_ConstraintEqGradient.edp")
-        runner.import_variables(Th=Th,Th2=self.Th2,phiVal=x,beta=beta,
+        runner.import_variables(Th=Th,Th2=self.Th12,beta=beta,
                                 lsLab=lsLabel,rInner=rInner)
         return runner.execute()['g[]']
 
     def accept(self, params, results):
         # Plot the design at every iteration
         x = results["x"][-1]
+        ls1,ls2 = np.hsplit(x,2)
+        x = np.maximum(ls1,ls2)
         u = P1Function(Th,x<=0)
         fig = params['fig']
         ax = params['ax']
@@ -229,17 +236,21 @@ else:
 
 ## NULLSPACE ALGORITHM
 
+xls1,xls2 = np.hsplit(x,2)
+
 runner = FreeFemRunner(path+"10_VolFracComputer.edp")
-runner.import_variables(Th=Th,phiVal=x)
+runner.import_variables(Th=Th,phiVal1=xls1,phiVal2=xls2)
 problem._problem.volFrac = runner.execute()['Achi[]']
 
 runner = FreeFemRunner(path+"10_BoundaryRefinement.edp")
-runner.import_variables(Th=Th,phiVal=x,alpha=alpha,lsLab=lsLabel,rInner=rInner)
+runner.import_variables(Th=Th,phiVal1=xls1,phiVal2=xls2,alpha=alpha,beta=beta,lsLab=lsLabel,rInner=rInner)
 exports = runner.execute()
 
+problem._problem.Th1 = exports['Th1']
 problem._problem.Th2 = exports['Th2']
-problem._problem.nx = exports['nx[]']
-problem._problem.ny = exports['ny[]']
+problem._problem.Th12 = exports['Th12']
+problem._problem.nx = exports['nx1[]']
+problem._problem.ny = exports['ny1[]']
 
 J = problem.J(x)
 G = problem.G(x)
@@ -307,11 +318,19 @@ while normdx > params['tol'] and it <= params['maxit']:
 
     # Update step
     g = AJ*xiJ+AC*xiC
+    xls1,xls2 = np.hsplit(x,2)
     runner = FreeFemRunner(path+"10_HJ.edp")
-    runner.import_variables(Th=Th,Th2=problem._problem.Th2,gVal = g,phiVal=x,nxVal=problem._problem.nx,
-                            nyVal=problem._problem.ny,beta=beta,lsLab=lsLabel,rInner=rInner,dTime=dTime)
-    x1 = runner.execute()['phi[]']
-    dx = (x1-x)
+    runner.import_variables(Th=Th,gVal = g,phiVal1=xls1,phiVal2=xls2,nxVal=problem._problem.nx,
+                            nyVal=problem._problem.ny,dTime=dTime)
+    x11 = runner.execute()['phi1[]']
+    x12 = runner.execute()['phi2[]']
+    x1 = np.hstack((x11,x12))
+
+    xls1,xls2 = np.hsplit(x,2)
+    xk = np.maximum(xls1,xls2)
+    xk1 = np.maximum(x11,x12)
+    dx = (xk1-xk)
+    dxLong = (x1-x)
     #if p>0:
     #    assert np.isclose(dC[:p,:] @ xiJ,0,atol=1e-15) 
     #if dC[tildeEps,:][p:,:].size > 0:
@@ -326,19 +345,23 @@ while normdx > params['tol'] and it <= params['maxit']:
     success = 0
     tilde = get_tilde(C, p)
     for k in range(params['maxtrials']):
-        newx = problem.retract(x, (0.5**k)*dx)
+        newx = problem.retract(x, (0.5**k)*dxLong)
+
+        xls1,xls2 = np.hsplit(newx,2)
 
         runner = FreeFemRunner(path+"10_VolFracComputer.edp")
-        runner.import_variables(Th=Th,phiVal=newx)
+        runner.import_variables(Th=Th,phiVal1=xls1,phiVal2=xls2)
         problem._problem.volFrac = runner.execute()['Achi[]']
 
         runner = FreeFemRunner(path+"10_BoundaryRefinement.edp")
-        runner.import_variables(Th=Th,phiVal=newx,alpha=alpha,lsLab=lsLabel,rInner=rInner)
+        runner.import_variables(Th=Th,phiVal1=xls1,phiVal2=xls2,alpha=alpha,beta=beta,lsLab=lsLabel,rInner=rInner)
         exports = runner.execute()
 
+        problem._problem.Th1 = exports['Th1']
         problem._problem.Th2 = exports['Th2']
-        problem._problem.nx = exports['nx[]']
-        problem._problem.ny = exports['ny[]']
+        problem._problem.Th12 = exports['Th12']
+        problem._problem.nx = exports['nx1[]']
+        problem._problem.ny = exports['ny1[]']
 
         (newJ, newG, newH) = (problem.J(newx), problem.G(newx), problem.H(newx))
         newC = np.concatenate((newG, newH))

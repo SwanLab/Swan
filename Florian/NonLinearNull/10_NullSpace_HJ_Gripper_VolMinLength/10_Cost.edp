@@ -1,7 +1,6 @@
 IMPORT "io.edp"
 
 mesh Th = importMesh("Th");
-real [int] phiVal = importArray("phiVal");
 int labelDir = importVar("labelDir");
 int labelNeu1u = importVar("labelNeu1u");
 int labelNeu1d = importVar("labelNeu1d");
@@ -11,9 +10,7 @@ real [int] AchiVal = importArray("AchiVal");
 
 fespace Vh(Th,P1);
 fespace Vh0(Th,P0);
-Vh phi;
 Vh0 Achi;
-phi[] = phiVal;
 
 Achi[] = AchiVal;
 
