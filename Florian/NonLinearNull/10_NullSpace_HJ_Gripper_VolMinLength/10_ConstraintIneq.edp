@@ -1,12 +1,49 @@
 IMPORT "io.edp"
+load "distance"
 
 mesh Th = importMesh("Th");
-real [int] phiVal = importArray("phiVal");
+mesh Th1 = importMesh("Th1");
+mesh Th2 = importMesh("Th2");
+real [int] phiVal1 = importArray("phiVal1");
+real [int] phiVal2 = importArray("phiVal2");
+real rInner = importVar("rInner");
+real lsLab = importVar("lsLab");
+real dmin = importVar("dmin");
+real p = importVar("p");
 
 fespace Vh(Th,P1);
-Vh phi;
-phi[] = phiVal;
+Vh phi1, phi2, dOm1, dOm2, v;
+phi1[] = phiVal1;
+phi2[] = phiVal2;
 
-real H = (int1d(Th,levelset=phi)(1) - 90);
+for (int i = 0; i < Th.nbe; i++) {
+    phi1[][Th.be(i)[0]] = 0.;
+    phi1[][Th.be(i)[1]] = 0.;
+}
+
+distance(Th,phi1,dOm1[]);
+distance(Th,phi2,dOm2[]);
+
+mesh Th3;
+meshL pOm1, pOm2;
+int [int] lsLabel(1);
+lsLabel[0] = lsLab;
+
+macro updateBoundary1() {
+  Th3 = trunc(Th1, region == rInner);
+  pOm1 = extract(Th3,label = lsLabel);
+} //
+
+macro updateBoundary2() {
+  Th3 = trunc(Th2, region == rInner);
+  pOm2 = extract(Th3,label = lsLabel);
+} //
+
+updateBoundary1;
+updateBoundary2;
+
+real P12 = (int1d(pOm1)(1/((abs(dOm2))^p)))^(-1/p);
+real P21 = (int1d(pOm2)(1/((abs(dOm1))^p)))^(-1/p);
+real H = - 2/(1/P12 + 1/P21) + dmin;
 
 exportVar(H);

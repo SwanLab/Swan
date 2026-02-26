@@ -38,6 +38,8 @@ labelNeu2d = exports['labelNeu2d']
 hmin = exports['meshsiz']
 lsLabel = 10
 rInner = 3
+dmin = 0
+p = 5
 
 @bound_constraints_optimizable()
 class TO_problem(EuclideanOptimizable):
@@ -85,6 +87,13 @@ class TO_problem(EuclideanOptimizable):
         runner.import_variables(Th=Th,Th2=self.Th12,beta=beta,
                                 lsLab=lsLabel,rInner=rInner)
         return runner.execute()['g[]']
+    
+    def H(self, x):
+        x1,x2 = np.hsplit(x,2)
+        runner = FreeFemRunner(path+"10_ConstraintIneq.edp")
+        runner.import_variables(Th=Th,Th1=self.Th1,Th2=self.Th2,phiVal1=x1,
+                                phiVal2=x2,rInner=rInner,lsLab=lsLabel,dmin=dmin,p=p)
+        return [runner.execute()['H']]
 
     def accept(self, params, results):
         # Plot the design at every iteration
