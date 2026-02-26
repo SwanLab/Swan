@@ -29,13 +29,13 @@ func real border4InitialGuess() {
   return(ls);
 }
 func real initialGuessX() {
-  real nHX = 12.0, lX = 1.0, fX = 0;
+  real nHX = 2.0, lX = 1.0, fX = -pi;
   real lsx;
   lsx = cos((nHX+1)*(x+1)*pi/lX+fX);
   return(lsx);
 }
 func real initialGuessY() {
-  real nHY = 12.0, lY = 1.0, fY = -pi/2;
+  real nHY = 2.0, lY = 1.0, fY = -pi/2;
   real lsy;
   lsy = cos((nHY+1)*y*pi/lY+fY);
   return(lsy);
