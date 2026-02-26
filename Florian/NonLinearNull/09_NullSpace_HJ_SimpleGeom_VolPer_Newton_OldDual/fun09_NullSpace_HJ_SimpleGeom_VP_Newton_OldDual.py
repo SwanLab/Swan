@@ -426,4 +426,5 @@ def FunctionCase09(case,No,maxIter):
     np.savez(path+"09_ResultCase"+str(case),
             xF=x,it=iter,c=Comp,v=Vol,p=Per,g=g,muls=muls,AJ=AJ,AC=AC,
             wVal=problem._problem.wVal,dOmVal=problem._problem.dOmVal,
-            dxdOmVal=problem._problem.dxdOmVal,dydOmVal=problem._problem.dydOmVal)
+            dxdOmVal=problem._problem.dxdOmVal,dydOmVal=problem._problem.dydOmVal,
+            nullStep=xiJ)

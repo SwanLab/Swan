@@ -93,6 +93,7 @@ wVal = data["wVal"]
 dOmVal = data["dOmVal"]
 dxdOmVal = data["dxdOmVal"]
 dydOmVal = data["dydOmVal"]
+nullStep = data["nullStep"]
 runner = FreeFemRunner(path+"09_NewtonPlotting.edp")
 runner.import_variables(Th=Th,Th2=Th2,nxVal=nx,
                         nyVal=ny,g1st=g,beta=beta,lsLab=10,
@@ -101,13 +102,12 @@ runner.import_variables(Th=Th,Th2=Th2,nxVal=nx,
                         dxdOmVal=dxdOmVal,dydOmVal=dydOmVal)
 g0 = runner.execute()['g[]']
 
-runner = FreeFemRunner(path+"09_NewtonPrimal.edp")
+runner = FreeFemRunner(path+"09_NewtonPlotting.edp")
 runner.import_variables(Th=Th,Th2=Th2,nxVal=nx,
-                        nyVal=ny,g1st=g,beta=beta,lsLab=10,
+                        nyVal=ny,g1st=nullStep,beta=beta,lsLab=10,
                         rInner=3,rOuter=2,aJ=AJ.item(),aC=AC.item(),lam1=muls[0],lam2=muls[1],
                         wVal=wVal,dOmVal=dOmVal,
                         dxdOmVal=dxdOmVal,dydOmVal=dydOmVal)
-gx = runner.execute()['gx[]']
-gy = runner.execute()['gy[]']
+null0 = runner.execute()['g[]']
 
 a = 1
