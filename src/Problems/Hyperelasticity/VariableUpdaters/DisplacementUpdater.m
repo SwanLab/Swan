@@ -117,6 +117,15 @@ classdef DisplacementUpdater < handle
             rFun = LagrangianFunction(s);
         end
 
+        function Milu = createILUpreconditioner(~,LHS)
+
+            s.LHS = sparse(LHS);
+            s.type = 'ILU';
+            M = Preconditioner.create(s);
+            Milu = @(r) M.apply(r);
+
+        end
+
     end
 
 end
