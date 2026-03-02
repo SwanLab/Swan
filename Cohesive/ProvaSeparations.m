@@ -7,10 +7,9 @@ close all;
 mesh = UnitQuadMesh(4,4);
 
 ymin = min(mesh.coord(:,2));
-isFractured = @(coord) abs(coord(:,2)) == ymin;
 
 s.baseMesh    = mesh;
-s.isFractured = isFractured;
+s.isFractured = @(coord) abs(coord(:,2) - ymin) <=1e-10;
 cohesiveMesh = CohesiveMesh(s);
 
 

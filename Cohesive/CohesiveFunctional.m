@@ -47,7 +47,7 @@ classdef CohesiveFunctional < handle
             obj.material = cParams.material;
         end
 
-        function Felem = computeElementealChoesiveForceVectr()
+        function Felem = computeElementalCohesiveForceVector()
         end
         
     end

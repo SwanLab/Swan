@@ -2,17 +2,14 @@ classdef CohesiveSeparationComputer < handle
 
     properties (Access = private)
         cohesiveMesh
-        globalSeparations % nCohElem x nMidNodesPerElem(2) x nSeparations(2)
-        lagrangianSeparation
-        
+
         fun
         effectiveFun
 
         jumpDim
 
         ndimf
-        order
-
+ 
         L
     end
 
@@ -28,16 +25,11 @@ classdef CohesiveSeparationComputer < handle
         function LHS = computeLHS(obj,uIn)
             %computeElementalCohesiveStiffnessMatrix()
             %assambeeMatrix()            
-            uInVec = reshape(uIn.fValues',[uIn.nDofs 1]);
-
+            uInVec    = reshape(uIn.fValues',[uIn.nDofs 1]);
             R = obj.rotationMatrix(uIn);
-
             funOutVec = obj.L*R*uInVec; % ndofDisp x 1
-
-            funOut = reshape(funOutVec,[obj.jumpDim obj.fun.nDofs/obj.jumpDim]);
-
+            funOut    = reshape(funOutVec,[obj.jumpDim obj.fun.nDofs/obj.jumpDim]);
             obj.updateJumps(funOut);
-
         end
 
         function RHS = computeRHS(obj,uIn)
@@ -50,14 +42,12 @@ classdef CohesiveSeparationComputer < handle
 
         function computeEffectiveSeps(obj,uIn)
             obj.computeLHS(uIn);
-            fValues = obj.fun.fValues;
+            fValues          = obj.fun.fValues;
             effectiveFValues = vecnorm(fValues,2,2);
             obj.effectiveFun = LagrangianFunction.create(obj.cohesiveMesh.subMesh,uIn.ndimf,'P1D');
             obj.effectiveFun.setFValues(effectiveFValues);
         end
-
-   end
-
+    end
 
     methods (Access = private)
         function init(obj,cParams)
@@ -70,10 +60,8 @@ classdef CohesiveSeparationComputer < handle
 
         
         function updateJumps(obj,funOut)
-
             fValues = funOut';
             obj.fun.setFValues(fValues);
-
         end
 
         function createJumpFunction(obj)
@@ -82,16 +70,12 @@ classdef CohesiveSeparationComputer < handle
 
         function L = computeGlobalSeparationMatrix(obj)
             % L -- ndofJump x ndofu
-            nCohElem = length(obj.cohesiveMesh.listCohesiveElems);
-
+            nCohElem     = length(obj.cohesiveMesh.listCohesiveElems);
             nJumpPerElem = obj.jumpDim * obj.cohesiveMesh.subMesh.nnodeElem;
-
-            nDofU = obj.cohesiveMesh.mesh.nnodes * obj.cohesiveMesh.mesh.ndim;
-            nDofJump = nJumpPerElem* nCohElem;
-
-            ndim = obj.cohesiveMesh.mesh.ndim;
-
-            L_full = zeros(nDofJump, nDofU);
+            nDofU        = obj.cohesiveMesh.mesh.nnodes * obj.cohesiveMesh.mesh.ndim;
+            nDofJump     = nJumpPerElem* nCohElem;
+            ndim         = obj.cohesiveMesh.mesh.ndim;
+            L_full       = zeros(nDofJump, nDofU);
 
             Le = [-1,0,0,0,0,0,1,0;
                    0,-1,0,0,0,0,0,1;
@@ -99,163 +83,43 @@ classdef CohesiveSeparationComputer < handle
                    0,0,0,-1,0,1,0,0];
 
             for j = 1:nCohElem
-                elem = obj.cohesiveMesh.listCohesiveElems(j);
+                elem   = obj.cohesiveMesh.listCohesiveElems(j);
                 connec = obj.cohesiveMesh.mesh.connec(elem,:);
 
-                dofsU = reshape(((connec(:)-1)*ndim + (1:ndim)).', 1, []);
-                dofsJump = 4*(j-1)*ones(nJumpPerElem,1).'+(1:nJumpPerElem);
+                dofsU    = reshape(((connec(:)-1)*ndim + (1:ndim)).', 1, []);
+                dofsJump = nJumpPerElem*(j-1)*ones(nJumpPerElem,1).'+(1:nJumpPerElem);
 
                 L_full(dofsJump,dofsU) = Le;
             end
-            
             L = sparse(L_full);
-
         end
         
         function R = rotationMatrix(obj,uIn)
-
-            nDofsU = uIn.nDofs;
-            nCohElem = length(obj.cohesiveMesh.listCohesiveElems);
+            nDofsU       = uIn.nDofs;
+            nCohElem     = length(obj.cohesiveMesh.listCohesiveElems);
             nJumpPerElem = obj.jumpDim * obj.cohesiveMesh.subMesh.nnodeElem;
 
-
             Rfull = zeros(nDofsU,nDofsU);
+            Rall  = zeros(2,2,nCohElem);
 
             for j=1:nCohElem
                 e = obj.cohesiveMesh.listCohesiveElems(j);
-                
                 connecMesh = obj.cohesiveMesh.mesh.connec(e,:);
                 coordsMesh = obj.cohesiveMesh.mesh.coord(connecMesh',:);
-
                 dofsU = reshape(((connecMesh(:)-1)*obj.ndimf + (1:obj.ndimf)).', 1, []);
-               
-                disp = uIn.fValues(connecMesh',:);
-
+                disp  = uIn.fValues(connecMesh',:);
                 deformedCoords = coordsMesh + disp;
-
-                midPoints = 0.5*[deformedCoords(1,1)+deformedCoords(4,1),deformedCoords(1,2)+deformedCoords(4,2);
+                midPoints      = 0.5*[deformedCoords(1,1)+deformedCoords(4,1),deformedCoords(1,2)+deformedCoords(4,2);
                              deformedCoords(2,1)+deformedCoords(3,1),deformedCoords(2,2)+deformedCoords(3,2)];
-
                 m = [midPoints(2,1)-midPoints(1,1),midPoints(2,2)-midPoints(1,2)];
-                    mx = m(1);
-                    my = m(2);
-                    
-                Re = [mx, -my; my, mx] / sqrt(mx^2 + my^2);
-                ReBig = kron(eye(nJumpPerElem), Re);
+                mx = m(1); my = m(2);   
 
+                Re                 = [mx, -my; my, mx] / sqrt(mx^2 + my^2);
+                ReBig              = kron(eye(nJumpPerElem), Re);
+                Rall(:,:,j)        = Re;
                 Rfull(dofsU,dofsU) = ReBig;
-                
             end
             R = sparse(Rfull);
-
         end
-
-        % function L = computeGlobalSeparationMatrix(obj)
-        % % L -- ndofJump x ndofu
-        % 
-        %     nCohElem = length(obj.cohesiveMesh.listCohesiveElems);
-        % 
-        %     nJumpPerElem = obj.jumpDim * obj.cohesiveMesh.subMesh.nnodeElem;
-        % 
-        %     nDofU     = obj.cohesiveMesh.mesh.nnodes * obj.cohesiveMesh.mesh.ndim;
-        %     nDofJump  = nJumpPerElem * nCohElem;
-        % 
-        %     ndim = obj.cohesiveMesh.mesh.ndim;
-        % 
-        %     Le = [-1,0,0,0,0,0,1,0;
-        %            0,-1,0,0,0,0,0,1;
-        %            0,0,-1,0,1,0,0,0;
-        %            0,0,0,-1,0,1,0,0];
-        % 
-        % 
-        %     nEntryPerElem = numel(Le);
-        %     nTot = nEntryPerElem * nCohElem;
-        % 
-        %     I = zeros(nTot,1);
-        %     J = zeros(nTot,1);
-        %     V = zeros(nTot,1);
-        % 
-        %     k = 1;
-        % 
-        %     for j = 1:nCohElem
-        % 
-        %         elem   = obj.cohesiveMesh.listCohesiveElems(j);
-        %         connec = obj.cohesiveMesh.mesh.connec(elem,:);
-        % 
-        %         dofsU = reshape(((connec(:)-1)*ndim + (1:ndim)).',1,[]);
-        % 
-        %         dofsJump = (j-1)*nJumpPerElem + (1:nJumpPerElem);
-        % 
-        %         [JJ, II] = meshgrid(dofsU, dofsJump);
-        % 
-        %         idx = k:k+nEntryPerElem-1;
-        % 
-        %         I(idx) = II(:);
-        %         J(idx) = JJ(:);
-        %         V(idx) = Le(:);
-        % 
-        %         k = k + nEntryPerElem;
-        %     end
-        % 
-        %     L = sparse(I,J,V,nDofJump,nDofU);
-        % 
-        % end
-
-        % function R = rotationMatrix(obj,uIn)
-        % 
-        %     nDofsU = uIn.nDofs;
-        %     nCohElem = length(obj.cohesiveMesh.listCohesiveElems);
-        %     nJumpPerElem = obj.jumpDim * obj.cohesiveMesh.subMesh.nnodeElem;
-        % 
-        %     nEntriesPerElem = nDofsU^2;
-        % 
-        %     I = zeros(nEntriesPerElem * nCohElem,1);
-        %     J = zeros(nEntriesPerElem * nCohElem,1);
-        %     V = zeros(nEntriesPerElem * nCohElem,1);
-        % 
-        % 
-        % 
-        %     for j=1:nCohElem
-        %         e = obj.cohesiveMesh.listCohesiveElems(j);
-        % 
-        %         connecMesh = obj.cohesiveMesh.mesh.connec(e,:);
-        %         coordsMesh = obj.cohesiveMesh.mesh.coord(connecMesh',:);
-        % 
-        %         dofsU = reshape(((connecMesh(:)-1)*obj.ndimf + (1:obj.ndimf)).', 1, []);
-        % 
-        %         disp = uIn.fValues(connecMesh',:);
-        % 
-        %         deformedCoords = coordsMesh + disp;
-        % 
-        %         midPoints = 0.5*[deformedCoords(1,1)+deformedCoords(4,1),deformedCoords(1,2)+deformedCoords(4,2);
-        %                      deformedCoords(2,1)+deformedCoords(3,1),deformedCoords(2,2)+deformedCoords(3,2)];
-        % 
-        %         m = [midPoints(2,1)-midPoints(1,1),midPoints(2,2)-midPoints(1,2)];
-        %             mx = m(1);
-        %             my = m(2);
-        % 
-        %         Re = [mx, -my; my, mx] / sqrt(mx^2 + my^2);
-        %         ReBig = kron(eye(nJumpPerElem), Re);
-        % 
-        % 
-        %         % Create triplets
-        %         [JJ, II] = meshgrid(dofsU, dofsU);
-        %         idx = k:k+numel(ReBig)-1;
-        % 
-        %         I(idx) = II(:);
-        %         J(idx) = JJ(:);
-        %         V(idx) = ReBig(:);
-        % 
-        %         k = k + numel(ReBig);
-        % 
-        %     end
-        % 
-        %     R = sparse(I,J,V,nDofsU,nDofsU);
-        % 
-        % 
-        % end
-
     end
-
-
 end

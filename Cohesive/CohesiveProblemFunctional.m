@@ -33,6 +33,7 @@ classdef CohesiveProblemFunctional < handle
         function LHS = computeLHS(obj,u)
             Kelas = obj.functionals.energy.computeHessian(u,obj.quadOrder);
             Kcoh  = obj.functionals.cohesive.computeHessian(u,obj.quadOrder);
+            LHS   = Kelas+Kcoh;
         end
 
         function RHS = computeRHS(obj,u,bc)
