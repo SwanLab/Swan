@@ -34,7 +34,6 @@ classdef CohesiveComputer < handle
         function init(obj,cParams)
             obj.mesh               = cParams.mesh;
             obj.boundaryConditions = cParams.boundaryConditions;
-            obj.internalDamageVariable = cParams.internalDamageVariable;
             obj.functional         = cParams.functional;
             obj.tolerance          = cParams.tolerance;
             obj.maxIter            = cParams.maxIter;            

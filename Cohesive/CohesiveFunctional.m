@@ -29,11 +29,13 @@ classdef CohesiveFunctional < handle
         end
 
         function F = computeGradient(obj,u,quadOrder, ????)
-                
+            %computeElementalCohesiveForceVector()
+            %assambeeVector()   
         end
 
         function H = computeHessian(obj,u,quadOrder,?)
-            
+            %computeElementalCohesiveStiffnessMatrix()
+            %assambeeMatrix()   
         end
         
     end
@@ -43,6 +45,9 @@ classdef CohesiveFunctional < handle
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
             obj.material = cParams.material;
+        end
+
+        function Felem = computeElementealChoesiveForceVectr()
         end
         
     end

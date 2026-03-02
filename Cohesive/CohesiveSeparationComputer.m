@@ -1,6 +1,6 @@
 classdef CohesiveSeparationComputer < handle
 
-    properties (Access = public)
+    properties (Access = private)
         cohesiveMesh
         globalSeparations % nCohElem x nMidNodesPerElem(2) x nSeparations(2)
         lagrangianSeparation
@@ -24,17 +24,23 @@ classdef CohesiveSeparationComputer < handle
             obj.createJumpFunction();
             obj.L = obj.computeGlobalSeparationMatrix();
         end
-
-        function compute(obj,uIn)
+    
+        function LHS = computeLHS(obj,uIn)
+            %computeElementalCohesiveStiffnessMatrix()
+            %assambeeMatrix()            
             uInVec = reshape(uIn.fValues',[uIn.nDofs 1]);
 
             R = obj.rotationMatrix(uIn);
 
-            funOutVec = obj.L * R * uInVec; % ndofDisp x 1
+            funOutVec = obj.L*R*uInVec; % ndofDisp x 1
 
             funOut = reshape(funOutVec,[obj.jumpDim obj.fun.nDofs/obj.jumpDim]);
 
             obj.updateJumps(funOut);
+
+        end
+
+        function RHS = computeRHS(obj,uIn)
 
         end
 
@@ -43,10 +49,10 @@ classdef CohesiveSeparationComputer < handle
         end
 
         function computeEffectiveSeps(obj,uIn)
-            obj.compute(uIn);
+            obj.computeLHS(uIn);
             fValues = obj.fun.fValues;
             effectiveFValues = vecnorm(fValues,2,2);
-            obj.effectiveFun = LagrangianFunction.create(obj.cohesiveMesh.subMesh,obj.jumpDim,'P1D');
+            obj.effectiveFun = LagrangianFunction.create(obj.cohesiveMesh.subMesh,uIn.ndimf,'P1D');
             obj.effectiveFun.setFValues(effectiveFValues);
         end
 
