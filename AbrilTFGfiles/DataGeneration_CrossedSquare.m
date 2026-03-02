@@ -8,13 +8,13 @@ clc; clear; close all;
 
 %% INPUTS
 
- t1=0.06:0.05:0.499;
- t2=0.06:0.05:0.7;
+ t1=0.03:0.05:0.499;
+ t2=0.03:0.05:0.7;
 %t1=0.1;
 %t2=0.1;
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
-p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
-p.nelem      = 100;
+p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
+p.nelem      = 50;
 meshName     = p.nelem+"x"+p.nelem;
 
 
@@ -72,7 +72,7 @@ for i=1:size(t1,2)
             case 'Multiscale'
                 save(FileName,"T","Kcoarse","mesh","tFrame","tCross","V"); 
             case 'EIFEM'
-                save(FileName, "EIFEoper","T","Kcoarse","mesh","tFrame","tCross","V"); 
+                save(FileName, "EIFEoper","T","Kcoarse","mesh","tFrame","tCross","V","Vfr"); 
         end
     
     

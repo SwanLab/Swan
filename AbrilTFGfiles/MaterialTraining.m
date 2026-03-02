@@ -3,6 +3,7 @@ classdef MaterialTraining < handle
     properties (Access = public)
         designVariable
         levelSet
+        unfittedMesh
     end
 
     properties (Access = private)
@@ -81,7 +82,7 @@ classdef MaterialTraining < handle
             if sum(obj.nSubdomains > 1)>= 1
                 s.nsubdomains   = obj.nSubdomains; %nx ny
                 s.meshReference = obj.mesh;
-                s.tolSameNode   = 1e-6;
+                s.tolSameNode   = 1e-10;
                 m = MeshCreatorFromRVE.create(s);
                 [meshDom,~,~,~,~,~,~] = m.create();
             else
@@ -96,6 +97,9 @@ classdef MaterialTraining < handle
             sUm.boundaryMesh   = obj.mD.createBoundaryMesh;
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(-ls);
+            Mprint=UnfittedMesh(sUm);
+            Mprint.compute(ls);
+            obj.unfittedMesh = Mprint;
             funLS        = CharacteristicFunction.create(uMesh);
             s.filterType = 'LUMP';
             s.mesh       = obj.mD;

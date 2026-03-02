@@ -13,7 +13,7 @@ r=0.5;
 
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
 p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
-p.nelem      = 5;
+p.nelem      = 15;
 meshName     = p.nelem+"x"+p.nelem;
 
 %% DATA GENERATION
@@ -44,6 +44,7 @@ for j = 1:size(r,2)
                 s.domainIndices  = dI;
                 s.nSubdomains    = nS;  
                 s.levelSet = mT.levelSet;
+                s.unfittedMesh = mT.unfittedMesh;
                 m= EIFEMTraining(s);
                 data          = m.train();
                 [data.material,mTr] = createMaterial(mR,[1 1],'Material',g);
@@ -53,7 +54,7 @@ for j = 1:size(r,2)
                 T        = EIFEoper.U;
                 mesh     = data.mesh;
                 Kcoarse  = EIFEoper.Kcoarse;
-                vT      = mR.computeVolume();
+                vT       = mR.computeVolume();
                 V        = Integrator.compute(mTr.designVariable.fun,mR,2);
                 Vfr = V/vT;
         end
@@ -128,8 +129,8 @@ function [nS,dI] = defineNumberOfSubdomains(type)
             nS = [1 1 1]; %nx ny
             dI = [1 1 1];
         case 'Oversampling'
-            nS = [3 1 1]; %nx ny
-            dI = [2 1 1];
+            nS = [3 3 3]; %nx ny
+            dI = [2 2 2];
     end
 end
 
