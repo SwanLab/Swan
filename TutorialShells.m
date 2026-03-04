@@ -66,7 +66,32 @@ classdef TutorialShells < handle
     methods (Access = private)
 
         function createMesh(obj)
-          obj.mesh = UnitTriangleMesh(5,5);
+          %fullmesh = UnitTriangleMesh(50,50);
+          fullmesh = TriangleMesh(18,10,60,60);
+          ls = obj.computeWingLevelSet(fullmesh);
+          sUm.backgroundMesh = fullmesh;
+          sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
+          uMesh              = UnfittedMesh(sUm);
+          uMesh.compute(ls);
+          wingMesh = uMesh.createInnerMesh();
+          obj.mesh = wingMesh;
+
+          %obj.mesh = UnitTriangleMesh(50,50);
+
+        end
+
+        function ls = computeWingLevelSet(obj, mesh)
+            gPar.type          = 'WingShape';
+            gPar.xCoorCenter   = 0.0;
+            gPar.yCoorCenter   = 0.0;
+            gPar.chordRoot     = 7.3;
+            gPar.chordTip      = 1.25;
+            gPar.semiSpan      = 18.0;
+            gPar.sweepDeg      = 25.0;
+            g                  = GeometricalFunction(gPar);
+            phiFun             = g.computeLevelSetFunction(mesh);
+            lsWing           = phiFun.fValues;
+            ls = lsWing;
         end
 
         function createSolutionField(obj)
@@ -123,7 +148,9 @@ classdef TutorialShells < handle
 
             Zut = zeros(nU,nTheta);
             Zuw = zeros(nU,nW);
-            LHS = [Ku Zut Zuw; Zut' (Ktheta+Mtheta) Nthetaw; Zuw' Nthetaw' Kw];
+            LHS = [Ku Zut Zuw; 
+                   Zut' (Ktheta+Mtheta) Nthetaw;
+                   Zuw' Nthetaw' Kw];
         end
 
         function RHS = createRHS(obj)
@@ -160,11 +187,13 @@ classdef TutorialShells < handle
             xMin    = min(obj.mesh.coord(:,1));
             yMin    = min(obj.mesh.coord(:,2));
             isLeft  = @(coor)  abs(coor(:,1)-xMin)< TOL;
-            isRight = @(coor)  abs(coor(:,1)-xMax)< TOL;
+            %isRight = @(coor)  abs(coor(:,1)-xMax)< TOL;
             isTop   = @(coor)  abs(coor(:,2)-yMax)< TOL;
             isBotom = @(coor)  abs(coor(:,2)-yMin)< TOL;
 
-            sDir{1}.domain    = @(coor) isLeft(coor) | isRight(coor) | isTop(coor) | isBotom(coor);
+            sDir{1}.domain    = @(coor) isLeft(coor);
+            %sDir{1}.domain    = @(coor) isLeft(coor) | isRight(coor) | isTop(coor) | isBotom(coor);
+            
             sDir{1}.direction = direct;
             sDir{1}.value     = 0;                    
             sDir{1}.ndim = length(direct);
