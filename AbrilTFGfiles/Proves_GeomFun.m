@@ -1,8 +1,8 @@
 clear;
 close all;
 
-x1       = linspace(0,1,30);
-x2       = linspace(0,1,30);
+x1       = linspace(0,1,50);
+x2       = linspace(0,1,50);
 [xv,yv]  = meshgrid(x1,x2);
 [F,V]    = mesh2tri(xv,yv,zeros(size(xv)),'x');
 m.coord  = V(:,1:2);
@@ -21,8 +21,8 @@ gPar.type         = 'CrossedSquare';
 gPar.length       = 1;
 gPar.xCoorCenter  = 0.5;
 gPar.yCoorCenter  = 0.5;
-gPar.tFrame       = 0.01;
-gPar.tCross       = 0.01;
+gPar.tFrame       = 0.03;
+gPar.tCross       = 0.7;
 % 
 % gPar.type       = 'Square';
 % gPar.length     =   0.5 ;
@@ -44,7 +44,7 @@ sUm.backgroundMesh = mesh;
 sUm.boundaryMesh   = mesh.createBoundaryMesh;
 uMesh              = UnfittedMesh(sUm);
 uMesh.compute(lsCircleInclusion);
-
+uMesh.plot();
 
 
             % 

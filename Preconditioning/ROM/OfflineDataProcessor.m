@@ -67,9 +67,12 @@ classdef OfflineDataProcessor < handle
             % Ldv3 = obj.computeBoundaryModalMassMatrixDirac(LMDefFunBd,Vfun);
 
             RBFun = uRBfun(1);
-            RBFun2.basisFunctions{1} = project(RBFun.basisFunctions{1},'P1');
-            RBFun2.basisFunctions{2} = project(RBFun.basisFunctions{2},'P1');
-            RBFun2.basisFunctions{3} = project(RBFun.basisFunctions{3},'P1');
+
+            for i=1:numel(RBFun.basisFunctions)
+                RBFun2.basisFunctions{i} = project(RBFun.basisFunctions{i},'P1');
+            end
+
+            
 
             uDefFunBd2 = obj.restrictToBoundary2(uDefFun);            
             LMDefFunBd2 = obj.restrictToBoundary2(LMDefFun);
@@ -88,7 +91,7 @@ classdef OfflineDataProcessor < handle
             U  = Ur+Ud;
 
 
-            nB = 8;
+            nB = size(uRBfun,2);
             Kdd = PhiD'*obj.LHS*PhiD;
             %
             nld = LMDefFun.nbasis;
@@ -105,14 +108,14 @@ classdef OfflineDataProcessor < handle
             Z  = zeros(nld+nlr,nld+nlr);
 %
             LHS2 = [Keif C; C.' Z];
-            Lug = [Lrv;Ldv]*eye(8);
+            Lug = [Lrv;Ldv]*eye(size(uRBfun,2));
             RHS = [Zd;Zr;Lug];
             x = LHS2\RHS;
 
             C2=  [Adr2 Add2;...
                   Arr2 Zrd];
             LHS3 = [Keif C2; C2.' Z];
-            Lug2 = [Lrv2;Ldv2]*eye(8);
+            Lug2 = [Lrv2;Ldv2]*eye(size(uRBfun,2));
             RHS2 = [Zd;Zr;Lug2];
             x2 = LHS3\RHS2;
 
@@ -163,11 +166,11 @@ classdef OfflineDataProcessor < handle
         function uFun = createDispFun(obj)
             ntest  = size(obj.fValuesTraining,2);
             s.mesh  = obj.mesh;
-            s.ndimf = 2;
+            s.ndimf = obj.mesh.ndim;
             s.order = 'P1';
             for i = 1:ntest
                 fValues   = obj.fValuesTraining(:,i);
-                s.fValues = reshape(fValues,2,[])' ;
+                s.fValues = reshape(fValues,obj.mesh.ndim,[])' ;
                 uFun(i)   = LagrangianFunction(s);
             end
         end
@@ -208,7 +211,7 @@ classdef OfflineDataProcessor < handle
 
         function DefFun = createDeformationalFunction(obj,phiCoeff)
             phiCoeff = num2cell(phiCoeff,1);
-            phiCoeff = cellfun(@(x) reshape(x', 2,[])', phiCoeff, 'UniformOutput', false);
+            phiCoeff = cellfun(@(x) reshape(x', obj.mesh.ndim ,[])', phiCoeff, 'UniformOutput', false);
             functionType = {'P1'};
             functionType = repelem(functionType,size(phiCoeff,2));
 

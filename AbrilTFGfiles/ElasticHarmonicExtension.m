@@ -76,7 +76,7 @@ classdef ElasticHarmonicExtension < handle
             
             for i=1:size(L,2)
                 lambdaFun{i}=copy(obj.lambdaFun);
-                fV= reshape(L(:,i),2,[]).';
+                fV= reshape(L(:,i),obj.mesh.ndim,[]).';
                 lambdaFun{i}.setFValues(fV);
             end
             

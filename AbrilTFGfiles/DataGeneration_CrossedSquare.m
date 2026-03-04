@@ -66,7 +66,7 @@ for i=1:size(t1,2)
         string = strrep("t1_"+num2str(t1(i), '%.2f'), ".", "_")+strrep("_t2_"+num2str(t2(j), '%.2f'), ".", "_")+"-"+meshName+".mat";
     
         % Guarda el .mat per cert radi
-        FileName=fullfile('AbrilTFGfiles','Data2',p.Training,p.Sampling,string);
+        FileName=fullfile('AbrilTFGfiles','Data2',p.Training,'NewData',string);
     
         switch p.Training
             case 'Multiscale'

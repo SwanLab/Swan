@@ -45,6 +45,7 @@ classdef EIFEMTraining < handle
 
             [data.uSbd,data.LHSsbd] = obj.extractDomainData(u,K);
 
+            obj.print(u);
             % obj.print(data.uSbd);
 
              data.mesh= obj.mesh;
@@ -58,9 +59,9 @@ classdef EIFEMTraining < handle
 
         function print(obj,T)
             for i=1:size(T,2)
-                z.mesh      = obj.mesh;
+                z.mesh      = obj.meshDomain;
                 z.order     = 'P1';
-                z.fValues   = reshape(T(:,i),[obj.mesh.ndim,obj.mesh.nnodes])';
+                z.fValues   = reshape(T(:,i),[z.mesh.ndim,z.mesh.nnodes])';
                 uFeFun = LagrangianFunction(z);%
                 uFeFun.print("Mesh3D"+num2str(i),'Paraview');
                 uMeshFun = obj.unfittedMesh.obtainFunctionAtUnfittedMesh(uFeFun);
@@ -90,8 +91,8 @@ classdef EIFEMTraining < handle
             obj.nSubdomains    = cParams.nSubdomains;
             obj.domainIndices  = cParams.domainIndices;
             obj.material       = cParams.material;
-            % obj.levelSet       = cParams.levelSet;
-            % obj.unfittedMesh   = cParams.unfittedMesh;
+            obj.levelSet       = cParams.levelSet;
+            obj.unfittedMesh   = cParams.unfittedMesh;
             obj.tolSameNode    = 1e-10;
             obj.Coarseorder    = 1;
         end

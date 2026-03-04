@@ -12,8 +12,8 @@ clc; clear; close all;
 r=0.5;
 
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
-p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
-p.nelem      = 15;
+p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
+p.nelem      = 5;
 meshName     = p.nelem+"x"+p.nelem;
 
 %% DATA GENERATION

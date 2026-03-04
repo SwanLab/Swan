@@ -190,6 +190,20 @@ classdef RigidBodyFunction < BaseFunction
                     theta = obj.fvalues(3);
                     fxV = u*phiU + v*phiV + theta*phiT;
                 case 3
+                    phiU = obj.basisFunctions{1}.evaluate(xGLoc);
+                    phiV = obj.basisFunctions{2}.evaluate(xGLoc);
+                    phiW = obj.basisFunctions{3}.evaluate(xGLoc);
+                    phiRx = obj.basisFunctions{4}.evaluate(xGLoc);
+                    phiRy = obj.basisFunctions{5}.evaluate(xGLoc);
+                    phiRz = obj.basisFunctions{6}.evaluate(xGLoc);
+
+                    u     = obj.fvalues(1);
+                    v     = obj.fvalues(2);
+                    w     = obj.fvalues(3);
+                    rx    = obj.fvalues(4);
+                    ry    = obj.fvalues(5);
+                    rz    = obj.fvalues(6);
+                    fxV = u*phiU + v*phiV + w*phiW+ rx*phiRx+ry*phiRy+rz*phiRz;
             end
         end
 
