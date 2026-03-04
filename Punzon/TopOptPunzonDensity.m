@@ -34,8 +34,8 @@ classdef TopOptPunzonDensity < handle
             obj.createOptimizer();
 
             figure(2)
-            saveas(gcf,'Monitoring_PunzonDensity_Intent3.fig');
-            obj.designVariable.fun.print('fValues_PunzonDensity_Intent3');
+            saveas(gcf,'Monitoring_PunzonDensity_Intent5.fig');
+            obj.designVariable.fun.print('fValues_PunzonDensity_Intent5');
         end
 
     end
@@ -47,7 +47,7 @@ classdef TopOptPunzonDensity < handle
         end
 
         function createMesh(obj)
-            file = 'punzon3';
+            file = 'punzon4';
             a.fileName = file;
             s = FemDataContainer(a);
             obj.mesh = s.mesh;
@@ -74,11 +74,30 @@ classdef TopOptPunzonDensity < handle
 
 
             % DESCOMENTAR PER FIXED
+            yMin = min(obj.mesh.coord(:,2));
+            yMax = max(obj.mesh.coord(:,2));
             zMin     = min(obj.mesh.coord(:,3));
-            isBottom = @(x) x(:,3)<= -17.5; 
+            zMax     = max(obj.mesh.coord(:,3));
+
+            % bolt domain
+            c1x= 584.37;    c1y= 28.562;
+            c2x= 584.37;    c2y= 68.562;
+            hBolt=60;       rBolt=6.5;
+            
+            bolt1 = @(x) (x(:,1)-c1x).^2 + (x(:,2)-c1y).^2 <= rBolt^2 & ...
+                          x(:,3) >= hBolt & x(:,3) <= zMax;
+            bolt2 = @(x) (x(:,1)-c2x).^2 + (x(:,2)-c2y).^2 <= rBolt^2 & ...
+                          x(:,3) >= hBolt & x(:,3) <= zMax;
+
+            % Guides and bottom fixed
+            isBottom = @(x) x(:,3)<= -16; 
+            % guide1   = @(x) x(:,2)<= yMin+10.5;
+            % guide2   = @(x) x(:,2)>= yMax-10.5;
             guide1   = @(x) x(:,2)<= 20.179;
             guide2   = @(x) x(:,2)>= 76.729;
-            s.isFixed  = obj.computeFixedVolumeDomain(@(x) guide1(x) | guide2(x) | isBottom(x), s.type);
+            s.isFixed  = obj.computeFixedVolumeDomain(...
+                         @(x) guide1(x) | guide2(x) | isBottom(x)| bolt1(x) | bolt2(x),...
+                         s.type);
 
             %---------------------------------------------------
             ls     = DesignVariable.create(s);
@@ -202,7 +221,7 @@ classdef TopOptPunzonDensity < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 800;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;

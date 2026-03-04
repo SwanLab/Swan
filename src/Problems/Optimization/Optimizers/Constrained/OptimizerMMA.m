@@ -62,6 +62,18 @@ classdef OptimizerMMA < Optimizer
                obj.updateMonitoring();
            end
             obj.hasConverged = 0;
+
+            s.filterType = 'LUMP';
+            s.mesh  = obj.designVariable.fun.mesh;
+            s.trial = LagrangianFunction.create(s.mesh,1,'P1');
+            filter = Filter.create(s);
+            ls2 = f.fun-0.5;
+            ls2=ls2.project('P1');
+            
+            for i=1:30
+                ls2.print(["SolPython"+num2str(i)]);
+                ls2=filter.compute(ls2,2);
+            end
        end
         
         function update(obj)

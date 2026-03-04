@@ -1,7 +1,6 @@
-classdef TopOptPunzonMMA < handle
+classdef TopOptPunzonPython < handle
 
     properties (Access = private)
-        filename
         mesh
         filter
         designVariable
@@ -13,18 +12,18 @@ classdef TopOptPunzonMMA < handle
         constraint
         dualVariable
         optimizer
+        filename
     end
 
     methods (Access = public)
 
-        function obj = TopOptPunzonMMA()
+        function obj = TopOptPunzonPython()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
-            obj.createComplianceFromConstiutive();
             obj.createCompliance();
             obj.createVolumeConstraint();
             obj.createCost();
@@ -33,8 +32,8 @@ classdef TopOptPunzonMMA < handle
             obj.createOptimizer();
 
             figure(2)
-            saveas(gcf,'Monitoring_PunzonMMA.fig');
-            obj.designVariable.fun.print('fValues_PunzonMMA');
+            saveas(gcf,'Monitoring_PunzonPy.fig');
+            obj.designVariable.fun.print('fValues_PunzonPy');
         end
 
     end
@@ -116,7 +115,7 @@ classdef TopOptPunzonMMA < handle
             end
             isFixed.values = values;
         end
-        
+
         function createFilter(obj)
             s.filterType = 'LUMP';
             s.mesh  = obj.mesh;
@@ -168,9 +167,35 @@ classdef TopOptPunzonMMA < handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = DirectSolver();
+            s.solverCase = obj.createSolver(s);
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
+        end
+
+        function solver = createSolver(obj,s)
+            BCAp = BCApplier(s);
+            Rfull  = obj.computeRigidBodyModes([1,0.5,0.5]);
+            for i = 1:size(Rfull,2)
+                R(:,i) = BCAp.fullToReducedVectorDirichlet(Rfull(:,i));
+            end
+            s.type = 'ELASTIC';
+            s.nullSpace = R;
+            s.nLevels = 5;
+            s.tol = 1e-8;
+            s.maxIter = 1;
+            p     = pyAMG.create(s);
+
+            sS.preconditioner = p;
+            sS.tol = 1e-5;
+            solver = PCG(sS);
+        end
+
+        function R = computeRigidBodyModes(obj,refPoint)
+            rigModes = RigidBodyFunction.create(obj.mesh,refPoint);
+            RFun = rigModes.projectBasisFunctions('P1');
+            for i = 1:length(RFun)
+                R(:,i) = reshape(RFun{i}.fValues',[],1);
+            end
         end
 
         function c = createComplianceFromConstiutive(obj)
@@ -214,9 +239,9 @@ classdef TopOptPunzonMMA < handle
         end
 
         function M = createMassMatrix(obj)
-            test  = LagrangianFunction.create(obj.mesh,1,'P1');
-            trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            M = IntegrateLHS(@(u,v) DP(v,u),test,trial,obj.mesh,'Domain');
+            n = obj.mesh.nnodes;
+            h = obj.mesh.computeMinCellSize();
+            M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
         end
 
         function createConstraint(obj)
@@ -237,7 +262,7 @@ classdef TopOptPunzonMMA < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 200;
+            s.maxIter        = 350;
             s.tolerance      = 1e-8;
             s.constraintCase = 'EQUALITY';
             s.ub             = 1;
@@ -245,7 +270,7 @@ classdef TopOptPunzonMMA < handle
             s.gif            = false;
             s.gifName        = [];
             s.printing       = true;
-            s.printName      = ['PunzonMMA'];
+            s.printName      = ['PunzonPython'];
             opt = OptimizerMMA(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -285,26 +310,6 @@ classdef TopOptPunzonMMA < handle
             s.mesh        = obj.mesh;
 
             bc = BoundaryConditions(s);
-        end
-    end
-
-    methods (Static, Access=private)
-        function sCond = computeCondition(conditions)
-            nodes = @(coor) 1:size(coor,1);
-            dirs  = unique(conditions(:,2));
-            j     = 0;
-            for k = 1:length(dirs)
-                rowsDirk = ismember(conditions(:,2),dirs(k));
-                u        = unique(conditions(rowsDirk,3));
-                for i = 1:length(u)
-                    rows   = conditions(:,3)==u(i) & rowsDirk;
-                    isCond = @(coor) ismember(nodes(coor),conditions(rows,1));
-                    j      = j+1;
-                    sCond{j}.domain    = @(coor) isCond(coor);
-                    sCond{j}.direction = dirs(k);
-                    sCond{j}.value     = u(i);
-                end
-            end
         end
     end
 end
