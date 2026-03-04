@@ -1,49 +1,92 @@
 IMPORT "io.edp"
-load "mmg"
+load "distance"
 
 mesh Th = importMesh("Th");
+mesh Th1 = importMesh("Th1");
 mesh Th2 = importMesh("Th2");
-real [int] phiVal = importArray("phiVal");
-real [int] nxVal = importArray("nxVal");
-real [int] nyVal = importArray("nyVal");
+real [int] phiVal1 = importArray("phiVal1");
+real [int] phiVal2 = importArray("phiVal2");
 real alpha = importVar("alpha");
 real beta = importVar("beta");
 real lsLab = importVar("lsLab");
 real rInner = importVar("rInner");
+real p = importVar("p");
 
 fespace Vh(Th,P1);
-Vh phi, g;
-phi[] = phiVal;
+fespace Vh0(Th,P0);
+Vh phi1, phi2, g, dOm1, dOm2, v;
+phi1[] = phiVal1;
+phi2[] = phiVal2;
 
-mesh Th3;
-meshL ThLInt;
+for (int i = 0; i < Th.nbe; i++) {
+    phi1[][Th.be(i)[0]] = 0.;
+    phi1[][Th.be(i)[1]] = 0.;
+}
+
+distance(Th,phi1,dOm1[]);
+distance(Th,phi2,dOm2[]);
+
 int [int] lsLabel(1);
 lsLabel[0] = lsLab;
 
-macro updateBoundary() {
-  Th3 = trunc(Th2, region == rInner);
-  ThLInt = extract(Th3,label = lsLabel);
-} //
+real P12 = (int1d(Th1,lsLabel)(1/((abs(dOm2))^p)))^(-1/p);
+real P21 = (int1d(Th2,lsLabel)(1/((abs(dOm1))^p)))^(-1/p);
+real p12 = -2*P12^2/((P12+P21)^2);
+real p21 = -2*P21^2/((P12+P21)^2);
 
-updateBoundary;
+Vh dxdOm1, dydOm1, w1, lapldOm1, dxdOm2, dydOm2, w2, lapldOm2;
 
-fespace Vh2(Th2,P1);
-Vh2 g2, v2;
+problem gradxPhi1(dxdOm1,v) = int2d(Th)(dxdOm1*v + alpha^2*(dx(dxdOm1)*dx(v)+dy(dxdOm1)*dy(v)))
+                        -int2d(Th)(dx(dOm1)*v);
 
-fespace Vh1D(ThLInt,P1);
-Vh1D g0, nx, ny;
-nx[] = nxVal;
-ny[] = nyVal;
+problem gradyPhi1(dydOm1,v) = int2d(Th)(dydOm1*v + alpha^2*(dx(dydOm1)*dx(v)+dy(dydOm1)*dy(v)))
+                        -int2d(Th)(dy(dOm1)*v);
 
-fespace Vh1D0(ThLInt,P0);
-Vh1D0 kappa;
+gradxPhi1;
+gradyPhi1;
 
-kappa = dx(nx)+dy(ny);
+problem laplace1(lapldOm1,v) = int2d(Th)(lapldOm1*v + alpha^2*(dx(lapldOm1)*dx(v)+dy(lapldOm1)*dy(v)))
+                        -int2d(Th)((dx(dxdOm1) + dy(dydOm1))*v);
 
-g0 = -kappa;
+laplace1;
 
-problem velext(g2,v2) = int2d(Th2)(beta^2*(dx(g2)*dx(v2)+dy(g2)*dy(v2)) + g2*v2)
-                    - int1d(Th2,lsLabel)(beta*g0*v2);
+problem gradxPhi2(dxdOm2,v) = int2d(Th)(dxdOm2*v + alpha^2*(dx(dxdOm2)*dx(v)+dy(dxdOm2)*dy(v)))
+                        -int2d(Th)(dx(dOm2)*v);
+
+problem gradyPhi2(dydOm2,v) = int2d(Th)(dydOm2*v + alpha^2*(dx(dydOm2)*dx(v)+dy(dydOm2)*dy(v)))
+                        -int2d(Th)(dy(dOm2)*v);
+
+gradxPhi2;
+gradyPhi2;
+
+problem laplace2(lapldOm2,v) = int2d(Th)(lapldOm2*v + alpha^2*(dx(lapldOm2)*dx(v)+dy(lapldOm2)*dy(v)))
+                        -int2d(Th)((dx(dxdOm2) + dy(dydOm2))*v);
+
+laplace2;
+
+real q = 3.5, r = 3.5;
+w1 = 2/(1+abs(dOm1)^q*abs(lapldOm1)^r);
+w2 = 2/(1+abs(dOm2)^q*abs(lapldOm2)^r);
+
+fespace Vh2(Th2,P1); /* th12 */
+Vh2 u12, u21, g2, v2;
+
+/* Normal vector from ThLInt */
+/* Need to import Th12 */
+/* Need to define chi from Th1 and Th2 */
+
+problem uTerm12(u12,v2) = int1d(Th2,lsLabel)(u12*v2) + int2d(Th2)(w2*(dxdOm2*dx(u12)+dydOm2*dy(u12))*(dxdOm2*dx(v2)+dydOm2*dy(v2)))
+                        - int2d(Th2,rInner)((1/(2*Jo*F^2)*(F*(fd*dOm+2*fOm)*dOm-FD*fd))*v2);
+
+uTerm12;
+
+problem uTerm21(u21,v2) = int1d(Th1,pOmega)(u2*v2) + int2d(Th2)(w*(dxdOm*dx(u2)+dydOm*dy(u2))*(dxdOm*dx(v2)+dydOm*dy(v2)))
+                        +int2d(Th2,rInner)((1/(2*Jo*F^2)*(F*(fd*dOm+2*fOm)*dOm-FD*fd))*v2);
+
+uTerm12;
+
+problem velext(g2,v2) = int2d(Th2)(g2*v2 + beta^2*(dx(g2)*dx(v2)+dy(g2)*dy(v2)))
+                        -int1d(Th2,lsLabel)(-u2*beta*v2);
 
 velext;
 g = g2;

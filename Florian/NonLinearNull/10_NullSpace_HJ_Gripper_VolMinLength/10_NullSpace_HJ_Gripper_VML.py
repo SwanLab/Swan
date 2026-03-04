@@ -94,6 +94,13 @@ class TO_problem(EuclideanOptimizable):
         runner.import_variables(Th=Th,Th1=self.Th1,Th2=self.Th2,phiVal1=x1,
                                 phiVal2=x2,rInner=rInner,lsLab=lsLabel,dmin=dmin,p=p)
         return [runner.execute()['H']]
+    
+    def dH(self,x):
+        x1,x2 = np.hsplit(x,2)
+        runner = FreeFemRunner(path+"10_ConstraintIneqGradient.edp")
+        runner.import_variables(Th=Th,Th1=self.Th1,Th2=self.Th2,phiVal1=x1,phiVal2=x2,alpha=alpha,beta=beta,
+                                lsLab=lsLabel,rInner=rInner,p=p)
+        return runner.execute()['g[]']
 
     def accept(self, params, results):
         # Plot the design at every iteration
@@ -423,7 +430,7 @@ results = abstract_results.implementation()
 iter = results['it']
 cost  = results['J']
 Vol = results['G']
-##Per  = results['H']
+minL  = results['H']
 
 fig, axes = plt.subplots(1, 2, figsize=(10, 4))
 
@@ -437,10 +444,10 @@ axes[1].set_xlabel('Iter')
 axes[1].set_ylabel('Volume constraint')
 axes[1].grid(True, linestyle='--', alpha=0.6)
 
-#axes[2].plot(iter, Per, color='b')
-#axes[2].set_xlabel('Iter')
-#axes[2].set_ylabel('Perimeter constraint')
-#axes[2].grid(True, linestyle='--', alpha=0.6)
+axes[2].plot(iter, minL, color='b')
+axes[2].set_xlabel('Iter')
+axes[2].set_ylabel('Min length constraint')
+axes[2].grid(True, linestyle='--', alpha=0.6)
 
 plt.tight_layout()
 plt.show()
