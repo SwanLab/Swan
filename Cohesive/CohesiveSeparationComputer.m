@@ -44,7 +44,7 @@ classdef CohesiveSeparationComputer < handle
             obj.computeLHS(uIn);
             fValues          = obj.fun.fValues;
             effectiveFValues = vecnorm(fValues,2,2);
-            obj.effectiveFun = LagrangianFunction.create(obj.cohesiveMesh.subMesh,uIn.ndimf,'P1D');
+            obj.effectiveFun = LagrangianFunction.create(obj.cohesiveMesh.lineMesh,uIn.ndimf,'P1D');
             obj.effectiveFun.setFValues(effectiveFValues);
         end
     end
@@ -65,13 +65,13 @@ classdef CohesiveSeparationComputer < handle
         end
 
         function createJumpFunction(obj)
-            obj.fun = LagrangianFunction.create(obj.cohesiveMesh.subMesh,obj.jumpDim,'P1D');
+            obj.fun = LagrangianFunction.create(obj.cohesiveMesh.lineMesh,obj.jumpDim,'P1D');
         end
 
         function L = computeGlobalSeparationMatrix(obj)
             % L -- ndofJump x ndofu
             nCohElem     = length(obj.cohesiveMesh.listCohesiveElems);
-            nJumpPerElem = obj.jumpDim * obj.cohesiveMesh.subMesh.nnodeElem;
+            nJumpPerElem = obj.jumpDim * obj.cohesiveMesh.lineMesh.nnodeElem;
             nDofU        = obj.cohesiveMesh.mesh.nnodes * obj.cohesiveMesh.mesh.ndim;
             nDofJump     = nJumpPerElem* nCohElem;
             ndim         = obj.cohesiveMesh.mesh.ndim;
@@ -97,7 +97,7 @@ classdef CohesiveSeparationComputer < handle
         function R = rotationMatrix(obj,uIn)
             nDofsU       = uIn.nDofs;
             nCohElem     = length(obj.cohesiveMesh.listCohesiveElems);
-            nJumpPerElem = obj.jumpDim * obj.cohesiveMesh.subMesh.nnodeElem;
+            nJumpPerElem = obj.jumpDim * obj.cohesiveMesh.lineMesh.nnodeElem;
 
             Rfull = zeros(nDofsU,nDofsU);
             Rall  = zeros(2,2,nCohElem);
