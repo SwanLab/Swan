@@ -6,6 +6,9 @@ classdef DisplacementUpdater < handle
 
         tol
         maxIter
+
+        pcgIterHistoryThisStep
+        pcgMeanHistoryPerStep
     end
 
     methods (Access = public)
@@ -15,6 +18,9 @@ classdef DisplacementUpdater < handle
         end
 
         function [u,rFun,costArray,iter] = update(obj,u,bc,costArray)
+
+            obj.pcgIterHistoryThisStep = [];
+
             i = 0; err = 1; costOld = costArray(end);
             while (abs(err) > obj.tol) && (i < obj.maxIter)
                 LHS = obj.functional.computeHessian(u);
@@ -30,6 +36,26 @@ classdef DisplacementUpdater < handle
                 obj.monitor.update(length(costArray),{[],[cost],[],[]});
                 obj.monitor.refresh(); 
             end
+         
+            if ~isempty(obj.pcgIterHistoryThisStep)
+                meanCG_thisStep = mean(obj.pcgIterHistoryThisStep);
+            else               
+                meanCG_thisStep = NaN;
+            end
+
+            obj.pcgMeanHistoryPerStep(end+1) = meanCG_thisStep;
+
+            figure(202); clf;
+            bar(obj.pcgMeanHistoryPerStep); hold on; grid on;
+            xlabel('Load step');
+            ylabel('Mean PCG iterations per Newton');
+            
+            overallMean = mean(obj.pcgMeanHistoryPerStep,'omitnan');
+            yline(overallMean, 'r', 'LineWidth', 2);
+
+            title(sprintf('Mean PCG iters per Newton, per load step (overall mean = %.2f)', overallMean));
+            legend('Mean per load step','Overall mean','Location','best');  
+
             rFun = obj.computeReactions(LHS,u,bc);
             iter = i;
         end
@@ -43,6 +69,8 @@ classdef DisplacementUpdater < handle
             obj.monitor    = cParams.monitor;
             obj.tol        = cParams.tolerance;
             obj.maxIter    = cParams.maxIter;
+            obj.pcgIterHistoryThisStep = [];
+            obj.pcgMeanHistoryPerStep  = [];
         end
 
         function uOut = computeDisplacement(obj,LHSfull, RHSfull,uIn,bc)
@@ -81,6 +109,7 @@ classdef DisplacementUpdater < handle
             [deltaX,flag,relres,iter,resvec] = pcg(LHS,-RHS,tol,maxIter,[],[]); 
             deltaX2 = -(LHS\RHS);
 
+            obj.pcgIterHistoryThisStep(end+1) = iter;
 
             resSol = norm(deltaX - deltaX2) / norm(deltaX2); 
             resPcg = resvec / norm(-RHS);
