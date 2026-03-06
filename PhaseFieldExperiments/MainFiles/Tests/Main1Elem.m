@@ -7,8 +7,8 @@ s.monitoring.type = 'full'; %'reduced'
 s.monitoring.print = true;
 
 s.tolerance.u = 1e-6;
-s.tolerance.phi = 1e-8;
-s.tolerance.stag = 1e-8;
+s.tolerance.phi = 1e-6;
+s.tolerance.stag = 1e-6;
 s.maxIter.u = 100;
 s.maxIter.phi = 300;
 s.maxIter.stag = 300;
