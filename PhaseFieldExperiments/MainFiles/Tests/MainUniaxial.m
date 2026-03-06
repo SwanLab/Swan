@@ -20,7 +20,7 @@ s.benchmark.bc.phi.type = 'DamageFixedLimitsX';
 
 s.matInfo.matType = 'Analytic'; %'Analytic','Homogenized'
 s.matInfo.degradationType = 'PhaseField'; %'PhaseField','SIMPALL'
-s.matInfo.degradationSubType = 'AT'; %'AT','AT2linear','General'
+s.matInfo.degradationSubType = 'AT2linear'; %'AT','AT2linear','General'
 s.matInfo.fileName = 'HoneycombBenchmark02'; 
 s.matInfo.young   = 3e4;
 s.matInfo.poisson = 0.2;
@@ -31,7 +31,7 @@ s.matInfo.params.coeffs = [(4/pi)*(s.matInfo.Gc*s.matInfo.young)/(s.matInfo.sigm
 s.matInfo.params.exp = 2;
 
 s.dissipInfo.type = 'AT';
-s.dissipInfo.constant = 8/3; % 2 AT2 / 8/3 AT1 / pi Wu 
+s.dissipInfo.constant = 2; % 2 AT2 / 8/3 AT1 / pi Wu 
 s.dissipInfo.pExp = 1;
 s.dissipInfo.xi = 1; % 0 AT2 / 1 AT1 / 2 Mix in type FullQuadratic
 s.solver.type = 'Gradient';
@@ -42,38 +42,40 @@ s.solver.tau  = 150;
 tester = TestingPhaseField(s);
 outputData = tester.compute();
 outputData.inputParameters = s;
-save("UniaxialNewMeshAT1.mat",'outputData')
+save("UniaxialNewMeshAT2_v3.mat",'outputData')
 
-s.matInfo.degradationSubType = 'General';
-s.matInfo.sigmaMax = 3;
-s.matInfo.params.coeffs = [(4/pi)*(s.matInfo.Gc*s.matInfo.young)/(s.matInfo.sigmaMax^2 * s.l0), -0.5]; 
-s.dissipInfo.constant = pi;
-tester = TestingPhaseField(s);
-outputData = tester.compute();
-outputData.inputParameters = s;
-save("UniaxialNewMeshRational3.mat",'outputData')
-
-s.matInfo.degradationSubType = 'General'; 
-s.matInfo.sigmaMax = 2;
-s.matInfo.params.coeffs = [(4/pi)*(s.matInfo.Gc*s.matInfo.young)/(s.matInfo.sigmaMax^2 * s.l0), -0.5]; 
-s.dissipInfo.constant = pi;
-tester = TestingPhaseField(s);
-outputData = tester.compute();
-outputData.inputParameters = s;
-save("UniaxialNewMeshRational2.mat",'outputData')
-
-s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'
-s.matInfo.fileName = 'HexagonBenchmark02';
-s.dissipInfo.constant = 8/3;
-tester = TestingPhaseField(s);
-outputData = tester.compute();
-outputData.inputParameters = s;
-save("UniaxialNewMeshHexagon.mat",'outputData')
-
-s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'
-s.matInfo.fileName = 'HoneycombBenchmark02';
-s.dissipInfo.constant = 8/3;
-tester = TestingPhaseField(s);
-outputData = tester.compute();
-outputData.inputParameters = s;
-save("UniaxialNewMeshHoneycomb.mat",'outputData')
+% s.matInfo.degradationSubType = 'General';
+% s.matInfo.sigmaMax = 3;
+% s.matInfo.params.coeffs = [(4/pi)*(s.matInfo.Gc*s.matInfo.young)/(s.matInfo.sigmaMax^2 * s.l0), -0.5]; 
+% s.dissipInfo.constant = pi;
+% tester = TestingPhaseField(s);
+% outputData = tester.compute();
+% outputData.inputParameters = s;
+% save("UniaxialNewMeshRational10_v3.mat",'outputData')
+% 
+% s.matInfo.degradationSubType = 'General'; 
+% s.matInfo.sigmaMax = 3;
+% s.l0 = 5;
+% s.matInfo.params.coeffs = [(4/pi)*(s.matInfo.Gc*s.matInfo.young)/(s.matInfo.sigmaMax^2 * s.l0), -0.5]; 
+% s.dissipInfo.constant = pi;
+% tester = TestingPhaseField(s);
+% outputData = tester.compute();
+% outputData.inputParameters = s;
+% save("UniaxialNewMeshRational5_v3.mat",'outputData')
+% 
+% s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'
+% s.matInfo.fileName = 'HexagonBenchmark02';
+% s.dissipInfo.constant = 8/3;
+% s.l0 = 10;
+% tester = TestingPhaseField(s);
+% outputData = tester.compute();
+% outputData.inputParameters = s;
+% save("UniaxialNewMeshHexagon_v3.mat",'outputData')
+% 
+% s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'
+% s.matInfo.fileName = 'HoneycombBenchmark02';
+% s.dissipInfo.constant = 8/3;
+% tester = TestingPhaseField(s);
+% outputData = tester.compute();
+% outputData.inputParameters = s;
+% save("UniaxialNewMeshHoneycomb_v3.mat",'outputData')
