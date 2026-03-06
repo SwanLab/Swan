@@ -49,7 +49,7 @@ ylabel('$\mu(\phi)/\mu_0$ [-]','Interpreter','latex');
 xlabel({"$\phi$ [-]";"(b)"},'Interpreter','latex');
 
 fontsize(gcf,40,'points')
-lgd = legend([p1,p2,p3],'AT1','AT2','H-S bounds');
+lgd = legend([p1,p2,p3],'AT1','AT2','H-S UB');
 lgd.FontSize = 30;
 
 %% Figure 2: AT vs H-S bounds for different Possion
@@ -86,7 +86,7 @@ ylabel('$\mu(\phi)/\mu_0$ [-]','Interpreter','latex');
 xlabel({"$\phi$ [-]";"(b)"},'Interpreter','latex');
 
 fontsize(gcf,40,'points')
-lgd = legend([p1,p2,p3],'AT1','AT2','H-S bounds');
+lgd = legend([p1,p2,p3],'AT1','AT2','H-S UB');
 lgd.FontSize = 30;
 
 %% Alessi and Wu functions
@@ -125,15 +125,15 @@ ylabel('$\mu(\phi)/\mu_0$ [-]','Interpreter','latex');
 xlabel({"$\phi$ [-]";"(b)"},'Interpreter','latex');
 
 fontsize(gcf,40,'points')
-lgd = legend([p1,p2],{'Rational','H-S bounds'},'Interpreter','latex');
+lgd = legend([p1,p2],{'Rational','H-S UB'},'Interpreter','latex');
 lgd.FontSize = 30;
 
 %% Figure 4 Constitutive tensor homogenized
-[dataHexa]  = load('HexagonBenchmark03.mat');
+[dataHexa]  = load('HexagonBenchmark02.mat');
 C11hexaMat = squeeze(dataHexa.mat(1,1,1,1,:));
 C12hexaMat = squeeze(dataHexa.mat(2,2,1,1,:));
 C33hexaMat = squeeze(dataHexa.mat(1,2,1,2,:));
-[dataHoney] = load('HoneycombBenchmark03.mat');
+[dataHoney] = load('HoneycombBenchmark02.mat');
 C11honeyMat = squeeze(dataHoney.mat(1,1,1,1,:));
 C12honeyMat = squeeze(dataHoney.mat(2,2,1,1,:));
 C33honeyMat = squeeze(dataHoney.mat(1,2,1,2,:));
@@ -210,8 +210,8 @@ t = tiledlayout(1,2);
 nexttile
 hold on
 grid minor
-fplot(@(phi) kLB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
-fplot(@(phi) kUB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
+fplot(@(phi) kLB(phi,0.2),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
+fplot(@(phi) kUB(phi,0.2),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
 fplot(bulkHexa,[0,1],'Color',cmp(4,:),'LineStyle','-','LineWidth',3);
 fplot(bulkHoney,[0 1],'Color',cmp(4,:),'LineStyle','--','LineWidth',3);
 ylabel('$\kappa(\phi)/\kappa_0$ [-]','Interpreter','latex');
@@ -221,8 +221,8 @@ xlabel("$\phi$ [-]",'Interpreter','latex');
 nexttile
 hold on
 grid minor
-p3 = fplot(@(phi) muLB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
-fplot(@(phi) muUB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
+p3 = fplot(@(phi) muLB(phi,0.2),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
+fplot(@(phi) muUB(phi,0.2),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
 p1 = fplot(shearHexa,[0 1],'Color',cmp(4,:),'LineStyle','-','LineWidth',3);
 p2 = fplot(shearHoney,[0 1],'Color',cmp(4,:),'LineStyle','--','LineWidth',3);
 ylabel('$\mu(\phi)/\mu_0$ [-]','Interpreter','latex');
@@ -230,7 +230,7 @@ ylim([0,inf])
 xlabel("$\phi$ [-]",'Interpreter','latex');
 
 fontsize(gcf,40,'points')
-lgd = legend([p1,p2,p3],'Hexagon','Reinforced hexagon','H-S bound');
+lgd = legend([p1,p2,p3],'Hexagon','Reinforced hexagon','H-S UB');
 lgd.FontSize = 30;
 
 
@@ -273,9 +273,10 @@ fplot(@(nu) gPrimeRational(nu,1),[-1,0.5],'Color',cmpGamma(6,:),'LineWidth',3)
 fplot(@(nu) gPrimeRational(nu,3),[-1,0.5],'Color',cmpGamma(7,:),'LineWidth',3)
 fplot(@(nu) gPrimeRational(nu,5),[-1,0.5],'Color',cmpGamma(8,:),'LineWidth',3)
 fplot(@(nu) gPrimeRational(nu,9),[-1,0.5],'Color',cmpGamma(9,:),'LineWidth',3)
+xline(1/3)
 plot(nuV,bulkPrimeHexa,'Color',cmp(4,:),'LineStyle','-','LineWidth',3)
 plot(nuV,bulkPrimeHoney,'Color',cmp(4,:),'LineStyle','--','LineWidth',3)
-ylabel('$\kappa''(\phi)/\kappa_0$ [-]','Interpreter','latex');
+ylabel('$\kappa''(0)/\kappa_0$ [-]','Interpreter','latex');
 xlabel("$\nu$ [-]",'Interpreter','latex');
 ylim([-25 0])
 
@@ -289,14 +290,15 @@ p3 = fplot(@(nu) gPrimeRational(nu,1),[-1,0.5],'Color',cmpGamma(6,:),'LineWidth'
 fplot(@(nu) gPrimeRational(nu,3),[-1,0.5],'Color',cmpGamma(7,:),'LineWidth',3);
 fplot(@(nu) gPrimeRational(nu,5),[-1,0.5],'Color',cmpGamma(8,:),'LineWidth',3);
 fplot(@(nu) gPrimeRational(nu,9),[-1,0.5],'Color',cmpGamma(9,:),'LineWidth',3);
+xline(1/3)
 p4 = plot(nuV(24:end),shearPrimeHexa(24:end),'Color',cmp(4,:),'LineStyle','-','LineWidth',3);
 p5 = plot(nuV(21:end),shearPrimeHoney(21:end),'Color',cmp(4,:),'LineStyle','--','LineWidth',3);
-ylabel('$\mu''(\phi)/\mu_0$ [-]','Interpreter','latex');
+ylabel('$\mu''(0)/\mu_0$ [-]','Interpreter','latex');
 xlabel("$\nu$ [-]",'Interpreter','latex');
 ylim([-25 0])
 
 fontsize(gcf,40,'points')
-lgd = legend([p1,p2,p3,p4,p5,p6],'AT1','AT2','Rational','Hexagon','Reinforced hexagon','H-S Upper bound');
+lgd = legend([p1,p2,p3,p4,p5,p6],'AT1','AT2','Rational','Hexagon','Reinforced hexagon','H-S UB');
 lgd.FontSize = 30;
 
 eq = @(nu) kPrimeUB(nu)-muPrimeUB(nu);
