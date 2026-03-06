@@ -57,4 +57,4 @@ lHSRatk = lchRat*HSk*(1/(pi))
 lHSHexak = lchHexaK*HSk*(1/(8/3))
 lHSHoneyk = lchHoneyK*HSk*(1/(8/3))
 
-
+gPrimeAT1*HSk*l0

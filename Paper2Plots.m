@@ -32,7 +32,6 @@ nexttile
 hold on
 grid minor
 fplot(@(phi) kUB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
-fplot(@(phi) kLB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
 fplot(gAT1,[0 1],'Color',cmp(1,:),'LineStyle','-','LineWidth',3)
 fplot(gAT2,[0 1],'Color',cmp(1,:),'LineStyle','--','LineWidth',3)
 ylabel('$\kappa(\phi)/\kappa_0$ [-]','Interpreter','latex');
@@ -41,15 +40,14 @@ nexttile
 hold on
 grid minor
 
-fplot(@(phi) muUB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
-p3 = fplot(@(phi) muLB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
+p3 = fplot(@(phi) muUB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
 p1 = fplot(gAT1,[0 1],'Color',cmp(1,:),'LineStyle','-','LineWidth',3);
 p2 = fplot(gAT2,[0 1],'Color',cmp(1,:),'LineStyle','--','LineWidth',3);
 ylabel('$\mu(\phi)/\mu_0$ [-]','Interpreter','latex');
 xlabel({"$\phi$ [-]";"(b)"},'Interpreter','latex');
 
 fontsize(gcf,40,'points')
-lgd = legend([p1,p2,p3],'AT1','AT2','H-S UB');
+lgd = legend([p1,p2,p3],'AT1','AT2','HS UB');
 lgd.FontSize = 30;
 
 %% Figure 2: AT vs H-S bounds for different Possion
@@ -65,7 +63,6 @@ fplot(@(phi) kUB(phi,-0.5),[0 1],'Color',cmpGrad(2,:),'LineStyle','-','LineWidth
 fplot(@(phi) kUB(phi,0),   [0 1],'Color',cmpGrad(3,:),'LineStyle','-','LineWidth',3);
 fplot(@(phi) kUB(phi,0.3),[0 1],'Color',cmpGrad(4,:),'LineStyle','-','LineWidth',3);
 fplot(@(phi) kUB(phi,0.5),[0 1],'Color',cmpGrad(5,:),'LineStyle','-','LineWidth',3);
-fplot(@(phi) kLB(phi,0.3),[0 1],'Color',cmpGrad(6,:),'LineStyle','-','LineWidth',3);
 fplot(gAT1,[0 1],'Color',cmp(1,:),'LineStyle','-','LineWidth',3)
 fplot(gAT2,[0 1],'Color',cmp(1,:),'LineStyle','--','LineWidth',3)
 ylabel('$\kappa(\phi)/\kappa_0$ [-]','Interpreter','latex');
@@ -79,14 +76,13 @@ fplot(@(phi) muUB(phi,-0.5),[0 1],'Color',cmpGrad(2,:),'LineStyle','-','LineWidt
 fplot(@(phi) muUB(phi,0),   [0 1],'Color',cmpGrad(3,:),'LineStyle','-','LineWidth',3);
 fplot(@(phi) muUB(phi,0.3),[0 1],'Color',cmpGrad(4,:),'LineStyle','-','LineWidth',3);
 fplot(@(phi) muUB(phi,0.5),[0 1],'Color',cmpGrad(5,:),'LineStyle','-','LineWidth',3);
-fplot(@(phi) muLB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
 p1 = fplot(gAT1,[0 1],'Color',cmp(1,:),'LineStyle','-','LineWidth',3);
 p2 = fplot(gAT2,[0 1],'Color',cmp(1,:),'LineStyle','--','LineWidth',3);
 ylabel('$\mu(\phi)/\mu_0$ [-]','Interpreter','latex');
 xlabel({"$\phi$ [-]";"(b)"},'Interpreter','latex');
 
 fontsize(gcf,40,'points')
-lgd = legend([p1,p2,p3],'AT1','AT2','H-S UB');
+lgd = legend([p1,p2,p3],'AT1','AT2','HS UB');
 lgd.FontSize = 30;
 
 %% Alessi and Wu functions
@@ -96,12 +92,11 @@ gRational = @(phi,gamma) (1-phi)/((1-phi)+gamma*phi);
 %% Figure 3_ Rational vs H-S bounds
 cmpGamma = autumn(12);
 
-figure(4)
+figure(3)
 t = tiledlayout(1,2);
 nexttile
 hold on
 grid minor
-fplot(@(phi) kLB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
 fplot(@(phi) kUB(phi,0),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
 fplot(@(phi) gRational(phi,1),[0 1],'Color',cmpGamma(6,:),'LineStyle','-','LineWidth',3);
 fplot(@(phi) gRational(phi,3),[0 1],'Color',cmpGamma(7,:),'LineStyle','-','LineWidth',3);
@@ -114,8 +109,7 @@ xlabel({'$\phi$ [-]';"(a)"},'Interpreter','latex');
 nexttile
 hold on
 grid minor
-p2 = fplot(@(phi) kLB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
-fplot(@(phi) kUB(phi,0),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
+p2 = fplot(@(phi) kUB(phi,0),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
 fplot(@(phi) gRational(phi,1),[0 1],'Color',cmpGamma(6,:),'LineStyle','-','LineWidth',3);
 fplot(@(phi) gRational(phi,3),[0 1],'Color',cmpGamma(7,:),'LineStyle','-','LineWidth',3)
 fplot(@(phi) gRational(phi,5),[0 1],'Color',cmpGamma(8,:),'LineStyle','-','LineWidth',3)
@@ -125,15 +119,15 @@ ylabel('$\mu(\phi)/\mu_0$ [-]','Interpreter','latex');
 xlabel({"$\phi$ [-]";"(b)"},'Interpreter','latex');
 
 fontsize(gcf,40,'points')
-lgd = legend([p1,p2],{'Rational','H-S UB'},'Interpreter','latex');
+lgd = legend([p1,p2],{'Rational','HS UB'},'Interpreter','latex');
 lgd.FontSize = 30;
 
 %% Figure 4 Constitutive tensor homogenized
-[dataHexa]  = load('HexagonBenchmark02.mat');
+[dataHexa]  = load('HexagonBenchmark03.mat');
 C11hexaMat = squeeze(dataHexa.mat(1,1,1,1,:));
 C12hexaMat = squeeze(dataHexa.mat(2,2,1,1,:));
 C33hexaMat = squeeze(dataHexa.mat(1,2,1,2,:));
-[dataHoney] = load('HoneycombBenchmark02.mat');
+[dataHoney] = load('HoneycombBenchmark03.mat');
 C11honeyMat = squeeze(dataHoney.mat(1,1,1,1,:));
 C12honeyMat = squeeze(dataHoney.mat(2,2,1,1,:));
 C33honeyMat = squeeze(dataHoney.mat(1,2,1,2,:));
@@ -169,6 +163,7 @@ xlabel({"$\phi$ [-]";"(c)"},'Interpreter','latex');
 
 fontsize(gcf,40,'points')
 lgd = legend('Hexagon','Reinforced hexagon','Orientation','horizontal');
+lgd.Layout.Tile = 'north';
 lgd.FontSize = 30;
 
 %% Figure 5 Zener Ratio
@@ -210,8 +205,7 @@ t = tiledlayout(1,2);
 nexttile
 hold on
 grid minor
-fplot(@(phi) kLB(phi,0.2),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
-fplot(@(phi) kUB(phi,0.2),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
+fplot(@(phi) kUB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
 fplot(bulkHexa,[0,1],'Color',cmp(4,:),'LineStyle','-','LineWidth',3);
 fplot(bulkHoney,[0 1],'Color',cmp(4,:),'LineStyle','--','LineWidth',3);
 ylabel('$\kappa(\phi)/\kappa_0$ [-]','Interpreter','latex');
@@ -221,8 +215,7 @@ xlabel("$\phi$ [-]",'Interpreter','latex');
 nexttile
 hold on
 grid minor
-p3 = fplot(@(phi) muLB(phi,0.2),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
-fplot(@(phi) muUB(phi,0.2),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
+p3 = fplot(@(phi) muUB(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
 p1 = fplot(shearHexa,[0 1],'Color',cmp(4,:),'LineStyle','-','LineWidth',3);
 p2 = fplot(shearHoney,[0 1],'Color',cmp(4,:),'LineStyle','--','LineWidth',3);
 ylabel('$\mu(\phi)/\mu_0$ [-]','Interpreter','latex');
@@ -230,7 +223,7 @@ ylim([0,inf])
 xlabel("$\phi$ [-]",'Interpreter','latex');
 
 fontsize(gcf,40,'points')
-lgd = legend([p1,p2,p3],'Hexagon','Reinforced hexagon','H-S UB');
+lgd = legend([p1,p2,p3],'Hexagon','Reinforced hexagon','HS UB');
 lgd.FontSize = 30;
 
 
@@ -270,10 +263,9 @@ fplot(kPrimeUB,[-0.99,0.5],'Color',cmpGrad(1,:),'LineWidth',3)
 fplot(gPrimeAT1,[-1,0.5],'Color',cmp(1,:),'LineStyle','-','LineWidth',3)
 fplot(gPrimeAT2,[-1,0.5],'Color',cmp(1,:),'LineStyle','--','LineWidth',3)
 fplot(@(nu) gPrimeRational(nu,1),[-1,0.5],'Color',cmpGamma(6,:),'LineWidth',3)
-fplot(@(nu) gPrimeRational(nu,3),[-1,0.5],'Color',cmpGamma(7,:),'LineWidth',3)
 fplot(@(nu) gPrimeRational(nu,5),[-1,0.5],'Color',cmpGamma(8,:),'LineWidth',3)
 fplot(@(nu) gPrimeRational(nu,9),[-1,0.5],'Color',cmpGamma(9,:),'LineWidth',3)
-xline(1/3)
+xline(1/3,'LineStyle','--','LineWidth',2)
 plot(nuV,bulkPrimeHexa,'Color',cmp(4,:),'LineStyle','-','LineWidth',3)
 plot(nuV,bulkPrimeHoney,'Color',cmp(4,:),'LineStyle','--','LineWidth',3)
 ylabel('$\kappa''(0)/\kappa_0$ [-]','Interpreter','latex');
@@ -287,18 +279,19 @@ p6 = fplot(muPrimeUB,[-0.81,0.5],'Color',cmpGrad(1,:),'LineWidth',3);
 p1 = fplot(gPrimeAT1,[-1,0.5],'Color',cmp(1,:),'LineStyle','-','LineWidth',3);
 p2 = fplot(gPrimeAT2,[-1,0.5],'Color',cmp(1,:),'LineStyle','--','LineWidth',3);
 p3 = fplot(@(nu) gPrimeRational(nu,1),[-1,0.5],'Color',cmpGamma(6,:),'LineWidth',3);
-fplot(@(nu) gPrimeRational(nu,3),[-1,0.5],'Color',cmpGamma(7,:),'LineWidth',3);
 fplot(@(nu) gPrimeRational(nu,5),[-1,0.5],'Color',cmpGamma(8,:),'LineWidth',3);
 fplot(@(nu) gPrimeRational(nu,9),[-1,0.5],'Color',cmpGamma(9,:),'LineWidth',3);
-xline(1/3)
+xline(1/3,'LineStyle','--','LineWidth',2)
 p4 = plot(nuV(24:end),shearPrimeHexa(24:end),'Color',cmp(4,:),'LineStyle','-','LineWidth',3);
 p5 = plot(nuV(21:end),shearPrimeHoney(21:end),'Color',cmp(4,:),'LineStyle','--','LineWidth',3);
+plot([-1,-1],[-25,-21.5],'Color',cmpGrad(1,:),'LineWidth',3)
 ylabel('$\mu''(0)/\mu_0$ [-]','Interpreter','latex');
 xlabel("$\nu$ [-]",'Interpreter','latex');
 ylim([-25 0])
 
 fontsize(gcf,40,'points')
-lgd = legend([p1,p2,p3,p4,p5,p6],'AT1','AT2','Rational','Hexagon','Reinforced hexagon','H-S UB');
+lgd = legend([p1,p2,p3,p4,p5,p6],'AT1','AT2','Rational','Hexagon','Reinforced hexagon','HS UB');
+lgd.Layout.Tile = 'east';
 lgd.FontSize = 30;
 
 eq = @(nu) kPrimeUB(nu)-muPrimeUB(nu);
@@ -308,12 +301,12 @@ muPrimeUB(fzero(eq,0.3))
 
 %% Figure 9 Results 1Elem 
 % (LOAD DATA)
-resAT1 = load('1ElemAT1_v2.mat');
-resAT2 = load('1ElemAT2_v2.mat');
-resRat1 = load('1ElemRational198_v2.mat');
-resRat2 = load('1ElemRational1_v2');
-resHexa = load('1ElemHexagon_v2.mat');
-resHoney = load('1ElemHoneycomb_v2.mat');
+resAT1 = load('1ElemAT1_v3.mat');
+resAT2 = load('1ElemAT2_v3.mat');
+resRatnoHS = load('1ElemRational01_v3.mat');
+resRatHS = load('1ElemRational005_v3');
+resHexa = load('1ElemHexagon_v3.mat');
+resHoney = load('1ElemHoneycomb_v3.mat');
 
 % (PLOT)
 
@@ -324,8 +317,8 @@ hold on
 grid minor
 plot(resAT1.outputData.displacement.value,resAT1.outputData.force,'Color',cmp(1,:),'LineStyle','-','LineWidth',3)
 plot(resAT2.outputData.displacement.value,resAT2.outputData.force,'Color',cmp(1,:),'LineStyle','--','LineWidth',3)
-plot([resRat1.outputData.displacement.value, 0.04],[resRat1.outputData.force,0],'Color',cmpGamma(6,:),'LineStyle','-','LineWidth',3)
-plot([resRat2.outputData.displacement.value, 0.04],[resRat2.outputData.force,0],'Color',cmpGamma(6,:),'LineStyle','--','LineWidth',3)
+plot([resRatnoHS.outputData.displacement.value, 0.04],[resRatnoHS.outputData.force,0],'Color',cmpGamma(6,:),'LineStyle','-','LineWidth',3)
+plot([resRatHS.outputData.displacement.value, 0.04],[resRatHS.outputData.force,0],'Color',cmpGamma(6,:),'LineStyle','--','LineWidth',3)
 plot(resHexa.outputData.displacement.value,resHexa.outputData.force,'Color',cmp(4,:),'LineStyle','-','LineWidth',3)
 plot(resHoney.outputData.displacement.value,resHoney.outputData.force,'Color',cmp(4,:),'LineStyle','--','LineWidth',3)
 ylabel("Force [kN]",'Interpreter','latex');
@@ -337,8 +330,8 @@ hold on
 grid minor
 plot(resAT1.outputData.displacement.value,resAT1.outputData.damage.maxValue,'Color',cmp(1,:),'LineStyle','-','LineWidth',3)
 plot(resAT2.outputData.displacement.value,resAT2.outputData.damage.maxValue,'Color',cmp(1,:),'LineStyle','--','LineWidth',3)
-plot([resRat1.outputData.displacement.value,0.04],[resRat1.outputData.damage.maxValue,1],'Color',cmpGamma(6,:),'LineStyle','-','LineWidth',3)
-plot([resRat2.outputData.displacement.value,0.04],[resRat2.outputData.damage.maxValue,1],'Color',cmpGamma(6,:),'LineStyle','--','LineWidth',3)
+plot([resRatnoHS.outputData.displacement.value,0.04],[resRatnoHS.outputData.damage.maxValue,1],'Color',cmpGamma(6,:),'LineStyle','-','LineWidth',3)
+plot([resRatHS.outputData.displacement.value,0.04],[resRatHS.outputData.damage.maxValue,1],'Color',cmpGamma(6,:),'LineStyle','--','LineWidth',3)
 plot(resHexa.outputData.displacement.value,resHexa.outputData.damage.maxValue,'Color',cmp(4,:),'LineStyle','-','LineWidth',3)
 plot(resHoney.outputData.displacement.value,resHoney.outputData.damage.maxValue,'Color',cmp(4,:),'LineStyle','--','LineWidth',3)
 ylabel("$\phi$ [-]",'Interpreter','latex');
@@ -346,30 +339,30 @@ xlabel({"Displacement [mm]";"(b)"},'interpreter','latex')
 xlim([0,0.04])
 
 fontsize(gcf,40,'points')
-lgd = legend({'AT1','AT2','Rational ($\sigma_c$ = 1.984 GPa)','Rational ($\sigma_c$ = 1 GPa)','Hexagon','Reinforced Hexagon'},'Interpreter','latex','Location','eastoutside');
+lgd = legend({'AT1','AT2','Rational (no HS)','Rational (HS)','Hexagon','Reinforced Hexagon'},'Interpreter','latex','Location','eastoutside');
 lgd.Layout.Tile = 'east';
 lgd.FontSize = 30;
 
 %% Figure 10 Results others
 
-% resAT1 = load('UniaxialNewMeshAT1.mat');
-% resAT2 = load('UniaxialNewMeshAT2.mat');
-% resRat1 = load('UniaxialNewMeshRational3.mat');
-% resRat2 = load('UniaxialNewMeshRational2.mat');
-% resHexa = load('UniaxialNewMeshHexagon.mat');
-% resHoney = load('UniaxialNewMeshHoneycomb.mat');
+% resAT1 = load('UniaxialNewMeshAT1_v3.mat');
+% resAT2 = load('UniaxialNewMeshAT2_v3.mat');
+% resRatnoHS = load('UniaxialNewMeshRational10_v3.mat');
+% resRatHS = load('UniaxialNewMeshRational5_v3.mat');
+% resHexa = load('UniaxialNewMeshHexagon_v3.mat');
+% resHoney = load('UniaxialNewMeshHoneycomb_v3.mat');
 
 % resAT1 = load('SENtractionNewMeshAT1.mat');
 % resAT2 = load('SENtractionNewMeshAT2.mat');
-% resRat1 = load('SENtractionNewMeshRational24.mat');
-% resRat2 = load('SENtractionNewMeshRational5.mat');
+% resRatnoHS = load('SENtractionNewMeshRational24_l0v2.mat');
+% resRatHS = load('SENtractionNewMeshRational24.mat');
 % resHexa = load('SENtractionNewMeshHexagon.mat');
 % resHoney = load('SENtractionNewMeshHoneycomb.mat');
 
 resAT1 = load('SENshearNewMeshAT1.mat');
 resAT2 = load('SENshearNewMeshAT2.mat');
-resRat1 = load('SENshearNewMeshRational24.mat');
-resRat2 = load('SENshearNewMeshRational5.mat');
+resRatnoHS = load('SENshearNewMeshRational24_l0v2.mat');
+resRatHS = load('SENshearNewMeshRational24.mat');
 resHexa = load('SENshearNewMeshHexagon.mat');
 resHoney = load('SENshearNewMeshHoneycomb.mat');
 
@@ -381,8 +374,8 @@ hold on
 grid minor
 plot(resAT1.outputData.displacement.value,resAT1.outputData.force,'Color',cmp(1,:),'LineStyle','-','LineWidth',3)
 plot(resAT2.outputData.displacement.value,resAT2.outputData.force,'Color',cmp(1,:),'LineStyle','--','LineWidth',3)
-plot([resRat1.outputData.displacement.value, 0.04],[resRat1.outputData.force,0],'Color',cmpGamma(6,:),'LineStyle','-','LineWidth',3)
-plot([resRat2.outputData.displacement.value, 0.04],[resRat2.outputData.force,0],'Color',cmpGamma(6,:),'LineStyle','--','LineWidth',3)
+plot([resRatnoHS.outputData.displacement.value, 0.04],[resRatnoHS.outputData.force,0],'Color',cmpGamma(6,:),'LineStyle','-','LineWidth',3)
+plot([resRatHS.outputData.displacement.value, 0.04],[resRatHS.outputData.force,0],'Color',cmpGamma(6,:),'LineStyle','--','LineWidth',3)
 plot(resHexa.outputData.displacement.value,resHexa.outputData.force,'Color',cmp(4,:),'LineStyle','-','LineWidth',3)
 plot(resHoney.outputData.displacement.value,resHoney.outputData.force,'Color',cmp(4,:),'LineStyle','--','LineWidth',3)
 ylabel("Force [kN]",'Interpreter','latex');
@@ -398,8 +391,8 @@ hold on
 grid minor
 plot(resAT1.outputData.displacement.value,resAT1.outputData.damage.maxValue,'Color',cmp(1,:),'LineStyle','-','LineWidth',3)
 plot(resAT2.outputData.displacement.value,resAT2.outputData.damage.maxValue,'Color',cmp(1,:),'LineStyle','--','LineWidth',3)
-plot([resRat1.outputData.displacement.value,0.04],[resRat1.outputData.damage.maxValue,1],'Color',cmpGamma(6,:),'LineStyle','-','LineWidth',3)
-plot([resRat2.outputData.displacement.value,0.04],[resRat2.outputData.damage.maxValue,1],'Color',cmpGamma(6,:),'LineStyle','--','LineWidth',3)
+plot([resRatnoHS.outputData.displacement.value,0.04],[resRatnoHS.outputData.damage.maxValue,1],'Color',cmpGamma(6,:),'LineStyle','-','LineWidth',3)
+plot([resRatHS.outputData.displacement.value,0.04],[resRatHS.outputData.damage.maxValue,1],'Color',cmpGamma(6,:),'LineStyle','--','LineWidth',3)
 plot(resHexa.outputData.displacement.value,resHexa.outputData.damage.maxValue,'Color',cmp(4,:),'LineStyle','-','LineWidth',3)
 plot(resHoney.outputData.displacement.value,resHoney.outputData.damage.maxValue,'Color',cmp(4,:),'LineStyle','--','LineWidth',3)
 ylabel("$\phi$ [-]",'Interpreter','latex');
@@ -411,7 +404,7 @@ ax = gca;
 ax.XAxis.Exponent = 0;
 
 fontsize(gcf,40,'points')
-lgd = legend({'AT1','AT2','Rational ($\sigma_c$ = 2.445 GPa)','Rational ($\sigma_c$ = 5 GPa)','Hexagon','Reinforced Hexagon'},'Interpreter','latex','Location','eastoutside');
+lgd = legend({'AT1','AT2','Rational (no HS)','Rational (HS)','Hexagon','Reinforced Hexagon'},'Interpreter','latex','Location','eastoutside');
 lgd.Layout.Tile = 'east';
 lgd.FontSize = 30;
 
@@ -421,23 +414,23 @@ lgd.FontSize = 30;
 
 dmgAT1 = resAT1.outputData.damage.field.fun;
 dmgAT2 = resAT2.outputData.damage.field.fun;
-dmgRat1 = resRat1.outputData.damage.field.fun;
-dmgRat2 = resRat2.outputData.damage.field.fun;
+dmgRatnoHS = resRatnoHS.outputData.damage.field.fun;
+dmgRatHS = resRatHS.outputData.damage.field.fun;
 dmgHexa = resHexa.outputData.damage.field.fun;
 dmgHoney = resHoney.outputData.damage.field.fun;
 
 
 uAT1 = resAT1.outputData.displacement.field;
 uAT2 = resAT2.outputData.displacement.field;
-uRat1 = resRat1.outputData.displacement.field;
-uRat2 = resRat2.outputData.displacement.field;
+uRatnoHS = resRatnoHS.outputData.displacement.field;
+uRatHS = resRatHS.outputData.displacement.field;
 uHexa = resHexa.outputData.displacement.field;
 uHoney = resHoney.outputData.displacement.field;
 
 printResult(dmgAT1,uAT1,'AT1')
 printResult(dmgAT2,uAT2,'AT2')
-printResult(dmgRat1,uRat1,'Rat1')
-printResult(dmgRat2,uRat2,'Rat2')
+printResult(dmgRatnoHS,uRatnoHS,'RatnoHS')
+printResult(dmgRatHS,uRatHS,'RatHS')
 printResult(dmgHexa,uHexa,'Hexa')
 printResult(dmgHoney,uHoney,'Honey')
 
