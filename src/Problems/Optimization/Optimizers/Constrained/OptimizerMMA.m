@@ -63,17 +63,17 @@ classdef OptimizerMMA < Optimizer
            end
             obj.hasConverged = 0;
 
-            s.filterType = 'LUMP';
-            s.mesh  = obj.designVariable.fun.mesh;
-            s.trial = LagrangianFunction.create(s.mesh,1,'P1');
-            filter = Filter.create(s);
-            ls2 = f.fun-0.5;
-            ls2=ls2.project('P1');
-            
-            for i=1:30
-                ls2.print(["SolPython"+num2str(i)]);
-                ls2=filter.compute(ls2,2);
-            end
+       %      s.filterType = 'LUMP';
+       %      s.mesh  = obj.designVariable.fun.mesh;
+       %      s.trial = LagrangianFunction.create(s.mesh,1,'P1');
+       %      filter = Filter.create(s);
+       %      ls2 = f.fun-0.5;
+       %      ls2=ls2.project('P1');
+       % 
+       %      for i=1:30
+       %          ls2.print(["SolPython"+num2str(i)]);
+       %          ls2=filter.compute(ls2,2);
+       %      end
        end
         
         function update(obj)
@@ -113,7 +113,7 @@ classdef OptimizerMMA < Optimizer
     methods (Access = private)
 
         function printResults(obj)
-            if obj.nIter/10==round(obj.nIter/10)
+            if obj.nIter/5==round(obj.nIter/5)
                 if obj.gif
                     obtainGIF(obj.gifName,obj.designVariable,obj.nIter);
                 end
@@ -215,7 +215,7 @@ classdef OptimizerMMA < Optimizer
                 obj.upp = ones(length(x0),1);
                 [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma();
                 obj.m = length(obj.fval);
-                obj.c = 1000*ones(obj.m,1);
+                obj.c = 20*ones(obj.m,1);
                 obj.d = 0*ones(obj.m,1);
                 obj.a0 = 1;
                 obj.a = 0*ones(obj.m,1);
