@@ -167,7 +167,7 @@ classdef DensityVerticalCantilever4x4LengthScale < handle
             s.epsilon = 3*h;
             s.minEpsilon = 3*h;
             s.value0 = 1;
-            s.target = 0.066*p;
+            s.target = 0.067*p;
             s.delta = 0.025; % 10% del tamaño minimo de subdominio
 
             x0 = repmat([0.125,0.375,0.625,0.875],[1,4]);

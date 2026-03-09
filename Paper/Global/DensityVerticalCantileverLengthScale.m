@@ -154,7 +154,7 @@ classdef DensityVerticalCantileverLengthScale < handle
             s.epsilon = 3*h;
             s.minEpsilon = 3*h;
             s.value0 = 1;
-            s.target = 0.066*p;
+            s.target = 0.067*p;
             s.delta = 0.1;
             obj.isoPer = LengthScaleConstraint(s);
         end
