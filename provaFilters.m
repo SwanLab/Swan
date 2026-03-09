@@ -1,8 +1,8 @@
-file = 'punzon3';
+file = 'punzon4';
 a.fileName = file;
 s = FemDataContainer(a);
 mesh=s.mesh;
-load ("densityprova.mat");
+load ("densityIntent5.mat");
 
 f=LagrangianFunction.create(mesh,1,'P1');
 f.setFValues(density);
@@ -10,18 +10,12 @@ f.setFValues(density);
 z.mesh=mesh;
 z.test=f;
 z.trial=f;
-z.filterType = 'PDE';
-filter = Filter.create(z);
-fFilter= filter.compute(f,2);
-fFilter.print('hola');
+% z.filterType = 'PDE';
+% filter = Filter.create(z);
+% fFilter= filter.compute(f,2);
+% fFilter.print('hola');
 
 
-
-
-
-yMin = min(mesh.coord(:,2));
-yMax = max(mesh.coord(:,2));
-zMin = min(mesh.coord(:,3));
 zMax = max(mesh.coord(:,3));
 
 % bolt domain
@@ -55,7 +49,7 @@ z.isFixed = LagrangianFunction.create(mesh,1,'P1');
 z.isFixed.setFValues(isFixVals);
 filter = Filter.create(z);
 fFilter2= filter.compute(f,2);
-fFilter2.print('hola2');
+fFilter2.print('PDEsol');
 
 
 

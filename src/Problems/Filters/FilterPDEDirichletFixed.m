@@ -42,7 +42,7 @@ classdef FilterPDEDirichletFixed < handle
             obj.trial   = LagrangianFunction.create(cParams.mesh, cParams.trial.ndimf, cParams.trial.order);
             obj.LHSint  = cParams.LHSint;
             obj.mesh    = cParams.mesh;
-            obj.epsilon = cParams.mesh.computeMeanCellSize();
+            obj.epsilon = cParams.mesh.computeMeanCellSize()/2.25;
             obj.isFixed = cParams.isFixed;
             obj.gamma   = 1;
         end
