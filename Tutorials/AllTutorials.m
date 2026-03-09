@@ -6,6 +6,7 @@ Tutorial00_2_Remeshing();
 run('Tutorial02_FEMElasticity.mlx');
 Tutorial02FEMElasticity();
 Tutorial02p2FEMElasticityMicro();
+Tutorial02p2FEMElasticityMicro3D();
 Tutorial02p3ElasticityAMG();
 
 run('Tutorial03_LevelSet.mlx');
