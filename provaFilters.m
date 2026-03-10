@@ -49,10 +49,20 @@ z.isFixed = LagrangianFunction.create(mesh,1,'P1');
 z.isFixed.setFValues(isFixVals);
 filter = Filter.create(z);
 fFilter2= filter.compute(f,2);
-fFilter2.print('PDEsol');
+fFilter2.print('SoL_LUMP0');
 
 
+p.filterType = 'LUMP';
+p.mesh  = mesh;
+p.trial = LagrangianFunction.create(s.mesh,1,'P1');
+filter = Filter.create(p);
+ls2 = fFilter2-0.5;
+ls2=ls2.project('P1');
 
+for i=1:30
+    ls2.print(["SoL_LUMP"+num2str(i)]);
+    ls2=filter.compute(ls2,2);
+end
 
 
 

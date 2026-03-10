@@ -1,4 +1,4 @@
-classdef TopOptPunzonDensity < handle
+classdef TopOptPunzonDensityV2 < handle
 
     properties (Access = private)
         mesh
@@ -17,7 +17,7 @@ classdef TopOptPunzonDensity < handle
 
     methods (Access = public)
 
-        function obj = TopOptPunzonDensity()
+        function obj = TopOptPunzonDensityV2()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -261,15 +261,15 @@ classdef TopOptPunzonDensity < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 800;
+            s.maxIter        = 600;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.1;
-            s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 0.4;
-            s.etaMax         = 1;
-            s.etaMaxMin      = 0.01;
+            s.etaNormMin     = 0.05;
+            s.gJFlowRatio    = 0.6;
+            s.etaMax         = 10;
+            s.etaMaxMin      = 0.1;
             s.gif = false;
             s.gifName = [];
             s.printing = true;
