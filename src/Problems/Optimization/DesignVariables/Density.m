@@ -17,10 +17,11 @@ classdef Density < DesignVariable
             fun{1} = obj.fun;
         end
 
+        function fixedDofs = getFixedDofs(obj)
+            fixedDofs = obj.isFixed;
+        end
+
         function update(obj,value)
-            if ~isempty(obj.isFixed)
-                value(obj.isFixed.nodes) = obj.isFixed.values;
-            end
             obj.fun.setFValues(value);
         end
 
