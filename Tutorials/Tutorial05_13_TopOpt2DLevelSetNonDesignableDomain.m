@@ -58,9 +58,8 @@ classdef Tutorial05_13_TopOpt2DLevelSetNonDesignableDomain < handle
         end
 
         function isFixed = computeFixedVolumeDomain(obj,cond)
-            coor  = obj.mesh.coord;
-            nodes = find(cond(coor));
-            isFixed.nodes = nodes;
+            coor    = obj.mesh.coord;
+            isFixed = find(cond(coor));
         end
 
         function createFilter(obj)
