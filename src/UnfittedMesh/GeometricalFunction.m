@@ -31,10 +31,23 @@ classdef GeometricalFunction < handle
             x3 = @(x) x(3,:,:);
             switch cParams.type
                 case 'Square'
+                    % l  = cParams.length;
+                    % x0 = cParams.xCoorCenter;
+                    % y0 = cParams.yCoorCenter;
+                    % fH = @(x) max(abs(x1(x)-x0),abs(x2(x)-y0))/l - 0.5;
+                    % obj.fHandle = fH;
+
                     l  = cParams.length;
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
-                    fH = @(x) max(abs(x1(x)-x0),abs(x2(x)-y0))/l - 0.5;
+                    
+                    if isfield(cParams, 'rotation')
+                        phi = cParams.rotation;
+                    else
+                        phi = 0;
+                    end
+                    
+                    fH = @(x) GeometricalFunction.squareAffine(x,x0,y0,l,cParams.a1,cParams.a2);
                     obj.fHandle = fH;
 
                 case 'SmoothSquare'
@@ -292,6 +305,27 @@ classdef GeometricalFunction < handle
     end
 
     methods (Access = private, Static)
+
+        function val = squareAffine(x,x0,y0,l,a1,a2)
+
+            if ndims(x)==2
+                X = x(1,:) - x0;
+                Y = x(2,:) - y0;
+            else
+                X = x(1,:,:) - x0;
+                Y = x(2,:,:) - y0;
+            end
+        
+            A = [a1(:), a2(:)];
+            invA = inv(A);
+        
+            coords = invA * [X(:)'; Y(:)'];
+        
+            Xi  = reshape(coords(1,:), size(X));
+            Eta = reshape(coords(2,:), size(Y));
+        
+            val = max(abs(Xi),abs(Eta)) / l - 0.5;
+        end
 
         function val = smoothRectangleRotated(x, x0, y0, sx, sy, p, phi)
 

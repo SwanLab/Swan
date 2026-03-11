@@ -23,6 +23,8 @@ classdef ElasticProblemMicro < handle
             obj.createTrialFun();
             obj.createBCApplier();
             obj.createSolver();
+            
+
         end
 
         function obj = solve(obj)
@@ -43,6 +45,74 @@ classdef ElasticProblemMicro < handle
             obj.strain = strainF;
             obj.stress = stressF;
         end
+        function plotMicroFields(obj, iB, scale)
+            if nargin < 3
+                scale = 1;
+            end
+        
+            mesh = obj.mesh;
+            coord = mesh.coord;
+        
+           
+            uFlucFun = obj.uFluc{iB};
+            uFluc = uFlucFun.fValues;          % [nNós, 2]
+        
+            
+            switch iB
+                case 1
+                    E = [1, 0; 0, 0];
+                case 2
+                    E = [0, 0; 0, 1];
+                case 3
+                    E = [0, 0.5; 0.5, 0];
+            end
+            uMacro = (E * coord')';
+        
+            
+            uTotal = uMacro + uFluc;
+        
+          
+            figure;
+            uPlotX = LagrangianFunction.create(mesh, 1, 'P1');
+            uPlotX.setFValues(uFluc(:,1));
+            uPlotX.plot;
+            title(['uFluc X — Base ', num2str(iB)]);
+            colorbar;
+        
+            
+            figure;
+            uPlotY = LagrangianFunction.create(mesh, 1, 'P1');
+            uPlotY.setFValues(uFluc(:,2));
+            uPlotY.plot;
+            title(['uFluc Y — Base ', num2str(iB)]);
+            colorbar;
+        
+           
+            figure;
+            uPlotTotX = LagrangianFunction.create(mesh, 1, 'P1');
+            uPlotTotX.setFValues(uTotal(:,1));
+            uPlotTotX.plot;
+            title(['uTotal X — Base ', num2str(iB)]);
+            colorbar;
+        
+            
+            figure;
+            uPlotTotY = LagrangianFunction.create(mesh, 1, 'P1');
+            uPlotTotY.setFValues(uTotal(:,2));
+            uPlotTotY.plot;
+            title(['uTotal Y — Base ', num2str(iB)]);
+            colorbar;
+        
+            
+            figure;
+            newCoord = coord + scale * uTotal;
+            trisurf(mesh.connec, newCoord(:,1), newCoord(:,2), zeros(size(newCoord,1),1));
+            axis equal;
+            title(['Malha deformada (scale=', num2str(scale), ') — Base ', num2str(iB)]);
+            view(2);
+        end
+
+
 
         function v = computeGeometricalVolume(obj)
             v = 1;%sum(sum(obj.geometry.dvolu));

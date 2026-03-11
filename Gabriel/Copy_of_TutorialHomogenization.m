@@ -35,30 +35,14 @@ classdef TutorialHomogenization < handle
 
     methods (Access = public)
         
-        function obj = TutorialHomogenization(c1,c2,alpha,meshN)
-
-            if nargin == 0
-                % modo padrão
-                obj.init();
-            else
-                obj.init();
-                obj.meshType = 'Square';
-                obj.c = [c1,c2];
-                obj.theta = [0,alpha];
-                obj.meshN = meshN;
-            end
-        
+        function obj = TutorialHomogenization()
+            obj.init();
             obj.defineMesh();
-        end
-        function [C,vf] = runAtVolume(obj,targetVF)
-
             obj.computeHoleParams();
             obj.compute();
-        
-            [~, idx] = min(abs(obj.volFrac - targetVF));
-            C = obj.Chomog(:,:,:,:,idx);
-            vf = obj.volFrac(idx);
-        
+            % obj.fitting();
+            obj.plot();
+            obj.printTensorAtVolume(0.5);
         end
       
     end
@@ -69,12 +53,12 @@ classdef TutorialHomogenization < handle
             obj.E          = 1;
             obj.nu         = 0.3;
             obj.meshType   = 'Square';
-            obj.meshN      = 40;
+            obj.meshN      = 80;
 
             obj.holeType   = 'Square';
             obj.pnorm      = 'Inf';
             % obj.damageType = 'Area';
-            obj.nSteps     = 20;
+            obj.nSteps     = 30;
 
             obj.monitoring = true;
         end
@@ -82,10 +66,8 @@ classdef TutorialHomogenization < handle
         function defineMesh(obj)
             switch obj.meshType
                 case 'Square'
-                    % s.c = [1,1];
-                    % obj.theta = [0,70];
-                    s.theta = obj.theta;
-                    s.c = obj.c;
+                    s.c = [1,1];
+                    obj.theta = [0,70];
                     s.theta = obj.theta;
                     obj.c     = s.c;
                     obj.theta = s.theta;

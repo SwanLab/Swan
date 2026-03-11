@@ -52,7 +52,7 @@ classdef VertexCoordinatesCalculator < handle
                 pos = NodeCoordinatesComputer.computeThePosition(c0,leng,angle);
                 if iSlave == obj.nodes.vert/2
                     if obj.vertCoord(1,:) ~= pos
-                        cprintf('red','CRYTICAL ERROR. Vertices computed wrongly \n');
+                        warning('CRITICAL ERROR. Vertices computed wrongly');
                     end
                 else
                     iMaster = obj.nodes.vert/2;

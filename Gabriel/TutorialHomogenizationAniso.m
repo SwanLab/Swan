@@ -1,4 +1,4 @@
-classdef TutorialHomogenization < handle
+classdef TutorialHomogenizationA < handle
 
     properties (Access = public)
         paramHole
@@ -19,10 +19,6 @@ classdef TutorialHomogenization < handle
         monitoring
         Mmass
         % lattice
-        theta
-        a1
-        a2
-        c
     end
 
     properties (Access = private)
@@ -30,35 +26,18 @@ classdef TutorialHomogenization < handle
         masterSlave
         test
         maxParam
-        
     end
 
     methods (Access = public)
         
-        function obj = TutorialHomogenization(c1,c2,alpha,meshN)
-
-            if nargin == 0
-                % modo padrão
-                obj.init();
-            else
-                obj.init();
-                obj.meshType = 'Square';
-                obj.c = [c1,c2];
-                obj.theta = [0,alpha];
-                obj.meshN = meshN;
-            end
-        
+        function obj = TutorialHomogenization()
+            obj.init();
             obj.defineMesh();
-        end
-        function [C,vf] = runAtVolume(obj,targetVF)
-
             obj.computeHoleParams();
             obj.compute();
-        
-            [~, idx] = min(abs(obj.volFrac - targetVF));
-            C = obj.Chomog(:,:,:,:,idx);
-            vf = obj.volFrac(idx);
-        
+            % obj.fitting();
+            obj.plot();
+            obj.printTensorAtVolume(0.5);
         end
       
     end
@@ -68,13 +47,13 @@ classdef TutorialHomogenization < handle
         function init(obj)
             obj.E          = 1;
             obj.nu         = 0.3;
-            obj.meshType   = 'Square';
-            obj.meshN      = 40;
+            obj.meshType   = 'Hexagon';
+            obj.meshN      = 80;
 
-            obj.holeType   = 'Square';
+            obj.holeType   = 'Circle';
             obj.pnorm      = 'Inf';
             % obj.damageType = 'Area';
-            obj.nSteps     = 20;
+            obj.nSteps     = 30;
 
             obj.monitoring = true;
         end
@@ -82,21 +61,12 @@ classdef TutorialHomogenization < handle
         function defineMesh(obj)
             switch obj.meshType
                 case 'Square'
-                    % s.c = [1,1];
-                    % obj.theta = [0,70];
-                    s.theta = obj.theta;
-                    s.c = obj.c;
-                    s.theta = obj.theta;
-                    obj.c     = s.c;
-                    obj.theta = s.theta;
-                    
-                    obj.a1 = obj.c(1) * [cosd(obj.theta(1)), sind(obj.theta(1))];
-                    obj.a2 = obj.c(2) * [cosd(obj.theta(2)), sind(obj.theta(2))];
+                    s.c = [1.2,0.6];
+                    s.theta = [0,90];
                     s.divUnit = obj.meshN;
                     s.filename = '';
                     MC = MeshCreator(s);
                     MC.computeMeshNodes();
-                    
                     % obj.lattice = MC.lattice;
                 case 'Hexagon'
                     s.c = [1.3,0.6,0.4];
@@ -191,18 +161,16 @@ classdef TutorialHomogenization < handle
                     % 
                     % gPar.xCoorCenter = 0.5;
                     % gPar.yCoorCenter = 0.5;
-                    % if size(coord,1) >= 4
-                    %     v1 = coord(1,:);
-                    %     v2 = coord(2,:);
-                    %     v3 = coord(3,:);          
-                    %     side1 = v2 - v1;
-                    %     phi = atan2(side1(2), side1(1));
-                    % else
-                    %     phi = 0;
-                    % end
-                     phi = atan2(obj.a1(2), obj.a1(1));
-                     gPar.a1 = obj.a1;
-                     gPar.a2 = obj.a2;
+                    if size(coord,1) >= 4
+                        v1 = coord(1,:);
+                        v2 = coord(2,:);
+                        v3 = coord(3,:);          
+                        side1 = v2 - v1;
+                        phi = atan2(side1(2), side1(1));
+                    else
+                        phi = 0;
+                    end
+                   
                 case 'Hexagon'
                     
                     if size(coord,1) >= 6
@@ -221,7 +189,6 @@ classdef TutorialHomogenization < handle
                     gPar.radius = l/2;
                 case 'Square'
                     gPar.length = l;
-                    
                 case 'SmoothRectangle'
                    % a1 = obj.lattice.a1(:);
                    % 
