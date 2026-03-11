@@ -105,15 +105,6 @@ classdef ElasticProblemMicro < handle
             nBasis = homogOrder*nDim*(nDim+1)/2;
         end
 
-        function dim = getFunDims(obj)
-            d.ndimf  = obj.trialFun.ndimf;
-            d.nnodes = size(obj.trialFun.fValues, 1);
-            d.ndofs  = d.nnodes*d.ndimf;
-            d.nnodeElem = obj.mesh.nnodeElem; % should come from interp..
-            d.ndofsElem = d.nnodeElem*d.ndimf;
-            dim = d;
-        end
-
         function createBCApplier(obj)
             s.mesh = obj.mesh;
             s.boundaryConditions = obj.boundaryConditions;

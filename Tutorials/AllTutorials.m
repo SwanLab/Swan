@@ -6,6 +6,7 @@ Tutorial00_2_Remeshing();
 run('Tutorial02_FEMElasticity.mlx');
 Tutorial02FEMElasticity();
 Tutorial02p2FEMElasticityMicro();
+Tutorial02p2FEMElasticityMicro3D();
 Tutorial02p3ElasticityAMG();
 
 run('Tutorial03_LevelSet.mlx');
@@ -25,6 +26,8 @@ Tutorial05_9_TopOpt2DDensityMicroNullSpace();
 Tutorial05_10_TopOptDensityBoundFormulationMacro();
 %TopOptViaHomogenizationTutorial(); % ALEX
 Tutorial05_11_TopOpt3DDensityMacroPython();
+Tutorial05_12_TopOpt2DDensityNonDesignableDomain();
+Tutorial05_13_TopOpt2DLevelSetNonDesignableDomain();
 
 % Tutorial06_ShapeOptimization -- PENDING
 
