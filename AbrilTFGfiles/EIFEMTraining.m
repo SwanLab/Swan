@@ -45,7 +45,7 @@ classdef EIFEMTraining < handle
 
             [data.uSbd,data.LHSsbd] = obj.extractDomainData(u,K);
 
-            obj.print(u);
+            % obj.print(u);
             % obj.print(data.uSbd);
 
              data.mesh= obj.mesh;

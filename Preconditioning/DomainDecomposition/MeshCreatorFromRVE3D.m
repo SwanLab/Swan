@@ -57,7 +57,7 @@ classdef MeshCreatorFromRVE3D < handle
             nX = obj.nSubdomains(1);
             nY = obj.nSubdomains(2);
             nZ = obj.nSubdomains(3);
-            figure(2)
+            % figure(2)
             for kDom = 1: nZ
                 for jDom = 1:nY
                     for iDom = 1:nX
@@ -120,7 +120,7 @@ classdef MeshCreatorFromRVE3D < handle
             nX = obj.nSubdomains(1);
             nY = obj.nSubdomains(2);
             nZ = obj.nSubdomains(3);
-            figure
+            % figure
             for kDom = 1:nZ
                 for jDom = 1:nY
                     for iDom = 1:nX
