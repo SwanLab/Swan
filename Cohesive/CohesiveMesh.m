@@ -156,7 +156,8 @@ classdef CohesiveMesh < handle
         end
         
         function newCoord = shiftCoordOfLeftAndRightElements(obj,newCoord,normals)
-            shiftVector = 0.5*([normals;zeros(1,size(normals,2))]+[zeros(1,size(normals,2));normals]);
+            shiftVector = 0.5*([normals;zeros(1,size(normals,2))]+ ...
+                [zeros(1,size(normals,2));normals]);
             shiftVector(1,:) = normals(1,:); shiftVector(end,:) = normals(end,:);
             shiftVector = shiftVector./vecnorm(shiftVector,2,2); %esta ordenat segons listCohesiveNodes
             

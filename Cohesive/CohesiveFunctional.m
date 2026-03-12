@@ -35,7 +35,7 @@ classdef CohesiveFunctional < handle
 
         function H = computeHessian(obj,u,quadOrder,?)
             %computeElementalCohesiveStiffnessMatrix()
-            %assambeeMatrix()   
+            %assambeeMatrix()
         end
         
     end

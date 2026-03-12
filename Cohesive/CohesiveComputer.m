@@ -52,9 +52,6 @@ classdef CohesiveComputer < handle
             
         end
 
-        
-        
-        
     end
     
 end

@@ -61,7 +61,7 @@ classdef Test < BaseFunction
                 nGauss = size(xV,2);
                 nEval = u.mesh.nelem;
                 Ni = zeros(ndimf,nGauss,nEval);
-                Ni(dim,:,:) = repmat(N(node,:),[1 1 nEval]);
+                Ni(dim,:,:) = repmat(N(node,:),[1 1 nEval]);%2x2 [-cos
             end
         end
 
