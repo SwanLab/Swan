@@ -20,7 +20,6 @@ classdef NonSelfAdjointComplianceFunctional < handle
         function obj = NonSelfAdjointComplianceFunctional(cParams)
             obj.init(cParams);
             obj.createQuadrature();
-            obj.createAdjointProblem(cParams);
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
@@ -39,10 +38,11 @@ classdef NonSelfAdjointComplianceFunctional < handle
 
     methods (Access = private)
         function init(obj,cParams)
-            obj.mesh         = cParams.mesh;
-            obj.filter       = cParams.filter;
-            obj.material     = cParams.material;
-            obj.stateProblem = cParams.stateProblem;
+            obj.mesh           = cParams.mesh;
+            obj.filter         = cParams.filter;
+            obj.material       = cParams.material;
+            obj.stateProblem   = cParams.stateProblem;
+            obj.adjointProblem = cParams.adjointProblem;
         end
 
         function createQuadrature(obj)
@@ -86,26 +86,6 @@ classdef NonSelfAdjointComplianceFunctional < handle
                 obj.value0 = J;
             end
             J = J/obj.value0;
-        end
-
-        function createAdjointProblem(obj,cParams)
-            file                 = cParams.filename;
-            [fAdj, fAdj2]        = Preprocess.getBC_adjoint(file, obj.mesh);
-            a.fileName           = file;
-            s                    = FemDataContainer(a);
-            s.bc.pointload       = fAdj;
-            s.newBC.pointloadFun = fAdj2;
-            bcAdj = obj.getAdjointBoundaryConditions(fAdj2);
-            s.boundaryConditions.tractionFun   = bcAdj.tractionFun;
-            obj.adjointProblem = PhysicalProblem.create(s);
-        end
-        
-        function bc = getAdjointBoundaryConditions(obj, fAdj2)
-            a.mesh         = obj.mesh;
-            a.pointloadFun = fAdj2;
-            a.dirichletFun = [];
-            a.periodicFun  = [];
-            bc             = BoundaryConditions(a);
         end
     end
 
