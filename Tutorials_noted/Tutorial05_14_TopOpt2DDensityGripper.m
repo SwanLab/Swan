@@ -46,7 +46,7 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
         end
 
         function createMesh(obj)
-            file = 'Gripping';
+            file = 'Gripping'; 
             obj.filename = file;
             a.fileName = file;
             s = FemDataContainer(a);
@@ -192,7 +192,7 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 20;
             s.tolerance      = 1e-8;
             s.constraintCase = {'INEQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
@@ -222,32 +222,32 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
         end
 
         function bc = createBoundaryConditions(obj)
-            isDir   = @(coor)  coor(:,2)>=0.49 & coor(:,2)<=0.51 & coor(:,1)<=0.1+1e-8 | coor(:,2)>=0.49 & coor(:,2)<=0.51 & coor(:,1)>=1-1e-8;
+            isDir   = @(coor)  coor(:,2)>=0.49 & coor(:,2)<=0.51 & coor(:,1)<=0.1+1e-8 | coor(:,2)>=0.49 & coor(:,2)<=0.51 & coor(:,1)>=1-1e-8; % middle point of the gripping right part
 
-            isPLTopRight      = @(coor)  (abs(coor(:,1)) >= 0.92 & coor(:,2) == 1 );
-            isPLBottomRight   = @(coor)  (abs(coor(:,1)) >= 0.92 & abs(coor(:,2)) <= 1e-8 ); % not exactly 0 in the mesh
-            isPLTopGripper    = @(coor)  (abs(coor(:,1)) < 0.1  & coor(:,2) == 0.6 );
-            isPLBottomGripper = @(coor)  (abs(coor(:,1)) < 0.1  & coor(:,2) == 0.4 );
+            isPLTopRight      = @(coor)  (abs(coor(:,1)) >= 0.92 & coor(:,2) == 1 ); % top right part of the domain
+            isPLBottomRight   = @(coor)  (abs(coor(:,1)) >= 0.92 & abs(coor(:,2)) <= 1e-8 );% bottom right part of the domain % not exactly 0 in the mesh
+            isPLTopGripper    = @(coor)  (abs(coor(:,1)) < 0.1  & coor(:,2) == 0.6 ); % top part of the gripping zone
+            isPLBottomGripper = @(coor)  (abs(coor(:,1)) < 0.1  & coor(:,2) == 0.4 ); % bottom part of the gripping zone
 
-            sDir{1}.domain    = @(coor) isDir(coor);
+            sDir{1}.domain    = @(coor) isDir(coor); % fixed
             sDir{1}.direction = [1,2];
             sDir{1}.value     = 0;
 
             sPL{1}.domain    = @(coor) isPLTopRight(coor);
             sPL{1}.direction = 2;
-            sPL{1}.value     = -10;
+            sPL{1}.value     = -10; % downward force on the top right part
 
             sPL{2}.domain    = @(coor) isPLBottomRight(coor);
             sPL{2}.direction = 2;
-            sPL{2}.value     = +10;
+            sPL{2}.value     = +10; % upward force on the bottom right part
 
             sPL{3}.domain    = @(coor) isPLTopGripper(coor);
             sPL{3}.direction = 2;
-            sPL{3}.value     = +1;
+            sPL{3}.value     = +1; % upward force on the top part of the gripping zone (reaction)
 
             sPL{4}.domain    = @(coor) isPLBottomGripper(coor);
             sPL{4}.direction = 2;
-            sPL{4}.value     = -1;
+            sPL{4}.value     = -1; % downward force on the bottom part of the gripping zone (reaction)
 
             dirichletFun = [];
             for i = 1:numel(sDir)

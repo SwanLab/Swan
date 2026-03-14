@@ -40,8 +40,8 @@ classdef Tutorial05_2_TopOpt2DDensityMacroNullSpace < handle
             close all;
         end
 
-        function createMesh(obj)
-            obj.mesh = TriangleMesh(2,1,100,50);
+        function createMesh(obj) % Function specific for rectangular cantilever beam? Where is geometry?
+            obj.mesh = TriangleMesh(2,1,100,50); 
         end
 
         function createDesignVariable(obj)
@@ -165,8 +165,8 @@ classdef Tutorial05_2_TopOpt2DDensityMacroNullSpace < handle
         end
 
         function createPrimalUpdater(obj)
-            s.ub     = 1;
-            s.lb     = 0;
+            s.ub     = 1; % upper bound for the density
+            s.lb     = 0; % lower bound for the density
             s.tauMax = 1000;
             s.tau    = [];
             obj.primalUpdater = ProjectedGradient(s);
@@ -178,7 +178,7 @@ classdef Tutorial05_2_TopOpt2DDensityMacroNullSpace < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.maxIter        = 3;
-            s.tolerance      = 1e-8;
+            s.tolerance      = 1e-8; % tolerance for convergence 
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
             s.etaNorm        = 0.01;

@@ -62,7 +62,7 @@ classdef OptimizerNullSpace < handle
                 obj.printResults();
                 obj.updateIterInfo();
                 obj.plotVariable();
-                obj.updateMonitoring();
+                obj.updateMonitoring(); % updates plots of the monitoring window
                 obj.checkConvergence();
                 obj.designVariable.updateOld();
             end
@@ -263,16 +263,16 @@ classdef OptimizerNullSpace < handle
             DJ  = obj.cost.gradient;
             Dg  = obj.constraint.gradient;
             l   = obj.dualVariable.fun.fValues;
-            DmF = DJ+Dg*l;
+            DmF = DJ+Dg*l; % Merit gradient = cost gradient + lagrangian constraint gradient
             obj.meritGradient = DmF;
         end
 
         function checkStep(obj,x0)
-            mNew = obj.computeMeritFunction();
+            mNew = obj.computeMeritFunction(); % merit function with the new design
             x    = obj.designVariable.fun.fValues;
             etaN = obj.obtainTrustRegion();
             if mNew <= obj.mOldPrimal+1e-3  &&  norm(x-x0)/(norm(x0)+1) < etaN
-                obj.acceptableStep = true;
+                obj.acceptableStep = true; % accept the new design if merit is lower
                 obj.meritNew       = mNew;
                 obj.updateEtaMax();
             elseif obj.primalUpdater.isTooSmall()
@@ -325,19 +325,21 @@ classdef OptimizerNullSpace < handle
             l  = obj.dualVariable.fun.fValues;
             J  = obj.cost.value;
             h  = obj.constraint.value;
-            mF = J+l'*h;
+            mF = J+l'*h; % merit function = cost + lagrangian * constraint
         end
 
         function obj = checkConvergence(obj)
             value = obj.constraint.value;
             cases = obj.constraintCase;
+            % Converged if the change is smaller than tolerance AND
+            % constraint is met
             if abs(obj.meritNew - obj.meritOld) < obj.tolCost && Optimizer.checkConstraint(value,cases,obj.tolConstr)
                 obj.hasConverged = true;
                 if obj.primalUpdater.isTooSmall()
                     obj.primalUpdater.tau = 1;
                 end
             end
-            obj.meritOld = obj.meritNew;
+            obj.meritOld = obj.meritNew; % update merit
         end
 
         function updateIterInfo(obj)
