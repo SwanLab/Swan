@@ -22,6 +22,7 @@ classdef NonLinearFilterSegment < handle
         M
         K
         chiN
+        chiNOld
         kdhdN
         %isBoundFree
         dNIntegrator
@@ -38,40 +39,42 @@ classdef NonLinearFilterSegment < handle
 
         function [xF,errorVec] = compute(obj,fun,quadOrder)
             xF = copy(obj.trial);   
-            obj.computeInitialGuess(fun,quadOrder);
-            obj.updateDotProduct(obj.trial); 
-            %obj.createRHSShapeDerivative(quadOrder);
             obj.chiN = obj.createRHSShapeFunction(fun,quadOrder);
-            iter = 1;
-            dJ0 = obj.computeCostGradient(quadOrder);
-            error0 = Norm(dJ0,'L2');
-            error  = inf;
-            errorVec = [];
-            while error >= obj.tol  && iter<=10000 && error0>= obj.tol
-                valOld = obj.trial.fValues;
-                isAcceptable = false;
-                while not(isAcceptable)
-                    obj.createRHSDirectionalDerivative(quadOrder);
-                    obj.solveProblem();
-                    obj.updateDotProduct(obj.trial);
-                    dJ = obj.computeCostGradient(quadOrder);
-                    error = Norm(dJ,'L2');
-                    if error <= 1.05*error0
-                        obj.lineSearch = obj.lineSearch*1.1;
-                        isAcceptable = true;
-                    else
-                        obj.lineSearch = obj.lineSearch/2;
-                        obj.trial.setFValues(valOld);
+            if isempty(obj.chiNOld) || norm(obj.chiNOld-obj.chiN)/norm(obj.chiN)>=1e-6
+                obj.chiNOld = obj.chiN;
+                obj.computeInitialGuess(fun,quadOrder);
+                obj.updateDotProduct(obj.trial);
+                iter = 1;
+                dJ0 = obj.computeCostGradient(quadOrder);
+                error0 = Norm(dJ0,'L2');
+                error  = inf;
+                errorVec = [];
+                while error >= obj.tol  && iter<=10000 && error0>= obj.tol
+                    valOld = obj.trial.fValues;
+                    isAcceptable = false;
+                    while not(isAcceptable)
+                        obj.createRHSDirectionalDerivative(quadOrder);
+                        obj.solveProblem();
                         obj.updateDotProduct(obj.trial);
+                        dJ = obj.computeCostGradient(quadOrder);
+                        error = Norm(dJ,'L2');
+                        if error <= 1.05*error0
+                            obj.lineSearch = obj.lineSearch*1.1;
+                            isAcceptable = true;
+                        else
+                            obj.lineSearch = obj.lineSearch/2;
+                            obj.trial.setFValues(valOld);
+                            obj.updateDotProduct(obj.trial);
+                        end
                     end
+                    obj.updateBeta();
+                    iter = iter + 1;
+                    error0 = error;
+                    errorVec = [errorVec;error];
                 end
-                obj.updateBeta();
-                iter = iter + 1;
-                error0 = error;
-                errorVec = [errorVec;error];
+                obj.tol = max(obj.tol/1.01,1e-6);
             end
             xF.setFValues(obj.trial.fValues);
-            obj.tol = max(obj.tol/1.01,1e-6);
         end
 
         function updateEpsilon(obj,eps)
@@ -122,15 +125,7 @@ classdef NonLinearFilterSegment < handle
 
         function createDirectionalStiffnessMatrix(obj)
             k       = obj.direction.constant;
-          %  s.type  = 'AnisotropicStiffnessMatrix';
-          %  s.mesh  = obj.mesh;
-          %  s.test  = obj.trial;
-          %  s.trial = obj.trial;
             A = ConstantFunction.create(k*k',obj.mesh);
-          %  s.A     = A;
-          %  LHS     = LHSIntegrator.create(s);
-          %  K1   = LHS.compute();
-
             vF  = obj.trial;
             uF =  obj.trial;
             K2  = IntegrateLHS(@(u,v) DP(Grad(v),DP(A,Grad(u))'),vF,uF,obj.mesh,'Domain'); 
@@ -138,17 +133,6 @@ classdef NonLinearFilterSegment < handle
             obj.K = K2;
 
         end
-
-        % function createRHSShapeDerivative(obj,quadOrder)
-        %     s.mesh = obj.mesh;
-        %     s.type = 'ShapeDerivative';
-        %     s.quadratureOrder = quadOrder;
-        %     s.test = obj.trial;
-        %     obj.dNIntegrator = RHSIntegrator.create(s);
-        % 
-        % 
-        % 
-        % end
 
         function computeInitialGuess(obj,fun,quadOrder)
             rhoE1 = obj.trial;
@@ -194,11 +178,7 @@ classdef NonLinearFilterSegment < handle
         function createRHSDirectionalDerivative(obj,quadOrder)
             g         = obj.computeMeasureGradient();
             f         = obj.direction;
-            %obj.kdhdN = obj.dNIntegrator.compute(f.*g);
-
             obj.kdhdN = IntegrateRHS(@(v) DP(Grad(v),f.*g),obj.trial,obj.mesh,'Domain',quadOrder);
-
-            
         end
 
         function g = computeMeasureGradient(obj)
