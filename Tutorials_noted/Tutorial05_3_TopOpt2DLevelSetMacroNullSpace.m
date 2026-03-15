@@ -46,6 +46,13 @@ classdef Tutorial05_3_TopOpt2DLevelSetMacroNullSpace < handle
 
         function createDesignVariable(obj)
             s.type = 'Full';
+            % For holes
+            s.dim = 2;
+            s.nHoles = [4, 4];
+            s.totalLengths = [1, 1];
+            s.phases = [0, 0];
+            s.phiZero = 0.05;
+            %
             g      = GeometricalFunction(s);
             lsFun  = g.computeLevelSetFunction(obj.mesh);
             s.fun  = lsFun;
@@ -169,7 +176,7 @@ classdef Tutorial05_3_TopOpt2DLevelSetMacroNullSpace < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 25;
+            s.maxIter        = 10;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;

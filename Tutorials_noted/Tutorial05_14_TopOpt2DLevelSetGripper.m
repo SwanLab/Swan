@@ -1,4 +1,4 @@
-classdef Tutorial05_14_TopOpt2DDensityGripper < handle
+classdef Tutorial05_14_TopOpt2DLevelSetGripper < handle
 
     properties (Access = private)
         filename
@@ -20,7 +20,7 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
 
     methods (Access = public)
 
-        function obj = Tutorial05_14_TopOpt2DDensityGripper()
+        function obj = Tutorial05_14_TopOpt2DLevelSetGripper()
             obj.init();
             obj.createMesh();
             obj.createDesignVariable();
@@ -53,17 +53,23 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
             obj.mesh = s.mesh;
         end
 
-        function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(x(1,:,:)));
-            s.ndimf   = 1;
-            s.mesh    = obj.mesh;
-            aFun      = AnalyticalFunction(s);
-            s.fun     = aFun.project('P1');
-            s.mesh    = obj.mesh;
-            s.type = 'Density';
+        function createDesignVariable(obj) % from tutorial 3
+            s.type = 'Full';
+            % For holes
+            s.dim = 2;
+            s.nHoles = [8, 8];
+            s.totalLengths = [1, 1];
+            s.phases = [0, 0];
+            s.phiZero = 0.5;
+            %
+            g      = GeometricalFunction(s);
+            lsFun  = g.computeLevelSetFunction(obj.mesh);
+            s.fun  = lsFun;
+            s.mesh = obj.mesh;
+            s.type = 'LevelSet';
             s.plotting = true;
-            dens    = DesignVariable.create(s); 
-            obj.designVariable = dens;
+            ls     = DesignVariable.create(s);
+            obj.designVariable = ls;
         end
 
         function createFilter(obj)
@@ -74,7 +80,7 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
             obj.filter = f;
         end
 
-        function createMaterialInterpolator(obj)
+        function createMaterialInterpolator(obj) % from tutorial 3
             E0   = 1e-3;
             nu0  = 1/3;
             E1   = 1;
@@ -147,7 +153,7 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;
+            s.volumeTarget = 0.3; 
             s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
@@ -178,32 +184,32 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
             obj.dualVariable = l;
         end
 
-        function createPrimalUpdater(obj)
-            s.ub     = 1;
-            s.lb     = 0;
-            s.tauMax = 1000;
-            s.tau    = [];
-            obj.primalUpdater = ProjectedGradient(s);
+        function createPrimalUpdater(obj) % from tutorial 3
+            s.mesh = obj.mesh;
+            obj.primalUpdater = SLERP(s);
         end
 
-        function createOptimizer(obj)
+        function createOptimizer(obj) % from mix tutorial 3
             s.monitoring     = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 10;
+            s.maxIter        = 30;
             s.tolerance      = 1e-8;
             s.constraintCase = {'INEQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
             s.ub             = 1;
             s.lb             = 0;
             s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 0.1;
+            s.etaNormMin     = 0.02;
+            s.gJFlowRatio    = 0.2;
+            s.etaMax         = 1;
+            s.etaMaxMin      = 0.01;
             s.gif            = false;
-            s.gifName        = [];
-            s.printing       = false;
-            s.printName      = [];
+            s.gifName        = 'Tutorial05_14_LS';
+            s.printing       = true;
+            s.printName      = 'Tutorial05_14_LS';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -217,7 +223,7 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
             s.density              = f;
             s.materialInterpolator = obj.materialInterpolator;
             s.dim                  = '2D';
-            s.mesh = obj.mesh;
+            s.mesh                 = obj.mesh;
             m = Material.create(s);
         end
 
@@ -269,6 +275,7 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
         end
 
         function bc = createBoundaryConditionsAdjoint(obj)
+            
             isDir   = @(coor)  coor(:,2)>=0.49 & coor(:,2)<=0.51 & coor(:,1)<=0.1+1e-8 | coor(:,2)>=0.49 & coor(:,2)<=0.51 & coor(:,1)>=1-1e-8;
 
             isPLTopRight      = @(coor)  (abs(coor(:,1)) >= 0.92 & coor(:,2) == 1 );
@@ -306,5 +313,6 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
         end
+        % the adjoint has same Dirichlet but forces only on gripping zone
     end
 end
