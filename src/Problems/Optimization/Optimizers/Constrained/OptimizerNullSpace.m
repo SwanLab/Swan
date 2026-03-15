@@ -217,12 +217,13 @@ classdef OptimizerNullSpace < handle
         end
 
         function printResults(obj)
-            if obj.nIter/5==round(obj.nIter/5) % numb indicates every how many iters it prints 
+            numbIters = 5; % numb indicates every how many iters it prints
+            if obj.nIter/numbIters==round(obj.nIter/numbIters)  
                 if obj.gif
                     obtainGIF(obj.gifName,obj.designVariable,obj.nIter);
                 end
                 if obj.printing
-                    obj.designVariable.fun.print([obj.printName,'Iter',num2str(obj.nIter/10)]);
+                    obj.designVariable.fun.print([obj.printName,'Iter',num2str(obj.nIter/numbIters)]); 
                 end
             end
         end
