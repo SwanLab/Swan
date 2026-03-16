@@ -11,11 +11,11 @@ classdef CohesiveTractionSeparation < handle
             obj.law = CohesiveLawFactory.create(cParams); 
         end
 
-        function t = evaluate(obj, xV, jump)
+        function t = computeFunction(obj, xV, jump)
             t = obj.law.evaluate(xV,jump); %2x1 x(integration Point)
         end
 
-        function d = derivative(obj,xV, jump)
+        function d = computeDerivative(obj,xV, jump)
             d = obj.law.derivative(xV,jump); %2x2 x(integration Point) matriu diagonal
         end
 

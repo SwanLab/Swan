@@ -12,14 +12,20 @@ classdef CohesiveCubicLaw < handle
             obj.init(cParams)            
         end
 
-        function t = evaluate(obj,xV,jump)
+        function t = computeFunction(obj,jump)
 
-            t = 6.75.*obj.sigmaMax.*jump(xV).*(1-2.*jump(xV)+jump(xV).^2);
-
+            t = 6.75.*obj.sigmaMax.*jump.*(1-2.*jump+jump.^2);
+            
+            
+            % t es una domain 2x1
         end
 
-        function d = derivative(obj,jump)
+        function d = computeDerivative(obj,jump)
+
+
             d = 6.75 * obj.sigmaMax * (1 - 4*jump + 3*jump^2);
+
+
         end
         
     end
@@ -30,6 +36,12 @@ classdef CohesiveCubicLaw < handle
             obj.sigmaMax                = cParams.sigmaMax;
             obj.normalCharLength        = cParams.normalCharLength;
             obj.tangencialCharLength    = cParams.tangencialCharLength;
+        end
+
+        function eff = computeEffectiveJumps(obj,jump)
+            eff = norm( (1/obj.tangencialCharLength;0) * jump)
+
+
         end
         
     end

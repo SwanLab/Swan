@@ -3,6 +3,7 @@ classdef CohesiveMesh < handle
     properties (Access = public)
         mesh
         lineMesh
+        centerLineMesh
 
         listNodeCohesive
         listElemNextCohesive
@@ -51,6 +52,17 @@ classdef CohesiveMesh < handle
             subplot(1,2,2)
             obj.mesh.plot;
             title('CohesiveMesh')
+        end
+        
+        function createCenterLineMesh(obj)
+            coord = obj.lineMesh.coord;
+            nNodes = size(coord,1);
+            centerCoord = (coord(1:nNodes-1,:) + coord(2:nNodes,:))/2;
+            centerConnec = [(1:nNodes-2)' (2:nNodes-1)'];
+            s.coord  = centerCoord;
+            s.connec = centerConnec;
+            s.kFace  = -1;
+            obj.centerLineMesh = Mesh.create(s);
         end
     end
     
@@ -178,5 +190,8 @@ classdef CohesiveMesh < handle
             s.kFace  = -1;
             obj.lineMesh = Mesh.create(s);
         end
+       
+
+
     end
 end
