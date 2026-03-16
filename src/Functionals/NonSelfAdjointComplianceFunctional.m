@@ -27,12 +27,19 @@ classdef NonSelfAdjointComplianceFunctional < handle
             xR     = obj.filterDesignVariable(xD);
             [C,dC] = obj.computeTensorFunctionAndGradient(xR);
             uS     = obj.computeStateVariable(C);
+            % --- THE BYPASS ---
+            global FINAL_DISPLACEMENT;
+            FINAL_DISPLACEMENT = uS; 
+            % ------------------
+            % how to extract uS to plot deformed solution?
+
             uA     = obj.computeAdjointVariable(C);
             J      = obj.computeFunctionValue(C,uS,uA);
             dJ     = obj.computeGradient(dC{1},uS,uA);
             dJ     = {obj.filter.compute(dJ,2)};
             dJVal  = dJ{1}.fValues/obj.value0;
             dJ{1}.setFValues(dJVal);
+
         end
     end
 

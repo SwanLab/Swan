@@ -35,6 +35,7 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
             obj.createDualVariable();
             obj.createPrimalUpdater();
             obj.createOptimizer();
+            obj.printFinalDisplacement_v2();
         end
 
     end
@@ -192,7 +193,7 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 10;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'INEQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
@@ -202,8 +203,8 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
             s.gJFlowRatio    = 0.1;
             s.gif            = false;
             s.gifName        = [];
-            s.printing       = false;
-            s.printName      = [];
+            s.printing       = true;
+            s.printName      = ['Tutorial05_14_Dens'];
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -269,6 +270,10 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
         end
 
         function bc = createBoundaryConditionsAdjoint(obj)
+
+
+
+            
             isDir   = @(coor)  coor(:,2)>=0.49 & coor(:,2)<=0.51 & coor(:,1)<=0.1+1e-8 | coor(:,2)>=0.49 & coor(:,2)<=0.51 & coor(:,1)>=1-1e-8;
 
             isPLTopRight      = @(coor)  (abs(coor(:,1)) >= 0.92 & coor(:,2) == 1 );
@@ -305,6 +310,86 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
+        end
+    
+        function printFinalDisplacement_v2(obj) % works
+            % --- EXTRACT YOUR FINAL DATA ---
+            % Replace 'obj' with whatever your main framework object is called at the end
+            nodes = obj.mesh.coord;     
+            elements = obj.mesh.connec; 
+            
+            % Grab the raw vector from your saved variable
+            global FINAL_DISPLACEMENT;
+            u_raw = FINAL_DISPLACEMENT.fValues; 
+            
+            nNodes = size(nodes, 1);
+            
+            % --- RESHAPE THE DISPLACEMENT (BULLETPROOF STACKED) ---
+            nNodes = size(nodes, 1);
+            nComps = 2; % 2D problem
+            expected_length = nNodes * nComps;
+            
+            u_raw_clean = u_raw(1 : expected_length);
+            
+            % The (:) forces them to stand up as vertical columns!
+            u_X = u_raw_clean(1 : nNodes);
+            u_X = u_X(:); 
+            
+            u_Y = u_raw_clean(nNodes + 1 : end);
+            u_Y = u_Y(:);
+            
+            % Combine them side-by-side into a clean [N x 2] matrix
+            u_phys = [u_X, u_Y];
+            
+            % Ensure nodes are 3D for ParaView
+            if size(nodes, 2) == 2
+                nodes = [nodes, zeros(nNodes, 1)];
+            end
+            
+            % Ensure u_phys has a Z-component (add a column of zeros)
+            if size(u_phys, 2) == 2
+                u_phys = [u_phys, zeros(nNodes, 1)];
+            end
+            % ------------------------------------------------------
+            
+            % --- WRITE TO FILE ---
+            fid = fopen('Final_Displacements.vtk', 'w');
+            
+            fprintf(fid, '# vtk DataFile Version 2.0\n');
+            fprintf(fid, 'Custom FEM Results\n');
+            fprintf(fid, 'ASCII\n');
+            fprintf(fid, 'DATASET UNSTRUCTURED_GRID\n');
+            
+            % Write Nodes
+            fprintf(fid, 'POINTS %d float\n', nNodes);
+            fprintf(fid, '%f %f %f\n', nodes');
+            
+            % Write Elements
+            nElems = size(elements, 1);
+            ptsPerElem = size(elements, 2);
+            fprintf(fid, '\nCELLS %d %d\n', nElems, nElems * (ptsPerElem + 1));
+            
+            % Correct from MATLAB (1-based) to VTK (0-based) indexing
+            elemData = [(ptsPerElem * ones(nElems, 1)), elements - 1];
+            if ptsPerElem == 3      % Triangles
+                fprintf(fid, '%d %d %d %d\n', elemData');
+                cellType = 5; 
+            elseif ptsPerElem == 4  % Quads
+                fprintf(fid, '%d %d %d %d %d\n', elemData');
+                cellType = 9; 
+            end
+            
+            fprintf(fid, '\nCELL_TYPES %d\n', nElems);
+            fprintf(fid, '%d\n', cellType * ones(nElems, 1));
+            
+            % Write Displacements
+            fprintf(fid, '\nPOINT_DATA %d\n', nNodes);
+            fprintf(fid, 'VECTORS Displacement float\n');
+            fprintf(fid, '%f %f %f\n', u_phys');
+            
+            fclose(fid);
+            disp('Successfully wrote Final_Displacements.vtk!');
+
         end
     end
 end
