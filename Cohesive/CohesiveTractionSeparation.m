@@ -3,45 +3,26 @@ classdef CohesiveTractionSeparation < handle
     properties (Access = public)
         lawType
         law
-        normalCharLength
-        tangencialCharLength
     end
     
     methods (Access = public)
         
         function obj = CohesiveTractionSeparation(cParams)
-            obj.init(cParams) 
+            obj.law = CohesiveLawFactory.create(cParams); 
         end
 
-        function t = evaluate(obj, disp)
-            t = obj.law.evaluate(disp);
+        function t = evaluate(obj, xV, jump)
+            t = obj.law.evaluate(xV,jump); %2x1 x(integration Point)
         end
 
-        function d = derivative(obj,disp)
-            d = obj.law.derivative(disp);
+        function d = derivative(obj,xV, jump)
+            d = obj.law.derivative(xV,jump); %2x2 x(integration Point) matriu diagonal
         end
 
         
     end
     
     methods (Access = private)
-        
-        function init(obj,cParams)
-            obj.lawType = cParams.lawType;
-            obj.normalCharLength = cParams.normalCharLength;
-            obj.tangencialCharLength = cParams.tangencialCharLength;
-            obj.sigmaMax = cParams.sigmaMax;
-            
-            s.normalCharLength = obj.normalCharLength;
-            s.tangencialCharLength = obj.tangencialCharLength;
-            s.sigmaMax = obj.sigmaMax;
-            if isfield(cParams,'a'), s.a = cParams.a; end
-            if isfield(cParams,'b'), s.b = cParams.b; end
-        
-            obj.law = CohesiveLawFactory.create(obj.lawType, s); 
-              
-        end
-        
 
     end
     

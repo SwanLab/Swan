@@ -8,17 +8,18 @@ classdef CohesiveCubicLaw < handle
     
     methods (Access = public)
         
-        function obj = CubicCohesiveLaw(cParams)
+        function obj = CohesiveCubicLaw(cParams)
             obj.init(cParams)            
         end
 
-        function t = computeFunction(obj,disp)
-            % norm(disp)
-            t = 6.75*obj.sigmaMax*disp*(1-2*disp+disp^2); % no se si aixo esta be
+        function t = evaluate(obj,xV,jump)
+
+            t = 6.75.*obj.sigmaMax.*jump(xV).*(1-2.*jump(xV)+jump(xV).^2);
+
         end
 
-        function d = computeDerivative(obj,disp)
-            d = 6.75 * obj.sigmaMax * (1 - 4*disp + 3*disp^2);
+        function d = derivative(obj,jump)
+            d = 6.75 * obj.sigmaMax * (1 - 4*jump + 3*jump^2);
         end
         
     end
@@ -26,9 +27,9 @@ classdef CohesiveCubicLaw < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.sigmaMax = cParams.sigmaMax;
-            obj.normalCharLength = cParams.normalCharLength;
-            obj.tangencialCharLength = cParams.tangencialCharLength;
+            obj.sigmaMax                = cParams.sigmaMax;
+            obj.normalCharLength        = cParams.normalCharLength;
+            obj.tangencialCharLength    = cParams.tangencialCharLength;
         end
         
     end

@@ -57,7 +57,7 @@ classdef CohesiveMesh < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.separation = 0.001;
+            obj.separation = 0.1;
             obj.baseMesh = cParams.baseMesh;
         end
         

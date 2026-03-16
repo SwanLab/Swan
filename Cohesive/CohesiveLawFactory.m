@@ -1,13 +1,13 @@
 classdef CohesiveLawFactory
     methods(Static)
-        function law = create(lawType, params)
-            switch lawType
+        function law = create(cParams)
+            switch cParams.lawType
                 case 'Cubic'
-                    law = CohesiveCubicLaw(params);
+                    law = CohesiveCubicLaw(cParams);
                 case 'Bilinear'
-                    law = CohesiveBilinearLaw(params);
+                    law = CohesiveBilinearLaw(cParams);
                 case 'PPR'
-                    law = CohesiveLawPPR(params);
+                    law = CohesiveLawPPR(cParams);
                 otherwise
                     error('Unknown law type %s', lawType);
             end

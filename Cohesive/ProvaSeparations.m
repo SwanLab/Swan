@@ -4,7 +4,7 @@ clc;
 close all;
 
 % Crear LagrangianFunction sobre una cohesiveMesh
-mesh = UnitQuadMesh(4,4);
+mesh = UnitQuadMesh(2,2);
 
 ymin = min(mesh.coord(:,2));
 
@@ -22,9 +22,9 @@ comprovacio = 1;
 if comprovacio == 1
     separacio = -0.1;
     fValues(1,2) = separacio;
-    fValues(5,2) = separacio;
-    fValues(9,2) = separacio;
-    fValues(13,2) = separacio;
+    fValues(4,2) = separacio;
+    fValues(7,2) = separacio;
+
     u.setFValues(fValues);
 
 elseif comprovacio == 2
@@ -54,17 +54,15 @@ end
 %%
 
 s.cohesiveMesh = cohesiveMesh;
-s.u = u;
+s.uFun = u;
 s.ndimf = 2;
-separator = CohesiveSeparationComputer(s);
+separator = Jump(s);
 
-separator.compute(u);
 
-jump = separator.fun;
+jump = separator.jumpFun;
+xV = [-1 1];
 
-disp('Tangencial - Normal')
-disp(jump.fValues);
-
+separator.computeShapeFunctions(xV);
 
 
 
@@ -72,3 +70,15 @@ disp(jump.fValues);
 
 
 
+
+
+
+
+
+        s.lawType               = 'Cubic';
+        s.normalCharLength      = 0.01;
+        s.tangencialCharLength  = 0.01;
+        s.sigmaMax              = 1;
+
+constitutiveLaw = CohesiveTractionSeparation(s);
+constitutiveLaw.evaluate(xV,jump)
