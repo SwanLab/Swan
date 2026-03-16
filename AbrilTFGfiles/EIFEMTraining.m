@@ -45,7 +45,7 @@ classdef EIFEMTraining < handle
 
             [data.uSbd,data.LHSsbd] = obj.extractDomainData(u,K);
 
-            obj.print(u);
+            % obj.print(u);
             % obj.print(data.uSbd);
 
              data.mesh= obj.mesh;
@@ -91,9 +91,9 @@ classdef EIFEMTraining < handle
             obj.nSubdomains    = cParams.nSubdomains;
             obj.domainIndices  = cParams.domainIndices;
             obj.material       = cParams.material;
-            obj.levelSet       = cParams.levelSet;
-            obj.unfittedMesh   = cParams.unfittedMesh;
-            obj.tolSameNode    = 1e-10;
+            % obj.levelSet       = cParams.levelSet;
+            % obj.unfittedMesh   = cParams.unfittedMesh;
+            obj.tolSameNode    = 1e-18;
             obj.Coarseorder    = 1;
         end
 

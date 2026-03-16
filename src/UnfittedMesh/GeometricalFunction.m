@@ -51,17 +51,6 @@ classdef GeometricalFunction < handle
                     obj.computeInclusion(s);
 
                 case 'Rectangle'
-                   % sx = (cParams.xSide)/2;
-                   % sy = (cParams.ySide)/2;
-                    % sx = (1-cParams.xSide)/2;
-                    % sy = (1-cParams.ySide)/2;    
-                    % sx = cos(2*pi*sx);
-                    % sy = cos(2*pi*sy);                      
-                    % x0 = cParams.xCoorCenter;
-                    % y0 = cParams.yCoorCenter;
-                    % fH = @(x) max((x1(x)-x0)./(sx),(x2(x)-y0)./(sy)) - 1;
-                    % obj.fHandle = fH;
-
                     sx = cParams.xSide;
                     sy = cParams.ySide;
                     x0 = cParams.xCoorCenter;
@@ -81,18 +70,6 @@ classdef GeometricalFunction < handle
                     obj.computeInclusion(s);
 
                 case 'SmoothRectangle'
-                     % sx = (cParams.xSide)/2;
-                     % sy = (cParams.ySide)/2;
-                %   sx = (1-cParams.xSide)/2;
-                %   sy = (1-cParams.ySide)/2;    
-                %   sx = cos(2*pi*sx);
-                %   sy = cos(2*pi*sy);                      
-                    % x0 = cParams.xCoorCenter;
-                    % y0 = cParams.yCoorCenter;
-                    % p  = cParams.pnorm;
-                    % fH = @(x) (((x1(x)-x0)./(sx)).^p+((x2(x)-y0)./(sy)).^p).^(1/p) - 1;
-                    % obj.fHandle = fH;
-
                     sx = cParams.xSide;
                     sy = cParams.ySide;
                     x0 = cParams.xCoorCenter;
@@ -118,7 +95,7 @@ classdef GeometricalFunction < handle
                     y0 = cParams.yCoorCenter;
                     fH = @(x) (x1(x)-x0).^2+(x2(x)-y0).^2-r^2;
                     obj.fHandle = fH;
-                    
+
                 case 'EllipseInclusion'
                     s      = cParams;
                     s.type = 'Ellipse';
@@ -314,6 +291,10 @@ classdef GeometricalFunction < handle
                         ));
                     obj.fHandle = fH;
 
+                case 'GivenPattern'
+                    paramsList = cParams.paramsList(:);
+                    fH = @(x) obj.computePattern(x,paramsList);
+                    obj.fHandle = fH;
             end
 
         end
@@ -323,7 +304,6 @@ classdef GeometricalFunction < handle
             fH          = obj.fHandle;
             obj.fHandle = @(x) -fH(x);
         end
-
     end
 
     methods (Access = private, Static)
@@ -345,11 +325,37 @@ classdef GeometricalFunction < handle
         end
 
         function fH = computeCircles(x,x0,y0,r)
-            n = length(r);
+            r   = r(:);
+            x0  = x0(:);
+            y0  = y0(:);
+            n   = length(r);
+
             for i =1:n
                 f(:,:,:,i) = (x(1,:,:)-x0(i)).^2+(x(2,:,:)-y0(i)).^2-r(i)^2;
             end   
             fH = min(f,[],4);
+        end
+
+        function fH = computePattern(x,paramsList)
+            n = numel(paramsList);
+            for i = 1:n
+                geomFun = GeometricalFunction(paramsList(i));
+                fh = geomFun.getHandle();
+                f(:,:,:,i) = fh(x);
+            end
+            fH = min(f,[],4);
+        end
+
+        function idx = findSubdomain(x, y, x0, y0, Lx, Ly)
+            % Calcula el índice (i,j) del subdominio para cada punto
+            i = floor((y - min(y0(:))) / Ly) + 1;
+            j = floor((x - min(x0(:))) / Lx) + 1;
+
+            % Asegurar que no exceda el tamaño de la matriz
+            i = min(max(i,1), size(x0,1));
+            j = min(max(j,1), size(x0,2));
+
+            idx = sub2ind(size(x0), i, j);
         end
 
     end

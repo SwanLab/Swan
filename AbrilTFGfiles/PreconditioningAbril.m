@@ -7,19 +7,21 @@
 
 % case parameters
 s.Training  = 'EIFEM';            % 'EIFEM'/'Multiscale'
-s.Inclusion = 'Material';         % 'Hole'/'Material'/'HoleRaul'   --> Hole: just for constant r
+s.Inclusion = 'HoleRaul';         % 'Hole'/'Material'/'HoleRaul'   --> Hole: just for constant r
 s.Sampling  = 'Oversampling';     % 'Isolated'/'Oversampling'
 s.Option    = [];                 % 'Dataset'/'NN'/'HO'/ 'Hybrid'
 s.nelem     =  20;                %  Mesh refining
 s.Print     = false;
 
 % Definition of Subdomains
-s.r= ones(10,10)*0.1;
+% s.r= ones(10,10)*0.1;
 % s.r = ones(5,15)*0.1;
 % s.r = [0.1,0.2,0.3,0.4,0.5
 %          0.1,0.2,0.3,0.4,0.5
 %          0.1,0.2,0.3,0.4,0.5];
-
+s.r=[0.1,0.2,0.3
+     0.4,0.5,0.6
+     0.7,0.8,0.9];
 
 
 %% DATASET OPTION

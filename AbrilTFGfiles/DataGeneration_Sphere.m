@@ -13,7 +13,7 @@ r=0.5;
 
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
 p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
-p.nelem      = 5;
+p.nelem      = 20;
 meshName     = p.nelem+"x"+p.nelem;
 
 %% DATA GENERATION
