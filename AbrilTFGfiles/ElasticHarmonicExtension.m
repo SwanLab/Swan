@@ -44,7 +44,7 @@ classdef ElasticHarmonicExtension < handle
         function LHS=computeLHS(obj,K)
             f = @(u,v) DP(v,u);
             C = IntegrateLHS(f,obj.uFun,obj.lambdaFun,obj.mesh,'Boundary',2); 
-            Z  = zeros(obj.lambdaFun.nDofs);
+            Z  = sparse(obj.lambdaFun.nDofs,obj.lambdaFun.nDofs);
             LHS = [K C; C' Z];
         end   
 
@@ -55,7 +55,7 @@ classdef ElasticHarmonicExtension < handle
                 f = @(v) DP(v,uD{iD});
                 rDir(:,iD)= IntegrateRHS(f,obj.lambdaFun,obj.mesh,'Boundary',2);
             end
-            Z   = zeros(obj.uFun.nDofs,numel(uD));
+            Z   = sparse(obj.uFun.nDofs,numel(uD));
             RHS = [Z; rDir];
         end      
 
