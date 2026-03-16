@@ -28,7 +28,7 @@ classdef PerimeterConstraint < handle
             obj.epsilon    = cParams.epsilon;
             obj.minEpsilon = cParams.minEpsilon;
             obj.target     = cParams.target;
-            obj.target0    = obj.target*0.01;
+            obj.target0    = cParams.target0;
             obj.perimeter  = PerimeterFunctional(cParams);
             obj.value0     = cParams.value0;
             obj.valueOld   = -inf;
@@ -47,7 +47,7 @@ classdef PerimeterConstraint < handle
 
         function updateEpsilonForNextIteration(obj,J) % Cuando la suma de grays empieza a decaer puede provocar tmb la decay de epsilon
             %if abs(J)<=1e-2
-            if J-obj.valueOld<0 || abs(J)<=1e-2
+            if (J-obj.valueOld<0 && J>1e-2) || abs(J)<=1e-2
                 obj.epsilon = obj.epsilon/1.01;
                 obj.epsilon = max(obj.epsilon,obj.minEpsilon);
                 obj.perimeter.updateEpsilon(obj.epsilon);
