@@ -29,7 +29,7 @@ classdef OptimizerPhaseField < handle
                 [u,F,costArray,iterU]   = obj.updateDisplacement(u,theta,phi,bc.u,costArray);
                 iter.u = max(iterU,iter.u);
 
-                [theta] = obj.updateOrientation(u,phi);
+                [theta] = obj.updateOrientation(u,theta,phi);
 
                 [phi,costArray,iterPhi] = obj.updateDamage(u,theta,phi,bc,costArray);
                 iter.phi = max(iterPhi,iter.phi);
@@ -57,27 +57,27 @@ classdef OptimizerPhaseField < handle
             obj.tol        = cParams.tolerance.stag;
             obj.maxIter    = cParams.maxIter.stag;
             obj.displacementUpdater = PhaseFieldDisplacementUpdater(cParams);
-            obj.angleUpdater        = PhaseFieldAngleUpdater(cParams);
+            obj.angleUpdater        = PhaseFieldAngleUpdater();
             obj.damageUpdater       = PhaseFieldDamageUpdater(cParams);
         end
 
-        function [u,F,costArray,iter] = updateDisplacement(obj,u,phi,bc,costArray)
+        function [u,F,costArray,iter] = updateDisplacement(obj,u,theta,phi,bc,costArray)
             dispUpdater = obj.displacementUpdater;
-            [u,F,costArray,iter] = dispUpdater.update(u,phi,bc,costArray);
+            [u,F,costArray,iter] = dispUpdater.update(u,theta,phi,bc,costArray);
         end
 
-        function [theta] = updateOrientation(obj,u,phi)
+        function [theta] = updateOrientation(obj,u,theta,phi)
             thetaUpdater = obj.angleUpdater;
-            [theta] = thetaUpdater.update(u,phi);
+            [theta] = thetaUpdater.update(u,theta,phi);
         end
 
-        function [phi,costArray,iter] = updateDamage(obj,u,phi,bc,costArray)
+        function [phi,costArray,iter] = updateDamage(obj,u,theta,phi,bc,costArray)
             dmgUpdater = obj.damageUpdater;
-            [phi,costArray,iter] = dmgUpdater.update(u,phi,bc,costArray);
+            [phi,costArray,iter] = dmgUpdater.update(u,theta,phi,bc,costArray);
         end
 
-        function [e, cost] = computeErrorCost(obj,u,phi,bc,costOld)
-            cost = obj.functional.computeCost(u,phi,bc);
+        function [e, cost] = computeErrorCost(obj,u,theta,phi,bc,costOld)
+            cost = obj.functional.computeCost(u,theta,phi,bc);
             e = cost - costOld;
         end
 

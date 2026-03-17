@@ -15,14 +15,14 @@ classdef PhaseFieldDamageUpdater < handle
             obj.init(cParams);
         end
 
-        function [phi,costArray,iter] = update(obj,u,phi,bc,costArray)
+        function [phi,costArray,iter] = update(obj,u,theta,phi,bc,costArray)
             iter = 1; err = 1; costOld = costArray(end);
             while (abs(err) > obj.tol) && (iter < obj.maxIter)
-                LHS = obj.functional.computePhaseFieldLHS(u,phi);
-                RHS = obj.functional.computePhaseFieldRHS(u,phi);
-                [phi,tau] = obj.solver.update(LHS,RHS,phi,u,bc,costOld);
+                LHS = obj.functional.computePhaseFieldLHS(u,theta,phi);
+                RHS = obj.functional.computePhaseFieldRHS(u,theta,phi);
+                [phi,tau] = obj.solver.update(LHS,RHS,phi,u,theta,bc,costOld);
 
-                [err, cost] = obj.computeErrorCost(u,phi,bc.u,costOld);
+                [err, cost] = obj.computeErrorCost(u,theta,phi,bc.u,costOld);
                 costArray(end+1) = cost;
                 costOld = cost;
 
@@ -56,8 +56,8 @@ classdef PhaseFieldDamageUpdater < handle
             end
         end
 
-        function [e, cost] = computeErrorCost(obj,u,phi,bc,costOld)
-            cost = obj.functional.computeCost(u,phi,bc);
+        function [e, cost] = computeErrorCost(obj,u,theta,phi,bc,costOld)
+            cost = obj.functional.computeCost(u,theta,phi,bc);
             e = cost - costOld;
         end
 

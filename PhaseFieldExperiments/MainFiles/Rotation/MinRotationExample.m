@@ -1,10 +1,10 @@
 clc,clear,close all
 % 
 matInfo = load('HorizontalCrackDamage.mat');
-funMat = matInfo.degradationFun.fun;
+funMat = matInfo.degradationFun.dfun;
 
 % Strain state
- eps = [1 0; 0 0]; % Traction X
+% eps = [1 0; 0 0]; % Traction X
 % eps = [0 0; 0 1]; % Traction Y
 % eps = [0 1; 1 0]; % Pure shear
 % eps = [1 0; 0 -1]; % Possion
@@ -42,15 +42,18 @@ Rsig = [(1+cos(2*theta))/2 , (1-cos(2*theta))/2 , sin(2*theta)   ;
 % C(2,2)= 2*mu+l;
 % C(3,3)= mu;
 
-phi   = linspace(0,1,10);
+%phi   = linspace(0,1,10);
+phi = 0;
+nDmg = length(phi);
+
 colors = jet(10);
 colors2 = copper(10);
-epsAngle = zeros(2,10);
-sigAngle = zeros(2,10);
-Esol = cell(1,10);
-thetaSol = cell(1,10);
+epsAngle = zeros(2,nDmg);
+sigAngle = zeros(2,nDmg);
+Esol = cell(1,nDmg);
+thetaSol = cell(1,nDmg);
 
-for i=1:10
+for i=1:nDmg
 
 % Compute degraded material
 C = zeros(3,3);
@@ -81,7 +84,7 @@ for k=1:size(sigAngle,1)
 end
 
 % Compute energy minimum
-energy = epsV'*Rsig*C*Reps*epsV;
+energy = -epsV'*Rsig*C*Reps*epsV;
 dRsig = diff(Rsig,theta);
 dReps = diff(Reps,theta);
 

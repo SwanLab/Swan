@@ -14,14 +14,14 @@ classdef PhaseFieldDisplacementUpdater < handle
             obj.init(cParams);
         end
 
-        function [u,F,costArray,iter] = update(obj,u,phi,bc,costArray)
+        function [u,F,costArray,iter] = update(obj,u,theta,phi,bc,costArray)
             i = 0; err = 1; costOld = costArray(end);
             while (abs(err) > obj.tol) && (i < obj.maxIter)
-                LHS = obj.functional.computeElasticLHS(u,phi);
-                RHS = obj.functional.computeElasticRHS(u,phi,bc);
+                LHS = obj.functional.computeElasticLHS(u,theta,phi);
+                RHS = obj.functional.computeElasticRHS(u,theta,phi,bc);
                 u.setFValues(obj.computeDisplacement(LHS,RHS,u,bc));
 
-                [err, cost] = obj.computeErrorCost(u,phi,bc,costOld);
+                [err, cost] = obj.computeErrorCost(u,theta,phi,bc,costOld);
                 costArray(end+1) = cost;
                 costOld = cost;
 
@@ -72,8 +72,8 @@ classdef PhaseFieldDisplacementUpdater < handle
             xNew = x + deltaX;
         end
 
-        function [e, cost] = computeErrorCost(obj,u,phi,bc,costOld)
-            cost = obj.functional.computeCost(u,phi,bc);
+        function [e, cost] = computeErrorCost(obj,u,theta,phi,bc,costOld)
+            cost = obj.functional.computeCost(u,theta,phi,bc);
             e = cost - costOld;
         end
 

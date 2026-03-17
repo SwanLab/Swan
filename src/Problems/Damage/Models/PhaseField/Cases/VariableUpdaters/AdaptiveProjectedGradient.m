@@ -14,18 +14,19 @@ classdef AdaptiveProjectedGradient < handle
 
         function [phi,varargout] = update(obj,hessian,gradient,phi,varargin)
             u = varargin{1};
-            bc = varargin{2};
-            costOld = varargin{3};
+            theta = varargin{2};
+            bc = varargin{3};
+            costOld = varargin{4};
             PG = obj.projectedGradient;
 
             phi.updateOld();
             phi = PG.update(gradient,phi,bc.phi);
-            [err,~] = computeErrorCost(obj,u,phi,bc.u,costOld);
+            [err,~] = computeErrorCost(obj,u,theta,phi,bc.u,costOld);
             while(err>0 && ~PG.isTooSmall())
                 phi.recoverOld();
                 PG.decreaseStepLength();
                 phi = PG.update(gradient,phi,bc.phi);
-                [err,~] = computeErrorCost(obj,u,phi,bc.u,costOld);
+                [err,~] = computeErrorCost(obj,u,theta,phi,bc.u,costOld);
             end
             tau = PG.tau;
             varargout{1} = tau;

@@ -28,7 +28,6 @@ classdef TestingPhaseField < handle
             obj.init(cParams) 
             obj.defineCase();
             obj.createInitialGuess(cParams);
-            obj.computeInitialDerivative(cParams)
             obj.createPhaseFieldFunctional()
         end
 
@@ -79,13 +78,21 @@ classdef TestingPhaseField < handle
                     phi = LagrangianFunction.create(obj.mesh,1,'P1');
                     phi = obj.setInitialDamage(phi);
                 end
+
+                if isfield(cParams.initialGuess,'theta')
+                    theta = cParams.initialGuess.theta;
+                else
+                    theta = LagrangianFunction.create(obj.mesh,1,'P1');
+                end
             else
                 u = LagrangianFunction.create(obj.mesh,2,'P1');
+                theta = LagrangianFunction.create(obj.mesh,1,'P1');
                 phi = LagrangianFunction.create(obj.mesh,1,'P1');
                 phi = obj.setInitialDamage(phi);
             end
             obj.initialGuess.u = u;
             obj.initialGuess.phi = obj.createDamageVariable(phi);
+            obj.initialGuess.theta = theta;
         end
 
         function phi = setInitialDamage(obj,phi)
@@ -106,13 +113,6 @@ classdef TestingPhaseField < handle
             phi = DesignVariable.create(s);
         end
 
-        function computeInitialDerivative(obj,cParams)
-            Gc = cParams.matInfo.Gc;
-            E = cParams.matInfo.young;
-            sigMax = cParams.matInfo.sigmaMax;
-            obj.initialDerivative = -2*(3/8)*(Gc/obj.l0)*E*(1/sigMax)^2;
-        end
-
         function createPhaseFieldFunctional(obj)
             s.mesh          = obj.mesh;
             s.material      = obj.createMaterialPhaseField();
@@ -122,7 +122,7 @@ classdef TestingPhaseField < handle
             s.quadOrder     = 3;
             s.testSpace.u   = obj.initialGuess.u;
             s.testSpace.phi = obj.initialGuess.phi.fun;
-            s.energySplit   = (obj.matInfo.matType == "AnalyticSplit");
+            s.testSpace.theta = obj.initialGuess.theta;
             obj.functional  = PhaseFieldFunctional(s);
         end
 

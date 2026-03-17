@@ -37,27 +37,27 @@ classdef TestingPhaseFieldHomogenizer < handle
             mat = zeros(2,2,2,2,nComb);
 
             %% Regular homogenization
-            % phi = zeros(1,nComb);
-            % for i=1:nComb
-            %     hole = comb(i,:);
-            %     if i==1
-            %         hole = 1e-5*ones(size(hole));
-            %     end
-            %     mat(:,:,:,:,i) = obj.computeHomogenization(hole,i);
-            %     phi(i)     = obj.computeDamageMetric(hole);
-            % end
+            phi = zeros(1,nComb);
+            for i=1:nComb
+                hole = comb(i,:);
+                if i==1
+                    hole = 1e-5*ones(size(hole));
+                end
+                mat(:,:,:,:,i) = obj.computeHomogenization(hole,i);
+                phi(i)     = obj.computeDamageMetric(hole);
+            end
             
             %% Initial degradation (tiniest possible hole)
-            l = 5e-3;
-            nuArray = linspace(-0.99,0.5,obj.nSteps);
-            obj.density = obj.createDensityLevelSet(l);
-            for i=1:nComb
-                obj.nu = nuArray(i);
-                obj.updateMonitoring(i);
-                material  = obj.createDensityMaterial(obj.density);
-                mat(:,:,:,:,i) = obj.solveElasticMicroProblem(material,obj.density);
-            end
-            phi  = obj.computeDamageMetric(5e-3);
+            % l = 5e-3;
+            % nuArray = linspace(-0.99,0.5,obj.nSteps);
+            % obj.density = obj.createDensityLevelSet(l);
+            % for i=1:nComb
+            %     obj.nu = nuArray(i);
+            %     obj.updateMonitoring(i);
+            %     material  = obj.createDensityMaterial(obj.density);
+            %     mat(:,:,:,:,i) = obj.solveElasticMicroProblem(material,obj.density);
+            % end
+            % phi  = obj.computeDamageMetric(5e-3);
 
             %mat = obj.assembleResults(mat);
             %phi = obj.assembleResults(phi);
@@ -114,7 +114,7 @@ classdef TestingPhaseFieldHomogenizer < handle
         end
 
         function paramHole = computeHoleParams(obj)
-            obj.maxParam = 0.99*ones(size(obj.nSteps));
+            obj.maxParam = ones(size(obj.nSteps));
             nParam = length(obj.maxParam);
             paramHole = cell(1,nParam);
             for i=1:nParam
@@ -162,6 +162,10 @@ classdef TestingPhaseFieldHomogenizer < handle
                 case 'Rectangle'
                     gPar.xSide  = l(1);
                     gPar.ySide  = l(2);
+                case 'Crack'
+                    gPar.type = 'Rectangle';
+                    gPar.xSide = l(1);
+                    gPar.ySide = (4/obj.meshN);
                 case 'Ellipse'
                     gPar.type = "SmoothRectangle";
                     gPar.xSide  = l(1);
@@ -226,33 +230,17 @@ classdef TestingPhaseFieldHomogenizer < handle
         function bc = createBoundaryConditions(obj,mesh)
             switch obj.meshType
                 case 'Square'
-                    isBottom = @(coor) (abs(coor(:,2) - min(coor(:,2))) < 1e-12);
                     isTop    = @(coor) (abs(coor(:,2) - max(coor(:,2))) < 1e-12);
-                    isRight  = @(coor) (abs(coor(:,1) - max(coor(:,1))) < 1e-12);
                     isLeft   = @(coor) (abs(coor(:,1) - min(coor(:,1))) < 1e-12);
-                    isVertex = @(coor) (isTop(coor) & isLeft(coor))    |...
-                                       (isTop(coor) & isRight(coor))   |...
-                                       (isBottom(coor) & isLeft(coor)) |...
-                                       (isBottom(coor) & isRight(coor));
+                    isVertex = @(coor) (isTop(coor) & isLeft(coor));
                     sDir{1}.domain    = @(coor) isVertex(coor);
                     sDir{1}.direction = [1,2];
                     sDir{1}.value     = 0;
                 case 'Hexagon'
-                    isBottom      = @(coor) (abs(coor(:,2) - min(coor(:,2))) < 1e-12);
-                    isTop         = @(coor) (abs(coor(:,2) - max(coor(:,2))) < 1e-12);
-                    
+                    isBottom      = @(coor) (abs(coor(:,2) - min(coor(:,2))) < 1e-12);                    
                     coorRotY = obj.defineRotatedCoordinates(pi/3);
                     isRightBottom = @(coor) (abs(coorRotY(coor) - min(coorRotY(coor))) < 1e-12);
-                    isLeftTop     = @(coor) (abs(coorRotY(coor) - max(coorRotY(coor))) < 1e-12);
-                    coorRotY = obj.defineRotatedCoordinates(-pi/3);
-                    isLeftBottom  = @(coor) (abs(coorRotY(coor) - min(coorRotY(coor))) < 1e-12);
-                    isRightTop    = @(coor) (abs(coorRotY(coor) - max(coorRotY(coor))) < 1e-12);
-                    isVertex = @(coor) (isBottom(coor) & isRightBottom(coor)); %|...
-                                       %(isRightBottom(coor) & isRightTop(coor))|...
-                                       %(isRightTop(coor) & isTop(coor))        |...
-                                       %(isTop(coor) & isLeftTop(coor))         |...
-                                       %(isLeftTop(coor) & isLeftBottom(coor))  |...
-                                       %(isLeftBottom(coor) & isBottom(coor))   ;
+                    isVertex = @(coor) (isBottom(coor) & isRightBottom(coor));
                     sDir{1}.domain    = @(coor) isVertex(coor);
                     sDir{1}.direction = [1,2];
                     sDir{1}.value     = 0;
@@ -284,6 +272,8 @@ classdef TestingPhaseFieldHomogenizer < handle
                             phi = l^2;
                         case {'Ellipse','Rectangle'}
                             phi = l(1)*l(2);
+                        case {'Crack'}
+                            phi = (4/obj.meshN)*l;
                         case {'SmoothHexagon','Hexagon'}
                             % perimeter = 6*l;
                             % apothem   = sqrt(l^2 - (l/2)^2);
@@ -302,8 +292,10 @@ classdef TestingPhaseFieldHomogenizer < handle
                         case 'Ellipse'
                             phi = pi*(3*(l(1)+l(2))-sqrt((3*l(1)+l(2))*(l(1)+3*l(2))))/...
                                   pi*(3*(2)-sqrt((3+1)*(1+3)));
-                        case 'Rectangle'
+                        case {'Rectangle'}
                             phi = (l(1)+l(2))/2;
+                        case{'Crack'}
+                            phi = (l+(4/obj.meshN))/2;
                         case {'ReinforcedHoneycomb'}
                             m = l/(2*sqrt(3));
                             h = sqrt(3)/2 - 3*m;

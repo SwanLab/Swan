@@ -1,25 +1,24 @@
 classdef PhaseFieldAngleUpdater < handle
     
     properties (Access = private)
-        monitor
     end
 
     methods (Access = public)
 
-        function obj = PhaseFieldAngleUpdater(cParams)
-            obj.init(cParams);
+        function obj = PhaseFieldAngleUpdater()
+            obj.init();
         end
 
-        function [theta] = update(obj,u,phi)
-
+        function [theta] = update(obj,u,theta,phi)
+            theta.setFValues((0)*ones(size(theta.fValues)));
+            %theta.setFValues((pi/2)*ones(size(theta.fValues)));
         end
 
     end
 
     methods (Access = private)
 
-        function init(obj,cParams)
-            obj.monitor    = cParams.monitor;
+        function init(obj)
         end
 
     end
