@@ -36,6 +36,49 @@ classdef TopOptPunzonLevelSet < handle
             figure(2)
             saveas(gcf,'Monitoring_PunzonLevelSet_Intent3.fig');
             obj.designVariable.fun.print('fValues_PunzonLevelSet_Intent3');
+            density= obj.designVariable.fun.fValues;
+            save('DensityLevelSet1','density');
+
+
+            % APPLY PDE FILTER
+            f=LagrangianFunction.create(obj.mesh,1,'P1');
+            f.setFValues(obj.designVariable.fun.fValues);
+            yMin = min(obj.mesh.coord(:,2));
+            yMax = max(obj.mesh.coord(:,2));
+            zMax = max(obj.mesh.coord(:,3));
+
+            % bolt domain
+            c1x= 584.37;    c1y= 28.562;
+            c2x= 584.37;    c2y= 68.562;
+            hBolt=60;       rBolt=6.5;
+
+            bolt1 = @(x) (x(:,1)-c1x).^2 + (x(:,2)-c1y).^2 <= rBolt^2 & ...
+                x(:,3) >= hBolt & x(:,3) <= zMax;
+            bolt2 = @(x) (x(:,1)-c2x).^2 + (x(:,2)-c2y).^2 <= rBolt^2 & ...
+                x(:,3) >= hBolt & x(:,3) <= zMax;
+
+            % Guides and bottom fixed
+            isBottom = @(x) x(:,3)<= -16;
+            guide1   = @(x) x(:,2)<= yMin+10.5;
+            guide2   = @(x) x(:,2)>= yMax-10.5;
+            % guide1   = @(x) x(:,2)<= 20.179;
+            % guide2   = @(x) x(:,2)>= 76.729;
+            isFixed  = computeFixedVolumeDomain(obj.mesh,...
+                @(x) guide1(x) | guide2(x) | isBottom(x)| bolt1(x) | bolt2(x),...
+                'Density');
+
+
+            isFixVals = zeros(size(f.fValues));
+            isFixVals(isFixed.nodes) = isFixed.values;
+            z.mesh=obj.mesh;
+            z.test=f;
+            z.trial=f;
+            z.filterType = 'PDEDir';
+            z.isFixed = LagrangianFunction.create(obj.mesh,1,'P1');
+            z.isFixed.setFValues(isFixVals);
+            filter = Filter.create(z);
+            fFilter2= filter.compute(f,2);
+            fFilter2.print('SolPunzonLvSetPDE');
         end
 
     end
@@ -70,15 +113,37 @@ classdef TopOptPunzonLevelSet < handle
 
 
             % DESCOMENTAR PER FIXED
-            % zMin     = min(obj.mesh.coord(:,3));
-            % isBottom = @(x) abs(x(:,3) - zMin) < 1e-6; % cara llisa
+            yMin = min(obj.mesh.coord(:,2));
+            yMax = max(obj.mesh.coord(:,2));
+            zMax     = max(obj.mesh.coord(:,3));
+
+            % bolt domain
+            c1x= 584.37;    c1y= 28.562;
+            c2x= 584.37;    c2y= 68.562;
+            hBolt=60;       rBolt=6.5;
+            
+            bolt1 = @(x) (x(:,1)-c1x).^2 + (x(:,2)-c1y).^2 <= rBolt^2 & ...
+                          x(:,3) >= hBolt & x(:,3) <= zMax;
+            bolt2 = @(x) (x(:,1)-c2x).^2 + (x(:,2)-c2y).^2 <= rBolt^2 & ...
+                          x(:,3) >= hBolt & x(:,3) <= zMax;
+
+            % guides and bottom fixed
+            isBottom = @(x) x(:,3)<= -16; 
+            guide1   = @(x) x(:,2)<= yMin+10.5;
+            guide2   = @(x) x(:,2)>= yMax-10.5;
             % guide1   = @(x) x(:,2)<= 20.179;
             % guide2   = @(x) x(:,2)>= 76.729;
-            % s.isFixed  = obj.computeFixedVolumeDomain(@(x) guide1(x) | guide2(x) | isBottom(x), s.type);
+            s.isFixed  = obj.computeFixedVolumeDomain(...
+                         @(x) guide1(x) | guide2(x) | isBottom(x)| bolt1(x) | bolt2(x));
 
             %---------------------------------------------------
             ls     = DesignVariable.create(s);
             obj.designVariable = ls;
+        end
+
+        function isFixed = computeFixedVolumeDomain(obj,cond)
+            coor    = obj.mesh.coord;
+            isFixed = find(cond(coor));
         end
 
         function createFilter(obj)
@@ -102,6 +167,7 @@ classdef TopOptPunzonLevelSet < handle
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
+            s.typeOfMaterial = 'ISOTROPIC';
             s.interpolation  = 'SIMPALL';
             s.dim            = '3D';
             s.matA = matA;
@@ -158,7 +224,7 @@ classdef TopOptPunzonLevelSet < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;
+            s.volumeTarget = 0.6;
             s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
@@ -193,7 +259,7 @@ classdef TopOptPunzonLevelSet < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 50;
+            s.maxIter        = 500;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
@@ -262,18 +328,6 @@ classdef TopOptPunzonLevelSet < handle
         end
 
 
-        function isFixed = computeFixedVolumeDomain(obj,cond,type)
-            coor  = obj.mesh.coord;
-            nodes = find(cond(coor));
-            isFixed.nodes = nodes;
-            switch type
-                case 'Density'
-                    values = ones(size(nodes));
-                case 'LevelSet'
-                    values = -ones(size(nodes));
-            end
-            isFixed.values = values;
-        end
     end
 
     methods(Access=private,Static)

@@ -12,7 +12,6 @@ classdef TopOptPunzonDensity < handle
         constraint
         primalUpdater
         optimizer
-        perimeter
     end
 
     methods (Access = public)
@@ -22,7 +21,6 @@ classdef TopOptPunzonDensity < handle
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
-            %obj.createPerimeter();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
             obj.createComplianceFromConstiutive();
@@ -36,12 +34,13 @@ classdef TopOptPunzonDensity < handle
             figure(2)
             saveas(gcf,'Monitoring_PunzonDensity_Intent6.fig');
             obj.designVariable.fun.print('fValues_PunzonDensity_Intent6');
+            density= obj.designVariable.fun.fValues;
+            save('DensityValues6','density');
 
             f=LagrangianFunction.create(obj.mesh,1,'P1');
             f.setFValues(obj.designVariable.fun.fValues);
             yMin = min(obj.mesh.coord(:,2));
             yMax = max(obj.mesh.coord(:,2));
-            zMin = min(obj.mesh.coord(:,3));
             zMax = max(obj.mesh.coord(:,3));
 
             % bolt domain
@@ -116,7 +115,6 @@ classdef TopOptPunzonDensity < handle
             % DESCOMENTAR PER FIXED
             yMin = min(obj.mesh.coord(:,2));
             yMax = max(obj.mesh.coord(:,2));
-            zMin     = min(obj.mesh.coord(:,3));
             zMax     = max(obj.mesh.coord(:,3));
 
             % bolt domain
@@ -129,19 +127,23 @@ classdef TopOptPunzonDensity < handle
             bolt2 = @(x) (x(:,1)-c2x).^2 + (x(:,2)-c2y).^2 <= rBolt^2 & ...
                           x(:,3) >= hBolt & x(:,3) <= zMax;
 
-            % Guides and bottom fixed
+            % guides and bottom fixed
             isBottom = @(x) x(:,3)<= -16; 
-            % guide1   = @(x) x(:,2)<= yMin+10.5;
-            % guide2   = @(x) x(:,2)>= yMax-10.5;
-            guide1   = @(x) x(:,2)<= 20.179;
-            guide2   = @(x) x(:,2)>= 76.729;
+            guide1   = @(x) x(:,2)<= yMin+10.5;
+            guide2   = @(x) x(:,2)>= yMax-10.5;
+            % guide1   = @(x) x(:,2)<= 20.179;
+            % guide2   = @(x) x(:,2)>= 76.729;
             s.isFixed  = obj.computeFixedVolumeDomain(...
-                         @(x) guide1(x) | guide2(x) | isBottom(x)| bolt1(x) | bolt2(x),...
-                         s.type);
+                         @(x) guide1(x) | guide2(x) | isBottom(x)| bolt1(x) | bolt2(x));
 
             %---------------------------------------------------
             ls     = DesignVariable.create(s);
             obj.designVariable = ls;
+        end
+
+        function isFixed = computeFixedVolumeDomain(obj,cond)
+            coor    = obj.mesh.coord;
+            isFixed = find(cond(coor));
         end
 
         function createFilter(obj)
@@ -152,7 +154,6 @@ classdef TopOptPunzonDensity < handle
             obj.filter = f;
         end
 
-     
 
         function createMaterialInterpolator(obj)
             E0 = 1e-3;
@@ -249,11 +250,14 @@ classdef TopOptPunzonDensity < handle
         end
 
         function createPrimalUpdater(obj)
-             s.ub     = 1;
-             s.lb     = 0;
-             s.tauMax = 1000;
-             s.tau    = [];
-             obj.primalUpdater = ProjectedGradient(s);
+            rho      = obj.designVariable;
+            fixedDof = rho.getFixedDofs();
+            s.ub     = ones(size(rho.fun.fValues));
+            s.lb     = zeros(size(rho.fun.fValues));
+            s.lb(fixedDof) = 1;
+            s.tauMax = 1000;
+            s.tau    = [];
+            obj.primalUpdater = ProjectedGradient(s);
         end
 
         function createOptimizer(obj)
@@ -328,18 +332,5 @@ classdef TopOptPunzonDensity < handle
             bc = BoundaryConditions(s);
         end
 
-
-        function isFixed = computeFixedVolumeDomain(obj,cond,type)
-            coor  = obj.mesh.coord;
-            nodes = find(cond(coor));
-            isFixed.nodes = nodes;
-            switch type
-                case 'Density'
-                    values = ones(size(nodes));
-                case 'LevelSet'
-                    values = -ones(size(nodes));
-            end
-            isFixed.values = values;
-        end
     end
 end
