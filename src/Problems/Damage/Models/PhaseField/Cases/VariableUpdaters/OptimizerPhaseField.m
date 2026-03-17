@@ -12,6 +12,7 @@ classdef OptimizerPhaseField < handle
 
     properties (Access = private)
         displacementUpdater
+        angleUpdater
         damageUpdater
     end
 
@@ -21,17 +22,19 @@ classdef OptimizerPhaseField < handle
             obj.init(cParams);
         end
 
-        function [u,phi,F,costArray,iter] = compute(obj,u,phi,bc,costArray)
+        function [u,theta,phi,F,costArray,iter] = compute(obj,u,theta,phi,bc,costArray)
             iter.u = 1; iter.phi = 1; iter.stag = 1;
             i = 0; err = 1; costOld = costArray(end);
             while (abs(err) > obj.tol) && (i < obj.maxIter)
-                [u,F,costArray,iterU]   = obj.updateDisplacement(u,phi,bc.u,costArray);
+                [u,F,costArray,iterU]   = obj.updateDisplacement(u,theta,phi,bc.u,costArray);
                 iter.u = max(iterU,iter.u);
 
-                [phi,costArray,iterPhi] = obj.updateDamage(u,phi,bc,costArray);
+                [theta] = obj.updateOrientation(u,phi);
+
+                [phi,costArray,iterPhi] = obj.updateDamage(u,theta,phi,bc,costArray);
                 iter.phi = max(iterPhi,iter.phi);
 
-                [err, cost] = obj.computeErrorCost(u,phi,bc.u,costOld);
+                [err, cost] = obj.computeErrorCost(u,theta,phi,bc.u,costOld);
                 costArray(end+1) = cost;
                 costOld = cost;
         
@@ -54,12 +57,18 @@ classdef OptimizerPhaseField < handle
             obj.tol        = cParams.tolerance.stag;
             obj.maxIter    = cParams.maxIter.stag;
             obj.displacementUpdater = PhaseFieldDisplacementUpdater(cParams);
+            obj.angleUpdater        = PhaseFieldAngleUpdater(cParams);
             obj.damageUpdater       = PhaseFieldDamageUpdater(cParams);
         end
 
         function [u,F,costArray,iter] = updateDisplacement(obj,u,phi,bc,costArray)
             dispUpdater = obj.displacementUpdater;
             [u,F,costArray,iter] = dispUpdater.update(u,phi,bc,costArray);
+        end
+
+        function [theta] = updateOrientation(obj,u,phi)
+            thetaUpdater = obj.angleUpdater;
+            [theta] = thetaUpdater.update(u,phi);
         end
 
         function [phi,costArray,iter] = updateDamage(obj,u,phi,bc,costArray)

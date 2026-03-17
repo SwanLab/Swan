@@ -13,23 +13,16 @@ classdef InternalEnergyRotationFunctional < handle
             obj.init(cParams)            
         end
         
-        function F = computeFunction(obj,u,phi,quadOrder)
-            alpha = obj.updateRotation(u,phi);
+        function F = computeFunction(obj,u,theta,phi,quadOrder)
             C = obj.material.obtainTensor(phi);
             sigma = DDP(C{1},SymGrad(u));
             energyFun = DDP(SymGrad(u),sigma);
             int = Integrator.create('Function',obj.mesh,quadOrder);
             F = 0.5*int.compute(energyFun);
 
-            obj.computeStressPrincipalDirections(sigma)
         end
 
-        function computeStressPrincipalDirections(obj,sigma)
-
-        end
-
-        function Ju = computeGradientDisplacement(obj,u,phi,quadOrder)
-            alpha = obj.updateRotation(u,phi);
+        function Ju = computeGradientDisplacement(obj,u,theta,phi,quadOrder)
             C = obj.material.obtainTensor(phi);
             sigma = DDP(C{1},SymGrad(u));
             test = obj.testU;
