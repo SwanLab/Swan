@@ -1,4 +1,4 @@
-classdef TutorialShells < handle
+classdef TutorialShellsDinamica < handle
 
 
     properties (Access = private)
@@ -17,49 +17,71 @@ classdef TutorialShells < handle
 
     methods (Access = public)
 
-        function obj = TutorialShells()
+        function obj = TutorialShellsDinamica()
             obj.createMesh()
             obj.createMaterialProperties()
-            %obj.createLaminateProperties()
             obj.createSolutionField()
             
             obj.createBoundaryConditions()
-            LHS = obj.createLHS();
+            [LHS, mLHS] = obj.createLHS();
             RHS = obj.createRHS();
 
-            x = LHS\RHS;
+            [PHI,w2]=eigs(LHS,mLHS,10,'sm');
+            sqrt(diag(w2))
 
             nTheta = length(obj.computeFreeDofs(obj.bcT));
             nU     = length(obj.computeFreeDofs(obj.bcU));
             nW     = length(obj.computeFreeDofs(obj.bcW)); 
 
-            uF = x(1:nU,1);
-            tF = x((nU+1):(nU+nTheta),1);
-            wF = x((nU+nTheta+1):(nU+nTheta+nW),1);
-
             dofFT = obj.computeFreeDofs(obj.bcT);
             dofFU = obj.computeFreeDofs(obj.bcU);
             dofFW = obj.computeFreeDofs(obj.bcW);
 
-            uT = zeros(obj.uFun.nDofs,1);
-            uT(dofFU,1) = uF; 
-            uT = reshape(uT,obj.uFun.ndimf,[])';
-            obj.uFun.setFValues(uT);
-            plot(obj.uFun)
+            %for nf = 1:10
+            %    wF = PHI((nU+nTheta+1):(nU+nTheta+nW),nf);
+            %    wT = zeros(obj.wFun.nDofs,1);
+            %    wT(dofFW,1) = wF; 
+            %    wT = reshape(wT,[], obj.wFun.ndimf);
+            %    obj.wFun.setFValues(wT);
+            %    figure(nf)
+            %    plot(obj.wFun);
+            %end
+            
+            t  = linspace(0,500,500);
+            %timeFunct = @(tau) heaviside(tau);
+            
+            timeFunct = @(tau) sin(0.5*tau);
+            
+            RHSnorm = PHI'*RHS;
 
-            wT = zeros(obj.wFun.nDofs,1);
-            wT(dofFW,1) = wF; 
-            wT = reshape(wT,[], obj.wFun.ndimf);
-            obj.wFun.setFValues(wT);
-            plot(obj.wFun)
+            RHSt = RHSnorm*timeFunct(t);
+            DM = PHI'*mLHS*PHI;
+            DC = 0.01*eye(size(DM));
+            DK = PHI'*LHS*PHI;
 
-            thetaT = zeros(obj.thetaFun.nDofs,1);
-            thetaT(dofFT,1) = tF; 
-            thetaT = reshape(thetaT,obj.thetaFun.ndimf,[])';
-            obj.thetaFun.setFValues(thetaT);
-            plot(obj.thetaFun)
-            title('thetax')
+            q0    = zeros(size(DM,1),1);
+            qdot0 = zeros(size(DM,1),1);
 
+
+            [q, qdot, q2dot] = obj.NewmarkIntegration(DM,DC,DK,RHSt,t,q0,qdot0);
+
+            sol = PHI*q;
+
+            figure(1)
+            xlim([0,t(end)]);
+            hold on
+            for tau=1:length(t)
+                wF = sol((nU+nTheta+1):(nU+nTheta+nW),tau);
+                wT = zeros(obj.wFun.nDofs,1);
+                wT(dofFW,1) = wF; 
+                wT = reshape(wT,[], obj.wFun.ndimf);
+                obj.wFun.setFValues(wT);
+
+                plot(t(tau),wT(3383),'ok');
+                drawnow
+                pause(0.05);
+
+            end
             
 
         end
@@ -114,21 +136,9 @@ classdef TutorialShells < handle
             obj.shear   = ConstantFunction.create(1,obj.mesh);
             obj.inertia = ConstantFunction.create(1/12,obj.mesh);
 
-            %mat.type     = 'ISOTROPIC';
-            %mat.ptype    = 'ELASTIC';
-            %mat.ndim     = obj.mesh.ndim;
-            %mat.young    = obj.young;
-            %mat.poisson  = obj.poisson;
-            %tensor       = Material.create(mat);
-            %obj.material = tensor;
         end
 
-        %function createLaminateProperties(obj)
-        %    
-%
-        %end
-
-        function LHS = createLHS(obj)
+        function [LHS, mLHS] = createLHS(obj)
             E = obj.young;
             A = obj.area;
             f = @(u,v) E.*A.*DDP(SymGrad(v),SymGrad(u));
@@ -188,6 +198,11 @@ classdef TutorialShells < handle
             Mtheta = IntegrateLHS(f,obj.uFun,obj.uFun,obj.mesh,'Domain',2);
             Mtheta = obj.reduceMatrix(Mtheta,obj.bcT,obj.bcT);
 
+
+            Ztw = zeros(nTheta,nW);
+            mLHS = [Mu, Zut, Zuw;
+                   Zut' Mtheta Ztw;
+                   Zuw' Ztw' Mw];
 
         end
 
@@ -264,6 +279,52 @@ classdef TutorialShells < handle
         function RHSred = reduceVector(obj,RHS,bc)
             fdofV = obj.computeFreeDofs(bc);
             RHSred = RHS(fdofV,1);
+        end
+
+        function [q,qdot,q2dot] = NewmarkIntegration(obj,M,C,K,Ft,t,q0,qdot0)
+            q       = zeros(size(K,1),length(t));
+            qdot    = zeros(size(K,1),length(t));
+            q2dot = zeros(size(K,1),length(t));
+
+            alpha = 0.5;
+            gamma = 0.5;
+            dt = t(2)-t(1);
+
+            a1 = (1-alpha)*dt;
+            a2 = alpha*dt;
+            a3 = 2/(gamma*dt^2);
+            a4 = a3*dt;
+            a5 = (1-gamma)/gamma;
+
+            b0 = a3;
+            b1 = a4;
+            b2 = a5;
+            b3 = a2*a3;
+            b4 = a2*a4-1;
+            b5 = a2*a5-a1;
+
+            A1 = inv(b0*M+b3*C+K);
+            A2 = A1*M;
+            A3 = A1*C;
+
+            q(:,1)=q0;
+            qdot(:,1)=qdot0;
+            q2dot(:,1)=inv(M)*Ft(:,1);
+
+            for n = 2 : length(t)-1
+                q(:,n) = A1*Ft(:,n)+...
+                        A2*(b0*q(:,n-1)+b1*qdot(:,n-1)+b2*q2dot(:,n-1))+...
+                        A3*(b3*q(:,n-1)+b4*qdot(:,n-1)+b5*q2dot(:,n-1));
+
+                q2dot(:,n) = a3*(q(:,n)-q(:,n-1))-a4*qdot(:,n-1)-a5*q2dot(:,n-1);
+                qdot(:,n) = qdot(:, n-1) +a1*q2dot(:,n-1)+a2*q2dot(:,n);
+
+            end
+
+
+
+
+
         end
 
 

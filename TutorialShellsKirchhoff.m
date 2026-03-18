@@ -82,15 +82,15 @@ classdef TutorialShellsKirchhoff < handle
         function createSolutionField(obj)
            obj.uFun     = LagrangianFunction.create(obj.mesh,2,'P1');
            obj.thetaFun = LagrangianFunction.create(obj.mesh,2,'P1');
-           obj.wFun     = LagrangianFunction.create(obj.mesh,1,'P2');
-           obj.tauFun   = LagrangianFunction.create(obj.mesh,2,'P1');
+           obj.wFun     = LagrangianFunction.create(obj.mesh,1,'P1');
+           obj.tauFun   = LagrangianFunction.create(obj.mesh,2,'P0');
         end
 
         function createMaterialProperties(obj)
           E = 1/(1-0.3^2);
-          obj.young = ConstantFunction.create(E,obj.mesh);
-          obj.area = ConstantFunction.create(1,obj.mesh);
-          obj.shear = ConstantFunction.create(1,obj.mesh);
+          obj.young   = ConstantFunction.create(E,obj.mesh);
+          obj.area    = ConstantFunction.create(1,obj.mesh);
+          obj.shear   = ConstantFunction.create(1,obj.mesh);
           obj.inertia = ConstantFunction.create(1/12,obj.mesh);
         end
 
