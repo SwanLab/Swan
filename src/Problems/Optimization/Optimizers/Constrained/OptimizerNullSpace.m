@@ -222,7 +222,7 @@ classdef OptimizerNullSpace < handle
                     obtainGIF(obj.gifName,obj.designVariable,obj.nIter);
                 end
                 if obj.printing
-                    obj.designVariable.fun.print([obj.printName,'Iter',num2str(obj.nIter/10)]);
+                    obj.designVariable.fun.print([obj.printName,'Iter',num2str(obj.nIter/30)]);
                 end
             end
         end

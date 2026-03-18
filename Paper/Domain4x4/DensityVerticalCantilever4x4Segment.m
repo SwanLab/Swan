@@ -189,11 +189,10 @@ classdef DensityVerticalCantilever4x4Segment < handle
             tarRef = [0.3938, 1.2288, 1.2288, 0.3938, 0.8198, 0.9211, 0.9211, 0.8197, 0.3868, 1.2157, 1.2157, 0.3868, 0.4656, 0.3349, 0.3349, 0.4656];
             x0 = repmat([0.125,0.375,0.625,0.875],[1,4]);
             y0 = [repmat(1.75,[1,4]),repmat(1.25,[1,4]),repmat(0.75,[1,4]),repmat(0.25,[1,4])];
-            pI = [1, 0.5, 0.5, 1, 0.25, 0.5, 0.5, 0.25, 0.1, 0.25, 0.25, 0.1, 0.01, 1, 1, 0.01];
             for i = 1:length(x0)
                 s.uMesh          = obj.createBaseDomainPerimeter(x0(i),y0(i));
                 s.target         = p*tarRef(i);
-                s.target0        = pI(i)*s.target;
+                s.target0        = 0.1*s.target;
                 obj.perimeter{i} = PerimeterConstraint(s);
             end
         end
@@ -244,7 +243,7 @@ classdef DensityVerticalCantilever4x4Segment < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 1500;
+            s.maxIter        = 3000;
             s.tolerance      = 1e-8;
             s.constraintCase = [{'EQUALITY'},repmat({'INEQUALITY'},[1,16])];
             s.etaNorm        = 0.01;
@@ -253,8 +252,8 @@ classdef DensityVerticalCantilever4x4Segment < handle
             s.primalUpdater  = obj.primalUpdater;
             s.gif            = false;
             s.gifName        = [];
-            s.printing       = false;
-            s.printName      = [];
+            s.printing       = true;
+            s.printName      = 'Current';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
