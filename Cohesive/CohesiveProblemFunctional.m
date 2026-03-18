@@ -32,7 +32,7 @@ classdef CohesiveProblemFunctional < handle
 
         function LHS = computeLHS(obj,u)
             Kelas = obj.functionals.energy.computeHessian(u,obj.quadOrder);
-            Kcoh  = obj.functionals.cohesive.computeHessian(u,obj.quadOrder);
+            Kcoh  = obj.functionals.cohesive.computeDerivativeResidual(u,obj.quadOrder);
             LHS   = Kelas+Kcoh;
         end
 
@@ -45,8 +45,12 @@ classdef CohesiveProblemFunctional < handle
             end
             Fint = obj.functionals.energy.computeGradient(u,obj.quadOrder);
             Fext = obj.functionals.extWork.computeGradient(u,fExt,obj.quadOrder);
-            Fcoh = obj.functionals.cohesive.computeGradient(u,obj.quadOrder, ????);
-            RHS = Fint-Fext+Fcoh;
+            Fcoh = obj.functionals.cohesive.computeResidual(u,obj.quadOrder);
+            RHS  = Fint-Fext+Fcoh;
+
+            % computeGradient -- computeResidual
+            % computeHessian  -- computeDerivativeResidual (pel newton)
+
         end
 
        

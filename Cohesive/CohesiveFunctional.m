@@ -23,19 +23,23 @@ classdef CohesiveFunctional < handle
 
 
 
-        function E = computeCost(obj,u,quadOrder, ????)
+        function E = computeCost(obj,u,quadOrder)
+           
+        end
+
+        function F = computeResidual(obj,u,quadOrder)
             
-
+            obj.tractionLaw.
         end
 
-        function F = computeGradient(obj,u,quadOrder, ????)
-            %computeElementalCohesiveForceVector()
-            %assambeeVector()   
-        end
-
-        function H = computeHessian(obj,u,quadOrder,?)
+        function H = computeDerivativeResidual(obj,u,quadOrder)
             %computeElementalCohesiveStiffnessMatrix()
             %assambeeMatrix()
+            % ho fem amb la secant
+
+
+
+            
         end
         
     end

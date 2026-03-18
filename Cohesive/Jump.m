@@ -22,8 +22,7 @@ classdef Jump < handle
             obj.init(cParams);
             obj.createJumpFunction();
             obj.computeGlobalSeparationMatrix();
-            % obj.updateJumpValues(obj.uFun); 
-            obj.computeJumpByElements(obj.uFun);
+            obj.updateJumpValues(obj.uFun); 
         end
 
         function updateJumpValues(obj,uIn)          
@@ -41,30 +40,16 @@ classdef Jump < handle
             end
             div = [1, 2*ones(1,obj.jumpFun.mesh.nelem-1), 1];
             fValues = fValues./div.';
-            obj.jumpFun.updateValues(fValues);
+            obj.jumpFun.setFValues(fValues);
         end
 
 
-        function jump = computeJumpByElements(obj,uIn)
-            conn  = obj.cohesiveMesh.lineMesh.connec;   % nelem x 4
-            R     = obj.computeRotationMatrix(uIn);     % 2 x 2 x nelem
-            uElem = reshape(uIn.fValues(conn,:).',8,[]);   % 8 x nelem
-            Lq    = [-1  0  0  0  1  0  0  0;
-                   0 -1  0  0  0  1  0  0];   % 2 x 8
-            jump = pagemtimes(R, Lq*uElem);   % 2 x 1 x nelem
-            jump = squeeze(jump).';
-            
-            obj.cohesiveMesh.createCenterLineMesh();
-            obj.jumpFunCenters = LagrangianFunction.create(obj.cohesiveMesh.centerLineMesh, obj.ndimf,'P1');
-            obj.jumpFunCenters.setFValues(jump);
-        end
 
         function fV = evaluate(obj,xV)
             fV = obj.jumpFun.evaluate(xV);
-        end
+        end        
         
-        
-        function N = computeShapeFunctions(obj,xV)
+        function Bc = computeShapeFunctions(obj,xV)
             R  =  obj.computeRotationMatrix(obj.uFun); % ndimf x ndimf x nElem
             N  =  obj.jumpFun.computeShapeFunctions(xV);  % N1(-1) N1(1); N2(-1), N2(1)
             ngauss = size(xV,2);
