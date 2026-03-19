@@ -92,14 +92,14 @@ class TO_problem(EuclideanOptimizable):
         x1,x2 = np.hsplit(x,2)
         runner = FreeFemRunner(path+"10_ConstraintIneq.edp")
         runner.import_variables(Th=Th,Th1=self.Th1,Th2=self.Th2,phiVal1=x1,
-                                phiVal2=x2,rInner=rInner,lsLab=lsLabel,dmin=dmin,p=p)
+                                phiVal2=x2,lsLab=lsLabel,dmin=dmin,p=p)
         return [runner.execute()['H']]
     
     def dH(self,x):
         x1,x2 = np.hsplit(x,2)
         runner = FreeFemRunner(path+"10_ConstraintIneqGradient.edp")
-        runner.import_variables(Th=Th,Th1=self.Th1,Th2=self.Th2,phiVal1=x1,phiVal2=x2,alpha=alpha,beta=beta,
-                                lsLab=lsLabel,rInner=rInner,p=p)
+        runner.import_variables(Th=Th,Th1=self.Th1,Th2=self.Th2,Th12=self.Th12,phiVal1=x1,phiVal2=x2,alpha=alpha,beta=beta,
+                                lsLab=lsLabel,p=p,nx=self.nx,ny=self.ny)
         return runner.execute()['g[]']
 
     def accept(self, params, results):
