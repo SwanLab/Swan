@@ -261,6 +261,32 @@ classdef GeometricalFunction < handle
                     fH = @(x) max(fFrame(x),fCross(x));
                     obj.fHandle = fH;
 
+                case 'CrossedSquare3D'
+                    L  = cParams.length;
+                    t1 = cParams.tFrame;
+                    t2 = cParams.tCross;
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+                    z0 = 0;
+                    
+
+                    s= cParams;
+                    s.type = 'Square';
+                    s.length = L-2*t1;
+
+                    h=s.length;
+
+                    obj.selectHandle(s);
+                    fFrame= obj.fHandle;
+                    fDiag1 = @(x) abs((x1(x)-x0)-(x2(x)-y0))/sqrt(2) - t2/2;
+                    fDiag2 = @(x) abs((x1(x)-x0)+(x2(x)-y0))/sqrt(2) - t2/2;
+                    fCross = @(x) -min(fDiag1(x),fDiag2(x));
+                    f2D = @(x) max(fFrame(x),fCross(x));
+
+                    fH= @(x) max( f2D(x), abs(x3(x) - z0) - h/2 );
+
+                    obj.fHandle = fH;
+
                 case 'Periodic'
                     xmin   = cParams.xmin;
                     xmax   = cParams.xmax;

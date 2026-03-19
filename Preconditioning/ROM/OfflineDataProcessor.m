@@ -13,7 +13,6 @@ classdef OfflineDataProcessor < handle
         RigidBodyFun
         DeformationalFun
         material
-
         fileNameData
 
     end

@@ -7,7 +7,7 @@
 
 % case parameters
 s.Training  = 'EIFEM';            % 'EIFEM'/'Multiscale'
-s.Inclusion = 'HoleRaul';         % 'Hole'/'Material'/'HoleRaul'   --> Hole: just for constant r
+s.Inclusion = 'Material';         % 'Hole'/'Material'/'HoleRaul'   --> Hole: just for constant r
 s.Sampling  = 'Oversampling';     % 'Isolated'/'Oversampling'
 s.Option    = [];                 % 'Dataset'/'NN'/'HO'/ 'Hybrid'
 s.nelem     =  20;                %  Mesh refining
@@ -26,7 +26,7 @@ s.r=[0.1,0.2,0.3
 
 %% DATASET OPTION
 s.Option = 'Dataset';
-DSet= CoarseTesting_Abril(s);
+DSet= CoarseTesting_AbrilV2(s);
 DSet.compute();
 % DSet.PlotSolution();
 

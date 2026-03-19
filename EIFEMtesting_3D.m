@@ -148,7 +148,13 @@ classdef EIFEMtesting_3D < handle
         function mS = createReferenceMesh(obj)
             %                             mS = obj.createStructuredMesh();
             %             mS = obj.createMeshFromGid();
-            mS = obj.createEIFEMreferenceMesh();
+            % mS = obj.createEIFEMreferenceMesh();
+                
+            file = 'meshAirfoilTetra.m';
+            a.fileName = file;
+            s = FemDataContainer(a);
+            mS = s.mesh;
+        
         end
 
 

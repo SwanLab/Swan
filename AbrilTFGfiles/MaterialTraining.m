@@ -110,7 +110,6 @@ classdef MaterialTraining < handle
             s.plotting = false;
             dens = DesignVariable.create(s);
             obj.designVariable = dens;
-
         end
 
         function ls=computeLevelSet(obj)

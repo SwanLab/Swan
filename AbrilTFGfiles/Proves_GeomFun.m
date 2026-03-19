@@ -1,6 +1,7 @@
 clear;
 close all;
 
+%% COMPOSITION OF LEVELSETS 2D
 x1       = linspace(0,6,40);
 x2       = linspace(0,6,40);
 [xv,yv]  = meshgrid(x1,x2);
@@ -56,6 +57,15 @@ end
 % params.x0 = @(x) paramFromGrid(x,x0,mesh);
 % params.y0 = @(x) paramFromGrid(x,y0,mesh);
 
+s.type       = 'GivenPattern';
+s.paramsList = paramMatrix;
+g        = GeometricalFunction(s);
+phiFun   = g.computeLevelSetFunction(mesh);
+obj.levelSet = phiFun;
+ls       = phiFun.fValues;
+
+%% REFERENCE LEVEL SET
+
 % gPar.type         = 'CrossedSquare';
 % gPar.length       = 1;
 % gPar.xCoorCenter  = 0.5;
@@ -73,19 +83,6 @@ end
 % gPar.xCoorCenter  = params.x0;
 % gPar.yCoorCenter  = params.y0;
 
-% g        = GeometricalFunction(gPar);
-
-% s.fBase  = g.getHandle;
-s.type       = 'GivenPattern';
-s.paramsList = paramMatrix;
-% s.r     = r;
-% s.x0    =x0;
-% s.y0    =y0;
-g        = GeometricalFunction(s);
-phiFun   = g.computeLevelSetFunction(mesh);
-obj.levelSet = phiFun;
-ls       = phiFun.fValues;
-
 
 
 sUm.backgroundMesh = mesh;
@@ -94,6 +91,31 @@ uMesh              = UnfittedMesh(sUm);
 uMesh.compute(-ls);
 uMesh.plot();
 
+
+
+%% lattice 3D
+mesh=TetraMesh(1,1,1,40,40,40);
+
+gPar.type         = 'CrossedSquare3D';
+gPar.length       = 2;
+gPar.xCoorCenter  = 0;
+gPar.yCoorCenter  = 0;
+gPar.tFrame       = 0.2;
+gPar.tCross       = 0.2;
+
+g        = GeometricalFunction(gPar);
+phiFun   = g.computeLevelSetFunction(mesh);
+obj.levelSet = phiFun;
+ls       = phiFun.fValues;
+
+sUm.backgroundMesh = mesh;
+sUm.boundaryMesh   = mesh.createBoundaryMesh;
+uMesh              = UnfittedMesh(sUm);
+uMesh.compute(-ls);
+uMesh.plot();
+
+mS=uMesh.createInnerMesh();
+mS.print("LatticeMesh","paraview");
 
 function [x0,y0] = ComputeSubdomainCentroids(param,mesh)
     Nx = size(param,2);
