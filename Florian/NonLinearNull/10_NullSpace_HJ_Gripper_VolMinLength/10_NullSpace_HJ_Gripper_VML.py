@@ -38,7 +38,7 @@ labelNeu2d = exports['labelNeu2d']
 hmin = exports['meshsiz']
 lsLabel = 10
 rInner = 3
-dmin = 0
+dmin = 0.05
 p = 5
 
 @bound_constraints_optimizable()
@@ -432,7 +432,7 @@ cost  = results['J']
 Vol = results['G']
 minL  = results['H']
 
-fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+fig, axes = plt.subplots(1, 3, figsize=(10, 4))
 
 axes[0].plot(iter, cost, color='b')
 axes[0].set_xlabel('Iter')
