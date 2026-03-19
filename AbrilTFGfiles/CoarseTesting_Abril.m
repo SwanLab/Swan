@@ -77,7 +77,7 @@ classdef CoarseTesting_Abril< handle
             tol = 1e-8;
             x0  = zeros(size(RHSf));
             
-            tic  % SOLVE THE CASE WITH STANDARD ITERATIVE SOLVER
+            tic  % SOLVE THE CASE WITH STANDARD JUST SMOOTHER SOLVER
             [~,obj.residualCG,obj.errCG, obj.errAnormCG] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier,false);
             toc
             tic % SOLVE THE CASE WITH PRECONDITIONING
@@ -98,7 +98,6 @@ classdef CoarseTesting_Abril< handle
             %obj.computeSubdomainCentroid();
             %CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'TestCoarseAbril', obj.r, obj.centroids);
             %CoarsePlotSolution(RealFun, obj.meshDomain, obj.bcApplier,'TestRealAbril', obj.r, obj.centroids);
-
         end
 
         function PlotSolution(obj)

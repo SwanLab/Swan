@@ -12,7 +12,6 @@ p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
 p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
 
 %% DATA GENERATION
-
 mR              = createReferenceMesh();
 switch p.Training
     case 'Multiscale'
@@ -31,7 +30,7 @@ switch p.Training
     case 'EIFEM'
         [nS,dI]      = defineNumberOfSubdomains(p.Sampling);
         mD           = createMeshDomain(mR,nS);
-        [material]     = createMaterial(mR);
+        [material]     = createMaterial(mD);
         s.mesh           = mR;
         s.material       = material;
         s.domainIndices  = dI;
@@ -65,58 +64,43 @@ end
 
 function mS = createReferenceMesh()
 
-    filename = 'DEF_Q8_wing_1.mat';
-    load(filename);
-    s.coord    = EIFEoper.MESH.COOR;
-    s.connec   = EIFEoper.MESH.CN;
-    
-    maxC= max(s.coord);
-    minC = min(s.coord);
-    
-    obj.xmin = minC(1);
-    obj.xmax = maxC(1);
-    obj.ymin = minC(2);
-    obj.ymax = maxC(2);
-    obj.zmin = minC(3);
-    obj.zmax = maxC(3);
+            file = 'meshAirfoilTetra.m';
+            a.fileName = file;
+            s = FemDataContainer(a);
+            mS = s.mesh;
+    % filename = 'DEF_Q8_wing_1.mat';
+    % load(filename);
+    % s.coord    = EIFEoper.MESH.COOR;
+    % s.connec   = EIFEoper.MESH.CN;
+    % 
+    % maxC= max(s.coord);
+    % minC = min(s.coord);
+    % 
+    % obj.xmin = minC(1);
+    % obj.xmax = maxC(1);
+    % obj.ymin = minC(2);
+    % obj.ymax = maxC(2);
+    % obj.zmin = minC(3);
+    % obj.zmax = maxC(3);
+    % 
+    % s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
+    %     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+    % s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:) =...
+    %     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+    % s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:) =...
+    %     s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+    % s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:) =...
+    %     s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+    % s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:) =...
+    %     s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+    % s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:) =...
+    %     s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+    % s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:) =...
+    %     s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+    % s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:) =...
+    %             s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
 
-    s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
-        s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
-
-    s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:) =...
-        s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
-
-    s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:) =...
-        s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
-
-    s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:) =...
-        s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
-
-    s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:) =...
-        s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
-
-    s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:) =...
-        s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
-
-    s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:) =...
-        s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
-
-    s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:) =...
-        s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
-
-    s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:) =...
-        s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:)-[0,1E-9,0];
-
-    s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:) =...
-        s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:)+[0,1E-9,0];
-
-    s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:) =...
-        s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:)-[0,1E-9,0];
-
-    s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:) =...
-        s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:)+[0,1E-9,0];
-
-    mS = Mesh.create(s);
+    % mS = Mesh.create(s);
 
 end
 

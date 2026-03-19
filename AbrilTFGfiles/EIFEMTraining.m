@@ -93,7 +93,7 @@ classdef EIFEMTraining < handle
             obj.material       = cParams.material;
             % obj.levelSet       = cParams.levelSet;
             % obj.unfittedMesh   = cParams.unfittedMesh;
-            obj.tolSameNode    = 1e-18;
+            obj.tolSameNode    = 1e-6;
             obj.Coarseorder    = 1;
         end
 
@@ -132,15 +132,28 @@ classdef EIFEMTraining < handle
         function u = extractDomainDisplacements(obj,uC)
             ntest = size(uC,2);
             for i = 1:ntest
-                uD    = obj.DDdofManager.global2local(uC(:,i));
-                ind   = (obj.domainIndices(1)-1)*obj.nSubdomains(1)+obj.domainIndices(2);
-                u(:,i)= uD(:,ind);
+                if obj.mesh.ndim==2
+                    uD    = obj.DDdofManager.global2local(uC(:,i));
+                    ind   = (obj.domainIndices(1)-1)*obj.nSubdomains(1)+obj.domainIndices(2);
+                    u(:,i)= uD(:,ind);
+                else
+                    ind = obj.nSubdomains(1)*obj.nSubdomains(2)*(obj.domainIndices(3)-1)...
+                        +obj.nSubdomains(1)*(obj.domainIndices(2)-1)+obj.domainIndices(1);
+                    uD    = obj.DDdofManager.global2local(uC(:,i));
+                    u(:,i)= uD(:,ind);
+                end
             end
         end
 
         function lhs = extractDomainLHS(obj,LHS)
             lhs = obj.DDdofManager.global2localMatrix(LHS);
-            ind = (obj.domainIndices(1)-1)*obj.nSubdomains(1)+obj.domainIndices(2);
+            if obj.mesh.ndim==2
+                ind = (obj.domainIndices(1)-1)*obj.nSubdomains(1)+obj.domainIndices(2);
+            else
+                ind = obj.nSubdomains(1)*obj.nSubdomains(2)*(obj.domainIndices(3)-1)...
+                    +obj.nSubdomains(1)*(obj.domainIndices(2)-1)+obj.domainIndices(1);
+            end
+       
             lhs = lhs(:,:,ind);
         end
 

@@ -321,9 +321,6 @@ classdef CoarseTesting_AbrilV2< handle
             sUm.boundaryMesh   = obj.meshDomain.createBoundaryMesh;
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(-ls);
-            Mprint=UnfittedMesh(sUm);
-            Mprint.compute(ls);
-            obj.unfittedMesh = Mprint;
             funLS        = CharacteristicFunction.create(uMesh);
             s.filterType = 'LUMP';
             s.mesh       = obj.meshDomain;
