@@ -76,12 +76,12 @@ classdef TractionBiliniarUncoupled < handle
             isUnderLimit = (jump < obj.jumpCrit);
         end
 
-        function isDamaging = isJumpDamaging(obj,jump)            
-            % tempJumpCrit =
-            % ConstantFunction.create(obj.jumpCrit,jump.mesh); 
-            % he de trobar una solucio per això
-            % temp = jump - tempJumpCrit;
-            % isDamaging = temp > 0;
+        function isDamaging = isJumpDamaging(obj,jump)   % comprovar!!         
+            tempJumpCrit = ConstantFunction.create(obj.jumpCrit,jump.mesh); 
+            temp1 = jump - tempJumpCrit; % f - a
+            tempJumpFinal = ConstantFunction.create(obj.jumpFinal,jump.mesh);
+            temp2 = tempJumpFinal - jump; % b - f
+            isDamaging = temp1 * temp2>0;
         end
     end
 end
