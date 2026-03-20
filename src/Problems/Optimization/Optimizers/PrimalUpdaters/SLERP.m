@@ -18,6 +18,7 @@ classdef SLERP < handle
         end
 
         function phi = update(obj,g,phi)
+            g                 = obj.applyIsFixedToGradient(g,phi);
             ls                = phi.obtainVariableInCell();
             phiN              = obj.normalizeLevelSets(ls);
             gN                = obj.createNormalizedGradient(ls,g);
@@ -150,6 +151,11 @@ classdef SLERP < handle
             lsClass = lsC{1};
             n       = length(lsClass.fun.fValues);
             gClass  = g(1:n);
+        end
+
+        function g = applyIsFixedToGradient(g,phi)
+            fixedDofs  = phi.getFixedDofs();
+            g(fixedDofs) = -abs(g(fixedDofs));
         end
 
         function phiN = normalizeLevelSets(ls)
