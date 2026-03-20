@@ -166,7 +166,7 @@ classdef EIFEMTraining < handle
             s.nReferenceNodes = mR.nnodes;
             s.nNodes          = obj.meshDomain.nnodes;
             s.nDimf           = obj.meshDomain.ndim;
-            d = DomainDecompositionDofManager(s);
+            d = DomainDecompositionDofManager3D(s);
         end
 
     end

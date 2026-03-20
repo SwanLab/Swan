@@ -116,7 +116,7 @@ classdef DomainDecompositionDofManager3D < handle
 
         function fL = global2local(obj,fG)
             ndimf  = obj.nDimf;
-            fL     = zeros(obj.nReferenceNodes*ndimf,obj.nSubdomains(1)*obj.nSubdomains(2));
+            fL     = zeros(obj.nReferenceNodes*ndimf,obj.nSubdomains(1)*obj.nSubdomains(2)*obj.nSubdomains(3));
             ind    = 1;
             for kdom=1:obj.nSubdomains(3)
                 for jdom = 1:obj.nSubdomains(2)
