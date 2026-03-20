@@ -6,6 +6,7 @@ classdef CohesiveComputer < handle
         functional
         tolerance
         maxIter
+        data
     end
     
     properties (Access = private)
@@ -24,7 +25,7 @@ classdef CohesiveComputer < handle
             obj.setOptimizer(cParams)
         end
 
-        function outputData = compute(obj)
+        function  compute(obj)
             u = LagrangianFunction.create(obj.mesh,2,'P1');
             cost = 0;
 
@@ -34,9 +35,10 @@ classdef CohesiveComputer < handle
                 [u,F,cost,iterMax] = obj.updater.update(u,bc,cost);
                 obj.postprocess(iStep,u,F,cost,iterMax)
             end
-            outputData = obj.monitor.data;
+
+            obj.data = obj.data;
+            % outputData = obj.monitor.data;
         end
-        
     end
     
     methods (Access = private)
@@ -55,7 +57,6 @@ classdef CohesiveComputer < handle
             s.monitor    = cParams.monitor;
             obj.updater = DisplacementUpdater(s);
         end
-        
 
         function [u,bc] = preprocess(obj,iStep,nSteps,u)
             % obj.monitor.printStep(iStep,nSteps)
@@ -63,9 +64,45 @@ classdef CohesiveComputer < handle
             % u  = obj.computeInitialDisplacement(u,bc);
         end
 
+        function postprocess(obj,iStep,uFun,F,cost,iterMax)
+            [fVal,uVal] = obj.computeTotalReaction(iStep,F,uFun);
+            % obj.printAndSave(iStep,uFun,dmgFun0,dmgFun1,qFun,rFun,uVal,fVal,cost(end),iterMax);
+            % guardar
+            obj.data = [obj.data; fVal,uVal];
+        end
+
+        function [totReact,uBC] = computeTotalReaction(obj,step,F,u)
+            DownSide = min(obj.mesh.coord(:,2));
+            isInDown = abs(obj.mesh.coord(:,2)-DownSide)< 1e-12;
+            nodes = 1:obj.mesh.nnodes;
+            if ismember(obj.boundaryConditions.u.type, ["ForceTractionY", "ForceTractionYClamped"])
+                uBC = norm(mean(u.fValues(nodes(isInUp),2)));
+                totReact = obj.boundaryConditions.u.bcValues(step);
+            elseif ismember(obj.boundaryConditions.u.type, ["DisplacementTractionY","DisplacementTractionYClamped"]) 
+                dofsYdown = (nodes(isInDown)-1)*u.ndimf + 2;
+                totReact = abs(sum(F(dofsYdown)));
+                uBC = obj.boundaryConditions.u.bcValues(step);
+            end
+
+            LeftSide = min(obj.mesh.coord(:,1));
+            isInLeft = abs(obj.mesh.coord(:,1)-LeftSide)< 1e-12;
+            nodes = 1:obj.mesh.nnodes;
+            if ismember(obj.boundaryConditions.u.type, ["ForceTractionX","ForceTractionXClamped"])
+                uBC = norm(mean(u.fValues(nodes(isInLeft),2)));
+                totReact = obj.boundaryConditions.u.bcValues(step);
+            elseif ismember(obj.boundaryConditions.u.type, ["DisplacementTractionX","DisplacementTractionXClamped"])
+                dofsXleft = (nodes(isInLeft)-1)*u.ndimf + 1;
+                totReact = abs(sum(F(dofsXleft)));
+                uBC = obj.boundaryConditions.u.bcValues(step);
+            end
+
+            if ismember(obj.boundaryConditions.u.type, "DisplacementShear")
+                dofsXdown = (nodes(isInDown)-1)*u.ndimf + 1;
+                totReact = abs(sum(F(dofsXdown)));
+                uBC = obj.boundaryConditions.u.bcValues(step);
+            end
+        end
         
-
-
     end
     
 end

@@ -27,6 +27,12 @@ classdef CohesiveTermFunctional < handle
         function F = computeResidual(obj,u,quadOrder)
             
             obj.tractionLaw.
+
+
+
+
+
+            %F =  grau llibertat desplaçament 
         end
 
         function H = computeDerivativeResidual(obj,u,quadOrder)

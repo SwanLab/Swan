@@ -19,6 +19,8 @@ classdef Isotropic2dElasticMaterial < IsotropicElasticMaterial
             I      = repmat(eye4D(N),[1 1 1 1 nGauss nElem]);
             IxI    = repmat(kronEye(N),[1 1 1 1 nGauss nElem]);
             C = 2*mu.*I + lambda.*IxI;
+
+            C = C(:,:,:,:,:,obj.cohesiveMesh.listCohesiveElems); 
         end
 
         function plot(obj,mesh)

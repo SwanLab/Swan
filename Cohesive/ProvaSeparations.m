@@ -50,3 +50,13 @@ tractionSeparation = CohesiveTractionSeparation(g);
 traction = tractionSeparation.computeFunction(jump);
 derivative = tractionSeparation.computeDerivative(jump);
 derivative.evaluate([-1,1]);
+
+
+
+% Crear material ... 
+
+% Funcionals
+s.tractionSeparation = tractionSeparation;
+s.material     = 
+s.cohesiveMesh = cohesiveMesh;
+funcional = CohesiveFunctional(s);
