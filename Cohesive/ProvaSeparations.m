@@ -19,11 +19,11 @@ u  = LagrangianFunction.create(cohesiveMesh.mesh,2,'P1');
 
 % Comprovacions de separacions
 fValues = u.fValues;
-    separacio = -0.01;
-    fValues(1,2) = separacio*0.25;
+    separacio = -0.1;
+    fValues(1,2) = separacio *0.25;
     fValues(5,2) = separacio * 0.5;
     fValues(9,2) = separacio * 1;
-    fValues(13,2) = separacio * 3;
+    fValues(13,2) = separacio * 5;
     u.setFValues(fValues);
 
 
@@ -37,15 +37,16 @@ jump = Jump(f);
 xV = [-1 1];
 Bc = jump.computeShapeFunctions(xV);
 
-
 % ================================================== %
 
 % Inicialitzar Traction Separation
-
 g.lawType = 'TractionBiliniarUncoupled';
 g.jumpFinal = 0.1;
 g.jumpCrit  = 0.02;
-g.K = 1000;
+g.K = 1e15;
 tractionSeparation = CohesiveTractionSeparation(g);
 
-tractionSeparation.computeFunction(jump.jumpFun);
+% Calcular tractions
+traction = tractionSeparation.computeFunction(jump);
+derivative = tractionSeparation.computeDerivative(jump);
+derivative.evaluate([-1,1]);

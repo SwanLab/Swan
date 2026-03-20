@@ -18,7 +18,7 @@ classdef TractionBiliniarUncoupled < handle
         end
 
         function dt = computeDerivative(obj,jump)
-            s.operation = @(xV) obj.computeGradientMatrix(jump,xV);
+            s.operation = @(xV) obj.computeTangentGradientMatrix(jump,xV);
             s.ndimf = 4;
             s.mesh = jump.mesh;
             dt = DomainFunction(s);
@@ -35,8 +35,10 @@ classdef TractionBiliniarUncoupled < handle
 
         function gradT = computeGradientMatrix(obj, jump, xV) %secant
             d = obj.computeDamage(jump);
-            dTdT = obj.K * (1-DP(d,[1,0]));%igual s'ha d'arreglar això (potser repmat)
-            dNdN = obj.K * (1-DP(d,[0,1]));
+            unoZero = ConstantFunction.create([1,0],jump.mesh);
+            zeroUno = ConstantFunction.create([0,1],jump.mesh);
+            dTdT = obj.K * (1 - DP(d,unoZero)); 
+            dNdN = obj.K * (1 - DP(d,zeroUno));
             dtdt = Expand(dTdT,2).evaluate(xV); 
             dndn = Expand(dNdN,2).evaluate(xV);
             ngauss = size(dtdt,3); 
@@ -49,9 +51,11 @@ classdef TractionBiliniarUncoupled < handle
 
         function gradT = computeTangentGradientMatrix(obj, jump, xV) %tangent
             d = obj.computeDamage(jump);
-            dddj = obj.computeDamageDerivative(jump);
-            dTdT = obj.K * ((1-DP(d,[1,0])) - DP(dddj,[1,0]) * DP(jump,[1 0]));%igual s'ha d'arreglar això (potser repmat)
-            dNdN = obj.K * ((1-DP(d,[0,1])) - DP(dddj,[0,1]) * DP(jump,[1 0]));
+            ddot = obj.computeDamageDerivative(jump);
+            unoZero = ConstantFunction.create([1,0],jump.mesh);
+            zeroUno = ConstantFunction.create([0,1],jump.mesh);
+            dTdT = obj.K * ((1-DP(d,unoZero)) - DP(ddot,unoZero).*DP(jump,unoZero));
+            dNdN = obj.K * ((1-DP(d,zeroUno)) - DP(ddot,zeroUno).*DP(jump,zeroUno));
             dtdt = Expand(dTdT,2).evaluate(xV); 
             dndn = Expand(dNdN,2).evaluate(xV);
             ngauss = size(dtdt,3); 
@@ -63,34 +67,19 @@ classdef TractionBiliniarUncoupled < handle
         end
 
         function d = computeDamage(obj,jump)
-            isOverLimit = isJumpOverLimit(obj,jump);
+            d = (jump-obj.jumpCrit)./(obj.jumpFinal-obj.jumpCrit);
+            d = max(min(d,1),0);
+        end
+
+        function ddot =  computeDamageDerivative(obj,jump)
             isDamaging = isJumpDamaging(obj,jump);
-            d =0+1*isOverLimit+(jump-obj.jumpCrit)/(obj.jumpFinal-obj.jumpCrit)*isDamaging;
-        end
-
-
-        function dd =  computeDamageDerivative(obj,jump)
-            isDamaging = isJumpDamaging(obj,jump);
-            dd = (1/(obj.jumpFinal - obj.jumpCrit)) * isDamaging;
-        end
-
-
-        function isOverLimit = isJumpOverLimit(obj,jump)
-            isOverLimit = (jump > obj.jumpFinal);
-        end
-
-        function isUnderLimit = isJumpUnderLimit(obj,jump)
-            isUnderLimit = (jump < obj.jumpCrit);
+            ddot = (1./(obj.jumpFinal - obj.jumpCrit)).*isDamaging;
         end
 
         function isDamaging = isJumpDamaging(obj,jump) % comprovar!!
-            tempJumpCrit = ConstantFunction.create(obj.jumpCrit,jump.mesh); 
-            temp1 = jump - tempJumpCrit; % f - a
-            tempJumpFinal = ConstantFunction.create(obj.jumpFinal,jump.mesh);
-            temp2 = tempJumpFinal - jump; % b - f
-            isDamaging = temp1*temp2 > 0; % com evaluo isDamaging?
+            temp1 = jump - obj.jumpCrit; % f - a
+            temp2 = obj.jumpFinal - jump; % b - f
+            isDamaging = temp1.*temp2 > 0; 
         end
-        
-
-        end
+    end
 end

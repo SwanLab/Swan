@@ -5,6 +5,7 @@ classdef IsotropicElasticMaterial < Material
         poisson
         bulk
         shear
+        cohesiveMesh %parche
     end
 
     properties (Access = protected)

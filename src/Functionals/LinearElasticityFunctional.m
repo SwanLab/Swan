@@ -3,6 +3,8 @@ classdef LinearElasticityFunctional < handle
     properties (Access = private)
         mesh
         material
+        quadOrder
+        test
     end
 
     methods (Access = public)
@@ -11,34 +13,22 @@ classdef LinearElasticityFunctional < handle
             obj.init(cParams)
         end
 
-        function energy = computeCost(obj,uFun,quadOrder)
+        function energy = computeCost(obj,uFun)
             C = obj.material;
             eps = SymGrad(uFun);
             fun = DDP(DDP(eps,C),eps);
-            quadOrder = quadOrder;
-            energy = 0.5*(Integrator.compute(fun,obj.mesh,quadOrder));
+            energy = 0.5*(Integrator.compute(fun,obj.mesh,obj.quadOrder));
         end
 
-        function Ju = computeGradient(obj,uFun,quadOrder)
+        function Ju = computeGradient(obj,uFun)
+            C = obj.material;
             eps = SymGrad(uFun);
-            sig = DDP(obj.material,eps);
-            test = LagrangianFunction.create(obj.mesh, uFun.ndimf, uFun.order);
-            s.mesh = obj.mesh;
-            s.quadratureOrder = quadOrder;
-            s.type = 'ShapeSymmetricDerivative';
-            RHS = RHSIntegrator.create(s);
-            Ju = RHS.compute(sig,test);
+            Ju = IntegrateRHS(@(v) DDP(SymGrad(v),DDP(C,eps)), obj.test, obj.mesh,'Domain',obj.quadOrder);
         end
 
-        function Huu = computeHessian(obj,uFun,quadOrder)
-            s.material = obj.material;
-            s.test     = uFun;
-            s.trial    = uFun;
-            s.mesh     = obj.mesh;
-            s.quadratureOrder = quadOrder;
-            s.type     = 'ElasticStiffnessMatrix';
-            LHS = LHSIntegrator.create(s);
-            Huu = LHS.compute();
+        function Huu = computeHessian(obj)
+            C = obj.material;            
+            Huu = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),obj.test,obj.test,obj.mesh,'Domain',obj.quadOrder);
         end
 
     end
@@ -48,6 +38,8 @@ classdef LinearElasticityFunctional < handle
         function init(obj,cParams)
             obj.mesh     = cParams.mesh;
             obj.material = cParams.material;
+            obj.quadOrder = cParams.quadOrder;
+            obj.test      = cParams.test;
         end
 
     end

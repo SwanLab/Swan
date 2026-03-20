@@ -1,4 +1,4 @@
-classdef Jump < handle
+classdef Jump < FeFunction
 
     properties (Access = private)
         jumpDim
@@ -8,12 +8,10 @@ classdef Jump < handle
     properties (Access = private)
         uFun
         cohesiveMesh     
-        ndimf 
     end
 
     properties (Access = public)
-        jumpFun
-        jumpFunCenters
+        fun
     end
 
     methods (Access = public)
@@ -38,27 +36,22 @@ classdef Jump < handle
                 nJump = min(n,nnodesElemU-n+1);
                 fValues(connJump(:,nJump),:) = fValues(connJump(:,nJump),:) + jumpi;
             end
-            div = [1, 2*ones(1,obj.jumpFun.mesh.nelem-1), 1];
+            div = [1, 2*ones(1,obj.fun.mesh.nelem-1), 1];
             fValues = fValues./div.';
-            obj.jumpFun.setFValues(fValues);
+            obj.fun.setFValues(fValues);
         end
 
 
-
-        function fV = evaluate(obj,xV)
-            fV = obj.jumpFun.evaluate(xV);
-        end        
-        
         function Bc = computeShapeFunctions(obj,xV)
             R  =  obj.computeRotationMatrix(obj.uFun); % ndimf x ndimf x nElem
-            N  =  obj.jumpFun.computeShapeFunctions(xV);  % N1(-1) N1(1); N2(-1), N2(1)
+            N  =  obj.fun.computeShapeFunctions(xV);  % N1(-1) N1(1); N2(-1), N2(1)
             ngauss = size(xV,2);
-            nelem = obj.jumpFun.mesh.nelem;
-            Bc = zeros(obj.jumpFun.ndimf, obj.jumpFun.nDofsElem, ngauss, nelem);
+            nelem = obj.fun.mesh.nelem;
+            Bc = zeros(obj.fun.ndimf, obj.fun.nDofsElem, ngauss, nelem);
             nnodesElemU = obj.uFun.nDofsElem/obj.uFun.ndimf;
             for i=1:obj.uFun.nDofsElem
                 % N = nnode x ngauss; L = ndimf x ndimf x nelem; R = ndimf x ndimf x nelem 
-                dimf = mod(i-1, obj.jumpFun.ndimf)+1;
+                dimf = mod(i-1, obj.fun.ndimf)+1;
                 nodeU    = ceil(i/obj.uFun.ndimf);
                 nodeJump = min(nodeU,nnodesElemU-nodeU+1);
                 Ri  = R(:,dimf,:);
@@ -79,10 +72,10 @@ classdef Jump < handle
             obj.ndimf = cParams.ndimf;
             obj.uFun  =  cParams.uFun;
             obj.jumpDim = 2;
-        end
+        end 
 
         function createJumpFunction(obj)
-            obj.jumpFun = LagrangianFunction.create(obj.cohesiveMesh.lineMesh,obj.ndimf,'P1');
+            obj.fun = LagrangianFunction.create(obj.cohesiveMesh.lineMesh,obj.ndimf,'P1');
         end
 
         function computeGlobalSeparationMatrix(obj)
@@ -92,7 +85,6 @@ classdef Jump < handle
         function Rall = computeRotationMatrix(obj,uIn) 
             nCohElem     = length(obj.cohesiveMesh.listCohesiveElems);
             Rall  = zeros(2,2,nCohElem);
-
             for j=1:nCohElem
                 e = obj.cohesiveMesh.listCohesiveElems(j);
                 connecMesh = obj.cohesiveMesh.mesh.connec(e,:);
@@ -118,5 +110,13 @@ classdef Jump < handle
                 mx = m(1); my = m(2);   
                 Re = [mx, -my; my, mx] / sqrt(mx^2 + my^2);
         end
+    end
+
+    methods(Access = protected)
+
+        function fV = evaluateNew(obj,xV)
+        fV = obj.fun.evaluate(xV);
+        end       
+
     end
 end
