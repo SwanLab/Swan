@@ -54,7 +54,6 @@ classdef ContinuumDamageInternalEnergyFunctional < handle
         function d = getDamage(obj,r)
             d = obj.material.getDamage(r);
         end
-
     end
 
     methods (Access = private)

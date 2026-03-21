@@ -51,12 +51,20 @@ traction = tractionSeparation.computeFunction(jump);
 derivative = tractionSeparation.computeDerivative(jump);
 derivative.evaluate([-1,1]);
 
-
-
-% Crear material ... 
+% Crear material 
+k.type    = 'ISOTROPIC';
+k.ptype   = 'ELASTIC';
+k.ndim    = cohesiveMesh.mesh.ndim;
+k.young   = ConstantFunction.create(100,cohesiveMesh.mesh);
+k.poisson = ConstantFunction.create(0.33, cohesiveMesh.mesh);
+k.cohesiveMesh = cohesiveMesh;
+material    = Material.create(k);
 
 % Funcionals
-s.tractionSeparation = tractionSeparation;
-s.material     = 
-s.cohesiveMesh = cohesiveMesh;
+p.tractionSeparation = tractionSeparation;
+p.material     = material;
+p.cohesiveMesh = cohesiveMesh;
+p.test = LagrangianFunction.create(cohesiveMesh.mesh,2,'P1');
 funcional = CohesiveFunctional(s);
+
+

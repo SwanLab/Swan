@@ -41,7 +41,6 @@ classdef Jump < FeFunction
             obj.fun.setFValues(fValues);
         end
 
-
         function Bc = computeShapeFunctions(obj,xV)
             R  =  obj.computeRotationMatrix(obj.uFun); % ndimf x ndimf x nElem
             N  =  obj.fun.computeShapeFunctions(xV);  % N1(-1) N1(1); N2(-1), N2(1)
@@ -66,7 +65,7 @@ classdef Jump < FeFunction
     end
 
     methods (Access = private)
-
+        
         function init(obj,cParams)
             obj.cohesiveMesh = cParams.cohesiveMesh;
             obj.ndimf = cParams.ndimf;
