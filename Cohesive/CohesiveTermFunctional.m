@@ -33,7 +33,9 @@ classdef CohesiveTermFunctional < handle
             obj.jump.updateJumpValues(u);
             jumpFun = obj.jump.fun;
             deriv = obj.tractionSeparation.computeDerivative(jumpFun);
-            func = DP(Bc, DP(deriv,Bc));            % func = Bc.' * deriv * Bc
+            Bc = @(xV) obj.computeBc(xV);
+
+            func = @(xV) DP(Bc, DP(deriv,Bc));            % func = Bc.' * deriv * Bc
             H = IntegrateLHS(@(u,v)  func...
                 ,obj.test,obj.test,obj.cohesiveMesh.mesh,'Domain',quadOrder);
         end
@@ -54,6 +56,10 @@ classdef CohesiveTermFunctional < handle
             s.ndimf = obj.cohesiveMesh.mesh.ndim;
             s.uFun  = LagrangianFunction.create(obj.cohesiveMesh.mesh,s.ndimf,'P1');
             obj.jump = Jump(s);
+        end
+
+        function Bc = computeBc(obj,xV)
+            Bc = obj.jump.computeShapeFunctions(xV);
         end
     end
     
