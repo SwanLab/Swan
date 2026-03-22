@@ -25,7 +25,7 @@ classdef CohesiveComputer < handle
             obj.setOptimizer(cParams)
         end
 
-        function  compute(obj)
+        function compute(obj)
             u = LagrangianFunction.create(obj.mesh,2,'P1');
             cost = 0;
 
@@ -35,7 +35,6 @@ classdef CohesiveComputer < handle
                 [u,F,cost,iterMax] = obj.updater.update(u,bc,cost);
                 obj.postprocess(iStep,u,F,cost,iterMax)
             end
-
             obj.data = obj.data;
             % outputData = obj.monitor.data;
         end
@@ -54,7 +53,7 @@ classdef CohesiveComputer < handle
             s.tolerance  = cParams.tolerance;
             s.maxIter    = cParams.maxIter;
             s.solverType = cParams.solverType;
-            s.monitor    = cParams.monitor;
+            s.monitor    = 1;
             obj.updater = DisplacementUpdater(s);
         end
 

@@ -18,7 +18,7 @@ classdef CohesiveTermFunctional < handle
         
         function obj = CohesiveTermFunctional(cParams)
             obj.init(cParams)
-            obj.createJumpFunction(cParams);
+            obj.createJumpFunction();
         end
 
         function E = computeCost(obj,u,quadOrder)
@@ -33,13 +33,9 @@ classdef CohesiveTermFunctional < handle
             obj.jump.updateJumpValues(u);
             jumpFun = obj.jump.fun;
             deriv = obj.tractionSeparation.computeDerivative(jumpFun);
-
-            % func = Bc.' * deriv * Bc
-            func = DP(Bc, DP(deriv,Bc));
-
+            func = DP(Bc, DP(deriv,Bc));            % func = Bc.' * deriv * Bc
             H = IntegrateLHS(@(u,v)  func...
                 ,obj.test,obj.test,obj.cohesiveMesh.mesh,'Domain',quadOrder);
-        
         end
         
     end
@@ -49,14 +45,14 @@ classdef CohesiveTermFunctional < handle
         function init(obj,cParams)
             obj.cohesiveMesh     = cParams.cohesiveMesh;
             obj.material = cParams.material;
-            obj.test     = cParams.test;
+            obj.test     = cParams.cohTest;
             obj.tractionSeparation = cParams.tractionSeparation;
         end
 
-        function createJumpFunction(obj,cParams)
-            s.cohesiveMesh = cParams.cohesiveMesh;
-            s.ndimf = cParams.ndimf;
-            s.uFun = ConstantFunction.create(zeros(cParams.ndimf),cParams.cohesiveMesh.mesh);
+        function createJumpFunction(obj)
+            s.cohesiveMesh = obj.cohesiveMesh;
+            s.ndimf = obj.cohesiveMesh.mesh.ndim;
+            s.uFun  = LagrangianFunction.create(obj.cohesiveMesh.mesh,s.ndimf,'P1');
             obj.jump = Jump(s);
         end
     end

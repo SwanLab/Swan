@@ -5,6 +5,7 @@ classdef CohesiveFunctional < handle
     properties (Access = private)
         functionals
         quadOrder
+        test
     end
     
     properties (Access = private)
@@ -25,7 +26,7 @@ classdef CohesiveFunctional < handle
                 fExt.setFValues(reshape(vals,u.mesh.nnodes,u.mesh.ndim));
             end
             Eint = obj.functionals.energy.computeCost(u,obj.quadOrder);
-            Ecoh = obj.functinonals.cohesive.computeCost(u,obj.quadOrder, ????);
+            Ecoh = obj.functionals.cohesive.computeCost(u,obj.quadOrder);
             Wext = obj.functionals.extWork.computeCost(u,fExt,obj.quadOrder);
             Etot = Eint+Ecoh+Wext;
         end
@@ -44,7 +45,7 @@ classdef CohesiveFunctional < handle
         end
 
         function LHS = computeHessian(obj,u)
-            Kelas = obj.functionals.energy.computeHessian(u,obj.quadOrder);
+            Kelas = obj.functionals.energy.computeHessian();
             Kcoh  = obj.functionals.cohesive.computeDerivativeResidual(u,obj.quadOrder);
             LHS   = Kelas+Kcoh;
         end
@@ -55,6 +56,8 @@ classdef CohesiveFunctional < handle
         
         function init(obj,cParams)
             obj.quadOrder = cParams.quadOrder;
+            obj.test      = cParams.test;
+            cParams.testSpace.u = obj.test;
             obj.functionals.extWork  = ExternalWorkFunctional(cParams);
             obj.functionals.energy   = LinearElasticityFunctional(cParams);
             obj.functionals.cohesive = CohesiveTermFunctional(cParams);
