@@ -271,7 +271,7 @@ classdef TutorialEIFEM < handle
             LHS = lhs.compute();
             % FI
 
-            LHS = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),dispFun,dispFun,mesh,'Domain',2);
+            %LHS = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),dispFun,dispFun,mesh,'Domain',2);
             LHSr = obj.bcApplier.fullToReducedMatrixDirichlet(LHS);
         end
 
