@@ -17,7 +17,16 @@ classdef PCG < handle
     methods (Static, Access = public)
                
         function [x,residual,err,errAnorm] = solve(A,B,x0,P,tol,xsol,mesh,bcApplier,isPlot)
-            if nargin == 5, xsol = zeros(size(B)); end
+            
+            % if nargin == 5, xsol = zeros(size(B)); end
+            
+            % CANVI: S'HA CANVIAT LA LINIA DE DALT PER AIXÒ
+            if nargin < 6, xsol = zeros(size(B)); end
+            if nargin < 7, mesh = []; end
+            if nargin < 8, bcApplier = []; end
+            if nargin < 9, isPlot = false; end
+            % FI
+            
             iter = 0;
             normB = norm(B);
             x = x0;

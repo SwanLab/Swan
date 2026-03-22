@@ -132,78 +132,123 @@ classdef TutorialEIFEM < handle
             obj.bcApplier           = BCApplier(s);
         end
 
+        % function material = createMaterial(obj,mesh)
+        %     E  = 1;
+        %     nu = 1/3;  
+        %     s.type    = 'ISOTROPIC';
+        %     s.ptype   = 'ELASTIC';
+        %     s.ndim    = mesh.ndim;
+        %     s.young   = ConstantFunction.create(E,mesh);
+        %     s.poisson = ConstantFunction.create(nu,mesh);
+        %     tensor    = Material.create(s);
+        %     material  = tensor;
+        % end
+
+
+        % NOU
         function material = createMaterial(obj,mesh)
-            E  = 1;
-            nu = 1/3;  
+            [young,poisson] = obj.computeElasticProperties(mesh);
             s.type    = 'ISOTROPIC';
             s.ptype   = 'ELASTIC';
             s.ndim    = mesh.ndim;
-            s.young   = ConstantFunction.create(E,mesh);
-            s.poisson = ConstantFunction.create(nu,mesh);
+            s.young   = young;
+            s.poisson = poisson;
             tensor    = Material.create(s);
             material  = tensor;
         end
 
+        function [young,poisson] = computeElasticProperties(obj,mesh)
+            E  = 1;
+            nu = 1/3;
+            Epstr  = E/(1-nu^2);
+            nupstr = nu/(1-nu);
+            young   = ConstantFunction.create(Epstr,mesh);
+            poisson = ConstantFunction.create(nupstr,mesh);
+        end
+        % FI
 
-        function [bC,Dir] = createBoundaryConditions(obj)
-            minx = min(obj.meshDomain.coord(:,1));
-            maxx = max(obj.meshDomain.coord(:,1));
-            miny = min(obj.meshDomain.coord(:,2));
-            maxy = max(obj.meshDomain.coord(:,2));
-            tolBound = obj.tolSameNode;
-            isLeft   = @(coor) (abs(coor(:,1) - minx)   < tolBound);
-            isRight  = @(coor) (abs(coor(:,1) - maxx)   < tolBound);
-            isBottom = @(coor) (abs(coor(:,2) - miny)   < tolBound);
-            isTop    = @(coor) (abs(coor(:,2) - maxy)   < tolBound);
-%             Dir{1}.domain    = @(coor) isLeft(coor);%| isRight(coor) ;
+%         function [bC,Dir] = createBoundaryConditions(obj)
+%             minx = min(obj.meshDomain.coord(:,1));
+%             maxx = max(obj.meshDomain.coord(:,1));
+%             miny = min(obj.meshDomain.coord(:,2));
+%             maxy = max(obj.meshDomain.coord(:,2));
+%             tolBound = obj.tolSameNode;
+%             isLeft   = @(coor) (abs(coor(:,1) - minx)   < tolBound);
+%             isRight  = @(coor) (abs(coor(:,1) - maxx)   < tolBound);
+%             isBottom = @(coor) (abs(coor(:,2) - miny)   < tolBound);
+%             isTop    = @(coor) (abs(coor(:,2) - maxy)   < tolBound);
+% %             Dir{1}.domain    = @(coor) isLeft(coor);%| isRight(coor) ;
+% %             Dir{1}.direction = [1,2];
+% %             Dir{1}.value     = 0;
+% %             dirichletFun = DirichletCondition(obj.meshDomain, Dir{1});
+% % 
+%             mesh = obj.meshDomain;
+% %             PL.domain    = @(coor) isRight(coor);
+% %             PL.direction = 2;
+% %             PL.value     = -0.1;
+% %             pointload = TractionLoad(mesh,PL,'DIRAC');
+% 
+%              Dir{1}.domain    = @(coor) isLeft(coor);%| isRight(coor) ;
 %             Dir{1}.direction = [1,2];
 %             Dir{1}.value     = 0;
-%             dirichletFun = DirichletCondition(obj.meshDomain, Dir{1});
 % 
-            mesh = obj.meshDomain;
-%             PL.domain    = @(coor) isRight(coor);
-%             PL.direction = 2;
-%             PL.value     = -0.1;
-%             pointload = TractionLoad(mesh,PL,'DIRAC');
-
-             Dir{1}.domain    = @(coor) isLeft(coor);%| isRight(coor) ;
-            Dir{1}.direction = [1,2];
-            Dir{1}.value     = 0;
-
-                        Dir{2}.domain    = @(coor) isRight(coor) ;
-                        Dir{2}.direction = [1,2];
-                        Dir{2}.value     = 0;
-            dirichletFun=[];        
+%                         Dir{2}.domain    = @(coor) isRight(coor) ;
+%                         Dir{2}.direction = [1,2];
+%                         Dir{2}.value     = 0;
+%             dirichletFun=[];        
+%             for i = 1:numel(Dir)
+%                 dir = DirichletCondition(obj.meshDomain, Dir{i});
+%                 dirichletFun = [dirichletFun, dir];
+%             end
+% 
+%             PL.domain    = @(coor) isTop(coor);
+%             PL.direction = [2];
+%             PL.value     = [-0.1];
+%             pointload = TractionLoad(obj.meshDomain,PL,'DIRAC');
+% 
+% %             mesh = obj.meshDomain;
+% %             PL.domain    = @(coor) isRight(coor);
+% %             PL.direction = 2;
+% %             PL.value     = -0.1;
+% %             pointload = PointLoad(mesh,PL);
+% %             % need this because force applied in the face not in a point
+% %             pointload.values        = pointload.values/size(pointload.dofs,1);
+% %             fvalues                 = zeros(mesh.nnodes*mesh.ndim,1);
+% %             fvalues(pointload.dofs) = pointload.values;
+% %             fvalues                 = reshape(fvalues,mesh.ndim,[])';
+% %             pointload.fun.setFValues(fvalues);
+% 
+%             s.pointloadFun = pointload;
+%             s.dirichletFun = dirichletFun;
+%             s.periodicFun  =[];
+%             s.mesh         = mesh;
+%             bC             = BoundaryConditions(s);                        
+%         end
+    
+          % CANVI: S'HA COMENTAT LA FUNCIÓ DE DALT I S'HA CANVIAT PER
+          % AQUESTA
+          function [bc,Dir,PL] = createBoundaryConditions(obj)
+            [Dir,PL]  = obj.createRawBoundaryConditions();
+            dirichletFun = [];
             for i = 1:numel(Dir)
                 dir = DirichletCondition(obj.meshDomain, Dir{i});
                 dirichletFun = [dirichletFun, dir];
             end
-
-            PL.domain    = @(coor) isTop(coor);
-            PL.direction = [2];
-            PL.value     = [-0.1];
-            pointload = TractionLoad(obj.meshDomain,PL,'DIRAC');
-
-%             mesh = obj.meshDomain;
-%             PL.domain    = @(coor) isRight(coor);
-%             PL.direction = 2;
-%             PL.value     = -0.1;
-%             pointload = PointLoad(mesh,PL);
-%             % need this because force applied in the face not in a point
-%             pointload.values        = pointload.values/size(pointload.dofs,1);
-%             fvalues                 = zeros(mesh.nnodes*mesh.ndim,1);
-%             fvalues(pointload.dofs) = pointload.values;
-%             fvalues                 = reshape(fvalues,mesh.ndim,[])';
-%             pointload.fun.setFValues(fvalues);
-
+        
+            mesh = obj.meshDomain;
+            pointload = PointLoad(mesh,PL);
+            pointload.values        = pointload.values/size(pointload.dofs,1);
+            fvalues                 = zeros(mesh.nnodes*mesh.ndim,1);
+            fvalues(pointload.dofs) = pointload.values;
+            fvalues                 = reshape(fvalues,mesh.ndim,[])';
+            pointload.fun.setFValues(fvalues);
+        
             s.pointloadFun = pointload;
             s.dirichletFun = dirichletFun;
-            s.periodicFun  =[];
+            s.periodicFun  = [];
             s.mesh         = mesh;
-            bC             = BoundaryConditions(s);                        
+            bc             = BoundaryConditions(s);
         end
-
-  
 
         function [LHSr,RHSr] = createElasticProblem(obj)
             u = LagrangianFunction.create(obj.meshDomain,obj.meshDomain.ndim,'P1');
@@ -211,71 +256,110 @@ classdef TutorialEIFEM < handle
             [lhs,LHSr] = obj.computeStiffnessMatrix(obj.meshDomain,u,material);
             RHSr       = obj.computeForces(lhs,u);
         end
+        % FI
 
         function [LHS,LHSr] = computeStiffnessMatrix(obj,mesh,dispFun,C)
-            % s.type     = 'ElasticStiffnessMatrix';
-            % s.mesh     = mesh;
-            % s.test     = dispFun;
-            % s.trial    = dispFun;
-            % s.material = mat;
-            % s.quadratureOrder = 2;
-            % lhs = LHSIntegrator.create(s);
-            % LHS = lhs.compute();
+            
+            % CANVI: ABANS ESTAVA COMENTAT I JA NO
+            s.type     = 'ElasticStiffnessMatrix';
+            s.mesh     = mesh;
+            s.test     = dispFun;
+            s.trial    = dispFun;
+            s.material = mat;
+            s.quadratureOrder = 2;
+            lhs = LHSIntegrator.create(s);
+            LHS = lhs.compute();
+            % FI
 
             LHS = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),dispFun,dispFun,mesh,'Domain',2);
             LHSr = obj.bcApplier.fullToReducedMatrixDirichlet(LHS);
         end
 
-       function RHS =  computeForces(obj,stiffness,u)
-            bc  = obj.boundaryConditions;
-            t   = bc.tractionFun;
-            rhs = zeros(u.nDofs,1);
-            if ~isempty(t)
-                for i = 1:numel(t)
-                    rhsi = t(i).computeRHS(u);
-                    rhs  = rhs + rhsi;
-                end
-            end
-            if strcmp(obj.solverType,'REDUCED')
-                bc      = obj.boundaryConditions;
-                dirich  = bc.dirichlet_dofs;
-                dirichV = bc.dirichlet_vals;
-                if ~isempty(dirich)
-                    R = -stiffness(:,dirich)*dirichV;
-                else
-                    R = zeros(sum(obj.uFun.nDofs(:)),1);
-                end
-                rhs = rhs+R;
-            end
-             RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
-       end
+       % function RHS =  computeForces(obj,stiffness,u)
+       %      bc  = obj.boundaryConditions;
+       %      t   = bc.tractionFun;
+       %      rhs = zeros(u.nDofs,1);
+       %      if ~isempty(t)
+       %          for i = 1:numel(t)
+       %              rhsi = t(i).computeRHS(u);
+       %              rhs  = rhs + rhsi;
+       %          end
+       %      end
+       %      if strcmp(obj.solverType,'REDUCED')
+       %          bc      = obj.boundaryConditions;
+       %          dirich  = bc.dirichlet_dofs;
+       %          dirichV = bc.dirichlet_vals;
+       %          if ~isempty(dirich)
+       %              R = -stiffness(:,dirich)*dirichV;
+       %          else
+       %              R = zeros(sum(obj.uFun.nDofs(:)),1);
+       %          end
+       %          rhs = rhs+R;
+       %      end
+       %       RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
+       % end
 
+       %CANVI: S'HA COMENTAT LA DE DALT I S'HA CANVIAT PER AQUESTA
+       function RHS = computeForces(obj,stiffness,u)
+            s.type      = 'Elastic';
+            s.scale     = 'MACRO';
+            s.dim.ndofs = u.nDofs;
+            s.BC        = obj.boundaryConditions;
+            s.mesh      = obj.meshDomain;
+            RHSint      = RHSIntegrator.create(s);
+            rhs         = RHSint.compute();
+            R           = RHSint.computeReactions(stiffness);
+            RHS         = rhs + R;
+            RHS         = obj.bcApplier.fullToReducedVectorDirichlet(RHS);
+        end
+        % FI
+
+%         function Meifem = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh)
+%             mR = obj.referenceMesh;
+% %             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
+% %             EIFEMfilename = obj.fileNameEIFEM;
+% %             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
+% %             filename        = EIFEMfilename;
+% %             s.RVE           = TrainedRVE(filename);
+%             data = Training(mR);
+%             p = OfflineDataProcessor(data);
+%             EIFEoper = p.computeROMbasis();
+%             s.RVE           = TrainedRVE(EIFEoper);
+%             s.mesh          = obj.createCoarseMesh(mR);
+% %            s.mesh          = obj.loadCoarseMesh(mR);
+%             s.DirCond       = dir;
+%             s.nSubdomains = obj.nSubdomains;
+%             eifem           = EIFEM(s);
+% 
+%             ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
+%             ss.EIFEMsolver = eifem;
+%             ss.bcApplier = obj.bcApplier;
+%             ss.dMesh     = dMesh;
+%             ss.type = 'EIFEM';
+%             eP = Preconditioner.create(ss);
+%             Meifem = @(r) eP.apply(r);
+%         end
+
+        % CANVI: S'HA CANVIAT LA DE DALT COMENTADA PER AQUESTA
         function Meifem = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh)
             mR = obj.referenceMesh;
-%             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
-%             EIFEMfilename = obj.fileNameEIFEM;
-%             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
-%             filename        = EIFEMfilename;
-%             s.RVE           = TrainedRVE(filename);
-            data = Training(mR);
-            p = OfflineDataProcessor(data);
-            EIFEoper = p.computeROMbasis();
-            s.RVE           = TrainedRVE(EIFEoper);
+            filename        = obj.fileNameEIFEM;
+            s.RVE           = TrainedRVE(filename);
             s.mesh          = obj.createCoarseMesh(mR);
-%            s.mesh          = obj.loadCoarseMesh(mR);
             s.DirCond       = dir;
-            s.nSubdomains = obj.nSubdomains;
+            s.nSubdomains   = obj.nSubdomains;
             eifem           = EIFEM(s);
-
-            ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
-            ss.EIFEMsolver = eifem;
-            ss.bcApplier = obj.bcApplier;
-            ss.dMesh     = dMesh;
-            ss.type = 'EIFEM';
-            eP = Preconditioner.create(ss);
-            Meifem = @(r) eP.apply(r);
-        end
         
+            ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
+            ss.EIFEMsolver  = eifem;
+            ss.bcApplier    = obj.bcApplier;
+            ss.dMesh        = dMesh;
+            ss.type         = 'EIFEM';
+            eP              = Preconditioner.create(ss);
+            Meifem          = @(r) eP.apply(r);
+        end
+        % FI
+
         function d = createDomainDecompositionDofManager(obj,iC,lG,bS,mR,iCR)
             s.nSubdomains     = obj.nSubdomains;
             s.interfaceConnec = iC;
@@ -324,6 +408,31 @@ classdef TutorialEIFEM < handle
             ylabel('Energy norm')
 
         end
+
+        % CANVI: S'HA AFEGIT LA FUNCIÓ
+        function [Dir,PL] = createRawBoundaryConditions(obj)
+            minx = min(obj.meshDomain.coord(:,1));
+            maxx = max(obj.meshDomain.coord(:,1));
+            miny = min(obj.meshDomain.coord(:,2));
+            maxy = max(obj.meshDomain.coord(:,2));
+            tolBound = obj.tolSameNode;
+            isLeft   = @(coor) (abs(coor(:,1) - minx) < tolBound);
+            isRight  = @(coor) (abs(coor(:,1) - maxx) < tolBound);
+            isTop    = @(coor) (abs(coor(:,2) - maxy) < tolBound);
+        
+            Dir{1}.domain    = @(coor) isLeft(coor);
+            Dir{1}.direction = [1,2];
+            Dir{1}.value     = 0;
+        
+            Dir{2}.domain    = @(coor) isRight(coor);
+            Dir{2}.direction = [1,2];
+            Dir{2}.value     = 0;
+        
+            PL.domain    = @(coor) isTop(coor);
+            PL.direction = [2];
+            PL.value     = [-0.1];
+        end
+        % FI
        
     end
 

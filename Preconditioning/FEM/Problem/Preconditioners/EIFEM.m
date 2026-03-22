@@ -59,48 +59,76 @@ classdef EIFEM < handle
         end
 
         function LHS = computeLHS(obj)
-            LHS = obj.assembleMatrix(obj.Kel,obj.dispFun,obj.dispFun);
+            %LHS = obj.assembleMatrix(obj.Kel,obj.dispFun,obj.dispFun);
+
+            % CANVI: S'HA CANVIAT LA LINIA DE DALT PER AIXÒ
+            LHS = obj.assembleMatrix();
+            % FI
         end
         
-        function A = assembleMatrix(obj,Aelem,f1,f2)
-            dofsF1 = f1.getDofConnec();
-            if isequal(f1, f2)
-                dofsF2 = dofsF1;
-            else
-                dofsF2 = f2.getDofConnec();
-            end
-            nDofs1     = numel(f1.fValues);
-            nDofs2     = numel(f2.fValues);
-            ndofsElem1 = size(Aelem, 1);
-            ndofsElem2 = size(Aelem, 2);
+        % function A = assembleMatrix(obj,Aelem,f1,f2)
+        %     dofsF1 = f1.getDofConnec();
+        %     if isequal(f1, f2)
+        %         dofsF2 = dofsF1;
+        %     else
+        %         dofsF2 = f2.getDofConnec();
+        %     end
+        %     nDofs1     = numel(f1.fValues);
+        %     nDofs2     = numel(f2.fValues);
+        %     ndofsElem1 = size(Aelem, 1);
+        %     ndofsElem2 = size(Aelem, 2);
+        % 
+        %     [iElem, jElem] = meshgrid(1:ndofsElem1, 1:ndofsElem2);
+        %     iElem = iElem(:);
+        %     jElem = jElem(:);
+        % 
+        %     dofsI = dofsF1(:, iElem);
+        %     dofsJ = dofsF2(:, jElem);
+        % 
+        %     rowIdx = dofsI(:);
+        %     colIdx = dofsJ(:);
+        %     Aval   = permute(Aelem,[3 2 1]);
+        %     values = Aval(:);
+        %     A = sparse(rowIdx, colIdx, values, nDofs1, nDofs2);
+        % end
 
-            [iElem, jElem] = meshgrid(1:ndofsElem1, 1:ndofsElem2);
-            iElem = iElem(:);
-            jElem = jElem(:);
-
-            dofsI = dofsF1(:, iElem);
-            dofsJ = dofsF2(:, jElem);
-
-            rowIdx = dofsI(:);
-            colIdx = dofsJ(:);
-            Aval   = permute(Aelem,[3 2 1]);
-            values = Aval(:);
-            A = sparse(rowIdx, colIdx, values, nDofs1, nDofs2);
+        % CANVI: S'HA CANVIAT LA FUNCIÓ DE DALT PER AQUESTA
+        function LHS = assembleMatrix(obj)
+            s.fun  = obj.dispFun;
+            trial  = s.fun;
+            test   = trial;
+            obj.assembler = AssemblerFun(s);
+            LHS = obj.assembler.assemble(obj.Kel, test, trial);
         end
+        % FI
 
+        % function RHS = assembleRHSvector(obj,F)
+        %     Fcoarse = reshape(F,1,obj.dispFun.nDofsElem,[]);
+        %     Fcoarse = squeeze(Fcoarse);
+        %     RHS     = obj.assembleVector(Fcoarse,obj.dispFun);
+        % end
+
+        % CANVI: S'HA CANVIAT LA FUNCIÓ DE DALT PER AQUESTA
         function RHS = assembleRHSvector(obj,F)
             Fcoarse = reshape(F,1,obj.dispFun.nDofsElem,[]);
-            Fcoarse = squeeze(Fcoarse);
-            RHS     = obj.assembleVector(Fcoarse,obj.dispFun);
+            Fcoarse = permute(Fcoarse,[2 1 3]);
+            fun     = [];
+            RHS     = obj.assembler.assembleV(Fcoarse,fun);
         end
+        % FI
 
-        function F = assembleVector(obj,Felem, f)
-            dofConnec = f.getDofConnec();
-            nDofs     = numel(f.fValues);
-            rowIdx    = dofConnec(:);
-            Felem = Felem';
-            F = sparse(rowIdx, 1, Felem(:), nDofs, 1);
-        end
+
+        %CANVI: S'HA COMENTAT LA FUNCIÓ D'ABAIX PQ JA NO CAL
+    
+        % function F = assembleVector(obj,Felem, f)
+        %     dofConnec = f.getDofConnec();
+        %     nDofs     = numel(f.fValues);
+        %     rowIdx    = dofConnec(:);
+        %     Felem = Felem';
+        %     F = sparse(rowIdx, 1, Felem(:), nDofs, 1);
+        % end
+
+        % FI
 
         function R = computeReactions(obj)
             bc      = obj.boundaryConditions;
