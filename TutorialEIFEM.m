@@ -51,8 +51,8 @@ classdef TutorialEIFEM < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [15 1]; %nx ny
-            obj.fileNameEIFEM = 'DEF_Q4porL_1_raul.mat';
+            obj.nSubdomains  = [15 5]; %nx ny
+            obj.fileNameEIFEM = 'DEF_Q4porL_1.mat';
             obj.tolSameNode = 1e-10;
         end
 
