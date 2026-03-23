@@ -22,6 +22,12 @@ classdef PCG < handle
             x = x0;
             r = B - A(x);
             z = P(r);
+
+            % DEBUG
+            save('debug_pcg.mat','B','r','z')
+            disp('guardat debug_pcg.mat')
+            %    
+
             p = z;
             rzold = r' * z;
             while norm(r) > tol
