@@ -37,6 +37,11 @@ classdef TutorialEIFEM < handle
 
             [LHSr,RHSr] = obj.createElasticProblem();
 
+            %DEBUG
+            save('debug_tutorial.mat','LHSr','RHSr')
+            disp('guardat debug_tutorial.mat')
+            %
+
             LHSfun = @(x) LHSr*x;
             Meifem       = obj.createEIFEMPreconditioner(dir,iC,lG,bS,iCR,discMesh);
             Milu         = obj.createILUpreconditioner(LHSr);

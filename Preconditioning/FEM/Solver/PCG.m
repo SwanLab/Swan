@@ -33,6 +33,12 @@ classdef PCG < handle
 %             EIFEMtesting.plotSolution(x,mesh,25,5,iter,bcApplier,0)
             r = B - A(x);
             z = P(r);
+            
+            % DEBUG
+            save('debug_pcg.mat','B','r','z')
+            disp('guardat debug_pcg.mat')
+            %
+
             p = z;
             rzold = r' * z;
             normB = norm(B);
