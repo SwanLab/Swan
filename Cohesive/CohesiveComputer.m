@@ -73,32 +73,33 @@ classdef CohesiveComputer < handle
         function [totReact,uBC] = computeTotalReaction(obj,step,F,u)
             DownSide = min(obj.mesh.coord(:,2));
             isInDown = abs(obj.mesh.coord(:,2)-DownSide)< 1e-12;
+            isInUp   = not(isInDown);
             nodes = 1:obj.mesh.nnodes;
-            if ismember(obj.boundaryConditions.u.type, ["ForceTractionY", "ForceTractionYClamped"])
+            if ismember(obj.boundaryConditions.type, ["ForceTractionY", "ForceTractionYClamped"])
                 uBC = norm(mean(u.fValues(nodes(isInUp),2)));
-                totReact = obj.boundaryConditions.u.bcValues(step);
-            elseif ismember(obj.boundaryConditions.u.type, ["DisplacementTractionY","DisplacementTractionYClamped"]) 
+                totReact = obj.boundaryConditions.bcValues(step);
+            elseif ismember(obj.boundaryConditions.type, ["DisplacementTractionY","DisplacementTractionYClamped"]) 
                 dofsYdown = (nodes(isInDown)-1)*u.ndimf + 2;
                 totReact = abs(sum(F(dofsYdown)));
-                uBC = obj.boundaryConditions.u.bcValues(step);
+                uBC = obj.boundaryConditions.bcValues(step);
             end
 
             LeftSide = min(obj.mesh.coord(:,1));
             isInLeft = abs(obj.mesh.coord(:,1)-LeftSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;
-            if ismember(obj.boundaryConditions.u.type, ["ForceTractionX","ForceTractionXClamped"])
+            if ismember(obj.boundaryConditions.type, ["ForceTractionX","ForceTractionXClamped"])
                 uBC = norm(mean(u.fValues(nodes(isInLeft),2)));
-                totReact = obj.boundaryConditions.u.bcValues(step);
-            elseif ismember(obj.boundaryConditions.u.type, ["DisplacementTractionX","DisplacementTractionXClamped"])
+                totReact = obj.boundaryConditions.bcValues(step);
+            elseif ismember(obj.boundaryConditions.type, ["DisplacementTractionX","DisplacementTractionXClamped"])
                 dofsXleft = (nodes(isInLeft)-1)*u.ndimf + 1;
                 totReact = abs(sum(F(dofsXleft)));
-                uBC = obj.boundaryConditions.u.bcValues(step);
+                uBC = obj.boundaryConditions.bcValues(step);
             end
 
-            if ismember(obj.boundaryConditions.u.type, "DisplacementShear")
+            if ismember(obj.boundaryConditions.type, "DisplacementShear")
                 dofsXdown = (nodes(isInDown)-1)*u.ndimf + 1;
                 totReact = abs(sum(F(dofsXdown)));
-                uBC = obj.boundaryConditions.u.bcValues(step);
+                uBC = obj.boundaryConditions.bcValues(step);
             end
         end
         

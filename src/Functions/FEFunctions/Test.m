@@ -58,10 +58,15 @@ classdef Test < BaseFunction
                 Ni(dim,:,:) = N(node,:,:);
             else % All elements              If statement unified if xV always of ndims=3
                 N = u.computeShapeFunctions(xV);
-                nGauss = size(xV,2);
-                nEval = u.mesh.nelem;
-                Ni = zeros(ndimf,nGauss,nEval);
-                Ni(dim,:,:) = repmat(N(node,:),[1 1 nEval]);%2x2 [-cos
+                if isa(u,'Jump')
+                    Ni = N(:,obj.iDof,:,:);
+                else
+                    nGauss = size(xV,2);
+                    nEval = u.mesh.nelem;
+                    Ni = zeros(ndimf,nGauss,nEval);
+                    Ni(dim,:,:) = repmat(N(node,:),[1 1 nEval]);
+                end
+                    
             end
         end
 

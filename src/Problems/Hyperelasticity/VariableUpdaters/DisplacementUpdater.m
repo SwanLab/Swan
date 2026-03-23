@@ -26,9 +26,9 @@ classdef DisplacementUpdater < handle
                 costOld = cost;
 
                 i = i+1;
-                obj.monitor.printCost('iterU',i,cost,err);
-                obj.monitor.update(length(costArray),{[],[cost],[],[]});
-                obj.monitor.refresh(); 
+                % obj.monitor.printCost('iterU',i,cost,err);
+                % obj.monitor.update(length(costArray),{[],[cost],[],[]});
+                % obj.monitor.refresh(); 
             end
             rFun = obj.computeReactions(LHS,u,bc);
             iter = i;

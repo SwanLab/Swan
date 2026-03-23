@@ -24,7 +24,7 @@ classdef TutorialCohesive < handle
         end
 
         function solveProblem(obj)
-            s.mesh = obj.cohesiveMesh.mesh;
+            s.mesh = obj.cohesiveMesh.fullMesh;
             s.boundaryConditions = obj.boundaryConditions;
             s.functional = obj.functional;
 
@@ -61,14 +61,14 @@ classdef TutorialCohesive < handle
 
         function createBoundaryConditions(obj)
             bc.type = 'ForceTractionY';
-            bc.values = [0:0.1:20];
-            obj.boundaryConditions  = BoundaryConditionsCreator(obj.cohesiveMesh.mesh,bc);
+            bc.values = 0.5;
+            obj.boundaryConditions  = BoundaryConditionsCreator(obj.cohesiveMesh.fullMesh,bc);
         end
 
         function createTractionSeparation(obj)
             s.K         = 1e10;
-            s.jumpCrit  = 0.1;
-            s.jumpFinal = 0.01;
+            s.jumpCrit  = 0.01;
+            s.jumpFinal = 0.1;
             s.lawType = 'TractionBiliniarUncoupled';
             obj.tractionSeparation = CohesiveTractionSeparation(s);
         end
@@ -76,20 +76,19 @@ classdef TutorialCohesive < handle
         function createCohesiveFunctional(obj)
             s.tractionSeparation = obj.tractionSeparation;
             s.material           = obj.createMaterial();
-            s.mesh               = obj.cohesiveMesh.mesh;
+            s.mesh               = obj.cohesiveMesh.fullMesh;
             s.cohesiveMesh       = obj.cohesiveMesh;
             s.quadOrder          = 2;
-            s.test = LagrangianFunction.create(obj.cohesiveMesh.mesh,2,'P1');
-            s.cohTest = LagrangianFunction.create(obj.cohesiveMesh.lineMesh,2,'P1');
+            s.test = LagrangianFunction.create(obj.cohesiveMesh.fullMesh,2,'P1');
             obj.functional = CohesiveFunctional(s);
         end
 
         function m = createMaterial(obj)
             k.type    = 'ISOTROPIC';
             k.ptype   = 'ELASTIC';
-            k.ndim    = obj.cohesiveMesh.mesh.ndim;
-            k.young   = ConstantFunction.create(100,obj.cohesiveMesh.mesh);
-            k.poisson = ConstantFunction.create(0.33, obj.cohesiveMesh.mesh);
+            k.ndim    = obj.cohesiveMesh.fullMesh.ndim;
+            k.young   = ConstantFunction.create(100,obj.cohesiveMesh.fullMesh);
+            k.poisson = ConstantFunction.create(0.33, obj.cohesiveMesh.fullMesh);
             k.cohesiveMesh = obj.cohesiveMesh;
             m    = Material.create(k);
         end

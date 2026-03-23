@@ -12,6 +12,7 @@ classdef Jump < FeFunction
 
     properties (Access = public)
         fun
+        nDofsElem
     end
 
     methods (Access = public)
@@ -25,20 +26,20 @@ classdef Jump < FeFunction
 
         function updateJumpValues(obj,uIn)          
             R = obj.computeRotationMatrix(uIn); % 2x2xnElems
-            connJump  = obj.cohesiveMesh.lineMesh.connec;
-            nNodeJump = obj.cohesiveMesh.lineMesh.nnodes;
-            fValues   = zeros(nNodeJump,obj.jumpDim); % nNode x 2
+            connJump  = obj.mesh.connec;
+            nNodeJump = obj.mesh.nnodes;
+            fValuesJ   = zeros(nNodeJump,obj.jumpDim); % nNode x 2
             nnodesElemU = uIn.nDofsElem/uIn.ndimf;
             for n = 1:nnodesElemU 
                 uNode = computeDispNodes(obj,uIn,n);
                 jumpi = pagemtimes(obj.L(:,:,n*uIn.ndimf), pagemtimes(R, uNode));
                 jumpi = squeeze(jumpi).';
                 nJump = min(n,nnodesElemU-n+1);
-                fValues(connJump(:,nJump),:) = fValues(connJump(:,nJump),:) + jumpi;
+                fValuesJ(connJump(:,nJump),:) = fValuesJ(connJump(:,nJump),:) + jumpi;
             end
             div = [1, 2*ones(1,obj.fun.mesh.nelem-1), 1];
-            fValues = fValues./div.';
-            obj.fun.setFValues(fValues);
+            fValuesJ = fValuesJ./div.';
+            obj.fun.setFValues(fValuesJ);
         end
 
         function Bc = computeShapeFunctions(obj,xV)
@@ -62,6 +63,11 @@ classdef Jump < FeFunction
                 Bc(:,i,:,:) = Bci;
             end
         end
+
+        function jc = getDofConnec(obj)
+            uc = obj.uFun.getDofConnec(); 
+            jc = uc(obj.cohesiveMesh.listCohesiveElems,:);
+        end
     end
 
     methods (Access = private)
@@ -71,10 +77,13 @@ classdef Jump < FeFunction
             obj.ndimf = cParams.ndimf;
             obj.uFun  =  cParams.uFun;
             obj.jumpDim = 2;
+            obj.nDofsElem = obj.uFun.nDofsElem;
+            obj.mesh = obj.cohesiveMesh.mesh;
+            obj.fValues = zeros(size(obj.uFun.fValues));
         end 
 
         function createJumpFunction(obj)
-            obj.fun = LagrangianFunction.create(obj.cohesiveMesh.lineMesh,obj.ndimf,'P1');
+            obj.fun = LagrangianFunction.create(obj.mesh,obj.ndimf,'P1');
         end
 
         function computeGlobalSeparationMatrix(obj)
@@ -86,8 +95,8 @@ classdef Jump < FeFunction
             Rall  = zeros(2,2,nCohElem);
             for j=1:nCohElem
                 e = obj.cohesiveMesh.listCohesiveElems(j);
-                connecMesh = obj.cohesiveMesh.mesh.connec(e,:);
-                coordsMesh = obj.cohesiveMesh.mesh.coord(connecMesh',:);
+                connecMesh = obj.cohesiveMesh.fullMesh.connec(e,:);
+                coordsMesh = obj.cohesiveMesh.fullMesh.coord(connecMesh',:);
                 disp  = uIn.fValues(connecMesh',:);
                     deformedCoords = coordsMesh + disp;
                 Re = obj.computElementalRotationMatrix(deformedCoords);
@@ -96,7 +105,7 @@ classdef Jump < FeFunction
         end
 
         function uVals = computeDispNodes(obj,uIn,n)
-            conn = obj.cohesiveMesh.mesh.connec(obj.cohesiveMesh.listCohesiveElems,:);
+            conn = obj.cohesiveMesh.fullMesh.connec(obj.cohesiveMesh.listCohesiveElems,:);
             nodes = conn(:,n);
             uVals = uIn.fValues(nodes,:);
             uVals = reshape(uVals.',[2 1 size(uVals,1)]);

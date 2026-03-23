@@ -1,8 +1,8 @@
 classdef CohesiveMesh < handle
     
     properties (Access = public)
+        fullMesh
         mesh
-        lineMesh
         centerLineMesh
 
         listNodeCohesive
@@ -50,12 +50,12 @@ classdef CohesiveMesh < handle
             title('BaseMesh')
 
             subplot(1,2,2)
-            obj.mesh.plot;
+            obj.fullMesh.plot;
             title('CohesiveMesh')
         end
         
         function createCenterLineMesh(obj)
-            coord = obj.lineMesh.coord;
+            coord = obj.mesh.coord;
             nNodes = size(coord,1);
             centerCoord = (coord(1:nNodes-1,:) + coord(2:nNodes,:))/2;
             centerConnec = [(1:nNodes-2)' (2:nNodes-1)'];
@@ -64,6 +64,15 @@ classdef CohesiveMesh < handle
             s.kFace  = -1;
             obj.centerLineMesh = Mesh.create(s);
         end
+
+        function A = createMappingMatrix(obj)
+            listAllNodesInCoh = [obj.pairsMatrix(:,1);obj.pairsMatrix(:,2)];
+            nd = obj.fullMesh.ndim;
+            dofsCohGlobal = reshape([nd*listAllNodesInCoh-1; nd*listAllNodesInCoh],1,[]);
+            nDofCoh   = length(dofsCohGlobal);
+            nDofTotal = obj.fullMesh.nnodes * nd;
+            A = sparse(1:nDofCoh, dofsCohGlobal, 1, nDofCoh, nDofTotal);
+        end
     end
     
     methods (Access = private)
@@ -71,10 +80,6 @@ classdef CohesiveMesh < handle
         function init(obj,cParams)
             obj.separation = 0.1;
             obj.baseMesh = cParams.baseMesh;
-        end
-        
-        function baseMeshCreator(obj,n)
-            obj.baseMesh = UnitQuadMesh(n,n);
         end
 
         function edgesInCohElem = detectFracturedEdges(obj, cParams)
@@ -156,7 +161,7 @@ classdef CohesiveMesh < handle
         function newMesh(obj,newConnec, newCoord)
             s.connec = newConnec;
             s.coord  = newCoord;
-            obj.mesh = Mesh.create(s);
+            obj.fullMesh = Mesh.create(s);
         end
     
         function centerEdges = computeCenterEdge(obj)
@@ -180,7 +185,7 @@ classdef CohesiveMesh < handle
         end
 
         function createLineMesh(obj)
-            coord     = obj.mesh.coord;
+            coord     = obj.fullMesh.coord;
             nMidNodes = size(obj.pairsMatrix,1);
             midCoord= (coord(obj.listNodeCohesive,:)+ ...
                 coord(obj.pairsMatrix(:,2),:))/2;      
@@ -188,10 +193,7 @@ classdef CohesiveMesh < handle
             s.connec = midConnec;
             s.coord  = midCoord;
             s.kFace  = -1;
-            obj.lineMesh = Mesh.create(s);
+            obj.mesh = Mesh.create(s);
         end
-       
-
-
     end
 end

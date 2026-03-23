@@ -22,45 +22,42 @@ classdef CohesiveTermFunctional < handle
         end
 
         function E = computeCost(obj,u,quadOrder)
-
+            obj.jump.updateJumpValues(u);
+            traction = obj.tractionSeparation.computeFunction(obj.jump.fun);
+            fun       = DP(traction, obj.jump.fun);
+            E         = Integrator.compute(fun,obj.cohesiveMesh.mesh,quadOrder);
         end
 
         function F = computeResidual(obj,u,quadOrder)
-            %F =  grau llibertat desplaçament 
+            obj.jump.updateJumpValues(u);
+            traction = obj.tractionSeparation.computeFunction(obj.jump.fun);
+            F = IntegrateRHS(@(v) v'*Expand(traction,2),obj.jump,obj.cohesiveMesh.mesh,'Domain',quadOrder);
         end
 
         function H = computeDerivativeResidual(obj,u,quadOrder)
             obj.jump.updateJumpValues(u);
-            jumpFun = obj.jump.fun;
-            deriv = obj.tractionSeparation.computeDerivative(jumpFun);
-            Bc = @(xV) obj.computeBc(xV);
-
-            func = @(xV) DP(Bc, DP(deriv,Bc));            % func = Bc.' * deriv * Bc
-            H = IntegrateLHS(@(u,v)  func...
-                ,obj.test,obj.test,obj.cohesiveMesh.mesh,'Domain',quadOrder);
+            deriv = obj.tractionSeparation.computeDerivative(obj.jump.fun); 
+            H = IntegrateLHS(@(u,v) u' * deriv *  v,...
+                obj.jump,obj.jump,obj.cohesiveMesh.mesh,'Domain',quadOrder);
         end
-        
+
     end
     
     methods (Access = private)
         
         function init(obj,cParams)
             obj.cohesiveMesh     = cParams.cohesiveMesh;
-            obj.material = cParams.material;
-            obj.test     = cParams.cohTest;
+            obj.material         = cParams.material;
             obj.tractionSeparation = cParams.tractionSeparation;
         end
 
         function createJumpFunction(obj)
             s.cohesiveMesh = obj.cohesiveMesh;
-            s.ndimf = obj.cohesiveMesh.mesh.ndim;
-            s.uFun  = LagrangianFunction.create(obj.cohesiveMesh.mesh,s.ndimf,'P1');
+            s.ndimf = obj.cohesiveMesh.fullMesh.ndim;
+            s.uFun  = LagrangianFunction.create(obj.cohesiveMesh.fullMesh,s.ndimf,'P1');
             obj.jump = Jump(s);
         end
 
-        function Bc = computeBc(obj,xV)
-            Bc = obj.jump.computeShapeFunctions(xV);
-        end
     end
     
 end
