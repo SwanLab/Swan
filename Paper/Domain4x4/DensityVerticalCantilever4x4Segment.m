@@ -214,7 +214,7 @@ classdef DensityVerticalCantilever4x4Segment < handle
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
             s.shapeFunctions{2} = obj.penalty;
-            s.weights           = [1,0.25];
+            s.weights           = [1,1];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -247,12 +247,12 @@ classdef DensityVerticalCantilever4x4Segment < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 3000;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = [{'EQUALITY'},repmat({'INEQUALITY'},[1,16])];
             s.etaNorm        = 0.01;
             s.etaNormMin     = 0.01;
-            s.gJFlowRatio    = 2.0;
+            s.gJFlowRatio    = 1.0;
             s.primalUpdater  = obj.primalUpdater;
             s.gif            = false;
             s.gifName        = [];
