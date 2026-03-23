@@ -8,18 +8,24 @@ classdef PerimeterConstraint < handle
         perimeter
         value0
         valueOld
+        tarVolume
+        totalVolume
     end
     
     methods (Access = public)
         function obj = PerimeterConstraint(cParams)
             obj.init(cParams);
+            obj.computeTotalVolume(cParams);
         end
         
         function [J,dJ] = computeFunctionAndGradient(obj,x)
+            xD = x.obtainDomainFunction();
+            V  = Integrator.compute(xD{1},x.fun.mesh,2);
+            V  = V/(obj.tarVolume*obj.totalVolume) - 1;
+            obj.updateEpsilonForNextIteration(xD{1},V);
             [P,dP] = obj.perimeter.computeFunctionAndGradient(x);
             J      = obj.computeFunction(P);
             dJ     = obj.computeGradient(dP);
-            obj.updateEpsilonForNextIteration(J);
         end  
     end
 
@@ -32,6 +38,12 @@ classdef PerimeterConstraint < handle
             obj.perimeter  = PerimeterFunctional(cParams);
             obj.value0     = cParams.value0;
             obj.valueOld   = -inf;
+            obj.tarVolume  = cParams.tarVolume;
+        end
+
+        function computeTotalVolume(obj,s)
+            u = ConstantFunction.create(1,s.mesh);
+            obj.totalVolume = Integrator.compute(u,s.mesh,2);
         end
 
         function J = computeFunction(obj,P)
@@ -45,15 +57,15 @@ classdef PerimeterConstraint < handle
             dJ{1}.setFValues(dP{1}.fValues/(pTar/obj.value0));
         end
 
-        function updateEpsilonForNextIteration(obj,J) % Cuando la suma de grays empieza a decaer puede provocar tmb la decay de epsilon
+        function updateEpsilonForNextIteration(obj,x,V) % Cuando la suma de grays empieza a decaer puede provocar tmb la decay de epsilon
             %if abs(J)<=1e-2
-            if (J-obj.valueOld<0 && J>1e-2) || abs(J)<=1e-2
+            if norm(x.fValues-obj.valueOld)==0 && V<0.1
                 obj.epsilon = obj.epsilon/1.01;
                 obj.epsilon = max(obj.epsilon,obj.minEpsilon);
                 obj.perimeter.updateEpsilon(obj.epsilon);
-                obj.target0 = min(obj.target0*1.008,obj.target);
+                obj.target0 = max(obj.target0*0.8,obj.target);
             end
-            obj.valueOld = J;
+            obj.valueOld = x.fValues;
             %end % Será preferible tener una decay constante al inicio y luego más notoria hacia el final (cuando el volumen esta por cumplirse y tenemos muchos grises)
         end
     end

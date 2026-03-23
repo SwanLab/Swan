@@ -217,7 +217,7 @@ classdef OptimizerNullSpace < handle
         end
 
         function printResults(obj)
-            if obj.nIter/10==round(obj.nIter/10)
+            if obj.nIter/30==round(obj.nIter/30)
                 if obj.gif
                     obtainGIF(obj.gifName,obj.designVariable,obj.nIter);
                 end

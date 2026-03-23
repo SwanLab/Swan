@@ -140,13 +140,16 @@ classdef DensityVerticalCantilever4x4Segment < handle
             sF.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
             f             = Filter.create(sF);
 
-            h           = obj.mesh.computeMeanCellSize();
-            s.mesh      = obj.mesh;
-            s.uMesh     = obj.createBaseDomain();
-            s.filter    = f;
-            s.epsilon   = 3*h;
-            s.value0    = 6;
-            obj.penalty = PerimeterFunctional(s);
+            h             = obj.mesh.computeMeanCellSize();
+            s.mesh        = obj.mesh;
+            s.uMesh       = obj.createBaseDomain();
+            s.filter      = f;
+            s.epsilon     = 3*h;
+            s.value0      = 6;
+            s.signInitial = -0.25;
+            s.signFinal   = 0.05;
+            s.tarVolume   = 0.4;
+            obj.penalty   = InterfaceFunctional(s);
         end
 
         function uMesh = createBaseDomain(obj)
@@ -185,6 +188,7 @@ classdef DensityVerticalCantilever4x4Segment < handle
             s.epsilon = 3*h;
             s.minEpsilon = 3*h;
             s.value0 = 1;
+            s.tarVolume = 0.4;
 
             tarRef = [0.3938, 1.2288, 1.2288, 0.3938, 0.8198, 0.9211, 0.9211, 0.8197, 0.3868, 1.2157, 1.2157, 0.3868, 0.4656, 0.3349, 0.3349, 0.4656];
             x0 = repmat([0.125,0.375,0.625,0.875],[1,4]);
@@ -192,7 +196,7 @@ classdef DensityVerticalCantilever4x4Segment < handle
             for i = 1:length(x0)
                 s.uMesh          = obj.createBaseDomainPerimeter(x0(i),y0(i));
                 s.target         = p*tarRef(i);
-                s.target0        = 0.1*s.target;
+                s.target0        = 100*s.target;
                 obj.perimeter{i} = PerimeterConstraint(s);
             end
         end
@@ -248,11 +252,11 @@ classdef DensityVerticalCantilever4x4Segment < handle
             s.constraintCase = [{'EQUALITY'},repmat({'INEQUALITY'},[1,16])];
             s.etaNorm        = 0.01;
             s.etaNormMin     = 0.01;
-            s.gJFlowRatio    = 0.7;
+            s.gJFlowRatio    = 2.0;
             s.primalUpdater  = obj.primalUpdater;
             s.gif            = false;
             s.gifName        = [];
-            s.printing       = true;
+            s.printing       = false;
             s.printName      = 'Current';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
