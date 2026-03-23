@@ -35,8 +35,8 @@ classdef PCG < handle
             z = P(r);
             
             % DEBUG
-            save('debug_pcg.mat','B','r','z')
-            disp('guardat debug_pcg.mat')
+            % save('debug_pcg.mat','B','r','z')
+            % disp('guardat debug_pcg.mat')
             %
 
             p = z;
