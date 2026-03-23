@@ -59,11 +59,17 @@ classdef BoundaryConditions < handle
         end
 
         function createPointloadFun(obj)
+            % [dofs,vals,domain,fun] = obj.createBCFun(obj.pointloadInput);
+            % obj.traction_dofs = dofs;
+            % obj.traction_vals = vals;
+            % obj.traction_domain = domain;
+            % obj.tractionFun = fun;
+            
             [dofs,vals,domain,fun] = obj.createBCFun(obj.pointloadInput);
-            obj.traction_dofs = dofs;
-            obj.traction_vals = vals;
-            obj.traction_domain = domain;
-            obj.tractionFun = fun;
+            obj.pointload_dofs = dofs;
+            obj.pointload_vals = vals;
+            obj.pointload_domain = domain;
+            obj.pointloadFun = fun;
         end
 
         function createDirichletFun(obj)

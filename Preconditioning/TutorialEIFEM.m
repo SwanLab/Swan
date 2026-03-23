@@ -265,7 +265,7 @@ classdef TutorialEIFEM < handle
             s.mesh     = mesh;
             s.test     = dispFun;
             s.trial    = dispFun;
-            s.material = mat;
+            s.material = C;             %S'HA CANVIAT mat per C
             s.quadratureOrder = 2;
             lhs = LHSIntegrator.create(s);
             LHS = lhs.compute();
