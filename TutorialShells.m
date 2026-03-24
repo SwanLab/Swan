@@ -2,13 +2,13 @@ classdef TutorialShells < handle
 
 
     properties (Access=private)
-    % properties (Access = {?TutorialShells, ?auxiliaryFunctions})  %(Access = private)
         mesh
         young
         area
         shear
         inertia
-        poisson, rotation 
+        density
+        poisson, rotation
         uFun
         thetaFun
         wFun
@@ -17,243 +17,499 @@ classdef TutorialShells < handle
         solverType
         type, values, fun
         bcCase
-        A_coupling, D_bending, B_coupling, H_shear, zLayer, interfaceIndex
-        A_Matrix, B_Matrix, D_Matrix, H_Matrix 
+        zLayer, interfaceIndex
+        A_Matrix, B_Matrix, D_Matrix, H_Matrix
+        A_tensor, B_tensor, D_tensor, H_tensor
         materialProperties, stressCase
+        material
+        naturalFrequencies
+        modeShapes
+        massModal, dampingModal, stiffnessModal, FModal
+        dampingRatio
     end
 
     methods (Access = public)
         %% TutorialShells
         function obj = TutorialShells()
-            close all; 
-            
-            obj.createMesh()
-            obj.createMaterialProperties()
-            obj.createSolutionField()
+            close all; clc;
 
+            % 1. Initialization
+            obj.createMesh()
+            obj.createMaterial()
+            obj.createSolutionField()
             obj.solverType = 'REDUCED';
 
+            problemType    = 'FORCED_VIBRATIONS';
+            % Options: 'STATIC' / 'FREE_VIBRATIONS' / 'FORCED_VIBRATIONS'
 
-            obj.createBoundaryConditions();                    % BOUNDARY CONDITIONS 
-            LHS = obj.createLHS();
+            % 2. Boundary Conditions and Assembly
+            obj.createBoundaryConditions();     % BOUNDARY CONDITIONS
+            LHS = obj.createLHS();              % Stiffness matrix
             obj.lhs = LHS;
-            RHS = obj.createRHS();          % BC --> Distributed forces 
 
-            x = LHS\RHS;
-
-            nTheta = length(obj.computeFreeDofs(obj.bcT));
+            % --- PRE-COMPUTE DOF LENGTHS AND INDICES ---
             nU     = length(obj.computeFreeDofs(obj.bcU));
-            nW     = length(obj.computeFreeDofs(obj.bcW));            
-            uF = x(1:nU,1);
-            tF = x((nU+1):(nU+nTheta),1);
-            wF = x((nU+nTheta+1):(nU+nTheta+nW),1);
+            nTheta = length(obj.computeFreeDofs(obj.bcT));
+            nW     = length(obj.computeFreeDofs(obj.bcW));
 
-            dofFT = obj.computeFreeDofs(obj.bcT);
             dofFU = obj.computeFreeDofs(obj.bcU);
+            dofFT = obj.computeFreeDofs(obj.bcT);
             dofFW = obj.computeFreeDofs(obj.bcW);
 
-            uT = zeros(obj.uFun.nDofs,1);
-            uT(dofFU,1) = uF; 
-            uT = reshape(uT,obj.uFun.ndimf,[])';
-            obj.uFun.setFValues(uT);
+            % 3. Resolution
+            if strcmpi(problemType, 'FREE_VIBRATIONS')
+                %% FREE VIBRATIONS
+                fprintf('\n===== SOLVING FREE VIBRATION PROBLEM =====\n');
 
-            wT = zeros(obj.wFun.nDofs,1);
-            wT(dofFW,1) = wF; 
-            wT = reshape(wT,[], obj.wFun.ndimf);
-            obj.wFun.setFValues(wT);
-            
-            thetaT = zeros(obj.thetaFun.nDofs,1);    
-            thetaT(dofFT,1) = tF; 
-            thetaT = reshape(thetaT,obj.thetaFun.ndimf,[])';
-            obj.thetaFun.setFValues(thetaT);
+                MLHS = obj.createMassLHS();
 
+                % Solve eigenvalue problem
+                nModes = 10;
+                minsol = 3;
+                fprintf('Computing %d modes...\n', nModes);
+
+                [modes, lambda] = eigs(LHS, MLHS, nModes, 'smallestabs');
+                omega_squared = diag(lambda);
+
+                % Check for negative or complex eigenvalues (indicates problem)
+                if any(real(omega_squared) < 0)
+                    warning('⚠ Negative eigenvalues detected! Check boundary conditions.');
+                end
+                if any(imag(omega_squared) ~= 0)
+                    warning('⚠ Complex eigenvalues detected! Check matrices.');
+                end
+
+                % Take real part and ensure positive
+                omega_squared = real(omega_squared);
+                omega_squared(omega_squared < 0) = 0;  % Set negatives to zero
+                omega_n = sqrt(omega_squared);  % rad/s
+                freq_Hz = omega_n / (2*pi);     % Hz
+
+                % Sort by frequency
+                [freq_Hz, imodes] = sort(freq_Hz, 'ascend');
+                omega_n = omega_n(imodes);
+                modes = modes(:, imodes);
+
+                % Display frequencies
+                fprintf('\n===== NATURAL FREQUENCIES =====\n');
+                for i = 1:nModes
+                    fprintf('Mode %2d: %10.4f Hz  (%10.4f rad/s)\n', i, freq_Hz(i), omega_n(i));
+                end
+                fprintf('================================\n\n');
+
+                % Save for later reference
+                obj.naturalFrequencies = freq_Hz;
+                obj.modeShapes = modes;
+
+                % Process first N modes for plotting
+                solutionsToProcess = min(minsol, nModes);
+                timeInstants = [];  % Not used for FREE_VIBRATIONS
+
+            elseif strcmpi(problemType, 'FORCED_VIBRATIONS')
+                %% FORCED VIBRATIONS
+                fprintf('\n===== SOLVING FORCED VIBRATION PROBLEM =====\n');
+
+                % ========== FORCING PARAMETERS ==========
+                f_force = 50;
+                omega_force = 2*pi * f_force;               % Forcing frequency
+                damping_ratio = obj.dampingRatio;           % Damping ratio
+
+                % ========== INITIAL CONDITIONS ==========
+                % All 0
+                initialDisp = zeros(nU+nTheta+nW,1);
+                initialVel = initialDisp;
+
+                dynamicForceCase = 'STEP';
+                % 'SINUSOIDAL' / 'STEP'
+
+                MLHS = obj.createMassLHS();
+                RHS = obj.createRHS();
+
+                nModes = 10;
+                fprintf('Computing %d modes for modal superposition...\n', nModes);
+
+                [modal_shapes, lambda] = eigs(LHS, MLHS, nModes, 'smallestabs');
+
+                % Process eigenvalues
+                omega_squared = (diag(lambda));
+                if any(real(omega_squared) < 0)
+                    warning('⚠ Negative eigenvalues detected! Check boundary conditions.');
+                end
+                if any(imag(omega_squared) ~= 0)
+                    warning('⚠ Complex eigenvalues detected! Check matrices.');
+                end
+                omega_squared = real(omega_squared);
+                omega_squared(omega_squared < 0) = 0;
+                omega_n = sqrt(omega_squared);
+                freq_Hz = omega_n / (2*pi);
+
+                % Sort
+                [freq_Hz, imodes] = sort(freq_Hz, 'ascend');
+                omega_n = omega_n(imodes);
+                modal_shapes = modal_shapes(:, imodes);
+
+                % Set Newmark Method
+                fmax = max([max(freq_Hz),f_force]);
+                fsampling = 10 * fmax;
+                dt = 1 / fsampling;
+                tfinal = 10 / freq_Hz(1);
+                time = 0:dt:tfinal;
+                nt = length(time);
+
+                fprintf('\n===== TIME INTEGRATION SETUP =====\n');
+                fprintf('Time step (dt):     %.6f s\n', dt);
+                fprintf('Final time:         %.4f s\n', tfinal);
+                fprintf('Number of steps:    %d\n', nt);
+                fprintf('==================================\n\n');
+
+                dynamicDisp = zeros(nU+nTheta+nW,nt);
+                dynamicVel = dynamicDisp;
+                dynamicDisp(:,1) = initialDisp;
+                dynamicVel(:,1) = initialVel;
+
+                modalDisp = modal_shapes' * dynamicDisp;
+                modalVel = modal_shapes' * dynamicVel;
+
+                % Dynamic force
+                switch dynamicForceCase
+                    case 'SINUSOIDAL'
+                        fdynamic = sin(omega_force*time);
+                    case 'STEP'
+                        t0 = 0;
+                        fdynamic = heaviside(time-t0);
+                    otherwise
+                        fdynamic = ones(1, nt);
+                end
+
+                % Modal Force, Mass, Stiffness, Damping
+                dynamicFModal = modal_shapes' * RHS;
+                obj.FModal = repmat(dynamicFModal,1,nt);
+                obj.FModal = obj.FModal .* fdynamic;
+                obj.massModal = modal_shapes' * MLHS * modal_shapes;
+                obj.stiffnessModal = modal_shapes' * LHS * modal_shapes;
+                obj.dampingModal = damping_ratio * eye(size(obj.massModal));
+
+                % Modal accelerations
+                modalAcc = zeros(size(modalDisp));
+                modalAcc(:,1) = obj.massModal \ (obj.FModal(:,1) - obj.stiffnessModal*modalDisp(:,1) - obj.dampingModal*modalVel(:,1));
+
+                % Check for near-resonance conditions
+                for i = 1:nModes
+                    freq_diff = abs(omega_force/(2*pi) - freq_Hz(i)) / freq_Hz(i);
+                    if freq_diff < 0.1  % Within 10%
+                        warning('⚠ WARNING: Forcing frequency near mode %d resonance (%.2f Hz)\n', i, freq_Hz(i));
+                    end
+                end
+
+                % Newmark Method
+                fprintf('Starting Newmark-β time integration...\n');
+                tic;
+                [next_modalDisp, next_modalVel, next_modalAcc] = obj.NewmarkMethod(dt);
+
+                for i = 1:nt-1
+                    modalDisp(:,i+1) = next_modalDisp(modalDisp(:,i), modalVel(:,i), modalAcc(:,i), obj.FModal(:,i+1));
+                    modalAcc(:,i+1) = next_modalAcc(modalDisp(:,i+1), modalDisp(:,i), modalVel(:,i), modalAcc(:,i));
+                    modalVel(:,i+1) = next_modalVel(modalVel(:,i), modalAcc(:,i), modalAcc(:,i+1));
+                end
+                elapsed = toc;
+                fprintf('✓ Time integration complete in %.2f seconds\n', elapsed);
+
+                % Reconstruct physical displacements for all time steps
+                modes = modal_shapes * modalDisp;  % (nDOF x nt)
+
+                % ========== SELECT TIME INSTANTS FOR POST-PROCESSING ==========
+                % Option 1: Process all time steps (WARNING: can be slow!)
+                % timeInstants = 1:nt;
+
+                % Option 2: Process specific time instants
+                % Examples:
+                % - Final time only
+                % timeInstants = nt;
+
+                % - Every N-th timestep
+                % N_skip = 10;
+                % timeInstants = 1:N_skip:nt;
+
+                % - Specific times (e.g., peak response, steady state)
+                % Find max displacement
+
+                w_history = modes(nU+nTheta+1:end, :);
+                [~, idx_max] = max(max(abs(w_history), [], 1));
+
+                % timeInstants = [1, round(nt/4), round(nt/2), round(3*nt/4), idx_max, nt];
+                % timeInstants = unique(timeInstants);  % Remove duplicates
+
+                timeInstants = [round(nt/4), idx_max, nt];
+                timeInstants = unique(timeInstants);
+
+                solutionsToProcess = length(timeInstants);
+
+                fprintf('\n===== POST-PROCESSING SETUP =====\n');
+                fprintf('Total time steps computed: %d\n', nt);
+                fprintf('Time instants to process:  %d\n', solutionsToProcess);
+                fprintf('Times: ');
+                for i = 1:solutionsToProcess
+                    fprintf('%.4f ', time(timeInstants(i)));
+                end
+                fprintf('s\n');
+                fprintf('=================================\n\n');
+
+                obj.animateDynamicResponse(modes, time, nU, nTheta, nW)
+
+
+            elseif strcmpi(problemType, 'STATIC')
+                %% STATIC
+                fprintf('\n===== SOLVING STATIC PROBLEM =====\n');
+                RHS = obj.createRHS();
+                x = LHS \ RHS;
+                modes = x;
+                solutionsToProcess = 1;
+                timeInstants = [];  % Not used for STATIC
+
+            else
+                error('Unknown problem type: %s. Use ''STATIC'', ''FREE_VIBRATIONS'', or ''FORCED_VIBRATIONS''.', problemType);
+            end
+
+            %% 4. Post-processing, Plotting and Printing
             h = obj.zLayer;
-            
-            % Layer medium-plane 
-            for i = 1:numel(h)-1
-                z{i} = 0.5*(h{i+1}+h{i});
-            end
-
-            % Obtain epsilon U, Theta, transverse strains 
-            [epsilonU_nodal, epsilonTheta_nodal, dw_dx_nodal, dw_dy_nodal] = obj.createEpsilons();
-
-            % Obtain Strain and Stress Functions on a certain height 
-            [strainFun, stressFun] = obj.createStrainStressFunctions(z, epsilonU_nodal, epsilonTheta_nodal, dw_dx_nodal, dw_dy_nodal);
-
-            % Plane Stresses: obtain Strain and Stresses Functions on a
-            % certain height for epsilon_zz = sigma_zz = 0
-            [planeStrain, planeStress] = obj.planeStrainStress(h, epsilonU_nodal, epsilonTheta_nodal, dw_dx_nodal, dw_dy_nodal);
-            % 
-            % % Obtain Internal Forces 
-            % [Nfun, Mfun, Qfun] = obj.internalForces(epsilonU_nodal,epsilonTheta_nodal, dw_dx_nodal, dw_dy_nodal);
-
-            %% 
-            [maxW, significantValues] = obj.findMaxDisplacements();
-            
-
-
-           
-
-            %% PLOT AND PRINT   
-
             plotMatlab = false;
-            printParaview = true;
+            printParaview = false;
+            kappa = 1;
 
-            % KAPPA ==========================================
-            kappa = 2;
-
-            if plotMatlab == true 
-                % Displacements
-                obj.customPlot(obj.uFun, {'u_{x}', 'u_{y}'});
-
-                % Transverse displacements
-                obj.customPlot(obj.wFun, {'w'});
-
-                % Rotations 
-                obj.customPlot(obj.thetaFun, {'\theta_{x}', '\theta_{y}'});
-
-                % Strains
-                obj.customPlot(strainFun{kappa}, {'\epsilon_{xx}', '\epsilon_{yy}', '\epsilon_{zz}', ...
-                    '\epsilon_{xy}', '\epsilon_{xz}', '\epsilon_{yz}'});
-
-                % Stresses
-                obj.customPlot(stressFun{1,kappa}, {'\sigma_{xx}', '\sigma_{yy}', '\sigma_{zz}', ...
-                    '\sigma_{xy}', '\sigma_{xz}', '\sigma_{yz}'});
-
-                % % Plane Strains
-                % obj.customPlot(planeStrain{kappa}, {'\epsilon_{xx}', '\epsilon_{yy}', '\epsilon_{xy}', '\epsilon_{xz}', '\epsilon_{yz}'});
-                % 
-                % % Plane Stresses 
-                % obj.customPlot(planeStress{kappa}, {'\sigma_{xx}', '\sigma_{yy}', '\sigma_{xy}','\sigma_{xz}','\sigma_{yz}'});
-
-
-                % % Resulting forcees 
-                % obj.customPlot(Nfun, {'N_{xx}', 'N_{yy}', 'N_{xy}'});
-                % obj.customPlot(Mfun, {'M_{xx}', 'M_{yy}', 'M_{xy}'});
-                % obj.customPlot(Qfun, {'Q_{xz}', 'Q_{yz}'});
+            % Mid plane heights
+            for i = 1:numel(h)-1
+                z0 = h{i};
+                z1 = h{i+1};
+                zMidPlane{i} = 0.5*(z0+z1);
             end
 
+            % Loop through solutions
+            for iSol = 1:solutionsToProcess
 
-            if printParaview == true
-                obj.wFun.print('wfun print','Paraview')
-                % obj.uFun.print('ufun print','Paraview')
-                % obj.thetaFun.print('thetafun print','Paraview')
-                % strainFun{kappa}.print('strain', 'Paraview'); % Kappa defined on plots
-                % stressFun{kappa}.print('stress', 'Paraview');
-                
-                % stressFun{1}.print('BOTTOM Layer 1','Paraview')
-                % stressFun{2}.print('TOP Layer 1','Paraview')
-                % stressFun{3}.print('BOTTOM Layer 2','Paraview')
-                % stressFun{4}.print('TOP Layer 2','Paraview')
+                % ========== EXTRACT SOLUTION FOR CURRENT TIME/MODE ==========
+                if strcmpi(problemType, 'FREE_VIBRATIONS')
+                    fprintf('\n--- Processing Mode %d (%.4f Hz) ---\n', iSol, freq_Hz(iSol));
+                    current_x = modes(:, iSol);
+                    suffix = sprintf('_Mode_%d', iSol);
 
-                % Nfun.print('Nfun','Paraview');
-                % Mfun.print('Mfun','Paraview');
-                % Qfun.print('Qfun','Paraview');
+                elseif strcmpi(problemType, 'FORCED_VIBRATIONS')
+                    time_idx = timeInstants(iSol);
+                    current_time = time(time_idx);
+                    fprintf('\n--- Processing Time Step %d / %d (t = %.4f s) ---\n', ...
+                        time_idx, nt, current_time);
+                    current_x = modes(:, time_idx);
+                    suffix = sprintf('_Time_%d', time_idx);
+
+                else  % STATIC
+                    fprintf('\n--- Processing Static Solution ---\n');
+                    current_x = modes(:, 1);
+                    suffix = '_Static';
+                end
+
+                % Extract components
+                uF = current_x(1:nU, 1);
+                tF = current_x(nU+1 : nU+nTheta, 1);
+                wF = current_x(nU+nTheta+1 : nU+nTheta+nW, 1);
+
+                % Update Displacements (u)
+                uT = zeros(obj.uFun.nDofs, 1);
+                uT(dofFU, 1) = uF;
+                uT = reshape(uT, obj.uFun.ndimf, [])';
+                obj.uFun.setFValues(uT);
+
+                % Update Transverse Displacements (w)
+                wT = zeros(obj.wFun.nDofs, 1);
+                wT(dofFW, 1) = wF;
+                wT = reshape(wT, [], obj.wFun.ndimf);
+                obj.wFun.setFValues(wT);
+
+                % Update Rotations (theta)
+                thetaT = zeros(obj.thetaFun.nDofs, 1);
+                thetaT(dofFT, 1) = tF;
+                thetaT = reshape(thetaT, obj.thetaFun.ndimf, [])';
+                obj.thetaFun.setFValues(thetaT);
+
+                % Max displacements
+                [maxW, maxU, maxTheta, locationW, locationU, locationTheta] = obj.findMaxDisplacements();
+
+                fprintf('Max |w|:     %.6e\n', maxW);
+                fprintf('Max |u|:     %.6e\n', maxU);
+                fprintf('Max |theta|: %.6e\n', maxTheta);
+
+                %% Strain and Stress Calculation
+                [epsilons] = obj.createEpsilons();
+
+                % Determine stress state
+                stressState = 'PLANE_STRESS';
+                [strainFun, stressFun] = obj.createStrainStressFunctions(zMidPlane, epsilons, stressState);
+
+                % ================================================
+                %                 PLOT AND PRINT
+                % ================================================
+                if plotMatlab
+                    if strcmpi(problemType, 'FREE_VIBRATIONS')
+                        titleSuffix = sprintf(' - Mode %d (%.2f Hz)', iSol, freq_Hz(iSol));
+                    elseif strcmpi(problemType, 'FORCED_VIBRATIONS')
+                        titleSuffix = sprintf(' - t = %.4f s', current_time);
+                    else
+                        titleSuffix = '';
+                    end
+
+                    % ====== Displacements ======
+                    % ===========================
+                    obj.customPlot(obj.uFun, {['u_{x}' titleSuffix], ['u_{y}' titleSuffix]});
+                    obj.customPlot(obj.wFun, {['w' titleSuffix]});
+                    obj.customPlot(obj.thetaFun, {['\theta_{x}' titleSuffix], ['\theta_{y}' titleSuffix]});
+
+                    % ======== Strains and Stresses ========
+                    % ======================================
+                    if strcmpi(stressState, 'PLANE_STRESS')
+                        obj.customPlot(strainFun{kappa}, {'\epsilon_{xx}', '\epsilon_{yy}', '\epsilon_{yz}', '\epsilon_{xz}', '\epsilon_{xy}'});
+                        obj.customPlot(stressFun{kappa}, {'\sigma_{xx}', '\sigma_{yy}', '\sigma_{yz}', '\sigma_{xz}', '\sigma_{xy}'});
+                    else
+                        obj.customPlot(strainFun{kappa}, {'\epsilon_{xx}', '\epsilon_{yy}', '\epsilon_{zz}', ...
+                            '\epsilon_{yz}', '\epsilon_{xz}', '\epsilon_{xy}'});
+                        obj.customPlot(stressFun{kappa}, {'\sigma_{xx}', '\sigma_{yy}', '\sigma_{zz}', ...
+                            '\sigma_{yz}', '\sigma_{xz}', '\sigma_{xy}'});
+                    end
+                end
 
 
+                if printParaview
+                    if strcmpi(problemType, 'STATIC')
+                        % Static case: save in STATIC folder
+                        baseFolder = 'STATIC';
+                        if ~exist(baseFolder, 'dir')
+                            mkdir(baseFolder);
+                        end
+                        outputPath = baseFolder;
+
+                    else  % DYNAMIC CASES
+                        % Dynamic case: DYNAMIC/problemType/TIMESTEP_X or MODE_X structure
+                        baseDynamicFolder = 'DYNAMIC';
+                        if ~exist(baseDynamicFolder, 'dir')
+                            mkdir(baseDynamicFolder);
+                        end
+
+                        % Create subfolder for problem type
+                        problemFolder = fullfile(baseDynamicFolder, problemType);
+                        if ~exist(problemFolder, 'dir')
+                            mkdir(problemFolder);
+                        end
+
+                        % Create subfolder for this solution
+                        if strcmpi(problemType, 'FREE_VIBRATIONS')
+                            solutionFolder = sprintf('MODE_%d', iSol);
+                        elseif strcmpi(problemType, 'FORCED_VIBRATIONS')
+                            solutionFolder = sprintf('TIMESTEP_%04d', time_idx);  % Zero-padded
+                        else
+                            solutionFolder = sprintf('SOLUTION_%d', iSol);
+                        end
+
+                        outputPath = fullfile(problemFolder, solutionFolder);
+                        if ~exist(outputPath, 'dir')
+                            mkdir(outputPath);
+                        end
+                    end
+
+                    % ================================
+                    % ========== SAVE FILES ==========
+                    % ================================
+                    fprintf('Saving Paraview files to: %s\n', outputPath);
+
+                    obj.wFun.print(fullfile(outputPath, ['wfun_print' suffix]), 'Paraview');
+                    obj.uFun.print(fullfile(outputPath, ['ufun_print' suffix]), 'Paraview');
+                    obj.thetaFun.print(fullfile(outputPath, ['thetafun_print' suffix]), 'Paraview');
+
+                    % Save metadata
+                    infoFile = fullfile(outputPath, 'info.txt');
+                    fid = fopen(infoFile, 'w');
+                    fprintf(fid, '===== ANALYSIS INFORMATION =====\n');
+                    fprintf(fid, 'Problem Type: %s\n', problemType);
+                    fprintf(fid, 'Date: %s\n', datestr(now));
+
+                    if strcmpi(problemType, 'FORCED_VIBRATIONS')
+                        fprintf(fid, '\n--- Time Step %d / %d ---\n', time_idx, nt);
+                        fprintf(fid, 'Time: %.6f s\n', current_time);
+                        fprintf(fid, 'Forcing frequency: %.4f Hz\n', f_force);
+                        fprintf(fid, 'Max |w|: %.6e\n', maxW);
+                        fprintf(fid, 'Max |u|: %.6e\n', maxU);
+                        fprintf(fid, 'Max |θ|: %.6e\n', maxTheta);
+                    elseif strcmpi(problemType, 'FREE_VIBRATIONS')
+                        fprintf(fid, '\n--- Mode %d ---\n', iSol);
+                        fprintf(fid, 'Natural frequency: %.4f Hz\n', freq_Hz(iSol));
+                    end
+                    fclose(fid);
+                end
             end
+
         end
 
     end
 
-    % methods (Access = {?TutorialShells, ?auxiliaryFunctions})  % (Access = private)
     methods (Access = private)
         %% createMesh
+
+        % function createMesh(obj)
+        %   obj.mesh = UnitTriangleMesh(50,50);
+        % end
+        
         function createMesh(obj)
-          obj.mesh = UnitTriangleMesh(50,50);
+         fullmesh = TriangleMesh(18,10,60,60);
+         ls = obj.computeWingLevelSet(fullmesh);
+         sUm.backgroundMesh = fullmesh;
+         sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
+         uMesh              = UnfittedMesh(sUm);
+         uMesh.compute(ls);
+         wingMesh = uMesh.createInnerMesh();
+         obj.mesh = wingMesh;
         end
 
-        %% createSolutionField
-        function createSolutionField(obj)
-           obj.uFun     = LagrangianFunction.create(obj.mesh,2,'P1');
-           obj.thetaFun = LagrangianFunction.create(obj.mesh,2,'P1');
-           obj.wFun     = LagrangianFunction.create(obj.mesh,1,'P1');
+        function ls = computeWingLevelSet(obj, mesh)
+           gPar.type          = 'WingShape';
+           gPar.xCoorCenter   = -0.01;
+           gPar.yCoorCenter   = -0.01;
+           gPar.chordRoot     = 7.3;
+           gPar.chordTip      = 1.25;
+           gPar.semiSpan      = 18.0;
+           gPar.sweepDeg      = 25.0;
+           g                  = GeometricalFunction(gPar);
+           phiFun             = g.computeLevelSetFunction(mesh);
+           lsWing           = phiFun.fValues;
+           ls = lsWing;
         end
 
-        %% createMaterialProperties
-        function createMaterialProperties(obj)
-            % -------------------------------------------------------------------------
+        %% createMaterial
+        function createMaterial(obj)
+            % This function contains ALL material definition and setup.
+            % Supports database materials and custom definitions.
+
+            % =========================================================================
             % MATERIAL PROPERTIES INPUT FORMAT
-            % -------------------------------------------------------------------------
+            % =========================================================================
             %
-            % This function allows defining material properties for:
-            %   - ISOTROPIC materials
-            %   - ORTHOTROPIC (orthotropic lamina) materials
-            %
-            % The material can be SINGLE layer or MULTI-layer laminate.
-            %
-            % -------------------------------------------------------------------------
-            % -------------------------- ISOTROPIC CASE -------------------------------
-            % -------------------------------------------------------------------------
-            %
-            % Set:
-            %   obj.materialProperties = 'ISOTROPIC'
-            %
-            % Required inputs:
-            %
+            % ISOTROPIC materials:
             %   E  = [E1; E2; ...; En]          % Young modulus per layer
             %   nu = [nu1; nu2; ...; nun]       % Poisson ratio per layer
             %   h  = [h1; h2; ...; hn]          % Thickness of each layer
+            %   G is computed automatically as: G = E ./ (2*(1+nu))
             %
-            % Shear modulus is computed automatically as:
+            % ORTHOTROPIC materials:
+            %   E  = [E1 E2 E3; ...]            % Young moduli [longitudinal, transverse, through-thickness]
+            %   nu = [nu12 nu13 nu23; ...]      % Poisson ratios
+            %   G  = [G12 G13 G23; ...]         % Shear moduli
+            %   h  = [h1; h2; ...; hn]          % Thickness of each layer
+            %   Rotation = [theta1; theta2; ...] % Ply orientation in degrees
             %
-            %   G = E ./ (2*(1+nu))
+            % =========================================================================
+            % MATERIAL DATABASE
+            % =========================================================================
             %
-            % Notes:
-            % - Each row corresponds to one layer.
-            % - For isotropic materials, properties are identical in all directions.
-            % - Only one Young modulus and one Poisson ratio per layer are required.
-            %
-            %
-            % -------------------------------------------------------------------------
-            % ------------------------ ORTHOTROPIC CASE -------------------------------
-            % -------------------------------------------------------------------------
-            %
-            % Set:
-            %   obj.materialProperties = 'ORTHOTROPIC'
-            %
-            % Required inputs per layer:
-            %
-            %   E  = [E1 E2 E3]                % Young moduli in material directions
-            %                                    E1 = longitudinal
-            %                                    E2 = transverse
-            %                                    E3 = through-thickness
-            %
-            %   nu = [nu12 nu13 nu23]          % Poisson ratios
-            %
-            %   G  = [G12 G13 G23]             % Shear moduli
-            %
-            %   h  = [h1; h2; ...; hn]         % Thickness of each layer
-            %
-            %   Rotation = [theta1; theta2; ...; thetan]  % Ply orientation in degrees
-            %
-            % Notes:
-            % - Directions (1,2,3) are material principal axes.
-            % - Rotation defines fibre orientation with respect to global axes.
-            % - If MULTI-layer laminate is used:
-            %       length(h) must equal number of plies
-            %       length(Rotation) must match number of plies
-            %
-            % -------------------------------------------------------------------------
-            % OUTPUT
-            % -------------------------------------------------------------------------
-            %
-            % The function automatically computes:
-            %
-            %   A_Matrix  -> Membrane stiffness matrix
-            %   B_Matrix  -> Membrane-bending coupling matrix
-            %   D_Matrix  -> Bending stiffness matrix
-            %   H_Matrix  -> Shear stiffness matrix
-            %
-            % using Classical Laminate Theory integration through thickness.
-            %
-            % -------------------------------------------------------------------------
-
-            % --------------- DATABASE INPUT -------------------
             % Available isotropic materials:
             %   'Aluminum' - Aluminum alloy (E=10.6 msi, nu=0.33)
             %   'Copper'   - Pure copper (E=18.0 msi, nu=0.33)
             %   'Steel'    - Structural steel (E=30.0 msi, nu=0.29)
+            %
             % Available orthotropic composite materials:
             %   'AS'   - Graphite-Epoxy AS/3501 (High-strength carbon fiber)
             %   'EpT'  - Graphite-Epoxy T300/934 (Standard-modulus carbon fiber)
@@ -261,97 +517,163 @@ classdef TutorialShells < handle
             %   'Ep2'  - Glass-Epoxy type 2 (E-glass, lower modulus)
             %   'BrEp' - Boron-Epoxy (High stiffness, aerospace grade)
             %
-            % --------------- INPUT -----------------------------
-            % materialName = {'Material1'; 'Material2'; 'Material3'}
+            % =========================================================================
 
-            materialName = {'EpT'; 'EpT'; 'EpT'; 'EpT'; 'EpT'; 'EpT'; 'EpT'; 'EpT'; 'EpT'; 'EpT'};
+            % -------------------------------------------------------------------------
+            % DATABASE MATERIALS
+            % -------------------------------------------------------------------------
+
+            % materialName = {'EpT'; 'EpT'; 'EpT'; 'EpT'; 'EpT';
+            %     'EpT'; 'EpT'; 'EpT'; 'EpT'; 'EpT'};
+            % max_thickness = 0.5;
+            % % Rotation = [0; 0; 90; -45; 45; 45; -45; 90; 0; 0];  % degrees
+            % Rotation = [0; 0; 45; -45; 90; 90; -45; 45; 0; 0];  % degrees
+            % Rotation = 25*ones(size(materialName)) + Rotation;
+            % obj.dampingRatio = 0.015;
+
+            materialName = {'Aluminum'};
             max_thickness = 0.5;
-            h = max_thickness/length(materialName)*ones(length(materialName),1);
+            obj.dampingRatio = 0.01; 
+             
+            % Get material properties from database
+            [E, nu, G, rho, type] = obj.getMaterialProperties(materialName);
+            obj.materialProperties = type;
 
-            % Rotation = [0, 0, 45, 90, -45, 90, 45, -45, 0, 0].';                          % degrees
-            % Rotation = [0, 0, 45, 90, -45, 45, 90, -45, 0, 0].';                          % degrees
-            % Rotation = [0, 0, 45, -45, 90, 90, -45, 45, 0, 0].';                          % degrees
-            Rotation = [0, 0, 45, -45, 90, 90, -45, 45, 0, 0].';                          % degrees
+            % Auto-distribute thickness
+            nLayers = length(materialName);
+            h = max_thickness / nLayers * ones(nLayers, 1);
 
-
-
-
-            [E, nu, G, materialType] = obj.getMaterialProperties(materialName);
-            obj.materialProperties = materialType;
-
-
-            % --------------- MANUAL INPUT ---------------------
-            % obj.materialProperties = 'ISOTROPIC'; % ISOTROPIC / ORTHOTROPIC
-            %
-            % % Isotropic 
-            % E = [10; 3; 10];
-            % nu = [0.3; 0.25; 0.3]; 
-            % h = [0.25; 0.5; 0.25];
-            % G = E ./ 2./ (1+nu);
-            % 
-            % % AS
-            % E = [20 1.3 1.3]*1e6*6894.76;
-            % nu = [0.3 0.3 0.49];                     % nu_12, nu_13, nu_23
-            % h = 1;
-            % G = [1.03 1.03 0.9]*1e6*6894.76;         % G_12, G_13, G_23
-            % Rotation = [0];                          % degrees 
-
+            % -------------------------------------------------------------------------
+            % CUSTOM ORTHOTROPIC MATERIAL
+            % -------------------------------------------------------------------------
             
+            % obj.materialProperties = 'ISOTROPIC';
+            % E  = [10; 3; 10];
+            % nu = [0.3; 0.25; 0.3];
+            % h  = [0.25; 0.5; 0.25];
+            % G  = E ./ (2 .* (1 + nu));  % Auto-compute
+            % Rotation = zeros(length(h), 1);  % Not used for isotropic
 
-            % Set-up 
-            obj.young = ConstantFunction.create(E,obj.mesh);
-            obj.area = ConstantFunction.create(h,obj.mesh);  % CONSIDERED AS THICKNESS
-            obj.shear = ConstantFunction.create(G,obj.mesh);
-            obj.inertia = ConstantFunction.create(1,obj.mesh);
-            obj.poisson = ConstantFunction.create(nu,obj.mesh);
-            switch obj.materialProperties
-                case 'ORTHOTROPIC'
-                    obj.rotation = ConstantFunction.create(deg2rad(Rotation),obj);
+         
+            % =========================================================================
+            % STORE PROPERTIES IN OBJECT
+            % =========================================================================
+
+            obj.young   = ConstantFunction.create(E, obj.mesh);
+            obj.poisson = ConstantFunction.create(nu, obj.mesh);
+            obj.shear   = ConstantFunction.create(G, obj.mesh);
+            obj.area    = ConstantFunction.create(h, obj.mesh);
+            obj.inertia = ConstantFunction.create(1, obj.mesh);  
+            obj.density = ConstantFunction.create(rho,obj.mesh);
+
+            if strcmp(obj.materialProperties, 'ORTHOTROPIC')
+                obj.rotation = Rotation;
+            else
+                obj.rotation = zeros(length(h), 1);
             end
 
-            % Layer properties (SCALARS)
-            obj.A_coupling = ConstantFunction.create(sum(E.*h),obj.mesh);
-            obj.H_shear = ConstantFunction.create(sum(G.*h),obj.mesh);
-            
-            D_bend = 0; B_coup = 0;  
-            height{1} = -sum(obj.area.constant)/2;
-            for i = 2:(length(h)+1)
-                height{i} = height{i-1} + h(i-1); 
-                D_bend = D_bend + E(i-1)*(height{i}^3-height{i-1}^3)/3;
-                B_coup = B_coup + 0.5*E(i-1)*(height{i}^2-height{i-1}^2);
-            end
-            obj.zLayer = height;
-            
-            obj.D_bending = ConstantFunction.create(D_bend,obj.mesh);
-            obj.B_coupling = ConstantFunction.create(B_coup,obj.mesh); 
+            % =========================================================================
+            % CREATE MATERIAL TENSOR
+            % =========================================================================
 
-            % Matrix layer properties 
-            zInterfaces = [obj.zLayer{:}];
-            A_matrix = zeros(3);
-            B_matrix = zeros(3);
-            D_matrix = zeros(3);
-            H_matrix = zeros(2);
+            s.type    = 'MULTILAYER';
+            s.ndim    = 2;  % Shell theory
 
-            obj.stressCase = 'NORMAL';
+            s.E       = E;
+            s.nu      = nu;
+            s.G       = G;
+            s.h       = h;
+            s.materialType = obj.materialProperties;
 
-            % Layer medium-plane (z) as a numeric vector
-            z = 0.5 * (zInterfaces(2:end) + zInterfaces(1:end-1));
-
-            for kappa = 1:length(obj.area.constant(:,1))
-
-                ConstitutiveMatrix = obj.createConstitutiveMatrix(z(kappa),zInterfaces,false);
-                A_matrix = A_matrix + ConstitutiveMatrix([1,2,4],[1,2,4])*obj.area.constant(kappa);
-                B_matrix = B_matrix + 0.5*ConstitutiveMatrix([1,2,4],[1,2,4])*(obj.zLayer{kappa+1}^2-obj.zLayer{kappa}^2);
-                D_matrix = D_matrix + 1/3*ConstitutiveMatrix([1,2,4],[1,2,4])*(obj.zLayer{kappa+1}^3-obj.zLayer{kappa}^3);
-                H_matrix = H_matrix + ConstitutiveMatrix(5:6,5:6).*obj.area.constant(kappa);
-
+            if strcmp(obj.materialProperties, 'ORTHOTROPIC')
+                s.rotation = Rotation;
             end
 
-            obj.A_Matrix = A_matrix;
-            obj.B_Matrix = B_matrix;
-            obj.D_Matrix = D_matrix;
-            obj.H_Matrix = H_matrix;        
+            tensor = Material.create(s);
+            obj.material = tensor;
+
+            % =========================================================================
+            % COMPUTE ABDH TENSORS AND MATRIX 
+            % =========================================================================
+
+            nLayers = length(h);
+            z_int = zeros(nLayers + 1, 1);
+            z_int(1) = -sum(h)/2;
+            for k = 1:nLayers
+                z_int(k+1) = z_int(k) + h(k);
+            end
+
+            obj.zLayer = num2cell(z_int);   
+
+            A_tens = zeros(3,3,3,3);
+            B_tens = zeros(3,3,3,3);
+            D_tens = zeros(3,3,3,3);
+            H_tens = zeros(3,3,3,3);
             
+            for k = 1:nLayers
+                C_k = obj.material.getConstitutiveTensorForLayer(k);
+                z0 = z_int(k);
+                z1 = z_int(k+1);
+                
+                % Apply plane stress reduction (sigma_33 = 0) for A, B, D
+                C_ps = obj.material.planeStressReduction(C_k);
+                
+                A_tens = A_tens + C_ps * (z1 - z0);
+                B_tens = B_tens + 0.5 * C_ps * (z1^2 - z0^2);
+                D_tens = D_tens + 1/3 * C_ps * (z1^3 - z0^3);
+                
+                % H uses full 3D tensor (transverse shear, no plane stress reduction)
+                H_tens = H_tens + C_k * (z1 - z0);
+            end
+            
+            % Extract 2D in-plane components (a,b ∈ {1,2}) from the plane-stress condensed tensor
+            A_2D = A_tens(1:2, 1:2, 1:2, 1:2);
+            B_2D = B_tens(1:2, 1:2, 1:2, 1:2);
+            D_2D = D_tens(1:2, 1:2, 1:2, 1:2);
+            
+            obj.A_tensor = ConstantFunction.create(A_2D, obj.mesh);
+            obj.B_tensor = ConstantFunction.create(B_2D, obj.mesh);
+            obj.D_tensor = ConstantFunction.create(D_2D, obj.mesh);
+            
+            % H: transverse shear (xz=13, yz=23) — no factor needed now that voigtToTensor
+            % no longer divides shear components by 2
+            H_2x2 = zeros(2,2);
+            H_2x2(1,1) = H_tens(1,3,1,3);
+            H_2x2(2,2) = H_tens(2,3,2,3);
+            H_2x2(1,2) = H_tens(1,3,2,3);
+            H_2x2(2,1) = H_tens(2,3,1,3);
+
+            obj.H_tensor = ConstantFunction.create(H_2x2, obj.mesh);
+        end
+
+        %% NewmarkMethod
+        function [next_modalDisp, next_modalVel, next_modalAcc] = NewmarkMethod(obj, dt)
+            
+            alpha = 1/2; 
+            gamma = 1/2;
+
+            a1 = (1-alpha)*dt;
+            a2 = alpha*dt; 
+            a3 = 2/(gamma*dt^2);
+            a4 = a3*dt; 
+            a5 = (1-gamma)/gamma;
+
+            b0 = a3; 
+            b1 = a4; 
+            b2 = a5; 
+            b3 = a2*a3; 
+            b4 = (a2*a4-1);
+            b5 = (a2*a5-a1);
+
+            A1 = inv(b0*obj.massModal + b3*obj.dampingModal + obj.stiffnessModal);
+            A2 = A1*obj.massModal;
+            A3 = A1*obj.dampingModal;
+
+            next_modalDisp = @ (ini_modalDisp, ini_modalVel, ini_modalAcc, nextFmodal_t) A1 * nextFmodal_t + A2 * (b0*ini_modalDisp ...
+                + b1*ini_modalVel + b2*ini_modalAcc) + A3 * (b3*ini_modalDisp + b4*ini_modalVel + b5*ini_modalAcc);
+            next_modalAcc = @ (nextmodalDisp, ini_modalDisp, ini_modalVel, ini_modalAcc) a3 * nextmodalDisp - a3 * ini_modalDisp ...
+                - a4 * ini_modalVel - a5 * ini_modalAcc;
+            next_modalVel = @ (ini_modalVel, ini_modalAcc, nextmodalAcc) ini_modalVel + a1 * ini_modalAcc + a2 * nextmodalAcc;
         end
 
         %% createGeneralBoundaryConditions
@@ -373,17 +695,15 @@ classdef TutorialShells < handle
             % APPLYED FORCE
             applyedForce = 2;
 
-            % 1 --> Single node
+            % 1 --> Single node / HAS Q
             % 2 --> Right edge
 
             switch obj.bcCase
                 case 1
-
                     sDir{1}.domain    = @(coor) isLeft(coor);
                     sDir{1}.direction = direct;
                     sDir{1}.value     = 0;
                     sDir{1}.ndim      = length(direct);
-
 
                     dirichletFun = [];
                     for i = 1:numel(sDir)
@@ -392,11 +712,8 @@ classdef TutorialShells < handle
                     end
                     s.dirichletFun = dirichletFun;
 
-                    
-
                     switch applyedForce
                         case 1
-
                             % Apply point load to a single node on the right boundary
                             % Find right boundary nodes
                             rightNodes = find(isRight(obj.mesh.coord));
@@ -421,23 +738,19 @@ classdef TutorialShells < handle
                             s.pointloadFun = pointloadFun;
 
                         case 2
-
                             % % Load on Right edge // CHANGE: q = 100
                             % sPL{1}.domain    = @(coor) isRight(coor);
                             % sPL{1}.direction = 2;
                             % sPL{1}.value     = 1;
 
                             s.pointloadFun = [];
-                    end
-
-                    
+                    end                  
 
                     s.periodicFun  = [];
                     s.mesh = obj.mesh;
                     bc = BoundaryConditions(s);
 
                 case 2
-
                     sDir{1}.domain    = @(coor) isLeft(coor) | isRight(coor) | isBotom(coor) | isTop(coor);
                     sDir{1}.direction = direct;
                     sDir{1}.value     = 0;
@@ -454,7 +767,6 @@ classdef TutorialShells < handle
                     s.periodicFun  = [];
                     s.mesh = obj.mesh;
                     bc = BoundaryConditions(s);
-
             end
 
         end
@@ -496,19 +808,14 @@ classdef TutorialShells < handle
 
         %% createLHS
         function LHS = createLHS(obj)
-            % A2 = obj.A_coupling;
-            % f2 = @(u,v) A2.*DDP(SymGrad(v),SymGrad(u));
-            % Ku2 = IntegrateLHS(f2,obj.uFun,obj.uFun,obj.mesh,'Domain',2);
-            % Ku2 = reduceMatrix(obj,Ku2,obj.bcU,obj.bcU);
-
-            matrixCase = 2; 
-            % 1 = Scalar value 
+            matrixCase = 1; 
+            % 1 = Tensor value 
             % 2 = Matrix value 
 
             switch matrixCase 
                 case 1 
-                    A = obj.A_coupling;
-                    f = @(u,v) A.*DDP(SymGrad(v),SymGrad(u));
+                    A = obj.A_tensor;
+                    f = @(u,v) DDP(SymGrad(v),DDP(A,SymGrad(u)));
                 case 2
                     A = obj.A_Matrix;
                     f = @(u,v) TutorialShells.customDDP(A, SymGrad(v), SymGrad(u));
@@ -521,8 +828,8 @@ classdef TutorialShells < handle
 
             switch matrixCase
                 case 1
-                    D = obj.D_bending;
-                    f = @(u,v) D.*DDP(SymGrad(v),SymGrad(u));
+                    D = obj.D_tensor;
+                    f = @(u,v) DDP(SymGrad(v),DDP(D,SymGrad(u)));
                 case 2
                     D = obj.D_Matrix;
                     f = @(u,v) TutorialShells.customDDP(D, SymGrad(v), SymGrad(u));
@@ -533,8 +840,9 @@ classdef TutorialShells < handle
 
             switch matrixCase
                 case 1
-                    B = obj.B_coupling;
-                    f = @ (u,v) B.*DDP(SymGrad(v),SymGrad(u));
+                    B = obj.B_tensor;
+                    f = @ (u,v) DDP(SymGrad(v),DDP(B,SymGrad(u)));
+                    
                 case 2 
                     B = obj.B_Matrix;
                     f = @ (u,v) TutorialShells.customDDP(B,SymGrad(v),SymGrad(u));
@@ -543,10 +851,14 @@ classdef TutorialShells < handle
             Zut = IntegrateLHS(f,obj.uFun,obj.thetaFun,obj.mesh,'Domain',2);
             Zut = obj.reduceMatrix(Zut,obj.bcU,obj.bcT);
 
+            % Ztu = IntegrateLHS(f,obj.thetaFun,obj.uFun,obj.mesh,'Domain',2);
+            % Ztu = obj.reduceMatrix(Ztu,obj.bcT,obj.bcU);
+
+
             switch matrixCase
                 case 1
-                    H = obj.H_shear;
-                    f = @(u,v) H.*DP(v,u);
+                    H = obj.H_tensor    ;
+                    f = @(u,v) DP(v,DP(H,u));
                 case 2
                     H = obj.H_Matrix;
                     f = @(u,v) TutorialShells.customDPvector(H, v, u);
@@ -557,7 +869,7 @@ classdef TutorialShells < handle
 
             switch matrixCase
                 case 1
-                    f = @(u,v) H.*DP(v,Grad(u));
+                    f = @(u,v) DP(v,DP(H,Grad(u)), 1, 1);
                 case 2
                     f = @(u,v) TutorialShells.customDP(H, v, Grad(u));
             end
@@ -567,7 +879,7 @@ classdef TutorialShells < handle
             
             switch matrixCase
                 case 1
-                    f = @(u,v) H.*DP(Grad(v),Grad(u));
+                    f = @(u,v) DP(Grad(v),DP(H,Grad(u)), 2, 1);
                 case 2
                     f = @(u,v) TutorialShells.customDPgrad(H, Grad(v), Grad(u));
             end
@@ -581,122 +893,270 @@ classdef TutorialShells < handle
 
             beta = 1; 
 
-            % Zut = zeros(nU,nTheta);
+            Ztu = Zut';
             Zuw = zeros(nU,nW);
-            LHS = [Ku Zut Zuw; Zut' (Ktheta+beta*Mtheta) beta*Nthetaw; Zuw' beta*Nthetaw' beta*Kw];
+            LHS = [Ku Zut Zuw; Ztu (Ktheta+beta*Mtheta) beta*Nthetaw; Zuw' beta*Nthetaw' beta*Kw];
+        end
+
+        %% createMassLHS
+        function MLHS = createMassLHS(obj)
+
+            zInterface = cell2mat(obj.zLayer);
+            nLayers = length(zInterface);
+            Arho = 0; Brho = 0; Drho = 0; 
+
+            for k = 1:nLayers-1
+                z0 = zInterface(k);
+                z1 = zInterface(k+1);
+                rho = obj.density.constant(k);
+                
+                Arho = Arho + rho * (z1 - z0);
+                Brho = Brho + 0.5 * rho * (z1^2 - z0^2);
+                Drho = Drho + 1/3 * rho * (z1^3 - z0^3);
+            end
+
+            f = @ (u,v) Arho*DP(v,u);
+            Mu = IntegrateLHS(f,obj.uFun,obj.uFun,obj.mesh,'Domain',2);
+            Mu = reduceMatrix(obj,Mu,obj.bcU,obj.bcU);
+
+            f = @ (u,v) Brho*DP(v,u);
+            Mut = IntegrateLHS(f,obj.uFun,obj.thetaFun,obj.mesh,'Domain',2);
+            Mut = reduceMatrix(obj,Mut,obj.bcU,obj.bcT);
+
+            f = @ (u,v) Drho*DP(v,u);
+            Mt = IntegrateLHS(f,obj.thetaFun,obj.thetaFun,obj.mesh,'Domain',2);
+            Mt = reduceMatrix(obj,Mt,obj.bcT,obj.bcT);
+
+            Mtu = Mut.';
+
+            f = @ (u,v) Arho.*v.*u;
+            Mw = IntegrateLHS(f,obj.wFun,obj.wFun,obj.mesh,'Domain',2);
+            Mw = reduceMatrix(obj,Mw,obj.bcW,obj.bcW);
+
+            nTheta = length(obj.computeFreeDofs(obj.bcT));
+            nU     = length(obj.computeFreeDofs(obj.bcU));
+            nW     = length(obj.computeFreeDofs(obj.bcW));
+
+            Zuw = zeros(nU,nW);
+            Ztw = zeros(nTheta,nW);
+            Zwu = Zuw.';
+            Zwt = Ztw.';
+
+            MLHS = [Mu, Mut, Zuw;
+                Mtu, Mt, Ztw;
+                Zwu, Zwt, Mw];
+
         end
 
         %% createStrainStressFunctions
-        function [strainFun, stressFun] = createStrainStressFunctions(obj, z, epsilonU_nodal, epsilonTheta_nodal, dw_dx_nodal, dw_dy_nodal)
+        function [strainFun, stressFun] = createStrainStressFunctions(obj, z, epsilons, stressState)
+            eps_u_11 = epsilons(:, 1);
+            eps_u_22 = epsilons(:, 2);
+            eps_u_12 = epsilons(:, 3);
+            eps_theta_11 = epsilons(:, 4);
+            eps_theta_22 = epsilons(:, 5);
+            eps_theta_12 = epsilons(:, 6);
+            dw_dx = epsilons(:, 7);
+            dw_dy = epsilons(:, 8);
 
-            fprintf('\n===== COMPLETE STRESSES =====\n');
-            
-            obj.stressCase = 'NORMAL';
+            % Transverse shear strains (tensorial: ε = γ/2)
+            epsilon_xz = 0.5 * (dw_dx + obj.thetaFun.fValues(:, 1));
+            epsilon_yz = 0.5 * (dw_dy + obj.thetaFun.fValues(:, 2));
 
             nNodes = size(obj.mesh.coord, 1);
             zInterfaces = [obj.zLayer{:}];
 
-            % Transverse shear strains at nodes
-            epsilon_xz_nodal = 0.5 * (dw_dx_nodal + obj.thetaFun.fValues(:,1));
-            epsilon_yz_nodal = 0.5 * (dw_dy_nodal + obj.thetaFun.fValues(:,2));
-
-            strainFun = cell(1,numel(z));
-
-            % Check if any z corresponds to an internal interface. 
+            % Check for interfaces
             thereIsInterface = false;
-            interfacePositions = [];
-            count = 1; 
+            obj.interfaceIndex = [];
+
             if numel(zInterfaces) > 2
                 internalInterfaces = zInterfaces(2:end-1);
                 tol = 1e-10;
+
                 for k = 1:numel(z)
                     if any(abs(internalInterfaces - z{k}) <= tol)
                         thereIsInterface = true;
-                        interfacePositions(end+1) = k; %#ok<AGROW>
-                        fprintf('Found interface at z index: %d\n', k);
-                        obj.interfaceIndex(count) = k; 
-                        count = count + 1; 
+                        obj.interfaceIndex(end+1) = k;
+                        fprintf('Found interface at z index: %d (z = %.6f)\n', k, z{k});
                     end
                 end
             end
 
-            if thereIsInterface == false 
-                stressTemp = cell(1,numel(z));
-                fprintf('Did not found interface\n');
+            % Initialize storage
+            if ~thereIsInterface
+                stressTemp = cell(1, numel(z));
+                strainTemp = cell(1, numel(z));
+                fprintf('No internal interfaces detected.\n');
             else
-                stressTemp = cell(2,numel(z));
+                stressTemp = cell(2, numel(z));
+                strainTemp = cell(1, numel(z));
             end
 
+            % ========== DETERMINE STRESS STATE ==========
+
+            if strcmp(stressState, 'PLANE_STRESS')
+                nComponents = 5;  % [ε11, ε22, ε23, ε13, ε12] - without ε33
+                fprintf('Using PLANE STRESS formulation (5 components)\n');
+            else
+                nComponents = 6;  % [ε11, ε22, ε33, ε23, ε13, ε12]
+                fprintf('Using FULL 3D formulation (6 components)\n');
+            end
+
+            % ========== LOOP THROUGH Z-LEVELS ==========
             for i = 1:numel(z)
-                strain_nodal = zeros(nNodes, 6);
-                strain_nodal(:, 1) = epsilonU_nodal(1, :) + z{i} * epsilonTheta_nodal(1, :);  % exx
-                strain_nodal(:, 2) = epsilonU_nodal(2, :) + z{i} * epsilonTheta_nodal(2, :);  % eyy
-                strain_nodal(:, 3) = 0;  % ezz = 0
-                strain_nodal(:, 4) = epsilonU_nodal(3, :) + z{i} * epsilonTheta_nodal(3, :);  % exy
-                strain_nodal(:, 5) = epsilon_xz_nodal;
-                strain_nodal(:, 6) = epsilon_yz_nodal;
+                z_k = z{i};
 
-                % Create LagrangianFunction for strains [exx, eyy, ezz, exy, exz, eyz]
-                strainFun{i} = LagrangianFunction.create(obj.mesh, 6, 'P1');
-                strainFun{i}.setFValues(strain_nodal);
+                % Build strain vector in Voigt notation
+                if strcmp(stressState, 'PLANE_STRESS')
+                    % [ε11, ε22, ε23, ε13, ε12] - 5 components (no ε33)
+                    strain_voigt = zeros(nNodes, 5);
+                    strain_voigt(:, 1) = eps_u_11 + z_k * eps_theta_11;       % ε_xx
+                    strain_voigt(:, 2) = eps_u_22 + z_k * eps_theta_22;       % ε_yy
+                    strain_voigt(:, 3) = epsilon_yz;                           % ε_yz
+                    strain_voigt(:, 4) = epsilon_xz;                           % ε_xz
+                    strain_voigt(:, 5) = eps_u_12 + z_k * eps_theta_12;       % ε_xy
+                else
+                    % [ε11, ε22, ε33, ε23, ε13, ε12] - 6 components (full 3D)
+                    strain_voigt = zeros(nNodes, 6);
+                    strain_voigt(:, 1) = eps_u_11 + z_k * eps_theta_11;       % ε_xx
+                    strain_voigt(:, 2) = eps_u_22 + z_k * eps_theta_22;       % ε_yy
+                    strain_voigt(:, 3) = 0;                                    % ε_zz = 0
+                    strain_voigt(:, 4) = epsilon_yz;                           % ε_yz
+                    strain_voigt(:, 5) = epsilon_xz;                           % ε_xz
+                    strain_voigt(:, 6) = eps_u_12 + z_k * eps_theta_12;       % ε_xy
+                end
 
-                % Obtain constitutive matrix for the layer at z{i}
-                % If there are multiple layers, check whether current z{i} matches any internal interface (excluding boundaries)
+                strainTemp{i} = LagrangianFunction.create(obj.mesh, nComponents, 'P1');
+                strainTemp{i}.setFValues(strain_voigt);
+
+                % ========== CHECK IF INTERFACE ==========
                 isInternalInterface = false;
                 if numel(zInterfaces) > 2
                     internalInterfaces = zInterfaces(2:end-1);
-                    % z{i} may be numeric scalar; use isequal or ismember with tolerance for floating point
                     tol = 1e-10;
-                    if any(abs(internalInterfaces - z{i}) <= tol)
+                    if any(abs(internalInterfaces - z_k) <= tol)
                         isInternalInterface = true;
                     end
                 end
 
-                C = obj.createConstitutiveMatrix(z{i}, zInterfaces,isInternalInterface);
+                % ========== COMPUTE STRESSES ==========
+                if ~isInternalInterface
+                    % Single layer
+                    kLayer = find(z_k >= zInterfaces(1:end-1) & z_k <= zInterfaces(2:end), 1);
 
-                if isInternalInterface == false
-                    % Obtain stress: sigma = C * epsilon at each node
-                    stress_nodal = (C * strain_nodal.').';  % (nNodes x 6)
+                    % Get 6x6 Voigt constitutive matrix
+                    C_matrix_full = obj.material.createConstitutiveMatrixForLayer(kLayer);
 
-                    % Create LagrangianFunction for stresses [sxx, syy, szz, sxy, sxz, syz]
-                    stressTemp{1,i} = LagrangianFunction.create(obj.mesh, 6, 'P1');
-                    stressTemp{1,i}.setFValues(stress_nodal);
-                else 
-                    for j = 1:2
-                        stress_nodal = (C(:,:,j) * strain_nodal.').';  % (nNodes x 6)
-                        stressTemp{j,i} = LagrangianFunction.create(obj.mesh, 6, 'P1');
-                        stressTemp{j,i}.setFValues(stress_nodal);
+                    % Apply rotation if needed
+                    if strcmp(obj.material.materialType, 'ORTHOTROPIC') && obj.material.rotation(kLayer) ~= 0
+                        theta = deg2rad(obj.material.rotation(kLayer));
+                        C_matrix_full = obj.material.rotateConstitutiveMatrix(C_matrix_full, theta);
                     end
+
+                    % Reduce to plane stress if needed
+                    if strcmp(stressState, 'PLANE_STRESS')
+                        idx = [1, 2, 4, 5, 6];
+                        C_matrix = C_matrix_full(idx, idx);  % 5x5 matrix
+                    else
+                        C_matrix = C_matrix_full;  % 6x6 matrix
+                    end
+
+                    % Compute stress: σ = C * ε
+                    stress_voigt = (C_matrix * strain_voigt')';  % nNodes x nComponents
+
+                    stressTemp{1, i} = LagrangianFunction.create(obj.mesh, nComponents, 'P1');
+                    stressTemp{1, i}.setFValues(stress_voigt);
+
+                else
+                    % Interface: two layers
+                    kLayerBottom = find(z_k >= zInterfaces(1:end-1) & z_k <= zInterfaces(2:end), 1);
+                    kLayerTop = kLayerBottom + 1;
+
+                    fprintf('  Interface at z = %.6f: Layer %d (top) and Layer %d (bottom)\n', ...
+                        z_k, kLayerBottom, kLayerTop);
+
+                    % Bottom layer
+                    C_bottom_full = obj.material.createConstitutiveMatrixForLayer(kLayerBottom);
+                    if strcmp(obj.material.materialType, 'ORTHOTROPIC') && obj.material.rotation(kLayerBottom) ~= 0
+                        theta = deg2rad(obj.material.rotation(kLayerBottom));
+                        C_bottom_full = obj.material.rotateConstitutiveMatrix(C_bottom_full, theta);
+                    end
+
+                    if strcmp(stressState, 'PLANE_STRESS')
+                        idx = [1, 2, 4, 5, 6];
+                        C_bottom = C_bottom_full(idx, idx);
+                    else
+                        C_bottom = C_bottom_full;
+                    end
+                    stress_bottom = (C_bottom * strain_voigt')';
+
+                    stressTemp{1, i} = LagrangianFunction.create(obj.mesh, nComponents, 'P1');
+                    stressTemp{1, i}.setFValues(stress_bottom);
+
+                    % Top layer
+                    C_top_full = obj.material.createConstitutiveMatrixForLayer(kLayerTop);
+                    if strcmp(obj.material.materialType, 'ORTHOTROPIC') && obj.material.rotation(kLayerTop) ~= 0
+                        theta = deg2rad(obj.material.rotation(kLayerTop));
+                        C_top_full = obj.material.rotateConstitutiveMatrix(C_top_full, theta);
+                    end
+
+                    if strcmp(stressState, 'PLANE_STRESS')
+                        idx = [1, 2, 4, 5, 6];
+                        C_top = C_top_full(idx, idx);
+                    else
+                        C_top = C_top_full;
+                    end
+                    stress_top = (C_top * strain_voigt')';
+
+                    stressTemp{2, i} = LagrangianFunction.create(obj.mesh, nComponents, 'P1');
+                    stressTemp{2, i}.setFValues(stress_top);
                 end
             end
 
-
+            % ========== REORDER AND FLATTEN OUTPUT ==========
             count = 0;
-            fprintf('\n');
-            for i = 1:numel(stressTemp(1,:))
-                count = count + 1;
-                for j = 1:numel(stressTemp(:,1))
-                    if ~isempty(stressTemp{j,i})
-                        if ~isempty(obj.interfaceIndex) && any(i == obj.interfaceIndex)
-                            if j == 1
-                                kLayer = find(z{i} >= zInterfaces(1:(end-1)) & z{i} <= zInterfaces(2:end), 1);
-                                disp(['Position {' num2str(count) '} of stressFun corresponds to TOP values of layer ' num2str(kLayer)]);
-                            else
-                                count = count + 1;
-                                kLayer = find(z{i} >= zInterfaces(1:(end-1)) & z{i} <= zInterfaces(2:end), 1)+1;
-                                disp(['Position {' num2str(count) '} of stressFun corresponds to BOTTOM values of layer ' num2str(kLayer)]);
-                            end
-                        end
-                        stressFun{1,count} = stressTemp{j,i};
-                    end
+            stressFun = {};
+            strainFun = {};
+
+            fprintf('\n===== OUTPUT ORGANIZATION =====\n');
+
+            for i = 1:numel(z)
+                z_k = z{i};
+                isInterface = ~isempty(obj.interfaceIndex) && any(i == obj.interfaceIndex);
+
+                if ~isInterface
+                    count = count + 1;
+                    strainFun{count} = strainTemp{i}; %#ok<AGROW>
+                    stressFun{count} = stressTemp{1, i}; %#ok<AGROW>
+
+                    kLayer = find(z_k >= zInterfaces(1:end-1) & z_k <= zInterfaces(2:end), 1);
+                    fprintf('Position {%d}: z = %.6f, Layer %d\n', count, z_k, kLayer);
+                else
+                    kLayerBottom = find(z_k >= zInterfaces(1:end-1) & z_k <= zInterfaces(2:end), 1);
+                    kLayerTop = kLayerBottom + 1;
+
+                    % Top of bottom layer
+                    count = count + 1;
+                    strainFun{count} = strainTemp{i}; %#ok<AGROW>
+                    stressFun{count} = stressTemp{1, i}; %#ok<AGROW>
+                    fprintf('Position {%d}: z = %.6f, TOP of Layer %d\n', count, z_k, kLayerBottom);
+
+                    % Bottom of top layer
+                    count = count + 1;
+                    strainFun{count} = strainTemp{i}; %#ok<AGROW>
+                    stressFun{count} = stressTemp{2, i}; %#ok<AGROW>
+                    fprintf('Position {%d}: z = %.6f, BOTTOM of Layer %d\n', count, z_k, kLayerTop);
                 end
             end
-        end
 
+            fprintf('\nTotal positions: %d\n', count);
+            fprintf('==========================================\n\n');
+        end
 
         %% internalForces
         function [Nfun, Mfun, Qfun] = internalForces(obj,epsilonU_nodal,epsilonTheta_nodal, dw_dx_nodal, dw_dy_nodal)
-            
+
             Nvalues = obj.A_Matrix*epsilonU_nodal + obj.B_Matrix*epsilonTheta_nodal;
             Mvalues = obj.B_Matrix*epsilonU_nodal + obj.D_Matrix*epsilonTheta_nodal;
             Qvalues = obj.H_Matrix*[dw_dx_nodal.' ; dw_dy_nodal.'];
@@ -710,405 +1170,42 @@ classdef TutorialShells < handle
 
         end
 
-        %% createConstitutiveMatrix
-        function C = createConstitutiveMatrix(obj,z,z_interfaces,isInterface)
-            switch obj.stressCase
-                case 'NORMAL'
-                    kLayer = find(z >= z_interfaces(1:(end-1)) & z <= z_interfaces(2:end), 1);
-                    % when there is layer superposition, takes the value of the bottom layer
-
-                    switch obj.materialProperties
-                        case 'ISOTROPIC'
-                            % kLayer = find(z >= z_interfaces(1:(end-1)) & z <= z_interfaces(2:end), 1);
-                            % when there is layer superposition, takes the value of the bottom layer
-
-                            if isInterface == false
-                                nu = obj.poisson.constant(kLayer);
-                                lambda = obj.young.constant(kLayer) / (1+nu) / (1-2*nu);
-                               
-                                C = lambda* [1-nu, nu, nu, 0, 0, 0;
-                                    nu, 1-nu, nu, 0, 0, 0;
-                                    nu, nu, 1-nu, 0, 0, 0;
-                                    0, 0, 0, (1-2*nu), 0, 0;
-                                    0, 0, 0, 0, (1-2*nu), 0;
-                                    0, 0, 0, 0, 0, (1-2*nu)];
-                            else
-                                for i = 1:2
-                                    nu = obj.poisson.constant(kLayer);
-                                    lambda = obj.young.constant(kLayer) / (1+nu) / (1-2*nu);
-                                    
-                                    C(:,:,i) = lambda* [1-nu, nu, nu, 0, 0, 0;
-                                        nu, 1-nu, nu, 0, 0, 0;
-                                        nu, nu, 1-nu, 0, 0, 0;
-                                        0, 0, 0, (1-2*nu), 0, 0;
-                                        0, 0, 0, 0, (1-2*nu), 0;
-                                        0, 0, 0, 0, 0, (1-2*nu)];
-
-                                    kLayer = kLayer + 1;
-                                end
-                            end
-                        case 'ORTHOTROPIC'
-                            % kLayer = find(z >= z_interfaces(1:(end-1)) & z <= z_interfaces(2:end), 1);
-
-                            if isInterface == false
-                                % Properties
-                                E1 = obj.young.constant(kLayer,1);       E2 = obj.young.constant(kLayer,2);       E3 = obj.young.constant(kLayer,3);
-                                nu12 = obj.poisson.constant(kLayer,1);   nu13 = obj.poisson.constant(kLayer,2);   nu23 = obj.poisson.constant(kLayer,3);
-                                G12 = obj.shear.constant(kLayer,1);      G13 = obj.shear.constant(kLayer,2);      G23 = obj.shear.constant(kLayer,3);
-
-                                nu21 = nu12*E2/E1;
-                                nu32 = nu23*E3/E2;
-                                nu31 = nu13*E3/E1;
-
-                                delta = (1-nu12*nu21-nu23*nu32-nu31*nu13-2*nu21*nu32*nu13) / (E1*E2*E3);
-
-                                C11 = (1 - nu23*nu32)/(E2*E3*delta);
-                                C12 = (nu21 + nu31*nu23)/(E2*E3*delta);
-                                C13 = (nu31 + nu21*nu32)/(E2*E3*delta);
-                                C22 = (1 - nu13*nu31)/(E1*E3*delta);
-                                C23 = (nu32 + nu12*nu31)/(E1*E3*delta);
-                                C33 = (1 - nu12*nu21)/(E1*E2*delta);
-                                C44 = G12;
-                                C55 = G13;
-                                C66 = G23;
-
-                                theta = obj.rotation.constant(kLayer,1);
-
-                                % T = [cos(theta)^2,         sin(theta)^2,          0,  0,           0,          -sin(2*theta);
-                                %     sin(theta)^2,          cos(theta)^2,          0,  0,           0,           sin(2*theta);
-                                %     0,                     0,                     1,  0,           0,           0;
-                                %     sin(theta)*cos(theta), -sin(theta)*cos(theta), 0,  0,           0,           cos(theta)^2 - sin(theta)^2
-                                %     0,                     0,                     0, -sin(theta),  cos(theta),  0;
-                                %     0,                     0,                     0,  cos(theta),  sin(theta),  0];
-                                T = [cos(theta)^2,         sin(theta)^2,          0, -sin(2*theta),  0,           0;
-                                        sin(theta)^2,          cos(theta)^2,          0, sin(2*theta),  0,           0;
-                                        0,                     0,                     1,  0,           0,           0;
-                                        sin(theta)*cos(theta), -sin(theta)*cos(theta), 0, cos(theta)^2 - sin(theta)^2,  0,           0;
-                                        0,                     0,                     0, 0,  cos(theta),  -sin(theta);
-                                        0,                     0,                     0,  0,  sin(theta),  cos(theta)];
-
-                                C = T* [ C11 C12 C13 0   0   0;
-                                    C12 C22 C23 0   0   0;
-                                    C13 C23 C33 0   0   0;
-                                    0   0   0   2*C44 0   0;
-                                    0   0   0   0   2*C55 0;
-                                    0   0   0   0   0   2*C66 ]*T.';
-                            else
-                                for i=1:2
-                                    E1 = obj.young.constant(kLayer,1);       E2 = obj.young.constant(kLayer,2);       E3 = obj.young.constant(kLayer,3);
-                                    nu12 = obj.poisson.constant(kLayer,1);   nu13 = obj.poisson.constant(kLayer,2);   nu23 = obj.poisson.constant(kLayer,3);
-                                    G12 = obj.shear.constant(kLayer,1);      G13 = obj.shear.constant(kLayer,2);      G23 = obj.shear.constant(kLayer,3);
-
-                                    nu21 = nu12*E2/E1;
-                                    nu32 = nu23*E3/E2;
-                                    nu31 = nu13*E3/E1;
-
-                                    delta = (1-nu12*nu21-nu23*nu32-nu31*nu13-2*nu21*nu32*nu13) / (E1*E2*E3);
-
-                                    C11 = (1 - nu23*nu32)/(E2*E3*delta);
-                                    C12 = (nu21 + nu31*nu23)/(E2*E3*delta);
-                                    C13 = (nu31 + nu21*nu32)/(E2*E3*delta);
-                                    C22 = (1 - nu13*nu31)/(E1*E3*delta);
-                                    C23 = (nu32 + nu12*nu31)/(E1*E3*delta);
-                                    C33 = (1 - nu12*nu21)/(E1*E2*delta);
-                                    C44 = G12;
-                                    C55 = G13;
-                                    C66 = G23;
-
-                                    theta = obj.rotation.constant(kLayer,1);
-
-                                    T = [cos(theta)^2,         sin(theta)^2,          0, -sin(2*theta),  0,           0;
-                                        sin(theta)^2,          cos(theta)^2,          0, sin(2*theta),  0,           0;
-                                        0,                     0,                     1,  0,           0,           0;
-                                        sin(theta)*cos(theta), -sin(theta)*cos(theta), 0, cos(theta)^2 - sin(theta)^2,  0,           0;
-                                        0,                     0,                     0, 0,  cos(theta),  -sin(theta);
-                                        0,                     0,                     0,  0,  sin(theta),  cos(theta)];
-
-                                    C(:,:,i) = T*[ C11 C12 C13 0   0   0;
-                                        C12 C22 C23 0   0   0;
-                                        C13 C23 C33 0   0   0;
-                                        0   0   0   2*C44 0   0;
-                                        0   0   0   0   2*C55 0;
-                                        0   0   0   0   0   2*C66 ]*T.';
-
-                                    kLayer = kLayer+1;
-                                end
-                            end
-                    end
-                case 'PLANE'
-                    kLayer = find(z >= z_interfaces(1:(end-1)) & z <= z_interfaces(2:end), 1);
-                    % when there is layer superposition, takes the value of the bottom layer
-                    switch obj.materialProperties
-                        case 'ISOTROPIC'
-                            % kLayer = find(z >= z_interfaces(1:(end-1)) & z <= z_interfaces(2:end), 1);
-                            % when there is layer superposition, takes the value of the bottom layer
-
-                            if isInterface == false
-                                nu = obj.poisson.constant(kLayer);
-                                lambda = obj.young.constant(kLayer) / (1+nu) / (1-2*nu);
-                               
-                                C = lambda* [1-nu, nu, 0, 0, 0;
-                                    nu, 1-nu, 0, 0, 0;
-                                    0, 0, (1-2*nu), 0, 0;
-                                    0, 0, 0, (1-2*nu), 0;
-                                    0, 0, 0, 0, (1-2*nu)];
-                            else
-                                for i = 1:2
-                                    nu = obj.poisson.constant(kLayer);
-                                    lambda = obj.young.constant(kLayer) / (1+nu) / (1-2*nu);
-                                    
-                                    C(:,:,i) = lambda* [1-nu, nu, 0, 0, 0;
-                                        nu, 1-nu, 0, 0, 0;
-                                        0, 0, (1-2*nu), 0, 0;
-                                        0, 0, 0, (1-2*nu), 0;
-                                        0, 0, 0, 0, (1-2*nu)];
-
-                                    kLayer = kLayer + 1;
-                                end
-                            end
-                        case 'ORTHOTROPIC'
-                            % kLayer = find(z >= z_interfaces(1:(end-1)) & z <= z_interfaces(2:end), 1);
-
-                            if isInterface == false
-                                % Properties
-                                E1 = obj.young.constant(kLayer,1);       E2 = obj.young.constant(kLayer,2);       E3 = obj.young.constant(kLayer,3);
-                                nu12 = obj.poisson.constant(kLayer,1);   nu13 = obj.poisson.constant(kLayer,2);   nu23 = obj.poisson.constant(kLayer,3);
-                                G12 = obj.shear.constant(kLayer,1);      G13 = obj.shear.constant(kLayer,2);      G23 = obj.shear.constant(kLayer,3);
-
-                                nu21 = nu12*E2/E1;
-                                nu32 = nu23*E3/E2;
-                                nu31 = nu13*E3/E1;
-
-                                delta = (1-nu12*nu21-nu23*nu32-nu31*nu13-2*nu21*nu32*nu13) / (E1*E2*E3);
-
-                                C11 = (1 - nu23*nu32)/(E2*E3*delta);
-                                C12 = (nu21 + nu31*nu23)/(E2*E3*delta);
-                                C13 = (nu31 + nu21*nu32)/(E2*E3*delta);
-                                C22 = (1 - nu13*nu31)/(E1*E3*delta);
-                                C23 = (nu32 + nu12*nu31)/(E1*E3*delta);
-                                C33 = (1 - nu12*nu21)/(E1*E2*delta);
-                                C44 = G12;
-                                C55 = G13;
-                                C66 = G23;
-
-                                theta = obj.rotation.constant(kLayer,1);
-
-                                T = [cos(theta)^2,         sin(theta)^2,          0,           0,          -sin(2*theta);
-                                    sin(theta)^2,          cos(theta)^2,          0,           0,           sin(2*theta);
-                                    0,                     0,                     cos(theta),  sin(theta),  0;
-                                    0,                     0,                     -sin(theta),  cos(theta),  0;
-                                    sin(theta)*cos(theta), -sin(theta)*cos(theta), 0,           0,           cos(theta)^2 - sin(theta)^2];
-
-                                C = T* [ C11 C12  0   0   0;
-                                    C12 C22  0   0   0;
-                                    0   0   2*C44 0   0;
-                                    0   0   0   2*C55 0;
-                                    0   0   0   0   2*C66 ]*T.';
-                            else
-                                for i=1:2
-                                    E1 = obj.young.constant(kLayer,1);       E2 = obj.young.constant(kLayer,2);       E3 = obj.young.constant(kLayer,3);
-                                    nu12 = obj.poisson.constant(kLayer,1);   nu13 = obj.poisson.constant(kLayer,2);   nu23 = obj.poisson.constant(kLayer,3);
-                                    G12 = obj.shear.constant(kLayer,1);      G13 = obj.shear.constant(kLayer,2);      G23 = obj.shear.constant(kLayer,3);
-
-                                    nu21 = nu12*E2/E1;
-                                    nu32 = nu23*E3/E2;
-                                    nu31 = nu13*E3/E1;
-
-                                    delta = (1-nu12*nu21-nu23*nu32-nu31*nu13-2*nu21*nu32*nu13) / (E1*E2*E3);
-
-                                    C11 = (1 - nu23*nu32)/(E2*E3*delta);
-                                    C12 = (nu21 + nu31*nu23)/(E2*E3*delta);
-                                    C22 = (1 - nu13*nu31)/(E1*E3*delta);
-                                    C44 = G12;
-                                    C55 = G13;
-                                    C66 = G23;
-
-                                    theta = obj.rotation.constant(kLayer,1);
-
-                                    T = [cos(theta)^2,         sin(theta)^2,          0,           0,          -sin(2*theta);
-                                        sin(theta)^2,          cos(theta)^2,          0,           0,           sin(2*theta);
-                                        0,                     0,                     cos(theta),  sin(theta),  0;
-                                        0,                     0,                     -sin(theta),  cos(theta),  0;
-                                        sin(theta)*cos(theta), -sin(theta)*cos(theta),0,           0,           cos(theta)^2 - sin(theta)^2];
-
-                                    C(:,:,i) = T*[ C11 C12 0   0   0;
-                                        C12 C22 0   0   0;
-                                        0   0   2*C44 0   0;
-                                        0   0   0   2*C55 0;
-                                        0   0   0   0   2*C66 ]*T.';
-
-                                    kLayer = kLayer+1;
-                                end
-                            end
-                    end
-
-            end
-        end
-
-        %% planeStrainStress
-
-        function [strainFun, stressFun] = planeStrainStress(obj,z, epsilonU_nodal, epsilonTheta_nodal, dw_dx_nodal, dw_dy_nodal)
-
-            fprintf('\n===== PLANE STRESSES =====\n');
-
-            obj.stressCase = 'PLANE';
-
-            nNodes = size(obj.mesh.coord, 1);
-            zInterfaces = [obj.zLayer{:}];
-
-            % Transverse shear strains at nodes
-            epsilon_xz_nodal = 0.5 * (dw_dx_nodal + obj.thetaFun.fValues(:,1));
-            epsilon_yz_nodal = 0.5 * (dw_dy_nodal + obj.thetaFun.fValues(:,2));
-
-            strainFun = cell(1,numel(z));
-
-            % Check if any z corresponds to an internal interface. 
-            thereIsInterface = false;
-            interfacePositions = [];
-            count = 1; 
-            if numel(zInterfaces) > 2
-                internalInterfaces = zInterfaces(2:end-1);
-                tol = 1e-10;
-                for k = 1:numel(z)
-                    if any(abs(internalInterfaces - z{k}) <= tol)
-                        thereIsInterface = true;
-                        interfacePositions(end+1) = k; %#ok<AGROW>
-                        fprintf('Found interface at z index: %d\n', k);
-                        obj.interfaceIndex(count) = k; 
-                        count = count + 1; 
-                    end
-                end
-            end
-
-            if thereIsInterface == false 
-                stressTemp = cell(1,numel(z));
-                fprintf('Did not found interface\n');
-            else
-                stressTemp = cell(2,numel(z));
-            end
-
-            for i = 1:numel(z)
-                strain_nodal = zeros(nNodes, 5);
-                strain_nodal(:, 1) = epsilonU_nodal(1, :) + z{i} * epsilonTheta_nodal(1, :);  % exx
-                strain_nodal(:, 2) = epsilonU_nodal(2, :) + z{i} * epsilonTheta_nodal(2, :);  % eyy
-                strain_nodal(:, 3) = epsilonU_nodal(3, :) + z{i} * epsilonTheta_nodal(3, :);  % exy
-                strain_nodal(:, 4) = epsilon_xz_nodal;
-                strain_nodal(:, 5) = epsilon_yz_nodal;
-
-                % Create LagrangianFunction for strains [exx, eyy, ezz, exy, exz, eyz]
-                strainFun{i} = LagrangianFunction.create(obj.mesh, 5, 'P1');
-                strainFun{i}.setFValues(strain_nodal);
-
-                % Obtain constitutive matrix for the layer at z{i}
-                % If there are multiple layers, check whether current z{i} matches any internal interface (excluding boundaries)
-                isInternalInterface = false;
-                if numel(zInterfaces) > 2
-                    internalInterfaces = zInterfaces(2:end-1);
-                    % z{i} may be numeric scalar; use isequal or ismember with tolerance for floating point
-                    tol = 1e-10;
-                    if any(abs(internalInterfaces - z{i}) <= tol)
-                        isInternalInterface = true;
-                    end
-                end
-
-                C = obj.createConstitutiveMatrix(z{i}, zInterfaces,isInternalInterface);
-
-                if isInternalInterface == false
-                    % Obtain stress: sigma = C * epsilon at each node
-                    stress_nodal = (C * strain_nodal.').';  % (nNodes x 6)
-
-                    % Create LagrangianFunction for stresses [sxx, syy, szz, sxy, sxz, syz]
-                    stressTemp{1,i} = LagrangianFunction.create(obj.mesh, 5, 'P1');
-                    stressTemp{1,i}.setFValues(stress_nodal);
-                else 
-                    for j = 1:2
-                        stress_nodal = (C(:,:,j) * strain_nodal.').';  % (nNodes x 6)
-                        stressTemp{j,i} = LagrangianFunction.create(obj.mesh, 5, 'P1');
-                        stressTemp{j,i}.setFValues(stress_nodal);
-                    end
-                end
-            end
-
-
-            count = 0;
-            fprintf('\n');
-            for i = 1:numel(stressTemp(1,:))
-                count = count + 1;
-                for j = 1:numel(stressTemp(:,1))
-                    if ~isempty(stressTemp{j,i})
-                        if ~isempty(obj.interfaceIndex) && any(i == obj.interfaceIndex)
-                            if j == 1
-                                kLayer = find(z{i} >= zInterfaces(1:(end-1)) & z{i} <= zInterfaces(2:end), 1);
-                                disp(['Position {' num2str(count) '} of stressFun corresponds to TOP values of layer ' num2str(kLayer)]);
-                            else
-                                count = count + 1;
-                                kLayer = find(z{i} >= zInterfaces(1:(end-1)) & z{i} <= zInterfaces(2:end), 1)+1;
-                                disp(['Position {' num2str(count) '} of stressFun corresponds to BOTTOM values of layer ' num2str(kLayer)]);
-                            end
-                        end
-                        stressFun{1,count} = stressTemp{j,i};
-                    end
-                end
-            end
-
-        end
 
         %% createEpsilons
-        function [epsilonU_nodal, epsilonTheta_nodal, dw_dx_nodal, dw_dy_nodal] = createEpsilons(obj)
-            nNodes = size(obj.mesh.coord, 1);
+        function [epsilons] = createEpsilons(obj)
+            GradSymU = SymGrad(obj.uFun);           % [ε_xx, ε_yy, ε_xy]
+            GradSymTheta = SymGrad(obj.thetaFun);
+            GradW = Grad(obj.wFun);                 % [∂w/∂x, ∂w/∂y]
 
-            % Compute SymGrad of u and theta outside the loop (independent of z)
-            strainU     = SymGrad(obj.uFun);
-            strainTheta = SymGrad(obj.thetaFun);
+            GradSymU = GradSymU.project('P1');
+            GradSymTheta = GradSymTheta.project('P1');
+            GradW = GradW.project('P1');
 
-            strainUvalues     = strainU.evaluate(obj.mesh);
-            strainThetaValues = strainTheta.evaluate(obj.mesh);
 
-            nElem  = size(obj.mesh.connec, 1);
+            % ========== ASSEMBLE OUTPUT MATRIX ==========
+            
+            epsilons(:,:, 1) = GradSymU.fValues(:,1);      % eps_u_11
+            epsilons(:,:, 2) = GradSymU.fValues(:,4);      % eps_u_22
+            epsilons(:,:, 3) = GradSymU.fValues(:,3);      % eps_u_12
+            epsilons(:,:, 4) = GradSymTheta.fValues(:,1);  % eps_theta_11
+            epsilons(:,:, 5) = GradSymTheta.fValues(:,4)';  % eps_theta_22
+            epsilons(:,:, 6) = GradSymTheta.fValues(:,3)';  % eps_theta_12
+            epsilons(:,:, 7) = GradW.fValues(:,1);                % dw_dx
+            epsilons(:,:, 8) = GradW.fValues(:,2);                % dw_dy
 
-            % Compute gradW at Gauss points and project to nodes
-            gradW       = Grad(obj.wFun);
-            gradWvalues = gradW.evaluate(obj.mesh);
-            dw_dx_gauss = squeeze(gradWvalues(1,:,:));  % (nGauss x nElem)
-            dw_dy_gauss = squeeze(gradWvalues(2,:,:));  % (nGauss x nElem)
 
-            % Project gradW to nodes
-            dw_dx_nodal = zeros(nNodes, 1);
-            dw_dy_nodal = zeros(nNodes, 1);
-            node_count  = zeros(nNodes, 1);
-
-            % Project epsilonU to nodes
-            epsilonU_nodal     = zeros(nNodes, 3);  % [exx, eyy, exy]
-            epsilonTheta_nodal = zeros(nNodes, 3);
-
-            for e = 1:nElem
-                elemNodes = obj.mesh.connec(e, :);
-                for n = 1:length(elemNodes)
-                    nodeIdx = elemNodes(n);
-                    dw_dx_nodal(nodeIdx) = dw_dx_nodal(nodeIdx) + mean(dw_dx_gauss(e));
-                    dw_dy_nodal(nodeIdx) = dw_dy_nodal(nodeIdx) + mean(dw_dy_gauss(e));
-
-                    epsilonU_nodal(nodeIdx, 1) = epsilonU_nodal(nodeIdx, 1) + mean(squeeze(strainUvalues(1,1,:,e)));
-                    epsilonU_nodal(nodeIdx, 2) = epsilonU_nodal(nodeIdx, 2) + mean(squeeze(strainUvalues(2,2,:,e)));
-                    epsilonU_nodal(nodeIdx, 3) = epsilonU_nodal(nodeIdx, 3) + mean(squeeze(strainUvalues(1,2,:,e)));
-
-                    epsilonTheta_nodal(nodeIdx, 1) = epsilonTheta_nodal(nodeIdx, 1) + mean(squeeze(strainThetaValues(1,1,:,e)));
-                    epsilonTheta_nodal(nodeIdx, 2) = epsilonTheta_nodal(nodeIdx, 2) + mean(squeeze(strainThetaValues(2,2,:,e)));
-                    epsilonTheta_nodal(nodeIdx, 3) = epsilonTheta_nodal(nodeIdx, 3) + mean(squeeze(strainThetaValues(1,2,:,e)));
-
-                    node_count(nodeIdx)  = node_count(nodeIdx) + 1;
-                end
-            end
-
-            dw_dx_nodal = dw_dx_nodal ./ node_count;
-            dw_dy_nodal = dw_dy_nodal ./ node_count;
-
-            epsilonU_nodal     = (epsilonU_nodal     ./ node_count).';
-            epsilonTheta_nodal = (epsilonTheta_nodal ./ node_count).';
         end
 
+        %% createSolutionField
+        function createSolutionField(obj)
+           obj.uFun     = LagrangianFunction.create(obj.mesh,2,'P1');
+           obj.thetaFun = LagrangianFunction.create(obj.mesh,2,'P1');
+           obj.wFun     = LagrangianFunction.create(obj.mesh,1,'P1');
+        end
+        
+        
         %% getMaterialProperties
-        function [E, nu, G, type] = getMaterialProperties(obj,materialName)
+        function [E, nu, G, density, type] = getMaterialProperties(obj,materialName)
             % ──────────────────────────────────────────────────────────────────────
             % AVAILABLE MATERIALS
             % ──────────────────────────────────────────────────────────────────────
@@ -1132,42 +1229,50 @@ classdef TutorialShells < handle
             db.Aluminum.E  = 10.6 * msi_to_Pa;
             db.Aluminum.nu = 0.33;
             db.Aluminum.G  = 3.38 * msi_to_Pa;
+            db.Aluminum.density = 2700;  % kg/m^3
 
             db.Copper.type = 'ISOTROPIC';
             db.Copper.E  = 18.0 * msi_to_Pa;
             db.Copper.nu = 0.33;
             db.Copper.G  = 6.39 * msi_to_Pa;
+            db.Copper.density = 8960;
 
             db.Steel.type = 'ISOTROPIC';
             db.Steel.E  = 30.0 * msi_to_Pa;
             db.Steel.nu = 0.29;
             db.Steel.G  = 11.24 * msi_to_Pa;
+            db.Steel.density = 7850;
 
             % ORTHOTROPIC
             db.AS.type = 'ORTHOTROPIC';
             db.AS.E  = [20.0, 1.3, 1.3] * msi_to_Pa;
             db.AS.nu = [0.30, 0.30, 0.49];
             db.AS.G  = [1.03, 1.03, 0.90] * msi_to_Pa;
+            db.AS.density = 1600;
 
             db.EpT.type = 'ORTHOTROPIC';
             db.EpT.E  = [19.0, 1.5, 1.5] * msi_to_Pa;
             db.EpT.nu = [0.22, 0.22, 0.49];
             db.EpT.G  = [1.00, 0.90, 0.90] * msi_to_Pa;
+            db.EpT.density = 1600;
 
             db.Ep1.type = 'ORTHOTROPIC';
             db.Ep1.E  = [7.8, 2.6, 2.6] * msi_to_Pa;
             db.Ep1.nu = [0.25, 0.25, 0.34];
             db.Ep1.G  = [1.30, 1.30, 0.50] * msi_to_Pa;
+            db.Ep1.density = 1900; 
 
             db.Ep2.type = 'ORTHOTROPIC';
             db.Ep2.E  = [5.6, 1.2, 1.3] * msi_to_Pa;
             db.Ep2.nu = [0.26, 0.26, 0.34];
             db.Ep2.G  = [0.60, 0.60, 0.50] * msi_to_Pa;
+            db.Ep2.density = 2000;
 
             db.BrEp.type = 'ORTHOTROPIC';
             db.BrEp.E  = [30.0, 3.0, 3.0] * msi_to_Pa;
             db.BrEp.nu = [0.30, 0.25, 0.25];
             db.BrEp.G  = [1.00, 1.00, 0.60] * msi_to_Pa;
+            db.BrEp.density = 2000;
 
             % ==================== PROCESS INPUT ====================
             if ischar(materialName)
@@ -1229,16 +1334,19 @@ classdef TutorialShells < handle
                 E  = zeros(nMaterials, 1);
                 nu = zeros(nMaterials, 1);
                 G  = zeros(nMaterials, 1);
+                density = zeros(nMaterials, 1);
 
                 for i = 1:nMaterials
                     E(i)  = db.(fieldNames{i}).E;
                     nu(i) = db.(fieldNames{i}).nu;
                     G(i)  = db.(fieldNames{i}).G;
+                    density(i) = db.(fieldNames{i}).density;
                 end
             else
                 E  = zeros(nMaterials, 3);
                 nu = zeros(nMaterials, 3);
                 G  = zeros(nMaterials, 3);
+                density = zeros(nMaterials, 1);
 
                 for i = 1:nMaterials
                     mat = db.(fieldNames{i});
@@ -1246,10 +1354,12 @@ classdef TutorialShells < handle
                         E(i,:)  = [mat.E, mat.E, mat.E];
                         nu(i,:) = [mat.nu, mat.nu, mat.nu];
                         G(i,:)  = [mat.G, mat.G, mat.G];
+                        density(i) = db.(fieldNames{i}).density;
                     else
                         E(i,:)  = mat.E;
                         nu(i,:) = mat.nu;
                         G(i,:)  = mat.G;
+                        density(i) = db.(fieldNames{i}).density;
                     end
                 end
             end
@@ -1261,170 +1371,9 @@ classdef TutorialShells < handle
                     E = reshape(E, 1, s);
                     nu = reshape(nu, 1, s);
                     G = reshape(G, 1, s);
+                    density = reshape(density,1,s);
                 end
             end
-        end
-
-        %% findMaxDisplacements
-        function [maxW, significantValues] = findMaxDisplacements(obj, nValues)
-            % findMaxDisplacements - Find maximum and other significant large w displacements
-            %
-            % Usage:
-            %   [maxW, significantValues] = findMaxDisplacements(obj)
-            %   [maxW, significantValues] = findMaxDisplacements(obj, nValues)
-            %
-            % Inputs:
-            %   obj     - TutorialShells object with wFun property
-            %   nValues - (optional) Number of significant values to show (default: 10)
-            %
-            % Outputs:
-            %   maxW              - Absolute maximum displacement value
-            %   significantValues - Struct array with largest displacement values:
-            %                       .value   - Displacement value
-            %                       .abs     - Absolute value
-            %                       .indices - Node indices where it occurs
-            %                       .coords  - [x, y] coordinates
-            %                       .count   - Number of nodes with this value
-
-            if nargin < 2
-                nValues = 10;  % Show top 10 by default
-            end
-
-            % Get w displacements
-            w_values = obj.wFun.fValues;
-            coords = obj.mesh.coord;
-            nNodes = length(w_values);
-
-            % Find absolute maximum
-            [maxW_abs, idx_max_abs] = max(abs(w_values));
-            maxW = w_values(idx_max_abs);
-
-            fprintf('\n========== MAXIMUM DISPLACEMENT ==========\n');
-            fprintf('Maximum |w| = %.6e\n', maxW_abs);
-            fprintf('Value w    = %.6e\n', maxW);
-            fprintf('Node index = %d\n', idx_max_abs);
-            fprintf('Location   = (%.4f, %.4f)\n', coords(idx_max_abs, 1), coords(idx_max_abs, 2));
-
-            % Sort all displacements by absolute value
-            [w_abs_sorted, sort_idx] = sort(abs(w_values), 'descend');
-            w_sorted = w_values(sort_idx);
-
-            % Group similar values together (tolerance for floating point)
-            tolerance = maxW_abs * 1e-10;  % Very small tolerance for grouping
-
-            significantValues = struct('value', {}, 'abs', {}, 'indices', {}, 'coords', {}, 'count', {});
-
-            fprintf('\n========== SIGNIFICANT LARGE DISPLACEMENTS ==========\n');
-            fprintf('Rank |      Value       |   |Value|   |  %% of Max | Nodes | Locations\n');
-            fprintf('-----+------------------+-------------+----------+-------+------------------------\n');
-
-            idx = 1;
-            rank = 1;
-            processed = false(nNodes, 1);
-
-            while rank <= nValues && idx <= nNodes
-                if processed(sort_idx(idx))
-                    idx = idx + 1;
-                    continue;
-                end
-
-                current_val = w_sorted(idx);
-                current_abs = w_abs_sorted(idx);
-
-                % Find all nodes with similar value (within tolerance)
-                similar_mask = abs(w_values - current_val) < tolerance;
-                similar_idx = find(similar_mask);
-
-                % Mark as processed
-                processed(similar_idx) = true;
-
-                % Store in output
-                significantValues(rank).value = current_val;
-                significantValues(rank).abs = current_abs;
-                significantValues(rank).indices = similar_idx;
-                significantValues(rank).coords = coords(similar_idx, :);
-                significantValues(rank).count = length(similar_idx);
-
-                % Print
-                percent_of_max = (current_abs / maxW_abs) * 100;
-
-                fprintf('%3d  | %+15.6e | %12.6e | %7.2f%% | %5d | ', ...
-                    rank, current_val, current_abs, percent_of_max, length(similar_idx));
-
-                % Show first few node coordinates
-                if length(similar_idx) <= 3
-                    for i = 1:length(similar_idx)
-                        fprintf('(%4.2f,%4.2f) ', coords(similar_idx(i), 1), coords(similar_idx(i), 2));
-                    end
-                else
-                    fprintf('(%4.2f,%4.2f) (%4.2f,%4.2f) ... +%d more', ...
-                        coords(similar_idx(1), 1), coords(similar_idx(1), 2), ...
-                        coords(similar_idx(2), 1), coords(similar_idx(2), 2), ...
-                        length(similar_idx) - 2);
-                end
-                fprintf('\n');
-
-                rank = rank + 1;
-                idx = idx + 1;
-            end
-
-            fprintf('================================================\n');
-
-            % Statistical summary
-            fprintf('\n========== STATISTICAL SUMMARY ==========\n');
-            fprintf('Total nodes:           %d\n', nNodes);
-            fprintf('Max |w|:               %.6e\n', maxW_abs);
-            fprintf('Min |w|:               %.6e\n', min(abs(w_values)));
-            fprintf('Mean |w|:              %.6e\n', mean(abs(w_values)));
-            fprintf('Std |w|:               %.6e\n', std(abs(w_values)));
-            fprintf('Nodes > 50%% max:       %d (%.1f%%)\n', sum(abs(w_values) > 0.5*maxW_abs), ...
-                100*sum(abs(w_values) > 0.5*maxW_abs)/nNodes);
-            fprintf('Nodes > 10%% max:       %d (%.1f%%)\n', sum(abs(w_values) > 0.1*maxW_abs), ...
-                100*sum(abs(w_values) > 0.1*maxW_abs)/nNodes);
-            fprintf('=========================================\n\n');
-
-            % % Visualization
-            % figure('Name', 'Maximum Displacement Analysis', 'Position', [100, 100, 1200, 500]);
-            % 
-            % % Plot 1: Full displacement field with top locations marked
-            % subplot(1,2,1);
-            % trisurf(obj.mesh.connec, coords(:,1), coords(:,2), w_values);
-            % view(0, 90);
-            % shading interp;
-            % colorbar;
-            % hold on;
-            % 
-            % % Mark top significant values with different colors
-            % colors = lines(min(5, length(significantValues)));
-            % for i = 1:min(5, length(significantValues))
-            %     idx_sig = significantValues(i).indices;
-            %     plot3(coords(idx_sig, 1), coords(idx_sig, 2), ...
-            %         w_values(idx_sig), 'o', 'Color', colors(i,:), ...
-            %         'MarkerSize', 10, 'LineWidth', 2, ...
-            %         'DisplayName', sprintf('Rank %d: %.2e', i, significantValues(i).value));
-            % end
-            % 
-            % legend('show', 'Location', 'best');
-            % title('w Displacement Field with Significant Values');
-            % xlabel('x'); ylabel('y');
-            % grid on;
-            % 
-            % % Plot 2: Absolute values
-            % subplot(1,2,2);
-            % trisurf(obj.mesh.connec, coords(:,1), coords(:,2), abs(w_values));
-            % view(0, 90);
-            % shading interp;
-            % colorbar;
-            % hold on;
-            % 
-            % % Mark maximum
-            % plot3(coords(idx_max_abs, 1), coords(idx_max_abs, 2), maxW_abs, ...
-            %     'r*', 'MarkerSize', 20, 'LineWidth', 3, 'DisplayName', 'Maximum');
-            % 
-            % legend('show');
-            % title('|w| Displacement Field');
-            % xlabel('x'); ylabel('y');
-            % grid on;
         end
 
         %% computeForces
@@ -1456,12 +1405,52 @@ classdef TutorialShells < handle
             obj.RHSq = rhs;
         end
 
+        %% findMaxDisplacements
+        function [maxW, maxU, maxTheta, locationW, locationU, locationTheta] = findMaxDisplacements(obj)
+            % findMaxDisplacements - Find maximum displacements and their locations
+            %
+            % Outputs:
+            %   maxW - Maximum absolute transverse displacement
+            %   maxU - Maximum absolute in-plane displacement magnitude
+            %   maxTheta - Maximum absolute rotation magnitude
+            %   locationW - [x, y] coordinates of max w
+            %   locationU - [x, y] coordinates of max |u|
+            %   locationTheta - [x, y] coordinates of max |theta|
+
+            % Get nodal coordinates
+            coords = obj.mesh.coord;  % nNodes x 2 (x, y)
+
+            % === TRANSVERSE DISPLACEMENT w ===
+            w_values = obj.wFun.fValues;  % nNodes x 1
+            [maxW, idxW] = max(abs(w_values));
+            locationW = coords(idxW, :);
+
+            % === IN-PLANE DISPLACEMENT u ===
+            u_values = obj.uFun.fValues;  % nNodes x 2 (ux, uy)
+            u_magnitude = sqrt(u_values(:, 1).^2 + u_values(:, 2).^2);
+            [maxU, idxU] = max(u_magnitude);
+            locationU = coords(idxU, :);
+
+            % === ROTATIONS theta ===
+            theta_values = obj.thetaFun.fValues;  % nNodes x 2 (theta_x, theta_y)
+            theta_magnitude = sqrt(theta_values(:, 1).^2 + theta_values(:, 2).^2);
+            [maxTheta, idxTheta] = max(theta_magnitude);
+            locationTheta = coords(idxTheta, :);
+
+            fprintf('\n===== MAXIMUM DISPLACEMENTS =====\n');
+            fprintf('Max |w|:     %.6e at (%.4f, %.4f)\n', maxW, locationW(1), locationW(2));
+            fprintf('Max |u|:     %.6e at (%.4f, %.4f)\n', maxU, locationU(1), locationU(2));
+            fprintf('Max |theta|: %.6e at (%.4f, %.4f)\n', maxTheta, locationTheta(1), locationTheta(2));
+            fprintf('=================================\n\n');
+        end
+
         %% createBoundaryConditions
         function createBoundaryConditions(obj)            
             obj.bcU = obj.createGeneralBoundaryConditions([1 2]);
             obj.bcT = obj.createGeneralBoundaryConditions([1 2]);
             obj.bcW = obj.createGeneralBoundaryConditions([1]);            
         end
+      
 
         %% localToGlobalDofs
         function globalDofs = localToGlobalDofs(obj, localDofs, field)
@@ -1527,137 +1516,100 @@ classdef TutorialShells < handle
             end
         end
 
+
+        %% animateDynamicResponse
+        function animateDynamicResponse(obj, modes, time, nU, nTheta, nW)
+            % animateDynamicResponse - Animated plot of w displacement vs time
+
+            % ========== FIND CORNER NODE ==========
+            coords = obj.mesh.coord;  % All nodes in mesh
+            [max_x, ~] = max(coords(:, 1));
+            [max_y, ~] = max(coords(:, 2));
+            distances = sqrt((coords(:, 1) - max_x).^2 + (coords(:, 2) - max_y).^2);
+            [~, corner_node_global] = min(distances);  % Global node index
+
+            fprintf('\n===== CORNER NODE INFORMATION =====\n');
+            fprintf('Global node index: %d\n', corner_node_global);
+            fprintf('Coordinates: (%.4f, %.4f)\n', coords(corner_node_global, 1), coords(corner_node_global, 2));
+
+            % ========== CONVERT TO LOCAL w DOF INDEX ==========
+            % Check if this node has a free w DOF
+            dofFW = obj.computeFreeDofs(obj.bcW);
+
+            % Find position of corner_node_global in the free DOFs list
+            corner_node_local = find(dofFW == corner_node_global, 1);
+
+            if isempty(corner_node_local)
+                error('Corner node %d has no free w DOF (constrained by BC)', corner_node_global);
+            end
+
+            fprintf('Local w DOF index: %d (out of %d free w DOFs)\n', corner_node_local, nW);
+            fprintf('===================================\n\n');
+
+            % ========== EXTRACT W DISPLACEMENT HISTORY ==========
+            % w DOFs start after u and theta
+            w_start_idx = nU + nTheta + 1;
+            w_end_idx = nU + nTheta + nW;
+
+            % Extract all w displacements
+            w_all_nodes = modes(w_start_idx:w_end_idx, :);  % nW x nt
+
+            fprintf('w_all_nodes size: %d x %d\n', size(w_all_nodes, 1), size(w_all_nodes, 2));
+
+            % Get w history for the corner node (using LOCAL index)
+            w_corner = w_all_nodes(corner_node_local, :);  % 1 x nt
+
+            % ========== CREATE ANIMATED PLOT ==========
+            figure('Position', [100, 100, 1000, 600]);
+            h_plot = plot(time(1), w_corner(1), 'b-', 'LineWidth', 2);
+            hold on;
+            h_point = plot(time(1), w_corner(1), 'ro', 'MarkerSize', 8, 'MarkerFaceColor', 'r');
+            grid on;
+            xlabel('Time (s)', 'FontSize', 12, 'FontWeight', 'bold');
+            ylabel('Displacement w (m)', 'FontSize', 12, 'FontWeight', 'bold');
+            title(sprintf('Dynamic Response at Corner Node %d (%.2f, %.2f)', ...
+                corner_node_global, coords(corner_node_global, 1), coords(corner_node_global, 2)), ...
+                'FontSize', 14, 'FontWeight', 'bold');
+            xlim([time(1), time(end)]);
+
+            % Set y-limits with some margin
+            y_margin = 0.1 * max(abs(w_corner));
+            ylim([min(w_corner) - y_margin, max(w_corner) + y_margin]);
+
+            % Add horizontal line at y=0
+            plot([time(1), time(end)], [0, 0], 'k--', 'LineWidth', 0.5);
+
+            % ========== ANIMATE ==========
+            fprintf('Starting animation...\n');
+            skip = max(1, round(length(time) / 200));  % Show ~200 frames max
+
+            for i = 1:skip:length(time)
+                set(h_plot, 'XData', time(1:i), 'YData', w_corner(1:i));
+                set(h_point, 'XData', time(i), 'YData', w_corner(i));
+                title(sprintf('t = %.4f s | dt = %.6e m (Node %d)', ...
+                    time(end), time(2)-time(1), corner_node_global));
+                drawnow;
+                pause(0.01);
+            end
+
+            hold off;
+
+            fprintf('✓ Animation complete!\n');
+
+            % ========== PRINT STATISTICS ==========
+            [max_w, idx_max] = max(w_corner);
+            [min_w, idx_min] = min(w_corner);
+
+            fprintf('\n===== DISPLACEMENT STATISTICS =====\n');
+            fprintf('Maximum: %.6e m at t = %.4f s\n', max_w, time(idx_max));
+            fprintf('Minimum: %.6e m at t = %.4f s\n', min_w, time(idx_min));
+            fprintf('Mean:    %.6e m\n', mean(w_corner));
+            fprintf('RMS:     %.6e m\n', rms(w_corner));
+            fprintf('Range:   %.6e m\n', max_w - min_w);
+            fprintf('===================================\n\n');
+        end
+
        
     end
-
-    % En auxiliaryFunctions.m
-
-    methods (Static, Access = public)
-        %% customDDP
-        function df = customDDP(A, epsV, epsU)
-
-            s.operation = @(xV) TutorialShells.evaluateVoigtProduct(A, epsV, epsU, xV);
-            s.mesh = epsV.mesh;
-            s.ndimf = 1;
-            df = DomainFunction(s);
-        end
-
-        function result = evaluateVoigtProduct(A, epsV, epsU, xV)
-
-            epsV_vals = epsV.evaluate(xV);
-            epsU_vals = epsU.evaluate(xV);
-
-            v11 = squeeze(epsV_vals(1,1,:,:));
-            v22 = squeeze(epsV_vals(2,2,:,:));
-            v12 = squeeze(epsV_vals(1,2,:,:));
-
-            u11 = squeeze(epsU_vals(1,1,:,:));
-            u22 = squeeze(epsU_vals(2,2,:,:));
-            u12 = squeeze(epsU_vals(1,2,:,:));
-
-            nPoints = numel(v11);
-            vVoigt = [v11(:)'; v22(:)'; v12(:)'];
-            uVoigt = [u11(:)'; u22(:)'; u12(:)'];
-
-            temp = A * uVoigt;
-            result = sum(vVoigt .* temp, 1);
-
-            % Reshape
-            result = reshape(result, size(v11));
-            result = permute(result, [3, 1, 2]);
-        end
-
-        %% customDP
-        function df = customDP(H, v, gradU)
-
-            s.operation = @(xV) TutorialShells.evaluateCustomDP(H, v, gradU, xV);
-            s.mesh = v.mesh;
-            s.ndimf = 1;
-            df = DomainFunction(s);
-        end
-
-        function result = evaluateCustomDP(H, v, gradU, xV)
-            v_vals = v.evaluate(xV);       % 2 x nGauss x nElem
-            gradU_vals = gradU.evaluate(xV); % 1 x 2 x nGauss x nElem (dimensión extra!)
-
-            
-            v1 = squeeze(v_vals(1,:,:));     % nGauss x nElem
-            v2 = squeeze(v_vals(2,:,:));     % nGauss x nElem
-
-            gu1 = squeeze(gradU_vals(1,1,:,:)); % nGauss x nElem
-            gu2 = squeeze(gradU_vals(1,2,:,:)); % nGauss x nElem
-
-            nPoints = numel(v1);
-            vVec = [v1(:)'; v2(:)'];           % 2 x nPoints
-            guVec = [gu1(:)'; gu2(:)'];        % 2 x nPoints
-
-            temp = H * guVec;  % 2 x nPoints
-            result = sum(vVec .* temp, 1);  % 1 x nPoints
-
-            % Reshape
-            result = reshape(result, size(v1));
-            result = permute(result, [3, 1, 2]);  % 1 x nGauss x nElem
-        end
-
-        %% customDPgrad
-        function df = customDPgrad(H, gradV, gradU)
-
-            s.operation = @(xV) TutorialShells.evaluateCustomDPgrad(H, gradV, gradU, xV);
-            s.mesh = gradV.mesh;
-            s.ndimf = 1;
-            df = DomainFunction(s);
-        end
-
-        function result = evaluateCustomDPgrad(H, gradV, gradU, xV)
-            gradV_vals = gradV.evaluate(xV);
-            gradU_vals = gradU.evaluate(xV);
-
-            % Formato (1, 2, nGauss, nElem)
-            gv1 = squeeze(gradV_vals(1,1,:,:));
-            gv2 = squeeze(gradV_vals(1,2,:,:));
-            gu1 = squeeze(gradU_vals(1,1,:,:));
-            gu2 = squeeze(gradU_vals(1,2,:,:));
-
-            nPoints = numel(gv1);
-            gvVec = [gv1(:)'; gv2(:)'];
-            guVec = [gu1(:)'; gu2(:)'];
-
-            temp = H * guVec;
-            result = sum(gvVec .* temp, 1);
-
-            result = reshape(result, size(gv1));
-            result = permute(result, [3, 1, 2]);
-        end
-
-        %% customDPvector
-        function df = customDPvector(H, v, u)
-
-            s.operation = @(xV) TutorialShells.evaluateCustomDPvector(H, v, u, xV);
-            s.mesh = v.mesh;
-            s.ndimf = 1;
-            df = DomainFunction(s);
-        end
-
-        function result = evaluateCustomDPvector(H, v, u, xV)
-            v_vals = v.evaluate(xV);  % 2 x nGauss x nElem
-            u_vals = u.evaluate(xV);  % 2 x nGauss x nElem
-
-            v1 = squeeze(v_vals(1,:,:));
-            v2 = squeeze(v_vals(2,:,:));
-            u1 = squeeze(u_vals(1,:,:));
-            u2 = squeeze(u_vals(2,:,:));
-
-            nPoints = numel(v1);
-            vVec = [v1(:)'; v2(:)'];
-            uVec = [u1(:)'; u2(:)'];
-
-            temp = H * uVec;
-            result = sum(vVec .* temp, 1);
-
-            result = reshape(result, size(v1));
-            result = permute(result, [3, 1, 2]);
-        end
-
-    end
-
+    
 end

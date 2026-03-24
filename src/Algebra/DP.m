@@ -26,6 +26,7 @@ function fVR = evaluate(A,B,dimA,dimB,xV)
     if isempty(dimB)
         dimB = ndimsB;
     end
+    
     fVR = pagetensorprod(aEval,bEval,dimA,dimB,ndimsA,ndimsB);
 
     if ndims(fVR) == 2

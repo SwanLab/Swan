@@ -167,6 +167,26 @@ classdef GeometricalFunction < handle
                     fH = @(x) (x1(x)-x0).^2+(x2(x)-y0).^2+(x3(x)-z0).^2-r^2;
                     obj.fHandle = fH;
 
+                case 'WingShape'
+
+                    cr = cParams.chordRoot;
+                    ct = cParams.chordTip;
+                    sS  = cParams.semiSpan;
+                    Lambda = cParams.sweepDeg;
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+
+                    tanLambda = tand(Lambda);
+                    yTipTE = sS * tanLambda + ct;
+                    mTE = (yTipTE - cr) / sS;
+
+                    fH = @(x) max([-((x2(x)-y0)-((x1(x)-x0) * tanLambda)), ...
+                        ((x2(x)-y0)-(cr+(x1(x)-x0)*mTE)), ...
+                        -(x1(x)-x0), ...
+                        (x1(x)-x0) - sS]);
+
+                    obj.fHandle = fH;
+
                 case 'SphereInclusion'
                     s      = cParams;
                     s.type = 'Sphere';

@@ -34,6 +34,9 @@ classdef MaterialFactory < handle
 
                 case 'ContinuumDamage'
                     material = MaterialContinuumDamage(cParams);
+
+                case 'MULTILAYER'
+                    material = MaterialMultilayer(cParams);
             end
 
         end
