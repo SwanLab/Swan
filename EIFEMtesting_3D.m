@@ -9,7 +9,8 @@ classdef EIFEMtesting_3D < handle
         bcApplier
         LHS
         RHS
-
+        
+        fileNameEIFEMmesh
         fileNameEIFEM
         tolSameNode
         solverType
@@ -102,6 +103,7 @@ classdef EIFEMtesting_3D < handle
             legend({'CG + ILU-EIFEM-ILU','CG'},'FontSize',12)
             xlabel('Iteration')
             ylabel('Residual')
+            title('Residual')
 
             figure
             plot(errPCG,'linewidth',2)
@@ -111,6 +113,7 @@ classdef EIFEMtesting_3D < handle
             legend('CG + EIFEM+ ILU(CG-90%-L2)','CG')
             xlabel('Iteration')
             ylabel('||error||_{L2}')
+            title('errPCG')
 
             figure
             plot(errAnormPCG,'linewidth',2)
@@ -120,6 +123,7 @@ classdef EIFEMtesting_3D < handle
             legend('CG + EIFEM+ ILU(CG-90%-L2)','CG')
             xlabel('Iteration')
             ylabel('Energy norm')
+            title('errAnorm')
 
         end
 
@@ -128,11 +132,13 @@ classdef EIFEMtesting_3D < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [3 1 1]; %nx ny
-            obj.fileNameEIFEM = 'DEF_Q8_wing_1.mat';
+            obj.nSubdomains  = [35 1 1]; %nx ny
+            obj.fileNameEIFEMmesh = 'DEF_Q8_wing_1.mat';
+            obj.fileNameEIFEM = 'AirfoilTraining_Isolated.mat';
+            % obj.fileNameEIFEM = 'DEF_Q8_wing_1.mat';
             %             obj.fileNameEIFEM = 'DEF_auxNew_2.mat';
             %obj.fileNameEIFEM = 'DEF_Q4porL_1_raul.mat';
-            obj.tolSameNode = 1e-6;
+            obj.tolSameNode = 1e-11;
             obj.solverType = 'REDUCED';
         end
 
@@ -148,12 +154,12 @@ classdef EIFEMtesting_3D < handle
         function mS = createReferenceMesh(obj)
             %                             mS = obj.createStructuredMesh();
             %             mS = obj.createMeshFromGid();
-            % mS = obj.createEIFEMreferenceMesh();
+            mS = obj.createEIFEMreferenceMesh();
                 
-            file = 'meshAirfoilTetra.m';
-            a.fileName = file;
-            s = FemDataContainer(a);
-            mS = s.mesh;
+            % file = 'meshAirfoilTetra.m';
+            % a.fileName = file;
+            % s = FemDataContainer(a);
+            % mS = s.mesh;
         
         end
 
@@ -168,30 +174,43 @@ classdef EIFEMtesting_3D < handle
             s.coord  = porMesh.coord;
             maxC= max(s.coord);
             minC = min(s.coord);
+            
             s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
-                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
+                 s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
 
             s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:) =...
-                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
-
+                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+        
             s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:) =...
-                s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
-
+                s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+        
             s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:) =...
-                s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
-
+                s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+        
             s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:) =...
-                s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
-
+                s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+        
             s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:) =...
-                s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
-
+                s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+        
             s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:) =...
-                s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
-
+                s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+        
             s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:) =...
-                s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
-
+                s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+        
+            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:) =...
+                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:)-[0,1E-9,0];
+        
+            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:) =...
+                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:)+[0,1E-9,0];
+        
+            s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:) =...
+                s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:)-[0,1E-9,0];
+        
+            s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:) =...
+                s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:)+[0,1E-9,0];
+        
             mS = Mesh.create(s);
 
 
@@ -243,7 +262,7 @@ classdef EIFEMtesting_3D < handle
         end
 
         function mS = createEIFEMreferenceMesh(obj)
-            filename = obj.fileNameEIFEM;
+            filename = obj.fileNameEIFEMmesh;
             load(filename);
             s.coord    = EIFEoper.MESH.COOR;
             s.connec   = EIFEoper.MESH.CN;
@@ -309,14 +328,25 @@ classdef EIFEMtesting_3D < handle
             % coord(7,1) = xmin;  coord(7,2) = ymin;   coord(7,3) = zmin;
             % coord(8,1) = xmax;  coord(8,2) = ymin;   coord(8,3) = zmin;
 
-            coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmax;
-            coord(2,1) = xmin;  coord(2,2) = ymax;   coord(2,3) = zmax;
-            coord(3,1) = xmax;  coord(3,2) = ymax;   coord(3,3) = zmax;
-            coord(4,1) = xmax;  coord(4,2) = ymin;   coord(4,3) = zmax;
-            coord(5,1) = xmin;  coord(5,2) = ymin;   coord(5,3) = zmin;
-            coord(6,1) = xmin;  coord(6,2) = ymax;   coord(6,3) = zmin;
-            coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmin;
-            coord(8,1) = xmax;  coord(8,2) = ymin;   coord(8,3) = zmin;
+            % For Joaquin Airfoil Training
+            % coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmax;
+            % coord(2,1) = xmin;  coord(2,2) = ymax;   coord(2,3) = zmax;
+            % coord(3,1) = xmax;  coord(3,2) = ymax;   coord(3,3) = zmax;
+            % coord(4,1) = xmax;  coord(4,2) = ymin;   coord(4,3) = zmax;
+            % coord(5,1) = xmin;  coord(5,2) = ymin;   coord(5,3) = zmin;
+            % coord(6,1) = xmin;  coord(6,2) = ymax;   coord(6,3) = zmin;
+            % coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmin;
+            % coord(8,1) = xmax;  coord(8,2) = ymin;   coord(8,3) = zmin;
+
+            % For Abril airfoil training
+            coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmin;
+            coord(2,1) = xmax;  coord(2,2) = ymin;   coord(2,3) = zmin;
+            coord(3,1) = xmax;  coord(3,2) = ymax;   coord(3,3) = zmin;
+            coord(4,1) = xmin;  coord(4,2) = ymax;   coord(4,3) = zmin;
+            coord(5,1) = xmin;  coord(5,2) = ymin;   coord(5,3) = zmax;
+            coord(6,1) = xmax;  coord(6,2) = ymin;   coord(6,3) = zmax;
+            coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmax;
+            coord(8,1) = xmin;  coord(8,2) = ymax;   coord(8,3) = zmax;
 
             connec = [1 2 3 4 5 6 7 8];
             s.coord = coord;

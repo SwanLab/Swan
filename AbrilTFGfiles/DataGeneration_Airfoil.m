@@ -46,7 +46,7 @@ switch p.Training
         Kcoarse  = EIFEoper.Kcoarse;
 end
 
-string = "AirfoilTraining.mat";
+string = "Airfoil_Isolated.mat";
 
 % Guarda el .mat per cert radi
 FileName=fullfile('AbrilTFGfiles','Data',"Airfoil",string);
@@ -64,43 +64,62 @@ end
 
 function mS = createReferenceMesh()
 
-            file = 'meshAirfoilTetra.m';
-            a.fileName = file;
-            s = FemDataContainer(a);
-            mS = s.mesh;
-    % filename = 'DEF_Q8_wing_1.mat';
-    % load(filename);
-    % s.coord    = EIFEoper.MESH.COOR;
-    % s.connec   = EIFEoper.MESH.CN;
-    % 
-    % maxC= max(s.coord);
-    % minC = min(s.coord);
-    % 
-    % obj.xmin = minC(1);
-    % obj.xmax = maxC(1);
-    % obj.ymin = minC(2);
-    % obj.ymax = maxC(2);
-    % obj.zmin = minC(3);
-    % obj.zmax = maxC(3);
-    % 
-    % s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
-    %     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
-    % s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:) =...
-    %     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
-    % s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:) =...
-    %     s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
-    % s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:) =...
-    %     s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
-    % s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:) =...
-    %     s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
-    % s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:) =...
-    %     s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
-    % s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:) =...
-    %     s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1e-5];
-    % s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:) =...
-    %             s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,1e-5];
+    % file = 'meshAirfoilTetra.m';
+    % a.fileName = file;
+    % s = FemDataContainer(a);
+    % mS = s.mesh;
+    filename = 'DEF_Q8_wing_1.mat';
+    load(filename);
+    s.coord    = EIFEoper.MESH.COOR;
+    s.connec   = EIFEoper.MESH.CN;
 
-    % mS = Mesh.create(s);
+    maxC= max(s.coord);
+    minC = min(s.coord);
+
+    obj.xmin = minC(1);
+    obj.xmax = maxC(1);
+    obj.ymin = minC(2);
+    obj.ymax = maxC(2);
+    obj.zmin = minC(3);
+    obj.zmax = maxC(3);
+
+    s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
+        s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+
+    s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:) =...
+        s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+
+    s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:) =...
+        s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+
+    s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:) =...
+        s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+
+    s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:) =...
+        s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+
+    s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:) =...
+        s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+
+    s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:) =...
+        s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+
+    s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:) =...
+        s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+
+    s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:) =...
+        s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:)-[0,1E-9,0];
+
+    s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:) =...
+        s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:)+[0,1E-9,0];
+
+    s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:) =...
+        s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:)-[0,1E-9,0];
+
+    s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:) =...
+        s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:)+[0,1E-9,0];
+
+    mS = Mesh.create(s);
 
 end
 
@@ -118,8 +137,8 @@ function [nS,dI] = defineNumberOfSubdomains(type)
             nS = [1 1 1]; %nx ny
             dI = [1 1 1];
         case 'Oversampling'
-            nS = [3 1 1]; %nx ny
-            dI = [2 1 1];
+            nS = [5 1 1]; %nx ny
+            dI = [3 1 1];
     end
 end
 

@@ -60,8 +60,27 @@ for i=1:size(t1,2)
         end
         tFrame  = t1(i);
         tCross  = t2(j);
-    
-        %Designa un nom per cada linea corresponent a un radi
+
+        if i==1&&j==1
+            K_all=zeros([size(Kcoarse), length(t1),length(t2)]);
+            T_all=zeros(mesh.nnodes,size(T,2)*mesh.ndim+mesh.ndim+2,length(t1)*length(t2));
+            count=1;
+        end
+
+        % k_aux= [t1(i)*ones(size(Kcoarse,1),1), t2(j)*ones(size(Kcoarse,1),1),Kcoarse];
+        K_all(:,:,i,j)=Kcoarse;
+        
+        t_all=[];
+        for k = 1:size(T,2)
+            t_k = reshape(T(:,k), mesh.ndim, []).';
+            t_all = [t_all, t_k];
+        end
+        t_aux = [t1(i)*ones(size(mesh.coord,1),1), t2(j)*ones(size(mesh.coord,1),1),mesh.coord, t_all];
+        T_all(:,:,count)=t_aux;   % Saves the result for each radius
+        count=count+1;
+
+
+        %Designa un nom per cada valor diferent del parametre
         meshName=p.nelem+"x"+p.nelem;
         string = strrep("t1_"+num2str(t1(i), '%.2f'), ".", "_")+strrep("_t2_"+num2str(t2(j), '%.2f'), ".", "_")+"-"+meshName+".mat";
     
@@ -79,6 +98,38 @@ for i=1:size(t1,2)
     end
 end
 
+%% Reshapes the T data and saves it in a csv file
+
+% Redimensioning the U_all1
+TData=[];
+for n=1:size(T_all,3)
+    TData=[TData;T_all(:,:,n)];
+end
+
+uFileName = fullfile('AbrilTFGfiles','Data','EIFEM/Lattice','DataT.csv');
+writematrix(TData,uFileName);
+
+
+%% Reshapes the K data and saves it in a csv file
+
+kdata=zeros(size(t1,2)*size(t2,2),36+2);
+count=1;
+for n=1:size(t1,2)
+    for m=1:size(t2,2)
+        triangSup=triu(K_all(:,:,n,m));  %gets the triangular superior matrix
+        clear row;
+        row=[];
+        for i=1:8
+            for j=i:8
+                row(end+1)=[t1(i),t2(j),triangSup(i,j)];
+            end
+        end
+        kdata(count,:)=row;
+    end
+end
+
+kFileName = fullfile('AbrilTFGfiles','Data/EIFEM/Lattice','dataK.csv');
+writematrix(kdata,kFileName);
 
 %% FUNCTIONS
 

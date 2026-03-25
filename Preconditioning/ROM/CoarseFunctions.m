@@ -180,6 +180,11 @@ classdef CoarseFunctions < handle
                     end
                 end
             end
+            g = 3;
+            order = [1 5 7 3 2 6 8 4];
+
+           idx = reshape((order-1)*g + (1:g)', 1, []);
+           f = f(idx);
         end
 
 

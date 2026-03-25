@@ -142,17 +142,25 @@ classdef EIFEM < handle
         end
 
         function Fcoarse = projectExternalForce(obj,Ffine)
-            Udef    = obj.RVE.Udef;
-            Urb     = obj.RVE.Urb;
-            Ut      = (Udef + Urb)';
+            if ~isempty(obj.RVE.U)
+                Ut      = obj.RVE.U';
+            else
+                Udef    = obj.RVE.Udef;
+                Urb     = obj.RVE.Urb;
+                Ut      = (Udef + Urb)';
+            end
             Fcoarse = Ut*Ffine;
         end
 
         function u = reconstructSolution(obj,uCoarse)
             nElem = obj.mesh.nelem;
-            Udef  = obj.RVE.Udef;
-            Urb   = obj.RVE.Urb;
-            U     = Udef + Urb;
+            if ~isempty(obj.RVE.U)
+                U      = obj.RVE.U;
+            else
+                Udef  = obj.RVE.Udef;
+                Urb   = obj.RVE.Urb;
+                U     = Udef + Urb;
+            end
             dofConec = obj.dispFun.getDofConnec();
             for ielem = 1:nElem
                 uCelem = uCoarse(dofConec(ielem,:));

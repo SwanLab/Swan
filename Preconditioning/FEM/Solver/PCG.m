@@ -38,16 +38,16 @@ classdef PCG < handle
                 p = z + beta * p;
                 rzold = rznew;
 
-                if isPlot==true
-                    x1=bcApplier.reducedToFullVectorDirichlet(x);
-                    s.mesh = mesh;
-                    s.ndimf = mesh.ndim;
-                    s.order = 'P1';
-                    s.fValues = reshape(x1,2,[])';
-                    name= ['iter' num2str(iter)];
-                    fun1=LagrangianFunction(s);
-                    fun1.print(name);
-                end
+                % if isPlot==true
+                %     x1=bcApplier.reducedToFullVectorDirichlet(x);
+                %     s.mesh = mesh;
+                %     s.ndimf = mesh.ndim;
+                %     s.order = 'P1';
+                %     s.fValues = reshape(x1,2,[])';
+                %     name= ['iter' num2str(iter)];
+                %     fun1=LagrangianFunction(s);
+                %     fun1.print(name);
+                % end
                 iter = iter + 1;
 %               EIFEMtesting.plotSolution(x,mesh,25,5,iter,bcApplier,0)
                 residual(iter) = norm(r)/normB;

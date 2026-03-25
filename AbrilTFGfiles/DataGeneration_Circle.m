@@ -66,24 +66,20 @@ for j = 1:size(r,2)
 
     % Initialization for K_all and T_all
     if j==1
-        K_all=zeros(8,8,length(r));
-        T_all=zeros(mesh.nnodes,19,length(r));
+        K_all=zeros([size(Kcoarse), length(r)]);
+        T_all=zeros(mesh.nnodes,size(T,2)*mesh.ndim+mesh.ndim+1,length(r));
     end
 
-    K_all(:,:,j)=Kcoarse;   
-    
-    % Reshapes U data and adds coordinates
-    t1=reshape(T(:,1).',2,[]).';   % Joins the Tx and Ty coeff at the same line
-    t2=reshape(T(:,2).',2,[]).';                                  
-    t3=reshape(T(:,3).',2,[]).';                                  
-    t4=reshape(T(:,4).',2,[]).';                                  
-    t5=reshape(T(:,5).',2,[]).';                                  
-    t6=reshape(T(:,6).',2,[]).';   
-    t7=reshape(T(:,7).',2,[]).';
-    t8=reshape(T(:,8).',2,[]).';
+    K_all(:,:,j)=Kcoarse; 
 
-    t_aux=[r(j)*ones(size(mesh.coord,1),1), mesh.coord, t1,t2,t3,t4,t5,t6,t7,t8];  % Adds the radius and coordinates column
+    % Reshapes U data and adds coordinates  % Adds the radius and coordinates column
+    t_all=[];
+    for k = 1:size(T,2)
+        t_k = reshape(T(:,k), mesh.ndim, []).';
+        t_all = [t_all, t_k];
+    end
 
+    t_aux = [r(j)*ones(size(mesh.coord,1),1), mesh.coord, t_all];
     T_all(:,:,j)=t_aux;   % Saves the result for each radius
 
 

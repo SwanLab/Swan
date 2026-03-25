@@ -8,8 +8,8 @@ clc; clear; close all;
 
 %% INPUTS
 
-% r=1e-6:0.05:0.96;
-r=1e-6;
+r=1e-6:0.05:0.96;
+% r=1e-6;
 
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
 p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
@@ -60,12 +60,31 @@ for j = 1:size(r,2)
         end
     
         R        = r(j);
-        %Designa un nom per cada linea corresponent a un radi
+
+        % Initialization for K_all and T_all
+        if j==1
+            zeros([size(Kcoarse), length(r)]);
+            T_all=zeros(mesh.nnodes,size(T,2)*mesh.ndim+mesh.ndim+1,length(r));
+        end
+
+        K_all(:,:,j)=Kcoarse;  
+
+        % Reshapes U data and adds coordinates  % Adds the radius and coordinates column
+        t_all=[];
+        for k = 1:size(T,2)
+            t_k = reshape(T(:,k), mesh.ndim, []).';
+            t_all = [t_all, t_k];
+        end
+
+        t_aux = [r(j)*ones(size(mesh.coord,1),1), mesh.coord, t_all];
+        T_all(:,:,j)=t_aux;   % Saves the result for each radius
+
+        %Designa un nom per cada valor diferent del parametre
         meshName=p.nelem+"x"+p.nelem;
         string = strrep("r"+num2str(r(j), '%.4f'), ".", "_")+"-"+meshName+".mat";
     
         % Guarda el .mat per cert radi
-        FileName=fullfile('AbrilTFGfiles','Data2',p.Training,"Sphere",string);
+        FileName=fullfile('AbrilTFGfiles','Data',p.Training,"Sphere",string);
     
         switch p.Training
             case 'Multiscale'
@@ -75,6 +94,41 @@ for j = 1:size(r,2)
         end
     
 end
+
+%% Reshapes the T data and saves it in a csv file
+% 
+% % Redimensioning the U_all1
+TData=[];
+for n=1:size(T_all,3)
+    TData=[TData;T_all(:,:,n)];
+end
+
+% T=array2table(TData,"VariableNames",{'r','x','y','Tx1','Ty1','Tx2','Ty2','Tx3','Ty3','Tx4','Ty4' ...
+%     'Tx5','Ty5','Tx6','Ty6','Tx7','Ty7','Tx8','Ty8'});
+
+uFileName = fullfile('AbrilTFGfiles','Data',p.Training,'Sphere','DataT.csv');
+writematrix(TData,uFileName);
+
+
+%% Reshapes the K data and saves it in a csv file
+
+kdata=zeros(size(r,2),300);
+for n=1:size(r,2)
+    triangSup=triu(K_all(:,:,n));  %gets the triangular superior matrix
+    clear row;
+    row=[];
+    for i=1:24
+        for j=i:24
+            row(end+1)=triangSup(i,j);
+        end
+    end
+    kdata(n,:)=row;
+end
+
+kdata=[r.',kdata];
+kFileName = fullfile('AbrilTFGfiles','Data',p.Training,'Sphere','dataK.csv');
+writematrix(kdata,kFileName);
+
 
 
 %% FUNCTIONS

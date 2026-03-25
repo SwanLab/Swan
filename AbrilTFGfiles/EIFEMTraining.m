@@ -93,7 +93,7 @@ classdef EIFEMTraining < handle
             obj.material       = cParams.material;
             % obj.levelSet       = cParams.levelSet;
             % obj.unfittedMesh   = cParams.unfittedMesh;
-            obj.tolSameNode    = 1e-6;
+            obj.tolSameNode    = 1e-11;
             obj.Coarseorder    = 1;
         end
 
@@ -122,7 +122,8 @@ classdef EIFEMTraining < handle
         function [u,lhs] = extractDomainData(obj,uC,LHS)
             if sum(obj.nSubdomains > 1)>= 1
                 u   = obj.extractDomainDisplacements(uC);
-                lhs = obj.extractDomainLHS(LHS);
+                % lhs = obj.extractDomainLHS(LHS);
+                lhs =1;
             else
                 u = full(uC);
                 lhs = LHS;
@@ -166,7 +167,11 @@ classdef EIFEMTraining < handle
             s.nReferenceNodes = mR.nnodes;
             s.nNodes          = obj.meshDomain.nnodes;
             s.nDimf           = obj.meshDomain.ndim;
-            d = DomainDecompositionDofManager(s);
+            if obj.mesh.ndim ==2
+                d = DomainDecompositionDofManager(s);
+            else
+                d = DomainDecompositionDofManager3D(s);
+            end
         end
 
     end
