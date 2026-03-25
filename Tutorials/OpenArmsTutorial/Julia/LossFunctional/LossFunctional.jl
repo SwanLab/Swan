@@ -2,9 +2,9 @@ module LossFunctional
 
 export LossFunctionalStruct, computeFunctionAndGradient, computeStochasticCostAndGradient, getTestError, computeBatchSize
 
-include("../Network/Network.jl") 
-import ..Network
-using ..Network.LearnableVariables
+
+using ..Network
+using ..LearnableVariables
 using ..Data
 using Random
 using Distributions
