@@ -2,8 +2,7 @@ module Network
 
 export Net, computeYOut, backprop, networkGradient, computeLastH, getLearnableVariables
 
-include("../LearnableVariables/LearnableVariables.jl")
-using .LearnableVariables
+using ..LearnableVariables 
 using LinearAlgebra
 
 mutable struct Net
