@@ -16,26 +16,35 @@ classdef Tutorial05_14_TopOpt2DLevelSetGripper < handle
         primalUpdater
         optimizer
         gJ
+        k_vector
+        k_case
     end
 
     methods (Access = public)
 
         function obj = Tutorial05_14_TopOpt2DLevelSetGripper()
-            obj.init();
-            obj.createMesh();
-            obj.createDesignVariable();
-            obj.createFilter();
-            obj.createMaterialInterpolator();
-            obj.createElasticProblem();
-            obj.createAdjointProblem();
-            obj.createNonSelfAdjCompliance();
-            obj.createVolumeConstraint();
-            obj.createCost();
-            obj.createConstraint();
-            obj.createDualVariable();
-            obj.createPrimalUpdater();
-            obj.createOptimizer();
-            obj.printFinalDisplacement_v2();
+            obj.k_vector = [0.1 0.5 1 1.5];
+            for a=1:length(obj.k_vector)               
+                obj.k_case = obj.k_vector(a);
+                fprintf('--- Starting Optimization for k = %f ---\n', obj.k_case);
+                obj.init();
+                obj.createMesh();
+                obj.createDesignVariable();
+                obj.createFilter();
+                obj.createMaterialInterpolator();
+                obj.createElasticProblem();
+                obj.createAdjointProblem();
+                obj.createNonSelfAdjCompliance();
+                obj.createVolumeConstraint();
+                obj.createCost();
+                obj.createConstraint();
+                obj.createDualVariable();
+                obj.createPrimalUpdater();
+                obj.createOptimizer();
+                obj.printFinalDisplacement_v3(); % print document with the final FEM displacements
+                obj.printFinalDesignVariable(); % print final design variable
+                obj.saveFigures(); % save matlab figures (design variable and monitoring)
+            end
         end
 
     end
@@ -154,7 +163,7 @@ classdef Tutorial05_14_TopOpt2DLevelSetGripper < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.3; 
+            s.volumeTarget = 0.4; 
             s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
@@ -196,7 +205,7 @@ classdef Tutorial05_14_TopOpt2DLevelSetGripper < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 500;
             s.tolerance      = 1e-8;
             s.constraintCase = {'INEQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
@@ -209,8 +218,9 @@ classdef Tutorial05_14_TopOpt2DLevelSetGripper < handle
             s.etaMaxMin      = 0.01;
             s.gif            = false;
             s.gifName        = 'Tutorial05_14_LS';
-            s.printing       = true;
-            s.printName      = 'Tutorial05_14_LS';
+            s.printing       = false;
+            s.printName      = 'G_LS_';
+            s.k_case         = obj.k_case;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -295,6 +305,15 @@ classdef Tutorial05_14_TopOpt2DLevelSetGripper < handle
             sPL{2}.domain    = @(coor) isPLBottomGripper(coor);
             sPL{2}.direction = 2;
             sPL{2}.value     = -2;
+
+            sPL{3}.domain    = @(coor) isPLTopRight(coor);
+            sPL{3}.direction = 2;
+            sPL{3}.value     = -obj.k_case;
+
+            sPL{4}.domain    = @(coor) isPLBottomRight(coor);
+            sPL{4}.direction = 2;
+            sPL{4}.value     = +obj.k_case;
+
 
             dirichletFun = [];
             for i = 1:numel(sDir)
@@ -471,6 +490,35 @@ classdef Tutorial05_14_TopOpt2DLevelSetGripper < handle
             disp('Successfully wrote Final_Displacements.vtk!');
 
         end
+    
+        function printFinalDisplacement_v3(obj)
+            num_case = find(obj.k_vector == obj.k_case);
+            namePrint = sprintf('LS_FinalDispl_kCase_%g',num_case);
+            uFun = obj.physicalProblem.uFun;
+            uFun.print(namePrint);
+        end
+
+        function saveFigures(obj)
+            num_case = find(obj.k_vector == obj.k_case);
+            fig_design = figure(1); 
+            fig_monitor = figure(2);
+            fig_monitor.WindowState = 'maximized';
+            drawnow;
+            name_design = sprintf('LS_DesignMap_kCase_%g.png', num_case );
+            name_monitor = sprintf('LS_Monitoring_kCase_%g.png', num_case);
+            exportgraphics(fig_design, name_design, 'Resolution', 300);
+            exportgraphics(fig_monitor, name_monitor, 'Resolution', 300);
+            close all
+        end
+
+        function printFinalDesignVariable(obj)
+            num_case = find(obj.k_vector == obj.k_case);
+            namePrint = sprintf('LS_DesignVariable_kCase_%g',num_case);
+            obj.designVariable.fun.print(namePrint);
+        end
+
+
+        
     end
 
 end

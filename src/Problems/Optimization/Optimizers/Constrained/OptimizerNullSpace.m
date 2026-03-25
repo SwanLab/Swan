@@ -40,6 +40,7 @@ classdef OptimizerNullSpace < handle
         gifName
         printing
         printName
+        k_case
     end
 
     methods (Access = public) 
@@ -91,6 +92,7 @@ classdef OptimizerNullSpace < handle
             obj.printing        = cParams.printing;
             obj.printName       = cParams.printName;
             obj.primalUpdater   = cParams.primalUpdater;
+            obj.k_case          = cParams.k_case;
             obj.dualUpdater     = DualUpdaterNullSpace(cParams);
             obj.createDualVariable();
             obj.initOtherParameters(cParams);
@@ -223,7 +225,7 @@ classdef OptimizerNullSpace < handle
                     obtainGIF(obj.gifName,obj.designVariable,obj.nIter);
                 end
                 if obj.printing
-                    obj.designVariable.fun.print([obj.printName,'_Iter_',num2str(obj.nIter)]); % add /numbIters so that it is 0,1,2,...
+                    obj.designVariable.fun.print([obj.printName,'kValue_',num2str(obj.k_case),'_Iter_',num2str(obj.nIter)]); % add /numbIters so that it is 0,1,2,...
                 end
             end
         end
@@ -326,7 +328,7 @@ classdef OptimizerNullSpace < handle
             l  = obj.dualVariable.fun.fValues;
             J  = obj.cost.value;
             h  = obj.constraint.value;
-            mF = J+l'*h; % merit function = cost + lagrangian * constraint
+            mF = J+l'*h; 
         end
 
         function obj = checkConvergence(obj)

@@ -16,26 +16,34 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
         primalUpdater
         optimizer
         gJ
+        k_case
+        k_vector
     end
 
     methods (Access = public)
 
         function obj = Tutorial05_14_TopOpt2DDensityGripper()
-            obj.init();
-            obj.createMesh();
-            obj.createDesignVariable();
-            obj.createFilter();
-            obj.createMaterialInterpolator();
-            obj.createElasticProblem();
-            obj.createAdjointProblem();
-            obj.createNonSelfAdjCompliance();
-            obj.createVolumeConstraint();
-            obj.createCost();
-            obj.createConstraint();
-            obj.createDualVariable();
-            obj.createPrimalUpdater();
-            obj.createOptimizer();
-            obj.printFinalDisplacement_v2();
+            obj.k_vector = [0.1 0.5 0.75 1 1.5];
+            for a=1:length(obj.k_vector)
+                obj.k_case = obj.k_vector(a);
+                obj.init();
+                obj.createMesh();
+                obj.createDesignVariable();
+                obj.createFilter();
+                obj.createMaterialInterpolator();
+                obj.createElasticProblem();
+                obj.createAdjointProblem();
+                obj.createNonSelfAdjCompliance();
+                obj.createVolumeConstraint();
+                obj.createCost();
+                obj.createConstraint();
+                obj.createDualVariable();
+                obj.createPrimalUpdater();
+                obj.createOptimizer();
+                obj.printFinalDisplacement_v3(); % print document with the final FEM displacements
+                obj.printFinalDesignVariable(); % print final design variable
+                obj.saveFigures(); % save matlab figures (design variable and monitoring)
+            end
         end
 
     end
@@ -193,7 +201,7 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 500;
             s.tolerance      = 1e-8;
             s.constraintCase = {'INEQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
@@ -203,8 +211,9 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
             s.gJFlowRatio    = 0.1;
             s.gif            = false;
             s.gifName        = [];
-            s.printing       = true;
+            s.printing       = false;
             s.printName      = ['Tutorial05_14_Dens'];
+            s.k_case         = obj.k_case;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -292,6 +301,15 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
             sPL{2}.domain    = @(coor) isPLBottomGripper(coor);
             sPL{2}.direction = 2;
             sPL{2}.value     = -2;
+
+            sPL{3}.domain    = @(coor) isPLTopRight(coor);
+            sPL{3}.direction = 2;
+            sPL{3}.value     = -obj.k_case;
+
+            sPL{4}.domain    = @(coor) isPLBottomRight(coor);
+            sPL{4}.direction = 2;
+            sPL{4}.value     = +obj.k_case;
+
 
             dirichletFun = [];
             for i = 1:numel(sDir)
@@ -391,5 +409,31 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
             disp('Successfully wrote Final_Displacements.vtk!');
 
         end
-    end
+        
+        function printFinalDisplacement_v3(obj)
+            num_case = find(obj.k_vector == obj.k_case);
+            namePrint = sprintf('D_FinalDispl_kCase_%g',num_case);
+            uFun = obj.physicalProblem.uFun;
+            uFun.print(namePrint);
+        end
+
+        function saveFigures(obj)
+            num_case = find(obj.k_vector == obj.k_case);
+            fig_design = figure(1); 
+            fig_monitor = figure(2);
+            fig_monitor.WindowState = 'maximized';
+            drawnow;
+            name_design = sprintf('D_DesignMap_kCase_%g.png', num_case );
+            name_monitor = sprintf('D_Monitoring_kCase_%g.png', num_case);
+            exportgraphics(fig_design, name_design, 'Resolution', 300);
+            exportgraphics(fig_monitor, name_monitor, 'Resolution', 300);
+            close all
+        end
+
+        function printFinalDesignVariable(obj)
+            num_case = find(obj.k_vector == obj.k_case);
+            namePrint = sprintf('D_DesignVariable_kCase_%g',num_case);
+            obj.designVariable.fun.print(namePrint);
+        end
+     end
 end
