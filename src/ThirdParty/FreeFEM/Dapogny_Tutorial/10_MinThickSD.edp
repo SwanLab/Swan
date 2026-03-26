@@ -1,0 +1,349 @@
+/* 10. Minimum Thick Constr using Signed Distance */
+load "medit"
+load "distance"
+load "iovtk"
+load "mmg"
+
+/* Create background mesh */
+real R = 2;
+real Nc = 80;
+border C1(t=0,2*pi){ x=R*cos(t); y=R*sin(t); label=0; };
+mesh Th = buildmesh(C1(2*pi*R*Nc));
+
+mesh Th1, Th2; /* Th mesh after remeshing it near phi1=0 or phi2=0 */
+mesh Th3; /* Inner part of Th2*/
+meshL ThLInt; /* Boundary phi=0 of Th2 */
+
+/* Finite Element spaces */
+fespace Vh(Th,P1);
+fespace Vh0(Th,P0);
+include "tools.idp"
+
+/* Variables definition */
+Vh phi, phi1, phi2, chi1, chi2, phio1, phio2, dOmR1, dOm1, dOmR2, dOm2, /*Test function for a velocity component:*/ v;
+Vh /*Velocity components:*/ g;
+
+/* Initialization of the Level Set functions */
+func real initialGuess1() {
+  real a = 3.0, b = 1.0;
+  real ls;
+  ls = x^2/a^2+y^2/b^2 - 1;
+  return(ls);
+}
+func real initialGuess2() {
+  real r = 0.5;
+  real ls;
+  ls = -x^2 - y^2 + r^2;
+  return(ls);
+}
+phio1 = initialGuess1();
+phio2 = initialGuess2();
+distance(Th,phio1,phi1[]);
+phio1 = phi1;
+distance(Th,phio2,phi2[]);
+phio2 = phi2;
+
+string sout = "10_Phi1Initial.vtu";
+savevtk(sout, Th, phi1, dataname="Phi1");
+sout = "10_Phi2Initial.vtu";
+savevtk(sout, Th, phi2, dataname="Phi2");
+
+/* Regularization parameters */
+real meshsiz = 1/Nc;
+real alpha   = 2.0*meshsiz;
+real beta    = 8.0*meshsiz;
+
+dOmR1 = phi1;
+for (int i = 0; i < Th.nbe; i++) {
+    dOmR1[][Th.be(i)[0]] = 0.;
+    dOmR1[][Th.be(i)[1]] = 0.;
+}
+dOmR2 = phi2;
+
+distance(Th,dOmR1,dOm1[]);
+distance(Th,dOmR2,dOm2[]);
+
+int [int] lsLabel(1), pOmega(2);
+lsLabel[0] = 10;
+pOmega[0] = 0;
+pOmega[1] = 10;
+
+real rInner, rOuter;
+rOuter = 2;
+rInner = 3;
+
+/* Does not work: 
+macro updateBoundary(phi1,phi2) {
+  Th1 = mmg2d(Th, iso = 1, ls = 0.0, metric = phi1[], hmax = 0.05);
+  Vh1(Th1,P1);
+  Vh1 phi2Th1 = phi2;
+  Th2 = mmg2d(Th1, iso = 1, ls = 0.0, metric = phi2Th1[], hmax = 0.05);
+  Th3 = trunc(Th2, region == rInner);
+  plot(Th3,wait=true);
+  ThLInt = extract(Th3,label = lsLabel);
+} // */
+
+/* Current solution: */
+
+macro updateBoundary(phi) {
+  Th2 = mmg2d(Th, iso = 1, ls = 0.0, metric = phi[], hmax = 0.05);
+  Th3 = trunc(Th2, region == rInner);
+  ThLInt = extract(Th3,label = lsLabel);
+} //
+
+for (int i = 0; i < Vh.ndof; ++i) {
+  phi[][i] = max(phi1[][i],phi2[][i]); /* Intersection */
+}
+updateBoundary(phi);
+
+chi1 = exp(-(100.0*dOm1)^2);
+chi2 = exp(-(100.0*dOm2)^2);
+real p = 8.0;
+
+real P12 = (int1d(Th2,pOmega)(chi1/((abs(dOm2)+1e-6)^p)))^(-1/p); /* int partial Omega 1 */
+real P21 = (int1d(Th2,pOmega)(chi2/((abs(dOm1)+1e-6)^p)))^(-1/p); /* int partial Omega 2 */
+real Jo = - 2/(1/P12 + 1/P21);
+real p12 = -2*P12^2/((P12+P21)^2);
+real p21 = -2*P21^2/((P12+P21)^2);
+
+cout<<"Initial cost: "<< Jo <<"\n";
+
+Vh dxdOm1, dydOm1, w1, lapldOm1, dxdOm2, dydOm2, w2, lapldOm2;
+
+problem gradxPhi1(dxdOm1,v) = int2d(Th)(dxdOm1*v + alpha^2*(dx(dxdOm1)*dx(v)+dy(dxdOm1)*dy(v)))
+                        -int2d(Th)(dx(dOm1)*v);
+
+problem gradyPhi1(dydOm1,v) = int2d(Th)(dydOm1*v + alpha^2*(dx(dydOm1)*dx(v)+dy(dydOm1)*dy(v)))
+                        -int2d(Th)(dy(dOm1)*v);
+
+gradxPhi1;
+gradyPhi1;
+
+problem laplace1(lapldOm1,v) = int2d(Th)(lapldOm1*v + alpha^2*(dx(lapldOm1)*dx(v)+dy(lapldOm1)*dy(v)))
+                        -int2d(Th)((dx(dxdOm1) + dy(dydOm1))*v);
+
+laplace1;
+
+problem gradxPhi2(dxdOm2,v) = int2d(Th)(dxdOm2*v + alpha^2*(dx(dxdOm2)*dx(v)+dy(dxdOm2)*dy(v)))
+                        -int2d(Th)(dx(dOm2)*v);
+
+problem gradyPhi2(dydOm2,v) = int2d(Th)(dydOm2*v + alpha^2*(dx(dydOm2)*dx(v)+dy(dydOm2)*dy(v)))
+                        -int2d(Th)(dy(dOm2)*v);
+
+gradxPhi2;
+gradyPhi2;
+
+problem laplace2(lapldOm2,v) = int2d(Th)(lapldOm2*v + alpha^2*(dx(lapldOm2)*dx(v)+dy(lapldOm2)*dy(v)))
+                        -int2d(Th)((dx(dxdOm2) + dy(dydOm2))*v);
+
+laplace2;
+
+real q = 3.5, r = 3.5;
+w1 = 2/(1+abs(dOm1)^q*abs(lapldOm1)^r);
+w2 = 2/(1+abs(dOm2)^q*abs(lapldOm2)^r);
+
+sout = "10_graddOm1.vtu";
+savevtk(sout, Th, [dxdOm1,dydOm1], dataname="graddOm1");
+
+sout = "10_LaplacianPhi1.vtu";
+savevtk(sout, Th, lapldOm1, dataname="Laplacian1");
+
+sout = "10_WeightFunction1.vtu";
+savevtk(sout, Th, w1, dataname="Weight1");
+
+sout = "10_graddOm2.vtu";
+savevtk(sout, Th, [dxdOm2,dydOm2], dataname="graddOm2");
+
+sout = "10_LaplacianPhi2.vtu";
+savevtk(sout, Th, lapldOm2, dataname="Laplacian2");
+
+sout = "10_WeightFunction2.vtu";
+savevtk(sout, Th, w2, dataname="Weight2");
+
+fespace Vh2(Th2,P1);
+Vh2 u12, u21, rhs12, rhs21, v2, g2;
+
+sout = "10_SignedDistance1.vtu";
+savevtk(sout, Th, dOm1, dataname="SignedDist1");
+
+sout = "10_SignedDistance2.vtu";
+savevtk(sout, Th, dOm2, dataname="SignedDist2");
+
+sout = "10_BoundaryCharFun1.vtu";
+savevtk(sout, Th, chi1, dataname="chi1");
+
+sout = "10_BoundaryCharFun2.vtu";
+savevtk(sout, Th, chi2, dataname="chi2");
+
+problem uTerm12(u12,v2) = int1d(Th2,pOmega)(chi2*u12*v2) + int2d(Th2)(w2*(dxdOm2*dx(u12)+dydOm2*dy(u12))*(dxdOm2*dx(v2)+dydOm2*dy(v2)))
+                        - int2d(Th2,pOmega)(chi1*((p*abs(dOm2)^p)/(dOm2^(2*p+1)+1e-6))*v2);
+
+uTerm12;
+
+problem uTerm21(u21,v2) = int1d(Th2,pOmega)(chi1*u21*v2) + int2d(Th2)(w1*(dxdOm1*dx(u21)+dydOm1*dy(u21))*(dxdOm1*dx(v2)+dydOm1*dy(v2)))
+                        - int2d(Th2,pOmega)(chi2*((p*abs(dOm1)^p)/(dOm1^(2*p+1)+1e-6))*v2);
+
+uTerm21;
+
+Vh2 nx1, ny1, nx2, ny2;
+
+fespace Vh1D(ThLInt,P1);
+Vh1D nx, ny, v0, gx0 = dx(phi), gy0 = dy(phi);
+
+problem projNx(nx,v0) = int1d(ThLInt)(alpha^2*(dx(nx)*dx(v0)+dy(nx)*dy(v0)) + nx*v0) 
+                        - int1d(ThLInt)(Tl.y*v0);
+
+problem projNy(ny,v0) = int1d(ThLInt)(alpha^2*(dx(ny)*dx(v0)+dy(ny)*dy(v0)) + ny*v0) 
+                          - int1d(ThLInt)(-Tl.x*v0);
+
+projNx;
+projNy;
+nx = nx/sqrt(nx^2+ny^2+1e-6);
+ny = ny/sqrt(nx^2+ny^2+1e-6);
+
+Vh1D sgn = nx*gx0 + ny*gy0;
+
+for (int i = 0; i < Vh1D.ndof; ++i) {
+    if (sgn[][i] < 0) {
+        nx[][i] = -nx[][i];
+        ny[][i] = -ny[][i];
+    }
+}
+
+problem velextx(nx2,v2) = int2d(Th2)(beta^2*(dx(nx2)*dx(v2)+dy(nx2)*dy(v2)) + nx2*v2)
+                    - int1d(Th2,lsLabel)(beta*nx*v2);
+
+problem velexty(ny2,v2) = int2d(Th2)(beta^2*(dx(ny2)*dx(v2)+dy(ny2)*dy(v2)) + ny2*v2)
+                    - int1d(Th2,lsLabel)(beta*ny*v2);
+
+velextx;
+velexty;
+nx1 = nx2;
+ny1 = ny2;
+
+Vh0 kappa;
+kappa = dx(nx1)+dy(ny1);
+
+rhs12 = P12^(1+p)*(-chi1*abs(dOm2)^p/(dOm2^(2*p+1)+1e-6)*(dxdOm2*nx1+dydOm2*ny1)+chi1*kappa/(p*abs(dOm2)^p+1e-6)+chi2*u12/p);
+rhs21 = P21^(1+p)*(-chi2*abs(dOm1)^p/(dOm1^(2*p+1)+1e-6)*(dxdOm1*nx1+dydOm1*ny1)+chi2*kappa/(p*abs(dOm1)^p+1e-6)+chi1*u21/p);
+
+problem velext(g2,v2) = int2d(Th2)(g2*v2 + beta^2*(dx(g2)*dx(v2)+dy(g2)*dy(v2)))
+                        -int1d(Th2,pOmega)(beta*(p21*rhs12+p12*rhs21)*v2); /* Error found */
+
+velext;
+g = g2;
+
+sout = "10_uTerm12.vtu";
+savevtk(sout, Th2, u12, dataname="uTerm12");
+
+sout = "10_uTerm21.vtu";
+savevtk(sout, Th2, u21, dataname="uTerm21");
+
+sout = "10_Velocity.vtu";
+savevtk(sout, Th, g, dataname="Velocity");
+
+
+
+
+
+Vh gx, gy;
+
+gx = g*nx1;
+gy = g*ny1;
+
+sout = "10_gVec.vtu";
+savevtk(sout, Th, [gx,gy], dataname="gVec");
+
+real dJ;
+real [int] dtVec(101), JJoVec(101), dJVec(101), resVec(101);
+
+real dJo = int1d(ThLInt)(g*(p21*rhs12+p12*rhs21));
+for (int j = 0; j < dtVec.n; ++j) {
+  dtVec[j] = 0.01*pow(1.065,j);
+}
+
+real gmax, step;
+for (int i = 0; i < dtVec.n; ++i) {
+
+phi1[] = advectRedist(phio1[],gx[],gy[],dtVec[i]);
+dOmR1 = phi1;
+for (int i = 0; i < Th.nbe; i++) {
+    dOmR1[][Th.be(i)[0]] = 0.;
+    dOmR1[][Th.be(i)[1]] = 0.;
+}
+distance(Th,dOmR1,dOm1[]);
+
+phi2[] = advectRedist(phio2[],gx[],gy[],dtVec[i]);
+dOmR2 = phi2;
+distance(Th,dOmR2,dOm2[]);
+
+for (int i = 0; i < Vh.ndof; ++i) {
+  phi[][i] = max(phi1[][i],phi2[][i]); /* Intersection */
+}
+updateBoundary(phi);
+chi1 = exp(-(100.0*dOm1)^2);
+chi2 = exp(-(100.0*dOm2)^2);
+P12 = (int1d(Th2,pOmega)(chi1/((abs(dOm2)+1e-6)^p)))^(-1/p); /* int partial Omega 1 */
+P21 = (int1d(Th2,pOmega)(chi2/((abs(dOm1)+1e-6)^p)))^(-1/p); /* int partial Omega 2 */
+real J = - 2/(1/P12 + 1/P21);
+
+JJoVec[i] = J-Jo;
+dJVec[i] = dtVec[i]*dJo;
+resVec[i] = abs(JJoVec[i]-dJVec[i]);
+}
+
+sout = "10_SignedDistance1Final.vtu";
+savevtk(sout, Th, dOm1, dataname="SignedDistance1");
+
+sout = "10_SignedDistance2Final.vtu";
+savevtk(sout, Th, dOm2, dataname="SignedDistance2");
+
+// write data file with "iteration value"
+string datafile1 = "TaylorTest.gp";
+
+{
+    ofstream fout(datafile1);
+    for (int i = 0; i < dtVec.n; ++i)
+        fout << dtVec[i] << " " << resVec[i] << endl;
+}
+
+string datafile2 = "TaylorTest2.gp";
+
+{
+    ofstream fout(datafile2);
+    for (int i = 0; i < dtVec.n; ++i)
+        fout << dtVec[i] << " " << abs(JJoVec[i]) << endl;
+}
+
+string datafile3 = "TaylorTest3.gp";
+
+{
+    ofstream fout(datafile3);
+    for (int i = 0; i < dtVec.n; ++i)
+        fout << dtVec[i] << " " << abs(dJVec[i]) << endl;
+}
+
+// create gnuplot command to plot the data with logscale on y-axis
+string gnuplotCmd = 
+    "gnuplot -e \"set term png size 800,600; " +
+    "set output '10_TaylorTest.png'; " +
+    "set title 'Taylor Test'; " +
+    "set xlabel 'dt'; set ylabel 'Error'; " +
+    "plot '" + datafile1 + "' with lines lw 2 title 'Residual', " + 
+    "'" + datafile2 + "' with lines lw 2 title 'J-Jo', " +
+    "'" + datafile3 + "' with lines lw 2 title 'ShapeDer'\"";
+
+// execute gnuplot command
+exec(gnuplotCmd);
+
+gnuplotCmd = 
+    "gnuplot -e \"set term png size 800,600; " +
+    "set output '10_TaylorTestLogLog.png'; " +
+    "set title 'Taylor Test'; " +
+    "set xlabel 'dt'; set logscale x 2; set ylabel 'Error'; set logscale y 2; set ytics 2; " +
+    "plot '" + datafile1 + "' with lines lw 2 title 'Residual', " + 
+    "'" + datafile2 + "' with lines lw 2 title 'J-Jo', " +
+    "'" + datafile3 + "' with lines lw 2 title 'ShapeDer'\"";
+
+// execute gnuplot command
+exec(gnuplotCmd);
