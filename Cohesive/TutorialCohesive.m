@@ -47,9 +47,9 @@ classdef TutorialCohesive < handle
         end
 
         function createMesh(obj)
-            s.baseMesh = UnitQuadMesh(3,3);
-            ymin = 0;
-            s.isFractured = @(coord) abs(coord(:,2) - ymin) <=1e-10;
+            s.baseMesh = UnitQuadMesh(1,1);
+            ymax = 1;
+            s.isFractured = @(coord) abs(coord(:,2) - ymax) <=1e-10;
             obj.cohesiveMesh = CohesiveMesh(s);
         end
 
@@ -60,14 +60,14 @@ classdef TutorialCohesive < handle
         end
 
         function createBoundaryConditions(obj)
-            bc.type = 'ForceTractionY';
-            bc.values = 0.5;
+            bc.type = 'DisplacementTractionY';
+            bc.values = 0.1;
             obj.boundaryConditions  = BoundaryConditionsCreator(obj.cohesiveMesh.fullMesh,bc);
         end
 
         function createTractionSeparation(obj)
-            s.K         = 1e10;
-            s.jumpCrit  = 0.01;
+            s.K         = 1e8;
+            s.jumpCrit  = 0.001;
             s.jumpFinal = 0.1;
             s.lawType = 'TractionBiliniarUncoupled';
             obj.tractionSeparation = CohesiveTractionSeparation(s);
@@ -88,7 +88,7 @@ classdef TutorialCohesive < handle
             k.ptype   = 'ELASTIC';
             k.ndim    = obj.cohesiveMesh.fullMesh.ndim;
             k.young   = ConstantFunction.create(100,obj.cohesiveMesh.fullMesh);
-            k.poisson = ConstantFunction.create(0.33, obj.cohesiveMesh.fullMesh);
+            k.poisson = ConstantFunction.create(0, obj.cohesiveMesh.fullMesh);
             k.cohesiveMesh = obj.cohesiveMesh;
             m    = Material.create(k);
         end

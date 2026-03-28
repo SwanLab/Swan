@@ -50,14 +50,15 @@ classdef TractionBiliniarUncoupled < handle
         end
 
         function gradT = computeTangentGradientMatrix(obj, jump, xV) %tangent
-            d = obj.computeDamage(jump);
+            d    = obj.computeDamage(jump);
             ddot = obj.computeDamageDerivative(jump);
             unoZero = ConstantFunction.create([1,0],jump.mesh);
             zeroUno = ConstantFunction.create([0,1],jump.mesh);
-            dTdT = obj.K * ((1-DP(d,unoZero)) - DP(ddot,unoZero).*DP(jump,unoZero));
-            dNdN = obj.K * ((1-DP(d,zeroUno)) - DP(ddot,zeroUno).*DP(jump,zeroUno));
-            dtdt = Expand(dTdT,2).evaluate(xV); 
-            dndn = Expand(dNdN,2).evaluate(xV);
+            dtdt = obj.K * ((1-DP(d,unoZero)) - Expand(DP(ddot,unoZero).*DP(jump,unoZero),2));
+            dndn = obj.K * ((1-DP(d,zeroUno)) - Expand(DP(ddot,zeroUno).*DP(jump,zeroUno),2));
+
+            dtdt = dtdt.evaluate(xV); 
+            dndn = dndn.evaluate(xV);
             ngauss = size(dtdt,3); 
             nelem  = size(dtdt,4);
             gradT =  [dtdt                    ,zeros(1,1,ngauss,nelem);

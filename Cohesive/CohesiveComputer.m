@@ -60,7 +60,7 @@ classdef CohesiveComputer < handle
         function [u,bc] = preprocess(obj,iStep,nSteps,u)
             % obj.monitor.printStep(iStep,nSteps)
             bc = obj.boundaryConditions.nextStep();
-            % u  = obj.computeInitialDisplacement(u,bc);
+            u  = obj.computeInitialDisplacement(u,bc);
         end
 
         function postprocess(obj,iStep,uFun,F,cost,iterMax)
@@ -71,6 +71,7 @@ classdef CohesiveComputer < handle
         end
 
         function [totReact,uBC] = computeTotalReaction(obj,step,F,u)
+            F = reshape(F.fValues',[F.nDofs 1]);
             DownSide = min(obj.mesh.coord(:,2));
             isInDown = abs(obj.mesh.coord(:,2)-DownSide)< 1e-12;
             isInUp   = not(isInDown);
@@ -101,6 +102,13 @@ classdef CohesiveComputer < handle
                 totReact = abs(sum(F(dofsXdown)));
                 uBC = obj.boundaryConditions.bcValues(step);
             end
+        end
+
+        function u = computeInitialDisplacement(obj,u,bc)
+            uVec = reshape(u.fValues',[u.nDofs 1]);
+            uVec(bc.dirichlet_dofs) = bc.dirichlet_vals;
+            ufV = reshape(uVec,[flip(size(u.fValues))])';
+            u.setFValues(ufV);
         end
         
     end

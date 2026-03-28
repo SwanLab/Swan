@@ -78,7 +78,7 @@ classdef CohesiveMesh < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.separation = 0.1;
+            obj.separation = 1e-10;
             obj.baseMesh = cParams.baseMesh;
         end
 
@@ -115,7 +115,7 @@ classdef CohesiveMesh < handle
             coords1 = coord(nodes(:,1),:);   % nCohEdges x 2
             coords2 = coord(nodes(:,2),:);   % nCohEdges x 2    
             t  = coords2 - coords1;          % nCohEdges x 2
-            n  = [t(:,2),t(:,1)];
+            n  = [t(:,2),-t(:,1)];
         end
 
         function [isLeft, isRight] = computeIsLeftIsRight(obj,centerElemsInCohesiveEdge,normals,edgesInCohElem)
@@ -127,6 +127,7 @@ classdef CohesiveMesh < handle
             vectorEdgeToElem = centerElem - centerEdge;
             dotProduct       = sum(vectorEdgeToElem.*normals,2);
             signs = sign(dotProduct);
+            signs = signs > 0;
             isLeft = logical(signs);
             isRight = not(isLeft);
         end
@@ -143,7 +144,7 @@ classdef CohesiveMesh < handle
         function newConnec = updateConnecOfLeftElements(obj,isLeft,isRight)
             listLeftElems = obj.listElemNextCohesive(isLeft);
             connec         = obj.baseMesh.connec;
-            cohesiveConnec = [obj.pairsMatrix(1:end-1,1), obj.pairsMatrix(2:end,1), obj.pairsMatrix(2:end,2), obj.pairsMatrix(1:end-1,2)];
+            cohesiveConnec = [obj.pairsMatrix(2:end,1), obj.pairsMatrix(1:end-1,1),  obj.pairsMatrix(2:end,2), obj.pairsMatrix(1:end-1,2)];
             connec         = [connec; cohesiveConnec];
             obj.listCohesiveElems = ((size(connec,1)-size(cohesiveConnec,1)+1):size(connec,1))';
             oldLeftConnec = connec(listLeftElems,:);

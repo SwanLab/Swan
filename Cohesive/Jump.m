@@ -31,7 +31,7 @@ classdef Jump < FeFunction
             fValuesJ   = zeros(nNodeJump,obj.jumpDim); % nNode x 2
             nnodesElemU = uIn.nDofsElem/uIn.ndimf;
             for n = 1:nnodesElemU 
-                uNode = computeDispNodes(obj,uIn,n);
+                uNode = obj.computeDispNodes(uIn,n);
                 jumpi = pagemtimes(obj.L(:,:,n*uIn.ndimf), pagemtimes(R, uNode));
                 jumpi = squeeze(jumpi).';
                 nJump = min(n,nnodesElemU-n+1);
@@ -105,7 +105,7 @@ classdef Jump < FeFunction
         end
 
         function uVals = computeDispNodes(obj,uIn,n)
-            conn = obj.cohesiveMesh.fullMesh.connec(obj.cohesiveMesh.listCohesiveElems,:);
+            conn  = obj.cohesiveMesh.fullMesh.connec(obj.cohesiveMesh.listCohesiveElems,:);
             nodes = conn(:,n);
             uVals = uIn.fValues(nodes,:);
             uVals = reshape(uVals.',[2 1 size(uVals,1)]);

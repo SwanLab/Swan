@@ -23,7 +23,7 @@ classdef CohesiveTermFunctional < handle
 
         function E = computeCost(obj,u,quadOrder)
             obj.jump.updateJumpValues(u);
-            traction = obj.tractionSeparation.computeFunction(obj.jump.fun);
+            traction  = obj.tractionSeparation.computeFunction(obj.jump.fun);
             fun       = DP(traction, obj.jump.fun);
             E         = Integrator.compute(fun,obj.cohesiveMesh.mesh,quadOrder);
         end
@@ -36,8 +36,9 @@ classdef CohesiveTermFunctional < handle
 
         function H = computeDerivativeResidual(obj,u,quadOrder)
             obj.jump.updateJumpValues(u);
-            deriv = obj.tractionSeparation.computeDerivative(obj.jump.fun); 
-            H = IntegrateLHS(@(u,v) u' * deriv *  v,...
+            deriv = obj.tractionSeparation.computeDerivative(obj.jump.fun);
+            
+            H = IntegrateLHS(@(u,v) DP(v', (DP(deriv, u'))'),...
                 obj.jump,obj.jump,obj.cohesiveMesh.mesh,'Domain',quadOrder);
         end
 
