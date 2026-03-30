@@ -26,6 +26,8 @@ Tutorial05_9_TopOpt2DDensityMicroNullSpace();
 Tutorial05_10_TopOptDensityBoundFormulationMacro();
 %TopOptViaHomogenizationTutorial(); % ALEX
 Tutorial05_11_TopOpt3DDensityMacroPython();
+Tutorial05_12_TopOpt2DDensityNonDesignableDomain();
+Tutorial05_13_TopOpt2DLevelSetNonDesignableDomain();
 
 % Tutorial06_ShapeOptimization -- PENDING
 
