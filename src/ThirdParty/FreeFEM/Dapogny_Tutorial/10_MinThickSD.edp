@@ -96,12 +96,12 @@ for (int i = 0; i < Vh.ndof; ++i) {
 }
 updateBoundary(phi);
 
-chi1 = exp(-(100.0*dOm1)^2);
-chi2 = exp(-(100.0*dOm2)^2);
-real p = 8.0;
+chi1 = exp(-(10.0*dOm1)^2);
+chi2 = exp(-(10.0*dOm2)^2);
+real p = 5.0;
 
-real P12 = (int1d(Th2,pOmega)(chi1/((abs(dOm2)+1e-6)^p)))^(-1/p); /* int partial Omega 1 */
-real P21 = (int1d(Th2,pOmega)(chi2/((abs(dOm1)+1e-6)^p)))^(-1/p); /* int partial Omega 2 */
+real P12 = (int1d(Th2,pOmega)(chi1/((abs(dOm2)+chi2)^p)))^(-1/p); /* int partial Omega 1 */
+real P21 = (int1d(Th2,pOmega)(chi2/((abs(dOm1)+chi1)^p)))^(-1/p); /* int partial Omega 2 */
 real Jo = - 2/(1/P12 + 1/P21);
 real p12 = -2*P12^2/((P12+P21)^2);
 real p21 = -2*P21^2/((P12+P21)^2);
@@ -176,12 +176,12 @@ sout = "10_BoundaryCharFun2.vtu";
 savevtk(sout, Th, chi2, dataname="chi2");
 
 problem uTerm12(u12,v2) = int1d(Th2,pOmega)(chi2*u12*v2) + int2d(Th2)(w2*(dxdOm2*dx(u12)+dydOm2*dy(u12))*(dxdOm2*dx(v2)+dydOm2*dy(v2)))
-                        - int2d(Th2,pOmega)(chi1*((p*abs(dOm2)^p)/(dOm2^(2*p+1)+1e-6))*v2);
+                        - int1d(Th2,pOmega)(chi1*((p*abs(dOm2)^p)/(dOm2^(2*p+1)+chi2))*v2);
 
 uTerm12;
 
 problem uTerm21(u21,v2) = int1d(Th2,pOmega)(chi1*u21*v2) + int2d(Th2)(w1*(dxdOm1*dx(u21)+dydOm1*dy(u21))*(dxdOm1*dx(v2)+dydOm1*dy(v2)))
-                        - int2d(Th2,pOmega)(chi2*((p*abs(dOm1)^p)/(dOm1^(2*p+1)+1e-6))*v2);
+                        - int1d(Th2,pOmega)(chi2*((p*abs(dOm1)^p)/(dOm1^(2*p+1)+chi1))*v2);
 
 uTerm21;
 
@@ -221,14 +221,17 @@ velexty;
 nx1 = nx2;
 ny1 = ny2;
 
+nx1 = nx1/sqrt(nx1^2+ny1^2+1e-6);
+ny1 = ny1/sqrt(nx1^2+ny1^2+1e-6);
+
 Vh0 kappa;
 kappa = dx(nx1)+dy(ny1);
 
-rhs12 = P12^(1+p)*(-chi1*abs(dOm2)^p/(dOm2^(2*p+1)+1e-6)*(dxdOm2*nx1+dydOm2*ny1)+chi1*kappa/(p*abs(dOm2)^p+1e-6)+chi2*u12/p);
-rhs21 = P21^(1+p)*(-chi2*abs(dOm1)^p/(dOm1^(2*p+1)+1e-6)*(dxdOm1*nx1+dydOm1*ny1)+chi2*kappa/(p*abs(dOm1)^p+1e-6)+chi1*u21/p);
+rhs12 = P12^(1+p)*(-chi1*abs(dOm2)^p/(dOm2^(2*p+1)+chi2)*(dxdOm2*nx1+dydOm2*ny1)+chi1*kappa/(p*abs(dOm2)^p+chi2)+chi2*u12/p);
+rhs21 = P21^(1+p)*(-chi2*abs(dOm1)^p/(dOm1^(2*p+1)+chi1)*(dxdOm1*nx1+dydOm1*ny1)+chi2*kappa/(p*abs(dOm1)^p+chi1)+chi1*u21/p);
 
 problem velext(g2,v2) = int2d(Th2)(g2*v2 + beta^2*(dx(g2)*dx(v2)+dy(g2)*dy(v2)))
-                        -int1d(Th2,pOmega)(beta*(p21*rhs12+p12*rhs21)*v2); /* Error found */
+                        -int1d(Th2,lsLabel)(beta*(p21*rhs12+p12*rhs21)*v2);
 
 velext;
 g = g2;
@@ -281,10 +284,10 @@ for (int i = 0; i < Vh.ndof; ++i) {
   phi[][i] = max(phi1[][i],phi2[][i]); /* Intersection */
 }
 updateBoundary(phi);
-chi1 = exp(-(100.0*dOm1)^2);
-chi2 = exp(-(100.0*dOm2)^2);
-P12 = (int1d(Th2,pOmega)(chi1/((abs(dOm2)+1e-6)^p)))^(-1/p); /* int partial Omega 1 */
-P21 = (int1d(Th2,pOmega)(chi2/((abs(dOm1)+1e-6)^p)))^(-1/p); /* int partial Omega 2 */
+chi1 = exp(-(10.0*dOm1)^2);
+chi2 = exp(-(10.0*dOm2)^2);
+P12 = (int1d(Th2,pOmega)(chi1/((abs(dOm2)+chi2)^p)))^(-1/p); /* int partial Omega 1 */
+P21 = (int1d(Th2,pOmega)(chi2/((abs(dOm1)+chi1)^p)))^(-1/p); /* int partial Omega 2 */
 real J = - 2/(1/P12 + 1/P21);
 
 JJoVec[i] = J-Jo;
