@@ -11,19 +11,23 @@ classdef PhaseFieldFunctional < handle
             obj.init(cParams)
         end
 
-        function Etot = computeCost(obj,u,theta,phi,bc)
+        function updateMaterialRotation(obj,theta)
+            obj.functionals.energy.updateRotation(theta);
+        end
+
+        function Etot = computeCost(obj,u,phi,bc)
             fExt = bc.tractionFun;
             if ~isempty(bc.tractionFun)
                 vals = bc.tractionFun.computeRHS([]);
                 fExt = LagrangianFunction.create(u.mesh, u.mesh.ndim,'P1');
                 fExt.setFValues(reshape(vals,u.mesh.ndim,u.mesh.nnodes)');
             end
-            E    = obj.computeEnergies(u,theta,phi,fExt);
+            E    = obj.computeEnergies(u,phi,fExt);
             Etot = sum(E);
         end
         
-        function E = computeEnergies(obj,u,theta,phi,fExt)
-            Eint = obj.functionals.energy.computeCost(u,theta,phi,obj.quadOrder);
+        function E = computeEnergies(obj,u,phi,fExt)
+            Eint = obj.functionals.energy.computeCost(u,phi,obj.quadOrder);
             Edis = obj.functionals.localDamage.computeCost(phi,obj.quadOrder);
             Ereg = obj.functionals.nonLocalDamage.computeCost(phi,obj.quadOrder);
             Wext = obj.functionals.extWork.computeCost(u,fExt,obj.quadOrder);
@@ -31,31 +35,31 @@ classdef PhaseFieldFunctional < handle
         end
         
         
-        function LHS = computeElasticLHS(obj,u,theta,phi)
-            LHS  = obj.functionals.energy.computeHessianDisplacement(u,theta,phi,obj.quadOrder);
+        function LHS = computeElasticLHS(obj,u,phi)
+            LHS  = obj.functionals.energy.computeHessianDisplacement(u,phi,obj.quadOrder);
         end
         
-        function RHS = computeElasticRHS(obj,u,theta,phi,bc)
+        function RHS = computeElasticRHS(obj,u,phi,bc)
             fExt = bc.tractionFun;
             if ~isempty(bc.tractionFun)
                 vals = bc.tractionFun.computeRHS([]);
                 fExt = LagrangianFunction.create(u.mesh, u.mesh.ndim,'P1');
                 fExt.setFValues(reshape(vals,u.mesh.ndim,u.mesh.nnodes)');
             end
-            Fint = obj.functionals.energy.computeGradientDisplacement(u,theta,phi,obj.quadOrder);
+            Fint = obj.functionals.energy.computeGradientDisplacement(u,phi,obj.quadOrder);
             Fext = obj.functionals.extWork.computeGradient(u,fExt,obj.quadOrder);
             RHS  = Fint - Fext;
         end
         
-        function LHS = computePhaseFieldLHS(obj,u,theta,phi)
-            Mi  = obj.functionals.energy.computeHessianDamage(u,theta,phi,obj.quadOrder);
+        function LHS = computePhaseFieldLHS(obj,u,phi)
+            Mi  = obj.functionals.energy.computeHessianDamage(u,phi,obj.quadOrder);
             Md  = obj.functionals.localDamage.computeHessian(phi,obj.quadOrder);
             K   = obj.functionals.nonLocalDamage.computeHessian(phi,obj.quadOrder);
             LHS = Mi + Md + K;
         end
         
-        function RHS = computePhaseFieldRHS(obj,u,theta,phi)
-            Fi  = obj.functionals.energy.computeGradientDamage(u,theta,phi,obj.quadOrder);
+        function RHS = computePhaseFieldRHS(obj,u,phi)
+            Fi  = obj.functionals.energy.computeGradientDamage(u,phi,obj.quadOrder);
             Fd  = obj.functionals.localDamage.computeGradient(phi,obj.quadOrder); 
             DF  = obj.functionals.nonLocalDamage.computeGradient(phi,obj.quadOrder);        
             RHS = Fi + Fd + DF;
@@ -69,7 +73,7 @@ classdef PhaseFieldFunctional < handle
             obj.functionals.localDamage    = LocalDamageFunctional(cParams);
             obj.functionals.nonLocalDamage = NonLocalDamageFunctional(cParams);
             obj.functionals.extWork        = ExternalWorkFunctional(cParams);
-            obj.functionals.energy         = PhaseFieldInternalEnergyRotationFunctional(cParams);
+            obj.functionals.energy         = PhaseFieldInternalEnergyFunctional(cParams);
         end
         
     end

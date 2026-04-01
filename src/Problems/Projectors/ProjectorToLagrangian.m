@@ -56,6 +56,7 @@ classdef ProjectorToLagrangian < Projector
 
         function RHS = computeRHS(obj,fun)
             test = LagrangianFunction.create(fun.mesh,fun.ndimf,obj.order);
+            fun = obj.reshapeTensor(fun);
             f    = @(v) DP(fun,v);
             RHS  = IntegrateRHS(f,test,test.mesh,'Domain',2);
         end
@@ -64,6 +65,12 @@ classdef ProjectorToLagrangian < Projector
             ord = obj.determineQuadratureOrder(fun);
         end
 
+        function fun = reshapeTensor(obj,fun)
+            s.operation = @(xV) reshape(ctranspose(fun).evaluate(xV),fun.ndimf,[]);
+            s.ndimf = fun.ndimf;
+            s.mesh = fun.mesh;
+            fun = DomainFunction(s);
+        end
     end
 
 end

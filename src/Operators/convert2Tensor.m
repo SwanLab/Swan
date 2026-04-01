@@ -14,33 +14,33 @@ function A = convert2Tensor(Avoigt,type)
     
     switch type
         case 'Strain'
-            A = zeros(dim,dim);
+            A = zeros([dim,dim,size(Avoigt,[3 4])]);
             for m=1:dim
                 for n=1:dim
                     i = pairs(m,n);
-                    A(m,n) = Avoigt(i);
+                    A(m,n,:,:) = Avoigt(i,1,:,:);
                 end
             end
             voigtCorrectionMatrix = 0.5*eye(size(A)) + 0.5;
             A = A.*voigtCorrectionMatrix;
 
         case 'Stress'
-            A = zeros(dim,dim);
+            A = zeros([dim,dim,size(Avoigt,[3 4])]);
             for m=1:dim
                 for n=1:dim
                     i = pairs(m,n);
-                    A(m,n) = Avoigt(i);
+                    A(m,n,:,:) = Avoigt(i,1,:,:);
                 end
             end
 
         case 'Constitutive'
-            A = zeros(dim,dim,dim,dim);
+            A = zeros([dim,dim,dim,dim,size(Avoigt,[3 4])]);
             for m=1:dim
                 for n=1:dim
                     for o=1:dim
                         for p=1:dim
                             i = pairs(o,p); j=pairs(m,n);
-                            A(m,n,o,p) = Avoigt(i,j);
+                            A(m,n,o,p,:,:) = Avoigt(i,j,:,:);
                         end
                     end
                 end
@@ -51,13 +51,13 @@ function A = convert2Tensor(Avoigt,type)
             voigtCorrectionMatrix(dim+1:end,:) = 0.5*voigtCorrectionMatrix(dim+1:end,:);
             voigtCorrectionMatrix(:,dim+1:end) = 0.5*voigtCorrectionMatrix(:,dim+1:end);
             Avoigt = Avoigt.*voigtCorrectionMatrix;
-            A = zeros(dim,dim,dim,dim);
+            A = zeros([dim,dim,dim,dim,size(Avoigt,[3 4])]);
             for m=1:dim
                 for n=1:dim
                     for o=1:dim
                         for p=1:dim
                             i = pairs(o,p); j=pairs(m,n);
-                            A(m,n,o,p) = Avoigt(i,j);
+                            A(m,n,o,p,:,:) = Avoigt(i,j,:,:);
                         end
                     end
                 end

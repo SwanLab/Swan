@@ -24,8 +24,8 @@ classdef PhaseFieldComputer < handle
 
         function outputData = compute(obj)
             u   = obj.initialGuess.u;
-            theta = obj.initialGuess.theta;
             phi = obj.initialGuess.phi;
+            theta = obj.initialGuess.theta;
             cost = 0; tauArray = [];
 
             step = 1;
@@ -35,7 +35,7 @@ classdef PhaseFieldComputer < handle
                 obj.monitor.printStep(step,maxSteps)
                 [u,bc] = obj.updateBoundaryConditions(u,bc);
                 [u,theta,phi,F,cost,iterMax] = obj.optimizer.compute(u,theta,phi,bc,cost);
-                [Evec,totE,totF,uBC] = obj.postprocess(step,u,theta,phi,F,bc);
+                [Evec,totE,totF,uBC] = obj.postprocess(step,u,phi,F,bc);
                 obj.printAndSave(step,totF,uBC,u,theta,phi,Evec,totE,iterMax,cost,tauArray);
                 obj.checkStopCondition(step,totF);
                 step = step + 1;
@@ -111,14 +111,14 @@ classdef PhaseFieldComputer < handle
             end
         end
 
-        function [E,totE,totF,uBC] = postprocess(obj,step,u,theta,phi,F,bc)
+        function [E,totE,totF,uBC] = postprocess(obj,step,u,phi,F,bc)
             fExt = bc.u.tractionFun;
             if ~isempty(bc.u.tractionFun)
                 vals = bc.u.tractionFun.computeRHS([]);
                 fExt = LagrangianFunction.create(u.mesh, u.mesh.ndim,'P1');
                 fExt.setFValues(reshape(vals,u.mesh.nnodes,u.mesh.ndim));
             end
-            E    = obj.functional.computeEnergies(u,theta,phi,fExt);
+            E    = obj.functional.computeEnergies(u,phi,fExt);
             totE = sum(E);
             [totF,uBC] = obj.computeTotalReaction(step,F,u);
         end

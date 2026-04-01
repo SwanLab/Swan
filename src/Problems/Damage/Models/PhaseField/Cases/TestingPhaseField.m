@@ -72,27 +72,27 @@ classdef TestingPhaseField < handle
                     u = LagrangianFunction.create(obj.mesh,2,'P1');
                 end
 
+                if isfield(cParams.initialGuess,'theta')
+                    theta = cParams.initialGuess.theta;
+                else
+                    theta = ConstantFunction.create(0,obj.mesh);
+                end
+
                 if isfield(cParams.initialGuess,'phi')
                     phi = cParams.initialGuess.phi;
                 else
                     phi = LagrangianFunction.create(obj.mesh,1,'P1');
                     phi = obj.setInitialDamage(phi);
-                end
-
-                if isfield(cParams.initialGuess,'theta')
-                    theta = cParams.initialGuess.theta;
-                else
-                    theta = LagrangianFunction.create(obj.mesh,1,'P1');
-                end
+                end       
             else
                 u = LagrangianFunction.create(obj.mesh,2,'P1');
-                theta = LagrangianFunction.create(obj.mesh,1,'P1');
+                theta = ConstantFunction.create(0,obj.mesh);
                 phi = LagrangianFunction.create(obj.mesh,1,'P1');
                 phi = obj.setInitialDamage(phi);
             end
             obj.initialGuess.u = u;
-            obj.initialGuess.phi = obj.createDamageVariable(phi);
             obj.initialGuess.theta = theta;
+            obj.initialGuess.phi = obj.createDamageVariable(phi);
         end
 
         function phi = setInitialDamage(obj,phi)
@@ -122,7 +122,6 @@ classdef TestingPhaseField < handle
             s.quadOrder     = 3;
             s.testSpace.u   = obj.initialGuess.u;
             s.testSpace.phi = obj.initialGuess.phi.fun;
-            s.testSpace.theta = obj.initialGuess.theta;
             obj.functional  = PhaseFieldFunctional(s);
         end
 
@@ -136,7 +135,12 @@ classdef TestingPhaseField < handle
             else
                 s.interp = obj.defineDegradationFunction();  
             end
-            material = Material.create(s);
+            C = Material.create(s);
+
+            sMat.material = C;
+            sMat.mesh  = obj.mesh;
+            sMat.theta = obj.initialGuess.theta;
+            material = MaterialOriented(sMat);
         end
 
         function degParams = defineDegradationFunction(obj)

@@ -12,7 +12,7 @@ classdef ProjectedNewton < handle
         end
 
         function [phi,varargout] = update(obj,hessian,gradient,phi,varargin)
-            bc = varargin{3};
+            bc = varargin{2};
             fDofs = bc.phi.free_dofs;
             [LHS,RHS] = obj.fullToReduced(hessian,gradient,bc.phi);
 

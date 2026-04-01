@@ -13,20 +13,24 @@ classdef PhaseFieldInternalEnergyFunctional < handle
             obj.init(cParams)            
         end
 
-        function sigma = computeSigma(obj,u,phi)
-            C = obj.material.obtainTensor(phi);
-            sigma = DDP(C,SymGrad(u));
+        function updateRotation(obj,theta)
+            obj.material.updateRotation(theta);
         end
-
-        function e = computeEnergyFun(obj,u)
-            s.type    = 'ISOTROPIC';
-            s.ptype   = 'ELASTIC';
-            s.ndim    = obj.mesh.ndim;
-            s.young  = ConstantFunction.create(210,obj.mesh);
-            s.poisson = ConstantFunction.create(0.3,obj.mesh);
-            mat = Material.create(s);
-            e = DDP(SymGrad(u),DDP(mat,SymGrad(u)));
-        end
+        
+        % function sigma = computeSigma(obj,u,phi)
+        %     C = obj.material.obtainTensor(phi);
+        %     sigma = DDP(C,SymGrad(u));
+        % end
+        % 
+        % function e = computeEnergyFun(obj,u)
+        %     s.type    = 'ISOTROPIC';
+        %     s.ptype   = 'ELASTIC';
+        %     s.ndim    = obj.mesh.ndim;
+        %     s.young  = ConstantFunction.create(210,obj.mesh);
+        %     s.poisson = ConstantFunction.create(0.3,obj.mesh);
+        %     mat = Material.create(s);
+        %     e = DDP(SymGrad(u),DDP(mat,SymGrad(u)));
+        % end
 
         function gDeriv = computeDegradationDerivative(obj,phi)
             gDeriv = obj.material.computeDegradationDerivative(phi);
