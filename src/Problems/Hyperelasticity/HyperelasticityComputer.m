@@ -56,6 +56,13 @@ classdef HyperelasticityComputer < handle
             s.monitor    = obj.monitor;
             s.tolerance  = cParams.tolerance;
             s.maxIter    = cParams.maxIter;
+
+            %EIFEM
+            s.eifemData = cParams.eifemData;
+            s.activePreconditioner = cParams.activePreconditioner;
+            s.compareEIFEM = cParams.compareEIFEM;
+            %
+
             obj.updater = DisplacementUpdater(s);
         end
 

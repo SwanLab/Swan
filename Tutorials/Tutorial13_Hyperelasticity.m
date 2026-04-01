@@ -9,6 +9,18 @@ classdef Tutorial13_Hyperelasticity < handle
         boundaryConditions
         material, matProp
         functional
+
+        eifemData
+
+        tolSameNode
+        nSubdomains
+
+        referenceMesh
+        bS
+        iC
+        lG
+        iCR
+        discMesh
     end
 
     methods (Access = public)
@@ -19,6 +31,9 @@ classdef Tutorial13_Hyperelasticity < handle
             obj.createBoundaryConditions()
             obj.createMaterial()
             obj.createFunctional()
+
+            obj.createEIFEMdata()
+
             obj.solveHyperelasticityProblem()
         end
 
@@ -36,6 +51,12 @@ classdef Tutorial13_Hyperelasticity < handle
             s.tolerance = 1e-12;
             s.maxIter   = 100;
 
+            % EIFEM
+            s.eifemData = obj.eifemData;
+            s.activePreconditioner = 'PCG_ILU';
+            s.compareEIFEM = false;
+            %
+
             hyperComp = HyperelasticityComputer(s);
             obj.output = hyperComp.compute();
         end
@@ -45,25 +66,46 @@ classdef Tutorial13_Hyperelasticity < handle
 
         function init(obj)
             close all
+
+            %
+            obj.tolSameNode = 1e-10;
+            obj.nSubdomains = [15 5];
         end
 
         function createMesh(obj)
-            meshType = 'Hole';
-            switch meshType
-                case {'Hole', 'HoleDirich'}
-                    IM = Mesh.createFromGiD('holeMeshQuad.m');
-                    obj.mesh = IM;
-                case {'Bending', 'Traction'}
-                    obj.mesh = UnitQuadMesh(20,20);
-                case {'Metamaterial'}
-                    load('NegativePoissonMesh.mat','NegPoissMesh');
-                    s.coord  = NegPoissMesh.coord;
-                    s.connec = NegPoissMesh.connec;
-                    obj.mesh = Mesh.create(s);
-                otherwise
-                    obj.mesh = QuadMesh(10,1,100,100);
-                    %obj.mesh = HexaMesh(2,1,1,20,5,5);
-            end
+            % meshType = 'Hole';
+            % switch meshType
+            %     case {'Hole', 'HoleDirich'}
+            %         IM = Mesh.createFromGiD('holeMeshQuad.m');
+            %         obj.mesh = IM;
+            %     case {'Bending', 'Traction'}
+            %         obj.mesh = UnitQuadMesh(20,20);
+            %     case {'Metamaterial'}
+            %         load('NegativePoissonMesh.mat','NegPoissMesh');
+            %         s.coord  = NegPoissMesh.coord;
+            %         s.connec = NegPoissMesh.connec;
+            %         obj.mesh = Mesh.create(s);
+            %     otherwise
+            %         obj.mesh = QuadMesh(10,1,100,100);
+            %         %obj.mesh = HexaMesh(2,1,1,20,5,5);
+            % end
+
+            % Reference mesh d'EIFEM
+            load('DEF_Q4porL_1.mat');
+            sR.coord     = EIFEoper.MESH.COOR;
+            sR.connec    = EIFEoper.MESH.CN;
+            sR.interType = 'QUADRATIC';
+            obj.referenceMesh = Mesh.create(sR);
+        
+            obj.bS = obj.referenceMesh.createBoundaryMesh();
+        
+            s.nsubdomains   = obj.nSubdomains;
+            s.meshReference = obj.referenceMesh;
+            s.tolSameNode   = obj.tolSameNode;
+        
+            m = MeshCreatorFromRVE.create(s);
+            [obj.mesh,~,obj.iC,~,obj.lG,obj.iCR,obj.discMesh] = m.create();
+
         end
 
         function createBoundaryConditions(obj)
@@ -95,6 +137,56 @@ classdef Tutorial13_Hyperelasticity < handle
             s.mesh         = obj.mesh;
             s.testSpace.u  = LagrangianFunction.create(obj.mesh,2,'P1');
             obj.functional = ElasticityFunctional(s);
+        end
+
+        function createEIFEMdata(obj)
+
+            minx = min(obj.mesh.coord(:,1));
+            maxx = max(obj.mesh.coord(:,1));
+        
+            isLeft  = @(coor) (abs(coor(:,1) - minx) < obj.tolSameNode);
+            isRight = @(coor) (abs(coor(:,1) - maxx) < obj.tolSameNode);
+        
+            Dir{1}.domain    = @(coor) isLeft(coor);
+            Dir{1}.direction = [1,2];
+            Dir{1}.value     = 0;
+        
+            Dir{2}.domain    = @(coor) isRight(coor);
+            Dir{2}.direction = [1,2];
+            Dir{2}.value     = 0;
+        
+            dirichletFun = [];
+
+            for i = 1:numel(Dir)
+                dir = DirichletCondition(obj.mesh, Dir{i});
+                dirichletFun = [dirichletFun, dir];
+            end
+        
+            sBC.pointloadFun = [];
+            sBC.dirichletFun = dirichletFun;
+            sBC.periodicFun  = [];
+            sBC.mesh         = obj.mesh;
+            bc               = BoundaryConditions(sBC);
+        
+            sAp.mesh               = obj.mesh;
+            sAp.boundaryConditions = bc;
+            bcApplier              = BCApplier(sAp);
+            
+
+            obj.eifemData.mesh          = obj.mesh;
+            obj.eifemData.fileNameEIFEM = 'DEF_Q4porL_1.mat';
+            obj.eifemData.referenceMesh = obj.referenceMesh;
+            obj.eifemData.dir           = Dir;
+            obj.eifemData.iC            = obj.iC;
+            obj.eifemData.lG            = obj.lG;
+            obj.eifemData.bS            = obj.bS;
+            obj.eifemData.iCR           = obj.iCR;
+            obj.eifemData.discMesh      = obj.discMesh;
+            obj.eifemData.nSubdomains   = obj.nSubdomains;
+            obj.eifemData.tolSameNode   = obj.tolSameNode;
+            obj.eifemData.bcApplier     = bcApplier;
+            obj.eifemData.nNodes        = obj.mesh.nnodes;
+            obj.eifemData.nDimf         = obj.mesh.ndim;
         end
 
     end

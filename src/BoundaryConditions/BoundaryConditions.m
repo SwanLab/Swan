@@ -10,7 +10,10 @@ classdef BoundaryConditions < handle
 
 
         dirichletFun, dirichlet_dofs, dirichlet_vals, dirichlet_domain
+
         pointloadFun, pointload_dofs, pointload_vals, pointload_domain
+        tractionFun, traction_dofs, traction_vals, traction_domain
+
         periodic_leader, periodic_follower
     
         iVoigt, nVoigt
@@ -25,6 +28,7 @@ classdef BoundaryConditions < handle
         mesh
         dirichletInput
         pointloadInput
+        tractionInput
         periodicInput
     end
     
@@ -38,6 +42,7 @@ classdef BoundaryConditions < handle
             obj.init(cParams)
             obj.createDirichletFun();
             obj.createPointloadFun();
+            obj.createTractionFun();
             obj.createPeriodicConditions();
         end
 
@@ -51,10 +56,35 @@ classdef BoundaryConditions < handle
     methods (Access = private)
 
         function init(obj,cParams)
+            % obj.mesh = cParams.mesh;
+            % obj.dirichletInput = cParams.dirichletFun;
+            % % obj.tractionFun = cParams.pointloadFun;
+            % obj.pointloadInput = cParams.pointloadFun;
+            % obj.periodicInput  = cParams.periodicFun;
+
             obj.mesh = cParams.mesh;
             obj.dirichletInput = cParams.dirichletFun;
-            % obj.tractionFun = cParams.pointloadFun;
-            obj.pointloadInput = cParams.pointloadFun;
+        
+            if isfield(cParams,'pointloadFun')
+                obj.pointloadInput = cParams.pointloadFun;
+            else
+                obj.pointloadInput = [];
+            end
+        
+            if isfield(cParams,'tractionFun')
+                obj.tractionInput = cParams.tractionFun;
+            else
+                obj.tractionInput = [];
+            end
+
+             if isempty(obj.tractionInput) && ~isempty(obj.pointloadInput)
+                obj.tractionInput = obj.pointloadInput;
+            end
+        
+            if isempty(obj.pointloadInput) && ~isempty(obj.tractionInput)
+                obj.pointloadInput = obj.tractionInput;
+            end
+        
             obj.periodicInput  = cParams.periodicFun;
         end
 
@@ -70,6 +100,14 @@ classdef BoundaryConditions < handle
             obj.pointload_vals = vals;
             obj.pointload_domain = domain;
             obj.pointloadFun = fun;
+        end
+
+        function createTractionFun(obj)
+            [dofs,vals,domain,fun] = obj.createBCFun(obj.tractionInput);
+            obj.traction_dofs   = dofs;
+            obj.traction_vals   = vals;
+            obj.traction_domain = domain;
+            obj.tractionFun     = fun;
         end
 
         function createDirichletFun(obj)
