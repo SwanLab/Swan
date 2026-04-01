@@ -45,9 +45,7 @@ p = 5
 class TO_problem(EuclideanOptimizable):
     def __init__(self):
         self.volFrac = []
-        self.Th1 = []
         self.Th2 = []
-        self.Th12 = []
         self.nx = []
         self.ny = []
         self.ux = []
@@ -72,7 +70,7 @@ class TO_problem(EuclideanOptimizable):
 
     def dJ(self, x):
         runner = FreeFemRunner(path+"10_CostGradient.edp")
-        runner.import_variables(Th=Th,Th2=self.Th12,beta=beta,lsLab=lsLabel,labelDir=labelDir,
+        runner.import_variables(Th=Th,Th2=self.Th2,beta=beta,lsLab=lsLabel,labelDir=labelDir,
                                 labelNeu1u=labelNeu1u,labelNeu1d=labelNeu1d,labelNeu2u=labelNeu2u,
                                 labelNeu2d=labelNeu2d,uxVal=self.ux,uyVal=self.uy,AchiVal=self.volFrac)
         return runner.execute()['g[]']
@@ -84,21 +82,21 @@ class TO_problem(EuclideanOptimizable):
     
     def dG(self, x):
         runner = FreeFemRunner(path+"10_ConstraintEqGradient.edp")
-        runner.import_variables(Th=Th,Th2=self.Th12,beta=beta,
+        runner.import_variables(Th=Th,Th2=self.Th2,beta=beta,
                                 lsLab=lsLabel,rInner=rInner)
         return runner.execute()['g[]']
     
     def H(self, x):
         x1,x2 = np.hsplit(x,2)
         runner = FreeFemRunner(path+"10_ConstraintIneq.edp")
-        runner.import_variables(Th=Th,Th1=self.Th1,Th2=self.Th2,phiVal1=x1,
-                                phiVal2=x2,lsLab=lsLabel,dmin=dmin,p=p)
+        runner.import_variables(Th=Th,Th2=self.Th2,phiVal1=x1,
+                                phiVal2=x2,dmin=dmin,p=p)
         return [runner.execute()['H']]
     
     def dH(self,x):
         x1,x2 = np.hsplit(x,2)
         runner = FreeFemRunner(path+"10_ConstraintIneqGradient.edp")
-        runner.import_variables(Th=Th,Th1=self.Th1,Th2=self.Th2,Th12=self.Th12,phiVal1=x1,phiVal2=x2,alpha=alpha,beta=beta,
+        runner.import_variables(Th=Th,Th2=self.Th2,phiVal1=x1,phiVal2=x2,alpha=alpha,beta=beta,
                                 lsLab=lsLabel,p=p,nx=self.nx,ny=self.ny)
         return runner.execute()['g[]']
 
@@ -262,9 +260,7 @@ runner = FreeFemRunner(path+"10_BoundaryRefinement.edp")
 runner.import_variables(Th=Th,phiVal1=xls1,phiVal2=xls2,alpha=alpha,beta=beta,lsLab=lsLabel,rInner=rInner)
 exports = runner.execute()
 
-problem._problem.Th1 = exports['Th1']
 problem._problem.Th2 = exports['Th2']
-problem._problem.Th12 = exports['Th12']
 problem._problem.nx = exports['nx1[]']
 problem._problem.ny = exports['ny1[]']
 
@@ -373,9 +369,7 @@ while normdx > params['tol'] and it <= params['maxit']:
         runner.import_variables(Th=Th,phiVal1=xls1,phiVal2=xls2,alpha=alpha,beta=beta,lsLab=lsLabel,rInner=rInner)
         exports = runner.execute()
 
-        problem._problem.Th1 = exports['Th1']
         problem._problem.Th2 = exports['Th2']
-        problem._problem.Th12 = exports['Th12']
         problem._problem.nx = exports['nx1[]']
         problem._problem.ny = exports['ny1[]']
 

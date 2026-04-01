@@ -4,7 +4,6 @@ load "mmg"
 mesh Th = importMesh("Th");
 real [int] phiVal1 = importArray("phiVal1");
 real [int] phiVal2 = importArray("phiVal2");
-real [int] phiVal;
 real alpha = importVar("alpha");
 real beta = importVar("beta");
 real lsLab = importVar("lsLab");
@@ -18,30 +17,18 @@ for (int i = 0; i < Vh.ndof; ++i) {
   phi[][i] = max(phiVal1[i],phiVal2[i]); /* Intersection */
 }
 
-mesh Th12, Th1, Th2, Th3;
+mesh Th2, Th3;
 meshL ThLInt;
 int [int] lsLabel(1);
 lsLabel[0] = lsLab;
 
-macro updateBoundary12() {
-  Th12 = mmg2d(Th, iso = 1, ls = 0.0, metric = phi[], hmax = 0.05);
-  Th3 = trunc(Th12, region == rInner);
+macro updateBoundary() {
+  Th2 = mmg2d(Th, iso = 1, ls = 0.0, metric = phi[], hmax = 0.05);
+  Th3 = trunc(Th2, region == rInner);
   ThLInt = extract(Th3,label = lsLabel);
 } //
 
-updateBoundary12;
-
-macro updateBoundary1() {
-  Th1 = mmg2d(Th, iso = 1, ls = 0.0, metric = phi1[], hmax = 0.05);
-} //
-
-updateBoundary1;
-
-macro updateBoundary2() {
-  Th2 = mmg2d(Th, iso = 1, ls = 0.0, metric = phi2[], hmax = 0.05);
-} //
-
-updateBoundary2;
+updateBoundary;
 
 fespace Vh1D(ThLInt,P1);
 Vh1D nx, ny, v0, gx0 = dx(phi), gy0 = dy(phi);
@@ -66,22 +53,20 @@ for (int i = 0; i < Vh1D.ndof; ++i) {
     }
 }
 
-fespace Vh12(Th12,P1);
-Vh12 nx12, ny12, v12;
+fespace Vh2(Th2,P1);
+Vh2 nx2, ny2, v2;
 
-problem velextx(nx12,v12) = int2d(Th12)(beta^2*(dx(nx12)*dx(v12)+dy(nx12)*dy(v12)) + nx12*v12)
-                    - int1d(Th12,lsLabel)(beta*nx*v12);
+problem velextx(nx2,v2) = int2d(Th2)(beta^2*(dx(nx2)*dx(v2)+dy(nx2)*dy(v2)) + nx2*v2)
+                    - int1d(Th2,lsLabel)(beta*nx*v2);
 
-problem velexty(ny12,v12) = int2d(Th12)(beta^2*(dx(ny12)*dx(v12)+dy(ny12)*dy(v12)) + ny12*v12)
-                    - int1d(Th12,lsLabel)(beta*ny*v12);
+problem velexty(ny2,v2) = int2d(Th2)(beta^2*(dx(ny2)*dx(v2)+dy(ny2)*dy(v2)) + ny2*v2)
+                    - int1d(Th2,lsLabel)(beta*ny*v2);
 
 velextx;
 velexty;
-nx1 = nx12;
-ny1 = ny12;
+nx1 = nx2;
+ny1 = ny2;
 
-exportMesh(Th1);
 exportMesh(Th2);
-exportMesh(Th12);
 exportArray(nx1[]);
 exportArray(ny1[]);

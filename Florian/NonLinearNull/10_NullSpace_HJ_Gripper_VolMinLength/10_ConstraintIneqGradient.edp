@@ -2,9 +2,7 @@ IMPORT "io.edp"
 load "distance"
 
 mesh Th = importMesh("Th");
-mesh Th1 = importMesh("Th1");
 mesh Th2 = importMesh("Th2");
-mesh Th12 = importMesh("Th12");
 real [int] phiVal1 = importArray("phiVal1");
 real [int] phiVal2 = importArray("phiVal2");
 real alpha = importVar("alpha");
@@ -14,14 +12,14 @@ real p = importVar("p");
 real [int] nxVal = importArray("nx");
 real [int] nyVal = importArray("ny");
 
-int [int] pOm1(7);
-pOm1[0] = 0;
-pOm1[1] = 1;
-pOm1[2] = 2;
-pOm1[3] = 3;
-pOm1[4] = 4;
-pOm1[5] = 5;
-pOm1[6] = 10;
+int [int] pOmega(7);
+pOmega[0] = 0;
+pOmega[1] = 1;
+pOmega[2] = 2;
+pOmega[3] = 3;
+pOmega[4] = 4;
+pOmega[5] = 5;
+pOmega[6] = 10;
 
 fespace Vh(Th,P1);
 fespace Vh0(Th,P0);
@@ -42,14 +40,14 @@ for (int i = 0; i < Th.nbe; i++) {
 distance(Th,phi1,dOm1[]);
 distance(Th,phi2,dOm2[]);
 
-chi1 = exp(-(100.0*dOm1)^2);
-chi2 = exp(-(100.0*dOm2)^2);
+chi1 = exp(-(50.0*dOm1)^2);
+chi2 = exp(-(50.0*dOm2)^2);
 
 int [int] lsLabel(1);
 lsLabel[0] = lsLab;
 
-real P12 = (int1d(Th1,pOm1)(1/((abs(dOm2))^p)))^(-1/p);
-real P21 = (int1d(Th2,lsLabel)(1/((abs(dOm1))^p)))^(-1/p);
+real P12 = (int1d(Th2,pOmega)(chi1/((abs(dOm2)+chi2)^p)))^(-1/p); /* int partial Omega 1 */
+real P21 = (int1d(Th2,pOmega)(chi2/((abs(dOm1)+chi1)^p)))^(-1/p); /* int partial Omega 2 */
 real p12 = -2*P12^2/((P12+P21)^2);
 real p21 = -2*P21^2/((P12+P21)^2);
 
@@ -87,26 +85,26 @@ real q = 3.5, r = 3.5;
 w1 = 2/(1+abs(dOm1)^q*abs(lapldOm1)^r);
 w2 = 2/(1+abs(dOm2)^q*abs(lapldOm2)^r);
 
-fespace Vh12(Th12,P1);
-Vh12 u12, u21, g12, rhs12, rhs21, v12;
+fespace Vh2(Th2,P1);
+Vh2 u12, u21, rhs12, rhs21, v2, g2;
 
-problem uTerm12(u12,v12) = int1d(Th12,lsLabel)(chi2*u12*v12) + int2d(Th12)(w2*(dxdOm2*dx(u12)+dydOm2*dy(u12))*(dxdOm2*dx(v12)+dydOm2*dy(v12)))
-                        - int2d(Th12,pOm1)(chi1*((p*abs(dOm2)^p)/(dOm2^(2*p+1)+1e-6))*v12);
+problem uTerm12(u12,v2) = int1d(Th2,pOmega)(chi2*u12*v2) + int2d(Th2)(w2*(dxdOm2*dx(u12)+dydOm2*dy(u12))*(dxdOm2*dx(v2)+dydOm2*dy(v2)))
+                        - int1d(Th2,pOmega)(chi1*((p*abs(dOm2)^p)/(dOm2^(2*p+1)+chi2))*v2);
 
 uTerm12;
 
-problem uTerm21(u21,v12) = int1d(Th12,pOm1)(chi1*u21*v12) + int2d(Th12)(w1*(dxdOm1*dx(u21)+dydOm1*dy(u21))*(dxdOm1*dx(v12)+dydOm1*dy(v12)))
-                        - int2d(Th12,lsLabel)(chi2*((p*abs(dOm1)^p)/(dOm1^(2*p+1)+1e-6))*v12);
+problem uTerm21(u21,v2) = int1d(Th2,pOmega)(chi1*u21*v2) + int2d(Th2)(w1*(dxdOm1*dx(u21)+dydOm1*dy(u21))*(dxdOm1*dx(v2)+dydOm1*dy(v2)))
+                        - int1d(Th2,pOmega)(chi2*((p*abs(dOm1)^p)/(dOm1^(2*p+1)+chi1))*v2);
 
 uTerm21;
 
-rhs12 = P12^(1+p)*(-chi1*abs(dOm2)^p/(dOm2^(2*p+1)+1e-6)*(dxdOm2*nx+dydOm2*ny)+chi1*kappa/(p*abs(dOm2)^p+1e-6)+chi2*u12/p);
-rhs21 = P21^(1+p)*(-chi2*abs(dOm1)^p/(dOm1^(2*p+1)+1e-6)*(dxdOm1*nx+dydOm1*ny)+chi2*kappa/(p*abs(dOm1)^p+1e-6)+chi1*u21/p);
+rhs12 = -P12^(1+p)*(-chi1*abs(dOm2)^p/(dOm2^(2*p+1)+chi2)*(dxdOm2*nx+dydOm2*ny)+chi1*kappa/(p*abs(dOm2)^p+chi2)+chi2*u12/p);
+rhs21 = -P21^(1+p)*(-chi2*abs(dOm1)^p/(dOm1^(2*p+1)+chi1)*(dxdOm1*nx+dydOm1*ny)+chi2*kappa/(p*abs(dOm1)^p+chi1)+chi1*u21/p);
 
-problem velext(g12,v12) = int2d(Th12)(g12*v12 + beta^2*(dx(g12)*dx(v12)+dy(g12)*dy(v12)))
-                        -int1d(Th12,lsLabel)(beta*(p21*rhs12+p12*rhs21)*v12);
+problem velext(g2,v2) = int2d(Th2)(g2*v2 + beta^2*(dx(g2)*dx(v2)+dy(g2)*dy(v2)))
+                        -int1d(Th2,lsLabel)(-beta*(p21*rhs12+p12*rhs21)*v2);
 
 velext;
-g = g12;
+g = g2;
 
 exportArray(g[]);
