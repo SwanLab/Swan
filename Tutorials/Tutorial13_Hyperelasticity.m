@@ -38,13 +38,14 @@ classdef Tutorial13_Hyperelasticity < handle
         end
 
         function solveHyperelasticityProblem(obj)
+
             s.mesh               = obj.mesh;
             s.boundaryConditions = obj.boundaryConditions;
             s.functional         = obj.functional;
             s.material.tensor    = obj.material;
             s.material.prop      = obj.matProp;
 
-            s.monitoring.set       = true;
+            s.monitoring.set       = false;
             s.monitoring.printInfo = true;
             s.monitoring.printFile = false;
             s.monitoring.fileNameOut = 'NeoElastic';
@@ -53,13 +54,16 @@ classdef Tutorial13_Hyperelasticity < handle
 
             % EIFEM
             s.eifemData = obj.eifemData;
-            s.activePreconditioner = 'PCG_ILU';
-            s.compareEIFEM = false;
+            s.activePreconditioner = 'PCG_EIFEM';
+            s.compareEIFEM = true;
             %
 
             hyperComp = HyperelasticityComputer(s);
             obj.output = hyperComp.compute();
+
         end
+
+
     end
 
     methods (Access = private)

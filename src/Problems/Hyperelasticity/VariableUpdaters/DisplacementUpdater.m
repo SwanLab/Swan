@@ -39,7 +39,7 @@ classdef DisplacementUpdater < handle
                 i = i+1;
                 obj.monitor.printCost('iterU',i,cost,err);
                 obj.monitor.update(length(costArray),{[],[cost],[],[]});
-                obj.monitor.refresh(); 
+                % obj.monitor.refresh(); 
             end
          
             if ~isempty(obj.pcgIterHistoryThisStep)
@@ -130,7 +130,7 @@ classdef DisplacementUpdater < handle
         
             results = struct([]);
         
-            % 1) PCG sense precondicionador
+            % 1) PCG 
             t = tic;
 
             % ztest = Meifem(b);
@@ -171,15 +171,15 @@ classdef DisplacementUpdater < handle
                 results(3).time   = toc(t);
         
                 % 4) PCG + ILU-EIFEM-ILU
-                t = tic;
-                [dx,flag,relres,iter,resvec] = pcg(LHS,b,tol,maxIter,Mcombo,[],x0);
-                results(4).name   = 'PCG_ILU_EIFEM_ILU';
-                results(4).dx     = dx;
-                results(4).flag   = flag;
-                results(4).relres = relres;
-                results(4).iter   = iter;
-                results(4).resvec = resvec;
-                results(4).time   = toc(t);
+                % t = tic;
+                % [dx,flag,relres,iter,resvec] = pcg(LHS,b,tol,maxIter,Mcombo,[],x0);
+                % results(4).name   = 'PCG_ILU_EIFEM_ILU';
+                % results(4).dx     = dx;
+                % results(4).flag   = flag;
+                % results(4).relres = relres;
+                % results(4).iter   = iter;
+                % results(4).resvec = resvec;
+                % results(4).time   = toc(t);
             end
         
             % Guarda les iteracions del solver actiu
