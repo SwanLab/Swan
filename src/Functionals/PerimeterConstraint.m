@@ -22,7 +22,7 @@ classdef PerimeterConstraint < handle
             xD = x.obtainDomainFunction();
             V  = Integrator.compute(xD{1},x.fun.mesh,2);
             V  = V/(obj.tarVolume*obj.totalVolume) - 1;
-            obj.updateEpsilonForNextIteration(xD{1},V);
+            obj.updateEpsilonForNextIteration(x.fun,V);
             [P,dP] = obj.perimeter.computeFunctionAndGradient(x);
             J      = obj.computeFunction(P);
             dJ     = obj.computeGradient(dP);

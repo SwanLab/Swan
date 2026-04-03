@@ -65,7 +65,7 @@ classdef SLERP < handle
             V       = obj.computeVolumeFromTau(g,ls);
             delta   = abs(V-1);
             cond1   = delta<=1e-10;
-            cond2   = delta>=0.05;
+            cond2   = delta>=0.02;
             while (cond1 || cond2)
                 if cond1
                     tLower  = obj.tau;
@@ -77,7 +77,7 @@ classdef SLERP < handle
                 V       = obj.computeVolumeFromTau(g,ls);
                 delta   = abs(V-1);
                 cond1   = delta<=1e-10;
-                cond2   = delta>=0.05;
+                cond2   = delta>=0.02;
             end
         end
 
@@ -85,7 +85,7 @@ classdef SLERP < handle
             obj.tau = 1;
             V       = obj.computeVolumeFromTau(g,ls);
             delta   = abs(V-1);
-            while delta<0.05
+            while delta<0.02
                 obj.tau = obj.tau*2;
                 V       = obj.computeVolumeFromTau(g,ls);
                 delta   = abs(V-1);

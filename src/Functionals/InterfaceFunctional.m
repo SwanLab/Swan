@@ -33,7 +33,7 @@ classdef InterfaceFunctional < handle
             xD = x.obtainDomainFunction();
             V  = Integrator.compute(xD{1},x.fun.mesh,2);
             V  = V/(obj.tarVolume*obj.totalVolume) - 1;
-            obj.updateSignParameter(xD{1},V);
+            obj.updateSignParameter(x.fun,V);
             xR    = obj.filterDesignVariable(xD);
             J     = obj.computeFunction(xD{1},xR{1});
             dJ{1} = obj.computeGradient(xR{1});
@@ -108,10 +108,8 @@ classdef InterfaceFunctional < handle
 
         function updateSignParameter(obj,x,V)
             delta = norm(x.fValues-obj.valueOld);
-            if ~obj.incSign
-                if V<0.1
-                    obj.incSign = true;
-                end
+            if ~obj.incSign && delta==0 && V<0.1
+                obj.incSign = true;
             elseif obj.incSign && delta==0
                 obj.sign = min(obj.sign+obj.ds,obj.signF);
             end

@@ -7,6 +7,7 @@ classdef LevelSetVerticalCantileverGlobalCircle < handle
         materialInterpolator
         physicalProblem
         compliance
+        antiPer
         perimeter
         volume
         cost
@@ -26,6 +27,7 @@ classdef LevelSetVerticalCantileverGlobalCircle < handle
             obj.createElasticProblem();
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
+            obj.createAntiPerimeter();
             obj.createPerimeter(pRelTar);
             obj.createVolumeConstraint();
             obj.createCost();
@@ -50,14 +52,20 @@ classdef LevelSetVerticalCantileverGlobalCircle < handle
         end
 
         function createDesignVariable(obj)
-            s.type = 'Full';
-            g      = GeometricalFunction(s);
-            lsFun  = g.computeLevelSetFunction(obj.mesh);
-            s.fun  = lsFun;
-            s.mesh = obj.mesh;
-            s.type = 'LevelSet';
-            s.plotting = false;
-            ls     = DesignVariable.create(s);
+            s.type             = 'Holes';
+            s.dim              = 2;
+            s.nHoles           = [40,80];
+            s.totalLengths     = [1,2];
+            s.phiZero          = 0.4;
+            s.phases           = [pi/2,0];
+            g                  = GeometricalFunction(s);
+            lsFun              = g.computeLevelSetFunction(obj.mesh);
+            lsFun.setFValues(lsFun.fValues);
+            s.fun              = lsFun;
+            s.mesh             = obj.mesh;
+            s.type             = 'LevelSet';
+            s.plotting         = false;
+            ls                 = DesignVariable.create(s);
             obj.designVariable = ls;
         end
 
@@ -130,6 +138,24 @@ classdef LevelSetVerticalCantileverGlobalCircle < handle
             obj.compliance = c;
         end
 
+        function createAntiPerimeter(obj)
+            sF.mesh       = obj.mesh;
+            sF.filterType = 'PDE';
+            sF.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            f             = Filter.create(sF);
+
+            h             = obj.mesh.computeMeanCellSize();
+            s.mesh        = obj.mesh;
+            s.uMesh       = obj.createBaseDomain();
+            s.filter      = f;
+            s.epsilon     = 3*h;
+            s.value0      = 6;
+            s.signInitial = -0.25;
+            s.signFinal   = 0;
+            s.tarVolume   = 0.4;
+            obj.antiPer   = InterfaceFunctional(s);
+        end
+
         function uMesh = createBaseDomain(obj)
             levelSet         = -ones(obj.mesh.nnodes,1);
             s.backgroundMesh = obj.mesh;
@@ -152,6 +178,8 @@ classdef LevelSetVerticalCantileverGlobalCircle < handle
             s.minEpsilon = 3*h;
             s.value0 = 1;
             s.target = 12.4298*p;
+            s.target0 = 100*s.target;
+            s.tarVolume = 0.4;
             obj.perimeter = PerimeterConstraint(s);
         end
 
@@ -167,7 +195,8 @@ classdef LevelSetVerticalCantileverGlobalCircle < handle
 
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
-            s.weights           = 1;
+            s.shapeFunctions{2} = obj.antiPer;
+            s.weights           = [1,1];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -195,7 +224,7 @@ classdef LevelSetVerticalCantileverGlobalCircle < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 1500;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY','INEQUALITY'};
             s.etaNorm        = 0.01;
