@@ -38,7 +38,7 @@ labelNeu2d = exports['labelNeu2d']
 hmin = exports['meshsiz']
 lsLabel = 10
 rInner = 3
-dmin = 0.05
+dmin = 0.07
 p = 5
 
 @bound_constraints_optimizable()
@@ -430,7 +430,7 @@ fig, axes = plt.subplots(1, 3, figsize=(10, 4))
 
 axes[0].plot(iter, cost, color='b')
 axes[0].set_xlabel('Iter')
-axes[0].set_ylabel('NSA Compliance')
+axes[0].set_ylabel('Dummy load work')
 axes[0].grid(True, linestyle='--', alpha=0.6)
 
 axes[1].plot(iter, Vol, color='b')
