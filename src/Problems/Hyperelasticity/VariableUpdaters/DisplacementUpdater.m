@@ -106,38 +106,24 @@ classdef DisplacementUpdater < handle
 
         function xNew = updateWithNewton(obj,LHS,RHS,x,bc)
 
-            tol = 1e-6;
-            maxIter = 500;
-        
+            tol = 1e-4;
+            maxIter = 100;
+
             b  = -RHS;
             x0 = zeros(size(b));
-        
+
             % Solver directe (referència)
             t = tic;
             deltaX_direct = LHS \ b;
             timeDirect = toc(t);
-        
+
             % Precondicionador ILU
             Milu = obj.createILUpreconditioner(LHS);
-        
-            % Precondicionador EIFEM
-            if obj.compareEIFEM
-                bcApplierCurrent = obj.createCurrentBCApplier(bc);
-                Meifem = obj.createEIFEMpreconditioner(bcApplierCurrent);
-                LHSf   = @(v) LHS*v;
-                Mcombo = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Meifem,Milu);
-            end
-        
+
             results = struct([]);
-        
-            % 1) PCG 
+
+            % 1) PCG
             t = tic;
-
-            % ztest = Meifem(b);
-            % disp(['size(LHS,1) = ', num2str(size(LHS,1))])
-            % disp(['length(b) = ', num2str(length(b))])
-            % disp(['length(ztest) = ', num2str(length(ztest))])
-
             [dx,flag,relres,iter,resvec] = pcg(LHS,b,tol,maxIter,[],[],x0);
             results(1).name   = 'PCG';
             results(1).dx     = dx;
@@ -146,31 +132,37 @@ classdef DisplacementUpdater < handle
             results(1).iter   = iter;
             results(1).resvec = resvec;
             results(1).time   = toc(t);
-        
+
             % 2) PCG + ILU
-            t = tic;
-            [dx,flag,relres,iter,resvec] = pcg(LHS,b,tol,maxIter,Milu,[],x0);
-            results(2).name   = 'PCG_ILU';
-            results(2).dx     = dx;
-            results(2).flag   = flag;
-            results(2).relres = relres;
-            results(2).iter   = iter;
-            results(2).resvec = resvec;
-            results(2).time   = toc(t);
-        
+            % t = tic;
+            % [dx,flag,relres,iter,resvec] = pcg(LHS,b,tol,maxIter,Milu,[],x0);
+            % results(2).name   = 'PCG_ILU';
+            % results(2).dx     = dx;
+            % results(2).flag   = flag;
+            % results(2).relres = relres;
+            % results(2).iter   = iter;
+            % results(2).resvec = resvec;
+            % results(2).time   = toc(t);
+
             if obj.compareEIFEM
                 % 3) PCG + EIFEM
+                bcApplierCurrent = obj.createCurrentBCApplier(bc);
+                Meifem = obj.createEIFEMpreconditioner(bcApplierCurrent);
+
                 t = tic;
                 [dx,flag,relres,iter,resvec] = pcg(LHS,b,tol,maxIter,Meifem,[],x0);
-                results(3).name   = 'PCG_EIFEM';
-                results(3).dx     = dx;
-                results(3).flag   = flag;
-                results(3).relres = relres;
-                results(3).iter   = iter;
-                results(3).resvec = resvec;
-                results(3).time   = toc(t);
-        
+                results(2).name   = 'PCG_EIFEM';
+                results(2).dx     = dx;
+                results(2).flag   = flag;
+                results(2).relres = relres;
+                results(2).iter   = iter;
+                results(2).resvec = resvec;
+                results(2).time   = toc(t);
+
                 % 4) PCG + ILU-EIFEM-ILU
+                % LHSf   = @(v) LHS*v;
+                % Mcombo = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Meifem,Milu);
+                %
                 % t = tic;
                 % [dx,flag,relres,iter,resvec] = pcg(LHS,b,tol,maxIter,Mcombo,[],x0);
                 % results(4).name   = 'PCG_ILU_EIFEM_ILU';
@@ -181,7 +173,7 @@ classdef DisplacementUpdater < handle
                 % results(4).resvec = resvec;
                 % results(4).time   = toc(t);
             end
-        
+
             % Guarda les iteracions del solver actiu
             switch obj.activePreconditioner
                 case 'PCG'
@@ -195,45 +187,46 @@ classdef DisplacementUpdater < handle
                 otherwise
                     idx = find(strcmp({results.name},'PCG'),1);
             end
-        
+
             deltaX = results(idx).dx;
             obj.pcgIterHistoryThisStep(end+1) = results(idx).iter;
-        
+
             % Figura 101: residuals + error respecte directe
             figure(101); clf; hold on; grid on;
             legends = {};
-        
+
             for k = 1:numel(results)
                 resPcg = results(k).resvec / norm(b);
                 resSol = norm(results(k).dx - deltaX_direct) / norm(deltaX_direct);
-        
+
                 semilogy(resPcg,'LineWidth',1.5);
                 semilogy(length(resPcg), resSol, 'o', 'MarkerSize',8, 'LineWidth',1.5);
-        
+
                 legends{end+1} = [results(k).name ' residual'];
                 legends{end+1} = [results(k).name ' error'];
             end
-        
+
             xlabel('iteration');
             ylabel('residual / error');
             legend(legends,'Location','best');
             title('Comparativa de solucionadors lineals');
-        
+
             % Figura 102: iteracions
             figure(102); clf;
             bar(categorical({results.name}), [results.iter]);
             ylabel('PCG iterations');
             title('Comparativa d''iteracions');
-        
+
             % Figura 103: temps
             figure(103); clf;
-            bar(categorical([{ 'Direct' }, {results.name}]), [timeDirect, [results.time]]);
+            bar(categorical([{'Direct'}, {results.name}]), [timeDirect, [results.time]]);
             ylabel('CPU time (s)');
             title('Comparativa de temps');
-        
+
             % Actualització de Newton amb el solver escollit
             xNew = x + deltaX;
         end
+          
 
         function [e, cost] = computeErrorCost(obj,u,bc,costOld)
             cost = obj.functional.computeCost(u,bc); % To include extWork
@@ -272,12 +265,14 @@ classdef DisplacementUpdater < handle
         function Meifem = createEIFEMpreconditioner(obj,bcApplierCurrent)
 
             d = obj.eifemData;
-        
+
             s.RVE         = TrainedRVE(d.fileNameEIFEM);
             s.mesh        = obj.createCoarseMesh(d.referenceMesh,d.nSubdomains,d.tolSameNode);
             s.DirCond     = d.dir;
             s.nSubdomains = d.nSubdomains;
             eifem         = EIFEM(s);
+        
+            % eifem.updateCoarseStiffness(alpha);
         
             ss.ddDofManager = obj.createDomainDecompositionDofManager(d);
             ss.EIFEMsolver  = eifem;
@@ -287,6 +282,7 @@ classdef DisplacementUpdater < handle
         
             eP = Preconditioner.create(ss);
             Meifem = @(r) eP.apply(r);
+
         end
 
         function mCoarse = createCoarseMesh(obj,mR,nSubdomains,tolSameNode)

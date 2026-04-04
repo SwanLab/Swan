@@ -1,6 +1,6 @@
 classdef TrainedRVE < handle
 
-    properties (GetAccess = public , SetAccess = private)
+    properties (GetAccess = public , SetAccess = public)
         ndimf
         Kcoarse
         Udef
@@ -13,6 +13,12 @@ classdef TrainedRVE < handle
         dUrb
         dUdef
         dU
+
+
+        %EIFEM hiperelàstic
+        Kcoarse0
+        Udef0
+        Urb0
     end
 
     properties (Access = private)
@@ -47,6 +53,10 @@ classdef TrainedRVE < handle
                     obj.Urb     = EIFEoper.RECONSTRUCTION.RB_DISP.BASIS*...
                                   EIFEoper.RECONSTRUCTION.RB_DISP.coeff;
                 end
+
+                obj.Kcoarse0 = obj.Kcoarse;
+                obj.Udef0    = obj.Udef;
+                obj.Urb0     = obj.Urb;
                 
                 if isfield(EIFEoper,'U')
                     obj.U = EIFEoper.U;

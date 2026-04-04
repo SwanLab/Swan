@@ -47,6 +47,17 @@ classdef EIFEM < handle
 
     end
 
+    methods (Access = public)
+
+        function updateCoarseStiffness(obj,alpha)
+            obj.RVE.Kcoarse = alpha * obj.RVE.Kcoarse0;
+            obj.Kel = repmat(obj.RVE.Kcoarse,[1,1,obj.mesh.nelem]);
+            obj.LHS = obj.computeLHS();
+            obj.reactions = obj.computeReactions();
+        end
+    
+    end
+
     methods (Access = private)
 
         function init(obj,cParams)
@@ -171,16 +182,18 @@ classdef EIFEM < handle
 
         function Fcoarse = projectExternalForce(obj,Ffine)
             Udef    = obj.RVE.Udef;
-            Urb     = obj.RVE.Urb;
-            Ut      = (Udef + Urb)';
+            %Urb     = obj.RVE.Urb;
+            Ut      = (Udef)'; % + Urb dins del parèntesi
             Fcoarse = Ut*Ffine;
         end
+
+
 
         function u = reconstructSolution(obj,uCoarse)
             nElem = obj.mesh.nelem;
             Udef  = obj.RVE.Udef;
-            Urb   = obj.RVE.Urb;
-            U     = Udef + Urb;
+            % Urb   = obj.RVE.Urb;
+            U     = Udef; % +Urb
             dofConec = obj.dispFun.getDofConnec();
             for ielem = 1:nElem
                 uCelem = uCoarse(dofConec(ielem,:));
@@ -188,7 +201,7 @@ classdef EIFEM < handle
             end
         end
 
-         function plotSolution(obj,x,mesh,row,col,iter,flag)
+        function plotSolution(obj,x,mesh,row,col,iter,flag)
             if nargin <7
                  flag =0;
             end
