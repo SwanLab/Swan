@@ -50,6 +50,8 @@ classdef DisplacementUpdater < handle
 
             obj.pcgMeanHistoryPerStep(end+1) = meanCG_thisStep;
 
+            fprintf('Load step acabat: Newton iters = %d, PCG mean iters/Newton = %.2f\n', i, meanCG_thisStep);
+
             figure(202); clf;
             bar(obj.pcgMeanHistoryPerStep); hold on; grid on;
             xlabel('Load step');
