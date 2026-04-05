@@ -54,13 +54,13 @@ classdef LevelSetVerticalCantileverGlobalCircle < handle
         function createDesignVariable(obj)
             s.type             = 'Holes';
             s.dim              = 2;
-            s.nHoles           = [40,80];
+            s.nHoles           = [50,100];
             s.totalLengths     = [1,2];
             s.phiZero          = 0.4;
             s.phases           = [pi/2,0];
             g                  = GeometricalFunction(s);
             lsFun              = g.computeLevelSetFunction(obj.mesh);
-            lsFun.setFValues(lsFun.fValues);
+            lsFun.setFValues(lsFun.fValues - 1);
             s.fun              = lsFun;
             s.mesh             = obj.mesh;
             s.type             = 'LevelSet';
@@ -224,14 +224,14 @@ classdef LevelSetVerticalCantileverGlobalCircle < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 1500;
+            s.maxIter        = 2000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY','INEQUALITY'};
             s.etaNorm        = 0.01;
             s.etaNormMin     = 0.01;
-            s.gJFlowRatio    = 0.7;
-            s.etaMax         = 1;
-            s.etaMaxMin      = 0.01;
+            s.gJFlowRatio    = 4.0;
+            s.etaMax         = 10;
+            s.etaMaxMin      = 0.05;
             s.primalUpdater  = obj.primalUpdater;
             s.gif            = false;
             s.gifName        = [];
