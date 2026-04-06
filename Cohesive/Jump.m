@@ -28,7 +28,7 @@ classdef Jump < FeFunction
             R = obj.computeRotationMatrix(uIn); % 2x2xnElems
             connJump  = obj.mesh.connec;
             nNodeJump = obj.mesh.nnodes;
-            fValuesJ   = zeros(nNodeJump,obj.jumpDim); % nNode x 2
+            fValuesJ   = zeros(nNodeJump,obj.jumpDim); % nNodeJump x 2
             nnodesElemU = uIn.nDofsElem/uIn.ndimf;
             for n = 1:nnodesElemU 
                 uNode = obj.computeDispNodes(uIn,n);

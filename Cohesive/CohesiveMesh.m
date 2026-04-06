@@ -32,11 +32,12 @@ classdef CohesiveMesh < handle
             obj.init(cParams)
             
             edgesInCohElem = obj.detectFracturedEdges(cParams);
+            newCoord    = obj.duplicateNodes();
+
             centerElemsInEdge         = obj.computeCenterElements();
             normals                           = obj.computeNormals();
             [isLeft, isRight]                 = obj.computeIsLeftIsRight(centerElemsInEdge,normals,edgesInCohElem);
 
-            newCoord    = obj.duplicateNodes();
             newConnec   = obj.updateConnecOfLeftElements(isLeft, isRight);
             newCoord    = obj.shiftCoordOfLeftAndRightElements(newCoord,normals);
             

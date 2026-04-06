@@ -16,9 +16,15 @@ classdef DisplacementUpdater < handle
 
         function [u,rFun,costArray,iter] = update(obj,u,bc,costArray)
             i = 0; err = 1; costOld = costArray(end);
+
+                fValuesArray(:,:,1) = u.fValues;%per comprobar
+
             while (abs(err) > obj.tol) && (i < obj.maxIter)
                 LHS = obj.functional.computeHessian(u);
                 RHS = obj.functional.computeGradient(u,bc);
+
+                fValuesArray(:,:,i+2) = obj.computeDisplacement(LHS,RHS,u,bc); %per comprobar
+
                 u.setFValues(obj.computeDisplacement(LHS,RHS,u,bc));
 
                 [err, cost] = obj.computeErrorCost(u,bc,costOld);

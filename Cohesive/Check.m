@@ -2,42 +2,22 @@ clear
 clc
 close all
 
-u     = -0.1;
-Kelas = 100;
+u1     = 0.4;
 Kcoh  = 1e8;
 Dc    = 0.001;
 Df    = 0.1;
-
-R = computeReaction(u, Kelas, Kcoh, Dc, Df)
-
+Kelas = 1e6;
 
 
+A = Kcoh;
+B = Kelas*(Df-Dc) - Kcoh*(2*u1-Df);
+C = -Kcoh*(Df*u1-u1^2);
 
+coefficients = [A, B, C];
+roots = roots(coefficients);
 
+u2 = roots(roots > 0);
 
+jump = u1-u2;
+d =(u1-u2-Dc)/(Df-Dc)
 
-
-
-function R = computeReaction(u, Kelas, Kcoh, Dc, Df)
-
-    fun = @(u2) Kelas*u2 - traction(u - u2, Kcoh, Dc, Df);
-    u2 = fzero(fun, u/2);
-
-    Delta = u - u2;
-    R = traction(Delta, Kcoh, Dc, Df);
-
-end
-
-function t = traction(Delta, K, Dc, Df)
-
-    if Delta < Dc
-        d = 0;
-    elseif Delta <= Df
-        d = (Delta - Dc)/(Df - Dc);
-    else
-        d = 1;
-    end
-
-    t = (1 - d)*K*Delta;
-
-end

@@ -5,7 +5,6 @@ classdef TutorialCohesive < handle
     end
 
     properties (Access = private)
-        mesh
         boundaryConditions
         functional
         solverType
@@ -27,10 +26,8 @@ classdef TutorialCohesive < handle
             s.mesh = obj.cohesiveMesh.fullMesh;
             s.boundaryConditions = obj.boundaryConditions;
             s.functional = obj.functional;
-
             s.tolerance              = 1e-8;
             s.maxIter                = 20;
-
             s.solverType             = obj.solverType;
             
             CohComp = CohesiveComputer(s);
@@ -61,7 +58,7 @@ classdef TutorialCohesive < handle
 
         function createBoundaryConditions(obj)
             bc.type = 'DisplacementTractionY';
-            bc.values = 0.1;
+            bc.values = 0.4;
             obj.boundaryConditions  = BoundaryConditionsCreator(obj.cohesiveMesh.fullMesh,bc);
         end
 
@@ -87,7 +84,7 @@ classdef TutorialCohesive < handle
             k.type    = 'ISOTROPIC';
             k.ptype   = 'ELASTIC';
             k.ndim    = obj.cohesiveMesh.fullMesh.ndim;
-            k.young   = ConstantFunction.create(100,obj.cohesiveMesh.fullMesh);
+            k.young   = ConstantFunction.create(1e6,obj.cohesiveMesh.fullMesh);
             k.poisson = ConstantFunction.create(0, obj.cohesiveMesh.fullMesh);
             k.cohesiveMesh = obj.cohesiveMesh;
             m    = Material.create(k);

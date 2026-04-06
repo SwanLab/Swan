@@ -33,7 +33,7 @@ classdef TractionBiliniarUncoupled < handle
             obj.jumpFinal = cParams.jumpFinal;
         end
 
-        function gradT = computeGradientMatrix(obj, jump, xV) %secant
+        function gradT = computeSecantGradientMatrix(obj, jump, xV) %secant
             d = obj.computeDamage(jump);
             unoZero = ConstantFunction.create([1,0],jump.mesh);
             zeroUno = ConstantFunction.create([0,1],jump.mesh);
@@ -50,19 +50,22 @@ classdef TractionBiliniarUncoupled < handle
         end
 
         function gradT = computeTangentGradientMatrix(obj, jump, xV) %tangent
-            d    = obj.computeDamage(jump);
-            ddot = obj.computeDamageDerivative(jump);
+
+            % jump.setFValues([0,0.0505;0,0.0505]); %Tests
+
+            d    = obj.computeDamage(jump);           % correct
+            ddot = obj.computeDamageDerivative(jump); % correct
             unoZero = ConstantFunction.create([1,0],jump.mesh);
             zeroUno = ConstantFunction.create([0,1],jump.mesh);
             dtdt = obj.K * ((1-DP(d,unoZero)) - Expand(DP(ddot,unoZero).*DP(jump,unoZero),2));
             dndn = obj.K * ((1-DP(d,zeroUno)) - Expand(DP(ddot,zeroUno).*DP(jump,zeroUno),2));
-
-            dtdt = dtdt.evaluate(xV); 
-            dndn = dndn.evaluate(xV);
+            
+            dtdt = dtdt.evaluate(xV);  %correct
+            dndn = dndn.evaluate(xV); %correct
             ngauss = size(dtdt,3); 
             nelem  = size(dtdt,4);
             gradT =  [dtdt                    ,zeros(1,1,ngauss,nelem);
-                      zeros(1,1,ngauss,nelem), dndn                  ];
+                      zeros(1,1,ngauss,nelem), dndn                  ]; %size??
             % dtdt.evaluate(xV) 1 x ngaussxnelem
             % Expand(dtdt.evaluate(xV)) 1 x 1 x ngaussxnelem
         end
