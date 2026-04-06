@@ -60,7 +60,7 @@ classdef Jump < FeFunction
                 for j = 1:ngauss % Bci = ndimf x ngauss x nelem
                     Bci(:,j,:) = Ni(j) *  pagemtimes(Li,Ri);
                 end
-                Bc(:,i,:,:) = Bci;
+                Bc(:,i,:,:) = Bci; %Bc = ndimf(2) x nDofElem(8) x nGauss(2) x nElem
             end
         end
 
@@ -99,7 +99,7 @@ classdef Jump < FeFunction
                 coordsMesh = obj.cohesiveMesh.fullMesh.coord(connecMesh',:);
                 disp  = uIn.fValues(connecMesh',:);
                     deformedCoords = coordsMesh + disp;
-                Re = obj.computElementalRotationMatrix(deformedCoords);
+                Re = obj.computeElementalRotationMatrix(deformedCoords);
                 Rall(:,:,j) = Re;
             end
         end
@@ -111,7 +111,7 @@ classdef Jump < FeFunction
             uVals = reshape(uVals.',[2 1 size(uVals,1)]);
         end
 
-        function Re = computElementalRotationMatrix(obj,deformedCoords)
+        function Re = computeElementalRotationMatrix(obj,deformedCoords)
                 midPoints= 0.5*[deformedCoords(1,1)+deformedCoords(4,1),deformedCoords(1,2)+deformedCoords(4,2);
                              deformedCoords(2,1)+deformedCoords(3,1),deformedCoords(2,2)+deformedCoords(3,2)];
                 m = [midPoints(2,1)-midPoints(1,1),midPoints(2,2)-midPoints(1,2)];
