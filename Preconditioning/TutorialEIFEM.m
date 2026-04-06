@@ -54,7 +54,12 @@ classdef TutorialEIFEM < handle
             xSol = LHSr\RHSr;
 
             [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSfun,RHSr,x0,Mmult,tol,xSol,obj.meshDomain,obj.bcApplier);     
-            [uCG,residualCG,errCG,errAnormCG]    = PCG.solve(LHSfun,RHSr,x0,Mid,tol,xSol);     
+            [uCG,residualCG,errCG,errAnormCG]    = PCG.solve(LHSfun,RHSr,x0,Mid,tol,xSol);
+
+            fprintf('TutorialEIFEM:\n');
+            fprintf('  CG + ILU-EIFEM-ILU: %d iteracions\n', length(residualPCG));
+            fprintf('  CG sense precondicionador: %d iteracions\n', length(residualCG));
+
             obj.plotResidual(residualPCG,errPCG,errAnormPCG,residualCG,errCG,errAnormCG)
         end
 
