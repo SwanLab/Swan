@@ -15,7 +15,6 @@ p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
 mR              = createReferenceMesh();
 switch p.Training
     case 'Multiscale'
-        p.Sampling = 'Isolated';
         material   = createMaterial(mR);
         mesh       = mR;
         bMesh      = mesh.createSingleBoundaryMesh();
@@ -26,6 +25,34 @@ switch p.Training
         s.dirichletFun  = createDirichletFunction(bMesh);
         e  = ElasticHarmonicExtension(s);
         [T,lambda,K,Kcoarse] = e.solve();
+
+        if strcmpi(p.Sampling, 'Oversampling')
+            [nS,dI]      = defineNumberOfSubdomains(p.Sampling);
+            mD           = createMeshDomain(mR,nS);
+            [material]     = createMaterial(mD);
+            s.mesh           = mR;
+            s.material       = material;
+            s.domainIndices  = dI;
+            s.nSubdomains    = nS;
+            m= EIFEMTraining(s);
+            data          = m.train();
+            [data.material] = createMaterial(mR);
+
+            Kf = 0.5 * (K + K');
+            % Normalization
+            for i=1:size(T,2)
+                phi=T(:,i);
+                val = phi' * Kf * phi;
+                if val < 1e-12
+                    warning(['Modo ', num2str(i), ' casi rígido o mal condicionado']);
+                    val = 1e-12;  % evitar división por cero o sqrt negativo
+                end
+                T(:,i)=phi/sqrt(val);
+            end
+            T = real(T);
+            Kcoarse=T'*K*T;
+            Kcoarse=0.5 * (Kcoarse + Kcoarse');
+        end
 
     case 'EIFEM'
         [nS,dI]      = defineNumberOfSubdomains(p.Sampling);
@@ -46,14 +73,14 @@ switch p.Training
         Kcoarse  = EIFEoper.Kcoarse;
 end
 
-string = "Airfoil_Isolated.mat";
+string = "Airfoil_Quadratic.mat";
 
 % Guarda el .mat per cert radi
 FileName=fullfile('AbrilTFGfiles','Data',"Airfoil",string);
 
 switch p.Training
     case 'Multiscale'
-        save(FileName,"T","Kcoarse","mesh");
+        save(FileName,"T","Kcoarse");
     case 'EIFEM'
         save(FileName, "EIFEoper","T","Kcoarse","mesh");
 end
@@ -71,6 +98,7 @@ function mS = createReferenceMesh()
     filename = 'DEF_Q8_wing_1.mat';
     load(filename);
     s.coord    = EIFEoper.MESH.COOR;
+    % s.coord = [s.coord(:,1),s.coord(:,3),s.coord(:,2)];
     s.connec   = EIFEoper.MESH.CN;
 
     maxC= max(s.coord);
@@ -125,6 +153,7 @@ end
 
 function dF = createDirichletFunction(bMesh)
 s.mesh = bMesh;
+s.order= 1;
 s.type = 'continuous';
 cf = CoarseFunctions(s);
 dF = cf.getAnalytical();

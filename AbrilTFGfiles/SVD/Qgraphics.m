@@ -8,9 +8,9 @@ clc; clear;
 
 %% LOAD DATA
 p.nelem=20;
-p.Training  = 'Multiscale';         % 'EIFEM'/'Multiscale'
-p.Sampling ='Isolated';     %'Isolated'/'Oversampling'
-p.Inclusion='HoleRaul';    %'Material'/'Hole'/'HoleRaul
+p.Training  = 'EIFEM';         % 'EIFEM'/'Multiscale'
+p.Sampling ='Oversampling';     %'Isolated'/'Oversampling'
+p.Inclusion='Material';    %'Material'/'Hole'/'HoleRaul
 meshName    = p.nelem+"x"+p.nelem;
 
 % NN
@@ -49,13 +49,15 @@ end
 %% Graphics
 
 % Q graphic
+pos=[271,316,1451,568];
 tiledlayout(2,5,'TileSpacing','compact','Padding','compact');
 for i=1:10
     ax=nexttile;
-    plot(r,svdValues(:,i),r,HOvalues(:,i), r,NNvalues(:,i),'LineWidth', 1);
-    xlabel('r');
-    ylabel("Q"+i);
-    title("Q"+ i);
-    legend('Exact','HO','NN');
+    plot(r,svdValues(:,i),r,HOvalues(:,i), r,NNvalues(:,i),'LineWidth', 1.1);
+    xlabel('p');
+    ylabel("\alpha"+i);
+    title("\alpha"+ i);
+    legend('Dataset','HO','NN');
     grid on
 end
+set(gcf, 'Position', pos);

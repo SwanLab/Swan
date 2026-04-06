@@ -8,10 +8,10 @@ clc; clear; close all;
 
 %% INPUTS
 
-t1=-0.01:0.05:0.5;
-t2=-0.01:0.05:0.5;
-% t1=-0.01;
-% t2=-0.01;
+% t1=-0.01:0.05:0.5;
+% t2=-0.01:0.05:0.5;
+t1=0.499;
+t2=0.7;
 
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
 p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
@@ -26,7 +26,7 @@ for i=1:size(t1,2)
         switch p.Training
             case 'Multiscale'
                 p.Sampling = 'Isolated';
-                material   = createMaterial(mR,[1 1],'Material',g);
+                [material,mT]   = createMaterial(mR,[1 1],'Material',g);
                 mesh       = mR;
                 bMesh      = mesh.createSingleBoundaryMesh();
                 s.mesh          = mesh;
@@ -36,7 +36,7 @@ for i=1:size(t1,2)
                 s.dirichletFun  = createDirichletFunction(bMesh);
                 e  = ElasticHarmonicExtension(s);
                 [T,lambda,K,Kcoarse] = e.solve();
-                V  = Integrator.compute(mTr.designVariable.fun,mR,2);
+                V  = Integrator.compute(mT.designVariable.fun,mR,2);
 
             case 'EIFEM'
                 [nS,dI]      = defineNumberOfSubdomains(p.Sampling);

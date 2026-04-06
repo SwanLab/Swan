@@ -13,8 +13,8 @@ clc; clear; close all;
 r=0.5;
 
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
-p.Inclusion  = 'Material';        %'Material'/'Hole'/'HoleRaul'
-p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
+p.Inclusion  = 'Hole';        %'Material'/'Hole'/'HoleRaul'
+p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
 p.nelem      = 20;
 meshName     = p.nelem+"x"+p.nelem;
 
@@ -45,12 +45,13 @@ for j = 1:size(r,2)
 
         case 'EIFEM'
             [nS,dI]      = defineNumberOfSubdomains(p.Sampling);
-            material     = createMaterial(mR,nS,p.Inclusion,g);
+            [material,mT]     = createMaterial(mR,nS,p.Inclusion,g);
             s.mesh           = mR;
             s.r              = radius;
             s.material       = material;
             s.domainIndices  = dI;
-            s.nSubdomains    = nS;            
+            s.nSubdomains    = nS;
+            s.unfittedMesh = mT.unfittedMesh;
             m= EIFEMTraining(s);
             data          = m.train();
             data.material = createMaterial(mR,[1 1],p.Inclusion,g);
@@ -227,7 +228,7 @@ function g=computeLevelSet(r)
     g                 = GeometricalFunction(gPar);
 end
 
-function material = createMaterial(mesh,nSubdomains,inclusionType,g)
+function [material,m] = createMaterial(mesh,nSubdomains,inclusionType,g)
     s.mesh           = mesh;
     s.inclusionType  = inclusionType;
     s.nSubdomains    = nSubdomains;

@@ -97,9 +97,9 @@ classdef MaterialTraining < handle
             sUm.boundaryMesh   = obj.mD.createBoundaryMesh;
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(-ls);
+            obj.unfittedMesh = uMesh;
             Mprint=UnfittedMesh(sUm);
             Mprint.compute(ls);
-            obj.unfittedMesh = Mprint;
             funLS        = CharacteristicFunction.create(uMesh);
             s.filterType = 'LUMP';
             s.mesh       = obj.mD;

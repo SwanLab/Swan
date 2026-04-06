@@ -15,7 +15,6 @@ classdef CoarseTesting_AbrilV2< handle
         nSubdomains
         r
         centroids
-        Print
         ic
         icr
         lg
@@ -79,11 +78,11 @@ classdef CoarseTesting_AbrilV2< handle
             tol = 1e-8;
             x0  = zeros(size(RHSf));
             
-            tic  % SOLVE THE CASE WITH STANDARD ITERATIVE SOLVER
-            [~,obj.residualCG,obj.errCG, obj.errAnormCG] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier,false);
+            tic  % SOLVE THE CASE WITH STANDARD ILU
+            [~,obj.residualCG,obj.errCG, obj.errAnormCG] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
             toc
-            tic % SOLVE THE CASE WITH PRECONDITIONING
-            [uPCG,obj.residualPCG,obj.errPCG,obj.errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier,obj.Print);
+            tic % SOLVE THE CASE WITH PRECONDITIONING ILU+EIFEM+ILU
+            [uPCG,obj.residualPCG,obj.errPCG,obj.errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
             toc
             xFull = obj.bcApplier.reducedToFullVectorDirichlet(uPCG);
             
@@ -97,7 +96,7 @@ classdef CoarseTesting_AbrilV2< handle
             s.fValues = reshape(Ufull,2,[])';
             obj.SolExact=LagrangianFunction(s); %Exact sol
 
-            %obj.computeSubdomainCentroid();
+            obj.print(uPCG,"SolPCG");
             %CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'TestCoarseAbril', obj.r, obj.centroids);
             %CoarsePlotSolution(RealFun, obj.meshDomain, obj.bcApplier,'TestRealAbril', obj.r, obj.centroids);
 
@@ -138,6 +137,31 @@ classdef CoarseTesting_AbrilV2< handle
             legend({'PCG','CG'})
         end
 
+        function print(obj,sol,fileName)
+                z.mesh      = obj.meshDomain;
+                z.order     = 'P1';
+                z.fValues   = reshape(sol,z.mesh.ndim,[])';
+                uFeFun = LagrangianFunction(z);%
+                uMeshFun = obj.unfittedMesh.obtainFunctionAtUnfittedMesh(uFeFun);
+                
+                fvalues = [uMeshFun.innerMeshFunction.fValues;
+                    uMeshFun.innerCutMeshFunction.fValues];
+
+                s.coord = [uMeshFun.innerMeshFunction.mesh.coord;
+                    uMeshFun.innerCutMeshFunction.mesh.coord];
+
+                s.connec = [uMeshFun.innerMeshFunction.mesh.connec;
+                    uMeshFun.innerCutMeshFunction.mesh.connec  + max(uMeshFun.innerMeshFunction.mesh.connec(:))];
+                
+                mh = Mesh.create(s);
+                ss.mesh = mh;
+                ss.fValues = fvalues;
+                ss.order = 'P1';
+                ss.ndimf = size(fvalues,2)
+                u = LagrangianFunction(ss);
+                u.print(fileName,'Paraview')
+        end
+
     end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -153,7 +177,6 @@ classdef CoarseTesting_AbrilV2< handle
             obj.r           = cParams.r;
             obj.nSubdomains = size(obj.r');
             obj.tolSameNode = 1e-10;
-            obj.Print       = cParams.Print;
         end
 
         function createMesh(obj)
@@ -225,33 +248,7 @@ classdef CoarseTesting_AbrilV2< handle
                 s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[delta,0*delta];
             mS = Mesh.create(s);
         end
-
-
-        function [x0,y0]= computeSubdomainCentroid(obj)
-            [Nx, Ny] = size(obj.r);
-            xMin=min(obj.meshDomain.coord(:,1));
-            xMax=max(obj.meshDomain.coord(:,1));
-            yMin=min(obj.meshDomain.coord(:,2));
-            yMax=max(obj.meshDomain.coord(:,2));
-
-            dx = obj.xmax-obj.xmin;
-            dy = obj.ymax-obj.ymin;
-
-            x_center = xMin + dx/2 : dx : xMax - dx/2;
-            y_center = yMin + dy/2 : dy : yMax - dy/2;
-
-            [x0, y0] = meshgrid(x_center, y_center);
-        end
-
         
-        function uMesh = computeUnfittedMesh(~,bgMesh,levelSet)
-            sUm.backgroundMesh = bgMesh;
-            sUm.boundaryMesh   = bgMesh.createBoundaryMesh();
-            uMesh              = UnfittedMesh(sUm);
-            uMesh.compute(levelSet);
-        end
-
-
         function mCoarse = createCoarseMesh(obj)
             s.nsubdomains   = obj.nSubdomains; %nx ny
             s.meshReference = obj.createReferenceCoarseMesh();
@@ -321,6 +318,7 @@ classdef CoarseTesting_AbrilV2< handle
             sUm.boundaryMesh   = obj.meshDomain.createBoundaryMesh;
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(-ls);
+            obj.unfittedMesh=uMesh;
             funLS        = CharacteristicFunction.create(uMesh);
             s.filterType = 'LUMP';
             s.mesh       = obj.meshDomain;
@@ -351,6 +349,22 @@ classdef CoarseTesting_AbrilV2< handle
             g             = GeometricalFunction(s);
             phiFun        = g.computeLevelSetFunction(obj.meshDomain);
             ls            = phiFun.fValues;
+         end
+
+         function [x0,y0]= computeSubdomainCentroid(obj)
+            % [Nx, Ny] = size(obj.r);
+            xMin=min(obj.meshDomain.coord(:,1));
+            xMax=max(obj.meshDomain.coord(:,1));
+            yMin=min(obj.meshDomain.coord(:,2));
+            yMax=max(obj.meshDomain.coord(:,2));
+
+            dx = obj.xmax-obj.xmin;
+            dy = obj.ymax-obj.ymin;
+
+            x_center = xMin + dx/2 : dx : xMax - dx/2;
+            y_center = yMin + dy/2 : dy : yMax - dy/2;
+
+            [x0, y0] = meshgrid(x_center, y_center);
         end
 
         function m=createMaterialInterpolator(obj)

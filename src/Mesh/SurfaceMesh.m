@@ -2,6 +2,7 @@ classdef SurfaceMesh < Mesh
     
     properties (Access = public)
         geometryType = 'Surface';
+        globalConnec
     end
     
     properties (Access = private)

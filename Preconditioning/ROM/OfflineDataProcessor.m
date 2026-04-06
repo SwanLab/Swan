@@ -32,6 +32,27 @@ classdef OfflineDataProcessor < handle
             PhiD         = obj.computeDeformationalModes(uDEFSpaceFun);
             uDefFun      = obj.createDeformationalFunction(PhiD);
 
+            %% FOR AIRFOIL 
+            % PsiD=obj.LHS*PhiD;
+            % 
+            % s.mesh=obj.mesh;
+            % s.type='continuous';
+            % cf=CoarseFunctions(s);
+            % Vfun2=cf.getAnalytical();
+            % for i=1:24
+            %     g2(i)=Vfun2{i}.project('P1');
+            % end
+            % for i=1:24
+            %     v(:,i)=reshape(g2(1,i).fValues',1,[])';
+            % end
+            % PhiR       = obj.getRigidBodyModes(uRBfun(1));
+            % 
+            % Ud=PhiD*inv(PsiD'*PhiD)*PsiD'*v;
+            % Ur=PhiR*inv(PhiR'*PhiR)*(PhiR'*v-PhiR'*PsiD*(inv(PsiD'*PhiD)*PsiD'*v));
+            % T=Ur+Ud;
+            % Kcoarse=Ud'*obj.LHS*Ud;
+
+            %%
             PsiD       = obj.computeSelfEquilibratedLagrange(PhiD);
             LMDefFun   = obj.createDeformationalFunction(PsiD);
 

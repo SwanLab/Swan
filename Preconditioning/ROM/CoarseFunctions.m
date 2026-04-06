@@ -181,10 +181,15 @@ classdef CoarseFunctions < handle
                 end
             end
             g = 3;
-            order = [1 5 7 3 2 6 8 4];
 
-           idx = reshape((order-1)*g + (1:g)', 1, []);
-           f = f(idx);
+            % for generic case
+            % order = [1 5 7 3 2 6 8 4];
+
+            % for airfoil
+            order = [5 1 2 6 7 3 4 8];
+
+            idx = reshape((order-1)*g + (1:g)', 1, []);
+            f = f(idx);
         end
 
 

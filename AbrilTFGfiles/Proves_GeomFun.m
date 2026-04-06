@@ -64,6 +64,36 @@ phiFun   = g.computeLevelSetFunction(mesh);
 obj.levelSet = phiFun;
 ls       = phiFun.fValues;
 
+
+%% COMPOSITION OF LEVELSETS 3D
+
+mesh= TetraMesh(6,6,6,20,20,20);
+r=zeros(3,3,3);
+r(:,:,1)=[  0.2,0.5,0.8
+            0.2,0.5,0.8
+            0.2,0.5,0.8];
+r(:,:,2)=r(:,:,1);
+r(:,:,3)=r(:,:,1);
+
+[Nx, Ny, Nz] = size(r);
+
+[x0,y0,z0]=ComputeSubdomainCentroids3D(r,mesh);
+
+paramMatrix(Nx,Ny,Nz) = struct('type',[],'radius',[],'xCoorCenter',[],'yCoorCenter',[],'zCoorCenter',[]);
+
+for i = 1:Nx
+    for j = 1:Ny
+        paramMatrix(i,j).type        = type(i,j);
+        paramMatrix(i,j).type        = "CrossedSquare";
+        paramMatrix(i,j).radius      = r(i,j);
+        paramMatrix(i,j).length      = 2;
+        paramMatrix(i,j).tCross      = 0.2;
+        paramMatrix(i,j).tFrame      = 0.2;
+        paramMatrix(i,j).xCoorCenter = x0(i,j);
+        paramMatrix(i,j).yCoorCenter = y0(i,j);
+    end
+end
+
 %% REFERENCE LEVEL SET
 
 % gPar.type         = 'CrossedSquare';
@@ -117,6 +147,49 @@ uMesh.plot();
 mS=uMesh.createInnerMesh();
 mS.print("LatticeMesh","paraview");
 
+
+%% NACA 3D
+
+lOld= 8;
+hOld=4;
+nxOld=420;
+nyOld=round(nxOld / lOld * hOld / 0.8);
+hy = hOld/nyOld;
+aspect=lOld/hOld;
+
+Mesh.length   = 1.05;
+Mesh.height   = 0.2;
+scale         = lOld/Mesh.length;
+Mesh.nx       = round(nxOld/scale);
+Mesh.ny       = nyOld * (Mesh.height / hOld);
+% refMesh = TriangleMesh(Mesh.length,Mesh.height,Mesh.nx,Mesh.ny);
+% refMesh = TriangleMesh(1.05,Mesh.height,60,11);
+
+
+refMesh= TetraMesh(Mesh.length,Mesh.height,0.5,60,20,10);
+gPar.type     = 'Naca';
+gPar.m        = 0.022;
+gPar.p        = 0.4;
+gPar.t        = 0.15;
+gPar.chord    = 1;
+gPar.AoA      = 5;
+gPar.xLE      = (Mesh.length - gPar.chord) / 2;
+gPar.yLE      = Mesh.height/2;
+gPar.wall     = 0.02;
+g        = GeometricalFunction(gPar);
+phiFun   = g.computeLevelSetFunction(refMesh);
+obj.levelSet = phiFun;
+ls       = phiFun.fValues;
+
+sUm.backgroundMesh = refMesh;
+sUm.boundaryMesh   = refMesh.createBoundaryMesh;
+uMesh              = UnfittedMesh(sUm);
+uMesh.compute(ls);
+uMesh.plot();
+% 
+mS=uMesh.createInnerMesh();
+mS.print("AirfoilMesh","paraview");
+%% Functions
 function [x0,y0] = ComputeSubdomainCentroids(param,mesh)
     Nx = size(param,2);
     Ny = size(param,1);
@@ -131,4 +204,24 @@ function [x0,y0] = ComputeSubdomainCentroids(param,mesh)
     y_center = ymin + dy/2 : dy : ymax - dy/2;
 
     [x0, y0] = meshgrid(x_center, y_center);
+end
+
+function [x0,y0,z0] = ComputeSubdomainCentroids3D(param,mesh)
+    Nx = size(param,2);
+    Ny = size(param,1);
+    Nz = size(param,3);
+    xmin = min(mesh.coord(:,1));
+    xmax = max(mesh.coord(:,1));
+    ymin = min(mesh.coord(:,2));
+    ymax = max(mesh.coord(:,2));
+    zmin = min(mesh.coord(:,3));
+    zmax = max(mesh.coord(:,3));
+    dx = (xmax - xmin)/Nx;
+    dy = (ymax - ymin)/Ny;
+    dz = (zmax - zmin)/Nz;
+    x_center = xmin + dx/2 : dx : xmax - dx/2;
+    y_center = ymin + dy/2 : dy : ymax - dy/2;
+    z_center = zmin + dz/2 : dz : zmax - dz/2;
+    [x0, y0, z0] = ndgrid(x_center, y_center, z_center);
+
 end

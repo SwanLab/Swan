@@ -12,7 +12,7 @@ clc; clear;
 %% LOAD DATA
 p.Training  = 'EIFEM';            % 'EIFEM'/'Multiscale'
 p.Inclusion  ='Material';         % 'Material'/'Hole'/'HoleRaul
-p.Sampling   ='Isolated';         % 'Isolated'/'Oversampling'
+p.Sampling   ='Oversampling';         % 'Isolated'/'Oversampling'
 p.nelem      = 20;
 meshName    =  p.nelem+"x"+p.nelem;
 
@@ -54,10 +54,11 @@ test.T=zeros(size(training.T,1),size(test.r,2));
 for i=1:size(test.r,2)
      mR=createReferenceMesh(p,test.r(i));
      test.mesh{i}=mR;
+     g=computeLevelSet(test.r(i));
     switch p.Training
         case 'EIFEM'
             [nS,dI]      = defineNumberOfSubdomains(p.Sampling);
-            material     = createMaterialTraining(mR, test.r(i),nS,p.Inclusion);
+            material     = createMaterial(mR,nS,p.Inclusion,g);
             s.mesh           = mR;
             s.r              = test.r(i);
             s.material       = material;
@@ -65,16 +66,17 @@ for i=1:size(test.r,2)
             s.nSubdomains    = nS;            
             m= EIFEMTraining(s);
             data          = m.train();
-            data.material = createMaterialTraining(mR, test.r(i) ,[1 1],p.Inclusion);
+            data.material = createMaterial(mR,[1 1],p.Inclusion,g);
             z = OfflineDataProcessor(data);
             EIFEoper = z.computeROMbasis();
             test.T(:,i)=EIFEoper.U(:);
         case 'Multiscale'
             p.Sampling = 'Isolated';
-            material   = createMaterialTraining(mR, test.r(i),[1 1],p.Inclusion);
+            material   = createMaterial(mR,[1 1],p.Inclusion,g);
             mesh       = mR;
             bMesh      = mesh.createSingleBoundaryMesh();
             s.mesh=bMesh;
+            s.type='continuous';
             cf=CoarseFunctions(s);
             f = cf.getAnalytical();
             s.mesh          = mesh;
@@ -150,28 +152,33 @@ test.err3=vecnorm(abs(test.T-test.T3))/norm(test.T);
 %% PLOT ERROR
 
 figure
+tiledlayout(1,2)
+pos= [572,507,978,371];
+set(gcf, 'Position', pos) 
+nexttile
 plot(training.r,training.err1,training.r,training.err2,training.r,training.err3,LineWidth=1.5);
-legend("NN","HO","SVD+NN");
+legend("NN","SVD+HO","SVD+NN");
 title("Training Error vs r");
 xlabel('r');
 ylabel('error');
-
+ylim([0 0.03])
 
 %% PLOT TEST
 
-figure
+nexttile
 plot(test.r,test.err1,test.r,test.err2,test.r,test.err3,LineWidth=1.5);
-legend("NN","HO","SVD+NN");
+legend("NN","SVD+HO","SVD+NN");
 title("Test Error vs r ");
 xlabel('r');
 ylabel('error');
+ylim([0 0.03])
 
-figure
-plot(test.r,test.err2,LineWidth=1.5);
-legend("SVD+HO")
-title("Test Error vs r ");
-xlabel('r');
-ylabel('error');
+% figure
+% plot(test.r,test.err2,LineWidth=1.5);
+% legend("SVD+HO")
+% title("Test Error vs r ");
+% xlabel('r');
+% ylabel('error');
 
 
 %% FUNCTIONS
@@ -253,4 +260,21 @@ function [nS,dI] = defineNumberOfSubdomains(type)
             nS = [5 5]; %nx ny
             dI = [3 3];
     end
+end
+
+function g=computeLevelSet(r)
+    gPar.type         = 'Circle';
+    gPar.radius       = r;
+    gPar.xCoorCenter  = 0;
+    gPar.yCoorCenter  = 0;
+    g                 = GeometricalFunction(gPar);
+end
+
+function material = createMaterial(mesh,nSubdomains,inclusionType,g)
+    s.mesh           = mesh;
+    s.inclusionType  = inclusionType;
+    s.nSubdomains    = nSubdomains;
+    s.geomFun        = g;
+    m = MaterialTraining(s);
+    material = m.create();
 end

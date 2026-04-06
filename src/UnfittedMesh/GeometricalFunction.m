@@ -321,6 +321,10 @@ classdef GeometricalFunction < handle
                     paramsList = cParams.paramsList(:);
                     fH = @(x) obj.computePattern(x,paramsList);
                     obj.fHandle = fH;
+
+                case 'Naca'
+                    fH = @(x) obj.createNacaHole(x1(x),x2(x),cParams);
+                    obj.fHandle = fH;
             end
 
         end
@@ -383,6 +387,78 @@ classdef GeometricalFunction < handle
 
             idx = sub2ind(size(x0), i, j);
         end
+
+        function fV = createNacaHole(x,y,s)
+            c   = s.chord;
+            p   = s.p;
+            m   = s.m;
+            t   = s.t;
+            AoA = deg2rad(s.AoA);
+            wall= s.wall;
+        
+            x0      = s.xLE;
+            y0      = s.yLE/c;
+            offsetX = (x - x0)/c;
+            offsetY = y/c - y0;
+
+            xNaca    = offsetX.*cos(AoA) - offsetY.*sin(AoA);
+            yNaca    = offsetX.*sin(AoA) + offsetY.*cos(AoA);
+
+            if (m > 1e-6)
+               yc   = (xNaca>=0 & xNaca<=p).*(m./p^2.*(2*p*xNaca-xNaca.^2))+...
+                    (xNaca>p & xNaca<=1).*(m./(1-p)^2.*((1-2*p)+2*p*xNaca-xNaca.^2));
+               dydx = (xNaca>=0 & xNaca<=p).*(2*m/p^2.*(p-xNaca))+...
+                    (xNaca>p & xNaca<=1).*(2*m/(1-p)^2.*(p-xNaca));
+            else
+                yc   = 0;
+                dydx = 0;
+            end
+          
+            yt   = (xNaca>=0 & xNaca<=1).*(5*t*(0.2969*sqrt(xNaca)-0.1260*xNaca-0.3516*xNaca.^2+0.2843*xNaca.^3-0.1036*xNaca.^4));
+            
+            theta = atan(dydx);
+            yu    = yc + yt.*cos(theta);
+            yl    = yc - yt.*cos(theta);
+            
+            f(:,:,:,1)   = yl - yNaca;
+            f(:,:,:,2)   = yNaca - yu;
+            f(:,:,:,3)   = xNaca - 1; 
+            f(:,:,:,4)   = -xNaca;
+            
+            % fV = -max(f,[],4);  
+            fOuter= max(f,[],4); 
+
+            scale = 1 - wall;
+
+            xNaca = xNaca / scale;
+            yNaca = yNaca / scale;
+
+             if (m > 1e-6)
+               yc   = (xNaca>=0 & xNaca<=p).*(m./p^2.*(2*p*xNaca-xNaca.^2))+...
+                    (xNaca>p & xNaca<=1).*(m./(1-p)^2.*((1-2*p)+2*p*xNaca-xNaca.^2));
+               dydx = (xNaca>=0 & xNaca<=p).*(2*m/p^2.*(p-xNaca))+...
+                    (xNaca>p & xNaca<=1).*(2*m/(1-p)^2.*(p-xNaca));
+            else
+                yc   = 0;
+                dydx = 0;
+            end
+          
+            yt   = (xNaca>=0 & xNaca<=1).*(5*t*(0.2969*sqrt(xNaca)-0.1260*xNaca-0.3516*xNaca.^2+0.2843*xNaca.^3-0.1036*xNaca.^4));
+            
+            theta = atan(dydx);
+            yu    = yc + yt.*cos(theta)-wall*cos(theta);
+            yl    = yc - yt.*cos(theta)+wall*cos(theta);
+
+            f2(:,:,:,1)   = yl - yNaca;
+            f2(:,:,:,2)   = yNaca - yu;
+            f2(:,:,:,3)   = xNaca - 1; 
+            f2(:,:,:,4)   = -xNaca;
+
+            fInner= max(f2,[],4); 
+            % fV=fInner;
+            fV = max(fOuter, -fInner);
+             
+        end 
 
     end
 end
