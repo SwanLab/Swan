@@ -12,8 +12,8 @@ clc; clear; close all;
 r=0.5;
 
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
-p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
-p.nelem      = 20;
+p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
+p.nelem      = 7;
 meshName     = p.nelem+"x"+p.nelem;
 
 %% DATA GENERATION
@@ -135,7 +135,7 @@ writematrix(kdata,kFileName);
 
 function mS = createReferenceMesh(p)
     n =p.nelem;
-    m = TetraMesh(1,1,1,n,n,n);
+    m = HexaMesh(1,1,1,n,n,n);
 
     s.coord=m.coord;
     s.connec=m.connec;
@@ -204,7 +204,7 @@ function [nS,dI] = defineNumberOfSubdomains(type)
             nS = [1 1 1]; %nx ny
             dI = [1 1 1];
         case 'Oversampling'
-            nS = [3 3 3]; %nx ny
+            nS = [4 4 4]; %nx ny
             dI = [2 2 2];
     end
 end

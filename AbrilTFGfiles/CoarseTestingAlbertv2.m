@@ -100,10 +100,10 @@ classdef CoarseTestingAlbertv2 < handle
             s.order = 'P1';
             s.fValues = reshape(xFull,2,[])';
             uFun = LagrangianFunction(s);
-            uFun.print('TestCoarseAlbert','Paraview');
+            % uFun.print('TestCoarseAlbert','Paraview');
 
-            %obj.computeSubdomainCentroid();
-            %CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'Real', obj.r, obj.centroids);
+            obj.computeSubdomainCentroid();
+            CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'Real', obj.r, obj.centroids);
 
             figure
             plot(residualPCG,'linewidth',2);

@@ -11,3 +11,7 @@ AlbertTFG files/opt Kv3_long pol1 test30 learning0_05 hidden1024x1_1 error1e-5.m
 AbrilTFGfiles/Data/EIFEM/Sphere/T_NN.mat
 AbrilTFGfiles/Data/EIFEM/Sphere/DataT.csv
 AbrilTFGfiles/Data/EIFEM/Lattice/DataT.csv
+AbrilTFGfiles/Data/EIFEM/Lattice/T_NN.mat
+AbrilTFGfiles/Data/EIFEM/Lattice/T_NN.mat
+AbrilTFGfiles/Data/EIFEM/Lattice/T_NN.mat
+AbrilTFGfiles/Data/EIFEM/Lattice/T_NN.mat

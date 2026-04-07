@@ -26,6 +26,7 @@ classdef CoarseTesting_AbrilV2< handle
         discMesh
         boundaryConditions
         bcApplier
+        ddDofManager
 
         tolSameNode
         data
@@ -87,6 +88,9 @@ classdef CoarseTesting_AbrilV2< handle
             xFull = obj.bcApplier.reducedToFullVectorDirichlet(uPCG);
             
 
+            uDomain = obj.bcApplier.reducedToFullVectorDirichlet(uPCG);
+            uDomain = obj.ddDofManager.global2local(uDomain);
+            
             % LAGRANGIAN FUN SOLUTIONS
             s.mesh     = obj.meshDomain;
             s.ndimf    = obj.meshDomain.ndim;
@@ -96,7 +100,7 @@ classdef CoarseTesting_AbrilV2< handle
             s.fValues = reshape(Ufull,2,[])';
             obj.SolExact=LagrangianFunction(s); %Exact sol
 
-            obj.print(uPCG,"SolPCG");
+            % obj.print(uPCG,"SolPCG");
             %CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'TestCoarseAbril', obj.r, obj.centroids);
             %CoarsePlotSolution(RealFun, obj.meshDomain, obj.bcApplier,'TestRealAbril', obj.r, obj.centroids);
 
@@ -176,7 +180,7 @@ classdef CoarseTesting_AbrilV2< handle
             obj.params      = p;
             obj.r           = cParams.r;
             obj.nSubdomains = size(obj.r');
-            obj.tolSameNode = 1e-10;
+            obj.tolSameNode = 1e-11;
         end
 
         function createMesh(obj)
@@ -237,15 +241,15 @@ classdef CoarseTesting_AbrilV2< handle
             obj.xmax = max(x1);
             obj.ymin = min(x2);
             obj.ymax = max(x2);
-            delta = 1e-9;
+            delta = 1e-8;
             s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
-                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-0*delta];
+                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-delta];
             s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
-                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-delta,0*delta];
+                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-delta,delta];
             s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
-                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[delta,-0*delta];
+                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[delta,-delta];
             s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
-                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[delta,0*delta];
+                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[delta,delta];
             mS = Mesh.create(s);
         end
         
@@ -404,7 +408,7 @@ classdef CoarseTesting_AbrilV2< handle
 
             PL.domain    = @(coor) isRight(coor);
             PL.direction = 2;
-            PL.value     = 1;       %Set displacement intensity 
+            PL.value     = -1;       %Set displacement intensity 
         end 
 
         function [bc,Dir,PL] = createBoundaryConditions(obj,mesh)
@@ -536,6 +540,7 @@ classdef CoarseTesting_AbrilV2< handle
             eP = Preconditioner.create(ss);
             Mcoarse = @(r) eP.apply(r);
 
+            obj.ddDofManager=ss.ddDofManager;
             close all % Ho he afegit pq s'obren fig sense info
         end
 
