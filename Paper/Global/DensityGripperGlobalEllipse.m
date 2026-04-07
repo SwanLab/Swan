@@ -1,4 +1,4 @@
-classdef DensityGripperGlobalCircle < handle
+classdef DensityGripperGlobalEllipse < handle
 
     properties (Access = private)
         mesh
@@ -19,7 +19,7 @@ classdef DensityGripperGlobalCircle < handle
 
     methods (Access = public)
 
-        function obj = DensityGripperGlobalCircle(pRelTar)
+        function obj = DensityGripperGlobalEllipse(pRelTar)
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -35,8 +35,8 @@ classdef DensityGripperGlobalCircle < handle
             obj.createPrimalUpdater();
             obj.createOptimizer();
 
-            saveas(gcf,['Paper/Global/MonitoringDensityGripperGlobalCircle',num2str(pRelTar),'.fig']);
-            obj.designVariable.fun.print(['Paper/Global/DensityGripperGlobalCircle',num2str(pRelTar),'fValues']);
+            saveas(gcf,['Paper/Global/MonitoringDensityGripperGlobalEllipse',num2str(pRelTar),'.fig']);
+            obj.designVariable.fun.print(['Paper/Global/DensityGripperGlobalEllipse',num2str(pRelTar),'fValues']);
         end
 
     end
@@ -160,10 +160,19 @@ classdef DensityGripperGlobalCircle < handle
         end
 
         function createPerimeter(obj,p)
-            sF.mesh       = obj.mesh;
-            sF.filterType = 'PDE';
-            sF.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-            f             = Filter.create(sF);
+            CAnisotropic = [tand(85), 0; 0, 1/tand(85)];
+            aniAlphaDeg = 0;
+            R = [cosd(aniAlphaDeg),-sind(aniAlphaDeg)
+                sind(aniAlphaDeg), cosd(aniAlphaDeg)];
+            CGlobal = R*CAnisotropic*R';
+
+            sF.filterType   = 'PDE';
+            sF.mesh         = obj.mesh;
+            sF.boundaryType = 'Neumann';
+            sF.metric       = 'Anisotropy';
+            sF.trial        = LagrangianFunction.create(obj.mesh,1,'P1');
+            sF.A            = ConstantFunction.create(CGlobal,obj.mesh);
+            f               = Filter.create(sF);
 
             h         = obj.mesh.computeMeanCellSize();
             s.mesh    = obj.mesh;
@@ -172,7 +181,7 @@ classdef DensityGripperGlobalCircle < handle
             s.epsilon = 3*h;
             s.minEpsilon = 3*h;
             s.value0 = 1;
-            s.target = 4.7227*p;
+            s.target = 7.6897*p;
             s.target0 = 100*s.target;
             s.tarVolume = 0.5;
             obj.perimeter = PerimeterConstraint(s);
@@ -180,6 +189,7 @@ classdef DensityGripperGlobalCircle < handle
 
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
+            s.filter = obj.filter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
             s.volumeTarget = 0.5;
             s.uMesh = obj.createBaseDomain();
