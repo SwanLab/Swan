@@ -13,22 +13,21 @@ s.Option    = [];                 % 'Dataset'/'NN'/'HO'/ 'Hybrid'
 s.nelem     =  20;                %  Mesh refining
 s.Print     = false;
 
-% Definition of Subdomains
-% s.r= ones(10,10)*0.1;
-s.r = ones(3,10)*0.8;
+% UNIFORM DISTRIBUTION
+s.r = ones(3,10)*0.3;
 % s.r = [0.1,0.2,0.3,0.4,0.5
 %          0.1,0.2,0.3,0.4,0.5
 %          0.1,0.2,0.3,0.4,0.5];
 
+%NON-UNIFORM DISTRIBUTION
 % s.r=[0.1,0.2,0.3
 %      0.4,0.5,0.6
 %      0.7,0.8,0.8];
 
 
-
 %% DATASET OPTION
 s.Option = 'Dataset';
-DSet= CoarseTesting_AbrilV2(s);
+DSet= CoarseTesting_2D(s);
 DSet.compute();
 
 %% HO OPTION
@@ -57,11 +56,8 @@ hold on
 plot(Hybd.residualPCG,'linewidth',1.5)
 hold ON
 plot(NN.residualPCG,'linewidth',1.5)
-hold on
-plot(DSet.residualCG,'linewidth',1.5)
 set(gca, 'YScale', 'log')
 xlabel('Iteration')
 ylabel('Residual')
-title("Residual 10x10, r=0.1 - EIFEM Oversampling")
-% legend({'PCG Dataset', 'PCG HO', 'PCG Hybrid','PCG NN'});
+title("Residual Evolution EIFEM Oversampling")
 legend({'CG Dataset', 'CG HO', 'CG Hybrid','CG NN','CG + ILU-EIFEM-ILU'});

@@ -9,6 +9,7 @@ classdef CoarseTesting_AbrilV2< handle
         residualCG
         errCG
         errAnormCG
+        residualILU
     end
 
     properties (Access = private)
@@ -59,14 +60,17 @@ classdef CoarseTesting_AbrilV2< handle
             [LHS,RHS,~] = obj.createElasticProblem();
 
             % EXACT SOLUTION
+            tic
             LHSf   = @(x) LHS*x;
+            t_direct=toc
             RHSf   = RHS;
             Usol   = LHS\RHS;
             Ufull  = obj.bcApplier.reducedToFullVectorDirichlet(Usol); 
             
 
             % PRECONDITIONERS
-            Milu         = obj.createILUpreconditioner(LHS);
+            Milu        = obj.createILUpreconditioner(LHS);
+            Mid         = @(r)r;
             switch obj.params.Option
                 case {'Dataset','NN','Hybrid'}
                     Mcoarse     = obj.createCoarseNNPreconditioner(mR,dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);
@@ -78,13 +82,17 @@ classdef CoarseTesting_AbrilV2< handle
 
             tol = 1e-8;
             x0  = zeros(size(RHSf));
-            
-            tic  % SOLVE THE CASE WITH STANDARD ILU
-            [~,obj.residualCG,obj.errCG, obj.errAnormCG] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
-            toc
+
+            tic %SOLVE THE CASE WITH STANDARD CG
+            [~,obj.residualCG,errCG, errCG] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
+            t_CG=toc
+            tic  % SOLVE THE CASE WITH CG+ ILU
+            [~,obj.residualILU,errILU, errAnormILU] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
+            t_ILU=toc
             tic % SOLVE THE CASE WITH PRECONDITIONING ILU+EIFEM+ILU
+            tic
             [uPCG,obj.residualPCG,obj.errPCG,obj.errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
-            toc
+            t_PCG=toc
             xFull = obj.bcApplier.reducedToFullVectorDirichlet(uPCG);
             
 
@@ -113,7 +121,7 @@ classdef CoarseTesting_AbrilV2< handle
             nexttile
             plot(obj.residualPCG,'linewidth',2)
             hold on
-            plot(obj.residualCG,'linewidth',2)
+            plot(obj.residualILU,'linewidth',2)
             set(gca, 'YScale', 'log')
             xlabel('Iteration')
             ylabel('Residual')
@@ -123,7 +131,7 @@ classdef CoarseTesting_AbrilV2< handle
             nexttile
             plot(obj.errPCG,'linewidth',2)
             hold on
-            plot(obj.errCG,'linewidth',2)
+            plot(errILU,'linewidth',2)
             set(gca, 'YScale', 'log')
             xlabel('Iteration')
             ylabel('||error||_{L2}')
@@ -133,7 +141,7 @@ classdef CoarseTesting_AbrilV2< handle
             nexttile
             plot(obj.errAnormPCG,'linewidth',2)
             hold on
-            plot(obj.errAnormCG,'linewidth',2)
+            plot(errAnormILU,'linewidth',2)
             set(gca, 'YScale', 'log')
             xlabel('Iteration')
             ylabel('Energy norm')
@@ -322,7 +330,9 @@ classdef CoarseTesting_AbrilV2< handle
             sUm.boundaryMesh   = obj.meshDomain.createBoundaryMesh;
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(-ls);
-            obj.unfittedMesh=uMesh;
+            Mprint=UnfittedMesh(sUm);
+            Mprint.compute(ls);
+            obj.unfittedMesh=Mprint;
             funLS        = CharacteristicFunction.create(uMesh);
             s.filterType = 'LUMP';
             s.mesh       = obj.meshDomain;
@@ -340,8 +350,8 @@ classdef CoarseTesting_AbrilV2< handle
             [Nx,Ny] = size(obj.r);
             GeomParams(Nx,Ny) = struct('type',[],'radius',[],'xCoorCenter',[],'yCoorCenter',[]);
 
-            for i = 1:obj.nSubdomains(1,1)
-                for j = 1:obj.nSubdomains(1,2)
+            for i = 1:obj.nSubdomains(1,2)
+                for j = 1:obj.nSubdomains(1,1)
                     GeomParams(i,j).type        = "Circle";
                     GeomParams(i,j).radius      = obj.r(i,j);
                     GeomParams(i,j).xCoorCenter = x0(i,j);

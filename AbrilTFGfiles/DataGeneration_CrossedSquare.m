@@ -10,8 +10,8 @@ clc; clear; close all;
 
  % t1=-0.01:0.05:0.499;
  % t2=-0.01:0.05:0.7;
-t1=-0.01;
-t2=-0.01;
+t1=0.25;
+t2=0.15;
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
 p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
 p.nelem      = 50;

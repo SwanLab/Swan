@@ -95,7 +95,7 @@ function mS = createReferenceMesh()
     % a.fileName = file;
     % s = FemDataContainer(a);
     % mS = s.mesh;
-    filename = 'DEF_Q8_wing_1.mat';
+    filename = 'DEF_por3D.mat';
     load(filename);
     s.coord    = EIFEoper.MESH.COOR;
     % s.coord = [s.coord(:,1),s.coord(:,3),s.coord(:,2)];
@@ -166,8 +166,8 @@ function [nS,dI] = defineNumberOfSubdomains(type)
             nS = [1 1 1]; %nx ny
             dI = [1 1 1];
         case 'Oversampling'
-            nS = [5 1 1]; %nx ny
-            dI = [3 1 1];
+            nS = [3 3 1]; %nx ny
+            dI = [2 2 1];
     end
 end
 
