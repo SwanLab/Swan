@@ -38,8 +38,8 @@ labelNeu2d = exports['labelNeu2d']
 hmin = exports['meshsiz']
 lsLabel = 10
 rInner = 3
-dmin = 0.07
-p = 5
+dmin = 0.0
+pExp = 5
 
 @bound_constraints_optimizable()
 class TO_problem(EuclideanOptimizable):
@@ -53,26 +53,29 @@ class TO_problem(EuclideanOptimizable):
     def x0(self):
         runner = FreeFemRunner(path+"10_InitialGuess.edp")
         runner.import_variables(Th=Th)
-        x01 = runner.execute()['phioI[]']
-        x02 = runner.execute()['phi[]']
+        x01 = runner.execute()['phi1[]']
+        x02 = runner.execute()['phi2[]']
     
         return np.hstack((x01,x02))
 
     def J(self, x):
+        x1,x2 = np.hsplit(x,2)
         runner = FreeFemRunner(path+"10_Cost.edp")
         runner.import_variables(Th=Th,labelDir=labelDir,labelNeu1u=labelNeu1u,
                                 labelNeu1d=labelNeu1d,labelNeu2u=labelNeu2u,
-                                labelNeu2d=labelNeu2d,AchiVal=self.volFrac)
+                                labelNeu2d=labelNeu2d,AchiVal=self.volFrac,
+                                phiVal1=x1,phiVal2=x2)
         exports = runner.execute()
         self.ux = exports['ux[]']
         self.uy = exports['uy[]']
-        return exports['J']
+        return exports['Jtot']
 
     def dJ(self, x):
         runner = FreeFemRunner(path+"10_CostGradient.edp")
         runner.import_variables(Th=Th,Th2=self.Th2,beta=beta,lsLab=lsLabel,labelDir=labelDir,
                                 labelNeu1u=labelNeu1u,labelNeu1d=labelNeu1d,labelNeu2u=labelNeu2u,
-                                labelNeu2d=labelNeu2d,uxVal=self.ux,uyVal=self.uy,AchiVal=self.volFrac)
+                                labelNeu2d=labelNeu2d,uxVal=self.ux,uyVal=self.uy,AchiVal=self.volFrac,
+                                nx=self.nx,ny=self.ny)
         return runner.execute()['g[]']
     
     def G(self, x):
@@ -90,14 +93,14 @@ class TO_problem(EuclideanOptimizable):
         x1,x2 = np.hsplit(x,2)
         runner = FreeFemRunner(path+"10_ConstraintIneq.edp")
         runner.import_variables(Th=Th,Th2=self.Th2,phiVal1=x1,
-                                phiVal2=x2,dmin=dmin,p=p)
+                                phiVal2=x2,dmin=dmin,p=pExp,alpha=alpha)
         return [runner.execute()['H']]
     
     def dH(self,x):
         x1,x2 = np.hsplit(x,2)
         runner = FreeFemRunner(path+"10_ConstraintIneqGradient.edp")
         runner.import_variables(Th=Th,Th2=self.Th2,phiVal1=x1,phiVal2=x2,alpha=alpha,beta=beta,
-                                lsLab=lsLabel,p=p,nx=self.nx,ny=self.ny)
+                                lsLab=lsLabel,p=pExp,nx=self.nx,ny=self.ny)
         return runner.execute()['g[]']
 
     def accept(self, params, results):
@@ -119,7 +122,7 @@ class TO_problem(EuclideanOptimizable):
 ## OPTIMIZATION PARAMETERS
 dTime = 0.001
 elRadius = 10
-No = 50
+No = 15
 params = {"dt": dTime*hmin*elRadius,
           "itnormalisation": No,
           "save_only_N_iterations": 1,

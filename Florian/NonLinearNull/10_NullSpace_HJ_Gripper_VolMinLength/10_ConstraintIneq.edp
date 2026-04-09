@@ -7,6 +7,7 @@ real [int] phiVal1 = importArray("phiVal1");
 real [int] phiVal2 = importArray("phiVal2");
 real dmin = importVar("dmin");
 real p = importVar("p");
+real alpha = importVar("alpha");
 
 int [int] pOmega(7);
 pOmega[0] = 0;
@@ -30,8 +31,8 @@ for (int i = 0; i < Th.nbe; i++) {
 distance(Th,phi1,dOm1[]);
 distance(Th,phi2,dOm2[]);
 
-chi1 = exp(-(20.0*dOm1)^2);
-chi2 = exp(-(20.0*dOm2)^2);
+chi1 = 0.5*(1+tanh(dOm1/alpha));
+chi2 = 0.5*(1+tanh(dOm2/alpha));
 
 real P12 = (int1d(Th2,pOmega)(chi1/((abs(dOm2)+chi2)^p)))^(-1/p); /* int partial Omega 1 */
 real P21 = (int1d(Th2,pOmega)(chi2/((abs(dOm1)+chi1)^p)))^(-1/p); /* int partial Omega 2 */

@@ -7,10 +7,19 @@ int labelNeu1d = importVar("labelNeu1d");
 int labelNeu2u = importVar("labelNeu2u");
 int labelNeu2d = importVar("labelNeu2d");
 real [int] AchiVal = importArray("AchiVal");
+real [int] phiVal1 = importArray("phiVal1");
+real [int] phiVal2 = importArray("phiVal2");
 
 fespace Vh(Th,P1);
 fespace Vh0(Th,P0);
+Vh phi1, phi2, phi;
 Vh0 Achi;
+
+phi1[] = phiVal1;
+phi2[] = phiVal2;
+for (int i = 0; i < Vh.ndof; ++i) {
+  phi[][i] = max(phiVal1[i],phiVal2[i]); /* Intersection */
+}
 
 Achi[] = AchiVal;
 
@@ -25,8 +34,10 @@ problem elasticity([ux,uy],[vx,vy]) = int2d(Th)(Achi*mu*(2.0*dx(ux)*dx(vx) + (dx
 
 elasticity;
 
-real J = int1d(Th,labelNeu1u)(-uy) + int1d(Th,labelNeu1d)(uy) + int1d(Th,labelNeu2u)(2*uy) + int1d(Th,labelNeu2d)(-2*uy);
+real J = int1d(Th,labelNeu1u)(-0.25*uy) + int1d(Th,labelNeu1d)(0.25*uy) + int1d(Th,labelNeu2u)(2*uy) + int1d(Th,labelNeu2d)(-2*uy);
+real Per = int1d(Th,levelset=phi)(1);
+real Jtot = J + 1.0*Per;
 
-exportVar(J);
+exportVar(Jtot);
 exportArray(ux[]);
 exportArray(uy[]);

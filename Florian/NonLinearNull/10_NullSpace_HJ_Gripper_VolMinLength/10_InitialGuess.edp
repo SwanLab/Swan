@@ -29,7 +29,7 @@ func real border4InitialGuess() {
   return(ls);
 }
 func real initialGuessX() {
-  real nHX = 2.0, lX = 1.0, fX = -pi;
+  real nHX = 3.0, lX = 1.0, fX = -pi;
   real lsx;
   lsx = cos((nHX+1)*(x+1)*pi/lX+fX);
   return(lsx);
@@ -41,7 +41,7 @@ func real initialGuessY() {
   return(lsy);
 }
 
-Vh phio1, phio2, phio3, phio4, phioI, phioI2, phiox, phioy, phio, phi;
+Vh phio1, phio2, phio3, phio4, phioI, phioI2, phiox, phioy, phio, phi1, phi2;
 phio1 = border1InitialGuess();
 phio2 = border2InitialGuess();
 phio3 = border3InitialGuess();
@@ -61,15 +61,17 @@ for (int i = 0; i < Th.nbe; i++) {
     phioI2[][Th.be(i)[0]] = 0.;
     phioI2[][Th.be(i)[1]] = 0.;
 }
-distance(Th,phioI2,phi[]);
+distance(Th,phioI2,phi2[]);
 for (int i = 0; i < Vh.ndof; ++i) {
   phio[][i] = phiox[][i]*phioy[][i] - 0.8;
-  phio[][i] = min(phio[][i],1000*phi[][i]*(phi[][i]+0.05));
+  phio[][i] = min(phio[][i],1000*phi2[][i]*(phi2[][i]+0.05));
   if (phioI[][i]>0) {
     phio[][i] = -1;
   }
 }
-distance(Th,phio,phi[]);
 
-exportArray(phioI[]);
-exportArray(phi[]);
+distance(Th,phioI,phi1[]);
+distance(Th,phio,phi2[]);
+
+exportArray(phi1[]);
+exportArray(phi2[]);
