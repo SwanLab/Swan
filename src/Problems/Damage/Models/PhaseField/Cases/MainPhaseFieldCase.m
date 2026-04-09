@@ -23,7 +23,7 @@ s.benchmark.bc.u.type   = 'DisplacementTractionY';%'DisplacementShear';
 s.benchmark.bc.u.values =  [0:1e-4:0.1];
 s.benchmark.bc.phi.type = 'DamageFree';
 
-s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'
+s.matInfo.matType = 'Analytic'; %'Analytic','Homogenized'
 s.matInfo.degradationType = 'PhaseField'; %'PhaseField','SIMPALL'
 s.matInfo.degradationSubType = 'AT'; %'AT','AT2linear','General'
 s.matInfo.fileName = 'HorizontalCrack'; 

@@ -10,9 +10,10 @@ s.pnorm      = 'Inf';
 s.damageType = 'Area';
 PFH = TestingPhaseFieldHomogenizer(s);
 [mat,phi,holeParam] = PFH.compute();
+save('HorizontalCrack','mat','phi','holeParam')
 
 [f,df,ddf] = DamageHomogenizationFitter.computePolynomial(9,phi,mat);
 degradation.fun = f;
 degradation.dfun = df;
 degradation.ddfun = ddf;
-%save('HorizontalCrack','mat','phi','degradation','holeParam')
+save('HorizontalCrack','mat','phi','degradation','holeParam')

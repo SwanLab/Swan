@@ -38,11 +38,13 @@ classdef PhaseFieldAngleUpdater < handle
             obj.dmgLimit = 1e-12;
         end
 
-        function theta = computeNewOrientation(obj,u,xV)
-            eps = SymGrad(u).evaluate(xV);
-            [V,~] = pageeig(eps);
-            theta = atan2(V(2,2,:),V(1,2,:));
-            theta = mod(theta, pi);
+        function theta = computeNewOrientation(~,u,xV)
+            eps = SymGrad(u).evaluate(xV);         
+            ex = eps(1,1,:,:);
+            ey = eps(2,2,:,:);
+            exy = eps(1,2,:,:);
+            theta = atan2(exy,(ex-ey))./2 + pi/2;
+            %(ex>ey)*pi/2 this sould be the principal directions
         end
 
     end
