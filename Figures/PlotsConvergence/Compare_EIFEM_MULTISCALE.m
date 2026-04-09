@@ -14,7 +14,7 @@ s.nelem     =  20;                %  Mesh refining
 s.Print     = false;
 
 % UNIFORM DISTRIBUTION
-s.r = ones(3,10)*0.3;
+s.r = ones(5,15)*0.4
 % s.r = [0.1,0.2,0.3,0.4,0.5
 %          0.1,0.2,0.3,0.4,0.5
 %          0.1,0.2,0.3,0.4,0.5];
@@ -64,3 +64,18 @@ xlabel('Iteration')
 ylabel('Residual')
 title("Residual evolution")
 legend({'CG', 'ILU', 'ILU-Multiscale-ILU','ILU-EIFEM(Isolated)-ILU','ILU-EIFEM(Oversampling)-ILU'});
+
+
+%% 3D case
+
+% case parameters
+s.Training  = 'EIFEM';                 % 'EIFEM'/'Multiscale'
+s.Sampling  = 'Oversampling';          % 'Isolated'/'Oversampling'
+s.Option    = 'Direct';          % % 'Dataset'/'NN'/'Direct'
+s.nelem     =  10;                %  Mesh refining
+
+% UNIFORM DISTRIBUTION
+s.r = ones(2,15,2)*0.4;
+
+Test= CoarseTesting_3D(s);
+Test.compute();

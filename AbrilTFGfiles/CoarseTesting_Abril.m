@@ -215,7 +215,8 @@ classdef CoarseTesting_Abril< handle
                         case 10
                             mS=mesh_rectangle_via_triangles(r,1,-1,1,-1,7,6,0,0);   % 10x10
                         case 20
-                            mS=mesh_rectangle_via_triangles(r,1,-1,1,-1,15,12,0,0); % 20x20
+                            % mS=mesh_rectangle_via_triangles(r,1,-1,1,-1,15,12,0,0); % 20x20
+                            mS=mesh_rectangle_via_triangles(r,1,-1,1,-1,7,14,0,0); 
                         case 50
                             mS=mesh_rectangle_via_triangles(r,1,-1,1,-1,34,35,0,0);  % 50x50
                     end
@@ -233,6 +234,11 @@ classdef CoarseTesting_Abril< handle
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
             s.connec = F;
+
+            mesh= QuadMesh(1,1,20,20);
+            s.coord= mesh.coord;
+            s.connec=mesh.connec;
+
             obj.xmin = min(x1);            
             obj.xmax = max(x1);
             obj.ymin = min(x2);

@@ -1,4 +1,4 @@
-classdef CoarseTesting_2D< handle
+classdef CoarseTesting_3D< handle
 
     properties (Access = public)
         SolExact
@@ -37,23 +37,27 @@ classdef CoarseTesting_2D< handle
         xmax 
         ymin 
         ymax  
+        zmin
+        zmax
         designVariable
         materialInterpolator
         unfittedMesh
+        fileNameEIFEM
 
     end
 
 
     methods (Access = public)
 
-        function obj = CoarseTesting_2D(cParams)
+        function obj = CoarseTesting_3D(cParams)
             obj.init(cParams)
         end
 
         function compute(obj)
-            obj.createMesh();
-            mR  = obj.referenceMesh;
-            bS  = mR.createBoundaryMesh();                         
+            mR  = obj.createReferenceMesh();
+            obj.referenceMesh=mR;
+            bS  = mR.createBoundaryMesh();
+            obj.createMeshDomain(mR);
             [bC,dir] = obj.createBoundaryConditions(obj.meshDomain);
             obj.boundaryConditions = bC;
             obj.createBCapplier()
@@ -74,7 +78,7 @@ classdef CoarseTesting_2D< handle
                 case {'Dataset','NN','Hybrid'}
                     Mcoarse     = obj.createCoarseNNPreconditioner(mR,dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);
                     Mmult        = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Mcoarse,Milu);
-                case {'HO'}
+                case {'DIRECT','Direct'}
                     Meifem       = obj.createEIFEMPreconditioner(dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);
                     Mmult        = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Meifem,Milu);
             end
@@ -180,88 +184,94 @@ classdef CoarseTesting_2D< handle
 
         function init(obj,cParams)
             p.Training      = cParams.Training;    % 'EIFEM'/'Multiscale'
-            p.Inclusion     = cParams.Inclusion;   % 'Hole'/'Material'/'HoleRaul'   --> Hole: just for constant r
             p.Sampling      = cParams.Sampling;    % 'Isolated'/'Oversampling'
-            p.Option        = cParams.Option;      % 'Dataset'/'NN'/'HO'/ 'Hybrid'
+            p.Option        = cParams.Option;      % 'Dataset'/'NN'/'Direct'
             p.nelem         = cParams.nelem;       %  Mesh refining
             obj.params      = p;
             obj.r           = cParams.r;
-            obj.nSubdomains = size(obj.r');
+            [Ny,Nx,Nz] = size(obj.r);
+            obj.nSubdomains = [Nx Ny Nz];
             obj.tolSameNode = 1e-11;
+            obj.fileNameEIFEM = 'Sphere_r04_Over.mat';
         end
 
-        function createMesh(obj)
-            mSbd = obj.createSubDomainMeshes();
-            [mD,mSb,iC,lG,iCR,discmesh] = obj.createMeshDomainJoiner(mSbd);
-            obj.meshDomain = mD;        % mD:conj subdominis --> Tot el domini
-            obj.subdomainMeshes = mSb;  %??? % mSb: subdonain Meshes
-            obj.ic              = iC;   % interface Connectivities ???
-            obj.icr             = iCR;  % info de les coordenades del corresponent subdomini 
-            obj.lg              = lG;   % localGlobal 
+
+        function createMeshDomain(obj,mR)
+            s.nsubdomains   = obj.nSubdomains; %  num along x and y
+            s.meshReference = mR;
+            s.tolSameNode = obj.tolSameNode;
+            m = MeshCreatorFromRVE3D(s);
+            [mD,mSb,iC,~,lG,iCR,discmesh] = m.create();
+            obj.meshDomain      = mD;        
+            obj.subdomainMeshes = mSb;  
+            obj.ic              = iC;   
+            obj.icr             = iCR;  
+            obj.lg              = lG;   
             obj.discMesh        = discmesh;
         end
 
-
-        function  mSbd = createSubDomainMeshes(obj)
-            nX = obj.nSubdomains(1);
-            nY = obj.nSubdomains(2);
-            Lx = 2; Ly = 2;
-            cM=cell(nY,nX);
-            mSbd=cell(nY,nX);
-            for jDom = 1:nY
-                for iDom = 1:nX
-                    refMesh  =obj.createStructuredMesh();
-                    coord0  = refMesh.coord;
-                    s.coord(:,1) = coord0(:,1)+Lx*(iDom-1);
-                    s.coord(:,2) = coord0(:,2)+Ly*(jDom-1);
-                    s.connec = refMesh.connec;
-                    mIJ     = Mesh.create(s);
-                    %                     plot(mIJ)
-                    %                     hold on;
-                    mSbd{jDom,iDom} = mIJ;
-                    cM{jDom,iDom} = refMesh;  %same but with local coordinates
-                end
-            end
-            obj.referenceMesh = mSbd{1,1};
-            obj.cellMesh=cM;   
+        function mS = createReferenceMesh(obj)
+            mS = obj.createStructuredMesh();
+            % file = 'meshAirfoilTetra.m';
+            % a.fileName = file;
+            % s = FemDataContainer(a);
+            % mS = s.mesh;
         end
 
-
-        function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomainJoiner(obj,mSbd)
-           s.nsubdomains   = obj.nSubdomains; %nx ny
-           s.meshReference = obj.referenceMesh;
-           s.tolSameNode   = obj.tolSameNode;
-           s.meshSbd       = mSbd;
-           m = MeshJoiner(s);
-           [mD,mSb,iC,~,lG,iCR,discMesh] = m.create();
-        end
 
         function mS = createStructuredMesh(obj)
             n =obj.params.nelem;
-            x1      = linspace(-1,1,n);
-            x2      = linspace(-1,1,n);
-            [xv,yv] = meshgrid(x1,x2);
-            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            s.coord  = V(:,1:2);
-            s.connec = F;
-            % 
-            % mesh= QuadMesh(1,1,n,n);
-            % s.coord= mesh.coord;
-            % s.connec=mesh.connec;
+            m = TetraMesh(1,1,1,n,n,n);
 
-            obj.xmin = min(x1);            
-            obj.xmax = max(x1);
-            obj.ymin = min(x2);
-            obj.ymax = max(x2);
-            delta = 1e-8;
-            s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
-                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-delta];
-            s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
-                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-delta,delta];
-            s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
-                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[delta,-delta];
-            s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
-                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[delta,delta];
+            s.coord=m.coord;
+            s.connec=m.connec;
+
+            maxC= max(s.coord);
+            minC = min(s.coord);
+
+            obj.xmin = minC(1);
+            obj.xmax = maxC(1);
+            obj.ymin = minC(2);
+            obj.ymax = maxC(2);
+            obj.zmin = minC(3);
+            obj.zmax = maxC(3);
+
+            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
+                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+
+            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:) =...
+                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+
+            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:) =...
+                s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+
+            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:) =...
+                s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+
+            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:) =...
+                s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+
+            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:) =...
+                s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+
+            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:) =...
+                s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+
+            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:) =...
+                s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+
+            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:) =...
+                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:)-[0,1E-9,0];
+
+            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:) =...
+                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:)+[0,1E-9,0];
+
+            s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:) =...
+                s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:)-[0,1E-9,0];
+
+            s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:) =...
+                s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:)+[0,1E-9,0];
+
             mS = Mesh.create(s);
         end
         
@@ -269,22 +279,30 @@ classdef CoarseTesting_2D< handle
             s.nsubdomains   = obj.nSubdomains; %nx ny
             s.meshReference = obj.createReferenceCoarseMesh();
             s.tolSameNode   = obj.tolSameNode;
-            mRVECoarse      = MeshCreatorFromRVE2D(s);
+            mRVECoarse      = MeshCreatorFromRVE3D(s);
             [mCoarse,~,~] = mRVECoarse.create();
         end
 
 
         function cMesh = createReferenceCoarseMesh(obj)
-            coord(1,1) = obj.xmin;        % Crea els nodes i assigna als DOfs
-            coord(1,2) = obj.ymin;        % la coordenada corresponent
-            coord(2,1) = obj.xmax;
-            coord(2,2) = obj.ymin;
-            coord(3,1) = obj.xmax;
-            coord(3,2) = obj.ymax;
-            coord(4,1) = obj.xmin;
-            coord(4,2) = obj.ymax;
+            mR=obj.referenceMesh;
+            xmax = max(mR.coord(:,1));
+            xmin = min(mR.coord(:,1));
+            ymax = max(mR.coord(:,2));
+            ymin = min(mR.coord(:,2));
+            zmax = max(mR.coord(:,3));
+            zmin = min(mR.coord(:,3));
 
-            connec = [1 2 3 4];    % crea conectivitats entre els 4 nodes
+            coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmin;
+            coord(2,1) = xmin;  coord(2,2) = ymin;   coord(2,3) = zmax;
+            coord(3,1) = xmax;  coord(3,2) = ymin;   coord(3,3) = zmax;
+            coord(4,1) = xmax;  coord(4,2) = ymin;   coord(4,3) = zmin;
+            coord(5,1) = xmin;  coord(5,2) = ymax;   coord(5,3) = zmin;
+            coord(6,1) = xmin;  coord(6,2) = ymax;   coord(6,3) = zmax;
+            coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmax;
+            coord(8,1) = xmax;  coord(8,2) = ymax;   coord(8,3) = zmin;
+
+            connec = [1 2 3 4 5 6 7 8];
             s.coord = coord;
             s.connec = connec;
             cMesh = Mesh.create(s);  % crea la mesh de 4 nodes
@@ -298,27 +316,16 @@ classdef CoarseTesting_2D< handle
 
 
         function material = createMaterial(obj) 
-            switch obj.params.Inclusion
-                case {'Hole','HoleRaul'}
-                    [young,poisson] = obj.computeElasticProperties();
-                    s.type          = 'ISOTROPIC';
-                    s.ptype         = 'ELASTIC';
-                    s.ndim          = obj.meshDomain.ndim;
-                    s.young         = young;
-                    s.poisson       = poisson;
-                    material        = Material.create(s);
-                case 'Material'
-                    obj.createDesignVariable()
-                    m= obj.createMaterialInterpolator(); 
-                    s.type                 = 'DensityBased';
-                    s.density              = obj.designVariable;
-                    s.materialInterpolator = m;
-                    s.dim                  = '2D';
-                    s.mesh                 = obj.meshDomain;
-                    material = Material.create(s);
-                    material.setDesignVariable({obj.designVariable.fun})
-                    material = material.obtainTensor();
-            end
+            obj.createDesignVariable()
+            m= obj.createMaterialInterpolator();
+            s.type                 = 'DensityBased';
+            s.density              = obj.designVariable;
+            s.materialInterpolator = m;
+            s.dim                  = '3D';
+            s.mesh                 = obj.meshDomain;
+            material = Material.create(s);
+            material.setDesignVariable({obj.designVariable.fun})
+            material = material.obtainTensor();
         end
 
         function [young,poisson] = computeElasticProperties(obj)
@@ -334,9 +341,9 @@ classdef CoarseTesting_2D< handle
             sUm.boundaryMesh   = obj.meshDomain.createBoundaryMesh;
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(-ls);
-            Mprint=UnfittedMesh(sUm);
-            Mprint.compute(ls);
-            obj.unfittedMesh=Mprint;
+            % Mprint=UnfittedMesh(sUm);
+            % Mprint.compute(ls);
+            % obj.unfittedMesh=Mprint;
             funLS        = CharacteristicFunction.create(uMesh);
             s.filterType = 'LUMP';
             s.mesh       = obj.meshDomain;
@@ -350,18 +357,23 @@ classdef CoarseTesting_2D< handle
         end
 
          function ls=computeLevelSet(obj)
-            [x0,y0] = obj.computeSubdomainCentroid();
-            [Nx,Ny] = size(obj.r);
-            GeomParams(Nx,Ny) = struct('type',[],'radius',[],'xCoorCenter',[],'yCoorCenter',[]);
+            [x0,y0,z0] = obj.computeSubdomainCentroid();
+            [Ny,Nx,Nz] = size(obj.r);
+            GeomParams(Nx,Ny,Nz) = struct('type',[],'radius',[],'xCoorCenter',[],'yCoorCenter',[],'zCoorCenter',[]);
+            radius=permute(obj.r,[2,1,3]);
 
-            for i = 1:obj.nSubdomains(1,2)
-                for j = 1:obj.nSubdomains(1,1)
-                    GeomParams(i,j).type        = "Circle";
-                    GeomParams(i,j).radius      = obj.r(i,j);
-                    GeomParams(i,j).xCoorCenter = x0(i,j);
-                    GeomParams(i,j).yCoorCenter = y0(i,j);
+            for i = 1:Nx
+                for j = 1:Ny
+                    for k = 1:Nz
+                        GeomParams(i,j,k).type        = "Sphere";
+                        GeomParams(i,j,k).radius      = radius(i,j,k);
+                        GeomParams(i,j,k).xCoorCenter = x0(i,j,k);
+                        GeomParams(i,j,k).yCoorCenter = y0(i,j,k);
+                        GeomParams(i,j,k).zCoorCenter = z0(i,j,k);
+                    end
                 end
             end
+
             s.type        = 'GivenPattern';
             s.paramsList  = GeomParams;
             g             = GeometricalFunction(s);
@@ -369,20 +381,24 @@ classdef CoarseTesting_2D< handle
             ls            = phiFun.fValues;
          end
 
-         function [x0,y0]= computeSubdomainCentroid(obj)
+         function [x0,y0,z0]= computeSubdomainCentroid(obj)
             % [Nx, Ny] = size(obj.r);
-            xMin=min(obj.meshDomain.coord(:,1));
-            xMax=max(obj.meshDomain.coord(:,1));
-            yMin=min(obj.meshDomain.coord(:,2));
-            yMax=max(obj.meshDomain.coord(:,2));
+            xMin = min(obj.meshDomain.coord(:,1));
+            xMax = max(obj.meshDomain.coord(:,1));
+            yMin = min(obj.meshDomain.coord(:,2));
+            yMax = max(obj.meshDomain.coord(:,2));
+            zMin = min(obj.meshDomain.coord(:,3));
+            zMax = max(obj.meshDomain.coord(:,3));
 
             dx = obj.xmax-obj.xmin;
             dy = obj.ymax-obj.ymin;
+            dz = obj.zmax-obj.zmin;
 
             x_center = xMin + dx/2 : dx : xMax - dx/2;
             y_center = yMin + dy/2 : dy : yMax - dy/2;
-
-            [x0, y0] = meshgrid(x_center, y_center);
+            z_center = zMin + dz/2 : dz : zMax - dz/2;
+            [x0, y0, z0] = ndgrid(x_center, y_center, z_center);
+            
         end
 
         function m=createMaterialInterpolator(obj)
@@ -410,18 +426,20 @@ classdef CoarseTesting_2D< handle
             maxx = max(obj.meshDomain.coord(:,1));
             miny = min(obj.meshDomain.coord(:,2));
             maxy = max(obj.meshDomain.coord(:,2));
+            minz = min(obj.meshDomain.coord(:,3));
+            maxz = max(obj.meshDomain.coord(:,3));
             tolBound = obj.tolSameNode;
             isLeft   = @(coor) (abs(coor(:,1) - minx)   < tolBound);
             isRight  = @(coor) (abs(coor(:,1) - maxx)   < tolBound);
-            isBottom = @(coor) (abs(coor(:,2) - miny)   < tolBound);
-            isTop    = @(coor) (abs(coor(:,2) - maxy)   < tolBound);
-            %             isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) == 0);
+            isBottom = @(coor) (abs(coor(:,3) - minz)   < tolBound);
+            isTop    = @(coor) (abs(coor(:,3) - maxz)   < tolBound);
+            
             Dir{1}.domain    = @(coor) isLeft(coor);%| isRight(coor) ;
-            Dir{1}.direction = [1,2];
+            Dir{1}.direction = [1,2,3];
             Dir{1}.value     = 0;
 
             PL.domain    = @(coor) isRight(coor);
-            PL.direction = 2;
+            PL.direction = 3;
             PL.value     = -1;       %Set displacement intensity 
         end 
 
@@ -478,17 +496,13 @@ classdef CoarseTesting_2D< handle
         end
 
          function Meifem = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh)
-            p=obj.params;
-            meshName    =  p.nelem+"x"+p.nelem;
             mR = obj.referenceMesh;
-            fileNameEIFEM  = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,"parametrizedEIFEM.mat");
-            s.RVE           = TrainedRVE(fileNameEIFEM);
+            EIFEMfilename = obj.fileNameEIFEM;
+            s.RVE           = TrainedRVE(EIFEMfilename);
             s.mesh          = obj.createCoarseMesh();
             s.DirCond       = dir;
             s.nSubdomains   = obj.nSubdomains;
-            s.mu            = obj.r;
-            s.meshRef       = dMesh;
-            eifem           = EIFEMnonPeriodic(s);
+            eifem           = EIFEM(s);
             
             ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
             ss.EIFEMsolver  = eifem;
@@ -512,12 +526,6 @@ classdef CoarseTesting_2D< handle
                     load(filePath,"K_NN");
                     filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,"T_NN.mat");
                     load(filePath,"T_NN","pol_deg");
-                    
-                case 'Hybrid'
-                    filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,"K_NN.mat");
-                    load(filePath,"K_NN");
-                    filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,"Q_NN.mat");
-                    load(filePath,"basis","Q_NN","pol_deg");
             end
 
             RVE = cell(obj.nSubdomains(1,2),obj.nSubdomains(1,1));

@@ -9,11 +9,11 @@ clc; clear; close all;
 %% INPUTS
 
 % r=1e-6:0.05:0.96;
-r=0.5;
+r=0.4;
 
-p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
-p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
-p.nelem      = 7;
+p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale'
+p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
+p.nelem      = 10;
 meshName     = p.nelem+"x"+p.nelem;
 
 %% DATA GENERATION
@@ -24,7 +24,7 @@ for j = 1:size(r,2)
         switch p.Training
             case 'Multiscale'
                 p.Sampling = 'Isolated';
-                material   = createMaterial(mR,[1 1],'Material',g);
+                [material, mT]   = createMaterial(mR,[1 1],'Material',g);
                 mesh       = mR;
                 bMesh      = mesh.createSingleBoundaryMesh();
                 s.mesh          = mesh;
@@ -34,7 +34,7 @@ for j = 1:size(r,2)
                 s.dirichletFun  = createDirichletFunction(bMesh);
                 e  = ElasticHarmonicExtension(s);
                 [T,lambda,K,Kcoarse] = e.solve();
-                V  = Integrator.compute(mTr.designVariable.fun,mR,2);
+                V  = Integrator.compute(mT.designVariable.fun,mR,2);
     
             case 'EIFEM'
                 [nS,dI]      = defineNumberOfSubdomains(p.Sampling);
@@ -84,7 +84,7 @@ for j = 1:size(r,2)
         string = strrep("r"+num2str(r(j), '%.4f'), ".", "_")+"-"+meshName+".mat";
     
         % Guarda el .mat per cert radi
-        FileName=fullfile('AbrilTFGfiles','Data',p.Training,"Sphere",string);
+        FileName=fullfile('AbrilTFGfiles','Data','Sphere_r04_Mult.mat');
     
         switch p.Training
             case 'Multiscale'
@@ -106,7 +106,7 @@ end
 % T=array2table(TData,"VariableNames",{'r','x','y','Tx1','Ty1','Tx2','Ty2','Tx3','Ty3','Tx4','Ty4' ...
 %     'Tx5','Ty5','Tx6','Ty6','Tx7','Ty7','Tx8','Ty8'});
 
-uFileName = fullfile('AbrilTFGfiles','Data',p.Training,'Sphere','DataT.csv');
+uFileName = fullfile('AbrilTFGfiles','Data','EIFEM','SphereHexa_Over','DataT.csv');
 writematrix(TData,uFileName);
 
 
@@ -126,7 +126,7 @@ for n=1:size(r,2)
 end
 
 kdata=[r.',kdata];
-kFileName = fullfile('AbrilTFGfiles','Data',p.Training,'Sphere','dataK.csv');
+kFileName = fullfile('AbrilTFGfiles','Data','EIFEM','SphereHexa_Over','dataK.csv');
 writematrix(kdata,kFileName);
 
 
@@ -135,7 +135,7 @@ writematrix(kdata,kFileName);
 
 function mS = createReferenceMesh(p)
     n =p.nelem;
-    m = HexaMesh(1,1,1,n,n,n);
+    m = TetraMesh(1,1,1,n,n,n);
 
     s.coord=m.coord;
     s.connec=m.connec;
@@ -204,7 +204,7 @@ function [nS,dI] = defineNumberOfSubdomains(type)
             nS = [1 1 1]; %nx ny
             dI = [1 1 1];
         case 'Oversampling'
-            nS = [4 4 4]; %nx ny
+            nS = [3 3 3]; %nx ny
             dI = [2 2 2];
     end
 end

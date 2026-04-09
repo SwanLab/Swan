@@ -9,14 +9,15 @@ clc; clear; close all;
 %% INPUTS
 % r=1e-6:0.05:0.999; 
 %r=1e-6:0.1:0.999; 
-% r=0:0.05:0.999;
-r=0.4;
+r=0:0.05:0.999;
+% r=0.4;
 
-p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
 p.Inclusion  = 'Material';        %'Material'/'Hole'/'HoleRaul'
-p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
 p.nelem      = 20;
-meshName     = p.nelem+"x"+p.nelem;
+
+K_mult        = zeros(8,8,size(r,2));
+K_eife        = zeros(8,8,size(r,2));
+K_eife_dirac  = zeros(8,8,size(r,2));
 
 
 %% DATA GENERATION
@@ -25,120 +26,139 @@ for j = 1:size(r,2)
     radius = r(j);
     mR              = createReferenceMesh(p,radius);
     g=computeLevelSet(radius);
-    switch p.Training
-        case 'Multiscale'
-            p.Sampling = 'Isolated';
-            material   = createMaterial(mR,[1 1],p.Inclusion,g);
-            mesh       = mR;
-            bMesh      = mesh.createSingleBoundaryMesh();
-            s.mesh=bMesh;
-            s.type='continuous';
-            cf=CoarseFunctions(s);
-            g = cf.getAnalytical();
-            s.mesh          = mesh;
-            s.uFun          = LagrangianFunction.create(mesh, mesh.ndim, 'P1');
-            s.lambdaFun     = LagrangianFunction.create(bMesh,mesh.ndim, 'P1');
-            s.material      = material;
-            s.dirichletFun  = g;
-            e  = ElasticHarmonicExtension(s);
-            [T,lambda,K,Kcoarse] = e.solve();
 
-        case 'EIFEM'
-            [nS,dI]      = defineNumberOfSubdomains(p.Sampling);
-            [material,mT]     = createMaterial(mR,nS,p.Inclusion,g);
-            s.mesh           = mR;
-            s.r              = radius;
-            s.material       = material;
-            s.domainIndices  = dI;
-            s.nSubdomains    = nS;
-            s.unfittedMesh = mT.unfittedMesh;
-            m= EIFEMTraining(s);
-            data          = m.train();
-            data.material = createMaterial(mR,[1 1],p.Inclusion,g);
-            z = OfflineDataProcessor(data);
-
-            EIFEoper = z.computeROMbasis();
-            T        = EIFEoper.U;
-            mesh     = data.mesh;
-            Kcoarse  = EIFEoper.Kcoarse;
-            
-    end
-    R        = r(j);
-
-    % Initialization for K_all and T_all
-    if j==1
-        K_all=zeros([size(Kcoarse), length(r)]);
-        T_all=zeros(mesh.nnodes,size(T,2)*mesh.ndim+mesh.ndim+1,length(r));
-    end
-
-    K_all(:,:,j)=Kcoarse; 
-
-    % Reshapes U data and adds coordinates  % Adds the radius and coordinates column
-    t_all=[];
-    for k = 1:size(T,2)
-        t_k = reshape(T(:,k), mesh.ndim, []).';
-        t_all = [t_all, t_k];
-    end
-
-    t_aux = [r(j)*ones(size(mesh.coord,1),1), mesh.coord, t_all];
-    T_all(:,:,j)=t_aux;   % Saves the result for each radius
-
-
-    %Designa un nom per cada linea corresponent a un radi
-    meshName=p.nelem+"x"+p.nelem;
-    string = strrep("r"+num2str(r(j), '%.4f'), ".", "_")+"-"+meshName+".mat";
-
-    % Guarda el .mat per cert radi
-    FileName=fullfile('AbrilTFGfiles','Data',p.Training,p.Inclusion,p.Sampling,meshName,string);
-
-
-    switch p.Training
-        case 'Multiscale'
-            save(FileName,"T","Kcoarse","mesh","R"); 
-        case 'EIFEM'
-            save(FileName, "EIFEoper","T","Kcoarse","mesh","R"); 
-    end
-
+    % MULTISCALE
+    p.Training   = 'Multiscale';
+    p.Sampling = 'Isolated';
+    materialIso   = createMaterial(mR,[1 1],p.Inclusion,g);
+    mesh       = mR;
+    bMesh      = mesh.createSingleBoundaryMesh();
+    s.mesh=bMesh;
+    s.type='continuous';
+    cf=CoarseFunctions(s);
+    cf_a = cf.getAnalytical();
+    s.mesh          = mesh;
+    s.uFun          = LagrangianFunction.create(mesh, mesh.ndim, 'P1');
+    s.lambdaFun     = LagrangianFunction.create(bMesh,mesh.ndim, 'P1');
+    s.material      = materialIso;
+    s.dirichletFun  = cf_a;
+    e  = ElasticHarmonicExtension(s);
+    [~,~,~,Kcoarse] = e.solve();
     
+    K_mult(:,:,j)=Kcoarse;
+
+    % EIFEM
+    p.Training   = 'EIFEM';
+    p.Sampling   = 'Oversampling';
+    [nS,dI]      = defineNumberOfSubdomains(p.Sampling);
+    [material,mT]     = createMaterial(mR,nS,p.Inclusion,g);
+    s.mesh           = mR;
+    s.r              = radius;
+    s.material       = material;
+    s.domainIndices  = dI;
+    s.nSubdomains    = nS;
+    s.unfittedMesh = mT.unfittedMesh;
+    m= EIFEMTraining(s);
+    data          = m.train();
+    data.material = materialIso;
+    data.dirac    = false;
+    z = OfflineDataProcessor(data);
+    EIFEoper   = z.computeROMbasis();
+    K_eife(:,:,j)  = EIFEoper.Kcoarse;
+
+    % EIFEM DIRAC
+    data.dirac    = true;
+    z = OfflineDataProcessor(data);
+    EIFEoper   = z.computeROMbasis();
+    K_eife_dirac(:,:,j) = EIFEoper.Kcoarse;
+   
 end
 
-
-
-%% Reshapes the T data and saves it in a csv file
+%%  PLOTS
 % 
-% % Redimensioning the U_all1
-% TData=[];
-% for n=1:size(T_all,3)
-%     TData=[TData;T_all(:,:,n)];
-% end
-% 
-% T=array2table(TData,"VariableNames",{'r','x','y','Tx1','Ty1','Tx2','Ty2','Tx3','Ty3','Tx4','Ty4' ...
-%     'Tx5','Ty5','Tx6','Ty6','Tx7','Ty7','Tx8','Ty8'});
-% 
-% uFileName = fullfile('AbrilTFGfiles','Data',p.Training,p.Inclusion,'DataT.csv');
-% writematrix(TData,uFileName);
+% figure
+% plot(r,K_mult,r,K_eife,r,K_eife_dirac,LineWidth=1.5)
+% legend('Multiscale','EIFEM Oversampling', 'EIFEM oversampling +Dirac')
+% xlabel('r')
+% ylabel('K(2,2)')
+% title('K(2,2) vs r')
+idx=1;
 
+pairs = [];
 
-%% Reshapes the K data and saves it in a csv file
-
-kdata=zeros(size(r,2),36);
-for n=1:size(r,2)
-    triangSup=triu(K_all(:,:,n));  %gets the triangular superior matrix
-    clear row;
-    row=[];
-    for i=1:8
-        for j=i:8
-            row(end+1)=triangSup(i,j);
-        end
+for i = 1:8
+    for j = i:8
+        pairs = [pairs; i j];
     end
-    kdata(n,:)=row;
 end
 
-kdata=[r.',kdata];
-kFileName = fullfile('AbrilTFGfiles','Data',p.Training,p.Inclusion,p.Sampling,'dataK.csv');
-writematrix(kdata,kFileName);
+figure
+t = tiledlayout(3,6,'TileSpacing','compact','Padding','compact');
+
+for k = 1:18
+    i = pairs(k,1);
+    j = pairs(k,2);
+
+    nexttile
+    hold on
+    y_mult  = squeeze(K_mult(i,j,:));
+    y_eife  = squeeze(K_eife(i,j,:));
+    y_eifeD = squeeze(K_eife_dirac(i,j,:));
+
+    plot(r, y_mult, 'LineWidth', 1.5);
+    plot(r, y_eife, 'LineWidth', 1.5);
+    plot(r, y_eifeD, 'LineWidth', 1.5);
+    xlabel('r')
+    legend('Multiscale','EIFEM', 'EIFEM+Dirac')
+
+    title(sprintf('$K_{%d,%d}$', i, j), ...
+        'Interpreter','latex','FontSize',12)
+end
 
 
+figure
+t = tiledlayout(3,6,'TileSpacing','compact','Padding','compact');
+
+for k = 19:36
+    i = pairs(k,1);
+    j = pairs(k,2);
+    
+    nexttile
+    hold on
+    y_mult  = squeeze(K_mult(i,j,:));
+    y_eife  = squeeze(K_eife(i,j,:));
+    y_eifeD = squeeze(K_eife_dirac(i,j,:));
+
+    plot(r, y_mult, 'LineWidth', 1.5);
+    plot(r, y_eife, 'LineWidth', 1.5);
+    plot(r, y_eifeD, 'LineWidth', 1.5);
+    xlabel('r')
+    legend('Multiscale','EIFEM', 'EIFEM+Dirac')
+    
+    title(sprintf('$K_{%d,%d}$', i, j), ...
+        'Interpreter','latex','FontSize',12)
+end
+
+
+% tiledlayout(6,6, 'TileSpacing', 'compact', 'Padding', 'compact')
+% for i = 1:8
+%     for j = i:8 
+%         nexttile
+%         hold on
+%         y_mult  = squeeze(K_mult(i,j,:));
+%         y_eife  = squeeze(K_eife(i,j,:));
+%         y_eifeD = squeeze(K_eife_dirac(i,j,:));
+% 
+%         plot(r, y_mult, 'LineWidth', 1.5);
+%         plot(r, y_eife, 'LineWidth', 1.5);
+%         plot(r, y_eifeD, 'LineWidth', 1.5);
+%         xlabel('r')
+%         title(sprintf('K(%d,%d)', i, j))
+%         legend('Multiscale','EIFEM Oversamp', 'EIFEM Oversamp +Dirac')
+% 
+%         idx = idx + 1;
+%     end
+% end
 %% FUNCTIONS
 
 function mS = createReferenceMesh(p,r)

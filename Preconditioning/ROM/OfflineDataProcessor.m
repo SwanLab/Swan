@@ -14,6 +14,7 @@ classdef OfflineDataProcessor < handle
         DeformationalFun
         material
         fileNameData
+        dirac
 
     end
 
@@ -79,9 +80,16 @@ classdef OfflineDataProcessor < handle
 
             Adr = obj.computeBoundaryModalMassMatrix(uDefFunBd,RBFunBd);
             Arr = obj.computeBoundaryModalMassMatrix(RBFunBd,RBFunBd);
-            Add = obj.computeBoundaryModalMassMatrix(uDefFunBd,LMDefFunBd);
-            Ldv = obj.computeBoundaryModalMassMatrix(LMDefFunBd,Vfun);
             Lrv = obj.computeBoundaryModalMassMatrix(RBFunBd,Vfun); 
+
+
+            if obj.dirac==true
+                Add = obj.computeBoundaryModalMassMatrixDirac(uDefFunBd,LMDefFunBd);
+                Ldv = obj.computeBoundaryModalMassMatrixDirac(LMDefFunBd,Vfun);
+            else
+                Add = obj.computeBoundaryModalMassMatrix(uDefFunBd,LMDefFunBd);
+                Ldv = obj.computeBoundaryModalMassMatrix(LMDefFunBd,Vfun);
+            end
             % 
             % Add3 = obj.computeBoundaryModalMassMatrixDirac(uDefFunBd,LMDefFunBd);
             % Ldv3 = obj.computeBoundaryModalMassMatrixDirac(LMDefFunBd,Vfun);
@@ -181,6 +189,11 @@ classdef OfflineDataProcessor < handle
             obj.LHS             = cParams.LHSsbd;
             obj.Coarseorder     = cParams.Coarseorder;
             obj.material        = cParams.material;
+            if isfield(cParams,'dirac')
+                obj.dirac=cParams.dirac;
+            else
+                obj.dirac=false;
+            end
         end
 
         function uFun = createDispFun(obj)
