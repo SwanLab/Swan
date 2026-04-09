@@ -71,11 +71,34 @@ legend({'CG', 'ILU', 'ILU-Multiscale-ILU','ILU-EIFEM(Isolated)-ILU','ILU-EIFEM(O
 % case parameters
 s.Training  = 'EIFEM';                 % 'EIFEM'/'Multiscale'
 s.Sampling  = 'Oversampling';          % 'Isolated'/'Oversampling'
-s.Option    = 'Direct';          % % 'Dataset'/'NN'/'Direct'
-s.nelem     =  10;                %  Mesh refining
+s.Option    = 'Direct';          % % 'Dataset'/'NN'/'Direct
 
 % UNIFORM DISTRIBUTION
-s.r = ones(2,15,2)*0.4;
+s.r = ones(3,7,3)*0.4;
+s.nelem     =  10;                %  Mesh refining
 
-Test= CoarseTesting_3D(s);
-Test.compute();
+s.fileNameEIFEM = 'Sphere_r04_Over.mat';
+t_EIFE= CoarseTesting_3D(s);
+t_EIFE.compute();
+
+
+s.fileNameEIFEM = 'Sphere_r04_Mult.mat';
+t_Over= CoarseTesting_3D(s);
+t_Over.compute();
+
+
+figure
+set(gcf, 'Position', pos) 
+plot(t_EIFE.residualCG,'linewidth',2)
+hold on
+plot(t_EIFE.residualILU,'linewidth',2)
+hold on
+plot(t_Over.residualPCG,'linewidth',2)
+hold on
+plot(t_EIFE.residualPCG,'linewidth',2)
+set(gca, 'YScale', 'log')
+xlabel('Iteration')
+ylabel('Residual')
+title("Residual evolution")
+
+legend({'CG', 'ILU', 'ILU-Multiscale-ILU','ILU-EIFEM(dirac)-ILU'});

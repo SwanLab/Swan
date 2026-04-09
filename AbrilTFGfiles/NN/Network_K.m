@@ -34,7 +34,7 @@ s.networkParams.OUtype = 'linear';
 
 % Select the model's features
 s.xFeatures = [1];
-s.yFeatures = [3:1:37];
+s.yFeatures = [2:1:37];
 cHomogIdxs = [11, 12, 22, 33];
 
 % Load data

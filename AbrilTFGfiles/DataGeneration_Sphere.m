@@ -11,8 +11,8 @@ clc; clear; close all;
 % r=1e-6:0.05:0.96;
 r=0.4;
 
-p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale'
-p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
+p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
+p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
 p.nelem      = 10;
 meshName     = p.nelem+"x"+p.nelem;
 
@@ -150,41 +150,68 @@ function mS = createReferenceMesh(p)
     obj.zmin = minC(3);
     obj.zmax = maxC(3);
 
-    s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
-        s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+    delta = 1e-6
 
-    s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:) =...
-        s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+    tol   = 1e-12;
 
-    s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:) =...
-        s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+    % Detect boundaries per direction
+    onMin = abs(s.coord - minC) < tol;
+    onMax = abs(s.coord - maxC) < tol;
 
-    s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:) =...
-        s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+    isBoundary = onMin | onMax;
 
-    s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:) =...
-        s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+    % Count how many boundary planes each node lies on
+    numBoundaries = sum(isBoundary, 2);
 
-    s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:) =...
-        s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+    % Edge nodes = exactly 2 boundaries
+    isEdge = numBoundaries == 2;
 
-    s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:) =...
-        s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+    % Displacement field
+    dispVec = zeros(size(s.coord));
+    dispVec(onMax) = -delta;
+    dispVec(onMin) =  delta;
 
-    s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:) =...
-        s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+    % Apply only to edges
+    s.coord(isEdge,:) = s.coord(isEdge,:) + dispVec(isEdge,:);
 
-    s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:) =...
-        s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:)-[0,1E-9,0];
+    isEdgeOrCorner = numBoundaries > 2;
+    s.coord(isEdgeOrCorner,:) = s.coord(isEdgeOrCorner,:) + dispVec(isEdgeOrCorner,:);
 
-    s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:) =...
-        s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:)+[0,1E-9,0];
-
-    s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:) =...
-        s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:)-[0,1E-9,0];
-
-    s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:) =...
-        s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:)+[0,1E-9,0];
+    % s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
+    %     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+    % 
+    % s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:) =...
+    %     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+    % 
+    % s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:) =...
+    %     s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+    % 
+    % s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:) =...
+    %     s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+    % 
+    % s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:) =...
+    %     s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+    % 
+    % s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:) =...
+    %     s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+    % 
+    % s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:) =...
+    %     s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+    % 
+    % s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:) =...
+    %     s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+    % 
+    % s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:) =...
+    %     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:)-[0,1E-9,0];
+    % 
+    % s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:) =...
+    %     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:)+[0,1E-9,0];
+    % 
+    % s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:) =...
+    %     s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:)-[0,1E-9,0];
+    % 
+    % s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:) =...
+    %     s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:)+[0,1E-9,0];
 
     mS = Mesh.create(s);
 

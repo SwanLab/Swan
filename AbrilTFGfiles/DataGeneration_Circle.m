@@ -8,14 +8,14 @@ clc; clear; close all;
 
 %% INPUTS
 % r=1e-6:0.05:0.999; 
-%r=1e-6:0.1:0.999; 
+% r=1e-6:0.1:0.999; 
 % r=0:0.05:0.999;
-r=0.4;
+r=0.3;
 
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
-p.Inclusion  = 'Material';        %'Material'/'Hole'/'HoleRaul'
+p.Inclusion  = 'Hole';        %'Material'/'Hole'/'HoleRaul'
 p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
-p.nelem      = 20;
+p.nelem      = 10;
 meshName     = p.nelem+"x"+p.nelem;
 
 
@@ -24,6 +24,7 @@ meshName     = p.nelem+"x"+p.nelem;
 for j = 1:size(r,2)
     radius = r(j);
     mR              = createReferenceMesh(p,radius);
+    mR =createStructuredMesh(p);
     g=computeLevelSet(radius);
     switch p.Training
         case 'Multiscale'
@@ -55,6 +56,7 @@ for j = 1:size(r,2)
             m= EIFEMTraining(s);
             data          = m.train();
             data.material = createMaterial(mR,[1 1],p.Inclusion,g);
+            data.dirac=true;
             z = OfflineDataProcessor(data);
 
             EIFEoper = z.computeROMbasis();
@@ -89,7 +91,9 @@ for j = 1:size(r,2)
     string = strrep("r"+num2str(r(j), '%.4f'), ".", "_")+"-"+meshName+".mat";
 
     % Guarda el .mat per cert radi
-    FileName=fullfile('AbrilTFGfiles','Data',p.Training,p.Inclusion,p.Sampling,meshName,string);
+    % FileName=fullfile('AbrilTFGfiles','Data',p.Training,p.Inclusion,p.Sampling,meshName,string);
+
+    FileName=fullfile('AbrilTFGfiles','Data',p.Training,'CircleDirac',string);
 
 
     switch p.Training
@@ -184,16 +188,16 @@ function mS = createStructuredMesh(p)
     obj.ymax = max(x2);
 
     delta = 1e-9;
-    s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
-        s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-0*delta];
-    s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
-        s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-delta,0*delta];
-    s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
-        s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[delta,-0*delta];
-    s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
-        s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[delta,0*delta];
 
-    mS = Mesh.create(s); 
+    s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
+        s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-delta];
+    s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
+        s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-delta,+delta];
+    s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
+        s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[+delta,-delta];
+    s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
+        s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[+delta,+delta];
+    mS = Mesh.create(s);
    
 end
 

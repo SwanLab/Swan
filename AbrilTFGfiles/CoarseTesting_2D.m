@@ -96,7 +96,7 @@ classdef CoarseTesting_2D< handle
             
 
             uDomain = obj.bcApplier.reducedToFullVectorDirichlet(uPCG);
-            uDomain = obj.ddDofManager.global2local(uDomain);
+            % uDomain = obj.ddDofManager.global2local(uDomain);
             
             % LAGRANGIAN FUN SOLUTIONS
             s.mesh     = obj.meshDomain;

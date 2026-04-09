@@ -498,9 +498,9 @@ classdef CoarseTesting_2Params< handle
                     nameFile=obj.computeNameFile();
                     obj.loadDataset(nameFile);
                 case 'NN'
-                    filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,"K_NN.mat");
+                    filePath = fullfile("AbrilTFGfiles","Data",p.Training,"Lattice","K_NN.mat");
                     load(filePath,"K_NN");
-                    filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,"T_NN.mat");
+                    filePath = fullfile("AbrilTFGfiles","Data",p.Training,"Lattice","T_NN.mat");
                     load(filePath,"T_NN","pol_deg");
                     
                 case 'Hybrid'
@@ -521,11 +521,8 @@ classdef CoarseTesting_2Params< handle
                             RVE{i,j}.Kcoarse= obj.data.K{i,j};
                             RVE{i,j}.U= obj.data.T{i,j}; 
                         case 'NN'
-                            RVE{i,j}.Kcoarse = computeKcoarse_NN(K_NN,obj.r(i,j));
-                            RVE{i,j}.U       = computeT_NN(obj.cellMesh{i,j},obj.r(i,j),T_NN,pol_deg);
-                        case 'Hybrid'
-                            RVE{i,j}.Kcoarse = computeKcoarse_NN(K_NN,obj.r(i,j));
-                            RVE{i,j}.U       = computeT_Hybrid(basis,obj.r(i,j),Q_NN,pol_deg);
+                            RVE{i,j}.Kcoarse = computeKcoarse_NN(K_NN,obj.tFrame(i,j), obj.tCross(i,j));
+                            RVE{i,j}.U       = computeT_NN(obj.cellMesh{i,j},obj.tFrame(i,j),obj.tCross(i,j),T_NN,pol_deg);
                     end
                 end
             end
@@ -549,12 +546,13 @@ classdef CoarseTesting_2Params< handle
 
         function NameFile=computeNameFile(obj)
             n=obj.params.nelem;
-            rad=obj.r;
+            t1=obj.tFrame;
+            t2=obj.tCross
             meshName=n+"x"+n;
             name=strings(size(rad,1),size(rad,2));
-            for i=1:size(rad,1)
-                for j=1:size(rad,2)
-                    name(i,j) = strrep("r"+num2str(rad(i,j), '%.4f'), ".", "_")+"-"+meshName+".mat";
+            for i=1:size(t1,1)
+                for j=1:size(t1,2)
+                    strrep("t1_"+num2str(t1(i), '%.2f'), ".", "_")+strrep("_t2_"+num2str(t2(i), '%.2f'), ".", "_")+"-"+meshName+".mat";
                 end
             end
             NameFile=name;

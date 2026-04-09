@@ -92,7 +92,7 @@ classdef CoarseTesting_3D< handle
             % tic  % SOLVE THE CASE WITH CG+ ILU
             % [~,obj.residualILU,errILU, errAnormILU] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
             % t_ILU=toc
-            tic % SOLVE THE CASE WITH PRECONDITIONING ILU+EIFEM+ILU
+           % SOLVE THE CASE WITH PRECONDITIONING ILU+EIFEM+ILU
             tic
             [uPCG,obj.residualPCG,obj.errPCG,obj.errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
             t_PCG=toc
@@ -100,16 +100,16 @@ classdef CoarseTesting_3D< handle
             
 
             uDomain = obj.bcApplier.reducedToFullVectorDirichlet(uPCG);
-            uDomain = obj.ddDofManager.global2local(uDomain);
+            % uDomain = obj.ddDofManager.global2local(uDomain);
             
-            % LAGRANGIAN FUN SOLUTIONS
-            s.mesh     = obj.meshDomain;
-            s.ndimf    = obj.meshDomain.ndim;
-            s.order    = 'P1';
-            s.fValues  = reshape(xFull,2,[])';
-            obj.Sol    = LagrangianFunction(s); %Preconditioned sol  
-            s.fValues = reshape(Ufull,2,[])';
-            obj.SolExact=LagrangianFunction(s); %Exact sol
+            % % LAGRANGIAN FUN SOLUTIONS
+            % s.mesh     = obj.meshDomain;
+            % s.ndimf    = obj.meshDomain.ndim;
+            % s.order    = 'P1';
+            % s.fValues  = reshape(xFull,3,[])';
+            % obj.Sol    = LagrangianFunction(s); %Preconditioned sol  
+            % s.fValues = reshape(Ufull,3[])';
+            % obj.SolExact=LagrangianFunction(s); %Exact sol
 
             % obj.print(uPCG,"SolPCG");
             %CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'TestCoarseAbril', obj.r, obj.centroids);
@@ -191,8 +191,8 @@ classdef CoarseTesting_3D< handle
             obj.r           = cParams.r;
             [Ny,Nx,Nz] = size(obj.r);
             obj.nSubdomains = [Nx Ny Nz];
-            obj.tolSameNode = 1e-11;
-            obj.fileNameEIFEM = 'Sphere_r04_Over.mat';
+            obj.tolSameNode = 1e-10;
+            obj.fileNameEIFEM = cParams.fileNameEIFEM;
         end
 
 
@@ -236,41 +236,72 @@ classdef CoarseTesting_3D< handle
             obj.zmin = minC(3);
             obj.zmax = maxC(3);
 
-            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
-                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+            delta = 1e-6;
 
-            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:) =...
-                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+            tol   = 1e-12;
 
-            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:) =...
-                s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+            % Detect boundaries per direction
+            onMin = abs(s.coord - minC) < tol;
+            onMax = abs(s.coord - maxC) < tol;
 
-            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:) =...
-                s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+            isBoundary = onMin | onMax;
 
-            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:) =...
-                s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+            % Count how many boundary planes each node lies on
+            numBoundaries = sum(isBoundary, 2);
 
-            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:) =...
-                s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+            % Edge nodes = exactly 2 boundaries
+            isEdge = numBoundaries == 2;
 
-            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:) =...
-                s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+            % Displacement field
+            dispVec = zeros(size(s.coord));
+            dispVec(onMax) = -delta;
+            dispVec(onMin) =  delta;
 
-            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:) =...
-                s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+            % Apply only to edges
+            s.coord(isEdge,:) = s.coord(isEdge,:) + dispVec(isEdge,:);
 
-            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:) =...
-                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:)-[0,1E-9,0];
+            isEdgeOrCorner = numBoundaries > 2;
+            s.coord(isEdgeOrCorner,:) = s.coord(isEdgeOrCorner,:) + dispVec(isEdgeOrCorner,:);
 
-            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:) =...
-                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:)+[0,1E-9,0];
 
-            s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:) =...
-                s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:)-[0,1E-9,0];
 
-            s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:) =...
-                s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:)+[0,1E-9,0];
+            % delta=1E-6;
+
+            % s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
+            %     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
+            % 
+            % s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:) =...
+            %     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,delta];
+            % 
+            % s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:) =...
+            %     s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
+            % 
+            % s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:) =...
+            %     s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,delta];
+            % 
+            % s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:) =...
+            %     s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
+            % 
+            % s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:) =...
+            %     s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,delta];
+            % 
+            % s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:) =...
+            %     s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
+            % 
+            % s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:) =...
+            %     s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,delta];
+            % 
+            % s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:) =...
+            %     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:)-[0,delta,0];
+            % 
+            % s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:) =...
+            %     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:)+[0,delta,0];
+            % 
+            % s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:) =...
+            %     s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:)-[0,delta,0];
+            % 
+            % s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:) =...
+            %     s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:)+[0,delta,0];
 
             mS = Mesh.create(s);
         end
@@ -294,13 +325,13 @@ classdef CoarseTesting_3D< handle
             zmin = min(mR.coord(:,3));
 
             coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmin;
-            coord(2,1) = xmin;  coord(2,2) = ymin;   coord(2,3) = zmax;
-            coord(3,1) = xmax;  coord(3,2) = ymin;   coord(3,3) = zmax;
-            coord(4,1) = xmax;  coord(4,2) = ymin;   coord(4,3) = zmin;
-            coord(5,1) = xmin;  coord(5,2) = ymax;   coord(5,3) = zmin;
-            coord(6,1) = xmin;  coord(6,2) = ymax;   coord(6,3) = zmax;
+            coord(2,1) = xmax;  coord(2,2) = ymin;   coord(2,3) = zmin;
+            coord(3,1) = xmax;  coord(3,2) = ymax;   coord(3,3) = zmin;
+            coord(4,1) = xmin;  coord(4,2) = ymax;   coord(4,3) = zmin;
+            coord(5,1) = xmin;  coord(5,2) = ymin;   coord(5,3) = zmax;
+            coord(6,1) = xmax;  coord(6,2) = ymin;   coord(6,3) = zmax;
             coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmax;
-            coord(8,1) = xmax;  coord(8,2) = ymax;   coord(8,3) = zmin;
+            coord(8,1) = xmin;  coord(8,2) = ymax;   coord(8,3) = zmax;
 
             connec = [1 2 3 4 5 6 7 8];
             s.coord = coord;
@@ -358,15 +389,14 @@ classdef CoarseTesting_3D< handle
 
          function ls=computeLevelSet(obj)
             [x0,y0,z0] = obj.computeSubdomainCentroid();
-            [Ny,Nx,Nz] = size(obj.r);
+            [Nx,Ny,Nz] = size(obj.r);
             GeomParams(Nx,Ny,Nz) = struct('type',[],'radius',[],'xCoorCenter',[],'yCoorCenter',[],'zCoorCenter',[]);
-            radius=permute(obj.r,[2,1,3]);
 
             for i = 1:Nx
                 for j = 1:Ny
                     for k = 1:Nz
                         GeomParams(i,j,k).type        = "Sphere";
-                        GeomParams(i,j,k).radius      = radius(i,j,k);
+                        GeomParams(i,j,k).radius      = obj.r(i,j,k);
                         GeomParams(i,j,k).xCoorCenter = x0(i,j,k);
                         GeomParams(i,j,k).yCoorCenter = y0(i,j,k);
                         GeomParams(i,j,k).zCoorCenter = z0(i,j,k);
@@ -397,7 +427,7 @@ classdef CoarseTesting_3D< handle
             x_center = xMin + dx/2 : dx : xMax - dx/2;
             y_center = yMin + dy/2 : dy : yMax - dy/2;
             z_center = zMin + dz/2 : dz : zMax - dz/2;
-            [x0, y0, z0] = ndgrid(x_center, y_center, z_center);
+            [y0, x0, z0] = ndgrid(y_center, x_center, z_center);
             
         end
 
@@ -613,7 +643,7 @@ classdef CoarseTesting_3D< handle
             s.nReferenceNodes = mR.nnodes;
             s.nNodes          = obj.meshDomain.nnodes;
             s.nDimf           = obj.meshDomain.ndim;
-            d = DomainDecompositionDofManager(s);
+            d = DomainDecompositionDofManager3D(s);
         end
 
         function Milu = createILUpreconditioner(~,LHS)

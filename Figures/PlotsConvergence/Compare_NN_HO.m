@@ -60,4 +60,4 @@ set(gca, 'YScale', 'log')
 xlabel('Iteration')
 ylabel('Residual')
 title("Residual Evolution EIFEM Oversampling")
-legend({'CG Dataset', 'CG HO', 'CG Hybrid','CG NN','CG + ILU-EIFEM-ILU'});
+legend({'CG Dataset', 'CG HO', 'CG Hybrid','CG NN'});
