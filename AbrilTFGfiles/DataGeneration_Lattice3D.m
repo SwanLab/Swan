@@ -8,14 +8,14 @@ clc; clear; close all;
 
 %% INPUTS
 
-% t1=1e-61:0.05:0.5;
-% t2=1e-6:0.05:0.7;
-t1=0.499;
-t2=0.7;
+t1=1e-6:0.05:0.5;
+t2=1e-6:0.05:0.7;
+% t1=0.499;
+% t2=0.7;
 
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
 p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
-p.nelem      = 7;
+p.nelem      = 10;
 meshName     = p.nelem+"x"+p.nelem;
 
 %% DATA GENERATION
@@ -50,7 +50,9 @@ for i=1:size(t1,2)
                 m= EIFEMTraining(s);
                 data          = m.train();
                 [data.material,mTr] = createMaterial(mR,[1 1],'Material',g);
+                data.dirac=true;
                 z = OfflineDataProcessor(data);
+                
 
                 EIFEoper = z.computeROMbasis();
                 T        = EIFEoper.U;
@@ -88,7 +90,7 @@ for i=1:size(t1,2)
 
         % Guarda el .mat per cert radi
         % FileName=fullfile('AbrilTFGfiles','Data',p.Training,"Lattice3D",string);
-        FileName=fullfile('AbrilTFGfiles','Data','EIFEM','LatticeTetra_EIFEM',string);
+        FileName=fullfile('AbrilTFGfiles','Data','EIFEM','LatticeDirac',string);
 
         switch p.Training
             case 'Multiscale'
