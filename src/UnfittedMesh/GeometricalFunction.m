@@ -112,6 +112,26 @@ classdef GeometricalFunction < handle
                     fH = @(x) max(pagemtimes([1,0],xLoc(x))/sx,pagemtimes([0,1],xLoc(x))/sy) - 0.5;
                     obj.fHandle = fH;
 
+                case 'WingShape'
+
+                    cr = cParams.chordRoot;
+                    ct = cParams.chordTip;
+                    sS  = cParams.semiSpan;
+                    Lambda = cParams.sweepDeg;
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+
+                    tanLambda = tand(Lambda);
+                    yTipTE = sS * tanLambda + ct;
+                    mTE = (yTipTE - cr) / sS;
+
+                    fH = @(x) max([-((x2(x)-y0)-((x1(x)-x0) * tanLambda)), ...     
+                        ((x2(x)-y0)-(cr+(x1(x)-x0)*mTE)), ...     
+                        -(x1(x)-x0), ...                            
+                         (x1(x)-x0) - sS]);
+
+                    obj.fHandle = fH;
+
                 case {'Circle','Cylinder'}
                     r  = cParams.radius;
                     x0 = cParams.xCoorCenter;

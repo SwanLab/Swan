@@ -88,9 +88,9 @@ classdef TutorialShellsKirchhoff < handle
 
         function createMaterialProperties(obj)
           E = 1/(1-0.3^2);
-          obj.young = ConstantFunction.create(E,obj.mesh);
-          obj.area = ConstantFunction.create(1,obj.mesh);
-          obj.shear = ConstantFunction.create(1,obj.mesh);
+          obj.young   = ConstantFunction.create(E,obj.mesh);
+          obj.area    = ConstantFunction.create(1,obj.mesh);
+          obj.shear   = ConstantFunction.create(1,obj.mesh);
           obj.inertia = ConstantFunction.create(1/12,obj.mesh);
         end
 
