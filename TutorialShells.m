@@ -18,7 +18,6 @@ classdef TutorialShells < handle
         type, values, fun
         bcCase
         zLayer, interfaceIndex
-        A_Matrix, B_Matrix, D_Matrix, H_Matrix
         A_tensor, B_tensor, D_tensor, H_tensor
         materialProperties, stressCase
         material
@@ -26,6 +25,7 @@ classdef TutorialShells < handle
         modeShapes
         massModal, dampingModal, stiffnessModal, FModal
         dampingRatio
+        shearCorrectionFactor
     end
 
     methods (Access = public)
@@ -234,12 +234,16 @@ classdef TutorialShells < handle
                 % Find max displacement
 
                 w_history = modes(nU+nTheta+1:end, :);
-                [~, idx_max] = max(max(abs(w_history), [], 1));
+                [max_w_value, linear_idx] = max(abs(w_history(:)));
+                [node_idx_local, time_idx] = ind2sub(size(w_history), linear_idx);
+
+
 
                 % timeInstants = [1, round(nt/4), round(nt/2), round(3*nt/4), idx_max, nt];
                 % timeInstants = unique(timeInstants);  % Remove duplicates
 
-                timeInstants = [round(nt/4), idx_max, nt];
+                % timeInstants = [round(nt/4), idx_max, nt];
+                timeInstants = [time_idx];
                 timeInstants = unique(timeInstants);
 
                 solutionsToProcess = length(timeInstants);
@@ -272,8 +276,8 @@ classdef TutorialShells < handle
 
             %% 4. Post-processing, Plotting and Printing
             h = obj.zLayer;
-            plotMatlab = false;
-            printParaview = false;
+            plotMatlab = 0;
+            printParaview = true;
             kappa = 1;
 
             % Mid plane heights
@@ -341,7 +345,21 @@ classdef TutorialShells < handle
 
                 % Determine stress state
                 stressState = 'PLANE_STRESS';
-                [strainFun, stressFun] = obj.createStrainStressFunctions(zMidPlane, epsilons, stressState);
+                [strainFun, stressFun] = obj.createStrainStressFunctions(obj.zLayer, epsilons, stressState);
+                % obj.zLayer // zMidPlane
+
+                vonMises = obj.computeVonMises(stressFun,stressState);
+
+                % Obtain max VonMises value on node and plot stresses
+                % through thickness
+                [maxVonMises, idxVM] = max(vonMises{end}.fValues);
+                locationVM = obj.mesh.coord(idxVM,:);
+                fprintf('Found maximum von Mises value on node %d (%.6e)\n', idxVM, maxVonMises);
+                fprintf('Location: (%.4f, %.4f)\n \n', locationVM(1), locationVM(2));
+
+                
+                obj.plotStressDistributionThroughThickness(idxVM, epsilons, stressState);
+                
 
                 % ================================================
                 %                 PLOT AND PRINT
@@ -372,6 +390,9 @@ classdef TutorialShells < handle
                         obj.customPlot(stressFun{kappa}, {'\sigma_{xx}', '\sigma_{yy}', '\sigma_{zz}', ...
                             '\sigma_{yz}', '\sigma_{xz}', '\sigma_{xy}'});
                     end
+                    % ======== Von Mises ========
+                    % ===========================
+                    obj.customPlot(vonMises{kappa},{'\sigma_{VM}'});
                 end
 
 
@@ -420,6 +441,10 @@ classdef TutorialShells < handle
                     obj.wFun.print(fullfile(outputPath, ['wfun_print' suffix]), 'Paraview');
                     obj.uFun.print(fullfile(outputPath, ['ufun_print' suffix]), 'Paraview');
                     obj.thetaFun.print(fullfile(outputPath, ['thetafun_print' suffix]), 'Paraview');
+                    
+                    stressFun{kappa}.print(fullfile(outputPath, ['stressfun' suffix]), 'Paraview')
+                    strainFun{kappa}.print(fullfile(outputPath, ['strainfun' suffix]), 'Paraview')
+                    vonMises{kappa}.print(fullfile(outputPath, ['VonMises' suffix]), 'Paraview')
 
                     % Save metadata
                     infoFile = fullfile(outputPath, 'info.txt');
@@ -453,30 +478,33 @@ classdef TutorialShells < handle
         % function createMesh(obj)
         %   obj.mesh = UnitTriangleMesh(50,50);
         % end
-        
+
         function createMesh(obj)
-         fullmesh = TriangleMesh(18,10,60,60);
-         ls = obj.computeWingLevelSet(fullmesh);
-         sUm.backgroundMesh = fullmesh;
-         sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
-         uMesh              = UnfittedMesh(sUm);
-         uMesh.compute(ls);
-         wingMesh = uMesh.createInnerMesh();
-         obj.mesh = wingMesh;
+
+            elements = 60;
+
+            fullmesh = TriangleMesh(18,10,elements,elements);
+            ls = obj.computeWingLevelSet(fullmesh);
+            sUm.backgroundMesh = fullmesh;
+            sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
+            uMesh              = UnfittedMesh(sUm);
+            uMesh.compute(ls);
+            wingMesh = uMesh.createInnerMesh();
+            obj.mesh = wingMesh;
         end
 
         function ls = computeWingLevelSet(obj, mesh)
-           gPar.type          = 'WingShape';
-           gPar.xCoorCenter   = -0.01;
-           gPar.yCoorCenter   = -0.01;
-           gPar.chordRoot     = 7.3;
-           gPar.chordTip      = 1.25;
-           gPar.semiSpan      = 18.0;
-           gPar.sweepDeg      = 25.0;
-           g                  = GeometricalFunction(gPar);
-           phiFun             = g.computeLevelSetFunction(mesh);
-           lsWing           = phiFun.fValues;
-           ls = lsWing;
+            gPar.type          = 'WingShape';
+            gPar.xCoorCenter   = -0.01;
+            gPar.yCoorCenter   = -0.01;
+            gPar.chordRoot     = 7.3;
+            gPar.chordTip      = 1.25;
+            gPar.semiSpan      = 18.0;
+            gPar.sweepDeg      = 25.0;
+            g                  = GeometricalFunction(gPar);
+            phiFun             = g.computeLevelSetFunction(mesh);
+            lsWing           = phiFun.fValues;
+            ls = lsWing;
         end
 
         %% createMaterial
@@ -523,25 +551,34 @@ classdef TutorialShells < handle
             % DATABASE MATERIALS
             % -------------------------------------------------------------------------
 
-            % materialName = {'EpT'; 'EpT'; 'EpT'; 'EpT'; 'EpT';
-            %     'EpT'; 'EpT'; 'EpT'; 'EpT'; 'EpT'};
-            % max_thickness = 0.5;
-            % % Rotation = [0; 0; 90; -45; 45; 45; -45; 90; 0; 0];  % degrees
-            % Rotation = [0; 0; 45; -45; 90; 90; -45; 45; 0; 0];  % degrees
-            % Rotation = 25*ones(size(materialName)) + Rotation;
-            % obj.dampingRatio = 0.015;
+            materialCase = 'Composite';
+            % 'Composite' // 'Aluminium'
 
-            materialName = {'Aluminum'};
-            max_thickness = 0.5;
-            obj.dampingRatio = 0.01; 
+            switch materialCase
+                case 'Composite'
+                    materialName = {'EpT'; 'EpT'; 'EpT'; 'EpT'; 'EpT';
+                        'EpT'; 'EpT'; 'EpT'; 'EpT'; 'EpT'};
+                    max_thickness = 0.5;
+                    % Rotation = [0; 0; 90; -45; 45; 45; -45; 90; 0; 0];  % degrees
+                    Rotation = [0; 0; 45; -45; 90; 90; -45; 45; 0; 0];  % degrees
+                    Rotation = 25*ones(size(materialName)) + Rotation;
+                    obj.dampingRatio = 0.015;
+                case 'Aluminium'
+                    materialName = {'Aluminum'};
+                    max_thickness = 0.5;
+                    obj.dampingRatio = 0.01;
+            end
              
-            % Get material properties from database
-            [E, nu, G, rho, type] = obj.getMaterialProperties(materialName);
-            obj.materialProperties = type;
+            % materialName = {'Ep1'; 'Ep1'; 'Ep1'; 'Ep1'};
+            % Rotation = [0;90;90;0];
 
             % Auto-distribute thickness
             nLayers = length(materialName);
             h = max_thickness / nLayers * ones(nLayers, 1);
+
+            % Get material properties from database
+            [E, nu, G, rho, type] = obj.getMaterialProperties(materialName);
+            obj.materialProperties = type;
 
             % -------------------------------------------------------------------------
             % CUSTOM ORTHOTROPIC MATERIAL
@@ -617,6 +654,7 @@ classdef TutorialShells < handle
                 
                 % Apply plane stress reduction (sigma_33 = 0) for A, B, D
                 C_ps = obj.material.planeStressReduction(C_k);
+                Qmatrix(:,:,k) = obj.material.tensorToVoigt(C_ps);
                 
                 A_tens = A_tens + C_ps * (z1 - z0);
                 B_tens = B_tens + 0.5 * C_ps * (z1^2 - z0^2);
@@ -644,6 +682,67 @@ classdef TutorialShells < handle
             H_2x2(2,1) = H_tens(2,3,1,3);
 
             obj.H_tensor = ConstantFunction.create(H_2x2, obj.mesh);
+
+            % Calculate Shear correction factor 
+            index = [1,2,6];
+            A_matrix = obj.material.tensorToVoigt(A_tens);
+            B_matrix = obj.material.tensorToVoigt(B_tens);
+            D_matrix = obj.material.tensorToVoigt(D_tens);
+            F_bar = A_matrix(4,4) - A_matrix(4,5)^2 / A_matrix(5,5);
+
+            ABD = [A_matrix(index,index), B_matrix(index,index); B_matrix(index,index), D_matrix(index,index)];
+            Compliance = inv(ABD); 
+            beta_matrix = Compliance(1:3,4:6);
+            delta_matrix = Compliance(4:6,4:6);
+            beta1i = beta_matrix(1,:);
+            delta_1i = delta_matrix(1,:);
+            H = zeros(1,nLayers);
+            J = zeros(1,nLayers);
+
+            for k = 1:nLayers
+                H(k) = Qmatrix(1,1,k)*beta1i(1) + Qmatrix(1,2,k)*beta1i(2) + Qmatrix(1,6,k)*beta1i(3);
+                J(k) = Qmatrix(1,1,k)*delta_1i(1) + Qmatrix(1,2,k)*delta_1i(2) + Qmatrix(1,6,k)*delta_1i(3);
+            end
+             
+            sum_term = 0;
+            for k = 1:nLayers
+                zk  = obj.zLayer{k};
+                zk1 = obj.zLayer{k+1};
+
+                Tk = 0;
+                Uk = 0;
+                if k > 1
+                    for m = 1:(k-1)
+                        dz  = obj.zLayer{m+1} - obj.zLayer{m};
+                        dz2 = obj.zLayer{m+1}^2 - obj.zLayer{m}^2;   
+                        Tk = Tk + H(m) * dz;
+                        Uk = Uk + (J(m)/2) * dz2;
+                    end
+                end
+
+                Hk = H(k);
+                Jk = J(k);
+
+                Pk = Tk^2 + Hk^2*zk^2 - 2*Tk*Hk*zk + Uk^2 + (Jk^2*zk^4)/4 ...
+                    - Uk*Jk*zk^2 + 2*Tk*Uk - Tk*Jk*zk^2 ...
+                    - 2*Hk*Uk*zk + Hk*Jk*zk^3;  
+
+                Rk = 2*Tk*Hk - 2*Hk^2*zk + 2*Hk*Uk - Hk*Jk*zk^2;
+                Vk = Hk^2 - (Jk^2*zk^2)/2 + Uk*Jk + Tk*Jk - zk*Hk*Jk;
+                Wk = Hk * Jk;
+                Xk = (Jk^2) / 4;
+
+                poly_int = Pk*(zk1 - zk) + (Rk/2)*(zk1^2 - zk^2) + ...
+                    (Vk/3)*(zk1^3 - zk^3) + (Wk/4)*(zk1^4 - zk^4) + ...
+                    (Xk/5)*(zk1^5 - zk^5);
+
+                layer_shear_stiffness = Qmatrix(4,4,k) - (Qmatrix(4,5,k)^2) / Qmatrix(5,5,k);
+                sum_term = sum_term + (1 / layer_shear_stiffness) * poly_int;
+            end
+            kappa = (1 / F_bar) / sum_term;
+            obj.shearCorrectionFactor = kappa;
+
+            
         end
 
         %% NewmarkMethod
@@ -808,45 +907,20 @@ classdef TutorialShells < handle
 
         %% createLHS
         function LHS = createLHS(obj)
-            matrixCase = 1; 
-            % 1 = Tensor value 
-            % 2 = Matrix value 
-
-            switch matrixCase 
-                case 1 
-                    A = obj.A_tensor;
-                    f = @(u,v) DDP(SymGrad(v),DDP(A,SymGrad(u)));
-                case 2
-                    A = obj.A_Matrix;
-                    f = @(u,v) TutorialShells.customDDP(A, SymGrad(v), SymGrad(u));
-            end
+            A = obj.A_tensor;
+            f = @(u,v) DDP(SymGrad(v),DDP(A,SymGrad(u)));
 
             Ku = IntegrateLHS(f,obj.uFun,obj.uFun,obj.mesh,'Domain',2);
             Ku = reduceMatrix(obj,Ku,obj.bcU,obj.bcU);
 
-            
-
-            switch matrixCase
-                case 1
-                    D = obj.D_tensor;
-                    f = @(u,v) DDP(SymGrad(v),DDP(D,SymGrad(u)));
-                case 2
-                    D = obj.D_Matrix;
-                    f = @(u,v) TutorialShells.customDDP(D, SymGrad(v), SymGrad(u));
-            end
+            D = obj.D_tensor;
+            f = @(u,v) DDP(SymGrad(v),DDP(D,SymGrad(u)));
 
             Ktheta = IntegrateLHS(f,obj.thetaFun,obj.thetaFun,obj.mesh,'Domain',2);
             Ktheta = obj.reduceMatrix(Ktheta,obj.bcT,obj.bcT);
 
-            switch matrixCase
-                case 1
-                    B = obj.B_tensor;
-                    f = @ (u,v) DDP(SymGrad(v),DDP(B,SymGrad(u)));
-                    
-                case 2 
-                    B = obj.B_Matrix;
-                    f = @ (u,v) TutorialShells.customDDP(B,SymGrad(v),SymGrad(u));
-            end
+            B = obj.B_tensor;
+            f = @ (u,v) DDP(SymGrad(v),DDP(B,SymGrad(u)));
 
             Zut = IntegrateLHS(f,obj.uFun,obj.thetaFun,obj.mesh,'Domain',2);
             Zut = obj.reduceMatrix(Zut,obj.bcU,obj.bcT);
@@ -854,44 +928,27 @@ classdef TutorialShells < handle
             % Ztu = IntegrateLHS(f,obj.thetaFun,obj.uFun,obj.mesh,'Domain',2);
             % Ztu = obj.reduceMatrix(Ztu,obj.bcT,obj.bcU);
 
-
-            switch matrixCase
-                case 1
-                    H = obj.H_tensor    ;
-                    f = @(u,v) DP(v,DP(H,u));
-                case 2
-                    H = obj.H_Matrix;
-                    f = @(u,v) TutorialShells.customDPvector(H, v, u);
-            end
+            H = obj.H_tensor;
+            f = @(u,v) DP(v,DP(H,u));
 
             Mtheta = IntegrateLHS(f,obj.thetaFun,obj.thetaFun,obj.mesh,'Domain',2);
             Mtheta = obj.reduceMatrix(Mtheta,obj.bcT,obj.bcT);
 
-            switch matrixCase
-                case 1
-                    f = @(u,v) DP(v,DP(H,Grad(u)), 1, 1);
-                case 2
-                    f = @(u,v) TutorialShells.customDP(H, v, Grad(u));
-            end
+            f = @(u,v) DP(v,DP(H,Grad(u)), 1, 1);
 
-            Nthetaw = IntegrateLHS(f,obj.thetaFun,obj.wFun,obj.mesh,'Domain',2);            
+            Nthetaw = IntegrateLHS(f,obj.thetaFun,obj.wFun,obj.mesh,'Domain',2);
             Nthetaw = obj.reduceMatrix(Nthetaw,obj.bcT,obj.bcW);
-            
-            switch matrixCase
-                case 1
-                    f = @(u,v) DP(Grad(v),DP(H,Grad(u)), 2, 1);
-                case 2
-                    f = @(u,v) TutorialShells.customDPgrad(H, Grad(v), Grad(u));
-            end
 
-            Kw = IntegrateLHS(f,obj.wFun,obj.wFun,obj.mesh,'Domain',2);  
+            f = @(u,v) DP(Grad(v),DP(H,Grad(u)), 2, 1);
+
+            Kw = IntegrateLHS(f,obj.wFun,obj.wFun,obj.mesh,'Domain',2);
             Kw = obj.reduceMatrix(Kw,obj.bcW,obj.bcW);
 
             nTheta = length(obj.computeFreeDofs(obj.bcT));
             nU     = length(obj.computeFreeDofs(obj.bcU));
             nW     = length(obj.computeFreeDofs(obj.bcW));
 
-            beta = 1; 
+            beta = obj.shearCorrectionFactor;
 
             Ztu = Zut';
             Zuw = zeros(nU,nW);
@@ -978,7 +1035,7 @@ classdef TutorialShells < handle
                     if any(abs(internalInterfaces - z{k}) <= tol)
                         thereIsInterface = true;
                         obj.interfaceIndex(end+1) = k;
-                        fprintf('Found interface at z index: %d (z = %.6f)\n', k, z{k});
+                        % fprintf('Found interface at z index: %d (z = %.6f)\n', k, z{k});
                     end
                 end
             end
@@ -1057,12 +1114,13 @@ classdef TutorialShells < handle
                     % Reduce to plane stress if needed
                     if strcmp(stressState, 'PLANE_STRESS')
                         idx = [1, 2, 4, 5, 6];
-                        C_matrix = C_matrix_full(idx, idx);  % 5x5 matrix
+                        C_matrix = C_matrix_full(idx, idx) - ...
+                                  (C_matrix_full(idx, 3) * C_matrix_full(3, idx)) / C_matrix_full(3, 3);  % 5x5 matrix
                     else
                         C_matrix = C_matrix_full;  % 6x6 matrix
                     end
 
-                    % Compute stress: σ = C * ε
+                    % Compute stress: 
                     stress_voigt = (C_matrix * strain_voigt')';  % nNodes x nComponents
 
                     stressTemp{1, i} = LagrangianFunction.create(obj.mesh, nComponents, 'P1');
@@ -1127,8 +1185,8 @@ classdef TutorialShells < handle
 
                 if ~isInterface
                     count = count + 1;
-                    strainFun{count} = strainTemp{i}; %#ok<AGROW>
-                    stressFun{count} = stressTemp{1, i}; %#ok<AGROW>
+                    strainFun{count} = strainTemp{i}; 
+                    stressFun{count} = stressTemp{1, i}; 
 
                     kLayer = find(z_k >= zInterfaces(1:end-1) & z_k <= zInterfaces(2:end), 1);
                     fprintf('Position {%d}: z = %.6f, Layer %d\n', count, z_k, kLayer);
@@ -1148,6 +1206,8 @@ classdef TutorialShells < handle
                     stressFun{count} = stressTemp{2, i}; %#ok<AGROW>
                     fprintf('Position {%d}: z = %.6f, BOTTOM of Layer %d\n', count, z_k, kLayerTop);
                 end
+                % ============= Von Mises =============
+                
             end
 
             fprintf('\nTotal positions: %d\n', count);
@@ -1376,6 +1436,38 @@ classdef TutorialShells < handle
             end
         end
 
+        %% computeVonMises 
+        function vonMises = computeVonMises(obj,stressFun,stressState)
+            ncells = numel(stressFun);
+
+            for cell = 1:ncells
+                stress = stressFun{cell}.fValues;
+                if strcmp(stressState, 'PLANE_STRESS')
+                    s1 = stress(:,1);
+                    s2 = stress(:,2);
+                    s12 = stress(:,3);
+                    s23 = stress(:,4);
+                    s31 = stress(:,5);
+
+                    vonMises_vals = sqrt( ((s1 - s2).^2 + (s2).^2 + (s1).^2)/2 ...
+                        + 3*(s12.^2 + s23.^2 + s31.^2) );
+                else
+                    s1 = stress(:,1);
+                    s2 = stress(:,2);
+                    s3 = stress(:,3);
+                    s12 = stress(:,4);
+                    s23 = stress(:,5);
+                    s31 = stress(:,6);
+
+                    vonMises_vals = sqrt( ((s1 - s2).^2 + (s2 - s3).^2 + (s3 - s1).^2)/2 ...
+                        + 3*(s12.^2 + s23.^2 + s31.^2) );
+                end
+
+                vonMises{cell} = LagrangianFunction.create(obj.mesh,1,'P1');
+                vonMises{cell}.setFValues(vonMises_vals);
+            end
+
+        end
         %% computeForces
         function computeForces(obj)
             bc  = obj.bcW;
@@ -1496,24 +1588,183 @@ classdef TutorialShells < handle
             RHSred = RHS(fdofV,1);
         end
 
-        %% plotFigure
+         %% plotFigure
+        % function customPlot(obj, fun, titles)
+        %     % Inputs:
+        %     %   fun    - LagrangianFunction to plot
+        %     %   titles - Cell array of strings with titles for each subplot
+        %     %
+        %     % Example:
+        %     %   customPlot(obj.uFun, {'u_{x}', 'u_{y}'});
+        % 
+        %     plot(fun);
+        %     % colorbar;
+        %     ax = findall(gcf, 'type', 'axes');
+        %     ax = flipud(ax);
+        % 
+        %     for j = 1:length(ax)
+        %         if j <= length(titles)
+        %             title(ax(j), titles{j});
+        %         end
+        %     end
+        % end
+
         function customPlot(obj, fun, titles)
             % Inputs:
-            %   fun    - LagrangianFunction to plot
-            %   titles - Cell array of strings with titles for each subplot
+            %   fun    - LagrangianFunction a plotear (escalar o vectorial)
+            %   titles - Cell array con los títulos de cada subplot
             %
-            % Example:
-            %   customPlot(obj.uFun, {'u_{x}', 'u_{y}'});
+            % Ejemplo:
+            %   customPlot(obj.sigmaVMFun, {'σ_{VM} - t = 1.2527 s'});
 
-            plot(fun);
+            plot(fun);                  % ← Se genera el plot primero
+            drawnow;                    % ← Forzamos que se creen todos los objetos gráficos
+
             ax = findall(gcf, 'type', 'axes');
             ax = flipud(ax);
 
             for j = 1:length(ax)
+                % Título
                 if j <= length(titles)
-                    title(ax(j), titles{j});
+                    title(ax(j), titles{j}, 'FontSize', 12, 'FontWeight', 'bold');
+                end
+
+                % === RECOLECTAR TODOS LOS DATOS DE COLOR (más robusto) ===
+                cdata_all = [];
+
+                % 1. Patch (el más común en mallas FEM como tu σ_VM)
+                patches = findobj(ax(j), 'Type', 'Patch');
+                for p = patches'
+                    if isprop(p, 'FaceVertexCData') && ~isempty(p.FaceVertexCData)
+                        cdata_all = [cdata_all; p.FaceVertexCData(:)];
+                    end
+                end
+
+                % 2. Surface (trisurf, surf, etc.)
+                surfaces = findobj(ax(j), 'Type', 'Surface');
+                for s = surfaces'
+                    if isprop(s, 'CData') && ~isempty(s.CData)
+                        cdata_all = [cdata_all; s.CData(:)];
+                    end
+                end
+
+                % 3. Image (por si acaso)
+                images = findobj(ax(j), 'Type', 'Image');
+                for im = images'
+                    if isprop(im, 'CData') && ~isempty(im.CData)
+                        cdata_all = [cdata_all; im.CData(:)];
+                    end
+                end
+
+                % === AJUSTAR RANGO DE COLOR AL MÍNIMO Y MÁXIMO REAL ===
+                if ~isempty(cdata_all)
+                    cmin = min(cdata_all(:));
+                    cmax = max(cdata_all(:));
+
+                    if cmax > cmin + 1e-8
+                        clim(ax(j), [cmin cmax]);     % rango exacto min → max
+                    else
+                        clim(ax(j), [cmin-1 cmax+1]); % evita rango degenerado
+                    end
+                end
+
+                % % Colorbar opcional pero muy útil
+                % cb = colorbar(ax(j));
+                % cb.Label.String = titles{j};
+                % cb.FontSize = 11;
+            end
+        end
+
+        %% plotStressDistributionThroughThickness
+        function plotStressDistributionThroughThickness(obj, nodeIdx, epsilons, stressState)
+            if nargin < 4
+                stressState = 'PLANE_STRESS';
+            end
+
+            % ========== VALIDATION ==========
+            if nodeIdx > size(obj.mesh.coord, 1) || nodeIdx < 1
+                error('Invalid node index: %d', nodeIdx);
+            end
+
+            % ========== GET COORDINATES OF NODE ==========
+            coords = obj.mesh.coord;
+            nodeCoords = coords(nodeIdx, :);
+
+            % ========== GET LAYER INFORMATION ==========
+            zInterfaces = [obj.zLayer{:}];
+            nLayers = length(zInterfaces) - 1;
+
+            % ========== BUILD UNIQUE z_values ==========
+            pointsPerLayer = 4;
+            z_unique = [];
+            for k = 1:nLayers
+                z_min = zInterfaces(k);
+                z_max = zInterfaces(k+1);
+                z_layer = linspace(z_min, z_max, pointsPerLayer)';
+                z_unique = [z_unique; z_layer];
+            end
+            z_unique = unique(z_unique, 'stable');
+
+            % ========== COMPUTE STRESSES ==========
+            [~, stressFun] = obj.createStrainStressFunctions(num2cell(z_unique), epsilons, stressState);
+            nPoints = numel(stressFun);
+            sigmax = zeros(nPoints, 1);
+            sigmay = zeros(nPoints, 1);
+
+            for i = 1:nPoints
+                sigmax(i) = stressFun{i}.fValues(nodeIdx, 1);
+                sigmay(i) = stressFun{i}.fValues(nodeIdx, 2);
+            end
+
+            % ========== BUILD z_plot  ==========
+            internalInterfaces = zInterfaces(2:end-1);   % vacío cuando nLayers = 1
+
+            z_plot = [];
+            for i = 1:length(z_unique)
+                z = z_unique(i);
+                if ~isempty(internalInterfaces) && any(abs(z - internalInterfaces) < 1e-10)
+                    z_plot = [z_plot; z; z];
+                else
+                    z_plot = [z_plot; z];
                 end
             end
+
+            % ========== CREATE PLOT ==========
+            figure;
+
+            % --- SUBPLOT 1: sigmaxx vs z ---
+            subplot(1, 2, 1);
+            plot(sigmax/1e6, z_plot, 'b-o', 'LineWidth', 2.5, 'MarkerSize', 6);
+            grid on;
+            xlabel('σ_{xx} (MPa)', 'FontSize', 12, 'FontWeight', 'bold');
+            ylabel('z (m)', 'FontSize', 12, 'FontWeight', 'bold');
+            title(sprintf('σ_{xx} Through Thickness - Node %d\n(%.4f, %.4f)', ...
+                nodeIdx, nodeCoords(1), nodeCoords(2)), ...
+                'FontSize', 11, 'FontWeight', 'bold');
+
+            hold on;
+            xline(0, 'k--', 'LineWidth', 1.1);
+            if ~isempty(internalInterfaces)
+                yline(internalInterfaces, 'k:', 'LineWidth', 1.0, 'Alpha', 0.65);
+            end
+            hold off;
+
+            % --- SUBPLOT 2: σyy vs z ---
+            subplot(1, 2, 2);
+            plot(sigmay/1e6, z_plot, 'r-s', 'LineWidth', 2.5, 'MarkerSize', 6);
+            grid on;
+            xlabel('σ_{yy} (MPa)', 'FontSize', 12, 'FontWeight', 'bold');
+            ylabel('z (m)', 'FontSize', 12, 'FontWeight', 'bold');
+            title(sprintf('σ_{yy} Through Thickness - Node %d\n(%.4f, %.4f)', ...
+                nodeIdx, nodeCoords(1), nodeCoords(2)), ...
+                'FontSize', 11, 'FontWeight', 'bold');
+
+            hold on;
+            xline(0, 'k--', 'LineWidth', 1.1);
+            if ~isempty(internalInterfaces)
+                yline(internalInterfaces, 'k:', 'LineWidth', 1.0, 'Alpha', 0.65);
+            end
+            hold off;
         end
 
 
@@ -1560,7 +1811,7 @@ classdef TutorialShells < handle
             w_corner = w_all_nodes(corner_node_local, :);  % 1 x nt
 
             % ========== CREATE ANIMATED PLOT ==========
-            figure('Position', [100, 100, 1000, 600]);
+            figure;
             h_plot = plot(time(1), w_corner(1), 'b-', 'LineWidth', 2);
             hold on;
             h_point = plot(time(1), w_corner(1), 'ro', 'MarkerSize', 8, 'MarkerFaceColor', 'r');

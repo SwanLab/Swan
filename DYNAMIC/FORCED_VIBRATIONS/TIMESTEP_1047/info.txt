@@ -1,0 +1,10 @@
+===== ANALYSIS INFORMATION =====
+Problem Type: FORCED_VIBRATIONS
+Date: 08-Apr-2026 19:40:09
+
+--- Time Step 1047 / 2991 ---
+Time: 1.267854 s
+Forcing frequency: 50.0000 Hz
+Max |w|: 1.597799e-03
+Max |u|: 1.306093e-20
+Max |θ|: 1.341049e-04

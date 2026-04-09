@@ -83,17 +83,13 @@ classdef MaterialMultilayer < handle
             % planeStressReduction - Reduce a 3D constitutive tensor to plane stress
             %
             % For shells/plates, the condition sigma_33 = 0 is enforced.
-            % This is applied via Schur-complement condensation on the z-direction (index 3):
-            %
-            %   C*_abcd = C_abcd - C_ab33 * C_3333^{-1} * C_33cd
-            %
-            % where a,b,c,d in {1,2}.
+            % 
             % The out-of-plane shear terms (i3),(3j) are NOT affected and are kept as-is.
 
             C_ps = C;
             C33 = C(3,3,3,3);
             if abs(C33) < 1e-30
-                return  % Nothing to condense (already degenerate)
+                return  
             end
             for i = 1:3
                 for j = 1:3
@@ -269,24 +265,35 @@ classdef MaterialMultilayer < handle
             % tensorToVoigt - Convert 3x3x3x3 tensor to 6x6 Voigt matrix
             % Voigt order: [11, 22, 33, 23, 13, 12] (STANDARD)
             
-            voigt_map = [1,1; 2,2; 3,3; 2,3; 1,3; 1,2];
-            C_matrix = zeros(6, 6);
-            
-            for p = 1:6
-                i = voigt_map(p, 1);
-                j = voigt_map(p, 2);
-                
-                for q = 1:6
-                    k = voigt_map(q, 1);
-                    l = voigt_map(q, 2);
-                    
-                    C_val = C_tensor(i, j, k, l);
-                    
-                    % Apply Voigt factor (multiply by 2 for shear)
-                    if p > 3, C_val = C_val * 2; end
-                    if q > 3, C_val = C_val * 2; end
-                    
-                    C_matrix(p, q) = C_val;
+            % voigt_map = [1,1; 2,2; 3,3; 2,3; 1,3; 1,2];
+            % C_matrix = zeros(6, 6);
+            % 
+            % for p = 1:6
+            %     i = voigt_map(p, 1);
+            %     j = voigt_map(p, 2);
+            % 
+            %     for q = 1:6
+            %         k = voigt_map(q, 1);
+            %         l = voigt_map(q, 2);
+            % 
+            %         C_val = C_tensor(i, j, k, l);
+            % 
+            %         % Apply Voigt factor (multiply by 2 for shear)
+            %         if p > 3, C_val = C_val * 2; end
+            %         if q > 3, C_val = C_val * 2; end
+            % 
+            %         C_matrix(p, q) = C_val;
+            %     end
+            % end
+
+            pairs = [1 1; 2 2; 3 3; 2 3; 1 3; 1 2];
+            dimVoigt = size(pairs,1);
+            C_matrix = zeros(dimVoigt);
+            for m = 1:6
+                for n = 1:dimVoigt
+                    i = pairs(m,1); j = pairs(m,2);
+                    k = pairs(n,1); l = pairs(n,2);
+                    C_matrix(m,n) = C_tensor(i,j,k,l);
                 end
             end
         end
