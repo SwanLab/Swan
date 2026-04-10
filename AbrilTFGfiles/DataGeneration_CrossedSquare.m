@@ -8,13 +8,13 @@ clc; clear; close all;
 
 %% INPUTS
 
- % t1=-0.01:0.05:0.499;
- % t2=-0.01:0.05:0.7;
-t1=0.25;
-t2=0.15;
+t1=0.1:0.05:0.499;
+t2=0.1:0.05:0.7;
+% t1=0.25;
+% t2=0.15;
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
-p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
-p.nelem      = 50;
+p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
+p.nelem      = 30;
 meshName     = p.nelem+"x"+p.nelem;
 
 
@@ -33,10 +33,10 @@ for i=1:size(t1,2)
                 s.uFun          = LagrangianFunction.create(mesh, mesh.ndim, 'P1');
                 s.lambdaFun     = LagrangianFunction.create(bMesh,mesh.ndim, 'P1');
                 s.material      = material;
-                s.dirichletFun  = obj.createDirichletFunction(bMesh);
+                s.dirichletFun  = createDirichletFunction(bMesh);
                 e  = ElasticHarmonicExtension(s);
                 [T,lambda,K,Kcoarse] = e.solve();
-                V   = material.computeVolume();
+                % V   = material.computeVolume();
     
             case 'EIFEM'
                 [nS,dI]      = defineNumberOfSubdomains(p.Sampling);
@@ -47,6 +47,7 @@ for i=1:size(t1,2)
                 s.nSubdomains    = nS;            
                 m= EIFEMTraining(s);
                 data          = m.train();
+                data.dirac    =true;
                 [data.material,mTr] = createMaterial(mR,[1 1],'Material',g);
                 z = OfflineDataProcessor(data);
     
@@ -85,13 +86,13 @@ for i=1:size(t1,2)
         string = strrep("t1_"+num2str(t1(i), '%.2f'), ".", "_")+strrep("_t2_"+num2str(t2(j), '%.2f'), ".", "_")+"-"+meshName+".mat";
     
         % Guarda el .mat per cert radi
-        FileName=fullfile('AbrilTFGfiles','Data2',p.Training,'Sphere',string);
+           FileName=fullfile('AbrilTFGfiles','Data',"Lattice",p.Training,meshName,string);
     
         switch p.Training
             case 'Multiscale'
-                save(FileName,"T","Kcoarse","mesh","tFrame","tCross","V"); 
+                save(FileName,"T","Kcoarse","mesh","tFrame","tCross"); 
             case 'EIFEM'
-                save(FileName, "EIFEoper","T","Kcoarse","mesh","tFrame","tCross","V","Vfr"); 
+                save(FileName, "EIFEoper","T","Kcoarse","mesh","tFrame","tCross"); 
         end
     
     
@@ -106,7 +107,7 @@ for n=1:size(T_all,3)
     TData=[TData;T_all(:,:,n)];
 end
 
-uFileName = fullfile('AbrilTFGfiles','Data','EIFEM/Lattice','DataT.csv');
+uFileName=fullfile('AbrilTFGfiles','Data',"Lattice",p.Training,'DataT.csv');
 writematrix(TData,uFileName);
 
 
@@ -128,7 +129,7 @@ for n=1:size(t1,2)
     end
 end
 
-kFileName = fullfile('AbrilTFGfiles','Data/EIFEM/Lattice','dataK.csv');
+FileName=fullfile('AbrilTFGfiles','Data',"Lattice",p.Training,'dataK.csv');
 writematrix(kdata,kFileName);
 
 %% FUNCTIONS
@@ -149,13 +150,13 @@ function mS = createReferenceMesh(p)
 
     delta = 1e-9;
     s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
-        s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-0*delta];
+        s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-delta];
     s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
-        s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-delta,0*delta];
+        s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-delta,delta];
     s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
-        s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[delta,-0*delta];
+        s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[delta,-delta];
     s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
-        s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[delta,0*delta];
+        s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[delta,delta];
 
     mS = Mesh.create(s); 
 

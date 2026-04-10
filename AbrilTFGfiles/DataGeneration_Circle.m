@@ -10,12 +10,13 @@ clc; clear; close all;
 % r=1e-6:0.05:0.999; 
 % r=1e-6:0.1:0.999; 
 % r=0:0.05:0.999;
-r=0.3;
+r=0.2:0.05:0.6;
+% r=0.3;
 
-p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
-p.Inclusion  = 'Hole';        %'Material'/'Hole'/'HoleRaul'
-p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
-p.nelem      = 10;
+p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale'
+p.Inclusion  = 'Material';        %'Material'/'Hole'/'HoleRaul'
+p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
+p.nelem      = 50;
 meshName     = p.nelem+"x"+p.nelem;
 
 
@@ -24,7 +25,6 @@ meshName     = p.nelem+"x"+p.nelem;
 for j = 1:size(r,2)
     radius = r(j);
     mR              = createReferenceMesh(p,radius);
-    mR =createStructuredMesh(p);
     g=computeLevelSet(radius);
     switch p.Training
         case 'Multiscale'
@@ -91,9 +91,9 @@ for j = 1:size(r,2)
     string = strrep("r"+num2str(r(j), '%.4f'), ".", "_")+"-"+meshName+".mat";
 
     % Guarda el .mat per cert radi
-    % FileName=fullfile('AbrilTFGfiles','Data',p.Training,p.Inclusion,p.Sampling,meshName,string);
+    FileName=fullfile('AbrilTFGfiles','Data',"Circle",p.Training,p.Inclusion,p.Sampling,meshName,string);
 
-    FileName=fullfile('AbrilTFGfiles','Data',p.Training,'CircleDirac',string);
+    % FileName=fullfile('AbrilTFGfiles','Data','CircleDirac',string);
 
 
     switch p.Training
@@ -139,7 +139,7 @@ for n=1:size(r,2)
 end
 
 kdata=[r.',kdata];
-kFileName = fullfile('AbrilTFGfiles','Data',p.Training,p.Inclusion,p.Sampling,'dataK.csv');
+kFileName = fullfile('AbrilTFGfiles','Data',"Circle",p.Training,p.Inclusion,p.Sampling,'dataK.csv');
 writematrix(kdata,kFileName);
 
 

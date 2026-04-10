@@ -10,19 +10,19 @@ s.Training  = [];                 % 'EIFEM'/'Multiscale'
 s.Inclusion = 'Material';         % 'Hole'/'Material'/'HoleRaul'   --> Hole: just for constant r
 s.Sampling  = [];                 % 'Isolated'/'Oversampling'
 s.Option    = 'Dataset';          % 'Dataset'/'NN'/'HO'/ 'Hybrid'
-s.nelem     =  20;                %  Mesh refining
+s.nelem     =  50;                %  Mesh refining
 s.Print     = false;
 
 % UNIFORM DISTRIBUTION
-s.r = ones(5,15)*0.4
+% s.r = ones(5,15)*0.4
 % s.r = [0.1,0.2,0.3,0.4,0.5
 %          0.1,0.2,0.3,0.4,0.5
 %          0.1,0.2,0.3,0.4,0.5];
 
 %NON-UNIFORM DISTRIBUTION
-% s.r=[0.1,0.2,0.3
-%      0.4,0.5,0.6
-%      0.7,0.8,0.8];
+s.r= [ 0.25, 0.40, 0.55, 0.20, 0.45, 0.60, 0.35, 0.25, 0.50, 0.30;
+       0.50, 0.20, 0.35, 0.60, 0.25, 0.40, 0.45, 0.55, 0.30, 0.20;
+       0.35, 0.55, 0.45, 0.30, 0.50, 0.25, 0.60, 0.40, 0.20, 0.55];
 
 
 %% Multiscale Isolated
@@ -31,9 +31,14 @@ s.Sampling  = 'Isolated';
 Mult= CoarseTesting_2D(s);
 Mult.compute();
 
+s.Option = 'NN'
+Mult_NN  = CoarseTesting_2D(s);
+Mult_NN.compute();
+
 %% EIFEM Isolated
 s.Training  = 'EIFEM';
 s.Sampling  = 'Isolated';
+s.Option    = 'Dataset';
 EIFE_IS= CoarseTesting_2D(s);
 EIFE_IS.compute();
 
@@ -55,6 +60,8 @@ plot(Mult.residualILU,'linewidth',2)
 hold on
 plot(Mult.residualPCG,'linewidth',2)
 hold on
+plot(Mult_NN.residualPCG,'linewidth',2)
+hold on
 plot(EIFE_IS.residualPCG,'linewidth',2)
 hold on
 plot(EIFE_OV.residualPCG,'linewidth',2)
@@ -63,7 +70,7 @@ set(gca, 'YScale', 'log')
 xlabel('Iteration')
 ylabel('Residual')
 title("Residual evolution")
-legend({'CG', 'ILU', 'ILU-Multiscale-ILU','ILU-EIFEM(Isolated)-ILU','ILU-EIFEM(Oversampling)-ILU'});
+legend({'CG', 'ILU', 'ILU-Multiscale-ILU','ILU-Multiscale+NN-ILU','ILU-EIFEM(Isolated)-ILU','ILU-EIFEM(Oversampling)-ILU'});
 
 
 %% 3D case

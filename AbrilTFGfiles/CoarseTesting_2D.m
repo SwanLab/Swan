@@ -82,14 +82,13 @@ classdef CoarseTesting_2D< handle
             tol = 1e-8;
             x0  = zeros(size(RHSf));
 
-            % tic %SOLVE THE CASE WITH STANDARD CG
+            % tic  %SOLVE THE CASE WITH STANDARD CG
             % [~,obj.residualCG,errCG, errCG] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
             % t_CG=toc
             % tic  % SOLVE THE CASE WITH CG+ ILU
             % [~,obj.residualILU,errILU, errAnormILU] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
             % t_ILU=toc
-            tic % SOLVE THE CASE WITH PRECONDITIONING ILU+EIFEM+ILU
-            tic
+            tic  % SOLVE THE CASE WITH PRECONDITIONING ILU+EIFEM+ILU
             [uPCG,obj.residualPCG,obj.errPCG,obj.errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
             t_PCG=toc
             xFull = obj.bcApplier.reducedToFullVectorDirichlet(uPCG);
@@ -481,7 +480,7 @@ classdef CoarseTesting_2D< handle
             p=obj.params;
             meshName    =  p.nelem+"x"+p.nelem;
             mR = obj.referenceMesh;
-            fileNameEIFEM  = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,"parametrizedEIFEM.mat");
+            fileNameEIFEM  = fullfile("AbrilTFGfiles","Data","Circle",p.Training,p.Inclusion,p.Sampling,meshName,"parametrizedEIFEM.mat");
             s.RVE           = TrainedRVE(fileNameEIFEM);
             s.mesh          = obj.createCoarseMesh();
             s.DirCond       = dir;
@@ -508,15 +507,15 @@ classdef CoarseTesting_2D< handle
                     nameFile=obj.computeNameFile();
                     obj.loadDataset(nameFile);
                 case 'NN'
-                    filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,"K_NN.mat");
+                    filePath = fullfile("AbrilTFGfiles","Data","Circle",p.Training,p.Inclusion,p.Sampling,"K_NN.mat");
                     load(filePath,"K_NN");
-                    filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,"T_NN.mat");
+                    filePath = fullfile("AbrilTFGfiles","Data","Circle",p.Training,p.Inclusion,p.Sampling,"T_NN.mat");
                     load(filePath,"T_NN","pol_deg");
                     
                 case 'Hybrid'
-                    filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,"K_NN.mat");
+                    filePath = fullfile("AbrilTFGfiles","Data","Circle",p.Training,p.Inclusion,p.Sampling,"K_NN.mat");
                     load(filePath,"K_NN");
-                    filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,"Q_NN.mat");
+                    filePath = fullfile("AbrilTFGfiles","Data","Circle",p.Training,p.Inclusion,p.Sampling,meshName,"Q_NN.mat");
                     load(filePath,"basis","Q_NN","pol_deg");
             end
 
@@ -582,9 +581,9 @@ classdef CoarseTesting_2D< handle
                 for j=1:size(name,2)
                     switch p.Inclusion
                         case {'Material','HoleRaul'}
-                                filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,name(i,j));
+                                filePath = fullfile("AbrilTFGfiles","Data","Circle",p.Training,p.Inclusion,p.Sampling,meshName,name(i,j));
                         case 'Hole'
-                                filePath = fullfile('AbrilTFGfiles', 'Data',p.Training,'hole',name(i,j));
+                                filePath = fullfile('AbrilTFGfiles', 'Data',"Circle",p.Training,'hole',name(i,j));
                     end
                     load(filePath,"T","Kcoarse");
                     Taux{i,j}=T;

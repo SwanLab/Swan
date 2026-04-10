@@ -7,15 +7,15 @@
 clc; clear; close all;
 
 %% INPUTS
-
-t1=1e-6:0.05:0.5;
-t2=1e-6:0.05:0.7;
-% t1=0.499;
-% t2=0.7;
+% 
+% t1=1e-6:0.05:0.5;
+% t2=1e-6:0.05:0.7;
+t1=0.1;
+t2=0.1;
 
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
 p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
-p.nelem      = 10;
+p.nelem      = 7;
 meshName     = p.nelem+"x"+p.nelem;
 
 %% DATA GENERATION
