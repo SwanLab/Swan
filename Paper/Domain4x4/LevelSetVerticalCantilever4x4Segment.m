@@ -52,14 +52,20 @@ classdef LevelSetVerticalCantilever4x4Segment < handle
         end
 
         function createDesignVariable(obj)
-            s.type = 'Full';
-            g      = GeometricalFunction(s);
-            lsFun  = g.computeLevelSetFunction(obj.mesh);
-            s.fun  = lsFun;
-            s.mesh = obj.mesh;
-            s.type = 'LevelSet';
-            s.plotting = false;
-            ls     = DesignVariable.create(s);
+            s.type             = 'Holes';
+            s.dim              = 2;
+            s.nHoles           = [50,100];
+            s.totalLengths     = [1,2];
+            s.phiZero          = 0.4;
+            s.phases           = [pi/2,0];
+            g                  = GeometricalFunction(s);
+            lsFun              = g.computeLevelSetFunction(obj.mesh);
+            lsFun.setFValues(lsFun.fValues - 1);
+            s.fun              = lsFun;
+            s.mesh             = obj.mesh;
+            s.type             = 'LevelSet';
+            s.plotting         = false;
+            ls                 = DesignVariable.create(s);
             obj.designVariable = ls;
         end
 
@@ -138,13 +144,16 @@ classdef LevelSetVerticalCantilever4x4Segment < handle
             sF.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
             f             = Filter.create(sF);
 
-            h           = obj.mesh.computeMeanCellSize();
-            s.mesh      = obj.mesh;
-            s.uMesh     = obj.createBaseDomain();
-            s.filter    = f;
-            s.epsilon   = 3*h;
-            s.value0    = 1;
-            obj.penalty = PerimeterFunctional(s);
+            h             = obj.mesh.computeMeanCellSize();
+            s.mesh        = obj.mesh;
+            s.uMesh       = obj.createBaseDomain();
+            s.filter      = f;
+            s.epsilon     = 3*h;
+            s.value0      = 6;
+            s.signInitial = -0.25;
+            s.signFinal   = 0.05;
+            s.tarVolume   = 0.4;
+            obj.penalty   = InterfaceFunctional(s);
         end
 
         function uMesh = createBaseDomain(obj)
@@ -183,6 +192,7 @@ classdef LevelSetVerticalCantilever4x4Segment < handle
             s.epsilon = 3*h;
             s.minEpsilon = 3*h;
             s.value0 = 1;
+            s.tarVolume = 0.4;
 
             tarRef = [0.1842, 0.9704, 0.9704, 0.1841, 0.6746, 0.9169, 0.9170, 0.6744, 0.4992, 1.5389, 1.5384 0.4998, 0.5413, 0.5599, 0.5600, 0.5412];
             x0 = repmat([0.125,0.375,0.625,0.875],[1,4]);
@@ -190,6 +200,7 @@ classdef LevelSetVerticalCantilever4x4Segment < handle
             for i = 1:length(x0)
                 s.uMesh          = obj.createBaseDomainPerimeter(x0(i),y0(i));
                 s.target         = p*tarRef(i);
+                s.target0        = 100*s.target;
                 obj.perimeter{i} = PerimeterConstraint(s);
             end
         end
@@ -207,7 +218,7 @@ classdef LevelSetVerticalCantilever4x4Segment < handle
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
             s.shapeFunctions{2} = obj.penalty;
-            s.weights           = [1,0.2];
+            s.weights           = [1,1];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -237,14 +248,14 @@ classdef LevelSetVerticalCantilever4x4Segment < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 1500;
+            s.maxIter        = 2000;
             s.tolerance      = 1e-8;
             s.constraintCase = [{'EQUALITY'},repmat({'INEQUALITY'},[1,16])];
             s.etaNorm        = 0.01;
             s.etaNormMin     = 0.01;
-            s.gJFlowRatio    = 0.7;
-            s.etaMax         = 1;
-            s.etaMaxMin      = 0.01;
+            s.gJFlowRatio    = 8.0;
+            s.etaMax         = 30;
+            s.etaMaxMin      = 0.1;
             s.primalUpdater  = obj.primalUpdater;
             s.gif            = false;
             s.gifName        = [];
