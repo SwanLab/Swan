@@ -45,29 +45,25 @@ classdef TractionBiliniarUncoupled < handle
             nelem  = size(dtdt,4);
             gradT =  [dtdt                   ,zeros(1,1,ngauss,nelem);
                       zeros(1,1,ngauss,nelem),dndn                  ];
-            % dtdt.evaluate(xV) 1 x ngaussxnelem
-            % Expand(dtdt.evaluate(xV)) 1 x 1 x ngaussxnelem
         end
 
-        function gradT = computeTangentGradientMatrix(obj, jump, xV) %tangent
-
-            % jump.setFValues([0,0.0505;0,0.0505]); %Tests
-
-            d    = obj.computeDamage(jump);           % correct
-            ddot = obj.computeDamageDerivative(jump); % correct
+        function gradT = computeTangentGradientMatrix(obj, jump, xV) %2 x 2 x ngauss x nelem
+            d    = obj.computeDamage(jump);             % 2 x ngauss x nelem
+            ddot = obj.computeDamageDerivative(jump);   % 2 x ngauss x nelem
             unoZero = ConstantFunction.create([1,0],jump.mesh);
             zeroUno = ConstantFunction.create([0,1],jump.mesh);
-            dtdt = obj.K * ((1-DP(d,unoZero)) - Expand(DP(ddot,unoZero).*DP(jump,unoZero),2));
-            dndn = obj.K * ((1-DP(d,zeroUno)) - Expand(DP(ddot,zeroUno).*DP(jump,zeroUno),2));
-            
-            dtdt = dtdt.evaluate(xV);  %correct
-            dndn = dndn.evaluate(xV); %correct
-            ngauss = size(dtdt,3); 
-            nelem  = size(dtdt,4);
+            dtdt = obj.K * (1-DP(d,unoZero)) - DP(ddot,unoZero).*DP(jump,unoZero); 
+            dndn = obj.K * (1-DP(d,zeroUno)) - DP(ddot,zeroUno).*DP(jump,zeroUno);
+            dtdt=dtdt.evaluate(xV);
+            dndn=dndn.evaluate(xV);
+            ngauss = size(dtdt,2); 
+            nelem  = size(dtdt,3);
+            dtdt = reshape(dtdt,1,1,ngauss,nelem); % 1 x 1 x ngauss x nelem
+            dndn = reshape(dndn,1,1,ngauss,nelem); % 1 x 1 x ngauss x nelem
+
+            %2 x 2 x ngauss x nelem
             gradT =  [dtdt                    ,zeros(1,1,ngauss,nelem);
-                      zeros(1,1,ngauss,nelem), dndn                  ]; %size??
-            % dtdt.evaluate(xV) 1 x ngaussxnelem
-            % Expand(dtdt.evaluate(xV)) 1 x 1 x ngaussxnelem
+                      zeros(1,1,ngauss,nelem), dndn                  ]; 
         end
 
         function d = computeDamage(obj,jump)

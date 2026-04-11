@@ -90,10 +90,7 @@ classdef CohesiveMesh < handle
 
             nodesInEdgesCohesive = obj.baseMesh.edges.nodesInEdges(obj.listEdgeCohesive,:);
 
-            % obj.listNodeCohesive = [nodesInEdgesCohesive(1,1); 
-            %      nodesInEdgesCohesive(:,2)];
-
-            obj.listNodeCohesive = unique(nodesInEdgesCohesive);
+            obj.listNodeCohesive = unique(nodesInEdgesCohesive');
 
             obj.nNodeCohesive    = length(obj.listNodeCohesive);
             obj.isNodeCohesive   = false(size(obj.baseMesh.coord,1),1);
