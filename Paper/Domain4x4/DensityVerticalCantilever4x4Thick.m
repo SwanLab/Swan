@@ -1,4 +1,4 @@
-classdef DensityVerticalCantilever4x4Circle < handle
+classdef DensityVerticalCantilever4x4Thick < handle
 
     properties (Access = private)
         mesh
@@ -18,7 +18,7 @@ classdef DensityVerticalCantilever4x4Circle < handle
 
     methods (Access = public)
 
-        function obj = DensityVerticalCantilever4x4Circle(pRelTar)
+        function obj = DensityVerticalCantilever4x4Thick(hTar)
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -28,15 +28,15 @@ classdef DensityVerticalCantilever4x4Circle < handle
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
             obj.createPerimeterPenalty();
-            obj.createPerimeter(pRelTar);
+            obj.createThicknessConstraint(hTar);
             obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
             obj.createPrimalUpdater();
             obj.createOptimizer();
 
-            saveas(gcf,['Paper/Domain4x4/MonitoringDensityVerticalCantilever4x4Circle',num2str(pRelTar),'.fig']);
-            obj.designVariable.fun.print(['Paper/Domain4x4/DensityVerticalCantilever4x4Circle',num2str(pRelTar),'fValues']);
+            saveas(gcf,['Paper/Domain4x4/MonitoringDensityVerticalCantilever4x4Thick',num2str(hTar),'.fig']);
+            obj.designVariable.fun.print(['Paper/Domain4x4/DensityVerticalCantilever4x4Thick',num2str(hTar),'fValues']);
         end
 
     end
@@ -160,7 +160,7 @@ classdef DensityVerticalCantilever4x4Circle < handle
             uMesh.compute(levelSet);
         end
 
-        function uMesh = createBaseDomainPerimeter(obj,x0,y0)
+        function uMesh = createBaseDomainIP(obj,x0,y0)
             s.type             = 'Rectangle';
             s.xCoorCenter      = x0;
             s.yCoorCenter      = y0;
@@ -174,7 +174,7 @@ classdef DensityVerticalCantilever4x4Circle < handle
             uMesh.compute(lsFun.fValues);
         end
 
-        function createPerimeter(obj,p)
+        function createThicknessConstraint(obj,hTar)
             sF.mesh       = obj.mesh;
             sF.filterType = 'PDE';
             sF.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
@@ -184,24 +184,24 @@ classdef DensityVerticalCantilever4x4Circle < handle
             s.mesh    = obj.mesh;
             s.filter  = f;
             s.epsilon = 3*h;
-            s.minEpsilon = 3*h;
             s.value0 = 1;
             s.tarVolume = 0.4;
+            s.test = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.tau = 0.1/4;
 
-            tarRef = [0.4376, 0.9023, 0.9023, 0.4376, 1.1118, 0.8163, 0.8163, 1.1118, 0.7041, 1.0651, 1.0651, 0.7041, 0.6764, 0.2849, 0.2849, 0.6765];
+            s.target = hTar;
+            s.target0 = s.target/100;
+
             x0 = repmat([0.125,0.375,0.625,0.875],[1,4]);
             y0 = [repmat(1.75,[1,4]),repmat(1.25,[1,4]),repmat(0.75,[1,4]),repmat(0.25,[1,4])];
             for i = 1:length(x0)
-                s.uMesh          = obj.createBaseDomainPerimeter(x0(i),y0(i));
-                s.target         = p*tarRef(i);
-                s.target0        = 100*s.target;
-                obj.perimeter{i} = PerimeterConstraint(s);
+                s.uMesh          = obj.createBaseDomainIP(x0(i),y0(i));
+                obj.perimeter{i} = MinimumThicknessConstraint(s);
             end
         end
 
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
-            s.filter = obj.filter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
             s.volumeTarget = 0.4;
             s.uMesh = obj.createBaseDomain();
@@ -250,7 +250,7 @@ classdef DensityVerticalCantilever4x4Circle < handle
             s.constraintCase = [{'EQUALITY'},repmat({'INEQUALITY'},[1,16])];
             s.etaNorm        = 0.01;
             s.etaNormMin     = 0.01;
-            s.gJFlowRatio    = 2.0;
+            s.gJFlowRatio    = 20.0;
             s.primalUpdater  = obj.primalUpdater;
             s.gif            = false;
             s.gifName        = [];

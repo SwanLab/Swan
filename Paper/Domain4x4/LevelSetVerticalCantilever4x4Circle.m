@@ -1,4 +1,4 @@
-classdef DensityVerticalCantilever4x4Circle < handle
+classdef LevelSetVerticalCantilever4x4Circle < handle
 
     properties (Access = private)
         mesh
@@ -18,7 +18,7 @@ classdef DensityVerticalCantilever4x4Circle < handle
 
     methods (Access = public)
 
-        function obj = DensityVerticalCantilever4x4Circle(pRelTar)
+        function obj = LevelSetVerticalCantilever4x4Circle(pRelTar)
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -35,8 +35,8 @@ classdef DensityVerticalCantilever4x4Circle < handle
             obj.createPrimalUpdater();
             obj.createOptimizer();
 
-            saveas(gcf,['Paper/Domain4x4/MonitoringDensityVerticalCantilever4x4Circle',num2str(pRelTar),'.fig']);
-            obj.designVariable.fun.print(['Paper/Domain4x4/DensityVerticalCantilever4x4Circle',num2str(pRelTar),'fValues']);
+            saveas(gcf,['Paper/Domain4x4/MonitoringLevelSetVerticalCantilever4x4Circle',num2str(pRelTar),'.fig']);
+            obj.designVariable.fun.print(['Paper/Domain4x4/LevelSetVerticalCantilever4x4Circle',num2str(pRelTar),'fValues']);
         end
 
     end
@@ -52,17 +52,21 @@ classdef DensityVerticalCantilever4x4Circle < handle
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(x(1,:,:)));
-            s.ndimf   = 1;
-            s.mesh    = obj.mesh;
-            aFun      = AnalyticalFunction(s);
-            
-            sD.fun      = aFun.project('P1');
-            sD.mesh     = obj.mesh;
-            sD.type     = 'Density';
-            sD.plotting = false;
-            dens        = DesignVariable.create(sD);
-            obj.designVariable = dens;
+            s.type             = 'Holes';
+            s.dim              = 2;
+            s.nHoles           = [50,100];
+            s.totalLengths     = [1,2];
+            s.phiZero          = 0.4;
+            s.phases           = [pi/2,0];
+            g                  = GeometricalFunction(s);
+            lsFun              = g.computeLevelSetFunction(obj.mesh);
+            lsFun.setFValues(lsFun.fValues - 1);
+            s.fun              = lsFun;
+            s.mesh             = obj.mesh;
+            s.type             = 'LevelSet';
+            s.plotting         = false;
+            ls                 = DesignVariable.create(s);
+            obj.designVariable = ls;
         end
 
         function createFilter(obj)
@@ -188,7 +192,7 @@ classdef DensityVerticalCantilever4x4Circle < handle
             s.value0 = 1;
             s.tarVolume = 0.4;
 
-            tarRef = [0.4376, 0.9023, 0.9023, 0.4376, 1.1118, 0.8163, 0.8163, 1.1118, 0.7041, 1.0651, 1.0651, 0.7041, 0.6764, 0.2849, 0.2849, 0.6765];
+            tarRef = [0.2372, 0.7385, 0.7385, 0.2373, 0.9665, 0.7976, 0.7974, 0.9665, 0.9162, 1.3799, 1.3797, 0.9159, 0.7075, 0.4713, 0.4714, 0.7077];
             x0 = repmat([0.125,0.375,0.625,0.875],[1,4]);
             y0 = [repmat(1.75,[1,4]),repmat(1.25,[1,4]),repmat(0.75,[1,4]),repmat(0.25,[1,4])];
             for i = 1:length(x0)
@@ -233,11 +237,8 @@ classdef DensityVerticalCantilever4x4Circle < handle
         end
 
         function createPrimalUpdater(obj)
-            s.ub     = 1;
-            s.lb     = 0;
-            s.tauMax = 1000;
-            s.tau    = [];
-            obj.primalUpdater = ProjectedGradient(s);
+            s.mesh = obj.mesh;
+            obj.primalUpdater = SLERP(s);
         end
 
         function createOptimizer(obj)
@@ -245,12 +246,14 @@ classdef DensityVerticalCantilever4x4Circle < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 1500;
+            s.maxIter        = 2500;
             s.tolerance      = 1e-8;
             s.constraintCase = [{'EQUALITY'},repmat({'INEQUALITY'},[1,16])];
             s.etaNorm        = 0.01;
             s.etaNormMin     = 0.01;
-            s.gJFlowRatio    = 2.0;
+            s.gJFlowRatio    = 8.0;
+            s.etaMax         = 30;
+            s.etaMaxMin      = 0.1;
             s.primalUpdater  = obj.primalUpdater;
             s.gif            = false;
             s.gifName        = [];
