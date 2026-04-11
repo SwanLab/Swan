@@ -40,6 +40,8 @@ classdef Jump < FeFunction
             div = [1, 2*ones(1,obj.fun.mesh.nelem-1), 1];
             fValuesJ = fValuesJ./div.';
             obj.fun.setFValues(fValuesJ);
+
+            % obj.fValues = fValuesJ;
         end
 
         function Bc = computeShapeFunctions(obj,xV)

@@ -38,8 +38,8 @@ classdef CohesiveMesh < handle
             normals                           = obj.computeNormals();
             [isLeft, isRight]                 = obj.computeIsLeftIsRight(centerElemsInEdge,normals,edgesInCohElem);
 
-            newConnec   = obj.updateConnecOfLeftElements(isLeft, isRight);
             newCoord    = obj.shiftCoordOfLeftAndRightElements(newCoord,normals);
+            newConnec   = obj.updateConnecOfLeftElements(isLeft, newCoord);
             
             obj.newMesh(newConnec, newCoord);
             obj.createLineMesh();
@@ -79,7 +79,7 @@ classdef CohesiveMesh < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.separation = 1e-10;
+            obj.separation = 0.1;
             obj.baseMesh = cParams.baseMesh;
         end
 
@@ -90,8 +90,11 @@ classdef CohesiveMesh < handle
 
             nodesInEdgesCohesive = obj.baseMesh.edges.nodesInEdges(obj.listEdgeCohesive,:);
 
-            obj.listNodeCohesive = [nodesInEdgesCohesive(1,1); 
-                 nodesInEdgesCohesive(:,2)];
+            % obj.listNodeCohesive = [nodesInEdgesCohesive(1,1); 
+            %      nodesInEdgesCohesive(:,2)];
+
+            obj.listNodeCohesive = unique(nodesInEdgesCohesive);
+
             obj.nNodeCohesive    = length(obj.listNodeCohesive);
             obj.isNodeCohesive   = false(size(obj.baseMesh.coord,1),1);
             obj.isNodeCohesive(obj.listNodeCohesive) = true;
@@ -111,12 +114,17 @@ classdef CohesiveMesh < handle
         
         function n = computeNormals(obj)
             nodesInEdges = obj.baseMesh.edges.nodesInEdges;
-            coord   = obj.baseMesh.coord;
-            nodes   = nodesInEdges(obj.listEdgeCohesive,:);   
-            coords1 = coord(nodes(:,1),:);   % nCohEdges x 2
-            coords2 = coord(nodes(:,2),:);   % nCohEdges x 2    
-            t  = coords2 - coords1;          % nCohEdges x 2
-            n  = [t(:,2),-t(:,1)];
+            nodes = nodesInEdges(obj.listEdgeCohesive,:);   
+            coords1 = obj.baseMesh.coord(nodes(:,1),:);
+            coords2 = obj.baseMesh.coord(nodes(:,2),:);
+            swap = (coords2(:,1) < coords1(:,1)) | ...
+                    (coords2(:,1) == coords1(:,1) & coords2(:,2) < coords1(:,2));
+            tmp = coords1(swap,:);
+            coords1(swap,:) = coords2(swap,:);
+            coords2(swap,:) = tmp;
+            
+            t = coords2 - coords1;
+            n = [-t(:,2), t(:,1)];
         end
 
         function [isLeft, isRight] = computeIsLeftIsRight(obj,centerElemsInCohesiveEdge,normals,edgesInCohElem)
@@ -126,6 +134,11 @@ classdef CohesiveMesh < handle
             centerElem       = centerElemsInCohesiveEdge; % (nElemCoh x ndim)
             centerEdge       = centerEdges(cohElemToEdge,:);      % (nElemCoh x ndim)
             vectorEdgeToElem = centerElem - centerEdge;
+
+            temp = zeros(size(obj.baseMesh.edges.nodesInEdges,1),2);
+            temp(obj.listEdgeCohesive,:) = normals;
+            normals = temp(cohElemToEdge,:);
+
             dotProduct       = sum(vectorEdgeToElem.*normals,2);
             signs = sign(dotProduct);
             signs = signs > 0;
@@ -137,21 +150,24 @@ classdef CohesiveMesh < handle
             newCoord    = obj.baseMesh.coord;
             duplicated  = newCoord(obj.isNodeCohesive, :);
             newCoord    = [newCoord; duplicated];
-            obj.pairsMatrix = [obj.listNodeCohesive , linspace(obj.baseMesh.nnodes+1, ...
+            obj.pairsMatrix = [sort(obj.listNodeCohesive) , linspace(obj.baseMesh.nnodes+1, ...
                 obj.baseMesh.nnodes+obj.nNodeCohesive,obj.nNodeCohesive)'];
             obj.isNodeCohesive = [obj.isNodeCohesive; ones(obj.nNodeCohesive,1)];
         end
 
-        function newConnec = updateConnecOfLeftElements(obj,isLeft,isRight)
-            listLeftElems = obj.listElemNextCohesive(isLeft);
+        function newConnec = updateConnecOfLeftElements(obj,isLeft,newCoord)
+            listLeftElems  = obj.listElemNextCohesive(isLeft);
             connec         = obj.baseMesh.connec;
-            cohesiveConnec = [obj.pairsMatrix(2:end,1), obj.pairsMatrix(1:end-1,1),  obj.pairsMatrix(2:end,2), obj.pairsMatrix(1:end-1,2)];
+            cohesiveConnec = [obj.pairsMatrix(1:end-1,1), obj.pairsMatrix(2:end,1),   obj.pairsMatrix(2:end,2), obj.pairsMatrix(1:end-1,2)];
             connec         = [connec; cohesiveConnec];
+
             obj.listCohesiveElems = ((size(connec,1)-size(cohesiveConnec,1)+1):size(connec,1))';
             oldLeftConnec = connec(listLeftElems,:);
-            idx = ismember(oldLeftConnec,obj.pairsMatrix(:,1));
             newLeftConnec      = oldLeftConnec;
+
+            idx = ismember(oldLeftConnec,obj.pairsMatrix(:,1));
             newLeftConnec(idx) = arrayfun(@(x) obj.getPair(x), oldLeftConnec(idx));
+
             connec(listLeftElems,:) = newLeftConnec;
             newConnec = connec;
         end

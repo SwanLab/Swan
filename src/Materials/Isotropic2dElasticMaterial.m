@@ -1,14 +1,14 @@
 classdef Isotropic2dElasticMaterial < IsotropicElasticMaterial
 
     properties (Access = private)
-        % cohesiveMesh
+        cohesiveMesh
     end
 
     methods (Access = public)
         
         function obj = Isotropic2dElasticMaterial(cParams)
             obj.init(cParams);
-            % obj.cohesiveMesh = cParams.cohesiveMesh;
+            obj.cohesiveMesh = cParams.cohesiveMesh;
         end
 
         function C = evaluate(obj,xV)
@@ -25,7 +25,7 @@ classdef Isotropic2dElasticMaterial < IsotropicElasticMaterial
             IxI    = repmat(kronEye(N),[1 1 1 1 nGauss nElem]);
             C = 2*mu.*I + lambda.*IxI;
 
-            % C(:,:,:,:,:,obj.cohesiveMesh.listCohesiveElems) = 0; 
+            C(:,:,:,:,:,obj.cohesiveMesh.listCohesiveElems) = 0; 
         end
 
         function plot(obj,mesh)

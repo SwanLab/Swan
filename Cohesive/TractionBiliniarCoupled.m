@@ -33,6 +33,8 @@ classdef TractionBiliniarCoupled < handle
     methods (Access = private)
         
         function init(obj,cParams)
+            
+            %arreglar parametres
             obj.fractureStrength  = cParams.fractureStrength;
             obj.fractureToughness = cParams.fractureToughness;
             obj.jumpCrit          = cParams.jumpCrit;
