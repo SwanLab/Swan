@@ -18,7 +18,7 @@ hiddenLayers    = [10 20 40 80 100 80 40];
 %% INITIALIZATION 
 % Store dataset file name
 % s.fileName = fullfile('AbrilTFGfiles',"Data",p.Training,p.Inclusion,p.Sampling,'DataK.csv');
-s.fileName = fullfile('AbrilTFGfiles','Data',"Sphere",p.Training,'dataK.csv');
+s.fileName = fullfile('AbrilTFGfiles','Data',"Lattice",p.Training,'dataK.csv');
 % s.fileName = fullfile('AbrilTFGfiles',"Data",p.Training ,'Lattice','DataK.csv');
 
 % Load model parameters
@@ -34,8 +34,8 @@ s.networkParams.HUtype = 'ReLU';
 s.networkParams.OUtype = 'linear';
 
 % Select the model's features
-s.xFeatures = [1];
-s.yFeatures = [2:1:301];
+s.xFeatures = [1:2];
+s.yFeatures = [3:1:38];
 cHomogIdxs = [11, 12, 22, 33];
 
 % Load data
@@ -50,13 +50,13 @@ K_NN.plotCostFnc();
 MSETrain    = immse(K_NN.computeOutputValues(data.Xtrain), data.Ytrain);
 
 string ="K_NN.mat";
-FileName = fullfile('AbrilTFGfiles','Data',"Sphere",p.Training,string);
+FileName = fullfile('AbrilTFGfiles','Data',"Lattice",p.Training,string);
 
 % FileName=fullfile('AbrilTFGfiles',"Data",p.Training,p.Inclusion,p.Sampling,string);
-    save(FileName, "K_NN","pol_deg");
+%     save(FileName, "K_NN","pol_deg");
 
 % FileName=fullfile('AbrilTFGfiles',"Data",p.Training,'Lattice',"K_NN.mat");
-% save(FileName, "K_NN","pol_deg");
+save(FileName, "K_NN","pol_deg");
 
 %%% Plot surface
 %

@@ -7,8 +7,8 @@ clear;
 close all;
 
 %% Case parameters
-p.Training  = 'EIFEM';   % 'EIFEM'/'Multiscale'
-p.Sampling   ='Oversampling';     %'Isolated'/'Oversampling'
+p.Training  = 'Multiscale';   % 'EIFEM'/'Multiscale'
+p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
 p.Inclusion  ='Material';    %'Material'/'Hole'/'HoleRaul
 
 %% Initialization of hyperparameters
@@ -23,7 +23,7 @@ hiddenLayers    = [300 350 400 450 450 400 350 300 200 100 72];
 %% INITIALIZATION 
 % Store dataset file name
 % s.fileName = fullfile('AbrilTFGfiles',"Data",p.Training ,p.Inclusion,p.Sampling,'DataT.csv');
-s.fileName = fullfile('AbrilTFGfiles',"Data",p.Training ,'Lattice','DataT.csv');
+s.fileName = fullfile('AbrilTFGfiles','Data',"Sphere",p.Training,'DataT.csv');
 
 % Load model parameters
 s.polynomialOrder = pol_deg;
@@ -41,7 +41,7 @@ s.networkParams.OUtype = 'linear';
 % Select the model's features
 s.xFeatures = 1:4;
 % s.yFeatures=[4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19];
-s.yFeatures=5:20;
+s.yFeatures=[5:76];
 
 %% Initialization of variables to save
 MSETrain=zeros(1,8);
@@ -59,5 +59,5 @@ T_NN.solve();
 T_NN.plotCostFnc();
     
 % FileName=fullfile('AbrilTFGfiles',"Data",p.Training,p.Inclusion,p.Sampling,"T_NN.mat");
-FileName=fullfile('AbrilTFGfiles',"Data",p.Training,'Lattice',"T_NN.mat");
+FileName=fullfile('AbrilTFGfiles',"Data",'Sphere',p.Training,"T_NN.mat");
     save(FileName, "T_NN","pol_deg");

@@ -74,6 +74,62 @@ for j = 1:size(r,2)
    
 end
 
+%% IMPORT FROM DIRECTORY
+
+files = dir(fullfile("AbrilTFGfiles/Data/LatticeDirac_3D/", 't1_0_1*.mat'));
+
+for k = 1:1:length(files)
+    filePath = fullfile(files(k).folder, files(k).name);
+    load(filePath,'Kcoarse',"tFrame");
+    K_lattice(:,:,k)=Kcoarse;
+    disp(['Loaded: ', files(k).name]);  % Display the file being loaded
+    t2(k)=tFrame;
+end
+
+pairs = [];
+
+
+for i = 1:24
+    for j = i:24
+        pairs = [pairs; i j];
+    end
+end
+
+figure
+t = tiledlayout(5,6,'TileSpacing','compact','Padding','compact');
+for k = 1:30
+    i = pairs(k,1);
+    j = pairs(k,2);
+
+    nexttile
+    hold on
+    y_lattice  = squeeze(K_lattice(i,j,:));
+    plot(t2, y_lattice, 'LineWidth', 1.5);
+    xlabel('t2')
+
+    title(sprintf('$K_{%d,%d}$', i, j), ...
+        'Interpreter','latex','FontSize',12)
+end
+
+figure
+t = tiledlayout(5,6,'TileSpacing','compact','Padding','compact');
+
+for k = 31:60
+    i = pairs(k,1);
+    j = pairs(k,2);
+    
+    nexttile
+    hold on
+    y_lattice  = squeeze(K_lattice(i,j,:));
+    plot(t2, y_lattice, 'LineWidth', 1.5);
+    xlabel('t2')
+    
+    title(sprintf('$K_{%d,%d}$', i, j), ...
+        'Interpreter','latex','FontSize',12)
+end
+
+
+
 %%  PLOTS
 % 
 % figure
