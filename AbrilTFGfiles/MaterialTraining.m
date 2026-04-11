@@ -82,7 +82,7 @@ classdef MaterialTraining < handle
             if sum(obj.nSubdomains > 1)>= 1
                 s.nsubdomains   = obj.nSubdomains; %nx ny
                 s.meshReference = obj.mesh;
-                s.tolSameNode   = 1e-9;
+                s.tolSameNode   = 1e-11;
                 m = MeshCreatorFromRVE.create(s);
                 [meshDom,~,~,~,~,~,~] = m.create();
             else

@@ -9,7 +9,7 @@ clc; clear; close all;
 %% INPUTS
 
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
-p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
+p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
 
 %% DATA GENERATION
 mR              = createReferenceMesh();
@@ -65,6 +65,7 @@ switch p.Training
         m= EIFEMTraining(s);
         data          = m.train();
         [data.material] = createMaterial(mR);
+        data.dirac=false;
         z = OfflineDataProcessor(data);
 
         EIFEoper = z.computeROMbasis();
@@ -73,7 +74,7 @@ switch p.Training
         Kcoarse  = EIFEoper.Kcoarse;
 end
 
-string = "Airfoil_Quadratic.mat";
+string = "Airfoil_Isolated2.mat";
 
 % Guarda el .mat per cert radi
 FileName=fullfile('AbrilTFGfiles','Data',"Airfoil",string);
@@ -95,7 +96,7 @@ function mS = createReferenceMesh()
     % a.fileName = file;
     % s = FemDataContainer(a);
     % mS = s.mesh;
-    filename = 'DEF_por3D.mat';
+    filename = 'DEF_Q8_wing_1.mat';
     load(filename);
     s.coord    = EIFEoper.MESH.COOR;
     % s.coord = [s.coord(:,1),s.coord(:,3),s.coord(:,2)];
@@ -111,41 +112,43 @@ function mS = createReferenceMesh()
     obj.zmin = minC(3);
     obj.zmax = maxC(3);
 
+    delta=1E-9;
+
     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
-        s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+        s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
 
     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:) =...
-        s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+        s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,delta];
 
     s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:) =...
-        s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+        s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
 
     s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:) =...
-        s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+        s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,delta];
 
     s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:) =...
-        s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+        s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
 
     s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:) =...
-        s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+        s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,delta];
 
     s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:) =...
-        s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+        s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
 
     s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:) =...
-        s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+        s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,delta];
 
     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:) =...
-        s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:)-[0,1E-9,0];
+        s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:)-[0,delta,0];
 
     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:) =...
-        s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:)+[0,1E-9,0];
+        s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:)+[0,delta,0];
 
     s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:) =...
-        s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:)-[0,1E-9,0];
+        s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:)-[0,delta,0];
 
     s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:) =...
-        s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:)+[0,1E-9,0];
+        s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:)+[0,delta,0];
 
     mS = Mesh.create(s);
 
@@ -166,8 +169,8 @@ function [nS,dI] = defineNumberOfSubdomains(type)
             nS = [1 1 1]; %nx ny
             dI = [1 1 1];
         case 'Oversampling'
-            nS = [3 3 1]; %nx ny
-            dI = [2 2 1];
+            nS = [5 1 1]; %nx ny
+            dI = [3 1 1];
     end
 end
 

@@ -185,13 +185,15 @@ classdef CoarseTesting_3D< handle
         function init(obj,cParams)
             p.Training      = cParams.Training;    % 'EIFEM'/'Multiscale'
             p.Sampling      = cParams.Sampling;    % 'Isolated'/'Oversampling'
+            p.Inclusion     = cParams.Inclusion;   % 'Hole'/'Material'/'HoleRaul'   --> Hole: just for constant r
             p.Option        = cParams.Option;      % 'Dataset'/'NN'/'Direct'
             p.nelem         = cParams.nelem;       %  Mesh refining
             obj.params      = p;
             obj.r           = cParams.r;
             [Ny,Nx,Nz] = size(obj.r);
             obj.nSubdomains = [Nx Ny Nz];
-            obj.tolSameNode = 1e-10;
+            obj.nSubdomains = [15 1 1];    % UNCOMMENT JUST FOR AIRFOIL
+            obj.tolSameNode = 1e-6;   % 1E-10--> general case   1E-6 --> airfoil
             obj.fileNameEIFEM = cParams.fileNameEIFEM;
         end
 
@@ -211,11 +213,8 @@ classdef CoarseTesting_3D< handle
         end
 
         function mS = createReferenceMesh(obj)
-            mS = obj.createStructuredMesh();
-            % file = 'meshAirfoilTetra.m';
-            % a.fileName = file;
-            % s = FemDataContainer(a);
-            % mS = s.mesh;
+            % mS = obj.createStructuredMesh();
+            mS = obj.importGIDMesh();
         end
 
 
@@ -236,61 +235,117 @@ classdef CoarseTesting_3D< handle
             obj.zmin = minC(3);
             obj.zmax = maxC(3);
 
-            delta = 1e-6;
-
-            tol   = 1e-12;
-
-            % Detect boundaries per direction
-            onMin = abs(s.coord - minC) < tol;
-            onMax = abs(s.coord - maxC) < tol;
-
-            isBoundary = onMin | onMax;
-
-            % Count how many boundary planes each node lies on
-            numBoundaries = sum(isBoundary, 2);
-
-            % Edge nodes = exactly 2 boundaries
-            isEdge = numBoundaries == 2;
-
-            % Displacement field
-            dispVec = zeros(size(s.coord));
-            dispVec(onMax) = -delta;
-            dispVec(onMin) =  delta;
-
-            % Apply only to edges
-            s.coord(isEdge,:) = s.coord(isEdge,:) + dispVec(isEdge,:);
-
-            isEdgeOrCorner = numBoundaries > 2;
-            s.coord(isEdgeOrCorner,:) = s.coord(isEdgeOrCorner,:) + dispVec(isEdgeOrCorner,:);
-
-
-
-            % delta=1E-6;
-
-            % s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
-            %     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
+            % delta = 1e-6;
+            % tol   = 1e-12;
+            % % Detect boundaries per direction
+            % onMin = abs(s.coord - minC) < tol;
+            % onMax = abs(s.coord - maxC) < tol;
             % 
-            % s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:) =...
-            %     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,delta];
+            % isBoundary = onMin | onMax;
             % 
-            % s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:) =...
-            %     s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
+            % % Count how many boundary planes each node lies on
+            % numBoundaries = sum(isBoundary, 2);
             % 
-            % s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:) =...
-            %     s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,delta];
+            % % Edge nodes = exactly 2 boundaries
+            % isEdge = numBoundaries == 2;
             % 
-            % s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:) =...
-            %     s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
+            % % Displacement field
+            % dispVec = zeros(size(s.coord));
+            % dispVec(onMax) = -delta;
+            % dispVec(onMin) =  delta;
             % 
-            % s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:) =...
-            %     s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,delta];
+            % % Apply only to edges
+            % s.coord(isEdge,:) = s.coord(isEdge,:) + dispVec(isEdge,:);
             % 
-            % s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:) =...
-            %     s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
-            % 
-            % s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:) =...
-            %     s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,delta];
-            % 
+            % isEdgeOrCorner = numBoundaries > 2;
+            % s.coord(isEdgeOrCorner,:) = s.coord(isEdgeOrCorner,:) + dispVec(isEdgeOrCorner,:);
+
+            delta=1E-9;
+
+            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
+                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
+
+            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:) =...
+                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,delta];
+
+            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:) =...
+                s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
+
+            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:) =...
+                s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,delta];
+
+            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:) =...
+                s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
+
+            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:) =...
+                s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,delta];
+
+            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:) =...
+                s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
+
+            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:) =...
+                s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,delta];
+
+            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:) =...
+                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:)-[0,delta,0];
+
+            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:) =...
+                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:)+[0,delta,0];
+
+            s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:) =...
+                s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:)-[0,delta,0];
+
+            s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:) =...
+                s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:)+[0,delta,0];
+
+            mS = Mesh.create(s);
+
+        end
+
+
+        function mS=importGIDMesh(obj)
+            filename = 'DEF_Q8_wing_1.mat';
+            load(filename);
+            s.coord    = EIFEoper.MESH.COOR;
+            s.connec   = EIFEoper.MESH.CN;
+
+            maxC= max(s.coord);
+            minC = min(s.coord);
+
+            obj.xmin = minC(1);
+            obj.xmax = maxC(1);
+            obj.ymin = minC(2);
+            obj.ymax = maxC(2);
+            obj.zmin = minC(3);
+            obj.zmax = maxC(3);
+
+            delta=1E-5;  % 1E-9--> general case   1E-5 --> airfoil
+
+            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
+                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
+
+            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:) =...
+                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,delta];
+
+            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:) =...
+                s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
+
+            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:) =...
+                s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,delta];
+
+            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:) =...
+                s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
+
+            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:) =...
+                s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,delta];
+
+            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:) =...
+                s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
+
+            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:) =...
+                s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,delta];
+
+            % COMMENT FOR AIRFOIL
             % s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:) =...
             %     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:)-[0,delta,0];
             % 
@@ -324,16 +379,38 @@ classdef CoarseTesting_3D< handle
             zmax = max(mR.coord(:,3));
             zmin = min(mR.coord(:,3));
 
-            coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmin;
-            coord(2,1) = xmax;  coord(2,2) = ymin;   coord(2,3) = zmin;
-            coord(3,1) = xmax;  coord(3,2) = ymax;   coord(3,3) = zmin;
-            coord(4,1) = xmin;  coord(4,2) = ymax;   coord(4,3) = zmin;
-            coord(5,1) = xmin;  coord(5,2) = ymin;   coord(5,3) = zmax;
-            coord(6,1) = xmax;  coord(6,2) = ymin;   coord(6,3) = zmax;
-            coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmax;
-            coord(8,1) = xmin;  coord(8,2) = ymax;   coord(8,3) = zmax;
+            % GENERAL CASE
+            % coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmin;
+            % coord(2,1) = xmax;  coord(2,2) = ymin;   coord(2,3) = zmin;
+            % coord(3,1) = xmax;  coord(3,2) = ymax;   coord(3,3) = zmin;
+            % coord(4,1) = xmin;  coord(4,2) = ymax;   coord(4,3) = zmin;
+            % coord(5,1) = xmin;  coord(5,2) = ymin;   coord(5,3) = zmax;
+            % coord(6,1) = xmax;  coord(6,2) = ymin;   coord(6,3) = zmax;
+            % coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmax;
+            % coord(8,1) = xmin;  coord(8,2) = ymax;   coord(8,3) = zmax;
 
-            connec = [1 2 3 4 5 6 7 8];
+            % % Airfoil Abril
+            coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmin;
+            coord(2,1) = xmin;  coord(2,2) = ymin;   coord(2,3) = zmax;
+            coord(3,1) = xmax;  coord(3,2) = ymin;   coord(3,3) = zmax;
+            coord(4,1) = xmax;  coord(4,2) = ymin;   coord(4,3) = zmin;
+            coord(5,1) = xmin;  coord(5,2) = ymax;   coord(5,3) = zmin;
+            coord(6,1) = xmin;  coord(6,2) = ymax;   coord(6,3) = zmax;
+            coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmax;
+            coord(8,1) = xmax;  coord(8,2) = ymax;   coord(8,3) = zmin;
+
+            %Joaquin Airfoil Training
+            % coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmax;
+            % coord(2,1) = xmin;  coord(2,2) = ymax;   coord(2,3) = zmax;
+            % coord(3,1) = xmax;  coord(3,2) = ymax;   coord(3,3) = zmax;
+            % coord(4,1) = xmax;  coord(4,2) = ymin;   coord(4,3) = zmax;
+            % coord(5,1) = xmin;  coord(5,2) = ymin;   coord(5,3) = zmin;
+            % coord(6,1) = xmin;  coord(6,2) = ymax;   coord(6,3) = zmin;
+            % coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmin;
+            % coord(8,1) = xmax;  coord(8,2) = ymin;   coord(8,3) = zmin;
+
+            % connec = [1 2 3 4 5 6 7 8];    % General case and Joaquin Airfoil
+            connec = [4 1 2 3 8 5 6 7];    % Uncomment for Airfoil Abril
             s.coord = coord;
             s.connec = connec;
             cMesh = Mesh.create(s);  % crea la mesh de 4 nodes
@@ -347,21 +424,37 @@ classdef CoarseTesting_3D< handle
 
 
         function material = createMaterial(obj) 
-            obj.createDesignVariable()
-            m= obj.createMaterialInterpolator();
-            s.type                 = 'DensityBased';
-            s.density              = obj.designVariable;
-            s.materialInterpolator = m;
-            s.dim                  = '3D';
-            s.mesh                 = obj.meshDomain;
-            material = Material.create(s);
-            material.setDesignVariable({obj.designVariable.fun})
-            material = material.obtainTensor();
+            switch obj.params.Inclusion
+                case {'Hole'}
+                    [young,poisson] = obj.computeElasticProperties();
+                    s.type          = 'ISOTROPIC';
+                    s.ptype         = 'ELASTIC';
+                    s.ndim          = obj.meshDomain.ndim;
+                    s.young         = young;
+                    s.poisson       = poisson;
+                    material        = Material.create(s);
+                case 'Material'
+                    obj.createDesignVariable()
+                    m= obj.createMaterialInterpolator();
+                    s.type                 = 'DensityBased';
+                    s.density              = obj.designVariable;
+                    s.materialInterpolator = m;
+                    s.dim                  = '3D';
+                    s.mesh                 = obj.meshDomain;
+                    material = Material.create(s);
+                    material.setDesignVariable({obj.designVariable.fun})
+                    material = material.obtainTensor();
+            end
         end
 
         function [young,poisson] = computeElasticProperties(obj)
-            E  = 1;
-            nu = 1/3; 
+            % GENERAL CASE
+            % E  = 1;
+            % nu = 1/3; 
+
+            % AIRFOIL JOAQUIN
+            % E  = 70000;
+            % nu = 0.3;
             young   = ConstantFunction.create(E,obj.meshDomain);
             poisson = ConstantFunction.create(nu,obj.meshDomain);
         end
@@ -462,14 +555,13 @@ classdef CoarseTesting_3D< handle
             isLeft   = @(coor) (abs(coor(:,1) - minx)   < tolBound);
             isRight  = @(coor) (abs(coor(:,1) - maxx)   < tolBound);
             isBottom = @(coor) (abs(coor(:,3) - minz)   < tolBound);
-            isTop    = @(coor) (abs(coor(:,3) - maxz)   < tolBound);
             
             Dir{1}.domain    = @(coor) isLeft(coor);%| isRight(coor) ;
             Dir{1}.direction = [1,2,3];
             Dir{1}.value     = 0;
 
             PL.domain    = @(coor) isRight(coor);
-            PL.direction = 3;
+            PL.direction = 2;        % 3--> general    2--> Airfoil
             PL.value     = -1;       %Set displacement intensity 
         end 
 

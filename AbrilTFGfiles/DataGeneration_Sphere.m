@@ -11,7 +11,7 @@ clc; clear; close all;
 r=1e-6:0.05:0.95;
 % r=0.4;
 
-p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale'
+p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale', ('EIFisol')
 p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
 p.nelem      = 15;
 meshName     = p.nelem+"x"+p.nelem;

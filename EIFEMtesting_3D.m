@@ -133,13 +133,13 @@ classdef EIFEMtesting_3D < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [6 2 2]; %nx ny
-            obj.fileNameEIFEMmesh = 'DEF_por3D.mat';
-            obj.fileNameEIFEM = 'Sphere_r04_Over';
-            % obj.fileNameEIFEM = 'DEF_Q8_wing_1.mat';
+            obj.nSubdomains  = [35 1 1]; %nx ny
+            obj.fileNameEIFEMmesh = 'DEF_Q8_wing_1.mat';
+            % obj.fileNameEIFEM = 'Airfoil_Multiscale';
+            obj.fileNameEIFEM = 'DEF_Q8_wing_1.mat';
             %             obj.fileNameEIFEM = 'DEF_auxNew_2.mat';
             %obj.fileNameEIFEM = 'DEF_Q4porL_1_raul.mat';
-            obj.tolSameNode = 1e-11;
+            obj.tolSameNode = 1e-11;    % 1E-11--> general case   1E-6 --> airfoil
             obj.solverType = 'REDUCED';
         end
 
@@ -153,9 +153,9 @@ classdef EIFEMtesting_3D < handle
 
 
         function mS = createReferenceMesh(obj)
-                                        mS = obj.createStructuredMesh();
+                                        % mS = obj.createStructuredMesh();
             %             mS = obj.createMeshFromGid();
-            % mS = obj.createEIFEMreferenceMesh();
+            mS = obj.createEIFEMreferenceMesh();
                 
             % file = 'meshAirfoilTetra.m';
             % a.fileName = file;
@@ -177,40 +177,40 @@ classdef EIFEMtesting_3D < handle
             minC = min(s.coord);
             
             s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
-                 s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+                 s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1E-5];
 
             s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:) =...
-                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,1E-5];
         
             s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:) =...
-                s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+                s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1E-5];
         
             s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:) =...
-                s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+                s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,1E-5];
         
             s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:) =...
-                s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+                s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1E-5];
         
             s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:) =...
-                s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+                s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,1E-5];
         
             s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:) =...
-                s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+                s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1E-5];
         
             s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:) =...
-                s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+                s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,1E-5];
         
-            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:) =...
-                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:)-[0,1E-9,0];
-        
-            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:) =...
-                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:)+[0,1E-9,0];
-        
-            s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:) =...
-                s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:)-[0,1E-9,0];
-        
-            s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:) =...
-                s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:)+[0,1E-9,0];
+            % s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:) =...
+            %     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:)-[0,1E-9,0];
+            % 
+            % s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:) =...
+            %     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:)+[0,1E-9,0];
+            % 
+            % s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:) =...
+            %     s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:)-[0,1E-9,0];
+            % 
+            % s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:) =...
+            %     s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:)+[0,1E-9,0];
         
             mS = Mesh.create(s);
 
@@ -224,6 +224,7 @@ classdef EIFEMtesting_3D < handle
             s.connec=mS.connec;
             maxC= max(s.coord);
             minC = min(s.coord);
+ 
             s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
                 s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
 
@@ -280,51 +281,52 @@ classdef EIFEMtesting_3D < handle
             filename = obj.fileNameEIFEMmesh;
             load(filename);
             s.coord    = EIFEoper.MESH.COOR;
-            % s.coord = [s.coord(:,1),s.coord(:,3),s.coord(:,2)];
             s.connec   = EIFEoper.MESH.CN;
 
             maxC= max(s.coord);
             minC = min(s.coord);
+
+            delta=1E-9;  % 1E-9--> general case   1E-5 --> airfoil
              s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
-                 s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+                 s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1E-5];
 
              s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:) =...
-                 s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+                 s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,1E-5];
 
              s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:) =...
-                 s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+                 s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,1E-5];
 
              s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:) =...
-                 s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+                 s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,1E-5];
 
              s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:) =...
-                 s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+                 s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1E-5];
 
              s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:) =...
-                 s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+                 s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,1E-5];
 
              s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:) =...
-                 s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1E-9];
+                 s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,1E-5];
 
              s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:) =...
-                 s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,1E-9];
+                 s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,1E-5];
 
-             s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:) =...
-                 s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:)-[0,1E-9,0];
-
-             s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:) =...
-                 s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:)+[0,1E-9,0];
-
-             s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:) =...
-                 s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:)-[0,1E-9,0];
-
-             s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:) =...
-             s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:)+[0,1E-9,0];
+             % s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:) =...
+             %     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:)-[0,1E-5,0];
+             % 
+             % s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:) =...
+             %     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:)+[0,1E-5,0];
+             % 
+             % s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:) =...
+             %     s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:)-[0,1E-5,0];
+             % 
+             % s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:) =...
+             % s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:)+[0,1E-5,0];
             mS = Mesh.create(s);
 
-                        s.connec   = EIFEoper.MESH.CN;
-                        s.interType = 'QUADRATIC';
-                        mS         = Mesh.create(s);
+                        % s.connec   = EIFEoper.MESH.CN;
+                        % s.interType = 'QUADRATIC';
+                        % mS         = Mesh.create(s);
         end
 
         function mCoarse = createCoarseMesh(obj,mR)
@@ -356,24 +358,24 @@ classdef EIFEMtesting_3D < handle
             % coord(8,1) = xmax;  coord(8,2) = ymin;   coord(8,3) = zmin;
 
             % For Joaquin Airfoil Training
-            % coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmax;
-            % coord(2,1) = xmin;  coord(2,2) = ymax;   coord(2,3) = zmax;
-            % coord(3,1) = xmax;  coord(3,2) = ymax;   coord(3,3) = zmax;
-            % coord(4,1) = xmax;  coord(4,2) = ymin;   coord(4,3) = zmax;
-            % coord(5,1) = xmin;  coord(5,2) = ymin;   coord(5,3) = zmin;
-            % coord(6,1) = xmin;  coord(6,2) = ymax;   coord(6,3) = zmin;
-            % coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmin;
-            % coord(8,1) = xmax;  coord(8,2) = ymin;   coord(8,3) = zmin;
+            coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmax;
+            coord(2,1) = xmin;  coord(2,2) = ymax;   coord(2,3) = zmax;
+            coord(3,1) = xmax;  coord(3,2) = ymax;   coord(3,3) = zmax;
+            coord(4,1) = xmax;  coord(4,2) = ymin;   coord(4,3) = zmax;
+            coord(5,1) = xmin;  coord(5,2) = ymin;   coord(5,3) = zmin;
+            coord(6,1) = xmin;  coord(6,2) = ymax;   coord(6,3) = zmin;
+            coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmin;
+            coord(8,1) = xmax;  coord(8,2) = ymin;   coord(8,3) = zmin;
 
             % For Abril general training
-            coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmin;
-            coord(2,1) = xmax;  coord(2,2) = ymin;   coord(2,3) = zmin;
-            coord(3,1) = xmax;  coord(3,2) = ymax;   coord(3,3) = zmin;
-            coord(4,1) = xmin;  coord(4,2) = ymax;   coord(4,3) = zmin;
-            coord(5,1) = xmin;  coord(5,2) = ymin;   coord(5,3) = zmax;
-            coord(6,1) = xmax;  coord(6,2) = ymin;   coord(6,3) = zmax;
-            coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmax;
-            coord(8,1) = xmin;  coord(8,2) = ymax;   coord(8,3) = zmax;
+            % coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmin;
+            % coord(2,1) = xmax;  coord(2,2) = ymin;   coord(2,3) = zmin;
+            % coord(3,1) = xmax;  coord(3,2) = ymax;   coord(3,3) = zmin;
+            % coord(4,1) = xmin;  coord(4,2) = ymax;   coord(4,3) = zmin;
+            % coord(5,1) = xmin;  coord(5,2) = ymin;   coord(5,3) = zmax;
+            % coord(6,1) = xmax;  coord(6,2) = ymin;   coord(6,3) = zmax;
+            % coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmax;
+            % coord(8,1) = xmin;  coord(8,2) = ymax;   coord(8,3) = zmax;
 
             % Airfoil
             % coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmin;
@@ -385,7 +387,7 @@ classdef EIFEMtesting_3D < handle
             % coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmax;
             % coord(8,1) = xmax;  coord(8,2) = ymax;   coord(8,3) = zmin;
 
-            % connec = [4 1 2 3 8 5 6 7];    % CAS AIRFOIL
+            % connec = [4 1 2 3 8 5 6 7];    % CAS AIRFOIL Abril
             connec = [1 2 3 4 5 6 7 8];  % % CAS GENERAL
             s.coord = coord;
             s.connec = connec;
@@ -457,10 +459,13 @@ classdef EIFEMtesting_3D < handle
         end
 
         function [young,poisson] = computeElasticProperties(obj,mesh)
+
             E  = 1;
             nu = 1/3;
-                        % E  = 70000;
-                        % nu = 0.3;
+            
+            % Airfoil Joaquin
+                        E  = 70000;
+                        nu = 0.3;
 %             Epstr  = E/(1-nu^2);
 %             nupstr = nu/(1-nu);
             %             young   = ConstantFunction.create(Epstr,mesh);

@@ -16,8 +16,6 @@ classdef CoarseTesting_2Params< handle
         nSubdomains
         tFrame
         tCross
-        r
-        centroids
         ic
         icr
         lg
@@ -29,6 +27,7 @@ classdef CoarseTesting_2Params< handle
         discMesh
         boundaryConditions
         bcApplier
+        ddDofManager
 
         tolSameNode
         data
@@ -39,7 +38,6 @@ classdef CoarseTesting_2Params< handle
         ymin 
         ymax  
         designVariable
-        materialInterpolator
         unfittedMesh
 
     end
@@ -60,38 +58,39 @@ classdef CoarseTesting_2Params< handle
             obj.createBCapplier()
             [LHS,RHS,~] = obj.createElasticProblem();
 
-            % EXACT SOLUTION
+            %EXACT SOLUTION
             tic
             LHSf   = @(x) LHS*x;
-            t_direct=toc
             RHSf   = RHS;
             Usol   = LHS\RHS;
             Ufull  = obj.bcApplier.reducedToFullVectorDirichlet(Usol); 
-            
+            t_direct=toc
 
             % PRECONDITIONERS
             Milu        = obj.createILUpreconditioner(LHS);
             Mid         = @(r)r;
-
             Mcoarse     = obj.createCoarseNNPreconditioner(mR,dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);
             Mmult        = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Mcoarse,Milu);
+
 
             tol = 1e-8;
             x0  = zeros(size(RHSf));
 
-            tic %SOLVE THE CASE WITH STANDARD CG
+            tic  %SOLVE THE CASE WITH STANDARD CG
             [~,obj.residualCG,errCG, errCG] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
             t_CG=toc
             tic  % SOLVE THE CASE WITH CG+ ILU
             [~,obj.residualILU,errILU, errAnormILU] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
             t_ILU=toc
-            tic % SOLVE THE CASE WITH PRECONDITIONING ILU+EIFEM+ILU
-            tic
+            tic  % SOLVE THE CASE WITH PRECONDITIONING ILU+EIFEM+ILU
             [uPCG,obj.residualPCG,obj.errPCG,obj.errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
             t_PCG=toc
             xFull = obj.bcApplier.reducedToFullVectorDirichlet(uPCG);
             
 
+            uDomain = obj.bcApplier.reducedToFullVectorDirichlet(uPCG);
+            % uDomain = obj.ddDofManager.global2local(uDomain);
+            
             % LAGRANGIAN FUN SOLUTIONS
             s.mesh     = obj.meshDomain;
             s.ndimf    = obj.meshDomain.ndim;
@@ -162,7 +161,7 @@ classdef CoarseTesting_2Params< handle
                 ss.mesh = mh;
                 ss.fValues = fvalues;
                 ss.order = 'P1';
-                ss.ndimf = size(fvalues,2);
+                ss.ndimf = size(fvalues,2)
                 u = LagrangianFunction(ss);
                 u.print(fileName,'Paraview')
         end
@@ -173,8 +172,7 @@ classdef CoarseTesting_2Params< handle
     methods (Access = private)
 
         function init(obj,cParams)
-            p.Training      = cParams.Training;    % 'EIFEM'/'Multiscale'
-            p.Sampling      = cParams.Sampling;    % 'Isolated'/'Oversampling'
+            p.Training      = cParams.Training;    % 'EIFEM'/'Multiscale'/'EIFisol'
             p.Option        = cParams.Option;      % 'Dataset'/'NN'
             p.nelem         = cParams.nelem;       %  Mesh refining
             obj.params      = p;
@@ -238,19 +236,24 @@ classdef CoarseTesting_2Params< handle
             [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
             s.coord  = V(:,1:2);
             s.connec = F;
+            % 
+            % mesh= QuadMesh(1,1,n,n);
+            % s.coord= mesh.coord;
+            % s.connec=mesh.connec;
+
             obj.xmin = min(x1);            
             obj.xmax = max(x1);
             obj.ymin = min(x2);
             obj.ymax = max(x2);
-            delta = 1e-9;
+            delta = 1e-8;
             s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
-                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-0*delta];
+                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-delta];
             s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
-                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-delta,0*delta];
+                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-delta,delta];
             s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
-                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[delta,-0*delta];
+                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[delta,-delta];
             s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
-                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[delta,0*delta];
+                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[delta,delta];
             mS = Mesh.create(s);
         end
         
@@ -286,36 +289,19 @@ classdef CoarseTesting_2Params< handle
         end
 
 
-        function material = createMaterial(obj) 
-            switch obj.params.Inclusion
-                case {'Hole','HoleRaul'}
-                    [young,poisson] = obj.computeElasticProperties();
-                    s.type          = 'ISOTROPIC';
-                    s.ptype         = 'ELASTIC';
-                    s.ndim          = obj.meshDomain.ndim;
-                    s.young         = young;
-                    s.poisson       = poisson;
-                    material        = Material.create(s);
-                case 'Material'
-                    obj.createDesignVariable()
-                    m= obj.createMaterialInterpolator(); 
-                    s.type                 = 'DensityBased';
-                    s.density              = obj.designVariable;
-                    s.materialInterpolator = m;
-                    s.dim                  = '2D';
-                    s.mesh                 = obj.meshDomain;
-                    material = Material.create(s);
-                    material.setDesignVariable({obj.designVariable.fun})
-                    material = material.obtainTensor();
-            end
+        function material = createMaterial(obj)
+            obj.createDesignVariable()
+            m= obj.createMaterialInterpolator();
+            s.type                 = 'DensityBased';
+            s.density              = obj.designVariable;
+            s.materialInterpolator = m;
+            s.dim                  = '2D';
+            s.mesh                 = obj.meshDomain;
+            material = Material.create(s);
+            material.setDesignVariable({obj.designVariable.fun})
+            material = material.obtainTensor();
         end
 
-        function [young,poisson] = computeElasticProperties(obj)
-            E  = 1;
-            nu = 1/3; 
-            young   = ConstantFunction.create(E,obj.meshDomain);
-            poisson = ConstantFunction.create(nu,obj.meshDomain);
-        end
 
         function createDesignVariable(obj)
             ls= obj.computeLevelSet();
@@ -323,6 +309,7 @@ classdef CoarseTesting_2Params< handle
             sUm.boundaryMesh   = obj.meshDomain.createBoundaryMesh;
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(-ls);
+            % aaa=uMesh.createInnerMesh();
             Mprint=UnfittedMesh(sUm);
             Mprint.compute(ls);
             obj.unfittedMesh=Mprint;
@@ -338,14 +325,15 @@ classdef CoarseTesting_2Params< handle
             obj.designVariable = dens;
         end
 
-         function ls=computeLevelSet(obj)
+        function ls=computeLevelSet(obj)
             [x0,y0] = obj.computeSubdomainCentroid();
-            [Nx,Ny] = size(obj.r);
-            GeomParams(Nx,Ny) = struct('type',[],'tFrame',[],'tCross',[],'xCoorCenter',[],'yCoorCenter',[]);
+            [Nx,Ny] = size(obj.tFrame);
+            GeomParams(Nx,Ny) = struct('type',[],'length',[],'tFrame',[],'tCross',[],'xCoorCenter',[],'yCoorCenter',[]);
 
             for i = 1:obj.nSubdomains(1,2)
                 for j = 1:obj.nSubdomains(1,1)
                     GeomParams(i,j).type        = "CrossedSquare";
+                    GeomParams(i,j).length      = 2;
                     GeomParams(i,j).tFrame      = obj.tFrame(i,j);
                     GeomParams(i,j).tCross      = obj.tCross(i,j);
                     GeomParams(i,j).xCoorCenter = x0(i,j);
@@ -412,7 +400,7 @@ classdef CoarseTesting_2Params< handle
 
             PL.domain    = @(coor) isRight(coor);
             PL.direction = 2;
-            PL.value     = 1;       %Set displacement intensity 
+            PL.value     = -1;       %Set displacement intensity 
         end 
 
         function [bc,Dir,PL] = createBoundaryConditions(obj,mesh)
@@ -467,47 +455,17 @@ classdef CoarseTesting_2Params< handle
              RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
         end
 
-         function Meifem = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh)
-            p=obj.params;
-            meshName    =  p.nelem+"x"+p.nelem;
-            mR = obj.referenceMesh;
-            fileNameEIFEM  = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,"parametrizedEIFEM.mat");
-            s.RVE           = TrainedRVE(fileNameEIFEM);
-            s.mesh          = obj.createCoarseMesh();
-            s.DirCond       = dir;
-            s.nSubdomains   = obj.nSubdomains;
-            s.mu            = obj.r;
-            s.meshRef       = dMesh;
-            eifem           = EIFEMnonPeriodic(s);
-            
-            ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
-            ss.EIFEMsolver  = eifem;
-            ss.bcApplier    = obj.bcApplier;
-            ss.dMesh        = dMesh;
-            ss.type         = 'EIFEM';
-            eP = Preconditioner.create(ss);
-            Meifem = @(r) eP.apply(r);
-        end        
-
-
         function Mcoarse = createCoarseNNPreconditioner(obj,mR,dir,iC,lG,bS,iCR,dMesh)
             p=obj.params;
-            meshName    =  p.nelem+"x"+p.nelem;
             switch p.Option
                 case 'Dataset'
                     nameFile=obj.computeNameFile();
                     obj.loadDataset(nameFile);
                 case 'NN'
-                    filePath = fullfile("AbrilTFGfiles","Data",p.Training,"Lattice","K_NN.mat");
+                    filePath = fullfile("AbrilTFGfiles","Data","Lattice",p.Training,"K_NN.mat");
                     load(filePath,"K_NN");
-                    filePath = fullfile("AbrilTFGfiles","Data",p.Training,"Lattice","T_NN.mat");
+                    filePath = fullfile("AbrilTFGfiles","Data","Lattice",p.Training,"T_NN.mat");
                     load(filePath,"T_NN","pol_deg");
-                    
-                case 'Hybrid'
-                    filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,"K_NN.mat");
-                    load(filePath,"K_NN");
-                    filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,"Q_NN.mat");
-                    load(filePath,"basis","Q_NN","pol_deg");
             end
 
             RVE = cell(obj.nSubdomains(1,2),obj.nSubdomains(1,1));
@@ -521,8 +479,8 @@ classdef CoarseTesting_2Params< handle
                             RVE{i,j}.Kcoarse= obj.data.K{i,j};
                             RVE{i,j}.U= obj.data.T{i,j}; 
                         case 'NN'
-                            RVE{i,j}.Kcoarse = computeKcoarse_NN(K_NN,obj.tFrame(i,j), obj.tCross(i,j));
-                            RVE{i,j}.U       = computeT_NN(obj.cellMesh{i,j},obj.tFrame(i,j),obj.tCross(i,j),T_NN,pol_deg);
+                            RVE{i,j}.Kcoarse = computeKcoarse_NN(K_NN,[obj.tFrame(i,j),obj.tCross(i,j)]);
+                            RVE{i,j}.U       = computeT_NN(obj.cellMesh{i,j},[obj.tFrame(i,j),obj.tCross(i,j)],T_NN,pol_deg);
                     end
                 end
             end
@@ -541,18 +499,20 @@ classdef CoarseTesting_2Params< handle
             eP = Preconditioner.create(ss);
             Mcoarse = @(r) eP.apply(r);
 
+            obj.ddDofManager=ss.ddDofManager;
             close all % Ho he afegit pq s'obren fig sense info
         end
 
         function NameFile=computeNameFile(obj)
             n=obj.params.nelem;
             t1=obj.tFrame;
-            t2=obj.tCross
+            t2=obj.tCross;
             meshName=n+"x"+n;
-            name=strings(size(rad,1),size(rad,2));
+            name=strings(size(t1,1),size(t1,2));
+
             for i=1:size(t1,1)
                 for j=1:size(t1,2)
-                    strrep("t1_"+num2str(t1(i), '%.2f'), ".", "_")+strrep("_t2_"+num2str(t2(i), '%.2f'), ".", "_")+"-"+meshName+".mat";
+                    name(i,j) = strrep("t1_"+num2str(t1(i), '%.2f'), ".", "_")+strrep("_t2_"+num2str(t2(j), '%.2f'), ".", "_")+"-"+meshName+".mat";
                 end
             end
             NameFile=name;
@@ -567,12 +527,7 @@ classdef CoarseTesting_2Params< handle
             meshName=n+"x"+n;
             for i=1:size(name,1)
                 for j=1:size(name,2)
-                    switch p.Inclusion
-                        case {'Material','HoleRaul'}
-                                filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,name(i,j));
-                        case 'Hole'
-                                filePath = fullfile('AbrilTFGfiles', 'Data',p.Training,'hole',name(i,j));
-                    end
+                    filePath = fullfile("AbrilTFGfiles","Data","Lattice",p.Training,meshName,name(i,j));
                     load(filePath,"T","Kcoarse");
                     Taux{i,j}=T;
                     Kaux{i,j}=Kcoarse;

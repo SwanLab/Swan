@@ -93,7 +93,7 @@ classdef EIFEMTraining < handle
             obj.material       = cParams.material;
             % obj.levelSet       = cParams.levelSet;
             % obj.unfittedMesh   = cParams.unfittedMesh;
-            obj.tolSameNode    = 1e-9;
+            obj.tolSameNode    = 1e-11;
             obj.Coarseorder    = 1;
         end
 

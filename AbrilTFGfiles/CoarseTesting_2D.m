@@ -333,6 +333,7 @@ classdef CoarseTesting_2D< handle
             sUm.boundaryMesh   = obj.meshDomain.createBoundaryMesh;
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(-ls);
+            % aaa=uMesh.createInnerMesh();
             Mprint=UnfittedMesh(sUm);
             Mprint.compute(ls);
             obj.unfittedMesh=Mprint;
