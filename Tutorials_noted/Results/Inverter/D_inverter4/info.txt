@@ -1,0 +1,6 @@
+run for density with different values of input/output load relation : [0.1 0.25 0.5 0.75 0.9]
+
+750 iterations
+volume constraint 0.3
+eta norm 0.1
+no perimeter penalty

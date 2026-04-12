@@ -41,6 +41,7 @@ classdef OptimizerNullSpace < handle
         printing
         printName
         k_case
+        physicalProblem
     end
 
     methods (Access = public) 
@@ -93,6 +94,8 @@ classdef OptimizerNullSpace < handle
             obj.printName       = cParams.printName;
             obj.primalUpdater   = cParams.primalUpdater;
             obj.k_case          = cParams.k_case;
+          % obj.physicalProblem = cParams.physicalProblem; % Only needed
+          % for printing each iteration
             obj.dualUpdater     = DualUpdaterNullSpace(cParams);
             obj.createDualVariable();
             obj.initOtherParameters(cParams);
@@ -219,13 +222,14 @@ classdef OptimizerNullSpace < handle
         end
 
         function printResults(obj)
-            numbIters = 1; % numb indicates every how many iters it prints
+            numbIters = 1; % indicates every how many iters it prints
             if obj.nIter/numbIters==round(obj.nIter/numbIters)  
                 if obj.gif
                     obtainGIF(obj.gifName,obj.designVariable,obj.nIter);
                 end
                 if obj.printing
-                    obj.designVariable.fun.print([obj.printName,'kValue_',num2str(obj.k_case),'_Iter_',num2str(obj.nIter)]); % add /numbIters so that it is 0,1,2,...
+                    obj.designVariable.fun.print([obj.printName,'_desVar_k_',num2str(obj.k_case),'_It_',num2str(obj.nIter)]); % add /numbIters so that it is 0,1,2,...
+                    obj.physicalProblem.uFun.print([obj.printName,'_def_k_',num2str(obj.k_case),'_It_',num2str(obj.nIter)]);
                 end
             end
         end

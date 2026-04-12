@@ -23,7 +23,7 @@ classdef Tutorial05_14_TopOpt2DLevelSetGripper < handle
     methods (Access = public)
 
         function obj = Tutorial05_14_TopOpt2DLevelSetGripper()
-            obj.k_vector = [0.1 0.5 1 1.5];
+            obj.k_vector = [0.5 0.75 1 1.25 1.5];
             for a=1:length(obj.k_vector)               
                 obj.k_case = obj.k_vector(a);
                 fprintf('--- Starting Optimization for k = %f ---\n', obj.k_case);
@@ -44,6 +44,7 @@ classdef Tutorial05_14_TopOpt2DLevelSetGripper < handle
                 obj.printFinalDisplacement_v3(); % print document with the final FEM displacements
                 obj.printFinalDesignVariable(); % print final design variable
                 obj.saveFigures(); % save matlab figures (design variable and monitoring)
+                fprintf('--- Optimization finished for k = %f ---\n', obj.k_case);
             end
         end
 
@@ -205,15 +206,13 @@ classdef Tutorial05_14_TopOpt2DLevelSetGripper < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 500;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'INEQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
-            s.ub             = 1;
-            s.lb             = 0;
-            s.etaNorm        = 0.02;
-            s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 0.2;
+            s.etaNorm        = 0.01; % max allowed change for level set
+            s.etaNormMin     = 0.005;
+            s.gJFlowRatio    = 0.2; % weight for the constraints
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
             s.gif            = false;

@@ -3,10 +3,12 @@ classdef Cost < handle
     properties (Access = public)
         value
         gradient
+        cost_in_norm
+        cost_out_norm
+        shapeFunctions
     end
 
     properties (Access = private)
-        shapeFunctions
         weights
         Msmooth
     end

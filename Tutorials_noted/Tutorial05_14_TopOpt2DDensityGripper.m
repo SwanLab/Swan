@@ -23,7 +23,7 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
     methods (Access = public)
 
         function obj = Tutorial05_14_TopOpt2DDensityGripper()
-            obj.k_vector = [0.1 0.5 0.75 1 1.5];
+            obj.k_vector = [0.5 0.75 1 1.25 1.5];
             for a=1:length(obj.k_vector)
                 obj.k_case = obj.k_vector(a);
                 obj.init();
@@ -201,7 +201,7 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 500;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'INEQUALITY'};
             s.primalUpdater  = obj.primalUpdater;

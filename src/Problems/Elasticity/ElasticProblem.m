@@ -5,11 +5,11 @@ classdef ElasticProblem < handle
         strainFun
         stressFun
         forces
+        boundaryConditions, bcApplier % moved here so that NonSelf... can access it
     end
 
     properties (Access = private)
         quadrature
-        boundaryConditions, bcApplier
 
         stiffness
         solverType, solverMode, solverCase

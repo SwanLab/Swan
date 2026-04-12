@@ -39,6 +39,8 @@ classdef MonitoringNullSpace < handle
 
         function createMonitoring(obj,cParams)
             titlesF       = obj.cost.getTitleFields();
+            titlesF = [titlesF; {'Cost Input'}; {'Cost Output'}]; % add the input/output cost title
+            
             titlesConst   = obj.constraint.getTitleFields();
             nSFCost       = length(titlesF);
             nSFConstraint = length(titlesConst);
@@ -69,6 +71,22 @@ classdef MonitoringNullSpace < handle
         function data = computeDataUpdated(obj,nIter,sD)
             data = obj.cost.value;
             data = [data;obj.cost.getFields(':')];
+
+            c_in  = 0;
+            c_out = 0;
+            
+            shFun = obj.cost.shapeFunctions;
+            if iscell(shFun)
+                for i = 1:length(shFun)
+                    if isa(shFun{i}, 'NonSelfAdjointComplianceFunctional')
+                        c_in  = shFun{i}.cost_in_norm;
+                        c_out = shFun{i}.cost_out_norm;
+                        break;
+                    end
+                end
+            end
+
+            data = [data; c_in; c_out]; % add the data we want to plot
             data = [data;obj.constraint.value];
             data = [data;obj.designVariable.computeL2normIncrement()];
             data = [data;obj.dualVariable.fun.fValues];

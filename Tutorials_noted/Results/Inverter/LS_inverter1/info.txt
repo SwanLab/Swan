@@ -1,0 +1,4 @@
+run for different values of input/output load = [0.25 0.5 0.75]
+
+with iter 1000
+eta norm 0.01
