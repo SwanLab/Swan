@@ -250,7 +250,7 @@ classdef DensityVerticalCantilever4x4Thick < handle
             s.constraintCase = [{'EQUALITY'},repmat({'INEQUALITY'},[1,16])];
             s.etaNorm        = 0.01;
             s.etaNormMin     = 0.01;
-            s.gJFlowRatio    = 20.0;
+            s.gJFlowRatio    = 2.0;
             s.primalUpdater  = obj.primalUpdater;
             s.gif            = false;
             s.gifName        = [];

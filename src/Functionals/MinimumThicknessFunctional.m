@@ -27,7 +27,7 @@ classdef MinimumThicknessFunctional < handle
             f = Vo*t^2/(V+t^2);
 
             J = 2*(V+f)/(P+t);
-            dJ{1} = (2/(P+t)).*(1-Vo*t^2/(V+t^2)^2).*dV{1} + (2*(V+f)/((P+t)^2)).*dP{1};
+            dJ{1} = (2/(P+t)).*(1-Vo*t^2/(V+t^2)^2).*dV{1} - (2*(V+f)/((P+t)^2)).*dP{1};
 
             s.trial     = LagrangianFunction.create(x.fun.mesh,1,'P1');
             s.mesh = x.fun.mesh;
