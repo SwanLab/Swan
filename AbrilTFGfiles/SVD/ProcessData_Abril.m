@@ -4,15 +4,15 @@ clear all
 % Specify case parameters
 p.nelem     =  20;
 p.Training  = 'EIFEM';         % 'EIFEM'/'Multiscale'
-p.Inclusion = 'HoleRaul';         % 'Hole'/'Material'/'HoleRaul'
-p.Sampling  = 'Isolated';     % 'Isolated'/'Oversampling'
+p.Inclusion = 'Material';         % 'Hole'/'Material'/'HoleRaul'
+p.Sampling  = 'Oversampling';     % 'Isolated'/'Oversampling'
 meshName    = p.nelem+"x"+p.nelem;
 
 % Specify the directory where the .mat files are located
 
 % Get a list of all .mat files in the directory
-% files = dir(fullfile("AbrilTFGfiles/Data/",p.Training,p.Inclusion,p.Sampling,meshName, 'r0_*.mat'));
-files = dir(fullfile("AbrilTFGfiles/Data/","Sphere", 'r0_*.mat'));
+files = dir(fullfile("AbrilTFGfiles/Data/",'Circle',p.Training,p.Inclusion,p.Sampling,meshName, 'r0_*.mat'));
+% files = dir(fullfile("AbrilTFGfiles/Data/","Sphere", 'r0_*.mat'));
 % Loop through each file and load it
 i=1;
 for k = 1:1:length(files)
@@ -20,8 +20,8 @@ for k = 1:1:length(files)
     filePath = fullfile(files(k).folder, files(k).name);
 
     % Load the file
-    % load(filePath,'EIFEoper',"mesh");
-    load(filePath,'EIFEoper',"V");
+    load(filePath,'EIFEoper',"mesh");
+    % load(filePath,'EIFEoper');
 
     T(:,i)       = EIFEoper.U(:);  % This stores each file's contents in the cell array 'allData'
     Td(:,i)      = EIFEoper.Udef(:);
@@ -30,7 +30,6 @@ for k = 1:1:length(files)
     Kfine(:,i)   = EIFEoper.Kfine(:);
     PhiD(:,i)    = EIFEoper.PhiD(:);
     PhiR(:,i)    = EIFEoper.PhiR(:);
-    Vol(1,i)     = V;
     disp(['Loaded: ', files(k).name]);  % Display the file being loaded
     i=i+1;
 end
@@ -40,15 +39,15 @@ xdata   = linspace(0,0.95,20);
 %xdata   = linspace(0,0.98,50);
 
 centers = xdata;
-%mesh=data.mesh;
+% mesh=data.mesh;
 
 [fT,deim,dfT,fR] = parameterizedDataLagrange(T,xdata);
 [Tdef,~,dTdef]   = parameterizedDataLagrange(Td,xdata);
 [Trb,~,dTrb]     = parameterizedDataLagrange(Tr,xdata);
 [fK,~,dfK,~]     = parameterizedDataLagrange(Kcoarse,xdata);
 
-pV = polyfit(xdata,Vol,3);
-fV = @(x) polyval(pV,x);
+% pV = polyfit(xdata,Vol,3);
+% fV = @(x) polyval(pV,x);
 % for i=1:20
 % Vtest(1,i)=fV(xdata(1,i));
 % end
@@ -56,8 +55,8 @@ fV = @(x) polyval(pV,x);
 % figure
 % plot(xdata,Vol,xdata,Vtest);
 % legend('Vol Real','Vol interp')
-% fileName=fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,"HOfunction.mat");
-% save(fileName,"fR","fT","deim","mesh");
+fileName=fullfile("AbrilTFGfiles","Data",'Circle',p.Training,p.Inclusion,p.Sampling,meshName,"HOfunction.mat");
+save(fileName,"fR","fT","deim","mesh");
 
 EIFEoper.Kcoarse    = fK;
 EIFEoper.Udef       = Tdef;
@@ -68,10 +67,10 @@ EIFEoper.dUdef      = dTdef;
 EIFEoper.dUrb       = dTrb;
 EIFEoper.dU         = dfT;
 EIFEoper.deim       = deim;
-EIFEoper.V          = fV;
+% EIFEoper.V          = fV;
 
-% filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,"parametrizedEIFEM.mat");
-filePath = fullfile("AbrilTFGfiles","Data","Sphere","SphereInterp.mat");
+filePath = fullfile("AbrilTFGfiles","Data",'Circle',p.Training,p.Inclusion,p.Sampling,meshName,"parametrizedEIFEM.mat");
+% filePath = fullfile("AbrilTFGfiles","Data","Sphere","SphereInterp.mat");
 save(filePath,'EIFEoper');
 
 

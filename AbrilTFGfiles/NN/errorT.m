@@ -12,21 +12,21 @@ clc; clear;
 %% LOAD DATA
 p.Training  = 'EIFEM';            % 'EIFEM'/'Multiscale'
 p.Inclusion  ='Material';         % 'Material'/'Hole'/'HoleRaul
-p.Sampling   ='Oversampling';         % 'Isolated'/'Oversampling'
+p.Sampling   ='Isolated';         % 'Isolated'/'Oversampling'
 p.nelem      = 20;
 meshName    =  p.nelem+"x"+p.nelem;
 
 % 1. NN
-filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,"T_NN.mat");
+filePath = fullfile("AbrilTFGfiles","Data/Circle/",p.Training,p.Inclusion,p.Sampling,"T_NN.mat");
 load(filePath);
 pol_deg1=pol_deg;
 
 % 2. High Order function
-HOname=fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,"HOfunction.mat");
+HOname=fullfile("AbrilTFGfiles","Data/Circle/",p.Training,p.Inclusion,p.Sampling,meshName,"HOfunction.mat");
 load(HOname,"fT","deim");
 
 % 3. SVD +NN
-NNname=fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,"Q_NN.mat");
+NNname=fullfile("AbrilTFGfiles","Data/Circle/",p.Training,p.Inclusion,p.Sampling,meshName,"Q_NN.mat");
 load(NNname);
 
 U=deim.basis(:,1:10);
@@ -34,7 +34,7 @@ pol_deg2=pol_deg;
 
 
 % Dataset
-directory= fullfile("AbrilTFGfiles/Data",p.Training,p.Inclusion,p.Sampling,meshName);
+directory= fullfile("AbrilTFGfiles/Data/Circle/",p.Training,p.Inclusion,p.Sampling,meshName);
 files = dir(fullfile(directory, 'r0_*.mat'));
 i=1;
 for k = 1:1:length(files)
@@ -161,7 +161,7 @@ legend("NN","SVD+HO","SVD+NN");
 title("Training Error vs r");
 xlabel('r');
 ylabel('error');
-ylim([0 0.03])
+ylim([0 0.035])
 
 %% PLOT TEST
 
@@ -171,7 +171,7 @@ legend("NN","SVD+HO","SVD+NN");
 title("Test Error vs r ");
 xlabel('r');
 ylabel('error');
-ylim([0 0.03])
+ylim([0 0.035])
 
 % figure
 % plot(test.r,test.err2,LineWidth=1.5);

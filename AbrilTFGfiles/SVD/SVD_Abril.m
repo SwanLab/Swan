@@ -6,12 +6,12 @@ close all;
 
 %% Load Data
 p.nelem     =  20;
-p.Training  = 'Multiscale';         % 'EIFEM'/'Multiscale'
-p.Inclusion = 'HoleRaul';         % 'Hole'/'Material'/'HoleRaul'
-p.Sampling  = 'Isolated';     % 'Isolated'/'Oversampling'
+p.Training  = 'EIFEM';         % 'EIFEM'/'Multiscale'
+p.Inclusion = 'Material';         % 'Hole'/'Material'/'HoleRaul'
+p.Sampling  = 'Oversampling';     % 'Isolated'/'Oversampling'
 meshName    = p.nelem+"x"+p.nelem;
 
-files = dir(fullfile("AbrilTFGfiles/Data/",p.Training,p.Inclusion,p.Sampling,meshName, 'r0_*.mat'));
+files = dir(fullfile("AbrilTFGfiles/Data/Circle/",p.Training,p.Inclusion,p.Sampling,meshName, 'r0_*.mat'));
 
 r=zeros(length(files),1);
 for k = 1:1:length(files)
@@ -34,7 +34,7 @@ q = V(:,1:nBasis)*sValues;
 
 table=[r q];
 
-fileName=fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,"SVD.mat");
+fileName=fullfile("AbrilTFGfiles","Data/Circle/",p.Training,p.Inclusion,p.Sampling,meshName,"SVD.mat");
 save(fileName,"U","S","V","r","basis","nBasis");
-QFileName = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,"DataQ.csv");
+QFileName = fullfile("AbrilTFGfiles","Data/Circle/",p.Training,p.Inclusion,p.Sampling,meshName,"DataQ.csv");
 writematrix(table,QFileName);

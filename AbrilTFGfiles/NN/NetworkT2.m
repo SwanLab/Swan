@@ -7,7 +7,7 @@ clear;
 close all;
 
 %% Case parameters
-p.Training  = 'Multiscale';   % 'EIFEM'/'Multiscale'
+p.Training  = 'EIFEM';   % 'EIFEM'/'Multiscale'
 p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
 p.Inclusion  ='Material';    %'Material'/'Hole'/'HoleRaul
 
@@ -15,16 +15,17 @@ p.Inclusion  ='Material';    %'Material'/'Hole'/'HoleRaul
 pol_deg         = 6;
 testratio       = 30;
 lambda          = 0.0;
-learningRate    = 0.015;
+learningRate    = 0.05;
 % hiddenLayers    = [224 250 280 300 280 250 224 200 150 100 72 50 20];
-hiddenLayers    = [300 350 400 450 450 400 350 300 200 100 72];
+% hiddenLayers    = [300 350 400 450 450 400 350 300 200 100 72];
+hiddenLayers    = [100 150 200 250 200 150 100];
 
 
 %% INITIALIZATION 
 % Store dataset file name
-% s.fileName = fullfile('AbrilTFGfiles',"Data",p.Training ,p.Inclusion,p.Sampling,'DataT.csv');
+s.fileName = fullfile('AbrilTFGfiles',"Data/Circle/",p.Training ,p.Inclusion,p.Sampling,'DataT.csv');
 % s.fileName = fullfile('AbrilTFGfiles','Data',"Lattice",p.Training,'DataT.csv');
-s.fileName = fullfile('AbrilTFGfiles','Data',"Lattice",p.Training,'DataT.csv');
+% s.fileName = fullfile('AbrilTFGfiles','Data',"Lattice",p.Training,'DataT.csv');
 
 
 % Load model parameters
@@ -41,9 +42,9 @@ s.networkParams.OUtype = 'linear';
 
 
 % Select the model's features
-s.xFeatures = 1:4;
+s.xFeatures = 1:3;
 % s.yFeatures=[4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19];
-s.yFeatures=5:20;
+s.yFeatures=4:19;
 
 %% Initialization of variables to save
 MSETrain=zeros(1,8);
@@ -60,7 +61,7 @@ T_NN = OptimizationProblemNN(s);
 T_NN.solve();
 T_NN.plotCostFnc();
     
-% FileName=fullfile('AbrilTFGfiles',"Data",p.Training,p.Inclusion,p.Sampling,"T_NN.mat");
+FileName=fullfile('AbrilTFGfiles',"Data/Circle/",p.Training,p.Inclusion,p.Sampling,"T_NN.mat");
 % FileName=fullfile('AbrilTFGfiles',"Data",p.Training,'Lattice',"T_NN.mat");
-FileName = fullfile('AbrilTFGfiles','Data',"Lattice",p.Training,"T_NN.mat");
+% FileName = fullfile('AbrilTFGfiles','Data',"Lattice",p.Training,"T_NN.mat");
     save(FileName, "T_NN","pol_deg");

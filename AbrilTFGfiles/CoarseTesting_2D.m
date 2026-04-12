@@ -82,12 +82,12 @@ classdef CoarseTesting_2D< handle
             tol = 1e-8;
             x0  = zeros(size(RHSf));
 
-            % tic  %SOLVE THE CASE WITH STANDARD CG
-            % [~,obj.residualCG,errCG, errCG] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
-            % t_CG=toc
-            % tic  % SOLVE THE CASE WITH CG+ ILU
-            % [~,obj.residualILU,errILU, errAnormILU] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
-            % t_ILU=toc
+            tic  %SOLVE THE CASE WITH STANDARD CG
+            [~,obj.residualCG,errCG, errCG] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
+            t_CG=toc
+            tic  % SOLVE THE CASE WITH CG+ ILU
+            [~,obj.residualILU,errILU, errAnormILU] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
+            t_ILU=toc
             tic  % SOLVE THE CASE WITH PRECONDITIONING ILU+EIFEM+ILU
             [uPCG,obj.residualPCG,obj.errPCG,obj.errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
             t_PCG=toc

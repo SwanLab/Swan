@@ -3,29 +3,29 @@ clear;
 close all;
 
 %% Case parameters
-p.Training  = 'Multiscale';         % 'EIFEM'/'Multiscale'
-p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
-p.Inclusion  ='HoleRaul';    %'Material'/'Hole'/'HoleRaul
+p.Training  = 'EIFEM';         % 'EIFEM'/'Multiscale'
+p.Sampling   ='Oversampling';     %'Isolated'/'Oversampling'
+p.Inclusion  ='Material';    %'Material'/'Hole'/'HoleRaul
 p.nelem      = 20;
 meshName     = p.nelem+"x"+p.nelem;
 
 %% Initialization of hyperparameters
-pol_deg         = 9;
+pol_deg         = 6;
 testratio       = 30;
 lambda          = 0.0;
-learningRate    = 0.001;
+learningRate    = 0.003;
 hiddenLayers    =[12 20 30 50 100 50 30 20];
 
 %% INITIALIZATION 
 % Store dataset file name
- s.fileName = fullfile('AbrilTFGfiles',"Data",p.Training,p.Inclusion,p.Sampling,meshName,'DataQ.csv');
+ s.fileName = fullfile('AbrilTFGfiles',"Data/Circle/",p.Training,p.Inclusion,p.Sampling,meshName,'DataQ.csv');
 
 % Load model parameters
 s.polynomialOrder = pol_deg;
 s.testRatio       = testratio;
 s.networkParams.hiddenLayers    = hiddenLayers;
 s.optimizerParams.learningRate  = learningRate;
-s.optimizerParams.maxEpochs = 10000000; % 1000 is the best option, but we use 10 to pass the tutorial quickly
+s.optimizerParams.maxEpochs = 500000; % 1000 is the best option, but we use 10 to pass the tutorial quickly
 s.costParams.lambda             = lambda;
 s.costParams.costType           = 'L2';
 
@@ -49,7 +49,7 @@ Q_NN.plotCostFnc();
 
 
 string ="Q_NN.mat";
-FileName=fullfile('AbrilTFGfiles',"Data",p.Training,p.Inclusion,p.Sampling,meshName,string);
+FileName=fullfile('AbrilTFGfiles',"Data/Circle/",p.Training,p.Inclusion,p.Sampling,meshName,string);
 save(FileName, "Q_NN","pol_deg");
 
 %% Plot surface

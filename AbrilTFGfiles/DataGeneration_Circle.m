@@ -9,14 +9,14 @@ clc; clear; close all;
 %% INPUTS
 % r=1e-6:0.05:0.999; 
 % r=1e-6:0.1:0.999; 
-% r=0:0.05:0.999;
-r=0.2:0.05:0.6;
+r=0:0.05:0.999;
+% r=0.2:0.05:0.6;
 % r=0.3;
 
-p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale'
+p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
 p.Inclusion  = 'Material';        %'Material'/'Hole'/'HoleRaul'
-p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
-p.nelem      = 50;
+p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
+p.nelem      = 20;
 meshName     = p.nelem+"x"+p.nelem;
 
 
@@ -110,17 +110,17 @@ end
 
 %% Reshapes the T data and saves it in a csv file
 % 
-% % Redimensioning the U_all1
-% TData=[];
-% for n=1:size(T_all,3)
-%     TData=[TData;T_all(:,:,n)];
-% end
-% 
-% T=array2table(TData,"VariableNames",{'r','x','y','Tx1','Ty1','Tx2','Ty2','Tx3','Ty3','Tx4','Ty4' ...
-%     'Tx5','Ty5','Tx6','Ty6','Tx7','Ty7','Tx8','Ty8'});
-% 
-% uFileName = fullfile('AbrilTFGfiles','Data',p.Training,p.Inclusion,'DataT.csv');
-% writematrix(TData,uFileName);
+% Redimensioning the U_all1
+TData=[];
+for n=1:size(T_all,3)
+    TData=[TData;T_all(:,:,n)];
+end
+
+T=array2table(TData,"VariableNames",{'r','x','y','Tx1','Ty1','Tx2','Ty2','Tx3','Ty3','Tx4','Ty4' ...
+    'Tx5','Ty5','Tx6','Ty6','Tx7','Ty7','Tx8','Ty8'});
+
+uFileName = fullfile('AbrilTFGfiles','Data','Circle',p.Training,p.Inclusion,p.Sampling,'DataT.csv');
+writematrix(TData,uFileName);
 
 
 %% Reshapes the K data and saves it in a csv file
