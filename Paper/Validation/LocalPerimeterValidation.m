@@ -97,8 +97,8 @@ classdef LocalPerimeterValidation < handle
             f{2} = fPDE;
             f{3} = fPDE;
 
-            CAnisotropic = [tand(85), 0; 0, 1/tand(85)];
-            aniAlphaDeg = 0;
+            CAnisotropic = [tand(80), 0; 0, 1/tand(80)];
+            aniAlphaDeg = 90;
             R = [cosd(aniAlphaDeg),-sind(aniAlphaDeg)
                 sind(aniAlphaDeg), cosd(aniAlphaDeg)];
             CGlobal = R*CAnisotropic*R';
@@ -109,14 +109,12 @@ classdef LocalPerimeterValidation < handle
             fAni1            = Filter.create(sF);
             f{4} = fAni1;
 
-            aniAlphaDeg = 45;
-            R = [cosd(aniAlphaDeg),-sind(aniAlphaDeg)
-                sind(aniAlphaDeg), cosd(aniAlphaDeg)];
-            CGlobal = R*CAnisotropic*R';
-            sF.trial        = LagrangianFunction.create(obj.mesh,1,'P1');
-            sF.A            = ConstantFunction.create(CGlobal,obj.mesh);
-            fAni2            = Filter.create(sF);
-            f{5} = fAni2;
+            sF.alpha = 4;
+            sF.beta  = 0;
+            sF.theta = 90;
+            sF.tol0  = 1e-6;
+            fSeg    = NonLinearFilterSegment(sF);
+            f{5} = fSeg;
 
             aniAlphaDeg = 90;
             R = [cosd(aniAlphaDeg),-sind(aniAlphaDeg)
@@ -124,28 +122,44 @@ classdef LocalPerimeterValidation < handle
             CGlobal = R*CAnisotropic*R';
             sF.trial        = LagrangianFunction.create(obj.mesh,1,'P1');
             sF.A            = ConstantFunction.create(CGlobal,obj.mesh);
-            fAni3            = Filter.create(sF);
-            f{6} = fAni3;
+            fAni2            = Filter.create(sF);
+            f{6} = fAni2;
 
-            sF.alpha = 4;
-            sF.beta  = 0;
-            sF.theta = 0;
-            sF.tol0  = 1e-6;
-            fSeg1    = NonLinearFilterSegment(sF);
-            sF.theta = 45;
-            fSeg2 = NonLinearFilterSegment(sF);
-            sF.theta = 90;
-            fSeg3 = NonLinearFilterSegment(sF);
-            f{7} = fSeg1; f{8} = fSeg2; f{9} = fSeg3;
+            aniAlphaDeg = 90+45;
+            R = [cosd(aniAlphaDeg),-sind(aniAlphaDeg)
+                sind(aniAlphaDeg), cosd(aniAlphaDeg)];
+            CGlobal = R*CAnisotropic*R';
+            sF.trial        = LagrangianFunction.create(obj.mesh,1,'P1');
+            sF.A            = ConstantFunction.create(CGlobal,obj.mesh);
+            fAni3            = Filter.create(sF);
+            f{7} = fAni3;
+
+            aniAlphaDeg = 0;
+            R = [cosd(aniAlphaDeg),-sind(aniAlphaDeg)
+                sind(aniAlphaDeg), cosd(aniAlphaDeg)];
+            CGlobal = R*CAnisotropic*R';
+            sF.trial        = LagrangianFunction.create(obj.mesh,1,'P1');
+            sF.A            = ConstantFunction.create(CGlobal,obj.mesh);
+            fAni4            = Filter.create(sF);
+            f{8} = fAni4;
+
+            aniAlphaDeg = 45;
+            R = [cosd(aniAlphaDeg),-sind(aniAlphaDeg)
+                sind(aniAlphaDeg), cosd(aniAlphaDeg)];
+            CGlobal = R*CAnisotropic*R';
+            sF.trial        = LagrangianFunction.create(obj.mesh,1,'P1');
+            sF.A            = ConstantFunction.create(CGlobal,obj.mesh);
+            fAni5            = Filter.create(sF);
+            f{9} = fAni5;
 
             h         = obj.mesh.computeMeanCellSize();
             s.mesh    = obj.mesh;
-            s.epsilon = 3*h;
-            s.minEpsilon = 3*h;
+            s.epsilon = 2*h;
+            s.minEpsilon = 2*h;
             s.value0 = 1;
             s.tarVolume = 0.4;
 
-            tarRef = [1,2,3, 1,1,1, 1,1,1];
+            tarRef = [0.65,1,1.35, 0.65,1,1.15, 1,1,1];
             x0 = repmat([0.5,1.5,2.5],[1,3]);
             y0 = [repmat(2.5,[1,3]),repmat(1.5,[1,3]),repmat(0.5,[1,3])];
             for i = 1:length(x0)
@@ -196,14 +210,14 @@ classdef LocalPerimeterValidation < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 2000;
+            s.maxIter        = 100;
             s.tolerance      = 1e-8;
-            s.constraintCase = repmat({'INEQUALITY'},[1,9]);
+            s.constraintCase = repmat({'EQUALITY'},[1,9]);
             s.etaNorm        = 0.01;
             s.etaNormMin     = 0.01;
-            s.gJFlowRatio    = 2.0;
-            s.etaMax         = 1;
-            s.etaMaxMin      = 0.01;
+            s.gJFlowRatio    = 8.0;
+            s.etaMax         = 100;
+            s.etaMaxMin      = 0.1;
             s.primalUpdater  = obj.primalUpdater;
             s.gif            = false;
             s.gifName        = [];
