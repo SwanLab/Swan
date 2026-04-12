@@ -35,8 +35,8 @@ classdef LevelSetGripper4x4Segment < handle
             obj.createPrimalUpdater();
             obj.createOptimizer();
 
-            saveas(gcf,['Paper/Global/MonitoringLevelSetGripper4x4Segment',num2str(pRelTar),'.fig']);
-            obj.designVariable.fun.print(['Paper/Global/LevelSetGripper4x4Segment',num2str(pRelTar),'fValues']);
+            saveas(gcf,['Paper/Domain4x4/MonitoringLevelSetGripper4x4Segment',num2str(pRelTar),'.fig']);
+            obj.designVariable.fun.print(['Paper/Domain4x4/LevelSetGripper4x4Segment',num2str(pRelTar),'fValues']);
         end
 
     end
@@ -252,9 +252,9 @@ classdef LevelSetGripper4x4Segment < handle
             s.constraintCase = [{'EQUALITY'},repmat({'INEQUALITY'},[1,16])];
             s.etaNorm        = 0.01;
             s.etaNormMin     = 0.01;
-            s.gJFlowRatio    = 4.0;
-            s.etaMax         = 10;
-            s.etaMaxMin      = 0.05;
+            s.gJFlowRatio    = 8.0;
+            s.etaMax         = 30;
+            s.etaMaxMin      = 0.1;
             s.primalUpdater  = obj.primalUpdater;
             s.gif            = false;
             s.gifName        = [];

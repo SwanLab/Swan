@@ -1,14 +1,13 @@
-classdef DensityGripper4x4Segment < handle
+classdef LevelSetVerticalCantilever4x4Thick < handle
 
     properties (Access = private)
         mesh
-        filename
         filter
         designVariable
         materialInterpolator
         physicalProblem
         compliance
-        antiPer
+        penalty
         perimeter
         volume
         cost
@@ -19,24 +18,25 @@ classdef DensityGripper4x4Segment < handle
 
     methods (Access = public)
 
-        function obj = DensityGripper4x4Segment(pRelTar)
+        function obj = LevelSetVerticalCantilever4x4Thick(hTar)
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
             obj.createMaterialInterpolator();
             obj.createElasticProblem();
+            obj.createComplianceFromConstiutive();
             obj.createCompliance();
-            obj.createAntiPerimeter();
-            obj.createPerimeter(pRelTar);
+            obj.createPerimeterPenalty();
+            obj.createThicknessConstraint(hTar);
             obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
             obj.createPrimalUpdater();
             obj.createOptimizer();
 
-            saveas(gcf,['Paper/Domain4x4/MonitoringDensityGripper4x4Segment',num2str(pRelTar),'.fig']);
-            obj.designVariable.fun.print(['Paper/Domain4x4/DensityGripper4x4Segment',num2str(pRelTar),'fValues']);
+            saveas(gcf,['Paper/Domain4x4/MonitoringLevelSetVerticalCantilever4x4Thick',num2str(hTar),'.fig']);
+            obj.designVariable.fun.print(['Paper/Domain4x4/LevelSetVerticalCantilever4x4Thick',num2str(hTar),'fValues']);
         end
 
     end
@@ -48,25 +48,25 @@ classdef DensityGripper4x4Segment < handle
         end
 
         function createMesh(obj)
-            file = 'Gripping';
-            obj.filename = file;
-            a.fileName = file;
-            s = FemDataContainer(a);
-            obj.mesh = s.mesh;
+            obj.mesh = TriangleMesh(1,2,75,150);
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(x(1,:,:)));
-            s.ndimf   = 1;
-            s.mesh    = obj.mesh;
-            aFun      = AnalyticalFunction(s);
-            
-            sD.fun      = aFun.project('P1');
-            sD.mesh     = obj.mesh;
-            sD.type     = 'Density';
-            sD.plotting = false;
-            dens        = DesignVariable.create(sD);
-            obj.designVariable = dens;
+            s.type             = 'Holes';
+            s.dim              = 2;
+            s.nHoles           = [50,100];
+            s.totalLengths     = [1,2];
+            s.phiZero          = 0.4;
+            s.phases           = [pi/2,0];
+            g                  = GeometricalFunction(s);
+            lsFun              = g.computeLevelSetFunction(obj.mesh);
+            lsFun.setFValues(lsFun.fValues - 1);
+            s.fun              = lsFun;
+            s.mesh             = obj.mesh;
+            s.type             = 'LevelSet';
+            s.plotting         = false;
+            ls                 = DesignVariable.create(s);
+            obj.designVariable = ls;
         end
 
         function createFilter(obj)
@@ -123,17 +123,22 @@ classdef DensityGripper4x4Segment < handle
             obj.physicalProblem = fem;
         end
 
-        function createCompliance(obj)
+        function c = createComplianceFromConstiutive(obj)
             s.mesh         = obj.mesh;
-            s.filter       = obj.filter;
-            s.material     = obj.createMaterial();
             s.stateProblem = obj.physicalProblem;
-            s.filename     = obj.filename;
-            c = NonSelfAdjointComplianceFunctional(s);
+            c = ComplianceFromConstitutiveTensor(s);
+        end
+
+        function createCompliance(obj)
+            s.mesh                        = obj.mesh;
+            s.filter                      = obj.filter;
+            s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
+            s.material                    = obj.createMaterial();
+            c = ComplianceFunctional(s);
             obj.compliance = c;
         end
 
-        function createAntiPerimeter(obj)
+        function createPerimeterPenalty(obj)
             sF.mesh       = obj.mesh;
             sF.filterType = 'PDE';
             sF.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
@@ -144,11 +149,11 @@ classdef DensityGripper4x4Segment < handle
             s.uMesh       = obj.createBaseDomain();
             s.filter      = f;
             s.epsilon     = 3*h;
-            s.value0      = 4;
+            s.value0      = 6;
             s.signInitial = -0.25;
             s.signFinal   = 0.05;
-            s.tarVolume   = 0.5;
-            obj.antiPer   = InterfaceFunctional(s);
+            s.tarVolume   = 0.4;
+            obj.penalty   = InterfaceFunctional(s);
         end
 
         function uMesh = createBaseDomain(obj)
@@ -159,12 +164,12 @@ classdef DensityGripper4x4Segment < handle
             uMesh.compute(levelSet);
         end
 
-        function uMesh = createBaseDomainPerimeter(obj,x0,y0)
+        function uMesh = createBaseDomainIP(obj,x0,y0)
             s.type             = 'Rectangle';
             s.xCoorCenter      = x0;
             s.yCoorCenter      = y0;
             s.xSide            = 0.25;
-            s.ySide            = 0.25;
+            s.ySide            = 0.50;
             g                  = GeometricalFunction(s);
             lsFun              = g.computeLevelSetFunction(obj.mesh);
             sUm.backgroundMesh = obj.mesh;
@@ -173,38 +178,36 @@ classdef DensityGripper4x4Segment < handle
             uMesh.compute(lsFun.fValues);
         end
 
-        function createPerimeter(obj,p)
-            sF.mesh  = obj.mesh;
-            sF.alpha = 4;
-            sF.beta  = 0;
-            sF.theta = 180;
-            sF.tol0  = 1e-6;
-            f        = NonLinearFilterSegment(sF);
+        function createThicknessConstraint(obj,hTar)
+            sF.mesh       = obj.mesh;
+            sF.filterType = 'PDE';
+            sF.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            f             = Filter.create(sF);
 
             h         = obj.mesh.computeMeanCellSize();
             s.mesh    = obj.mesh;
             s.filter  = f;
             s.epsilon = 3*h;
-            s.minEpsilon = 3*h;
             s.value0 = 1;
-            s.tarVolume = 0.5;
+            s.tarVolume = 0.4;
+            s.test = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.tau = 0.1/4;
 
-            tarRef = [0.0865, 0.2506, 0.1911, 0.1301, 0.1585, 0.7537, 0.2549, 0.7318, 0.1585, 0.7537, 0.2549, 0.7318, 0.0865, 0.2506, 0.1911, 0.1301];
+            s.target = hTar;
+            s.target0 = s.target/100;
+
             x0 = repmat([0.125,0.375,0.625,0.875],[1,4]);
-            y0 = [repmat(0.875,[1,4]),repmat(0.625,[1,4]),repmat(0.375,[1,4]),repmat(0.125,[1,4])];
+            y0 = [repmat(1.75,[1,4]),repmat(1.25,[1,4]),repmat(0.75,[1,4]),repmat(0.25,[1,4])];
             for i = 1:length(x0)
-                s.uMesh          = obj.createBaseDomainPerimeter(x0(i),y0(i));
-                s.target         = p*tarRef(i);
-                s.target0        = 100*s.target;
-                obj.perimeter{i} = PerimeterConstraint(s);
+                s.uMesh          = obj.createBaseDomainIP(x0(i),y0(i));
+                obj.perimeter{i} = MinimumThicknessConstraint(s);
             end
         end
 
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
-            s.filter = obj.filter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.5;
+            s.volumeTarget = 0.4;
             s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
@@ -212,7 +215,7 @@ classdef DensityGripper4x4Segment < handle
 
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
-            s.shapeFunctions{2} = obj.antiPer;
+            s.shapeFunctions{2} = obj.penalty;
             s.weights           = [1,1];
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
@@ -234,11 +237,8 @@ classdef DensityGripper4x4Segment < handle
         end
 
         function createPrimalUpdater(obj)
-            s.ub     = 1;
-            s.lb     = 0;
-            s.tauMax = 1000;
-            s.tau    = [];
-            obj.primalUpdater = ProjectedGradient(s);
+            s.mesh = obj.mesh;
+            obj.primalUpdater = SLERP(s);
         end
 
         function createOptimizer(obj)
@@ -250,7 +250,10 @@ classdef DensityGripper4x4Segment < handle
             s.tolerance      = 1e-8;
             s.constraintCase = [{'EQUALITY'},repmat({'INEQUALITY'},[1,16])];
             s.etaNorm        = 0.01;
+            s.etaNormMin     = 0.01;
             s.gJFlowRatio    = 4.0;
+            s.etaMax         = 10;
+            s.etaMaxMin      = 0.05;
             s.primalUpdater  = obj.primalUpdater;
             s.gif            = false;
             s.gifName        = [];
@@ -262,10 +265,18 @@ classdef DensityGripper4x4Segment < handle
         end
 
         function bc = createBoundaryConditions(obj)
-            femReader = FemInputReaderGiD();
-            s         = femReader.read(obj.filename);
-            sPL       = obj.computeCondition(s.pointload);
-            sDir      = obj.computeCondition(s.dirichlet);
+            xMax    = max(obj.mesh.coord(:,1));
+            yMax    = max(obj.mesh.coord(:,2));
+            isDir   = @(coor)  coor(:,2)==0;
+            isForce = @(coor)  coor(:,2)==yMax & coor(:,1)>=0.4*xMax & coor(:,1)<=0.6*xMax;
+
+            sDir{1}.domain    = @(coor) isDir(coor);
+            sDir{1}.direction = [1,2];
+            sDir{1}.value     = 0;
+
+            sPL{1}.domain    = @(coor) isForce(coor);
+            sPL{1}.direction = 1;
+            sPL{1}.value     = 1;
 
             dirichletFun = [];
             for i = 1:numel(sDir)
@@ -286,26 +297,4 @@ classdef DensityGripper4x4Segment < handle
             bc = BoundaryConditions(s);
         end
     end
-
-    methods (Static, Access=private)
-        function sCond = computeCondition(conditions)
-            nodes = @(coor) 1:size(coor,1);
-            dirs  = unique(conditions(:,2));
-            j     = 0;
-            for k = 1:length(dirs)
-                rowsDirk = ismember(conditions(:,2),dirs(k));
-                u        = unique(conditions(rowsDirk,3));
-                for i = 1:length(u)
-                    rows   = conditions(:,3)==u(i) & rowsDirk;
-                    isCond = @(coor) ismember(nodes(coor),conditions(rows,1));
-                    j      = j+1;
-                    sCond{j}.domain    = @(coor) isCond(coor);
-                    sCond{j}.direction = dirs(k);
-                    sCond{j}.value     = u(i);
-                end
-            end
-        end
-
-    end
-
 end
