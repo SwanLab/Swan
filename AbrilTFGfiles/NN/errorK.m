@@ -9,23 +9,23 @@
 clc; clear;
 
 %% LOAD DATA
-p.Training  = 'EIFEM';            % 'EIFEM'/'Multiscale'
+p.Training  = 'Multiscale';            % 'EIFEM'/'Multiscale'
 p.Sampling   ='Isolated';         %'Isolated'/'Oversampling'
 p.Inclusion  ='Material';         %'Material'/'Hole'/'HoleRaul
 p.nelem      = 20;
 meshName    =  p.nelem+"x"+p.nelem;
 
 % 1. NN
-filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,"K_NN.mat");
+filePath = fullfile("AbrilTFGfiles","Data",'Circle/',p.Training,p.Inclusion,p.Sampling,"K_NN.mat");
 load(filePath);
 
 % 2. High Order function
-HOname=fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,"parametrizedEIFEM.mat");
+HOname=fullfile("AbrilTFGfiles","Data","Circle/",p.Training,p.Inclusion,p.Sampling,meshName,"parametrizedEIFEM.mat");
 load(HOname,"EIFEoper");
 fK = EIFEoper.Kcoarse;
 
 % Dataset
-directory= fullfile("AbrilTFGfiles/Data",p.Training,p.Inclusion,p.Sampling,meshName);
+directory= fullfile("AbrilTFGfiles/Data","Circle/",p.Training,p.Inclusion,p.Sampling,meshName);
 files = dir(fullfile(directory, 'r0_*.mat'));
 i=1;
 for k = 1:1:length(files)
@@ -45,10 +45,11 @@ test.Kcoarse=zeros(size(training.Kcoarse,1),size(test.r,2));
 for i=1:size(test.r,2)
      mR=createReferenceMesh(p,test.r(i));
      test.mesh{i}=mR;
+     g=computeLevelSet(test.r(i));
     switch p.Training
         case 'EIFEM'
             [nS,dI]      = defineNumberOfSubdomains(p.Sampling);
-            material     = createMaterialTraining(mR, test.r(i),nS,p.Inclusion);
+            material     = createMaterial(mR,nS,p.Inclusion,g);
             s.mesh           = mR;
             s.r              = test.r(i);
             s.material       = material;
@@ -56,16 +57,17 @@ for i=1:size(test.r,2)
             s.nSubdomains    = nS;            
             m= EIFEMTraining(s);
             data          = m.train();
-            data.material = createMaterialTraining(mR, test.r(i) ,[1 1],p.Inclusion);
+            data.material = createMaterial(mR,[1 1],p.Inclusion,g);
             z = OfflineDataProcessor(data);
             EIFEoper = z.computeROMbasis();
             test.Kcoarse(:,i)=EIFEoper.Kcoarse(:);
         case 'Multiscale'
             p.Sampling = 'Isolated';
-            material   = createMaterialTraining(mR, test.r(i),[1 1],p.Inclusion);
+            material   = createMaterial(mR,[1 1],p.Inclusion,g);
             mesh       = mR;
             bMesh      = mesh.createSingleBoundaryMesh();
             s.mesh=bMesh;
+            s.type='continuous';
             cf=CoarseFunctions(s);
             f = cf.getAnalytical();
             s.mesh          = mesh;
@@ -74,8 +76,8 @@ for i=1:size(test.r,2)
             s.material      = material;
             s.dirichletFun  = f;
             e  = ElasticHarmonicExtension(s);
-            [~,~,~,Kcoarse] = e.solve();
-            test.Kcoarse(:,i)= T(:);
+            [~,~,~,Kc] = e.solve();
+            test.Kcoarse(:,i)= Kc(:);
     end
 end
 
@@ -125,22 +127,26 @@ test.err2=vecnorm(abs(test.Kcoarse-test.T2))/norm(test.Kcoarse);
 %% PLOT ERROR
 
 figure
-plot(training.r,training.err1,training.r,training.err2,LineWidth=1.5);
-legend("NN","HO");
-title("Training Error vs r");
+tiledlayout(1,2)
+pos= [572,507,978,371];
+set(gcf, 'Position', pos) 
+nexttile
+plot(training.r,training.err1,LineWidth=1.5);
+% legend("NN","HO");
+title("NN training Error vs r");
 xlabel('r');
 ylabel('error');
-
+ylim ([0 0.04]);
 
 %% PLOT TEST
 
-figure
-plot(test.r,test.err1,test.r,test.err2,LineWidth=1.5);
-legend("NN","HO");
-title("Test Error vs r ");
+nexttile
+plot(test.r,test.err1,LineWidth=1.5);
+% legend("NN","HO");
+title("NN test Error vs r ");
 xlabel('r');
 ylabel('error');
-
+ylim ([0 0.04]);
 
 % %% Prova plots
 % 
@@ -233,4 +239,21 @@ function [nS,dI] = defineNumberOfSubdomains(type)
             nS = [5 5]; %nx ny
             dI = [3 3];
     end
+end
+
+function material = createMaterial(mesh,nSubdomains,inclusionType,g)
+    s.mesh           = mesh;
+    s.inclusionType  = inclusionType;
+    s.nSubdomains    = nSubdomains;
+    s.geomFun        = g;
+    m = MaterialTraining(s);
+    material = m.create();
+end
+
+function g=computeLevelSet(r)
+    gPar.type         = 'Circle';
+    gPar.radius       = r;
+    gPar.xCoorCenter  = 0;
+    gPar.yCoorCenter  = 0;
+    g                 = GeometricalFunction(gPar);
 end

@@ -3,16 +3,16 @@ clear;
 close all;
 
 %% Case parameters
-p.Training  = 'EIFEM';        % 'EIFEM'/'Multiscale'
+p.Training  = 'Multiscale';        % 'EIFEM'/'Multiscale'
 p.Inclusion  ='Material';    %'Material'/'Hole'/'HoleRaul
-p.Sampling   ='Oversampling';     %'Isolated'/'Oversampling'
+p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
 
 %% Initialization of hyperparameters
 pol_deg         = 1;
 testratio       = 30;
 lambda          = 0.0;
-learningRate    = 0.2;
-hiddenLayers    = [10 20 40 80 100 80 40];
+learningRate    = 0.5;
+hiddenLayers    = [10 20 40 80 40];
 % hiddenLayers    = [24 30 40 80 100 80 40];
 
 %% INITIALIZATION 
@@ -26,7 +26,7 @@ s.polynomialOrder = pol_deg;
 s.testRatio       = testratio;
 s.networkParams.hiddenLayers    = hiddenLayers;
 s.optimizerParams.learningRate  = learningRate;
-s.optimizerParams.maxEpochs = 50000; % 1000 is the best option, but we use 10 to pass the tutorial quickly
+s.optimizerParams.maxEpochs = 500000; % 1000 is the best option, but we use 10 to pass the tutorial quickly
 s.costParams.lambda             = lambda;
 s.costParams.costType           = 'L2';
 
