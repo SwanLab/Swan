@@ -76,15 +76,26 @@ end
 
 %% IMPORT FROM DIRECTORY
 
-files = dir(fullfile("AbrilTFGfiles/Data/LatticeDirac_3D/", 't1_0_1*.mat'));
+files = dir(fullfile("AbrilTFGfiles/Data/LatticeDirac_3D/", 't1_0_10_*.mat'));
 
 for k = 1:1:length(files)
     filePath = fullfile(files(k).folder, files(k).name);
-    load(filePath,'Kcoarse',"tFrame");
-    K_lattice(:,:,k)=Kcoarse;
+    load(filePath,'Kcoarse',"tCross");
+    K_Over(:,:,k)=Kcoarse;
     disp(['Loaded: ', files(k).name]);  % Display the file being loaded
-    t2(k)=tFrame;
+    t2(k)=tCross;
 end
+
+files2 = dir(fullfile("AbrilTFGfiles/Data/LatticeMult_3D/", 't1_0_1*.mat'));
+
+for k = 1:1:length(files2)
+    filePath = fullfile(files2(k).folder, files2(k).name);
+    load(filePath,'Kcoarse',"tCross");
+    K_Mult(:,:,k)=Kcoarse;
+    disp(['Loaded: ', files2(k).name]);  % Display the file being loaded
+    t2(k)=tCross;
+end
+
 
 pairs = [];
 
@@ -103,8 +114,11 @@ for k = 1:30
 
     nexttile
     hold on
-    y_lattice  = squeeze(K_lattice(i,j,:));
-    plot(t2, y_lattice, 'LineWidth', 1.5);
+    y_over  = squeeze(K_Over(i,j,:));
+    y_mult  = squeeze(K_Mult(i,j,:));
+    plot(t2, y_over, 'LineWidth', 1.5);
+    plot(t2, y_mult, 'LineWidth', 1.5);
+    legend('EIFEM over','Multiscale')
     xlabel('t2')
 
     title(sprintf('$K_{%d,%d}$', i, j), ...
@@ -120,8 +134,11 @@ for k = 31:60
     
     nexttile
     hold on
-    y_lattice  = squeeze(K_lattice(i,j,:));
-    plot(t2, y_lattice, 'LineWidth', 1.5);
+    y_over  = squeeze(K_Over(i,j,:));
+    y_mult  = squeeze(K_Mult(i,j,:));
+    plot(t2, y_over, 'LineWidth', 1.5);
+    plot(t2, y_mult, 'LineWidth', 1.5);
+    legend('EIFEM over','Multiscale')
     xlabel('t2')
     
     title(sprintf('$K_{%d,%d}$', i, j), ...

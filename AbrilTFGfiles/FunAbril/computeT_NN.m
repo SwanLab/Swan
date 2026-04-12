@@ -4,7 +4,7 @@ function T_trained=computeT_NN(mesh,R,T_NN,pol_deg)
             dataInput=[R,mesh.coord(i,:)];
             dataFull=Data.buildModel(dataInput,pol_deg);
             Taux1=T_NN.computeOutputValues(dataFull).';
-            Taux2=reshape(Taux1,2,[]);
+            Taux2=reshape(Taux1,mesh.ndim,[]);
             T_trained=[T_trained;Taux2];
         end
 end

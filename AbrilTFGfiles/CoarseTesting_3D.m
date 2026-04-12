@@ -192,7 +192,7 @@ classdef CoarseTesting_3D< handle
             obj.r           = cParams.r;
             [Ny,Nx,Nz] = size(obj.r);
             obj.nSubdomains = [Nx Ny Nz];
-            obj.nSubdomains = [15 1 1];    % UNCOMMENT JUST FOR AIRFOIL
+            obj.nSubdomains = [35 1 1];    % UNCOMMENT JUST FOR AIRFOIL
             obj.tolSameNode = 1e-6;   % 1E-10--> general case   1E-6 --> airfoil
             obj.fileNameEIFEM = cParams.fileNameEIFEM;
         end
@@ -449,8 +449,8 @@ classdef CoarseTesting_3D< handle
 
         function [young,poisson] = computeElasticProperties(obj)
             % GENERAL CASE
-            % E  = 1;
-            % nu = 1/3; 
+            E  = 1;
+            nu = 1/3; 
 
             % AIRFOIL JOAQUIN
             % E  = 70000;
