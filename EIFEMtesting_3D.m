@@ -27,6 +27,7 @@ classdef EIFEMtesting_3D < handle
         function obj = EIFEMtesting_3D()
             close all
             obj.init()
+            
 
             mR = obj.createReferenceMesh();
             bS  = mR.createBoundaryMesh();
@@ -133,7 +134,7 @@ classdef EIFEMtesting_3D < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [35 1 1]; %nx ny
+            obj.nSubdomains  = [2 1 1]; %nx ny
             obj.fileNameEIFEMmesh = 'DEF_Q8_wing_1.mat';
             % obj.fileNameEIFEM = 'Airfoil_Multiscale';
             obj.fileNameEIFEM = 'DEF_Q8_wing_1.mat';
@@ -358,24 +359,24 @@ classdef EIFEMtesting_3D < handle
             % coord(8,1) = xmax;  coord(8,2) = ymin;   coord(8,3) = zmin;
 
             % For Joaquin Airfoil Training
-            coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmax;
-            coord(2,1) = xmin;  coord(2,2) = ymax;   coord(2,3) = zmax;
-            coord(3,1) = xmax;  coord(3,2) = ymax;   coord(3,3) = zmax;
-            coord(4,1) = xmax;  coord(4,2) = ymin;   coord(4,3) = zmax;
-            coord(5,1) = xmin;  coord(5,2) = ymin;   coord(5,3) = zmin;
-            coord(6,1) = xmin;  coord(6,2) = ymax;   coord(6,3) = zmin;
-            coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmin;
-            coord(8,1) = xmax;  coord(8,2) = ymin;   coord(8,3) = zmin;
+            % coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmax;
+            % coord(2,1) = xmin;  coord(2,2) = ymax;   coord(2,3) = zmax;
+            % coord(3,1) = xmax;  coord(3,2) = ymax;   coord(3,3) = zmax;
+            % coord(4,1) = xmax;  coord(4,2) = ymin;   coord(4,3) = zmax;
+            % coord(5,1) = xmin;  coord(5,2) = ymin;   coord(5,3) = zmin;
+            % coord(6,1) = xmin;  coord(6,2) = ymax;   coord(6,3) = zmin;
+            % coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmin;
+            % coord(8,1) = xmax;  coord(8,2) = ymin;   coord(8,3) = zmin;
 
             % For Abril general training
-            % coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmin;
-            % coord(2,1) = xmax;  coord(2,2) = ymin;   coord(2,3) = zmin;
-            % coord(3,1) = xmax;  coord(3,2) = ymax;   coord(3,3) = zmin;
-            % coord(4,1) = xmin;  coord(4,2) = ymax;   coord(4,3) = zmin;
-            % coord(5,1) = xmin;  coord(5,2) = ymin;   coord(5,3) = zmax;
-            % coord(6,1) = xmax;  coord(6,2) = ymin;   coord(6,3) = zmax;
-            % coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmax;
-            % coord(8,1) = xmin;  coord(8,2) = ymax;   coord(8,3) = zmax;
+            coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmin;
+            coord(2,1) = xmax;  coord(2,2) = ymin;   coord(2,3) = zmin;
+            coord(3,1) = xmax;  coord(3,2) = ymax;   coord(3,3) = zmin;
+            coord(4,1) = xmin;  coord(4,2) = ymax;   coord(4,3) = zmin;
+            coord(5,1) = xmin;  coord(5,2) = ymin;   coord(5,3) = zmax;
+            coord(6,1) = xmax;  coord(6,2) = ymin;   coord(6,3) = zmax;
+            coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmax;
+            coord(8,1) = xmin;  coord(8,2) = ymax;   coord(8,3) = zmax;
 
             % Airfoil
             % coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmin;
@@ -464,8 +465,8 @@ classdef EIFEMtesting_3D < handle
             nu = 1/3;
             
             % Airfoil Joaquin
-                        E  = 70000;
-                        nu = 0.3;
+                        % E  = 70000;
+                        % nu = 0.3;
 %             Epstr  = E/(1-nu^2);
 %             nupstr = nu/(1-nu);
             %             young   = ConstantFunction.create(Epstr,mesh);
@@ -499,7 +500,7 @@ classdef EIFEMtesting_3D < handle
             %             PL.direction = [2];
             %             PL.value     = [-0.1];
             PL.domain    = @(coor) isRight(coor);
-            PL.direction = [2];
+            PL.direction = [3];
             PL.value     = [-1];
         end
 

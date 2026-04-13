@@ -14,7 +14,7 @@ s.nelem     =  20;                %  Mesh refining
 s.Print     = false;
 
 % UNIFORM DISTRIBUTION
-s.r = ones(10,45)*0.3;
+s.r = ones(3,10)*0.3;
 % s.r = [0.1,0.2,0.3,0.4,0.5
 %          0.1,0.2,0.3,0.4,0.5
 %          0.1,0.2,0.3,0.4,0.5];

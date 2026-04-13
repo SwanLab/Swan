@@ -12,7 +12,7 @@ clc; clear;
 %% LOAD DATA
 p.Training  = 'EIFEM';            % 'EIFEM'/'Multiscale'
 p.Inclusion  ='Material';         % 'Material'/'Hole'/'HoleRaul
-p.Sampling   ='Isolated';         % 'Isolated'/'Oversampling'
+p.Sampling   ='Oversampling';         % 'Isolated'/'Oversampling'
 p.nelem      = 20;
 meshName    =  p.nelem+"x"+p.nelem;
 

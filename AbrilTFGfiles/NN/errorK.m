@@ -9,8 +9,8 @@
 clc; clear;
 
 %% LOAD DATA
-p.Training  = 'Multiscale';            % 'EIFEM'/'Multiscale'
-p.Sampling   ='Isolated';         %'Isolated'/'Oversampling'
+p.Training  = 'EIFEM';            % 'EIFEM'/'Multiscale'
+p.Sampling   ='Oversampling';         %'Isolated'/'Oversampling'
 p.Inclusion  ='Material';         %'Material'/'Hole'/'HoleRaul
 p.nelem      = 20;
 meshName    =  p.nelem+"x"+p.nelem;
@@ -136,7 +136,7 @@ plot(training.r,training.err1,LineWidth=1.5);
 title("NN training Error vs r");
 xlabel('r');
 ylabel('error');
-ylim ([0 0.04]);
+ylim ([0 0.03]);
 
 %% PLOT TEST
 
@@ -146,7 +146,7 @@ plot(test.r,test.err1,LineWidth=1.5);
 title("NN test Error vs r ");
 xlabel('r');
 ylabel('error');
-ylim ([0 0.04]);
+ylim ([0 0.03]);
 
 % %% Prova plots
 % 

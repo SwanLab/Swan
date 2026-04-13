@@ -72,7 +72,7 @@ classdef CoarseTesting_3D< handle
             t_direct=toc
 
             % PRECONDITIONERS
-            Milu        = obj.createILUpreconditioner(LHS);
+            % Milu        = obj.createILUpreconditioner(LHS);
             Mid         = @(r)r;
             switch obj.params.Option
                 case {'Dataset','NN','Hybrid'}
@@ -192,8 +192,8 @@ classdef CoarseTesting_3D< handle
             obj.r           = cParams.r;
             [Ny,Nx,Nz] = size(obj.r);
             obj.nSubdomains = [Nx Ny Nz];
-            obj.nSubdomains = [35 1 1];    % UNCOMMENT JUST FOR AIRFOIL
-            obj.tolSameNode = 1e-6;   % 1E-10--> general case   1E-6 --> airfoil
+            % obj.nSubdomains = [35 1 1];    % UNCOMMENT JUST FOR AIRFOIL
+            obj.tolSameNode = 1e-10;   % 1E-10--> general case   1E-6 --> airfoil
             obj.fileNameEIFEM = cParams.fileNameEIFEM;
         end
 
@@ -213,8 +213,8 @@ classdef CoarseTesting_3D< handle
         end
 
         function mS = createReferenceMesh(obj)
-            % mS = obj.createStructuredMesh();
-            mS = obj.importGIDMesh();
+            mS = obj.createStructuredMesh();
+            % mS = obj.importGIDMesh();
         end
 
 
@@ -260,7 +260,7 @@ classdef CoarseTesting_3D< handle
             % isEdgeOrCorner = numBoundaries > 2;
             % s.coord(isEdgeOrCorner,:) = s.coord(isEdgeOrCorner,:) + dispVec(isEdgeOrCorner,:);
 
-            delta=1E-9;
+            delta=1E-8;
 
             s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
                 s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
@@ -380,37 +380,37 @@ classdef CoarseTesting_3D< handle
             zmin = min(mR.coord(:,3));
 
             % GENERAL CASE
-            % coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmin;
-            % coord(2,1) = xmax;  coord(2,2) = ymin;   coord(2,3) = zmin;
-            % coord(3,1) = xmax;  coord(3,2) = ymax;   coord(3,3) = zmin;
-            % coord(4,1) = xmin;  coord(4,2) = ymax;   coord(4,3) = zmin;
-            % coord(5,1) = xmin;  coord(5,2) = ymin;   coord(5,3) = zmax;
-            % coord(6,1) = xmax;  coord(6,2) = ymin;   coord(6,3) = zmax;
-            % coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmax;
-            % coord(8,1) = xmin;  coord(8,2) = ymax;   coord(8,3) = zmax;
+            coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmin;
+            coord(2,1) = xmax;  coord(2,2) = ymin;   coord(2,3) = zmin;
+            coord(3,1) = xmax;  coord(3,2) = ymax;   coord(3,3) = zmin;
+            coord(4,1) = xmin;  coord(4,2) = ymax;   coord(4,3) = zmin;
+            coord(5,1) = xmin;  coord(5,2) = ymin;   coord(5,3) = zmax;
+            coord(6,1) = xmax;  coord(6,2) = ymin;   coord(6,3) = zmax;
+            coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmax;
+            coord(8,1) = xmin;  coord(8,2) = ymax;   coord(8,3) = zmax;
 
             % % Airfoil Abril
-            coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmin;
-            coord(2,1) = xmin;  coord(2,2) = ymin;   coord(2,3) = zmax;
-            coord(3,1) = xmax;  coord(3,2) = ymin;   coord(3,3) = zmax;
-            coord(4,1) = xmax;  coord(4,2) = ymin;   coord(4,3) = zmin;
-            coord(5,1) = xmin;  coord(5,2) = ymax;   coord(5,3) = zmin;
-            coord(6,1) = xmin;  coord(6,2) = ymax;   coord(6,3) = zmax;
-            coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmax;
-            coord(8,1) = xmax;  coord(8,2) = ymax;   coord(8,3) = zmin;
+            % coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmin;
+            % coord(2,1) = xmin;  coord(2,2) = ymin;   coord(2,3) = zmax;
+            % coord(3,1) = xmax;  coord(3,2) = ymin;   coord(3,3) = zmax;
+            % coord(4,1) = xmax;  coord(4,2) = ymin;   coord(4,3) = zmin;
+            % coord(5,1) = xmin;  coord(5,2) = ymax;   coord(5,3) = zmin;
+            % coord(6,1) = xmin;  coord(6,2) = ymax;   coord(6,3) = zmax;
+            % coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmax;
+            % coord(8,1) = xmax;  coord(8,2) = ymax;   coord(8,3) = zmin;
 
             %Joaquin Airfoil Training
-            % coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmax;
-            % coord(2,1) = xmin;  coord(2,2) = ymax;   coord(2,3) = zmax;
-            % coord(3,1) = xmax;  coord(3,2) = ymax;   coord(3,3) = zmax;
-            % coord(4,1) = xmax;  coord(4,2) = ymin;   coord(4,3) = zmax;
-            % coord(5,1) = xmin;  coord(5,2) = ymin;   coord(5,3) = zmin;
-            % coord(6,1) = xmin;  coord(6,2) = ymax;   coord(6,3) = zmin;
-            % coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmin;
-            % coord(8,1) = xmax;  coord(8,2) = ymin;   coord(8,3) = zmin;
+            coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmax;
+            coord(2,1) = xmin;  coord(2,2) = ymax;   coord(2,3) = zmax;
+            coord(3,1) = xmax;  coord(3,2) = ymax;   coord(3,3) = zmax;
+            coord(4,1) = xmax;  coord(4,2) = ymin;   coord(4,3) = zmax;
+            coord(5,1) = xmin;  coord(5,2) = ymin;   coord(5,3) = zmin;
+            coord(6,1) = xmin;  coord(6,2) = ymax;   coord(6,3) = zmin;
+            coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmin;
+            coord(8,1) = xmax;  coord(8,2) = ymin;   coord(8,3) = zmin;
 
-            % connec = [1 2 3 4 5 6 7 8];    % General case and Joaquin Airfoil
-            connec = [4 1 2 3 8 5 6 7];    % Uncomment for Airfoil Abril
+            connec = [1 2 3 4 5 6 7 8];    % General case and Joaquin Airfoil
+            % connec = [4 1 2 3 8 5 6 7];    % Uncomment for Airfoil Abril
             s.coord = coord;
             s.connec = connec;
             cMesh = Mesh.create(s);  % crea la mesh de 4 nodes
@@ -644,9 +644,9 @@ classdef CoarseTesting_3D< handle
                     nameFile=obj.computeNameFile();
                     obj.loadDataset(nameFile);
                 case 'NN'
-                    filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,"K_NN.mat");
+                    filePath = fullfile("AbrilTFGfiles","Data/Sphere/",p.Training,"K_NN.mat");
                     load(filePath,"K_NN");
-                    filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,"T_NN.mat");
+                    filePath = fullfile("AbrilTFGfiles","Data/Sphere/",p.Training,"T_NN.mat");
                     load(filePath,"T_NN","pol_deg");
             end
 
@@ -712,9 +712,9 @@ classdef CoarseTesting_3D< handle
                 for j=1:size(name,2)
                     switch p.Inclusion
                         case {'Material','HoleRaul'}
-                                filePath = fullfile("AbrilTFGfiles","Data",p.Training,p.Inclusion,p.Sampling,meshName,name(i,j));
+                                filePath = fullfile("AbrilTFGfiles","Data/Sphere/",p.Training,meshName,name(i,j));
                         case 'Hole'
-                                filePath = fullfile('AbrilTFGfiles', 'Data',p.Training,'hole',name(i,j));
+                                filePath = fullfile('AbrilTFGfiles', 'Data/Sphere/',p.Training,'hole',name(i,j));
                     end
                     load(filePath,"T","Kcoarse");
                     Taux{i,j}=T;

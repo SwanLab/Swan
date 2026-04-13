@@ -14,7 +14,7 @@ s.nelem     =  20;                %  Mesh refining
 s.Print     = false;
 
 % UNIFORM DISTRIBUTION
-s.r = ones(3,10)*0.3;
+s.r = ones(10,45)*0.8;
 
 %NON-UNIFORM DISTRIBUTION
 % s.r= [ 0.25, 0.40, 0.55, 0.20, 0.45, 0.60, 0.35, 0.25, 0.50, 0.30;
@@ -77,7 +77,7 @@ legend({'CG', 'ILU', 'ILU-Multiscale-ILU','ILU-EIFEM(Isolated)-ILU','ILU-EIFEM(O
 % case parameters
 s.Training  = [];                 % 'EIFEM'/'Multiscale'/'EIFisol'
 s.Option    = 'Dataset';          % 'Dataset'/'NN'
-s.nelem     =  50                %  Mesh refining
+s.nelem     =  50;                %  Mesh refining
 
 % UNIFORM DISTRIBUTION
 % s.tFrame = ones(6,40)*0.25;
@@ -149,23 +149,33 @@ legend({'CG', 'ILU', 'ILU-Multiscale-ILU','ILU-Multiscale with NN-ILU','ILU-EIFE
 
 pos= [545   315   914   498];
 % case parameters
-s.Training  = 'EIFEM';                 % 'EIFEM'/'Multiscale'/'EIFisol'
-s.Sampling  = 'Oversampling';          % 'Isolated'/'Oversampling'
+s.Training  = 'Multiscale';                 % 'EIFEM'/'Multiscale'/'EIFisol'
+s.Sampling  = 'Isolated';          % 'Isolated'/'Oversampling'
 s.Inclusion = 'Material';         % 'Hole'/'Material'/  --> Hole: just for imported meshes or constant geometry
-s.Option    = 'Dataset';          % % 'Dataset'/'NN'/'Direct
+s.Option    = 'Direct';          % % 'Dataset'/'NN'/'Direct
 
 % UNIFORM DISTRIBUTION
-s.r = ones(3,7,3)*0.4;
-s.nelem     =  10;                %  Mesh refining
+s.r = ones(1,5,1)*0.4;
+s.nelem     =  15;                %  Mesh refining
+s.fileNameEIFEM = 'Sphere_r04_Mult.mat';
 
-s.fileNameEIFEM = 'Sphere_r04_Over.mat';
+% Multiscale
+Sph_Mult= CoarseTesting_3D(s);
+Sph_Mult.compute();
+
+
+% EIFEM Isolated
+s.Training  = 'EIFEM';
+s.Sampling  = 'Isolated';  
 Sph_Iso= CoarseTesting_3D(s);
 Sph_Iso.compute();
 
 
-s.fileNameEIFEM = 'Sphere_r04_Mult.mat';
-Sph_Mult= CoarseTesting_3D(s);
-Sph_Mult.compute();
+% EIFEM Isolated
+s.Training  = 'EIFEM';
+s.Sampling  = 'Oversampling';  
+Sph_Iso= CoarseTesting_3D(s);
+Sph_Iso.compute();
 
 
 figure
@@ -196,40 +206,37 @@ s.Option    = 'Direct';     % 'Dataset'/'NN'/'Direct
 s.r         = [];
 s.nelem     =[];            %  Mesh refining
 
-s.fileNameEIFEM = 'Airfoil_Isolated.mat';
-Air_Iso= CoarseTesting_3D(s);
-Air_Iso.compute();
+% s.fileNameEIFEM = 'Airfoil_Isolated.mat';
+% Air_Iso= CoarseTesting_3D(s);
+% Air_Iso.compute();
 
 % 
 s.fileNameEIFEM = 'Airfoil_Multiscale.mat';
 Air_Mult= CoarseTesting_3D(s);
 Air_Mult.compute();
 
-s.fileNameEIFEM = 'Airfoil_Oversampling.mat';
-Air_Over= CoarseTesting_3D(s);
-Air_Over.compute();
+% s.fileNameEIFEM = 'Airfoil_Oversampling.mat';
+% Air_Over= CoarseTesting_3D(s);
+% Air_Over.compute();
 
 % s.fileNameEIFEM = 'Airfoil_Over2.mat';
 % Air_Over2= CoarseTesting_3D(s);
 % Air_Over2.compute();
 
 %%
-% s.fileNameEIFEM = 'DEF_Q8_wing_1.mat';
-% Air_ref= CoarseTesting_3D(s);
-% Air_ref.compute();
+s.fileNameEIFEM = 'DEF_Q8_wing_1.mat';
+Air_ref= CoarseTesting_3D(s);
+Air_ref.compute();
 
 pos= [545   315   914   498];
 figure
 set(gcf, 'Position', pos) 
-% plot(Air_Iso.residualCG,'linewidth',2)
+
+% plot(Air_Mult.residualCG,'linewidth',2)
 % hold on
-% plot(Air_Iso.residualILU,'linewidth',2)
-% hold on
+plot(Air_Mult.residualILU,'linewidth',2)
+hold on
 plot(Air_Mult.residualPCG,'linewidth',2)
-hold on
-plot(Air_Iso.residualPCG,'linewidth',2)
-hold on
-plot(Air_Over.residualPCG,'linewidth',2)
 hold on
 plot(Air_ref.residualPCG,'linewidth',2)
 
@@ -238,4 +245,5 @@ xlabel('Iteration')
 ylabel('Residual')
 title("Residual evolution")
 
-legend({'Multiscale','EIF-Isolated','EIF-Oversampling','Joaquin'});
+legend({'ILU','ILU-Multiscale-ILU','ILU-EIFEM(Oversampling)-ILU'});
+% ylim([0,37340])
