@@ -152,12 +152,14 @@ pos= [545   315   914   498];
 s.Training  = 'Multiscale';                 % 'EIFEM'/'Multiscale'/'EIFisol'
 s.Sampling  = 'Isolated';          % 'Isolated'/'Oversampling'
 s.Inclusion = 'Material';         % 'Hole'/'Material'/  --> Hole: just for imported meshes or constant geometry
-s.Option    = 'Direct';          % % 'Dataset'/'NN'/'Direct
+s.Option    = 'Dataset';          % % 'Dataset'/'NN'/'Direct
+s.fileNameEIFEM = [];
 
 % UNIFORM DISTRIBUTION
-s.r = ones(1,5,1)*0.4;
+s.r = ones(1,10,1)*0.4;
 s.nelem     =  15;                %  Mesh refining
-s.fileNameEIFEM = 'Sphere_r04_Mult.mat';
+
+% s.fileNameEIFEM = 'Sphere_r04_Mult.mat';
 
 % Multiscale
 Sph_Mult= CoarseTesting_3D(s);
@@ -171,11 +173,12 @@ Sph_Iso= CoarseTesting_3D(s);
 Sph_Iso.compute();
 
 
-% EIFEM Isolated
+% EIFEM Oversampling
 s.Training  = 'EIFEM';
 s.Sampling  = 'Oversampling';  
-Sph_Iso= CoarseTesting_3D(s);
-Sph_Iso.compute();
+Sph_Over= CoarseTesting_3D(s);
+Sph_Over.compute();
+
 
 
 figure

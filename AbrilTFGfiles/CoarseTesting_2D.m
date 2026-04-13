@@ -23,7 +23,6 @@ classdef CoarseTesting_2D< handle
         meshDomain
         referenceMesh
         subdomainMeshes
-        cellMesh
         discMesh
         boundaryConditions
         bcApplier
@@ -105,8 +104,9 @@ classdef CoarseTesting_2D< handle
             obj.Sol    = LagrangianFunction(s); %Preconditioned sol  
             s.fValues = reshape(Ufull,2,[])';
             obj.SolExact=LagrangianFunction(s); %Exact sol
+            obj.SolExact.print("OutSolPCG");
 
-            % obj.print(uPCG,"SolPCG");
+            % obj.print(uPCG,"SolPCG_Inner");
             %CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'TestCoarseAbril', obj.r, obj.centroids);
             %CoarsePlotSolution(RealFun, obj.meshDomain, obj.bcApplier,'TestRealAbril', obj.r, obj.centroids);
 
@@ -222,7 +222,6 @@ classdef CoarseTesting_2D< handle
                 end
             end
             obj.referenceMesh = mSbd{1,1};
-            obj.cellMesh=cM;   
         end
 
 
@@ -336,7 +335,7 @@ classdef CoarseTesting_2D< handle
             % aaa=uMesh.createInnerMesh();
             Mprint=UnfittedMesh(sUm);
             Mprint.compute(ls);
-            obj.unfittedMesh=Mprint;
+            obj.unfittedMesh=uMesh;
             funLS        = CharacteristicFunction.create(uMesh);
             s.filterType = 'LUMP';
             s.mesh       = obj.meshDomain;
@@ -532,7 +531,7 @@ classdef CoarseTesting_2D< handle
                             RVE{i,j}.U= obj.data.T{i,j}; 
                         case 'NN'
                             RVE{i,j}.Kcoarse = computeKcoarse_NN(K_NN,obj.r(i,j));
-                            RVE{i,j}.U       = computeT_NN(obj.cellMesh{i,j},obj.r(i,j),T_NN,pol_deg);
+                            RVE{i,j}.U       = computeT_NN(obj.referenceMesh,obj.r(i,j),T_NN,pol_deg);
                         case 'Hybrid'
                             RVE{i,j}.Kcoarse = computeKcoarse_NN(K_NN,obj.r(i,j));
                             RVE{i,j}.U       = computeT_Hybrid(basis,obj.r(i,j),Q_NN,pol_deg);

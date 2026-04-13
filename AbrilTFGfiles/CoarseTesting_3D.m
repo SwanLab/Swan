@@ -72,7 +72,7 @@ classdef CoarseTesting_3D< handle
             t_direct=toc
 
             % PRECONDITIONERS
-            % Milu        = obj.createILUpreconditioner(LHS);
+            Milu        = obj.createILUpreconditioner(LHS);
             Mid         = @(r)r;
             switch obj.params.Option
                 case {'Dataset','NN','Hybrid'}
@@ -86,14 +86,13 @@ classdef CoarseTesting_3D< handle
             tol = 1e-8;
             x0  = zeros(size(RHSf));
 
-            % tic %SOLVE THE CASE WITH STANDARD CG
-            % [~,obj.residualCG,errCG, errCG] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
-            % t_CG=toc
-            % tic  % SOLVE THE CASE WITH CG+ ILU
-            % [~,obj.residualILU,errILU, errAnormILU] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
-            % t_ILU=toc
-           % SOLVE THE CASE WITH PRECONDITIONING ILU+EIFEM+ILU
-            tic
+            tic %SOLVE THE CASE WITH STANDARD CG
+            [~,obj.residualCG,errCG, errCG] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
+            t_CG=toc
+            tic  % SOLVE THE CASE WITH CG+ ILU
+            [~,obj.residualILU,errILU, errAnormILU] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
+            t_ILU=toc
+            tic %SOLVE THE CASE WITH PRECONDITIONING ILU+EIFEM+ILU
             [uPCG,obj.residualPCG,obj.errPCG,obj.errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
             t_PCG=toc
             xFull = obj.bcApplier.reducedToFullVectorDirichlet(uPCG);
@@ -193,7 +192,7 @@ classdef CoarseTesting_3D< handle
             [Ny,Nx,Nz] = size(obj.r);
             obj.nSubdomains = [Nx Ny Nz];
             % obj.nSubdomains = [35 1 1];    % UNCOMMENT JUST FOR AIRFOIL
-            obj.tolSameNode = 1e-10;   % 1E-10--> general case   1E-6 --> airfoil
+            obj.tolSameNode = 1e-11;   % 1E-10--> general case   1E-6 --> airfoil
             obj.fileNameEIFEM = cParams.fileNameEIFEM;
         end
 
@@ -400,14 +399,14 @@ classdef CoarseTesting_3D< handle
             % coord(8,1) = xmax;  coord(8,2) = ymax;   coord(8,3) = zmin;
 
             %Joaquin Airfoil Training
-            coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmax;
-            coord(2,1) = xmin;  coord(2,2) = ymax;   coord(2,3) = zmax;
-            coord(3,1) = xmax;  coord(3,2) = ymax;   coord(3,3) = zmax;
-            coord(4,1) = xmax;  coord(4,2) = ymin;   coord(4,3) = zmax;
-            coord(5,1) = xmin;  coord(5,2) = ymin;   coord(5,3) = zmin;
-            coord(6,1) = xmin;  coord(6,2) = ymax;   coord(6,3) = zmin;
-            coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmin;
-            coord(8,1) = xmax;  coord(8,2) = ymin;   coord(8,3) = zmin;
+            % coord(1,1) = xmin;  coord(1,2) = ymin;   coord(1,3) = zmax;
+            % coord(2,1) = xmin;  coord(2,2) = ymax;   coord(2,3) = zmax;
+            % coord(3,1) = xmax;  coord(3,2) = ymax;   coord(3,3) = zmax;
+            % coord(4,1) = xmax;  coord(4,2) = ymin;   coord(4,3) = zmax;
+            % coord(5,1) = xmin;  coord(5,2) = ymin;   coord(5,3) = zmin;
+            % coord(6,1) = xmin;  coord(6,2) = ymax;   coord(6,3) = zmin;
+            % coord(7,1) = xmax;  coord(7,2) = ymax;   coord(7,3) = zmin;
+            % coord(8,1) = xmax;  coord(8,2) = ymin;   coord(8,3) = zmin;
 
             connec = [1 2 3 4 5 6 7 8];    % General case and Joaquin Airfoil
             % connec = [4 1 2 3 8 5 6 7];    % Uncomment for Airfoil Abril
@@ -465,9 +464,9 @@ classdef CoarseTesting_3D< handle
             sUm.boundaryMesh   = obj.meshDomain.createBoundaryMesh;
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(-ls);
-            % Mprint=UnfittedMesh(sUm);
-            % Mprint.compute(ls);
-            % obj.unfittedMesh=Mprint;
+            Mprint=UnfittedMesh(sUm);
+            Mprint.compute(ls);
+            obj.unfittedMesh=Mprint;
             funLS        = CharacteristicFunction.create(uMesh);
             s.filterType = 'LUMP';
             s.mesh       = obj.meshDomain;
@@ -505,7 +504,6 @@ classdef CoarseTesting_3D< handle
          end
 
          function [x0,y0,z0]= computeSubdomainCentroid(obj)
-            % [Nx, Ny] = size(obj.r);
             xMin = min(obj.meshDomain.coord(:,1));
             xMax = max(obj.meshDomain.coord(:,1));
             yMin = min(obj.meshDomain.coord(:,2));
@@ -561,7 +559,7 @@ classdef CoarseTesting_3D< handle
             Dir{1}.value     = 0;
 
             PL.domain    = @(coor) isRight(coor);
-            PL.direction = 2;        % 3--> general    2--> Airfoil
+            PL.direction = 3;        % 3--> general    2--> Airfoil
             PL.value     = -1;       %Set displacement intensity 
         end 
 
@@ -650,22 +648,29 @@ classdef CoarseTesting_3D< handle
                     load(filePath,"T_NN","pol_deg");
             end
 
-            RVE = cell(obj.nSubdomains(1,2),obj.nSubdomains(1,1));
+            [Nx,Ny,Nz]=size(obj.r);
+            RVE = cell(Nx,Ny,Nz);
 
-            for i = 1:obj.nSubdomains(1,2)
-                for j = 1:obj.nSubdomains(1,1)
-                    RVE{i,j}.ndimf = 2;
+            % U=obj.computeT_NN2(T_NN,pol_deg);
+
+
+
+            for i = 1:Nx
+                for j = 1:Ny
+                    for k = 1:Nz
+                    RVE{i,j,k}.ndimf = 3;
 
                     switch p.Option
                         case 'Dataset'
-                            RVE{i,j}.Kcoarse= obj.data.K{i,j};
-                            RVE{i,j}.U= obj.data.T{i,j}; 
+                            RVE{i,j,k}.Kcoarse= obj.data.K{i,j,k};
+                            RVE{i,j,k}.U= obj.data.T{i,j,k}; 
                         case 'NN'
-                            RVE{i,j}.Kcoarse = computeKcoarse_NN(K_NN,obj.r(i,j));
-                            RVE{i,j}.U       = computeT_NN(obj.cellMesh{i,j},obj.r(i,j),T_NN,pol_deg);
+                            RVE{i,j,k}.Kcoarse = computeKcoarse_NN(K_NN,obj.r(i,j,k));
+                            RVE{i,j,k}.U       = computeT_NN(obj.referenceMesh,obj.r(i,j,k),T_NN,pol_deg);
                         case 'Hybrid'
-                            RVE{i,j}.Kcoarse = computeKcoarse_NN(K_NN,obj.r(i,j));
-                            RVE{i,j}.U       = computeT_Hybrid(basis,obj.r(i,j),Q_NN,pol_deg);
+                            RVE{i,j,k}.Kcoarse = computeKcoarse_NN(K_NN,obj.r(i,j,k));
+                            RVE{i,j,k}.U       = computeT_Hybrid(basis,obj.r(i,j,k),Q_NN,pol_deg);
+                    end
                     end
                 end
             end
@@ -690,12 +695,15 @@ classdef CoarseTesting_3D< handle
 
         function NameFile=computeNameFile(obj)
             n=obj.params.nelem;
-            rad=obj.r;
+            [Nx,Ny,Nz] = size(obj.r);
             meshName=n+"x"+n;
-            name=strings(size(rad,1),size(rad,2));
-            for i=1:size(rad,1)
-                for j=1:size(rad,2)
-                    name(i,j) = strrep("r"+num2str(rad(i,j), '%.4f'), ".", "_")+"-"+meshName+".mat";
+            name=strings(Nx,Ny,Nz);
+
+            for i = 1:Nx
+                for j = 1:Ny
+                    for k = 1:Nz
+                        name(i,j,k) = strrep("r"+num2str(obj.r(i,j,k), '%.4f'), ".", "_")+"-"+meshName+".mat";
+                    end
                 end
             end
             NameFile=name;
@@ -705,26 +713,70 @@ classdef CoarseTesting_3D< handle
         function loadDataset(obj,name)
             p=obj.params;
             n=p.nelem;
-            Taux=cell(size(name,1),size(name,2));
-            Kaux=cell(size(name,1),size(name,2));
+            [Nx,Ny,Nz] = size(name);
+            Taux=cell(Nx,Ny,Nz);
+            Kaux=cell(Nx,Ny,Nz);
             meshName=n+"x"+n;
-            for i=1:size(name,1)
-                for j=1:size(name,2)
-                    switch p.Inclusion
-                        case {'Material','HoleRaul'}
-                                filePath = fullfile("AbrilTFGfiles","Data/Sphere/",p.Training,meshName,name(i,j));
-                        case 'Hole'
-                                filePath = fullfile('AbrilTFGfiles', 'Data/Sphere/',p.Training,'hole',name(i,j));
+
+            for i=1:Nx
+                for j=1:Ny
+                    for k=1:Nz
+                        filePath = fullfile("AbrilTFGfiles","Data/Sphere/",p.Training,meshName,name(i,j,k));
+                        load(filePath,"T","Kcoarse");
+                        Taux{i,j,k}=T;
+                        Kaux{i,j,k}=Kcoarse;
                     end
-                    load(filePath,"T","Kcoarse");
-                    Taux{i,j}=T;
-                    Kaux{i,j}=Kcoarse;
                 end
             end
             obj.data.T=Taux;
             obj.data.K=Kaux;
         end
 
+        function T_trained=computeT_NN2(obj,T_NN,pol_deg)
+            coords= obj.referenceMesh.coord;
+            sz=size(obj.r);
+            N= numel(obj.r);
+            nnodes=obj.referenceMesh.nnodes;
+            ndim =obj.referenceMesh.ndim;
+
+            r_all= obj.r(:);
+            r_in    = repelem(r_all,nnodes,1);
+            coords_in = repmat(coords,N,1);
+
+            dataInput= [r_in,coords_in];
+            dataFull = Data.buildModel(dataInput,pol_deg);
+
+            T_all  = T_NN.computeOutputValues(dataFull); % 
+            T_aux1 = reshape(T_all, ndim, [], nnodes, N);
+    
+            nModes = size(T_aux1,2);
+
+            T_cells = cell(sz);
+
+            for idx = 1:N
+
+                T_sub = T_aux1(:,:,:,idx);   % ndim × nModes × nNodes
+
+                % colocar como (x1;y1;z1;x2;...)
+                T_sub = permute(T_sub, [1 3 2]);   % ndim × nNodes × nModes
+
+                T_cells{idx} = reshape(T_sub, [], nModes);
+            end
+
+        end
+
+        function K=computeKcoarse_NN2(obj,K_NN,r)
+            K_aux1=K_NN.computeOutputValues(r);
+            K_aux2=zeros(8);
+            idx=1;
+            for n=1:8
+                for m=n:8
+                    K_aux2(n,m)=K_aux1(idx);
+                    idx=idx+1;
+                end
+            end
+            K=K_aux2+triu(K_aux2,1).';
+        end
 
         function d = createDomainDecompositionDofManager(obj,iC,lG,bS,mR,iCR)
             s.nSubdomains     = obj.nSubdomains;
