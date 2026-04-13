@@ -33,6 +33,24 @@ classdef TractionBiliniarUncoupled < handle
             obj.jumpFinal = cParams.jumpFinal;
         end
 
+        function gradT = computeTangentGradientMatrix(obj, jump, xV) %2 x 2 x ngauss x nelem
+            d    = obj.computeDamage(jump);             % 2 x ngauss x nelem
+            ddot = obj.computeDamageDerivative(jump);   % 2 x ngauss x nelem
+            unoZero = ConstantFunction.create([1,0],jump.mesh);
+            zeroUno = ConstantFunction.create([0,1],jump.mesh);
+            dtdt = obj.K * Expand((1-DP(d,unoZero)),2) - Expand(DP(ddot,unoZero).*DP(jump,unoZero),2); 
+            dndn = obj.K * Expand((1-DP(d,zeroUno)),2) - Expand(DP(ddot,zeroUno).*DP(jump,zeroUno),2);
+            dtdt = dtdt.evaluate(xV);
+            dndn = dndn.evaluate(xV);
+            ngauss = size(dtdt,3); 
+            nelem  = size(dtdt,4);
+            dtdt = reshape(dtdt,1,1,ngauss,nelem); % 1 x 1 x ngauss x nelem
+            dndn = reshape(dndn,1,1,ngauss,nelem); % 1 x 1 x ngauss x nelem
+            %2 x 2 x ngauss x nelem
+            gradT =  [dtdt                    ,zeros(1,1,ngauss,nelem);
+                      zeros(1,1,ngauss,nelem), dndn                  ]; 
+        end
+
         function gradT = computeSecantGradientMatrix(obj, jump, xV) %secant
             d = obj.computeDamage(jump);
             unoZero = ConstantFunction.create([1,0],jump.mesh);
@@ -45,25 +63,6 @@ classdef TractionBiliniarUncoupled < handle
             nelem  = size(dtdt,4);
             gradT =  [dtdt                   ,zeros(1,1,ngauss,nelem);
                       zeros(1,1,ngauss,nelem),dndn                  ];
-        end
-
-        function gradT = computeTangentGradientMatrix(obj, jump, xV) %2 x 2 x ngauss x nelem
-            d    = obj.computeDamage(jump);             % 2 x ngauss x nelem
-            ddot = obj.computeDamageDerivative(jump);   % 2 x ngauss x nelem
-            unoZero = ConstantFunction.create([1,0],jump.mesh);
-            zeroUno = ConstantFunction.create([0,1],jump.mesh);
-            dtdt = obj.K * (1-DP(d,unoZero)) - DP(ddot,unoZero).*DP(jump,unoZero); 
-            dndn = obj.K * (1-DP(d,zeroUno)) - DP(ddot,zeroUno).*DP(jump,zeroUno);
-            dtdt=dtdt.evaluate(xV);
-            dndn=dndn.evaluate(xV);
-            ngauss = size(dtdt,2); 
-            nelem  = size(dtdt,3);
-            dtdt = reshape(dtdt,1,1,ngauss,nelem); % 1 x 1 x ngauss x nelem
-            dndn = reshape(dndn,1,1,ngauss,nelem); % 1 x 1 x ngauss x nelem
-
-            %2 x 2 x ngauss x nelem
-            gradT =  [dtdt                    ,zeros(1,1,ngauss,nelem);
-                      zeros(1,1,ngauss,nelem), dndn                  ]; 
         end
 
         function d = computeDamage(obj,jump)

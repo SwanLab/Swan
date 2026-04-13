@@ -1,14 +1,16 @@
 classdef TractionBiliniarCoupled < handle
 
     properties (Access = private)
-        jumpCrit
-        fractureStrength %tau_o
-        fractureToughness % g_c
+        tau0 % fracture strength
+        Gc % fracture toughness
+
+        initialFracture 
     end
 
     properties (Access = private)
         K
         jumpFinal
+        jumpCrit
     end
     
     methods (Access = public)
@@ -33,21 +35,16 @@ classdef TractionBiliniarCoupled < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            
-            %arreglar parametres
-            obj.fractureStrength  = cParams.fractureStrength;
-            obj.fractureToughness = cParams.fractureToughness;
+            obj.tau0  = cParams.fractureStrength;
+            obj.Gc = cParams.fractureToughness;
             obj.jumpCrit          = cParams.jumpCrit;
-            obj.jumpFinal = 2*obj.fractureToughness/obj.fractureStrength;
-            obj.K         = obj.fractureStrength/obj.jumpCrit;
+            obj.K         = 1e8;
+            obj.jumpFinal = 2*obj.Gc/obj.tau0;
+            obj.jumpCrit  = obj.tau0/obj.K;
         end
 
-        function gradT = computeSecantGradientMatrix(obj, jump, xV) %secant
-
-        end
-
-        function gradT = computeTangentGradientMatrix(obj, jump, xV) %tangent
-
+        function gradT = computeTangentGradientMatrix(obj, jump, xV) % 2 x 2 x ngauss x nelem tangent!
+            
         end
 
         function d = computeDamage(obj,jump)
@@ -55,6 +52,9 @@ classdef TractionBiliniarCoupled < handle
             L = min(1, (obj.jumpFinal*(jumpNorm-obj.jumpCrit))/ ...
                 (jumpNorm*(obj.jumpFinal-obj.jumpCrit)));
             d = max(0,L);
+
+            
+
         end
 
         function jN = computeJumpNorm(obj,jump)
@@ -65,8 +65,7 @@ classdef TractionBiliniarCoupled < handle
         end
 
         function ddot =  computeDamageDerivative(obj,jump)
-            isDamaging = isJumpDamaging(obj,jump);
-            ddot = (1./(obj.jumpFinal - obj.jumpCrit)).*isDamaging;
+
         end
 
         function isDamaging = isJumpDamaging(obj,jump) % comprovar!!
@@ -74,5 +73,7 @@ classdef TractionBiliniarCoupled < handle
             temp2 = obj.jumpFinal - jump; % b - f
             isDamaging = temp1.*temp2 > 0; 
         end
+
+        
     end
 end

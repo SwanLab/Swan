@@ -44,8 +44,8 @@ classdef TutorialCohesive < handle
         end
 
         function createMesh(obj)
-            s.baseMesh = UnitQuadMesh(2,2);
-            y = 0.5;
+            s.baseMesh = UnitQuadMesh(1,1);
+            y = 0;
             s.isFractured = @(coord) abs(coord(:,2) - y) <= 1e-10;
             obj.cohesiveMesh = CohesiveMesh(s);
         end
