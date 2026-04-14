@@ -1,9 +1,8 @@
-
 classdef OptimizerNullSpace < handle
 
     properties (Access = private)
         tolCost   = 1e-8
-        tolConstr = 1e-8
+        tolConstr = 1e-6
     end
 
     properties (Access = private)
@@ -37,12 +36,10 @@ classdef OptimizerNullSpace < handle
         etaNormMin
         gJFlowRatio
         firstEstimation
-        GIFname
-        dofsNonDesign
-        typeBench
-        saveCost
-        saveConstraint
-        savePer
+        gif
+        gifName
+        printing
+        printName
     end
 
     methods (Access = public) 
@@ -60,17 +57,14 @@ classdef OptimizerNullSpace < handle
             obj.computeNullSpaceFlow();
             obj.computeRangeSpaceFlow();
             obj.firstEstimation = false;
-%             obj.designVariable.fun.print('dV'+string(obj.GIFname)+string(0),'Paraview') 
             while ~obj.hasFinished
                 obj.update();
+                obj.printResults();
                 obj.updateIterInfo();
                 obj.plotVariable();
                 obj.updateMonitoring();
                 obj.checkConvergence();
                 obj.designVariable.updateOld();
-%                 if obj.nIter == 1 || mod(obj.nIter,20)== 0
-%                     obj.designVariable.fun.print('dV'+string(obj.GIFname)+string(obj.nIter),'Paraview') 
-%                 end
             end
         end
     end
@@ -92,14 +86,14 @@ classdef OptimizerNullSpace < handle
             obj.etaNorm         = cParams.etaNorm;
             obj.eta             = 0;
             obj.etaMin          = 1e-6;
+            obj.gif             = cParams.gif;
+            obj.gifName         = cParams.gifName;
+            obj.printing        = cParams.printing;
+            obj.printName       = cParams.printName;
             obj.primalUpdater   = cParams.primalUpdater;
             obj.dualUpdater     = DualUpdaterNullSpace(cParams);
             obj.createDualVariable();
             obj.initOtherParameters(cParams);
-            obj.saveCost = [];
-            obj.savePer = [];
-            obj.saveConstraint = [];
-            obj.GIFname = cParams.GIFname;
         end
 
         function createDualVariable(obj)
@@ -199,8 +193,7 @@ classdef OptimizerNullSpace < handle
         end
 
         function prepareFirstIter(obj)
-%             d = obj.designVariable;
-            d = {obj.designVariable, obj.nIter};
+            d = obj.designVariable;
             obj.cost.computeFunctionAndGradient(d);
             obj.constraint.computeFunctionAndGradient(d);
             obj.designVariable.updateOld();
@@ -223,6 +216,17 @@ classdef OptimizerNullSpace < handle
             end
         end
 
+        function printResults(obj)
+            if obj.nIter/10==round(obj.nIter/10)
+                if obj.gif
+                    obtainGIF(obj.gifName,obj.designVariable,obj.nIter);
+                end
+                if obj.printing
+                    obj.designVariable.fun.print([obj.printName,'Iter',num2str(obj.nIter/10)]);
+                end
+            end
+        end
+
         function updateDualVariable(obj)
             if obj.nIter == 0
                 lUB = 0;
@@ -237,14 +241,13 @@ classdef OptimizerNullSpace < handle
         end
 
         function calculateInitialStep(obj)
-%             x   = obj.designVariable;
-            x = {obj.designVariable, obj.nIter};
+            x   = obj.designVariable;
             DmF = obj.meritGradient;
             if obj.nIter == 0
                 factor = 50;
                 obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
             else
-                factor = 1.05; %3.0;%1.05;
+                factor = 1.05;
                 obj.primalUpdater.increaseStepLength(factor);
             end
         end
@@ -288,14 +291,11 @@ classdef OptimizerNullSpace < handle
             switch class(obj.primalUpdater)
                 case 'SLERP'
                     [actg,~] = obj.computeActiveConstraintsGradient();
-                    isAlmostFeasible  = norm(actg) < 0.02; %0.01; %0.02;
-                    isAlmostOptimal   = obj.primalUpdater.Theta < 0.15; %35; %15; %4; %15;
-%                     isAlmostOptimal   = obj.primalUpdater.Theta < 0.35; %15; %4; %15;
+                    isAlmostFeasible  = norm(actg) < 0.01;
+                    isAlmostOptimal   = obj.primalUpdater.Theta < 0.15;
                     if isAlmostFeasible && isAlmostOptimal
-%                         obj.etaMax  = max(obj.etaMax/1.05,obj.etaMaxMin);
-                        obj.etaMax  = max(obj.etaMax/1.1,obj.etaMaxMin);
-%                         obj.etaNorm = max(obj.etaNorm/1.1,obj.etaNormMin);
-                        obj.etaNorm = max(obj.etaNorm/1.5,obj.etaNormMin);
+                        obj.etaMax  = max(obj.etaMax/1.05,obj.etaMaxMin);
+                        obj.etaNorm = max(obj.etaNorm/1.1,obj.etaNormMin);
                     end
                 case 'HAMILTON-JACOBI'
                     obj.etaMax = Inf; % Not verified
@@ -319,8 +319,7 @@ classdef OptimizerNullSpace < handle
         end
 
         function mF = computeMeritFunction(obj)
-%             x = obj.designVariable;
-            x = {obj.designVariable, obj.nIter};
+            x = obj.designVariable;
             obj.cost.computeFunctionAndGradient(x);
             obj.constraint.computeFunctionAndGradient(x);
             l  = obj.dualVariable.fun.fValues;

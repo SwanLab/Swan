@@ -23,13 +23,13 @@ classdef PhaseFieldInternalEnergyFunctional < handle
         function Ju = computeGradientDisplacement(obj,u,phi,quadOrder)  
             C = obj.material.obtainTensor(phi);
             sigma = DDP(C,SymGrad(u));
-            Ju = IntegrateRHS(@(v) DDP(SymGrad(v),sigma),obj.testU,obj.mesh,quadOrder);
+            Ju = IntegrateRHS(@(v) DDP(SymGrad(v),sigma),obj.testU,obj.mesh,'Domain',quadOrder);
         end
 
         function Jphi = computeGradientDamage(obj,u,phi,quadOrder)
             dC = obj.material.obtainTensorDerivative(phi);
             dEnergyFun = DDP(SymGrad(u),DDP(dC,SymGrad(u)));
-            Jphi = IntegrateRHS(@(v) (1/2)*DP(v,dEnergyFun),obj.testPhi,obj.mesh,quadOrder);
+            Jphi = IntegrateRHS(@(v) (1/2)*DP(v,dEnergyFun),obj.testPhi,obj.mesh,'Domain',quadOrder);
         end
 
         function Huu = computeHessianDisplacement(obj,~,phi,quadOrder)   

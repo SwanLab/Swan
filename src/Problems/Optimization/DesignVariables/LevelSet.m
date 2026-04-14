@@ -16,9 +16,6 @@ classdef LevelSet < DesignVariable
         end
 
         function update(obj,value)
-%             if ~isempty(obj.isFixed)
-%                 value(obj.isFixed.nodes) = obj.isFixed.values;
-%             end
             obj.fun.setFValues(value)
             obj.updateUnfittedMesh();
         end
@@ -30,6 +27,10 @@ classdef LevelSet < DesignVariable
 
         function m = getUnfittedMesh(obj)
             m = obj.unfittedMesh;
+        end
+
+        function fixedDofs = getFixedDofs(obj)
+            fixedDofs = obj.isFixed;
         end
         
         function Vf = computeVolumeFraction(obj)
@@ -55,19 +56,11 @@ classdef LevelSet < DesignVariable
             end
         end
 
-        function fixedNodes = getFixedNodes(obj) %%%%%%%
-            if ~isempty(obj.isFixed)
-                fixedNodes = obj.isFixed.nodes;      %%%%%%%
-            else
-                fixedNodes = [];
-            end                                       %%%%%%
-        end
-
         function ls = copy(obj)
             s.fun      = obj.fun.copy();
             s.type     = 'LevelSet';
             s.plotting = false;
-            s.isFixed  = obj.isFixed;            %%%%%%%
+            s.isFixed  = obj.isFixed;
             ls         = DesignVariable.create(s);
         end
 

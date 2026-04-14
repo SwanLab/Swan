@@ -3,5 +3,6 @@
 # Directories
 Output/*
 Videos/*
+__pycache__/*
 *.m~
 *.asv

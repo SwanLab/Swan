@@ -22,13 +22,13 @@ classdef UnfittedMeshPlotter < handle
         end
         
         function plotDomain(obj)
-            obj.faceColor = [];
-            obj.edgeAlpha = [];
-            obj.faceAlpha = [];
+            obj.faceColor = 'red';
+            obj.edgeAlpha = 0.5;
+            obj.faceAlpha = 0.3;
             obj.plotAll();
             obj.addLighting();
         end
-        
+      
         function plotBoundary(obj)
             obj.plotBackground();
             obj.plotBoundaryCutMesh();
@@ -40,8 +40,8 @@ classdef UnfittedMeshPlotter < handle
             obj.plotBackground();
             obj.plotInner();
             obj.plotInnerCut();
-%             obj.plotBoundaryCutMesh();
-%             obj.plotUnfittedBoundaryMesh();
+            obj.plotBoundaryCutMesh();
+            obj.plotUnfittedBoundaryMesh();
         end
         
     end
@@ -58,9 +58,6 @@ classdef UnfittedMeshPlotter < handle
             s.faceColor = 'red';
             s.faceAlpha = 0.3;
             s.edgeAlpha = 0.5;
-%             s.faceColor = 'black';
-%             s.edgeAlpha = 1.0;
-%             s.faceAlpha = 0.9;
             obj.plotMesh(s);
         end
         
@@ -91,12 +88,9 @@ classdef UnfittedMeshPlotter < handle
         end
         
         function plotSubMesh(obj,uM)
-%             s.faceColor = 'red';
-%             s.edgeAlpha = 0.5;
-%             s.faceAlpha = 0.3;
-            s.faceColor = 'black';
-            s.edgeAlpha = 1.0;
-            s.faceAlpha = 0.9;
+            s.faceColor = obj.faceColor;
+            s.edgeAlpha = obj.edgeAlpha;
+            s.faceAlpha = obj.faceAlpha;
             s.isBackground = false;
             if ~isempty(uM)
                 s.mesh = uM.mesh;

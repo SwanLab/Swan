@@ -94,16 +94,27 @@ classdef HyperelasticityComputer < handle
         end
 
         function [rBC,uBC] = postprocess(obj,iStep,cost,uFun,rFun,iterMax)
-            [uBC,rBC] = obj.computeNorm(uFun,rFun);
+            [uBC,rBC] = obj.computeNorm(iStep,uFun,rFun);
             lambdas   = obj.computeStretches(uFun);
             sigma     = obj.computeCauchyStress(uFun);
             obj.printAndSave(iStep,cost(end),uBC,rBC,uFun,rFun,iterMax);
             obj.monitor.printOutput(iStep,uFun,rFun);
         end
 
-        function [uBC,rBC] = computeNorm(~,uFun,rFun)
-            rBC = Norm(rFun,'L2');
-            uBC = Norm(uFun,'L2');
+        function [uBC,rBC] = computeNorm(obj,step,uFun,rFun)
+            UpSide = max(obj.mesh.coord(:,2));
+            isInUp = abs(obj.mesh.coord(:,2)-UpSide)< 1e-12;
+            nodes = 1:obj.mesh.nnodes;
+            if ismember(obj.boundaryConditions.type, ["ForceTractionY", "ForceTractionYClamped"])
+                uBC = norm(mean(uFun.fValues(nodes(isInUp),2)));
+                rBC = obj.boundaryConditions.bcValues(step);
+            elseif ismember(obj.boundaryConditions.type, ["DisplacementTractionY","DisplacementTractionYClamped"])
+                rBC = norm(sum(rFun.fValues(nodes(isInUp),2)));
+                uBC = obj.boundaryConditions.bcValues(step);
+            else
+                rBC = Norm(rFun,'L2');
+                uBC = Norm(uFun,'L2');
+            end
         end
 
         function lambdas = computeStretches(~,u)

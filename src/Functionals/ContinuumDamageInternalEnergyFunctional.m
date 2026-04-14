@@ -33,7 +33,7 @@ classdef ContinuumDamageInternalEnergyFunctional < handle
 
         function res = computeResidual(obj,u,r)
             stress = obj.computeStress(u,r);
-            res = IntegrateRHS(@(v) DDP(SymGrad(v),stress),obj.test,obj.mesh,obj.quadOrder);
+            res = IntegrateRHS(@(v) DDP(SymGrad(v),stress),obj.test,obj.mesh,'Domain',obj.quadOrder);
         end
 
         function [Ktan,Ksec] = computeDerivativeResidual(obj,u,r)

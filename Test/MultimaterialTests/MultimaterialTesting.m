@@ -112,7 +112,7 @@ classdef MultimaterialTesting < handle
 
             pointloadFun = [];
             for i = 1:numel(sPL)
-                pl = PointLoad(obj.mesh, sPL{i});
+                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
                 pointloadFun = [pointloadFun, pl];
             end
             s.pointloadFun = pointloadFun;
@@ -130,7 +130,7 @@ classdef MultimaterialTesting < handle
             s.boundaryConditions = obj.boundaryConditions;
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'DIRECT';
+            s.solverCase = DirectSolver();
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -212,6 +212,10 @@ classdef MultimaterialTesting < handle
             s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = inf;
             s.gJFlowRatio    = 0.02;
+            s.gif            = false;
+            s.gifName        = [];
+            s.printing       = false;
+            s.printName      = [];
             obj.optimizer    = OptimizerNullSpace(s);
         end
 

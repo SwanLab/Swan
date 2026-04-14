@@ -1,4 +1,3 @@
-
 classdef SLERP < handle
 
     properties (Access = public)
@@ -11,7 +10,6 @@ classdef SLERP < handle
 
     properties (Access = private)
         mesh
-        dofsNonDesign
     end
 
     methods (Access = public)
@@ -20,22 +18,19 @@ classdef SLERP < handle
         end
 
         function phi = update(obj,g,phi)
-            isFixed = phi.getFixedNodes();
-%             g(isFixed) = - abs(g(isFixed)); %should be positive if we want to fix as void
-            g(isFixed) = abs(g(isFixed)); %should be positive if we want to fix as void
+            g                 = obj.applyIsFixedToGradient(g,phi);
             ls                = phi.obtainVariableInCell();
             phiN              = obj.normalizeLevelSets(ls);
             gN                = obj.createNormalizedGradient(ls,g);
             theta             = obj.computeThetaNorm(phiN,gN);
             obj.Theta         = theta;
             [phiNvals,gNvals] = obj.computePhiAndGradientValues(phiN,gN);
-            phiNew            = obj.computeNewLevelSet(phiNvals,gNvals,theta); 
+            phiNew            = obj.computeNewLevelSet(phiNvals,gNvals,theta);
             phi.update(phiNew);
             obj.updateBoundsMultipliers(phi.fun);
         end
 
         function computeFirstStepLength(obj,g,ls,~)
-%             [lsClass,gClass] = obj.getLevelSetAndGradientForVolume(ls{1},g);
             [lsClass,gClass] = obj.getLevelSetAndGradientForVolume(ls,g);
             V0 = lsClass.computeVolume();
             if abs(V0-1) <= 1e-10
@@ -118,20 +113,7 @@ classdef SLERP < handle
             end
         end
 
-        function [lsNon, gNNon] = setLevelSetAndGradientNonDesignable(obj, ls, gN)
-            gNFValues = gN.fValues;
-            lsFValues = ls.fValues;
-            lsFValues(obj.dofsNonDesign) = 0.0;
-            gNFValues(obj.dofsNonDesign) = 0.0;
-            lsNon         = ls.copy;
-            lsNon.setFValues(lsFValues);
-            lsNon = lsNon.normalize('L2');
-            gNNon         = gN.copy;
-            gNNon.setFValues(gNFValues);
-        end
-
         function t = computeTheta(obj,phi,g)
-%             [phi, g] = obj.setLevelSetAndGradientNonDesignable(phi,g);
             phiG = ScalarProduct(phi,g,'L2');
             t    = max(acos(phiG),1e-14);
         end
@@ -165,10 +147,15 @@ classdef SLERP < handle
 
     methods (Static, Access = private)
         function [lsClass,gClass] = getLevelSetAndGradientForVolume(ls,g)
-            lsC     = ls{1}.obtainVariableInCell();
+            lsC     = ls.obtainVariableInCell();
             lsClass = lsC{1};
             n       = length(lsClass.fun.fValues);
             gClass  = g(1:n);
+        end
+
+        function g = applyIsFixedToGradient(g,phi)
+            fixedDofs  = phi.getFixedDofs();
+            g(fixedDofs) = -abs(g(fixedDofs));
         end
 
         function phiN = normalizeLevelSets(ls)
