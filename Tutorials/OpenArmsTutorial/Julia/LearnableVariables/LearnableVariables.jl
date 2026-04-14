@@ -6,9 +6,9 @@ using Random
 using Distributions
 
 mutable struct LearnableVars
-    neuronsPerLayer::Vector{Int}
-    nLayers::Int
-    thetavec::Vector{Float64}
+    neuronsPerLayer::Vector{Int} 
+    nLayers::Int                # number of layer
+    thetavec::Vector{Float64}   # a vector with all the weights and bias of all the layers
 end
 
 # Constructor: builds and returns a LearnableVars object

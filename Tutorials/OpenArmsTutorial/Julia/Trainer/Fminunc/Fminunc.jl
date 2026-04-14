@@ -28,11 +28,11 @@ function FminuncStruct(s::Dict{String, Any})
 
     # Build Optim.Options (approximate translation)
     optOptions = Optim.Options(
-        g_tol = optTolerance,
-        iterations = maxevals * 5,
-        f_calls_limit = maxevals,
-        show_trace = trainer_obj.isDisplayed,
-        allow_f_increases = true
+        g_tol = optTolerance,           #stop if gradient is small
+        iterations = maxevals * 5,      #maximum number of internal iterations
+        f_calls_limit = maxevals,       #call limit for the function
+        show_trace = trainer_obj.isDisplayed,   #displays progress if enabled
+        allow_f_increases = true        #Allows costs to rise at certain times
     )
 
     return FminuncStruct(trainer_obj, optTolerance, maxevals, nPlot, Xtrain, Ytrain, optOptions)
@@ -55,6 +55,57 @@ function train(obj::FminuncStruct)
     obj.trainer.designVariable.thetavec = Optim.minimizer(result)
 
     println("Optimization completed with final cost: $(Optim.minimum(result))")
+end
+
+function train(obj::FminuncStruct)
+    
+    # Retrieve initial weights
+    x0 = copy(obj.trainer.designVariable.thetavec)
+
+    # Define objective function AND gradient together
+    # Optim.jl's only_fg! interface: F = cost value, G = gradient vector
+    function fg!(F, G, theta)
+        # Update thetavec with current theta proposed by BFGS
+        obj.trainer.designVariable.thetavec .= theta
+
+        # Compute cost and gradient via CostNN
+        CostNN.computeFunctionAndGradient(obj.trainer.objectiveFunction, theta)
+        
+        j  = obj.trainer.objectiveFunction.value
+        dj = obj.trainer.objectiveFunction.gradient
+
+        # Fill gradient in-place if requested by Optim.jl
+        if G !== nothing
+            G .= dj
+        end
+
+        # Return cost value if requested by Optim.jl
+        if F !== nothing
+            return j
+        end
+    end
+
+    # Run BFGS optimization with correct Optim.jl syntax
+    result = Optim.optimize(
+        Optim.only_fg!(fg!),
+        x0,
+        Optim.BFGS(),
+        obj.optOptions
+    )
+
+    # Check convergence
+    if Optim.converged(result)
+        println("Optimization converged successfully.")
+    else
+        println("Warning: optimization did not converge.")
+    end
+
+    # Store optimal weights back into the network
+    obj.trainer.designVariable.thetavec .= Optim.minimizer(result)
+
+    println("Final cost: $(round(Optim.minimum(result), digits=6))")
+    println("Total iterations: $(Optim.iterations(result))")
+    println("Total function calls: $(Optim.f_calls(result))")
 end
 
 end

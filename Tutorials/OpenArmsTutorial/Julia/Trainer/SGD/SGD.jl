@@ -87,13 +87,13 @@ function plotCostFunc(obj::SGDStruct)
 end
 
 
-function optimize(obj::SGDStruct, th0::Vector{Float64})
+function optimize(obj::SGDStruct, th0::Vector{Float64})         #Optimizes the network
     epsilon      = obj.learningRate
-    iter         = -1
-    funcount     = 0
+    iter         = -1                   #to detect the first iteration
+    funcount     = 0                    #times that cost function is called
     alarm        = 0.0
     minTestError = 1.0
-    kpi = KPI(1, 0.0, 1.0, 1.0)
+    kpi = KPI(1, 0.0, 1.0, 1.0)         #Start at epoch 1, No alarm,Gradient assumed to be large at the start (> optTolerance),Cost assumed to be large at the start (> fvStop)
 
     theta = copy(th0)
     xnew = similar(theta) # preallocate xnew with same size and type
@@ -103,9 +103,9 @@ function optimize(obj::SGDStruct, th0::Vector{Float64})
         newEpoch = true
         moveBatch = true
 
-        while !obj.trainer.objectiveFunction.isBatchDepleted || newEpoch
-            f, grad = computeStochasticFunctionAndGradient(obj, theta, moveBatch)
-            epsilon, funcount = lineSearch!(obj, xnew, theta, grad, f, epsilon, funcount)
+        while !obj.trainer.objectiveFunction.isBatchDepleted || newEpoch            #Continue until all batches from that epoch have been processed
+            f, grad = computeStochasticFunctionAndGradient(obj, theta, moveBatch)   #gets the cost and the gradient values on the current batch
+            epsilon, funcount = lineSearch!(obj, xnew, theta, grad, f, epsilon, funcount)   #Find the best LR and calculate xnew = theta - epsilon * grad
             theta .= xnew  # update theta with xnew content (in-place copy)
 
             funcount += 1
@@ -114,20 +114,20 @@ function optimize(obj::SGDStruct, th0::Vector{Float64})
 
             kpi.cost  = f
             kpi.gnorm = norm(grad)
-            displayIter(obj, iter, funcount, theta, epsilon, kpi)
+            displayIter(obj, iter, funcount, theta, epsilon, kpi)   #displays the log line in the terminal
         end
 
-        kpi.epoch += 1
+        kpi.epoch += 1      #next epoch after treated all batches
         #kpi_alarm, minTestError = obj.trainer.objectiveFunction["validateES"](alarm, minTestError)
-        kpi_alarm, minTestError = CostNN.validateES(obj.trainer.objectiveFunction, alarm, minTestError)
+        kpi_alarm, minTestError = CostNN.validateES(obj.trainer.objectiveFunction, alarm, minTestError)   #Evaluates early stopping — compares the current test error with the best result so far
         
         kpi.alarm = kpi_alarm
     end
 end
 
 function computeStochasticFunctionAndGradient(obj::SGDStruct, theta::Vector{Float64}, moveBatch::Bool)
-    CostNN.setBatchMover!(obj.trainer.objectiveFunction, moveBatch)
-    CostNN.computeStochasticFunctionAndGradient!(obj.trainer.objectiveFunction, theta)
+    CostNN.setBatchMover!(obj.trainer.objectiveFunction, moveBatch)         #say if we have to moove to another batch according to "moveBatch"
+    CostNN.computeStochasticFunctionAndGradient!(obj.trainer.objectiveFunction, theta)    #compute the gradient and the cost value
 #=
     alloc = @allocated CostNN.computeStochasticFunctionAndGradient!(obj.trainer.objectiveFunction, theta)
     println("Allocated bytes: $alloc")
@@ -135,7 +135,7 @@ function computeStochasticFunctionAndGradient(obj::SGDStruct, theta::Vector{Floa
     f    = obj.trainer.objectiveFunction.value
     grad = obj.trainer.objectiveFunction.gradient
     return f, grad
-end
+end                 #return the cost and gradient 
 
 function lineSearch!(
     obj::SGDStruct,
@@ -184,23 +184,23 @@ function lineSearch!(
     return e, funcount
 end
 
-function updateCriteria(obj::SGDStruct, kpi::KPI)
+function updateCriteria(obj::SGDStruct, kpi::KPI)     #evaluates some conditions to stop, return a vector of 5 bool
     return [
-        kpi.epoch <= obj.MaxEpochs,
-        kpi.alarm < obj.earlyStop,
-        kpi.gnorm > obj.optTolerance,
-        obj.elapsedTime < obj.timeStop,    # use field now
-        kpi.cost > obj.fvStop
+        kpi.epoch <= obj.MaxEpochs,     #gives true while not over MaxEpochs
+        kpi.alarm < obj.earlyStop,      #true while not over earlyStop
+        kpi.gnorm > obj.optTolerance,   #true while gradient > 1e-8
+        obj.elapsedTime < obj.timeStop,    # true while time< time stop
+        kpi.cost > obj.fvStop           #true while cost > 1e-4
     ]
 end
 
-function isCriteriaMet(obj::SGDStruct, kpi::KPI)
+function isCriteriaMet(obj::SGDStruct, kpi::KPI)        #decides if we stop
     criteria = updateCriteria(obj, kpi)
-    failedIdx = findfirst(!, criteria)
-    itIs = false
+    failedIdx = findfirst(!, criteria)      #looks for the first false in the critera vector
+    itIs = false                            #by default we don't stop
 
-    if !isnothing(failedIdx)
-        itIs = true
+    if !isnothing(failedIdx)                #if there is one fault
+        itIs = true                         #we stop
         messages = [
             "Minimization terminated, maximum number of epochs reached $(kpi.epoch)",
             "Minimization terminated, validation set did not decrease in $(obj.earlyStop) epochs",
@@ -213,7 +213,7 @@ function isCriteriaMet(obj::SGDStruct, kpi::KPI)
         end
     end
 
-    return itIs
+    return itIs            #true = end of optimization 
 end
 
 function displayIter(

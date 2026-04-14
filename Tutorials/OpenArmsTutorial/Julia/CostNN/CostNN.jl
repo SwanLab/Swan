@@ -98,7 +98,7 @@ function validateES(obj::CostNNStruct, alarm::Float64, minTestError::Float64)
     shI = obj.shapeFunctions[1]
 
     testError = isa(shI, LossFunctional.LossFunctionalStruct) ? LossFunctional.getTestError(shI) :
-                isa(shI, Sh_Func_L2norm.ShFuncL2norm) ? Sh_Func_L2norm.getTestError(shI) :
+                isa(shI, Sh_Func_L2norm.ShFuncL2norm) ? Sh_Func_L2norm.getTestError(shI) :      #not used
                 error("Unsupported shape function type: $(typeof(shI))")
 
     if testError < minTestError
@@ -112,15 +112,15 @@ function validateES(obj::CostNNStruct, alarm::Float64, minTestError::Float64)
     return alarm, minTestError
 end
 
-function computeValueAndGradient_2arg(obj::CostNNStruct, x::Vector{Float64}, compFunc)
+function computeValueAndGradient_2arg(obj::CostNNStruct, x::Vector{Float64}, compFunc)      #return the total cost and grandient with all the cost functions
     nF = length(obj.shapeFunctions)
     bDa = falses(nF)
-    Jc = Vector{Any}(undef, nF)
-    dJc = Vector{Any}(undef, nF)
+    Jc = Vector{Any}(undef, nF)                 #cost
+    dJc = Vector{Any}(undef, nF)                #gradient
 
-    for iF in 1:nF
+    for iF in 1:nF                              #loop on the cost functions
         shI = obj.shapeFunctions[iF]
-        j, dJ = compFunc(shI, x)
+        j, dJ = compFunc(shI, x)                # compute cost and gradient
         bDa[iF] = false
         Jc[iF] = j
         dJc[iF] = dJ #mergeGradient(dJ)
@@ -129,8 +129,8 @@ function computeValueAndGradient_2arg(obj::CostNNStruct, x::Vector{Float64}, com
     jV = 0.0
     djV = zeros(size(dJc[1]))
     for iF in 1:nF
-        jV += obj.weights[iF] * Jc[iF]
-        djV .+= obj.weights[iF] * dJc[iF]
+        jV += obj.weights[iF] * Jc[iF]          #total cost : J= w1​J1 ​+ w2​J2​
+        djV .+= obj.weights[iF] * dJc[iF]       #total gradient : ∇J= w1​∇J1​ + w2​∇J2
     end
 
     obj.isBatchDepleted = any(bDa)
@@ -146,7 +146,7 @@ function computeValueAndGradient_3arg(obj::CostNNStruct, x::Vector{Float64}, com
 
     for iF in 1:nF
         shI = obj.shapeFunctions[iF]
-        obj.Jc[iF], obj.dJc[iF], bD = compFunc(shI, x, obj.moveBatch)
+        obj.Jc[iF], obj.dJc[iF], bD = compFunc(shI, x, obj.moveBatch)           # with different Batch
         bDa[iF] = bD
     end
 

@@ -56,8 +56,8 @@ using .Nesterov
 using .RMSProp
 
 function plotCostRegErr(t::TrainerStruct, v::Vector{Int})
-    idxs = 2:length(v)
-    fvals = t.costHist[2:end, 1]
+    idxs = 2:length(v)                  # not the first one is initialization
+    fvals = t.costHist[2:end, 1]        #total value of the cost function
 
     plot(
         v[idxs], fvals;
@@ -100,8 +100,8 @@ function storeValues!(
 
         t.costHist[epoch, :] .= [
             f,
-            t.objectiveFunction.regularization,
-            t.objectiveFunction.loss
+            t.objectiveFunction.regularization,                 #do not exist
+            t.objectiveFunction.loss                            #do not exist
         ]
         println("checkpoint")
         t.optHist[epoch, :] .= [opt.gnorm, opt.epsilon]

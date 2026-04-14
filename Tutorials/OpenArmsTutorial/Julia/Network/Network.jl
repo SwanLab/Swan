@@ -41,7 +41,7 @@ function Net(cParams::Dict{String, Any})
 
     learnableVariables = LearnableVars(learnableParams) # equivalent to createLearnableVariables
 
-    aValues = [zeros(0,0) for _ in 1:nLayers]
+    aValues = [zeros(0,0) for _ in 1:nLayers]       # aValues[i] = neurons value of layer i
     
     # Initialization of the backprop parameters
     deltag = [zeros(size(aValues[i])) for i in 1:nLayers]
@@ -78,7 +78,7 @@ function backprop(obj::Net, Yb::Matrix{Float64}, dLF::Matrix{Float64})
     a = obj.aValues
     nPl = obj.neuronsPerLayer
     nLy = obj.nLayers
-    m = size(Yb, 1) # Batch size
+    m = size(Yb, 1) # Batch size, number of values of the input data used for one way in the network
 
     #obj.deltag = fill(nothing, nLy)
     #=
@@ -182,7 +182,7 @@ function computeAvalues(obj::Net, X::Matrix{Float64})
     end
 end
 
-function actFCN(obj::Net, z::Matrix{Float64}, k::Int)
+function actFCN(obj::Net, z::Matrix{Float64}, k::Int)      # apply an activation function to the value compute by "computeAvalues"
     nLy = obj.nLayers
     type = k == nLy ? obj.OUtype : obj.HUtype
     if type == "sigmoid"
