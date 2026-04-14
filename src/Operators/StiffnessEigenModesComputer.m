@@ -99,7 +99,6 @@ classdef StiffnessEigenModesComputer < handle
             [eigF,eigV] = eigs(K,M,n,'smallestabs');
             eigV1 = eigV(1,1);
             eigF1 = eigF(:,1);
-            disp(diag(eigV))
         end   
 
         function fV = fillVectorWithHomogeneousDirichlet(obj,phi)

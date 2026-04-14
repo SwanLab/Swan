@@ -60,7 +60,7 @@ classdef OptimizerNullSpace < handle
             obj.computeNullSpaceFlow();
             obj.computeRangeSpaceFlow();
             obj.firstEstimation = false;
-            obj.designVariable.fun.print('dV'+string(obj.GIFname)+string(0),'Paraview') 
+%             obj.designVariable.fun.print('dV'+string(obj.GIFname)+string(0),'Paraview') 
             while ~obj.hasFinished
                 obj.update();
                 obj.updateIterInfo();
@@ -68,17 +68,10 @@ classdef OptimizerNullSpace < handle
                 obj.updateMonitoring();
                 obj.checkConvergence();
                 obj.designVariable.updateOld();
-                obj.saveFilesPosProcess();
-                if obj.nIter == 1 || mod(obj.nIter,20)== 0
-                    obj.designVariable.fun.print('dV'+string(obj.GIFname)+string(obj.nIter),'Paraview') 
-                end
+%                 if obj.nIter == 1 || mod(obj.nIter,20)== 0
+%                     obj.designVariable.fun.print('dV'+string(obj.GIFname)+string(obj.nIter),'Paraview') 
+%                 end
             end
-            cost = obj.saveCost; 
-            per = obj.savePer;
-            constraint = obj.saveConstraint;
-            save('cost'+string(obj.GIFname)+'.mat','cost')
-%             save('per'+string(obj.GIFname)+'.mat','per')
-            save('constraint'+string(obj.GIFname)+'.mat','constraint')
         end
     end
 
@@ -108,14 +101,6 @@ classdef OptimizerNullSpace < handle
             obj.saveConstraint = [];
             obj.GIFname = cParams.GIFname;
         end
-
-
-        function saveFilesPosProcess(obj)
-            obj.saveCost(end+1) = obj.cost.getFields(1);
-%             obj.savePer(end+1) = obj.cost.getFields(2);
-            obj.saveConstraint(end+1,:) = obj.constraint.value;
-        end
-
 
         function createDualVariable(obj)
             s.nConstraints   = length(obj.constraintCase);
@@ -152,7 +137,6 @@ classdef OptimizerNullSpace < handle
             s.meritNew         = obj.meritNew;
             obj.monitoring.update(obj.nIter,s);
             obj.monitoring.refresh();
-%             obj.obtainGIF(obj.GIFname);
         end
 
         function plotVariable(obj)

@@ -4,8 +4,6 @@ classdef SimplePerimeterFunctional < handle
         mesh
         filter
         quadrature
-        w
-        updated
         iter
         value0
     end
@@ -20,11 +18,7 @@ classdef SimplePerimeterFunctional < handle
             if size(x,2) > 1
                 iter = x{2};
                 x = x{1};
-%                 if iter > 50 && iter > obj.iter  && mod(iter, 50) == 0 && obj.w <10.0
-%                     obj.w = obj.w+1.0;
-%                     obj.iter = iter;
-%                 end
-            end% 
+            end
             xD = x.obtainDomainFunction();
             xR = obj.filterFields(xD);
             J  = obj.computeFunction(xD{1},xR{1});
@@ -35,11 +29,9 @@ classdef SimplePerimeterFunctional < handle
 
     methods (Access = private)
         function init(obj,cParams)
-            obj.updated = 0;
             obj.mesh    = cParams.mesh;
             obj.filter  = cParams.filter;
             obj.iter = 0;
-            obj.w = 1.0;
         end
 
         function xR = filterFields(obj,x)
@@ -56,12 +48,12 @@ classdef SimplePerimeterFunctional < handle
         end
 
         function J = computeFunction(obj, rho, rhoF)
-            perimeter = obj.w*rho.*(1-rhoF);
+            perimeter = rho.*(1-rhoF);
             J      = Integrator.compute(perimeter,obj.mesh,obj.quadrature.order);
         end
 
         function dJ = computeGradient(obj, rhoF)
-            dj        = obj.w*(1-2*rhoF.fValues);
+            dj        = 1-2*rhoF.fValues;
             s.fValues = dj;
             s.mesh    = obj.mesh;
             s.order   = 'P1';

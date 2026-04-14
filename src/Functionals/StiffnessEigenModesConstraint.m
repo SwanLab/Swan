@@ -24,9 +24,7 @@ classdef StiffnessEigenModesConstraint < handle
             if size(x,2) > 1
                 iter = x{2};
                 x = x{1};
-            end%    
-%             iter = x{2};
-% % %    
+            end    
 %             if iter > 0 && iter > obj.iter && mod(iter,50)== 0 && obj.targetEigenValue < 2.0
 %                 obj.iter = iter;
 % %                 obj.targetEigenValue = 2.5;
@@ -85,19 +83,15 @@ classdef StiffnessEigenModesConstraint < handle
         end
 
         function J = computeFunction(obj,lambda)
-              % if its close to zero, use 1
               J    = (obj.targetEigenValue - lambda);
-%               J    = 1 - lambda/obj.targetEigenValue;
               if isempty(obj.value0)
-                obj.value0 = 1; %abs(J); %
+                obj.value0 = 1; 
               end
               J = J/obj.value0;
         end
 
         function dlambda = computeGradient(obj, lambda, dlambda)
             fValues = - dlambda.fValues/obj.value0;
-%             fValues = - dlambda.fValues/obj.targetEigenValue;
-%             dJ      = FeFunction.create(dlambda.order,fValues,obj.mesh);     
             dlambda.setFValues(fValues);
         end
 
