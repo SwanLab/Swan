@@ -154,19 +154,37 @@ s.Sampling  = 'Isolated';          % 'Isolated'/'Oversampling'
 s.Inclusion = 'Material';         % 'Hole'/'Material'/  --> Hole: just for imported meshes or constant geometry
 s.Option    = 'Dataset';          % % 'Dataset'/'NN'/'Direct
 s.fileNameEIFEM = [];
-
-% UNIFORM DISTRIBUTION
-s.r = ones(1,10,1)*0.4;
 s.nelem     =  15;                %  Mesh refining
 
+% UNIFORM DISTRIBUTION
+% s.r = ones(1,10,1)*0.4;
 % s.fileNameEIFEM = 'Sphere_r04_Mult.mat';
+
+% NON UNIFORM DISTRIBUTION
+s.r= zeros(2,6,2);
+s.r(:,:,1) = [
+    0.25, 0.45, 0.60, 0.35, 0.20, 0.55;
+    0.50, 0.30, 0.25, 0.65, 0.40, 0.35
+];
+
+s.r(:,:,2) = [
+    0.60, 0.20, 0.45, 0.55, 0.30, 0.65;
+    0.35, 0.50, 0.25, 0.40, 0.60, 0.25
+];
+
+
 
 % Multiscale
 Sph_Mult= CoarseTesting_3D(s);
 Sph_Mult.compute();
 
+s.Option    = 'NN';   
+Sph_NN= CoarseTesting_3D(s);
+Sph_NN.compute();
+
 
 % EIFEM Isolated
+s.Option    = 'Dataset';  
 s.Training  = 'EIFEM';
 s.Sampling  = 'Isolated';  
 Sph_Iso= CoarseTesting_3D(s);
@@ -189,14 +207,19 @@ plot(Sph_Iso.residualILU,'linewidth',2)
 hold on
 plot(Sph_Mult.residualPCG,'linewidth',2)
 hold on
+plot(Sph_NN.residualPCG,'linewidth',2)
+hold on
 plot(Sph_Iso.residualPCG,'linewidth',2)
+hold on
+plot(Sph_Over.residualPCG,'linewidth',2)
 set(gca, 'YScale', 'log')
 xlabel('Iteration')
 ylabel('Residual')
 title("Residual evolution")
 
-legend({'CG', 'ILU', 'ILU-Multiscale-ILU','ILU-EIFEM(dirac)-ILU'});
-
+legend({'CG', 'ILU', 'ILU-Multiscale-ILU','ILU-Multiscale with NN-ILU','ILU-EIFEM(Isolated)-ILU','ILU-EIFEM(Oversampling)-ILU'});
+% ylim([10^-9 10^3]);
+% xlim([0 4061]);
 
 %% 3D CASE - AIRFOIL
 

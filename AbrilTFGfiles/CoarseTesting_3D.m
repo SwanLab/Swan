@@ -86,12 +86,12 @@ classdef CoarseTesting_3D< handle
             tol = 1e-8;
             x0  = zeros(size(RHSf));
 
-            tic %SOLVE THE CASE WITH STANDARD CG
-            [~,obj.residualCG,errCG, errCG] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
-            t_CG=toc
-            tic  % SOLVE THE CASE WITH CG+ ILU
-            [~,obj.residualILU,errILU, errAnormILU] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
-            t_ILU=toc
+            % tic %SOLVE THE CASE WITH STANDARD CG
+            % [~,obj.residualCG,errCG, errCG] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
+            % t_CG=toc
+            % tic  % SOLVE THE CASE WITH CG+ ILU
+            % [~,obj.residualILU,errILU, errAnormILU] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
+            % t_ILU=toc
             tic %SOLVE THE CASE WITH PRECONDITIONING ILU+EIFEM+ILU
             [uPCG,obj.residualPCG,obj.errPCG,obj.errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
             t_PCG=toc
@@ -233,31 +233,6 @@ classdef CoarseTesting_3D< handle
             obj.ymax = maxC(2);
             obj.zmin = minC(3);
             obj.zmax = maxC(3);
-
-            % delta = 1e-6;
-            % tol   = 1e-12;
-            % % Detect boundaries per direction
-            % onMin = abs(s.coord - minC) < tol;
-            % onMax = abs(s.coord - maxC) < tol;
-            % 
-            % isBoundary = onMin | onMax;
-            % 
-            % % Count how many boundary planes each node lies on
-            % numBoundaries = sum(isBoundary, 2);
-            % 
-            % % Edge nodes = exactly 2 boundaries
-            % isEdge = numBoundaries == 2;
-            % 
-            % % Displacement field
-            % dispVec = zeros(size(s.coord));
-            % dispVec(onMax) = -delta;
-            % dispVec(onMin) =  delta;
-            % 
-            % % Apply only to edges
-            % s.coord(isEdge,:) = s.coord(isEdge,:) + dispVec(isEdge,:);
-            % 
-            % isEdgeOrCorner = numBoundaries > 2;
-            % s.coord(isEdgeOrCorner,:) = s.coord(isEdgeOrCorner,:) + dispVec(isEdgeOrCorner,:);
 
             delta=1E-8;
 
@@ -665,10 +640,10 @@ classdef CoarseTesting_3D< handle
                             RVE{i,j,k}.Kcoarse= obj.data.K{i,j,k};
                             RVE{i,j,k}.U= obj.data.T{i,j,k}; 
                         case 'NN'
-                            RVE{i,j,k}.Kcoarse = computeKcoarse_NN(K_NN,obj.r(i,j,k));
+                            RVE{i,j,k}.Kcoarse = computeKcoarse_NN(K_NN,obj.r(i,j,k),24);
                             RVE{i,j,k}.U       = computeT_NN(obj.referenceMesh,obj.r(i,j,k),T_NN,pol_deg);
                         case 'Hybrid'
-                            RVE{i,j,k}.Kcoarse = computeKcoarse_NN(K_NN,obj.r(i,j,k));
+                            RVE{i,j,k}.Kcoarse = computeKcoarse_NN(K_NN,obj.r(i,j,k),24);
                             RVE{i,j,k}.U       = computeT_Hybrid(basis,obj.r(i,j,k),Q_NN,pol_deg);
                     end
                     end

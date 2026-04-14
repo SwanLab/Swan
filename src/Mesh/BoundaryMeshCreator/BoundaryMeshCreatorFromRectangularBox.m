@@ -69,12 +69,14 @@ classdef BoundaryMeshCreatorFromRectangularBox < BoundaryMeshCreator
                     if tf
                         connec = obj.computeConnectivities1D(facetCoords);
                     else
-                       connec = obj.computeConnectivities2D(facetCoords,type);
+                        connec = obj.computeConnectivities2D(facetCoords,type);
                     end
             end
+
+
         end
 
-         function connec = computeConnecQuads(obj,coord)
+        function connec = computeConnecQuads(obj,coord)
             x = coord(:,1);
             y = coord(:,2);
 
@@ -96,15 +98,15 @@ classdef BoundaryMeshCreatorFromRectangularBox < BoundaryMeshCreator
             B = gridIndex(1:end-1, 2:end);
             C = gridIndex(2:end,   2:end);
             D = gridIndex(2:end,   1:end-1);
-            
+
             connec = [A(:), B(:), C(:), D(:)];
             % % % Base indices (top-left corner of each quad)
             % % i = 1:nx-1;
             % % j = 1:ny-1;
-            % % 
+            % %
             % % [I,J] = meshgrid(i,j);
             % % n1 = (J-1)*nx + I;
-            % % 
+            % %
             % % % Build all quads at once
             % % quads = [ ...
             % %     n1(:), ...
@@ -136,7 +138,7 @@ classdef BoundaryMeshCreatorFromRectangularBox < BoundaryMeshCreator
         end
 
         function connec = computeConnectivities2D(obj,coord,type)
-            if strcmp('TETRAHEDRA',type)  
+            if strcmp('TETRAHEDRA',type)
                 DT = delaunayTriangulation(coord);
                 connec = DT.ConnectivityList;
             elseif strcmp('HEXAHEDRA',type)

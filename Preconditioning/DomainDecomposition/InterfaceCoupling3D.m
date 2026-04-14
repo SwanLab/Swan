@@ -31,30 +31,35 @@ classdef InterfaceCoupling3D < handle
         end
 
         function intConec = reshapeConecPerInterface(obj)
-            globalConec = obj.interfaceConnec;
-            nRnodes     = obj.meshReference.nnodes;
-            nnode       = size(globalConec,1);
-            nint        = obj.ninterfaces;
-            gbInt        = 1;
-            inode = 1;
-            while inode < nnode
-                nodeId = globalConec(inode,1);
-                dom    = ceil(nodeId/nRnodes);
-                kInd   = ceil(dom/(obj.nSubdomains(1)*obj.nSubdomains(2)));
-                pageD  = dom-(kInd-1)*obj.nSubdomains(1)*obj.nSubdomains(2);
-                row = ceil(pageD/obj.nSubdomains(1));
-                col = pageD-(row-1)*obj.nSubdomains(1);
-                bdMesh = obj.interfaceMeshSubDomain{row,col,kInd};
-                for iInt = 1:nint
-                    isNode = bdMesh{iInt}.globalConnec == nodeId - nRnodes*(dom-1);
-                    if sum(sum(isNode)) > 0
-                        nnodebd = bdMesh{iInt}.mesh.nnodes;
-                        intConec{gbInt} = globalConec(inode:inode+nnodebd-1,:);
-                        inode = inode + nnodebd;
-                        gbInt = gbInt+1;
-                        break
+            if (size(obj.interfaceConnec,2) == 2)
+                globalConec = obj.interfaceConnec;
+                nRnodes     = obj.meshReference.nnodes;
+                nnode       = size(globalConec,1);
+                nint        = obj.ninterfaces;
+                gbInt        = 1;
+                inode = 1;
+                while inode < nnode
+                    nodeId = globalConec(inode,1);
+                    dom    = ceil(nodeId/nRnodes);
+                    kInd   = ceil(dom/(obj.nSubdomains(1)*obj.nSubdomains(2)));
+                    pageD  = dom-(kInd-1)*obj.nSubdomains(1)*obj.nSubdomains(2);
+                    row = ceil(pageD/obj.nSubdomains(1));
+                    col = pageD-(row-1)*obj.nSubdomains(1);
+                    bdMesh = obj.interfaceMeshSubDomain{row,col,kInd};
+                    for iInt = 1:nint
+                        isNode = bdMesh{iInt}.globalConnec == nodeId - nRnodes*(dom-1);
+                        if sum(sum(isNode)) > 0
+                            nnodebd = bdMesh{iInt}.mesh.nnodes;
+                            intConec{gbInt} = globalConec(inode:inode+nnodebd-1,:);
+                            inode = inode + nnodebd;
+                            gbInt = gbInt+1;
+                            break
+                        end
                     end
                 end
+            else
+                disp('Continuous mesh generated. However, case not suitable for domain decomposition yet')
+                intConec = obj.interfaceConnec;
             end
         end
 

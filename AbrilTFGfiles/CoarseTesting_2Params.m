@@ -479,8 +479,8 @@ classdef CoarseTesting_2Params< handle
                             RVE{i,j}.Kcoarse= obj.data.K{i,j};
                             RVE{i,j}.U= obj.data.T{i,j}; 
                         case 'NN'
-                            RVE{i,j}.Kcoarse = computeKcoarse_NN(K_NN,[obj.tFrame(i,j),obj.tCross(i,j)]);
-                            RVE{i,j}.U       = computeT_NN(obj.cellMesh{i,j},[obj.tFrame(i,j),obj.tCross(i,j)],T_NN,pol_deg);
+                            RVE{i,j}.Kcoarse = computeKcoarse_NN(K_NN,[obj.tFrame(i,j),obj.tCross(i,j),8]);
+                            RVE{i,j}.U       = computeT_NN_2P(obj.cellMesh{i,j},[obj.tFrame(i,j),obj.tCross(i,j)],T_NN,pol_deg);
                     end
                 end
             end

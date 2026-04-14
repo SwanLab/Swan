@@ -530,10 +530,10 @@ classdef CoarseTesting_2D< handle
                             RVE{i,j}.Kcoarse= obj.data.K{i,j};
                             RVE{i,j}.U= obj.data.T{i,j}; 
                         case 'NN'
-                            RVE{i,j}.Kcoarse = computeKcoarse_NN(K_NN,obj.r(i,j));
+                            RVE{i,j}.Kcoarse = computeKcoarse_NN(K_NN,obj.r(i,j),8);
                             RVE{i,j}.U       = computeT_NN(obj.referenceMesh,obj.r(i,j),T_NN,pol_deg);
                         case 'Hybrid'
-                            RVE{i,j}.Kcoarse = computeKcoarse_NN(K_NN,obj.r(i,j));
+                            RVE{i,j}.Kcoarse = computeKcoarse_NN(K_NN,obj.r(i,j),8);
                             RVE{i,j}.U       = computeT_Hybrid(basis,obj.r(i,j),Q_NN,pol_deg);
                     end
                 end

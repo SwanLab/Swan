@@ -59,12 +59,26 @@ classdef Coarse < handle
             obj.Kel = [];
             obj.U = [];
 
-            for i=1:size(obj.RVE,1)
-                for j=1:size(obj.RVE,2)
-                    obj.Kel = cat(3, obj.Kel, obj.RVE{i,j}.Kcoarse);
-                    obj.U   = cat(3, obj.U, obj.RVE{i,j}.U);
-                end
+            switch obj.mesh.ndim
+                case 2
+                    for i=1:size(obj.RVE,1)
+                        for j=1:size(obj.RVE,2)
+                            obj.Kel = cat(3, obj.Kel, obj.RVE{i,j}.Kcoarse);
+                            obj.U   = cat(3, obj.U, obj.RVE{i,j}.U);
+                        end
+                    end
+                case 3
+                    for i=1:size(obj.RVE,1)
+                        for j=1:size(obj.RVE,2)
+                            for k=1:size(obj.RVE,3)
+                                obj.Kel = cat(3, obj.Kel, obj.RVE{i,j,k}.Kcoarse);
+                                obj.U   = cat(3, obj.U, obj.RVE{i,j,k}.U);
+                            end
+                        end
+                    end
             end
+
+
             
             obj.dispFun = LagrangianFunction.create(obj.mesh,obj.RVE{1,1}.ndimf,'P1');            
         end
@@ -185,13 +199,26 @@ classdef Coarse < handle
            %--------------------------------------------
            Fcoarse = [];
            a = 1;
-           for i = 1:size(obj.RVE,1)
-                for j = 1:size(obj.RVE,2)
-                    Fcoarse = cat(3, Fcoarse, obj.U(:,:,a)'*Ffine(:,a));
-                    a = a+1;
-                end
-
+           switch obj.mesh.ndim
+               case 2
+                   for i = 1:size(obj.RVE,1)
+                       for j = 1:size(obj.RVE,2)
+                           Fcoarse = cat(3, Fcoarse, obj.U(:,:,a)'*Ffine(:,a));
+                           a = a+1;
+                       end
+                   end
+               case 3
+                   for i = 1:size(obj.RVE,1)
+                       for j = 1:size(obj.RVE,2)
+                           for k=1:size(obj.RVE,3)
+                               Fcoarse = cat(3, Fcoarse, obj.U(:,:,a)'*Ffine(:,a));
+                               a = a+1;
+                           end
+                       end
+                   end
            end
+
+
             %Ut      = obj.U';
             %Fcoarse = Ut*Ffine;
         end
@@ -205,13 +232,28 @@ classdef Coarse < handle
             % end
             
             ielem = 1;
-            for i = 1:size(obj.RVE,1)
-                for j = 1:size(obj.RVE,2)
-                    uCelem = uCoarse(dofConec(ielem,:));
-                    u(:,ielem) =  obj.RVE{i,j}.U*uCelem;
-                    ielem = ielem+1;
-                end
+
+            switch obj.mesh.ndim
+                case 2
+                    for i = 1:size(obj.RVE,1)
+                        for j = 1:size(obj.RVE,2)
+                            uCelem = uCoarse(dofConec(ielem,:));
+                            u(:,ielem) =  obj.RVE{i,j}.U*uCelem;
+                            ielem = ielem+1;
+                        end
+                    end
+                case 3
+                    for i = 1:size(obj.RVE,1)
+                        for j = 1:size(obj.RVE,2)
+                            for k=1:size(obj.RVE,3)
+                            uCelem = uCoarse(dofConec(ielem,:));
+                            u(:,ielem) =  obj.RVE{i,j,k}.U*uCelem;
+                            ielem = ielem+1;
+                            end
+                        end
+                    end
             end
+
         end
 
          function plotSolution(obj,x,mesh,row,col,iter,flag)
