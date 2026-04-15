@@ -22,6 +22,8 @@ classdef MaterialOriented < Material
             s.mesh = obj.mesh;
             s.ndimf = 16;
             C = DomainFunction(s);
+
+            C.evaluate([0;0])
         end
 
         function dC = obtainTensorDerivative(obj,phi)

@@ -4,8 +4,7 @@ classdef DamageHomogenizationFitter < handle
 
         function [fun,dfun,ddfun] = computePolynomial(degPoly,phi,C)
             obj = DamageHomogenizationFitter();
-            initDeriv = obj.computeInitialDerivative();
-            fun = obj.computeFitting(degPoly,phi,C,-1e-10);
+            fun = obj.computeFitting(degPoly,phi,C);
             [dfun,ddfun] = obj.computeDerivative(fun);
             [fun,dfun,ddfun] = obj.convertToHandle(fun,dfun,ddfun);
         end
@@ -19,7 +18,7 @@ classdef DamageHomogenizationFitter < handle
             initDeriv = -2*cw*(Gc/l0)*E*(1/sigCrit)^2;
         end
 
-        function fun = computeFitting(~,degPoly,phi,C,initDeriv)
+        function fun = computeFitting(~,degPoly,phi,C)
             syms x
             phi = reshape(phi,length(phi),[]);
 
@@ -29,14 +28,17 @@ classdef DamageHomogenizationFitter < handle
                 for j=1:nStre
                     for k=1:nStre
                         for l=1:nStre
-                            fixedPointX = [0,1];
-                            fixedPointY = [squeeze(C(i,j,k,l,1)),0];
-                            %fixedDerivX = 0;
-                            %fixedDerivY = initDeriv;
-                            coeffs = polyfix(phi,squeeze(C(i,j,k,l,:)),degPoly,fixedPointX,fixedPointY);
-                            fun{i,j,k,l} = poly2sym(coeffs);
-                            if isempty(symvar(fun{i,j,k,l}))
+                            if  (i==1 && j==1 && k~=l) || (i==2 && j==2 && k~=l) || (i~=j && k==l)
                                 fun{i,j,k,l} = 1e-20.*x.^9;
+                            else
+                                fixedPointX = [0,1];
+                                if i==1 && j==1 && k==1 && l==1
+                                    fixedPointY = [squeeze(C(i,j,k,l,1)),squeeze(C(i,j,k,l,end))];
+                                else
+                                    fixedPointY = [squeeze(C(i,j,k,l,1)),0];
+                                end
+                                coeffs = polyfix(phi,squeeze(C(i,j,k,l,:)),degPoly,fixedPointX,fixedPointY);
+                                fun{i,j,k,l} = poly2sym(coeffs);
                             end
                         end
                     end

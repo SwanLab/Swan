@@ -68,6 +68,8 @@ classdef BoundaryConditionsCreator < handle
                     obj.createBoundaryConditions = @obj.createThreePointBendingConditions;
                 case 'ForceCompressionZ'
                     obj.createBoundaryConditions = @obj.createForceTractionZConditions;
+                case 'DisplacementPureShear'
+                    obj.createBoundaryConditions = @obj.createDisplacementPureShearCondition;
                 case 'DisplacementShear'
                     obj.createBoundaryConditions = @obj.createDisplacementShearConditions;
                 case 'DisplacementMixed'
@@ -343,6 +345,39 @@ classdef BoundaryConditionsCreator < handle
             s.dirichletFun = Dir1;
             s.pointloadFun = Neum1;
             s.periodicFun  = [];
+            obj.boundaryConditions = BoundaryConditions(s);
+        end
+
+        function createDisplacementPureShearCondition(obj,uVal)
+            isInDown  = @(coor) (abs(coor(:,2) - min(coor(:,2)))  < 1e-12);
+            isInUp    = @(coor) (abs(coor(:,2) - max(coor(:,2)))  < 1e-12);
+            isInLeft  = @(coor) (abs(coor(:,1) - min(coor(:,1)))  < 1e-12);
+            isInRight = @(coor) (abs(coor(:,1) - max(coor(:,1)))  < 1e-12);
+
+            sDir.domain    = @(coor) isInDown(coor);
+            sDir.direction = 1;
+            sDir.value     = 0;
+            Dir1 = DirichletCondition(obj.mesh,sDir);
+
+            sDir.domain    = @(coor) isInLeft(coor);
+            sDir.direction = 2;
+            sDir.value     = 0;
+            Dir2 = DirichletCondition(obj.mesh,sDir);
+
+            sDir.domain    = @(coor) isInUp(coor);
+            sDir.direction = 1;
+            sDir.value     = uVal;
+            Dir3 = DirichletCondition(obj.mesh,sDir);
+
+            sDir.domain    = @(coor) isInRight(coor);
+            sDir.direction = 2;
+            sDir.value     = uVal;
+            Dir4 = DirichletCondition(obj.mesh,sDir);
+
+            s.mesh = obj.mesh;
+            s.dirichletFun = [Dir1 Dir2 Dir3 Dir4];
+            s.pointloadFun = [];
+            s.periodicFun = [];
             obj.boundaryConditions = BoundaryConditions(s);
         end
 

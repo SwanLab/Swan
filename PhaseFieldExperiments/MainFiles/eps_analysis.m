@@ -11,7 +11,7 @@ gWu = ((1-x)^2)./(((1-x)^2)+3*x*(1-0.5*x));
 gRat = (1-x)/((1-x)+1.5*x);
 
 load('HorizontalCrack.mat')
-gHomog = degradation.fun{1,1,1,1}(x);
+gHomog = degradation.fun{2,2,2,2}(x);
 
 figure(100)
 % epsAT1 = sqrt(2*5e-3/((8/3)*0.1*C11))*sqrt(-diff(wAT1)/diff(gAT));
@@ -33,7 +33,7 @@ figure(101)
 sigHomog =  sqrt(-gHomog*gHomog*diff(wAT1)/diff(gHomog));
 fplot(sigHomog,[0 1]);
 
-%% Computation 2D
+%% Computation 2D (Isotropic materials)
 syms x 
 [dataHomog]  = load('HorizontalCrack.mat');
 C11Homog = dataHomog.degradation.fun{1,1,1,1}(x);
@@ -62,5 +62,7 @@ hold on
 fplot(CPrime1DHomog,[0 1])
 legend('Homog')
 title('Degradation derivative equivalent to 1D')
+
+%% Computation 2D (Anisotropic materials)
 
 
