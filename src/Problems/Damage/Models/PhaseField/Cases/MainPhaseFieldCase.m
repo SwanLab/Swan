@@ -20,7 +20,7 @@ s.maxIter.stag = 300;
 
 s.benchmark.mesh.type   = '1Elem';%'SENshear';
 s.benchmark.bc.u.type   = 'DisplacementPureShear';%'DisplacementShear';
-s.benchmark.bc.u.values =  [0:1e-4:0.1];
+s.benchmark.bc.u.values =  [0:1e-3:1];
 s.benchmark.bc.phi.type = 'DamageFree';
 
 s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'

@@ -354,15 +354,15 @@ classdef BoundaryConditionsCreator < handle
             isInLeft  = @(coor) (abs(coor(:,1) - min(coor(:,1)))  < 1e-12);
             isInRight = @(coor) (abs(coor(:,1) - max(coor(:,1)))  < 1e-12);
 
-            sDir.domain    = @(coor) isInDown(coor);
-            sDir.direction = 1;
+            sDir.domain    = @(coor) isInDown(coor) & isInLeft(coor);
+            sDir.direction = [1,2];
             sDir.value     = 0;
             Dir1 = DirichletCondition(obj.mesh,sDir);
 
-            sDir.domain    = @(coor) isInLeft(coor);
-            sDir.direction = 2;
-            sDir.value     = 0;
-            Dir2 = DirichletCondition(obj.mesh,sDir);
+            % sDir.domain    = @(coor) isInLeft(coor);
+            % sDir.direction = 2;
+            % sDir.value     = 0;
+            % Dir2 = DirichletCondition(obj.mesh,sDir);
 
             sDir.domain    = @(coor) isInUp(coor);
             sDir.direction = 1;
@@ -375,7 +375,7 @@ classdef BoundaryConditionsCreator < handle
             Dir4 = DirichletCondition(obj.mesh,sDir);
 
             s.mesh = obj.mesh;
-            s.dirichletFun = [Dir1 Dir2 Dir3 Dir4];
+            s.dirichletFun = [Dir1 Dir3 Dir4];
             s.pointloadFun = [];
             s.periodicFun = [];
             obj.boundaryConditions = BoundaryConditions(s);
