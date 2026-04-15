@@ -245,7 +245,7 @@ classdef LevelSetGripper4x4Thick < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 2500;
+            s.maxIter        = 3000;
             s.tolerance      = 1e-8;
             s.constraintCase = [{'EQUALITY'},repmat({'INEQUALITY'},[1,16])];
             s.etaNorm        = 0.01;
