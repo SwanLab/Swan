@@ -67,8 +67,8 @@ classdef CoarseTesting_3D< handle
             tic
             LHSf   = @(x) LHS*x;
             RHSf   = RHS;
-            Usol   = LHS\RHS;
-            Ufull  = obj.bcApplier.reducedToFullVectorDirichlet(Usol); 
+            % Usol   = LHS\RHS;
+            % Ufull  = obj.bcApplier.reducedToFullVectorDirichlet(Usol); 
             t_direct=toc
 
             % PRECONDITIONERS
@@ -85,7 +85,7 @@ classdef CoarseTesting_3D< handle
 
             tol = 1e-8;
             x0  = zeros(size(RHSf));
-
+            % 
             % tic %SOLVE THE CASE WITH STANDARD CG
             % [~,obj.residualCG,errCG, errCG] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
             % t_CG=toc
@@ -93,7 +93,8 @@ classdef CoarseTesting_3D< handle
             % [~,obj.residualILU,errILU, errAnormILU] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
             % t_ILU=toc
             tic %SOLVE THE CASE WITH PRECONDITIONING ILU+EIFEM+ILU
-            [uPCG,obj.residualPCG,obj.errPCG,obj.errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
+            % [uPCG,obj.residualPCG,obj.errPCG,obj.errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
+            [uPCG,obj.residualPCG,obj.errPCG,obj.errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol);
             t_PCG=toc
             xFull = obj.bcApplier.reducedToFullVectorDirichlet(uPCG);
             
@@ -182,11 +183,11 @@ classdef CoarseTesting_3D< handle
     methods (Access = private)
 
         function init(obj,cParams)
-            p.Training      = cParams.Training;    % 'EIFEM'/'Multiscale'
-            p.Sampling      = cParams.Sampling;    % 'Isolated'/'Oversampling'
+            p.Training      = cParams.Training;    % 'EIFEM'/'Multiscale'/'EIFisol'
             p.Inclusion     = cParams.Inclusion;   % 'Hole'/'Material'/'HoleRaul'   --> Hole: just for constant r
             p.Option        = cParams.Option;      % 'Dataset'/'NN'/'Direct'
             p.nelem         = cParams.nelem;       %  Mesh refining
+            p.Geometry      = 'Sphere';            % 'Sphere'/'Cube'
             obj.params      = p;
             obj.r           = cParams.r;
             [Ny,Nx,Nz] = size(obj.r);
@@ -234,7 +235,7 @@ classdef CoarseTesting_3D< handle
             obj.zmin = minC(3);
             obj.zmax = maxC(3);
 
-            delta=1E-8;
+            delta=1E-9;
 
             s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
                 s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
@@ -617,9 +618,9 @@ classdef CoarseTesting_3D< handle
                     nameFile=obj.computeNameFile();
                     obj.loadDataset(nameFile);
                 case 'NN'
-                    filePath = fullfile("AbrilTFGfiles","Data/Sphere/",p.Training,"K_NN.mat");
+                    filePath = fullfile("AbrilTFGfiles","Data",p.Geometry,p.Training,"K_NN.mat");
                     load(filePath,"K_NN");
-                    filePath = fullfile("AbrilTFGfiles","Data/Sphere/",p.Training,"T_NN.mat");
+                    filePath = fullfile("AbrilTFGfiles","Data",p.Geometry,p.Training,"T_NN.mat");
                     load(filePath,"T_NN","pol_deg");
             end
 
@@ -696,7 +697,7 @@ classdef CoarseTesting_3D< handle
             for i=1:Nx
                 for j=1:Ny
                     for k=1:Nz
-                        filePath = fullfile("AbrilTFGfiles","Data/Sphere/",p.Training,meshName,name(i,j,k));
+                        filePath = fullfile("AbrilTFGfiles","Data",p.Geometry,p.Training,meshName,name(i,j,k));
                         load(filePath,"T","Kcoarse");
                         Taux{i,j,k}=T;
                         Kaux{i,j,k}=Kcoarse;

@@ -9,11 +9,12 @@ clc; clear; close all;
 %% INPUTS
 
 % r=1e-6:0.05:0.95;
-r=0.4;
+r= 0.2:0.05:0.65;
+% r=0.4;
 
-p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale', ('EIFisol')
-p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
-p.nelem      = 8;
+p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale', ('EIFisol')
+p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
+p.nelem      = 15;
 meshName     = p.nelem+"x"+p.nelem;
 
 %% DATA GENERATION
@@ -35,6 +36,7 @@ for j = 1:size(r,2)
                 e  = ElasticHarmonicExtension(s);
                 [T,lambda,K,Kcoarse] = e.solve();
                 V  = Integrator.compute(mT.designVariable.fun,mR,2);
+                % V  = Integrator.compute(mT.designVariable.fun,mR,2);
     
             case 'EIFEM'
                 [nS,dI]      = defineNumberOfSubdomains(p.Sampling);
@@ -86,6 +88,7 @@ for j = 1:size(r,2)
     
         % Guarda el .mat per cert radi
         FileName=fullfile('AbrilTFGfiles','Data',"Sphere",p.Training,meshName,string);
+        % FileName=fullfile('AbrilTFGfiles','Data',"Sphere",'EIFisol/',meshName,string);
     
         switch p.Training
             case 'Multiscale'
@@ -178,7 +181,7 @@ function mS = createReferenceMesh(p)
     % isEdgeOrCorner = numBoundaries > 2;
     % s.coord(isEdgeOrCorner,:) = s.coord(isEdgeOrCorner,:) + dispVec(isEdgeOrCorner,:);
 
-    delta=1E-1;
+    delta=1E-9;
     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
         s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[delta,0,0];
 

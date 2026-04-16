@@ -10,11 +10,11 @@ s.Training  = [];                 % 'EIFEM'/'Multiscale'
 s.Inclusion = 'Material';         % 'Hole'/'Material'/'HoleRaul'   --> Hole: just for constant r
 s.Sampling  = [];                 % 'Isolated'/'Oversampling'
 s.Option    = 'Dataset';          % 'Dataset'/'NN'/'HO'/ 'Hybrid'
-s.nelem     =  20;                %  Mesh refining
+s.nelem     =  10;                %  Mesh refining
 s.Print     = false;
 
 % UNIFORM DISTRIBUTION
-s.r = ones(10,45)*0.8;
+s.r = ones(3,10)*0.3;
 
 %NON-UNIFORM DISTRIBUTION
 % s.r= [ 0.25, 0.40, 0.55, 0.20, 0.45, 0.60, 0.35, 0.25, 0.50, 0.30;
@@ -41,14 +41,14 @@ EIFE_IS.compute();
 
 
 % EIFEM OVERSAMPLING
-s.Training  = 'EIFEM';
+s.Training  = 'EIFEM';  
 s.Sampling  = 'Oversampling';
 EIFE_OV= CoarseTesting_2D(s);
 EIFE_OV.compute();
 
 
 % COMPARE PLOTS
-pos= [545   315   914   498];
+pos= [545   315   673   498];
 % RESIDUAL
 figure
 set(gcf, 'Position', pos) 
@@ -77,21 +77,21 @@ legend({'CG', 'ILU', 'ILU-Multiscale-ILU','ILU-EIFEM(Isolated)-ILU','ILU-EIFEM(O
 % case parameters
 s.Training  = [];                 % 'EIFEM'/'Multiscale'/'EIFisol'
 s.Option    = 'Dataset';          % 'Dataset'/'NN'
-s.nelem     =  50;                %  Mesh refining
+s.nelem     =  30;                %  Mesh refining
 
 % UNIFORM DISTRIBUTION
-% s.tFrame = ones(6,40)*0.25;
-% s.tCross = ones(6,40)*0.4;
+s.tFrame = ones(3,10)*0.25;
+s.tCross = ones(3,10)*0.4;
 
 
 %NON-UNIFORM DISTRIBUTION
-s.tFrame= [0.15, 0.30, 0.45, 0.10, 0.25, 0.40, 0.35, 0.20, 0.15, 0.45;
-           0.40, 0.10, 0.25, 0.35, 0.15, 0.45, 0.20, 0.30, 0.40, 0.10;
-           0.25, 0.45, 0.15, 0.20, 0.40, 0.30, 0.10, 0.35, 0.25, 0.35];
-
-s.tCross=[0.10, 0.45, 0.60, 0.25, 0.35, 0.50, 0.15, 0.40, 0.20, 0.55;
-          0.50, 0.20, 0.30, 0.60, 0.10, 0.45, 0.55, 0.15, 0.35, 0.25;
-          0.35, 0.55, 0.15, 0.40, 0.60, 0.20, 0.45, 0.30, 0.50, 0.10];
+% s.tFrame= [0.15, 0.30, 0.45, 0.10, 0.25, 0.40, 0.35, 0.20, 0.15, 0.45;
+%            0.40, 0.10, 0.25, 0.35, 0.15, 0.45, 0.20, 0.30, 0.40, 0.10;
+%            0.25, 0.45, 0.15, 0.20, 0.40, 0.30, 0.10, 0.35, 0.25, 0.35];
+% 
+% s.tCross=[0.10, 0.45, 0.60, 0.25, 0.35, 0.50, 0.15, 0.40, 0.20, 0.55;
+%           0.50, 0.20, 0.30, 0.60, 0.10, 0.45, 0.55, 0.15, 0.35, 0.25;
+%           0.35, 0.55, 0.15, 0.40, 0.60, 0.20, 0.45, 0.30, 0.50, 0.10];
 
 % MULTISCALE ISOLATED
 s.Training  = 'Multiscale';
@@ -120,7 +120,7 @@ EIFE_OV.compute();
 
 
 % COMPARE PLOTS
-pos= [545   315   914   498];
+pos= [545   315   673   498];
 
 % RESIDUAL
 figure
@@ -147,21 +147,20 @@ legend({'CG', 'ILU', 'ILU-Multiscale-ILU','ILU-Multiscale with NN-ILU','ILU-EIFE
 
 %% 3D CASE - SPHERE
 
-pos= [545   315   914   498];
+pos= [545   315   673   498];
 % case parameters
-s.Training  = 'Multiscale';                 % 'EIFEM'/'Multiscale'/'EIFisol'
-s.Sampling  = 'Isolated';          % 'Isolated'/'Oversampling'
+s.Training  = 'Multiscale';       % 'EIFEM'/'Multiscale'/'EIFisol'
 s.Inclusion = 'Material';         % 'Hole'/'Material'/  --> Hole: just for imported meshes or constant geometry
 s.Option    = 'Dataset';          % % 'Dataset'/'NN'/'Direct
 s.fileNameEIFEM = [];
 s.nelem     =  15;                %  Mesh refining
 
 % UNIFORM DISTRIBUTION
-% s.r = ones(1,10,1)*0.4;
+% s.r = ones(2,6,2)*0.4;
 % s.fileNameEIFEM = 'Sphere_r04_Mult.mat';
 
 % NON UNIFORM DISTRIBUTION
-s.r= zeros(2,6,2);
+% s.r= zeros(2,6,2);
 s.r(:,:,1) = [
     0.25, 0.45, 0.60, 0.35, 0.20, 0.55;
     0.50, 0.30, 0.25, 0.65, 0.40, 0.35
@@ -171,7 +170,6 @@ s.r(:,:,2) = [
     0.60, 0.20, 0.45, 0.55, 0.30, 0.65;
     0.35, 0.50, 0.25, 0.40, 0.60, 0.25
 ];
-
 
 
 % Multiscale
@@ -185,15 +183,13 @@ Sph_NN.compute();
 
 % EIFEM Isolated
 s.Option    = 'Dataset';  
-s.Training  = 'EIFEM';
-s.Sampling  = 'Isolated';  
+s.Training  = 'EIFisol';
 Sph_Iso= CoarseTesting_3D(s);
 Sph_Iso.compute();
 
 
 % EIFEM Oversampling
 s.Training  = 'EIFEM';
-s.Sampling  = 'Oversampling';  
 Sph_Over= CoarseTesting_3D(s);
 Sph_Over.compute();
 
@@ -230,7 +226,8 @@ s.Sampling  = [];           % 'Isolated'/'Oversampling'
 s.Inclusion = 'Hole';       % 'Hole'/'Material'/  --> Hole: just for imported meshes or constant geometry
 s.Option    = 'Direct';     % 'Dataset'/'NN'/'Direct
 s.r         = [];
-s.nelem     =[];            %  Mesh refining
+s.nelem     = [];            %  Mesh refining
+s.Geometry  = 'Sphere';
 
 % s.fileNameEIFEM = 'Airfoil_Isolated.mat';
 % Air_Iso= CoarseTesting_3D(s);
@@ -254,7 +251,7 @@ s.fileNameEIFEM = 'DEF_Q8_wing_1.mat';
 Air_ref= CoarseTesting_3D(s);
 Air_ref.compute();
 
-pos= [545   315   914   498];
+pos= [545   315   673   498];
 figure
 set(gcf, 'Position', pos) 
 
