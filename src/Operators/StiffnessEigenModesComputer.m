@@ -74,8 +74,7 @@ classdef StiffnessEigenModesComputer < handle
             s.solver = CGsolver();
             s.boundaryConditions = obj.boundaryConditions;
             s.BCApplier      = obj.createBCApplier();
-            ps    = ProblemSolver(s);  
-            K = ps.full2Reduced(K);
+            K = s.BCApplier.fullToReducedMatrixDirichlet(K);
         end
 
         function bc = createBCApplier(obj)

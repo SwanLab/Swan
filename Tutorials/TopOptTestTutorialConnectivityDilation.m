@@ -1,4 +1,4 @@
-classdef TopOptTestTutorialConnectivity< handle
+classdef TopOptTestTutorialConnectivityDilation< handle
 
     properties (Access = private)
         mesh
@@ -23,7 +23,7 @@ classdef TopOptTestTutorialConnectivity< handle
     end 
 
     methods (Access = public)
-        function obj = TopOptTestTutorialConnectivity()
+        function obj = TopOptTestTutorialConnectivityDilation()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -54,7 +54,7 @@ classdef TopOptTestTutorialConnectivity< handle
         end
 
         function createMesh(obj)
-            obj.mesh = TriangleMesh(2,1,100,50);
+            obj.mesh = TriangleMesh(6,1,180,30);
         end
 
         function createDesignVariable(obj)
@@ -86,12 +86,21 @@ classdef TopOptTestTutorialConnectivity< handle
         end
  
         function createFilterConnectivity(obj)
-            s.filterType = 'LUMP';
+            s.filterType = 'FilterAndProject';
             s.mesh       = obj.mesh;
             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-            f            = Filter.create(s);
-            obj.filterConnect = f;
-            obj.filterAdjointConnect =[];
+            s.filterStep = 'PDE';
+            s.beta       = 4.0;
+            s.eta        = 0.0;
+            obj.filterConnect = Filter.create(s);
+
+            s.filterType = 'FilterAdjointAndProject';   
+            s.mesh       = obj.mesh;
+            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.filterStep = 'PDE';
+            s.beta       = 4.0;
+            s.eta        = 0.0;
+            obj.filterAdjointConnect = Filter.create(s);
         end
 
         function createConductivityInterpolator(obj) 
@@ -211,7 +220,7 @@ classdef TopOptTestTutorialConnectivity< handle
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
             s.shapeFunctions{2} = obj.perimeter;
-            s.weights           = [1.0,0.5]; 
+            s.weights           = [1.0,0.0]; 
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -245,8 +254,8 @@ classdef TopOptTestTutorialConnectivity< handle
             s.constraintCase{2} = 'INEQUALITY';      
             s.primalUpdater     = obj.primalUpdater;
             s.etaNorm           = 0.02; 
-            s.etaNormMin        = 0.02;
-            s.gJFlowRatio       = 0.2; 
+            s.etaNormMin        = 0.001;
+            s.gJFlowRatio       = 2.0; 
             s.etaMax            = 1.0; 
             s.etaMaxMin         = 0.02; 
             s.gif            = true;
@@ -273,13 +282,13 @@ classdef TopOptTestTutorialConnectivity< handle
         function bc = createElasticBoundaryConditions(obj)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
-            isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
-
+            isDir   = @(coor)  abs(coor(:,2))==0.0 & (abs(coor(:,1))>= 0.95*xMax | abs(coor(:,1))<= 0.05*xMax);
+            isForce = @(coor)  (abs(coor(:,2))==yMax & abs(coor(:,1))>=0.45*xMax & abs(coor(:,1))<=0.55*xMax);
+    
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2];
             sDir{1}.value     = 0;
-
+    
             sPL{1}.domain    = @(coor) isForce(coor);
             sPL{1}.direction = 2;
             sPL{1}.value     = -1;
