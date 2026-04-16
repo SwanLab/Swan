@@ -91,7 +91,7 @@ classdef TopOptTestTutorialConnectivityDilation< handle
             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
             s.filterStep = 'PDE';
             s.beta       = 4.0;
-            s.eta        = 0.0;
+            s.eta        = 0.2;
             obj.filterConnect = Filter.create(s);
 
             s.filterType = 'FilterAdjointAndProject';   
@@ -99,7 +99,7 @@ classdef TopOptTestTutorialConnectivityDilation< handle
             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
             s.filterStep = 'PDE';
             s.beta       = 4.0;
-            s.eta        = 0.0;
+            s.eta        = 0.2;
             obj.filterAdjointConnect = Filter.create(s);
         end
 
@@ -211,7 +211,7 @@ classdef TopOptTestTutorialConnectivityDilation< handle
             s.mesh        = obj.mesh;
             s.filter      = obj.filterPerimeter;
             s.epsilon     = obj.mesh.computeMeanCellSize();
-            s.value0      = 6;
+            s.value0      = 14;
             s.uMesh       = obj.createBaseDomain();
             P             = PerimeterFunctional(s);
             obj.perimeter = P;
@@ -220,7 +220,7 @@ classdef TopOptTestTutorialConnectivityDilation< handle
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
             s.shapeFunctions{2} = obj.perimeter;
-            s.weights           = [1.0,0.0]; 
+            s.weights           = [1.0,0.1]; 
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -255,7 +255,7 @@ classdef TopOptTestTutorialConnectivityDilation< handle
             s.primalUpdater     = obj.primalUpdater;
             s.etaNorm           = 0.02; 
             s.etaNormMin        = 0.001;
-            s.gJFlowRatio       = 2.0; 
+            s.gJFlowRatio       = 3.0; 
             s.etaMax            = 1.0; 
             s.etaMaxMin         = 0.02; 
             s.gif            = true;

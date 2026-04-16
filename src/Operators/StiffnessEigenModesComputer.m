@@ -71,7 +71,7 @@ classdef StiffnessEigenModesComputer < handle
         function K = fullToReduced(obj,K)
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solver = CGsolver();
+            s.solver = DirectSolver();
             s.boundaryConditions = obj.boundaryConditions;
             s.BCApplier      = obj.createBCApplier();
             K = s.BCApplier.fullToReducedMatrixDirichlet(K);
