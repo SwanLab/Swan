@@ -148,6 +148,31 @@ mS=uMesh.createInnerMesh();
 mS.print("LatticeMesh","paraview");
 
 
+%% Cube 3D
+
+mesh=TetraMesh(1,1,1,10,10,10);
+
+gPar.type         = 'Cube';
+gPar.length       = 2;
+gPar.xCoorCenter  = 0;
+gPar.yCoorCenter  = 0;
+gPar.height       = 1;
+
+
+g        = GeometricalFunction(gPar);
+phiFun   = g.computeLevelSetFunction(mesh);
+obj.levelSet = phiFun;
+ls       = phiFun.fValues;
+
+sUm.backgroundMesh = mesh;
+sUm.boundaryMesh   = mesh.createBoundaryMesh;
+uMesh              = UnfittedMesh(sUm);
+uMesh.compute(ls);
+uMesh.plot();
+
+mS=uMesh.createInnerMesh();
+mS.print("LatticeMesh","paraview");
+
 %% NACA 3D
 
 lOld= 8;

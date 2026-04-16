@@ -8,19 +8,19 @@ clc; clear; close all;
 
 %% INPUTS
 
-% r=1e-6:0.05:0.95;
-r=0.4;
+% l=1e-6:0.05:0.95;
+l=0:0.1:1.8;
 
 p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale', ('EIFisol')
 p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
-p.nelem      = 8;
+p.nelem      = 15;
 meshName     = p.nelem+"x"+p.nelem;
 
 %% DATA GENERATION
-for j = 1:size(r,2)
-    radius = r(j);
+for j = 1:size(l,2)
+    sideLength = l(j);
         mR              = createReferenceMesh(p);
-        g=computeLevelSet(radius);
+        g=computeLevelSet(sideLength);
         switch p.Training
             case 'Multiscale'
                 p.Sampling = 'Isolated';
@@ -60,12 +60,12 @@ for j = 1:size(r,2)
                 Vfr = V/vT;
         end
     
-        R        = r(j);
+        R        = l(j);
 
         % Initialization for K_all and T_all
         if j==1
-            zeros([size(Kcoarse), length(r)]);
-            T_all=zeros(mesh.nnodes,size(T,2)*mesh.ndim+mesh.ndim+1,length(r));
+            zeros([size(Kcoarse), length(l)]);
+            T_all=zeros(mesh.nnodes,size(T,2)*mesh.ndim+mesh.ndim+1,length(l));
         end
 
         K_all(:,:,j)=Kcoarse;  
@@ -77,15 +77,16 @@ for j = 1:size(r,2)
             t_all = [t_all, t_k];
         end
 
-        t_aux = [r(j)*ones(size(mesh.coord,1),1), mesh.coord, t_all];
+        t_aux = [l(j)*ones(size(mesh.coord,1),1), mesh.coord, t_all];
         T_all(:,:,j)=t_aux;   % Saves the result for each radius
 
         %Designa un nom per cada valor diferent del parametre
         meshName=p.nelem+"x"+p.nelem;
-        string = strrep("r"+num2str(r(j), '%.4f'), ".", "_")+"-"+meshName+".mat";
+        string = strrep("r"+num2str(l(j), '%.4f'), ".", "_")+"-"+meshName+".mat";
     
         % Guarda el .mat per cert radi
-        FileName=fullfile('AbrilTFGfiles','Data',"Sphere",p.Training,meshName,string);
+        % FileName=fullfile('AbrilTFGfiles','Data',"Cube",p.Training,meshName,string);
+        FileName=fullfile('AbrilTFGfiles','Data',"Cube",'EIFisol',meshName,string);
     
         switch p.Training
             case 'Multiscale'
@@ -107,14 +108,14 @@ end
 % T=array2table(TData,"VariableNames",{'r','x','y','Tx1','Ty1','Tx2','Ty2','Tx3','Ty3','Tx4','Ty4' ...
 %     'Tx5','Ty5','Tx6','Ty6','Tx7','Ty7','Tx8','Ty8'});
 
-uFileName=fullfile('AbrilTFGfiles','Data',"Sphere",p.Training,'DataT.csv');
+uFileName=fullfile('AbrilTFGfiles','Data',"Cube",p.Training,'DataT.csv');
 writematrix(TData,uFileName);
 
 
 %% Reshapes the K data and saves it in a csv file
 
-kdata=zeros(size(r,2),300);
-for n=1:size(r,2)
+kdata=zeros(size(l,2),300);
+for n=1:size(l,2)
     triangSup=triu(K_all(:,:,n));  %gets the triangular superior matrix
     clear row;
     row=[];
@@ -126,8 +127,8 @@ for n=1:size(r,2)
     kdata(n,:)=row;
 end
 
-kdata=[r.',kdata];
-kFileName=fullfile('AbrilTFGfiles','Data',"Sphere",p.Training,'dataK.csv');
+kdata=[l.',kdata];
+kFileName=fullfile('AbrilTFGfiles','Data',"Cube",p.Training,'dataK.csv');
 writematrix(kdata,kFileName);
 
 
@@ -178,7 +179,7 @@ function mS = createReferenceMesh(p)
     % isEdgeOrCorner = numBoundaries > 2;
     % s.coord(isEdgeOrCorner,:) = s.coord(isEdgeOrCorner,:) + dispVec(isEdgeOrCorner,:);
 
-    delta=1E-1;
+    delta=1E-9;
     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
         s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[delta,0,0];
 
@@ -238,13 +239,13 @@ function [nS,dI] = defineNumberOfSubdomains(type)
     end
 end
 
-function g=computeLevelSet(r)
-    gPar.type         = 'Sphere';
-    gPar.radius       = r;
+function g=computeLevelSet(l)
+    gPar.type         = 'Cube';
+    gPar.length       = 2;
     gPar.xCoorCenter  = 0;
     gPar.yCoorCenter  = 0;
-    gPar.zCoorCenter  = 0;
-    g                 = GeometricalFunction(gPar);
+    gPar.height       = l;
+    g              = GeometricalFunction(gPar);
 end
 
 function [material,m] = createMaterial(mesh,nSubdomains,inclusionType,g)

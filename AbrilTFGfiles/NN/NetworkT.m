@@ -12,19 +12,19 @@ p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
 p.Inclusion  ='Material';    %'Material'/'Hole'/'HoleRaul
 
 %% Initialization of hyperparameters
-pol_deg         = 3;
+pol_deg         = 5;
 testratio       = 30;
 lambda          = 0.0;
-learningRate    = 0.55;
+learningRate    = 0.32;
 % hiddenLayers    = [224 250 280 300 280 250 224 200 150 100 72 50 20];
 % hiddenLayers    = [300 350 400 450 450 400 350 300 200 100 72];
 % hiddenLayers    = [100 150 200 250 200 150 100];
-hiddenLayers    = [40 72 80 100 80 72];
+hiddenLayers    = [40 72 150 72];
 
 %% INITIALIZATION 
 % Store dataset file name
 % s.fileName = fullfile('AbrilTFGfiles',"Data/Circle/",p.Training ,p.Inclusion,p.Sampling,'DataT.csv');
-s.fileName = fullfile('AbrilTFGfiles','Data',"Sphere",p.Training,'DataT.csv');
+s.fileName = fullfile('AbrilTFGfiles','Data',"Cube",p.Training,'DataT.csv');
 
 % Load model parameters
 s.polynomialOrder = pol_deg;
@@ -59,5 +59,5 @@ T_NN.solve();
 T_NN.plotCostFnc();
     
 % FileName=fullfile('AbrilTFGfiles',"Data/Circle/",p.Training,p.Inclusion,p.Sampling,"T_NN2.mat");
-FileName=fullfile('AbrilTFGfiles',"Data",'Sphere',p.Training,"T_NN.mat");
+FileName=fullfile('AbrilTFGfiles',"Data",'Cube',p.Training,"T_NN.mat");
     save(FileName, "T_NN","pol_deg");

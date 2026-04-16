@@ -3,23 +3,24 @@ clear;
 close all;
 
 %% Case parameters
-p.Training  = 'Multiscale';        % 'EIFEM'/'Multiscale'
+p.Training  = 'Multiscale';  % 'EIFEM'/'Multiscale'
 p.Inclusion  ='Material';    %'Material'/'Hole'/'HoleRaul
-p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
+p.Sampling   ='Isolated';    %'Isolated'/'Oversampling'
 
 %% Initialization of hyperparameters
 pol_deg         = 1;
 testratio       = 30;
 lambda          = 0.0;
 learningRate    = 0.5;
-hiddenLayers    = [10 20 40 80 40];
-% hiddenLayers    = [24 30 40 80 100 80 40];
+% hiddenLayers    = [10 20 40 80 40];
+hiddenLayers    = [300 350 300];
 
 %% INITIALIZATION 
 % Store dataset file name
-s.fileName = fullfile('AbrilTFGfiles',"Data/Circle/",p.Training,p.Inclusion,p.Sampling,'DataK.csv');
+% s.fileName = fullfile('AbrilTFGfiles',"Data/Circle/",p.Training,p.Inclusion,p.Sampling,'DataK.csv');
 % s.fileName = fullfile('AbrilTFGfiles','Data',"Sphere",p.Training,'dataK.csv');
 % s.fileName = fullfile('AbrilTFGfiles',"Data",p.Training ,'Lattice','DataK.csv');
+s.fileName = fullfile('AbrilTFGfiles',"Data/Cube/",p.Training,'DataK.csv');
 
 % Load model parameters
 s.polynomialOrder = pol_deg;
@@ -35,7 +36,7 @@ s.networkParams.OUtype = 'linear';
 
 % Select the model's features
 s.xFeatures = [1];
-s.yFeatures = [2:1:37];
+s.yFeatures = [2:1:301];
 cHomogIdxs = [11, 12, 22, 33];
 
 % Load data
@@ -52,7 +53,7 @@ MSETrain    = immse(K_NN.computeOutputValues(data.Xtrain), data.Ytrain);
 string ="K_NN.mat";
 % FileName = fullfile('AbrilTFGfiles','Data',"Sphere",p.Training,string);
 
-FileName=fullfile('AbrilTFGfiles',"Data/Circle/",p.Training,p.Inclusion,p.Sampling,string);
+FileName=fullfile('AbrilTFGfiles',"Data/Cube",p.Training,string);
     save(FileName, "K_NN","pol_deg");
 
 % FileName=fullfile('AbrilTFGfiles',"Data",p.Training,'Lattice',"K_NN.mat");
