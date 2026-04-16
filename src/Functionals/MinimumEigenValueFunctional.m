@@ -5,13 +5,11 @@ classdef MinimumEigenValueFunctional < handle
     end
        
     properties (Access = private)
-       density
        eigModes 
        designVariable
        mesh
        filter
        filterAdjoint
-       iter
        isCompl
     end
     
@@ -22,30 +20,8 @@ classdef MinimumEigenValueFunctional < handle
         end   
 
         function [f, dfdx] = computeFunctionAndGradient(obj,x) 
-            if size(x,2) > 1
-                iter = x{2};
-                x = x{1};
-            end%            
-%             x = x{1};
-
-            xD  = x.obtainDomainFunction();                  % rho
-            xR = obj.filterDesignVariable(xD{1});            % FP rho
-            
-% 
-%             beta = obj.filter.getBeta();
-%             if iter >= 100 && mod(iter,100)== 0 && beta <= 10
-%                 obj.filter.updateBeta(beta*2.0);
-%                 obj.filterAdjoint.updateBeta(beta*2.0);
-%             end
-% % % 
-%             sD.fun      = xR;
-%             sD.mesh     = obj.mesh;
-%             sD.type     = 'Density';
-%             sD.plotting = true;
-%             dens        = DesignVariable.create(sD);
-%             obj.designVariable = dens;
-%             obj.designVariable.plot()
-
+            xD  = x.obtainDomainFunction();
+            xR = obj.filterDesignVariable(xD{1});
             if obj.isCompl == true
                 xR.setFValues(max(min(1 - xR.fValues,1),0)); % 1 - FP
             end

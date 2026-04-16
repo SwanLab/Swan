@@ -50,13 +50,7 @@ classdef TopOptLevelSetConnectivityCantileverDilation< handle
         end
 
         function createMesh(obj)
-            x1      = linspace(0,2,100);
-            x2      = linspace(0,1,50);
-            [xv,yv] = meshgrid(x1,x2);
-            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            s.coord  = V(:,1:2);
-            s.connec = F;
-            obj.mesh = Mesh.create(s);
+            obj.mesh = TriangleMesh(2,1,100,50);
         end
 
         function createDesignVariable(obj)
@@ -147,7 +141,7 @@ classdef TopOptLevelSetConnectivityCantileverDilation< handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'DIRECT';
+            s.solverCase = CGsolver();
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -231,7 +225,6 @@ classdef TopOptLevelSetConnectivityCantileverDilation< handle
             s.cost             = obj.cost;
             s.constraint       = obj.constraint;
             s.designVariable   = obj.designVariable;
-            s.GIFname           = 'gif';
             s.maxIter           = 1000;
             s.tolerance         = 1e-3;
             s.constraintCase{1} = 'EQUALITY';
@@ -242,6 +235,10 @@ classdef TopOptLevelSetConnectivityCantileverDilation< handle
             s.gJFlowRatio       = 4.0; 
             s.etaMax            = 1.0; 
             s.etaMaxMin         = 0.02; 
+            s.gif            = false;
+            s.gifName        = 'TutorialConnectivity';
+            s.printing       = false;
+            s.printName      = 'TutorialConnectivity';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -310,7 +307,7 @@ classdef TopOptLevelSetConnectivityCantileverDilation< handle
 
             pointloadFun = [];
             for i = 1:numel(sPL)
-                pl = PointLoad(obj.mesh, sPL{i});
+                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
                 pointloadFun = [pointloadFun, pl];
             end
             s.pointloadFun = pointloadFun;

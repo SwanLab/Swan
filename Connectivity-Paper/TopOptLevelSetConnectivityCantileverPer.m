@@ -54,13 +54,7 @@ classdef TopOptLevelSetConnectivityCantileverPer< handle
         end
 
         function createMesh(obj)
-            x1      = linspace(0,2,100);
-            x2      = linspace(0,1,50);
-            [xv,yv] = meshgrid(x1,x2);
-            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            s.coord  = V(:,1:2);
-            s.connec = F;
-            obj.mesh = Mesh.create(s);
+            obj.mesh = TriangleMesh(2,1,100,50);
         end
 
         function createDesignVariable(obj)
@@ -150,7 +144,7 @@ classdef TopOptLevelSetConnectivityCantileverPer< handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'DIRECT';
+            s.solverCase = CGsolver();
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -242,7 +236,6 @@ classdef TopOptLevelSetConnectivityCantileverPer< handle
             s.cost             = obj.cost;
             s.constraint       = obj.constraint;
             s.designVariable   = obj.designVariable;
-            s.GIFname           = 'gif';
             s.maxIter           = 1000;
             s.tolerance         = 1e-3;
             s.constraintCase{1} = 'EQUALITY';
@@ -253,6 +246,10 @@ classdef TopOptLevelSetConnectivityCantileverPer< handle
             s.gJFlowRatio       = 0.2; 
             s.etaMax            = 1.0; 
             s.etaMaxMin         = 0.02; 
+            s.gif            = false;
+            s.gifName        = 'TutorialConnectivity';
+            s.printing       = false;
+            s.printName      = 'TutorialConnectivity';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -271,47 +268,18 @@ classdef TopOptLevelSetConnectivityCantileverPer< handle
         end
 
         function bc = createElasticBoundaryConditions(obj)
-            type = 'cantilever';
-            if isequal(type, 'cantilever')
-                xMax    = max(obj.mesh.coord(:,1));
-                yMax    = max(obj.mesh.coord(:,2));
-                isDir   = @(coor)  abs(coor(:,1))==0;
-                isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
-    
-                sDir{1}.domain    = @(coor) isDir(coor);
-                sDir{1}.direction = [1,2];
-                sDir{1}.value     = 0;
-    
-                sPL{1}.domain    = @(coor) isForce(coor);
-                sPL{1}.direction = 2;
-                sPL{1}.value     = -1;
-            elseif isequal(type, 'bridge')
-                xMax    = max(obj.mesh.coord(:,1));
-                yMax    = max(obj.mesh.coord(:,2));
-                isDir   = @(coor)  abs(coor(:,2))==0.0 & (abs(coor(:,1))>= 0.95*xMax | abs(coor(:,1))<= 0.05*xMax);
-                isForce = @(coor)  (abs(coor(:,2))==yMax & abs(coor(:,1))>=0.45*xMax & abs(coor(:,1))<=0.55*xMax);
-    
-                sDir{1}.domain    = @(coor) isDir(coor);
-                sDir{1}.direction = [1,2];
-                sDir{1}.value     = 0;
-    
-                sPL{1}.domain    = @(coor) isForce(coor);
-                sPL{1}.direction = 2;
-                sPL{1}.value     = -1;
-            elseif isequal(type, 'acantilever')
-                xMax    = max(obj.mesh.coord(:,1));
-                yMax    = max(obj.mesh.coord(:,2));
-                isDir   = @(coor)  abs(coor(:,1))== 0.0;
-                isForce = @(coor)  abs(coor(:,1)) == xMax & abs(coor(:,2))==0.0;
-    
-                sDir{1}.domain    = @(coor) isDir(coor);
-                sDir{1}.direction = [1,2];
-                sDir{1}.value     = 0;
-    
-                sPL{1}.domain    = @(coor) isForce(coor);
-                sPL{1}.direction = 2;
-                sPL{1}.value     = -1;
-            end
+            xMax    = max(obj.mesh.coord(:,1));
+            yMax    = max(obj.mesh.coord(:,2));
+            isDir   = @(coor)  abs(coor(:,1))==0;
+            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
+
+            sDir{1}.domain    = @(coor) isDir(coor);
+            sDir{1}.direction = [1,2];
+            sDir{1}.value     = 0;
+
+            sPL{1}.domain    = @(coor) isForce(coor);
+            sPL{1}.direction = 2;
+            sPL{1}.value     = -1;
             dirichletFun = [];
             for i = 1:numel(sDir)
                 dir = DirichletCondition(obj.mesh, sDir{i});
@@ -321,7 +289,7 @@ classdef TopOptLevelSetConnectivityCantileverPer< handle
 
             pointloadFun = [];
             for i = 1:numel(sPL)
-                pl = PointLoad(obj.mesh, sPL{i});
+                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
                 pointloadFun = [pointloadFun, pl];
             end
             s.pointloadFun = pointloadFun;

@@ -54,13 +54,7 @@ classdef TopOptTestTutorialConnectivity< handle
         end
 
         function createMesh(obj)
-            x1      = linspace(0,2,100);
-            x2      = linspace(0,1,50);
-            [xv,yv] = meshgrid(x1,x2);
-            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            s.coord  = V(:,1:2);
-            s.connec = F;
-            obj.mesh = Mesh.create(s);
+            obj.mesh = TriangleMesh(2,1,100,50);
         end
 
         function createDesignVariable(obj)
@@ -90,7 +84,7 @@ classdef TopOptTestTutorialConnectivity< handle
             f            = Filter.create(s);
             obj.filterPerimeter = f;           
         end
-
+ 
         function createFilterConnectivity(obj)
             s.filterType = 'LUMP';
             s.mesh       = obj.mesh;
@@ -150,7 +144,7 @@ classdef TopOptTestTutorialConnectivity< handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'DIRECT';
+            s.solverCase = CGsolver();
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -205,16 +199,19 @@ classdef TopOptTestTutorialConnectivity< handle
         end
 
         function createPerimeter(obj)
-            s.mesh                        = obj.mesh;
-            s.filter                      = obj.filterPerimeter;
-            p = SimplePerimeterFunctional(s);
-            obj.perimeter = p;
+            s.mesh        = obj.mesh;
+            s.filter      = obj.filterPerimeter;
+            s.epsilon     = obj.mesh.computeMeanCellSize();
+            s.value0      = 6;
+            s.uMesh       = obj.createBaseDomain();
+            P             = PerimeterFunctional(s);
+            obj.perimeter = P;
         end
 
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
             s.shapeFunctions{2} = obj.perimeter;
-            s.weights           = [1.0,10.0]; 
+            s.weights           = [1.0,0.5]; 
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -242,7 +239,6 @@ classdef TopOptTestTutorialConnectivity< handle
             s.cost             = obj.cost;
             s.constraint       = obj.constraint;
             s.designVariable   = obj.designVariable;
-            s.GIFname           = 'gif';
             s.maxIter           = 1000;
             s.tolerance         = 1e-3;
             s.constraintCase{1} = 'EQUALITY';
@@ -253,6 +249,10 @@ classdef TopOptTestTutorialConnectivity< handle
             s.gJFlowRatio       = 0.2; 
             s.etaMax            = 1.0; 
             s.etaMaxMin         = 0.02; 
+            s.gif            = true;
+            s.gifName        = 'TutorialConnectivity';
+            s.printing       = true;
+            s.printName      = 'TutorialConnectivity';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -289,10 +289,10 @@ classdef TopOptTestTutorialConnectivity< handle
                 dirichletFun = [dirichletFun, dir];
             end
             s.dirichletFun = dirichletFun;
-
+            
             pointloadFun = [];
             for i = 1:numel(sPL)
-                pl = PointLoad(obj.mesh, sPL{i});
+                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
                 pointloadFun = [pointloadFun, pl];
             end
             s.pointloadFun = pointloadFun;

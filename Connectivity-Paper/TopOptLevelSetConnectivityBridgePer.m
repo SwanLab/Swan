@@ -4,7 +4,6 @@ classdef TopOptLevelSetConnectivityBridgePer< handle
         mesh
         filterPerimeter
         filterComp
-        filterAdjointComp
         filterConnect
         filterAdjointConnect
         designVariable
@@ -20,19 +19,8 @@ classdef TopOptLevelSetConnectivityBridgePer< handle
         optimizer
         minimumEigenValue
         perimeter
-        gJ
-        lambda1min
-        filterAdjointProj 
-        filterProj
-        complianceProj
         volumeProj
-        eta
-        beta
         primalUpdater
-        eigenvalue
-        c
-        type
-        p
     end 
 
     methods (Access = public)
@@ -50,7 +38,6 @@ classdef TopOptLevelSetConnectivityBridgePer< handle
             obj.createConductivityInterpolator();
             obj.createMassInterpolator();
             obj.createEigenValueConstraint();   
-            obj.createEigenValue()          
             obj.createPerimeter();                  
             obj.createVolumeConstraint();
             obj.createCost();
@@ -68,13 +55,7 @@ classdef TopOptLevelSetConnectivityBridgePer< handle
         end
 
         function createMesh(obj)
-            x1      = linspace(0,6,180);
-            x2      = linspace(0,1,30);
-            [xv,yv] = meshgrid(x1,x2);
-            [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            s.coord  = V(:,1:2);
-            s.connec = F;
-            obj.mesh = Mesh.create(s);
+            obj.mesh = TriangleMesh(6,1,180,30);
         end
 
         function createDesignVariable(obj)
@@ -165,7 +146,7 @@ classdef TopOptLevelSetConnectivityBridgePer< handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'DIRECT';
+            s.solverCase = CGsolver();
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -219,18 +200,6 @@ classdef TopOptLevelSetConnectivityBridgePer< handle
             obj.minimumEigenValue = StiffnessEigenModesConstraint(s);
         end
 
-        function createEigenValue(obj)                           
-            s.mesh              = obj.mesh;
-            s.designVariable    = obj.designVariable;
-            s.filter            = obj.filterConnect; 
-            s.filterAdjoint     = obj.filterAdjointConnect;
-            s.conductivityInterpolator = obj.conductivityInterpolator; 
-            s.massInterpolator         = obj.massInterpolator; 
-            s.boundaryConditions= obj.createEigenvalueBoundaryConditions();
-            s.isCompl           = true;
-            obj.eigenvalue = MaximumEigenValueFunctional(s);
-        end
-
         function createPerimeter(obj)
             s.mesh                        = obj.mesh;
             s.filter                      = obj.filterPerimeter;
@@ -269,7 +238,6 @@ classdef TopOptLevelSetConnectivityBridgePer< handle
             s.cost             = obj.cost;
             s.constraint       = obj.constraint;
             s.designVariable   = obj.designVariable;
-            s.GIFname           = 'gif';
             s.maxIter           = 1000;
             s.tolerance         = 1e-3;
             s.constraintCase{1} = 'EQUALITY';
@@ -280,6 +248,10 @@ classdef TopOptLevelSetConnectivityBridgePer< handle
             s.gJFlowRatio       = 2.0; 
             s.etaMax            = 1.0; 
             s.etaMaxMin         = 0.02; 
+            s.gif            = false;
+            s.gifName        = 'TutorialConnectivity';
+            s.printing       = false;
+            s.printName      = 'TutorialConnectivity';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -318,9 +290,10 @@ classdef TopOptLevelSetConnectivityBridgePer< handle
             end
             s.dirichletFun = dirichletFun;
 
+            s.dirichletFun = dirichletFun;
             pointloadFun = [];
             for i = 1:numel(sPL)
-                pl = PointLoad(obj.mesh, sPL{i});
+                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
                 pointloadFun = [pointloadFun, pl];
             end
             s.pointloadFun = pointloadFun;

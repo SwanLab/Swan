@@ -5,9 +5,6 @@ classdef StiffnessEigenModesConstraint < handle
         eigenModesFunctional
         designVariable
         targetEigenValue
-        filteredDesignVariable
-        iter
-        filter
         value0
     end
     
@@ -20,66 +17,18 @@ classdef StiffnessEigenModesConstraint < handle
             obj.eigenModesFunctional = MinimumEigenValueFunctional(s);
         end
         
-        function [J,dJ] = computeFunctionAndGradient(obj,x)
-            if size(x,2) > 1
-                iter = x{2};
-                x = x{1};
-            end    
-%             if iter > 0 && iter > obj.iter && mod(iter,50)== 0 && obj.targetEigenValue < 2.0
-%                 obj.iter = iter;
-% %                 obj.targetEigenValue = 2.5;
-%                 obj.targetEigenValue = obj.targetEigenValue + 0.1;
-%                 disp(obj.targetEigenValue);
-%             end
-   
+        function [J,dJ] = computeFunctionAndGradient(obj,x)   
             [lambda,dlambda] = obj.eigenModesFunctional.computeFunctionAndGradient(x);
             J      = obj.computeFunction(lambda);
             dJ{1}     = obj.computeGradient(lambda,dlambda);
         end  
-
-        function t = getTargetEigenValue(obj)
-            t = obj.targetEigenValue;
-        end
-
-        function t = getBeta(obj)
-            t = obj.eigenModesFunctional.getBeta();
-        end
-
-        function updateTargetEigenValue(obj, new)
-            obj.targetEigenValue = new;
-        end
-
-        function dV = getDesignVariable(obj)
-            dV = obj.eigenModesFunctional.getDesignVariable();
-        end
-       
-        function dV = getGradient(obj)
-            dV = obj.eigenModesFunctional.getGradient();
-        end
-
-        function dV = getGradientUN(obj)
-            dV = obj.eigenModesFunctional.getGradientUN();
-        end
-
-        function eigenF = getDirichletEigenMode(obj)
-            eigenF = obj.eigenModesFunctional.getDirichletEigenMode();
-        end
-
-        function eigsCell = getEigenModes(obj)
-            eigsCell = obj.eigenModesFunctional.getEigenModes();
-        end
-
-        function lambda1 = getLambda1(obj)
-            lambda1 = obj.eigenModesFunctional.value;
-        end
     end
 
     methods (Access = private)
         function init(obj,cParams)
             obj.mesh              = cParams.mesh;
-            obj.targetEigenValue = cParams.targetEigenValue;
+            obj.targetEigenValue  = cParams.targetEigenValue;
             obj.designVariable    = cParams.designVariable;
-            obj.iter              = 0.0;
         end
 
         function J = computeFunction(obj,lambda)

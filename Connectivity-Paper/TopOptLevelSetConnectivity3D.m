@@ -1,4 +1,4 @@
-classdef TopOptLevelSet3DConnectivity< handle
+classdef TopOptLevelSetConnectivity3D< handle
 
     properties (Access = private)
         mesh
@@ -16,7 +16,6 @@ classdef TopOptLevelSet3DConnectivity< handle
         volume
         cost
         constraint
-        dualVariable
         optimizer
         minimumEigenValue
         gJ
@@ -32,32 +31,25 @@ classdef TopOptLevelSet3DConnectivity< handle
     end  
 
     methods (Access = public)
-        function obj = TopOptLevelSet3DConnectivity()
-            for type = ["cornersSupport"]
-                for lambda1min = [2.0]
-                    obj.lambda1min = lambda1min;
-                    obj.type = convertStringsToChars(type);
-                    obj.init()
-                    obj.createMesh();
-                    obj.createDesignVariable();
-                    obj.createFilter();
-                    obj.createFilterCompliance();
-                    obj.createFilterConnectivity();
-                    obj.createMaterialInterpolator();
-                    obj.createConductivityInterpolator();
-                    obj.createMassInterpolator();
-                    obj.createElasticProblem();
-                    obj.createComplianceFromConstitutive();
-                    obj.createNonDesignableDomain();
-                    obj.createCompliance();
-                    obj.createEigenValueConstraint();                             
-                    obj.createVolumeConstraint();
-                    obj.createCost();
-                    obj.createConstraint();
-                    obj.createPrimalUpdater();
-                    obj.createOptimizer();
-                end
-            end
+        function obj = TopOptLevelSetConnectivity3D()
+            obj.init()
+            obj.createMesh();
+            obj.createDesignVariable();
+            obj.createFilter();
+            obj.createFilterCompliance();
+            obj.createFilterConnectivity();
+            obj.createMaterialInterpolator();
+            obj.createConductivityInterpolator();
+            obj.createMassInterpolator();
+            obj.createElasticProblem();
+            obj.createComplianceFromConstitutive();
+            obj.createCompliance();
+            obj.createEigenValueConstraint();                             
+            obj.createVolumeConstraint();
+            obj.createCost();
+            obj.createConstraint();
+            obj.createPrimalUpdater();
+            obj.createOptimizer();
         end
 
     end
@@ -68,17 +60,14 @@ classdef TopOptLevelSet3DConnectivity< handle
             close all;
         end
 
-        function createMesh(obj)
+        function createMesh(obj) 
+            obj.type = 'cornersSupport'
             if isequal(obj.type, 'cornersSupport') 
                 obj.mesh = HexaMesh(1,1,1,30,30,30);
-%                 obj.mesh = HexaMesh(1,1,1,15,15,15);
             elseif isequal(obj.type,'centralSupport')
-%                 obj.mesh = HexaMesh(4,4,3,32,32,24);
-%                 obj.mesh = HexaMesh(1,1,0.75,30,30,24);
-%                 obj.mesh = HexaMesh(1,1,0.75,40,40,30);
+                obj.mesh = HexaMesh(1,1,0.75,30,30,24);
             elseif isequal(obj.type, 'torqueBeam')
-%                 obj.mesh = HexaMesh(3,1,1,90,30,30);
-                obj.mesh = HexaMesh(3,1,1,30,10,10);
+                obj.mesh = HexaMesh(3,1,1,90,30,30);
             elseif isequal(obj.type, 'bridge')
                 obj.mesh = HexaMesh(1,1,1,30,30,30);
             end
@@ -89,16 +78,25 @@ classdef TopOptLevelSet3DConnectivity< handle
             g      = GeometricalFunction(s);
             lsFun  = g.computeLevelSetFunction(obj.mesh);
             s.fun  = lsFun;
-%             s.fun.setFValues(importdata('1e-35lambda1min2gJ1cornersSupport.txt'))
-%             s.fun.setFValues(importdata('1e-35lambda1min2gJ1centralSupport.txt'))
-%             s.fun.setFValues(importdata('1e-35lambda1min2gJ1bridge.txt'))
-%             s.fun.setFValues(importdata('1e-35lambda1min2gJ1torqueBeam.txt'))
             s.mesh = obj.mesh;
             s.type = 'LevelSet';
             s.plotting = true;
-            s.isFixed.nodes = obj.createNonDesignableDomain();
+            if isequal(obj.type, 'centralSupport')
+                s.isFixed = obj.computeFixedVolumeDomain(@(x) x(:,3) >= (1.0 - 3*obj.mesh.computeMeanCellSize()));
+            elseif isequal(obj.type, 'bridge') 
+                s.isFixed = obj.computeFixedVolumeDomain(@(x) x(:,3) >= (1.0 - 2*obj.mesh.computeMeanCellSize()));
+            elseif isequal(obj.type, 'torqueBeam')
+                s.isFixed = obj.computeFixedVolumeDomain(@(x) ((x(:,1) >= 3.0 - 2*obj.mesh.computeMeanCellSize()) | (x(:,1) <= (2*obj.mesh.computeMeanCellSize()))));
+            elseif isequal(obj.type, 'cornersSupport') 
+                s.isFixed = obj.computeFixedVolumeDomain(@(x) x(:,3) <= (1.0 - 1*obj.mesh.computeMeanCellSize()));
+            end
             ls     = DesignVariable.create(s);
             obj.designVariable = ls;
+        end
+
+        function isFixed = computeFixedVolumeDomain(obj,cond)
+            coor    = obj.mesh.coord;
+            isFixed = find(cond(coor));
         end
 
         function createFilter(obj)
@@ -138,7 +136,6 @@ classdef TopOptLevelSet3DConnectivity< handle
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
-%             s.typeOfMaterial = 'ISOTROPIC';
             s.interpolation  = 'SIMPALL';
             s.dim            = '3D';
             s.matA = matA;
@@ -176,8 +173,7 @@ classdef TopOptLevelSet3DConnectivity< handle
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solverCase = 'CG';
-%             s.solverCase = 'DIRECT';
+            s.solverCase = CGsolver();
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
         end
@@ -213,13 +209,7 @@ classdef TopOptLevelSet3DConnectivity< handle
             s.mesh   = obj.mesh;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
             s.uMesh = obj.createBaseDomain();
-            if isequal(obj.type, 'bridge')
-                s.volumeTarget = 0.4;
-%             elseif isequal(obj.type, 'torqueBeam')
-%                 s.volumeTarget = 0.25;
-            else
-                s.volumeTarget = 0.3;
-            end
+            s.volumeTarget = 0.3;
             v = VolumeConstraint(s);
             obj.volume = v;
         end
@@ -232,7 +222,7 @@ classdef TopOptLevelSet3DConnectivity< handle
             s.boundaryConditions = obj.createEigenvalueBoundaryConditions();
             s.conductivityInterpolator = obj.conductivityInterpolator; 
             s.massInterpolator         = obj.massInterpolator; 
-            s.targetEigenValue  = obj.lambda1min;    
+            s.targetEigenValue  = 2.0;    
             s.isCompl           = true;
             s.dim               = '3D';
             obj.minimumEigenValue = StiffnessEigenModesConstraint(s);
@@ -258,29 +248,18 @@ classdef TopOptLevelSet3DConnectivity< handle
             obj.constraint      = Constraint(s);
         end
 
-      function createDualVariable(obj)
-            s.nConstraints   = 2;
-            l                = DualVariable(s);
-            obj.dualVariable = l;
-        end  
-
         function createPrimalUpdater(obj)
             s.mesh = obj.mesh;
             obj.primalUpdater = SLERP(s);
         end
 
         function createOptimizer(obj)
-            obj.gJ = 1.0;
             s.monitoring     = true;
             s.cost           = obj.cost;
-            s.type           = obj.type;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-%             s.dualVariable   = obj.dualVariable;
-%             s.GIFname        = '1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+string(obj.eta)+'GIF';
-            s.GIFname        = '1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+'GIF';
             s.maxIter        = 1000;
-            s.tolerance      = 1e-3; %3.0e-2; %
+            s.tolerance      = 1e-3;
             s.constraintCase{1} = 'EQUALITY';
             s.constraintCase{2} = 'INEQUALITY';      
             s.primalUpdater  = obj.primalUpdater;
@@ -289,13 +268,13 @@ classdef TopOptLevelSet3DConnectivity< handle
             s.gJFlowRatio    = 1.0;  
             s.etaMax         = 60.0; 
             s.etaMaxMin      = 1.0;  
+            s.gif            = false;
+            s.gifName        = '3DConnectivity';
+            s.printing       = false;
+            s.printName      = '3DConnectivity';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
-            saveas(figure(1),'1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+string(obj.type)+'design.png','png')
-            saveas(figure(2),'1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+string(obj.type)+'graficos.png','png')
-            writematrix(obj.designVariable.fun.fValues,'1e-35lambda1min'+string(obj.lambda1min)+'gJ'+string(obj.gJ)+string(obj.type)+'.txt')
-            obj.designVariable.fun.print('level_set'+string(obj.type),'Paraview')
         end
 
         function m = createMaterial(obj)
@@ -317,8 +296,6 @@ classdef TopOptLevelSet3DConnectivity< handle
                 yMax    = max(obj.mesh.coord(:,2));
                 zMax    = max(obj.mesh.coord(:,3));
                 isDir   = @(coor)  (abs(coor(:,3))==0 & abs(coor(:,2))<=0.1*yMax & abs(coor(:,1))>=0.9*xMax);
-                %                 isDir   = @(coor)  (abs(coor(:,3))==0 & abs(coor(:,2))<=0.25*yMax & abs(coor(:,1))>=0.75*xMax);
-%                 isDir   = @(coor)  (abs(coor(:,3))==0 & abs(coor(:,2))<=0.3*yMax & abs(coor(:,1))>=0.7*xMax);
                 isDirY   = @(coor)  abs(coor(:,2))==yMin;
                 isDirX   = @(coor)  abs(coor(:,1))==xMax;
                 isForce = @(coor)  (abs(coor(:,3))==zMax);
@@ -425,13 +402,14 @@ classdef TopOptLevelSet3DConnectivity< handle
             end
             s.dirichletFun = dirichletFun;
     
+            s.dirichletFun = dirichletFun;
             pointloadFun = [];
             for i = 1:numel(sPL)
-                pl = PointLoad(obj.mesh, sPL{i});
+                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
                 pointloadFun = [pointloadFun, pl];
             end
             s.pointloadFun = pointloadFun;
-    
+
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
@@ -481,7 +459,6 @@ classdef TopOptLevelSet3DConnectivity< handle
             zMax    = max(obj.mesh.coord(:,3));
             xMax    = max(obj.mesh.coord(:,1));
             if isequal(obj.type, 'centralSupport')
-%                 isNonDesign =  @(coor) abs(coor(:,3)) >= (zMax - 2*obj.mesh.computeMeanCellSize());  
                 isNonDesign =  @(coor) abs(coor(:,3)) >= (zMax - 3*obj.mesh.computeMeanCellSize());  
             elseif isequal(obj.type, 'bridge') 
                 isNonDesign =  @(coor) abs(coor(:,3)) >= (zMax - 2*obj.mesh.computeMeanCellSize());  

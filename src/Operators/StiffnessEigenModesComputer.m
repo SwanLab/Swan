@@ -1,17 +1,9 @@
 classdef StiffnessEigenModesComputer < handle
-    
-    properties (Access = public)
-        eigsCell
-    end
-    
+
     properties (Access = private)
         conductivityInterpolator 
         massInterpolator
         boundaryConditions
-        epsilon
-        p
-        dim
-        phiOld
     end
     
     properties (Access = private)
@@ -77,12 +69,9 @@ classdef StiffnessEigenModesComputer < handle
         end
 
         function K = fullToReduced(obj,K)
-%             sS.type      = 'DIRECT';
-            sS.type      = 'CG';
-            solver       = Solver.create(sS);
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
-            s.solver     = solver;
+            s.solver = CGsolver();
             s.boundaryConditions = obj.boundaryConditions;
             s.BCApplier      = obj.createBCApplier();
             ps    = ProblemSolver(s);  
