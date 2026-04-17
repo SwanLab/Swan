@@ -68,7 +68,7 @@ classdef TutorialEIFEM < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [15 5]; %nx ny
+            obj.nSubdomains  = [2 2]; %nx ny
             obj.fileNameEIFEM = 'DEF_Q4porL_1.mat';
             obj.tolSameNode = 1e-10;
             obj.solverType = 'REDUCED';
