@@ -42,7 +42,11 @@ classdef TutorialEIFEM < handle
             tol = 1e-8;
             x0 = zeros(size(RHSr));
 
-            [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSfun,RHSr,x0,Mmult,tol);         
+            [uPCG,residualPCG,errPCG,errAnormPCG] = PCG.solve(LHSfun,RHSr,x0,Mmult,tol); 
+
+            fprintf('TutorialEIFEM (backup branch):\n');
+            fprintf('  CG + ILU-EIFEM-ILU: %d iteracions\n', length(residualPCG));
+            %fprintf('  CG sense precondicionador: %d iteracions\n', length(residualCG));
 
         end
 
@@ -51,7 +55,7 @@ classdef TutorialEIFEM < handle
     methods (Access = private)
 
         function init(obj)
-            obj.nSubdomains  = [2 2]; %nx ny
+            obj.nSubdomains  = [2 2]; %nx ny backup branch
             obj.fileNameEIFEM = 'DEF_Q4porL_1.mat';
             obj.tolSameNode = 1e-10;
         end
