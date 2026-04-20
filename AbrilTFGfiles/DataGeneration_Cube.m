@@ -8,11 +8,10 @@ clc; clear; close all;
 
 %% INPUTS
 
-% l=1e-6:0.05:0.95;
-l=0:0.1:1.8;
-
-p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale', ('EIFisol')
-p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
+% l=1.6:0.1:1.8;
+l=1.8;
+p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale', ('EIFisol')
+p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
 p.nelem      = 15;
 meshName     = p.nelem+"x"+p.nelem;
 
@@ -85,8 +84,8 @@ for j = 1:size(l,2)
         string = strrep("r"+num2str(l(j), '%.4f'), ".", "_")+"-"+meshName+".mat";
     
         % Guarda el .mat per cert radi
-        % FileName=fullfile('AbrilTFGfiles','Data',"Cube",p.Training,meshName,string);
-        FileName=fullfile('AbrilTFGfiles','Data',"Cube",'EIFisol',meshName,string);
+        FileName=fullfile('AbrilTFGfiles','Data',"Cube",p.Training,meshName,string);
+        % FileName=fullfile('AbrilTFGfiles','Data',"Cube",'EIFisol',meshName,string);
     
         switch p.Training
             case 'Multiscale'

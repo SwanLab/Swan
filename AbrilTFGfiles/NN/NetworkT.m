@@ -12,7 +12,7 @@ p.Sampling   ='Isolated';     %'Isolated'/'Oversampling'
 p.Inclusion  ='Material';    %'Material'/'Hole'/'HoleRaul
 
 %% Initialization of hyperparameters
-pol_deg         = 5;
+pol_deg         = 3;
 testratio       = 30;
 lambda          = 0.0;
 learningRate    = 0.32;
