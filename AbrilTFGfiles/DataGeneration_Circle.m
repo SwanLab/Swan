@@ -10,13 +10,13 @@ clc; clear; close all;
 % r=1e-6:0.05:0.999; 
 % r=1e-6:0.1:0.999; 
 % r=0:0.05:0.999;
-r=0.2:0.05:0.6;
-% r=0.3;
+% r=0.2:0.05:0.6;
+r=0.3;
 
-p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale'
+p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
 p.Inclusion  = 'Material';        %'Material'/'Hole'/'HoleRaul'
-p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
-p.nelem      = 50;
+p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
+p.nelem      = 20;
 meshName     = p.nelem+"x"+p.nelem;
 
 

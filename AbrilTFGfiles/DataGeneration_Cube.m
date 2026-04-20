@@ -240,10 +240,10 @@ end
 
 function g=computeLevelSet(l)
     gPar.type         = 'Cube';
-    gPar.length       = 2;
+    gPar.length       = l;
     gPar.xCoorCenter  = 0;
     gPar.yCoorCenter  = 0;
-    gPar.height       = l;
+    gPar.zCoorCenter  = 0;
     g              = GeometricalFunction(gPar);
 end
 

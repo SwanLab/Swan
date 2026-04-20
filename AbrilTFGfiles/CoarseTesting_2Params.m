@@ -76,12 +76,12 @@ classdef CoarseTesting_2Params< handle
             tol = 1e-8;
             x0  = zeros(size(RHSf));
 
-            tic  %SOLVE THE CASE WITH STANDARD CG
-            [~,obj.residualCG,errCG, errCG] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
-            t_CG=toc
-            tic  % SOLVE THE CASE WITH CG+ ILU
-            [~,obj.residualILU,errILU, errAnormILU] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
-            t_ILU=toc
+            % tic  %SOLVE THE CASE WITH STANDARD CG
+            % [~,obj.residualCG,errCG, errCG] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
+            % t_CG=toc
+            % tic  % SOLVE THE CASE WITH CG+ ILU
+            % [~,obj.residualILU,errILU, errAnormILU] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
+            % t_ILU=toc
             tic  % SOLVE THE CASE WITH PRECONDITIONING ILU+EIFEM+ILU
             [uPCG,obj.residualPCG,obj.errPCG,obj.errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
             t_PCG=toc
@@ -101,8 +101,8 @@ classdef CoarseTesting_2Params< handle
             obj.SolExact=LagrangianFunction(s); %Exact sol
 
             % obj.print(uPCG,"SolPCG");
-            %CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'TestCoarseAbril', obj.r, obj.centroids);
-            %CoarsePlotSolution(RealFun, obj.meshDomain, obj.bcApplier,'TestRealAbril', obj.r, obj.centroids);
+            obj.print(xFull,"1stIterNonUniformLattice");
+            obj.print(Ufull,"SolExactNonUniformLattice");
 
         end
 
@@ -312,7 +312,7 @@ classdef CoarseTesting_2Params< handle
             % aaa=uMesh.createInnerMesh();
             Mprint=UnfittedMesh(sUm);
             Mprint.compute(ls);
-            obj.unfittedMesh=Mprint;
+            obj.unfittedMesh= uMesh;
             funLS        = CharacteristicFunction.create(uMesh);
             s.filterType = 'LUMP';
             s.mesh       = obj.meshDomain;

@@ -39,7 +39,6 @@ classdef CoarseTesting_2D< handle
         designVariable
         materialInterpolator
         unfittedMesh
-
     end
 
 
@@ -81,12 +80,12 @@ classdef CoarseTesting_2D< handle
             tol = 1e-8;
             x0  = zeros(size(RHSf));
 
-            tic  %SOLVE THE CASE WITH STANDARD CG
-            [~,obj.residualCG,errCG, errCG] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
-            t_CG=toc
-            tic  % SOLVE THE CASE WITH CG+ ILU
-            [~,obj.residualILU,errILU, errAnormILU] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
-            t_ILU=toc
+            % tic  %SOLVE THE CASE WITH STANDARD CG
+            % [~,obj.residualCG,errCG, errCG] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
+            % t_CG=toc
+            % tic  % SOLVE THE CASE WITH CG+ ILU
+            % [~,obj.residualILU,errILU, errAnormILU] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
+            % t_ILU=toc
             tic  % SOLVE THE CASE WITH PRECONDITIONING ILU+EIFEM+ILU
             [uPCG,obj.residualPCG,obj.errPCG,obj.errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
             t_PCG=toc
@@ -97,16 +96,16 @@ classdef CoarseTesting_2D< handle
             % uDomain = obj.ddDofManager.global2local(uDomain);
             
             % LAGRANGIAN FUN SOLUTIONS
-            s.mesh     = obj.meshDomain;
-            s.ndimf    = obj.meshDomain.ndim;
-            s.order    = 'P1';
-            s.fValues  = reshape(xFull,2,[])';
-            obj.Sol    = LagrangianFunction(s); %Preconditioned sol  
-            s.fValues = reshape(Ufull,2,[])';
-            obj.SolExact=LagrangianFunction(s); %Exact sol
-            obj.SolExact.print("OutSolPCG");
+            % s.mesh     = obj.meshDomain;
+            % s.order    = 'P1';
+            % s.fValues  = reshape(xFull,2,[])';
+            % obj.Sol    = LagrangianFunction(s); %Preconditioned sol  
+            % s.fValues = reshape(Ufull,2,[])';
+            % obj.SolExact=LagrangianFunction(s); %Exact sol
+            % obj.SolExact.print("OutSolPCG");
 
-            % obj.print(uPCG,"SolPCG_Inner");
+            % obj.print(xFull,"1stIterNonUniformCircles");
+            % obj.print(Ufull,"SolExactNonUniformCircles");
             %CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'TestCoarseAbril', obj.r, obj.centroids);
             %CoarsePlotSolution(RealFun, obj.meshDomain, obj.bcApplier,'TestRealAbril', obj.r, obj.centroids);
 
@@ -152,6 +151,7 @@ classdef CoarseTesting_2D< handle
                 z.order     = 'P1';
                 z.fValues   = reshape(sol,z.mesh.ndim,[])';
                 uFeFun = LagrangianFunction(z);%
+
                 uMeshFun = obj.unfittedMesh.obtainFunctionAtUnfittedMesh(uFeFun);
                 
                 fvalues = [uMeshFun.innerMeshFunction.fValues;

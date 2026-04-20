@@ -67,8 +67,8 @@ classdef CoarseTesting_3D< handle
             tic
             LHSf   = @(x) LHS*x;
             RHSf   = RHS;
-            % Usol   = LHS\RHS;
-            % Ufull  = obj.bcApplier.reducedToFullVectorDirichlet(Usol); 
+            Usol   = LHS\RHS;
+            Ufull  = obj.bcApplier.reducedToFullVectorDirichlet(Usol); 
             t_direct=toc
 
             % PRECONDITIONERS
@@ -111,7 +111,8 @@ classdef CoarseTesting_3D< handle
             % s.fValues = reshape(Ufull,3[])';
             % obj.SolExact=LagrangianFunction(s); %Exact sol
 
-            % obj.print(uPCG,"SolPCG");
+            obj.print(xFull,"1stIterInnerUniformSphere");
+            obj.print(Ufull,"SolExactInnerUniformSphere");
             %CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'TestCoarseAbril', obj.r, obj.centroids);
             %CoarsePlotSolution(RealFun, obj.meshDomain, obj.bcApplier,'TestRealAbril', obj.r, obj.centroids);
 
@@ -187,7 +188,7 @@ classdef CoarseTesting_3D< handle
             p.Inclusion     = cParams.Inclusion;   % 'Hole'/'Material'/'HoleRaul'   --> Hole: just for constant r
             p.Option        = cParams.Option;      % 'Dataset'/'NN'/'Direct'
             p.nelem         = cParams.nelem;       %  Mesh refining
-            p.Geometry      = 'Sphere';            % 'Sphere'/'Cube'
+            p.Geometry      = cParams.Geometry;    % 'Sphere'/'Cube'
             obj.params      = p;
             obj.r           = cParams.r;
             [Ny,Nx,Nz] = size(obj.r);
@@ -460,16 +461,32 @@ classdef CoarseTesting_3D< handle
             [Nx,Ny,Nz] = size(obj.r);
             GeomParams(Nx,Ny,Nz) = struct('type',[],'radius',[],'xCoorCenter',[],'yCoorCenter',[],'zCoorCenter',[]);
 
-            for i = 1:Nx
-                for j = 1:Ny
-                    for k = 1:Nz
-                        GeomParams(i,j,k).type        = "Sphere";
-                        GeomParams(i,j,k).radius      = obj.r(i,j,k);
-                        GeomParams(i,j,k).xCoorCenter = x0(i,j,k);
-                        GeomParams(i,j,k).yCoorCenter = y0(i,j,k);
-                        GeomParams(i,j,k).zCoorCenter = z0(i,j,k);
+            switch obj.params.Geometry
+                case 'Sphere'
+                    for i = 1:Nx
+                        for j = 1:Ny
+                            for k = 1:Nz
+                                GeomParams(i,j,k).type        = "Sphere";
+                                GeomParams(i,j,k).radius      = obj.r(i,j,k);
+                                GeomParams(i,j,k).xCoorCenter = x0(i,j,k);
+                                GeomParams(i,j,k).yCoorCenter = y0(i,j,k);
+                                GeomParams(i,j,k).zCoorCenter = z0(i,j,k);
+                            end
+                        end
                     end
-                end
+
+                case 'Cube'
+                    for i = 1:Nx
+                        for j = 1:Ny
+                            for k = 1:Nz
+                                GeomParams(i,j,k).type        = "Cube";
+                                GeomParams(i,j,k).length      = obj.r(i,j,k);
+                                GeomParams(i,j,k).xCoorCenter = x0(i,j,k);
+                                GeomParams(i,j,k).yCoorCenter = y0(i,j,k);
+                                GeomParams(i,j,k).zCoorCenter = z0(i,j,k);
+                            end
+                        end
+                    end
             end
 
             s.type        = 'GivenPattern';

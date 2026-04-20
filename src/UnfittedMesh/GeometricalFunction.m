@@ -288,23 +288,14 @@ classdef GeometricalFunction < handle
                     obj.fHandle = fH;
 
                 case 'Cube'
-                    L  = cParams.length;  % mesh length
-                    h  = cParams.height;  % side length of inner cube
+                    l  = cParams.length;  % side length of inner cube
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
-                    z0 = 0;
+                    z0 = cParams.zCoorCenter;
 
-                    s= cParams;
-                    s.type = 'Square';
-                    s.length = h;  
-                    obj.selectHandle(s);
-                    fFrame= obj.fHandle;
-                    fDiag1 = @(x) abs((x1(x)-x0)-(x2(x)-y0))/sqrt(2) - t2/2;
-                    fDiag2 = @(x) abs((x1(x)-x0)+(x2(x)-y0))/sqrt(2) - t2/2;
-                    fCross = @(x) -min(fDiag1(x),fDiag2(x));
-                    f2D = @(x) max(fFrame(x),fCross(x));
-
-                    fH= @(x) max( fFrame(x), abs(x3(x) - z0) - h/2 );
+                    fH = @(x) max([abs(x1(x)-x0), ...
+                                   abs(x2(x)-y0), ...
+                                   abs(x3(x)-z0)], [], 2)/l - 0.5;
 
                     obj.fHandle = fH;
 

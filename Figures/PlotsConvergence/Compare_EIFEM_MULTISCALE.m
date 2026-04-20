@@ -10,16 +10,26 @@ s.Training  = [];                 % 'EIFEM'/'Multiscale'
 s.Inclusion = 'Material';         % 'Hole'/'Material'/'HoleRaul'   --> Hole: just for constant r
 s.Sampling  = [];                 % 'Isolated'/'Oversampling'
 s.Option    = 'Dataset';          % 'Dataset'/'NN'/'HO'/ 'Hybrid'
-s.nelem     =  10;                %  Mesh refining
+s.nelem     =  20;                %  Mesh refining
 s.Print     = false;
 
 % UNIFORM DISTRIBUTION
-s.r = ones(3,10)*0.3;
+% s.r = ones(3,10)*0.8;
 
-%NON-UNIFORM DISTRIBUTION
+% NON-UNIFORM DISTRIBUTION
 % s.r= [ 0.25, 0.40, 0.55, 0.20, 0.45, 0.60, 0.35, 0.25, 0.50, 0.30;
 %        0.50, 0.20, 0.35, 0.60, 0.25, 0.40, 0.45, 0.55, 0.30, 0.20;
 %        0.35, 0.55, 0.45, 0.30, 0.50, 0.25, 0.60, 0.40, 0.20, 0.55];
+
+% s.r= [ 0.25, 0.15, 0.3, 0.2, 0.35, 0.10, 0.35, 0.25, 0.20, 0.30;
+%        0.1, 0.20, 0.4, 0.05, 0.25, 0.40, 0.15, 0.35, 0.30, 0.20;
+%        0.0, 0.35, 0.15, 0.30, 0.1, 0.25, 0.30, 0.40, 0.20, 0.4];
+
+s.r= [ 0.8, 0.45, 0.7, 0.8, 0.5, 0.75, 0.6, 0.65, 0.70, 0.4;
+       0.6, 0.9, 0.65, 0.4, 0.65, 0.45, 0.95, 0.65, 0.80, 0.70;
+       0.75, 0.55, 0.3, 0.90, 0.75, 0.9, 0.30, 0.90, 0.20, 0.6];
+
+
 
 % MULTISCALE ISOLATED
 s.Training  = 'Multiscale';
@@ -58,8 +68,8 @@ plot(Mult.residualILU,'linewidth',2)
 hold on
 plot(Mult.residualPCG,'linewidth',2)
 hold on
-% plot(Mult_NN.residualPCG,'linewidth',2)
-% hold on
+plot(Mult_NN.residualPCG,'linewidth',2)
+hold on
 plot(EIFE_IS.residualPCG,'linewidth',2)
 hold on
 plot(EIFE_OV.residualPCG,'linewidth',2)
@@ -82,7 +92,7 @@ s.nelem     =  30;                %  Mesh refining
 % UNIFORM DISTRIBUTION
 s.tFrame = ones(3,10)*0.25;
 s.tCross = ones(3,10)*0.4;
-
+% 
 
 %NON-UNIFORM DISTRIBUTION
 % s.tFrame= [0.15, 0.30, 0.45, 0.10, 0.25, 0.40, 0.35, 0.20, 0.15, 0.45;
@@ -152,12 +162,13 @@ pos= [545   315   673   498];
 s.Training  = 'Multiscale';       % 'EIFEM'/'Multiscale'/'EIFisol'
 s.Inclusion = 'Material';         % 'Hole'/'Material'/  --> Hole: just for imported meshes or constant geometry
 s.Option    = 'Dataset';          % % 'Dataset'/'NN'/'Direct
+s.Geometry  = 'Sphere';
 s.fileNameEIFEM = [];
 s.nelem     =  15;                %  Mesh refining
 
 % UNIFORM DISTRIBUTION
 s.r = ones(2,6,2)*0.4;
-% s.fileNameEIFEM = 'Sphere_r04_Mult.mat';
+s.fileNameEIFEM = 'Sphere_r04_Mult.mat';
 
 % NON UNIFORM DISTRIBUTION
 % s.r= zeros(2,6,2);
@@ -216,6 +227,81 @@ title("Residual evolution")
 legend({'CG', 'ILU', 'ILU-Multiscale-ILU','ILU-Multiscale with NN-ILU','ILU-EIFEM(Isolated)-ILU','ILU-EIFEM(Oversampling)-ILU'});
 % ylim([10^-9 10^3]);
 % xlim([0 4061]);
+
+
+%% 3D CASE - Cube
+
+pos= [545   315   673   498];
+% case parameters
+s.Training  = 'Multiscale';       % 'EIFEM'/'Multiscale'/'EIFisol'
+s.Inclusion = 'Material';         % 'Hole'/'Material'/  --> Hole: just for imported meshes or constant geometry
+s.Option    = 'Dataset';          % % 'Dataset'/'NN'/'Direct
+s.Geometry  = 'Cube';
+s.fileNameEIFEM = [];
+s.nelem     =  15;                %  Mesh refining
+
+% UNIFORM DISTRIBUTION
+s.r = ones(2,6,2)*1;
+
+% NON UNIFORM DISTRIBUTION
+% s.r= zeros(2,6,2);
+% s.r(:,:,1) = [
+%     0.25, 0.45, 0.60, 0.35, 0.20, 0.55;
+%     0.50, 0.30, 0.25, 0.65, 0.40, 0.35
+% ];
+% 
+% s.r(:,:,2) = [
+%     0.60, 0.20, 0.45, 0.55, 0.30, 0.65;
+%     0.35, 0.50, 0.25, 0.40, 0.60, 0.25
+% ];
+
+
+% Multiscale
+Sph_Mult= CoarseTesting_3D(s);
+Sph_Mult.compute();
+
+s.Option    = 'NN';   
+Cub_NN= CoarseTesting_3D(s);
+Cub_NN.compute();
+
+
+% EIFEM Isolated
+s.Option    = 'Dataset';  
+s.Training  = 'EIFisol';
+Cub_Iso= CoarseTesting_3D(s);
+Cub_Iso.compute();
+
+
+% EIFEM Oversampling
+s.Training  = 'EIFEM';
+Cub_Over= CoarseTesting_3D(s);
+Cub_Over.compute();
+
+
+
+figure
+set(gcf, 'Position', pos) 
+plot(Cub_Iso.residualCG,'linewidth',2)
+hold on
+plot(Cub_Iso.residualILU,'linewidth',2)
+hold on
+plot(Cub_Mult.residualPCG,'linewidth',2)
+hold on
+plot(Cub_NN.residualPCG,'linewidth',2)
+hold on
+plot(Cub_Iso.residualPCG,'linewidth',2)
+hold on
+plot(Cub_Over.residualPCG,'linewidth',2)
+set(gca, 'YScale', 'log')
+xlabel('Iteration')
+ylabel('Residual')
+title("Residual evolution")
+
+legend({'CG', 'ILU', 'ILU-Multiscale-ILU','ILU-Multiscale with NN-ILU','ILU-EIFEM(Isolated)-ILU','ILU-EIFEM(Oversampling)-ILU'});
+% ylim([10^-9 10^3]);
+% xlim([0 4061]);
+
+
 
 %% 3D CASE - AIRFOIL
 
