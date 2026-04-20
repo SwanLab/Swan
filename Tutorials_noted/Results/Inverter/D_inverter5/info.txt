@@ -1,4 +1,6 @@
-run for different input / output relation = [0.2 0.4 0.6 0.8]
+run for different input / output relation = [0.5 2 5 10]
 with volume constraint 0.25
-eta norm 0.05
+eta norm 0.075
 iter 1000
+
+

@@ -24,7 +24,7 @@ classdef Tutorial05_14_TopOpt2DDensityInverterPerimeter < handle
     methods (Access = public)
 
         function obj = Tutorial05_14_TopOpt2DDensityInverterPerimeter()
-            obj.k_vector = [0.5];
+            obj.k_vector = [5 10];
             for a=1:length(obj.k_vector)
                obj.k_case = obj.k_vector(a);
                 obj.init();
@@ -84,7 +84,7 @@ classdef Tutorial05_14_TopOpt2DDensityInverterPerimeter < handle
         end
 
         function createFilter(obj)
-            s.filterType = 'LUMP';
+            s.filterType = 'PDE';
             s.mesh  = obj.mesh;
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
@@ -222,13 +222,13 @@ classdef Tutorial05_14_TopOpt2DDensityInverterPerimeter < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 500;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'INEQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
             s.ub             = 1;
             s.lb             = 0;
-            s.etaNorm        = 0.1; % default was 0.02
+            s.etaNorm        = 0.075; % default was 0.02
             s.gJFlowRatio    = 0.1;
             s.gif            = false;
             s.gifName        = [];

@@ -1,0 +1,3 @@
+run for k = 4, 8
+this time use PDE filter instead of LUMP
+cost divided by value0 to normalize it

@@ -23,7 +23,7 @@ classdef Tutorial05_14_TopOpt2DLevelSetInverter < handle
     methods (Access = public)
 
         function obj = Tutorial05_14_TopOpt2DLevelSetInverter()
-            obj.k_vector = [0.25 0.5 0.75];
+            obj.k_vector = [2 5];
             for a=1:length(obj.k_vector)               
                 obj.k_case = obj.k_vector(a);
                 fprintf('--- Starting Optimization for k = %f ---\n', obj.k_case);
@@ -170,7 +170,7 @@ classdef Tutorial05_14_TopOpt2DLevelSetInverter < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.3; 
+            s.volumeTarget = 0.25; 
             s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
@@ -213,18 +213,18 @@ classdef Tutorial05_14_TopOpt2DLevelSetInverter < handle
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
             s.maxIter        = 1000;
-            s.tolerance      = 1e-8;
+            s.tolerance      = 1e-6; % default was 1e-8
             s.constraintCase = {'INEQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
-            s.etaNorm        = 0.01; % max allowed change for level set
-            s.etaNormMin     = 0.005;
-            s.gJFlowRatio    = 0.2; % weight for the constraints
+            s.etaNorm        = 0.01; % max allowed change for level set(def 0.1)
+            s.etaNormMin     = 0.005; % default was 0.005
+            s.gJFlowRatio    = 0.1; % weight for the constraints (def 0.2)
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
             s.gif            = false;
             s.gifName        = 'Tutorial05_14_LS';
-            s.printing       = false;
-            s.printName      = 'G_LS_';
+            s.printing       = true;
+            s.printName      = 'I_LS_';
             s.k_case         = obj.k_case;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
@@ -257,9 +257,9 @@ classdef Tutorial05_14_TopOpt2DLevelSetInverter < handle
             sPL{1}.direction = 2;
             sPL{1}.value     = +10; % upward force on the input
 
-            % sPL{2}.domain    = @(coor) isPLTop(coor);
-            % sPL{2}.direction = 2;
-            % sPL{2}.value     = 0;
+            sPL{2}.domain    = @(coor) isPLTop(coor);
+            sPL{2}.direction = 2;
+            sPL{2}.value     = +3;
 
 
             dirichletFun = [];
@@ -283,10 +283,10 @@ classdef Tutorial05_14_TopOpt2DLevelSetInverter < handle
 
         function bc = createBoundaryConditionsAdjoint(obj)
             
-            isDir   = @(coor)  coor(:,1)>=0 & coor(:,1)<=0.05 & coor(:,2)<=1e-8 | coor(:,1)<=1 & coor(:,1)>=0.95 & coor(:,2)<=1e-8; % bottom corners
+            isDir   = @(coor)  coor(:,1)>=0 & coor(:,1)<=0.01 & coor(:,2)<=1e-8 | coor(:,1)<=1 & coor(:,1)>=0.99 & coor(:,2)<=1e-8; % bottom corners
 
-            isPLTop      = @(coor)  (coor(:,1) >= 0.45 & coor(:,1) <= 0.55 & coor(:,2) == 1 ); % top part of the domain (output)
-            isPLBottom   = @(coor)  (coor(:,1) >= 0.45 & coor(:,1) <= 0.55 & coor(:,2) == 0 );% bottom part of the domain (input)
+            isPLTop      = @(coor)  (coor(:,1) >= 0.475 & coor(:,1) <= 0.525 & coor(:,2) == 1 ); % top part of the domain (output)
+            isPLBottom   = @(coor)  (coor(:,1) >= 0.475 & coor(:,1) <= 0.525 & coor(:,2) == 0 );% bottom part of the domain (input)
 
             sDir{1}.domain    = @(coor) isDir(coor); % fixed
             sDir{1}.direction = [1,2];

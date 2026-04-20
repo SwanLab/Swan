@@ -23,7 +23,7 @@ classdef Tutorial05_14_TopOpt2DDensityInverter < handle
     methods (Access = public)
 
         function obj = Tutorial05_14_TopOpt2DDensityInverter()
-            obj.k_vector = [0.1 0.25 0.5 0.75 0.9];
+            obj.k_vector = [4 8];
             for a=1:length(obj.k_vector)
                obj.k_case = obj.k_vector(a);
                 obj.init();
@@ -82,7 +82,7 @@ classdef Tutorial05_14_TopOpt2DDensityInverter < handle
         end
 
         function createFilter(obj)
-            s.filterType = 'LUMP';
+            s.filterType = 'PDE';
             s.mesh  = obj.mesh;
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
@@ -207,13 +207,13 @@ classdef Tutorial05_14_TopOpt2DDensityInverter < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 750;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'INEQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
             s.ub             = 1;
             s.lb             = 0;
-            s.etaNorm        = 0.1; % default was 0.02
+            s.etaNorm        = 0.075; % default was 0.02
             s.gJFlowRatio    = 0.1;
             s.gif            = false;
             s.gifName        = [];
@@ -278,7 +278,8 @@ classdef Tutorial05_14_TopOpt2DDensityInverter < handle
 
         function bc = createBoundaryConditionsAdjoint(obj) % must be modified
 
-
+            % the BC in the LS case have been modified, check if they are
+            % the same for comparison purposes
             isDir   = @(coor)  coor(:,1)>=0 & coor(:,1)<=0.05 & coor(:,2)<=1e-8 | coor(:,1)<=1 & coor(:,1)>=0.95 & coor(:,2)<=1e-8; % bottom corners
 
             isPLTop      = @(coor)  (coor(:,1) >= 0.45 & coor(:,1) <= 0.55 & coor(:,2) == 1 ); % top part of the domain (output)
