@@ -1,4 +1,4 @@
-clear
+0clear
 close all
 
 u1     = 0.4;

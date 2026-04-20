@@ -4,6 +4,8 @@ classdef CohesiveLawFactory
             switch cParams.lawType
                 case 'TractionBiliniarUncoupled'
                     law = TractionBiliniarUncoupled(cParams);
+                case 'TractionBiliniarCoupled'
+                    law = TractionBiliniarCoupled(cParams);
             end
         end
     end
