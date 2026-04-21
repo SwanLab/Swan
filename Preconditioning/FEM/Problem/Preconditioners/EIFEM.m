@@ -192,8 +192,8 @@ classdef EIFEM < handle
         function u = reconstructSolution(obj,uCoarse)
             nElem = obj.mesh.nelem;
             Udef  = obj.RVE.Udef;
-            % Urb   = obj.RVE.Urb;
-            U     = Udef; % +Urb
+            Urb   = obj.RVE.Urb;
+            U     = Udef + Urb; 
             dofConec = obj.dispFun.getDofConnec();
             for ielem = 1:nElem
                 uCelem = uCoarse(dofConec(ielem,:));
