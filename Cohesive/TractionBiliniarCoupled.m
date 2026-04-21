@@ -85,12 +85,9 @@ classdef TractionBiliniarCoupled < handle
         end
 
         function jN = computeJumpNorm(obj,jump) % 1 x ngauss x nelem
-            unoZero = ConstantFunction.create([1,0],jump.mesh);
-            zeroUno = ConstantFunction.create([0,1],jump.mesh);
-            jN = (DP(jump,unoZero).') ^2 + (DP(jump,zeroUno).')^2;
-            jN = sqrt(jN); % ara mateix 1 x nElem x nGauss
-            % jN = permute(jN, [1, 3, 2]); % no sembla funcionar (no
-            % canvia)
+            unoZero = ConstantFunction.create([1;0],jump.mesh);
+            zeroUno = ConstantFunction.create([0;1],jump.mesh);
+            jN = sqrt(DP(jump,unoZero,1,1).^2 + DP(jump,zeroUno,1,1).^2);
         end
 
         function ddot =  computeDamageDerivative(obj,jump)
