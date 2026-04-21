@@ -44,7 +44,7 @@ classdef TutorialCohesive < handle
         end
 
         function createMesh(obj)
-            s.baseMesh = UnitQuadMesh(5,5);
+            s.baseMesh = UnitQuadMesh(1,1);
             y = 0;
             s.isFractured = @(coord) abs(coord(:,2) - y) <= 1e-10;
             obj.cohesiveMesh = CohesiveMesh(s);
@@ -58,7 +58,7 @@ classdef TutorialCohesive < handle
 
         function createBoundaryConditions(obj)
             bc.type = 'DisplacementTractionY';
-            bc.values = 0.4;
+            bc.values = 0.8;
             obj.boundaryConditions  = BoundaryConditionsCreator(obj.cohesiveMesh.fullMesh,bc);
         end
 

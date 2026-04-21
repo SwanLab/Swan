@@ -1,26 +1,22 @@
-0clear
+clear
 close all
+u3 = 0.21;
+Df     = 0.2;
+Kelas  = 2;
+Kcoh   = 4;
 
-u1     = 0.4;
-u3     = 0;
-Kcoh   = 1e8;
-Dc     = 0.001;
-Df     = 0.1;
-Kelas  = 1e6;
-
-% A = Kcoh;
-% B = Kelas*(Df-Dc) - Kcoh*(2*u1-Df);
-% C = -Kcoh*(Df*u1-u1^2);
-
-
-A = -1/(Df-Dc);
-B = 1+2*u1/(Df-Dc) + Kelas/Kcoh;
-C = Dc/(Df-Dc) - u1*(u1+Dc+1)/(Df-Dc)+u3*Kelas/Kcoh;
-
+A = -1/Df;
+B = 1 + Kelas/Kcoh;
+C = -u3 * Kelas/Kcoh;
 coefficients = [A, B, C];
 u2 = roots(coefficients);
 
-jump = u1-u2;
-d =(u1-u2-Dc)/(Df-Dc);
+jump = u2;
+d =(u2)/(Df);
+d = min(1,max(0,d))
 
 F = jump .* (1-d) .* Kcoh;
+
+E =0.5 * Kelas*(u3-u2).^2 + 0.5*(1-d).*(u2).^2
+
+
