@@ -52,10 +52,10 @@ classdef TractionBiliniarCoupled < handle
             ddot_n = DP(ddot,zeroUno);
             jumpT = DP(jump,unoZero);
             jumpN = DP(jump,zeroUno);
-
+ 
             dtdt = obj.K * ((1-d) - jumpT.*ddot_t); % mida malament (hauria de ser 1 x 1 x 2
-            dtdn = obj.K * jumpT .* (-ddot_n);
-            dndt = obj.K * ((1-d) - jumpT.*ddot_n);
+            dtdn = obj.K * (-jumpT.*ddot_n);
+            dndt = obj.K * (-jumpN.*ddot_t);
             dndn = obj.K * ((1-d) - jumpN.*ddot_n);
 
             dtdt=dtdt.evaluate(xV); dtdn=dtdn.evaluate(xV);
@@ -96,9 +96,8 @@ classdef TractionBiliniarCoupled < handle
         function ddot =  computeDamageDerivative(obj,jump)
             isDamaging = obj.isJumpDamaging(jump);
             jumpNorm = obj.computeJumpNorm(jump);
-            alpha    = -obj.jumpCrit * obj.jumpFinal / (obj.jumpCrit-obj.jumpFinal) ./ jumpNorm^2;
-            dLambda  = jump ./ jumpNorm;
-            ddot     = alpha .* dLambda;
+            alpha    = -obj.jumpCrit * obj.jumpFinal / (obj.jumpCrit-obj.jumpFinal) ./ max(jumpNorm^3,1e-8);
+            ddot     = alpha .* jump;
             ddot     = ddot.*isDamaging;
         end
 
