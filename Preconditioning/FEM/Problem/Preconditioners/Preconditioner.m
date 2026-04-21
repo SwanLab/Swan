@@ -47,13 +47,13 @@ classdef Preconditioner < handle
         %     z3 = P3(r);
         %     z  = z1+z2+z3;
         % end
-        % 
-        % function z = multiplePrec2(r,P1,P2,A)
-        %     z1 = P1(r);
-        %     r  = r-A(z1);
-        %     z2 = P2(r);
-        %     z  = z1+z2;
-        % end
+
+        function z = multiplePrec2(r,P1,P2,A)
+            z1 = P1(r);
+            r  = r-A(z1);
+            z2 = P2(r);
+            z  = z1+z2;
+        end
 
         function z = additivePrec(r,P1,P2)
             z1 = P1(r);
