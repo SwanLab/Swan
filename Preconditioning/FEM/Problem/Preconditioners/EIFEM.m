@@ -182,8 +182,8 @@ classdef EIFEM < handle
 
         function Fcoarse = projectExternalForce(obj,Ffine)
             Udef    = obj.RVE.Udef;
-            %Urb     = obj.RVE.Urb;
-            Ut      = (Udef)'; % + Urb dins del parèntesi
+            Urb     = obj.RVE.Urb;
+            Ut      = (Udef+Urb)'; 
             Fcoarse = Ut*Ffine;
         end
 
