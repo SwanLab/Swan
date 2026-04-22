@@ -1,4 +1,4 @@
-classdef TutorialShellsOptim < handle
+classdef TutorialShellsOptimDynamic < handle
 
     properties (Access = private)
         mesh
@@ -21,11 +21,13 @@ classdef TutorialShellsOptim < handle
         A_tensor, B_tensor, D_tensor, H_tensor
         materialProperties, materialLayers
         meshType
+
+        last_h_eval = []
+        last_f1_eval = []
     end
 
     methods (Access = public)
-        %% TutorialShellsOptim
-        function obj = TutorialShellsOptim()
+        function obj = TutorialShellsOptimDynamic()
 
             clc; close all;
 
@@ -50,11 +52,9 @@ classdef TutorialShellsOptim < handle
             obj.createMesh('wingShape')  % 'triangleMesh' // 'wingShape'
             obj.createSolutionField()
 
-            maxval = obj.staticProblem(h0);
+            normalizef = 20; 
             m0     = obj.computeMass(h0);
             
-            fprintf('Initial value maxval: %g\n', maxval);
-
             if isSymmetric && forceSymmetry
                 nHalf = ceil(nLayers/2);
                 h0_opt = h0(1:nHalf);
@@ -73,8 +73,11 @@ classdef TutorialShellsOptim < handle
                 cost.cF = @(h_half) obj.computeMass(T * h_half) / m0;
                 cost.gF = @(h_half) T' * obj.GradComputeMass() / m0;
 
-                constraint.cF{1} = @(h_half)  (obj.staticProblem(T * h_half) / maxval - 0.75);
-                constraint.gF{1} = @(h_half)  T' * obj.GradStaticProblem(T * h_half, nLayers) / maxval;
+                constraint.cF{1} = @(h_half)  (obj.dynamicProblem(T * h_half) - 20) / normalizef; % Max: 20 Hz
+                constraint.gF{1} = @(h_half)  T' * obj.GradDynamicProblem(T * h_half, nLayers) / normalizef;
+
+                constraint.cF{2} = @(h_half)  -constraint.cF{1}(h_half) - 10 / normalizef;% Min: 10 Hz
+                constraint.gF{2} = @(h_half)  -constraint.gF{1}(h_half);
 
             else
                 h0_opt = h0;
@@ -84,14 +87,17 @@ classdef TutorialShellsOptim < handle
                 cost.cF = @(h) obj.computeMass(h) / m0;
                 cost.gF = @(h) obj.GradComputeMass() / m0;
 
-                constraint.cF{1} = @(h)  (obj.staticProblem(h) / maxval - 0.75);
-                constraint.gF{1} = @(h)  obj.GradStaticProblem(h,nLayers) / maxval;
+                constraint.cF{1} = @(h)  (obj.dynamicProblem(h) - 20);   % Max: 20 Hz
+                constraint.gF{1} = @(h)  obj.GradDynamicProblem(h,nLayers);
+
+                constraint.cF{2} = @(h)  -constraint.cF{1}(h) - 10 / normalizef; % Min: 10 Hz
+                constraint.gF{2} = @(h)  -constraint.gF{1}(h);
 
             end
 
             s.type           = "fmincon";
             s.maxIter        = 20;
-            s.constraintCase = {'INEQUALITY'};
+            s.constraintCase = {'INEQUALITY','INEQUALITY'};
 
             cParams.cost         = cost;
             cParams.constraint   = constraint;
@@ -123,11 +129,11 @@ classdef TutorialShellsOptim < handle
             fprintf('Total Thickness : %10.6f m  (Limit: %.4f m)\n', sum(h_vals), h_max);
             
             % Calculate and show the final cost/deflection
-            finalCost = obj.staticProblem(h_vals);
-            fprintf('Final Displacement (w)  : %10.6e\n', finalCost);
+            finalCost = obj.dynamicProblem(h_vals);
+            fprintf('Final f1 (Hz)             : %10.6e\n', finalCost);
             % Print final mass
             finalMass = obj.computeMass(h_vals);
-            fprintf('Final Mass              : %10.6e  (Normalized: %10.6e)\n', finalMass, finalMass / m0);
+            fprintf('Final Mass (kg)           : %10.6e  (Normalized: %10.6e)\n', finalMass, finalMass / m0);
             fprintf('==================================================\n\n');
 
 
@@ -181,52 +187,29 @@ classdef TutorialShellsOptim < handle
            obj.thetaFun = LagrangianFunction.create(obj.mesh,2,'P1');
            obj.wFun     = LagrangianFunction.create(obj.mesh,1,'P1');
         end
-        %% staticProblem
-        function wMax = staticProblem(obj, h)
+        %% dynamicProblem
+        function freq1 = dynamicProblem(obj, h)
 
             obj.createMaterialProperties(h);
             
             obj.createBoundaryConditions()
             LHS = obj.createLHS();
-            RHS = obj.createRHS();
+            MLHS = obj.createMassLHS();
 
-            x = LHS\RHS;
+            nModes = 3;
 
-            nTheta = length(obj.computeFreeDofs(obj.bcT));
-            nU     = length(obj.computeFreeDofs(obj.bcU));
-            nW     = length(obj.computeFreeDofs(obj.bcW));
+            [modes, lambda] = eigs(LHS, MLHS, nModes, 'smallestabs');
+            omega_squared = diag(lambda);
+            omega_squared = real(omega_squared);
+            omega_squared(omega_squared < 0) = 0;  
+            omega_n = sqrt(omega_squared);  % rad/s
+            
+            omega1 = omega_n(1);   
+            freq1 = omega1 / 2 / pi;
 
-            wF = x((nU+nTheta+1):(nU+nTheta+nW),1);
-            dofFW = obj.computeFreeDofs(obj.bcW);
-
-            wT = zeros(obj.wFun.nDofs,1);
-            wT(dofFW,1) = wF; 
-            wT = reshape(wT,[], obj.wFun.ndimf);
-            obj.wFun.setFValues(wT);
-            %plot(obj.wFun)
-
-            % switch obj.meshType
-            %     case 'triangleMesh'
-            %         coords = obj.mesh.coord;  % All nodes in mesh
-            %         [max_x, ~] = max(coords(:, 1));
-            %         [min_y, ~] = min(coords(:, 2));
-            %         distances = sqrt((coords(:, 1) - max_x).^2 + (coords(:, 2) - min_y).^2);
-            %         [~, corner_node_global] = min(distances);
-            %         wMax = wT(corner_node_global);
-            %     case 'wingShape'
-            %         coords = obj.mesh.coord;  % All nodes in mesh
-            %         [max_x, ~] = max(coords(:, 1));
-            %         [min_y, ~] = min(coords(:, 2)+18*tand(25));
-            %         distances = sqrt((coords(:, 1) - max_x).^2 + (coords(:, 2) - min_y).^2);
-            %         [~, corner_node_global] = min(distances);
-            %         wMax = wT(corner_node_global);
-            % end
-
-            wMax = max(wT);
-
-            % Minimize strain energy 
-            % wMax = RHS.'*x;
-
+            obj.last_h_eval = h;
+            obj.last_f1_eval = freq1;
+           
         end
 
         function mass = computeMass(obj,h)
@@ -482,6 +465,56 @@ classdef TutorialShellsOptim < handle
             RHS = [RHSu;RHStheta;RHSw];
         end
 
+        function MLHS = createMassLHS(obj)
+
+            zInterface = cell2mat(obj.zLayer);
+            nLayers = length(zInterface);
+            Arho = 0; Brho = 0; Drho = 0; 
+
+            for k = 1:nLayers-1
+                z0 = zInterface(k);
+                z1 = zInterface(k+1);
+                rho = obj.density.constant(k);
+                
+                Arho = Arho + rho * (z1 - z0);
+                Brho = Brho + 0.5 * rho * (z1^2 - z0^2);
+                Drho = Drho + 1/3 * rho * (z1^3 - z0^3);
+            end
+
+            f = @ (u,v) Arho*DP(v,u);
+            Mu = IntegrateLHS(f,obj.uFun,obj.uFun,obj.mesh,'Domain',2);
+            Mu = reduceMatrix(obj,Mu,obj.bcU,obj.bcU);
+
+            f = @ (u,v) Brho*DP(v,u);
+            Mut = IntegrateLHS(f,obj.uFun,obj.thetaFun,obj.mesh,'Domain',2);
+            Mut = reduceMatrix(obj,Mut,obj.bcU,obj.bcT);
+
+            f = @ (u,v) Drho*DP(v,u);
+            Mt = IntegrateLHS(f,obj.thetaFun,obj.thetaFun,obj.mesh,'Domain',2);
+            Mt = reduceMatrix(obj,Mt,obj.bcT,obj.bcT);
+
+            Mtu = Mut.';
+
+            f = @ (u,v) Arho.*v.*u;
+            Mw = IntegrateLHS(f,obj.wFun,obj.wFun,obj.mesh,'Domain',2);
+            Mw = reduceMatrix(obj,Mw,obj.bcW,obj.bcW);
+
+            nTheta = length(obj.computeFreeDofs(obj.bcT));
+            nU     = length(obj.computeFreeDofs(obj.bcU));
+            nW     = length(obj.computeFreeDofs(obj.bcW));
+
+            Zuw = zeros(nU,nW);
+            Ztw = zeros(nTheta,nW);
+            Zwu = Zuw.';
+            Zwt = Ztw.';
+
+            MLHS = [Mu, Mut, Zuw;
+                Mtu, Mt, Ztw;
+                Zwu, Zwt, Mw];
+
+        end
+
+
         function createBoundaryConditions(obj)
             obj.bcU = obj.createGeneralBoundaryConditions([1 2]);
             obj.bcT = obj.createGeneralBoundaryConditions([1 2]);
@@ -536,7 +569,7 @@ classdef TutorialShellsOptim < handle
             RHSred = RHS(fdofV,1);
         end
 
-        function gradienteCostFunc = GradStaticProblem(obj, h, nLayers)
+        function gradienteCostFunc = GradDynamicProblem(obj, h, nLayers)
             dh = 1e-6;
             gradienteCostFunc = zeros(nLayers,1);
 
@@ -547,8 +580,8 @@ classdef TutorialShellsOptim < handle
                 h_forward(i)  = h(i) + dh;
                 h_backward(i) = h(i) - dh;
 
-                f2 = obj.staticProblem(h_forward);
-                f1 = obj.staticProblem(h_backward);
+                f2 = obj.dynamicProblem(h_forward);
+                f1 = obj.dynamicProblem(h_backward);
 
                 gradienteCostFunc(i) = (f2 - f1) / (2*dh);
             end

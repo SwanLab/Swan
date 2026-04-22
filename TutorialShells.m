@@ -34,12 +34,12 @@ classdef TutorialShells < handle
             close all; clc;
 
             % 1. Initialization
-            obj.createMesh()
+            obj.createMesh('wingShape')    % 'unitTriangle' // 'wingShape'
             obj.createMaterial()
             obj.createSolutionField()
             obj.solverType = 'REDUCED';
 
-            problemType    = 'FORCED_VIBRATIONS';
+            problemType    = 'FREE_VIBRATIONS';
             % Options: 'STATIC' / 'FREE_VIBRATIONS' / 'FORCED_VIBRATIONS'
 
             % 2. Boundary Conditions and Assembly
@@ -336,10 +336,6 @@ classdef TutorialShells < handle
                 % Max displacements
                 [maxW, maxU, maxTheta, locationW, locationU, locationTheta] = obj.findMaxDisplacements();
 
-                fprintf('Max |w|:     %.6e\n', maxW);
-                fprintf('Max |u|:     %.6e\n', maxU);
-                fprintf('Max |theta|: %.6e\n', maxTheta);
-
                 %% Strain and Stress Calculation
                 [epsilons] = obj.createEpsilons();
 
@@ -475,22 +471,24 @@ classdef TutorialShells < handle
     methods (Access = private)
         %% createMesh
 
-        % function createMesh(obj)
-        %   obj.mesh = UnitTriangleMesh(50,50);
-        % end
+        function createMesh(obj,meshtype)
 
-        function createMesh(obj)
+            switch meshtype
+                case 'unitTriangle'
+                    obj.mesh = UnitTriangleMesh(50,50);
+                case 'wingShape'
 
-            elements = 60;
+                    elements = 60;
 
-            fullmesh = TriangleMesh(18,10,elements,elements);
-            ls = obj.computeWingLevelSet(fullmesh);
-            sUm.backgroundMesh = fullmesh;
-            sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
-            uMesh              = UnfittedMesh(sUm);
-            uMesh.compute(ls);
-            wingMesh = uMesh.createInnerMesh();
-            obj.mesh = wingMesh;
+                    fullmesh = TriangleMesh(18,10,elements,elements);
+                    ls = obj.computeWingLevelSet(fullmesh);
+                    sUm.backgroundMesh = fullmesh;
+                    sUm.boundaryMesh   = fullmesh.createBoundaryMesh;
+                    uMesh              = UnfittedMesh(sUm);
+                    uMesh.compute(ls);
+                    wingMesh = uMesh.createInnerMesh();
+                    obj.mesh = wingMesh;
+            end
         end
 
         function ls = computeWingLevelSet(obj, mesh)
@@ -509,9 +507,6 @@ classdef TutorialShells < handle
 
         %% createMaterial
         function createMaterial(obj)
-            % This function contains ALL material definition and setup.
-            % Supports database materials and custom definitions.
-
             % =========================================================================
             % MATERIAL PROPERTIES INPUT FORMAT
             % =========================================================================
@@ -925,8 +920,6 @@ classdef TutorialShells < handle
             Zut = IntegrateLHS(f,obj.uFun,obj.thetaFun,obj.mesh,'Domain',2);
             Zut = obj.reduceMatrix(Zut,obj.bcU,obj.bcT);
 
-            % Ztu = IntegrateLHS(f,obj.thetaFun,obj.uFun,obj.mesh,'Domain',2);
-            % Ztu = obj.reduceMatrix(Ztu,obj.bcT,obj.bcU);
 
             H = obj.H_tensor;
             f = @(u,v) DP(v,DP(H,u));
@@ -1116,8 +1109,14 @@ classdef TutorialShells < handle
                         idx = [1, 2, 4, 5, 6];
                         C_matrix = C_matrix_full(idx, idx) - ...
                                   (C_matrix_full(idx, 3) * C_matrix_full(3, idx)) / C_matrix_full(3, 3);  % 5x5 matrix
+                        strain_voigt(:,3) = strain_voigt(:,3) * 2;
+                        strain_voigt(:,4) = strain_voigt(:,4) * 2;
+                        strain_voigt(:,5) = strain_voigt(:,5) * 2;
                     else
                         C_matrix = C_matrix_full;  % 6x6 matrix
+                        strain_voigt(:,4) = strain_voigt(:,4) * 2;
+                        strain_voigt(:,5) = strain_voigt(:,5) * 2;
+                        strain_voigt(:,6) = strain_voigt(:,6) * 2;
                     end
 
                     % Compute stress: 
@@ -1143,9 +1142,16 @@ classdef TutorialShells < handle
 
                     if strcmp(stressState, 'PLANE_STRESS')
                         idx = [1, 2, 4, 5, 6];
-                        C_bottom = C_bottom_full(idx, idx);
+                        C_bottom = C_bottom_full(idx, idx) - ...
+                            (C_bottom_full(idx, 3) * C_bottom_full(3, idx)) / C_bottom_full(3, 3);
+                        strain_voigt(:,3) = strain_voigt(:,3) * 2;
+                        strain_voigt(:,4) = strain_voigt(:,4) * 2;
+                        strain_voigt(:,5) = strain_voigt(:,5) * 2;
                     else
                         C_bottom = C_bottom_full;
+                        strain_voigt(:,4) = strain_voigt(:,4) * 2;
+                        strain_voigt(:,5) = strain_voigt(:,5) * 2;
+                        strain_voigt(:,6) = strain_voigt(:,6) * 2;
                     end
                     stress_bottom = (C_bottom * strain_voigt')';
 
@@ -1161,7 +1167,8 @@ classdef TutorialShells < handle
 
                     if strcmp(stressState, 'PLANE_STRESS')
                         idx = [1, 2, 4, 5, 6];
-                        C_top = C_top_full(idx, idx);
+                        C_top = C_top_full(idx, idx) - ...
+                            (C_top_full(idx, 3) * C_top_full(3, idx)) / C_top_full(3, 3);
                     else
                         C_top = C_top_full;
                     end
@@ -1700,10 +1707,16 @@ classdef TutorialShells < handle
             for k = 1:nLayers
                 z_min = zInterfaces(k);
                 z_max = zInterfaces(k+1);
-                z_layer = linspace(z_min, z_max, pointsPerLayer)';
+                
+                if k == 1
+                    z_layer = linspace(z_min, z_max, pointsPerLayer)';
+                else
+                    z_layer = linspace(z_min, z_max, pointsPerLayer)';
+                    z_layer = z_layer(2:end); 
+                end
+                
                 z_unique = [z_unique; z_layer];
             end
-            z_unique = unique(z_unique, 'stable');
 
             % ========== COMPUTE STRESSES ==========
             [~, stressFun] = obj.createStrainStressFunctions(num2cell(z_unique), epsilons, stressState);
@@ -1748,7 +1761,7 @@ classdef TutorialShells < handle
                 yline(internalInterfaces, 'k:', 'LineWidth', 1.0, 'Alpha', 0.65);
             end
             hold off;
-
+            
             % --- SUBPLOT 2: σyy vs z ---
             subplot(1, 2, 2);
             plot(sigmay/1e6, z_plot, 'r-s', 'LineWidth', 2.5, 'MarkerSize', 6);
@@ -1765,6 +1778,7 @@ classdef TutorialShells < handle
                 yline(internalInterfaces, 'k:', 'LineWidth', 1.0, 'Alpha', 0.65);
             end
             hold off;
+            
         end
 
 
@@ -1778,6 +1792,8 @@ classdef TutorialShells < handle
             [max_y, ~] = max(coords(:, 2));
             distances = sqrt((coords(:, 1) - max_x).^2 + (coords(:, 2) - max_y).^2);
             [~, corner_node_global] = min(distances);  % Global node index
+
+          
 
             fprintf('\n===== CORNER NODE INFORMATION =====\n');
             fprintf('Global node index: %d\n', corner_node_global);
