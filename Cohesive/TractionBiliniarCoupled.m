@@ -2,9 +2,7 @@ classdef TractionBiliniarCoupled < handle
 
     properties (Access = private)
         tau0 % fracture strength
-        Gc % fracture toughness
-
-        initialFracture 
+        Gc   % fracture toughness
     end
 
     properties (Access = private)
@@ -20,7 +18,9 @@ classdef TractionBiliniarCoupled < handle
         end
 
         function t = computeFunction(obj,jump)
-            d = obj.computeDamage(jump);
+            isDamaging = obj.isJumpDamaging(jump);
+            jumpNorm = obj.computeJumpNorm(jump);
+            d = obj.computeDamage(jumpNorm,isDamaging);
             t = obj.K * (1-d).*jump;
         end
 
@@ -37,64 +37,59 @@ classdef TractionBiliniarCoupled < handle
         function init(obj,cParams)
             obj.tau0  = cParams.fractureStrength;
             obj.Gc    = cParams.fractureToughness;
-            obj.jumpCrit          = cParams.jumpCrit;
+            obj.jumpCrit  = 0.001;
+            obj.jumpFinal = 0.2;
             obj.K         = 1e8;
-            obj.jumpFinal = 2*obj.Gc/obj.tau0;
-            obj.jumpCrit  = obj.tau0/obj.K;
+            % obj.jumpFinal = 2*obj.Gc/obj.tau0;
+            % obj.jumpCrit  = obj.tau0/obj.K;
         end
 
         function gradT = computeTangentGradientMatrix(obj, jump, xV) % 2 x 2 x ngauss x nelem
-            d    = obj.computeDamage(jump);             % 2 x ngauss x nelem
-            ddot = obj.computeDamageDerivative(jump);   % 2 x ngauss x nelem
+            [dtdt,dtdn,dndt,dndn] = obj.computeTractionDerivatives(jump);
+            dtdt=dtdt.evaluate(xV); dtdn=dtdn.evaluate(xV);
+            dndt=dndt.evaluate(xV); dndn=dndn.evaluate(xV);
+            ngauss = size(dtdt,2); nelem  = size(dtdt,3);
+            gradT = [reshape(dtdt,1,1,ngauss,nelem),reshape(dtdn,1,1,ngauss,nelem);
+                    reshape(dndt,1,1,ngauss,nelem),reshape(dndn,1,1,ngauss,nelem)];
+        end
+
+        function [dtdt,dtdn,dndt,dndn] = computeTractionDerivatives(obj, jump)
+            isDamaging = obj.isJumpDamaging(jump);  % nDimJumpNorm (1) x ngauss x nelem
+            jumpNorm = obj.computeJumpNorm(jump); % 1 x ngauss x nelem
+            d    = obj.computeDamage(jumpNorm,isDamaging);             % 1 x ngauss x nelem
+            ddot = obj.computeDamageDerivative(jump,jumpNorm,isDamaging);   % 2 x ngauss x nelem
             unoZero = ConstantFunction.create([1;0],jump.mesh);
             zeroUno = ConstantFunction.create([0;1],jump.mesh);
             ddot_t = DP(ddot,unoZero); ddot_n = DP(ddot,zeroUno);
             jumpT = DP(jump,unoZero); jumpN = DP(jump,zeroUno);
- 
-            dtdt = obj.K * ((1-d) - jumpT.*ddot_t);
-            dtdn = obj.K * (-jumpT.*ddot_n);
-            dndt = obj.K * (-jumpN.*ddot_t);
-            dndn = obj.K * ((1-d) - jumpN.*ddot_n);
-
-            dtdt=dtdt.evaluate(xV); dtdn=dtdn.evaluate(xV);
-            dndt=dndt.evaluate(xV); dndn=dndn.evaluate(xV);
-
-            ngauss = size(dtdt,2); 
-            nelem  = size(dtdt,3);
-
-            % 1 x 1 x ngauss x nelem
-            dtdt = reshape(dtdt,1,1,ngauss,nelem); dtdn = reshape(dtdn,1,1,ngauss,nelem);
-            dndt = reshape(dndt,1,1,ngauss,nelem); dndn = reshape(dndn,1,1,ngauss,nelem);
-            
-            gradT = [dtdt,dtdn; dndt,dndn];
+            dtdt = obj.K * ((1-d) - jumpT.*ddot_t) .*isDamaging; % 1 x ngauss x nelem
+            dtdn = obj.K * (-jumpT.*ddot_n) .*isDamaging;
+            dndt = obj.K * (-jumpN.*ddot_t) .*isDamaging;
+            dndn = obj.K * ((1-d) - jumpN.*ddot_n) .*isDamaging;
         end
 
-        function d = computeDamage(obj,jump) % 1 x ngauss x nelem
-            jumpNorm = obj.computeJumpNorm(jump);
-            L = min((obj.jumpFinal*(jumpNorm-obj.jumpCrit))./ ...
+        function d = computeDamage(obj,jumpNorm,isDamaging) % 1 x ngauss x nelem   
+            d = min((obj.jumpFinal*(jumpNorm-obj.jumpCrit))./ ...
                 (jumpNorm*(obj.jumpFinal-obj.jumpCrit)),1);
-            d = max(L,0); % 1 x ngauss x nelem
+            d = max(d,0);
         end
 
+        function ddot = computeDamageDerivative(obj,jump,jumpNorm,isDamaging)
+            alpha      = -obj.jumpCrit * obj.jumpFinal / (obj.jumpCrit-obj.jumpFinal) ./jumpNorm^3;
+            ddot       = alpha .* jump .* isDamaging;
+        end
+
+        function isDamaging = isJumpDamaging(obj,jump) 
+            jumpNorm = obj.computeJumpNorm(jump)-1e-15;
+            temp1 = jumpNorm - obj.jumpCrit; % f - a
+            temp2 = obj.jumpFinal - jumpNorm; % b - f
+            isDamaging = temp1.*temp2 > 0;  % 1 x ngauss x nelem
+        end       
+    
         function jN = computeJumpNorm(obj,jump) % 1 x ngauss x nelem
             unoZero = ConstantFunction.create([1;0],jump.mesh);
             zeroUno = ConstantFunction.create([0;1],jump.mesh);
             jN = sqrt(DP(jump,unoZero,1,1).^2 + DP(jump,zeroUno,1,1).^2) + 1e-15;
         end
-
-        function ddot =  computeDamageDerivative(obj,jump)
-            isDamaging = obj.isJumpDamaging(jump);
-            jumpNorm   = obj.computeJumpNorm(jump);
-            alpha      = -obj.jumpCrit * obj.jumpFinal / (obj.jumpCrit-obj.jumpFinal) ./jumpNorm^3;
-            ddot       = alpha .* jump;
-            ddot        = ddot.*isDamaging;
-        end
-
-        function isDamaging = isJumpDamaging(obj,jump) % comprovar!!
-            
-            temp1 = jump - obj.jumpCrit; % f - a
-            temp2 = obj.jumpFinal - jump; % b - f
-            isDamaging = temp1.*temp2 > 0; 
-        end        
     end
 end
