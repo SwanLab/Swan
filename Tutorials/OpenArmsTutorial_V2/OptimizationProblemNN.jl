@@ -9,7 +9,7 @@ using ..Network
 using ..LossFunctional
 using ..Sh_Func_L2norm
 using ..CostNN
-using ..Adam
+using ..Optimizer
 using ..PlotterNN
 using ..Data
 
@@ -24,7 +24,7 @@ struct OptimizationProblemNNStruct
     loss::LossFunctional.LossFunctionalStruct
     reg::Sh_Func_L2norm.ShFuncL2normStruct
     cost::CostNN.CostNNStruct
-    optimizer::Adam.AdamStruct
+    optimizer::Union{Optimizer.AdamStruct, Optimizer.SGDStruct}
     plotter::PlotterNN.PlotterNNStruct
 end
 
@@ -58,11 +58,8 @@ function init_OptimizationProblemNN(cParams::Dict{String, Any})
         "weights"        => [1.0, cost_params["λ"]]
     ))
 
-    # 4. Optimiseur Adam
-    optimizer = Adam.init_Adam(merge(optimizer_params, Dict(
-        "costFunc"        => cost,
-        "designVariable"  => learnable_vars
-    )))
+    # 4. Optimiseur 
+    optimizer = _init_optimizer(optimizer_params, cost, learnable_vars)
 
     # 5. Plotter
     plotter = init_plotter_nn(Dict(
@@ -83,7 +80,7 @@ Lance l'entraînement. Retourne (optimizer_final, θ_optimal).
 """
 function solve(opt::OptimizationProblemNNStruct)
     θ = opt.network.learnable_variables.thetavec
-    return Adam.compute(opt.optimizer, θ)
+    return Optimizer.compute(opt.optimizer, θ)
 end
 
 """
@@ -109,8 +106,8 @@ end
 
 Affiche la courbe de coût de l'optimiseur Adam.
 """
-function plot_cost(optimizer::Adam.AdamStruct)
-    Adam.plot_cost_func(optimizer)
+function plot_cost(optimizer::Union{Optimizer.AdamStruct, Optimizer.SGDStruct})
+    Optimizer.plot_cost_func(optimizer)
 end
 
 """
@@ -142,6 +139,23 @@ function compute_gradient(opt::OptimizationProblemNNStruct,
                            X::Matrix{Float64},
                            θ::Vector{Float64})
     return Network.compute_gradient(opt.network, X, θ)
+end
+
+function _init_optimizer(optimizer_params::Dict{String, Any},
+                          cost::CostNN.CostNNStruct,
+                          learnable_vars::LearnableVariables.LearnableVars)
+    params = merge(optimizer_params, Dict(
+        "costFunc"       => cost,
+        "designVariable" => learnable_vars
+    ))
+    type = optimizer_params["type"]
+    if type == "Adam"
+        return Optimizer.init_Adam(params)
+    elseif type == "SGD"
+        return Optimizer.init_SGD(params)
+    else
+        error("Optimiseur inconnu : $type")
+    end
 end
 
 end

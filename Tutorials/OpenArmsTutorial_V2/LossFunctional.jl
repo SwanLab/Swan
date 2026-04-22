@@ -48,12 +48,12 @@ Coût et gradient sur un mini-batch (Xb, Yb) déjà extrait.
 Retourne (J, grad).
 La responsabilité du découpage en batches appartient à l'optimiseur (Adam).
 """
-function compute_minibatch_function_and_gradient(lf::LossFunctionalStruct,
-                                                  Xb::Matrix{Float64},
-                                                  Yb::Matrix{Float64},
-                                                  θ::Vector{Float64})
-    return _forward_and_backward(lf.network, Xb, Yb, lf, θ)
-end
+# function compute_minibatch_function_and_gradient(lf::LossFunctionalStruct,
+#                                                   Xb::Matrix{Float64},
+#                                                   Yb::Matrix{Float64},
+#                                                   θ::Vector{Float64})
+#     return _forward_and_backward(lf.network, Xb, Yb, lf, θ)
+# end
 
 # ---------------------------------------------------------------------------
 # Fonctions internes

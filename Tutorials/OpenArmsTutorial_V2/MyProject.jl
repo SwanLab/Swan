@@ -28,9 +28,9 @@ include("PlotterNN.jl")
 using .PlotterNN
 export PlotterNN
 
-include("Adam.jl")
-using .Adam
-export Adam
+include("Optimizer.jl")
+using .Optimizer
+export Optimizer
 
 include("OptimizationProblemNN.jl")
 using .OptimizationProblemNN

@@ -22,17 +22,17 @@ function init_ShFuncL2norm(params::Dict{Any, Any})
     return ShFuncL2normStruct()
 end
 
-"""
-    compute_stochastic_cost_and_gradient(obj, θ)
+# """
+#     compute_stochastic_cost_and_gradient(obj, θ)
 
-Returns (cost, gradient, is_batch_depleted).
-For L2 norm, no batching logic is needed so is_batch_depleted is always false.
-"""
-function compute_stochastic_cost_and_gradient(obj::ShFuncL2normStruct, θ::Vector{Float64}, move_batch=nothing)
-    j, dj = compute_function_and_gradient(obj, θ)
-    isBD = false
-    return j, dj, isBD
-end
+# Returns (cost, gradient, is_batch_depleted).
+# For L2 norm, no batching logic is needed so is_batch_depleted is always false.
+# """
+# function compute_stochastic_cost_and_gradient(obj::ShFuncL2normStruct, θ::Vector{Float64}, move_batch=nothing)
+#     j, dj = compute_function_and_gradient(obj, θ)
+#     isBD = false
+#     return j, dj, isBD
+# end
 
 """
     compute_function_and_gradient(obj, θ)

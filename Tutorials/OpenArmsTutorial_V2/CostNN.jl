@@ -56,19 +56,19 @@ Coût total et gradient sur un mini-batch (Xb, Yb) déjà extrait.
 Retourne (J_total, grad_total).
 La responsabilité du découpage en batches appartient à Adam.
 """
-function compute_minibatch_function_and_gradient(obj::CostNNStruct,
-                                                  Xb::Matrix{Float64},
-                                                  Yb::Matrix{Float64},
-                                                  θ::Vector{Float64})
-    J_loss, g_loss = LossFunctional.compute_minibatch_function_and_gradient(
-                         obj.shapeFunctions[1], Xb, Yb, θ)
-    J_reg,  g_reg  = Sh_Func_L2norm.compute_function_and_gradient(obj.shapeFunctions[2], θ)
+# function compute_minibatch_function_and_gradient(obj::CostNNStruct,
+#                                                   Xb::Matrix{Float64},
+#                                                   Yb::Matrix{Float64},
+#                                                   θ::Vector{Float64})
+#     J_loss, g_loss = LossFunctional.compute_minibatch_function_and_gradient(
+#                          obj.shapeFunctions[1], Xb, Yb, θ)
+#     J_reg,  g_reg  = Sh_Func_L2norm.compute_function_and_gradient(obj.shapeFunctions[2], θ)
 
-    w1, w2 = obj.weights[1], obj.weights[2]
-    J_total = w1 * J_loss + w2 * J_reg
-    g_total = w1 .* g_loss .+ w2 .* g_reg
+#     w1, w2 = obj.weights[1], obj.weights[2]
+#     J_total = w1 * J_loss + w2 * J_reg
+#     g_total = w1 .* g_loss .+ w2 .* g_reg
 
-    return J_total, g_total
-end
+#     return J_total, g_total
+# end
 
 end
