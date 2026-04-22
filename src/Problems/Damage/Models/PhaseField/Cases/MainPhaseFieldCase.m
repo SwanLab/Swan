@@ -18,10 +18,14 @@ s.maxIter.u = 100;
 s.maxIter.phi = 300;
 s.maxIter.stag = 300;
 
-s.benchmark.mesh.type   = '1Elem';%'SENshear';
-s.benchmark.bc.u.type   = 'DisplacementPureShear';%'DisplacementShear';
-s.benchmark.bc.u.values =  [0:1e-3:1];
-s.benchmark.bc.phi.type = 'DamageFree';
+s.benchmark.mesh.type   = 'Uniaxial';%'SENshear';
+s.benchmark.mesh.length = 1;
+s.benchmark.mesh.width  = 1;
+s.benchmark.mesh.lN     = 10;
+s.benchmark.mesh.wN     = 10;
+s.benchmark.bc.u.type   = 'DisplacementTractionX';%'DisplacementShear';
+s.benchmark.bc.u.values =  [3.6:1e-4:3.65];
+s.benchmark.bc.phi.type = 'DamageFixedLimitsX';
 
 s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'
 s.matInfo.degradationType = 'PhaseField'; %'PhaseField','SIMPALL'

@@ -31,7 +31,7 @@ classdef OptimizerPhaseField < handle
                 iter.u = max(iterU,iter.u);
 
                 [theta] = obj.updateOrientation(u,theta);
-                theta.evaluate([0;0])
+                %theta.evaluate([0;0])
                 obj.functional.updateMaterialRotation(theta);
 
                 [phi,costArray,iterPhi] = obj.updateDamage(u,phi,bc,costArray);
