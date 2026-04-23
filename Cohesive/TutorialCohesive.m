@@ -44,7 +44,7 @@ classdef TutorialCohesive < handle
         end
 
         function createMesh(obj)
-            s.baseMesh = UnitQuadMesh(1,1);
+            s.baseMesh = UnitQuadMesh(2,2);
             y = 0;
             s.isFractured = @(coord) abs(coord(:,2) - y) <= 1e-10;
             obj.cohesiveMesh = CohesiveMesh(s);
@@ -63,11 +63,10 @@ classdef TutorialCohesive < handle
         end
 
         function createTractionSeparation(obj)
-            % s.jumpCrit  = 0;
-            % s.jumpFinal = 2;
+            s.jumpCrit  = 0.001;
+            s.jumpFinal = 0.2;
             s.fractureStrength  = 1;
             s.fractureToughness = 1;
-            s.jumpCrit = 0.001;
             s.lawType = 'TractionBiliniarCoupled';
             % s.lawType = 'TractionBiliniarUncoupled';
             obj.tractionSeparation = CohesiveTractionSeparation(s);

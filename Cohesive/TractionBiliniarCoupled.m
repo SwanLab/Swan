@@ -18,9 +18,8 @@ classdef TractionBiliniarCoupled < handle
         end
 
         function t = computeFunction(obj,jump)
-            isDamaging = obj.isJumpDamaging(jump);
             jumpNorm = obj.computeJumpNorm(jump);
-            d = obj.computeDamage(jumpNorm,isDamaging);
+            d = obj.computeDamage(jumpNorm);
             t = obj.K * (1-d).*jump;
         end
 
@@ -37,8 +36,8 @@ classdef TractionBiliniarCoupled < handle
         function init(obj,cParams)
             obj.tau0  = cParams.fractureStrength;
             obj.Gc    = cParams.fractureToughness;
-            obj.jumpCrit  = 0.001;
-            obj.jumpFinal = 0.2;
+            obj.jumpCrit  = cParams.jumpCrit;
+            obj.jumpFinal = cParams.jumpFinal;
             obj.K         = 1e8;
             % obj.jumpFinal = 2*obj.Gc/obj.tau0;
             % obj.jumpCrit  = obj.tau0/obj.K;
@@ -56,7 +55,7 @@ classdef TractionBiliniarCoupled < handle
         function [dtdt,dtdn,dndt,dndn] = computeTractionDerivatives(obj, jump)
             isDamaging = obj.isJumpDamaging(jump);  % nDimJumpNorm (1) x ngauss x nelem
             jumpNorm = obj.computeJumpNorm(jump); % 1 x ngauss x nelem
-            d    = obj.computeDamage(jumpNorm,isDamaging);             % 1 x ngauss x nelem
+            d    = obj.computeDamage(jumpNorm);             % 1 x ngauss x nelem
             ddot = obj.computeDamageDerivative(jump,jumpNorm,isDamaging);   % 2 x ngauss x nelem
             unoZero = ConstantFunction.create([1;0],jump.mesh);
             zeroUno = ConstantFunction.create([0;1],jump.mesh);
@@ -68,16 +67,18 @@ classdef TractionBiliniarCoupled < handle
             dndn = obj.K * ((1-d) - jumpN.*ddot_n) .*isDamaging;
         end
 
-        function d = computeDamage(obj,jumpNorm,isDamaging) % 1 x ngauss x nelem   
+        function d = computeDamage(obj,jumpNorm) % 1 x ngauss x nelem   
             d = min((obj.jumpFinal*(jumpNorm-obj.jumpCrit))./ ...
                 (jumpNorm*(obj.jumpFinal-obj.jumpCrit)),1);
             d = max(d,0);
         end
 
+        % CANDIDAT D'ERROR ===============================
         function ddot = computeDamageDerivative(obj,jump,jumpNorm,isDamaging)
-            alpha      = -obj.jumpCrit * obj.jumpFinal / (obj.jumpCrit-obj.jumpFinal) ./jumpNorm^3;
+            alpha      = obj.jumpCrit * obj.jumpFinal / (obj.jumpCrit-obj.jumpFinal) ./jumpNorm^3;
             ddot       = alpha .* jump .* isDamaging;
         end
+        % ================================================
 
         function isDamaging = isJumpDamaging(obj,jump) 
             jumpNorm = obj.computeJumpNorm(jump)-1e-15;

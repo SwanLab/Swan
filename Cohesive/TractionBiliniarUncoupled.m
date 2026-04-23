@@ -28,7 +28,7 @@ classdef TractionBiliniarUncoupled < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.K = cParams.K;
+            obj.K = 1e8;
             obj.jumpCrit  = cParams.jumpCrit;
             obj.jumpFinal = cParams.jumpFinal;
         end

@@ -1,14 +1,15 @@
 clear
 close all
 u3     = 0.05;
-Df     = 0.2;
-Dc = 0;
+Df     =  0.2;
+Dc = 0.00;
 Kelas  = 1e6;
 Kcoh   = 1e8;
 
 A = -1/(Df-Dc);
 B = 1 + Kelas/Kcoh;
 C = -u3 * Kelas/Kcoh + Dc / (Df-Dc);
+
 coefficients = [A, B, C];
 u2 = roots(coefficients);
 jump = u2;

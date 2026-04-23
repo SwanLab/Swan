@@ -76,8 +76,8 @@ classdef Jump < FeFunction
         
         function init(obj,cParams)
             obj.cohesiveMesh = cParams.cohesiveMesh;
-            obj.ndimf = cParams.ndimf;
-            obj.uFun  =  cParams.uFun;
+            obj.ndimf   = cParams.ndimf;
+            obj.uFun    =  cParams.uFun;
             obj.jumpDim = 2;
             obj.nDofsElem = obj.uFun.nDofsElem;
             obj.mesh = obj.cohesiveMesh.mesh;
