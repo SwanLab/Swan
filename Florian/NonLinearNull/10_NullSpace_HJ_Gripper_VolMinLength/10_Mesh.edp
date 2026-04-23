@@ -26,7 +26,7 @@ mesh Th = buildmesh(L1(40*fac)+C1(10*fac)+C2u(9*fac)+C2(2*fac)
                     +Tr(10*fac)+Tl(90*fac));
 
 real meshsiz = 0.02/(2*fac);
-real alpha = 2.0*meshsiz;
+real alpha = 4.0*meshsiz;
 real beta  = 8.0*meshsiz;
 
 exportMesh(Th);

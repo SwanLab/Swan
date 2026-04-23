@@ -39,7 +39,7 @@ real mu = 0.3846;   // Lamé coefficients
 real lambda = 0.5769;
 problem adjoint([px,py],[vx,vy]) = int2d(Th)(Achi*mu*(2.0*dx(px)*dx(vx) + (dx(py)+dy(px))*(dx(vy)+dy(vx))
                                           + 2.0*dy(py)*dy(vy)) + Achi*lambda*(dx(px)+dy(py))*(dx(vx)+dy(vy)) )
-                           - int1d(Th,labelNeu1u)(0.25*vy) - int1d(Th,labelNeu1d)(-0.25*vy) - int1d(Th,labelNeu2u)(-2*vy) - int1d(Th,labelNeu2d)(2*vy)
+                           - int1d(Th,labelNeu1u)(vy) - int1d(Th,labelNeu1d)(-vy) - int1d(Th,labelNeu2u)(-2*vy) - int1d(Th,labelNeu2d)(2*vy)
                            + on(labelDir,px=0.0,py=0.0);
 
 adjoint;
