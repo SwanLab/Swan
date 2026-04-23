@@ -1,72 +1,32 @@
 IMPORT "io.edp"
-load "mmg"
+load "distance"
 
 mesh Th = importMesh("Th");
 real [int] phiVal1 = importArray("phiVal1");
 real [int] phiVal2 = importArray("phiVal2");
 real alpha = importVar("alpha");
-real beta = importVar("beta");
-real lsLab = importVar("lsLab");
-real rInner = importVar("rInner");
 
 fespace Vh(Th,P1);
-Vh phi, phi1, phi2, nx1, ny1;
+Vh dOm, phi, phi1, phi2, nx, ny, kappa, v;
 phi1[] = phiVal1;
 phi2[] = phiVal2;
 for (int i = 0; i < Vh.ndof; ++i) {
   phi[][i] = max(phiVal1[i],phiVal2[i]); /* Intersection */
 }
+distance(Th,phi,dOm[]);
 
-mesh Th2, Th3;
-meshL ThLInt;
-int [int] lsLabel(1);
-lsLabel[0] = lsLab;
+problem projNx(nx,v) = int2d(Th)(nx*v) - int2d(Th)(dx(dOm)*v);
 
-macro updateBoundary() {
-  Th2 = mmg2d(Th, iso = 1, ls = 0.0, metric = phi[], hmax = 0.05);
-  Th3 = trunc(Th2, region == rInner);
-  ThLInt = extract(Th3,label = lsLabel);
-} //
-
-updateBoundary;
-
-fespace Vh1D(ThLInt,P1);
-Vh1D nx, ny, v0, gx0 = dx(phi), gy0 = dy(phi);
-
-problem projNx(nx,v0) = int1d(ThLInt)(alpha^2*(dx(nx)*dx(v0)+dy(nx)*dy(v0)) + nx*v0) 
-                        - int1d(ThLInt)(Tl.y*v0);
-
-problem projNy(ny,v0) = int1d(ThLInt)(alpha^2*(dx(ny)*dx(v0)+dy(ny)*dy(v0)) + ny*v0) 
-                          - int1d(ThLInt)(-Tl.x*v0);
+problem projNy(ny,v) = int2d(Th)(ny*v) - int2d(Th)(dy(dOm)*v);
 
 projNx;
 projNy;
-nx = nx/sqrt(nx^2+ny^2+1e-6);
-ny = ny/sqrt(nx^2+ny^2+1e-6);
 
-Vh1D sgn = nx*gx0 + ny*gy0;
+problem regKappa(kappa,v) = int2d(Th)(alpha^2.0*(dx(kappa)*dx(v)+dy(kappa)*dy(v)) + kappa*v)
+                    - int2d(Th)((dx(nx)+dy(ny))*v);
 
-for (int i = 0; i < Vh1D.ndof; ++i) {
-    if (sgn[][i] < 0) {
-        nx[][i] = -nx[][i];
-        ny[][i] = -ny[][i];
-    }
-}
+regKappa;
 
-fespace Vh2(Th2,P1);
-Vh2 nx2, ny2, v2;
-
-problem velextx(nx2,v2) = int2d(Th2)(beta^2*(dx(nx2)*dx(v2)+dy(nx2)*dy(v2)) + nx2*v2)
-                    - int1d(Th2,lsLabel)(beta*nx*v2);
-
-problem velexty(ny2,v2) = int2d(Th2)(beta^2*(dx(ny2)*dx(v2)+dy(ny2)*dy(v2)) + ny2*v2)
-                    - int1d(Th2,lsLabel)(beta*ny*v2);
-
-velextx;
-velexty;
-nx1 = nx2;
-ny1 = ny2;
-
-exportMesh(Th2);
-exportArray(nx1[]);
-exportArray(ny1[]);
+exportArray(nx[]);
+exportArray(ny[]);
+exportArray(kappa[]);

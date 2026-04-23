@@ -1,6 +1,5 @@
 IMPORT "io.edp"
 load "distance"
-load "mmg"
 
 mesh Th = importMesh("Th");
 real [int] phiVal1 = importArray("phiVal1");
@@ -11,14 +10,14 @@ real [int] nyVal = importArray("nyVal");
 real dt = importVar("dTime");
 
 fespace Vh(Th,P1);
-Vh phio, phi1, phi2, g, nx1, ny1, gx, gy;
+Vh phio, phi1, phi2, g, nx, ny, gx, gy;
 
-nx1[] = nxVal;
-ny1[] = nyVal;
+nx[] = nxVal;
+ny[] = nyVal;
 
 g[] = gVal;
-gx = g*nx1;
-gy = g*ny1;
+gx = g*nx;
+gy = g*ny;
 
 func real[int] advectRedist(real[int] phiot, real[int] vxt, real[int] vyt, real step) {
    Vh phi,phitmp,phio=phiot,velx=vxt,vely=vyt;

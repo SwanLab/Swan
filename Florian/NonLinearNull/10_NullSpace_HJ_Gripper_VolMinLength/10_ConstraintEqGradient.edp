@@ -1,39 +1,22 @@
 IMPORT "io.edp"
-load "mmg"
 
 mesh Th = importMesh("Th");
-mesh Th2 = importMesh("Th2");
 real beta = importVar("beta");
-real lsLab = importVar("lsLab");
-real rInner = importVar("rInner");
+real [int] phiVal1 = importArray("phiVal1");
+real [int] phiVal2 = importArray("phiVal2");
 
 fespace Vh(Th,P1);
-Vh g;
+Vh g, v, phi, phi1, phi2;
 
-mesh Th3;
-meshL ThLInt;
-int [int] lsLabel(1);
-lsLabel[0] = lsLab;
+phi1[] = phiVal1;
+phi2[] = phiVal2;
+for (int i = 0; i < Vh.ndof; ++i) {
+  phi[][i] = max(phiVal1[i],phiVal2[i]); /* Intersection */
+}
 
-macro updateBoundary() {
-  Th3 = trunc(Th2, region == rInner);
-  ThLInt = extract(Th3,label = lsLabel);
-} //
-
-updateBoundary;
-
-fespace Vh2(Th2,P1);
-Vh2 g2, v2;
-
-fespace Vh1D(ThLInt,P1);
-Vh1D g0;
-g0 = -1;
-
-problem velext(g2,v2,tgv=-1) = int2d(Th2)(beta^2*(dx(g2)*dx(v2)+dy(g2)*dy(v2)) + g2*v2)
-                    - int1d(Th2,lsLabel)(beta*g0*v2);
+problem velext(g,v) = int2d(Th)(beta^2*(dx(g)*dx(v)+dy(g)*dy(v)) + g*v)
+                    - int1d(Th,levelset=phi)(beta*(-1)*v);
 
 velext;
-
-g = g2;
 
 exportArray(g[]);
