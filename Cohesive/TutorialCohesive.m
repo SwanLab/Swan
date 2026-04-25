@@ -44,10 +44,12 @@ classdef TutorialCohesive < handle
         end
 
         function createMesh(obj)
-            s.baseMesh = UnitQuadMesh(2,2);
-            y = 0;
-            s.isFractured = @(coord) abs(coord(:,2) - y) <= 1e-10;
+            s.baseMesh = UnitQuadMesh(8,8);
+            y = 0.5;
+            xmax = 0.4;
+            s.isFractured = @(coord) abs(coord(:,2) - y) <= 1e-10  & coord(:,1) - xmax <= 1e-10 ;
             obj.cohesiveMesh = CohesiveMesh(s);
+            obj.cohesiveMesh.plot;
         end
 
         function defineCase(obj)
