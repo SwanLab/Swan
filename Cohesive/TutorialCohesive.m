@@ -17,7 +17,7 @@ classdef TutorialCohesive < handle
         function obj = TutorialCohesive()
             obj.init();
             obj.createMesh();
-            obj.defineCase(); %Benchmarks
+            obj.defineCase();
             obj.createCohesiveFunctional()
             obj.solveProblem()
         end
