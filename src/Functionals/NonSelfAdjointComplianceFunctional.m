@@ -107,9 +107,11 @@ classdef NonSelfAdjointComplianceFunctional < handle
 
             % u_vec = reshape(uS.fValues',[],1); % to undo the reshape done in computeDisplacements
 
-            cost_in = sum(Integrator.compute(DP(t_in_lagrangian,uS),obj.mesh,2));
-            cost_out = sum(Integrator.compute(DP(t_out_lagrangian,uS),obj.mesh,2));
+            cost_in = sum(t_in_reshaped.*uS.fValues,'all');
+            %cost_in = sum(Integrator.compute(DP(t_in_lagrangian,uS),obj.mesh,2));
+           % cost_out = sum(Integrator.compute(DP(t_out_lagrangian,uS),obj.mesh,2));
 
+           cost_out = sum(t_out_reshaped.*uS.fValues,'all');
             int_k_in = sum(Integrator.compute(abs(t_in_lagrangian),obj.mesh,2));
             int_k_out = sum(Integrator.compute(abs(t_out_lagrangian),obj.mesh,2));  
 
@@ -125,8 +127,8 @@ classdef NonSelfAdjointComplianceFunctional < handle
             J = J/obj.value0;
 
             value0vec = [obj.value0, 0];
-            obj.cost_in_norm = cost_in / value0vec;
-            obj.cost_out_norm = cost_out / value0vec;
+            obj.cost_in_norm = cost_in / obj.value0; 
+            obj.cost_out_norm = cost_out / obj.value0;
         end
     end
 
