@@ -30,17 +30,13 @@ classdef CohesiveMesh < handle
         
         function obj = CohesiveMesh(cParams)
             obj.init(cParams)
-            
             edgesInCohElem = obj.detectFracturedEdges(cParams);
             newCoord    = obj.duplicateNodes();
-
             centerElemsInEdge         = obj.computeCenterElements();
             normals                           = obj.computeNormals();
             [isLeft, isRight]                 = obj.computeIsLeftIsRight(centerElemsInEdge,normals,edgesInCohElem);
-
             newCoord    = obj.shiftCoordOfLeftAndRightElements(newCoord,normals);
             newConnec   = obj.updateConnecOfLeftElements(isLeft, newCoord);
-            
             obj.newMesh(newConnec, newCoord);
             obj.createLineMesh();
         end
@@ -49,7 +45,6 @@ classdef CohesiveMesh < handle
             subplot(1,2,1)
             obj.baseMesh.plot;
             title('BaseMesh')
-
             subplot(1,2,2)
             obj.fullMesh.plot;
             title('CohesiveMesh')

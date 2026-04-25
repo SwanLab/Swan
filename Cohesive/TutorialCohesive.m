@@ -67,8 +67,8 @@ classdef TutorialCohesive < handle
             s.jumpFinal = 0.2;
             s.fractureStrength  = 1;
             s.fractureToughness = 1;
-            s.lawType = 'TractionBiliniarCoupled';
-            % s.lawType = 'TractionBiliniarUncoupled';
+            % s.lawType = 'TractionBiliniarCoupled';
+            s.lawType = 'TractionBiliniarUncoupled';
             obj.tractionSeparation = CohesiveTractionSeparation(s);
         end
 
