@@ -71,10 +71,13 @@ classdef FilterOverhang < handle
         end
 
         function p = createPotential(obj,fun)
-            s.mesh = obj.mesh;
-            s.chi  = fun;
-            s.trial = obj.trial;
-            p      = OverhangPotential(s);
+            s.mesh    = obj.mesh;
+            s.chi     = fun;
+            s.epsilon = obj.epsilon;
+            s.k       = obj.k;
+            s.theta   = obj.theta;
+            s.trial   = obj.trial;
+            p         = OverhangPotential(s);
         end
 
         function M = createMassMatrix(obj)
