@@ -7,6 +7,7 @@ classdef OverhangPotential < handle
         vec
         th
         M
+        tol
     end
 
     properties (Access = private)
@@ -23,7 +24,7 @@ classdef OverhangPotential < handle
             rho = xD{1};
             k     = obj.vec;
             gRhoN = sqrt(DP(Grad(rho),Grad(rho)));
-            gRhoU = Grad(rho)./(gRhoN + 1e-6);
+            gRhoU = Grad(rho)./(gRhoN + obj.tol);
             dirDer = DP(gRhoU,k);
             J1  = obj.computeMinimumSquaresTerm(rho);
             J2  = obj.computeRegularizationTerm(gRhoN,dirDer);
@@ -59,6 +60,7 @@ classdef OverhangPotential < handle
             obj.vec     = cParams.k;
             obj.th      = cParams.theta;
             obj.M       = obj.createLumpedMass(cParams);
+            obj.tol     = 1e-12;
         end
 
         function M = createLumpedMass(obj,cParams)
@@ -78,7 +80,7 @@ classdef OverhangPotential < handle
         function J = computeRegularizationTerm(obj,gRhoN,dirDer)
             theta  = obj.th;
             e      = obj.epsilon;
-            f      = gRhoN./(dirDer - cos(theta) + 1e-6);
+            f      = gRhoN./(dirDer - cos(theta) + obj.tol);
             int    = (f.^2).*(max(dirDer-cos(theta),0)).^2;
             J      = (e^2/2)*Integrator.compute(int,obj.mesh,3);
         end
@@ -94,12 +96,12 @@ classdef OverhangPotential < handle
             e = obj.epsilon;
             k = obj.vec;
             theta = obj.th;
-            constr = dirDer - cos(theta) + 1e-6;
+            constr = dirDer - cos(theta) + obj.tol;
             maxF = max(dirDer - cos(theta),0).^2;
             gV    = @(v) Grad(v);
             gradV = @(v) DomainFunction.create(@(xV) squeezeParticular(gV(v).evaluate(xV),1),obj.mesh,gRhoN.ndimf);
             num1 = @(v) constr.*DP(Grad(rho),gradV(v));
-            num2 = @(v) gRhoN.*DP(k,gradV(v)-Grad(rho).*DP(gRhoU,gradV(v)./(gRhoN + 1e-6)));
+            num2 = @(v) gRhoN.*DP(k,gradV(v)-Grad(rho).*DP(gRhoU,gradV(v)./(gRhoN + obj.tol)));
             int  = @(v) maxF.*(num1(v)-num2(v))./(constr.^3);
             rhs  = e^2.*IntegrateRHS(int,rho,obj.mesh,'Domain',3);
         end
@@ -108,12 +110,12 @@ classdef OverhangPotential < handle
             e = obj.epsilon;
             k = obj.vec;
             theta = obj.th;
-            constr = dirDer - cos(theta) + 1e-6;
+            constr = dirDer - cos(theta) + obj.tol;
             maxF = max(dirDer - cos(theta),0);
             gV    = @(v) Grad(v);
             gradV = @(v) DomainFunction.create(@(xV) squeezeParticular(gV(v).evaluate(xV),1),obj.mesh,gRhoN.ndimf);
             f1   = (DP(Grad(rho),Grad(rho)))./(constr.^2);
-            f2   = @(v) DP(k,gradV(v)./(gRhoN + 1e-6) - gRhoU.*DP(gRhoU,gradV(v)./(gRhoN + 1e-6)));
+            f2   = @(v) DP(k,gradV(v)./(gRhoN + obj.tol) - gRhoU.*DP(gRhoU,gradV(v)./(gRhoN + obj.tol)));
             int = @(v) maxF.*f1.*f2(v);
             rhs  = e^2.*IntegrateRHS(int,rho,obj.mesh,'Domain',3);
         end

@@ -3,7 +3,7 @@ clear;
 clc;
 close all;
 
-mesh = TriangleMesh(1,1,50,50);
+mesh = TriangleMesh(1,1,75,75);
 h    = mesh.computeMeanCellSize();
 
 sG.type        = 'Circle';
@@ -25,6 +25,7 @@ sF.trial       = LagrangianFunction.create(mesh,1,'P1');
 sF.senseVector = ConstantFunction.create([0;1],mesh);
 sF.ovAngleDeg  = 45;
 filter         = FilterOverhang(sF);
-filter.updateEpsilon(5*h);
+filter.updateEpsilon(3*h);
 
 rhoEps = filter.compute(chi,3);
+rhoEps.print('RhoEps');
