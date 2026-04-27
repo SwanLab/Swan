@@ -83,28 +83,25 @@ classdef MaterialMultilayer < handle
             % planeStressReduction - Reduce a 3D constitutive tensor to plane stress
             %
             % For shells/plates, the condition sigma_33 = 0 is enforced.
-            % 
-            % The out-of-plane shear terms (i3),(3j) are NOT affected and are kept as-is.
+            % Out-of-plane shear terms are mathematically preserved for orthotropic/isotropic materials.
 
             C_ps = C;
             C33 = C(3,3,3,3);
+
             if abs(C33) < 1e-30
-                return  
+                return
             end
+
             for i = 1:3
                 for j = 1:3
                     for k = 1:3
                         for l = 1:3
-                            % Only condense in-plane normal components
-                            if (i ~= 3 && j ~= 3 && k ~= 3 && l ~= 3)
-                                C_ps(i,j,k,l) = C(i,j,k,l) - C(i,j,3,3)*C(3,3,k,l)/C33;
-                            end
+                            C_ps(i,j,k,l) = C(i,j,k,l) - C(i,j,3,3)*C(3,3,k,l)/C33;
                         end
                     end
                 end
             end
         end
-        
     end
     
     methods (Access = public)

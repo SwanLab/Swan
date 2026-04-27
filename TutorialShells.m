@@ -1203,17 +1203,17 @@ classdef TutorialShells < handle
 
                     % Top of bottom layer
                     count = count + 1;
-                    strainFun{count} = strainTemp{i}; %#ok<AGROW>
-                    stressFun{count} = stressTemp{1, i}; %#ok<AGROW>
+                    strainFun{count} = strainTemp{i}; 
+                    stressFun{count} = stressTemp{1, i}; 
                     fprintf('Position {%d}: z = %.6f, TOP of Layer %d\n', count, z_k, kLayerBottom);
 
                     % Bottom of top layer
                     count = count + 1;
-                    strainFun{count} = strainTemp{i}; %#ok<AGROW>
-                    stressFun{count} = stressTemp{2, i}; %#ok<AGROW>
+                    strainFun{count} = strainTemp{i}; 
+                    stressFun{count} = stressTemp{2, i}; 
                     fprintf('Position {%d}: z = %.6f, BOTTOM of Layer %d\n', count, z_k, kLayerTop);
                 end
-                % ============= Von Mises =============
+                
                 
             end
 
