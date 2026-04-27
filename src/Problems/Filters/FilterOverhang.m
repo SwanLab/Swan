@@ -46,7 +46,7 @@ classdef FilterOverhang < handle
             obj.trial   = LagrangianFunction.create(cParams.mesh, cParams.trial.ndimf, cParams.trial.order);
             obj.mesh    = cParams.mesh;
             obj.k       = cParams.senseVector;
-            obj.theta   = deg2rad(cParams.ovAngleDeg);
+            obj.theta   = deg2rad(90 - cParams.ovAngleDeg);
             obj.epsilon = cParams.mesh.computeMeanCellSize();
         end
 
