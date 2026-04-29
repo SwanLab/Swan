@@ -18,7 +18,7 @@ func real border2InitialGuess() {
   ls = 0.35 - (2.0/3.0)*x - y;
   return(ls);
 }
-func real border3InitialGuess() {
+func real border3InitialGuess() {   /* SUAVIZAR */
   real ls;
   ls = -0.15 - (4.0/9.0)*x + y;
   return(ls);

@@ -50,6 +50,8 @@ class TO_problem(EuclideanOptimizable):
         self.ux = []
         self.uy = []
         self.kappa = []
+        self.J1 = []
+        self.J2 = []
     def x0(self):
         runner = FreeFemRunner(path+"10_InitialGuess.edp")
         runner.import_variables(Th=Th)
@@ -68,6 +70,8 @@ class TO_problem(EuclideanOptimizable):
         exports = runner.execute()
         self.ux = exports['ux[]']
         self.uy = exports['uy[]']
+        self.J1 = exports['J']
+        self.J2 = exports['Per']
         return exports['Jtot']
 
     def dJ(self, x):
@@ -130,9 +134,9 @@ params = {"dt": dTime*hmin*elRadius,
           "itnormalisation": No,
           "save_only_N_iterations": 1,
           "save_only_Q_constraints": 5,
-          "alphaJ": 2,
+          "alphaJ": 1,
           "alphaC": 1,
-          "maxit": 250,
+          "maxit": 100,
           "CFL": 0.9}
 problem:Optimizable = TO_problem()
 
@@ -227,7 +231,7 @@ params['fig'] = fig
 params['ax'] = ax
 
 # Load previous results
-group1 = ['x','J', 'G', 'H', 's', 'it','normxiJ_save','muls']
+group1 = ['x','J', 'G', 'H', 's', 'it','normxiJ_save','muls','J1','J2']
 group2 = ['normxiJ', 'eps', 'tolerance']
 abstract_results = OptimizationResults(group1, group2,  
                                     results, params['save_only_N_iterations'], 
@@ -271,6 +275,8 @@ problem._problem.ny = exports['ny[]']
 problem._problem.kappa = exports['kappa[]']
 
 J = problem.J(x)
+J1 = problem._problem.J1
+J2 = problem._problem.J2
 G = problem.G(x)
 H = problem.H(x)
 
@@ -282,6 +288,8 @@ if muls is None:
 while normdx > params['tol'] and it <= params['maxit']:
     abstract_results.save('it', it)
     abstract_results.save('J', J)
+    abstract_results.save('J1',J1)
+    abstract_results.save('J2',J2)
     abstract_results.save('G', G)
     abstract_results.save('H', H)
     abstract_results.save('x', x)
@@ -380,6 +388,8 @@ while normdx > params['tol'] and it <= params['maxit']:
         problem._problem.kappa = exports['kappa[]']
 
         (newJ, newG, newH) = (problem.J(newx), problem.G(newx), problem.H(newx))
+        J1 = problem._problem.J1
+        J2 = problem._problem.J2
         newC = np.concatenate((newG, newH))
             
         # Finite difference check
@@ -409,6 +419,8 @@ while normdx > params['tol'] and it <= params['maxit']:
     s += (0.5**k)*np.linalg.norm(dx, 2)
 
 abstract_results.save('J', J)
+abstract_results.save('J1',J1)
+abstract_results.save('J2',J2)
 abstract_results.save('G', G)
 abstract_results.save('H', H)
 abstract_results.save('x', x)
@@ -429,25 +441,37 @@ io.display_iteration(it, J, G, H, x,  level = -1, debug= params['debug'], color=
 results = abstract_results.implementation()
 iter = results['it']
 cost  = results['J']
+cost1 = results['J1']
+cost2 = results['J2']
 Vol = results['G']
 minL  = results['H']
 
-fig, axes = plt.subplots(1, 3, figsize=(10, 4))
+fig, axes = plt.subplots(1, 5, figsize=(10, 4))
 
 axes[0].plot(iter, cost, color='b')
 axes[0].set_xlabel('Iter')
-axes[0].set_ylabel('Dummy load work')
+axes[0].set_ylabel('Total cost')
 axes[0].grid(True, linestyle='--', alpha=0.6)
 
-axes[1].plot(iter, Vol, color='b')
+axes[1].plot(iter, cost1, color='b')
 axes[1].set_xlabel('Iter')
-axes[1].set_ylabel('Volume constraint')
+axes[1].set_ylabel('Dummy load work')
 axes[1].grid(True, linestyle='--', alpha=0.6)
 
-axes[2].plot(iter, minL, color='b')
+axes[2].plot(iter, cost2, color='b')
 axes[2].set_xlabel('Iter')
-axes[2].set_ylabel('Min length constraint')
+axes[2].set_ylabel('Perimeter')
 axes[2].grid(True, linestyle='--', alpha=0.6)
+
+axes[3].plot(iter, Vol, color='b')
+axes[3].set_xlabel('Iter')
+axes[3].set_ylabel('Volume constraint')
+axes[3].grid(True, linestyle='--', alpha=0.6)
+
+axes[4].plot(iter, minL, color='b')
+axes[4].set_xlabel('Iter')
+axes[4].set_ylabel('Min length constraint')
+axes[4].grid(True, linestyle='--', alpha=0.6)
 
 plt.tight_layout()
 plt.show()

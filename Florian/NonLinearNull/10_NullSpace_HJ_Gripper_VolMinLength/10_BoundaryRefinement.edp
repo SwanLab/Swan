@@ -8,27 +8,29 @@ real alpha = importVar("alpha");
 
 fespace Vh(Th,P1);
 fespace Vh0(Th,P0);
-Vh dOm, phi, phi1, phi2, nx, ny, kappa, v;
+Vh dOm, phi, phi1, phi2, nx, ny, nNorm, kappa, v;
 Vh0 kappa0;
 phi1[] = phiVal1;
 phi2[] = phiVal2;
 for (int i = 0; i < Vh.ndof; ++i) {
-  phi[][i] = max(phiVal1[i],phiVal2[i]); /* Intersection */
+  phi[][i] = max(phiVal1[i],phiVal2[i]); /* Intersection, CHECK THIS */
 }
 distance(Th,phi,dOm[]);
 
-problem projNx(nx,v) = int2d(Th)(0.0001*(dx(nx)*dx(v)+dy(nx)*dy(v)) + nx*v)
- - int2d(Th)((dx(dOm)/sqrt(dx(dOm)*dx(dOm)+dy(dOm)*dy(dOm) + 1.e-12))*v);
+problem projNx(nx,v) = int2d(Th)(0.0001*(dx(nx)*dx(v)+dy(nx)*dy(v)) + nx*v) - int2d(Th)(dx(dOm)*v);
 
-problem projNy(ny,v) = int2d(Th)(0.0001*(dx(ny)*dx(v)+dy(ny)*dy(v)) + ny*v)
- - int2d(Th)((dy(dOm)/sqrt(dx(dOm)*dx(dOm)+dy(dOm)*dy(dOm) + 1.e-12))*v);
+problem projNy(ny,v) = int2d(Th)(0.0001*(dx(ny)*dx(v)+dy(ny)*dy(v)) + ny*v) - int2d(Th)(dy(dOm)*v);
 
 projNx;
 projNy;
 
+nNorm = sqrt(nx*nx + ny*ny + 1.e-12);
+nx = nx/nNorm;
+ny = ny/nNorm;
+
 kappa0 = dx(nx)+dy(ny);
 
-problem regKappa(kappa,v) = int2d(Th)(alpha*(dx(kappa)*dx(v)+dy(kappa)*dy(v)) + kappa*v)
+problem regKappa(kappa,v) = int2d(Th)((alpha^2.0)*(dx(kappa)*dx(v)+dy(kappa)*dy(v)) + kappa*v)
                     - int2d(Th)(kappa0*v);
 
 regKappa;

@@ -14,7 +14,7 @@ for (int i = 0; i < Vh.ndof; ++i) {
   phi[][i] = max(phiVal1[i],phiVal2[i]); /* Intersection */
 }
 
-problem velext(g,v) = int2d(Th)(beta^2*(dx(g)*dx(v)+dy(g)*dy(v)) + g*v)
+problem velext(g,v) = int2d(Th)((beta^2.0)*(dx(g)*dx(v)+dy(g)*dy(v)) + g*v)
                     - int1d(Th,levelset=phi)(beta*(-1)*v);
 
 velext;

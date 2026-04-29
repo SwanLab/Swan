@@ -34,10 +34,12 @@ problem elasticity([ux,uy],[vx,vy]) = int2d(Th)(Achi*mu*(2.0*dx(ux)*dx(vx) + (dx
 
 elasticity;
 
-real J = int1d(Th,labelNeu1u)(-1.0*uy) + int1d(Th,labelNeu1d)(1.0*uy) + int1d(Th,labelNeu2u)(2*uy) + int1d(Th,labelNeu2d)(-2*uy);
+real J = int1d(Th,labelNeu1u)(-0.001*uy) + int1d(Th,labelNeu1d)(0.001*uy) + int1d(Th,labelNeu2u)(2*uy) + int1d(Th,labelNeu2d)(-2*uy);
 real Per = int1d(Th,levelset=phi)(1);
-real Jtot = J + 1.0*Per;
+real Jtot = 1.0*J + 3.0*Per;
 
 exportVar(Jtot);
+exportVar(J);
+exportVar(Per);
 exportArray(ux[]);
 exportArray(uy[]);
