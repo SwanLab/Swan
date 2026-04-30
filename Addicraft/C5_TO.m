@@ -1,4 +1,4 @@
-classdef C5Inf_TO < handle
+classdef C5_TO < handle
 
     properties (Access = private)
         mesh
@@ -17,7 +17,7 @@ classdef C5Inf_TO < handle
 
     methods (Access = public)
 
-        function obj = C5Inf_TO()
+        function obj = C5_TO()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
@@ -42,7 +42,7 @@ classdef C5Inf_TO < handle
         end
 
         function createMesh(obj)
-            file = 'C5_Inf';
+            file = 'C5_Mangueta';
             obj.filename = file;
             a.fileName = file;
             s = FemDataContainer(a);
@@ -73,11 +73,11 @@ classdef C5Inf_TO < handle
         end
 
         function createMaterialInterpolator(obj)
-            E0   = 1e-3;
+            E0   = 70;
             nu0  = 1/3;
-            E1   = 1;
+            E1   = 70e3;
             nu1  = 1/3;
-            ndim = 2;
+            ndim = 3;
 
             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
             matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
