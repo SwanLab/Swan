@@ -37,7 +37,7 @@ classdef CohesiveMesh < handle
             [isLeft, isRight]                 = obj.computeIsLeftIsRight(centerElemsInEdge,normals,edgesInCohElem);
             newCoord    = obj.shiftCoordOfLeftAndRightElements(newCoord,normals);
             newConnec   = obj.updateConnecOfLeftElements(isLeft, newCoord);
-            newConnec   = obj.fixFinalElement(cParams,newConnec);
+            % newConnec   = obj.fixFinalElement(cParams,newConnec);
 
             obj.newMesh(newConnec, newCoord);
             obj.createLineMesh();
@@ -76,7 +76,7 @@ classdef CohesiveMesh < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.separation = 0.05;
+            obj.separation = 0.001;
             obj.baseMesh = cParams.baseMesh;
         end
 

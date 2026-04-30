@@ -71,14 +71,14 @@ classdef TractionBiliniarCoupled < handle
             d = min((obj.jumpFinal*(jumpNorm-obj.jumpCrit))./ ...
                 (jumpNorm*(obj.jumpFinal-obj.jumpCrit)),1);
             d = max(d,0);
+            max(d.evaluate([-1,1]))
+            min(d.evaluate([-1,1]))
         end
 
-        % CANDIDAT D'ERROR ===============================
         function ddot = computeDamageDerivative(obj,jump,jumpNorm,isDamaging)
             alpha      = obj.jumpCrit * obj.jumpFinal / (obj.jumpCrit-obj.jumpFinal) ./jumpNorm^3;
             ddot       = alpha .* jump .* isDamaging;
         end
-        % ================================================
 
         function isDamaging = isJumpDamaging(obj,jump) 
             jumpNorm = obj.computeJumpNorm(jump)-1e-15;
