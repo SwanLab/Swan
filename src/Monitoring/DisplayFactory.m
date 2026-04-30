@@ -18,6 +18,8 @@ classdef DisplayFactory < handle
                     display = DisplayBar(s);
                 case 'surf'
                     display = DisplaySurf(s);
+                case 'quiver'
+                    display = DisplayQuiver(s);
                 otherwise
                     error('Invalid Chart Type.')
             end

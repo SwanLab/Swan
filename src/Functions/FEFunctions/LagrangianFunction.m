@@ -11,9 +11,8 @@ classdef LagrangianFunction < FeFunction
         dofCoord
         dofConnec
 
-       dNdxOld
-       xVOlddN
-       
+        dNdxOld
+        xVOlddN
     end
 
     methods (Access = public)
@@ -168,8 +167,13 @@ classdef LagrangianFunction < FeFunction
             coord = obj.getDofFieldByVector(1,obj.dofCoord); 
             x = coord(1:n:end,1);
             y = coord(1:n:end,2);
-            fX = obj.fValues(1:n:end,1);
-            fY = obj.fValues(1:n:end,2);
+            if size(obj.fValues,2) == 1
+                fX = cos(obj.fValues(1:n:end,1));
+                fY = sin(obj.fValues(1:n:end,1));
+            else
+                fX = obj.fValues(1:n:end,1);
+                fY = obj.fValues(1:n:end,2);
+            end
             quiver(x, y, fX, fY, 'AutoScale', 'on', 'LineWidth', 1.5);              
             axis equal;  
             box on;     

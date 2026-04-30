@@ -18,10 +18,10 @@ s.benchmark.bc.u.type   = 'DisplacementShear';%'DisplacementShear';
 s.benchmark.bc.u.values =  [0:1e-5:0.02];
 s.benchmark.bc.phi.type = 'DamageFree';
 
-s.matInfo.matType = 'Analytic'; %'Analytic','Homogenized'
+s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'
 s.matInfo.degradationType = 'PhaseField'; %'PhaseField','SIMPALL'
 s.matInfo.degradationSubType = 'AT'; %'AT','AT2linear','General'
-s.matInfo.fileName = 'HoneycombBenchmark02'; 
+s.matInfo.fileName = 'HorizontalCrack'; 
 s.matInfo.young   = 210;
 s.matInfo.poisson = 0.3;
 s.matInfo.Gc      = 2.7e-3;

@@ -73,18 +73,19 @@ classdef PhaseFieldMonitoring < handle
         
         function init(obj,cParams)
             s.shallDisplay = cParams.shallDisplay;
-            s.funs = [{cParams.fun}];
+            s.funs = cParams.funs;
+            s.legends = cParams.legends;
             s.barLims = [{[0;1]}];
             switch cParams.type
                 case 'full'
                     s.maxNColumns = 3;
-                    s.titles = [{'Force-displacement'},{'Damage-displacement'},{'Damage'},{'Iter Staggered'},{'Cost'},{'Total Energy'},{'Line-search'}]; % ,{'Energy'}
-                    s.chartTypes = [{'plot'},{'plot'},{'surf'},{'plot'},{'plot'},{'plot'},{'plot'}];
+                    s.titles = [{'Force-displacement'},{'Damage-displacement'},{'Damage'},{'Orientation'},{'Iter Staggered'},{'Cost'},{'Total Energy'},{'Line-search'}]; % ,{'Energy'}
+                    s.chartTypes = [{'plot'},{'multiplot'},{'surf'},{'quiver'},{'plot'},{'plot'},{'plot'},{'plot'}];
                     obj.monitor = Monitoring(s);
                 case 'reduced'
                     s.maxNColumns = 2;
                     s.titles = [{'Force-displacement'},{'Damage-displacement'}];
-                    s.chartTypes = [{'plot'},{'plot'}];
+                    s.chartTypes = [{'plot'},{'multiplot'}];
                     obj.monitor = Monitoring(s);
             end
             obj.data = [];

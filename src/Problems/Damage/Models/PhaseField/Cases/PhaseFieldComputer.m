@@ -35,8 +35,8 @@ classdef PhaseFieldComputer < handle
                 obj.monitor.printStep(step,maxSteps)
                 [u,bc] = obj.updateBoundaryConditions(u,bc);
                 [u,theta,phi,F,cost,iterMax] = obj.optimizer.compute(u,theta,phi,bc,cost);
-                [Evec,totE,totF,uBC] = obj.postprocess(step,u,phi,F,bc);
-                obj.printAndSave(step,totF,uBC,u,theta,phi,Evec,totE,iterMax,cost,tauArray);
+                [Evec,totE,totF,uBC,angleVec,phiRel] = obj.postprocess(step,u,phi,theta,F,bc);
+                obj.printAndSave(step,totF,uBC,u,theta,angleVec,phi,phiRel,Evec,totE,iterMax,cost,tauArray);
                 obj.checkStopCondition(step,totF);
                 step = step + 1;
 
@@ -70,7 +70,8 @@ classdef PhaseFieldComputer < handle
             s.shallDisplay = cParams.monitoring.set;
             s.shallPrint   = cParams.monitoring.print;
             s.type         = cParams.monitoring.type;
-            s.fun          = obj.initialGuess.phi.fun;
+            s.funs         = [{obj.initialGuess.phi.fun},{project(obj.initialGuess.theta,'P1')}];
+            s.legends      = [{["PhiMax","PhiRel"]}];
             obj.monitor = PhaseFieldMonitoring(s);
         end
 
@@ -111,7 +112,7 @@ classdef PhaseFieldComputer < handle
             end
         end
 
-        function [E,totE,totF,uBC] = postprocess(obj,step,u,phi,F,bc)
+        function [E,totE,totF,uBC,angleVec,phiRel] = postprocess(obj,step,u,phi,theta,F,bc)
             fExt = bc.u.tractionFun;
             if ~isempty(bc.u.tractionFun)
                 vals = bc.u.tractionFun.computeRHS([]);
@@ -121,6 +122,8 @@ classdef PhaseFieldComputer < handle
             E    = obj.functional.computeEnergies(u,phi,fExt);
             totE = sum(E);
             [totF,uBC] = obj.computeTotalReaction(step,F,u);
+            angleVec = obj.computeOrientationAsVector(theta);
+            phiRel   = obj.computeRelativeDamage(phi);
         end
 
         function [totReact,uBC] = computeTotalReaction(obj,step,F,u)
@@ -161,10 +164,21 @@ classdef PhaseFieldComputer < handle
             end
         end
 
-        function printAndSave(obj,step,totF,uBC,u,theta,phi,Evec,totE,iterMax,cost,tauArray)
-            obj.monitor.updateAndRefresh(step,{[totF;uBC],[max(phi.fun.fValues);uBC],...
-                                               [phi.fun.fValues],[iterMax.stag],[],...
-                                               [totE;uBC],[]});
+        function thetaVector = computeOrientationAsVector(~,theta)
+            thetaP1 = project(theta,'P1');
+            thetaVector = [cos(thetaP1.fValues), sin(thetaP1.fValues)];
+        end
+
+        function phiRel = computeRelativeDamage(~,phi)
+            maxPhi = max(phi.fun.fValues);
+            AvgPhi = Integrator.compute(phi.fun,phi.mesh,2);
+            phiRel = maxPhi/(AvgPhi + 1e-20);
+        end
+
+        function printAndSave(obj,step,totF,uBC,u,theta,angleVec,phi,phiRel,Evec,totE,iterMax,cost,tauArray)
+            obj.monitor.updateAndRefresh(step,{[totF;uBC],[max(phi.fun.fValues);phiRel;uBC],...
+                                               [phi.fun.fValues],[angleVec], ...
+                                               [iterMax.stag],[],[totE;uBC],[]});
             obj.saveData(step,totF,uBC,u,theta,phi,Evec,iterMax,cost,tauArray);
         end
 

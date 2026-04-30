@@ -27,7 +27,7 @@ classdef PhaseFieldDisplacementUpdater < handle
 
                 i = i+1;
                 obj.monitor.printCost('iterU',i,cost,err);
-                obj.monitor.update(length(costArray),{[],[],[],[],[cost],[],[]});
+                obj.monitor.update(length(costArray),{[],[],[],[],[],[cost],[],[]});
                 obj.monitor.refresh();
                 
             end

@@ -4,6 +4,7 @@ classdef PhaseFieldPlotter < handle
         damage   
         damageField
         displacement
+        orientation
         reaction
         energy
         iter
@@ -21,6 +22,7 @@ classdef PhaseFieldPlotter < handle
             obj.plotEnergies()
             obj.plotIterations()
             obj.plotCost()
+            obj.plotOrientation()
         end
         
     end
@@ -31,6 +33,7 @@ classdef PhaseFieldPlotter < handle
             obj.damage = cParams.damage.maxValue;
             obj.damageField = cParams.damage.field;
             obj.displacement = cParams.displacement.value;
+            obj.orientation = cParams.orientation.field;
             obj.reaction = cParams.force;
             obj.energy = cParams.energy;
             obj.iter = cParams.iter;
@@ -143,6 +146,11 @@ classdef PhaseFieldPlotter < handle
             hold off
         end
 
+        function plotOrientation(obj)
+            figure()
+            obj.orientation.plotVector(1)
+            title('Orientation field')
+        end
     end
     
 end

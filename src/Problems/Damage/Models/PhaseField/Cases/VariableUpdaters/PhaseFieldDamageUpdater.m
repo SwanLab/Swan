@@ -27,8 +27,8 @@ classdef PhaseFieldDamageUpdater < handle
                 costOld = cost;
 
                 obj.monitor.printCost('iterPhi',iter,cost,err);
-                obj.monitor.update(obj.totIter,{[],[],[],[],[],[],[tau]})
-                obj.monitor.updateAndRefresh(length(costArray),{[],[],[],[],[cost],[],[]});
+                obj.monitor.update(obj.totIter,{[],[],[],[],[],[],[],[tau]})
+                obj.monitor.updateAndRefresh(length(costArray),{[],[],[],[],[],[cost],[],[]});
                 iter = iter+1;
                 obj.totIter = obj.totIter + 1;
             end

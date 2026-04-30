@@ -53,7 +53,7 @@ classdef Monitoring < handle
                 figure
                 nPlots         = length(obj.titles);
                 [nRow,nColumn] = obj.computeNumberRowsColumns();
-                idxMultiBar = 1; idxSurf = 1;
+                idxMultiBar = 1; idxFun = 1; idxBar = 1;
                 for i = 1:nPlots
                     sDisp.title     = obj.titles{i};
                     sDisp.chartType = obj.chartTypes{i};
@@ -62,9 +62,13 @@ classdef Monitoring < handle
                         sDisp.legend = cParams.legends{idxMultiBar};
                         idxMultiBar = idxMultiBar+1;
                     elseif sDisp.chartType == "surf"
-                        sDisp.barLim = cParams.barLims{idxSurf};
-                        sDisp.fun    = cParams.funs{idxSurf};
-                        idxSurf = idxSurf+1;
+                        sDisp.barLim = cParams.barLims{idxBar};
+                        sDisp.fun    = cParams.funs{idxFun};
+                        idxBar = idxBar+1;
+                        idxFun = idxFun+1;
+                    elseif sDisp.chartType == "quiver"
+                        sDisp.fun = cParams.funs{idxFun};
+                        idxFun = idxFun+1;
                     end
                     sDisp.position  = i;
                     newFig    = DisplayAbstract.create(sDisp);
