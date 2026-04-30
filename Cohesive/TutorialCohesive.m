@@ -44,12 +44,9 @@ classdef TutorialCohesive < handle
         end
 
         function createMesh(obj)
-            s.baseMesh = UnitQuadMesh(3,3);
-            y = 0.5;
-            xmax = 2;
-            s.isFracturedLine = @(coord) abs(coord(:,2) - y) <= 1e-10;
-            s.isFracturedUntil = @(coord) coord(:,1) - xmax <= 1e-10;
-            % s.isFractured = @(coord) abs(coord(:,2) - y) <= 1e-10  & coord(:,1) - xmax <= 1e-10 ;   
+            s.baseMesh       = UnitQuadMesh(50,50);
+            benchMarkName    = 'DCB';
+            s = obj.makeBenchmarkMesh(benchMarkName);
             obj.cohesiveMesh = CohesiveMesh(s);
         end
 
@@ -70,8 +67,8 @@ classdef TutorialCohesive < handle
             s.jumpFinal = 0.2;
             s.fractureStrength  = 1;
             s.fractureToughness = 1;
-            s.lawType = 'TractionBiliniarCoupled';
-            % s.lawType = 'TractionBiliniarUncoupled';
+            % s.lawType = 'TractionBiliniarCoupled';
+            s.lawType = 'TractionBiliniarUncoupled';
             obj.tractionSeparation = CohesiveTractionSeparation(s);
         end
 
@@ -93,6 +90,20 @@ classdef TutorialCohesive < handle
             k.poisson = ConstantFunction.create(0.25, obj.cohesiveMesh.fullMesh);
             k.cohesiveMesh = obj.cohesiveMesh;
             m    = Material.create(k);
+        end
+
+        function c = makeBenchmarkMesh(obj, benchMarkName)
+            a.fileName = benchMarkName;
+            s = FemDataContainer(a);
+            c.baseMesh = s.mesh;
+
+            switch benchMarkName
+                case 'DCB'
+                    xmax = 0.072; y = 0.00312 * 0.5;
+            end
+
+            c.isFracturedLine  = @(coord) abs(coord(:,2) - y) <= 1e-10;
+            c.isFracturedUntil = @(coord) coord(:,1) - xmax <= 1e-10;
         end
 
     end
