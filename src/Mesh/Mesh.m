@@ -18,6 +18,7 @@ classdef Mesh < handle
         edges
         faces
         boundaryNodes
+        boundaryCoord
         boundaryElements
         coordElem
     end
@@ -193,6 +194,7 @@ classdef Mesh < handle
                 bMesh = bC.create();
             else
                 s.borderNodes    = obj.boundaryNodes;
+                s.borderCoord  = obj.boundaryCoord;
                 s.borderElements = obj.boundaryElements;
                 s.backgroundMesh = obj;
                 s.type = 'FromData';
@@ -280,6 +282,9 @@ classdef Mesh < handle
             end
             m = obj.bMesh.mesh;
             l2g = obj.bMesh.l2g;
+            obj.boundaryNodes = l2g;
+            obj.boundaryCoord = m.coord;
+            obj.boundaryElements = m.connec;
         end
         
         function [m, l2g] = getBoundarySubmesh(obj, domain)
