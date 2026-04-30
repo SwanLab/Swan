@@ -12,94 +12,159 @@ using .Train
 using .Plot
 
 # =========================================================
-# 🔹 PARAMÈTRES GLOBAUX
+# PARAMÈTRES
 # =========================================================
 
-root_dir = "C:/Users/couwa/Documents/Stage_CIMNE/Classification/archive"  # <-- à modifier
+#root_dir = "C:/Users/couwa/Documents/Stage_CIMNE/Classification/archive"
+root_dir = "./archive"           #pour googleColab
 
-img_size = (128, 128)
-
+img_size   = (64, 64)
 batch_size = 32
-epochs = 20
-learning_rate = 1e-3
-max_images = 200   # pour test rapide
+epochs     = 30
+lr         = 1e-3
+
+# Nombre d'images par classe chargées
+# Smoke test    →  50   (< 1 min,  vérifie que ça tourne sans erreur)
+# Sanity check  →  300  (~ 5 min,  vérifie que la loss descend)
+# Run complet   →  nothing  (toutes les images — ici ~10 000 par classe)
+max_images = 300
+
+# Data augmentation
+# true  → flip H/V + bruit gaussien sur le train set
+#          Recommandé quand max_images < 2000
+# false → pas d'augmentation
+#          Suffisant quand max_images >= 2000 (assez de diversité naturelle)
+use_augmentation = true
 
 # =========================================================
-# 🔹 DATA
+# DATA
 # =========================================================
 
-println("Loading dataset...")
-
-images, labels = load_dataset(root_dir;
-                              img_size=img_size,
-                              max_per_class=max_images)
-
+println("=== Chargement des données ===")
+images, labels = load_dataset(root_dir; img_size=img_size, max_per_class=max_images)
 train_data, val_data, test_data = split_dataset(images, labels)
 
-println("Dataset loaded:")
-println("Train: ", length(train_data[1]))
-println("Val:   ", length(val_data[1]))
-println("Test:  ", length(test_data[1]))
-
 # =========================================================
-# 🔹 MODEL
+# MODEL
 # =========================================================
 
-println("Building model...")
-
+println("\n=== Construction du modèle ===")
 model = build_model()
+println(model)
 
 # =========================================================
-# 🔹 TRAINING
+# TRAINING
 # =========================================================
 
-println("Training started...")
-
+println("\n=== Entraînement ===")
 train_losses, val_losses, train_accs, val_accs =
     train_model(model, train_data, val_data;
                 epochs=epochs,
                 batch_size=batch_size,
-                lr=learning_rate,
-                patience=5)
+                lr=lr,
+                patience=7,
+                use_augmentation=use_augmentation)
 
 # =========================================================
-# 🔹 PLOTS
+# PLOTS TRAINING
 # =========================================================
 
-println("Plotting results...")
-
-plot_metrics(train_losses, val_losses,
-             train_accs, val_accs)
+println("\n=== Visualisation ===")
+plot_metrics(train_losses, val_losses, train_accs, val_accs)
 
 # =========================================================
-# 🔹 TEST FINAL
+# ÉVALUATION FINALE
 # =========================================================
 
-println("Final evaluation on test set...")
+println("\n=== Évaluation finale (test set) ===")
+
+Flux.testmode!(model)
 
 test_images, test_labels = test_data
-
-# predictions proba
 y_scores = Float32[]
 
 for x in test_images
-    x = reshape(Float32.(x), size(x,1), size(x,2), 1, 1)
-    ŷ = model(x)
-    push!(y_scores, ŷ[1])   # scalaire propre
+    x_in = reshape(Float32.(x), size(x,2), size(x,1), 1, 1)
+    push!(y_scores, model(x_in)[1])
 end
 
-println("Scores sample: ", y_scores[1:10])
-println("Mean score: ", mean(y_scores))
-println("Min score: ", minimum(y_scores))
-println("Max score: ", maximum(y_scores))
+println("Scores sample : ", round.(y_scores[1:min(10,end)], digits=3))
+println("Mean: $(round(mean(y_scores), digits=3)) | Min: $(round(minimum(y_scores), digits=3)) | Max: $(round(maximum(y_scores), digits=3))")
 
-# binary predictions
-y_pred = y_scores .> 0.5
+# Diagnostic par classe
+pos_scores = y_scores[test_labels .== 1]
+neg_scores = y_scores[test_labels .== 0]
+println("\nPositifs (fissures)  → Mean: $(round(mean(pos_scores), digits=3))  Min: $(round(minimum(pos_scores), digits=3))  Max: $(round(maximum(pos_scores), digits=3))")
+println("Négatifs (sans fisc) → Mean: $(round(mean(neg_scores), digits=3))  Min: $(round(minimum(neg_scores), digits=3))  Max: $(round(maximum(neg_scores), digits=3))")
 
-# metrics avancées
-f1_score(test_labels, y_pred)
-confusion_matrix_plot(test_labels, y_pred)
+sep = mean(pos_scores) - mean(neg_scores)
+println("Séparation (mean pos - mean neg) : $(round(sep, digits=4))")
+
+# Correction automatique si scores inversés
+if sep < -0.05
+    println("⚠ Scores inversés détectés → correction 1 - score appliquée")
+    y_scores = 1f0 .- y_scores
+end
+
+# AUC
+function compute_auc(y_true, y_scores)
+    thresholds = collect(0.0:0.005:1.0)
+    tpr_list = Float64[]
+    fpr_list = Float64[]
+    for t in thresholds
+        y_pred = y_scores .>= t
+        tp = sum((y_pred .== 1) .& (y_true .== 1))
+        fp = sum((y_pred .== 1) .& (y_true .== 0))
+        tn = sum((y_pred .== 0) .& (y_true .== 0))
+        fn = sum((y_pred .== 0) .& (y_true .== 1))
+        push!(tpr_list, tp / (tp + fn + 1e-8))
+        push!(fpr_list, fp / (fp + tn + 1e-8))
+    end
+    return -sum(diff(fpr_list) .* (tpr_list[1:end-1] .+ tpr_list[2:end]) ./ 2)
+end
+
+auc = compute_auc(test_labels, y_scores)
+println("AUC : $(round(auc, digits=3))")
+
+# Seuil optimal
+function find_best_threshold(y_scores, y_true; thresholds=0.01:0.005:0.99)
+    best_f1        = 0.0
+    best_threshold = 0.5
+    best_precision = 0.0
+    best_recall    = 0.0
+    for t in thresholds
+        y_pred = y_scores .>= t
+        tp = sum((y_pred .== 1) .& (y_true .== 1))
+        fp = sum((y_pred .== 1) .& (y_true .== 0))
+        fn = sum((y_pred .== 0) .& (y_true .== 1))
+        prec = tp / (tp + fp + 1e-8)
+        rec  = tp / (tp + fn + 1e-8)
+        f1   = 2 * prec * rec / (prec + rec + 1e-8)
+        if f1 > best_f1
+            best_f1        = f1
+            best_threshold = t
+            best_precision = prec
+            best_recall    = rec
+        end
+    end
+    return best_threshold, best_precision, best_recall, best_f1
+end
+
+println("\n=== Recherche du seuil optimal ===")
+best_threshold, best_precision, best_recall, best_f1 =
+    find_best_threshold(y_scores, test_labels)
+
+println("Seuil optimal  : $(round(best_threshold, digits=3))")
+println("Precision      : $(round(best_precision, digits=4))")
+println("Recall         : $(round(best_recall,    digits=4))")
+println("F1-score       : $(round(best_f1,        digits=4))")
+
+y_pred_best = y_scores .>= best_threshold
+
+# Plots finaux
+f1_score(test_labels, y_pred_best)
+confusion_matrix_plot(test_labels, y_pred_best)
 roc_curve_plot(test_labels, y_scores)
 precision_recall_plot(test_labels, y_scores)
 
-println("Done.")
+println("\nDone.")

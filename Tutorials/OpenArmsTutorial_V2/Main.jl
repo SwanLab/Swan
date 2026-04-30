@@ -34,7 +34,7 @@ s["networkParams"] = Dict(
 s["optimizerParams"] = Dict(
     "learningRate" => learning_rate,
     "maxEpochs"    => 1000,
-    "type"         => "Adam"
+    "type"         => "Adam" # SGD or Adam
 )
 
 s["costParams"] = Dict(

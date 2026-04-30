@@ -1,90 +1,111 @@
 module Preprocess
 
-using Images                    #manipuler les images
-using ImageTransformations      #transformer les images
-using FileIO                    #charger les fichiers
-using Random                    #mélanger les données
+using Images
+using ImageTransformations
+using FileIO
+using Random
 
 export load_dataset, split_dataset
 
 # -----------------------------
-# 🔹 Charger une image
+# Charger et normaliser une image
+#
+# PROBLÈME OBSERVÉ : Min pixel = 0.52, Max pixel = 0.96
+# Les images sources sont encodées dans un sous-intervalle
+# de [0,1] — le modèle ne voit jamais de pixels sombres
+# → il ne peut pas apprendre à distinguer les fissures
+# (zones sombres) du béton (zones claires).
+#
+# FIX : normalisation min-max par image
+# Chaque image est étirée pour utiliser tout [0,1].
+# Un mur sans fissure aura des valeurs proches et uniformes
+# → après normalisation, contraste amplifié → le CNN voit mieux.
 # -----------------------------
 function load_image(path::String, img_size::Tuple{Int, Int})
     img = load(path)
 
-    # Convertir en grayscale
-    img_gray = Gray.(img)
+    img_gray    = Gray.(img)
+    img_resized = imresize(img_gray, img_size)
+    img_array   = Float32.(channelview(img_resized))
 
-    # Resize
-    img_resized = imresize(img_gray, img_size)   #passe toutes les images à la meme taille
-
-    # Convertir en Float32 array
-    img_array = Float32.(channelview(img_resized))
+    # Normalisation min-max par image : étire les valeurs dans [0,1]
+    lo, hi = minimum(img_array), maximum(img_array)
+    img_array = (img_array .- lo) ./ (hi - lo + 1f-8)
 
     return img_array
 end
 
 # -----------------------------
-# 🔹 Charger dataset complet
+# Charger le dataset complet
+# root_dir doit contenir "Positive/" et "Negative/"
 # -----------------------------
-function load_dataset(root_dir::String; img_size=(128,128), max_per_class=nothing)
+function load_dataset(root_dir::String; img_size=(64,64), max_per_class=nothing)
 
-    images = []
-    labels = Int[]                 # 0 ou 1, pas de fissure ou fissure
+    images = Vector{Array{Float32,2}}()
+    labels = Int[]
 
     pos_dir = joinpath(root_dir, "Positive")
     neg_dir = joinpath(root_dir, "Negative")
 
-    pos_files = readdir(pos_dir)
-    neg_files = readdir(neg_dir)
+    pos_files = readdir(pos_dir, join=true)
+    neg_files = readdir(neg_dir, join=true)
 
     if max_per_class !== nothing
-        pos_files = pos_files[1:min(end, max_per_class)]
-        neg_files = neg_files[1:min(end, max_per_class)]
+        pos_files = pos_files[1:min(length(pos_files), max_per_class)]
+        neg_files = neg_files[1:min(length(neg_files), max_per_class)]
     end
 
-    # 🔹 Positives (label = 1)
-    for f in pos_files
-        path = joinpath(pos_dir, f)
-        img = load_image(path, img_size)
-        push!(images, img)
+    println("Loading $(length(pos_files)) positive images...")
+    for path in pos_files
+        push!(images, load_image(path, img_size))
         push!(labels, 1)
     end
 
-    # 🔹 Négatives (label = 0)
-    for f in neg_files
-        path = joinpath(neg_dir, f)
-        img = load_image(path, img_size)
-        push!(images, img)
+    println("Loading $(length(neg_files)) negative images...")
+    for path in neg_files
+        push!(images, load_image(path, img_size))
         push!(labels, 0)
     end
 
-    # Mélange des images P et N
-    idx = shuffle(1:length(images))
+    idx    = shuffle(1:length(images))
     images = images[idx]
     labels = labels[idx]
 
-    return images, labels    
+    println("Dataset: $(length(images)) images ($(sum(labels)) positives, $(sum(labels.==0)) negatives)")
+    return images, labels
 end
 
 # -----------------------------
-# 🔹 Split train / val / test
+# Split stratifié — garantit 50/50 pos/neg dans chaque split
+#
+# Sans stratification, un shuffle maladroit peut mettre
+# 80% de positifs dans le val set → val_loss qui mesure
+# autre chose que les vraies performances.
 # -----------------------------
-function split_dataset(images, labels;
-                       train_ratio=0.7,
-                       val_ratio=0.15)
+function split_dataset(images, labels; train_ratio=0.7, val_ratio=0.15)
 
-    N = length(images)
+    pos_idx = findall(==(1), labels)
+    neg_idx = findall(==(0), labels)
 
-    n_train = Int(floor(train_ratio * N))
-    n_val = Int(floor(val_ratio * N))
-    n_test = N - n_train - n_val
+    function split_idx(idx, r_train, r_val)
+        n       = length(idx)
+        n_train = Int(floor(r_train * n))
+        n_val   = Int(floor(r_val   * n))
+        return idx[1:n_train], idx[n_train+1:n_train+n_val], idx[n_train+n_val+1:end]
+    end
 
-    train_data = (images[1:n_train], labels[1:n_train])
-    val_data = (images[n_train+1:n_train+n_val], labels[n_train+1:n_train+n_val])
-    test_data = (images[n_train+n_val+1:end], labels[n_train+n_val+1:end])
+    pos_tr, pos_v, pos_te = split_idx(pos_idx, train_ratio, val_ratio)
+    neg_tr, neg_v, neg_te = split_idx(neg_idx, train_ratio, val_ratio)
 
+    train_idx = shuffle(vcat(pos_tr, neg_tr))
+    val_idx   = shuffle(vcat(pos_v,  neg_v))
+    test_idx  = shuffle(vcat(pos_te, neg_te))
+
+    train_data = (images[train_idx], labels[train_idx])
+    val_data   = (images[val_idx],   labels[val_idx])
+    test_data  = (images[test_idx],  labels[test_idx])
+
+    println("Train: $(length(train_idx)) | Val: $(length(val_idx)) | Test: $(length(test_idx))")
     return train_data, val_data, test_data
 end
 
