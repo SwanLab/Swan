@@ -71,6 +71,18 @@
 % d2x/d2y =     -2*y^-3 = -2*(u - x)^3
 
 
+
+% CARLOS NOTE'S
+% This class takes the design variables, objective function, constraints
+% and sensitivities and creates an approximate problem that is easy to
+% solve. After the FEA, "approx" is called. It does a variable change from
+% x to y. The hessian is the second derivative of the Lagrangian and it
+% helps the optimizer to know where to look for the minimum.
+%
+%
+%
+
+
 classdef approx
     properties
         x0; n; f; g; df; dg; % Inputs (description above)
