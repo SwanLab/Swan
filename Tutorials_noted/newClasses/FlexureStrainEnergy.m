@@ -99,12 +99,12 @@ classdef FlexureStrainEnergy < handle
             dCompliance = DDP(stateStrain, stress);
             
             % E = 1/2 * u * K * u
-            J = 0.5 * Integrator.compute(dCompliance, obj.mesh, obj.quadrature.order);
+            J_abs = 0.5 * Integrator.compute(dCompliance, obj.mesh, obj.quadrature.order);
             
             if isempty(obj.value0)
-                obj.value0 = J;
+                obj.value0 = J_abs;
             end
-            J = J / obj.value0;
+            J = J_abs / obj.value0;
         end
 
     end

@@ -31,8 +31,8 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
 
         function obj = Tutorial05_15_TopOpt2DFlexures()
                 % Degrees
-                obj.doc = ["ty"];
-                obj.dof = ["rz"];
+                obj.doc = ["tx"];
+                obj.dof = ["ty"];
                 obj.emax = 1;
 
                 obj.preprocessDegrees();
@@ -232,13 +232,7 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
                 s.gradientFilter = obj.createGradientFilter;
                 %s.material     = obj.materialInterpolator;
                 s.material = obj.createMaterial();
-                s.stateProblem = obj.physicalProblem{i};
-
-                deg_idx = obj.deg(i);
-                if obj.mdof(deg_idx) == 1
-                    s.value0 = obj.emax; % if it is a DOF, use emax to scale
-                end
-                
+                s.stateProblem = obj.physicalProblem{i};                
                 obj.strainEnergyFuncs{i} = FlexureStrainEnergy(s);
             end
         end
@@ -273,7 +267,7 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
         function createConstraint(obj)
             s.shapeFunctions = {};
             count = 1;
-            gscale = 0.01;
+            gscale = 1;
 
             for i = 1:obj.ndeg
                 deg_idx = obj.deg(i);
@@ -285,14 +279,14 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
                 end
             end
 
-            s.shapeFunctions{count} = obj.volume;
+            %s.shapeFunctions{count} = obj.volume;
 
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
 
         function createDualVariable(obj)
-            nConstr = sum(obj.mdof)+1;
+            nConstr = sum(obj.mdof);
             s.nConstraints   = nConstr;
             l                = DualVariable(s);
             obj.dualVariable = l;
@@ -312,9 +306,9 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 200;
+            s.maxIter        = 300;
             s.tolerance      = 1e-8;
-            nConstr=sum(obj.mdof)+1;
+            nConstr=sum(obj.mdof);
             s.constraintCase = repmat({'INEQUALITY'},1,nConstr);
             s.primalUpdater  = obj.primalUpdater;
             s.ub             = 1;
