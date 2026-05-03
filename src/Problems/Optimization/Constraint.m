@@ -32,8 +32,11 @@ classdef Constraint < handle
                 djV(:,iF) = dJc{iF};
             end
             obj.value    = jV;
-            obj.gradient = obj.Msmooth*djV;
-%             obj.gradient = djV;
+            if isempty(obj.Msmooth)
+                obj.gradient=djV;
+            else
+                obj.gradient = obj.Msmooth*djV;
+            end
         end
 
         function nF = obtainNumberFields(obj)

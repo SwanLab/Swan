@@ -93,7 +93,6 @@ classdef OptimizerNullSpace < handle
             obj.printing        = cParams.printing;
             obj.printName       = cParams.printName;
             obj.primalUpdater   = cParams.primalUpdater;
-            obj.k_case          = cParams.k_case;
            % obj.physicalProblem = cParams.physicalProblem; % Only needed
           % for printing each iteration
             obj.dualUpdater     = DualUpdaterNullSpace(cParams);
@@ -263,7 +262,12 @@ classdef OptimizerNullSpace < handle
             x = obj.designVariable;
             g = obj.meritGradient;
             x = obj.primalUpdater.update(g,x);
-            obj.designVariable = x;
+
+            if isnumeric(x)
+                obj.designVariable.update(x);
+            else
+                obj.designVariable = x;
+            end
         end
 
         function computeMeritGradient(obj)

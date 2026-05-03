@@ -12,6 +12,7 @@ classdef FlexureStrainEnergy < handle
         material
         stateProblem
         quadrature
+        gradientFilter
     end
 
     methods (Access = public)
@@ -22,19 +23,36 @@ classdef FlexureStrainEnergy < handle
 
         function [J, dJ] = computeFunctionAndGradient(obj,x)
             xD = x.obtainDomainFunction();
-            xR = obj.filter.compute(xD,2);
+
+            if iscell(xD)
+                xD_single = xD{1};
+            else
+                xD_single = xD;
+            end
+
+            x_filtered = obj.filter.compute(xD_single,2);
+            xR = {x_filtered};
+
             [C,dC] = obj.computeTensorFunctionAndGradient(xR);
             uS = obj.computeStateVariable(C);
 
             J = obj.computeFunctionValue(C,uS);
             dJ = obj.computeGradient(dC{1},uS);
-            dJ = {obj.filter.compute(dJ,2)};
+            dJ = obj.gradientFilter.compute(dJ,2);
+            dJval = 0.5*dJ.fValues;
 
             if ~isempty(obj.value0)
-                dJVal = dJ{1}.fValues/obj.value0;
-                dJ{1}.setFValues(dJVal);
+                dJval = dJval/obj.value0;
             end
+
+            dJ.setFValues(dJval);
+            dJ = {dJ};
         end
+
+        function title = getTitleToPlot(obj)
+            title = 'Strain Energy (DOC)';
+        end
+
     end
 
     methods (Access = private)
@@ -43,6 +61,7 @@ classdef FlexureStrainEnergy < handle
             obj.filter       = cParams.filter;
             obj.material     = cParams.material;
             obj.stateProblem = cParams.stateProblem; 
+            obj.gradientFilter = cParams.gradientFilter;
 
             if isfield(cParams,'value0')
                 obj.value0 = cParams.value0;
@@ -91,13 +110,10 @@ classdef FlexureStrainEnergy < handle
     end
 
     methods (Static, Access = private)
-        function dJ = computeGradient(dC,uS,uA)
+        function dJ = computeGradient(dC,uS)
             stateStrain   = SymGrad(uS);
             dStress       = DDP(dC,stateStrain);
             dJ            = DDP(stateStrain,dStress);
-
-            % dE = 1/2 * u * dK * u
-            dJ.setFValues(0.5*dJ.fValues)
         end
     end
 

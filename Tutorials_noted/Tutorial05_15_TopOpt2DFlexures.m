@@ -24,14 +24,15 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
         mdof % Vector with active DOF
         deg % Active degrees DOC+DOF
         ndeg % Number of active degrees 
+        strainEnergyFuncs
     end
 
     methods (Access = public)
 
         function obj = Tutorial05_15_TopOpt2DFlexures()
                 % Degrees
-                obj.doc = ["tx"];
-                obj.dof = ["ty"];
+                obj.doc = ["ty"];
+                obj.dof = ["rz"];
                 obj.emax = 1;
 
                 obj.preprocessDegrees();
@@ -41,16 +42,11 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
                 obj.createDesignVariable();
                 obj.createFilter();
                 obj.createMaterialInterpolator();
+
                 obj.createElasticProblem();
+                obj.createStrainEnergyFunctions();
 
-                %obj.createAdjointProblem();
-
-                obj.createStrainEnergyCost();
-                obj.createStrainEenergyConstraint();
-                obj.createVolumeConstraint();
-
-                %obj.createNonSelfAdjCompliance();
-                
+                obj.createVolumeConstraint();                
                 obj.createCost();
                 obj.createConstraint();
 
@@ -71,7 +67,7 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
             close all;
         end
 
-        function preprocessDegrees()
+        function preprocessDegrees(obj)
             ldoc = length(obj.doc); % Number of DOCs
             ldof = length(obj.dof); % Number of DOFs
             
@@ -111,7 +107,7 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(x(1,:,:)));
+            s.fHandle = @(x) 0.5*ones(size(x(1,:,:)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);
@@ -130,6 +126,14 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
             f = Filter.create(s);
             obj.filter = f;
         end
+
+        function f = createGradientFilter(obj)
+            s.filterType = 'PDE';
+            s.mesh  = obj.mesh;
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1'); 
+            f = Filter.create(s);
+        end
+
 
         function createMaterialInterpolator(obj)
             E0   = 1e-3;
@@ -155,17 +159,26 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
         end
 
         function createElasticProblem(obj)
-            s.mesh = obj.mesh;
-            s.scale = 'MACRO';
-            s.material = obj.createMaterial();
-            s.dim = '2D';
-            s.boundaryConditions = obj.createBoundaryConditions();
-            s.interpolationType = 'LINEAR';
-            s.solverType = 'REDUCED';
-            s.solverMode = 'DISP';
-            s.solverCase = DirectSolver();
-            fem = ElasticProblem(s);
-            obj.physicalProblem = fem;
+            obj.physicalProblem = cell(obj.ndeg,1);
+            degrees_list = ["tx", "ty", "rz"];
+
+            for i = 1:obj.ndeg
+                current_idx = obj.deg(i);
+                current_degree = degrees_list(current_idx);
+
+                s.mesh = obj.mesh;
+                s.scale = 'MACRO';
+                s.material = obj.createMaterial();
+                s.dim = '2D';
+                s.boundaryConditions = obj.createBoundaryConditions(current_degree);
+                s.interpolationType = 'LINEAR';
+                s.solverType = 'REDUCED';
+                s.solverMode = 'DISP';
+                s.solverCase = DirectSolver();
+                fem = ElasticProblem(s);
+                obj.physicalProblem{i} = fem;
+            end
+
         end
 
         function createAdjointProblem(obj)
@@ -183,7 +196,7 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
         end
 
         function createNonSelfAdjCompliance(obj)
-            s.mesh           = obj.mesh;
+            s.mesh           = obj.mesh
             s.filter         = obj.filter;
             s.material       = obj.createMaterial();
             s.stateProblem   = obj.physicalProblem;
@@ -210,9 +223,43 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
             obj.volume = v;
         end
 
+        function createStrainEnergyFunctions(obj)
+            obj.strainEnergyFuncs = cell(obj.ndeg,1);
+
+            for i = 1:obj.ndeg
+                s.mesh         = obj.mesh;
+                s.filter       = obj.filter;
+                s.gradientFilter = obj.createGradientFilter;
+                %s.material     = obj.materialInterpolator;
+                s.material = obj.createMaterial();
+                s.stateProblem = obj.physicalProblem{i};
+
+                deg_idx = obj.deg(i);
+                if obj.mdof(deg_idx) == 1
+                    s.value0 = obj.emax; % if it is a DOF, use emax to scale
+                end
+                
+                obj.strainEnergyFuncs{i} = FlexureStrainEnergy(s);
+            end
+        end
+        
+
         function createCost(obj)
-            s.shapeFunctions{1} = obj.compliance;
-            s.weights           = 1;
+            s.shapeFunctions = {};
+            s.weights = [];
+
+            ldoc = sum(obj.mdoc);
+            count = 1;
+
+            for i = 1:obj.ndeg
+                deg_idx = obj.deg(i);
+                if obj.mdoc(deg_idx) == 1
+                    s.shapeFunctions{count} = obj.strainEnergyFuncs{i};
+                    s.weights(count) = -1/ldoc;
+                    count = count+1;
+                end
+            end
+
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -224,13 +271,29 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
         end
 
         function createConstraint(obj)
-            s.shapeFunctions{1} = obj.volume;
+            s.shapeFunctions = {};
+            count = 1;
+            gscale = 0.01;
+
+            for i = 1:obj.ndeg
+                deg_idx = obj.deg(i);
+                if obj.mdof(deg_idx) == 1
+                    cParams.strainEnergyFunc = obj.strainEnergyFuncs{i};
+                    cParams.gscale = gscale;
+                    s.shapeFunctions{count} = FlexureDOFConstraint(cParams);
+                    count = count +1;
+                end
+            end
+
+            s.shapeFunctions{count} = obj.volume;
+
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
 
         function createDualVariable(obj)
-            s.nConstraints   = 1;
+            nConstr = sum(obj.mdof)+1;
+            s.nConstraints   = nConstr;
             l                = DualVariable(s);
             obj.dualVariable = l;
         end
@@ -249,19 +312,19 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 200;
             s.tolerance      = 1e-8;
-            s.constraintCase = {'INEQUALITY'};
+            nConstr=sum(obj.mdof)+1;
+            s.constraintCase = repmat({'INEQUALITY'},1,nConstr);
             s.primalUpdater  = obj.primalUpdater;
             s.ub             = 1;
             s.lb             = 0;
-            s.etaNorm        = 0.075; % default was 0.02
+            s.etaNorm        = 0.2; % default was 0.02
             s.gJFlowRatio    = 0.1;
             s.gif            = false;
             s.gifName        = [];
             s.printing       = false;
             s.printName      = ['InvDens'];
-            s.k_case         = obj.k_case;
             s.physicalProblem = obj.physicalProblem;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
@@ -280,7 +343,7 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
             m = Material.create(s);
         end
 
-        function bc = createBoundaryConditions(obj) % must be modified
+        function bc = createBoundaryConditions(obj, degree_type) 
             xmin = min(obj.mesh.coord(:,1));
             xmax = max(obj.mesh.coord(:,1));
             ymin = min(obj.mesh.coord(:,2));
@@ -320,9 +383,12 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
                 sDir{2}.direction = [1];
                 sDir{2}.value     = 1;
 
+                top_logical = isTop(obj.mesh.coord); 
+                top_coor    = obj.mesh.coord(top_logical, :); 
+
                 sDir{3}.domain    = isTop; % fixed
                 sDir{3}.direction = [2];
-                sDir{3}.value     =@(coor) 1-2*(coor(:,1)-xmin)/Lx;
+                sDir{3}.value     = 1-2*(top_coor(:,1)-xmin)/Lx;
             end            
 
 
