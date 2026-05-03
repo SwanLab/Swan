@@ -1,18 +1,17 @@
 IMPORT "io.edp"
+load "distance"
 
 mesh Th = importMesh("Th");
 int labelDir = importVar("labelDir");
 int labelNeu1u = importVar("labelNeu1u");
-int labelNeu1d = importVar("labelNeu1d");
 int labelNeu2u = importVar("labelNeu2u");
-int labelNeu2d = importVar("labelNeu2d");
 real [int] AchiVal = importArray("AchiVal");
 real [int] phiVal1 = importArray("phiVal1");
 real [int] phiVal2 = importArray("phiVal2");
 
 fespace Vh(Th,P1);
 fespace Vh0(Th,P0);
-Vh phi1, phi2, phi;
+Vh phi1, phi2, phi, dOm;
 Vh0 Achi;
 
 phi1[] = phiVal1;
@@ -20,6 +19,7 @@ phi2[] = phiVal2;
 for (int i = 0; i < Vh.ndof; ++i) {
   phi[][i] = max(phiVal1[i],phiVal2[i]); /* Intersection */
 }
+distance(Th,phi,dOm[]);
 
 Achi[] = AchiVal;
 
@@ -29,14 +29,14 @@ real mu = 0.3846;   // Lamé coefficients
 real lambda = 0.5769;
 problem elasticity([ux,uy],[vx,vy]) = int2d(Th)(Achi*mu*(2.0*dx(ux)*dx(vx) + (dx(uy)+dy(ux))*(dx(vy)+dy(vx))
                                           + 2.0*dy(uy)*dy(vy)) + Achi*lambda*(dx(ux)+dy(uy))*(dx(vx)+dy(vy)) )
-                           - int1d(Th,labelNeu1u)(-10*vy) - int1d(Th,labelNeu1d)(10*vy) - int1d(Th,labelNeu2u)(vy) - int1d(Th,labelNeu2d)(-vy)
+                           - int1d(Th,labelNeu1u)(-10*vy) - int1d(Th,labelNeu2u)(vy)
                            + on(labelDir,ux=0.0,uy=0.0);
 
 elasticity;
 
-real J = int1d(Th,labelNeu1u)(-0.001*uy) + int1d(Th,labelNeu1d)(0.001*uy) + int1d(Th,labelNeu2u)(2*uy) + int1d(Th,labelNeu2d)(-2*uy);
-real Per = int1d(Th,levelset=phi)(1);
-real Jtot = 1.0*J + 3.0*Per;
+real J = int1d(Th,labelNeu1u)(-0.2*uy) + int1d(Th,labelNeu2u)(2.0*uy);
+real Per = int1d(Th,levelset=dOm)(1);
+real Jtot = 1.0*J + 0.0*Per;
 
 exportVar(Jtot);
 exportVar(J);

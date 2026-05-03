@@ -1,13 +1,12 @@
 IMPORT "io.edp"
+load "distance"
 
 mesh Th = importMesh("Th");
 real alpha = importVar("alpha");
 real beta = importVar("beta");
 int labelDir = importVar("labelDir");
 int labelNeu1u = importVar("labelNeu1u");
-int labelNeu1d = importVar("labelNeu1d");
 int labelNeu2u = importVar("labelNeu2u");
-int labelNeu2d = importVar("labelNeu2d");
 real [int] uxVal = importArray("uxVal");
 real [int] uyVal = importArray("uyVal");
 real [int] AchiVal = importArray("AchiVal");
@@ -19,7 +18,7 @@ real [int] phiVal2 = importArray("phiVal2");
 
 fespace Vh(Th,P1);
 fespace Vh0(Th,P0);
-Vh g, g0Reg, ux, uy, px, py, nx, ny, kappa, phi, phi1, phi2;
+Vh g, g0Reg, ux, uy, px, py, nx, ny, kappa, phi, dOm, phi1, phi2;
 Vh0 Achi, g0;
 ux[] = uxVal;
 uy[] = uyVal;
@@ -32,6 +31,7 @@ phi2[] = phiVal2;
 for (int i = 0; i < Vh.ndof; ++i) {
   phi[][i] = max(phiVal1[i],phiVal2[i]); /* Intersection */
 }
+distance(Th,phi,dOm[]);
 
 /* Adjoint problem */
 Vh vx, vy, v;
@@ -39,7 +39,7 @@ real mu = 0.3846;   // Lamé coefficients
 real lambda = 0.5769;
 problem adjoint([px,py],[vx,vy]) = int2d(Th)(Achi*mu*(2.0*dx(px)*dx(vx) + (dx(py)+dy(px))*(dx(vy)+dy(vx))
                                           + 2.0*dy(py)*dy(vy)) + Achi*lambda*(dx(px)+dy(py))*(dx(vx)+dy(vy)) )
-                           - int1d(Th,labelNeu1u)(0.001*vy) - int1d(Th,labelNeu1d)(-0.001*vy) - int1d(Th,labelNeu2u)(-2*vy) - int1d(Th,labelNeu2d)(2*vy)
+                           - int1d(Th,labelNeu1u)(0.2*vy) - int1d(Th,labelNeu2u)(-2.0*vy)
                            + on(labelDir,px=0.0,py=0.0);
 
 adjoint;
@@ -47,13 +47,8 @@ adjoint;
 g0 = 1.0*(-mu*(2.0*dx(px)*dx(ux) + (dx(py)+dy(px))*(dx(uy)+dy(ux)) + 2.0*dy(py)*dy(uy))
        - lambda*(dx(px)+dy(py))*(dx(ux)+dy(uy)));
 
-problem regg0(g0Reg,v) = int2d(Th)((alpha^2.0)*(dx(g0Reg)*dx(v)+dy(g0Reg)*dy(v)) + g0Reg*v)
-                    - int2d(Th)(g0*v);
-
-regg0;
-
 problem velext(g,v) = int2d(Th)((beta^2.0)*(dx(g)*dx(v)+dy(g)*dy(v)) + g*v)
-                    - int1d(Th,levelset=phi)(beta*(g0Reg-3.0*kappa)*v);
+                    - int1d(Th,levelset=dOm)(beta*(g0)*v);
 
 velext;
 

@@ -1,4 +1,5 @@
 IMPORT "io.edp"
+load "distance"
 
 mesh Th = importMesh("Th");
 real beta = importVar("beta");
@@ -6,16 +7,17 @@ real [int] phiVal1 = importArray("phiVal1");
 real [int] phiVal2 = importArray("phiVal2");
 
 fespace Vh(Th,P1);
-Vh g, v, phi, phi1, phi2;
+Vh g, v, phi, dOm, phi1, phi2;
 
 phi1[] = phiVal1;
 phi2[] = phiVal2;
 for (int i = 0; i < Vh.ndof; ++i) {
   phi[][i] = max(phiVal1[i],phiVal2[i]); /* Intersection */
 }
+distance(Th,phi,dOm[]);
 
 problem velext(g,v) = int2d(Th)((beta^2.0)*(dx(g)*dx(v)+dy(g)*dy(v)) + g*v)
-                    - int1d(Th,levelset=phi)(beta*(-1)*v);
+                    - int1d(Th,levelset=dOm)(beta*(-1)*v);
 
 velext;
 

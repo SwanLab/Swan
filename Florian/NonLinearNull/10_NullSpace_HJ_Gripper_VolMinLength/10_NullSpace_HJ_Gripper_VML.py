@@ -32,9 +32,7 @@ alpha = exports['alpha']
 beta = exports['beta']
 labelDir = exports['labelDir']
 labelNeu1u = exports['labelNeu1u']
-labelNeu1d = exports['labelNeu1d']
 labelNeu2u = exports['labelNeu2u']
-labelNeu2d = exports['labelNeu2d']
 hmin = exports['meshsiz']
 lsLabel = 10
 rInner = 3
@@ -64,8 +62,8 @@ class TO_problem(EuclideanOptimizable):
         x1,x2 = np.hsplit(x,2)
         runner = FreeFemRunner(path+"10_Cost.edp")
         runner.import_variables(Th=Th,labelDir=labelDir,labelNeu1u=labelNeu1u,
-                                labelNeu1d=labelNeu1d,labelNeu2u=labelNeu2u,
-                                labelNeu2d=labelNeu2d,AchiVal=self.volFrac,
+                                labelNeu2u=labelNeu2u,
+                                AchiVal=self.volFrac,
                                 phiVal1=x1,phiVal2=x2)
         exports = runner.execute()
         self.ux = exports['ux[]']
@@ -78,8 +76,8 @@ class TO_problem(EuclideanOptimizable):
         x1,x2 = np.hsplit(x,2)
         runner = FreeFemRunner(path+"10_CostGradient.edp")
         runner.import_variables(Th=Th,alpha=alpha,beta=beta,labelDir=labelDir,
-                                labelNeu1u=labelNeu1u,labelNeu1d=labelNeu1d,
-                                labelNeu2u=labelNeu2u,labelNeu2d=labelNeu2d,
+                                labelNeu1u=labelNeu1u,
+                                labelNeu2u=labelNeu2u,
                                 uxVal=self.ux,uyVal=self.uy,AchiVal=self.volFrac,
                                 nx=self.nx,ny=self.ny,kappa=self.kappa,
                                 phiVal1=x1,phiVal2=x2)
@@ -129,7 +127,7 @@ class TO_problem(EuclideanOptimizable):
 ## OPTIMIZATION PARAMETERS
 dTime = 0.001
 elRadius = 10
-No = 15
+No = 40
 params = {"dt": dTime*hmin*elRadius,
           "itnormalisation": No,
           "save_only_N_iterations": 1,
@@ -472,6 +470,12 @@ axes[4].plot(iter, minL, color='b')
 axes[4].set_xlabel('Iter')
 axes[4].set_ylabel('Min length constraint')
 axes[4].grid(True, linestyle='--', alpha=0.6)
+
+xls1,xls2 = np.hsplit(x,2)
+
+runner = FreeFemRunner(path+"10_PrintResult.edp")
+runner.import_variables(Th=Th,phiVal1=xls1,phiVal2=xls2)
+runner.execute()
 
 plt.tight_layout()
 plt.show()

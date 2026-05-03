@@ -1,4 +1,5 @@
 IMPORT "io.edp"
+load "distance"
 
 mesh Th = importMesh("Th");
 real [int] phiVal1 = importArray("phiVal1");
@@ -156,13 +157,14 @@ func real[int] volfrac(mesh & Th, real[int] phitab, real ers) {
   return vol[];
 } // EOM
 
-Vh phi;
+Vh phi, dOm;
 for (int i = 0; i < Vh.ndof; ++i) {
   phi[][i] = max(phiVal1[i],phiVal2[i]); /* Intersection */
 }
+distance(Th,phi,dOm[]);
 
 Vh0 Achi;
 real ers = 1.e-3;
-Achi[] = volfrac(Th,phi[],ers);
+Achi[] = volfrac(Th,dOm[],ers);
 
 exportArray(Achi[]);
