@@ -23,18 +23,21 @@ batch_size = 32
 epochs     = 30
 lr         = 1e-3
 
-# Nombre d'images par classe chargées
-# Smoke test    →  50   (< 1 min,  vérifie que ça tourne sans erreur)
-# Sanity check  →  300  (~ 5 min,  vérifie que la loss descend)
-# Run complet   →  nothing  (toutes les images — ici ~10 000 par classe)
+# Nombre d'images par classe
+# Smoke test   →  50       (< 1 min)
+# Sanity check →  300      (~ 5 min)
+# Run complet  →  nothing  (toutes les images)
 max_images = 300
 
-# Data augmentation
-# true  → flip H/V + bruit gaussien sur le train set
-#          Recommandé quand max_images < 2000
-# false → pas d'augmentation
-#          Suffisant quand max_images >= 2000 (assez de diversité naturelle)
+# Data augmentation (flip H/V + bruit gaussien sur le train set)
+# true  → recommandé si max_images < 2000
+# false → suffisant si max_images >= 2000
 use_augmentation = true
+
+# Architecture du classifieur
+# :mlp → Dense(128,64) → Dropout → Dense(64,1)  — recommandé avec > 2000 images
+# :gap → Dense(128,1)                            — recommandé avec < 1000 images
+classifier = :gap
 
 # =========================================================
 # DATA
@@ -49,7 +52,7 @@ train_data, val_data, test_data = split_dataset(images, labels)
 # =========================================================
 
 println("\n=== Construction du modèle ===")
-model = build_model()
+model = build_model(; classifier=classifier)
 println(model)
 
 # =========================================================
@@ -100,7 +103,6 @@ println("Négatifs (sans fisc) → Mean: $(round(mean(neg_scores), digits=3))  M
 sep = mean(pos_scores) - mean(neg_scores)
 println("Séparation (mean pos - mean neg) : $(round(sep, digits=4))")
 
-# Correction automatique si scores inversés
 if sep < -0.05
     println("⚠ Scores inversés détectés → correction 1 - score appliquée")
     y_scores = 1f0 .- y_scores
@@ -161,7 +163,6 @@ println("F1-score       : $(round(best_f1,        digits=4))")
 
 y_pred_best = y_scores .>= best_threshold
 
-# Plots finaux
 f1_score(test_labels, y_pred_best)
 confusion_matrix_plot(test_labels, y_pred_best)
 roc_curve_plot(test_labels, y_scores)
