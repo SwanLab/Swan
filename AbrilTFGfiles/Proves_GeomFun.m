@@ -130,6 +130,8 @@ gPar.type         = 'CrossedSquare3D';
 gPar.length       = 2;
 gPar.xCoorCenter  = 0;
 gPar.yCoorCenter  = 0;
+gPar.zCoorCenter  = 0;
+gPar.yCoorCenter  = 0;
 gPar.tFrame       = 0.2;
 gPar.tCross       = 0.2;
 

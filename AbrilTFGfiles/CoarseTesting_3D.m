@@ -15,6 +15,8 @@ classdef CoarseTesting_3D< handle
     properties (Access = private)
         nSubdomains
         r
+        tFrame
+        tCross
         centroids
         ic
         icr
@@ -102,17 +104,17 @@ classdef CoarseTesting_3D< handle
             uDomain = obj.bcApplier.reducedToFullVectorDirichlet(uPCG);
             % uDomain = obj.ddDofManager.global2local(uDomain);
             
-            % % LAGRANGIAN FUN SOLUTIONS
+            % LAGRANGIAN FUN SOLUTIONS
             % s.mesh     = obj.meshDomain;
             % s.ndimf    = obj.meshDomain.ndim;
             % s.order    = 'P1';
             % s.fValues  = reshape(xFull,3,[])';
             % obj.Sol    = LagrangianFunction(s); %Preconditioned sol  
-            % s.fValues = reshape(Ufull,3[])';
+            % s.fValues = reshape(Ufull,3,[])';
             % obj.SolExact=LagrangianFunction(s); %Exact sol
-
-            obj.print(xFull,"1stIterInnerUniformSphere");
-            obj.print(Ufull,"SolExactInnerUniformSphere");
+            % 
+            % obj.print(xFull,"Prova1stIterInnerUniformCube");
+            % obj.print(Ufull,"ProvaSolExactInnerUniformCube");
             %CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'TestCoarseAbril', obj.r, obj.centroids);
             %CoarsePlotSolution(RealFun, obj.meshDomain, obj.bcApplier,'TestRealAbril', obj.r, obj.centroids);
 
@@ -190,7 +192,13 @@ classdef CoarseTesting_3D< handle
             p.nelem         = cParams.nelem;       %  Mesh refining
             p.Geometry      = cParams.Geometry;    % 'Sphere'/'Cube'
             obj.params      = p;
-            obj.r           = cParams.r;
+            if isfield(cParams,'r')
+                obj.r       = cParams.r;
+            elseif isfield(cParams,'tFrame')
+                obj.tFrame  = cParams.tFrame;
+                obj.tCross  = cParams.tCross;
+            end
+            
             [Ny,Nx,Nz] = size(obj.r);
             obj.nSubdomains = [Nx Ny Nz];
             % obj.nSubdomains = [35 1 1];    % UNCOMMENT JUST FOR AIRFOIL
@@ -483,6 +491,21 @@ classdef CoarseTesting_3D< handle
                                 GeomParams(i,j,k).length      = obj.r(i,j,k);
                                 GeomParams(i,j,k).xCoorCenter = x0(i,j,k);
                                 GeomParams(i,j,k).yCoorCenter = y0(i,j,k);
+                                GeomParams(i,j,k).zCoorCenter = z0(i,j,k);
+                            end
+                        end
+                    end
+
+                case 'Lattice3D'
+                    for i = 1:Nx
+                        for j = 1:Ny
+                            for k = 1:Nz
+                                GeomParams(i,j,k).type        = "CrossedSquare3D";
+                                GeomParams(i,j,k).length      = 2;
+                                GeomParams(i,j,k).tFrame      = obj.tFrame(i,j);
+                                GeomParams(i,j,k).tCross      = obj.tCross(i,j);
+                                GeomParams(i,j,k).xCoorCenter = x0(i,j);
+                                GeomParams(i,j,k).yCoorCenter = y0(i,j);
                                 GeomParams(i,j,k).zCoorCenter = z0(i,j,k);
                             end
                         end

@@ -267,11 +267,11 @@ classdef GeometricalFunction < handle
                     t2 = cParams.tCross;
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
-                    z0 = 0;
+                    z0 = cParams.zCoorCenter;
                     
 
                     s= cParams;
-                    s.type = 'Square';
+                    s.type = 'Cube';
                     s.length = L-2*t1;
 
                     h=s.length;
@@ -337,6 +337,21 @@ classdef GeometricalFunction < handle
                 case 'Naca'
                     fH = @(x) obj.createNacaHole(x1(x),x2(x),cParams);
                     obj.fHandle = fH;
+
+                case 'AirfoilTest'
+                    t=0.12;
+
+                    yt = @(x) 5*t*( ...
+                        0.2969*sqrt(max(x1(x),0)) ...
+                        - 0.1260*x1(x) ...
+                        - 0.3516*x1(x).^2 ...
+                        + 0.2843*x1(x).^3 ...
+                        - 0.1015*x1(x).^4 );
+
+                    @(x) max([y - yt(x1(x),t), ...     % por encima del extradós
+                                -x2(x) - yt(x1(x),t), ...     % por debajo del intradós
+                                -x1(x), ...               % antes del borde de ataque
+                                x1(x) - 1], [], 2);
             end
 
         end
