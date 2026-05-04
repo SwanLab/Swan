@@ -39,6 +39,7 @@ classdef CoarseTesting_2D< handle
         designVariable
         materialInterpolator
         unfittedMesh
+        fileNameEIFEM
     end
 
 
@@ -72,7 +73,7 @@ classdef CoarseTesting_2D< handle
                 case {'Dataset','NN','Hybrid'}
                     Mcoarse     = obj.createCoarseNNPreconditioner(mR,dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);
                     Mmult        = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Mcoarse,Milu);
-                case {'HO'}
+                case {'HO','Direct'}
                     Meifem       = obj.createEIFEMPreconditioner(dir,obj.ic,obj.lg,bS,obj.icr,obj.discMesh);
                     Mmult        = @(r) Preconditioner.multiplePrec(r,LHSf,Milu,Meifem,Milu);
             end
@@ -178,14 +179,16 @@ classdef CoarseTesting_2D< handle
     methods (Access = private)
 
         function init(obj,cParams)
-            p.Training      = cParams.Training;    % 'EIFEM'/'Multiscale'
-            p.Inclusion     = cParams.Inclusion;   % 'Hole'/'Material'/'HoleRaul'   --> Hole: just for constant r
-            p.Sampling      = cParams.Sampling;    % 'Isolated'/'Oversampling'
-            p.Option        = cParams.Option;      % 'Dataset'/'NN'/'HO'/ 'Hybrid'
-            p.nelem         = cParams.nelem;       %  Mesh refining
-            obj.params      = p;
-            obj.r           = cParams.r;
-            obj.nSubdomains = size(obj.r');
+            p.Training         = cParams.Training;    % 'EIFEM'/'Multiscale'
+            p.Inclusion        = cParams.Inclusion;   % 'Hole'/'Material'/'HoleRaul'   --> Hole: just for constant r
+            p.Sampling         = cParams.Sampling;    % 'Isolated'/'Oversampling'
+            p.Option           = cParams.Option;      % 'Dataset'/'NN'/'HO'/ 'Hybrid'/'Direct'
+            p.nelem            = cParams.nelem;       %  Mesh refining
+            obj.params         = p;
+            obj.r              = cParams.r;
+            obj.nSubdomains    = size(obj.r');
+            obj.nSubdomains    = [10,3];              % Uncomment just for 'Direct'  
+            obj.fileNameEIFEM  = cParams.fileNameEIFEM;
             obj.tolSameNode = 1e-11;
         end
 
@@ -209,7 +212,7 @@ classdef CoarseTesting_2D< handle
             mSbd=cell(nY,nX);
             for jDom = 1:nY
                 for iDom = 1:nX
-                    refMesh  =obj.createStructuredMesh();
+                    refMesh  =obj.createReferenceMesh(jDom,iDom);
                     coord0  = refMesh.coord;
                     s.coord(:,1) = coord0(:,1)+Lx*(iDom-1);
                     s.coord(:,2) = coord0(:,2)+Ly*(jDom-1);
@@ -223,6 +226,29 @@ classdef CoarseTesting_2D< handle
             end
             obj.referenceMesh = mSbd{1,1};
         end
+
+        function mS = createReferenceMesh(obj,jDom,iDom)
+            p=obj.params;
+            switch p.Inclusion
+                case 'Material'
+                    mS = obj.createStructuredMesh();
+                case 'Hole'
+                    mS = obj.importMesh();
+                case 'HoleRaul'
+                    switch p.nelem
+                        case 10
+                            mS=mesh_rectangle_via_triangles(obj.r(jDom,iDom),1,-1,1,-1,7,6,0,0);   % 10x10
+                        case 20
+                            % mS=mesh_rectangle_via_triangles(obj.r(jDom,iDom);,1,-1,1,-1,15,12,0,0); % 20x20
+                            mS=mesh_rectangle_via_triangles(obj.r(jDom,iDom),1,-1,1,-1,7,14,0,0); 
+                        case 50
+                            mS=mesh_rectangle_via_triangles(obj.r(jDom,iDom),1,-1,1,-1,34,35,0,0);  % 50x50
+                    end
+                    obj.xmin =-1; obj.xmax = 1;
+                    obj.ymin =-1; obj.ymax = 1;
+            end
+        end
+
 
 
         function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomainJoiner(obj,mSbd)
@@ -262,7 +288,29 @@ classdef CoarseTesting_2D< handle
                 s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[delta,delta];
             mS = Mesh.create(s);
         end
-        
+
+        function mS= importMesh(obj)
+            load(obj.fileNameEIFEM);
+            s.coord    = EIFEoper.mesh.coord;
+            s.connec   = EIFEoper.mesh.connec;
+
+            obj.xmin = min(s.coord(:,1));            
+            obj.xmax = max(s.coord(:,1));
+            obj.ymin = min(s.coord(:,2));
+            obj.ymax = max(s.coord(:,2));
+            delta = 1e-8;
+            s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
+                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-delta];
+            s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
+                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-delta,delta];
+            s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
+                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[delta,-delta];
+            s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
+                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[delta,delta];
+            mS = Mesh.create(s);
+        end
+
+
         function mCoarse = createCoarseMesh(obj)
             s.nsubdomains   = obj.nSubdomains; %nx ny
             s.meshReference = obj.createReferenceCoarseMesh();
@@ -273,16 +321,13 @@ classdef CoarseTesting_2D< handle
 
 
         function cMesh = createReferenceCoarseMesh(obj)
-            coord(1,1) = obj.xmin;        % Crea els nodes i assigna als DOfs
-            coord(1,2) = obj.ymin;        % la coordenada corresponent
-            coord(2,1) = obj.xmax;
-            coord(2,2) = obj.ymin;
-            coord(3,1) = obj.xmax;
-            coord(3,2) = obj.ymax;
-            coord(4,1) = obj.xmin;
-            coord(4,2) = obj.ymax;
+            coord(1,1) = obj.xmin;  coord(1,2) = obj.ymin;     
+            coord(2,1) = obj.xmax;  coord(2,2) = obj.ymin;
+            coord(3,1) = obj.xmax;  coord(3,2) = obj.ymax;
+            coord(4,1) = obj.xmin;  coord(4,2) = obj.ymax;
 
-            connec = [1 2 3 4];    % crea conectivitats entre els 4 nodes
+            % connec = [1 2 3 4];    % General case
+            connec = [2 3 4 1];       % Direct mesh
             s.coord = coord;
             s.connec = connec;
             cMesh = Mesh.create(s);  % crea la mesh de 4 nodes
@@ -480,15 +525,22 @@ classdef CoarseTesting_2D< handle
             p=obj.params;
             meshName    =  p.nelem+"x"+p.nelem;
             mR = obj.referenceMesh;
-            fileNameEIFEM  = fullfile("AbrilTFGfiles","Data","Circle",p.Training,p.Inclusion,p.Sampling,meshName,"parametrizedEIFEM.mat");
-            s.RVE           = TrainedRVE(fileNameEIFEM);
+            switch obj.params.Option
+                case 'HO'
+                    fileName = fullfile("AbrilTFGfiles","Data","Circle",p.Training,p.Inclusion,p.Sampling,meshName,"parametrizedEIFEM.mat");
+                case 'Direct'
+                fileName=obj.fileNameEIFEM;
+            end
+
+            s.RVE           = TrainedRVE(fileName);
             s.mesh          = obj.createCoarseMesh();
             s.DirCond       = dir;
             s.nSubdomains   = obj.nSubdomains;
             s.mu            = obj.r;
             s.meshRef       = dMesh;
-            eifem           = EIFEMnonPeriodic(s);
-            
+            % eifem           = EIFEMnonPeriodic(s);
+            eifem           = EIFEM(s);
+
             ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
             ss.EIFEMsolver  = eifem;
             ss.bcApplier    = obj.bcApplier;
