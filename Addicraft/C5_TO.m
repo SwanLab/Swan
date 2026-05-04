@@ -17,9 +17,9 @@ classdef C5_TO < handle
 
     methods (Access = public)
 
-        function obj = C5_TO()
+        function obj = C5_TO(filename)
             obj.init()
-            obj.createMesh();
+            obj.createMesh(filename);
             obj.createDesignVariable();
             obj.createFilter();
             obj.createMaterialInterpolator();
@@ -31,6 +31,9 @@ classdef C5_TO < handle
             obj.createConstraint();
             obj.createPrimalUpdater();
             obj.createOptimizer();
+
+            saveas(gcf,['Addicraft/Monitoring_',filename,'.fig']);
+            obj.designVariable.fun.print(['Addicraft/',filename,'_fValues']);
         end
 
     end
@@ -41,8 +44,8 @@ classdef C5_TO < handle
             close all;
         end
 
-        function createMesh(obj)
-            file = 'C5_Mangueta';
+        function createMesh(obj,fName)
+            file = fName;
             obj.filename = file;
             a.fileName = file;
             s = FemDataContainer(a);
