@@ -26,7 +26,7 @@ function load_image(path::String, img_size::Tuple{Int, Int})
 
     img_gray    = Gray.(img)
     img_resized = imresize(img_gray, img_size)
-    img_array   = Float32.(channelview(img_resized))
+    img_array   = Float32.(channelview(img_resized))    #for type compatibility with Flux
 
     # Normalisation min-max par image : étire les valeurs dans [0,1]
     lo, hi = minimum(img_array), maximum(img_array)

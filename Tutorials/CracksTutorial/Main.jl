@@ -1,10 +1,10 @@
 using Flux
 using Statistics
 
-include("Preprocess.jl")
-include("Model.jl")
-include("Train.jl")
-include("Plot.jl")
+include("module_Preprocess.jl")
+include("module_Model.jl")
+include("module_Train.jl")
+include("module_Plot.jl")
 
 using .Preprocess
 using .Model
@@ -15,15 +15,13 @@ using .Plot
 # PARAMÈTRES
 # =========================================================
 
-#root_dir = "C:/Users/couwa/Documents/Stage_CIMNE/Classification/archive"
-root_dir = "./archive"           #pour googleColab
+root_dir = "C:/Users/couwa/Documents/Stage_CIMNE/Classification/archive"
 
 img_size   = (64, 64)
 batch_size = 32
 epochs     = 30
 lr         = 1e-3
 
-# Nombre d'images par classe
 # Smoke test   →  50       (< 1 min)
 # Sanity check →  300      (~ 5 min)
 # Run complet  →  nothing  (toutes les images)
@@ -35,8 +33,8 @@ max_images = 300
 use_augmentation = true
 
 # Architecture du classifieur
-# :mlp → Dense(128,64) → Dropout → Dense(64,1)  — recommandé avec > 2000 images
-# :gap → Dense(128,1)                            — recommandé avec < 1000 images
+# :gap → GlobalAvgPool → Dense(128→1)       recommandé < 1000 images
+# :mlp → Flatten(8192) → Dense(8192→256) → Dense(256→1)  recommandé > 2000 images
 classifier = :gap
 
 # =========================================================

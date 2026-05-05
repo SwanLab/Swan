@@ -5,67 +5,86 @@ using Flux
 export build_model
 
 # =========================================================
-# Deux architectures de classification disponibles :
+# Deux architectures RÉELLEMENT différentes :
 #
-# :mlp  — GlobalMeanPool → Dense(128,64) → Dropout → Dense(64,1)
-#   + Plus de capacité d'expression (combine les features)
-#   + Meilleur sur grand dataset (> 2000 images)
-#   - Risque de sur-apprentissage sur petit dataset
-#   Nb paramètres classifieur : 128*64 + 64*1 = 8 256
+# :mlp — Flatten complet + couches denses
 #
-# :gap  — GlobalMeanPool → Dense(128,1)
-#   + Minimal, chaque filtre vote directement
-#   + Meilleur sur petit dataset (< 1000 images)
-#   + Plus rapide à entraîner
-#   - Moins de capacité à combiner les features entre elles
-#   Nb paramètres classifieur : 128*1 = 128
+#   Feature maps (8, 8, 128, N)
+#       → flatten → (8192, N)
+#       → Dense(8192, 256, relu)
+#       → Dropout
+#       → Dense(256, 1)
+#       → sigmoid
 #
-# Les blocs convolutifs sont identiques dans les deux cas.
+#   Principe : chaque pixel de chaque feature map devient
+#   une entrée du Dense. Le réseau apprend "où" dans
+#   l'image les features s'activent.
+#   Paramètres : 8192*256 + 256 + 256*1 = ~2 millions
+#   + Meilleur si la position spatiale de la fissure compte
+#   - Sur-apprentissage facile sur petit dataset
+#   - Lent (beaucoup de paramètres)
+#
+# :gap — Global Average Pooling + Dense direct
+#
+#   Feature maps (8, 8, 128, N)
+#       → moyenne spatiale par feature map → (128, N)
+#       → Dense(128, 1)
+#       → sigmoid
+#
+#   Principe : chaque feature map est résumée par sa moyenne
+#   sur toute l'image spatiale. Le réseau apprend "est-ce
+#   que ce filtre s'active" sans mémoriser "où exactement".
+#   Paramètres : 128*1 + 1 = 129
+#   + Très peu de paramètres → bon sur petit dataset
+#   + Invariant à la position de la fissure dans l'image
+#   - Perd l'information spatiale
 # =========================================================
 
-function build_model(; classifier=:mlp, dropout_rate=0.3)
+function build_model(; classifier=:gap, dropout_rate=0.3)
 
     @assert classifier in (:mlp, :gap) "classifier doit être :mlp ou :gap"
 
-    # Blocs convolutifs communs aux deux architectures
-    # GroupNorm au lieu de BatchNorm : stable quelle que soit
-    # la taille du batch, indispensable sur petit dataset
+    # Blocs convolutifs communs
+    # Après 3x MaxPool(2,2) sur une image 64x64 :
+    # feature maps de taille (8, 8, 128, N)
     backbone = [
-        # Bloc 1 — textures basiques (bords, gradients)
         Conv((3,3), 1 => 32, relu; pad=1),
         GroupNorm(32, 8),
-        MaxPool((2,2)),            # 64 → 32
+        MaxPool((2,2)),      # 64 → 32
 
-        # Bloc 2 — structures locales (lignes fines, fissures courtes)
         Conv((3,3), 32 => 64, relu; pad=1),
         GroupNorm(64, 8),
-        MaxPool((2,2)),            # 32 → 16
+        MaxPool((2,2)),      # 32 → 16
 
-        # Bloc 3 — patterns globaux (fissure traversante)
         Conv((3,3), 64 => 128, relu; pad=1),
         GroupNorm(128, 8),
-        MaxPool((2,2)),            # 16 → 8
-
-        # Réduit (8,8,128,N) → (128,N) par moyenne spatiale
-        GlobalMeanPool(),
-        Flux.flatten,
+        MaxPool((2,2)),      # 16 → 8
+                             # sortie : (8, 8, 128, N)
     ]
 
-    # Classifieur selon le choix
     if classifier == :mlp
+        # Flatten complet : (8, 8, 128, N) → (8192, N)
         head = [
-            Dense(128, 64, relu),
+            Flux.flatten,                    # 8*8*128 = 8192
+            Dense(8*8*128, 256, relu),
             Dropout(dropout_rate),
-            Dense(64, 1),
+            Dense(256, 1),
             sigmoid,
         ]
-        println("Classifieur : MLP  [Dense(128→64) → Dropout($(dropout_rate)) → Dense(64→1)]")
+        println("Classifieur : MLP  [Flatten(8192) → Dense(8192→256) → Dropout → Dense(256→1)]")
+        println("             ~2M paramètres — recommandé avec > 2000 images")
+
     else  # :gap
+        # Global Average Pooling : (8, 8, 128, N) → (128, N)
+        # Moyenne spatiale sur chaque feature map indépendamment
         head = [
+            GlobalMeanPool(),   # (8,8,128,N) → (1,1,128,N)
+            Flux.flatten,       # (1,1,128,N) → (128,N)
             Dense(128, 1),
             sigmoid,
         ]
-        println("Classifieur : GAP  [Dense(128→1)] — minimal, adapté aux petits datasets")
+        println("Classifieur : GAP  [GlobalAvgPool → (128,N) → Dense(128→1)]")
+        println("             ~129 paramètres — recommandé avec < 1000 images")
     end
 
     return Chain(backbone..., head...)
