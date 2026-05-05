@@ -30,6 +30,7 @@ exports = FreeFemRunner(path+"10_Mesh.edp").execute()
 Th = exports['Th']
 alpha = exports['alpha']
 beta = exports['beta']
+labelDirRB = exports['labelDirRB']
 labelDir = exports['labelDir']
 labelNeu1u = exports['labelNeu1u']
 labelNeu2u = exports['labelNeu2u']
@@ -61,10 +62,8 @@ class TO_problem(EuclideanOptimizable):
     def J(self, x):
         x1,x2 = np.hsplit(x,2)
         runner = FreeFemRunner(path+"10_Cost.edp")
-        runner.import_variables(Th=Th,labelDir=labelDir,labelNeu1u=labelNeu1u,
-                                labelNeu2u=labelNeu2u,
-                                AchiVal=self.volFrac,
-                                phiVal1=x1,phiVal2=x2)
+        runner.import_variables(Th=Th,labelDirRB=labelDirRB,labelDir=labelDir,labelNeu1u=labelNeu1u,
+                                labelNeu2u=labelNeu2u,AchiVal=self.volFrac,phiVal1=x1,phiVal2=x2)
         exports = runner.execute()
         self.ux = exports['ux[]']
         self.uy = exports['uy[]']
@@ -75,20 +74,20 @@ class TO_problem(EuclideanOptimizable):
     def dJ(self, x):
         x1,x2 = np.hsplit(x,2)
         runner = FreeFemRunner(path+"10_CostGradient.edp")
-        runner.import_variables(Th=Th,alpha=alpha,beta=beta,labelDir=labelDir,
-                                labelNeu1u=labelNeu1u,
+        runner.import_variables(Th=Th,alpha=alpha,beta=beta,labelDirRB=labelDirRB,
+                                labelDir=labelDir,labelNeu1u=labelNeu1u,
                                 labelNeu2u=labelNeu2u,
                                 uxVal=self.ux,uyVal=self.uy,AchiVal=self.volFrac,
                                 nx=self.nx,ny=self.ny,kappa=self.kappa,
                                 phiVal1=x1,phiVal2=x2)
         return runner.execute()['g[]']
     
-    def G(self, x):
+    def H(self, x):
         runner = FreeFemRunner(path+"10_ConstraintEq.edp")
         runner.import_variables(Th=Th,AchiVal=self.volFrac)
         return [runner.execute()['C']]
     
-    def dG(self, x):
+    def dH(self, x):
         x1,x2 = np.hsplit(x,2)
         runner = FreeFemRunner(path+"10_ConstraintEqGradient.edp")
         runner.import_variables(Th=Th,beta=beta,phiVal1=x1,phiVal2=x2)
@@ -127,14 +126,15 @@ class TO_problem(EuclideanOptimizable):
 ## OPTIMIZATION PARAMETERS
 dTime = 0.001
 elRadius = 10
-No = 40
+No = 3000
 params = {"dt": dTime*hmin*elRadius,
           "itnormalisation": No,
           "save_only_N_iterations": 1,
           "save_only_Q_constraints": 5,
           "alphaJ": 1,
           "alphaC": 1,
-          "maxit": 100,
+          "maxit": 150,
+          "maxtrials": 10,
           "CFL": 0.9}
 problem:Optimizable = TO_problem()
 
@@ -261,7 +261,7 @@ else:
 xls1,xls2 = np.hsplit(x,2)
 
 runner = FreeFemRunner(path+"10_VolFracComputer.edp")
-runner.import_variables(Th=Th,phiVal1=xls1,phiVal2=xls2)
+runner.import_variables(Th=Th,phiVal1=xls1,phiVal2=xls2,ers=0.01)
 problem._problem.volFrac = runner.execute()['Achi[]']
 
 runner = FreeFemRunner(path+"10_BoundaryRefinement.edp")
@@ -343,42 +343,38 @@ while normdx > params['tol'] and it <= params['maxit']:
     # Update step
     g = AJ*xiJ+AC*xiC
     xls1,xls2 = np.hsplit(x,2)
-    runner = FreeFemRunner(path+"10_HJ.edp")
-    runner.import_variables(Th=Th,gVal = g,phiVal1=xls1,phiVal2=xls2,nxVal=problem._problem.nx,
-                            nyVal=problem._problem.ny,dTime=dTime)
-    x11 = runner.execute()['phi1[]']
-    x12 = runner.execute()['phi2[]']
-    x1 = np.hstack((x11,x12))
-
-    xls1,xls2 = np.hsplit(x,2)
-    xk = np.maximum(xls1,xls2)
-    xk1 = np.maximum(x11,x12)
-    dx = (xk1-xk)
-    dxLong = (x1-x)
     #if p>0:
     #    assert np.isclose(dC[:p,:] @ xiJ,0,atol=1e-15) 
     #if dC[tildeEps,:][p:,:].size > 0:
     #    print(np.min(dC[tildeEps,:][p:,:]@xiJ))
 
-    # Tolerance bounds at which one can expect to meet the constraint
-    abstract_results.save('tolerance',  
-                        np.array(np.sum(abs(dC), 1))*compute_norm(dx,np.inf))
-
-    # Loop with trials
-    normdx = compute_norm(dx, 2)
     success = 0
     tilde = get_tilde(C, p)
     for k in range(params['maxtrials']):
-        newx = problem.retract(x, (0.5**k)*dxLong)
+        runner = FreeFemRunner(path+"10_HJ.edp")
+        runner.import_variables(Th=Th,gVal = g,phiVal1=xls1,phiVal2=xls2,nxVal=problem._problem.nx,
+                            nyVal=problem._problem.ny,dTime=((2**k)*dTime))
+        x11 = runner.execute()['phi1[]']
+        x12 = runner.execute()['phi2[]']
+        newx = np.hstack((x11,x12))
 
-        xls1,xls2 = np.hsplit(newx,2)
+        xk = np.maximum(xls1,xls2)
+        xk1 = np.maximum(x11,x12)
+        dx = (xk1-xk)
+
+        # Tolerance bounds at which one can expect to meet the constraint
+        abstract_results.save('tolerance',  
+                        np.array(np.sum(abs(dC), 1))*compute_norm(dx,np.inf))
+
+        # Loop with trials
+        normdx = compute_norm(dx, 2)
 
         runner = FreeFemRunner(path+"10_VolFracComputer.edp")
-        runner.import_variables(Th=Th,phiVal1=xls1,phiVal2=xls2)
+        runner.import_variables(Th=Th,phiVal1=x11,phiVal2=x12,ers=0.01)
         problem._problem.volFrac = runner.execute()['Achi[]']
 
         runner = FreeFemRunner(path+"10_BoundaryRefinement.edp")
-        runner.import_variables(Th=Th,phiVal1=xls1,phiVal2=xls2,alpha=alpha)
+        runner.import_variables(Th=Th,phiVal1=x11,phiVal2=x12,alpha=alpha)
         exports = runner.execute()
 
         problem._problem.nx = exports['nx[]']
@@ -391,6 +387,9 @@ while normdx > params['tol'] and it <= params['maxit']:
         newC = np.concatenate((newG, newH))
             
         # Finite difference check
+        mOld = J + muls[0]*H[0]
+        mNew = newJ + muls[0]*newH[0]
+
         finite_diffJ = np.abs(
             newJ - J - dJ.dot((0.5**k)*dx))/(0.5**k*normdx+1e-10)
         finite_diffC = max(
@@ -398,7 +397,7 @@ while normdx > params['tol'] and it <= params['maxit']:
         if max(finite_diffJ, finite_diffC) > params['tol_finite_diff']:
             io.display("Warning, inaccurate finite differences, time step might be too large. "
                     f"finite_diffJ={finite_diffJ}, finite_diffC={finite_diffC}", 1, params['debug'], color="dark_orange_3a")
-        if newJ > J and np.linalg.norm(newC[tilde],2) >= np.linalg.norm(C[tilde],2):
+        if mNew > mOld + 1e-3:
             io.display(f"Warning, newJ={newJ} > J={J} and normNewC={np.linalg.norm(newC[tilde],2)} > normC= {np.linalg.norm(C[tilde],2)} "
                     + f"-> Trial {k+1}", 0, params['debug'], color="red")
         else:
@@ -474,7 +473,7 @@ axes[4].grid(True, linestyle='--', alpha=0.6)
 xls1,xls2 = np.hsplit(x,2)
 
 runner = FreeFemRunner(path+"10_PrintResult.edp")
-runner.import_variables(Th=Th,phiVal1=xls1,phiVal2=xls2)
+runner.import_variables(Th=Th,phiVal1=xls1,phiVal2=xls2,ux=problem._problem.ux,uy=problem._problem.uy)
 runner.execute()
 
 plt.tight_layout()

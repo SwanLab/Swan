@@ -4,11 +4,15 @@ load "iovtk"
 mesh Th = importMesh("Th");
 real [int] phiVal1 = importArray("phiVal1");
 real [int] phiVal2 = importArray("phiVal2");
+real [int] uxVal = importArray("ux");
+real [int] uyVal = importArray("uy");
 
 fespace Vh(Th,P1);
-Vh phi1, phi2;
+Vh phi1, phi2, ux, uy;
 phi1[] = phiVal1;
 phi2[] = phiVal2;
+ux[] = uxVal;
+uy[] = uyVal;
 
 string sout;
 sout = "10_ResultLs1.vtu";
@@ -16,3 +20,6 @@ savevtk(sout, Th, phi1, dataname="LevelSet1");
 
 sout = "10_ResultLs2.vtu";
 savevtk(sout, Th, phi2, dataname="LevelSet2");
+
+sout = "10_ResultDisp.vtu";
+savevtk(sout, Th, [ux,uy], dataname="Displ");

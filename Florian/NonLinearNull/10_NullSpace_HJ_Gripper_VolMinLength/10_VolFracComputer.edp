@@ -4,6 +4,7 @@ load "distance"
 mesh Th = importMesh("Th");
 real [int] phiVal1 = importArray("phiVal1");
 real [int] phiVal2 = importArray("phiVal2");
+real ers = importVar("ers");
 
 fespace Vh(Th,P1);
 fespace Vh0(Th,P0);
@@ -164,7 +165,6 @@ for (int i = 0; i < Vh.ndof; ++i) {
 distance(Th,phi,dOm[]);
 
 Vh0 Achi;
-real ers = 1.e-3;
 Achi[] = volfrac(Th,dOm[],ers);
 
 exportArray(Achi[]);

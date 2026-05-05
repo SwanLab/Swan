@@ -1,19 +1,21 @@
 IMPORT "io.edp"
 
 real fac       = 2.0;
-int labelDir   = 1;
-int labelNeu1u = 2;
-int labelNeu2u = 3;
+int labelDirRB = 1;
+int labelDir   = 2;
+int labelNeu1u = 3;
+int labelNeu2u = 4;
 border L1(t=0, 0.4){x=0; y=1-t; label=0;}
 border C1(t=0, 0.1){x=t; y=0.6; label=labelNeu2u;}
 border C2(t=0, 0.1){x=0.1; y=0.6-t; label=0;}
-border CDir(t=0, 0.9){x=0.1+t; y=0.5; label=labelDir;}
+border CDirRB(t=0, 0.01){x=0.1+t; y=0.5; label=labelDirRB;}
+border CDirSym(t=0.01, 0.9){x=0.1+t; y=0.5; label=labelDir;}
 border Ru(t=0, 0.5){x=1; y=0.5+t; label=0;}
 border Tr(t=0, 0.1){x=1-t; y=1; label=labelNeu1u;}
 border Tl(t=0, 0.9){x=0.9-t; y=1; label=0;}
 
 mesh Th = buildmesh(L1(40*fac)+C1(10*fac)+C2(10*fac)
-                    +CDir(90*fac)+Ru(50*fac)
+                    +CDirRB(1*fac)+CDirSym(89*fac)+Ru(50*fac)
                     +Tr(10*fac)+Tl(90*fac));
 
 real meshsiz = 0.01/(fac);
@@ -23,6 +25,7 @@ real beta  = 8.0*meshsiz;
 exportMesh(Th);
 exportVar(alpha);
 exportVar(beta);
+exportVar(labelDirRB);
 exportVar(labelDir);
 exportVar(labelNeu1u);
 exportVar(labelNeu2u);
