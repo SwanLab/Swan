@@ -1,10 +1,10 @@
 using Flux
 using Statistics
 
-include("module_Preprocess.jl")
-include("module_Model.jl")
-include("module_Train.jl")
-include("module_Plot.jl")
+include("Preprocess.jl")
+include("Model.jl")
+include("Train.jl")
+include("Plot.jl")
 
 using .Preprocess
 using .Model
@@ -15,7 +15,8 @@ using .Plot
 # PARAMÈTRES
 # =========================================================
 
-root_dir = "C:/Users/couwa/Documents/Stage_CIMNE/Classification/archive"
+#root_dir = "C:/Users/couwa/Documents/Stage_CIMNE/Classification/archive"
+root_dir = "./archive"           #pour googleColab
 
 img_size   = (64, 64)
 batch_size = 32
