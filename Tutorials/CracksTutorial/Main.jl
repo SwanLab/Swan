@@ -1,17 +1,3 @@
-using Pkg
-Pkg.add([
-    "Flux",
-    "Optimisers",
-    "Images",
-    "ImageTransformations",
-    "FileIO",
-    "ImageIO",
-    "Plots",
-    "Statistics",
-    "Random"
-])
-
-
 using Flux
 using Statistics
 
