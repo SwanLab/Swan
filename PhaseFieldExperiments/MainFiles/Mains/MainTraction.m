@@ -2,9 +2,9 @@ clc,clear,close all
 
 %% GENERAL SETTINGS
 
-s.monitoring.set = false;
+s.monitoring.set = true;
 s.monitoring.type = 'full'; %'reduced'
-s.monitoring.print = false;
+s.monitoring.print = true;
 
 s.tolerance.u = 1e-6;
 s.tolerance.phi = 1e-6;
@@ -15,7 +15,7 @@ s.maxIter.stag = 300;
 
 s.benchmark.mesh.type   = 'SENtraction';
 s.benchmark.bc.u.type   = 'DisplacementTractionYClamped';
-s.benchmark.bc.u.values =  [0:1e-5:0.005,0.005:1e-6:0.0065];
+s.benchmark.bc.u.values =  [0:1e-3:0.005,0.005:1e-6:0.0065];
 s.benchmark.bc.phi.type = 'DamageFree';
 
 s.matInfo.matType = 'Analytic'; %'Analytic','Homogenized'

@@ -21,13 +21,13 @@ s.maxIter.stag = 300;
 s.benchmark.mesh.type   = '1Elem';%'SENshear';
 s.benchmark.mesh.length = 1;
 s.benchmark.mesh.width  = 1;
-s.benchmark.mesh.lN     = 10;
-s.benchmark.mesh.wN     = 10;
-s.benchmark.bc.u.type   = 'DisplacementPureShear';%'DisplacementShear';
+s.benchmark.mesh.lN     = 51;
+s.benchmark.mesh.wN     = 51;
+s.benchmark.bc.u.type   = 'DisplacementShear';%'DisplacementShear';
 s.benchmark.bc.u.values =  [0:1e-3:1];
-s.benchmark.bc.phi.type = 'DamageFree';%'DamageFixedLimitsX';
+s.benchmark.bc.phi.type = 'DamageSEN';%'DamageFixedLimitsX';
 
-s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'
+s.matInfo.matType = 'Analytic'; %'Analytic','Homogenized'
 s.matInfo.degradationType = 'PhaseField'; %'PhaseField','SIMPALL'
 s.matInfo.degradationSubType = 'AT'; %'AT','AT2linear','General'
 s.matInfo.fileName = 'HorizontalCrack'; 
@@ -43,7 +43,7 @@ s.dissipInfo.type = 'AT';
 s.dissipInfo.constant = 8/3; % 2 AT2 / 8/3 AT1 / pi Wu 
 s.dissipInfo.pExp = 1;
 s.dissipInfo.xi = 2; % 0 AT2 / 1 AT1 / 2 Mix in type FullQuadratic
-s.solver.type = 'Gradient';
+s.solver.type = 'Newton';
 s.solver.tau  = 150;
 
 

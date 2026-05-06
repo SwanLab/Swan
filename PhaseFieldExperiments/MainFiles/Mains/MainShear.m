@@ -2,9 +2,9 @@ clc,clear,close all
 
 %% GENERAL SETTINGS
 
-s.monitoring.set = false;
+s.monitoring.set = true;
 s.monitoring.type = 'full'; %'reduced'
-s.monitoring.print = false;
+s.monitoring.print = true;
 
 s.tolerance.u = 1e-6;
 s.tolerance.phi = 1e-6;
@@ -15,10 +15,10 @@ s.maxIter.stag = 300;
 
 s.benchmark.mesh.type   = 'SENshear';%'SENshear';
 s.benchmark.bc.u.type   = 'DisplacementShear';%'DisplacementShear';
-s.benchmark.bc.u.values =  [0:1e-5:0.02];
+s.benchmark.bc.u.values =  [0:1e-4:0.02];
 s.benchmark.bc.phi.type = 'DamageFree';
 
-s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'
+s.matInfo.matType = 'Analytic'; %'Analytic','Homogenized'
 s.matInfo.degradationType = 'PhaseField'; %'PhaseField','SIMPALL'
 s.matInfo.degradationSubType = 'AT'; %'AT','AT2linear','General'
 s.matInfo.fileName = 'HorizontalCrack'; 

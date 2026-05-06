@@ -55,8 +55,8 @@ classdef DisplayQuiver < DisplayAbstract
             a = quiver(x, y, fX, fY, 'AutoScale', 'on', 'LineWidth', 1.5);              
             axis equal;  
             box on;     
-            xlim([min(x)-1, max(x)+1]);
-            ylim([min(y)-1, max(y)+1]); 
+            xlim([min(x), max(x)]);
+            ylim([min(y), max(y)]); 
         end
 
     end

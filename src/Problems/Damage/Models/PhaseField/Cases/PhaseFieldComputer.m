@@ -122,7 +122,7 @@ classdef PhaseFieldComputer < handle
             E    = obj.functional.computeEnergies(u,phi,fExt);
             totE = sum(E);
             [totF,uBC] = obj.computeTotalReaction(step,F,u);
-            angleVec = obj.computeOrientationAsVector(theta);
+            angleVec = obj.computeOrientationAsVector(theta,phi);
             phiRel   = obj.computeRelativeDamage(phi);
         end
 
@@ -164,9 +164,11 @@ classdef PhaseFieldComputer < handle
             end
         end
 
-        function thetaVector = computeOrientationAsVector(~,theta)
+        function thetaVector = computeOrientationAsVector(~,theta,phi)
             thetaP1 = project(theta,'P1');
-            thetaVector = [cos(thetaP1.fValues), sin(thetaP1.fValues)];
+            thetaVals = [cos(thetaP1.fValues), sin(thetaP1.fValues)];
+            thetaVector = phi.fun.fValues.*thetaVals;
+
         end
 
         function phiRel = computeRelativeDamage(~,phi)

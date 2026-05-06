@@ -148,6 +148,8 @@ classdef PhaseFieldPlotter < handle
 
         function plotOrientation(obj)
             figure()
+            orientationVector = [cos(obj.orientation.fValues), sin(obj.orientation.fValues)];
+            obj.orientation.setFValues(obj.damageField.fun.fValues.*orientationVector)
             obj.orientation.plotVector(1)
             title('Orientation field')
         end

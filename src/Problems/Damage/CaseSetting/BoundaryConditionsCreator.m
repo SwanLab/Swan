@@ -559,8 +559,8 @@ classdef BoundaryConditionsCreator < handle
          end
 
          function createDamageSENConditions(obj,~)
-            isMiddleY = @(coor)  abs(coor(:,2)-(max(coor(:,2)) + min(coor(:,2)))/2) < 1e-1;
-            isHalfLeft = @(coor)  coor(:,1)-0.5*((max(coor(:,1)) + min(coor(:,1)))/2) < 1e-1;
+            isMiddleY = @(coor)  abs(coor(:,2)-(max(coor(:,2)) + min(coor(:,2)))/2) < 1e-12;
+            isHalfLeft = @(coor)  coor(:,1)-((max(coor(:,1)) + min(coor(:,1)))/2) < 1e-12;
             sDir.domain    = @(coor) isHalfLeft(coor) & isMiddleY(coor);
             sDir.direction = 1;
             sDir.value     = 0.99;
