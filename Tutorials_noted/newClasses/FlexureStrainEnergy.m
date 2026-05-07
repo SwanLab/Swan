@@ -24,18 +24,24 @@ classdef FlexureStrainEnergy < handle
         function [J, dJ] = computeFunctionAndGradient(obj,x)
             xD = x.obtainDomainFunction();
 
+            % Depending on the type of output of obtainDomainFunction
             if iscell(xD)
                 xD_single = xD{1};
             else
                 xD_single = xD;
             end
 
+            % Filter the design variable
             x_filtered = obj.filter.compute(xD_single,2);
-            xR = {x_filtered};
+            xR = {x_filtered}; % convert it to cell for computeTensorAndGradient
 
+            % Obtain C (interpolated Young modulus) and its derivative
             [C,dC] = obj.computeTensorFunctionAndGradient(xR);
+
+            % Solve FEM for displacements uS
             uS = obj.computeStateVariable(C);
 
+            % Obtain strain energy and its gradient
             J = obj.computeFunctionValue(C,uS);
             dJ = obj.computeGradient(dC{1},uS);
             dJ = obj.gradientFilter.compute(dJ,2);
@@ -63,6 +69,7 @@ classdef FlexureStrainEnergy < handle
             obj.stateProblem = cParams.stateProblem; 
             obj.gradientFilter = cParams.gradientFilter;
 
+            % not needed anymore, it was to solve an error:
             if isfield(cParams,'value0')
                 obj.value0 = cParams.value0;
             end
@@ -94,12 +101,12 @@ classdef FlexureStrainEnergy < handle
         end
         
         function J = computeFunctionValue(obj, C, uS)
-            stateStrain   = SymGrad(uS);
-            stress        = DDP(C, stateStrain);
-            dCompliance = DDP(stateStrain, stress);
+            stateStrain   = SymGrad(uS); 
+            stress        = DDP(C, stateStrain); 
+            dCompliance = DDP(stateStrain, stress); % corresponds to the amount of energy stored at each point of the domain
             
             % E = 1/2 * u * K * u
-            J_abs = 0.5 * Integrator.compute(dCompliance, obj.mesh, obj.quadrature.order);
+            J_abs = 0.5 * Integrator.compute(dCompliance, obj.mesh, obj.quadrature.order); % integrate using gauss quadrature (Koppen does it with matrices)
             
             if isempty(obj.value0)
                 obj.value0 = J_abs;

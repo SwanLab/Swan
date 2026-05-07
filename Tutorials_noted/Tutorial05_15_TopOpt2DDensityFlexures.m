@@ -1,7 +1,7 @@
-classdef Tutorial05_15_TopOpt2DFlexures < handle
+classdef Tutorial05_15_TopOpt2DDensityFlexures < handle
 
     properties (Access = private)
-        filename
+        filename 
         mesh
         filter
         designVariable
@@ -17,23 +17,23 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
         optimizer
         gJ
 
-        doc % Selected/chosen DOCs
-        dof % Selected/chosen DOFs
+        doc % Selected/chosen DOCs, ["tx"]
+        dof % Selected/chosen DOFs, ["rz"]
         emax % Max strain energy for DOFs
-        mdoc % Vector with active DOC
-        mdof % Vector with active DOF
-        deg % Active degrees DOC+DOF
-        ndeg % Number of active degrees 
+        mdoc % Vector with active DOC, [1 0 0]
+        mdof % Vector with active DOF, [0 0 1]
+        deg % Active degrees DOC+DOF, [1 0 1]
+        ndeg % Number of active degrees, 2
         strainEnergyFuncs
     end
 
     methods (Access = public)
 
-        function obj = Tutorial05_15_TopOpt2DFlexures()
+        function obj = Tutorial05_15_TopOpt2DDensityFlexures()
                 % Degrees
-                obj.doc = ["tx"];
-                obj.dof = ["ty"];
-                obj.emax = 1;
+                obj.doc = ["tx"]; %tx
+                obj.dof = ["ty"]; % ty
+                obj.emax = 0.005; %1
 
                 obj.preprocessDegrees();
                 
@@ -71,17 +71,18 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
             ldoc = length(obj.doc); % Number of DOCs
             ldof = length(obj.dof); % Number of DOFs
             
-            % mdoc and mdof are used to compare input (doc, dof) to degrees
+            % Initialize vectors of DOC and DOF
             obj.mdoc = zeros(ldoc,3);
             obj.mdof = zeros(ldof,3);
             
-            degrees = ["tx","ty","rz"];
+            degrees = ["tx","ty","rz"]; % possible DOC and DOF
             for i=1:ldoc; obj.mdoc(i,:) = strcmp(degrees,obj.doc(i)); end % Compare DOCs to degrees
             for i=1:ldof; obj.mdof(i,:) = strcmp(degrees,obj.dof(i)); end % Compare DOFs to degrees
-            obj.mdoc = max(obj.mdoc,[],1) == 1; % For example, if doc="ty", then mdoc=[0 1 0]
+            % Now, if doc="ty, tx", then mdoc=[0 1 0; 1 0 0]
+            obj.mdoc = max(obj.mdoc,[],1) == 1; % For example, if doc="ty, tx", then mdoc=[1 1 0]
             obj.mdof = max(obj.mdof,[],1) == 1;
             
-            obj.deg = find(max([obj.mdoc; obj.mdof])); % Degrees that are in doc or dof
+            obj.deg = find(max([obj.mdoc; obj.mdof])); % if mdoc=[0 1 0] and mdof=[1 0 0] then deg=[1 2] (indeces of active degrees)
             obj.ndeg = length(obj.deg); % Number of active degrees, used to avoid doing the FEA of an inactive degree
             
             % Checks that a degree is not both dof and doc, also that at least 1
@@ -99,7 +100,7 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
             % Create the grid
             [xv,yv] = meshgrid(x1,x2);
             % Triangulate the mesh to obtain coordinates and connectivities
-            [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
+            [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'f');
             s.coord  = V(:,1:2);
             s.connec = F;
             %mesh = Mesh.create(s);
@@ -159,12 +160,12 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
         end
 
         function createElasticProblem(obj)
-            obj.physicalProblem = cell(obj.ndeg,1);
+            obj.physicalProblem = cell(obj.ndeg,1); % use cell to store different objects
             degrees_list = ["tx", "ty", "rz"];
 
-            for i = 1:obj.ndeg
-                current_idx = obj.deg(i);
-                current_degree = degrees_list(current_idx);
+            for i = 1:obj.ndeg % one iteration per active degree
+                current_idx = obj.deg(i); % select the index of the current degree (from preprocess)
+                current_degree = degrees_list(current_idx); % select the string degree
 
                 s.mesh = obj.mesh;
                 s.scale = 'MACRO';
@@ -173,10 +174,10 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
                 s.boundaryConditions = obj.createBoundaryConditions(current_degree);
                 s.interpolationType = 'LINEAR';
                 s.solverType = 'REDUCED';
-                s.solverMode = 'DISP';
+                s.solverMode = 'DISP'; % now we impose displacements
                 s.solverCase = DirectSolver();
                 fem = ElasticProblem(s);
-                obj.physicalProblem{i} = fem;
+                obj.physicalProblem{i} = fem; % stor the FEM of this degree in the cell
             end
 
         end
@@ -224,32 +225,33 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
         end
 
         function createStrainEnergyFunctions(obj)
-            obj.strainEnergyFuncs = cell(obj.ndeg,1);
+            obj.strainEnergyFuncs = cell(obj.ndeg,1); % Initialize cell to store strain energy of each degree
 
-            for i = 1:obj.ndeg
+            for i = 1:obj.ndeg % One iteration per active degree
                 s.mesh         = obj.mesh;
                 s.filter       = obj.filter;
                 s.gradientFilter = obj.createGradientFilter;
                 %s.material     = obj.materialInterpolator;
                 s.material = obj.createMaterial();
-                s.stateProblem = obj.physicalProblem{i};                
-                obj.strainEnergyFuncs{i} = FlexureStrainEnergy(s);
+                s.stateProblem = obj.physicalProblem{i};  % Give the FEM of that particular degree              
+                obj.strainEnergyFuncs{i} = FlexureStrainEnergy(s); % Store the strain energy object of the degree
             end
         end
         
 
         function createCost(obj)
+            % Initialize the functions to evaluate and their weights
             s.shapeFunctions = {};
             s.weights = [];
 
-            ldoc = sum(obj.mdoc);
+            ldoc = sum(obj.mdoc); % How many docs
             count = 1;
 
-            for i = 1:obj.ndeg
+            for i = 1:obj.ndeg % One iteration per active deg
                 deg_idx = obj.deg(i);
-                if obj.mdoc(deg_idx) == 1
-                    s.shapeFunctions{count} = obj.strainEnergyFuncs{i};
-                    s.weights(count) = -1/ldoc;
+                if obj.mdoc(deg_idx) == 1 % If the degree is a doc
+                    s.shapeFunctions{count} = obj.strainEnergyFuncs{i}; % Take the FlexureStrainEnergy of the doc
+                    s.weights(count) = -1/ldoc; % Take the weight of the doc, with all docs having the same weight
                     count = count+1;
                 end
             end
@@ -267,14 +269,15 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
         function createConstraint(obj)
             s.shapeFunctions = {};
             count = 1;
-            gscale = 1;
+            gscale = 1; % Weight of the constraint, set to 1 in swan because the optimizer has its own weight handling 
 
             for i = 1:obj.ndeg
                 deg_idx = obj.deg(i);
-                if obj.mdof(deg_idx) == 1
-                    cParams.strainEnergyFunc = obj.strainEnergyFuncs{i};
-                    cParams.gscale = gscale;
-                    s.shapeFunctions{count} = FlexureDOFConstraint(cParams);
+                if obj.mdof(deg_idx) == 1 % Select the dofs
+                    cParams.strainEnergyFunc = obj.strainEnergyFuncs{i}; % take the strainEnergyFunc of that degree
+                    cParams.gscale = gscale; % take its gscale
+                    cParams.emax = obj.emax;
+                    s.shapeFunctions{count} = FlexureDOFConstraint(cParams); % give the strainEnergyFunc and gscale to FlexureDOFConstraint to obtain the shape functions
                     count = count +1;
                 end
             end
@@ -295,7 +298,7 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
         function createPrimalUpdater(obj)
             s.ub     = 1;
             s.lb     = 0;
-            s.tauMax = 1000;
+            s.tauMax = 500; % max step size, then etaNorm has to approve. If not approved, line search trial
             s.tau    = [];
             obj.primalUpdater = ProjectedGradient(s);
         end
@@ -306,15 +309,15 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 300;
+            s.maxIter        = 500;
             s.tolerance      = 1e-8;
             nConstr=sum(obj.mdof);
             s.constraintCase = repmat({'INEQUALITY'},1,nConstr);
             s.primalUpdater  = obj.primalUpdater;
             s.ub             = 1;
             s.lb             = 0;
-            s.etaNorm        = 0.2; % default was 0.02
-            s.gJFlowRatio    = 0.1;
+            s.etaNorm        = 0.03; % max design change per iter, default was 0.02
+            s.gJFlowRatio    = 0.05; % "weight" of the constraint 0.1
             s.gif            = false;
             s.gifName        = [];
             s.printing       = false;
@@ -338,13 +341,16 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
         end
 
         function bc = createBoundaryConditions(obj, degree_type) 
+            % Locate the walls of the domain
             xmin = min(obj.mesh.coord(:,1));
             xmax = max(obj.mesh.coord(:,1));
             ymin = min(obj.mesh.coord(:,2));
             ymax = max(obj.mesh.coord(:,2));
 
+            % Length of the lower face
             Lx = xmax-xmin;
 
+            % Select the upper and lower walls
             isBottom =@(coor) coor(:,2) <= ymin + 1e-8;
             isTop =@(coor) coor(:,2) >= ymax - 1e-8;
 
@@ -377,12 +383,12 @@ classdef Tutorial05_15_TopOpt2DFlexures < handle
                 sDir{2}.direction = [1];
                 sDir{2}.value     = 1;
 
-                top_logical = isTop(obj.mesh.coord); 
-                top_coor    = obj.mesh.coord(top_logical, :); 
+                top_logical = isTop(obj.mesh.coord); % Obtain which nodes are top wall
+                top_coor    = obj.mesh.coord(top_logical, :); % coordinates of the top wall nodes
 
                 sDir{3}.domain    = isTop; % fixed
                 sDir{3}.direction = [2];
-                sDir{3}.value     = 1-2*(top_coor(:,1)-xmin)/Lx;
+                sDir{3}.value     = 1-2*(top_coor(:,1)-xmin)/Lx; % expression for the rotation of the top wall
             end            
 
 

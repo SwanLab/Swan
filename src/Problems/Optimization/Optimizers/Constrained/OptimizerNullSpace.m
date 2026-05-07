@@ -218,6 +218,8 @@ classdef OptimizerNullSpace < handle
                 obj.updatePrimal();
                 obj.checkStep(x0);
             end
+
+           %obj.enforceSymmetry();
         end
 
         function printResults(obj)
@@ -368,6 +370,21 @@ classdef OptimizerNullSpace < handle
 
         function itHas = hasExceededStepIterations(obj)
             itHas = obj.nIter >= obj.maxIter;
+        end
+
+        function enforceSymmetry(obj)
+            vals   = obj.designVariable.fun.fValues; % vector with the density value at each node
+            coords = obj.designVariable.fun.mesh.coord; % matrix with the coordinates of each node
+            
+            nx = length(unique(coords(:,1))); % unique x coordinates
+            ny = length(unique(coords(:,2))); % unique y coordinates
+            
+            % Reshape to 2D grid, apply symmetry, reshape back
+            vals_2d = reshape(vals, ny, nx); % mesh is nx x ny, represent as matrix
+            vals_2d = (vals_2d + flip(vals_2d, 1))/2;  % symmetry about y=0.5
+            vals_2d = (vals_2d + flip(vals_2d, 2))/2;  % symmetry about x=0.5
+            
+            obj.designVariable.fun.setFValues(vals_2d(:)); % update values to the symmetric ones
         end
     end
 end
