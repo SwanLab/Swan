@@ -180,7 +180,7 @@ classdef C5_TO < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 2000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;

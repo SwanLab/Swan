@@ -85,7 +85,7 @@ classdef OptimizerNullSpace < handle
             obj.firstEstimation = true;
             obj.etaNorm         = cParams.etaNorm;
             obj.eta             = 0;
-            obj.etaMin          = 1e-6;
+            obj.etaMin          = 1e-12;
             obj.gif             = cParams.gif;
             obj.gifName         = cParams.gifName;
             obj.printing        = cParams.printing;
@@ -247,7 +247,7 @@ classdef OptimizerNullSpace < handle
             x   = obj.designVariable;
             DmF = obj.meritGradient;
             if obj.nIter == 0
-                factor = 50;
+                factor = 50e3;
                 obj.primalUpdater.computeFirstStepLength(DmF,x,factor);
             else
                 factor = 1.05;
