@@ -7,3 +7,9 @@ __pycache__/*
 *.m~
 *.asv
 AbrilTFGfiles/NN/T_NN.mat
+AbrilTFGfiles/Data/Cube/Multiscale/DataT.csv
+AbrilTFGfiles/Data/Cube/Multiscale/T_NN.mat
+AbrilTFGfiles/Data/Lattice/Multiscale/T_NN.mat
+AbrilTFGfiles/Data/Sphere/EIFEM/DataT.csv
+AbrilTFGfiles/Data/Sphere/Multiscale/DataT.csv
+AbrilTFGfiles/Data/Sphere/Multiscale/T_NN.mat
