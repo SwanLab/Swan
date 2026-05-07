@@ -15,10 +15,11 @@ using .Plot
 # PARAMÈTRES
 # =========================================================
 
-#root_dir = "C:/Users/couwa/Documents/Stage_CIMNE/Classification/archive"
-root_dir = "./archive"           #pour googleColab
+root_dir = joinpath(@__DIR__, "archive") 
+#root_dir = "C:/Users/couwa/Documents/Stage_CIMNE/Classification/archive"  #personal computer
+#root_dir = "./archive"           #pour googleColab
 
-img_size   = (64, 64)
+img_size   = (128, 128)
 batch_size = 32
 epochs     = 30
 lr         = 1e-3
@@ -26,12 +27,12 @@ lr         = 1e-3
 # Smoke test   →  50       (< 1 min)
 # Sanity check →  300      (~ 5 min)
 # Run complet  →  nothing  (toutes les images)
-max_images = 300
+max_images = 5000
 
 # Data augmentation (flip H/V + bruit gaussien sur le train set)
 # true  → recommandé si max_images < 2000
 # false → suffisant si max_images >= 2000
-use_augmentation = true
+use_augmentation = false
 
 # Architecture du classifieur
 # :gap → GlobalAvgPool → Dense(128→1)       recommandé < 1000 images

@@ -10,7 +10,7 @@ export plot_metrics,
        f1_score
 
 # Dossier de sortie pour tous les plots
-const PLOT_DIR = "plots"
+const PLOT_DIR = joinpath(@__DIR__, "plots")
 
 function ensure_plot_dir()
     isdir(PLOT_DIR) || mkdir(PLOT_DIR)
