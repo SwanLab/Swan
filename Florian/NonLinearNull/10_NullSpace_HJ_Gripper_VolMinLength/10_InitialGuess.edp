@@ -16,13 +16,13 @@ func real levelSet1Init() {
   return(ls);
 }
 func real levelSet2InitX() {
-  real nHX = 18.0, lX = 1.0, fX = -pi;
+  real nHX = 3.0, lX = 1.0, fX = -pi;
   real lsx;
   lsx = cos((nHX+1)*(x+1)*pi/lX+fX);
   return(lsx);
 }
 func real levelSet2InitY() {
-  real nHY = 12.0, lY = 1.0, fY = -pi/2;
+  real nHY = 2.0, lY = 1.0, fY = -pi/2;
   real lsy;
   lsy = cos((nHY+1)*y*pi/lY+fY);
   return(lsy);
@@ -44,7 +44,7 @@ distance(Th,phio1,phi1Aux[]);
 
 /* Level set 2*/
 for (int i = 0; i < Vh.ndof; ++i) {
-  phio2[][i] = phio2x[][i]*phio2y[][i] - 0.6;
+  phio2[][i] = phio2x[][i]*phio2y[][i] - 0.3;
   if (phi1Aux[][i]>-0.05) {
     phio2[][i] = -1;
   }
