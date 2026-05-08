@@ -127,7 +127,7 @@ classdef OptimizerProjectedGradient < handle
 
         function checkStep(obj,x0)
             mNew = obj.computeMeritFunction();
-            if mNew < obj.meritOld
+            if mNew < obj.meritOld 
                 obj.acceptableStep = true;
                 obj.meritNew       = mNew;
             elseif obj.primalUpdater.isTooSmall()

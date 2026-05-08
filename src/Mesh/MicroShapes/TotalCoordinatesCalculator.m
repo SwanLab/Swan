@@ -1,8 +1,47 @@
+% classdef TotalCoordinatesCalculator < handle
+% 
+%     properties (Access = public, Abstract)
+%         c
+%         theta
+%         nodes
+%         vertCoord
+%         boundCoord
+%         div
+%         totalCoord
+%     end
+% 
+%     methods (Access = public, Static)
+% 
+%         function obj = create(cParams)
+%             obj = TotalCoordinatesCalculatorFactory.create(cParams);
+%         end
+% 
+%     end
+% 
+%     methods (Access = protected)
+% 
+%         function init(obj,cParams)
+%             obj.c  = cParams.c;
+%             obj.theta = cParams.theta;
+%             obj.nodes = cParams.nodes;
+%             obj.vertCoord = cParams.vertCoord;
+%             obj.boundCoord = cParams.boundCoord;
+%             obj.div = cParams.div;
+%             obj.totalCoord = [];
+%         end
+% 
+%         function initBoundary(obj)
+%             boundNodes = obj.nodes.bound;
+%             obj.totalCoord(1:boundNodes,:) = obj.boundCoord;
+%         end
+% 
+%     end
+% 
+% end
 classdef TotalCoordinatesCalculator < handle
     
     properties (Access = public, Abstract)
-        c
-        theta
+        latticeVectors
         nodes
         vertCoord
         boundCoord
@@ -21,13 +60,21 @@ classdef TotalCoordinatesCalculator < handle
     methods (Access = protected)
         
         function init(obj,cParams)
-            obj.c  = cParams.c;
-            obj.theta = cParams.theta;
+            
+            if isfield(cParams, 'latticeVectors')
+                obj.latticeVectors = cParams.latticeVectors;
+            end
+            if isfield(cParams, 'c')
+                obj.c = cParams.c;
+            end
+            if isfield(cParams, 'theta')
+                obj.theta = cParams.theta;
+            end
             obj.nodes = cParams.nodes;
             obj.vertCoord = cParams.vertCoord;
             obj.boundCoord = cParams.boundCoord;
             obj.div = cParams.div;
-            obj.totalCoord = [];
+            obj.totalCoord = zeros(cParams.nodes.total, 2);
         end
         
         function initBoundary(obj)

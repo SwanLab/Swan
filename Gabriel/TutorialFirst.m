@@ -3,17 +3,13 @@ classdef TutorialFirst < handle
     properties (Access = private)
         mesh
         filterCompliance
-        filterPerimeter
         designVariable
         materialInterpolator
         physicalProblem
         compliance
-        volume
-        perimeter
         cost
-        constraint
-        primalUpdater
         optimizer
+        filterRegularization
     end
 
     methods (Access = public)
@@ -22,22 +18,106 @@ classdef TutorialFirst < handle
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
-            obj.createFilterCompliance();
-            % obj.createFilterPerimeter();
-            %obj.createMaterialInterpolator();
+            obj.createFilterRegularization();
             obj.createElasticProblem();
             obj.createBaseDomain();
             obj.createComplianceFromConstiutive();
-            % obj.createVolumeFunctional();
-            % obj.createComplianceConstraint();
-            obj.createVolumeConstraint();
-            % obj.createPerimeter();
             obj.createCost();
-            obj.createConstraint();
-            obj.createPrimalUpdater();
             obj.createOptimizer();
         end
+        function plotMicrostructuresOnMesh(obj, nGridX, nGridY, scaleFactor)
+            if nargin < 2; nGridX    = 30;  end
+            if nargin < 3; nGridY    = 15;  end
+            if nargin < 4; scaleFactor = 0.8; end
+            
+            % ========== CORREÇÃO: APLICAR O FILTRO PDE ==========
+            % Obter o campo b (variável de design)
+            x = obj.designVariable;
+            f = x.obtainDomainFunction();
+            b_raw = f{1}.project('P1');
+            
+            % Aplicar o filtro PDE de regularização (mesmo usado na otimização)
+            b_filtered_fun = obj.filterRegularization.compute(b_raw, 1);
+            b_vals = b_filtered_fun.fValues;
+            % ===================================================
+            
+            coord = obj.mesh.coord;
+            
+            xMax = max(coord(:,1));
+            yMax = max(coord(:,2));
+            
+            figure('Position', [50, 50, 1400, 700], 'Color', 'white');
+            axis equal; axis off; hold on;
+            xlim([-0.2, xMax + 0.4]);
+            ylim([-0.15, yMax + 0.15]);
+            
+            % Grelha de pontos
+            x_pts     = linspace(0.03*xMax, 0.97*xMax, nGridX);
+            y_pts     = linspace(0.03*yMax, 0.97*yMax, nGridY);
+            baseSize  = (xMax / nGridX) * scaleFactor;
+            
+            for ix = 1:nGridX
+                for iy = 1:nGridY
+                    xc = x_pts(ix);
+                    yc = y_pts(iy);
+                    
+                    % Interpolar b no ponto mais próximo
+                    dist    = sqrt((coord(:,1)-xc).^2 + (coord(:,2)-yc).^2);
+                    [~, idx] = min(dist);
+                    b_local  = max(-0.6, min(0.6, b_vals(idx)));
+                    
+                    % Calcular a e d
+                    a_local = exp(b_local^2);
+                    d_local = (1 + b_local^2) / a_local;
+                    
+                    % Vetores da célula (matriz T = [a, b; b, d])
+                    v1 = baseSize * [a_local, b_local];
+                    v2 = baseSize * [b_local, d_local];
+                    
+                    centro = [xc, yc] - 0.5*(v1 + v2);
+                    
+                    px = centro(1) + [0, v1(1), v1(1)+v2(1), v2(1), 0];
+                    py = centro(2) + [0, v1(2), v1(2)+v2(2), v2(2), 0];
+                    
+                    col = [0, 0, 0];
+                    fill(px, py, col, 'FaceAlpha', 0.75, ...
+                         'EdgeColor', 'k', 'LineWidth', 0.4);
+                    
+                    hf = 0.30;
+                    local_pts = [0.5-hf/2, 0.5-hf/2;
+                                 0.5+hf/2, 0.5-hf/2;
+                                 0.5+hf/2, 0.5+hf/2;
+                                 0.5-hf/2, 0.5+hf/2];
+                    
+                    hole_x = centro(1) + local_pts(:,1)*v1(1) + local_pts(:,2)*v2(1);
+                    hole_y = centro(2) + local_pts(:,1)*v1(2) + local_pts(:,2)*v2(2);
+                    
+                    fill(hole_x, hole_y, 'w', 'EdgeColor', 'none');
+                end
+            end
+            
+            xMin = min(coord(:,1));
 
+            % Apoio esquerdo (baixo esquerdo)
+            for x = linspace(xMin, xMin + 0.2, 4)
+                plot([x, x - 0.08], [yMin, yMin - 0.1], 'k-', 'LineWidth', 1.5);
+            end
+            plot([xMin, xMin + 0.2], [yMin, yMin], 'k-', 'LineWidth', 3);
+            
+            % Apoio direito (baixo direito)
+            for x = linspace(xMax - 0.2, xMax, 4)
+                plot([x, x - 0.08], [yMin, yMin - 0.1], 'k-', 'LineWidth', 1.5);
+            end
+            plot([xMax - 0.2, xMax], [yMin, yMin], 'k-', 'LineWidth', 3);
+            
+            % Força no centro inferior (apontando para baixo)
+            xForce = (xMin + xMax) / 2;
+            quiver(xForce, yMin, 0, -0.18, 0, ...
+                   'r', 'LineWidth', 3, 'MaxHeadSize', 2);
+            text(xForce, yMin - 0.25, 'F', 'FontSize', 14, ...
+                 'FontWeight', 'bold', 'Color', 'r', 'HorizontalAlignment', 'center');
+        end
+       
     end
 
     methods (Access = private)
@@ -47,19 +127,12 @@ classdef TutorialFirst < handle
         end
 
         function createMesh(obj)
-            %UnitMesh better
-            % x1      = linspace(0,2,100);
-            % x2      = linspace(0,1,50);
-            % [xv,yv] = meshgrid(x1,x2);
-            % [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
-            % s.coord  = V(:,1:2);
-            % s.connec = F;
-            % obj.mesh = Mesh.create(s);
-            obj.mesh = TriangleMesh(2,1,100,50);
+            
+            obj.mesh = TriangleMesh(2,1,100,60);
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(x(1,:,:)));
+            s.fHandle = @(x) zeros(size(x(1,:,:)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);
@@ -73,45 +146,25 @@ classdef TutorialFirst < handle
             obj.designVariable = rho;
         end
 
-        function createFilterCompliance(obj)
-            s.filterType         = 'LUMP';
-            s.mesh               = obj.mesh;
-            s.trial              = LagrangianFunction.create(obj.mesh,1,'P1');
-            f                    = Filter.create(s);
-            obj.filterCompliance = f;
+       
+        function createFilterRegularization(obj)
+            eOverhmin = 6;
+            s.filterType    = 'PDE';
+            s.mesh          = obj.mesh;
+            s.boundaryType  = 'Neumann';  
+            s.metric        = 'Isotropy';
+            s.trial         = LagrangianFunction.create(obj.mesh, 1, 'P1');
+            f = Filter.create(s);
+            
+            epsilon = eOverhmin * obj.mesh.computeMeanCellSize();
+            f.updateEpsilon(epsilon);
+            
+            obj.filterRegularization = f;
         end
 
-        % function createFilterPerimeter(obj)
-        %     s.filterType        = 'PDE';
-        %     s.boundaryType      = 'Robin';
-        %     s.mesh              = obj.mesh;
-        %     s.trial             = LagrangianFunction.create(obj.mesh,1,'P1');
-        %     f                   = Filter.create(s);
-        %     obj.filterPerimeter = f;
-        % end
+     
 
-        % function createMaterialInterpolator(obj)
-        %     E0   = 1e-3;
-        %     nu0  = 1/3;
-        %     E1   = 1;
-        %     nu1  = 1/3;
-        %     ndim = 2;
-        % 
-        %     matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
-        %     matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
-        % 
-        %     matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
-        %     matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
-        % 
-        %     s.typeOfMaterial = 'ISOTROPIC';
-        %     s.interpolation  = 'SIMPALL';
-        %     s.dim            = '2D';
-        %     s.matA = matA;
-        %     s.matB = matB;
-        % 
-        %     m = MaterialInterpolator.create(s);
-        %     obj.materialInterpolator = m;
-        % end
+        
 
         function createElasticProblem(obj)
             s.mesh = obj.mesh;
@@ -142,54 +195,17 @@ classdef TutorialFirst < handle
         end
         function c = createCompliance(obj)
             s.mesh                        = obj.mesh;
-            s.filter                      = obj.filterCompliance;
+            s.filter                      = obj.filterRegularization;
             s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
             s.material                    = obj.createMaterial();
             c = ComplianceFunctional(s);
             
         end
-        % function c = createVolumeFunctional(obj)
-        %     s.mesh = obj.mesh;
-        %     s.uMesh = obj.createBaseDomain;
-        %     s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-        %     c = VolumeFunctional(s);
-        % end
 
 
-
-        % function createComplianceConstraint(obj)
-        %     s.mesh                       = obj.mesh;
-        %     s.filter                     = obj.filterCompliance;
-        %     s.complainceFromConstitutive = obj.createComplianceFromConstiutive();
-        %     s.material                   = obj.createMaterial();
-        %     s.complianceTarget           = 3;
-        %     c = ComplianceConstraint(s);
-        %     obj.compliance = c;
-        % end
-        % 
-        function createVolumeConstraint(obj)
-            s.mesh   = obj.mesh;
-            s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.4;
-            s.uMesh = obj.createBaseDomain();
-            v = VolumeConstraint(s);
-            obj.volume = v;
-        end
-
-        % function createPerimeter(obj)
-        %     eOverhmin     = 10; % 10
-        %     epsilon       = eOverhmin*obj.mesh.computeMeanCellSize();
-        %     s.mesh        = obj.mesh;
-        %     s.filter      = obj.filterPerimeter;
-        %     s.epsilon     = epsilon;
-        %     s.value0      = 6; % external Perimeter
-        %     P             = PerimeterFunctional(s);
-        %     obj.perimeter = P;
-        % end
-
+        
         function createCost(obj)
             s.shapeFunctions{1} = obj.createCompliance();
-            % s.shapeFunctions{2} = obj.createVolumeFunctional();
             s.weights           = 1;
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
@@ -201,136 +217,89 @@ classdef TutorialFirst < handle
             M = IntegrateLHS(@(u,v) DP(v,u),test,trial,obj.mesh,'Domain');
         end
 
-        function createConstraint(obj)
-            % s.shapeFunctions{1} = obj.compliance;
-            s.shapeFunctions{1} = obj.volume;
-            s.Msmooth           = obj.createMassMatrix();
-            obj.constraint      = Constraint(s);
-        end
-
-       function createPrimalUpdater(obj)
-            s.ub     = 1;
-            s.lb     = 1e-8;
-            s.tauMax = 10;
-            s.tau    = [];
-            obj.primalUpdater = ProjectedGradient(s);
-        end
 
         function createOptimizer(obj)
-            % s.monitoring     = true;
-            % s.cost           = obj.cost;
-            % s.constraint     = obj.constraint;
-            % s.designVariable = obj.designVariable;
-            % s.maxIter        = 400;
-            % s.ub              = 1;
-            % s.lb              = 0;
-            % % s.tolerance      = 1e-8;
-            % s.constraintCase = {'EQUALITY'};
-            % % s.primalUpdater  = obj.primalUpdater;
-            % % s.etaNorm        = 0.02;
-            % % s.etaNormMin     = 0.02;
-            % % s.gJFlowRatio    = 1;
-            % % s.etaMax         = 1;
-            % % s.etaMaxMin      = 0.01;
-            % opt = OptimizerNullSpace(s);
-            % % opt = OptimizerProjectedGradient(s);
-            % opt.solveProblem();
-            % obj.optimizer = opt;
-
-            s.monitoring     = true;
             s.cost           = obj.cost;
-            s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 1200;
-            s.tolerance      = 1e-8;
-            s.constraintCase = {'EQUALITY'};
-            s.primal         = 'PROJECTED GRADIENT';
-            s.etaNorm        = 0.01;
-            s.gJFlowRatio    = 2;
-            s.gif            = true;
-            s.gifName        = 'Tutorial_Homo_ReinforcedHexagon_Beam';
-            s.printing       = true;
-            s.printName      = 'Tutorial_Homo_ReinforcedHexagon_Beam';
-            s.primalUpdater  = obj.primalUpdater;
-            opt = OptimizerNullSpace(s);
+            s.monitoring     = true;
+            s.lb             = -0.6;
+            s.ub             = 0.6;
+            s.maxIter        = 1000;
+            opt              = OptimizerProjectedGradient(s);
             opt.solveProblem();
             obj.optimizer = opt;
+            
+
+            
 
             
         end
 
-        % function m = createMaterial(obj)
-        %     x = obj.designVariable;
-        %     f = x.obtainDomainFunction();
-        %     f = f{1}.project('P1'); 
-        %     % f = obj.filterCompliance.compute(f{1},1);            
-        %    % s.type                 = 'DensityBased';
-        %    % s.density              = f;
-        %    % s.materialInterpolator = obj.materialInterpolator;
-        %    % s.dim                  = '2D';
-        %    % s.mesh                 = obj.mesh;
-        % 
-        % 
-        %     s.density  =  f;
-        %     s.type     = 'HomogenizedMicrostructure';
-        %     s.mesh     = obj.mesh;
-        %     s.young    = 1.0;
-        %     s.fileName = 'HomogenizationResultsReinforcedHexagon';
-        %     m = MaterialFactory.create(s);
-        % 
-        %    % m = Material.create(s);  
-        % 
-        % 
-        % end
+    
         function m = createMaterial(obj)
             x = obj.designVariable;
-            f = x.obtainDomainFunction();
-            f = f{1}.project('P1'); 
             
-            sFilter.filterType = 'LUMP'; 
-            sFilter.mesh = obj.mesh;
-            sFilter.trial = LagrangianFunction.create(obj.mesh, 1, 'P1');
-            filterRho = Filter.create(sFilter);
             
-            f_filtered = filterRho.compute(f, 1); 
-
-            s.density  =  f_filtered; 
+            s.density  = x;
             s.type     = 'HomogenizedMicrostructure';
             s.mesh     = obj.mesh;
             s.young    = 1.0;
-            s.fileName = 'HomogenizationResultsReinforcedHexagon';
+            s.fileName = 'HomogenizationLattice4';
             m = MaterialFactory.create(s);
         end
 
         function bc = createBoundaryConditions(obj)
-            xMax    = max(obj.mesh.coord(:,1));
-            yMax    = max(obj.mesh.coord(:,2));
-            isDir   = @(coor)  abs(coor(:,1))==0;
-            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.35*yMax & abs(coor(:,2))<=0.65*yMax);
-
-            sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [1,2];
+            % Domínio: largura = 1, altura = 2
+            xMin = min(obj.mesh.coord(:,1));
+            xMax = max(obj.mesh.coord(:,1));
+            yMin = min(obj.mesh.coord(:,2));
+            yMax = max(obj.mesh.coord(:,2));
+            
+            % Borda inferior (onde estão os apoios e a carga)
+            isBottom = @(coor) abs(coor(:,2) - yMin) < 1e-12;
+            
+            % Apoio esquerdo (20% da largura, começando da esquerda)
+            isDirLeft = @(coor) isBottom(coor) & ...
+                                coor(:,1) >= xMin & coor(:,1) <= xMin + 0.2*xMax;
+            
+            % Apoio direito (20% da largura, começando da direita)
+            isDirRight = @(coor) isBottom(coor) & ...
+                                 coor(:,1) >= xMax - 0.2*xMax & coor(:,1) <= xMax;
+            
+            % Força aplicada no centro (10% da largura)
+            isForce = @(coor) isBottom(coor) & ...
+                               coor(:,1) >= 0.45*xMax & coor(:,1) <= 0.55*xMax;
+            
+            % Condições de Dirichlet
+            sDir{1}.domain    = @(coor) isDirLeft(coor);
+            sDir{1}.direction = [1,2];  % Fixar x e y
             sDir{1}.value     = 0;
-
+            
+            sDir{2}.domain    = @(coor) isDirRight(coor);
+            sDir{2}.direction = [1,2];
+            sDir{2}.value     = 0;
+            
+            % Carga pontual (força vertical para baixo)
             sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 2;
-            sPL{1}.value     = -1;
-
+            sPL{1}.direction = 2;      % Direção y
+            sPL{1}.value     = -1;      % Negativo = para baixo
+            
+            % Aplicar condições
             dirichletFun = [];
             for i = 1:numel(sDir)
                 dir = DirichletCondition(obj.mesh, sDir{i});
                 dirichletFun = [dirichletFun, dir];
             end
             s.dirichletFun = dirichletFun;
-
+            
             pointloadFun = [];
             for i = 1:numel(sPL)
                 pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
                 pointloadFun = [pointloadFun, pl];
             end
             s.pointloadFun = pointloadFun;
-
-            s.periodicFun  = [];
+            
+            s.periodicFun = [];
             s.mesh = obj.mesh;
             bc = BoundaryConditions(s);
         end
