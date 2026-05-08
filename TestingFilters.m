@@ -50,9 +50,10 @@ sF.metric = 'Anisotropy';
 k = 10;
 A = [k 0; 
      0  1/k];
-R = 
+R = [cosd(45), -sind(45); 
+    sind(45), cosd(45)];
 
-sF.A = ConstantFunction.create(A,mesh);
+sF.A = ConstantFunction.create(R'*A*R,mesh);
 
 filter = Filter.create(sF);
 filter.updateEpsilon(epsilon);
