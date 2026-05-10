@@ -76,7 +76,7 @@ classdef CohesiveMesh < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.separation = 0.000001;
+            obj.separation = 0.0001;
             obj.baseMesh = cParams.baseMesh;
         end
 
@@ -125,8 +125,8 @@ classdef CohesiveMesh < handle
         function [isLeft, isRight] = computeIsLeftIsRight(obj,centerElemsInCohesiveEdge,normals,edgesInCohElem)
             centerEdges  =obj.computeCenterEdge;
             temp             = ismember(edgesInCohElem, obj.listEdgeCohesive);
-            cohElemToEdge    = sum(edgesInCohElem .* temp, 2); % (nElemCoh x 1) 
-            centerElem       = centerElemsInCohesiveEdge; % (nElemCoh x ndim)
+            cohElemToEdge    = sum(edgesInCohElem .* temp, 2);    % (nElemCoh x 1) 
+            centerElem       = centerElemsInCohesiveEdge;         % (nElemCoh x ndim)
             centerEdge       = centerEdges(cohElemToEdge,:);      % (nElemCoh x ndim)
             vectorEdgeToElem = centerElem - centerEdge;
 

@@ -85,6 +85,8 @@ classdef TractionBiliniarCoupled < handle
             temp1 = jumpNorm - obj.jumpCrit; % f - a
             temp2 = obj.jumpFinal - jumpNorm; % b - f
             isDamaging = temp1.*temp2 > 0;  % 1 x ngauss x nelem
+
+            isDamaging = temp2;
         end       
     
         function jN = computeJumpNorm(obj,jump) % 1 x ngauss x nelem
