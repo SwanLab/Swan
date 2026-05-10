@@ -44,7 +44,7 @@ classdef TutorialCohesive < handle
         end
 
         function createMesh(obj)
-            s.baseMesh       = UnitQuadMesh(30,30);
+            s.baseMesh       = UnitQuadMesh(1,1);
             benchMarkName    = 'DCB';
             % s = obj.makeBenchmarkMesh(benchMarkName);
 
