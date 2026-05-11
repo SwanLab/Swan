@@ -8,7 +8,7 @@ classdef CohesiveMesh < handle
         listNodeCohesive
         listElemNextCohesive
         listCohesiveElems
-        listEdgeCohesive
+        listEdgeCohesiveReal
 
         pairsMatrix
     end
@@ -86,8 +86,8 @@ classdef CohesiveMesh < handle
             isEdgeCohesive   = cParams.isFracturedLine(centerEdges) & cParams.isFracturedUntil(centerEdges);
             % isEdgeCohesive   = cParams.isFractured(centerEdges);
 
-            obj.listEdgeCohesive = find(isEdgeCohesive);
-            nodesInEdgesCohesive = obj.baseMesh.edges.nodesInEdges(obj.listEdgeCohesive,:);
+            obj.listEdgeCohesiveReal = find(isEdgeCohesive);
+            nodesInEdgesCohesive = obj.baseMesh.edges.nodesInEdges(obj.listEdgeCohesiveReal,:);
             obj.listNodeCohesive = unique(nodesInEdgesCohesive');
 
             obj.nNodeCohesive    = length(obj.listNodeCohesive);
@@ -96,7 +96,7 @@ classdef CohesiveMesh < handle
 
             edgesInElem = obj.baseMesh.edges.edgesInElem;
 
-            obj.isElemCohesive       = any(ismember(edgesInElem,obj.listEdgeCohesive),2);
+            obj.isElemCohesive       = any(ismember(edgesInElem,obj.listEdgeCohesiveReal),2);
             obj.listElemNextCohesive = find(obj.isElemCohesive);
 
             edgesInCohElem = edgesInElem(obj.isElemCohesive,:);
@@ -109,7 +109,7 @@ classdef CohesiveMesh < handle
         
         function n = computeNormals(obj)
             nodesInEdges = obj.baseMesh.edges.nodesInEdges;
-            nodes = nodesInEdges(obj.listEdgeCohesive,:);   
+            nodes = nodesInEdges(obj.listEdgeCohesiveReal,:);   
             coords1 = obj.baseMesh.coord(nodes(:,1),:);
             coords2 = obj.baseMesh.coord(nodes(:,2),:);
             swap = (coords2(:,1) < coords1(:,1)) | ...
@@ -124,14 +124,14 @@ classdef CohesiveMesh < handle
 
         function [isLeft, isRight] = computeIsLeftIsRight(obj,centerElemsInCohesiveEdge,normals,edgesInCohElem)
             centerEdges  =obj.computeCenterEdge;
-            temp             = ismember(edgesInCohElem, obj.listEdgeCohesive);
+            temp             = ismember(edgesInCohElem, obj.listEdgeCohesiveReal);
             cohElemToEdge    = sum(edgesInCohElem .* temp, 2);    % (nElemCoh x 1) 
             centerElem       = centerElemsInCohesiveEdge;         % (nElemCoh x ndim)
             centerEdge       = centerEdges(cohElemToEdge,:);      % (nElemCoh x ndim)
             vectorEdgeToElem = centerElem - centerEdge;
 
             temp = zeros(size(obj.baseMesh.edges.nodesInEdges,1),2);
-            temp(obj.listEdgeCohesive,:) = normals;
+            temp(obj.listEdgeCohesiveReal,:) = normals;
             normals = temp(cohElemToEdge,:);
 
             dotProduct  = sum(vectorEdgeToElem.*normals,2);
@@ -212,11 +212,12 @@ classdef CohesiveMesh < handle
 
         function  newConnec = fixFinalElement(obj,cParams,newConnec)
             centerEdges      = obj.computeCenterEdge();
-            listEdgeCohesiveLine = find(cParams.isFracturedLine(centerEdges));
-            difference = listEdgeCohesiveLine(not(ismember(listEdgeCohesiveLine,obj.listEdgeCohesive)));
-            uniqueEdge = difference(1);
-            nodes = obj.baseMesh.edges.nodesInEdges(uniqueEdge,:);
+            listEdgeCohesiveFull = find(cParams.isFracturedLine(centerEdges));
+            difference = listEdgeCohesiveFull(not(ismember(listEdgeCohesiveFull,obj.listEdgeCohesiveReal)));
+            nodes = obj.baseMesh.edges.nodesInEdges(difference,:);
             changedNode = obj.listNodeCohesive(ismember(obj.listNodeCohesive,nodes));
+            idx = sum(ismember(obj.baseMesh.edges.nodesInEdges(difference,:),changedNode),2) == 1;
+            uniqueEdge = difference(idx);
             coord1 = obj.baseMesh.coord(changedNode,:);
             coord2 = obj.baseMesh.coord(nodes(not(ismember(nodes,changedNode))),:);
             t = abs(coord2 - coord1); 
