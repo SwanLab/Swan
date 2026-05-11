@@ -61,22 +61,17 @@ classdef TractionBiliniarCoupled < handle
             zeroUno = ConstantFunction.create([0;1],jump.mesh);
             ddot_t = DP(ddot,unoZero); ddot_n = DP(ddot,zeroUno);
             jumpT = DP(jump,unoZero); jumpN = DP(jump,zeroUno);
-
             dtdt = obj.K * ((1-d) - jumpT.*ddot_t); % 1 x ngauss x nelem
             dtdn = obj.K * (-jumpT.*ddot_n) ;
             dndt = obj.K * (-jumpN.*ddot_t) ;
             dndn = obj.K * ((1-d) - jumpN.*ddot_n) ;
-
-
-
         end
 
         function d = computeDamage(obj,jumpNorm) % 1 x ngauss x nelem   
             d = min((obj.jumpFinal*(jumpNorm-obj.jumpCrit))./ ...
                 (jumpNorm*(obj.jumpFinal-obj.jumpCrit)),1);
             d = max(d,0);
-            max(d.evaluate([-1,1]))
-            min(d.evaluate([-1,1]))
+            fprintf('d range: [%e , %e]\n',min(d.evaluate([-1,1]),[],'all'), max(d.evaluate([-1,1]),[],'all'));
         end
 
         function ddot = computeDamageDerivative(obj,jump,jumpNorm,isDamaging)
@@ -89,8 +84,6 @@ classdef TractionBiliniarCoupled < handle
             temp1 = jumpNorm - obj.jumpCrit; % f - a
             temp2 = obj.jumpFinal - jumpNorm; % b - f
             isDamaging = temp1.*temp2 > 0;  % 1 x ngauss x nelem
-
-            isDamaging = temp2 > 0;
         end       
     
         function jN = computeJumpNorm(obj,jump) % 1 x ngauss x nelem

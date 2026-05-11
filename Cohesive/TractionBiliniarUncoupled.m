@@ -68,6 +68,9 @@ classdef TractionBiliniarUncoupled < handle
         function d = computeDamage(obj,jump)
             d = (jump-obj.jumpCrit)./(obj.jumpFinal-obj.jumpCrit);
             d = max(min(d,1),0);
+            fprintf('d range: [%e , %e]\n', ...
+                min(d.evaluate([-1,1]),[],'all'), ...
+                max(d.evaluate([-1,1]),[],'all'));
         end
 
         function ddot =  computeDamageDerivative(obj,jump)
