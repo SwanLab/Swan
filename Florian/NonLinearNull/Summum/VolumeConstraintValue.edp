@@ -1,0 +1,12 @@
+IMPORT "io.edp"
+
+mesh Th = importMesh("Th");
+real [int] AchiVal = importArray("AchiVal");
+
+fespace Vh0(Th,P0);
+Vh0 Achi;
+Achi[] = AchiVal;
+
+real C = (int2d(Th)(Achi) - 1.0);
+
+exportVar(C);

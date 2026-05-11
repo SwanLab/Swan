@@ -1,0 +1,33 @@
+IMPORT "io.edp"
+load "distance"
+
+mesh Th = importMesh("Th");
+
+/* Finite Element spaces */
+fespace Vh(Th,P1);
+fespace Vh0(Th,P0);
+
+/* Initialization of the Level Set function */
+func real initialGuessX() {
+  real nHX = 4.0, lX = 2.0, fX = 0.0;
+  real lsx;
+  lsx = cos((nHX+1)*(x+1)*pi/lX+fX);
+  return(lsx);
+}
+func real initialGuessY() {
+  real nHY = 2.0, lY = 1.0, fY = pi/2;
+  real lsy;
+  lsy = cos((nHY+1)*y*pi/lY+fY);
+  return(lsy);
+}
+Vh phiox, phioy, phio, phi;
+phiox = initialGuessX();
+phioy = initialGuessY();
+
+for (int i = 0; i < Vh.ndof; ++i) {
+  phio[][i] = phiox[][i]*phioy[][i] - 0.8;
+}
+
+distance(Th,phio,phi[]);
+
+exportArray(phi[]);

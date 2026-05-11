@@ -1,0 +1,20 @@
+IMPORT "io.edp"
+load "iovtk"
+
+mesh Th = importMesh("Th");
+real [int] phiVal = importArray("phiVal");
+real [int] uxVal = importArray("ux");
+real [int] uyVal = importArray("uy");
+
+fespace Vh(Th,P1);
+Vh phi, ux, uy;
+phi[] = phiVal;
+ux[] = uxVal;
+uy[] = uyVal;
+
+string sout;
+sout = "MainOriginal_LevelSet.vtu";
+savevtk(sout, Th, phi, dataname="LevelSet");
+
+sout = "MainOriginal_Displ.vtu";
+savevtk(sout, Th, [ux,uy], dataname="Displ");

@@ -1,0 +1,27 @@
+IMPORT "io.edp"
+
+mesh Th = importMesh("Th");
+real beta = importVar("beta");
+real [int] uxVal = importArray("uxVal");
+real [int] uyVal = importArray("uyVal");
+real [int] phiVal = importArray("phiVal");
+
+fespace Vh(Th,P1);
+fespace Vh0(Th,P0);
+Vh g, ux, uy, phi, v;
+Vh0 g0;
+ux[] = uxVal;
+uy[] = uyVal;
+phi[] = phiVal;
+
+real mu = 0.3846;   // Lamé coefficients
+real lambda = 0.5769;
+g0 = mu*(2.0*dx(ux)*dx(ux) + (dx(uy)+dy(ux))*(dx(uy)+dy(ux)) + 2.0*dy(uy)*dy(uy))
+       + lambda*(dx(ux)+dy(uy))*(dx(ux)+dy(uy));
+
+problem velext(g,v) = int2d(Th)((beta^2.0)*(dx(g)*dx(v)+dy(g)*dy(v)) + g*v)
+                    - int1d(Th,levelset=phi)(beta*g0*v);
+
+velext;
+
+exportArray(g[]);
