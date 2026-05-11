@@ -15,9 +15,12 @@ classdef TutorialCohesive < handle
     methods (Access = public)
 
         function obj = TutorialCohesive()
+            
+            problem      = 'DoubleCantileverBeam';
+            nameMesh     = 'M10by4';
             obj.init();
-            obj.createMesh();
-            obj.defineCase();
+            obj.createMesh(problem,nameMesh);
+            obj.defineCase(problem);
             obj.createCohesiveFunctional()
             obj.solveProblem()
         end
@@ -43,25 +46,21 @@ classdef TutorialCohesive < handle
             close all
         end
     
-        function createMesh(obj)
+        function createMesh(obj,problem,nameMesh)
             % s.baseMesh       = UnitQuadMesh(1,1);
-            benchMarkName    = 'BasicRectangleWithMesh';
-            s = obj.makeBenchmarkMesh(benchMarkName);
-
-                % s.isFracturedLine  = @(coord) abs(coord(:,2) - 0) <= 1e-10;
-                % s.isFracturedUntil = @(coord) 1;
-
+            s = obj.makeBenchmarkMesh(problem,nameMesh);
             obj.cohesiveMesh = CohesiveMesh(s);
         end
 
-        function defineCase(obj)
+        function defineCase(obj,problem)
             obj.solverType = 'Newton';
-            obj.createBoundaryConditions();
+            obj.createBoundaryConditions(problem);
             obj.createTractionSeparation();
         end
 
-        function createBoundaryConditions(obj)
-            bc.type = 'DisplacementTractionY';
+        function createBoundaryConditions(obj,problem)
+            bc.type = problem;
+            % bc.type = 'DisplacementTractionY';
             bc.values = [0.15];
             obj.boundaryConditions  = BoundaryConditionsCreator(obj.cohesiveMesh.fullMesh,bc);
         end
@@ -97,18 +96,18 @@ classdef TutorialCohesive < handle
             m.setCohesiveMesh(obj.cohesiveMesh);
         end
 
-        function c = makeBenchmarkMesh(obj, benchMarkName)
-            a.fileName = benchMarkName;
+        function c = makeBenchmarkMesh(obj, problem,nameMesh)
+            a.fileName = nameMesh;
             s = FemDataContainer(a);
             c.baseMesh = s.mesh;
 
-            switch benchMarkName
-                case 'BasicRectangleWithMesh'
+            switch problem
+                case 'DoubleCantileverBeam'
                     xmax = 72; y = 3.12 * 0.5;
             end
 
             c.isFracturedLine  = @(coord) abs(coord(:,2) - y) <= 1e-10;
-            c.isFracturedUntil = @(coord) coord(:,1) - xmax <= 1e-10;
+            c.isFracturedUntil = @(coord) coord(:,1) - xmax   <= 1e-10;
         end
 
     end
