@@ -49,8 +49,8 @@ function build_model(; classifier=:gap, dropout_rate=0.3)
     # feature maps de taille (8, 8, 128, N)
     backbone = [
         Conv((3,3), 1 => 32, relu; pad=1),
-        GroupNorm(32, 8),
-        MaxPool((2,2)),      # 64 → 32
+        GroupNorm(32, 8),                                       #maybe BatchNorm; 8 = number of features map by group of normalization
+        MaxPool((2,2)),      # 64 → 32                          #maybe too much of pooling
 
         Conv((3,3), 32 => 64, relu; pad=1),
         GroupNorm(64, 8),
@@ -63,7 +63,7 @@ function build_model(; classifier=:gap, dropout_rate=0.3)
     ]
 
     if classifier == :mlp
-        # Flatten complet : (8, 8, 128, N) → (8192, N)
+        # Flatten complet : (8, 8, 128, N) → (8192, N)      ; maybe a bloc of CNN
         head = [
             Flux.flatten,                    # 8*8*128 = 8192
             Dense(8*8*128, 256, relu),

@@ -87,8 +87,8 @@ test_images, test_labels = test_data
 y_scores = Float32[]
 
 for x in test_images
-    x_in = reshape(Float32.(x), size(x,2), size(x,1), 1, 1)
-    push!(y_scores, model(x_in)[1])
+    x_in = reshape(Float32.(x), size(x,2), size(x,1), 1, 1)    #just to fit the correct type of data for CNN
+    push!(y_scores, model(x_in)[1])     #output proba
 end
 
 println("Scores sample : ", round.(y_scores[1:min(10,end)], digits=3))
@@ -98,13 +98,13 @@ println("Mean: $(round(mean(y_scores), digits=3)) | Min: $(round(minimum(y_score
 pos_scores = y_scores[test_labels .== 1]
 neg_scores = y_scores[test_labels .== 0]
 println("\nPositifs (fissures)  → Mean: $(round(mean(pos_scores), digits=3))  Min: $(round(minimum(pos_scores), digits=3))  Max: $(round(maximum(pos_scores), digits=3))")
-println("Négatifs (sans fisc) → Mean: $(round(mean(neg_scores), digits=3))  Min: $(round(minimum(neg_scores), digits=3))  Max: $(round(maximum(neg_scores), digits=3))")
+println("Négatifs (sans fiss) → Mean: $(round(mean(neg_scores), digits=3))  Min: $(round(minimum(neg_scores), digits=3))  Max: $(round(maximum(neg_scores), digits=3))")
 
 sep = mean(pos_scores) - mean(neg_scores)
 println("Séparation (mean pos - mean neg) : $(round(sep, digits=4))")
 
 if sep < -0.05
-    println("⚠ Scores inversés détectés → correction 1 - score appliquée")
+    println("⚠ Scores inversés détectés → correction 1 - score appliquée")     #if mean pos < mean neg
     y_scores = 1f0 .- y_scores
 end
 
@@ -119,10 +119,10 @@ function compute_auc(y_true, y_scores)
         fp = sum((y_pred .== 1) .& (y_true .== 0))
         tn = sum((y_pred .== 0) .& (y_true .== 0))
         fn = sum((y_pred .== 0) .& (y_true .== 1))
-        push!(tpr_list, tp / (tp + fn + 1e-8))
-        push!(fpr_list, fp / (fp + tn + 1e-8))
+        push!(tpr_list, tp / (tp + fn + 1e-8))        #recall or TPR
+        push!(fpr_list, fp / (fp + tn + 1e-8))        #FPR
     end
-    return -sum(diff(fpr_list) .* (tpr_list[1:end-1] .+ tpr_list[2:end]) ./ 2)
+    return -sum(diff(fpr_list) .* (tpr_list[1:end-1] .+ tpr_list[2:end]) ./ 2)      #Area Under the ROC Curve 
 end
 
 auc = compute_auc(test_labels, y_scores)
@@ -142,7 +142,7 @@ function find_best_threshold(y_scores, y_true; thresholds=0.01:0.005:0.99)
         prec = tp / (tp + fp + 1e-8)
         rec  = tp / (tp + fn + 1e-8)
         f1   = 2 * prec * rec / (prec + rec + 1e-8)
-        if f1 > best_f1
+        if f1 > best_f1                                 #we look for the best F1
             best_f1        = f1
             best_threshold = t
             best_precision = prec

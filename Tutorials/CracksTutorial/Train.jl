@@ -8,7 +8,7 @@ using Optimisers
 export train_model, binary_accuracy
 
 # -----------------------------
-# Accuracy binaire
+# Accuracy binaire, only for training
 # -----------------------------
 function binary_accuracy(ŷ, y)
     preds = ŷ .> 0.5
@@ -147,7 +147,7 @@ function train_model(model, train_data, val_data;
 
         Flux.trainmode!(model)
 
-        idxs       = shuffle(1:N)
+        idxs       = shuffle(1:N)               #shuffle at every epoh for better learning
         epoch_loss = 0f0
         epoch_acc  = 0f0
         nb_batches = 0
