@@ -34,7 +34,7 @@ classdef TutorialXXPhaseFieldCase < handle
         end
 
         function defineCase(obj)
-            s.mesh.type = '1Elem';
+            s.mesh.type = 'SENtest';
             s.bc.type   = 'DisplacementTractionY';
             s.bc.values  = [0:0.001:0.1];
             [obj.mesh, obj.boundaryConditions] = BenchmarkManager.create(s);

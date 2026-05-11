@@ -42,17 +42,16 @@ classdef TutorialCohesive < handle
         function init(obj)
             close all
         end
-
+    
         function createMesh(obj)
-            s.baseMesh       = UnitQuadMesh(1,1);
-            benchMarkName    = 'DCB';
-            % s = obj.makeBenchmarkMesh(benchMarkName);
+            % s.baseMesh       = UnitQuadMesh(1,1);
+            benchMarkName    = 'BasicRectangleWithMesh';
+            s = obj.makeBenchmarkMesh(benchMarkName);
 
-                s.isFracturedLine  = @(coord) abs(coord(:,2) - 0) <= 1e-10;
-                s.isFracturedUntil = @(coord) 1;
+                % s.isFracturedLine  = @(coord) abs(coord(:,2) - 0) <= 1e-10;
+                % s.isFracturedUntil = @(coord) 1;
 
             obj.cohesiveMesh = CohesiveMesh(s);
-
         end
 
         function defineCase(obj)
@@ -95,6 +94,7 @@ classdef TutorialCohesive < handle
             k.poisson = ConstantFunction.create(0, obj.cohesiveMesh.fullMesh);
             k.cohesiveMesh = obj.cohesiveMesh;
             m    = Material.create(k);
+            m.setCohesiveMesh(obj.cohesiveMesh);
         end
 
         function c = makeBenchmarkMesh(obj, benchMarkName)
@@ -103,8 +103,8 @@ classdef TutorialCohesive < handle
             c.baseMesh = s.mesh;
 
             switch benchMarkName
-                case 'DCB'
-                    xmax = 0.072; y = 0.00312 * 0.5;
+                case 'BasicRectangleWithMesh'
+                    xmax = 72; y = 3.12 * 0.5;
             end
 
             c.isFracturedLine  = @(coord) abs(coord(:,2) - y) <= 1e-10;

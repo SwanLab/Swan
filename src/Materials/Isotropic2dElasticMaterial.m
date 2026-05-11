@@ -8,7 +8,6 @@ classdef Isotropic2dElasticMaterial < IsotropicElasticMaterial
         
         function obj = Isotropic2dElasticMaterial(cParams)
             obj.init(cParams);
-            obj.cohesiveMesh = cParams.cohesiveMesh;
         end
 
         function C = evaluate(obj,xV)
@@ -25,6 +24,7 @@ classdef Isotropic2dElasticMaterial < IsotropicElasticMaterial
             IxI    = repmat(kronEye(N),[1 1 1 1 nGauss nElem]);
             C = 2*mu.*I + lambda.*IxI;
 
+
             C(:,:,:,:,:,obj.cohesiveMesh.listCohesiveElems) = 0; 
         end
 
@@ -34,6 +34,10 @@ classdef Isotropic2dElasticMaterial < IsotropicElasticMaterial
             proj = Projector.create(s);
             p1fun = proj.project(obj);
             p1fun.plot();
+        end
+
+        function setCohesiveMesh(obj,cM)
+           obj.cohesiveMesh = cM;
         end
         
     end
