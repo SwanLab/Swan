@@ -117,72 +117,107 @@ end
 loss_fn(m, x, y) = Flux.crossentropy(m(x), y)
 
 # =========================================================
+# FONCTION D'ENTRAÎNEMENT
+#
+# Encapsule la boucle d'entraînement complète.
+#
+# Arguments :
+#   model      — le modèle Flux à entraîner (modifié en place via Optimisers)
+#   x_train    — features d'entraînement (784, N)
+#   y_train    — labels one-hot d'entraînement (10, N)
+#   x_test     — features de validation (784, M)
+#   y_test     — labels one-hot de validation (10, M)
+#   epochs     — nombre maximum d'époques
+#   batch_size — taille des mini-batches
+#   lr         — learning rate Adam
+#   patience   — nombre d'époques sans amélioration avant early stopping
+#
+# Retourne :
+#   model          — modèle entraîné
+#   train_losses   — vecteur des pertes d'entraînement par époque
+#   val_losses     — vecteur des pertes de validation par époque
+#   train_accs     — vecteur des accuracies d'entraînement par époque
+#   val_accs       — vecteur des accuracies de validation par époque
+# =========================================================
+
+function train!(model, x_train, y_train, x_test, y_test;
+                epochs=20, batch_size=64, lr=1e-3, patience=5)
+
+    opt = Optimisers.Adam(lr)
+    st  = Optimisers.setup(opt, model)
+
+    N = size(x_train, 2)   # 60 000
+
+    train_losses = Float32[]
+    val_losses   = Float32[]
+    train_accs   = Float32[]
+    val_accs     = Float32[]
+
+    best_val_loss    = Inf32
+    patience_counter = 0
+
+    for epoch in 1:epochs
+
+        Flux.trainmode!(model)
+
+        idxs       = shuffle(1:N)
+        epoch_loss = 0f0
+        nb_batches = 0
+
+        for i in 1:batch_size:N
+            batch_idxs = idxs[i:min(i+batch_size-1, N)]
+
+            x_batch = x_train[:, batch_idxs]   # (784, batch_size)
+            y_batch = y_train[:, batch_idxs]   # (10,  batch_size)
+
+            gs = gradient(m -> loss_fn(m, x_batch, y_batch), model)[1]
+            st, model = Optimisers.update(st, model, gs)
+
+            epoch_loss += Flux.crossentropy(model(x_batch), y_batch)
+            nb_batches += 1
+        end
+
+        train_loss = epoch_loss / nb_batches
+
+        # Validation sur le test set complet
+        Flux.testmode!(model)
+        val_loss = Flux.crossentropy(model(x_test), y_test)
+        tr_acc   = accuracy(model, x_train, y_train)
+        va_acc   = accuracy(model, x_test,  y_test)
+
+        push!(train_losses, train_loss)
+        push!(val_losses,   val_loss)
+        push!(train_accs,   tr_acc)
+        push!(val_accs,     va_acc)
+
+        println("Epoch $epoch | Train Loss: $(round(train_loss, digits=4)) Acc: $(round(tr_acc*100, digits=1))% | Val Loss: $(round(val_loss, digits=4)) Acc: $(round(va_acc*100, digits=1))%")
+
+        if val_loss < best_val_loss
+            best_val_loss    = val_loss
+            patience_counter = 0
+        else
+            patience_counter += 1
+        end
+
+        if patience_counter >= patience
+            println("Early stopping à l'epoch $epoch")
+            break
+        end
+    end
+
+    return model, train_losses, val_losses, train_accs, val_accs
+end
+
+# =========================================================
 # ENTRAÎNEMENT
 # =========================================================
 
 println("\n=== Entraînement ===")
 
-opt = Optimisers.Adam(lr)
-st  = Optimisers.setup(opt, model)
-
-N = size(x_train, 2)   # 60 000
-
-train_losses = Float32[]
-val_losses   = Float32[]
-train_accs   = Float32[]
-val_accs     = Float32[]
-
-best_val_loss    = Inf32
-patience_counter = 0
-
-for epoch in 1:epochs
-
-    Flux.trainmode!(model)
-
-    idxs       = shuffle(1:N)
-    epoch_loss = 0f0
-    nb_batches = 0
-
-    for i in 1:batch_size:N
-        batch_idxs = idxs[i:min(i+batch_size-1, N)]
-
-        x_batch = x_train[:, batch_idxs]   # (784, batch_size)
-        y_batch = y_train[:, batch_idxs]   # (10,  batch_size)
-
-        gs = gradient(m -> loss_fn(m, x_batch, y_batch), model)[1]
-        st, model = Optimisers.update(st, model, gs)
-
-        epoch_loss += Flux.crossentropy(model(x_batch), y_batch)
-        nb_batches += 1
-    end
-
-    train_loss = epoch_loss / nb_batches
-
-    # Validation sur le test set complet
-    Flux.testmode!(model)
-    val_loss = Flux.crossentropy(model(x_test), y_test)
-    tr_acc   = accuracy(model, x_train, y_train)
-    va_acc   = accuracy(model, x_test,  y_test)
-
-    push!(train_losses, train_loss)
-    push!(val_losses,   val_loss)
-    push!(train_accs,   tr_acc)
-    push!(val_accs,     va_acc)
-
-    println("Epoch $epoch | Train Loss: $(round(train_loss, digits=4)) Acc: $(round(tr_acc*100, digits=1))% | Val Loss: $(round(val_loss, digits=4)) Acc: $(round(va_acc*100, digits=1))%")
-
-    if val_loss < best_val_loss
-        best_val_loss    = val_loss
-        patience_counter = 0
-    else
-        patience_counter += 1
-    end
-
-    if patience_counter >= patience
-        println("Early stopping à l'epoch $epoch")
-        break
-    end
-end
+model, train_losses, val_losses, train_accs, val_accs = train!(
+    model, x_train, y_train, x_test, y_test;
+    epochs=epochs, batch_size=batch_size, lr=lr, patience=patience
+)
 
 # =========================================================
 # PLOTS
