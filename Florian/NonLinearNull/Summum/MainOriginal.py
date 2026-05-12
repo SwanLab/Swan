@@ -34,6 +34,7 @@ labelDir1 = exports['labelDir1']
 labelDir2 = exports['labelDir2']
 labelNeu = exports['labelNeu']
 hmin = exports['meshsiz']
+dmax = 0.1
 
 @bound_constraints_optimizable()
 class TO_problem(EuclideanOptimizable):
@@ -74,15 +75,16 @@ class TO_problem(EuclideanOptimizable):
         runner.import_variables(Th=Th,beta=beta,phiVal=x)
         return runner.execute()['g[]']
     
-    #def H(self, x):
-    #    runner = FreeFemRunner(path+"PerimeterConstraintValue.edp")
-    #    runner.import_variables(Th=Th,phiVal=x)
-    #    return [runner.execute()['H']]
+    def H(self, x):
+        runner = FreeFemRunner(path+"MaxThickConstraintValue.edp")
+        runner.import_variables(Th=Th,phiVal=x,AchiVal=self.volFrac,dmax=dmax,meshsiz=hmin)
+        return [runner.execute()['H']]
     
-    #def dH(self,x):
-    #    runner = FreeFemRunner(path+"PerimeterConstraintGradient.edp")
-    #    runner.import_variables(Th=Th,phiVal=x,kappa=self.kappa,beta=beta)
-    #    return runner.execute()['g[]']
+    def dH(self,x):
+        runner = FreeFemRunner(path+"MaxThickConstraintGradient.edp")
+        runner.import_variables(Th=Th,phiVal=x,AchiVal=self.volFrac,dmax=dmax,meshsiz=hmin,
+                                alpha=alpha,beta=beta)
+        return runner.execute()['g[]']
 
     def accept(self, params, results):
         # Plot the design at every iteration
@@ -99,7 +101,7 @@ class TO_problem(EuclideanOptimizable):
         plt.pause(0.05)
 
 ## OPTIMIZATION PARAMETERS
-dTime = 0.001
+dTime = 0.01
 elRadius = 1
 No = 250
 params = {"dt": dTime*hmin*elRadius,
@@ -349,8 +351,8 @@ while normdx > params['tol'] and it <= params['maxit']:
         newC = np.concatenate((newG, newH))
             
         # Finite difference check
-        mOld = J + muls[0]*G[0]# + muls[1]*H[0]
-        mNew = newJ + muls[0]*newG[0]# + muls[1]*newH[0]
+        mOld = J + muls[0]*G[0] + muls[1]*H[0]
+        mNew = newJ + muls[0]*newG[0] + muls[1]*newH[0]
 
         finite_diffJ = np.abs(
             newJ - J - dJ.dot((0.5**k)*dx))/(0.5**k*normdx+1e-10)
@@ -359,7 +361,8 @@ while normdx > params['tol'] and it <= params['maxit']:
         if max(finite_diffJ, finite_diffC) > params['tol_finite_diff']:
             io.display("Warning, inaccurate finite differences, time step might be too large. "
                     f"finite_diffJ={finite_diffJ}, finite_diffC={finite_diffC}", 1, params['debug'], color="dark_orange_3a")
-        if mNew > mOld + 1e-3:
+        #if mNew > mOld + 1e-3:
+        if newJ > J and np.linalg.norm(newC[tilde],2) >= np.linalg.norm(C[tilde],2):
             io.display(f"Warning, newJ={newJ} > J={J} and normNewC={np.linalg.norm(newC[tilde],2)} > normC= {np.linalg.norm(C[tilde],2)} "
                     + f"-> Trial {k+1}", 0, params['debug'], color="red")
         else:
@@ -399,7 +402,7 @@ results = abstract_results.implementation()
 iter = results['it']
 cost  = results['J']
 Vol = results['G']
-#Per  = results['H']
+Thick  = results['H']
 
 fig, axes = plt.subplots(1, 3, figsize=(10, 4))
 
@@ -413,17 +416,17 @@ axes[1].set_xlabel('Iter')
 axes[1].set_ylabel('Volume constraint')
 axes[1].grid(True, linestyle='--', alpha=0.6)
 
-#axes[2].plot(iter, Per, color='b')
-#axes[2].set_xlabel('Iter')
-#axes[2].set_ylabel('Perimeter constraint')
-#axes[2].grid(True, linestyle='--', alpha=0.6)
+axes[2].plot(iter, Thick, color='b')
+axes[2].set_xlabel('Iter')
+axes[2].set_ylabel('Max Thick constraint')
+axes[2].grid(True, linestyle='--', alpha=0.6)
 
 runner = FreeFemRunner(path+"PrintResult.edp")
 runner.import_variables(Th=Th,phiVal=x,ux=problem._problem.ux,uy=problem._problem.uy)
 runner.execute()
 
 np.savez(path+"MainOrigPlotting",
-            xF=x,it=iter,c=cost,v=Vol)
+            xF=x,it=iter,c=cost,v=Vol,thick=Thick)
 
 plt.tight_layout()
 plt.show()

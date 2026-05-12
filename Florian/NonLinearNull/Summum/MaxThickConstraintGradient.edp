@@ -1,0 +1,67 @@
+IMPORT "io.edp"
+load "distance"
+
+mesh Th = importMesh("Th");
+real [int] phiVal = importArray("phiVal");
+real [int] AchiVal = importArray("AchiVal");
+real alpha = importVar("alpha");
+real beta = importVar("beta");
+real meshsiz = importVar("meshsiz");
+real dmax = importVar("dmax");
+
+fespace Vh(Th,P1);
+fespace Vh0(Th,P0);
+Vh phi, phi2, g, dOm, fOm, sig, fd, u, v;
+phi[] = phiVal;
+phi2[] = phiVal;
+
+Vh0 Achi;
+Achi[] = AchiVal;
+
+for (int i = 0; i < Th.nbe; i++) {
+    phi2[][Th.be(i)[0]] = 0.;
+    phi2[][Th.be(i)[1]] = 0.;
+}
+distance(Th,phi2,dOm[]);
+
+real af = 1.0*(4.0*meshsiz/(5.0*dmax));
+fOm = 0.5*(1+tanh((abs(dOm)-dmax/2)/(af*dmax/2)));
+real F = int2d(Th)(Achi*fOm) + 0.01;
+real FD = int2d(Th)(Achi*fOm*(dOm^2));
+real Jo =  (FD/F)^(0.5) + 1e-6;
+
+Vh dxdOm, dydOm, w, lapldOm;
+
+problem gradxPhi(dxdOm,v) = int2d(Th)(dxdOm*v + (alpha^2.0)*(dx(dxdOm)*dx(v)+dy(dxdOm)*dy(v)))
+                        -int2d(Th)(dx(dOm)*v);
+
+problem gradyPhi(dydOm,v) = int2d(Th)(dydOm*v + (alpha^2.0)*(dx(dydOm)*dx(v)+dy(dydOm)*dy(v)))
+                        -int2d(Th)(dy(dOm)*v);
+
+gradxPhi;
+gradyPhi;
+
+problem laplace(lapldOm,v) = int2d(Th)(lapldOm*v + (alpha^2.0)*(dx(lapldOm)*dx(v)+dy(lapldOm)*dy(v)))
+                        -int2d(Th)((dx(dxdOm) + dy(dydOm))*v);
+
+laplace;
+
+real q = 3.5, r = 3.5;
+w = 2.0/(1+abs(dOm)^q*abs(lapldOm)^r);
+
+sig = dOm/(abs(dOm)+1e-6);
+
+fd = 0.5*((1/cosh((abs(dOm)-dmax/2)/(af*dmax/2)))^2)*sig/(af*dmax/2);
+problem uTerm(u,v) = int1d(Th,levelset=dOm)(u*v) + int2d(Th)(w*(dxdOm*dx(u)+dydOm*dy(u))*(dxdOm*dx(v)+dydOm*dy(v)))
+                        +int2d(Th)(Achi*(1/(2*Jo*F^2)*(F*(fd*dOm+2*fOm)*dOm-FD*fd))*v);
+
+uTerm;
+
+problem velext(g,v) = int2d(Th)(g*v + (beta^2.0)*(dx(g)*dx(v)+dy(g)*dy(v)))
+                        -int1d(Th,levelset=phi)(-u*beta*v);
+
+velext;
+
+exportArray(g[]);
+exportArray(fOm[]);
+exportArray(fd[]);

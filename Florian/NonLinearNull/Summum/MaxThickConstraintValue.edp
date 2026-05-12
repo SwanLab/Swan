@@ -1,0 +1,30 @@
+IMPORT "io.edp"
+load "distance"
+
+mesh Th = importMesh("Th");
+real [int] phiVal = importArray("phiVal");
+real [int] AchiVal = importArray("AchiVal");
+real dmax = importVar("dmax");
+real meshsiz = importVar("meshsiz");
+
+fespace Vh(Th,P1);
+Vh phi, dOm, fOm;
+phi[] = phiVal;
+
+fespace Vh0(Th,P0);
+Vh0 Achi;
+Achi[] = AchiVal;
+
+for (int i = 0; i < Th.nbe; i++) {
+    phi[][Th.be(i)[0]] = 0.;
+    phi[][Th.be(i)[1]] = 0.;
+}
+distance(Th,phi,dOm[]);
+
+real af = 1.0*(4.0*meshsiz/(5.0*dmax));
+fOm = 0.5*(1+tanh((abs(dOm)-dmax/2)/(af*dmax/2)));
+real F = int2d(Th)(Achi*fOm) + 0.01;
+real FD = int2d(Th)(Achi*fOm*(dOm^2));
+real H =  (FD/F)^(0.5) - dmax/2;
+
+exportVar(H);
