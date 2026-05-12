@@ -39,7 +39,7 @@ classdef TutorialShells < handle
             obj.createSolutionField()
             obj.solverType = 'REDUCED';
 
-            problemType    = 'FREE_VIBRATIONS';
+            problemType    = 'STATIC';
             % Options: 'STATIC' / 'FREE_VIBRATIONS' / 'FORCED_VIBRATIONS'
 
             % 2. Boundary Conditions and Assembly
@@ -346,15 +346,15 @@ classdef TutorialShells < handle
 
                 vonMises = obj.computeVonMises(stressFun,stressState);
 
-                % Obtain max VonMises value on node and plot stresses
-                % through thickness
-                [maxVonMises, idxVM] = max(vonMises{end}.fValues);
-                locationVM = obj.mesh.coord(idxVM,:);
-                fprintf('Found maximum von Mises value on node %d (%.6e)\n', idxVM, maxVonMises);
-                fprintf('Location: (%.4f, %.4f)\n \n', locationVM(1), locationVM(2));
-
-                
-                obj.plotStressDistributionThroughThickness(idxVM, epsilons, stressState);
+                % % PLOT STRESS DISTRIBUTION THROUGH THICKNESS
+                % % Obtain max VonMises value on node and plot stresses
+                % % through thickness
+                % [maxVonMises, idxVM] = max(vonMises{end}.fValues);
+                % locationVM = obj.mesh.coord(idxVM,:);
+                % fprintf('Found maximum von Mises value on node %d (%.6e)\n', idxVM, maxVonMises);
+                % fprintf('Location: (%.4f, %.4f)\n \n', locationVM(1), locationVM(2));
+                % 
+                % obj.plotStressDistributionThroughThickness(idxVM, epsilons, stressState);
                 
 
                 % ================================================
@@ -478,7 +478,7 @@ classdef TutorialShells < handle
                     obj.mesh = UnitTriangleMesh(50,50);
                 case 'wingShape'
 
-                    elements = 60;
+                    elements = 90;
 
                     fullmesh = TriangleMesh(18,10,elements,elements);
                     ls = obj.computeWingLevelSet(fullmesh);
@@ -553,11 +553,39 @@ classdef TutorialShells < handle
                 case 'Composite'
                     materialName = {'EpT'; 'EpT'; 'EpT'; 'EpT'; 'EpT';
                         'EpT'; 'EpT'; 'EpT'; 'EpT'; 'EpT'};
-                    max_thickness = 0.5;
-                    % Rotation = [0; 0; 90; -45; 45; 45; -45; 90; 0; 0];  % degrees
-                    Rotation = [0; 0; 45; -45; 90; 90; -45; 45; 0; 0];  % degrees
-                    Rotation = 25*ones(size(materialName)) + Rotation;
+
+                    % max_thickness = 0.5;
+                    % % Rotation = [0; 0; 90; -45; 45; 45; -45; 90; 0; 0];  % degrees
+                    % Rotation = [0; 0; 45; -45; 90; 90; -45; 45; 0; 0];  % degrees
+                    % Rotation = 25*ones(size(materialName)) + Rotation;
+                    
+                    % % Auto-distribute thickness
+                    % nLayers = length(materialName);
+                    % h = max_thickness / nLayers * ones(nLayers, 1);
                     obj.dampingRatio = 0.015;
+
+                    h = [0.269142;
+                        0.499613;
+                        0.010376;
+                        0.010515;
+                        0.010463;
+                        0.010463;
+                        0.010515;
+                        0.010376;
+                        0.499613;
+                        0.269142];
+
+                    Rotation = [13.4736;
+                        16.2312;
+                        70.1305;
+                        -19.0241;
+                        114.9942;
+                        114.9942;
+                        -19.0241;
+                        70.1305;
+                        16.2312;
+                        13.4736];
+
                 case 'Aluminium'
                     materialName = {'Aluminum'};
                     max_thickness = 0.5;
@@ -567,9 +595,7 @@ classdef TutorialShells < handle
             % materialName = {'Ep1'; 'Ep1'; 'Ep1'; 'Ep1'};
             % Rotation = [0;90;90;0];
 
-            % Auto-distribute thickness
-            nLayers = length(materialName);
-            h = max_thickness / nLayers * ones(nLayers, 1);
+            
 
             % Get material properties from database
             [E, nu, G, rho, type] = obj.getMaterialProperties(materialName);

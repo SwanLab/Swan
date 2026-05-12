@@ -30,7 +30,8 @@ classdef TutorialShellsOptimDeltaTheta < handle
 
             clc; close all;
 
-            optimCase = 'STATIC';
+            tic;
+            optimCase = 'DYNAMIC';
             % STATIC
             % DYNAMIC
 
@@ -51,13 +52,16 @@ classdef TutorialShellsOptimDeltaTheta < handle
             h_max = 0.5; 
             nLayers = length(obj.materialLayers);
             h0 = h_max * ones(nLayers,1)/nLayers;    
-            deltaTheta0 = 0; 
+            deltaTheta0 = 15; 
 
             obj.createMesh('wingShape')  % 'triangleMesh' // 'wingShape'
             obj.createSolutionField()
 
+            % Boundary and normalization values 
+            minDeltaTheta = -89.9;
+            maxDeltaTheta = 89.9; 
             normalizef = 20; 
-            maxval = obj.staticProblem(h0, deltaTheta0);  
+            maxval = obj.staticProblem(h0, 0);  
             m0     = obj.computeMass(h0);
             switch optimCase
                 case 'STATIC'
@@ -73,8 +77,8 @@ classdef TutorialShellsOptimDeltaTheta < handle
                         end
 
                         % Reduced bounds (h + deltaTheta)
-                        s.ub = [h_max * ones(nHalf,1);  90];
-                        s.lb = [0.01  * ones(nHalf,1);   -90];
+                        s.ub = [h_max * ones(nHalf,1);  maxDeltaTheta];
+                        s.lb = [0.01  * ones(nHalf,1);   minDeltaTheta];
 
                         cost.cF = @(x) obj.computeMass(T * x(1:nHalf)) / m0;
                         cost.gF = @(x) [T' * obj.GradComputeMass() / m0; 0];
@@ -85,8 +89,8 @@ classdef TutorialShellsOptimDeltaTheta < handle
                     else
                         x0_opt = [h0; deltaTheta0];
 
-                        s.ub = [h_max * ones(nLayers,1);  90];
-                        s.lb = [0.01  * ones(nLayers,1);   -90];
+                        s.ub = [h_max * ones(nLayers,1);  maxDeltaTheta];
+                        s.lb = [0.01  * ones(nLayers,1);   minDeltaTheta];
 
                         cost.cF = @(x) obj.computeMass(x(1:nLayers)) / m0;
                         cost.gF = @(x) [obj.GradComputeMass() / m0; 0];
@@ -108,8 +112,8 @@ classdef TutorialShellsOptimDeltaTheta < handle
                         end
 
                         % Reduced bounds (h + deltaTheta)
-                        s.ub = [h_max * ones(nHalf,1);  90];
-                        s.lb = [0.01  * ones(nHalf,1);   -90];
+                        s.ub = [h_max * ones(nHalf,1);  maxDeltaTheta];
+                        s.lb = [0.01  * ones(nHalf,1);   minDeltaTheta];
 
                         cost.cF = @(x) obj.computeMass(T * x(1:nHalf)) / m0;
                         cost.gF = @(x) [T' * obj.GradComputeMass() / m0; 0];
@@ -123,8 +127,8 @@ classdef TutorialShellsOptimDeltaTheta < handle
                     else
                         x0_opt = [h0; deltaTheta0];
 
-                        s.ub = [h_max * ones(nLayers,1);  90];
-                        s.lb = [0.01  * ones(nLayers,1);   -90];
+                        s.ub = [h_max * ones(nLayers,1);  maxDeltaTheta];
+                        s.lb = [0.01  * ones(nLayers,1);   minDeltaTheta];
 
                         cost.cF = @(x) obj.computeMass(x(1:nLayers)) / m0;
                         cost.gF = @(x) [obj.GradComputeMass() / m0; 0]; % masa no depende de deltaTheta
@@ -138,7 +142,8 @@ classdef TutorialShellsOptimDeltaTheta < handle
             end
 
             s.type           = "fmincon";
-            s.maxIter        = 20;
+            s.maxIter        = 17;
+
             switch optimCase
                 case 'STATIC'
                     s.constraintCase = {'INEQUALITY'};
@@ -152,6 +157,7 @@ classdef TutorialShellsOptimDeltaTheta < handle
             cParams.printingPath = true;
             problem              = AcademicProblem(cParams);
             problem.compute();
+            computingTime = toc;
 
             xStar      = problem.result.fun.fValues;
             
@@ -189,6 +195,7 @@ classdef TutorialShellsOptimDeltaTheta < handle
             finalMass = obj.computeMass(h_vals);
             fprintf('Final Mass (kg)           : %10.6e  (Normalized: %10.6e)\n', finalMass, finalMass / m0);
             fprintf('==================================================\n\n');
+            fprintf('Total computing time (min)  : %10.6f\n', computingTime/60);
 
 
             
@@ -659,7 +666,7 @@ classdef TutorialShellsOptimDeltaTheta < handle
         %% Gradients
         function grad = GradDynamicProblem(obj, x, nHalf, T)
             dh     = 1e-6;
-            dtheta = 1.05;
+            dtheta = 1;
 
             h_half     = x(1:nHalf);
             deltaTheta = x(nHalf + 1);
@@ -683,7 +690,7 @@ classdef TutorialShellsOptimDeltaTheta < handle
 
         function grad = GradStaticProblem(obj, x, nHalf, T)
             dh     = 1e-6;
-            dtheta = 1e-4;
+            dtheta = 1;
 
             h_half     = x(1:nHalf);
             deltaTheta = x(nHalf + 1);
