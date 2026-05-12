@@ -363,7 +363,7 @@ while normdx > params['tol'] and it <= params['maxit']:
         if max(finite_diffJ, finite_diffC) > params['tol_finite_diff']:
             io.display("Warning, inaccurate finite differences, time step might be too large. "
                     f"finite_diffJ={finite_diffJ}, finite_diffC={finite_diffC}", 1, params['debug'], color="dark_orange_3a")
-        if mNew > mOld + 1e-3:
+        if newJ > J and np.linalg.norm(newC[tilde],2) >= np.linalg.norm(C[tilde],2):
             io.display(f"Warning, newJ={newJ} > J={J} and normNewC={np.linalg.norm(newC[tilde],2)} > normC= {np.linalg.norm(C[tilde],2)} "
                     + f"-> Trial {k+1}", 0, params['debug'], color="red")
         else:
