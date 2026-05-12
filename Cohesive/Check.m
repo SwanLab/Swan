@@ -2,7 +2,7 @@ clear
 close all
 u3     = 0.05;
 Df     =  0.2;
-Dc = 0.00;
+Dc = 0.001;
 Kelas  = 1e6;
 Kcoh   = 1e8;
 

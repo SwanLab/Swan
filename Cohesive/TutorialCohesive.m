@@ -16,7 +16,7 @@ classdef TutorialCohesive < handle
 
         function obj = TutorialCohesive()
             
-            problem      = 'DoubleCantileverBeam';
+            problem      = 'DisplacementTractionY';
             nameMesh     = 'M10by4';
             obj.init();
             obj.createMesh(problem,nameMesh);
@@ -47,8 +47,8 @@ classdef TutorialCohesive < handle
         end
     
         function createMesh(obj,problem,nameMesh)
-            % s.baseMesh       = UnitQuadMesh(1,1);
             s = obj.makeBenchmarkMesh(problem,nameMesh);
+            s.baseMesh       = UnitQuadMesh(1,1);
             obj.cohesiveMesh = CohesiveMesh(s);
         end
 
@@ -90,7 +90,7 @@ classdef TutorialCohesive < handle
             k.ptype   = 'ELASTIC';
             k.ndim    = obj.cohesiveMesh.fullMesh.ndim;
             k.young   = ConstantFunction.create(1e6,obj.cohesiveMesh.fullMesh);
-            k.poisson = ConstantFunction.create(0, obj.cohesiveMesh.fullMesh);
+            k.poisson = ConstantFunction.create(0.3, obj.cohesiveMesh.fullMesh);
             k.cohesiveMesh = obj.cohesiveMesh;
             m    = Material.create(k);
             m.setCohesiveMesh(obj.cohesiveMesh);
@@ -103,7 +103,9 @@ classdef TutorialCohesive < handle
 
             switch problem
                 case 'DoubleCantileverBeam'
-                    xmax = 72; y = 3.12 * 0.5;
+                    xmax = 72*0.001; y = 3.12 * 0.5 * 0.001;
+                case 'DisplacementTractionY'
+                    
             end
 
             c.isFracturedLine  = @(coord) abs(coord(:,2) - y) <= 1e-10;

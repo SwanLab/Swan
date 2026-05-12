@@ -62,9 +62,9 @@ classdef TractionBiliniarCoupled < handle
             ddot_t = DP(ddot,unoZero); ddot_n = DP(ddot,zeroUno);
             jumpT = DP(jump,unoZero); jumpN = DP(jump,zeroUno);
             dtdt = obj.K * ((1-d) - jumpT.*ddot_t); % 1 x ngauss x nelem
-            dtdn = obj.K * (-jumpT.*ddot_n) ;
-            dndt = obj.K * (-jumpN.*ddot_t) ;
-            dndn = obj.K * ((1-d) - jumpN.*ddot_n) ;
+            dtdn = obj.K * (-jumpT.*ddot_n);
+            dndt = obj.K * (-jumpN.*ddot_t);
+            dndn = obj.K * ((1-d) - jumpN.*ddot_n);
         end
 
         function d = computeDamage(obj,jumpNorm) % 1 x ngauss x nelem   
