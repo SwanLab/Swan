@@ -26,11 +26,12 @@ from pymedit import P1Function
 ## FREEFEM PROBLEM DEFINITION
 path = "NonLinearNull/Summum/"
 
-exports = FreeFemRunner(path+"MeshCantilever.edp").execute()
+exports = FreeFemRunner(path+"MeshMBB.edp").execute()
 Th = exports['Th']
 alpha = exports['alpha']
 beta = exports['beta']
-labelDir = exports['labelDir']
+labelDir1 = exports['labelDir1']
+labelDir2 = exports['labelDir2']
 labelNeu = exports['labelNeu']
 hmin = exports['meshsiz']
 
@@ -43,23 +44,23 @@ class TO_problem(EuclideanOptimizable):
         self.ux = []
         self.uy = []
         self.kappa = []
+
     def x0(self):
-        runner = FreeFemRunner(path+"InitCantilever.edp")
+        runner = FreeFemRunner(path+"InitMBB.edp")
         runner.import_variables(Th=Th)
         x = runner.execute()['phi[]']
-    
         return x
 
     def J(self, x):
-        runner = FreeFemRunner(path+"ComplianceCantileverValue.edp")
-        runner.import_variables(Th=Th,phiVal=x,labelDir=labelDir,labelNeu=labelNeu,AchiVal=self.volFrac)
+        runner = FreeFemRunner(path+"ComplianceMBBValue.edp")
+        runner.import_variables(Th=Th,phiVal=x,labelDir1=labelDir1,labelDir2=labelDir2,labelNeu=labelNeu,AchiVal=self.volFrac)
         exports = runner.execute()
         self.ux = exports['ux[]']
         self.uy = exports['uy[]']
         return exports['J']
 
     def dJ(self, x):
-        runner = FreeFemRunner(path+"ComplianceCantileverGradient.edp")
+        runner = FreeFemRunner(path+"ComplianceGradient.edp")
         runner.import_variables(Th=Th,beta=beta,uxVal=self.ux,uyVal=self.uy,phiVal=x)
         return runner.execute()['g[]']
     
@@ -73,15 +74,15 @@ class TO_problem(EuclideanOptimizable):
         runner.import_variables(Th=Th,beta=beta,phiVal=x)
         return runner.execute()['g[]']
     
-    def H(self, x):
-        runner = FreeFemRunner(path+"PerimeterConstraintValue.edp")
-        runner.import_variables(Th=Th,phiVal=x)
-        return [runner.execute()['H']]
+    #def H(self, x):
+    #    runner = FreeFemRunner(path+"PerimeterConstraintValue.edp")
+    #    runner.import_variables(Th=Th,phiVal=x)
+    #    return [runner.execute()['H']]
     
-    def dH(self,x):
-        runner = FreeFemRunner(path+"PerimeterConstraintGradient.edp")
-        runner.import_variables(Th=Th,phiVal=x,kappa=self.kappa,beta=beta)
-        return runner.execute()['g[]']
+    #def dH(self,x):
+    #    runner = FreeFemRunner(path+"PerimeterConstraintGradient.edp")
+    #    runner.import_variables(Th=Th,phiVal=x,kappa=self.kappa,beta=beta)
+    #    return runner.execute()['g[]']
 
     def accept(self, params, results):
         # Plot the design at every iteration
@@ -99,15 +100,15 @@ class TO_problem(EuclideanOptimizable):
 
 ## OPTIMIZATION PARAMETERS
 dTime = 0.001
-elRadius = 3
-No = 150
+elRadius = 1
+No = 250
 params = {"dt": dTime*hmin*elRadius,
           "itnormalisation": No,
           "save_only_N_iterations": 1,
           "save_only_Q_constraints": 5,
           "alphaJ": 1,
           "alphaC": 1,
-          "maxit": 250,
+          "maxit": 120,
           "maxtrials": 10,
           "CFL": 0.9}
 problem:Optimizable = TO_problem()
@@ -348,8 +349,8 @@ while normdx > params['tol'] and it <= params['maxit']:
         newC = np.concatenate((newG, newH))
             
         # Finite difference check
-        mOld = J + muls[0]*G[0] + muls[1]*H[0]
-        mNew = newJ + muls[0]*newG[0] + muls[1]*newH[0]
+        mOld = J + muls[0]*G[0]# + muls[1]*H[0]
+        mNew = newJ + muls[0]*newG[0]# + muls[1]*newH[0]
 
         finite_diffJ = np.abs(
             newJ - J - dJ.dot((0.5**k)*dx))/(0.5**k*normdx+1e-10)
@@ -398,7 +399,7 @@ results = abstract_results.implementation()
 iter = results['it']
 cost  = results['J']
 Vol = results['G']
-Per  = results['H']
+#Per  = results['H']
 
 fig, axes = plt.subplots(1, 3, figsize=(10, 4))
 
@@ -412,14 +413,17 @@ axes[1].set_xlabel('Iter')
 axes[1].set_ylabel('Volume constraint')
 axes[1].grid(True, linestyle='--', alpha=0.6)
 
-axes[2].plot(iter, Per, color='b')
-axes[2].set_xlabel('Iter')
-axes[2].set_ylabel('Perimeter constraint')
-axes[2].grid(True, linestyle='--', alpha=0.6)
+#axes[2].plot(iter, Per, color='b')
+#axes[2].set_xlabel('Iter')
+#axes[2].set_ylabel('Perimeter constraint')
+#axes[2].grid(True, linestyle='--', alpha=0.6)
 
 runner = FreeFemRunner(path+"PrintResult.edp")
 runner.import_variables(Th=Th,phiVal=x,ux=problem._problem.ux,uy=problem._problem.uy)
 runner.execute()
+
+np.savez(path+"MainOrigPlotting",
+            xF=x,it=iter,c=cost,v=Vol)
 
 plt.tight_layout()
 plt.show()
