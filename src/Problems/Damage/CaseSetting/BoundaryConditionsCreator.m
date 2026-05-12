@@ -308,7 +308,7 @@ classdef BoundaryConditionsCreator < handle
            obj.boundaryConditions = BoundaryConditions(s);
         end
 
-        function createDoubleCantileverBeamConditions(obj,fVal)
+        function createDoubleCantileverBeamConditions(obj,uVal)
            isInLeft = @(coord) (abs(coord(:,1) - min(coord(:,1)))< 1e-12);
            sDir.domain    = @(coor) isInLeft(coor);
            sDir.direction = [1,2];
@@ -316,20 +316,20 @@ classdef BoundaryConditionsCreator < handle
            Dir1 = DirichletCondition(obj.mesh,sDir);
     
            isInTopRight = @(coord) (abs(coord(:,1) - max(coord(:,1)))< 1e-12) & (abs(coord(:,2) - max(coord(:,2)))< 1e-12);
-           sNeum.domain    = @(coor) isInTopRight(coor);
-           sNeum.direction = [2];
-           sNeum.value     = fVal;
-           Neum1 = DirichletCondition(obj.mesh,sNeum);
+           sDir.domain    = @(coor) isInTopRight(coor);
+           sDir.direction = [2];
+           sDir.value     = uVal;
+           Dir2 = DirichletCondition(obj.mesh,sDir);
 
            isInBottomRight = @(coord) (abs(coord(:,1) - max(coord(:,1)))< 1e-12) & (abs(coord(:,2) - min(coord(:,2)))< 1e-12);
-           sNeum.domain    = @(coor) isInBottomRight(coor);
-           sNeum.direction = [2];
-           sNeum.value     = -fVal;
-           Neum2 = DirichletCondition(obj.mesh,sNeum);
+           sDir.domain    = @(coor) isInBottomRight(coor);
+           sDir.direction = [2];
+           sDir.value     = -uVal;
+           Dir3 = DirichletCondition(obj.mesh,sDir);
 
            s.mesh = obj.mesh;
-           s.dirichletFun = [Dir1];
-           s.pointloadFun = [Neum1 Neum2];
+           s.dirichletFun = [Dir1 Dir2 Dir3];
+           s.pointloadFun = [];
            s.periodicFun = [];
            obj.boundaryConditions = BoundaryConditions(s);
         end

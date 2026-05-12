@@ -102,6 +102,12 @@ classdef CohesiveComputer < handle
                 totReact = abs(sum(F(dofsXdown)));
                 uBC = obj.boundaryConditions.bcValues(step);
             end
+
+            if ismember(obj.boundaryConditions.type, "DoubleCantileverBeam")
+                dofsXleft = (nodes(isInLeft)-1)*u.ndimf + 1;
+                totReact = abs(sum(F(dofsXleft)));
+                uBC = obj.boundaryConditions.bcValues(step);
+            end
         end
 
         function u = computeInitialDisplacement(obj,u,bc)
