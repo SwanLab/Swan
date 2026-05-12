@@ -101,7 +101,7 @@ class TO_problem(EuclideanOptimizable):
         plt.pause(0.05)
 
 ## OPTIMIZATION PARAMETERS
-dTime = 0.01
+dTime = 0.001
 elRadius = 1
 No = 250
 params = {"dt": dTime*hmin*elRadius,
@@ -320,10 +320,12 @@ while normdx > params['tol'] and it <= params['maxit']:
 
     success = 0
     tilde = get_tilde(C, p)
+    nx0 = problem._problem.nx
+    ny0 = problem._problem.ny
     for k in range(params['maxtrials']):
         runner = FreeFemRunner(path+"HJUpdate.edp")
-        runner.import_variables(Th=Th,gVal = g,phiVal=x,nxVal=problem._problem.nx,
-                            nyVal=problem._problem.ny,dTime=((2**k)*dTime))
+        runner.import_variables(Th=Th,gVal = g,phiVal=x,nxVal=nx0,
+                            nyVal=ny0,dTime=((2**k)*dTime))
         newx = runner.execute()['phi[]']
 
         dx = (newx-x)
@@ -361,8 +363,7 @@ while normdx > params['tol'] and it <= params['maxit']:
         if max(finite_diffJ, finite_diffC) > params['tol_finite_diff']:
             io.display("Warning, inaccurate finite differences, time step might be too large. "
                     f"finite_diffJ={finite_diffJ}, finite_diffC={finite_diffC}", 1, params['debug'], color="dark_orange_3a")
-        #if mNew > mOld + 1e-3:
-        if newJ > J and np.linalg.norm(newC[tilde],2) >= np.linalg.norm(C[tilde],2):
+        if mNew > mOld + 1e-3:
             io.display(f"Warning, newJ={newJ} > J={J} and normNewC={np.linalg.norm(newC[tilde],2)} > normC= {np.linalg.norm(C[tilde],2)} "
                     + f"-> Trial {k+1}", 0, params['debug'], color="red")
         else:
