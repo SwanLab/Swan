@@ -29,16 +29,17 @@ exports = FreeFemRunner(path+"MeshMBB.edp").execute()
 Th = exports['Th']
 
 ## POSTPROCESS
-data  = np.load(path+"Results/MBBOrigPlotting.npz",allow_pickle=True)
-iter = data['it']
-Comp = data['c']
-V  = data['v']
-
 data  = np.load(path+"Results/MBBTOrigPlotting.npz",allow_pickle=True)
 iterT = data['it']
 CompT = data['c']
 VT  = data['v']
 thick = data['thick']
+
+data  = np.load(path+"Results/MBBT5Plotting.npz",allow_pickle=True)
+iterT5 = data['it']
+CompT5 = data['c']
+VT5  = data['v']
+thick5 = data['thick']
 
 data = np.load(path+"Results/MBBTOrigPlotting.npz")
 fig0, ax0 = plt.subplots()
@@ -49,21 +50,22 @@ plt.pause(0.05)
 
 fig, axes = plt.subplots(1, 3, figsize=(10, 4))
 
-axes[0].plot(iter, Comp, color='b', label='Original')
-axes[0].plot(iterT, CompT, color='r', label='dmax = 0.1')
+axes[0].plot(iterT, CompT, color='b', label='1 geo it')
+axes[0].plot(iterT5, CompT5, color='r', label='5 geo it')
 axes[0].legend()
 axes[0].set_xlabel('Iter')
 axes[0].set_ylabel('Compliance')
 axes[0].grid(True, linestyle='--', alpha=0.6)
 
-axes[1].plot(iter, V, color='b', label='Original')
-axes[1].plot(iterT, VT, color='r', label='dmax = 0.1')
+axes[1].plot(iterT, VT, color='b', label='1 geo it')
+axes[1].plot(iterT5, VT5, color='r', label='5 geo it')
 axes[1].legend()
 axes[1].set_xlabel('Iter')
 axes[1].set_ylabel('Volume constraint')
 axes[1].grid(True, linestyle='--', alpha=0.6)
 
-axes[2].plot(iterT, thick, color='r', label='5 geo it')
+axes[2].plot(iterT, thick, color='b', label='1 geo it')
+axes[2].plot(iterT5, thick5, color='r', label='5 geo it')
 axes[2].legend()
 axes[2].set_xlabel('Iter')
 axes[2].set_ylabel('Max. Thick. constraint')

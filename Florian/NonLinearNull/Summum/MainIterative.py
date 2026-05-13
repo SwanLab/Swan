@@ -26,13 +26,15 @@ from pymedit import P1Function
 ## FREEFEM PROBLEM DEFINITION
 path = "NonLinearNull/Summum/"
 
-exports = FreeFemRunner(path+"MeshCantilever.edp").execute()
+exports = FreeFemRunner(path+"MeshMBB.edp").execute()
 Th = exports['Th']
 alpha = exports['alpha']
 beta = exports['beta']
-labelDir = exports['labelDir']
+labelDir1 = exports['labelDir1']
+labelDir2 = exports['labelDir2']
 labelNeu = exports['labelNeu']
 hmin = exports['meshsiz']
+dmax = 0.1
 
 @bound_constraints_optimizable()
 class TO_problem(EuclideanOptimizable):
@@ -44,22 +46,21 @@ class TO_problem(EuclideanOptimizable):
         self.uy = []
         self.kappa = []
     def x0(self):
-        runner = FreeFemRunner(path+"InitCantilever.edp")
+        runner = FreeFemRunner(path+"InitMBB.edp")
         runner.import_variables(Th=Th)
         x = runner.execute()['phi[]']
-    
         return x
 
     def J(self, x):
-        runner = FreeFemRunner(path+"ComplianceCantileverValue.edp")
-        runner.import_variables(Th=Th,phiVal=x,labelDir=labelDir,labelNeu=labelNeu,AchiVal=self.volFrac)
+        runner = FreeFemRunner(path+"ComplianceMBBValue.edp")
+        runner.import_variables(Th=Th,phiVal=x,labelDir1=labelDir1,labelDir2=labelDir2,labelNeu=labelNeu,AchiVal=self.volFrac)
         exports = runner.execute()
         self.ux = exports['ux[]']
         self.uy = exports['uy[]']
         return exports['J']
 
     def dJ(self, x):
-        runner = FreeFemRunner(path+"ComplianceCantileverGradient.edp")
+        runner = FreeFemRunner(path+"ComplianceGradient.edp")
         runner.import_variables(Th=Th,beta=beta,uxVal=self.ux,uyVal=self.uy,phiVal=x)
         return runner.execute()['g[]']
     
@@ -74,13 +75,14 @@ class TO_problem(EuclideanOptimizable):
         return runner.execute()['g[]']
     
     def H(self, x):
-        runner = FreeFemRunner(path+"PerimeterConstraintValue.edp")
-        runner.import_variables(Th=Th,phiVal=x)
+        runner = FreeFemRunner(path+"MaxThickConstraintValue.edp")
+        runner.import_variables(Th=Th,phiVal=x,AchiVal=self.volFrac,dmax=dmax,meshsiz=hmin)
         return [runner.execute()['H']]
     
     def dH(self,x):
-        runner = FreeFemRunner(path+"PerimeterConstraintGradient.edp")
-        runner.import_variables(Th=Th,phiVal=x,kappa=self.kappa,beta=beta)
+        runner = FreeFemRunner(path+"MaxThickConstraintGradient.edp")
+        runner.import_variables(Th=Th,phiVal=x,AchiVal=self.volFrac,dmax=dmax,meshsiz=hmin,
+                                alpha=alpha,beta=beta)
         return runner.execute()['g[]']
 
     def accept(self, params, results):
@@ -107,7 +109,7 @@ params = {"dt": dTime*hmin*elRadius,
           "save_only_Q_constraints": 5,
           "alphaJ": 1,
           "alphaC": 1,
-          "maxit": 250,
+          "maxit": 120,
           "maxtrials": 10,
           "CFL": 0.9}
 problem:Optimizable = TO_problem()
@@ -333,11 +335,11 @@ while normdx > params['tol'] and it <= params['maxit']:
     
             runner = FreeFemRunner(path+"HJUpdateIt.edp")
             runner.import_variables(Th=Th,gVal = g,phiVal=xj,nxVal=problem._problem.nx,
-                                    nyVal=problem._problem.ny,dTime=(maxItj*(1.2**k)*dTime),isLs=1)
+                                    nyVal=problem._problem.ny,dTime=(maxItj*(2**k)*dTime),isLs=1)
             newx = runner.execute()['phi[]']
 
             runner.import_variables(Th=Th,gVal = g,phiVal=dJ,nxVal=problem._problem.nx,
-                                    nyVal=problem._problem.ny,dTime=(maxItj*(1.2**k)*dTime),isLs=0)
+                                    nyVal=problem._problem.ny,dTime=(maxItj*(2**k)*dTime),isLs=0)
             dJ = runner.execute()['phi[]']
 
             runner = FreeFemRunner(path+"VolFracComputer.edp") 
@@ -369,10 +371,6 @@ while normdx > params['tol'] and it <= params['maxit']:
 
         (newJ, newG, newH) = (problem.J(newx), problem.G(newx), problem.H(newx))
         newC = np.concatenate((newG, newH))
-            
-        # Finite difference check
-        mOld = J + muls[0]*GOld[0] + muls[1]*HOld[0]
-        mNew = newJ + muls[0]*newG[0] + muls[1]*newH[0]
 
         finite_diffJ = np.abs(
             newJ - J - dJ.dot((0.5**k)*dx))/(0.5**k*normdx+1e-10)
@@ -381,7 +379,7 @@ while normdx > params['tol'] and it <= params['maxit']:
         if max(finite_diffJ, finite_diffC) > params['tol_finite_diff']:
             io.display("Warning, inaccurate finite differences, time step might be too large. "
                     f"finite_diffJ={finite_diffJ}, finite_diffC={finite_diffC}", 1, params['debug'], color="dark_orange_3a")
-        if mNew > mOld + 1e-3:
+        if newJ > J and np.linalg.norm(newC[tilde],2) >= np.linalg.norm(C[tilde],2):
             io.display(f"Warning, newJ={newJ} > J={J} and normNewC={np.linalg.norm(newC[tilde],2)} > normC= {np.linalg.norm(C[tilde],2)} "
                     + f"-> Trial {k+1}", 0, params['debug'], color="red")
             problem._problem.nx = nxOld
@@ -425,7 +423,7 @@ results = abstract_results.implementation()
 iter = results['it']
 cost  = results['J']
 Vol = results['G']
-Per  = results['H']
+Thick  = results['H']
 
 fig, axes = plt.subplots(1, 3, figsize=(10, 4))
 
@@ -439,14 +437,17 @@ axes[1].set_xlabel('Iter')
 axes[1].set_ylabel('Volume constraint')
 axes[1].grid(True, linestyle='--', alpha=0.6)
 
-axes[2].plot(iter, Per, color='b')
+axes[2].plot(iter, Thick, color='b')
 axes[2].set_xlabel('Iter')
-axes[2].set_ylabel('Perimeter constraint')
+axes[2].set_ylabel('Max Thick constraint')
 axes[2].grid(True, linestyle='--', alpha=0.6)
 
 runner = FreeFemRunner(path+"PrintResult.edp")
 runner.import_variables(Th=Th,phiVal=x,ux=problem._problem.ux,uy=problem._problem.uy)
 runner.execute()
+
+np.savez(path+"MainIterPlotting",
+            xF=x,it=iter,c=cost,v=Vol,thick=Thick)
 
 plt.tight_layout()
 plt.show()
