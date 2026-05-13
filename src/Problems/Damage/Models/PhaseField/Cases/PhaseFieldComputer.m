@@ -27,21 +27,29 @@ classdef PhaseFieldComputer < handle
             phi = obj.initialGuess.phi;
             theta = obj.initialGuess.theta;
             cost = 0; tauArray = [];
-
-            step = 1;
-            bc.phi   = obj.boundaryConditions.phi.nextStep(); %Only done once to set initial damage field
+            
+            step = 0; iterMax.stag = 0;
+            bc.phi   = obj.boundaryConditions.phi.updateStep(1); %Only done once to set initial damage field
             bcUfinal = obj.boundaryConditions.u.endVal;
             bcU      = obj.boundaryConditions.u.initVal;
             while(bcU <= bcUfinal) && (obj.stop.noFailure)
-                [u,bc,isRecomputing] = obj.updateBoundaryConditions(u,bc,iterMax.stag);
-                obj.monitor.printStep(bc,isRecomputing)
-                [u,theta,phi,F,cost,iterMax] = obj.optimizer.compute(u,theta,phi,bc,cost); % This should return if maxStag jas been reached
-                [Evec,totE,totF,uBC,angleVec,phiRel] = obj.postprocess(step,u,phi,theta,F,bc);
+                notConverged = true; 
+                maxIterReached = false; 
+                convergenceTry = 1;
+                while notConverged && (convergenceTry < 20)
+                    [step,u,bc] = obj.updateBoundaryConditions(u,bc,step,iterMax.stag,maxIterReached);
+                    bcU = obj.boundaryConditions.u.currentVal;
+                    obj.monitor.printStep(bcU,bcUfinal,step,maxIterReached)
+    
+                    [u,theta,phi,F,cost,iterMax,maxIterReached] = obj.optimizer.compute(u,theta,phi,bc,cost);
+                    convergenceTry = convergenceTry + 1;
+
+                    if maxIterReached == true; notConverged = true;
+                    else; notConverged = false; end
+                end
+                [Evec,totE,totF,uBC,angleVec,phiRel] = obj.postprocess(u,phi,theta,F,bc);
                 obj.printAndSave(step,totF,uBC,u,theta,angleVec,phi,phiRel,Evec,totE,iterMax,cost,tauArray);
                 obj.checkStopCondition(step,totF);
-
-                bcU = obj.boundaryConditions.u.currentVal;
-                step = step + 1;
 
                 % sig = obj.functional.computeStress(u,phi);
                 % max(sig.evaluate([0;0]),[],'all')
@@ -99,8 +107,8 @@ classdef PhaseFieldComputer < handle
             obj.stop.stepTrigger = maxSteps;
         end
 
-        function [u,bc] = updateBoundaryConditions(obj,u,bc)
-            bc.u = obj.boundaryConditions.u.nextStep();
+        function [step,u,bc] = updateBoundaryConditions(obj,u,bc,step,iterStag,maxIterReached)
+            [bc.u,step] = obj.boundaryConditions.u.updateStep(step,iterStag,maxIterReached);
             u.setFValues(obj.updateInitialDisplacement(u,bc));
         end
 
@@ -118,7 +126,7 @@ classdef PhaseFieldComputer < handle
             end
         end
 
-        function [E,totE,totF,uBC,angleVec,phiRel] = postprocess(obj,step,u,phi,theta,F,bc)
+        function [E,totE,totF,uBC,angleVec,phiRel] = postprocess(obj,u,phi,theta,F,bc)
             fExt = bc.u.tractionFun;
             if ~isempty(bc.u.tractionFun)
                 vals = bc.u.tractionFun.computeRHS([]);
@@ -127,12 +135,12 @@ classdef PhaseFieldComputer < handle
             end
             E    = obj.functional.computeEnergies(u,phi,fExt);
             totE = sum(E);
-            [totF,uBC] = obj.computeTotalReaction(step,F,u);
+            [totF,uBC] = obj.computeTotalReaction(F,u);
             angleVec = obj.computeOrientationAsVector(theta,phi);
             phiRel   = obj.computeRelativeDamage(phi);
         end
 
-        function [totReact,uBC] = computeTotalReaction(obj,step,F,u)
+        function [totReact,uBC] = computeTotalReaction(obj,F,u)
             DownSide = min(obj.mesh.coord(:,2));
             LeftSide = min(obj.mesh.coord(:,1));
             isInDown = abs(obj.mesh.coord(:,2)-DownSide)< 1e-12;
@@ -141,32 +149,32 @@ classdef PhaseFieldComputer < handle
 
             if ismember(obj.boundaryConditions.u.type, ["ForceTractionY", "ForceTractionYClamped"])
                 uBC = norm(mean(u.fValues(nodes(isInUp),2)));
-                totReact = obj.boundaryConditions.u.bcValues(step);
+                totReact = obj.boundaryConditions.u.currentVal;
             elseif ismember(obj.boundaryConditions.u.type, ["DisplacementTractionY","DisplacementTractionYClamped"]) 
                 dofsYdown = (nodes(isInDown)-1)*u.ndimf + 2;
                 totReact = abs(sum(F(dofsYdown)));
-                uBC = obj.boundaryConditions.u.bcValues(step);
+                uBC = obj.boundaryConditions.u.currentVal;
             end
 
             if ismember(obj.boundaryConditions.u.type, ["ForceTractionX","ForceTractionXClamped"])
                 uBC = norm(mean(u.fValues(nodes(isInLeft),2)));
-                totReact = obj.boundaryConditions.u.bcValues(step);
+                totReact = obj.boundaryConditions.u.currentVal;
             elseif ismember(obj.boundaryConditions.u.type, ["DisplacementTractionX","DisplacementTractionXClamped"])
                 dofsXleft = (nodes(isInLeft)-1)*u.ndimf + 1;
                 totReact = abs(sum(F(dofsXleft)));
-                uBC = obj.boundaryConditions.u.bcValues(step);
+                uBC = obj.boundaryConditions.u.currentVal;
             end
 
             if ismember(obj.boundaryConditions.u.type, "DisplacementShear")
                 dofsXdown = (nodes(isInDown)-1)*u.ndimf + 1;
                 totReact = abs(sum(F(dofsXdown)));
-                uBC = obj.boundaryConditions.u.bcValues(step);
+                uBC = obj.boundaryConditions.u.currentVal;
             end
 
             if ismember(obj.boundaryConditions.u.type, "DisplacementPureShear")
                 dofsCorner = (nodes(isInDown & isInLeft)-1)*u.ndimf + [1,2];
                 totReact = norm(F(dofsCorner));
-                uBC = obj.boundaryConditions.u.bcValues(step);
+                uBC = obj.boundaryConditions.u.currentVal;
             end
         end
 
@@ -210,8 +218,8 @@ classdef PhaseFieldComputer < handle
                 obj.stop.stepTrigger = step;
                 obj.stop.triggered = true;
             end
-
-            if step==obj.stop.stepTrigger+10
+            
+            if  (obj.stop.stepTrigger~=0) && (step==obj.stop.stepTrigger+10)
                 obj.stop.noFailure = false;
             end
         end

@@ -96,7 +96,7 @@ classdef TestingPhaseField < handle
         end
 
         function phi = setInitialDamage(obj,phi)
-            bc = obj.boundaryConditions.phi.nextStep();
+            bc = obj.boundaryConditions.phi.updateStep(1);
             restrictedDofs = bc.dirichlet_dofs;
             if ~isempty(restrictedDofs)
                 phiVal = phi.fValues;

@@ -39,9 +39,14 @@ classdef PhaseFieldMonitoring < handle
             end
         end
 
-        function printStep(obj,step,maxSteps)
+        function printStep(obj,bcU,bcUfinal,step,maxIterReached)
             if obj.print == true
-                fprintf('\n ********* STEP %i/%i *********  \n',step,maxSteps)
+                if maxIterReached
+                    fprintf('\n ********* RECOMPUTING STEP %i (u=%.2e)/(uMax=%.2e) *********  \n',step,bcU,bcUfinal)
+                else
+                    fprintf('\n ********* STEP %i (u=%.2e)/(uMax=%.2e) *********  \n',step,bcU,bcUfinal)
+                end
+                
             end
 
         end

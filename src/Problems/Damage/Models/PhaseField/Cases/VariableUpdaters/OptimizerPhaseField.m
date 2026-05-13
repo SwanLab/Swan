@@ -22,7 +22,7 @@ classdef OptimizerPhaseField < handle
             obj.init(cParams);
         end
 
-        function [u,thetaFun,phi,F,costArray,iter] = compute(obj,u,theta,phi,bc,costArray)
+        function [u,theta,phi,F,costArray,iter,maxIterReached] = compute(obj,u,theta,phi,bc,costArray)
             iter.u = 1; iter.phi = 1; iter.stag = 1;
             i = 0; err = 1; costOld = costArray(end);
             
@@ -46,10 +46,12 @@ classdef OptimizerPhaseField < handle
                 obj.monitor.update(length(costArray),{[],[],[],[],[],[cost],[],[]});
                 obj.monitor.refresh();
             end
+            
+            if i == obj.maxIter; maxIterReached = true;
+            else; maxIterReached = false; end
             iter.stag = i;
             obj.damageUpdater.updateBounds(1,phi.fun);
             obj.angleUpdater.updatePhiOld(phi.fun);
-            thetaFun = theta.project('P1'); % Check this out
         end
 
     end

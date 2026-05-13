@@ -22,7 +22,7 @@ classdef PhaseFieldPlotter < handle
             obj.plotEnergies()
             obj.plotIterations()
             obj.plotCost()
-            obj.plotOrientation()
+            %obj.plotOrientation()
         end
         
     end
@@ -146,13 +146,13 @@ classdef PhaseFieldPlotter < handle
             hold off
         end
 
-        function plotOrientation(obj)
-            figure()
-            orientationVector = [cos(obj.orientation.fValues), sin(obj.orientation.fValues)];
-            obj.orientation.setFValues(obj.damageField.fun.fValues.*orientationVector)
-            obj.orientation.plotVector(1)
-            title('Orientation field')
-        end
+        % function plotOrientation(obj)
+        %     figure()
+        %     orientationVector = [cos(obj.orientation.fValues), sin(obj.orientation.fValues)];
+        %     obj.orientation.setFValues(obj.damageField.fun.fValues.*orientationVector)
+        %     obj.orientation.plotVector(1)
+        %     title('Orientation field')
+        % end
     end
     
 end

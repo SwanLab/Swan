@@ -21,7 +21,6 @@ classdef BoundaryConditionsCreator < handle
         increment
 
         bcValues
-        step
     end
 
     methods (Access = public)
@@ -31,34 +30,37 @@ classdef BoundaryConditionsCreator < handle
             obj.defineBoundaryConditions();
         end
 
-        function [bC,isRecomputing] = nextStep(obj,varargin)
+        function [bC,step] = updateStep(obj,step,varargin)
             if obj.isAdaptive
-                limitStagReached = varargin{1};
-                if limitStagReached
-                    isRecomputing  = true;
-                    newIncrement = max(obj.increment / 2, obj.minIncrement);
-                    obj.currentVal = obj.currentVal - obj.increment + newIncrement;
-                    obj.increment = newIncrement;
+                iter = varargin{1};
+                limitIterReached = varargin{2};
+                if isempty(obj.currentVal)
+                    obj.currentVal = obj.initVal;
+                    step = step + 1;
                 else
-                    isRecomputing = false;
-                    if iterStag <= 2
-                        obj.increment = min(obj.increment*2,obj.maxIncrement);
+                    if limitIterReached
+                        newIncrement = max(obj.increment/10, obj.minIncrement);
+                        obj.currentVal = obj.currentVal - obj.increment + newIncrement;
+                        obj.increment = newIncrement;
                     else
-                        obj.increment = max(obj.increment/2,obj.minIncrement);
+                        if iter <= 2
+                            obj.increment = min(obj.increment*2,obj.maxIncrement);
+                        else
+                            obj.increment = max(obj.increment/10,obj.minIncrement);
+                        end
+                        obj.currentVal = obj.currentVal + obj.increment;
+                        step = step + 1;
                     end
-                    obj.currentVal = obj.currentVal + obj.increment;
                 end
                 obj.createBoundaryConditions(obj.currentVal)
                 bC = obj.boundaryConditions;
             else
-                isRecomputing = false;
-                newStep = obj.step + 1;
-                if newStep > length(obj.bcValues)
+                step = step + 1;
+                if step > length(obj.bcValues)
+                    step = step - 1;
                     disp('Maximum step reached. Previous BC are being used!!!')
-                else
-                    obj.step = newStep;
                 end
-                obj.currentVal = obj.bcValues(obj.step);
+                obj.currentVal = obj.bcValues(step);
                 obj.createBoundaryConditions(obj.currentVal)
                 bC = obj.boundaryConditions;
             end
@@ -85,7 +87,6 @@ classdef BoundaryConditionsCreator < handle
                     obj.bcValues = 1; % Value not used, is to do not have an empty array.
                 end
             end
-            obj.step     = 0;
         end
 
         function defineBoundaryConditions(obj)

@@ -11,7 +11,7 @@ s.tolerance.phi = 1e-6;
 s.tolerance.stag = 1e-6;
 s.maxIter.u = 100;
 s.maxIter.phi = 300;
-s.maxIter.stag = 300;
+s.maxIter.stag = 5;
 
 s.benchmark.mesh.type   = 'SENtraction';
 s.benchmark.bc.phi.type = 'DamageFree';
