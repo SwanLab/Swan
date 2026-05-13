@@ -14,9 +14,15 @@ s.maxIter.phi = 300;
 s.maxIter.stag = 300;
 
 s.benchmark.mesh.type   = 'SENtraction';
-s.benchmark.bc.u.type   = 'DisplacementTractionYClamped';
-s.benchmark.bc.u.values =  [0:1e-3:0.005,0.005:1e-6:0.0065];
 s.benchmark.bc.phi.type = 'DamageFree';
+s.benchmark.bc.phi.isAdaptive = false;
+s.benchmark.bc.u.type   = 'DisplacementTractionYClamped';
+% s.benchmark.bc.u.adaptive = false;
+% s.benchmark.bc.u.values =  [0:1e-3:0.005,0.005:1e-6:0.0065];
+s.benchmark.bc.u.isAdaptive = true;
+s.benchmark.bc.u.initialValue = 0;
+s.benchmark.bc.u.finalValue = 0.0065;
+
 
 s.matInfo.matType = 'Analytic'; %'Analytic','Homogenized'
 s.matInfo.degradationType = 'PhaseField'; %'PhaseField','SIMPALL'
@@ -39,11 +45,12 @@ s.solver.tau  = 150;
 
 
 %% RUN
-% tester = TestingPhaseField(s);
-% outputData = tester.compute();
-% outputData.inputParameters = s;
-% save("SENtractionNewMeshAT1.mat",'outputData')
-% 
+tester = TestingPhaseField(s);
+outputData = tester.compute();
+outputData.inputParameters = s;
+save("SENtractionNewMeshAT1.mat",'outputData')
+PhaseFieldPlotter(outputData)
+
 % s.matInfo.degradationSubType = 'General';
 % s.matInfo.sigmaMax = 2.44542;
 % s.matInfo.params.coeffs = [(4/pi)*(s.matInfo.Gc*s.matInfo.young)/(s.matInfo.sigmaMax^2 * s.l0), -0.5]; 
@@ -53,14 +60,14 @@ s.solver.tau  = 150;
 % outputData.inputParameters = s;
 % save("SENtractionNewMeshRational24.mat",'outputData')
 
-s.matInfo.degradationSubType = 'General'; 
-s.matInfo.sigmaMax = 5;
-s.matInfo.params.coeffs = [(4/pi)*(s.matInfo.Gc*s.matInfo.young)/(s.matInfo.sigmaMax^2 * s.l0), -0.5]; 
-s.dissipInfo.constant = pi;
-tester = TestingPhaseField(s);
-outputData = tester.compute();
-outputData.inputParameters = s;
-save("SENtractionNewMeshRational5.mat",'outputData')
+% s.matInfo.degradationSubType = 'General'; 
+% s.matInfo.sigmaMax = 5;
+% s.matInfo.params.coeffs = [(4/pi)*(s.matInfo.Gc*s.matInfo.young)/(s.matInfo.sigmaMax^2 * s.l0), -0.5]; 
+% s.dissipInfo.constant = pi;
+% tester = TestingPhaseField(s);
+% outputData = tester.compute();
+% outputData.inputParameters = s;
+% save("SENtractionNewMeshRational5.mat",'outputData')
 
 % s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'
 % s.matInfo.fileName = 'HexagonBenchmark03';

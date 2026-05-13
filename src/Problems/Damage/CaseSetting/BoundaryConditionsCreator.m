@@ -1,4 +1,9 @@
 classdef BoundaryConditionsCreator < handle
+    
+    properties (Access = public, Constant)
+        minIncrement = 1e-6;
+        maxIncrement = 1e-1;
+    end
 
     properties (Access = private)
         createBoundaryConditions
@@ -6,8 +11,15 @@ classdef BoundaryConditionsCreator < handle
     end
 
     properties (SetAccess = private, GetAccess = public)
-        type
         mesh
+        type
+        isAdaptive
+        currentVal
+
+        initVal
+        endVal
+        increment
+
         bcValues
         step
     end
@@ -19,16 +31,37 @@ classdef BoundaryConditionsCreator < handle
             obj.defineBoundaryConditions();
         end
 
-        function bC = nextStep(obj)
-            newStep = obj.step + 1;
-            if newStep > length(obj.bcValues)
-                disp('Maximum step reached. Previous BC are being used!!!')
+        function [bC,isRecomputing] = nextStep(obj,varargin)
+            if obj.isAdaptive
+                limitStagReached = varargin{1};
+                if limitStagReached
+                    isRecomputing  = true;
+                    newIncrement = max(obj.increment / 2, obj.minIncrement);
+                    obj.currentVal = obj.currentVal - obj.increment + newIncrement;
+                    obj.increment = newIncrement;
+                else
+                    isRecomputing = false;
+                    if iterStag <= 2
+                        obj.increment = min(obj.increment*2,obj.maxIncrement);
+                    else
+                        obj.increment = max(obj.increment/2,obj.minIncrement);
+                    end
+                    obj.currentVal = obj.currentVal + obj.increment;
+                end
+                obj.createBoundaryConditions(obj.currentVal)
+                bC = obj.boundaryConditions;
             else
-                obj.step = newStep;
+                isRecomputing = false;
+                newStep = obj.step + 1;
+                if newStep > length(obj.bcValues)
+                    disp('Maximum step reached. Previous BC are being used!!!')
+                else
+                    obj.step = newStep;
+                end
+                obj.currentVal = obj.bcValues(obj.step);
+                obj.createBoundaryConditions(obj.currentVal)
+                bC = obj.boundaryConditions;
             end
-            prescribedVal = obj.bcValues(obj.step);
-            obj.createBoundaryConditions(prescribedVal)
-            bC = obj.boundaryConditions;
         end
 
     end
@@ -36,12 +69,21 @@ classdef BoundaryConditionsCreator < handle
     methods (Access = private)
 
         function init(obj,mesh,cParams)
-            obj.mesh     = mesh;
-            obj.type     = cParams.type;
-            if isfield(cParams,'values')
-                obj.bcValues = cParams.values;
+            obj.mesh       = mesh;
+            obj.type       = cParams.type;
+            obj.isAdaptive = cParams.isAdaptive;
+            if  obj.isAdaptive
+                obj.increment = 1e-5;
+                obj.initVal   = cParams.initialValue;
+                obj.endVal    = cParams.finalValue;
             else
-                obj.bcValues = 1; % Value not used, is to do not have an empty array.
+                if isfield(cParams,'values')
+                    obj.bcValues = cParams.values;
+                    obj.initVal  = cParams.values(1);
+                    obj.endVal   = cParams.values(end);
+                else
+                    obj.bcValues = 1; % Value not used, is to do not have an empty array.
+                end
             end
             obj.step     = 0;
         end

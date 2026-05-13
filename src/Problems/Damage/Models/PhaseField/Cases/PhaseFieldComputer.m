@@ -29,15 +29,18 @@ classdef PhaseFieldComputer < handle
             cost = 0; tauArray = [];
 
             step = 1;
-            maxSteps = length(obj.boundaryConditions.u.bcValues);
-            bc.phi = obj.boundaryConditions.phi.nextStep();
-            while(step<=maxSteps) && (obj.stop.noFailure)
-                obj.monitor.printStep(step,maxSteps)
-                [u,bc] = obj.updateBoundaryConditions(u,bc);
-                [u,theta,phi,F,cost,iterMax] = obj.optimizer.compute(u,theta,phi,bc,cost);
+            bc.phi   = obj.boundaryConditions.phi.nextStep(); %Only done once to set initial damage field
+            bcUfinal = obj.boundaryConditions.u.endVal;
+            bcU      = obj.boundaryConditions.u.initVal;
+            while(bcU <= bcUfinal) && (obj.stop.noFailure)
+                [u,bc,isRecomputing] = obj.updateBoundaryConditions(u,bc,iterMax.stag);
+                obj.monitor.printStep(bc,isRecomputing)
+                [u,theta,phi,F,cost,iterMax] = obj.optimizer.compute(u,theta,phi,bc,cost); % This should return if maxStag jas been reached
                 [Evec,totE,totF,uBC,angleVec,phiRel] = obj.postprocess(step,u,phi,theta,F,bc);
                 obj.printAndSave(step,totF,uBC,u,theta,angleVec,phi,phiRel,Evec,totE,iterMax,cost,tauArray);
                 obj.checkStopCondition(step,totF);
+
+                bcU = obj.boundaryConditions.u.currentVal;
                 step = step + 1;
 
                 % sig = obj.functional.computeStress(u,phi);
