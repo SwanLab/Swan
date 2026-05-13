@@ -70,7 +70,10 @@ classdef PhaseFieldComputer < handle
             s.shallDisplay = cParams.monitoring.set;
             s.shallPrint   = cParams.monitoring.print;
             s.type         = cParams.monitoring.type;
-            s.funs         = [{obj.initialGuess.phi.fun},{project(obj.initialGuess.theta,'P1')}];
+
+            thetaPseudoFun.getDofCoord = obj.mesh.computeBaricenter';
+            thetaPseudoFun.mesh.nnodes = size(thetaPseudoFun.getDofCoord,1);
+            s.funs         = [{obj.initialGuess.phi.fun},{thetaPseudoFun}];
             s.legends      = [{["PhiMax","PhiRel"]}];
             obj.monitor = PhaseFieldMonitoring(s);
         end
@@ -164,11 +167,11 @@ classdef PhaseFieldComputer < handle
             end
         end
 
-        function thetaVector = computeOrientationAsVector(~,theta,phi)
-            thetaP1 = project(theta,'P1');
-            thetaVals = [cos(thetaP1.fValues), sin(thetaP1.fValues)];
-            thetaVector = phi.fun.fValues.*thetaVals;
-
+        function thetaVectorScaled = computeOrientationAsVector(~,theta,phi)
+            thetaVal = squeeze(theta.evaluate([1/3;1/3])); % Computed at baricenter!
+            phiVal = squeeze(phi.fun.evaluate([1/3;1/3]));
+            thetaVector = [cos(thetaVal), sin(thetaVal)];
+            thetaVectorScaled = phiVal.*thetaVector;
         end
 
         function phiRel = computeRelativeDamage(~,phi)

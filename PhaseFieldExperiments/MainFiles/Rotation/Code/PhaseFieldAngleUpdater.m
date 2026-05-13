@@ -43,8 +43,7 @@ classdef PhaseFieldAngleUpdater < handle
             ex = eps(1,1,:,:);
             ey = eps(2,2,:,:);
             exy = eps(1,2,:,:);
-            theta = atan2(exy,(ex-ey))./2 + pi/2;
-            %(ex>ey)*pi/2 this sould be the principal directions
+            theta = atan2(2* exy,(ex-ey))./2 + pi/2;
         end
 
     end

@@ -17,7 +17,7 @@ classdef DisplayQuiver < DisplayAbstract
     methods (Access = protected)
         
         function setChartType(obj)
-            nnodes = obj.fun.nDofs/obj.fun.ndimf;
+            nnodes = obj.fun.mesh.nnodes;
             obj.FieldData = zeros(nnodes,2);
             a = obj.createQuiver(obj.FieldData);
             obj.handle = a;
