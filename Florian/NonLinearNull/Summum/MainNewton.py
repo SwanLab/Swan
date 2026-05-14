@@ -99,14 +99,14 @@ class TO_problem(EuclideanOptimizable):
 
 ## OPTIMIZATION PARAMETERS
 dTime = 0.001
-elRadius = 1
+elRadius = 3
 No = 250
 params = {"dt": dTime*hmin*elRadius,
           "itnormalisation": No,
           "save_only_N_iterations": 1,
           "save_only_Q_constraints": 5,
-          "alphaJ": 1,
-          "alphaC": 1,
+          "alphaJ": 5,
+          "alphaC": 0.2,
           "maxit": 60,
           "maxtrials": 10,
           "CFL": 0.9}
@@ -315,14 +315,19 @@ while normdx > params['tol'] and it <= params['maxit']:
     #if dC[tildeEps,:][p:,:].size > 0:
     #    print(np.min(dC[tildeEps,:][p:,:]@xiJ))
 
+    runner = FreeFemRunner(path+"QuasiNewtonCantilever.edp")
+    runner.import_variables(Th=Th,g1st=g,phiVal=x,alpha=alpha,beta=beta,
+                            aJ=AJ,aC=AC,lam1=muls[0]+(AC/AJ)*muls2[0],lam2=muls[1]+(AC/AJ)*muls2[1])
+    gNew = runner.execute()['g[]']
+
     success = 0
     tilde = get_tilde(C, p)
     nx0 = problem._problem.nx
     ny0 = problem._problem.ny
     for k in range(params['maxtrials']):
         runner = FreeFemRunner(path+"HJUpdate.edp")
-        runner.import_variables(Th=Th,gVal = g,phiVal=x,nxVal=nx0,
-                            nyVal=ny0,dTime=((2**k)*dTime))
+        runner.import_variables(Th=Th,gVal = gNew,phiVal=x,nxVal=nx0,nyVal=ny0,
+                            dTime=((2**k)*dTime))
         newx = runner.execute()['phi[]']
 
         dx = (newx-x)
@@ -421,7 +426,7 @@ runner = FreeFemRunner(path+"PrintResult.edp")
 runner.import_variables(Th=Th,phiVal=x,ux=problem._problem.ux,uy=problem._problem.uy)
 runner.execute()
 
-np.savez(path+"MainOrigPlotting",
+np.savez(path+"MainNewtonPlotting",
             xF=x,it=iter,c=cost,v=Vol,per=Per)
 
 plt.tight_layout()

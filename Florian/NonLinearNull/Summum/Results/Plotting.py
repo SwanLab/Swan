@@ -25,23 +25,23 @@ from pymedit import P1Function
 
 path = "NonLinearNull/Summum/"
 
-exports = FreeFemRunner(path+"MeshMBB.edp").execute()
+exports = FreeFemRunner(path+"MeshCantilever.edp").execute()
 Th = exports['Th']
 
 ## POSTPROCESS
-data  = np.load(path+"Results/MBBTOrigPlottingQuick.npz",allow_pickle=True)
+data  = np.load(path+"Results/CantileverOrigPlotting.npz",allow_pickle=True)
 iterT = data['it']
 CompT = data['c']
 VT  = data['v']
-thick = data['thick']
+per = data['per']
 
-data  = np.load(path+"Results/MBBT5PlottingQuick.npz",allow_pickle=True)
+data  = np.load(path+"Results/CantileverNewtonPlotting.npz",allow_pickle=True)
 iterT5 = data['it']
 CompT5 = data['c']
 VT5  = data['v']
-thick5 = data['thick']
+per5 = data['per']
 
-data = np.load(path+"Results/MBBT5PlottingQuick.npz")
+data = np.load(path+"Results/CantileverOrigPlotting.npz")
 fig0, ax0 = plt.subplots()
 x = data["xF"]
 u = P1Function(Th,x<=0)
@@ -64,11 +64,11 @@ axes[1].set_xlabel('Iter')
 axes[1].set_ylabel('Volume constraint')
 axes[1].grid(True, linestyle='--', alpha=0.6)
 
-axes[2].plot(iterT, thick, color='b', label='1 geo it')
-axes[2].plot(iterT5, thick5, color='r', label='5 geo it')
+axes[2].plot(iterT, per, color='b', label='1 geo it')
+axes[2].plot(iterT5, per5, color='r', label='5 geo it')
 axes[2].legend()
 axes[2].set_xlabel('Iter')
-axes[2].set_ylabel('Max. Thick. constraint')
+axes[2].set_ylabel('Perimeter constraint')
 axes[2].grid(True, linestyle='--', alpha=0.6)
 
 plt.tight_layout()

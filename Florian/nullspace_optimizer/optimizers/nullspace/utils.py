@@ -121,7 +121,7 @@ def get_xiJ_xiC(J, G, H, dJ, dG, dH, A=None, h=0.,
         io.display("Computed null space direction in "+toc(),level=3)
         tic()
         if method_xiC == "linear_system":
-            xiC = get_xiC_direct(dC, dCT, C, p, q, alphas, muls, tildeEps)
+            xiC, muls2 = get_xiC_direct(dC, dCT, C, p, q, alphas, muls, tildeEps)
         elif method_xiC == "qp":
             xiC = get_xiC_sparse(A, C, dJ, dC, n, p, q, alphas, muls, tildeEps, method=method_xiC, qp_solver=qp_solver,
                                  qp_solver_options=qp_solver_options)
@@ -139,7 +139,7 @@ def get_xiJ_xiC(J, G, H, dJ, dG, dH, A=None, h=0.,
                              qp_solver_options=qp_solver_options)
         io.display("Computed range space direction in "+toc(),level=3)
         
-    return xiJ, xiC, eps, tildeEps, muls
+    return xiJ, xiC, eps, tildeEps, muls, muls2
     
 def get_gradient_transpose(A, dJ, dC, tildeEps):    
     # Compute the gradients explicitly / do this for moderate size constraints
@@ -243,7 +243,9 @@ def get_xiC_direct(dC, dCT, C, p, q, alphas, muls, tildeEps):
                 + "Using scipy lstsq.", 1, color="red")
         lamb, _, _, _ = splinalg.lstsq(dCdCT, alphas[indicesEps]*C[indicesEps])
     xiC = dCT[:, indicesEps].dot(lamb)
-    return xiC
+    muls2 = np.zeros(p+q)
+    muls2[indicesEps] = lamb
+    return xiC,muls2
 
 def get_xiJ_sparse(A,dJ,dC,n,p,q,qp_solver,qp_solver_options,qtildeEps,tildeEps):
     solve = factorized(A)

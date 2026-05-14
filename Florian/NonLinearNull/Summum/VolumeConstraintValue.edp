@@ -7,6 +7,6 @@ fespace Vh0(Th,P0);
 Vh0 Achi;
 Achi[] = AchiVal;
 
-real C = (int2d(Th)(Achi) - 2.4);
+real C = (int2d(Th)(Achi) - 1.0);
 
 exportVar(C);

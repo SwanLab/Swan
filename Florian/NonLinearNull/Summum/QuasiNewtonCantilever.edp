@@ -1,0 +1,83 @@
+IMPORT "io.edp"
+load "mmg"
+
+mesh Th = importMesh("Th");
+real [int] g1st = importArray("g1st");
+real [int] phiVal = importArray("phiVal");
+real alpha = importVar("alpha");
+real beta = importVar("beta");
+real aJ = importVar("aJ");
+real aC = importVar("aC");
+real lam1 = importVar("lam1");
+real lam2 = importVar("lam2");
+
+fespace Vh(Th,P1);
+Vh phi, g1, g;
+g1[] = g1st;
+phi[] = phiVal;
+
+real rInner = 3;
+real rOuter = 2;
+
+mesh Th2, Th3;
+meshL ThLInt;
+int [int] lsLabel(1);
+lsLabel[0] = 10;
+
+macro updateBoundary() {
+  Th2 = mmg2d(Th, iso = 1, ls = 0.0, metric = phi[], hmax = 0.05);
+  Th3 = trunc(Th2, region == rInner);
+  ThLInt = extract(Th3,label = lsLabel);
+} //
+
+updateBoundary;
+
+fespace Vh1D(ThLInt,P1);
+Vh1D nx, ny, g0, v0, gx0 = dx(phi), gy0 = dy(phi), kappa;
+
+problem projNx(nx,v0) = int1d(ThLInt)((alpha^2.0)*(dx(nx)*dx(v0)+dy(nx)*dy(v0)) + nx*v0) 
+                        - int1d(ThLInt)(Tl.y*v0);
+
+problem projNy(ny,v0) = int1d(ThLInt)((alpha^2.0)*(dx(ny)*dx(v0)+dy(ny)*dy(v0)) + ny*v0) 
+                          - int1d(ThLInt)(-Tl.x*v0);
+
+projNx;
+projNy;
+nx = nx/sqrt(nx^2+ny^2+1e-6);
+ny = ny/sqrt(nx^2+ny^2+1e-6);
+
+Vh1D sgn = nx*gx0 + ny*gy0;
+
+for (int i = 0; i < Vh1D.ndof; ++i) {
+    if (sgn[][i] < 0) {
+        nx[][i] = -nx[][i];
+        ny[][i] = -ny[][i];
+    }
+}
+
+fespace Vh2(Th2,P1);
+Vh2 g2, v2;
+
+macro tanGrad(f,nx,ny) [-ny*dx(f) + nx*dy(f)] //
+
+problem kappaProblem(kappa,v0) = int1d(ThLInt)((alpha^2.0)*(tanGrad(kappa,nx,ny)*tanGrad(v0,nx,ny)) + kappa*v0) 
+                        - int1d(ThLInt)(( dx(nx)+dy(ny))*v0);
+
+kappaProblem;
+
+problem newton(g0,v0) = int1d(ThLInt)((aJ*lam1/aC)*g0*v0*kappa +
+                          (aJ*lam2/aC)*tanGrad(g0,nx,ny)*tanGrad(v0,nx,ny) + g0*v0)
+                          - int1d(ThLInt)(g1*v0);
+
+
+newton;
+
+problem velext(g2,v2,tgv=-1) = int2d(Th2,rInner)((beta^2.0)*(dx(g2)*dx(v2)+dy(g2)*dy(v2)) + g2*v2)
+                    + int2d(Th2,rOuter)((beta^2.0)*(dx(g2)*dx(v2)+dy(g2)*dy(v2)) + g2*v2)
+                    + on(lsLabel[0],g2 = g0);
+
+velext;
+
+g = g2;
+
+exportArray(g[]);
