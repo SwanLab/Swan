@@ -27,25 +27,29 @@ classdef PhaseFieldComputer < handle
             phi = obj.initialGuess.phi;
             theta = obj.initialGuess.theta;
             cost = 0; tauArray = [];
-            
+
             step = 0; iterMax.stag = 0;
             bc.phi   = obj.boundaryConditions.phi.updateStep(1); %Only done once to set initial damage field
             bcUfinal = obj.boundaryConditions.u.endVal;
             bcU      = obj.boundaryConditions.u.initVal;
             while(bcU <= bcUfinal) && (obj.stop.noFailure)
-                notConverged = true; 
-                maxIterReached = false; 
-                convergenceTry = 1;
+                notConverged = true; maxIterReached = false; convergenceTry = 1;
+                uOld = u.fValues; phiOld = phi.fun.fValues;
                 while notConverged && (convergenceTry < 20)
-                    [step,u,bc] = obj.updateBoundaryConditions(u,bc,step,iterMax.stag,maxIterReached);
+                    [step,u,phi,bc] = obj.updateBoundaryConditions(u,phi,uOld,phiOld,bc,step,iterMax.stag,maxIterReached);
                     bcU = obj.boundaryConditions.u.currentVal;
                     obj.monitor.printStep(bcU,bcUfinal,step,maxIterReached)
-    
+
                     [u,theta,phi,F,cost,iterMax,maxIterReached] = obj.optimizer.compute(u,theta,phi,bc,cost);
                     convergenceTry = convergenceTry + 1;
 
-                    if maxIterReached == true; notConverged = true;
-                    else; notConverged = false; end
+                    if maxIterReached == true
+                        notConverged = true;
+                        obj.monitor.updateAndRefresh(step,{[],[],[],[],[iterMax.stag],[],[],[]});
+                    else
+                        notConverged = false;
+                    end
+                    
                 end
                 [Evec,totE,totF,uBC,angleVec,phiRel] = obj.postprocess(u,phi,theta,F,bc);
                 obj.printAndSave(step,totF,uBC,u,theta,angleVec,phi,phiRel,Evec,totE,iterMax,cost,tauArray);
@@ -107,7 +111,8 @@ classdef PhaseFieldComputer < handle
             obj.stop.stepTrigger = maxSteps;
         end
 
-        function [step,u,bc] = updateBoundaryConditions(obj,u,bc,step,iterStag,maxIterReached)
+        function [step,u,phi,bc] = updateBoundaryConditions(obj,u,phi,uOld,phiOld,bc,step,iterStag,maxIterReached)
+            if maxIterReached; u.setFValues(uOld), phi.fun.setFValues(phiOld); end
             [bc.u,step] = obj.boundaryConditions.u.updateStep(step,iterStag,maxIterReached);
             u.setFValues(obj.updateInitialDisplacement(u,bc));
         end
@@ -218,7 +223,7 @@ classdef PhaseFieldComputer < handle
                 obj.stop.stepTrigger = step;
                 obj.stop.triggered = true;
             end
-            
+
             if  (obj.stop.stepTrigger~=0) && (step==obj.stop.stepTrigger+10)
                 obj.stop.noFailure = false;
             end

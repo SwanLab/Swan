@@ -35,7 +35,7 @@ classdef PhaseFieldAngleUpdater < handle
         function init(obj,cParams)
             obj.mesh     = cParams.initPhi.fun.mesh;
             obj.phiOld   = copy(cParams.initPhi.fun);
-            obj.dmgLimit = 1e-12;
+            obj.dmgLimit = 0.1;
         end
 
         function theta = computeNewOrientation(~,u,xV)
