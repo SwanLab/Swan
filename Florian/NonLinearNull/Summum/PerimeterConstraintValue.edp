@@ -7,6 +7,6 @@ fespace Vh(Th,P1);
 Vh phi;
 phi[] = phiVal;
 
-real H = (int1d(Th,levelset=phi)(1)) - 9.5;
+real H = (int1d(Th,levelset=phi)(1)) - 5.5;
 
 exportVar(H);

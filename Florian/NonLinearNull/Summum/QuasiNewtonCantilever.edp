@@ -4,6 +4,9 @@ load "mmg"
 mesh Th = importMesh("Th");
 real [int] g1st = importArray("g1st");
 real [int] phiVal = importArray("phiVal");
+real [int] nxVal = importArray("nxVal");
+real [int] nyVal = importArray("nyVal");
+real [int] kappaVal = importArray("kappaVal");
 real alpha = importVar("alpha");
 real beta = importVar("beta");
 real aJ = importVar("aJ");
@@ -12,9 +15,12 @@ real lam1 = importVar("lam1");
 real lam2 = importVar("lam2");
 
 fespace Vh(Th,P1);
-Vh phi, g1, g;
+Vh phi, g1, g, nx, ny, kappa;
 g1[] = g1st;
 phi[] = phiVal;
+nx[] = nxVal;
+ny[] = nyVal;
+kappa[] = kappaVal;
 
 real rInner = 3;
 real rOuter = 2;
@@ -33,37 +39,12 @@ macro updateBoundary() {
 updateBoundary;
 
 fespace Vh1D(ThLInt,P1);
-Vh1D nx, ny, g0, v0, gx0 = dx(phi), gy0 = dy(phi), kappa;
-
-problem projNx(nx,v0) = int1d(ThLInt)((alpha^2.0)*(dx(nx)*dx(v0)+dy(nx)*dy(v0)) + nx*v0) 
-                        - int1d(ThLInt)(Tl.y*v0);
-
-problem projNy(ny,v0) = int1d(ThLInt)((alpha^2.0)*(dx(ny)*dx(v0)+dy(ny)*dy(v0)) + ny*v0) 
-                          - int1d(ThLInt)(-Tl.x*v0);
-
-projNx;
-projNy;
-nx = nx/sqrt(nx^2+ny^2+1e-6);
-ny = ny/sqrt(nx^2+ny^2+1e-6);
-
-Vh1D sgn = nx*gx0 + ny*gy0;
-
-for (int i = 0; i < Vh1D.ndof; ++i) {
-    if (sgn[][i] < 0) {
-        nx[][i] = -nx[][i];
-        ny[][i] = -ny[][i];
-    }
-}
+Vh1D g0, v0;
 
 fespace Vh2(Th2,P1);
 Vh2 g2, v2;
 
 macro tanGrad(f,nx,ny) [-ny*dx(f) + nx*dy(f)] //
-
-problem kappaProblem(kappa,v0) = int1d(ThLInt)((alpha^2.0)*(tanGrad(kappa,nx,ny)*tanGrad(v0,nx,ny)) + kappa*v0) 
-                        - int1d(ThLInt)(( dx(nx)+dy(ny))*v0);
-
-kappaProblem;
 
 problem newton(g0,v0) = int1d(ThLInt)((aJ*lam1/aC)*g0*v0*kappa +
                           (aJ*lam2/aC)*tanGrad(g0,nx,ny)*tanGrad(v0,nx,ny) + g0*v0)

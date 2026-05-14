@@ -99,15 +99,15 @@ class TO_problem(EuclideanOptimizable):
 
 ## OPTIMIZATION PARAMETERS
 dTime = 0.001
-elRadius = 3
+elRadius = 2
 No = 250
 params = {"dt": dTime*hmin*elRadius,
           "itnormalisation": No,
           "save_only_N_iterations": 1,
           "save_only_Q_constraints": 5,
           "alphaJ": 5,
-          "alphaC": 0.2,
-          "maxit": 60,
+          "alphaC": 1,
+          "maxit": 100,
           "maxtrials": 10,
           "CFL": 0.9}
 problem:Optimizable = TO_problem()
@@ -317,7 +317,9 @@ while normdx > params['tol'] and it <= params['maxit']:
 
     runner = FreeFemRunner(path+"QuasiNewtonCantilever.edp")
     runner.import_variables(Th=Th,g1st=g,phiVal=x,alpha=alpha,beta=beta,
-                            aJ=AJ,aC=AC,lam1=muls[0]+(AC/AJ)*muls2[0],lam2=muls[1]+(AC/AJ)*muls2[1])
+                            aJ=AJ,aC=AC,lam1=muls[0]+(AC/AJ)*muls2[0],lam2=muls[1]+(AC/AJ)*muls2[1],
+                            nxVal=problem._problem.nx,nyVal=problem._problem.ny,
+                            kappaVal=problem._problem.kappa)
     gNew = runner.execute()['g[]']
 
     success = 0

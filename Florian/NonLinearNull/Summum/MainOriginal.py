@@ -99,15 +99,15 @@ class TO_problem(EuclideanOptimizable):
 
 ## OPTIMIZATION PARAMETERS
 dTime = 0.001
-elRadius = 1
+elRadius = 2
 No = 250
 params = {"dt": dTime*hmin*elRadius,
           "itnormalisation": No,
           "save_only_N_iterations": 1,
           "save_only_Q_constraints": 5,
-          "alphaJ": 1,
+          "alphaJ": 5,
           "alphaC": 1,
-          "maxit": 60,
+          "maxit": 100,
           "maxtrials": 10,
           "CFL": 0.9}
 problem:Optimizable = TO_problem()
