@@ -100,7 +100,7 @@ class TO_problem(EuclideanOptimizable):
 ## OPTIMIZATION PARAMETERS
 dTime = 0.001
 elRadius = 2
-No = 250
+No = 20
 params = {"dt": dTime*hmin*elRadius,
           "itnormalisation": No,
           "save_only_N_iterations": 1,
