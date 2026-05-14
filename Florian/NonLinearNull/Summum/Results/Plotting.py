@@ -29,19 +29,19 @@ exports = FreeFemRunner(path+"MeshMBB.edp").execute()
 Th = exports['Th']
 
 ## POSTPROCESS
-data  = np.load(path+"Results/MBBTOrigPlotting.npz",allow_pickle=True)
+data  = np.load(path+"Results/MBBTOrigPlottingQuick.npz",allow_pickle=True)
 iterT = data['it']
 CompT = data['c']
 VT  = data['v']
 thick = data['thick']
 
-data  = np.load(path+"Results/MBBT5Plotting.npz",allow_pickle=True)
+data  = np.load(path+"Results/MBBT5PlottingQuick.npz",allow_pickle=True)
 iterT5 = data['it']
 CompT5 = data['c']
 VT5  = data['v']
 thick5 = data['thick']
 
-data = np.load(path+"Results/MBBTOrigPlotting.npz")
+data = np.load(path+"Results/MBBT5PlottingQuick.npz")
 fig0, ax0 = plt.subplots()
 x = data["xF"]
 u = P1Function(Th,x<=0)

@@ -101,8 +101,8 @@ class TO_problem(EuclideanOptimizable):
 
 ## OPTIMIZATION PARAMETERS
 dTime = 0.001
-elRadius = 1
-No = 250
+elRadius = 3
+No = 240
 params = {"dt": dTime*hmin*elRadius,
           "itnormalisation": No,
           "save_only_N_iterations": 1,
@@ -281,6 +281,7 @@ while normdx > params['tol'] and it <= params['maxit']:
     vFracOld = problem._problem.volFrac
     GOld = G
     HOld = H
+    dJOld = dJ
 
     for k in range(params['maxtrials']):
 
@@ -386,6 +387,7 @@ while normdx > params['tol'] and it <= params['maxit']:
             problem._problem.ny = nyOld
             problem._problem.kappa = kappaOld
             problem._problem.volFrac = vFracOld
+            dJ = dJOld
         else:
             success = 1
             break
