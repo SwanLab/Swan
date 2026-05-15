@@ -214,27 +214,29 @@ classdef CohesiveMesh < handle
             centerEdges      = obj.computeCenterEdge();
             listEdgeCohesiveFull = find(cParams.isFracturedLine(centerEdges));
             difference = listEdgeCohesiveFull(not(ismember(listEdgeCohesiveFull,obj.listEdgeCohesiveReal)));
-            nodes = obj.baseMesh.edges.nodesInEdges(difference,:);
-            changedNode = obj.listNodeCohesive(ismember(obj.listNodeCohesive,nodes));
-            idx = sum(ismember(obj.baseMesh.edges.nodesInEdges(difference,:),changedNode),2) == 1;
-            uniqueEdge = difference(idx);
-            coord1 = obj.baseMesh.coord(changedNode,:);
-            coord2 = obj.baseMesh.coord(nodes(not(ismember(nodes,changedNode))),:);
-            t = abs(coord2 - coord1); 
-            t = t/norm(t);
-            n = [-t(2),t(1)];
-            uniqueElems               = find(any(ismember(obj.baseMesh.edges.edgesInElem,uniqueEdge),2));
-            bariCenters               = obj.baseMesh.computeBaricenter';
-            centerElemsInCohesiveEdge = bariCenters(uniqueElems,:);
-            vectorEdgeToElem = centerElemsInCohesiveEdge - centerEdges(uniqueEdge,:);
-            signs  = sign(sum(vectorEdgeToElem.*n,2))> 0;
-            signs  = signs > 0;
-            isLeft = logical(signs);
-            uniqueElem = uniqueElems(isLeft);
-            changedConnectivity = newConnec(uniqueElem,:);
-            changedPosition = ismember(changedConnectivity,changedNode);
-            newNode = obj.getPair(changedNode);
-            newConnec(uniqueElem,changedPosition) = newNode;
+            if not(isempty(difference))
+                nodes = obj.baseMesh.edges.nodesInEdges(difference,:);
+                changedNode = obj.listNodeCohesive(ismember(obj.listNodeCohesive,nodes));
+                idx = sum(ismember(obj.baseMesh.edges.nodesInEdges(difference,:),changedNode),2) == 1;
+                uniqueEdge = difference(idx);
+                coord1 = obj.baseMesh.coord(changedNode,:);
+                coord2 = obj.baseMesh.coord(nodes(not(ismember(nodes,changedNode))),:);
+                t = abs(coord2 - coord1); 
+                t = t/norm(t);
+                n = [-t(2),t(1)];
+                uniqueElems               = find(any(ismember(obj.baseMesh.edges.edgesInElem,uniqueEdge),2));
+                bariCenters               = obj.baseMesh.computeBaricenter';
+                centerElemsInCohesiveEdge = bariCenters(uniqueElems,:);
+                vectorEdgeToElem = centerElemsInCohesiveEdge - centerEdges(uniqueEdge,:);
+                signs  = sign(sum(vectorEdgeToElem.*n,2))> 0;
+                signs  = signs > 0;
+                isLeft = logical(signs);
+                uniqueElem = uniqueElems(isLeft);
+                changedConnectivity = newConnec(uniqueElem,:);
+                changedPosition = ismember(changedConnectivity,changedNode);
+                newNode = obj.getPair(changedNode);
+                newConnec(uniqueElem,changedPosition) = newNode;
+            end
         end
     end
 end

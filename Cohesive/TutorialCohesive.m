@@ -16,7 +16,7 @@ classdef TutorialCohesive < handle
 
         function obj = TutorialCohesive()
             
-            problem      = 'DisplacementTractionY';
+            problem      = 'DisplacementMixed';
             nameMesh     = 'M10by4';
             obj.init();
             obj.createMesh(problem,nameMesh);
@@ -61,7 +61,7 @@ classdef TutorialCohesive < handle
         function createBoundaryConditions(obj,problem)
             bc.type = problem;
             % bc.type = 'DisplacementTractionY';
-            bc.values = [0.15];
+            bc.values = [0.05];
             obj.boundaryConditions  = BoundaryConditionsCreator(obj.cohesiveMesh.fullMesh,bc);
         end
 
@@ -104,8 +104,10 @@ classdef TutorialCohesive < handle
             switch problem
                 case 'DoubleCantileverBeam'
                     xmax = 72*0.001; y = 3.12 * 0.5 * 0.001;
-                case 'DisplacementTractionY'
-                    
+                case 'DisplacementTractionY' 
+                    xmax = 10000; y = 0;
+                case 'DisplacementMixed'
+                    xmax = 10000; y = 0;
             end
 
             c.isFracturedLine  = @(coord) abs(coord(:,2) - y) <= 1e-10;

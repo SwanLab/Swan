@@ -83,6 +83,12 @@ classdef CohesiveComputer < handle
                 dofsYdown = (nodes(isInDown)-1)*u.ndimf + 2;
                 totReact = abs(sum(F(dofsYdown)));
                 uBC = obj.boundaryConditions.bcValues(step);
+            elseif ismember(obj.boundaryConditions.type, ["DisplacementMixed"])
+                dofsXdown = (nodes(isInDown)-1)*u.ndimf + 1;
+                dofsYdown = (nodes(isInDown)-1)*u.ndimf + 2;
+                normF = sqrt(F(dofsXdown).^2+ F(dofsYdown).^2);
+                totReact = abs(sum(normF));
+                uBC = obj.boundaryConditions.bcValues(step);
             end
 
             LeftSide = min(obj.mesh.coord(:,1));
