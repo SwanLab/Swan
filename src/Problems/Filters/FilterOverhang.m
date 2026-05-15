@@ -19,7 +19,11 @@ classdef FilterOverhang < handle
         end
 
         function xF = compute(obj,fun,q)
-            xF = copy(obj.trial);
+            if isempty(obj.chiNOld)
+                xF = obj.computeInitialGuess(fun,q);
+            else
+                xF = copy(obj.trial);
+            end
             obj.chiN = obj.createRHSShapeFunction(fun,q);
             if isempty(obj.chiNOld) || norm(obj.chiNOld-obj.chiN)/norm(obj.chiN)>=1e-6
                 obj.chiNOld      = obj.chiN;
@@ -31,6 +35,7 @@ classdef FilterOverhang < handle
                 s.maxIter        = 1000;
                 opt              = OptimizerProjectedGradient(s);
                 opt.solveProblem();
+                obj.trial = xF;
             end
         end
 
@@ -48,6 +53,14 @@ classdef FilterOverhang < handle
             obj.k       = cParams.senseVector;
             obj.theta   = deg2rad(90 - cParams.ovAngleDeg);
             obj.epsilon = cParams.mesh.computeMeanCellSize();
+        end
+
+        function xF = computeInitialGuess(obj,fun,q)
+            s.mesh = obj.mesh;
+            s.trial = obj.trial;
+            s.filterType = 'PDE';
+            filter = Filter.create(s);
+            xF = filter.compute(fun,q);
         end
 
         function RHS = createRHSShapeFunction(obj,fun,quadType)

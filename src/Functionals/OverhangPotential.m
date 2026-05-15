@@ -6,12 +6,9 @@ classdef OverhangPotential < handle
         epsilon
         vec
         th
-        M
-        tol
-    end
-
-    properties (Access = private)
+        LHS
         value0
+        tol
     end
 
     methods (Access = public)
@@ -20,35 +17,32 @@ classdef OverhangPotential < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            xD  = x.obtainDomainFunction();
-            rho = xD{1};
-            k     = obj.vec;
-            gRhoN = sqrt(DP(Grad(rho),Grad(rho)));
-            gRhoU = Grad(rho)./(gRhoN + obj.tol);
-            dirDer = DP(gRhoU,k);
-            J1  = obj.computeMinimumSquaresTerm(rho);
-            J2  = obj.computeRegularizationTerm(gRhoN,dirDer);
+            xD      = x.obtainDomainFunction();
+            rho     = xD{1};
+            k       = obj.vec;
+            gRho    = Grad(rho);
+            gRhoN   = sqrt(DP(Grad(rho),Grad(rho)));
+            dirDer  = DP(gRho,k);
+            theta   = obj.th;
+            constr  = dirDer - gRhoN.*cos(theta);
+            obj.tol = 1e-5;
+            if isempty(obj.tol)
+                obj.tol = 1e-30;
+            end
+            J1      = obj.computeMinimumSquaresTerm(rho);
+            J2      = obj.computeRegularizationTerm(gRho,constr);
 
             rhs1 = obj.computeRHSMinimumSquares(rho);
-            rhs2 = obj.computeRHSRegTerm1(rho,gRhoN,gRhoU,dirDer);
-            rhs3 = obj.computeRHSRegTerm2(rho,gRhoN,gRhoU,dirDer);
+            rhs2 = obj.computeRHSRegTerm1(rho,gRho,constr);
+            rhs3 = obj.computeRHSRegTerm2(rho,gRho,gRhoN,constr);
+            rhs4 = obj.computeRHSRegTerm3(rho,gRho,gRhoN,constr);
 
             J = J1 + J2;
-            rhs = rhs1 + rhs2 + rhs3;
-            if isempty(obj.value0)
-                obj.value0 = J;
-            end
+            rhs = rhs1 + rhs2 + rhs3 + rhs4;
             J = J/obj.value0;
             dJ{1} = copy(rho);
-%             dJ{1}.setFValues(rhs./(obj.value0.*obj.M));
+            dJ{1}.setFValues(obj.LHS\(rhs./(obj.value0)));
 
-            h = obj.mesh.computeMeanCellSize();
-            f = @(v,u) v.*u;
-            g = @(v,u) DP(Grad(v),Grad(u));
-            M = IntegrateLHS(f,rho,rho,obj.mesh,'Domain',2);
-            K = IntegrateLHS(g,rho,rho,obj.mesh,'Domain',2);
-            LHS = M+h^2*K;
-            dJ{1}.setFValues(LHS\rhs);
         end
     end
 
@@ -59,29 +53,31 @@ classdef OverhangPotential < handle
             obj.epsilon = cParams.epsilon;
             obj.vec     = cParams.k;
             obj.th      = cParams.theta;
-            obj.M       = obj.createLumpedMass(cParams);
-            obj.tol     = 1e-12;
+            obj.LHS     = obj.createLHS(cParams);
+            obj.value0  = obj.computeMinimumSquaresTerm(obj.charFun+obj.charFun);
         end
 
-        function M = createLumpedMass(obj,cParams)
+        function MK = createLHS(obj,cParams)
+            h = obj.mesh.computeMeanCellSize();
             f = @(v,u) v.*u;
             M = IntegrateLHS(f,cParams.trial,cParams.trial,obj.mesh,'Domain',2);
-            M = sum(M,2);
+            g = @(v,u) DP(Grad(v),Grad(u));
+            K = IntegrateLHS(g,cParams.trial,cParams.trial,obj.mesh,'Domain',2);
+            MK = M + h^2.*K;
         end
 
         function J = computeMinimumSquaresTerm(obj,rho)
             chi = obj.charFun;
             int1 = Integrator.compute(rho.*rho,obj.mesh,2);
-            int2 = -Integrator.compute(chi.*(rho.*2),obj.mesh,2);
+            int2 = -2*Integrator.compute(chi.*rho,obj.mesh,2);
             int3 = Integrator.compute(chi.*chi,obj.mesh,2);
             J    = 0.5*(int1+int2+int3);
         end
 
-        function J = computeRegularizationTerm(obj,gRhoN,dirDer)
-            theta  = obj.th;
+        function J = computeRegularizationTerm(obj,gRho,constr)
             e      = obj.epsilon;
-            f      = gRhoN./(dirDer - cos(theta) + obj.tol);
-            int    = (f.^2).*(max(dirDer-cos(theta),0)).^2;
+            f      = DP(gRho,gRho)./(constr + obj.tol).^2;
+            int    = f.*(max(constr,0)).^2;
             J      = (e^2/2)*Integrator.compute(int,obj.mesh,3);
         end
 
@@ -92,32 +88,33 @@ classdef OverhangPotential < handle
             rhs  = rhs1 + rhs2;
         end
 
-        function rhs = computeRHSRegTerm1(obj,rho,gRhoN,gRhoU,dirDer)
-            e = obj.epsilon;
-            k = obj.vec;
-            theta = obj.th;
-            constr = dirDer - cos(theta) + obj.tol;
-            maxF = max(dirDer - cos(theta),0).^2;
-            gV    = @(v) Grad(v);
-            gradV = @(v) DomainFunction.create(@(xV) squeezeParticular(gV(v).evaluate(xV),1),obj.mesh,gRhoN.ndimf);
-            num1 = @(v) constr.*DP(Grad(rho),gradV(v));
-            num2 = @(v) gRhoN.*DP(k,gradV(v)-Grad(rho).*DP(gRhoU,gradV(v)./(gRhoN + obj.tol)));
-            int  = @(v) maxF.*(num1(v)-num2(v))./(constr.^3);
+        function rhs = computeRHSRegTerm1(obj,rho,gRho,constr)
+            e    = obj.epsilon;
+            maxF = max(constr,0).^2;
+            int  = @(v) DP(gRho,Grad(v)).*(maxF./(constr + obj.tol).^2);
             rhs  = e^2.*IntegrateRHS(int,rho,obj.mesh,'Domain',3);
         end
 
-        function rhs = computeRHSRegTerm2(obj,rho,gRhoN,gRhoU,dirDer)
+        function rhs = computeRHSRegTerm2(obj,rho,gRho,gRhoN,constr)
             e = obj.epsilon;
             k = obj.vec;
             theta = obj.th;
-            constr = dirDer - cos(theta) + obj.tol;
-            maxF = max(dirDer - cos(theta),0);
-            gV    = @(v) Grad(v);
-            gradV = @(v) DomainFunction.create(@(xV) squeezeParticular(gV(v).evaluate(xV),1),obj.mesh,gRhoN.ndimf);
-            f1   = (DP(Grad(rho),Grad(rho)))./(constr.^2);
-            f2   = @(v) DP(k,gradV(v)./(gRhoN + obj.tol) - gRhoU.*DP(gRhoU,gradV(v)./(gRhoN + obj.tol)));
-            int = @(v) maxF.*f1.*f2(v);
+            maxF = max(constr,0);
+            den = (constr + obj.tol).^2;
+            funV = @(v) DP(gRhoN.*k,Grad(v)) - DP(cos(theta).*gRho,Grad(v));
+            int = @(v) gRhoN.*(maxF./den).*funV(v);
             rhs  = e^2.*IntegrateRHS(int,rho,obj.mesh,'Domain',3);
+        end
+
+        function rhs = computeRHSRegTerm3(obj,rho,gRho,gRhoN,constr)
+            e = obj.epsilon;
+            k = obj.vec;
+            theta = obj.th;
+            maxF = max(constr,0).^2;
+            den = (constr + obj.tol).^3;
+            funV = @(v) DP(gRhoN.*k,Grad(v)) - DP(cos(theta).*gRho,Grad(v));
+            int = @(v) gRhoN.*(maxF./den).*funV(v);
+            rhs  = -e^2.*IntegrateRHS(int,rho,obj.mesh,'Domain',3);
         end
     end
 
