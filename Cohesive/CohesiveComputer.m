@@ -15,6 +15,7 @@ classdef CohesiveComputer < handle
         updater
         jump
         tractionSeparation
+        monitor
     end
     
     properties (Access = private)
@@ -25,6 +26,7 @@ classdef CohesiveComputer < handle
         
         function obj = CohesiveComputer(cParams)
             obj.init(cParams)
+            obj.setMonitoring(cParams);
             obj.setOptimizer(cParams)
         end
 
@@ -39,7 +41,7 @@ classdef CohesiveComputer < handle
                 obj.postprocess(iStep,u,F,cost,iterMax)
             end
             obj.data = obj.data;
-            % outputData = obj.monitor.data;
+            outputData = obj.monitor.data;
         end
     end
     
@@ -62,6 +64,13 @@ classdef CohesiveComputer < handle
             obj.updater = DisplacementUpdater(s);
         end
 
+        function setMonitoring(obj,cParams)
+            s.shallDisplay   = cParams.monitoring.set;
+            s.shallPrintInfo = cParams.monitoring.print;
+            s.fun            = LagrangianFunction.create(obj.mesh,1,'P1');
+            obj.monitor = CohesiveMonitoring(s);
+        end
+
         function [u,bc] = preprocess(obj,iStep,nSteps,u)
             % obj.monitor.printStep(iStep,nSteps)
             bc = obj.boundaryConditions.nextStep();
@@ -70,11 +79,10 @@ classdef CohesiveComputer < handle
 
         function postprocess(obj,iStep,uFun,F,cost,iterMax)
             [fVal,uVal] = obj.computeTotalReaction(iStep,F,uFun);
-            % obj.printAndSave(iStep,uFun,dmgFun0,dmgFun1,qFun,rFun,uVal,fVal,cost(end),iterMax);
-            % guardar
+            obj.printAndSave(iStep,uFun,dmgFun1,uVal,fVal,cost(end),iterMax);
             dFun = obj.computeDamageField(uFun);
-            obj.data = [obj.data; fVal,dFun,uFun,uVal];
-            obj.data = [obj.data; uFun,uVal];
+            % obj.data = [obj.data; fVal,dFun,uFun,uVal];
+            obj.data = [obj.data; fVal,uVal];
         end
 
         function [totReact,uBC] = computeTotalReaction(obj,step,F,u)
@@ -148,7 +156,25 @@ classdef CohesiveComputer < handle
             obj.jump.updateJumpValues(u);
             d = obj.tractionSeparation.law.computeDamage(obj.jump.fun);
         end
-        
+
+        function printAndSave(iStep,uFun,dmgFun,uVal,fVal,energy,iterMax)
+            dmgMax = max(dmgFun.fValues); 
+            obj.monitor.updateAndRefresh(step,{[fVal;uVal],[dmgMax;uVal],...
+                [],[dmgFun.fValues],[iterMax]});
+            obj.saveData(iStep,uFun,dmgFun,uVal,fVal,energy,iterMax);
+        end
+
+
+        function saveData(step,uFun,dmgFun,uVal,fVal,energy,iterMax)
+            s.uFun    = uFun;
+            s.uVal    = uVal;
+            s.fVal    = fVal;
+            s.dmgFun  = dmgFun;
+            s.energy  = energy;
+            s.numIter = iterMax;
+            obj.monitor.saveData(step,s)
+        end
+
     end
     
 end

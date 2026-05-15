@@ -22,18 +22,22 @@ classdef TutorialCohesive < handle
             obj.createMesh(problem,nameMesh);
             obj.defineCase(problem);
             obj.createCohesiveFunctional()
-            obj.solveProblem()
+            obj.solveCohesiveProblem()
         end
 
-        function solveProblem(obj)
-            s.boundaryConditions = obj.boundaryConditions;
-            s.functional = obj.functional;
+        function solveCohesiveProblem(obj)
+            s.cohesiveMesh           = obj.cohesiveMesh;
+            s.boundaryConditions     = obj.boundaryConditions;
+            s.functional             = obj.functional;
             s.tolerance              = 1e-8;
             s.maxIter                = 20;
-            s.solverType             = obj.solverType;
             s.tractionLaw            = obj.tractionSeparation;
-            s.cohesiveMesh           = obj.cohesiveMesh;
             
+            s.monitoring.set         = true;
+            s.monitoring.print       = true;
+
+            s.solverType             = obj.solverType;
+
             CohComp = CohesiveComputer(s);
             CohComp.compute();
             obj.output = CohComp.data;
