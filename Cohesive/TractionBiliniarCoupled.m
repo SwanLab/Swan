@@ -34,6 +34,14 @@ classdef TractionBiliniarCoupled < handle
             zeroUno = ConstantFunction.create([0;1],jump.mesh);
             jN = sqrt(DP(jump,unoZero,1,1).^2 + DP(jump,zeroUno,1,1).^2) + 1e-15;
         end
+
+        function d = computeDamage(obj,jump) % 1 x ngauss x nelem   
+            jumpNorm = obj.computeJumpNorm(jump);
+            d = min((obj.jumpFinal*(jumpNorm-obj.jumpCrit))./ ...
+                (jumpNorm*(obj.jumpFinal-obj.jumpCrit)),1);
+            d = max(d,0);
+            fprintf('d range: [%e , %e]\n',min(d.evaluate([-1,1]),[],'all'), max(d.evaluate([-1,1]),[],'all'));
+        end
     end
     
     methods (Access = private)
@@ -59,9 +67,8 @@ classdef TractionBiliniarCoupled < handle
 
         function [dtdt,dtdn,dndt,dndn] = computeTractionDerivatives(obj, jump)
             isDamaging = obj.isJumpDamaging(jump);  % nDimJumpNorm (1) x ngauss x nelem
-            jumpNorm = obj.computeJumpNorm(jump); % 1 x ngauss x nelem
-            d    = obj.computeDamage(jumpNorm);             % 1 x ngauss x nelem
-            ddot = obj.computeDamageDerivative(jump,jumpNorm,isDamaging);   % 2 x ngauss x nelem
+            d    = obj.computeDamage(jump);             % 1 x ngauss x nelem
+            ddot = obj.computeDamageDerivative(jump,isDamaging);   % 2 x ngauss x nelem
             unoZero = ConstantFunction.create([1;0],jump.mesh);
             zeroUno = ConstantFunction.create([0;1],jump.mesh);
             ddot_t = DP(ddot,unoZero); ddot_n = DP(ddot,zeroUno);
@@ -72,15 +79,8 @@ classdef TractionBiliniarCoupled < handle
             dndn = obj.K * ((1-d) - jumpN.*ddot_n);
         end
 
-        function d = computeDamage(obj,jump) % 1 x ngauss x nelem   
+        function ddot = computeDamageDerivative(obj,jump,isDamaging)
             jumpNorm = obj.computeJumpNorm(jump);
-            d = min((obj.jumpFinal*(jumpNorm-obj.jumpCrit))./ ...
-                (jumpNorm*(obj.jumpFinal-obj.jumpCrit)),1);
-            d = max(d,0);
-            fprintf('d range: [%e , %e]\n',min(d.evaluate([-1,1]),[],'all'), max(d.evaluate([-1,1]),[],'all'));
-        end
-
-        function ddot = computeDamageDerivative(obj,jump,jumpNorm,isDamaging)
             alpha      = obj.jumpCrit * obj.jumpFinal / (obj.jumpCrit-obj.jumpFinal) ./jumpNorm^3;
             ddot       = alpha .* jump .* isDamaging;
         end

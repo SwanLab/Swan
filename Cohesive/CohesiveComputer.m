@@ -79,8 +79,8 @@ classdef CohesiveComputer < handle
 
         function postprocess(obj,iStep,uFun,F,cost,iterMax)
             [fVal,uVal] = obj.computeTotalReaction(iStep,F,uFun);
-            obj.printAndSave(iStep,uFun,dmgFun1,uVal,fVal,cost(end),iterMax);
             dFun = obj.computeDamageField(uFun);
+            obj.printAndSave(iStep,uFun,dFun,uVal,fVal,cost(end),iterMax);
             % obj.data = [obj.data; fVal,dFun,uFun,uVal];
             obj.data = [obj.data; fVal,uVal];
         end
@@ -148,16 +148,17 @@ classdef CohesiveComputer < handle
             u.setFValues(ufV);
         end
 
-        function d = computeDamageField(obj,u)
+        function dFun = computeDamageField(obj,u)
             s.cohesiveMesh = obj.cohesiveMesh;
             s.ndimf = obj.cohesiveMesh.fullMesh.ndim;
             s.uFun  = LagrangianFunction.create(obj.cohesiveMesh.fullMesh,s.ndimf,'P1');
             obj.jump = Jump(s);
             obj.jump.updateJumpValues(u);
-            d = obj.tractionSeparation.law.computeDamage(obj.jump.fun);
+            dValues = obj.tractionSeparation.getDamageValues(obj.jump.fun);
+            dFun = LagrangianFunction.create(obj.cohesiveMesh.mesh,size(dValues,1),'P1');
         end
 
-        function printAndSave(iStep,uFun,dmgFun,uVal,fVal,energy,iterMax)
+        function printAndSave(obj,iStep,uFun,dmgFun,uVal,fVal,energy,iterMax)
             dmgMax = max(dmgFun.fValues); 
             obj.monitor.updateAndRefresh(step,{[fVal;uVal],[dmgMax;uVal],...
                 [],[dmgFun.fValues],[iterMax]});
