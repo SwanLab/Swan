@@ -110,14 +110,19 @@ classdef CohesiveComputer < handle
             end
 
             if ismember(obj.boundaryConditions.type, "DoubleCantileverBeam")
-                % DETECTAR TOP RIGHT
-                dofsXleft = (nodes(isInLeft)-1)*u.ndimf + 1;
-                totReact = abs(sum(F(dofsXleft)));
+                idxNode = find(obj.mesh.coord(:,1) == max(obj.mesh.coord(:,1)) & (obj.mesh.coord(:,2) == max(obj.mesh.coord(:,2))));
+                dofYTopRight = (idxNode-1)*u.ndimf + 1;
+                totReact = abs(F(dofYTopRight));
                 uBC = obj.boundaryConditions.bcValues(step);
             end
 
             if ismember(obj.boundaryConditions.type, "EndNotchedFlexural")
-                % ... 
+               isInBottomLeft =  (abs(obj.mesh.coord(:,1) - min(obj.mesh.coord(:,1)))< 1e-12) & (abs(obj.mesh.coord(:,2) - min(obj.mesh.coord(:,2)))< 1e-12);
+               isInBottomRight = (abs(obj.mesh.coord(:,1) - min(obj.mesh.coord(:,1)))< 1e-12) & (abs(obj.mesh.coord(:,2) - min(obj.mesh.coord(:,2)))< 1e-12);
+               nodes = find(isInBottomRight | isInBottomLeft);
+               dofsY= (nodes-1)*u.ndimf + 2;
+               totReact = abs(sum(F(dofsY)));
+               uBC = obj.boundaryConditions.bcValues(step);
             end
         end
 

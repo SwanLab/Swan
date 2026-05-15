@@ -343,7 +343,7 @@ classdef BoundaryConditionsCreator < handle
 
            isInBottomRight = @(coord) (abs(coord(:,1) - min(coord(:,1)))< 1e-12) & (abs(coord(:,2) - min(coord(:,2)))< 1e-12);
            sDir.domain    = @(coor) isInBottomRight(coor);
-           sDir.direction = [2];
+           sDir.direction = [1,2];
            sDir.value     = 0;
            Dir2 = DirichletCondition(obj.mesh,sDir);
 
@@ -361,6 +361,41 @@ classdef BoundaryConditionsCreator < handle
            s.periodicFun = [];
            obj.boundaryConditions = BoundaryConditions(s);
         end
+
+        function createMMBConditions(obj,fVal)
+            isInBottomLeft = @(coord) (abs(coord(:,1) - min(coord(:,1)))< 1e-12) & (abs(coord(:,2) - min(coord(:,2)))< 1e-12);
+            sDir.domain    = @(coor) isInBottomLeft(coor);
+            sDir.direction = [2];
+            sDir.value     = 0;
+            Dir1 = DirichletCondition(obj.mesh,sDir);
+
+            isInBottomRight = @(coord) (abs(coord(:,1) - min(coord(:,1)))< 1e-12) & (abs(coord(:,2) - min(coord(:,2)))< 1e-12);
+            sDir.domain    = @(coor) isInBottomRight(coor);
+            sDir.direction = [2];
+            sDir.value     = 0;
+            Dir2 = DirichletCondition(obj.mesh,sDir);
+
+            center = [mean(obj.mesh.coord(:,1)), mean(obj.mesh.coord(:,2))];
+            [~, idxCenter] = min(sum((obj.mesh.nodes - center).^2, 2));
+            isInCenter = @(coord) vecnorm(coord-obj.mesh.coord(idxCenter,:), 2, 2) < 1e-12;
+            sNeum.domain    = @(coor) isInCenter(coor);
+            sNeum.direction = [2];
+            sNeum.value     = fVal;
+            Neum1 = DirichletCondition(obj.mesh,sNeum);
+
+            isInTopRight = @(coord) (abs(coord(:,1) - min(coord(:,1)))< 1e-12) & (abs(coord(:,2) - max(coord(:,2)))< 1e-12);
+            sNeum.domain    = @(coor) isInTopRight(coor);
+            sNeum.direction = [2];
+            sNeum.value     = fVal;
+            Neum2 = DirichletCondition(obj.mesh,sNeum);
+
+            s.mesh = obj.mesh;
+            s.dirichletFun = [Dir1 Dir2];
+            s.pointloadFun = [Neum1 Neum2];
+            s.periodicFun = [];
+            obj.boundaryConditions = BoundaryConditions(s);
+        end
+
 
          % function createLshapeDisplacementConditions(obj,uVal)
          %     isInDown = @(coor) (abs(coor(:,2) - min(coor(:,2)))  < 1e-12);
