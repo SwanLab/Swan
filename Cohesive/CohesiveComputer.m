@@ -1,6 +1,6 @@
 classdef CohesiveComputer < handle
     
-    properties (Access = public)
+    properties (Access = public) 
         mesh
         boundaryConditions       
         functional
@@ -11,7 +11,10 @@ classdef CohesiveComputer < handle
     
     properties (Access = private)
         optimizer
+        cohesiveMesh
         updater
+        jump
+        tractionSeparation
     end
     
     properties (Access = private)
@@ -43,9 +46,11 @@ classdef CohesiveComputer < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.mesh               = cParams.mesh;
+            obj.mesh               = cParams.cohesiveMesh.fullMesh;
             obj.boundaryConditions = cParams.boundaryConditions;
-            obj.functional         = cParams.functional;         
+            obj.functional         = cParams.functional;      
+            obj.tractionSeparation = cParams.tractionLaw;
+            obj.cohesiveMesh       = cParams.cohesiveMesh;
         end
         
         function setOptimizer(obj,cParams)
@@ -67,7 +72,9 @@ classdef CohesiveComputer < handle
             [fVal,uVal] = obj.computeTotalReaction(iStep,F,uFun);
             % obj.printAndSave(iStep,uFun,dmgFun0,dmgFun1,qFun,rFun,uVal,fVal,cost(end),iterMax);
             % guardar
-            obj.data = [obj.data; fVal,uVal];
+            dFun = obj.computeDamageField(uFun);
+            obj.data = [obj.data; fVal,dFun,uFun,uVal];
+            obj.data = [obj.data; uFun,uVal];
         end
 
         function [totReact,uBC] = computeTotalReaction(obj,step,F,u)
@@ -131,6 +138,15 @@ classdef CohesiveComputer < handle
             uVec(bc.dirichlet_dofs) = bc.dirichlet_vals;
             ufV = reshape(uVec,[flip(size(u.fValues))])';
             u.setFValues(ufV);
+        end
+
+        function d = computeDamageField(obj,u)
+            s.cohesiveMesh = obj.cohesiveMesh;
+            s.ndimf = obj.cohesiveMesh.fullMesh.ndim;
+            s.uFun  = LagrangianFunction.create(obj.cohesiveMesh.fullMesh,s.ndimf,'P1');
+            obj.jump = Jump(s);
+            obj.jump.updateJumpValues(u);
+            d = obj.tractionSeparation.law.computeDamage(obj.jump.fun);
         end
         
     end

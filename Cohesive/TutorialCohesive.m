@@ -26,12 +26,13 @@ classdef TutorialCohesive < handle
         end
 
         function solveProblem(obj)
-            s.mesh = obj.cohesiveMesh.fullMesh;
             s.boundaryConditions = obj.boundaryConditions;
             s.functional = obj.functional;
             s.tolerance              = 1e-8;
             s.maxIter                = 20;
             s.solverType             = obj.solverType;
+            s.tractionLaw            = obj.tractionSeparation;
+            s.cohesiveMesh           = obj.cohesiveMesh;
             
             CohComp = CohesiveComputer(s);
             CohComp.compute();
