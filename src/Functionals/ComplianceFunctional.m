@@ -24,6 +24,10 @@ classdef ComplianceFunctional < handle
             [J,dJ] = obj.computeComplianceFunctionAndGradient(x);
         end
 
+        function title = getTitleToPlot(obj)
+            title = obj.plotTitle;
+        end
+
     end
     
     methods (Access = private)
@@ -76,9 +80,6 @@ classdef ComplianceFunctional < handle
             end
         end
 
-        function title = getTitleToPlot()
-            title = 'Compliance';
-        end
 
     end
 

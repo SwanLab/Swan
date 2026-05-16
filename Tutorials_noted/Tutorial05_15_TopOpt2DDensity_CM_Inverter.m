@@ -32,7 +32,7 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
                 obj.J_MT = -1; % motion transmission. Input=1, J_MT corresponds to the output
                 obj.nGDI = 2;
                 obj.nMP = 1;
-                obj.Kp_bar = 0.005;
+                obj.Kp_bar = 0.5;
                 
                 obj.init();
                 obj.createMesh();
@@ -44,7 +44,7 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
                 obj.createComplianceFunctions();
                 obj.createMotionBasedFunctions();
 
-               % obj.createVolumeConstraint();                
+                obj.createVolumeConstraint();                
                 obj.createCost();
                 obj.createConstraint();
 
@@ -180,7 +180,7 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.3;
+            s.volumeTarget = 0.25;
             s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
@@ -208,7 +208,7 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
 
         function createConstraint(obj)
             s.shapeFunctions = {};
-            gscale = 1; % Weight of the constraint, set to 1 in swan because the optimizer has its own weight handling 
+            gscale = 1; % Weight of the constraint, set to 1 in swan because the optcreateConstraintimizer has its own weight handling 
 
             for i = 1:obj.nMP
                 cParams.MotionBasedStrainEnergy = obj.motionBasedFuncs{i};
@@ -217,12 +217,14 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
                 s.shapeFunctions{i} = MotionBasedStiffnessConstraint(cParams);
             end
 
+            s.shapeFunctions{obj.nMP + 1} = obj.volume;
+
             s.Msmooth = obj.createMassMatrix;
             obj.constraint = Constraint(s);
         end
 
         function createDualVariable(obj)
-            nConstr = sum(obj.nMP);
+            nConstr = sum(obj.nMP)+1;
             s.nConstraints   = nConstr;
             l                = DualVariable(s);
             obj.dualVariable = l;
@@ -242,9 +244,9 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 600;
+            s.maxIter        = 300;
             s.tolerance      = 1e-8;
-            nConstr=sum(obj.nMP);
+            nConstr = sum(obj.nMP)+1;
             s.constraintCase = repmat({'INEQUALITY'},1,nConstr);
             s.primalUpdater  = obj.primalUpdater;
             s.ub             = 1;
