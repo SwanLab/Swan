@@ -219,7 +219,7 @@ classdef OptimizerNullSpace < handle
                 obj.checkStep(x0);
             end
 
-           %obj.enforceSymmetry();
+           obj.enforceSymmetry();
         end
 
         function printResults(obj)

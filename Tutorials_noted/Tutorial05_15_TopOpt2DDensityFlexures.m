@@ -85,7 +85,8 @@ classdef Tutorial05_15_TopOpt2DDensityFlexures < handle
             obj.deg = find(max([obj.mdoc; obj.mdof])); % if mdoc=[0 1 0] and mdof=[1 0 0] then deg=[1 2] (indeces of active degrees)
             obj.ndeg = length(obj.deg); % Number of active degrees, used to avoid doing the FEA of an inactive degree
             
-            % Checks that a degree is not both dof and doc, also that at least 1
+            % Checks that a degree is not both dof and doc, also that at
+            % least 1
             % dof and 1 doc and no more than 2
             assert(all((obj.mdoc+obj.mdof) < 2),'overlap between DOC and DOF');
             assert(ldoc >= 1 & ldoc <= 2,'set of DOC too small/big');
@@ -95,8 +96,8 @@ classdef Tutorial05_15_TopOpt2DDensityFlexures < handle
 
         function createMesh(obj) % must be modified
             % Generate coordinates
-            x1 = linspace(0,1,100);
-            x2 = linspace(0,1,100);
+            x1 = linspace(0,1,200);
+            x2 = linspace(0,1,200);
             % Create the grid
             [xv,yv] = meshgrid(x1,x2);
             % Triangulate the mesh to obtain coordinates and connectivities
@@ -108,7 +109,7 @@ classdef Tutorial05_15_TopOpt2DDensityFlexures < handle
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) 0.5*ones(size(x(1,:,:)));
+            s.fHandle = @(x) 0.1*ones(size(x(1,:,:)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);
@@ -309,7 +310,7 @@ classdef Tutorial05_15_TopOpt2DDensityFlexures < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 500;
+            s.maxIter        = 300;
             s.tolerance      = 1e-8;
             nConstr=sum(obj.mdof);
             s.constraintCase = repmat({'INEQUALITY'},1,nConstr);

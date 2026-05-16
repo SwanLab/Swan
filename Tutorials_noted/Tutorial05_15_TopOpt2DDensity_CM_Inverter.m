@@ -1,4 +1,4 @@
-classdef Tutorial05_15_TopOpt2DLevelSetFlexures < handle
+classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
 
     properties (Access = private)
         filename 
@@ -6,7 +6,8 @@ classdef Tutorial05_15_TopOpt2DLevelSetFlexures < handle
         filter
         designVariable
         materialInterpolator
-        physicalProblem
+        physicalProblemLoadBased
+        physicalProblemMotionBased
         adjointProblem
         compliance
         volume
@@ -17,25 +18,21 @@ classdef Tutorial05_15_TopOpt2DLevelSetFlexures < handle
         optimizer
         gJ
 
-        doc % Selected/chosen DOCs, ["tx"]
-        dof % Selected/chosen DOFs, ["rz"]
-        emax % Max strain energy for DOFs
-        mdoc % Vector with active DOC, [1 0 0]
-        mdof % Vector with active DOF, [0 0 1]
-        deg % Active degrees DOC+DOF, [1 0 1]
-        ndeg % Number of active degrees, 2
-        strainEnergyFuncs
+        J_MT
+        nGDI
+        nMP
+        Kp_bar
+        complianceFuncs
+        motionBasedFuncs
     end
 
     methods (Access = public)
 
-        function obj = Tutorial05_15_TopOpt2DLevelSetFlexures()
-                % Degrees
-                obj.doc = ["tx"]; % tx, ty
-                obj.dof = ["ty"]; % ty, rz
-                obj.emax = 0.005; %1
-
-                obj.preprocessDegrees();
+        function obj = Tutorial05_15_TopOpt2DDensity_CM_Inverter()
+                obj.J_MT = -1; % motion transmission. Input=1, J_MT corresponds to the output
+                obj.nGDI = 2;
+                obj.nMP = 1;
+                obj.Kp_bar = 0.001;
                 
                 obj.init();
                 obj.createMesh();
@@ -44,9 +41,10 @@ classdef Tutorial05_15_TopOpt2DLevelSetFlexures < handle
                 obj.createMaterialInterpolator();
 
                 obj.createElasticProblem();
-                obj.createStrainEnergyFunctions();
+                obj.createComplianceFunctions();
+                obj.createMotionBasedFunctions();
 
-                obj.createVolumeConstraint();                
+               % obj.createVolumeConstraint();                
                 obj.createCost();
                 obj.createConstraint();
 
@@ -67,35 +65,9 @@ classdef Tutorial05_15_TopOpt2DLevelSetFlexures < handle
             close all;
         end
 
-        function preprocessDegrees(obj)
-            ldoc = length(obj.doc); % Number of DOCs
-            ldof = length(obj.dof); % Number of DOFs
-            
-            % Initialize vectors of DOC and DOF
-            obj.mdoc = zeros(ldoc,3);
-            obj.mdof = zeros(ldof,3);
-            
-            degrees = ["tx","ty","rz"]; % possible DOC and DOF
-            for i=1:ldoc; obj.mdoc(i,:) = strcmp(degrees,obj.doc(i)); end % Compare DOCs to degrees
-            for i=1:ldof; obj.mdof(i,:) = strcmp(degrees,obj.dof(i)); end % Compare DOFs to degrees
-            % Now, if doc="ty, tx", then mdoc=[0 1 0; 1 0 0]
-            obj.mdoc = max(obj.mdoc,[],1) == 1; % For example, if doc="ty, tx", then mdoc=[1 1 0]
-            obj.mdof = max(obj.mdof,[],1) == 1;
-            
-            obj.deg = find(max([obj.mdoc; obj.mdof])); % if mdoc=[0 1 0] and mdof=[1 0 0] then deg=[1 2] (indeces of active degrees)
-            obj.ndeg = length(obj.deg); % Number of active degrees, used to avoid doing the FEA of an inactive degree
-            
-            % Checks that a degree is not both dof and doc, also that at least 1
-            % dof and 1 doc and no more than 2
-            assert(all((obj.mdoc+obj.mdof) < 2),'overlap between DOC and DOF');
-            assert(ldoc >= 1 & ldoc <= 2,'set of DOC too small/big');
-            assert(ldof >= 1 & ldof <= 2,'set DOF too small/big');
-            assert(obj.ndeg >= 2 & obj.ndeg <=3,'incorect no of rhs');
-        end
-
-        function createMesh(obj) % must be modified
+        function createMesh(obj) % 2:1 mesh for the inverter
             % Generate coordinates
-            x1 = linspace(0,1,100);
+            x1 = linspace(0,2,200);
             x2 = linspace(0,1,100);
             % Create the grid
             [xv,yv] = meshgrid(x1,x2);
@@ -107,23 +79,17 @@ classdef Tutorial05_15_TopOpt2DLevelSetFlexures < handle
             obj.mesh = Mesh.create(s);
         end
 
-        function createDesignVariable(obj) % from tutorial 3
-            s.type = 'Full';
-            % For Holes
-            s.dim = 2;
-            s.nHoles = [80, 80];
-            s.totalLengths = [1, 1];
-            s.phases = [0, 0];
-            s.phiZero = 0.3;
-            %
-            g      = GeometricalFunction(s);
-            lsFun  = g.computeLevelSetFunction(obj.mesh);
-            s.fun  = lsFun;
-            s.mesh = obj.mesh;
-            s.type = 'LevelSet';
+        function createDesignVariable(obj)
+            s.fHandle = @(x) 0.1*ones(size(x(1,:,:)));
+            s.ndimf   = 1;
+            s.mesh    = obj.mesh;
+            aFun      = AnalyticalFunction(s);
+            s.fun     = aFun.project('P1');
+            s.mesh    = obj.mesh;
+            s.type = 'Density';
             s.plotting = true;
-            ls     = DesignVariable.create(s);
-            obj.designVariable = ls;
+            dens    = DesignVariable.create(s); 
+            obj.designVariable = dens;
         end
 
         function createFilter(obj)
@@ -140,7 +106,6 @@ classdef Tutorial05_15_TopOpt2DLevelSetFlexures < handle
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1'); 
             f = Filter.create(s);
         end
-
 
         function createMaterialInterpolator(obj)
             E0   = 1e-3;
@@ -166,50 +131,41 @@ classdef Tutorial05_15_TopOpt2DLevelSetFlexures < handle
         end
 
         function createElasticProblem(obj)
-            obj.physicalProblem = cell(obj.ndeg,1); % use cell to store different objects
-            degrees_list = ["tx", "ty", "rz"];
+            % One FEM is needed per each GDI (input and output in this
+            % case)
+            obj.physicalProblemLoadBased = cell(obj.nGDI,1); % use cell to store different objects
 
-            for i = 1:obj.ndeg % one iteration per active degree
-                current_idx = obj.deg(i); % select the index of the current degree (from preprocess)
-                current_degree = degrees_list(current_idx); % select the string degree
-
+            for i = 1:obj.nGDI % one iteration per active degree
                 s.mesh = obj.mesh;
                 s.scale = 'MACRO';
                 s.material = obj.createMaterial();
                 s.dim = '2D';
-                s.boundaryConditions = obj.createBoundaryConditions(current_degree);
+                s.boundaryConditions = obj.createBoundaryConditionsLoadBased(i);
                 s.interpolationType = 'LINEAR';
                 s.solverType = 'REDUCED';
-                s.solverMode = 'DISP'; % now we impose displacements
+                s.solverMode = 'DISP'; 
                 s.solverCase = DirectSolver();
                 fem = ElasticProblem(s);
-                obj.physicalProblem{i} = fem; % stor the FEM of this degree in the cell
+                obj.physicalProblemLoadBased{i} = fem; % store the FEM of this degree in the cell
             end
 
-        end
+            % One fem per each free MP (only one for the inverter)
+            obj.physicalProblemMotionBased = cell(obj.nMP, 1);
 
-        function createAdjointProblem(obj)
-            s.mesh = obj.mesh;
-            s.scale = 'MACRO';
-            s.material = obj.createMaterial();
-            s.dim = '2D';
-            s.boundaryConditions = obj.createBoundaryConditionsAdjoint();
-            s.interpolationType = 'LINEAR';
-            s.solverType = 'REDUCED';
-            s.solverMode = 'DISP';
-            s.solverCase = DirectSolver();
-            fem = ElasticProblem(s);
-            obj.adjointProblem = fem;
-        end
+            for i = 1:obj.nMP
+                s.mesh = obj.mesh;
+                s.scale = 'MACRO';
+                s.material = obj.createMaterial();
+                s.dim = '2D';
+                s.boundaryConditions = obj.createBoundaryConditionsMotionBased();
+                s.interpolationType = 'LINEAR';
+                s.solverType = 'REDUCED';
+                s.solverMode = 'DISP'; 
+                s.solverCase = DirectSolver();
+                fem = ElasticProblem(s);
+                obj.physicalProblemMotionBased{i} = fem; % store the FEM of this degree in the cell
+            end
 
-        function createNonSelfAdjCompliance(obj)
-            s.mesh           = obj.mesh
-            s.filter         = obj.filter;
-            s.material       = obj.createMaterial();
-            s.stateProblem   = obj.physicalProblem;
-            s.adjointProblem = obj.adjointProblem;
-            c = NonSelfAdjointComplianceFunctional(s);
-            obj.compliance = c;
         end
 
         function uMesh = createBaseDomain(obj)
@@ -229,41 +185,19 @@ classdef Tutorial05_15_TopOpt2DLevelSetFlexures < handle
             v = VolumeConstraint(s);
             obj.volume = v;
         end
-
-        function createStrainEnergyFunctions(obj)
-            obj.strainEnergyFuncs = cell(obj.ndeg,1); % Initialize cell to store strain energy of each degree
-
-            for i = 1:obj.ndeg % One iteration per active degree
-                s.mesh         = obj.mesh;
-                s.filter       = obj.filter;
-                s.gradientFilter = obj.createGradientFilter;
-                %s.material     = obj.materialInterpolator;
-                s.material = obj.createMaterial();
-                s.stateProblem = obj.physicalProblem{i};  % Give the FEM of that particular degree              
-                obj.strainEnergyFuncs{i} = FlexureStrainEnergy(s); % Store the strain energy object of the degree
-            end
-        end
         
-
         function createCost(obj)
             % Initialize the functions to evaluate and their weights
             s.shapeFunctions = {};
             s.weights = [];
 
-            ldoc = sum(obj.mdoc); % How many docs
-            count = 1;
-
-            for i = 1:obj.ndeg % One iteration per active deg
-                deg_idx = obj.deg(i);
-                if obj.mdoc(deg_idx) == 1 % If the degree is a doc
-                    s.shapeFunctions{count} = obj.strainEnergyFuncs{i}; % Take the FlexureStrainEnergy of the doc
-                    s.weights(count) = -1/ldoc; % Take the weight of the doc, with all docs having the same weight
-                    count = count+1;
-                end
+            for i = 1:obj.nGDI
+                s.shapeFunctions{i} = obj.complianceFuncs{i};
+                s.weights(i) = 1;
             end
 
-            s.Msmooth           = obj.createMassMatrix();
-            obj.cost            = Cost(s);
+            s.Msmooth = obj.createMassMatrix;
+            obj.cost = Cost(s);
         end
 
         function M = createMassMatrix(obj)
@@ -274,57 +208,54 @@ classdef Tutorial05_15_TopOpt2DLevelSetFlexures < handle
 
         function createConstraint(obj)
             s.shapeFunctions = {};
-            count = 1;
             gscale = 1; % Weight of the constraint, set to 1 in swan because the optimizer has its own weight handling 
 
-            for i = 1:obj.ndeg
-                deg_idx = obj.deg(i);
-                if obj.mdof(deg_idx) == 1 % Select the dofs
-                    cParams.strainEnergyFunc = obj.strainEnergyFuncs{i}; % take the strainEnergyFunc of that degree
-                    cParams.gscale = gscale; % take its gscale
-                    cParams.emax = obj.emax;
-                    s.shapeFunctions{count} = FlexureDOFConstraint(cParams); % give the strainEnergyFunc and gscale to FlexureDOFConstraint to obtain the shape functions
-                    count = count +1;
-                end
+            for i = 1:obj.nMP
+                cParams.MotionBasedStrainEnergy = obj.motionBasedFuncs{i};
+                cParams.gscale = gscale;
+                cParams.Kp_bar = obj.Kp_bar;
+                s.shapeFunctions{i} = MotionBasedStiffnessConstraint(cParams);
             end
 
-            %s.shapeFunctions{count} = obj.volume;
-
-            s.Msmooth           = obj.createMassMatrix();
-            obj.constraint      = Constraint(s);
+            s.Msmooth = obj.createMassMatrix;
+            obj.constraint = Constraint(s);
         end
 
         function createDualVariable(obj)
-            nConstr = sum(obj.mdof);
+            nConstr = sum(obj.nMP);
             s.nConstraints   = nConstr;
             l                = DualVariable(s);
             obj.dualVariable = l;
         end
 
-        function createPrimalUpdater(obj) 
-            s.mesh = obj.mesh;
-            obj.primalUpdater = SLERP(s);
+        function createPrimalUpdater(obj)
+            s.ub     = 1;
+            s.lb     = 0;
+            s.tauMax = 500; % max step size, then etaNorm has to approve. If not approved, line search trial
+            s.tau    = [];
+            obj.primalUpdater = ProjectedGradient(s);
         end
 
-        function createOptimizer(obj) % from mix tutorial 3
+        function createOptimizer(obj)
             s.monitoring     = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
             s.maxIter        = 300;
-            s.tolerance      = 1e-6; % default was 1e-8
-            s.constraintCase = {'INEQUALITY'};
+            s.tolerance      = 1e-8;
+            nConstr=sum(obj.nMP);
+            s.constraintCase = repmat({'INEQUALITY'},1,nConstr);
             s.primalUpdater  = obj.primalUpdater;
-            s.etaNorm        = 0.1; % max allowed change for level set(def 0.1)
-            s.etaNormMin     = 0.005; % default was 0.005
-            s.gJFlowRatio    = 1; % weight for the constraints (def 0.2)
-            s.etaMax         = 1;
-            s.etaMaxMin      = 0.01;
+            s.ub             = 1;
+            s.lb             = 0;
+            s.etaNorm        = 0.03; % max design change per iter, default was 0.02
+            s.gJFlowRatio    = 0.1; % "weight" of the constraint 0.1
             s.gif            = false;
-            s.gifName        = 'Tutorial05_14_LS';
+            s.gifName        = [];
             s.printing       = false;
-            s.printName      = 'I_LS_';
+            s.printName      = ['InvDens'];
+            %s.physicalProblem = obj.physicalProblem;
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -342,108 +273,48 @@ classdef Tutorial05_15_TopOpt2DLevelSetFlexures < handle
             m = Material.create(s);
         end
 
-        function bc = createBoundaryConditions(obj, degree_type) 
-            % Locate the walls of the domain
-            xmin = min(obj.mesh.coord(:,1));
-            xmax = max(obj.mesh.coord(:,1));
-            ymin = min(obj.mesh.coord(:,2));
-            ymax = max(obj.mesh.coord(:,2));
+        function bc = createBoundaryConditionsLoadBased(obj, gdi_index) 
+            isLeft =@(coor) coor(:,1) <= 1e-8;
+            isRight =@(coor) coor(:,1) >= 2-1e-8;
 
-            % Length of the lower face
-            Lx = xmax-xmin;
-
-            % Select the upper and lower walls
-            isBottom =@(coor) coor(:,2) <= ymin + 1e-8;
-            isTop =@(coor) coor(:,2) >= ymax - 1e-8;
-
-            % Bottom is fixed for tx, ty, rz
-            sDir{1}.domain    = isBottom; % fixed
+            % Side walls fixed
+            sDir{1}.domain = isLeft;
             sDir{1}.direction = [1,2];
-            sDir{1}.value     = 0;
+            sDir{1}.value = 0;
 
-            % Top nodes BC depend on the case
-            if strcmp(degree_type, "tx")
-                sDir{2}.domain    = isTop; % fixed
-                sDir{2}.direction = [1];
-                sDir{2}.value     = 1;
+            sDir{2}.domain = isRight;
+            sDir{2}.direction = [1,2];
+            sDir{2}.value = 0;
 
-                sDir{3}.domain    = isTop; % fixed
-                sDir{3}.direction = [2];
-                sDir{3}.value     = 0;
+            % Unit load at the GDI
+            isInput =@(coor) coor(:,1) >= 0.9 & coor(:,1) <= 1.1 & coor(:,2) <= 1e-8;
+            isOutput =@(coor) coor(:,1) >= 0.9 & coor(:,1) <= 1.1 & coor(:,2) >= 1-1e-8;
+
+            if gdi_index == 1 % Input
+                sPL{1}.domain = isInput;
+                sPL{1}.direction = [2];
+                sPL{1}.value = 1;
+            elseif gdi_index == 2 % Output
+                sPL{1}.domain = isOutput;
+                sPL{1}.direction = [2];
+                sPL{1}.value = 1;
+            else
+                warning('Wrong GDI indeces');
+            end        
+
+            dirichletFun = [];
+            for i = 1:numel(sDir)
+                dir = DirichletCondition(obj.mesh, sDir{i});
+                dirichletFun = [dirichletFun, dir];
+            end
             
-            elseif strcmp(degree_type, "ty")
-                sDir{2}.domain    = isTop; % fixed
-                sDir{2}.direction = [1];
-                sDir{2}.value     = 0;
-
-                sDir{3}.domain    = isTop; % fixed
-                sDir{3}.direction = [2];
-                sDir{3}.value     = 1;
-
-            elseif strcmp(degree_type, "rz")
-                sDir{2}.domain    = isTop; % fixed
-                sDir{2}.direction = [1];
-                sDir{2}.value     = 1;
-
-                top_logical = isTop(obj.mesh.coord); % Obtain which nodes are top wall
-                top_coor    = obj.mesh.coord(top_logical, :); % coordinates of the top wall nodes
-
-                sDir{3}.domain    = isTop; % fixed
-                sDir{3}.direction = [2];
-                sDir{3}.value     = 1-2*(top_coor(:,1)-xmin)/Lx; % expression for the rotation of the top wall
-            end            
-
-
-            dirichletFun = [];
-            for i = 1:numel(sDir)
-                dir = DirichletCondition(obj.mesh, sDir{i});
-                dirichletFun = [dirichletFun, dir];
-            end
-            s.dirichletFun = dirichletFun;
-
-            s.pointloadFun = [];
-            s.periodicFun  = [];
-            s.mesh         = obj.mesh;
-            bc = BoundaryConditions(s);
-        end
-
-        function bc = createBoundaryConditionsAdjoint(obj) % must be modified
-
-            % the BC in the LS case have been modified, check if they are
-            % the same for comparison purposes
-            isDir   = @(coor)  coor(:,1)>=0 & coor(:,1)<=0.05 & coor(:,2)<=1e-8 | coor(:,1)<=1 & coor(:,1)>=0.95 & coor(:,2)<=1e-8; % bottom corners
-
-            isPLTop      = @(coor)  (coor(:,1) >= 0.45 & coor(:,1) <= 0.55 & coor(:,2) == 1 ); % top part of the domain (output)
-            isPLBottom   = @(coor)  (coor(:,1) >= 0.45 & coor(:,1) <= 0.55 & coor(:,2) == 0 );% bottom part of the domain (input)
-
-            sDir{1}.domain    = @(coor) isDir(coor); % fixed
-            sDir{1}.direction = [1,2];
-            sDir{1}.value     = 0;
-
-            sPL{1}.domain    = @(coor) isPLBottom(coor);
-            sPL{1}.direction = 2;
-            sPL{1}.value     = +1; % upward force on the input
-
-            sPL{2}.domain    = @(coor) isPLTop(coor);
-            sPL{2}.direction = 2;
-            sPL{2}.value     = +obj.k_case; % dummy load at the output
-
-            % NOTE: the order (index) of the input and output bc have been
-            % switched so that they coincide with the indeces used when
-            % computing the input and output costs separately
-
-            dirichletFun = [];
-            for i = 1:numel(sDir)
-                dir = DirichletCondition(obj.mesh, sDir{i});
-                dirichletFun = [dirichletFun, dir];
-            end
-            s.dirichletFun = dirichletFun;
-
             pointloadFun = [];
             for i = 1:numel(sPL)
                 pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
                 pointloadFun = [pointloadFun, pl];
             end
+
+            s.dirichletFun = dirichletFun;
             s.pointloadFun = pointloadFun;
 
             s.periodicFun  = [];
@@ -451,6 +322,76 @@ classdef Tutorial05_15_TopOpt2DLevelSetFlexures < handle
             bc = BoundaryConditions(s);
         end
     
+        function bc = createBoundaryConditionsMotionBased(obj, mp_index) 
+            isLeft =@(coor) coor(:,1) <= 1e-8;
+            isRight =@(coor) coor(:,1) >= 2-1e-8;
+
+            % Side walls fixed
+            sDir{1}.domain = isLeft;
+            sDir{1}.direction = [1,2];
+            sDir{1}.value = 0;
+
+            sDir{2}.domain = isRight;
+            sDir{2}.direction = [1,2];
+            sDir{2}.value = 0;
+
+            isInput =@(coor) coor(:,1) >= 0.9 & coor(:,1) <= 1.1 & coor(:,2) <= 1e-8;
+            isOutput =@(coor) coor(:,1) >= 0.9 & coor(:,1) <= 1.1 & coor(:,2) >= 1-1e-8;
+
+            % Free MP corresponds to upwards input movement with downwards
+            % output movement
+            sDir{3}.domain    = isInput;
+            sDir{3}.direction = 2;
+            sDir{3}.value     = 1;
+
+            sDir{4}.domain    = isOutput;
+            sDir{4}.direction = 2;
+            sDir{4}.value     = obj.J_MT;         
+            
+            dirichletFun = [];
+            for i = 1:numel(sDir)
+                dir = DirichletCondition(obj.mesh, sDir{i});
+                dirichletFun = [dirichletFun, dir];
+            end
+        
+            s.dirichletFun = dirichletFun;
+            s.pointloadFun = [];
+            s.periodicFun  = [];
+            s.mesh         = obj.mesh;
+            bc = BoundaryConditions(s);
+
+        end
+
+        function createComplianceFunctions(obj)
+            obj.complianceFuncs = cell(obj.nGDI,1);
+
+            for i = 1:obj.nGDI
+                sC.mesh = obj.mesh;
+                sC.stateProblem = obj.physicalProblemLoadBased{i};
+                compFromTensor = ComplianceFromConstitutiveTensor(sC);
+
+                s.mesh = obj.mesh;
+                s.filter = obj.filter;
+                s.material = obj.createMaterial();
+                s.complainceFromConstitutive = compFromTensor;
+                obj.complianceFuncs{i} = ComplianceFunctional(s);
+            end
+        end
+        
+        function createMotionBasedFunctions(obj)
+            % create a MotionBasedStrainEnergy per free MP
+            obj.motionBasedFuncs = cell(obj.nMP,1);
+
+            for i = 1:obj.nMP
+                s.mesh = obj.mesh;
+                s.filter = obj.filter;
+                s.gradientFilter = obj.createGradientFilter();
+                s.material = obj.createMaterial();
+                s.stateProblem = obj.physicalProblemMotionBased{i};
+                obj.motionBasedFuncs{i} = MotionBasedStrainEnergy(s);
+            end
+        end
+
         function printFinalDisplacement_v2(obj) % works
             % --- EXTRACT YOUR FINAL DATA ---
             % Replace 'obj' with whatever your main framework object is called at the end
