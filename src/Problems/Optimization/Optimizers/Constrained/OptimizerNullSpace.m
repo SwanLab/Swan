@@ -381,7 +381,7 @@ classdef OptimizerNullSpace < handle
             
             % Reshape to 2D grid, apply symmetry, reshape back
             vals_2d = reshape(vals, ny, nx); % mesh is nx x ny, represent as matrix
-            vals_2d = (vals_2d + flip(vals_2d, 1))/2;  % symmetry about y=0.5
+            %vals_2d = (vals_2d + flip(vals_2d, 1))/2;  % symmetry about y=0.5
             vals_2d = (vals_2d + flip(vals_2d, 2))/2;  % symmetry about x=0.5
             
             obj.designVariable.fun.setFValues(vals_2d(:)); % update values to the symmetric ones

@@ -32,7 +32,7 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
                 obj.J_MT = -1; % motion transmission. Input=1, J_MT corresponds to the output
                 obj.nGDI = 2;
                 obj.nMP = 1;
-                obj.Kp_bar = 0.001;
+                obj.Kp_bar = 0.005;
                 
                 obj.init();
                 obj.createMesh();
@@ -242,15 +242,15 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 300;
+            s.maxIter        = 600;
             s.tolerance      = 1e-8;
             nConstr=sum(obj.nMP);
             s.constraintCase = repmat({'INEQUALITY'},1,nConstr);
             s.primalUpdater  = obj.primalUpdater;
             s.ub             = 1;
             s.lb             = 0;
-            s.etaNorm        = 0.03; % max design change per iter, default was 0.02
-            s.gJFlowRatio    = 0.1; % "weight" of the constraint 0.1
+            s.etaNorm        = 0.1; % max design change per iter, default was 0.02
+            s.gJFlowRatio    = 0.05; % "weight" of the constraint 0.1
             s.gif            = false;
             s.gifName        = [];
             s.printing       = false;
@@ -364,12 +364,14 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
 
         function createComplianceFunctions(obj)
             obj.complianceFuncs = cell(obj.nGDI,1);
+            titles = {'Compliance input GDI', 'Compliance output GDI'};
 
             for i = 1:obj.nGDI
                 sC.mesh = obj.mesh;
                 sC.stateProblem = obj.physicalProblemLoadBased{i};
                 compFromTensor = ComplianceFromConstitutiveTensor(sC);
 
+                s.title = titles{i};
                 s.mesh = obj.mesh;
                 s.filter = obj.filter;
                 s.material = obj.createMaterial();

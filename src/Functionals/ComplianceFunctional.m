@@ -9,6 +9,7 @@ classdef ComplianceFunctional < handle
         filter
         compliance
         material
+        plotTitle
     end
 
     methods (Access = public)
@@ -33,6 +34,12 @@ classdef ComplianceFunctional < handle
             obj.compliance = cParams.complainceFromConstitutive;
             if isfield(cParams,'value0')
                 obj.value0 = cParams.value0;
+            end
+
+            if isfield(cParams, 'title')
+                obj.plotTitle = cParams.title;
+            else
+                obj.plotTitle = 'Compliance';
             end
         end
 
@@ -69,11 +76,15 @@ classdef ComplianceFunctional < handle
             end
         end
 
-    end
-
-    methods (Static, Access = public)
         function title = getTitleToPlot()
             title = 'Compliance';
         end
+
     end
+
+    % methods (Static, Access = public)
+    %     function title = getTitleToPlot()
+    %         title = 'Compliance';
+    %     end
+    % end
 end
