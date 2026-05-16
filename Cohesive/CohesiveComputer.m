@@ -126,7 +126,7 @@ classdef CohesiveComputer < handle
 
             if ismember(obj.boundaryConditions.type, "DoubleCantileverBeam")
                 idxNode = find(obj.mesh.coord(:,1) == max(obj.mesh.coord(:,1)) & (obj.mesh.coord(:,2) == max(obj.mesh.coord(:,2))));
-                dofYTopRight = (idxNode-1)*u.ndimf + 1;
+                dofYTopRight = (idxNode-1)*u.ndimf + 2;
                 totReact = abs(F(dofYTopRight));
                 uBC = obj.boundaryConditions.bcValues(step);
             end
@@ -155,18 +155,27 @@ classdef CohesiveComputer < handle
             obj.jump = Jump(s);
             obj.jump.updateJumpValues(u);
             dValues = obj.tractionSeparation.getDamageValues(obj.jump.fun);
+            dValues = dValues.evaluate([-1,1]);
+
+            temp1 = reshape(dValues,1,[]);
+            temp2 = temp1(2:end-1);
+            temp3 = reshape(temp2,2,size(temp2,2)/2);
+            temp4 = sum(temp3,1)*0.5;
+            dValues = [temp1(1),temp4,temp1(end)];
+
             dFun = LagrangianFunction.create(obj.cohesiveMesh.mesh,size(dValues,1),'P1');
+            dFun.setFValues(dValues);
         end
 
         function printAndSave(obj,iStep,uFun,dmgFun,uVal,fVal,energy,iterMax)
             dmgMax = max(dmgFun.fValues); 
-            obj.monitor.updateAndRefresh(step,{[fVal;uVal],[dmgMax;uVal],...
-                [],[dmgFun.fValues],[iterMax]});
+            obj.monitor.updateAndRefresh(iStep,{[fVal;uVal],[dmgMax;uVal],...
+                [energy],[dmgFun.fValues],[iterMax]});
             obj.saveData(iStep,uFun,dmgFun,uVal,fVal,energy,iterMax);
         end
 
 
-        function saveData(step,uFun,dmgFun,uVal,fVal,energy,iterMax)
+        function saveData(obj,step,uFun,dmgFun,uVal,fVal,energy,iterMax)
             s.uFun    = uFun;
             s.uVal    = uVal;
             s.fVal    = fVal;

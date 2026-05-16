@@ -40,7 +40,7 @@ classdef TractionBiliniarCoupled < handle
             d = min((obj.jumpFinal*(jumpNorm-obj.jumpCrit))./ ...
                 (jumpNorm*(obj.jumpFinal-obj.jumpCrit)),1);
             d = max(d,0);
-            fprintf('d range: [%e , %e]\n',min(d.evaluate([-1,1]),[],'all'), max(d.evaluate([-1,1]),[],'all'));
+            % fprintf('d range: [%e , %e]\n',min(d.evaluate([-1,1]),[],'all'), max(d.evaluate([-1,1]),[],'all'));
         end
     end
     

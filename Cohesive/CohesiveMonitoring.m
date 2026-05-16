@@ -51,8 +51,6 @@ classdef CohesiveMonitoring < handle
             obj.data.reaction(step)              = cParams.fVal;
             obj.data.damage.field{step}          = cParams.dmgFun;
             obj.data.damage.maxValue(step)       = max(cParams.dmgFun.fValues);
-            obj.data.qMaxValue(step)             = cParams.qMax;
-            obj.data.rMaxValue(step)             = cParams.rMax;
             obj.data.energy(step)                = cParams.energy;
             obj.data.iter(step)                  = cParams.numIter;
         end

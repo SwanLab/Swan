@@ -30,7 +30,7 @@ classdef TutorialCohesive < handle
             s.boundaryConditions     = obj.boundaryConditions;
             s.functional             = obj.functional;
             s.tolerance              = 1e-8;
-            s.maxIter                = 20;
+            s.maxIter                = 50;
             s.tractionLaw            = obj.tractionSeparation;
             
             s.monitoring.set         = true;
@@ -64,8 +64,7 @@ classdef TutorialCohesive < handle
 
         function createBoundaryConditions(obj,problem)
             bc.type = problem;
-            % bc.type = 'DisplacementTractionY';
-            bc.values = [0.05];
+            bc.values = 0:0.005:1;
             obj.boundaryConditions  = BoundaryConditionsCreator(obj.cohesiveMesh.fullMesh,bc);
         end
 
@@ -74,8 +73,8 @@ classdef TutorialCohesive < handle
             s.jumpFinal = 0.2;
             s.fractureStrength  = 1;
             s.fractureToughness = 1;
-            s.lawType = 'TractionBiliniarCoupled';
-            % s.lawType = 'TractionBiliniarUncoupled';
+            % s.lawType = 'TractionBiliniarCoupled';
+            s.lawType = 'TractionBiliniarUncoupled';
             obj.tractionSeparation = CohesiveTractionSeparation(s);
         end
 
