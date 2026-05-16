@@ -17,7 +17,7 @@ classdef TutorialCohesive < handle
         function obj = TutorialCohesive()
             
             problem      = 'DoubleCantileverBeam';
-            nameMesh     = 'M10by4';
+            nameMesh     = 'CollapsedMesh';
             obj.init();
             obj.createMesh(problem,nameMesh);
             obj.defineCase(problem);
@@ -70,7 +70,7 @@ classdef TutorialCohesive < handle
 
         function createTractionSeparation(obj)
             s.jumpCrit  = 0.001;
-            s.jumpFinal = 0.2;
+            s.jumpFinal = 0.02;
             s.fractureStrength  = 1;
             s.fractureToughness = 1;
             % s.lawType = 'TractionBiliniarCoupled';
@@ -102,18 +102,16 @@ classdef TutorialCohesive < handle
         function c = makeBenchmarkMesh(obj, problem,nameMesh)
             switch problem
                 case 'DoubleCantileverBeam'
-                    xmax = 72*0.001; y = 3.12 * 0.5 * 0.001;
+                    c.xCohLineMax = 72 * 0.001; c.yCohLine = 3.12 * 0.5 * 0.001;
                     a.fileName = nameMesh;
                     s = FemDataContainer(a);
                     c.baseMesh = s.mesh;
                 case 'DisplacementTractionY' 
-                    xmax = 10000; y = 0; c.baseMesh       = UnitQuadMesh(1,1);
+                    c.xCohLineMax = 10000; c.yCohLine = 0; c.baseMesh = UnitQuadMesh(1,1);
                 case 'DisplacementMixed'
-                    xmax = 10000; y = 0; c.baseMesh       = UnitQuadMesh(1,1);
+                    c.xCohLineMax = 10000; c.yCohLine = 0; c.baseMesh = UnitQuadMesh(1,1);
             end
 
-            c.isFracturedLine  = @(coord) abs(coord(:,2) - y) <= 1e-10;
-            c.isFracturedUntil = @(coord) coord(:,1) - xmax   <= 1e-10;
         end
 
     end

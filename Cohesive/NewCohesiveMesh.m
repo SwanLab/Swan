@@ -1,4 +1,4 @@
-classdef CohesiveMesh < handle
+classdef NewCohesiveMesh < handle
     
     properties (Access = public)
         fullMesh
@@ -11,7 +11,6 @@ classdef CohesiveMesh < handle
         listEdgeCohesiveReal
 
         pairsMatrix
-        isFracturedUntil
     end
     
     properties (Access = private)
@@ -25,13 +24,11 @@ classdef CohesiveMesh < handle
         separation
 
         nNodeCohesive
-
-        isFracturedLine
     end
     
     methods (Access = public)
         
-        function obj = CohesiveMesh(cParams)
+        function obj = NewCohesiveMesh(cParams)
             obj.init(cParams)
             edgesInCohElem = obj.detectFracturedEdges(cParams);
             newCoord    = obj.duplicateNodes();
@@ -66,6 +63,14 @@ classdef CohesiveMesh < handle
             obj.centerLineMesh = Mesh.create(s);
         end
 
+        function A = createMappingMatrix(obj)
+            listAllNodesInCoh = [obj.pairsMatrix(:,1);obj.pairsMatrix(:,2)];
+            ndim = obj.fullMesh.ndim;
+            dofsCohGlobal = reshape([ndim*listAllNodesInCoh-1; ndim*listAllNodesInCoh],1,[]);
+            nDofCoh   = length(dofsCohGlobal);
+            nDofTotal = obj.fullMesh.nnodes * ndim;
+            A = sparse(1:nDofCoh, dofsCohGlobal, 1, nDofCoh, nDofTotal);
+        end
     end
     
     methods (Access = private)
@@ -78,13 +83,42 @@ classdef CohesiveMesh < handle
         function edgesInCohElem = detectFracturedEdges(obj, cParams)
             centerEdges      = obj.computeCenterEdge();
 
+
             x = cParams.xCohLineMax;
             y = cParams.yCohLine;
-            obj.isFracturedLine  = abs(centerEdges(:,2) - y) <= 1e-10;
-            obj.isFracturedUntil = centerEdges(:,1) - x  <= 1e-10;
 
-            isEdgeCohesive   = obj.isFracturedLine & obj.isFracturedUntil;
-            % isEdgeCohesive   = cParams.isFractured(centerEdges);
+
+            isFracturedLine  = abs(centerEdges(:,2) - y) <= 1e-10;
+            isFracturedUntil = centerEdges(:,1) - x  <= 1e-10;
+
+
+            isEdgeCohesive        = isFracturedLine & isFracturedUntil;
+            isEdgeInitialFracture = isFracturedLine & not(isFracturedUntil);
+
+
+
+
+
+
+
+            
+
+
+
+
+            
+
+
+
+
+
+
+
+
+
+
+
+
 
             obj.listEdgeCohesiveReal = find(isEdgeCohesive);
             nodesInEdgesCohesive = obj.baseMesh.edges.nodesInEdges(obj.listEdgeCohesiveReal,:);
@@ -123,7 +157,7 @@ classdef CohesiveMesh < handle
         end
 
         function [isLeft, isRight] = computeIsLeftIsRight(obj,centerElemsInCohesiveEdge,normals,edgesInCohElem)
-            centerEdges  =obj.computeCenterEdge;
+            centerEdges      = obj.computeCenterEdge;
             temp             = ismember(edgesInCohElem, obj.listEdgeCohesiveReal);
             cohElemToEdge    = sum(edgesInCohElem .* temp, 2);    % (nElemCoh x 1) 
             centerElem       = centerElemsInCohesiveEdge;         % (nElemCoh x ndim)
@@ -148,13 +182,23 @@ classdef CohesiveMesh < handle
             obj.pairsMatrix = [sort(obj.listNodeCohesive) , linspace(obj.baseMesh.nnodes+1, ...
                 obj.baseMesh.nnodes+obj.nNodeCohesive,obj.nNodeCohesive)'];
             obj.isNodeCohesive = [obj.isNodeCohesive; ones(obj.nNodeCohesive,1)];
+
         end
 
         function newConnec = updateConnecOfLeftElements(obj,isLeft,newCoord)
             listLeftElems  = obj.listElemNextCohesive(isLeft);
-            connec         = obj.baseMesh.connec;
+
+            nodes = obj.pairsMatrix(:,1);
+            coords = obj.baseMesh.coord(nodes);
+
+            isPrescribedFractureNode = (coords(:,1) > obj.xMax);
+
+
+
+
+            % pM2 = obj.pairsMatrix(,:)
             cohesiveConnec = [obj.pairsMatrix(1:end-1,1), obj.pairsMatrix(2:end,1),   obj.pairsMatrix(2:end,2), obj.pairsMatrix(1:end-1,2)];
-            connec         = [connec; cohesiveConnec];
+            connec         = [obj.baseMesh.connec; cohesiveConnec];
 
             obj.listCohesiveElems = ((size(connec,1)-size(cohesiveConnec,1)+1):size(connec,1))';
             oldLeftConnec = connec(listLeftElems,:);
@@ -212,7 +256,7 @@ classdef CohesiveMesh < handle
 
         function  newConnec = fixFinalElement(obj,cParams,newConnec)
             centerEdges      = obj.computeCenterEdge();
-            listEdgeCohesiveFull = find(obj.isFracturedLine);
+            listEdgeCohesiveFull = find(cParams.isFracturedLine(centerEdges));
             difference = listEdgeCohesiveFull(not(ismember(listEdgeCohesiveFull,obj.listEdgeCohesiveReal)));
             if not(isempty(difference))
                 nodes = obj.baseMesh.edges.nodesInEdges(difference,:);
