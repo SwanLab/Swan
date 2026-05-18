@@ -52,6 +52,7 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
                 obj.createPrimalUpdater();
                 obj.createOptimizer();
 
+                obj.motionTransmissionAccuracy(); % Compute motion transmission accuracy
                 obj.printFinalDisplacement_v3(); % print document with the final FEM displacements
                 obj.printFinalDesignVariable(); % print final design variable
                 obj.saveFigures(); % save matlab figures (design variable and monitoring)
@@ -244,7 +245,7 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 300;
+            s.maxIter        = 10;
             s.tolerance      = 1e-8;
             nConstr = sum(obj.nMP)+1;
             s.constraintCase = repmat({'INEQUALITY'},1,nConstr);
@@ -394,6 +395,85 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
                 s.stateProblem = obj.physicalProblemMotionBased{i};
                 obj.motionBasedFuncs{i} = MotionBasedStrainEnergy(s);
             end
+        end
+
+        function motionTransmissionAccuracy(obj)
+
+           s.mesh = obj.mesh;
+           s.scale = 'MACRO';
+           s.material = obj.createMaterial();
+           s.dim = '2D';
+           s.boundaryConditions = obj.createBoundaryConditionsMotionTransmission();
+           s.interpolationType = 'LINEAR';
+           s.solverType = 'REDUCED';
+           s.solverMode = 'DISP'; 
+           s.solverCase = DirectSolver();
+           fem = ElasticProblem(s);
+           fem.solve();
+
+           % Read displacements
+           uFun = fem.uFun;
+           coor= obj.mesh.coord;
+           uVals = uFun.fValues;
+
+           % Select output displacement
+           isOutput    = @(coor) coor(:,1) >= 0.9 & coor(:,1) <= 1.1 & coor(:,2) >= 1-1e-8;
+           outputNodes = isOutput(coor);
+           
+           xD         = obj.designVariable.fun.fValues;
+           outputDens = xD(outputNodes);
+           solidMask  = outputDens > 0.5;
+           
+           u_out_all = uVals(outputNodes, 2);
+           u_out = mean(u_out_all(solidMask));
+
+           % Motion transmission
+           u_in = 1;
+           MT = u_out / u_in;
+           eta = 100 - abs(MT/obj.J_MT-1)*100;
+
+           % Print results
+           fprintf('\n--- Motion Transmission Accuracy ---\n');
+           fprintf('J*    = %.4f (desired)\n', obj.J_MT);
+           fprintf('J     = %.4f (obtained)\n', MT);
+           fprintf('eta   = %.2f %%\n', eta);
+           fprintf('------------------------------------\n');
+           
+        end
+
+        function bc = createBoundaryConditionsMotionTransmission(obj)
+            isLeft =@(coor) coor(:,1) <= 1e-8;
+            isRight =@(coor) coor(:,1) >= 2-1e-8;
+
+            % Side walls fixed
+            sDir{1}.domain = isLeft;
+            sDir{1}.direction = [1,2];
+            sDir{1}.value = 0;
+
+            sDir{2}.domain = isRight;
+            sDir{2}.direction = [1,2];
+            sDir{2}.value = 0;
+
+            isInput =@(coor) coor(:,1) >= 0.9 & coor(:,1) <= 1.1 & coor(:,2) <= 1e-8;
+
+            sDir{3}.domain = isInput;
+            sDir{3}.direction = [2];
+            sDir{3}.value = 1;    
+
+            dirichletFun = [];
+            for i = 1:numel(sDir)
+                dir = DirichletCondition(obj.mesh, sDir{i});
+                dirichletFun = [dirichletFun, dir];
+            end
+            
+            pointloadFun = [];
+
+            s.dirichletFun = dirichletFun;
+            s.pointloadFun = pointloadFun;
+
+            s.periodicFun  = [];
+            s.mesh         = obj.mesh;
+            bc = BoundaryConditions(s);
         end
 
         function printFinalDisplacement_v2(obj) % works
