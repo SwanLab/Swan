@@ -13,9 +13,9 @@ t2=1e-6:0.05:0.7;
 t1=0.1;
 % t2=0.1;
 
-p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale'
-p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
-p.nelem      = 10;
+p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
+p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
+p.nelem      = 7;
 meshName     = p.nelem+"x"+p.nelem;
 
 %% DATA GENERATION
@@ -26,7 +26,7 @@ for i=1:size(t1,2)
         switch p.Training
             case 'Multiscale'
                 p.Sampling = 'Isolated';
-                [material,mT]   = createMaterial(mR,[1 1],'Material',g);
+                [material,mT]   = createMaterial(mR,[1 1 1],'Material',g);
                 mesh       = mR;
                 bMesh      = mesh.createSingleBoundaryMesh();
                 s.mesh          = mesh;
@@ -49,7 +49,7 @@ for i=1:size(t1,2)
                 s.unfittedMesh = mT.unfittedMesh;
                 m= EIFEMTraining(s);
                 data          = m.train();
-                [data.material,mTr] = createMaterial(mR,[1 1],'Material',g);
+                [data.material,mTr] = createMaterial(mR,[1 1 1],'Material',g);
                 data.dirac=true;
                 z = OfflineDataProcessor(data);
                 
@@ -220,6 +220,7 @@ function g=computeLevelSet(t1,t2)
     gPar.length       = 2;
     gPar.xCoorCenter  = 0;
     gPar.yCoorCenter  = 0;
+    gPar.zCoorCenter  = 0;
     gPar.tFrame       = t1;
     gPar.tCross       = t2;
     g                 = GeometricalFunction(gPar);

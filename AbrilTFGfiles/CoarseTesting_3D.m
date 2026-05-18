@@ -69,8 +69,8 @@ classdef CoarseTesting_3D< handle
             tic
             LHSf   = @(x) LHS*x;
             RHSf   = RHS;
-            Usol   = LHS\RHS;
-            Ufull  = obj.bcApplier.reducedToFullVectorDirichlet(Usol); 
+            % Usol   = LHS\RHS;
+            % Ufull  = obj.bcApplier.reducedToFullVectorDirichlet(Usol); 
             t_direct=toc
 
             % PRECONDITIONERS
@@ -194,12 +194,12 @@ classdef CoarseTesting_3D< handle
             obj.params      = p;
             if isfield(cParams,'r')
                 obj.r       = cParams.r;
+                [Ny,Nx,Nz] = size(obj.r);
             elseif isfield(cParams,'tFrame')
                 obj.tFrame  = cParams.tFrame;
                 obj.tCross  = cParams.tCross;
+                [Ny,Nx,Nz] = size(obj.tFrame);
             end
-            
-            [Ny,Nx,Nz] = size(obj.r);
             obj.nSubdomains = [Nx Ny Nz];
             % obj.nSubdomains = [35 1 1];    % UNCOMMENT JUST FOR AIRFOIL
             obj.tolSameNode = 1e-11;   % 1E-10--> general case   1E-6 --> airfoil
@@ -451,6 +451,7 @@ classdef CoarseTesting_3D< handle
             uMesh.compute(-ls);
             Mprint=UnfittedMesh(sUm);
             Mprint.compute(ls);
+            aa=Mprint.createInnerMesh;
             obj.unfittedMesh=Mprint;
             funLS        = CharacteristicFunction.create(uMesh);
             s.filterType = 'LUMP';
@@ -466,7 +467,10 @@ classdef CoarseTesting_3D< handle
 
          function ls=computeLevelSet(obj)
             [x0,y0,z0] = obj.computeSubdomainCentroid();
-            [Nx,Ny,Nz] = size(obj.r);
+            Nx=obj.nSubdomains(2);
+            Ny=obj.nSubdomains(1);
+            Nz=obj.nSubdomains(3);
+            % [Nx,Ny,Nz] = size(obj.r);
             GeomParams(Nx,Ny,Nz) = struct('type',[],'radius',[],'xCoorCenter',[],'yCoorCenter',[],'zCoorCenter',[]);
 
             switch obj.params.Geometry
@@ -502,10 +506,10 @@ classdef CoarseTesting_3D< handle
                             for k = 1:Nz
                                 GeomParams(i,j,k).type        = "CrossedSquare3D";
                                 GeomParams(i,j,k).length      = 2;
-                                GeomParams(i,j,k).tFrame      = obj.tFrame(i,j);
-                                GeomParams(i,j,k).tCross      = obj.tCross(i,j);
-                                GeomParams(i,j,k).xCoorCenter = x0(i,j);
-                                GeomParams(i,j,k).yCoorCenter = y0(i,j);
+                                GeomParams(i,j,k).tFrame      = obj.tFrame(i,j,k);
+                                GeomParams(i,j,k).tCross      = obj.tCross(i,j,k);
+                                GeomParams(i,j,k).xCoorCenter = x0(i,j,k);
+                                GeomParams(i,j,k).yCoorCenter = y0(i,j,k);
                                 GeomParams(i,j,k).zCoorCenter = z0(i,j,k);
                             end
                         end

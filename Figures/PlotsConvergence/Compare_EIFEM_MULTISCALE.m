@@ -15,13 +15,17 @@ s.Print     = false;
 s.fileNameEIFEM = [];
 
 % UNIFORM DISTRIBUTION
-s.r = ones(3,10)*0.8;
+% s.r = ones(3,10)*0.8;
 
 % NON-UNIFORM DISTRIBUTION
-% s.r= [ 0.25, 0.40, 0.55, 0.20, 0.45, 0.60, 0.35, 0.25, 0.50, 0.30;
-%        0.50, 0.20, 0.35, 0.60, 0.25, 0.40, 0.45, 0.55, 0.30, 0.20;
-%        0.35, 0.55, 0.45, 0.30, 0.50, 0.25, 0.60, 0.40, 0.20, 0.55];
+s.r= [ 0.25, 0.40, 0.55, 0.20, 0.45, 0.60, 0.35, 0.25, 0.50, 0.30;
+       0.50, 0.20, 0.35, 0.60, 0.25, 0.40, 0.45, 0.55, 0.30, 0.20;
+       0.35, 0.55, 0.45, 0.30, 0.50, 0.25, 0.60, 0.40, 0.20, 0.55];
 
+% OUT DATASET
+% s.r= [ 0.275, 0.40, 0.575, 0.2250, 0.45, 0.6250, 0.375, 0.275, 0.54, 0.3250;
+%        0.530, 0.2750, 0.375, 0.6250, 0.275, 0.430, 0.475, 0.525, 0.3250, 0.2250;
+%        0.375, 0.575, 0.425, 0.3250, 0.5250, 0.275, 0.6250, 0.430, 0.230, 0.575];
 
 
 % MULTISCALE ISOLATED
@@ -29,18 +33,18 @@ s.Training  = 'Multiscale';
 s.Sampling  = 'Isolated';
 Mult= CoarseTesting_2D(s);
 Mult.compute();
-
-% MULTISCALE ISOLATED + NN
-s.Option = 'NN';
-Mult_NN  = CoarseTesting_2D(s);
-Mult_NN.compute();
+% 
+% % MULTISCALE ISOLATED + NN
+% s.Option = 'NN';
+% Mult_NN  = CoarseTesting_2D(s);
+% Mult_NN.compute();
 
 % EIFEM ISOLATED
-s.Training  = 'EIFEM';
-s.Sampling  = 'Isolated';
-s.Option    = 'Dataset';
-EIFE_IS= CoarseTesting_2D(s);
-EIFE_IS.compute();
+% s.Training  = 'EIFEM';
+% s.Sampling  = 'Isolated';
+% s.Option    = 'Dataset';
+% EIFE_IS= CoarseTesting_2D(s);
+% EIFE_IS.compute();
 
 
 % EIFEM OVERSAMPLING
@@ -151,9 +155,11 @@ s.Training  = [];             % 'EIFEM'/'Multiscale'/'EIFisol'
 s.Sampling  = [];           % 'Isolated'/'Oversampling'
 s.Inclusion = 'Hole';       % 'Hole'/'Material'/  --> Hole: just for imported meshes or constant geometry
 s.Option    = 'Direct';     % 'Dataset'/'NN'/'HO'/ 'Hybrid'/'Direct
-s.r         = [];
+s.r         = ones(3,10)*0.8;
 s.nelem     = [];            %  Mesh refining
 s.fileNameEIFEM = 'r_0.8_test_interior_refinement.mat';
+% s.fileNameEIFEM = 'r0.8_RaulOversampling';
+% s.fileNameEIFEM = 'r0.8_RaulMultiscale';
 testDirect  = CoarseTesting_2D(s);
 testDirect.compute();
 
@@ -166,8 +172,8 @@ s.Option    = 'Dataset';          % 'Dataset'/'NN'
 s.nelem     =  30;                %  Mesh refining
 
 % % UNIFORM DISTRIBUTION
-s.tFrame = ones(3,10)*0.15;
-s.tCross = ones(3,10)*0.1;
+s.tFrame = ones(6,30)*0.25;
+s.tCross = ones(6,30)*0.4;
 % 
 
 %NON-UNIFORM DISTRIBUTION
@@ -182,8 +188,8 @@ s.tCross = ones(3,10)*0.1;
 % MULTISCALE ISOLATED
 s.Training  = 'Multiscale';
 s.Sampling  = 'Isolated';
-Mult= CoarseTesting_2Params(s);
-Mult.compute();
+% Mult= CoarseTesting_2Params(s);
+% Mult.compute();
 
 % MULTISCALE + NN
 s.Option = 'NN';
@@ -243,21 +249,21 @@ s.fileNameEIFEM = [];
 s.nelem     =  15;                %  Mesh refining
 
 % UNIFORM DISTRIBUTION
-s.r = ones(2,6,2)*0.8;
+s.r = ones(3,8,3)*0.4;
 
 % s.fileNameEIFEM = 'Sphere_r04_Mult.mat';
 
 % NON UNIFORM DISTRIBUTION
-s.r= zeros(2,6,2);
-s.r(:,:,1) = [
-    0.25, 0.45, 0.60, 0.35, 0.20, 0.55;
-    0.50, 0.30, 0.25, 0.65, 0.40, 0.35
-];
-
-s.r(:,:,2) = [
-    0.60, 0.20, 0.45, 0.55, 0.30, 0.65;
-    0.35, 0.50, 0.25, 0.40, 0.60, 0.25
-];
+% s.r= zeros(2,6,2);
+% s.r(:,:,1) = [
+%     0.25, 0.45, 0.60, 0.35, 0.20, 0.55;
+%     0.50, 0.30, 0.25, 0.65, 0.40, 0.35
+% ];
+% 
+% s.r(:,:,2) = [
+%     0.60, 0.20, 0.45, 0.55, 0.30, 0.65;
+%     0.35, 0.50, 0.25, 0.40, 0.60, 0.25
+% ];
 
 
 % Multiscale
@@ -315,10 +321,10 @@ s.Inclusion = 'Material';         % 'Hole'/'Material'/  --> Hole: just for impor
 s.Option    = 'Dataset';          % % 'Dataset'/'NN'/'Direct
 s.Geometry  = 'Cube';
 s.fileNameEIFEM = [];
-s.nelem     =  15;                %  Mesh refining
+s.nelem     =  20;                %  Mesh refining
 
 % UNIFORM DISTRIBUTION
-s.r = ones(2,6,2)*1.8;
+s.r = ones(8,4,3)*1;
 
 % NON UNIFORM DISTRIBUTION
 % s.r= zeros(2,6,2);
@@ -376,6 +382,78 @@ legend({'CG', 'ILU', 'ILU-Multiscale-ILU','ILU-Multiscale with NN-ILU','ILU-EIFE
 % ylim([10^-9 10^3]);
 % xlim([0 4061]);
 
+
+
+%% 3D CASE - Lattice
+
+pos= [545   315   673   498];
+% case parameters
+s.Training  = 'Multiscale';       % 'EIFEM'/'Multiscale'/'EIFisol'
+s.Inclusion = 'Material';         % 'Hole'/'Material'/  --> Hole: just for imported meshes or constant geometry
+s.Option    = 'Dataset';          % % 'Dataset'/'NN'/'Direct
+s.Geometry  = 'Lattice3D';
+s.fileNameEIFEM = [];
+s.nelem     =  10;                %  Mesh refining
+
+% UNIFORM DISTRIBUTION
+s.tFrame = ones(6,2,2)*0.25;
+s.tCross = ones(6,2,2)*0.2;
+
+% NON UNIFORM DISTRIBUTION
+% s.r= zeros(2,6,2);
+% s.r(:,:,1) = [
+%     0.6, 1.2, 0.5, 1.7, 0.9, 1.4;
+%     1.1, 0.8, 1.5, 0.7, 1.3, 1.0];
+% 
+% s.r(:,:,2) = [
+%    1.6, 0.5, 1.1, 1.4, 0.8, 1.7;
+%    0.9, 1.3, 0.6, 1.2, 1.5, 0.7];
+
+
+% Multiscale
+Latt_Mult= CoarseTesting_3D(s); 
+Latt_Mult.compute();
+
+s.Option    = 'NN';   
+Latt_NN= CoarseTesting_3D(s);
+Latt_NN.compute();
+
+
+% EIFEM Isolated
+s.Option    = 'Dataset';  
+s.Training  = 'EIFisol';
+Latt_Iso= CoarseTesting_3D(s);
+Latt_Iso.compute();
+
+
+% EIFEM Oversampling
+s.Training  = 'EIFEM';
+Latt_Over= CoarseTesting_3D(s);
+Latt_Over.compute();
+
+
+
+figure
+set(gcf, 'Position', pos) 
+plot(Cub_Mult.residualCG,'linewidth',2)
+hold on
+plot(Cub_Mult.residualILU,'linewidth',2)
+hold on
+plot(Cub_Mult.residualPCG,'linewidth',2)
+hold on
+plot(Cub_NN.residualPCG,'linewidth',2)
+hold on
+plot(Cub_Iso.residualPCG,'linewidth',2)
+hold on
+plot(Cub_Over.residualPCG,'linewidth',2)
+set(gca, 'YScale', 'log')
+xlabel('Iteration')
+ylabel('Residual')
+title("Residual evolution")
+
+legend({'CG', 'ILU', 'ILU-Multiscale-ILU','ILU-Multiscale with NN-ILU','ILU-EIFEM(Isolated)-ILU','ILU-EIFEM(Oversampling)-ILU'});
+% ylim([10^-9 10^3]);
+% xlim([0 4061]);
 
 
 %% 3D CASE - AIRFOIL
