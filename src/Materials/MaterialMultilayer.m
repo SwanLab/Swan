@@ -178,13 +178,14 @@ classdef MaterialMultilayer < handle
                     nu_k = obj.nu(kLayer, 1);
                 end
                 
-                lambda = E_k * nu_k / ((1 + nu_k) * (1 - 2*nu_k));                
-                C_matrix = lambda * [1-nu_k, nu_k,   nu_k,   0,             0,             0;
-                                     nu_k,   1-nu_k, nu_k,   0,             0,             0;
-                                     nu_k,   nu_k,   1-nu_k, 0,             0,             0;
-                                     0,      0,      0,      (1-2*nu_k),    0,             0;
-                                     0,      0,      0,      0,             (1-2*nu_k),    0;
-                                     0,      0,      0,      0,             0,             (1-2*nu_k)];
+                lambda = E_k * nu_k / ((1 + nu_k) * (1 - 2*nu_k));
+                mu     = E_k / (2 * (1 + nu_k));
+                C_matrix = [lambda+2*mu, lambda,      lambda,      0,           0,           0;
+                            lambda,      lambda+2*mu, lambda,      0,           0,           0;
+                            lambda,      lambda,      lambda+2*mu, 0,           0,           0;
+                            0,           0,           0,           mu,          0,           0;
+                            0,           0,           0,           0,           mu,          0;
+                            0,           0,           0,           0,           0,           mu];
                 
             else
                 E1 = obj.E(kLayer, 1);

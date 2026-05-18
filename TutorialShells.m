@@ -554,37 +554,16 @@ classdef TutorialShells < handle
                     materialName = {'EpT'; 'EpT'; 'EpT'; 'EpT'; 'EpT';
                         'EpT'; 'EpT'; 'EpT'; 'EpT'; 'EpT'};
 
-                    % max_thickness = 0.5;
-                    % % Rotation = [0; 0; 90; -45; 45; 45; -45; 90; 0; 0];  % degrees
-                    % Rotation = [0; 0; 45; -45; 90; 90; -45; 45; 0; 0];  % degrees
-                    % Rotation = 25*ones(size(materialName)) + Rotation;
+                    max_thickness = 0.5;
+                    Rotation = [0; 0; 45; -45; 90; 90; -45; 45; 0; 0];  % degrees
+                    Rotation = 25*ones(size(materialName)) + Rotation;
                     
-                    % % Auto-distribute thickness
-                    % nLayers = length(materialName);
-                    % h = max_thickness / nLayers * ones(nLayers, 1);
+                    % Auto-distribute thickness
+                    nLayers = length(materialName);
+                    h = max_thickness / nLayers * ones(nLayers, 1);
                     obj.dampingRatio = 0.015;
 
-                    h = [0.269142;
-                        0.499613;
-                        0.010376;
-                        0.010515;
-                        0.010463;
-                        0.010463;
-                        0.010515;
-                        0.010376;
-                        0.499613;
-                        0.269142];
-
-                    Rotation = [13.4736;
-                        16.2312;
-                        70.1305;
-                        -19.0241;
-                        114.9942;
-                        114.9942;
-                        -19.0241;
-                        70.1305;
-                        16.2312;
-                        13.4736];
+                 
 
                 case 'Aluminium'
                     materialName = {'Aluminum'};
