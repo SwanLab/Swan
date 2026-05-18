@@ -97,15 +97,15 @@ classdef CoarseTesting_2D< handle
             % uDomain = obj.ddDofManager.global2local(uDomain);
             
             % LAGRANGIAN FUN SOLUTIONS
-            % s.mesh     = obj.meshDomain;
-            % s.order    = 'P1';
-            % s.fValues  = reshape(xFull,2,[])';
-            % obj.Sol    = LagrangianFunction(s); %Preconditioned sol  
-            % s.fValues = reshape(Ufull,2,[])';
-            % obj.SolExact=LagrangianFunction(s); %Exact sol
+            s.mesh     = obj.meshDomain;
+            s.order    = 'P1';
+            s.fValues  = reshape(xFull,2,[])';
+            obj.Sol    = LagrangianFunction(s); %Preconditioned sol  
+            s.fValues = reshape(Ufull,2,[])';
+            obj.SolExact=LagrangianFunction(s); %Exact sol
             % obj.SolExact.print("OutSolPCG");
 
-            % obj.print(xFull,"1stIterNonUniformCircles");
+            % obj.print(xFull,"1stIterLargeCircles_Raul");
             % obj.print(Ufull,"SolExactNonUniformCircles");
             %CoarsePlotSolution(uFun, obj.meshDomain, obj.bcApplier,'TestCoarseAbril', obj.r, obj.centroids);
             %CoarsePlotSolution(RealFun, obj.meshDomain, obj.bcApplier,'TestRealAbril', obj.r, obj.centroids);
@@ -187,7 +187,7 @@ classdef CoarseTesting_2D< handle
             obj.params         = p;
             obj.r              = cParams.r;
             obj.nSubdomains    = size(obj.r');
-            obj.nSubdomains    = [10,3];              % Uncomment just for 'Direct'  
+            % obj.nSubdomains    = [10,3];              % Uncomment just for 'Direct'  
             obj.fileNameEIFEM  = cParams.fileNameEIFEM;
             obj.tolSameNode = 1e-11;
         end
@@ -293,6 +293,8 @@ classdef CoarseTesting_2D< handle
             load(obj.fileNameEIFEM);
             s.coord    = EIFEoper.mesh.coord;
             s.connec   = EIFEoper.mesh.connec;
+            % s.coord    = mesh.coord;
+            % s.connec   = mesh.connec;
 
             obj.xmin = min(s.coord(:,1));            
             obj.xmax = max(s.coord(:,1));

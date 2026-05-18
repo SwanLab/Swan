@@ -555,7 +555,7 @@ classdef CoarseTesting_3D< handle
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
             s.interpolation  = 'SIMPALL';
-            s.dim            = '2D';
+            s.dim            = '3D';
             s.matA           = matA;
             s.matB           = matB;
 
@@ -667,30 +667,31 @@ classdef CoarseTesting_3D< handle
                     filePath = fullfile("AbrilTFGfiles","Data",p.Geometry,p.Training,"T_NN.mat");
                     load(filePath,"T_NN","pol_deg");
             end
-
-            [Nx,Ny,Nz]=size(obj.r);
+            Nx=obj.nSubdomains(2);
+            Ny=obj.nSubdomains(1);
+            Nz=obj.nSubdomains(3);
             RVE = cell(Nx,Ny,Nz);
 
             % U=obj.computeT_NN2(T_NN,pol_deg);
 
-
-
             for i = 1:Nx
                 for j = 1:Ny
                     for k = 1:Nz
-                    RVE{i,j,k}.ndimf = 3;
+                        RVE{i,j,k}.ndimf = 3;
 
-                    switch p.Option
-                        case 'Dataset'
-                            RVE{i,j,k}.Kcoarse= obj.data.K{i,j,k};
-                            RVE{i,j,k}.U= obj.data.T{i,j,k}; 
-                        case 'NN'
-                            RVE{i,j,k}.Kcoarse = computeKcoarse_NN(K_NN,obj.r(i,j,k),24);
-                            RVE{i,j,k}.U       = computeT_NN(obj.referenceMesh,obj.r(i,j,k),T_NN,pol_deg);
-                        case 'Hybrid'
-                            RVE{i,j,k}.Kcoarse = computeKcoarse_NN(K_NN,obj.r(i,j,k),24);
-                            RVE{i,j,k}.U       = computeT_Hybrid(basis,obj.r(i,j,k),Q_NN,pol_deg);
-                    end
+                        switch p.Option
+                            case 'Dataset'
+                                RVE{i,j,k}.Kcoarse= obj.data.K{i,j,k};
+                                RVE{i,j,k}.U= obj.data.T{i,j,k};
+                            case 'NN'
+                                if ~isempty(obj.r)
+                                    RVE{i,j,k}.Kcoarse = computeKcoarse_NN(K_NN,obj.r(i,j,k),24);
+                                    RVE{i,j,k}.U       = computeT_NN(obj.referenceMesh,obj.r(i,j,k),T_NN,pol_deg);
+                                elseif ~isempty(obj.tFrame)
+                                    RVE{i,j,k}.Kcoarse = computeKcoarse_NN(K_NN,[obj.tFrame(i,j,k),obj.tCross(i,j,k)],24);
+                                    RVE{i,j,k}.U       = computeT_NN(obj.referenceMesh,[obj.tFrame(i,j,k),obj.tCross(i,j,k)],T_NN,pol_deg);
+                                end
+                        end
                     end
                 end
             end
@@ -715,14 +716,28 @@ classdef CoarseTesting_3D< handle
 
         function NameFile=computeNameFile(obj)
             n=obj.params.nelem;
-            [Nx,Ny,Nz] = size(obj.r);
             meshName=n+"x"+n;
+            Nx=obj.nSubdomains(2);
+            Ny=obj.nSubdomains(1);
+            Nz=obj.nSubdomains(3);
             name=strings(Nx,Ny,Nz);
-
-            for i = 1:Nx
-                for j = 1:Ny
-                    for k = 1:Nz
-                        name(i,j,k) = strrep("r"+num2str(obj.r(i,j,k), '%.4f'), ".", "_")+"-"+meshName+".mat";
+            
+            if ~isempty(obj.r)                
+                for i = 1:Nx
+                    for j = 1:Ny
+                        for k = 1:Nz
+                            name(i,j,k) = strrep("r"+num2str(obj.r(i,j,k), '%.4f'), ".", "_")+"-"+meshName+".mat";
+                        end
+                    end
+                end
+            elseif ~isempty(obj.tFrame)
+                t1=obj.tFrame;
+                t2=obj.tCross;
+                for i = 1:Nx
+                    for j = 1:Ny
+                        for k = 1:Nz
+                            name(i,j,k) = strrep("t1_"+num2str(t1(i,j,k), '%.2f'), ".", "_")+strrep("_t2_"+num2str(t2(i,j,k), '%.2f'), ".", "_")+"-"+meshName+".mat";
+                        end
                     end
                 end
             end
