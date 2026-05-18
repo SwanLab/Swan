@@ -29,10 +29,10 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
     methods (Access = public)
 
         function obj = Tutorial05_15_TopOpt2DDensity_CM_Inverter()
-                obj.J_MT = -1; % motion transmission. Input=1, J_MT corresponds to the output
+                obj.J_MT = -0.5; % motion transmission. Input=1, J_MT corresponds to the output
                 obj.nGDI = 2;
                 obj.nMP = 1;
-                obj.Kp_bar = 0.5;
+                obj.Kp_bar = 0.01;
                 
                 obj.init();
                 obj.createMesh();
@@ -80,7 +80,7 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) 0.1*ones(size(x(1,:,:)));
+            s.fHandle = @(x) 0.25*ones(size(x(1,:,:)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);
@@ -344,11 +344,11 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
             % output movement
             sDir{3}.domain    = isInput;
             sDir{3}.direction = 2;
-            sDir{3}.value     = 1;
+            sDir{3}.value     = sqrt(1/(1+obj.J_MT^2)); % i^2 + o^2 = 1 --> i^2 + J^2*i^2 = 1 --> i = sqrt(1/(1+J^2)) 
 
             sDir{4}.domain    = isOutput;
             sDir{4}.direction = 2;
-            sDir{4}.value     = obj.J_MT;         
+            sDir{4}.value     = obj.J_MT*sqrt(1/(1+obj.J_MT^2)); % o = J*i        
             
             dirichletFun = [];
             for i = 1:numel(sDir)

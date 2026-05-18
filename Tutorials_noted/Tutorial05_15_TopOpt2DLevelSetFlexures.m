@@ -108,7 +108,7 @@ classdef Tutorial05_15_TopOpt2DLevelSetFlexures < handle
         end
 
         function createDesignVariable(obj) % from tutorial 3
-            s.type = 'Full';
+            s.type = 'Holes';
             % For Holes
             s.dim = 2;
             s.nHoles = [80, 80];
