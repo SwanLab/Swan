@@ -199,7 +199,7 @@ classdef NonLinearFilterSegment < handle
             x    = LHS\RHS;
             %rhoi = max(obj.lb,min(obj.ub,x));
             rhoi = x;
-            obj.trial.setFValues(rhoi);
+            obj.trial.setFValues(full(rhoi));
             %obj.isBoundFree = find((x-rhoi)==0);
         end
 
@@ -221,7 +221,7 @@ classdef NonLinearFilterSegment < handle
             Ms   = diag(sum(Ms,1));
             fVal = Ms\(rhs1+rhs2+rhs3);
             dJ   = copy(obj.trial);
-            dJ.setFValues(fVal);
+            dJ.setFValues(full(fVal));
         end
 
         function [rhs1,rhs2,rhs3] = computeCostGateaux(obj,quadOrder)
