@@ -1,4 +1,4 @@
-classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
+classdef Tutorial05_15_TopOpt2DDensity_DeformableMirror < handle
 
     properties (Access = private)
         filename 
@@ -24,15 +24,21 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
         Kp_bar
         complianceFuncs
         motionBasedFuncs
+        height % height of the domain (full)
+        width % half of the domain (for symmetry)
+        amplitude % amplitude of the sine/cosine MP
     end
 
     methods (Access = public)
 
-        function obj = Tutorial05_15_TopOpt2DDensity_CM_Inverter()
+        function obj = Tutorial05_15_TopOpt2DDensity_DeformableMirror()
                 obj.J_MT = -0.5; % motion transmission. Input=1, J_MT corresponds to the output
-                obj.nGDI = 2;
-                obj.nMP = 1;
+                obj.nGDI = 3;
+                obj.nMP = 2;
                 obj.Kp_bar = 0.01;
+                obj.height = 1;
+                obj.width = 1;
+                obj.amplitude = 0.05*obj.height;
                 
                 obj.init();
                 obj.createMesh();
@@ -52,7 +58,7 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
                 obj.createPrimalUpdater();
                 obj.createOptimizer();
 
-                obj.motionTransmissionAccuracy(); % Compute motion transmission accuracy
+                %obj.motionTransmissionAccuracy(); % Compute motion transmission accuracy
                % obj.printFinalDisplacement_v3(); % print document with the final FEM displacements
                % obj.printFinalDesignVariable(); % print final design variable
                % obj.saveFigures(); % save matlab figures (design variable and monitoring)
@@ -68,8 +74,8 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
 
         function createMesh(obj) % 2:1 mesh for the inverter
             % Generate coordinates
-            x1 = linspace(0,2,200);
-            x2 = linspace(0,1,100);
+            x1 = linspace(0,obj.width,200);
+            x2 = linspace(0,obj.height,200);
             % Create the grid
             [xv,yv] = meshgrid(x1,x2);
             % Triangulate the mesh to obtain coordinates and connectivities
@@ -158,7 +164,7 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
                 s.scale = 'MACRO';
                 s.material = obj.createMaterial();
                 s.dim = '2D';
-                s.boundaryConditions = obj.createBoundaryConditionsMotionBased();
+                s.boundaryConditions = obj.createBoundaryConditionsMotionBased(i);
                 s.interpolationType = 'LINEAR';
                 s.solverType = 'REDUCED';
                 s.solverMode = 'DISP'; 
@@ -276,31 +282,37 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
             m = Material.create(s);
         end
 
-        function bc = createBoundaryConditionsLoadBased(obj, gdi_index) 
-            isLeft =@(coor) coor(:,1) <= 1e-8;
-            isRight =@(coor) coor(:,1) >= 2-1e-8;
+        function bc = createBoundaryConditionsLoadBased(obj, gdi_index)
+            % The conditions correspond to half of the domain.
+            isWall =@(coor) coor(:,1) <= 1e-8 & coor(:,2) <= 0.5*obj.height;
+            isMiddle =@(coor) coor(:,1) >= obj.width - 1e-8;
 
             % Side walls fixed
-            sDir{1}.domain = isLeft;
+            sDir{1}.domain = isWall;
             sDir{1}.direction = [1,2];
             sDir{1}.value = 0;
 
-            sDir{2}.domain = isRight;
-            sDir{2}.direction = [1,2];
+            sDir{2}.domain = isMiddle;
+            sDir{2}.direction = [1];
             sDir{2}.value = 0;
 
             % Unit load at the GDI
-            isInput =@(coor) coor(:,1) >= 0.9 & coor(:,1) <= 1.1 & coor(:,2) <= 1e-8;
-            isOutput =@(coor) coor(:,1) >= 0.9 & coor(:,1) <= 1.1 & coor(:,2) >= 1-1e-8;
+            isInputS =@(coor) coor(:,1) >= 0.95*obj.width & coor(:,2) <= 0.25*obj.height & coor(:,2) >= 0.15*obj.height;
+            isInputC =@(coor) coor(:,1) >= 0.95*obj.width & coor(:,2) <= 0.6*obj.height & coor(:,2) >= 0.5*obj.height;
+            isOutput =@(coor) coor(:,2) >= 0.99*obj.height;
 
-            if gdi_index == 1 % Input
-                sPL{1}.domain = isInput;
+            if gdi_index == 1 % Input S
+                sPL{1}.domain = isInputS;
                 sPL{1}.direction = [2];
                 sPL{1}.value = 1;
-            elseif gdi_index == 2 % Output
+            elseif gdi_index == 2 % Input C
+                sPL{1}.domain = isInputC;
+                sPL{1}.direction = [2];
+                sPL{1}.value = 1;
+            elseif gdi_index == 3 % Output
                 sPL{1}.domain = isOutput;
                 sPL{1}.direction = [2];
-                sPL{1}.value = 1;
+                sPL{1}.value = -1;
             else
                 warning('Wrong GDI indeces');
             end        
@@ -326,31 +338,51 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
         end
     
         function bc = createBoundaryConditionsMotionBased(obj, mp_index) 
-            isLeft =@(coor) coor(:,1) <= 1e-8;
-            isRight =@(coor) coor(:,1) >= 2-1e-8;
+            % The conditions correspond to half of the domain.
+            isWall =@(coor) coor(:,1) <= 1e-8 & coor(:,2) <= 0.5*obj.height;
+            isMiddle =@(coor) coor(:,1) >= obj.width - 1e-8;
 
             % Side walls fixed
-            sDir{1}.domain = isLeft;
+            sDir{1}.domain = isWall;
             sDir{1}.direction = [1,2];
             sDir{1}.value = 0;
 
-            sDir{2}.domain = isRight;
-            sDir{2}.direction = [1,2];
+            sDir{2}.domain = isMiddle;
+            sDir{2}.direction = [1];
             sDir{2}.value = 0;
 
-            isInput =@(coor) coor(:,1) >= 0.9 & coor(:,1) <= 1.1 & coor(:,2) <= 1e-8;
-            isOutput =@(coor) coor(:,1) >= 0.9 & coor(:,1) <= 1.1 & coor(:,2) >= 1-1e-8;
+            isInputS =@(coor) coor(:,1) >= 0.95*obj.width & coor(:,2) <= 0.25*obj.height & coor(:,2) >= 0.15*obj.height;
+            isInputC =@(coor) coor(:,1) >= 0.95*obj.width & coor(:,2) <= 0.6*obj.height & coor(:,2) >= 0.5*obj.height;
+            isOutput =@(coor) coor(:,2) >= 0.99*obj.height;
 
             % Free MP corresponds to upwards input movement with downwards
             % output movement
-            sDir{3}.domain    = isInput;
-            sDir{3}.direction = 2;
-            sDir{3}.value     = sqrt(1/(1+obj.J_MT^2)); % i^2 + o^2 = 1 --> i^2 + J^2*i^2 = 1 --> i = sqrt(1/(1+J^2)) 
+            if mp_index == 1
+                sDir{3}.domain    = isInputS;
+                sDir{3}.direction = 2;
+                sDir{3}.value     = 1;
+                
+                Output_logical = isOutput(obj.mesh.coord);
+                Output_coor = obj.mesh.coord(Output_logical,:);
+    
+                sDir{4}.domain    = isOutput;
+                sDir{4}.direction = 2;
+                sDir{4}.value     = obj.amplitude * sin(Output_coor(:,1)/obj.width * 1.5*pi); % y(x)=A sin(x/w * 1.5*pi) 
+            elseif mp_index == 2
+                sDir{3}.domain    = isInputC;
+                sDir{3}.direction = 2;
+                sDir{3}.value     = 1;
+                
+                Output_logical = isOutput(obj.mesh.coord);
+                Output_coor = obj.mesh.coord(Output_logical,:);
+    
+                sDir{4}.domain    = isOutput;
+                sDir{4}.direction = 2;
+                sDir{4}.value     = obj.amplitude * cos(Output_coor(:,1)/obj.width * pi); % y(x)=A cos(x/w * pi) 
+            else
+                warning('Wrong MP indeces');
+            end
 
-            sDir{4}.domain    = isOutput;
-            sDir{4}.direction = 2;
-            sDir{4}.value     = obj.J_MT*sqrt(1/(1+obj.J_MT^2)); % o = J*i        
-            
             dirichletFun = [];
             for i = 1:numel(sDir)
                 dir = DirichletCondition(obj.mesh, sDir{i});
@@ -367,7 +399,7 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
 
         function createComplianceFunctions(obj)
             obj.complianceFuncs = cell(obj.nGDI,1);
-            titles = {'Compliance input GDI', 'Compliance output GDI'};
+            titles = {'Compliance input S GDI', 'Compliance input C GDI','Compliance output GDI'};
 
             for i = 1:obj.nGDI
                 sC.mesh = obj.mesh;

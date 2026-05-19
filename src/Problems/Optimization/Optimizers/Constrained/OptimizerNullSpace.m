@@ -219,7 +219,8 @@ classdef OptimizerNullSpace < handle
                 obj.checkStep(x0);
             end
 
-           obj.enforceSymmetry();
+          % obj.enforceSymmetry();  % Remove for cases where half the
+          % domain is represented
         end
 
         function printResults(obj)
