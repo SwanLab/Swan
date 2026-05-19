@@ -1,93 +1,153 @@
 module Model
 
 using Flux
+using Metalhead
 
 export build_model
 
 # =========================================================
-# Deux architectures RÉELLEMENT différentes :
+# build_model — deux modes disponibles
 #
-# :mlp — Flatten complet + couches denses
+# model_type = :custom
+#   → CNN from scratch avec GroupNorm
+#   → classifier = :gap ou :mlp (voir détails ci-dessous)
+#   → img_size modifiable par l'utilisateur
 #
-#   Feature maps (8, 8, 128, N)
-#       → flatten → (8192, N)
-#       → Dense(8192, 256, relu)
-#       → Dropout
-#       → Dense(256, 1)
-#       → sigmoid
-#
-#   Principe : chaque pixel de chaque feature map devient
-#   une entrée du Dense. Le réseau apprend "où" dans
-#   l'image les features s'activent.
-#   Paramètres : 8192*256 + 256 + 256*1 = ~2 millions
-#   + Meilleur si la position spatiale de la fissure compte
-#   - Sur-apprentissage facile sur petit dataset
-#   - Lent (beaucoup de paramètres)
-#
-# :gap — Global Average Pooling + Dense direct
-#
-#   Feature maps (8, 8, 128, N)
-#       → moyenne spatiale par feature map → (128, N)
-#       → Dense(128, 1)
-#       → sigmoid
-#
-#   Principe : chaque feature map est résumée par sa moyenne
-#   sur toute l'image spatiale. Le réseau apprend "est-ce
-#   que ce filtre s'active" sans mémoriser "où exactement".
-#   Paramètres : 128*1 + 1 = 129
-#   + Très peu de paramètres → bon sur petit dataset
-#   + Invariant à la position de la fissure dans l'image
-#   - Perd l'information spatiale
+# model_type = :resnet
+#   → ResNet18 pré-entraîné sur ImageNet (Metalhead.jl)
+#   → Phase 1 : feature extraction — backbone gelé
+#   → Seule la tête Dense(512, 1) est entraînée
+#   → img_size fixe 128×128 RGB
 # =========================================================
 
-function build_model(; classifier=:gap, dropout_rate=0.3)
+function build_model(; model_type=:custom,
+                       classifier=:gap,
+                       dropout_rate=0.3,
+                       img_size=(128,128))
+
+    @assert model_type in (:custom, :resnet) "model_type doit être :custom ou :resnet"
+
+    if model_type == :custom
+        return build_custom(; classifier=classifier,
+                              dropout_rate=dropout_rate,
+                              img_size=img_size)
+    else
+        return build_resnet(; dropout_rate=dropout_rate)
+    end
+end
+
+# =========================================================
+# CNN CUSTOM — from scratch
+# =========================================================
+
+function build_custom(; classifier=:gap, dropout_rate=0.3, img_size=(128,128))
 
     @assert classifier in (:mlp, :gap) "classifier doit être :mlp ou :gap"
 
-    # Blocs convolutifs communs
-    # Après 3x MaxPool(2,2) sur une image 64x64 :
-    # feature maps de taille (8, 8, 128, N)
+    # Calcul de la taille des feature maps après 3x MaxPool(2,2)
+    # Utilisé uniquement pour :mlp
+    h_out = img_size[1] ÷ 8
+    w_out = img_size[2] ÷ 8
+    flat_size = h_out * w_out * 128
+
     backbone = [
         Conv((3,3), 1 => 32, relu; pad=1),
-        GroupNorm(32, 8),                                       #maybe BatchNorm; 8 = number of features map by group of normalization
-        MaxPool((2,2)),      # 64 → 32                          #maybe too much of pooling
+        GroupNorm(32, 8),
+        MaxPool((2,2)),
 
         Conv((3,3), 32 => 64, relu; pad=1),
         GroupNorm(64, 8),
-        MaxPool((2,2)),      # 32 → 16
+        MaxPool((2,2)),
 
         Conv((3,3), 64 => 128, relu; pad=1),
         GroupNorm(128, 8),
-        MaxPool((2,2)),      # 16 → 8
-                             # sortie : (8, 8, 128, N)
+        MaxPool((2,2)),
     ]
 
-    if classifier == :mlp
-        # Flatten complet : (8, 8, 128, N) → (8192, N)      ; maybe a bloc of CNN
+    if classifier == :gap
         head = [
-            Flux.flatten,                    # 8*8*128 = 8192
-            Dense(8*8*128, 256, relu),
+            GlobalMeanPool(),
+            Flux.flatten,
+            Dense(128, 1),
+            sigmoid,
+        ]
+        println("Modèle   : Custom CNN")
+        println("Classif. : GAP [GlobalAvgPool → Dense(128→1)]")
+        println("img_size : $(img_size[1])×$(img_size[2]) grayscale")
+
+    else  # :mlp
+        head = [
+            Flux.flatten,
+            Dense(flat_size, 256, relu),
             Dropout(dropout_rate),
             Dense(256, 1),
             sigmoid,
         ]
-        println("Classifieur : MLP  [Flatten(8192) → Dense(8192→256) → Dropout → Dense(256→1)]")
-        println("             ~2M paramètres — recommandé avec > 2000 images")
-
-    else  # :gap
-        # Global Average Pooling : (8, 8, 128, N) → (128, N)
-        # Moyenne spatiale sur chaque feature map indépendamment
-        head = [
-            GlobalMeanPool(),   # (8,8,128,N) → (1,1,128,N)
-            Flux.flatten,       # (1,1,128,N) → (128,N)
-            Dense(128, 1),
-            sigmoid,
-        ]
-        println("Classifieur : GAP  [GlobalAvgPool → (128,N) → Dense(128→1)]")
-        println("             ~129 paramètres — recommandé avec < 1000 images")
+        println("Modèle   : Custom CNN")
+        println("Classif. : MLP [Flatten($flat_size) → Dense(256→1)]")
+        println("img_size : $(img_size[1])×$(img_size[2]) grayscale")
     end
 
     return Chain(backbone..., head...)
+end
+
+# =========================================================
+# RESNET18 — transfer learning (phase 1 : feature extraction)
+#
+# Architecture :
+#   ResNet18 backbone (poids ImageNet gelés)
+#   → AdaptiveAvgPool → Flatten → (512,)
+#   → Dense(512, 1) → sigmoid
+#
+# Pourquoi geler le backbone ?
+#   Les poids pré-entraînés encodent des features génériques
+#   (bords, textures, formes) utiles pour toute image.
+#   On ne veut pas les détruire avec un LR trop élevé.
+#   On entraîne seulement la tête pour adapter la sortie
+#   aux fissures — beaucoup plus rapide et stable.
+#
+# Pourquoi Dense(512, 1) ?
+#   ResNet18 produit 512 feature maps en sortie du backbone.
+#   GlobalAvgPool réduit chaque map à 1 valeur → vecteur 512.
+#   Dense(512, 1) + sigmoid = classificateur binaire.
+# =========================================================
+
+function build_resnet(; dropout_rate=0.3)
+
+    println("Modèle   : ResNet18 pré-entraîné (Metalhead)")
+    println("Mode     : Feature extraction — backbone gelé")
+    println("img_size : 128×128 RGB (fixe)")
+
+    # Charge ResNet18 avec poids ImageNet
+    resnet = ResNet(18; pretrained=true)
+
+    # Extrait le backbone sans la tête de classification ImageNet
+    # ResNet18 de Metalhead : resnet.layers contient le backbone + classifier
+    backbone = resnet.layers[1]   # feature extractor
+
+    # Gèle tous les paramètres du backbone
+    # freeze! empêche le gradient de se propager dans ces couches
+    Flux.freeze!(backbone)
+
+    # Nouvelle tête adaptée à la classification binaire
+    head = Chain(
+        GlobalMeanPool(),      # (4, 4, 512, N) → (1, 1, 512, N)
+        Flux.flatten,          # → (512, N)
+        Dense(512, 64, relu),
+        Dropout(dropout_rate),
+        Dense(64, 1),
+        sigmoid
+    )
+
+    model = Chain(backbone, head)
+
+    # Compte les paramètres entraînables (tête seulement)
+    total     = sum(length(p) for p in Flux.params(model))
+    trainable = sum(length(p) for p in Flux.params(head))
+    println("Paramètres total     : $total")
+    println("Paramètres entraînables (tête) : $trainable")
+
+    return model
 end
 
 end
