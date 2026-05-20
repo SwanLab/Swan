@@ -110,6 +110,19 @@ classdef C5_TO < handle
             s.solverCase = DirectSolver();
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
+
+            s.type    = 'ISOTROPIC';
+            s.ptype   = 'ELASTIC';
+            s.ndim    = 3;
+            s.young   = ConstantFunction.create(70e3,obj.mesh);
+            s.poisson    = ConstantFunction.create(1/3,obj.mesh);
+            m = Material.create(s);
+            fem.updateMaterial(m);
+            fem.solve();
+
+            sigma = fem.stressFun;
+            % ...
+            % vonMises = ...
         end
 
         function c = createComplianceFromConstiutive(obj)
