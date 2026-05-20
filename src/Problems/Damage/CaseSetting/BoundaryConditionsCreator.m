@@ -242,7 +242,7 @@ classdef BoundaryConditionsCreator < handle
          end
 
          function createDisplacementMixedConditions(obj,uVal)
-             angle = pi/4;
+             angle = pi/6;
 
              isInDown = @(coor) (abs(coor(:,2) - min(coor(:,2)))  < 1e-12);
              sDir.domain    = @(coor) isInDown(coor);

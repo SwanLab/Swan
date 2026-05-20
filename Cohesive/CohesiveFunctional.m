@@ -1,4 +1,3 @@
-
 classdef CohesiveFunctional < handle
     
 

@@ -1,8 +1,13 @@
 classdef TractionBiliniarCoupled < handle
 
     properties (Access = private)
-        tau0 % fracture strength
-        Gc   % fracture toughness
+        tau0Normal
+        tau0Shear
+        firstCritEnergy
+        secondCritEnergy
+        eta
+        jump0Normal
+        jump0Shear
     end
 
     properties (Access = private)
@@ -35,25 +40,34 @@ classdef TractionBiliniarCoupled < handle
             jN = sqrt(DP(jump,unoZero,1,1).^2 + DP(jump,zeroUno,1,1).^2) + 1e-15;
         end
 
+
         function d = computeDamage(obj,jump) % 1 x ngauss x nelem   
             jumpNorm = obj.computeJumpNorm(jump);
-            d = min((obj.jumpFinal*(jumpNorm-obj.jumpCrit))./ ...
-                (jumpNorm*(obj.jumpFinal-obj.jumpCrit)),1);
+            B = obj.computeMixedModeRatio(jump,jumpNorm);
+            tau0 = sqrt(obj.tau0Normal^2 + B^obj.eta * (obj.tau0Shear^2 - obj.tau0Normal^2));
+            gC   = obj.firstCritEnergy + B^obj.eta * (obj.secondCritEnergy - obj.firstCritEnergy);
+            d = min(2* gC * (obj.K .* jumpNorm - tau0)/ (jumpNorm*(2*obj.K * gC - tau0^2)) ,1);
             d = max(d,0);
             % fprintf('d range: [%e , %e]\n',min(d.evaluate([-1,1]),[],'all'), max(d.evaluate([-1,1]),[],'all'));
         end
+
+
+
     end
     
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.tau0  = cParams.fractureStrength;
-            obj.Gc    = cParams.fractureToughness;
-            obj.jumpCrit  = cParams.jumpCrit;
-            obj.jumpFinal = cParams.jumpFinal;
-            obj.K         = 1e8;
-            % obj.jumpFinal = 2*obj.Gc/obj.tau0;
-            % obj.jumpCrit  = obj.tau0/obj.K;
+            obj.K                = 1e8;
+            obj.tau0Normal       = cParams.tau0Normal;
+            obj.tau0Shear        = cParams.tau0Shear;
+            obj.firstCritEnergy  = cParams.firstCritEnergy;
+            obj.secondCritEnergy = cParams.secondCritEnergy;
+            obj.eta              = cParams.eta;
+
+            obj.jump0Normal = obj.tau0Normal / obj.K;
+            obj.jump0Shear  = obj.tau0Shear / obj.K;
+
         end
 
         function gradT = computeTangentGradientMatrix(obj, jump, xV) % 2 x 2 x ngauss x nelem
@@ -91,6 +105,12 @@ classdef TractionBiliniarCoupled < handle
             temp2 = obj.jumpFinal - jumpNorm; % b - f
             isDamaging = temp1.*temp2 > 0;  % 1 x ngauss x nelem
         end       
+
+        function B = computeMixedModeRatio(obj,jump,jumpNorm)
+            unoZero   = ConstantFunction.create([1;0],jump.mesh);
+            jumpShear = DP(jump,unoZero);
+            B         = jumpShear./jumpNorm;
+        end
     
     end
 end
