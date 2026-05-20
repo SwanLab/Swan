@@ -15,7 +15,7 @@ classdef TutorialCohesive < handle
     methods (Access = public)
 
         function obj = TutorialCohesive()
-            problem      = 'DoubleCantileverBeam';
+            problem      = 'DisplacementTractionY';
             nameMesh     = 'M10by4';
             obj.init();
             obj.createMesh(problem,nameMesh);
@@ -75,7 +75,7 @@ classdef TutorialCohesive < handle
             s.eta                 = 2;
             s.lawType = 'TractionBiliniarCoupled';
             % s.lawType = 'TractionBiliniarUncoupled';
-            
+
             obj.tractionSeparation = CohesiveTractionSeparation(s);
         end
 
@@ -108,7 +108,7 @@ classdef TutorialCohesive < handle
                     s = FemDataContainer(a);
                     c.baseMesh = s.mesh;
                 case 'DisplacementTractionY' 
-                    c.xCohLineMax = 10000; c.yCohLine = 0; c.baseMesh = UnitQuadMesh(1,1);
+                    c.xCohLineMax = 10000; c.yCohLine = 0; c.baseMesh = UnitQuadMesh(2,2);
                 case 'DisplacementMixed'
                     c.xCohLineMax = 10000; c.yCohLine = 0; c.baseMesh = UnitQuadMesh(1,1);
             end
