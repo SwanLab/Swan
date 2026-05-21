@@ -51,6 +51,13 @@ classdef C5_TO < handle
             s = FemDataContainer(a);
             s.mesh.createSingleBoundaryMesh();
             obj.mesh = s.mesh;
+
+            run(file);
+            ss.coord = obj.mesh.coord;
+            ss.connec = External_border_elements(:,2:4);
+            ss.kFace = -1;
+            ss.type = 'TRIANGLE';
+            bDirMesh = SurfaceMesh(ss);
         end
 
         function createDesignVariable(obj)
