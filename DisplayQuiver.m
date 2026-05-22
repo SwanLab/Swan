@@ -47,16 +47,17 @@ classdef DisplayQuiver < DisplayAbstract
 
         function a = createQuiver(obj,z)
             n = 1;
+            meshCoord = obj.fun.fullMesh.coord;
             coord = obj.fun.getDofCoord; 
             x = coord(1:n:end,1);
             y = coord(1:n:end,2);
             fX = z(1:n:end,1);
             fY = z(1:n:end,2);
-            a = quiver(x, y, fX, fY, 'AutoScale', 'on', 'LineWidth', 1.5);              
+            a = quiver(x, y, fX, fY, 'LineWidth', 1.5);              
             axis equal;  
             box on;     
-            xlim([min(x), max(x)]);
-            ylim([min(y), max(y)]); 
+            xlim([min(meshCoord(:,1)), max(meshCoord(:,1))]);
+            ylim([min(meshCoord(:,2)), max(meshCoord(:,2))]); 
         end
 
     end

@@ -88,6 +88,8 @@ classdef PhaseFieldComputer < handle
 
             thetaPseudoFun.getDofCoord = obj.mesh.computeBaricenter';
             thetaPseudoFun.mesh.nnodes = size(thetaPseudoFun.getDofCoord,1);
+            thetaPseudoFun.fullMesh = obj.mesh;
+
             s.funs         = [{obj.initialGuess.phi.fun},{thetaPseudoFun}];
             s.legends      = [{["PhiMax","PhiRel"]}];
             obj.monitor = PhaseFieldMonitoring(s);

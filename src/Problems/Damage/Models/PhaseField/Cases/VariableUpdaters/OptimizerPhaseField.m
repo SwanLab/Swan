@@ -29,8 +29,8 @@ classdef OptimizerPhaseField < handle
             while (abs(err) > obj.tol) && (i < obj.maxIter)
                 [u,F,costArray,iterU]   = obj.updateDisplacement(u,phi,bc.u,costArray);
                 iter.u = max(iterU,iter.u);
-                
-                thetaOld = project(theta,'P1');
+
+                thetaOld = project(theta,'P0');
                 [theta] = obj.updateOrientation(u,thetaOld);
                 %theta.evaluate([0;0])
                 obj.functional.updateMaterialRotation(theta);
