@@ -2,6 +2,8 @@ classdef C5_TO < handle
 
     properties (Access = private)
         mesh
+        rollerMesh
+        rollerNodes
         filename
         filter
         designVariable
@@ -20,6 +22,7 @@ classdef C5_TO < handle
         function obj = C5_TO(filename)
             obj.init()
             obj.createMesh(filename);
+            obj.createRollerMesh(filename);
             obj.createDesignVariable();
             obj.createFilter();
             obj.createMaterialInterpolator();
@@ -51,13 +54,17 @@ classdef C5_TO < handle
             s = FemDataContainer(a);
             s.mesh.createSingleBoundaryMesh();
             obj.mesh = s.mesh;
+        end
 
-            run(file);
-            ss.coord = obj.mesh.coord;
-            ss.connec = External_border_elements(:,2:4);
-            ss.kFace = -1;
-            ss.type = 'TRIANGLE';
-            bDirMesh = SurfaceMesh(ss);
+        function createRollerMesh(obj,fName)
+            run(fName);
+            s.coord = obj.mesh.coord;
+            s.connec = External_border_elements(:,2:4);
+            s.kFace = -1;
+            s.type = 'TRIANGLE';
+            bDirMesh = SurfaceMesh(s);
+            obj.rollerMesh = bDirMesh.computeCanonicalMesh();
+            obj.rollerNodes = External_border_nodes;
         end
 
         function createDesignVariable(obj)
@@ -111,9 +118,11 @@ classdef C5_TO < handle
             s.material = obj.createMaterial();
             s.dim = '3D';
             s.boundaryConditions = obj.createBoundaryConditions();
+            s.rollerMesh = obj.rollerMesh;
+            s.rollerNodes = obj.rollerNodes;
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
-            s.solverMode = 'DISP';
+            s.solverMode = 'ROLLER';
             s.solverCase = DirectSolver();
             fem = ElasticProblem(s);
             obj.physicalProblem = fem;
@@ -128,8 +137,14 @@ classdef C5_TO < handle
             fem.solve();
 
             sigma = fem.stressFun;
-            % ...
-            % vonMises = ...
+            devSig = Deviatoric(sigma);
+            vonMises = sqrt(1.5.*DDP(devSig,devSig));
+
+            sF.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            sF.mesh = obj.mesh;
+            filter = FilterLump(sF);
+            vmSig = filter.compute(vonMises,3);
+            vmSig.print('VonMises')
         end
 
         function c = createComplianceFromConstiutive(obj)

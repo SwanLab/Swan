@@ -12,13 +12,14 @@ classdef ProblemSolver < handle
     end
     
     properties (Access = private)
-        
+        C
     end
     
     methods (Access = public)
         
         function obj = ProblemSolver(cParams)
             obj.init(cParams);
+            obj.computeRollerLinkage(cParams);
         end
 
         function [u,L] = solve(obj,cParams)
@@ -58,6 +59,13 @@ classdef ProblemSolver < handle
                     free_dofs = setdiff(dofs, bcs.dirichlet_dofs);
                     u = zeros(size(stiffness,1), 1);
                     u(free_dofs) = sol;
+                    u(bcs.dirichlet_dofs) = bcs.dirichlet_vals;
+                    L = [];
+                case strcmp(obj.type, 'REDUCED') && strcmp(obj.mode, 'ROLLER')
+                    dofs = 1:size(stiffness,1);
+                    free_dofs = setdiff(dofs, bcs.dirichlet_dofs);
+                    u = zeros(size(stiffness,1), 1);
+                    u(free_dofs) = sol(1:1:length(free_dofs));
                     u(bcs.dirichlet_dofs) = bcs.dirichlet_vals;
                     L = [];
                 case strcmp(obj.type, 'REDUCED') && strcmp(obj.mode, 'FLUC')
@@ -113,6 +121,13 @@ classdef ProblemSolver < handle
                     dofs = 1:size(stiffness,1);
                     free_dofs = setdiff(dofs, bcs.dirichlet_dofs);
                     LHS = stiffness(free_dofs, free_dofs);
+                case strcmp(obj.type, 'REDUCED') && strcmp(obj.mode, 'ROLLER')
+                    dofs = 1:size(stiffness,1);
+                    free_dofs = setdiff(dofs, bcs.dirichlet_dofs);
+                    Kff = stiffness(free_dofs, free_dofs);
+                    Cf = obj.C(free_dofs,:);
+                    Z = sparse(size(Cf,2),size(Cf,2));
+                    LHS = [Kff, Cf; Cf', Z];
                 case strcmp(obj.type, 'MONOLITHIC') && strcmp(obj.mode, 'FLUC')
                     CtDir = bcapp.computeLinearConditionsMatrix('Dirac');
                     CtPer = bcapp.computeLinearPeriodicConditionsMatrix();
@@ -162,6 +177,12 @@ classdef ProblemSolver < handle
                     dofs = 1:size(stiffness,1);
                     free_dofs = setdiff(dofs, bcs.dirichlet_dofs);
                     RHS = forces(free_dofs);
+                case strcmp(obj.type, 'REDUCED') && strcmp(obj.mode, 'ROLLER')
+                    dofs = 1:size(stiffness,1);
+                    free_dofs = setdiff(dofs, bcs.dirichlet_dofs);
+                    Ff = forces(free_dofs);
+                    Z = sparse(size(obj.C,2),1);
+                    RHS = [Ff;Z];
                 case strcmp(obj.type, 'MONOLITHIC') && strcmp(obj.mode, 'FLUC')
                     nPer = length(bcs.periodic_leader);
                     RHS = [forces; zeros(nPer,1); bcs.dirichlet_vals];
@@ -178,7 +199,41 @@ classdef ProblemSolver < handle
             end
 
         end
-        
+
+        function C = computeRollerLinkage(obj,s)
+            if isfield(s,'rollerMesh')
+                bDirMesh = s.rollerMesh;
+
+                n0 = squeeze(bDirMesh.getNormals())';
+
+                nP0 = LagrangianFunction.create(bDirMesh,3,'P0');
+                nP0.setFValues(n0);
+
+                sF.trial = LagrangianFunction.create(bDirMesh,3,'P1');
+                sF.mesh = bDirMesh;
+                filter = FilterLump(sF);
+                n0Reg = filter.compute(nP0,2);
+                n0 = n0Reg.fValues;
+                n0 = n0./sqrt(n0(:,1).^2+n0(:,2).^2+n0(:,3).^2);
+                n0 = n0';
+
+                jC = [1:n0Reg.nDofs/n0Reg.ndimf;1:n0Reg.nDofs/n0Reg.ndimf;1:n0Reg.nDofs/n0Reg.ndimf];
+                jC = reshape(jC,[],1);
+                iC = 1:n0Reg.nDofs;
+                iC = iC';
+                CLoc = sparse(iC,jC,n0(:),n0Reg.nDofs,n0Reg.nDofs/n0Reg.ndimf);
+
+                obj.C = sparse(s.mesh.nnodes*3,n0Reg.nDofs/n0Reg.ndimf);
+                iC = s.rollerNodes;
+                iC = repmat(iC,[1,3])';
+                iC(1,:) = 3*iC(1,:)-2;
+                iC(2,:) = 3*iC(2,:)-1;
+                iC(3,:) = 3*iC(3,:);
+                iC = iC(:);
+                obj.C(iC,unique(jC)) = CLoc;
+            end
+        end
+
     end
-    
+
 end

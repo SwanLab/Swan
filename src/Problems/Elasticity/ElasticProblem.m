@@ -31,7 +31,7 @@ classdef ElasticProblem < handle
             obj.init(cParams);
             obj.createDisplacementFun();
             obj.createBCApplier();
-            obj.createSolver();
+            obj.createSolver(cParams);
         end
 
         function solve(obj)
@@ -89,11 +89,8 @@ classdef ElasticProblem < handle
             obj.bcApplier = bc;
         end
 
-        function createSolver(obj)
-            s.solverType = obj.solverType;
-            s.solverMode = obj.solverMode;
+        function createSolver(obj,s)
             s.solver     = obj.solverCase;
-            s.boundaryConditions = obj.boundaryConditions;
             s.BCApplier          = obj.bcApplier;
             obj.problemSolver    = ProblemSolver(s);
         end
