@@ -38,8 +38,9 @@ classdef PhaseFieldFunctional < handle
             Eint = obj.functionals.energy.computeCost(u,phi,obj.quadOrder);
             Edis = obj.functionals.localDamage.computeCost(phi,obj.quadOrder);
             Ereg = obj.functionals.nonLocalDamage.computeCost(phi,obj.quadOrder);
-            Wext = obj.functionals.extWork.computeCost(u,fExt,obj.quadOrder);
+            %Wext = obj.functionals.extWork.computeCost(u,fExt,obj.quadOrder);
             E = [Eint,Edis,Ereg,Wext];
+            E = [Eint,Edis,Ereg];
         end
         
         
@@ -55,8 +56,9 @@ classdef PhaseFieldFunctional < handle
                 fExt.setFValues(reshape(vals,u.mesh.ndim,u.mesh.nnodes)');
             end
             Fint = obj.functionals.energy.computeGradientDisplacement(u,phi,obj.quadOrder);
-            Fext = obj.functionals.extWork.computeGradient(u,fExt,obj.quadOrder);
-            RHS  = Fint - Fext;
+            %Fext = obj.functionals.extWork.computeGradient(u,fExt,obj.quadOrder);
+            %RHS  = Fint - Fext;
+            RHS = Fint;
         end
         
         function LHS = computePhaseFieldLHS(obj,u,phi)
@@ -80,7 +82,7 @@ classdef PhaseFieldFunctional < handle
             obj.quadOrder = cParams.quadOrder;
             obj.functionals.localDamage    = LocalDamageFunctional(cParams);
             obj.functionals.nonLocalDamage = NonLocalDamageFunctional(cParams);
-            obj.functionals.extWork        = ExternalWorkFunctional(cParams);
+            %obj.functionals.extWork        = ExternalWorkFunctional(cParams);
             if cParams.energySplit
                 obj.functionals.energy     = PhaseFieldInternalEnergySplitFunctional(cParams);
             else

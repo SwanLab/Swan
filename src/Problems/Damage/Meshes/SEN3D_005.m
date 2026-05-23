@@ -14,7 +14,7 @@
 Data_prb = {
 'Default_title';
 'SI';
-'2D';
+'3D';
 'Plane_Stress';
 'ELASTIC';
 'MACRO';

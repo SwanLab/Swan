@@ -66,8 +66,10 @@ classdef BoundaryConditionsCreator < handle
                     obj.createBoundaryConditions = @obj.createDisplacementTractionYConditions;
                 case 'ThreePointBending'
                     obj.createBoundaryConditions = @obj.createThreePointBendingConditions;
-                case 'ForceCompressionZ'
+                case 'ForceTractionZ'
                     obj.createBoundaryConditions = @obj.createForceTractionZConditions;
+                case 'DisplacementTractionZ'
+                    obj.createBoundaryConditions = @obj.createDisplacementTractionZConditions;
                 case 'DisplacementShear'
                     obj.createBoundaryConditions = @obj.createDisplacementShearConditions;
                 case 'DisplacementMixed'
@@ -342,6 +344,32 @@ classdef BoundaryConditionsCreator < handle
             s.mesh         = obj.mesh;
             s.dirichletFun = Dir1;
             s.pointloadFun = Neum1;
+            s.periodicFun  = [];
+            obj.boundaryConditions = BoundaryConditions(s);
+        end
+
+        function createDisplacementTractionZConditions(obj,uVal)
+            isBottom = @(coor) abs(coor(:,3)-min(coor(:,3))) < 1e-12;
+            sDir.domain    = @(coor) isBottom(coor);
+            sDir.direction = [1,2,3];
+            sDir.value     = 0;
+            Dir1 = DirichletCondition(obj.mesh,sDir);
+
+            isTop = @(coor) abs(coor(:,3)-max(coor(:,3))) < 1e-12;
+            sDir.domain    = @(coor) isTop(coor);
+            sDir.direction = [1 2];
+            sDir.value     = 0;
+            Dir2 = DirichletCondition(obj.mesh,sDir);
+
+            sDir.domain    = @(coor) isTop(coor);
+            sDir.direction = 3;
+            sDir.value     = uVal;
+            Dir3 = DirichletCondition(obj.mesh,sDir);
+            % Remember set bMesh{6} in extWorkFunctional
+
+            s.mesh         = obj.mesh;
+            s.dirichletFun = [Dir1 Dir2 Dir3];
+            s.pointloadFun = [];
             s.periodicFun  = [];
             obj.boundaryConditions = BoundaryConditions(s);
         end
