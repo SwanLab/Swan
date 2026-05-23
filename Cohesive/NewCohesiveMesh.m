@@ -6,38 +6,36 @@ classdef NewCohesiveMesh < handle
         centerLineMesh
 
         listNodeCohesive
-        listElemNextCohesive
-        listCohesiveElems
-        listEdgeCohesiveReal
 
-        pairsMatrix
+        pairsMatrixReal
+        pairsMatrixFull
     end
     
     properties (Access = private)
         baseMesh 
+
+        isEdgeCohesiveReal
+        isEdgeCohesiveAuxiliar
+
+        separation
     end
     
     properties (Access = private)
-        isNodeCohesive
-        isElemCohesive
 
-        separation
-
-        nNodeCohesive
     end
     
     methods (Access = public)
         
         function obj = NewCohesiveMesh(cParams)
             obj.init(cParams)
-            edgesInCohElem = obj.detectFracturedEdges(cParams);
+            obj.detectFracturedEdges(cParams);
             newCoord    = obj.duplicateNodes();
-            centerElemsInEdge         = obj.computeCenterElements();
-            normals                           = obj.computeNormals();
-            [isLeft, isRight]                 = obj.computeIsLeftIsRight(centerElemsInEdge,normals,edgesInCohElem);
-            newCoord    = obj.shiftCoordOfLeftAndRightElements(newCoord,normals);
+            centerElemsInEdgeReal         = obj.computeCenterElements();
+            [normalsOfEdgesFull, normalsOfEdgeReal]  = obj.computeNormals();
+            [isLeft, isRight]                 = obj.computeIsLeftIsRight(centerElemsInEdgeReal,normalsOfEdgesFull);
+            newCoord    = obj.shiftCoordOfLeftAndRightElements(newCoord,normalsOfEdgesFull);
             newConnec   = obj.updateConnecOfLeftElements(isLeft, newCoord);
-            newConnec   = obj.fixFinalElement(cParams,newConnec);
+            % newConnec   = obj.fixFinalElement(cParams,newConnec);
 
             obj.newMesh(newConnec, newCoord);
             obj.createLineMesh();
@@ -64,7 +62,7 @@ classdef NewCohesiveMesh < handle
         end
 
         function A = createMappingMatrix(obj)
-            listAllNodesInCoh = [obj.pairsMatrix(:,1);obj.pairsMatrix(:,2)];
+            listAllNodesInCoh = [obj.pairsMatrixFull(:,1);obj.pairsMatrixFull(:,2)];
             ndim = obj.fullMesh.ndim;
             dofsCohGlobal = reshape([ndim*listAllNodesInCoh-1; ndim*listAllNodesInCoh],1,[]);
             nDofCoh   = length(dofsCohGlobal);
@@ -80,70 +78,61 @@ classdef NewCohesiveMesh < handle
             obj.baseMesh = cParams.baseMesh;
         end
 
-        function edgesInCohElem = detectFracturedEdges(obj, cParams)
+        function edgesInCohElemFull = detectFracturedEdges(obj, cParams)
             centerEdges      = obj.computeCenterEdge();
-
 
             x = cParams.xCohLineMax;
             y = cParams.yCohLine;
-
-
-            isFracturedLine  = abs(centerEdges(:,2) - y) <= 1e-10;
+            isEdgeCohesiveFull  = abs(centerEdges(:,2) - y) <= 1e-10;
             isFracturedUntil = centerEdges(:,1) - x  <= 1e-10;
 
+            obj.isEdgeCohesiveReal        = isEdgeCohesiveFull & isFracturedUntil;
+            obj.isEdgeCohesiveAuxiliar    = isEdgeCohesiveFull & not(isFracturedUntil);
 
-            isEdgeCohesive        = isFracturedLine & isFracturedUntil;
-            isEdgeInitialFracture = isFracturedLine & not(isFracturedUntil);
-
-
-
-
-
-
+            % edgesInElem = obj.baseMesh.edges.edgesInElem;
+            % isElemCohesiveReal  = any(ismember(edgesInElem,obj.listEdgeCohesiveReal),2);
+            % edgesInCohElemFull = edgesInElem(obj.isElemCohesiveFull,:);
 
             
+            % obj.listEdgeCohesiveReal = find(isEdgeCohesiveFull);
+            % nodesInEdgesCohesive = obj.baseMesh.edges.nodesInEdges(obj.listEdgeCohesiveReal,:);
+            % obj.listNodeCohesive = unique(nodesInEdgesCohesive');
+            % 
+            % obj.nNodeCohesive    = length(obj.listNodeCohesive);
+            % obj.isNodeCohesive   = false(size(obj.baseMesh.coord,1),1);
+            % obj.isNodeCohesive(obj.listNodeCohesive) = true;
+            % 
+            % edgesInElem = obj.baseMesh.edges.edgesInElem;
+            % 
+            % obj.isElemCohesive       = any(ismember(edgesInElem,obj.listEdgeCohesiveReal),2);
+            % obj.listElemNextCohesive = find(obj.isElemCohesive);
+            % 
+            % edgesInCohElem = edgesInElem(obj.isElemCohesive,:);
+        end
 
-
-
-
-            
-
-
-
-
-
-
-
-
-
-
-
-
-
-            obj.listEdgeCohesiveReal = find(isEdgeCohesive);
-            nodesInEdgesCohesive = obj.baseMesh.edges.nodesInEdges(obj.listEdgeCohesiveReal,:);
-            obj.listNodeCohesive = unique(nodesInEdgesCohesive');
-
-            obj.nNodeCohesive    = length(obj.listNodeCohesive);
-            obj.isNodeCohesive   = false(size(obj.baseMesh.coord,1),1);
-            obj.isNodeCohesive(obj.listNodeCohesive) = true;
-
+        function centerElemsInCohesiveEdgeFull = computeCenterElements(obj)
             edgesInElem = obj.baseMesh.edges.edgesInElem;
 
-            obj.isElemCohesive       = any(ismember(edgesInElem,obj.listEdgeCohesiveReal),2);
-            obj.listElemNextCohesive = find(obj.isElemCohesive);
+            listEdgeCohesiveReal = find(obj.isEdgeCohesiveReal);
+            isElemCohesiveReal       = any(ismember(edgesInElem,listEdgeCohesiveReal),2);
+            listElemNextCohesiveReal = find(isElemCohesiveReal);
 
-            edgesInCohElem = edgesInElem(obj.isElemCohesive,:);
-        end
+            listEdgeCohesiveFull = find(obj.isEdgeCohesiveReal | obj.isEdgeCohesiveAuxiliar);
+            isElemCohesiveFull       = any(ismember(edgesInElem,listEdgeCohesiveFull),2);
+            listElemNextCohesiveFull = find(isElemCohesiveFull);
 
-        function centerElemsInCohesiveEdge = computeCenterElements(obj)
+
             bariCenters = obj.baseMesh.computeBaricenter';
-            centerElemsInCohesiveEdge = bariCenters(obj.listElemNextCohesive,:); %Ordenats segons obj.listElemCohesive
+            centerElemsInCohesiveEdgeReal = bariCenters(listElemNextCohesiveReal,:); %Ordenats segons obj.listElemCohesive
+            centerElemsInCohesiveEdgeFull = bariCenters(listElemNextCohesiveFull,:);
         end
         
-        function n = computeNormals(obj)
+        function [nf, nr] = computeNormals(obj)
             nodesInEdges = obj.baseMesh.edges.nodesInEdges;
-            nodes = nodesInEdges(obj.listEdgeCohesiveReal,:);   
+            listEdgeCohesiveFull = find(obj.isEdgeCohesiveReal | obj.isEdgeCohesiveAuxiliar);
+            listEdgeCohesiveReal = find(obj.isEdgeCohesiveReal);
+
+            nodes = nodesInEdges(listEdgeCohesiveFull,:);   
             coords1 = obj.baseMesh.coord(nodes(:,1),:);
             coords2 = obj.baseMesh.coord(nodes(:,2),:);
             swap = (coords2(:,1) < coords1(:,1)) | ...
@@ -153,22 +142,31 @@ classdef NewCohesiveMesh < handle
             coords2(swap,:) = tmp;
             
             t = coords2 - coords1;
-            n = [-t(:,2), t(:,1)];
+            nf = [-t(:,2), t(:,1)];
+            nr = nf(ismember(listEdgeCohesiveFull,listEdgeCohesiveReal),:);
         end
 
-        function [isLeft, isRight] = computeIsLeftIsRight(obj,centerElemsInCohesiveEdge,normals,edgesInCohElem)
+        function [isLeft, isRight] = computeIsLeftIsRight(obj,centerElemsInCohesiveEdge,normalsFull)
             centerEdges      = obj.computeCenterEdge;
-            temp             = ismember(edgesInCohElem, obj.listEdgeCohesiveReal);
-            cohElemToEdge    = sum(edgesInCohElem .* temp, 2);    % (nElemCoh x 1) 
+
+            edgesInElem = obj.baseMesh.edges.edgesInElem;
+            listEdgeCohesiveFull = find(obj.isEdgeCohesiveReal | obj.isEdgeCohesiveAuxiliar);
+            isElemCohesiveFull       = any(ismember(edgesInElem,listEdgeCohesiveFull),2);
+            edgesInCohElemReal = edgesInElem(isElemCohesiveFull,:);
+
+            temp             = ismember(edgesInCohElemReal, listEdgeCohesiveFull);
+            cohElemToEdge    = sum(edgesInCohElemReal .* temp, 2);    % (nElemCoh x 1) 
             centerElem       = centerElemsInCohesiveEdge;         % (nElemCoh x ndim)
             centerEdge       = centerEdges(cohElemToEdge,:);      % (nElemCoh x ndim)
             vectorEdgeToElem = centerElem - centerEdge;
 
             temp = zeros(size(obj.baseMesh.edges.nodesInEdges,1),2);
-            temp(obj.listEdgeCohesiveReal,:) = normals;
-            normals = temp(cohElemToEdge,:);
 
-            dotProduct  = sum(vectorEdgeToElem.*normals,2);
+
+            temp(listEdgeCohesiveFull,:) = normalsFull;
+            normalsFull = temp(cohElemToEdge,:);
+
+            dotProduct  = sum(vectorEdgeToElem.*normalsFull,2);
             signs = sign(dotProduct);
             signs = signs > 0;
             isLeft = logical(signs);
@@ -177,43 +175,56 @@ classdef NewCohesiveMesh < handle
 
         function newCoord = duplicateNodes(obj)
             newCoord    = obj.baseMesh.coord;
-            duplicated  = newCoord(obj.isNodeCohesive, :);
-            newCoord    = [newCoord; duplicated];
-            obj.pairsMatrix = [sort(obj.listNodeCohesive) , linspace(obj.baseMesh.nnodes+1, ...
-                obj.baseMesh.nnodes+obj.nNodeCohesive,obj.nNodeCohesive)'];
-            obj.isNodeCohesive = [obj.isNodeCohesive; ones(obj.nNodeCohesive,1)];
+            listEdgeCohesiveFull = find(obj.isEdgeCohesiveAuxiliar | obj.isEdgeCohesiveReal);
+            nodesInEdgesCohesiveFull = obj.baseMesh.edges.nodesInEdges(listEdgeCohesiveFull,:);
+            listNodeCohesiveFull = unique(nodesInEdgesCohesiveFull');
 
+            % nNodeCohesive    = length(obj.listNodeCohesive);
+            isNodeCohesiveFull   = false(size(obj.baseMesh.coord,1),1);
+            isNodeCohesiveFull(listNodeCohesiveFull) = true;
+            nNodeCohesiveFull = sum(isNodeCohesiveFull);
+
+            duplicated  = newCoord(isNodeCohesiveFull, :);
+            newCoord    = [newCoord; duplicated];
+            obj.pairsMatrixFull = [sort(listNodeCohesiveFull) , linspace(obj.baseMesh.nnodes+1, ...
+                obj.baseMesh.nnodes+nNodeCohesiveFull, nNodeCohesiveFull)'];
+            col1 = obj.baseMesh.edges.nodesInEdges(obj.isEdgeCohesiveReal,:)';
+            col2 = obj.getPair(obj.pairsMatrixFull, col1);
+            obj.pairsMatrixReal = [col1,col2];
         end
 
         function newConnec = updateConnecOfLeftElements(obj,isLeft,newCoord)
-            listLeftElems  = obj.listElemNextCohesive(isLeft);
+            listEdgeCohesiveReal = find(obj.isEdgeCohesiveReal);
+            isElemCohesiveReal      = any(ismember(obj.baseMesh.edges.edgesInElem,listEdgeCohesiveReal),2);
+            listElemNextCohesiveReal = find(isElemCohesiveReal);
 
-            nodes = obj.pairsMatrix(:,1);
-            coords = obj.baseMesh.coord(nodes);
+            listEdgeCohesiveFull = find(obj.isEdgeCohesiveReal | obj.isEdgeCohesiveAuxiliar);
+            isElemCohesiveFull      = any(ismember(obj.baseMesh.edges.edgesInElem,listEdgeCohesiveFull),2);
+            listElemNextCohesiveFull = find(isElemCohesiveFull);
 
-            isPrescribedFractureNode = (coords(:,1) > obj.xMax);
+            listLeftElems  = listElemNextCohesiveFull(isLeft);
 
+            % nodes = obj.pairsMatrixFull(:,1);
+            % coords = obj.baseMesh.coord(nodes);
 
-
-
-            % pM2 = obj.pairsMatrix(,:)
-            cohesiveConnec = [obj.pairsMatrix(1:end-1,1), obj.pairsMatrix(2:end,1),   obj.pairsMatrix(2:end,2), obj.pairsMatrix(1:end-1,2)];
+            cohesiveConnec = [obj.pairsMatrixReal(1:end-1,1), obj.pairsMatrixReal(2:end,1),...
+                obj.pairsMatrixReal(2:end,2), obj.pairsMatrixReal(1:end-1,2)];
             connec         = [obj.baseMesh.connec; cohesiveConnec];
 
-            obj.listCohesiveElems = ((size(connec,1)-size(cohesiveConnec,1)+1):size(connec,1))';
+            % listCohesiveElems = ((size(connec,1)-size(cohesiveConnec,1)+1):size(connec,1))';
             oldLeftConnec = connec(listLeftElems,:);
             newLeftConnec      = oldLeftConnec;
 
-            idx = ismember(oldLeftConnec,obj.pairsMatrix(:,1));
-            newLeftConnec(idx) = arrayfun(@(x) obj.getPair(x), oldLeftConnec(idx));
+            idx = ismember(oldLeftConnec,obj.pairsMatrixReal(:,1));
+            newLeftConnec(idx) = arrayfun(@(x) obj.getPair(obj.pairsMatrixReal,x), oldLeftConnec(idx));
 
             connec(listLeftElems,:) = newLeftConnec;
             newConnec = connec;
         end
 
-        function pair = getPair(obj,n)
-            pair = obj.pairsMatrix(ismember(obj.pairsMatrix(:,1), n), 2 );
-        end
+        function pair = getPair(~,pairMatrix,n)
+            pair = pairMatrix(ismember(pairMatrix(:,1),n),2);
+        end   
     
         function newMesh(obj,newConnec, newCoord)
             s.connec = newConnec;
@@ -235,17 +246,17 @@ classdef NewCohesiveMesh < handle
             shiftVector(1,:) = normals(1,:); shiftVector(end,:) = normals(end,:);
             shiftVector = shiftVector./vecnorm(shiftVector,2,2); %esta ordenat segons listCohesiveNodes
             
-            rightNodes   = obj.listNodeCohesive;
-            leftNodes    = getPair(obj,rightNodes);
+            rightNodes   = obj.pairsMatrixFull(:,1);
+            leftNodes    = obj.getPair(obj.pairsMatrixFull,rightNodes);
             newCoord(rightNodes,:) = newCoord(rightNodes,:) - shiftVector*obj.separation/2;
             newCoord(leftNodes,:)  = newCoord(leftNodes,:) + shiftVector*obj.separation/2;   
         end
 
         function createLineMesh(obj)
             coord     = obj.fullMesh.coord;
-            nMidNodes = size(obj.pairsMatrix,1);
-            midCoord= (coord(obj.listNodeCohesive,:)+ ...
-                coord(obj.pairsMatrix(:,2),:))/2;      
+            nMidNodes = size(obj.pairsMatrixReal,1);
+            midCoord= (obj.pairsMatrixReal(:,1)+ ...
+                coord(obj.pairsMatrixReal(:,2),:))./2;      
             midConnec =  [(1:nMidNodes-1)' (2:nMidNodes)'];
             s.connec = midConnec;
             s.coord  = midCoord;
