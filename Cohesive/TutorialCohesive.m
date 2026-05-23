@@ -108,7 +108,7 @@ classdef TutorialCohesive < handle
                     s = FemDataContainer(a);
                     c.baseMesh = s.mesh;
                 case 'DisplacementTractionY' 
-                    c.xCohLineMax = 0.5; c.yCohLine = 0.5; c.baseMesh = UnitQuadMesh(2,2);
+                    c.xCohLineMax = 0.5; c.yCohLine = 0.5; c.baseMesh = UnitQuadMesh(4,4);
                 case 'DisplacementMixed'
                     c.xCohLineMax = 10000; c.yCohLine = 0; c.baseMesh = UnitQuadMesh(1,1);
             end
