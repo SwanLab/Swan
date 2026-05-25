@@ -2,6 +2,9 @@ classdef ComplianceFunctional < handle
 
     properties (Access = private)
         value0
+        oldCost
+        oldGradient
+        xOld
     end
 
     properties (Access = private)
@@ -20,8 +23,18 @@ classdef ComplianceFunctional < handle
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             xD  = x.obtainDomainFunction();
             xR = obj.filterFields(xD);
-            obj.material.setDesignVariable(xR);
-            [J,dJ] = obj.computeComplianceFunctionAndGradient(x);
+            dx = xR{1} - obj.xOld;
+            if norm(dx.fValues)/norm(xR{1}.fValues) > 0.02
+                obj.material.setDesignVariable(xR);
+                [J,dJ] = obj.computeComplianceFunctionAndGradient(x);
+                obj.oldCost = J;
+                obj.oldGradient = dJ;
+                obj.xOld = xR{1};
+            else
+                sp = ScalarProduct(obj.oldGradient{1},dx,'L2');
+                J = obj.oldCost + sp;
+                dJ = obj.oldGradient;
+            end
         end
 
         function title = getTitleToPlot(obj)
@@ -29,7 +42,7 @@ classdef ComplianceFunctional < handle
         end
 
     end
-    
+
     methods (Access = private)
         function init(obj,cParams)
             obj.mesh       = cParams.mesh;
@@ -39,6 +52,7 @@ classdef ComplianceFunctional < handle
             if isfield(cParams,'value0')
                 obj.value0 = cParams.value0;
             end
+            obj.xOld = 1000;
 
             if isfield(cParams, 'title')
                 obj.plotTitle = cParams.title;
