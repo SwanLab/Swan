@@ -14,6 +14,9 @@ classdef MotionBasedStrainEnergy < handle
         stateProblem % Elastic problem with prescribed displ (motion based)
         quadrature
         gradientFilter
+        oldCost          
+        oldGradient      
+        xOld
     end
 
     methods (Access = public)
@@ -36,25 +39,28 @@ classdef MotionBasedStrainEnergy < handle
             x_filtered = obj.filter.compute(xD_single,2);
             xR = {x_filtered}; % convert it to cell for computeTensorAndGradient
 
-            % Obtain C (interpolated Young modulus) and its derivative
-            % (SIMP)
-            [C,dC] = obj.computeTensorFunctionAndGradient(xR);
+            dx = xR{1} - obj.xOld;
+            if norm(dx.fValues)/norm(xR{1}.fValues) > 0.05
+                [C,dC] = obj.computeTensorFunctionAndGradient(xR);
+                uS     = obj.computeStateVariable(C);
+                J      = obj.computeFunctionValue(C,uS);
+                dJ     = obj.computeGradient(dC{1},uS);
+                dJ     = obj.gradientFilter.compute(dJ,2);
+                dJval  = 0.5*dJ.fValues;
+                if ~isempty(obj.value0)
+                    dJval = dJval/obj.value0;
+                end
+                dJ.setFValues(dJval);
+                dJ = {dJ};
 
-            % Solve FEM for displacements uS
-            uS = obj.computeStateVariable(C);
-
-            % Obtain strain energy and its gradient
-            J = obj.computeFunctionValue(C,uS);
-            dJ = obj.computeGradient(dC{1},uS);
-            dJ = obj.gradientFilter.compute(dJ,2);
-            dJval = 0.5*dJ.fValues;
-
-            if ~isempty(obj.value0)
-                dJval = dJval/obj.value0;
+                obj.oldCost     = J;
+                obj.oldGradient = dJ;
+                obj.xOld        = xR{1};
+            else
+                sp = ScalarProduct(obj.oldGradient{1}, dx, 'L2');
+                J  = obj.oldCost + sp;
+                dJ = obj.oldGradient;
             end
-
-            dJ.setFValues(dJval);
-            dJ = {dJ};
         end
 
         function title = getTitleToPlot(obj)
@@ -68,8 +74,10 @@ classdef MotionBasedStrainEnergy < handle
             obj.mesh         = cParams.mesh;
             obj.filter       = cParams.filter;
             obj.material     = cParams.material;
-            obj.stateProblem = cParams.stateProblem; 
+            obj.stateProblem = cParams.stateProblem;
             obj.gradientFilter = cParams.gradientFilter;
+
+            obj.xOld = 1000;
 
             % not needed anymore, it was to solve an error:
             if isfield(cParams,'value0')

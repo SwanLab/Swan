@@ -19,9 +19,11 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
         gJ
 
         J_MT
+        J_MT_vector
         nGDI
         nMP
         Kp_bar
+        Kp_bar_vector
         complianceFuncs
         motionBasedFuncs
     end
@@ -29,33 +31,47 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
     methods (Access = public)
 
         function obj = Tutorial05_15_TopOpt2DDensity_CM_Inverter()
-                obj.J_MT = -0.5; % motion transmission. Input=1, J_MT corresponds to the output
-                obj.nGDI = 2;
-                obj.nMP = 1;
-                obj.Kp_bar = 0.01;
+                obj.J_MT_vector = [-1, -2, -0.5]; % motion transmission. Input=1, J_MT corresponds to the output
+                obj.Kp_bar_vector = [0.1, 0.1, 0.01];
                 
-                obj.init();
-                obj.createMesh();
-                obj.createDesignVariable();
-                obj.createFilter();
-                obj.createMaterialInterpolator();
 
-                obj.createElasticProblem();
-                obj.createComplianceFunctions();
-                obj.createMotionBasedFunctions();
+                for i = 1:length(obj.J_MT_vector)
+                    obj.Kp_bar = obj.Kp_bar_vector(i);
+                    obj.J_MT = obj.J_MT_vector(i);
 
-                obj.createVolumeConstraint();                
-                obj.createCost();
-                obj.createConstraint();
+                    fprintf('\n--- Starting optimization for J_MT = %.4f (%d/%d) ---\n', ...
+                    obj.J_MT, i, length(obj.J_MT_vector));
+    
+                    obj.nGDI = 2;
+                    obj.nMP = 1;
+                    obj.Kp_bar = 0.01;
+                    
+                    obj.init();
+                    obj.createMesh();
+                    obj.createDesignVariable();
+                    obj.createFilter();
+                    obj.createMaterialInterpolator();
+    
+                    obj.createElasticProblem();
+                    obj.createComplianceFunctions();
+                    obj.createMotionBasedFunctions();
+    
+                    obj.createVolumeConstraint();                
+                    obj.createCost();
+                    obj.createConstraint();
+    
+                    obj.createDualVariable();
+                    obj.createPrimalUpdater();
+                    obj.createOptimizer();
+    
+                    obj.motionTransmissionAccuracy(); % Compute motion transmission accuracy
+                    obj.printFinalDisplacement_v3(); % print document with the final FEM displacements
+                    obj.printFinalDesignVariable(); % print final design variable
+                    obj.saveFigures(); % save matlab figures (design variable and monitoring)
 
-                obj.createDualVariable();
-                obj.createPrimalUpdater();
-                obj.createOptimizer();
-
-                obj.motionTransmissionAccuracy(); % Compute motion transmission accuracy
-               % obj.printFinalDisplacement_v3(); % print document with the final FEM displacements
-               % obj.printFinalDesignVariable(); % print final design variable
-               % obj.saveFigures(); % save matlab figures (design variable and monitoring)
+                    fprintf('--- Finished optimization for J_MT = %.4f (%d/%d) ---\n', ...
+                    obj.J_MT, i, length(obj.J_MT_vector));
+                end
         end
 
     end
@@ -245,7 +261,7 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 3;
+            s.maxIter        = 250;
             s.tolerance      = 1e-8;
             nConstr = sum(obj.nMP)+1;
             s.constraintCase = repmat({'INEQUALITY'},1,nConstr);
@@ -548,14 +564,14 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
         end
         
         function printFinalDisplacement_v3(obj)
-            num_case = find(obj.J_vector == obj.J_case);
+            num_case = find(obj.J_MT_vector == obj.J_MT);
             namePrint = sprintf('D_Inv_FinalDispl_J_%g',num_case);
-            uFun = obj.physicalProblem.uFun;
+            uFun = obj.physicalProblemMotionBased{1}.uFun;
             uFun.print(namePrint);
         end
 
         function saveFigures(obj)
-            num_case = find(obj.J_vector == obj.J_case);
+            num_case = find(obj.J_MT_vector == obj.J_MT);
             fig_design = figure(1); 
             fig_monitor = figure(2);
             fig_monitor.WindowState = 'maximized';
@@ -568,7 +584,7 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
         end
 
         function printFinalDesignVariable(obj)
-            num_case = find(obj.k_vector == obj.k_case);
+            num_case = find(obj.J_MT_vector == obj.J_MT);
             namePrint = sprintf('D_Inv_DesignVariable_kCase_%g',num_case);
             obj.designVariable.fun.print(namePrint);
         end

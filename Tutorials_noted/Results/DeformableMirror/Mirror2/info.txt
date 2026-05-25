@@ -1,0 +1,6 @@
+obj.Kp_bar_vector = [0.003, 0.001, 0.0005, 0.0002];
+
+s.maxIter     = 400;
+s.tauMax      = 500;
+s.etaNorm     = 0.03;
+s.gJFlowRatio = 0.4;

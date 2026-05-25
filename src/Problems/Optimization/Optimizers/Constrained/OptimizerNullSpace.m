@@ -42,6 +42,8 @@ classdef OptimizerNullSpace < handle
         printName
         k_case
         physicalProblem
+        nonDesignRegion
+        nonDesignValue
     end
 
     methods (Access = public) 
@@ -98,6 +100,13 @@ classdef OptimizerNullSpace < handle
             obj.dualUpdater     = DualUpdaterNullSpace(cParams);
             obj.createDualVariable();
             obj.initOtherParameters(cParams);
+
+            if isfield(cParams, 'nonDesignRegion')
+                obj.nonDesignRegion = cParams.nonDesignRegion;
+                obj.nonDesignValue = cParams.nonDesignValue;
+            else
+                obj.nonDesignRegion = [];
+            end
         end
 
         function createDualVariable(obj)
@@ -218,8 +227,9 @@ classdef OptimizerNullSpace < handle
                 obj.updatePrimal();
                 obj.checkStep(x0);
             end
-
-          % obj.enforceSymmetry();  % Remove for cases where half the
+            
+            obj.enforceNonDesignRegions();
+           % obj.enforceSymmetry();  % Remove for cases where half the
           % domain is represented
         end
 
@@ -386,6 +396,14 @@ classdef OptimizerNullSpace < handle
             vals_2d = (vals_2d + flip(vals_2d, 2))/2;  % symmetry about x=0.5
             
             obj.designVariable.fun.setFValues(vals_2d(:)); % update values to the symmetric ones
+        end
+
+        function enforceNonDesignRegions(obj)
+            if ~isempty(obj.nonDesignRegion)
+                vals = obj.designVariable.fun.fValues;
+                vals(obj.nonDesignRegion) = obj.nonDesignValue;
+                obj.designVariable.fun.setFValues(vals);
+            end
         end
     end
 end

@@ -1,0 +1,10 @@
+% Problem
+obj.Kp_bar_vector = [0.025, 0.015, 0.008, 0.003, 0.001];
+obj.amplitude     = 0.05 * obj.height;  % amplitud del MP
+s.volumeTarget    = 0.25;               % fraccion de volumen
+
+% Optimizer
+s.maxIter     = 250;   % iteraciones por simulacion
+s.etaNorm     = 0.05;  % max design change per iter
+s.gJFlowRatio = 0.1;   % constraint vs cost balance
+s.tauMax      = 500;   % max gradient step size

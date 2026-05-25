@@ -17,11 +17,14 @@ classdef Tutorial05_15_TopOpt2DDensity_DeformableMirror < handle
         primalUpdater
         optimizer
         gJ
+        gJFlowRatio_vector
+        gJFlowRatio
 
         J_MT
         nGDI
         nMP
         Kp_bar
+        Kp_bar_vector
         complianceFuncs
         motionBasedFuncs
         height % height of the domain (full)
@@ -32,36 +35,54 @@ classdef Tutorial05_15_TopOpt2DDensity_DeformableMirror < handle
     methods (Access = public)
 
         function obj = Tutorial05_15_TopOpt2DDensity_DeformableMirror()
-                obj.J_MT = -0.5; % motion transmission. Input=1, J_MT corresponds to the output
+                
                 obj.nGDI = 3;
                 obj.nMP = 2;
-                obj.Kp_bar = 0.01;
+                obj.Kp_bar_vector = [0.001 0.005 0.025 0.05]; 
+                obj.gJFlowRatio_vector = [0.6 0.9 1.2];
+
                 obj.height = 1;
                 obj.width = 1;
                 obj.amplitude = 0.05*obj.height;
                 
-                obj.init();
-                obj.createMesh();
-                obj.createDesignVariable();
-                obj.createFilter();
-                obj.createMaterialInterpolator();
+                for a=1:length(obj.gJFlowRatio_vector)
+                    obj.gJFlowRatio = obj.gJFlowRatio_vector(a);
+                    fprintf('\n--- Starting optimization for gJ = %.4f (%d/%d) ---\n', ...
+                            obj.gJFlowRatio, a, length(obj.gJFlowRatio_vector));
+                    for i=1:length(obj.Kp_bar_vector)
+                        obj.Kp_bar = obj.Kp_bar_vector(i);
+                        fprintf('\n--- Starting optimization for Kp_bar = %.4f (%d/%d) ---\n', ...
+                            obj.Kp_bar, i, length(obj.Kp_bar_vector));
 
-                obj.createElasticProblem();
-                obj.createComplianceFunctions();
-                obj.createMotionBasedFunctions();
+                        obj.init();
+                        obj.createMesh();
+                        obj.createDesignVariable();
+                        obj.createFilter();
+                        obj.createMaterialInterpolator();
 
-                obj.createVolumeConstraint();                
-                obj.createCost();
-                obj.createConstraint();
+                        obj.createElasticProblem();
+                        obj.createComplianceFunctions();
+                        obj.createMotionBasedFunctions();
 
-                obj.createDualVariable();
-                obj.createPrimalUpdater();
-                obj.createOptimizer();
+                        obj.createVolumeConstraint();
+                        obj.createCost();
+                        obj.createConstraint();
 
-                %obj.motionTransmissionAccuracy(); % Compute motion transmission accuracy
-               % obj.printFinalDisplacement_v3(); % print document with the final FEM displacements
-               % obj.printFinalDesignVariable(); % print final design variable
-               % obj.saveFigures(); % save matlab figures (design variable and monitoring)
+                        obj.createDualVariable();
+                        obj.createPrimalUpdater();
+                        obj.createOptimizer();
+
+                        %obj.motionTransmissionAccuracy(); % Compute motion transmission accuracy
+                        %obj.printFinalDisplacement_v3(); % print document with the final FEM displacements
+                        %obj.printFinalDesignVariable(); % print final design variable
+                        obj.saveFigures(); % save matlab figures (design variable and monitoring)
+
+                        fprintf('--- Finished optimization for Kp_bar = %.4f (%d/%d) ---\n', ...
+                            obj.Kp_bar, i, length(obj.Kp_bar_vector));
+                    end
+                    fprintf('\n--- Finished optimization for gJ = %.4f (%d/%d) ---\n', ...
+                        obj.gJFlowRatio, a, length(obj.gJFlowRatio_vector));
+                end
         end
 
     end
@@ -96,6 +117,22 @@ classdef Tutorial05_15_TopOpt2DDensity_DeformableMirror < handle
             s.type = 'Density';
             s.plotting = true;
             dens    = DesignVariable.create(s); 
+            obj.designVariable = dens;
+
+            coords   = obj.mesh.coord;
+
+            isOutput = coords(:,2) >= 0.99*obj.height;
+            isInputS = coords(:,1) >= 0.95*obj.width & ...
+                       coords(:,2) <= 0.25*obj.height & ...
+                       coords(:,2) >= 0.15*obj.height;
+            isInputC = coords(:,1) >= 0.95*obj.width & ...
+                       coords(:,2) <= 0.6*obj.height & ...
+                       coords(:,2) >= 0.5*obj.height;
+
+            vals = dens.fun.fValues;
+            vals(isOutput | isInputS | isInputC) = 1;
+            dens.fun.setFValues(vals);
+
             obj.designVariable = dens;
         end
 
@@ -251,23 +288,36 @@ classdef Tutorial05_15_TopOpt2DDensity_DeformableMirror < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 3;
+            s.maxIter        = 400;
             s.tolerance      = 1e-8;
             nConstr = sum(obj.nMP)+1;
             s.constraintCase = repmat({'INEQUALITY'},1,nConstr);
             s.primalUpdater  = obj.primalUpdater;
             s.ub             = 1;
             s.lb             = 0;
-            s.etaNorm        = 0.1; % max design change per iter, default was 0.02
-            s.gJFlowRatio    = 0.05; % "weight" of the constraint 0.1
+            s.etaNorm        = 0.03; % max design change per iter, default was 0.02
+            s.gJFlowRatio    = obj.gJFlowRatio; % "weight" of the constraint 0.1
             s.gif            = false;
             s.gifName        = [];
             s.printing       = false;
             s.printName      = ['InvDens'];
             %s.physicalProblem = obj.physicalProblem;
+
+            isOutput = obj.mesh.coord(:,2) >= 0.99*obj.height;
+            isInputS = obj.mesh.coord(:,1) >= 0.95*obj.width & ...
+                       obj.mesh.coord(:,2) <= 0.25*obj.height & ...
+                       obj.mesh.coord(:,2) >= 0.15*obj.height;
+            isInputC = obj.mesh.coord(:,1) >= 0.95*obj.width & ...
+                       obj.mesh.coord(:,2) <= 0.6*obj.height & ...
+                       obj.mesh.coord(:,2) >= 0.5*obj.height;
+            
+            s.nonDesignRegion = isOutput | isInputS | isInputC;
+            s.nonDesignValue  = 1;
+
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
+
         end
 
         function m = createMaterial(obj)
@@ -301,18 +351,27 @@ classdef Tutorial05_15_TopOpt2DDensity_DeformableMirror < handle
             isInputC =@(coor) coor(:,1) >= 0.95*obj.width & coor(:,2) <= 0.6*obj.height & coor(:,2) >= 0.5*obj.height;
             isOutput =@(coor) coor(:,2) >= 0.99*obj.height;
 
+            isInputS_nodes = isInputS(obj.mesh.coord);
+            nNodesInputS = sum(isInputS_nodes);
+
+            isInputC_nodes = isInputC(obj.mesh.coord);
+            nNodesInputC = sum(isInputC_nodes);
+
+            isOutput_nodes = isOutput(obj.mesh.coord);
+            nNodesOutput = sum(isOutput_nodes);
+
             if gdi_index == 1 % Input S
                 sPL{1}.domain = isInputS;
                 sPL{1}.direction = [2];
-                sPL{1}.value = 1;
+                sPL{1}.value = 1/nNodesInputS;
             elseif gdi_index == 2 % Input C
                 sPL{1}.domain = isInputC;
                 sPL{1}.direction = [2];
-                sPL{1}.value = 1;
+                sPL{1}.value = 1/nNodesInputC;
             elseif gdi_index == 3 % Output
                 sPL{1}.domain = isOutput;
                 sPL{1}.direction = [2];
-                sPL{1}.value = -1;
+                sPL{1}.value = -1/nNodesOutput;
             else
                 warning('Wrong GDI indeces');
             end        
@@ -368,6 +427,11 @@ classdef Tutorial05_15_TopOpt2DDensity_DeformableMirror < handle
                 sDir{4}.domain    = isOutput;
                 sDir{4}.direction = 2;
                 sDir{4}.value     = obj.amplitude * sin(Output_coor(:,1)/obj.width * 1.5*pi); % y(x)=A sin(x/w * 1.5*pi) 
+            
+                % sDir{5}.domain = isInputC;
+                % sDir{5}.direction = [2];
+                % sDir{5}.value = 0;
+            
             elseif mp_index == 2
                 sDir{3}.domain    = isInputC;
                 sDir{3}.direction = 2;
@@ -379,6 +443,11 @@ classdef Tutorial05_15_TopOpt2DDensity_DeformableMirror < handle
                 sDir{4}.domain    = isOutput;
                 sDir{4}.direction = 2;
                 sDir{4}.value     = obj.amplitude * cos(Output_coor(:,1)/obj.width * pi); % y(x)=A cos(x/w * pi) 
+          
+                % sDir{5}.domain = isInputS;
+                % sDir{5}.direction = [2];
+                % sDir{5}.value = 0;
+            
             else
                 warning('Wrong MP indeces');
             end
@@ -580,28 +649,31 @@ classdef Tutorial05_15_TopOpt2DDensity_DeformableMirror < handle
         end
         
         function printFinalDisplacement_v3(obj)
-            num_case = find(obj.J_vector == obj.J_case);
-            namePrint = sprintf('D_Inv_FinalDispl_J_%g',num_case);
-            uFun = obj.physicalProblem.uFun;
-            uFun.print(namePrint);
+            num_case = find(obj.Kp_bar_vector == obj.Kp_bar);
+            for i = 1:obj.nMP
+                namePrint = sprintf('Mirror_FinalDispl_Kp_%g_MP_%g', num_case, i);
+                uFun = obj.physicalProblemMotionBased{i}.uFun;
+                uFun.print(namePrint);
+            end
         end
 
         function saveFigures(obj)
-            num_case = find(obj.J_vector == obj.J_case);
+            num_case_gJ = find(obj.gJFlowRatio_vector == obj.gJFlowRatio);
+            num_case_Kp = find(obj.Kp_bar_vector == obj.Kp_bar);
             fig_design = figure(1); 
             fig_monitor = figure(2);
             fig_monitor.WindowState = 'maximized';
             drawnow;
-            name_design = sprintf('D_Inv_DesignMap_Case_%g.png', num_case );
-            name_monitor = sprintf('D_Inv_Monitoring_Case_%g.png', num_case);
+            name_design = sprintf('Mirror_X_gJ_%g_Kp_%g.png', num_case_gJ, num_case_Kp );
+            name_monitor = sprintf('Mirror_Monit_gJ_%g_Kp_%g.png', num_case_gJ, num_case_Kp);
             exportgraphics(fig_design, name_design, 'Resolution', 300);
             exportgraphics(fig_monitor, name_monitor, 'Resolution', 300);
             close all
         end
 
         function printFinalDesignVariable(obj)
-            num_case = find(obj.k_vector == obj.k_case);
-            namePrint = sprintf('D_Inv_DesignVariable_kCase_%g',num_case);
+            num_case = find(obj.Kp_bar_vector == obj.Kp_bar);
+            namePrint = sprintf('D_Mirror_DesignVariable_kCase_%g',num_case);
             obj.designVariable.fun.print(namePrint);
         end
      end
