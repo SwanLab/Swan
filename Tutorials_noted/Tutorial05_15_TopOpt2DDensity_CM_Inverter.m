@@ -26,6 +26,9 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
         Kp_bar_vector
         complianceFuncs
         motionBasedFuncs
+
+        phi_imposed
+        beta_adaptive
     end
 
     methods (Access = public)
@@ -45,6 +48,8 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
                     obj.nGDI = 2;
                     obj.nMP = 1;
                     obj.Kp_bar = 0.01;
+                    obj.phi_imposed = obj.J_MT;
+                    obj.beta_adaptive = 0.05; 
                     
                     obj.init();
                     obj.createMesh();
@@ -84,7 +89,7 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
 
         function createMesh(obj) % 2:1 mesh for the inverter
             % Generate coordinates
-            x1 = linspace(0,2,200);
+            x1 = linspace(0,1,100);
             x2 = linspace(0,1,100);
             % Create the grid
             [xv,yv] = meshgrid(x1,x2);
@@ -274,7 +279,10 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
             s.gifName        = [];
             s.printing       = false;
             s.printName      = ['InvDens'];
+            s.applyNonDesignRegion = false;
+            s.applySymmetry = false;
             %s.physicalProblem = obj.physicalProblem;
+            s.iterCallBack =@(nIter) obj.adaptiveUpdate(nIter);
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -294,20 +302,20 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
 
         function bc = createBoundaryConditionsLoadBased(obj, gdi_index) 
             isLeft =@(coor) coor(:,1) <= 1e-8;
-            isRight =@(coor) coor(:,1) >= 2-1e-8;
+            isMiddle =@(coor) coor(:,1) >= 1-1e-8;
 
-            % Side walls fixed
+            % Side walls fixed (left fixed, midle only x fixed)
             sDir{1}.domain = isLeft;
             sDir{1}.direction = [1,2];
             sDir{1}.value = 0;
 
-            sDir{2}.domain = isRight;
-            sDir{2}.direction = [1,2];
+            sDir{2}.domain = isMiddle;
+            sDir{2}.direction = [1];
             sDir{2}.value = 0;
 
             % Unit load at the GDI
-            isInput =@(coor) coor(:,1) >= 0.9 & coor(:,1) <= 1.1 & coor(:,2) <= 1e-8;
-            isOutput =@(coor) coor(:,1) >= 0.9 & coor(:,1) <= 1.1 & coor(:,2) >= 1-1e-8;
+            isInput =@(coor) coor(:,1) >= 0.9 & coor(:,2) <= 1e-8;
+            isOutput =@(coor) coor(:,1) >= 0.9 & coor(:,2) >= 1-1e-8;
 
             if gdi_index == 1 % Input
                 sPL{1}.domain = isInput;
@@ -343,29 +351,29 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
     
         function bc = createBoundaryConditionsMotionBased(obj, mp_index) 
             isLeft =@(coor) coor(:,1) <= 1e-8;
-            isRight =@(coor) coor(:,1) >= 2-1e-8;
+            isMiddle =@(coor) coor(:,1) >= 1-1e-8;
 
             % Side walls fixed
             sDir{1}.domain = isLeft;
             sDir{1}.direction = [1,2];
             sDir{1}.value = 0;
 
-            sDir{2}.domain = isRight;
-            sDir{2}.direction = [1,2];
+            sDir{2}.domain = isMiddle;
+            sDir{2}.direction = [1];
             sDir{2}.value = 0;
 
-            isInput =@(coor) coor(:,1) >= 0.9 & coor(:,1) <= 1.1 & coor(:,2) <= 1e-8;
-            isOutput =@(coor) coor(:,1) >= 0.9 & coor(:,1) <= 1.1 & coor(:,2) >= 1-1e-8;
+            isInput =@(coor) coor(:,1) >= 0.9 & coor(:,2) <= 1e-8;
+            isOutput =@(coor) coor(:,1) >= 0.9 & coor(:,2) >= 1-1e-8;
 
             % Free MP corresponds to upwards input movement with downwards
             % output movement
             sDir{3}.domain    = isInput;
             sDir{3}.direction = 2;
-            sDir{3}.value     = sqrt(1/(1+obj.J_MT^2)); % i^2 + o^2 = 1 --> i^2 + J^2*i^2 = 1 --> i = sqrt(1/(1+J^2)) 
+            sDir{3}.value     = sqrt(1/(1+obj.phi_imposed^2)); % i^2 + o^2 = 1 --> i^2 + J^2*i^2 = 1 --> i = sqrt(1/(1+J^2)) 
 
             sDir{4}.domain    = isOutput;
             sDir{4}.direction = 2;
-            sDir{4}.value     = obj.J_MT*sqrt(1/(1+obj.J_MT^2)); % o = J*i        
+            sDir{4}.value     = obj.phi_imposed*sqrt(1/(1+obj.phi_imposed^2)); % o = J*i        
             
             dirichletFun = [];
             for i = 1:numel(sDir)
@@ -482,6 +490,40 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
         end
+
+        function J_current = computeCurrentMT(obj)
+            fem = obj.physicalProblemMotionBased{1};
+            bc  = obj.createBoundaryConditionsMotionTransmission();
+            fem.boundaryConditions = bc;
+            fem.createBCApplier();
+            fem.createSolver();
+            fem.solve();
+
+            uVals    = fem.uFun.fValues;
+            coor     = obj.mesh.coord;
+            isOutput = @(c) c(:,1) >= 0.9 & c(:,1) <= 1.1 & c(:,2) >= 1-1e-8;
+            outNodes = isOutput(coor);
+            xD       = obj.designVariable.fun.fValues;
+            solidMask = xD(outNodes) > 0.5;
+
+            if sum(solidMask) == 0 || isnan(mean(uVals(outNodes(solidMask),2)))
+                J_current = obj.J_MT;
+                return;
+            end
+
+            u_out    = uVals(outNodes, 2);
+            J_current = mean(u_out(solidMask));  % u_in = 1
+        end
+
+        function adaptiveUpdate(obj,nIter)
+            J_current = obj.computeCurrentMT();
+            obj.phi_imposed = obj.phi_imposed + obj.beta_adaptive * (J_current - obj.J_MT);
+            fem = obj.physicalProblemMotionBased{1};
+            fem.boundaryConditions = obj.createBoundaryConditionsMotionBased();
+            fem.createBCApplier();
+            fem.createSolver();
+        end
+
 
         function printFinalDisplacement_v2(obj) % works
             % --- EXTRACT YOUR FINAL DATA ---

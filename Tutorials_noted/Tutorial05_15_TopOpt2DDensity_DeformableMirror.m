@@ -38,8 +38,8 @@ classdef Tutorial05_15_TopOpt2DDensity_DeformableMirror < handle
                 
                 obj.nGDI = 3;
                 obj.nMP = 2;
-                obj.Kp_bar_vector = [0.001 0.005 0.025 0.05]; 
-                obj.gJFlowRatio_vector = [0.6 0.9 1.2];
+                obj.Kp_bar_vector = [0.005 0.01 0.025 0.05]; 
+                obj.gJFlowRatio_vector = [0.3];
 
                 obj.height = 1;
                 obj.width = 1;
@@ -108,7 +108,7 @@ classdef Tutorial05_15_TopOpt2DDensity_DeformableMirror < handle
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) 0.25*ones(size(x(1,:,:)));
+            s.fHandle = @(x) 0.2*ones(size(x(1,:,:)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);
@@ -301,6 +301,8 @@ classdef Tutorial05_15_TopOpt2DDensity_DeformableMirror < handle
             s.gifName        = [];
             s.printing       = false;
             s.printName      = ['InvDens'];
+            s.applySymmetry = false;
+            s.applyNonDesignRegion = true;
             %s.physicalProblem = obj.physicalProblem;
 
             isOutput = obj.mesh.coord(:,2) >= 0.99*obj.height;
@@ -428,9 +430,9 @@ classdef Tutorial05_15_TopOpt2DDensity_DeformableMirror < handle
                 sDir{4}.direction = 2;
                 sDir{4}.value     = obj.amplitude * sin(Output_coor(:,1)/obj.width * 1.5*pi); % y(x)=A sin(x/w * 1.5*pi) 
             
-                % sDir{5}.domain = isInputC;
-                % sDir{5}.direction = [2];
-                % sDir{5}.value = 0;
+                sDir{5}.domain = isInputC;
+                sDir{5}.direction = [2];
+                sDir{5}.value = 0;
             
             elseif mp_index == 2
                 sDir{3}.domain    = isInputC;
@@ -444,9 +446,9 @@ classdef Tutorial05_15_TopOpt2DDensity_DeformableMirror < handle
                 sDir{4}.direction = 2;
                 sDir{4}.value     = obj.amplitude * cos(Output_coor(:,1)/obj.width * pi); % y(x)=A cos(x/w * pi) 
           
-                % sDir{5}.domain = isInputS;
-                % sDir{5}.direction = [2];
-                % sDir{5}.value = 0;
+                sDir{5}.domain = isInputS;
+                sDir{5}.direction = [2];
+                sDir{5}.value = 0;
             
             else
                 warning('Wrong MP indeces');
@@ -653,6 +655,12 @@ classdef Tutorial05_15_TopOpt2DDensity_DeformableMirror < handle
             for i = 1:obj.nMP
                 namePrint = sprintf('Mirror_FinalDispl_Kp_%g_MP_%g', num_case, i);
                 uFun = obj.physicalProblemMotionBased{i}.uFun;
+                uFun.print(namePrint);
+            end
+
+            for i=1:obj.nGDI
+                namePrint = sprintf('Mirror_FinalDispl_Kp_%g_LP_%g', num_case, i);
+                uFun = obj.physicalProblemLoadBased{i}.uFun;
                 uFun.print(namePrint);
             end
         end

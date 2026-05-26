@@ -1,5 +1,5 @@
-obj.Kp_bar_vector = [0.001 0.003 0.025 0.05]; 
-obj.gJFlowRatio_vector = [3 2 1.2 0.8]
+obj.Kp_bar_vector = [0.005 0.01 0.015 0.02]; 
+ obj.gJFlowRatio_vector = [3 2 1.2 0.8];
 
 s.etaNorm     = 0.03;    
 s.gJFlowRatio = ;     

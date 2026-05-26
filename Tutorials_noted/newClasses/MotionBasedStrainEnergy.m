@@ -14,8 +14,8 @@ classdef MotionBasedStrainEnergy < handle
         stateProblem % Elastic problem with prescribed displ (motion based)
         quadrature
         gradientFilter
-        oldCost          
-        oldGradient      
+        oldCost
+        oldGradient
         xOld
     end
 
@@ -40,7 +40,7 @@ classdef MotionBasedStrainEnergy < handle
             xR = {x_filtered}; % convert it to cell for computeTensorAndGradient
 
             dx = xR{1} - obj.xOld;
-            if norm(dx.fValues)/norm(xR{1}.fValues) > 0.05
+            % if norm(dx.fValues)/norm(xR{1}.fValues) > 0.001
                 [C,dC] = obj.computeTensorFunctionAndGradient(xR);
                 uS     = obj.computeStateVariable(C);
                 J      = obj.computeFunctionValue(C,uS);
@@ -56,11 +56,11 @@ classdef MotionBasedStrainEnergy < handle
                 obj.oldCost     = J;
                 obj.oldGradient = dJ;
                 obj.xOld        = xR{1};
-            else
-                sp = ScalarProduct(obj.oldGradient{1}, dx, 'L2');
-                J  = obj.oldCost + sp;
-                dJ = obj.oldGradient;
-            end
+            % else
+            %     sp = ScalarProduct(obj.oldGradient{1}, dx, 'L2');
+            %     J  = obj.oldCost + sp;
+            %     dJ = obj.oldGradient;
+            % end
         end
 
         function title = getTitleToPlot(obj)
@@ -103,21 +103,21 @@ classdef MotionBasedStrainEnergy < handle
             C  = obj.material.obtainTensor();
             dC = obj.material.obtainTensorDerivative();
         end
-        
+
         function u = computeStateVariable(obj, C)
             obj.stateProblem.updateMaterial(C);
             obj.stateProblem.solve();
             u = obj.stateProblem.uFun;
         end
-        
+
         function J = computeFunctionValue(obj, C, uS)
-            stateStrain   = SymGrad(uS); 
-            stress        = DDP(C, stateStrain); 
+            stateStrain   = SymGrad(uS);
+            stress        = DDP(C, stateStrain);
             dCompliance = DDP(stateStrain, stress); % corresponds to the amount of energy stored at each point of the domain
-            
+
             % E = 1/2 * u * K * u
             J_abs = 0.5 * Integrator.compute(dCompliance, obj.mesh, obj.quadrature.order); % integrate using gauss quadrature (Koppen does it with matrices)
-            
+
             if isempty(obj.value0)
                 obj.value0 = J_abs;
             end

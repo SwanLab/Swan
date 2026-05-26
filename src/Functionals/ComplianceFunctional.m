@@ -24,17 +24,17 @@ classdef ComplianceFunctional < handle
             xD  = x.obtainDomainFunction();
             xR = obj.filterFields(xD);
             dx = xR{1} - obj.xOld;
-            if norm(dx.fValues)/norm(xR{1}.fValues) > 0.02
+            % if norm(dx.fValues)/norm(xR{1}.fValues) > 0.02
                 obj.material.setDesignVariable(xR);
                 [J,dJ] = obj.computeComplianceFunctionAndGradient(x);
                 obj.oldCost = J;
                 obj.oldGradient = dJ;
                 obj.xOld = xR{1};
-            else
-                sp = ScalarProduct(obj.oldGradient{1},dx,'L2');
-                J = obj.oldCost + sp;
-                dJ = obj.oldGradient;
-            end
+            % else
+            %     sp = ScalarProduct(obj.oldGradient{1},dx,'L2');
+            %     J = obj.oldCost + sp;
+            %     dJ = obj.oldGradient;
+            % end
         end
 
         function title = getTitleToPlot(obj)

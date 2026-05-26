@@ -3,6 +3,9 @@ classdef OptimizerNullSpace < handle
     properties (Access = private)
         tolCost   = 1e-8
         tolConstr = 1e-6
+        iterCallBack
+        applySymmetry
+        applyNonDesignRegion
     end
 
     properties (Access = private)
@@ -63,6 +66,11 @@ classdef OptimizerNullSpace < handle
             obj.firstEstimation = false;
             while ~obj.hasFinished
                 obj.update();
+
+                if ~isempty(obj.iterCallBack)
+                    obj.iterCallBack(obj.nIter);
+                end
+
                 obj.printResults();
                 obj.updateIterInfo();
                 obj.plotVariable();
@@ -107,6 +115,14 @@ classdef OptimizerNullSpace < handle
             else
                 obj.nonDesignRegion = [];
             end
+
+            if isfield(cParams, 'iterCallBack')
+                obj.iterCallBack = cParams.iterCallBack;
+            else
+                obj.iterCallBack=[];
+            end
+
+
         end
 
         function createDualVariable(obj)
@@ -228,9 +244,13 @@ classdef OptimizerNullSpace < handle
                 obj.checkStep(x0);
             end
             
-            obj.enforceNonDesignRegions();
-           % obj.enforceSymmetry();  % Remove for cases where half the
-          % domain is represented
+            if obj.applyNonDesignRegion
+                obj.enforceNonDesignRegions();
+            end
+            
+            if obj.applySymmetry
+                obj.enforceSymmetry();
+            end
         end
 
         function printResults(obj)
