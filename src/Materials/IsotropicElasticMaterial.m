@@ -54,7 +54,7 @@ classdef IsotropicElasticMaterial < Material
         end
 
         function lambda = computeLambdaFromShearAndBulk(m,k,N)
-            lambda = k - 2/N*m;
+            lambda = k - 2./N.*m;
         end
 
         function k = computeKappaFromShearAndLambda(m,l,N)

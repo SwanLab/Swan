@@ -56,7 +56,7 @@ classdef PhaseFieldMonitoring < handle
             obj.data.energy.intE(step)     = cParams.energy(1);
             obj.data.energy.localDis(step) = cParams.energy(2);
             obj.data.energy.regDis(step)   = cParams.energy(3);
-            obj.data.energy.extWork(step)  = cParams.energy(4);
+            %obj.data.energy.extWork(step)  = cParams.energy(4);
 
             obj.data.iter.u(step)    = cParams.numIter.u;
             obj.data.iter.phi(step)  = cParams.numIter.phi;

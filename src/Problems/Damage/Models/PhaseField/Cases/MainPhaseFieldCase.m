@@ -23,10 +23,10 @@ s.benchmark.bc.u.type   = 'DisplacementTractionX';%'DisplacementShear';
 s.benchmark.bc.u.values =  [1e-2:1e-2:2];
 s.benchmark.bc.phi.type = 'DamageFree';
 
-s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'
+s.matInfo.matType = 'Analytic'; %'Analytic','Homogenized'
 s.matInfo.degradationType = 'PhaseField'; %'PhaseField','SIMPALL'
-s.matInfo.degradationSubType = 'General'; %'AT','AT2linear','General'
-s.matInfo.fileName = 'HexagonBenchmark03'; 
+s.matInfo.degradationSubType = 'IsoHomog'; %'AT','AT2linear','General','IsoHomog'
+s.matInfo.fileName = 'HexagonBenchmark03'; % (Only for Homogenized material)
 s.matInfo.young   = 1;
 s.matInfo.poisson = 0;
 s.matInfo.Gc      = 8/3;
@@ -34,6 +34,7 @@ s.matInfo.sigmaMax = 1;
 s.l0 = 2;
 s.matInfo.params.coeffs = [(4/pi)*(s.matInfo.Gc*s.matInfo.young)/(s.matInfo.sigmaMax^2 * s.l0), -0.5]; %(4/pi)
 s.matInfo.params.exp = 2;
+s.matInfo.params.fileName = 'HexagonBenchmark02'; % (Only for IsoHomog material)
 
 s.dissipInfo.type = 'AT';
 s.dissipInfo.constant = 8/3; % 2 AT2 / 8/3 AT1 / pi Wu 
@@ -51,4 +52,4 @@ outputData.inputParameters = s;
 %% SAVE + PLOT
 %save("1ElemRational1_v2.mat",'outputData') %ACTIVATE TO SAVE DATA!
 PhaseFieldPlotter(outputData);
-save('1ElemHexagonSimplified')
+% save('1ElemHexagonSimplified')
