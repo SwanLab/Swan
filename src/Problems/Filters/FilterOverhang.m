@@ -6,9 +6,13 @@ classdef FilterOverhang < handle
         k
         theta
         epsilon
+        gamma
     end
 
     properties (Access = private)
+        LHS
+        prox
+        rhsProx
         chiN
         chiNOld
     end
@@ -16,6 +20,7 @@ classdef FilterOverhang < handle
     methods (Access = public)
         function obj = FilterOverhang(cParams)
             obj.init(cParams);
+            obj.createLHS();
         end
 
         function xF = compute(obj,fun,q)
@@ -27,21 +32,18 @@ classdef FilterOverhang < handle
             obj.chiN = obj.createRHSShapeFunction(fun,q);
             if isempty(obj.chiNOld) || norm(obj.chiNOld-obj.chiN)/norm(obj.chiN)>=1e-6
                 obj.chiNOld      = obj.chiN;
-                s.designVariable = obj.createDesignVariable(xF);
-                s.cost           = obj.createCost(fun);
-                s.monitoring     = false;
-                s.lb             = 0;
-                s.ub             = 1;
-                s.maxIter        = 1000;
-                opt              = OptimizerProjectedGradient(s);
-                opt.solveProblem();
+                obj.updateProximal(xF);
+                obj.updateRHSProx();
+                xF.setFValues(obj.LHS\(obj.chiN + obj.rhsProx));
                 obj.trial = xF;
             end
         end
 
         function obj = updateEpsilon(obj,epsilon)
             if obj.hasEpsilonChanged(epsilon)
+                h           = obj.mesh.computeMeanCellSize();
                 obj.epsilon = epsilon;
+                obj.gamma   = (1/(2*epsilon^2))*(epsilon^2/h^2 - 1);
             end
         end
     end
@@ -53,14 +55,14 @@ classdef FilterOverhang < handle
             obj.k       = cParams.senseVector;
             obj.theta   = deg2rad(90 - cParams.ovAngleDeg);
             obj.epsilon = cParams.mesh.computeMeanCellSize();
+            obj.gamma   = 0.001;
         end
 
         function xF = computeInitialGuess(obj,fun,q)
-            s.mesh = obj.mesh;
+            s.mesh  = obj.mesh;
             s.trial = obj.trial;
-            s.filterType = 'PDE';
-            filter = Filter.create(s);
-            xF = filter.compute(fun,q);
+            filter  = FilterLump(s);
+            xF      = filter.compute(fun,q);
         end
 
         function RHS = createRHSShapeFunction(obj,fun,quadType)
@@ -68,35 +70,27 @@ classdef FilterOverhang < handle
             RHS = IntegrateRHS(f,obj.trial,obj.trial.mesh,'Domain',quadType);
         end
 
-        function dens = createDesignVariable(obj,xF)
-            s.fun      = xF;
-            s.mesh     = obj.mesh;
-            s.type     = 'Density';
-            s.plotting = false;
-            dens       = DesignVariable.create(s);
+        function updateProximal(obj,rho)
+            gRho   = Grad(rho);
+            gRhoN  = sqrt(DP(Grad(rho),Grad(rho)));
+            dirDer = DP(gRho,obj.k);
+            constr = dirDer - gRhoN.*cos(obj.theta);
+            coef   = 1/(obj.gamma*obj.epsilon^2+1);
+            obj.prox = coef.*gRho.*(constr>=0) + gRho.*(constr<0);
         end
 
-        function c = createCost(obj,fun)
-            s.shapeFunctions{1} = obj.createPotential(fun);
-            s.weights           = 1;
-            s.Msmooth           = obj.createMassMatrix();
-            c                   = Cost(s);
+        function updateRHSProx(obj)
+            f   = @(v) DP(obj.prox,Grad(v));
+            obj.rhsProx = (1/obj.gamma).*IntegrateRHS(f,obj.trial,obj.trial.mesh,'Domain');
         end
 
-        function p = createPotential(obj,fun)
-            s.mesh    = obj.mesh;
-            s.chi     = fun;
-            s.epsilon = obj.epsilon;
-            s.k       = obj.k;
-            s.theta   = obj.theta;
-            s.trial   = obj.trial;
-            p         = OverhangPotential(s);
-        end
-
-        function M = createMassMatrix(obj)
-            n = obj.mesh.nnodes;
-            h = obj.mesh.computeMinCellSize();
-            M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
+        function createLHS(obj)
+            f = @(v,u) v.*u;
+            M = IntegrateLHS(f,obj.trial,obj.trial,obj.mesh,'Domain',2);
+            %M = diag(sum(M,1));
+            g = @(v,u) DP(Grad(v),Grad(u));
+            K = IntegrateLHS(g,obj.trial,obj.trial,obj.mesh,'Domain',2);
+            obj.LHS = M + (1/obj.gamma).*K;
         end
 
         function itHas = hasEpsilonChanged(obj,eps)

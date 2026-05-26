@@ -3,7 +3,7 @@ clear;
 clc;
 close all;
 
-mesh = TriangleMesh(1,1,75,75);
+mesh = TriangleMesh(1,1,100,100);
 h    = mesh.computeMeanCellSize();
 
 sG.type        = 'Circle';
