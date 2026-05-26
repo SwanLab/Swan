@@ -14,13 +14,20 @@ classdef MaterialFactory < handle
                     end
                 case 'ORTHOTROPIC'
                     material = Orthotropic2dElasticMaterial(cParams);
-                    
+
                 case 'HomogenizedMicrostructure'
                     material = HomogenizedMicrostructureInterpolator(cParams);
-                    
+                case 'HomogenizedMicroDensityFixed'
+                    material = HomogenizedMicroDensityFixedInterpolator(cParams);
+
+                case 'HomogenizedMicroDensity'
+                    material = HomogenizedMicroDensityInterpolator(cParams);
+                case 'HomogenizedMicrostructureBZero'
+                    material = HomogenizedMicrostructureBZeroInterpolator(cParams);
+
                 case 'DensityBased'
                     material = DensityBasedMaterial(cParams);
-                
+
                 case 'STOKES'
                     material = MaterialStokes(cParams);
                     

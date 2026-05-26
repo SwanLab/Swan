@@ -41,8 +41,11 @@ classdef OptimizerNullSpace < handle
         printing
         printName
     end
+    properties (Access = public)
+        costHistory = [];
+    end
 
-    methods (Access = public) 
+    methods (Access = public)
         function obj = OptimizerNullSpace(cParams)
             obj.init(cParams);
             obj.createMonitoring(cParams);
@@ -131,6 +134,7 @@ classdef OptimizerNullSpace < handle
             s.meritNew         = obj.meritNew;
             obj.monitoring.update(obj.nIter,s);
             obj.monitoring.refresh();
+            obj.costHistory(end+1) = obj.cost.value; 
         end
 
         function plotVariable(obj)
@@ -326,6 +330,7 @@ classdef OptimizerNullSpace < handle
             J  = obj.cost.value;
             h  = obj.constraint.value;
             mF = J+l'*h;
+            
         end
 
         function obj = checkConvergence(obj)

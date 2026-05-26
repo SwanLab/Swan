@@ -5,7 +5,7 @@ classdef PlotterFactory < handle
         function plotter = create(designVariable)
             d = designVariable;
             switch d.type
-                case {'Density','DensityAndBound'}
+                case {'Density','DensityAndBound','MicroWithDensity'}
                     s.mesh           = d.fun.mesh;
                     s.designVariable = d;
                     plotter          = PlotterDensity(s);

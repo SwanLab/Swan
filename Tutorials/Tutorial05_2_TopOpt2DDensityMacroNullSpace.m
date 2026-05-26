@@ -31,6 +31,9 @@ classdef Tutorial05_2_TopOpt2DDensityMacroNullSpace < handle
             obj.createPrimalUpdater();
             obj.createOptimizer();
         end
+        function hist = getCostHistory(obj)
+            hist = obj.optimizer.costHistory;
+        end
 
     end
 
@@ -177,7 +180,7 @@ classdef Tutorial05_2_TopOpt2DDensityMacroNullSpace < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 3;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
