@@ -15,13 +15,13 @@ s.maxIter.stag = 300;
 
 s.benchmark.mesh.type   = 'SEN3D';
 s.benchmark.bc.u.type   = 'DisplacementTractionZ';
-s.benchmark.bc.u.values =  [0:1e-4:0.025,0.15:1e-5:0.031];
+s.benchmark.bc.u.values =  [1e-4:1e-4:0.025,0.15:1e-5:0.031];
 s.benchmark.bc.phi.type = 'DamageFree';
 
 s.matInfo.matType = 'Analytic'; %'Analytic','Homogenized'
 s.matInfo.degradationType = 'PhaseField'; %'PhaseField','SIMPALL'
-s.matInfo.degradationSubType = 'AT'; %'AT','ATSplit','Rational','General'
-s.matInfo.fileName = 'HoneycombBenchmark02'; 
+s.matInfo.degradationSubType = 'IsoHomog'; %'AT','ATSplit','Rational','General'
+s.matInfo.fileName = 'HoneycombBenchmark03'; 
 s.matInfo.young   = 20.8;
 s.matInfo.poisson = 0.3;
 s.matInfo.Gc      = 5e-4;
@@ -29,6 +29,7 @@ s.matInfo.sigmaMax = 2.44542;
 s.l0 = 0.2;
 s.matInfo.params.coeffs = [(4/pi)*(s.matInfo.Gc*s.matInfo.young)/(s.matInfo.sigmaMax^2 * s.l0), -0.5]; %(4/pi)
 s.matInfo.params.exp = 2;
+s.matInfo.params.fileName = 'HoneycombBenchmark03';
 
 s.dissipInfo.type = 'AT';
 s.dissipInfo.constant = 8/3; % 2 AT2 / 8/3 AT1 / pi Rational 
@@ -41,4 +42,4 @@ s.solver.tau  = 150;
 tester = TestingPhaseField(s);
 outputData = tester.compute();
 outputData.inputParameters = s;
-save("SEN3DtractionAT1.mat",'outputData')
+save("SEN3DtractionHomog.mat",'outputData')

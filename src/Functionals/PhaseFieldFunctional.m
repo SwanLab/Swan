@@ -39,7 +39,7 @@ classdef PhaseFieldFunctional < handle
             Edis = obj.functionals.localDamage.computeCost(phi,obj.quadOrder);
             Ereg = obj.functionals.nonLocalDamage.computeCost(phi,obj.quadOrder);
             %Wext = obj.functionals.extWork.computeCost(u,fExt,obj.quadOrder);
-            E = [Eint,Edis,Ereg,Wext];
+            % E = [Eint,Edis,Ereg,Wext];
             E = [Eint,Edis,Ereg];
         end
         

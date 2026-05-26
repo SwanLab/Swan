@@ -123,18 +123,20 @@ classdef PhaseFieldComputer < handle
         end
 
         function [totReact,uBC] = computeTotalReaction(obj,step,F,u)
+            % Traction Y
             DownSide = min(obj.mesh.coord(:,2));
             isInDown = abs(obj.mesh.coord(:,2)-DownSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;
             if ismember(obj.boundaryConditions.u.type, ["ForceTractionY", "ForceTractionYClamped"])
                 uBC = norm(mean(u.fValues(nodes(isInUp),2)));
                 totReact = obj.boundaryConditions.u.bcValues(step);
-            elseif ismember(obj.boundaryConditions.u.type, ["DisplacementTractionY","DisplacementTractionYClamped"]) 
+            elseif ismember(obj.boundaryConditions.u.type, ["DisplacementTractionY","DisplacementTractionYClamped"])
                 dofsYdown = (nodes(isInDown)-1)*u.ndimf + 2;
                 totReact = abs(sum(F(dofsYdown)));
                 uBC = obj.boundaryConditions.u.bcValues(step);
             end
 
+            % Traction X
             LeftSide = min(obj.mesh.coord(:,1));
             isInLeft = abs(obj.mesh.coord(:,1)-LeftSide)< 1e-12;
             nodes = 1:obj.mesh.nnodes;
@@ -147,6 +149,16 @@ classdef PhaseFieldComputer < handle
                 uBC = obj.boundaryConditions.u.bcValues(step);
             end
 
+            % Traction Z
+            BottomSide = min(obj.mesh.coord(:,3));
+            isInBottom = abs(obj.mesh.coord(:,3)-BottomSide)< 1e-12;
+            if ismember(obj.boundaryConditions.u.type, "DisplacementTractionZ")
+                dofsZbottom = (nodes(isInBottom)-1)*u.ndimf + 1;
+                totReact = abs(sum(F(dofsZbottom)));
+                uBC = obj.boundaryConditions.u.bcValues(step);
+            end
+            
+            % Shear
             if ismember(obj.boundaryConditions.u.type, "DisplacementShear")
                 dofsXdown = (nodes(isInDown)-1)*u.ndimf + 1;
                 totReact = abs(sum(F(dofsXdown)));
@@ -156,8 +168,8 @@ classdef PhaseFieldComputer < handle
 
         function printAndSave(obj,step,totF,uBC,u,phi,Evec,totE,iterMax,cost,tauArray)
             obj.monitor.updateAndRefresh(step,{[totF;uBC],[max(phi.fun.fValues);uBC],...
-                                               [phi.fun.fValues],[iterMax.stag],[],...
-                                               [totE;uBC],[]});
+                [phi.fun.fValues],[iterMax.stag],[],...
+                [totE;uBC],[]});
             obj.saveData(step,totF,uBC,u,phi,Evec,iterMax,cost,tauArray);
         end
 
