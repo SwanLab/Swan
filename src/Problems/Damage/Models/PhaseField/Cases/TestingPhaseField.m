@@ -156,9 +156,7 @@ classdef TestingPhaseField < handle
                     degParams.matB.shear = mu;
                     degParams.matB.bulk  = kappa;
                 case 'PhaseField'
-                    if isfield(obj.matInfo,'degradationSubType')
-                        degParams.subType    = obj.matInfo.degradationSubType;
-                    end
+                    degParams.subType = obj.matInfo.degradationSubType;
                     degParams.ndim    = ndim;
                     degParams.young   = ConstantFunction.create(E,obj.mesh);
                     degParams.poisson = ConstantFunction.create(nu,obj.mesh);

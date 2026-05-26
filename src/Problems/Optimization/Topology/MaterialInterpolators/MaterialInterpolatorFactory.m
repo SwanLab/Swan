@@ -48,6 +48,8 @@ classdef MaterialInterpolatorFactory < handle
                             obj = PhaseFieldGeneralDegradation(cParams);
                         case 'RationalWu'
                             obj = PhaseFieldRationalWuDegradation(cParams);
+                        case 'IsoHomog'
+                            obj = PhaseFieldIsotropicHomogenizationDegradation(cParams);
                     end
                 otherwise
                     error('Invalid Material Interpolation method.');
