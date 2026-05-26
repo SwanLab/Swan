@@ -18,7 +18,6 @@ classdef TestingPhaseField < handle
     properties (Access = private)
         mesh
         boundaryConditions
-        initialDerivative
         functional
     end
 
@@ -28,7 +27,6 @@ classdef TestingPhaseField < handle
             obj.init(cParams) 
             obj.defineCase();
             obj.createInitialGuess(cParams);
-            obj.computeInitialDerivative(cParams)
             obj.createPhaseFieldFunctional()
         end
 
@@ -70,7 +68,7 @@ classdef TestingPhaseField < handle
                 if isfield(cParams.initialGuess,'u')
                     u = cParams.initialGuess.u;
                 else
-                    u = LagrangianFunction.create(obj.mesh,2,'P1');
+                    u = LagrangianFunction.create(obj.mesh,obj.mesh.ndim,'P1');
                 end
 
                 if isfield(cParams.initialGuess,'phi')
@@ -80,7 +78,7 @@ classdef TestingPhaseField < handle
                     phi = obj.setInitialDamage(phi);
                 end
             else
-                u = LagrangianFunction.create(obj.mesh,2,'P1');
+                u = LagrangianFunction.create(obj.mesh,obj.mesh.ndim,'P1');
                 phi = LagrangianFunction.create(obj.mesh,1,'P1');
                 phi = obj.setInitialDamage(phi);
             end
@@ -106,20 +104,13 @@ classdef TestingPhaseField < handle
             phi = DesignVariable.create(s);
         end
 
-        function computeInitialDerivative(obj,cParams)
-            Gc = cParams.matInfo.Gc;
-            E = cParams.matInfo.young;
-            sigMax = cParams.matInfo.sigmaMax;
-            obj.initialDerivative = -2*(3/8)*(Gc/obj.l0)*E*(1/sigMax)^2;
-        end
-
         function createPhaseFieldFunctional(obj)
             s.mesh          = obj.mesh;
             s.material      = obj.createMaterialPhaseField();
             s.dissipation   = obj.createDissipationInterpolation();
             s.Gc            = obj.matInfo.Gc;
             s.l0            = obj.l0;
-            s.quadOrder     = 3;
+            s.quadOrder     = 2;
             s.testSpace.u   = obj.initialGuess.u;
             s.testSpace.phi = obj.initialGuess.phi.fun;
             s.energySplit   = (obj.matInfo.matType == "AnalyticSplit");

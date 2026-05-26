@@ -42,6 +42,11 @@ classdef BenchmarkManager < handle
                     a.fileName = file;
                     s = FemDataContainer(a);
                     mesh = s.mesh;
+                case 'SEN3D'
+                    file = 'SEN3D_005';
+                    a.fileName = file;
+                    s = FemDataContainer(a);
+                    mesh = s.mesh;
                 case 'Xstructure'
                     file = 'Xstructure';
                     a.fileName = file;
