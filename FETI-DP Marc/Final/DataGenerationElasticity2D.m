@@ -1,16 +1,16 @@
 classdef DataGenerationElasticity2D < handle
 
     properties (Access = public)
-        useMatrixFree           = false   
+        useMatrixFree           = true   
         useEdgeAverage          = true
         enablePlots             = true
         computeMonolithic       = true
         computeUnpreconditioned = true
-        computeKappa            = true
+        computeKappa            = false
         exportParaview          = false
         outputPrefix      = 'cantilever2d_feti'
 
-        numSubdomains     = [20 2]
+        numSubdomains     = [60 6]
         nodeTol           = 1e-10
         pcgTol            = 1e-10
         nPerSide          = 10
@@ -172,7 +172,7 @@ classdef DataGenerationElasticity2D < handle
             end
 
             % --- Case 2: Unpreconditioned FETI-DP dual CG ---------------
-            if obj.computeUnpreconditioned && ~obj.useMatrixFree
+            if obj.computeUnpreconditioned 
                 Pid = @(r) r;
                 tic;
                 [~, residualUnprec] = PCG.solve(fOperator, dBar, x0Feti, Pid, tol, lambdaExact);
