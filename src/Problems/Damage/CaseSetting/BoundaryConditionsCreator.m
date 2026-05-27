@@ -95,7 +95,7 @@ classdef BoundaryConditionsCreator < handle
             % Remember change bMesh{2} in extWorkFunctional
 
             s.mesh         = obj.mesh;
-            s.dirichletFun = [Dir Dir2];
+            s.dirichletFun = [Dir1 Dir2];
             s.pointloadFun = [Neum1];
             s.periodicFun  = [];
             obj.boundaryConditions = BoundaryConditions(s);

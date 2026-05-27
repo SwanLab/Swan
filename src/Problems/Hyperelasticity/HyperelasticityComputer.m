@@ -61,6 +61,7 @@ classdef HyperelasticityComputer < handle
             s.eifemData = cParams.eifemData;
             s.activePreconditioner = cParams.activePreconditioner;
             s.compareEIFEM = cParams.compareEIFEM;
+            s.useConstantPreconditioners = cParams.useConstantPreconditioners;
             %
 
             obj.updater = DisplacementUpdater(s);

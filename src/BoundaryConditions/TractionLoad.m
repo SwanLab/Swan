@@ -2,7 +2,10 @@ classdef TractionLoad < BoundaryCondition
     
     properties (Access = private)
         type
-        values
+        values       
+    end
+
+    properties (Access = public)
         fun
     end
     

@@ -125,7 +125,14 @@ classdef BoundaryConditions < handle
 
         function [dofs,vals,domain,bcFun] = createBCFun(obj,input)
             if ~isequal(input, [])
-                ndimf  = input(1).fun.ndimf;
+                
+                %ndimf  = input(1).fun.ndimf;
+                if ~isempty(input(1).fun)
+                    ndimf = input(1).fun.ndimf;
+                else
+                    ndimf = obj.mesh.ndim;
+                end
+
                 bcFun = LagrangianFunction.create(obj.mesh, ndimf,'P1');
                 dofs = [];
                 vals = [];

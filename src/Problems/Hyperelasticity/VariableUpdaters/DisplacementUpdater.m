@@ -10,10 +10,15 @@ classdef DisplacementUpdater < handle
         pcgIterHistoryThisStep
         pcgMeanHistoryPerStep
 
-        %EIFEM
+        %EIFEM / ILU Constants
         eifemData
         activePreconditioner
         compareEIFEM
+        useConstantPreconditioners
+        MeifemConstant
+        MiluConstant
+        LHSforILUConstant
+
     end
 
     methods (Access = public)
@@ -79,10 +84,27 @@ classdef DisplacementUpdater < handle
             obj.pcgIterHistoryThisStep = [];
             obj.pcgMeanHistoryPerStep  = [];
 
-            %EIFEM
+            % %EIFEM
+            % obj.eifemData = cParams.eifemData;
+            % obj.activePreconditioner = cParams.activePreconditioner;
+            % obj.compareEIFEM = cParams.compareEIFEM;
+
+            % EIFEM / ILU constants
             obj.eifemData = cParams.eifemData;
             obj.activePreconditioner = cParams.activePreconditioner;
             obj.compareEIFEM = cParams.compareEIFEM;
+            
+            if isfield(cParams,'useConstantPreconditioners')
+                obj.useConstantPreconditioners = cParams.useConstantPreconditioners;
+            else
+                obj.useConstantPreconditioners = false;
+            end
+
+            % Inicialització precondicionadors constants
+            obj.MeifemConstant = [];
+            obj.MiluConstant   = [];
+            obj.LHSforILUConstant = [];
+
         end
 
         function uOut = computeDisplacement(obj,LHSfull, RHSfull,uIn,bc)
@@ -108,6 +130,9 @@ classdef DisplacementUpdater < handle
 
         function xNew = updateWithNewton(obj,LHS,RHS,x,bc)
 
+            % disp(obj.compareEIFEM)                  % debug
+            % disp(obj.useConstantPreconditioners)    % debug
+
             tol = 1e-4;
             maxIter = 100;
 
@@ -119,8 +144,9 @@ classdef DisplacementUpdater < handle
             deltaX_direct = LHS \ b;
             timeDirect = toc(t);
 
-            % Precondicionador ILU
-            Milu = obj.createILUpreconditioner(LHS);
+            % Precondicionador ILU variable
+            % De moment el desactivem perquè volem precondicionadors constants
+            % Milu = obj.createILUpreconditioner(LHS);
 
             results = struct([]);
 
@@ -146,20 +172,42 @@ classdef DisplacementUpdater < handle
             % results(2).resvec = resvec;
             % results(2).time   = toc(t);
 
+            % 2) PCG + ILU constant
+            Milu = obj.getConstantILUpreconditioner(LHS);
+            
+            t = tic;
+            [dx,flag,relres,iter,resvec] = pcg(LHS,b,tol,maxIter,Milu,[],x0);
+            results(2).name   = 'PCG_ILU_CONSTANT';
+            results(2).dx     = dx;
+            results(2).flag   = flag;
+            results(2).relres = relres;
+            results(2).iter   = iter;
+            results(2).resvec = resvec;
+            results(2).time   = toc(t);
+            
+            
             if obj.compareEIFEM
-                % 3) PCG + EIFEM
-                bcApplierCurrent = obj.createCurrentBCApplier(bc);
-                Meifem = obj.createEIFEMpreconditioner(bcApplierCurrent);
-
+                
+                if obj.useConstantPreconditioners
+                    % EIFEM constant
+                    Meifem = obj.getConstantEIFEMpreconditioner(bc);
+                else
+                    % EIFEM recomputat (com abans)
+                    bcApplierCurrent = obj.createCurrentBCApplier(bc);
+                    Meifem = obj.createEIFEMpreconditioner(bcApplierCurrent);
+                end
+            
                 t = tic;
                 [dx,flag,relres,iter,resvec] = pcg(LHS,b,tol,maxIter,Meifem,[],x0);
-                results(2).name   = 'PCG_EIFEM';
-                results(2).dx     = dx;
-                results(2).flag   = flag;
-                results(2).relres = relres;
-                results(2).iter   = iter;
-                results(2).resvec = resvec;
-                results(2).time   = toc(t);
+
+
+                results(end+1).name   = 'PCG_EIFEM';
+                results(end).dx       = dx;
+                results(end).flag     = flag;
+                results(end).relres   = relres;
+                results(end).iter     = iter;
+                results(end).resvec   = resvec;
+                results(end).time     = toc(t);
 
                 % 4) PCG + ILU-EIFEM-ILU
                 % LHSf   = @(v) LHS*v;
@@ -174,6 +222,29 @@ classdef DisplacementUpdater < handle
                 % results(4).iter   = iter;
                 % results(4).resvec = resvec;
                 % results(4).time   = toc(t);
+
+                % 4) PCG + ILU-EIFEM-ILU constant
+                if obj.useConstantPreconditioners
+                
+                    Milu   = obj.getConstantILUpreconditioner(LHS);
+                    Meifem = obj.getConstantEIFEMpreconditioner(bc);
+                
+                    LHSfun = @(v) LHS*v;
+                    Mcombo = @(r) Preconditioner.multiplePrec(r,LHSfun,Milu,Meifem,Milu);
+                
+                    t = tic;
+                    [dx,flag,relres,iter,resvec] = pcg(LHS,b,tol,maxIter,Mcombo,[],x0);
+                
+                    results(end+1).name   = 'PCG_ILU_EIFEM_ILU_CONSTANT';
+                    results(end).dx     = dx;
+                    results(end).flag   = flag;
+                    results(end).relres = relres;
+                    results(end).iter   = iter;
+                    results(end).resvec = resvec;
+                    results(end).time   = toc(t);
+                
+                end
+
             end
 
             % Guarda les iteracions del solver actiu
@@ -182,12 +253,22 @@ classdef DisplacementUpdater < handle
                     idx = find(strcmp({results.name},'PCG'),1);
                 case 'PCG_ILU'
                     idx = find(strcmp({results.name},'PCG_ILU'),1);
+                case 'PCG_ILU_CONSTANT'
+                    idx = find(strcmp({results.name},'PCG_ILU_CONSTANT'),1);
                 case 'PCG_EIFEM'
+                    idx = find(strcmp({results.name},'PCG_EIFEM'),1);
+                case 'PCG_EIFEM_CONSTANT'
                     idx = find(strcmp({results.name},'PCG_EIFEM'),1);
                 case 'PCG_ILU_EIFEM_ILU'
                     idx = find(strcmp({results.name},'PCG_ILU_EIFEM_ILU'),1);
+                case 'PCG_ILU_EIFEM_ILU_CONSTANT'
+                    idx = find(strcmp({results.name},'PCG_ILU_EIFEM_ILU_CONSTANT'),1);
                 otherwise
                     idx = find(strcmp({results.name},'PCG'),1);
+            end
+
+            if isempty(idx)
+                error('Active preconditioner "%s" has not been computed in results.', obj.activePreconditioner);
             end
 
             deltaX = results(idx).dx;
@@ -264,6 +345,29 @@ classdef DisplacementUpdater < handle
 
         end
 
+        function Milu = getConstantILUpreconditioner(obj,LHS)
+
+            if isempty(obj.MiluConstant)
+                obj.LHSforILUConstant = LHS;
+                obj.MiluConstant = obj.createILUpreconditioner(obj.LHSforILUConstant);
+            end
+        
+            Milu = obj.MiluConstant;
+        
+        end
+
+        function Meifem = getConstantEIFEMpreconditioner(obj,bc)
+
+            if isempty(obj.MeifemConstant)
+                bcApplierCurrent = obj.createCurrentBCApplier(bc);
+                obj.MeifemConstant = obj.createEIFEMpreconditioner(bcApplierCurrent);
+            end
+        
+            Meifem = obj.MeifemConstant;
+        
+        end
+
+
         function Meifem = createEIFEMpreconditioner(obj,bcApplierCurrent)
 
             d = obj.eifemData;
@@ -330,6 +434,9 @@ classdef DisplacementUpdater < handle
             s.boundaryConditions = bc;
             bcApplierCurrent     = BCApplier(s);
         end
+
+
+        
 
     end
 

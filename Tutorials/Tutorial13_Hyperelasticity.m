@@ -52,10 +52,22 @@ classdef Tutorial13_Hyperelasticity < handle
             s.tolerance = 1e-12;
             s.maxIter   = 100;
 
-            % EIFEM
+            % % EIFEM
+            % s.eifemData = obj.eifemData;
+            % s.activePreconditioner = 'PCG_EIFEM';
+            % s.compareEIFEM = true;
+            % %
+
+            % EIFEM / ILU constants
             s.eifemData = obj.eifemData;
-            s.activePreconditioner = 'PCG_EIFEM';
+            
+            % Primer pas: Precondicionadors constants
+            s.activePreconditioner = 'PCG_ILU_EIFEM_ILU_CONSTANT';
+            
+           
+            
             s.compareEIFEM = true;
+            s.useConstantPreconditioners = true;
             %
 
             hyperComp = HyperelasticityComputer(s);
@@ -73,7 +85,8 @@ classdef Tutorial13_Hyperelasticity < handle
 
             %
             obj.tolSameNode = 1e-10;
-            obj.nSubdomains = [15 5];
+            %obj.nSubdomains = [15 5];
+            obj.nSubdomains = [2 2];
         end
 
         function createMesh(obj)
@@ -114,7 +127,7 @@ classdef Tutorial13_Hyperelasticity < handle
 
         function createBoundaryConditions(obj)
             s.type = 'DisplacementTractionX';
-            s.type = 'ForceTractionXClamped';
+            %s.type = 'ForceTractionXClamped';
             s.values = linspace(0,1,101);
             obj.boundaryConditions = BoundaryConditionsCreator(obj.mesh,s);
         end

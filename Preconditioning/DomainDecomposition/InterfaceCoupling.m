@@ -30,36 +30,91 @@ classdef InterfaceCoupling < handle
          %   obj.reshapeConecPerInterface();
         end
 
-      function intConec = reshapeConecPerInterface(obj)
-          if (size(obj.interfaceConnec,2) == 2)
-            globalConec = obj.interfaceConnec;
-            nRnodes     = obj.meshReference.nnodes;
-            nnode       = size(globalConec,1);
-            nint        = obj.ninterfaces;
-            gbInt        = 1;
-            inode = 1;
-            while inode < nnode
-                nodeId = globalConec(inode,1);
-                dom    = ceil(nodeId/nRnodes);
-                row = ceil(dom/obj.nSubdomains(1));
-                col = dom-(row-1)*obj.nSubdomains(1);
-                bdMesh = obj.interfaceMeshSubDomain{row,col};
-                for iInt = 1:nint
-                    isNode = bdMesh{iInt}.globalConnec == nodeId - nRnodes*(dom-1);
-                    if sum(sum(isNode)) > 0
-                        nnodebd = bdMesh{iInt}.mesh.nnodes;
-                        intConec{gbInt} = globalConec(inode:inode+nnodebd-1,:);
-                        inode = inode + nnodebd;
-                        gbInt = gbInt+1;
-                        break
+      % function intConec = reshapeConecPerInterface(obj)
+      % 
+      %     disp(size(obj.interfaceConnec))
+      %     disp(obj.interfaceConnec(1:5,:))
+      % 
+      %     if (size(obj.interfaceConnec,2) == 2)
+      %       globalConec = obj.interfaceConnec;
+      %       nRnodes     = obj.meshReference.nnodes;
+      %       nnode       = size(globalConec,1);
+      %       nint        = obj.ninterfaces;
+      %       gbInt        = 1;
+      %       inode = 1;
+      %       while inode < nnode
+      %           nodeId = globalConec(inode,1);
+      %           dom    = ceil(nodeId/nRnodes);
+      %           row = ceil(dom/obj.nSubdomains(1));
+      %           col = dom-(row-1)*obj.nSubdomains(1);
+      %           bdMesh = obj.interfaceMeshSubDomain{row,col};
+      %           for iInt = 1:nint
+      %               isNode = bdMesh{iInt}.globalConnec == nodeId - nRnodes*(dom-1);
+      %               if sum(sum(isNode)) > 0
+      %                   nnodebd = bdMesh{iInt}.mesh.nnodes;
+      %                   disp(['iInt=',num2str(iInt),' nnodebd=',num2str(nnodebd),' ncols=',num2str(size(row,2))])
+      %                   intConec{gbInt} = globalConec(inode:inode+nnodebd-1,:);
+      %                   inode = inode + nnodebd;
+      %                   gbInt = gbInt+1;
+      %                   break
+      %               end
+      %           end
+      %       end
+      %     else
+      %         disp('Continuous mesh generated. However, case not suitable for domain decomposition yet')
+      %         intConec = obj.interfaceConnec;
+      %     end
+      %   end
+
+          function intConec = reshapeConecPerInterface(obj)
+
+                globalConec = obj.interfaceConnec;
+                nRnodes     = obj.meshReference.nnodes;
+                nnode       = size(globalConec,1);
+                nint        = obj.ninterfaces;
+                gbInt       = 1;
+                inode       = 1;
+                intConec    = {};
+            
+                while inode <= nnode
+                    nodeId = globalConec(inode,1);
+                    dom    = ceil(nodeId/nRnodes);
+                    r      = ceil(dom/obj.nSubdomains(1));
+                    c      = dom-(r-1)*obj.nSubdomains(1);
+                    bdMesh = obj.interfaceMeshSubDomain{r,c};
+            
+                    found = false;
+                    for iInt = 1:nint
+                        isNode = bdMesh{iInt}.globalConnec == nodeId - nRnodes*(dom-1);
+                        if sum(sum(isNode)) > 0
+                            nnodebd = bdMesh{iInt}.mesh.nnodes;
+                            %disp(['nnode=',num2str(nnode),' inode=',num2str(inode),' nnodebd=',num2str(nnodebd)])
+                            % intConec{gbInt} = globalConec(inode:inode+nnodebd-1,:);
+                            % inode  = inode + nnodebd;
+                            % gbInt  = gbInt + 1;
+                            % found  = true;
+                            if inode+nnodebd-1 <= nnode
+                                intConec{gbInt} = globalConec(inode:inode+nnodebd-1,:);
+                                inode  = inode + nnodebd;
+                                gbInt  = gbInt + 1;
+                                found  = true;
+                            else
+                                found = true;
+                                inode = inode + 1;
+                            end
+                            break
+                        end
+                    end
+            
+                    if ~found
+                        inode = inode + 1;
                     end
                 end
+                disp(['intConec té ',num2str(numel(intConec)),' interfícies'])
+                for k = 1:numel(intConec)
+                    disp(['  interfície ',num2str(k),': ',num2str(size(intConec{k}))])
+                end
             end
-          else
-              disp('Continuous mesh generated. However, case not suitable for domain decomposition yet')
-              intConec = obj.interfaceConnec;
-          end
-        end        
         
     end
     
