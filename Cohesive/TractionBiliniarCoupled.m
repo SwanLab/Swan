@@ -8,8 +8,11 @@ classdef TractionBiliniarCoupled < handle
         eta
         jump0Normal
         jump0Shear
+        jumpFinalNormal
+        jumpFinalShear
 
         lambdaOld
+        lambdaTrial
     end
 
     properties (Access = private)
@@ -36,29 +39,30 @@ classdef TractionBiliniarCoupled < handle
             dt = DomainFunction(s);
         end
 
-        function jN = computeJumpNorm(obj,jump) % 1 x ngauss x nelem
+        function computeJumpNorm(obj,jump) % 1 x ngauss x nelem
             unoZero = ConstantFunction.create([1;0],jump.mesh);
             zeroUno = ConstantFunction.create([0;1],jump.mesh);
-            jN = sqrt(DP(jump,unoZero,1,1).^2 + DP(jump,zeroUno,1,1).^2) + 1e-15;
-            jN = max(jN,obj.lambdaOld);
+            jumpT = DP(jump,unoZero,1,1);
+            jumpN = DP(jump,zeroUno,1,1);
+            jumpNPos = 0.5*(jumpN + abs(jumpN));
+            jN = sqrt(jumpT.^2 + jumpNPos.^2) + 1e-15;
+            if isempty(obj.lambdaOld)
+                obj.lambdaOld = zeros(size(jN.evaluate([-1,1])));
+            end
+            obj.lambdaTrial = max(jN,obj.lambdaOld);
         end
 
-        function d = computeDamage(obj,jump) % 1 x ngauss x nelem   
-            jumpNorm = obj.computeJumpNorm(jump);
-
-            isJump = jumpNorm > 1e-12;
-            B = obj.computeMixedModeRatio(jump,jumpNorm,isJump);
-            tau0 = sqrt(obj.tau0Normal^2 + B.^obj.eta .* (obj.tau0Shear^2 - obj.tau0Normal^2));
-            gC   = obj.firstCritEnergy + B.^obj.eta * (obj.secondCritEnergy - obj.firstCritEnergy);
-            
-            % d = min(isJump .* (2* gC .* (obj.K .* jumpNorm - tau0)./ (jumpNorm.*(2*obj.K * gC - tau0^2))) ,1);
-            d = min(isJump .* (obj.jumpFinal .* (jumpNorm - obj.jumpCrit)./ (jumpNorm * (obj.jumpFinal - obj.jumpCrit))),1);
+        function d = computeDamage(obj,jump)
+            obj.computeJumpNorm(jump);
+            isJump = obj.lambdaTrial > 1e-12;
+            obj.computeJumpLimits(jump);
+            d = min(isJump .* (obj.jumpFinal .* (obj.lambdaTrial - obj.jumpCrit)./ (obj.lambdaTrial .* (obj.jumpFinal - obj.jumpCrit))),1);
             d = max(d,0);
-            % fprintf('d range: [%e , %e]\n',min(d.evaluate([-1,1]),[],'all'), max(d.evaluate([-1,1]),[],'all'));
+            % fprintf('d range: [%e , %e]\n', min(d.evaluate([-1,1]),[],'all'), max(d.evaluate([-1,1]),[],'all'));
         end
-
+ 
         function updateLambdaOld(obj,lOld)
-            obj.lambdaOld = lOld;
+            obj.lambdaOld = obj.lambdaTrial;
         end
 
     end
@@ -66,7 +70,7 @@ classdef TractionBiliniarCoupled < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.K                = 1e8;
+            obj.K                = 1e13;
             obj.tau0Normal       = cParams.tau0Normal;
             obj.tau0Shear        = cParams.tau0Shear;
             obj.firstCritEnergy  = cParams.firstCritEnergy;
@@ -76,12 +80,15 @@ classdef TractionBiliniarCoupled < handle
             obj.jump0Normal = obj.tau0Normal / obj.K;
             obj.jump0Shear  = obj.tau0Shear / obj.K;
 
-            obj.jumpCrit  = 0.001;
-            obj.jumpFinal = 0.02;
+            obj.jumpFinalNormal = 2*obj.firstCritEnergy  / obj.tau0Normal;
+            obj.jumpFinalShear  = 2*obj.secondCritEnergy / obj.tau0Shear;
+            fprintf('jump0Normal = %e\n',obj.jump0Normal)
+            fprintf('jumpFinalNormal = %e\n',obj.jumpFinalNormal)
 
         end
 
         function gradT = computeTangentGradientMatrix(obj, jump, xV) % 2 x 2 x ngauss x nelem
+            obj.computeJumpNorm(jump);
             [dtdt,dtdn,dndt,dndn] = obj.computeTractionDerivatives(jump);
             dtdt=dtdt.evaluate(xV); dtdn=dtdn.evaluate(xV);
             dndt=dndt.evaluate(xV); dndn=dndn.evaluate(xV);
@@ -91,6 +98,7 @@ classdef TractionBiliniarCoupled < handle
         end
 
         function [dtdt,dtdn,dndt,dndn] = computeTractionDerivatives(obj, jump)
+            obj.computeJumpLimits(jump);
             isDamaging = obj.isJumpDamaging(jump);  % nDimJumpNorm (1) x ngauss x nelem
             d    = obj.computeDamage(jump);             % 1 x ngauss x nelem
             ddot = obj.computeDamageDerivative(jump,isDamaging);   % 2 x ngauss x nelem
@@ -105,23 +113,29 @@ classdef TractionBiliniarCoupled < handle
         end
 
         function ddot = computeDamageDerivative(obj,jump,isDamaging)
-            jumpNorm = obj.computeJumpNorm(jump);
-            alpha      = obj.jumpCrit * obj.jumpFinal / (obj.jumpFinal-obj.jumpCrit) ./jumpNorm.^3;
+            obj.computeJumpNorm(jump);
+            alpha      = obj.jumpCrit .* obj.jumpFinal ./ (obj.jumpFinal-obj.jumpCrit) ./obj.lambdaTrial.^3;
             ddot       = alpha .* jump .* isDamaging;
         end
 
         function isDamaging = isJumpDamaging(obj,jump) 
-            jumpNorm = obj.computeJumpNorm(jump)-1e-15;
-            temp1 = jumpNorm - obj.jumpCrit; % f - a
-            temp2 = obj.jumpFinal - jumpNorm; % b - f
+            obj.computeJumpNorm(jump);
+            temp1 = obj.lambdaTrial - obj.jumpCrit; % f - a
+            temp2 = obj.jumpFinal - obj.lambdaTrial; % b - f
             isDamaging = temp1.*temp2 > 0;  % 1 x ngauss x nelem
         end       
 
-        function B = computeMixedModeRatio(obj,jump,jumpNorm,isJump) % jumpNorm = 1xngaussxnelem | jumpshear = 1xngaussxnelem | B = 1xngaussxnelem 
+        function B = computeMixedModeRatio(obj,jump,isJump) % jumpNorm = 1xngaussxnelem | jumpshear = 1xngaussxnelem | B = 1xngaussxnelem 
             unoZero   = ConstantFunction.create([1;0],jump.mesh);
             jumpShear = DP(jump.',unoZero); 
-            B         = isJump .* (jumpShear./jumpNorm).^2;
+            B         = isJump .* (jumpShear./obj.lambdaTrial).^2;
         end
-    
+
+        function computeJumpLimits(obj,jump)
+            isJump = obj.lambdaTrial > 1e-12;
+            B = obj.computeMixedModeRatio(jump,isJump);
+            obj.jumpCrit = sqrt(obj.jump0Normal.^2 + (obj.jump0Shear.^2 - obj.jump0Normal.^2).*B.^obj.eta);
+            obj.jumpFinal = (obj.jump0Normal*obj.jumpFinalNormal + (obj.jump0Shear*obj.jumpFinalShear - obj.jump0Normal*obj.jumpFinalNormal).*B.^obj.eta)./obj.jumpCrit;
+        end
     end
 end

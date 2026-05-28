@@ -48,8 +48,8 @@ classdef CohesiveFunctional < handle
             LHS   = Kelas+Kcoh;
         end
 
-        function updateLambdaOld(obj,lOld)
-            obj.functionals.cohesive.updateLambdaOld(lOld);
+        function updateLambdaOld(obj)
+            obj.functionals.cohesive.updateLambdaOld();
         end
        
     end

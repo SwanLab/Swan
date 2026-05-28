@@ -23,6 +23,10 @@ classdef CohesiveTractionSeparation < handle
             dmgValues    = obj.law.computeDamage(jump);
         end
 
+        function updateLambdaOld(obj)
+            obj.law.updateLambdaOld();
+        end
+
     end
     
     methods (Access = private)

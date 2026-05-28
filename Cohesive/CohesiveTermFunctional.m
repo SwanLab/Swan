@@ -41,8 +41,8 @@ classdef CohesiveTermFunctional < handle
                 obj.jump,obj.jump,obj.cohesiveMesh.mesh,'Domain',quadOrder);
         end
 
-        function updateLambdaOld(obj,lOld)
-            obj.tractionSeparation.updateLambdaOld(lOld);
+        function updateLambdaOld(obj)
+            obj.tractionSeparation.updateLambdaOld();
         end
     end
     
