@@ -1,6 +1,5 @@
 classdef CohesiveFunctional < handle
     
-
     properties (Access = private)
         functionals
         quadOrder
@@ -47,6 +46,10 @@ classdef CohesiveFunctional < handle
             Kelas = obj.functionals.energy.computeHessian();
             Kcoh  = obj.functionals.cohesive.computeDerivativeResidual(u,obj.quadOrder);
             LHS   = Kelas+Kcoh;
+        end
+
+        function updateLambdaOld(obj,lOld)
+            obj.functionals.cohesive.updateLambdaOld(lOld);
         end
        
     end

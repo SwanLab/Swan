@@ -106,15 +106,13 @@ classdef NewCohesiveMesh < handle
             nodesInEdges = obj.baseMesh.edges.nodesInEdges;
             fullEdges = find(obj.isEdgeCohesiveReal | obj.isEdgeCohesiveAuxiliar);
             realEdges = find(obj.isEdgeCohesiveReal);
-        
             nodes = nodesInEdges(fullEdges,:);
             coords = obj.baseMesh.coord(nodes,:);
-        
             coords = reshape(coords,[],2,2);
-            swap = (coords(:,2,1) < coords(:,1,1)) | ((coords(:,2,1) == coords(:,1,1)) & (coords(:,2,2) < coords(:,1,2)));  
+            swap = (coords(:,2,1) < coords(:,1,1)) | ((coords(:,2,1)==coords(:,1,1)) & ...
+                    (coords(:,2,2)<coords(:,1,2)));
             coords(swap,:,:) = coords(swap,[2 1],:);
-        
-            t = squeeze(coords(:,2,:) - coords(:,1,:));
+            t = reshape(coords(:,2,:) - coords(:,1,:),[],2);
             nf = [-t(:,2), t(:,1)];
             nr = nf(ismember(fullEdges,realEdges),:);
         end

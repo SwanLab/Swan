@@ -17,13 +17,9 @@ classdef DisplacementUpdater < handle
         function [u,rFun,costArray,iter] = update(obj,u,bc,costArray)
             i = 0; err = 1; costOld = costArray(end);
 
-                fValuesArray(:,:,1) = u.fValues;%per comprobar
-
             while (abs(err) > obj.tol) && (i < obj.maxIter)
                 LHS = obj.functional.computeHessian(u);
                 RHS = obj.functional.computeGradient(u,bc);
-
-                fValuesArray(:,:,i+2) = obj.computeDisplacement(LHS,RHS,u,bc); %per comprobar
 
                 u.setFValues(obj.computeDisplacement(LHS,RHS,u,bc));
 
@@ -70,27 +66,6 @@ classdef DisplacementUpdater < handle
             free_dofs = bc.free_dofs;
             LHS = LHS(free_dofs, free_dofs);
             RHS = RHS(free_dofs);
-        
-            % % ---- Load / save LHS history ----
-            % if isfile("LHSList.mat")
-            %     S = load("LHSList.mat");
-            %     LHSList = S.LHSList;
-            % else
-            %     LHSList = [];
-            % end
-            % i = size(LHSList,3) + 1;
-            % LHSList(:,:,i) = LHS;
-            % save("LHSList.mat", "LHSList");
-            % % ---- Load / save RHS history ----
-            % if isfile("RHSList.mat")
-            %     S = load("RHSList.mat");
-            %     RHSList = S.RHSList;
-            % else
-            %     RHSList = [];
-            % end
-            % i = size(RHSList,2) + 1;
-            % RHSList(:,i) = RHS;
-            % save("RHSList.mat", "RHSList");
         end
 
         function xNew = updateWithNewton(~,LHS,RHS,x)
