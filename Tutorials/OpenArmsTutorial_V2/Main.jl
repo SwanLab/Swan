@@ -42,8 +42,8 @@ s["costParams"] = Dict(
     "costType" => "L2"
 )
 
-s["xFeatures"] = [1, 2, 3, 4, 5, 6, 7]
-s["yFeatures"] = [8]
+s["xFeatures"] = [1, 2, 3, 5, 6, 7]
+s["yFeatures"] = [4]
 
 # === Chargement des données ===
 data      = init_data(s)

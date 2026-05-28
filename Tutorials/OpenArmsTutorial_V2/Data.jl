@@ -166,8 +166,8 @@ function _split_data(d::DataStruct)
     Ytest  = d.Y[r[ntrain+1:end], :]
 
     # Speed cubed
-    Xtrain[:, 4] .= Xtrain[:, 4] .^ 3
-    Xtest[:, 4]  .= Xtest[:, 4]  .^ 3
+    #Xtrain[:, 4] .= Xtrain[:, 4] .^ 3
+    #Xtest[:, 4]  .= Xtest[:, 4]  .^ 3
 
     # Wind direction as cosine
     Xtrain[:, 2] .= cosd.(Xtrain[:, 2])
