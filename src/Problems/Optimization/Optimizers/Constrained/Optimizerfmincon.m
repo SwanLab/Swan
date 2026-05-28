@@ -146,22 +146,28 @@ classdef Optimizerfmincon < Optimizer
         end
 
         function obj = createOptions(obj)
-            obj.maxIter                    = 1e3;
+            if isempty(obj.maxIter)
+                obj.maxIter                = 1e3;
+            end
+            if isempty(obj.tolerance)
+                obj.tolerance              = 1e-6;
+            end
             opts                           = optimoptions("fmincon");
             opts.Algorithm                 = obj.algorithm;
             opts.BarrierParamUpdate        = "monotone";
             opts.SpecifyObjectiveGradient  = true;
             opts.SpecifyConstraintGradient = true;
             opts.CheckGradients            = false;
-            opts.ConstraintTolerance       = 1e-4;
+            opts.ConstraintTolerance       = 1e-5;
+            opts.OptimalityTolerance       = obj.tolerance;  
             opts.EnableFeasibilityMode     = false;
             opts.HessianApproximation      = 'bfgs';
             opts.HessianFcn                = [];
             opts.HessianMultiplyFcn        = [];
             opts.HonorBounds               = true;
             opts.MaxFunctionEvaluations    = 100e3;
-            opts.MaxIterations             = obj.maxIter;
-            opts.StepTolerance	           = 1e-15;
+            opts.MaxIterations             = obj.maxIter;    % 1e3
+            opts.StepTolerance	           = obj.tolerance;           % Use obj.tolerance instead of fixed 1e-8
             opts.OutputFcn                 = @(x,optimvalues,state)obj.myoutput(x,optimvalues,state);
             obj.options                    = opts;
         end

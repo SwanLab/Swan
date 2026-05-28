@@ -1,0 +1,40 @@
+Computing initial solution...
+  Initial evaluation done in 1.19 s
+  Initial maxval: 0.000725143
+
+Starting optimization (STATIC)...
+
+Solver stopped prematurely.
+
+fmincon stopped because it exceeded the iteration limit,
+options.MaxIterations = 4.700000e+01.
+
+  Optimization finished in 2406.70 s
+
+
+==================================================
+               OPTIMIZATION RESULTS
+==================================================
+Layer  1 (T300_914_C): h=0.081508 m  |  dTheta=-10.9346 deg  |  FinalTheta= 14.0654 deg
+Layer  2 (T300_914_C): h=0.125974 m  |  dTheta= -7.1156 deg  |  FinalTheta= 17.8844 deg
+Layer  3 (T300_914_C): h=0.011857 m  |  dTheta= 18.4821 deg  |  FinalTheta= 88.4821 deg
+Layer  4 (T300_914_C): h=0.013336 m  |  dTheta= 40.7694 deg  |  FinalTheta= 20.7694 deg
+Layer  5 (T300_914_C): h=0.012591 m  |  dTheta= 14.7052 deg  |  FinalTheta=129.7052 deg
+Layer  6 (T300_914_C): h=0.012591 m  |  dTheta= 14.7052 deg  |  FinalTheta=129.7052 deg
+Layer  7 (T300_914_C): h=0.013336 m  |  dTheta= 40.7694 deg  |  FinalTheta= 20.7694 deg
+Layer  8 (T300_914_C): h=0.011857 m  |  dTheta= 18.4821 deg  |  FinalTheta= 88.4821 deg
+Layer  9 (T300_914_C): h=0.125974 m  |  dTheta= -7.1156 deg  |  FinalTheta= 17.8844 deg
+Layer 10 (T300_914_C): h=0.081508 m  |  dTheta=-10.9346 deg  |  FinalTheta= 14.0654 deg
+--------------------------------------------------
+Total Thickness    :   0.490533 m  (Limit: 0.5000 m)
+Initial deltaTheta :  15.000000 deg
+Outer deltaThethas : -10.9346 deg   -7.1156 deg   18.4821 deg   40.7694 deg   14.7052 deg  
+Final Displacement : 5.435011e-04
+Final Mass (kg)    : 5.825054e+04  (Normalized: 9.810658e-01)
+==================================================
+
+--------------------------------------------------
+  Optim. time       :    2406.70 s
+  TOTAL run time    : 00 h 40 min 09.45 s
+==================================================
+

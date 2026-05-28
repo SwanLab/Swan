@@ -76,7 +76,9 @@ classdef AcademicProblem < handle
             s.dualVariable   = DualVariable(s);
             s.monitoring     = true;
             s.primal         = 'PROJECTED GRADIENT';
-            s.tolerance      = 1e-6;
+            if ~isfield(s, 'tolerance')
+                s.tolerance      = 1e-6;
+            end
             s.gif            = false;
             s.gifName        = [];
             s.printing       = false;

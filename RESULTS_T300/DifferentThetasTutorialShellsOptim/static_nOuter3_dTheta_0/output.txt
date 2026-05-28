@@ -1,0 +1,41 @@
+Computing initial solution...
+  Initial evaluation done in 12.82 s
+  Initial maxval: 0.000725143
+
+Starting optimization (STATIC)...
+
+Local minimum found that satisfies the constraints.
+
+Optimization completed because the objective function is non-decreasing in 
+feasible directions, to within the value of the optimality tolerance,
+and constraints are satisfied to within the value of the constraint tolerance.
+
+  Optimization finished in 3134.33 s
+
+
+==================================================
+               OPTIMIZATION RESULTS
+==================================================
+Layer  1 (T300_914_C): h=0.198639 m  |  dTheta=-10.0469 deg  |  FinalTheta= 14.9531 deg
+Layer  2 (T300_914_C): h=0.015942 m  |  dTheta= -4.8585 deg  |  FinalTheta= 20.1415 deg
+Layer  3 (T300_914_C): h=0.010151 m  |  dTheta=  0.1840 deg  |  FinalTheta= 70.1840 deg
+Layer  4 (T300_914_C): h=0.010172 m  |  dTheta=  0.0000 deg  |  FinalTheta=-20.0000 deg
+Layer  5 (T300_914_C): h=0.010164 m  |  dTheta=  0.0000 deg  |  FinalTheta=115.0000 deg
+Layer  6 (T300_914_C): h=0.010164 m  |  dTheta=  0.0000 deg  |  FinalTheta=115.0000 deg
+Layer  7 (T300_914_C): h=0.010172 m  |  dTheta=  0.0000 deg  |  FinalTheta=-20.0000 deg
+Layer  8 (T300_914_C): h=0.010151 m  |  dTheta=  0.1840 deg  |  FinalTheta= 70.1840 deg
+Layer  9 (T300_914_C): h=0.015942 m  |  dTheta= -4.8585 deg  |  FinalTheta= 20.1415 deg
+Layer 10 (T300_914_C): h=0.198639 m  |  dTheta=-10.0469 deg  |  FinalTheta= 14.9531 deg
+--------------------------------------------------
+Total Thickness    :   0.490136 m  (Limit: 0.5000 m)
+Initial deltaTheta :   0.000000 deg
+Outer deltaThethas : -10.0469 deg   -4.8585 deg    0.1840 deg  
+Final Displacement : 5.438441e-04
+Final Mass (kg)    : 5.820336e+04  (Normalized: 9.802711e-01)
+==================================================
+
+--------------------------------------------------
+  Optim. time       :    3134.33 s
+  TOTAL run time    : 00 h 53 min 13.50 s
+==================================================
+

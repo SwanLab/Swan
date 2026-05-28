@@ -1,0 +1,37 @@
+Computing initial solution...
+  Initial evaluation done in 0.03 s
+
+Starting optimization...
+
+Local minimum found that satisfies the constraints.
+
+Optimization completed because the objective function is non-decreasing in 
+feasible directions, to within the value of the optimality tolerance,
+and constraints are satisfied to within the value of the constraint tolerance.
+
+  Optimization finished in 2624.00 s
+
+
+==================================================
+               OPTIMIZATION RESULTS
+==================================================
+Layer  1 (T300_914_C):   0.206857 m
+Layer  2 (T300_914_C):   0.206840 m
+Layer  3 (T300_914_C):   0.010000 m
+Layer  4 (T300_914_C):   0.388297 m
+Layer  5 (T300_914_C):   0.082023 m
+Layer  6 (T300_914_C):   0.082023 m
+Layer  7 (T300_914_C):   0.388297 m
+Layer  8 (T300_914_C):   0.010000 m
+Layer  9 (T300_914_C):   0.206840 m
+Layer 10 (T300_914_C):   0.206857 m
+--------------------------------------------------
+Total Thickness :   1.788034 m  (Limit: 0.5000 m)
+Final f1 (Hz)             : 1.000000e+01
+Final Mass (kg)           : 2.123282e+05  (Normalized: 3.576069e+00)
+==================================================
+
+  Optim. time       :    2624.00 s
+  TOTAL run time    : 00 h 43 min 46.99 s
+==================================================
+

@@ -1,0 +1,44 @@
+TutorialShellsOptim
+STATIC CASE WITH 
+- forceSymmetry off
+- forceSymmetry on
+
+TutorialShellsOptimDynamic
+DYNAMIC CASE forceSymmetry on
+
+TutorialShellsOptimDeltaTheta
+STATIC CASE WITH 
+- deltaTheta0 = 0 deg
+- deltaTheta0 = -30 deg
+- deltaTheta0 = 15 deg
+- deltaTheta0 = 70 deg
+DYNAMIC CASE WITH 
+- deltaTheta0 = 0 deg
+- deltaTheta0 = -30 deg
+- deltaTheta0 = 15 deg
+- deltaTheta0 = 70 deg
+
+DifferentThetasTutorialShellsOptim
+nOuter = 3
+STATIC CASE WITH (vector of deltaTheta0*ones(nOuter,1))
+- deltaTheta0 = 0 deg
+- deltaTheta0 = -30 deg
+- deltaTheta0 = 15 deg
+- deltaTheta0 = 70 deg
+DYNAMIC CASE WITH (vector of deltaTheta0*ones(nOuter,1))
+- deltaTheta0 = 0 deg
+- deltaTheta0 = -30 deg
+- deltaTheta0 = 15 deg
+- deltaTheta0 = 70 deg
+
+nOuter = 5
+STATIC CASE WITH (vector of deltaTheta0*ones(nOuter,1))
+- deltaTheta0 = 0 deg
+- deltaTheta0 = -30 deg
+- deltaTheta0 = 15 deg
+- deltaTheta0 = 70 deg
+DYNAMIC CASE WITH (vector of deltaTheta0*ones(nOuter,1))
+- deltaTheta0 = 0 deg
+- deltaTheta0 = -30 deg
+- deltaTheta0 = 15 deg
+- deltaTheta0 = 70 deg

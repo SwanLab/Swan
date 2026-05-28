@@ -84,8 +84,78 @@ classdef Validation < handle
             thetaT = reshape(thetaT, obj.thetaFun.ndimf, [])';
             obj.thetaFun.setFValues(thetaT);
 
+            % Vertical displacement at the center 
+            xc = 0.5; yc = 0.5;  % Para unitTriangle: a=1, b=1
 
-            max(wT(:))
+            coords = obj.mesh.coord;
+            dist   = sqrt((coords(:,1) - xc).^2 + (coords(:,2) - yc).^2);
+            [~, idx] = min(dist);
+
+            w_center = wT(idx);
+
+            % Strain and stresses calculation
+            [epsilons] = obj.createEpsilons();
+
+            % Determine stress state
+            stressState = 'PLANE_STRESS';
+            [strainFun, ~] = obj.createStrainStressFunctions(obj.zLayer, epsilons, stressState);
+
+            epsxx = strainFun{end}.fValues(idx,1);
+            epsyy = strainFun{end}.fValues(idx,2);
+
+            fprintf('Vertical displacement at center (%.3f, %.3f): \n  w = %.15e\n', ...
+                coords(idx,1), coords(idx,2), w_center);
+
+            % Imprimir deformaciones en el punto central (epsxx, epsyy, gxy, gxz, gyz)
+            % fprintf('Strains at center (coord [%.3f, %.3f]):\n', coords(idx,1), coords(idx,2));
+            fprintf('  eps_xx = %.15e at (%.3f, %.3f)\n', epsxx, coords(idx,1), coords(idx,2));
+            fprintf('  eps_yy = %.15e at (%.3f, %.3f)\n', epsyy, coords(idx,1), coords(idx,2));
+
+
+            coords = obj.mesh.coord;
+            [~, idx_00]  = min(sqrt((coords(:,1)-0  ).^2 + (coords(:,2)-0  ).^2));
+            [~, idx_0b2] = min(sqrt((coords(:,1)-0  ).^2 + (coords(:,2)-0.5).^2));
+            [~, idx_a20] = min(sqrt((coords(:,1)-0.5).^2 + (coords(:,2)-0  ).^2));
+
+            gxy_00  = 2 * strainFun{end}.fValues(idx_00,  5);
+            gxz_0b2 = 2 * strainFun{end}.fValues(idx_0b2, 4);
+            gyz_a20 = 2 * strainFun{end}.fValues(idx_a20, 3);
+
+            fprintf('  gxy  at (0, 0) [node (%.4f,%.4f)]: %+.15E\n', coords(idx_00, 1),  coords(idx_00, 2),  gxy_00);
+            fprintf('  gxz  at (0, b/2) [node (%.4f,%.4f)]: %+.15E\n', coords(idx_0b2,1),  coords(idx_0b2,2),  gxz_0b2);
+            fprintf('  gyz  at (a/2, 0) [node (%.4f,%.4f)]: %+.15E\n', coords(idx_a20,1),  coords(idx_a20,2),  gyz_a20);
+
+            % ─── Valores de referencia (analytical/reference) ───
+ref_w       =  4.26258377435646e-10;
+ref_epsxx   =  2.00504789570702e-10;
+ref_epsyy   =  2.00504789570702e-10;
+ref_gxy_00  = -4.01009579141405e-10;
+ref_gxz_0b2 =  6.26770521318294e-11;
+ref_gyz_a20 =  6.26770521318294e-11;
+
+% ─── Errores relativos (%) ───
+err_w       = abs(w_center   - ref_w      ) / abs(ref_w      ) * 100;
+err_epsxx   = abs(epsxx      - ref_epsxx  ) / abs(ref_epsxx  ) * 100;
+err_epsyy   = abs(epsyy      - ref_epsyy  ) / abs(ref_epsyy  ) * 100;
+err_gxy_00  = abs(gxy_00     - ref_gxy_00 ) / abs(ref_gxy_00 ) * 100;
+err_gxz_0b2 = abs(gxz_0b2   - ref_gxz_0b2) / abs(ref_gxz_0b2) * 100;
+err_gyz_a20 = abs(gyz_a20   - ref_gyz_a20) / abs(ref_gyz_a20) * 100;
+
+% ─── Print tabla de errores ───
+fprintf('\n========== RELATIVE ERRORS vs REFERENCE ==========\n');
+fprintf('  %-20s  Computed: %+.6e   Ref: %+.6e   Error: %.4f%%\n', ...
+    'w(a/2,b/2)',    w_center,   ref_w,       err_w);
+fprintf('  %-20s  Computed: %+.6e   Ref: %+.6e   Error: %.4f%%\n', ...
+    'epsxx(a/2,b/2)', epsxx,    ref_epsxx,   err_epsxx);
+fprintf('  %-20s  Computed: %+.6e   Ref: %+.6e   Error: %.4f%%\n', ...
+    'epsyy(a/2,b/2)', epsyy,    ref_epsyy,   err_epsyy);
+fprintf('  %-20s  Computed: %+.6e   Ref: %+.6e   Error: %.4f%%\n', ...
+    'gxy(0,0)',      gxy_00,    ref_gxy_00,  err_gxy_00);
+fprintf('  %-20s  Computed: %+.6e   Ref: %+.6e   Error: %.4f%%\n', ...
+    'gxz(0,b/2)',    gxz_0b2,   ref_gxz_0b2, err_gxz_0b2);
+fprintf('  %-20s  Computed: %+.6e   Ref: %+.6e   Error: %.4f%%\n', ...
+    'gyz(a/2,0)',    gyz_a20,   ref_gyz_a20, err_gyz_a20);
+fprintf('===================================================\n');
 
             
             
@@ -103,7 +173,7 @@ classdef Validation < handle
 
             switch meshtype
                 case 'unitTriangle'
-                    el = 50;
+                    el = 80;
                     obj.mesh = UnitTriangleMesh(el,el);
                 case 'wingShape'
 
@@ -509,6 +579,254 @@ classdef Validation < handle
             Ztu = Zut';
             Zuw = zeros(nU,nW);
             LHS = [Ku Zut Zuw; Ztu (Ktheta+beta*Mtheta) beta*Nthetaw; Zuw' beta*Nthetaw' beta*Kw];
+        end
+
+        %% createEpsilons
+        function [epsilons] = createEpsilons(obj)
+            GradSymU = SymGrad(obj.uFun);           % [ε_xx, ε_yy, ε_xy]
+            GradSymTheta = SymGrad(obj.thetaFun);
+            GradW = Grad(obj.wFun);                 % [∂w/∂x, ∂w/∂y]
+
+            GradSymU = GradSymU.project('P1');
+            GradSymTheta = GradSymTheta.project('P1');
+            GradW = GradW.project('P1');
+
+
+            % ========== ASSEMBLE OUTPUT MATRIX ==========
+            
+            epsilons(:,:, 1) = GradSymU.fValues(:,1);      % eps_u_11
+            epsilons(:,:, 2) = GradSymU.fValues(:,4);      % eps_u_22
+            epsilons(:,:, 3) = GradSymU.fValues(:,3);      % eps_u_12
+            epsilons(:,:, 4) = GradSymTheta.fValues(:,1);  % eps_theta_11
+            epsilons(:,:, 5) = GradSymTheta.fValues(:,4)';  % eps_theta_22
+            epsilons(:,:, 6) = GradSymTheta.fValues(:,3)';  % eps_theta_12
+            epsilons(:,:, 7) = GradW.fValues(:,1);                % dw_dx
+            epsilons(:,:, 8) = GradW.fValues(:,2);                % dw_dy
+
+
+        end
+
+        %% createStrainStressFunctions
+        function [strainFun, stressFun] = createStrainStressFunctions(obj, z, epsilons, stressState)
+            eps_u_11 = epsilons(:, 1);
+            eps_u_22 = epsilons(:, 2);
+            eps_u_12 = epsilons(:, 3);
+            eps_theta_11 = epsilons(:, 4);
+            eps_theta_22 = epsilons(:, 5);
+            eps_theta_12 = epsilons(:, 6);
+            dw_dx = epsilons(:, 7);
+            dw_dy = epsilons(:, 8);
+
+            % Transverse shear strains (tensorial: ε = γ/2)
+            epsilon_xz = 0.5 * (dw_dx + obj.thetaFun.fValues(:, 1));
+            epsilon_yz = 0.5 * (dw_dy + obj.thetaFun.fValues(:, 2));
+
+            nNodes = size(obj.mesh.coord, 1);
+            zInterfaces = [obj.zLayer{:}];
+
+            % Check for interfaces
+            thereIsInterface = false;
+            obj.interfaceIndex = [];
+
+            if numel(zInterfaces) > 2
+                internalInterfaces = zInterfaces(2:end-1);
+                tol = 1e-10;
+
+                for k = 1:numel(z)
+                    if any(abs(internalInterfaces - z{k}) <= tol)
+                        thereIsInterface = true;
+                        obj.interfaceIndex(end+1) = k;
+                        % fprintf('Found interface at z index: %d (z = %.6f)\n', k, z{k});
+                    end
+                end
+            end
+
+            % Initialize storage
+            if ~thereIsInterface
+                stressTemp = cell(1, numel(z));
+                strainTemp = cell(1, numel(z));
+                fprintf('No internal interfaces detected.\n');
+            else
+                stressTemp = cell(2, numel(z));
+                strainTemp = cell(1, numel(z));
+            end
+
+            % ========== DETERMINE STRESS STATE ==========
+
+            if strcmp(stressState, 'PLANE_STRESS')
+                nComponents = 5;  % [ε11, ε22, ε23, ε13, ε12] - without ε33
+                fprintf('Using PLANE STRESS formulation (5 components)\n');
+            else
+                nComponents = 6;  % [ε11, ε22, ε33, ε23, ε13, ε12]
+                fprintf('Using FULL 3D formulation (6 components)\n');
+            end
+
+            % ========== LOOP THROUGH Z-LEVELS ==========
+            for i = 1:numel(z)
+                z_k = z{i};
+
+                % Build strain vector in Voigt notation
+                if strcmp(stressState, 'PLANE_STRESS')
+                    % [ε11, ε22, ε23, ε13, ε12] - 5 components (no ε33)
+                    strain_voigt = zeros(nNodes, 5);
+                    strain_voigt(:, 1) = eps_u_11 + z_k * eps_theta_11;       % ε_xx
+                    strain_voigt(:, 2) = eps_u_22 + z_k * eps_theta_22;       % ε_yy
+                    strain_voigt(:, 3) = epsilon_yz;                           % ε_yz
+                    strain_voigt(:, 4) = epsilon_xz;                           % ε_xz
+                    strain_voigt(:, 5) = eps_u_12 + z_k * eps_theta_12;       % ε_xy
+                else
+                    % [ε11, ε22, ε33, ε23, ε13, ε12] - 6 components (full 3D)
+                    strain_voigt = zeros(nNodes, 6);
+                    strain_voigt(:, 1) = eps_u_11 + z_k * eps_theta_11;       % ε_xx
+                    strain_voigt(:, 2) = eps_u_22 + z_k * eps_theta_22;       % ε_yy
+                    strain_voigt(:, 3) = 0;                                    % ε_zz = 0
+                    strain_voigt(:, 4) = epsilon_yz;                           % ε_yz
+                    strain_voigt(:, 5) = epsilon_xz;                           % ε_xz
+                    strain_voigt(:, 6) = eps_u_12 + z_k * eps_theta_12;       % ε_xy
+                end
+
+                strainTemp{i} = LagrangianFunction.create(obj.mesh, nComponents, 'P1');
+                strainTemp{i}.setFValues(strain_voigt);
+
+                % ========== CHECK IF INTERFACE ==========
+                isInternalInterface = false;
+                if numel(zInterfaces) > 2
+                    internalInterfaces = zInterfaces(2:end-1);
+                    tol = 1e-10;
+                    if any(abs(internalInterfaces - z_k) <= tol)
+                        isInternalInterface = true;
+                    end
+                end
+
+                % ========== COMPUTE STRESSES ==========
+                if ~isInternalInterface
+                    % Single layer
+                    kLayer = find(z_k >= zInterfaces(1:end-1) & z_k <= zInterfaces(2:end), 1);
+
+                    % Get 6x6 Voigt constitutive matrix
+                    C_matrix_full = obj.material.createConstitutiveMatrixForLayer(kLayer);
+
+                    % Apply rotation if needed
+                    if strcmp(obj.material.materialType, 'ORTHOTROPIC') && obj.material.rotation(kLayer) ~= 0
+                        theta = deg2rad(obj.material.rotation(kLayer));
+                        C_matrix_full = obj.material.rotateConstitutiveMatrix(C_matrix_full, theta);
+                    end
+
+                    % Reduce to plane stress if needed
+                    if strcmp(stressState, 'PLANE_STRESS')
+                        idx = [1, 2, 4, 5, 6];
+                        C_matrix = C_matrix_full(idx, idx) - ...
+                                  (C_matrix_full(idx, 3) * C_matrix_full(3, idx)) / C_matrix_full(3, 3);  % 5x5 matrix
+                        strain_voigt(:,3) = strain_voigt(:,3) * 2;
+                        strain_voigt(:,4) = strain_voigt(:,4) * 2;
+                        strain_voigt(:,5) = strain_voigt(:,5) * 2;
+                    else
+                        C_matrix = C_matrix_full;  % 6x6 matrix
+                        strain_voigt(:,4) = strain_voigt(:,4) * 2;
+                        strain_voigt(:,5) = strain_voigt(:,5) * 2;
+                        strain_voigt(:,6) = strain_voigt(:,6) * 2;
+                    end
+
+                    % Compute stress: 
+                    stress_voigt = (C_matrix * strain_voigt')';  % nNodes x nComponents
+
+                    stressTemp{1, i} = LagrangianFunction.create(obj.mesh, nComponents, 'P1');
+                    stressTemp{1, i}.setFValues(stress_voigt);
+
+                else
+                    % Interface: two layers
+                    kLayerBottom = find(z_k >= zInterfaces(1:end-1) & z_k <= zInterfaces(2:end), 1);
+                    kLayerTop = kLayerBottom + 1;
+
+                    fprintf('  Interface at z = %.6f: Layer %d (top) and Layer %d (bottom)\n', ...
+                        z_k, kLayerBottom, kLayerTop);
+
+                    % Bottom layer
+                    C_bottom_full = obj.material.createConstitutiveMatrixForLayer(kLayerBottom);
+                    if strcmp(obj.material.materialType, 'ORTHOTROPIC') && obj.material.rotation(kLayerBottom) ~= 0
+                        theta = deg2rad(obj.material.rotation(kLayerBottom));
+                        C_bottom_full = obj.material.rotateConstitutiveMatrix(C_bottom_full, theta);
+                    end
+
+                    if strcmp(stressState, 'PLANE_STRESS')
+                        idx = [1, 2, 4, 5, 6];
+                        C_bottom = C_bottom_full(idx, idx) - ...
+                            (C_bottom_full(idx, 3) * C_bottom_full(3, idx)) / C_bottom_full(3, 3);
+                        strain_voigt(:,3) = strain_voigt(:,3) * 2;
+                        strain_voigt(:,4) = strain_voigt(:,4) * 2;
+                        strain_voigt(:,5) = strain_voigt(:,5) * 2;
+                    else
+                        C_bottom = C_bottom_full;
+                        strain_voigt(:,4) = strain_voigt(:,4) * 2;
+                        strain_voigt(:,5) = strain_voigt(:,5) * 2;
+                        strain_voigt(:,6) = strain_voigt(:,6) * 2;
+                    end
+                    stress_bottom = (C_bottom * strain_voigt')';
+
+                    stressTemp{1, i} = LagrangianFunction.create(obj.mesh, nComponents, 'P1');
+                    stressTemp{1, i}.setFValues(stress_bottom);
+
+                    % Top layer
+                    C_top_full = obj.material.createConstitutiveMatrixForLayer(kLayerTop);
+                    if strcmp(obj.material.materialType, 'ORTHOTROPIC') && obj.material.rotation(kLayerTop) ~= 0
+                        theta = deg2rad(obj.material.rotation(kLayerTop));
+                        C_top_full = obj.material.rotateConstitutiveMatrix(C_top_full, theta);
+                    end
+
+                    if strcmp(stressState, 'PLANE_STRESS')
+                        idx = [1, 2, 4, 5, 6];
+                        C_top = C_top_full(idx, idx) - ...
+                            (C_top_full(idx, 3) * C_top_full(3, idx)) / C_top_full(3, 3);
+                    else
+                        C_top = C_top_full;
+                    end
+                    stress_top = (C_top * strain_voigt')';
+
+                    stressTemp{2, i} = LagrangianFunction.create(obj.mesh, nComponents, 'P1');
+                    stressTemp{2, i}.setFValues(stress_top);
+                end
+            end
+
+            % ========== REORDER AND FLATTEN OUTPUT ==========
+            count = 0;
+            stressFun = {};
+            strainFun = {};
+
+            fprintf('\n===== OUTPUT ORGANIZATION =====\n');
+
+            for i = 1:numel(z)
+                z_k = z{i};
+                isInterface = ~isempty(obj.interfaceIndex) && any(i == obj.interfaceIndex);
+
+                if ~isInterface
+                    count = count + 1;
+                    strainFun{count} = strainTemp{i}; 
+                    stressFun{count} = stressTemp{1, i}; 
+
+                    kLayer = find(z_k >= zInterfaces(1:end-1) & z_k <= zInterfaces(2:end), 1);
+                    fprintf('Position {%d}: z = %.6f, Layer %d\n', count, z_k, kLayer);
+                else
+                    kLayerBottom = find(z_k >= zInterfaces(1:end-1) & z_k <= zInterfaces(2:end), 1);
+                    kLayerTop = kLayerBottom + 1;
+
+                    % Top of bottom layer
+                    count = count + 1;
+                    strainFun{count} = strainTemp{i}; 
+                    stressFun{count} = stressTemp{1, i}; 
+                    fprintf('Position {%d}: z = %.6f, TOP of Layer %d\n', count, z_k, kLayerBottom);
+
+                    % Bottom of top layer
+                    count = count + 1;
+                    strainFun{count} = strainTemp{i}; 
+                    stressFun{count} = stressTemp{2, i}; 
+                    fprintf('Position {%d}: z = %.6f, BOTTOM of Layer %d\n', count, z_k, kLayerTop);
+                end
+                
+                
+            end
+
+            fprintf('\nTotal positions: %d\n', count);
+            fprintf('==========================================\n\n');
         end
 
 

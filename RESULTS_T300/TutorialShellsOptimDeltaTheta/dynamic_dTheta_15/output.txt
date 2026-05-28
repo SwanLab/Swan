@@ -1,0 +1,41 @@
+Computing initial solution...
+  Initial evaluation done in 0.94 s
+  Initial maxval: 0.000725143
+
+Starting optimization (DYNAMIC)...
+
+Local minimum found that satisfies the constraints.
+
+Optimization completed because the objective function is non-decreasing in 
+feasible directions, to within the value of the optimality tolerance,
+and constraints are satisfied to within the value of the constraint tolerance.
+
+  Optimization finished in 996.10 s
+
+
+==================================================
+               OPTIMIZATION RESULTS
+==================================================
+Layer  1 (T300_914_C):   0.010002 m
+Layer  2 (T300_914_C):   0.010002 m
+Layer  3 (T300_914_C):   0.010002 m
+Layer  4 (T300_914_C):   0.499989 m
+Layer  5 (T300_914_C):   0.304785 m
+Layer  6 (T300_914_C):   0.304785 m
+Layer  7 (T300_914_C):   0.499989 m
+Layer  8 (T300_914_C):   0.010002 m
+Layer  9 (T300_914_C):   0.010002 m
+Layer 10 (T300_914_C):   0.010002 m
+--------------------------------------------------
+Total Thickness :   1.669558 m  (Limit: 0.5000 m)
+Initial deltaTheta       :  15.000000 deg
+Optimal deltaTheta       :  33.759103 deg
+Final frequency           : 1.000002e+01
+Final Mass (kg)           : 1.982592e+05  (Normalized: 3.339117e+00)
+==================================================
+
+--------------------------------------------------
+  Optim. time       :     996.10 s
+  TOTAL run time    : 00 h 16 min 38.69 s
+==================================================
+

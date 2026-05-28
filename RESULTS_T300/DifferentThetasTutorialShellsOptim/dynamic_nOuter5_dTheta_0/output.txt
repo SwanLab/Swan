@@ -1,0 +1,41 @@
+Computing initial solution...
+  Initial evaluation done in 1.19 s
+  Initial maxval: 0.000725143
+
+Starting optimization (DYNAMIC)...
+
+Local minimum found that satisfies the constraints.
+
+Optimization completed because the objective function is non-decreasing in 
+feasible directions, to within the value of the optimality tolerance,
+and constraints are satisfied to within the value of the constraint tolerance.
+
+  Optimization finished in 2851.40 s
+
+
+==================================================
+               OPTIMIZATION RESULTS
+==================================================
+Layer  1 (T300_914_C): h=0.253586 m  |  dTheta=-11.7435 deg  |  FinalTheta= 13.2565 deg
+Layer  2 (T300_914_C): h=0.498676 m  |  dTheta= -8.0545 deg  |  FinalTheta= 16.9455 deg
+Layer  3 (T300_914_C): h=0.010337 m  |  dTheta=  0.1517 deg  |  FinalTheta= 70.1517 deg
+Layer  4 (T300_914_C): h=0.010318 m  |  dTheta=  1.2935 deg  |  FinalTheta=-18.7065 deg
+Layer  5 (T300_914_C): h=0.010158 m  |  dTheta= -0.0650 deg  |  FinalTheta=114.9350 deg
+Layer  6 (T300_914_C): h=0.010158 m  |  dTheta= -0.0650 deg  |  FinalTheta=114.9350 deg
+Layer  7 (T300_914_C): h=0.010318 m  |  dTheta=  1.2935 deg  |  FinalTheta=-18.7065 deg
+Layer  8 (T300_914_C): h=0.010337 m  |  dTheta=  0.1517 deg  |  FinalTheta= 70.1517 deg
+Layer  9 (T300_914_C): h=0.498676 m  |  dTheta= -8.0545 deg  |  FinalTheta= 16.9455 deg
+Layer 10 (T300_914_C): h=0.253586 m  |  dTheta=-11.7435 deg  |  FinalTheta= 13.2565 deg
+--------------------------------------------------
+Total Thickness    :   1.566152 m  (Limit: 0.5000 m)
+Initial deltaTheta :   0.000000 deg
+Outer deltaThethas : -11.7435 deg   -8.0545 deg    0.1517 deg    1.2935 deg   -0.0650 deg  
+Final frequency    : 1.000002e+01
+Final Mass (kg)    : 1.859798e+05  (Normalized: 3.132304e+00)
+==================================================
+
+--------------------------------------------------
+  Optim. time       :    2851.40 s
+  TOTAL run time    : 00 h 47 min 34.97 s
+==================================================
+

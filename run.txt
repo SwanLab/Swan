@@ -1,0 +1,1 @@
+matlab -batch "cd('c:\Users\ssanz\OneDrive\Documentos\GitHub\Swan'); run('run_all_cases.m')"

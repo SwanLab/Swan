@@ -39,7 +39,7 @@ classdef TutorialShells < handle
             obj.createSolutionField()
             obj.solverType = 'REDUCED';
 
-            problemType    = 'STATIC';
+            problemType    = 'FREE_VIBRATIONS';
             % Options: 'STATIC' / 'FREE_VIBRATIONS' / 'FORCED_VIBRATIONS'
 
             % 2. Boundary Conditions and Assembly
@@ -276,7 +276,7 @@ classdef TutorialShells < handle
 
             %% 4. Post-processing, Plotting and Printing
             h = obj.zLayer;
-            plotMatlab = 0;
+            plotMatlab = 1 && ~batchStartupOptionUsed;
             printParaview = true;
             kappa = 1;
 
@@ -561,14 +561,17 @@ classdef TutorialShells < handle
                     % Auto-distribute thickness
                     nLayers = length(materialName);
                     h = max_thickness / nLayers * ones(nLayers, 1);
+                    
                     obj.dampingRatio = 0.015;
-
-                 
-
+                    
                 case 'Aluminium'
                     materialName = {'Aluminum'};
                     max_thickness = 0.5;
                     obj.dampingRatio = 0.01;
+                   
+                    % Auto-distribute thickness
+                    nLayers = length(materialName);
+                    h = max_thickness / nLayers * ones(nLayers, 1);
             end
              
             % materialName = {'Ep1'; 'Ep1'; 'Ep1'; 'Ep1'};
@@ -789,16 +792,44 @@ classdef TutorialShells < handle
 
 
             % Boundary conditions Case
-            obj.bcCase = 1;     % 1 --> Modified bc // 2 --> Original bc (change q) 
-            
-            % APPLYED FORCE
-            applyedForce = 2;
-
-            % 1 --> Single node / HAS Q
-            % 2 --> Right edge
+            obj.bcCase = 1;     % CHANGE THIS VALUE TO SELECT CASE: 1, 2, or 3
 
             switch obj.bcCase
                 case 1
+                    % CASE 1: Todo empotrado
+                    % Todas las esquinas empotradas, carga q (1e5)
+                    sDir{1}.domain    = @(coor) isLeft(coor) | isRight(coor) | isBotom(coor) | isTop(coor);
+                    sDir{1}.direction = direct;
+                    sDir{1}.value     = 0;
+                    sDir{1}.ndim      = length(direct);
+
+                    dirichletFun = [];
+                    for i = 1:numel(sDir)
+                        dir = DirichletCondition(obj.mesh, sDir{i});
+                        dirichletFun = [dirichletFun, dir];
+                    end
+                    s.dirichletFun = dirichletFun;
+                    s.pointloadFun = [];
+
+                case 2
+                    % CASE 2: Empotrada izquierda, carga q
+                    % Lado izquierdo empotrado, carga q (50000) en toda la placa
+                    sDir{1}.domain    = @(coor) isLeft(coor);
+                    sDir{1}.direction = direct;
+                    sDir{1}.value     = 0;
+                    sDir{1}.ndim      = length(direct);
+
+                    dirichletFun = [];
+                    for i = 1:numel(sDir)
+                        dir = DirichletCondition(obj.mesh, sDir{i});
+                        dirichletFun = [dirichletFun, dir];
+                    end
+                    s.dirichletFun = dirichletFun;
+                    s.pointloadFun = [];
+
+                case 3
+                    % CASE 3: Empotrada izquierda, pointload derecha
+                    % Lado izquierdo empotrado, pointload en el nodo central derecho. Carga q = 0.
                     sDir{1}.domain    = @(coor) isLeft(coor);
                     sDir{1}.direction = direct;
                     sDir{1}.value     = 0;
@@ -811,62 +842,32 @@ classdef TutorialShells < handle
                     end
                     s.dirichletFun = dirichletFun;
 
-                    switch applyedForce
-                        case 1
-                            % Apply point load to a single node on the right boundary
-                            % Find right boundary nodes
-                            rightNodes = find(isRight(obj.mesh.coord));
-                            if isempty(rightNodes)
-                                error('No nodes found on the right boundary.');
-                            end
-                            % Choose one node: here pick the middle one (can change as needed)
-                            idx = ceil(numel(rightNodes)/2);
-                            singleNode = rightNodes(idx);
+                    if length(direct) == 1
+                        rightNodes = find(isRight(obj.mesh.coord));
+                        if isempty(rightNodes)
+                            error('No nodes found on the right boundary.');
+                        end
+                        idx = ceil(numel(rightNodes)/2);
+                        singleNode = rightNodes(idx);
 
-                            % Define point load structure for that single node
-                            sPL{1}.domain    = @(coor) (1:size(coor,1))'==singleNode;
-                            sPL{1}.direction = 2;
-                            sPL{1}.value     = 1;
+                        sPL{1}.domain    = @(coor) (1:size(coor,1))'==singleNode;
+                        sPL{1}.direction = 2;
+                        sPL{1}.value     = 10000;
 
-                            pointloadFun = [];
-                            for i = 1:numel(sPL)
-                                pl = TractionLoad2(obj.mesh, sPL{i}, 'DIRAC');
-                                pointloadFun = [pointloadFun, pl];
-
-                            end
-                            s.pointloadFun = pointloadFun;
-
-                        case 2
-                            % % Load on Right edge // CHANGE: q = 100
-                            % sPL{1}.domain    = @(coor) isRight(coor);
-                            % sPL{1}.direction = 2;
-                            % sPL{1}.value     = 1;
-
-                            s.pointloadFun = [];
-                    end                  
-
-                    s.periodicFun  = [];
-                    s.mesh = obj.mesh;
-                    bc = BoundaryConditions(s);
-
-                case 2
-                    sDir{1}.domain    = @(coor) isLeft(coor) | isRight(coor) | isBotom(coor) | isTop(coor);
-                    sDir{1}.direction = direct;
-                    sDir{1}.value     = 0;
-                    sDir{1}.ndim      = length(direct);
-
-                    dirichletFun = [];
-                    for i = 1:numel(sDir)
-                        dir = DirichletCondition(obj.mesh, sDir{i});
-                        dirichletFun = [dirichletFun, dir];
+                        pointloadFun = [];
+                        for i = 1:numel(sPL)
+                            pl = TractionLoad2(obj.mesh, sPL{i}, 'DIRAC');
+                            pointloadFun = [pointloadFun, pl];
+                        end
+                        s.pointloadFun = pointloadFun;
+                    else
+                        s.pointloadFun = [];
                     end
-                    s.dirichletFun = dirichletFun;
-
-                    s.pointloadFun = [];
-                    s.periodicFun  = [];
-                    s.mesh = obj.mesh;
-                    bc = BoundaryConditions(s);
             end
+
+            s.periodicFun  = [];
+            s.mesh = obj.mesh;
+            bc = BoundaryConditions(s);
 
         end
 
@@ -877,9 +878,11 @@ classdef TutorialShells < handle
             m = ConstantFunction.create([0 0],obj.mesh);
             switch obj.bcCase
                 case 1
-                    q = ConstantFunction.create(100,obj.mesh);
+                    q = ConstantFunction.create(1e5,obj.mesh);
                 case 2
-                    q = ConstantFunction.create(1,obj.mesh);
+                    q = ConstantFunction.create(50000,obj.mesh);
+                case 3
+                    q = ConstantFunction.create(0,obj.mesh);
             end
 
             fu = @(v) DP(p,v);
@@ -894,7 +897,7 @@ classdef TutorialShells < handle
             RHSw = IntegrateRHS(fw,obj.wFun,obj.mesh,'Domain',2);
             RHSw = obj.reduceVector(RHSw,obj.bcW);
 
-            if obj.bcCase == 1
+            if obj.bcCase == 3
                 obj.computeForces();
                 RHSq = obj.RHSq;
                 RHSq = obj.reduceVector(RHSq,obj.bcW);
@@ -1315,6 +1318,12 @@ classdef TutorialShells < handle
             db.Steel.G  = 11.24 * msi_to_Pa;
             db.Steel.density = 7850;
 
+            db.Al7075.type = 'ISOTROPIC';
+            db.Al7075.E  = 67545e6;
+            db.Al7075.nu = 0.33;
+            db.Al7075.G  = 25393e6;
+            db.Al7075.density = 2751;  % kg/m^3
+
             % ORTHOTROPIC
             db.AS.type = 'ORTHOTROPIC';
             db.AS.E  = [20.0, 1.3, 1.3] * msi_to_Pa;
@@ -1345,6 +1354,12 @@ classdef TutorialShells < handle
             db.BrEp.nu = [0.30, 0.25, 0.25];
             db.BrEp.G  = [1.00, 1.00, 0.60] * msi_to_Pa;
             db.BrEp.density = 2000;
+
+            db.T300_914_C.type = 'ORTHOTROPIC';
+            db.T300_914_C.E  = [138.0, 11.0, 11.0] * 1e9;
+            db.T300_914_C.nu = [0.28, 0.28, 0.40];
+            db.T300_914_C.G  = [5.5, 5.5, 3.928] * 1e9;
+            db.T300_914_C.density = 1580;
 
             % ==================== PROCESS INPUT ====================
             if ischar(materialName)

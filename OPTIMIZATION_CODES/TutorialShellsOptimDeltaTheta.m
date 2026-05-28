@@ -26,18 +26,25 @@ classdef TutorialShellsOptimDeltaTheta < handle
     end
 
     methods (Access = public)
-        function obj = TutorialShellsOptimDeltaTheta()
+        function obj = TutorialShellsOptimDeltaTheta(optCase)
 
             clc; close all;
 
-            tic;
-            optimCase = 'DYNAMIC';
+            % =========================================================================
+            % TIMING: start global timer
+            % =========================================================================
+            tTotal = tic;
+            if nargin > 0
+                optimCase = optCase;
+            else
+                optimCase = 'DYNAMIC';
+            end
             % STATIC
             % DYNAMIC
 
             % Laminate Inputs 
-            obj.materialLayers = {'EpT'; 'EpT'; 'EpT'; 'EpT'; 'EpT';
-                'EpT'; 'EpT'; 'EpT'; 'EpT'; 'EpT'};
+            obj.materialLayers = {'T300_914_C'; 'T300_914_C'; 'T300_914_C'; 'T300_914_C'; 'T300_914_C';
+                'T300_914_C'; 'T300_914_C'; 'T300_914_C'; 'T300_914_C'; 'T300_914_C'};
 
             Rotation = [0; 0; 45; -45; 90; 90; -45; 45; 0; 0];  % degrees
             Rotation = 25*ones(size(obj.materialLayers)) + Rotation;
@@ -52,7 +59,7 @@ classdef TutorialShellsOptimDeltaTheta < handle
             h_max = 0.5; 
             nLayers = length(obj.materialLayers);
             h0 = h_max * ones(nLayers,1)/nLayers;    
-            deltaTheta0 = 15; 
+            deltaTheta0 = 0; 
 
             obj.createMesh('wingShape')  % 'triangleMesh' // 'wingShape'
             obj.createSolutionField()
@@ -61,8 +68,13 @@ classdef TutorialShellsOptimDeltaTheta < handle
             minDeltaTheta = -89.9;
             maxDeltaTheta = 89.9; 
             normalizef = 20; 
+            % ---- Initial evaluation ----
+            fprintf('Computing initial solution...\n');
+            tPhase = tic;
             maxval = obj.staticProblem(h0, 0);  
             m0     = obj.computeMass(h0);
+            fprintf('  Initial evaluation done in %.2f s\n', toc(tPhase));
+            fprintf('  Initial maxval: %g\n\n', maxval);
             switch optimCase
                 case 'STATIC'
                     if isSymmetric && forceSymmetry
@@ -118,11 +130,8 @@ classdef TutorialShellsOptimDeltaTheta < handle
                         cost.cF = @(x) obj.computeMass(T * x(1:nHalf)) / m0;
                         cost.gF = @(x) [T' * obj.GradComputeMass() / m0; 0];
 
-                        constraint.cF{1} = @(x)  (obj.dynamicProblem(T * x(1:nHalf), x(nHalf+1)) - 20) / normalizef;
-                        constraint.gF{1} = @(x) obj.GradDynamicProblem(x, nHalf, T) / normalizef;
-
-                        constraint.cF{2} = @(x)  -constraint.cF{1}(x) - 10 / normalizef;
-                        constraint.gF{2} = @(x)  -constraint.gF{1}(x);
+                        constraint.cF{1} = @(x)  (-obj.dynamicProblem(T * x(1:nHalf), x(nHalf+1)) + 10) / normalizef;
+                        constraint.gF{1} = @(x) -obj.GradDynamicProblem(x, nHalf, T) / normalizef;
 
                     else
                         x0_opt = [h0; deltaTheta0];
@@ -133,22 +142,20 @@ classdef TutorialShellsOptimDeltaTheta < handle
                         cost.cF = @(x) obj.computeMass(x(1:nLayers)) / m0;
                         cost.gF = @(x) [obj.GradComputeMass() / m0; 0]; % masa no depende de deltaTheta
 
-                        constraint.cF{1} = @(x)  (obj.dynamicProblem(x(1:nLayers), x(nLayers+1)) - 20);
-                        constraint.gF{1} = @(x) obj.GradDynamicProblem(x, nLayers, eye(nLayers));
-
-                        constraint.cF{2} = @(x)  -constraint.cF{1}(x) - 10 / normalizef;
-                        constraint.gF{2} = @(x)  -constraint.gF{1}(x);
+                        constraint.cF{1} = @(x)  (-obj.dynamicProblem(x(1:nLayers), x(nLayers+1)) + 10) / normalizef;
+                        constraint.gF{1} = @(x) -obj.GradDynamicProblem(x, nLayers, eye(nLayers)) / normalizef;
                     end
             end
 
             s.type           = "fmincon";
-            s.maxIter        = 17;
+            s.maxIter        = 43;
+            s.tolerance      = 1e-5;
 
             switch optimCase
                 case 'STATIC'
                     s.constraintCase = {'INEQUALITY'};
                 case 'DYNAMIC'
-                    s.constraintCase = {'INEQUALITY','INEQUALITY'};
+                    s.constraintCase = {'INEQUALITY'};
             end
             cParams.cost         = cost;
             cParams.constraint   = constraint;
@@ -156,8 +163,11 @@ classdef TutorialShellsOptimDeltaTheta < handle
             cParams.settings     = s;
             cParams.printingPath = true;
             problem              = AcademicProblem(cParams);
+            fprintf('Starting optimization (%s)...\n', optimCase);
+            tOpt = tic;
             problem.compute();
-            computingTime = toc;
+            tOptElapsed = toc(tOpt);
+            fprintf('  Optimization finished in %.2f s\n\n', tOptElapsed);
 
             xStar      = problem.result.fun.fValues;
             
@@ -180,6 +190,7 @@ classdef TutorialShellsOptimDeltaTheta < handle
             
             fprintf('--------------------------------------------------\n');
             fprintf('Total Thickness : %10.6f m  (Limit: %.4f m)\n', sum(h_vals), h_max);
+            fprintf('Initial deltaTheta       : %10.6f deg\n', deltaTheta0);
             fprintf('Optimal deltaTheta       : %10.6f deg\n', deltaTheta_opt);
             
             % Calculate and show the final cost/deflection
@@ -195,7 +206,15 @@ classdef TutorialShellsOptimDeltaTheta < handle
             finalMass = obj.computeMass(h_vals);
             fprintf('Final Mass (kg)           : %10.6e  (Normalized: %10.6e)\n', finalMass, finalMass / m0);
             fprintf('==================================================\n\n');
-            fprintf('Total computing time (min)  : %10.6f\n', computingTime/60);
+            % =========================================================================
+            % TOTAL ELAPSED TIME
+            % =========================================================================
+            tTotalElapsed = toc(tTotal);
+            [hh, mm, ss]  = obj.formatTime(tTotalElapsed);
+            fprintf('--------------------------------------------------\n');
+            fprintf('  Optim. time       : %10.2f s\n', tOptElapsed);
+            fprintf('  TOTAL run time    : %02d h %02d min %05.2f s\n', hh, mm, ss);
+            fprintf('==================================================\n\n');
 
 
             
@@ -765,6 +784,12 @@ classdef TutorialShellsOptimDeltaTheta < handle
             db.EpT.G  = [1.00, 0.90, 0.90] * msi_to_Pa;
             db.EpT.density = 1600;
 
+            db.T300_914_C.type = 'ORTHOTROPIC';
+            db.T300_914_C.E  = [138.0, 11.0, 11.0] * 1e9;
+            db.T300_914_C.nu = [0.28, 0.28, 0.40];
+            db.T300_914_C.G  = [5.5, 5.5, 3.928] * 1e9;
+            db.T300_914_C.density = 1580;
+
             db.Ep1.type = 'ORTHOTROPIC';
             db.Ep1.E  = [7.8, 2.6, 2.6] * msi_to_Pa;
             db.Ep1.nu = [0.25, 0.25, 0.34];
@@ -918,6 +943,15 @@ classdef TutorialShellsOptimDeltaTheta < handle
             % fprintf('-----------------------------------------\n');
         end
 
+
+        % =========================================================================
+        % TIME FORMATTER
+        % =========================================================================
+        function [hh, mm, ss] = formatTime(~, t)
+            hh = floor(t / 3600);
+            mm = floor(mod(t, 3600) / 60);
+            ss = mod(t, 60);
+        end
 
     end
 

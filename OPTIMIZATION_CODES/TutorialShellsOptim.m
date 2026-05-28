@@ -29,9 +29,14 @@ classdef TutorialShellsOptim < handle
 
             clc; close all;
 
+            % =========================================================================
+            % TIMING: start global timer
+            % =========================================================================
+            tTotal = tic;
+
             % Laminate Inputs 
-            obj.materialLayers = {'EpT'; 'EpT'; 'EpT'; 'EpT'; 'EpT';
-                'EpT'; 'EpT'; 'EpT'; 'EpT'; 'EpT'};
+            obj.materialLayers = {'T300_914_C'; 'T300_914_C'; 'T300_914_C'; 'T300_914_C'; 'T300_914_C';
+                'T300_914_C'; 'T300_914_C'; 'T300_914_C'; 'T300_914_C'; 'T300_914_C'};
 
             Rotation = [0; 0; 45; -45; 90; 90; -45; 45; 0; 0];  % degrees
             Rotation = 25*ones(size(obj.materialLayers)) + Rotation;
@@ -50,10 +55,14 @@ classdef TutorialShellsOptim < handle
             obj.createMesh('wingShape')  % 'triangleMesh' // 'wingShape'
             obj.createSolutionField()
 
+            % ---- Initial evaluation ----
+            fprintf('Computing initial solution...\n');
+            tPhase = tic;
             maxval = obj.staticProblem(h0);
             m0     = obj.computeMass(h0);
             
-            fprintf('Initial value maxval: %g\n', maxval);
+            fprintf('  Initial evaluation done in %.2f s\n', toc(tPhase));
+            fprintf('  Initial maxval: %g\n\n', maxval);
 
             if isSymmetric && forceSymmetry
                 nHalf = ceil(nLayers/2);
@@ -90,8 +99,9 @@ classdef TutorialShellsOptim < handle
             end
 
             s.type           = "fmincon";
-            s.maxIter        = 20;
+            s.maxIter        = 30;
             s.constraintCase = {'INEQUALITY'};
+            s.tolerance      = 1e-5;
 
             cParams.cost         = cost;
             cParams.constraint   = constraint;
@@ -99,7 +109,11 @@ classdef TutorialShellsOptim < handle
             cParams.settings     = s;
             cParams.printingPath = true;
             problem              = AcademicProblem(cParams);
+            fprintf('Starting optimization...\n');
+            tOpt = tic;
             problem.compute();
+            tOptElapsed = toc(tOpt);
+            fprintf('  Optimization finished in %.2f s\n\n', tOptElapsed);
 
             % hStar = problem.result;
             % h_vals = hStar.fun.fValues; 
@@ -128,6 +142,15 @@ classdef TutorialShellsOptim < handle
             % Print final mass
             finalMass = obj.computeMass(h_vals);
             fprintf('Final Mass              : %10.6e  (Normalized: %10.6e)\n', finalMass, finalMass / m0);
+            fprintf('==================================================\n\n');
+
+            % =========================================================================
+            % TOTAL ELAPSED TIME
+            % =========================================================================
+            tTotalElapsed = toc(tTotal);
+            [hh, mm, ss]  = obj.formatTime(tTotalElapsed);
+            fprintf('  Optim. time       : %10.2f s\n', tOptElapsed);
+            fprintf('  TOTAL run time    : %02d h %02d min %05.2f s\n', hh, mm, ss);
             fprintf('==================================================\n\n');
 
 
@@ -607,6 +630,12 @@ classdef TutorialShellsOptim < handle
             db.EpT.G  = [1.00, 0.90, 0.90] * msi_to_Pa;
             db.EpT.density = 1600;
 
+            db.T300_914_C.type = 'ORTHOTROPIC';
+            db.T300_914_C.E  = [138.0, 11.0, 11.0] * 1e9;
+            db.T300_914_C.nu = [0.28, 0.28, 0.40];
+            db.T300_914_C.G  = [5.5, 5.5, 3.928] * 1e9;
+            db.T300_914_C.density = 1580;
+
             db.Ep1.type = 'ORTHOTROPIC';
             db.Ep1.E  = [7.8, 2.6, 2.6] * msi_to_Pa;
             db.Ep1.nu = [0.25, 0.25, 0.34];
@@ -758,6 +787,15 @@ classdef TutorialShellsOptim < handle
             %     fprintf('Non-symmetric laminate.\n');
             % end
             % fprintf('-----------------------------------------\n');
+        end
+
+        % =========================================================================
+        % TIME FORMATTER
+        % =========================================================================
+        function [hh, mm, ss] = formatTime(~, t)
+            hh = floor(t / 3600);
+            mm = floor(mod(t, 3600) / 60);
+            ss = mod(t, 60);
         end
 
 

@@ -1,0 +1,41 @@
+Computing initial solution...
+  Initial evaluation done in 0.88 s
+  Initial maxval: 0.000725143
+
+Starting optimization (STATIC)...
+
+Local minimum possible. Constraints satisfied.
+
+fmincon stopped because the size of the current step is less than
+the value of the step size tolerance and constraints are 
+satisfied to within the value of the constraint tolerance.
+
+  Optimization finished in 728.80 s
+
+
+==================================================
+               OPTIMIZATION RESULTS
+==================================================
+Layer  1 (T300_914_C):   0.010047 m
+Layer  2 (T300_914_C):   0.010047 m
+Layer  3 (T300_914_C):   0.010063 m
+Layer  4 (T300_914_C):   0.010059 m
+Layer  5 (T300_914_C):   0.235217 m
+Layer  6 (T300_914_C):   0.235217 m
+Layer  7 (T300_914_C):   0.010059 m
+Layer  8 (T300_914_C):   0.010063 m
+Layer  9 (T300_914_C):   0.010047 m
+Layer 10 (T300_914_C):   0.010047 m
+--------------------------------------------------
+Total Thickness :   0.550864 m  (Limit: 0.5000 m)
+Initial deltaTheta       :  70.000000 deg
+Optimal deltaTheta       :  79.690010 deg
+Final Displacement        : 5.435961e-04
+Final Mass (kg)           : 6.541483e+04  (Normalized: 1.101728e+00)
+==================================================
+
+--------------------------------------------------
+  Optim. time       :     728.80 s
+  TOTAL run time    : 00 h 12 min 11.03 s
+==================================================
+

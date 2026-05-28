@@ -29,7 +29,10 @@ classdef DifferentThetasTutorialShellsOptim < handle
         function obj = DifferentThetasTutorialShellsOptim()
 
             clc; close all;
-            tic;
+            % =========================================================================
+            % TIMING: start global timer
+            % =========================================================================
+            tTotal = tic;
 
             optimCase = 'STATIC';
             % STATIC
@@ -39,8 +42,8 @@ classdef DifferentThetasTutorialShellsOptim < handle
             % nOuter <= nHalf  
             nOuter = 5;
 
-            obj.materialLayers = {'EpT'; 'EpT'; 'EpT'; 'EpT'; 'EpT';
-                                  'EpT'; 'EpT'; 'EpT'; 'EpT'; 'EpT'};
+            obj.materialLayers = {'T300_914_C'; 'T300_914_C'; 'T300_914_C'; 'T300_914_C'; 'T300_914_C';
+                                  'T300_914_C'; 'T300_914_C'; 'T300_914_C'; 'T300_914_C'; 'T300_914_C'};
 
             Rotation = [0; 0; 45; -45; 90; 90; -45; 45; 0; 0];
             Rotation = 25*ones(size(obj.materialLayers)) + Rotation;
@@ -61,8 +64,14 @@ classdef DifferentThetasTutorialShellsOptim < handle
             maxDeltaTheta =  89.9;
 
             normalizef = 20;
+
+            % ---- Initial evaluation ----
+            fprintf('Computing initial solution...\n');
+            tPhase = tic;
             maxval = obj.staticProblem(h0, zeros(nLayers,1));
             m0     = obj.computeMass(h0);
+            fprintf('  Initial evaluation done in %.2f s\n', toc(tPhase));
+            fprintf('  Initial maxval: %g\n\n', maxval);
 
             switch optimCase
                 case 'STATIC'
@@ -160,6 +169,7 @@ classdef DifferentThetasTutorialShellsOptim < handle
 
             s.type    = "fmincon";
             s.maxIter = 10;
+            s.tolerance = 1e-5;
 
             switch optimCase
                 case 'STATIC',  s.constraintCase = {'INEQUALITY'};
@@ -173,8 +183,11 @@ classdef DifferentThetasTutorialShellsOptim < handle
             cParams.settings     = s;
             cParams.printingPath = true;
             problem = AcademicProblem(cParams);
+            fprintf('Starting optimization (%s)...\n', optimCase);
+            tOpt = tic;
             problem.compute();
-            computingTime = toc;
+            tOptElapsed = toc(tOpt);
+            fprintf('  Optimization finished in %.2f s\n\n', tOptElapsed);
 
             xStar = problem.result.fun.fValues;
 
@@ -198,6 +211,7 @@ classdef DifferentThetasTutorialShellsOptim < handle
             end
             fprintf('--------------------------------------------------\n');
             fprintf('Total Thickness    : %10.6f m  (Limit: %.4f m)\n', sum(h_vals), h_max);
+            fprintf('Initial deltaTheta : %10.6f deg\n', deltaTheta0);
             fprintf('Outer deltaThethas : ');
             fprintf('%8.4f deg  ', dTheta_outer_opt);
             fprintf('\n');
@@ -214,7 +228,15 @@ classdef DifferentThetasTutorialShellsOptim < handle
             finalMass = obj.computeMass(h_vals);
             fprintf('Final Mass (kg)    : %10.6e  (Normalized: %10.6e)\n', finalMass, finalMass/m0);
             fprintf('==================================================\n\n');
-            fprintf('Total computing time (min): %10.6f\n', computingTime/60);
+            % =========================================================================
+            % TOTAL ELAPSED TIME
+            % =========================================================================
+            tTotalElapsed = toc(tTotal);
+            [hh, mm, ss]  = obj.formatTime(tTotalElapsed);
+            fprintf('--------------------------------------------------\n');
+            fprintf('  Optim. time       : %10.2f s\n', tOptElapsed);
+            fprintf('  TOTAL run time    : %02d h %02d min %05.2f s\n', hh, mm, ss);
+            fprintf('==================================================\n\n');
         end
     end
 
@@ -594,6 +616,7 @@ classdef DifferentThetasTutorialShellsOptim < handle
             db.Steel    = struct('type','ISOTROPIC', 'E',30.0*msi, 'nu',0.29, 'G',11.24*msi, 'density',7850);
             db.AS   = struct('type','ORTHOTROPIC','E',[20.0,1.3,1.3]*msi, 'nu',[0.30,0.30,0.49],'G',[1.03,1.03,0.90]*msi,'density',1600);
             db.EpT  = struct('type','ORTHOTROPIC','E',[19.0,1.5,1.5]*msi, 'nu',[0.22,0.22,0.49],'G',[1.00,0.90,0.90]*msi,'density',1600);
+            db.T300_914_C = struct('type','ORTHOTROPIC','E',[138.0,11.0,11.0]*1e9, 'nu',[0.28,0.28,0.40],'G',[5.5,5.5,3.928]*1e9,'density',1580);
             db.Ep1  = struct('type','ORTHOTROPIC','E',[7.8,2.6,2.6]*msi,  'nu',[0.25,0.25,0.34],'G',[1.30,1.30,0.50]*msi,'density',1900);
             db.Ep2  = struct('type','ORTHOTROPIC','E',[5.6,1.2,1.3]*msi,  'nu',[0.26,0.26,0.34],'G',[0.60,0.60,0.50]*msi,'density',2000);
             db.BrEp = struct('type','ORTHOTROPIC','E',[30.0,3.0,3.0]*msi, 'nu',[0.30,0.25,0.25],'G',[1.00,1.00,0.60]*msi,'density',2000);
@@ -650,6 +673,15 @@ classdef DifferentThetasTutorialShellsOptim < handle
                     isSymmetric = false;
                 end
             end
+        end
+
+        % =========================================================================
+        % TIME FORMATTER
+        % =========================================================================
+        function [hh, mm, ss] = formatTime(~, t)
+            hh = floor(t / 3600);
+            mm = floor(mod(t, 3600) / 60);
+            ss = mod(t, 60);
         end
 
     end
