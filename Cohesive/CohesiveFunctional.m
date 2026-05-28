@@ -1,5 +1,5 @@
 classdef CohesiveFunctional < handle
-    
+
     properties (Access = private)
         functionals
         quadOrder

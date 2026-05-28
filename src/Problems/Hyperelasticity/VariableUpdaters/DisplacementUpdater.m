@@ -32,7 +32,9 @@ classdef DisplacementUpdater < handle
                 % obj.monitor.update(length(costArray),{[],[cost],[],[]});
                 % obj.monitor.refresh(); 
             end
-            obj.functional.updateLambdaOld();
+
+             % obj.functional.updateLambdaOld(); % Per Turon
+
             rFun = obj.computeReactions(LHS,u,bc);
             iter = i;
         end

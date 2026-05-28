@@ -73,8 +73,8 @@ classdef TutorialCohesive < handle
             s.firstCritEnergy     = 260;
             s.secondCritEnergy    = 1002;
             s.eta                 = 2;
-            s.lawType = 'TractionBiliniarCoupled';
-            % s.lawType = 'TractionBiliniarUncoupled';
+            % s.lawType = 'TractionBiliniarCoupled';
+            s.lawType = 'TractionBiliniarUncoupled';
 
             obj.tractionSeparation = CohesiveTractionSeparation(s);
         end

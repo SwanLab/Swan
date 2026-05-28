@@ -37,8 +37,8 @@ classdef TractionBiliniarUncoupled < handle
         
         function init(obj,cParams)
             obj.K = 1e8;
-            obj.jumpCrit  = cParams.jumpCrit;
-            obj.jumpFinal = cParams.jumpFinal;
+            obj.jumpCrit  = 0.001;
+            obj.jumpFinal = 0.02;
         end
 
         function gradT = computeTangentGradientMatrix(obj, jump, xV) %2 x 2 x ngauss x nelem
@@ -78,7 +78,7 @@ classdef TractionBiliniarUncoupled < handle
             ddot = (1./(obj.jumpFinal - obj.jumpCrit)).*isDamaging;
         end
 
-        function isDamaging = isJumpDamaging(obj,jump) % comprovar!!
+        function isDamaging = isJumpDamaging(obj,jump)
             temp1 = jump - obj.jumpCrit; % f - a
             temp2 = obj.jumpFinal - jump; % b - f
             isDamaging = temp1.*temp2 > 0; 
