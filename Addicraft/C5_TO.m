@@ -2,8 +2,6 @@ classdef C5_TO < handle
 
     properties (Access = private)
         mesh
-        rollerMesh
-        rollerNodes
         rbe3Mesh
         rbe3Nodes
         filename
@@ -24,8 +22,7 @@ classdef C5_TO < handle
         function obj = C5_TO(filename)
             obj.init()
             obj.createMesh(filename);
-            obj.createRollerMesh(filename);
-            obj.createRBE3Mesh(filename);
+            obj.createRBE3Meshes(filename);
             obj.createDesignVariable();
             obj.createFilter();
             obj.createMaterialInterpolator();
@@ -40,6 +37,19 @@ classdef C5_TO < handle
 
             saveas(gcf,['Addicraft/Monitoring_',filename,'.fig']);
             obj.designVariable.fun.print(['Addicraft/',filename,'_fValues']);
+
+            fem = obj.physicalProblem;
+            sigma = fem.stressFun;
+            devSig = Deviatoric(sigma);
+            vonMises = sqrt(1.5.*DDP(devSig,devSig));
+
+            sF.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            sF.mesh = obj.mesh;
+            sF.filterType = 'PDE';
+            filter = Filter.create(sF);
+            filter.updateEpsilon(2*obj.mesh.computeMeanCellSize());
+            vmSig = filter.compute(vonMises,3);
+            vmSig.print('VonMisesFinal')
         end
 
     end
@@ -59,30 +69,19 @@ classdef C5_TO < handle
             obj.mesh = s.mesh;
         end
 
-        function createRollerMesh(obj,fName)
-            run(fName);
-            rollerRowsEl = External_border_elements(:,1)==0;
-            rollerRowsN  = External_border_nodes(:,1)==0;
-            s.coord = obj.mesh.coord;
-            s.connec = External_border_elements(rollerRowsEl,3:5);
-            s.kFace = -1;
-            s.type = 'TRIANGLE';
-            bDirMesh = SurfaceMesh(s);
-            obj.rollerMesh = bDirMesh.computeCanonicalMesh();
-            obj.rollerNodes = External_border_nodes(rollerRowsN,2);
-        end
-
-        function createRBE3Mesh(obj,fName)
-            run(fName);
-            rollerRowsEl = External_border_elements(:,1)==1;
-            rollerRowsN  = External_border_nodes(:,1)==1;
-            s.coord = obj.mesh.coord;
-            s.connec = External_border_elements(rollerRowsEl,3:5);
-            s.kFace = -1;
-            s.type = 'TRIANGLE';
-            bDirMesh = SurfaceMesh(s);
-            obj.rbe3Mesh = bDirMesh.computeCanonicalMesh();
-            obj.rbe3Nodes = External_border_nodes(rollerRowsN,2);
+        function createRBE3Meshes(obj,fName)
+            for i=1:3
+                run(fName);
+                rollerRowsEl = External_border_elements(:,1)==i-1;
+                rollerRowsN  = External_border_nodes(:,1)==i-1;
+                s.coord = obj.mesh.coord;
+                s.connec = External_border_elements(rollerRowsEl,3:5);
+                s.kFace = -1;
+                s.type = 'TRIANGLE';
+                bDirMesh = SurfaceMesh(s);
+                obj.rbe3Mesh{i} = bDirMesh.computeCanonicalMesh();
+                obj.rbe3Nodes{i} = External_border_nodes(rollerRowsN,2);
+            end
         end
 
         function createDesignVariable(obj)
@@ -90,20 +89,27 @@ classdef C5_TO < handle
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);
+
+            fixN = [];
+            for i=1:3
+                fixN = [fixN;obj.rbe3Nodes{i}];
+            end
             
             sD.fun      = aFun.project('P1');
             sD.mesh     = obj.mesh;
             sD.type     = 'Density';
+            sD.isFixed  = unique(fixN);
             sD.plotting = false;
             dens        = DesignVariable.create(sD);
             obj.designVariable = dens;
         end
 
         function createFilter(obj)
-            s.filterType = 'LUMP';
+            s.filterType = 'PDE';
             s.mesh  = obj.mesh;
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
+            f.updateEpsilon(2*obj.mesh.computeMeanCellSize());
             obj.filter = f;
         end
 
@@ -136,11 +142,17 @@ classdef C5_TO < handle
             s.material = obj.createMaterial();
             s.dim = '3D';
             s.boundaryConditions = obj.createBoundaryConditions();
-            s.rollerMesh = obj.rollerMesh;
-            s.rollerNodes = obj.rollerNodes;
             s.rbe3Mesh = obj.rbe3Mesh;
             s.rbe3Nodes = obj.rbe3Nodes;
-            s.rbe3Value{3} = 50;
+            s.rbe3Value(1,1) = 0;
+            s.rbe3Value(1,2) = 0;
+            s.rbe3Value(1,3) = 0;
+            s.rbe3Value(2,1) = 0;
+            s.rbe3Value(2,2) = 0;
+            s.rbe3Value(2,3) = 0;
+            s.rbe3Value(3,1) = NaN;
+            s.rbe3Value(3,2) = NaN;
+            s.rbe3Value(3,3) = 50;
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'ROLLER';
@@ -165,9 +177,9 @@ classdef C5_TO < handle
             sF.mesh = obj.mesh;
             sF.filterType = 'PDE';
             filter = Filter.create(sF);
-            filter.updateEpsilon(60*obj.mesh.computeMeanCellSize());
+            filter.updateEpsilon(2*obj.mesh.computeMeanCellSize());
             vmSig = filter.compute(vonMises,3);
-            vmSig.print('VonMises')
+            vmSig.print('VonMisesInitial')
         end
 
         function c = createComplianceFromConstiutive(obj)
@@ -200,7 +212,7 @@ classdef C5_TO < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.5;
+            s.volumeTarget = 0.95;
             s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
@@ -214,9 +226,8 @@ classdef C5_TO < handle
         end
 
         function M = createMassMatrix(obj)
-            n = obj.mesh.nnodes;
-            h = obj.mesh.computeMinCellSize();
-            M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
+            M = IntegrateLHS(@(u,v) u.*v,obj.designVariable.fun,obj.designVariable.fun,obj.mesh,'Domain',3);
+            M = diag(sum(M,1));
         end
 
         function createConstraint(obj)
@@ -226,9 +237,12 @@ classdef C5_TO < handle
         end
 
         function createPrimalUpdater(obj)
-            s.ub     = 1;
-            s.lb     = 0;
-            s.tauMax = 1000;
+            rho      = obj.designVariable;
+            fixedDof = rho.getFixedDofs();
+            s.ub     = ones(size(rho.fun.fValues));
+            s.lb     = zeros(size(rho.fun.fValues));
+            s.lb(fixedDof) = 1;
+            s.tauMax = 5000;
             s.tau    = [];
             obj.primalUpdater = ProjectedGradient(s);
         end
@@ -238,7 +252,7 @@ classdef C5_TO < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 2000;
+            s.maxIter        = 5000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
@@ -271,7 +285,7 @@ classdef C5_TO < handle
         function bc = createBoundaryConditions(obj)
             femReader = FemInputReaderGiD();
             s         = femReader.read(obj.filename);
-%             sPL       = obj.computeCondition(s.pointload);
+            sPL       = obj.computeCondition(s.pointload);
 %             sDir      = obj.computeCondition(s.dirichlet);
 
             dirichletFun = [];
@@ -282,11 +296,11 @@ classdef C5_TO < handle
 %             s.dirichletFun = dirichletFun;
 
             pointloadFun = [];
-%             for i = 1:numel(sPL)
-%                 pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
-%                 pointloadFun = [pointloadFun, pl];
-%             end
-%             s.pointloadFun = pointloadFun;
+            for i = 1:numel(sPL)
+                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
+                pointloadFun = [pointloadFun, pl];
+            end
+            s.pointloadFun = pointloadFun;
 
             s.periodicFun  = [];
             s.mesh         = obj.mesh;

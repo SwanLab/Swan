@@ -186,8 +186,7 @@ classdef ProblemSolver < handle
                     Z = sparse(size(obj.C,2),1);
                     RHS = [Ff;Z];
                     if ~isempty(obj.rbe3Value)
-                        RHS(end-2) = obj.rbe3Value(1);
-                        RHS(end) = obj.rbe3Value(2);
+                        RHS(end-length(obj.rbe3Value)+1:end) = obj.rbe3Value;
                     end
                 case strcmp(obj.type, 'MONOLITHIC') && strcmp(obj.mode, 'FLUC')
                     nPer = length(bcs.periodic_leader);
@@ -208,66 +207,74 @@ classdef ProblemSolver < handle
 
         function computeRollerLinkage(obj,s)
             if isfield(s,'rollerMesh')
-                bDirMesh = s.rollerMesh;
-
-                n0 = squeeze(bDirMesh.getNormals())';
-
-                nP0 = LagrangianFunction.create(bDirMesh,3,'P0');
-                nP0.setFValues(n0);
-
-                sF.trial = LagrangianFunction.create(bDirMesh,3,'P1');
-                sF.mesh = bDirMesh;
-                filter = FilterLump(sF);
-                nReg = filter.compute(nP0,2);
-                n = nReg.fValues;
-                n = n./sqrt(n(:,1).^2+n(:,2).^2+n(:,3).^2);
-                nReg.setFValues(n);
-
-                test = LagrangianFunction.create(bDirMesh,3,'P1');
-                trial = LagrangianFunction.create(bDirMesh,1,'P0');
-                CLoc = IntegrateLHS(@(u,v) (DP(v,nReg)).*(u),test,trial,bDirMesh,'Domain');
-
-                obj.C = sparse(s.mesh.nnodes*3,bDirMesh.nelem);
-                iC = s.rollerNodes;
-                iC = repmat(iC,[1,3])';
-                iC(1,:) = 3*iC(1,:)-2;
-                iC(2,:) = 3*iC(2,:)-1;
-                iC(3,:) = 3*iC(3,:);
-                iC = iC(:);
-                jC = 1:trial.nDofs;
-                jC = jC';
-                obj.C(iC,jC) = CLoc;
+%                 bDirMesh = s.rollerMesh;
+% 
+%                 n0 = squeeze(bDirMesh.getNormals())';
+% 
+%                 nP0 = LagrangianFunction.create(bDirMesh,3,'P0');
+%                 nP0.setFValues(n0);
+% 
+%                 sF.trial = LagrangianFunction.create(bDirMesh,3,'P1');
+%                 sF.mesh = bDirMesh;
+%                 filter = FilterLump(sF);
+%                 nReg = filter.compute(nP0,2);
+%                 n = nReg.fValues;
+%                 n = n./sqrt(n(:,1).^2+n(:,2).^2+n(:,3).^2);
+%                 nReg.setFValues(n);
+% 
+%                 test = LagrangianFunction.create(bDirMesh,3,'P1');
+%                 trial = LagrangianFunction.create(bDirMesh,1,'P0');
+%                 CLoc = IntegrateLHS(@(u,v) (DP(v,nReg)).*(u),test,trial,bDirMesh,'Domain');
+% 
+%                 obj.C = sparse(s.mesh.nnodes*3,bDirMesh.nelem);
+%                 iC = s.rollerNodes;
+%                 iC = repmat(iC,[1,3])';
+%                 iC(1,:) = 3*iC(1,:)-2;
+%                 iC(2,:) = 3*iC(2,:)-1;
+%                 iC(3,:) = 3*iC(3,:);
+%                 iC = iC(:);
+%                 jC = 1:trial.nDofs;
+%                 jC = jC';
+%                 obj.C(iC,jC) = CLoc;
             end
         end
 
         function computeRbe3Linkage(obj,s)
             if isfield(s,'rbe3Mesh')
-                bDirMesh = s.rbe3Mesh;
+                for i=1:length(s.rbe3Mesh)
+                    bDirMesh = s.rbe3Mesh{i};
+                    nCond = find(~isnan(s.rbe3Value(i,:)));
 
-                test = LagrangianFunction.create(bDirMesh,1,'P1');
-                CUnit = IntegrateRHS(@(v) v ,test,bDirMesh,'Domain');
-                Z     = zeros(1,length(CUnit));
-                CLoc1 = reshape([CUnit';Z;Z],[],1);
-                CLoc2 = reshape([Z;CUnit';Z],[],1);
-                CLoc3 = reshape([Z;Z;CUnit'],[],1);
-                CLoc = [CLoc1,CLoc2,CLoc3];
+                    test = LagrangianFunction.create(bDirMesh,1,'P1');
+                    CUnit = IntegrateRHS(@(v) v ,test,bDirMesh,'Domain');
+                    Z     = zeros(1,length(CUnit));
+                    CLoc1 = reshape([CUnit';Z;Z],[],1);
+                    CLoc2 = reshape([Z;CUnit';Z],[],1);
+                    CLoc3 = reshape([Z;Z;CUnit'],[],1);
+                    CLoc = [CLoc1,CLoc2,CLoc3];
+                    CLoc = CLoc(:,nCond);
 
-                CGlob = sparse(s.mesh.nnodes*3,3);
-                iC = s.rbe3Nodes;
-                iC = repmat(iC,[1,3])';
-                iC(1,:) = 3*iC(1,:)-2;
-                iC(2,:) = 3*iC(2,:)-1;
-                iC(3,:) = 3*iC(3,:);
-                iC = iC(:);
-                jC = 1:3;
-                jC = jC';
-                CGlob(iC,jC) = CLoc;
-                if isempty(obj.C)
-                    obj.C = CGlob;
-                else
-                    obj.C = [obj.C,CGlob];
+                    CGlob = sparse(s.mesh.nnodes*3,length(nCond));
+                    iC = s.rbe3Nodes{i};
+                    iC = repmat(iC,[1,3])';
+                    iC(1,:) = 3*iC(1,:)-2;
+                    iC(2,:) = 3*iC(2,:)-1;
+                    iC(3,:) = 3*iC(3,:);
+                    iC = iC(:);
+                    jC = 1:length(nCond);
+                    jC = jC';
+                    CGlob(iC,jC) = CLoc;
+                    if isempty(obj.C)
+                        obj.C = CGlob;
+                    else
+                        obj.C = [obj.C,CGlob];
+                    end
+                    if isempty(obj.rbe3Value)
+                        obj.rbe3Value = Integrator.compute(ConstantFunction.create(s.rbe3Value(i,nCond),bDirMesh),bDirMesh,1)';
+                    else
+                        obj.rbe3Value = [obj.rbe3Value; Integrator.compute(ConstantFunction.create(s.rbe3Value(i,nCond),bDirMesh),bDirMesh,1)'];
+                    end
                 end
-                obj.rbe3Value = Integrator.compute(ConstantFunction.create(s.rbe3Value',bDirMesh),bDirMesh,1)';
             end
         end
 
