@@ -771,13 +771,13 @@ External_border_elements = [
 *Set elems(all)
 *Set Cond Line_Border_elements *elems *CanRepeat
 *loop elems *OnlyInCond
-*ElemsNum *GlobalNodes
+*Cond(Border) *ElemsNum *GlobalNodes
 *end elems
 *elseif(strcmp(GenData(3),"3D")==0)
 *Set Elems(all)
 *Set Cond Surface_Border_elements *elems *CanRepeat
 *loop elems *OnlyInCond
-*ElemsNum *GlobalNodes
+*Cond(Border) *ElemsNum *GlobalNodes
 *end elems
 *endif
 ];
@@ -791,13 +791,13 @@ External_border_nodes = [
 *Set elems(all)
 *Set Cond Line_Border_nodes *nodes
 *loop nodes *OnlyInCond
-*NodesNum
+*Cond(Border) *NodesNum
 *end nodes
 *elseif(strcmp(GenData(3),"3D")==0)
 *Set elems(all)
 *Set Cond Surface_Border_nodes *nodes
 *loop nodes *OnlyInCond
-*NodesNum
+*Cond(Border) *NodesNum
 *end nodes
 *endif
 ];

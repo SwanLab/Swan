@@ -4,6 +4,8 @@ classdef C5_TO < handle
         mesh
         rollerMesh
         rollerNodes
+        rbe3Mesh
+        rbe3Nodes
         filename
         filter
         designVariable
@@ -23,6 +25,7 @@ classdef C5_TO < handle
             obj.init()
             obj.createMesh(filename);
             obj.createRollerMesh(filename);
+            obj.createRBE3Mesh(filename);
             obj.createDesignVariable();
             obj.createFilter();
             obj.createMaterialInterpolator();
@@ -58,13 +61,28 @@ classdef C5_TO < handle
 
         function createRollerMesh(obj,fName)
             run(fName);
+            rollerRowsEl = External_border_elements(:,1)==0;
+            rollerRowsN  = External_border_nodes(:,1)==0;
             s.coord = obj.mesh.coord;
-            s.connec = External_border_elements(:,2:4);
+            s.connec = External_border_elements(rollerRowsEl,3:5);
             s.kFace = -1;
             s.type = 'TRIANGLE';
             bDirMesh = SurfaceMesh(s);
             obj.rollerMesh = bDirMesh.computeCanonicalMesh();
-            obj.rollerNodes = External_border_nodes;
+            obj.rollerNodes = External_border_nodes(rollerRowsN,2);
+        end
+
+        function createRBE3Mesh(obj,fName)
+            run(fName);
+            rollerRowsEl = External_border_elements(:,1)==1;
+            rollerRowsN  = External_border_nodes(:,1)==1;
+            s.coord = obj.mesh.coord;
+            s.connec = External_border_elements(rollerRowsEl,3:5);
+            s.kFace = -1;
+            s.type = 'TRIANGLE';
+            bDirMesh = SurfaceMesh(s);
+            obj.rbe3Mesh = bDirMesh.computeCanonicalMesh();
+            obj.rbe3Nodes = External_border_nodes(rollerRowsN,2);
         end
 
         function createDesignVariable(obj)
@@ -120,6 +138,9 @@ classdef C5_TO < handle
             s.boundaryConditions = obj.createBoundaryConditions();
             s.rollerMesh = obj.rollerMesh;
             s.rollerNodes = obj.rollerNodes;
+            s.rbe3Mesh = obj.rbe3Mesh;
+            s.rbe3Nodes = obj.rbe3Nodes;
+            s.rbe3Value{3} = 50;
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'ROLLER';
@@ -142,7 +163,9 @@ classdef C5_TO < handle
 
             sF.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             sF.mesh = obj.mesh;
-            filter = FilterLump(sF);
+            sF.filterType = 'PDE';
+            filter = Filter.create(sF);
+            filter.updateEpsilon(60*obj.mesh.computeMeanCellSize());
             vmSig = filter.compute(vonMises,3);
             vmSig.print('VonMises')
         end
@@ -248,22 +271,22 @@ classdef C5_TO < handle
         function bc = createBoundaryConditions(obj)
             femReader = FemInputReaderGiD();
             s         = femReader.read(obj.filename);
-            sPL       = obj.computeCondition(s.pointload);
-            sDir      = obj.computeCondition(s.dirichlet);
+%             sPL       = obj.computeCondition(s.pointload);
+%             sDir      = obj.computeCondition(s.dirichlet);
 
             dirichletFun = [];
-            for i = 1:numel(sDir)
-                dir = DirichletCondition(obj.mesh, sDir{i});
-                dirichletFun = [dirichletFun, dir];
-            end
-            s.dirichletFun = dirichletFun;
+%             for i = 1:numel(sDir)
+%                 dir = DirichletCondition(obj.mesh, sDir{i});
+%                 dirichletFun = [dirichletFun, dir];
+%             end
+%             s.dirichletFun = dirichletFun;
 
             pointloadFun = [];
-            for i = 1:numel(sPL)
-                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
-                pointloadFun = [pointloadFun, pl];
-            end
-            s.pointloadFun = pointloadFun;
+%             for i = 1:numel(sPL)
+%                 pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
+%                 pointloadFun = [pointloadFun, pl];
+%             end
+%             s.pointloadFun = pointloadFun;
 
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
