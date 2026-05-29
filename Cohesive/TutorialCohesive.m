@@ -63,7 +63,7 @@ classdef TutorialCohesive < handle
 
         function createBoundaryConditions(obj,problem)
             bc.type = problem;
-            bc.values = 0 : 3e-8 : 0.03e-3;
+            bc.values = 0 : 0.1 : 10;
             obj.boundaryConditions  = BoundaryConditionsCreator(obj.cohesiveMesh.fullMesh,bc);
         end
 
@@ -104,15 +104,13 @@ classdef TutorialCohesive < handle
             switch problem
                 case 'DoubleCantileverBeam'
                     c.xCohLineMax = 72; c.yCohLine = 3.12 * 0.5;
-                    c.baseMesh = QuadMesh(103 ,3.52, 100, 20);
+                    c.baseMesh = QuadMesh(103 ,3.12, 100, 20);
                     % c.baseMesh = s.mesh;
                 case 'DisplacementTractionY' 
                     c.xCohLineMax = 10; c.yCohLine = 0; c.baseMesh = UnitQuadMesh(1,1);
                 case 'DisplacementMixed'
                     c.xCohLineMax = 10000; c.yCohLine = 0; c.baseMesh = UnitQuadMesh(1,1);
             end
-
-            c.baseMesh.coord = c.baseMesh.coord * 1e-1;
 
         end
 

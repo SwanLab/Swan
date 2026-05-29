@@ -20,9 +20,6 @@ classdef TractionBiliniarCoupled < handle
         jumpFinal
         jumpCrit
 
-
-
-
         trackLambda
         trackD
     end
@@ -64,8 +61,8 @@ classdef TractionBiliniarCoupled < handle
             d = min((obj.jumpFinal .* (obj.lambdaTrial - obj.jumpCrit)./ (obj.lambdaTrial .* (obj.jumpFinal - obj.jumpCrit))),1);
             d = max(d,0);
 
-            obj.trackD      = [obj.trackD;d.evaluate([-1,1])];
-            obj.trackLambda = [obj.trackLambda;obj.lambdaTrial.evaluate([-1,1])];
+            % obj.trackD      = [obj.trackD;d.evaluate([-1,1])];
+            % obj.trackLambda = [obj.trackLambda;obj.lambdaTrial.evaluate([-1,1])];
 
             % fprintf('d range: [%e , %e]\n', min(d.evaluate([-1,1]),[],'all'), max(d.evaluate([-1,1]),[],'all'));
         end
@@ -79,7 +76,7 @@ classdef TractionBiliniarCoupled < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.K                = 3.2e13;
+            obj.K                = 3.2e12;
             obj.tau0Normal       = cParams.tau0Normal;
             obj.tau0Shear        = cParams.tau0Shear;
             obj.firstCritEnergy  = cParams.firstCritEnergy;
@@ -91,9 +88,6 @@ classdef TractionBiliniarCoupled < handle
 
             obj.jumpFinalNormal = 2*obj.firstCritEnergy  / obj.tau0Normal;
             obj.jumpFinalShear  = 2*obj.secondCritEnergy / obj.tau0Shear;
-            fprintf('jump0Normal = %e\n',obj.jump0Normal)
-            fprintf('jumpFinalNormal = %e\n',obj.jumpFinalNormal)
-
 
             obj.trackD = zeros(1,2);
             obj.trackLambda = obj.trackD;
@@ -122,13 +116,18 @@ classdef TractionBiliniarCoupled < handle
             dtdn = obj.K * (-jumpT.*ddot_n);
             dndt = obj.K * (-jumpN.*ddot_t);
             dndn = obj.K * ((1-d) - jumpN.*ddot_n);
+
+            
+            
         end
 
         function ddot = computeDamageDerivative(obj,jump)
             isDerivativeZero = obj.checkIsDerivativeZero(jump);  % nDimJumpNorm (1) x ngauss x nelem
             obj.computeJumpNorm(jump);
-            alpha      = obj.jumpCrit .* obj.jumpFinal ./ (obj.jumpFinal-obj.jumpCrit) ./obj.lambdaTrial.^3;
+            alpha      = obj.jumpCrit .* obj.jumpFinal ./ ((obj.jumpFinal-obj.jumpCrit) .*obj.lambdaTrial.^3) ;
             ddot       = alpha .* jump .* isDerivativeZero;
+
+
         end
 
         function isDerivativeZero = checkIsDerivativeZero(obj,jump) 
@@ -150,7 +149,10 @@ classdef TractionBiliniarCoupled < handle
                 B = 0;      % Impose mode 1 check
             obj.jumpCrit  = sqrt(obj.jump0Normal.^2 + (obj.jump0Shear.^2 - obj.jump0Normal.^2).*B.^obj.eta);
             obj.jumpFinal = (obj.jump0Normal*obj.jumpFinalNormal + (obj.jump0Shear*obj.jumpFinalShear - obj.jump0Normal*obj.jumpFinalNormal).*B.^obj.eta)./obj.jumpCrit;
-            % 
+            
+
+
+
             % obj.jumpCrit  = 1.25e-7; 
             % obj.jumpFinal = 0.025e-3;
         end
