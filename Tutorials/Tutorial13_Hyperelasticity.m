@@ -112,6 +112,25 @@ classdef Tutorial13_Hyperelasticity < handle
             sR.coord     = EIFEoper.MESH.COOR;
             sR.connec    = EIFEoper.MESH.CN;
             sR.interType = 'QUADRATIC';
+
+            % CANVI 1: Correcció nodes cantonada (copiat de TutorialEIFEM.createReferenceMesh)
+            tol = 1e-8;
+            xmax = max(sR.coord(:,1)); xmin = min(sR.coord(:,1));
+            ymax = max(sR.coord(:,2)); ymin = min(sR.coord(:,2));
+            
+            mask = abs(sR.coord(:,1) - xmax) < tol & abs(sR.coord(:,2) - ymax) < tol;
+            sR.coord(mask, :) = sR.coord(mask, :) - [1e-9, 0];
+            
+            mask = abs(sR.coord(:,1) - xmax) < tol & abs(sR.coord(:,2) - ymin) < tol;
+            sR.coord(mask, :) = sR.coord(mask, :) - [1e-9, 0];
+            
+            mask = abs(sR.coord(:,1) - xmin) < tol & abs(sR.coord(:,2) - ymax) < tol;
+            sR.coord(mask, :) = sR.coord(mask, :) + [1e-9, 0];
+            
+            mask = abs(sR.coord(:,1) - xmin) < tol & abs(sR.coord(:,2) - ymin) < tol;
+            sR.coord(mask, :) = sR.coord(mask, :) + [1e-9, 0];
+            % FI CANVI 1
+
             obj.referenceMesh = Mesh.create(sR);
         
             obj.bS = obj.referenceMesh.createBoundaryMesh();

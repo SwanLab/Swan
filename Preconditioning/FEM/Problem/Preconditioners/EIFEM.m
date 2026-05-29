@@ -148,7 +148,8 @@ classdef EIFEM < handle
             if ~isempty(dirich)
                 R = -obj.LHS(:,dirich)*dirichV;
             else
-                R = zeros(sum(obj.dim.ndofs(:)),1);
+                % R = zeros(sum(obj.dim.ndofs(:)),1);   %CANVI 3%
+                R = zeros(size(obj.LHS,1),1);
             end
         end
 

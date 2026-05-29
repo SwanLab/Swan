@@ -376,6 +376,29 @@ classdef DisplacementUpdater < handle
             s.mesh        = obj.createCoarseMesh(d.referenceMesh,d.nSubdomains,d.tolSameNode);
             s.DirCond     = d.dir;
             s.nSubdomains = d.nSubdomains;
+            
+            % CANVI 4: Reconstruir DirCond per a la mesh coarse
+            minx = min(s.mesh.coord(:,1));
+            maxx = max(s.mesh.coord(:,1));
+            tolSameNode = d.tolSameNode;
+            
+            DirCoarse{1}.domain    = @(coor) abs(coor(:,1) - minx) < tolSameNode;
+            DirCoarse{1}.direction = [1,2];
+            DirCoarse{1}.value     = 0;
+            
+            DirCoarse{2}.domain    = @(coor) abs(coor(:,1) - maxx) < tolSameNode;
+            DirCoarse{2}.direction = [1,2];
+            DirCoarse{2}.value     = 0;
+            
+            s.DirCond = DirCoarse;
+
+            disp('Nodes fixats a la mesh coarse (després Canvi 4):')
+            for i = 1:numel(s.DirCond)
+                nodes = s.DirCond{i}.domain(s.mesh.coord);
+                fprintf('  Dir %d: %d nodes\n', i, sum(nodes));
+            end
+            % FI CANVI 4
+
             eifem         = EIFEM(s);
         
             % eifem.updateCoarseStiffness(alpha);
@@ -414,6 +437,22 @@ classdef DisplacementUpdater < handle
         
             s.coord  = coord;
             s.connec = connec;
+
+            % CANVI 2: Correcció nodes cantonada mesh coarse EIFEM
+            tol = 1e-8;
+            mask = abs(s.coord(:,1) - xmax) < tol & abs(s.coord(:,2) - ymax) < tol;
+            s.coord(mask, :) = s.coord(mask, :) - [1e-9, 0];
+            mask = abs(s.coord(:,1) - xmax) < tol & abs(s.coord(:,2) - ymin) < tol;
+            s.coord(mask, :) = s.coord(mask, :) - [1e-9, 0];
+            mask = abs(s.coord(:,1) - xmin) < tol & abs(s.coord(:,2) - ymax) < tol;
+            s.coord(mask, :) = s.coord(mask, :) + [1e-9, 0];
+            mask = abs(s.coord(:,1) - xmin) < tol & abs(s.coord(:,2) - ymin) < tol;
+            s.coord(mask, :) = s.coord(mask, :) + [1e-9, 0];
+
+            disp('Coords mesh coarse referència:')
+            disp(s.coord)
+            % FI CANVI 2
+                    
             cMesh    = Mesh.create(s);
         end
 
