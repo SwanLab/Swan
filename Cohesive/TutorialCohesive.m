@@ -15,7 +15,7 @@ classdef TutorialCohesive < handle
     methods (Access = public)
 
         function obj = TutorialCohesive()
-            problem      = 'DisplacementTractionY';
+            problem      = 'DoubleCantileverBeam';
             nameMesh     = 'M10by4';
             obj.init();
             obj.createMesh(problem,nameMesh);
@@ -63,7 +63,7 @@ classdef TutorialCohesive < handle
 
         function createBoundaryConditions(obj,problem)
             bc.type = problem;
-            bc.values = 0:0.001:0.5;
+            bc.values = 0 : 3e-8 : 0.03e-3;
             obj.boundaryConditions  = BoundaryConditionsCreator(obj.cohesiveMesh.fullMesh,bc);
         end
 
@@ -73,8 +73,8 @@ classdef TutorialCohesive < handle
             s.firstCritEnergy     = 260;
             s.secondCritEnergy    = 1002;
             s.eta                 = 2;
-            % s.lawType = 'TractionBiliniarCoupled';
-            s.lawType = 'TractionBiliniarUncoupled';
+            s.lawType = 'TractionBiliniarCoupled';
+            % s.lawType = 'TractionBiliniarUncoupled';
 
             obj.tractionSeparation = CohesiveTractionSeparation(s);
         end
@@ -93,8 +93,8 @@ classdef TutorialCohesive < handle
             k.type    = 'ISOTROPIC';
             k.ptype   = 'ELASTIC';
             k.ndim    = obj.cohesiveMesh.fullMesh.ndim;
-            k.young   = ConstantFunction.create(1e6,obj.cohesiveMesh.fullMesh);
-            k.poisson = ConstantFunction.create(0.3, obj.cohesiveMesh.fullMesh);
+            k.young   = ConstantFunction.create(32e3,obj.cohesiveMesh.fullMesh);
+            k.poisson = ConstantFunction.create(0.2, obj.cohesiveMesh.fullMesh);
             k.cohesiveMesh = obj.cohesiveMesh;
             m    = Material.create(k);
             m.setCohesiveMesh(obj.cohesiveMesh);
@@ -103,15 +103,16 @@ classdef TutorialCohesive < handle
         function c = makeBenchmarkMesh(obj, problem,nameMesh)
             switch problem
                 case 'DoubleCantileverBeam'
-                    c.xCohLineMax = 0.0072; c.yCohLine = 3.12 * 0.5 * 0.001;
-                    a.fileName = nameMesh;
-                    s = FemDataContainer(a);
-                    c.baseMesh = s.mesh;
+                    c.xCohLineMax = 72; c.yCohLine = 3.12 * 0.5;
+                    c.baseMesh = QuadMesh(103 ,3.52, 100, 20);
+                    % c.baseMesh = s.mesh;
                 case 'DisplacementTractionY' 
                     c.xCohLineMax = 10; c.yCohLine = 0; c.baseMesh = UnitQuadMesh(1,1);
                 case 'DisplacementMixed'
                     c.xCohLineMax = 10000; c.yCohLine = 0; c.baseMesh = UnitQuadMesh(1,1);
             end
+
+            c.baseMesh.coord = c.baseMesh.coord * 1e-1;
 
         end
 
