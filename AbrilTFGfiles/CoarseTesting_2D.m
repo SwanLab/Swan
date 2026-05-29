@@ -64,7 +64,7 @@ classdef CoarseTesting_2D< handle
             RHSf   = RHS;
             Usol   = LHS\RHS;
             Ufull  = obj.bcApplier.reducedToFullVectorDirichlet(Usol); 
-            t_direct=toc
+            t_direct=toc;
 
             % PRECONDITIONERS
             Milu        = obj.createILUpreconditioner(LHS);

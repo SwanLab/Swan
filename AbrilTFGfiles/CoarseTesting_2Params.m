@@ -309,7 +309,7 @@ classdef CoarseTesting_2Params< handle
             sUm.boundaryMesh   = obj.meshDomain.createBoundaryMesh;
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(-ls);
-            % aaa=uMesh.createInnerMesh();
+            aaa=uMesh.createInnerMesh();
             Mprint=UnfittedMesh(sUm);
             Mprint.compute(ls);
             obj.unfittedMesh= uMesh;
