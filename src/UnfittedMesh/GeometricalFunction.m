@@ -166,6 +166,30 @@ classdef GeometricalFunction < handle
                     s      = cParams;
                     s.type = 'Circle';
                     obj.computeInclusion(s);
+                case 'CircleVariableRadius'
+                    r1 = cParams.radius_x1;   
+                    r2 = cParams.radius_x2;   
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+                    fH = @(x) ((x1(x)-x0)./(r1/2)).^2+((x2(x)-y0)./(r2/2)).^2 - 1;
+                    obj.fHandle = fH;
+
+                case 'SquareVariableSize'
+                    m1 = cParams.m_x1;
+                    m2 = cParams.m_x2;
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+                    fH = @(x) max(abs(x1(x)-x0)./(m1/2),abs(x2(x)-y0)./(m2/2)) - 1;
+                    obj.fHandle = fH;
+
+                case 'SquareDeformedLS'
+                    m1 = cParams.m_x1;
+                    m2 = cParams.m_x2;
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+
+                    fH = @(x) max( abs(x1(x) - x0) ./ (m1/2),abs(x2(x) - y0) ./ (m2/2) ) - 1;
+                    obj.fHandle = fH;
 
                 case 'Ellipse'
                     sx = cParams.xSide;
@@ -326,6 +350,7 @@ classdef GeometricalFunction < handle
         
             val = max(abs(Xi),abs(Eta)) / l - 0.5;
         end
+        
 
         function val = smoothRectangleRotated(x, x0, y0, sx, sy, p, phi)
 

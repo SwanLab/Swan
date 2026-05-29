@@ -1,4 +1,4 @@
-classdef StartingWithDehomog < handle
+classdef StartingWithDehomogSquare < handle
 
     properties (Access = public)
 
@@ -14,7 +14,7 @@ classdef StartingWithDehomog < handle
 
     methods (Access = public)
 
-        function obj = StartingWithDehomog()
+        function obj = StartingWithDehomogSquare()
             obj.init()
             obj.mesh = UnitTriangleMesh(100,100);            
             obj.createLevelSet(0.2)
@@ -70,17 +70,15 @@ classdef StartingWithDehomog < handle
             x1_macro = xV(1,:,:);
             x2_macro = xV(2,:,:);
 
-            
-            r_x1 = 1 - 0.5 * x1_macro;  
-            r_x2 = 1 - 0.5 * x2_macro;  
+            % m(x) constante por agora — depois virá da optimização
+            m_x1 = 0.5 * ones(size(x1_macro));
+            m_x2 = 0.5 * ones(size(x2_macro));
 
-            
-
-            s.radius_x1   = r_x1;   
-            s.radius_x2   = r_x2;
+            s.m_x1        = m_x1;
+            s.m_x2        = m_x2;
             s.xCoorCenter = 0.5;
             s.yCoorCenter = 0.5;
-            s.type        = 'CircleVariableRadius';
+            s.type        = 'SquareVariableSize';
 
 
 
