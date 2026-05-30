@@ -3,11 +3,12 @@ classdef Jump < FeFunction
     properties (Access = private)
         jumpDim
         L
+        R
     end
 
     properties (Access = private)
         uFun
-        cohesiveMesh     
+        cohesiveMesh
     end
 
     properties (Access = public)
@@ -25,14 +26,14 @@ classdef Jump < FeFunction
         end
 
         function updateJumpValues(obj,uIn)          
-            R = obj.computeRotationMatrix(uIn); % 2x2xnElems
+            obj.updateRotationMatrix(uIn); % 2x2xnElems
             connJump  = obj.mesh.connec;
             nNodeJump = obj.mesh.nnodes;
             fValuesJ   = zeros(nNodeJump,obj.jumpDim); % nNodeJump x 2
             nnodesElemU = uIn.nDofsElem/uIn.ndimf;
             for n = 1:nnodesElemU 
                 uNode = obj.computeDispNodes(uIn,n);
-                jumpi = pagemtimes(obj.L(:,:,n*uIn.ndimf), pagemtimes(R, uNode));
+                jumpi = pagemtimes(obj.L(:,:,n*uIn.ndimf), pagemtimes(obj.R, uNode));
                 jumpi = squeeze(jumpi).';
                 nJump = min(n,nnodesElemU-n+1);
                 fValuesJ(connJump(:,nJump),:) = fValuesJ(connJump(:,nJump),:) + jumpi;
@@ -45,7 +46,6 @@ classdef Jump < FeFunction
         end
 
         function Bc = computeShapeFunctions(obj,xV)
-            R  =  obj.computeRotationMatrix(obj.uFun); % ndimf x ndimf x nElem
             N  =  obj.fun.computeShapeFunctions(xV);  % N1(-1) N1(1); N2(-1), N2(1)
             ngauss = size(xV,2);
             nelem = obj.fun.mesh.nelem;
@@ -56,7 +56,7 @@ classdef Jump < FeFunction
                 dimf = mod(i-1, obj.fun.ndimf)+1;
                 nodeU    = ceil(i/obj.uFun.ndimf);
                 nodeJump = min(nodeU,nnodesElemU-nodeU+1);
-                Ri  = R(:,dimf,:);
+                Ri  = obj.R(:,dimf,:);
                 Li  = obj.L(:,:,i);
                 Ni  = N(nodeJump,:);
                 for j = 1:ngauss % Bci = ndimf x ngauss x nelem
@@ -89,12 +89,12 @@ classdef Jump < FeFunction
         end
 
         function computeGlobalSeparationMatrix(obj)
-            obj.L =cat(3, -repmat(eye(2),1,1,4), repmat(eye(2),1,1,4));
+            obj.L = cat(3, -repmat(eye(obj.jumpDim),1,1,4), repmat(eye(obj.jumpDim),1,1,4));
         end
         
-        function Rall = computeRotationMatrix(obj,uIn) 
+        function updateRotationMatrix(obj,uIn) 
             nCohElem     = length(obj.cohesiveMesh.listCohesiveElems);
-            Rall  = zeros(2,2,nCohElem);
+            Rall  = zeros(obj.uFun.ndimf,obj.uFun.ndimf,nCohElem);
             for j=1:nCohElem
                 e = obj.cohesiveMesh.listCohesiveElems(j);
                 connecMesh = obj.cohesiveMesh.fullMesh.connec(e,:);
@@ -103,6 +103,7 @@ classdef Jump < FeFunction
                     deformedCoords = coordsMesh + disp;
                 Re = obj.computeElementalRotationMatrix(deformedCoords);
                 Rall(:,:,j) = Re;
+                obj.R = Rall;
             end
         end
 
