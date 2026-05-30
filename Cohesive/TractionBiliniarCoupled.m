@@ -117,8 +117,15 @@ classdef TractionBiliniarCoupled < handle
             dndt = obj.K * (-jumpN.*ddot_t);
             dndn = obj.K * ((1-d) - jumpN.*ddot_n);
 
-            
-            
+
+            prova = kronProd(jump,jump);
+
+            % gradT = (1-d)K*I - alpha * kronProd(jump,jump,[1 2 3 4])
+            % (segurament amb squeeze al kron)
+
+            % kronProd(sigBar,sigBar,[1 2 3 4]); hauria de sortir
+            % 2x1x2xngaussxnelem, fer squeeze despres pq doni bé
+            % comprovar amb el que ja hi ha
         end
 
         function ddot = computeDamageDerivative(obj,jump)
@@ -139,7 +146,7 @@ classdef TractionBiliniarCoupled < handle
 
         function B = computeMixedModeRatio(obj,jump,isJump) % jumpNorm = 1xngaussxnelem | jumpshear = 1xngaussxnelem | B = 1xngaussxnelem 
             unoZero   = ConstantFunction.create([1;0],jump.mesh);
-            jumpShear = DP(jump.',unoZero); 
+            jumpShear = DP(jump.',unoZero);    % COMPROVAR
             B         = isJump .* (jumpShear./obj.lambdaTrial).^2;
         end
 
@@ -150,9 +157,6 @@ classdef TractionBiliniarCoupled < handle
             obj.jumpCrit  = sqrt(obj.jump0Normal.^2 + (obj.jump0Shear.^2 - obj.jump0Normal.^2).*B.^obj.eta);
             obj.jumpFinal = (obj.jump0Normal*obj.jumpFinalNormal + (obj.jump0Shear*obj.jumpFinalShear - obj.jump0Normal*obj.jumpFinalNormal).*B.^obj.eta)./obj.jumpCrit;
             
-
-
-
             % obj.jumpCrit  = 1.25e-7; 
             % obj.jumpFinal = 0.025e-3;
         end
