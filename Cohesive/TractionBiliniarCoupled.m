@@ -96,45 +96,26 @@ classdef TractionBiliniarCoupled < handle
 
         function gradT = computeTangentGradientMatrix(obj, jump, xV) % 2 x 2 x ngauss x nelem
             obj.computeJumpNorm(jump);
-            [dtdt,dtdn,dndt,dndn] = obj.computeTractionDerivatives(jump);
-            dtdt=dtdt.evaluate(xV); dtdn=dtdn.evaluate(xV);
-            dndt=dndt.evaluate(xV); dndn=dndn.evaluate(xV);
-            ngauss = size(dtdt,2); nelem  = size(dtdt,3);
-            gradT = [reshape(dtdt,1,1,ngauss,nelem),reshape(dtdn,1,1,ngauss,nelem);
-                    reshape(dndt,1,1,ngauss,nelem),reshape(dndn,1,1,ngauss,nelem)];
-        end
-
-        function [dtdt,dtdn,dndt,dndn] = computeTractionDerivatives(obj, jump)
             obj.computeJumpLimits(jump);
+            alpha = obj.computeDamageDerivative(jump,xV);   % 2 x ngauss x nelem
             d    = obj.computeDamage(jump);             % 1 x ngauss x nelem
-            ddot = obj.computeDamageDerivative(jump);   % 2 x ngauss x nelem
-            unoZero = ConstantFunction.create([1;0],jump.mesh);
-            zeroUno = ConstantFunction.create([0;1],jump.mesh);
-            ddot_t = DP(ddot,unoZero); ddot_n = DP(ddot,zeroUno);
-            jumpT = DP(jump,unoZero); jumpN = DP(jump,zeroUno);
-            dtdt = obj.K * ((1-d) - jumpT.*ddot_t); % 1 x ngauss x nelem
-            dtdn = obj.K * (-jumpT.*ddot_n);
-            dndt = obj.K * (-jumpN.*ddot_t);
-            dndn = obj.K * ((1-d) - jumpN.*ddot_n);
-
-
-            prova = kronProd(jump,jump);
-
+            ngauss = size(d.evaluate([-1,1]),2);
+            I = repmat(eye(2),1,1,ngauss,jump.mesh.nelem); % 2x2xngaussxnelem
+            J = jump.evaluate(xV); % 2 x ngauss x nelem
+            JJ = reshape(J,2,1,ngauss,jump.mesh.nelem).*reshape(J,1,2,ngauss,jump.mesh.nelem);
+            gradT = (1-d) .* obj.K .* I +  alpha .* JJ;
+            gradT = gradT.evaluate(xV);
             % gradT = (1-d)K*I - alpha * kronProd(jump,jump,[1 2 3 4])
             % (segurament amb squeeze al kron)
-
             % kronProd(sigBar,sigBar,[1 2 3 4]); hauria de sortir
             % 2x1x2xngaussxnelem, fer squeeze despres pq doni bé
-            % comprovar amb el que ja hi ha
+            % comprovar amb el que ja hi h
         end
 
-        function ddot = computeDamageDerivative(obj,jump)
+        function alpha = computeDamageDerivative(obj,jump,xV)
             isDerivativeZero = obj.checkIsDerivativeZero(jump);  % nDimJumpNorm (1) x ngauss x nelem
-            obj.computeJumpNorm(jump);
             alpha      = obj.jumpCrit .* obj.jumpFinal ./ ((obj.jumpFinal-obj.jumpCrit) .*obj.lambdaTrial.^3) ;
-            ddot       = alpha .* jump .* isDerivativeZero;
-
-
+            % ddot       = alpha .* jump .* isDerivativeZero;
         end
 
         function isDerivativeZero = checkIsDerivativeZero(obj,jump) 
