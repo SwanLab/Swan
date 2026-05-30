@@ -76,7 +76,7 @@ classdef TractionBiliniarCoupled < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.K                = 3.2e12;
+            obj.K                = cParams.Kcoh;
             obj.tau0Normal       = cParams.tau0Normal;
             obj.tau0Shear        = cParams.tau0Shear;
             obj.firstCritEnergy  = cParams.firstCritEnergy;

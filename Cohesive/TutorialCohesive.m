@@ -2,6 +2,7 @@ classdef TutorialCohesive < handle
 
     properties (Access = public)
         output  
+        inputData
     end
 
     properties (Access = private)
@@ -15,11 +16,9 @@ classdef TutorialCohesive < handle
     methods (Access = public)
 
         function obj = TutorialCohesive()
-            problem      = 'DoubleCantileverBeam';
-            nameMesh     = 'M10by4';
             obj.init();
-            obj.createMesh(problem,nameMesh);
-            obj.defineCase(problem);
+            obj.createMesh();
+            obj.defineCase();
             obj.createCohesiveFunctional()
             obj.solveCohesiveProblem()
         end
@@ -47,32 +46,56 @@ classdef TutorialCohesive < handle
     methods (Access = private)
 
         function init(obj)
-            close all
+           
+            obj.inputData.young     = 32e3;
+            obj.inputData.Kcoh      = 1e6;
+            obj.inputData.poisson   = 0.2;
+    
+            obj.inputData.bcValues = 0:0.1:10;
+    
+            obj.inputData.lawType = 'TractionBiliniarCoupled';
+            
+            % TURON
+            obj.inputData.tau0Normal       = 15e6;
+            obj.inputData.tau0Shear        = 30e6;
+            obj.inputData.firstCritEnergy  = 260;
+            obj.inputData.secondCritEnergy = 1002;
+            obj.inputData.eta              = 2;
+        
+            obj.inputData.problemType = 'DisplacementTractionY';
+            obj.inputData.l = 1;
+            obj.inputData.h = 1;
+            obj.inputData.yCohLine = 1;
+            obj.inputData.xCohLineMax = 72;
+            obj.inputData.nx = 1;
+            obj.inputData.ny = 1;
         end
     
-        function createMesh(obj,problem,nameMesh)
-            s = obj.makeBenchmarkMesh(problem,nameMesh);
+        function createMesh(obj)
+            s.xCohLineMax = obj.inputData.xCohLineMax; s.yCohLine = obj.inputData.yCohLine;
+            s.baseMesh = QuadMesh(obj.inputData.l ,obj.inputData.h, obj.inputData.nx, obj.inputData.ny);
             obj.cohesiveMesh = NewCohesiveMesh(s);
         end
 
-        function defineCase(obj,problem)
+        function defineCase(obj)
             obj.solverType = 'Newton';
-            obj.createBoundaryConditions(problem);
+            obj.createBoundaryConditions();
             obj.createTractionSeparation();
         end
 
         function createBoundaryConditions(obj,problem)
-            bc.type = problem;
-            bc.values = 0 : 0.1 : 10;
+            bc.type = obj.inputData.problemType;
+            bc.values = obj.inputData.bcValues;
             obj.boundaryConditions  = BoundaryConditionsCreator(obj.cohesiveMesh.fullMesh,bc);
         end
 
         function createTractionSeparation(obj)
-            s.tau0Normal          = 15e6;
-            s.tau0Shear           = 30e6;
-            s.firstCritEnergy     = 260;
-            s.secondCritEnergy    = 1002;
-            s.eta                 = 2;
+            s.tau0Normal          = obj.inputData.tau0Normal;
+            s.tau0Shear           = obj.inputData.tau0Shear;
+            s.firstCritEnergy     = obj.inputData.firstCritEnergy;
+            s.secondCritEnergy    = obj.inputData.secondCritEnergy;
+            s.eta                 = obj.inputData.eta;
+            s.Kcoh                = obj.inputData.Kcoh;
             s.lawType = 'TractionBiliniarCoupled';
             % s.lawType = 'TractionBiliniarUncoupled';
 
@@ -93,25 +116,11 @@ classdef TutorialCohesive < handle
             k.type    = 'ISOTROPIC';
             k.ptype   = 'ELASTIC';
             k.ndim    = obj.cohesiveMesh.fullMesh.ndim;
-            k.young   = ConstantFunction.create(32e3,obj.cohesiveMesh.fullMesh);
-            k.poisson = ConstantFunction.create(0.2, obj.cohesiveMesh.fullMesh);
+            k.young   = ConstantFunction.create(obj.inputData.young,obj.cohesiveMesh.fullMesh);
+            k.poisson = ConstantFunction.create(obj.inputData.poisson, obj.cohesiveMesh.fullMesh);
             k.cohesiveMesh = obj.cohesiveMesh;
             m    = Material.create(k);
             m.setCohesiveMesh(obj.cohesiveMesh);
-        end
-
-        function c = makeBenchmarkMesh(obj, problem,nameMesh)
-            switch problem
-                case 'DoubleCantileverBeam'
-                    c.xCohLineMax = 72; c.yCohLine = 3.12 * 0.5;
-                    c.baseMesh = QuadMesh(103 ,3.12, 100, 20);
-                    % c.baseMesh = s.mesh;
-                case 'DisplacementTractionY' 
-                    c.xCohLineMax = 10; c.yCohLine = 0; c.baseMesh = UnitQuadMesh(1,1);
-                case 'DisplacementMixed'
-                    c.xCohLineMax = 10000; c.yCohLine = 0; c.baseMesh = UnitQuadMesh(1,1);
-            end
-
         end
 
     end
