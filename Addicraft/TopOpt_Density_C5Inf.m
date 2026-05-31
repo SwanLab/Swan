@@ -1,4 +1,4 @@
-classdef C5_TO < handle
+classdef TopOpt_Density_C5Inf < handle
 
     properties (Access = private)
         mesh
@@ -19,7 +19,8 @@ classdef C5_TO < handle
 
     methods (Access = public)
 
-        function obj = C5_TO(filename)
+        function obj = TopOpt_Density_C5Inf()
+            filename = 'C5_Inf';
             obj.init()
             obj.createMesh(filename);
             obj.createRBE3Meshes(filename);
@@ -35,8 +36,8 @@ classdef C5_TO < handle
             obj.createPrimalUpdater();
             obj.createOptimizer();
 
-            saveas(gcf,['Addicraft/Monitoring_',filename,'.fig']);
-            obj.designVariable.fun.print(['Addicraft/',filename,'_fValues']);
+            saveas(gcf,['Addicraft/Results/Vol0.5/MonitoringDensity_',filename,'.fig']);
+            obj.designVariable.fun.print(['Addicraft/Results/Vol0.5/Density_',filename,'_fValues']);
 
             fem = obj.physicalProblem;
             sigma = fem.stressFun;
@@ -176,10 +177,10 @@ classdef C5_TO < handle
             sF.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             sF.mesh = obj.mesh;
             sF.filterType = 'PDE';
-            filter = Filter.create(sF);
-            filter.updateEpsilon(2*obj.mesh.computeMeanCellSize());
-            vmSig = filter.compute(vonMises,3);
-            vmSig.print('VonMisesInitial')
+            filt = Filter.create(sF);
+            filt.updateEpsilon(2*obj.mesh.computeMeanCellSize());
+            vmSig = filt.compute(vonMises,3);
+            vmSig.print('VonMisesInitial');
         end
 
         function c = createComplianceFromConstiutive(obj)
@@ -212,7 +213,7 @@ classdef C5_TO < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.95;
+            s.volumeTarget = 0.5;
             s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
@@ -252,7 +253,7 @@ classdef C5_TO < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 5000;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
@@ -286,14 +287,8 @@ classdef C5_TO < handle
             femReader = FemInputReaderGiD();
             s         = femReader.read(obj.filename);
             sPL       = obj.computeCondition(s.pointload);
-%             sDir      = obj.computeCondition(s.dirichlet);
 
             dirichletFun = [];
-%             for i = 1:numel(sDir)
-%                 dir = DirichletCondition(obj.mesh, sDir{i});
-%                 dirichletFun = [dirichletFun, dir];
-%             end
-%             s.dirichletFun = dirichletFun;
 
             pointloadFun = [];
             for i = 1:numel(sPL)
@@ -303,6 +298,7 @@ classdef C5_TO < handle
             s.pointloadFun = pointloadFun;
 
             s.periodicFun  = [];
+            
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
         end
