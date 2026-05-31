@@ -36,8 +36,10 @@ classdef TopOpt_Density_C5Inf < handle
             obj.createPrimalUpdater();
             obj.createOptimizer();
 
+            d = obj.project();
+
             saveas(gcf,['Addicraft/Results/Vol0.5/MonitoringDensity_',filename,'.fig']);
-            obj.designVariable.fun.print(['Addicraft/Results/Vol0.5/Density_',filename,'_fValues']);
+            d.print(['Addicraft/Results/Vol0.5/Density_',filename,'_fValues']);
 
             fem = obj.physicalProblem;
             sigma = fem.stressFun;
@@ -51,6 +53,16 @@ classdef TopOpt_Density_C5Inf < handle
             filter.updateEpsilon(2*obj.mesh.computeMeanCellSize());
             vmSig = filter.compute(vonMises,3);
             vmSig.print('VonMisesFinal')
+        end
+
+        function d = project(obj)
+            s.mesh = obj.mesh;
+            s.trial = obj.designVariable.fun;
+            s.filterStep = 'PDE';
+            s.eta = 0.3;
+            s.beta = 10;
+            filt = FilterAndProject(s);
+            d = filt.compute(obj.designVariable.fun,3);
         end
 
     end
@@ -263,9 +275,9 @@ classdef TopOpt_Density_C5Inf < handle
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
             s.gif            = false;
-            s.gifName        = 'Tutorial05_3';
+            s.gifName        = [];
             s.printing       = false;
-            s.printName      = 'Tutorial05_3';
+            s.printName      = [];
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
