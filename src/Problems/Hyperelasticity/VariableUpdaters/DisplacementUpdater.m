@@ -438,20 +438,9 @@ classdef DisplacementUpdater < handle
             s.coord  = coord;
             s.connec = connec;
 
-            % CANVI 2: Correcció nodes cantonada mesh coarse EIFEM
-            tol = 1e-8;
-            mask = abs(s.coord(:,1) - xmax) < tol & abs(s.coord(:,2) - ymax) < tol;
-            s.coord(mask, :) = s.coord(mask, :) - [1e-9, 0];
-            mask = abs(s.coord(:,1) - xmax) < tol & abs(s.coord(:,2) - ymin) < tol;
-            s.coord(mask, :) = s.coord(mask, :) - [1e-9, 0];
-            mask = abs(s.coord(:,1) - xmin) < tol & abs(s.coord(:,2) - ymax) < tol;
-            s.coord(mask, :) = s.coord(mask, :) + [1e-9, 0];
-            mask = abs(s.coord(:,1) - xmin) < tol & abs(s.coord(:,2) - ymin) < tol;
-            s.coord(mask, :) = s.coord(mask, :) + [1e-9, 0];
-
-            disp('Coords mesh coarse referència:')
-            disp(s.coord)
-            % FI CANVI 2
+            %disp('Coords mesh coarse referència:')
+            %disp(s.coord)
+           
                     
             cMesh    = Mesh.create(s);
         end
