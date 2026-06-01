@@ -1,6 +1,6 @@
 Computing initial solution...
-  Initial evaluation done in 0.93 s
-  Initial maxval: 0.000725143
+  Initial evaluation done in 0.84 s
+  Initial maxval: 0.0742546
 
 Starting optimization (DYNAMIC)...
 
@@ -10,7 +10,7 @@ Optimization completed because the objective function is non-decreasing in
 feasible directions, to within the value of the optimality tolerance,
 and constraints are satisfied to within the value of the constraint tolerance.
 
-  Optimization finished in 1497.57 s
+  Optimization finished in 1369.90 s
 
 
 ==================================================
@@ -35,7 +35,7 @@ Final Mass (kg)           : 3.597444e+05  (Normalized: 6.058879e+00)
 ==================================================
 
 --------------------------------------------------
-  Optim. time       :    1497.57 s
-  TOTAL run time    : 00 h 25 min 00.07 s
+  Optim. time       :    1369.90 s
+  TOTAL run time    : 00 h 22 min 52.25 s
 ==================================================
 

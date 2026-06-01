@@ -1,6 +1,6 @@
 Computing initial solution...
-  Initial evaluation done in 1.10 s
-  Initial maxval: 0.000725143
+  Initial evaluation done in 0.93 s
+  Initial maxval: 0.0742546
 
 Starting optimization (STATIC)...
 
@@ -10,32 +10,32 @@ Optimization completed because the objective function is non-decreasing in
 feasible directions, to within the value of the optimality tolerance,
 and constraints are satisfied to within the value of the constraint tolerance.
 
-  Optimization finished in 1855.84 s
+  Optimization finished in 992.24 s
 
 
 ==================================================
                OPTIMIZATION RESULTS
 ==================================================
-Layer  1 (T300_914_C):   0.106759 m
-Layer  2 (T300_914_C):   0.105990 m
+Layer  1 (T300_914_C):   0.106620 m
+Layer  2 (T300_914_C):   0.106128 m
 Layer  3 (T300_914_C):   0.010796 m
-Layer  4 (T300_914_C):   0.010773 m
+Layer  4 (T300_914_C):   0.010772 m
 Layer  5 (T300_914_C):   0.010769 m
 Layer  6 (T300_914_C):   0.010769 m
-Layer  7 (T300_914_C):   0.010773 m
+Layer  7 (T300_914_C):   0.010772 m
 Layer  8 (T300_914_C):   0.010796 m
-Layer  9 (T300_914_C):   0.105990 m
-Layer 10 (T300_914_C):   0.106759 m
+Layer  9 (T300_914_C):   0.106128 m
+Layer 10 (T300_914_C):   0.106620 m
 --------------------------------------------------
 Total Thickness :   0.490173 m  (Limit: 0.5000 m)
 Initial deltaTheta       :   0.000000 deg
-Optimal deltaTheta       : -10.040257 deg
-Final Displacement        : 5.437919e-04
-Final Mass (kg)           : 5.820775e+04  (Normalized: 9.803451e-01)
+Optimal deltaTheta       : -10.040208 deg
+Final Displacement        : 5.568430e-02
+Final Mass (kg)           : 5.820775e+04  (Normalized: 9.803450e-01)
 ==================================================
 
 --------------------------------------------------
-  Optim. time       :    1855.84 s
-  TOTAL run time    : 00 h 30 min 59.28 s
+  Optim. time       :     992.24 s
+  TOTAL run time    : 00 h 16 min 34.43 s
 ==================================================
 

@@ -1,38 +1,37 @@
 Computing initial solution...
-  Initial evaluation done in 2.61 s
-  Initial maxval: 0.000725143
+  Initial evaluation done in 1.57 s
+  Initial maxval: 0.0742546
 
 Starting optimization...
 
-Local minimum found that satisfies the constraints.
+Solver stopped prematurely.
 
-Optimization completed because the objective function is non-decreasing in 
-feasible directions, to within the value of the optimality tolerance,
-and constraints are satisfied to within the value of the constraint tolerance.
+fmincon stopped because it exceeded the iteration limit,
+options.MaxIterations = 3.000000e+01.
 
-  Optimization finished in 1708.74 s
+  Optimization finished in 2072.35 s
 
 
 ==================================================
                OPTIMIZATION RESULTS
 ==================================================
-Layer  1 (T300_914_C):   0.061702 m
-Layer  2 (T300_914_C):   0.061786 m
-Layer  3 (T300_914_C):   0.010020 m
-Layer  4 (T300_914_C):   0.124515 m
-Layer  5 (T300_914_C):   0.015732 m
-Layer  6 (T300_914_C):   0.015760 m
-Layer  7 (T300_914_C):   0.107783 m
-Layer  8 (T300_914_C):   0.010018 m
-Layer  9 (T300_914_C):   0.062239 m
-Layer 10 (T300_914_C):   0.062230 m
+Layer  1 (T300_914_C):   0.061313 m
+Layer  2 (T300_914_C):   0.062222 m
+Layer  3 (T300_914_C):   0.010004 m
+Layer  4 (T300_914_C):   0.125888 m
+Layer  5 (T300_914_C):   0.014620 m
+Layer  6 (T300_914_C):   0.014670 m
+Layer  7 (T300_914_C):   0.107778 m
+Layer  8 (T300_914_C):   0.010003 m
+Layer  9 (T300_914_C):   0.063373 m
+Layer 10 (T300_914_C):   0.061905 m
 --------------------------------------------------
-Total Thickness :   0.531784 m  (Limit: 0.5000 m)
-Final Displacement (w)  : 5.438475e-04
-Final Mass              : 6.314911e+04  (Normalized: 1.063568e+00)
+Total Thickness :   0.531775 m  (Limit: 0.5000 m)
+Final Displacement (w)  : 5.569133e-02
+Final Mass              : 6.314806e+04  (Normalized: 1.063551e+00)
 ==================================================
 
-  Optim. time       :    1708.74 s
-  TOTAL run time    : 00 h 28 min 42.61 s
+  Optim. time       :    2072.35 s
+  TOTAL run time    : 00 h 34 min 42.92 s
 ==================================================
 

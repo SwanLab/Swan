@@ -1,6 +1,6 @@
 Computing initial solution...
-  Initial evaluation done in 1.43 s
-  Initial maxval: 0.000725143
+  Initial evaluation done in 0.95 s
+  Initial maxval: 0.0742546
 
 Starting optimization...
 
@@ -10,29 +10,29 @@ fmincon stopped because the size of the current step is less than
 the value of the step size tolerance and constraints are 
 satisfied to within the value of the constraint tolerance.
 
-  Optimization finished in 1479.31 s
+  Optimization finished in 1110.23 s
 
 
 ==================================================
                OPTIMIZATION RESULTS
 ==================================================
-Layer  1 (T300_914_C):   0.062477 m
-Layer  2 (T300_914_C):   0.062477 m
-Layer  3 (T300_914_C):   0.011426 m
-Layer  4 (T300_914_C):   0.098787 m
-Layer  5 (T300_914_C):   0.031298 m
-Layer  6 (T300_914_C):   0.031298 m
-Layer  7 (T300_914_C):   0.098787 m
-Layer  8 (T300_914_C):   0.011426 m
-Layer  9 (T300_914_C):   0.062477 m
-Layer 10 (T300_914_C):   0.062477 m
+Layer  1 (T300_914_C):   0.059293 m
+Layer  2 (T300_914_C):   0.064737 m
+Layer  3 (T300_914_C):   0.010003 m
+Layer  4 (T300_914_C):   0.118428 m
+Layer  5 (T300_914_C):   0.013440 m
+Layer  6 (T300_914_C):   0.013440 m
+Layer  7 (T300_914_C):   0.118428 m
+Layer  8 (T300_914_C):   0.010003 m
+Layer  9 (T300_914_C):   0.064737 m
+Layer 10 (T300_914_C):   0.059293 m
 --------------------------------------------------
-Total Thickness :   0.532932 m  (Limit: 0.5000 m)
-Final Displacement (w)  : 5.423503e-04
-Final Mass              : 6.328538e+04  (Normalized: 1.065863e+00)
+Total Thickness :   0.531802 m  (Limit: 0.5000 m)
+Final Displacement (w)  : 5.569067e-02
+Final Mass              : 6.315129e+04  (Normalized: 1.063605e+00)
 ==================================================
 
-  Optim. time       :    1479.31 s
-  TOTAL run time    : 00 h 24 min 43.33 s
+  Optim. time       :    1110.23 s
+  TOTAL run time    : 00 h 18 min 32.81 s
 ==================================================
 

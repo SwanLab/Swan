@@ -1,5 +1,5 @@
 Computing initial solution...
-  Initial evaluation done in 0.03 s
+  Initial evaluation done in 0.01 s
 
 Starting optimization...
 
@@ -9,7 +9,7 @@ Optimization completed because the objective function is non-decreasing in
 feasible directions, to within the value of the optimality tolerance,
 and constraints are satisfied to within the value of the constraint tolerance.
 
-  Optimization finished in 2624.00 s
+  Optimization finished in 1937.20 s
 
 
 ==================================================
@@ -31,7 +31,7 @@ Final f1 (Hz)             : 1.000000e+01
 Final Mass (kg)           : 2.123282e+05  (Normalized: 3.576069e+00)
 ==================================================
 
-  Optim. time       :    2624.00 s
-  TOTAL run time    : 00 h 43 min 46.99 s
+  Optim. time       :    1937.20 s
+  TOTAL run time    : 00 h 32 min 18.98 s
 ==================================================
 

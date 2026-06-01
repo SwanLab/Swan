@@ -39,7 +39,7 @@ classdef TutorialShells < handle
             obj.createSolutionField()
             obj.solverType = 'REDUCED';
 
-            problemType    = 'FREE_VIBRATIONS';
+            problemType    = 'FORCED_VIBRATIONS';
             % Options: 'STATIC' / 'FREE_VIBRATIONS' / 'FORCED_VIBRATIONS'
 
             % 2. Boundary Conditions and Assembly
@@ -277,7 +277,7 @@ classdef TutorialShells < handle
             %% 4. Post-processing, Plotting and Printing
             h = obj.zLayer;
             plotMatlab = 1 && ~batchStartupOptionUsed;
-            printParaview = true;
+            printParaview = 0;
             kappa = 1;
 
             % Mid plane heights
@@ -551,8 +551,8 @@ classdef TutorialShells < handle
 
             switch materialCase
                 case 'Composite'
-                    materialName = {'EpT'; 'EpT'; 'EpT'; 'EpT'; 'EpT';
-                        'EpT'; 'EpT'; 'EpT'; 'EpT'; 'EpT'};
+                    materialName = {'T300_914_C'; 'T300_914_C'; 'T300_914_C'; 'T300_914_C'; 'T300_914_C';
+                        'T300_914_C'; 'T300_914_C'; 'T300_914_C'; 'T300_914_C'; 'T300_914_C'};
 
                     max_thickness = 0.5;
                     Rotation = [0; 0; 45; -45; 90; 90; -45; 45; 0; 0];  % degrees
@@ -792,7 +792,7 @@ classdef TutorialShells < handle
 
 
             % Boundary conditions Case
-            obj.bcCase = 1;     % CHANGE THIS VALUE TO SELECT CASE: 1, 2, or 3
+            obj.bcCase = 4;     % CHANGE THIS VALUE TO SELECT CASE: 1, 2, 3, or 4
 
             switch obj.bcCase
                 case 1
@@ -863,6 +863,21 @@ classdef TutorialShells < handle
                     else
                         s.pointloadFun = [];
                     end
+                case 4
+                    % CASE 4: Wingshape static
+                    % Lado izquierdo empotrado, carga q (10240)
+                    sDir{1}.domain    = @(coor) isLeft(coor);
+                    sDir{1}.direction = direct;
+                    sDir{1}.value     = 0;
+                    sDir{1}.ndim      = length(direct);
+
+                    dirichletFun = [];
+                    for i = 1:numel(sDir)
+                        dir = DirichletCondition(obj.mesh, sDir{i});
+                        dirichletFun = [dirichletFun, dir];
+                    end
+                    s.dirichletFun = dirichletFun;
+                    s.pointloadFun = [];
             end
 
             s.periodicFun  = [];
@@ -883,6 +898,8 @@ classdef TutorialShells < handle
                     q = ConstantFunction.create(50000,obj.mesh);
                 case 3
                     q = ConstantFunction.create(0,obj.mesh);
+                case 4
+                    q = ConstantFunction.create(10240,obj.mesh);
             end
 
             fu = @(v) DP(p,v);

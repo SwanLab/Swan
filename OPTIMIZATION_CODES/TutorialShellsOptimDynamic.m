@@ -474,7 +474,7 @@ classdef TutorialShellsOptimDynamic < handle
         function RHS = createRHS(obj)
             p = ConstantFunction.create([0 0],obj.mesh);
             m = ConstantFunction.create([0 0],obj.mesh);
-            q = ConstantFunction.create(100,obj.mesh);
+            q = ConstantFunction.create(10240,obj.mesh);
 
             fu = @(v) DP(p,v);
             RHSu = IntegrateRHS(fu,obj.uFun,obj.mesh,'Domain',2);

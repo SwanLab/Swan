@@ -1,6 +1,6 @@
 Computing initial solution...
-  Initial evaluation done in 1.14 s
-  Initial maxval: 0.000725143
+  Initial evaluation done in 0.85 s
+  Initial maxval: 0.0742546
 
 Starting optimization (STATIC)...
 
@@ -10,32 +10,32 @@ Optimization completed because the objective function is non-decreasing in
 feasible directions, to within the value of the optimality tolerance,
 and constraints are satisfied to within the value of the constraint tolerance.
 
-  Optimization finished in 2641.23 s
+  Optimization finished in 2354.12 s
 
 
 ==================================================
                OPTIMIZATION RESULTS
 ==================================================
-Layer  1 (T300_914_C): h=0.197684 m  |  dTheta=-10.0106 deg  |  FinalTheta= 14.9894 deg
-Layer  2 (T300_914_C): h=0.011960 m  |  dTheta=-15.6189 deg  |  FinalTheta=  9.3811 deg
-Layer  3 (T300_914_C): h=0.014723 m  |  dTheta=-52.1535 deg  |  FinalTheta= 17.8465 deg
+Layer  1 (T300_914_C): h=0.197734 m  |  dTheta=-10.0102 deg  |  FinalTheta= 14.9898 deg
+Layer  2 (T300_914_C): h=0.011976 m  |  dTheta=-15.6215 deg  |  FinalTheta=  9.3785 deg
+Layer  3 (T300_914_C): h=0.014657 m  |  dTheta=-52.1524 deg  |  FinalTheta= 17.8476 deg
 Layer  4 (T300_914_C): h=0.010298 m  |  dTheta=-30.1690 deg  |  FinalTheta=-50.1690 deg
-Layer  5 (T300_914_C): h=0.010325 m  |  dTheta=-29.8338 deg  |  FinalTheta= 85.1662 deg
-Layer  6 (T300_914_C): h=0.010325 m  |  dTheta=-29.8338 deg  |  FinalTheta= 85.1662 deg
+Layer  5 (T300_914_C): h=0.010325 m  |  dTheta=-29.8337 deg  |  FinalTheta= 85.1663 deg
+Layer  6 (T300_914_C): h=0.010325 m  |  dTheta=-29.8337 deg  |  FinalTheta= 85.1663 deg
 Layer  7 (T300_914_C): h=0.010298 m  |  dTheta=-30.1690 deg  |  FinalTheta=-50.1690 deg
-Layer  8 (T300_914_C): h=0.014723 m  |  dTheta=-52.1535 deg  |  FinalTheta= 17.8465 deg
-Layer  9 (T300_914_C): h=0.011960 m  |  dTheta=-15.6189 deg  |  FinalTheta=  9.3811 deg
-Layer 10 (T300_914_C): h=0.197684 m  |  dTheta=-10.0106 deg  |  FinalTheta= 14.9894 deg
+Layer  8 (T300_914_C): h=0.014657 m  |  dTheta=-52.1524 deg  |  FinalTheta= 17.8476 deg
+Layer  9 (T300_914_C): h=0.011976 m  |  dTheta=-15.6215 deg  |  FinalTheta=  9.3785 deg
+Layer 10 (T300_914_C): h=0.197734 m  |  dTheta=-10.0102 deg  |  FinalTheta= 14.9898 deg
 --------------------------------------------------
 Total Thickness    :   0.489979 m  (Limit: 0.5000 m)
 Initial deltaTheta : -30.000000 deg
-Outer deltaThethas : -10.0106 deg  -15.6189 deg  -52.1535 deg  -30.1690 deg  -29.8338 deg  
-Final Displacement : 5.438441e-04
-Final Mass (kg)    : 5.818480e+04  (Normalized: 9.799585e-01)
+Outer deltaThethas : -10.0102 deg  -15.6215 deg  -52.1524 deg  -30.1690 deg  -29.8337 deg  
+Final Displacement : 5.568964e-02
+Final Mass (kg)    : 5.818479e+04  (Normalized: 9.799584e-01)
 ==================================================
 
 --------------------------------------------------
-  Optim. time       :    2641.23 s
-  TOTAL run time    : 00 h 44 min 03.65 s
+  Optim. time       :    2354.12 s
+  TOTAL run time    : 00 h 39 min 16.15 s
 ==================================================
 

@@ -176,7 +176,7 @@ classdef DifferentThetasTutorialShellsOptim_ < handle
             end
 
             s.type    = "fmincon";
-            s.maxIter = 47;
+            s.maxIter = 60;
             s.tolerance = 1e-5;
 
             switch optimCase
@@ -490,7 +490,7 @@ classdef DifferentThetasTutorialShellsOptim_ < handle
         function RHS = createRHS(obj)
             p = ConstantFunction.create([0 0], obj.mesh);
             m = ConstantFunction.create([0 0], obj.mesh);
-            q = ConstantFunction.create(100,   obj.mesh);
+            q = ConstantFunction.create(10240,   obj.mesh);
 
             RHSu     = IntegrateRHS(@(v) DP(p,v), obj.uFun,     obj.mesh, 'Domain', 2);
             RHSu     = obj.reduceVector(RHSu,     obj.bcU);
