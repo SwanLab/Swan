@@ -35,7 +35,7 @@ classdef TractionBiliniarCoupled < handle
         function dtTan = computeDerivativeTangent(obj,jump)
             ddot = obj.computeDamageDerivative(jump);   % 2 x ngauss x nelem
             dtSec = obj.computeDerivativeSecant(jump);
-            dtTan = dtSec - ddot.*squeezeParticular(kronProd(Expand(jump,2),Expand(jump,2),[1 2 3 4]),[1 2 3 4]);
+            dtTan = dtSec - ddot.*kronProd(jump,jump,[1 2]);
         end 
 
         function d = computeDamage(obj,jump)
@@ -79,8 +79,7 @@ classdef TractionBiliniarCoupled < handle
             zeroUno = ConstantFunction.create([0;1],jump.mesh);
             jumpT = DP(jump,unoZero,1,1);
             jumpN = DP(jump,zeroUno,1,1);
-            jumpNPos = 0.5*(jumpN + abs(jumpN));
-            lambda = sqrt(jumpT.^2 + jumpNPos.^2) + 1e-10;           
+            lambda = sqrt(jumpT.^2 + macaulay(jumpN).^2) + 1e-10;           
         end
 
         function [jump0, jumpFinal] = computeJumpLimits(obj,jump,lambda)
