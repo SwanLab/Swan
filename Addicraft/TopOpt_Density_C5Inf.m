@@ -38,8 +38,8 @@ classdef TopOpt_Density_C5Inf < handle
 
             d = obj.project();
 
-            saveas(gcf,['Addicraft/Results/Vol',numstr(vTar),'/MonitoringDensity_',filename,'.fig']);
-            d.print(['Addicraft/Results/Vol',numstr(vTar),'/Density_',filename,'_fValues']);
+            saveas(gcf,['Addicraft/Results/Vol',num2str(vTar),'/MonitoringDensity_',filename,'.fig']);
+            d.print(['Addicraft/Results/Vol',num2str(vTar),'/Density_',filename,'_fValues']);
 
             fem = obj.physicalProblem;
             sigma = fem.stressFun;
@@ -52,7 +52,7 @@ classdef TopOpt_Density_C5Inf < handle
             filter = Filter.create(sF);
             filter.updateEpsilon(2*obj.mesh.computeMeanCellSize());
             vmSig = filter.compute(vonMises,3);
-            vmSig.print(['Addicraft/Results/Vol',numstr(vTar),'/Density_',fName,'_VMFinal'])
+            vmSig.print(['Addicraft/Results/Vol',num2str(vTar),'/Density_',filename,'_VMFinal'])
         end
 
         function d = project(obj)
@@ -192,7 +192,7 @@ classdef TopOpt_Density_C5Inf < handle
             filt = Filter.create(sF);
             filt.updateEpsilon(2*obj.mesh.computeMeanCellSize());
             vmSig = filt.compute(vonMises,3);
-            vmSig.print(['Addicraft/Results/Vol',numstr(vTar),'/Density_',fName,'_VMInitial']);
+            vmSig.print(['Addicraft/Results/Vol',num2str(vTar),'/Density_',fName,'_VMInitial']);
         end
 
         function c = createComplianceFromConstiutive(obj)
