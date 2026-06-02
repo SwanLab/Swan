@@ -34,11 +34,10 @@ classdef CohesiveTermFunctional < handle
             F = IntegrateRHS(@(v) v'*Expand(traction,2),obj.jump,obj.cohesiveMesh.mesh,'Domain',quadOrder);
         end
 
-        function H = computeDerivativeResidual(obj,u,quadOrder)
+        function [Ksec,Ktan] = computeDerivativeResidual(obj,u,quadOrder)
             obj.jump.updateJumpValues(u);
-            deriv = obj.tractionSeparation.computeDerivative(obj.jump.fun);
-            H = IntegrateLHS(@(u,v) DP(v', (DP(deriv, u'))'),...
-                obj.jump,obj.jump,obj.cohesiveMesh.mesh,'Domain',quadOrder);
+            Ksec = obj.computeDerivativeSecant(obj.jump.fun,quadOrder);
+            Ktan = obj.computeDerivativeTangent(obj.jump.fun,quadOrder);
         end
 
         function updateLambdaOld(obj)
@@ -59,6 +58,20 @@ classdef CohesiveTermFunctional < handle
             s.ndimf = obj.cohesiveMesh.fullMesh.ndim;
             s.uFun  = LagrangianFunction.create(obj.cohesiveMesh.fullMesh,s.ndimf,'P1');
             obj.jump = Jump(s);
+        end
+
+        function LHS = computeLHS(obj,deriv,quadOrder)
+            LHS = IntegrateLHS(@(u,v) DP(v', (DP(deriv, u'))'),obj.jump,obj.jump,obj.cohesiveMesh.mesh,'Domain',quadOrder);
+        end
+
+        function sec = computeDerivativeSecant(obj,jump,quadOrder)
+            dt = obj.tractionSeparation.computeDerivativeSecant(jump);
+            sec = obj.computeLHS(dt,quadOrder);
+        end
+        
+        function tan = computeDerivativeTangent(obj,jump,quadOrder) 
+            dt = obj.tractionSeparation.computeDerivativeTangent(jump);
+            tan = obj.computeLHS(dt,quadOrder);
         end
 
     end

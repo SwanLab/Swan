@@ -12,15 +12,19 @@ classdef CohesiveTractionSeparation < handle
         end
 
         function t = computeFunction(obj, jump)
-            t = obj.law.computeFunction(jump); %2x1 x(integration Point)
+            t = obj.law.computeFunction(jump);
         end
 
-        function d = computeDerivative(obj, jump)
-            d = obj.law.computeDerivative(jump); %2x2 x(integration Point) matriu diagonal
+        function d = computeDerivativeTangent(obj, jump)
+            d = obj.law.computeDerivativeTangent(jump); 
+        end
+
+        function d = computeDerivativeSecant(obj, jump)
+            d = obj.law.computeDerivativeSecant(jump);
         end
 
         function dmgValues = getDamageValues(obj,jump)
-            dmgValues    = obj.law.computeDamage(jump);
+            dmgValues = obj.law.computeDamage(jump);
         end
 
         function updateLambdaOld(obj)

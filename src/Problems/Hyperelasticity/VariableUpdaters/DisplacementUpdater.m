@@ -18,10 +18,10 @@ classdef DisplacementUpdater < handle
             i = 0; err = 1; costOld = costArray(end);
 
             while (abs(err) > obj.tol) && (i < obj.maxIter)
-                LHS = obj.functional.computeHessian(u);
+                [LHSSec,LHSTan] = obj.functional.computeHessian(u);
                 RHS = obj.functional.computeGradient(u,bc);
 
-                u.setFValues(obj.computeDisplacement(LHS,RHS,u,bc));
+                u.setFValues(obj.computeDisplacement(LHSSec,RHS,u,bc));
 
                 [err, cost] = obj.computeErrorCost(u,bc,costOld);
                 costArray(end+1) = cost;
@@ -31,11 +31,13 @@ classdef DisplacementUpdater < handle
                 % obj.monitor.printCost('iterU',i,cost,err);
                 % obj.monitor.update(length(costArray),{[],[cost],[],[]});
                 % obj.monitor.refresh(); 
+                
+                % Display the norm of the residual of the RHS
+                normRHS = norm(RHS);
+                fprintf('Iteration %d: Residual Norm = %.4e\n', i, normRHS);
             end
 
-             % obj.functional.updateLambdaOld(); % Per Turon
-
-            rFun = obj.computeReactions(LHS,u,bc);
+            rFun = obj.computeReactions(LHSSec,u,bc);
             iter = i;
         end
 

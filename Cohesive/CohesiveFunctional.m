@@ -42,10 +42,11 @@ classdef CohesiveFunctional < handle
             RHS  = Fint-Fext+Fcoh;
         end
 
-        function LHS = computeHessian(obj,u)
+        function [KSec,KTan] = computeHessian(obj,u)
             Kelas = obj.functionals.energy.computeHessian();
-            Kcoh  = obj.functionals.cohesive.computeDerivativeResidual(u,obj.quadOrder);
-            LHS   = Kelas+Kcoh;
+            [KcohSec, KcohTan]  = obj.functionals.cohesive.computeDerivativeResidual(u,obj.quadOrder);
+            KTan   = Kelas+KcohTan;
+            KSec   = Kelas+KcohSec;
         end
 
         function updateLambdaOld(obj)

@@ -37,8 +37,8 @@ classdef TractionBiliniarUncoupled < handle
         
         function init(obj,cParams)
             obj.K = 1e8;
-            obj.jumpCrit  = 0.001;
-            obj.jumpFinal = 0.02;
+            obj.jumpCrit  = cParams.jumpCrit;
+            obj.jumpFinal = cParams.jumpFinal;
         end
 
         function gradT = computeTangentGradientMatrix(obj, jump, xV) %2 x 2 x ngauss x nelem

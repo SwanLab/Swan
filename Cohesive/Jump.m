@@ -1,7 +1,6 @@
 classdef Jump < FeFunction
 
     properties (Access = private)
-        jumpDim
         L
         R
     end
@@ -29,7 +28,7 @@ classdef Jump < FeFunction
             obj.updateRotationMatrix(uIn); % 2x2xnElems
             connJump  = obj.mesh.connec;
             nNodeJump = obj.mesh.nnodes;
-            fValuesJ   = zeros(nNodeJump,obj.jumpDim); % nNodeJump x 2
+            fValuesJ   = zeros(nNodeJump,obj.ndimf); % nNodeJump x 2
             nnodesElemU = uIn.nDofsElem/uIn.ndimf;
             for n = 1:nnodesElemU 
                 uNode = obj.computeDispNodes(uIn,n);
@@ -74,12 +73,11 @@ classdef Jump < FeFunction
         
         function init(obj,cParams)
             obj.cohesiveMesh = cParams.cohesiveMesh;
+            obj.uFun      =  cParams.uFun;
             obj.ndimf   = cParams.ndimf;
-            obj.uFun    =  cParams.uFun;
-            obj.jumpDim = 2;
             obj.nDofsElem = obj.uFun.nDofsElem;
-            obj.mesh = obj.cohesiveMesh.mesh;
-            obj.fValues = zeros(size(obj.uFun.fValues));
+            obj.mesh      = obj.cohesiveMesh.mesh;
+            obj.fValues   = zeros(size(obj.uFun.fValues)); % Used for matrix assembly
         end 
 
         function createJumpFunction(obj)
@@ -87,7 +85,7 @@ classdef Jump < FeFunction
         end
 
         function computeGlobalSeparationMatrix(obj)
-            obj.L = cat(3, -repmat(eye(obj.jumpDim),1,1,4), repmat(eye(obj.jumpDim),1,1,4));
+            obj.L = cat(3, -repmat(eye(obj.ndimf),1,1,4), repmat(eye(obj.ndimf),1,1,4));
         end
         
         function updateRotationMatrix(obj,uIn) 
