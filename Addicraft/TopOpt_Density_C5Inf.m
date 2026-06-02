@@ -19,7 +19,7 @@ classdef TopOpt_Density_C5Inf < handle
 
     methods (Access = public)
 
-        function obj = TopOpt_Density_C5Inf()
+        function obj = TopOpt_Density_C5Inf(vTar)
             filename = 'C5_Inf';
             obj.init()
             obj.createMesh(filename);
@@ -27,10 +27,10 @@ classdef TopOpt_Density_C5Inf < handle
             obj.createDesignVariable();
             obj.createFilter();
             obj.createMaterialInterpolator();
-            obj.createElasticProblem();
+            obj.createElasticProblem(filename,vTar);
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
-            obj.createVolumeConstraint();
+            obj.createVolumeConstraint(vTar);
             obj.createCost();
             obj.createConstraint();
             obj.createPrimalUpdater();
@@ -38,8 +38,8 @@ classdef TopOpt_Density_C5Inf < handle
 
             d = obj.project();
 
-            saveas(gcf,['Addicraft/Results/Vol0.5/MonitoringDensity_',filename,'.fig']);
-            d.print(['Addicraft/Results/Vol0.5/Density_',filename,'_fValues']);
+            saveas(gcf,['Addicraft/Results/Vol',numstr(vTar),'/MonitoringDensity_',filename,'.fig']);
+            d.print(['Addicraft/Results/Vol',numstr(vTar),'/Density_',filename,'_fValues']);
 
             fem = obj.physicalProblem;
             sigma = fem.stressFun;
@@ -52,7 +52,7 @@ classdef TopOpt_Density_C5Inf < handle
             filter = Filter.create(sF);
             filter.updateEpsilon(2*obj.mesh.computeMeanCellSize());
             vmSig = filter.compute(vonMises,3);
-            vmSig.print('VonMisesFinal')
+            vmSig.print(['Addicraft/Results/Vol',numstr(vTar),'/Density_',fName,'_VMFinal'])
         end
 
         function d = project(obj)
@@ -149,7 +149,7 @@ classdef TopOpt_Density_C5Inf < handle
             obj.materialInterpolator = m;
         end
 
-        function createElasticProblem(obj)
+        function createElasticProblem(obj,fName,vTar)
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
             s.material = obj.createMaterial();
@@ -192,7 +192,7 @@ classdef TopOpt_Density_C5Inf < handle
             filt = Filter.create(sF);
             filt.updateEpsilon(2*obj.mesh.computeMeanCellSize());
             vmSig = filt.compute(vonMises,3);
-            vmSig.print('VonMisesInitial');
+            vmSig.print(['Addicraft/Results/Vol',numstr(vTar),'/Density_',fName,'_VMInitial']);
         end
 
         function c = createComplianceFromConstiutive(obj)
@@ -221,11 +221,11 @@ classdef TopOpt_Density_C5Inf < handle
             uMesh.compute(levelSet);
         end
 
-        function createVolumeConstraint(obj)
+        function createVolumeConstraint(obj,vTar)
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.5;
+            s.volumeTarget = vTar;
             s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
