@@ -13,6 +13,7 @@ classdef TutorialDehomoFirst < handle
     end
     properties (Access = public)
         designVariable
+        bsmooth
     end
 
     methods (Access = public)
@@ -27,6 +28,7 @@ classdef TutorialDehomoFirst < handle
             obj.createComplianceFromConstiutive();
             obj.createCost();
             obj.createOptimizer();
+            obj.bsmooth = obj.filterRegularization.compute(obj.designVariable.fun,3);
         end
         
        
@@ -40,7 +42,7 @@ classdef TutorialDehomoFirst < handle
 
         function createMesh(obj)
             
-            obj.mesh = TriangleMesh(2,1,100,100);
+            obj.mesh = TriangleMesh(2,1,200,200);
         end
 
         function createDesignVariable(obj)

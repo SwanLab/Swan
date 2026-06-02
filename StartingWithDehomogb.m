@@ -17,9 +17,9 @@ classdef StartingWithDehomogb < handle
 
         function obj = StartingWithDehomogb(bDesignVariable)
             obj.init()
-            obj.mesh   = bDesignVariable.fun.mesh;
-            obj.bField = bDesignVariable.fun; 
-            obj.createLevelSet(0.2)
+            obj.mesh   = bDesignVariable.mesh;
+            obj.bField = bDesignVariable; 
+            obj.createLevelSet(0.15)
         end
 
     end
@@ -46,7 +46,12 @@ classdef StartingWithDehomogb < handle
             s.fValues = fValues(:);
             s.order   = 'P1D';
             ls = LagrangianFunction(s);
-            ls = project(ls,'P1');
+            % ls = project(ls,'P1');
+
+            sF.trial = LagrangianFunction.create(obj.mesh,1,'P1');
+            sF.mesh = obj.mesh;
+            filter = FilterLump(sF);
+            ls = filter.compute(ls,3);
 
             sUm.backgroundMesh = obj.mesh;
             sUm.boundaryMesh   = obj.mesh.createBoundaryMesh;
@@ -65,36 +70,25 @@ classdef StartingWithDehomogb < handle
             s.mesh = obj.mesh;
             s.ndimf = xCoord.ndimf;
             txi = DomainFunction(s);
-            xiV = txi.evaluate(xV);
-
-            
-            b = obj.bField.evaluate(xV);
-            
-            
-
-            
-            a = exp(b.^2);
+            xiV = txi.evaluate(xV);            
+            % b = zeros(1, 1, obj.mesh.nelem);
+            b = obj.bField.evaluate(xV);      
+            a = 1;
             d = (1 + b.^2) ./ a;          
-            
+
             xi1 = xiV(1,:,:);
             xi2 = xiV(2,:,:);
-
-            
             phi1 = a .* xi1 + b .* xi2;
             phi2 = b .* xi1 + d .* xi2;
-            phiV = [phi1; phi2];
-
-            
-
-
-            s_type.type        = 'SquareDeformedLS';
-            s_type.m_x1        = 0.5 * ones(size(b));   
-            s_type.m_x2        = 0.5 * ones(size(b));   
-            s_type.xCoorCenter = 0.5;
-            s_type.yCoorCenter = 0.5;
-            g  = GeometricalFunction(s_type);
-            f  = g.getHandle;
-            fH = f(phiV);
+            fH = max( abs(phi1 - 0.5) ./ (0.7/2),abs(phi2 - 0.5) ./ (0.7/2) ) - 1;
+            % s_type.type        = 'SquareDeformedLS';
+            % s_type.m_x1        = 0.5 * ones(size(b));   
+            % s_type.m_x2        = 0.5 * ones(size(b));   
+            % s_type.xCoorCenter = 0.5;
+            % s_type.yCoorCenter = 0.5;
+            % g  = GeometricalFunction(s_type);
+            % f  = g.getHandle;
+            % fH = f(phiV);
         end
 
         function f = coordFun(obj,x)
