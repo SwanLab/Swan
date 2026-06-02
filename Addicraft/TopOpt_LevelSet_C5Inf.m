@@ -1,4 +1,4 @@
-classdef TopOpt_Density_C5Inf < handle
+classdef TopOpt_LevelSet_C5Inf < handle
 
     properties (Access = private)
         mesh
@@ -19,7 +19,7 @@ classdef TopOpt_Density_C5Inf < handle
 
     methods (Access = public)
 
-        function obj = TopOpt_Density_C5Inf(vTar)
+        function obj = TopOpt_LevelSet_C5Inf(vTar)
             filename = 'C5_Inf';
             obj.init()
             obj.createMesh(filename);
@@ -36,10 +36,10 @@ classdef TopOpt_Density_C5Inf < handle
             obj.createPrimalUpdater();
             obj.createOptimizer();
 
-            d = obj.project();
+            d = obj.designVariable.fun;
 
-            saveas(gcf,['Addicraft/Results/Vol',num2str(vTar),'/MonitoringDensity_',filename,'.fig']);
-            d.print(['Addicraft/Results/Vol',num2str(vTar),'/Density_',filename,'_fValues']);
+            saveas(gcf,['Addicraft/Results/Vol',num2str(vTar),'/MonitoringLevelSet_',filename,'.fig']);
+            d.print(['Addicraft/Results/Vol',num2str(vTar),'/LevelSet',filename,'_fValues']);
 
             fem = obj.physicalProblem;
             sigma = fem.stressFun;
@@ -52,17 +52,7 @@ classdef TopOpt_Density_C5Inf < handle
             filter = Filter.create(sF);
             filter.updateEpsilon(2*obj.mesh.computeMeanCellSize());
             vmSig = filter.compute(vonMises,3);
-            vmSig.print(['Addicraft/Results/Vol',num2str(vTar),'/Density_',filename,'_VMFinal'])
-        end
-
-        function d = project(obj)
-            s.mesh = obj.mesh;
-            s.trial = obj.designVariable.fun;
-            s.filterStep = 'PDE';
-            s.eta = 0.3;
-            s.beta = 10;
-            filt = FilterAndProject(s);
-            d = filt.compute(obj.designVariable.fun,3);
+            vmSig.print(['Addicraft/Results/Vol',num2str(vTar),'/LevelSet_',filename,'_VMFinal'])
         end
 
     end
@@ -98,23 +88,21 @@ classdef TopOpt_Density_C5Inf < handle
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(x(1,:,:)));
-            s.ndimf   = 1;
-            s.mesh    = obj.mesh;
-            aFun      = AnalyticalFunction(s);
-
             fixN = [];
             for i=1:3
                 fixN = [fixN;obj.rbe3Nodes{i}];
             end
-            
-            sD.fun      = aFun.project('P1');
-            sD.mesh     = obj.mesh;
-            sD.type     = 'Density';
-            sD.isFixed  = unique(fixN);
-            sD.plotting = false;
-            dens        = DesignVariable.create(sD);
-            obj.designVariable = dens;
+
+            s.type = 'Full';
+            g      = GeometricalFunction(s);
+            lsFun  = g.computeLevelSetFunction(obj.mesh);
+            s.fun  = lsFun;
+            s.mesh = obj.mesh;
+            s.type = 'LevelSet';
+            s.plotting = false;
+            s.isFixed  = unique(fixN);
+            ls     = DesignVariable.create(s);
+            obj.designVariable = ls;
         end
 
         function createFilter(obj)
@@ -192,7 +180,7 @@ classdef TopOpt_Density_C5Inf < handle
             filt = Filter.create(sF);
             filt.updateEpsilon(2*obj.mesh.computeMeanCellSize());
             vmSig = filt.compute(vonMises,3);
-            vmSig.print(['Addicraft/Results/Vol',num2str(vTar),'/Density_',fName,'_VMInitial']);
+            vmSig.print(['Addicraft/Results/Vol',num2str(vTar),'/LevelSet_',fName,'_VMInitial']);
         end
 
         function c = createComplianceFromConstiutive(obj)
@@ -250,14 +238,8 @@ classdef TopOpt_Density_C5Inf < handle
         end
 
         function createPrimalUpdater(obj)
-            rho      = obj.designVariable;
-            fixedDof = rho.getFixedDofs();
-            s.ub     = ones(size(rho.fun.fValues));
-            s.lb     = zeros(size(rho.fun.fValues));
-            s.lb(fixedDof) = 1;
-            s.tauMax = 5000;
-            s.tau    = [];
-            obj.primalUpdater = ProjectedGradient(s);
+            s.mesh = obj.mesh;
+            obj.primalUpdater = SLERP(s);
         end
 
         function createOptimizer(obj)
@@ -272,7 +254,7 @@ classdef TopOpt_Density_C5Inf < handle
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.02;
             s.gJFlowRatio    = 0.2;
-            s.etaMax         = 1;
+            s.etaMax         = 5;
             s.etaMaxMin      = 0.01;
             s.gif            = false;
             s.gifName        = [];

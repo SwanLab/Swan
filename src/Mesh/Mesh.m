@@ -184,6 +184,24 @@ classdef Mesh < handle
             set(t,'Color',colorValue)
         end
 
+        function readBoundaryMeshFromGiD(obj,fName,id)
+            run(fName);
+            rollerRowsEl = External_border_elements(:,1)==id;
+            rollerRowsN  = External_border_nodes(:,1)==id;
+            s.coord = obj.coord;
+            s.connec = External_border_elements(rollerRowsEl,3:5);
+            s.kFace = -1;
+            s.type = 'TRIANGLE';
+            mRaw = SurfaceMesh(s);
+            m = mRaw.computeCanonicalMesh();
+            originalNodes = External_border_nodes(rollerRowsN,2);
+            newNodes = 1:length(originalNodes);
+            l2g(newNodes(:)) = originalNodes(:);
+            obj.boundaryNodes = l2g;
+            obj.boundaryCoord = m.coord;
+            obj.boundaryElements = m.connec;
+        end
+
 
         function bMesh = createBoundaryMesh(obj)
             if isempty(obj.boundaryNodes) || isempty(obj.boundaryElements)
