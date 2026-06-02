@@ -272,6 +272,14 @@ classdef BaseFunction < handle & matlab.mixin.Copyable
             r = DomainFunction(s);
         end
 
+        function r = macaulay(a)
+            aOp = BaseFunction.computeOperation(a);
+            s.operation = @(xV) 0.5*(aOp(xV) + abs(aOp(xV)));
+            s.mesh  = a.mesh;
+            s.ndimf = a.ndimf;
+            r = DomainFunction(s);
+        end
+
     end
 
 
