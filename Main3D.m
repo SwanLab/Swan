@@ -29,7 +29,7 @@ s.matInfo.sigmaMax = 2.44542;
 s.l0 = 0.2;
 s.matInfo.params.coeffs = [(4/pi)*(s.matInfo.Gc*s.matInfo.young)/(s.matInfo.sigmaMax^2 * s.l0), -0.5]; %(4/pi)
 s.matInfo.params.exp = 2;
-s.matInfo.params.fileName = 'HoneycombBenchmark03';
+s.matInfo.params.fileName = 'HexagonBenchmark03';
 
 s.dissipInfo.type = 'AT';
 s.dissipInfo.constant = 8/3; % 2 AT2 / 8/3 AT1 / pi Rational 

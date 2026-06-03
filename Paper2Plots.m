@@ -359,12 +359,9 @@ lgd.FontSize = 30;
 % resHexa = load('SENtractionNewMeshHexagon.mat');
 % resHoney = load('SENtractionNewMeshHoneycomb.mat');
 
-resAT1 = load('SENshearNewMeshAT1.mat');
-resAT2 = load('SENshearNewMeshAT2.mat');
-resRatnoHS = load('SENshearNewMeshRational24_l0v2.mat');
-resRatHS = load('SENshearNewMeshRational24.mat');
-resHexa = load('SENshearNewMeshHexagon.mat');
-resHoney = load('SENshearNewMeshHoneycomb.mat');
+resAT1 = load('SEN3DtractionAT1.mat');
+
+resHexa = load('SEN3DtractionHomog.mat');
 
 
 figure(10)
@@ -373,16 +370,16 @@ nexttile
 hold on
 grid minor
 plot(resAT1.outputData.displacement.value,resAT1.outputData.force,'Color',cmp(1,:),'LineStyle','-','LineWidth',3)
-plot(resAT2.outputData.displacement.value,resAT2.outputData.force,'Color',cmp(1,:),'LineStyle','--','LineWidth',3)
-plot([resRatnoHS.outputData.displacement.value, 0.04],[resRatnoHS.outputData.force,0],'Color',cmpGamma(6,:),'LineStyle','-','LineWidth',3)
-plot([resRatHS.outputData.displacement.value, 0.04],[resRatHS.outputData.force,0],'Color',cmpGamma(6,:),'LineStyle','--','LineWidth',3)
+%plot(resAT2.outputData.displacement.value,resAT2.outputData.force,'Color',cmp(1,:),'LineStyle','--','LineWidth',3)
+%plot([resRatnoHS.outputData.displacement.value, 0.04],[resRatnoHS.outputData.force,0],'Color',cmpGamma(6,:),'LineStyle','-','LineWidth',3)
+%plot([resRatHS.outputData.displacement.value, 0.04],[resRatHS.outputData.force,0],'Color',cmpGamma(6,:),'LineStyle','--','LineWidth',3)
 plot(resHexa.outputData.displacement.value,resHexa.outputData.force,'Color',cmp(4,:),'LineStyle','-','LineWidth',3)
-plot(resHoney.outputData.displacement.value,resHoney.outputData.force,'Color',cmp(4,:),'LineStyle','--','LineWidth',3)
+%plot(resHoney.outputData.displacement.value,resHoney.outputData.force,'Color',cmp(4,:),'LineStyle','--','LineWidth',3)
 ylabel("Force [kN]",'Interpreter','latex');
 xlabel({"Displacement [mm]";"(a)"},'interpreter','latex')
 %xlim([0,0.03])
 %xlim([0,0.007])
-xlim([0,0.02])
+xlim([0,0.025])
 ax = gca;
 ax.XAxis.Exponent = 0;
 
