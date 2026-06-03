@@ -9,8 +9,8 @@ clc; clear; close all;
 %% INPUTS
 
 % r=1e-6:0.05:0.95;
-r= 0.2:0.05:0.65;
-% r=0.4;
+% r= 0.2:0.05:0.65;
+r=0.5;
 
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale', ('EIFisol')
 p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
@@ -225,6 +225,7 @@ end
 function dF = createDirichletFunction(bMesh)
 s.mesh = bMesh;
 s.type = 'continuous';
+s.order = 2;
 cf = CoarseFunctions(s);
 dF = cf.getAnalytical();
 end	

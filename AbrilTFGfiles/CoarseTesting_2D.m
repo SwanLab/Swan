@@ -84,9 +84,9 @@ classdef CoarseTesting_2D< handle
             % tic  %SOLVE THE CASE WITH STANDARD CG
             % [~,obj.residualCG,errCG, errCG] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
             % t_CG=toc
-            % tic  % SOLVE THE CASE WITH CG+ ILU
-            % [~,obj.residualILU,errILU, errAnormILU] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
-            % t_ILU=toc
+            tic  % SOLVE THE CASE WITH CG+ ILU
+            [~,obj.residualILU,errILU, errAnormILU] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
+            t_ILU=toc
             tic  % SOLVE THE CASE WITH PRECONDITIONING ILU+EIFEM+ILU
             [uPCG,obj.residualPCG,obj.errPCG,obj.errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
             t_PCG=toc
@@ -97,12 +97,12 @@ classdef CoarseTesting_2D< handle
             % uDomain = obj.ddDofManager.global2local(uDomain);
             
             % LAGRANGIAN FUN SOLUTIONS
-            s.mesh     = obj.meshDomain;
-            s.order    = 'P1';
-            s.fValues  = reshape(xFull,2,[])';
-            obj.Sol    = LagrangianFunction(s); %Preconditioned sol  
-            s.fValues = reshape(Ufull,2,[])';
-            obj.SolExact=LagrangianFunction(s); %Exact sol
+            % s.mesh     = obj.meshDomain;
+            % s.order    = 'P1';
+            % s.fValues  = reshape(xFull,2,[])';
+            % obj.Sol    = LagrangianFunction(s); %Preconditioned sol  
+            % s.fValues = reshape(Ufull,2,[])';
+            % obj.SolExact=LagrangianFunction(s); %Exact sol
             % obj.SolExact.print("OutSolPCG");
 
             % obj.print(xFull,"1stIterLargeCircles_Raul");
@@ -291,10 +291,10 @@ classdef CoarseTesting_2D< handle
 
         function mS= importMesh(obj)
             load(obj.fileNameEIFEM);
-            s.coord    = EIFEoper.mesh.coord;
-            s.connec   = EIFEoper.mesh.connec;
-            % s.coord    = mesh.coord;
-            % s.connec   = mesh.connec;
+            % s.coord    = EIFEoper.mesh.coord;
+            % s.connec   = EIFEoper.mesh.connec;
+            s.coord    = mesh.coord;
+            s.connec   = mesh.connec;
 
             obj.xmin = min(s.coord(:,1));            
             obj.xmax = max(s.coord(:,1));
@@ -328,8 +328,8 @@ classdef CoarseTesting_2D< handle
             coord(3,1) = obj.xmax;  coord(3,2) = obj.ymax;
             coord(4,1) = obj.xmin;  coord(4,2) = obj.ymax;
 
-            % connec = [1 2 3 4];    % General case
-            connec = [2 3 4 1];       % Direct mesh
+            connec = [1 2 3 4];    % General case
+            % connec = [2 3 4 1];       % Direct mesh Raul
             s.coord = coord;
             s.connec = connec;
             cMesh = Mesh.create(s);  % crea la mesh de 4 nodes

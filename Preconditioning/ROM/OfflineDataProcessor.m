@@ -68,11 +68,12 @@ classdef OfflineDataProcessor < handle
 
             Vfun = obj.createInterfaceModesFun(bMesh);
 
-            joinedBMesh=obj.mesh.createSingleBoundaryMesh();
-            s.mesh=joinedBMesh;
-            s.type='continuous';
-            cf=CoarseFunctions(s);
-            Vfun2=cf.getAnalytical();
+            % joinedBMesh=obj.mesh.createSingleBoundaryMesh();
+            % s.mesh=joinedBMesh;
+            % s.type='continuous';
+            % s.order=1;
+            % cf=CoarseFunctions(s);
+            % Vfun2=cf.getAnalytical();
 
             uDefFunBd  = obj.restrictToBoundary(uDefFun,bMesh);
             RBFunBd    = obj.restrictToBoundary(uRBfun(1),bMesh); %only the first bevause we just want the basis!
@@ -94,24 +95,24 @@ classdef OfflineDataProcessor < handle
             % Add3 = obj.computeBoundaryModalMassMatrixDirac(uDefFunBd,LMDefFunBd);
             % Ldv3 = obj.computeBoundaryModalMassMatrixDirac(LMDefFunBd,Vfun);
 
-            RBFun = uRBfun(1);
+            % RBFun = uRBfun(1);
 
-            for i=1:numel(RBFun.basisFunctions)
-                RBFun2.basisFunctions{i} = project(RBFun.basisFunctions{i},'P1');
-            end
-
-            
-
-            uDefFunBd2 = obj.restrictToBoundary2(uDefFun);            
-            LMDefFunBd2 = obj.restrictToBoundary2(LMDefFun);
-            RBFunBd2    = obj.restrictToBoundary2(RBFun2);
+            % for i=1:numel(RBFun.basisFunctions)
+            %     RBFun2.basisFunctions{i} = project(RBFun.basisFunctions{i},'P1');
+            % end
 
             
-            Adr2 = obj.computeBoundaryModalMassMatrix2(uDefFunBd2,RBFunBd2);           
-            Arr2 = obj.computeBoundaryModalMassMatrix2(RBFunBd2,RBFunBd2);
-            Add2 = obj.computeBoundaryModalMassMatrix2(uDefFunBd2,LMDefFunBd2);          
-            Ldv2 = obj.computeBoundaryModalMassMatrix2(LMDefFunBd2,Vfun2);
-            Lrv2 = obj.computeBoundaryModalMassMatrix2(RBFunBd2,Vfun2);            
+            % 
+            % uDefFunBd2 = obj.restrictToBoundary2(uDefFun);            
+            % LMDefFunBd2 = obj.restrictToBoundary2(LMDefFun);
+            % RBFunBd2    = obj.restrictToBoundary2(RBFun2);
+
+            
+            % Adr2 = obj.computeBoundaryModalMassMatrix2(uDefFunBd2,RBFunBd2);           
+            % Arr2 = obj.computeBoundaryModalMassMatrix2(RBFunBd2,RBFunBd2);
+            % Add2 = obj.computeBoundaryModalMassMatrix2(uDefFunBd2,LMDefFunBd2);          
+            % Ldv2 = obj.computeBoundaryModalMassMatrix2(LMDefFunBd2,Vfun2);
+            % Lrv2 = obj.computeBoundaryModalMassMatrix2(RBFunBd2,Vfun2);            
 
 
             Ud = PhiD*(Add'\Ldv);
@@ -119,40 +120,40 @@ classdef OfflineDataProcessor < handle
             U  = Ur+Ud;
 
 
-            nB = size(uRBfun,2);
-            Kdd = PhiD'*obj.LHS*PhiD;
-            %
-            nld = LMDefFun.nbasis;
-            nlr = uRBfun(1).nbasis;            
-            Zrd = zeros(nlr,nld);
-            Zd = zeros(nld,nB);
-            Zr = zeros(nlr,nB);
-            Zrr = zeros(nlr,nlr);
+            % nB = size(uRBfun,2);
+            % Kdd = PhiD'*obj.LHS*PhiD;
+            % %
+            % nld = LMDefFun.nbasis;
+            % nlr = uRBfun(1).nbasis;            
+            % Zrd = zeros(nlr,nld);
+            % Zd = zeros(nld,nB);
+            % Zr = zeros(nlr,nB);
+            % Zrr = zeros(nlr,nlr);
+            % 
+            % Keif = [Kdd Zrd';Zrd Zrr];
+            % C    = [Adr Add;...
+            %         Arr Zrd];          
 
-            Keif = [Kdd Zrd';Zrd Zrr];
-            C    = [Adr Add;...
-                    Arr Zrd];          
-
-            Z  = zeros(nld+nlr,nld+nlr);
+            % Z  = zeros(nld+nlr,nld+nlr);
 %
-            LHS2 = [Keif C; C.' Z];
-            Lug = [Lrv;Ldv]*eye(size(uRBfun,2));
-            RHS = [Zd;Zr;Lug];
-            x = LHS2\RHS;
-
-            C2=  [Adr2 Add2;...
-                  Arr2 Zrd];
-            LHS3 = [Keif C2; C2.' Z];
-            Lug2 = [Lrv2;Ldv2]*eye(size(uRBfun,2));
-            RHS2 = [Zd;Zr;Lug2];
-            x2 = LHS3\RHS2;
+            % LHS2 = [Keif C; C.' Z];
+            % Lug = [Lrv;Ldv]*eye(size(uRBfun,2));
+            % RHS = [Zd;Zr;Lug];
+            % x = LHS2\RHS;
+            % 
+            % C2=  [Adr2 Add2;...
+            %       Arr2 Zrd];
+            % LHS3 = [Keif C2; C2.' Z];
+            % Lug2 = [Lrv2;Ldv2]*eye(size(uRBfun,2));
+            % RHS2 = [Zd;Zr;Lug2];
+            % x2 = LHS3\RHS2;
 
             %
             
-            uEifD = x(1:nld,:);
-            uEifR = x(nld+1:nld+nlr,:);
+            % uEifD = x(1:nld,:);
+            % uEifR = x(nld+1:nld+nlr,:);
             
-            U2 = PhiD*uEifD + PhiR*uEifR;
+            % U2 = PhiD*uEifD + PhiR*uEifR;
 
 
 

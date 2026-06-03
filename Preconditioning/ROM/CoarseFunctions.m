@@ -121,7 +121,7 @@ classdef CoarseFunctions < handle
             bMesh=obj.mesh;
             L=obj.createBasisFunctions(); 
             [~,~,a,b,x0,y0,~,~]=obj.NormalizeMesh(bMesh);
-            bn=obj.getBoundaryNodes(obj.order);
+            bn=obj.getAllNodes(obj.order);
 
             nf=size(bn,1)*obj.ndim;
             f = cell(1,nf);
@@ -154,45 +154,32 @@ classdef CoarseFunctions < handle
         function f = createContinuousFunction3DHexa(obj)
             bMesh = obj.mesh;
             L = obj.createBasisFunctions();
-
             [~,~,a,b,x0,y0,c,z0] = obj.NormalizeMesh(bMesh);
 
-            nf = (obj.order+1)^3 * obj.ndim;
+            bn = obj.getAllNodes3D(obj.order);
+            nf = size(bn,1) * obj.ndim;
             f = cell(1,nf);
+       
             n = 1;
+            for m = 1:size(bn,1)
+                i = bn(m,1);
+                j = bn(m,2);
+                k = bn(m,3);
+                N = @(x) ...
+                    L{i}((x(1,:,:)-x0)/a) .* ...
+                    L{j}((x(2,:,:)-y0)/b) .* ...
+                    L{k}((x(3,:,:)-z0)/c);
 
-            for i = 1:obj.order+1
-                for j = 1:obj.order+1
-                    for k = 1:obj.order+1
+                fx = @(x) [N(x); 0*x(1,:,:); 0*x(1,:,:)];
+                fy = @(x) [0*x(1,:,:); N(x); 0*x(1,:,:)];
+                fz = @(x) [0*x(1,:,:); 0*x(1,:,:); N(x)];
 
-                        N = @(x) ...
-                            L{i}((x(1,:,:)-x0)/a) .* ...
-                            L{j}((x(2,:,:)-y0)/b) .* ...
-                            L{k}((x(3,:,:)-z0)/c);
-
-                        fx = @(x) [N(x); 0*x(2,:,:); 0*x(2,:,:)];
-                        fy = @(x) [0*x(2,:,:); N(x); 0*x(2,:,:)];
-                        fz = @(x) [0*x(2,:,:); 0*x(2,:,:); N(x)];
-
-                        f{n} = fx; n=n+1;
-                        f{n} = fy; n=n+1;
-                        f{n} = fz; n=n+1;
-                    end
-                end
+                f{n} = fx; n=n+1;
+                f{n} = fy; n=n+1;
+                f{n} = fz; n=n+1;
             end
-            g = 3;
 
-            % for generic case
-            order = [1 5 7 3 2 6 8 4];
-
-            % for airfoil
-            % order = [5 1 2 6 7 3 4 8];
-
-            idx = reshape((order-1)*g + (1:g)', 1, []);
-            f = f(idx);
         end
-
-
 
     end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -249,6 +236,134 @@ classdef CoarseFunctions < handle
             end
 
         end
+
+
+        function bn= getAllNodes(order)
+            k = order + 1;
+            bn = [];
+
+            % bottom
+            for i = 1:k
+                bn = [bn; i 1];
+            end
+
+            % right
+            for j = 2:k
+                bn = [bn; k j];
+            end
+
+            % top
+            for i = k-1:-1:1
+                bn = [bn; i k];
+            end
+
+            % left
+            for j = k-1:-1:2
+                bn = [bn; 1 j];
+            end
+
+            % interior nodes
+            for j = 2:k-1
+                for i = 2:k-1
+                    bn = [bn; i j];
+                end
+            end
+        end
+
+        function bn = getAllNodes3D(order)
+            k = order + 1;
+            bn = [];
+
+            % 8 VERTICES
+            bn = [1 1 1
+                  k 1 1
+                  k k 1
+                  1 k 1
+                  1 1 k
+                  k 1 k
+                  k k k
+                  1 k k];
+
+            if order == 1
+                return;
+            end
+
+            t = 2:k-1;
+
+            % EDGE NODES (12 EDGES)
+
+            % bottom
+            for i=t, bn=[bn; i 1 1]; end
+            for j=t, bn=[bn; k j 1]; end
+            for i=fliplr(t), bn=[bn; i k 1]; end
+            for j=fliplr(t), bn=[bn; 1 j 1]; end
+
+            % top
+            for i=t, bn=[bn; i 1 k]; end
+            for j=t, bn=[bn; k j k]; end
+            for i=fliplr(t), bn=[bn; i k k]; end
+            for j=fliplr(t), bn=[bn; 1 j k]; end
+
+            % vertical
+            for z=t, bn=[bn; 1 1 z]; end
+            for z=t, bn=[bn; k 1 z]; end
+            for z=t, bn=[bn; k k z]; end
+            for z=t, bn=[bn; 1 k z]; end
+
+
+            % FACE INTERIOR NODES
+            % z=1
+            for j=t
+                for i=t
+                    bn=[bn; i j 1];
+                end
+            end
+
+            % z=k
+            for j=t
+                for i=t
+                    bn=[bn; i j k];
+                end
+            end
+
+            % y=1
+            for z=t
+                for i=t
+                    bn=[bn; i 1 z];
+                end
+            end
+
+            % y=k
+            for z=t
+                for i=t
+                    bn=[bn; i k z];
+                end
+            end
+
+            % x=1
+            for z=t
+                for j=t
+                    bn=[bn; 1 j z];
+                end
+            end
+
+            % x=k
+            for z=t
+                for j=t
+                    bn=[bn; k j z];
+                end
+            end
+
+            % VOLUME INTERIOR
+            % for z=t
+            %     for j=t
+            %         for i=t
+            %             bn=[bn; i j z];
+            %         end
+            %     end
+            % end
+        end
+ 
     end
 
 end

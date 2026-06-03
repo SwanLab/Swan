@@ -563,17 +563,20 @@ classdef CoarseTesting_3D< handle
         end
 
         function [Dir,PL] = createRawBoundaryConditions(obj)
-            minx = min(obj.meshDomain.coord(:,1));
-            maxx = max(obj.meshDomain.coord(:,1));
-            miny = min(obj.meshDomain.coord(:,2));
-            maxy = max(obj.meshDomain.coord(:,2));
-            minz = min(obj.meshDomain.coord(:,3));
-            maxz = max(obj.meshDomain.coord(:,3));
+            xMin    = min(obj.meshDomain.coord(:,1));
+            xMax    = max(obj.meshDomain.coord(:,1));
+            yMax    = max(obj.meshDomain.coord(:,2));
+            yMin    = min(obj.meshDomain.coord(:,2));
+            zMin    = min(obj.meshDomain.coord(:,3));
+            zMax    = max(obj.meshDomain.coord(:,3));
+            Ly      = yMax-yMin;
+            Lx      = xMax-xMin;
+            Lz      = zMax-zMin;
             tolBound = obj.tolSameNode;
-            isLeft   = @(coor) (abs(coor(:,1) - minx)   < tolBound);
-            isRight  = @(coor) (abs(coor(:,1) - maxx)   < tolBound);
-            isBottom = @(coor) (abs(coor(:,3) - minz)   < tolBound);
-            
+            isLeft   = @(coor) (abs(coor(:,1) - xMin)   < tolBound);
+            isRight  = @(coor) (abs(coor(:,1) - zMax)   < tolBound);
+            isBottom = @(coor) (abs(coor(:,3) - zMin)   < tolBound);
+
             Dir{1}.domain    = @(coor) isLeft(coor);%| isRight(coor) ;
             Dir{1}.direction = [1,2,3];
             Dir{1}.value     = 0;
@@ -581,6 +584,11 @@ classdef CoarseTesting_3D< handle
             PL.domain    = @(coor) isRight(coor);
             PL.direction = 3;        % 3--> general    2--> Airfoil
             PL.value     = -1;       %Set displacement intensity 
+
+            isDir   = @(coor)  abs(coor(:,1)-xMin) < 1e-9;
+            isForceDirac = @(coor)  (abs(coor(:,1)-xMax))< 2e-9 &...
+                (coor(:,2)>=yMin+0.46* Ly & coor(:,2)<=yMin+0.54* Ly) & ...
+                (coor(:,3)>=zMin+0.46* Lz & coor(:,3)<=zMin+0.54* Lz);
         end 
 
         function [bc,Dir,PL] = createBoundaryConditions(obj,mesh)

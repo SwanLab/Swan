@@ -9,12 +9,12 @@ clc; clear; close all;
 %% INPUTS
 % 
 % t1=1e-6:0.05:0.5;
-t2=1e-6:0.05:0.7;
-t1=0.2;
-t2=0.25;
+% t2=1e-6:0.05:0.7;
+t1=0.1;
+t2=0.1;
 
-p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale'
-p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
+p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
+p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
 p.nelem      = 15;
 meshName     = p.nelem+"x"+p.nelem;
 
@@ -89,7 +89,7 @@ for i=1:size(t1,2)
         string = strrep("t1_"+num2str(t1(i), '%.2f'), ".", "_")+strrep("_t2_"+num2str(t2(j), '%.2f'), ".", "_")+"-"+meshName+".mat";
 
         % Guarda el .mat per cert radi
-        FileName=fullfile('AbrilTFGfiles','Data',"Lattice3D",p.Training,meshName,string);
+        % FileName=fullfile('AbrilTFGfiles','Data',"Lattice3D",p.Training,meshName,string);
 
 
         % FileName=fullfile('AbrilTFGfiles','Data','LatticeMult_3D',string);
@@ -199,10 +199,11 @@ function mS = createReferenceMesh(p)
 end
 
 function dF = createDirichletFunction(bMesh)
-s.mesh = bMesh;
-s.type = 'continuous';
-cf = CoarseFunctions(s);
-dF = cf.getAnalytical();
+s.mesh  = bMesh;
+s.type  = 'continuous';
+s.order = 2;
+cf      = CoarseFunctions(s);
+dF      = cf.getAnalytical();
 end	
 
 

@@ -11,11 +11,11 @@ clc; clear; close all;
 % r=1e-6:0.1:0.999; 
 % r=0:0.05:0.999;
 % r=0.2:0.05:0.6;
-r=0.3;
+r=0.8;
 
-p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
-p.Inclusion  = 'Material';        %'Material'/'Hole'/'HoleRaul'
-p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
+p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale'
+p.Inclusion  = 'Hole';        %'Material'/'Hole'/'HoleRaul'
+p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
 p.nelem      = 20;
 meshName     = p.nelem+"x"+p.nelem;
 
@@ -32,15 +32,11 @@ for j = 1:size(r,2)
             material   = createMaterial(mR,[1 1],p.Inclusion,g);
             mesh       = mR;
             bMesh      = mesh.createSingleBoundaryMesh();
-            s.mesh=bMesh;
-            s.type='continuous';
-            cf=CoarseFunctions(s);
-            g = cf.getAnalytical();
             s.mesh          = mesh;
             s.uFun          = LagrangianFunction.create(mesh, mesh.ndim, 'P1');
             s.lambdaFun     = LagrangianFunction.create(bMesh,mesh.ndim, 'P1');
             s.material      = material;
-            s.dirichletFun  = g;
+            s.dirichletFun  = createDirichletFunction(bMesh);
             e  = ElasticHarmonicExtension(s);
             [T,lambda,K,Kcoarse] = e.solve();
 
@@ -245,3 +241,11 @@ function [material,m] = createMaterial(mesh,nSubdomains,inclusionType,g)
     m = MaterialTraining(s);
     material = m.create();
 end
+
+function dF = createDirichletFunction(bMesh)
+s.mesh = bMesh;
+s.type = 'continuous';
+s.order = 2;
+cf = CoarseFunctions(s);
+dF = cf.getAnalytical();
+end	

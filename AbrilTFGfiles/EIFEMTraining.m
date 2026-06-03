@@ -28,11 +28,12 @@ classdef EIFEMTraining < handle
         function data=train(obj)
           
             obj.repeatMesh();  %create MeshDomain
-            bMesh = obj.meshDomain.createSingleBoundaryMesh();
-            s.mesh=bMesh;
-            s.type='continuous';
-            cf=CoarseFunctions(s);
-            f=cf.getAnalytical();
+            bMesh   = obj.meshDomain.createSingleBoundaryMesh();
+            s.mesh  = bMesh;
+            s.type  = 'continuous';
+            s.order = 2;
+            cf      = CoarseFunctions(s);
+            f       = cf.getAnalytical();
             dirchletFun = f;
 
             s.mesh         = obj.meshDomain;
