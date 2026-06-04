@@ -19,7 +19,7 @@ classdef StartingWithDehomogb < handle
             obj.init()
             obj.mesh   = bDesignVariable.mesh;
             obj.bField = bDesignVariable; 
-            obj.createLevelSet(0.15)
+            obj.createLevelSet(0.07)
         end
 
     end
@@ -56,7 +56,7 @@ classdef StartingWithDehomogb < handle
             sUm.backgroundMesh = obj.mesh;
             sUm.boundaryMesh   = obj.mesh.createBoundaryMesh;
             uMesh              = UnfittedMesh(sUm);
-            uMesh.compute(ls.fValues);
+            uMesh.compute(-ls.fValues);
             uMesh.plot()
         end
 
@@ -73,14 +73,27 @@ classdef StartingWithDehomogb < handle
             xiV = txi.evaluate(xV);            
             % b = zeros(1, 1, obj.mesh.nelem);
             b = obj.bField.evaluate(xV);      
-            a = 1;
-            d = (1 + b.^2) ./ a;          
-
+            a = exp(b.^2);
+            d = (1 + b.^2) ./ a; 
+            % 
             xi1 = xiV(1,:,:);
             xi2 = xiV(2,:,:);
-            phi1 = a .* xi1 + b .* xi2;
-            phi2 = b .* xi1 + d .* xi2;
-            fH = max( abs(phi1 - 0.5) ./ (0.7/2),abs(phi2 - 0.5) ./ (0.7/2) ) - 1;
+            % phi1 = a .* xi1 + b .* xi2;
+            % phi2 = b .* xi1 + d .* xi2;
+            % fH = max( abs(phi1 - 0.5) ./ (0.7/2),abs(phi2 - 0.5) ./ (0.7/2) ) - 1;
+
+            xic1 = xi1 - 0.5;
+            xic2 = xi2 - 0.5;
+
+            phi1 = a.*xic1 + b.*xic2;
+            phi2 = b.*xic1 + d.*xic2;
+            % detA = a.*d - b.^2;
+            % 
+            % phi1 = ( d.*xic1 - b.*xic2)./detA;
+            % phi2 = (-b.*xic1 + a.*xic2)./detA;
+
+            fH = max(abs(phi1)/(0.3),abs(phi2)/(0.3)) - 1;
+
             % s_type.type        = 'SquareDeformedLS';
             % s_type.m_x1        = 0.5 * ones(size(b));   
             % s_type.m_x2        = 0.5 * ones(size(b));   
@@ -89,6 +102,7 @@ classdef StartingWithDehomogb < handle
             % g  = GeometricalFunction(s_type);
             % f  = g.getHandle;
             % fH = f(phiV);
+
         end
 
         function f = coordFun(obj,x)
@@ -128,7 +142,9 @@ classdef StartingWithDehomogb < handle
         %    f = (cos(2*pi*y));   
 
             %f = abs(y-floor(y)-0.5);
-            f = abs(y-floor(y)-0.5);
+            
+             f = abs(y-floor(y));   % fp ∈ [-0.5, +0.5], centrado em 0
+
         end        
 
     end

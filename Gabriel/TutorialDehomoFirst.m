@@ -62,7 +62,7 @@ classdef TutorialDehomoFirst < handle
 
        
         function createFilterRegularization(obj)
-            eOverhmin = 6;
+            eOverhmin = 8;
             s.filterType    = 'PDE';
             s.mesh          = obj.mesh;
             s.boundaryType  = 'Neumann';  
@@ -136,8 +136,8 @@ classdef TutorialDehomoFirst < handle
             s.cost           = obj.cost;
             s.designVariable = obj.designVariable;
             s.monitoring     = true;
-            s.lb             = -0.6;
-            s.ub             = 0.6;
+            s.lb             = -0.4;
+            s.ub             = 0.4;
             s.maxIter        = 200;
             opt              = OptimizerProjectedGradient(s);
             opt.solveProblem();
@@ -162,58 +162,35 @@ classdef TutorialDehomoFirst < handle
             m = MaterialFactory.create(s);
         end
 
-        function bc = createBoundaryConditions(obj)
-            
-            xMin = min(obj.mesh.coord(:,1));
-            xMax = max(obj.mesh.coord(:,1));
-            yMin = min(obj.mesh.coord(:,2));
-            yMax = max(obj.mesh.coord(:,2));
-            
-            
-            isBottom = @(coor) abs(coor(:,2) - yMin) < 1e-12;
-            
-            
-            isDirLeft = @(coor) isBottom(coor) & ...
-                                coor(:,1) >= xMin & coor(:,1) <= xMin + 0.2*xMax;
-            
-            
-            isDirRight = @(coor) isBottom(coor) & ...
-                                 coor(:,1) >= xMax - 0.2*xMax & coor(:,1) <= xMax;
-            
-            
-            isForce = @(coor) isBottom(coor) & ...
-                               coor(:,1) >= 0.45*xMax & coor(:,1) <= 0.55*xMax;
-            
-            
-            sDir{1}.domain    = @(coor) isDirLeft(coor);
-            sDir{1}.direction = [1,2]; 
+         function bc = createBoundaryConditions(obj)
+            xMax    = max(obj.mesh.coord(:,1));
+            yMax    = max(obj.mesh.coord(:,2));
+            isDir   = @(coor)  abs(coor(:,1))==0;
+            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.35*yMax & abs(coor(:,2))<=0.65*yMax);
+
+            sDir{1}.domain    = @(coor) isDir(coor);
+            sDir{1}.direction = [1,2];
             sDir{1}.value     = 0;
-            
-            sDir{2}.domain    = @(coor) isDirRight(coor);
-            sDir{2}.direction = [1,2];
-            sDir{2}.value     = 0;
-            
-            
+
             sPL{1}.domain    = @(coor) isForce(coor);
-            sPL{1}.direction = 2;      
-            sPL{1}.value     = -1;      
-            
-           
+            sPL{1}.direction = 2;
+            sPL{1}.value     = -1;
+
             dirichletFun = [];
             for i = 1:numel(sDir)
                 dir = DirichletCondition(obj.mesh, sDir{i});
                 dirichletFun = [dirichletFun, dir];
             end
             s.dirichletFun = dirichletFun;
-            
+
             pointloadFun = [];
             for i = 1:numel(sPL)
                 pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
                 pointloadFun = [pointloadFun, pl];
             end
             s.pointloadFun = pointloadFun;
-            
-            s.periodicFun = [];
+
+            s.periodicFun  = [];
             s.mesh = obj.mesh;
             bc = BoundaryConditions(s);
         end
