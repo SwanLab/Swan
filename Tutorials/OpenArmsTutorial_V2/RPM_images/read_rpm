@@ -1,0 +1,229 @@
+"""
+read_rpm.py
+-----------
+Lit automatiquement la valeur RPM sur chaque image du dossier RPM_images,
+via l'API Claude Vision, puis écrit les valeurs dans la colonne "rpm"
+du fichier ../merged_output.csv en faisant correspondre les timestamps.
+
+Les images illisibles (personne devant, mauvaise luminosité, etc.) sont
+marquées NaN, puis interpolées en fin de traitement par la moyenne
+du voisin immédiat avant et après.
+
+Structure attendue :
+    OpenArmsTutorial_V2/
+    ├── merged_output.csv        ← colonne "Time" format 18:16:16.203767
+    └── RPM_images/
+        ├── read_rpm.py          ← ce script
+        ├── captura_18-04-47.jpg
+        └── ...
+
+Prérequis :
+    pip install anthropic pillow pandas
+
+Usage (depuis le dossier RPM_images) :
+    python read_rpm.py
+"""
+
+import anthropic
+import base64
+import io
+import re
+import sys
+from pathlib import Path
+
+import pandas as pd
+from PIL import Image
+
+# ── Chemins ──────────────────────────────────────────────────────────────────
+SCRIPT_DIR = Path(__file__).parent                    # RPM_images/
+CSV_PATH   = SCRIPT_DIR.parent / "merged_output.csv"  # OpenArmsTutorial_V2/merged_output.csv
+
+# ── Coordonnées du cadran RPM (image 640x480, caméra fixe) ───────────────────
+CROP = {"x": 0, "y": 245, "w": 190, "h": 235}
+
+SUPPORTED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".webp"}
+
+
+def parse_image_time(filename: str) -> str:
+    """'captura_18-04-47.jpg' → '18:04:47'"""
+    match = re.search(r'(\d{2})-(\d{2})-(\d{2})', filename)
+    if not match:
+        raise ValueError(f"Impossible d'extraire l'heure depuis : {filename}")
+    return f"{match.group(1)}:{match.group(2)}:{match.group(3)}"
+
+
+def crop_to_base64(image_path: Path) -> str:
+    """Rogne sur le cadran RPM et encode en base64 JPEG."""
+    with Image.open(image_path) as img:
+        x, y, w, h = CROP["x"], CROP["y"], CROP["w"], CROP["h"]
+        cropped = img.crop((x, y, x + w, y + h))
+        buf = io.BytesIO()
+        cropped.save(buf, format="JPEG", quality=90)
+        return base64.standard_b64encode(buf.getvalue()).decode("utf-8")
+
+
+def read_rpm(client: anthropic.Anthropic, image_b64: str) -> float | None:
+    """
+    Envoie l'image à Claude Vision.
+    Retourne un float si la valeur est lisible, None sinon.
+    Ne lève jamais d'exception.
+    """
+    try:
+        msg = client.messages.create(
+            model="claude-opus-4-5",
+            max_tokens=64,
+            messages=[{
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image",
+                        "source": {"type": "base64", "media_type": "image/jpeg", "data": image_b64},
+                    },
+                    {
+                        "type": "text",
+                        "text": (
+                            "This is a cropped analog RPM gauge on a boat engine. "
+                            "Read the value the needle points to. "
+                            "Reply with ONLY an integer. "
+                            "If the gauge is obstructed, too dark, blurry, or unreadable for any reason, "
+                            "reply with exactly: NULL"
+                        ),
+                    },
+                ],
+            }],
+        )
+        raw = msg.content[0].text.strip()
+        if raw.upper() == "NULL":
+            return None
+        return float(re.sub(r"[^\d.]", "", raw))  # extrait le nombre même si Claude ajoute du texte
+    except Exception as e:
+        print(f"(erreur API : {e})", end=" ")
+        return None
+
+
+def interpolate_rpm(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Pour chaque valeur rpm manquante (NaN), remplace par la moyenne
+    du voisin immédiat avant et du voisin immédiat après dans le CSV.
+    Si un seul voisin existe (début ou fin de fichier), utilise celui-là.
+    Si aucun voisin n'existe, laisse NaN.
+    """
+    rpm = df["rpm"].copy()
+    missing_idx = rpm[rpm.isna()].index
+
+    filled = 0
+    for idx in missing_idx:
+        pos = df.index.get_loc(idx)
+
+        prev_val = None
+        next_val = None
+
+        # cherche le voisin valide avant
+        for p in range(pos - 1, -1, -1):
+            v = rpm.iloc[p]
+            if pd.notna(v):
+                prev_val = v
+                break
+
+        # cherche le voisin valide après
+        for p in range(pos + 1, len(rpm)):
+            v = rpm.iloc[p]
+            if pd.notna(v):
+                next_val = v
+                break
+
+        if prev_val is not None and next_val is not None:
+            rpm.at[idx] = round((prev_val + next_val) / 2)
+        elif prev_val is not None:
+            rpm.at[idx] = prev_val
+        elif next_val is not None:
+            rpm.at[idx] = next_val
+        # sinon on laisse NaN
+
+        if pd.notna(rpm.at[idx]):
+            filled += 1
+
+    df["rpm"] = rpm
+    return df, len(missing_idx), filled
+
+
+def main():
+    # ── Vérifications ─────────────────────────────────────────────────────────
+    if not CSV_PATH.exists():
+        print(f"Erreur : fichier CSV introuvable → {CSV_PATH}")
+        sys.exit(1)
+
+    images = sorted([
+        f for f in SCRIPT_DIR.iterdir()
+        if f.suffix.lower() in SUPPORTED_EXTENSIONS
+    ])
+    if not images:
+        print(f"Aucune image trouvée dans {SCRIPT_DIR}")
+        sys.exit(1)
+
+    print(f"{len(images)} images trouvées.\n")
+
+    # ── Chargement du CSV ──────────────────────────────────────────────────────
+    df = pd.read_csv(CSV_PATH)
+
+    if "Time" not in df.columns:
+        print(f"Erreur : colonne 'Time' absente dans {CSV_PATH}")
+        print(f"Colonnes disponibles : {list(df.columns)}")
+        sys.exit(1)
+
+    df["_time_hms"] = df["Time"].astype(str).str[:8]  # '18:16:16'
+
+    if "rpm" not in df.columns:
+        df["rpm"] = pd.NA
+
+    # ── Lecture des RPM ────────────────────────────────────────────────────────
+    client = anthropic.Anthropic()  # utilise ANTHROPIC_API_KEY
+
+    unreadable = 0
+
+    for i, img_path in enumerate(images, 1):
+        try:
+            img_time = parse_image_time(img_path.name)
+        except ValueError as e:
+            print(f"[{i}/{len(images)}] {img_path.name} → IGNORÉ ({e})")
+            continue
+
+        print(f"[{i}/{len(images)}] {img_path.name}  ({img_time})", end=" → ")
+
+        try:
+            b64 = crop_to_base64(img_path)
+        except Exception as e:
+            print(f"Erreur lecture image : {e} → ignoré")
+            unreadable += 1
+            continue
+
+        rpm = read_rpm(client, b64)
+
+        mask = df["_time_hms"] == img_time
+
+        if rpm is None:
+            print(f"illisible (sera interpolé)")
+            unreadable += 1
+            # On laisse NaN sur les lignes correspondantes
+        else:
+            df.loc[mask, "rpm"] = rpm
+            print(f"{int(rpm)} RPM  ({mask.sum()} ligne(s) mise(s) à jour)")
+
+    # ── Interpolation des valeurs manquantes ───────────────────────────────────
+    print(f"\n── Interpolation ──────────────────────────────────────")
+    print(f"Images illisibles : {unreadable}/{len(images)}")
+
+    df, total_missing, filled = interpolate_rpm(df)
+
+    print(f"Valeurs interpolées : {filled}/{total_missing}")
+    if total_missing - filled > 0:
+        print(f"Valeurs restées NaN : {total_missing - filled} (pas de voisins disponibles)")
+
+    # ── Sauvegarde ─────────────────────────────────────────────────────────────
+    df.drop(columns=["_time_hms"], inplace=True)
+    df.to_csv(CSV_PATH, index=False)
+    print(f"\nTerminé ! CSV mis à jour : {CSV_PATH}")
+
+
+if __name__ == "__main__":
+    main()

@@ -167,7 +167,8 @@ function main()
     sort!(merged, :_sort_key_)
 
     # ── Dédoublonnage (supprime les timestamps en double) ─────────────────────
-    unique!(merged, :_datetime_)
+    cols_comparaison = setdiff(names(merged), ["id", "Time", "_datetime_", "_sort_key_"])
+    unique!(merged, cols_comparaison)
 
     doublons = total_avant - nrow(merged)
     if doublons > 0
