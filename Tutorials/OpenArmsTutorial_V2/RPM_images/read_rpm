@@ -1,13 +1,13 @@
 """
 read_rpm.py
 -----------
-Lit automatiquement la valeur RPM sur chaque image du dossier RPM_images,
-via l'API Claude Vision, puis écrit les valeurs dans la colonne "rpm"
-du fichier ../merged_output.csv en faisant correspondre les timestamps.
+Lit automatiquement la valeur RPM sur chaque image du dossier RPM_images
+via OpenCV (détection d'aiguille par seuillage + PCA), puis écrit les
+valeurs dans la colonne "rpm" de ../merged_output.csv en faisant
+correspondre les timestamps.
 
-Les images illisibles (personne devant, mauvaise luminosité, etc.) sont
-marquées NaN, puis interpolées en fin de traitement par la moyenne
-du voisin immédiat avant et après.
+Les images illisibles sont marquées NaN puis interpolées en fin de
+traitement (moyenne voisin avant + voisin après).
 
 Structure attendue :
     OpenArmsTutorial_V2/
@@ -18,119 +18,128 @@ Structure attendue :
         └── ...
 
 Prérequis :
-    pip install anthropic pillow pandas
+    pip install opencv-python-headless pillow pandas numpy
 
 Usage (depuis le dossier RPM_images) :
     python read_rpm.py
 """
 
-import anthropic
-import base64
-import io
 import re
 import sys
 from pathlib import Path
 
+import cv2
+import numpy as np
 import pandas as pd
-from PIL import Image
 
-# ── Chemins ──────────────────────────────────────────────────────────────────
-SCRIPT_DIR = Path(__file__).parent                    # RPM_images/
-CSV_PATH   = SCRIPT_DIR.parent / "merged_output.csv"  # OpenArmsTutorial_V2/merged_output.csv
+# ── Chemins ───────────────────────────────────────────────────────────────────
+SCRIPT_DIR = Path(__file__).parent
+CSV_PATH   = SCRIPT_DIR.parent / "merged_output.csv"
 
-# ── Coordonnées du cadran RPM (image 640x480, caméra fixe) ───────────────────
-CROP = {"x": 0, "y": 245, "w": 190, "h": 235}
+# ── Paramètres du cadran RPM (image 640x480, caméra fixe) ────────────────────
+CROP        = (0, 245, 190, 235)   # (x, y, w, h) dans l'image originale
+CENTER      = (95, 130)            # centre de l'aiguille dans le crop
+RADIUS      = 80                   # rayon utile du cadran (px)
+HUB_RADIUS  = 15                   # rayon du moyeu à ignorer (px)
+ANGLE_0     = 220                  # angle opencv (°) correspondant à 0 RPM
+ANGLE_500   = 320                  # angle opencv (°) correspondant à 500 RPM
+RPM_MIN     = 0
+RPM_MAX     = 500
 
-SUPPORTED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".webp"}
-
-
-def parse_image_time(filename: str) -> str:
-    """'captura_18-04-47.jpg' → '18:04:47'"""
-    match = re.search(r'(\d{2})-(\d{2})-(\d{2})', filename)
-    if not match:
-        raise ValueError(f"Impossible d'extraire l'heure depuis : {filename}")
-    return f"{match.group(1)}:{match.group(2)}:{match.group(3)}"
+SUPPORTED_EXT = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".webp"}
 
 
-def crop_to_base64(image_path: Path) -> str:
-    """Rogne sur le cadran RPM et encode en base64 JPEG."""
-    with Image.open(image_path) as img:
-        x, y, w, h = CROP["x"], CROP["y"], CROP["w"], CROP["h"]
-        cropped = img.crop((x, y, x + w, y + h))
-        buf = io.BytesIO()
-        cropped.save(buf, format="JPEG", quality=90)
-        return base64.standard_b64encode(buf.getvalue()).decode("utf-8")
+# ── Détection RPM ─────────────────────────────────────────────────────────────
 
-
-def read_rpm(client: anthropic.Anthropic, image_b64: str) -> float | None:
+def detect_rpm(image_path: Path) -> float | None:
     """
-    Envoie l'image à Claude Vision.
-    Retourne un float si la valeur est lisible, None sinon.
+    Lit la valeur RPM sur une image via OpenCV.
+    Retourne un float ou None si la lecture est impossible.
     Ne lève jamais d'exception.
     """
     try:
-        msg = client.messages.create(
-            model="claude-opus-4-5",
-            max_tokens=64,
-            messages=[{
-                "role": "user",
-                "content": [
-                    {
-                        "type": "image",
-                        "source": {"type": "base64", "media_type": "image/jpeg", "data": image_b64},
-                    },
-                    {
-                        "type": "text",
-                        "text": (
-                            "This is a cropped analog RPM gauge on a boat engine. "
-                            "Read the value the needle points to. "
-                            "Reply with ONLY an integer. "
-                            "If the gauge is obstructed, too dark, blurry, or unreadable for any reason, "
-                            "reply with exactly: NULL"
-                        ),
-                    },
-                ],
-            }],
-        )
-        raw = msg.content[0].text.strip()
-        if raw.upper() == "NULL":
+        img = cv2.imread(str(image_path))
+        if img is None:
             return None
-        return float(re.sub(r"[^\d.]", "", raw))  # extrait le nombre même si Claude ajoute du texte
-    except Exception as e:
-        print(f"(erreur API : {e})", end=" ")
+
+        x, y, w, h = CROP
+        crop = img[y:y+h, x:x+w]
+        cx, cy = CENTER
+
+        gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
+
+        # Masque : intérieur du cadran uniquement
+        mask = np.zeros_like(gray)
+        cv2.circle(mask, (cx, cy), RADIUS, 255, -1)
+        gray_m = cv2.bitwise_and(gray, gray, mask=mask)
+
+        # Seuillage adaptatif (robuste aux variations de luminosité)
+        blur = cv2.GaussianBlur(gray_m, (5, 5), 0)
+        _, thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+        thresh = cv2.bitwise_and(thresh, thresh, mask=mask)
+
+        # Supprimer le moyeu et le bord extérieur
+        cv2.circle(thresh, (cx, cy), HUB_RADIUS, 0, -1)
+        border = np.zeros_like(thresh)
+        cv2.circle(border, (cx, cy), RADIUS - 5, 255, -1)
+        thresh = cv2.bitwise_and(thresh, border)
+
+        points = np.column_stack(np.where(thresh > 0))
+        if len(points) < 20:
+            return None
+
+        # PCA → direction principale de l'aiguille
+        data = points[:, ::-1].astype(np.float32)  # (col, row) = (x, y)
+        mean, eigvecs = cv2.PCACompute(data, mean=None)
+
+        angle1 = np.degrees(np.arctan2(eigvecs[0, 1], eigvecs[0, 0]))
+        angle2 = angle1 + 180
+
+        # Choisir la direction qui s'éloigne du centre
+        mx, my = float(mean[0, 0]), float(mean[0, 1])
+        dx, dy = mx - cx, my - cy
+        dot1 = dx * np.cos(np.radians(angle1)) + dy * np.sin(np.radians(angle1))
+        dot2 = dx * np.cos(np.radians(angle2)) + dy * np.sin(np.radians(angle2))
+        needle_angle = (angle1 if dot1 > dot2 else angle2) % 360
+
+        # Mapping linéaire angle → RPM
+        a_min, a_max = ANGLE_0, ANGLE_500
+        if a_max < a_min:           # wrap-around 360°
+            if needle_angle < a_min:
+                needle_angle += 360
+            a_max += 360
+        ratio = (needle_angle - a_min) / (a_max - a_min)
+        ratio = max(0.0, min(1.0, ratio))
+        rpm = RPM_MIN + ratio * (RPM_MAX - RPM_MIN)
+
+        return round(rpm)
+
+    except Exception:
         return None
 
 
-def interpolate_rpm(df: pd.DataFrame) -> pd.DataFrame:
+# ── Interpolation ─────────────────────────────────────────────────────────────
+
+def interpolate_missing(df: pd.DataFrame) -> tuple[pd.DataFrame, int, int]:
     """
-    Pour chaque valeur rpm manquante (NaN), remplace par la moyenne
-    du voisin immédiat avant et du voisin immédiat après dans le CSV.
-    Si un seul voisin existe (début ou fin de fichier), utilise celui-là.
-    Si aucun voisin n'existe, laisse NaN.
+    Remplace les NaN de la colonne 'rpm' par la moyenne du voisin
+    valide immédiat avant et après. Retourne (df, total_manquants, remplis).
     """
     rpm = df["rpm"].copy()
     missing_idx = rpm[rpm.isna()].index
-
     filled = 0
+
     for idx in missing_idx:
         pos = df.index.get_loc(idx)
 
-        prev_val = None
-        next_val = None
-
-        # cherche le voisin valide avant
-        for p in range(pos - 1, -1, -1):
-            v = rpm.iloc[p]
-            if pd.notna(v):
-                prev_val = v
-                break
-
-        # cherche le voisin valide après
-        for p in range(pos + 1, len(rpm)):
-            v = rpm.iloc[p]
-            if pd.notna(v):
-                next_val = v
-                break
+        prev_val = next(
+            (rpm.iloc[p] for p in range(pos - 1, -1, -1) if pd.notna(rpm.iloc[p])),
+            None
+        )
+        next_val = next(
+            (rpm.iloc[p] for p in range(pos + 1, len(rpm)) if pd.notna(rpm.iloc[p])),
+            None
+        )
 
         if prev_val is not None and next_val is not None:
             rpm.at[idx] = round((prev_val + next_val) / 2)
@@ -138,7 +147,6 @@ def interpolate_rpm(df: pd.DataFrame) -> pd.DataFrame:
             rpm.at[idx] = prev_val
         elif next_val is not None:
             rpm.at[idx] = next_val
-        # sinon on laisse NaN
 
         if pd.notna(rpm.at[idx]):
             filled += 1
@@ -147,15 +155,26 @@ def interpolate_rpm(df: pd.DataFrame) -> pd.DataFrame:
     return df, len(missing_idx), filled
 
 
+# ── Utilitaires ───────────────────────────────────────────────────────────────
+
+def parse_image_time(filename: str) -> str:
+    """'captura_18-04-47.jpg' → '18:04:47'"""
+    m = re.search(r'(\d{2})-(\d{2})-(\d{2})', filename)
+    if not m:
+        raise ValueError(f"Heure introuvable dans : {filename}")
+    return f"{m.group(1)}:{m.group(2)}:{m.group(3)}"
+
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+
 def main():
-    # ── Vérifications ─────────────────────────────────────────────────────────
     if not CSV_PATH.exists():
-        print(f"Erreur : fichier CSV introuvable → {CSV_PATH}")
+        print(f"Erreur : CSV introuvable → {CSV_PATH}")
         sys.exit(1)
 
     images = sorted([
         f for f in SCRIPT_DIR.iterdir()
-        if f.suffix.lower() in SUPPORTED_EXTENSIONS
+        if f.suffix.lower() in SUPPORTED_EXT
     ])
     if not images:
         print(f"Aucune image trouvée dans {SCRIPT_DIR}")
@@ -163,21 +182,14 @@ def main():
 
     print(f"{len(images)} images trouvées.\n")
 
-    # ── Chargement du CSV ──────────────────────────────────────────────────────
     df = pd.read_csv(CSV_PATH)
-
     if "Time" not in df.columns:
-        print(f"Erreur : colonne 'Time' absente dans {CSV_PATH}")
-        print(f"Colonnes disponibles : {list(df.columns)}")
+        print(f"Erreur : colonne 'Time' absente. Colonnes : {list(df.columns)}")
         sys.exit(1)
 
-    df["_time_hms"] = df["Time"].astype(str).str[:8]  # '18:16:16'
-
+    df["_time_hms"] = df["Time"].astype(str).str[:8]   # '18:16:16'
     if "rpm" not in df.columns:
         df["rpm"] = pd.NA
-
-    # ── Lecture des RPM ────────────────────────────────────────────────────────
-    client = anthropic.Anthropic()  # utilise ANTHROPIC_API_KEY
 
     unreadable = 0
 
@@ -190,36 +202,25 @@ def main():
 
         print(f"[{i}/{len(images)}] {img_path.name}  ({img_time})", end=" → ")
 
-        try:
-            b64 = crop_to_base64(img_path)
-        except Exception as e:
-            print(f"Erreur lecture image : {e} → ignoré")
-            unreadable += 1
-            continue
-
-        rpm = read_rpm(client, b64)
-
+        rpm = detect_rpm(img_path)
         mask = df["_time_hms"] == img_time
 
         if rpm is None:
-            print(f"illisible (sera interpolé)")
+            print("illisible (sera interpolé)")
             unreadable += 1
-            # On laisse NaN sur les lignes correspondantes
         else:
             df.loc[mask, "rpm"] = rpm
-            print(f"{int(rpm)} RPM  ({mask.sum()} ligne(s) mise(s) à jour)")
+            print(f"{rpm} RPM  ({mask.sum()} ligne(s) mise(s) à jour)")
 
-    # ── Interpolation des valeurs manquantes ───────────────────────────────────
-    print(f"\n── Interpolation ──────────────────────────────────────")
+    # Interpolation
+    print(f"\n── Interpolation ────────────────────────────────────")
     print(f"Images illisibles : {unreadable}/{len(images)}")
-
-    df, total_missing, filled = interpolate_rpm(df)
-
+    df, total_missing, filled = interpolate_missing(df)
     print(f"Valeurs interpolées : {filled}/{total_missing}")
-    if total_missing - filled > 0:
-        print(f"Valeurs restées NaN : {total_missing - filled} (pas de voisins disponibles)")
+    remaining = total_missing - filled
+    if remaining:
+        print(f"Valeurs restées NaN : {remaining} (pas de voisins disponibles)")
 
-    # ── Sauvegarde ─────────────────────────────────────────────────────────────
     df.drop(columns=["_time_hms"], inplace=True)
     df.to_csv(CSV_PATH, index=False)
     print(f"\nTerminé ! CSV mis à jour : {CSV_PATH}")
