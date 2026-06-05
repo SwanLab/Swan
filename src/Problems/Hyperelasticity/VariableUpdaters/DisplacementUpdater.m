@@ -21,7 +21,7 @@ classdef DisplacementUpdater < handle
                 [LHSSec,LHSTan] = obj.functional.computeHessian(u);
                 RHS = obj.functional.computeGradient(u,bc);
 
-                u.setFValues(obj.computeDisplacement(LHSSec,RHS,u,bc));
+                u.setFValues(obj.computeDisplacement(LHSTan,RHS,u,bc));
 
                 [err, cost] = obj.computeErrorCost(u,bc,costOld);
                 costArray(end+1) = cost;
@@ -33,8 +33,9 @@ classdef DisplacementUpdater < handle
                 % obj.monitor.refresh(); 
                 
                 % Display the norm of the residual of the RHS
-                normRHS = norm(RHS);
-                fprintf('Iteration %d: Residual Norm = %.4e\n', i, normRHS);
+                [LHSRed,RHSRed] = fullToReduced(obj,LHSTan,RHS,bc);
+                normRHS = norm(RHSRed);
+                fprintf('Iteration %d: Reduced Residual Norm = %.4e\n', i, normRHS);
             end
 
             rFun = obj.computeReactions(LHSSec,u,bc);

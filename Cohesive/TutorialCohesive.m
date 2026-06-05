@@ -48,10 +48,7 @@ classdef TutorialCohesive < handle
         function init(obj)
            
             obj.inputData.young     = 120e9;
-            obj.inputData.Kcoh      = 3e15;
             obj.inputData.poisson   = 0.2;
-    
-            obj.inputData.bcValues = 0:0.00001:0.004;
     
             obj.inputData.lawType = 'TractionBiliniarCoupled';
             
@@ -63,16 +60,30 @@ classdef TutorialCohesive < handle
             obj.inputData.eta              = 2;
                         
             % NO TURON
-            obj.inputData.jumpCrit         = 0.001;
-            obj.inputData.jumpFinal        = 0.2;
-        
-            obj.inputData.problemType = 'DoubleCantileverBeam';
-            obj.inputData.l = 0.103;
-            obj.inputData.h = 3.12e-3;
-            obj.inputData.yCohLine = 0.5*3.12e-3;
-            obj.inputData.xCohLineMax = 72e-3;
-            obj.inputData.nx = 100;
-            obj.inputData.ny = 10;
+            obj.inputData.jumpCrit         = 1.25e-7;
+            obj.inputData.jumpFinal        = 0.025e-3;
+
+            % UnitElem
+            obj.inputData.Kcoh      = 3e13;
+            obj.inputData.bcValues = 0:0.000001:0.4;
+            obj.inputData.problemType = 'DisplacementTractionY';
+            obj.inputData.l = 1;
+            obj.inputData.h = 1;
+            obj.inputData.yCohLine = 0;
+            obj.inputData.xCohLineMax = 1000;
+            obj.inputData.nx = 1;
+            obj.inputData.ny = 1;
+
+            % % DCB
+            % obj.inputData.Kcoh      = 3e13;
+            % obj.inputData.bcValues = 0:0.00001:0.004;
+            % obj.inputData.problemType = 'DoubleCantileverBeam';
+            % obj.inputData.l = 0.103;
+            % obj.inputData.h = 3.12e-3;
+            % obj.inputData.yCohLine = 0.5*3.12e-3;
+            % obj.inputData.xCohLineMax = 72e-3;
+            % obj.inputData.nx = 100;
+            % obj.inputData.ny = 10;
         end
     
         function createMesh(obj)
@@ -94,15 +105,7 @@ classdef TutorialCohesive < handle
         end
 
         function createTractionSeparation(obj)
-            s.tau0Normal          = obj.inputData.tau0Normal;
-            s.tau0Shear           = obj.inputData.tau0Shear;
-            s.firstCritEnergy     = obj.inputData.firstCritEnergy;
-            s.secondCritEnergy    = obj.inputData.secondCritEnergy;
-            s.eta                 = obj.inputData.eta;
-            s.Kcoh                = obj.inputData.Kcoh;
-            s.lawType = obj.inputData.lawType;
-            % s.lawType = 'TractionBiliniarUncoupled';
-
+            s = obj.inputData;
             obj.tractionSeparation = CohesiveTractionSeparation(s);
         end
 
@@ -123,7 +126,7 @@ classdef TutorialCohesive < handle
             k.young   = ConstantFunction.create(obj.inputData.young,obj.cohesiveMesh.fullMesh);
             k.poisson = ConstantFunction.create(obj.inputData.poisson, obj.cohesiveMesh.fullMesh);
             k.cohesiveMesh = obj.cohesiveMesh;
-            m    = Material.create(k);
+            m  = Material.create(k);
             m.setCohesiveMesh(obj.cohesiveMesh);
         end
 
