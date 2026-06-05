@@ -113,37 +113,34 @@ classdef Tutorial13_Hyperelasticity < handle
             sR.connec    = EIFEoper.MESH.CN;
             sR.interType = 'QUADRATIC';
 
-            % CANVI 1: Correcció nodes cantonada (copiat de TutorialEIFEM.createReferenceMesh)
-            tol = 1e-8;
-            xmax = max(sR.coord(:,1)); xmin = min(sR.coord(:,1));
-            ymax = max(sR.coord(:,2)); ymin = min(sR.coord(:,2));
-
-            %DEBUG
-            disp('Coordenades màximes i mínimes:')
-            disp([xmax xmin ymax ymin])
-            disp('Nombre de nodes trobats per cada màscara:')
-            mask1 = abs(sR.coord(:,1) - xmax) < tol & abs(sR.coord(:,2) - ymax) < tol;
-            mask2 = abs(sR.coord(:,1) - xmax) < tol & abs(sR.coord(:,2) - ymin) < tol;
-            mask3 = abs(sR.coord(:,1) - xmin) < tol & abs(sR.coord(:,2) - ymax) < tol;
-            mask4 = abs(sR.coord(:,1) - xmin) < tol & abs(sR.coord(:,2) - ymin) < tol;
-            disp([sum(mask1) sum(mask2) sum(mask3) sum(mask4)])
-            %
-            
-            mask = abs(sR.coord(:,1) - xmax) < tol & abs(sR.coord(:,2) - ymax) < tol;
-            sR.coord(mask, :) = sR.coord(mask, :) - [1e-9, 0];
-            
-            mask = abs(sR.coord(:,1) - xmax) < tol & abs(sR.coord(:,2) - ymin) < tol;
-            sR.coord(mask, :) = sR.coord(mask, :) - [1e-9, 0];
-            
-            mask = abs(sR.coord(:,1) - xmin) < tol & abs(sR.coord(:,2) - ymax) < tol;
-            sR.coord(mask, :) = sR.coord(mask, :) + [1e-9, 0];
-            
-            mask = abs(sR.coord(:,1) - xmin) < tol & abs(sR.coord(:,2) - ymin) < tol;
-            sR.coord(mask, :) = sR.coord(mask, :) + [1e-9, 0];
-            % FI CANVI 1
-
-            disp('Nodes de cantonada després del desplaçament:')
-            disp(sR.coord(mask,:))
+            % % CANVI 1: Correcció nodes cantonada (copiat de TutorialEIFEM.createReferenceMesh)
+            % tol = 1e-8;
+            % xmax = max(sR.coord(:,1)); xmin = min(sR.coord(:,1));
+            % ymax = max(sR.coord(:,2)); ymin = min(sR.coord(:,2));
+            % 
+            % %DEBUG
+            % disp('Coordenades màximes i mínimes:')
+            % disp([xmax xmin ymax ymin])
+            % disp('Nombre de nodes trobats per cada màscara:')
+            % mask1 = abs(sR.coord(:,1) - xmax) < tol & abs(sR.coord(:,2) - ymax) < tol;
+            % mask2 = abs(sR.coord(:,1) - xmax) < tol & abs(sR.coord(:,2) - ymin) < tol;
+            % mask3 = abs(sR.coord(:,1) - xmin) < tol & abs(sR.coord(:,2) - ymax) < tol;
+            % mask4 = abs(sR.coord(:,1) - xmin) < tol & abs(sR.coord(:,2) - ymin) < tol;
+            % disp([sum(mask1) sum(mask2) sum(mask3) sum(mask4)])
+            % %
+            % 
+            % mask = abs(sR.coord(:,1) - xmax) < tol & abs(sR.coord(:,2) - ymax) < tol;
+            % sR.coord(mask, :) = sR.coord(mask, :) - [1e-9, 0];
+            % 
+            % mask = abs(sR.coord(:,1) - xmax) < tol & abs(sR.coord(:,2) - ymin) < tol;
+            % sR.coord(mask, :) = sR.coord(mask, :) - [1e-9, 0];
+            % 
+            % mask = abs(sR.coord(:,1) - xmin) < tol & abs(sR.coord(:,2) - ymax) < tol;
+            % sR.coord(mask, :) = sR.coord(mask, :) + [1e-9, 0];
+            % 
+            % mask = abs(sR.coord(:,1) - xmin) < tol & abs(sR.coord(:,2) - ymin) < tol;
+            % sR.coord(mask, :) = sR.coord(mask, :) + [1e-9, 0];
+            % % FI CANVI 1            
 
             obj.referenceMesh = Mesh.create(sR);
         
@@ -154,10 +151,7 @@ classdef Tutorial13_Hyperelasticity < handle
             s.tolSameNode   = obj.tolSameNode;
         
             m = MeshCreatorFromRVE.create(s);
-
-            disp('tolSameNode:')
-            disp(obj.tolSameNode)   
-
+ 
             [obj.mesh,~,obj.iC,~,obj.lG,obj.iCR,obj.discMesh] = m.create();
 
         end
