@@ -39,9 +39,9 @@ classdef CohesiveComputer < handle
             nSteps = length(obj.boundaryConditions.bcValues);
             for iStep = 1:nSteps
 
-                if iStep == divergentStep
-                keyboard
-                end
+                % if iStep == divergentStep
+                % keyboard
+                % end
 
                 [u,bc] = obj.preprocess(iStep,nSteps,u);
                 [u,F,cost,iterMax] = obj.updater.update(u,bc,cost);

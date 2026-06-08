@@ -64,8 +64,8 @@ classdef TutorialCohesive < handle
             obj.inputData.jumpFinal        = 0.025e-3;
 
             % UnitElem
-            obj.inputData.Kcoh      = 3e12;
-            obj.inputData.bcValues = 0:0.000001:0.4;
+            obj.inputData.Kcoh        = 3e12;
+            obj.inputData.bcValues    = 0:0.000001:0.4;
             obj.inputData.problemType = 'DisplacementTractionY';
             obj.inputData.l = 1;
             obj.inputData.h = 1;
@@ -75,8 +75,8 @@ classdef TutorialCohesive < handle
             obj.inputData.ny = 1;
 
             % % DCB
-            % obj.inputData.Kcoh      = 3e13;
-            % obj.inputData.bcValues = 0:0.00001:0.004;
+            % obj.inputData.Kcoh      = 3e12;
+            % obj.inputData.bcValues = 0:0.00001:0.008;
             % obj.inputData.problemType = 'DoubleCantileverBeam';
             % obj.inputData.l = 0.103;
             % obj.inputData.h = 3.12e-3;
