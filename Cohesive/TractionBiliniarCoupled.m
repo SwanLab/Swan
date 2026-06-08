@@ -183,6 +183,8 @@ classdef TractionBiliniarCoupled < handle
             jump0  = sqrt(obj.jump0Normal.^2 + (obj.jump0Shear.^2 - obj.jump0Normal.^2).*B.^obj.eta);
             jumpFinal = (obj.jump0Normal*obj.jumpFinalNormal + ...
                 (obj.jump0Shear*obj.jumpFinalShear - obj.jump0Normal*obj.jumpFinalNormal).*B.^obj.eta)./jump0;
+
+            jumpFinal = jump0 *100;
         end
             % jumpNorm = 1xngaussxnelem | jumpshear = 1xngaussxnelem | B = 1xngaussxnelem 
         function B = computeMixedModeRatio(~,jump,lambda) 

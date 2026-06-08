@@ -67,13 +67,13 @@ classdef QuadratureLine < Quadrature
                     
                 case {103}
                     obj.ngaus = 3;
-                    obj.weigp = [-1,0,1];
-                    obj.posgp = [1/3,4/3,1/3];
+                    obj.weigp  = [1/3, 4/3, 1/3];
+                    obj.posgp  = [-1, 0, 1];
                 
                 case {102}
                     obj.ngaus = 2;
-                    obj.weigp = [-1,1];
-                    obj.posgp = [1,1];
+                    obj.weigp  = [1, 1];
+                    obj.posgp  = [-1, 1];
 
                 otherwise
                     error('Quadrature not implemented for line elements')
