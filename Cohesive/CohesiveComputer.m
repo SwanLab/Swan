@@ -34,8 +34,15 @@ classdef CohesiveComputer < handle
             u = LagrangianFunction.create(obj.mesh,2,'P1');
             cost = 0;
 
+            divergentStep = 125;
+
             nSteps = length(obj.boundaryConditions.bcValues);
             for iStep = 1:nSteps
+
+                if iStep == divergentStep
+                keyboard
+                end
+
                 [u,bc] = obj.preprocess(iStep,nSteps,u);
                 [u,F,cost,iterMax] = obj.updater.update(u,bc,cost);
                 obj.postprocess(iStep,u,F,cost,iterMax)

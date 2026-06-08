@@ -40,9 +40,9 @@ classdef TractionBiliniarCoupled < handle
                 [j0, jF] = obj.computeJumpLimits(jump,lambda);
                 ddot = j0 .* jF ./ ((jF-j0) .*lambda.^3);
                 d    =  obj.computeDamage(jump); % 1 x ngauss x nelem
-                % fprintf('lambda = %.3e\n', lambda.evaluate([-1,1]));
-                % fprintf('j0     = %.3e\n', j0.evaluate([-1,1]));
-                % fprintf('jF     = %.3e\n', jF.evaluate([-1,1]));
+                fprintf('lambda = %.3e\n', lambda.evaluate([-1,1]));
+                fprintf('j0     = %.3e\n', j0.evaluate([-1,1]));
+                fprintf('jF     = %.3e\n', jF.evaluate([-1,1]));
                 fprintf('d      = %.3e\n', max(d.evaluate([-1,1])));
             % =================================
 
