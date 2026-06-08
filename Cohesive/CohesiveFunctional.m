@@ -49,8 +49,8 @@ classdef CohesiveFunctional < handle
             KSec   = Kelas+KcohSec;
         end
 
-        function updateLambdaOld(obj)
-            obj.functionals.cohesive.updateLambdaOld();
+        function updateDamageOld(obj,u)
+            obj.functionals.cohesive.updateDamageOld(u);
         end
        
     end

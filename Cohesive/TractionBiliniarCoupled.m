@@ -14,6 +14,7 @@ classdef TractionBiliniarCoupled < handle
 
     properties (Access = private)
         K
+        dOld
     end
     
     methods (Access = public)
@@ -39,10 +40,10 @@ classdef TractionBiliniarCoupled < handle
                 [j0, jF] = obj.computeJumpLimits(jump,lambda);
                 ddot = j0 .* jF ./ ((jF-j0) .*lambda.^3);
                 d    =  obj.computeDamage(jump); % 1 x ngauss x nelem
-                fprintf('lambda = %.3e\n', lambda.evaluate([-1,1]));
-                fprintf('j0     = %.3e\n', j0.evaluate([-1,1]));
-                fprintf('jF     = %.3e\n', jF.evaluate([-1,1]));
-                fprintf('d      = %.3e\n', d.evaluate([-1,1]));
+                % fprintf('lambda = %.3e\n', lambda.evaluate([-1,1]));
+                % fprintf('j0     = %.3e\n', j0.evaluate([-1,1]));
+                % fprintf('jF     = %.3e\n', jF.evaluate([-1,1]));
+                fprintf('d      = %.3e\n', max(d.evaluate([-1,1])));
             % =================================
 
 
@@ -56,7 +57,12 @@ classdef TractionBiliniarCoupled < handle
             lambda = obj.computeJumpNorm(jump);
             [j0, jF] = obj.computeJumpLimits(jump,lambda);
             d = (jF .* (lambda - j0)) ./ (lambda .* (jF - j0)) ;
-            d = max(min(d,1),0);
+            d = max(min(d,1),obj.dOld);
+            obj.dOld = d.evaluate([-1,1]);
+        end
+
+        function updateDamageOld(obj,jump)
+            obj.dOld = obj.computeDamage(jump);
         end
 
     end
@@ -76,6 +82,8 @@ classdef TractionBiliniarCoupled < handle
 
             obj.jumpFinalNormal = 2*obj.firstCritEnergy  / obj.tau0Normal;
             obj.jumpFinalShear  = 2*obj.secondCritEnergy / obj.tau0Shear;
+
+            obj.dOld = 0;
         end
 
         function ddot = computeDamageDerivative(obj,jump)

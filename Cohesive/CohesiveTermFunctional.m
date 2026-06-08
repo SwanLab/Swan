@@ -40,8 +40,9 @@ classdef CohesiveTermFunctional < handle
             Ktan = obj.computeDerivativeTangent(obj.jump.fun,quadOrder);
         end
 
-        function updateLambdaOld(obj)
-            obj.tractionSeparation.updateLambdaOld();
+        function updateDamageOld(obj,jump)
+            obj.jump.updateJumpValues(jump);
+            obj.tractionSeparation.updateDamageOld(obj.jump.fun);
         end
     end
     

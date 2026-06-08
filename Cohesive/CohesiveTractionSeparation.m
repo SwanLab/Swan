@@ -27,8 +27,8 @@ classdef CohesiveTractionSeparation < handle
             dmgValues = obj.law.computeDamage(jump);
         end
 
-        function updateLambdaOld(obj)
-            obj.law.updateLambdaOld();
+        function updateDamageOld(obj,jump)
+            obj.law.updateDamageOld(jump);
         end
 
     end
