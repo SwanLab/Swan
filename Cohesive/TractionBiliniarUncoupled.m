@@ -21,37 +21,14 @@ classdef TractionBiliniarUncoupled < handle
             d = obj.computeDamage(jump);
             dtSec = (1-d).*obj.K.*eye(2);
 
-            % unoZero = ConstantFunction.create([1,0],jump.mesh);
-            % zeroUno = ConstantFunction.create([0,1],jump.mesh);
-            % dtdt = obj.K * (1 - DP(d,unoZero)); 
-            % dndn = obj.K * (1 - DP(d,zeroUno));
-            % dtdt = dtdt.evaluate([-1,1]);
-            % dndn = dndn.evaluate([-1,1]);
-            % ngauss = size(dtdt,3); 
-            % nelem  = size(dtdt,4);
-            % gradT =  [dtdt                   ,zeros(1,1,ngauss,nelem);
-            %           zeros(1,1,ngauss,nelem),dndn                  ];
         end
 
         function dtTan = computeDerivativeTangent(obj, jump) %2 x 2 x ngauss x nelem
             d    = obj.computeDamage(jump);             % 2 x ngauss x nelem
             ddot = obj.computeDamageDerivative(jump);   % 2 x ngauss x nelem
             dtSec = (1-d).*obj.K.*eye(2);
-            dtTan = dtSec - ddot.*squeezeParticular(kronProd(Expand(jump,2),Expand(jump,2),[1 2 3 4]),[1 2 3 4]);
-        
-            % unoZero = ConstantFunction.create([1,0],jump.mesh);
-            % zeroUno = ConstantFunction.create([0,1],jump.mesh);
-            % dtdt = obj.K * Expand((1-DP(d,unoZero)),2) - Expand(DP(ddot,unoZero).*DP(jump,unoZero),2); 
-            % dndn = obj.K * Expand((1-DP(d,zeroUno)),2) - Expand(DP(ddot,zeroUno).*DP(jump,zeroUno),2);
-            % dtdt = dtdt.evaluate([-1,1]);
-            % dndn = dndn.evaluate([-1,1]);
-            % ngauss = size(dtdt,3); 
-            % nelem  = size(dtdt,4);
-            % dtdt = reshape(dtdt,1,1,ngauss,nelem); % 1 x 1 x ngauss x nelem
-            % dndn = reshape(dndn,1,1,ngauss,nelem); % 1 x 1 x ngauss x nelem
-            % %2 x 2 x ngauss x nelem
-            % gradT =  [dtdt                    ,zeros(1,1,ngauss,nelem);
-            %           zeros(1,1,ngauss,nelem), dndn                  ]; 
+            dtTan = dtSec - obj.K * ddot.*kronProd(jump,jump,[1 2]);
+
         end
 
         function d = computeDamage(obj,jump)

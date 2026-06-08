@@ -82,7 +82,7 @@ classdef CohesiveComputer < handle
             dFun = obj.computeDamageField(uFun);
             obj.printAndSave(iStep,uFun,dFun,uVal,fVal,cost(end),iterMax);
             % obj.data = [obj.data; fVal,dFun,uFun,uVal];
-            obj.data = [obj.data; fVal,uVal];
+            obj.data = [obj.data; fVal,uVal, dFun.fValues];
         end
 
         function [totReact,uBC] = computeTotalReaction(obj,step,F,u)

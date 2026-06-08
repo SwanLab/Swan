@@ -24,7 +24,7 @@ classdef CohesiveFunctional < handle
                 fExt.setFValues(reshape(vals,u.mesh.nnodes,u.mesh.ndim));
             end
             Eint = obj.functionals.energy.computeCost(u);
-            Ecoh = obj.functionals.cohesive.computeCost(u,102);
+            Ecoh = obj.functionals.cohesive.computeCost(u,obj.quadOrder);
             Wext = obj.functionals.extWork.computeCost(u,fExt,obj.quadOrder);
             Etot = Eint+Ecoh+Wext;
         end
@@ -37,14 +37,14 @@ classdef CohesiveFunctional < handle
                 fExt.setFValues(reshape(vals,u.mesh.nnodes,u.mesh.ndim));
             end
             Fint = obj.functionals.energy.computeGradient(u);
-            Fext = obj.functionals.extWork.computeGradient(u,fExt,102);
+            Fext = obj.functionals.extWork.computeGradient(u,fExt,obj.quadOrder);
             Fcoh = obj.functionals.cohesive.computeResidual(u,obj.quadOrder);
             RHS  = Fint-Fext+Fcoh;
         end
 
         function [KSec,KTan] = computeHessian(obj,u)
             Kelas = obj.functionals.energy.computeHessian();
-            [KcohSec, KcohTan]  = obj.functionals.cohesive.computeDerivativeResidual(u,102);
+            [KcohSec, KcohTan]  = obj.functionals.cohesive.computeDerivativeResidual(u,obj.quadOrder);
             KTan   = Kelas+KcohTan;
             KSec   = Kelas+KcohSec;
         end

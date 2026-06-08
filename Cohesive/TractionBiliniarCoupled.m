@@ -33,9 +33,23 @@ classdef TractionBiliniarCoupled < handle
         end
 
         function dtTan = computeDerivativeTangent(obj,jump)
+            
+            % Printing ========================
+                lambda = obj.computeJumpNorm(jump);
+                [j0, jF] = obj.computeJumpLimits(jump,lambda);
+                ddot = j0 .* jF ./ ((jF-j0) .*lambda.^3);
+                d    =  obj.computeDamage(jump); % 1 x ngauss x nelem
+                fprintf('lambda = %.3e\n', lambda.evaluate([-1,1]));
+                fprintf('j0     = %.3e\n', j0.evaluate([-1,1]));
+                fprintf('jF     = %.3e\n', jF.evaluate([-1,1]));
+                fprintf('d      = %.3e\n', d.evaluate([-1,1]));
+            % =================================
+
+
             ddot = obj.computeDamageDerivative(jump);   % 2 x ngauss x nelem
             dtSec = obj.computeDerivativeSecant(jump);
-            dtTan = dtSec - ddot.*kronProd(jump,jump,[1 2]);
+            dtTan = dtSec -  obj.K * ddot.*kronProd(jump,jump,[1 2]);
+
         end 
 
         function d = computeDamage(obj,jump)
@@ -68,11 +82,85 @@ classdef TractionBiliniarCoupled < handle
             lambda = obj.computeJumpNorm(jump);
             [j0, jF] = obj.computeJumpLimits(jump,lambda);
             ddot = j0 .* jF ./ ((jF-j0) .*lambda.^3);
- 
-            d    =  obj.computeDamage(jump); % 1 x ngauss x nelem
-            isNotFullyDamage = ( d < 1 );
-            ddot = ddot.* isNotFullyDamage;
+
+            isDamaging = ((lambda-j0).*(lambda-jF)) < 0;
+            ddot = ddot .* isDamaging;
         end
+
+        % function dd = computeDamageDerivative(obj,jump)
+        % 
+        %     lambda = obj.computeJumpNorm(jump);
+        %     [j0,jF] = obj.computeJumpLimits(jump,lambda);
+        % 
+        %     unoZero = ConstantFunction.create([1;0],jump.mesh);
+        %     zeroUno = ConstantFunction.create([0;1],jump.mesh);
+        % 
+        %     Dt = DP(jump.',unoZero);   % shear
+        %     Dn = DP(jump.',zeroUno);   % normal
+        % 
+        %     Dnp = max(Dn,0);
+        % 
+        %     dl_dDt = Dt./lambda;
+        %     dl_dDn = Dnp./lambda;
+        % 
+        %     B = (Dt./lambda).^2;
+        % 
+        %     dB_dDt = 2*Dt./lambda.^2 ...
+        %            - 2*Dt.^3./lambda.^4;
+        % 
+        %     dB_dDn = -2*Dt.^2 .* Dnp ./ lambda.^4;
+        % 
+        %     A0 = obj.jump0Shear.^2 - obj.jump0Normal.^2;
+        % 
+        %     dj0_dB = ...
+        %         (A0 .* obj.eta .* B.^(obj.eta-1)) ...
+        %         ./ (2*j0);
+        % 
+        %     dj0_dDt = dj0_dB .* dB_dDt;
+        %     dj0_dDn = dj0_dB .* dB_dDn;
+        % 
+        %     C0 = obj.jump0Normal*obj.jumpFinalNormal;
+        % 
+        %     C1 = obj.jump0Shear*obj.jumpFinalShear ...
+        %        - obj.jump0Normal*obj.jumpFinalNormal;
+        % 
+        %     N = C0 + C1.*B.^obj.eta;
+        % 
+        %     dN_dB = C1 .* obj.eta .* B.^(obj.eta-1);
+        % 
+        %     djF_dB = ...
+        %         (dN_dB .* j0 - N .* dj0_dB) ...
+        %         ./ (j0.^2);
+        % 
+        %     djF_dDt = djF_dB .* dB_dDt;
+        %     djF_dDn = djF_dB .* dB_dDn;
+        % 
+        %     dd_dlambda = ...
+        %         (j0 .* jF) ...
+        %         ./ ((jF-j0).*lambda.^2);
+        % 
+        %     dd_dj0 = ...
+        %         jF .* (lambda-jF) ...
+        %         ./ (lambda .* (jF-j0).^2);
+        % 
+        %     dd_djF = ...
+        %         j0 .* (j0-lambda) ...
+        %         ./ (lambda .* (jF-j0).^2);
+        % 
+        %     dd_dDt = ...
+        %         dd_dlambda .* dl_dDt + ...
+        %         dd_dj0     .* dj0_dDt + ...
+        %         dd_djF     .* djF_dDt;
+        % 
+        %     dd_dDn = ...
+        %         dd_dlambda .* dl_dDn + ...
+        %         dd_dj0     .* dj0_dDn + ...
+        %         dd_djF     .* djF_dDn;
+        % 
+        %     dd = [dd_dDt,dd_dDn];
+        %     d = obj.computeDamage(jump);
+        %     dd = dd .* (d < 1);
+        % end
 
         function lambda = computeJumpNorm(~,jump) % 1 x ngauss x nelem
             unoZero = ConstantFunction.create([1;0],jump.mesh);

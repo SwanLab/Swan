@@ -64,7 +64,7 @@ classdef TutorialCohesive < handle
             obj.inputData.jumpFinal        = 0.025e-3;
 
             % UnitElem
-            obj.inputData.Kcoh      = 3e13;
+            obj.inputData.Kcoh      = 3e12;
             obj.inputData.bcValues = 0:0.000001:0.4;
             obj.inputData.problemType = 'DisplacementTractionY';
             obj.inputData.l = 1;
