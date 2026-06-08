@@ -3,24 +3,25 @@ read_rpm.py
 -----------
 Lit automatiquement la valeur RPM sur chaque image du dossier RPM_images
 via OpenCV (détection d'aiguille par seuillage + PCA), puis écrit les
-valeurs dans la colonne "rpm" de ../merged_output.csv en faisant
-correspondre les timestamps.
+valeurs dans la colonne "rpm" de ../merged_output.csv.
 
-Les images illisibles sont marquées NaN puis interpolées en fin de
-traitement (moyenne voisin avant + voisin après).
+Cadran : 0 RPM en bas (90° opencv), 500 RPM en haut-droite (20° opencv)
+         L'aiguille tourne en sens horaire visuel (croissant opencv en passant par 360°)
+         Arc total : 290°
 
 Structure attendue :
     OpenArmsTutorial_V2/
-    ├── merged_output.csv        ← colonne "Time" format 18:16:16.203767
+    ├── merged_output.csv
     └── RPM_images/
-        ├── read_rpm.py          ← ce script
+        ├── read_rpm.py
         ├── captura_18-04-47.jpg
         └── ...
 
 Prérequis :
-    pip install opencv-python-headless pillow pandas numpy
+    pip install opencv-python-headless pandas numpy
 
-Usage (depuis le dossier RPM_images) :
+Usage :
+    source venv/bin/activate
     python read_rpm.py
 """
 
@@ -36,15 +37,21 @@ import pandas as pd
 SCRIPT_DIR = Path(__file__).parent
 CSV_PATH   = SCRIPT_DIR.parent / "merged_output.csv"
 
-# ── Paramètres du cadran RPM (image 640x480, caméra fixe) ────────────────────
-CROP        = (0, 245, 190, 235)   # (x, y, w, h) dans l'image originale
-CENTER      = (95, 130)            # centre de l'aiguille dans le crop
-RADIUS      = 80                   # rayon utile du cadran (px)
-HUB_RADIUS  = 15                   # rayon du moyeu à ignorer (px)
-ANGLE_0     = 220                  # angle opencv (°) correspondant à 0 RPM
-ANGLE_500   = 320                  # angle opencv (°) correspondant à 500 RPM
-RPM_MIN     = 0
-RPM_MAX     = 500
+# ── Paramètres du cadran (image 640x480, caméra fixe) ────────────────────────
+CROP        = (0, 245, 190, 235)  # (x, y, w, h) dans l'image originale
+CENTER      = (95, 130)           # centre de l'aiguille dans le crop
+RADIUS      = 80                  # rayon utile du cadran (px)
+HUB_RADIUS  = 15                  # rayon du moyeu à ignorer (px)
+
+# Calibration angles (convention opencv : 0°=droite, 90°=bas, sens horaire=croissant)
+# L'aiguille part de 0 RPM (bas = 90°) et monte vers 500 RPM (haut-droite = 20°)
+# en passant par 180° (gauche) et 270° (haut) — sens horaire visuel
+ANGLE_0RPM   = 90    # bas
+ANGLE_500RPM = 20    # haut-droite
+ARC_DEGREES  = 290   # (360 - 20 + 90) = arc parcouru de 0 à 500 RPM
+
+RPM_MIN = 0
+RPM_MAX = 500
 
 SUPPORTED_EXT = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".webp"}
 
@@ -53,8 +60,7 @@ SUPPORTED_EXT = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".webp"}
 
 def detect_rpm(image_path: Path) -> float | None:
     """
-    Lit la valeur RPM sur une image via OpenCV.
-    Retourne un float ou None si la lecture est impossible.
+    Retourne la valeur RPM (float) ou None si illisible.
     Ne lève jamais d'exception.
     """
     try:
@@ -68,7 +74,7 @@ def detect_rpm(image_path: Path) -> float | None:
 
         gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
 
-        # Masque : intérieur du cadran uniquement
+        # Masque circulaire
         mask = np.zeros_like(gray)
         cv2.circle(mask, (cx, cy), RADIUS, 255, -1)
         gray_m = cv2.bitwise_and(gray, gray, mask=mask)
@@ -88,8 +94,8 @@ def detect_rpm(image_path: Path) -> float | None:
         if len(points) < 20:
             return None
 
-        # PCA → direction principale de l'aiguille
-        data = points[:, ::-1].astype(np.float32)  # (col, row) = (x, y)
+        # PCA → direction principale
+        data = points[:, ::-1].astype(np.float32)
         mean, eigvecs = cv2.PCACompute(data, mean=None)
 
         angle1 = np.degrees(np.arctan2(eigvecs[0, 1], eigvecs[0, 0]))
@@ -100,17 +106,14 @@ def detect_rpm(image_path: Path) -> float | None:
         dx, dy = mx - cx, my - cy
         dot1 = dx * np.cos(np.radians(angle1)) + dy * np.sin(np.radians(angle1))
         dot2 = dx * np.cos(np.radians(angle2)) + dy * np.sin(np.radians(angle2))
-        needle_angle = (angle1 if dot1 > dot2 else angle2) % 360
+        needle = (angle1 if dot1 > dot2 else angle2) % 360
 
-        # Mapping linéaire angle → RPM
-        a_min, a_max = ANGLE_0, ANGLE_500
-        if a_max < a_min:           # wrap-around 360°
-            if needle_angle < a_min:
-                needle_angle += 360
-            a_max += 360
-        ratio = (needle_angle - a_min) / (a_max - a_min)
-        ratio = max(0.0, min(1.0, ratio))
-        rpm = RPM_MIN + ratio * (RPM_MAX - RPM_MIN)
+        # Mapping angle → RPM
+        # Arc : de ANGLE_0RPM (90°) croissant jusqu'à ANGLE_500RPM (20°) via 360°
+        # offset = distance parcourue depuis 0 RPM, en croissant avec wrap
+        offset = (needle - ANGLE_0RPM) % 360
+        ratio  = max(0.0, min(1.0, offset / ARC_DEGREES))
+        rpm    = RPM_MIN + ratio * (RPM_MAX - RPM_MIN)
 
         return round(rpm)
 
@@ -121,25 +124,15 @@ def detect_rpm(image_path: Path) -> float | None:
 # ── Interpolation ─────────────────────────────────────────────────────────────
 
 def interpolate_missing(df: pd.DataFrame) -> tuple[pd.DataFrame, int, int]:
-    """
-    Remplace les NaN de la colonne 'rpm' par la moyenne du voisin
-    valide immédiat avant et après. Retourne (df, total_manquants, remplis).
-    """
+    """Remplace les NaN par la moyenne du voisin valide avant + après."""
     rpm = df["rpm"].copy()
     missing_idx = rpm[rpm.isna()].index
     filled = 0
 
     for idx in missing_idx:
         pos = df.index.get_loc(idx)
-
-        prev_val = next(
-            (rpm.iloc[p] for p in range(pos - 1, -1, -1) if pd.notna(rpm.iloc[p])),
-            None
-        )
-        next_val = next(
-            (rpm.iloc[p] for p in range(pos + 1, len(rpm)) if pd.notna(rpm.iloc[p])),
-            None
-        )
+        prev_val = next((rpm.iloc[p] for p in range(pos - 1, -1, -1) if pd.notna(rpm.iloc[p])), None)
+        next_val = next((rpm.iloc[p] for p in range(pos + 1, len(rpm))  if pd.notna(rpm.iloc[p])), None)
 
         if prev_val is not None and next_val is not None:
             rpm.at[idx] = round((prev_val + next_val) / 2)
@@ -172,10 +165,7 @@ def main():
         print(f"Erreur : CSV introuvable → {CSV_PATH}")
         sys.exit(1)
 
-    images = sorted([
-        f for f in SCRIPT_DIR.iterdir()
-        if f.suffix.lower() in SUPPORTED_EXT
-    ])
+    images = sorted([f for f in SCRIPT_DIR.iterdir() if f.suffix.lower() in SUPPORTED_EXT])
     if not images:
         print(f"Aucune image trouvée dans {SCRIPT_DIR}")
         sys.exit(1)
@@ -187,7 +177,7 @@ def main():
         print(f"Erreur : colonne 'Time' absente. Colonnes : {list(df.columns)}")
         sys.exit(1)
 
-    df["_time_hms"] = df["Time"].astype(str).str[:8]   # '18:16:16'
+    df["_time_hms"] = df["Time"].astype(str).str[:8]
     if "rpm" not in df.columns:
         df["rpm"] = pd.NA
 
@@ -210,16 +200,18 @@ def main():
             unreadable += 1
         else:
             df.loc[mask, "rpm"] = rpm
-            print(f"{rpm} RPM  ({mask.sum()} ligne(s) mise(s) à jour)")
+            matched = mask.sum()
+            print(f"{rpm} RPM  ({matched} ligne(s) mise(s) à jour)")
+            if matched == 0:
+                print(f"         ⚠ Aucune ligne avec Time={img_time} dans le CSV")
 
     # Interpolation
     print(f"\n── Interpolation ────────────────────────────────────")
     print(f"Images illisibles : {unreadable}/{len(images)}")
     df, total_missing, filled = interpolate_missing(df)
     print(f"Valeurs interpolées : {filled}/{total_missing}")
-    remaining = total_missing - filled
-    if remaining:
-        print(f"Valeurs restées NaN : {remaining} (pas de voisins disponibles)")
+    if total_missing - filled:
+        print(f"Valeurs restées NaN : {total_missing - filled}")
 
     df.drop(columns=["_time_hms"], inplace=True)
     df.to_csv(CSV_PATH, index=False)
