@@ -10,12 +10,12 @@ clc; clear; close all;
 % 
 % t1=1e-6:0.05:0.5;
 % t2=1e-6:0.05:0.7;
-t1=0.1;
-t2=0.1;
+t1=0.25;
+t2=0.15;
 
-p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
-p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
-p.nelem      = 15;
+p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale'/'EIFisol'
+p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
+p.nelem      = 10;
 meshName     = p.nelem+"x"+p.nelem;
 
 %% DATA GENERATION
@@ -26,7 +26,7 @@ for i=1:size(t1,2)
         switch p.Training
             case 'Multiscale'
                 p.Sampling = 'Isolated';
-                [material,mT]   = createMaterial(mR,[1 1 1],'Material',g);
+                [material,mT]   = createMaterial(mR,[1 1 1],g);
                 mesh       = mR;
                 bMesh      = mesh.createSingleBoundaryMesh();
                 s.mesh          = mesh;
@@ -38,9 +38,9 @@ for i=1:size(t1,2)
                 [T,lambda,K,Kcoarse] = e.solve();
                 V  = Integrator.compute(mT.designVariable.fun,mR,2);
 
-            case 'EIFEM'
+            case {'EIFEM','EIFisol'}
                 [nS,dI]      = defineNumberOfSubdomains(p.Sampling);
-                [material,mT]    = createMaterial(mR,nS,'Material',g);
+                [material,mT]    = createMaterial(mR,nS,g);
                 s.mesh           = mR;
                 s.material       = material;
                 s.domainIndices  = dI;
@@ -49,7 +49,7 @@ for i=1:size(t1,2)
                 s.unfittedMesh = mT.unfittedMesh;
                 m= EIFEMTraining(s);
                 data          = m.train();
-                [data.material,mTr] = createMaterial(mR,[1 1 1],'Material',g);
+                [data.material,mTr] = createMaterial(mR,[1 1 1],g);
                 data.dirac=true;
                 z = OfflineDataProcessor(data);
                 
@@ -97,7 +97,7 @@ for i=1:size(t1,2)
         switch p.Training
             case 'Multiscale'
                   save(FileName,"T","Kcoarse","mesh","tFrame","tCross","V");
-            case 'EIFEM'
+            case {'EIFEM','EIFisol'}
                 save(FileName, "EIFEoper","T","Kcoarse","mesh","tFrame","tCross","V","Vfr"); 
         end
     end
@@ -144,7 +144,7 @@ end
 function mS = createReferenceMesh(p)
     n =p.nelem;
     m = TetraMesh(1,1,1,n,n,n);
-
+    
     s.coord=m.coord;
     s.connec=m.connec;
     
@@ -201,7 +201,7 @@ end
 function dF = createDirichletFunction(bMesh)
 s.mesh  = bMesh;
 s.type  = 'continuous';
-s.order = 2;
+s.order = 1;
 cf      = CoarseFunctions(s);
 dF      = cf.getAnalytical();
 end	
@@ -229,11 +229,22 @@ function g=computeLevelSet(t1,t2)
     g                 = GeometricalFunction(gPar);
 end
 
-function [material,m] = createMaterial(mesh,nSubdomains,inclusionType,g)
-    s.mesh       = mesh;
-    s.inclusionType  = inclusionType;
-    s.nSubdomains    = nSubdomains;
+function [material,m] = createMaterial(mesh,nSubdomains,g)
+    mD = createMeshDomain(nSubdomains,mesh);
+    s.mesh          = mD;
     s.geomFun       = g;
     m = MaterialTraining(s);
     material = m.create();
+end
+
+function mD = createMeshDomain(nS,mesh)
+    if sum(nS > 1)>= 1
+        s.nsubdomains   = nS; %nx ny
+        s.meshReference = mesh;
+        s.tolSameNode   = 1e-11;
+        m = MeshCreatorFromRVE.create(s);
+        [mD,~,~,~,~,~,~] = m.create();
+    else
+        mD = mesh;
+    end
 end

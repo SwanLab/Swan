@@ -11,10 +11,10 @@ clc; clear; close all;
 % r=1e-6:0.1:0.999; 
 % r=0:0.05:0.999;
 % r=0.2:0.05:0.6;
-r=0.8;
+r=0.5;
 
 p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale'
-p.Inclusion  = 'Hole';        %'Material'/'Hole'/'HoleRaul'
+p.Inclusion  = 'HoleRaul';        %'Material'/'Hole'/'HoleRaul'
 p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
 p.nelem      = 20;
 meshName     = p.nelem+"x"+p.nelem;
@@ -42,13 +42,13 @@ for j = 1:size(r,2)
 
         case 'EIFEM'
             [nS,dI]      = defineNumberOfSubdomains(p.Sampling);
-            [material,mT]     = createMaterial(mR,nS,p.Inclusion,g);
+            [material]     = createMaterial(mR,nS,p.Inclusion,g);
             s.mesh           = mR;
             s.r              = radius;
             s.material       = material;
             s.domainIndices  = dI;
             s.nSubdomains    = nS;
-            s.unfittedMesh = mT.unfittedMesh;
+            % s.unfittedMesh = mT.unfittedMesh;
             m= EIFEMTraining(s);
             data          = m.train();
             data.material = createMaterial(mR,[1 1],p.Inclusion,g);
@@ -142,7 +142,6 @@ writematrix(kdata,kFileName);
 %% FUNCTIONS
 
 function mS = createReferenceMesh(p,r)
-    
     switch p.Inclusion
         case 'Material'
             mS = createStructuredMesh(p);
@@ -156,8 +155,8 @@ function mS = createReferenceMesh(p,r)
                 case 10
                     mS=mesh_rectangle_via_triangles(r,1,-1,1,-1,7,6,0,0);   % 10x10
                 case 20
-                    % mS=mesh_rectangle_via_triangles(r,1,-1,1,-1,15,12,0,0);
-                    mS=mesh_rectangle_via_triangles(r,1,-1,1,-1,7,14,0,0); % 20x20
+                    mS=mesh_rectangle_via_triangles(r,1,-1,1,-1,15,12,0,0);
+                    % mS=mesh_rectangle_via_triangles(r,1,-1,1,-1,7,14,0,0); % 20x20
                 case 50
                     mS=mesh_rectangle_via_triangles(r,1,-1,1,-1,34,35,0,0);  % 50x50
             end
@@ -233,19 +232,46 @@ function g=computeLevelSet(r)
     g                 = GeometricalFunction(gPar);
 end
 
-function [material,m] = createMaterial(mesh,nSubdomains,inclusionType,g)
-    s.mesh           = mesh;
-    s.inclusionType  = inclusionType;
-    s.nSubdomains    = nSubdomains;
-    s.geomFun        = g;
-    m = MaterialTraining(s);
-    material = m.create();
-end
+
 
 function dF = createDirichletFunction(bMesh)
 s.mesh = bMesh;
 s.type = 'continuous';
-s.order = 2;
+s.order = 1;
 cf = CoarseFunctions(s);
 dF = cf.getAnalytical();
 end	
+
+function [material] = createMaterial(mesh,nSubdomains,inclusionType,g)
+    mD = createMeshDomain(nSubdomains,mesh);
+    switch inclusionType
+        case 'Material'
+            s.mesh           = mD;
+            s.geomFun        = g;
+            m = MaterialTraining(s);
+            material = m.create();
+        case {'Hole','HoleRaul'}
+            E  = 1;
+            nu  = 1/3;       
+            young   = ConstantFunction.create(E,mD);
+            poisson = ConstantFunction.create(nu,mD);
+            s.type          = 'ISOTROPIC';
+            s.ptype         = 'ELASTIC';
+            s.ndim          = mD.ndim;
+            s.young         = young;
+            s.poisson       = poisson;
+            material        = Material.create(s);
+    end
+end
+
+function mD = createMeshDomain(nS,mesh)
+    if sum(nS > 1)>= 1
+        s.nsubdomains   = nS; %nx ny
+        s.meshReference = mesh;
+        s.tolSameNode   = 1e-11;
+        m = MeshCreatorFromRVE.create(s);
+        [mD,~,~,~,~,~,~] = m.create();
+    else
+        mD = mesh;
+    end
+end

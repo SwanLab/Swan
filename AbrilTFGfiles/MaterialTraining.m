@@ -9,9 +9,6 @@ classdef MaterialTraining < handle
     properties (Access = private)
         fHandle
         mesh
-        mD
-        inclusionType
-        nSubdomains
         dim
         materialInterpolator
     end
@@ -23,29 +20,16 @@ classdef MaterialTraining < handle
         end
 
         function material = create(obj)
-            obj.mD = obj.createMeshDomain();
-
-            switch obj.inclusionType
-                case {'Hole','HoleRaul'}
-                    [young,poisson] = obj.computeElasticProperties();
-                    s.type          = 'ISOTROPIC';
-                    s.ptype         = 'ELASTIC';
-                    s.ndim          = obj.mesh.ndim;
-                    s.young         = young;
-                    s.poisson       = poisson;
-                    material        = Material.create(s);
-                case 'Material'
-                    obj.createDesignVariable()
-                    obj.createMaterialInterpolator(); 
-                    s.type                 = 'DensityBased';
-                    s.density              = obj.designVariable;
-                    s.materialInterpolator = obj.materialInterpolator;
-                    s.dim                  = obj.dim;
-                    s.mesh                 = obj.mesh;
-                    material = Material.create(s);
-                    material.setDesignVariable({obj.designVariable.fun})
-                    material = material.obtainTensor();
-            end
+            obj.createDesignVariable()
+            obj.createMaterialInterpolator();
+            s.type                 = 'DensityBased';
+            s.density              = obj.designVariable;
+            s.materialInterpolator = obj.materialInterpolator;
+            s.dim                  = obj.dim;
+            s.mesh                 = obj.mesh;
+            material = Material.create(s);
+            material.setDesignVariable({obj.designVariable.fun})
+            material = material.obtainTensor();
         end
 
         function V=computeVolume(obj)
@@ -58,8 +42,6 @@ classdef MaterialTraining < handle
     methods(Access=private)
         function init(obj,cParams)
             obj.mesh           = cParams.mesh;
-            obj.inclusionType  = cParams.inclusionType;
-            obj.nSubdomains    = cParams.nSubdomains;
             obj.fHandle        = cParams.geomFun.getHandle;
             
             if obj.mesh.ndim == 2
@@ -70,31 +52,10 @@ classdef MaterialTraining < handle
 
         end
 
-        function [young,poisson] = computeElasticProperties(obj)
-            E  = 1;
-            nu  = 1/3;       
-            young   = ConstantFunction.create(E,obj.mD);
-            poisson = ConstantFunction.create(nu,obj.mD);
-        end
-      
-
-        function meshDom = createMeshDomain(obj)
-            if sum(obj.nSubdomains > 1)>= 1
-                s.nsubdomains   = obj.nSubdomains; %nx ny
-                s.meshReference = obj.mesh;
-                s.tolSameNode   = 1e-11;
-                m = MeshCreatorFromRVE.create(s);
-                [meshDom,~,~,~,~,~,~] = m.create();
-            else
-                meshDom = obj.mesh;
-            end
-        end
-
-
         function createDesignVariable(obj)
             ls= obj.computeLevelSet();
-            sUm.backgroundMesh = obj.mD;
-            sUm.boundaryMesh   = obj.mD.createBoundaryMesh;
+            sUm.backgroundMesh = obj.mesh;
+            sUm.boundaryMesh   = obj.mesh.createBoundaryMesh;
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(-ls);
             obj.unfittedMesh = uMesh;
@@ -102,8 +63,8 @@ classdef MaterialTraining < handle
             Mprint.compute(ls);
             funLS        = CharacteristicFunction.create(uMesh);
             s.filterType = 'LUMP';
-            s.mesh       = obj.mD;
-            s.trial      = LagrangianFunction.create(obj.mD,1,'P1');
+            s.mesh       = obj.mesh;
+            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
             s.fun      = f.compute(funLS,2);
             s.type     = 'Density';
@@ -118,16 +79,16 @@ classdef MaterialTraining < handle
                     s.type   = 'Periodic';
                 case 3
                     s.type   = 'Periodic3D';
-                    s.zmin   = min(obj.mesh.coord(:,3));
-                    s.zmax   = max(obj.mesh.coord(:,3));
+                    s.zmin   = -1;
+                    s.zmax   = 1;
             end
-            s.xmin   = min(obj.mesh.coord(:,1));
-            s.xmax   = max(obj.mesh.coord(:,1));
-            s.ymin   = min(obj.mesh.coord(:,2));
-            s.ymax   = max(obj.mesh.coord(:,2));
+            s.xmin   = -1;
+            s.xmax   = 1;
+            s.ymin   = -1;
+            s.ymax   = 1;
             s.fBase  = obj.fHandle;
             g        = GeometricalFunction(s);
-            phiFun   = g.computeLevelSetFunction(obj.mD);
+            phiFun   = g.computeLevelSetFunction(obj.mesh);
             obj.levelSet = phiFun;
             ls       = phiFun.fValues;
         end
@@ -157,9 +118,3 @@ classdef MaterialTraining < handle
     end
 
 end
-
-  
-
-
-
-

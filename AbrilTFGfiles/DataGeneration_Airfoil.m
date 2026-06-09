@@ -9,7 +9,7 @@ clc; clear; close all;
 %% INPUTS
 
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
-p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
+p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
 
 %% DATA GENERATION
 mR              = createReferenceMesh();
@@ -169,8 +169,8 @@ function [nS,dI] = defineNumberOfSubdomains(type)
             nS = [1 1 1]; %nx ny
             dI = [1 1 1];
         case 'Oversampling'
-            nS = [5 1 1]; %nx ny
-            dI = [3 1 1];
+            nS = [2 1 1]; %nx ny
+            dI = [1 1 1];
     end
 end
 

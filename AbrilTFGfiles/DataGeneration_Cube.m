@@ -35,7 +35,7 @@ for j = 1:size(l,2)
                 [T,lambda,K,Kcoarse] = e.solve();
                 V  = Integrator.compute(mT.designVariable.fun,mR,2);
     
-            case 'EIFEM'
+            case {'EIFEM','EIFisol'}
                 [nS,dI]      = defineNumberOfSubdomains(p.Sampling);
                 [material,mT]    = createMaterial(mR,nS,'Material',g);
                 s.mesh           = mR;
@@ -90,7 +90,7 @@ for j = 1:size(l,2)
         switch p.Training
             case 'Multiscale'
                 save(FileName,"T","Kcoarse","mesh","R"); 
-            case 'EIFEM'
+            case {'EIFEM','EIFisol'}
                 save(FileName, "EIFEoper","T","Kcoarse","R","V","Vfr"); 
         end
     
@@ -247,11 +247,22 @@ function g=computeLevelSet(l)
     g              = GeometricalFunction(gPar);
 end
 
-function [material,m] = createMaterial(mesh,nSubdomains,inclusionType,g)
-    s.mesh       = mesh;
-    s.inclusionType  = inclusionType;
-    s.nSubdomains    = nSubdomains;
+function [material,m] = createMaterial(mesh,nSubdomains,g)
+    mD = createMeshDomain(nSubdomains,mesh);
+    s.mesh          = mD;
     s.geomFun       = g;
     m = MaterialTraining(s);
     material = m.create();
+end
+
+function mD = createMeshDomain(nS,mesh)
+    if sum(nS > 1)>= 1
+        s.nsubdomains   = nS; %nx ny
+        s.meshReference = mesh;
+        s.tolSameNode   = 1e-11;
+        m = MeshCreatorFromRVE.create(s);
+        [mD,~,~,~,~,~,~] = m.create();
+    else
+        mD = mesh;
+    end
 end
