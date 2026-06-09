@@ -271,6 +271,20 @@ classdef GeometricalFunction < handle
                     y0 = cParams.y0;
                     fH = @(x) obj.computeCircles(x,x0,y0,r);
                     obj.fHandle = fH;
+                case 'Tetradecahedron'
+                    l  = cParams.radius;
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+                    z0 = cParams.zCoorCenter;
+                    fH = @(x) obj.computeTetradecahedron(x,x1,x2,x3,x0,y0,z0,l);
+                    obj.fHandle = fH;
+                case 'Octahedron'
+                    l  = cParams.radius;
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+                    z0 = cParams.zCoorCenter;
+                    fH = @(x)  l - abs(x1(x)-x0) - abs(x2(x)-y0) - abs(x3(x)-z0);
+                    obj.fHandle = fH;
             end
         end
 
@@ -327,6 +341,25 @@ classdef GeometricalFunction < handle
                 f(:,:,:,i) = (x(1,:,:)-x0(i)).^2+(x(2,:,:)-y0(i)).^2-r(i)^2;
             end   
             fH = min(f,[],4);
+        end
+
+        function d = computeTetradecahedron(x,x1,x2,x3,x0,y0,z0,l)
+            vx = x1(x) - x0;
+            vy = x2(x) - y0;
+            vz = x3(x) - z0;
+            
+            n       = eye(3,3); %Cartesian planes
+            nPlanes = size(n,1);
+            nGauss  = size(x,2);
+            nElem   = size(x,3);
+            vn = zeros(1,nGauss,nElem,nPlanes);
+            for i = 1:3
+                nx = n(i,1); ny = n(i,2); nz = n(i,3);
+                vn(:,:,:,i) = l - abs(vx*nx + vy*ny + vz*nz);
+            end
+            dPlanes = min(vn,[],4);
+            dOcta   = (3/2)*l - abs(vx) - abs(vy) - abs(vz);
+            d = min(dOcta,dPlanes);
         end
 
     end
