@@ -14,7 +14,7 @@ classdef DisplacementUpdater < handle
             obj.init(cParams);
         end
 
-        function [u,rFun,costArray,iter] = update(obj,u,bc,costArray)
+        function [u,F,costArray,iter] = update(obj,u,bc,costArray)
             i = 0; err = 1; costOld = costArray(end);
 
             while (abs(err) > obj.tol) && (i < obj.maxIter)
@@ -39,8 +39,7 @@ classdef DisplacementUpdater < handle
                 normRHS = norm(RHSRed);
                 fprintf('Iteration %d: Reduced Residual Norm = %.4e\n', i, normRHS);
             end
-
-            rFun = obj.computeReactions(LHSSec,u,bc);
+            F = obj.computeForceVector(LHSSec,u);
             iter = i;
         end
 
@@ -86,17 +85,9 @@ classdef DisplacementUpdater < handle
             e = (cost - costOld)/cost;
         end
 
-        function rFun = computeReactions(~,LHS,u,bc)
-            constrainedDofs = bc.dirichlet_dofs;
+        function F = computeForceVector(~,LHS,u)
             uVec = reshape(u.fValues',[u.nDofs 1]);
-            KR   = LHS(constrainedDofs,:);
-            rVec = zeros(size(uVec));
-            rVec(constrainedDofs,1) = -KR*uVec;
-            
-            s.fValues = reshape(rVec,[flip(size(u.fValues))])';
-            s.order   = 'P1';
-            s.mesh    = u.mesh;
-            rFun = LagrangianFunction(s);
+            F = LHS*uVec;
         end
 
     end

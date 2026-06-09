@@ -93,48 +93,22 @@ classdef CohesiveComputer < handle
         end
 
         function [totReact,uBC] = computeTotalReaction(obj,step,F,u)
-            F = reshape(F.fValues',[F.nDofs 1]);
             DownSide = min(obj.mesh.coord(:,2));
             isInDown = abs(obj.mesh.coord(:,2)-DownSide)< 1e-12;
-            isInUp   = not(isInDown);
             nodes = 1:obj.mesh.nnodes;
-            if ismember(obj.boundaryConditions.type, ["ForceTractionY", "ForceTractionYClamped"])
-                uBC = norm(mean(u.fValues(nodes(isInUp),2)));
-                totReact = obj.boundaryConditions.bcValues(step);
-            elseif ismember(obj.boundaryConditions.type, ["DisplacementTractionY","DisplacementTractionYClamped"]) 
+            if  ismember(obj.boundaryConditions.type, ["DisplacementTractionY","DisplacementTractionYClamped"]) 
                 dofsYdown = (nodes(isInDown)-1)*u.ndimf + 2;
                 totReact = abs(sum(F(dofsYdown)));
                 uBC = obj.boundaryConditions.bcValues(step);
-            elseif ismember(obj.boundaryConditions.type, ["DisplacementMixed"])
-                dofsXdown = (nodes(isInDown)-1)*u.ndimf + 1;
-                dofsYdown = (nodes(isInDown)-1)*u.ndimf + 2;
-                normF = sqrt(F(dofsXdown).^2+ F(dofsYdown).^2);
-                totReact = abs(sum(normF));
-                uBC = obj.boundaryConditions.bcValues(step);
             end
 
-            LeftSide = min(obj.mesh.coord(:,1));
-            isInLeft = abs(obj.mesh.coord(:,1)-LeftSide)< 1e-12;
-            nodes = 1:obj.mesh.nnodes;
-            if ismember(obj.boundaryConditions.type, ["ForceTractionX","ForceTractionXClamped"])
-                uBC = norm(mean(u.fValues(nodes(isInLeft),2)));
-                totReact = obj.boundaryConditions.bcValues(step);
-            elseif ismember(obj.boundaryConditions.type, ["DisplacementTractionX","DisplacementTractionXClamped"])
-                dofsXleft = (nodes(isInLeft)-1)*u.ndimf + 1;
-                totReact = abs(sum(F(dofsXleft)));
-                uBC = obj.boundaryConditions.bcValues(step);
-            end
-
-            if ismember(obj.boundaryConditions.type, "DisplacementShear")
-                dofsXdown = (nodes(isInDown)-1)*u.ndimf + 1;
-                totReact = abs(sum(F(dofsXdown)));
-                uBC = obj.boundaryConditions.bcValues(step);
-            end
-
+           isRight   = abs(obj.mesh.coord(:,1) - max(obj.mesh.coord(:,1))) < 1e-12;
+           MiddleY   = (max(obj.mesh.coord(:,2)) + min(obj.mesh.coord(:,2)))/2;
+           isHalfTop = (obj.mesh.coord(:,2) - MiddleY) > 1e-12;
+           isRigthHalfTop = isHalfTop & isRight;
             if ismember(obj.boundaryConditions.type, "DoubleCantileverBeam")
-                idxNode = find(obj.mesh.coord(:,1) == max(obj.mesh.coord(:,1)) & (obj.mesh.coord(:,2) == max(obj.mesh.coord(:,2))));
-                dofYTopRight = (idxNode-1)*u.ndimf + 2;
-                totReact = abs(F(dofYTopRight));
+                dofYHalfRight = (nodes(isRigthHalfTop)-1)*u.ndimf + 2;
+                totReact = abs(sum(F(dofYHalfRight)));
                 uBC = obj.boundaryConditions.bcValues(step);
             end
 

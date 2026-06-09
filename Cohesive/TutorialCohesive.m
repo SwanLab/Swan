@@ -46,9 +46,9 @@ classdef TutorialCohesive < handle
     methods (Access = private)
 
         function init(obj)
-           
+            close all
             obj.inputData.young     = 120e9;
-            obj.inputData.poisson   = 0.2;
+            obj.inputData.poisson   = 0.3;
     
             obj.inputData.lawType = 'TractionBiliniarCoupled';
             
@@ -64,26 +64,26 @@ classdef TutorialCohesive < handle
             obj.inputData.jumpFinal        = 0.025e-3;
 
             % UnitElem
-            obj.inputData.Kcoh        = 3e12;
-            obj.inputData.bcValues    = 0:0.000001:0.4;
-            obj.inputData.problemType = 'DisplacementTractionY';
-            obj.inputData.l = 1;
-            obj.inputData.h = 1;
-            obj.inputData.yCohLine = 0;
-            obj.inputData.xCohLineMax = 1000;
-            obj.inputData.nx = 1;
-            obj.inputData.ny = 1;
+            % obj.inputData.Kcoh        = 3e12;
+            % obj.inputData.bcValues    = 0:0.000001:0.4;
+            % obj.inputData.problemType = 'DisplacementTractionY';
+            % obj.inputData.l = 1;
+            % obj.inputData.h = 1;
+            % obj.inputData.yCohLine = 0;
+            % obj.inputData.xCohLineMax = 1000;
+            % obj.inputData.nx = 1;
+            % obj.inputData.ny = 1;
 
             % % DCB
-            % obj.inputData.Kcoh      = 3e12;
-            % obj.inputData.bcValues = 0:0.00001:0.008;
-            % obj.inputData.problemType = 'DoubleCantileverBeam';
-            % obj.inputData.l = 0.103;
-            % obj.inputData.h = 3.12e-3;
-            % obj.inputData.yCohLine = 0.5*3.12e-3;
-            % obj.inputData.xCohLineMax = 72e-3;
-            % obj.inputData.nx = 100;
-            % obj.inputData.ny = 10;
+            obj.inputData.Kcoh      = 1e12;
+            obj.inputData.bcValues = 0:0.00001:0.004;
+            obj.inputData.problemType = 'DoubleCantileverBeam';
+            obj.inputData.l = 150e-3;
+            obj.inputData.h = 20e-3;
+            obj.inputData.yCohLine = 0.5*obj.inputData.h;
+            obj.inputData.xCohLineMax = 115e-3;
+            obj.inputData.nx = 1000;
+            obj.inputData.ny = 10;
         end
     
         function createMesh(obj)

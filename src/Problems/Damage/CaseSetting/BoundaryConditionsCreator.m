@@ -310,19 +310,21 @@ classdef BoundaryConditionsCreator < handle
 
         function createDoubleCantileverBeamConditions(obj,uVal)
            isInLeft = @(coord) (abs(coord(:,1) - min(coord(:,1)))< 1e-12);
-           sDir.domain    = @(coor) isInLeft(coor);
+           sDir.domain    = @(coord) isInLeft(coord);
            sDir.direction = [1,2];
            sDir.value     = 0;
            Dir1 = DirichletCondition(obj.mesh,sDir);
-    
-           isInTopRight = @(coord) (abs(coord(:,1) - max(coord(:,1)))< 1e-12) & (abs(coord(:,2) - max(coord(:,2)))< 1e-12);
-           sDir.domain    = @(coor) isInTopRight(coor);
+
+           isInRight = @(coord) (abs(coord(:,1) - max(coord(:,1))) < 1e-12);
+           middleY = @(coord) ((max(coord(:,2)) + min(coord(:,2)))/2);
+           isHalfTop = @(coord) (abs(coord(:,2)) - middleY(coord)) > 1e-12; 
+           sDir.domain    = @(coord) isInRight(coord) & isHalfTop(coord);
            sDir.direction = [2];
            sDir.value     = uVal;
            Dir2 = DirichletCondition(obj.mesh,sDir);
 
-           isInBottomRight = @(coord) (abs(coord(:,1) - max(coord(:,1)))< 1e-12) & (abs(coord(:,2) - min(coord(:,2)))< 1e-12);
-           sDir.domain    = @(coor) isInBottomRight(coor);
+           isHalfBottom = @(coord) (abs(coord(:,2)) - middleY(coord)) < 1e-12; 
+           sDir.domain    = @(coord) isInRight(coord) & isHalfBottom(coord);
            sDir.direction = [2];
            sDir.value     = -uVal;
            Dir3 = DirichletCondition(obj.mesh,sDir);
