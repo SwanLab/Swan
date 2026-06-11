@@ -31,6 +31,7 @@ classdef FemInputReaderGiD < handle
     
     properties (Access = private)
         masterSlave
+        microSlave
         boundaryNodes
         boundaryElements
     end
@@ -59,6 +60,7 @@ classdef FemInputReaderGiD < handle
             s.periodicFun  = obj.periodicFun;
             if isequal(obj.scale,'MICRO')
                 s.masterSlave = obj.masterSlave;
+                s.microSlave = obj.microSlave;
             end
             if isequal(obj.ptype,'Stokes')
                 s.state    = obj.state;
@@ -100,10 +102,11 @@ classdef FemInputReaderGiD < handle
                 sPer = [];
             end
             if ~isequal(data.problem_type,'Stokes')
-                [~,~,bNodes,bElem,mSlave, sDir, sPL, sPer] = Preprocess.getBC_mechanics(fileName);
+                [~,~,bNodes,bElem,mSlave,micSlave sDir, sPL, sPer] = Preprocess.getBC_mechanics(fileName);
                 obj.boundaryNodes = bNodes;
                 obj.boundaryElements = bElem;
                 obj.masterSlave = mSlave;
+                obj.microSlave = micSlave;
             end
 
             obj.pdim = data.problem_dim;
