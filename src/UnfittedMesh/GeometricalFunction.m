@@ -347,19 +347,45 @@ classdef GeometricalFunction < handle
             vx = x1(x) - x0;
             vy = x2(x) - y0;
             vz = x3(x) - z0;
-            
-            n       = eye(3,3); %Cartesian planes
-            nPlanes = size(n,1);
-            nGauss  = size(x,2);
-            nElem   = size(x,3);
-            vn = zeros(1,nGauss,nElem,nPlanes);
-            for i = 1:3
-                nx = n(i,1); ny = n(i,2); nz = n(i,3);
-                vn(:,:,:,i) = l - abs(vx*nx + vy*ny + vz*nz);
+            v = [vx;vy;vz];
+
+            % Squares
+            nSquare = [1 0 0; 0 1 0; 0 0 1];
+            nGauss = size(x,2);
+            nElem  = size(x,3);
+            vn = zeros(1,nGauss,nElem,size(nSquare,2));
+            for i=1:size(nSquare,2)
+                R = [cos(pi/4) sin(pi/4);
+                    -sin(pi/4) cos(pi/4)]; 
+                vR = pagemtimes(R,v(~nSquare(:,i),:,:,:));
+                vn(:,:,:,i)  = max(abs(vR(1,:,:,:,:)./l),abs(vR(2,:,:,:,:))./l) - sqrt(2)/8;
             end
-            dPlanes = min(vn,[],4);
-            dOcta   = (3/2)*l - abs(vx) - abs(vy) - abs(vz);
-            d = min(dOcta,dPlanes);
+            dSquare = min(vn,[],4);
+
+            % Hexagons
+            apothem = l*(sqrt(6)/8);
+            nHexa = [1  1  1;  1 -1  1; -1 1 1; -1 -1 1];
+            nHexaLocal = [0 1; sqrt(3)/2 1/2; sqrt(3)/2 -1/2];
+            vHexa  = zeros(1,nGauss,nElem,size(nHexa,1));
+            vn = zeros(1,nGauss,nElem,size(nHexaLocal,1));
+            for i=1:size(nHexa,1)
+                % Rotate coordinates to local reference
+                zPrime = nHexa(i,:); zPrime = zPrime/norm(zPrime);
+                xPrime = [zPrime(2), -zPrime(1), 0]; xPrime = xPrime/norm(xPrime);
+                yPrime = cross(zPrime,xPrime);
+                R = [xPrime/norm(xPrime); yPrime/norm(yPrime); zPrime/norm(zPrime)];
+                vR = pagemtimes(R,v);
+                % Cut hexagon
+                for j=1:size(nHexaLocal,1)
+                    nx = nHexaLocal(j,1);
+                    ny = nHexaLocal(j,2);
+                    vn(:,:,:,j) = abs(vR(1,:,:)*nx + vR(2,:,:)*ny);
+                end
+                normVn = vecnorm(vn,'Inf',4);
+                vHexa(:,:,:,i) = (normVn/apothem)-1;
+            end
+            dHexa = min(vHexa,[],4);
+            d = min(dSquare,dHexa);
         end
 
     end
