@@ -1,0 +1,34 @@
+Computing initial solution...
+  Initial evaluation done in 10.25 s
+  Initial maxval (Al7075/WF110): 0.039745
+Computing composite laminate reference displacement...
+  Composite maxval done in 7.31 s
+  Reference maxval (composite): 0.0742546
+
+Starting optimization (STATIC)...
+
+Local minimum found that satisfies the constraints.
+
+Optimization completed because the objective function is non-decreasing in 
+feasible directions, to within the value of the optimality tolerance,
+and constraints are satisfied to within the value of the constraint tolerance.
+
+  Optimization finished in 261.02 s
+
+
+==================================================
+               OPTIMIZATION RESULTS
+==================================================
+  Layer  1 (Al7075):   0.089261 m
+  Layer  2 (WF110):   0.714082 m
+  Layer  3 (Al7075):   0.089261 m
+--------------------------------------------------
+  Total Thickness   :   0.892605 m  (Limit: 0.8000 m)
+  WF110 fraction    :    79.9998 %  (Target: 80.0 %)
+  Final Disp (w)    : 5.569029e-02 m
+  Final Mass        : 4.281480e+04 kg  (Normalized: 0.3807)
+--------------------------------------------------
+  Optim. time       :     261.02 s
+  TOTAL run time    : 00 h 04 min 38.63 s
+==================================================
+

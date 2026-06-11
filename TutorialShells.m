@@ -20,7 +20,7 @@ classdef TutorialShells < handle
         zLayer, interfaceIndex
         A_tensor, B_tensor, D_tensor, H_tensor
         materialProperties, stressCase
-        material
+        material, materialCase
         naturalFrequencies
         modeShapes
         massModal, dampingModal, stiffnessModal, FModal
@@ -33,18 +33,66 @@ classdef TutorialShells < handle
         function obj = TutorialShells()
             close all; clc;
 
-            % 1. Initialization
-            obj.createMesh('wingShape')    % 'unitTriangle' // 'wingShape'
-            obj.createMaterial()
-            obj.createSolutionField()
-            obj.solverType = 'REDUCED';
+            obj.bcCase = 4;     
+            % CASE 1: All clamped, load q (1e5)
+            % CASE 2: Left clamped, load q (5e4)
+            % CASE 3: Left clamped, pointload at center node at right.
+            % CASE 4: Wingshape static, left clamped, load q (10240)
+
+            obj.materialCase = 4;
+            % '1' == Al7075 // '2' == Isotropic Laminate //
+            % '3' == T300/914 // '4' == Composite Laminate //
 
             problemType    = 'FORCED_VIBRATIONS';
             % Options: 'STATIC' / 'FREE_VIBRATIONS' / 'FORCED_VIBRATIONS'
 
+            % Transient form of the load for FORCED_VIBRATIONS
+            dynamicForceCase = 'SINUSOIDAL';
+            % 'SINUSOIDAL' / 'STEP'
+
+            % Force simulation to end exactly at 5.0 seconds
+            dynamicTime5sec = 1;
+
+            % Enable plotting comparison between damped and undamped response
+            comparsionDampingEffects = 0;
+            
+            % Enable plotting resonance phenomenon
+            resonanceAnalysis = 1;
+
+            % Post-processing inputs
+            plotMatlab = 0 && ~batchStartupOptionUsed;
+            plotThickness = 0 && ~batchStartupOptionUsed;
+            plotResultants = 0;
+            printParaview = 0;
+            printParaview3D_flag = 1;   % Export 3D extruded mesh (FSDT) for ParaView
+            nZLayers3D = 10;            % Number of through-thickness divisions
+            kappa = 1;
+
+            % REMEMBER: VON-MISES CAPABILITIES 
+                   
+
+            % 1. Initialization
+            if ismember(obj.bcCase, [1, 2, 3])
+                meshType = 'unitTriangle';
+            else
+                meshType = 'wingShape';
+            end
+
+            obj.createMesh(meshType)    % 'unitTriangle' // 'wingShape'
+            obj.createMaterial()
+            obj.createSolutionField()
+            
+            totalMass = obj.computeMass();
+            fprintf('\n======================================\n');
+            fprintf(' STRUCTURAL MASS: %.4f kg\n', totalMass);
+            fprintf('======================================\n\n');
+            
+            obj.solverType = 'REDUCED';
+
+
             % 2. Boundary Conditions and Assembly
-            obj.createBoundaryConditions();     % BOUNDARY CONDITIONS
-            LHS = obj.createLHS();              % Stiffness matrix
+            obj.createBoundaryConditions();     
+            LHS = obj.createLHS();              
             obj.lhs = LHS;
 
             % --- PRE-COMPUTE DOF LENGTHS AND INDICES ---
@@ -65,7 +113,7 @@ classdef TutorialShells < handle
 
                 % Solve eigenvalue problem
                 nModes = 10;
-                minsol = 3;
+                minsol = 5;
                 fprintf('Computing %d modes...\n', nModes);
 
                 [modes, lambda] = eigs(LHS, MLHS, nModes, 'smallestabs');
@@ -81,7 +129,7 @@ classdef TutorialShells < handle
 
                 % Take real part and ensure positive
                 omega_squared = real(omega_squared);
-                omega_squared(omega_squared < 0) = 0;  % Set negatives to zero
+                omega_squared(omega_squared < 0) = 0;  
                 omega_n = sqrt(omega_squared);  % rad/s
                 freq_Hz = omega_n / (2*pi);     % Hz
 
@@ -111,16 +159,13 @@ classdef TutorialShells < handle
 
                 % ========== FORCING PARAMETERS ==========
                 f_force = 50;
-                omega_force = 2*pi * f_force;               % Forcing frequency
-                damping_ratio = obj.dampingRatio;           % Damping ratio
+                omega_force = 2*pi * f_force;               
+                damping_ratio = obj.dampingRatio;           
 
                 % ========== INITIAL CONDITIONS ==========
                 % All 0
                 initialDisp = zeros(nU+nTheta+nW,1);
                 initialVel = initialDisp;
-
-                dynamicForceCase = 'STEP';
-                % 'SINUSOIDAL' / 'STEP'
 
                 MLHS = obj.createMassLHS();
                 RHS = obj.createRHS();
@@ -153,6 +198,11 @@ classdef TutorialShells < handle
                 fsampling = 10 * fmax;
                 dt = 1 / fsampling;
                 tfinal = 10 / freq_Hz(1);
+                
+                if dynamicTime5sec
+                    tfinal = 5.0;
+                end
+                
                 time = 0:dt:tfinal;
                 nt = length(time);
 
@@ -187,7 +237,17 @@ classdef TutorialShells < handle
                 obj.FModal = obj.FModal .* fdynamic;
                 obj.massModal = modal_shapes' * MLHS * modal_shapes;
                 obj.stiffnessModal = modal_shapes' * LHS * modal_shapes;
-                obj.dampingModal = damping_ratio * eye(size(obj.massModal));
+                % Rayleigh Damping: C = alpha*M + beta*K
+                w1 = omega_n(1);
+                if length(omega_n) > 1
+                    w2 = omega_n(2);
+                else
+                    w2 = w1 * 2;
+                end
+                alpha = 2 * damping_ratio * w1 * w2 / (w1 + w2);
+                beta = 2 * damping_ratio / (w1 + w2);
+                
+                obj.dampingModal = alpha * obj.massModal + beta * obj.stiffnessModal;
 
                 % Modal accelerations
                 modalAcc = zeros(size(modalDisp));
@@ -213,6 +273,167 @@ classdef TutorialShells < handle
                 end
                 elapsed = toc;
                 fprintf('✓ Time integration complete in %.2f seconds\n', elapsed);
+
+                if comparsionDampingEffects
+                    fprintf('Running damping comparison cases (4 regimes)...\n');
+                    
+                    % Define zetas to test
+                    zetas_to_test = [0, damping_ratio, 1.0, 2.0];
+                    colors_plot = {'#0072BD', '#D95319', '#77AC30', '#7E2F8E'};
+                    labels_plot = {'\zeta = 0 (Undamped)', sprintf('\\zeta = %g (Underdamped)', damping_ratio), '\zeta = 1.0 (Critically Damped)', '\zeta = 2.0 (Overdamped)'};
+                    
+                    % Find corner node local w DOF index
+                    coords = obj.mesh.coord;
+                    [max_x, ~] = max(coords(:, 1));
+                    [max_y, ~] = max(coords(:, 2));
+                    distances = sqrt((coords(:, 1) - max_x).^2 + (coords(:, 2) - max_y).^2);
+                    [~, corner_node_global] = min(distances);
+                    dofFW = obj.computeFreeDofs(obj.bcW);
+                    corner_node_local = find(dofFW == corner_node_global, 1);
+                    
+                    w_start_idx = nU + nTheta + 1;
+                    w_end_idx = nU + nTheta + nW;
+                    
+                    % Reset aesthetic settings
+                    set(groot, 'defaultTextInterpreter', 'remove');
+                    set(groot, 'defaultAxesTickLabelInterpreter', 'remove');
+                    set(groot, 'defaultLegendInterpreter', 'remove');
+                    
+                    hFig = figure('Name', sprintf('Damping Regimes Comparison (%s) - Material %d', dynamicForceCase, obj.materialCase));
+                    hAx = axes(hFig);
+                    hold(hAx, 'on');
+                    
+                    for z_idx = 1:length(zetas_to_test)
+                        current_zeta = zetas_to_test(z_idx);
+                        
+                        % Rayleigh Damping: C = alpha*M + beta*K
+                        w1 = omega_n(1);
+                        if length(omega_n) > 1
+                            w2 = omega_n(2);
+                        else
+                            w2 = w1 * 2;
+                        end
+                        alpha_z = 2 * current_zeta * w1 * w2 / (w1 + w2);
+                        beta_z = 2 * current_zeta / (w1 + w2);
+                        
+                        obj.dampingModal = alpha_z * obj.massModal + beta_z * obj.stiffnessModal;
+                        
+                        % MUST recompute Newmark coefficients
+                        [next_modalDisp_z, next_modalVel_z, next_modalAcc_z] = obj.NewmarkMethod(dt);
+                        
+                        modalDisp_z = modal_shapes' * dynamicDisp;
+                        modalVel_z = modal_shapes' * dynamicVel;
+                        modalAcc_z = zeros(size(modalDisp_z));
+                        modalAcc_z(:,1) = obj.massModal \ (obj.FModal(:,1) - obj.stiffnessModal*modalDisp_z(:,1) - obj.dampingModal*modalVel_z(:,1));
+                        
+                        for i = 1:nt-1
+                            modalDisp_z(:,i+1) = next_modalDisp_z(modalDisp_z(:,i), modalVel_z(:,i), modalAcc_z(:,i), obj.FModal(:,i+1));
+                            modalAcc_z(:,i+1) = next_modalAcc_z(modalDisp_z(:,i+1), modalDisp_z(:,i), modalVel_z(:,i), modalAcc_z(:,i));
+                            modalVel_z(:,i+1) = next_modalVel_z(modalVel_z(:,i), modalAcc_z(:,i), modalAcc_z(:,i+1));
+                        end
+                        
+                        % Extract physical displacements
+                        modes_z = modal_shapes * modalDisp_z;
+                        w_corner_z = modes_z(w_start_idx:w_end_idx, :);
+                        w_corner_z = w_corner_z(corner_node_local, :);
+                        
+                        plot(hAx, time, w_corner_z * 1000, '-', 'LineWidth', 2.0, 'Color', colors_plot{z_idx}, 'DisplayName', labels_plot{z_idx});
+                    end
+                    
+                    xlim(hAx, [time(1), time(end)]);
+                    yline(hAx, 0, 'k--', 'LineWidth', 1.0, 'HandleVisibility', 'off');
+                    hold(hAx, 'off');
+                    
+                    grid(hAx, 'on'); box(hAx, 'on');
+                    xlabel(hAx, 'Time $t$ (s)', 'Interpreter', 'latex', 'FontSize', 13);
+                    ylabel(hAx, 'Displacement $w$ (mm)', 'Interpreter', 'latex', 'FontSize', 13);
+                    title(hAx, sprintf('Damping Regimes Comparison (%s) - Material %d', dynamicForceCase, obj.materialCase), 'Interpreter', 'latex', 'FontSize', 14);
+                    legend(hAx, 'Location', 'northeast', 'Interpreter', 'tex', 'FontSize', 12);
+                    set(hAx, 'FontSize', 13, 'GridAlpha', 0.3, 'TickLabelInterpreter', 'latex');
+                    
+                    % Restore obj.dampingModal
+                    obj.dampingModal = alpha * obj.massModal + beta * obj.stiffnessModal;
+                end
+                
+                if resonanceAnalysis
+                    fprintf('Running resonance analysis...\n');
+                    
+                    % 1. Extract normal case (already computed in modalDisp)
+                    modes_normal = modal_shapes * modalDisp;
+                    
+                    % Find corner node local w DOF index
+                    coords = obj.mesh.coord;
+                    [max_x, ~] = max(coords(:, 1));
+                    [max_y, ~] = max(coords(:, 2));
+                    distances = sqrt((coords(:, 1) - max_x).^2 + (coords(:, 2) - max_y).^2);
+                    [~, corner_node_global] = min(distances);
+                    dofFW = obj.computeFreeDofs(obj.bcW);
+                    corner_node_local = find(dofFW == corner_node_global, 1);
+                    
+                    w_start_idx = nU + nTheta + 1;
+                    w_end_idx = nU + nTheta + nW;
+                    
+                    w_corner_normal = modes_normal(w_start_idx:w_end_idx, :);
+                    w_corner_normal = w_corner_normal(corner_node_local, :);
+                    
+                    % 2. Compute resonance case (omega_force = omega_1)
+                    omega_force_res = omega_n(1);
+                    
+                    switch dynamicForceCase
+                        case 'SINUSOIDAL'
+                            fdynamic_res = sin(omega_force_res * time);
+                        case 'STEP'
+                            t0 = 0;
+                            fdynamic_res = heaviside(time-t0);
+                        otherwise
+                            fdynamic_res = ones(1, nt);
+                    end
+                    
+                    dynamicFModal = modal_shapes' * RHS;
+                    FModal_res = repmat(dynamicFModal, 1, nt);
+                    FModal_res = FModal_res .* fdynamic_res;
+                    
+                    [next_modalDisp_r, next_modalVel_r, next_modalAcc_r] = obj.NewmarkMethod(dt);
+                    
+                    modalDisp_res = modal_shapes' * dynamicDisp;
+                    modalVel_res = modal_shapes' * dynamicVel;
+                    modalAcc_res = zeros(size(modalDisp_res));
+                    modalAcc_res(:,1) = obj.massModal \ (FModal_res(:,1) - obj.stiffnessModal*modalDisp_res(:,1) - obj.dampingModal*modalVel_res(:,1));
+                    
+                    for i = 1:nt-1
+                        modalDisp_res(:,i+1) = next_modalDisp_r(modalDisp_res(:,i), modalVel_res(:,i), modalAcc_res(:,i), FModal_res(:,i+1));
+                        modalAcc_res(:,i+1) = next_modalAcc_r(modalDisp_res(:,i+1), modalDisp_res(:,i), modalVel_res(:,i), modalAcc_res(:,i));
+                        modalVel_res(:,i+1) = next_modalVel_r(modalVel_res(:,i), modalAcc_res(:,i), modalAcc_res(:,i+1));
+                    end
+                    
+                    modes_res = modal_shapes * modalDisp_res;
+                    w_corner_res = modes_res(w_start_idx:w_end_idx, :);
+                    w_corner_res = w_corner_res(corner_node_local, :);
+                    
+                    % 3. Plot Comparison
+                    set(groot, 'defaultTextInterpreter', 'remove');
+                    set(groot, 'defaultAxesTickLabelInterpreter', 'remove');
+                    set(groot, 'defaultLegendInterpreter', 'remove');
+                    
+                    hFigRes = figure('Name', sprintf('Resonance Analysis - Material %d', obj.materialCase));
+                    hAxRes = axes(hFigRes);
+                    hold(hAxRes, 'on');
+                    
+                    plot(hAxRes, time, w_corner_normal * 1000, '-', 'LineWidth', 2.0, 'Color', '#0072BD', 'DisplayName', sprintf('Normal (\\omega = %.1f rad/s)', omega_force));
+                    plot(hAxRes, time, w_corner_res * 1000, '-', 'LineWidth', 2.0, 'Color', '#D95319', 'DisplayName', sprintf('Resonance (\\omega_1 = %.1f rad/s)', omega_force_res));
+                    
+                    xlim(hAxRes, [time(1), time(end)]);
+                    yline(hAxRes, 0, 'k--', 'LineWidth', 1.0, 'HandleVisibility', 'off');
+                    hold(hAxRes, 'off');
+                    
+                    grid(hAxRes, 'on'); box(hAxRes, 'on');
+                    xlabel(hAxRes, 'Time $t$ (s)', 'Interpreter', 'latex', 'FontSize', 13);
+                    ylabel(hAxRes, 'Displacement $w$ (mm)', 'Interpreter', 'latex', 'FontSize', 13);
+                    title(hAxRes, sprintf('Resonance Phenomenon - Material %d', obj.materialCase), 'Interpreter', 'latex', 'FontSize', 14);
+                    legend(hAxRes, 'Location', 'northeast', 'Interpreter', 'tex', 'FontSize', 12);
+                    set(hAxRes, 'FontSize', 13, 'GridAlpha', 0.3, 'TickLabelInterpreter', 'latex');
+                end
+
 
                 % Reconstruct physical displacements for all time steps
                 modes = modal_shapes * modalDisp;  % (nDOF x nt)
@@ -258,7 +479,9 @@ classdef TutorialShells < handle
                 fprintf('s\n');
                 fprintf('=================================\n\n');
 
-                obj.animateDynamicResponse(modes, time, nU, nTheta, nW)
+                if ~comparsionDampingEffects
+                    obj.animateDynamicResponse(modes, time, nU, nTheta, nW, dynamicForceCase)
+                end
 
 
             elseif strcmpi(problemType, 'STATIC')
@@ -276,9 +499,6 @@ classdef TutorialShells < handle
 
             %% 4. Post-processing, Plotting and Printing
             h = obj.zLayer;
-            plotMatlab = 1 && ~batchStartupOptionUsed;
-            printParaview = 0;
-            kappa = 1;
 
             % Mid plane heights
             for i = 1:numel(h)-1
@@ -345,16 +565,47 @@ classdef TutorialShells < handle
                 % obj.zLayer // zMidPlane
 
                 vonMises = obj.computeVonMises(stressFun,stressState);
+                vonMisesInPlane = obj.computeVonMisesInPlane(stressFun,stressState);
 
+                % Print maximum and minimum Strains and Stresses
+                [maxStress, idxMaxS] = max(stressFun{kappa}.fValues);
+                [minStress, idxMinS] = min(stressFun{kappa}.fValues);
+                [maxStrain, idxMaxE] = max(strainFun{kappa}.fValues);
+                [minStrain, idxMinE] = min(strainFun{kappa}.fValues);
+                [maxVM, idxVM]       = max(vonMises{kappa}.fValues);
+                [maxVMip, idxVMip]   = max(vonMisesInPlane{kappa}.fValues);
+                
+                coords = obj.mesh.coord;
+                zL = obj.zLayer{kappa};
+                
+                fprintf('\n===== MAXIMUM AND MINIMUM STRAINS & STRESSES (Material %d - z=%.4f) =====\n', obj.materialCase, zL);
+                fprintf('Max Von Mises (with xz,yz):    %.6e at (%.4f, %.4f, %.4f)\n', maxVM, coords(idxVM,1), coords(idxVM,2), zL);
+                fprintf('Max Von Mises (without xz,yz): %.6e at (%.4f, %.4f, %.4f)\n', maxVMip, coords(idxVMip,1), coords(idxVMip,2), zL);
+                
+                labels = {'xx', 'yy', 'yz', 'xz', 'xy'};
+                
+                fprintf('\n--- STRESSES ---\n');
+                for k = 1:5
+                    fprintf('Max %s: % .6e at (%.4f, %.4f, %.4f)  |  Min %s: % .6e at (%.4f, %.4f, %.4f)\n', ...
+                        labels{k}, maxStress(k), coords(idxMaxS(k),1), coords(idxMaxS(k),2), zL, ...
+                        labels{k}, minStress(k), coords(idxMinS(k),1), coords(idxMinS(k),2), zL);
+                end
+                
+                fprintf('\n--- STRAINS ---\n');
+                for k = 1:5
+                    fprintf('Max %s: % .6e at (%.4f, %.4f, %.4f)  |  Min %s: % .6e at (%.4f, %.4f, %.4f)\n', ...
+                        labels{k}, maxStrain(k), coords(idxMaxE(k),1), coords(idxMaxE(k),2), zL, ...
+                        labels{k}, minStrain(k), coords(idxMinE(k),1), coords(idxMinE(k),2), zL);
+                end
+                fprintf('===========================================================================\n\n');
+              
                 % % PLOT STRESS DISTRIBUTION THROUGH THICKNESS
-                % % Obtain max VonMises value on node and plot stresses
-                % % through thickness
-                % [maxVonMises, idxVM] = max(vonMises{end}.fValues);
-                % locationVM = obj.mesh.coord(idxVM,:);
-                % fprintf('Found maximum von Mises value on node %d (%.6e)\n', idxVM, maxVonMises);
-                % fprintf('Location: (%.4f, %.4f)\n \n', locationVM(1), locationVM(2));
-                % 
-                % obj.plotStressDistributionThroughThickness(idxVM, epsilons, stressState);
+                if plotThickness
+                    [maxVonMises, idxVM] = max(vonMises{kappa}.fValues);
+                    locationVM = obj.mesh.coord(idxVM,:);
+                    fprintf('Plotting Through Thickness for max VM node %d at (%.4f, %.4f)\n', idxVM, locationVM(1), locationVM(2));
+                    obj.plotStressDistributionThroughThickness(idxVM, epsilons, stressState);
+                end
                 
 
                 % ================================================
@@ -389,6 +640,15 @@ classdef TutorialShells < handle
                     % ======== Von Mises ========
                     % ===========================
                     obj.customPlot(vonMises{kappa},{'\sigma_{VM}'});
+                end
+
+                % ======== Resultants ========
+                % ============================
+                if plotResultants
+                    [Nfun, Mfun, Qfun] = obj.getResultants(epsilons);
+                    obj.customPlot(Nfun, {'N_{xx}', 'N_{yy}', 'N_{xy}'});
+                    obj.customPlot(Mfun, {'M_{xx}', 'M_{yy}', 'M_{xy}'});
+                    obj.customPlot(Qfun, {'Q_{xz}', 'Q_{yz}'});
                 end
 
 
@@ -442,6 +702,17 @@ classdef TutorialShells < handle
                     strainFun{kappa}.print(fullfile(outputPath, ['strainfun' suffix]), 'Paraview')
                     vonMises{kappa}.print(fullfile(outputPath, ['VonMises' suffix]), 'Paraview')
 
+                    % === 3D EXTRUDED MESH (FSDT) ===
+                    if printParaview3D_flag
+                        fprintf('Generating 3D extruded mesh (FSDT)...\n');
+                        printParaview3D(obj.mesh, obj.uFun, obj.thetaFun, obj.wFun, ...
+                            obj.zLayer, outputPath, suffix, ...
+                            'nZLayers', nZLayers3D, ...
+                            'strainFun', strainFun, ...
+                            'stressFun', stressFun, ...
+                            'vonMisesFun', vonMises);
+                    end
+
                     % Save metadata
                     infoFile = fullfile(outputPath, 'info.txt');
                     fid = fopen(infoFile, 'w');
@@ -475,10 +746,11 @@ classdef TutorialShells < handle
 
             switch meshtype
                 case 'unitTriangle'
-                    obj.mesh = UnitTriangleMesh(50,50);
+                    elements = 50;
+                    obj.mesh = UnitTriangleMesh(elements,elements);
                 case 'wingShape'
 
-                    elements = 90;
+                    elements = 80;
 
                     fullmesh = TriangleMesh(18,10,elements,elements);
                     ls = obj.computeWingLevelSet(fullmesh);
@@ -523,60 +795,45 @@ classdef TutorialShells < handle
             %   G  = [G12 G13 G23; ...]         % Shear moduli
             %   h  = [h1; h2; ...; hn]          % Thickness of each layer
             %   Rotation = [theta1; theta2; ...] % Ply orientation in degrees
-            %
-            % =========================================================================
-            % MATERIAL DATABASE
-            % =========================================================================
-            %
-            % Available isotropic materials:
-            %   'Aluminum' - Aluminum alloy (E=10.6 msi, nu=0.33)
-            %   'Copper'   - Pure copper (E=18.0 msi, nu=0.33)
-            %   'Steel'    - Structural steel (E=30.0 msi, nu=0.29)
-            %
-            % Available orthotropic composite materials:
-            %   'AS'   - Graphite-Epoxy AS/3501 (High-strength carbon fiber)
-            %   'EpT'  - Graphite-Epoxy T300/934 (Standard-modulus carbon fiber)
-            %   'Ep1'  - Glass-Epoxy type 1 (E-glass, high strength)
-            %   'Ep2'  - Glass-Epoxy type 2 (E-glass, lower modulus)
-            %   'BrEp' - Boron-Epoxy (High stiffness, aerospace grade)
-            %
-            % =========================================================================
+ 
 
-            % -------------------------------------------------------------------------
-            % DATABASE MATERIALS
-            % -------------------------------------------------------------------------
+            if ismember(obj.bcCase, [1, 2, 3])
+                max_thickness = 0.1;
+            else
+                max_thickness = 0.5;
+            end
 
-            materialCase = 'Composite';
-            % 'Composite' // 'Aluminium'
+            switch obj.materialCase
+                case 1
+                    materialName = {'Al7075'};
+                    obj.dampingRatio = 0.01;
+                    nLayers = length(materialName);
+                    h = max_thickness / nLayers * ones(nLayers, 1);
 
-            switch materialCase
-                case 'Composite'
+                case 2
+                    materialName = {'Al7075'; 'WF110'; 'Al7075'};
+                    obj.dampingRatio = 0.01;
+                    h = [0.1*max_thickness; 0.8*max_thickness; 0.1*max_thickness];
+
+                case 3
+                    materialName = {'T300_914_C'};
+                    obj.dampingRatio = 0.015;
+                    Rotation = 0;
+                    nLayers = length(materialName);
+                    h = max_thickness / nLayers * ones(nLayers, 1);
+
+                case 4
                     materialName = {'T300_914_C'; 'T300_914_C'; 'T300_914_C'; 'T300_914_C'; 'T300_914_C';
                         'T300_914_C'; 'T300_914_C'; 'T300_914_C'; 'T300_914_C'; 'T300_914_C'};
-
-                    max_thickness = 0.5;
                     Rotation = [0; 0; 45; -45; 90; 90; -45; 45; 0; 0];  % degrees
-                    Rotation = 25*ones(size(materialName)) + Rotation;
-                    
-                    % Auto-distribute thickness
+                    % Rotation = [0; 0; 0; 0; 0; 90; 90; 90; 90; 90];        
+                    if ismember(obj.bcCase, 4)
+                        Rotation = 25*ones(size(materialName)) + Rotation;
+                    end
                     nLayers = length(materialName);
                     h = max_thickness / nLayers * ones(nLayers, 1);
-                    
                     obj.dampingRatio = 0.015;
-                    
-                case 'Aluminium'
-                    materialName = {'Aluminum'};
-                    max_thickness = 0.5;
-                    obj.dampingRatio = 0.01;
-                   
-                    % Auto-distribute thickness
-                    nLayers = length(materialName);
-                    h = max_thickness / nLayers * ones(nLayers, 1);
             end
-             
-            % materialName = {'Ep1'; 'Ep1'; 'Ep1'; 'Ep1'};
-            % Rotation = [0;90;90;0];
-
             
 
             % Get material properties from database
@@ -791,9 +1048,6 @@ classdef TutorialShells < handle
             isBotom = @(coor)  abs(coor(:,2)-yMin)< TOL;
 
 
-            % Boundary conditions Case
-            obj.bcCase = 4;     % CHANGE THIS VALUE TO SELECT CASE: 1, 2, 3, or 4
-
             switch obj.bcCase
                 case 1
                     % CASE 1: Todo empotrado
@@ -971,6 +1225,26 @@ classdef TutorialShells < handle
             Ztu = Zut';
             Zuw = zeros(nU,nW);
             LHS = [Ku Zut Zuw; Ztu (Ktheta+beta*Mtheta) beta*Nthetaw; Zuw' beta*Nthetaw' beta*Kw];
+        end
+
+        %% computeMass
+        function mass = computeMass(obj)
+            zInterface = cell2mat(obj.zLayer);
+            nLayers = length(zInterface);
+            mass = 0;
+            
+            if ismethod(obj.mesh, 'computeVolume')
+                areaVal = obj.mesh.computeVolume();
+            else
+                areaVal = sum(obj.mesh.computeDvolume());
+            end
+            
+            for k = 1:nLayers-1
+                z0 = zInterface(k);
+                z1 = zInterface(k+1);
+                rho = obj.density.constant(k);
+                mass = mass + areaVal * rho * (z1 - z0);
+            end
         end
 
         %% createMassLHS
@@ -1246,20 +1520,56 @@ classdef TutorialShells < handle
             fprintf('==========================================\n\n');
         end
 
-        %% internalForces
-        function [Nfun, Mfun, Qfun] = internalForces(obj,epsilonU_nodal,epsilonTheta_nodal, dw_dx_nodal, dw_dy_nodal)
+        %% getResultants
+        function [Nfun, Mfun, Qfun] = getResultants(obj, epsilons)
+            % 1. Extraer matrices ABD
+            nLayers = length(obj.zLayer) - 1;
+            A_tens = zeros(3,3,3,3); B_tens = zeros(3,3,3,3); 
+            D_tens = zeros(3,3,3,3); H_tens = zeros(3,3,3,3);
+            
+            for k = 1:nLayers
+                C_k = obj.material.getConstitutiveTensorForLayer(k);
+                z0 = obj.zLayer{k}; z1 = obj.zLayer{k+1};
+                C_ps = obj.material.planeStressReduction(C_k);
+                
+                A_tens = A_tens + C_ps * (z1 - z0);
+                B_tens = B_tens + 0.5 * C_ps * (z1^2 - z0^2);
+                D_tens = D_tens + 1/3 * C_ps * (z1^3 - z0^3);
+                H_tens = H_tens + C_k * (z1 - z0);
+            end
+            
+            A_mat = obj.material.tensorToVoigt(A_tens);
+            B_mat = obj.material.tensorToVoigt(B_tens);
+            D_mat = obj.material.tensorToVoigt(D_tens);
+            
+            idx = [1,2,6]; % xx, yy, xy
+            A_ABD = A_mat(idx,idx);
+            B_ABD = B_mat(idx,idx);
+            D_ABD = D_mat(idx,idx);
+            
+            H_mat = zeros(2,2);
+            H_mat(1,1) = H_tens(1,3,1,3); H_mat(2,2) = H_tens(2,3,2,3);
+            H_mat(1,2) = H_tens(1,3,2,3); H_mat(2,1) = H_tens(2,3,1,3);
 
-            Nvalues = obj.A_Matrix*epsilonU_nodal + obj.B_Matrix*epsilonTheta_nodal;
-            Mvalues = obj.B_Matrix*epsilonU_nodal + obj.D_Matrix*epsilonTheta_nodal;
-            Qvalues = obj.H_Matrix*[dw_dx_nodal.' ; dw_dy_nodal.'];
+            % 2. Deformaciones nodales (Voigt)
+            eps_u = [epsilons(:,1), epsilons(:,2), 2*epsilons(:,3)]';
+            kappa = [epsilons(:,4), epsilons(:,5), 2*epsilons(:,6)]';
+            gamma = [epsilons(:,7) + obj.thetaFun.fValues(:,1), ...
+                     epsilons(:,8) + obj.thetaFun.fValues(:,2)]';
+                     
+            % 3. Multiplicar (Ley constitutiva placa)
+            N_vals = A_ABD * eps_u + B_ABD * kappa;
+            M_vals = B_ABD * eps_u + D_ABD * kappa;
+            Q_vals = obj.shearCorrectionFactor * H_mat * gamma;
 
-            Nfun = LagrangianFunction.create(obj.mesh,length(Nvalues(:,1)),'P1');
-            Mfun = LagrangianFunction.create(obj.mesh,length(Mvalues(:,1)),'P1');
-            Qfun = LagrangianFunction.create(obj.mesh,length(Qvalues(:,1)),'P1');
-            Nfun.setFValues(Nvalues.');
-            Mfun.setFValues(Mvalues.');
-            Qfun.setFValues(Qvalues.');
-
+            % 4. Crear funciones Lagrangianas
+            Nfun = LagrangianFunction.create(obj.mesh, 3, 'P1');
+            Mfun = LagrangianFunction.create(obj.mesh, 3, 'P1');
+            Qfun = LagrangianFunction.create(obj.mesh, 2, 'P1');
+            
+            Nfun.setFValues(N_vals');
+            Mfun.setFValues(M_vals');
+            Qfun.setFValues(Q_vals');
         end
 
 
@@ -1340,6 +1650,12 @@ classdef TutorialShells < handle
             db.Al7075.nu = 0.33;
             db.Al7075.G  = 25393e6;
             db.Al7075.density = 2751;  % kg/m^3
+
+            db.WF110.type    = 'ISOTROPIC';
+            db.WF110.E       = 194e6;
+            db.WF110.G       = 67e6;
+            db.WF110.nu      = db.WF110.E / (2*db.WF110.G) - 1;
+            db.WF110.density = 110;
 
             % ORTHOTROPIC
             db.AS.type = 'ORTHOTROPIC';
@@ -1475,7 +1791,6 @@ classdef TutorialShells < handle
                     E = reshape(E, 1, s);
                     nu = reshape(nu, 1, s);
                     G = reshape(G, 1, s);
-                    density = reshape(density,1,s);
                 end
             end
         end
@@ -1509,6 +1824,37 @@ classdef TutorialShells < handle
 
                 vonMises{cell} = LagrangianFunction.create(obj.mesh,1,'P1');
                 vonMises{cell}.setFValues(vonMises_vals);
+            end
+
+        end
+
+        %% computeVonMisesInPlane (without transverse shear sigma_xz, sigma_yz)
+        function vonMisesIP = computeVonMisesInPlane(obj,stressFun,stressState)
+            ncells = numel(stressFun);
+
+            for cell = 1:ncells
+                stress = stressFun{cell}.fValues;
+                if strcmp(stressState, 'PLANE_STRESS')
+                    % [sigma_xx, sigma_yy, sigma_yz, sigma_xz, sigma_xy]
+                    s1  = stress(:,1);
+                    s2  = stress(:,2);
+                    s12 = stress(:,5);  % sigma_xy (in-plane shear)
+
+                    vm_vals = sqrt( ((s1 - s2).^2 + (s2).^2 + (s1).^2)/2 ...
+                        + 3*(s12.^2) );
+                else
+                    % [sigma_xx, sigma_yy, sigma_zz, sigma_yz, sigma_xz, sigma_xy]
+                    s1  = stress(:,1);
+                    s2  = stress(:,2);
+                    s3  = stress(:,3);
+                    s12 = stress(:,6);
+
+                    vm_vals = sqrt( ((s1 - s2).^2 + (s2 - s3).^2 + (s3 - s1).^2)/2 ...
+                        + 3*(s12.^2) );
+                end
+
+                vonMisesIP{cell} = LagrangianFunction.create(obj.mesh,1,'P1');
+                vonMisesIP{cell}.setFValues(vm_vals);
             end
 
         end
@@ -1558,26 +1904,39 @@ classdef TutorialShells < handle
 
             % === TRANSVERSE DISPLACEMENT w ===
             w_values = obj.wFun.fValues;  % nNodes x 1
+            [maxW_val, idxMaxW] = max(w_values);
+            [minW_val, idxMinW] = min(w_values);
             [maxW, idxW] = max(abs(w_values));
             locationW = coords(idxW, :);
 
             % === IN-PLANE DISPLACEMENT u ===
-            u_values = obj.uFun.fValues;  % nNodes x 2 (ux, uy)
-            u_magnitude = sqrt(u_values(:, 1).^2 + u_values(:, 2).^2);
+            ux_val = obj.uFun.fValues(:, 1);
+            uy_val = obj.uFun.fValues(:, 2);
+            [maxUx, idxMaxUx] = max(ux_val); [minUx, idxMinUx] = min(ux_val);
+            [maxUy, idxMaxUy] = max(uy_val); [minUy, idxMinUy] = min(uy_val);
+            
+            u_magnitude = sqrt(ux_val.^2 + uy_val.^2);
             [maxU, idxU] = max(u_magnitude);
             locationU = coords(idxU, :);
 
             % === ROTATIONS theta ===
-            theta_values = obj.thetaFun.fValues;  % nNodes x 2 (theta_x, theta_y)
-            theta_magnitude = sqrt(theta_values(:, 1).^2 + theta_values(:, 2).^2);
+            tx_val = obj.thetaFun.fValues(:, 1);
+            ty_val = obj.thetaFun.fValues(:, 2);
+            [maxTx, idxMaxTx] = max(tx_val); [minTx, idxMinTx] = min(tx_val);
+            [maxTy, idxMaxTy] = max(ty_val); [minTy, idxMinTy] = min(ty_val);
+            
+            theta_magnitude = sqrt(tx_val.^2 + ty_val.^2);
             [maxTheta, idxTheta] = max(theta_magnitude);
             locationTheta = coords(idxTheta, :);
 
-            fprintf('\n===== MAXIMUM DISPLACEMENTS =====\n');
-            fprintf('Max |w|:     %.6e at (%.4f, %.4f)\n', maxW, locationW(1), locationW(2));
-            fprintf('Max |u|:     %.6e at (%.4f, %.4f)\n', maxU, locationU(1), locationU(2));
-            fprintf('Max |theta|: %.6e at (%.4f, %.4f)\n', maxTheta, locationTheta(1), locationTheta(2));
-            fprintf('=================================\n\n');
+            fprintf('\n===== MATERIAL %d =====\n', obj.materialCase);
+            fprintf('===== DISPLACEMENTS (MIDPLANE) =====\n');
+            fprintf('Max w:       % .6e at (%.4f, %.4f)  |  Min w:       % .6e at (%.4f, %.4f)\n', maxW_val, coords(idxMaxW,1), coords(idxMaxW,2), minW_val, coords(idxMinW,1), coords(idxMinW,2));
+            fprintf('Max ux:      % .6e at (%.4f, %.4f)  |  Min ux:      % .6e at (%.4f, %.4f)\n', maxUx, coords(idxMaxUx,1), coords(idxMaxUx,2), minUx, coords(idxMinUx,1), coords(idxMinUx,2));
+            fprintf('Max uy:      % .6e at (%.4f, %.4f)  |  Min uy:      % .6e at (%.4f, %.4f)\n', maxUy, coords(idxMaxUy,1), coords(idxMaxUy,2), minUy, coords(idxMinUy,1), coords(idxMinUy,2));
+            fprintf('Max theta_x: % .6e at (%.4f, %.4f)  |  Min theta_x: % .6e at (%.4f, %.4f)\n', maxTx, coords(idxMaxTx,1), coords(idxMaxTx,2), minTx, coords(idxMinTx,1), coords(idxMinTx,2));
+            fprintf('Max theta_y: % .6e at (%.4f, %.4f)  |  Min theta_y: % .6e at (%.4f, %.4f)\n', maxTy, coords(idxMaxTy,1), coords(idxMaxTy,2), minTy, coords(idxMinTy,1), coords(idxMinTy,2));
+            fprintf('====================================\n\n');
         end
 
         %% createBoundaryConditions
@@ -1670,7 +2029,7 @@ classdef TutorialShells < handle
             for j = 1:length(ax)
                 % Título
                 if j <= length(titles)
-                    title(ax(j), titles{j}, 'FontSize', 12, 'FontWeight', 'bold');
+                    title(ax(j), titles{j}, 'FontSize', 12, 'FontWeight', 'bold', 'Interpreter', 'tex');
                 end
 
                 % === RECOLECTAR TODOS LOS DATOS DE COLOR (más robusto) ===
@@ -1712,10 +2071,14 @@ classdef TutorialShells < handle
                     end
                 end
 
-                % % Colorbar opcional pero muy útil
-                % cb = colorbar(ax(j));
-                % cb.Label.String = titles{j};
-                % cb.FontSize = 11;
+                % Colorbar opcional pero muy útil
+                cb = colorbar(ax(j), 'Location', 'southoutside');
+                cb.Label.String = titles{j};
+                cb.Label.Interpreter = 'tex';
+                cb.Label.FontSize = 18;
+                cb.Label.FontWeight = 'bold';
+                cb.TickLabelInterpreter = 'tex';
+                cb.FontSize = 16;
             end
         end
 
@@ -1755,15 +2118,32 @@ classdef TutorialShells < handle
                 z_unique = [z_unique; z_layer];
             end
 
-            % ========== COMPUTE STRESSES ==========
-            [~, stressFun] = obj.createStrainStressFunctions(num2cell(z_unique), epsilons, stressState);
+            % ========== COMPUTE STRESSES & STRAINS ==========
+            [strainFun, stressFun] = obj.createStrainStressFunctions(num2cell(z_unique), epsilons, stressState);
             nPoints = numel(stressFun);
             sigmax = zeros(nPoints, 1);
-            sigmay = zeros(nPoints, 1);
+            epsx   = zeros(nPoints, 1);
+            
+            if strcmp(stressState, 'PLANE_STRESS')
+                idx_yz = 3;
+                idx_xz = 4;
+            else
+                idx_yz = 4;
+                idx_xz = 5;
+            end
+            
+            sigmaxz = zeros(nPoints, 1);
+            epsxz   = zeros(nPoints, 1);
+            sigmayz = zeros(nPoints, 1);
+            epsyz   = zeros(nPoints, 1);
 
             for i = 1:nPoints
                 sigmax(i) = stressFun{i}.fValues(nodeIdx, 1);
-                sigmay(i) = stressFun{i}.fValues(nodeIdx, 2);
+                epsx(i)   = strainFun{i}.fValues(nodeIdx, 1);
+                sigmayz(i) = stressFun{i}.fValues(nodeIdx, idx_yz);
+                epsyz(i)   = strainFun{i}.fValues(nodeIdx, idx_yz);
+                sigmaxz(i) = stressFun{i}.fValues(nodeIdx, idx_xz);
+                epsxz(i)   = strainFun{i}.fValues(nodeIdx, idx_xz);
             end
 
             % ========== BUILD z_plot  ==========
@@ -1779,48 +2159,131 @@ classdef TutorialShells < handle
                 end
             end
 
-            % ========== CREATE PLOT ==========
-            figure;
+            % ========== RESET AESTHETIC SETTINGS (Fix session) ==========
+            set(groot, 'defaultTextInterpreter', 'remove');
+            set(groot, 'defaultAxesTickLabelInterpreter', 'remove');
+            set(groot, 'defaultLegendInterpreter', 'remove');
+            
+            % ========== CREATE PLOT 1 (XX) ==========
+            fig1 = figure('Name', sprintf('Through Thickness XX - MAT %d', obj.materialCase));
 
             % --- SUBPLOT 1: sigmaxx vs z ---
-            subplot(1, 2, 1);
-            plot(sigmax/1e6, z_plot, 'b-o', 'LineWidth', 2.5, 'MarkerSize', 6);
-            grid on;
-            xlabel('σ_{xx} (MPa)', 'FontSize', 12, 'FontWeight', 'bold');
-            ylabel('z (m)', 'FontSize', 12, 'FontWeight', 'bold');
-            title(sprintf('σ_{xx} Through Thickness - Node %d\n(%.4f, %.4f)', ...
-                nodeIdx, nodeCoords(1), nodeCoords(2)), ...
-                'FontSize', 11, 'FontWeight', 'bold');
-
-            hold on;
-            xline(0, 'k--', 'LineWidth', 1.1);
-            if ~isempty(internalInterfaces)
-                yline(internalInterfaces, 'k:', 'LineWidth', 1.0, 'Alpha', 0.65);
-            end
-            hold off;
-            
-            % --- SUBPLOT 2: σyy vs z ---
             subplot(1, 2, 2);
-            plot(sigmay/1e6, z_plot, 'r-s', 'LineWidth', 2.5, 'MarkerSize', 6);
-            grid on;
-            xlabel('σ_{yy} (MPa)', 'FontSize', 12, 'FontWeight', 'bold');
-            ylabel('z (m)', 'FontSize', 12, 'FontWeight', 'bold');
-            title(sprintf('σ_{yy} Through Thickness - Node %d\n(%.4f, %.4f)', ...
-                nodeIdx, nodeCoords(1), nodeCoords(2)), ...
-                'FontSize', 11, 'FontWeight', 'bold');
+            plot(sigmax/1e6, z_plot, '-', 'LineWidth', 2.0, 'Color', '#0072BD');
+            grid on; box on;
+            xlabel('$\sigma_{xx}$ (MPa)', 'FontSize', 13, 'Interpreter', 'latex');
+            ylabel('Thickness $z$ (m)', 'FontSize', 13, 'Interpreter', 'latex');
+            title(sprintf('Through Thickness $\\sigma_{xx}$ (Node %d)', nodeIdx), 'FontSize', 14, 'Interpreter', 'latex');
 
             hold on;
-            xline(0, 'k--', 'LineWidth', 1.1);
+            xline(0, 'k--', 'LineWidth', 1.0);
             if ~isempty(internalInterfaces)
                 yline(internalInterfaces, 'k:', 'LineWidth', 1.0, 'Alpha', 0.65);
             end
             hold off;
+            set(gca, 'FontSize', 13, 'GridAlpha', 0.3, 'TickLabelInterpreter', 'latex');
+            ylim([zInterfaces(1), zInterfaces(end)]);
+            
+            % --- SUBPLOT 2: epsxx vs z ---
+            subplot(1, 2, 1);
+            plot(epsx, z_plot, '-', 'LineWidth', 2.0, 'Color', '#D95319');
+            grid on; box on;
+            xlabel('$\epsilon_{xx}$ (-)', 'FontSize', 13, 'Interpreter', 'latex');
+            ylabel('Thickness $z$ (m)', 'FontSize', 13, 'Interpreter', 'latex');
+            title(sprintf('Through Thickness $\\epsilon_{xx}$ (Node %d)', nodeIdx), 'FontSize', 14, 'Interpreter', 'latex');
+
+            hold on;
+            xline(0, 'k--', 'LineWidth', 1.0);
+            if ~isempty(internalInterfaces)
+                yline(internalInterfaces, 'k:', 'LineWidth', 1.0, 'Alpha', 0.65);
+            end
+            hold off;
+            set(gca, 'FontSize', 13, 'GridAlpha', 0.3, 'TickLabelInterpreter', 'latex');
+            ylim([zInterfaces(1), zInterfaces(end)]);
+            
+            % ========== CREATE PLOT 2 (XZ) ==========
+            fig2 = figure('Name', sprintf('Through Thickness XZ - MAT %d', obj.materialCase));
+            sgtitle(sprintf('Transverse Shear Through Thickness (Node %d)', nodeIdx), 'FontSize', 14, 'Interpreter', 'latex');
+            
+            % --- SUBPLOT 1: epsxz vs z ---
+            subplot(1, 2, 1);
+            plot(epsxz, z_plot, '-', 'LineWidth', 2.0, 'Color', '#D95319');
+            grid on; box on; 
+            xlabel('$\epsilon_{xz}$ (-)', 'FontSize', 13, 'Interpreter', 'latex'); 
+            ylabel('Thickness $z$ (m)', 'FontSize', 13, 'Interpreter', 'latex');
+            title('$\epsilon_{xz}$', 'FontSize', 14, 'Interpreter', 'latex');
+            hold on; xline(0, 'k--', 'LineWidth', 1.0);
+            if ~isempty(internalInterfaces), yline(internalInterfaces, 'k:', 'LineWidth', 1.0, 'Alpha', 0.65); end
+            hold off;
+            set(gca, 'FontSize', 13, 'GridAlpha', 0.3, 'TickLabelInterpreter', 'latex');
+            ylim([zInterfaces(1), zInterfaces(end)]);
+
+            % --- SUBPLOT 2: sigmaxz vs z ---
+            subplot(1, 2, 2);
+            plot(sigmaxz/1e6, z_plot, '-', 'LineWidth', 2.0, 'Color', '#0072BD');
+            grid on; box on; 
+            xlabel('$\sigma_{xz}$ (MPa)', 'FontSize', 13, 'Interpreter', 'latex'); 
+            ylabel('Thickness $z$ (m)', 'FontSize', 13, 'Interpreter', 'latex');
+            title('$\sigma_{xz}$', 'FontSize', 14, 'Interpreter', 'latex');
+            hold on; xline(0, 'k--', 'LineWidth', 1.0);
+            if ~isempty(internalInterfaces), yline(internalInterfaces, 'k:', 'LineWidth', 1.0, 'Alpha', 0.65); end
+            hold off;
+            set(gca, 'FontSize', 13, 'GridAlpha', 0.3, 'TickLabelInterpreter', 'latex');
+            ylim([zInterfaces(1), zInterfaces(end)]);
+            % ========== CREATE PLOT 3 (ONLY SIGMA XX) ==========
+            fig3 = figure('Name', sprintf('Through Thickness Sigma XX Alone - MAT %d', obj.materialCase));
+            
+            plot(sigmax/1e6, z_plot, '-', 'LineWidth', 2.0, 'Color', '#0072BD');
+            grid on; box on;
+            xlabel('$\sigma_{xx}$ (MPa)', 'FontSize', 13, 'Interpreter', 'latex');
+            ylabel('Thickness $z$ (m)', 'FontSize', 13, 'Interpreter', 'latex');
+            title(sprintf('Through Thickness $\\sigma_{xx}$ (Node %d)', nodeIdx), 'FontSize', 14, 'Interpreter', 'latex');
+
+            hold on;
+            xline(0, 'k--', 'LineWidth', 1.0);
+            if ~isempty(internalInterfaces)
+                yline(internalInterfaces, 'k:', 'LineWidth', 1.0, 'Alpha', 0.65);
+            end
+            hold off;
+            set(gca, 'FontSize', 13, 'GridAlpha', 0.3, 'TickLabelInterpreter', 'latex');
+            ylim([zInterfaces(1), zInterfaces(end)]);
+            
+            % ========== CREATE PLOT 4 (ONLY SIGMA XZ) ==========
+            fig4 = figure('Name', sprintf('Through Thickness Sigma XZ Alone - MAT %d', obj.materialCase));
+            
+            plot(sigmaxz/1e6, z_plot, '-', 'LineWidth', 2.0, 'Color', '#0072BD');
+            grid on; box on;
+            xlabel('$\sigma_{xz}$ (MPa)', 'FontSize', 13, 'Interpreter', 'latex');
+            ylabel('Thickness $z$ (m)', 'FontSize', 13, 'Interpreter', 'latex');
+            title(sprintf('Through Thickness $\\sigma_{xz}$ (Node %d)', nodeIdx), 'FontSize', 14, 'Interpreter', 'latex');
+
+            hold on;
+            xline(0, 'k--', 'LineWidth', 1.0);
+            if ~isempty(internalInterfaces)
+                yline(internalInterfaces, 'k:', 'LineWidth', 1.0, 'Alpha', 0.65);
+            end
+            hold off;
+            set(gca, 'FontSize', 13, 'GridAlpha', 0.3, 'TickLabelInterpreter', 'latex');
+            ylim([zInterfaces(1), zInterfaces(end)]);
+            
+            % ========== SAVE FIGURES ==========
+            % filename1 = sprintf('ThroughThickness_XX_BC%d_MAT%d.png', obj.bcCase, obj.materialCase);
+            % filename2 = sprintf('ThroughThickness_XZ_BC%d_MAT%d.png', obj.bcCase, obj.materialCase);
+            % filename3 = sprintf('ThroughThickness_SigmaXX_Alone_BC%d_MAT%d.png', obj.bcCase, obj.materialCase);
+            % filename4 = sprintf('ThroughThickness_SigmaXZ_Alone_BC%d_MAT%d.png', obj.bcCase, obj.materialCase);
+            % 
+            % exportgraphics(fig1, filename1, 'Resolution', 300);
+            % exportgraphics(fig2, filename2, 'Resolution', 300);
+            % exportgraphics(fig3, filename3, 'Resolution', 300);
+            % exportgraphics(fig4, filename4, 'Resolution', 300);
+            
+            % fprintf('Through-thickness plots saved as %s, %s, %s and %s\n', filename1, filename2, filename3, filename4);
             
         end
 
 
         %% animateDynamicResponse
-        function animateDynamicResponse(obj, modes, time, nU, nTheta, nW)
+        function animateDynamicResponse(obj, modes, time, nU, nTheta, nW, dynamicForceCase)
             % animateDynamicResponse - Animated plot of w displacement vs time
 
             % ========== FIND CORNER NODE ==========
@@ -1863,42 +2326,34 @@ classdef TutorialShells < handle
             % Get w history for the corner node (using LOCAL index)
             w_corner = w_all_nodes(corner_node_local, :);  % 1 x nt
 
-            % ========== CREATE ANIMATED PLOT ==========
-            figure;
-            h_plot = plot(time(1), w_corner(1), 'b-', 'LineWidth', 2);
-            hold on;
-            h_point = plot(time(1), w_corner(1), 'ro', 'MarkerSize', 8, 'MarkerFaceColor', 'r');
-            grid on;
-            xlabel('Time (s)', 'FontSize', 12, 'FontWeight', 'bold');
-            ylabel('Displacement w (m)', 'FontSize', 12, 'FontWeight', 'bold');
-            title(sprintf('Dynamic Response at Corner Node %d (%.2f, %.2f)', ...
-                corner_node_global, coords(corner_node_global, 1), coords(corner_node_global, 2)), ...
-                'FontSize', 14, 'FontWeight', 'bold');
-            xlim([time(1), time(end)]);
+            % ========== RESET AESTHETIC SETTINGS ==========
+            set(groot, 'defaultTextInterpreter', 'remove');
+            set(groot, 'defaultAxesTickLabelInterpreter', 'remove');
+            set(groot, 'defaultLegendInterpreter', 'remove');
 
-            % Set y-limits with some margin
+            % ========== CREATE PLOT ==========
+            figure('Name', sprintf('Dynamic Response (%s) - MAT %d', dynamicForceCase, obj.materialCase));
+            plot(time, w_corner, '-', 'LineWidth', 2.0, 'Color', '#0072BD');
+            grid on; box on;
+            
+            xlabel('Time $t$ (s)', 'FontSize', 13, 'Interpreter', 'latex');
+            ylabel('Displacement $w$ (m)', 'FontSize', 13, 'Interpreter', 'latex');
+            title(sprintf('Dynamic Response at Corner Node %d', corner_node_global), 'FontSize', 14, 'Interpreter', 'latex');
+            
+            hold on;
+            plot([time(1), time(end)], [0, 0], 'k--', 'LineWidth', 1.0);
+            hold off;
+            
+            set(gca, 'FontSize', 13, 'GridAlpha', 0.3, 'TickLabelInterpreter', 'latex');
+            xlim([time(1), time(end)]);
+            
             y_margin = 0.1 * max(abs(w_corner));
+            if y_margin == 0
+                y_margin = 1e-6;
+            end
             ylim([min(w_corner) - y_margin, max(w_corner) + y_margin]);
 
-            % Add horizontal line at y=0
-            plot([time(1), time(end)], [0, 0], 'k--', 'LineWidth', 0.5);
-
-            % ========== ANIMATE ==========
-            fprintf('Starting animation...\n');
-            skip = max(1, round(length(time) / 200));  % Show ~200 frames max
-
-            for i = 1:skip:length(time)
-                set(h_plot, 'XData', time(1:i), 'YData', w_corner(1:i));
-                set(h_point, 'XData', time(i), 'YData', w_corner(i));
-                title(sprintf('t = %.4f s | dt = %.6e m (Node %d)', ...
-                    time(end), time(2)-time(1), corner_node_global));
-                drawnow;
-                pause(0.01);
-            end
-
-            hold off;
-
-            fprintf('✓ Animation complete!\n');
+            fprintf('✓ Plot generated!\n');
 
             % ========== PRINT STATISTICS ==========
             [max_w, idx_max] = max(w_corner);

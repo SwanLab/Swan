@@ -1,0 +1,40 @@
+Computing initial solution...
+  Initial evaluation done in 2.12 s
+  Initial maxval (Al7075/WF110): 0.039745
+Computing composite laminate reference displacement...
+  Composite maxval done in 1.91 s
+  Reference maxval (composite): 0.0742546
+
+Computing initial dynamic solution (normalization)...
+  Done in 2.66 s  (f1 = 2.7303 Hz)
+
+Starting optimization (DYNAMIC)...
+
+Converged to an infeasible point.
+
+fmincon stopped because the size of the current step is less than
+the value of the step size tolerance but constraints are not
+satisfied to within the value of the constraint tolerance.
+
+
+Consider enabling the interior point method feasibility mode.
+
+  Optimization finished in 498.56 s
+
+
+==================================================
+               OPTIMIZATION RESULTS
+==================================================
+  Layer  1 (Al7075):   0.799988 m
+  Layer  2 (WF110):   0.010002 m
+  Layer  3 (Al7075):   0.799988 m
+--------------------------------------------------
+  Total Thickness   :   1.609977 m  (Limit: 0.8000 m)
+  WF110 fraction    :     0.6212 %  (Target: 80.0 %)
+  Final Disp (w)    : 3.228515e-03 m
+  Final Mass        : 3.308927e+05 kg  (Normalized: 2.9419)
+--------------------------------------------------
+  Optim. time       :     498.56 s
+  TOTAL run time    : 00 h 08 min 25.25 s
+==================================================
+

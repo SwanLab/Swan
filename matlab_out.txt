@@ -1,0 +1,26 @@
+No internal interfaces detected.
+Using PLANE STRESS formulation (5 components)
+
+===== OUTPUT ORGANIZATION =====
+Position {1}: z = -0.050000, Layer 1
+Position {2}: z = 0.050000, Layer 1
+
+Total positions: 2
+==========================================
+
+Vertical displacement at center (0.500, 0.500): 
+  w = 4.293796757119322e-10
+  eps_xx = 2.001162729550613e-10 at (0.500, 0.500)
+  eps_yy = 2.001162729550910e-10 at (0.500, 0.500)
+  gxy  at (0, 0) [node (0.0000,0.0000)]: -4.002328159323039E-10
+  gxz  at (0, b/2) [node (0.0000,0.4937)]: +7.503479634441650E-11
+  gyz  at (a/2, 0) [node (0.4937,0.0000)]: +7.503479634441919E-11
+
+========== RELATIVE ERRORS vs REFERENCE ==========
+  w(a/2,b/2)            Computed: +4.293797e-10   Ref: +4.262584e-10   Error: 0.7323%
+  epsxx(a/2,b/2)        Computed: +2.001163e-10   Ref: +2.005048e-10   Error: 0.1938%
+  epsyy(a/2,b/2)        Computed: +2.001163e-10   Ref: +2.005048e-10   Error: 0.1938%
+  gxy(0,0)              Computed: -4.002328e-10   Ref: -4.010096e-10   Error: 0.1937%
+  gxz(0,b/2)            Computed: +7.503480e-11   Ref: +6.267705e-11   Error: 19.7165%
+  gyz(a/2,0)            Computed: +7.503480e-11   Ref: +6.267705e-11   Error: 19.7165%
+===================================================

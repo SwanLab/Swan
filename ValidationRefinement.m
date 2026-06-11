@@ -1,4 +1,4 @@
-classdef Validation < handle
+classdef ValidationRefinement < handle
 
 
     properties (Access=private)
@@ -31,155 +31,192 @@ classdef Validation < handle
 
     methods (Access = public)
         %% TutorialShells
-        function obj = Validation()
+        function obj = ValidationRefinement()
             close all; clc;
 
-            % 1. Initialization
-            obj.createMesh('unitTriangle')    % 'unitTriangle' // 'wingShape'
-            obj.createMaterial()
-            obj.createSolutionField()
-            obj.solverType = 'REDUCED';
-            obj.bcCase     = 1;
+            mesh_sizes = [2, 10, 20, 30, 40, 50, 60, 70, 80];
+            materials = {'Al7075', 'T300_914_C'};
+
+            ref_w_Al = 4.26258377435646e-10;
+            ref_w_Comp = 8.586112365969470e-10; % Calculated reference for composite
+
+            errors_w = zeros(length(mesh_sizes), length(materials));
+            values_w = zeros(length(mesh_sizes), length(materials));
+
+            fig_err = figure('Color', 'w', 'Position', [200, 200, 800, 600]);
+            hold on; 
+            set(gca, 'YScale', 'log', 'FontSize', 16, 'LineWidth', 1.2, ...
+                'TickLabelInterpreter', 'latex', 'XMinorTick', 'on', 'YMinorTick', 'on');
+            grid on; grid minor;
+            
+            xlabel('Number of elements per side ($el$)', 'Interpreter', 'latex', 'FontSize', 18);
+            ylabel('Relative Error in $w_{max}$', 'Interpreter', 'latex', 'FontSize', 18);
+            title('\textbf{Mesh Refinement Convergence}', 'Interpreter', 'latex', 'FontSize', 22);
+            
+            colors = [0, 0.4470, 0.7410;      % Blue
+                      0.8500, 0.3250, 0.0980]; % Orange
+            markers = {'-o', '-s'};
+
+            for m = 1:length(materials)
+                obj.materialName = materials{m};
+                if strcmp(obj.materialName, 'Al7075')
+                    ref_w = ref_w_Al;
+                else
+                    ref_w = ref_w_Comp;
+                end
+
+                for idx_el = 1:length(mesh_sizes)
+                    el = mesh_sizes(idx_el);
+
+                    % 1. Initialization
+                    obj.createMesh('unitTriangle', el)    % 'unitTriangle' // 'wingShape'
+                    obj.createMaterial()
+                    obj.createSolutionField()
+                    obj.solverType = 'REDUCED';
+                    obj.bcCase     = 1;
 
 
-            % 2. Boundary Conditions and Assembly
-            obj.createBoundaryConditions();     % BOUNDARY CONDITIONS
-            LHS = obj.createLHS();              % Stiffness matrix
-            obj.lhs = LHS;
+                    % 2. Boundary Conditions and Assembly
+                    obj.createBoundaryConditions();     % BOUNDARY CONDITIONS
+                    LHS = obj.createLHS();              % Stiffness matrix
+                    obj.lhs = LHS;
 
-            % --- PRE-COMPUTE DOF LENGTHS AND INDICES ---
-            nU     = length(obj.computeFreeDofs(obj.bcU));
-            nTheta = length(obj.computeFreeDofs(obj.bcT));
-            nW     = length(obj.computeFreeDofs(obj.bcW));
+                    % --- PRE-COMPUTE DOF LENGTHS AND INDICES ---
+                    nU     = length(obj.computeFreeDofs(obj.bcU));
+                    nTheta = length(obj.computeFreeDofs(obj.bcT));
+                    nW     = length(obj.computeFreeDofs(obj.bcW));
 
-            dofFU = obj.computeFreeDofs(obj.bcU);
-            dofFT = obj.computeFreeDofs(obj.bcT);
-            dofFW = obj.computeFreeDofs(obj.bcW);
+                    dofFU = obj.computeFreeDofs(obj.bcU);
+                    dofFT = obj.computeFreeDofs(obj.bcT);
+                    dofFW = obj.computeFreeDofs(obj.bcW);
 
-            % 3. Resolution                
+                    % 3. Resolution
 
-            RHS = obj.createRHS();
-            x = LHS \ RHS;
-            current_x = x;
+                    RHS = obj.createRHS();
+                    x = LHS \ RHS;
+                    current_x = x;
 
-            % Extract components
-            uF = current_x(1:nU, 1);
-            tF = current_x(nU+1 : nU+nTheta, 1);
-            wF = current_x(nU+nTheta+1 : nU+nTheta+nW, 1);
+                    % Extract components
+                    uF = current_x(1:nU, 1);
+                    tF = current_x(nU+1 : nU+nTheta, 1);
+                    wF = current_x(nU+nTheta+1 : nU+nTheta+nW, 1);
 
-            % Update Displacements (u)
-            uT = zeros(obj.uFun.nDofs, 1);
-            uT(dofFU, 1) = uF;
-            uT = reshape(uT, obj.uFun.ndimf, [])';
-            obj.uFun.setFValues(uT);
+                    % Update Displacements (u)
+                    uT = zeros(obj.uFun.nDofs, 1);
+                    uT(dofFU, 1) = uF;
+                    uT = reshape(uT, obj.uFun.ndimf, [])';
+                    obj.uFun.setFValues(uT);
 
-            % Update Transverse Displacements (w)
-            wT = zeros(obj.wFun.nDofs, 1);
-            wT(dofFW, 1) = wF;
-            wT = reshape(wT, [], obj.wFun.ndimf);
-            obj.wFun.setFValues(wT);
+                    % Update Transverse Displacements (w)
+                    wT = zeros(obj.wFun.nDofs, 1);
+                    wT(dofFW, 1) = wF;
+                    wT = reshape(wT, [], obj.wFun.ndimf);
+                    obj.wFun.setFValues(wT);
 
-            % Update Rotations (theta)
-            thetaT = zeros(obj.thetaFun.nDofs, 1);
-            thetaT(dofFT, 1) = tF;
-            thetaT = reshape(thetaT, obj.thetaFun.ndimf, [])';
-            obj.thetaFun.setFValues(thetaT);
+                    % Update Rotations (theta)
+                    thetaT = zeros(obj.thetaFun.nDofs, 1);
+                    thetaT(dofFT, 1) = tF;
+                    thetaT = reshape(thetaT, obj.thetaFun.ndimf, [])';
+                    obj.thetaFun.setFValues(thetaT);
 
-            % Vertical displacement at the center 
-            xc = 0.5; yc = 0.5;  % Para unitTriangle: a=1, b=1
+                    % Vertical displacement at the center
+                    xc = 0.5; yc = 0.5;  % Para unitTriangle: a=1, b=1
 
-            coords = obj.mesh.coord;
-            dist   = sqrt((coords(:,1) - xc).^2 + (coords(:,2) - yc).^2);
-            [~, idx] = min(dist);
+                    coords = obj.mesh.coord;
+                    dist   = sqrt((coords(:,1) - xc).^2 + (coords(:,2) - yc).^2);
+                    [~, idx] = min(dist);
 
-            w_center = wT(idx);
+                    w_center = wT(idx);
 
-            % Strain and stresses calculation
-            [epsilons] = obj.createEpsilons();
+                    % Strain and stresses calculation
+                    [epsilons] = obj.createEpsilons();
 
-            % Determine stress state
-            stressState = 'PLANE_STRESS';
-            [strainFun, ~] = obj.createStrainStressFunctions(obj.zLayer, epsilons, stressState);
+                    % Determine stress state
+                    stressState = 'PLANE_STRESS';
+                    [strainFun, ~] = obj.createStrainStressFunctions(obj.zLayer, epsilons, stressState);
 
-            epsxx = strainFun{end}.fValues(idx,1);
-            epsyy = strainFun{end}.fValues(idx,2);
+                    epsxx = strainFun{end}.fValues(idx,1);
+                    epsyy = strainFun{end}.fValues(idx,2);
 
-            fprintf('Vertical displacement at center (%.3f, %.3f): \n  w = %.15e\n', ...
-                coords(idx,1), coords(idx,2), w_center);
+                    fprintf('Vertical displacement at center (%.3f, %.3f): \n  w = %.15e\n', ...
+                        coords(idx,1), coords(idx,2), w_center);
 
-            % Imprimir deformaciones en el punto central (epsxx, epsyy, gxy, gxz, gyz)
-            % fprintf('Strains at center (coord [%.3f, %.3f]):\n', coords(idx,1), coords(idx,2));
-            fprintf('  eps_xx = %.15e at (%.3f, %.3f)\n', epsxx, coords(idx,1), coords(idx,2));
-            fprintf('  eps_yy = %.15e at (%.3f, %.3f)\n', epsyy, coords(idx,1), coords(idx,2));
+                    % Imprimir deformaciones en el punto central (epsxx, epsyy, gxy, gxz, gyz)
+                    % fprintf('Strains at center (coord [%.3f, %.3f]):\n', coords(idx,1), coords(idx,2));
+                    fprintf('  eps_xx = %.15e at (%.3f, %.3f)\n', epsxx, coords(idx,1), coords(idx,2));
+                    fprintf('  eps_yy = %.15e at (%.3f, %.3f)\n', epsyy, coords(idx,1), coords(idx,2));
 
 
-            coords = obj.mesh.coord;
-            [~, idx_00]  = min(sqrt((coords(:,1)-0  ).^2 + (coords(:,2)-0  ).^2));
-            [~, idx_0b2] = min(sqrt((coords(:,1)-0  ).^2 + (coords(:,2)-0.5).^2));
-            [~, idx_a20] = min(sqrt((coords(:,1)-0.5).^2 + (coords(:,2)-0  ).^2));
+                    coords = obj.mesh.coord;
+                    [~, idx_00]  = min(sqrt((coords(:,1)-0  ).^2 + (coords(:,2)-0  ).^2));
+                    [~, idx_0b2] = min(sqrt((coords(:,1)-0  ).^2 + (coords(:,2)-0.5).^2));
+                    [~, idx_a20] = min(sqrt((coords(:,1)-0.5).^2 + (coords(:,2)-0  ).^2));
 
-            gxy_00  = 2 * strainFun{end}.fValues(idx_00,  5);
-            gxz_0b2 = 2 * strainFun{end}.fValues(idx_0b2, 4);
-            gyz_a20 = 2 * strainFun{end}.fValues(idx_a20, 3);
+                    gxy_00  = 2 * strainFun{end}.fValues(idx_00,  5);
+                    gxz_0b2 = 2 * strainFun{end}.fValues(idx_0b2, 4);
+                    gyz_a20 = 2 * strainFun{end}.fValues(idx_a20, 3);
 
-            fprintf('  gxy  at (0, 0) [node (%.4f,%.4f)]: %+.15E\n', coords(idx_00, 1),  coords(idx_00, 2),  gxy_00);
-            fprintf('  gxz  at (0, b/2) [node (%.4f,%.4f)]: %+.15E\n', coords(idx_0b2,1),  coords(idx_0b2,2),  gxz_0b2);
-            fprintf('  gyz  at (a/2, 0) [node (%.4f,%.4f)]: %+.15E\n', coords(idx_a20,1),  coords(idx_a20,2),  gyz_a20);
+                    fprintf('  gxy  at (0, 0) [node (%.4f,%.4f)]: %+.15E\n', coords(idx_00, 1),  coords(idx_00, 2),  gxy_00);
+                    fprintf('  gxz  at (0, b/2) [node (%.4f,%.4f)]: %+.15E\n', coords(idx_0b2,1),  coords(idx_0b2,2),  gxz_0b2);
+                    fprintf('  gyz  at (a/2, 0) [node (%.4f,%.4f)]: %+.15E\n', coords(idx_a20,1),  coords(idx_a20,2),  gyz_a20);
 
-            % ─── Valores de referencia (analytical/reference) ───
-            if strcmp(obj.materialName, 'Al7075')
-                ref_w       =  4.26258377435646e-10;
-                ref_epsxx   =  2.005047895707023e-10;
-                ref_epsyy   =  2.005047895707023e-10;
-                ref_gxy_00  = -4.010095791414047e-10;
-                ref_gxz_0b2 =  7.521246255819521e-11;
-                ref_gyz_a20 =  7.521246255819521e-11;
-            elseif strcmp(obj.materialName, 'T300_914_C')
-                ref_w       =  8.586112365969470e-10;
-                ref_epsxx   =  3.316245296750365e-10;
-                ref_epsyy   =  3.999054298298613e-10;
-                ref_gxy_00  = -7.315299595048977e-10;
-                ref_gxz_0b2 =  5.862194272503369e-10;
-                ref_gyz_a20 =  1.515297161141559e-10;
-            else
-                % Default/dummy values if another material is used
-                ref_w       = 0;
-                ref_epsxx   = 0;
-                ref_epsyy   = 0;
-                ref_gxy_00  = 0;
-                ref_gxz_0b2 = 0;
-                ref_gyz_a20 = 0;
+                    % ─── Valores de referencia (analytical/reference) ───
+                    if strcmp(obj.materialName, 'Al7075')
+                        ref_w       =  4.26258377435646e-10;
+                    elseif strcmp(obj.materialName, 'T300_914_C')
+                        ref_w       =  8.586112365969470e-10;
+                        
+                    else
+                        % Default/dummy values if another material is used
+                        ref_w       = 0;
+                    end
+
+                    % ─── Errores relativos ───
+                    err_w       = abs(w_center   - ref_w      ) / abs(ref_w      );
+
+                                     
+                    errors_w(idx_el, m) = err_w;
+                    values_w(idx_el, m) = abs(w_center);
+                end % End element loop
+
+                figure(fig_err);
+                plot(mesh_sizes, errors_w(:, m), markers{m}, 'LineWidth', 2, ...
+                     'MarkerSize', 8, 'MarkerFaceColor', colors(m,:), ...
+                     'Color', colors(m,:), ...
+                     'DisplayName', sprintf('%s (Ref $w$: %.2e)', materials{m}, ref_w));
+            end % End material loop
+
+            figure(fig_err);
+            lgd = legend('show', 'Interpreter', 'latex', 'FontSize', 16, 'Location', 'best');
+            lgd.Box = 'off';
+
+            fig_w = figure('Color', 'w', 'Position', [250, 250, 800, 600]);
+            hold on;
+            set(gca, 'FontSize', 16, 'LineWidth', 1.2, ...
+                'TickLabelInterpreter', 'latex', 'XMinorTick', 'on', 'YMinorTick', 'on');
+            grid on; grid minor;
+            xlabel('Number of elements per side ($el$)', 'Interpreter', 'latex', 'FontSize', 18);
+            ylabel('Absolute value of $w_{max}$ [m]', 'Interpreter', 'latex', 'FontSize', 18);
+            title('\textbf{Transverse Displacement Convergence}', 'Interpreter', 'latex', 'FontSize', 22);
+            
+            for m = 1:length(materials)
+                if strcmp(materials{m}, 'Al7075')
+                    ref_w = ref_w_Al;
+                else
+                    ref_w = ref_w_Comp;
+                end
+                
+                plot(mesh_sizes, values_w(:, m), markers{m}, 'LineWidth', 2, ...
+                     'MarkerSize', 8, 'MarkerFaceColor', colors(m,:), ...
+                     'Color', colors(m,:), ...
+                     'DisplayName', sprintf('%s (Calculated)', materials{m}));
+                     
+                yline(abs(ref_w), '--', 'Color', colors(m,:), 'LineWidth', 1.5, ...
+                      'DisplayName', sprintf('%s (Analytical)', materials{m}));
             end
-
-% ─── Errores relativos (%) ───
-err_w       = abs(w_center   - ref_w      ) / abs(ref_w      ) * 100;
-err_epsxx   = abs(epsxx      - ref_epsxx  ) / abs(ref_epsxx  ) * 100;
-err_epsyy   = abs(epsyy      - ref_epsyy  ) / abs(ref_epsyy  ) * 100;
-err_gxy_00  = abs(gxy_00     - ref_gxy_00 ) / abs(ref_gxy_00 ) * 100;
-err_gxz_0b2 = abs(gxz_0b2   - ref_gxz_0b2) / abs(ref_gxz_0b2) * 100;
-err_gyz_a20 = abs(gyz_a20   - ref_gyz_a20) / abs(ref_gyz_a20) * 100;
-
-% ─── Print tabla de errores ───
-fprintf('\n========== RELATIVE ERRORS vs REFERENCE ==========\n');
-fprintf('  %-20s  Computed: %+.6e   Ref: %+.6e   Error: %.4f%%\n', ...
-    'w(a/2,b/2)',    w_center,   ref_w,       err_w);
-fprintf('  %-20s  Computed: %+.6e   Ref: %+.6e   Error: %.4f%%\n', ...
-    'epsxx(a/2,b/2)', epsxx,    ref_epsxx,   err_epsxx);
-fprintf('  %-20s  Computed: %+.6e   Ref: %+.6e   Error: %.4f%%\n', ...
-    'epsyy(a/2,b/2)', epsyy,    ref_epsyy,   err_epsyy);
-fprintf('  %-20s  Computed: %+.6e   Ref: %+.6e   Error: %.4f%%\n', ...
-    'gxy(0,0)',      gxy_00,    ref_gxy_00,  err_gxy_00);
-fprintf('  %-20s  Computed: %+.6e   Ref: %+.6e   Error: %.4f%%\n', ...
-    'gxz(0,b/2)',    gxz_0b2,   ref_gxz_0b2, err_gxz_0b2);
-fprintf('  %-20s  Computed: %+.6e   Ref: %+.6e   Error: %.4f%%\n', ...
-    'gyz(a/2,0)',    gyz_a20,   ref_gyz_a20, err_gyz_a20);
-fprintf('===================================================\n');
-
-
             
-            
-
-             
+            lgd2 = legend('show', 'Interpreter', 'latex', 'FontSize', 16, 'Location', 'best');
+            lgd2.Box = 'off';
         end
 
     end
@@ -187,11 +224,13 @@ fprintf('===================================================\n');
     methods (Access = private)
         %% createMesh
 
-        function createMesh(obj,meshtype)
+        function createMesh(obj,meshtype,el)
 
+            if nargin < 3
+                el = 80;
+            end
             switch meshtype
                 case 'unitTriangle'
-                    el = 80;
                     obj.mesh = UnitTriangleMesh(el,el);
                 case 'wingShape'
 
@@ -264,8 +303,7 @@ fprintf('===================================================\n');
             % DATABASE MATERIALS
             % -------------------------------------------------------------------------
 
-            materialName = {'T300_914_C'};
-            obj.materialName = materialName{1};
+            materialName = {obj.materialName};
             max_thickness = 0.1;
             obj.dampingRatio = 0.01;
 
