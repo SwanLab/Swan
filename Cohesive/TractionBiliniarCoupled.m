@@ -45,10 +45,10 @@ classdef TractionBiliniarCoupled < handle
             %     fprintf('jF     = %.3e\n', jF.evaluate([-1,1]));
             %     fprintf('d      = %.3e\n', max(d.evaluate([-1,1])));
             % % =================================
-
-            ddot = obj.computeDamageDerivative(jump);   % 2 x ngauss x nelem
-            dtSec = obj.computeDerivativeSecant(jump);
-            dtTan = dtSec -  obj.K * ddot.*kronProd(jump,jump,[1 2]) + 1e-15;
+            d    =  obj.computeDamage(jump);              % 1 x ngauss x nelem
+            ddot = obj.computeDamageDerivative(jump,d);   % 2 x ngauss x nelem
+            dtSec = (1-d).*obj.K.*eye(2);
+            dtTan = dtSec -   obj.K * ddot.*kronProd(jump,jump,[1 2]);
             % dtTan = dtSec;
         end 
 
@@ -60,7 +60,8 @@ classdef TractionBiliniarCoupled < handle
         end
 
         function updateDamageOld(obj,jump)
-            obj.dOld = obj.computeDamage(jump);
+            d = obj.computeDamage(jump);
+            obj.dOld = d.evaluate([-1,1]);
         end
 
     end
@@ -84,12 +85,15 @@ classdef TractionBiliniarCoupled < handle
             obj.dOld = 0;
         end
 
-        function ddot = computeDamageDerivative(obj,jump)
+        function ddot = computeDamageDerivative(obj,jump,d)
             lambda = obj.computeJumpNorm(jump);
             [j0, jF] = obj.computeJumpLimits(jump,lambda);
             ddot = j0 .* jF ./ ((jF-j0) .*lambda.^3);
-
             isDamaging = ((lambda-j0).*(lambda-jF)) < 0;
+                % isDamaging = ((d > 0) .* (d < 0.999));
+                % isDamaging = (d > obj.dOld) .* (d < 1);
+                % tol = 1e-12*jF.^2;
+                % isDamaging = ((lambda-j0).*(lambda-jF)) < -tol;
             ddot = ddot .* isDamaging;
         end
 

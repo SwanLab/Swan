@@ -96,7 +96,7 @@ classdef Jump < FeFunction
                 connecMesh = obj.cohesiveMesh.fullMesh.connec(e,:);
                 coordsMesh = obj.cohesiveMesh.fullMesh.coord(connecMesh',:);
                 disp  = uIn.fValues(connecMesh',:);
-                    deformedCoords = coordsMesh + disp;
+                deformedCoords = coordsMesh + disp;
                 Re = obj.computeElementalRotationMatrix(deformedCoords);
                 Rall(:,:,j) = Re;
                 obj.R = Rall;

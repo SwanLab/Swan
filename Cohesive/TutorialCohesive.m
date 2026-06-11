@@ -55,7 +55,7 @@ classdef TutorialCohesive < handle
             % TURON
             obj.inputData.tau0Normal       = 15e6;
             obj.inputData.tau0Shear        = 30e6;
-            obj.inputData.firstCritEnergy  = 260 * 10;
+            obj.inputData.firstCritEnergy  = 260;
             obj.inputData.secondCritEnergy = 1002;
             obj.inputData.eta              = 2;
                         
@@ -76,16 +76,15 @@ classdef TutorialCohesive < handle
 
             % % DCB
             obj.inputData.Kcoh      = 1e13;
-            obj.inputData.bcValues = [0:0.0001:1.2e-3,1.2e-3:0.00001:1.5e-3, 1.5e-3:0.00002:10e-3]; % Amb Gc = Gc
-            obj.inputData.bcValues = [0:0.0001:2.2e-3,2.2e-3:0.000005:3.5e-3, 3.5e-3:0.00002:10e-3]; % Amb Gc = 10Gc
-
+            obj.inputData.bcValues = [0:0.0001:1.2e-3,1.2e-3:0.00001:1.5e-3, 1.5e-3:0.00005:10e-3]; % Amb Gc = Gc
+            % obj.inputData.bcValues = [0:0.0001:2.2e-3,2.2e-3:0.00002:3.5e-3, 3.5e-3:0.00002:10e-3]; % Amb Gc = 10Gc
 
             obj.inputData.problemType = 'DoubleCantileverBeam';
             obj.inputData.l = 150e-3;
             obj.inputData.h = 1.55*2e-3;
             obj.inputData.yCohLine = 0.5*obj.inputData.h;
             obj.inputData.xCohLineMax = 115e-3;
-            obj.inputData.nx = 250;
+            obj.inputData.nx = 2000;
             obj.inputData.ny = 10;
         end
     
