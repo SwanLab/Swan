@@ -48,8 +48,8 @@ classdef TractionBiliniarCoupled < handle
 
             ddot = obj.computeDamageDerivative(jump);   % 2 x ngauss x nelem
             dtSec = obj.computeDerivativeSecant(jump);
-            dtTan = dtSec -  obj.K * ddot.*kronProd(jump,jump,[1 2]);
-
+            dtTan = dtSec -  obj.K * ddot.*kronProd(jump,jump,[1 2]) + 1e-15;
+            % dtTan = dtSec;
         end 
 
         function d = computeDamage(obj,jump)
@@ -57,7 +57,6 @@ classdef TractionBiliniarCoupled < handle
             [j0, jF] = obj.computeJumpLimits(jump,lambda);
             d = (jF .* (lambda - j0)) ./ (lambda .* (jF - j0)) ;
             d = max(min(d,1),obj.dOld);
-            obj.dOld = d.evaluate([-1,1]);
         end
 
         function updateDamageOld(obj,jump)
@@ -99,22 +98,14 @@ classdef TractionBiliniarCoupled < handle
             zeroUno = ConstantFunction.create([0;1],jump.mesh);
             jumpT = DP(jump,unoZero,1,1);
             jumpN = DP(jump,zeroUno,1,1);
-            lambda = sqrt(jumpT.^2 + macaulay(jumpN).^2) + 1e-10;           
+            lambda = sqrt(jumpT.^2 + jumpN.^2) + 1e-10;           
         end
 
         function [jump0, jumpFinal] = computeJumpLimits(obj,jump,lambda)
             B = obj.computeMixedModeRatio(jump,lambda) ;
-            B = 0;
             jump0  = sqrt(obj.jump0Normal.^2 + (obj.jump0Shear.^2 - obj.jump0Normal.^2).*B.^obj.eta);
             jumpFinal = (obj.jump0Normal*obj.jumpFinalNormal + ...
                 (obj.jump0Shear*obj.jumpFinalShear - obj.jump0Normal*obj.jumpFinalNormal).*B.^obj.eta)./jump0;
-
-
-            % PARCHE:
-
-            % jumpFinal = jump0 *100;
-
-
         end
             % jumpNorm = 1xngaussxnelem | jumpshear = 1xngaussxnelem | B = 1xngaussxnelem 
         function B = computeMixedModeRatio(~,jump,lambda) 

@@ -2,8 +2,8 @@ classdef TractionBiliniarUncoupled < handle
 
     properties (Access = private)
         K
-        jumpCrit
-        jumpFinal
+        j0
+        jF
     end
     
     methods (Access = public)
@@ -28,11 +28,10 @@ classdef TractionBiliniarUncoupled < handle
             ddot = obj.computeDamageDerivative(jump);   % 2 x ngauss x nelem
             dtSec = (1-d).*obj.K.*eye(2);
             dtTan = dtSec - obj.K * ddot.*kronProd(jump,jump,[1 2]);
-
         end
 
         function d = computeDamage(obj,jump)
-            d = (jump-obj.jumpCrit)./(obj.jumpFinal-obj.jumpCrit);
+            d = (abs(jump)-obj.j0)./(obj.jF-obj.j0);
             d = max(min(d,1),0);
             % fprintf('d range: [%e , %e]\n', min(d.evaluate([-1,1]),[],'all'), max(d.evaluate([-1,1]),[],'all'));
         end
@@ -42,15 +41,18 @@ classdef TractionBiliniarUncoupled < handle
         
         function init(obj,cParams)
             obj.K = cParams.Kcoh;
-            obj.jumpCrit  = cParams.jumpCrit;
-            obj.jumpFinal = cParams.jumpFinal;
+            obj.j0 = cParams.jumpCrit;
+            obj.jF = cParams.jumpFinal;
         end
 
         function ddot =  computeDamageDerivative(obj,jump)
             % isDamaging = isJumpDamaging(obj,jump);
             d    =  obj.computeDamage(jump); % 1 x ngauss x nelem
             isNotFullyDamage = ( d < 1 );
-            ddot = (1./(obj.jumpFinal - obj.jumpCrit)).*isNotFullyDamage;
+
+            isDamaging = ((abs(jump)-obj.j0).*(abs(jump)-obj.jF)) < 0;
+
+            ddot = (1./(obj.jF - obj.j0)).*isDamaging;
         end
 
     end

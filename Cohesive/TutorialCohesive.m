@@ -27,8 +27,8 @@ classdef TutorialCohesive < handle
             s.cohesiveMesh           = obj.cohesiveMesh;
             s.boundaryConditions     = obj.boundaryConditions;
             s.functional             = obj.functional;
-            s.tolerance              = 1e-6;
-            s.maxIter                = 50;
+            s.tolerance              = 1e-4;
+            s.maxIter                = 500;
             s.tractionLaw            = obj.tractionSeparation;
             
             s.monitoring.set         = true;
@@ -55,7 +55,7 @@ classdef TutorialCohesive < handle
             % TURON
             obj.inputData.tau0Normal       = 15e6;
             obj.inputData.tau0Shear        = 30e6;
-            obj.inputData.firstCritEnergy  = 260;
+            obj.inputData.firstCritEnergy  = 260 * 10;
             obj.inputData.secondCritEnergy = 1002;
             obj.inputData.eta              = 2;
                         
@@ -63,9 +63,9 @@ classdef TutorialCohesive < handle
             obj.inputData.jumpCrit         = 1.25e-7;
             obj.inputData.jumpFinal        = 0.025e-3;
 
-            % UnitElem
-            % obj.inputData.Kcoh        = 3e12;
-            % obj.inputData.bcValues    = 0:0.000001:0.4;
+            % % UnitElem
+            % obj.inputData.Kcoh        = 1e14;
+            % obj.inputData.bcValues    = [0:1e-5:1e-4,   1e-4:1e-7:1.5e-4, 1.5e-4:1e-5:10e-4];
             % obj.inputData.problemType = 'DisplacementTractionY';
             % obj.inputData.l = 1;
             % obj.inputData.h = 1;
@@ -75,14 +75,17 @@ classdef TutorialCohesive < handle
             % obj.inputData.ny = 1;
 
             % % DCB
-            obj.inputData.Kcoh      = 1e12;
-            obj.inputData.bcValues = 0:0.00001:0.004;
+            obj.inputData.Kcoh      = 1e13;
+            obj.inputData.bcValues = [0:0.0001:1.2e-3,1.2e-3:0.00001:1.5e-3, 1.5e-3:0.00002:10e-3]; % Amb Gc = Gc
+            obj.inputData.bcValues = [0:0.0001:2.2e-3,2.2e-3:0.000005:3.5e-3, 3.5e-3:0.00002:10e-3]; % Amb Gc = 10Gc
+
+
             obj.inputData.problemType = 'DoubleCantileverBeam';
             obj.inputData.l = 150e-3;
-            obj.inputData.h = 20e-3;
+            obj.inputData.h = 1.55*2e-3;
             obj.inputData.yCohLine = 0.5*obj.inputData.h;
             obj.inputData.xCohLineMax = 115e-3;
-            obj.inputData.nx = 1000;
+            obj.inputData.nx = 250;
             obj.inputData.ny = 10;
         end
     
@@ -128,6 +131,53 @@ classdef TutorialCohesive < handle
             k.cohesiveMesh = obj.cohesiveMesh;
             m  = Material.create(k);
             m.setCohesiveMesh(obj.cohesiveMesh);
+        end
+
+        function compareDCBAnalytical(obj)
+
+            G13 = obj.inputData.young/(2*(1 + obj.inputData.poisson));
+            Gamma = 1.18*sqrt(obj.inputData.young*obj.inputData.young)/G13;
+            chi = sqrt((obj.inputData.young/(11*G13))*(3 - 2*(Gamma/(1 + Gamma))^2));
+            a0 = obj.inputData.l - obj.inputData.xCohLineMax;
+            
+            b = 1;
+            
+            h = 0.5*obj.inputData.h;
+            Fdcb = sqrt((obj.inputData.young*b^2*h^3*obj.inputData.firstCritEnergy)/(12*(a0 + chi*h)^2));
+            udcb = (8*(a0 + chi*obj.inputData.h)^3/(obj.inputData.young*b*h^3))*Fdcb;
+            Cdcb = 8*(a0 + chi*h)^3/(obj.inputData.young*b*h^3);
+            FAnalytical = min([0:0.01e-3:4e-3]/Cdcb,Fdcb);
+            
+            figure
+            plot([0:0.01e-3:4e-3]*1e3,FAnalytical,'LineWidth',2)
+            hold on
+            grid on
+            xlabel('Opening displacement [mm]')
+            ylabel('Load [N]')
+            title('DCB LEFM analytical solution')
+            xlim([0,max(obj.inputData.bcValues)*1e3])
+            ylim([0,1.05*max(FAnalytical)])
+            hold on
+            E  = obj.inputData.young;
+            Gc = obj.inputData.firstCritEnergy;
+            a0   = 35e-3;   % initial crack length [m]
+            aMax = 120e-3;  % final crack length [m]
+            a = linspace(a0,aMax,1000);
+            % LEFM load (force per unit width)
+            F = b .* sqrt(Gc .* E .* h.^3 ./ (12 .* a.^2));
+            % Compliance
+            C = 8 .* a.^3 ./ (E .* b .* h.^3);
+            % Opening displacement
+            delta = C .* F;
+            plot(delta*1e3,F,'LineWidth',2)
+            grid on
+
+            Fsim = obj.output(:,1);
+            Usim = obj.output(:,2)*1e3;
+
+            plot(2*Usim,Fsim);
+
+
         end
 
     end
