@@ -34,30 +34,31 @@ classdef TestingPhaseFieldHomogenizer < handle
             holeParams = obj.computeHoleParams();
             comb = table2array(combinations(holeParams{:}));
             nComb = size(comb,1);
-            mat = zeros(2,2,2,2,nComb);
+            ndim = obj.baseMesh.ndim;
 
+            mat = zeros(ndim,ndim,ndim,ndim,nComb);
             %% Regular homogenization
-            % phi = zeros(1,nComb);
-            % for i=1:nComb
-            %     hole = comb(i,:);
-            %     if i==1
-            %         hole = 1e-5*ones(size(hole));
-            %     end
-            %     mat(:,:,:,:,i) = obj.computeHomogenization(hole,i);
-            %     phi(i)     = obj.computeDamageMetric(hole);
-            % end
+            phi = zeros(1,nComb);
+            for i=1:nComb
+                hole = comb(i,:);
+                if i==1
+                    hole = 1e-5*ones(size(hole));
+                end
+                mat(:,:,:,:,i) = obj.computeHomogenization(hole,i);
+                phi(i)     = obj.computeDamageMetric(hole);
+            end
             
             %% Initial degradation (tiniest possible hole)
-            l = 5e-3;
-            nuArray = linspace(-0.99,0.5,obj.nSteps);
-            obj.density = obj.createDensityLevelSet(l);
-            for i=1:nComb
-                obj.nu = nuArray(i);
-                obj.updateMonitoring(i);
-                material  = obj.createDensityMaterial(obj.density);
-                mat(:,:,:,:,i) = obj.solveElasticMicroProblem(material,obj.density);
-            end
-            phi  = obj.computeDamageMetric(5e-3);
+            % l = 5e-3;
+            % nuArray = linspace(-0.99,0.5,obj.nSteps);
+            % obj.density = obj.createDensityLevelSet(l);
+            % for i=1:nComb
+            %     obj.nu = nuArray(i);
+            %     obj.updateMonitoring(i);
+            %     material  = obj.createDensityMaterial(obj.density);
+            %     mat(:,:,:,:,i) = obj.solveElasticMicroProblem(material,obj.density);
+            % end
+            % phi  = obj.computeDamageMetric(5e-3);
 
             %mat = obj.assembleResults(mat);
             %phi = obj.assembleResults(phi);
@@ -98,6 +99,11 @@ classdef TestingPhaseFieldHomogenizer < handle
                     s.filename = '';
                     MC = MeshCreator(s);
                     MC.computeMeshNodes();
+
+                    s.coord  = MC.coord;
+                    s.connec = MC.connec;
+                    obj.baseMesh = Mesh.create(s);
+                    obj.masterSlave = MC.masterSlaveIndex;
                 case 'Hexagon'
                     s.c = [1,1,1];
                     s.theta = [0,60,120];
@@ -105,11 +111,16 @@ classdef TestingPhaseFieldHomogenizer < handle
                     s.filename = '';
                     MC = MeshCreator(s);
                     MC.computeMeshNodes();
+
+                    s.coord  = MC.coord;
+                    s.connec = MC.connec;
+                    obj.baseMesh = Mesh.create(s);
+                    obj.masterSlave = MC.masterSlaveIndex;
+                case 'Tetradecahedron'
+                    TMC = TetradecahedronMeshComputer();
+                    obj.baseMesh = TMC.getMesh();
+                    obj.masterSlave = TMC.getMasterSlave();
             end
-            s.coord  = MC.coord;
-            s.connec = MC.connec;
-            obj.baseMesh = Mesh.create(s);
-            obj.masterSlave = MC.masterSlaveIndex;
             obj.test = LagrangianFunction.create(obj.baseMesh,1,'P1');
         end
 
@@ -173,6 +184,11 @@ classdef TestingPhaseFieldHomogenizer < handle
                 case 'ReinforcedHoneycomb'
                     gPar.radius = l;
                     gPar.normal = [0 1; sqrt(3)/2 1/2; sqrt(3)/2 -1/2];
+                case 'Tetradecahedron'
+                    gPar.radius      = l;
+                    gPar.xCoorCenter = 0.5;
+                    gPar.yCoorCenter = 0.5;
+                    gPar.zCoorCenter = 0.5;
             end
             g                  = GeometricalFunction(gPar);
             phiFun             = g.computeLevelSetFunction(mesh);
@@ -182,7 +198,7 @@ classdef TestingPhaseFieldHomogenizer < handle
 
         function mat = createDensityMaterial(obj,lsf)
             s.interpolation  = 'SIMPALL';
-            s.dim            = 2;
+            s.dim            = obj.baseMesh.ndim;
             s.matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(1e-12*obj.E,obj.nu,obj.baseMesh.ndim);
             s.matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(1e-12*obj.E,obj.nu);
             s.matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(obj.E,obj.nu,obj.baseMesh.ndim);
@@ -194,7 +210,11 @@ classdef TestingPhaseFieldHomogenizer < handle
             s.type                 = 'DensityBased';
             s.density              = x;
             s.materialInterpolator = mI;
-            s.dim                  = '2D';
+            if obj.baseMesh.ndim == 3
+                s.dim = '3D';
+            else
+                s.dim = '2D';
+            end
             mat = Material.create(s);
         end
 
@@ -209,7 +229,11 @@ classdef TestingPhaseFieldHomogenizer < handle
             s.mesh = obj.baseMesh;
             s.material = material;
             s.scale = 'MICRO';
-            s.dim = '2D';
+            if obj.baseMesh.ndim == 3
+                s.dim = '3D';
+            else
+                s.dim = '2D';
+            end
             s.boundaryConditions = obj.createBoundaryConditions(obj.baseMesh);
             s.solverCase = DirectSolver();
             s.solverType = 'REDUCED';
@@ -240,21 +264,25 @@ classdef TestingPhaseFieldHomogenizer < handle
                 case 'Hexagon'
                     isBottom      = @(coor) (abs(coor(:,2) - min(coor(:,2))) < 1e-12);
                     isTop         = @(coor) (abs(coor(:,2) - max(coor(:,2))) < 1e-12);
-                    
                     coorRotY = obj.defineRotatedCoordinates(pi/3);
                     isRightBottom = @(coor) (abs(coorRotY(coor) - min(coorRotY(coor))) < 1e-12);
                     isLeftTop     = @(coor) (abs(coorRotY(coor) - max(coorRotY(coor))) < 1e-12);
                     coorRotY = obj.defineRotatedCoordinates(-pi/3);
                     isLeftBottom  = @(coor) (abs(coorRotY(coor) - min(coorRotY(coor))) < 1e-12);
                     isRightTop    = @(coor) (abs(coorRotY(coor) - max(coorRotY(coor))) < 1e-12);
-                    isVertex = @(coor) (isBottom(coor) & isRightBottom(coor)); %|...
-                                       %(isRightBottom(coor) & isRightTop(coor))|...
-                                       %(isRightTop(coor) & isTop(coor))        |...
-                                       %(isTop(coor) & isLeftTop(coor))         |...
-                                       %(isLeftTop(coor) & isLeftBottom(coor))  |...
-                                       %(isLeftBottom(coor) & isBottom(coor))   ;
+                    isVertex = @(coor) (isBottom(coor) & isRightBottom(coor)) | ...
+                                       (isRightTop(coor) & isTop(coor)) | ...
+                                       (isLeftTop(coor) & isLeftBottom(coor));
+
                     sDir{1}.domain    = @(coor) isVertex(coor);
                     sDir{1}.direction = [1,2];
+                    sDir{1}.value     = 0;
+                case 'Tetradecahedron'
+                    isCenterX = @(coor) (abs(coor(:,1) - 0.5) < 1e-5);
+                    isCenterY = @(coor) (abs(coor(:,2) - 0.5) < 1e-5);
+                    isCenterZ = @(coor) (abs(coor(:,3) - 0.5) < 1e-5);
+                    sDir{1}.domain    = @(coor) isCenterX(coor) & isCenterY(coor) & isCenterZ(coor);
+                    sDir{1}.direction = [1,2,3];
                     sDir{1}.value     = 0;
             end
 
@@ -285,15 +313,12 @@ classdef TestingPhaseFieldHomogenizer < handle
                         case {'Ellipse','Rectangle'}
                             phi = l(1)*l(2);
                         case {'SmoothHexagon','Hexagon'}
-                            % perimeter = 6*l;
-                            % apothem   = sqrt(l^2 - (l/2)^2);
-                            % phi = (perimeter*apothem/2)/(3*sqrt(3)/2);
                             phi = 1 - Integrator.compute(obj.density,obj.baseMesh,1)/(3*sqrt(3)/2);
                         case {'ReinforcedHoneycomb'}
-                            % m = l/(2*sqrt(3));
-                            % h = sqrt(3)/2 - 3*m;
-                            % phi = (6*(h^2)/sqrt(3))/(3*sqrt(3)/2);
                             phi = 1 - Integrator.compute(obj.density,obj.baseMesh,1)/(3*sqrt(3)/2);
+                        case {'Tetradecahedron'}
+                            phi = 1 - Integrator.compute(obj.density,obj.baseMesh,1)/(1/2);
+
                     end
                 case 'Perimeter'
                     switch obj.holeType
@@ -313,19 +338,19 @@ classdef TestingPhaseFieldHomogenizer < handle
             end
         end
         
-        function [mat] = assembleResults(obj,vec)
-            sizeRes = size(vec);
-            mat = zeros([sizeRes(1:end-1),obj.nSteps]);
-            nStepsLastParam = obj.nSteps(end);
-            nCombs = sizeRes(end);
-            idxVec = repmat({':'}, 1, ndims(vec));
-            idxMat = repmat({':'}, 1, ndims(mat));
-            for i=1:nStepsLastParam
-                idxVec{end} = i:nStepsLastParam:nCombs;
-                idxMat{end} = i;
-                mat(idxMat{:}) = vec(idxVec{:});
-            end
-        end
+        % function [mat] = assembleResults(obj,vec)
+        %     sizeRes = size(vec);
+        %     mat = zeros([sizeRes(1:end-1),obj.nSteps]);
+        %     nStepsLastParam = obj.nSteps(end);
+        %     nCombs = sizeRes(end);
+        %     idxVec = repmat({':'}, 1, ndims(vec));
+        %     idxMat = repmat({':'}, 1, ndims(mat));
+        %     for i=1:nStepsLastParam
+        %         idxVec{end} = i:nStepsLastParam:nCombs;
+        %         idxMat{end} = i;
+        %         mat(idxMat{:}) = vec(idxVec{:});
+        %     end
+        % end
         
     end
     

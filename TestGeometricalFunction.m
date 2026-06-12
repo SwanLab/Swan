@@ -1,6 +1,6 @@
 clc,clear,close all
 
-file = 'Tetracaedro';
+file = 'Tetradecahedron';
 a.fileName = file;
 fem = FemDataContainer(a);
 %baseMesh = TetraMesh(1, 1, 1, 20, 20, 20);
@@ -10,7 +10,7 @@ gPar.type = 'Tetradecahedron'; %'Octahedron';
 gPar.xCoorCenter = 0.5;
 gPar.yCoorCenter = 0.5;
 gPar.zCoorCenter = 0.5;
-gPar.radius = 0.85;
+gPar.radius = 1e-5;
 g         = GeometricalFunction(gPar);
 phiFun    = g.computeLevelSetFunction(baseMesh);
 lsCircle  = phiFun.fValues;
