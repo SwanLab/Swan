@@ -26,8 +26,7 @@ classdef DisplacementUpdater < handle
                 [err, cost] = obj.computeErrorCost(u,bc,costOld);
                 costArray(end+1) = cost;
                 costOld = cost;
-
-
+                
                 i = i+1;
                 % obj.monitor.printCost('iterU',i,cost,err);
                 % obj.monitor.update(length(costArray),{[],[cost],[],[]});
@@ -37,7 +36,6 @@ classdef DisplacementUpdater < handle
                 [LHSRed,RHSRed] = fullToReduced(obj,LHSTan,RHS,bc);
                 normRHS = norm(RHSRed);
                 fprintf('Iteration %d: Reduced Residual Norm = %.4e\n', i, normRHS);
-
            end
             obj.functional.updateDamageOld(u);
             F = obj.computeForceVector(LHSSec,u);

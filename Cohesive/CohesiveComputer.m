@@ -105,9 +105,11 @@ classdef CohesiveComputer < handle
                 uBC = obj.boundaryConditions.bcValues(step);
             end
             if ismember(obj.boundaryConditions.type, "EndNotchedFlex")
-               isInBottomLeft =  (abs(obj.mesh.coord(:,1) - min(obj.mesh.coord(:,1)))< 1e-12) & (abs(obj.mesh.coord(:,2) - min(obj.mesh.coord(:,2)))< 1e-12);
-               isInBottomRight = (abs(obj.mesh.coord(:,1) - min(obj.mesh.coord(:,1)))< 1e-12) & (abs(obj.mesh.coord(:,2) - min(obj.mesh.coord(:,2)))< 1e-12);
-               nodes = find(isInBottomRight | isInBottomLeft);
+               isUp   = abs(obj.mesh.coord(:,2) - max(obj.mesh.coord(:,2))) < 1e-12;
+               isMiddle =  abs(obj.mesh.coord(:,1)-(min(obj.mesh.coord(:,1)) + max(obj.mesh.coord(:,1)))/2) < 1e-12;                
+               % isInBottomLeft =  (abs(obj.mesh.coord(:,1) - min(obj.mesh.coord(:,1)))< 1e-12) & (abs(obj.mesh.coord(:,2) - min(obj.mesh.coord(:,2)))< 1e-12);
+               % isInBottomRight = (abs(obj.mesh.coord(:,1) - min(obj.mesh.coord(:,1)))< 1e-12) & (abs(obj.mesh.coord(:,2) - min(obj.mesh.coord(:,2)))< 1e-12);
+               nodes = find(isUp | isMiddle);
                dofsY= (nodes-1)*u.ndimf + 2;
                totReact = abs(sum(F(dofsY)));
                uBC = obj.boundaryConditions.bcValues(step);
