@@ -24,20 +24,27 @@ classdef TractionBiliniarCoupled < handle
         end
 
         function t = computeFunction(obj,jump)
+            intP = obj.computeInterpenetration(jump);
             d = obj.computeDamage(jump);
-            t = obj.K * (1-d).*jump;
+            t = obj.K * (eye(2)-d.*intP)*Expand(jump,2);
+            t = squeezeParticular(t,2);
         end
 
         function dtSec = computeDerivativeSecant(obj,jump)
-            d    =  obj.computeDamage(jump);              % 1 x ngauss x nelem
-            dtSec = (1-d).*obj.K.*eye(2);
+            d     =  obj.computeDamage(jump);              % 1 x ngauss x nelem
+            intP  = obj.computeInterpenetration(jump);
+            dtSec = obj.K * (eye(2)-d.*intP);
         end
 
         function dtTan = computeDerivativeTangent(obj,jump)
             d    =  obj.computeDamage(jump);              % 1 x ngauss x nelem
             ddot = obj.computeDamageDerivative(jump,d);   % 2 x ngauss x nelem
-            dtSec = (1-d).*obj.K.*eye(2);
-            dtTan = dtSec  -  obj.K * ddot.*kronProd(jump,jump,[1 2]);
+            dtSec = obj.computeDerivativeSecant(jump);
+
+            jumpN = DP(jump,ConstantFunction.create([0;1],jump.mesh),1,1);
+            intP = ones(2) + [0,1;1,1] .* macaulay(-jumpN);
+
+            dtTan = dtSec - obj.K * intP .* ddot .* kronProd(jump,jump,[1 2]);
         end 
 
         function d = computeDamage(obj,jump)
@@ -102,6 +109,11 @@ classdef TractionBiliniarCoupled < handle
             unoZero   = ConstantFunction.create([1;0],jump.mesh);
             jumpShear = DP(jump.',unoZero);
             B         = (jumpShear./lambda).^2;
+        end
+
+        function intP = computeInterpenetration(~,jump)
+            jumpN = DP(jump,ConstantFunction.create([0;1],jump.mesh),1,1);
+            intP = eye(2) + [0,0;0,1] .* macaulay(-jumpN) ./ (Expand(jumpN,2)+ 1e-10);
         end
 
     end

@@ -47,7 +47,7 @@ classdef TutorialCohesive < handle
 
         function init(obj)
             close all
-            obj.inputData.young     = 120e9;
+            obj.inputData.young     = 120e20;
             obj.inputData.poisson   = 0.3;
     
             obj.inputData.lawType = 'TractionBiliniarCoupled';
@@ -64,27 +64,40 @@ classdef TutorialCohesive < handle
             obj.inputData.jumpFinal        = 0.025e-3;
 
             % % UnitElem
-            % obj.inputData.Kcoh        = 1e13;
-            % obj.inputData.bcValues    = [0:1e-5:1.15e-4,   1.15e-4:1e-8:1.5e-4, 1.5e-4:1e-5:10e-4];
-            % obj.inputData.problemType = 'DisplacementTractionY';
-            % obj.inputData.l = 1;
-            % obj.inputData.h = 1;
-            % obj.inputData.yCohLine = 0;
-            % obj.inputData.xCohLineMax = 1000;
-            % obj.inputData.nx = 1;
-            % obj.inputData.ny = 1;
+            obj.inputData.Kcoh        = 1e12;
+            obj.inputData.bcValues    = [0:1e-5:1.15e-4,   1.15e-4:-1e-6:0 , 0:-1e-6:-5e-5];
+            obj.inputData.problemType = 'DisplacementTractionY';
+            obj.inputData.l = 1;
+            obj.inputData.h = 1;
+            obj.inputData.yCohLine = 0;
+            obj.inputData.xCohLineMax = 1000;
+            obj.inputData.nx = 1;
+            obj.inputData.ny = 1;
 
             % % DCB
+            % obj.inputData.Kcoh      = 1e13;
+            % obj.inputData.bcValues = [0:0.0001:1.2e-3,1.2e-3:0.00001:1.5e-3, 1.5e-3:0.00005:7e-3, 7e-3:0.00001:10e-3]; % Amb Gc = Gc
+            % % obj.inputData.bcValues = [0:0.0001:2.2e-3,2.2e-3:0.00002:3.5e-3, 3.5e-3:0.00002:10e-3]; % Amb Gc = 10Gc
+            % obj.inputData.problemType = 'DoubleCantileverBeam';
+            % obj.inputData.l = 150e-3;
+            % obj.inputData.h = 1.55*2e-3;
+            % obj.inputData.yCohLine = 0.5*obj.inputData.h;
+            % obj.inputData.xCohLineMax = 115e-3;
+            % obj.inputData.nx = 2000;
+            % obj.inputData.ny = 10;
+
+
+            % % ENF
             obj.inputData.Kcoh      = 1e13;
-            obj.inputData.bcValues = [0:0.0001:1.2e-3,1.2e-3:0.00001:1.5e-3, 1.5e-3:0.00005:7e-3, 7e-3:0.00001:10e-3]; % Amb Gc = Gc
-            % obj.inputData.bcValues = [0:0.0001:2.2e-3,2.2e-3:0.00002:3.5e-3, 3.5e-3:0.00002:10e-3]; % Amb Gc = 10Gc
-            obj.inputData.problemType = 'DoubleCantileverBeam';
+            obj.inputData.bcValues = [0:0.0001:8e,          1.2e-3:0.00001:1.5e-3, 1.5e-3:0.00005:7e-3, 7e-3:0.00001:10e-3]; % Amb Gc = Gc
+            obj.inputData.problemType = 'EndNotchedFlex';
             obj.inputData.l = 150e-3;
             obj.inputData.h = 1.55*2e-3;
             obj.inputData.yCohLine = 0.5*obj.inputData.h;
             obj.inputData.xCohLineMax = 115e-3;
-            obj.inputData.nx = 2000;
+            obj.inputData.nx = 1000;
             obj.inputData.ny = 10;
+
 
     
 
@@ -177,8 +190,6 @@ classdef TutorialCohesive < handle
             Usim = obj.output(:,2)*1e3;
 
             plot(2*Usim,Fsim);
-
-
         end
 
     end
