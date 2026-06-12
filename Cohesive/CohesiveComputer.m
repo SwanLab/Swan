@@ -36,9 +36,7 @@ classdef CohesiveComputer < handle
 
             nSteps = length(obj.boundaryConditions.bcValues);
             for iStep = 1:nSteps
-
-        
-
+                
                 [u,bc] = obj.preprocess(iStep,nSteps,u);
                 [u,F,cost,iterMax] = obj.updater.update(u,bc,cost);
                 obj.postprocess(iStep,u,F,cost,iterMax)
@@ -75,7 +73,7 @@ classdef CohesiveComputer < handle
         end
 
         function [u,bc] = preprocess(obj,iStep,nSteps,u)
-            % obj.monitor.printStep(iStep,nSteps)
+            obj.monitor.printStep(iStep,nSteps)
             bc = obj.boundaryConditions.nextStep();
             u  = obj.computeInitialDisplacement(u,bc);
         end
@@ -97,7 +95,6 @@ classdef CohesiveComputer < handle
                 totReact = abs(sum(F(dofsYdown)));
                 uBC = obj.boundaryConditions.bcValues(step);
             end
-
            isRight   = abs(obj.mesh.coord(:,1) - max(obj.mesh.coord(:,1))) < 1e-12;
            MiddleY   = (max(obj.mesh.coord(:,2)) + min(obj.mesh.coord(:,2)))/2;
            isHalfTop = (obj.mesh.coord(:,2) - MiddleY) > 1e-12;
@@ -107,8 +104,7 @@ classdef CohesiveComputer < handle
                 totReact = abs(sum(F(dofYHalfRight)));
                 uBC = obj.boundaryConditions.bcValues(step);
             end
-
-            if ismember(obj.boundaryConditions.type, "EndNotchedFlexural")
+            if ismember(obj.boundaryConditions.type, "EndNotchedFlex")
                isInBottomLeft =  (abs(obj.mesh.coord(:,1) - min(obj.mesh.coord(:,1)))< 1e-12) & (abs(obj.mesh.coord(:,2) - min(obj.mesh.coord(:,2)))< 1e-12);
                isInBottomRight = (abs(obj.mesh.coord(:,1) - min(obj.mesh.coord(:,1)))< 1e-12) & (abs(obj.mesh.coord(:,2) - min(obj.mesh.coord(:,2)))< 1e-12);
                nodes = find(isInBottomRight | isInBottomLeft);
@@ -147,7 +143,7 @@ classdef CohesiveComputer < handle
         function printAndSave(obj,iStep,uFun,dmgFun,uVal,fVal,energy,iterMax)
             dmgMax = max(dmgFun.fValues); 
             obj.monitor.updateAndRefresh(iStep,{[fVal;uVal],[dmgMax;uVal],...
-                [energy],[dmgFun.fValues],[iterMax]});
+                [energy],[iterMax]});
             obj.saveData(iStep,uFun,dmgFun,uVal,fVal,energy,iterMax);
         end
 

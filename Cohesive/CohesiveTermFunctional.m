@@ -29,7 +29,6 @@ classdef CohesiveTermFunctional < handle
         end
 
         function F = computeResidual(obj,u,quadOrder)
-            obj.jump.updateJumpValues(u);
             traction = obj.tractionSeparation.computeFunction(obj.jump.fun);           
             F = IntegrateRHS(@(v) v'*Expand(traction,2),obj.jump,obj.cohesiveMesh.mesh,'Domain',quadOrder);
         end
@@ -40,8 +39,8 @@ classdef CohesiveTermFunctional < handle
             Ktan = obj.computeDerivativeTangent(obj.jump.fun,quadOrder);
         end
 
-        function updateDamageOld(obj,jump)
-            obj.jump.updateJumpValues(jump);
+        function updateDamageOld(obj,u)
+            obj.jump.updateJumpValues(u);
             obj.tractionSeparation.updateDamageOld(obj.jump.fun);
         end
     end

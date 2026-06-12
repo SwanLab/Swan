@@ -31,7 +31,7 @@ classdef IterativeTutorialCohesive < handle
             s.boundaryConditions = obj.boundaryConditions;
             s.functional         = obj.functional;
             s.tolerance          = 1e-4;
-            s.maxIter            = 500;
+            s.maxIter            = 40;
             s.tractionLaw        = obj.tractionSeparation;
 
             s.monitoring.set     = true;

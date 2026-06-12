@@ -350,7 +350,7 @@ classdef BoundaryConditionsCreator < handle
            Dir2 = DirichletCondition(obj.mesh,sDir);
 
            center = [mean(obj.mesh.coord(:,1)), mean(obj.mesh.coord(:,2))];
-           [~, idxCenter] = min(sum((obj.mesh.nodes - center).^2, 2));
+           [~, idxCenter] = min(sum((obj.mesh.coord(:,2) - center).^2, 2));
            isInCenter = @(coord) vecnorm(coord-obj.mesh.coord(idxCenter,:), 2, 2) < 1e-12;
            sDir.domain    = @(coor) isInCenter(coor);
            sDir.direction = [2];

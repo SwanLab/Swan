@@ -34,22 +34,10 @@ classdef TractionBiliniarCoupled < handle
         end
 
         function dtTan = computeDerivativeTangent(obj,jump)
-            
-            % % Printing ========================
-            %     lambda = obj.computeJumpNorm(jump);
-            %     [j0, jF] = obj.computeJumpLimits(jump,lambda);
-            %     ddot = j0 .* jF ./ ((jF-j0) .*lambda.^3);
-            %     d    =  obj.computeDamage(jump); % 1 x ngauss x nelem
-            %     fprintf('lambda = %.3e\n', lambda.evaluate([-1,1]));
-            %     fprintf('j0     = %.3e\n', j0.evaluate([-1,1]));
-            %     fprintf('jF     = %.3e\n', jF.evaluate([-1,1]));
-            %     fprintf('d      = %.3e\n', max(d.evaluate([-1,1])));
-            % % =================================
             d    =  obj.computeDamage(jump);              % 1 x ngauss x nelem
             ddot = obj.computeDamageDerivative(jump,d);   % 2 x ngauss x nelem
             dtSec = (1-d).*obj.K.*eye(2);
-            dtTan = dtSec -   obj.K * ddot.*kronProd(jump,jump,[1 2]);
-            % dtTan = dtSec;
+            dtTan = dtSec  -   obj.K * ddot.*kronProd(jump,jump,[1 2]);
         end 
 
         function d = computeDamage(obj,jump)
@@ -86,15 +74,13 @@ classdef TractionBiliniarCoupled < handle
         end
 
         function ddot = computeDamageDerivative(obj,jump,d)
-            lambda = obj.computeJumpNorm(jump);
+          lambda = obj.computeJumpNorm(jump);
             [j0, jF] = obj.computeJumpLimits(jump,lambda);
             ddot = j0 .* jF ./ ((jF-j0) .*lambda.^3);
-            isDamaging = ((lambda-j0).*(lambda-jF)) < 0;
-                % isDamaging = ((d > 0) .* (d < 0.999));
-                % isDamaging = (d > obj.dOld) .* (d < 1);
-                % tol = 1e-12*jF.^2;
-                % isDamaging = ((lambda-j0).*(lambda-jF)) < -tol;
-            ddot = ddot .* isDamaging;
+            % isDamaging = ((lambda-j0).*(lambda-jF)) < 0;
+                isDamaging = ((d > obj.dOld) .* (d < 1));
+
+            ddot = ddot .* isDamaging;  
         end
 
         function lambda = computeJumpNorm(~,jump) % 1 x ngauss x nelem

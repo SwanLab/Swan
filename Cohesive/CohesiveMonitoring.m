@@ -64,8 +64,8 @@ classdef CohesiveMonitoring < handle
             s.maxNColumns = 3;
             s.funs = [{cParams.fun}];
             s.barLims = [{[0;1]}];
-            s.titles = [{'Force-displacement'},{'Damage-displacement'},{'Cost'},{'Damage'},{'Iterations'}];
-            s.chartTypes = [{'plot'},{'plot'},{'plot'},{'surf'},{'bar'}];
+            s.titles = [{'Force-displacement'},{'Damage-displacement'},{'Cost'},{'Iterations'}];
+            s.chartTypes = [{'plot'},{'plot'},{'plot'},{'bar'}];
             obj.monitor = Monitoring(s);
 
             obj.data = [];
