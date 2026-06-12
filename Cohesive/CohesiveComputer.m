@@ -36,7 +36,6 @@ classdef CohesiveComputer < handle
 
             nSteps = length(obj.boundaryConditions.bcValues);
             for iStep = 1:nSteps
-                
                 [u,bc] = obj.preprocess(iStep,nSteps,u);
                 [u,F,cost,iterMax] = obj.updater.update(u,bc,cost);
                 obj.postprocess(iStep,u,F,cost,iterMax)

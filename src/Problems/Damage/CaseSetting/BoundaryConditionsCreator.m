@@ -68,6 +68,8 @@ classdef BoundaryConditionsCreator < handle
                     obj.createBoundaryConditions = @obj.createDoubleCantileverBeamConditions;
                 case 'EndNotchedFlex'
                     obj.createBoundaryConditions = @obj.createEndNotchedFlexConditions;
+                case 'MMB'
+                    obj.createBoundaryConditions = @obj.createMMBConditions;
             end
         end
 
@@ -345,13 +347,13 @@ classdef BoundaryConditionsCreator < handle
 
            isInDownLeft = @(coor) isDown(coor) & isLeft(coor);
            sDir.domain    = @(coor) isInDownLeft(coor);
-           sDir.direction = [2];
+           sDir.direction = [1,2];
            sDir.value     = 0;
            Dir1 = DirichletCondition(obj.mesh,sDir);
 
            isInDownRight = @(coor) isDown(coor) & isRight(coor);
            sDir.domain    = @(coor) isInDownRight(coor);
-           sDir.direction = [1,2];
+           sDir.direction = [2];
            sDir.value     = 0;
            Dir2 = DirichletCondition(obj.mesh,sDir);
 
@@ -368,30 +370,36 @@ classdef BoundaryConditionsCreator < handle
         end
 
         function createMMBConditions(obj,fVal)
-            isInBottomLeft = @(coord) (abs(coord(:,1) - min(coord(:,1)))< 1e-12) & (abs(coord(:,2) - min(coord(:,2)))< 1e-12);
-            sDir.domain    = @(coord) isInBottomLeft(coord);
-            sDir.direction = [2];
+            isUp   = @(coor) abs(coor(:,2) - max(coor(:,2))) < 1e-12;
+            isDown = @(coor) abs(coor(:,2) - min(coor(:,2))) < 1e-12;
+            isLeft = @(coor)  abs(coor(:,1)-min(coor(:,1))) < 1e-12;
+            isRight = @(coor)  abs(coor(:,1)-max(coor(:,1))) < 1e-12;
+            isMiddle = @(coor) abs(coor(:,1)-(min(coor(:,1)) + max(coor(:,1)))/2) < 1e-12;
+
+            F1 = -2.2267*fVal;
+            F2 = fVal;
+
+            isInDownLeft = @(coor) isDown(coor) & isLeft(coor);
+            sDir.domain    = @(coor) isInDownLeft(coor);
+            sDir.direction = [1,2];
             sDir.value     = 0;
             Dir1 = DirichletCondition(obj.mesh,sDir);
 
-            isInBottomRight = @(coord) (abs(coord(:,1) - min(coord(:,1)))< 1e-12) & (abs(coord(:,2) - min(coord(:,2)))< 1e-12);
-            sDir.domain    = @(coord) isInBottomRight(coord);
+            isInDownRight = @(coor) isDown(coor) & isRight(coor);
+            sDir.domain    = @(coor) isInDownRight(coor);
             sDir.direction = [2];
             sDir.value     = 0;
             Dir2 = DirichletCondition(obj.mesh,sDir);
 
-            center = [mean(obj.mesh.coord(:,1)), mean(obj.mesh.coord(:,2))];
-            [~, idxCenter] = min(sum((obj.mesh.nodes - center).^2, 2));
-            isInCenter = @(coord) vecnorm(coord-obj.mesh.coord(idxCenter,:), 2, 2) < 1e-12;
-            sNeum.domain    = @(coor) isInCenter(coor);
+            sNeum.domain    = @(coor) isUp(coor) & isMiddle(coor);
             sNeum.direction = [2];
-            sNeum.value     = fVal;
+            sNeum.value     = F1;
             Neum1 = DirichletCondition(obj.mesh,sNeum);
 
-            isInTopRight = @(coor) (abs(coor(:,1) - min(coor(:,1)))< 1e-12) & (abs(coor(:,2) - max(coor(:,2)))< 1e-12);
+            isInTopRight    = @(coor) isUp(coor) & isRight(coor);
             sNeum.domain    = @(coor) isInTopRight(coor);
             sNeum.direction = [2];
-            sNeum.value     = fVal;
+            sNeum.value     = F2;
             Neum2 = DirichletCondition(obj.mesh,sNeum);
 
             s.mesh = obj.mesh;

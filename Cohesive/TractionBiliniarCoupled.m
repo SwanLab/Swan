@@ -45,6 +45,16 @@ classdef TractionBiliniarCoupled < handle
             intP = ones(2) + [0,1;1,1] .* macaulay(-jumpN);
 
             dtTan = dtSec - obj.K * intP .* ddot .* kronProd(jump,jump,[1 2]);
+            
+            term2 = - obj.K * intP .* ddot .* kronProd(jump,jump,[1 2]);
+
+            % dVals = d.evaluate([-1,1]);       dVals = dVals(:,:,idx);
+            % ddotVals = ddot.evaluate([-1,1]); ddotVals = ddotVals(:,:,idx);
+            % dtSecVals = dtSec.evaluate([-1,1]);   dtSecVals = dtSecVals(:,:,:,idx);
+            % dtTanVals = dtTan.evaluate([-1,1]);   dtTanVals = dtTanVals(:,:,:,idx);
+            % term2Vals = term2.evaluate([-1,1]);   term2Vals = term2Vals(:,:,:,idx);
+            
+
         end 
 
         function d = computeDamage(obj,jump)
@@ -84,7 +94,10 @@ classdef TractionBiliniarCoupled < handle
             lambda = obj.computeJumpNorm(jump);
             [j0, jF] = obj.computeJumpLimits(jump,lambda);
             ddot = j0 .* jF ./ ((jF-j0) .*lambda.^3);
-            isDamaging = ((d > obj.dOld) .* (d < 1));
+            % isDamaging = ((d > 0) .* (d < 1));
+
+                isDamaging = d > obj.dOld + 1e-12;
+
 
             ddot = ddot .* isDamaging;  
         end
@@ -98,7 +111,7 @@ classdef TractionBiliniarCoupled < handle
         end
 
         function [jump0, jumpFinal] = computeJumpLimits(obj,jump,lambda)
-            B = obj.computeMixedModeRatio(jump,lambda) ;
+            B = obj.computeMixedModeRatio(jump,lambda);
             jump0  = sqrt(obj.jump0Normal.^2 + (obj.jump0Shear.^2 - obj.jump0Normal.^2).*B.^obj.eta);
             jumpFinal = (obj.jump0Normal*obj.jumpFinalNormal + ...
                 (obj.jump0Shear*obj.jumpFinalShear - obj.jump0Normal*obj.jumpFinalNormal).*B.^obj.eta)./jump0;

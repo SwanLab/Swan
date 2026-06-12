@@ -89,7 +89,11 @@ classdef TutorialCohesive < handle
 
             % % ENF
             obj.inputData.Kcoh      = 1e13;
-            obj.inputData.bcValues = [0:0.0001:8e,          1.2e-3:0.00001:1.5e-3, 1.5e-3:0.00005:7e-3, 7e-3:0.00001:10e-3]; % Amb Gc = Gc
+            obj.inputData.bcValues = [ ...
+                    0     : 1e-4     :6e-3,...
+                    6e-3  : 2e-5     :6.5e-3,...
+                    6.5e-3  : 1e-6     :9e-3];
+
             obj.inputData.problemType = 'EndNotchedFlex';
             obj.inputData.l = 150e-3;
             obj.inputData.h = 1.55*2e-3;
