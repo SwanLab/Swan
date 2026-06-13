@@ -25,7 +25,8 @@ classdef SmoothedAggregation < handle
         function x = solve(obj,A,res)
             try
                 x = obj.compute(A,res);
-            catch
+            catch ME
+                disp(ME.message)
                 obj.restartPython();
                 x = obj.compute(A,res);
             end

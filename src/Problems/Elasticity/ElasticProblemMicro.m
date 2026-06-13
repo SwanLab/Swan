@@ -34,10 +34,10 @@ classdef ElasticProblemMicro < handle
                 f = @(v) -DDP(SymGrad(v),DDP(C,eB));
                 RHS = IntegrateRHS(f,obj.testFun,obj.mesh,'Domain',2);    
                 uF{iB}      = obj.computeDisplacement(LHS,RHS,iB);
-                uF{iB}.print(['Disp',num2str(iB)])
+                %uF{iB}.print(['Disp',num2str(iB)])
                 strainF{iB} = eB+SymGrad(uF{iB});
                 stressF{iB} = DDP(obj.material, strainF{iB});
-                stressF{iB}.print(['Stress',num2str(iB)])
+                %stressF{iB}.print(['Stress',num2str(iB)])
                 ChiB        = Integrator.compute(stressF{iB},obj.mesh,2);
                 obj.convertChomogToFourthOrder(ChiB,v,iB);
             end
