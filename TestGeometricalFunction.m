@@ -7,7 +7,6 @@ TMC = TetradecahedronMeshComputer(file);
 mesh = TMC.getMesh();
 MS = TMC.getMasterSlave();
 
-mesh = UnitTetraMesh(2,2,2);
 %% Create level set
 gPar.type = 'Tetradecahedron'; %'Octahedron';
 gPar.xCoorCenter = 0.5;
@@ -51,9 +50,9 @@ s.dim = '3D';
 material = Material.create(s);
 
 %% set boundary conditions
-isCenterX = @(coor) (abs(coor(:,1) - 0.5) < 1e-5);
+isCenterX = @(coor) (abs(coor(:,1) - 0.75) < 1e-5);
 isCenterY = @(coor) (abs(coor(:,2) - 0.5) < 1e-5);
-isCenterZ = @(coor) (abs(coor(:,3) - 0.5) < 1e-5);
+isCenterZ = @(coor) (abs(coor(:,3) - 0) < 1e-5);
 sDir{1}.domain    = @(coor) isCenterX(coor) & isCenterY(coor) & isCenterZ(coor);
 sDir{1}.direction = [1,2,3];
 sDir{1}.value     = 0;
