@@ -1,7 +1,6 @@
 classdef TetradecahedronMeshComputer < handle
 
     properties (Access = private, Constant)
-        fileName = 'Tetradecahedron';
         planeCoeffs = [1  0  0   1     1    1     1;
             0  1  0   1     1   -1    -1;
             0  0  1   1    -1    1    -1;
@@ -17,8 +16,8 @@ classdef TetradecahedronMeshComputer < handle
 
     methods (Access = public)
 
-        function obj = TetradecahedronMeshComputer()
-            a.fileName = obj.fileName;
+        function obj = TetradecahedronMeshComputer(fileName)
+            a.fileName = fileName;
             fem = FemDataContainer(a);
             obj.mesh = fem.mesh;
             obj.boundaryNodes = fem.newBC.microSlave(:,1);

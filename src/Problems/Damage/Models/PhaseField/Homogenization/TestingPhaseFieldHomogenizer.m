@@ -4,6 +4,7 @@ classdef TestingPhaseFieldHomogenizer < handle
         E
         nu
         meshType
+        fileName
         meshN
         holeType
         nSteps
@@ -44,6 +45,7 @@ classdef TestingPhaseFieldHomogenizer < handle
                 if i==1
                     hole = 1e-5*ones(size(hole));
                 end
+                fprintf('Step %d/%d \n',i,nComb)
                 mat(:,:,:,:,i) = obj.computeHomogenization(hole,i);
                 phi(i)     = obj.computeDamageMetric(hole);
             end
@@ -72,6 +74,7 @@ classdef TestingPhaseFieldHomogenizer < handle
             obj.E          = cParams.E;
             obj.nu         = cParams.nu;
             obj.meshType   = cParams.meshType;
+            obj.fileName   = cParams.fileName;
             obj.meshN      = cParams.meshN;
             obj.holeType   = cParams.holeType;
             obj.nSteps     = cParams.nSteps;
@@ -117,7 +120,7 @@ classdef TestingPhaseFieldHomogenizer < handle
                     obj.baseMesh = Mesh.create(s);
                     obj.masterSlave = MC.masterSlaveIndex;
                 case 'Tetradecahedron'
-                    TMC = TetradecahedronMeshComputer();
+                    TMC = TetradecahedronMeshComputer(obj.fileName);
                     obj.baseMesh = TMC.getMesh();
                     obj.masterSlave = TMC.getMasterSlave();
             end

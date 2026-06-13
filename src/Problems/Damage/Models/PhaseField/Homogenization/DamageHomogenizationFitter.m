@@ -24,7 +24,7 @@ classdef DamageHomogenizationFitter < handle
             phi = reshape(phi,length(phi),[]);
 
             nStre = size(C,1);
-            fun   = cell(2,2,2,2);
+            fun   = cell(nStre,nStre,nStre,nStre);
             for i=1:nStre
                 for j=1:nStre
                     for k=1:nStre

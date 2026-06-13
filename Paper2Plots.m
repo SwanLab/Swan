@@ -405,38 +405,133 @@ lgd = legend({'AT1','AT2','Rational (no HS)','Rational (HS)','Hexagon','Reinforc
 lgd.Layout.Tile = 'east';
 lgd.FontSize = 30;
 
+%% Tetradecahedron constitutive tensor
+[dataTetra]  = load('Tetradecahedron004.mat');
+phiTetra = dataTetra.phi;
+C11Tetra = squeeze(dataTetra.mat(1,1,1,1,:));
+C11TetraFun =  dataTetra.degradation.fun{1,1,1,1};
+C12Tetra = squeeze(dataTetra.mat(1,1,2,2,:));
+C12TetraFun = dataTetra.degradation.fun{1,1,2,2};
+C44Tetra = squeeze(dataTetra.mat(2,3,2,3,:));
+C44TetraFun = dataTetra.degradation.fun{2,3,2,3};
+
+figure(11)
+t = tiledlayout(1,3);
+nexttile
+hold on
+grid minor
+plot(phiTetra,C11Tetra,'Color',cmp(4,:),'LineStyle','--','LineWidth',3)
+fplot(C11TetraFun,[0 1],'Color',cmp(4,:),'LineStyle','-','LineWidth',3)
+ylabel(char(8450)+"11 [GPa]");
+xlabel({"$\phi$ [-]";"(a)"},'Interpreter','latex');
+ylim([0,inf])
+
+nexttile
+hold on
+grid minor
+plot(phiTetra,C12Tetra,'Color',cmp(4,:),'LineStyle','--','LineWidth',3)
+fplot(C12TetraFun,[0 1],'Color',cmp(4,:),'LineStyle','-','LineWidth',3)
+ylabel(char(8450)+"12 [GPa]");
+xlabel({"$\phi$ [-]";"(b)"},'Interpreter','latex');
+ylim([0,inf])
+fontsize(gcf,30,'points')
+
+nexttile
+hold on
+grid minor
+plot(phiTetra,C44Tetra,'Color',cmp(4,:),'LineStyle','--','LineWidth',3)
+fplot(C44TetraFun,[0 1],'Color',cmp(4,:),'LineStyle','-','LineWidth',3)
+ylabel(char(8450)+"44 [GPa]");
+ylim([0,inf])
+xlabel({"$\phi$ [-]";"(c)"},'Interpreter','latex');
+
+fontsize(gcf,40,'points')
+lgd = legend('Tetradecahedron (data)','Tetradecahedron (interpolation)','Orientation','horizontal');
+lgd.Layout.Tile = 'north';
+lgd.FontSize = 30;
+
+%% Tetradecahedron Zener Ratio
+ZenerRatioTetra = @(phi) 2*C44TetraFun(phi)./(C11TetraFun(phi)-C12TetraFun(phi));
+
+figure(12)
+hold on
+grid minor
+fplot(ZenerRatioTetra,[0 1],'Color',cmp(4,:),'LineStyle','--','LineWidth',3);
+ylabel("Zener Ratio [-]");
+xlabel("$\phi$ [-]",'Interpreter','latex');
+
+fontsize(gcf,40,'points')
+lgd = legend('Tetradecahedron');
+lgd.FontSize = 30;
+
+%% Tetradecahedron bulk and shear
+bulkTetra   = @(phi) (C11TetraFun(phi)+2*C12TetraFun(phi))./(C11TetraFun(0)+2*C12TetraFun(0));
+shearTetra  = @(phi) C44TetraFun(phi)./(C44TetraFun(0));
+
+k3D  = @(nu) E/(3-6*nu);
+mu3D = @(nu) E/(2*(1+nu));
+l3D  = @(nu) E*nu/((1+nu)*(1-2*nu));
+kUB3D   = @(phi,nu) (1-phi).*((2.*mu3D(nu)+l3D(nu)-k3D(nu))./(2.*mu3D(nu)+l3D(nu)-k3D(nu).*(1-phi)));
+muUB3D  = @(phi,nu) (1-phi).*((10.*(2.*mu3D(nu)+l3D(nu)) - 4.*(k3D(nu)+2.*mu(nu)))./(10.*(2.*mu3D(nu)+l3D(nu))-(1-phi).*4.*(k3D(nu)+2.*mu(nu))));
+
+figure(13)
+t = tiledlayout(1,2);
+nexttile
+hold on
+grid minor
+fplot(@(phi) kUB3D(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
+%fplot(bulkTetra,[0,1],'Color',cmp(4,:),'LineStyle','-','LineWidth',3);
+ylabel('$\kappa(\phi)/\kappa_0$ [-]','Interpreter','latex');
+ylim([0,inf])
+xlabel("$\phi$ [-]",'Interpreter','latex');
+
+nexttile
+hold on
+grid minor
+p2 = fplot(@(phi) muUB3D(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
+%p1 = fplot(shearTetra,[0 1],'Color',cmp(4,:),'LineStyle','-','LineWidth',3);
+ylabel('$\mu(\phi)/\mu_0$ [-]','Interpreter','latex');
+ylim([0,inf])
+xlabel("$\phi$ [-]",'Interpreter','latex');
+
+fontsize(gcf,40,'points')
+lgd = legend([p1,p2],'Tetradecahedron','HS UB');
+lgd.FontSize = 30;
 
 
 %% Prints
 
-dmgAT1 = resAT1.outputData.damage.field.fun;
-dmgAT2 = resAT2.outputData.damage.field.fun;
-dmgRatnoHS = resRatnoHS.outputData.damage.field.fun;
-dmgRatHS = resRatHS.outputData.damage.field.fun;
-dmgHexa = resHexa.outputData.damage.field.fun;
-dmgHoney = resHoney.outputData.damage.field.fun;
+% dmgAT1 = resAT1.outputData.damage.field.fun;
+% dmgAT2 = resAT2.outputData.damage.field.fun;
+% dmgRatnoHS = resRatnoHS.outputData.damage.field.fun;
+% dmgRatHS = resRatHS.outputData.damage.field.fun;
+% dmgHexa = resHexa.outputData.damage.field.fun;
+% dmgHoney = resHoney.outputData.damage.field.fun;
+% 
+% 
+% uAT1 = resAT1.outputData.displacement.field;
+% uAT2 = resAT2.outputData.displacement.field;
+% uRatnoHS = resRatnoHS.outputData.displacement.field;
+% uRatHS = resRatHS.outputData.displacement.field;
+% uHexa = resHexa.outputData.displacement.field;
+% uHoney = resHoney.outputData.displacement.field;
+% 
+% printResult(dmgAT1,uAT1,'AT1')
+% printResult(dmgAT2,uAT2,'AT2')
+% printResult(dmgRatnoHS,uRatnoHS,'RatnoHS')
+% printResult(dmgRatHS,uRatHS,'RatHS')
+% printResult(dmgHexa,uHexa,'Hexa')
+% printResult(dmgHoney,uHoney,'Honey')
+% 
+% function printResult(dmgFun,uFun,filename)
+%     s.mesh = dmgFun.mesh;
+%     s.fun = {dmgFun};
+%     s.type = 'Paraview';
+%     s.filename = filename;
+%     p = FunctionPrinter.create(s);
+%     p.appendFunction(uFun,'disp')
+%     p.print()
+% end
 
 
-uAT1 = resAT1.outputData.displacement.field;
-uAT2 = resAT2.outputData.displacement.field;
-uRatnoHS = resRatnoHS.outputData.displacement.field;
-uRatHS = resRatHS.outputData.displacement.field;
-uHexa = resHexa.outputData.displacement.field;
-uHoney = resHoney.outputData.displacement.field;
 
-printResult(dmgAT1,uAT1,'AT1')
-printResult(dmgAT2,uAT2,'AT2')
-printResult(dmgRatnoHS,uRatnoHS,'RatnoHS')
-printResult(dmgRatHS,uRatHS,'RatHS')
-printResult(dmgHexa,uHexa,'Hexa')
-printResult(dmgHoney,uHoney,'Honey')
-
-function printResult(dmgFun,uFun,filename)
-    s.mesh = dmgFun.mesh;
-    s.fun = {dmgFun};
-    s.type = 'Paraview';
-    s.filename = filename;
-    p = FunctionPrinter.create(s);
-    p.appendFunction(uFun,'disp')
-    p.print()
-end
