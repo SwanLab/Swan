@@ -1,19 +1,17 @@
-classdef DataGenerationElasticity2D < handle
+classdef tempDataGenerationElasticity2D < handle
 
     properties (Access = public)
-        useMatrixFree           = true   
-        useEdgeAverage          = false
         enablePlots             = true
-        computeMonolithic       = true
+        computeMonolithic       = false
         computeUnpreconditioned = true
         computeKappa            = false
         exportParaview          = false
         outputPrefix      = 'cantilever2d_feti'
 
-        numSubdomains     = [24 6]
-        nodeTol           = 1e-8
-        pcgTol            = 1e-8
-        nPerSide          = 15
+        numSubdomains     = [20 2]
+        nodeTol           = 1e-10
+        pcgTol            = 1e-10
+        nPerSide          = 5
     end
 
     properties (Access = private)
@@ -34,7 +32,7 @@ classdef DataGenerationElasticity2D < handle
         % =================================================================
         % CONSTRUCTOR / MAIN
         % =================================================================
-        function obj = DataGenerationElasticity2D()
+        function obj = tempDataGenerationElasticity2D()
             if obj.enablePlots
                 close all;
             end
@@ -56,19 +54,18 @@ classdef DataGenerationElasticity2D < handle
             obj.computeLocalMatrices(nodeMultiplicity, localToGlobalMaps);
 
             % 4. Solver Setup
-            obj.fetiSolver = FetiDPSolver( ...
+            obj.fetiSolver = tempFetiDPElasticity( ...
                 obj.globalMesh, obj.localMeshes, ...
                 obj.localStiffness, obj.localForces, ...
                 obj.nodeTol, obj.globalMesh.ndim, ...
-                obj.boundaryConditions, localToGlobalMaps, ...
-                obj.useMatrixFree, obj.useEdgeAverage);
+                obj.boundaryConditions, localToGlobalMaps);
 
             if obj.enablePlots
                 obj.fetiSolver.visualizeFetiNodes();
             end
 
             % 5. Solve
-            disp('--- FETI-DP ---');
+            disp('--- FETI-DP (Dirichlet preconditioner) ---');
             tic;
             results = obj.solveFetiDP();
             results.totalWallTime = toc;
@@ -132,25 +129,21 @@ classdef DataGenerationElasticity2D < handle
                 results.nDofsMono = length(obj.boundaryConditions.free_dofs);
 
                 % Unpreconditioned CG on reduced system (for iteration count)
-                bcApplier = BCApplier(struct('mesh', obj.globalMesh, 'boundaryConditions', obj.boundaryConditions));
-
+                bcApplier = BCApplier(struct('mesh', obj.globalMesh, ...
+                    'boundaryConditions', obj.boundaryConditions));
                 kRed  = bcApplier.fullToReducedMatrixDirichlet(kGlobal);
                 fRed  = bcApplier.fullToReducedVectorDirichlet(fGlobal);
                 uRed  = results.uMono(obj.boundaryConditions.free_dofs);
                 x0    = zeros(size(fRed));
                 Pid   = @(r) r;
-
                 tic;
                 [~, residualMono] = PCG.solve(@(x) kRed * x, fRed, x0, Pid, tol, uRed);
                 results.timeSolveMonoCG = toc;
-
                 results.residualMono    = residualMono;
                 results.nIterMono       = length(residualMono);
 
                 if obj.computeKappa
-                    % results.kappaK = condest(kRed);
-                    eigkRed        = real(eig(full(kRed)));
-                    results.kappaK = max(eigkRed) / min(eigkRed);
+                    results.kappaK = condest(kRed);
                 end
             end
 
@@ -158,24 +151,14 @@ classdef DataGenerationElasticity2D < handle
             tic;
             [fMat, dBar] = obj.fetiSolver.assembleProblem();
             x0Feti       = zeros(size(dBar));
-            if obj.useMatrixFree
-                lambdaExact = zeros(size(dBar)); 
-            else
-                lambdaExact = fMat \ dBar; 
-            end
+            lambdaExact  = fMat \ dBar;
             results.timeSetupFeti = toc;
 
-            if isa(fMat, 'function_handle')
-                fOperator = fMat;             
-            else
-                fOperator = @(x) fMat * x;    
-            end
-
             % --- Case 2: Unpreconditioned FETI-DP dual CG ---------------
-            if obj.computeUnpreconditioned 
+            if obj.computeUnpreconditioned
                 Pid = @(r) r;
                 tic;
-                [~, residualUnprec] = PCG.solve(fOperator, dBar, x0Feti, Pid, tol, lambdaExact);
+                [~, residualUnprec] = PCG.solve(@(x) fMat * x, dBar, x0Feti, Pid, tol, lambdaExact);
                 results.timeSolveUnprec = toc;
                 results.residualUnprec  = residualUnprec;
                 results.nIterUnprec     = length(residualUnprec);
@@ -189,21 +172,12 @@ classdef DataGenerationElasticity2D < handle
             % --- Case 3: Preconditioned FETI-DP (Dirichlet) -------------
             Pdir = @(r) obj.fetiSolver.applyDirichletPrecond(r);
             tic;
-            [lambdaFetiPcg, residual] = PCG.solve(fOperator, dBar, x0Feti, Pdir, tol, lambdaExact);
+            [lambdaFetiPcg, residual] = PCG.solve(@(x) fMat * x, dBar, x0Feti, Pdir, tol, lambdaExact);
             results.timeSolveFeti = toc;
 
             if obj.computeKappa
                 M = obj.fetiSolver.buildPrecondMatrix();
-                if obj.useMatrixFree
-                    numDuals = length(dBar); fMatDense = zeros(numDuals);
-                    for idx = 1:numDuals
-                        eVec = zeros(numDuals, 1); eVec(idx) = 1;
-                        fMatDense(:, idx) = fMat(eVec);
-                    end
-                    eigPcg = eig(full(M * fMatDense));
-                else
-                    eigPcg = eig(full(M * fMat));
-                end
+                eigPcg = eig(full(M * fMat));
                 results.kappaPcg = max(eigPcg) / min(eigPcg);
             end
 
@@ -230,8 +204,8 @@ classdef DataGenerationElasticity2D < handle
         % MESH & DOMAIN
         % =================================================================
         function mS = createStructuredMesh(obj)
-            globalLength = 2;
-            globalHeight = 0.5;
+            globalLength = 2.0;
+            globalHeight = 0.2;
             numSubX      = obj.numSubdomains(1);
             numSubY      = obj.numSubdomains(2);
             subLength    = globalLength / numSubX;
@@ -352,7 +326,7 @@ classdef DataGenerationElasticity2D < handle
             nTipNodes = sum(isTip(obj.globalMesh.coord));
             sPL.domain    = isTip;
             sPL.direction = 2;
-            sPL.value     = -3000000 / nTipNodes;
+            sPL.value     = -500000 / nTipNodes;
 
             s.mesh         = obj.globalMesh;
             s.dirichletFun = DirichletCondition(obj.globalMesh, sDir);
@@ -497,7 +471,7 @@ classdef DataGenerationElasticity2D < handle
             if r.computeMonolithic
                 fprintf('  Monolithic direct solve: %.4f s\n', r.timeSolveMono);
                 fprintf('  Relative error (FETI-DP vs monolithic): %e\n', r.relError);
-                if r.relError < 1e-8
+                if r.relError < 1e-10
                     disp('  Success: FETI-DP solution matches the monolithic direct solver.');
                 end
             end

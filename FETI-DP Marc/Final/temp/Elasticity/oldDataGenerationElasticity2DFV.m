@@ -1,4 +1,4 @@
-classdef DataGenerationElasticity2D < handle
+classdef DataGenerationElasticity2DFV < handle
     % ELASTICITYFETIDPCONVERGENCESTUDY Main script for data generation, setup,
     % and convergence comparison of the FETI-DP method in 2D Elasticity.
     
@@ -24,11 +24,11 @@ classdef DataGenerationElasticity2D < handle
     % =========================================================
     methods (Access = public)
         
-        function obj = DataGenerationElasticity2D()
+        function obj = DataGenerationElasticity2DFV()
             close all;
             
             % 1. Initialization Parameters
-            obj.numSubdomains = [12 8]; 
+            obj.numSubdomains = [12 12]; 
             obj.nodeTol       = 1e-10;
             obj.dofsPerNode   = 2;
             
@@ -52,8 +52,8 @@ classdef DataGenerationElasticity2D < handle
             % Visualize domain decomposition nodes
             obj.fetiSolver.visualizeFetiNodes();
             
-            % 5. Global Convergence Comparison (3 Cases)
-            disp('--- Starting Global Convergence Comparison (3 Cases) ---');
+            % 5. Global Convergence Comparison
+            disp('--- Starting Global Convergence Comparison ---');
             tic;
             [uMono, uFeti] = obj.runConvergenceComparison();
             totalTime = toc; 
@@ -99,12 +99,10 @@ classdef DataGenerationElasticity2D < handle
             % Assembles the global force vector with a tip load
             fGlobal   = zeros(totalDofs, 1);
             maxX      = max(obj.globalMesh.coord(:,1));
-
-            tipNodes = find(abs(obj.globalMesh.coord(:,1)-maxX) < obj.nodeTol);
+            tipNodes  = find(abs(obj.globalMesh.coord(:,1)-maxX) < obj.nodeTol);
             nTipNodes = length(tipNodes);
-
             loadValue = -10;
-            nodeLoad = loadValue / nTipNodes;
+            nodeLoad  = loadValue / nTipNodes;
             
             for j = 1:nTipNodes
                 yDof = (tipNodes(j) - 1) * obj.dofsPerNode + 2;
@@ -118,7 +116,7 @@ classdef DataGenerationElasticity2D < handle
             kCell  = cell(numSub, 1);
             fCell  = cell(numSub, 1);
             
-            maxX      = max(obj.globalMesh.coord(:,1));
+            maxX           = max(obj.globalMesh.coord(:,1));
             tipNodesGlobal = find(abs(obj.globalMesh.coord(:,1) - maxX) < obj.nodeTol);
             nTipNodes      = length(tipNodesGlobal);
             totalLoad      = -10; 
@@ -158,7 +156,7 @@ classdef DataGenerationElasticity2D < handle
         function mS = createStructuredMesh(obj)
             % Creates the reference mesh for the domain decomposition
             if nargin < 2
-                nPerSide = 6; % Número de nodos por lado dentro de CADA subdominio
+                nPerSide = 10; % Nodes per side within EACH subdomain
             end
             globalLength = 1.0; 
             globalHeight = 1.0;
@@ -199,18 +197,18 @@ classdef DataGenerationElasticity2D < handle
             poisson = ConstantFunction.create(nuPstr, mesh);
         end
     end
-
+    
     % =========================================================
     % PRIVATE METHODS: EXECUTION & SOLVERS
     % =========================================================
     methods (Access = private)
         
         function [uMono, uFeti] = runConvergenceComparison(obj)
-            % Runs and compares Monolithic CG, FETI-DP CG, and Preconditioned FETI-DP
+            % Runs and compares solvers
             tol = 1e-10;
             
             % =========================================================
-            % CASE 1: Monolithic System Setup and CG Solver
+            % CASE 1: Monolithic System Setup (Direct Solver Only)
             % =========================================================
             tic; 
             uGlobal = LagrangianFunction.create(obj.globalMesh, obj.globalMesh.ndim, 'P1');
@@ -225,22 +223,20 @@ classdef DataGenerationElasticity2D < handle
             kRed     = kGlobal(freeDofs, freeDofs);
             fRed     = fGlobal(freeDofs);
             
-            x0mono = zeros(length(fRed), 1);
-            Pid    = @(r) r;
             timeSetupMono = toc; 
             
+            % Exact direct solution
+            tic;
             uRed  = kRed \ fRed;
+            timeSolveMono = toc;
+            
             uMono = zeros(totalDofs, 1);
             uMono(freeDofs) = uRed;
             
-            tic; 
-            [~, residual1, ~, ~] = PCG.solve(@(x) kRed * x, fRed, x0mono, Pid, tol, uRed);
-            timeSolveMono = toc; 
-            
-            % lambdaMaxK = eigs(kRed, 1, 'largestabs');
-            % lambdaMinK = eigs(kRed, 1, 'smallestabs');
-            kappaK     = condest(kRed);%lambdaMaxK / lambdaMinK;
-            nDofsMono  = length(fRed);
+            % Monolithic CG omitted due to poor conditioning in Elasticity
+            residual1 = []; 
+            kappaK    = 1;  
+            nDofsMono = length(fRed);
             
             % =========================================================
             % CASE 2: Unpreconditioned FETI-DP Dual CG
@@ -252,27 +248,25 @@ classdef DataGenerationElasticity2D < handle
             
             lambdaExact = fMat \ dBar;
             
-            tic; 
-            [~, residual2, ~, ~] = PCG.solve(@(x) fMat * x, dBar, x0feti, Pid, tol, lambdaExact);
-            timeSolveFetiDual = toc; 
+            % Unpreconditioned FETI-DP omitted due to extreme computational cost
+            residual2 = []; 
+            timeSolveFetiDual = 0; 
             
-            E_F       = real(eig(fMat));
-            kappaF    = max(E_F) / min(E_F);
+            kappaF    = 1;
             nDofsFeti = length(dBar);
             
             % =========================================================
-            % CASE 3: Preconditioned FETI-DP (Dirichlet)
+            % CASE 3: Preconditioned FETI-DP (Dirichlet + Edge Averages)
             % =========================================================
             tic; 
             Pdir = @(r) obj.fetiSolver.applyDirichletPrecond(r);
-            M    = obj.fetiSolver.buildPrecondMatrix();
+            M  = obj.fetiSolver.buildPrecondMatrix();
             timeSetupFetiDir = toc; 
             
             tic; 
             [lambdaFetiPCG, residual3, ~, ~] = PCG.solve(@(x) fMat * x, dBar, x0feti, Pdir, tol, lambdaExact);
             timeSolveFetiDir = toc; 
             
-            E_PCG    = eig(full(M * fMat));
             kappaPCG = max(E_PCG) / min(E_PCG);
             
             % =========================================================
@@ -301,7 +295,6 @@ classdef DataGenerationElasticity2D < handle
         function printComparisonTable(obj, iter1, iter2, iter3, kK, kF, kPCG, ...
                                       nDofsMono, nDofsFeti, nSub, ...
                                       tSet1, tSol1, tSet2, tSol2, tSet3, tSol3)
-            % Prints a strictly formatted ASCII table with the solver results
             fprintf('\n');
             fprintf('+------------------------------+-------+--------------+--------+------------+------------+------------+\n');
             fprintf('| Elasticity Case              | Iter. | kappa (cond) |  DOFs  | Setup Time | Solve Time | Total Time |\n');
@@ -315,7 +308,6 @@ classdef DataGenerationElasticity2D < handle
         end
         
         function plotConvergenceComparison(~, h1, h2, h3, tol)
-            % Plots the relative residual history for the three CG solves
             figure('Name', 'CG Convergence - Cantilever Beam', 'Color', 'w', 'Position', [100 100 750 480]);
             
             semilogy(1:length(h1), h1, '-o', 'Color', [0.00 0.45 0.74], 'LineWidth', 1.8, 'MarkerSize', 4, 'DisplayName', 'Monolithic CG');
@@ -338,9 +330,8 @@ classdef DataGenerationElasticity2D < handle
             ylim([tol * 0.1, 2]);
             hold off;
         end
-
+        
         function visualizeDeformedMesh(obj, uGlobal, scaleFactor, titleStr)
-            % Renders the original mesh alongside the deformed mesh
             coords    = obj.globalMesh.coord;
             connec    = obj.globalMesh.connec;
             ndim      = obj.globalMesh.ndim;

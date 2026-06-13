@@ -1,86 +1,81 @@
-classdef DataGenerationElasticity2D < handle
-
+classdef tempDataGenerationElasticity2DFetiDP < handle
+    
     properties (Access = public)
-        useMatrixFree           = true   
-        useEdgeAverage          = false
-        enablePlots             = true
-        computeMonolithic       = true
-        computeUnpreconditioned = true
-        computeKappa            = false
-        exportParaview          = false
+        enablePlots       = true
+        computeMonolithic = true
+        computeKappa      = false
+        exportParaview    = false
         outputPrefix      = 'cantilever2d_feti'
-
-        numSubdomains     = [24 6]
-        nodeTol           = 1e-8
-        pcgTol            = 1e-8
-        nPerSide          = 15
+        
+        numSubdomains     = [10 2]
+        nodeTol           = 1e-10
+        pcgTol            = 1e-10
+        nPerSide          = 5
     end
-
+    
     properties (Access = private)
         globalMesh
         localMeshes
-
+        
         material
         boundaryConditions
-
+        
         localStiffness
         localForces
-
+        
         fetiSolver
     end
-
+    
     methods (Access = public)
-
+        
         % =================================================================
         % CONSTRUCTOR / MAIN
         % =================================================================
-        function obj = DataGenerationElasticity2D()
+        function obj = tempDataGenerationElasticity2DFetiDP()
             if obj.enablePlots
                 close all;
             end
-
+            
             % 1. Mesh generation
-            referenceMesh = obj.createStructuredMesh();
+            referenceMesh = obj.createLatticeMesh();
             s.nsubdomains   = obj.numSubdomains;
             s.meshReference = referenceMesh;
             s.tolSameNode   = obj.nodeTol;
             m = MeshCreatorFromRVE.create(s);
             [obj.globalMesh, obj.localMeshes, ~, ~, ~, ~, ~] = m.create();
-
+            
             % 2. Physics & Boundary Conditions
             obj.material           = obj.createMaterial(obj.globalMesh);
-            obj.boundaryConditions = obj.createBoundaryConditionsCantilever();
-
+            obj.boundaryConditions = obj.createBoundaryConditions();
+            
             % 3. Assembly
-            [nodeMultiplicity, localToGlobalMaps] = obj.computeNodeMultiplicity();
-            obj.computeLocalMatrices(nodeMultiplicity, localToGlobalMaps);
-
+            obj.computeLocalMatrices();
+            
             % 4. Solver Setup
-            obj.fetiSolver = FetiDPSolver( ...
+            obj.fetiSolver = tempFetiDPElasticity( ...
                 obj.globalMesh, obj.localMeshes, ...
                 obj.localStiffness, obj.localForces, ...
                 obj.nodeTol, obj.globalMesh.ndim, ...
-                obj.boundaryConditions, localToGlobalMaps, ...
-                obj.useMatrixFree, obj.useEdgeAverage);
-
+                obj.boundaryConditions);
+            
             if obj.enablePlots
                 obj.fetiSolver.visualizeFetiNodes();
             end
-
+            
             % 5. Solve
-            disp('--- FETI-DP ---');
+            disp('--- FETI-DP (Dirichlet preconditioner) ---');
             tic;
             results = obj.solveFetiDP();
             results.totalWallTime = toc;
-
+            
             % 6. Post-processing
             obj.printResults(results);
-
+            
             if obj.enablePlots
-                obj.plotConvergence(results, obj.pcgTol);
+                obj.plotConvergence(results.residual, obj.pcgTol);
                 obj.visualizeDeformedMesh(results.uFeti, 1, 'FETI-DP PCG (Cantilever)');
             end
-
+            
             if obj.exportParaview
                 if obj.computeMonolithic
                     obj.exportToParaview(results.uMono, 'monolithic');
@@ -89,134 +84,65 @@ classdef DataGenerationElasticity2D < handle
             end
         end
     end
-
+    
     methods (Access = private)
-
+        
         % =================================================================
         % SOLVER
         % =================================================================
         function results = solveFetiDP(obj)
             tol = obj.pcgTol;
-
-            results.computeMonolithic       = obj.computeMonolithic;
-            results.computeUnpreconditioned = obj.computeUnpreconditioned;
-            results.computeKappa            = obj.computeKappa;
-            results.timeSetupMono           = 0;
-            results.timeSolveMono           = 0;
-            results.timeSolveMonoCG         = NaN;
-            results.nDofsMono               = NaN;
-            results.uMono                   = [];
-            results.relError                = NaN;
-            results.kappaK                  = NaN;
-            results.kappaF                  = NaN;
-            results.kappaPcg                = NaN;
-            results.residualMono            = [];
-            results.nIterMono               = NaN;
-            results.residualUnprec          = [];
-            results.nIterUnprec             = NaN;
-            results.timeSolveUnprec         = NaN;
-
-            % --- Case 1: Monolithic (direct solve + CG for convergence) -
+            
+            results.computeMonolithic = obj.computeMonolithic;
+            results.computeKappa      = obj.computeKappa;
+            results.timeSetupMono     = 0;
+            results.timeSolveMono     = 0;
+            results.nDofsMono         = NaN;
+            results.uMono             = [];
+            results.relError          = NaN;
+            results.kappaPcg          = NaN;
+            
             if obj.computeMonolithic
                 tic;
                 kGlobal = obj.assembleGlobalStiffness();
                 fGlobal = obj.computeGlobalForces(kGlobal);
                 results.timeSetupMono = toc;
-
-                % Direct solve (reference solution)
+                
                 tic;
                 s.stiffness = kGlobal;
                 s.forces    = fGlobal;
                 [results.uMono, ~] = obj.createProblemSolver().solve(s);
                 results.timeSolveMono = toc;
                 results.nDofsMono = length(obj.boundaryConditions.free_dofs);
-
-                % Unpreconditioned CG on reduced system (for iteration count)
-                bcApplier = BCApplier(struct('mesh', obj.globalMesh, 'boundaryConditions', obj.boundaryConditions));
-
-                kRed  = bcApplier.fullToReducedMatrixDirichlet(kGlobal);
-                fRed  = bcApplier.fullToReducedVectorDirichlet(fGlobal);
-                uRed  = results.uMono(obj.boundaryConditions.free_dofs);
-                x0    = zeros(size(fRed));
-                Pid   = @(r) r;
-
-                tic;
-                [~, residualMono] = PCG.solve(@(x) kRed * x, fRed, x0, Pid, tol, uRed);
-                results.timeSolveMonoCG = toc;
-
-                results.residualMono    = residualMono;
-                results.nIterMono       = length(residualMono);
-
-                if obj.computeKappa
-                    % results.kappaK = condest(kRed);
-                    eigkRed        = real(eig(full(kRed)));
-                    results.kappaK = max(eigkRed) / min(eigkRed);
-                end
             end
-
-            % --- Assemble FETI-DP interface problem (shared by cases 2&3)
+            
             tic;
             [fMat, dBar] = obj.fetiSolver.assembleProblem();
             x0Feti       = zeros(size(dBar));
-            if obj.useMatrixFree
-                lambdaExact = zeros(size(dBar)); 
-            else
-                lambdaExact = fMat \ dBar; 
-            end
+            lambdaExact  = fMat \ dBar;
+            Pdir         = @(r) obj.fetiSolver.applyDirichletPrecond(r);
             results.timeSetupFeti = toc;
-
-            if isa(fMat, 'function_handle')
-                fOperator = fMat;             
-            else
-                fOperator = @(x) fMat * x;    
-            end
-
-            % --- Case 2: Unpreconditioned FETI-DP dual CG ---------------
-            if obj.computeUnpreconditioned 
-                Pid = @(r) r;
-                tic;
-                [~, residualUnprec] = PCG.solve(fOperator, dBar, x0Feti, Pid, tol, lambdaExact);
-                results.timeSolveUnprec = toc;
-                results.residualUnprec  = residualUnprec;
-                results.nIterUnprec     = length(residualUnprec);
-
-                if obj.computeKappa
-                    eigF           = real(eig(full(fMat)));
-                    results.kappaF = max(eigF) / min(eigF);
-                end
-            end
-
-            % --- Case 3: Preconditioned FETI-DP (Dirichlet) -------------
-            Pdir = @(r) obj.fetiSolver.applyDirichletPrecond(r);
+            
             tic;
-            [lambdaFetiPcg, residual] = PCG.solve(fOperator, dBar, x0Feti, Pdir, tol, lambdaExact);
+            [lambdaFetiPcg, residual] = PCG.solve(@(x) fMat * x, dBar, x0Feti, Pdir, tol, lambdaExact);
             results.timeSolveFeti = toc;
-
+            
             if obj.computeKappa
                 M = obj.fetiSolver.buildPrecondMatrix();
-                if obj.useMatrixFree
-                    numDuals = length(dBar); fMatDense = zeros(numDuals);
-                    for idx = 1:numDuals
-                        eVec = zeros(numDuals, 1); eVec(idx) = 1;
-                        fMatDense(:, idx) = fMat(eVec);
-                    end
-                    eigPcg = eig(full(M * fMatDense));
-                else
-                    eigPcg = eig(full(M * fMat));
-                end
+                eigPcg = eig(full(M * fMat));
                 results.kappaPcg = max(eigPcg) / min(eigPcg);
             end
-
+            
             results.uFeti     = obj.fetiSolver.reconstructGlobalSolution(lambdaFetiPcg, obj.globalMesh.nnodes);
             results.nIter     = length(residual);
             results.nDofsFeti = length(dBar);
             results.residual  = residual;
-
+            
             if obj.computeMonolithic
                 results.relError = norm(results.uFeti - results.uMono) / norm(results.uMono);
             end
         end
-
+        
         function problemSolver = createProblemSolver(obj)
             s.solverType         = 'REDUCED';
             s.solverMode         = 'DISP';
@@ -225,13 +151,14 @@ classdef DataGenerationElasticity2D < handle
             s.BCApplier          = BCApplier(struct('mesh', obj.globalMesh, 'boundaryConditions', obj.boundaryConditions));
             problemSolver = ProblemSolver(s);
         end
-
+        
         % =================================================================
         % MESH & DOMAIN
         % =================================================================
+        
         function mS = createStructuredMesh(obj)
-            globalLength = 2;
-            globalHeight = 0.5;
+            globalLength = 1.0;
+            globalHeight = 1.0;
             numSubX      = obj.numSubdomains(1);
             numSubY      = obj.numSubdomains(2);
             subLength    = globalLength / numSubX;
@@ -245,41 +172,44 @@ classdef DataGenerationElasticity2D < handle
             s.interpType = 'LINEAR';
             mS           = Mesh.create(s);
         end
-
+        
         function mS = createAuxeticMesh(obj)
             globalLength = 5.0 / obj.numSubdomains(1);
-
+            
             data = load('DEF_Q4auxL_1.mat');
-            coord = data.EIFEoper.MESH.COOR;
-            cnQ4 = double(data.EIFEoper.MESH.CN);
-
+            coord = data.EIFEoper.MESH.COOR;           
+            cnQ4 = double(data.EIFEoper.MESH.CN);    
+            
             minX = min(coord(:,1));
             maxX = max(coord(:,1));
             minY = min(coord(:,2));
-
+            
             scale = globalLength / (maxX - minX);
-
+            
             coord(:,1) = (coord(:,1) - minX) * scale;
             coord(:,2) = (coord(:,2) - minY) * scale;
-
+            
             s.coord = coord;
             s.connec = [cnQ4(:, [1 2 3]); cnQ4(:, [1 3 4])];
             s.interpType = 'LINEAR';
             mS = Mesh.create(s);
         end
-
+        
         function mS = createLatticeMesh(obj)
-            globalLength = 2.0;
+            % 1. Definir dimensiones objetivo del subdominio
+            globalLength = 2.0; 
             globalHeight = 0.4;
             subLength    = globalLength / obj.numSubdomains(1);
             subHeight    = globalHeight / obj.numSubdomains(2);
 
+            % 2. Cargar los datos del archivo .mat de forma robusta
             data = load('mallaLattice.mat');
-            campos = fieldnames(data);
-            varName = campos{1};
-            meshData = data.(varName);
 
-            coord  = meshData.coord;
+            campos = fieldnames(data);        
+            varName = campos{1};              
+            meshData = data.(varName);        
+
+            coord  = meshData.coord;   
             connec = meshData.connec;
 
             if size(connec, 2) == 4
@@ -301,31 +231,53 @@ classdef DataGenerationElasticity2D < handle
             coord(:,1) = (coord(:,1) - minX) * escalaGlobal;
             coord(:,2) = (coord(:,2) - minY) * escalaGlobal;
 
+            % 5. Creación del objeto Mesh
             s.coord      = coord;
             s.connec     = connec;
             s.interpType = 'LINEAR';
             mS           = Mesh.create(s);
         end
+        
+        % function mS = createLatticeMesh(obj)
+        %     % 1. Cargar los datos del archivo .mat
+        %     data = load('mallaLattice.mat');
+        % 
+        %     % Extraer la variable dinámicamente para evitar errores de nombre
+        %     campos = fieldnames(data);        
+        %     varName = campos{1};              
+        %     meshData = data.(varName);        
+        % 
+        %     % 2. Extraer coordenadas y conectividades tal cual vienen
+        %     % (Ajusta .coord y .connec si tu archivo usa mayúsculas, ej: .COOR y .CN)
+        %     coord  = meshData.coord;   
+        %     connec = meshData.connec;
+        % 
+        %     % Si la celosía viene en cuadriláteros (Q4), la dividimos en triángulos (T3)
+        %     if size(connec, 2) == 4
+        %         connec = [connec(:, [1 2 3]); connec(:, [1 3 4])];
+        %     end
+        % 
+        %     % 3. Creación del objeto Mesh respetando las coordenadas originales
+        %     s.coord      = coord;
+        %     s.connec     = connec;
+        %     s.interpType = 'LINEAR';
+        %     mS           = Mesh.create(s);
+        % end
 
-        % =================================================================
-        % NODE MULTIPLICITY
-        % =================================================================
-        function [mult, localToGlobalMaps] = computeNodeMultiplicity(obj)
-            numSub            = prod(obj.numSubdomains);
-            mult              = zeros(obj.globalMesh.nnodes, 1);
-            localToGlobalMaps = cell(numSub, 1);
-
+        function mult = computeNodeMultiplicity(obj)
+            numSub = prod(obj.numSubdomains);
+            mult   = zeros(obj.globalMesh.nnodes, 1);
             for i = 1:numSub
                 [~, gNodes] = ismembertol(obj.localMeshes{i}.coord, obj.globalMesh.coord, ...
                     obj.nodeTol, 'ByRows', true);
-                mult(gNodes)         = mult(gNodes) + 1;
-                localToGlobalMaps{i} = gNodes;
+                mult(gNodes) = mult(gNodes) + 1;
             end
         end
-
+        
         % =================================================================
         % PHYSICS & BOUNDARY CONDITIONS
         % =================================================================
+        
         function mat = createMaterial(~, mesh)
             eMod   = 200e9;
             nu     = 0.3;
@@ -338,82 +290,85 @@ classdef DataGenerationElasticity2D < handle
             s.poisson = ConstantFunction.create(nuPstr, mesh);
             mat       = Material.create(s);
         end
-
-        function bc = createBoundaryConditionsCantilever(obj)
+        
+        function bc = createBoundaryConditions(obj)
             minX = min(obj.globalMesh.coord(:, 1));
             maxX = max(obj.globalMesh.coord(:, 1));
             isDir = @(coor) abs(coor(:, 1) - minX) < obj.nodeTol;
             isTip = @(coor) abs(coor(:, 1) - maxX) < obj.nodeTol;
-
+            
             sDir.domain    = isDir;
             sDir.direction = [1, 2];
             sDir.value     = 0;
-
+            
             nTipNodes = sum(isTip(obj.globalMesh.coord));
             sPL.domain    = isTip;
             sPL.direction = 2;
-            sPL.value     = -3000000 / nTipNodes;
-
+            sPL.value     = -500000 / nTipNodes;
+            
             s.mesh         = obj.globalMesh;
             s.dirichletFun = DirichletCondition(obj.globalMesh, sDir);
             s.pointloadFun = TractionLoad(obj.globalMesh, sPL, 'DIRAC');
             s.periodicFun  = [];
             bc = BoundaryConditions(s);
         end
-
+        
         % =================================================================
         % MATRIX ASSEMBLY
         % =================================================================
-        function computeLocalMatrices(obj, nodeMultiplicity, localToGlobalMaps)
+        
+        function computeLocalMatrices(obj)
             numSub = prod(obj.numSubdomains);
             kCell  = cell(numSub, 1);
             fCell  = cell(numSub, 1);
-
-            fGlobalTraction = obj.computeGlobalTractionForces();
-            dirDofs         = obj.boundaryConditions.dirichlet_dofs;
-            dirVals         = obj.boundaryConditions.dirichlet_vals;
-
+            
+            nodeMultiplicity = obj.computeNodeMultiplicity();
+            fGlobalTraction  = obj.computeGlobalTractionForces();
+            dirDofs = obj.boundaryConditions.dirichlet_dofs;
+            dirVals = obj.boundaryConditions.dirichlet_vals;
+            
             for i = 1:numSub
                 localMesh = obj.localMeshes{i};
-                gNodes    = localToGlobalMaps{i};
-                ndim      = localMesh.ndim;
-
-                uLoc   = LagrangianFunction.create(localMesh, localMesh.ndim, 'P1');
-                matLoc = obj.createMaterial(localMesh);
-                weakK  = @(u, v) DDP(SymGrad(v), DDP(matLoc, SymGrad(u)));
-
+                uLoc      = LagrangianFunction.create(localMesh, localMesh.ndim, 'P1');
+                matLoc    = obj.createMaterial(localMesh);
+                weakK     = @(u, v) DDP(SymGrad(v), DDP(matLoc, SymGrad(u)));
+                
                 kLoc = IntegrateLHS(weakK, uLoc, uLoc, localMesh, 'Domain', 2);
-                fLoc = obj.projectGlobalForcesToLocal(fGlobalTraction, localMesh, nodeMultiplicity, gNodes);
-
+                fLoc = obj.projectGlobalForcesToLocal(fGlobalTraction, localMesh, nodeMultiplicity);
+                
+                ndim    = localMesh.ndim;
+                nnodes  = localMesh.nnodes;
+                [~, gNodes] = ismembertol(localMesh.coord, obj.globalMesh.coord, obj.nodeTol, 'ByRows', true);
+                
                 localToGlobalDofs = reshape(ndim * (gNodes(:)' - 1) + (1:ndim)', [], 1);
-
+                
                 [isDir, locIdx] = ismember(localToGlobalDofs, dirDofs);
                 dirLocal = find(isDir);
-
+                
                 if ~isempty(dirLocal)
                     vals = dirVals(locIdx(isDir));
                     fLoc = fLoc - kLoc(:, dirLocal) * vals;
                     fLoc(dirLocal) = vals;
-
+                    
                     kLoc(dirLocal, :) = 0;
                     kLoc(:, dirLocal) = 0;
                     kLoc(dirLocal, dirLocal) = speye(length(dirLocal));
                 end
-
+                
                 kCell{i} = kLoc;
                 fCell{i} = fLoc;
             end
-
+            
             obj.localStiffness = kCell;
             obj.localForces    = fCell;
         end
-
+        
         function kGlobal = assembleGlobalStiffness(obj)
             uGlobal = LagrangianFunction.create(obj.globalMesh, obj.globalMesh.ndim, 'P1');
             weakK   = @(u, v) DDP(SymGrad(v), DDP(obj.material, SymGrad(u)));
             kGlobal = IntegrateLHS(weakK, uGlobal, uGlobal, obj.globalMesh, 'Domain', 2);
         end
-
+        
         function fGlobal = computeGlobalTractionForces(obj)
             uGlobal = LagrangianFunction.create(obj.globalMesh, obj.globalMesh.ndim, 'P1');
             fGlobal = zeros(uGlobal.nDofs, 1);
@@ -425,7 +380,7 @@ classdef DataGenerationElasticity2D < handle
                 fGlobal = fGlobal + tractionLoads(k).computeRHS(uGlobal);
             end
         end
-
+        
         function fGlobal = computeGlobalForces(obj, stiffness)
             fGlobal = obj.computeGlobalTractionForces();
             bc      = obj.boundaryConditions;
@@ -435,10 +390,12 @@ classdef DataGenerationElasticity2D < handle
                 fGlobal = fGlobal - stiffness(:, dirDofs) * dirVals;
             end
         end
-
-        function fLoc = projectGlobalForcesToLocal(obj, fGlobal, localMesh, nodeMultiplicity, gNodes)
+        
+        function fLoc = projectGlobalForcesToLocal(obj, fGlobal, localMesh, nodeMultiplicity)
             ndim = localMesh.ndim;
             fLoc = zeros(localMesh.nnodes * ndim, 1);
+            [~, gNodes] = ismembertol(localMesh.coord, obj.globalMesh.coord, ...
+                obj.nodeTol, 'ByRows', true);
             for j = 1:localMesh.nnodes
                 mult = nodeMultiplicity(gNodes(j));
                 for d = 1:ndim
@@ -448,100 +405,71 @@ classdef DataGenerationElasticity2D < handle
                 end
             end
         end
-
+        
         % =================================================================
-        % POST-PROCESSING & EXPORT
+        % POST-PROCESSING & EXPORT 
         % =================================================================
         function printResults(obj, r)
-            nSub            = prod(obj.numSubdomains);
+            nSub = prod(obj.numSubdomains);
+            
             totalGlobalDofs = obj.globalMesh.nnodes * obj.globalMesh.ndim;
-            freeDofs        = length(obj.boundaryConditions.free_dofs);
-
+            freeDofs = length(obj.boundaryConditions.free_dofs);
+            
             fprintf('\n');
             if r.computeKappa
-                fprintf('+------------------------------+-------+--------------+--------+------------+------------+\n');
-                fprintf('| Case                         | Iter. | kappa (cond) |  DOFs  | Setup (s)  | Solve (s)  |\n');
-                fprintf('+------------------------------+-------+--------------+--------+------------+------------+\n');
-                if r.computeMonolithic
-                    fprintf('| Monolithic CG (K*u = f)      | %5d | %12.2f | %6d | %10.4f | %10.4f |\n', ...
-                        r.nIterMono, r.kappaK, r.nDofsMono, r.timeSetupMono, r.timeSolveMonoCG);
-                end
-                if r.computeUnpreconditioned
-                    fprintf('| FETI-DP dual CG (no prec)    | %5d | %12.2f | %6d | %10.4f | %10.4f |\n', ...
-                        r.nIterUnprec, r.kappaF, r.nDofsFeti, r.timeSetupFeti, r.timeSolveUnprec);
-                end
-                fprintf('| FETI-DP PCG + Dirichlet      | %5d | %12.2f | %6d | %10.4f | %10.4f |\n', ...
-                    r.nIter, r.kappaPcg, r.nDofsFeti, r.timeSetupFeti, r.timeSolveFeti);
-                fprintf('+------------------------------+-------+--------------+--------+------------+------------+\n');
+                fprintf('+---------------------------+-------+--------------+--------+------------------+\n');
+                fprintf('| Case                      | Iter. | kappa (cond) |  DOFs  | Total Time (s)   |\n');
+                fprintf('+---------------------------+-------+--------------+--------+------------------+\n');
+                fprintf('| FETI-DP PCG + Dirichlet   | %5d | %12.2f | %6d | %16.4f |\n', ...
+                    r.nIter, r.kappaPcg, r.nDofsFeti, r.timeSetupFeti + r.timeSolveFeti);
+                fprintf('+---------------------------+-------+--------------+--------+------------------+\n');
             else
-                fprintf('+------------------------------+-------+--------+------------+------------+\n');
-                fprintf('| Case                         | Iter. |  DOFs  | Setup (s)  | Solve (s)  |\n');
-                fprintf('+------------------------------+-------+--------+------------+------------+\n');
-                if r.computeMonolithic
-                    fprintf('| Monolithic CG (K*u = f)      | %5d | %6d | %10.4f | %10.4f |\n', ...
-                        r.nIterMono, r.nDofsMono, r.timeSetupMono, r.timeSolveMonoCG);
-                end
-                if r.computeUnpreconditioned
-                    fprintf('| FETI-DP dual CG (no prec)    | %5d | %6d | %10.4f | %10.4f |\n', ...
-                        r.nIterUnprec, r.nDofsFeti, r.timeSetupFeti, r.timeSolveUnprec);
-                end
-                fprintf('| FETI-DP PCG + Dirichlet      | %5d | %6d | %10.4f | %10.4f |\n', ...
-                    r.nIter, r.nDofsFeti, r.timeSetupFeti, r.timeSolveFeti);
-                fprintf('+------------------------------+-------+--------+------------+------------+\n');
+                fprintf('+---------------------------+-------+--------+------------------+\n');
+                fprintf('| Case                      | Iter. |  DOFs  | Total Time (s)   |\n');
+                fprintf('+---------------------------+-------+--------+------------------+\n');
+                fprintf('| FETI-DP PCG + Dirichlet   | %5d | %6d | %16.4f |\n', ...
+                    r.nIter, r.nDofsFeti, r.timeSetupFeti + r.timeSolveFeti);
+                fprintf('+---------------------------+-------+--------+------------------+\n');
             end
-
+            
             fprintf('  Global DOFs: %d (Total) / %d (Free)\n', totalGlobalDofs, freeDofs);
             fprintf('  Subdomains: %d x %d = %d\n', ...
                 round(obj.numSubdomains(1)), round(obj.numSubdomains(2)), nSub);
-
+            fprintf('  Setup (FETI): %.4f s | Solve (PCG): %.4f s\n', ...
+                r.timeSetupFeti, r.timeSolveFeti);
+                
             if r.computeMonolithic
-                fprintf('  Monolithic direct solve: %.4f s\n', r.timeSolveMono);
+                fprintf('  Monolithic ref: setup %.4f s | solve %.4f s\n', ...
+                    r.timeSetupMono, r.timeSolveMono);
                 fprintf('  Relative error (FETI-DP vs monolithic): %e\n', r.relError);
-                if r.relError < 1e-8
-                    disp('  Success: FETI-DP solution matches the monolithic direct solver.');
+                if r.relError < 1e-10
+                    disp('Success: FETI-DP solution matches the monolithic direct solver.');
                 end
             end
             fprintf('  Wall-clock (full run): %.4f s\n\n', r.totalWallTime);
         end
-
-        function plotConvergence(~, r, tol)
-            figure('Name', 'FETI-DP Convergence Comparison', 'Color', 'w', 'Position', [100 100 750 480]);
-            hold on;
-
-            if r.computeMonolithic && ~isempty(r.residualMono)
-                semilogy(1:length(r.residualMono), r.residualMono, '-o', ...
-                    'Color', [0.00 0.45 0.74], 'LineWidth', 1.8, 'MarkerSize', 4, ...
-                    'DisplayName', 'Monolithic CG');
-            end
-
-            if r.computeUnpreconditioned && ~isempty(r.residualUnprec)
-                semilogy(1:length(r.residualUnprec), r.residualUnprec, '-s', ...
-                    'Color', [0.85 0.33 0.10], 'LineWidth', 1.8, 'MarkerSize', 4, ...
-                    'DisplayName', 'FETI-DP dual CG (no prec)');
-            end
-
-            semilogy(1:length(r.residual), r.residual, '-^', ...
+        
+        function plotConvergence(obj, residual, tol)
+            figure('Name', 'FETI-DP PCG Convergence', 'Color', 'w', 'Position', [100 100 650 420]);
+            semilogy(1:length(residual), residual, '-^', ...
                 'Color', [0.47 0.67 0.19], 'LineWidth', 1.8, 'MarkerSize', 4, ...
                 'DisplayName', 'FETI-DP PCG (Dirichlet)');
-
+            hold on;
             yline(tol, '--k', 'LineWidth', 1.2, ...
                 'Label', sprintf('tol = %.0e', tol), 'LabelHorizontalAlignment', 'left');
-
             xlabel('Iteration', 'FontSize', 12);
             ylabel('Relative Residual ||r_k|| / ||r_0||', 'FontSize', 12);
-            title('CG Convergence - 2D Elasticity', 'FontSize', 13);
+            title('FETI-DP Preconditioned CG - 2D Elasticity', 'FontSize', 13);
             legend('Location', 'northeast', 'FontSize', 11);
             grid on;
             ax = gca;
-            ax.GridAlpha  = 0.3;
+            ax.GridAlpha = 0.3;
             ax.YMinorGrid = 'on';
-            ax.YScale     = 'log';
-            allLengths = [length(r.residual), length(r.residualMono), length(r.residualUnprec)];
-            xlim([1, max(allLengths(~isnan(allLengths))) + 1]);
+            xlim([1, length(residual) + 1]);
             ylim([tol * 0.1, 2]);
             hold off;
         end
-
+        
         function visualizeDeformedMesh(obj, uGlobal, scaleFactor, titleStr)
             coords   = obj.globalMesh.coord;
             connec   = obj.globalMesh.connec;
@@ -562,18 +490,31 @@ classdef DataGenerationElasticity2D < handle
             xlabel('X'); ylabel('Y');
         end
 
-        function exportToParaview(obj, uGlobal, label)
-            ndim     = obj.globalMesh.ndim;
+        function fileBase = exportToParaview(obj, uGlobal, label)
+            ndim = obj.globalMesh.ndim;
             numNodes = obj.globalMesh.nnodes;
             
             uResh = reshape(uGlobal, ndim, numNodes)';
+            dispMag = sqrt(sum(uResh.^2, 2));
             
             uFun = LagrangianFunction.create(obj.globalMesh, ndim, 'P1');
             uFun.setFValues(uResh);
             
+            magFun = LagrangianFunction.create(obj.globalMesh, 1, 'P1');
+            magFun.setFValues(dispMag);
+            
             fileName = [obj.outputPrefix, '_', label];
             
-            uFun.print(fileName);            
-        end
+            s.mesh     = obj.globalMesh;
+            s.fun      = {uFun, magFun};
+            s.funNames = {'Displacement', 'DisplacementMagnitude'};
+            s.type     = 'Paraview';
+            s.filename = fileName;
+            
+            printer = FunctionPrinter.create(s);
+            printer.print(); 
+            
+            fileBase = fullfile(pwd, fileName);
+        end       
     end
 end

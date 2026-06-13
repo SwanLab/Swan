@@ -1,5 +1,4 @@
-classdef FetiDPSolver < handle
-    % FETI-DP algebraic solver for 2D/3D general physics on a domain decomposition.    
+classdef tempFetiDPElasticityEdgeAverageNofMat < handle
     
     properties (Access = private)
         localStiffness
@@ -11,12 +10,10 @@ classdef FetiDPSolver < handle
         numSubdomains
         boundaryConditions
         
-        useMatrixFree
-        useEdgeAverage
-        
         primalDofsGlobal
         dualDofsGlobal
         remDofsGlobal
+        
         primalDofsLocal
         dualDofsLocal
         remDofsLocal
@@ -26,6 +23,7 @@ classdef FetiDPSolver < handle
         dualSignsLocal
         
         edgeDofsGrouped
+        
         krrFactors
         tdrLocal
         sppActive
@@ -38,20 +36,17 @@ classdef FetiDPSolver < handle
         % -----------------------------------------------------------------
         % 1. CONSTRUCTOR
         % -----------------------------------------------------------------
-        function obj = FetiDPSolver(globalMesh, subMeshes, stiffness, forces, tol, dofsNode, boundaryConditions, localToGlobalMaps, useMatrixFree, useEdgeAverage)
-            obj.meshCoords          = globalMesh.coord;
-            obj.dofsPerNode         = dofsNode;
-            obj.localMeshes         = subMeshes;
-            obj.localStiffness      = stiffness;
-            obj.localForces         = forces;
-            obj.nodeTol             = tol;
-            obj.numSubdomains       = length(stiffness);
-            obj.boundaryConditions  = boundaryConditions;
-            obj.useMatrixFree       = useMatrixFree;
-            obj.useEdgeAverage      = useEdgeAverage;
-            
-            obj.primalIdxLocal      = cell(obj.numSubdomains, 1);
-            obj.edgeDofsGrouped     = cell(obj.numSubdomains, 1);
+        function obj = tempFetiDPElasticityEdgeAverageNofMat(globalMesh, subMeshes, stiffness, forces, tol, dofsNode, boundaryConditions, localToGlobalMaps)
+            obj.meshCoords         = globalMesh.coord;
+            obj.dofsPerNode        = dofsNode;
+            obj.localMeshes        = subMeshes;
+            obj.localStiffness     = stiffness;
+            obj.localForces        = forces;
+            obj.nodeTol            = tol;
+            obj.numSubdomains      = length(stiffness);
+            obj.boundaryConditions = boundaryConditions;
+            obj.primalIdxLocal     = cell(obj.numSubdomains, 1);
+            obj.edgeDofsGrouped    = cell(obj.numSubdomains, 1);
             
             obj.extractFetiDofs(localToGlobalMaps);
         end
@@ -59,43 +54,37 @@ classdef FetiDPSolver < handle
         % -----------------------------------------------------------------
         % 2. MAIN PROBLEM ASSEMBLY
         % -----------------------------------------------------------------
-        function [fMatOut, dBar] = assembleProblem(obj)
+        function [fMatOperator, dBar] = assembleProblem(obj)
             allPrimals = unique(vertcat(obj.primalDofsGlobal{:}));
             allDuals   = setdiff(unique(vertcat(obj.dualDofsGlobal{:})), allPrimals);
             
             numPrimals = length(allPrimals);
             numDuals   = length(allDuals);
             
-            dBar         = zeros(numDuals, 1);
-            sppBase      = sparse(numPrimals, numPrimals);
-            BrKrrInvKrp  = sparse(numDuals, numPrimals);
-            rhsPrimal    = zeros(numPrimals, 1);
-            fDual        = sparse(numDuals, numDuals);
+            dBar        = zeros(numDuals, 1);
+            sppBase     = sparse(numPrimals, numPrimals);
+            BrKrrInvKrp = sparse(numDuals, numPrimals);
+            rhsPrimal   = zeros(numPrimals, 1);
+            
             visitedDuals = zeros(max(allDuals), 1);
             
-            if obj.useMatrixFree
-                obj.krrFactors = cell(obj.numSubdomains, 1);
-                obj.kiiFactors = cell(obj.numSubdomains, 1);
-                obj.tdrLocal   = cell(obj.numSubdomains, 1);
-            end
+            obj.krrFactors = cell(obj.numSubdomains, 1);
+            obj.kiiFactors = cell(obj.numSubdomains, 1);
+            obj.tdrLocal   = cell(obj.numSubdomains, 1);
             
             for subId = 1:obj.numSubdomains
                 [Krr, Krp, Kpr, Kpp, fR, fP, Tdr] = obj.splitLocalMatrices(subId);
                 
-                if obj.useMatrixFree
-                    decKrr = decomposition(Krr);
-                    obj.krrFactors{subId} = decKrr;
-                    obj.tdrLocal{subId}   = Tdr;
-                    
-                    rLoc = obj.remDofsLocal{subId};
-                    obj.kiiFactors{subId} = decomposition(Krr(1:length(rLoc), 1:length(rLoc)));
-                    
-                    Urd = decKrr \ Tdr';
-                    Urp = decKrr \ Krp;
-                else
-                    Urd = Krr \ Tdr';
-                    Urp = Krr \ Krp;
-                end
+                decKrr = decomposition(Krr);
+                obj.krrFactors{subId} = decKrr;
+                obj.tdrLocal{subId}   = Tdr;
+                
+                rLoc = obj.remDofsLocal{subId};
+                nRem = length(rLoc);
+                obj.kiiFactors{subId} = decomposition(Krr(1:nRem, 1:nRem));
+                
+                Urd = decKrr \ Tdr';
+                Urp = decKrr \ Krp;
                 
                 pGlobal = obj.primalDofsGlobal{subId};
                 [~, pRows] = ismember(pGlobal, allPrimals);
@@ -116,9 +105,6 @@ classdef FetiDPSolver < handle
                 sppBase(pRows, pRows) = sppBase(pRows, pRows) + sppLoc;
                 
                 if ~isempty(dGlobal)
-                    if ~obj.useMatrixFree
-                        fDual(dualRows, dualRows) = fDual(dualRows, dualRows) + dualSigns .* (Urd' * Tdr') .* dualSigns';
-                    end
                     dBar(dualRows)               = dBar(dualRows) + dualSigns .* (Urd' * fR);
                     BrKrrInvKrp(dualRows, pRows) = BrKrrInvKrp(dualRows, pRows) + dualSigns .* (Tdr * Urp);
                 end
@@ -133,11 +119,8 @@ classdef FetiDPSolver < handle
             
             dBar = dBar - obj.brActive * (obj.sppActive \ rhsActive);
             
-            if obj.useMatrixFree
-                fMatOut = @(lambda) obj.applyGlobalF(lambda);
-            else
-                fMatOut = fDual + obj.brActive * (obj.sppActive \ obj.brActive');
-            end
+            % Matrix-free operator return
+            fMatOperator = @(lambda) obj.applyGlobalF(lambda);
         end
         
         function fOut = applyGlobalF(obj, lambda)
@@ -147,7 +130,10 @@ classdef FetiDPSolver < handle
             for subId = 1:obj.numSubdomains
                 dualRows  = obj.dualIdxLocal{subId};
                 dualSigns = obj.dualSignsLocal{subId};
-                if isempty(dualRows), continue; end
+                
+                if isempty(dualRows)
+                    continue;
+                end
                 
                 lambdaLoc = dualSigns .* lambda(dualRows);
                 Tdr       = obj.tdrLocal{subId};
@@ -179,7 +165,9 @@ classdef FetiDPSolver < handle
             for subId = 1:obj.numSubdomains
                 dualRows  = obj.dualIdxLocal{subId};
                 dualSigns = obj.dualSignsLocal{subId};
-                if isempty(dualRows), continue; end
+                if isempty(dualRows)
+                    continue;
+                end
                 
                 Sdd = obj.computeLocalSchur(subId);
                 w   = 1 ./ multiplicity(dualRows);
@@ -204,21 +192,18 @@ classdef FetiDPSolver < handle
             for subId = 1:obj.numSubdomains
                 dualRows  = obj.dualIdxLocal{subId};
                 dualSigns = obj.dualSignsLocal{subId};
-                if isempty(dualRows), continue; end
+                if isempty(dualRows)
+                    continue;
+                end
                 
                 w    = 1 ./ multiplicity(dualRows);
                 rLoc = dualSigns .* r(dualRows);
                 
-                if obj.useMatrixFree
-                    sddLoc = obj.applyLocalSchurVector(subId, w .* rLoc);
-                else
-                    Sdd = obj.computeLocalSchur(subId);
-                    sddLoc = Sdd * (w .* rLoc);
-                end
+                sddLoc = obj.applyLocalSchurVector(subId, w .* rLoc);
                 z(dualRows) = z(dualRows) + dualSigns .* (w .* sddLoc);
             end
         end
-       
+        
         % -----------------------------------------------------------------
         % 4. POST-PROCESSING
         % -----------------------------------------------------------------
@@ -233,19 +218,14 @@ classdef FetiDPSolver < handle
             krrInvFrCell = cell(obj.numSubdomains, 1);
             
             for subId = 1:obj.numSubdomains
-                [Krr, Krp, Kpr, Kpp, fR, fP, Tdr] = obj.splitLocalMatrices(subId);
+                [~, Krp, Kpr, Kpp, fR, fP, Tdr] = obj.splitLocalMatrices(subId);
                 pRows = obj.getPrimalRows(subId, allPrimals);
                 
-                if obj.useMatrixFree
-                    decKrr = obj.krrFactors{subId};
-                    Urp      = decKrr \ Krp;
-                    Urd      = decKrr \ Tdr';
-                    KrrInvFr = decKrr \ fR;
-                else
-                    Urp      = Krr \ Krp;
-                    Urd      = Krr \ Tdr';
-                    KrrInvFr = Krr \ fR;
-                end
+                decKrr = obj.krrFactors{subId};
+                
+                Urp      = decKrr \ Krp;
+                Urd      = decKrr \ Tdr';
+                KrrInvFr = decKrr \ fR;
                 
                 urpCell{subId}      = Urp;
                 urdCell{subId}      = Urd;
@@ -262,11 +242,11 @@ classdef FetiDPSolver < handle
             end
             
             activeDofs = obj.getActivePrimalDofs(allPrimals);
-            sppAct     = sppBase(activeDofs, activeDofs);
+            sppActive  = sppBase(activeDofs, activeDofs);
             rhsActive  = rhsPrimal(activeDofs);
             
             uP = zeros(numP, 1);
-            uP(activeDofs) = sppAct \ rhsActive;
+            uP(activeDofs) = sppActive \ rhsActive;
             
             uFull = zeros(numNodes * obj.dofsPerNode, 1);
             
@@ -278,7 +258,8 @@ classdef FetiDPSolver < handle
                 pLocal = obj.primalDofsLocal{subId};
                 dLocal = obj.dualDofsLocal{subId};
                 rLocal = obj.remDofsLocal{subId};
-                pRows  = obj.getPrimalRows(subId, allPrimals);
+                
+                pRows = obj.getPrimalRows(subId, allPrimals);
                 
                 dualRows  = obj.dualIdxLocal{subId};
                 dualSigns = obj.dualSignsLocal{subId};
@@ -292,12 +273,8 @@ classdef FetiDPSolver < handle
                 uLocalTilde(pLocal) = uPLoc;
                 uLocalTilde([rLocal; dLocal]) = uRemLoc;
                 
-                if obj.useEdgeAverage
-                    edgeGroups = obj.edgeDofsGrouped{subId};
-                    uLocalPhys = obj.applyEdgeAverageForward(uLocalTilde, edgeGroups);
-                else
-                    uLocalPhys = uLocalTilde;
-                end
+                edgeGroups = obj.edgeDofsGrouped{subId};
+                uLocalPhys = obj.applyEdgeAverageForward(uLocalTilde, edgeGroups);
                 
                 uFull(pGlobal)            = uLocalPhys(pLocal);
                 uFull([rGlobal; dGlobal]) = uLocalPhys([rLocal; dLocal]);
@@ -323,72 +300,22 @@ classdef FetiDPSolver < handle
             dCoords = obj.meshCoords(dualNodes, :);
             rCoords = obj.meshCoords(remNodes, :);
             
-            dim = size(obj.meshCoords, 2);
-            
-            figure('Name', 'Nodes Distribution FETI-DP', 'Color', 'w');
+            figure('Name', 'FETI-DP Nodes (Elasticity)', 'Color', 'w');
             hold on; axis equal;
             
             for i = 1:obj.numSubdomains
-                % Display subdomains in wireframe for context
                 patch('Faces', obj.localMeshes{i}.connec, 'Vertices', obj.localMeshes{i}.coord, ...
                     'FaceColor', 'none', 'EdgeColor', [0.8 0.8 0.8], 'LineWidth', 1.5, 'HandleVisibility', 'off');
             end
-
-            % for i = 1:obj.numSubdomains
-            %     subCoords = obj.localMeshes{i}.coord;
-            %     if dim == 2
-            %         k = boundary(subCoords(:,1), subCoords(:,2), 0);
-            %         plot(subCoords(k,1), subCoords(k,2), 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            %     elseif dim == 3
-            %         k = boundary(subCoords(:,1), subCoords(:,2), subCoords(:,3));
-            %         patch('Faces', k, 'Vertices', subCoords, 'FaceColor', 'none', 'EdgeColor', [0.5 0.5 0.5], 'LineWidth', 1.5, 'HandleVisibility', 'off');
-            %     end
-            % end
-            % for i = 1:obj.numSubdomains
-            %     subCoords = obj.localMeshes{i}.coord;
-            % 
-            %     if dim == 2
-            %         k = boundary(subCoords(:,1), subCoords(:,2), 0);
-            %         plot(subCoords(k,1), subCoords(k,2), 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            %     elseif dim == 3
-            %         minCoord = min(subCoords);
-            %         maxCoord = max(subCoords);
-            % 
-            %         x = [minCoord(1), maxCoord(1)];
-            %         y = [minCoord(2), maxCoord(2)];
-            %         z = [minCoord(3), maxCoord(3)];
-            % 
-            %         plot3([x(1) x(2)], [y(1) y(1)], [z(1) z(1)], 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            %         plot3([x(1) x(2)], [y(2) y(2)], [z(1) z(1)], 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            %         plot3([x(1) x(2)], [y(1) y(1)], [z(2) z(2)], 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            %         plot3([x(1) x(2)], [y(2) y(2)], [z(2) z(2)], 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            % 
-            %         plot3([x(1) x(1)], [y(1) y(2)], [z(1) z(1)], 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            %         plot3([x(2) x(2)], [y(1) y(2)], [z(1) z(1)], 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            %         plot3([x(1) x(1)], [y(1) y(2)], [z(2) z(2)], 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            %         plot3([x(2) x(2)], [y(1) y(2)], [z(2) z(2)], 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            % 
-            %         plot3([x(1) x(1)], [y(1) y(1)], [z(1) z(2)], 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            %         plot3([x(2) x(2)], [y(1) y(1)], [z(1) z(2)], 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            %         plot3([x(1) x(1)], [y(2) y(2)], [z(1) z(2)], 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            %         plot3([x(2) x(2)], [y(2) y(2)], [z(1) z(2)], 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            %     end
-            % end
             
-            if dim == 2
-                scatter(rCoords(:, 1), rCoords(:, 2), 20, [0.5 0.5 0.5], 'filled', 'DisplayName', 'Interior');
-                scatter(dCoords(:, 1), dCoords(:, 2), 40, 'b', 'filled', 'DisplayName', 'Interface (Dual)');
-                scatter(pCoords(:, 1), pCoords(:, 2), 80, 'r', 'filled', 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'DisplayName', 'Corners (Primal)');
-            elseif dim == 3
-                scatter3(rCoords(:, 1), rCoords(:, 2), rCoords(:, 3), 20, [0.5 0.5 0.5], 'filled', 'DisplayName', 'Interior');
-                scatter3(dCoords(:, 1), dCoords(:, 2), dCoords(:, 3), 40, 'b', 'filled', 'DisplayName', 'Interface (Dual)');
-                scatter3(pCoords(:, 1), pCoords(:, 2), pCoords(:, 3), 80, 'r', 'filled', 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'DisplayName', 'Primal (Esquinas/Bordes)');
-                zlabel('Z');
-                view(3);
-            end
+            scatter(rCoords(:, 1), rCoords(:, 2), 20, [0.5 0.5 0.5], 'filled', 'DisplayName', 'Interior');
+            scatter(dCoords(:, 1), dCoords(:, 2), 40, 'b', 'filled', 'DisplayName', 'Interface (Dual)');
+            scatter(pCoords(:, 1), pCoords(:, 2), 80, 'r', 'filled', 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'DisplayName', 'Corners/Edges (Primal)');
             
-            legend('Location', 'bestoutside'); 
-            xlabel('X'); ylabel('Y'); grid on; hold off;
+            legend('Location', 'bestoutside');
+            title('FETI-DP Node Distribution (2D Elasticity)');
+            xlabel('X'); ylabel('Y');
+            grid on; hold off;
         end
     end
     
@@ -399,8 +326,8 @@ classdef FetiDPSolver < handle
         % -----------------------------------------------------------------
         function extractFetiDofs(obj, localToGlobalMaps)
             nSub = obj.numSubdomains;
+            tol  = obj.nodeTol;
             
-            % Preallocate cell arrays for DOFs
             pGlobal = cell(nSub, 1); 
             dGlobal = cell(nSub, 1); 
             rGlobal = cell(nSub, 1);
@@ -408,11 +335,9 @@ classdef FetiDPSolver < handle
             dLocal  = cell(nSub, 1); 
             rLocal  = cell(nSub, 1);
             
-            % 1. GLOBAL INTERFACE MAPPING & SUBDOMAIN MASK
             numGlobalNodes   = size(obj.meshCoords, 1);
-            dim              = size(obj.meshCoords, 2); % 2D or 3D check
             nodeMultiplicity = zeros(numGlobalNodes, 1);
-            nodeSubMask      = sparse(numGlobalNodes, nSub);
+            nodeSubMask = sparse(numGlobalNodes, nSub);
             
             for i = 1:nSub
                 gN = localToGlobalMaps{i};
@@ -420,83 +345,50 @@ classdef FetiDPSolver < handle
                 nodeSubMask(gN, i) = 1; 
             end
             
-            % 2. GEOMETRIC CLASSIFICATION PER SUBDOMAIN
             for i = 1:nSub
                 gNodes = localToGlobalMaps{i};
                 nNodes = length(gNodes);
                 
-                % --- A. Initial Primal Nodes (Corners) ---
+                % Primal Nodes
                 boundaryMeshes = obj.localMeshes{i}.createBoundaryMesh();
                 numBoundaryMeshes = length(boundaryMeshes);
                 primalNodesPerMesh = cell(numBoundaryMeshes, 1);
-
+                
                 for b = 1:numBoundaryMeshes
-                    if dim == 2
-                        boundaryConnectivity = boundaryMeshes{b}.globalConnec(:);                    
-                        nodeOccurrences = accumarray(boundaryConnectivity, 1);
-                        primalNodesPerMesh{b} = find(nodeOccurrences == 1);
-                        idxPrimal = unique(vertcat(primalNodesPerMesh{:}));
-
-                    elseif dim == 3
-                        boundaryMeshes = obj.localMeshes{i}.createBoundaryMesh();
-                        numBoundaryMeshes = length(boundaryMeshes);
-                        allBoundaryNodes = [];
-                        for b = 1:numBoundaryMeshes
-                            nodesInFace = unique(boundaryMeshes{b}.globalConnec(:));
-                            allBoundaryNodes = [allBoundaryNodes; nodesInFace];
-                        end
-                        nodeOccurrences = accumarray(allBoundaryNodes, 1);
-                        idxPrimal = find(nodeOccurrences >= 3);
-                        % | nodeMultiplicity(gNodes) > 3) ;
-                        idxPrimal = idxPrimal(:);
-                    end
-                end
-
-                % --- B. Dual Nodes and Edge Grouping ---
-                if obj.useEdgeAverage
-                    isShared = nodeMultiplicity(gNodes) > 1;
-                    idxDualOrig = setdiff(find(isShared), idxPrimal);
-                    gDual = gNodes(idxDualOrig);
+                    boundaryConnectivity = boundaryMeshes{b}.globalConnec(:);                    
+                    nodeOccurrences = accumarray(boundaryConnectivity, 1);
+                    primalNodesPerMesh{b} = find(nodeOccurrences == 1);
+                end                
+                idxPrimal = unique(vertcat(primalNodesPerMesh{:}));
+                
+                isShared = nodeMultiplicity(gNodes) > 1;
+                idxDualOrig = setdiff(find(isShared), idxPrimal);
+                
+                gDual = gNodes(idxDualOrig);
+                [~, ~, edgeIdx] = unique(full(nodeSubMask(gDual, :)), 'rows');
+                numEdges = max(edgeIdx);
+                
+                edgeDofsLocalSub = cell(numEdges, 1);
+                idxDualFinal = [];
+                
+                for e = 1:numEdges
+                    localNodesInEdge = idxDualOrig(edgeIdx == e);
+                    [~, sortIdx] = sort(gNodes(localNodesInEdge));
+                    localNodesInEdge = localNodesInEdge(sortIdx);
                     
-                    % Identify unique edges/faces shared by the exact same set of subdomains
-                    [~, ~, edgeIdx] = unique(full(nodeSubMask(gDual, :)), 'rows');
-                    numEdges = max(edgeIdx);
-                    
-                    edgeDofsLocalSub = cell(numEdges, 1);
-                    idxDualFinal = [];
-                    
-                    for e = 1:numEdges
-                        localNodesInEdge = idxDualOrig(edgeIdx == e);
-                        [~, sortIdx] = sort(gNodes(localNodesInEdge));
-                        localNodesInEdge = localNodesInEdge(sortIdx);
+                    if length(localNodesInEdge) > 1
+                        eDofs = obj.nodesToDofs(localNodesInEdge);
+                        edgeDofsLocalSub{e} = eDofs;
                         
-                        if length(localNodesInEdge) > 1
-                            edgeDofsLocalSub{e} = obj.nodesToDofs(localNodesInEdge);
-                            
-                            % FETI-DP constraint: First edge/face node to primal, rest to dual
-                            idxPrimal    = [idxPrimal; localNodesInEdge(1)];
-                            idxDualFinal = [idxDualFinal; localNodesInEdge(2:end)];
-                        else
-                            % Isolated interface node becomes standard dual
-                            idxDualFinal = [idxDualFinal; localNodesInEdge(1)];
-                        end
+                        idxPrimal    = [idxPrimal; localNodesInEdge(1)];
+                        idxDualFinal = [idxDualFinal; localNodesInEdge(2:end)];
+                    else
+                        idxDualFinal = [idxDualFinal; localNodesInEdge(1)];
                     end
-                    
-                    idxDualFinal = unique(idxDualFinal);
-                    
-                    % Store active edge DOFs filtering empty cells
-                    obj.edgeDofsGrouped{i} = edgeDofsLocalSub(~cellfun('isempty', edgeDofsLocalSub));
-                    
-                else
-                    % --- B. Standard Dual Nodes ---
-                    isShared = nodeMultiplicity(gNodes) > 1;
-                    idxDualFinal = setdiff(find(isShared), idxPrimal);
                 end
                 
-                % --- C. Remaining Nodes (Interior) ---
                 idxRem = setdiff((1:nNodes)', [idxPrimal; idxDualFinal]);
                 
-                % 3. NODE TO DOF CONVERSION
                 pGlobal{i} = obj.nodesToDofs(gNodes(idxPrimal));
                 dGlobal{i} = obj.nodesToDofs(gNodes(idxDualFinal));
                 rGlobal{i} = obj.nodesToDofs(gNodes(idxRem));
@@ -504,9 +396,10 @@ classdef FetiDPSolver < handle
                 pLocal{i} = obj.nodesToDofs(idxPrimal);
                 dLocal{i} = obj.nodesToDofs(idxDualFinal);
                 rLocal{i} = obj.nodesToDofs(idxRem);
+                
+                obj.edgeDofsGrouped{i} = edgeDofsLocalSub(~cellfun('isempty', edgeDofsLocalSub));
             end
             
-            % 4. CLASS PROPERTY ASSIGNMENT
             obj.primalDofsGlobal = pGlobal; 
             obj.primalDofsLocal  = pLocal;
             obj.dualDofsGlobal   = dGlobal; 
@@ -534,12 +427,11 @@ classdef FetiDPSolver < handle
             dLoc = obj.dualDofsLocal{subId};
             rLoc = obj.remDofsLocal{subId};
             
-            if obj.useEdgeAverage
-                edgeGroups = obj.edgeDofsGrouped{subId};
-                [kMat, fVec] = obj.applyEdgeAverageTransformation(kMat, fVec, edgeGroups);
-            end
+            edgeGroups   = obj.edgeDofsGrouped{subId};
+            [kMat, fVec] = obj.applyEdgeAverageTransformation(kMat, fVec, edgeGroups);
             
             remLoc = [rLoc; dLoc];
+            
             Krr = kMat(remLoc, remLoc);
             Krp = kMat(remLoc, pLoc);
             Kpr = kMat(pLoc, remLoc);
@@ -548,30 +440,53 @@ classdef FetiDPSolver < handle
             fR  = fVec(remLoc);
             fP  = fVec(pLoc);
             
-            numD = length(dLoc); numR = length(remLoc);
-            Tdr  = sparse((1:numD)', (length(rLoc) + 1 : numR)', ones(numD, 1), numD, numR);
-        end
-        
-        function T = buildEdgeTransform(obj, numDofs, edgeGroups)
-            T = speye(numDofs);
-            for e = 1:length(edgeGroups)
-                eDofs = edgeGroups{e};
-                for d = 1:obj.dofsPerNode
-                    dimDofs = eDofs(d:obj.dofsPerNode:end);
-                    T(dimDofs, dimDofs(1)) = 1;
-                    T(dimDofs(1), dimDofs(2:end)) = -1;
-                end
-            end
+            numD = length(dLoc);
+            numR = length(remLoc);
+            
+            rows = (1:numD)';
+            cols = (length(rLoc) + 1 : numR)';
+            vals = ones(numD, 1);
+            Tdr  = sparse(rows, cols, vals, numD, numR);
         end
         
         function [kMod, fMod] = applyEdgeAverageTransformation(obj, K, f, edgeGroups)
-            T = obj.buildEdgeTransform(size(K, 1), edgeGroups);
-            kMod = T' * K * T; 
+            numDofs = size(K, 1);
+            T = speye(numDofs);
+            
+            for e = 1:length(edgeGroups)
+                eDofs = edgeGroups{e};
+                
+                for d = 1:obj.dofsPerNode
+                    dimDofs = eDofs(d:obj.dofsPerNode:end);
+                    pAvg    = dimDofs(1);
+                    dDeltas = dimDofs(2:end);
+                    
+                    T(dimDofs, pAvg) = 1;
+                    T(pAvg, dDeltas) = -1;
+                end
+            end
+            
+            kMod = T' * K * T;
             fMod = T' * f;
         end
         
         function uPhys = applyEdgeAverageForward(obj, uTransformed, edgeGroups)
-            T = obj.buildEdgeTransform(length(uTransformed), edgeGroups);
+            numDofs = length(uTransformed);
+            T = speye(numDofs);
+            
+            for e = 1:length(edgeGroups)
+                eDofs = edgeGroups{e};
+                
+                for d = 1:obj.dofsPerNode
+                    dimDofs = eDofs(d:obj.dofsPerNode:end);
+                    pDofs    = dimDofs(1);
+                    dualDofs = dimDofs(2:end);
+                    
+                    T(dimDofs, pDofs) = 1;
+                    T(pDofs, dualDofs) = -1;
+                end
+            end
+            
             uPhys = T * uTransformed;
         end
         
@@ -582,35 +497,48 @@ classdef FetiDPSolver < handle
             kMat = obj.localStiffness{subId};
             rLoc = obj.remDofsLocal{subId};
             dLoc = obj.dualDofsLocal{subId};
-            if obj.useEdgeAverage
-                edgeGroups = obj.edgeDofsGrouped{subId};
-                [kMat, ~]  = obj.applyEdgeAverageTransformation(kMat, zeros(size(kMat,1),1), edgeGroups);
-            end
-            Kid = kMat(rLoc, dLoc); Kdi = kMat(dLoc, rLoc); Kdd = kMat(dLoc, dLoc);
-            sddX = Kdd * x - Kdi * (obj.kiiFactors{subId} \ (Kid * x));
+            
+            edgeGroups = obj.edgeDofsGrouped{subId};
+            fVecDummy  = zeros(size(kMat, 1), 1);
+            [kMat, ~]  = obj.applyEdgeAverageTransformation(kMat, fVecDummy, edgeGroups);
+            
+            Kid = kMat(rLoc, dLoc);
+            Kdi = kMat(dLoc, rLoc);
+            Kdd = kMat(dLoc, dLoc);
+            
+            decKii = obj.kiiFactors{subId};
+            sddX   = Kdd * x - Kdi * (decKii \ (Kid * x));
         end
         
         function Sdd = computeLocalSchur(obj, subId)
             kMat = obj.localStiffness{subId};
             rLoc = obj.remDofsLocal{subId};
             dLoc = obj.dualDofsLocal{subId};
-            if obj.useEdgeAverage
-                edgeGroups = obj.edgeDofsGrouped{subId};
-                [kMat, ~]  = obj.applyEdgeAverageTransformation(kMat, zeros(size(kMat,1),1), edgeGroups);
-            end
-            Sdd = kMat(dLoc, dLoc) - kMat(dLoc, rLoc) * (kMat(rLoc, rLoc) \ kMat(rLoc, dLoc));
+            
+            edgeGroups = obj.edgeDofsGrouped{subId};
+            fVecDummy  = zeros(size(kMat, 1), 1);
+            [kMat, ~]  = obj.applyEdgeAverageTransformation(kMat, fVecDummy, edgeGroups);
+            
+            Kii = kMat(rLoc, rLoc);
+            Kid = kMat(rLoc, dLoc);
+            Kdi = kMat(dLoc, rLoc);
+            Kdd = kMat(dLoc, dLoc);
+            
+            Sdd = Kdd - Kdi * (Kii \ Kid);
         end
+        
         % -----------------------------------------------------------------
         % 9. GETTERS & INDEXING
         % -----------------------------------------------------------------
         function pRows = getPrimalRows(obj, subId, allPrimals)
             pRows = obj.primalIdxLocal{subId};
+            
             if isempty(pRows)
                 [~, pRows] = ismember(obj.primalDofsGlobal{subId}, allPrimals);
             end
         end
         
-        function activeIdx = getActivePrimalDofs(~, allPrimals)
+        function activeIdx = getActivePrimalDofs(obj, allPrimals)
             activeIdx = (1:length(allPrimals));
         end
     end

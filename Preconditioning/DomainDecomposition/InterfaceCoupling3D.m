@@ -31,30 +31,35 @@ classdef InterfaceCoupling3D < handle
         end
 
         function intConec = reshapeConecPerInterface(obj)
-            globalConec = obj.interfaceConnec;
-            nRnodes     = obj.meshReference.nnodes;
-            nnode       = size(globalConec,1);
-            nint        = obj.ninterfaces;
-            gbInt        = 1;
-            inode = 1;
-            while inode < nnode
-                nodeId = globalConec(inode,1);
-                dom    = ceil(nodeId/nRnodes);
-                kInd   = ceil(dom/(obj.nSubdomains(1)*obj.nSubdomains(2)));
-                pageD  = dom-(kInd-1)*obj.nSubdomains(1)*obj.nSubdomains(2);
-                row = ceil(pageD/obj.nSubdomains(1));
-                col = pageD-(row-1)*obj.nSubdomains(1);
-                bdMesh = obj.interfaceMeshSubDomain{row,col,kInd};
-                for iInt = 1:nint
-                    isNode = bdMesh{iInt}.globalConnec == nodeId - nRnodes*(dom-1);
-                    if sum(sum(isNode)) > 0
-                        nnodebd = bdMesh{iInt}.mesh.nnodes;
-                        intConec{gbInt} = globalConec(inode:inode+nnodebd-1,:);
-                        inode = inode + nnodebd;
-                        gbInt = gbInt+1;
-                        break
+            if (size(obj.interfaceConnec,2) == 2)
+                globalConec = obj.interfaceConnec;
+                nRnodes     = obj.meshReference.nnodes;
+                nnode       = size(globalConec,1);
+                nint        = obj.ninterfaces;
+                gbInt        = 1;
+                inode = 1;
+                while inode < nnode
+                    nodeId = globalConec(inode,1);
+                    dom    = ceil(nodeId/nRnodes);
+                    kInd   = ceil(dom/(obj.nSubdomains(1)*obj.nSubdomains(2)));
+                    pageD  = dom-(kInd-1)*obj.nSubdomains(1)*obj.nSubdomains(2);
+                    row = ceil(pageD/obj.nSubdomains(1));
+                    col = pageD-(row-1)*obj.nSubdomains(1);
+                    bdMesh = obj.interfaceMeshSubDomain{row,col,kInd};
+                    for iInt = 1:nint
+                        isNode = bdMesh{iInt}.globalConnec == nodeId - nRnodes*(dom-1);
+                        if sum(sum(isNode)) > 0
+                            nnodebd = bdMesh{iInt}.mesh.nnodes;
+                            intConec{gbInt} = globalConec(inode:inode+nnodebd-1,:);
+                            inode = inode + nnodebd;
+                            gbInt = gbInt+1;
+                            break
+                        end
                     end
                 end
+            else
+                disp('Continuous mesh generated. However, case not suitable for domain decomposition yet')
+                intConec = obj.interfaceConnec;
             end
         end
 
@@ -106,35 +111,35 @@ classdef InterfaceCoupling3D < handle
         function computeCouplingConnec(obj)
             % I leave this chunk of code commented to recall wha i was
             % doing. Uncommented is chatgpt acceleration.!!!
-            
-%             ndim         = obj.meshReference.ndim;
-%             nBdNode      = length(obj.GlNodeBd);
-%             globalNode   = obj.GlNodeBd;
-%             coordBdGlAux = obj.coordBdGl;
-%             imaster=1;
-%             if ndim == 2
-%                 coordAux = [coordBdGlAux zeros(nBdNode,1)];
-%             else
-%                 coordAux = coordBdGlAux;
-%             end
-%             for iBdNode = 1:nBdNode
-%                 NodeCoord = coordAux(iBdNode,:);
-%                 tol = obj.tolSameNode;
-% 
-% 
-%                 isSameNode = vecnorm(coordAux-NodeCoord,'Inf',2) - tol <= 0;
-% 
-%                 %                aux       = (coordAux(:,1)==NodeCoord(1) & coordAux(:,2)==NodeCoord(2) & coordAux(:,3)==NodeCoord(3));
-%                 %                 [~,ind]   = ismember(NodeCoord,coordAux,'Rows');
-%                 %ind       = find(aux == 1);
-%                 if sum(isSameNode)>1
-%                     sameNode = globalNode(isSameNode);
-%                     nsame   = length(sameNode);
-%                     sameNodeOrdered(imaster,1:nsame) = sort(sameNode);
-%                     imaster=imaster+1;
-%                 end
-%             end
-%             obj.interfaceConnec= unique(sameNodeOrdered,'rows','stable');
+
+            %             ndim         = obj.meshReference.ndim;
+            %             nBdNode      = length(obj.GlNodeBd);
+            %             globalNode   = obj.GlNodeBd;
+            %             coordBdGlAux = obj.coordBdGl;
+            %             imaster=1;
+            %             if ndim == 2
+            %                 coordAux = [coordBdGlAux zeros(nBdNode,1)];
+            %             else
+            %                 coordAux = coordBdGlAux;
+            %             end
+            %             for iBdNode = 1:nBdNode
+            %                 NodeCoord = coordAux(iBdNode,:);
+            %                 tol = obj.tolSameNode;
+            %
+            %
+            %                 isSameNode = vecnorm(coordAux-NodeCoord,'Inf',2) - tol <= 0;
+            %
+            %                 %                aux       = (coordAux(:,1)==NodeCoord(1) & coordAux(:,2)==NodeCoord(2) & coordAux(:,3)==NodeCoord(3));
+            %                 %                 [~,ind]   = ismember(NodeCoord,coordAux,'Rows');
+            %                 %ind       = find(aux == 1);
+            %                 if sum(isSameNode)>1
+            %                     sameNode = globalNode(isSameNode);
+            %                     nsame   = length(sameNode);
+            %                     sameNodeOrdered(imaster,1:nsame) = sort(sameNode);
+            %                     imaster=imaster+1;
+            %                 end
+            %             end
+            %             obj.interfaceConnec= unique(sameNodeOrdered,'rows','stable');
 
             ndim         = obj.meshReference.ndim;
             nBdNode      = length(obj.GlNodeBd);

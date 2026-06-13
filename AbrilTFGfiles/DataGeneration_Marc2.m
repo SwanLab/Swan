@@ -78,8 +78,6 @@ meshName     = p.nelem+"x"+p.nelem;
             uyTF  = max(abs(T(2:2:unDOFs)));
 
             fprintf('Max Uy -> Direct: %.4e | 3Fields: %.4e | Error: %.2f%%\n', uyDirect, uyTF, abs(uyTF-uyDirect)/uyDirect*100);
-
-
         
     end
     R        = r(j);

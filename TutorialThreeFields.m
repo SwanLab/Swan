@@ -38,7 +38,7 @@ classdef TutorialThreeFields < handle
             [LHSr,RHSr] = obj.createElasticProblem();
 
             LHSfun = @(x) LHSr*x;
-            Meifem       = obj.createEIFEMPreconditioner(dir,iC,lG,bS,iCR,discMesh);
+            Mthree       = obj.createThreeFieldsPreconditioner(dir,iC,lG,bS,iCR,discMesh);
             Milu         = obj.createILUpreconditioner(LHSr);
             Mmult        = @(r) Preconditioner.multiplePrec(r,LHSfun,Milu,Meifem,Milu);
             Mid          = @(r) r;
@@ -250,30 +250,47 @@ classdef TutorialThreeFields < handle
              RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
        end
 
-        function Meifem = createEIFEMPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh)
-            mR = obj.referenceMesh;
-%             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
-%             EIFEMfilename = obj.fileNameEIFEM;
-%             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
-%             filename        = EIFEMfilename;
-%             s.RVE           = TrainedRVE(filename);
-            data = Training(mR);
-            p = OfflineDataProcessor(data);
-            EIFEoper = p.computeROMbasis();
-            s.RVE           = TrainedRVE(EIFEoper);
-            s.mesh          = obj.createCoarseMesh(mR);
-%            s.mesh          = obj.loadCoarseMesh(mR);
-            s.DirCond       = dir;
-            s.nSubdomains = obj.nSubdomains;
-            eifem           = EIFEM(s);
+       function Mthree = createThreeFieldsPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh)
+%             mR = obj.referenceMesh;
+% %             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/RAUL_rve_10_may_2024/EXAMPLE/EIFE_LIBRARY/DEF_Q4porL_2s_1.mat';
+% %             EIFEMfilename = obj.fileNameEIFEM;
+% %             % obj.EIFEMfilename = '/home/raul/Documents/Thesis/EIFEM/05_HEXAG2D/EIFE_LIBRARY/DEF_Q4auxL_1.mat';
+% %             filename        = EIFEMfilename;
+% %             s.RVE           = TrainedRVE(filename);
+%             s.RVE           = TrainedRVE(EIFEoper);
+%             s.mesh          = obj.createCoarseMesh(mR);
+% %            s.mesh          = obj.loadCoarseMesh(mR);
+%             s.DirCond       = dir;
+%             s.nSubdomains = obj.nSubdomains;
+%             eifem           = EIFEM(s);
+% 
+%             ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
+%             ss.EIFEMsolver = eifem;
+%             ss.bcApplier = obj.bcApplier;
+%             ss.dMesh     = dMesh;
+%             ss.type = 'EIFEM';
+%             eP = Preconditioner.create(ss);
+%             Meifem = @(r) eP.apply(r);
 
-            ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,mR,iCR);
-            ss.EIFEMsolver = eifem;
-            ss.bcApplier = obj.bcApplier;
-            ss.dMesh     = dMesh;
-            ss.type = 'EIFEM';
+
+            u = LagrangianFunction.create(obj.meshDomain, obj.meshDomain.ndim, 'P1');
+        
+            s.mesh = obj.meshDomain;
+            op = ThreeFieldsOperatorComputer(s);
+        
+            % 3. Calcular la matriz de masa en la frontera usando 'u' 
+            % (Aquí es donde eliminamos A y L internamente)
+            M_boundary = op.computeBoundaryMassMatrix(u);
+        
+            % 4. Configurar el precondicionador (Ya no es tipo 'EIFEM')
+            ss.type         = 'ThreeFields'; % Cambiar el tipo si existe en tu Preconditioner factory
+            ss.boundaryMass = M_boundary;
+            ss.bcApplier    = obj.bcApplier;
+            ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,obj.referenceMesh,iCR);
+            
             eP = Preconditioner.create(ss);
-            Meifem = @(r) eP.apply(r);
+            Mthree = @(r) eP.apply(r);
+
         end
         
         function d = createDomainDecompositionDofManager(obj,iC,lG,bS,mR,iCR)

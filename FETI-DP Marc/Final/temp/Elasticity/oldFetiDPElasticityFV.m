@@ -1,4 +1,4 @@
-classdef FetiDPElasticity < handle
+classdef FetiDPElasticityFV < handle
     % FETIDPELASTICITY Class for the algebraic logic of the FETI-DP method in 2D Elasticity.
     
     properties (Access = private)
@@ -21,10 +21,14 @@ classdef FetiDPElasticity < handle
         primalDofsLocal
         dualDofsLocal
         remDofsLocal
+        edgeNodesLocal
+        Tlocal
         
         % Preconditioner & Interface Assembly Data
         dualIdxLocal    
         dualSignsLocal  
+        primalIdxLocal
+        localSchurBlocks % Precomputed Schur complements for the preconditioner
     end
     
     % =========================================================
@@ -32,8 +36,7 @@ classdef FetiDPElasticity < handle
     % =========================================================
     methods (Access = public)
         
-        function obj = FetiDPElasticity(globalMesh, subMeshes, stiffness, forces, tol, dofsNode, dirDofs)
-            % Constructor: Initializes the FETI-DP solver and extracts DoFs
+        function obj = FetiDPElasticityFV(globalMesh, subMeshes, stiffness, forces, tol, dofsNode, dirDofs)
             obj.meshCoords     = globalMesh.coord;
             obj.dofsPerNode    = dofsNode;
             obj.localMeshes    = subMeshes;
@@ -43,12 +46,11 @@ classdef FetiDPElasticity < handle
             obj.numSubdomains  = length(stiffness);
             obj.dirichletDofs  = dirDofs;
             
-            % Extract Primal, Dual, and Remaining DoFs
             obj.extractFetiDofs();
+            obj.applyEdgeTransformation();
         end
         
         function [fMat, dBar] = assembleProblem(obj)
-            % Assembles the global dual interface problem: fMat * lambda = dBar
             allPrimals = unique(vertcat(obj.primalDofsGlobal{:}));
             allDuals   = setdiff(unique(vertcat(obj.dualDofsGlobal{:})), allPrimals);
             
@@ -66,11 +68,13 @@ classdef FetiDPElasticity < handle
             for subId = 1:obj.numSubdomains
                 [Krr, Krp, Kpr, Kpp, fR, fP, Tdr] = obj.splitLocalMatrices(subId);
                 
-                Urd = Krr \ full(Tdr');
-                Urp = Krr \ full(Krp);
-                Ap  = obj.createAp(subId, allPrimals);
+                Urd = Krr \ Tdr';
+                Urp = Krr \ Krp;
                 
-                % Compute Boolean interface signs and local indices
+                pGlobal = obj.primalDofsGlobal{subId};
+                [~, pRows] = ismember(pGlobal, allPrimals);
+                obj.primalIdxLocal{subId} = pRows; 
+                
                 dGlobal       = obj.dualDofsGlobal{subId};
                 [~, dualRows] = ismember(dGlobal, allDuals);
                 
@@ -79,37 +83,39 @@ classdef FetiDPElasticity < handle
                 dualSigns(~isFirst) = -1;
                 visitedDuals(dGlobal) = true;
                 
-                % Store for reconstruction and preconditioner logic
                 obj.dualIdxLocal{subId}   = dualRows;
                 obj.dualSignsLocal{subId} = dualSigns;
                 
-                % Assemble Primal Schur Complement
-                SppLoc = Kpp - Kpr * Urp;
-                SPP    = SPP + Ap * SppLoc * Ap';
+                SppLoc            = Kpp - Kpr * Urp;
+                SPP(pRows, pRows) = SPP(pRows, pRows) + SppLoc;
                 
-                % Assemble Dual Interface system
                 if ~isempty(dGlobal)
-                    fDual(dualRows, dualRows) = fDual(dualRows, dualRows) + dualSigns .* (Urd' * Tdr') .* dualSigns';
-                    dBar(dualRows)            = dBar(dualRows) + dualSigns .* (Urd' * fR);
-                    BrKrrInvKrp(dualRows, :)  = BrKrrInvKrp(dualRows, :) + dualSigns .* (Tdr * Urp) * Ap';
+                    fDual(dualRows, dualRows)    = fDual(dualRows, dualRows) + dualSigns .* (Urd' * Tdr') .* dualSigns';
+                    dBar(dualRows)               = dBar(dualRows) + dualSigns .* (Urd' * fR);
+                    BrKrrInvKrp(dualRows, pRows) = BrKrrInvKrp(dualRows, pRows) + dualSigns .* (Tdr * Urp);
                 end
                 
-                rhsPrimal = rhsPrimal + Ap * (fP - Urp' * fR);
+                rhsPrimal(pRows) = rhsPrimal(pRows) + (fP - Urp' * fR);
             end
             
-            % Reduce system to active (non-Dirichlet) Primal DoFs
             activeDofs = obj.getActivePrimalDofs(allPrimals);
             SPPActive  = SPP(activeDofs, activeDofs);
             BrActive   = BrKrrInvKrp(:, activeDofs);
             rhsActive  = rhsPrimal(activeDofs);
             
-            % Final formulation of the dual interface matrix
             fMat = fDual + BrActive * (SPPActive \ BrActive');
             dBar = dBar  - BrActive * (SPPActive \ rhsActive);
+            
+            % Precompute local Schur blocks for fast preconditioner application
+            obj.localSchurBlocks = cell(obj.numSubdomains, 1);
+            for subId = 1:obj.numSubdomains
+                if ~isempty(obj.dualIdxLocal{subId})
+                    obj.localSchurBlocks{subId} = obj.computeLocalSchur(subId);
+                end
+            end
         end
         
         function uFull = reconstructGlobalSolution(obj, lambdaSol, numNodes)
-            % Reconstructs the full displacement field using the computed multipliers
             allPrimals = unique(vertcat(obj.primalDofsGlobal{:}));
             numP       = length(allPrimals);
             SPP        = sparse(numP, numP);
@@ -119,10 +125,10 @@ classdef FetiDPElasticity < handle
             UrdCell      = cell(obj.numSubdomains, 1);
             KrrInvFrCell = cell(obj.numSubdomains, 1);
             
-            % Step 1: Accumulate primal contributions
             for subId = 1:obj.numSubdomains
                 [Krr, Krp, Kpr, Kpp, fR, fP, Tdr] = obj.splitLocalMatrices(subId);
-                Ap = obj.createAp(subId, allPrimals);
+                
+                pRows = obj.primalIdxLocal{subId}; 
                 
                 Urp      = Krr \ Krp;
                 Urd      = Krr \ Tdr';
@@ -132,17 +138,17 @@ classdef FetiDPElasticity < handle
                 UrdCell{subId}      = Urd;
                 KrrInvFrCell{subId} = KrrInvFr;
                 
-                sppLoc    = Kpp - Kpr * Urp;
-                SPP       = SPP + Ap * sppLoc * Ap';
+                sppLoc            = Kpp - Kpr * Urp;
+                SPP(pRows, pRows) = SPP(pRows, pRows) + sppLoc;
+                
                 dualRows  = obj.dualIdxLocal{subId};
                 dualSigns = obj.dualSignsLocal{subId};
                 
-                lambdaLoc = dualSigns .* lambdaSol(dualRows);
-                term      = Tdr' * lambdaLoc - fR;
-                rhsPrimal = rhsPrimal + Ap * (fP + Urp' * term);
+                lambdaLoc        = dualSigns .* lambdaSol(dualRows);
+                term             = Tdr' * lambdaLoc - fR;
+                rhsPrimal(pRows) = rhsPrimal(pRows) + (fP + Urp' * term); 
             end
             
-            % Solve for the active Primal DoFs
             activeDofs = obj.getActivePrimalDofs(allPrimals);
             sppActive  = SPP(activeDofs, activeDofs);
             rhsActive  = rhsPrimal(activeDofs);
@@ -150,24 +156,34 @@ classdef FetiDPElasticity < handle
             uP = zeros(numP, 1);
             uP(activeDofs) = sppActive \ rhsActive;
             
-            % Step 2: Reconstruct local Remainder DoFs
             uFull = zeros(numNodes * obj.dofsPerNode, 1);
             
             for subId = 1:obj.numSubdomains
                 pGlobal = obj.primalDofsGlobal{subId};
                 dGlobal = obj.dualDofsGlobal{subId};
                 rGlobal = obj.remDofsGlobal{subId};
-                Ap      = obj.createAp(subId, allPrimals);
                 
+                pRows     = obj.primalIdxLocal{subId};
                 dualRows  = obj.dualIdxLocal{subId};
                 dualSigns = obj.dualSignsLocal{subId};
                 lambdaLoc = dualSigns .* lambdaSol(dualRows);
                 
-                uPLoc   = Ap' * uP;
+                uPLoc   = uP(pRows); 
                 uRemLoc = KrrInvFrCell{subId} - UrpCell{subId} * uPLoc - UrdCell{subId} * lambdaLoc;
                 
-                uFull(pGlobal)            = uPLoc;
-                uFull([rGlobal; dGlobal]) = uRemLoc;
+                pLoc = obj.primalDofsLocal{subId};
+                dLoc = obj.dualDofsLocal{subId};
+                rLoc = obj.remDofsLocal{subId};
+                
+                T = obj.Tlocal{subId};
+                uLocTransformed = zeros(size(T, 1), 1);
+                uLocTransformed(pLoc)         = uPLoc;
+                uLocTransformed([rLoc; dLoc]) = uRemLoc;
+                
+                uLocPhysical = T * uLocTransformed;
+                
+                uFull(pGlobal)            = uLocPhysical(pLoc);
+                uFull([rGlobal; dGlobal]) = uLocPhysical([rLoc; dLoc]);
             end
         end
     end
@@ -178,12 +194,10 @@ classdef FetiDPElasticity < handle
     methods (Access = public)
         
         function z = applyDirichletPrecond(obj, r)
-            % Applies the Dirichlet preconditioner iteratively
             allPrimals = unique(vertcat(obj.primalDofsGlobal{:}));
             allDuals   = setdiff(unique(vertcat(obj.dualDofsGlobal{:})), allPrimals);
             numDuals   = length(allDuals);
             
-            % Compute interface node multiplicity for scaling
             multiplicity = zeros(numDuals, 1);
             for subId = 1:obj.numSubdomains
                 dualRows = obj.dualIdxLocal{subId};
@@ -198,7 +212,7 @@ classdef FetiDPElasticity < handle
                     continue; 
                 end
                 
-                Sdd  = obj.computeLocalSchur(subId);
+                Sdd  = obj.localSchurBlocks{subId};
                 w    = 1 ./ multiplicity(dualRows);
                 rLoc = dualSigns .* r(dualRows);
                 
@@ -207,7 +221,6 @@ classdef FetiDPElasticity < handle
         end
         
         function M = buildPrecondMatrix(obj)
-            % Builds the explicit dense matrix M of the preconditioner for analysis
             allPrimals = unique(vertcat(obj.primalDofsGlobal{:}));
             allDuals   = setdiff(unique(vertcat(obj.dualDofsGlobal{:})), allPrimals);
             numDuals   = length(allDuals);
@@ -226,7 +239,7 @@ classdef FetiDPElasticity < handle
                     continue; 
                 end
                 
-                Sdd = obj.computeLocalSchur(subId);
+                Sdd = obj.localSchurBlocks{subId};
                 w   = 1 ./ multiplicity(dualRows);
                 
                 W_signed = diag(w .* dualSigns);
@@ -240,7 +253,6 @@ classdef FetiDPElasticity < handle
     % =========================================================
     methods (Access = public)
         function visualizeFetiNodes(obj)
-            % Visualizes the Domain Decomposition mapping (Primal, Dual, Internal)
             allPrimalDofs = unique(vertcat(obj.primalDofsGlobal{:}));
             allDualDofs   = unique(vertcat(obj.dualDofsGlobal{:}));
             allRemDofs    = unique(vertcat(obj.remDofsGlobal{:}));
@@ -248,9 +260,8 @@ classdef FetiDPElasticity < handle
             primalNodes = unique(ceil(allPrimalDofs / obj.dofsPerNode));
             dualNodes   = unique(ceil(allDualDofs   / obj.dofsPerNode));
             remNodes    = unique(ceil(allRemDofs    / obj.dofsPerNode));
-
-            dualNodes = setdiff(dualNodes, primalNodes);
-            remNodes  = setdiff(remNodes,  union(primalNodes, dualNodes));
+            dualNodes   = setdiff(dualNodes, primalNodes);
+            remNodes    = setdiff(remNodes,  union(primalNodes, dualNodes));
             
             pCoords = obj.meshCoords(primalNodes, :);
             dCoords = obj.meshCoords(dualNodes,   :);
@@ -284,14 +295,17 @@ classdef FetiDPElasticity < handle
     methods (Access = private)
         
         function extractFetiDofs(obj)
-            % Evaluates geometries and extracts Primal, Dual, and Internal DoFs
             nSub = obj.numSubdomains;
             tol  = obj.nodeTol;
             
-            pGlobal = cell(nSub,1); dGlobal = cell(nSub,1); rGlobal = cell(nSub,1);
-            pLocal  = cell(nSub,1); dLocal  = cell(nSub,1); rLocal  = cell(nSub,1);
+            pGlobal = cell(nSub,1); 
+            dGlobal = cell(nSub,1); 
+            rGlobal = cell(nSub,1);
+            pLocal  = cell(nSub,1); 
+            dLocal  = cell(nSub,1); 
+            rLocal  = cell(nSub,1);
+            eLocal  = cell(nSub,1);
             
-            % Calculate node multiplicity to find shared interfaces
             nodeMultiplicity = zeros(size(obj.meshCoords,1), 1);
             for i = 1:nSub
                 coords = obj.localMeshes{i}.coord;
@@ -299,7 +313,6 @@ classdef FetiDPElasticity < handle
                 nodeMultiplicity(gNodes) = nodeMultiplicity(gNodes) + 1;
             end
             
-            % Map Dirichlet DoFs to Nodes
             isDirNode = false(size(obj.meshCoords,1), 1);
             if ~isempty(obj.dirichletDofs)
                 dirNodes = ceil(obj.dirichletDofs / obj.dofsPerNode);
@@ -310,10 +323,11 @@ classdef FetiDPElasticity < handle
                 coords = obj.localMeshes{i}.coord;
                 [~, globalNodes] = ismembertol(coords, obj.meshCoords, tol, 'ByRows', true);
                 
-                minX = min(coords(:,1)); maxX = max(coords(:,1));
-                minY = min(coords(:,2)); maxY = max(coords(:,2));
+                minX = min(coords(:,1)); 
+                maxX = max(coords(:,1));
+                minY = min(coords(:,2)); 
+                maxY = max(coords(:,2));
                 
-                % Identify corner nodes (Currently the only Primal DoFs)
                 isBL = abs(coords(:,1)-minX) < tol & abs(coords(:,2)-minY) < tol;
                 isBR = abs(coords(:,1)-maxX) < tol & abs(coords(:,2)-minY) < tol;
                 isTL = abs(coords(:,1)-minX) < tol & abs(coords(:,2)-maxY) < tol;
@@ -321,13 +335,49 @@ classdef FetiDPElasticity < handle
                 
                 localPrimalNodes = find(isBL | isBR | isTL | isTR);
                 
-                % Identify Dual (shared/Dirichlet) and Remaining nodes
                 isShared       = nodeMultiplicity(globalNodes) > 1;
                 isDir          = isDirNode(globalNodes);
                 localDualNodes = setdiff(find(isShared | isDir), localPrimalNodes);
                 localRemNodes  = setdiff(1:size(coords,1), [localPrimalNodes; localDualNodes]);
                 
-                % Map to DoFs
+                isOnLeft   = abs(coords(localDualNodes, 1) - minX) < tol;
+                isOnRight  = abs(coords(localDualNodes, 1) - maxX) < tol;
+                isOnBottom = abs(coords(localDualNodes, 2) - minY) < tol;
+                isOnTop    = abs(coords(localDualNodes, 2) - maxY) < tol;
+                
+                edges = {};
+                
+                if any(isOnLeft)
+                    eNodes = localDualNodes(isOnLeft);
+                    [~, sortIdx] = sort(globalNodes(eNodes)); 
+                    edges{end+1} = eNodes(sortIdx);
+                end
+                if any(isOnRight)
+                    eNodes = localDualNodes(isOnRight);
+                    [~, sortIdx] = sort(globalNodes(eNodes));
+                    edges{end+1} = eNodes(sortIdx);
+                end
+                if any(isOnBottom)
+                    eNodes = localDualNodes(isOnBottom);
+                    [~, sortIdx] = sort(globalNodes(eNodes));
+                    edges{end+1} = eNodes(sortIdx);
+                end
+                if any(isOnTop)
+                    eNodes = localDualNodes(isOnTop);
+                    [~, sortIdx] = sort(globalNodes(eNodes));
+                    edges{end+1} = eNodes(sortIdx);
+                end
+                
+                eLocal{i} = edges;
+                
+                masterNodes = [];
+                for e = 1:length(edges)
+                    masterNodes = [masterNodes; edges{e}(1)]; 
+                end
+                
+                localDualNodes   = setdiff(localDualNodes, masterNodes);
+                localPrimalNodes = unique([localPrimalNodes; masterNodes]);
+                
                 pGlobal{i} = obj.nodesToDofs(globalNodes(localPrimalNodes));
                 dGlobal{i} = obj.nodesToDofs(globalNodes(localDualNodes));
                 rGlobal{i} = obj.nodesToDofs(globalNodes(localRemNodes));
@@ -337,13 +387,50 @@ classdef FetiDPElasticity < handle
                 rLocal{i} = obj.nodesToDofs(localRemNodes);
             end
             
-            obj.primalDofsGlobal = pGlobal; obj.primalDofsLocal = pLocal;
-            obj.dualDofsGlobal   = dGlobal; obj.dualDofsLocal   = dLocal;
-            obj.remDofsGlobal    = rGlobal; obj.remDofsLocal    = rLocal;
+            obj.primalDofsGlobal = pGlobal; 
+            obj.primalDofsLocal  = pLocal;
+            obj.dualDofsGlobal   = dGlobal; 
+            obj.dualDofsLocal    = dLocal;
+            obj.remDofsGlobal    = rGlobal; 
+            obj.remDofsLocal     = rLocal;
+            obj.edgeNodesLocal   = eLocal; 
+        end
+        
+        function applyEdgeTransformation(obj)
+            obj.Tlocal = cell(obj.numSubdomains, 1);
+            
+            for subId = 1:obj.numSubdomains
+                kMat  = obj.localStiffness{subId};
+                fVec  = obj.localForces{subId};
+                nDofs = length(fVec);
+                
+                T = speye(nDofs);
+                
+                edges = obj.edgeNodesLocal{subId};
+                
+                for e = 1:length(edges)
+                    edgeNodes  = edges{e};
+                    
+                    masterNode = edgeNodes(1);
+                    slaveNodes = edgeNodes(2:end);
+                    
+                    for d = 1:obj.dofsPerNode
+                        mDof  = (masterNode - 1) * obj.dofsPerNode + d; 
+                        sDofs = (slaveNodes - 1) * obj.dofsPerNode + d; 
+                        
+                        T(mDof, sDofs) = -1;
+                        T(sDofs, mDof) =  1;
+                    end
+                end
+                
+                obj.localStiffness{subId} = T' * kMat * T;
+                obj.localForces{subId}    = T' * fVec;
+                
+                obj.Tlocal{subId} = T;
+            end
         end
         
         function dofs = nodesToDofs(obj, nodes)
-            % Converts physical node indices to global DoF indices
             nodes = nodes(:);
             dofs  = zeros(length(nodes) * obj.dofsPerNode, 1);
             for d = 1:obj.dofsPerNode
@@ -352,7 +439,6 @@ classdef FetiDPElasticity < handle
         end
         
         function [Krr, Krp, Kpr, Kpp, fR, fP, Tdr] = splitLocalMatrices(obj, subId)
-            % Splits the local stiffness matrix and force vector into r, p, and d sets
             kMat   = obj.localStiffness{subId};
             fVec   = obj.localForces{subId};
             
@@ -378,27 +464,12 @@ classdef FetiDPElasticity < handle
             Tdr  = sparse(rows, cols, vals, numD, numR);
         end
         
-        function Ap = createAp(obj, subId, allPrimals)
-            % Generates the Boolean assembly matrix for Primal DoFs
-            pGlobal          = obj.primalDofsGlobal{subId};
-            numPrimalsGlobal = length(allPrimals);
-            numPrimalsLocal  = length(pGlobal);
-            
-            [~, rows] = ismember(pGlobal, allPrimals);
-            cols = (1:numPrimalsLocal)';
-            vals = ones(numPrimalsLocal, 1);
-            
-            Ap = sparse(rows, cols, vals, numPrimalsGlobal, numPrimalsLocal);
-        end
-        
         function activeIdx = getActivePrimalDofs(obj, allPrimals)
-            % Excludes Dirichlet boundary conditions from the active primal set
             isDirichlet = ismember(allPrimals, obj.dirichletDofs);
             activeIdx   = find(~isDirichlet);
         end
         
         function Sdd = computeLocalSchur(obj, subId)
-            % Computes the local Schur complement S_dd for the preconditioner
             kMat = obj.localStiffness{subId};
             rLoc = obj.remDofsLocal{subId};
             dLoc = obj.dualDofsLocal{subId};

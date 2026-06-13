@@ -1,4 +1,4 @@
-classdef PCG < handle
+classdef PCGamg < handle
 
     properties (Access = private)
         Preconditioner
@@ -11,7 +11,7 @@ classdef PCG < handle
     end
 
     methods (Access = public)
-        function obj = PCG(cParams)
+        function obj = PCGamg(cParams)
             obj.init(cParams);
         end
 

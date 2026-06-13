@@ -4,16 +4,16 @@ classdef DataGenerationPoisson2D < handle
         useMatrixFree           = true   
         useEdgeAverage          = false
         enablePlots             = true
-        computeMonolithic       = false
+        computeMonolithic       = true
         computeUnpreconditioned = false
         computeKappa            = false
-        exportParaview          = false
+        exportParaview          = true
         outputPrefix            = 'poisson2d_feti'
 
-        numSubdomains     = [30 30]
-        nodeTol           = 1e-10
-        pcgTol            = 1e-10
-        nPerSide          = 10
+        numSubdomains     = [2 2]
+        nodeTol           = 1e-12
+        pcgTol            = 1e-8
+        nPerSide          = 5
     end
     properties (Access = private)
         globalMesh
@@ -34,6 +34,20 @@ classdef DataGenerationPoisson2D < handle
             end
             % 1. Mesh generation
             referenceMesh = obj.createStructuredMesh();
+
+            % --- NUEVO: Exportar la malla de referencia a ParaView ---
+            if obj.exportParaview
+                % Creamos un campo de desplazamientos (u) ficticio lleno de ceros para la malla de referencia
+                uRefFun = LagrangianFunction.create(referenceMesh, referenceMesh.ndim, 'P1');
+                uRefFun.setFValues(zeros(referenceMesh.nnodes, referenceMesh.ndim));
+                
+                % Exportamos el archivo con el prefijo configurado
+                fileNameRef = [obj.outputPrefix, '_reference_mesh'];
+                uRefFun.print(fileNameRef);
+                disp(['Malla de referencia exportada a: ', fileNameRef]);
+            end
+            % ---------------------------------------------------------
+
             s.nsubdomains   = obj.numSubdomains;
             s.meshReference = referenceMesh;
             s.tolSameNode   = obj.nodeTol;
@@ -80,8 +94,11 @@ classdef DataGenerationPoisson2D < handle
             if obj.exportParaview
                 if obj.computeMonolithic
                     obj.exportToParaview(results.uMono, 'monolithic');
+                    obj.exportToParaview(results.uFeti, 'feti_dp');
+                    obj.exportToParaview(abs(results.uFeti - results.uMono), 'abs_error');
+                else
+                    obj.exportToParaview(results.uFeti, 'feti_dp');
                 end
-                obj.exportToParaview(results.uFeti, 'feti_dp');
             end
 
         end
@@ -180,7 +197,7 @@ classdef DataGenerationPoisson2D < handle
             % --- Case 3: Preconditioned FETI-DP (Dirichlet) -------------
             Pdir = @(r) obj.fetiSolver.applyDirichletPrecond(r);
             tic;
-            [lambdaFetiPcg, residual] = PCG.solve(fOperator, dBar, x0Feti, Pdir, tol, lambdaExact);
+            [lambdaFetiPcg, residual,~,~] = PCG.solve(fOperator, dBar, x0Feti, Pdir, tol, lambdaExact);
             results.timeSolveFeti = toc;
 
             if obj.computeKappa
@@ -211,8 +228,8 @@ classdef DataGenerationPoisson2D < handle
         % MESH & DOMAIN
         % =================================================================
         function mS = createStructuredMesh(obj)
-            globalLength = 1.0;
-            globalHeight = 1.0;
+            globalLength = 1;
+            globalHeight = 1;
             numSubX      = obj.numSubdomains(1);
             numSubY      = obj.numSubdomains(2);
             subLength    = globalLength / numSubX;
@@ -226,6 +243,68 @@ classdef DataGenerationPoisson2D < handle
             s.interpType = 'LINEAR';
             mS           = Mesh.create(s);
         end
+
+        function mS = createAuxeticMesh(obj)
+            globalLength = 1.0 / obj.numSubdomains(1);
+
+            data = load('DEF_Q4auxL_1.mat');
+            coord = data.EIFEoper.MESH.COOR;
+            cnQ4 = double(data.EIFEoper.MESH.CN);
+
+            minX = min(coord(:,1));
+            maxX = max(coord(:,1));
+            minY = min(coord(:,2));
+
+            scale = globalLength / (maxX - minX);
+
+            coord(:,1) = (coord(:,1) - minX) * scale;
+            coord(:,2) = (coord(:,2) - minY) * scale;
+
+            s.coord = coord;
+            s.connec = [cnQ4(:, [1 2 3]); cnQ4(:, [1 3 4])];
+            s.interpType = 'LINEAR';
+            mS = Mesh.create(s);
+        end
+
+        function mS = createLatticeMesh(obj)
+            globalLength = 1.0;
+            globalHeight = 1.0;
+            subLength    = globalLength / obj.numSubdomains(1);
+            subHeight    = globalHeight / obj.numSubdomains(2);
+
+            data = load('mallaLattice.mat');
+            campos = fieldnames(data);
+            varName = campos{1};
+            meshData = data.(varName);
+
+            coord  = meshData.coord;
+            connec = meshData.connec;
+
+            if size(connec, 2) == 4
+                connec = [connec(:, [1 2 3]); connec(:, [1 3 4])];
+            end
+
+            minX = min(coord(:,1));
+            maxX = max(coord(:,1));
+            minY = min(coord(:,2));
+            maxY = max(coord(:,2));
+
+            anchoOriginal = maxX - minX;
+            altoOriginal  = maxY - minY;
+
+            escalaX = subLength / anchoOriginal;
+            escalaY = subHeight / altoOriginal;
+            escalaGlobal = min(escalaX, escalaY);
+
+            coord(:,1) = (coord(:,1) - minX) * escalaGlobal;
+            coord(:,2) = (coord(:,2) - minY) * escalaGlobal;
+
+            s.coord      = coord;
+            s.connec     = connec;
+            s.interpType = 'LINEAR';
+            mS           = Mesh.create(s);
+        end
+
 
         % =================================================================
         % NODE MULTIPLICITY
@@ -391,7 +470,7 @@ classdef DataGenerationPoisson2D < handle
             if r.computeMonolithic
                 fprintf('  Monolithic direct solve: %.4f s\n', r.timeSolveMono);
                 fprintf('  Relative error (FETI-DP vs monolithic): %e\n', r.relError);
-                if r.relError < 1e-10
+                if r.relError < 1e-8
                     disp('  Success: FETI-DP solution matches the monolithic direct solver.');
                 end
             end
@@ -455,5 +534,12 @@ classdef DataGenerationPoisson2D < handle
             
             uFun.print(fileName);            
         end
+        function Milu = createILUpreconditioner(obj,LHS)
+            s.LHS = LHS;
+            s.type = 'ILU';
+            M = Preconditioner.create(s);
+            Milu = @(r) M.apply(r);
+        end
     end
+    
 end

@@ -1,4 +1,4 @@
-classdef FetiDPPoisson2 < handle
+classdef tempFetiDPPoisson < handle
     % FETIDPPOISSON Class for the algebraic logic of the FETI-DP method.
     
     properties (Access = private)
@@ -24,14 +24,8 @@ classdef FetiDPPoisson2 < handle
         % Preconditioner & Interface Assembly Data
         dualIdxLocal       % Cell: Global indices within allDuals for each subdomain
         dualSignsLocal     % Cell: Boolean signs (+1/-1) for interface assembly
-        localSchurBlocks   % Cell: Local Schur complement blocks (S_dd) ONLY FOR ANALYSIS M
+        localSchurBlocks   % Cell: Local Schur complement blocks (S_dd)
         dualWeights        % Array: Multiplicity weights for the Dirichlet preconditioner
-        
-        % --- OPTIMIZED PRECONDITIONER DATA ---
-        localKiiFact       % Saved Cholesky decomposition of K_ii
-        localKid           % Saved K_id submatrix
-        localKdi           % Saved K_di submatrix
-        localKdd           % Saved K_dd submatrix
     end
     
     % =========================================================
@@ -39,7 +33,7 @@ classdef FetiDPPoisson2 < handle
     % =========================================================
     methods (Access = public)
         
-        function obj = FetiDPPoisson2(globalMesh, subMeshes, stiffness, forces, tol, dirDofs)
+        function obj = tempFetiDPPoisson(globalMesh, subMeshes, stiffness, forces, tol, dirDofs)
             % Constructor: Initializes the FETI-DP solver and extracts DoFs
             obj.meshCoords     = globalMesh.coord;
             obj.localMeshes    = subMeshes;
@@ -78,7 +72,7 @@ classdef FetiDPPoisson2 < handle
                 Urp = Krr \ Krp;             
                 Ap  = obj.createAp(subId, allPrimals);
                 
-                % Compute Boolean interface signs and local indices
+                % Compute Boolean interface signs and local indices (Alternative to Bd)
                 dGlobal       = obj.dualDofsGlobal{subId};
                 [~, dualRows] = ismember(dGlobal, allDuals);
                 isFirst       = ~visitedDuals(dGlobal);
@@ -193,9 +187,9 @@ classdef FetiDPPoisson2 < handle
     methods (Access = public)
         
         function z = applyDirichletPrecond(obj, r)
-            % Applies the Dirichlet preconditioner iteratively (Fast, Vectorized, Matrix-Free)
+            % Applies the Dirichlet preconditioner iteratively (Fast, Vectorized)
             numDuals = length(r);
-            z        = zeros(numDuals, 1);
+            z = zeros(numDuals, 1);
             
             for subId = 1:obj.numSubdomains
                 dualRows  = obj.dualIdxLocal{subId};
@@ -204,32 +198,29 @@ classdef FetiDPPoisson2 < handle
                 end
                 
                 dualSigns = obj.dualSignsLocal{subId};
-                w         = obj.dualWeights(dualRows);   
-                rLoc      = dualSigns .* r(dualRows);
-                
-                % Recuperamos matrices cacheadas (Cero coste computacional / Zero copy)
                 tic;
-                Kid_loc = obj.localKid{subId};
-                Kdi_loc = obj.localKdi{subId};
-                Kdd_loc = obj.localKdd{subId};
-                KiiFact = obj.localKiiFact{subId};
-       
-                
-                % Multiplicación vectorizada. 
-                % KiiFact \ z1 es instantáneo gracias a la pre-factorización
-                z1 = Kid_loc * (w .* rLoc);
-                z2 = KiiFact \ z1; 
-                z3 = Kdi_loc * z2;
-                z4 = Kdd_loc * (w .* rLoc) - z3;
-
+                Sdd = obj.localSchurBlocks{subId};
                 toc
+                %[Kii, Kid, Kdi, Kdd]  = obj.computeLocalMatrices(subId); 
+                w = obj.dualWeights(dualRows);   
                 
-                z(dualRows) = z(dualRows) + dualSigns .* (w .* z4);
+                % Vectorized multiplication: equivalent to B_d * D * S_dd * D * B_d^T * r
+                rLoc = dualSigns .* r(dualRows);
+                
+                z(dualRows) = z(dualRows) + dualSigns .* (w .* (Sdd * (w .* rLoc)));
+                
+                % % dualSigns .* (w .* ((Kdd - Kdi * (Kii \ Kid)) * (w .* rLoc)));
+                % rLoc = dualSigns .* r(dualRows);
+                % z1 = Kid * (w .* rLoc);
+                % z2 = Kii \ z1;
+                % z3 = Kdi * z2;
+                % z4 = Kdd * (w .* rLoc) - z3;
+                % z(dualRows) = z(dualRows) + dualSigns .* (w .* z4);
             end
         end
         
         function M = buildPrecondMatrix(obj)
-            % Builds the explicit dense matrix M of the preconditioner ONLY for Kappa analysis
+            % Builds the explicit dense matrix M of the preconditioner for analysis
             numDuals = obj.getNumDuals();
             M        = zeros(numDuals); 
             
@@ -240,7 +231,9 @@ classdef FetiDPPoisson2 < handle
                 end
                 
                 dualSigns = obj.dualSignsLocal{subId};
-                Sdd       = obj.localSchurBlocks{subId}; 
+                Sdd       = obj.localSchurBlocks{subId};
+                % [Kii, Kid, Kdi, Kdd] = obj.computeLocalMatrices(subId);
+                % Sdd       = Kdd - Kdi * (Kii \ Kid);
                 w         = obj.dualWeights(dualRows);   
                 
                 % Include boolean signs (B_d) and weights (w) in a diagonal matrix
@@ -305,79 +298,160 @@ classdef FetiDPPoisson2 < handle
     % =========================================================
     methods (Access = private)
         
-        function extractFetiDofs(obj)
-            % Evaluates geometries and extracts Primal, Dual, and Internal DoFs
-            nSub    = prod(obj.numSubdomains);
-            tol     = obj.nodeTol;
-            
-            pGlobal = cell(nSub,1); dGlobal = cell(nSub,1); rGlobal = cell(nSub,1);
-            pLocal  = cell(nSub,1); dLocal  = cell(nSub,1); rLocal  = cell(nSub,1);
-            
-            for i = 1:nSub
-                coords = obj.localMeshes{i}.coord;
-                connec = obj.localMeshes{i}.connec;
-                nNodes = size(coords, 1);
-                
-                % Local-to-global mapping
-                [~, globalNodes] = ismembertol(coords, obj.meshCoords, tol, 'ByRows', true);
-                
-                % Extract subdomain boundary edges
-                allEdges       = [connec(:,[1,2]); connec(:,[2,3]); connec(:,[3,1])];
-                allEdgesSorted = sort(allEdges, 2);
-                [~, ia, ic]    = unique(allEdgesSorted, 'rows');
-                edgeCount      = accumarray(ic, 1);
-                boundaryEdges  = allEdges(ia(edgeCount == 1), :);
-                boundaryLocalIdx = unique(boundaryEdges(:));
-                
-               % Obtain local boundary meshes
-                bMeshes = obj.localMeshes{i}.createBoundaryMesh();
-                
-                % PRIMAL: Endpoints (corners) of each boundary mesh
-                primalGlobalSet = [];
-                for b = 1:length(bMeshes)
-                    gc          = bMeshes{b}.globalConnec;  
-                    allN        = gc(:);
-                    uN          = unique(allN);
-                    deg         = accumarray(allN, 1, [max(allN), 1]);
-                    extremLocal = uN(deg(uN) == 1);
-                    primalGlobalSet = [primalGlobalSet; globalNodes(extremLocal)];
-                end
-                primalGlobalSet = unique(primalGlobalSet);
-                
-                % Convert to local indices
-                [~, primalLocalIdx] = ismember(primalGlobalSet, globalNodes);
-                primalLocalIdx      = primalLocalIdx(primalLocalIdx > 0);
-                
-               % DUAL: Interface/boundary nodes excluding primals
-                bCoords = coords(boundaryLocalIdx, :);
-                minX = min(bCoords(:,1));  maxX = max(bCoords(:,1));
-                minY = min(bCoords(:,2));  maxY = max(bCoords(:,2));
-                
-                isOnExtreme = (abs(coords(:,1) - minX) < tol) | ...
-                              (abs(coords(:,1) - maxX) < tol) | ...
-                              (abs(coords(:,2) - minY) < tol) | ...
-                              (abs(coords(:,2) - maxY) < tol);
-                              
-                extremeLocalIdx = find(isOnExtreme);
-                dualLocalIdx    = setdiff(intersect(extremeLocalIdx, boundaryLocalIdx), primalLocalIdx);
-                
-                % REMAINING: Internal nodes
-                remLocalIdx = setdiff((1:nNodes)', [primalLocalIdx; dualLocalIdx]);
-                
-                pGlobal{i} = globalNodes(primalLocalIdx);
-                dGlobal{i} = globalNodes(dualLocalIdx);
-                rGlobal{i} = globalNodes(remLocalIdx);
-                
-                pLocal{i}  = primalLocalIdx;
-                dLocal{i}  = dualLocalIdx;
-                rLocal{i}  = remLocalIdx;
-            end
-            
-            obj.primalDofsGlobal = pGlobal; obj.primalDofsLocal = pLocal;
-            obj.dualDofsGlobal   = dGlobal; obj.dualDofsLocal   = dLocal;
-            obj.remDofsGlobal    = rGlobal; obj.remDofsLocal    = rLocal;
-        end
+        % function extractFetiDofs(obj)
+        %     % Evaluates geometries and extracts Primal, Dual, and Internal DoFs
+        %     nSub    = prod(obj.numSubdomains);
+        %     tol     = obj.nodeTol;
+        % 
+        %     pGlobal = cell(nSub,1); 
+        %     dGlobal = cell(nSub,1); 
+        %     rGlobal = cell(nSub,1);
+        %     pLocal  = cell(nSub,1); 
+        %     dLocal  = cell(nSub,1); 
+        %     rLocal  = cell(nSub,1);
+        % 
+        %     for i = 1:nSub
+        %         coords = obj.localMeshes{i}.coord;
+        %         connec = obj.localMeshes{i}.connec;
+        %         nNodes = size(coords, 1);
+        % 
+        %         % Local-to-global mapping
+        %         [~, globalNodes] = ismembertol(coords, obj.meshCoords, tol, 'ByRows', true);
+        % 
+        %         % Extract subdomain boundary edges
+        %         allEdges       = [connec(:,[1,2]); connec(:,[2,3]); connec(:,[3,1])];
+        %         allEdgesSorted = sort(allEdges, 2);
+        %         [~, ia, ic]    = unique(allEdgesSorted, 'rows');
+        %         edgeCount      = accumarray(ic, 1);
+        %         boundaryEdges  = allEdges(ia(edgeCount == 1), :);
+        %         boundaryLocalIdx = unique(boundaryEdges(:));
+        % 
+        %        % Obtain local boundary meshes
+        %         bMeshes = obj.localMeshes{i}.createBoundaryMesh();
+        % 
+        %         % PRIMAL: Endpoints (corners) of each boundary mesh
+        %         primalGlobalSet = [];
+        %         for b = 1:length(bMeshes)
+        %             gc          = bMeshes{b}.globalConnec;  
+        %             allN        = gc(:);
+        %             uN          = unique(allN);
+        %             deg         = accumarray(allN, 1, [max(allN), 1]);
+        %             extremLocal = uN(deg(uN) == 1);
+        %             primalGlobalSet = [primalGlobalSet; globalNodes(extremLocal)];
+        %         end
+        %         primalGlobalSet = unique(primalGlobalSet);
+        % 
+        %         % Convert to local indices
+        %         [~, primalLocalIdx] = ismember(primalGlobalSet, globalNodes);
+        %         primalLocalIdx      = primalLocalIdx(primalLocalIdx > 0);
+        % 
+        %        % DUAL: Interface/boundary nodes excluding primals
+        %         bCoords = coords(boundaryLocalIdx, :);
+        %         minX = min(bCoords(:,1));  maxX = max(bCoords(:,1));
+        %         minY = min(bCoords(:,2));  maxY = max(bCoords(:,2));
+        % 
+        %         isOnExtreme = (abs(coords(:,1) - minX) < tol) | ...
+        %                       (abs(coords(:,1) - maxX) < tol) | ...
+        %                       (abs(coords(:,2) - minY) < tol) | ...
+        %                       (abs(coords(:,2) - maxY) < tol);
+        % 
+        %         extremeLocalIdx = find(isOnExtreme);
+        %         dualLocalIdx    = setdiff(intersect(extremeLocalIdx, boundaryLocalIdx), primalLocalIdx);
+        % 
+        %         % REMAINING: Internal nodes
+        %         remLocalIdx = setdiff((1:nNodes)', [primalLocalIdx; dualLocalIdx]);
+        % 
+        %         pGlobal{i} = globalNodes(primalLocalIdx);
+        %         dGlobal{i} = globalNodes(dualLocalIdx);
+        %         rGlobal{i} = globalNodes(remLocalIdx);
+        % 
+        %         pLocal{i}  = primalLocalIdx;
+        %         dLocal{i}  = dualLocalIdx;
+        %         rLocal{i}  = remLocalIdx;
+        %     end
+        % 
+        %     obj.primalDofsGlobal = pGlobal; obj.primalDofsLocal = pLocal;
+        %     obj.dualDofsGlobal   = dGlobal; obj.dualDofsLocal   = dLocal;
+        %     obj.remDofsGlobal    = rGlobal; obj.remDofsLocal    = rLocal;
+        % end
         
+        function extractFetiDofs(obj)
+            nSub = prod(obj.numSubdomains);
+            tol  = obj.nodeTol;
+        
+            pGlobal = cell(nSub,1);
+            dGlobal = cell(nSub,1);
+            rGlobal = cell(nSub,1);
+        
+            pLocal = cell(nSub,1);
+            dLocal = cell(nSub,1);
+            rLocal = cell(nSub,1);
+        
+            for i = 1:nSub
+        
+                coords  = obj.localMeshes{i}.coord;
+                nNodes  = size(coords,1);
+        
+                % Local -> global map
+                [~,globalNodes] = ismembertol( ...
+                    coords, obj.meshCoords, tol, 'ByRows', true);
+        
+                % Boundary meshes
+                bMeshes = obj.localMeshes{i}.createBoundaryMesh();
+        
+                % All boundary nodes
+                boundaryNodes = [];
+        
+                % Corner nodes (primal)
+                primalNodes = [];
+        
+                for b = 1:length(bMeshes)
+        
+                    gc = bMeshes{b}.globalConnec;
+        
+                    boundaryNodes = [boundaryNodes; gc(:)];
+        
+                    % Endpoints of 1D boundary chain
+                    uN  = unique(gc(:));
+                    deg = accumarray(gc(:),1);
+        
+                    corners = uN(deg(uN)==1);
+        
+                    primalNodes = [primalNodes; corners];
+        
+                end
+        
+                boundaryNodes = unique(boundaryNodes);
+                primalNodes   = unique(primalNodes);
+        
+                % Dual = boundary minus primal
+                dualNodes = setdiff(boundaryNodes, primalNodes);
+        
+                % Remaining = internal
+                remNodes = setdiff((1:nNodes)', ...
+                            [primalNodes; dualNodes]);
+        
+                % Store local
+                pLocal{i} = primalNodes;
+                dLocal{i} = dualNodes;
+                rLocal{i} = remNodes;
+        
+                % Store global
+                pGlobal{i} = globalNodes(primalNodes);
+                dGlobal{i} = globalNodes(dualNodes);
+                rGlobal{i} = globalNodes(remNodes);
+        
+            end
+        
+            obj.primalDofsGlobal = pGlobal;
+            obj.dualDofsGlobal   = dGlobal;
+            obj.remDofsGlobal    = rGlobal;
+ 
+            obj.primalDofsLocal  = pLocal;
+            obj.dualDofsLocal    = dLocal;
+            obj.remDofsLocal     = rLocal;
+        end
+
         function [Krr, Krp, Kpr, Kpp, fR, fP, Tdr] = splitLocalMatrices(obj, subId)
             % Splits the local stiffness matrix and force vector into r, p, and d sets
             kMat = obj.localStiffness{subId};
@@ -431,8 +505,22 @@ classdef FetiDPPoisson2 < handle
             activeIdx   = find(~isDirichlet);  
         end
         
+        function Sdd = computeLocalSchur(obj, subId)
+            % Computes the local Schur complement S_dd for the preconditioner
+            kMat = obj.localStiffness{subId};
+            rLoc = obj.remDofsLocal{subId};   % Internal
+            dLoc = obj.dualDofsLocal{subId};  % Dual Interface
+
+            Kii = kMat(rLoc, rLoc);
+            Kid = kMat(rLoc, dLoc);
+            Kdi = kMat(dLoc, rLoc);
+            Kdd = kMat(dLoc, dLoc);
+
+            Sdd = Kdd - Kdi * (Kii \ Kid);
+        end
+
         function [Kii, Kid, Kdi, Kdd] = computeLocalMatrices(obj, subId)
-            % Computes the local submatrices for the preconditioner
+            % Computes the local Schur complement S_dd for the preconditioner
             kMat = obj.localStiffness{subId};
             rLoc = obj.remDofsLocal{subId};   % Internal
             dLoc = obj.dualDofsLocal{subId};  % Dual Interface
@@ -441,29 +529,19 @@ classdef FetiDPPoisson2 < handle
             Kid = kMat(rLoc, dLoc);
             Kdi = kMat(dLoc, rLoc);
             Kdd = kMat(dLoc, dLoc);
+        
+            %Sdd = Kdd - Kdi * (Kii \ Kid);
         end
         
         function setupPreconditioner(obj)
-            % Computes preconditioner weights and caches matrices for optimized Matrix-Free solve
+            % Computes preconditioner weights and pre-assembles Schur blocks
             numDuals     = obj.getNumDuals();
             multiplicity = zeros(numDuals, 1);
             
             obj.localSchurBlocks = cell(obj.numSubdomains, 1);
-            obj.localKiiFact     = cell(obj.numSubdomains, 1);
-            obj.localKid         = cell(obj.numSubdomains, 1);
-            obj.localKdi         = cell(obj.numSubdomains, 1);
-            obj.localKdd         = cell(obj.numSubdomains, 1);
             
             for subId = 1:obj.numSubdomains
-                [Kii, Kid, Kdi, Kdd] = obj.computeLocalMatrices(subId);
-                
-                obj.localKid{subId} = Kid;
-                obj.localKdi{subId} = Kdi;
-                obj.localKdd{subId} = Kdd;
-                
-                obj.localKiiFact{subId} = decomposition(Kii, 'chol');
-                
-                obj.localSchurBlocks{subId} = Kdd - Kdi * (Kii \ full(Kid));
+                obj.localSchurBlocks{subId} = obj.computeLocalSchur(subId);
                 
                 dualRows               = obj.dualIdxLocal{subId};
                 multiplicity(dualRows) = multiplicity(dualRows) + 1;

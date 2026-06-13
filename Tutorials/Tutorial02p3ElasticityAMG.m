@@ -81,7 +81,7 @@ classdef Tutorial02p3ElasticityAMG < handle
 
             sS.preconditioner = p;
             sS.tol = 1e-5;
-            solver = PCG(sS);
+            solver = PCGamg(sS);
         end
 
         function R = computeRigidBodyModes(obj,refPoint)

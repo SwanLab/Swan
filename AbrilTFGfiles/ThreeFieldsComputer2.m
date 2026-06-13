@@ -24,17 +24,46 @@ classdef ThreeFieldsComputer2 < handle
                        
             L1 = obj.computeConditionMatrix2(obj.lambdaFun1, obj.uGamma1);
             L2 = obj.computeConditionMatrix2(obj.lambdaFun2, obj.uGamma2);
-            
+      
             LHS = obj.computeLHS(K1, K2, A1, A2, L1, L2);
-            RHS = obj.computeRHS();
 
+            RHS = obj.computeRHS();
             RHS = obj.applyNeumann(RHS);
 
             [LHS, RHS] = obj.applyDirichlet(LHS, RHS);            
                        
             sol = LHS \ RHS;
-            [u, lambda1, lambda2] = obj.computeFunctions(sol);
+            [u, lambda1, lambda2, uGammaMono] = obj.computeFunctions(sol);
             
+            RHS = obj.computeRHS();
+            [RHS, rhs2] = obj.applyNeumann(RHS);
+
+            K1red = obj.applyDirichletK(K1);
+            A1red = obj.applyDirichletA(A1);
+
+            nL = size(A1, 1); 
+            Z = zeros(nL);
+            nU = size(K1, 1);
+            ZL = zeros(nU, nL);
+
+            nLred = size(A1red, 1); 
+            Zred = zeros(nLred);
+            nUred = size(K1red, 1);
+            ZLred = zeros(nUred, nLred);
+
+            KGamma1 =[ZLred', L1']*([K1red, A1red'; A1red, Zred]\[ZLred; L1]);
+            KGamma2 =[ZL', L2']*([K2, A2'; A2, Z]\[ZL; L2]);
+                
+            F2 = rhs2;
+
+            FGamma2 = [ZL', L2']*([K2, A2'; A2, Z]\[F2; zeros(nL,1)]);
+
+            KGamma = -(KGamma1 + KGamma2);
+            FGamma = FGamma2;
+            uGamma = KGamma\FGamma;
+
+            u2 = [K1, A1'; A1, Z]\[zeros(size(K1, 1), 1); L1*uGamma];
+
             K = blkdiag(K1, K2);
             Kc = u.' * K * u;
         end
@@ -118,7 +147,7 @@ classdef ThreeFieldsComputer2 < handle
             RHS = sparse(totalDofs, 1);
         end
 
-        function RHS = applyNeumann(obj, RHS)
+        function [RHS, rhs2] = applyNeumann(obj, RHS)
             nU1   = obj.uFun1.nDofs;
             t     = obj.bc2.tractionFun;
             rhs2  = zeros(obj.uFun2.nDofs, 1);
@@ -158,7 +187,37 @@ classdef ThreeFieldsComputer2 < handle
             RHS = RHS(free_dofs);
         end
 
-        function [u, lambda1, lambda2] = computeFunctions(obj, solution)
+        function [LHS] = applyDirichletK(obj, LHS)
+            dirichDofs = obj.bc1.dirichlet_dofs;
+            dirichVals = obj.bc1.dirichlet_vals;
+
+            if isempty(dirichDofs)
+                return;
+            end
+
+
+            LHS(dirichDofs, :) = 0;
+            LHS(:, dirichDofs) = 0;
+            LHS(sub2ind(size(LHS), dirichDofs, dirichDofs)) = 1;
+
+            dofs = 1:size(LHS,1);
+            free_dofs = setdiff(dofs, dirichDofs);
+            Kf = LHS(free_dofs, free_dofs);
+
+            LHS = Kf;
+        end
+
+         function [Ared] = applyDirichletA(obj, A)
+            dirichDofs = obj.bc1.dirichlet_dofs;
+            dirichVals = obj.bc1.dirichlet_vals;
+
+            dofs = 1:size(A,2);
+            free_dofs = setdiff(dofs, dirichDofs);
+            Ared = A(:, free_dofs);
+        end
+
+
+        function [u, lambda1, lambda2, uGamma] = computeFunctions(obj, solution)
             dirichDofs = obj.bc1.dirichlet_dofs;
             dirichVals = obj.bc1.dirichlet_vals;
             nU1 = obj.uFun1.nDofs;
@@ -179,6 +238,7 @@ classdef ThreeFieldsComputer2 < handle
             lambda1 = sol(nU1+nU2+1:nU1+nU2+nL1, :);
             lambda2 = sol(nU1+nU2+nL1+1:nU1+nU2+nL1+obj.lambdaFun2.nDofs, :);
             u       = full([u1; u2]);
+            uGamma  = sol(nU1+nU2+nL1+obj.lambdaFun2.nDofs+1:end, :);
             lambda1 = full(lambda1);
             lambda2 = full(lambda2);
         end

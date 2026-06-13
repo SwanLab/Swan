@@ -24,6 +24,7 @@ classdef FetiDPPoisson < handle
         % Preconditioner & Interface Assembly Data
         dualIdxLocal       % Cell: Global indices within allDuals for each subdomain
         dualSignsLocal     % Cell: Boolean signs (+1/-1) for interface assembly
+        primalIdxLocal     % Cell: global-primal indices for each subdomain
         localSchurBlocks   % Cell: Local Schur complement blocks (S_dd)
         dualWeights        % Array: Multiplicity weights for the Dirichlet preconditioner
     end
@@ -70,33 +71,36 @@ classdef FetiDPPoisson < handle
                 
                 Urd = Krr \ Tdr';     
                 Urp = Krr \ Krp;             
-                Ap  = obj.createAp(subId, allPrimals);
                 
+                % Ap
+                pGlobal = obj.primalDofsGlobal{subId};
+                [~, pRows] = ismember(pGlobal, allPrimals);
+
                 % Compute Boolean interface signs and local indices (Alternative to Bd)
                 dGlobal       = obj.dualDofsGlobal{subId};
                 [~, dualRows] = ismember(dGlobal, allDuals);
                 isFirst       = ~visitedDuals(dGlobal);
-                
                 dualSigns           = ones(length(dGlobal), 1);
                 dualSigns(~isFirst) = -1;
                 visitedDuals(dGlobal) = true;
                 
                 % Store for reconstruction and preconditioner logic
+                obj.primalIdxLocal{subId} = pRows;
                 obj.dualIdxLocal{subId}   = dualRows;
                 obj.dualSignsLocal{subId} = dualSigns;
                                 
                 % Assemble Primal Schur Complement
                 sppLoc = Kpp - Kpr * Urp;
-                SPP    = SPP + Ap * sppLoc * Ap';
+                SPP(pRows, pRows) = SPP(pRows, pRows) + sppLoc;
                 
                 % Assemble Dual Interface system
                 if ~isempty(dGlobal)
                     fDual(dualRows, dualRows) = fDual(dualRows, dualRows) + (dualSigns) .* (Urd'*Tdr') .* dualSigns';
                     dBar(dualRows)            = dBar(dualRows) + dualSigns .* (Urd' * fR);
-                    BrKrrInvKrp(dualRows, :)  = BrKrrInvKrp(dualRows, :) + dualSigns .* (Tdr * Urp) * Ap';
+                    BrKrrInvKrp(dualRows, pRows)  = BrKrrInvKrp(dualRows, pRows) + dualSigns .* (Tdr * Urp);
                 end
                 
-                rhsPrimal = rhsPrimal + Ap * (fP - Urp' * fR);
+                rhsPrimal(pRows) = rhsPrimal(pRows) + (fP - Urp' * fR);
             end
                         
             activeDofs = obj.getActivePrimalDofs(allPrimals);   
@@ -128,8 +132,9 @@ classdef FetiDPPoisson < handle
             % Step 1: Accumulate primal contributions and pre-calculate local inversions
             for subId = 1:obj.numSubdomains
                 [Krr, Krp, Kpr, Kpp, fR, fP, Tdr] = obj.splitLocalMatrices(subId);
-                Ap = obj.createAp(subId, allPrimals);
                 
+                pRows = obj.primalIdxLocal{subId};
+
                 Urp      = Krr \ Krp; 
                 Urd      = Krr \ Tdr';
                 KrrInvFr = Krr \ fR;
@@ -139,14 +144,14 @@ classdef FetiDPPoisson < handle
                 KrrInvFrCell{subId} = KrrInvFr;
                 
                 sppLoc = Kpp - Kpr * Urp;
-                SPP    = SPP + Ap * sppLoc * Ap';
+                SPP(pRows, pRows)    = SPP(pRows, pRows) + sppLoc;
                 
                 dualRows  = obj.dualIdxLocal{subId};
                 dualSigns = obj.dualSignsLocal{subId};
                 lambdaLoc = dualSigns .* lambdaSol(dualRows);
         
                 term      = Tdr' * lambdaLoc - fR;
-                rhsPrimal = rhsPrimal + Ap * (fP + Urp' * term);
+                rhsPrimal(pRows) = rhsPrimal(pRows) + (fP + Urp' * term);
             end
             
             % Solve for the active Primal DoFs
@@ -165,12 +170,13 @@ classdef FetiDPPoisson < handle
                 dGlobal = obj.dualDofsGlobal{subId};
                 rGlobal = obj.remDofsGlobal{subId};
                 
-                Ap        = obj.createAp(subId, allPrimals);
                 dualRows  = obj.dualIdxLocal{subId};
                 dualSigns = obj.dualSignsLocal{subId};
                 lambdaLoc = dualSigns .* lambdaSol(dualRows);
-      
-                uPLoc    = Ap' * uP;
+       
+                pRows = obj.primalIdxLocal{subId}; 
+
+                uPLoc    = uP(pRows);
                 uRemLoc  = KrrInvFrCell{subId} - UrpCell{subId} * uPLoc - UrdCell{subId} * lambdaLoc;
                 
                 % Scatter local results to the global solution vector
@@ -403,19 +409,6 @@ classdef FetiDPPoisson < handle
             end
             
             Tdr = sparse(rows, cols, vals, numD, numR);
-        end
-        
-        function ap = createAp(obj, subId, allPrimals)
-            % Generates the Boolean assembly matrix for Primal DoFs
-            pGlobal = obj.primalDofsGlobal{subId};
-            numPrimalsGlobal = length(allPrimals);
-            numPrimalsLocal  = length(pGlobal);
-            
-            [~, rows] = ismember(pGlobal, allPrimals);
-            cols      = (1:numPrimalsLocal)';
-            vals      = ones(numPrimalsLocal, 1);
-            
-            ap = sparse(rows, cols, vals, numPrimalsGlobal, numPrimalsLocal);
         end
         
         function activeIdx = getActivePrimalDofs(obj, allPrimals)
