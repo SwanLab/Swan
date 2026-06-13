@@ -128,9 +128,14 @@ classdef BCApplier < handle
         end
 
         function rVec = fullToReducedVectorDirichlet(obj,fVec)
+            
+            lead = obj.periodic_leader;
+            fllw = obj.periodic_follower;
+            drch = obj.dirichlet_dofs;
             dofs      = 1:1:obj.dirichletFun.nDofs;
-            free_dofs = setdiff(dofs, obj.dirichlet_dofs);
-            rVec      = fVec(free_dofs);
+            %free_dofs = setdiff(dofs, obj.dirichlet_dofs);
+            free_dofs = setdiff(dofs, [lead; fllw; drch]);
+            rVec      = fVec([free_dofs lead']);
         end
 
         function rMat = fullToReducedMatrixDirichlet(obj,fMat)
