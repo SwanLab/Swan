@@ -20,7 +20,8 @@ classdef TetradecahedronMeshComputer < handle
             a.fileName = fileName;
             fem = FemDataContainer(a);
             obj.mesh = fem.mesh;
-            obj.boundaryNodes = fem.newBC.microSlave(:,1);
+            obj.mesh.readBoundaryMeshFromGiD(fileName,0)
+            obj.boundaryNodes = obj.mesh.boundaryNodes;
         end
 
         function mesh = getMesh(obj)

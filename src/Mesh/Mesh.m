@@ -186,10 +186,14 @@ classdef Mesh < handle
 
         function readBoundaryMeshFromGiD(obj,fName,id)
             run(fName);
-            rollerRowsEl = External_border_elements(:,1)==id;
+            if ~isempty(External_border_elements)
+                rollerRowsEl = External_border_elements(:,1)==id;
+                s.connec = External_border_elements(rollerRowsEl,3:5);
+            else
+                s.connec = gidbnods(:,2:end-1);
+            end
             rollerRowsN  = External_border_nodes(:,1)==id;
             s.coord = obj.coord;
-            s.connec = External_border_elements(rollerRowsEl,3:5);
             s.kFace = -1;
             s.type = 'TRIANGLE';
             mRaw = SurfaceMesh(s);

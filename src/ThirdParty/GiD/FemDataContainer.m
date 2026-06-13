@@ -57,7 +57,6 @@ classdef FemDataContainer < handle
             obj.newBC.dirichletFun = s.dirichletFun;
             obj.newBC.pointloadFun = s.pointloadFun;
             obj.newBC.periodicFun  = s.periodicFun;
-            obj.newBC.microSlave   = s.microSlave;
             obj.boundaryConditions = BoundaryConditions(s);
         end
 

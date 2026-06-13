@@ -47,7 +47,7 @@ classdef Preprocess<handle
             end
         end
         
-        function [fixnodes,forces,boundaryNodes,boundaryElements,Master_slave,Micro_slave, sDir, sPL, sPer] = getBC_mechanics(filename)
+        function [fixnodes,forces,boundaryNodes,boundaryElements,Master_slave, sDir, sPL, sPer] = getBC_mechanics(filename)
             run(filename)
             if exist('lnodes','var')
                 dirichlet_data=lnodes;
@@ -79,10 +79,6 @@ classdef Preprocess<handle
             
             if ~exist('Master_slave','var')
                 Master_slave = [];
-            end
-
-            if exist('Micro_slave','var')
-                Micro_slave = Micro_slave;
             end
 
             if exist('sDir','var')

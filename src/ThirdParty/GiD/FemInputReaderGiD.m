@@ -102,11 +102,10 @@ classdef FemInputReaderGiD < handle
                 sPer = [];
             end
             if ~isequal(data.problem_type,'Stokes')
-                [~,~,bNodes,bElem,mSlave,micSlave sDir, sPL, sPer] = Preprocess.getBC_mechanics(fileName);
+                [~,~,bNodes,bElem,mSlave, sDir, sPL, sPer] = Preprocess.getBC_mechanics(fileName);
                 obj.boundaryNodes = bNodes;
                 obj.boundaryElements = bElem;
                 obj.masterSlave = mSlave;
-                obj.microSlave = micSlave;
             end
 
             obj.pdim = data.problem_dim;
