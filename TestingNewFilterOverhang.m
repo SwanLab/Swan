@@ -25,7 +25,7 @@ sF.trial       = LagrangianFunction.create(mesh,1,'P1');
 sF.senseVector = ConstantFunction.create([0;1],mesh);
 sF.ovAngleDeg  = 45;
 filter         = FilterOverhang(sF);
-filter.updateEpsilon(3*h);
+filter.updateEpsilon(12*h);
 
 rhoEps = filter.compute(chi,3);
 rhoEps.print('RhoEps');

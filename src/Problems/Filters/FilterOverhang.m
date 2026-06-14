@@ -7,6 +7,7 @@ classdef FilterOverhang < handle
         theta
         epsilon
         gamma
+        gammaMax
         tol
     end
 
@@ -35,20 +36,21 @@ classdef FilterOverhang < handle
                 obj.chiNOld = obj.chiN;
                 obj.updateProximal(xF);
                 obj.updateRHSProx();
-                value0 = obj.computeCost(fun,xF);
-                mOld  = 1;
+                value0 = obj.computeRefCost(fun,xF);
+                mOld  = obj.computeCost(fun,xF)/value0;
                 delta = 1;
                 xFOld = copy(xF);
                 while (delta>=1e-6)
-                    xF.setFValues(obj.LHS\(obj.chiN + obj.rhsProx));
+                    xF.setFValues(full(obj.LHS\(obj.chiN + obj.rhsProx)));
+                    dxF = xF - xFOld;
                     mNew = obj.computeCost(fun,xF)/value0;
-                    if mNew < mOld
-                        obj.gamma = obj.gamma*1.2;
+                    if (mNew - mOld)/Norm(dxF,'L2') <= 1e-2
+                        delta = Norm(dxF,'L2')/Norm(xF,'L2');
+                        obj.gamma = min(obj.gamma*1.2,obj.gammaMax);
                         obj.updateLHS();
                         obj.updateProximal(xF);
                         obj.updateRHSProx();
                         xFOld.setFValues(xF.fValues);
-                        delta = abs(mNew-mOld);
                         mOld = mNew;
                     else
                         obj.gamma = obj.gamma/2;
@@ -63,9 +65,10 @@ classdef FilterOverhang < handle
 
         function obj = updateEpsilon(obj,epsilon)
             if obj.hasEpsilonChanged(epsilon)
-                h           = obj.mesh.computeMeanCellSize();
-                obj.epsilon = epsilon;
-                obj.gamma   = (1/(2*epsilon^2))*(epsilon^2/h^2 - 1);
+                h            = obj.mesh.computeMeanCellSize();
+                obj.epsilon  = epsilon;
+                obj.gammaMax = (1/(2*epsilon^2))*(epsilon^2/((3*h)^2) - 1);
+                obj.gamma    = obj.gammaMax;
                 obj.updateLHS();
             end
         end
@@ -134,6 +137,13 @@ classdef FilterOverhang < handle
             f             = DP(gRho,gRho);
             int           = f.*(maxF.^2);
             J             = (e^2/2)*Integrator.compute(int,obj.mesh,3);
+        end
+
+        function J = computeRefCost(obj,chi,rho)
+            int1 = Integrator.compute(rho.*rho,obj.mesh,2);
+            int2 = 2*Integrator.compute(chi.*rho,obj.mesh,2);
+            int3 = Integrator.compute(chi.*chi,obj.mesh,2);
+            J    = 0.5*(int1+int2+int3);
         end
 
         function J = computeCost(obj,fun,rho)
