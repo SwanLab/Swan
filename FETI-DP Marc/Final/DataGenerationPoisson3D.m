@@ -8,7 +8,7 @@ classdef DataGenerationPoisson3D < handle
         computeMonolithic       = true;
         computeUnpreconditioned = false;
         computeKappa            = false;
-        exportParaview          = false;  % Cambiado a true por comodidad de prueba
+        exportParaview          = false;  
         outputPrefix            = 'poisson3d_feti';
         
         numSubdomains     = [2 2 2];  % [Nx, Ny, Nz]
@@ -16,7 +16,7 @@ classdef DataGenerationPoisson3D < handle
         pcgTol            = 1e-8;
         nPerSide          = 5;        
         
-        % --- PROPIEDADES PARA LATTICE MESH ---
+        % --- LATTICE MESH ---
         useLatticeMesh    = false;                   
         latticeMeshFile   = 'C:\Users\Marc Freixinet\Documents\GitHub\Swan\FETI-DP Marc\Final\mallaLattice3D.mat';   
     end
@@ -111,14 +111,12 @@ classdef DataGenerationPoisson3D < handle
                 obj.visualizeSolution(results.uFeti, 'FETI-DP Solution (3D Poisson)');
             end
             
-            % --- MODIFICACIÓN: EXPORTACIÓN A PARAVIEW ---
             if obj.exportParaview
                 if obj.computeMonolithic
                     obj.exportToParaview(results.uMono, 'monolithic');
                 end
                 obj.exportToParaview(results.uFeti, 'feti_dp');
                 
-                % Guarda la malla de referencia (sea Lattice o UnitTetraMesh)
                 if obj.useLatticeMesh
                     obj.exportMeshToParaview(referenceMesh, 'reference_lattice');
                 else
@@ -474,12 +472,10 @@ classdef DataGenerationPoisson3D < handle
         end
         
         % =================================================================
-        % NUEVO MÉTODO AUXILIAR PARA EXPORTAR MALLAS DE REFERENCIA
+        % EXPORT REFERENCE MESH TO PARAVIEW
         % =================================================================
         function exportMeshToParaview(obj, mesh, label)
-            % Creamos una función Lagrangiana sobre la malla que queremos guardar
             uMesh = LagrangianFunction.create(mesh, 1, 'P1');
-            % Inicializamos un vector de ceros del tamaño de nodos de la malla
             uMesh.setFValues(zeros(mesh.nnodes, 1));
             
             fileName = [obj.outputPrefix, '_', label];
