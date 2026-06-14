@@ -2,18 +2,18 @@ classdef DataGenerationPoisson2D < handle
     % 2D Poisson benchmark with FETI-DP convergence study.
     properties (Access = public)
         useMatrixFree           = true   
-        useEdgeAverage          = false
+        useEdgeAverage          = true
         enablePlots             = true
         computeMonolithic       = true
         computeUnpreconditioned = false
         computeKappa            = false
-        exportParaview          = true
+        exportParaview          = false
         outputPrefix            = 'poisson2d_feti'
 
-        numSubdomains     = [2 2]
-        nodeTol           = 1e-12
+        numSubdomains     = [4 4]
+        nodeTol           = 1e-8
         pcgTol            = 1e-8
-        nPerSide          = 5
+        nPerSide          = 6
     end
     properties (Access = private)
         globalMesh
@@ -35,17 +35,17 @@ classdef DataGenerationPoisson2D < handle
             % 1. Mesh generation
             referenceMesh = obj.createStructuredMesh();
 
-            % --- NUEVO: Exportar la malla de referencia a ParaView ---
-            if obj.exportParaview
-                % Creamos un campo de desplazamientos (u) ficticio lleno de ceros para la malla de referencia
-                uRefFun = LagrangianFunction.create(referenceMesh, referenceMesh.ndim, 'P1');
-                uRefFun.setFValues(zeros(referenceMesh.nnodes, referenceMesh.ndim));
-                
-                % Exportamos el archivo con el prefijo configurado
-                fileNameRef = [obj.outputPrefix, '_reference_mesh'];
-                uRefFun.print(fileNameRef);
-                disp(['Malla de referencia exportada a: ', fileNameRef]);
-            end
+            % --- Exportar la malla de referencia a ParaView ---
+            % if obj.exportParaview
+            %     % Creamos un campo de desplazamientos (u) ficticio lleno de ceros para la malla de referencia
+            %     uRefFun = LagrangianFunction.create(referenceMesh, referenceMesh.ndim, 'P1');
+            %     uRefFun.setFValues(zeros(referenceMesh.nnodes, referenceMesh.ndim));
+            % 
+            %     % Exportamos el archivo con el prefijo configurado
+            %     fileNameRef = [obj.outputPrefix, '_reference_mesh'];
+            %     uRefFun.print(fileNameRef);
+            %     disp(['Malla de referencia exportada a: ', fileNameRef]);
+            % end
             % ---------------------------------------------------------
 
             s.nsubdomains   = obj.numSubdomains;

@@ -3,12 +3,12 @@ classdef DataGenerationPoisson3D < handle
     
     properties (Access = public)
         useMatrixFree           = true;   
-        useEdgeAverage          = false; 
+        useEdgeAverage          = true; 
         enablePlots             = true;
         computeMonolithic       = true;
         computeUnpreconditioned = false;
         computeKappa            = false;
-        exportParaview          = false;
+        exportParaview          = false;  % Cambiado a true por comodidad de prueba
         outputPrefix            = 'poisson3d_feti';
         
         numSubdomains     = [2 2 2];  % [Nx, Ny, Nz]
@@ -16,9 +16,9 @@ classdef DataGenerationPoisson3D < handle
         pcgTol            = 1e-8;
         nPerSide          = 5;        
         
-        % --- NUEVAS PROPIEDADES PARA LATTICE MESH ---
-        useLatticeMesh    = true;                   % Activa el uso de la malla lattice
-        latticeMeshFile   = 'mallaLattice3D.mat';   % Nombre del archivo de la malla
+        % --- PROPIEDADES PARA LATTICE MESH ---
+        useLatticeMesh    = false;                   
+        latticeMeshFile   = 'C:\Users\Marc Freixinet\Documents\GitHub\Swan\FETI-DP Marc\Final\mallaLattice3D.mat';   
     end
     
     properties (Access = private)
@@ -42,35 +42,30 @@ classdef DataGenerationPoisson3D < handle
             
             % 1. Mesh generation
             if obj.useLatticeMesh
-                % Intentamos cargar el archivo .mat de la malla
                 if isfile(obj.latticeMeshFile)
                     loadedData = load(obj.latticeMeshFile);
                     vars = fieldnames(loadedData);
                     
                     if isempty(vars)
-                        error('El archivo %s está vacío.', obj.latticeMeshFile);
+                        error('File %s is empty.', obj.latticeMeshFile);
                     end
                     
-                    % Asumimos que la malla es la primera (o única) variable del archivo
                     loadedMesh = loadedData.(vars{1});
                     
-                    % Si está guardada como una estructura (con coord y connec), 
-                    % la instanciamos como un objeto tipo Mesh. Si ya es un objeto, lo usamos tal cual.
                     if isstruct(loadedMesh) && isfield(loadedMesh, 'coord') && isfield(loadedMesh, 'connec')
                         sMesh.coord  = loadedMesh.coord;
                         sMesh.connec = loadedMesh.connec;
-                        referenceMesh = Mesh.create(sMesh); % O ajusta al creador de mallas de tu framework
+                        referenceMesh = Mesh.create(sMesh); 
                     else
                         referenceMesh = loadedMesh;
                     end
-                    disp('--> Utilizando malla externa: mallaLattice3D.mat');
+                    disp('--> Using mallaLattice3D.mat');
                 else
-                    error('No se encontró el archivo "%s" en el directorio.', obj.latticeMeshFile);
+                    error('Not Found "%s"', obj.latticeMeshFile);
                 end
             else
-                % Malla por defecto
                 referenceMesh = UnitTetraMesh(obj.nPerSide, obj.nPerSide, obj.nPerSide);
-                disp('--> Utilizando UnitTetraMesh (malla por defecto)');
+                disp('--> Using UnitTetraMesh');
             end
             
             s.nsubdomains   = obj.numSubdomains;
@@ -116,11 +111,19 @@ classdef DataGenerationPoisson3D < handle
                 obj.visualizeSolution(results.uFeti, 'FETI-DP Solution (3D Poisson)');
             end
             
+            % --- MODIFICACIÓN: EXPORTACIÓN A PARAVIEW ---
             if obj.exportParaview
                 if obj.computeMonolithic
                     obj.exportToParaview(results.uMono, 'monolithic');
                 end
                 obj.exportToParaview(results.uFeti, 'feti_dp');
+                
+                % Guarda la malla de referencia (sea Lattice o UnitTetraMesh)
+                if obj.useLatticeMesh
+                    obj.exportMeshToParaview(referenceMesh, 'reference_lattice');
+                else
+                    obj.exportMeshToParaview(referenceMesh, 'reference_unit_tetra');
+                end
             end
         end
     end
@@ -150,26 +153,22 @@ classdef DataGenerationPoisson3D < handle
             results.nIterUnprec             = NaN;
             results.timeSolveUnprec         = NaN;
             
-            % --- Case 1: Monolithic (direct solve + CG for iteration count)
             if obj.computeMonolithic
                 tic;
                 kGlobal  = obj.assembleGlobalStiffness();
                 fGlobal  = obj.computeGlobalForcesWithBC(kGlobal);
                 
-                % BCs
                 freeDofs = obj.boundaryConditions.free_dofs;
                 kRed     = kGlobal(freeDofs, freeDofs);
                 fRed     = fGlobal(freeDofs);
                 results.timeSetupMono = toc;
                 
-                % Direct solve (reference solution)
                 tic;
                 results.uMono = zeros(obj.globalMesh.nnodes, 1);
                 results.uMono(freeDofs) = kRed \ fRed;
                 results.timeSolveMono = toc;
                 results.nDofsMono     = length(freeDofs);
                 
-                % Unpreconditioned CG on reduced system (for iteration count)
                 uRed = results.uMono(freeDofs);
                 x0   = zeros(size(fRed));
                 Pid  = @(r) r;
@@ -185,7 +184,6 @@ classdef DataGenerationPoisson3D < handle
                 end
             end
             
-            % --- Assemble FETI-DP interface problem (shared by cases 2 & 3)
             tic;
             [fMat, dBar] = obj.fetiSolver.assembleProblem();
             x0Feti       = zeros(size(dBar));
@@ -203,7 +201,6 @@ classdef DataGenerationPoisson3D < handle
                 fOperator = @(x) fMat * x;    
             end
             
-            % --- Case 2: Unpreconditioned FETI-DP dual CG ---------------
             if obj.computeUnpreconditioned
                 Pid = @(r) r;
                 tic;
@@ -217,7 +214,6 @@ classdef DataGenerationPoisson3D < handle
                 end
             end
             
-            % --- Case 3: Preconditioned FETI-DP (Dirichlet) -------------
             Pdir = @(r) obj.fetiSolver.applyDirichletPrecond(r);
             tic;
             [lambdaFetiPcg, residual] = PCG.solve(fOperator, dBar, x0Feti, Pdir, tol, lambdaExact);
@@ -475,6 +471,20 @@ classdef DataGenerationPoisson3D < handle
             
             fileName = [obj.outputPrefix, '_', label];
             uFun.print(fileName);
+        end
+        
+        % =================================================================
+        % NUEVO MÉTODO AUXILIAR PARA EXPORTAR MALLAS DE REFERENCIA
+        % =================================================================
+        function exportMeshToParaview(obj, mesh, label)
+            % Creamos una función Lagrangiana sobre la malla que queremos guardar
+            uMesh = LagrangianFunction.create(mesh, 1, 'P1');
+            % Inicializamos un vector de ceros del tamaño de nodos de la malla
+            uMesh.setFValues(zeros(mesh.nnodes, 1));
+            
+            fileName = [obj.outputPrefix, '_', label];
+            uMesh.print(fileName);
+            fprintf('  Malla de referencia exportada a ParaView: %s\n', fileName);
         end
     end
 end

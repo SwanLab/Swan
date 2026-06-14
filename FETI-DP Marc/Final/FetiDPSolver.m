@@ -1,7 +1,7 @@
 classdef FetiDPSolver < handle
     % FETI-DP algebraic solver for 2D/3D general physics on a domain decomposition.    
     
-    properties (Access = private)
+    properties (Access = public)
         localStiffness
         localForces
         localMeshes
@@ -179,7 +179,6 @@ classdef FetiDPSolver < handle
             for subId = 1:obj.numSubdomains
                 dualRows  = obj.dualIdxLocal{subId};
                 dualSigns = obj.dualSignsLocal{subId};
-                if isempty(dualRows), continue; end
                 
                 Sdd = obj.computeLocalSchur(subId);
                 w   = 1 ./ multiplicity(dualRows);
@@ -204,8 +203,7 @@ classdef FetiDPSolver < handle
             for subId = 1:obj.numSubdomains
                 dualRows  = obj.dualIdxLocal{subId};
                 dualSigns = obj.dualSignsLocal{subId};
-                if isempty(dualRows), continue; end
-                
+
                 w    = 1 ./ multiplicity(dualRows);
                 rLoc = dualSigns .* r(dualRows);
                 
@@ -330,65 +328,26 @@ classdef FetiDPSolver < handle
             
             for i = 1:obj.numSubdomains
                 % Display subdomains in wireframe for context
-                patch('Faces', obj.localMeshes{i}.connec, 'Vertices', obj.localMeshes{i}.coord, ...
-                    'FaceColor', 'none', 'EdgeColor', [0.8 0.8 0.8], 'LineWidth', 1.5, 'HandleVisibility', 'off');
+                %patch('Faces', obj.localMeshes{i}.connec, 'Vertices', obj.localMeshes{i}.coord, ...
+                 %   'FaceColor', 'none', 'EdgeColor', [0.8 0.8 0.8], 'LineWidth', 1.5, 'HandleVisibility', 'off');
             end
-
-            % for i = 1:obj.numSubdomains
-            %     subCoords = obj.localMeshes{i}.coord;
-            %     if dim == 2
-            %         k = boundary(subCoords(:,1), subCoords(:,2), 0);
-            %         plot(subCoords(k,1), subCoords(k,2), 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            %     elseif dim == 3
-            %         k = boundary(subCoords(:,1), subCoords(:,2), subCoords(:,3));
-            %         patch('Faces', k, 'Vertices', subCoords, 'FaceColor', 'none', 'EdgeColor', [0.5 0.5 0.5], 'LineWidth', 1.5, 'HandleVisibility', 'off');
-            %     end
-            % end
-            % for i = 1:obj.numSubdomains
-            %     subCoords = obj.localMeshes{i}.coord;
-            % 
-            %     if dim == 2
-            %         k = boundary(subCoords(:,1), subCoords(:,2), 0);
-            %         plot(subCoords(k,1), subCoords(k,2), 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            %     elseif dim == 3
-            %         minCoord = min(subCoords);
-            %         maxCoord = max(subCoords);
-            % 
-            %         x = [minCoord(1), maxCoord(1)];
-            %         y = [minCoord(2), maxCoord(2)];
-            %         z = [minCoord(3), maxCoord(3)];
-            % 
-            %         plot3([x(1) x(2)], [y(1) y(1)], [z(1) z(1)], 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            %         plot3([x(1) x(2)], [y(2) y(2)], [z(1) z(1)], 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            %         plot3([x(1) x(2)], [y(1) y(1)], [z(2) z(2)], 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            %         plot3([x(1) x(2)], [y(2) y(2)], [z(2) z(2)], 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            % 
-            %         plot3([x(1) x(1)], [y(1) y(2)], [z(1) z(1)], 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            %         plot3([x(2) x(2)], [y(1) y(2)], [z(1) z(1)], 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            %         plot3([x(1) x(1)], [y(1) y(2)], [z(2) z(2)], 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            %         plot3([x(2) x(2)], [y(1) y(2)], [z(2) z(2)], 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            % 
-            %         plot3([x(1) x(1)], [y(1) y(1)], [z(1) z(2)], 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            %         plot3([x(2) x(2)], [y(1) y(1)], [z(1) z(2)], 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            %         plot3([x(1) x(1)], [y(2) y(2)], [z(1) z(2)], 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            %         plot3([x(2) x(2)], [y(2) y(2)], [z(1) z(2)], 'Color', [0.4 0.4 0.4], 'LineWidth', 2, 'HandleVisibility', 'off');
-            %     end
-            % end
             
             if dim == 2
-                scatter(rCoords(:, 1), rCoords(:, 2), 20, [0.5 0.5 0.5], 'filled', 'DisplayName', 'Interior');
+                scatter(rCoords(:, 1), rCoords(:, 2), 20, [0.5 0.5 0.5], 'filled', 'DisplayName', 'Remaining/Interior');
                 scatter(dCoords(:, 1), dCoords(:, 2), 40, 'b', 'filled', 'DisplayName', 'Interface (Dual)');
-                scatter(pCoords(:, 1), pCoords(:, 2), 80, 'r', 'filled', 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'DisplayName', 'Corners (Primal)');
+                scatter(pCoords(:, 1), pCoords(:, 2), 80, 'r', 'filled', 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'DisplayName', 'Corner (Primal)');
             elseif dim == 3
                 scatter3(rCoords(:, 1), rCoords(:, 2), rCoords(:, 3), 20, [0.5 0.5 0.5], 'filled', 'DisplayName', 'Interior');
                 scatter3(dCoords(:, 1), dCoords(:, 2), dCoords(:, 3), 40, 'b', 'filled', 'DisplayName', 'Interface (Dual)');
-                scatter3(pCoords(:, 1), pCoords(:, 2), pCoords(:, 3), 80, 'r', 'filled', 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'DisplayName', 'Primal (Esquinas/Bordes)');
+                scatter3(pCoords(:, 1), pCoords(:, 2), pCoords(:, 3), 80, 'r', 'filled', 'MarkerEdgeColor', 'k', 'LineWidth', 1, 'DisplayName', 'Primal');
                 zlabel('Z');
                 view(3);
             end
+
+            axis off;
             
-            legend('Location', 'bestoutside'); 
-            xlabel('X'); ylabel('Y'); grid on; hold off;
+            legend('Location', 'east', 'FontSize', 14);
+            %xlabel('X'); ylabel('Y'); grid on; hold off;
         end
     end
     
@@ -400,7 +359,6 @@ classdef FetiDPSolver < handle
         function extractFetiDofs(obj, localToGlobalMaps)
             nSub = obj.numSubdomains;
             
-            % Preallocate cell arrays for DOFs
             pGlobal = cell(nSub, 1); 
             dGlobal = cell(nSub, 1); 
             rGlobal = cell(nSub, 1);
@@ -408,11 +366,13 @@ classdef FetiDPSolver < handle
             dLocal  = cell(nSub, 1); 
             rLocal  = cell(nSub, 1);
             
-            % 1. GLOBAL INTERFACE MAPPING & SUBDOMAIN MASK
             numGlobalNodes   = size(obj.meshCoords, 1);
-            dim              = size(obj.meshCoords, 2); % 2D or 3D check
+            dim              = size(obj.meshCoords, 2); 
             nodeMultiplicity = zeros(numGlobalNodes, 1);
             nodeSubMask      = sparse(numGlobalNodes, nSub);
+            
+            allInitialCornersGlobal = [];
+            allEdgePromotedGlobal = [];
             
             for i = 1:nSub
                 gN = localToGlobalMaps{i};
@@ -420,83 +380,128 @@ classdef FetiDPSolver < handle
                 nodeSubMask(gN, i) = 1; 
             end
             
-            % 2. GEOMETRIC CLASSIFICATION PER SUBDOMAIN
             for i = 1:nSub
                 gNodes = localToGlobalMaps{i};
                 nNodes = length(gNodes);
                 
-                % --- A. Initial Primal Nodes (Corners) ---
+                % --- A: PRIMALCORNERS) ---
                 boundaryMeshes = obj.localMeshes{i}.createBoundaryMesh();
                 numBoundaryMeshes = length(boundaryMeshes);
-                primalNodesPerMesh = cell(numBoundaryMeshes, 1);
-
-                for b = 1:numBoundaryMeshes
-                    if dim == 2
+                
+                if dim == 2
+                    primalNodesPerMesh = cell(numBoundaryMeshes, 1);
+                    for b = 1:numBoundaryMeshes
                         boundaryConnectivity = boundaryMeshes{b}.globalConnec(:);                    
                         nodeOccurrences = accumarray(boundaryConnectivity, 1);
                         primalNodesPerMesh{b} = find(nodeOccurrences == 1);
-                        idxPrimal = unique(vertcat(primalNodesPerMesh{:}));
-
-                    elseif dim == 3
-                        boundaryMeshes = obj.localMeshes{i}.createBoundaryMesh();
-                        numBoundaryMeshes = length(boundaryMeshes);
-                        allBoundaryNodes = [];
-                        for b = 1:numBoundaryMeshes
-                            nodesInFace = unique(boundaryMeshes{b}.globalConnec(:));
-                            allBoundaryNodes = [allBoundaryNodes; nodesInFace];
-                        end
-                        nodeOccurrences = accumarray(allBoundaryNodes, 1);
-                        idxPrimal = find(nodeOccurrences >= 3);
-                        % | nodeMultiplicity(gNodes) > 3) ;
-                        idxPrimal = idxPrimal(:);
                     end
-                end
-
-                % --- B. Dual Nodes and Edge Grouping ---
-                if obj.useEdgeAverage
-                    isShared = nodeMultiplicity(gNodes) > 1;
-                    idxDualOrig = setdiff(find(isShared), idxPrimal);
-                    gDual = gNodes(idxDualOrig);
-                    
-                    % Identify unique edges/faces shared by the exact same set of subdomains
-                    [~, ~, edgeIdx] = unique(full(nodeSubMask(gDual, :)), 'rows');
-                    numEdges = max(edgeIdx);
-                    
-                    edgeDofsLocalSub = cell(numEdges, 1);
-                    idxDualFinal = [];
-                    
-                    for e = 1:numEdges
-                        localNodesInEdge = idxDualOrig(edgeIdx == e);
-                        [~, sortIdx] = sort(gNodes(localNodesInEdge));
-                        localNodesInEdge = localNodesInEdge(sortIdx);
-                        
-                        if length(localNodesInEdge) > 1
-                            edgeDofsLocalSub{e} = obj.nodesToDofs(localNodesInEdge);
-                            
-                            % FETI-DP constraint: First edge/face node to primal, rest to dual
-                            idxPrimal    = [idxPrimal; localNodesInEdge(1)];
-                            idxDualFinal = [idxDualFinal; localNodesInEdge(2:end)];
-                        else
-                            % Isolated interface node becomes standard dual
-                            idxDualFinal = [idxDualFinal; localNodesInEdge(1)];
-                        end
-                    end
-                    
-                    idxDualFinal = unique(idxDualFinal);
-                    
-                    % Store active edge DOFs filtering empty cells
-                    obj.edgeDofsGrouped{i} = edgeDofsLocalSub(~cellfun('isempty', edgeDofsLocalSub));
-                    
+                    idxPrimal = unique(vertcat(primalNodesPerMesh{:}));
                 else
-                    % --- B. Standard Dual Nodes ---
-                    isShared = nodeMultiplicity(gNodes) > 1;
-                    idxDualFinal = setdiff(find(isShared), idxPrimal);
+                    % En 3D recopilamos qué nodos pertenecen a qué caras locales
+                    nodeToCaras = cell(nNodes, 1);
+                    allBoundaryNodes = [];
+                    for b = 1:numBoundaryMeshes
+                        nodesInFace = unique(boundaryMeshes{b}.globalConnec(:));
+                        allBoundaryNodes = [allBoundaryNodes; nodesInFace];
+                        for n = 1:length(nodesInFace)
+                            locNode = nodesInFace(n);
+                            nodeToCaras{locNode} = [nodeToCaras{locNode}, b];
+                        end
+                    end
+                    nodeOccurrences = accumarray(allBoundaryNodes, 1);
+                    if length(nodeOccurrences) < nNodes
+                        nodeOccurrences(nNodes) = 0; 
+                    end
+                    % Un nodo es esquina si intersecta 3 o más caras locales
+                    idxPrimal = find(nodeOccurrences(1:nNodes) >= 3);
+                    idxPrimal = idxPrimal(:);
                 end
                 
-                % --- C. Remaining Nodes (Interior) ---
+                allInitialCornersGlobal = [allInitialCornersGlobal; gNodes(idxPrimal)];
+                
+                % --- B: EDGES (EDGE AVERAGE) & DUALS ---
+                isShared = nodeMultiplicity(gNodes) > 1;
+                idxDualOrig = setdiff(find(isShared), idxPrimal);
+                idxDualFinal = [];
+                edgeDofsLocalSub = {};
+                
+                if obj.useEdgeAverage && ~isempty(idxDualOrig)
+                    if dim == 2
+                        [~, ~, classIdx] = unique(full(nodeSubMask(gNodes(idxDualOrig), :)), 'rows');
+                        numClasses = max(classIdx);
+                        edgeDofsLocalSub = cell(numClasses, 1);
+                        
+                        for e = 1:numClasses
+                            classNodes = idxDualOrig(classIdx == e);
+                            [~, sortIdx] = sort(gNodes(classNodes));
+                            classNodes = classNodes(sortIdx);
+                            
+                            idxPrimal = [idxPrimal; classNodes(1)];
+                            allEdgePromotedGlobal = [allEdgePromotedGlobal; gNodes(classNodes(1))];
+                            
+                            if length(classNodes) > 1
+                                edgeDofsLocalSub{e} = obj.nodesToDofs(classNodes);
+                                idxDualFinal = [idxDualFinal; classNodes(2:end)];
+                            end
+                        end
+                    else
+                        % LÓGICA 3D GEOMÉTRICA: Identificar aristas por pares únicos de caras locales
+                        edgePairs = cell(length(idxDualOrig), 1);
+                        for k = 1:length(idxDualOrig)
+                            nodeIdx = idxDualOrig(k);
+                            caras = sort(nodeToCaras{nodeIdx});
+                            % Si el nodo está en una arista compartida, estará en al menos 2 caras locales
+                            if length(caras) >= 2
+                                edgePairs{k} = caras(1:2); % Tomamos el par principal que define la arista
+                            else
+                                edgePairs{k} = [0, 0]; % Es un nodo interno de cara pura
+                            end
+                        end
+                        
+                        % Filtramos los nodos que sí pertenecen a aristas físicas (tienen par válido)
+                        validEdgeMask = cellfun(@(x) x(1) ~= 0, edgePairs);
+                        idxNodesInEdges = idxDualOrig(validEdgeMask);
+                        pairsMatrix = vertcat(edgePairs{validEdgeMask});
+                        
+                        if ~isempty(idxNodesInEdges)
+                            % Agrupamos por aristas físicas reales (pares de caras idénticos)
+                            [~, ~, realEdgeIdx] = unique(pairsMatrix, 'rows');
+                            numRealEdges = max(realEdgeIdx);
+                            edgeDofsLocalSub = cell(numRealEdges, 1);
+                            
+                            for e = 1:numRealEdges
+                                edgeNodes = idxNodesInEdges(realEdgeIdx == e);
+                                [~, sortIdx] = sort(gNodes(edgeNodes));
+                                edgeNodes = edgeNodes(sortIdx);
+                                
+                                % Forzamos el primer nodo de cada arista física a ser Primal
+                                idxPrimal = [idxPrimal; edgeNodes(1)];
+                                allEdgePromotedGlobal = [allEdgePromotedGlobal; gNodes(edgeNodes(1))];
+                                
+                                if length(edgeNodes) > 1
+                                    edgeDofsLocalSub{e} = obj.nodesToDofs(edgeNodes);
+                                    idxDualFinal = [idxDualFinal; edgeNodes(2:end)];
+                                end
+                            end
+                        end
+                        
+                        % Los nodos de cara pura que no formaban aristas pasan a ser duales directos
+                        idxFacePure = idxDualOrig(~validEdgeMask);
+                        idxDualFinal = [idxDualFinal; idxFacePure];
+                    end
+                else
+                    idxDualFinal = idxDualOrig;
+                end
+                
+                idxPrimal = unique(idxPrimal);
+                idxDualFinal = unique(idxDualFinal);
+                idxDualFinal = setdiff(idxDualFinal, idxPrimal); 
+                
+                obj.edgeDofsGrouped{i} = edgeDofsLocalSub(~cellfun('isempty', edgeDofsLocalSub));
+                
+                % --- C: INTERIOR NODES (REMAINING) ---
                 idxRem = setdiff((1:nNodes)', [idxPrimal; idxDualFinal]);
                 
-                % 3. NODE TO DOF CONVERSION
                 pGlobal{i} = obj.nodesToDofs(gNodes(idxPrimal));
                 dGlobal{i} = obj.nodesToDofs(gNodes(idxDualFinal));
                 rGlobal{i} = obj.nodesToDofs(gNodes(idxRem));
@@ -505,8 +510,7 @@ classdef FetiDPSolver < handle
                 dLocal{i} = obj.nodesToDofs(idxDualFinal);
                 rLocal{i} = obj.nodesToDofs(idxRem);
             end
-            
-            % 4. CLASS PROPERTY ASSIGNMENT
+        
             obj.primalDofsGlobal = pGlobal; 
             obj.primalDofsLocal  = pLocal;
             obj.dualDofsGlobal   = dGlobal; 

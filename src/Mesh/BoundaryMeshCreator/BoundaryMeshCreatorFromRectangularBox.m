@@ -73,18 +73,30 @@ classdef BoundaryMeshCreatorFromRectangularBox < BoundaryMeshCreator
             end
         end
         
+        % function nodes = obtainBoxNodes(obj,iDime,iSide)
+        %     dim = obj.dimension(iDime);
+        %     coordDim = obj.backgroundMesh.coord(:,dim);
+        %     switch iSide
+        %         case 1
+        %             xL = min(coordDim);
+        %         case 2
+        %             xL = max(coordDim);
+        %     end
+        %     nodes = coordDim == xL;
+        % end
         function nodes = obtainBoxNodes(obj,iDime,iSide)
             dim = obj.dimension(iDime);
             coordDim = obj.backgroundMesh.coord(:,dim);
             switch iSide
                 case 1
                     xL = min(coordDim);
+                    nodes = abs(coordDim - xL) < 1e-8; % <-- CAMBIO 1: Tolerancia en vez de ==
                 case 2
                     xL = max(coordDim);
+                    nodes = abs(coordDim - xL) < 1e-8; % <-- CAMBIO 2: Tolerancia en vez de ==
             end
-            nodes = coordDim == xL;
         end
-        
+
         function facetCoord = computeFacetCoords(obj,nodes,idime)
             coord      = obj.backgroundMesh.coord(nodes,:);
             facetDim   = setdiff(1:obj.nDim,idime);
