@@ -11,7 +11,7 @@ classdef ProjectorToLagrangian < Projector
         end
 
         function xFun = project(obj, x)
-
+            solver = CGsolver();
             if obj.isP1toP1Dprojection(x)
                 f = x.fValues;
                 connec = x.mesh.connec;
@@ -20,7 +20,7 @@ classdef ProjectorToLagrangian < Projector
             else
                 LHS = obj.computeLHS(x);
                 RHS = obj.computeRHS(x);
-                xProj = LHS\RHS;
+                xProj = solver.solve(LHS,RHS);
                 xProj = reshape(xProj,[x.ndimf,numel(xProj)/x.ndimf])';
             end
             s.mesh    = x.mesh;

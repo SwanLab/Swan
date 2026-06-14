@@ -1,7 +1,7 @@
 clc,clear,close all
 
 %% Load base mesh
-file = 'Tetradecahedron003';
+file = 'Tetradecahedron0025';
 
 TMC = TetradecahedronMeshComputer(file);
 mesh = TMC.getMesh();
@@ -59,23 +59,23 @@ sDir{1}.domain    = @(coor) isVertex1(coor);
 sDir{1}.direction = [1,2,3];
 sDir{1}.value     = 0;
 
-% isV2X = @(coor) (abs(coor(:,1) - 0.75) < 1e-5);
-% isV2Y = @(coor) (abs(coor(:,2) - 0.5) < 1e-5);
-% isV2Z = @(coor) (abs(coor(:,3) - 0) < 1e-5);
-% isVertex2 = @(coor) isV2X(coor) & isV2Y(coor) & isV2Z(coor);
-% 
-% sDir{2}.domain    = @(coor) isVertex2(coor);
-% sDir{2}.direction = [2];
-% sDir{2}.value     = 0;
-% 
-% isV3X = @(coor) (abs(coor(:,1) - 0.5) < 1e-5);
-% isV3Y = @(coor) (abs(coor(:,2) - 0.25) < 1e-5);
-% isV3Z = @(coor) (abs(coor(:,3) - 0) < 1e-5);
-% isVertex3 = @(coor) isV3X(coor) & isV3Y(coor) & isV3Z(coor);
-% 
-% sDir{3}.domain    = @(coor) isVertex3(coor);
-% sDir{3}.direction = [3];
-% sDir{3}.value     = 0;
+isV2X = @(coor) (abs(coor(:,1) - 0.75) < 1e-5);
+isV2Y = @(coor) (abs(coor(:,2) - 0.5) < 1e-5);
+isV2Z = @(coor) (abs(coor(:,3) - 0) < 1e-5);
+isVertex2 = @(coor) isV2X(coor) & isV2Y(coor) & isV2Z(coor);
+
+sDir{2}.domain    = @(coor) isVertex2(coor);
+sDir{2}.direction = [2];
+sDir{2}.value     = 0;
+
+isV3X = @(coor) (abs(coor(:,1) - 0.5) < 1e-5);
+isV3Y = @(coor) (abs(coor(:,2) - 0.25) < 1e-5);
+isV3Z = @(coor) (abs(coor(:,3) - 0) < 1e-5);
+isVertex3 = @(coor) isV3X(coor) & isV3Y(coor) & isV3Z(coor);
+
+sDir{3}.domain    = @(coor) isVertex3(coor);
+sDir{3}.direction = [3];
+sDir{3}.value     = 0;
 
 dirichletFun = [];
 for i = 1:numel(sDir)
