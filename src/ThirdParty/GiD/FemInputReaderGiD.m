@@ -31,7 +31,6 @@ classdef FemInputReaderGiD < handle
     
     properties (Access = private)
         masterSlave
-        microSlave
         boundaryNodes
         boundaryElements
     end
@@ -60,7 +59,6 @@ classdef FemInputReaderGiD < handle
             s.periodicFun  = obj.periodicFun;
             if isequal(obj.scale,'MICRO')
                 s.masterSlave = obj.masterSlave;
-                s.microSlave = obj.microSlave;
             end
             if isequal(obj.ptype,'Stokes')
                 s.state    = obj.state;

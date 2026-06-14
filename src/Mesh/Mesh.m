@@ -20,6 +20,7 @@ classdef Mesh < handle
         boundaryNodes
         boundaryCoord
         boundaryElements
+        masterSlave
         coordElem
     end
 
@@ -191,14 +192,13 @@ classdef Mesh < handle
                 s.connec = External_border_elements(rollerRowsEl,3:5);
             else
                 s.connec = gidbnods(:,2:end-1);
+                originalNodes = unique(s.connec(:));
             end
-            rollerRowsN  = External_border_nodes(:,1)==id;
             s.coord = obj.coord;
             s.kFace = -1;
             s.type = 'TRIANGLE';
             mRaw = SurfaceMesh(s);
             m = mRaw.computeCanonicalMesh();
-            originalNodes = External_border_nodes(rollerRowsN,2);
             newNodes = 1:length(originalNodes);
             l2g(newNodes(:)) = originalNodes(:);
             obj.boundaryNodes = l2g;
