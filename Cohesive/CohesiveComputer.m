@@ -1,16 +1,11 @@
 classdef CohesiveComputer < handle
     
     properties (Access = public) 
-        mesh
-        boundaryConditions       
-        functional
-        tolerance
-        maxIter
+        boundaryConditions  
         data
     end
     
     properties (Access = private)
-        optimizer
         cohesiveMesh
         updater
         jump
@@ -31,7 +26,7 @@ classdef CohesiveComputer < handle
         end
 
         function compute(obj)
-            u = LagrangianFunction.create(obj.mesh,2,'P1');
+            u = LagrangianFunction.create(obj.cohesiveMesh.fullMesh,2,'P1');
             cost = 0;
 
             nSteps = length(obj.boundaryConditions.bcValues);
@@ -48,15 +43,13 @@ classdef CohesiveComputer < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.mesh               = cParams.cohesiveMesh.fullMesh;
             obj.boundaryConditions = cParams.boundaryConditions;
-            obj.functional         = cParams.functional;      
             obj.tractionSeparation = cParams.tractionLaw;
             obj.cohesiveMesh       = cParams.cohesiveMesh;
         end
         
         function setOptimizer(obj,cParams)
-            s.functional = obj.functional;
+            s.functional = cParams.functional;
             s.tolerance  = cParams.tolerance;
             s.maxIter    = cParams.maxIter;
             s.solverType = cParams.solverType;
@@ -67,7 +60,7 @@ classdef CohesiveComputer < handle
         function setMonitoring(obj,cParams)
             s.shallDisplay   = cParams.monitoring.set;
             s.shallPrintInfo = cParams.monitoring.print;
-            s.fun            = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.fun            = LagrangianFunction.create(obj.cohesiveMesh.fullMesh,1,'P1');
             obj.monitor = CohesiveMonitoring(s);
         end
 
@@ -86,17 +79,17 @@ classdef CohesiveComputer < handle
         end
 
         function [totReact,uBC] = computeTotalReaction(obj,step,F,u)
-            DownSide = min(obj.mesh.coord(:,2));
-            isInDown = abs(obj.mesh.coord(:,2)-DownSide)< 1e-12;
-            nodes = 1:obj.mesh.nnodes;
+            DownSide = min(obj.cohesiveMesh.fullMesh.coord(:,2));
+            isInDown = abs(obj.cohesiveMesh.fullMesh.coord(:,2)-DownSide)< 1e-12;
+            nodes = 1:obj.cohesiveMesh.fullMesh.nnodes;
             if  ismember(obj.boundaryConditions.type, ["DisplacementTractionY","DisplacementTractionYClamped"]) 
                 dofsYdown = (nodes(isInDown)-1)*u.ndimf + 2;
                 totReact = abs(sum(F(dofsYdown)));
                 uBC = obj.boundaryConditions.bcValues(step);
             end
-           isRight   = abs(obj.mesh.coord(:,1) - max(obj.mesh.coord(:,1))) < 1e-12;
-           MiddleY   = (max(obj.mesh.coord(:,2)) + min(obj.mesh.coord(:,2)))/2;
-           isHalfTop = (obj.mesh.coord(:,2) - MiddleY) > 1e-12;
+           isRight   = abs(obj.cohesiveMesh.fullMesh.coord(:,1) - max(obj.cohesiveMesh.fullMesh.coord(:,1))) < 1e-12;
+           MiddleY   = (max(obj.cohesiveMesh.fullMesh.coord(:,2)) + min(obj.cohesiveMesh.fullMesh.coord(:,2)))/2;
+           isHalfTop = (obj.cohesiveMesh.fullMesh.coord(:,2) - MiddleY) > 1e-12;
            isRigthHalfTop = isHalfTop & isRight;
             if ismember(obj.boundaryConditions.type, "DoubleCantileverBeam")
                 dofYHalfRight = (nodes(isRigthHalfTop)-1)*u.ndimf + 2;
@@ -104,15 +97,25 @@ classdef CohesiveComputer < handle
                 uBC = obj.boundaryConditions.bcValues(step);
             end
             if ismember(obj.boundaryConditions.type, "EndNotchedFlex")
-               isUp   = abs(obj.mesh.coord(:,2) - max(obj.mesh.coord(:,2))) < 1e-12;
-               isMiddle =  abs(obj.mesh.coord(:,1)-(min(obj.mesh.coord(:,1)) + max(obj.mesh.coord(:,1)))/2) < 1e-12;                
-               % isInBottomLeft =  (abs(obj.mesh.coord(:,1) - min(obj.mesh.coord(:,1)))< 1e-12) & (abs(obj.mesh.coord(:,2) - min(obj.mesh.coord(:,2)))< 1e-12);
-               % isInBottomRight = (abs(obj.mesh.coord(:,1) - min(obj.mesh.coord(:,1)))< 1e-12) & (abs(obj.mesh.coord(:,2) - min(obj.mesh.coord(:,2)))< 1e-12);
+               isUp   = abs(obj.cohesiveMesh.fullMesh.coord(:,2) - max(obj.cohesiveMesh.fullMesh.coord(:,2))) < 1e-12;
+               isMiddle =  abs(obj.cohesiveMesh.fullMesh.coord(:,1)-(min(obj.cohesiveMesh.fullMesh.coord(:,1)) + max(obj.cohesiveMesh.fullMesh.coord(:,1)))/2) < 1e-12;                
+               % isInBottomLeft =  (abs(obj.cohesiveMesh.fullMesh.coord(:,1) - min(obj.cohesiveMesh.fullMesh.coord(:,1)))< 1e-12) & (abs(obj.cohesiveMesh.fullMesh.coord(:,2) - min(obj.cohesiveMesh.fullMesh.coord(:,2)))< 1e-12);
+               % isInBottomRight = (abs(obj.cohesiveMesh.fullMesh.coord(:,1) - min(obj.cohesiveMesh.fullMesh.coord(:,1)))< 1e-12) & (abs(obj.cohesiveMesh.fullMesh.coord(:,2) - min(obj.cohesiveMesh.fullMesh.coord(:,2)))< 1e-12);
                nodes = find(isUp | isMiddle);
                dofsY= (nodes-1)*u.ndimf + 2;
                totReact = abs(sum(F(dofsY)));
                uBC = obj.boundaryConditions.bcValues(step);
             end
+            if ismember(obj.boundaryConditions.type, "MMB")
+                totReact = obj.boundaryConditions.bcValues(step);
+                isUp   =  abs(obj.cohesiveMesh.fullMesh.coord(:,2) - max(obj.cohesiveMesh.fullMesh.coord(:,2))) < 1e-12;
+                isRight =  abs(obj.cohesiveMesh.fullMesh.coord(:,1)-max(obj.cohesiveMesh.fullMesh.coord(:,1))) < 1e-12;
+                isMiddle =  abs(obj.cohesiveMesh.fullMesh.coord(:,1)-(min(obj.cohesiveMesh.fullMesh.coord(:,1)) + max(obj.cohesiveMesh.fullMesh.coord(:,1)))/2) < 1e-12;
+                node1 = find(isUp & isMiddle);
+                node2 = find(isUp & isRight);
+                uBC = u.fValues([node1;node2],2).';
+            end
+
         end
 
         function u = computeInitialDisplacement(obj,u,bc)
@@ -143,7 +146,7 @@ classdef CohesiveComputer < handle
 
         function printAndSave(obj,iStep,uFun,dmgFun,uVal,fVal,energy,iterMax)
             dmgMax = max(dmgFun.fValues); 
-            obj.monitor.updateAndRefresh(iStep,{[fVal;uVal],[dmgMax;uVal],...
+            obj.monitor.updateAndRefresh(iStep,{[fVal;uVal(1)],[dmgMax;uVal(1)],...
                 [energy],[iterMax]});
             obj.saveData(iStep,uFun,dmgFun,uVal,fVal,energy,iterMax);
         end

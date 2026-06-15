@@ -19,7 +19,7 @@ classdef CohesiveFunctional < handle
         function Etot = computeCost(obj,u,bc)
             fExt = bc.tractionFun;
             if ~isempty(bc.tractionFun)
-                vals = bc.tractionFun.computeRHS([]);
+                vals = bc.tractionFun.fValues();
                 fExt = LagrangianFunction.create(u.mesh, u.mesh.ndim,'P1');
                 fExt.setFValues(reshape(vals,u.mesh.nnodes,u.mesh.ndim));
             end
@@ -32,7 +32,7 @@ classdef CohesiveFunctional < handle
         function RHS = computeGradient(obj,u,bc)
             fExt = bc.tractionFun;
             if ~isempty(bc.tractionFun)
-                vals = bc.tractionFun.computeRHS([]);
+                vals = bc.tractionFun.fValues();
                 fExt = LagrangianFunction.create(u.mesh, u.mesh.ndim,'P1');
                 fExt.setFValues(reshape(vals,u.mesh.nnodes,u.mesh.ndim));
             end

@@ -6,11 +6,10 @@ classdef TutorialCohesive < handle
     end
 
     properties (Access = private)
-        boundaryConditions
-        functional
+        cohesiveFunctional
         solverType
         cohesiveMesh
-        tractionSeparation
+        bc
     end
 
     methods (Access = public)
@@ -18,18 +17,18 @@ classdef TutorialCohesive < handle
         function obj = TutorialCohesive()
             obj.init();
             obj.createMesh();
-            obj.defineCase();
-            obj.createCohesiveFunctional()
-            obj.solveCohesiveProblem()
+            [tractionSeparation] = obj.defineCase();
+            obj.createCohesiveFunctional(tractionSeparation)
+            obj.solveCohesiveProblem(tractionSeparation)
         end
 
-        function solveCohesiveProblem(obj)
+        function solveCohesiveProblem(obj,ts)
             s.cohesiveMesh           = obj.cohesiveMesh;
-            s.boundaryConditions     = obj.boundaryConditions;
-            s.functional             = obj.functional;
+            s.boundaryConditions     = obj.bc;
+            s.functional             = obj.cohesiveFunctional;
             s.tolerance              = 1e-4;
             s.maxIter                = 100;
-            s.tractionLaw            = obj.tractionSeparation;
+            s.tractionLaw            = ts;
             
             s.monitoring.set         = true;
             s.monitoring.print       = true;
@@ -102,9 +101,6 @@ classdef TutorialCohesive < handle
             obj.inputData.nx = 1000;
             obj.inputData.ny = 10;
 
-
-    
-
         end
     
         function createMesh(obj)
@@ -113,31 +109,31 @@ classdef TutorialCohesive < handle
             obj.cohesiveMesh = NewCohesiveMesh(s);
         end
 
-        function defineCase(obj)
+        function [ts] = defineCase(obj)
             obj.solverType = 'Newton';
             obj.createBoundaryConditions();
-            obj.createTractionSeparation();
+            ts = obj.createTractionSeparation();
         end
 
         function createBoundaryConditions(obj)
-            bc.type = obj.inputData.problemType;
-            bc.values = obj.inputData.bcValues;
-            obj.boundaryConditions  = BoundaryConditionsCreator(obj.cohesiveMesh.fullMesh,bc);
+            boundaryConditions.type = obj.inputData.problemType;
+            boundaryConditions.values = obj.inputData.bcValues;
+            obj.bc  = BoundaryConditionsCreator(obj.cohesiveMesh.fullMesh,boundaryConditions);
         end
 
-        function createTractionSeparation(obj)
+        function tractionSeparation = createTractionSeparation(obj)
             s = obj.inputData;
-            obj.tractionSeparation = CohesiveTractionSeparation(s);
+            tractionSeparation = CohesiveTractionSeparation(s);
         end
 
-        function createCohesiveFunctional(obj)
-            s.tractionSeparation = obj.tractionSeparation;
+        function createCohesiveFunctional(obj,ts)
+            s.tractionSeparation = ts;
             s.material           = obj.createMaterial();
             s.mesh               = obj.cohesiveMesh.fullMesh;
             s.cohesiveMesh       = obj.cohesiveMesh;
             s.quadOrder          = 2;
             s.test = LagrangianFunction.create(obj.cohesiveMesh.fullMesh,2,'P1');
-            obj.functional = CohesiveFunctional(s);
+            obj.cohesiveFunctional = CohesiveFunctional(s);
         end
 
         function m = createMaterial(obj)

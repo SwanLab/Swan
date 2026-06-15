@@ -47,7 +47,7 @@ classdef CohesiveMonitoring < handle
 
         function saveData(obj,step,cParams)
             obj.data.displacement.function{step} = cParams.uFun;
-            obj.data.displacement.value(step)    = cParams.uVal;
+            obj.data.displacement.value(step)    = cParams.uVal(1);
             obj.data.reaction(step)              = cParams.fVal;
             obj.data.damage.field{step}          = cParams.dmgFun;
             obj.data.damage.maxValue(step)       = max(cParams.dmgFun.fValues);

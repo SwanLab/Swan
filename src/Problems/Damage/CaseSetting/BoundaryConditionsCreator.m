@@ -317,16 +317,24 @@ classdef BoundaryConditionsCreator < handle
            sDir.value     = 0;
            Dir1 = DirichletCondition(obj.mesh,sDir);
 
+           isUp   = @(coor)    abs(coor(:,2) - max(coor(:,2))) < 1e-12;
+           isDown = @(coor)   abs(coor(:,2) - min(coor(:,2)))  < 1e-12;
+           isRight = @(coor)  abs(coor(:,1) - max(coor(:,1)))   < 1e-12;
+
            isInRight = @(coord) (abs(coord(:,1) - max(coord(:,1))) < 1e-12);
            middleY = @(coord) ((max(coord(:,2)) + min(coord(:,2)))/2);
            isHalfTop = @(coord) (abs(coord(:,2)) - middleY(coord)) > 1e-12; 
            sDir.domain    = @(coord) isInRight(coord) & isHalfTop(coord);
+
+           % sDir.domain    = @(coord) isRight(coord) & isUp(coord);
            sDir.direction = [2];
            sDir.value     = uVal;
            Dir2 = DirichletCondition(obj.mesh,sDir);
 
            isHalfBottom = @(coord) (abs(coord(:,2)) - middleY(coord)) < 1e-12; 
            sDir.domain    = @(coord) isInRight(coord) & isHalfBottom(coord);
+
+           % sDir.domain    = @(coord) isRight(coord) & isDown(coord);
            sDir.direction = [2];
            sDir.value     = -uVal;
            Dir3 = DirichletCondition(obj.mesh,sDir);
@@ -369,15 +377,15 @@ classdef BoundaryConditionsCreator < handle
            obj.boundaryConditions = BoundaryConditions(s);
         end
 
-        function createMMBConditions(obj,fVal)
+        function createMMBConditions(obj,Flever)
             isUp   = @(coor) abs(coor(:,2) - max(coor(:,2))) < 1e-12;
             isDown = @(coor) abs(coor(:,2) - min(coor(:,2))) < 1e-12;
             isLeft = @(coor)  abs(coor(:,1)-min(coor(:,1))) < 1e-12;
             isRight = @(coor)  abs(coor(:,1)-max(coor(:,1))) < 1e-12;
             isMiddle = @(coor) abs(coor(:,1)-(min(coor(:,1)) + max(coor(:,1)))/2) < 1e-12;
 
-            F1 = -2.2267*fVal;
-            F2 = fVal;
+            F1 = -0.6901*Flever;
+            F2 = 0.3099*Flever;
 
             isInDownLeft = @(coor) isDown(coor) & isLeft(coor);
             sDir.domain    = @(coor) isInDownLeft(coor);

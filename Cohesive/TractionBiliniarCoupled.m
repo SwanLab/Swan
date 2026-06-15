@@ -34,6 +34,8 @@ classdef TractionBiliniarCoupled < handle
             d     =  obj.computeDamage(jump);              % 1 x ngauss x nelem
             intP  = obj.computeInterpenetration(jump);
             dtSec = obj.K * (eye(2)-d.*intP);
+
+            % dtSec = (1-d).*obj.K.*eye(2);
         end
 
         function dtTan = computeDerivativeTangent(obj,jump)
@@ -95,8 +97,13 @@ classdef TractionBiliniarCoupled < handle
             [j0, jF] = obj.computeJumpLimits(jump,lambda);
             ddot = j0 .* jF ./ ((jF-j0) .*lambda.^3);
             % isDamaging = ((d > 0) .* (d < 1));
+            tol = 1e-12;
+                isDamaging = d > obj.dOld;
 
-                isDamaging = d > obj.dOld + 1e-12;
+                isDamaging = ...
+                ((lambda - j0) > tol) .* ...
+                ((jF - lambda) > tol) .* ...
+                ((d - obj.dOld) > tol);
 
 
             ddot = ddot .* isDamaging;  

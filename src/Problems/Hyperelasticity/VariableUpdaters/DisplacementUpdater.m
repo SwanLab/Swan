@@ -16,27 +16,41 @@ classdef DisplacementUpdater < handle
 
         function [u,F,costArray,iter] = update(obj,u,bc,costArray)
             i = 0; err = 1; costOld = costArray(end);
+            % normOld = inf; useSecant = 0;
 
             while (abs(err) > obj.tol) && (i < obj.maxIter)
                 [LHSSec,LHSTan] = obj.functional.computeHessian(u);
                 RHS = obj.functional.computeGradient(u,bc);
 
-                u.setFValues(obj.computeDisplacement(LHSTan,RHS,u,bc));
+                [~,RHSRed] = fullToReduced(obj,LHSTan,RHS,bc);
+                normRHS = norm(RHSRed);
+
+                % if normRHS > 1.05 * normOld
+                %     useSecant = 1;
+                %     fprintf("Using Secant Matrix in this Step")
+                % end
+                % 
+                % if useSecant
+                %     LHS = LHSSec;
+                % else
+                %     LHS = LHSTan;
+                % end
+
+
+                LHS = LHSSec;
+
+                u.setFValues(obj.computeDisplacement(LHS,RHS,u,bc));
 
                 [err, cost] = obj.computeErrorCost(u,bc,costOld);
                 costArray(end+1) = cost;
                 costOld = cost;
                 
                 i = i+1;
-                % obj.monitor.printCost('iterU',i,cost,err);
-                % obj.monitor.update(length(costArray),{[],[cost],[],[]});
-                % obj.monitor.refresh(); 
-                
-                % Display the norm of the residual of the RHS
-                [LHSRed,RHSRed] = fullToReduced(obj,LHSTan,RHS,bc);
-                normRHS = norm(RHSRed);
+
+                normOld = normRHS;
                 fprintf('Iteration %d: Reduced Residual Norm = %.4e\n', i, normRHS);
-           end
+            end
+
             obj.functional.updateDamageOld(u);
             F = obj.computeForceVector(LHSSec,u);
             iter = i;
@@ -61,7 +75,7 @@ classdef DisplacementUpdater < handle
 
                 uInFree = uInVec(bc.free_dofs);
                 uOutFree = obj.updateWithNewton(LHS,RHS,uInFree);
-                uOutVec(bc.free_dofs) = uOutFree;
+                    uOutVec(bc.free_dofs) = uOutFree;
                 uOut = reshape(uOutVec,[flip(size(uIn.fValues))])';
             else
                 uOut = uIn.fValues;

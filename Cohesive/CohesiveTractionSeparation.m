@@ -1,7 +1,6 @@
 classdef CohesiveTractionSeparation < handle
     
     properties (Access = public)
-        lawType
         law
     end
     
