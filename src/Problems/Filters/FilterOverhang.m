@@ -30,9 +30,9 @@ classdef FilterOverhang < handle
         end
 
         function xF = compute(obj,fun,q)
-            xF = obj.computeInitialGuess(fun,q);
             obj.chiN = obj.createRHSShapeFunction(fun,q);
             if isempty(obj.chiNOld) || norm(obj.chiNOld-obj.chiN)/norm(obj.chiN)>=1e-6
+                xF = obj.computeInitialGuess(fun,q);
                 obj.chiNOld = obj.chiN;
                 obj.updateProximal(xF);
                 obj.updateRHSProx();
@@ -40,12 +40,12 @@ classdef FilterOverhang < handle
                 mOld  = obj.computeCost(fun,xF)/value0;
                 delta = 1;
                 xFOld = copy(xF);
-                while (delta>=1e-6)
+                iter = 1;
+                while (delta>=1e-10 && iter<=10000)
                     xF.setFValues(full(obj.LHS\(obj.chiN + obj.rhsProx)));
-                    dxF = xF - xFOld;
                     mNew = obj.computeCost(fun,xF)/value0;
-                    if (mNew - mOld)/Norm(dxF,'L2') <= 1e-2
-                        delta = Norm(dxF,'L2')/Norm(xF,'L2');
+                    if mNew - mOld <= 1e-10
+                        delta = abs(mNew - mOld);
                         obj.gamma = min(obj.gamma*1.2,obj.gammaMax);
                         obj.updateLHS();
                         obj.updateProximal(xF);
@@ -58,9 +58,11 @@ classdef FilterOverhang < handle
                         obj.updateProximal(xFOld);
                         obj.updateRHSProx();
                     end
+                    iter = iter + 1;
                 end
                 obj.trial = xF;
             end
+            xF = obj.trial;
         end
 
         function obj = updateEpsilon(obj,epsilon)
@@ -86,14 +88,16 @@ classdef FilterOverhang < handle
         end
 
         function xF = computeInitialGuess(obj,fun,q)
-            if isempty(obj.chiNOld)
-                s.mesh  = obj.mesh;
+%             if isempty(obj.chiNOld)
+                s.mesh = obj.mesh;
                 s.trial = obj.trial;
-                filter  = FilterLump(s);
-                xF      = filter.compute(fun,q);
-            else
-                xF = copy(obj.trial);
-            end
+                s.filterType = 'PDE';
+                filter = Filter.create(s);
+                filter.updateEpsilon(3*obj.mesh.computeMeanCellSize());
+                xF = filter.compute(fun,q);
+%             else
+%                 xF = copy(obj.trial);
+%             end
         end
 
         function RHS = createRHSShapeFunction(obj,fun,quadType)
@@ -102,11 +106,12 @@ classdef FilterOverhang < handle
         end
 
         function updateProximal(obj,rho)
+            h = obj.mesh.computeMeanCellSize();
             [gRho,constr] = obj.computeIntermediateOperators(rho);
-            coef   = 1/(obj.gamma*obj.epsilon^2+1);
-            pCon   = DomainFunction.create(@(xV) double(constr.evaluate(xV)>=0),obj.mesh,1);
-            nCon   = DomainFunction.create(@(xV) double(constr.evaluate(xV)<0),obj.mesh,1);
-            obj.prox = coef.*gRho.*pCon + gRho.*nCon;
+            coef = 1/(obj.gamma*obj.epsilon^2+1);
+            coefVoid = 1/(obj.gamma*(3*h)^2+1);
+            w    = DomainFunction.create(@(xV) 0.5.*(1 + tanh((constr.evaluate(xV))./(10*h))),obj.mesh,1);
+            obj.prox = coef.*gRho.*w + coefVoid.*gRho.*(1-w);
         end
 
         function [gRho,constr] = computeIntermediateOperators(obj,rho)
@@ -155,7 +160,7 @@ classdef FilterOverhang < handle
         function createMass(obj)
             f     = @(v,u) v.*u;
             Mraw  = IntegrateLHS(f,obj.trial,obj.trial,obj.mesh,'Domain',2);
-            obj.M = diag(sum(Mraw,1));
+            obj.M = Mraw;
         end
 
         function createStiffness(obj)

@@ -9,6 +9,7 @@ classdef DensityVerticalCantilever4x4BothAM < handle
         compliance
         penalty
         perimeter
+        perimeterTh
         volume
         cost
         constraint
@@ -29,6 +30,7 @@ classdef DensityVerticalCantilever4x4BothAM < handle
             obj.createCompliance();
             obj.createPerimeterPenalty();
             obj.createPerimeter();
+            obj.createThicknessConstraint();
             obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
@@ -175,27 +177,81 @@ classdef DensityVerticalCantilever4x4BothAM < handle
         end
 
         function createPerimeter(obj)
-            sF.mesh        = obj.mesh;
-            sF.trial       = LagrangianFunction.create(obj.mesh,1,'P1');
-            sF.senseVector = ConstantFunction.create([0;1],obj.mesh);
-            sF.ovAngleDeg  = 45;
-            f         = FilterOverhang(sF);
+            sF.mesh  = obj.mesh;
+            sF.alpha = 4;
+            sF.beta  = 0;
+            sF.theta = 90;
+            sF.tol0  = 1e-6;
+            f        = NonLinearFilterSegment(sF);
 
             h         = obj.mesh.computeMeanCellSize();
             s.mesh    = obj.mesh;
             s.filter  = f;
-            s.epsilon = 50*h;
-            s.minEpsilon = 50*h;
+            s.epsilon = 3*h;
+            s.minEpsilon = 3*h;
             s.value0 = 1;
             s.tarVolume = 0.4;
+
+            tarRef = [0.3938, 1.2288, 1.2288, 0.3938, 0.8198, 0.9211, 0.9211, 0.8197, 0.3868, 1.2157, 1.2157, 0.3868, 0.4656, 0.3349, 0.3349, 0.4656];
+            x0 = repmat([0.125,0.375,0.625,0.875],[1,4]);
+            y0 = [repmat(1.75,[1,4]),repmat(1.25,[1,4]),repmat(0.75,[1,4]),repmat(0.25,[1,4])];
+            for i = 1:length(x0)
+                s.uMesh          = obj.createBaseDomainPerimeter(x0(i),y0(i));
+                s.target         = 0.6*tarRef(i);
+                s.target0        = 100*s.target;
+                obj.perimeter{i} = PerimeterConstraint(s);
+            end
+        end
+
+        %         function createPerimeter(obj)
+%             sF.mesh        = obj.mesh;
+%             sF.trial       = LagrangianFunction.create(obj.mesh,1,'P1');
+%             sF.senseVector = ConstantFunction.create([0;1],obj.mesh);
+%             sF.ovAngleDeg  = 45;
+%             f         = FilterOverhang(sF);
+% 
+%             h         = obj.mesh.computeMeanCellSize();
+%             s.mesh    = obj.mesh;
+%             s.filter  = f;
+%             s.epsilon = 12*h;
+%             s.minEpsilon = 12*h;
+%             s.value0 = 1;
+%             s.tarVolume = 0.4;
+% 
+%             tarRef = [0.1140, 0.2256, 0.2256, 0.1094, 0.2780, 0.2041, 0.2041, 0.2780, 0.1760, 0.2663, 0.2663, 0.1760, 0.1691, 0.0712, 0.0712, 0.1691];
+%             x0 = repmat([0.125,0.375,0.625,0.875],[1,4]);
+%             y0 = [repmat(1.75,[1,4]),repmat(1.25,[1,4]),repmat(0.75,[1,4]),repmat(0.25,[1,4])];
+%             for i = 1:length(x0)
+%                 s.uMesh          = obj.createBaseDomainPerimeter(x0(i),y0(i));
+%                 s.target         = 0.8*tarRef(i);
+%                 s.target0        = 100*s.target;
+%                 obj.perimeter{i} = PerimeterConstraint(s);
+%             end
+%         end
+
+        function createThicknessConstraint(obj)
+            sF.mesh       = obj.mesh;
+            sF.filterType = 'PDE';
+            sF.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            f             = Filter.create(sF);
+
+            h         = obj.mesh.computeMeanCellSize();
+            s.mesh    = obj.mesh;
+            s.filter  = f;
+            s.epsilon = 3*h;
+            s.value0 = 1;
+            s.tarVolume = 0.4;
+            s.test = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.tau = 0.1/4;
+
+            s.target = 0.15;
+            s.target0 = s.target/100;
 
             x0 = repmat([0.125,0.375,0.625,0.875],[1,4]);
             y0 = [repmat(1.75,[1,4]),repmat(1.25,[1,4]),repmat(0.75,[1,4]),repmat(0.25,[1,4])];
             for i = 1:length(x0)
                 s.uMesh          = obj.createBaseDomainPerimeter(x0(i),y0(i));
-                s.target         = 0.1*(1/4);
-                s.target0        = 100*s.target;
-                obj.perimeter{i} = PerimeterConstraint(s);
+                obj.perimeterTh{i} = MinimumThicknessConstraint(s);
             end
         end
 
@@ -228,6 +284,9 @@ classdef DensityVerticalCantilever4x4BothAM < handle
             for i = 1:length(obj.perimeter)
                 s.shapeFunctions{i+1} = obj.perimeter{i};
             end
+            for i = 1:length(obj.perimeter)
+                s.shapeFunctions{i+17} = obj.perimeterTh{i};
+            end
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
@@ -245,9 +304,9 @@ classdef DensityVerticalCantilever4x4BothAM < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 1500;
             s.tolerance      = 1e-8;
-            s.constraintCase = [{'EQUALITY'},repmat({'INEQUALITY'},[1,16])];
+            s.constraintCase = [{'EQUALITY'},repmat({'INEQUALITY'},[1,32])];
             s.etaNorm        = 0.01;
             s.etaNormMin     = 0.01;
             s.gJFlowRatio    = 1.0;
