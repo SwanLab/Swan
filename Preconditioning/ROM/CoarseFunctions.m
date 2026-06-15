@@ -9,7 +9,6 @@ classdef CoarseFunctions < handle
         ndim
         order
         type           % "discontinous" / "continous"
-        elementType 
     end
 
     methods (Access = public)

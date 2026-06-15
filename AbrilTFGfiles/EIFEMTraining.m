@@ -15,6 +15,7 @@ classdef EIFEMTraining < handle
         geometryType
         levelSet
         unfittedMesh
+        type
     end
 
 
@@ -30,7 +31,7 @@ classdef EIFEMTraining < handle
             obj.repeatMesh();  %create MeshDomain
             bMesh   = obj.meshDomain.createSingleBoundaryMesh();
             s.mesh  = bMesh;
-            s.type  = 'continuous';
+            s.type  = obj.type;
             s.order = 1;
             cf      = CoarseFunctions(s);
             f       = cf.getAnalytical();
@@ -96,6 +97,7 @@ classdef EIFEMTraining < handle
             % obj.unfittedMesh   = cParams.unfittedMesh;
             obj.tolSameNode    = 1e-11;
             obj.Coarseorder    = 1;
+            obj.type           = cParams.type;
         end
 
         function repeatMesh(obj)
