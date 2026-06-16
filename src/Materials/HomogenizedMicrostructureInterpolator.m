@@ -1,4 +1,4 @@
-classdef HomogenizedMicrostructureInterpolator < handle
+    classdef HomogenizedMicrostructureInterpolator < handle
 
     properties (Access = private)
         density

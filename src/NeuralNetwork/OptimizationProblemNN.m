@@ -38,6 +38,7 @@ classdef OptimizationProblemNN < handle
        function plotBoundary(obj,type) 
            obj.plotter.plotBoundary(type);
        end
+       
 
        function plotConections(obj)
            obj.plotter.plotNetworkStatus();
@@ -65,6 +66,9 @@ classdef OptimizationProblemNN < handle
 
        function dY = computeGradient(obj,X)
            dY = obj.network.networkJacobian(X);
+       end
+       function [d_db, d_drho] = computeGradientComponent(obj, X, m)
+           [d_db, d_drho] = obj.network.networkGradientComponent(X, m);
        end
 
    end

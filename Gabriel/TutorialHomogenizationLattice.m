@@ -1,367 +1,196 @@
 classdef TutorialHomogenizationLattice < handle
 
     properties (Access = public)
-        paramHole
+        paramB
+        paramRho
         Chomog
         volFrac
-        f,df,ddf
+        f, df, ddf
     end
 
     properties (Access = private)
-        E
-        nu
+        E, nu
         meshType
         meshN
         holeType
-        nSteps
-        % damageType
+        nStepsB
+        nStepsRho
         pnorm
         monitoring
         Mmass
-        fixedHoleSize
         currentB
+        currentRho
         latticeVectors
-    end
-
-    properties (Access = private)
         baseMesh
         masterSlave
         test
-        maxParam
-        
+        maxParamB
+        maxParamRho
     end
 
     methods (Access = public)
-        
+
         function obj = TutorialHomogenizationLattice()
             obj.init();
-            % obj.defineMesh();
             obj.computeHoleParams();
             obj.compute();
             obj.fitting();
             obj.plot();
-            obj.printTensorAtVolume(0.5);
-        end 
-        
-        
+            
+        end
 
     end
-    
+
     methods (Access = private)
-        
+
         function init(obj)
-            obj.E          = 1;
-            obj.nu         = 0.3;
-            obj.meshType   = 'Square';
-            obj.meshN      = 150;
-
-            obj.holeType   = 'Square';
-            obj.pnorm      = 'Inf';
-            % obj.damageType = 'Area';
-            obj.nSteps     = 80;
-            obj.monitoring = false;
-            obj.fixedHoleSize = 0.7;
+            obj.E           = 1;
+            obj.nu          = 0.3;
+            obj.meshType    = 'Square';
+            obj.meshN       = 80;
+            obj.holeType    = 'Square';
+            obj.pnorm       = 'Inf';
+            obj.nStepsB     = 60;
+            obj.nStepsRho   = 60;
+            obj.monitoring  = false;
+            obj.maxParamB   = 0.5;
+            obj.maxParamRho = 0.979;
         end
 
-        % function defineMesh(obj)
-        %     switch obj.meshType
-        %         case 'Square'
-        %             s.c = [1.2,0.6];
-        %             s.theta = [0,90];
-        %             s.divUnit = obj.meshN;
-        %             s.filename = '';
-        %             MC = MeshCreator(s);
-        %             MC.computeMeshNodes();
-        % 
-        %             % obj.lattice = MC.lattice;
-        %         case 'Hexagon'
-        %             s.c = [1.3,0.6,0.4];
-        %             s.theta = [0,60,120];
-        %             s.divUnit = obj.meshN;
-        %             s.filename = '';
-        %             MC = MeshCreator(s);
-        %             MC.computeMeshNodes();
-        %             % obj.lattice = MC.lattice;
-        %     end
-        %     s.coord  = MC.coord;
-        %     s.connec = MC.connec;
-        %     obj.baseMesh = Mesh.create(s);
-        %     obj.masterSlave = MC.masterSlaveIndex;
-        %     obj.test = LagrangianFunction.create(obj.baseMesh,1,'P1');
-        %     obj.Mmass = IntegrateLHS(@(u,v) DP(v,u), obj.test, obj.test, obj.baseMesh, 'Domain');
-        % end
-
-        function defineMesh(obj)
-            switch obj.meshType
-                case 'Square'
-                    s.latticeVectors = obj.latticeVectors;
-                    s.divUnit = obj.meshN;
-                    s.filename = '';
-                    MC = MeshCreator(s);
-                    MC.computeMeshNodes();
-                    
-                case 'Hexagon'
-                    v1 = obj.latticeVectors(1, :);
-                    v2 = obj.latticeVectors(2, :);
-                    v3 = v2 - v1;
-                    s.latticeVectors = [v1; v2; v3];
-                    s.divUnit = obj.meshN;
-                    s.filename = '';
-                    MC = MeshCreator(s);
-                    MC.computeMeshNodes();
-            end
-            
-            s.coord  = MC.coord;
-            s.connec = MC.connec;
-            obj.baseMesh = Mesh.create(s);
-            obj.masterSlave = MC.masterSlaveIndex;
-            obj.test = LagrangianFunction.create(obj.baseMesh,1,'P1');
-            obj.Mmass = IntegrateLHS(@(u,v) DP(v,u), obj.test, obj.test, obj.baseMesh, 'Domain');
-        end
-
-        % function computeHoleParams(obj)
-        %     obj.maxParam = 0.979*ones(size(obj.nSteps));
-        %     nParam = length(obj.maxParam);
-        %     obj.paramHole = cell(1,nParam);
-        %     for i=1:nParam
-        %         obj.paramHole{i} = linspace(1e-9,obj.maxParam(i),obj.nSteps(i));
-        %     end
-        % end
         function computeHoleParams(obj)
-            obj.maxParam = 0.6;
-            obj.paramHole = linspace(0,obj.maxParam, obj.nSteps);
+            obj.paramB   = linspace(-0.5,    obj.maxParamB,   obj.nStepsB);
+            obj.paramRho = linspace(1e-9, obj.maxParamRho, obj.nStepsRho);
         end
 
-        % function compute(obj)
-        %     comb = table2array(combinations(obj.paramHole{:}));
-        %     nComb = size(comb,1);
-        %     mat = zeros(2,2,2,2,nComb);
-        %     volF = zeros(1,nComb);
-        %     for i=1:nComb
-        %         hole = comb(i,:);
-        %         if i==1
-        %             hole = 1e-10*ones(size(hole));
-        %         end
-        %         mat(:,:,:,:,i) = obj.computeHomogenization(hole);
-        %         volF(i)    = obj.computeVolumeFraction(hole);
-        %     end
-        %     obj.Chomog = obj.assembleResults(mat);
-        %     obj.volFrac = obj.assembleResults(volF);
-        % end
-         function compute(obj)
-            nComb = length(obj.paramHole);
-            mat = zeros(2,2,2,2,nComb);
-            volF = zeros(1,nComb);
-            
-           
-            
-            for i = 1:nComb
-                b_val = obj.paramHole(i);
-                obj.currentB = b_val;             
-                
-                a = exp(b_val^2);
-                d = (1 + b_val^2) / a;
-                
-                v1 = [a,    b_val];
-                v2 = [b_val, d   ];
-                % v1 = [1, 0];
-                % v2 = [b_val, 1];
-                obj.latticeVectors = [v1; v2];                
-                
-                obj.defineMesh();                
-               
-                mat(:,:,:,:,i) = obj.computeHomogenization(b_val);                
-                
-                volF(i) = obj.computeVolumeFraction(b_val);
-                
-                if mod(i,5) == 0
-                    fprintf('  %d/%d - b = %.4f - Volume = %.4f\n', i, nComb, b_val, volF(i));
+        function compute(obj)
+            nB   = length(obj.paramB);
+            nRho = length(obj.paramRho);
+            mat  = zeros(2, 2, 2, 2, nRho, nB);
+            volF = zeros(nRho, nB);
+
+            for iRho = 1:nRho
+                rho_val = obj.paramRho(iRho);
+                obj.currentRho = rho_val;
+                fprintf('\n=== rho = %.4f ===\n', rho_val);
+
+                for iB = 1:nB
+                    b_val = obj.paramB(iB);
+                    obj.currentB = b_val;
+
+                   
+                    a  = exp(b_val^2);
+                    d  = (1 + b_val^2) / a;
+                    v1 = [a,     b_val];
+                    v2 = [b_val, d    ];
+                    obj.latticeVectors = [v1; v2];
+
+                    obj.defineMesh();
+
+                    mat(:,:,:,:,iRho,iB) = obj.computeHomogenization(rho_val, b_val);
+                    volF(iRho,iB)        = obj.computeVolumeFraction(rho_val, b_val);
+
+                    if mod(iB, 5) == 0 || iB == nB
+                        fprintf('  b = %.4f  volF = %.4f\n', b_val, volF(iRho,iB));
+                    end
                 end
             end
-            
-            obj.Chomog = mat;
+
+            obj.Chomog  = mat;
             obj.volFrac = volF;
         end
 
-        
-        function matHomog = computeHomogenization(obj, b_val)
-            dens = obj.createDensityLevelSet(b_val); 
-            mat  = obj.createDensityMaterial(dens);
+        function matHomog = computeHomogenization(obj, rho_val, b_val)
+            dens     = obj.createDensityLevelSet(rho_val, b_val);
+            mat      = obj.createDensityMaterial(dens);
             matHomog = obj.solveElasticMicroProblem(mat, dens);
         end
 
-        function lsf = createDensityLevelSet(obj, b_val)
-            
-            ls = obj.computeLevelSet(obj.baseMesh, obj.fixedHoleSize);  
+        function lsf = createDensityLevelSet(obj, rho_val,b_val)
+           
+            ls = obj.computeLevelSet(obj.baseMesh, rho_val);
+
             sUm.backgroundMesh = obj.baseMesh;
             sUm.boundaryMesh   = obj.baseMesh.createBoundaryMesh;
             uMesh              = UnfittedMesh(sUm);
             uMesh.compute(ls);
 
-            ls = CharacteristicFunction.create(uMesh);
+            ls  = CharacteristicFunction.create(uMesh);
             s.trial = obj.test;
-            s.mesh = obj.baseMesh;
-            f = FilterLump(s); 
+            s.mesh  = obj.baseMesh;
+            f   = FilterLump(s);
             lsf = f.compute(ls, 2);
         end
-        function ls = computeLevelSet(obj, mesh, l_fixo)
-            gPar.type = obj.holeType;
-            gPar.pnorm = obj.pnorm;   
+
+        function ls = computeLevelSet(obj, mesh, rho_val)
             
-            coord = mesh.coord;
-            xmin = min(coord(:,1));
-            xmax = max(coord(:,1));
-            ymin = min(coord(:,2));
-            ymax = max(coord(:,2));          
-            center_x = (xmin + xmax)/2;
-            center_y = (ymin + ymax)/2;
+            gPar.type  = obj.holeType;
+            gPar.pnorm = obj.pnorm;
+
+            coord    = mesh.coord;
+            center_x = (min(coord(:,1)) + max(coord(:,1))) / 2;
+            center_y = (min(coord(:,2)) + max(coord(:,2))) / 2;
             gPar.xCoorCenter = center_x;
             gPar.yCoorCenter = center_y;
-            
-            
-            if ~isempty(obj.latticeVectors)
-                v1 = obj.latticeVectors(1, :);
-                v2 = obj.latticeVectors(2, :);
-                gPar.a1 = v1;
-                gPar.a2 = v2;
-                phi = atan2(v1(2), v1(1));
-            else
-                if size(coord,1) >= 4
-                    v1 = coord(2,:) - coord(1,:);
-                    v2 = coord(3,:) - coord(2,:);
-                    gPar.a1 = v1;
-                    gPar.a2 = v2;
-                    phi = atan2(v1(2), v1(1));
-                else
-                    gPar.a1 = [1, 0];
-                    gPar.a2 = [0, 1];
-                    phi = 0;
-                end
-            end
+
+            v1  = obj.latticeVectors(1, :);
+            v2  = obj.latticeVectors(2, :);
+            phi = atan2(v1(2), v1(1));
+            gPar.a1       = v1;
+            gPar.a2       = v2;
             gPar.rotation = phi;
-            
-            
+
             switch obj.holeType
                 case 'Circle'
-                    gPar.radius = l_fixo/2;
+                    gPar.radius = rho_val / 2;
                 case 'Square'
-                    gPar.length = l_fixo;
+                    gPar.length = rho_val;
                 case 'SmoothRectangle'
-                    sx = l_fixo;
-                    sy = l_fixo/2;           
-                    gPar.xSide = sx;
-                    gPar.ySide = sy;
+                    gPar.xSide = rho_val;
+                    gPar.ySide = rho_val / 2;
                     gPar.pnorm = 16;
                 case 'Ellipse'
-                    gPar.type = "SmoothRectangle";
-                    gPar.xSide  = l_fixo(1);
-                    gPar.ySide  = l_fixo(2);
-                    gPar.pnorm  = 2;  
+                    gPar.type  = 'SmoothRectangle';
+                    gPar.xSide = rho_val(1);
+                    gPar.ySide = rho_val(2);
+                    gPar.pnorm = 2;
                 case 'SmoothHexagon'
-                    gPar.radius = l_fixo;
+                    gPar.radius = rho_val;
                     gPar.normal = [0 1; sqrt(3)/2 1/2; sqrt(3)/2 -1/2];
                 case 'ReinforcedHoneycomb'
-                    gPar.theta  = 1-l_fixo;                          
-                    gPar.eps    = 1;                        
-                    gPar.normal = [0 1; sqrt(3)/2 1/2; sqrt(3)/2 -1/2];            
-                    gPar.radius = l_fixo;    
+                    gPar.theta    = 1 - rho_val;
+                    gPar.eps      = 1;
+                    gPar.normal   = [0 1; sqrt(3)/2 1/2; sqrt(3)/2 -1/2];
+                    gPar.radius   = rho_val;
                     gPar.rotation = phi;
-            end  
-            
-            g = GeometricalFunction(gPar);
-            phiFun = g.computeLevelSetFunction(mesh);
-            lsCircle = phiFun.fValues;
-            ls = -lsCircle;            
-        end
-        
-        % function ls = computeLevelSet(obj,mesh,l)
-        %    gPar.type = obj.holeType;
-        %    gPar.pnorm = obj.pnorm;   
-        %    % a1 = obj.lattice.a1;
-        %    % phi = atan2(a1(2), a1(1));
-        %    % gPar.rotation = phi;
-        %     coord = mesh.coord;
-        %     xmin = min(coord(:,1));
-        %     xmax = max(coord(:,1));
-        %     ymin = min(coord(:,2));
-        %     ymax = max(coord(:,2));          
-        %     center_x = (xmin + xmax)/2;
-        %     center_y = (ymin + ymax)/2;
-        %     gPar.xCoorCenter = center_x;
-        %     gPar.yCoorCenter = center_y;
-        % 
-        %     switch obj.meshType
-        %         case 'Square'
-        % 
-        %              if size(coord,1) >= 4
-        %                 v1 = coord(1,:);
-        %                 v2 = coord(2,:);
-        %                 v3 = coord(3,:);          
-        %                 side1 = v2 - v1;
-        %                 phi = atan2(side1(2), side1(1));
-        %             else
-        %                 phi = 0;
-        %             end
-        %         case 'Hexagon'
-        % 
-        %             if size(coord,1) >= 6
-        %                 v1 = coord(1,:);
-        %                 v2 = coord(2,:);
-        %                 side1 = v2 - v1;
-        %                 phi = atan2(side1(2), side1(1));
-        %             else
-        %                 phi = 0;
-        %             end           
-        %     end
-        %     gPar.rotation = phi;
-        % 
-        %     switch obj.holeType
-        %         case 'Circle'
-        %             gPar.radius = l/2;
-        %         case 'Square'
-        %             gPar.length = l;
-        % 
-        %         case 'SmoothRectangle'
-        % 
-        %             sx = l;
-        %             sy = l/2;            
-        % 
-        % 
-        %             gPar.xSide = sx;
-        %             gPar.ySide = sy;
-        %             gPar.pnorm = 16;
-        %         case 'Ellipse'
-        %             gPar.type = "SmoothRectangle";
-        %             gPar.xSide  = l(1);
-        %             gPar.ySide  = l(2);
-        %             gPar.pnorm  = 2;  
-        %         case 'SmoothHexagon'
-        %             gPar.radius = l;
-        %             gPar.normal = [0 1; sqrt(3)/2 1/2; sqrt(3)/2 -1/2];
-        %         case 'ReinforcedHoneycomb'
-        %             gPar.theta  = 1-l;                          
-        %             gPar.eps    = 1;                        
-        %             gPar.normal = [0 1; sqrt(3)/2 1/2; sqrt(3)/2 -1/2];            
-        %             gPar.radius = l;    
-        %             gPar.rotation = phi;
-        %     end  
-        %     g                  = GeometricalFunction(gPar);
-        %     phiFun             = g.computeLevelSetFunction(mesh);
-        %     lsCircle           = phiFun.fValues;
-        %     % if l(1) <= 1e-9 && gPar.theta == 1
-        %     %     ls = ones(size(lsCircle));
-        %     % else
-        %     ls = -lsCircle; 
-        %     % end            
-        % end
+            end
 
-        function mat = createDensityMaterial(obj,lsf)
+            g      = GeometricalFunction(gPar);
+            phiFun = g.computeLevelSetFunction(mesh);
+            ls     = -phiFun.fValues;
+        end
+
+        function defineMesh(obj)
+            s.latticeVectors = obj.latticeVectors;
+            s.divUnit        = obj.meshN;
+            s.filename       = '';
+            MC = MeshCreator(s);
+            MC.computeMeshNodes();
+
+            s.coord         = MC.coord;
+            s.connec        = MC.connec;
+            obj.baseMesh    = Mesh.create(s);
+            obj.masterSlave = MC.masterSlaveIndex;
+            obj.test        = LagrangianFunction.create(obj.baseMesh, 1, 'P1');
+            obj.Mmass       = IntegrateLHS(@(u,v) DP(v,u), obj.test, obj.test, obj.baseMesh, 'Domain');
+        end
+
+        function mat = createDensityMaterial(obj, lsf)
             s.interpolation  = 'SIMPALL';
             s.dim            = '2D';
-            s.matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(1e-6*obj.E,obj.nu,obj.baseMesh.ndim);
-            s.matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(1e-6*obj.E,obj.nu);
-            s.matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(obj.E,obj.nu,obj.baseMesh.ndim);
-            s.matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(obj.E,obj.nu);
+            s.matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(1e-6*obj.E, obj.nu, obj.baseMesh.ndim);
+            s.matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(1e-6*obj.E, obj.nu);
+            s.matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(obj.E, obj.nu, obj.baseMesh.ndim);
+            s.matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(obj.E, obj.nu);
             mI = MaterialInterpolator.create(s);
 
             x{1} = lsf;
@@ -373,175 +202,82 @@ classdef TutorialHomogenizationLattice < handle
             mat = Material.create(s);
         end
 
-        function matHomog = solveElasticMicroProblem(obj,material,dens)           
-            if obj.monitoring == true
+        function matHomog = solveElasticMicroProblem(obj, material, dens)
+            if obj.monitoring
                 close all
                 dens.plot
                 shading interp
-                colormap (flipud(pink))
+                colormap(flipud(pink))
                 drawnow
             end
 
-            s.mesh = obj.baseMesh;
-            s.material = material;
-            s.scale = 'MICRO';
-            s.dim = '2D';
+            s.mesh               = obj.baseMesh;
+            s.material           = material;
+            s.scale              = 'MICRO';
+            s.dim                = '2D';
             s.boundaryConditions = obj.createBoundaryConditions(obj.baseMesh);
-            s.solverCase = DirectSolver();
-            s.solverType = 'REDUCED';
-            s.solverMode = 'FLUC';
+            s.solverCase         = DirectSolver();
+            s.solverType         = 'REDUCED';
+            s.solverMode         = 'FLUC';
             fem = ElasticProblemMicro(s);
             material.setDesignVariable({dens})
             fem.updateMaterial(material.obtainTensor())
             fem.solve();
-            % fem.plotMicroFields(2,0);
 
-            totVol = obj.baseMesh.computeVolume();
-            matHomog = fem.Chomog/totVol;
+            totVol   = obj.baseMesh.computeVolume();
+            matHomog = fem.Chomog / totVol;
         end
 
-        function bc = createBoundaryConditions(obj,mesh)
-            switch obj.meshType
-                case 'Square'
-                    
-                    isCorner = @(coor) (abs(coor(:,1) - min(coor(:,1))) < 1e-12) & ...
-                                        (abs(coor(:,2) - min(coor(:,2))) < 1e-12);
-                    
-                    sDir{1}.domain    = @(coor) isCorner(coor);
-                    sDir{1}.direction = [1,2];
-                    sDir{1}.value     = 0;
-                    
-                case 'Hexagon'
-                   
-                    isBottomVertex = @(coor) (abs(coor(:,2) - min(coor(:,2))) < 1e-12) & ...
-                                             (abs(coor(:,1) - min(coor(:,1))) < 1e-12);
-                    
-                    sDir{1}.domain    = @(coor) isBottomVertex(coor);
-                    sDir{1}.direction = [1,2];
-                    sDir{1}.value     = 0;
-            end
-        
+        function bc = createBoundaryConditions(obj, mesh)
+            isCorner = @(coor) (abs(coor(:,1) - min(coor(:,1))) < 1e-12) & ...
+                               (abs(coor(:,2) - min(coor(:,2))) < 1e-12);
+            sDir{1}.domain    = @(coor) isCorner(coor);
+            sDir{1}.direction = [1, 2];
+            sDir{1}.value     = 0;
+
             dirichletFun = [];
             for i = 1:numel(sDir)
-                dir = DirichletCondition(mesh, sDir{i});
-                dirichletFun = [dirichletFun, dir];
+                dirichletFun = [dirichletFun, DirichletCondition(mesh, sDir{i})];
             end
-            
+
             s.dirichletFun = dirichletFun;
             s.pointloadFun = [];
             s.periodicFun  = 1;
-            s.mesh = mesh;
+            s.mesh         = mesh;
             bc = BoundaryConditions(s);
             bc.updatePeriodicConditions(obj.masterSlave);
         end
-        
 
-       
-        function fracVol = computeVolumeFraction(obj, b_val)
-           
-            rho = obj.createDensityLevelSet(b_val);    
+        function fracVol = computeVolumeFraction(obj, rho_val, b_val)
+            rho    = obj.createDensityLevelSet(rho_val, b_val);
             volDom = Integrator.compute(ConstantFunction.create(1, obj.baseMesh), obj.baseMesh, 2);
             fracVol = Integrator.compute(rho, rho.mesh, 2) / volDom;
         end
-        
-        function [mat] = assembleResults(obj,vec)
-            sizeRes = size(vec);
-            mat = zeros([sizeRes(1:end-1),obj.nSteps]);
-            nStepsLastParam = obj.nSteps(end);
-            nCombs = sizeRes(end);
-            idxVec = repmat({':'}, 1, ndims(vec));
-            idxMat = repmat({':'}, 1, ndims(mat));
-            for i=1:nStepsLastParam
-                idxVec{end} = i:nStepsLastParam:nCombs;
-                idxMat{end} = i;
-                mat(idxMat{:}) = vec(idxVec{:});
-            end
-        end
-        
-        function printTensorAtVolume(obj, targetVol)
-        
-            
-            [~, idx] = min(abs(obj.volFrac - targetVol));
-        
-            fprintf('\nVolume solicitado: %.4f\n', targetVol);
-            fprintf('Volume encontrado:  %.4f\n\n', obj.volFrac(idx));
-        
-            C = obj.Chomog(:,:,:,:,idx);
-        
-            
-            Cvoigt = zeros(3,3);
-        
-            Cvoigt(1,1) = C(1,1,1,1);
-            Cvoigt(1,2) = C(1,1,2,2);
-            Cvoigt(1,3) = C(1,1,1,2);
-        
-            Cvoigt(2,1) = C(2,2,1,1);
-            Cvoigt(2,2) = C(2,2,2,2);
-            Cvoigt(2,3) = C(2,2,1,2);
-        
-            Cvoigt(3,1) = C(1,2,1,1);
-            Cvoigt(3,2) = C(1,2,2,2);
-            Cvoigt(3,3) = C(1,2,1,2);
-        
-            disp('Tensor homogenizado (Voigt):')
-            disp(Cvoigt)
-        
-            
-            K = (Cvoigt(1,1) + Cvoigt(2,2) + 2*Cvoigt(1,2))/4;
-            mu = Cvoigt(3,3);
-        
-            fprintf('\nBulk modulus efetivo: %.6f\n', K);
-            fprintf('Shear modulus efetivo: %.6f\n', mu);
-        
-           
-            Eeff = mu*(3*K + mu)/(K + mu);
-            nueff = (K - mu)/(K + mu);
-        
-            fprintf('Young efetivo: %.6f\n', Eeff);
-            fprintf('Poisson efetivo: %.6f\n', nueff);
-        
-            
-            figure;
-            imagesc(Cvoigt)
-            colorbar
-            axis equal tight
-            title(['Tensor homogenizado - vol = ', num2str(obj.volFrac(idx))])
-        end
-
-
-
-        function plot(obj)
-            bMin = obj.paramHole(1);    
-            bMax = obj.paramHole(end); 
-            
-            tiledlayout(1,3)
-            
-            nexttile
-            hold on
-            plot(obj.paramHole, squeeze(obj.Chomog(1,1,1,1,:)), 'LineStyle','none', 'Marker','o')
-            fplot(obj.f{1,1,1,1}, [bMin, bMax])
-            xlabel('b'); title('C_{1111}'); grid on
-            
-            nexttile
-            hold on
-            plot(obj.paramHole, squeeze(obj.Chomog(2,2,2,2,:)), 'LineStyle','none', 'Marker','o')
-            fplot(obj.f{2,2,2,2}, [bMin, bMax])
-            xlabel('b'); title('C_{2222}'); grid on
-            
-            nexttile
-            hold on
-            plot(obj.paramHole, squeeze(obj.Chomog(1,2,1,2,:)), 'LineStyle','none', 'Marker','o')
-            fplot(obj.f{1,2,1,2}, [bMin, bMax])
-            xlabel('b'); title('C_{1212}'); grid on
-        end
 
         function fitting(obj)
-            [obj.f,obj.df,obj.ddf] = DamageHomogenizationFitter.computePolynomial(12,obj.paramHole,obj.Chomog);
+            [obj.f, obj.df, obj.ddf] = DamageHomogenizationFitter.computeNN( ...
+                obj.paramB, obj.paramRho, obj.Chomog);
         end
+
+        function plot(obj)
+            [B, R] = meshgrid(obj.paramB, obj.paramRho);
+            components = {[1,1,1,1], 'C_{1111}'; ...
+                          [2,2,2,2], 'C_{2222}'; ...
+                          [1,2,1,2], 'C_{1212}'};
+            figure;
+            tiledlayout(1, 3, 'TileSpacing', 'compact');
+            for k = 1:3
+                idx  = components{k,1};
+                data = squeeze(obj.Chomog(idx(1),idx(2),idx(3),idx(4),:,:));
+                nexttile
+                surf(B, R, data, 'EdgeColor', 'none')
+                xlabel('b'); ylabel('\rho'); zlabel(components{k,2})
+                title(components{k,2}); grid on; view(45, 30)
+            end
+        end
+
         
+
     end
 
-   
-    
 end
-

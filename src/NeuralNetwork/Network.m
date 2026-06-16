@@ -55,18 +55,71 @@ classdef Network < handle
             end
         end
 
-        function J = networkJacobian(obj,X)
+        % function J = networkJacobian(obj,X)
+        %     obj.computeAvalues(X);
+        %     [W, a, nLy] = obj.backLoopVars();
+        %
+        %     J = eye(size(W{end},2));
+        %     for k = nLy:-1:2
+        %         [~,a_der] = obj.actFCN(a{k},k);
+        %         parDer = W{k-1} * diag(a_der);
+        %         J = parDer * J;
+        %     end
+        % end
+        function J = networkJacobian(obj, X)
+            % X: (nPts, nFeatures)
+            % J: (nPts, nFeatures, nLabels)
+
+            nPts = size(X, 1);
+            nFeatures = obj.nFeatures;
+            nLabels = obj.nLabels;
+
             obj.computeAvalues(X);
             [W, a, nLy] = obj.backLoopVars();
-        
-            J = eye(size(W{end},2));
-            for k = nLy:-1:2
-                [~,a_der] = obj.actFCN(a{k},k);
-                parDer = W{k-1} * diag(a_der);
-                J = parDer * J;
-            end
-        end
 
+            % Inicializa J como (nPts, nLabels, nLabels)
+            J = repmat(eye(nLabels), [1, 1, nPts]);
+            J = permute(J, [3, 1, 2]);  % (nPts, nLabels, nLabels)
+
+            for k = nLy:-1:2
+                if k == nLy
+                    g_der = ones(size(a{k}));  % (nPts, nLabels)
+                else
+                    g_der = 1 - a{k}.^2;       % (nPts, nNeurons_k)
+                end
+
+                % CORREÇÃO: broadcast correto
+                J = J .* reshape(g_der, nPts, size(g_der, 2), 1);
+
+                % Propaga pelos pesos
+                J = pagemtimes(J, W{k-1}');
+            end
+
+            % Permuta para (nPts, nFeatures, nLabels)
+            J = permute(J, [1, 3, 2]);
+        end
+        function [d_db, d_drho] = networkGradientComponent(obj, X, m)
+            nPts = size(X, 1);
+
+            obj.computeAvalues(X);
+            [W, a, nLy] = obj.backLoopVars();
+
+            delta = zeros(nPts, size(W{end}, 2));
+            delta(:, m) = 1;
+
+            for k = nLy:-1:2
+                if k == nLy
+                    g_der = ones(size(a{k}));
+                else
+                    g_der = 1 - a{k}.^2;
+                end
+                delta = delta .* g_der;
+                delta = delta * W{k-1}';
+            end
+
+            d_db = delta(:, 1);
+            d_drho = delta(:, 2);
+        end
         function g = computeLastH(obj,X)
             nLy = obj.nLayers;
             [W,b] = obj.learnableVariables.reshapeInLayerForm();
@@ -153,8 +206,8 @@ classdef Network < handle
                     g = gt(z,0).*z;
                     g_der = gt(z,0);
                 case 'tanh'
-                    g = (exp(z)-exp(-z))./(exp(z)+exp(-z));
-                    g_der = (1-z.^2);
+                    g     = tanh(z);
+                    g_der = 1 - g.^2;
                 case 'softmax'
                     g = (exp(z))./(sum(exp(z),2));
                     g_der = z.*(1-z);
