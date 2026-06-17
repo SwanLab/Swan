@@ -16,7 +16,9 @@ classdef IterativeTutorialCohesive < handle
     methods (Access = public)
 
         function obj = IterativeTutorialCohesive(inputData)
+
             obj.inputData = inputData;
+
             obj.createMesh();
             obj.defineCase();
             obj.createCohesiveFunctional();
@@ -31,8 +33,6 @@ classdef IterativeTutorialCohesive < handle
             s.tolerance          = 1e-4;
             s.maxIter            = 40;
             s.tractionLaw        = obj.tractionSeparation;
-            s.leverParams.c = obj.inputData.leverParams.c;
-            s.leverParams.l = obj.inputData.leverParams.l;
 
             s.monitoring.set     = true;
             s.monitoring.print   = true;
@@ -66,9 +66,12 @@ classdef IterativeTutorialCohesive < handle
         end
 
         function defineCase(obj)
+
             obj.solverType = obj.inputData.solverType;
+
             obj.createBoundaryConditions();
             obj.createTractionSeparation();
+
         end
 
         function createBoundaryConditions(obj)
