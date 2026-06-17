@@ -87,6 +87,12 @@ classdef CohesiveComputer < handle
                 totReact = abs(sum(F(dofsYdown)));
                 uBC = obj.boundaryConditions.bcValues(step);
             end
+
+            if  ismember(obj.boundaryConditions.type, ["SingleShear"]) 
+                dofsXdown = (nodes(isInDown)-1)*u.ndimf + 1;
+                totReact = abs(sum(F(dofsXdown)));
+                uBC = obj.boundaryConditions.bcValues(step);
+            end
            isRight   = abs(obj.cohesiveMesh.fullMesh.coord(:,1) - max(obj.cohesiveMesh.fullMesh.coord(:,1))) < 1e-12;
            MiddleY   = (max(obj.cohesiveMesh.fullMesh.coord(:,2)) + min(obj.cohesiveMesh.fullMesh.coord(:,2)))/2;
            isHalfTop = (obj.cohesiveMesh.fullMesh.coord(:,2) - MiddleY) > 1e-12;

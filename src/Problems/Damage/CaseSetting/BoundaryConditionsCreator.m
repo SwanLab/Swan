@@ -70,6 +70,8 @@ classdef BoundaryConditionsCreator < handle
                     obj.createBoundaryConditions = @obj.createEndNotchedFlexConditions;
                 case 'MMB'
                     obj.createBoundaryConditions = @obj.createMMBConditions;
+                case 'SingleShear'
+                    obj.createBoundaryConditions = @obj.createSingleShearConditions;
             end
         end
 
@@ -417,6 +419,35 @@ classdef BoundaryConditionsCreator < handle
             obj.boundaryConditions = BoundaryConditions(s);
         end
 
+        function createSingleShearConditions(obj,uVal)
+            isDown = @(coor) abs(coor(:,2) - min(coor(:,2)))  < 1e-12;
+            sDir.domain    = @(coor) isDown(coor);
+            sDir.direction = [1,2];
+            sDir.value     = 0;
+            Dir1 = DirichletCondition(obj.mesh,sDir);
+
+            isUp = @(coor) abs(coor(:,2) - max(coor(:,2)))  < 1e-12;
+            % sDir.domain    = @(coor) isUp(coor);
+            % sDir.direction = [1];
+            % sDir.value     = 0;
+            % Dir2 = DirichletCondition(obj.mesh,sDir);
+
+            sDir.domain    = @(coor) isUp(coor);
+            sDir.direction = [1];
+            sDir.value     = uVal;
+            Dir2 = DirichletCondition(obj.mesh,sDir);
+
+            sDir.domain    = @(coor) isUp(coor);
+            sDir.direction = [2];
+            sDir.value     = 0;
+            Dir3 = DirichletCondition(obj.mesh,sDir);
+
+            s.mesh = obj.mesh;
+            s.dirichletFun = [Dir1 Dir2 Dir3];
+            s.pointloadFun = [];
+            s.periodicFun = [];
+            obj.boundaryConditions = BoundaryConditions(s);
+        end
 
          % function createLshapeDisplacementConditions(obj,uVal)
          %     isInDown = @(coor) (abs(coor(:,2) - min(coor(:,2)))  < 1e-12);

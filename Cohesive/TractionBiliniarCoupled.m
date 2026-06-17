@@ -105,7 +105,6 @@ classdef TractionBiliniarCoupled < handle
                 ((jF - lambda) > tol) .* ...
                 ((d - obj.dOld) > tol);
 
-
             ddot = ddot .* isDamaging;  
         end
 

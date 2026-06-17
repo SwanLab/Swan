@@ -47,7 +47,7 @@ classdef TutorialCohesive < handle
         function init(obj)
             close all
             obj.inputData.young     = 120e20;
-            obj.inputData.poisson   = 0.3;
+            obj.inputData.poisson   = 0;
     
             obj.inputData.lawType = 'TractionBiliniarCoupled';
             
@@ -64,12 +64,36 @@ classdef TutorialCohesive < handle
 
             % % UnitElem
             obj.inputData.Kcoh        = 1e12;
-            obj.inputData.bcValues    = [0:1e-5:1.15e-4,   1.15e-4:-1e-6:0 , 0:-1e-6:-5e-5];
-            obj.inputData.problemType = 'DisplacementTractionY';
+
+            % ======= UNLOAD ==========
+
+            % 15
+            % obj.inputData.bcValues    = [0       :  1e-6    :  5e-5,...
+            %                             5e-5  :    -2e-6   :  0 ,...
+            %                             0        :   -2e-6  :  -3e-5];
+
+            % 30
+            % obj.inputData.bcValues    = [0       :  1e-6    :  6e-5,...
+            %                             6e-5  :    -2e-6   :  0 ,...
+            %                             0        :   -2e-6  :  -1.7e-5];
+
+
+            % ======= TOTAL ============
+
+            % 15
+            obj.inputData.bcValues    = [0       :  1e-6    :  6.7e-5];
+
+            % 30
+            % obj.inputData.bcValues    = [0       :  1e-6    :  8.6e-5];
+
+
+
+
+            obj.inputData.problemType = 'SingleShear';
             obj.inputData.l = 1;
             obj.inputData.h = 1;
             obj.inputData.yCohLine = 0;
-            obj.inputData.xCohLineMax = 1000;
+            obj.inputData.xCohLineMax =1000;
             obj.inputData.nx = 1;
             obj.inputData.ny = 1;
 
@@ -87,19 +111,19 @@ classdef TutorialCohesive < handle
 
 
             % % ENF
-            obj.inputData.Kcoh      = 1e13;
-            obj.inputData.bcValues = [ ...
-                    0     : 1e-4     :6e-3,...
-                    6e-3  : 2e-5     :6.5e-3,...
-                    6.5e-3  : 1e-6     :9e-3];
-
-            obj.inputData.problemType = 'EndNotchedFlex';
-            obj.inputData.l = 150e-3;
-            obj.inputData.h = 1.55*2e-3;
-            obj.inputData.yCohLine = 0.5*obj.inputData.h;
-            obj.inputData.xCohLineMax = 115e-3;
-            obj.inputData.nx = 1000;
-            obj.inputData.ny = 10;
+            % obj.inputData.Kcoh      = 1e13;
+            % obj.inputData.bcValues = [ ...
+            %         0     : 1e-4     :6e-3,...
+            %         6e-3  : 2e-5     :6.5e-3,...
+            %         6.5e-3  : 1e-6     :9e-3];
+            % 
+            % obj.inputData.problemType = 'EndNotchedFlex';
+            % obj.inputData.l = 150e-3;
+            % obj.inputData.h = 1.55*2e-3;
+            % obj.inputData.yCohLine = 0.5*obj.inputData.h;
+            % obj.inputData.xCohLineMax = 115e-3;
+            % obj.inputData.nx = 1000;
+            % obj.inputData.ny = 10;
 
         end
     
