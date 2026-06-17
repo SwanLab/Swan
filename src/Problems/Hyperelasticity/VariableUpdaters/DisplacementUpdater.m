@@ -6,6 +6,8 @@ classdef DisplacementUpdater < handle
 
         tol
         maxIter
+
+        leverParams
     end
 
     methods (Access = public)
@@ -14,7 +16,7 @@ classdef DisplacementUpdater < handle
             obj.init(cParams);
         end
 
-        function [u,F,costArray,iter] = update(obj,u,bc,costArray)
+        function [u,F,costArray,iter] = update(obj,u,bc,costArray,uA)
             i = 0; err = 1; costOld = costArray(end);
             % normOld = inf; useSecant = 0;
 
@@ -25,21 +27,7 @@ classdef DisplacementUpdater < handle
                 [~,RHSRed] = fullToReduced(obj,LHSTan,RHS,bc);
                 normRHS = norm(RHSRed);
 
-                % if normRHS > 1.05 * normOld
-                %     useSecant = 1;
-                %     fprintf("Using Secant Matrix in this Step")
-                % end
-                % 
-                % if useSecant
-                %     LHS = LHSSec;
-                % else
-                %     LHS = LHSTan;
-                % end
-
-
-                LHS = LHSSec;
-
-                u.setFValues(obj.computeDisplacement(LHS,RHS,u,bc));
+                u.setFValues(obj.computeConstrainedDisplacement(LHSTan,RHS,u,bc,uA));
 
                 [err, cost] = obj.computeErrorCost(u,bc,costOld);
                 costArray(end+1) = cost;
@@ -65,6 +53,7 @@ classdef DisplacementUpdater < handle
             obj.monitor    = cParams.monitor;
             obj.tol        = cParams.tolerance;
             obj.maxIter    = cParams.maxIter;
+            obj.leverParams = cParams.leverParams;
         end
 
         function uOut = computeDisplacement(obj,LHSfull, RHSfull,uIn,bc)
@@ -75,7 +64,31 @@ classdef DisplacementUpdater < handle
 
                 uInFree = uInVec(bc.free_dofs);
                 uOutFree = obj.updateWithNewton(LHS,RHS,uInFree);
-                    uOutVec(bc.free_dofs) = uOutFree;
+                uOutVec(bc.free_dofs) = uOutFree;
+                uOut = reshape(uOutVec,[flip(size(uIn.fValues))])';
+            else
+                uOut = uIn.fValues;
+            end
+        end
+
+        function uOut = computeConstrainedDisplacement(obj,LHSfull, RHSfull,uIn,bc,uA)
+            [LHS,RHS] = fullToReduced(obj,LHSfull,RHSfull,bc);
+            
+            if ~isfield(obj.leverParams,'lastLambda')
+                obj.leverParams.lastLambda = 0;
+            end
+
+            if ~isempty(LHS)
+                uInVec = reshape(uIn.fValues',[uIn.nDofs 1]);
+                uOutVec = uInVec;
+
+                uInFree = uInVec(bc.free_dofs);
+
+                [LHSAug, RHSAug] = obj.getConstraintsTransformationMatrix(uA, bc, LHS, RHS, uInFree);
+
+                uOutFree = obj.updateWithNewton(LHSAug,RHSAug,[uInFree;obj.leverParams.lastLambda]);
+                obj.leverParams.lastLambda = uOutFree(end); uOutFree = uOutFree(1:end-1);
+                uOutVec(bc.free_dofs) = uOutFree;
                 uOut = reshape(uOutVec,[flip(size(uIn.fValues))])';
             else
                 uOut = uIn.fValues;
@@ -103,6 +116,30 @@ classdef DisplacementUpdater < handle
             F = LHS*uVec;
         end
 
-    end
+        function [LHSAug, RHSAug] = getConstraintsTransformationMatrix(obj, uA, bc, LHS, RHS, u)
+            [idxB, idxC] = getdofSMaster(obj,bc);
+            C = sparse(1,size(LHS,1));
+            C(idxB) = obj.leverParams.c + obj.leverParams.l;
+            C(idxC) = -obj.leverParams.c;
 
+            g = uA*obj.leverParams.l;
+
+            LHSAug = [LHS,C';C,0];
+            RHSAug = [RHS;C*u - g];
+        end
+
+        function [idxB, idxC] = getdofSMaster(obj,bc)
+            mesh = obj.leverParams.mesh;
+            isRight = @(coor)  abs(coor(:,1)-max(coor(:,1))) < 1e-12;
+            isMiddle = @(coor) abs(coor(:,1)-(min(coor(:,1)) + max(coor(:,1)))/2) < 1e-12;
+            isUp   = @(coor) abs(coor(:,2) - max(coor(:,2))) < 1e-12;
+            nodeMaster = find(isRight(mesh.coord) & isUp(mesh.coord));
+            nodeSlave  = find(isMiddle(mesh.coord) & isUp(mesh.coord));
+            dofC = mesh.ndim*nodeMaster;
+            dofB = mesh.ndim*nodeSlave;
+            idxB = find(bc.free_dofs == dofB);
+            idxC = find(bc.free_dofs == dofC);
+        end
+
+    end
 end

@@ -32,7 +32,7 @@ classdef CohesiveComputer < handle
             nSteps = length(obj.boundaryConditions.bcValues);
             for iStep = 1:nSteps
                 [u,bc] = obj.preprocess(iStep,nSteps,u);
-                [u,F,cost,iterMax] = obj.updater.update(u,bc,cost);
+                [u,F,cost,iterMax] = obj.updater.update(u,bc,cost,obj.boundaryConditions.bcValues(iStep));
                 obj.postprocess(iStep,u,F,cost,iterMax)
             end
             obj.data = obj.data;
@@ -49,6 +49,8 @@ classdef CohesiveComputer < handle
         end
         
         function setOptimizer(obj,cParams)
+            s.leverParams = cParams.leverParams;
+            s.leverParams.mesh = obj.cohesiveMesh.fullMesh;
             s.functional = cParams.functional;
             s.tolerance  = cParams.tolerance;
             s.maxIter    = cParams.maxIter;
