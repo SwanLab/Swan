@@ -46,7 +46,7 @@ classdef TutorialCohesiveMMB < handle
 
         function init(obj)
             close all
-            obj.inputData.young     = 120e20;
+            obj.inputData.young     = 120e9;
             obj.inputData.poisson   = 0;
     
             obj.inputData.lawType = 'TractionBiliniarCoupled';
@@ -60,20 +60,23 @@ classdef TutorialCohesiveMMB < handle
             obj.inputData.Kcoh        = 1e12;
             obj.inputData.bcValues    = [0       :  1e-6    :  6.7e-5];
 
-            obj.inputData.problemType = 'SingleShear';
-            obj.inputData.l = 1;
-            obj.inputData.h = 1;
-            obj.inputData.yCohLine = 0;
+            obj.inputData.problemType = 'MMB';
+
+            obj.inputData.yCohLine = 1.55e-3;
             obj.inputData.xCohLineMax =1000;
-            obj.inputData.nx = 1;
-            obj.inputData.ny = 1;
+
         end
-    
+
         function createMesh(obj)
+            a.fileName = 'LeverMeshedCollapsed';
+            t = FemDataContainer(a);
+            s.baseMesh = t.mesh;
+            s.baseMesh.coord = 1e-3 * s.baseMesh.coord;
+
+                % obj.inputData.yCohLine = 0.5e-3;
+                % obj.inputData.yCohLine = 0.5e-3;
+
             s.xCohLineMax = obj.inputData.xCohLineMax; s.yCohLine = obj.inputData.yCohLine;
-            
-            baseMesh = 
-            
             obj.cohesiveMesh = NewCohesiveMesh(s);
         end
 
