@@ -107,7 +107,7 @@ classdef CohesiveComputer < handle
                isMiddle =  abs(obj.cohesiveMesh.fullMesh.coord(:,1)-(min(obj.cohesiveMesh.fullMesh.coord(:,1)) + max(obj.cohesiveMesh.fullMesh.coord(:,1)))/2) < 1e-12;                
                % isInBottomLeft =  (abs(obj.cohesiveMesh.fullMesh.coord(:,1) - min(obj.cohesiveMesh.fullMesh.coord(:,1)))< 1e-12) & (abs(obj.cohesiveMesh.fullMesh.coord(:,2) - min(obj.cohesiveMesh.fullMesh.coord(:,2)))< 1e-12);
                % isInBottomRight = (abs(obj.cohesiveMesh.fullMesh.coord(:,1) - min(obj.cohesiveMesh.fullMesh.coord(:,1)))< 1e-12) & (abs(obj.cohesiveMesh.fullMesh.coord(:,2) - min(obj.cohesiveMesh.fullMesh.coord(:,2)))< 1e-12);
-               nodes = find(isUp | isMiddle);
+               nodes = find(isUp & isMiddle);
                dofsY= (nodes-1)*u.ndimf + 2;
                totReact = abs(sum(F(dofsY)));
                uBC = obj.boundaryConditions.bcValues(step);

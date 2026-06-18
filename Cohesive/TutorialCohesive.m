@@ -128,6 +128,12 @@ classdef TutorialCohesive < handle
         end
     
         function createMesh(obj)
+            
+            % reader = FemInputReaderGiD();
+            % s = reader.read('C:\Users\david\Documents\GitHub\Swan\GID\6.LeverMeshedCollapsed.gid');
+            fileName = 'C:\Users\david\Documents\GitHub\Swan\GID\6.LeverMeshedCollapsed.gid\6.LeverMeshedCollapsed.m';
+            Preprocess.readFromGiD(fileName)
+
             s.xCohLineMax = obj.inputData.xCohLineMax; s.yCohLine = obj.inputData.yCohLine;
             s.baseMesh = QuadMesh(obj.inputData.l ,obj.inputData.h, obj.inputData.nx, obj.inputData.ny);
             obj.cohesiveMesh = NewCohesiveMesh(s);
