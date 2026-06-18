@@ -128,12 +128,6 @@ classdef TutorialCohesive < handle
         end
     
         function createMesh(obj)
-            
-            % reader = FemInputReaderGiD();
-            % s = reader.read('C:\Users\david\Documents\GitHub\Swan\GID\6.LeverMeshedCollapsed.gid');
-            fileName = 'C:\Users\david\Documents\GitHub\Swan\GID\6.LeverMeshedCollapsed.gid\6.LeverMeshedCollapsed.m';
-            Preprocess.readFromGiD(fileName)
-
             s.xCohLineMax = obj.inputData.xCohLineMax; s.yCohLine = obj.inputData.yCohLine;
             s.baseMesh = QuadMesh(obj.inputData.l ,obj.inputData.h, obj.inputData.nx, obj.inputData.ny);
             obj.cohesiveMesh = NewCohesiveMesh(s);
@@ -176,52 +170,6 @@ classdef TutorialCohesive < handle
             m  = Material.create(k);
             m.setCohesiveMesh(obj.cohesiveMesh);
         end
-
-        function compareDCBAnalytical(obj)
-
-            G13 = obj.inputData.young/(2*(1 + obj.inputData.poisson));
-            Gamma = 1.18*sqrt(obj.inputData.young*obj.inputData.young)/G13;
-            chi = sqrt((obj.inputData.young/(11*G13))*(3 - 2*(Gamma/(1 + Gamma))^2));
-            a0 = obj.inputData.l - obj.inputData.xCohLineMax;
-            
-            b = 1;
-            
-            h = 0.5*obj.inputData.h;
-            Fdcb = sqrt((obj.inputData.young*b^2*h^3*obj.inputData.firstCritEnergy)/(12*(a0 + chi*h)^2));
-            udcb = (8*(a0 + chi*obj.inputData.h)^3/(obj.inputData.young*b*h^3))*Fdcb;
-            Cdcb = 8*(a0 + chi*h)^3/(obj.inputData.young*b*h^3);
-            FAnalytical = min([0:0.01e-3:4e-3]/Cdcb,Fdcb);
-            
-            figure
-            plot([0:0.01e-3:4e-3]*1e3,FAnalytical,'LineWidth',2)
-            hold on
-            grid on
-            xlabel('Opening displacement [mm]')
-            ylabel('Load [N]')
-            title('DCB LEFM analytical solution')
-            xlim([0,max(obj.inputData.bcValues)*1e3])
-            ylim([0,1.05*max(FAnalytical)])
-            hold on
-            E  = obj.inputData.young;
-            Gc = obj.inputData.firstCritEnergy;
-            a0   = 35e-3;   % initial crack length [m]
-            aMax = 120e-3;  % final crack length [m]
-            a = linspace(a0,aMax,1000);
-            % LEFM load (force per unit width)
-            F = b .* sqrt(Gc .* E .* h.^3 ./ (12 .* a.^2));
-            % Compliance
-            C = 8 .* a.^3 ./ (E .* b .* h.^3);
-            % Opening displacement
-            delta = C .* F;
-            plot(delta*1e3,F,'LineWidth',2)
-            grid on
-
-            Fsim = obj.output(:,1);
-            Usim = obj.output(:,2)*1e3;
-
-            plot(2*Usim,Fsim);
-        end
-
     end
 
 end

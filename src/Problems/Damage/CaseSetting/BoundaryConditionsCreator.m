@@ -384,16 +384,14 @@ classdef BoundaryConditionsCreator < handle
            obj.boundaryConditions = BoundaryConditions(s);
         end
 
-        function createMMBConditions(obj,Flever)
+        function createMMBConditions(obj,uLever)
             isUp   = @(coor) abs(coor(:,2) - max(coor(:,2))) < 1e-12;
             isDown = @(coor) abs(coor(:,2) - min(coor(:,2))) < 1e-12;
             isLeft = @(coor)  abs(coor(:,1)-min(coor(:,1))) < 1e-12;
             isRight = @(coor)  abs(coor(:,1)-max(coor(:,1))) < 1e-12;
             isMiddle = @(coor) abs(coor(:,1)-(min(coor(:,1)) + max(coor(:,1)))/2) < 1e-12;
 
-            F1 = -0.6901*Flever;
-            F2 = 0.3099*Flever;
-
+           
             isInDownLeft = @(coor) isDown(coor) & isLeft(coor);
             sDir.domain    = @(coor) isInDownLeft(coor);
             sDir.direction = [1,2];
@@ -406,20 +404,15 @@ classdef BoundaryConditionsCreator < handle
             sDir.value     = 0;
             Dir2 = DirichletCondition(obj.mesh,sDir);
 
-            sNeum.domain    = @(coor) isUp(coor) & isMiddle(coor);
-            sNeum.direction = [2];
-            sNeum.value     = F1;
-            Neum1 = DirichletCondition(obj.mesh,sNeum);
-
-            isInTopRight    = @(coor) isUp(coor) & isRight(coor);
-            sNeum.domain    = @(coor) isInTopRight(coor);
-            sNeum.direction = [2];
-            sNeum.value     = F2;
-            Neum2 = DirichletCondition(obj.mesh,sNeum);
+            isLeverHandle = @(coor) isUp(coor) & isLeft(coor);
+            sDir.domain    = @(coor) isLeverHandle(coor);
+            sDir.direction = [2];
+            sDir.value     = -uLever;
+            Dir3 = DirichletCondition(obj.mesh,sDir);
 
             s.mesh = obj.mesh;
-            s.dirichletFun = [Dir1 Dir2];
-            s.pointloadFun = [Neum1 Neum2];
+            s.dirichletFun = [Dir1 Dir2 Dir3];
+            s.pointloadFun = [];
             s.periodicFun = [];
             obj.boundaryConditions = BoundaryConditions(s);
         end
