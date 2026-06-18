@@ -1,4 +1,4 @@
-classdef TutorialCohesive < handle
+classdef TutorialCohesiveMMB < handle
 
     properties (Access = public)
         output  
@@ -14,7 +14,7 @@ classdef TutorialCohesive < handle
 
     methods (Access = public)
 
-        function obj = TutorialCohesive()
+        function obj = TutorialCohesiveMMB()
             obj.init();
             obj.createMesh();
             [tractionSeparation] = obj.defineCase();
@@ -71,7 +71,9 @@ classdef TutorialCohesive < handle
     
         function createMesh(obj)
             s.xCohLineMax = obj.inputData.xCohLineMax; s.yCohLine = obj.inputData.yCohLine;
-            s.baseMesh = QuadMesh(obj.inputData.l ,obj.inputData.h, obj.inputData.nx, obj.inputData.ny);
+            
+            baseMesh = 
+            
             obj.cohesiveMesh = NewCohesiveMesh(s);
         end
 
