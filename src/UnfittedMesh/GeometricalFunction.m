@@ -261,6 +261,43 @@ classdef GeometricalFunction < handle
                     fH = @(x) max(fFrame(x),fCross(x));
                     obj.fHandle = fH;
 
+                case 'LatticeCircle'
+                    rMean=cParams.meanRadius;
+                    tRad =cParams.tRadius;
+
+                    s= cParams;
+                    s.type = 'CrossedSquare';
+                    obj.selectHandle(s);
+                    fLattice= obj.fHandle;
+                    
+                    s.radius=rMean-tRad*0.5;
+                    s.type = 'CircleInclusion';
+                    obj.selectHandle(s);
+                    fCircIn=obj.fHandle;
+
+                    s.radius=rMean+tRad*0.5;
+                    s.type = 'Circle';
+                    obj.selectHandle(s);
+                    fCircOut=obj.fHandle;
+
+                    fCircle = @(x) max(fCircOut(x),fCircIn(x));
+                    fH= @(x) min(fCircle(x),-fLattice(x));
+                    obj.fHandle = fH;
+
+                case 'LatticeCircleV2'
+                    s= cParams;
+                    s.type = 'CrossedSquare';
+                    obj.selectHandle(s);
+                    fLattice= obj.fHandle;
+
+                    s.type = 'CircleInclusion';
+                    obj.selectHandle(s);
+                    fCircle=obj.fHandle;
+
+                    fH= @(x) min(fCircle(x),-fLattice(x));
+                    obj.fHandle = fH;
+
+
                 case 'CrossedSquare3D'
                     L  = cParams.length;
                     t1 = cParams.tFrame;
@@ -352,6 +389,43 @@ classdef GeometricalFunction < handle
                                 -x2(x) - yt(x1(x),t), ...     % por debajo del intradós
                                 -x1(x), ...               % antes del borde de ataque
                                 x1(x) - 1], [], 2);
+
+                case 'Auxetic'    
+                    L     = cParams.length;     
+                    H     = cParams.height; 
+                    theta = cParams.theta;
+                    t     = cParams.thickness;
+                    x0    = cParams.xCoorCenter;
+                    y0    = cParams.yCoorCenter;
+                    
+                    fT      = @(x) abs(x2(x)-(y0+H/2-t/2)) - t/2;
+                    fB      = @(x) abs(x2(x)-(y0-H/2+t/2)) - t/2;
+                    fLim1    = @(x) abs(x1(x)-x0) - L/2;
+                    fTop    = @(x) max(fT(x),fLim1(x));
+                    fBot    = @(x) max(fB(x),fLim1(x));
+
+                    fM      = @(x) abs(x2(x)-y0) - t/2;
+                    fM1     = @(x) abs(x2(x)-y0) - t/1.5;
+                    fLim2   = @(x) abs(x1(x)-x0) - L/4;
+                    fM2     = @(x) max(fM1(x),fLim2(x));
+                    fMid    = @(x) max(fM(x),-fM2(x));
+
+                    nx = -sind(theta);
+                    ny =  cosd(theta);
+                    fDiag1 = @(x) max(abs(nx*(x1(x)-(-L/2)) + ny*(x2(x)-(-H/2))) - t/2, x2(x)-0);
+                    fDiag2 = @(x) max(abs(nx*(x1(x)-(L/2)) + ny*(x2(x)-(H/2))) - t/2, 0-x2(x));
+                    fDiag3 = @(x) max(abs(nx*(x1(x)-(-L/2)) - ny*(x2(x)-(H/2))) - t/2,0-x2(x));
+                    fDiag4 = @(x) max(abs(nx*(x1(x)-(L/2)) - ny*(x2(x)-(-H/2))) - t/2,x2(x)-0);
+
+           
+
+                    fHor    = @(x) min([fTop(x),fBot(x),fMid(x)]);
+                    fDiag   = @(x) min([fDiag1(x),fDiag2(x),fDiag3(x),fDiag4(x)]);
+                    fAll    = @(x) min([fHor(x),fDiag(x)]);
+
+
+                    obj.fHandle = fAll;
+
             end
 
         end

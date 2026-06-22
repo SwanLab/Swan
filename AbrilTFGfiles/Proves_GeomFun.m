@@ -95,33 +95,85 @@ for i = 1:Nx
 end
 
 %% REFERENCE LEVEL SET
+x1      = linspace(-1,1,20);
+x2      = linspace(-1,1,20);
+[xv,yv] = meshgrid(x1,x2);
+[F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
+m.coord  = V(:,1:2);
+m.connec = F;
+mesh     = Mesh.create(m);
 
-% gPar.type         = 'CrossedSquare';
-% gPar.length       = 1;
-% gPar.xCoorCenter  = 0.5;
-% gPar.yCoorCenter  = 0.5;
-% gPar.tFrame       = 0.03;
-% gPar.tCross       = 0.7;
+% gPar.type         = 'LatticeCircle';
+% gPar.length       = 2;
+% gPar.xCoorCenter  = 0;
+% gPar.yCoorCenter  = 0;
+% gPar.tFrame       = 0.15;
+% gPar.tCross       = 0.15;
+% gPar.meanRadius   = 0.5;
+% gPar.tRadius      = 0.15;
+% 
+% 
+% gPar.type         = 'LatticeCircleV2';
+% gPar.length       = 2;
+% gPar.xCoorCenter  = 0;
+% gPar.yCoorCenter  = 0;
+% gPar.tFrame       = 0.15;
+% gPar.tCross       = 0.15;
+% gPar.radius       = 2;
 % 
 % gPar.type       = 'Square';
 % gPar.length     =   0.5 ;
 % gPar.xCoorCenter  =  0.5;
 % gPar.yCoorCenter  =  0.5;
 % 
-% gPar.type         = 'Circle';
-% gPar.radius       = params.r;
-% gPar.xCoorCenter  = params.x0;
-% gPar.yCoorCenter  = params.y0;
+% gPar.type         = 'CircleInclusion';
+% gPar.radius       = 0.5;
+% gPar.xCoorCenter  = 0;
+% gPar.yCoorCenter  = 0;
 
 
+g        = GeometricalFunction(gPar);
+phiFun   = g.computeLevelSetFunction(mesh);
+obj.levelSet = phiFun;
+ls       = phiFun.fValues;
 
 sUm.backgroundMesh = mesh;
 sUm.boundaryMesh   = mesh.createBoundaryMesh;
 uMesh              = UnfittedMesh(sUm);
-uMesh.compute(-ls);
+uMesh.compute(ls);
 uMesh.plot();
 
 
+
+%% AUXETIC CELL
+
+x1      = linspace(-1.5,1.5,30);
+x2      = linspace(-1,1,30);
+[xv,yv] = meshgrid(x1,x2);
+[F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
+m.coord  = V(:,1:2);
+m.connec = F;
+mesh     = Mesh.create(m);
+
+gPar.type           = 'Auxetic';
+gPar.length         = 2;
+gPar.height         = 2;
+gPar.xCoorCenter    = 0;
+gPar.yCoorCenter    = 0;
+gPar.theta          = 60;
+gPar.thickness      = 0.2;
+
+
+g        = GeometricalFunction(gPar);
+phiFun   = g.computeLevelSetFunction(mesh);
+obj.levelSet = phiFun;
+ls       = phiFun.fValues;
+
+sUm.backgroundMesh = mesh;
+sUm.boundaryMesh   = mesh.createBoundaryMesh;
+uMesh              = UnfittedMesh(sUm);
+uMesh.compute(ls);
+uMesh.plot();
 
 %% lattice 3D
 mesh=TetraMesh(1,1,1,40,40,40);
