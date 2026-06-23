@@ -178,10 +178,11 @@ classdef LevelSetGripper4x4Thick < handle
         end
 
         function createThicknessConstraint(obj,hTar)
-            sF.mesh       = obj.mesh;
-            sF.filterType = 'PDE';
-            sF.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-            f             = Filter.create(sF);
+            sF.mesh        = obj.mesh;
+            sF.filterType  = 'PDE';
+            sF.boundaryType = 'Robin';
+            sF.trial       = LagrangianFunction.create(obj.mesh,1,'P1');
+            f              = Filter.create(sF);
 
             h         = obj.mesh.computeMeanCellSize();
             s.mesh    = obj.mesh;
@@ -250,7 +251,7 @@ classdef LevelSetGripper4x4Thick < handle
             s.constraintCase = [{'EQUALITY'},repmat({'INEQUALITY'},[1,16])];
             s.etaNorm        = 0.01;
             s.etaNormMin     = 0.01;
-            s.gJFlowRatio    = 8.0;
+            s.gJFlowRatio    = 4.0;
             s.etaMax         = 30;
             s.etaMaxMin      = 0.1;
             s.primalUpdater  = obj.primalUpdater;
