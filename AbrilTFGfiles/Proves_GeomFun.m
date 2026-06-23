@@ -147,8 +147,8 @@ uMesh.plot();
 
 %% AUXETIC CELL
 
-x1      = linspace(-1.5,1.5,30);
-x2      = linspace(-1,1,30);
+x1      = linspace(-1.5,1.5,50);
+x2      = linspace(-1,1,50);
 [xv,yv] = meshgrid(x1,x2);
 [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
 m.coord  = V(:,1:2);
@@ -161,6 +161,7 @@ gPar.height         = 2;
 gPar.xCoorCenter    = 0;
 gPar.yCoorCenter    = 0;
 gPar.theta          = 60;
+gPar.beta           = 64;
 gPar.thickness      = 0.2;
 
 

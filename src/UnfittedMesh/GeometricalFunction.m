@@ -394,33 +394,51 @@ classdef GeometricalFunction < handle
                     L     = cParams.length;     
                     H     = cParams.height; 
                     theta = cParams.theta;
+                    beta = cParams.beta;
                     t     = cParams.thickness;
                     x0    = cParams.xCoorCenter;
                     y0    = cParams.yCoorCenter;
+                    nx1 = -sind(theta);
+                    ny1 =  cosd(theta);
+                    nx2= -sind(beta);
+                    ny2= cosd(beta);
                     
                     fT      = @(x) abs(x2(x)-(y0+H/2-t/2)) - t/2;
                     fB      = @(x) abs(x2(x)-(y0-H/2+t/2)) - t/2;
-                    fLim1    = @(x) abs(x1(x)-x0) - L/2;
-                    fTop    = @(x) max(fT(x),fLim1(x));
-                    fBot    = @(x) max(fB(x),fLim1(x));
+                    fC      = @(x) abs(x2(x)-y0) - t/2;
 
-                    fM      = @(x) abs(x2(x)-y0) - t/2;
-                    fM1     = @(x) abs(x2(x)-y0) - t/1.5;
-                    fLim2   = @(x) abs(x1(x)-x0) - L/4;
-                    fM2     = @(x) max(fM1(x),fLim2(x));
-                    fMid    = @(x) max(fM(x),-fM2(x));
+                    fOut1 = @(x) nx1*(x1(x)-(-L/2-t/2)) + ny1*(x2(x)-(-H/2));  % Outer
+                    fOut2 = @(x) -nx1*(x1(x)-(L/2+t/2)) - ny1*(x2(x)-(H/2));
+                    fOut3 = @(x) nx1*(x1(x)-(-L/2-t/2)) - ny1*(x2(x)-(H/2));
+                    fOut4 = @(x) -nx1*(x1(x)-(L/2+t/2)) + ny1*(x2(x)-(-H/2));
 
-                    nx = -sind(theta);
-                    ny =  cosd(theta);
-                    fDiag1 = @(x) max(abs(nx*(x1(x)-(-L/2)) + ny*(x2(x)-(-H/2))) - t/2, x2(x)-0);
-                    fDiag2 = @(x) max(abs(nx*(x1(x)-(L/2)) + ny*(x2(x)-(H/2))) - t/2, 0-x2(x));
-                    fDiag3 = @(x) max(abs(nx*(x1(x)-(-L/2)) - ny*(x2(x)-(H/2))) - t/2,0-x2(x));
-                    fDiag4 = @(x) max(abs(nx*(x1(x)-(L/2)) - ny*(x2(x)-(-H/2))) - t/2,x2(x)-0);
+                    fMid1 = @(x) nx1*(x1(x)-(-L/2)) + ny1*(x2(x)-(-H/2));  % Outer
+                    fMid2 = @(x) -nx1*(x1(x)-(L/2)) - ny1*(x2(x)-(H/2));
+                    fMid3 = @(x) nx1*(x1(x)-(-L/2)) - ny1*(x2(x)-(H/2));
+                    fMid4 = @(x) -nx1*(x1(x)-(L/2)) + ny1*(x2(x)-(-H/2));
 
-           
+                    fIn1 = @(x) nx2*(x1(x)-(-L/2+t/2)) + ny2*(x2(x)-(-H/2)); % Inner
+                    fIn2 = @(x) -nx2*(x1(x)-(L/2-t/2)) - ny2*(x2(x)-(H/2));
+                    fIn3 = @(x) +nx2*(x1(x)-(-L/2+t/2)) - ny2*(x2(x)-(H/2));
+                    fIn4 = @(x) -nx1*(x1(x)-(L/2-t/2)) + ny1*(x2(x)-(-H/2));
 
-                    fHor    = @(x) min([fTop(x),fBot(x),fMid(x)]);
-                    fDiag   = @(x) min([fDiag1(x),fDiag2(x),fDiag3(x),fDiag4(x)]);
+
+                    fTop    = @(x) max([fT(x),fOut2(x),fOut3(x)]);
+                    fBot    = @(x) max([fB(x),fOut1(x),fOut4(x)]);
+                    fCen1   = @(x) max([fC(x),-fMid1(x),-fMid3(x)]);
+                    fCen2   = @(x) max([fC(x),-fMid2(x),-fMid4(x)]);
+
+                    fFrame1= @(x) max([fOut2(x),fOut3(x)]);
+                    fFrame2= @(x) max([fOut1(x),fOut4(x)]);
+                    fFrame = @(x) min([fFrame1(x),fFrame2(x)]);
+
+                    fInt1= @(x) max([fIn2(x),fIn3(x)]);
+                    fInt2= @(x) max([fIn1(x),fIn4(x)]);
+                    fInt = @(x) min([fInt1(x),fInt2(x)]);
+
+
+                    fHor    = @(x) min([fTop(x),fBot(x),fCen1(x),fCen2(x)]);
+                    fDiag   = @(x) max([fFrame(x),-fInt(x)]);
                     fAll    = @(x) min([fHor(x),fDiag(x)]);
 
 
