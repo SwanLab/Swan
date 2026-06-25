@@ -46,15 +46,23 @@ classdef TetradecahedronMeshComputer < handle
             for i=1:size(obj.planeCoeffs,2)
                 n = obj.planeCoeffs(1:3,i);
 
-                fMaster = (abs(coordFaces(:,2:4)*n - obj.planeCoeffs(4,i)) < 1e-2);
-                fSlave  = (abs(coordFaces(:,2:4)*n - obj.planeCoeffs(5,i)) < 1e-2);
+                fMaster = (abs(coordFaces(:,2:4)*n - obj.planeCoeffs(4,i)) < 1e-3);
+                fSlave  = (abs(coordFaces(:,2:4)*n - obj.planeCoeffs(5,i)) < 1e-3);
                 coordMaster = coordFaces(fMaster,:);
                 coordSlave  = coordFaces(fSlave,:);
 
                 distVec = obj.computeDistanceVector(coordMaster,n);
                 coordMasterNew = [coordMaster(:,1), coordMaster(:,2:end) + distVec];
                 cM = sortrows(coordMasterNew,[2:4]); cS = sortrows(coordSlave,[2:4]);
-                %max(abs(cM(:,2:4)-cS(:,2:4)),[],'all') % Check position difference between nodes
+                err1 = max(abs(cM(:,2:4)-cS(:,2:4)),[],'all') % Check position difference between nodes
+                if err1>1e-3
+                    cM = sortrows(coordMasterNew,2); cS = sortrows(coordSlave,2);
+                    err2 = max(abs(cM(:,2:4)-cS(:,2:4)),[],'all')
+                    if err2>1e-3
+                        cM = sortrows(coordMasterNew,4); cS = sortrows(coordSlave,4);
+                        err3 = max(abs(cM(:,2:4)-cS(:,2:4)),[],'all')
+                    end
+                end
                 MSfull = [MSfull; [cM(:,1) cS(:,1)]];
             end
         end

@@ -1,0 +1,16 @@
+-- FreeFem++ v4.15 (Wed Dec 11 16:48:56 CET 2024 - git v4.15-7-gb1e524c8c)
+   file : C:\Users\Gervi\Desktop\micros_3d\periodicTetradecaedron.edp
+ Load: lg_fem lg_mesh lg_mesh3 eigenvalue
+    1 : string meshFileName = "FullFull.gidFull.msh";
+    2 : mesh3 Mesh = readmesh3(meshFileName);
+    3 : plot(Mesh); sizestack + 1024 =1288  ( 264 )
+ 
+read mesh ok 1Mesh3, num Tetra:= 0, num Vertice:= 0 num boundary Triangles:= 0
+  --  Mesh3::Mesh3 Erreur opening FullFull.gidFull.msh
+  current line = 2
+Assertion fail : (0)
+        line :161, in file ../femlib/Mesh3dn.cpp
+Assertion fail : (0)
+        line :161, in file ../femlib/Mesh3dn.cpp
+ err code 6 ,  mpirank 0
+ try getConsole C:\Users\Gervi\Desktop\micros_3d\periodicTetradecaedron.edp

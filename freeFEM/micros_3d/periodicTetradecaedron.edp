@@ -1,0 +1,35 @@
+// Read mesh
+string meshFileName = "mallaGMESH";
+mesh3 Th = readmesh3(meshFileName);
+plot(Th, wait=true);
+
+cout << Th.nv << endl;
+cout << Th.nt << endl;
+
+// Create master-slave array
+ifstream file("MS.txt");
+int pairs;
+file >> pairs;
+
+int[int] master(pairs), slave(pairs);
+
+for (int i = 0; i < pairs; i++)
+{    
+    file >> master[i] >> slave[i];
+    cout << master[i] << ";" << slave[i] << endl;
+}
+
+// Compute elasticity problem
+fespace Vh3(Th,P1);
+
+for (int i=0; i<1; i++)
+{
+
+    
+}
+macro grad3(u) [dx(u),dy(u),dz(u)]//
+cout << " Vh3 ndof " << Vh3.ndof << endl; 
+func u3e =(sin(x+1)*sin(y+2)*sin(z+3));
+Vh3 u3,v3,u3h=u3e;
+func f3= 3.*u3e;
+solve P3(u3,v3) = int3d(Th3)(grad3(u3)'*grad3(v3)+1e-6*u3*v3) - int3d(Th3)(f3*v3) ;

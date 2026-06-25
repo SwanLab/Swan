@@ -153,7 +153,7 @@ classdef PhaseFieldComputer < handle
             BottomSide = min(obj.mesh.coord(:,3));
             isInBottom = abs(obj.mesh.coord(:,3)-BottomSide)< 1e-12;
             if ismember(obj.boundaryConditions.u.type, "DisplacementTractionZ")
-                dofsZbottom = (nodes(isInBottom)-1)*u.ndimf + 1;
+                dofsZbottom = (nodes(isInBottom)-1)*u.ndimf + 2;
                 totReact = abs(sum(F(dofsZbottom)));
                 uBC = obj.boundaryConditions.u.bcValues(step);
             end

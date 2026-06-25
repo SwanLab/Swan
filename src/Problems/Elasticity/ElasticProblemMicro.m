@@ -33,7 +33,7 @@ classdef ElasticProblemMicro < handle
                 [eB,v] = obj.createDeformationBasis(iB);
                 f = @(v) -DDP(SymGrad(v),DDP(C,eB));
                 RHS = IntegrateRHS(f,obj.testFun,obj.mesh,'Domain',2);    
-                uF{iB}      = obj.computeDisplacement(LHS,RHS,iB);
+                uF{iB} = obj.computeDisplacement(LHS,RHS,iB);
                 %uF{iB}.print(['Disp',num2str(iB)])
                 strainF{iB} = eB+SymGrad(uF{iB});
                 stressF{iB} = DDP(obj.material, strainF{iB});
@@ -59,8 +59,8 @@ classdef ElasticProblemMicro < handle
         end
 
         function [fun, funNames] = getFunsToPlot(obj)
-            fun = {obj.uFluc, obj.strain.project('P1'), ...
-                obj.stress.project('P1')};
+            fun = {obj.uFluc, obj.strain.project('P2'), ...
+                obj.stress.project('P2')};
             funNames = {'displacement', 'strain', 'stress'};
         end
 
@@ -78,8 +78,8 @@ classdef ElasticProblemMicro < handle
         end
 
         function createTrialFun(obj)
-            obj.trialFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
-            obj.testFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
+            obj.trialFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P2');
+            obj.testFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P2');
         end
 
        function [s,v] = createDeformationBasis(obj,iBasis)
@@ -88,7 +88,7 @@ classdef ElasticProblemMicro < handle
            sV(v(iBasis,1),v(iBasis,2)) = 1;
            sHV = diag(diag(sV));
            sDV = sV-sHV;
-           sV = sHV+1*(sDV+sDV');
+           sV = sHV+0.5*(sDV+sDV');
            s = ConstantFunction.create(sV,obj.mesh);
        end
 
@@ -141,8 +141,8 @@ classdef ElasticProblemMicro < handle
             if v1==v2
                 Ch(:,:,v1,v2) = ChiB;
             else
-                Ch(:,:,v1,v2) = ChiB./2;
-                Ch(:,:,v2,v1) = ChiB./2;
+                Ch(:,:,v1,v2) = ChiB;
+                Ch(:,:,v2,v1) = ChiB;
                 % ChShear        = zeros(size(ChiB));
                 % ChShear(v1,v2) = ChiB(v1,v2);
                 % Ch(:,:,v1,v2)  = ChShear;
