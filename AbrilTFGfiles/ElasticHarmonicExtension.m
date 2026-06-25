@@ -9,6 +9,7 @@ classdef ElasticHarmonicExtension < handle
         bMesh 
         type
         nLambda
+        lambDofsGlobal
     end
 
     methods (Access = public)
@@ -50,10 +51,13 @@ classdef ElasticHarmonicExtension < handle
                         obj.lambdaFun  = cParams.lambdaFun;
                         obj.bMesh      = cParams.bMesh;
                     end
-                   obj.nLambda = 0;
-                    for iLam = 1:numel(obj.lambdaFun)
-                        obj.nLambda = obj.nLambda + obj.lambdaFun{iLam}.nDofs;
+                   offset = 0;
+                    for i = 1:numel(obj.lambdaFun)
+                        nLi=obj.lambdaFun{i}.nDofs;
+                        obj.lambDofsGlobal{i} = offset + (1:nLi);
+                        offset=offset +nLi;
                     end
+                    obj.nLambda = offset;
             end            
         end
 
@@ -74,8 +78,9 @@ classdef ElasticHarmonicExtension < handle
                 case 'discontinuous'
                     C= sparse(obj.uFun.nDofs,obj.nLambda);
                     [uBfun,iGlob]=obj.restrictToBoundary(obj.uFun);
-                    jGlob= @(iLoc) iLoc;
+                    % jGlob= @(iLoc) iLoc;
                     for i = 1:numel(obj.lambdaFun)
+                        jGlob=obj.lambDofsGlobal{i};
                         lhsLoc = IntegrateLHS(f,uBfun{i},obj.lambdaFun{i},obj.bMesh{i}.mesh,'Domain',2);
                         [iLoc,jLoc,vals] = find(lhsLoc);
                         Ci = sparse(iGlob{i}(iLoc),jGlob(jLoc),vals, obj.uFun.nDofs,obj.nLambda);
@@ -113,21 +118,6 @@ classdef ElasticHarmonicExtension < handle
                         end
                         iLambda0 = iLambda0 + nLi;
                     end
-                    
-                    % for iD = 1:numel(uD)
-                    %     n = 0;
-                    %     iSegment = floor((iD-1)/4)+1;
-                    % 
-                    %     for iLam = 1:numel(obj.lambdaFun)
-                    %         nLi = obj.lambdaFun{iLam}.nDofs;
-                    %         if iLam == iSegment
-                    %             f = @(v) DP(v,uD{iD});
-                    %             ri = IntegrateRHS(f,obj.lambdaFun{iLam},obj.bMesh{iLam}.mesh,'Domain',2);
-                    %             rDir(n+(1:nLi),iD) = ri;
-                    %         end
-                    %         n = n + nLi;
-                    %     end
-                    % end
             end
 
             Z   = sparse(obj.uFun.nDofs,numel(uD));

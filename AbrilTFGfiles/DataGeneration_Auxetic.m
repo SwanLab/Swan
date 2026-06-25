@@ -8,8 +8,8 @@ clc; clear; close all;
 
 %% INPUTS
 
-p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale'
-p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
+p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
+p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
 
 %% DATA GENERATION
 mR              = createReferenceMesh();
@@ -17,20 +17,23 @@ switch p.Training
     case 'Multiscale'
         material          = createMaterial(mR,[1 1]);
         mesh              = mR;
-        % bMesh             = mesh.createSingleBoundaryMesh();
-        bMesh             = mesh.createBoundaryMesh();
-        s.mesh            = mesh;
-        s.uFun            = LagrangianFunction.create(mesh, mesh.ndim, 'P1');
-        % s.lambdaFun       = LagrangianFunction.create(bMesh,mesh.ndim, 'P1');
-        s.lambdaFun{1}  = LagrangianFunction.create(bMesh{1}.mesh,mesh.ndim, 'P1');
-        s.lambdaFun{2}  = LagrangianFunction.create(bMesh{2}.mesh,mesh.ndim, 'P1');
-        s.lambdaFun{3}  = LagrangianFunction.create(bMesh{3}.mesh,mesh.ndim, 'P1');
-        s.lambdaFun{4}  = LagrangianFunction.create(bMesh{4}.mesh,mesh.ndim, 'P1');
-        s.material         = material;
-        s.bMesh            = bMesh;
         s.type             = 'discontinuous';
-        s.dirichletFun  = createDirichletFunction(bMesh,s.type);
-        e  = ElasticHarmonicExtension(s);
+        switch s.type
+            case 'continuous'
+                bMesh        = mesh.createSingleBoundaryMesh();
+                s.lambdaFun  = LagrangianFunction.create(bMesh,mesh.ndim, 'P1');
+            case 'discontinuous'
+                bMesh        = mesh.createBoundaryMesh();
+                for i=1:numel(bMesh)
+                    s.lambdaFun{i}=LagrangianFunction.create(bMesh{i}.mesh,mesh.ndim, 'P1');
+                end
+        end
+        s.mesh            = mesh;
+        s.bMesh           = bMesh;
+        s.uFun            = LagrangianFunction.create(mesh, mesh.ndim, 'P1');
+        s.material        = material;
+        s.dirichletFun    = createDirichletFunction(bMesh,s.type);
+        e                 = ElasticHarmonicExtension(s);
         [T,lambda,K,Kcoarse] = e.solve();
    
     case {'EIFEM','EIFisol'}
@@ -40,7 +43,7 @@ switch p.Training
         s.material       = material;
         s.domainIndices  = dI;
         s.nSubdomains    = nS;
-        s.type           = 'continuous';
+        s.type           = 'discontinuous';
         m= EIFEMTraining(s);
         data          = m.train();
         [data.material] = createMaterial(mR,[1 1]);
@@ -53,7 +56,7 @@ switch p.Training
         Kcoarse  = EIFEoper.Kcoarse;
 end
 
-string = "AuxeticMultiscale.mat";
+string = "CellEIFEMtraining.mat";
 
 % Guarda el .mat per cert radi
 FileName=fullfile('AbrilTFGfiles','Data',"Auxetic",string);
@@ -72,6 +75,7 @@ end
 function mS = createReferenceMesh()
 
     filename = 'DEF_Q4auxL_1.mat';
+    % filename = 'DEF_Q4porL_1.mat';
     load(filename,'EIFEoper');
     s.coord    = EIFEoper.MESH.COOR;
     s.connec   = EIFEoper.MESH.CN;
@@ -106,11 +110,11 @@ end
 function [nS,dI] = defineNumberOfSubdomains(type)
     switch type
         case 'Isolated'
-            nS = [1 1 1]; %nx ny
-            dI = [1 1 1];
+            nS = [1 1]; %nx ny
+            dI = [1 1];
         case 'Oversampling'
-            nS = [2 1 1]; %nx ny
-            dI = [1 1 1];
+            nS = [5 5]; %nx ny
+            dI = [3 3];
     end
 end
 

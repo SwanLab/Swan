@@ -29,21 +29,24 @@ classdef EIFEMTraining < handle
         function data=train(obj)
           
             obj.repeatMesh();  %create MeshDomain
-            bMesh   = obj.meshDomain.createSingleBoundaryMesh();
-            s.mesh  = bMesh;
-            s.type  = obj.type;
-            s.order = 1;
-            cf      = CoarseFunctions(s);
-            f       = cf.getAnalytical();
-            dirchletFun = f;
-
-            s.mesh         = obj.meshDomain;
-            s.uFun         = LagrangianFunction.create(obj.meshDomain,obj.meshDomain.ndim,'P1');
-            s.lambdaFun    = LagrangianFunction.create(bMesh,obj.meshDomain.ndim,'P1');
-            s.material     = obj.material;
-            s.dirichletFun = dirchletFun;
-            e  = ElasticHarmonicExtension(s);
-            [u,~,K,~] = e.solve();
+            switch obj.type
+                case 'continuous'
+                    bMesh        = obj.meshDomain.createSingleBoundaryMesh();
+                    s.lambdaFun  = LagrangianFunction.create(bMesh,obj.meshDomain.ndim,'P1');
+                case 'discontinuous'
+                    bMesh          = obj.meshDomain.createBoundaryMesh();
+                    for i=1:numel(bMesh)
+                        s.lambdaFun{i}=LagrangianFunction.create(bMesh{i}.mesh,obj.meshDomain.ndim, 'P1');
+                    end
+            end
+            s.mesh          = obj.meshDomain;
+            s.bMesh         = bMesh;
+            s.uFun          = LagrangianFunction.create(obj.meshDomain,obj.meshDomain.ndim,'P1');
+            s.material      = obj.material;
+            s.dirichletFun  = obj.createDirichletFunction(bMesh);
+            s.type          = obj.type;
+            e               = ElasticHarmonicExtension(s);
+            [u,~,K,~]       = e.solve();
 
             [data.uSbd,data.LHSsbd] = obj.extractDomainData(u,K);
 
@@ -81,7 +84,7 @@ classdef EIFEMTraining < handle
                 ss.mesh = mh;
                 ss.fValues = fvalues;
                 ss.order = 'P1';
-                ss.ndimf = size(fvalues,2)
+                ss.ndimf = size(fvalues,2);
                 u = LagrangianFunction(ss);
                 u.print("LevelSet"+num2str(i),'Paraview')
             end
@@ -176,6 +179,14 @@ classdef EIFEMTraining < handle
             else
                 d = DomainDecompositionDofManager3D(s);
             end
+        end
+
+        function dF = createDirichletFunction(obj,bMesh)
+            s.mesh = bMesh;
+            s.order= 1;
+            s.type = obj.type;
+            cf = CoarseFunctions(s);
+            dF = cf.getAnalytical();
         end
 
     end

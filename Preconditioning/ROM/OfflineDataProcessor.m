@@ -341,23 +341,34 @@ classdef OfflineDataProcessor < handle
         end
 
         function Vfun = createInterfaceModesFun(obj,bMesh)
-            joinedBMesh=obj.mesh.createSingleBoundaryMesh();
-            s.mesh=joinedBMesh;
-            s.type='continuous';
-            cf=CoarseFunctions(s);
-            f=cf.compute();
-            nfun = size(f,2);
-            nbd = size(bMesh,1);
+            % joinedBMesh=obj.mesh.createSingleBoundaryMesh();
+            % s.mesh=joinedBMesh;
+            % s.type='continuous';
+            % cf=CoarseFunctions(s);
+            s.mesh  = bMesh;
+            s.type  = 'discontinuous';
+            cf      = CoarseFunctions(s);
+            f       = cf.compute();
+            nfun    = size(f,2);
+            nbd     = size(bMesh,1);
+            nPerSeg = nfun/nbd;
             Vfun = cell(1,nbd);
+            k=1;
             for ibd = 1:nbd
                 Mesh = bMesh{ibd}.mesh;
                 VCoeff = cell(1, nfun);
                 ftype = cell(1, nfun);
                 for i = 1:nfun
-                    uD = AnalyticalFunction.create(f{i}, Mesh);
+                    VCoeff{i} = zeros(Mesh.nnodes,Mesh.ndim);
+                    ftype{i}  = 'P1';
+                end
+                
+                for i = 1:nPerSeg
+                    uD = AnalyticalFunction.create(f{k}, Mesh);
                     uD = project(uD, 'P1');
-                    VCoeff{i} = uD.fValues;
-                    ftype{i} = 'P1';
+                    VCoeff{k} = uD.fValues;
+                    ftype{k} = 'P1';
+                    k=k+1;
                 end
                 Vfun{ibd} = ModalFunction.create(Mesh, VCoeff, ftype);
             end
