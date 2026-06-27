@@ -51,16 +51,8 @@ classdef IterativeTutorialCohesive < handle
     methods (Access = private)
 
         function createMesh(obj)
-
-            s.xCohLineMax = obj.inputData.xCohLineMax;
-            s.yCohLine    = obj.inputData.yCohLine;
-
-            s.baseMesh = QuadMesh( ...
-                obj.inputData.l,...
-                obj.inputData.h,...
-                obj.inputData.nx,...
-                obj.inputData.ny);
-
+            s.baseMesh = obj.inputData.baseMesh;
+            s.xCohLineMax = obj.inputData.xCohLineMax; s.yCohLine = obj.inputData.yCohLine;
             obj.cohesiveMesh = NewCohesiveMesh(s);
 
         end

@@ -15,7 +15,7 @@ classdef DisplacementUpdater < handle
         end
 
         function [u,F,costArray,iter] = update(obj,u,bc,costArray)
-            i = 0; err = 1; costOld = costArray(end);
+            i = 0; err = 1; costOld = costArray(end); 
             % normOld = inf; useSecant = 0;
 
             while (abs(err) > obj.tol) && (i < obj.maxIter)
@@ -25,22 +25,9 @@ classdef DisplacementUpdater < handle
                 [~,RHSRed] = fullToReduced(obj,LHSTan,RHS,bc);
                 normRHS = norm(RHSRed);
 
-                % if normRHS > 1.05 * normOld
-                %     useSecant = 1;
-                %     fprintf("Using Secant Matrix in this Step")
-                % end
-                % 
-                % if useSecant
-                %     LHS = LHSSec;
-                % else
-                %     LHS = LHSTan;
-                % end
 
-
-                LHS = LHSSec;
-
-                u.setFValues(obj.computeDisplacement(LHS,RHS,u,bc));
-
+                u.setFValues(obj.computeDisplacement(LHSSec,RHS,u,bc));
+                
                 [err, cost] = obj.computeErrorCost(u,bc,costOld);
                 costArray(end+1) = cost;
                 costOld = cost;

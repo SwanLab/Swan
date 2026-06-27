@@ -46,38 +46,40 @@ classdef TutorialCohesiveMMB < handle
 
         function init(obj)
             close all
-            obj.inputData.young     = 120e9;
-            obj.inputData.poisson   = 0;
+            obj.inputData.young     = 120e3;
+            obj.inputData.poisson   = 0.3;
     
             obj.inputData.lawType = 'TractionBiliniarCoupled';
             
             % TURON
-            obj.inputData.tau0Normal       = 15e6;
-            obj.inputData.tau0Shear        = 30e6;
-            obj.inputData.firstCritEnergy  = 5*260;
-            obj.inputData.secondCritEnergy = 1002;
+            obj.inputData.tau0Normal       = 15;
+            obj.inputData.tau0Shear        = 30;
+            obj.inputData.firstCritEnergy  = 0.260;
+            obj.inputData.secondCritEnergy = 1.002;
             obj.inputData.eta              = 2;
-            obj.inputData.Kcoh        = 1e12;
-            obj.inputData.bcValues    = [0       :  1e-6    :  6.7e-5];
+            obj.inputData.Kcoh        = 1e6;
+            
+            % obj.inputData.bcValues    = [0       :  5e-2    :  3.8,...
+            %                              3.8     :  1e-3    :  10];
+
+            obj.inputData.bcValues    = [0       :  5e-2    :  6,...
+                                         6       :   2e-3   :  8,...
+                                         8       :   2e-3   :  10];
 
             obj.inputData.problemType = 'MMB';
 
-            obj.inputData.yCohLine = 1.55e-3;
-            obj.inputData.xCohLineMax =1000;
+            obj.inputData.yCohLine = 1.55;
+            obj.inputData.xCohLineMax = 150-35;
 
         end
 
         function createMesh(obj)
-            a.fileName = 'LeverMeshedCollapsed';
+            a.fileName = 'B2GeometryRefined';
             t = FemDataContainer(a);
             s.baseMesh = t.mesh;
-            s.baseMesh.coord = 1e-3 * s.baseMesh.coord;
 
-                % obj.inputData.yCohLine = 0.5e-3;
-                % obj.inputData.yCohLine = 0.5e-3;
-
-            s.xCohLineMax = obj.inputData.xCohLineMax; s.yCohLine = obj.inputData.yCohLine;
-            obj.cohesiveMesh = NewCohesiveMesh(s);
+                s.xCohLineMax = obj.inputData.xCohLineMax; s.yCohLine = obj.inputData.yCohLine;
+                obj.cohesiveMesh = NewCohesiveMesh(s);
         end
 
         function [ts] = defineCase(obj)

@@ -390,28 +390,31 @@ classdef BoundaryConditionsCreator < handle
             isLeft = @(coor)  abs(coor(:,1)-min(coor(:,1))) < 1e-12;
             isRight = @(coor)  abs(coor(:,1)-max(coor(:,1))) < 1e-12;
             isMiddle = @(coor) abs(coor(:,1)-(min(coor(:,1)) + max(coor(:,1)))/2) < 1e-12;
+            isUpSpecimen = @(coor) abs(coor(:,2) - 3.1) < 1e-12;
 
-           
-            isInDownLeft = @(coor) isDown(coor) & isLeft(coor);
-            sDir.domain    = @(coor) isInDownLeft(coor);
+            sDir.domain    = @(coor) isDown(coor) & isLeft(coor);
             sDir.direction = [1,2];
             sDir.value     = 0;
             Dir1 = DirichletCondition(obj.mesh,sDir);
 
-            isInDownRight = @(coor) isDown(coor) & isRight(coor);
-            sDir.domain    = @(coor) isInDownRight(coor);
+            sDir.domain    = @(coor) isDown(coor) & isRight(coor);
             sDir.direction = [2];
             sDir.value     = 0;
             Dir2 = DirichletCondition(obj.mesh,sDir);
 
-            isLeverHandle = @(coor) isUp(coor) & isLeft(coor);
-            sDir.domain    = @(coor) isLeverHandle(coor);
+            isLeftLever    = @(coor) abs(coor(:,1) - 11.82) < 1e-12;
+            sDir.domain    = @(coor) isUp(coor) & isLeftLever(coor);
             sDir.direction = [2];
             sDir.value     = -uLever;
             Dir3 = DirichletCondition(obj.mesh,sDir);
 
+            sDir.domain    = @(coor) (isUpSpecimen(coor) & isMiddle(coor)) | (isUpSpecimen(coor) & isRight(coor)) ;
+            sDir.direction = [1];
+            sDir.value     = 0;
+            Dir4 = DirichletCondition(obj.mesh,sDir);
+
             s.mesh = obj.mesh;
-            s.dirichletFun = [Dir1 Dir2 Dir3];
+            s.dirichletFun = [Dir1 Dir2 Dir3 Dir4];
             s.pointloadFun = [];
             s.periodicFun = [];
             obj.boundaryConditions = BoundaryConditions(s);

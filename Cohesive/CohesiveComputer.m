@@ -113,13 +113,13 @@ classdef CohesiveComputer < handle
                uBC = obj.boundaryConditions.bcValues(step);
             end
             if ismember(obj.boundaryConditions.type, "MMB")
-                totReact = obj.boundaryConditions.bcValues(step);
-                isUp   =  abs(obj.cohesiveMesh.fullMesh.coord(:,2) - max(obj.cohesiveMesh.fullMesh.coord(:,2))) < 1e-12;
-                isRight =  abs(obj.cohesiveMesh.fullMesh.coord(:,1)-max(obj.cohesiveMesh.fullMesh.coord(:,1))) < 1e-12;
-                isMiddle =  abs(obj.cohesiveMesh.fullMesh.coord(:,1)-(min(obj.cohesiveMesh.fullMesh.coord(:,1)) + max(obj.cohesiveMesh.fullMesh.coord(:,1)))/2) < 1e-12;
-                node1 = find(isUp & isMiddle);
-                node2 = find(isUp & isRight);
-                uBC = u.fValues([node1;node2],2).';
+                isLeftLever      =  abs(obj.cohesiveMesh.fullMesh.coord(:,1) - 11.82) < 1e-12;
+                isUp   = abs(obj.cohesiveMesh.fullMesh.coord(:,2) - max(obj.cohesiveMesh.fullMesh.coord(:,2))) < 1e-12;
+                isLeverHandle    =  isUp & isLeftLever;
+                nodes = find(isLeverHandle);
+                dofsY= (nodes-1)*u.ndimf + 2;
+                totReact = abs(sum(F(dofsY)));
+                uBC = obj.boundaryConditions.bcValues(step);
             end
 
         end
