@@ -47,16 +47,15 @@ classdef TractionBiliniarCoupled < handle
             intP = ones(2) + [0,1;1,1] .* macaulay(-jumpN);
 
             dtTan = dtSec - obj.K * intP .* ddot .* kronProd(jump,jump,[1 2]);
-            
-            term2 = - obj.K * intP .* ddot .* kronProd(jump,jump,[1 2]);
-
-            % dVals = d.evaluate([-1,1]);       dVals = dVals(:,:,idx);
-            % ddotVals = ddot.evaluate([-1,1]); ddotVals = ddotVals(:,:,idx);
-            % dtSecVals = dtSec.evaluate([-1,1]);   dtSecVals = dtSecVals(:,:,:,idx);
-            % dtTanVals = dtTan.evaluate([-1,1]);   dtTanVals = dtTanVals(:,:,:,idx);
-            % term2Vals = term2.evaluate([-1,1]);   term2Vals = term2Vals(:,:,:,idx);
-            
-
+             
+            % term2 = - obj.K * intP .* ddot .* kronProd(jump,jump,[1 2]);
+            % 
+            % % dVals = d.evaluate([-1,1]);       dVals = dVals(:,:,idx);
+            % % ddotVals = ddot.evaluate([-1,1]); ddotVals = ddotVals(:,:,idx);
+            % % dtSecVals = dtSec.evaluate([-1,1]);   dtSecVals = dtSecVals(:,:,:,idx);
+            % % dtTanVals = dtTan.evaluate([-1,1]);   dtTanVals = dtTanVals(:,:,:,idx);
+            % % term2Vals = term2.evaluate([-1,1]);   term2Vals = term2Vals(:,:,:,idx);
+            % 
         end 
 
         function d = computeDamage(obj,jump)
@@ -96,15 +95,9 @@ classdef TractionBiliniarCoupled < handle
             lambda = obj.computeJumpNorm(jump);
             [j0, jF] = obj.computeJumpLimits(jump,lambda);
             ddot = j0 .* jF ./ ((jF-j0) .*lambda.^3);
-            % isDamaging = ((d > 0) .* (d < 1));
             tol = 1e-12;
-                isDamaging = d > obj.dOld;
-
-                isDamaging = ...
-                ((lambda - j0) > tol) .* ...
-                ((jF - lambda) > tol) .* ...
-                ((d - obj.dOld) > tol);
-
+            isDamaging = d > obj.dOld;
+            isDamaging = ((lambda - j0) > tol) .* ((jF - lambda) > tol) .* ((d - obj.dOld) > tol);
             ddot = ddot .* isDamaging;  
         end
 

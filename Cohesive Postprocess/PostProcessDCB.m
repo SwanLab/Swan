@@ -1,6 +1,6 @@
 clear;
 
-files  = {'DCBTauNormal15.mat','DCBTauNormal30.mat','DCBTauNormal60.mat'};
+files  = {'DCBTauNormal15.mat','DCBTauNormal30.mat','DCBTauNormal60Check.mat'};
 labels = {'\tau_n^0 = 15 MPa','\tau_n^0 = 30 MPa','\tau_n^0 = 60 MPa'};
 
 outDir = 'C:\Users\david\Desktop\PlotsResultats\2.DCB';

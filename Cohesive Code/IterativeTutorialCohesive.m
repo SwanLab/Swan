@@ -54,7 +54,6 @@ classdef IterativeTutorialCohesive < handle
             s.baseMesh = obj.inputData.baseMesh;
             s.xCohLineMax = obj.inputData.xCohLineMax; s.yCohLine = obj.inputData.yCohLine;
             obj.cohesiveMesh = NewCohesiveMesh(s);
-
         end
 
         function defineCase(obj)
