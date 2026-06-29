@@ -1,11 +1,11 @@
 clc,clear,close all
-baseMesh = TetraMesh(1, 1, 1, 20, 20, 20);
+baseMesh = TetraMesh(1, 1, 1, 50, 50, 50);
 
-gPar.type = 'Octahedron'; %'Octahedron';
+gPar.type = 'Tetradecahedron'; %'Octahedron';
 gPar.xCoorCenter = 0.5;
 gPar.yCoorCenter = 0.5;
 gPar.zCoorCenter = 0.5;
-gPar.radius = 3/4;
+gPar.radius = 1;
 g         = GeometricalFunction(gPar);
 phiFun    = g.computeLevelSetFunction(baseMesh);
 lsCircle  = phiFun.fValues;

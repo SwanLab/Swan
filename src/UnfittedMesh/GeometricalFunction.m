@@ -271,19 +271,19 @@ classdef GeometricalFunction < handle
                     y0 = cParams.y0;
                     fH = @(x) obj.computeCircles(x,x0,y0,r);
                     obj.fHandle = fH;
+                case 'TetradecahedronHoles'
+                    l  = cParams.radius;
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+                    z0 = cParams.zCoorCenter;
+                    fH = @(x) obj.computeTetradecahedronHoles(x,x1,x2,x3,x0,y0,z0,l);
+                    obj.fHandle = fH;
                 case 'Tetradecahedron'
                     l  = cParams.radius;
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
                     z0 = cParams.zCoorCenter;
-                    fH = @(x) obj.computeTetradecahedron(x,x1,x2,x3,x0,y0,z0,l);
-                    obj.fHandle = fH;
-                case 'Octahedron'
-                    l  = cParams.radius;
-                    x0 = cParams.xCoorCenter;
-                    y0 = cParams.yCoorCenter;
-                    z0 = cParams.zCoorCenter;
-                    fH = @(x)  l - abs(x1(x)-x0) - abs(x2(x)-y0) - abs(x3(x)-z0);
+                    fH = @(x)  obj.computeTetradecahedron(x,x1,x2,x3,x0,y0,z0,l);
                     obj.fHandle = fH;
             end
         end
@@ -343,7 +343,7 @@ classdef GeometricalFunction < handle
             fH = min(f,[],4);
         end
 
-        function d = computeTetradecahedron(x,x1,x2,x3,x0,y0,z0,l)
+        function d = computeTetradecahedronHoles(x,x1,x2,x3,x0,y0,z0,l)
             vx = x1(x) - x0;
             vy = x2(x) - y0;
             vz = x3(x) - z0;
@@ -364,6 +364,7 @@ classdef GeometricalFunction < handle
 
             % Hexagons
             apothem = l*(sqrt(6)/8);
+            %apothem = (sqrt(2)/8)*(sqrt(3)-1+l);
             nHexa = [1  1  1;  1 -1  1; -1 1 1; -1 -1 1];
             nHexaLocal = [0 1; sqrt(3)/2 1/2; sqrt(3)/2 -1/2];
             vHexa  = zeros(1,nGauss,nElem,size(nHexa,1));
@@ -385,8 +386,38 @@ classdef GeometricalFunction < handle
                 vHexa(:,:,:,i) = (normVn/apothem)-1;
             end
             dHexa = min(vHexa,[],4);
+
+            %Total
             d = min(dSquare,dHexa);
+            
+            thickness = (1-l)*sqrt(2)/8;
+            dTetra  = GeometricalFunction.computeTetradecahedron(x,x1,x2,x3,x0,y0,z0,1-2*thickness);
+            d = min(d,-dTetra);
+            d = -dTetra;
         end
+
+        function d = computeTetradecahedron(x,x1,x2,x3,x0,y0,z0,l)
+            vx = x1(x) - x0;
+            vy = x2(x) - y0;
+            vz = x3(x) - z0;
+            v = [vx;vy;vz];
+
+            % Octahedron
+            dOcta = (l*3/4 - abs(x1(x)-x0) - abs(x2(x)-y0) - abs(x3(x)-z0));
+            
+            % Cutting planes 
+            nGauss = size(x,2);
+            nElem  = size(x,3);
+            vn = zeros(1,nGauss,nElem,3);
+            for i=1:3
+                vn(:,:,:,i)  = abs(v(i,:,:))-0.5*l;
+            end
+            dPlanes = min(-vn,[],4);
+
+            %Total
+            d = min(dOcta,dPlanes);
+        end
+        
 
     end
 end

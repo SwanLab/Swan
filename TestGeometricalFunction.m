@@ -1,18 +1,18 @@
 clc,clear,close all
 
 %% Load base mesh
-file = 'Tetradecahedron0025';
+file = 'Tetradecahedron0025';%'Tetradecahedron0025';
 
 TMC = TetradecahedronMeshComputer(file);
 mesh = TMC.getMesh();
 MS = TMC.getMasterSlave();
 
 %% Create level set
-gPar.type = 'Tetradecahedron'; %'Octahedron';
+gPar.type = 'TetradecahedronHoles'; %'Octahedron';
 gPar.xCoorCenter = 0.5;
 gPar.yCoorCenter = 0.5;
 gPar.zCoorCenter = 0.5;
-gPar.radius = 0.75;
+gPar.radius = 0.25;
 
 g         = GeometricalFunction(gPar);
 phiFun    = g.computeLevelSetFunction(mesh);

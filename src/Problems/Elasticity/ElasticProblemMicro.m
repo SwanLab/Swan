@@ -34,7 +34,7 @@ classdef ElasticProblemMicro < handle
                 f = @(v) -DDP(SymGrad(v),DDP(C,eB));
                 RHS = IntegrateRHS(f,obj.testFun,obj.mesh,'Domain',2);    
                 uF{iB} = obj.computeDisplacement(LHS,RHS,iB);
-                %uF{iB}.print(['Disp',num2str(iB)])
+                uF{iB}.print(['Disp',num2str(iB)])
                 strainF{iB} = eB+SymGrad(uF{iB});
                 stressF{iB} = DDP(obj.material, strainF{iB});
                 %stressF{iB}.print(['Stress',num2str(iB)])
@@ -59,8 +59,8 @@ classdef ElasticProblemMicro < handle
         end
 
         function [fun, funNames] = getFunsToPlot(obj)
-            fun = {obj.uFluc, obj.strain.project('P2'), ...
-                obj.stress.project('P2')};
+            fun = {obj.uFluc, obj.strain.project('P1'), ...
+                obj.stress.project('P1')};
             funNames = {'displacement', 'strain', 'stress'};
         end
 
@@ -78,14 +78,14 @@ classdef ElasticProblemMicro < handle
         end
 
         function createTrialFun(obj)
-            obj.trialFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P2');
-            obj.testFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P2');
+            obj.trialFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
+            obj.testFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
         end
 
        function [s,v] = createDeformationBasis(obj,iBasis)
            v      = obj.computeBasesPosition();
            sV     = zeros(obj.mesh.ndim,obj.mesh.ndim);
-           sV(v(iBasis,1),v(iBasis,2)) = 1;
+           sV(v(iBasis,1),v(iBasis,2)) = 0.01;
            sHV = diag(diag(sV));
            sDV = sV-sHV;
            sV = sHV+0.5*(sDV+sDV');
