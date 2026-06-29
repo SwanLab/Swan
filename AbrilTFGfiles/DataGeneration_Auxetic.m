@@ -10,9 +10,11 @@ clc; clear; close all;
 
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
 p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
+p.Inclusion  = 'Hole';        % 'Material'/'Hole'/'MeshRaul'
+p.nelem      = 40;
 
 %% DATA GENERATION
-mR              = createReferenceMesh();
+mR              = createReferenceMesh(p);
 switch p.Training
     case 'Multiscale'
         material          = createMaterial(mR,[1 1]);
@@ -44,10 +46,13 @@ switch p.Training
         s.domainIndices  = dI;
         s.nSubdomains    = nS;
         s.type           = 'discontinuous';
+        s.Coarseorder    = 1;
         m= EIFEMTraining(s);
-        data          = m.train();
-        [data.material] = createMaterial(mR,[1 1]);
-        data.dirac=true;
+        data             = m.train();
+        [data.material]  = createMaterial(mR,[1 1]);
+        data.dirac       = true;
+        data.type        = s.type;
+        data.Coarseorder = 2;
         z = OfflineDataProcessor(data);
 
         EIFEoper = z.computeROMbasis();
@@ -56,7 +61,7 @@ switch p.Training
         Kcoarse  = EIFEoper.Kcoarse;
 end
 
-string = "CellEIFEMtraining.mat";
+string = "AuxeticIsolatedP1.mat";
 
 % Guarda el .mat per cert radi
 FileName=fullfile('AbrilTFGfiles','Data',"Auxetic",string);
@@ -72,35 +77,44 @@ end
 
 %% FUNCTIONS
 
-function mS = createReferenceMesh()
-
-    filename = 'DEF_Q4auxL_1.mat';
-    % filename = 'DEF_Q4porL_1.mat';
-    load(filename,'EIFEoper');
-    s.coord    = EIFEoper.MESH.COOR;
-    s.connec   = EIFEoper.MESH.CN;
-
-    obj.xmin = min(s.coord(:,1));
-    obj.xmax = max(s.coord(:,1));
-    obj.ymin = min(s.coord(:,2));
-    obj.ymax = max(s.coord(:,2));
-
-    delta = 1e-9;
-    s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
-        s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-delta];
-    s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
-        s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-delta,delta];
-    s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
-        s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[delta,-delta];
-    s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
-        s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[delta,delta];
-    mS = Mesh.create(s);
-
+function mS = createReferenceMesh(p)
+    switch p.Inclusion
+        case 'Material'
+            mS = createStructuredMesh(p);
+        case 'Hole'
+            mS = createStructuredMesh(p);
+            lvSet    = createLevelSetFunction(mS);
+            uMesh    = computeUnfittedMesh(mS,lvSet);
+            mS       = uMesh.createInnerMesh();
+    
+        case 'MeshRaul'
+            filename = 'DEF_Q4auxL_1.mat';
+            % filename = 'DEF_Q4porL_1.mat';
+            load(filename,'EIFEoper');
+            s.coord    = EIFEoper.MESH.COOR;
+            s.connec   = EIFEoper.MESH.CN;
+    
+            obj.xmin = min(s.coord(:,1));
+            obj.xmax = max(s.coord(:,1));
+            obj.ymin = min(s.coord(:,2));
+            obj.ymax = max(s.coord(:,2));
+    
+            delta = 1e-9;
+            s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
+                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-delta];
+            s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
+                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-delta,delta];
+            s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
+                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[delta,-delta];
+            s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
+                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[delta,delta];
+            mS = Mesh.create(s);
+    end
 end
 
 function dF = createDirichletFunction(bMesh,type)
 s.mesh = bMesh;
-s.order= 1;
+s.order= 2;
 s.type = type;
 cf = CoarseFunctions(s);
 dF = cf.getAnalytical();
@@ -120,7 +134,7 @@ end
 
 
 function [material] = createMaterial(mesh,nS)
-    mD           = createMeshDomain(mesh,nS);
+    mD      = createMeshDomain(mesh,nS);
     E       = 1;
     nu      = 1/3;
     young   = ConstantFunction.create(E,mD);
@@ -144,4 +158,50 @@ function meshDom=createMeshDomain(mR,nS)
     else
         meshDom = mR;
     end
+end
+
+function mS = createStructuredMesh(p)
+    n =p.nelem;
+    x1      = linspace(-1.5,1.5,n);
+    x2      = linspace(-1,1,n);
+    [xv,yv] = meshgrid(x1,x2);
+    [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
+    s.coord  = V(:,1:2);
+    s.connec = F;
+    obj.xmin = min(x1);            
+    obj.xmax = max(x1);
+    obj.ymin = min(x2);
+    obj.ymax = max(x2);
+    delta = 1e-9;
+    s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
+        s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-delta];
+    s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
+        s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-delta,+delta];
+    s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
+        s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[+delta,-delta];
+    s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
+        s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[+delta,+delta];
+    mS = Mesh.create(s);
+end
+
+function levelSet = createLevelSetFunction(bgMesh)
+    gPar.type           = 'Auxetic';
+    gPar.length         = 2;
+    gPar.height         = 2;
+    gPar.xCoorCenter    = 0;
+    gPar.yCoorCenter    = 0;
+    gPar.theta          = 60;
+    gPar.beta           = 63;
+    gPar.thickness      = 0.3;
+    
+    g         = GeometricalFunction(gPar);
+    phiFun    = g.computeLevelSetFunction(bgMesh);
+    levelSet  = phiFun.fValues;
+end
+
+function uMesh=computeUnfittedMesh(bgMesh,levelSet)
+    sUm.backgroundMesh = bgMesh;
+    sUm.boundaryMesh   = bgMesh.createBoundaryMesh();
+    uMesh              = UnfittedMesh(sUm);
+    uMesh.compute(levelSet);
 end

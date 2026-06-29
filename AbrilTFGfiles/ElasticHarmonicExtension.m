@@ -103,7 +103,7 @@ classdef ElasticHarmonicExtension < handle
                     end
 
                 case 'discontinuous'
-                    nCoarsePerSegment = 4;
+                    nCoarsePerSegment = numel(uD)/4;
                     iLambda0 = 0;
                     rDir = zeros(obj.nLambda,numel(uD));
 

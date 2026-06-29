@@ -6,16 +6,15 @@ classdef CoarseTesting_2D< handle
         residualPCG
         errPCG
         errAnormPCG
-        residualCG
-        errCG
-        errAnormCG
-        residualILU
+        ILU
+        CG
     end
 
     properties (Access = private)
         nSubdomains
         r
-        centroids
+        tFrame
+        tCross
         ic
         icr
         lg
@@ -50,9 +49,14 @@ classdef CoarseTesting_2D< handle
         end
 
         function compute(obj)
-            obj.createMesh();
-            mR  = obj.referenceMesh;
-            bS  = mR.createBoundaryMesh();                         
+            % obj.createMesh();
+            % mR  = obj.referenceMesh;
+            mR = obj.createReferenceMesh2();
+            obj.referenceMesh = mR;
+            bS  = mR.createBoundaryMesh();  
+            obj.createMeshDomain(mR);
+
+
             [bC,dir] = obj.createBoundaryConditions(obj.meshDomain);
             obj.boundaryConditions = bC;
             obj.createBCapplier()
@@ -81,11 +85,11 @@ classdef CoarseTesting_2D< handle
             tol = 1e-8;
             x0  = zeros(size(RHSf));
 
-            % tic  %SOLVE THE CASE WITH STANDARD CG
-            % [~,obj.residualCG,errCG, errCG] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
-            % t_CG=toc
+            tic  %SOLVE THE CASE WITH STANDARD CG
+            [~,obj.CG.residual,obj.CG.error, obj.CG.errAnorm] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
+            t_CG=toc
             tic  % SOLVE THE CASE WITH CG+ ILU
-            [~,obj.residualILU,errILU, errAnormILU] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
+            [~,obj.ILU.residual,obj.ILU.error, obj.ILU.errAnorm] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
             t_ILU=toc
             tic  % SOLVE THE CASE WITH PRECONDITIONING ILU+EIFEM+ILU
             [uPCG,obj.residualPCG,obj.errPCG,obj.errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
@@ -119,17 +123,18 @@ classdef CoarseTesting_2D< handle
             nexttile
             plot(obj.residualPCG,'linewidth',2)
             hold on
-            plot(obj.residualILU,'linewidth',2)
+            plot(obj.ILU.residual,'linewidth',2)
             set(gca, 'YScale', 'log')
             xlabel('Iteration')
             ylabel('Residual')
             title("Residual")
-            legend({'PCG','CG'})
+            legend({'PCG','ILU'})
 
             nexttile
             plot(obj.errPCG,'linewidth',2)
             hold on
-            plot(errILU,'linewidth',2)
+            plot(obj.ILU.error,'linewidth',2)
+            hold on
             set(gca, 'YScale', 'log')
             xlabel('Iteration')
             ylabel('||error||_{L2}')
@@ -139,7 +144,7 @@ classdef CoarseTesting_2D< handle
             nexttile
             plot(obj.errAnormPCG,'linewidth',2)
             hold on
-            plot(errAnormILU,'linewidth',2)
+            plot(obj.ILU.errAnorm,'linewidth',2)
             set(gca, 'YScale', 'log')
             xlabel('Iteration')
             ylabel('Energy norm')
@@ -168,7 +173,7 @@ classdef CoarseTesting_2D< handle
                 ss.mesh = mh;
                 ss.fValues = fvalues;
                 ss.order = 'P1';
-                ss.ndimf = size(fvalues,2)
+                ss.ndimf = size(fvalues,2);
                 u = LagrangianFunction(ss);
                 u.print(fileName,'Paraview')
         end
@@ -184,12 +189,25 @@ classdef CoarseTesting_2D< handle
             p.Sampling         = cParams.Sampling;    % 'Isolated'/'Oversampling'
             p.Option           = cParams.Option;      % 'Dataset'/'NN'/'HO'/ 'Hybrid'/'Direct'
             p.nelem            = cParams.nelem;       %  Mesh refining
+            p.Geometry         = cParams.Geometry;    % 'Circle'/'Lattice'/'Auxetic'
             obj.params         = p;
-            obj.r              = cParams.r;
-            obj.nSubdomains    = size(obj.r');
-            % obj.nSubdomains    = [10,3];              % Uncomment just for 'Direct'  
             obj.fileNameEIFEM  = cParams.fileNameEIFEM;
-            obj.tolSameNode = 1e-11;
+            obj.tolSameNode    = 1e-11;
+            % obj.nSubdomains  = [10,3];     % Uncomment just for 'Direct' 
+
+            if ~strcmp(cParams.Option, 'Direct')
+                switch cParams.Geometry
+                    case 'Circle'
+                        obj.r           = cParams.r;
+                        obj.nSubdomains = size(obj.r');
+                    case 'Lattice'
+                        obj.tFrame      = cParams.tFrame;
+                        obj.tCross      = cParams.tCross;
+                        obj.nSubdomains = size(obj.tFrame');
+                end
+            else
+                obj.nSubdomains = cParams.nSubdomains;
+            end
         end
 
         function createMesh(obj)
@@ -200,6 +218,20 @@ classdef CoarseTesting_2D< handle
             obj.ic              = iC;   % interface Connectivities ???
             obj.icr             = iCR;  % info de les coordenades del corresponent subdomini 
             obj.lg              = lG;   % localGlobal 
+            obj.discMesh        = discmesh;
+        end
+
+        function createMeshDomain(obj,mR)
+            s.nsubdomains   = obj.nSubdomains; %  num along x and y
+            s.meshReference = mR;
+            s.tolSameNode = obj.tolSameNode;
+            m = MeshCreatorFromRVE2D(s);
+            [mD,mSb,iC,~,lG,iCR,discmesh] = m.create();
+            obj.meshDomain      = mD;
+            obj.subdomainMeshes = mSb;
+            obj.ic              = iC;
+            obj.icr             = iCR;
+            obj.lg              = lG;
             obj.discMesh        = discmesh;
         end
 
@@ -249,6 +281,10 @@ classdef CoarseTesting_2D< handle
             end
         end
 
+        function mR = createReferenceMesh2(obj)
+            mR = obj.importMesh();
+        end
+
 
 
         function [mD,mSb,iC,lG,iCR,discMesh] = createMeshDomainJoiner(obj,mSbd)
@@ -290,7 +326,7 @@ classdef CoarseTesting_2D< handle
         end
 
         function mS= importMesh(obj)
-            load(obj.fileNameEIFEM);
+            load(obj.fileNameEIFEM,'mesh');
             % s.coord    = EIFEoper.mesh.coord;
             % s.connec   = EIFEoper.mesh.connec;
             s.coord    = mesh.coord;
@@ -395,19 +431,52 @@ classdef CoarseTesting_2D< handle
             obj.designVariable = dens;
         end
 
-         function ls=computeLevelSet(obj)
+        function ls=computeLevelSet(obj)
             [x0,y0] = obj.computeSubdomainCentroid();
-            [Nx,Ny] = size(obj.r);
-            GeomParams(Nx,Ny) = struct('type',[],'radius',[],'xCoorCenter',[],'yCoorCenter',[]);
+            Nx=obj.nSubdomains(2);
+            Ny=obj.nSubdomains(1);
+            switch obj.params.Geometry
+                case 'Circle'
+                    GeomParams(Nx,Ny) = struct('type',[],'radius',[],'xCoorCenter',[],'yCoorCenter',[]);
+                    for i = 1:Nx
+                        for j = 1:Ny
+                            GeomParams(i,j).type        = "Circle";
+                            GeomParams(i,j).radius      = obj.r(i,j);
+                            GeomParams(i,j).xCoorCenter = x0(i,j);
+                            GeomParams(i,j).yCoorCenter = y0(i,j);
+                        end
+                    end
 
-            for i = 1:obj.nSubdomains(1,2)
-                for j = 1:obj.nSubdomains(1,1)
-                    GeomParams(i,j).type        = "Circle";
-                    GeomParams(i,j).radius      = obj.r(i,j);
-                    GeomParams(i,j).xCoorCenter = x0(i,j);
-                    GeomParams(i,j).yCoorCenter = y0(i,j);
-                end
+                case 'Lattice'
+                    GeomParams(Nx,Ny) = struct('type',[],'length',[],'tFrame',[],'tCross',[],'xCoorCenter',[],'yCoorCenter',[]);
+                    for i = 1:Nx
+                        for j = 1:Ny
+                            GeomParams(i,j).type        = "CrossedSquare";
+                            GeomParams(i,j).length      = 2;
+                            GeomParams(i,j).tFrame      = obj.tFrame(i,j);
+                            GeomParams(i,j).tCross      = obj.tCross(i,j);
+                            GeomParams(i,j).xCoorCenter = x0(i,j);
+                            GeomParams(i,j).yCoorCenter = y0(i,j);
+                        end
+                    end
+
+                case 'Auxetic'
+                    GeomParams(Nx,Ny) = struct('type',[],'length',[],'height',[],'xCoorCenter',[],'yCoorCenter',[],...
+                        'theta',[],'beta',[],'thickness',[]);
+                    for i=1:Nx
+                        for j=1:Ny
+                            GeomParams(i,j).type           = 'Auxetic';
+                            GeomParams(i,j).length         = 2;
+                            GeomParams(i,j).height         = 2;
+                            GeomParams(i,j).xCoorCenter    = 0;
+                            GeomParams(i,j).yCoorCenter    = 0;
+                            GeomParams(i,j).theta          = 60;
+                            GeomParams(i,j).beta           = 64;
+                            GeomParams(i,j).thickness      = 0.2;
+                        end
+                    end
             end
+
             s.type        = 'GivenPattern';
             s.paramsList  = GeomParams;
             g             = GeometricalFunction(s);
@@ -416,7 +485,6 @@ classdef CoarseTesting_2D< handle
          end
 
          function [x0,y0]= computeSubdomainCentroid(obj)
-            % [Nx, Ny] = size(obj.r);
             xMin=min(obj.meshDomain.coord(:,1));
             xMax=max(obj.meshDomain.coord(:,1));
             yMin=min(obj.meshDomain.coord(:,2));
@@ -461,14 +529,27 @@ classdef CoarseTesting_2D< handle
             isRight  = @(coor) (abs(coor(:,1) - maxx)   < tolBound);
             isBottom = @(coor) (abs(coor(:,2) - miny)   < tolBound);
             isTop    = @(coor) (abs(coor(:,2) - maxy)   < tolBound);
+
             %             isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) == 0);
+            % Dir{1}.domain    = @(coor) isLeft(coor);%| isRight(coor) ;
+            % Dir{1}.direction = [1,2];
+            % Dir{1}.value     = 0;
+            % 
+            % PL.domain    = @(coor) isRight(coor);
+            % PL.direction = 2;
+            % PL.value     = -1;       %Set displacement intensity
+
             Dir{1}.domain    = @(coor) isLeft(coor);%| isRight(coor) ;
             Dir{1}.direction = [1,2];
             Dir{1}.value     = 0;
 
-            PL.domain    = @(coor) isRight(coor);
-            PL.direction = 2;
-            PL.value     = -1;       %Set displacement intensity 
+            Dir{2}.domain    = @(coor) isRight(coor) ;
+            Dir{2}.direction = [1,2];
+            Dir{2}.value     = 0;
+
+            PL.domain    = @(coor) isTop(coor);
+            PL.direction = [2];
+            PL.value     = [-0.1];
         end 
 
         function [bc,Dir,PL] = createBoundaryConditions(obj,mesh)
@@ -561,15 +642,15 @@ classdef CoarseTesting_2D< handle
                     nameFile=obj.computeNameFile();
                     obj.loadDataset(nameFile);
                 case 'NN'
-                    filePath = fullfile("AbrilTFGfiles","Data","Circle",p.Training,p.Inclusion,p.Sampling,"K_NN.mat");
+                    filePath = fullfile("AbrilTFGfiles","Data",p.Geometry,p.Training,p.Inclusion,p.Sampling,"K_NN.mat");
                     load(filePath,"K_NN");
-                    filePath = fullfile("AbrilTFGfiles","Data","Circle",p.Training,p.Inclusion,p.Sampling,"T_NN.mat");
+                    filePath = fullfile("AbrilTFGfiles","Data",p.Geometry,p.Training,p.Inclusion,p.Sampling,"T_NN.mat");
                     load(filePath,"T_NN","pol_deg");
                     
                 case 'Hybrid'
-                    filePath = fullfile("AbrilTFGfiles","Data","Circle",p.Training,p.Inclusion,p.Sampling,"K_NN.mat");
+                    filePath = fullfile("AbrilTFGfiles","Data",p.Geometry,p.Training,p.Inclusion,p.Sampling,"K_NN.mat");
                     load(filePath,"K_NN");
-                    filePath = fullfile("AbrilTFGfiles","Data","Circle",p.Training,p.Inclusion,p.Sampling,meshName,"Q_NN.mat");
+                    filePath = fullfile("AbrilTFGfiles","Data",p.Geometry,p.Training,p.Inclusion,p.Sampling,meshName,"Q_NN.mat");
                     load(filePath,"basis","Q_NN","pol_deg");
             end
 

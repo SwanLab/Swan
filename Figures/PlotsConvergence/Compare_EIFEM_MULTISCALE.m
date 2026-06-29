@@ -12,6 +12,7 @@ s.Sampling  = [];                 % 'Isolated'/'Oversampling'
 s.Option    = 'Dataset';          % 'Dataset'/'NN'/'HO'/ 'Hybrid'
 s.nelem     =  20;                %  Mesh refining
 s.Print     = false;
+s.Geometry  = 'Circle'
 s.fileNameEIFEM = [];
 
 % UNIFORM DISTRIBUTION
@@ -86,6 +87,7 @@ s.Sampling  = [];                 % 'Isolated'/'Oversampling'
 s.Option    = 'Dataset';          % 'Dataset'/'NN'/'HO'/ 'Hybrid'
 s.nelem     =  20;                %  Mesh refining
 s.Print     = false;
+s.Geometry  = 'Circle';
 s.fileNameEIFEM = [];
 
 r= 0.05:0.05:0.9;
@@ -152,26 +154,30 @@ ylim([0 500]);
 xlim([0.05 0.9]);
 
 %% DIRECT
-s.Training  = [];             % 'EIFEM'/'Multiscale'/'EIFisol'
-s.Sampling  = [];           % 'Isolated'/'Oversampling'
-s.Inclusion = 'Hole';       % 'Hole'/'Material'/  --> Hole: just for imported meshes or constant geometry
-s.Option    = 'Direct';     % 'Dataset'/'NN'/'HO'/ 'Hybrid'/'Direct
-s.r         = ones(3,10)*0.8;
-s.nelem     = [];            %  Mesh refining
+s.Training     = [];            % 'EIFEM'/'Multiscale'/'EIFisol'
+s.Sampling     = [];            % 'Isolated'/'Oversampling'
+s.Inclusion    = 'Hole';        % 'Hole'/'Material'/  --> Hole: just for imported meshes or constant geometry
+s.Option       = 'Direct';      % 'Dataset'/'NN'/'HO'/ 'Hybrid'/'Direct
+s.nSubdomains  = [4,2];
+s.nelem        = [];            %  Mesh refining
+s.Geometry     = []; 
 
 
-s.fileNameEIFEM = 'r_0.8_test_interior_refinement.mat';
-test1           = CoarseTesting_2D(s);
-test1.compute();
+% s.fileNameEIFEM = 'r_0.8_test_interior_refinement.mat';
+% test1           = CoarseTesting_2D(s);
+% test1.compute();
+% 
+% s.fileNameEIFEM = 'r0.8_RaulOversampling';
+% test2           = CoarseTesting_2D(s);
+% test2.compute();
+% 
+% s.fileNameEIFEM = 'r0.8_RaulMultiscale';
+% test3           = CoarseTesting_2D(s);
+% test3.compute();
 
-s.fileNameEIFEM = 'r0.8_RaulOversampling';
-test2           = CoarseTesting_2D(s);
-test2.compute();
-
-s.fileNameEIFEM = 'r0.8_RaulMultiscale';
-test3           = CoarseTesting_2D(s);
-test3.compute();
-
+s.fileNameEIFEM = 'AuxeticOversampling';
+test           = CoarseTesting_2D(s);
+test.compute();
 
 plot(test1.residualPCG,'linewidth',2)
 hold on
@@ -192,6 +198,7 @@ legend({'Quadratic', 'EIFEM Oversampling', 'Multiscale'});
 s.Training  = [];                 % 'EIFEM'/'Multiscale'/'EIFisol'
 s.Option    = 'Dataset';          % 'Dataset'/'NN'
 s.nelem     =  30;                %  Mesh refining
+s.Geometry  = 'Lattice';
 
 % % UNIFORM DISTRIBUTION
 % s.tFrame = ones(3,10)*0.25;

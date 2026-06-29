@@ -15,6 +15,7 @@ classdef OfflineDataProcessor < handle
         material
         fileNameData
         dirac
+        type
 
     end
 
@@ -190,11 +191,14 @@ classdef OfflineDataProcessor < handle
             obj.LHS             = cParams.LHSsbd;
             obj.Coarseorder     = cParams.Coarseorder;
             obj.material        = cParams.material;
+            obj.type            = cParams.type;
+
             if isfield(cParams,'dirac')
                 obj.dirac=cParams.dirac;
             else
                 obj.dirac=false;
             end
+
         end
 
         function uFun = createDispFun(obj)
@@ -335,43 +339,63 @@ classdef OfflineDataProcessor < handle
             end
         end
 
-        function q = createQuadrature(~,mesh)
-            order = 2;
-            q = Quadrature.create(mesh,order);
-        end
 
         function Vfun = createInterfaceModesFun(obj,bMesh)
-            % joinedBMesh=obj.mesh.createSingleBoundaryMesh();
-            % s.mesh=joinedBMesh;
-            % s.type='continuous';
-            % cf=CoarseFunctions(s);
-            s.mesh  = bMesh;
-            s.type  = 'discontinuous';
-            cf      = CoarseFunctions(s);
-            f       = cf.compute();
-            nfun    = size(f,2);
-            nbd     = size(bMesh,1);
-            nPerSeg = nfun/nbd;
-            Vfun = cell(1,nbd);
-            k=1;
-            for ibd = 1:nbd
-                Mesh = bMesh{ibd}.mesh;
-                VCoeff = cell(1, nfun);
-                ftype = cell(1, nfun);
-                for i = 1:nfun
-                    VCoeff{i} = zeros(Mesh.nnodes,Mesh.ndim);
-                    ftype{i}  = 'P1';
-                end
-                
-                for i = 1:nPerSeg
-                    uD = AnalyticalFunction.create(f{k}, Mesh);
-                    uD = project(uD, 'P1');
-                    VCoeff{k} = uD.fValues;
-                    ftype{k} = 'P1';
-                    k=k+1;
-                end
-                Vfun{ibd} = ModalFunction.create(Mesh, VCoeff, ftype);
+            switch obj.type
+                case 'continuous'
+                    joinedBMesh= obj.mesh.createSingleBoundaryMesh();
+                    s.mesh     = joinedBMesh;
+                    s.type     = obj.type;
+                    s.order    = obj.Coarseorder;
+                    cf         = CoarseFunctions(s);
+                    f          = cf.compute();
+                    nfun = size(f,2);
+                    nbd  = size(bMesh,1);
+                    Vfun = cell(1,nbd);
+                    for ibd = 1:nbd
+                        Mesh = bMesh{ibd}.mesh;
+                        VCoeff = cell(1, nfun);
+                        ftype = cell(1, nfun);
+                        for i = 1:nfun
+                            uD = AnalyticalFunction.create(f{i}, Mesh);
+                            uD = project(uD, 'P1');
+                            VCoeff{i} = uD.fValues;
+                            ftype{i} = 'P1';
+                        end
+                        Vfun{ibd} = ModalFunction.create(Mesh, VCoeff, ftype);
+                    end
+           
+                case 'discontinuous'
+                    s.mesh  = bMesh;
+                    s.type  = obj.type;
+                    s.order = obj.Coarseorder;
+                    cf      = CoarseFunctions(s);
+                    f       = cf.compute();
+                    nfun    = size(f,2);
+                    nbd     = size(bMesh,1);
+                    nPerSeg = nfun/nbd;
+                    Vfun = cell(1,nbd);
+                    k=1;
+                    for ibd = 1:nbd
+                        Mesh = bMesh{ibd}.mesh;
+                        VCoeff = cell(1, nfun);
+                        ftype = cell(1, nfun);
+                        for i = 1:nfun
+                            VCoeff{i} = zeros(Mesh.nnodes,Mesh.ndim);
+                            ftype{i}  = 'P1';
+                        end
+                        for i = 1:nPerSeg
+                            uD = AnalyticalFunction.create(f{k}, Mesh);
+                            uD = project(uD, 'P1');
+                            VCoeff{k} = uD.fValues;
+                            ftype{k} = 'P1';
+                            k=k+1;
+                        end
+                        Vfun{ibd} = ModalFunction.create(Mesh, VCoeff, ftype);
+                    end
             end
+
+
         end
 
 

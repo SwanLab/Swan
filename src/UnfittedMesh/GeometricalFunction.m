@@ -394,7 +394,7 @@ classdef GeometricalFunction < handle
                     L     = cParams.length;     
                     H     = cParams.height; 
                     theta = cParams.theta;
-                    beta = cParams.beta;
+                    beta  = cParams.beta;
                     t     = cParams.thickness;
                     x0    = cParams.xCoorCenter;
                     y0    = cParams.yCoorCenter;
@@ -420,7 +420,7 @@ classdef GeometricalFunction < handle
                     fIn1 = @(x) nx2*(x1(x)-(-L/2+t/2)) + ny2*(x2(x)-(-H/2)); % Inner
                     fIn2 = @(x) -nx2*(x1(x)-(L/2-t/2)) - ny2*(x2(x)-(H/2));
                     fIn3 = @(x) +nx2*(x1(x)-(-L/2+t/2)) - ny2*(x2(x)-(H/2));
-                    fIn4 = @(x) -nx1*(x1(x)-(L/2-t/2)) + ny1*(x2(x)-(-H/2));
+                    fIn4 = @(x) -nx2*(x1(x)-(L/2-t/2)) + ny2*(x2(x)-(-H/2));
 
 
                     fTop    = @(x) max([fT(x),fOut2(x),fOut3(x)]);

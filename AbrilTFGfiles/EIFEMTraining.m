@@ -54,8 +54,6 @@ classdef EIFEMTraining < handle
             % obj.print(data.uSbd);
 
              data.mesh= obj.mesh;
-             data.Coarseorder= obj.Coarseorder;
-           
         end
     end
 
@@ -99,7 +97,7 @@ classdef EIFEMTraining < handle
             % obj.levelSet       = cParams.levelSet;
             % obj.unfittedMesh   = cParams.unfittedMesh;
             obj.tolSameNode    = 1e-11;
-            obj.Coarseorder    = 1;
+            obj.Coarseorder    = cParams.Coarseorder;
             obj.type           = cParams.type;
         end
 
@@ -183,7 +181,7 @@ classdef EIFEMTraining < handle
 
         function dF = createDirichletFunction(obj,bMesh)
             s.mesh = bMesh;
-            s.order= 1;
+            s.order= obj.Coarseorder;
             s.type = obj.type;
             cf = CoarseFunctions(s);
             dF = cf.getAnalytical();

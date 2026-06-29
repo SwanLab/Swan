@@ -470,8 +470,7 @@ classdef CoarseTesting_3D< handle
             Nx=obj.nSubdomains(2);
             Ny=obj.nSubdomains(1);
             Nz=obj.nSubdomains(3);
-            % [Nx,Ny,Nz] = size(obj.r);
-            GeomParams(Nx,Ny,Nz) = struct('type',[],'radius',[],'xCoorCenter',[],'yCoorCenter',[],'zCoorCenter',[]);
+            GeomParams(Nx,Ny,Nz) = struct('type',[],'radius',[],'xCoorCenter',[],'yCoorCenter',[],'zCoorCenter',[],'tFrame',[],'tCross',[]);
 
             switch obj.params.Geometry
                 case 'Sphere'
