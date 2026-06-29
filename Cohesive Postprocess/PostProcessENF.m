@@ -1,7 +1,7 @@
 clear;
 close all
     
-files = {"ENFTauShear30LoadStep.mat","ENFTauShear60.mat","ENFTauShear120.mat"};
+files = {"ENFTauShear30Check.mat","ENFTauShear60.mat","ENFTauShear120.mat"};
 labels = {'\tau_t^0 = 30 MPa','\tau_t^0 = 60 MPa','\tau_t^0 = 120 MPa'};
 outDir = 'C:\Users\david\Desktop\PlotsResultats\3.ENF';
 

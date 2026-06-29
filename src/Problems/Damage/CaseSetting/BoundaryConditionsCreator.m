@@ -372,13 +372,8 @@ classdef BoundaryConditionsCreator < handle
            sDir.value     = -uVal;
            Dir3 = DirichletCondition(obj.mesh,sDir);
 
-           sDir.domain    = @(coor) isUp(coor) & isMiddle(coor);
-           sDir.direction = [1];
-           sDir.value     = 0;
-           Dir4 = DirichletCondition(obj.mesh,sDir);
-
            s.mesh = obj.mesh;
-           s.dirichletFun = [Dir1 Dir2 Dir3 Dir4];
+           s.dirichletFun = [Dir1 Dir2 Dir3];
            s.pointloadFun = [];
            s.periodicFun = [];
            obj.boundaryConditions = BoundaryConditions(s);
@@ -408,13 +403,13 @@ classdef BoundaryConditionsCreator < handle
             sDir.value     = -uLever;
             Dir3 = DirichletCondition(obj.mesh,sDir);
 
-            sDir.domain    = @(coor) (isUpSpecimen(coor) & isMiddle(coor)) | (isUpSpecimen(coor) & isRight(coor)) ;
-            sDir.direction = [1];
-            sDir.value     = 0;
-            Dir4 = DirichletCondition(obj.mesh,sDir);
+            % sDir.domain    = @(coor) (isUpSpecimen(coor) & isMiddle(coor)) | (isUpSpecimen(coor) & isRight(coor)) ;
+            % sDir.direction = [1];
+            % sDir.value     = 0;
+            % Dir4 = DirichletCondition(obj.mesh,sDir);
 
             s.mesh = obj.mesh;
-            s.dirichletFun = [Dir1 Dir2 Dir3 Dir4];
+            s.dirichletFun = [Dir1 Dir2 Dir3];
             s.pointloadFun = [];
             s.periodicFun = [];
             obj.boundaryConditions = BoundaryConditions(s);
