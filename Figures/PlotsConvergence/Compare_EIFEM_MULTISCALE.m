@@ -10,9 +10,9 @@ s.Training  = [];                 % 'EIFEM'/'Multiscale'
 s.Inclusion = 'Material';         % 'Hole'/'Material'/'HoleRaul'   --> Hole: just for constant r
 s.Sampling  = [];                 % 'Isolated'/'Oversampling'
 s.Option    = 'Dataset';          % 'Dataset'/'NN'/'HO'/ 'Hybrid'
-s.nelem     =  20;                %  Mesh refining
+s.nelem     = 20;                %  Mesh refining
 s.Print     = false;
-s.Geometry  = 'Circle'
+s.Geometry  = 'Circle';
 s.fileNameEIFEM = [];
 
 % UNIFORM DISTRIBUTION

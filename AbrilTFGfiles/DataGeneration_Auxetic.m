@@ -9,7 +9,7 @@ clc; clear; close all;
 %% INPUTS
 
 p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
-p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
+p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
 p.Inclusion  = 'Hole';        % 'Material'/'Hole'/'MeshRaul'
 p.nelem      = 40;
 
@@ -61,7 +61,7 @@ switch p.Training
         Kcoarse  = EIFEoper.Kcoarse;
 end
 
-string = "AuxeticIsolatedP1.mat";
+string = "AuxeticOversamplingP2.mat";
 
 % Guarda el .mat per cert radi
 FileName=fullfile('AbrilTFGfiles','Data',"Auxetic",string);
@@ -162,7 +162,7 @@ end
 
 function mS = createStructuredMesh(p)
     n =p.nelem;
-    x1      = linspace(-1.5,1.5,n);
+    x1      = linspace(-1.5,1.5);
     x2      = linspace(-1,1,n);
     [xv,yv] = meshgrid(x1,x2);
     [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
@@ -190,8 +190,8 @@ function levelSet = createLevelSetFunction(bgMesh)
     gPar.height         = 2;
     gPar.xCoorCenter    = 0;
     gPar.yCoorCenter    = 0;
-    gPar.theta          = 60;
-    gPar.beta           = 63;
+    gPar.theta          = 58;
+    gPar.beta           = 64;
     gPar.thickness      = 0.3;
     
     g         = GeometricalFunction(gPar);

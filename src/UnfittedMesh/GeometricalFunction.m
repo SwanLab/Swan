@@ -402,9 +402,9 @@ classdef GeometricalFunction < handle
                     ny1 =  cosd(theta);
                     nx2= -sind(beta);
                     ny2= cosd(beta);
-                    
-                    fT      = @(x) abs(x2(x)-(y0+H/2-t/2)) - t/2;
-                    fB      = @(x) abs(x2(x)-(y0-H/2+t/2)) - t/2;
+
+                    fT      = @(x) (y0 + H/2 - t) - x2(x);
+                    fB      = @(x) x2(x)-(y0 - H/2 + t);
                     fC      = @(x) abs(x2(x)-y0) - t/2;
 
                     fOut1 = @(x) nx1*(x1(x)-(-L/2-t/2)) + ny1*(x2(x)-(-H/2));  % Outer
