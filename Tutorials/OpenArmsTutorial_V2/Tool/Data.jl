@@ -165,23 +165,21 @@ function _split_data(d::DataStruct)
     Ytrain = d.Y[r[1:ntrain], :]
     Ytest  = d.Y[r[ntrain+1:end], :]
 
-    # Speed cubed
-    #Xtrain[:, 4] .= Xtrain[:, 4] .^ 3
-    #Xtest[:, 4]  .= Xtest[:, 4]  .^ 3
-
-    # Wind direction as cosine
-    Xtrain[:, 2] .= cosd.(Xtrain[:, 2])
-    Xtest[:, 2]  .= cosd.(Xtest[:, 2])
+    # Device1_TrueWindAngle est en position 9 dans la matrice X
+    # (xFeatures = [1,2,4,5,6,7,8,9,10,11,12,13] → X[:,9] = TrueWindAngle)
+    # On le convertit en cosinus pour gérer la circularité de l'angle.
+    Xtrain[:, 9] .= cosd.(Xtrain[:, 9])
+    Xtest[:, 9]  .= cosd.(Xtest[:, 9])
 
     # Normalize X
-    muX = mean(Xtrain, dims=1)
-    sigmaX = std(Xtrain, dims=1)
+    muX    = mean(Xtrain, dims=1)
+    sigmaX = std(Xtrain,  dims=1)
     Xtrain_norm = (Xtrain .- muX) ./ sigmaX
     Xtest_norm  = (Xtest  .- muX) ./ sigmaX
 
     # Normalize Y
-    muY = mean(Ytrain, dims=1)
-    sigmaY = std(Ytrain, dims=1)
+    muY    = mean(Ytrain, dims=1)
+    sigmaY = std(Ytrain,  dims=1)
     Ytrain_norm = (Ytrain .- muY) ./ sigmaY
     Ytest_norm  = (Ytest  .- muY) ./ sigmaY
 

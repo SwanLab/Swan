@@ -3,8 +3,6 @@
 using Revise
 #include("MyProject.jl")
 using .MyProject
-#using .OptimizationProblemNN
-#using .Data
 using .MyProject.Data
 using .MyProject.OptimizationProblemNN
 using Plots
@@ -15,12 +13,18 @@ using DataFrames
 pol_deg       = 1
 testratio     = 20
 λ             = 0.0
-learning_rate = 1e-3      # learning rate standard pour Adam
+learning_rate = 1e-3
 hidden_layers = fill(128, 6)
 
 # === Configuration ===
 s = Dict{String, Any}()
-s["fileName"] = joinpath(@__DIR__, "Datasets", "Resultados2.csv")
+
+# Fichier CSV nettoyé (sans header, colonnes numériques uniquement)
+# Colonnes : Latitude | Longitude | SpeedOverGround | CourseOverGround |
+#            Temperature | Humidity | Pressure | Device1_WindSpeed |
+#            Device1_WindAngle | Device1_TrueWindAngle | Device1_TrueWindSpeed |
+#            Device1_TrueWindDirection | rpm
+s["fileName"] = joinpath(@__DIR__, "Datasets", "merged_clean.csv")
 
 s["polynomialOrder"] = pol_deg
 s["testRatio"]       = testratio
@@ -34,7 +38,7 @@ s["networkParams"] = Dict(
 s["optimizerParams"] = Dict(
     "learningRate" => learning_rate,
     "maxEpochs"    => 1000,
-    "type"         => "Adam" # SGD or Adam
+    "type"         => "Adam"
 )
 
 s["costParams"] = Dict(
@@ -42,8 +46,11 @@ s["costParams"] = Dict(
     "costType" => "L2"
 )
 
-s["xFeatures"] = [1, 2, 3, 5, 6, 7]
-s["yFeatures"] = [4]
+# Inputs  : tout sauf SpeedOverGround (col 3)
+# Output  : SpeedOverGround (col 3)
+# Col 9 dans X = Device1_TrueWindAngle → transformée en cosd() dans Data.jl
+s["xFeatures"] = [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+s["yFeatures"] = [3]
 
 # === Chargement des données ===
 data      = init_data(s)
@@ -64,29 +71,46 @@ network = get_network(opt)
 Ypred = compute_output_values(opt, Xtest, θ)
 
 # === Histogrammes (espace normalisé) ===
-edges = range(-1, 2, length=31)
-display(histogram(Ypred, bins=edges, title="Distribution de Ypred (normalisé)"))
-display(histogram(Ytest, bins=edges, title="Distribution de Ytest (normalisé)"))
+edges = range(-3, 3, length=31)
+display(histogram(vec(Ypred), bins=edges, title="Distribution de Ypred (normalisé)"))
+display(histogram(vec(Ytest), bins=edges, title="Distribution de Ytest (normalisé)"))
 
 # === Visualisation prédictions vs réalité ===
 plot_predictions(opt, θ)
 
 # === Dénormalisation ===
-Ypred = Ypred .* data.sigmaY .+ data.muY
-Ytest = Ytest .* data.sigmaY .+ data.muY
-Xtest = Xtest .* data.sigmaX .+ data.muX
+Ypred_denorm = vec(Ypred) .* data.sigmaY[1] .+ data.muY[1]
+Ytest_denorm = vec(Ytest) .* data.sigmaY[1] .+ data.muY[1]
+Xtest_denorm = Xtest .* data.sigmaX .+ data.muX
 
 # === MSE ===
-mse = mean((Ypred .- Ytest) .^ 2)
-println("MSE sur les données de test : $(round(mse, digits=6))")
+mse = mean((Ypred_denorm .- Ytest_denorm) .^ 2)
+rmse = sqrt(mse)
+println("MSE  sur les données de test : $(round(mse,  digits=6)) (m/s)²")
+println("RMSE sur les données de test : $(round(rmse, digits=4)) m/s")
 
 # === Tableau de résultats ===
-difference  = Ytest .- Ypred
-input_data  = DataFrame(Xtest, [:rpm, :Windy_cosine, :Windy_ms, :Speed3, :Yaw, :Pitch, :Roll])
+difference = Ytest_denorm .- Ypred_denorm
+
+input_data = DataFrame(
+    Latitude             = Xtest_denorm[:, 1],
+    Longitude            = Xtest_denorm[:, 2],
+    CourseOverGround_deg = Xtest_denorm[:, 3],
+    Temperature_C        = Xtest_denorm[:, 4],
+    Humidity_pct         = Xtest_denorm[:, 5],
+    Pressure_hPa         = Xtest_denorm[:, 6],
+    WindSpeed_ms         = Xtest_denorm[:, 7],
+    WindAngle_deg        = Xtest_denorm[:, 8],
+    TrueWindAngle_deg    = Xtest_denorm[:, 9],   # valeur avant cosd()
+    TrueWindSpeed_ms     = Xtest_denorm[:, 10],
+    TrueWindDir_deg      = Xtest_denorm[:, 11],
+    rpm                  = Xtest_denorm[:, 12],
+)
+
 output_data = DataFrame(
-    Cons_real       = vec(Ytest),
-    Cons_prediction = vec(Ypred),
-    Difference      = vec(difference)
+    Speed_real       = Ytest_denorm,
+    Speed_prediction = Ypred_denorm,
+    Difference       = difference
 )
 
 result_table = hcat(input_data, output_data)
