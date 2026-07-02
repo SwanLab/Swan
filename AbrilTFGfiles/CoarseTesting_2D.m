@@ -85,15 +85,15 @@ classdef CoarseTesting_2D< handle
             tol = 1e-8;
             x0  = zeros(size(RHSf));
 
-            tic  %SOLVE THE CASE WITH STANDARD CG
-            [~,obj.CG.residual,obj.CG.error, obj.CG.errAnorm] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
-            t_CG=toc
-            tic  % SOLVE THE CASE WITH CG+ ILU
-            [~,obj.ILU.residual,obj.ILU.error, obj.ILU.errAnorm] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
-            t_ILU=toc
-            tic  % SOLVE THE CASE WITH PRECONDITIONING ILU+EIFEM+ILU
+            % tic  %SOLVE THE CASE WITH STANDARD CG
+            % [~,obj.CG.residual,obj.CG.error, obj.CG.errAnorm] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
+            % t_CG=toc
+            % tic  % SOLVE THE CASE WITH CG+ ILU
+            % [~,obj.ILU.residual,obj.ILU.error, obj.ILU.errAnorm] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
+            % t_ILU=toc
+            % tic  % SOLVE THE CASE WITH PRECONDITIONING ILU+EIFEM+ILU
             [uPCG,obj.residualPCG,obj.errPCG,obj.errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
-            t_PCG=toc
+            % t_PCG=toc
             xFull = obj.bcApplier.reducedToFullVectorDirichlet(uPCG);
             
 
@@ -192,7 +192,7 @@ classdef CoarseTesting_2D< handle
             p.Geometry         = cParams.Geometry;    % 'Circle'/'Lattice'/'Auxetic'
             obj.params         = p;
             obj.fileNameEIFEM  = cParams.fileNameEIFEM;
-            obj.tolSameNode    = 1e-11;
+            obj.tolSameNode    = 1e-3;
             % obj.nSubdomains  = [10,3];     % Uncomment just for 'Direct' 
 
             if ~strcmp(cParams.Option, 'Direct')
@@ -225,7 +225,7 @@ classdef CoarseTesting_2D< handle
             s.nsubdomains   = obj.nSubdomains; %  num along x and y
             s.meshReference = mR;
             s.tolSameNode = obj.tolSameNode;
-            m = MeshCreatorFromRVE2D(s);
+            m = MeshCreatorFromRVE.create(s);
             [mD,mSb,iC,~,lG,iCR,discmesh] = m.create();
             obj.meshDomain      = mD;
             obj.subdomainMeshes = mSb;
@@ -352,6 +352,7 @@ classdef CoarseTesting_2D< handle
         function mCoarse = createCoarseMesh(obj)
             s.nsubdomains   = obj.nSubdomains; %nx ny
             s.meshReference = obj.createReferenceCoarseMesh();
+            s.meshReference = obj.loadReferenceCoarseMesh();
             s.tolSameNode   = obj.tolSameNode;
             mRVECoarse      = MeshCreatorFromRVE2D(s);
             [mCoarse,~,~] = mRVECoarse.create();
@@ -369,6 +370,37 @@ classdef CoarseTesting_2D< handle
             s.coord = coord;
             s.connec = connec;
             cMesh = Mesh.create(s);  % crea la mesh de 4 nodes
+        end
+
+        function cMesh = loadReferenceCoarseMesh(obj)
+            bS  = obj.referenceMesh.createBoundaryMesh();
+            % bS2{1} = bS{3}; bS2{2} = bS{2}; bS2{3} = bS{4}; bS2{4} = bS{1}; % reorder boundaries
+            % bS = bS2;
+            nbd = size(bS,1);
+            interpType = [2,2,2,2]; % tries el tipus q vols a cada edge, jo tot lineal
+            inode = 1;
+            for ibd = 1:nbd
+                maxCoord  = max(bS{ibd}.mesh.coord);
+                minCoord  = min(bS{ibd}.mesh.coord);
+                meanCoord = (maxCoord+minCoord)/2; %no ho necessito
+
+                val = ibd<=nbd/2;
+                if interpType(ibd) == 1
+                    coord(inode,:)   = val*minCoord + abs((val-1))*maxCoord;
+                    coord(inode+1,:) = val*maxCoord + abs((val-1))*minCoord;
+                    inode=inode + 2;
+                else
+                    coord(inode,:)   = minCoord;
+                    coord(inode+1,:) = meanCoord;
+                    coord(inode+2,:) = maxCoord;
+                    inode=inode + 3;
+                end
+            end
+
+            connec   = [1 2 3 4 5 6 7 8 9 10 11 12];
+            s.coord  = coord;
+            s.connec = connec;
+            cMesh    = Mesh.create(s);
         end
 
         function createBCapplier(obj)

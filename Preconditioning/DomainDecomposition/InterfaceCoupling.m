@@ -26,7 +26,7 @@ classdef InterfaceCoupling < handle
         
         function compute(obj)
             obj.coordNodeBoundary();
-            obj.computeCouplingConnec2();
+            obj.computeCouplingConnec();
          %   obj.reshapeConecPerInterface();
         end
 

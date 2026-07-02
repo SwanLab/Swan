@@ -222,7 +222,7 @@ classdef EIFEMtesting < handle
         function mCoarse = createCoarseMesh(obj,mR)
             s.nsubdomains   = obj.nSubdomains; %nx ny
             s.meshReference = obj.createReferenceCoarseMesh(mR);
-%             s.meshReference = obj.loadReferenceCoarseMesh(mR);
+            s.meshReference = obj.loadReferenceCoarseMesh(mR);
             s.tolSameNode   = obj.tolSameNode;
             mRVECoarse      = MeshCreatorFromRVE.create(s);
             [mCoarse,~,~] = mRVECoarse.create();
@@ -263,12 +263,13 @@ classdef EIFEMtesting < handle
             bS2{1} = bS{3}; bS2{2} = bS{2}; bS2{3} = bS{4}; bS2{4} = bS{1}; % reorder boundaries
             bS = bS2;
             nbd = size(bS,2);
-            interpType = [2,1,2,1];
+            interpType = [2,1,2,1]; % tries el tipus q vols a cada edge, jo tot lineal
             inode = 1;
             for ibd = 1:nbd
                 maxCoord  = max(bS{ibd}.mesh.coord);
                 minCoord  = min(bS{ibd}.mesh.coord);
-                meanCoord = (maxCoord+minCoord)/2;
+                meanCoord = (maxCoord+minCoord)/2; %no ho necessito
+                
                 val = ibd<=nbd/2;
                 if interpType(ibd) == 1
                     coord(inode,:)   = val*minCoord + abs((val-1))*maxCoord;

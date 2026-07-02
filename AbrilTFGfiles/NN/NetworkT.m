@@ -23,8 +23,8 @@ hiddenLayers    = [40 72 150 72];
 
 %% INITIALIZATION 
 % Store dataset file name
-% s.fileName = fullfile('AbrilTFGfiles',"Data/Circle/",p.Training ,p.Inclusion,p.Sampling,'DataT.csv');
-s.fileName = fullfile('AbrilTFGfiles','Data',"Cube",p.Training,'DataT.csv');
+s.fileName = fullfile('AbrilTFGfiles',"Data/Circle/",p.Training ,p.Inclusion,p.Sampling,'DataT.csv');
+% s.fileName = fullfile('AbrilTFGfiles','Data',"Cube",p.Training,'DataT.csv');
 
 % Load model parameters
 s.polynomialOrder = pol_deg;

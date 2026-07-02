@@ -46,7 +46,7 @@ switch p.Training
         s.domainIndices  = dI;
         s.nSubdomains    = nS;
         s.type           = 'discontinuous';
-        s.Coarseorder    = 1;
+        s.Coarseorder    = 2;
         m= EIFEMTraining(s);
         data             = m.train();
         [data.material]  = createMaterial(mR,[1 1]);
@@ -61,7 +61,7 @@ switch p.Training
         Kcoarse  = EIFEoper.Kcoarse;
 end
 
-string = "AuxeticOversamplingP2.mat";
+string = "AuxeticIsolated.mat";
 
 % Guarda el .mat per cert radi
 FileName=fullfile('AbrilTFGfiles','Data',"Auxetic",string);
@@ -85,11 +85,12 @@ function mS = createReferenceMesh(p)
             mS = createStructuredMesh(p);
             lvSet    = createLevelSetFunction(mS);
             uMesh    = computeUnfittedMesh(mS,lvSet);
-            mS       = uMesh.createInnerMesh();
+            mR       = uMesh.createInnerMesh();
+            mS       = SmoothMesh(mR);
     
         case 'MeshRaul'
-            filename = 'DEF_Q4auxL_1.mat';
-            % filename = 'DEF_Q4porL_1.mat';
+            % filename = 'DEF_Q4auxL_1.mat';
+            filename = 'DEF_Q4porL_1.mat';
             load(filename,'EIFEoper');
             s.coord    = EIFEoper.MESH.COOR;
             s.connec   = EIFEoper.MESH.CN;
@@ -99,7 +100,7 @@ function mS = createReferenceMesh(p)
             obj.ymin = min(s.coord(:,2));
             obj.ymax = max(s.coord(:,2));
     
-            delta = 1e-9;
+            delta = 0;
             s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
                 s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-delta];
             s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
@@ -110,6 +111,42 @@ function mS = createReferenceMesh(p)
                 s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[delta,delta];
             mS = Mesh.create(s);
     end
+end
+
+function mS = SmoothMesh(mR)
+    s.coord    = mR.coord;
+    s.connec   = mR.connec;
+
+    xmin = min(s.coord(:,1));
+    xmax = max(s.coord(:,1));
+    ymin = min(s.coord(:,2));
+    ymax = max(s.coord(:,2));
+
+    tol=1e-10;
+
+    leftNodes   = find(abs(s.coord(:,1)-xmin) < tol);
+    rightNodes  = find(abs(s.coord(:,1)-xmax) < tol);
+    bottomNodes = find(abs(s.coord(:,2)-ymin) < tol);
+    topNodes    = find(abs(s.coord(:,2)-ymax) < tol);
+
+    [~,iL] = sort(s.coord(leftNodes,2));
+    leftNodes = leftNodes(iL);
+    [~,iR] = sort(s.coord(rightNodes,2));
+    rightNodes = rightNodes(iR);
+    [~,iB] = sort(s.coord(bottomNodes,1));
+    bottomNodes = bottomNodes(iB);
+    [~,iT] = sort(s.coord(topNodes,1));
+    topNodes = topNodes(iT);
+    y = 0.5*(s.coord(leftNodes,2)+s.coord(rightNodes,2));
+    s.coord(leftNodes,2)  = y;
+    s.coord(rightNodes,2) = y;
+
+    x = 0.5*(s.coord(bottomNodes,1)+s.coord(topNodes,1));
+    s.coord(bottomNodes,1) = x;
+    s.coord(topNodes,1)    = x;
+    mS = Mesh.create(s);
+
+
 end
 
 function dF = createDirichletFunction(bMesh,type)
@@ -127,8 +164,8 @@ function [nS,dI] = defineNumberOfSubdomains(type)
             nS = [1 1]; %nx ny
             dI = [1 1];
         case 'Oversampling'
-            nS = [5 5]; %nx ny
-            dI = [3 3];
+            nS = [3 3]; %nx ny
+            dI = [2 2];
     end
 end
 

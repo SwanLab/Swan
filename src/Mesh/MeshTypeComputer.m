@@ -13,6 +13,8 @@ classdef MeshTypeComputer < handle
                             type = 'TRIANGLE';
                         case 4
                             type = 'QUAD';
+                        otherwise
+                            type = 'SUPERELEMENT';
                     end
                 case 'Volume'
                     switch nnodeElem

@@ -153,12 +153,13 @@ legend({'ILU', 'Multiscale','EIFEM(Isolated)','EIFEM(Oversampling)'});
 ylim([0 500]);
 xlim([0.05 0.9]);
 
+
 %% DIRECT
 s.Training     = [];            % 'EIFEM'/'Multiscale'/'EIFisol'
 s.Sampling     = [];            % 'Isolated'/'Oversampling'
 s.Inclusion    = 'Hole';        % 'Hole'/'Material'/  --> Hole: just for imported meshes or constant geometry
 s.Option       = 'Direct';      % 'Dataset'/'NN'/'HO'/ 'Hybrid'/'Direct
-s.nSubdomains  = [4,2];
+s.nSubdomains  = [30,10];
 s.nelem        = [];            %  Mesh refining
 s.Geometry     = []; 
 
@@ -175,7 +176,7 @@ s.Geometry     = [];
 % test3           = CoarseTesting_2D(s);
 % test3.compute();
 
-s.fileNameEIFEM = 'AuxeticOversampling';
+s.fileNameEIFEM = 'AuxeticIsolated';
 test           = CoarseTesting_2D(s);
 test.compute();
 
