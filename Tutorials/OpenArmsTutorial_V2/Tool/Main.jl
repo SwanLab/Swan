@@ -49,7 +49,7 @@ s["costParams"] = Dict(
 # Inputs  : tout sauf SpeedOverGround (col 3)
 # Output  : SpeedOverGround (col 3)
 # Col 9 dans X = Device1_TrueWindAngle → transformée en cosd() dans Data.jl
-s["xFeatures"] = [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+s["xFeatures"] = [1, 2, 4, 5, 6, 7, 8, 9]
 s["yFeatures"] = [3]
 
 # === Chargement des données ===
