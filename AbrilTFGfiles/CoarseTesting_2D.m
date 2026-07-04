@@ -85,15 +85,15 @@ classdef CoarseTesting_2D< handle
             tol = 1e-8;
             x0  = zeros(size(RHSf));
 
-            % tic  %SOLVE THE CASE WITH STANDARD CG
-            % [~,obj.CG.residual,obj.CG.error, obj.CG.errAnorm] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
-            % t_CG=toc
+            tic  %SOLVE THE CASE WITH STANDARD CG
+            [~,obj.CG.residual,obj.CG.error, obj.CG.errAnorm] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
+            t_CG=toc
             % tic  % SOLVE THE CASE WITH CG+ ILU
             % [~,obj.ILU.residual,obj.ILU.error, obj.ILU.errAnorm] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
             % t_ILU=toc
-            % tic  % SOLVE THE CASE WITH PRECONDITIONING ILU+EIFEM+ILU
+            tic  % SOLVE THE CASE WITH PRECONDITIONING ILU+EIFEM+ILU
             [uPCG,obj.residualPCG,obj.errPCG,obj.errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
-            % t_PCG=toc
+            t_PCG=toc
             xFull = obj.bcApplier.reducedToFullVectorDirichlet(uPCG);
             
 
@@ -192,7 +192,7 @@ classdef CoarseTesting_2D< handle
             p.Geometry         = cParams.Geometry;    % 'Circle'/'Lattice'/'Auxetic'
             obj.params         = p;
             obj.fileNameEIFEM  = cParams.fileNameEIFEM;
-            obj.tolSameNode    = 1e-3;
+            obj.tolSameNode    = 1e-9;
             % obj.nSubdomains  = [10,3];     % Uncomment just for 'Direct' 
 
             if ~strcmp(cParams.Option, 'Direct')
@@ -351,7 +351,7 @@ classdef CoarseTesting_2D< handle
 
         function mCoarse = createCoarseMesh(obj)
             s.nsubdomains   = obj.nSubdomains; %nx ny
-            s.meshReference = obj.createReferenceCoarseMesh();
+            % s.meshReference = obj.createReferenceCoarseMesh();
             s.meshReference = obj.loadReferenceCoarseMesh();
             s.tolSameNode   = obj.tolSameNode;
             mRVECoarse      = MeshCreatorFromRVE2D(s);
@@ -360,13 +360,27 @@ classdef CoarseTesting_2D< handle
 
 
         function cMesh = createReferenceCoarseMesh(obj)
-            coord(1,1) = obj.xmin;  coord(1,2) = obj.ymin;     
-            coord(2,1) = obj.xmax;  coord(2,2) = obj.ymin;
-            coord(3,1) = obj.xmax;  coord(3,2) = obj.ymax;
-            coord(4,1) = obj.xmin;  coord(4,2) = obj.ymax;
+            % For lineal
+            % coord(1,1) = obj.xmin;  coord(1,2) = obj.ymin;
+            % coord(2,1) = obj.xmax;  coord(2,2) = obj.ymin;
+            % coord(3,1) = obj.xmax;  coord(3,2) = obj.ymax;
+            % coord(4,1) = obj.xmin;  coord(4,2) = obj.ymax;
+            % 
+            % connec = [1 2 3 4];    % General case
+            % % connec = [2 3 4 1];       % Direct mesh Raul
+            % 
 
-            connec = [1 2 3 4];    % General case
-            % connec = [2 3 4 1];       % Direct mesh Raul
+            % For quadratic 
+            coord(1,1) = obj.xmin;                  coord(1,2) = obj.ymin;
+            coord(2,1) = 0.5*(obj.xmin+obj.xmax);   coord(2,2) = obj.ymin;
+            coord(3,1) = obj.xmax;                  coord(3,2) = obj.ymin;
+            coord(4,1) = obj.xmax;                  coord(4,2) = 0.5*(obj.ymin+obj.ymax);
+            coord(5,1) = obj.xmax;                  coord(5,2) = obj.ymax;
+            coord(6,1) = 0.5*(obj.xmin+obj.xmax);   coord(6,2) = obj.ymax;
+            coord(7,1) = obj.xmin;                  coord(7,2) = obj.ymax;
+            coord(8,1) = obj.xmin;                  coord(8,2) = 0.5*(obj.ymin+obj.ymax);
+
+            connec = [1 2 3 4 5 6 7 8];
             s.coord = coord;
             s.connec = connec;
             cMesh = Mesh.create(s);  % crea la mesh de 4 nodes
@@ -575,13 +589,13 @@ classdef CoarseTesting_2D< handle
             Dir{1}.direction = [1,2];
             Dir{1}.value     = 0;
 
-            Dir{2}.domain    = @(coor) isRight(coor) ;
-            Dir{2}.direction = [1,2];
-            Dir{2}.value     = 0;
+            % Dir{2}.domain    = @(coor) isRight(coor) ;
+            % Dir{2}.direction = [1,2];
+            % Dir{2}.value     = 0;
 
-            PL.domain    = @(coor) isTop(coor);
-            PL.direction = [2];
-            PL.value     = [-0.1];
+            PL.domain    = @(coor) isRight(coor);
+            PL.direction = [1];
+            PL.value     = [1];
         end 
 
         function [bc,Dir,PL] = createBoundaryConditions(obj,mesh)

@@ -154,42 +154,40 @@ ylim([0 500]);
 xlim([0.05 0.9]);
 
 
-%% DIRECT
+%% DIRECT AUXETIC
 s.Training     = [];            % 'EIFEM'/'Multiscale'/'EIFisol'
 s.Sampling     = [];            % 'Isolated'/'Oversampling'
 s.Inclusion    = 'Hole';        % 'Hole'/'Material'/  --> Hole: just for imported meshes or constant geometry
 s.Option       = 'Direct';      % 'Dataset'/'NN'/'HO'/ 'Hybrid'/'Direct
-s.nSubdomains  = [30,10];
+s.nSubdomains  = [12,4];
 s.nelem        = [];            %  Mesh refining
 s.Geometry     = []; 
 
-
-% s.fileNameEIFEM = 'r_0.8_test_interior_refinement.mat';
-% test1           = CoarseTesting_2D(s);
-% test1.compute();
-% 
-% s.fileNameEIFEM = 'r0.8_RaulOversampling';
-% test2           = CoarseTesting_2D(s);
-% test2.compute();
-% 
-% s.fileNameEIFEM = 'r0.8_RaulMultiscale';
-% test3           = CoarseTesting_2D(s);
-% test3.compute();
-
 s.fileNameEIFEM = 'AuxeticIsolated';
-test           = CoarseTesting_2D(s);
-test.compute();
+EifemDisc       = CoarseTesting_2D(s);
+EifemDisc.compute();
 
-plot(test1.residualPCG,'linewidth',2)
+s.fileNameEIFEM = 'AuxeticIsolatedClassic';
+EifemCont       = CoarseTesting_2D(s);
+EifemCont.compute();
+
+AMG = ElasticityAMG_Abril(cParams);
+
+plot(EifemDisc.residualPCG,'linewidth',2)
 hold on
-plot(test2.residualPCG,'linewidth',2)
+% plot(EifemCont.residualPCG,'linewidth',2)
+% hold on
+plot(AMG.residual,'linewidth',2)
 hold on
-plot(test3.residualPCG,'linewidth',2)
+plot(EifemDisc.ILU.residualPCG,'linewidth',2)
+hold on
+plot(EifemDisc.CG.residualPCG,'linewidth',2)
+
 set(gca, 'YScale', 'log')
 xlabel('Iteration')
 ylabel('Residual')
 title("Residual evolution")
-legend({'Quadratic', 'EIFEM Oversampling', 'Multiscale'});
+legend({'EIFEM discontinuous','AMG', 'ILU','CG'});
 
 
 

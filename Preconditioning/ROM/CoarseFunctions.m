@@ -262,11 +262,11 @@ classdef CoarseFunctions < handle
             end
 
             % interior nodes
-            for j = 2:k-1
-                for i = 2:k-1
-                    bn = [bn; i j];
-                end
-            end
+            % for j = 2:k-1
+            %     for i = 2:k-1
+            %         bn = [bn; i j];
+            %     end
+            % end
         end
 
         function bn = getAllNodes3D(order)

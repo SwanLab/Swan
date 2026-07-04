@@ -45,7 +45,7 @@ switch p.Training
         s.material       = material;
         s.domainIndices  = dI;
         s.nSubdomains    = nS;
-        s.type           = 'discontinuous';
+        s.type           = 'continuous';
         s.Coarseorder    = 2;
         m= EIFEMTraining(s);
         data             = m.train();
@@ -61,7 +61,7 @@ switch p.Training
         Kcoarse  = EIFEoper.Kcoarse;
 end
 
-string = "AuxeticIsolated.mat";
+string = "AuxeticIsolatedClassic.mat";
 
 % Guarda el .mat per cert radi
 FileName=fullfile('AbrilTFGfiles','Data',"Auxetic",string);
