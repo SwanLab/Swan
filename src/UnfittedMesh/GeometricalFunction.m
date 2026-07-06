@@ -444,6 +444,13 @@ classdef GeometricalFunction < handle
 
                     obj.fHandle = fAll;
 
+                case 'Auxetic3D'
+                    s= cParams;
+                    s.type = 'Auxetic';
+                    obj.selectHandle(s);
+                    fAuxetic= obj.fHandle;
+                    obj.fHandle = fAuxetic;
+
             end
 
         end

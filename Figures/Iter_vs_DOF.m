@@ -48,4 +48,23 @@ title('Iter. vs DOFs');
 xlabel('DOFs');
 ylabel('Iterations');
 
+%% AUXETIC
+DOFs = [200016 399376 747636 1723200 2488840];
 
+iter_ILU = [3629 5437 6793 8728 13197];
+iter_AMG = [177 209 214 208 216];
+iter_EIFEM_C = [1571 2374 2954 3219 4018];
+iter_EIFEM_D = [75 75 76 76 77];
+
+figure;
+plot(DOFs,iter_ILU,'-s','LineWidth',2,'MarkerSize',8); hold on;
+plot(DOFs,iter_AMG,'-d','LineWidth',2,'MarkerSize',8);
+plot(DOFs,iter_EIFEM_C,'-^','LineWidth',2,'MarkerSize',8);
+plot(DOFs,iter_EIFEM_D,'-o','LineWidth',2,'MarkerSize',8);
+
+legend('ILU','AMG','EIFEM Continuous','EIFEM Discontinuous P2');
+title('Iter. vs DOFs');
+xlabel('DOFs');
+ylabel('Iterations');
+% set(gca, 'YScale', 'log');
+set(gca, 'XScale', 'log');

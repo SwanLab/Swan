@@ -183,3 +183,32 @@ set(gca, 'YScale', 'log')
 title('Time vs DOFs');
 xlabel('DOFs');
 ylabel('time [s]');
+
+
+
+%% AUXETIC 
+
+DOFs = [200016 399376 747636 1723200 2488840];
+
+time_ILU = [83.4584 253.2771 584.9593 992.7457 3692.4];
+time_AMG = [13.2750 21.87 35.3716 44.1013 103.5863];
+time_EIFEM_C = [97.6603 333.82 771.6834 1174.8 4629.2];
+time_EIFEM_D = [5.0590 10.34 20.2134 28.6351 90.4783];
+
+figure;
+
+plot(DOFs,time_ILU,'-s','LineWidth',2,'MarkerSize',8);hold on;
+plot(DOFs,time_AMG,'-d','LineWidth',2,'MarkerSize',8);
+plot(DOFs,time_EIFEM_C,'-^','LineWidth',2,'MarkerSize',8);
+plot(DOFs,time_EIFEM_D,'-o','LineWidth',2,'MarkerSize',8);
+
+xlabel('DOFs');
+ylabel('Time [s]');
+title('Time vs DOFs');
+xlim([0,2700000]);
+set(gca, 'YScale', 'log');
+set(gca, 'XScale', 'log');
+
+legend('ILU','AMG','EIFEM Continuous','EIFEM Discontinuous P2');
+
+

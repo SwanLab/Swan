@@ -1,5 +1,5 @@
 function mesh = HexaMesh(length, height, width, nx, ny, nz)
-    x = linspace(-1, length, nx+1);
+    x = linspace(-1.5, length, nx+1);
     y = linspace(-1, height, ny+1);
     z = linspace(-1, width, nz+1);
     [X, Y, Z] = meshgrid(x, y, z);

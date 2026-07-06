@@ -145,7 +145,7 @@ uMesh.plot();
 
 
 
-%% AUXETIC CELL
+%% AUXETIC CELL 2D
 
 x1      = linspace(-1.5,1.5,40);
 x2      = linspace(-1,1,40);
@@ -156,6 +156,33 @@ m.connec = F;
 mesh     = Mesh.create(m);
 
 gPar.type           = 'Auxetic';
+gPar.length         = 2;
+gPar.height         = 2;
+gPar.xCoorCenter    = 0;
+gPar.yCoorCenter    = 0;
+gPar.theta          = 60;
+gPar.beta           = 63;
+gPar.thickness      = 0.3;
+
+
+g        = GeometricalFunction(gPar);
+phiFun   = g.computeLevelSetFunction(mesh);
+obj.levelSet = phiFun;
+ls       = phiFun.fValues;
+
+sUm.backgroundMesh = mesh;
+sUm.boundaryMesh   = mesh.createBoundaryMesh;
+uMesh              = UnfittedMesh(sUm);
+uMesh.compute(ls);
+uMesh.plot();
+
+
+
+%% AUXETIC CELL 3D
+
+mesh=TetraMesh(1.5,1,1,20,20,20);
+
+gPar.type           = 'Auxetic3D';
 gPar.length         = 2;
 gPar.height         = 2;
 gPar.xCoorCenter    = 0;
