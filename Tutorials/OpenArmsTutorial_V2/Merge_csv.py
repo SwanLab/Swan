@@ -1,5 +1,5 @@
 """
-merge_csv.py — Fusion, nettoyage et visualisation de fichiers CSV
+merge_csv.py — Fusion, nettoyage, lissage et export CSV pour Julia
 
 Structure attendue :
     projet/
@@ -13,7 +13,8 @@ Lancement :
     python merge_csv.py
 
 Sorties créées à côté du script :
-    projet/merged_output.csv
+    projet/merged_output.csv          ← fusionné brut (avec header, pour debug)
+    projet/Datasets/merged_clean.csv  ← prêt pour Julia (sans header, sans colonnes inutiles)
     projet/data_plots/speed_over_ground.png
     projet/data_plots/course_over_ground.png
 """
@@ -30,6 +31,7 @@ from pathlib import Path
 SCRIPT_DIR    = Path(__file__).parent
 SOURCE_FOLDER = SCRIPT_DIR / "merge_csv"
 OUTPUT_FILE   = SCRIPT_DIR / "merged_output.csv"
+CLEAN_FILE    = SCRIPT_DIR / "Tool" / "Datasets" / "merged_clean.csv"
 PLOTS_FOLDER  = SCRIPT_DIR / "data_plots"
 
 # Colonnes utilisées pour la détection de bugs GPS
@@ -41,12 +43,14 @@ GPS_BUG_N     = 5
 # Colonnes exclues du dédoublonnage
 DEDUP_EXCLUDE = ["id", "Time"]
 
+# Colonnes à toujours retirer du CSV final (inutiles ou non numériques)
+# On retire id, Time, et VelocityMadeGood (fuite de variable vers SpeedOverGround)
+COLS_TO_DROP  = ["id", "Time", "Device1_VelocityMadeGood (m/s)"]
+
+# Fenêtre de lissage : 12 points = ~1 minute à 5s/mesure
+ROLLING_WINDOW = 12
+
 # ─── Troncatures manuelles ────────────────────────────────────────────────────
-# Toutes les lignes APRÈS cette date seront ignorées dans le fichier final.
-# Les fichiers sources ne sont PAS modifiés.
-# Ajouter autant d'entrées que nécessaire si d'autres fichiers ont le même problème.
-#
-# Format : "nom_fichier.csv" -> "YYYY-MM-DD HH:MM:SS"
 FILE_CUTOFFS = {
     "08_0130.csv": "2025-05-16 04:28:35",
 }
@@ -83,7 +87,6 @@ def remove_gps_bugs(df: pd.DataFrame, n: int = 5) -> pd.DataFrame:
     """
     Supprime les lignes où Latitude, Longitude et SpeedOverGround
     sont constantes sur n lignes consécutives ET vitesse > 0.
-    (vitesse = 0 + position fixe = arrêt réel → conservé)
     """
     cols_present = [c for c in GPS_COLS if c in df.columns]
     if len(cols_present) < len(GPS_COLS):
@@ -97,29 +100,25 @@ def remove_gps_bugs(df: pd.DataFrame, n: int = 5) -> pd.DataFrame:
 
     i = 0
     while i <= nrows - n:
-        window = values.iloc[i:i + n]
-
+        window    = values.iloc[i:i + n]
         all_const = all(window[c].nunique(dropna=False) == 1 for c in GPS_COLS)
         ref_speed = window["SpeedOverGround (m/s)"].iloc[0]
         is_moving = pd.notna(ref_speed) and float(ref_speed) > 0.0
 
         if all_const and is_moving:
-            # Étend la zone bug tant que les valeurs restent identiques
             j = i + n
             while j < nrows and all(
                 values[c].iloc[j] == values[c].iloc[i] for c in GPS_COLS
             ):
                 j += 1
-
-            original_idx = df.index[i:j]
-            to_delete[original_idx] = True
+            to_delete[df.index[i:j]] = True
             i = j
         else:
             i += 1
 
     n_deleted = to_delete.sum()
     if n_deleted > 0:
-        print(f"  🛰️  {n_deleted} ligne(s) supprimée(s) — bug GPS (valeurs fixes ≥{n} lignes, vitesse > 0)")
+        print(f"  🛰️  {n_deleted} ligne(s) supprimée(s) — bug GPS")
     else:
         print(f"  ✅ Aucun bug GPS détecté")
 
@@ -127,10 +126,7 @@ def remove_gps_bugs(df: pd.DataFrame, n: int = 5) -> pd.DataFrame:
 
 
 def apply_cutoff(df: pd.DataFrame, filename: str) -> pd.DataFrame:
-    """
-    Applique une troncature temporelle si le fichier est dans FILE_CUTOFFS.
-    Ne modifie pas le fichier source, uniquement les données en mémoire.
-    """
+    """Applique une troncature temporelle si le fichier est dans FILE_CUTOFFS."""
     if filename not in FILE_CUTOFFS:
         return df
 
@@ -138,10 +134,7 @@ def apply_cutoff(df: pd.DataFrame, filename: str) -> pd.DataFrame:
     time_col = df.columns[1]
     before   = len(df)
     df       = df[df[time_col] <= cutoff].reset_index(drop=True)
-    after    = len(df)
-
-    print(f"  ✂️  Tronqué à {FILE_CUTOFFS[filename]} : {before - after} ligne(s) ignorée(s) dans le fichier final")
-
+    print(f"  ✂️  Tronqué à {FILE_CUTOFFS[filename]} : {before - len(df)} ligne(s) ignorée(s)")
     return df
 
 
@@ -153,11 +146,10 @@ def make_plots(df: pd.DataFrame, plots_dir: Path) -> None:
     valid    = df[time_col].notna()
     t        = df.loc[valid, time_col]
 
-    def save_plot(col_name: str, ylabel: str, color: str, filename: str) -> None:
+    def save_plot(col_name, ylabel, color, filename):
         if col_name not in df.columns:
             print(f"  ⚠️  Colonne '{col_name}' introuvable, graphique ignoré.")
             return
-
         fig, ax = plt.subplots(figsize=(14, 5))
         ax.scatter(t, df.loc[valid, col_name], color=color, s=1)
         ax.set_title(col_name, fontsize=13)
@@ -168,8 +160,7 @@ def make_plots(df: pd.DataFrame, plots_dir: Path) -> None:
         fig.autofmt_xdate(rotation=0, ha="center")
         ax.grid(True, alpha=0.3)
         fig.tight_layout()
-        out = plots_dir / filename
-        fig.savefig(out, dpi=150)
+        fig.savefig(plots_dir / filename, dpi=150)
         plt.close(fig)
         print(f"  ✅ Enregistré : {filename}")
 
@@ -177,21 +168,64 @@ def make_plots(df: pd.DataFrame, plots_dir: Path) -> None:
     save_plot("CourseOverGround (deg)", "Direction (deg)", "darkorange", "course_over_ground.png")
 
 
+def clean_and_export(df: pd.DataFrame, output_path: Path) -> None:
+    """
+    Prépare le CSV final pour Julia :
+      1. Supprime les colonnes entièrement vides (NaN à 100%)
+      2. Supprime les colonnes inutiles (id, Time, VelocityMadeGood)
+      3. Applique un lissage par moyenne glissante (fenêtre = ROLLING_WINDOW)
+      4. Supprime les lignes NaN résiduelles introduites par le lissage
+      5. Exporte sans header (format attendu par readdlm en Julia)
+    """
+    print(f"\n🧹 Préparation du CSV propre pour Julia...")
+
+    # 1. Colonnes 100% vides
+    cols_all_nan = [c for c in df.columns if df[c].isna().all()]
+    if cols_all_nan:
+        print(f"  🗑️  {len(cols_all_nan)} colonne(s) entièrement vide(s) supprimée(s) : {cols_all_nan}")
+        df = df.drop(columns=cols_all_nan)
+
+    # 2. Colonnes inutiles (non numériques, fuite de variable)
+    cols_to_drop = [c for c in COLS_TO_DROP if c in df.columns]
+    if cols_to_drop:
+        print(f"  🗑️  Colonnes retirées (id/Time/fuite) : {cols_to_drop}")
+        df = df.drop(columns=cols_to_drop)
+
+    # 3. Lissage — uniquement sur colonnes numériques, dans l'ordre temporel
+    #    (le tri a déjà été fait sur le df fusionné avant cet appel)
+    numeric_cols = df.select_dtypes(include="number").columns.tolist()
+    print(f"  📉 Lissage par moyenne glissante (fenêtre = {ROLLING_WINDOW} points ≈ {ROLLING_WINDOW * 5}s)")
+    print(f"     Colonnes lissées : {numeric_cols}")
+    df[numeric_cols] = df[numeric_cols].rolling(window=ROLLING_WINDOW, min_periods=1).mean()
+
+    # 4. Suppression des NaN résiduels (début de série ou capteurs manquants)
+    before = len(df)
+    df = df.dropna().reset_index(drop=True)
+    print(f"  🗑️  {before - len(df)} ligne(s) NaN supprimée(s) après lissage")
+
+    print(f"  📊 Colonnes finales ({len(df.columns)}) :")
+    for i, col in enumerate(df.columns, 1):
+        print(f"       {i:2d}. {col}  (std={df[col].std():.4f})")
+
+    # 5. Export sans header pour readdlm Julia
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(output_path, index=False, header=False)
+    print(f"\n  ✅ Fichier propre écrit : {output_path}")
+    print(f"     {len(df)} lignes × {len(df.columns)} colonnes")
+
+
 # ─── Programme principal ──────────────────────────────────────────────────────
 
 def main():
     print(f"📁 Dossier du script  : {SCRIPT_DIR}")
     print(f"📂 Dossier CSV source : {SOURCE_FOLDER}")
-    print(f"💾 Fichier de sortie  : {OUTPUT_FILE}")
+    print(f"💾 Fichier brut       : {OUTPUT_FILE}")
+    print(f"💾 Fichier propre     : {CLEAN_FILE}")
     print(f"📊 Dossier graphiques : {PLOTS_FOLDER}")
     print()
 
     if not SOURCE_FOLDER.is_dir():
         print(f"❌ Dossier '{SOURCE_FOLDER.name}' introuvable à côté du script.")
-        print("   Structure attendue :")
-        print("       projet/")
-        print("       ├── merge_csv.py")
-        print("       └── merge_csv/   ← doit exister")
         return
 
     csv_files = sorted([
@@ -215,26 +249,17 @@ def main():
 
     for path in csv_files:
         print(f"📥 Traitement : {path.name}")
-
         df = load_csv(path)
         if df is None:
             continue
-
         print(f"   Chargé : {len(df)} lignes")
-
-        # 1. Nettoyage des bugs GPS
         df = remove_gps_bugs(df, n=GPS_BUG_N)
         print(f"   Après nettoyage GPS : {len(df)} lignes")
-
-        # 2. Troncature temporelle (uniquement en mémoire, fichier source intact)
         df = apply_cutoff(df, path.name)
-        print(f"   Lignes conservées pour la fusion : {len(df)}")
-
+        print(f"   Lignes conservées : {len(df)}")
         frames.append(df)
-
         if ref_cols is None:
             ref_cols = list(df.columns)
-
         print()
 
     if not frames:
@@ -250,35 +275,35 @@ def main():
     time_col = merged.columns[1]
     merged   = merged.sort_values(by=time_col, na_position="last").reset_index(drop=True)
 
-    # ── Dédoublonnage (toutes colonnes sauf id et Time) ───────────────────────
+    # ── Dédoublonnage ─────────────────────────────────────────────────────────
     cols_dedup = [c for c in merged.columns if c not in DEDUP_EXCLUDE]
     merged     = merged.drop_duplicates(subset=cols_dedup).reset_index(drop=True)
-
-    doublons = total_avant - len(merged)
+    doublons   = total_avant - len(merged)
     if doublons > 0:
         print(f"🗑️  {doublons} ligne(s) dupliquée(s) supprimée(s)")
     else:
         print("✅ Aucun doublon détecté")
 
-    # Remet les colonnes dans l'ordre du premier fichier
     cols_ordered = [c for c in ref_cols if c in merged.columns]
     cols_extra   = [c for c in merged.columns if c not in ref_cols]
     merged       = merged[cols_ordered + cols_extra]
 
-    # ── Graphiques ────────────────────────────────────────────────────────────
+    # ── Graphiques (sur données brutes, avant lissage) ────────────────────────
     print("\n📊 Génération des graphiques...")
     make_plots(merged, PLOTS_FOLDER)
 
-    # ── Écriture CSV ──────────────────────────────────────────────────────────
-    print(f"\n💾 Écriture du fichier de sortie...")
+    # ── Export brut (avec header, pour debug/inspection) ─────────────────────
     merged.to_csv(OUTPUT_FILE, index=False)
+    print(f"\n💾 Fichier brut écrit : {OUTPUT_FILE}  ({len(merged)} lignes)")
+
+    # ── Nettoyage + lissage + export pour Julia ───────────────────────────────
+    clean_and_export(merged, CLEAN_FILE)
 
     print(f"""
 ─────────────────────────────────────────
 ✅ Terminé !
-   Fichier CSV    : {OUTPUT_FILE}
-   Lignes totales : {len(merged)}
-   Colonnes       : {len(merged.columns)}
+   Fichier brut   : {OUTPUT_FILE}
+   Fichier propre : {CLEAN_FILE}
    Graphiques     : {PLOTS_FOLDER}
 ─────────────────────────────────────────
 """)
