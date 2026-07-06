@@ -168,8 +168,8 @@ function _split_data(d::DataStruct)
     # Device1_TrueWindAngle est en position 9 dans la matrice X
     # (xFeatures = [1,2,4,5,6,7,8,9,10,11,12,13] → X[:,9] = TrueWindAngle)
     # On le convertit en cosinus pour gérer la circularité de l'angle.
-    Xtrain[:, 9] .= cosd.(Xtrain[:, 9])
-    Xtest[:, 9]  .= cosd.(Xtest[:, 9])
+    Xtrain[:, 6] .= cosd.(Xtrain[:, 6])
+    Xtest[:, 6]  .= cosd.(Xtest[:, 6])
 
     # Normalize X
     muX    = mean(Xtrain, dims=1)

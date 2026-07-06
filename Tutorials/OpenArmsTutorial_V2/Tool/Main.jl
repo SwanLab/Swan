@@ -49,7 +49,7 @@ s["costParams"] = Dict(
 # Inputs  : tout sauf SpeedOverGround (col 3)
 # Output  : SpeedOverGround (col 3)
 # Col 9 dans X = Device1_TrueWindAngle → transformée en cosd() dans Data.jl
-s["xFeatures"] = [1, 2, 4, 5, 6, 7, 8, 9]
+s["xFeatures"] = [1, 2, 4, 8, 9, 10, 11, 12]
 s["yFeatures"] = [3]
 
 # === Chargement des données ===
@@ -93,18 +93,14 @@ println("RMSE sur les données de test : $(round(rmse, digits=4)) m/s")
 difference = Ytest_denorm .- Ypred_denorm
 
 input_data = DataFrame(
-    Latitude             = Xtest_denorm[:, 1],
-    Longitude            = Xtest_denorm[:, 2],
-    CourseOverGround_deg = Xtest_denorm[:, 3],
-    Temperature_C        = Xtest_denorm[:, 4],
-    Humidity_pct         = Xtest_denorm[:, 5],
-    Pressure_hPa         = Xtest_denorm[:, 6],
-    WindSpeed_ms         = Xtest_denorm[:, 7],
-    WindAngle_deg        = Xtest_denorm[:, 8],
-    TrueWindAngle_deg    = Xtest_denorm[:, 9],   # valeur avant cosd()
-    TrueWindSpeed_ms     = Xtest_denorm[:, 10],
-    TrueWindDir_deg      = Xtest_denorm[:, 11],
-    rpm                  = Xtest_denorm[:, 12],
+    Latitude                = Xtest_denorm[:, 1],
+    Longitude               = Xtest_denorm[:, 2],
+    CourseOverGround        = Xtest_denorm[:, 3],
+    Device1_WindSpeed       = Xtest_denorm[:, 4],
+    Device1_WindAngle       = Xtest_denorm[:, 5],
+    Device1_TrueWindAngle   = Xtest_denorm[:, 6],
+    Device1_TrueWindSpeed   = Xtest_denorm[:, 7],
+    Device1_TrueWindDir     = Xtest_denorm[:, 8],
 )
 
 output_data = DataFrame(
