@@ -1,14 +1,16 @@
 clc,clear,close all
 
 %% Load base mesh
-file = 'Tetradecahedron0025';%'Tetradecahedron0025';
+% file = 'Tetradecahedron0025';%'Tetradecahedron0025';
+% 
+% TMC = TetradecahedronMeshComputer(file);
+% mesh = TMC.getMesh();
+% MS = TMC.getMasterSlave();
 
-TMC = TetradecahedronMeshComputer(file);
-mesh = TMC.getMesh();
-MS = TMC.getMasterSlave();
+mesh = UnitTetraMesh(100,100,100)
 
 %% Create level set
-gPar.type = 'TetradecahedronHoles'; %'Octahedron';
+gPar.type = 'Tetradecahedron'; %'Octahedron';
 gPar.xCoorCenter = 0.5;
 gPar.yCoorCenter = 0.5;
 gPar.zCoorCenter = 0.5;
