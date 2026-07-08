@@ -1,7 +1,7 @@
 clc,clear,close all
 
 %% Load base mesh
-file = 'TetradecahedronFaces';
+file = 'Tetradecahedron_cube';
 
 TMC = TetradecahedronMeshComputer(file);
 mesh = TMC.getMesh();
@@ -25,15 +25,15 @@ tensor    = Material.create(s);
 material  = tensor;
 
 %% set boundary conditions
-isV1X = @(coor) (abs(coor(:,1) - 0.25) < 1e-5);
-isV1Y = @(coor) (abs(coor(:,2) - 0.5) < 1e-5);
-isV1Z = @(coor) (abs(coor(:,3) - 0) < 1e-5);
-isVertex1 = @(coor) isV1X(coor) & isV1Y(coor) & isV1Z(coor);
-
-sDir{1}.domain    = @(coor) isVertex1(coor);
-sDir{1}.direction = [1,2,3];
-sDir{1}.value     = 0;
-
+% isV1X = @(coor) (abs(coor(:,1) - 0.25) < 1e-5);
+% isV1Y = @(coor) (abs(coor(:,2) - 0.5) < 1e-5);
+% isV1Z = @(coor) (abs(coor(:,3) - 0) < 1e-5);
+% isVertex1 = @(coor) isV1X(coor) & isV1Y(coor) & isV1Z(coor);
+% 
+% sDir{1}.domain    = @(coor) isVertex1(coor);
+% sDir{1}.direction = [1,2,3];
+% sDir{1}.value     = 0;
+% 
 % isV2X = @(coor) (abs(coor(:,1) - 0.75) < 1e-5);
 % isV2Y = @(coor) (abs(coor(:,2) - 0.5) < 1e-5);
 % isV2Z = @(coor) (abs(coor(:,3) - 0) < 1e-5);
@@ -51,6 +51,10 @@ sDir{1}.value     = 0;
 % sDir{3}.domain    = @(coor) isVertex3(coor);
 % sDir{3}.direction = [3];
 % sDir{3}.value     = 0;
+
+sDir{1}.domain    = @(coor) coor(:,1) == 100;
+sDir{1}.direction = [1,2,3];
+sDir{1}.value     = 0;
 
 dirichletFun = [];
 for i = 1:numel(sDir)
@@ -96,14 +100,14 @@ solver = PCG(sS);
 
 %% Continue problem definition
 
-s.solverCase = solver;%DirectSolver();
+s.solverCase = DirectSolver();
 s.solverType = 'REDUCED';
 s.solverMode = 'FLUC';
 fem = ElasticProblemMicro(s);
 fem.solve();
 
-totVol = mesh.computeVolume();
-matHomog = fem.Chomog/totVol;
+%% Postprocess
+matHomog = fem.Chomog;
 
 C11 = matHomog(1,1,1,1);
 C12 = matHomog(1,1,2,2);
