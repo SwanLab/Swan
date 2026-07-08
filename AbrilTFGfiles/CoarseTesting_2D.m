@@ -68,7 +68,7 @@ classdef CoarseTesting_2D< handle
             RHSf   = RHS;
             Usol   = LHS\RHS;
             Ufull  = obj.bcApplier.reducedToFullVectorDirichlet(Usol); 
-            t_direct=toc;
+            t_direct=toc
 
             % PRECONDITIONERS
             Milu        = obj.createILUpreconditioner(LHS);
@@ -84,17 +84,17 @@ classdef CoarseTesting_2D< handle
 
             tol = 1e-8;
             x0  = zeros(size(RHSf));
-
+            % 
             tic  %SOLVE THE CASE WITH STANDARD CG
             [~,obj.CG.residual,obj.CG.error, obj.CG.errAnorm] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
             t_CG=toc
             % tic  % SOLVE THE CASE WITH CG+ ILU
             % [~,obj.ILU.residual,obj.ILU.error, obj.ILU.errAnorm] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
             % t_ILU=toc
-            tic  % SOLVE THE CASE WITH PRECONDITIONING ILU+EIFEM+ILU
-            [uPCG,obj.residualPCG,obj.errPCG,obj.errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
-            t_PCG=toc
-            xFull = obj.bcApplier.reducedToFullVectorDirichlet(uPCG);
+            % tic  % SOLVE THE CASE WITH PRECONDITIONING ILU+EIFEM+ILU
+            % [uPCG,obj.residualPCG,obj.errPCG,obj.errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
+            % t_PCG=toc
+            % xFull = obj.bcApplier.reducedToFullVectorDirichlet(uPCG);
             
 
             uDomain = obj.bcApplier.reducedToFullVectorDirichlet(uPCG);
@@ -351,8 +351,8 @@ classdef CoarseTesting_2D< handle
 
         function mCoarse = createCoarseMesh(obj)
             s.nsubdomains   = obj.nSubdomains; %nx ny
-            % s.meshReference = obj.createReferenceCoarseMesh();
-            s.meshReference = obj.loadReferenceCoarseMesh();
+            s.meshReference = obj.createReferenceCoarseMesh();
+            % s.meshReference = obj.loadReferenceCoarseMesh();
             s.tolSameNode   = obj.tolSameNode;
             mRVECoarse      = MeshCreatorFromRVE2D(s);
             [mCoarse,~,~] = mRVECoarse.create();

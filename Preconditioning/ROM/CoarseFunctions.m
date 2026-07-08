@@ -29,9 +29,9 @@ classdef CoarseFunctions < handle
                 case 3
                     switch obj.type
                         case 'discontinuous'
-                            fH=obj.createDiscontinuous3DHexa();
+                            fH=obj.createDiscontinuous3D();
                         case 'continuous'
-                            fH=obj.createContinuousFunction3DHexa();
+                            fH=obj.createContinuousFunction3D();
                     end
             end
         end
@@ -146,11 +146,40 @@ classdef CoarseFunctions < handle
         end
 
 
-        function createDiscontinuous3DHexa(obj)
+        function f=createDiscontinuous3D(obj)
+            L=obj.createBasisFunctions();
+
+            nf=0;
+            for k=1:numel(obj.mesh)
+                nf = nf + (obj.order+1)^2 * obj.ndim;
+            end
+            f=cell(1,nf);
+
+            counter=1;
+
+            for k=1:numel(obj.mesh)
+                bMesh=obj.mesh{k}.mesh;
+                [dir1,dir2]=obj.getFaceCoordinates(bMesh);
+
+                for i=1:obj.order+1
+                    for j=1:obj.order+1
+                        N=@(x) L{i}(dir1(x)).*L{j}(dir2(x));
+
+                        fx=@(x)[N(x);0*x(1,:,:);0*x(1,:,:)];
+                        fy=@(x)[0*x(1,:,:);N(x);0*x(1,:,:)];
+                        fz=@(x)[0*x(1,:,:);0*x(1,:,:);N(x)];
+
+                        f{counter}=fx;  f{counter+1}=fy;   f{counter+2}=fz;
+                        counter=counter+3;
+                    end
+                end
+
+            end
+
 
         end
 
-        function f = createContinuousFunction3DHexa(obj)
+        function f = createContinuousFunction3D(obj)
             bMesh = obj.mesh;
             L = obj.createBasisFunctions();
             [~,~,a,b,x0,y0,c,z0] = obj.NormalizeMesh(bMesh);

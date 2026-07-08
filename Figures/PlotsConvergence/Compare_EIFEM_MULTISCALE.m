@@ -159,7 +159,7 @@ s.Training     = [];            % 'EIFEM'/'Multiscale'/'EIFisol'
 s.Sampling     = [];            % 'Isolated'/'Oversampling'
 s.Inclusion    = 'Hole';        % 'Hole'/'Material'/  --> Hole: just for imported meshes or constant geometry
 s.Option       = 'Direct';      % 'Dataset'/'NN'/'HO'/ 'Hybrid'/'Direct
-s.nSubdomains  = [12,4];
+s.nSubdomains  = [30,10];
 s.nelem        = [];            %  Mesh refining
 s.Geometry     = []; 
 
@@ -171,23 +171,24 @@ s.fileNameEIFEM = 'AuxeticIsolatedClassic';
 EifemCont       = CoarseTesting_2D(s);
 EifemCont.compute();
 
-AMG = ElasticityAMG_Abril(cParams);
+AMG = ElasticityAMG_Abril(s);
 
 plot(EifemDisc.residualPCG,'linewidth',2)
 hold on
-% plot(EifemCont.residualPCG,'linewidth',2)
-% hold on
+plot(EifemCont.residualPCG,'linewidth',2)
+hold on
 plot(AMG.residual,'linewidth',2)
 hold on
-plot(EifemDisc.ILU.residualPCG,'linewidth',2)
+plot(EifemDisc.ILU.residual,'linewidth',2)
 hold on
-plot(EifemDisc.CG.residualPCG,'linewidth',2)
+plot(EifemDisc.CG.residual,'linewidth',2)
 
 set(gca, 'YScale', 'log')
+set(gca, 'XScale', 'log')
 xlabel('Iteration')
 ylabel('Residual')
 title("Residual evolution")
-legend({'EIFEM discontinuous','AMG', 'ILU','CG'});
+legend({'EIFEM discontinuous','EIFEM continuous','AMG', 'ILU','CG'});
 
 
 

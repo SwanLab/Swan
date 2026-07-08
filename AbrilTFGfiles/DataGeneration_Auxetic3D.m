@@ -10,21 +10,21 @@ clc; clear; close all;
 
 % l=1.6:0.1:1.8;
 l=1.8;
-p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale', ('EIFisol')
+p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale', ('EIFisol')
 p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
 p.Inclusion  = 'Hole';        % 'Material'/'Hole'
-p.nelem      = 15;
+p.nelem      = 40;
 meshName     = p.nelem+"x"+p.nelem;
 
 %% DATA GENERATION
 
-mR              = createReferenceMesh(p);
+mR           = createReferenceMesh(p);
 switch p.Training
     case 'Multiscale'
-        p.Sampling = 'Isolated';
-        [material, mT]   = createMaterial(mR,[1 1],'Material',g);
-        mesh       = mR;
-        s.type             = 'discontinuous';
+        p.Sampling      = 'Isolated';
+        material  = createMaterial(mR,[1 1]);
+        mesh            = mR;
+        s.type          = 'discontinuous';
         switch s.type
             case 'continuous'
                 bMesh      = mesh.createSingleBoundaryMesh();
@@ -46,7 +46,7 @@ switch p.Training
 
     case {'EIFEM','EIFisol'}
         [nS,dI]      = defineNumberOfSubdomains(p.Sampling);
-        [material,mT]    = createMaterial(mR,nS,'Material',g);
+        [material,mT]    = createMaterial(mR,nS);
         s.mesh           = mR;
         s.material       = material;
         s.domainIndices  = dI;
@@ -58,7 +58,7 @@ switch p.Training
         data.dirac        = true;
         data.type         = s.type;
         data.Coarseorder  = 2;
-        data.material     = createMaterial(mR,[1 1],'Material',g);
+        data.material     = createMaterial(mR,[1 1]);
         z = OfflineDataProcessor(data);
 
         EIFEoper = z.computeROMbasis();
@@ -99,7 +99,7 @@ function mS = createReferenceMesh(p)
     end
 end
 
-function createStructuredMesh(p)
+function mS=createStructuredMesh(p)
     n =p.nelem;
     m = TetraMesh(1.5,1,1,n,n,n);
 
@@ -170,14 +170,20 @@ function levelSet = createLevelSetFunction(bgMesh)
     levelSet  = phiFun.fValues;
 end
 
+function uMesh=computeUnfittedMesh(bgMesh,levelSet)
+    sUm.backgroundMesh = bgMesh;
+    sUm.boundaryMesh   = bgMesh.createBoundaryMesh();
+    uMesh              = UnfittedMesh(sUm);
+    uMesh.compute(levelSet);
+end
 
-function dF = createDirichletFunction(bMesh)
+function dF = createDirichletFunction(bMesh,type)
 s.mesh = bMesh;
-s.type = 'continuous';
+s.order= 1;
+s.type = type;
 cf = CoarseFunctions(s);
 dF = cf.getAnalytical();
 end	
-
 
 function [nS,dI] = defineNumberOfSubdomains(type)
     switch type
@@ -191,12 +197,18 @@ function [nS,dI] = defineNumberOfSubdomains(type)
 end
 
 
-function [material,m] = createMaterial(mesh,nSubdomains,g)
+function [material,m] = createMaterial(mesh,nSubdomains)
     mD = createMeshDomain(nSubdomains,mesh);
-    s.mesh          = mD;
-    s.geomFun       = g;
-    m = MaterialTraining(s);
-    material = m.create();
+    E       = 1;
+    nu      = 1/3;
+    young   = ConstantFunction.create(E,mD);
+    poisson = ConstantFunction.create(nu,mD);
+    s.type          = 'ISOTROPIC';
+    s.ptype         = 'ELASTIC';
+    s.ndim          = mesh.ndim;
+    s.young         = young;
+    s.poisson       = poisson;
+    material        = Material.create(s);
 end
 
 function mD = createMeshDomain(nS,mesh)
@@ -209,4 +221,51 @@ function mD = createMeshDomain(nS,mesh)
     else
         mD = mesh;
     end
+end
+
+function mS = SmoothMesh(mR)
+    s.coord    = mR.coord;
+    s.connec   = mR.connec;
+
+    xmin = min(s.coord(:,1));
+    xmax = max(s.coord(:,1));
+    ymin = min(s.coord(:,2));
+    ymax = max(s.coord(:,2));
+    zmin = min(s.coord(:,3));
+    zmax = max(s.coord(:,3));
+    tol=1e-10;
+
+    leftNodes   = find(abs(s.coord(:,1)-xmin) < tol);
+    rightNodes  = find(abs(s.coord(:,1)-xmax) < tol);
+    bottomNodes = find(abs(s.coord(:,2)-ymin) < tol);
+    topNodes    = find(abs(s.coord(:,2)-ymax) < tol);
+    zNodes1     = find(abs(s.coord(:,3)-zmin) < tol);
+    zNodes2     = find(abs(s.coord(:,3)-zmax) < tol);
+
+    [~,iL] = sort(s.coord(leftNodes,2));
+    leftNodes = leftNodes(iL);
+    [~,iR] = sort(s.coord(rightNodes,2));
+    rightNodes = rightNodes(iR);
+    [~,iB] = sort(s.coord(bottomNodes,1));
+    bottomNodes = bottomNodes(iB);
+    [~,iT] = sort(s.coord(topNodes,1));
+    topNodes = topNodes(iT);
+    [~,iZ1] = sort(s.coord(zNodes1,3));
+    zNodes1 = zNodes1(iZ1);
+    [~,iZ2] = sort(s.coord(zNodes2,3));
+    zNodes2 = zNodes2(iZ2);
+
+    x = 0.5*(s.coord(bottomNodes,1)+s.coord(topNodes,1));
+    s.coord(bottomNodes,1) = x;
+    s.coord(topNodes,1)    = x;
+
+    y = 0.5*(s.coord(leftNodes,2)+s.coord(rightNodes,2));
+    s.coord(leftNodes,2)  = y;
+    s.coord(rightNodes,2) = y;
+
+    % z = 0.5*(s.coord(zNodes1,3)+s.coord(zNodes2,3));
+    % s.coord(leftNodes,3)  = z;
+    % s.coord(rightNodes,3) = z;
+
+    mS = Mesh.create(s);
 end

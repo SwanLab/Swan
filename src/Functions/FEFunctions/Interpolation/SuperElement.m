@@ -13,8 +13,8 @@ classdef SuperElement < Interpolation
         function computeParams(obj)
             obj.type = 'SuperElement';
             obj.ndime = 2;
-            obj.nnode = 12;
-            % obj.nnode = 8;
+            % obj.nnode = 12;
+            obj.nnode = 8;
             obj.pos_nodes = [0 0 0];
         end
 

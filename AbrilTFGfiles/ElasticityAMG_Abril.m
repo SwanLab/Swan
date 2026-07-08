@@ -105,9 +105,10 @@ classdef ElasticityAMG_Abril < handle
             [LHS,RHS] = obj.createElasticProblem();
             Usol   = LHS\RHS;
             % Ufull  = obj.bcApplier.reducedToFullVectorDirichlet(Usol); 
-
+            tic
             [obj.uSol,obj.residual,obj.error,obj.errAnorm] = s.solverCase.solve(LHS,RHS,Usol);
-            xFull = obj.bcApplier.reducedToFullVectorDirichlet(uPCG);
+            % xFull = obj.bcApplier.reducedToFullVectorDirichlet(obj.uSol);
+            t_AMG=toc
 
             % fem = ElasticProblem(s);
             % fem.solve();
@@ -136,7 +137,7 @@ classdef ElasticityAMG_Abril < handle
             p     = pyAMG.create(s);
 
             sS.preconditioner = p;
-            sS.tol = 1e-5;
+            sS.tol = 1e-8;
             solver = PCG_AMG(sS);
         end
 
@@ -210,12 +211,13 @@ classdef ElasticityAMG_Abril < handle
             end
             s.dirichletFun = dirichletFun;
 
-            pointloadFun = [];
-            for i = 1:numel(sPL)
-                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
-                pointloadFun = [pointloadFun, pl];
-            end
-            s.pointloadFun = pointloadFun;
+            % pointloadFun = [];
+            % for i = 1:numel(sPL)
+            %     pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
+            %     pointloadFun = [pointloadFun, pl];
+            % end
+            pointload = TractionLoad(obj.mesh,sPL,'DIRAC');
+            s.pointloadFun = pointload;
 
             s.periodicFun  = [];
             s.mesh = obj.mesh;
