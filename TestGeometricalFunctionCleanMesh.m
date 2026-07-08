@@ -1,7 +1,7 @@
 clc,clear,close all
 
 %% Load base mesh
-file = 'Tetradecahedron_cube';
+file = 'TetradecahedronFaces';
 
 TMC = TetradecahedronMeshComputer(file);
 mesh = TMC.getMesh();
@@ -12,7 +12,7 @@ mesh.plot
 
 %% set material
 E  = 1;
-nu = 1/3;
+nu = 0.3;
 young   = ConstantFunction.create(E,mesh);
 poisson = ConstantFunction.create(nu,mesh);
 
@@ -25,15 +25,15 @@ tensor    = Material.create(s);
 material  = tensor;
 
 %% set boundary conditions
-% isV1X = @(coor) (abs(coor(:,1) - 0.25) < 1e-5);
-% isV1Y = @(coor) (abs(coor(:,2) - 0.5) < 1e-5);
-% isV1Z = @(coor) (abs(coor(:,3) - 0) < 1e-5);
-% isVertex1 = @(coor) isV1X(coor) & isV1Y(coor) & isV1Z(coor);
-% 
-% sDir{1}.domain    = @(coor) isVertex1(coor);
-% sDir{1}.direction = [1,2,3];
-% sDir{1}.value     = 0;
-% 
+isV1X = @(coor) (abs(coor(:,1) - 0.25) < 1e-5);
+isV1Y = @(coor) (abs(coor(:,2) - 0.5) < 1e-5);
+isV1Z = @(coor) (abs(coor(:,3) - 0) < 1e-5);
+isVertex1 = @(coor) isV1X(coor) & isV1Y(coor) & isV1Z(coor);
+
+sDir{1}.domain    = @(coor) isVertex1(coor);
+sDir{1}.direction = [1,2,3];
+sDir{1}.value     = 0;
+
 % isV2X = @(coor) (abs(coor(:,1) - 0.75) < 1e-5);
 % isV2Y = @(coor) (abs(coor(:,2) - 0.5) < 1e-5);
 % isV2Z = @(coor) (abs(coor(:,3) - 0) < 1e-5);
@@ -42,7 +42,7 @@ material  = tensor;
 % sDir{2}.domain    = @(coor) isVertex2(coor);
 % sDir{2}.direction = [2];
 % sDir{2}.value     = 0;
-% 
+
 % isV3X = @(coor) (abs(coor(:,1) - 0.5) < 1e-5);
 % isV3Y = @(coor) (abs(coor(:,2) - 0.25) < 1e-5);
 % isV3Z = @(coor) (abs(coor(:,3) - 0) < 1e-5);
@@ -51,10 +51,6 @@ material  = tensor;
 % sDir{3}.domain    = @(coor) isVertex3(coor);
 % sDir{3}.direction = [3];
 % sDir{3}.value     = 0;
-
-sDir{1}.domain    = @(coor) coor(:,1) == 100;
-sDir{1}.direction = [1,2,3];
-sDir{1}.value     = 0;
 
 dirichletFun = [];
 for i = 1:numel(sDir)
@@ -107,7 +103,12 @@ fem = ElasticProblemMicro(s);
 fem.solve();
 
 %% Postprocess
-matHomog = fem.Chomog;
+%Cube
+% matHomog = fem.Chomog;
+% density = mesh.computeVolume(); 
+% Tetradecaedron
+matHomog = fem.Chomog/0.5;
+density = mesh.computeVolume()/0.5; 
 
 C11 = matHomog(1,1,1,1);
 C12 = matHomog(1,1,2,2);

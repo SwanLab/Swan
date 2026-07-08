@@ -24,12 +24,15 @@ classdef BoundaryConditions < handle
         function obj = BoundaryConditions(cParams)
             obj.init(cParams)
             obj.createDirichletFun();
-            obj.createPeriodicConditions();
+            %obj.createPeriodicConditions();
         end
 
         function updatePeriodicConditions(obj,MS)
-            obj.periodic_leader = obj.computePeriodicNodes(MS(:,1));
-            obj.periodic_follower   = obj.computePeriodicNodes(MS(:,2));
+            %obj.periodic_leader = obj.computePeriodicNodes(MS(:,1));
+            %obj.periodic_follower   = obj.computePeriodicNodes(MS(:,2));
+            dofs = [obj.computePeriodicNodes(MS(:,1)); obj.computePeriodicNodes(MS(:,2))];
+            obj.dirichlet_dofs = unique(dofs);
+            obj.dirichlet_vals = zeros(size(obj.dirichlet_dofs));
         end
         
     end
