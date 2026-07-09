@@ -8,12 +8,13 @@ using .MyProject.OptimizationProblemNN
 using Plots
 using Statistics
 using DataFrames
+using Random
 
 # === Hyperparamètres ===
 pol_deg       = 1
 testratio     = 20
 λ             = 0.0
-learning_rate = 1e-3
+learning_rate = 5e-4
 hidden_layers = fill(128, 6)
 
 # === Configuration ===
@@ -37,7 +38,7 @@ s["networkParams"] = Dict(
 
 s["optimizerParams"] = Dict(
     "learningRate" => learning_rate,
-    "maxEpochs"    => 1000,
+    "maxEpochs"    => 3000,
     "type"         => "Adam"
 )
 
@@ -112,3 +113,79 @@ output_data = DataFrame(
 result_table = hcat(input_data, output_data)
 println("Tableau de résultats :")
 display(result_table)
+
+# === Permutation Importance ===
+feature_names = ["Latitude", "Longitude", "CourseOverGround", "WindSpeed",
+                 "WindAngle", "TrueWindAngle", "TrueWindSpeed", "TrueWindDir"]
+
+n_features = size(Xtest, 2)
+rmse_base  = sqrt(mean((vec(compute_output_values(opt, Xtest, θ)) .* data.sigmaY[1] .+ data.muY[1]
+                        .- Ytest_denorm) .^ 2))
+
+importance = zeros(n_features)
+for i in 1:n_features
+    Xtest_perm       = copy(Xtest)
+    Xtest_perm[:, i] = Xtest_perm[randperm(size(Xtest, 1)), i]
+    Yperm            = vec(compute_output_values(opt, Xtest_perm, θ)) .* data.sigmaY[1] .+ data.muY[1]
+    rmse_perm        = sqrt(mean((Yperm .- Ytest_denorm) .^ 2))
+    importance[i]    = rmse_perm - rmse_base
+end
+
+bar_order = sortperm(importance, rev=true)
+display(bar(feature_names[bar_order], importance[bar_order];
+    title    = "Permutation Importance",
+    ylabel   = "Augmentation RMSE (m/s)",
+    xlabel   = "Feature",
+    legend   = false,
+    color    = :steelblue,
+    rotation = 30))
+
+    # === Gradient-based Sensitivity ===
+grads = vcat([compute_gradient(opt, Xtest[i:i, :], θ) for i in 1:size(Xtest, 1)]...)
+grad_mean = vec(mean(abs.(grads), dims=1))
+
+bar_order2 = sortperm(grad_mean, rev=true)
+display(bar(feature_names[bar_order2], grad_mean[bar_order2];
+    title    = "Gradient-based Sensitivity",
+    ylabel   = "∂output/∂input (moyenne |gradient|)",
+    xlabel   = "Feature",
+    legend   = false,
+    color    = :darkorange,
+    rotation = 30))
+
+
+# === One-at-a-time (OAT) ===
+n_points   = 50
+oat_plots  = []
+
+for i in 1:n_features
+    # Plage de variation de la feature i (espace normalisé)
+    x_min = minimum(Xtest[:, i])
+    x_max = maximum(Xtest[:, i])
+    x_range = range(x_min, x_max, length=n_points)
+
+    # Echantillon de base : toutes les features à leur moyenne (= 0 normalisé)
+    X_oat = zeros(n_points, n_features)
+
+    # On fait varier uniquement la feature i
+    X_oat[:, i] = collect(x_range)
+
+    # Prédiction et dénormalisation
+    Y_oat = vec(compute_output_values(opt, X_oat, θ)) .* data.sigmaY[1] .+ data.muY[1]
+
+    # Dénormalisation de l'axe x pour affichage lisible
+    x_denorm = collect(x_range) .* data.sigmaX[i] .+ data.muX[i]
+
+    push!(oat_plots, plot(x_denorm, Y_oat;
+        title    = feature_names[i],
+        xlabel   = feature_names[i],
+        ylabel   = "Vitesse (m/s)",
+        legend   = false,
+        linewidth = 2,
+        color    = :green))
+end
+
+display(plot(oat_plots...,
+    layout = (2, 4),
+    size   = (1400, 700),
+    title  = "One-at-a-time Sensitivity"))

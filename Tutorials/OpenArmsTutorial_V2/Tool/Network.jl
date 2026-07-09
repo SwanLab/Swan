@@ -173,7 +173,7 @@ function compute_last_H(net::Net, X::Matrix{Float64}, θ::Vector{Float64})
 end
 
 function compute_gradient(net::Net, X::Matrix{Float64}, θ::Vector{Float64})
-    W, _     = reshape_in_layer_form(update_thetavec(net.learnable_variables, θ))
+    W, b     = reshape_in_layer_form(update_thetavec(net.learnable_variables, θ))
     nL       = net.n_layers
     a_values = Vector{Matrix{Float64}}(undef, nL)
     a_values[1] = X

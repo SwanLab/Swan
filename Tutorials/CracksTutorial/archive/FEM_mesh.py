@@ -52,7 +52,7 @@ IMAGE_HEIGHT = 227      # expected image height (pixels)
 CONNECTIVITY = 4        # neighbor connectivity: 4 (N/S/E/W) or 8 (+ diagonals)
 NUM_WORKERS  = 4        # number of CPU cores used in parallel
 LOG_EVERY    = 500      # print a progress line every N images
-MAX_IMAGES   = 10     # max number of images to process (None = all available)
+MAX_IMAGES   = 5000     # max number of images to process (None = all available)
 # ─────────────────────────────────────────────────────────────────────────────
 
 
@@ -234,7 +234,7 @@ if __name__ == "__main__":
 
     # -- Folder paths ----------------------------------------------------------
     SCRIPT_DIR    = os.path.dirname(os.path.abspath(__file__))
-    INPUT_DIR     = os.path.join(SCRIPT_DIR, "positive")
+    INPUT_DIR     = os.path.join(SCRIPT_DIR, "Positive")
     OUTPUT_DIR    = os.path.join(SCRIPT_DIR, "meshes")
     INTENSITY_DIR = os.path.join(OUTPUT_DIR, "intensities")
     COMMON_PATH   = os.path.join(OUTPUT_DIR, "mesh_common.txt")
