@@ -29,7 +29,7 @@ classdef CoarseFunctions < handle
                 case 3
                     switch obj.type
                         case 'discontinuous'
-                            fH=obj.createDiscontinuous3D();
+                            fH=obj.createDiscontinuousFunction3D();
                         case 'continuous'
                             fH=obj.createContinuousFunction3D();
                     end
@@ -42,7 +42,14 @@ classdef CoarseFunctions < handle
             f  = cell(1,nf);
             switch obj.type
                 case 'discontinuous'
-                    nPerSegment=obj.ndim*(obj.order+1); %2fx+2fy x bmesh{i}
+
+                    switch obj.ndim
+                        case 2
+                            nPerSegment=obj.ndim*(obj.order+1); %2fx+2fy x bmesh{i}
+                        case 3
+                            nPerSegment=obj.ndim*(obj.order+1)^2;
+                    end
+
                     idx=1;
                     for k=1:numel(obj.mesh)
                         bMesh = obj.mesh{k}.mesh;
@@ -146,37 +153,44 @@ classdef CoarseFunctions < handle
         end
 
 
-        function f=createDiscontinuous3D(obj)
+        function f=createDiscontinuousFunction3D(obj)
             L=obj.createBasisFunctions();
-
-            nf=0;
-            for k=1:numel(obj.mesh)
-                nf = nf + (obj.order+1)^2 * obj.ndim;
-            end
+            nf = numel(obj.mesh) * obj.ndim * (obj.order+1)^2;
             f=cell(1,nf);
 
-            counter=1;
+            n=1;
 
-            for k=1:numel(obj.mesh)
+            for k=1:numel(obj.mesh)      % x=cte
                 bMesh=obj.mesh{k}.mesh;
-                [dir1,dir2]=obj.getFaceCoordinates(bMesh);
+                [xmax,xmin,a,b,x0,y0,c,z0] = obj.NormalizeMesh(bMesh);
+
+                if abs(xmax-xmin)<1e-12  % y=cte
+                    u = @(x) (x(2,:,:)-y0)/b;
+                    v = @(x) (x(3,:,:)-z0)/c;
+                elseif abs(max(bMesh.coord(:,2))-min(bMesh.coord(:,2)))<1e-12
+                    u = @(x) (x(1,:,:)-x0)/a;
+                    v = @(x) (x(3,:,:)-z0)/c;
+                else                     % z=cte
+                    u = @(x) (x(1,:,:)-x0)/a;
+                    v = @(x) (x(2,:,:)-y0)/b;
+                end
 
                 for i=1:obj.order+1
                     for j=1:obj.order+1
-                        N=@(x) L{i}(dir1(x)).*L{j}(dir2(x));
+                        N = @(x) L{i}(u(x)).*L{j}(v(x));
 
                         fx=@(x)[N(x);0*x(1,:,:);0*x(1,:,:)];
                         fy=@(x)[0*x(1,:,:);N(x);0*x(1,:,:)];
                         fz=@(x)[0*x(1,:,:);0*x(1,:,:);N(x)];
 
-                        f{counter}=fx;  f{counter+1}=fy;   f{counter+2}=fz;
-                        counter=counter+3;
+                        f{n}=fx;  n=n+1;
+                        f{n}=fy;  n=n+1;
+                        f{n}=fz;  n=n+1;
+                       
                     end
                 end
 
             end
-
-
         end
 
         function f = createContinuousFunction3D(obj)

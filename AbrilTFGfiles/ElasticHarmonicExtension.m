@@ -103,17 +103,19 @@ classdef ElasticHarmonicExtension < handle
                     end
 
                 case 'discontinuous'
-                    nCoarsePerSegment = numel(uD)/4;
+                    nBoundaryEntities = numel(obj.lambdaFun);
+                    nCoarsePerBoundary = numel(uD)/nBoundaryEntities;
+
                     iLambda0 = 0;
                     rDir = zeros(obj.nLambda,numel(uD));
 
-                    for iSegment = 1:numel(obj.lambdaFun)
-                        nLi = obj.lambdaFun{iSegment}.nDofs;
-                        coarseIds = (iSegment-1)*nCoarsePerSegment + (1:nCoarsePerSegment);
+                    for iBoundary = 1:nBoundaryEntities
+                        nLi = obj.lambdaFun{iBoundary}.nDofs;
+                        coarseIds = (iBoundary-1)*nCoarsePerBoundary + (1:nCoarsePerBoundary);
 
                         for iD = coarseIds
                             f = @(v) DP(v,uD{iD});
-                            ri = IntegrateRHS(f,obj.lambdaFun{iSegment},obj.bMesh{iSegment}.mesh,'Domain',2);
+                            ri = IntegrateRHS(f,obj.lambdaFun{iBoundary},obj.bMesh{iBoundary}.mesh,'Domain',2);
                             rDir(iLambda0 + (1:nLi),iD) = ri;
                         end
                         iLambda0 = iLambda0 + nLi;

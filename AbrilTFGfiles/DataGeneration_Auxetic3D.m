@@ -12,7 +12,7 @@ clc; clear; close all;
 l=1.8;
 p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale', ('EIFisol')
 p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
-p.Inclusion  = 'Hole';        % 'Material'/'Hole'
+p.Inclusion  = 'Material';        % 'Material'/'Hole'
 p.nelem      = 40;
 meshName     = p.nelem+"x"+p.nelem;
 

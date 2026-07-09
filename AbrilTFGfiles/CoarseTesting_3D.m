@@ -200,8 +200,8 @@ classdef CoarseTesting_3D< handle
                 obj.tCross  = cParams.tCross;
                 [Ny,Nx,Nz] = size(obj.tFrame);
             end
-            obj.nSubdomains = [Nx Ny Nz];
-            % obj.nSubdomains = [35 1 1];    % UNCOMMENT JUST FOR AIRFOIL
+            % obj.nSubdomains = [Nx Ny Nz];
+            obj.nSubdomains = [35 1 1];    % UNCOMMENT JUST FOR AIRFOIL
             obj.tolSameNode = 1e-11;   % 1E-10--> general case   1E-6 --> airfoil
             obj.fileNameEIFEM = cParams.fileNameEIFEM;
         end
@@ -222,8 +222,8 @@ classdef CoarseTesting_3D< handle
         end
 
         function mS = createReferenceMesh(obj)
-            mS = obj.createStructuredMesh();
-            % mS = obj.importGIDMesh();
+            % mS = obj.createStructuredMesh();
+            mS = obj.importGIDMesh();
         end
 
 

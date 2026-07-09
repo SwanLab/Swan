@@ -8,7 +8,7 @@ clc; clear; close all;
 
 %% INPUTS
 
-p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale'
+p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale'
 p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
 p.Inclusion  = 'Hole';        % 'Material'/'Hole'/'MeshRaul'
 p.nelem      = 40;
@@ -19,7 +19,7 @@ switch p.Training
     case 'Multiscale'
         material          = createMaterial(mR,[1 1]);
         mesh              = mR;
-        s.type             = 'discontinuous';
+        s.type            = 'discontinuous';
         switch s.type
             case 'continuous'
                 bMesh        = mesh.createSingleBoundaryMesh();
@@ -151,7 +151,7 @@ end
 
 function dF = createDirichletFunction(bMesh,type)
 s.mesh = bMesh;
-s.order= 2;
+s.order= 1;
 s.type = type;
 cf = CoarseFunctions(s);
 dF = cf.getAnalytical();
