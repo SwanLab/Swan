@@ -276,7 +276,7 @@ classdef TopOpt_Density_C5mangueta < handle
             s.ub     = ones(size(rho.fun.fValues));
             s.lb     = zeros(size(rho.fun.fValues));
             s.lb(fixedDof) = 1;
-            s.tauMax = 5000;
+            s.tauMax = 100;
             s.tau    = [];
             obj.primalUpdater = ProjectedGradient(s);
         end
