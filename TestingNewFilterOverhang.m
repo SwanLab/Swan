@@ -24,8 +24,8 @@ sF.mesh        = mesh;
 sF.trial       = LagrangianFunction.create(mesh,1,'P1');
 sF.senseVector = ConstantFunction.create([0;1],mesh);
 sF.ovAngleDeg  = 45;
-filter         = FilterOverhang(sF);
-filter.updateEpsilon(12*h);
+filter         = FilterDiamond(sF); %FilterOverhang
+filter.updateEpsilon(8*h);
 
 rhoEps = filter.compute(chi,3);
 rhoEps.print('RhoEps');
