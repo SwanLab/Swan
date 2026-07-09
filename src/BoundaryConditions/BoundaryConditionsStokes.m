@@ -59,7 +59,7 @@ classdef BoundaryConditionsStokes < handle
         function full = reducedToFullVector(obj, vec)
             switch obj.scale
                 case 'MACRO'
-                    full = obj.expandVectorDirichlet(vec);
+                        full = obj.expandVectorDirichlet(vec);
                 case 'MICRO'
                     full = obj.expandVectorPeriodic(vec);
             end
@@ -185,7 +185,7 @@ classdef BoundaryConditionsStokes < handle
                 inod = data(:,1);
                 iunk = data(:,2);
                 vals = data(:,3);
-                dofs = obj.nod2dof(ndimf, inod,iunk);
+                dofs = inod;%obj.nod2dof(ndimf, inod,iunk);
             end
         end
 

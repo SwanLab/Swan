@@ -22,8 +22,8 @@ classdef NonLinearFilterDroplet < handle
             obj.init(cParams);
             obj.createDirection(cParams);
             obj.updatePreviousGuess(0);
-            obj.createMassMatrix();
-            obj.createStiffnessMatrix();
+            obj.M = IntegrateLHS(@(u,v) DP(v,u),obj.trial,obj.trial,obj.mesh,'Domain');
+            obj.K = IntegrateLHS(@(u,v) DP(Grad(v),Grad(u)),obj.trial,obj.trial,obj.mesh,'Domain'); 
         end
 
         function xF = compute(obj,fun,quadOrder)
@@ -64,48 +64,14 @@ classdef NonLinearFilterDroplet < handle
             obj.direction = ConstantFunction.create(k,obj.mesh);
         end
 
-        function createMassMatrix(obj)
-            s.type  = 'MassMatrix';
-            s.mesh  = obj.mesh;
-            s.test  = obj.trial;
-            s.trial = obj.trial;
-            LHS     = LHSIntegrator.create(s);
-            obj.M   = LHS.compute();
-        end
-
-        function createStiffnessMatrix(obj)
-            s.type  = 'StiffnessMatrix';
-            s.mesh  = obj.mesh;
-            s.test  = obj.trial;
-            s.trial = obj.trial;
-            LHS     = LHSIntegrator.create(s);
-            obj.K   = LHS.compute();
-        end
 
         function createRHSChi(obj,fun,quadType)
-            switch class(fun)
-                case {'UnfittedFunction','UnfittedBoundaryFunction'}
-                    s.mesh = fun.unfittedMesh;
-                    s.type = 'Unfitted';
-                otherwise
-                    s.mesh = obj.mesh;
-                    s.type = 'ShapeFunction';
-            end
-            s.quadType = quadType;
-            int        = RHSIntegrator.create(s);
-            test       = obj.trial;
-            intN       = int.compute(fun,test);
-            obj.chiN   = intN;
+            f        = @(v) DP(fun,v);
+            obj.chiN = IntegrateRHS(f,obj.trial,obj.trial.mesh,'Domain',quadType);
         end
 
         function createRHSShapeDerivative(obj,quadOrder)
-            s.mesh     = obj.mesh;
-            s.type     = 'ShapeDerivative';
-            s.quadratureOrder = quadOrder;
-            s.test     = obj.trial;
-            int        = RHSIntegrator.create(s);
-            rhs        = int.compute(obj.sVar);
-            obj.proxdN = rhs;
+            obj.proxdN = IntegrateRHS(@(v) DP(Grad(v),obj.sVar),obj.trial,obj.mesh,'Domain',quadOrder);
         end
 
         function g = computeGradient(obj)

@@ -1,6 +1,7 @@
 classdef AnalyticalFunction < BaseFunction
 
     properties (Access = private)
+        fHandle
         domainFunction
     end
 
@@ -8,6 +9,10 @@ classdef AnalyticalFunction < BaseFunction
 
         function obj = AnalyticalFunction(cParams)
             obj.init(cParams)
+        end
+
+        function f = createNew(obj,mesh)
+            f = AnalyticalFunction.create(obj.fHandle,mesh);
         end
 
     end
@@ -25,19 +30,19 @@ classdef AnalyticalFunction < BaseFunction
     methods (Access = private)
 
         function init(obj,cParams)
-            fHandle   = cParams.fHandle;
-            obj.mesh  = cParams.mesh;
-            obj.computeNdimf(fHandle);
-            obj.createDomainFunction(fHandle);
+            obj.fHandle = cParams.fHandle;
+            obj.mesh    = cParams.mesh;
+            obj.computeNdimf();
+            obj.createDomainFunction();
         end
 
-        function computeNdimf(obj,fHandle)
+        function computeNdimf(obj)
             ndim = obj.mesh.ndim;
-            obj.ndimf = size(fHandle(zeros(ndim,1)),1);
+            obj.ndimf = size(obj.fHandle(zeros(ndim,1)),1);
         end
 
-        function createDomainFunction(obj,fHandle)
-            s.operation = @(xV) obj.compute(fHandle,xV);
+        function createDomainFunction(obj)
+            s.operation = @(xV) obj.compute(obj.fHandle,xV);
             s.mesh      = obj.mesh;
             s.ndimf     = obj.ndimf;
             f = DomainFunction(s);

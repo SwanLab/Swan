@@ -24,13 +24,9 @@ classdef ExternalWorkFunctional < handle
         end
         
         function Ju = computeGradient(obj,u,fExt,quadOrder)
-            s.mesh     = obj.bMesh.mesh;
-            s.type     = 'ShapeFunction';
-            s.quadType = quadOrder;
-            RHS = RHSIntegrator.create(s);
-
-            computeFunsInBoundary(obj,u,fExt);
-            Ju = RHS.compute(obj.bFunfExt,obj.testU);
+            obj.computeFunsInBoundary(u,fExt);
+            m = obj.bMesh.mesh;
+            Ju = IntegrateRHS(@(v) DP(v,obj.bFunfExt),obj.testU,m,'Domain',quadOrder);
             Ju = obj.reducedToFull(Ju);
         end
         

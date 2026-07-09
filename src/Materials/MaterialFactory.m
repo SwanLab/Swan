@@ -31,6 +31,9 @@ classdef MaterialFactory < handle
                         case 'Homogenized'
                             material = MaterialPhaseFieldHomogenized(cParams);
                     end
+
+                case 'ContinuumDamage'
+                    material = MaterialContinuumDamage(cParams);
             end
 
         end

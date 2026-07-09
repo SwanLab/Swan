@@ -40,6 +40,10 @@ classdef StokesProblem < handle
             LHSr = bc.fullToReducedMatrix(obj.LHS);
             RHSr = bc.fullToReducedVector(obj.RHS);
 
+            vF  = obj.velocityFun;
+            v0F = LagrangianFunction.create(obj.mesh,vF.ndimf,vF.order);
+
+
             switch obj.state
                 case 'Steady'
                     x = obj.solver.solve(LHSr, RHSr);
@@ -60,7 +64,22 @@ classdef StokesProblem < handle
                             x0 = x;
                         end
                         x_n(:,istep) = x;
-                        RHSr = obj.updateRHS(RHS0, x0(1:free_dof(1)));
+
+                        freeV = obj.boundaryConditions.freeFields{1};
+
+                        x0T = obj.boundaryConditions.reducedToFullVector(x0);
+                        x0Tv = x0T(1:obj.velocityFun.nDofs);
+                        v0F.setFValues(obj.splitVelocity(x0Tv));
+
+                        Fext = IntegrateRHS(@(v) DP(v,v0F)./obj.dtime,vF,obj.mesh,'Domain',3);            
+                        RHSt = Fext(freeV);                        
+
+                        RHSr = zeros(size(RHS0));
+                        freeV = obj.boundaryConditions.freeFields{1};
+                        lenFreeV = length(freeV);
+
+                        RHSr(1:lenFreeV,1) = RHS0(1:lenFreeV,1) + RHSt;
+
                     end
                     x = x_n;
             end
@@ -114,8 +133,8 @@ classdef StokesProblem < handle
         end
 
         function createBoundaryConditions(obj)
-            vel = obj.velocityFun;
-            prs = obj.pressureFun;
+            vF = obj.velocityFun;
+            pF = obj.pressureFun;
 
             borderCond = @(x) x(:,1) == 0 | x(:,1) == 1 | x(:,2) == 0 | x(:,2) == 1;
             dirDofs = obj.velocityFun.getDofsFromCondition(borderCond);
@@ -123,11 +142,11 @@ classdef StokesProblem < handle
 
             bcV.dirichlet = dirich;
             bcV.pointload = [];
-            bcV.ndimf     = vel.ndimf;
+            bcV.ndimf     = vF.ndimf;
             bcV.ndofs     = obj.velocityFun.nDofs;
             bcP.dirichlet = obj.inputBC.pressure;
             bcP.pointload = [];
-            bcP.ndimf     = prs.ndimf;
+            bcP.ndimf     = pF.ndimf;
             bcP.ndofs     = obj.pressureFun.nDofs;
             ndofs = obj.velocityFun.nDofs + obj.pressureFun.nDofs;
             s.dim   = [];
@@ -153,32 +172,33 @@ classdef StokesProblem < handle
             obj.solver = Solver.create(s);
         end
         
-        function LHS = computeLHS(obj)
-            s.type          = 'Stokes';
-            s.dt            = obj.dtime;
-            s.mesh          = obj.mesh;
-            s.material      = obj.material;
-            s.velocityFun = obj.velocityFun;
-            s.pressureFun = obj.pressureFun;
-            LHS_int = LHSIntegrator.create(s);
-            LHS = LHS_int.compute();
-            obj.LHS = LHS;
-            obj.LHSintegrator = LHS_int;
+        function computeLHS(obj)
+            vF = obj.velocityFun;
+            uF = vF;
+            pF = obj.pressureFun;
+            M = IntegrateLHS(@(u,v) DP(v,u)./obj.dtime,vF,uF,obj.mesh,'Domain',3);
+            K = IntegrateLHS(@(u,v) DDP(Grad(v),Grad(u)),vF,uF,obj.mesh,'Domain');            
+            D = IntegrateLHS(@(p,v) DP(v,Grad(p)),vF,pF,obj.mesh,'Domain');
+            Z = sparse(size(D, 2),size(D, 2));
+            obj.LHS = [K+M, D; D',Z];
         end
         
-        function RHS = computeRHS(obj)
-            s.type          = 'Stokes';
-            s.mesh          = obj.mesh;
-            s.velocityFun   = obj.velocityFun;
-            s.pressureFun   = obj.pressureFun;
-            s.forcesFormula = obj.inputBC.forcesFormula;
-            RHSint = RHSIntegrator.create(s);
-            F = RHSint.integrate();
+        function computeRHS(obj)
+            f = obj.inputBC.forcesFormula;
+            vF = obj.velocityFun;
+            pF = obj.pressureFun;
+            Fext = IntegrateRHS(@(v) DP(v,f),vF,obj.mesh,'Domain',3);            
+            F = [Fext; zeros(pF.nDofs,1)];
+
+
+
             dirichlet = obj.boundaryConditions.dirichlet;
             uD = obj.boundaryConditions.dirichlet_values;
             R  = -obj.LHS(:,dirichlet)*uD;
-            RHS = F + R;
-            obj.RHS = RHS;
+
+
+
+            obj.RHS = F + R;
         end
         
         function variable = separateVariables(obj,x)
@@ -187,15 +207,6 @@ classdef StokesProblem < handle
             variable.p = x(ndofsV+1:end,:);
         end
 
-        function RHS = updateRHS(obj, RHS0, x_n)
-            RHS = zeros(size(RHS0));
-            freeV = obj.boundaryConditions.freeFields{1};
-            lenFreeV = length(freeV);
-            M = obj.LHSintegrator.M;
-            Mred = M(freeV,freeV);
-            Mred_x_n = Mred*x_n;
-            RHS(1:lenFreeV,1) = RHS0(1:lenFreeV,1) + Mred_x_n;
-        end
 
         function uM = splitVelocity(obj, vel)
             u = vel;

@@ -57,8 +57,7 @@ classdef FilteredVolumeFunctional < handle
 
         function Vp = computeVolume(obj,xR)
             b   = obj.baseFun;
-            xP  = xR.^obj.p;
-            int = Integrator.compute(b.*xP,obj.mesh,3);
+            int = Integrator.compute((b.*xR).^obj.p,obj.mesh,3);
             Vp  = int^(1/obj.p);
         end
 
@@ -68,7 +67,8 @@ classdef FilteredVolumeFunctional < handle
 
         function dJ = computeGradient(obj,xR,Vp)
             b  = obj.baseFun;
-            dj = ((Vp^(1-obj.p))*xR.^(obj.p-1))./(obj.totalVolume^(1/obj.p));
+            xR = UnfittedFunction.create(obj.base,xR);
+            dj = (xR.^(obj.p-1).*(Vp^(1-obj.p)))./(obj.totalVolume^(1/obj.p));
             dJ = obj.filter.compute(b.*dj,3);
         end
 

@@ -93,7 +93,7 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             for i = 1:nSFCost
                 chCost{i} = 'plot';
             end
-            chartTypes = [{'plot'},chCost,chConstr,{'log'},{'plot'},chConstr,{'plot','bar','bar'}];
+            chartTypes = [{'plot'},chCost,chConstr,{'logy'},{'plot'},chConstr,{'plot','bar','bar'}];
             s.shallDisplay = cParams.monitoring;
             s.maxNColumns  = 5;
             s.titles       = titles;
@@ -114,7 +114,8 @@ classdef OptimizerAugmentedLagrangian < Optimizer
             else
                 data = [data;obj.primalUpdater.tau;obj.lineSearchTrials];
             end
-            obj.monitoring.update(obj.nIter,data);
+            obj.monitoring.update(obj.nIter,num2cell(data));
+            obj.monitoring.refresh();
         end
 
         function prepareFirstIter(obj)

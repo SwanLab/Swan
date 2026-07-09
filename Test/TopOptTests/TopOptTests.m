@@ -145,20 +145,15 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
                 case 'MICRO'
                     s.solverMode = 'FLUC';
             end
-            s.solverCase         = 'DIRECT';
+            s.solverCase         = DirectSolver();
             s.type               = 'ELASTIC';
             fem                  = PhysicalProblem.create(s);
         end
 
         function M = createMassMatrix(mesh,x)
-            s.test  = LagrangianFunction.create(mesh,1,'P1');
-            s.trial = LagrangianFunction.create(mesh,1,'P1');
-            s.mesh  = mesh;
-            s.type  = 'MassMatrix';
-            LHS = LHSIntegrator.create(s);
-            M = LHS.compute;
+            vF = LagrangianFunction.create(mesh,1,'P1');
+            M = IntegrateLHS(@(u,v) DP(v,u),vF,vF,mesh,'Domain'); 
             M = eye(size(M));
-
             switch class(x)
                 case 'DensityAndBound'
                     n = mesh.nnodes;
@@ -257,6 +252,10 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
             s.etaNormMin     = 0.05;
+            s.gif            = false;
+            s.gifName        = [];
+            s.printing       = false;
+            s.printName      = [];
             switch x.type
                 case 'Density'
                     s.ub = 1;

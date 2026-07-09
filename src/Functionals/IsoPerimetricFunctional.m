@@ -72,7 +72,7 @@ classdef IsoPerimetricFunctional < handle
 
         function Qp = computeIsoPerimetricQuocient(obj,x,Le)
             b       = obj.baseFun;
-            xP      = ((x.*(1-Le).*(Le.^(-0.5))).*(1/(2*obj.epsilon))).^obj.p;
+            xP      = (((x.^1.5).*(1-Le).*((x.*Le).^(-0.5))).*(1/(2*obj.epsilon))).^obj.p;
             isoPerP = Integrator.compute(xP.*b,obj.mesh,3);
             Qp      = isoPerP^(1/obj.p);
         end
@@ -83,16 +83,20 @@ classdef IsoPerimetricFunctional < handle
 
         function dJ = computeGradient(obj,x,Le,Qp)
             bChi = obj.baseFun;
-            b    = (x.*(1-Le).*(Le.^(-0.5))).^(obj.p-1);
+            b    = ((x.^1.5).*(1-Le).*((x.*Le).^(-0.5))).^(obj.p-1);
             Lea  = computeFilteredTermForGradient(obj,x,Le,b);
-            num  = ((b.*(Le.^(-0.5) - Le.^(0.5))) + Lea).*(Qp.^(1-obj.p));
+            num1 = (b.^1.5).*((b.*Le).^(-0.5) - (b^(-1)).*(b.*Le).^(0.5)).*(Qp.^(1-obj.p));
+            num2 = Lea.*(Qp.^(1-obj.p));
             den  = ((2*obj.epsilon)^obj.p)*(obj.totalVolume)^(1/obj.p);
-            dJ   = num./den;
-            dJ   = obj.riszFilter.compute(dJ.*bChi,3);
+            dJ1  = num1./den;
+            dJ1  = obj.riszFilter.compute(dJ1.*bChi,3);
+            dJ2  = num2./den;
+            dJ2  = obj.riszFilter.compute(dJ2.*bChi,3);
+            dJ   = dJ1 + dJ2;
         end
 
         function Lea = computeFilteredTermForGradient(obj,x,Le,b)
-            a   = x.*(-0.5.*Le.^(-1.5) - 0.5.*Le.^(-0.5)).*b;
+            a   = (x.^2.5).*(((x.*Le).^(-1.5))./(-2) - (x^(-1)).*(x.*Le).^(-0.5)./(-2)).*b;
             Lea = obj.filter.compute(a,3);
         end
     end
