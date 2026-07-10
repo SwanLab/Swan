@@ -1,0 +1,8 @@
+obj.Kp_bar_vector = [0.01, 0.001, 0.0001];
+dens0 = 0.25
+gJ = 0.3
+etaNorm = 0.02
+tauMax = 500
+volConstraint = 0.25
+symmetry false
+

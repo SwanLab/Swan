@@ -33,7 +33,7 @@ classdef Tutorial05_15_TopOpt2DDensityFlexures < handle
                 % Degrees
                 obj.doc = ["tx"]; %tx
                 obj.dof = ["ty"]; % ty
-                obj.emax = 0.005; %1
+                obj.emax = 0.0075; %1
 
                 obj.preprocessDegrees();
                 
@@ -118,6 +118,17 @@ classdef Tutorial05_15_TopOpt2DDensityFlexures < handle
             s.type = 'Density';
             s.plotting = true;
             dens    = DesignVariable.create(s); 
+
+            % coords  = obj.mesh.coord;
+            % ymin = min(obj.mesh.coord(:,2));
+            % ymax = max(obj.mesh.coord(:,2));
+            % isBottom = coords(:,2) <= ymin + 1e-8;
+            % isTop = coords(:,2) >= ymax - 1e-8;
+            % 
+            % vals = dens.fun.fValues;
+            % vals(isTop | isBottom) = 1;
+            % dens.fun.setFValues(vals);
+
             obj.designVariable = dens;
         end
 
@@ -324,6 +335,20 @@ classdef Tutorial05_15_TopOpt2DDensityFlexures < handle
             s.printing       = false;
             s.printName      = ['InvDens'];
             s.physicalProblem = obj.physicalProblem;
+            
+            s.applyNonDesignRegion = false;
+            s.applySymmetry = true;
+            %s.physicalProblem = obj.physicalProblem;
+
+            coords   = obj.mesh.coord;
+            ymin = min(obj.mesh.coord(:,2));
+            ymax = max(obj.mesh.coord(:,2));
+            isBottom = coords(:,2) <= ymin + 1e-8;
+            isTop = coords(:,2) >= ymax - 1e-8;
+
+            s.nonDesignRegion = isTop | isBottom;
+            s.nonDesignValue  = 1;
+            
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -531,28 +556,31 @@ classdef Tutorial05_15_TopOpt2DDensityFlexures < handle
         end
         
         function printFinalDisplacement_v3(obj)
-            num_case = find(obj.k_vector == obj.k_case);
-            namePrint = sprintf('D_Inv_FinalDispl_kCase_%g',num_case);
-            uFun = obj.physicalProblem.uFun;
-            uFun.print(namePrint);
+            degrees_list = ["tx", "ty", "rz"];
+            for i = 1:obj.ndeg
+                deg_name = degrees_list(obj.deg(i));
+                namePrint = sprintf('D_Axial_FinalDispl_%s', deg_name);
+                uFun = obj.physicalProblem{i}.uFun;
+                uFun.print(namePrint);
+            end
         end
 
         function saveFigures(obj)
-            num_case = find(obj.k_vector == obj.k_case);
+          %  num_case = find(obj.k_vector == obj.k_case);
             fig_design = figure(1); 
             fig_monitor = figure(2);
             fig_monitor.WindowState = 'maximized';
             drawnow;
-            name_design = sprintf('D_Inv_DesignMap_kCase_%g.png', num_case );
-            name_monitor = sprintf('D_Inv_Monitoring_kCase_%g.png', num_case);
+            name_design = sprintf('D_Axial_DesVar.png' );
+            name_monitor = sprintf('D_Axial_Monitoring.png');
             exportgraphics(fig_design, name_design, 'Resolution', 300);
             exportgraphics(fig_monitor, name_monitor, 'Resolution', 300);
             close all
         end
 
         function printFinalDesignVariable(obj)
-            num_case = find(obj.k_vector == obj.k_case);
-            namePrint = sprintf('D_Inv_DesignVariable_kCase_%g',num_case);
+           % num_case = find(obj.k_vector == obj.k_case);
+            namePrint = sprintf('D_Axial_DesignVariable');
             obj.designVariable.fun.print(namePrint);
         end
      end

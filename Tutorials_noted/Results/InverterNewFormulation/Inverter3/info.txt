@@ -1,0 +1,41 @@
+Kp_bar_vector = [0.1 0.1 0.001];
+J_MT_vector = [-1 -2 -0.5];
+
+Kp_bar	0,01
+etaNorm	0,1
+gJFLowRatio	0,05
+tauMax	500
+dens0	0,25
+volumeCons	0,25
+
+
+
+with beta 0.001
+
+
+--- Starting optimization for J_MT = -1.0000 (1/3) ---
+
+--- Motion Transmission Accuracy ---
+J*    = -1.0000 (desired)
+J     = -0.6023 (obtained)
+eta   = 60.23 %
+------------------------------------
+--- Finished optimization for J_MT = -1.0000 (1/3) ---
+
+--- Starting optimization for J_MT = -2.0000 (2/3) ---
+
+--- Motion Transmission Accuracy ---
+J*    = -2.0000 (desired)
+J     = -0.8158 (obtained)
+eta   = 40.79 %
+------------------------------------
+--- Finished optimization for J_MT = -2.0000 (2/3) ---
+
+--- Starting optimization for J_MT = -0.5000 (3/3) ---
+
+--- Motion Transmission Accuracy ---
+J*    = -0.5000 (desired)
+J     = -0.3945 (obtained)
+eta   = 78.90 %
+------------------------------------
+--- Finished optimization for J_MT = -0.5000 (3/3) --

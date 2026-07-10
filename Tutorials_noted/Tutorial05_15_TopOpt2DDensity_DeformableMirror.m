@@ -38,7 +38,7 @@ classdef Tutorial05_15_TopOpt2DDensity_DeformableMirror < handle
                 
                 obj.nGDI = 3;
                 obj.nMP = 2;
-                obj.Kp_bar_vector = [0.005 0.01 0.025 0.05]; 
+                obj.Kp_bar_vector = [0.01 0.025]; 
                 obj.gJFlowRatio_vector = [0.3];
 
                 obj.height = 1;
@@ -73,8 +73,8 @@ classdef Tutorial05_15_TopOpt2DDensity_DeformableMirror < handle
                         obj.createOptimizer();
 
                         %obj.motionTransmissionAccuracy(); % Compute motion transmission accuracy
-                        %obj.printFinalDisplacement_v3(); % print document with the final FEM displacements
-                        %obj.printFinalDesignVariable(); % print final design variable
+                        obj.printFinalDisplacement_v3(); % print document with the final FEM displacements
+                        obj.printFinalDesignVariable(); % print final design variable
                         obj.saveFigures(); % save matlab figures (design variable and monitoring)
 
                         fprintf('--- Finished optimization for Kp_bar = %.4f (%d/%d) ---\n', ...
@@ -121,7 +121,7 @@ classdef Tutorial05_15_TopOpt2DDensity_DeformableMirror < handle
 
             coords   = obj.mesh.coord;
 
-            isOutput = coords(:,2) >= 0.99*obj.height;
+            isOutput = coords(:,2) >= 0.94*obj.height;
             isInputS = coords(:,1) >= 0.95*obj.width & ...
                        coords(:,2) <= 0.25*obj.height & ...
                        coords(:,2) >= 0.15*obj.height;
@@ -288,7 +288,7 @@ classdef Tutorial05_15_TopOpt2DDensity_DeformableMirror < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 400;
+            s.maxIter        = 500;
             s.tolerance      = 1e-8;
             nConstr = sum(obj.nMP)+1;
             s.constraintCase = repmat({'INEQUALITY'},1,nConstr);
@@ -305,7 +305,7 @@ classdef Tutorial05_15_TopOpt2DDensity_DeformableMirror < handle
             s.applyNonDesignRegion = true;
             %s.physicalProblem = obj.physicalProblem;
 
-            isOutput = obj.mesh.coord(:,2) >= 0.99*obj.height;
+            isOutput = obj.mesh.coord(:,2) >= 0.94*obj.height;
             isInputS = obj.mesh.coord(:,1) >= 0.95*obj.width & ...
                        obj.mesh.coord(:,2) <= 0.25*obj.height & ...
                        obj.mesh.coord(:,2) >= 0.15*obj.height;
@@ -338,6 +338,8 @@ classdef Tutorial05_15_TopOpt2DDensity_DeformableMirror < handle
             % The conditions correspond to half of the domain.
             isWall =@(coor) coor(:,1) <= 1e-8 & coor(:,2) <= 0.5*obj.height;
             isMiddle =@(coor) coor(:,1) >= obj.width - 1e-8;
+            
+            mirror2inputLoadRelation = 2; % input load always = 1
 
             % Side walls fixed
             sDir{1}.domain = isWall;
@@ -351,7 +353,7 @@ classdef Tutorial05_15_TopOpt2DDensity_DeformableMirror < handle
             % Unit load at the GDI
             isInputS =@(coor) coor(:,1) >= 0.95*obj.width & coor(:,2) <= 0.25*obj.height & coor(:,2) >= 0.15*obj.height;
             isInputC =@(coor) coor(:,1) >= 0.95*obj.width & coor(:,2) <= 0.6*obj.height & coor(:,2) >= 0.5*obj.height;
-            isOutput =@(coor) coor(:,2) >= 0.99*obj.height;
+            isOutput =@(coor) coor(:,2) >= 0.94*obj.height;
 
             isInputS_nodes = isInputS(obj.mesh.coord);
             nNodesInputS = sum(isInputS_nodes);
@@ -373,7 +375,7 @@ classdef Tutorial05_15_TopOpt2DDensity_DeformableMirror < handle
             elseif gdi_index == 3 % Output
                 sPL{1}.domain = isOutput;
                 sPL{1}.direction = [2];
-                sPL{1}.value = -1/nNodesOutput;
+                sPL{1}.value = -mirror2inputLoadRelation/nNodesOutput;
             else
                 warning('Wrong GDI indeces');
             end        
@@ -414,7 +416,7 @@ classdef Tutorial05_15_TopOpt2DDensity_DeformableMirror < handle
 
             isInputS =@(coor) coor(:,1) >= 0.95*obj.width & coor(:,2) <= 0.25*obj.height & coor(:,2) >= 0.15*obj.height;
             isInputC =@(coor) coor(:,1) >= 0.95*obj.width & coor(:,2) <= 0.6*obj.height & coor(:,2) >= 0.5*obj.height;
-            isOutput =@(coor) coor(:,2) >= 0.99*obj.height;
+            isOutput =@(coor) coor(:,2) >= 0.94*obj.height;
 
             % Free MP corresponds to upwards input movement with downwards
             % output movement
@@ -431,7 +433,7 @@ classdef Tutorial05_15_TopOpt2DDensity_DeformableMirror < handle
                 sDir{4}.value     = obj.amplitude * sin(Output_coor(:,1)/obj.width * 1.5*pi); % y(x)=A sin(x/w * 1.5*pi) 
             
                 sDir{5}.domain = isInputC;
-                sDir{5}.direction = [2];
+                sDir{5}.direction = [1,2];
                 sDir{5}.value = 0;
             
             elseif mp_index == 2
@@ -447,7 +449,7 @@ classdef Tutorial05_15_TopOpt2DDensity_DeformableMirror < handle
                 sDir{4}.value     = obj.amplitude * cos(Output_coor(:,1)/obj.width * pi); % y(x)=A cos(x/w * pi) 
           
                 sDir{5}.domain = isInputS;
-                sDir{5}.direction = [2];
+                sDir{5}.direction = [1,2];
                 sDir{5}.value = 0;
             
             else

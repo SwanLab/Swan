@@ -1,0 +1,18 @@
+Kp_bar_vector = [0.1 0.1 0.001];
+J_MT_vector = [-1 -2 -0.5];
+
+Kp_bar	0,01
+etaNorm	0,1
+gJFLowRatio	0,05
+tauMax	500
+dens0	0,25
+volumeCons	0,25
+
+
+
+with beta 0.005
+
+
+0.5 : 103%
+1 : 75%
+2 : 40%

@@ -1,0 +1,4 @@
+gF 0.3
+dens 0.22
+etanorm 0.1
+volumeconstraint 0.25

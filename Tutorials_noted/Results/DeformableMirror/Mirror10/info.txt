@@ -1,0 +1,13 @@
+obj.Kp_bar_vector = [0.01 0.025]; 
+obj.gJFlowRatio_vector = [0.3];
+
+s.etaNorm     = 0.03;    
+s.gJFlowRatio = ;     
+s.maxIter     = 500;     
+s.tauMax      = 500;  
+
+difference from previous mirrors:
+
+-surface thickness now is 6% of total domain
+-load on surface is now x2 input loads
+- also only 2 cases now

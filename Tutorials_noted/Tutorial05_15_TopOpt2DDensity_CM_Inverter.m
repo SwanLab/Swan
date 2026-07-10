@@ -436,7 +436,7 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
             uVals = uFun.fValues;
         
             % Select output nodes with density filter
-            isOutput    = @(coor) coor(:,1) >= 0.9 & coor(:,1) <= 1.1 & coor(:,2) >= 1-1e-8;
+            isOutput    = @(coor) coor(:,1) >= 0.9 & coor(:,2) >= 1-1e-8;
             outputNodes = isOutput(coor);
             xD          = obj.designVariable.fun.fValues;
             outputDens  = xD(outputNodes);
@@ -458,18 +458,18 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
 
         function bc = createBoundaryConditionsMotionTransmission(obj)
             isLeft =@(coor) coor(:,1) <= 1e-8;
-            isRight =@(coor) coor(:,1) >= 2-1e-8;
+            isMiddle =@(coor) coor(:,1) >= 1-1e-8;
 
             % Side walls fixed
             sDir{1}.domain = isLeft;
             sDir{1}.direction = [1,2];
             sDir{1}.value = 0;
 
-            sDir{2}.domain = isRight;
-            sDir{2}.direction = [1,2];
+            sDir{2}.domain = isMiddle;
+            sDir{2}.direction = [1];
             sDir{2}.value = 0;
 
-            isInput =@(coor) coor(:,1) >= 0.9 & coor(:,1) <= 1.1 & coor(:,2) <= 1e-8;
+            isInput =@(coor) coor(:,1) >= 0.9 & coor(:,2) <= 1e-8;
 
             sDir{3}.domain = isInput;
             sDir{3}.direction = [2];
@@ -501,18 +501,22 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_Inverter < handle
 
             uVals    = fem.uFun.fValues;
             coor     = obj.mesh.coord;
-            isOutput = @(c) c(:,1) >= 0.9 & c(:,1) <= 1.1 & c(:,2) >= 1-1e-8;
+            isOutput = @(c) c(:,1) >= 0.9 & c(:,2) >= 1-1e-8;
             outNodes = isOutput(coor);
             xD       = obj.designVariable.fun.fValues;
             solidMask = xD(outNodes) > 0.5;
 
-            if sum(solidMask) == 0 || isnan(mean(uVals(outNodes(solidMask),2)))
+            if sum(solidMask) == 0 
                 J_current = obj.J_MT;
                 return;
             end
 
             u_out    = uVals(outNodes, 2);
             J_current = mean(u_out(solidMask));  % u_in = 1
+
+            if isnan(J_current)
+                J_current = obj.J_MT;
+            end
         end
 
         function adaptiveUpdate(obj,nIter)

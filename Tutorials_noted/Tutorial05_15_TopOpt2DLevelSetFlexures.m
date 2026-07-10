@@ -33,7 +33,7 @@ classdef Tutorial05_15_TopOpt2DLevelSetFlexures < handle
                 % Degrees
                 obj.doc = ["tx"]; % tx, ty
                 obj.dof = ["ty"]; % ty, rz
-                obj.emax = 0.005; %1
+                obj.emax = 0.001; %1
 
                 obj.preprocessDegrees();
                 
@@ -108,7 +108,7 @@ classdef Tutorial05_15_TopOpt2DLevelSetFlexures < handle
         end
 
         function createDesignVariable(obj) % from tutorial 3
-            s.type = 'Holes';
+            s.type = 'Full';
             % For Holes
             s.dim = 2;
             s.nHoles = [80, 80];
@@ -316,9 +316,9 @@ classdef Tutorial05_15_TopOpt2DLevelSetFlexures < handle
             s.tolerance      = 1e-6; % default was 1e-8
             s.constraintCase = {'INEQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
-            s.etaNorm        = 0.1; % max allowed change for level set(def 0.1)
+            s.etaNorm        = 0.02; % max allowed change for level set(def 0.1)
             s.etaNormMin     = 0.005; % default was 0.005
-            s.gJFlowRatio    = 1; % weight for the constraints (def 0.2)
+            s.gJFlowRatio    = 0.5; % weight for the constraints (def 0.2)
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
             s.gif            = false;
@@ -532,28 +532,31 @@ classdef Tutorial05_15_TopOpt2DLevelSetFlexures < handle
         end
         
         function printFinalDisplacement_v3(obj)
-            num_case = find(obj.k_vector == obj.k_case);
-            namePrint = sprintf('D_Inv_FinalDispl_kCase_%g',num_case);
-            uFun = obj.physicalProblem.uFun;
-            uFun.print(namePrint);
+            degrees_list = ["tx", "ty", "rz"];
+            for i = 1:obj.ndeg
+                deg_name = degrees_list(obj.deg(i));
+                namePrint = sprintf('LS_Rot_FinalDispl_%s', deg_name);
+                uFun = obj.physicalProblem{i}.uFun;
+                uFun.print(namePrint);
+            end
         end
 
         function saveFigures(obj)
-            num_case = find(obj.k_vector == obj.k_case);
+          %  num_case = find(obj.k_vector == obj.k_case);
             fig_design = figure(1); 
             fig_monitor = figure(2);
             fig_monitor.WindowState = 'maximized';
             drawnow;
-            name_design = sprintf('D_Inv_DesignMap_kCase_%g.png', num_case );
-            name_monitor = sprintf('D_Inv_Monitoring_kCase_%g.png', num_case);
+            name_design = sprintf('LS_Rot_DesVar.png' );
+            name_monitor = sprintf('LS_Rot_Monitoring.png');
             exportgraphics(fig_design, name_design, 'Resolution', 300);
             exportgraphics(fig_monitor, name_monitor, 'Resolution', 300);
             close all
         end
 
         function printFinalDesignVariable(obj)
-            num_case = find(obj.k_vector == obj.k_case);
-            namePrint = sprintf('D_Inv_DesignVariable_kCase_%g',num_case);
+           % num_case = find(obj.k_vector == obj.k_case);
+            namePrint = sprintf('LS_Rot_DesignVariable');
             obj.designVariable.fun.print(namePrint);
         end
      end

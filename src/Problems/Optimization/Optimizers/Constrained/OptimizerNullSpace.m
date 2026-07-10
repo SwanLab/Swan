@@ -6,6 +6,7 @@ classdef OptimizerNullSpace < handle
         iterCallBack
         applySymmetry
         applyNonDesignRegion
+        monitoringCallBack
     end
 
     properties (Access = private)
@@ -109,6 +110,18 @@ classdef OptimizerNullSpace < handle
             obj.createDualVariable();
             obj.initOtherParameters(cParams);
 
+            if isfield(cParams, 'applySymmetry')
+                obj.applySymmetry = cParams.applySymmetry;
+            else
+                obj.applySymmetry = true; % comportamiento original por defecto
+            end
+
+            if isfield(cParams, 'applyNonDesignRegion')
+                obj.applyNonDesignRegion = cParams.applyNonDesignRegion;
+            else
+                obj.applyNonDesignRegion = false;
+            end
+
             if isfield(cParams, 'nonDesignRegion')
                 obj.nonDesignRegion = cParams.nonDesignRegion;
                 obj.nonDesignValue = cParams.nonDesignValue;
@@ -122,7 +135,12 @@ classdef OptimizerNullSpace < handle
                 obj.iterCallBack=[];
             end
 
-
+            if isfield(cParams, 'monitoringCallBack')
+                obj.monitoringCallBack = cParams.monitoringCallBack;
+            else
+                obj.monitoringCallBack = [];
+            end
+            
         end
 
         function createDualVariable(obj)
@@ -148,6 +166,7 @@ classdef OptimizerNullSpace < handle
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
             s.primalUpdater  = obj.primalUpdater;
+            s.monitoringCallBack = obj.monitoringCallBack;
             obj.monitoring   = MonitoringNullSpace(s);
         end
 
@@ -158,6 +177,13 @@ classdef OptimizerNullSpace < handle
             s.lG               = obj.lG;
             s.lJ               = obj.lJ;
             s.meritNew         = obj.meritNew;
+
+            if ~isempty(obj.monitoringCallBack)
+                s.extraData = obj.monitoringCallBack();
+            else
+                s.extraData = [];
+            end
+
             obj.monitoring.update(obj.nIter,s);
             obj.monitoring.refresh();
         end
@@ -247,7 +273,7 @@ classdef OptimizerNullSpace < handle
             if obj.applyNonDesignRegion
                 obj.enforceNonDesignRegions();
             end
-            
+
             if obj.applySymmetry
                 obj.enforceSymmetry();
             end
@@ -412,8 +438,8 @@ classdef OptimizerNullSpace < handle
             
             % Reshape to 2D grid, apply symmetry, reshape back
             vals_2d = reshape(vals, ny, nx); % mesh is nx x ny, represent as matrix
-            %vals_2d = (vals_2d + flip(vals_2d, 1))/2;  % symmetry about y=0.5
-            vals_2d = (vals_2d + flip(vals_2d, 2))/2;  % symmetry about x=0.5
+            vals_2d = (vals_2d + flip(vals_2d, 1))/2;  % symmetry about y=0.5
+            vals_2d = (vals_2d + flip(vals_2d, 2))/2;  % symmetry about x=0.5*width
             
             obj.designVariable.fun.setFValues(vals_2d(:)); % update values to the symmetric ones
         end

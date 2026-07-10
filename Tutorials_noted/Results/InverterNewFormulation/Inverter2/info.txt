@@ -7,3 +7,32 @@ gJFLowRatio	0,05
 tauMax	500
 dens0	0,25
 volumeCons	0,25
+
+
+
+--- Starting optimization for J_MT = -1.0000 (1/3) ---
+
+--- Motion Transmission Accuracy ---
+J*    = -1.0000 (desired)
+J     = -0.3689 (obtained)
+eta   = 36.89 %
+------------------------------------
+--- Finished optimization for J_MT = -1.0000 (1/3) ---
+
+--- Starting optimization for J_MT = -2.0000 (2/3) ---
+
+--- Motion Transmission Accuracy ---
+J*    = -2.0000 (desired)
+J     = -0.1054 (obtained)
+eta   = 5.27 %
+------------------------------------
+--- Finished optimization for J_MT = -2.0000 (2/3) ---
+
+--- Starting optimization for J_MT = -0.5000 (3/3) ---
+
+--- Motion Transmission Accuracy ---
+J*    = -0.5000 (desired)
+J     = -0.8245 (obtained)
+eta   = 35.11 %
+------------------------------------
+--- Finished optimization for J_MT = -0.5000 (3/3) ---
