@@ -10,10 +10,10 @@ clc; clear; close all;
 
 % l=1.6:0.1:1.8;
 l=1.8;
-p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale', ('EIFisol')
+p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale', ('EIFisol')
 p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
-p.Inclusion  = 'Material';        % 'Material'/'Hole'
-p.nelem      = 40;
+p.Inclusion  = 'Hole';        % 'Material'/'Hole'
+p.nelem      = 20;
 meshName     = p.nelem+"x"+p.nelem;
 
 %% DATA GENERATION
@@ -101,7 +101,8 @@ end
 
 function mS=createStructuredMesh(p)
     n =p.nelem;
-    m = TetraMesh(1.5,1,1,n,n,n);
+    % m = TetraMesh(1.5,1,1,n,n,n);
+    m = HexaMesh(1.5,1,1,n,n,n);
 
     s.coord=m.coord;
     s.connec=m.connec;
@@ -115,42 +116,42 @@ function mS=createStructuredMesh(p)
     obj.zmin = minC(3);
     obj.zmax = maxC(3);
 
-    delta=1E-9;
-    s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
-        s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[delta,0,0];
-
-    s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:) =...
-        s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)-[delta,0,0];
-
-    s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:) =...
-        s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)+[delta,0,0];
-
-    s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:) =...
-        s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[delta,0,0];
-
-    s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:) =...
-        s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
-
-    s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:) =...
-        s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,delta];
-
-    s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:) =...
-        s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
-
-    s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:) =...
-        s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,delta];
-
-    s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:) =...
-        s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:)-[0,delta,0];
-
-    s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:) =...
-        s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:)+[0,delta,0];
-
-    s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:) =...
-        s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:)-[0,delta,0];
-
-    s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:) =...
-        s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:)+[0,delta,0];
+    % delta=1E-9;
+    % s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
+    %     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[delta,0,0];
+    % 
+    % s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:) =...
+    %     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)-[delta,0,0];
+    % 
+    % s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:) =...
+    %     s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)+[delta,0,0];
+    % 
+    % s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:) =...
+    %     s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[delta,0,0];
+    % 
+    % s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:) =...
+    %     s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
+    % 
+    % s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:) =...
+    %     s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,delta];
+    % 
+    % s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:) =...
+    %     s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
+    % 
+    % s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:) =...
+    %     s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,delta];
+    % 
+    % s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:) =...
+    %     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==maxC(2),:)-[0,delta,0];
+    % 
+    % s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:) =...
+    %     s.coord(s.coord(:,1)== maxC(1) & s.coord(:,2)==minC(2),:)+[0,delta,0];
+    % 
+    % s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:) =...
+    %     s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==maxC(2),:)-[0,delta,0];
+    % 
+    % s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:) =...
+    %     s.coord(s.coord(:,1)== minC(1) & s.coord(:,2)==minC(2),:)+[0,delta,0];
 
     mS = Mesh.create(s);
 end
@@ -191,8 +192,8 @@ function [nS,dI] = defineNumberOfSubdomains(type)
             nS = [1 1 1]; %nx ny
             dI = [1 1 1];
         case 'Oversampling'
-            nS = [3 3 3]; %nx ny
-            dI = [2 2 2];
+            nS = [2 2 1]; %nx ny
+            dI = [1 1 1];
     end
 end
 
@@ -233,7 +234,14 @@ function mS = SmoothMesh(mR)
     ymax = max(s.coord(:,2));
     zmin = min(s.coord(:,3));
     zmax = max(s.coord(:,3));
-    tol=1e-10;
+    tol=1e-8;
+
+    % leftNodes   = find(s.coord(:,1)==xmin);
+    % rightNodes  = find(s.coord(:,1)==xmax);
+    % bottomNodes = find(s.coord(:,2)==ymin);
+    % topNodes    = find(s.coord(:,2)==ymax);
+    % zNodes1     = find(s.coord(:,3)==zmin);
+    % zNodes2     = find(s.coord(:,3)==zmax);
 
     leftNodes   = find(abs(s.coord(:,1)-xmin) < tol);
     rightNodes  = find(abs(s.coord(:,1)-xmax) < tol);
@@ -242,17 +250,19 @@ function mS = SmoothMesh(mR)
     zNodes1     = find(abs(s.coord(:,3)-zmin) < tol);
     zNodes2     = find(abs(s.coord(:,3)-zmax) < tol);
 
-    [~,iL] = sort(s.coord(leftNodes,2));
+    [~,iL] = sortrows(s.coord(leftNodes,[2 3]));
     leftNodes = leftNodes(iL);
-    [~,iR] = sort(s.coord(rightNodes,2));
+    [~,iR] = sortrows(s.coord(rightNodes,[2 3]));
     rightNodes = rightNodes(iR);
-    [~,iB] = sort(s.coord(bottomNodes,1));
+
+    [~,iB] = sortrows(s.coord(bottomNodes,[1 3]));
     bottomNodes = bottomNodes(iB);
-    [~,iT] = sort(s.coord(topNodes,1));
+    [~,iT] = sortrows(s.coord(topNodes,[1 3]));
     topNodes = topNodes(iT);
-    [~,iZ1] = sort(s.coord(zNodes1,3));
+
+    [~,iZ1] = sortrows(s.coord(zNodes1,[1 2]));
     zNodes1 = zNodes1(iZ1);
-    [~,iZ2] = sort(s.coord(zNodes2,3));
+    [~,iZ2] = sortrows(s.coord(zNodes2,[1 2]));
     zNodes2 = zNodes2(iZ2);
 
     x = 0.5*(s.coord(bottomNodes,1)+s.coord(topNodes,1));
@@ -263,9 +273,9 @@ function mS = SmoothMesh(mR)
     s.coord(leftNodes,2)  = y;
     s.coord(rightNodes,2) = y;
 
-    % z = 0.5*(s.coord(zNodes1,3)+s.coord(zNodes2,3));
-    % s.coord(leftNodes,3)  = z;
-    % s.coord(rightNodes,3) = z;
+    z = 0.5*(s.coord(zNodes1,3)+s.coord(zNodes2,3));
+    s.coord(zNodes1,3)  = z;
+    s.coord(zNodes2,3) = z;
 
     mS = Mesh.create(s);
 end
