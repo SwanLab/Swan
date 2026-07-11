@@ -28,11 +28,18 @@ classdef BoundaryConditions < handle
         end
 
         function updatePeriodicConditions(obj,MS)
-            %obj.periodic_leader = obj.computePeriodicNodes(MS(:,1));
-            %obj.periodic_follower   = obj.computePeriodicNodes(MS(:,2));
-            dofs = [obj.computePeriodicNodes(MS(:,1)); obj.computePeriodicNodes(MS(:,2))];
-            obj.dirichlet_dofs = unique(dofs);
-            obj.dirichlet_vals = zeros(size(obj.dirichlet_dofs));
+            MSperiod = [MS.faces;MS.edges;MS.vertices];
+            if ~isempty(MSperiod)
+                obj.periodic_leader = obj.computePeriodicNodes(MSperiod(:,1));
+                obj.periodic_follower   = obj.computePeriodicNodes(MSperiod(:,2));
+            end
+            
+            MSdirich = [];
+            if ~isempty(MSdirich)
+                dofs = [obj.computePeriodicNodes(MSdirich(:,1)); obj.computePeriodicNodes(MSdirich(:,2))];
+                obj.dirichlet_dofs = unique(dofs);
+                obj.dirichlet_vals = zeros(size(obj.dirichlet_dofs));
+            end
         end
         
     end

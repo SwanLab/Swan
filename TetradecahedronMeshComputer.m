@@ -51,14 +51,15 @@ classdef TetradecahedronMeshComputer < handle
             for i=1:size(obj.planeCoeffs,2)
                 n = obj.planeCoeffs(1:3,i);
 
-                fMaster = (abs(coordFaces(:,2:4)*n - obj.planeCoeffs(4,i)) < 1e-3);
-                fSlave  = (abs(coordFaces(:,2:4)*n - obj.planeCoeffs(5,i)) < 1e-3);
+                fMaster = (abs(coordFaces(:,2:4)*n - obj.planeCoeffs(4,i)) < 1e-4);
+                fSlave  = (abs(coordFaces(:,2:4)*n - obj.planeCoeffs(5,i)) < 1e-4);
                 coordMaster = coordFaces(fMaster,:);
                 coordSlave  = coordFaces(fSlave,:);
 
                 distVec = obj.computeDistanceVector(coordMaster,n);
                 coordMasterNew = [coordMaster(:,1), coordMaster(:,2:end) + distVec];
-                cM = sortrows(coordMasterNew,[2:4]); cS = sortrows(coordSlave,[2:4]);
+                cM = sortrows(coordMasterNew,[2:4]); 
+                cS = sortrows(coordSlave,[2:4]);
                 err1 = max(abs(cM(:,2:4)-cS(:,2:4)),[],'all') % Check position difference between nodes
                 if err1>1e-3
                     cM = sortrows(coordMasterNew,2); cS = sortrows(coordSlave,2);
@@ -77,26 +78,27 @@ classdef TetradecahedronMeshComputer < handle
             distVec = -2*(dot(n,centerVec)/norm(n)^2)*n';
         end
 
-        function MSreduced = reduceMasterSlave(obj,MSfull)
+        function [MS] = reduceMasterSlave(obj,MSfull)
             % Remove edges and vertices
             vals = MSfull(:);
             [uv,~,idx] = unique(vals);
             counts = accumarray(idx,1);
             repeatedVals = uv(counts == 1);
             rowsToKeep = any(ismember(MSfull,repeatedVals),2);
-            MSfaces = MSfull(rowsToKeep,:);
+            MS.faces = MSfull(rowsToKeep,:);
             % Obtain edges
             edges = uv(counts == 2);
             rowsToKeep = any(ismember(MSfull,edges),2);
             MSedges = MSfull(rowsToKeep,:);
-            MSedges = obj.removeAndOrder(MSedges);
+            MS.edges = obj.removeAndOrder(MSedges);
             %Obtain vertices
             edges = uv(counts == 3);
             rowsToKeep = any(ismember(MSfull,edges),2);
             MSvertices = MSfull(rowsToKeep,:);
-            MSvertices = obj.removeAndOrder(MSvertices);
+            MS.vertices = obj.removeAndOrder(MSvertices);
 
-            MSreduced = [MSfaces;MSedges;MSvertices];
+            %MSreduced = [MSfaces;MSedges;MSvertices];
+            %MSreduced = MSfaces;
         end
 
         function MSnew = removeAndOrder(~,MS)
