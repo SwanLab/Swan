@@ -1,7 +1,7 @@
 clc,clear,close all
 
 %% Load base mesh
-file = 'TetradecahedronFaces';
+file = 'TetradecahedronFacesNewVersion';
 
 TMC = TetradecahedronMeshComputer(file);
 mesh = TMC.getMesh();
@@ -11,8 +11,8 @@ mesh.plot
 %% Create level set
 
 %% set material
-E  = 1;
-nu = 0.3;
+E  = 15;
+nu = 0.35;
 young   = ConstantFunction.create(E,mesh);
 poisson = ConstantFunction.create(nu,mesh);
 
@@ -25,14 +25,14 @@ tensor    = Material.create(s);
 material  = tensor;
 
 %% set boundary conditions
-isV1X = @(coor) (abs(coor(:,1) - 0.25) < 1e-5);
-isV1Y = @(coor) (abs(coor(:,2) - 0.5) < 1e-5);
-isV1Z = @(coor) (abs(coor(:,3) - 0) < 1e-5);
-isVertex1 = @(coor) isV1X(coor) & isV1Y(coor) & isV1Z(coor);
-
-sDir{1}.domain    = @(coor) isVertex1(coor);
-sDir{1}.direction = [1,2,3];
-sDir{1}.value     = 0;
+% isV1X = @(coor) (abs(coor(:,1) - 0.15) < 1e-5);
+% isV1Y = @(coor) (abs(coor(:,2) - 0.3750)  < 1e-5);
+% isV1Z = @(coor) (abs(coor(:,3) - 0.9625)  < 1e-5);
+% isVertex1 = @(coor) isV1X(coor) & isV1Y(coor) & isV1Z(coor);
+% 
+% sDir{1}.domain    = @(coor) isVertex1(coor);
+% sDir{1}.direction = [1,2,3];
+% sDir{1}.value     = 0;
 
 % isV2X = @(coor) (abs(coor(:,1) - 0.75) < 1e-5);
 % isV2Y = @(coor) (abs(coor(:,2) - 0.5) < 1e-5);
@@ -51,6 +51,10 @@ sDir{1}.value     = 0;
 % sDir{3}.domain    = @(coor) isVertex3(coor);
 % sDir{3}.direction = [3];
 % sDir{3}.value     = 0;
+
+sDir{1}.domain    = @(coor) abs(coor(:,1) - 100) < 1e-5;
+sDir{1}.direction = [1,2,3];
+sDir{1}.value     = 0;
 
 dirichletFun = [];
 for i = 1:numel(sDir)
@@ -96,7 +100,7 @@ solver = PCG(sS);
 
 %% Continue problem definition
 
-s.solverCase = DirectSolver();
+s.solverCase = solver;
 s.solverType = 'REDUCED';
 s.solverMode = 'FLUC';
 fem = ElasticProblemMicro(s);
@@ -104,11 +108,11 @@ fem.solve();
 
 %% Postprocess
 %Cube
-% matHomog = fem.Chomog;
-% density = mesh.computeVolume(); 
+matHomog = fem.Chomog;
+density = mesh.computeVolume(); 
 % Tetradecaedron
-matHomog = fem.Chomog/0.5;
-density = mesh.computeVolume()/0.5; 
+% matHomog = fem.Chomog/0.5;
+% density = mesh.computeVolume()/0.5; 
 
 C11 = matHomog(1,1,1,1);
 C12 = matHomog(1,1,2,2);
@@ -177,3 +181,10 @@ xlabel('Number of combinations of values')
 ylabel('Error')
 lgd.FontSize = 30;
 fontsize(gcf,40,'points')
+
+C = convert2Voigt(matHomog,'Constitutive')
+bulk = (C(1,1) + 2*C(1,2))/3
+shear = C(4,4)
+
+bulkGeneral = (C(1,1)+C(2,2)+C(3,3)+2*(C(1,2)+C(1,3)+C(2,3)))/9
+shearGeneral = (C(1,1)+C(2,2)+C(3,3)-C(1,2)-C(1,3)-C(2,3)+3*(C(4,4)+C(5,5)+C(6,6)))/15
