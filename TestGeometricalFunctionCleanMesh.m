@@ -1,7 +1,7 @@
 clc,clear,close all
 
 %% Load base mesh
-file = 'TetradecahedronFacesNewVersion';
+file = 'C04';
 
 TMC = TetradecahedronMeshComputer(file);
 mesh = TMC.getMesh();
@@ -11,7 +11,7 @@ mesh.plot
 %% Create level set
 
 %% set material
-E  = 15;
+E  = 12;
 nu = 0.35;
 young   = ConstantFunction.create(E,mesh);
 poisson = ConstantFunction.create(nu,mesh);
@@ -25,14 +25,14 @@ tensor    = Material.create(s);
 material  = tensor;
 
 %% set boundary conditions
-% isV1X = @(coor) (abs(coor(:,1) - 0.15) < 1e-5);
-% isV1Y = @(coor) (abs(coor(:,2) - 0.3750)  < 1e-5);
-% isV1Z = @(coor) (abs(coor(:,3) - 0.9625)  < 1e-5);
-% isVertex1 = @(coor) isV1X(coor) & isV1Y(coor) & isV1Z(coor);
-% 
-% sDir{1}.domain    = @(coor) isVertex1(coor);
-% sDir{1}.direction = [1,2,3];
-% sDir{1}.value     = 0;
+isV1X = @(coor) (abs(coor(:,1) - 0.15) < 1e-5);
+isV1Y = @(coor) (abs(coor(:,2) - 0.3750)  < 1e-5);
+isV1Z = @(coor) (abs(coor(:,3) - 0.9625)  < 1e-5);
+isVertex1 = @(coor) isV1X(coor) & isV1Y(coor) & isV1Z(coor);
+
+sDir{1}.domain    = @(coor) isVertex1(coor);
+sDir{1}.direction = [1,2,3];
+sDir{1}.value     = 0;
 
 % isV2X = @(coor) (abs(coor(:,1) - 0.75) < 1e-5);
 % isV2Y = @(coor) (abs(coor(:,2) - 0.5) < 1e-5);
@@ -52,9 +52,9 @@ material  = tensor;
 % sDir{3}.direction = [3];
 % sDir{3}.value     = 0;
 
-sDir{1}.domain    = @(coor) abs(coor(:,1) - 100) < 1e-5;
-sDir{1}.direction = [1,2,3];
-sDir{1}.value     = 0;
+% sDir{1}.domain    = @(coor) abs(coor(:,1) - 100) < 1e-5;
+% sDir{1}.direction = [1,2,3];
+% sDir{1}.value     = 0;
 
 dirichletFun = [];
 for i = 1:numel(sDir)
@@ -76,31 +76,31 @@ s.dim      = '3D';
 s.boundaryConditions = bc;
 
 %% Set solver
-BCAp = BCApplier(s);
-
-rigModes = RigidBodyFunction.create(mesh,[0.5,0.5,0.5]);
-RFun = rigModes.projectBasisFunctions('P1');
-for i = 1:length(RFun)
-    Rfull(:,i) = reshape(RFun{i}.fValues',[],1);
-end
-
-for i = 1:size(Rfull,2)
-    R(:,i) = BCAp.fullToReducedVectorDirichlet(Rfull(:,i));
-end
-s.type = 'ELASTIC';
-s.nullSpace = R;
-s.nLevels = 5;
-s.tol = 1e-8;
-s.maxIter = 1;
-p     = pyAMG.create(s);
-
-sS.preconditioner = p;
-sS.tol = 1e-5;
-solver = PCG(sS);
+% BCAp = BCApplier(s);
+% 
+% rigModes = RigidBodyFunction.create(mesh,[0.5,0.5,0.5]);
+% RFun = rigModes.projectBasisFunctions('P1');
+% for i = 1:length(RFun)
+%     Rfull(:,i) = reshape(RFun{i}.fValues',[],1);
+% end
+% 
+% for i = 1:size(Rfull,2)
+%     R(:,i) = BCAp.fullToReducedVectorDirichlet(Rfull(:,i));
+% end
+% s.type = 'ELASTIC';
+% s.nullSpace = R;
+% s.nLevels = 5;
+% s.tol = 1e-8;
+% s.maxIter = 1;
+% p     = pyAMG.create(s);
+% 
+% sS.preconditioner = p;
+% sS.tol = 1e-5;
+% solver = PCG(sS);
 
 %% Continue problem definition
 
-s.solverCase = solver;
+s.solverCase = DirectSolver();
 s.solverType = 'REDUCED';
 s.solverMode = 'FLUC';
 fem = ElasticProblemMicro(s);
@@ -117,7 +117,7 @@ density = mesh.computeVolume();
 C11 = matHomog(1,1,1,1);
 C12 = matHomog(1,1,2,2);
 C44 = matHomog(2,3,2,3);
-ZenerRatioTetra = 2*C44./(C11-C12);
+ZenerRatioTetra = 2*C44./(C11-C12)
 
 meanC11 = (matHomog(1,1,1,1)+matHomog(2,2,2,2)+matHomog(3,3,3,3))/3;
 meanC12 = (matHomog(1,1,2,2)+matHomog(1,1,3,3)+matHomog(2,2,1,1)+matHomog(2,2,3,3)+matHomog(3,3,1,1)+matHomog(3,3,2,2))/6;

@@ -1,16 +1,16 @@
 classdef TetradecahedronMeshComputer < handle
 
     properties (Access = private, Constant)
-        planeCoeffs = [1  0  0   1     1    1     1;
-            0  1  0   1     1   -1    -1;
-            0  0  1   1    -1    1    -1;
-            0  0  0  9/4   5/4  5/4   1/4;
-            1  1  1  3/4  -1/4 -1/4  -5/4];
-        % planeCoeffs = [1  0  0 ;
-        %                0  1  0;
-        %                0  0  1;
-        %                0  0  0;
-        %                1  1  1];
+        % planeCoeffs = [1  0  0   1     1    1     1;
+        %     0  1  0   1     1   -1    -1;
+        %     0  0  1   1    -1    1    -1;
+        %     0  0  0  9/4   5/4  5/4   1/4;
+        %     1  1  1  3/4  -1/4 -1/4  -5/4];
+        planeCoeffs = [1  0  0 ;
+                       0  1  0;
+                       0  0  1;
+                       0  0  0;
+                       1  1  1];
         center = [0.5,0.5,0.5];
     end
 
