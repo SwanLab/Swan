@@ -2,7 +2,7 @@ clc,clear,close all
 
 %% GENERAL SETTINGS
 
-s.monitoring.set = true;
+s.monitoring.set = false;
 s.monitoring.type = 'full'; %'reduced'
 s.monitoring.print = true;
 
