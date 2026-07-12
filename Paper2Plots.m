@@ -406,7 +406,7 @@ lgd.Layout.Tile = 'east';
 lgd.FontSize = 30;
 
 %% Tetradecahedron constitutive tensor
-[dataTetra]  = load('Tetradecahedron004.mat');
+[dataTetra]  = load('Tetradecahedron.mat');
 phiTetra = dataTetra.phi;
 C11Tetra = squeeze(dataTetra.mat(1,1,1,1,:));
 C11TetraFun =  dataTetra.degradation.fun{1,1,1,1};
@@ -451,12 +451,13 @@ lgd.Layout.Tile = 'north';
 lgd.FontSize = 30;
 
 %% Tetradecahedron Zener Ratio
-ZenerRatioTetra = @(phi) 2*C44TetraFun(phi)./(C11TetraFun(phi)-C12TetraFun(phi));
-
+load("TetradecahedronHomogenized")
+damage = [0,1-density,1];
+ZenerRatio = [1, ZenerRatio];
 figure(12)
 hold on
 grid minor
-fplot(ZenerRatioTetra,[0 1],'Color',cmp(4,:),'LineStyle','--','LineWidth',3);
+plot(damage,ZenerRatio,'Color',cmp(4,:),'LineStyle','--','LineWidth',3);
 ylabel("Zener Ratio [-]");
 xlabel("$\phi$ [-]",'Interpreter','latex');
 
@@ -465,8 +466,8 @@ lgd = legend('Tetradecahedron');
 lgd.FontSize = 30;
 
 %% Tetradecahedron bulk and shear
-bulkTetra   = @(phi) (C11TetraFun(phi)+2*C12TetraFun(phi))./(C11TetraFun(0)+2*C12TetraFun(0));
-shearTetra  = @(phi) C44TetraFun(phi)./(C44TetraFun(0));
+bulkTetra = [k3D(0.3) bulk/20.8 0]/k3D(0.3);
+shearTetra = [mu3D(0.3) shear/20.8 0]/mu3D(0.3);
 
 k3D  = @(nu) E/(3-6*nu);
 mu3D = @(nu) E/(2*(1+nu));
@@ -480,7 +481,7 @@ nexttile
 hold on
 grid minor
 fplot(@(phi) kUB3D(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
-%fplot(bulkTetra,[0,1],'Color',cmp(4,:),'LineStyle','-','LineWidth',3);
+plot(damage,bulkTetra,'Color',cmp(4,:),'LineStyle','-','LineWidth',3);
 ylabel('$\kappa(\phi)/\kappa_0$ [-]','Interpreter','latex');
 ylim([0,inf])
 xlabel("$\phi$ [-]",'Interpreter','latex');
@@ -489,7 +490,7 @@ nexttile
 hold on
 grid minor
 p2 = fplot(@(phi) muUB3D(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidth',3);
-%p1 = fplot(shearTetra,[0 1],'Color',cmp(4,:),'LineStyle','-','LineWidth',3);
+p1 = plot(damage,shearTetra,'Color',cmp(4,:),'LineStyle','-','LineWidth',3);
 ylabel('$\mu(\phi)/\mu_0$ [-]','Interpreter','latex');
 ylim([0,inf])
 xlabel("$\phi$ [-]",'Interpreter','latex');

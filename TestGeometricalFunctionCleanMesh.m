@@ -1,8 +1,16 @@
 clc,clear,close all
 
 %% Load base mesh
-file = 'C04';
 
+file = 'C01';
+TMC = TetradecahedronMeshComputer(file);
+mesh = TMC.getMesh();
+MS = TMC.getMasterSlave();
+mesh.plot
+
+figure()
+
+file = 'C02';
 TMC = TetradecahedronMeshComputer(file);
 mesh = TMC.getMesh();
 MS = TMC.getMasterSlave();
