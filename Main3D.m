@@ -15,7 +15,7 @@ s.maxIter.stag = 300;
 
 s.benchmark.mesh.type   = 'SEN3D';
 s.benchmark.bc.u.type   = 'DisplacementTractionZ';
-s.benchmark.bc.u.values =  [1e-4:1e-4:0.025,0.15:1e-5:0.031];
+s.benchmark.bc.u.values =  [1e-4:1e-4:0.025,0.025:1e-5:0.031];
 s.benchmark.bc.phi.type = 'DamageFree';
 
 s.matInfo.matType = 'Homogenized'; %'Analytic','Homogenized'
