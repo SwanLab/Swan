@@ -124,7 +124,8 @@ classdef BoundaryMeshCreatorFromRectangularBox < BoundaryMeshCreator
                 case 2
                     xL = max(coordDim);
             end
-            nodes = coordDim == xL;
+            % nodes = coordDim == xL;
+            nodes = abs(coordDim - xL) <= 1e-11;
         end
 
         function facetCoord = computeFacetCoords(obj,nodes,idime)

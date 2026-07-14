@@ -398,14 +398,18 @@ classdef GeometricalFunction < handle
                     t     = cParams.thickness;
                     x0    = cParams.xCoorCenter;
                     y0    = cParams.yCoorCenter;
-                    nx1 = -sind(theta);
-                    ny1 =  cosd(theta);
-                    nx2= -sind(beta);
-                    ny2= cosd(beta);
+                    nx1   = -sind(theta);
+                    ny1   =  cosd(theta);
+                    nx2   = -sind(beta);
+                    ny2   = cosd(beta);
 
                     fT      = @(x) (y0 + H/2 - t) - x2(x);
                     fB      = @(x) x2(x)-(y0 - H/2 + t);
-                    fC      = @(x) abs(x2(x)-y0) - t/2;
+                    % fC      = @(x) abs(x2(x)-y0) - t/2;
+                    fCTop = @(x) x2(x) - (y0+t/2);
+                    fCBot = @(x) (y0-t/2) - x2(x);
+                    fC = @(x) max(fCTop(x), fCBot(x));
+
 
                     fOut1 = @(x) nx1*(x1(x)-(-L/2-t/2)) + ny1*(x2(x)-(-H/2));  % Outer
                     fOut2 = @(x) -nx1*(x1(x)-(L/2+t/2)) - ny1*(x2(x)-(H/2));
@@ -438,6 +442,7 @@ classdef GeometricalFunction < handle
 
 
                     fHor    = @(x) min([fTop(x),fBot(x),fCen1(x),fCen2(x)]);
+                    % fHor    = @(x) min([fTop(x),fBot(x),fC(x)]);
                     fDiag   = @(x) max([fFrame(x),-fInt(x)]);
                     fAll    = @(x) min([fHor(x),fDiag(x)]);
 

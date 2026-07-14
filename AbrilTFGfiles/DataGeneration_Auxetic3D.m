@@ -10,9 +10,9 @@ clc; clear; close all;
 
 % l=1.6:0.1:1.8;
 l=1.8;
-p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale', ('EIFisol')
-p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
-p.Inclusion  = 'Hole';        % 'Material'/'Hole'
+p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale', ('EIFisol')
+p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
+p.Inclusion  = 'MeshRaul';        % 'Material'/'Hole'/'MeshRaul'
 p.nelem      = 20;
 meshName     = p.nelem+"x"+p.nelem;
 
@@ -96,6 +96,29 @@ function mS = createReferenceMesh(p)
             uMesh    = computeUnfittedMesh(mS,lvSet);
             mR       = uMesh.createInnerMesh();
             mS       = SmoothMesh(mR);
+        case 'MeshRaul'
+            filename = 'DEF_Q4auxL_1.mat';
+            load(filename,'EIFEoper');
+            s.coord    = EIFEoper.MESH.COOR;
+            s.connec   = EIFEoper.MESH.CN;
+    
+            obj.xmin = min(s.coord(:,1));
+            obj.xmax = max(s.coord(:,1));
+            obj.ymin = min(s.coord(:,2));
+            obj.ymax = max(s.coord(:,2));
+    
+            delta = 0;
+            s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
+                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-delta];
+            s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
+                s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-delta,delta];
+            s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
+                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[delta,-delta];
+            s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
+                s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[delta,delta];
+            mR = Mesh.create(s);
+
+            mS = ExtrudeMesh(mR);
     end
 end
 
@@ -277,5 +300,44 @@ function mS = SmoothMesh(mR)
     s.coord(zNodes1,3)  = z;
     s.coord(zNodes2,3) = z;
 
+    mS = Mesh.create(s);
+end
+
+
+
+function mS= ExtrudeMesh(mR)
+    nelZ = 20; % nº de elementos en Z
+    nNodes = size(mR.coord,1);
+    nElem  = size(mR.connec,1);
+    zLayers = linspace(-1,1,nelZ+1);
+    coord3D = zeros(nNodes*(nelZ+1),3);
+
+    for k = 1:(nelZ+1)
+        offset = (k-1)*nNodes;
+        coord3D(offset+1:offset+nNodes,1:2) = mR.coord;
+        coord3D(offset+1:offset+nNodes,3)   = zLayers(k);
+    end
+
+    connec3D = zeros(nElem*nelZ,8);
+    e = 1;
+
+    for k = 1:nelZ
+        lower = (k-1)*nNodes;
+        upper = k*nNodes;
+        for ie = 1:nElem
+            q = mR.connec(ie,:);
+            connec3D(e,:) = [ q(1)+lower ...
+                              q(2)+lower ...
+                              q(3)+lower ...
+                              q(4)+lower ...
+                              q(1)+upper ...
+                              q(2)+upper ...
+                              q(3)+upper ...
+                              q(4)+upper ];
+                              e = e + 1;
+        end
+    end
+    s.coord=coord3D;
+    s.connec=connec3D;
     mS = Mesh.create(s);
 end

@@ -89,8 +89,8 @@ function mS = createReferenceMesh(p)
             mS       = SmoothMesh(mR);
     
         case 'MeshRaul'
-            % filename = 'DEF_Q4auxL_1.mat';
-            filename = 'DEF_Q4porL_1.mat';
+            filename = 'DEF_Q4auxL_1.mat';
+            % filename = 'DEF_Q4porL_1.mat';
             load(filename,'EIFEoper');
             s.coord    = EIFEoper.MESH.COOR;
             s.connec   = EIFEoper.MESH.CN;
@@ -199,7 +199,7 @@ end
 
 function mS = createStructuredMesh(p)
     n =p.nelem;
-    x1      = linspace(-1.5,1.5);
+    x1      = linspace(-1.5,1.5,n);
     x2      = linspace(-1,1,n);
     [xv,yv] = meshgrid(x1,x2);
     [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
@@ -209,16 +209,20 @@ function mS = createStructuredMesh(p)
     obj.xmax = max(x1);
     obj.ymin = min(x2);
     obj.ymax = max(x2);
-    delta = 1e-9;
-    s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
-        s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-delta];
-    s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
-        s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-delta,+delta];
-    s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
-        s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[+delta,-delta];
-    s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
-        s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[+delta,+delta];
-    mS = Mesh.create(s);
+
+    mS=QuadMesh(1.5,1,3/2*n,n);
+    % delta = 1e-9;
+    % s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
+    %     s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-delta];
+    % s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
+    %     s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-delta,+delta];
+    % s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
+    %     s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[+delta,-delta];
+    % s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
+    %     s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[+delta,+delta];
+    % mS = Mesh.create(s);
+
+    
 end
 
 function levelSet = createLevelSetFunction(bgMesh)
