@@ -139,7 +139,7 @@ hold on
 grid minor
 fplot(dataHexa.degradation.fun{1,1,1,1},[0 1],'Color',cmp(4,:),'LineStyle','-','LineWidth',3)
 fplot(dataHoney.degradation.fun{1,1,1,1},[0 1],'Color',cmp(4,:),'LineStyle','--','LineWidth',3)
-ylabel(char(8450)+"11 [GPa]");
+ylabel("$C_{1111}$ [GPa]",'interpreter','latex');
 xlabel({"$\phi$ [-]";"(a)"},'Interpreter','latex');
 ylim([0,inf])
 
@@ -148,7 +148,7 @@ hold on
 grid minor
 fplot(dataHexa.degradation.fun{2,2,1,1},[0 1],'Color',cmp(4,:),'LineStyle','-','LineWidth',3)
 fplot(dataHoney.degradation.fun{2,2,1,1},[0 1],'Color',cmp(4,:),'LineStyle','--','LineWidth',3)
-ylabel(char(8450)+"12 [GPa]");
+ylabel("$C_{1122}$ [GPa]",'interpreter','latex');
 xlabel({"$\phi$ [-]";"(b)"},'Interpreter','latex');
 ylim([0,inf])
 fontsize(gcf,30,'points')
@@ -157,7 +157,7 @@ hold on
 grid minor
 fplot(dataHexa.degradation.fun{1,2,1,2},[0 1],'Color',cmp(4,:),'LineStyle','-','LineWidth',3)
 fplot(dataHoney.degradation.fun{1,2,1,2},[0 1],'Color',cmp(4,:),'LineStyle','--','LineWidth',3)
-ylabel(char(8450)+"33 [GPa]");
+ylabel("$C_{1212}$ [GPa]",'interpreter','latex');
 ylim([0,inf])
 xlabel({"$\phi$ [-]";"(c)"},'Interpreter','latex');
 
@@ -210,7 +210,7 @@ fplot(bulkHexa,[0,1],'Color',cmp(4,:),'LineStyle','-','LineWidth',3);
 fplot(bulkHoney,[0 1],'Color',cmp(4,:),'LineStyle','--','LineWidth',3);
 ylabel('$\kappa(\phi)/\kappa_0$ [-]','Interpreter','latex');
 ylim([0,inf])
-xlabel("$\phi$ [-]",'Interpreter','latex');
+xlabel({"$\phi$ [-]";"(a)"},'Interpreter','latex');
 
 nexttile
 hold on
@@ -220,7 +220,7 @@ p1 = fplot(shearHexa,[0 1],'Color',cmp(4,:),'LineStyle','-','LineWidth',3);
 p2 = fplot(shearHoney,[0 1],'Color',cmp(4,:),'LineStyle','--','LineWidth',3);
 ylabel('$\mu(\phi)/\mu_0$ [-]','Interpreter','latex');
 ylim([0,inf])
-xlabel("$\phi$ [-]",'Interpreter','latex');
+xlabel({"$\phi$ [-]";"(b)"},'Interpreter','latex');
 
 fontsize(gcf,40,'points')
 lgd = legend([p1,p2,p3],'Hexagon','Reinforced hexagon','HS UB');
@@ -360,7 +360,6 @@ lgd.FontSize = 30;
 % resHoney = load('SENtractionNewMeshHoneycomb.mat');
 
 resAT1 = load('SEN3DtractionAT1.mat');
-
 resHexa = load('SEN3DtractionHomog.mat');
 
 
@@ -380,6 +379,7 @@ xlabel({"Displacement [mm]";"(a)"},'interpreter','latex')
 %xlim([0,0.03])
 %xlim([0,0.007])
 xlim([0,0.025])
+ylim([0,0.35])
 ax = gca;
 ax.XAxis.Exponent = 0;
 
@@ -387,23 +387,24 @@ nexttile
 hold on
 grid minor
 plot(resAT1.outputData.displacement.value,resAT1.outputData.damage.maxValue,'Color',cmp(1,:),'LineStyle','-','LineWidth',3)
-plot(resAT2.outputData.displacement.value,resAT2.outputData.damage.maxValue,'Color',cmp(1,:),'LineStyle','--','LineWidth',3)
-plot([resRatnoHS.outputData.displacement.value,0.04],[resRatnoHS.outputData.damage.maxValue,1],'Color',cmpGamma(6,:),'LineStyle','-','LineWidth',3)
-plot([resRatHS.outputData.displacement.value,0.04],[resRatHS.outputData.damage.maxValue,1],'Color',cmpGamma(6,:),'LineStyle','--','LineWidth',3)
+% plot(resAT2.outputData.displacement.value,resAT2.outputData.damage.maxValue,'Color',cmp(1,:),'LineStyle','--','LineWidth',3)
+% plot([resRatnoHS.outputData.displacement.value,0.04],[resRatnoHS.outputData.damage.maxValue,1],'Color',cmpGamma(6,:),'LineStyle','-','LineWidth',3)
+% plot([resRatHS.outputData.displacement.value,0.04],[resRatHS.outputData.damage.maxValue,1],'Color',cmpGamma(6,:),'LineStyle','--','LineWidth',3)
 plot(resHexa.outputData.displacement.value,resHexa.outputData.damage.maxValue,'Color',cmp(4,:),'LineStyle','-','LineWidth',3)
-plot(resHoney.outputData.displacement.value,resHoney.outputData.damage.maxValue,'Color',cmp(4,:),'LineStyle','--','LineWidth',3)
+% plot(resHoney.outputData.displacement.value,resHoney.outputData.damage.maxValue,'Color',cmp(4,:),'LineStyle','--','LineWidth',3)
 ylabel("$\phi$ [-]",'Interpreter','latex');
 xlabel({"Displacement [mm]";"(b)"},'interpreter','latex')
-%xlim([0,0.03])
-%xlim([0,0.007])
-xlim([0,0.02])
+% %xlim([0,0.03])
+% %xlim([0,0.007])
+xlim([0,0.025])
 ax = gca;
 ax.XAxis.Exponent = 0;
 
-fontsize(gcf,40,'points')
-lgd = legend({'AT1','AT2','Rational (no HS)','Rational (HS)','Hexagon','Reinforced Hexagon'},'Interpreter','latex','Location','eastoutside');
+fontsize(gcf,35,'points')
+%lgd = legend({'AT1','AT2','Rational (no HS)','Rational (HS)','Hexagon','Reinforced Hexagon'},'Interpreter','latex','Location','eastoutside');
+lgd = legend({'AT1','Tetrakaidecahedron'},'Interpreter','latex');
 lgd.Layout.Tile = 'east';
-lgd.FontSize = 30;
+lgd.FontSize = 25;
 
 %% Tetradecahedron constitutive tensor
 [dataTetra]  = load('Tetradecahedron.mat');
@@ -420,18 +421,18 @@ t = tiledlayout(1,3);
 nexttile
 hold on
 grid minor
-plot(phiTetra,C11Tetra,'Color',cmp(4,:),'LineStyle','--','LineWidth',3)
+%plot(phiTetra,C11Tetra,'Color',cmp(4,:),'LineStyle','--','LineWidth',3)
 fplot(C11TetraFun,[0 1],'Color',cmp(4,:),'LineStyle','-','LineWidth',3)
-ylabel(char(8450)+"11 [GPa]");
+ylabel('$C_{1111}$ [GPa]','interpreter','latex');
 xlabel({"$\phi$ [-]";"(a)"},'Interpreter','latex');
 ylim([0,inf])
 
 nexttile
 hold on
 grid minor
-plot(phiTetra,C12Tetra,'Color',cmp(4,:),'LineStyle','--','LineWidth',3)
+%plot(phiTetra,C12Tetra,'Color',cmp(4,:),'LineStyle','--','LineWidth',3)
 fplot(C12TetraFun,[0 1],'Color',cmp(4,:),'LineStyle','-','LineWidth',3)
-ylabel(char(8450)+"12 [GPa]");
+ylabel('$C_{1122}$ [GPa]','interpreter','latex');
 xlabel({"$\phi$ [-]";"(b)"},'Interpreter','latex');
 ylim([0,inf])
 fontsize(gcf,30,'points')
@@ -439,21 +440,27 @@ fontsize(gcf,30,'points')
 nexttile
 hold on
 grid minor
-plot(phiTetra,C44Tetra,'Color',cmp(4,:),'LineStyle','--','LineWidth',3)
+%plot(phiTetra,C44Tetra,'Color',cmp(4,:),'LineStyle','--','LineWidth',3)
 fplot(C44TetraFun,[0 1],'Color',cmp(4,:),'LineStyle','-','LineWidth',3)
-ylabel(char(8450)+"44 [GPa]");
+ylabel('$C_{2323}$ [GPa]','interpreter','latex');
 ylim([0,inf])
 xlabel({"$\phi$ [-]";"(c)"},'Interpreter','latex');
 
 fontsize(gcf,40,'points')
-lgd = legend('Tetradecahedron (data)','Tetradecahedron (interpolation)','Orientation','horizontal');
+%lgd = legend('Tetradecahedron (data)','Tetradecahedron (interpolation)','Orientation','horizontal');
+lgd = legend('Tetrakaidecahedron')
 lgd.Layout.Tile = 'north';
 lgd.FontSize = 30;
 
 %% Tetradecahedron Zener Ratio
 load("TetradecahedronHomogenized")
+C11 = squeeze(matHomog(1,1,1,1,:));
+C12 = squeeze(matHomog(1,1,2,2,:));
+C33 = squeeze(matHomog(2,3,2,3,:));
+ZenerRatio = 2*C33./(C11-C12);
+
 damage = [0,1-density,1];
-ZenerRatio = [1, ZenerRatio];
+ZenerRatio = [1, ZenerRatio' 1];
 figure(12)
 hold on
 grid minor
@@ -465,13 +472,40 @@ fontsize(gcf,40,'points')
 lgd = legend('Tetradecahedron');
 lgd.FontSize = 30;
 
-%% Tetradecahedron bulk and shear
-bulkTetra = [k3D(0.3) bulk/20.8 0]/k3D(0.3);
-shearTetra = [mu3D(0.3) shear/20.8 0]/mu3D(0.3);
 
+%% Zener Ratio merged
+tiledlayout(1,2)
+nexttile
+hold on
+grid minor
+fplot(ZenerRatioHexa,[0 1],'Color',cmp(4,:),'LineStyle','-','LineWidth',3);
+fplot(ZenerRatioHoney,[0 1],'Color',cmp(4,:),'LineStyle','--','LineWidth',3);
+ylabel("Zener Ratio [-]");
+ylim([1-1e-3,1+1e-3])
+xlabel({"$\phi$ [-]";"(a)"},'Interpreter','latex');
+fontsize(gcf,30,'points')
+lgd = legend('Hexagon','Reinforced hexagon');
+lgd.FontSize = 25;
+
+nexttile
+hold on
+grid minor
+plot(damage,ZenerRatio,'Color',cmp(4,:),'LineStyle','--','LineWidth',3);
+ylabel("Zener Ratio [-]");
+xlabel({"$\phi$ [-]";"(b)"},'Interpreter','latex');
+
+fontsize(gcf,30,'points')
+lgd = legend('Tetradecahedron');
+lgd.FontSize = 25;
+
+%% Tetradecahedron bulk and shear
 k3D  = @(nu) E/(3-6*nu);
 mu3D = @(nu) E/(2*(1+nu));
 l3D  = @(nu) E*nu/((1+nu)*(1-2*nu));
+
+bulkTetra = [k3D(0.3) bulk/20.8 0]/k3D(0.3);
+shearTetra = [mu3D(0.3) shear/20.8 0]/mu3D(0.3);
+
 kUB3D   = @(phi,nu) (1-phi).*((2.*mu3D(nu)+l3D(nu)-k3D(nu))./(2.*mu3D(nu)+l3D(nu)-k3D(nu).*(1-phi)));
 muUB3D  = @(phi,nu) (1-phi).*((10.*(2.*mu3D(nu)+l3D(nu)) - 4.*(k3D(nu)+2.*mu(nu)))./(10.*(2.*mu3D(nu)+l3D(nu))-(1-phi).*4.*(k3D(nu)+2.*mu(nu))));
 
@@ -484,7 +518,7 @@ fplot(@(phi) kUB3D(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','LineWidt
 plot(damage,bulkTetra,'Color',cmp(4,:),'LineStyle','-','LineWidth',3);
 ylabel('$\kappa(\phi)/\kappa_0$ [-]','Interpreter','latex');
 ylim([0,inf])
-xlabel("$\phi$ [-]",'Interpreter','latex');
+xlabel({"$\phi$ [-]";"(a)"},'Interpreter','latex');
 
 nexttile
 hold on
@@ -493,7 +527,7 @@ p2 = fplot(@(phi) muUB3D(phi,0.3),[0 1],'Color',cmpGrad(1,:),'LineStyle','-','Li
 p1 = plot(damage,shearTetra,'Color',cmp(4,:),'LineStyle','-','LineWidth',3);
 ylabel('$\mu(\phi)/\mu_0$ [-]','Interpreter','latex');
 ylim([0,inf])
-xlabel("$\phi$ [-]",'Interpreter','latex');
+xlabel({"$\phi$ [-]";"(b)"},'Interpreter','latex');
 
 fontsize(gcf,40,'points')
 lgd = legend([p1,p2],'Tetradecahedron','HS UB');
