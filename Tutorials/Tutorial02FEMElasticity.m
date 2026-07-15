@@ -38,6 +38,7 @@ classdef Tutorial02FEMElasticity < handle
         end
 
         function createMaterial(obj)
+            % Antes:
             s.type    = 'ISOTROPIC';
             s.ptype   = 'ELASTIC';
             s.ndim    = obj.mesh.ndim;
@@ -45,6 +46,15 @@ classdef Tutorial02FEMElasticity < handle
             s.poisson = obj.poisson;
             tensor    = Material.create(s);
             obj.material = tensor;
+
+            % Nueva propuesta:
+            lambda = ... % Domain function
+            mu = ... % Domain function
+
+            I      = repmat(eye4D(N),[1 1 1 1 nGauss nElem]); % Domain function
+            IxI    = repmat(kronEye(N),[1 1 1 1 nGauss nElem]); % Domain function
+
+            C = 2*mu.*I + lambda.*IxI;
         end
 
         function solveElasticProblem(obj)

@@ -66,6 +66,7 @@ classdef Tutorial05_1_TopOpt2DDensityMacroMMA < handle
         end
 
         function createMaterialInterpolator(obj)
+            % Antes:
             E0 = 1e-3;
             nu0 = 1/3;
             ndim = obj.mesh.ndim;
@@ -85,6 +86,20 @@ classdef Tutorial05_1_TopOpt2DDensityMacroMMA < handle
 
             m = MaterialInterpolator.create(s);
             obj.materialInterpolator = m;
+
+
+
+            % Nueva propuesta:
+
+            % Mat 1: domain functions mu1 i kappa1
+            % Mat 2: domain functions mu2 i kappa2
+
+            mu = SIMP_P3Interpolation(mu1,mu2); % @(rho) DomainFunction
+            k = SIMP_P3Interpolation(k1,k2); % @(rho) DomainFunction
+
+            % Domain function lambda
+
+            C = 2*mu.*I + lambda.*IxI;
         end
 
         function m = createMaterial(obj)
