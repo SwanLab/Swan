@@ -52,7 +52,7 @@ IMAGE_HEIGHT = 227      # expected image height (pixels)
 CONNECTIVITY = 4        # neighbor connectivity: 4 (N/S/E/W) or 8 (+ diagonals)
 NUM_WORKERS  = 4        # number of CPU cores used in parallel
 LOG_EVERY    = 500      # print a progress line every N images
-MAX_IMAGES   = None     # max number of images to process (None = all available)
+MAX_IMAGES   = 100    # max number of images to process (None = all available)
 # ─────────────────────────────────────────────────────────────────────────────
 
 
