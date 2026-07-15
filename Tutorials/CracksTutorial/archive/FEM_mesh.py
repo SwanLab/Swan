@@ -52,7 +52,7 @@ IMAGE_HEIGHT = 227      # expected image height (pixels)
 CONNECTIVITY = 4        # neighbor connectivity: 4 (N/S/E/W) or 8 (+ diagonals)
 NUM_WORKERS  = 4        # number of CPU cores used in parallel
 LOG_EVERY    = 500      # print a progress line every N images
-MAX_IMAGES   = 100   # max number of images to process (None = all available)
+MAX_IMAGES   = None     # max number of images to process (None = all available)
 # ─────────────────────────────────────────────────────────────────────────────
 
 
@@ -67,22 +67,17 @@ def build_geometry(H, W, connectivity=4):
     Build the mesh geometry for an H x W image.
     This is image-independent — called once for all images.
 
-    Node numbering: node_id = row * W + col
-    Node position : x = col + 0.5,  y = row + 0.5  (unit: pixel)
+    Node numbering: origin at bottom-left (FEM convention), IDs start at 1.
+    Node position : x = col + 0.5,  y = (H - row) - 0.5  (unit: pixel, y points up)
 
     The mesh uses node IDs directly as mesh point references.
-    Elements are defined by the 4 surrounding nodes of each interior junction.
-    A junction at grid point (r, c) — where r in [1..H-1], c in [1..W-1] —
-    is surrounded by nodes:
-        top-left  = (r-1)*W + (c-1)
-        top-right = (r-1)*W +  c
-        bot-right =  r   *W +  c
-        bot-left  =  r   *W + (c-1)
+    Elements are defined by the 4 surrounding nodes of each interior junction,
+    ordered counter-clockwise from bottom-left (standard FEM convention).
 
     Parameters
     ----------
     H, W         : image height and width in pixels
-    connectivity : 4 (N/S/E/W) or 8 (includes diagonals)
+    connectivity : 4 (S/N/W/E) or 8 (includes diagonals)
 
     Returns
     -------
@@ -90,7 +85,7 @@ def build_geometry(H, W, connectivity=4):
     neighbors : (N, max_nb) int32 array, -1 = no neighbor
     elements  : (E, 4) int32 array of node IDs per quad element
                 E = (H-1)*(W-1) interior junctions
-                columns: top-left, top-right, bottom-right, bottom-left
+                columns: bot-left, bot-right, top-right, top-left (counter-clockwise)
     """
     N = H * W
 
@@ -98,17 +93,24 @@ def build_geometry(H, W, connectivity=4):
     row_idx, col_idx = np.indices((H, W))
     row_idx  = row_idx.ravel().astype(np.int32)
     col_idx  = col_idx.ravel().astype(np.int32)
-    node_ids = np.arange(N, dtype=np.int32)
+    # Node IDs start at 1, origin at bottom-left (FEM convention)
+    # row=H-1 (bottom of image) → flipped_row=0 → node IDs 1..W
+    # row=0   (top of image)    → flipped_row=H-1 → node IDs (H-1)*W+1..H*W
+    flipped_row = (H - 1 - row_idx).astype(np.int32)
+    node_ids    = (flipped_row * W + col_idx + 1).astype(np.int32)
 
     # Node position = center of pixel
+    # x points right, y points up (mathematical convention)
     x = col_idx.astype(np.float32) + 0.5
-    y = row_idx.astype(np.float32) + 0.5
+    y = (H - row_idx).astype(np.float32) - 0.5
 
     nodes = {"id": node_ids, "x": x, "y": y, "row": row_idx, "col": col_idx}
 
     # -- Neighbors (fixed-width table: node_id | nb_1 | nb_2 | nb_3 | nb_4) --
-    offsets_4    = [(-1, 0), (1, 0), (0, -1), (0, 1)]   # N  S  W  E
-    offsets_diag = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
+    # Offsets in image space (row increases downward):
+    # S = row+1 (y-1 in FEM), N = row-1 (y+1 in FEM), W = col-1, E = col+1
+    offsets_4    = [(1, 0), (-1, 0), (0, -1), (0, 1)]    # S  N  W  E
+    offsets_diag = [(1, -1), (1, 1), (-1, -1), (-1, 1)]  # SW SE NW NE
     offsets = offsets_4 if connectivity == 4 else offsets_4 + offsets_diag
     max_nb  = len(offsets)
 
@@ -117,7 +119,9 @@ def build_geometry(H, W, connectivity=4):
         new_r = row_idx + dr
         new_c = col_idx + dc
         valid = (new_r >= 0) & (new_r < H) & (new_c >= 0) & (new_c < W)
-        neighbors[valid, k] = (new_r[valid] * W + new_c[valid]).astype(np.int32)
+        # Convert neighbor (new_r, new_c) to its flipped node ID
+        flipped_new_r = (H - 1 - new_r[valid]).astype(np.int32)
+        neighbors[valid, k] = (flipped_new_r * W + new_c[valid] + 1).astype(np.int32)
 
     # -- Quad elements ---------------------------------------------------------
     # One element per interior junction of the node grid.
@@ -128,12 +132,19 @@ def build_geometry(H, W, connectivity=4):
     JR = JR.ravel()
     JC = JC.ravel()
 
-    top_left  = ((JR - 1) * W + (JC - 1)).astype(np.int32)
-    top_right = ((JR - 1) * W +  JC     ).astype(np.int32)
-    bot_right = ( JR      * W +  JC     ).astype(np.int32)
-    bot_left  = ( JR      * W + (JC - 1)).astype(np.int32)
+    # Convert image rows to flipped rows for FEM node IDs
+    # JR is the image row of the junction's bottom pixel
+    # JR-1 is the image row of the junction's top pixel
+    f_bot = (H - 1 - JR    ).astype(np.int32)   # flipped row of bottom nodes
+    f_top = (H - 1 - (JR-1)).astype(np.int32)   # flipped row of top nodes
 
-    elements = np.stack([top_left, top_right, bot_right, bot_left], axis=1)
+    # Element nodes ordered counter-clockwise from bottom-left (FEM standard)
+    bot_left  = (f_bot * W + (JC - 1) + 1).astype(np.int32)
+    bot_right = (f_bot * W +  JC      + 1).astype(np.int32)
+    top_right = (f_top * W +  JC      + 1).astype(np.int32)
+    top_left  = (f_top * W + (JC - 1) + 1).astype(np.int32)
+
+    elements = np.stack([bot_left, bot_right, top_right, top_left], axis=1)
 
     return nodes, neighbors, elements
 
@@ -157,8 +168,9 @@ def save_common(path, H, W, connectivity, nodes, neighbors, elements):
         f.write(f"num_elements   {E}\n")
         f.write(f"connectivity   {connectivity}\n")
         f.write(f"unit           pixel\n")
-        f.write(f"note           Node_id=row*W+col. Position: x=col+0.5, y=row+0.5.\n")
-        f.write(f"note           Elements defined by 4 surrounding node IDs.\n")
+        f.write(f"note           Node IDs start at 1, origin at bottom-left.\n")
+        f.write(f"note           x=col+0.5, y=(H-row)-0.5. y points up.\n")
+        f.write(f"note           Elements: counter-clockwise from bot-left.\n")
         f.write(f"note           Neighbor value -1 means no neighbor (border node).\n")
         f.write("\n")
 
@@ -179,15 +191,15 @@ def save_common(path, H, W, connectivity, nodes, neighbors, elements):
         f.write(f"# node_id   {nb_header}   (-1 = no neighbor)\n")
         for i in range(N):
             nb_vals = "   ".join([f"{neighbors[i, k]:<7d}" for k in range(max_nb)])
-            f.write(f"{i:<10d}{nb_vals}\n")
+            f.write(f"{nodes['id'][i]:<10d}{nb_vals}\n")
         f.write("\n")
 
         # -- ELEMENTS ----------------------------------------------------------
         f.write("[ELEMENTS]\n")
-        f.write("# elem_id   top_left   top_right   bot_right   bot_left\n")
+        f.write("# elem_id   bot_left   bot_right   top_right   top_left\n")
         for i in range(E):
             e = elements[i]
-            f.write(f"{i:<10d}{e[0]:<12d}{e[1]:<12d}{e[2]:<12d}{e[3]:<12d}\n")
+            f.write(f"{i+1:<10d}{e[0]:<12d}{e[1]:<12d}{e[2]:<12d}{e[3]:<12d}\n")
 
     print(f"  -> mesh_common.txt written  ({N:,} nodes, {E:,} elements)")
 
@@ -210,7 +222,7 @@ def save_intensity(path, image_path, gray):
         f.write("# node_id   intensity\n")
         intensity = gray.ravel()
         for i in range(N):
-            f.write(f"{i:<10d}{intensity[i]:.6f}\n")
+            f.write(f"{i+1:<10d}{intensity[i]:.6f}\n")
 
 
 def process_one(args):
@@ -234,7 +246,7 @@ if __name__ == "__main__":
 
     # -- Folder paths ----------------------------------------------------------
     SCRIPT_DIR    = os.path.dirname(os.path.abspath(__file__))
-    INPUT_DIR     = os.path.join(SCRIPT_DIR, "Positive")
+    INPUT_DIR     = os.path.join(SCRIPT_DIR, "positive")
     OUTPUT_DIR    = os.path.join(SCRIPT_DIR, "meshes")
     INTENSITY_DIR = os.path.join(OUTPUT_DIR, "intensities")
     COMMON_PATH   = os.path.join(OUTPUT_DIR, "mesh_common.txt")
