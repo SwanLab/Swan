@@ -185,7 +185,6 @@ for i in 1:n_features
         color    = :green))
 end
 
-display(plot(oat_plots...,
-    layout = (2, 4),
-    size   = (1400, 700),
-    title  = "One-at-a-time Sensitivity"))
+for i in 1:n_features
+    display(oat_plots[i])
+end
