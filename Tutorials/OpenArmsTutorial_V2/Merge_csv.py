@@ -24,6 +24,8 @@ import glob
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import seaborn as sns
+import matplotlib.pyplot as plt
 from pathlib import Path
 
 # ─── Configuration ────────────────────────────────────────────────────────────
@@ -298,6 +300,23 @@ def main():
 
     # ── Nettoyage + lissage + export pour Julia ───────────────────────────────
     clean_and_export(merged, CLEAN_FILE)
+
+    # ── Matrice de corrélation ────────────────────────────────────────────────
+    df_clean = pd.read_csv(CLEAN_FILE, header=None)
+    corr = df_clean.corr()
+    feature_names = ["Latitude", "Longitude", "SpeedOverGround", "CourseOverGround",
+                 "Temperature", "Humidity", "Pressure", "WindSpeed",
+                 "WindAngle", "TrueWindAngle", "TrueWindSpeed", "TrueWindDir"]
+    corr.index   = feature_names
+    corr.columns = feature_names
+    fig, ax = plt.subplots(figsize=(12, 10))
+    sns.heatmap(corr, annot=True, fmt=".2f", cmap="coolwarm",
+                center=0, vmin=-1, vmax=1, ax=ax)
+    ax.set_title("Features correlation Matrix", fontsize=14)
+    fig.tight_layout()
+    fig.savefig(PLOTS_FOLDER / "correlation_matrix.png", dpi=150)
+    plt.close(fig)
+    print("  ✅ Matrice de corrélation enregistrée : correlation_matrix.png")
 
     print(f"""
 ─────────────────────────────────────────
