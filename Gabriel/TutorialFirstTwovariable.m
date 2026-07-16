@@ -59,7 +59,7 @@ classdef TutorialFirstTwovariable < handle
             aFunB = AnalyticalFunction(s_b);
             funB  = aFunB.project('P1');
 
-            s_rho.fHandle = @(x) ones(size(x(1,:,:)));
+            s_rho.fHandle = @(x) 0.95*ones(size(x(1,:,:)));
             s_rho.ndimf   = 1;
             s_rho.mesh    = obj.mesh;
             aFunRho = AnalyticalFunction(s_rho);
@@ -104,7 +104,7 @@ classdef TutorialFirstTwovariable < handle
             s.type        = 'HomogenizedMicroDensityFixed';
             s.mesh        = obj.mesh;
             s.young       = 1.0;
-            s.fileName    = 'Homogenizationtwovariables4';
+            s.fileName    = 'Homogenizationtwovariables14';
             s.density     = obj.designVariable;
             obj.materialMicro = MaterialFactory.create(s);
         end
@@ -170,8 +170,8 @@ classdef TutorialFirstTwovariable < handle
 
         function p = createPrimalUpdater(obj)
             n    = obj.mesh.nnodes;
-            s.lb = [-0.6*ones(n,1);  zeros(n,1)];
-            s.ub = [ 0.6*ones(n,1);  ones(n,1)];
+            s.lb = [-0.8*ones(n,1);  1e-3*ones(n,1)];
+            s.ub = [ 0.8*ones(n,1);  0.95*ones(n,1)];
             s.tauMax = 500;
             s.tau    = [];
             p = ProjectedGradient(s);
@@ -182,7 +182,7 @@ classdef TutorialFirstTwovariable < handle
             s.cost            = obj.cost;
             s.constraint      = obj.constraint;
             s.designVariable  = obj.designVariable;
-            s.maxIter         = 800;
+            s.maxIter         = 1000;
             s.tolerance       = 1e-8;
             s.constraintCase  = {'EQUALITY'};
             s.etaNorm         = 0.01;

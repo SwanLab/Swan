@@ -30,6 +30,9 @@ classdef OptimizationProblemNN < handle
        function solve(obj)
            obj.optimizer.compute();
        end
+       function f = getHistory(obj)
+           f = obj.optimizer.getHistory();
+       end
 
        function plotCostFnc(obj)
            obj.optimizer.plotCostFunc();

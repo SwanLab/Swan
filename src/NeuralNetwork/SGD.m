@@ -38,6 +38,9 @@ classdef SGD < Trainer
            obj.optimize(x0);
            toc
         end
+        function f = getHistory(obj)
+            f = obj.fplot;
+        end
 
         function plotCostFunc(obj)
             figure(3);

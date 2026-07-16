@@ -50,15 +50,15 @@ classdef TutorialHomogenizationLattice < handle
             obj.meshN       = 80;
             obj.holeType    = 'Square';
             obj.pnorm       = 'Inf';
-            obj.nStepsB     = 60;
-            obj.nStepsRho   = 60;
+            obj.nStepsB     = 50;
+            obj.nStepsRho   = 50;
             obj.monitoring  = false;
-            obj.maxParamB   = 0.5;
+            obj.maxParamB   = 0.7;
             obj.maxParamRho = 0.979;
         end
 
         function computeHoleParams(obj)
-            obj.paramB   = linspace(-0.5,    obj.maxParamB,   obj.nStepsB);
+            obj.paramB   = linspace(-0.7,    obj.maxParamB,   obj.nStepsB);
             obj.paramRho = linspace(1e-9, obj.maxParamRho, obj.nStepsRho);
         end
 
@@ -143,7 +143,7 @@ classdef TutorialHomogenizationLattice < handle
                 case 'Circle'
                     gPar.radius = rho_val / 2;
                 case 'Square'
-                    gPar.length = rho_val;
+                    gPar.length = sqrt(1 - rho_val);
                 case 'SmoothRectangle'
                     gPar.xSide = rho_val;
                     gPar.ySide = rho_val / 2;
@@ -175,11 +175,11 @@ classdef TutorialHomogenizationLattice < handle
             s.filename       = '';
             MC = MeshCreator(s);
             MC.computeMeshNodes();
-
             s.coord         = MC.coord;
             s.connec        = MC.connec;
             obj.baseMesh    = Mesh.create(s);
             obj.masterSlave = MC.masterSlaveIndex;
+            
             obj.test        = LagrangianFunction.create(obj.baseMesh, 1, 'P1');
             obj.Mmass       = IntegrateLHS(@(u,v) DP(v,u), obj.test, obj.test, obj.baseMesh, 'Domain');
         end
@@ -229,9 +229,15 @@ classdef TutorialHomogenizationLattice < handle
         end
 
         function bc = createBoundaryConditions(obj, mesh)
-            isCorner = @(coor) (abs(coor(:,1) - min(coor(:,1))) < 1e-12) & ...
-                               (abs(coor(:,2) - min(coor(:,2))) < 1e-12);
-            sDir{1}.domain    = @(coor) isCorner(coor);
+
+            coord = mesh.coord;
+
+            target = [0, 0];
+            [~,iFix] = min(sum((coord - target).^2,2));
+
+            isFix = @(coor) sum((coor - coord(iFix,:)).^2,2) < 1e-20;
+
+            sDir{1}.domain    = @(coor) isFix(coor);
             sDir{1}.direction = [1, 2];
             sDir{1}.value     = 0;
 
@@ -244,6 +250,7 @@ classdef TutorialHomogenizationLattice < handle
             s.pointloadFun = [];
             s.periodicFun  = 1;
             s.mesh         = mesh;
+
             bc = BoundaryConditions(s);
             bc.updatePeriodicConditions(obj.masterSlave);
         end
@@ -254,9 +261,20 @@ classdef TutorialHomogenizationLattice < handle
             fracVol = Integrator.compute(rho, rho.mesh, 2) / volDom;
         end
 
+        % function fitting(obj)
+        %     [obj.f, obj.df, obj.ddf] = DamageHomogenizationFitter.computeNN( ...
+        %         obj.paramB, obj.paramRho, obj.Chomog);
+        % end
         function fitting(obj)
-            [obj.f, obj.df, obj.ddf] = DamageHomogenizationFitter.computeNN( ...
-                obj.paramB, obj.paramRho, obj.Chomog);
+
+            s.retrain      = true;   
+            s.pol_deg      = 6;      
+            s.hiddenLayers = [64 128 254 512 128 64];
+            s.maxEpochs    = 100000;
+            s.learningRate = 0.02;
+
+            [obj.f, obj.df, ~] = DamageHomogenizationFitter.computeNN(obj.paramB, obj.paramRho, obj.Chomog, s);
+
         end
 
         function plot(obj)

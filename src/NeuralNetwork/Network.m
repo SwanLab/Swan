@@ -85,7 +85,7 @@ classdef Network < handle
                 if k == nLy
                     g_der = ones(size(a{k}));  % (nPts, nLabels)
                 else
-                    g_der = 1 - a{k}.^2;       % (nPts, nNeurons_k)
+                    [~, g_der] = obj.actFCN(a{k}, k);      % (nPts, nNeurons_k)
                 end
 
                 % CORREÇÃO: broadcast correto
@@ -111,7 +111,7 @@ classdef Network < handle
                 if k == nLy
                     g_der = ones(size(a{k}));
                 else
-                    g_der = 1 - a{k}.^2;
+                    [~, g_der] = obj.actFCN(a{k}, k);
                 end
                 delta = delta .* g_der;
                 delta = delta * W{k-1}';

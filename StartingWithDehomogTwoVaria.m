@@ -13,7 +13,7 @@ classdef StartingWithDehomogTwoVaria < handle
             obj.mesh     = bDesignVariable.mesh;
             obj.bField   = bDesignVariable;
             obj.rhoField = rhoDesignVariable;
-            obj.createLevelSet(0.15)
+            obj.createLevelSet(0.035)
         end
 
     end
@@ -50,42 +50,76 @@ classdef StartingWithDehomogTwoVaria < handle
            
         end
 
+        % function fH = geometricalFunction(obj, xV, eps)
+        %     s.fHandle = @(x) obj.coordFun(x);
+        %     s.ndimf   = 2;
+        %     s.mesh    = obj.mesh;
+        %     xCoord    = AnalyticalFunction(s);
+        % 
+        %     s.operation = @(xV) obj.evaluateCellCoord(xV, eps, xCoord);
+        %     s.mesh      = obj.mesh;
+        %     s.ndimf     = xCoord.ndimf;
+        %     txi         = DomainFunction(s);
+        %     xiV         = txi.evaluate(xV);            
+        % 
+        % 
+        %     b   = obj.bField.evaluate(xV);
+        %     rho = obj.rhoField.evaluate(xV);
+        % 
+        % 
+        %     a = exp(b.^2);
+        %     d = (1 + b.^2) ./ a;
+        % 
+        % 
+        %     xi1  = xiV(1,:,:);
+        %     xi2  = xiV(2,:,:);
+        %     xic1 = xi1 - 0.5;
+        %     xic2 = xi2 - 0.5;
+        % 
+        % 
+        %     phi1 = a.*xic1 + b.*xic2;
+        %     phi2 = b.*xic1 + d.*xic2;
+        % 
+        %     % rhoMin = 0.1;
+        %     % rhoMax = 0.7;
+        %     % rhoEff = min(max(rho,rhoMin),rhoMax);
+        %
+        %     fH = max(abs(phi1)./(rho/2),abs(phi2)./(rho/2)) - 1;
+        % end
         function fH = geometricalFunction(obj, xV, eps)
-            s.fHandle = @(x) obj.coordFun(x);
-            s.ndimf   = 2;
-            s.mesh    = obj.mesh;
-            xCoord    = AnalyticalFunction(s);
-            
+            s.fHandle   = @(x) obj.coordFun(x);
+            s.ndimf     = 2;
+            s.mesh      = obj.mesh;
+            xCoord      = AnalyticalFunction(s);
+
             s.operation = @(xV) obj.evaluateCellCoord(xV, eps, xCoord);
             s.mesh      = obj.mesh;
             s.ndimf     = xCoord.ndimf;
             txi         = DomainFunction(s);
-            xiV         = txi.evaluate(xV);            
-            
-            
+            xiV         = txi.evaluate(xV);
+
             b   = obj.bField.evaluate(xV);
             rho = obj.rhoField.evaluate(xV);
-            
-           
+
+            % Projecta rho para 0/1 com threshold 0.5
+            % Suaviza a transicao com sigmoid para evitar descontinuidades
+            beta     = 50;                          % controla a nitidez
+            rhoProj  = 1 ./ (1 + exp(-beta*(rho - 0.5)));
+            rhoProj  = min(max(real(rhoProj), 0), 1 - 1e-6);
+
             a = exp(b.^2);
             d = (1 + b.^2) ./ a;
-            
-            
-            xi1  = xiV(1,:,:);
-            xi2  = xiV(2,:,:);
-            xic1 = xi1 - 0.5;
-            xic2 = xi2 - 0.5;
-            
-            
-            phi1 = a.*xic1 + b.*xic2;
-            phi2 = b.*xic1 + d.*xic2;
 
-            rhoMin = 0.1;
-            rhoMax = 0.7;
-            rhoEff = min(max(rho,rhoMin),rhoMax);
+            xic1 = xiV(1,:,:) ;
+            xic2 = xiV(2,:,:) ;
 
-            fH = max(abs(phi1)./(rhoEff/2), ...
-                abs(phi2)./(rhoEff/2)) - 1;
+            e1 =  d.*xic1 - b.*xic2;
+            e2 = -b.*xic1 + a.*xic2;
+
+            holeSize = sqrt(1 - rhoProj) / 2;
+            holeSize = max(holeSize, 1e-6);
+
+            fH = max(abs(e1)./holeSize, abs(e2)./holeSize) - 1;
         end
 
         function f = coordFun(obj, x)
@@ -109,7 +143,8 @@ classdef StartingWithDehomogTwoVaria < handle
     methods (Access = private, Static)
 
         function f = periodicFunction(y)
-            f = y - floor(y);  
+            f = y - floor(y);
+            f = f - 0.5;
         end
 
     end
