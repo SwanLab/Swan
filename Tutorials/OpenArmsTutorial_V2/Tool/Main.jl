@@ -188,3 +188,48 @@ end
 for i in 1:n_features
     display(oat_plots[i])
 end
+
+# === Partial Dependence Plots 2D ===
+n_grid = 30  # résolution de la grille
+
+function pdp2d(opt, θ, data, Xtest, i, j, n_grid)
+    xi_range = range(minimum(Xtest[:, i]), maximum(Xtest[:, i]), length=n_grid)
+    xj_range = range(minimum(Xtest[:, j]), maximum(Xtest[:, j]), length=n_grid)
+
+    Z = zeros(n_grid, n_grid)
+    for (ci, xi) in enumerate(xi_range)
+        for (cj, xj) in enumerate(xj_range)
+            X_base        = zeros(1, size(Xtest, 2))
+            X_base[1, i]  = xi
+            X_base[1, j]  = xj
+            Z[cj, ci]     = compute_output_values(opt, X_base, θ)[1] * data.sigmaY[1] + data.muY[1]
+        end
+    end
+
+    # Dénormalisation des axes
+    xi_denorm = collect(xi_range) .* data.sigmaX[i] .+ data.muX[i]
+    xj_denorm = collect(xj_range) .* data.sigmaX[j] .+ data.muX[j]
+
+    return xi_denorm, xj_denorm, Z
+end
+
+pairs = [
+    (4, 6, "WindSpeed",    "TrueWindAngle"),
+    (4, 7, "WindSpeed",    "TrueWindSpeed"),
+    (4, 8, "WindSpeed",    "TrueWindDir"),
+]
+
+pdp_plots = []
+for (i, j, name_i, name_j) in pairs
+    xi_d, xj_d, Z = pdp2d(opt, θ, data, Xtest, i, j, n_grid)
+    push!(pdp_plots, heatmap(xi_d, xj_d, Z;
+        xlabel   = name_i,
+        ylabel   = name_j,
+        title    = "$name_i × $name_j",
+        color    = :viridis,
+        colorbar_title = "Vitesse (m/s)"))
+end
+
+display(plot(pdp_plots...,
+    layout = (1, 3),
+    size   = (1400, 450)))

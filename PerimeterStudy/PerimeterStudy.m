@@ -7,7 +7,7 @@ close all;
 
 %% Preprocess
 
-fid = fopen('00001_intensity.txt', 'r');
+fid = fopen('00001_intensity4.txt', 'r');
 i = 1;
 while ~feof(fid)
     if i<=7
@@ -22,14 +22,14 @@ while ~feof(fid)
 end
 fclose(fid);
 
-fid = fopen('mesh_common.txt', 'r');
+fid = fopen('mesh_common4.txt', 'r');
 i = 1;
 while ~feof(fid)
     if i<=13
         line = fgetl(fid);
         disp(line)
         i = i+1;
-    elseif i>13 && i<=51542
+    elseif i>14 && i<=51543
         line = fscanf(fid, '%lf');
         coord = reshape(line,5,[])';
         break;
@@ -37,10 +37,10 @@ while ~feof(fid)
 end
 fclose(fid);
 
-fid = fopen('mesh_common.txt', 'r');
+fid = fopen('mesh_common4.txt', 'r');
 i = 1;
 while ~feof(fid)
-    if i<=103077
+    if i<=103078
         line = fgetl(fid);
         disp(line)
         i = i+1;
@@ -54,7 +54,7 @@ fclose(fid);
 
 coord = coord(:,2:3);
 connec = connec(:,2:end);
-connec = connec + 1;
+%connec = connec + 1;
 intensity = intensity(:,2);
 
 % coord(:,2) = -coord(:,2);
