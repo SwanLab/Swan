@@ -52,7 +52,7 @@ IMAGE_HEIGHT = 227      # expected image height (pixels)
 CONNECTIVITY = 4        # neighbor connectivity: 4 (N/S/E/W) or 8 (+ diagonals)
 NUM_WORKERS  = 4        # number of CPU cores used in parallel
 LOG_EVERY    = 500      # print a progress line every N images
-MAX_IMAGES   = 100    # max number of images to process (None = all available)
+MAX_IMAGES   = 10     # max number of images to process (None = all available); for each categories
 # ─────────────────────────────────────────────────────────────────────────────
 
 
@@ -126,7 +126,7 @@ def build_geometry(H, W, connectivity=4):
     # -- Quad elements ---------------------------------------------------------
     # One element per interior junction of the node grid.
     # Junction (r, c) with r in [1..H-1], c in [1..W-1]:
-    jr = np.arange(1, H, dtype=np.int32)
+    jr = np.arange(H-1, 0, -1, dtype=np.int32)   # H-1 .. 1 : bottom to top in FEM
     jc = np.arange(1, W, dtype=np.int32)
     JR, JC = np.meshgrid(jr, jc, indexing="ij")
     JR = JR.ravel()
@@ -177,7 +177,8 @@ def save_common(path, H, W, connectivity, nodes, neighbors, elements):
         # -- NODES -------------------------------------------------------------
         f.write("[NODES]\n")
         f.write("# node_id   x        y        row   col\n")
-        for i in range(N):
+        sort_idx = np.argsort(nodes['id'])   # tri par ID croissant (1, 2, 3, ...)
+        for i in sort_idx:
             f.write(f"{nodes['id'][i]:<10d}"
                     f"{nodes['x'][i]:<10.1f}"
                     f"{nodes['y'][i]:<10.1f}"
@@ -189,7 +190,7 @@ def save_common(path, H, W, connectivity, nodes, neighbors, elements):
         nb_header = "   ".join([f"nb_{k+1}" for k in range(max_nb)])
         f.write("[NEIGHBORS]\n")
         f.write(f"# node_id   {nb_header}   (-1 = no neighbor)\n")
-        for i in range(N):
+        for i in sort_idx:   # même ordre trié que les nœuds
             nb_vals = "   ".join([f"{neighbors[i, k]:<7d}" for k in range(max_nb)])
             f.write(f"{nodes['id'][i]:<10d}{nb_vals}\n")
         f.write("\n")
@@ -245,47 +246,51 @@ def process_one(args):
 if __name__ == "__main__":
 
     # -- Folder paths ----------------------------------------------------------
-    SCRIPT_DIR    = os.path.dirname(os.path.abspath(__file__))
-    INPUT_DIR     = os.path.join(SCRIPT_DIR, "positive")
-    OUTPUT_DIR    = os.path.join(SCRIPT_DIR, "meshes")
-    INTENSITY_DIR = os.path.join(OUTPUT_DIR, "intensities")
-    COMMON_PATH   = os.path.join(OUTPUT_DIR, "mesh_common.txt")
+    SCRIPT_DIR  = os.path.dirname(os.path.abspath(__file__))
+    OUTPUT_DIR  = os.path.join(SCRIPT_DIR, "meshes")
+    COMMON_PATH = os.path.join(OUTPUT_DIR, "mesh_common.txt")
 
-    # -- Check source folder ---------------------------------------------------
-    if not os.path.isdir(INPUT_DIR):
-        print(f"ERROR: source folder not found: {INPUT_DIR}")
-        print(f"Make sure this script is placed inside the 'archive/' folder.")
-        sys.exit(1)
+    # MAX_IMAGES applies independently to each class:
+    # e.g. MAX_IMAGES=10 → 10 positive + 10 negative = 20 total
+    SOURCES = {
+        "positive": os.path.join(SCRIPT_DIR, "Positive"),
+        "negative": os.path.join(SCRIPT_DIR, "Negative"),
+    }
 
-    # -- Collect images --------------------------------------------------------
-    all_image_paths = sorted([
-        p for p in glob.glob(os.path.join(INPUT_DIR, "*"))
-        if os.path.splitext(p)[1].lower() in IMAGE_EXTENSIONS
-    ])
+    # -- Check source folders --------------------------------------------------
+    for label, folder in SOURCES.items():
+        if not os.path.isdir(folder):
+            print(f"ERROR: source folder not found: {folder}")
+            print(f"Make sure this script is placed inside the 'archive/' folder.")
+            sys.exit(1)
 
-    if not all_image_paths:
-        print(f"ERROR: no images found in {INPUT_DIR}")
-        sys.exit(1)
+    # -- Collect images per class ----------------------------------------------
+    tasks_per_class = {}
+    for label, folder in SOURCES.items():
+        all_paths = sorted([
+            p for p in glob.glob(os.path.join(folder, "*"))
+            if os.path.splitext(p)[1].lower() in IMAGE_EXTENSIONS
+        ])
+        if not all_paths:
+            print(f"ERROR: no images found in {folder}")
+            sys.exit(1)
+        selected = all_paths[:MAX_IMAGES] if MAX_IMAGES is not None else all_paths
+        tasks_per_class[label] = (all_paths, selected)
 
-    if MAX_IMAGES is not None:
-        image_paths = all_image_paths[:MAX_IMAGES]
-        skipped     = len(all_image_paths) - len(image_paths)
-    else:
-        image_paths = all_image_paths
-        skipped     = 0
-
-    os.makedirs(OUTPUT_DIR,    exist_ok=True)
-    os.makedirs(INTENSITY_DIR, exist_ok=True)
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     # -- Print summary ---------------------------------------------------------
     print("=" * 55)
-    print(f"  Available images : {len(all_image_paths):,}")
-    print(f"  Images to process: {len(image_paths):,}"
-          + (f"  ({skipped:,} skipped)" if skipped else ""))
-    print(f"  Connectivity     : {CONNECTIVITY}-connected")
-    print(f"  Output format    : ASCII")
-    print(f"  Workers          : {NUM_WORKERS} CPU cores")
-    print(f"  Output folder    : {OUTPUT_DIR}")
+    for label, (all_paths, selected) in tasks_per_class.items():
+        skipped = len(all_paths) - len(selected)
+        print(f"  [{label:>8}]  available: {len(all_paths):>5,}  "
+              f"to process: {len(selected):>5,}"
+              + (f"  ({skipped:,} skipped)" if skipped else ""))
+    total = sum(len(s) for _, s in tasks_per_class.values())
+    print(f"  {'TOTAL':>8}   {total:,} images")
+    print(f"  Connectivity : {CONNECTIVITY}-connected")
+    print(f"  Workers      : {NUM_WORKERS} CPU cores")
+    print(f"  Output       : {OUTPUT_DIR}")
     print("=" * 55)
 
     # -- Write mesh_common.txt (geometry, once for all images) -----------------
@@ -294,13 +299,18 @@ if __name__ == "__main__":
     save_common(COMMON_PATH, IMAGE_HEIGHT, IMAGE_WIDTH, CONNECTIVITY,
                 nodes, neighbors, elements)
 
-    # -- Write one intensity file per image (parallel) -------------------------
-    print(f"\n  Writing intensity files to {INTENSITY_DIR} ...")
-    task_args = [(p, INTENSITY_DIR) for p in image_paths]
+    # -- Write intensity files per class (parallel) ----------------------------
+    all_tasks = []
+    for label, (_, selected) in tasks_per_class.items():
+        intensity_dir = os.path.join(OUTPUT_DIR, "intensities", label)
+        os.makedirs(intensity_dir, exist_ok=True)
+        for p in selected:
+            all_tasks.append((p, intensity_dir))
 
+    print(f"\n  Writing {len(all_tasks):,} intensity files ...")
     ok, errors = 0, []
     with ProcessPoolExecutor(max_workers=NUM_WORKERS) as pool:
-        futures = {pool.submit(process_one, a): a[0] for a in task_args}
+        futures = {pool.submit(process_one, a): a[0] for a in all_tasks}
         for future in as_completed(futures):
             image_path, result = future.result()
             if result is True:
@@ -308,14 +318,14 @@ if __name__ == "__main__":
             else:
                 errors.append((image_path, result))
             done = ok + len(errors)
-            if done % LOG_EVERY == 0 or done == len(image_paths):
-                pct = done / len(image_paths) * 100
-                print(f"  {done:>6}/{len(image_paths)}  ({pct:5.1f}%)  "
+            if done % LOG_EVERY == 0 or done == len(all_tasks):
+                pct = done / len(all_tasks) * 100
+                print(f"  {done:>6}/{len(all_tasks)}  ({pct:5.1f}%)  "
                       f"OK={ok}  errors={len(errors)}")
 
     # -- Final summary ---------------------------------------------------------
     print("=" * 55)
-    print(f"  Done: {ok}/{len(image_paths)} intensity files written")
+    print(f"  Done: {ok}/{len(all_tasks)} intensity files written")
     if errors:
         print(f"\n  Failures ({len(errors)}):")
         for p, msg in errors:
