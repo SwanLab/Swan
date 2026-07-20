@@ -37,20 +37,22 @@ classdef GlobalPerimeterValidation < handle
         end
 
         function createMesh(obj)
-            obj.mesh = TriangleMesh(1,1,70,70);
+            obj.mesh = TriangleMesh(1,1,100,100);
         end
 
         function createDesignVariable(obj)
-            s.type        = 'SquareInclusion';
-            s.length      = 0.3;
+            s.type        = 'CircleInclusion';
+            s.radius      = 0.15;
             s.xCoorCenter = 0.5;
             s.yCoorCenter = 0.5;
             g             = GeometricalFunction(s);
             lsFun         = g.computeLevelSetFunction(obj.mesh);
 
-            s.fun              = lsFun;
+            %s.fun              = lsFun;
+            s.fun              = LagrangianFunction.create(obj.mesh,1,'P1');
+            s.fun.setFValues(1-heaviside(lsFun.fValues));
             s.mesh             = obj.mesh;
-            s.type             = 'LevelSet';
+            s.type             = 'Density';%'LevelSet';
             s.plotting         = true;
             ls                 = DesignVariable.create(s);
             obj.designVariable = ls;
@@ -68,12 +70,13 @@ classdef GlobalPerimeterValidation < handle
             sF.mesh        = obj.mesh;
             sF.trial       = LagrangianFunction.create(obj.mesh,1,'P1');
             sF.senseVector = ConstantFunction.create([0;1],obj.mesh);
-            sF.ovAngleDeg  = 20;
-            filter         = FilterDiamond(sF);
+            sF.ovAngleDeg  = 45;
+            sF.tol         = 1e-2; %1e-2
+            filter         = FilterParabolicDiamond(sF);
 
             h         = obj.mesh.computeMeanCellSize();
             s.mesh    = obj.mesh;
-            s.epsilon = 8*h;
+            s.epsilon = 12*h;
             s.value0 = 1;
 
             s.uMesh          = obj.createBaseDomain();
@@ -112,7 +115,11 @@ classdef GlobalPerimeterValidation < handle
 
         function createPrimalUpdater(obj)
             s.mesh = obj.mesh;
-            obj.primalUpdater = SLERP(s);
+            s.ub = 1;
+            s.lb = 0;
+            s.tauMax = 1000;
+            s.tau = [];
+            obj.primalUpdater = ProjectedGradient(s);%SLERP(s);
         end
 
         function createOptimizer(obj)
@@ -125,7 +132,7 @@ classdef GlobalPerimeterValidation < handle
             s.constraintCase = {'EQUALITY'};
             s.etaNorm        = 0.1;
             s.etaNormMin     = 0.1;
-            s.gJFlowRatio    = 2.0;
+            s.gJFlowRatio    = 1.0;
             s.etaMax         = 100;
             s.etaMaxMin      = 0.1;
             s.primalUpdater  = obj.primalUpdater;
