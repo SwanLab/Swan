@@ -114,10 +114,11 @@ result_table = hcat(input_data, output_data)
 println("Tableau de résultats :")
 display(result_table)
 
-# === Permutation Importance ===
+# === Feature names (English) ===
 feature_names = ["Latitude", "Longitude", "CourseOverGround", "WindSpeed",
                  "WindAngle", "TrueWindAngle", "TrueWindSpeed", "TrueWindDir"]
 
+# === Permutation Importance ===
 n_features = size(Xtest, 2)
 rmse_base  = sqrt(mean((vec(compute_output_values(opt, Xtest, θ)) .* data.sigmaY[1] .+ data.muY[1]
                         .- Ytest_denorm) .^ 2))
@@ -132,104 +133,90 @@ for i in 1:n_features
 end
 
 bar_order = sortperm(importance, rev=true)
-display(bar(feature_names[bar_order], importance[bar_order];
+p_perm = bar(feature_names[bar_order], importance[bar_order];
     title    = "Permutation Importance",
-    ylabel   = "Augmentation RMSE (m/s)",
+    ylabel   = "RMSE increase (m/s)",
     xlabel   = "Feature",
     legend   = false,
     color    = :steelblue,
-    rotation = 30))
+    rotation = 30,
+    bottom_margin = 10Plots.mm)
+display(p_perm)
+savefig(p_perm, joinpath(@__DIR__, "..", "data_plots", "permutation_importance.png"))
 
-    # === Gradient-based Sensitivity ===
-grads = vcat([compute_gradient(opt, Xtest[i:i, :], θ) for i in 1:size(Xtest, 1)]...)
+# === Gradient-based Sensitivity ===
+grads     = vcat([compute_gradient(opt, Xtest[i:i, :], θ) for i in 1:size(Xtest, 1)]...)
 grad_mean = vec(mean(abs.(grads), dims=1))
 
 bar_order2 = sortperm(grad_mean, rev=true)
-display(bar(feature_names[bar_order2], grad_mean[bar_order2];
+p_grad = bar(feature_names[bar_order2], grad_mean[bar_order2];
     title    = "Gradient-based Sensitivity",
-    ylabel   = "∂output/∂input (moyenne |gradient|)",
+    ylabel   = "Mean |∂output/∂input|",
     xlabel   = "Feature",
     legend   = false,
     color    = :darkorange,
-    rotation = 30))
-
+    rotation = 30,
+    bottom_margin = 10Plots.mm)
+display(p_grad)
+savefig(p_grad, joinpath(@__DIR__, "..", "data_plots", "gradient_sensitivity.png"))
 
 # === One-at-a-time (OAT) ===
-n_points   = 50
-oat_plots  = []
-
+n_points  = 50
 for i in 1:n_features
-    # Plage de variation de la feature i (espace normalisé)
-    x_min = minimum(Xtest[:, i])
-    x_max = maximum(Xtest[:, i])
-    x_range = range(x_min, x_max, length=n_points)
-
-    # Echantillon de base : toutes les features à leur moyenne (= 0 normalisé)
-    X_oat = zeros(n_points, n_features)
-
-    # On fait varier uniquement la feature i
+    x_range  = range(minimum(Xtest[:, i]), maximum(Xtest[:, i]), length=n_points)
+    X_oat    = zeros(n_points, n_features)
     X_oat[:, i] = collect(x_range)
-
-    # Prédiction et dénormalisation
-    Y_oat = vec(compute_output_values(opt, X_oat, θ)) .* data.sigmaY[1] .+ data.muY[1]
-
-    # Dénormalisation de l'axe x pour affichage lisible
+    Y_oat    = vec(compute_output_values(opt, X_oat, θ)) .* data.sigmaY[1] .+ data.muY[1]
     x_denorm = collect(x_range) .* data.sigmaX[i] .+ data.muX[i]
 
-    push!(oat_plots, plot(x_denorm, Y_oat;
-        title    = feature_names[i],
-        xlabel   = feature_names[i],
-        ylabel   = "Vitesse (m/s)",
-        legend   = false,
+    p_oat = plot(x_denorm, Y_oat;
+        title     = "OAT — $(feature_names[i])",
+        xlabel    = feature_names[i],
+        ylabel    = "Predicted speed (m/s)",
+        legend    = false,
         linewidth = 2,
-        color    = :green))
-end
-
-for i in 1:n_features
-    display(oat_plots[i])
+        color     = :green)
+    display(p_oat)
+    savefig(p_oat, joinpath(@__DIR__, "..", "data_plots", "oat_$(feature_names[i]).png"))
 end
 
 # === Partial Dependence Plots 2D ===
-n_grid = 30  # résolution de la grille
+n_grid = 30
 
 function pdp2d(opt, θ, data, Xtest, i, j, n_grid)
     xi_range = range(minimum(Xtest[:, i]), maximum(Xtest[:, i]), length=n_grid)
     xj_range = range(minimum(Xtest[:, j]), maximum(Xtest[:, j]), length=n_grid)
-
     Z = zeros(n_grid, n_grid)
     for (ci, xi) in enumerate(xi_range)
         for (cj, xj) in enumerate(xj_range)
-            X_base        = zeros(1, size(Xtest, 2))
-            X_base[1, i]  = xi
-            X_base[1, j]  = xj
-            Z[cj, ci]     = compute_output_values(opt, X_base, θ)[1] * data.sigmaY[1] + data.muY[1]
+            X_base       = zeros(1, size(Xtest, 2))
+            X_base[1, i] = xi
+            X_base[1, j] = xj
+            Z[cj, ci]    = compute_output_values(opt, X_base, θ)[1] * data.sigmaY[1] + data.muY[1]
         end
     end
-
-    # Dénormalisation des axes
     xi_denorm = collect(xi_range) .* data.sigmaX[i] .+ data.muX[i]
     xj_denorm = collect(xj_range) .* data.sigmaX[j] .+ data.muX[j]
-
     return xi_denorm, xj_denorm, Z
 end
 
+# Paires corrélées + une paire non corrélée pour comparaison
 pairs = [
-    (4, 6, "WindSpeed",    "TrueWindAngle"),
-    (4, 7, "WindSpeed",    "TrueWindSpeed"),
-    (4, 8, "WindSpeed",    "TrueWindDir"),
+    (4, 6, "WindSpeed", "TrueWindAngle"),   # corrélées
+    (4, 7, "WindSpeed", "TrueWindSpeed"),   # corrélées
+    (4, 8, "WindSpeed", "TrueWindDir"),     # peu corrélées
+    (4, 1, "WindSpeed", "Latitude"),        # non corrélées (référence)
 ]
 
-pdp_plots = []
 for (i, j, name_i, name_j) in pairs
     xi_d, xj_d, Z = pdp2d(opt, θ, data, Xtest, i, j, n_grid)
-    push!(pdp_plots, heatmap(xi_d, xj_d, Z;
-        xlabel   = name_i,
-        ylabel   = name_j,
-        title    = "$name_i × $name_j",
-        color    = :viridis,
-        colorbar_title = "Vitesse (m/s)"))
+    p_pdp = heatmap(xi_d, xj_d, Z;
+        xlabel         = name_i,
+        ylabel         = name_j,
+        title          = "PDP: $name_i × $name_j",
+        color          = :viridis,
+        colorbar_title = "Speed (m/s)",
+        size           = (600, 500))
+    display(p_pdp)
+    savefig(p_pdp, joinpath(@__DIR__, "..", "data_plots", "pdp_$(name_i)_$(name_j).png"))
 end
-
-display(plot(pdp_plots...,
-    layout = (1, 3),
-    size   = (1400, 450)))
