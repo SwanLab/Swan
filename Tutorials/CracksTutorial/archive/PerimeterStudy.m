@@ -1,86 +1,113 @@
-%
 clear;
 clc;
 close all;
-%
-%% Preprocess
 
-% --- Intensity ---
-fid = fopen('00001_intensity4.txt', 'r');
-i = 1;
-while ~feof(fid)
-    if i<=7
-        line = fgetl(fid);
-        i = i+1;
-    else
-        line = fscanf(fid, '%lf');
-        intensity = reshape(line,2,[])';
-        break;
-    end
-end
-fclose(fid);
+%% Settings
+MESH_FILE     = 'meshes/mesh_common.txt';
+INTENSITY_DIR = 'meshes/intensities';
+OUTPUT_CSV    = 'perimeters.csv';
+
+%% Load shared geometry (once for all images)
 
 % --- Nodes ---
-fid = fopen('mesh_common5.txt', 'r');
+fid = fopen(MESH_FILE, 'r');
 i = 1;
 while ~feof(fid)
-    if i<=14
-        line = fgetl(fid);
-        i = i+1;
+    if i <= 14
+        fgetl(fid);
+        i = i + 1;
     else
         line = fscanf(fid, '%lf');
-        coord = reshape(line,5,[])';
+        coord = reshape(line, 5, [])';
         break;
     end
 end
 fclose(fid);
 
 % --- Elements ---
-fid = fopen('mesh_common5.txt', 'r');
+fid = fopen(MESH_FILE, 'r');
 while ~feof(fid)
     line = fgetl(fid);
     if strcmp(strtrim(line), '[ELEMENTS]')
-        fgetl(fid);   % skip the header
+        fgetl(fid);   % skip column header
         break;
     end
 end
-line = fscanf(fid, '%lf');
+line   = fscanf(fid, '%lf');
 connec = reshape(line, 5, [])';
 fclose(fid);
 
-coord     = coord(:,2:3);
-connec    = connec(:,2:end);
-intensity = intensity(:,2);
+coord  = coord(:, 2:3);
+connec = connec(:, 2:end);
 
-% Verification
-% disp('Premier element :')
-% disp(connec(1,:))
-% disp('Coin 1 :'); disp(coord(connec(1,1),:))
-% disp('Coin 2 :'); disp(coord(connec(1,2),:))
-% disp('Coin 3 :'); disp(coord(connec(1,3),:))
-% disp('Coin 4 :'); disp(coord(connec(1,4),:))
-
-%% Mesh
+%% Build mesh and filter (once for all images)
 s.coord  = coord;
 s.connec = connec;
 mesh = Mesh.create(s);
 
-intFun = LagrangianFunction.create(mesh,1,'P1');
-intFun.setFValues(intensity);
-intFun.plot();
-
-%% Filter
 h = mesh.computeMeanCellSize();
-e = 3*h;
+e = 3 * h;
 
 sF.mesh       = mesh;
 sF.filterType = 'PDE';
-sF.trial      = intFun;
-filter = Filter.create(sF);
+% sF.trial      = LagrangianFunction.create(mesh, 1, 'P1');
+filter        = Filter.create(sF);
 filter.updateEpsilon(e);
 
-intEpsFun = filter.compute(intFun,3);
-intEpsFun.plot();
+%% Loop over positive and negative images
+classes = {'positive', 'negative'};
+labels  = [1, 0];
 
-%% Perimeter computation
-P = (2/e)*Integrator.compute(intFun.*(1-intEpsFun),mesh,2);
+results = {};   % will hold {filename, label, perimeter}
+
+for c = 1:2
+    class_name  = classes{c};
+    class_label = labels(c);
+    class_dir   = fullfile(INTENSITY_DIR, class_name);
+
+    files = dir(fullfile(class_dir, '*.txt'));
+
+    fprintf('\n  Processing [%s] — %d files...\n', class_name, length(files));
+
+    for k = 1:length(files)
+        filepath = fullfile(class_dir, files(k).name);
+
+        % --- Read intensity ---
+        fid = fopen(filepath, 'r');
+        i = 1;
+        while ~feof(fid)
+            if i <= 7
+                fgetl(fid);
+                i = i + 1;
+            else
+                line      = fscanf(fid, '%lf');
+                intensity = reshape(line, 2, [])';
+                break;
+            end
+        end
+        fclose(fid);
+
+        % --- Compute perimeter ---
+        intFun = LagrangianFunction.create(mesh, 1, 'P1');
+        intFun.setFValues(intensity(:, 2));
+        intEpsFun = filter.compute(intFun, 3);
+        P = (2/e) * Integrator.compute(intFun .* (1 - intEpsFun), mesh, 2);
+
+        results{end+1} = {files(k).name, class_label, P};
+
+        % Progress every 100 images
+        if mod(k, 100) == 0 || k == length(files)
+            fprintf('    %d/%d  last P = %.2f\n', k, length(files), P);
+        end
+    end
+end
+
+%% Save results to CSV
+fid = fopen(OUTPUT_CSV, 'w');
+fprintf(fid, 'filename,label,perimeter\n');
+for i = 1:length(results)
+    fprintf(fid, '%s,%d,%.6f\n', results{i}{1}, results{i}{2}, results{i}{3});
+end
+fclose(fid);
+
+fprintf('\n  Saved %d results to %s\n', length(results), OUTPUT_CSV);
