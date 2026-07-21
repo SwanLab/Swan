@@ -45,12 +45,14 @@ s.coord  = coord;
 s.connec = connec;
 mesh = Mesh.create(s);
 
+intFun = LagrangianFunction.create(mesh,1,'P1');
+
 h = mesh.computeMeanCellSize();
 e = 3 * h;
 
 sF.mesh       = mesh;
 sF.filterType = 'PDE';
-% sF.trial      = LagrangianFunction.create(mesh, 1, 'P1');
+sF.trial      = intFun;
 filter        = Filter.create(sF);
 filter.updateEpsilon(e);
 
@@ -88,7 +90,7 @@ for c = 1:2
         fclose(fid);
 
         % --- Compute perimeter ---
-        intFun = LagrangianFunction.create(mesh, 1, 'P1');
+        %intFun = LagrangianFunction.create(mesh, 1, 'P1');
         intFun.setFValues(intensity(:, 2));
         intEpsFun = filter.compute(intFun, 3);
         P = (2/e) * Integrator.compute(intFun .* (1 - intEpsFun), mesh, 2);
