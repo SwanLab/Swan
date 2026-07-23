@@ -53,7 +53,7 @@ from pathlib import Path
 # ── Image to use for calibration ─────────────────────────────────────────────
 # The script will automatically use the first .jpg found in the folder
 # if this file does not exist.
-IMAGE_PATH = Path(__file__).parent / "captura_23-28-06.jpg"
+IMAGE_PATH = Path(__file__).parent / "captura_19-58-54.jpg"
 
 # ── Starting parameters (edit these if you want a different starting point) ───
 crop_x, crop_y, crop_w, crop_h = 80, 245, 200, 235
