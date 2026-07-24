@@ -88,15 +88,27 @@ classdef BoundaryConditionsCreator < handle
             sDir.value     = 0;
             Dir2 = DirichletCondition(obj.mesh,sDir);
 
-            sNeum.domain    = @(coor) isRight(coor);
-            sNeum.direction = [1];
-            sNeum.value     = fVal;
-            Neum1 = TractionLoad(obj.mesh,sNeum,'DIRAC');
-            % Remember change bMesh{2} in extWorkFunctional
+            % sNeum.domain    = @(coor) isRight(coor);
+            % sNeum.direction = [1];
+            % sNeum.value     = fVal;
+            % Neum1 = TractionLoad(obj.mesh,sNeum,'DIRAC');
+            % % Remember change bMesh{2} in extWorkFunctional
+
+            % CANVI 5: PointLoad en lloc de TractionLoad
+            sPL.domain    = @(coor) isRight(coor);
+            sPL.direction = [1];
+            sPL.value     = fVal;
+            pointload = PointLoad(obj.mesh, sPL);
+            pointload.values = pointload.values / size(pointload.dofs, 1);
+            fvalues = zeros(obj.mesh.nnodes * obj.mesh.ndim, 1);
+            fvalues(pointload.dofs) = pointload.values;
+            fvalues = reshape(fvalues, obj.mesh.ndim, [])';
+            pointload.fun.setFValues(fvalues);
+            % FI CANVI 5
 
             s.mesh         = obj.mesh;
             s.dirichletFun = [Dir1 Dir2];
-            s.pointloadFun = [Neum1];
+            s.pointloadFun = pointLoad;      %CANVI: [Neum1]
             s.periodicFun  = [];
             obj.boundaryConditions = BoundaryConditions(s);
         end
