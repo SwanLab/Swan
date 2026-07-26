@@ -271,7 +271,7 @@ classdef TopOpt_Density_C5Inf < handle
             s.primalUpdater  = obj.primalUpdater;
             s.etaNorm        = 0.02;
             s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 0.2;
+            s.gJFlowRatio    = 1.0;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
             s.gif            = false;

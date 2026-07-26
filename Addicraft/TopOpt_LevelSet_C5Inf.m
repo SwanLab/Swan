@@ -251,10 +251,10 @@ classdef TopOpt_LevelSet_C5Inf < handle
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
-            s.etaNorm        = 0.02;
-            s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 0.2;
-            s.etaMax         = 5;
+            s.etaNorm        = 0.001;
+            s.etaNormMin     = 0.001;
+            s.gJFlowRatio    = 1.0;
+            s.etaMax         = 0.5;
             s.etaMaxMin      = 0.01;
             s.gif            = false;
             s.gifName        = [];
