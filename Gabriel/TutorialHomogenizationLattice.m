@@ -50,15 +50,15 @@ classdef TutorialHomogenizationLattice < handle
             obj.meshN       = 80;
             obj.holeType    = 'Square';
             obj.pnorm       = 'Inf';
-            obj.nStepsB     = 50;
-            obj.nStepsRho   = 50;
+            obj.nStepsB     = 70;
+            obj.nStepsRho   = 70;
             obj.monitoring  = false;
-            obj.maxParamB   = 0.7;
+            obj.maxParamB   = 0.8;
             obj.maxParamRho = 0.979;
         end
 
         function computeHoleParams(obj)
-            obj.paramB   = linspace(-0.7,    obj.maxParamB,   obj.nStepsB);
+            obj.paramB   = linspace(-0.8,    obj.maxParamB,   obj.nStepsB);
             obj.paramRho = linspace(1e-9, obj.maxParamRho, obj.nStepsRho);
         end
 
@@ -269,9 +269,9 @@ classdef TutorialHomogenizationLattice < handle
 
             s.retrain      = true;   
             s.pol_deg      = 6;      
-            s.hiddenLayers = [64 128 254 512 128 64];
-            s.maxEpochs    = 100000;
-            s.learningRate = 0.02;
+            s.hiddenLayers = [150 200 300 200 150 50];
+            s.maxEpochs    = 500000;
+            s.learningRate = 0.015;
 
             [obj.f, obj.df, ~] = DamageHomogenizationFitter.computeNN(obj.paramB, obj.paramRho, obj.Chomog, s);
 

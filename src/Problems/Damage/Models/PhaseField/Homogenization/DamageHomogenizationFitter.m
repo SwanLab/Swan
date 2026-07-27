@@ -515,9 +515,9 @@ classdef DamageHomogenizationFitter < handle
 
         function problem = trainNetwork(data, varargin)
                 
-            hiddenLayers = [64 128 254 512 128 64];
-            maxEpochs    = 100000;
-            learningRate = 0.02;
+            hiddenLayers = [50 100 200 100 50 30];
+            maxEpochs    = 500000;
+            learningRate = 0.015;
 
             if nargin >= 2 && isstruct(varargin{1})
                 p = varargin{1};
@@ -533,7 +533,7 @@ classdef DamageHomogenizationFitter < handle
             optimizerParams.maxEpochs    = maxEpochs;
             optimizerParams.learningRate = learningRate;
             costParams.costType = 'L2';
-            costParams.lambda   = 1e-4;
+            costParams.lambda   = 0;
             cParams.data            = data;
             cParams.networkParams   = networkParams;
             cParams.optimizerParams = optimizerParams;

@@ -98,28 +98,28 @@ classdef Network < handle
             % Permuta para (nPts, nFeatures, nLabels)
             J = permute(J, [1, 3, 2]);
         end
-        function [d_db, d_drho] = networkGradientComponent(obj, X, m)
-            nPts = size(X, 1);
-
-            obj.computeAvalues(X);
-            [W, a, nLy] = obj.backLoopVars();
-
-            delta = zeros(nPts, size(W{end}, 2));
-            delta(:, m) = 1;
-
-            for k = nLy:-1:2
-                if k == nLy
-                    g_der = ones(size(a{k}));
-                else
-                    [~, g_der] = obj.actFCN(a{k}, k);
-                end
-                delta = delta .* g_der;
-                delta = delta * W{k-1}';
-            end
-
-            d_db = delta(:, 1);
-            d_drho = delta(:, 2);
-        end
+        % function [d_db, d_drho] = networkGradientComponent(obj, X, m)
+        %     nPts = size(X, 1);
+        % 
+        %     obj.computeAvalues(X);
+        %     [W, a, nLy] = obj.backLoopVars();
+        % 
+        %     delta = zeros(nPts, size(W{end}, 2));
+        %     delta(:, m) = 1;
+        % 
+        %     for k = nLy:-1:2
+        %         if k == nLy
+        %             g_der = ones(size(a{k}));
+        %         else
+        %             [~, g_der] = obj.actFCN(a{k}, k);
+        %         end
+        %         delta = delta .* g_der;
+        %         delta = delta * W{k-1}';
+        %     end
+        % 
+        %     d_db = delta(:, 1);
+        %     d_drho = delta(:, 2);
+        % end
         function g = computeLastH(obj,X)
             nLy = obj.nLayers;
             [W,b] = obj.learnableVariables.reshapeInLayerForm();

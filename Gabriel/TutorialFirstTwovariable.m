@@ -49,7 +49,7 @@ classdef TutorialFirstTwovariable < handle
         end
 
         function createMesh(obj)
-            obj.mesh = TriangleMesh(2, 1, 150, 150);
+            obj.mesh = TriangleMesh(2, 1, 200, 180);
         end
 
         function createDesignVariable(obj)
@@ -104,7 +104,7 @@ classdef TutorialFirstTwovariable < handle
             s.type        = 'HomogenizedMicroDensityFixed';
             s.mesh        = obj.mesh;
             s.young       = 1.0;
-            s.fileName    = 'Homogenizationtwovariables14';
+            s.fileName    = 'Homogenizationtwovariables15';
             s.density     = obj.designVariable;
             obj.materialMicro = MaterialFactory.create(s);
         end
