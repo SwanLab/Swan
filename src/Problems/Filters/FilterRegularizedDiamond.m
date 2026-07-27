@@ -26,6 +26,11 @@ classdef FilterRegularizedDiamond < handle
         rhsDualNorm
     end
 
+    properties (Access = public)
+        errorVec
+        iterVec
+    end
+
     methods (Access = public)
         function obj = FilterRegularizedDiamond(cParams)
             obj.init(cParams);
@@ -46,23 +51,29 @@ classdef FilterRegularizedDiamond < handle
                 dJ0 = obj.computeCostGradient(xF);
                 error0 = Norm(dJ0,'H1',obj.rieszEps);
                 error = inf;
+                obj.errorVec = error0;
+                mOld  = obj.computeCost(fun,xF);
+                obj.iterVec = 1;
                 xFOld = copy(xF);
                 iter = 1;
-                while (error>=obj.tol && error0>=obj.tol && iter<=10000)
+                while (error>=obj.tol && error0>=obj.tol && iter<=1000)
                     t  = obj.tau;
                     dx = full(obj.LHS\(t.*(obj.chiN - obj.rhsProx - obj.rhsDualNorm)));
                     xF.setFValues(xFOld.fValues + dx);
                     obj.updateProximalGrad(xF);
                     obj.updateRHSDualNorm();
                     dJ = obj.computeCostGradient(xF);
-                    error = Norm(dJ,'H1',obj.rieszEps);
-                    if error < error0 || obj.tau<1e-5
+                    mNew = obj.computeCost(fun,xF);
+                    if mNew < mOld || obj.tau<1e-8
+                        error = Norm(dJ,'H1',obj.rieszEps);
                         obj.tau = min(obj.tau*1.1,obj.tauMax);
                         obj.updateLHS();
                         obj.updateRHSProx(xF,q);
                         xFOld.setFValues(xF.fValues);
-                        error0 = error;
+                        obj.errorVec = [obj.errorVec;error];
+                        mOld = mNew;
                         iter = iter + 1;
+                        obj.iterVec = [obj.iterVec;iter];
                     else
                         obj.tau = obj.tau/1.5;
                         obj.updateLHS();
@@ -70,9 +81,6 @@ classdef FilterRegularizedDiamond < handle
                         obj.updateRHSProx(xFOld,q);
                         obj.updateRHSDualNorm();
                     end
-%                     if obj.tau<=1.2e-5 && abs(error-error0)<obj.tol
-%                         break;
-%                     end
                 end
                 obj.trial = xF;
             end
@@ -82,8 +90,8 @@ classdef FilterRegularizedDiamond < handle
         function obj = updateEpsilon(obj,epsilon)
             if obj.hasEpsilonChanged(epsilon)
                 obj.epsilon  = epsilon;
-                obj.tauMax   = 10;
-                obj.tau      = 0.1;
+                obj.tauMax   = 10000;
+                obj.tau      = 0.01;
                 obj.updateLHS();
                 obj.chiNOld = [];
             end
@@ -97,12 +105,12 @@ classdef FilterRegularizedDiamond < handle
             obj.k         = cParams.senseVector;
             obj.theta     = deg2rad(90 - cParams.ovAngleDeg);
             obj.epsilon   = cParams.mesh.computeMeanCellSize();
-            obj.tauMax    = 10;
-            obj.tau       = 0.1;
+            obj.tauMax    = 10000;
+            obj.tau       = 0.01;
             obj.tolPrimal = 1e-12;
             obj.tol       = cParams.tol;
-            obj.theta0    = deg2rad(2*15);
-            obj.rieszEps  = 8*obj.mesh.computeMeanCellSize();
+            obj.theta0    = deg2rad(10);
+            obj.rieszEps  = 30*obj.mesh.computeMeanCellSize();
         end
 
         function xF = computeInitialGuess(obj,fun,q)
@@ -165,6 +173,32 @@ classdef FilterRegularizedDiamond < handle
             fVal = obj.LHSRiesz\rhs;
             dJ = copy(obj.trial);
             dJ.setFValues(fVal);
+        end
+
+        function J = computeCost(obj,fun,rho)
+            J1 = obj.computeMinimumSquaresTerm(fun,rho);
+            J2 = obj.computeRegularizationTerm();
+            J  = J1 + J2;
+        end
+
+        function J = computeMinimumSquaresTerm(obj,chi,rho)
+            int1 = Integrator.compute(rho.*rho,obj.mesh,2);
+            int2 = -2*Integrator.compute(chi.*rho,obj.mesh,2);
+            int3 = Integrator.compute(chi.*chi,obj.mesh,2);
+            J    = 0.5*(int1+int2+int3);
+        end
+
+        function J = computeRegularizationTerm(obj)
+            phi = obj.computeAngleRespectDiamondAxis(obj.s);
+            th0 = obj.theta0;
+            h   = obj.mesh.computeMeanCellSize();
+            e   = obj.epsilon;
+
+            heav  = tanh((phi - obj.theta)./(th0/4));
+            coef  = 1+h/e - (1-h/e).*heav;
+            l2N   = sqrt(DP(obj.s,obj.s));
+            dualN = 0.5.*coef.*l2N;
+            J     = (e^2/2)*Integrator.compute(dualN.^2,obj.mesh,3);
         end
 
         function createMass(obj)
