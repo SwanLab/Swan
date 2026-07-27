@@ -2,6 +2,7 @@ classdef Tutorial02FEMElasticity < handle
 
     properties (Access = private)
         mesh
+        N
         young
         poisson
         material
@@ -28,6 +29,7 @@ classdef Tutorial02FEMElasticity < handle
 
         function createMesh(obj)
             obj.mesh = UnitTriangleMesh(50,50);
+            obj.N = 2;
         end
 
         function computeElasticProperties(obj)
@@ -38,23 +40,11 @@ classdef Tutorial02FEMElasticity < handle
         end
 
         function createMaterial(obj)
-            % Antes:
-            s.type    = 'ISOTROPIC';
-            s.ptype   = 'ELASTIC';
-            s.ndim    = obj.mesh.ndim;
-            s.young   = obj.young;
-            s.poisson = obj.poisson;
-            tensor    = Material.create(s);
-            obj.material = tensor;
-
-            % Nueva propuesta:
-            lambda = ... % Domain function
-            mu = ... % Domain function
-
-            I      = repmat(eye4D(N),[1 1 1 1 nGauss nElem]); % Domain function
-            IxI    = repmat(kronEye(N),[1 1 1 1 nGauss nElem]); % Domain function
-
-            C = 2*mu.*I + lambda.*IxI;
+            mu     = obj.young./(2*(1+obj.poisson));  mu = Expand(mu,4);
+            lambda = LameLambda(obj.young,obj.poisson,obj.N);  lambda = Expand(lambda,4);
+            I      = ConstantFunction.create(eye4D(obj.N),obj.mesh);
+            IxI    = ConstantFunction.create(kronEye(obj.N),obj.mesh);
+            obj.material = 2*mu.*I + lambda.*IxI;
         end
 
         function solveElasticProblem(obj)
