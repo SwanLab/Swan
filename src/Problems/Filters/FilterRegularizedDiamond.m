@@ -11,6 +11,7 @@ classdef FilterRegularizedDiamond < handle
         tolPrimal
         tol
         theta0
+        rieszEps
     end
 
     properties (Access = private)
@@ -19,10 +20,10 @@ classdef FilterRegularizedDiamond < handle
         LHS
         LHSRiesz
         s
-        rhsProx
-        rhsDualNorm
         chiN
         chiNOld
+        rhsProx
+        rhsDualNorm
     end
 
     methods (Access = public)
@@ -36,38 +37,42 @@ classdef FilterRegularizedDiamond < handle
 
         function xF = compute(obj,fun,q)
             obj.chiN = obj.createRHSShapeFunction(fun,q);
-            h = obj.mesh.computeMeanCellSize();
             if isempty(obj.chiNOld) || norm(obj.chiNOld-obj.chiN)/norm(obj.chiN)>=1e-6
                 xF = obj.computeInitialGuess(fun,q);
                 obj.chiNOld = obj.chiN;
-                obj.updateProximal(xF);
-                obj.updateRHSProx();
+                obj.updateProximalGrad(xF);
+                obj.updateRHSProx(xF,q);
                 obj.updateRHSDualNorm();
                 dJ0 = obj.computeCostGradient(xF);
-                error0 = Norm(dJ0,'H1',8*h);
+                error0 = Norm(dJ0,'H1',obj.rieszEps);
                 error = inf;
                 xFOld = copy(xF);
                 iter = 1;
                 while (error>=obj.tol && error0>=obj.tol && iter<=10000)
-                    xF.setFValues(full(obj.LHS\(obj.chiN + obj.rhsProx + obj.rhsDualNorm)));
-                    obj.updateProximal(xF);
+                    t  = obj.tau;
+                    dx = full(obj.LHS\(t.*(obj.chiN - obj.rhsProx - obj.rhsDualNorm)));
+                    xF.setFValues(xFOld.fValues + dx);
+                    obj.updateProximalGrad(xF);
                     obj.updateRHSDualNorm();
                     dJ = obj.computeCostGradient(xF);
-                    error = Norm(dJ,'H1',8*h);
-                    if error <= (1.000001)*error0 %&& abs(Norm(xF-xFOld,'L2'))/abs(Norm(ConstantFunction.create(1,obj.mesh),'L2')) <= 0.2
-                        obj.tau = min(obj.tau*1.2,obj.tauMax);
+                    error = Norm(dJ,'H1',obj.rieszEps);
+                    if error < error0 || obj.tau<1e-5
+                        obj.tau = min(obj.tau*1.1,obj.tauMax);
                         obj.updateLHS();
-                        obj.updateRHSProx();
+                        obj.updateRHSProx(xF,q);
                         xFOld.setFValues(xF.fValues);
                         error0 = error;
                         iter = iter + 1;
                     else
-                        obj.tau = obj.tau/2;
+                        obj.tau = obj.tau/1.5;
                         obj.updateLHS();
-                        obj.updateProximal(xFOld);
-                        obj.updateRHSProx();
+                        obj.updateProximalGrad(xFOld);
+                        obj.updateRHSProx(xFOld,q);
                         obj.updateRHSDualNorm();
                     end
+%                     if obj.tau<=1.2e-5 && abs(error-error0)<obj.tol
+%                         break;
+%                     end
                 end
                 obj.trial = xF;
             end
@@ -77,8 +82,8 @@ classdef FilterRegularizedDiamond < handle
         function obj = updateEpsilon(obj,epsilon)
             if obj.hasEpsilonChanged(epsilon)
                 obj.epsilon  = epsilon;
-                obj.tauMax   = 10000;
-                obj.tau      = 100;
+                obj.tauMax   = 10;
+                obj.tau      = 0.1;
                 obj.updateLHS();
                 obj.chiNOld = [];
             end
@@ -92,11 +97,12 @@ classdef FilterRegularizedDiamond < handle
             obj.k         = cParams.senseVector;
             obj.theta     = deg2rad(90 - cParams.ovAngleDeg);
             obj.epsilon   = cParams.mesh.computeMeanCellSize();
-            obj.tauMax    = 10000;
-            obj.tau       = 100;
+            obj.tauMax    = 10;
+            obj.tau       = 0.1;
             obj.tolPrimal = 1e-12;
             obj.tol       = cParams.tol;
             obj.theta0    = deg2rad(2*15);
+            obj.rieszEps  = 8*obj.mesh.computeMeanCellSize();
         end
 
         function xF = computeInitialGuess(obj,fun,q)
@@ -117,7 +123,7 @@ classdef FilterRegularizedDiamond < handle
             RHS = IntegrateRHS(f,obj.trial,obj.trial.mesh,'Domain',quadType);
         end
 
-        function updateProximal(obj,rho)
+        function updateProximalGrad(obj,rho)
             obj.s = Grad(rho);
         end
 
@@ -128,15 +134,14 @@ classdef FilterRegularizedDiamond < handle
             phi     = acos(cosPhi);
         end
 
-        function updateRHSProx(obj)
-            f   = @(v) DP(obj.s,Grad(v));
-            obj.rhsProx = (1/obj.tau).*IntegrateRHS(f,obj.trial,obj.trial.mesh,'Domain');
+        function updateRHSProx(obj,xF,q)
+            obj.rhsProx = obj.createRHSShapeFunction(xF,q);
         end
 
         function updateRHSDualNorm(obj)
             phi = obj.computeAngleRespectDiamondAxis(obj.s);
             th0 = obj.theta0;
-            h   = 1.5*obj.mesh.computeMeanCellSize();
+            h   = obj.mesh.computeMeanCellSize();
             e   = obj.epsilon;
 
             heav = tanh((phi - obj.theta)./(th0/4));
@@ -151,12 +156,12 @@ classdef FilterRegularizedDiamond < handle
             der3 = @(u) ((1 - h/e)/2)*DP(obj.s,obj.s).*((sech((phi - obj.theta)./(th0/4))).^2).*phiDer(u)./(th0/4);
 
             der = @(u) coef.*(der1(u) - der2(u) - der3(u));
-            obj.rhsDualNorm = (-e^2/2).*IntegrateRHS(der,obj.trial,obj.mesh,'Domain',4);
+            obj.rhsDualNorm = (e^2/2).*IntegrateRHS(der,obj.trial,obj.mesh,'Domain',4);
         end
 
         function dJ = computeCostGradient(obj,xF)
             rhsRhoe = obj.M*xF.fValues;
-            rhs = rhsRhoe - obj.chiN - obj.rhsDualNorm;
+            rhs = rhsRhoe - obj.chiN + obj.rhsDualNorm;
             fVal = obj.LHSRiesz\rhs;
             dJ = copy(obj.trial);
             dJ.setFValues(fVal);
@@ -173,12 +178,14 @@ classdef FilterRegularizedDiamond < handle
         end
 
         function updateLHS(obj)
-            obj.LHS = obj.M + (1/obj.tau).*obj.K;
+            t = obj.tau;
+            e = obj.rieszEps;
+            obj.LHS = (1+t).*obj.M + e^2.*obj.K;
         end
 
         function createLHSRiesz(obj)
-            h = obj.mesh.computeMeanCellSize();
-            obj.LHSRiesz = decomposition(obj.M + (8*h)^2*obj.K);
+            e = obj.rieszEps;
+            obj.LHSRiesz = decomposition(obj.M + e^2*obj.K);
         end
 
         function itHas = hasEpsilonChanged(obj,eps)
