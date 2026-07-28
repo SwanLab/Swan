@@ -255,7 +255,7 @@ classdef TopOpt_Density_C5Sup < handle
             s.ub     = ones(size(rho.fun.fValues));
             s.lb     = zeros(size(rho.fun.fValues));
             s.lb(fixedDof) = 1;
-            s.tauMax = 5000;
+            s.tauMax = 500;
             s.tau    = [];
             obj.primalUpdater = ProjectedGradient(s);
         end
@@ -269,9 +269,9 @@ classdef TopOpt_Density_C5Sup < handle
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
-            s.etaNorm        = 0.02;
+            s.etaNorm        = 0.01;
             s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 0.2;
+            s.gJFlowRatio    = 0.5;
             s.etaMax         = 1;
             s.etaMaxMin      = 0.01;
             s.gif            = false;
