@@ -30,11 +30,11 @@ classdef OptimizerNullSpace < handle
         etaMin
         etaMax
         etaMaxMin
-        lG
         lJ
-        etaNorm
-        etaNormMin
-        gJFlowRatio
+        lG
+        delta
+        deltaMin
+        etaStar
         firstEstimation
         gif
         gifName
@@ -78,12 +78,12 @@ classdef OptimizerNullSpace < handle
             obj.maxIter         = cParams.maxIter;
             obj.lG              = 0;
             obj.lJ              = 0;
-            obj.gJFlowRatio     = cParams.gJFlowRatio;
+            obj.etaStar         = cParams.etaStar;
             obj.hasConverged    = false;
             obj.nIter           = 0;
             obj.meritOld        = 1e6;
             obj.firstEstimation = true;
-            obj.etaNorm         = cParams.etaNorm;
+            obj.delta           = cParams.delta;
             obj.eta             = 0;
             obj.etaMin          = 1e-6;
             obj.gif             = cParams.gif;
@@ -104,9 +104,9 @@ classdef OptimizerNullSpace < handle
         function initOtherParameters(obj,cParams)
             switch class(obj.designVariable)
                 case 'LevelSet'
-                    obj.etaMax     = cParams.etaMax;
+                    obj.etaMax     = cParams.etaMax0;
                     obj.etaMaxMin  = cParams.etaMaxMin;
-                    obj.etaNormMin = cParams.etaNormMin;
+                    obj.deltaMin = cParams.deltaMin;
                 otherwise
                     obj.etaMax = inf;
             end
@@ -140,10 +140,10 @@ classdef OptimizerNullSpace < handle
         end
 
         function updateEtaParameter(obj)
-            vgJ     = obj.gJFlowRatio;
+            eSt     = obj.etaStar;
             l2DxJ   = norm(obj.DxJ);
             l2Dxg   = norm(obj.Dxg);
-            obj.eta = max(min(vgJ*l2DxJ/l2Dxg,obj.etaMax),obj.etaMin);
+            obj.eta = max(min(eSt*l2DxJ/l2Dxg,obj.etaMax),obj.etaMin);
             obj.updateMonitoringMultipliers();
         end
 
@@ -295,7 +295,7 @@ classdef OptimizerNullSpace < handle
                     isAlmostOptimal   = obj.primalUpdater.Theta < 0.15;
                     if isAlmostFeasible && isAlmostOptimal
                         obj.etaMax  = max(obj.etaMax/1.05,obj.etaMaxMin);
-                        obj.etaNorm = max(obj.etaNorm/1.1,obj.etaNormMin);
+                        obj.delta = max(obj.delta/1.1,obj.deltaMin);
                     end
                 case 'HAMILTON-JACOBI'
                     obj.etaMax = Inf; % Not verified
@@ -311,10 +311,10 @@ classdef OptimizerNullSpace < handle
                     if obj.nIter == 0
                         etaN = inf;
                     else
-                        etaN = obj.etaNorm;
+                        etaN = obj.delta;
                     end
                 otherwise
-                    etaN = obj.etaNorm;
+                    etaN = obj.delta;
             end
         end
 

@@ -179,13 +179,12 @@ classdef Tutorial05_12_TopOpt2DDensityNonDesignableDomain < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 300;
+            s.maxIter        = 3;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
-            s.etaNorm        = 0.2;
-            s.etaNormMin     = 0.2;
-            s.gJFlowRatio    = 1.0;
+            s.delta          = 0.2;
+            s.etaStar        = 1.0;
             s.gif            = false;
             s.gifName        = 'Tutorial05_12';
             s.printing       = false;
