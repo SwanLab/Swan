@@ -136,10 +136,10 @@ classdef Tutorial05_4_TopOpt2DLevelSetPerimeter < handle
             s.constraintCase = {'EQUALITY'};
             s.volumeTarget   = 0.85;
             s.primalUpdater  = obj.primalUpdater;
-            s.etaNorm        = 0.02;
-            s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 5;
-            s.etaMax         = 1;
+            s.delta          = 0.02;
+            s.deltaMin       = 0.02;
+            s.etaStar        = 5;
+            s.etaMax0        = 1;
             s.etaMaxMin      = 0.01;
             s.gif            = false;
             s.gifName        = [];

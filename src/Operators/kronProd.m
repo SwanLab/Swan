@@ -6,8 +6,8 @@ function dom = kronProd(A,B,idx)
 end
 
 function C = evaluate(A,B,idx,xV)
-    Ae = A.evaluate(xV);
-    Be = B.evaluate(xV);
+    Ae = Expand(A,2).evaluate(xV);
+    Be = Expand(B,2).evaluate(xV);
     C = zeros([size(Ae,[1 2]), size(Be)]);
     for i = 1:size(Ae,1)
         for j = 1:size(Ae,2)
@@ -18,6 +18,8 @@ function C = evaluate(A,B,idx,xV)
             end
         end
     end
+    C = squeezeParticular(C,[1 2 3 4]);
+    nF = length(idx);
     [~,pos] = sort(idx);
-    C = permute(C,[pos 5 6]);
+    C = permute(C,[pos nF+1 nF+2]);
 end

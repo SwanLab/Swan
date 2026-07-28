@@ -181,8 +181,8 @@ classdef Tutorial05_2_TopOpt2DDensityMacroNullSpace < handle
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
-            s.etaNorm        = 0.01;
-            s.gJFlowRatio    = 2;
+            s.delta          = 0.01;
+            s.etaStar        = 2;
             s.primalUpdater  = obj.primalUpdater;
             s.gif            = false;
             s.gifName        = [];
