@@ -164,7 +164,7 @@ classdef TopOpt_Density_C5Sup < handle
             s.rbe3Value(2,2) = 0;
             s.rbe3Value(2,3) = 0;
             s.rbe3Value(3,1) = NaN;
-            s.rbe3Value(3,2) = NaN;
+            s.rbe3Value(3,2) = -8.5;
             s.rbe3Value(3,3) = 50;
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
@@ -233,7 +233,7 @@ classdef TopOpt_Density_C5Sup < handle
 
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
-            s.weights           = 1;
+            s.weights           = -1;
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -268,12 +268,10 @@ classdef TopOpt_Density_C5Sup < handle
             s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
+            s.primal         = 'PROJECTED GRADIENT';
+            s.delta          = 0.01;
+            s.etaStar        = 2;
             s.primalUpdater  = obj.primalUpdater;
-            s.etaNorm        = 0.01;
-            s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 0.5;
-            s.etaMax         = 1;
-            s.etaMaxMin      = 0.01;
             s.gif            = false;
             s.gifName        = [];
             s.printing       = false;
@@ -298,15 +296,15 @@ classdef TopOpt_Density_C5Sup < handle
         function bc = createBoundaryConditions(obj)
             femReader = FemInputReaderGiD();
             s         = femReader.read(obj.filename);
-            sPL       = obj.computeCondition(s.pointload);
+            % sPL       = obj.computeCondition(s.pointload);
 
             dirichletFun = [];
 
             pointloadFun = [];
-            for i = 1:numel(sPL)
-                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
-                pointloadFun = [pointloadFun, pl];
-            end
+            % for i = 1:numel(sPL)
+            %     pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
+            %     pointloadFun = [pointloadFun, pl];
+            % end
             s.pointloadFun = pointloadFun;
 
             s.periodicFun  = [];
