@@ -246,12 +246,12 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             s.volumeTarget   = target; % will dissappear
             s.primalUpdater  = primalUp;
             s.primal         = primal;
-            s.etaNorm        = 0.05;
-            s.gJFlowRatio    = 1; % Only NullSpace
+            s.delta          = 0.05;
+            s.etaStar        = 1; % Only NullSpace
             s.tauMax         = 1000;
-            s.etaMax         = 1;
+            s.etaMax0        = 1;
             s.etaMaxMin      = 0.01;
-            s.etaNormMin     = 0.05;
+            s.deltaMin       = 0.05;
             s.gif            = false;
             s.gifName        = [];
             s.printing       = false;
