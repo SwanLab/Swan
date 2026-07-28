@@ -71,12 +71,12 @@ classdef GlobalPerimeterValidation < handle
             sF.trial       = LagrangianFunction.create(obj.mesh,1,'P1');
             sF.senseVector = ConstantFunction.create([0;1],obj.mesh);
             sF.ovAngleDeg  = 45;
-            sF.tol         = 1e-2; %1e-2
-            filter         = FilterParabolicDiamond(sF);
+            sF.tol         = 3e-4;
+            filter         = FilterRegularizedDiamond(sF);
 
             h         = obj.mesh.computeMeanCellSize();
             s.mesh    = obj.mesh;
-            s.epsilon = 12*h;
+            s.epsilon = 8*h;
             s.value0 = 1;
 
             s.uMesh          = obj.createBaseDomain();
@@ -132,7 +132,7 @@ classdef GlobalPerimeterValidation < handle
             s.constraintCase = {'EQUALITY'};
             s.etaNorm        = 0.1;
             s.etaNormMin     = 0.1;
-            s.gJFlowRatio    = 1.0;
+            s.gJFlowRatio    = 0.5;
             s.etaMax         = 100;
             s.etaMaxMin      = 0.1;
             s.primalUpdater  = obj.primalUpdater;

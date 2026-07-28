@@ -24,8 +24,9 @@ sF.mesh        = mesh;
 sF.trial       = LagrangianFunction.create(mesh,1,'P1');
 sF.senseVector = ConstantFunction.create([0;1],mesh);
 sF.ovAngleDeg  = 45;
-filter         = FilterParabolicDiamond(sF); %FilterOverhang
-filter.updateEpsilon(5*h);
+sF.tol = 3e-4;
+filter         = FilterRegularizedDiamond(sF); %FilterOverhang
+filter.updateEpsilon(8*h);
 
-rhoEps = filter.compute(chi,3);
+rhoEps = filter.compute(chi,0);
 rhoEps.print('RhoEps');
