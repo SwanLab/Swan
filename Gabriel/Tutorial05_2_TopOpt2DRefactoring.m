@@ -72,12 +72,16 @@ classdef Tutorial05_2_TopOpt2DRefactoring < handle
         end
 
         function createMaterial(obj)
-            s.tensorFcn           = @(rho) obj.computeTensor(rho);
-            s.tensorDerivativeFcn = @(rho) obj.computeTensorDerivative(rho);
+            N = obj.mesh.ndim;
+            matA.mu    = obj.computeMu(obj.E0,obj.nu0);
+            matA.kappa = obj.computeKappa(obj.E0,obj.nu0,N);
+            matB.mu    = obj.computeMu(obj.E1,obj.nu1);
+            matB.kappa = obj.computeKappa(obj.E1,obj.nu1,N);
+
+            s.tensorFcn           = @(rho) SimpAllInterpolator.obtainTensor(matA,matB,rho,N);
+            s.tensorDerivativeFcn = @(rho) SimpAllInterpolator.obtainTensorDerivative(matA,matB,rho,N);
             obj.material = MaterialFromFunctions(s);
         end
-
-       
 
         function mu = computeMu(obj,E,nu)
             mu = E./(2*(1+nu));
@@ -85,95 +89,6 @@ classdef Tutorial05_2_TopOpt2DRefactoring < handle
 
         function kappa = computeKappa(obj,E,nu,N)
             kappa = E./(N*(1-(N-1)*nu));
-        end
-
-      
-
-        function etaMu = computeEtaMu(obj,mu,kappa,N)
-            num = -mu.*(4.*mu - kappa.*N^2 - 2.*mu.*N^2 + 2.*mu.*N);
-            den = 2.*N.*(kappa + 2*mu);
-            etaMu = num./den;
-        end
-
-        function etaKappa = computeEtaKappa(obj,mu,N)
-            etaKappa = 2.*mu.*(N-1)./N;
-        end
-
-        function c = computeCoeff(obj,f0,f1,eta0,eta1)
-            c.n01 = -(f1 - f0).*(eta1 - eta0);
-            c.n0  = f0.*(f1 + eta0);
-            c.n1  = f1.*(f0 + eta1);
-            c.d0  = (f1 + eta0);
-            c.d1  = (f0 + eta1);
-        end
-
-        function f = computeRationalFunction(obj,rho,c)
-            num = c.n01.*(1-rho).*rho + c.n0.*(1-rho) + c.n1.*rho;
-            den = c.d0.*(1-rho) + c.d1.*rho;
-            f   = num./den;
-        end
-
-        function df = computeRationalDerivative(obj,rho,c)
-            num    = c.n01.*(1-rho).*rho + c.n0.*(1-rho) + c.n1.*rho;
-            den    = c.d0.*(1-rho) + c.d1.*rho;
-            derNum = (c.n01.*(1-2.*rho)-c.n0+c.n1).*den - num.*(-c.d0+c.d1);
-            df     = derNum./(den.^2);
-        end
-
-        function [mu,kappa] = computeMuKappa(obj,rho)
-            N = obj.mesh.ndim;
-            m0 = obj.computeMu(obj.E0,obj.nu0);   k0 = obj.computeKappa(obj.E0,obj.nu0,N);
-            m1 = obj.computeMu(obj.E1,obj.nu1);   k1 = obj.computeKappa(obj.E1,obj.nu1,N);
-
-            eta0mu = obj.computeEtaMu(m0,k0,N);
-            eta1mu = obj.computeEtaMu(m1,k1,N);
-            cMu    = obj.computeCoeff(m0,m1,eta0mu,eta1mu);
-            mu     = obj.computeRationalFunction(rho,cMu);
-
-            eta0k  = obj.computeEtaKappa(m0,N);
-            eta1k  = obj.computeEtaKappa(m1,N);
-            cKappa = obj.computeCoeff(k0,k1,eta0k,eta1k);
-            kappa  = obj.computeRationalFunction(rho,cKappa);
-        end
-
-        function [dmu,dkappa] = computeMuKappaDerivative(obj,rho)
-            N = obj.mesh.ndim;
-            m0 = obj.computeMu(obj.E0,obj.nu0);   k0 = obj.computeKappa(obj.E0,obj.nu0,N);
-            m1 = obj.computeMu(obj.E1,obj.nu1);   k1 = obj.computeKappa(obj.E1,obj.nu1,N);
-
-            eta0mu = obj.computeEtaMu(m0,k0,N);
-            eta1mu = obj.computeEtaMu(m1,k1,N);
-            cMu    = obj.computeCoeff(m0,m1,eta0mu,eta1mu);
-            dmu    = obj.computeRationalDerivative(rho,cMu);
-
-            eta0k  = obj.computeEtaKappa(m0,N);
-            eta1k  = obj.computeEtaKappa(m1,N);
-            cKappa = obj.computeCoeff(k0,k1,eta0k,eta1k);
-            dkappa = obj.computeRationalDerivative(rho,cKappa);
-        end
-
-        
-
-        function C = computeTensor(obj,rho)
-            N = obj.mesh.ndim;
-            [mu,kappa] = obj.computeMuKappa(rho);
-            lambda = kappa - (2/N).*mu;
-            mu     = Expand(mu,4);
-            lambda = Expand(lambda,4);
-            I   = ConstantFunction.create(eye4D(N),obj.mesh);
-            IxI = ConstantFunction.create(kronEye(N),obj.mesh);
-            C = (mu.*I).*2 + lambda.*IxI;  
-        end
-
-        function dC = computeTensorDerivative(obj,rho)
-            N = obj.mesh.ndim;
-            [dmu,dkappa] = obj.computeMuKappaDerivative(rho);
-            dlambda = dkappa - (2/N).*dmu;
-            dmu     = Expand(dmu,4);
-            dlambda = Expand(dlambda,4);
-            I   = ConstantFunction.create(eye4D(N),obj.mesh);
-            IxI = ConstantFunction.create(kronEye(N),obj.mesh);
-            dC = (dmu.*I).*2 + dlambda.*IxI;   
         end
 
         function createElasticProblem(obj)
@@ -259,8 +174,8 @@ classdef Tutorial05_2_TopOpt2DRefactoring < handle
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
-            s.etaNorm        = 0.01;
-            s.gJFlowRatio    = 2;
+            s.delta          = 0.01;
+            s.etaStar        = 2;
             s.primalUpdater  = obj.primalUpdater;
             s.gif            = false;
             s.gifName        = [];
