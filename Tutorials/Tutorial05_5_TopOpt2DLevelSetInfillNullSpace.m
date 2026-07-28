@@ -193,10 +193,10 @@ classdef Tutorial05_5_TopOpt2DLevelSetInfillNullSpace < handle
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY','INEQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
-            s.etaNorm        = 0.02;
-            s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 0.2;
-            s.etaMax         = 1;
+            s.delta          = 0.02;
+            s.deltaMin       = 0.02;
+            s.etaStar        = 0.2;
+            s.etaMax0        = 1;
             s.etaMaxMin      = 0.01;
             s.gif            = false;
             s.gifName        = [];

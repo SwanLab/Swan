@@ -173,10 +173,10 @@ classdef Tutorial05_3_TopOpt2DLevelSetMacroNullSpace < handle
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
-            s.etaNorm        = 0.02;
-            s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 0.2;
-            s.etaMax         = 1;
+            s.delta          = 0.02;
+            s.deltaMin       = 0.02;
+            s.etaStar        = 0.2;
+            s.etaMax0        = 1;
             s.etaMaxMin      = 0.01;
             s.gif            = true;
             s.gifName        = 'Tutorial05_3';
