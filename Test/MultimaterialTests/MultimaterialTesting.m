@@ -210,8 +210,8 @@ classdef MultimaterialTesting < handle
             s.tolerance      = 1e-8;
             s.constraintCase = repmat({'EQUALITY'},[3,1]);
             s.primalUpdater  = obj.primalUpdater;
-            s.etaNorm        = inf;
-            s.gJFlowRatio    = 0.02;
+            s.delta          = inf;
+            s.etaStar        = 0.02;
             s.gif            = false;
             s.gifName        = [];
             s.printing       = false;

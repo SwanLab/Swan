@@ -193,10 +193,10 @@ classdef Tutorial05_6_TopOpt2DLevelSetMacroGlobalLengthControl < handle
             s.tolerance      = 1e-8;
             s.constraintCase = {'INEQUALITY','EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
-            s.etaNorm        = 0.02;
-            s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 1;
-            s.etaMax         = 1;
+            s.delta          = 0.02;
+            s.deltaMin       = 0.02;
+            s.etaStar        = 1;
+            s.etaMax0        = 1;
             s.etaMaxMin      = 0.01;
             s.gif            = false;
             s.gifName        = [];
