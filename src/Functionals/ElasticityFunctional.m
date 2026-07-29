@@ -11,12 +11,28 @@ classdef ElasticityFunctional < handle
             obj.init(cParams)
         end
 
+        % function Etot = computeCost(obj,u,bc)
+        %     fExt = bc.tractionFun;
+        %     if ~isempty(bc.tractionFun)
+        %         vals = bc.tractionFun.computeRHS([]);
+        %         fExt = LagrangianFunction.create(u.mesh, u.mesh.ndim,'P1');
+        %         fExt.setFValues(reshape(vals,u.mesh.nnodes,u.mesh.ndim));
+        %     end
+        %     E    = obj.computeEnergies(u,fExt);
+        %     Etot = sum(E);
+        % end
+
+        % NOVA VERSIO: ADAPTADA A POINTLOAD I TRACTIONLOAD
         function Etot = computeCost(obj,u,bc)
             fExt = bc.tractionFun;
             if ~isempty(bc.tractionFun)
-                vals = bc.tractionFun.computeRHS([]);
-                fExt = LagrangianFunction.create(u.mesh, u.mesh.ndim,'P1');
-                fExt.setFValues(reshape(vals,u.mesh.nnodes,u.mesh.ndim));
+                if ismethod(bc.tractionFun,'computeRHS')
+                    vals = bc.tractionFun.computeRHS([]);
+                    fExt = LagrangianFunction.create(u.mesh, u.mesh.ndim,'P1');
+                    fExt.setFValues(reshape(vals,u.mesh.nnodes,u.mesh.ndim));
+                else
+                    fExt = bc.tractionFun;
+                end
             end
             E    = obj.computeEnergies(u,fExt);
             Etot = sum(E);
@@ -28,12 +44,30 @@ classdef ElasticityFunctional < handle
             E = [Eint,Wext];
         end
 
+        % function RHS = computeGradient(obj,u,bc)
+        %     fExt = bc.tractionFun;
+        %     if ~isempty(bc.tractionFun)
+        %         vals = bc.tractionFun.computeRHS([]);
+        %         fExt = LagrangianFunction.create(u.mesh, u.mesh.ndim,'P1');
+        %         fExt.setFValues(reshape(vals,u.mesh.ndim,u.mesh.nnodes)');
+        %     end
+        %     Fint = obj.functionals.intE.computeGradient(u,obj.quadOrder);
+        %     Fext = obj.functionals.extWork.computeGradient(u,fExt,obj.quadOrder);
+        %     RHS  = Fint - Fext;
+        % end
+
+        % NOVA VERSIO: ADAPTADA A POINTLOAD I TRACTIONLOAD
         function RHS = computeGradient(obj,u,bc)
+
             fExt = bc.tractionFun;
             if ~isempty(bc.tractionFun)
-                vals = bc.tractionFun.computeRHS([]);
-                fExt = LagrangianFunction.create(u.mesh, u.mesh.ndim,'P1');
-                fExt.setFValues(reshape(vals,u.mesh.ndim,u.mesh.nnodes)');
+                if ismethod(bc.tractionFun,'computeRHS')
+                    vals = bc.tractionFun.computeRHS([]);
+                    fExt = LagrangianFunction.create(u.mesh, u.mesh.ndim,'P1');
+                    fExt.setFValues(reshape(vals,u.mesh.ndim,u.mesh.nnodes)');
+                else
+                    fExt = bc.tractionFun;
+                end
             end
             Fint = obj.functionals.intE.computeGradient(u,obj.quadOrder);
             Fext = obj.functionals.extWork.computeGradient(u,fExt,obj.quadOrder);

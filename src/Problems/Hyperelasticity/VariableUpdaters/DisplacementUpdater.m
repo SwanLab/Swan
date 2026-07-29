@@ -272,6 +272,12 @@ classdef DisplacementUpdater < handle
             end
 
             deltaX = results(idx).dx;
+
+            %DEBUG
+            errDirecte = norm(deltaX - deltaX_direct)/norm(deltaX_direct);
+            fprintf('Error vs solver directe: %.6e\n', errDirecte);
+            %
+
             obj.pcgIterHistoryThisStep(end+1) = results(idx).iter;
 
             % Figura 101: residuals + error respecte directe

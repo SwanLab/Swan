@@ -36,7 +36,7 @@ classdef ExternalWorkFunctional < handle
 
         function init(obj,cParams)
             obj.mesh  = cParams.mesh;
-            obj.bMesh = obj.mesh.createBoundaryMesh{4}; %% Accounting for loads of Top boundary {4} %%
+            obj.bMesh = obj.mesh.createBoundaryMesh{2}; %% Right boundary per ForceTractionXClamped
 
             u = cParams.testSpace.u;
             obj.testU    = LagrangianFunction.create(obj.bMesh.mesh,u.ndimf,u.order);      
