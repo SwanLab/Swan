@@ -4,7 +4,8 @@ classdef Tutorial05_2_TopOpt2DRefactoring < handle
         mesh
         filter
         designVariable
-        material
+        C
+        dC
         physicalProblem
         compliance
         volume
@@ -73,14 +74,22 @@ classdef Tutorial05_2_TopOpt2DRefactoring < handle
 
         function createMaterial(obj)
             N = obj.mesh.ndim;
-            matA.mu    = obj.computeMu(obj.E0,obj.nu0);
-            matA.kappa = obj.computeKappa(obj.E0,obj.nu0,N);
-            matB.mu    = obj.computeMu(obj.E1,obj.nu1);
-            matB.kappa = obj.computeKappa(obj.E1,obj.nu1,N);
+            muA    = obj.computeMu(obj.E0,obj.nu0);
+            kappaA = obj.computeKappa(obj.E0,obj.nu0,N);
+            muB    = obj.computeMu(obj.E1,obj.nu1);
+            kappaB = obj.computeKappa(obj.E1,obj.nu1,N);
 
-            s.tensorFcn           = @(rho) SimpAllInterpolator.obtainTensor(matA,matB,rho,N);
-            s.tensorDerivativeFcn = @(rho) SimpAllInterpolator.obtainTensorDerivative(matA,matB,rho,N);
-            obj.material = MaterialFromFunctions(s);
+            mu    = @(rho) SimpAllInterpolator.computeMu(muA,muB,kappaA,kappaB,rho,N); mu = @(rho) Expand(mu(rho),4);
+            kappa  = @(rho) SimpAllInterpolator.computeKappa(muA,muB,kappaA,kappaB,rho,N); kappa = @(rho) Expand(kappa(rho),4);
+            lambda = @(rho) kappa(rho) - (2/N)*mu(rho);
+            I      = ConstantFunction.create(eye4D(N),obj.mesh);
+            IxI    = ConstantFunction.create(kronEye(N),obj.mesh);
+            obj.C  = @(rho) 2*mu(rho).*I + lambda(rho).*IxI;
+
+            dmu     = @(rho) SimpAllInterpolator.computeMuDerivative(muA,muB,kappaA,kappaB,rho,N); dmu = @(rho) Expand(dmu(rho),4);
+            dkappa  = @(rho) SimpAllInterpolator.computeKappaDerivative(muA,muB,kappaA,kappaB,rho,N); dkappa = @(rho) Expand(dkappa(rho),4);
+            dlambda = @(rho) dkappa(rho) - (2/N)*dmu(rho);
+            obj.dC  = @(rho) 2*dmu(rho).*I + dlambda(rho).*IxI;
         end
 
         function mu = computeMu(obj,E,nu)
@@ -94,7 +103,7 @@ classdef Tutorial05_2_TopOpt2DRefactoring < handle
         function createElasticProblem(obj)
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
-            s.material = obj.material;
+            s.material = [];
             s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
@@ -115,7 +124,8 @@ classdef Tutorial05_2_TopOpt2DRefactoring < handle
             s.mesh                        = obj.mesh;
             s.filter                      = obj.filter;
             s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
-            s.material                    = obj.material;
+            s.C                           = obj.C;
+            s.dC                          = obj.dC;
             c = ComplianceFunctional(s);
             obj.compliance = c;
         end
