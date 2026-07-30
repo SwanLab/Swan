@@ -118,8 +118,8 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             dlambda = @(rho) dkappa(rho) - (2/N)*dmu(rho);
             I       = ConstantFunction.create(eye4D(N),m);
             IxI     = ConstantFunction.create(kronEye(N),m);
-            C       = @(rho) 2*mu(rho).*I + lambda(rho).*IxI;
-            dC      = @(rho) 2*dmu(rho).*I + dlambda(rho).*IxI;
+            C       = @(rho) 2*mu(rho{1}).*I + lambda(rho{1}).*IxI;
+            dC      = @(rho) {2*dmu(rho{1}).*I + dlambda(rho{1}).*IxI};
         end
 
         function fem = createElasticProblem(mesh,scale,dim,bc)

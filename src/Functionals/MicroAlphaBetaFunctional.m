@@ -20,10 +20,10 @@ classdef MicroAlphaBetaFunctional < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            xD      = x.obtainDomainFunction();
-            xR      = obj.filterField(xD);
-            CxR     = obj.C(xR{1});
-            dCxR{1} = obj.dC(xR{1});
+            xD   = x.obtainDomainFunction();
+            xR   = obj.filterField(xD);
+            CxR  = obj.C(xR);
+            dCxR = obj.dC(xR);
             obj.stateProblem.updateMaterial(CxR);
             obj.stateProblem.solve();
             J  = obj.computeFunction();

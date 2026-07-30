@@ -22,7 +22,7 @@ classdef ComplianceWithBoundConstraint < handle
             xD = x.density.obtainDomainFunction();
             xR = obj.filterDesignVariable.compute(xD{1},2);
             obj.filterGradient.updateFilteredField(xR);
-            [Jc,dJc]   = obj.computeComplianceFunctionAndGradient(xR);
+            [Jc,dJc] = obj.computeComplianceFunctionAndGradient(xR);
             if isempty(obj.value0Compliance)
                 obj.value0Compliance = Jc;
             end
@@ -43,10 +43,10 @@ classdef ComplianceWithBoundConstraint < handle
         end
 
         function [J,dJ] = computeComplianceFunctionAndGradient(obj,xR)
-            CxR     = obj.C(xR);
-            dCxR{1} = obj.dC(xR);
-            [J,dJ]  = obj.compliance.computeFunctionAndGradient(CxR,dCxR);
-            dJ      = obj.filterGradient.compute(dJ{1},2);
+            CxR    = obj.C({xR});
+            dCxR   = obj.dC({xR});
+            [J,dJ] = obj.compliance.computeFunctionAndGradient(CxR,dCxR);
+            dJ     = obj.filterGradient.compute(dJ{1},2);
         end
     end
 
