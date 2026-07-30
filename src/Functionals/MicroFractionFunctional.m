@@ -7,7 +7,8 @@ classdef MicroFractionFunctional < handle
     properties (Access = private)
         mesh
         filter
-        material
+        C
+        dC
         stateProblem
         alpha
         beta
@@ -19,15 +20,14 @@ classdef MicroFractionFunctional < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            xD = x.obtainDomainFunction();
-            xR = obj.filterField(xD);
-            obj.material.setDesignVariable(xR);
-            C  = obj.material.obtainTensor();
-            dC = obj.material.obtainTensorDerivative();
-            obj.stateProblem.updateMaterial(C);
+            xD      = x.obtainDomainFunction();
+            xR      = obj.filterField(xD);
+            CxR     = obj.C(xR{1});
+            dCxR{1} = obj.dC(xR{1});
+            obj.stateProblem.updateMaterial(CxR);
             obj.stateProblem.solve();
             J  = obj.computeFunction();
-            dJ = obj.computeGradient(dC{1});
+            dJ = obj.computeGradient(dCxR{1});
             dJ = obj.filterField({dJ});
             if isempty(obj.value0)
                 obj.value0 = J;
@@ -43,7 +43,8 @@ classdef MicroFractionFunctional < handle
         function init(obj,cParams)
             obj.mesh         = cParams.mesh;
             obj.filter       = cParams.filter;
-            obj.material     = cParams.material;
+            obj.C            = cParams.C;
+            obj.dC           = cParams.dC;
             obj.stateProblem = cParams.stateProblem;
             obj.alpha        = cParams.alpha;
             obj.beta         = cParams.beta;
