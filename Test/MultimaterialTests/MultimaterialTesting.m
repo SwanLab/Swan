@@ -1,11 +1,13 @@
 classdef MultimaterialTesting < handle
 
     properties (Access = private)
+        E
+        nu
         mesh
         designVariable
-        materialInterpolator
         filter
         boundaryConditions
+        simpAlls
         physicalProblem
         compliance
         volumeA
@@ -25,10 +27,9 @@ classdef MultimaterialTesting < handle
             obj.createMesh();
             obj.createFilter();
             obj.createDesignVariable();
-            obj.createMaterialInterpolator();
             obj.createBoundaryConditions();
             obj.createElasticProblem();
-            obj.createComplianceFromConstiutive();
+            obj.createSimpAlls();
             obj.createCompliance();
             obj.createVolumeConstraints();
             obj.createCost();
@@ -49,6 +50,8 @@ classdef MultimaterialTesting < handle
 
         function init(obj)
             close all;
+            obj.E    = [1,0.5,0.25,1e-3];
+            obj.nu   = (1/3)*[1,1,1,1];
         end
 
         function createMesh(obj)
@@ -80,13 +83,6 @@ classdef MultimaterialTesting < handle
             s.fHandle = fH;
             g         = GeometricalFunction(s);
             lsFun     = g.computeLevelSetFunction(obj.mesh);
-        end
-        
-        function createMaterialInterpolator(obj)
-            s.E    = [1,0.5,0.25,1e-3];
-            s.nu   = (1/3)*[1,1,1,1];
-            s.ndim = 2;
-            obj.materialInterpolator = MultiMaterialInterpolation(s);
         end
 
         function createBoundaryConditions(obj)
@@ -122,10 +118,23 @@ classdef MultimaterialTesting < handle
             obj.boundaryConditions = BoundaryConditions(s);
         end
 
+        function createSimpAlls(obj)
+            [muRef,kRef] = obj.computeReferenceShearBulk();
+            N = obj.mesh.ndim;
+            for i = 1:length(obj.E)-1
+                for j = 2:length(obj.E)
+                    obj.simpAlls{i,j}.mu  = @(rho) SimpAllInterpolator.computeMu(muRef{i},muRef{j},kRef{i},kRef{j},rho,N);
+                    obj.simpAlls{i,j}.k   = @(rho) SimpAllInterpolator.computeKappa(muRef{i},muRef{j},kRef{i},kRef{j},rho,N);
+                    obj.simpAlls{i,j}.dmu = @(rho) SimpAllInterpolator.computeMuDerivative(muRef{i},muRef{j},kRef{i},kRef{j},rho,N);
+                    obj.simpAlls{i,j}.dk  = @(rho) SimpAllInterpolator.computeKappaDerivative(muRef{i},muRef{j},kRef{i},kRef{j},rho,N);
+                end
+            end
+        end
+
         function createElasticProblem(obj)
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
-            s.material = obj.createMaterial();
+            s.material = [];
             s.dim = '2D';
             s.boundaryConditions = obj.boundaryConditions;
             s.solverType = 'REDUCED';
@@ -145,9 +154,62 @@ classdef MultimaterialTesting < handle
             s.mesh                       = obj.mesh;
             s.filter                     = obj.filter;
             s.complainceFromConstitutive = obj.createComplianceFromConstiutive();
-            s.material                   = obj.createMaterial();
+            s.C                          = obj.computeMaterial();
+            s.dC                         = obj.computeMaterialDerivative();
             c = ComplianceFunctional(s);
             obj.compliance = c;
+        end
+
+        function C = computeMaterial(obj)
+            [muRef,kRef] = obj.computeReferenceShearBulk();
+            N            = obj.mesh.ndim;
+            [mu,kappa]   = MultiMaterialInterpolator.computeMuKappa(muRef,kRef,obj.simpAlls,N);
+            lambda       = @(x) kappa(x) - (2/N)*mu(x);
+            mu           = @(x) Expand(mu(x),4);
+            lambda       = @(x) Expand(lambda(x),4);
+            I            = ConstantFunction.create(eye4D(N),obj.mesh);
+            IxI          = ConstantFunction.create(kronEye(N),obj.mesh);
+            C            = @(x) 2*mu(x).*I + lambda(x).*IxI;
+        end
+
+        function [mu,k] = computeReferenceShearBulk(obj)
+            N     = obj.mesh.ndim;
+            Evec  = obj.E;
+            nuvec = obj.nu;
+            mu    = cell(length(Evec),1);
+            k     = cell(length(Evec),1);
+            for i = 1:length(Evec)
+                mu{i} = Evec(i)./(2*(1+nuvec(i)));
+                k{i}  = Evec(i)./(N*(1-(N-1)*nuvec(i)));
+            end
+        end
+
+        function dC = computeMaterialDerivative(obj)
+            N    = obj.mesh.ndim;
+            Z    = ConstantFunction.create(0,obj.mesh);
+            I    = ConstantFunction.create(1,obj.mesh);
+            II   = ConstantFunction.create(eye4D(N),obj.mesh);
+            IxI  = ConstantFunction.create(kronEye(N),obj.mesh);
+            nMat = length(obj.E);
+            dCLoc   = cell(nMat,nMat);
+            for i = 1:nMat
+                for j = 1:nMat
+                    if i==j
+                        dmu    = Z;
+                        dkappa = Z;
+                    elseif i<j
+                        dmu    = obj.simpAlls{i,j}.dmu(Z);
+                        dkappa = obj.simpAlls{i,j}.dk(Z);
+                    else
+                        dmu    = - obj.simpAlls{j,i}.dmu(I);
+                        dkappa = - obj.simpAlls{j,i}.dk(I);
+                    end
+                    dlambda = dkappa - (2/N)*dmu;
+                    dmu = Expand(dmu,4); dlambda = Expand(dlambda,4);
+                    dCLoc{i,j} = 2*dmu.*II + dlambda.*IxI;
+                end
+            end
+            dC = @(x) dCLoc;
         end
 
         function createVolumeConstraints(obj)
@@ -217,17 +279,7 @@ classdef MultimaterialTesting < handle
             s.printing       = false;
             s.printName      = [];
             obj.optimizer    = OptimizerNullSpace(s);
-        end
-
-        function m = createMaterial(obj)
-            x                      = obj.designVariable;
-            s.type                 = 'DensityBased';
-            s.density              = x;
-            s.materialInterpolator = obj.materialInterpolator;
-            s.dim                  = '2D';
-            s.mesh                 = obj.mesh;
-            m = Material.create(s);
-        end
+         end
 
         function M = createMassMatrix(obj)
             nnodes  = obj.mesh.nnodes*3;
