@@ -6,17 +6,13 @@ classdef DomainFunTests < handle & matlab.unittest.TestCase
 
     methods (Test, TestTags = {'DomainFun'})
         function test2D(testCase, cases)
-            filename = ['testDomainFun',cases,'2D'];
-            m        = testCase.obtain2DTestMesh();
-            E        = 1;
-            nu       = 1/3;
-            C        = testCase.computeMaterial(m,E,nu);
-            bc       = testCase.createBC(m,'2D');
-            fem      = testCase.solveElasticProblem(m,C,'2D',bc);
-            kappa    = C.computeKappaFromYoungAndPoisson(E,nu,2);
-            kappaFun = ConstantFunction.create(kappa,m);
-            mu       = C.computeMuFromYoungAndPoisson(E,nu);
-            muFun    = ConstantFunction.create(mu,m);
+            filename     = ['testDomainFun',cases,'2D'];
+            m            = testCase.obtain2DTestMesh();
+            E            = 1;
+            nu           = 1/3;
+            [kappa,mu,C] = testCase.computeMaterial(m,E,nu);
+            bc           = testCase.createBC(m,'2D');
+            fem          = testCase.solveElasticProblem(m,C,'2D',bc);
             switch cases
                 case 'DDP'
                     domainFun = DDP(C,SymGrad(fem.uFun));
@@ -29,9 +25,9 @@ classdef DomainFunTests < handle & matlab.unittest.TestCase
                 case 'Divergence'
                     domainFun = Divergence(fem.uFun);
                 case 'VolumetricElas'
-                    domainFun = VolumetricElasticEnergyDensity(fem.uFun,kappaFun);
+                    domainFun = VolumetricElasticEnergyDensity(fem.uFun,kappa);
                 case 'DeviatoricElas'
-                    domainFun = DeviatoricElasticEnergyDensity(fem.uFun,muFun);
+                    domainFun = DeviatoricElasticEnergyDensity(fem.uFun,mu);
             end
             quad = Quadrature.create(m, 5);
             xV   = quad.posgp;
@@ -43,17 +39,13 @@ classdef DomainFunTests < handle & matlab.unittest.TestCase
         end
 
         function test3D(testCase, cases)
-            filename = ['testDomainFun',cases,'3D'];
-            m        = testCase.obtain3DTestMesh();
-            E        = 1;
-            nu       = 1/3;
-            C        = testCase.computeMaterial(m,E,nu);
-            bc       = testCase.createBC(m,'3D');
-            fem      = testCase.solveElasticProblem(m,C,'3D',bc);
-            kappa    = C.computeKappaFromYoungAndPoisson(E,nu,3);
-            kappaFun = ConstantFunction.create(kappa,m);
-            mu       = C.computeMuFromYoungAndPoisson(E,nu);
-            muFun    = ConstantFunction.create(mu,m);
+            filename     = ['testDomainFun',cases,'3D'];
+            m            = testCase.obtain3DTestMesh();
+            E            = 1;
+            nu           = 1/3;
+            [kappa,mu,C] = testCase.computeMaterial(m,E,nu);
+            bc           = testCase.createBC(m,'3D');
+            fem          = testCase.solveElasticProblem(m,C,'3D',bc);
             switch cases
                 case 'DDP'
                     domainFun = DDP(C,SymGrad(fem.uFun));
@@ -66,9 +58,9 @@ classdef DomainFunTests < handle & matlab.unittest.TestCase
                 case 'Divergence'
                     domainFun = Divergence(fem.uFun);
                 case 'VolumetricElas'
-                    domainFun = VolumetricElasticEnergyDensity(fem.uFun,kappaFun);
+                    domainFun = VolumetricElasticEnergyDensity(fem.uFun,kappa);
                 case 'DeviatoricElas'
-                    domainFun = DeviatoricElasticEnergyDensity(fem.uFun,muFun);
+                    domainFun = DeviatoricElasticEnergyDensity(fem.uFun,mu);
             end
             quad = Quadrature.create(m, 5);
             xV   = quad.posgp;
@@ -89,15 +81,15 @@ classdef DomainFunTests < handle & matlab.unittest.TestCase
             m = HexaMesh(2,1,1,10,5,5);
         end
 
-        function mat = computeMaterial(m,E1,nu1)
-            E   = ConstantFunction.create(E1,m);
-            nu  = ConstantFunction.create(nu1,m);
-            s.type    = 'ISOTROPIC';
-            s.ptype   = 'ELASTIC';
-            s.ndim    = m.ndim;
-            s.young   = E;
-            s.poisson = nu;
-            mat       = Material.create(s);
+        function [kappa,mu,C] = computeMaterial(m,E1,nu1)
+            E      = ConstantFunction.create(E1,m);
+            nu     = ConstantFunction.create(nu1,m);
+            kappa  = E./(m.ndim*(1-(m.ndim-1)*nu));
+            mu     = E./(2*(1+nu));  muExp = Expand(mu,4);
+            lambda = kappa - (2/m.ndim)*mu;  lambda = Expand(lambda,4);
+            I      = ConstantFunction.create(eye4D(m.ndim),m);
+            IxI    = ConstantFunction.create(kronEye(m.ndim),m);
+            C    = 2*muExp.*I + lambda.*IxI;
         end
 
         function bc = createBC(m,dim)
