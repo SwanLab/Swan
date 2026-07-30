@@ -12,6 +12,7 @@ classdef Tutorial05_1_TopOpt2DDensityMacroMMA < handle
         constraint
         dualVariable
         optimizer
+        E0; nu0; E1; nu1
     end
 
     methods (Access = public)
@@ -21,7 +22,7 @@ classdef Tutorial05_1_TopOpt2DDensityMacroMMA < handle
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
-            obj.createMaterialInterpolator();
+            obj.createMaterialProperties();
             obj.createElasticProblem();
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
@@ -65,57 +66,45 @@ classdef Tutorial05_1_TopOpt2DDensityMacroMMA < handle
             obj.filter = f;
         end
 
-        function createMaterialInterpolator(obj)
-            % Antes:
-            E0 = 1e-3;
-            nu0 = 1/3;
-            ndim = obj.mesh.ndim;
-            matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
-            matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
-
-
-            E1 = 1;
-            nu1 = 1/3;
-            matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
-            matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
-
-            s.interpolation  = 'SIMPALL';
-            s.dim            = '2D';
-            s.matA = matA;
-            s.matB = matB;
-
-            m = MaterialInterpolator.create(s);
-            obj.materialInterpolator = m;
-
-
-
-            % Nueva propuesta:
-
-            % Mat 1: domain functions mu1 i kappa1
-            % Mat 2: domain functions mu2 i kappa2
-
-            mu = SIMP_P3Interpolation(mu1,mu2); % @(rho) DomainFunction
-            k = SIMP_P3Interpolation(k1,k2); % @(rho) DomainFunction
-
-            % Domain function lambda
-
-            C = 2*mu.*I + lambda.*IxI;
+        function createMaterialProperties(obj)
+            obj.E0 = 1e-3;
+            obj.nu0 = 1/3;
+            obj.E1 = 1;
+            obj.nu1 = 1/3;
         end
 
-        function m = createMaterial(obj)
-            x = obj.designVariable.fun;           
-            s.type                 = 'DensityBased';
-            s.density              = x;
-            s.materialInterpolator = obj.materialInterpolator;
-            s.dim                  = '2D';
-            s.mesh                 = obj.mesh;
-            m = Material.create(s);
+        function [C,dC] = createMaterial(obj)
+            N = obj.mesh.ndim;
+            muA    = obj.computeMu(obj.E0,obj.nu0);
+            kappaA = obj.computeKappa(obj.E0,obj.nu0,N);
+            muB    = obj.computeMu(obj.E1,obj.nu1);
+            kappaB = obj.computeKappa(obj.E1,obj.nu1,N);
+
+            mu    = @(rho) SimpP3Interpolator.computeMu(muA,muB,rho); mu = @(rho) Expand(mu(rho),4);
+            kappa  = @(rho) SimpP3Interpolator.computeKappa(kappaA,kappaB,rho); kappa = @(rho) Expand(kappa(rho),4);
+            lambda = @(rho) kappa(rho) - (2/N)*mu(rho);
+            I      = ConstantFunction.create(eye4D(N),obj.mesh);
+            IxI    = ConstantFunction.create(kronEye(N),obj.mesh);
+            C  = @(rho) 2*mu(rho).*I + lambda(rho).*IxI;
+
+            dmu     = @(rho) SimpP3Interpolator.computeMuDerivative(muA,muB,rho); dmu = @(rho) Expand(dmu(rho),4);
+            dkappa  = @(rho) SimpP3Interpolator.computeKappaDerivative(kappaA,kappaB,rho); dkappa = @(rho) Expand(dkappa(rho),4);
+            dlambda = @(rho) dkappa(rho) - (2/N)*dmu(rho);
+            dC  = @(rho) 2*dmu(rho).*I + dlambda(rho).*IxI;
+        end
+
+        function mu = computeMu(obj,E,nu)
+            mu = E./(2*(1+nu));
+        end
+
+        function kappa = computeKappa(obj,E,nu,N)
+            kappa = E./(N*(1-(N-1)*nu));
         end
 
         function createElasticProblem(obj)
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
-            s.material = obj.createMaterial();
+            s.material = [];
             s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
@@ -133,10 +122,12 @@ classdef Tutorial05_1_TopOpt2DDensityMacroMMA < handle
         end
 
         function createCompliance(obj)
+            [C,dC] = obj.createMaterial();
             s.mesh                        = obj.mesh;
             s.filter                      = obj.filter;
             s.complainceFromConstitutive  = obj.createComplianceFromConstiutive();
-            s.material                    = obj.createMaterial();
+            s.C                           = C;
+            s.dC                          = dC;
             c = ComplianceFunctional(s);
             obj.compliance = c;
         end
