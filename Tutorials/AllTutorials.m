@@ -28,6 +28,8 @@ Tutorial05_10_TopOptDensityBoundFormulationMacro();
 Tutorial05_11_TopOpt3DDensityMacroPython();
 Tutorial05_12_TopOpt2DDensityNonDesignableDomain();
 Tutorial05_13_TopOpt2DLevelSetNonDesignableDomain();
+Tutorial05_14_TopOpt2DLevelSetConnectivity();
+Tutorial05_15_TopOpt2DLevelSetConnectivityDilation();
 
 % Tutorial06_ShapeOptimization -- PENDING
 

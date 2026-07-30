@@ -59,21 +59,20 @@ classdef EllipseDbFEMElasticityMicro < handle
             nu = 1/3;
             obj.young   = ConstantFunction.create(E,obj.mesh);
             obj.poisson = ConstantFunction.create(nu,obj.mesh);
-        end
+      end
 
-        function createMaterial(obj)
-            s.type    = 'ISOTROPIC';
-            s.ptype   = 'ELASTIC';
-            s.ndim    = obj.mesh.ndim;
-            s.young   = obj.young;
-            s.poisson = obj.poisson;
-            tensor    = Material.create(s);
-            obj.material = tensor;
-        end
+      function createMaterial(obj)
+          N      = obj.mesh.ndim;
+          mu     = obj.young./(2*(1+obj.poisson));  mu = Expand(mu,4);
+          lambda = LameLambda(obj.young,obj.poisson,N);  lambda = Expand(lambda,4);
+          I      = ConstantFunction.create(eye4D(N),obj.mesh);
+          IxI    = ConstantFunction.create(kronEye(N),obj.mesh);
+          obj.material = 2*mu.*I + lambda.*IxI;
+      end
 
 
-        function solveElasticProblem(obj)
-            s.mesh = obj.mesh;
+      function solveElasticProblem(obj)
+          s.mesh = obj.mesh;
             s.scale = 'MICRO';
             s.material = obj.material;
             s.dim = '2D';

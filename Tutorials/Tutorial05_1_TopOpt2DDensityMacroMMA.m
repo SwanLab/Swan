@@ -85,12 +85,12 @@ classdef Tutorial05_1_TopOpt2DDensityMacroMMA < handle
             lambda = @(rho) kappa(rho) - (2/N)*mu(rho);
             I      = ConstantFunction.create(eye4D(N),obj.mesh);
             IxI    = ConstantFunction.create(kronEye(N),obj.mesh);
-            C  = @(rho) 2*mu(rho).*I + lambda(rho).*IxI;
+            C  = @(rho) 2*mu(rho{1}).*I + lambda(rho{1}).*IxI;
 
             dmu     = @(rho) SimpP3Interpolator.computeMuDerivative(muA,muB,rho); dmu = @(rho) Expand(dmu(rho),4);
             dkappa  = @(rho) SimpP3Interpolator.computeKappaDerivative(kappaA,kappaB,rho); dkappa = @(rho) Expand(dkappa(rho),4);
             dlambda = @(rho) dkappa(rho) - (2/N)*dmu(rho);
-            dC  = @(rho) 2*dmu(rho).*I + dlambda(rho).*IxI;
+            dC  = @(rho) {2*dmu(rho{1}).*I + dlambda(rho{1}).*IxI};
         end
 
         function mu = computeMu(obj,E,nu)

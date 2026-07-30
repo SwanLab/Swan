@@ -1,4 +1,4 @@
-classdef TopOpt2DLevelSetConnectivityDilation< handle
+classdef Tutorial05_15_TopOpt2DLevelSetConnectivityDilation< handle
 
     properties (Access = private)
         mesh
@@ -23,7 +23,7 @@ classdef TopOpt2DLevelSetConnectivityDilation< handle
     end 
 
     methods (Access = public)
-        function obj = TopOpt2DLevelSetConnectivityDilation()
+        function obj = Tutorial05_15_TopOpt2DLevelSetConnectivityDilation()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();

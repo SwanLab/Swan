@@ -1,4 +1,4 @@
-classdef TopOpt2DLevelSetConnectivity< handle
+classdef Tutorial05_14_TopOpt2DLevelSetConnectivity< handle
 
     properties (Access = private)
         mesh
@@ -23,7 +23,7 @@ classdef TopOpt2DLevelSetConnectivity< handle
     end 
 
     methods (Access = public)
-        function obj = TopOpt2DLevelSetConnectivity()
+        function obj = Tutorial05_14_TopOpt2DLevelSetConnectivity()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
