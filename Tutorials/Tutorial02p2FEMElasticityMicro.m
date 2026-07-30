@@ -44,7 +44,7 @@ classdef Tutorial02p2FEMElasticityMicro < handle
         end
 
 
-      function computeElasticProperties(obj)
+        function computeElasticProperties(obj)
             E  = 1;
             nu = 1/3;
             obj.young   = ConstantFunction.create(E,obj.mesh);
@@ -52,13 +52,12 @@ classdef Tutorial02p2FEMElasticityMicro < handle
         end
 
         function createMaterial(obj)
-            s.type    = 'ISOTROPIC';
-            s.ptype   = 'ELASTIC';
-            s.ndim    = obj.mesh.ndim;
-            s.young   = obj.young;
-            s.poisson = obj.poisson;
-            tensor    = Material.create(s);
-            obj.material = tensor;
+            N      = obj.mesh.ndim;
+            mu     = obj.young./(2*(1+obj.poisson));  mu = Expand(mu,4);
+            lambda = LameLambda(obj.young,obj.poisson,N);  lambda = Expand(lambda,4);
+            I      = ConstantFunction.create(eye4D(N),obj.mesh);
+            IxI    = ConstantFunction.create(kronEye(N),obj.mesh);
+            obj.material = 2*mu.*I + lambda.*IxI;
         end
 
 

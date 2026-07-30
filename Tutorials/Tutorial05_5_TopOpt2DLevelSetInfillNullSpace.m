@@ -5,7 +5,8 @@ classdef Tutorial05_5_TopOpt2DLevelSetInfillNullSpace < handle
         filterCompliance
         filterVolume
         designVariable
-        materialInterpolator
+        C
+        dC
         physicalProblem
         compliance
         volume
@@ -14,6 +15,7 @@ classdef Tutorial05_5_TopOpt2DLevelSetInfillNullSpace < handle
         constraint
         primalUpdater
         optimizer
+        E0; nu0; E1; nu1
     end
 
     methods (Access = public)
@@ -24,7 +26,7 @@ classdef Tutorial05_5_TopOpt2DLevelSetInfillNullSpace < handle
             obj.createDesignVariable();
             obj.createFilterCompliance();
             obj.createFilterVolume();
-            obj.createMaterialInterpolator();
+            obj.createMaterial();
             obj.createElasticProblem();
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
@@ -42,6 +44,10 @@ classdef Tutorial05_5_TopOpt2DLevelSetInfillNullSpace < handle
 
         function init(obj)
             close all;
+            obj.E0  = 1e-3;
+            obj.nu0 = 1/3;
+            obj.E1  = 1;
+            obj.nu1 = 1/3;
         end
 
         function createMesh(obj)
@@ -77,33 +83,38 @@ classdef Tutorial05_5_TopOpt2DLevelSetInfillNullSpace < handle
             obj.filterVolume = f;
         end
 
-        function createMaterialInterpolator(obj)
-            E0   = 1e-3;
-            nu0  = 1/3;
-            E1   = 1;
-            nu1  = 1/3;
-            ndim = 2;
+        function createMaterial(obj)
+            N = obj.mesh.ndim;
+            muA    = obj.computeMu(obj.E0,obj.nu0);
+            kappaA = obj.computeKappa(obj.E0,obj.nu0,N);
+            muB    = obj.computeMu(obj.E1,obj.nu1);
+            kappaB = obj.computeKappa(obj.E1,obj.nu1,N);
 
-            matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
-            matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
+            mu    = @(rho) SimpAllInterpolator.computeMu(muA,muB,kappaA,kappaB,rho,N); mu = @(rho) Expand(mu(rho),4);
+            kappa  = @(rho) SimpAllInterpolator.computeKappa(muA,muB,kappaA,kappaB,rho,N); kappa = @(rho) Expand(kappa(rho),4);
+            lambda = @(rho) kappa(rho) - (2/N)*mu(rho);
+            I      = ConstantFunction.create(eye4D(N),obj.mesh);
+            IxI    = ConstantFunction.create(kronEye(N),obj.mesh);
+            obj.C  = @(rho) 2*mu(rho).*I + lambda(rho).*IxI;
 
-            matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
-            matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
+            dmu     = @(rho) SimpAllInterpolator.computeMuDerivative(muA,muB,kappaA,kappaB,rho,N); dmu = @(rho) Expand(dmu(rho),4);
+            dkappa  = @(rho) SimpAllInterpolator.computeKappaDerivative(muA,muB,kappaA,kappaB,rho,N); dkappa = @(rho) Expand(dkappa(rho),4);
+            dlambda = @(rho) dkappa(rho) - (2/N)*dmu(rho);
+            obj.dC  = @(rho) 2*dmu(rho).*I + dlambda(rho).*IxI;
+        end
 
-            s.typeOfMaterial = 'ISOTROPIC';
-            s.interpolation  = 'SIMPALL';
-            s.dim            = '2D';
-            s.matA = matA;
-            s.matB = matB;
+        function mu = computeMu(obj,E,nu)
+            mu = E./(2*(1+nu));
+        end
 
-            m = MaterialInterpolator.create(s);
-            obj.materialInterpolator = m;
+        function kappa = computeKappa(obj,E,nu,N)
+            kappa = E./(N*(1-(N-1)*nu));
         end
 
         function createElasticProblem(obj)
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
-            s.material = obj.createMaterial();
+            s.material = [];
             s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
@@ -124,7 +135,8 @@ classdef Tutorial05_5_TopOpt2DLevelSetInfillNullSpace < handle
             s.mesh                       = obj.mesh;
             s.filter                     = obj.filterCompliance;
             s.complainceFromConstitutive = obj.createComplianceFromConstiutive();
-            s.material                   = obj.createMaterial();
+            s.C                          = obj.C;
+            s.dC                         = obj.dC;
             c = ComplianceFunctional(s);
             obj.compliance = c;
         end
@@ -205,18 +217,6 @@ classdef Tutorial05_5_TopOpt2DLevelSetInfillNullSpace < handle
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
-        end
-
-        function m = createMaterial(obj)
-            x = obj.designVariable;
-            f = x.obtainDomainFunction();
-            f = obj.filterCompliance.compute(f{1},1);            
-            s.type                 = 'DensityBased';
-            s.density              = f;
-            s.materialInterpolator = obj.materialInterpolator;
-            s.dim                  = '2D';
-            s.mesh                 = obj.mesh;
-            m = Material.create(s);
         end
 
         function bc = createBoundaryConditions(obj)
