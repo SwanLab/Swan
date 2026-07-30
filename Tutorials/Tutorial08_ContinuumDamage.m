@@ -79,14 +79,15 @@ classdef Tutorial08_ContinuumDamage < handle
         end
 
         function mat = createBaseMaterial(obj)
-            E  = 210;
-            nu = 0.3;
-            s.type    = 'ISOTROPIC';
-            s.ndim    = obj.mesh.ndim;
-            s.young   = ConstantFunction.create(E,obj.mesh);
-            s.poisson = ConstantFunction.create(nu,obj.mesh);
-            mat = Material.create(s);
-        end        
+            N      = obj.mesh.ndim;
+            E      = ConstantFunction.create(210,obj.mesh);
+            nu     = ConstantFunction.create(0.3,obj.mesh);
+            mu     = E./(2*(1+nu));  mu = Expand(mu,4);
+            lambda = LameLambda(E,nu,N);  lambda = Expand(lambda,4);
+            I      = ConstantFunction.create(eye4D(N),obj.mesh);
+            IxI    = ConstantFunction.create(kronEye(N),obj.mesh);
+            mat    = 2*mu.*I + lambda.*IxI;
+        end
 
         function d = createDamagedLaw(obj)
             s.hardeningLaw = obj.createHardeningLaw();
