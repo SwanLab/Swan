@@ -7,7 +7,8 @@ classdef Tutorial05_14_TopOpt2DLevelSetConnectivity< handle
         filterConnect
         filterAdjointConnect
         designVariable
-        materialInterpolator
+        C
+        dC
         conductivityInterpolator
         massInterpolator
         physicalProblem
@@ -20,6 +21,7 @@ classdef Tutorial05_14_TopOpt2DLevelSetConnectivity< handle
         minimumEigenValue
         perimeter
         primalUpdater
+        E0; nu0; E1; nu1
     end 
 
     methods (Access = public)
@@ -30,7 +32,7 @@ classdef Tutorial05_14_TopOpt2DLevelSetConnectivity< handle
             obj.createFilterPerimeter();
             obj.createFilterCompliance();
             obj.createFilterConnectivity();
-            obj.createMaterialInterpolator();
+            obj.createMaterial();
             obj.createElasticProblem();
             obj.createComplianceFromConstitutive();
             obj.createCompliance();
@@ -51,6 +53,10 @@ classdef Tutorial05_14_TopOpt2DLevelSetConnectivity< handle
 
         function init(obj)
             close all;
+            obj.E0  = 1e-5;
+            obj.nu0 = 1/3;
+            obj.E1  = 1;
+            obj.nu1 = 1/3;
         end
 
         function createMesh(obj)
@@ -95,50 +101,53 @@ classdef Tutorial05_14_TopOpt2DLevelSetConnectivity< handle
         end
 
         function createConductivityInterpolator(obj) 
-            s.interpolation  = 'SIMPAllThermal';
             s.f0   = 1e-3;                                             
             s.f1   = 1;  
             s.dim  = '2D';
-            a = MaterialInterpolator.create(s);
+            a = SimpAllThermalInterpolation(s);
             obj.conductivityInterpolator = a;            
         end 
 
         function createMassInterpolator(obj)
-            s.interpolation  = 'SIMPThermal';                              
             s.f0   = 1e-3;
             s.f1   = 1;
             s.pExp = 1;
-            a = MaterialInterpolator.create(s);
+            a = SIMPThermalInterpolation(s);
             obj.massInterpolator = a;            
         end      
 
-        function createMaterialInterpolator(obj)
-            E0   = 1e-5;
-            nu0  = 1/3;
-            E1   = 1;
-            nu1  = 1/3;
-            ndim = 2;
+        function createMaterial(obj)
+            N = obj.mesh.ndim;
+            muA    = obj.computeMu(obj.E0,obj.nu0);
+            kappaA = obj.computeKappa(obj.E0,obj.nu0,N);
+            muB    = obj.computeMu(obj.E1,obj.nu1);
+            kappaB = obj.computeKappa(obj.E1,obj.nu1,N);
 
-            matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
-            matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
+            mu    = @(rho) SimpAllInterpolator.computeMu(muA,muB,kappaA,kappaB,rho,N); mu = @(rho) Expand(mu(rho),4);
+            kappa  = @(rho) SimpAllInterpolator.computeKappa(muA,muB,kappaA,kappaB,rho,N); kappa = @(rho) Expand(kappa(rho),4);
+            lambda = @(rho) kappa(rho) - (2/N)*mu(rho);
+            I      = ConstantFunction.create(eye4D(N),obj.mesh);
+            IxI    = ConstantFunction.create(kronEye(N),obj.mesh);
+            obj.C  = @(rho) 2*mu(rho).*I + lambda(rho).*IxI;
 
-            matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
-            matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
- 
-            s.typeOfMaterial = 'ISOTROPIC';
-            s.interpolation  = 'SIMPALL';
-            s.dim            = '2D';
-            s.matA = matA;
-            s.matB = matB;
+            dmu     = @(rho) SimpAllInterpolator.computeMuDerivative(muA,muB,kappaA,kappaB,rho,N); dmu = @(rho) Expand(dmu(rho),4);
+            dkappa  = @(rho) SimpAllInterpolator.computeKappaDerivative(muA,muB,kappaA,kappaB,rho,N); dkappa = @(rho) Expand(dkappa(rho),4);
+            dlambda = @(rho) dkappa(rho) - (2/N)*dmu(rho);
+            obj.dC  = @(rho) 2*dmu(rho).*I + dlambda(rho).*IxI;
+        end
 
-            m = MaterialInterpolator.create(s);
-            obj.materialInterpolator = m;
+        function mu = computeMu(obj,E,nu)
+            mu = E./(2*(1+nu));
+        end
+
+        function kappa = computeKappa(obj,E,nu,N)
+            kappa = E./(N*(1-(N-1)*nu));
         end
 
         function createElasticProblem(obj)
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
-            s.material = obj.createMaterial();
+            s.material = [];
             s.dim = '2D';
             s.boundaryConditions = obj.createElasticBoundaryConditions();
             s.interpolationType = 'LINEAR';
@@ -159,7 +168,8 @@ classdef Tutorial05_14_TopOpt2DLevelSetConnectivity< handle
             s.mesh                       = obj.mesh;
             s.filter                     = obj.filterComp;
             s.complainceFromConstitutive = obj.createComplianceFromConstitutive();
-            s.material                   = obj.createMaterial();
+            s.C                          = obj.C;
+            s.dC                         = obj.dC;
             c = ComplianceFunctional(s);
             obj.compliance = c;
         end
@@ -235,39 +245,27 @@ classdef Tutorial05_14_TopOpt2DLevelSetConnectivity< handle
         end
 
         function createOptimizer(obj,max)
-            s.monitoring       = true;
-            s.cost             = obj.cost;
-            s.constraint       = obj.constraint;
-            s.designVariable   = obj.designVariable;
-            s.maxIter           = 1000;
-            s.tolerance         = 1e-3;
+            s.monitoring     = true;
+            s.cost           = obj.cost;
+            s.constraint     = obj.constraint;
+            s.designVariable = obj.designVariable;
+            s.maxIter        = 3;
+            s.tolerance      = 1e-8;
             s.constraintCase{1} = 'EQUALITY';
-            s.constraintCase{2} = 'INEQUALITY';      
-            s.primalUpdater     = obj.primalUpdater;
-            s.etaNorm           = 0.02; 
-            s.etaNormMin        = 0.02;
-            s.gJFlowRatio       = 0.2; 
-            s.etaMax            = 1.0; 
-            s.etaMaxMin         = 0.02; 
-            s.gif            = true;
-            s.gifName        = 'TutorialConnectivity';
-            s.printing       = true;
-            s.printName      = 'TutorialConnectivity';
+            s.constraintCase{2} = 'INEQUALITY';
+            s.primalUpdater  = obj.primalUpdater;
+            s.delta          = 0.02;
+            s.deltaMin       = 0.02;
+            s.etaStar        = 0.2;
+            s.etaMax0        = 1;
+            s.etaMaxMin      = 0.01;
+            s.gif            = false;
+            s.gifName        = 'Tutorial05_3';
+            s.printing       = false;
+            s.printName      = 'Tutorial05_3';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
-        end
-
-        function m = createMaterial(obj)
-            x = obj.designVariable;
-            f = x.obtainDomainFunction();
-            f = obj.filterComp.compute(f{1},1);            
-            s.type                 = 'DensityBased';
-            s.density              = f;
-            s.materialInterpolator = obj.materialInterpolator;
-            s.dim                  = '2D';
-            s.mesh                 = obj.mesh;
-            m = Material.create(s);
         end
 
         function bc = createElasticBoundaryConditions(obj)
