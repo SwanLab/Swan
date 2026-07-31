@@ -8,9 +8,7 @@ classdef Tutorial07_2_PhaseFieldProblemHomogenized < handle
     properties (Access = private)
         mesh
         boundaryConditions
-        C
-        dC
-        d2C
+        mat
         dissipation
         functional
     end
@@ -65,26 +63,28 @@ classdef Tutorial07_2_PhaseFieldProblemHomogenized < handle
         end
 
         function createPhaseFieldFunctional(obj)
+            s.energySplit = false;
+            s.C  = obj.mat.C;
+            s.dC = obj.mat.dC;
+            s.d2C = obj.mat.d2C;
             s.mesh          = obj.mesh;
-            s.material      = obj.material;
             s.dissipation   = obj.dissipation;
             s.l0            = 0.1;
             s.quadOrder     = 2;
             s.testSpace.u   = obj.initialGuess.u;
             s.testSpace.phi = obj.initialGuess.phi.fun;
-            s.energySplit   = isa(obj.material,'MaterialPhaseFieldAnalyticSplit');
             obj.functional  = PhaseFieldFunctional(s);
         end
 
         function createMaterialPhaseField(obj)
-%             E  = 210;
-% 
-%             s.type  = 'PhaseField';
-%             s.mesh  = obj.mesh;
-%             s.PFtype = 'Analytic';
-%             s.fileName = 'CirclePerimeter'; %Only for 'Homogenized' PFtype
-% 
+            s.fileName = 'CirclePerimeter';
+            s.mesh = obj.mesh;
+            s.young = 210;
+            hm = HomogenizedMaterial(s);
 
+            obj.mat.C = @(phi) hm.obtainTensor(phi);
+            obj.mat.dC = @(phi) hm.obtainTensorDerivative(phi);
+            obj.mat.d2C = @(phi) hm.obtainTensorSecondDerivative(phi);     
         end
 
         function createDissipationInterpolation(obj)
