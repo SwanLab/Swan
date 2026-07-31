@@ -83,7 +83,7 @@ classdef TopOpt_Density_C5Sup < handle
         end
 
         function createRBE3Meshes(obj,fName)
-            for i=1:3
+            for i=1:7
                 run(fName);
                 rollerRowsEl = External_border_elements(:,1)==i-1;
                 rollerRowsN  = External_border_nodes(:,1)==i-1;
@@ -104,7 +104,7 @@ classdef TopOpt_Density_C5Sup < handle
             aFun      = AnalyticalFunction(s);
 
             fixN = [];
-            for i=1:3
+            for i=1:7
                 fixN = [fixN;obj.rbe3Nodes{i}];
             end
             
@@ -122,7 +122,7 @@ classdef TopOpt_Density_C5Sup < handle
             s.mesh  = obj.mesh;
             s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
             f = Filter.create(s);
-            f.updateEpsilon(2*obj.mesh.computeMeanCellSize());
+            f.updateEpsilon(4*obj.mesh.computeMeanCellSize());
             obj.filter = f;
         end
 
@@ -166,6 +166,18 @@ classdef TopOpt_Density_C5Sup < handle
             s.rbe3Value(3,1) = NaN;
             s.rbe3Value(3,2) = NaN;
             s.rbe3Value(3,3) = 50;
+            s.rbe3Value(4,1) = NaN;
+            s.rbe3Value(4,2) = NaN;
+            s.rbe3Value(4,3) = NaN;
+            s.rbe3Value(5,1) = NaN;
+            s.rbe3Value(5,2) = NaN;
+            s.rbe3Value(5,3) = NaN;
+            s.rbe3Value(6,1) = NaN;
+            s.rbe3Value(6,2) = NaN;
+            s.rbe3Value(6,3) = NaN;
+            s.rbe3Value(7,1) = NaN;
+            s.rbe3Value(7,2) = NaN;
+            s.rbe3Value(7,3) = NaN;
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'ROLLER';
