@@ -1,4 +1,4 @@
-classdef HomogenizedMaterial < handle
+classdef HomogenizedMaterialsReader < handle
 
     properties (Access = private)
         fileName
@@ -9,7 +9,7 @@ classdef HomogenizedMaterial < handle
 
     methods (Access = public)
 
-        function obj = HomogenizedMaterial(cParams)
+        function obj = HomogenizedMaterialsReader(cParams)
             obj.init(cParams)
             obj.loadVademecum();
         end

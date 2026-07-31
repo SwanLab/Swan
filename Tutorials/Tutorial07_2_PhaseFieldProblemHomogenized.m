@@ -80,7 +80,7 @@ classdef Tutorial07_2_PhaseFieldProblemHomogenized < handle
             s.fileName = 'CirclePerimeter';
             s.mesh = obj.mesh;
             s.young = 210;
-            hm = HomogenizedMaterial(s);
+            hm = HomogenizedMaterialsReader(s);
 
             obj.mat.C = @(phi) hm.obtainTensor(phi);
             obj.mat.dC = @(phi) hm.obtainTensorDerivative(phi);

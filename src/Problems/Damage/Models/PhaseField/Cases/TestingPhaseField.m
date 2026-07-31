@@ -162,7 +162,7 @@ classdef TestingPhaseField < handle
                     s.fileName = obj.matInfo.fileName;
                     s.mesh     = obj.mesh;
                     s.young    = E;
-                    hm = HomogenizedMaterial(s);
+                    hm = HomogenizedMaterialsReader(s);
 
                     obj.mat.C   = @(phi) hm.obtainTensor(phi);
                     obj.mat.dC  = @(phi) hm.obtainTensorDerivative(phi);
