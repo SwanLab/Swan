@@ -33,8 +33,9 @@ Tutorial05_15_TopOpt2DLevelSetConnectivityDilation();
 
 % Tutorial06_ShapeOptimization -- PENDING
 
-Tutorial07_1_PhaseFieldCase();
-Tutorial07_2_PhaseFieldHomogenization();
+Tutorial07_1_PhaseFieldProblemAnalytical();
+Tutorial07_2_PhaseFieldProblemHomogenized();
+Tutorial07_3_PhaseFieldHomogenization();
 
 Tutorial08_ContinuumDamage();
 

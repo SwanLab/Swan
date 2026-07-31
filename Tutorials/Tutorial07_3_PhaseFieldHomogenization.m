@@ -1,4 +1,4 @@
-classdef Tutorial07_2_PhaseFieldHomogenization < handle
+classdef Tutorial07_3_PhaseFieldHomogenization < handle
 
     properties (Access = public)
         paramHole
@@ -27,7 +27,7 @@ classdef Tutorial07_2_PhaseFieldHomogenization < handle
 
     methods (Access = public)
         
-        function obj = Tutorial07_2_PhaseFieldHomogenization()
+        function obj = Tutorial07_3_PhaseFieldHomogenization()
             obj.init();
             obj.defineMesh();
             obj.computeHoleParams();
