@@ -66,10 +66,10 @@ classdef Tutorial07_1_PhaseFieldProblemAnalytical < handle
 
         function createPhaseFieldFunctional(obj)
             switch obj.degType
-                case 'AT'
+                case {'AT'}
                     s.energySplit = false;
                     s.C = obj.mat.C; s.dC = obj.mat.dC; s.d2C = obj.mat.d2C;
-                case 'ATSplit'
+                case {'ATSplit'}
                     s.energySplit = true;
                     s.mu = obj.mat.mu; s.dmu = obj.mat.dmu; s.d2mu = obj.mat.d2mu;
                     s.k = obj.mat.k; s.dk = obj.mat.dk; s.d2k = obj.mat.d2k;
