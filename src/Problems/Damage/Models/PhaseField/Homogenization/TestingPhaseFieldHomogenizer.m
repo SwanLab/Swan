@@ -95,8 +95,8 @@ classdef TestingPhaseFieldHomogenizer < handle
 
         function matHomog = computeHomogenization(obj,l)
             dens = obj.createDensityLevelSet(l);
-            mat  = obj.createDensityMaterial(dens);
-            matHomog = obj.solveElasticMicroProblem(mat,dens);
+            C    = obj.createDensityMaterial();
+            matHomog = obj.solveElasticMicroProblem(C,dens);
         end
 
         function lsf = createDensityLevelSet(obj,l)
@@ -147,25 +147,30 @@ classdef TestingPhaseFieldHomogenizer < handle
             ls = -lsCircle;
         end
 
-        function mat = createDensityMaterial(obj,lsf)
-            s.interpolation  = 'SIMPALL';
-            s.dim            = '2D';
-            s.matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(1e-6*obj.E,obj.nu,obj.baseMesh.ndim);
-            s.matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(1e-6*obj.E,obj.nu);
-            s.matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(obj.E,obj.nu,obj.baseMesh.ndim);
-            s.matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(obj.E,obj.nu);
-            mI = MaterialInterpolator.create(s);
+        function C = createDensityMaterial(obj)
+            N = obj.baseMesh.ndim;
+            muA    = obj.computeMu(1e-6*obj.E,obj.nu);
+            kappaA = obj.computeKappa(1e-6*obj.E,obj.nu,N);
+            muB    = obj.computeMu(obj.E,obj.nu);
+            kappaB = obj.computeKappa(obj.E,obj.nu,N);
 
-            x{1} = lsf;
-            s.mesh                 = obj.baseMesh;
-            s.type                 = 'DensityBased';
-            s.density              = x;
-            s.materialInterpolator = mI;
-            s.dim                  = '2D';
-            mat = Material.create(s);
+            mu     = @(rho) SimpAllInterpolator.computeMu(muA,muB,kappaA,kappaB,rho,N); mu = @(rho) Expand(mu(rho),4);
+            kappa  = @(rho) SimpAllInterpolator.computeKappa(muA,muB,kappaA,kappaB,rho,N); kappa = @(rho) Expand(kappa(rho),4);
+            lambda = @(rho) kappa(rho) - (2/N)*mu(rho);
+            I      = ConstantFunction.create(eye4D(N),obj.baseMesh);
+            IxI    = ConstantFunction.create(kronEye(N),obj.baseMesh);
+            C      = @(rho) 2*mu(rho).*I + lambda(rho).*IxI;
         end
 
-        function matHomog = solveElasticMicroProblem(obj,material,dens)
+        function mu = computeMu(obj,E,nu)
+            mu = E./(2*(1+nu));
+        end
+
+        function kappa = computeKappa(obj,E,nu,N)
+            kappa = E./(N*(1-(N-1)*nu));
+        end
+
+        function matHomog = solveElasticMicroProblem(obj,C,dens)
             if obj.monitoring == true
                 close all
                 dens.plot
@@ -175,7 +180,7 @@ classdef TestingPhaseFieldHomogenizer < handle
             end
 
             s.mesh = obj.baseMesh;
-            s.material = material;
+            s.material = [];
             s.scale = 'MICRO';
             s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditions(obj.baseMesh);
@@ -183,8 +188,7 @@ classdef TestingPhaseFieldHomogenizer < handle
             s.solverType = 'REDUCED';
             s.solverMode = 'FLUC';
             fem = ElasticProblemMicro(s);
-            material.setDesignVariable({dens})
-            fem.updateMaterial(material.obtainTensor())
+            fem.updateMaterial(C(dens));
             fem.solve();
 
             totVol = obj.baseMesh.computeVolume();
