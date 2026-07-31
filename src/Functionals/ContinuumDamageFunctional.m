@@ -68,8 +68,8 @@ classdef ContinuumDamageFunctional < handle
             obj.mesh      = cParams.mesh;
             obj.quadOrder = cParams.quadOrder;
             obj.bMat      = cParams.bMat;
-            obj.sMat      = cParams.sFun;
-            obj.tMat      = cParams.tFun;
+            obj.sMat      = cParams.sMat;
+            obj.tMat      = cParams.tMat;
             obj.test      = cParams.test;
         end
 

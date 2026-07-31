@@ -28,7 +28,7 @@ classdef Tutorial08_ContinuumDamage < handle
             s.internalDamageVariable = obj.internalDamageVariable;
             s.functional             = obj.functional;
             s.damage                 = obj.damage;
-            
+
 
             s.monitoring.set         = true;
             s.monitoring.print       = true;
@@ -70,8 +70,8 @@ classdef Tutorial08_ContinuumDamage < handle
             s.mesh               = obj.mesh;
             s.boundaryConditions = obj.boundaryConditions;
             s.bMat               = bMat;
-            s.sFun               = sMat;
-            s.tFun               = tMat;
+            s.sMat               = sMat;
+            s.tMat               = tMat;
             s.quadOrder          = 2;
             s.test               = LagrangianFunction.create(obj.mesh,2,'P1');
             obj.functional       = ContinuumDamageFunctional(s);
