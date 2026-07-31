@@ -7,6 +7,7 @@ classdef ContinuumDamageComputer < handle
         functional
         tolerance
         maxIter
+        damage
     end
 
     properties (Access = private)
@@ -47,6 +48,7 @@ classdef ContinuumDamageComputer < handle
             obj.functional         = cParams.functional;
             obj.tolerance          = cParams.tolerance;
             obj.maxIter            = cParams.maxIter;
+            obj.damage             = cParams.damage;
         end
 
         function setMonitoring(obj,cParams)
@@ -107,11 +109,11 @@ classdef ContinuumDamageComputer < handle
         end
 
         function [dmgFunP0,dmgFunP1,qFun,rFun] = computeDamageVariables(obj,u,r)
-            dmg = obj.functional.getDamage(r);
+            dmg = obj.damage.computeFunction(r);
             dmgFunP0 = dmg.project('P0');
             dmgFunP1 = dmg.project('P1');
 
-            qFun   = obj.functional.getHardening(r).project('P0');
+            qFun   = obj.damage.getHardening(r).project('P0');
             rFun   = obj.internalDamageVariable.r.project('P0');
         end
 

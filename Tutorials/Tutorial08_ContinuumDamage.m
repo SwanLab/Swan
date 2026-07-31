@@ -27,6 +27,8 @@ classdef Tutorial08_ContinuumDamage < handle
             s.boundaryConditions     = obj.boundaryConditions;
             s.internalDamageVariable = obj.internalDamageVariable;
             s.functional             = obj.functional;
+            s.damage                 = obj.damage;
+            
 
             s.monitoring.set         = true;
             s.monitoring.print       = true;
