@@ -136,14 +136,14 @@ classdef TestingPhaseField < handle
                 case {'Analytic','AnalyticSplit'}
                     E0  = ConstantFunction.create(E,obj.mesh);
                     nu0 = ConstantFunction.create(nu,obj.mesh);
-                    mu0 = E0./(2*(1+nu0));
-                    k0  = E0./(N*(1-(N-1)*nu0));
+                    mu0 = LameParametersConverter.computeShearFromYoungAndPoisson(E0,nu0);
+                    k0  = LameParametersConverter.computeBulkFromYoungAndPoisson(E0,nu0,N);
 
                     [mu,dmu,d2mu] = PhaseFieldInterpolators.compute(obj.matInfo.degradationType,mu0);
                     [k,dk,d2k]    = PhaseFieldInterpolators.compute(obj.matInfo.degradationType,k0);
-                    l   = @(phi) k(phi) - (2/N)*mu(phi);
-                    dl  = @(phi) dk(phi) - (2/N)*dmu(phi);
-                    d2l = @(phi) d2k(phi) - (2/N)*d2mu(phi);
+                    l   = @(phi) LameParametersConverter.computeLambdaFromBulkAndShear(k(phi),mu(phi),N);
+                    dl  = @(phi) LameParametersConverter.computeLambdaFromBulkAndShear(dk(phi),dmu(phi),N);
+                    d2l = @(phi) LameParametersConverter.computeLambdaFromBulkAndShear(d2k(phi),d2mu(phi),N);
 
                     obj.mat.mu = mu; obj.mat.dmu = dmu; obj.mat.d2mu = d2mu;
                     obj.mat.k  = k;  obj.mat.dk  = dk;  obj.mat.d2k  = d2k;

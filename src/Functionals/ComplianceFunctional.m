@@ -47,9 +47,9 @@ classdef ComplianceFunctional < handle
             end
         end
 
-        function [J,dJ] = computeComplianceFunctionAndGradient(obj,x,C,dRhoC)
+        function [J,dJ] = computeComplianceFunctionAndGradient(obj,x,Crho,dRhoC)
             dxC    = ChainRule.compute(x,dRhoC);
-            [J,dJ] = obj.compliance.computeFunctionAndGradient(C,dxC);
+            [J,dJ] = obj.compliance.computeFunctionAndGradient(Crho,dxC);
             dJ     = obj.filterFields(dJ);
             if isempty(obj.value0)
                 obj.value0 = J;

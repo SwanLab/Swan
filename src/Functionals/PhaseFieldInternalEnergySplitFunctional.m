@@ -2,12 +2,8 @@ classdef PhaseFieldInternalEnergySplitFunctional < handle
     
     properties (Access = private)
         mesh
-        mu
-        dmu
-        d2mu
-        k
-        dk
-        d2k
+        mu, dmu, d2mu
+        k, dk, d2k
         testU
         testPhi
     end
@@ -130,19 +126,19 @@ classdef PhaseFieldInternalEnergySplitFunctional < handle
         end
 
         function V = obtainTensorVolumetric(obj,phi)
-            N = obj.mesh.ndim;
+            N     = obj.mesh.ndim;
             kappa = Expand(obj.k(phi.fun),4);
             IxI   = ConstantFunction.create(kronEye(N),obj.mesh);
-            V = kappa.*IxI;
+            V     = kappa.*IxI;
         end
 
         function D = obtainTensorDeviatoric(obj,phi)
-            N = obj.mesh.ndim;
-            mu  = Expand(obj.mu(phi.fun),4);
+            N   = obj.mesh.ndim;
+            muE = Expand(obj.mu(phi.fun),4);
             lam = Expand(-(2/N)*obj.mu(phi.fun),4);
             I   = ConstantFunction.create(eye4D(N),obj.mesh);
             IxI = ConstantFunction.create(kronEye(N),obj.mesh);
-            D = 2*mu.*I + lam.*IxI;
+            D   = 2*muE.*I + lam.*IxI;
         end
         
     end

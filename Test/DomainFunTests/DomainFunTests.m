@@ -84,9 +84,9 @@ classdef DomainFunTests < handle & matlab.unittest.TestCase
         function [kappa,mu,C] = computeMaterial(m,E1,nu1)
             E      = ConstantFunction.create(E1,m);
             nu     = ConstantFunction.create(nu1,m);
-            kappa  = E./(m.ndim*(1-(m.ndim-1)*nu));
-            mu     = E./(2*(1+nu));  muExp = Expand(mu,4);
-            lambda = kappa - (2/m.ndim)*mu;  lambda = Expand(lambda,4);
+            kappa  = LameParametersConverter.computeBulkFromYoungAndPoisson(E,nu,m.dim);
+            mu     = LameParametersConverter.computeShearFromYoungAndPoisson(E,nu); muExp = Expand(mu,4);
+            lambda = LameParametersConverter.computeLambdaFromBulkAndShear(kappa,mu,m.dim); lambda = Expand(lambda,4);
             I      = ConstantFunction.create(eye4D(m.ndim),m);
             IxI    = ConstantFunction.create(kronEye(m.ndim),m);
             C    = 2*muExp.*I + lambda.*IxI;

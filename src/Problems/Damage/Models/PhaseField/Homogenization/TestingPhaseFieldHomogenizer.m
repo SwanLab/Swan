@@ -148,26 +148,18 @@ classdef TestingPhaseFieldHomogenizer < handle
         end
 
         function C = createDensityMaterial(obj)
-            N = obj.baseMesh.ndim;
-            muA    = obj.computeMu(1e-6*obj.E,obj.nu);
-            kappaA = obj.computeKappa(1e-6*obj.E,obj.nu,N);
-            muB    = obj.computeMu(obj.E,obj.nu);
-            kappaB = obj.computeKappa(obj.E,obj.nu,N);
+            N      = obj.baseMesh.ndim;
+            muA    = LameParametersConverter.computeShearFromYoungAndPoisson(1e-6*obj.E,obj.nu);
+            kappaA = LameParametersConverter.computeBulkFromYoungAndPoisson(1e-6*obj.E,obj.nu,N);
+            muB    = LameParametersConverter.computeShearFromYoungAndPoisson(obj.E,obj.nu);
+            kappaB = LameParametersConverter.computeBulkFromYoungAndPoisson(obj.E,obj.nu,N);
 
             mu     = @(rho) SimpAllInterpolator.computeMu(muA,muB,kappaA,kappaB,rho,N); mu = @(rho) Expand(mu(rho),4);
             kappa  = @(rho) SimpAllInterpolator.computeKappa(muA,muB,kappaA,kappaB,rho,N); kappa = @(rho) Expand(kappa(rho),4);
-            lambda = @(rho) kappa(rho) - (2/N)*mu(rho);
+            lambda = @(rho) LameParametersConverter.computeLambdaFromBulkAndShear(kappa(rho),mu(rho),N);
             I      = ConstantFunction.create(eye4D(N),obj.baseMesh);
             IxI    = ConstantFunction.create(kronEye(N),obj.baseMesh);
             C      = @(rho) 2*mu(rho).*I + lambda(rho).*IxI;
-        end
-
-        function mu = computeMu(obj,E,nu)
-            mu = E./(2*(1+nu));
-        end
-
-        function kappa = computeKappa(obj,E,nu,N)
-            kappa = E./(N*(1-(N-1)*nu));
         end
 
         function matHomog = solveElasticMicroProblem(obj,C,dens)

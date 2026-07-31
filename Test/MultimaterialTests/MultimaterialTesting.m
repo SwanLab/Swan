@@ -164,7 +164,7 @@ classdef MultimaterialTesting < handle
             [muRef,kRef] = obj.computeReferenceShearBulk();
             N            = obj.mesh.ndim;
             [mu,kappa]   = MultiMaterialInterpolator.computeMuKappa(muRef,kRef,obj.simpAlls,N);
-            lambda       = @(x) kappa(x) - (2/N)*mu(x);
+            lambda       = @(x) LameParametersConverter.computeLambdaFromBulkAndShear(kappa(x),mu(x),N);
             mu           = @(x) Expand(mu(x),4);
             lambda       = @(x) Expand(lambda(x),4);
             I            = ConstantFunction.create(eye4D(N),obj.mesh);
@@ -179,8 +179,8 @@ classdef MultimaterialTesting < handle
             mu    = cell(length(Evec),1);
             k     = cell(length(Evec),1);
             for i = 1:length(Evec)
-                mu{i} = Evec(i)./(2*(1+nuvec(i)));
-                k{i}  = Evec(i)./(N*(1-(N-1)*nuvec(i)));
+                mu{i} = LameParametersConverter.computeShearFromYoungAndPoisson(Evec(i),nuvec(i));
+                k{i}  = LameParametersConverter.computeBulkFromYoungAndPoisson(Evec(i),nuvec(i),N);
             end
         end
 

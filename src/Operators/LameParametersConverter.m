@@ -10,11 +10,16 @@ classdef LameParametersConverter < handle
             mu = E./(2*(1+nu));
         end
 
+        function lambda = computeLambdaFromBulkAndShear(kappa,mu,N)
+            lambda = kappa - (2/N)*mu;
+        end
+
         function lambda = computeLambdaFromYoungAndPoisson(E,nu,N)
             kappa  = LameParametersConverter.computeBulkFromYoungAndPoisson(E,nu,N);
             mu     = LameParametersConverter.computeShearFromYoungAndPoisson(E,nu);
-            lambda = kappa - (2/N)*mu;
+            lambda = LameParametersConverter.computeLambdaFromBulkAndShear(kappa,mu,N);
         end
+
 
     end
 end

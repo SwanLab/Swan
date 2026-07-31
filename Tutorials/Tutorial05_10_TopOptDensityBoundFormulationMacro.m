@@ -21,7 +21,7 @@ classdef Tutorial05_10_TopOptDensityBoundFormulationMacro < handle
         constraint
         dualVariable
         optimizer
-        E0; nu0; E1; nu1
+        E0, nu0, E1, nu1
     end
 
     methods (Access = public)
@@ -145,31 +145,23 @@ classdef Tutorial05_10_TopOptDensityBoundFormulationMacro < handle
         end
 
         function createMaterial(obj)
-            N = obj.mesh.ndim;
-            muA    = obj.computeMu(obj.E0,obj.nu0);
-            kappaA = obj.computeKappa(obj.E0,obj.nu0,N);
-            muB    = obj.computeMu(obj.E1,obj.nu1);
-            kappaB = obj.computeKappa(obj.E1,obj.nu1,N);
+            N      = obj.mesh.ndim;
+            muA    = LameParametersConverter.computeShearFromYoungAndPoisson(obj.E0,obj.nu0);
+            kappaA = LameParametersConverter.computeBulkFromYoungAndPoisson(obj.E0,obj.nu0,N);
+            muB    = LameParametersConverter.computeShearFromYoungAndPoisson(obj.E1,obj.nu1);
+            kappaB = LameParametersConverter.computeBulkFromYoungAndPoisson(obj.E1,obj.nu1,N);
 
-            mu    = @(rho) SimpAllInterpolator.computeMu(muA,muB,kappaA,kappaB,rho,N); mu = @(rho) Expand(mu(rho),4);
+            mu     = @(rho) SimpAllInterpolator.computeMu(muA,muB,kappaA,kappaB,rho,N); mu = @(rho) Expand(mu(rho),4);
             kappa  = @(rho) SimpAllInterpolator.computeKappa(muA,muB,kappaA,kappaB,rho,N); kappa = @(rho) Expand(kappa(rho),4);
-            lambda = @(rho) kappa(rho) - (2/N)*mu(rho);
+            lambda = @(rho) LameParametersConverter.computeLambdaFromBulkAndShear(kappa(rho),mu(rho),N);
             I      = ConstantFunction.create(eye4D(N),obj.mesh);
             IxI    = ConstantFunction.create(kronEye(N),obj.mesh);
             obj.C  = @(rho) 2*mu(rho{1}).*I + lambda(rho{1}).*IxI;
 
             dmu     = @(rho) SimpAllInterpolator.computeMuDerivative(muA,muB,kappaA,kappaB,rho,N); dmu = @(rho) Expand(dmu(rho),4);
             dkappa  = @(rho) SimpAllInterpolator.computeKappaDerivative(muA,muB,kappaA,kappaB,rho,N); dkappa = @(rho) Expand(dkappa(rho),4);
-            dlambda = @(rho) dkappa(rho) - (2/N)*dmu(rho);
+            dlambda = @(rho) LameParametersConverter.computeLambdaFromBulkAndShear(dkappa(rho),dmu(rho),N);
             obj.dC  = @(rho) {2*dmu(rho{1}).*I + dlambda(rho{1}).*IxI};
-        end
-
-        function mu = computeMu(obj,E,nu)
-            mu = E./(2*(1+nu));
-        end
-
-        function kappa = computeKappa(obj,E,nu,N)
-            kappa = E./(N*(1-(N-1)*nu));
         end
 
         function createElasticProblem(obj)
