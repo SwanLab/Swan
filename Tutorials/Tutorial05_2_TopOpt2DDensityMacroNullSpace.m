@@ -3,7 +3,7 @@ classdef Tutorial05_2_TopOpt2DDensityMacroNullSpace < handle
     properties (Access = private)
         mesh
         filter
-        designVariable
+        % designVariable
         materialInterpolator
         physicalProblem
         compliance
@@ -13,8 +13,42 @@ classdef Tutorial05_2_TopOpt2DDensityMacroNullSpace < handle
         primalUpdater
         optimizer
     end
+    properties (Access = public)
+        designVariable
+        rhoSmooth
+        
+    end
 
     methods (Access = public)
+        function hist = getCostHistory(obj)
+            hist = obj.optimizer.costHistory;
+        end
+
+        function hist = getComplianceHistory(obj)
+            hist = obj.optimizer.complianceHistory;
+        end
+
+        function hist = getVolumeConstraintHistory(obj)
+            hist = obj.optimizer.volumeConstraintHistory;
+        end
+        function rho = getRhoValues(obj)
+            % Campo rho final antes do filtro
+            rho = obj.designVariable.fun.fValues;
+        end
+
+        function rhoSmooth = getRhoSmoothValues(obj)
+            % Campo rho final filtrado
+            rhoSmooth = obj.rhoSmooth.fValues;
+        end
+
+        function meshData = getMeshData(obj)
+            % Dados numericos da malha
+
+            meshData.coord  = obj.mesh.coord;
+            meshData.connec = obj.mesh.connec;
+            meshData.ndim   = obj.mesh.ndim;
+            meshData.nnodes = obj.mesh.nnodes;
+        end
 
         function obj = Tutorial05_2_TopOpt2DDensityMacroNullSpace()
             obj.init()
@@ -30,6 +64,7 @@ classdef Tutorial05_2_TopOpt2DDensityMacroNullSpace < handle
             obj.createConstraint();
             obj.createPrimalUpdater();
             obj.createOptimizer();
+            obj.rhoSmooth = obj.filter.compute(obj.designVariable.fun,2);
         end
 
     end
@@ -41,7 +76,7 @@ classdef Tutorial05_2_TopOpt2DDensityMacroNullSpace < handle
         end
 
         function createMesh(obj)
-            obj.mesh = TriangleMesh(2,1,100,50);
+            obj.mesh = TriangleMesh(2,1,200,180);
         end
 
         function createDesignVariable(obj)
@@ -68,14 +103,14 @@ classdef Tutorial05_2_TopOpt2DDensityMacroNullSpace < handle
 
         function createMaterialInterpolator(obj)
             E0 = 1e-3;
-            nu0 = 1/3;
+            nu0 = 0.3;
             ndim = obj.mesh.ndim;
             matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
             matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
 
 
             E1 = 1;
-            nu1 = 1/3;
+            nu1 = 0.3;
             matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
             matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
 
@@ -177,7 +212,7 @@ classdef Tutorial05_2_TopOpt2DDensityMacroNullSpace < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter        = 3;
+            s.maxIter        = 1000;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal         = 'PROJECTED GRADIENT';
@@ -188,9 +223,12 @@ classdef Tutorial05_2_TopOpt2DDensityMacroNullSpace < handle
             s.gifName        = [];
             s.printing       = false;
             s.printName      = [];
+            
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
+            
+            
         end
 
         function bc = createBoundaryConditions(obj)

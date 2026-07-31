@@ -21,6 +21,55 @@ classdef TutorialFirstTwovariable < handle
     end
 
     methods (Access = public)
+        function hist = getCostHistory(obj)
+            hist = obj.optimizer.costHistory;
+        end
+
+        function hist = getComplianceHistory(obj)
+            hist = obj.optimizer.complianceHistory;
+        end
+
+        function hist = getVolumeConstraintHistory(obj)
+            hist = obj.optimizer.volumeConstraintHistory;
+        end
+        function b = getBValues(obj)
+            % Campo b final antes do filtro
+            b = obj.designVariable.funB.fValues;
+        end
+
+        function rho = getRhoValues(obj)
+            % Campo rho final antes do filtro
+            rho = obj.designVariable.funRho.fValues;
+        end
+
+        function bSmooth = getBSmoothValues(obj)
+            % Campo b final depois do filtro PDE
+            bSmooth = obj.bSmooth.fValues;
+        end
+
+        function rhoSmooth = getRhoSmoothValues(obj)
+            % Campo rho final depois do filtro LUMP
+            rhoSmooth = obj.rhoSmooth.fValues;
+        end
+
+        function fields = getDesignVariableValues(obj)
+            % Estrutura unica para o script comparativo
+
+            fields.b   = obj.designVariable.funB.fValues;
+            fields.rho = obj.designVariable.funRho.fValues;
+
+            fields.bSmooth   = obj.bSmooth.fValues;
+            fields.rhoSmooth = obj.rhoSmooth.fValues;
+        end
+
+        function meshData = getMeshData(obj)
+            % Dados numericos da malha
+
+            meshData.coord  = obj.mesh.coord;
+            meshData.connec = obj.mesh.connec;
+            meshData.ndim   = obj.mesh.ndim;
+            meshData.nnodes = obj.mesh.nnodes;
+        end
 
         function obj = TutorialFirstTwovariable()
             obj.init();
@@ -59,7 +108,7 @@ classdef TutorialFirstTwovariable < handle
             aFunB = AnalyticalFunction(s_b);
             funB  = aFunB.project('P1');
 
-            s_rho.fHandle = @(x) 0.95*ones(size(x(1,:,:)));
+            s_rho.fHandle = @(x) 0.97*ones(size(x(1,:,:)));
             s_rho.ndimf   = 1;
             s_rho.mesh    = obj.mesh;
             aFunRho = AnalyticalFunction(s_rho);
@@ -170,8 +219,8 @@ classdef TutorialFirstTwovariable < handle
 
         function p = createPrimalUpdater(obj)
             n    = obj.mesh.nnodes;
-            s.lb = [-0.8*ones(n,1);  1e-3*ones(n,1)];
-            s.ub = [ 0.8*ones(n,1);  0.95*ones(n,1)];
+            s.lb = [-0.6*ones(n,1);  1e-3*ones(n,1)];
+            s.ub = [ 0.6*ones(n,1);  0.97*ones(n,1)];
             s.tauMax = 500;
             s.tau    = [];
             p = ProjectedGradient(s);
@@ -192,9 +241,12 @@ classdef TutorialFirstTwovariable < handle
             s.gifName         = [];
             s.printing        = false;
             s.printName       = [];
+            
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
+            
+            
         end
 
         function bc = createBoundaryConditions(obj)

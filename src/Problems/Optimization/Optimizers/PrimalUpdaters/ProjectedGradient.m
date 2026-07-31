@@ -3,12 +3,14 @@ classdef ProjectedGradient < handle
     properties (Access = public)
         tau
         boxConstraints
+        
     end
 
     properties (Access = private)
         upperBound
         lowerBound
         tauMax
+        
     end
     
     methods (Access = public)

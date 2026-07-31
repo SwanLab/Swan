@@ -47,18 +47,18 @@ classdef TutorialHomogenizationLattice < handle
             obj.E           = 1;
             obj.nu          = 0.3;
             obj.meshType    = 'Square';
-            obj.meshN       = 80;
+            obj.meshN       = 100;
             obj.holeType    = 'Square';
             obj.pnorm       = 'Inf';
-            obj.nStepsB     = 70;
-            obj.nStepsRho   = 70;
+            obj.nStepsB     = 80;
+            obj.nStepsRho   = 80;
             obj.monitoring  = false;
-            obj.maxParamB   = 0.8;
+            obj.maxParamB   = 0.6;
             obj.maxParamRho = 0.979;
         end
 
         function computeHoleParams(obj)
-            obj.paramB   = linspace(-0.8,    obj.maxParamB,   obj.nStepsB);
+            obj.paramB   = linspace(-0.6,    obj.maxParamB,   obj.nStepsB);
             obj.paramRho = linspace(1e-9, obj.maxParamRho, obj.nStepsRho);
         end
 

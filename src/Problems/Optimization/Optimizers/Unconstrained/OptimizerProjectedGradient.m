@@ -18,6 +18,12 @@ classdef OptimizerProjectedGradient < handle
         meritNew
         meritOld
         meritGradient
+        fixedVolume
+    end
+    properties (Access = public)
+        costHistory       = [];
+        complianceHistory = [];
+        
     end
 
     methods (Access = public) 
@@ -51,6 +57,11 @@ classdef OptimizerProjectedGradient < handle
             obj.hasConverged    = false;
             obj.nIter           = 0;
             obj.createPrimalUpdater(cParams);
+            if isfield(cParams,'fixedVolume')
+                obj.fixedVolume = cParams.fixedVolume;
+            else
+                obj.fixedVolume = [];
+            end
         end
 
         function createPrimalUpdater(obj,cParams)
@@ -68,12 +79,31 @@ classdef OptimizerProjectedGradient < handle
             s.primalUpdater  = obj.primalUpdater;
             obj.monitoring   = MonitoringProjectedGradient(s);
         end
+        % 
+        % function updateMonitoring(obj)
+        %     s.lineSearchTrials = obj.lineSearchTrials;
+        %     s.meritNew         = obj.meritNew;
+        %     obj.monitoring.update(obj.nIter,s);
+        %     obj.monitoring.refresh();
+        % end
 
         function updateMonitoring(obj)
+
             s.lineSearchTrials = obj.lineSearchTrials;
             s.meritNew         = obj.meritNew;
+
             obj.monitoring.update(obj.nIter,s);
             obj.monitoring.refresh();
+
+            
+            currentCost = obj.cost.value;
+
+            obj.costHistory(end+1,1)       = currentCost;
+            obj.complianceHistory(end+1,1) = currentCost;
+
+            
+           
+
         end
 
         function plotVariable(obj)

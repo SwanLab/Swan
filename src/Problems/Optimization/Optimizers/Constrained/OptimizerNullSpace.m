@@ -40,6 +40,14 @@ classdef OptimizerNullSpace < handle
         gifName
         printing
         printName
+        compliance
+        
+    end
+
+    properties (Access = public)
+        costHistory       = [];
+        complianceHistory = [];
+        volumeConstraintHistory = [];
     end
 
     methods (Access = public) 
@@ -47,6 +55,7 @@ classdef OptimizerNullSpace < handle
             obj.init(cParams);
             obj.createMonitoring(cParams);
             obj.prepareFirstIter();
+
         end
 
         function solveProblem(obj)
@@ -94,6 +103,13 @@ classdef OptimizerNullSpace < handle
             obj.dualUpdater     = DualUpdaterNullSpace(cParams);
             obj.createDualVariable();
             obj.initOtherParameters(cParams);
+            if isfield(cParams,'compliance')
+                obj.compliance = cParams.compliance;
+            else
+                obj.compliance = [];
+            end
+
+            
         end
 
         function createDualVariable(obj)
@@ -122,15 +138,43 @@ classdef OptimizerNullSpace < handle
             obj.monitoring   = MonitoringNullSpace(s);
         end
 
+        % function updateMonitoring(obj)
+        %     s.etaMax           = obj.etaMax;
+        %     s.lineSearchTrials = obj.lineSearchTrials;
+        %     s.eta              = obj.eta;
+        %     s.lG               = obj.lG;
+        %     s.lJ               = obj.lJ;
+        %     s.meritNew         = obj.meritNew;
+        %     obj.monitoring.update(obj.nIter,s);
+        %     obj.monitoring.refresh();
+        % end
         function updateMonitoring(obj)
+
             s.etaMax           = obj.etaMax;
             s.lineSearchTrials = obj.lineSearchTrials;
             s.eta              = obj.eta;
             s.lG               = obj.lG;
             s.lJ               = obj.lJ;
             s.meritNew         = obj.meritNew;
+
             obj.monitoring.update(obj.nIter,s);
             obj.monitoring.refresh();
+
+            %% Custo atual
+            costValue = obj.cost.value;
+            costValue = costValue(1);
+
+            obj.costHistory(end+1,1) = costValue;
+
+            %% Neste problema, Cost = Compliance
+            obj.complianceHistory(end+1,1) = costValue;
+
+            %% Restricao de volume atual
+            constraintValue = obj.constraint.value;
+            constraintValue = constraintValue(1);
+
+            obj.volumeConstraintHistory(end+1,1) = constraintValue;
+
         end
 
         function plotVariable(obj)
