@@ -1,7 +1,9 @@
 classdef ComplianceFunctional < handle
+
     properties (Access = private)
         value0
     end
+
     properties (Access = private)
         mesh
         filter
@@ -9,18 +11,22 @@ classdef ComplianceFunctional < handle
         C
         dC
     end
+
     methods (Access = public)
         function obj = ComplianceFunctional(cParams)
             obj.init(cParams);
         end
+
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             xD  = x.obtainDomainFunction();
             xR = obj.filterFields(xD);
-            Crho = obj.C(xR{1});
-            dCrho = obj.dC(xR{1});
+            Crho = obj.C(xR);
+            dCrho = obj.dC(xR);
             [J,dJ] = obj.computeComplianceFunctionAndGradient(x,Crho,dCrho);
         end
+
     end
+    
     methods (Access = private)
         function init(obj,cParams)
             obj.mesh       = cParams.mesh;
@@ -32,6 +38,7 @@ classdef ComplianceFunctional < handle
                 obj.value0 = cParams.value0;
             end
         end
+
         function xR = filterFields(obj,x)
             nDesVar = length(x);
             xR      = cell(nDesVar,1);
@@ -39,8 +46,9 @@ classdef ComplianceFunctional < handle
                 xR{i} = obj.filter.compute(x{i},2);
             end
         end
+
         function [J,dJ] = computeComplianceFunctionAndGradient(obj,x,C,dRhoC)
-            dxC{1} = ChainRule.compute(x,dRhoC);
+            dxC    = ChainRule.compute(x,dRhoC);
             [J,dJ] = obj.compliance.computeFunctionAndGradient(C,dxC);
             dJ     = obj.filterFields(dJ);
             if isempty(obj.value0)
@@ -49,17 +57,21 @@ classdef ComplianceFunctional < handle
             J  = obj.computeNonDimensionalValue(J);
             dJ = obj.computeNonDimensionalGradient(dJ);
         end
+
         function x = computeNonDimensionalValue(obj,x)
             refX = obj.value0;
             x    = x/refX;
         end
+
         function dx = computeNonDimensionalGradient(obj,dx)
             refX = obj.value0;
             for i = 1:length(dx)
                 dx{i}.setFValues(dx{i}.fValues/refX);
             end
         end
+
     end
+
     methods (Static, Access = public)
         function title = getTitleToPlot()
             title = 'Compliance';
