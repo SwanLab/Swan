@@ -61,13 +61,15 @@ classdef FemDataContainer < handle
         end
 
         function createMaterial(obj)
-            N      = obj.mesh.ndim;
-            E      = ConstantFunction.create(1,obj.mesh);
-            nu     = ConstantFunction.create(1/3,obj.mesh);
-            mu     = E./(2*(1+nu));  mu = Expand(mu,4);
-            lambda = LameLambda(E,nu,N);  lambda = Expand(lambda,4);
+            N  = obj.mesh.ndim; lam = LameParametersConverter;
+            E  = ConstantFunction.create(1,obj.mesh);
+            nu = ConstantFunction.create(1/3,obj.mesh);
+
+            mu     = lam.computeShearFromYoungAndPoisson(E,nu);  mu = Expand(mu,4);
+            lambda = lam.computeLambdaFromYoungAndPoisson(E,nu,N);  lambda = Expand(lambda,4);
             I      = ConstantFunction.create(eye4D(N),obj.mesh);
             IxI    = ConstantFunction.create(kronEye(N),obj.mesh);
+
             obj.material = 2*mu.*I + lambda.*IxI;
         end
 

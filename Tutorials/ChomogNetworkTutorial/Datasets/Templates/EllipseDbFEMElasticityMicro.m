@@ -62,11 +62,14 @@ classdef EllipseDbFEMElasticityMicro < handle
       end
 
       function createMaterial(obj)
-          N      = obj.mesh.ndim;
-          mu     = obj.young./(2*(1+obj.poisson));  mu = Expand(mu,4);
-          lambda = LameLambda(obj.young,obj.poisson,N);  lambda = Expand(lambda,4);
+          N = obj.mesh.ndim;
+          E = obj.young; nu = obj.poisson; lam = LameParametersConverter;
+
+          mu     = lam.computeShearFromYoungAndPoisson(E,nu);  mu = Expand(mu,4);
+          lambda = lam.computeLambdaFromYoungAndPoisson(E,nu,N);  lambda = Expand(lambda,4);
           I      = ConstantFunction.create(eye4D(N),obj.mesh);
           IxI    = ConstantFunction.create(kronEye(N),obj.mesh);
+
           obj.material = 2*mu.*I + lambda.*IxI;
       end
 

@@ -85,14 +85,16 @@ classdef Tutorial08_ContinuumDamage < handle
         end
 
         function mat = createBaseMaterial(obj)
-            N      = obj.mesh.ndim;
-            E      = ConstantFunction.create(210,obj.mesh);
-            nu     = ConstantFunction.create(0.3,obj.mesh);
-            mu     = E./(2*(1+nu));  mu = Expand(mu,4);
-            lambda = LameLambda(E,nu,N);  lambda = Expand(lambda,4);
+            N  = obj.mesh.ndim; lam = LameParametersConverter;
+            E  = ConstantFunction.create(210,obj.mesh);
+            nu = ConstantFunction.create(0.3,obj.mesh);
+
+            mu     = lam.computeShearFromYoungAndPoisson(E,nu);  mu = Expand(mu,4);
+            lambda = lam.computeLambdaFromYoungAndPoisson(E,nu,N);  lambda = Expand(lambda,4);
             I      = ConstantFunction.create(eye4D(N),obj.mesh);
             IxI    = ConstantFunction.create(kronEye(N),obj.mesh);
-            mat    = 2*mu.*I + lambda.*IxI;
+
+            mat = 2*mu.*I + lambda.*IxI;
         end
 
         function d = createDamagedLaw(obj)
