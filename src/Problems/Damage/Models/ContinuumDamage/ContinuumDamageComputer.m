@@ -71,10 +71,9 @@ classdef ContinuumDamageComputer < handle
         end
 
         function u = computeInitialDisplacement(obj,u,bc)
-            mat = obj.functional.getMaterial();
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
-            s.material = mat.obtainNonDamagedTensor;
+            s.material = obj.functional.getBaseMaterial();
             s.dim = '2D';
             s.boundaryConditions = bc;
             s.solverType = 'REDUCED';

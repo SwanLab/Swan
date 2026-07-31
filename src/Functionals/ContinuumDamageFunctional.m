@@ -3,7 +3,7 @@ classdef ContinuumDamageFunctional < handle
     properties (Access = private)
         mesh
         quadOrder
-        material
+        bMat, sMat, tMat
         test
     end
 
@@ -56,16 +56,8 @@ classdef ContinuumDamageFunctional < handle
             sig = obj.internalEnergy.computeStress(u,r);
         end
 
-        function q = getHardening(obj,r)
-            q = obj.internalEnergy.getHardening(r);
-        end
-
-        function d = getDamage(obj,r)
-            d = obj.internalEnergy.getDamage(r);
-        end
-
-        function mat = getMaterial(obj)
-            mat = obj.material;
+        function mat = getBaseMaterial(obj)
+            mat = obj.bMat;
         end
         
    end
@@ -73,16 +65,20 @@ classdef ContinuumDamageFunctional < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.mesh               = cParams.mesh;
-            obj.quadOrder          = cParams.quadOrder;
-            obj.material           = cParams.material;
-            obj.test               = cParams.test;
+            obj.mesh      = cParams.mesh;
+            obj.quadOrder = cParams.quadOrder;
+            obj.bMat      = cParams.bMat;
+            obj.sMat      = cParams.sFun;
+            obj.tMat      = cParams.tFun;
+            obj.test      = cParams.test;
         end
 
         function createElasticDamage(obj)
             s.mesh      = obj.mesh;
             s.quadOrder = obj.quadOrder;
-            s.material  = obj.material;
+            s.bMat      = obj.bMat;
+            s.sMat      = obj.sMat;
+            s.tMat      = obj.tMat;
             s.test      = obj.test;
             obj.internalEnergy = ContinuumDamageInternalEnergyFunctional(s);
         end
