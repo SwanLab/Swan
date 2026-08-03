@@ -1,6 +1,6 @@
 clc,clear,close all
 % 
-matInfo = load('HorizontalCrackDamage.mat');
+matInfo = load('HorizontalCrack.mat');
 funMat = matInfo.degradationFun.dfun;
 
 % Strain state
