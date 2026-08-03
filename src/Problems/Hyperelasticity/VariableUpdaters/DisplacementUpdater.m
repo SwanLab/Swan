@@ -226,7 +226,8 @@ classdef DisplacementUpdater < handle
                 % 4) PCG + ILU-EIFEM-ILU constant
                 if obj.useConstantPreconditioners
                 
-                    Milu   = obj.getConstantILUpreconditioner(LHS);
+                    
+                    Milu   = obj.getConstantILUpreconditioner(LHS); 
                     Meifem = obj.getConstantEIFEMpreconditioner(bc);
                 
                     LHSfun = @(v) LHS*v;
@@ -273,10 +274,10 @@ classdef DisplacementUpdater < handle
 
             deltaX = results(idx).dx;
 
-            %DEBUG
-            errDirecte = norm(deltaX - deltaX_direct)/norm(deltaX_direct);
-            fprintf('Error vs solver directe: %.6e\n', errDirecte);
-            %
+            % %DEBUG
+            % errDirecte = norm(deltaX - deltaX_direct)/norm(deltaX_direct);
+            % fprintf('Error vs solver directe: %.6e\n', errDirecte);
+            % %
 
             obj.pcgIterHistoryThisStep(end+1) = results(idx).iter;
 
@@ -398,11 +399,11 @@ classdef DisplacementUpdater < handle
             
             s.DirCond = DirCoarse;
 
-            disp('Nodes fixats a la mesh coarse (després Canvi 4):')
-            for i = 1:numel(s.DirCond)
-                nodes = s.DirCond{i}.domain(s.mesh.coord);
-                fprintf('  Dir %d: %d nodes\n', i, sum(nodes));
-            end
+            % disp('Nodes fixats a la mesh coarse (després Canvi 4):')
+            % for i = 1:numel(s.DirCond)
+            %     nodes = s.DirCond{i}.domain(s.mesh.coord);
+            %     fprintf('  Dir %d: %d nodes\n', i, sum(nodes));
+            % end
             % FI CANVI 4
 
             eifem         = EIFEM(s);

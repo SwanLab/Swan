@@ -107,7 +107,7 @@ classdef BoundaryConditionsCreator < handle
             % FI CANVI 5
 
 
-            fprintf('PointLoad: %d dofs, suma forces = %.6e\n', numel(pointload.dofs), sum(pointload.values)); %DEBUG
+            %fprintf('PointLoad: %d dofs, suma forces = %.6e\n', numel(pointload.dofs), sum(pointload.values)); %DEBUG
 
             s.mesh         = obj.mesh;
             s.dirichletFun = [Dir1 Dir2];

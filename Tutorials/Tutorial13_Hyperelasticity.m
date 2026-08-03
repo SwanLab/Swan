@@ -85,8 +85,8 @@ classdef Tutorial13_Hyperelasticity < handle
 
             %
             obj.tolSameNode = 1e-10;
-            %obj.nSubdomains = [15 5];
-            obj.nSubdomains = [2 2];
+            obj.nSubdomains = [15 5];
+            %obj.nSubdomains = [2 2];
         end
 
         function createMesh(obj)
