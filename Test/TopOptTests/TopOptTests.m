@@ -39,9 +39,8 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             x      = obj.createDesignVariable(designVariable,m,geomFunSettings,plotting);
             filtersCost = obj.createFilters(filterCostType,m,filterCostSettings);
             filtersConstraint = obj.createFilters(filterConstraintType,m,filterConstraintSettings);
-            mI     = obj.createMaterialInterpolator(materialType,method,m,dim);
-            mat    = obj.createMaterial(x,mI,m);
-            fem    = obj.createElasticProblem(m,mat,ptype,dim,bc);
+            [C,dC] = obj.createMaterial(method,m);
+            fem    = obj.createElasticProblem(m,ptype,dim,bc);
             Msmooth = obj.createMassMatrix(m,x);
             if exist('micro')
                 s = micro;
@@ -49,8 +48,8 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
                 s = [];
             end
             base = obj.createChiOmega(m);
-            sFCost = obj.createCost(cost,weights,m,fem,filtersCost,mat,Msmooth,filename,s,base);
-            sFConstraint = obj.createConstraint(constraint,target,m,fem,filtersConstraint,mat,Msmooth,base);
+            sFCost = obj.createCost(cost,weights,m,fem,filtersCost,C,dC,Msmooth,filename,s,base);
+            sFConstraint = obj.createConstraint(constraint,target,m,fem,filtersConstraint,C,dC,Msmooth,base);
             l.nConstraints = length(constraint);
             lam    = DualVariable(l);
             primal = optimizerUnconstrained;
@@ -93,48 +92,40 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             end
         end
 
-        function mI = createMaterialInterpolator(materialType,method,mesh,dim)
+        function [C,dC] = createMaterial(method,m)
+            N = m.ndim;
             E1   = 1;
             E0   = 1e-3;
             nu1  = 1/3;
             nu0  = 1/3;
-            ndim = mesh.ndim;
-
-            matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
-            matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
-
-            matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
-            matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
-
-            s.typeOfMaterial = materialType;
-            s.interpolation  = method;
-            s.dim            = dim;
-            s.matA = matA;
-            s.matB = matB;
-
-            mI = MaterialInterpolator.create(s);
-        end
-
-        function m = createMaterial(x,mI,m)
-            switch class(x)
-                case 'DensityAndBound'
-                    f = x.density.obtainDomainFunction();
-                otherwise
-                    f = x.obtainDomainFunction();
+            muA    = E0./(2*(1+nu0));
+            kappaA = E0./(N*(1-(N-1)*nu0));
+            muB    = E1./(2*(1+nu1));
+            kappaB = E1./(N*(1-(N-1)*nu1));
+            switch method
+                case 'SIMP_P3'
+                    mu     = @(rho) SimpP3Interpolator.computeMu(muA,muB,rho); mu = @(rho) Expand(mu(rho),4);
+                    kappa  = @(rho) SimpP3Interpolator.computeKappa(kappaA,kappaB,rho); kappa = @(rho) Expand(kappa(rho),4);
+                    dmu    = @(rho) SimpP3Interpolator.computeMuDerivative(muA,muB,rho); dmu = @(rho) Expand(dmu(rho),4);
+                    dkappa = @(rho) SimpP3Interpolator.computeKappaDerivative(kappaA,kappaB,rho); dkappa = @(rho) Expand(dkappa(rho),4);
+                case 'SIMPALL'
+                    mu     = @(rho) SimpAllInterpolator.computeMu(muA,muB,kappaA,kappaB,rho,N); mu = @(rho) Expand(mu(rho),4);
+                    kappa  = @(rho) SimpAllInterpolator.computeKappa(muA,muB,kappaA,kappaB,rho,N); kappa = @(rho) Expand(kappa(rho),4);
+                    dmu    = @(rho) SimpAllInterpolator.computeMuDerivative(muA,muB,kappaA,kappaB,rho,N); dmu = @(rho) Expand(dmu(rho),4);
+                    dkappa = @(rho) SimpAllInterpolator.computeKappaDerivative(muA,muB,kappaA,kappaB,rho,N); dkappa = @(rho) Expand(dkappa(rho),4);
             end
-            f = f{1}.project('P1');
-            s.type                 = 'DensityBased';
-            s.density              = f;
-            s.materialInterpolator = mI;
-            s.dim                  = '2D';
-            s.mesh                 = m;
-            m = Material.create(s);
+            lambda  = @(rho) kappa(rho) - (2/N)*mu(rho);
+            dlambda = @(rho) dkappa(rho) - (2/N)*dmu(rho);
+            I       = ConstantFunction.create(eye4D(N),m);
+            IxI     = ConstantFunction.create(kronEye(N),m);
+            C       = @(rho) 2*mu(rho{1}).*I + lambda(rho{1}).*IxI;
+            dC      = @(rho) {2*dmu(rho{1}).*I + dlambda(rho{1}).*IxI};
         end
 
-        function fem = createElasticProblem(mesh,mat,scale,dim,bc)
+        function fem = createElasticProblem(mesh,scale,dim,bc)
             s.mesh               = mesh;
             s.scale              = scale;
-            s.material           = mat;
+            s.material           = [];
             s.dim                = dim;
             s.boundaryConditions = bc;
             s.interpolationType  = 'LINEAR';
@@ -169,13 +160,14 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             base.compute(levelSet);
         end
 
-        function sFCost = createCost(cost,weights,mesh,fem,filter,mat,Msmooth,filename,s,base)
+        function sFCost = createCost(cost,weights,mesh,fem,filter,C,dC,Msmooth,filename,s,base)
             for i = 1:length(cost)
                 s.type            = cost{i};
                 s.mesh            = mesh;
                 s.physicalProblem = fem;
                 s.filter          = filter{i};
-                s.material        = mat;
+                s.C               = C;
+                s.dC              = dC;
                 s.filename        = filename;
                 s.base            = base;
                 sF{i}             = ShapeFunctional.create(s);
@@ -186,7 +178,7 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
             sFCost            = Cost(ss);
         end
 
-        function sFConstraint = createConstraint(constraint,target,mesh,fem,filter,mat,Msmooth,base)
+        function sFConstraint = createConstraint(constraint,target,mesh,fem,filter,C,dC,Msmooth,base)
             k = 1;
             for i = 1:length(constraint)
                 switch class(filter{k})
@@ -202,7 +194,8 @@ classdef TopOptTests < handle & matlab.unittest.TestCase
                 s.target          = target(i);
                 s.mesh            = mesh;
                 s.physicalProblem = fem;
-                s.material        = mat;
+                s.C               = C;
+                s.dC              = dC;
                 s.gradientTest    = LagrangianFunction.create(mesh,1,'P1');
                 s.base            = base;
                 sF{i}             = ShapeFunctional.create(s);

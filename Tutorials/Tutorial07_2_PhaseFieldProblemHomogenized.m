@@ -1,4 +1,4 @@
-classdef Tutorial07_1_PhaseFieldCase < handle
+classdef Tutorial07_2_PhaseFieldProblemHomogenized < handle
 
     properties (Access = public)
         initialGuess
@@ -8,14 +8,14 @@ classdef Tutorial07_1_PhaseFieldCase < handle
     properties (Access = private)
         mesh
         boundaryConditions
-        material
+        mat
         dissipation
         functional
     end
 
     methods (Access = public)
 
-        function obj = Tutorial07_1_PhaseFieldCase()
+        function obj = Tutorial07_2_PhaseFieldProblemHomogenized()
             obj.init()
             obj.defineCase();
             obj.createInitialGuess();
@@ -63,33 +63,28 @@ classdef Tutorial07_1_PhaseFieldCase < handle
         end
 
         function createPhaseFieldFunctional(obj)
+            s.energySplit = false;
+            s.C  = obj.mat.C;
+            s.dC = obj.mat.dC;
+            s.d2C = obj.mat.d2C;
             s.mesh          = obj.mesh;
-            s.material      = obj.material;
             s.dissipation   = obj.dissipation;
             s.l0            = 0.1;
             s.quadOrder     = 2;
             s.testSpace.u   = obj.initialGuess.u;
             s.testSpace.phi = obj.initialGuess.phi.fun;
-            s.energySplit   = isa(obj.material,'MaterialPhaseFieldAnalyticSplit');
             obj.functional  = PhaseFieldFunctional(s);
         end
 
         function createMaterialPhaseField(obj)
-            E  = 210;
-            nu = 0.3;
+            s.fileName = 'CirclePerimeter';
+            s.mesh = obj.mesh;
+            s.young = 210;
+            hm = HomogenizedMaterialsReader(s);
 
-            s.type  = 'PhaseField';
-            s.mesh  = obj.mesh;
-            s.PFtype = 'Analytic';
-            s.fileName = 'CirclePerimeter'; %Only for 'Homogenized' PFtype
-
-            s.interp.interpolation = 'PhaseFieldDegradation';
-            s.interp.degFunType    = 'AT';
-            s.interp.ndim    = obj.mesh.ndim;
-            s.interp.young   = ConstantFunction.create(E,obj.mesh);
-            s.interp.poisson = ConstantFunction.create(nu,obj.mesh);
-
-            obj.material = Material.create(s);
+            obj.mat.C = @(phi) hm.obtainTensor(phi);
+            obj.mat.dC = @(phi) hm.obtainTensorDerivative(phi);
+            obj.mat.d2C = @(phi) hm.obtainTensorSecondDerivative(phi);     
         end
 
         function createDissipationInterpolation(obj)

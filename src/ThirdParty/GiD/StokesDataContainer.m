@@ -57,11 +57,7 @@ classdef StokesDataContainer < handle
         end
 
         function createMaterial(obj)
-            s.type = 'STOKES';
-            s.nelem = obj.nelem;
-            mat = Material.create(s);
-            mat.compute();
-            obj.material = mat;
+            obj.material = ConstantFunction.create(eye(4),obj.mesh);
         end
 
     end

@@ -12,7 +12,8 @@ classdef NonSelfAdjointComplianceFunctional < handle
     properties (Access = private)
         mesh
         filter
-        material
+        C
+        dC
         stateProblem
     end
 
@@ -24,15 +25,16 @@ classdef NonSelfAdjointComplianceFunctional < handle
         end
 
         function [J,dJ] = computeFunctionAndGradient(obj,x)
-            xD     = x.obtainDomainFunction();
-            xR     = obj.filterDesignVariable(xD);
-            [C,dC] = obj.computeTensorFunctionAndGradient(xR);
-            uS     = obj.computeStateVariable(C);
-            uA     = obj.computeAdjointVariable(C);
-            J      = obj.computeFunctionValue(C,uS,uA);
-            dJ     = obj.computeGradient(dC{1},uS,uA);
-            dJ     = {obj.filter.compute(dJ,2)};
-            dJVal  = dJ{1}.fValues/obj.value0;
+            xD    = x.obtainDomainFunction();
+            xR    = obj.filterDesignVariable(xD);
+            CxR   = obj.C(xR);
+            dCxR  = obj.dC(xR);
+            uS    = obj.computeStateVariable(CxR);
+            uA    = obj.computeAdjointVariable(CxR);
+            J     = obj.computeFunctionValue(CxR,uS,uA);
+            dJ    = obj.computeGradient(dCxR{1},uS,uA);
+            dJ    = {obj.filter.compute(dJ,2)};
+            dJVal = dJ{1}.fValues/obj.value0;
             dJ{1}.setFValues(dJVal);
         end
     end
@@ -41,7 +43,8 @@ classdef NonSelfAdjointComplianceFunctional < handle
         function init(obj,cParams)
             obj.mesh         = cParams.mesh;
             obj.filter       = cParams.filter;
-            obj.material     = cParams.material;
+            obj.C            = cParams.C;
+            obj.dC           = cParams.dC;
             obj.stateProblem = cParams.stateProblem;
         end
 
@@ -56,12 +59,6 @@ classdef NonSelfAdjointComplianceFunctional < handle
             for i = 1:nDesVar
                 xR{i} = obj.filter.compute(x{i},2);
             end
-        end
-
-        function [C,dC] = computeTensorFunctionAndGradient(obj,xR)
-            obj.material.setDesignVariable(xR);
-            C  = obj.material.obtainTensor();
-            dC = obj.material.obtainTensorDerivative();
         end
 
         function u = computeStateVariable(obj,C)

@@ -25,17 +25,17 @@ classdef FemDataContainer < handle
         
         function obj = FemDataContainer(varargin)
             obj.fileName = varargin{1}.fileName;
-            obj.init(varargin{1});
+            obj.init();
         end
         
     end
     
     methods (Access = private)
         
-        function init(obj,cParams)
+        function init(obj)
             if ~isempty(obj.fileName)
                 obj.readFemInputFile();
-                obj.createMaterial(cParams);
+                obj.createMaterial();
                 if strcmp(obj.scale, 'MICRO')
                     obj.solverMode = 'FLUC';
                 end
@@ -60,24 +60,17 @@ classdef FemDataContainer < handle
             obj.boundaryConditions = BoundaryConditions(s);
         end
 
-        function createMaterial(obj,cParams)
-            E1        = 1;
-            nu1       = 1/3;
-            E         = ConstantFunction.create(E1,obj.mesh);
-            nu        = ConstantFunction.create(nu1,obj.mesh);
-            s.ptype   = obj.type;
-            s.pdim    = obj.dim;
-            s.nelem   = obj.nelem;
-            s.mesh    = obj.mesh;
-            s.young   = E;
-            s.poisson = nu;
-            if ~isfield(cParams,'type')
-                cParams.type = 'ISOTROPIC';
-            end
-            s.type = cParams.type;
-            s.ndim = obj.mesh.ndim;
-            mat = Material.create(s);
-            obj.material = mat;
+        function createMaterial(obj)
+            N  = obj.mesh.ndim; lam = LameParametersConverter;
+            E  = ConstantFunction.create(1,obj.mesh);
+            nu = ConstantFunction.create(1/3,obj.mesh);
+
+            mu     = lam.computeShearFromYoungAndPoisson(E,nu);  mu = Expand(mu,4);
+            lambda = lam.computeLambdaFromYoungAndPoisson(E,nu,N);  lambda = Expand(lambda,4);
+            I      = ConstantFunction.create(eye4D(N),obj.mesh);
+            IxI    = ConstantFunction.create(kronEye(N),obj.mesh);
+
+            obj.material = 2*mu.*I + lambda.*IxI;
         end
 
     end

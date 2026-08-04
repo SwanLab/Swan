@@ -116,7 +116,7 @@ classdef PhaseFieldComputer < handle
             if ismember(obj.boundaryConditions.type, ["ForceTractionY", "ForceTractionYClamped"])
                 uBC = norm(mean(u.fValues(nodes(isInUp),2)));
                 totReact = obj.boundaryConditions.bcValues(step);
-            elseif ismember(obj.boundaryConditions.type, ["DisplacementTractionY","DisplacementTractionYClamped"]) 
+            elseif ismember(obj.boundaryConditions.type, ["DisplacementTractionY","DisplacementTractionYClamped","DisplacementHidrostatic"]) 
                 totReact = norm(sum(F(2*nodes(isInUp))));
                 uBC = obj.boundaryConditions.bcValues(step);
             end

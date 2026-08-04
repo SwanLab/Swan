@@ -1,4 +1,4 @@
-classdef TopOpt2DLevelSetConnectivityDilation< handle
+classdef Tutorial05_14_TopOpt2DLevelSetConnectivity< handle
 
     properties (Access = private)
         mesh
@@ -7,7 +7,8 @@ classdef TopOpt2DLevelSetConnectivityDilation< handle
         filterConnect
         filterAdjointConnect
         designVariable
-        materialInterpolator
+        C
+        dC
         conductivityInterpolator
         massInterpolator
         physicalProblem
@@ -20,17 +21,18 @@ classdef TopOpt2DLevelSetConnectivityDilation< handle
         minimumEigenValue
         perimeter
         primalUpdater
+        E0; nu0; E1; nu1
     end 
 
     methods (Access = public)
-        function obj = TopOpt2DLevelSetConnectivityDilation()
+        function obj = Tutorial05_14_TopOpt2DLevelSetConnectivity()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilterPerimeter();
             obj.createFilterCompliance();
             obj.createFilterConnectivity();
-            obj.createMaterialInterpolator();
+            obj.createMaterial();
             obj.createElasticProblem();
             obj.createComplianceFromConstitutive();
             obj.createCompliance();
@@ -51,10 +53,14 @@ classdef TopOpt2DLevelSetConnectivityDilation< handle
 
         function init(obj)
             close all;
+            obj.E0  = 1e-5;
+            obj.nu0 = 1/3;
+            obj.E1  = 1;
+            obj.nu1 = 1/3;
         end
 
         function createMesh(obj)
-            obj.mesh = TriangleMesh(6,1,180,30);
+            obj.mesh = TriangleMesh(2,1,100,50);
         end
 
         function createDesignVariable(obj)
@@ -86,68 +92,62 @@ classdef TopOpt2DLevelSetConnectivityDilation< handle
         end
  
         function createFilterConnectivity(obj)
-            s.filterType = 'FilterAndProject';
+            s.filterType = 'LUMP';
             s.mesh       = obj.mesh;
             s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.filterStep = 'PDE';
-            s.beta       = 4.0;
-            s.eta        = 0.2;
-            obj.filterConnect = Filter.create(s);
-
-            s.filterType = 'FilterAdjointAndProject';   
-            s.mesh       = obj.mesh;
-            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.filterStep = 'PDE';
-            s.beta       = 4.0;
-            s.eta        = 0.2;
-            obj.filterAdjointConnect = Filter.create(s);
+            f            = Filter.create(s);
+            obj.filterConnect = f;
+            obj.filterAdjointConnect =[];
         end
 
         function createConductivityInterpolator(obj) 
-            s.interpolation  = 'SIMPAllThermal';
             s.f0   = 1e-3;                                             
             s.f1   = 1;  
             s.dim  = '2D';
-            a = MaterialInterpolator.create(s);
+            a = SimpAllThermalInterpolation(s);
             obj.conductivityInterpolator = a;            
         end 
 
         function createMassInterpolator(obj)
-            s.interpolation  = 'SIMPThermal';                              
             s.f0   = 1e-3;
             s.f1   = 1;
             s.pExp = 1;
-            a = MaterialInterpolator.create(s);
+            a = SIMPThermalInterpolation(s);
             obj.massInterpolator = a;            
         end      
 
-        function createMaterialInterpolator(obj)
-            E0   = 1e-5;
-            nu0  = 1/3;
-            E1   = 1;
-            nu1  = 1/3;
-            ndim = 2;
+        function createMaterial(obj)
+            N = obj.mesh.ndim;
+            muA    = obj.computeMu(obj.E0,obj.nu0);
+            kappaA = obj.computeKappa(obj.E0,obj.nu0,N);
+            muB    = obj.computeMu(obj.E1,obj.nu1);
+            kappaB = obj.computeKappa(obj.E1,obj.nu1,N);
 
-            matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
-            matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
+            mu    = @(rho) SimpAllInterpolator.computeMu(muA,muB,kappaA,kappaB,rho,N); mu = @(rho) Expand(mu(rho),4);
+            kappa  = @(rho) SimpAllInterpolator.computeKappa(muA,muB,kappaA,kappaB,rho,N); kappa = @(rho) Expand(kappa(rho),4);
+            lambda = @(rho) kappa(rho) - (2/N)*mu(rho);
+            I      = ConstantFunction.create(eye4D(N),obj.mesh);
+            IxI    = ConstantFunction.create(kronEye(N),obj.mesh);
+            obj.C  = @(rho) 2*mu(rho{1}).*I + lambda(rho{1}).*IxI;
 
-            matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
-            matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
- 
-            s.typeOfMaterial = 'ISOTROPIC';
-            s.interpolation  = 'SIMPALL';
-            s.dim            = '2D';
-            s.matA = matA;
-            s.matB = matB;
+            dmu     = @(rho) SimpAllInterpolator.computeMuDerivative(muA,muB,kappaA,kappaB,rho,N); dmu = @(rho) Expand(dmu(rho),4);
+            dkappa  = @(rho) SimpAllInterpolator.computeKappaDerivative(muA,muB,kappaA,kappaB,rho,N); dkappa = @(rho) Expand(dkappa(rho),4);
+            dlambda = @(rho) dkappa(rho) - (2/N)*dmu(rho);
+            obj.dC  = @(rho) {2*dmu(rho{1}).*I + dlambda(rho{1}).*IxI};
+        end
 
-            m = MaterialInterpolator.create(s);
-            obj.materialInterpolator = m;
+        function mu = computeMu(obj,E,nu)
+            mu = E./(2*(1+nu));
+        end
+
+        function kappa = computeKappa(obj,E,nu,N)
+            kappa = E./(N*(1-(N-1)*nu));
         end
 
         function createElasticProblem(obj)
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
-            s.material = obj.createMaterial();
+            s.material = [];
             s.dim = '2D';
             s.boundaryConditions = obj.createElasticBoundaryConditions();
             s.interpolationType = 'LINEAR';
@@ -168,7 +168,8 @@ classdef TopOpt2DLevelSetConnectivityDilation< handle
             s.mesh                       = obj.mesh;
             s.filter                     = obj.filterComp;
             s.complainceFromConstitutive = obj.createComplianceFromConstitutive();
-            s.material                   = obj.createMaterial();
+            s.C                          = obj.C;
+            s.dC                         = obj.dC;
             c = ComplianceFunctional(s);
             obj.compliance = c;
         end
@@ -211,7 +212,7 @@ classdef TopOpt2DLevelSetConnectivityDilation< handle
             s.mesh        = obj.mesh;
             s.filter      = obj.filterPerimeter;
             s.epsilon     = obj.mesh.computeMeanCellSize();
-            s.value0      = 14;
+            s.value0      = 6;
             s.uMesh       = obj.createBaseDomain();
             P             = PerimeterFunctional(s);
             obj.perimeter = P;
@@ -220,7 +221,7 @@ classdef TopOpt2DLevelSetConnectivityDilation< handle
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
             s.shapeFunctions{2} = obj.perimeter;
-            s.weights           = [1.0,0.1]; 
+            s.weights           = [1.0,0.5]; 
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -244,51 +245,39 @@ classdef TopOpt2DLevelSetConnectivityDilation< handle
         end
 
         function createOptimizer(obj,max)
-            s.monitoring       = true;
-            s.cost             = obj.cost;
-            s.constraint       = obj.constraint;
-            s.designVariable   = obj.designVariable;
-            s.maxIter           = 1000;
-            s.tolerance         = 1e-3;
+            s.monitoring     = true;
+            s.cost           = obj.cost;
+            s.constraint     = obj.constraint;
+            s.designVariable = obj.designVariable;
+            s.maxIter        = 3;
+            s.tolerance      = 1e-8;
             s.constraintCase{1} = 'EQUALITY';
-            s.constraintCase{2} = 'INEQUALITY';      
-            s.primalUpdater     = obj.primalUpdater;
-            s.etaNorm           = 0.02; 
-            s.etaNormMin        = 0.001;
-            s.gJFlowRatio       = 3.0; 
-            s.etaMax            = 1.0; 
-            s.etaMaxMin         = 0.02; 
-            s.gif            = true;
-            s.gifName        = 'TutorialConnectivity';
-            s.printing       = true;
-            s.printName      = 'TutorialConnectivity';
+            s.constraintCase{2} = 'INEQUALITY';
+            s.primalUpdater  = obj.primalUpdater;
+            s.delta          = 0.02;
+            s.deltaMin       = 0.02;
+            s.etaStar        = 0.2;
+            s.etaMax0        = 1;
+            s.etaMaxMin      = 0.01;
+            s.gif            = false;
+            s.gifName        = 'Tutorial05_3';
+            s.printing       = false;
+            s.printName      = 'Tutorial05_3';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
         end
 
-        function m = createMaterial(obj)
-            x = obj.designVariable;
-            f = x.obtainDomainFunction();
-            f = obj.filterComp.compute(f{1},1);            
-            s.type                 = 'DensityBased';
-            s.density              = f;
-            s.materialInterpolator = obj.materialInterpolator;
-            s.dim                  = '2D';
-            s.mesh                 = obj.mesh;
-            m = Material.create(s);
-        end
-
         function bc = createElasticBoundaryConditions(obj)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
-            isDir   = @(coor)  abs(coor(:,2))==0.0 & (abs(coor(:,1))>= 0.95*xMax | abs(coor(:,1))<= 0.05*xMax);
-            isForce = @(coor)  (abs(coor(:,2))==yMax & abs(coor(:,1))>=0.45*xMax & abs(coor(:,1))<=0.55*xMax);
-    
+            isDir   = @(coor)  abs(coor(:,1))==0;
+            isForce = @(coor)  (abs(coor(:,1))==xMax & abs(coor(:,2))>=0.4*yMax & abs(coor(:,2))<=0.6*yMax);
+
             sDir{1}.domain    = @(coor) isDir(coor);
             sDir{1}.direction = [1,2];
             sDir{1}.value     = 0;
-    
+
             sPL{1}.domain    = @(coor) isForce(coor);
             sPL{1}.direction = 2;
             sPL{1}.value     = -1;

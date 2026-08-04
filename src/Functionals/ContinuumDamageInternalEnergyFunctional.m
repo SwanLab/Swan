@@ -1,14 +1,14 @@
 classdef ContinuumDamageInternalEnergyFunctional < handle
 
     properties (Access = private)
-        material
+        bMat, sMat, tMat
         mesh
         quadOrder
+        test
     end
 
     properties (Access = private)
         RHS
-        test
     end
 
     methods (Access = public)
@@ -18,7 +18,7 @@ classdef ContinuumDamageInternalEnergyFunctional < handle
         end
 
         function sig = computeStress(obj,u,r)
-            C   = obj.material.obtainTensorSecant(r);
+            C   = obj.sMat(r);
             eps = SymGrad(u);
             sig = DDP(eps,C);
         end
@@ -42,17 +42,9 @@ classdef ContinuumDamageInternalEnergyFunctional < handle
         end
 
         function tau = computeTauEpsilon(obj,u)
-            C = obj.material.obtainNonDamagedTensor();
-            epsi = SymGrad(u);
-            tau = sqrt(DDP(DDP(epsi,C),epsi));
-        end
-
-        function qFun = getHardening(obj,r)
-            qFun = obj.material.getHardening(r);
-        end
-
-        function d = getDamage(obj,r)
-            d = obj.material.getDamage(r);
+            C   = obj.bMat;
+            eps = SymGrad(u);
+            tau = sqrt(DDP(DDP(eps,C),eps));
         end
 
     end
@@ -62,7 +54,9 @@ classdef ContinuumDamageInternalEnergyFunctional < handle
         function init(obj,cParams)
             obj.mesh      = cParams.mesh;
             obj.quadOrder = cParams.quadOrder;
-            obj.material  = cParams.material;
+            obj.bMat      = cParams.bMat;
+            obj.sMat      = cParams.sMat;
+            obj.tMat      = cParams.tMat;
             obj.test      = cParams.test;
         end
 
@@ -71,12 +65,12 @@ classdef ContinuumDamageInternalEnergyFunctional < handle
         end
 
         function sec = computeDerivativeResidualSecant(obj,r)
-            mat = obj.material.obtainTensorSecant(r);
+            mat = obj.sMat(r);
             sec = obj.computeLHS(mat);
         end
         
         function tan = computeDerivativeResidualTangent(obj,u,r) 
-            mat = obj.material.obtainTensorTangent(u,r);
+            mat = obj.tMat(u,r);
             tan = obj.computeLHS(mat);
         end
 

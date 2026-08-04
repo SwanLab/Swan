@@ -9,7 +9,8 @@ classdef ComplianceWithBoundConstraint < handle
         filterDesignVariable
         filterGradient
         compliance
-        material
+        C
+        dC
     end
 
     methods (Access = public)
@@ -21,8 +22,7 @@ classdef ComplianceWithBoundConstraint < handle
             xD = x.density.obtainDomainFunction();
             xR = obj.filterDesignVariable.compute(xD{1},2);
             obj.filterGradient.updateFilteredField(xR);
-            obj.material.setDesignVariable({xR});
-            [Jc,dJc]   = obj.computeComplianceFunctionAndGradient();
+            [Jc,dJc] = obj.computeComplianceFunctionAndGradient(xR);
             if isempty(obj.value0Compliance)
                 obj.value0Compliance = Jc;
             end
@@ -37,14 +37,15 @@ classdef ComplianceWithBoundConstraint < handle
             obj.mesh                 = cParams.mesh;
             obj.filterDesignVariable = cParams.filterDesignVariable;
             obj.filterGradient       = cParams.filterGradient;
-            obj.material             = cParams.material;
+            obj.C                    = cParams.C;
+            obj.dC                   = cParams.dC;
             obj.compliance           = cParams.complainceFromConstitutive;
         end
 
-        function [J,dJ] = computeComplianceFunctionAndGradient(obj)
-            C      = obj.material.obtainTensor();
-            dC     = obj.material.obtainTensorDerivative();
-            [J,dJ] = obj.compliance.computeFunctionAndGradient(C,dC);
+        function [J,dJ] = computeComplianceFunctionAndGradient(obj,xR)
+            CxR    = obj.C({xR});
+            dCxR   = obj.dC({xR});
+            [J,dJ] = obj.compliance.computeFunctionAndGradient(CxR,dCxR);
             dJ     = obj.filterGradient.compute(dJ{1},2);
         end
     end
