@@ -56,7 +56,7 @@ classdef PhaseFieldInternalEnergySplitFunctional < handle
         end
 
         function F = computeEnergyBulk(obj,u,phi,quadOrder)
-            k       = obj.k(phi.fun);
+            k       = obj.k(phi.fun,u);
             bulkFun = VolumetricElasticEnergyDensity(u,k);
             int = Integrator.create('Function',obj.mesh,quadOrder);
             F   = int.compute(bulkFun);            
@@ -71,7 +71,7 @@ classdef PhaseFieldInternalEnergySplitFunctional < handle
 
 
         function dE = computeVolumetricEnergyDisplacementGradient(obj,u,phi,quadOrder)
-            Cbulk    = obj.obtainTensorVolumetric(phi);
+            Cbulk    = obj.obtainTensorVolumetric(phi,u);
             sigmaVol = DDP(Cbulk,SymGrad(u));
             dE  = obj.computeShapeSymmetricDerivativeIntegralWithField(sigmaVol,quadOrder);
         end
@@ -88,7 +88,7 @@ classdef PhaseFieldInternalEnergySplitFunctional < handle
 
 
         function dE = computeVolumetricEnergyDamageGradient(obj,u,phi,quadOrder)
-            dk    = obj.dk(phi.fun);
+            dk    = obj.dk(phi.fun,u);
             deVol = VolumetricElasticEnergyDensity(u,dk);
             dE    = IntegrateRHS(@(v) DP(v,deVol),obj.testPhi,obj.mesh,'Domain',quadOrder);
         end
@@ -100,7 +100,7 @@ classdef PhaseFieldInternalEnergySplitFunctional < handle
         end        
 
         function ddE = computeVolumetricEnergyDisplacementHessian(obj,u,phi,quadOrder)
-            Cbulk = obj.obtainTensorVolumetric(phi);
+            Cbulk = obj.obtainTensorVolumetric(phi,u);
             ddE   = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(Cbulk,SymGrad(u))),obj.testU,obj.testU,obj.mesh,'Domain',quadOrder);
         end
 
@@ -110,14 +110,14 @@ classdef PhaseFieldInternalEnergySplitFunctional < handle
         end        
 
         function ddE = computeVolumetricEnergyDamageHessian(obj,u,phi,quadOrder)
-            ddk    = obj.d2k(phi.fun);
-            ddeVol = VolumetricElasticEnergyDensity(u,ddk);
+            d2k    = obj.d2k(phi.fun,u);
+            ddeVol = VolumetricElasticEnergyDensity(u,d2k);
             ddE    = obj.computeMassWithFunction(ddeVol,quadOrder);
         end
 
         function ddE = computeDeviatoricEnergyDamageHessian(obj,u,phi,quadOrder)
-            ddmu   = obj.d2mu(phi.fun);
-            ddeDev = DeviatoricElasticEnergyDensity(u,ddmu);
+            d2mu   = obj.d2mu(phi.fun);
+            ddeDev = DeviatoricElasticEnergyDensity(u,d2mu);
             ddE    = obj.computeMassWithFunction(ddeDev,quadOrder);
         end
 
@@ -125,9 +125,9 @@ classdef PhaseFieldInternalEnergySplitFunctional < handle
             Mf = IntegrateLHS(@(u,v) f.*DP(v,u),obj.testPhi,obj.testPhi,obj.mesh,'Domain',quadOrder);
         end
 
-        function V = obtainTensorVolumetric(obj,phi)
+        function V = obtainTensorVolumetric(obj,phi,u)
             N     = obj.mesh.ndim;
-            kappa = Expand(obj.k(phi.fun),4);
+            kappa = Expand(obj.k(phi.fun,u),4);
             IxI   = ConstantFunction.create(kronEye(N),obj.mesh);
             V     = kappa.*IxI;
         end

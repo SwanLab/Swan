@@ -1,4 +1,4 @@
-classdef PhaseFieldInterpolators < handle
+classdef PhaseFieldDegradationInterpolator < handle
 
     methods (Static, Access = public)
 
