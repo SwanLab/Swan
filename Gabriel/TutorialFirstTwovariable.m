@@ -13,6 +13,8 @@ classdef TutorialFirstTwovariable < handle
         constraint
         optimizer
         baseDomain
+        initialB
+        initialBCoord
     end
     properties (Access = public)
         designVariable
@@ -71,7 +73,19 @@ classdef TutorialFirstTwovariable < handle
             meshData.nnodes = obj.mesh.nnodes;
         end
 
-        function obj = TutorialFirstTwovariable()
+        function obj = TutorialFirstTwovariable(bInitial,coordInitial)
+
+            if nargin < 1
+                bInitial = [];
+            end
+
+            if nargin < 2
+                coordInitial = [];
+            end
+
+            obj.initialB = bInitial;
+            obj.initialBCoord = coordInitial;
+
             obj.init();
             obj.createMesh();
             obj.createDesignVariable();
@@ -84,9 +98,12 @@ classdef TutorialFirstTwovariable < handle
             obj.createCost();
             obj.createConstraint();
             obj.createOptimizer();
-            obj.bSmooth   = obj.filterPDE.compute(obj.designVariable.funB,   3);
-            obj.rhoSmooth = obj.filterLUMP.compute(obj.designVariable.funRho, 2);
-           
+
+            obj.bSmooth = obj.filterPDE.compute( ...
+                obj.designVariable.funB,3);
+
+            obj.rhoSmooth = obj.filterLUMP.compute( ...
+                obj.designVariable.funRho,2);
         end
 
     end
@@ -98,27 +115,103 @@ classdef TutorialFirstTwovariable < handle
         end
 
         function createMesh(obj)
-            obj.mesh = TriangleMesh(2, 1, 200, 180);
+            obj.mesh = TriangleMesh(2, 1, 120, 100);
         end
 
         function createDesignVariable(obj)
-            s_b.fHandle = @(x) zeros(size(x(1,:,:)));
-            s_b.ndimf   = 1;
-            s_b.mesh    = obj.mesh;
+
+            %--------------------------------------------------------------
+            % Campo inicial de b
+            %--------------------------------------------------------------
+            if isempty(obj.initialB)
+
+                s_b.fHandle = @(x) zeros(size(x(1,:,:)));
+
+                fprintf('\nInitial guess de b uniforme: b0 = 0.\n');
+
+            else
+
+                bInitial     = obj.initialB(:);
+                coordInitial = obj.initialBCoord;
+
+                if isempty(coordInitial)
+                    error(['As coordenadas da malha do campo inicial de b ', ...
+                        'tambem precisam ser fornecidas.']);
+                end
+
+                if size(coordInitial,1) ~= numel(bInitial)
+                    error(['O numero de coordenadas (%d) nao coincide com ', ...
+                        'o numero de valores de b (%d).'], ...
+                        size(coordInitial,1),numel(bInitial));
+                end
+
+                if size(coordInitial,2) ~= 2
+                    error('coordInitial deve possuir duas colunas: x e y.');
+                end
+
+                if any(~isfinite(bInitial))
+                    error('O campo inicial de b possui NaN ou Inf.');
+                end
+
+                if any(bInitial < -0.8) || any(bInitial > 0.8)
+                    error(['O campo inicial de b esta fora dos limites ', ...
+                        '[-0.8,0.8]. Min = %.6f, Max = %.6f.'], ...
+                        min(bInitial),max(bInitial));
+                end
+
+                % Verifica se a malha é exatamente a mesma
+                sameSize = size(coordInitial,1) == obj.mesh.nnodes;
+
+                if sameSize
+                    maxCoordDifference = max(abs( ...
+                        coordInitial(:)-obj.mesh.coord(:)));
+                else
+                    maxCoordDifference = Inf;
+                end
+
+                fprintf('\nInitial guess de b carregado.\n');
+                fprintf('Numero de valores = %d\n',numel(bInitial));
+                fprintf('b inicial min/max = %.6f  %.6f\n', ...
+                    min(bInitial),max(bInitial));
+                fprintf('Diferenca maxima entre malhas = %.6e\n', ...
+                    maxCoordDifference);
+
+                % Interpolador espacial do campo salvo
+                Fb = scatteredInterpolant( ...
+                    coordInitial(:,1), ...
+                    coordInitial(:,2), ...
+                    bInitial, ...
+                    'linear', ...
+                    'nearest');
+
+                s_b.fHandle = @(x) Fb(x(1,:,:),x(2,:,:));
+            end
+
+            s_b.ndimf = 1;
+            s_b.mesh  = obj.mesh;
+
             aFunB = AnalyticalFunction(s_b);
             funB  = aFunB.project('P1');
 
+            %--------------------------------------------------------------
+            % Campo inicial de rho
+            %--------------------------------------------------------------
             s_rho.fHandle = @(x) 0.97*ones(size(x(1,:,:)));
             s_rho.ndimf   = 1;
             s_rho.mesh    = obj.mesh;
+
             aFunRho = AnalyticalFunction(s_rho);
             funRho  = aFunRho.project('P1');
 
+            %--------------------------------------------------------------
+            % Variável conjunta [b; rho]
+            %--------------------------------------------------------------
             sD.funB     = funB;
             sD.fun      = funRho;
             sD.mesh     = obj.mesh;
             sD.type     = 'MicroWithDensity';
             sD.plotting = true;
+
             obj.designVariable = DesignVariable.create(sD);
         end
 
@@ -219,8 +312,8 @@ classdef TutorialFirstTwovariable < handle
 
         function p = createPrimalUpdater(obj)
             n    = obj.mesh.nnodes;
-            s.lb = [-0.6*ones(n,1);  1e-3*ones(n,1)];
-            s.ub = [ 0.6*ones(n,1);  0.97*ones(n,1)];
+            s.lb = [-0.8*ones(n,1);  1e-6*ones(n,1)];
+            s.ub = [ 0.8*ones(n,1);  0.97*ones(n,1)];
             s.tauMax = 500;
             s.tau    = [];
             p = ProjectedGradient(s);
@@ -231,11 +324,11 @@ classdef TutorialFirstTwovariable < handle
             s.cost            = obj.cost;
             s.constraint      = obj.constraint;
             s.designVariable  = obj.designVariable;
-            s.maxIter         = 1000;
+            s.maxIter         = 3000;
             s.tolerance       = 1e-8;
             s.constraintCase  = {'EQUALITY'};
             s.etaNorm         = 0.01;
-            s.gJFlowRatio     = 2;
+            s.gJFlowRatio     = 0.2;
             s.primalUpdater   = obj.createPrimalUpdater();
             s.gif             = false;
             s.gifName         = [];

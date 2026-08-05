@@ -46,18 +46,18 @@ classdef TutorialHomogenizationLatticeBOnly < handle
             obj.E           = 1;
             obj.nu          = 0.3;
             obj.meshType    = 'Square';
-            obj.meshN       = 100;
+            obj.meshN       = 80;
             obj.holeType    = 'Square';
             obj.pnorm       = 'Inf';
             obj.nStepsB     = 81;
             obj.monitoring  = false;
-            obj.maxParamB   = 0.6;
+            obj.maxParamB   = 0.8;
             obj.fixedRho    = 0.4;    
             obj.degPoly     = 6;
         end
 
         function computeHoleParams(obj)
-            obj.paramB = linspace(0, obj.maxParamB, obj.nStepsB);
+            obj.paramB = linspace(-0.8, obj.maxParamB, obj.nStepsB);
         end
 
         function compute(obj)
@@ -68,50 +68,38 @@ classdef TutorialHomogenizationLatticeBOnly < handle
 
             rho_val = obj.fixedRho;
 
-            
-
             for iB = 1:nB
 
-                
-                beta_val = obj.paramB(iB);
+                b_val = obj.paramB(iB);
 
-                
-                b_geom = obj.maxParamB-abs(beta_val);
+                obj.currentB = b_val;
 
-                obj.currentB = b_geom;
+                a = exp(b_val^2);
+                d = (1+b_val^2)/a;
 
-                a = exp(b_geom^2);
-                d = (1+b_geom^2)/a;
-
-                v1 = [a,      b_geom];
-                v2 = [b_geom, d     ];
+                v1 = [a,     b_val];
+                v2 = [b_val, d    ];
 
                 obj.latticeVectors = [v1;v2];
 
                 obj.defineMesh();
 
                 mat(:,:,:,:,iB) = ...
-                    obj.computeHomogenization(rho_val,b_geom);
+                    obj.computeHomogenization(rho_val,b_val);
 
                 volF(iB) = ...
-                    obj.computeVolumeFraction(rho_val,b_geom);
+                    obj.computeVolumeFraction(rho_val,b_val);
 
                 if mod(iB,5) == 0 || iB == 1 || iB == nB
-
-                    fprintf([ ...
-                        'beta = %.4f  ->  bGeom = %.4f', ...
-                        '  volF = %.4f\n'], ...
-                        beta_val,b_geom,volF(iB));
-
+                    fprintf('b = %.4f  volF = %.4f\n', ...
+                        b_val,volF(iB));
                 end
-
             end
 
             obj.Chomog  = mat;
             obj.volFrac = volF;
 
             fprintf('============================================================\n');
-
         end
 
         function matHomog = computeHomogenization(obj, rho_val, b_val)

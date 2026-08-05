@@ -53,24 +53,7 @@ classdef TutorialFirstBOnly < handle
             betaSmooth = obj.bSmooth.fValues;
         end
 
-        function bGeomSmooth = getBGeomSmoothValues(obj)
-            % Parametro geometrico fisico da microestrutura
-            %
-            % Parametrizacao usada:
-            % bGeom = bMax*(1-(beta/bMax)^2)
-
-            bMax = 0.6;
-
-            betaSmooth = obj.bSmooth.fValues;
-
-            bGeomSmooth = bMax.*( ...
-                1-(betaSmooth./bMax).^2);
-
-            % Protecao contra pequenos erros numericos
-            bGeomSmooth = min( ...
-                max(bGeomSmooth,0), ...
-                bMax);
-        end
+        
 
         function meshData = getMeshData(obj)
             % Guarda somente os dados numericos necessarios da malha
@@ -94,7 +77,7 @@ classdef TutorialFirstBOnly < handle
         function createMesh(obj)
 
             
-            obj.mesh = TriangleMesh(2,1,200,180);
+            obj.mesh = TriangleMesh(2,1,120,100);
 
         end
 
@@ -157,7 +140,7 @@ classdef TutorialFirstBOnly < handle
             s.type     = 'HomogenizedMicrostructureBOnly';
             s.mesh     = obj.mesh;
             s.young    = 1.0;
-            s.fileName = 'Homogenization_bOnly_rho040';
+            s.fileName = 'HomogenizationLatticeBOnlyNew';
             s.density  = obj.designVariable;
 
             obj.materialMicro = MaterialFactory.create(s);
@@ -232,8 +215,8 @@ classdef TutorialFirstBOnly < handle
             s.monitoring     = true;
 
             
-            s.lb = -0.6;
-            s.ub =  0.6;
+            s.lb = -0.8;
+            s.ub =  0.8;
 
             s.maxIter   = 1000;
             s.tolerance = 1e-8;
