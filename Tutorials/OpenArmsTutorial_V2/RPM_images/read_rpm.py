@@ -201,6 +201,7 @@ def detect_rpm(image_path: Path, cal: dict, debug: bool = False):
         crop = img[y:y+h, x:x+w]
         gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
 
+        # Masque circulaire (anneau entre HUB_RADIUS et radius-5)
         mask = np.zeros_like(gray)
         cv2.circle(mask, (cx, cy), radius, 255, -1)
         gray_m = cv2.bitwise_and(gray, gray, mask=mask)
@@ -214,59 +215,101 @@ def detect_rpm(image_path: Path, cal: dict, debug: bool = False):
         cv2.circle(border, (cx, cy), radius - 5, 255, -1)
         thresh = cv2.bitwise_and(thresh, border)
 
+        # Garder uniquement le plus grand composant connexe (= l'aiguille)
+        # Les taches parasites (reflets, bord papier) sont des blobs plus petits
+        n_labels, labels, stats, _ = cv2.connectedComponentsWithStats(thresh)
+        if n_labels > 1:
+            # stats[i, cv2.CC_STAT_AREA] = taille du composant i (0 = fond)
+            largest = 1 + np.argmax(stats[1:, cv2.CC_STAT_AREA])
+            thresh = np.where(labels == largest, 255, 0).astype(np.uint8)
+
         pts_nonzero = np.column_stack(np.where(thresh > 0))
         if len(pts_nonzero) < 20:
             return (None, None) if debug else None
 
-        data = pts_nonzero[:, ::-1].astype(np.float32)
-        mean, eigvecs = cv2.PCACompute(data, mean=None)
+        # ── PCA pour trouver la direction de l'aiguille ────────────────
+        data = pts_nonzero[:, ::-1].astype(np.float32)  # (x, y)
+        _, eigvecs = cv2.PCACompute(data, mean=None)
 
+        # PCA retourne deux directions opposées (angle et angle+180°)
+        # On choisit celle où les pixels sont le plus éloignés du centre
+        # en comparant la somme des projections positives sur chaque direction
         angle1 = np.degrees(np.arctan2(eigvecs[0, 1], eigvecs[0, 0]))
         angle2 = angle1 + 180
-        mx, my = float(mean[0, 0]), float(mean[0, 1])
-        dx, dy = mx - cx, my - cy
-        dot1 = dx * np.cos(np.radians(angle1)) + dy * np.sin(np.radians(angle1))
-        dot2 = dx * np.cos(np.radians(angle2)) + dy * np.sin(np.radians(angle2))
-        needle = (angle1 if dot1 > dot2 else angle2) % 360
 
-        rpm = angle_to_rpm_piecewise(needle, points)
-        if rpm is None:
-            return (None, None) if debug else None
+        vecs   = data - np.array([[cx, cy]], dtype=np.float32)
+        dir1   = np.array([np.cos(np.radians(angle1)), np.sin(np.radians(angle1))])
+        dir2   = np.array([np.cos(np.radians(angle2)), np.sin(np.radians(angle2))])
+        score1 = np.dot(vecs, dir1).clip(min=0).sum()
+        score2 = np.dot(vecs, dir2).clip(min=0).sum()
+
+        # needle est en convention opencv (Y vers le bas)
+        needle = (angle1 if score1 > score2 else angle2) % 360
+
+        # Conversion opencv → trigo pour le mapping RPM
+        needle_trigo = (-needle) % 360
+        rpm = angle_to_rpm_piecewise(needle_trigo, points)
 
         if debug:
-            dbg   = crop.copy()
+            dbg    = crop.copy()
             cx4, cy4 = cx * 2, cy * 2
-            dbg   = cv2.resize(dbg, (dbg.shape[1]*2, dbg.shape[0]*2))
-            R2    = radius * 2
+            dbg    = cv2.resize(dbg, (dbg.shape[1]*2, dbg.shape[0]*2))
+            R2     = radius * 2
 
+            # ── Cercle de travail + centre ────────────────────────────────
             cv2.circle(dbg, (cx4, cy4), R2, (0, 255, 0), 1)
-            cv2.circle(dbg, (cx4, cy4), 5, (0, 0, 255), -1)
+            cv2.circle(dbg, (cx4, cy4), 5, (255, 255, 255), -1)
 
-            needle_cv = (-needle) % 360
-            rad = np.radians(needle_cv)
+            # ── Candidat A1 (cyan) ───────────────────────────────────────
+            r1x = int(cx4 + int(R2*0.7) * np.cos(np.radians(angle1)))
+            r1y = int(cy4 + int(R2*0.7) * np.sin(np.radians(angle1)))
+            cv2.arrowedLine(dbg, (cx4, cy4), (r1x, r1y), (255, 255, 0), 1, tipLength=0.15)
+            cv2.putText(dbg, f"A1={angle1:.0f} s={score1:.0f}",
+                        (r1x+4, r1y), cv2.FONT_HERSHEY_SIMPLEX, 0.32, (255,255,0), 1)
+
+            # ── Candidat A2 (jaune) ───────────────────────────────────────
+            r2x = int(cx4 + int(R2*0.7) * np.cos(np.radians(angle2)))
+            r2y = int(cy4 + int(R2*0.7) * np.sin(np.radians(angle2)))
+            cv2.arrowedLine(dbg, (cx4, cy4), (r2x, r2y), (0, 255, 255), 1, tipLength=0.15)
+            cv2.putText(dbg, f"A2={angle2:.0f} s={score2:.0f}",
+                        (r2x+4, r2y), cv2.FONT_HERSHEY_SIMPLEX, 0.32, (0,255,255), 1)
+
+            # ── Direction choisie (rouge) ─────────────────────────────────
+            rad = np.radians(needle)
             ex  = int(cx4 + R2 * np.cos(rad))
             ey  = int(cy4 + R2 * np.sin(rad))
             cv2.arrowedLine(dbg, (cx4, cy4), (ex, ey), (0, 0, 255), 2, tipLength=0.2)
 
-            cal_colors = [(0,200,0), (255,100,0), (255,165,0), (0,0,255)]
+            # ── Points de calibration ─────────────────────────────────────
+            cal_colors = [(0, 200, 0), (255, 100, 0), (255, 165, 0), (0, 0, 255)]
             for (a_trigo, rpm_ref), col in zip(points, cal_colors):
                 a_cv = (-a_trigo) % 360
-                r2   = np.radians(a_cv)
-                px   = int(cx4 + (R2-10) * np.cos(r2))
-                py   = int(cy4 + (R2-10) * np.sin(r2))
+                r2c  = np.radians(a_cv)
+                px   = int(cx4 + (R2 - 10) * np.cos(r2c))
+                py   = int(cy4 + (R2 - 10) * np.sin(r2c))
                 cv2.circle(dbg, (px, py), 5, col, -1)
-                cv2.putText(dbg, str(rpm_ref), (px+4, py-4),
+                cv2.putText(dbg, str(rpm_ref), (px + 4, py - 4),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.4, col, 1)
 
-            cv2.putText(dbg, f"{round(rpm)} RPM", (8, 20),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
+            # ── Texte résumé ──────────────────────────────────────────────
+            rpm_str = str(round(rpm)) if rpm is not None else "OOB"
+            cv2.putText(dbg, f"{rpm_str} RPM", (8, 18),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 0), 2)
+            cv2.putText(dbg, f"needle opencv={needle:.0f}  trigo={needle_trigo:.0f}",
+                        (8, 34), cv2.FONT_HERSHEY_SIMPLEX, 0.32, (200, 200, 200), 1)
+            chosen = "A1" if score1 > score2 else "A2"
+            cv2.putText(dbg, f"chosen={chosen}  s1={score1:.0f}  s2={score2:.0f}",
+                        (8, 46), cv2.FONT_HERSHEY_SIMPLEX, 0.32, (200, 200, 200), 1)
 
+            # ── Masque en bas à droite ────────────────────────────────────
             th_rgb  = cv2.cvtColor(thresh, cv2.COLOR_GRAY2BGR)
             th_rgb2 = cv2.resize(th_rgb, (dbg.shape[1]//3, dbg.shape[0]//3))
             dbg[-th_rgb2.shape[0]:, -th_rgb2.shape[1]:] = th_rgb2
 
-            return round(rpm), dbg
+            return (round(rpm) if rpm is not None else None), dbg
 
+        if rpm is None:
+            return None
         return round(rpm)
 
     except Exception:
@@ -359,7 +402,6 @@ def main():
         # ── Période blacklistée ───────────────────────────────────────────
         if cal_key is None and cal is None:
             print(f"{label} → BLACKLIST (NaN)")
-            # Nearest-match dans le CSV pour marquer NaN
             deltas = (df["_time_dt"] - img_dt).abs()
             if deltas.min().total_seconds() <= 8:
                 df.loc[deltas.idxmin(), "rpm"] = float("nan")
@@ -374,6 +416,11 @@ def main():
         # ── Image hors de tout segment ────────────────────────────────────
         if cal is None:
             print(f"{label} → hors segments (ignoré)")
+            if show_debug:
+                debug_dir.mkdir(exist_ok=True)
+                placeholder_cal = list(CALIBRATIONS.values())[0]
+                dbg = make_unreadable_debug_image(img_path, placeholder_cal, "OUT OF RANGE")
+                cv2.imwrite(str(debug_dir / f"debug_{i:04d}_{img_path.stem}.jpg"), dbg)
             out_of_range += 1
             continue
 
@@ -384,6 +431,10 @@ def main():
 
         if min_delta.total_seconds() > 8:
             print(f"{label} → hors plage CSV (écart {min_delta.total_seconds():.1f}s)")
+            if show_debug:
+                debug_dir.mkdir(exist_ok=True)
+                dbg = make_unreadable_debug_image(img_path, cal, f"NO CSV MATCH ({min_delta.total_seconds():.0f}s)")
+                cv2.imwrite(str(debug_dir / f"debug_{i:04d}_{img_path.stem}.jpg"), dbg)
             out_of_range += 1
             continue
 
