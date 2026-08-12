@@ -70,6 +70,11 @@ classdef OptimizationProblemNN < handle
        function dY = computeGradient(obj,X)
            dY = obj.network.networkJacobian(X);
        end
+       
+       function dY = computeDirectionalGradient(obj,X,dX)
+           dY = obj.network.networkDirectionalDerivative(X,dX);
+       end
+
        function [d_db, d_drho] = computeGradientComponent(obj, X, m)
            [d_db, d_drho] = obj.network.networkGradientComponent(X, m);
        end

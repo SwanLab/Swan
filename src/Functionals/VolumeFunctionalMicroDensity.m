@@ -18,10 +18,10 @@ classdef VolumeFunctionalMicroDensity < handle
 
         function [J, dJ] = computeFunctionAndGradient(obj, x)
             xD    = x.obtainDomainFunction();
-            rho   = xD{2};               % volume depende só de rho
+            rho   = xD{2};               
             J     = obj.computeFunction(rho);
-            dJ{1} = obj.computeGradientB();    % dV/db = 0
-            dJ{2} = obj.computeGradientRho();  % dV/drho
+            dJ{1} = obj.computeGradientB();    
+            dJ{2} = obj.computeGradientRho();  
         end
 
     end
@@ -53,13 +53,13 @@ classdef VolumeFunctionalMicroDensity < handle
         end
 
         function dJ = computeGradientRho(obj)
-            % dV/drho = baseFun / totalVolume — igual ao original
+            
             dJ = copy(obj.baseFun);
             dJ.setFValues(dJ.fValues ./ obj.totalVolume);
         end
 
         function dJ = computeGradientB(obj)
-            % dV/db = 0 — volume nao depende de b
+            
             dJ = copy(obj.baseFun);
             dJ.setFValues(zeros(size(obj.baseFun.fValues)));
         end

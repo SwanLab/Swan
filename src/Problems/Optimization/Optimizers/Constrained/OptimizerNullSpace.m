@@ -160,16 +160,16 @@ classdef OptimizerNullSpace < handle
             obj.monitoring.update(obj.nIter,s);
             obj.monitoring.refresh();
 
-            %% Custo atual
+            
             costValue = obj.cost.value;
             costValue = costValue(1);
 
             obj.costHistory(end+1,1) = costValue;
 
-            %% Neste problema, Cost = Compliance
+            
             obj.complianceHistory(end+1,1) = costValue;
 
-            %% Restricao de volume atual
+            
             constraintValue = obj.constraint.value;
             constraintValue = constraintValue(1);
 

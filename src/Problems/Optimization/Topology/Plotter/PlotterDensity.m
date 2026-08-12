@@ -21,7 +21,7 @@ classdef PlotterDensity < handle
             funp0   = rho.project('P0');
             rhoElem = squeeze(funp0.fValues);
             set(obj.patchHandle,'FaceVertexAlphaData',rhoElem,'FaceAlpha','flat'); 
-            caxis([-0.5 0.5])
+            caxis([-0.8 0.8])
         end
         % function plot(obj)
         %     rho = obj.designVariable.fun;
@@ -29,7 +29,7 @@ classdef PlotterDensity < handle
         %     rhoElem = squeeze(funp0.fValues);
         %     set(obj.patchHandle, 'FaceVertexCData', rhoElem, 'FaceColor', 'flat');
         %     caxis([-0.6 0.6])
-        %     colormap(gray);  % escala de cinza
+        %     colormap(gray);  
         %     colorbar;
         % end
         

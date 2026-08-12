@@ -47,11 +47,11 @@ classdef TutorialHomogenizationLattice < handle
             obj.E           = 1;
             obj.nu          = 0.3;
             obj.meshType    = 'Square';
-            obj.meshN       = 100;
+            obj.meshN       = 80;
             obj.holeType    = 'Square';
             obj.pnorm       = 'Inf';
-            obj.nStepsB     = 80;
-            obj.nStepsRho   = 80;
+            obj.nStepsB     = 60;
+            obj.nStepsRho   = 60;
             obj.monitoring  = false;
             obj.maxParamB   = 0.6;
             obj.maxParamRho = 0.979;
@@ -232,18 +232,24 @@ classdef TutorialHomogenizationLattice < handle
 
             coord = mesh.coord;
 
-            target = [0, 0];
-            [~,iFix] = min(sum((coord - target).^2,2));
+            cornerCoord = coord(1:4,:);
 
-            isFix = @(coor) sum((coor - coord(iFix,:)).^2,2) < 1e-20;
+            tol2 = 1e-20;
 
-            sDir{1}.domain    = @(coor) isFix(coor);
+            isCorner = @(coor) ...
+                (sum((coor - cornerCoord(1,:)).^2,2) < tol2) | ...
+                (sum((coor - cornerCoord(2,:)).^2,2) < tol2) | ...
+                (sum((coor - cornerCoord(3,:)).^2,2) < tol2) | ...
+                (sum((coor - cornerCoord(4,:)).^2,2) < tol2);
+
+            sDir{1}.domain    = @(coor) isCorner(coor);
             sDir{1}.direction = [1, 2];
             sDir{1}.value     = 0;
 
             dirichletFun = [];
             for i = 1:numel(sDir)
-                dirichletFun = [dirichletFun, DirichletCondition(mesh, sDir{i})];
+                dirichletFun = [dirichletFun, ...
+                    DirichletCondition(mesh, sDir{i})];
             end
 
             s.dirichletFun = dirichletFun;
@@ -253,6 +259,7 @@ classdef TutorialHomogenizationLattice < handle
 
             bc = BoundaryConditions(s);
             bc.updatePeriodicConditions(obj.masterSlave);
+
         end
 
         function fracVol = computeVolumeFraction(obj, rho_val, b_val)
@@ -270,8 +277,9 @@ classdef TutorialHomogenizationLattice < handle
             s.retrain      = true;   
             s.pol_deg      = 6;      
             s.hiddenLayers = [150 200 300 200 150 50];
-            s.maxEpochs    = 500000;
-            s.learningRate = 0.015;
+            % s.hiddenLayers = [50 100 50];
+            s.maxEpochs    = 300000;
+            s.learningRate = 0.02;
 
             [obj.f, obj.df, ~] = DamageHomogenizationFitter.computeNN(obj.paramB, obj.paramRho, obj.Chomog, s);
 

@@ -55,71 +55,57 @@ classdef Network < handle
             end
         end
 
-        % function J = networkJacobian(obj,X)
-        %     obj.computeAvalues(X);
-        %     [W, a, nLy] = obj.backLoopVars();
-        %
-        %     J = eye(size(W{end},2));
-        %     for k = nLy:-1:2
-        %         [~,a_der] = obj.actFCN(a{k},k);
-        %         parDer = W{k-1} * diag(a_der);
-        %         J = parDer * J;
-        %     end
-        % end
+        function dY = networkDirectionalDerivative(obj,X,dX)
+            nPts = size(X,1);
+            nDir = size(dX,3);           
+            if size(dX,1) ~= nPts
+                error('dX must have the same number of points as X.');
+            end
+            if size(dX,2) ~= size(X,2)
+                error('The second dimension of dX must coincide with the features of X.');
+            end           
+            [W,b] = obj.learnableVariables.reshapeInLayerForm();
+            nLy = obj.nLayers;
+            a  = X;
+            da = dX;
+            for k = 2:nLy
+                Wi = W{k-1};
+                bi = b{k-1};
+                nIn  = size(Wi,1);
+                nOut = size(Wi,2);
+                h = obj.hypothesisfunction(a,Wi,bi);
+                [aNext,g_der] = obj.actFCN(h,k);
+                daMat = permute(da,[1 3 2]);
+                daMat = reshape(daMat,nPts*nDir,nIn);
+                dhMat = daMat*Wi;
+                dh = reshape(dhMat,nPts,nDir,nOut);
+                dh = permute(dh,[1 3 2]);
+                da = dh .* g_der;
+                a = aNext;
+            end
+            dY = da;
+        end
+       
         function J = networkJacobian(obj, X)
-            % X: (nPts, nFeatures)
-            % J: (nPts, nFeatures, nLabels)
-
             nPts = size(X, 1);
             nFeatures = obj.nFeatures;
             nLabels = obj.nLabels;
-
             obj.computeAvalues(X);
-            [W, a, nLy] = obj.backLoopVars();
-
-            % Inicializa J como (nPts, nLabels, nLabels)
+            [W, a, nLy] = obj.backLoopVars();           
             J = repmat(eye(nLabels), [1, 1, nPts]);
-            J = permute(J, [3, 1, 2]);  % (nPts, nLabels, nLabels)
-
+            J = permute(J, [3, 1, 2]);  
             for k = nLy:-1:2
                 if k == nLy
-                    g_der = ones(size(a{k}));  % (nPts, nLabels)
+                    g_der = ones(size(a{k}));  
                 else
-                    [~, g_der] = obj.actFCN(a{k}, k);      % (nPts, nNeurons_k)
-                end
-
-                % CORREÇÃO: broadcast correto
-                J = J .* reshape(g_der, nPts, size(g_der, 2), 1);
-
-                % Propaga pelos pesos
+                    [~, g_der] = obj.actFCN(a{k}, k);     
+                end                
+                J = J .* reshape(g_der, nPts, size(g_der, 2), 1);                
                 J = pagemtimes(J, W{k-1}');
-            end
-
-            % Permuta para (nPts, nFeatures, nLabels)
+            end            
             J = permute(J, [1, 3, 2]);
         end
-        % function [d_db, d_drho] = networkGradientComponent(obj, X, m)
-        %     nPts = size(X, 1);
-        % 
-        %     obj.computeAvalues(X);
-        %     [W, a, nLy] = obj.backLoopVars();
-        % 
-        %     delta = zeros(nPts, size(W{end}, 2));
-        %     delta(:, m) = 1;
-        % 
-        %     for k = nLy:-1:2
-        %         if k == nLy
-        %             g_der = ones(size(a{k}));
-        %         else
-        %             [~, g_der] = obj.actFCN(a{k}, k);
-        %         end
-        %         delta = delta .* g_der;
-        %         delta = delta * W{k-1}';
-        %     end
-        % 
-        %     d_db = delta(:, 1);
-        %     d_drho = delta(:, 2);
-        % end
+        
         function g = computeLastH(obj,X)
             nLy = obj.nLayers;
             [W,b] = obj.learnableVariables.reshapeInLayerForm();

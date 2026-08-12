@@ -195,7 +195,7 @@ classdef PlotterNN < handle
             img_target = reshape(trg_vec, 28, 28);
             img_output = reshape(out_vec, 28, 28);
             
-            % Mostrar la imagen
+            
             figure(1)
             imshow(img_target);
             figure(2)

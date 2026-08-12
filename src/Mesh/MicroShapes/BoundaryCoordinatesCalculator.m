@@ -1,86 +1,3 @@
-% classdef BoundaryCoordinatesCalculator < handle
-% 
-%     properties (Access = private)
-%         c
-%         theta 
-%         nodes
-%         vertCoord
-%         div
-%         MStransition
-%     end
-% 
-%     properties (Access = public)
-%         boundCoord
-%     end
-% 
-%     methods (Access = public)
-% 
-%         function obj = BoundaryCoordinatesCalculator(cParams)
-%             obj.init(cParams);
-%             obj.computeBoundary();
-%         end
-% 
-%         function computeBoundary(obj)
-%             obj.initVertex();
-%             obj.obtainMasterBound();
-%             obj.obtainSlaveBound();
-%         end
-% 
-%     end
-% 
-%     methods (Access = private)
-% 
-%         function init(obj,cParams)
-%             obj.c = cParams.c;
-%             obj.theta = cParams.theta;
-%             obj.nodes = cParams.nodes;
-%             obj.vertCoord = cParams.vertCoord;
-%             obj.div = cParams.div;
-%             obj.boundCoord = zeros(cParams.nodes.bound,2);
-%         end
-% 
-%         function initVertex(obj)
-%             nsides = obj.nodes.vert;
-%             obj.boundCoord(1:nsides,:) = obj.boundCoord(1:nsides,:)+obj.vertCoord;
-%         end
-% 
-%         function obtainMasterBound(obj)
-%             nsides = obj.nodes.vert;
-%             cont = obj.nodes.vert+1;
-%             for iMaster = 1:nsides/2
-%                 c0 = obj.vertCoord(iMaster,:);
-%                 for iDiv = 1:obj.div(iMaster)-1
-%                     leng = obj.c(iMaster)/obj.div(iMaster);
-%                     angle = obj.theta(iMaster);
-%                     pos = NodeCoordinatesComputer.computeThePosition(c0,leng,angle);
-%                     obj.boundCoord(cont,:) = obj.boundCoord(cont,:)+pos;
-%                     cont = cont+1;
-%                     c0 = pos;
-%                 end
-%             end
-%             obj.MStransition = cont;
-%         end
-% 
-%         function obtainSlaveBound(obj)
-%             nsides = obj.nodes.vert;
-%             cont = obj.MStransition;
-%             for iSlave = 1:nsides/2
-%                 c0 = obj.vertCoord(nsides/2+iSlave,:);
-%                 for iDiv = 1:obj.div(iSlave)-1
-%                     leng = obj.c(iSlave)/obj.div(iSlave);
-%                     angle = obj.theta(iSlave)+180;
-%                     pos = NodeCoordinatesComputer.computeThePosition(c0,leng,angle);
-%                     obj.boundCoord(cont,:) = obj.boundCoord(cont,:)+pos;
-%                     cont = cont+1;
-%                     c0 = pos;
-%                 end
-%             end
-%         end
-% 
-%     end
-% 
-% end
-
 classdef BoundaryCoordinatesCalculator < handle
     
     properties (Access = private)
@@ -136,24 +53,17 @@ classdef BoundaryCoordinatesCalculator < handle
         function computeBoundaryParallelogram(obj)
             v1 = obj.latticeVectors(1,:);
             v2 = obj.latticeVectors(2,:);
-            
-            
             P1 = obj.vertCoord(1,:);  
             P2 = obj.vertCoord(2,:);  
             P3 = obj.vertCoord(3,:);  
-            P4 = obj.vertCoord(4,:);  
-            
+            P4 = obj.vertCoord(4,:); 
             cont = obj.nodes.vert + 1;
-            
-           
             nDiv1 = obj.div(1);
             for iDiv = 1:nDiv1-1
                 t = iDiv / nDiv1;
                 obj.boundCoord(cont,:) = P1 + t * v1;
                 cont = cont + 1;
             end
-            
-            
             nDiv2 = obj.div(2);
             for iDiv = 1:nDiv2-1
                 t = iDiv / nDiv2;
