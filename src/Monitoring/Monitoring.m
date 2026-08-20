@@ -18,7 +18,7 @@ classdef Monitoring < handle
         end
 
         function update(obj,it,data)
-            nPlots = min(length(obj.figures),length(data));
+            nPlots = length(obj.figures);
             for i = 1:nPlots
                 obj.figures{i}.updateParams(it,data{i});
             end

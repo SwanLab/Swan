@@ -7,7 +7,6 @@ classdef Tutorial05_16_TopOpt2DDensityGripper < handle
         designVariable
         C
         dC
-        materialInterpolator
         physicalProblem
         adjointProblem
         compliance

@@ -1,7 +1,7 @@
 classdef NonSelfAdjointComplianceFunctional < handle
- 
+
     properties (Access = private)
-       value0
+        value0
     end
 
     properties (Access = private)
