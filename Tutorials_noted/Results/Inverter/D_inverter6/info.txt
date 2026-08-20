@@ -1,9 +1,0 @@
-the idea is to see if the perimeter constraint helps with the black and white solution.
-select a couple of k values that gave good results and run them. Check that the parameters are the same
-in the script with the perimeter penalty than the ones at the script without the penalty
-
-the good results where k = [5 10]
-
-with volume constraint 0.25
-eta norm 0.05
-iter 1000

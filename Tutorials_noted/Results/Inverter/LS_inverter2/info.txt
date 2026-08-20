@@ -1,9 +1,0 @@
-Run for two different values of K, with the idea to get nice results to print for paraview
-
-k = [ 2 5 ]
-
-iter = 1000
-
-volume = 0.25
-
-constraint weight 0.1

@@ -1,5 +1,0 @@
-                obj.Kp_bar_vector = [0.001, 0.0008, 0.0005];
-
-vol 0.3
-iter 200
-tuning 10

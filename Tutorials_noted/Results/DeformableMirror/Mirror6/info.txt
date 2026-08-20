@@ -1,7 +1,0 @@
-obj.Kp_bar_vector = [0.001 0.003 0.025 0.05]; 
-obj.gJFlowRatio_vector = [3 2 1.2 0.8]
-
-s.etaNorm     = 0.03;    
-s.gJFlowRatio = ;     
-s.maxIter     = 400;     
-s.tauMax      = 500;  

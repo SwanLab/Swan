@@ -1,7 +1,0 @@
-This folder contains the results corresponding to the code for the inverter with density and a perimeter penalty.
-
-
-The goal is to balance the parameters for:
-- eta norm
-- relation input/output dummy load
-- perimeter penalty

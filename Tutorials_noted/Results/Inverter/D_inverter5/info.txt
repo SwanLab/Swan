@@ -1,6 +1,0 @@
-run for different input / output relation = [0.5 2 5 10]
-with volume constraint 0.25
-eta norm 0.075
-iter 1000
-
-

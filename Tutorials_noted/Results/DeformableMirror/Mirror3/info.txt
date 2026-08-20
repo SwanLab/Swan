@@ -1,8 +1,0 @@
-obj.Kp_bar_vector = [0.025, 0.010, 0.005, 0.003, 0.002];
-
-s.etaNorm     = 0.03;    
-s.gJFlowRatio = 0.3;     
-s.maxIter     = 400;     
-s.tauMax      = 500;     
-
-ADDED FIXED Y MOTION FOR THE INPUT THAT IS INACTIVE ON THE MP OF THE OTHER INPUT
