@@ -30,6 +30,7 @@ Tutorial05_12_TopOpt2DDensityNonDesignableDomain();
 Tutorial05_13_TopOpt2DLevelSetNonDesignableDomain();
 Tutorial05_14_TopOpt2DLevelSetConnectivity();
 Tutorial05_15_TopOpt2DLevelSetConnectivityDilation();
+Tutorial05_16_TopOpt2DDensityGripper();
 
 % Tutorial06_ShapeOptimization -- PENDING
 

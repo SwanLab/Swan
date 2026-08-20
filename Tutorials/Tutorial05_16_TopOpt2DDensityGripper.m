@@ -1,10 +1,12 @@
-classdef Tutorial05_14_TopOpt2DDensityGripper < handle
+classdef Tutorial05_16_TopOpt2DDensityGripper < handle
 
     properties (Access = private)
         filename
         mesh
         filter
         designVariable
+        C
+        dC
         materialInterpolator
         physicalProblem
         adjointProblem
@@ -12,27 +14,25 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
         volume
         cost
         constraint
-        dualVariable
         primalUpdater
         optimizer
-        gJ
+        E0; nu0; E1; nu1
     end
 
     methods (Access = public)
 
-        function obj = Tutorial05_14_TopOpt2DDensityGripper()
+        function obj = Tutorial05_16_TopOpt2DDensityGripper()
             obj.init();
             obj.createMesh();
             obj.createDesignVariable();
             obj.createFilter();
-            obj.createMaterialInterpolator();
+            obj.createMaterial();
             obj.createElasticProblem();
             obj.createAdjointProblem();
             obj.createNonSelfAdjCompliance();
             obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
-            obj.createDualVariable();
             obj.createPrimalUpdater();
             obj.createOptimizer();
         end
@@ -43,10 +43,14 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
 
         function init(obj)
             close all;
+            obj.E0  = 1e-3;
+            obj.nu0 = 1/3;
+            obj.E1  = 1;
+            obj.nu1 = 1/3;
         end
 
         function createMesh(obj)
-            file = 'Gripping';
+            file = 'Tutorial05_16_GrippingFile';
             obj.filename = file;
             a.fileName = file;
             s = FemDataContainer(a);
@@ -74,33 +78,38 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
             obj.filter = f;
         end
 
-        function createMaterialInterpolator(obj)
-            E0   = 1e-3;
-            nu0  = 1/3;
-            E1   = 1;
-            nu1  = 1/3;
-            ndim = 2;
+        function createMaterial(obj)
+            N = obj.mesh.ndim;
+            muA    = obj.computeMu(obj.E0,obj.nu0);
+            kappaA = obj.computeKappa(obj.E0,obj.nu0,N);
+            muB    = obj.computeMu(obj.E1,obj.nu1);
+            kappaB = obj.computeKappa(obj.E1,obj.nu1,N);
 
-            matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
-            matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
+            mu    = @(rho) SimpAllInterpolator.computeMu(muA,muB,kappaA,kappaB,rho,N); mu = @(rho) Expand(mu(rho),4);
+            kappa  = @(rho) SimpAllInterpolator.computeKappa(muA,muB,kappaA,kappaB,rho,N); kappa = @(rho) Expand(kappa(rho),4);
+            lambda = @(rho) kappa(rho) - (2/N)*mu(rho);
+            I      = ConstantFunction.create(eye4D(N),obj.mesh);
+            IxI    = ConstantFunction.create(kronEye(N),obj.mesh);
+            obj.C  = @(rho) 2*mu(rho{1}).*I + lambda(rho{1}).*IxI;
 
-            matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
-            matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
+            dmu     = @(rho) SimpAllInterpolator.computeMuDerivative(muA,muB,kappaA,kappaB,rho,N); dmu = @(rho) Expand(dmu(rho),4);
+            dkappa  = @(rho) SimpAllInterpolator.computeKappaDerivative(muA,muB,kappaA,kappaB,rho,N); dkappa = @(rho) Expand(dkappa(rho),4);
+            dlambda = @(rho) dkappa(rho) - (2/N)*dmu(rho);
+            obj.dC  = @(rho) {2*dmu(rho{1}).*I + dlambda(rho{1}).*IxI};
+        end
 
-            s.typeOfMaterial = 'ISOTROPIC';
-            s.interpolation  = 'SIMPALL';
-            s.dim            = '2D';
-            s.matA = matA;
-            s.matB = matB;
+        function mu = computeMu(obj,E,nu)
+            mu = E./(2*(1+nu));
+        end
 
-            m = MaterialInterpolator.create(s);
-            obj.materialInterpolator = m;
+        function kappa = computeKappa(obj,E,nu,N)
+            kappa = E./(N*(1-(N-1)*nu));
         end
 
         function createElasticProblem(obj)
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
-            s.material = obj.createMaterial();
+            s.material = [];
             s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditions();
             s.interpolationType = 'LINEAR';
@@ -114,7 +123,7 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
         function createAdjointProblem(obj)
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
-            s.material = obj.createMaterial();
+            s.material = [];
             s.dim = '2D';
             s.boundaryConditions = obj.createBoundaryConditionsAdjoint();
             s.interpolationType = 'LINEAR';
@@ -128,7 +137,8 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
         function createNonSelfAdjCompliance(obj)
             s.mesh           = obj.mesh;
             s.filter         = obj.filter;
-            s.material       = obj.createMaterial();
+            s.C              = obj.C;
+            s.dC             = obj.dC;
             s.stateProblem   = obj.physicalProblem;
             s.adjointProblem = obj.adjointProblem;
             c = NonSelfAdjointComplianceFunctional(s);
@@ -172,12 +182,6 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
             obj.constraint      = Constraint(s);
         end
 
-        function createDualVariable(obj)
-            s.nConstraints   = 1;
-            l                = DualVariable(s);
-            obj.dualVariable = l;
-        end
-
         function createPrimalUpdater(obj)
             s.ub     = 1;
             s.lb     = 0;
@@ -191,15 +195,14 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 3;
             s.tolerance      = 1e-8;
             s.constraintCase = {'INEQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
             s.ub             = 1;
             s.lb             = 0;
-            s.etaNorm        = 0.02;
-            s.gJFlowRatio    = 0.1;
+            s.delta          = 0.02;
+            s.etaStar        = 0.1;
             s.gif            = false;
             s.gifName        = [];
             s.printing       = false;
@@ -207,18 +210,6 @@ classdef Tutorial05_14_TopOpt2DDensityGripper < handle
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
-        end
-
-        function m = createMaterial(obj)
-            x = obj.designVariable;
-            f = x.obtainDomainFunction();
-            f = obj.filter.compute(f{1},1);            
-            s.type                 = 'DensityBased';
-            s.density              = f;
-            s.materialInterpolator = obj.materialInterpolator;
-            s.dim                  = '2D';
-            s.mesh = obj.mesh;
-            m = Material.create(s);
         end
 
         function bc = createBoundaryConditions(obj)
