@@ -1,4 +1,4 @@
-classdef Tutorial05_15_TopOpt2DDensity_CM_InverterFULL < handle
+classdef Tutorial05_20_TopOpt2DDensity_MultiDofDeformableMirror < handle
 
     properties (Access = private)
         filename 
@@ -17,68 +17,71 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_InverterFULL < handle
         primalUpdater
         optimizer
         gJ
+        gJFlowRatio_vector
+        gJFlowRatio
 
         J_MT
-        J_MT_vector
         nGDI
         nMP
         Kp_bar
         Kp_bar_vector
         complianceFuncs
         motionBasedFuncs
-
-        phi_imposed
-        beta_adaptive
-        J_current_monitor
-        
+        height % height of the domain (full)
+        width % half of the domain (for symmetry)
+        amplitude % amplitude of the sine/cosine MP
     end
 
     methods (Access = public)
 
-        function obj = Tutorial05_15_TopOpt2DDensity_CM_InverterFULL()
-                obj.J_MT_vector = [-2, -0.5]; % motion transmission. Input=1, J_MT corresponds to the output
-                obj.Kp_bar_vector = [0.1, 0.01];
+        function obj = Tutorial05_20_TopOpt2DDensity_MultiDofDeformableMirror()
                 
+                obj.nGDI = 3;
+                obj.nMP = 2;
+                obj.Kp_bar_vector = [0.01 0.025]; 
+                obj.gJFlowRatio_vector = [0.3];
 
-                for i = 1:length(obj.J_MT_vector)
-                    obj.Kp_bar = obj.Kp_bar_vector(i);
-                    obj.J_MT = obj.J_MT_vector(i);
+                obj.height = 1;
+                obj.width = 1;
+                obj.amplitude = 0.05*obj.height;
+                
+                for a=1:length(obj.gJFlowRatio_vector)
+                    obj.gJFlowRatio = obj.gJFlowRatio_vector(a);
+                    fprintf('\n--- Starting optimization for gJ = %.4f (%d/%d) ---\n', ...
+                            obj.gJFlowRatio, a, length(obj.gJFlowRatio_vector));
+                    for i=1:length(obj.Kp_bar_vector)
+                        obj.Kp_bar = obj.Kp_bar_vector(i);
+                        fprintf('\n--- Starting optimization for Kp_bar = %.4f (%d/%d) ---\n', ...
+                            obj.Kp_bar, i, length(obj.Kp_bar_vector));
 
-                    fprintf('\n--- Starting optimization for J_MT = %.4f (%d/%d) ---\n', ...
-                    obj.J_MT, i, length(obj.J_MT_vector));
-    
-                    obj.nGDI = 2;
-                    obj.nMP = 1;
-                    obj.Kp_bar = 0.01;
-                    obj.phi_imposed = obj.J_MT;
-                    obj.beta_adaptive = 0.01; 
-                    obj.J_current_monitor = obj.J_MT;
-                    
-                    obj.init();
-                    obj.createMesh();
-                    obj.createDesignVariable();
-                    obj.createFilter();
-                    obj.createMaterialInterpolator();
-    
-                    obj.createElasticProblem();
-                    obj.createComplianceFunctions();
-                    obj.createMotionBasedFunctions();
-    
-                    obj.createVolumeConstraint();                
-                    obj.createCost();
-                    obj.createConstraint();
-    
-                    obj.createDualVariable();
-                    obj.createPrimalUpdater();
-                    obj.createOptimizer();
-    
-                    obj.motionTransmissionAccuracy(); % Compute motion transmission accuracy
-                    obj.printFinalDisplacement_v3(); % print document with the final FEM displacements
-                    obj.printFinalDesignVariable(); % print final design variable
-                    obj.saveFigures(); % save matlab figures (design variable and monitoring)
+                        obj.init();
+                        obj.createMesh();
+                        obj.createDesignVariable();
+                        obj.createFilter();
+                        obj.createMaterialInterpolator();
 
-                    fprintf('--- Finished optimization for J_MT = %.4f (%d/%d) ---\n', ...
-                    obj.J_MT, i, length(obj.J_MT_vector));
+                        obj.createElasticProblem();
+                        obj.createComplianceFunctions();
+                        obj.createMotionBasedFunctions();
+
+                        obj.createVolumeConstraint();
+                        obj.createCost();
+                        obj.createConstraint();
+
+                        obj.createDualVariable();
+                        obj.createPrimalUpdater();
+                        obj.createOptimizer();
+
+                        %obj.motionTransmissionAccuracy(); % Compute motion transmission accuracy
+                        obj.printFinalDisplacement_v3(); % print document with the final FEM displacements
+                        obj.printFinalDesignVariable(); % print final design variable
+                        obj.saveFigures(); % save matlab figures (design variable and monitoring)
+
+                        fprintf('--- Finished optimization for Kp_bar = %.4f (%d/%d) ---\n', ...
+                            obj.Kp_bar, i, length(obj.Kp_bar_vector));
+                    end
+                    fprintf('\n--- Finished optimization for gJ = %.4f (%d/%d) ---\n', ...
+                        obj.gJFlowRatio, a, length(obj.gJFlowRatio_vector));
                 end
         end
 
@@ -92,8 +95,8 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_InverterFULL < handle
 
         function createMesh(obj) % 2:1 mesh for the inverter
             % Generate coordinates
-            x1 = linspace(0,2,200);
-            x2 = linspace(0,1,100);
+            x1 = linspace(0,obj.width,200);
+            x2 = linspace(0,obj.height,200);
             % Create the grid
             [xv,yv] = meshgrid(x1,x2);
             % Triangulate the mesh to obtain coordinates and connectivities
@@ -105,7 +108,7 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_InverterFULL < handle
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) 0.25*ones(size(x(1,:,:)));
+            s.fHandle = @(x) 0.2*ones(size(x(1,:,:)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);
@@ -114,17 +117,23 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_InverterFULL < handle
             s.type = 'Density';
             s.plotting = true;
             dens    = DesignVariable.create(s); 
+            obj.designVariable = dens;
 
-            coords  = obj.mesh.coord;
-            isInput  = coords(:,1) >= 0.9 & coords(:,1) <= 1.1 & coords(:,2) <= 1e-8;
-            isOutput = coords(:,1) >= 0.9 & coords(:,1) <= 1.1 & coords(:,2) >= 1-1e-8;
+            coords   = obj.mesh.coord;
+
+            isOutput = coords(:,2) >= 0.94*obj.height;
+            isInputS = coords(:,1) >= 0.95*obj.width & ...
+                       coords(:,2) <= 0.25*obj.height & ...
+                       coords(:,2) >= 0.15*obj.height;
+            isInputC = coords(:,1) >= 0.95*obj.width & ...
+                       coords(:,2) <= 0.6*obj.height & ...
+                       coords(:,2) >= 0.5*obj.height;
 
             vals = dens.fun.fValues;
-            vals(isInput | isOutput) = 1;
+            vals(isOutput | isInputS | isInputC) = 1;
             dens.fun.setFValues(vals);
 
             obj.designVariable = dens;
-
         end
 
         function createFilter(obj)
@@ -192,7 +201,7 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_InverterFULL < handle
                 s.scale = 'MACRO';
                 s.material = obj.createMaterial();
                 s.dim = '2D';
-                s.boundaryConditions = obj.createBoundaryConditionsMotionBased();
+                s.boundaryConditions = obj.createBoundaryConditionsMotionBased(i);
                 s.interpolationType = 'LINEAR';
                 s.solverType = 'REDUCED';
                 s.solverMode = 'DISP'; 
@@ -279,35 +288,38 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_InverterFULL < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 400;
+            s.maxIter        = 500;
             s.tolerance      = 1e-8;
             nConstr = sum(obj.nMP)+1;
             s.constraintCase = repmat({'INEQUALITY'},1,nConstr);
             s.primalUpdater  = obj.primalUpdater;
             s.ub             = 1;
             s.lb             = 0;
-            s.etaNorm        = 0.1; % max design change per iter, default was 0.02
-            s.gJFlowRatio    = 0.1; % "weight" of the constraint 0.1
+            s.etaNorm        = 0.03; % max design change per iter, default was 0.02
+            s.gJFlowRatio    = obj.gJFlowRatio; % "weight" of the constraint 0.1
             s.gif            = false;
             s.gifName        = [];
             s.printing       = false;
             s.printName      = ['InvDens'];
+            s.applySymmetry = false;
             s.applyNonDesignRegion = true;
-            s.applySymmetry = true;
             %s.physicalProblem = obj.physicalProblem;
 
-            coords   = obj.mesh.coord;
-            isInput  = coords(:,1) >= 0.9 & coords(:,1) <= 1.1 & coords(:,2) <= 1e-8;
-            isOutput = coords(:,1) >= 0.9 & coords(:,1) <= 1.1 & coords(:,2) >= 1-1e-8;
-
-            s.nonDesignRegion = isInput | isOutput;
+            isOutput = obj.mesh.coord(:,2) >= 0.94*obj.height;
+            isInputS = obj.mesh.coord(:,1) >= 0.95*obj.width & ...
+                       obj.mesh.coord(:,2) <= 0.25*obj.height & ...
+                       obj.mesh.coord(:,2) >= 0.15*obj.height;
+            isInputC = obj.mesh.coord(:,1) >= 0.95*obj.width & ...
+                       obj.mesh.coord(:,2) <= 0.6*obj.height & ...
+                       obj.mesh.coord(:,2) >= 0.5*obj.height;
+            
+            s.nonDesignRegion = isOutput | isInputS | isInputC;
             s.nonDesignValue  = 1;
 
-            s.iterCallBack =@(nIter) obj.adaptiveUpdate(nIter);
-            s.monitoringCallBack =@() [obj.phi_imposed; obj.J_current_monitor];
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
+
         end
 
         function m = createMaterial(obj)
@@ -322,31 +334,48 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_InverterFULL < handle
             m = Material.create(s);
         end
 
-        function bc = createBoundaryConditionsLoadBased(obj, gdi_index) 
-            isLeft =@(coor) coor(:,1) <= 1e-8;
-            isRight =@(coor) coor(:,1) >= 2-1e-8;
+        function bc = createBoundaryConditionsLoadBased(obj, gdi_index)
+            % The conditions correspond to half of the domain.
+            isWall =@(coor) coor(:,1) <= 1e-8 & coor(:,2) <= 0.5*obj.height;
+            isMiddle =@(coor) coor(:,1) >= obj.width - 1e-8;
+            
+            mirror2inputLoadRelation = 2; % input load always = 1
 
-            % Side walls fixed (left fixed, midle only x fixed)
-            sDir{1}.domain = isLeft;
+            % Side walls fixed
+            sDir{1}.domain = isWall;
             sDir{1}.direction = [1,2];
             sDir{1}.value = 0;
 
-            sDir{2}.domain = isRight;
-            sDir{2}.direction = [1,2];
+            sDir{2}.domain = isMiddle;
+            sDir{2}.direction = [1];
             sDir{2}.value = 0;
 
             % Unit load at the GDI
-            isInput =@(coor) coor(:,1) >= 0.9 & coor(:,1) <= 1.1 & coor(:,2) <= 1e-8;
-            isOutput =@(coor) coor(:,1) >= 0.9 & coor(:,1) <= 1.1 & coor(:,2) >= 1-1e-8;
+            isInputS =@(coor) coor(:,1) >= 0.95*obj.width & coor(:,2) <= 0.25*obj.height & coor(:,2) >= 0.15*obj.height;
+            isInputC =@(coor) coor(:,1) >= 0.95*obj.width & coor(:,2) <= 0.6*obj.height & coor(:,2) >= 0.5*obj.height;
+            isOutput =@(coor) coor(:,2) >= 0.94*obj.height;
 
-            if gdi_index == 1 % Input
-                sPL{1}.domain = isInput;
+            isInputS_nodes = isInputS(obj.mesh.coord);
+            nNodesInputS = sum(isInputS_nodes);
+
+            isInputC_nodes = isInputC(obj.mesh.coord);
+            nNodesInputC = sum(isInputC_nodes);
+
+            isOutput_nodes = isOutput(obj.mesh.coord);
+            nNodesOutput = sum(isOutput_nodes);
+
+            if gdi_index == 1 % Input S
+                sPL{1}.domain = isInputS;
                 sPL{1}.direction = [2];
-                sPL{1}.value = 1;
-            elseif gdi_index == 2 % Output
+                sPL{1}.value = 1/nNodesInputS;
+            elseif gdi_index == 2 % Input C
+                sPL{1}.domain = isInputC;
+                sPL{1}.direction = [2];
+                sPL{1}.value = 1/nNodesInputC;
+            elseif gdi_index == 3 % Output
                 sPL{1}.domain = isOutput;
                 sPL{1}.direction = [2];
-                sPL{1}.value = 1;
+                sPL{1}.value = -mirror2inputLoadRelation/nNodesOutput;
             else
                 warning('Wrong GDI indeces');
             end        
@@ -372,32 +401,61 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_InverterFULL < handle
         end
     
         function bc = createBoundaryConditionsMotionBased(obj, mp_index) 
-            isLeft =@(coor) coor(:,1) <= 1e-8;
-            isRight =@(coor) coor(:,1) >= 2-1e-8;
+            % The conditions correspond to half of the domain.
+            isWall =@(coor) coor(:,1) <= 1e-8 & coor(:,2) <= 0.5*obj.height;
+            isMiddle =@(coor) coor(:,1) >= obj.width - 1e-8;
 
-            % Side walls fixed (left fixed, midle only x fixed)
-            sDir{1}.domain = isLeft;
+            % Side walls fixed
+            sDir{1}.domain = isWall;
             sDir{1}.direction = [1,2];
             sDir{1}.value = 0;
 
-            sDir{2}.domain = isRight;
-            sDir{2}.direction = [1,2];
+            sDir{2}.domain = isMiddle;
+            sDir{2}.direction = [1];
             sDir{2}.value = 0;
 
-            % Unit load at the GDI
-            isInput =@(coor) coor(:,1) >= 0.9 & coor(:,1) <= 1.1 & coor(:,2) <= 1e-8;
-            isOutput =@(coor) coor(:,1) >= 0.9 & coor(:,1) <= 1.1 & coor(:,2) >= 1-1e-8;
+            isInputS =@(coor) coor(:,1) >= 0.95*obj.width & coor(:,2) <= 0.25*obj.height & coor(:,2) >= 0.15*obj.height;
+            isInputC =@(coor) coor(:,1) >= 0.95*obj.width & coor(:,2) <= 0.6*obj.height & coor(:,2) >= 0.5*obj.height;
+            isOutput =@(coor) coor(:,2) >= 0.94*obj.height;
 
             % Free MP corresponds to upwards input movement with downwards
             % output movement
-            sDir{3}.domain    = isInput;
-            sDir{3}.direction = 2;
-            sDir{3}.value     = sqrt(1/(1+obj.phi_imposed^2)); % i^2 + o^2 = 1 --> i^2 + J^2*i^2 = 1 --> i = sqrt(1/(1+J^2)) 
-
-            sDir{4}.domain    = isOutput;
-            sDir{4}.direction = 2;
-            sDir{4}.value     = obj.phi_imposed*sqrt(1/(1+obj.phi_imposed^2)); % o = J*i        
+            if mp_index == 1
+                sDir{3}.domain    = isInputS;
+                sDir{3}.direction = 2;
+                sDir{3}.value     = 1;
+                
+                Output_logical = isOutput(obj.mesh.coord);
+                Output_coor = obj.mesh.coord(Output_logical,:);
+    
+                sDir{4}.domain    = isOutput;
+                sDir{4}.direction = 2;
+                sDir{4}.value     = obj.amplitude * sin(Output_coor(:,1)/obj.width * 1.5*pi); % y(x)=A sin(x/w * 1.5*pi) 
             
+                sDir{5}.domain = isInputC;
+                sDir{5}.direction = [1,2];
+                sDir{5}.value = 0;
+            
+            elseif mp_index == 2
+                sDir{3}.domain    = isInputC;
+                sDir{3}.direction = 2;
+                sDir{3}.value     = 1;
+                
+                Output_logical = isOutput(obj.mesh.coord);
+                Output_coor = obj.mesh.coord(Output_logical,:);
+    
+                sDir{4}.domain    = isOutput;
+                sDir{4}.direction = 2;
+                sDir{4}.value     = obj.amplitude * cos(Output_coor(:,1)/obj.width * pi); % y(x)=A cos(x/w * pi) 
+          
+                sDir{5}.domain = isInputS;
+                sDir{5}.direction = [1,2];
+                sDir{5}.value = 0;
+            
+            else
+                warning('Wrong MP indeces');
+            end
+
             dirichletFun = [];
             for i = 1:numel(sDir)
                 dir = DirichletCondition(obj.mesh, sDir{i});
@@ -414,7 +472,7 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_InverterFULL < handle
 
         function createComplianceFunctions(obj)
             obj.complianceFuncs = cell(obj.nGDI,1);
-            titles = {'Compliance input GDI', 'Compliance output GDI'};
+            titles = {'Compliance input S GDI', 'Compliance input C GDI','Compliance output GDI'};
 
             for i = 1:obj.nGDI
                 sC.mesh = obj.mesh;
@@ -458,10 +516,14 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_InverterFULL < handle
             coor  = obj.mesh.coord;
             uVals = uFun.fValues;
         
-
-            isOutput = @(coor) coor(:,1) >= 0.9 & coor(:,1) <= 1.1 & coor(:,2) >= 1-1e-8;           
+            % Select output nodes with density filter
+            isOutput    = @(coor) coor(:,1) >= 0.9 & coor(:,1) <= 1.1 & coor(:,2) >= 1-1e-8;
             outputNodes = isOutput(coor);
-            u_out       = mean(uVals(outputNodes,2));
+            xD          = obj.designVariable.fun.fValues;
+            outputDens  = xD(outputNodes);
+            solidFilter   = outputDens > 0.5;
+            u_out_all   = uVals(outputNodes, 2);
+            u_out       = mean(u_out_all(solidFilter));
         
             % Motion transmission
             u_in = 1;
@@ -479,7 +541,7 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_InverterFULL < handle
             isLeft =@(coor) coor(:,1) <= 1e-8;
             isRight =@(coor) coor(:,1) >= 2-1e-8;
 
-            % Side walls fixed 
+            % Side walls fixed
             sDir{1}.domain = isLeft;
             sDir{1}.direction = [1,2];
             sDir{1}.value = 0;
@@ -488,7 +550,6 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_InverterFULL < handle
             sDir{2}.direction = [1,2];
             sDir{2}.value = 0;
 
-            % Unit displ of input
             isInput =@(coor) coor(:,1) >= 0.9 & coor(:,1) <= 1.1 & coor(:,2) <= 1e-8;
 
             sDir{3}.domain = isInput;
@@ -510,49 +571,6 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_InverterFULL < handle
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
         end
-
-        function J_current = computeCurrentMT(obj)
-            mat = obj.createMaterial();
-            xD  = obj.designVariable.obtainDomainFunction();
-            if iscell(xD); xD = xD{1}; end
-            xF  = obj.filter.compute(xD, 2);
-            mat.setDesignVariable({xF});
-            C   = mat.obtainTensor();
-
-            fem = obj.physicalProblemMotionBased{1};
-            fem.updateMaterial(C);
-            bc  = obj.createBoundaryConditionsMotionTransmission();
-            fem.boundaryConditions = bc;
-            fem.createBCApplier();
-            fem.createSolver();
-            fem.solve();
-
-            uVals     = fem.uFun.fValues;
-            coor      = obj.mesh.coord;
-            isOutput  = @(c) c(:,1) >= 0.9 & c(:,1) <= 1.1 & c(:,2) >= 1-1e-8;
-            outNodes  = isOutput(coor);
-            u_out     = uVals(outNodes, 2);
-            J_current = mean(u_out);
-
-            if isnan(J_current)
-                J_current = obj.J_MT;
-            end
-        end
-
-        function adaptiveUpdate(obj,nIter)
-            J_current = obj.computeCurrentMT();
-            % if nIter < 50
-            %     obj.phi_imposed = obj.J_MT;
-            % else
-                obj.phi_imposed = obj.phi_imposed + obj.beta_adaptive * (obj.J_MT - J_current);            obj.J_current_monitor = J_current;
-            % end
-
-            fem = obj.physicalProblemMotionBased{1};
-            fem.boundaryConditions = obj.createBoundaryConditionsMotionBased();
-            fem.createBCApplier();
-            fem.createSolver();
-        end
-
 
         function printFinalDisplacement_v2(obj) % works
             % --- EXTRACT YOUR FINAL DATA ---
@@ -635,34 +653,37 @@ classdef Tutorial05_15_TopOpt2DDensity_CM_InverterFULL < handle
         end
         
         function printFinalDisplacement_v3(obj)
-            num_case = find(obj.J_MT_vector == obj.J_MT);
-            namePrint = sprintf('D_Inv_FinalDispl_J_%g',num_case);
-            uFun = obj.physicalProblemMotionBased{1}.uFun;
-            uFun.print(namePrint);
+            num_case = find(obj.Kp_bar_vector == obj.Kp_bar);
+            for i = 1:obj.nMP
+                namePrint = sprintf('Mirror_FinalDispl_Kp_%g_MP_%g', num_case, i);
+                uFun = obj.physicalProblemMotionBased{i}.uFun;
+                uFun.print(namePrint);
+            end
+
+            for i=1:obj.nGDI
+                namePrint = sprintf('Mirror_FinalDispl_Kp_%g_LP_%g', num_case, i);
+                uFun = obj.physicalProblemLoadBased{i}.uFun;
+                uFun.print(namePrint);
+            end
         end
 
         function saveFigures(obj)
-            num_case = find(obj.J_MT_vector == obj.J_MT);
-
+            num_case_gJ = find(obj.gJFlowRatio_vector == obj.gJFlowRatio);
+            num_case_Kp = find(obj.Kp_bar_vector == obj.Kp_bar);
             fig_design = figure(1); 
             fig_monitor = figure(2);
-            fig_adaptive = figure(3);
             fig_monitor.WindowState = 'maximized';
-            fig_adaptive.WindowState = 'maximized';
             drawnow;
-
-            name_design = sprintf('D_Inv_DesignMap_Case_%g.png', num_case );
-            name_monitor = sprintf('D_Inv_Monitoring_Case_%g.png', num_case);
-            name_adaptive = sprintf('D_Inv_Adaptive_Case_%g.png',   num_case);
+            name_design = sprintf('Mirror_X_gJ_%g_Kp_%g.png', num_case_gJ, num_case_Kp );
+            name_monitor = sprintf('Mirror_Monit_gJ_%g_Kp_%g.png', num_case_gJ, num_case_Kp);
             exportgraphics(fig_design, name_design, 'Resolution', 300);
             exportgraphics(fig_monitor, name_monitor, 'Resolution', 300);
-            exportgraphics(fig_adaptive, name_adaptive, 'Resolution', 300);
             close all
         end
 
         function printFinalDesignVariable(obj)
-            num_case = find(obj.J_MT_vector == obj.J_MT);
-            namePrint = sprintf('D_Inv_DesignVariable_kCase_%g',num_case);
+            num_case = find(obj.Kp_bar_vector == obj.Kp_bar);
+            namePrint = sprintf('D_Mirror_DesignVariable_kCase_%g',num_case);
             obj.designVariable.fun.print(namePrint);
         end
      end

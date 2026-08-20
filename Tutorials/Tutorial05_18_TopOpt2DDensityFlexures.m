@@ -1,7 +1,7 @@
-classdef Tutorial05_14_TopOpt2DDensityInverter < handle
+classdef Tutorial05_18_TopOpt2DDensityFlexures < handle
 
     properties (Access = private)
-        filename
+        filename 
         mesh
         filter
         designVariable
@@ -16,34 +16,47 @@ classdef Tutorial05_14_TopOpt2DDensityInverter < handle
         primalUpdater
         optimizer
         gJ
-        k_case
-        k_vector
+
+        doc % Selected/chosen DOCs, ["tx"]
+        dof % Selected/chosen DOFs, ["rz"]
+        emax % Max strain energy for DOFs
+        mdoc % Vector with active DOC, [1 0 0]
+        mdof % Vector with active DOF, [0 0 1]
+        deg % Active degrees DOC+DOF, [1 0 1]
+        ndeg % Number of active degrees, 2
+        strainEnergyFuncs
     end
 
     methods (Access = public)
 
-        function obj = Tutorial05_14_TopOpt2DDensityInverter()
-            obj.k_vector = [4 8];
-            for a=1:length(obj.k_vector)
-               obj.k_case = obj.k_vector(a);
+        function obj = Tutorial05_18_TopOpt2DDensityFlexures()
+                % Degrees
+                obj.doc = ["tx"]; %tx
+                obj.dof = ["ty"]; % ty
+                obj.emax = 0.0075; %1
+
+                obj.preprocessDegrees();
+                
                 obj.init();
                 obj.createMesh();
                 obj.createDesignVariable();
                 obj.createFilter();
                 obj.createMaterialInterpolator();
+
                 obj.createElasticProblem();
-                obj.createAdjointProblem();
-                obj.createNonSelfAdjCompliance();
-                obj.createVolumeConstraint();
+                obj.createStrainEnergyFunctions();
+
+                obj.createVolumeConstraint();                
                 obj.createCost();
                 obj.createConstraint();
+
                 obj.createDualVariable();
                 obj.createPrimalUpdater();
                 obj.createOptimizer();
+
                 obj.printFinalDisplacement_v3(); % print document with the final FEM displacements
                 obj.printFinalDesignVariable(); % print final design variable
                 obj.saveFigures(); % save matlab figures (design variable and monitoring)
-            end
         end
 
     end
@@ -54,14 +67,41 @@ classdef Tutorial05_14_TopOpt2DDensityInverter < handle
             close all;
         end
 
+        function preprocessDegrees(obj)
+            ldoc = length(obj.doc); % Number of DOCs
+            ldof = length(obj.dof); % Number of DOFs
+            
+            % Initialize vectors of DOC and DOF
+            obj.mdoc = zeros(ldoc,3);
+            obj.mdof = zeros(ldof,3);
+            
+            degrees = ["tx","ty","rz"]; % possible DOC and DOF
+            for i=1:ldoc; obj.mdoc(i,:) = strcmp(degrees,obj.doc(i)); end % Compare DOCs to degrees
+            for i=1:ldof; obj.mdof(i,:) = strcmp(degrees,obj.dof(i)); end % Compare DOFs to degrees
+            % Now, if doc="ty, tx", then mdoc=[0 1 0; 1 0 0]
+            obj.mdoc = max(obj.mdoc,[],1) == 1; % For example, if doc="ty, tx", then mdoc=[1 1 0]
+            obj.mdof = max(obj.mdof,[],1) == 1;
+            
+            obj.deg = find(max([obj.mdoc; obj.mdof])); % if mdoc=[0 1 0] and mdof=[1 0 0] then deg=[1 2] (indeces of active degrees)
+            obj.ndeg = length(obj.deg); % Number of active degrees, used to avoid doing the FEA of an inactive degree
+            
+            % Checks that a degree is not both dof and doc, also that at
+            % least 1
+            % dof and 1 doc and no more than 2
+            assert(all((obj.mdoc+obj.mdof) < 2),'overlap between DOC and DOF');
+            assert(ldoc >= 1 & ldoc <= 2,'set of DOC too small/big');
+            assert(ldof >= 1 & ldof <= 2,'set DOF too small/big');
+            assert(obj.ndeg >= 2 & obj.ndeg <=3,'incorect no of rhs');
+        end
+
         function createMesh(obj) % must be modified
             % Generate coordinates
-            x1 = linspace(0,1,100);
-            x2 = linspace(0,1,100);
+            x1 = linspace(0,1,200);
+            x2 = linspace(0,1,200);
             % Create the grid
             [xv,yv] = meshgrid(x1,x2);
             % Triangulate the mesh to obtain coordinates and connectivities
-            [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'x');
+            [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'f');
             s.coord  = V(:,1:2);
             s.connec = F;
             %mesh = Mesh.create(s);
@@ -69,7 +109,7 @@ classdef Tutorial05_14_TopOpt2DDensityInverter < handle
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) ones(size(x(1,:,:)));
+            s.fHandle = @(x) 0.1*ones(size(x(1,:,:)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);
@@ -78,6 +118,17 @@ classdef Tutorial05_14_TopOpt2DDensityInverter < handle
             s.type = 'Density';
             s.plotting = true;
             dens    = DesignVariable.create(s); 
+
+            % coords  = obj.mesh.coord;
+            % ymin = min(obj.mesh.coord(:,2));
+            % ymax = max(obj.mesh.coord(:,2));
+            % isBottom = coords(:,2) <= ymin + 1e-8;
+            % isTop = coords(:,2) >= ymax - 1e-8;
+            % 
+            % vals = dens.fun.fValues;
+            % vals(isTop | isBottom) = 1;
+            % dens.fun.setFValues(vals);
+
             obj.designVariable = dens;
         end
 
@@ -88,6 +139,14 @@ classdef Tutorial05_14_TopOpt2DDensityInverter < handle
             f = Filter.create(s);
             obj.filter = f;
         end
+
+        function f = createGradientFilter(obj)
+            s.filterType = 'PDE';
+            s.mesh  = obj.mesh;
+            s.trial = LagrangianFunction.create(obj.mesh,1,'P1'); 
+            f = Filter.create(s);
+        end
+
 
         function createMaterialInterpolator(obj)
             E0   = 1e-3;
@@ -113,17 +172,26 @@ classdef Tutorial05_14_TopOpt2DDensityInverter < handle
         end
 
         function createElasticProblem(obj)
-            s.mesh = obj.mesh;
-            s.scale = 'MACRO';
-            s.material = obj.createMaterial();
-            s.dim = '2D';
-            s.boundaryConditions = obj.createBoundaryConditions();
-            s.interpolationType = 'LINEAR';
-            s.solverType = 'REDUCED';
-            s.solverMode = 'DISP';
-            s.solverCase = DirectSolver();
-            fem = ElasticProblem(s);
-            obj.physicalProblem = fem;
+            obj.physicalProblem = cell(obj.ndeg,1); % use cell to store different objects
+            degrees_list = ["tx", "ty", "rz"];
+
+            for i = 1:obj.ndeg % one iteration per active degree
+                current_idx = obj.deg(i); % select the index of the current degree (from preprocess)
+                current_degree = degrees_list(current_idx); % select the string degree
+
+                s.mesh = obj.mesh;
+                s.scale = 'MACRO';
+                s.material = obj.createMaterial();
+                s.dim = '2D';
+                s.boundaryConditions = obj.createBoundaryConditions(current_degree);
+                s.interpolationType = 'LINEAR';
+                s.solverType = 'REDUCED';
+                s.solverMode = 'DISP'; % now we impose displacements
+                s.solverCase = DirectSolver();
+                fem = ElasticProblem(s);
+                obj.physicalProblem{i} = fem; % stor the FEM of this degree in the cell
+            end
+
         end
 
         function createAdjointProblem(obj)
@@ -141,7 +209,7 @@ classdef Tutorial05_14_TopOpt2DDensityInverter < handle
         end
 
         function createNonSelfAdjCompliance(obj)
-            s.mesh           = obj.mesh;
+            s.mesh           = obj.mesh
             s.filter         = obj.filter;
             s.material       = obj.createMaterial();
             s.stateProblem   = obj.physicalProblem;
@@ -168,9 +236,38 @@ classdef Tutorial05_14_TopOpt2DDensityInverter < handle
             obj.volume = v;
         end
 
+        function createStrainEnergyFunctions(obj)
+            obj.strainEnergyFuncs = cell(obj.ndeg,1); % Initialize cell to store strain energy of each degree
+
+            for i = 1:obj.ndeg % One iteration per active degree
+                s.mesh         = obj.mesh;
+                s.filter       = obj.filter;
+                s.gradientFilter = obj.createGradientFilter;
+                %s.material     = obj.materialInterpolator;
+                s.material = obj.createMaterial();
+                s.stateProblem = obj.physicalProblem{i};  % Give the FEM of that particular degree              
+                obj.strainEnergyFuncs{i} = FlexureStrainEnergy(s); % Store the strain energy object of the degree
+            end
+        end
+        
+
         function createCost(obj)
-            s.shapeFunctions{1} = obj.compliance;
-            s.weights           = 1;
+            % Initialize the functions to evaluate and their weights
+            s.shapeFunctions = {};
+            s.weights = [];
+
+            ldoc = sum(obj.mdoc); % How many docs
+            count = 1;
+
+            for i = 1:obj.ndeg % One iteration per active deg
+                deg_idx = obj.deg(i);
+                if obj.mdoc(deg_idx) == 1 % If the degree is a doc
+                    s.shapeFunctions{count} = obj.strainEnergyFuncs{i}; % Take the FlexureStrainEnergy of the doc
+                    s.weights(count) = -1/ldoc; % Take the weight of the doc, with all docs having the same weight
+                    count = count+1;
+                end
+            end
+
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -182,13 +279,30 @@ classdef Tutorial05_14_TopOpt2DDensityInverter < handle
         end
 
         function createConstraint(obj)
-            s.shapeFunctions{1} = obj.volume;
+            s.shapeFunctions = {};
+            count = 1;
+            gscale = 1; % Weight of the constraint, set to 1 in swan because the optimizer has its own weight handling 
+
+            for i = 1:obj.ndeg
+                deg_idx = obj.deg(i);
+                if obj.mdof(deg_idx) == 1 % Select the dofs
+                    cParams.strainEnergyFunc = obj.strainEnergyFuncs{i}; % take the strainEnergyFunc of that degree
+                    cParams.gscale = gscale; % take its gscale
+                    cParams.emax = obj.emax;
+                    s.shapeFunctions{count} = FlexureDOFConstraint(cParams); % give the strainEnergyFunc and gscale to FlexureDOFConstraint to obtain the shape functions
+                    count = count +1;
+                end
+            end
+
+            %s.shapeFunctions{count} = obj.volume;
+
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
 
         function createDualVariable(obj)
-            s.nConstraints   = 1;
+            nConstr = sum(obj.mdof);
+            s.nConstraints   = nConstr;
             l                = DualVariable(s);
             obj.dualVariable = l;
         end
@@ -196,7 +310,7 @@ classdef Tutorial05_14_TopOpt2DDensityInverter < handle
         function createPrimalUpdater(obj)
             s.ub     = 1;
             s.lb     = 0;
-            s.tauMax = 1000;
+            s.tauMax = 500; % max step size, then etaNorm has to approve. If not approved, line search trial
             s.tau    = [];
             obj.primalUpdater = ProjectedGradient(s);
         end
@@ -207,20 +321,34 @@ classdef Tutorial05_14_TopOpt2DDensityInverter < handle
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 1000;
+            s.maxIter        = 300;
             s.tolerance      = 1e-8;
-            s.constraintCase = {'INEQUALITY'};
+            nConstr=sum(obj.mdof);
+            s.constraintCase = repmat({'INEQUALITY'},1,nConstr);
             s.primalUpdater  = obj.primalUpdater;
             s.ub             = 1;
             s.lb             = 0;
-            s.etaNorm        = 0.075; % default was 0.02
-            s.gJFlowRatio    = 0.1;
+            s.etaNorm        = 0.03; % max design change per iter, default was 0.02
+            s.gJFlowRatio    = 0.05; % "weight" of the constraint 0.1
             s.gif            = false;
             s.gifName        = [];
             s.printing       = false;
             s.printName      = ['InvDens'];
-            s.k_case         = obj.k_case;
             s.physicalProblem = obj.physicalProblem;
+            
+            s.applyNonDesignRegion = false;
+            s.applySymmetry = true;
+            %s.physicalProblem = obj.physicalProblem;
+
+            coords   = obj.mesh.coord;
+            ymin = min(obj.mesh.coord(:,2));
+            ymax = max(obj.mesh.coord(:,2));
+            isBottom = coords(:,2) <= ymin + 1e-8;
+            isTop = coords(:,2) >= ymax - 1e-8;
+
+            s.nonDesignRegion = isTop | isBottom;
+            s.nonDesignValue  = 1;
+            
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
@@ -238,23 +366,56 @@ classdef Tutorial05_14_TopOpt2DDensityInverter < handle
             m = Material.create(s);
         end
 
-        function bc = createBoundaryConditions(obj) % must be modified
-            isDir   = @(coor)  coor(:,1)>=0 & coor(:,1)<=0.05 & coor(:,2)<=1e-8 | coor(:,1)<=1 & coor(:,1)>=0.95 & coor(:,2)<=1e-8; % bottom corners
+        function bc = createBoundaryConditions(obj, degree_type) 
+            % Locate the walls of the domain
+            xmin = min(obj.mesh.coord(:,1));
+            xmax = max(obj.mesh.coord(:,1));
+            ymin = min(obj.mesh.coord(:,2));
+            ymax = max(obj.mesh.coord(:,2));
 
-            isPLTop      = @(coor)  (coor(:,1) >= 0.45 & coor(:,1) <= 0.55 & coor(:,2) == 1 ); % top part of the domain (output)
-            isPLBottom   = @(coor)  (coor(:,1) >= 0.45 & coor(:,1) <= 0.55 & coor(:,2) == 0 );% bottom part of the domain (input)
+            % Length of the lower face
+            Lx = xmax-xmin;
 
-            sDir{1}.domain    = @(coor) isDir(coor); % fixed
+            % Select the upper and lower walls
+            isBottom =@(coor) coor(:,2) <= ymin + 1e-8;
+            isTop =@(coor) coor(:,2) >= ymax - 1e-8;
+
+            % Bottom is fixed for tx, ty, rz
+            sDir{1}.domain    = isBottom; % fixed
             sDir{1}.direction = [1,2];
             sDir{1}.value     = 0;
 
-            sPL{1}.domain    = @(coor) isPLBottom(coor);
-            sPL{1}.direction = 2;
-            sPL{1}.value     = +10; % upward force on the input
+            % Top nodes BC depend on the case
+            if strcmp(degree_type, "tx")
+                sDir{2}.domain    = isTop; % fixed
+                sDir{2}.direction = [1];
+                sDir{2}.value     = 1;
 
-            % sPL{2}.domain    = @(coor) isPLTop(coor);
-            % sPL{2}.direction = 2;
-            % sPL{2}.value     = 0;
+                sDir{3}.domain    = isTop; % fixed
+                sDir{3}.direction = [2];
+                sDir{3}.value     = 0;
+            
+            elseif strcmp(degree_type, "ty")
+                sDir{2}.domain    = isTop; % fixed
+                sDir{2}.direction = [1];
+                sDir{2}.value     = 0;
+
+                sDir{3}.domain    = isTop; % fixed
+                sDir{3}.direction = [2];
+                sDir{3}.value     = 1;
+
+            elseif strcmp(degree_type, "rz")
+                sDir{2}.domain    = isTop; % fixed
+                sDir{2}.direction = [1];
+                sDir{2}.value     = 1;
+
+                top_logical = isTop(obj.mesh.coord); % Obtain which nodes are top wall
+                top_coor    = obj.mesh.coord(top_logical, :); % coordinates of the top wall nodes
+
+                sDir{3}.domain    = isTop; % fixed
+                sDir{3}.direction = [2];
+                sDir{3}.value     = 1-2*(top_coor(:,1)-xmin)/Lx; % expression for the rotation of the top wall
+            end            
 
 
             dirichletFun = [];
@@ -264,13 +425,7 @@ classdef Tutorial05_14_TopOpt2DDensityInverter < handle
             end
             s.dirichletFun = dirichletFun;
 
-            pointloadFun = [];
-            for i = 1:numel(sPL)
-                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
-                pointloadFun = [pointloadFun, pl];
-            end
-            s.pointloadFun = pointloadFun;
-
+            s.pointloadFun = [];
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
@@ -401,28 +556,31 @@ classdef Tutorial05_14_TopOpt2DDensityInverter < handle
         end
         
         function printFinalDisplacement_v3(obj)
-            num_case = find(obj.k_vector == obj.k_case);
-            namePrint = sprintf('D_Inv_FinalDispl_kCase_%g',num_case);
-            uFun = obj.physicalProblem.uFun;
-            uFun.print(namePrint);
+            degrees_list = ["tx", "ty", "rz"];
+            for i = 1:obj.ndeg
+                deg_name = degrees_list(obj.deg(i));
+                namePrint = sprintf('D_Axial_FinalDispl_%s', deg_name);
+                uFun = obj.physicalProblem{i}.uFun;
+                uFun.print(namePrint);
+            end
         end
 
         function saveFigures(obj)
-            num_case = find(obj.k_vector == obj.k_case);
+          %  num_case = find(obj.k_vector == obj.k_case);
             fig_design = figure(1); 
             fig_monitor = figure(2);
             fig_monitor.WindowState = 'maximized';
             drawnow;
-            name_design = sprintf('D_Inv_DesignMap_kCase_%g.png', num_case );
-            name_monitor = sprintf('D_Inv_Monitoring_kCase_%g.png', num_case);
+            name_design = sprintf('D_Axial_DesVar.png' );
+            name_monitor = sprintf('D_Axial_Monitoring.png');
             exportgraphics(fig_design, name_design, 'Resolution', 300);
             exportgraphics(fig_monitor, name_monitor, 'Resolution', 300);
             close all
         end
 
         function printFinalDesignVariable(obj)
-            num_case = find(obj.k_vector == obj.k_case);
-            namePrint = sprintf('D_Inv_DesignVariable_kCase_%g',num_case);
+           % num_case = find(obj.k_vector == obj.k_case);
+            namePrint = sprintf('D_Axial_DesignVariable');
             obj.designVariable.fun.print(namePrint);
         end
      end

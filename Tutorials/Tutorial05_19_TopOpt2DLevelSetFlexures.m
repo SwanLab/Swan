@@ -1,4 +1,4 @@
-classdef Tutorial05_15_TopOpt2DLevelSetFlexures < handle
+classdef Tutorial05_19_TopOpt2DLevelSetFlexures < handle
 
     properties (Access = private)
         filename 
@@ -29,7 +29,7 @@ classdef Tutorial05_15_TopOpt2DLevelSetFlexures < handle
 
     methods (Access = public)
 
-        function obj = Tutorial05_15_TopOpt2DLevelSetFlexures()
+        function obj = Tutorial05_19_TopOpt2DLevelSetFlexures()
                 % Degrees
                 obj.doc = ["tx"]; % tx, ty
                 obj.dof = ["ty"]; % ty, rz
