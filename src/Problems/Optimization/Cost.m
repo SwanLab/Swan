@@ -3,12 +3,10 @@ classdef Cost < handle
     properties (Access = public)
         value
         gradient
-        cost_in_norm
-        cost_out_norm
-        shapeFunctions
     end
 
     properties (Access = private)
+        shapeFunctions
         weights
         Msmooth
     end
@@ -41,11 +39,7 @@ classdef Cost < handle
                 djV = djV + wI*dJc{iF};
             end
             obj.value    = jV;
-            if isempty(obj.Msmooth)
-                obj.gradient=djV;
-            else
-                obj.gradient = obj.Msmooth*djV;
-            end
+            obj.gradient = obj.Msmooth*djV;
 %             obj.gradient = djV;
         end
 

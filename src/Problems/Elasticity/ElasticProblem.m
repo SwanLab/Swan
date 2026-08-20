@@ -5,11 +5,11 @@ classdef ElasticProblem < handle
         strainFun
         stressFun
         forces
-        boundaryConditions, bcApplier % moved here so that NonSelf... can access it
     end
 
     properties (Access = private)
         quadrature
+        boundaryConditions, bcApplier
 
         stiffness
         solverType, solverMode, solverCase
@@ -66,24 +66,6 @@ classdef ElasticProblem < handle
 
     end
 
-    methods (Access = public)
-                function createBCApplier(obj)
-            s.mesh = obj.mesh;
-            s.boundaryConditions = obj.boundaryConditions;
-            bc = BCApplier(s);
-            obj.bcApplier = bc;
-        end
-
-        function createSolver(obj)
-            s.solverType = obj.solverType;
-            s.solverMode = obj.solverMode;
-            s.solver     = obj.solverCase;
-            s.boundaryConditions = obj.boundaryConditions;
-            s.BCApplier          = obj.bcApplier;
-            obj.problemSolver    = ProblemSolver(s);
-        end
-    end
-
     methods (Access = private)
 
         function init(obj, cParams)
@@ -100,7 +82,21 @@ classdef ElasticProblem < handle
             obj.uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
         end
 
+        function createBCApplier(obj)
+            s.mesh = obj.mesh;
+            s.boundaryConditions = obj.boundaryConditions;
+            bc = BCApplier(s);
+            obj.bcApplier = bc;
+        end
 
+        function createSolver(obj)
+            s.solverType = obj.solverType;
+            s.solverMode = obj.solverMode;
+            s.solver     = obj.solverCase;
+            s.boundaryConditions = obj.boundaryConditions;
+            s.BCApplier          = obj.bcApplier;
+            obj.problemSolver    = ProblemSolver(s);
+        end
 
         function computeStiffnessMatrix(obj)
             C     = obj.material;

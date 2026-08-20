@@ -21,8 +21,8 @@ classdef ProjectedGradient < handle
             ub = obj.upperBound;
             lb = obj.lowerBound;
             t  = obj.tau;
-            y  = y - t*g;   % steepest descent
-            x  = min(ub,max(y,lb));  % apply box constraint so that lb<x<ub
+            y  = y - t*g;
+            x  = min(ub,max(y,lb));
             obj.updateBoundsMultipliers(x,y);
             rho.update(x);
         end

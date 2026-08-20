@@ -3,10 +3,6 @@ classdef OptimizerNullSpace < handle
     properties (Access = private)
         tolCost   = 1e-8
         tolConstr = 1e-6
-        iterCallBack
-        applySymmetry
-        applyNonDesignRegion
-        monitoringCallBack
     end
 
     properties (Access = private)
@@ -34,20 +30,16 @@ classdef OptimizerNullSpace < handle
         etaMin
         etaMax
         etaMaxMin
-        lG
         lJ
-        etaNorm
-        etaNormMin
-        gJFlowRatio
+        lG
+        delta
+        deltaMin
+        etaStar
         firstEstimation
         gif
         gifName
         printing
         printName
-        k_case
-        physicalProblem
-        nonDesignRegion
-        nonDesignValue
     end
 
     methods (Access = public) 
@@ -67,15 +59,10 @@ classdef OptimizerNullSpace < handle
             obj.firstEstimation = false;
             while ~obj.hasFinished
                 obj.update();
-
-                if ~isempty(obj.iterCallBack)
-                    obj.iterCallBack(obj.nIter);
-                end
-
                 obj.printResults();
                 obj.updateIterInfo();
                 obj.plotVariable();
-                obj.updateMonitoring(); % updates plots of the monitoring window
+                obj.updateMonitoring();
                 obj.checkConvergence();
                 obj.designVariable.updateOld();
             end
@@ -91,12 +78,12 @@ classdef OptimizerNullSpace < handle
             obj.maxIter         = cParams.maxIter;
             obj.lG              = 0;
             obj.lJ              = 0;
-            obj.gJFlowRatio     = cParams.gJFlowRatio;
+            obj.etaStar         = cParams.etaStar;
             obj.hasConverged    = false;
             obj.nIter           = 0;
             obj.meritOld        = 1e6;
             obj.firstEstimation = true;
-            obj.etaNorm         = cParams.etaNorm;
+            obj.delta           = cParams.delta;
             obj.eta             = 0;
             obj.etaMin          = 1e-6;
             obj.gif             = cParams.gif;
@@ -104,43 +91,9 @@ classdef OptimizerNullSpace < handle
             obj.printing        = cParams.printing;
             obj.printName       = cParams.printName;
             obj.primalUpdater   = cParams.primalUpdater;
-           % obj.physicalProblem = cParams.physicalProblem; % Only needed
-          % for printing each iteration
             obj.dualUpdater     = DualUpdaterNullSpace(cParams);
             obj.createDualVariable();
             obj.initOtherParameters(cParams);
-
-            if isfield(cParams, 'applySymmetry')
-                obj.applySymmetry = cParams.applySymmetry;
-            else
-                obj.applySymmetry = true; % comportamiento original por defecto
-            end
-
-            if isfield(cParams, 'applyNonDesignRegion')
-                obj.applyNonDesignRegion = cParams.applyNonDesignRegion;
-            else
-                obj.applyNonDesignRegion = false;
-            end
-
-            if isfield(cParams, 'nonDesignRegion')
-                obj.nonDesignRegion = cParams.nonDesignRegion;
-                obj.nonDesignValue = cParams.nonDesignValue;
-            else
-                obj.nonDesignRegion = [];
-            end
-
-            if isfield(cParams, 'iterCallBack')
-                obj.iterCallBack = cParams.iterCallBack;
-            else
-                obj.iterCallBack=[];
-            end
-
-            if isfield(cParams, 'monitoringCallBack')
-                obj.monitoringCallBack = cParams.monitoringCallBack;
-            else
-                obj.monitoringCallBack = [];
-            end
-            
         end
 
         function createDualVariable(obj)
@@ -151,9 +104,9 @@ classdef OptimizerNullSpace < handle
         function initOtherParameters(obj,cParams)
             switch class(obj.designVariable)
                 case 'LevelSet'
-                    obj.etaMax     = cParams.etaMax;
+                    obj.etaMax     = cParams.etaMax0;
                     obj.etaMaxMin  = cParams.etaMaxMin;
-                    obj.etaNormMin = cParams.etaNormMin;
+                    obj.deltaMin = cParams.deltaMin;
                 otherwise
                     obj.etaMax = inf;
             end
@@ -166,7 +119,6 @@ classdef OptimizerNullSpace < handle
             s.designVariable = obj.designVariable;
             s.dualVariable   = obj.dualVariable;
             s.primalUpdater  = obj.primalUpdater;
-            s.monitoringCallBack = obj.monitoringCallBack;
             obj.monitoring   = MonitoringNullSpace(s);
         end
 
@@ -177,13 +129,6 @@ classdef OptimizerNullSpace < handle
             s.lG               = obj.lG;
             s.lJ               = obj.lJ;
             s.meritNew         = obj.meritNew;
-
-            if ~isempty(obj.monitoringCallBack)
-                s.extraData = obj.monitoringCallBack();
-            else
-                s.extraData = [];
-            end
-
             obj.monitoring.update(obj.nIter,s);
             obj.monitoring.refresh();
         end
@@ -195,10 +140,10 @@ classdef OptimizerNullSpace < handle
         end
 
         function updateEtaParameter(obj)
-            vgJ     = obj.gJFlowRatio;
+            eSt     = obj.etaStar;
             l2DxJ   = norm(obj.DxJ);
             l2Dxg   = norm(obj.Dxg);
-            obj.eta = max(min(vgJ*l2DxJ/l2Dxg,obj.etaMax),obj.etaMin);
+            obj.eta = max(min(eSt*l2DxJ/l2Dxg,obj.etaMax),obj.etaMin);
             obj.updateMonitoringMultipliers();
         end
 
@@ -269,25 +214,15 @@ classdef OptimizerNullSpace < handle
                 obj.updatePrimal();
                 obj.checkStep(x0);
             end
-            
-            if obj.applyNonDesignRegion
-                obj.enforceNonDesignRegions();
-            end
-
-            if obj.applySymmetry
-                obj.enforceSymmetry();
-            end
         end
 
         function printResults(obj)
-            numbIters = 20; % indicates every how many iters it prints
-            if obj.nIter/numbIters==round(obj.nIter/numbIters)  
+            if obj.nIter/10==round(obj.nIter/10)
                 if obj.gif
                     obtainGIF(obj.gifName,obj.designVariable,obj.nIter);
                 end
                 if obj.printing
-                    obj.designVariable.fun.print([obj.printName,'_desVar_k_',num2str(obj.k_case),'_It_',num2str(obj.nIter)]); % add /numbIters so that it is 0,1,2,...
-                    %obj.physicalProblem.uFun.print([obj.printName,'_def_k_',num2str(obj.k_case),'_It_',num2str(obj.nIter)]);
+                    obj.designVariable.fun.print([obj.printName,'Iter',num2str(obj.nIter/10)]);
                 end
             end
         end
@@ -321,28 +256,23 @@ classdef OptimizerNullSpace < handle
             x = obj.designVariable;
             g = obj.meritGradient;
             x = obj.primalUpdater.update(g,x);
-
-            if isnumeric(x)
-                obj.designVariable.update(x);
-            else
-                obj.designVariable = x;
-            end
+            obj.designVariable = x;
         end
 
         function computeMeritGradient(obj)
             DJ  = obj.cost.gradient;
             Dg  = obj.constraint.gradient;
             l   = obj.dualVariable.fun.fValues;
-            DmF = DJ+Dg*l; % Merit gradient = cost gradient + lagrangian constraint gradient
+            DmF = DJ+Dg*l;
             obj.meritGradient = DmF;
         end
 
         function checkStep(obj,x0)
-            mNew = obj.computeMeritFunction(); % merit function with the new design
+            mNew = obj.computeMeritFunction();
             x    = obj.designVariable.fun.fValues;
             etaN = obj.obtainTrustRegion();
             if mNew <= obj.mOldPrimal+1e-3  &&  norm(x-x0)/(norm(x0)+1) < etaN
-                obj.acceptableStep = true; % accept the new design if merit is lower
+                obj.acceptableStep = true;
                 obj.meritNew       = mNew;
                 obj.updateEtaMax();
             elseif obj.primalUpdater.isTooSmall()
@@ -365,7 +295,7 @@ classdef OptimizerNullSpace < handle
                     isAlmostOptimal   = obj.primalUpdater.Theta < 0.15;
                     if isAlmostFeasible && isAlmostOptimal
                         obj.etaMax  = max(obj.etaMax/1.05,obj.etaMaxMin);
-                        obj.etaNorm = max(obj.etaNorm/1.1,obj.etaNormMin);
+                        obj.delta = max(obj.delta/1.1,obj.deltaMin);
                     end
                 case 'HAMILTON-JACOBI'
                     obj.etaMax = Inf; % Not verified
@@ -381,10 +311,10 @@ classdef OptimizerNullSpace < handle
                     if obj.nIter == 0
                         etaN = inf;
                     else
-                        etaN = obj.etaNorm;
+                        etaN = obj.delta;
                     end
                 otherwise
-                    etaN = obj.etaNorm;
+                    etaN = obj.delta;
             end
         end
 
@@ -395,21 +325,19 @@ classdef OptimizerNullSpace < handle
             l  = obj.dualVariable.fun.fValues;
             J  = obj.cost.value;
             h  = obj.constraint.value;
-            mF = J+l'*h; 
+            mF = J+l'*h;
         end
 
         function obj = checkConvergence(obj)
             value = obj.constraint.value;
             cases = obj.constraintCase;
-            % Converged if the change is smaller than tolerance AND
-            % constraint is met
             if abs(obj.meritNew - obj.meritOld) < obj.tolCost && Optimizer.checkConstraint(value,cases,obj.tolConstr)
                 obj.hasConverged = true;
                 if obj.primalUpdater.isTooSmall()
                     obj.primalUpdater.tau = 1;
                 end
             end
-            obj.meritOld = obj.meritNew; % update merit
+            obj.meritOld = obj.meritNew;
         end
 
         function updateIterInfo(obj)
@@ -427,29 +355,6 @@ classdef OptimizerNullSpace < handle
 
         function itHas = hasExceededStepIterations(obj)
             itHas = obj.nIter >= obj.maxIter;
-        end
-
-        function enforceSymmetry(obj)
-            vals   = obj.designVariable.fun.fValues; % vector with the density value at each node
-            coords = obj.designVariable.fun.mesh.coord; % matrix with the coordinates of each node
-            
-            nx = length(unique(coords(:,1))); % unique x coordinates
-            ny = length(unique(coords(:,2))); % unique y coordinates
-            
-            % Reshape to 2D grid, apply symmetry, reshape back
-            vals_2d = reshape(vals, ny, nx); % mesh is nx x ny, represent as matrix
-            vals_2d = (vals_2d + flip(vals_2d, 1))/2;  % symmetry about y=0.5
-            vals_2d = (vals_2d + flip(vals_2d, 2))/2;  % symmetry about x=0.5*width
-            
-            obj.designVariable.fun.setFValues(vals_2d(:)); % update values to the symmetric ones
-        end
-
-        function enforceNonDesignRegions(obj)
-            if ~isempty(obj.nonDesignRegion)
-                vals = obj.designVariable.fun.fValues;
-                vals(obj.nonDesignRegion) = obj.nonDesignValue;
-                obj.designVariable.fun.setFValues(vals);
-            end
         end
     end
 end

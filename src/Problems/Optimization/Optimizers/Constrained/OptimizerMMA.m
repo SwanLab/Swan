@@ -36,12 +36,6 @@ classdef OptimizerMMA < Optimizer
         gifName
         printing
         printName
-        iterCallBack
-        monitoringCallBack
-        phi_history
-        J_history
-        J_star
-        adaptiveFigHandle
     end
     
     methods (Access = public)
@@ -60,13 +54,8 @@ classdef OptimizerMMA < Optimizer
            obj.cost.computeFunctionAndGradient(f);
            obj.constraint.computeFunctionAndGradient(f);
            obj.updateMonitoring();
-           obj.createAdaptiveMonitoring();
            while ~obj.hasFinished
                obj.update();
-               if ~isempty(obj.iterCallBack)     
-                   obj.iterCallBack(obj.outit);  
-               end                               
-               obj.updateAdaptiveMonitoring();
                obj.printResults();
                obj.updateIterInfo();
                obj.printOptimizerVariable();
@@ -111,48 +100,6 @@ classdef OptimizerMMA < Optimizer
     
     methods (Access = private)
 
-        function createAdaptiveMonitoring(obj)
-            if isempty(obj.monitoringCallBack)
-                return;
-            end
-            obj.adaptiveFigHandle = figure();
-            clf(obj.adaptiveFigHandle);
-            hold on; grid on;
-            title('Adaptive formulation: $\phi^{(k)}$ and $J[\mathbf{x}^{(k)}]$', ...
-                'Interpreter','latex');
-            xlabel('Iteration k');
-            ylabel('Motion transmission');
-        end
-
-        function updateAdaptiveMonitoring(obj)
-            if isempty(obj.monitoringCallBack)
-                return;
-            end
-            vals = obj.monitoringCallBack();
-            phi  = vals(1);
-            J    = vals(2);
-
-            obj.phi_history = [obj.phi_history; phi];
-            obj.J_history   = [obj.J_history;   J];
-            iters = 1:length(obj.phi_history);
-
-            figure(obj.adaptiveFigHandle);
-            cla;
-            hold on; grid on;
-            plot(iters, obj.phi_history, 'b-',  'LineWidth', 1.5, 'DisplayName', '$\phi^{(k)}$');
-            plot(iters, obj.J_history,   'r-',  'LineWidth', 1.5, 'DisplayName', '$J[\mathbf{x}^{(k)}]$');
-            if ~isempty(obj.J_star)
-                yline(obj.J_star, '--', 'Color', [0.5 0.5 0.5], 'LineWidth', 1.2, ...
-                    'DisplayName', '$J^*$');
-            end
-            legend('Interpreter','latex', 'Location','best');
-            title('Adaptive formulation: $\phi^{(k)}$ and $J[\mathbf{x}^{(k)}]$', ...
-                'Interpreter','latex');
-            xlabel('Iteration k');
-            ylabel('Motion transmission');
-            drawnow;
-        end
-
         function printResults(obj)
             if obj.nIter/10==round(obj.nIter/10)
                 if obj.gif
@@ -183,27 +130,6 @@ classdef OptimizerMMA < Optimizer
             obj.printing     = cParams.printing;
             obj.printName    = cParams.printName;
             obj.createMonitoring(cParams);
-
-            if isfield(cParams, 'iterCallBack')
-                obj.iterCallBack = cParams.iterCallBack;
-            else
-                obj.iterCallBack = [];
-            end
-
-            if isfield(cParams, 'monitoringCallBack')
-                obj.monitoringCallBack = cParams.monitoringCallBack;
-            else
-                obj.monitoringCallBack = [];
-            end
-
-            obj.phi_history = [];
-            obj.J_history   = [];
-
-            if isfield(cParams, 'J_star')
-                obj.J_star = cParams.J_star;
-            else
-                obj.J_star = [];
-            end
         end
 
         function createMonitoring(obj,cParams)
@@ -275,7 +201,7 @@ classdef OptimizerMMA < Optimizer
                 obj.upp = ones(length(x0),1);
                 [obj.f0val,obj.df0dx,obj.fval,obj.dfdx] = obj.funmma();
                 obj.m = length(obj.fval);
-                obj.c = 10*ones(obj.m,1);
+                obj.c = 1000*ones(obj.m,1);
                 obj.d = 0*ones(obj.m,1);
                 obj.a0 = 1;
                 obj.a = 0*ones(obj.m,1);

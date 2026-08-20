@@ -17,8 +17,8 @@ classdef DesignVariable < handle
     methods (Access = public, Static)
         
         function designVariable = create(cParams)
-            f = DesignVariableFactory();   % Select type of design variable from the list "factory"
-            designVariable = f.create(cParams);  % Starts to plot de domain, first with all density=1
+            f = DesignVariableFactory();
+            designVariable = f.create(cParams);
         end
 
     end
