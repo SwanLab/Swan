@@ -28,11 +28,14 @@ Tutorial05_10_TopOptDensityBoundFormulationMacro();
 Tutorial05_11_TopOpt3DDensityMacroPython();
 Tutorial05_12_TopOpt2DDensityNonDesignableDomain();
 Tutorial05_13_TopOpt2DLevelSetNonDesignableDomain();
+Tutorial05_14_TopOpt2DLevelSetConnectivity();
+Tutorial05_15_TopOpt2DLevelSetConnectivityDilation();
 
 % Tutorial06_ShapeOptimization -- PENDING
 
-Tutorial07_1_PhaseFieldCase();
-Tutorial07_2_PhaseFieldHomogenization();
+Tutorial07_1_PhaseFieldProblemAnalytical();
+Tutorial07_2_PhaseFieldProblemHomogenized();
+Tutorial07_3_PhaseFieldHomogenization();
 
 Tutorial08_ContinuumDamage();
 

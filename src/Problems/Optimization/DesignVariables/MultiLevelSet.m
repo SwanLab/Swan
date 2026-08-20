@@ -25,6 +25,13 @@ classdef MultiLevelSet < handle
             end
         end
 
+        function fixedDofs = getFixedDofs(obj)
+            fixedDofs = [];
+            for i = 1:length(obj.levelSets)
+                fixedDofs = [fixedDofs;obj.levelSets{1,i}.getFixedDofs()];
+            end
+        end
+
         function plot(obj)
             if obj.plotting
             % WE HAVE TO IMPLEMENT OUR VERSION

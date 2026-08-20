@@ -1,37 +1,46 @@
-classdef Tutorial05_5_TopOpt2DLevelSetInfillNullSpace < handle
+classdef Tutorial05_14_TopOpt2DLevelSetConnectivity< handle
 
     properties (Access = private)
         mesh
-        filterCompliance
-        filterVolume
+        filterPerimeter
+        filterComp
+        filterConnect
+        filterAdjointConnect
         designVariable
         C
         dC
+        conductivityInterpolator
+        massInterpolator
         physicalProblem
         compliance
         volume
-        localVolume
         cost
         constraint
-        primalUpdater
+        dualVariable
         optimizer
+        minimumEigenValue
+        perimeter
+        primalUpdater
         E0; nu0; E1; nu1
-    end
+    end 
 
     methods (Access = public)
-
-        function obj = Tutorial05_5_TopOpt2DLevelSetInfillNullSpace()
+        function obj = Tutorial05_14_TopOpt2DLevelSetConnectivity()
             obj.init()
             obj.createMesh();
             obj.createDesignVariable();
+            obj.createFilterPerimeter();
             obj.createFilterCompliance();
-            obj.createFilterVolume();
+            obj.createFilterConnectivity();
             obj.createMaterial();
             obj.createElasticProblem();
-            obj.createComplianceFromConstiutive();
+            obj.createComplianceFromConstitutive();
             obj.createCompliance();
+            obj.createConductivityInterpolator();
+            obj.createMassInterpolator();
+            obj.createEigenValueConstraint();   
+            obj.createPerimeter();                  
             obj.createVolumeConstraint();
-            obj.createLocalVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
             obj.createPrimalUpdater();
@@ -44,7 +53,7 @@ classdef Tutorial05_5_TopOpt2DLevelSetInfillNullSpace < handle
 
         function init(obj)
             close all;
-            obj.E0  = 1e-3;
+            obj.E0  = 1e-5;
             obj.nu0 = 1/3;
             obj.E1  = 1;
             obj.nu1 = 1/3;
@@ -68,20 +77,44 @@ classdef Tutorial05_5_TopOpt2DLevelSetInfillNullSpace < handle
 
         function createFilterCompliance(obj)
             s.filterType = 'LUMP';
-            s.mesh  = obj.mesh;
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            f = Filter.create(s);
-            obj.filterCompliance = f;
+            s.mesh       = obj.mesh;
+            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            f            = Filter.create(s);
+            obj.filterComp = f;           
         end
 
-        function createFilterVolume(obj)
+       function createFilterPerimeter(obj)
             s.filterType = 'PDE';
-            s.mesh  = obj.mesh;
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1');
-            f = Filter.create(s);
-            f.updateEpsilon(6*obj.mesh.computeMeanCellSize());
-            obj.filterVolume = f;
+            s.mesh       = obj.mesh;
+            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            f            = Filter.create(s);
+            obj.filterPerimeter = f;           
         end
+ 
+        function createFilterConnectivity(obj)
+            s.filterType = 'LUMP';
+            s.mesh       = obj.mesh;
+            s.trial      = LagrangianFunction.create(obj.mesh,1,'P1');
+            f            = Filter.create(s);
+            obj.filterConnect = f;
+            obj.filterAdjointConnect =[];
+        end
+
+        function createConductivityInterpolator(obj) 
+            s.f0   = 1e-3;                                             
+            s.f1   = 1;  
+            s.dim  = '2D';
+            a = SimpAllThermalInterpolation(s);
+            obj.conductivityInterpolator = a;            
+        end 
+
+        function createMassInterpolator(obj)
+            s.f0   = 1e-3;
+            s.f1   = 1;
+            s.pExp = 1;
+            a = SIMPThermalInterpolation(s);
+            obj.massInterpolator = a;            
+        end      
 
         function createMaterial(obj)
             N = obj.mesh.ndim;
@@ -116,7 +149,7 @@ classdef Tutorial05_5_TopOpt2DLevelSetInfillNullSpace < handle
             s.scale = 'MACRO';
             s.material = [];
             s.dim = '2D';
-            s.boundaryConditions = obj.createBoundaryConditions();
+            s.boundaryConditions = obj.createElasticBoundaryConditions();
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'DISP';
@@ -125,7 +158,7 @@ classdef Tutorial05_5_TopOpt2DLevelSetInfillNullSpace < handle
             obj.physicalProblem = fem;
         end
 
-        function c = createComplianceFromConstiutive(obj)
+        function c = createComplianceFromConstitutive(obj)
             s.mesh         = obj.mesh;
             s.stateProblem = obj.physicalProblem;
             c = ComplianceFromConstitutiveTensor(s);
@@ -133,8 +166,8 @@ classdef Tutorial05_5_TopOpt2DLevelSetInfillNullSpace < handle
 
         function createCompliance(obj)
             s.mesh                       = obj.mesh;
-            s.filter                     = obj.filterCompliance;
-            s.complainceFromConstitutive = obj.createComplianceFromConstiutive();
+            s.filter                     = obj.filterComp;
+            s.complainceFromConstitutive = obj.createComplianceFromConstitutive();
             s.C                          = obj.C;
             s.dC                         = obj.dC;
             c = ComplianceFunctional(s);
@@ -152,6 +185,7 @@ classdef Tutorial05_5_TopOpt2DLevelSetInfillNullSpace < handle
             uMesh.compute(levelSet);
         end
 
+
         function createVolumeConstraint(obj)
             s.mesh   = obj.mesh;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
@@ -161,19 +195,33 @@ classdef Tutorial05_5_TopOpt2DLevelSetInfillNullSpace < handle
             obj.volume = v;
         end
 
-        function createLocalVolumeConstraint(obj)
-            s.mesh   = obj.mesh;
-            s.filter = obj.filterVolume;
-            s.p      = 4;
-            s.alpha  = 0.5;
-            s.uMesh  = obj.createBaseDomain();
-            v        = FilteredVolumeConstraint(s);
-            obj.localVolume = v;
+        function createEigenValueConstraint(obj)                           
+            s.mesh              = obj.mesh;
+            s.designVariable    = obj.designVariable;
+            s.filter            = obj.filterConnect;
+            s.filterAdjoint     = obj.filterAdjointConnect;
+            s.boundaryConditions = obj.createEigenvalueBoundaryConditions();
+            s.conductivityInterpolator = obj.conductivityInterpolator; 
+            s.massInterpolator         = obj.massInterpolator; 
+            s.targetEigenValue  = 1.0;    
+            s.isComplementary   = true; % 1 - chi
+            obj.minimumEigenValue = StiffnessEigenModesConstraint(s);
+        end
+
+        function createPerimeter(obj)
+            s.mesh        = obj.mesh;
+            s.filter      = obj.filterPerimeter;
+            s.epsilon     = obj.mesh.computeMeanCellSize();
+            s.value0      = 6;
+            s.uMesh       = obj.createBaseDomain();
+            P             = PerimeterFunctional(s);
+            obj.perimeter = P;
         end
 
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
-            s.weights           = 1;
+            s.shapeFunctions{2} = obj.perimeter;
+            s.weights           = [1.0,0.5]; 
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -186,7 +234,7 @@ classdef Tutorial05_5_TopOpt2DLevelSetInfillNullSpace < handle
 
         function createConstraint(obj)
             s.shapeFunctions{1} = obj.volume;
-            s.shapeFunctions{2} = obj.localVolume;
+            s.shapeFunctions{2} = obj.minimumEigenValue; 
             s.Msmooth           = obj.createMassMatrix();
             obj.constraint      = Constraint(s);
         end
@@ -196,14 +244,15 @@ classdef Tutorial05_5_TopOpt2DLevelSetInfillNullSpace < handle
             obj.primalUpdater = SLERP(s);
         end
 
-        function createOptimizer(obj)
+        function createOptimizer(obj,max)
             s.monitoring     = true;
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
             s.maxIter        = 3;
             s.tolerance      = 1e-8;
-            s.constraintCase = {'EQUALITY','INEQUALITY'};
+            s.constraintCase{1} = 'EQUALITY';
+            s.constraintCase{2} = 'INEQUALITY';
             s.primalUpdater  = obj.primalUpdater;
             s.delta          = 0.02;
             s.deltaMin       = 0.02;
@@ -211,15 +260,15 @@ classdef Tutorial05_5_TopOpt2DLevelSetInfillNullSpace < handle
             s.etaMax0        = 1;
             s.etaMaxMin      = 0.01;
             s.gif            = false;
-            s.gifName        = [];
+            s.gifName        = 'Tutorial05_3';
             s.printing       = false;
-            s.printName      = [];
+            s.printName      = 'Tutorial05_3';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
         end
 
-        function bc = createBoundaryConditions(obj)
+        function bc = createElasticBoundaryConditions(obj)
             xMax    = max(obj.mesh.coord(:,1));
             yMax    = max(obj.mesh.coord(:,2));
             isDir   = @(coor)  abs(coor(:,1))==0;
@@ -232,14 +281,13 @@ classdef Tutorial05_5_TopOpt2DLevelSetInfillNullSpace < handle
             sPL{1}.domain    = @(coor) isForce(coor);
             sPL{1}.direction = 2;
             sPL{1}.value     = -1;
-
             dirichletFun = [];
             for i = 1:numel(sDir)
                 dir = DirichletCondition(obj.mesh, sDir{i});
                 dirichletFun = [dirichletFun, dir];
             end
             s.dirichletFun = dirichletFun;
-
+            
             pointloadFun = [];
             for i = 1:numel(sPL)
                 pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
@@ -248,8 +296,37 @@ classdef Tutorial05_5_TopOpt2DLevelSetInfillNullSpace < handle
             s.pointloadFun = pointloadFun;
 
             s.periodicFun  = [];
-            s.mesh = obj.mesh;
+            s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
         end
+
+        function  bc = createEigenvalueBoundaryConditions(obj)
+            xMin    = min(obj.mesh.coord(:,1));
+            yMin    = min(obj.mesh.coord(:,2));
+            xMax    = max(obj.mesh.coord(:,1));
+            yMax    = max(obj.mesh.coord(:,2));
+            isLeft  = @(coor) abs(coor(:,1))==xMin;
+            isRight = @(coor) abs(coor(:,1))==xMax;
+            isFront = @(coor) abs(coor(:,2))==yMin;
+            isBack = @(coor) abs(coor(:,2))== yMax;
+            isDir   = @(coor) isLeft(coor) | isRight(coor) | isFront(coor) | isBack(coor);  
+            sDir{1}.domain    = @(coor) isDir(coor);
+            sDir{1}.direction = 1;
+            sDir{1}.value     = 0;
+            sDir{1}.ndim = 1;
+            
+            dirichletFun = [];
+            for i = 1:numel(sDir)
+                dir = DirichletCondition(obj.mesh, sDir{i});
+                dirichletFun = [dirichletFun, dir];
+            end
+            s.dirichletFun = dirichletFun;
+            s.pointloadFun = [];
+
+            s.periodicFun  = [];
+            s.mesh         = obj.mesh;
+            bc = BoundaryConditions(s);  
+        end
+
     end
 end

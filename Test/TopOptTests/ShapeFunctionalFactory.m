@@ -24,7 +24,8 @@ classdef ShapeFunctionalFactory < handle
                     c                            = ComplianceFromConstitutiveTensor(s);
                     s.filter                     = cParams.filter;
                     s.complainceFromConstitutive = c;
-                    s.material                   = cParams.material;
+                    s.C                          = cParams.C;
+                    s.dC                         = cParams.dC;
                     sF                           = ComplianceFunctional(s);
                 case {'complianceConstraintC1','complianceConstraintC2','complianceConstraintC3',...
                         'complianceConstraintC4'}
@@ -52,7 +53,8 @@ classdef ShapeFunctionalFactory < handle
                 case 'chomog_alphabeta'
                     s.mesh         = cParams.mesh;
                     s.filter       = cParams.filter;
-                    s.material     = cParams.material;
+                    s.C            = cParams.C;
+                    s.dC           = cParams.dC;
                     s.stateProblem = cParams.physicalProblem;
                     s.alpha        = cParams.alpha;
                     s.beta         = cParams.beta;
@@ -60,7 +62,8 @@ classdef ShapeFunctionalFactory < handle
                 case 'chomog_fraction'
                     s.mesh         = cParams.mesh;
                     s.filter       = cParams.filter;
-                    s.material     = cParams.material;
+                    s.C            = cParams.C;
+                    s.dC           = cParams.dC;
                     s.stateProblem = cParams.physicalProblem;
                     s.alpha        = cParams.alpha;
                     s.beta         = cParams.beta;
@@ -87,7 +90,8 @@ classdef ShapeFunctionalFactory < handle
                     s.mesh         = cParams.mesh;
                     s.stateProblem = cParams.physicalProblem;
                     s.filter       = cParams.filter;
-                    s.material     = cParams.material;
+                    s.C            = cParams.C;
+                    s.dC           = cParams.dC;
                     s.filename     = cParams.filename;
                     sF             = NonSelfAdjointComplianceFunctional(s);
                 case 'volume'
@@ -116,8 +120,9 @@ classdef ShapeFunctionalFactory < handle
                     s.filterDesignVariable = cParams.filterDesignVariable;
                     s.filterGradient = cParams.filterGradient;
                     s.complainceFromConstitutive = c;
-                    s.material                   = cParams.material;
-                    sF = ComplianceWithBoundConstraint(s);
+                    s.C  = cParams.C;
+                    s.dC = cParams.dC;
+                    sF   = ComplianceWithBoundConstraint(s);
                 case 'VolumeConstraintBound'
                     s.mesh         = cParams.mesh;
                     s.volumeTarget = cParams.target;

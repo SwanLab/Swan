@@ -18,6 +18,7 @@ classdef TestingContinuumDamage < handle
         boundaryConditions
         internalDamageVariable
         functional
+        damage
     end
 
     methods (Access = public)
@@ -35,6 +36,7 @@ classdef TestingContinuumDamage < handle
             s.boundaryConditions     = obj.boundaryConditions;
             s.internalDamageVariable = obj.internalDamageVariable;
             s.functional             = obj.functional;
+            s.damage                 = obj.damage;
             s.tolerance              = obj.tolerance;
             s.maxIter                = obj.maxIter;
             s.monitoring             = obj.monitoring;
@@ -67,34 +69,43 @@ classdef TestingContinuumDamage < handle
         end
 
         function functional = createContinuumDamageFunctional(obj)
+            [bMat, sMat,tMat]    = obj.createDamagedMaterials();
             s.mesh               = obj.mesh;
             s.boundaryConditions = obj.boundaryConditions;
-            s.material           = obj.createDamagedMaterial();
+            s.bMat               = bMat;
+            s.sMat               = sMat;
+            s.tMat               = tMat;
             s.quadOrder          = 2;
             s.test               = LagrangianFunction.create(obj.mesh,2,'P1');
-            functional = ContinuumDamageFunctional(s);
+            functional       = ContinuumDamageFunctional(s);
+     
         end        
     
-        function dM = createDamagedMaterial(obj)
-            s.type = 'ContinuumDamage';
-            s.baseMaterial = obj.createBaseMaterial();
-            s.damage       = obj.createDamagedLaw();
-            dM = Material.create(s);
+        function [baseMat, secantMat, tangentMat] = createDamagedMaterials(obj)
+            baseMat    = obj.createBaseMaterial();
+            d          = obj.createDamagedLaw();
+            secantMat  = @(r) ContinuumDamageMaterials.obtainTensorSecant(baseMat,d,r);
+            tangentMat = @(u,r) ContinuumDamageMaterials.obtainTensorTangent(baseMat,d,u,r);
         end
 
         function mat = createBaseMaterial(obj)
-            E  = obj.matInfo.young;
-            nu = obj.matInfo.poisson;
-            s.type    = 'ISOTROPIC';
-            s.ndim    = obj.mesh.ndim;
-            s.young   = ConstantFunction.create(E,obj.mesh);
-            s.poisson = ConstantFunction.create(nu,obj.mesh);
-            mat = Material.create(s);
-        end        
+            N  = obj.mesh.ndim; lam = LameParametersConverter;
+            E  = ConstantFunction.create(210,obj.mesh);
+            nu = ConstantFunction.create(0.3,obj.mesh);
+
+            mu     = lam.computeShearFromYoungAndPoisson(E,nu);  mu = Expand(mu,4);
+            lambda = lam.computeLambdaFromYoungAndPoisson(E,nu,N);  lambda = Expand(lambda,4);
+            I      = ConstantFunction.create(eye4D(N),obj.mesh);
+            IxI    = ConstantFunction.create(kronEye(N),obj.mesh);
+
+            mat = 2*mu.*I + lambda.*IxI;
+        end
+
 
         function d = createDamagedLaw(obj)
             s.hardeningLaw = obj.createHardeningLaw();
             d = DamageLaw(s);
+            obj.damage = d;
         end
 
         function hL = createHardeningLaw(obj)

@@ -1,4 +1,4 @@
-classdef MaterialPhaseFieldHomogenized < handle
+classdef HomogenizedMaterialsReader < handle
 
     properties (Access = private)
         fileName
@@ -9,7 +9,7 @@ classdef MaterialPhaseFieldHomogenized < handle
 
     methods (Access = public)
 
-        function obj = MaterialPhaseFieldHomogenized(cParams)
+        function obj = HomogenizedMaterialsReader(cParams)
             obj.init(cParams)
             obj.loadVademecum();
         end
@@ -80,7 +80,7 @@ classdef MaterialPhaseFieldHomogenized < handle
         function C = evaluate(~,phi,fun,xV)
             nStre = size(fun,1);
             nGaus = size(xV,2);
-            nElem = phi.fun.mesh.nelem;
+            nElem = phi.mesh.nelem;
             C = zeros(2,2,2,2,nGaus,nElem);
             phiV = phi.evaluate(xV);
             for i = 1:nStre

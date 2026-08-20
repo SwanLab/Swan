@@ -38,13 +38,15 @@ classdef Tutorial02FEMElasticity < handle
         end
 
         function createMaterial(obj)
-            s.type    = 'ISOTROPIC';
-            s.ptype   = 'ELASTIC';
-            s.ndim    = obj.mesh.ndim;
-            s.young   = obj.young;
-            s.poisson = obj.poisson;
-            tensor    = Material.create(s);
-            obj.material = tensor;
+            N = obj.mesh.ndim;
+            E = obj.young; nu = obj.poisson; lam = LameParametersConverter;
+
+            mu     = lam.computeShearFromYoungAndPoisson(E,nu);  mu = Expand(mu,4);
+            lambda = lam.computeLambdaFromYoungAndPoisson(E,nu,N);  lambda = Expand(lambda,4);
+            I      = ConstantFunction.create(eye4D(N),obj.mesh);
+            IxI    = ConstantFunction.create(kronEye(N),obj.mesh);
+            
+            obj.material = 2*mu.*I + lambda.*IxI;
         end
 
         function solveElasticProblem(obj)

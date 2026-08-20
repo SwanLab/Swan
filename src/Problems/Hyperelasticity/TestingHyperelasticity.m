@@ -81,16 +81,12 @@ classdef TestingHyperelasticity < handle
         end
 
         function createMaterial(obj)
+            N      = obj.mesh.ndim;
             mu     = ConstantFunction.create(obj.matProp.mu,obj.mesh);
             lambda = ConstantFunction.create(obj.matProp.lambda,obj.mesh);
-            ndim   = obj.mesh.ndim;
-            kappa = IsotropicElasticMaterial.computeKappaFromShearAndLambda(mu,lambda,ndim);
-
-            s.type  = 'ISOTROPIC';
-            s.ndim  = ndim;
-            s.bulk  = kappa;
-            s.shear = mu;
-            obj.material = Material.create(s);
+            I      = ConstantFunction.create(eye4D(N),obj.mesh);
+            IxI    = ConstantFunction.create(kronEye(N),obj.mesh);
+            obj.material = 2*Expand(mu,4).*I + Expand(lambda,4).*IxI;
             obj.matProp.mu = mu;
             obj.matProp.lambda = lambda;
         end
