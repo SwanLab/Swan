@@ -1,24 +1,21 @@
 classdef Tutorial05_20_TopOpt2DDensity_MultiDofDeformableMirror < handle
 
     properties (Access = private)
-        filename 
         mesh
         filter
         designVariable
-        materialInterpolator
+        C
+        dC
         physicalProblemLoadBased
         physicalProblemMotionBased
-        adjointProblem
-        compliance
         volume
         cost
         constraint
-        dualVariable
         primalUpdater
         optimizer
-        gJ
-        gJFlowRatio_vector
-        gJFlowRatio
+        etaStarVector
+        etaStar
+        E0; nu0; E1; nu1
 
         J_MT
         nGDI
@@ -26,7 +23,6 @@ classdef Tutorial05_20_TopOpt2DDensity_MultiDofDeformableMirror < handle
         Kp_bar
         Kp_bar_vector
         complianceFuncs
-        motionBasedFuncs
         height % height of the domain (full)
         width % half of the domain (for symmetry)
         amplitude % amplitude of the sine/cosine MP
@@ -38,17 +34,17 @@ classdef Tutorial05_20_TopOpt2DDensity_MultiDofDeformableMirror < handle
                 
                 obj.nGDI = 3;
                 obj.nMP = 2;
-                obj.Kp_bar_vector = [0.01 0.025]; 
-                obj.gJFlowRatio_vector = [0.3];
+                obj.Kp_bar_vector = [0.2 0.5]; 
+                obj.etaStarVector = [0.7];
 
                 obj.height = 1;
                 obj.width = 1;
                 obj.amplitude = 0.05*obj.height;
                 
-                for a=1:length(obj.gJFlowRatio_vector)
-                    obj.gJFlowRatio = obj.gJFlowRatio_vector(a);
+                for a=1:length(obj.etaStarVector)
+                    obj.etaStar = obj.etaStarVector(a);
                     fprintf('\n--- Starting optimization for gJ = %.4f (%d/%d) ---\n', ...
-                            obj.gJFlowRatio, a, length(obj.gJFlowRatio_vector));
+                            obj.etaStar, a, length(obj.etaStarVector));
                     for i=1:length(obj.Kp_bar_vector)
                         obj.Kp_bar = obj.Kp_bar_vector(i);
                         fprintf('\n--- Starting optimization for Kp_bar = %.4f (%d/%d) ---\n', ...
@@ -58,17 +54,15 @@ classdef Tutorial05_20_TopOpt2DDensity_MultiDofDeformableMirror < handle
                         obj.createMesh();
                         obj.createDesignVariable();
                         obj.createFilter();
-                        obj.createMaterialInterpolator();
+                        obj.createMaterial();
 
                         obj.createElasticProblem();
                         obj.createComplianceFunctions();
-                        obj.createMotionBasedFunctions();
 
                         obj.createVolumeConstraint();
                         obj.createCost();
                         obj.createConstraint();
 
-                        obj.createDualVariable();
                         obj.createPrimalUpdater();
                         obj.createOptimizer();
 
@@ -81,7 +75,7 @@ classdef Tutorial05_20_TopOpt2DDensity_MultiDofDeformableMirror < handle
                             obj.Kp_bar, i, length(obj.Kp_bar_vector));
                     end
                     fprintf('\n--- Finished optimization for gJ = %.4f (%d/%d) ---\n', ...
-                        obj.gJFlowRatio, a, length(obj.gJFlowRatio_vector));
+                        obj.etaStar, a, length(obj.etaStarVector));
                 end
         end
 
@@ -91,24 +85,18 @@ classdef Tutorial05_20_TopOpt2DDensity_MultiDofDeformableMirror < handle
 
         function init(obj)
             close all;
+            obj.E0  = 1e-3;
+            obj.nu0 = 1/3;
+            obj.E1  = 1;
+            obj.nu1 = 1/3;
         end
 
-        function createMesh(obj) % 2:1 mesh for the inverter
-            % Generate coordinates
-            x1 = linspace(0,obj.width,200);
-            x2 = linspace(0,obj.height,200);
-            % Create the grid
-            [xv,yv] = meshgrid(x1,x2);
-            % Triangulate the mesh to obtain coordinates and connectivities
-            [F,V] = mesh2tri(xv,yv,zeros(size(xv)),'f');
-            s.coord  = V(:,1:2);
-            s.connec = F;
-            %mesh = Mesh.create(s);
-            obj.mesh = Mesh.create(s);
+        function createMesh(obj)
+            obj.mesh = TriangleMesh(obj.width,obj.height,100,100);
         end
 
         function createDesignVariable(obj)
-            s.fHandle = @(x) 0.2*ones(size(x(1,:,:)));
+            s.fHandle = @(x) ones(size(x(1,:,:)));
             s.ndimf   = 1;
             s.mesh    = obj.mesh;
             aFun      = AnalyticalFunction(s);
@@ -116,24 +104,23 @@ classdef Tutorial05_20_TopOpt2DDensity_MultiDofDeformableMirror < handle
             s.mesh    = obj.mesh;
             s.type = 'Density';
             s.plotting = true;
-            dens    = DesignVariable.create(s); 
+
+            isOutput = @(x) x(:,2) >= 0.94*obj.height;
+            isInputS = @(x) x(:,1) >= 0.95*obj.width & ...
+                x(:,2) <= 0.25*obj.height & ...
+                x(:,2) >= 0.15*obj.height;
+            isInputC = @(x) x(:,1) >= 0.95*obj.width & ...
+                x(:,2) <= 0.6*obj.height & ...
+                x(:,2) >= 0.5*obj.height;
+            s.isFixed = obj.computeFixedVolumeDomain(@(x) isOutput(x) | isInputS(x) | isInputC(x));
+
+            dens = DesignVariable.create(s);
             obj.designVariable = dens;
+        end
 
-            coords   = obj.mesh.coord;
-
-            isOutput = coords(:,2) >= 0.94*obj.height;
-            isInputS = coords(:,1) >= 0.95*obj.width & ...
-                       coords(:,2) <= 0.25*obj.height & ...
-                       coords(:,2) >= 0.15*obj.height;
-            isInputC = coords(:,1) >= 0.95*obj.width & ...
-                       coords(:,2) <= 0.6*obj.height & ...
-                       coords(:,2) >= 0.5*obj.height;
-
-            vals = dens.fun.fValues;
-            vals(isOutput | isInputS | isInputC) = 1;
-            dens.fun.setFValues(vals);
-
-            obj.designVariable = dens;
+        function isFixed = computeFixedVolumeDomain(obj,cond)
+            coor    = obj.mesh.coord;
+            isFixed = find(cond(coor));
         end
 
         function createFilter(obj)
@@ -144,34 +131,32 @@ classdef Tutorial05_20_TopOpt2DDensity_MultiDofDeformableMirror < handle
             obj.filter = f;
         end
 
-        function f = createGradientFilter(obj)
-            s.filterType = 'PDE';
-            s.mesh  = obj.mesh;
-            s.trial = LagrangianFunction.create(obj.mesh,1,'P1'); 
-            f = Filter.create(s);
+        function createMaterial(obj)
+            N = obj.mesh.ndim;
+            muA    = obj.computeMu(obj.E0,obj.nu0);
+            kappaA = obj.computeKappa(obj.E0,obj.nu0,N);
+            muB    = obj.computeMu(obj.E1,obj.nu1);
+            kappaB = obj.computeKappa(obj.E1,obj.nu1,N);
+
+            mu    = @(rho) SimpAllInterpolator.computeMu(muA,muB,kappaA,kappaB,rho,N); mu = @(rho) Expand(mu(rho),4);
+            kappa  = @(rho) SimpAllInterpolator.computeKappa(muA,muB,kappaA,kappaB,rho,N); kappa = @(rho) Expand(kappa(rho),4);
+            lambda = @(rho) kappa(rho) - (2/N)*mu(rho);
+            I      = ConstantFunction.create(eye4D(N),obj.mesh);
+            IxI    = ConstantFunction.create(kronEye(N),obj.mesh);
+            obj.C  = @(rho) 2*mu(rho{1}).*I + lambda(rho{1}).*IxI;
+
+            dmu     = @(rho) SimpAllInterpolator.computeMuDerivative(muA,muB,kappaA,kappaB,rho,N); dmu = @(rho) Expand(dmu(rho),4);
+            dkappa  = @(rho) SimpAllInterpolator.computeKappaDerivative(muA,muB,kappaA,kappaB,rho,N); dkappa = @(rho) Expand(dkappa(rho),4);
+            dlambda = @(rho) dkappa(rho) - (2/N)*dmu(rho);
+            obj.dC  = @(rho) {2*dmu(rho{1}).*I + dlambda(rho{1}).*IxI};
         end
 
-        function createMaterialInterpolator(obj)
-            E0   = 1e-3;
-            nu0  = 1/3;
-            E1   = 1;
-            nu1  = 1/3;
-            ndim = 2;
+        function mu = computeMu(obj,E,nu)
+            mu = E./(2*(1+nu));
+        end
 
-            matA.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E0,nu0);
-            matA.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E0,nu0,ndim);
-
-            matB.shear = IsotropicElasticMaterial.computeMuFromYoungAndPoisson(E1,nu1);
-            matB.bulk  = IsotropicElasticMaterial.computeKappaFromYoungAndPoisson(E1,nu1,ndim);
-
-            s.typeOfMaterial = 'ISOTROPIC';
-            s.interpolation  = 'SIMPALL';
-            s.dim            = '2D';
-            s.matA = matA;
-            s.matB = matB;
-
-            m = MaterialInterpolator.create(s);
-            obj.materialInterpolator = m;
+        function kappa = computeKappa(obj,E,nu,N)
+            kappa = E./(N*(1-(N-1)*nu));
         end
 
         function createElasticProblem(obj)
@@ -182,7 +167,7 @@ classdef Tutorial05_20_TopOpt2DDensity_MultiDofDeformableMirror < handle
             for i = 1:obj.nGDI % one iteration per active degree
                 s.mesh = obj.mesh;
                 s.scale = 'MACRO';
-                s.material = obj.createMaterial();
+                s.material = [];
                 s.dim = '2D';
                 s.boundaryConditions = obj.createBoundaryConditionsLoadBased(i);
                 s.interpolationType = 'LINEAR';
@@ -199,7 +184,7 @@ classdef Tutorial05_20_TopOpt2DDensity_MultiDofDeformableMirror < handle
             for i = 1:obj.nMP
                 s.mesh = obj.mesh;
                 s.scale = 'MACRO';
-                s.material = obj.createMaterial();
+                s.material = [];
                 s.dim = '2D';
                 s.boundaryConditions = obj.createBoundaryConditionsMotionBased(i);
                 s.interpolationType = 'LINEAR';
@@ -252,13 +237,15 @@ classdef Tutorial05_20_TopOpt2DDensity_MultiDofDeformableMirror < handle
 
         function createConstraint(obj)
             s.shapeFunctions = {};
-            gscale = 1; % Weight of the constraint, set to 1 in swan because the optcreateConstraintimizer has its own weight handling 
 
             for i = 1:obj.nMP
-                cParams.MotionBasedStrainEnergy = obj.motionBasedFuncs{i};
-                cParams.gscale = gscale;
-                cParams.Kp_bar = obj.Kp_bar;
-                s.shapeFunctions{i} = MotionBasedStiffnessConstraint(cParams);
+                cParams.mesh                       = obj.mesh;
+                cParams.filter                     = obj.filter;
+                cParams.complainceFromConstitutive = obj.createComplianceFromConstiutiveOnlyDirichlet(i);
+                cParams.C                          = obj.C;
+                cParams.dC                         = obj.dC;
+                cParams.complianceTarget           = obj.Kp_bar;
+                s.shapeFunctions{i} = ComplianceConstraint(cParams);
             end
 
             s.shapeFunctions{obj.nMP + 1} = obj.volume;
@@ -267,17 +254,19 @@ classdef Tutorial05_20_TopOpt2DDensity_MultiDofDeformableMirror < handle
             obj.constraint = Constraint(s);
         end
 
-        function createDualVariable(obj)
-            nConstr = sum(obj.nMP)+1;
-            s.nConstraints   = nConstr;
-            l                = DualVariable(s);
-            obj.dualVariable = l;
+        function c = createComplianceFromConstiutiveOnlyDirichlet(obj,i)
+            s.mesh         = obj.mesh;
+            s.stateProblem = obj.physicalProblemMotionBased{i};
+            c = ComplianceOnlyDirichlet(s);
         end
 
         function createPrimalUpdater(obj)
-            s.ub     = 1;
-            s.lb     = 0;
-            s.tauMax = 500; % max step size, then etaNorm has to approve. If not approved, line search trial
+            rho      = obj.designVariable;
+            fixedDof = rho.getFixedDofs();
+            s.ub     = ones(size(rho.fun.fValues));
+            s.lb     = zeros(size(rho.fun.fValues));
+            s.lb(fixedDof) = 1;
+            s.tauMax = 500;
             s.tau    = [];
             obj.primalUpdater = ProjectedGradient(s);
         end
@@ -287,51 +276,25 @@ classdef Tutorial05_20_TopOpt2DDensity_MultiDofDeformableMirror < handle
             s.cost           = obj.cost;
             s.constraint     = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.dualVariable   = obj.dualVariable;
-            s.maxIter        = 500;
+            s.maxIter        = 3;
             s.tolerance      = 1e-8;
             nConstr = sum(obj.nMP)+1;
             s.constraintCase = repmat({'INEQUALITY'},1,nConstr);
             s.primalUpdater  = obj.primalUpdater;
             s.ub             = 1;
             s.lb             = 0;
-            s.etaNorm        = 0.03; % max design change per iter, default was 0.02
-            s.gJFlowRatio    = obj.gJFlowRatio; % "weight" of the constraint 0.1
+            s.delta          = 0.03; % max design change per iter, default was 0.02
+            s.etaStar        = obj.etaStar; % "weight" of the constraint 0.1
             s.gif            = false;
             s.gifName        = [];
             s.printing       = false;
             s.printName      = ['InvDens'];
             s.applySymmetry = false;
             s.applyNonDesignRegion = true;
-            %s.physicalProblem = obj.physicalProblem;
-
-            isOutput = obj.mesh.coord(:,2) >= 0.94*obj.height;
-            isInputS = obj.mesh.coord(:,1) >= 0.95*obj.width & ...
-                       obj.mesh.coord(:,2) <= 0.25*obj.height & ...
-                       obj.mesh.coord(:,2) >= 0.15*obj.height;
-            isInputC = obj.mesh.coord(:,1) >= 0.95*obj.width & ...
-                       obj.mesh.coord(:,2) <= 0.6*obj.height & ...
-                       obj.mesh.coord(:,2) >= 0.5*obj.height;
-            
-            s.nonDesignRegion = isOutput | isInputS | isInputC;
-            s.nonDesignValue  = 1;
-
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
             obj.optimizer = opt;
 
-        end
-
-        function m = createMaterial(obj)
-            x = obj.designVariable;
-            f = x.obtainDomainFunction();
-            f = obj.filter.compute(f{1},1);            
-            s.type                 = 'DensityBased';
-            s.density              = f;
-            s.materialInterpolator = obj.materialInterpolator;
-            s.dim                  = '2D';
-            s.mesh = obj.mesh;
-            m = Material.create(s);
         end
 
         function bc = createBoundaryConditionsLoadBased(obj, gdi_index)
@@ -472,37 +435,22 @@ classdef Tutorial05_20_TopOpt2DDensity_MultiDofDeformableMirror < handle
 
         function createComplianceFunctions(obj)
             obj.complianceFuncs = cell(obj.nGDI,1);
-            titles = {'Compliance input S GDI', 'Compliance input C GDI','Compliance output GDI'};
 
             for i = 1:obj.nGDI
                 sC.mesh = obj.mesh;
                 sC.stateProblem = obj.physicalProblemLoadBased{i};
                 compFromTensor = ComplianceFromConstitutiveTensor(sC);
 
-                s.title = titles{i};
                 s.mesh = obj.mesh;
                 s.filter = obj.filter;
-                s.material = obj.createMaterial();
+                s.C = obj.C;
+                s.dC = obj.dC;
                 s.complainceFromConstitutive = compFromTensor;
                 obj.complianceFuncs{i} = ComplianceFunctional(s);
             end
         end
-        
-        function createMotionBasedFunctions(obj)
-            % create a MotionBasedStrainEnergy per free MP
-            obj.motionBasedFuncs = cell(obj.nMP,1);
 
-            for i = 1:obj.nMP
-                s.mesh = obj.mesh;
-                s.filter = obj.filter;
-                s.gradientFilter = obj.createGradientFilter();
-                s.material = obj.createMaterial();
-                s.stateProblem = obj.physicalProblemMotionBased{i};
-                obj.motionBasedFuncs{i} = MotionBasedStrainEnergy(s);
-            end
-        end
-
-        function motionTransmissionAccuracy(obj)
+        function motionTransmissionAccuracy(obj) % IDEALLY THE KP TARGET FOR COMPLIANCE IS ADAPTED WITH MT variable
             % Reuse existing motion-based FEM with updated BCs
             fem = obj.physicalProblemMotionBased{1};
             bc  = obj.createBoundaryConditionsMotionTransmission();
@@ -571,86 +519,6 @@ classdef Tutorial05_20_TopOpt2DDensity_MultiDofDeformableMirror < handle
             s.mesh         = obj.mesh;
             bc = BoundaryConditions(s);
         end
-
-        function printFinalDisplacement_v2(obj) % works
-            % --- EXTRACT YOUR FINAL DATA ---
-            % Replace 'obj' with whatever your main framework object is called at the end
-            nodes = obj.mesh.coord;     
-            elements = obj.mesh.connec; 
-            
-            % Grab the raw vector from your saved variable
-            global FINAL_DISPLACEMENT;
-            u_raw = FINAL_DISPLACEMENT.fValues; 
-            
-            nNodes = size(nodes, 1);
-            
-            % --- RESHAPE THE DISPLACEMENT (BULLETPROOF STACKED) ---
-            nNodes = size(nodes, 1);
-            nComps = 2; % 2D problem
-            expected_length = nNodes * nComps;
-            
-            u_raw_clean = u_raw(1 : expected_length);
-            
-            % The (:) forces them to stand up as vertical columns!
-            u_X = u_raw_clean(1 : nNodes);
-            u_X = u_X(:); 
-            
-            u_Y = u_raw_clean(nNodes + 1 : end);
-            u_Y = u_Y(:);
-            
-            % Combine them side-by-side into a clean [N x 2] matrix
-            u_phys = [u_X, u_Y];
-            
-            % Ensure nodes are 3D for ParaView
-            if size(nodes, 2) == 2
-                nodes = [nodes, zeros(nNodes, 1)];
-            end
-            
-            % Ensure u_phys has a Z-component (add a column of zeros)
-            if size(u_phys, 2) == 2
-                u_phys = [u_phys, zeros(nNodes, 1)];
-            end
-            % ------------------------------------------------------
-            
-            % --- WRITE TO FILE ---
-            fid = fopen('Final_Displacements.vtk', 'w');
-            
-            fprintf(fid, '# vtk DataFile Version 2.0\n');
-            fprintf(fid, 'Custom FEM Results\n');
-            fprintf(fid, 'ASCII\n');
-            fprintf(fid, 'DATASET UNSTRUCTURED_GRID\n');
-            
-            % Write Nodes
-            fprintf(fid, 'POINTS %d float\n', nNodes);
-            fprintf(fid, '%f %f %f\n', nodes');
-            
-            % Write Elements
-            nElems = size(elements, 1);
-            ptsPerElem = size(elements, 2);
-            fprintf(fid, '\nCELLS %d %d\n', nElems, nElems * (ptsPerElem + 1));
-            
-            % Correct from MATLAB (1-based) to VTK (0-based) indexing
-            elemData = [(ptsPerElem * ones(nElems, 1)), elements - 1];
-            if ptsPerElem == 3      % Triangles
-                fprintf(fid, '%d %d %d %d\n', elemData');
-                cellType = 5; 
-            elseif ptsPerElem == 4  % Quads
-                fprintf(fid, '%d %d %d %d %d\n', elemData');
-                cellType = 9; 
-            end
-            
-            fprintf(fid, '\nCELL_TYPES %d\n', nElems);
-            fprintf(fid, '%d\n', cellType * ones(nElems, 1));
-            
-            % Write Displacements
-            fprintf(fid, '\nPOINT_DATA %d\n', nNodes);
-            fprintf(fid, 'VECTORS Displacement float\n');
-            fprintf(fid, '%f %f %f\n', u_phys');
-            
-            fclose(fid);
-            disp('Successfully wrote Final_Displacements.vtk!');
-
-        end
         
         function printFinalDisplacement_v3(obj)
             num_case = find(obj.Kp_bar_vector == obj.Kp_bar);
@@ -668,7 +536,7 @@ classdef Tutorial05_20_TopOpt2DDensity_MultiDofDeformableMirror < handle
         end
 
         function saveFigures(obj)
-            num_case_gJ = find(obj.gJFlowRatio_vector == obj.gJFlowRatio);
+            num_case_gJ = find(obj.etaStarVector == obj.etaStar);
             num_case_Kp = find(obj.Kp_bar_vector == obj.Kp_bar);
             fig_design = figure(1); 
             fig_monitor = figure(2);
