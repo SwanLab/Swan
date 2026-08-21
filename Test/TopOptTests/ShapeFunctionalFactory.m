@@ -87,13 +87,29 @@ classdef ShapeFunctionalFactory < handle
                 case 'enforceCh_CCstar_L2'
                     sF = ShFunc_Chomog_EnforceCh_CCstar_L2(cParams);
                 case 'nonadjointCompliance'
-                    s.mesh         = cParams.mesh;
-                    s.stateProblem = cParams.physicalProblem;
-                    s.filter       = cParams.filter;
-                    s.C            = cParams.C;
-                    s.dC           = cParams.dC;
-                    s.filename     = cParams.filename;
-                    sF             = NonSelfAdjointComplianceFunctional(s);
+                    [fAdj, fAdj2] = Preprocess.getBC_adjoint(cParams.filename, cParams.mesh);
+
+                    a.mesh         = cParams.mesh;
+                    a.pointloadFun = fAdj2;
+                    a.dirichletFun = [];
+                    a.periodicFun  = [];
+                    bcAdj          = BoundaryConditions(a);
+
+                    a.fileName            = cParams.filename;
+                    sF                    = FemDataContainer(a);
+                    sF.bc.pointload       = fAdj;
+                    sF.newBC.pointloadFun = fAdj2;
+                    sF.boundaryConditions.tractionFun   = bcAdj.tractionFun;
+                    adjProblem = PhysicalProblem.create(sF);
+
+                    s.mesh           = cParams.mesh;
+                    s.stateProblem   = cParams.physicalProblem;
+                    s.adjointProblem = adjProblem;
+                    s.filter         = cParams.filter;
+                    s.C              = cParams.C;
+                    s.dC             = cParams.dC;
+                    s.filename       = cParams.filename;
+                    sF               = NonSelfAdjointComplianceFunctional(s);
                 case 'volume'
                     sF = ShFunc_Volume(cParams);
                 case 'volumeConstraint'

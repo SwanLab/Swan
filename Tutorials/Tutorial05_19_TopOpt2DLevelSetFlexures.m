@@ -330,7 +330,7 @@ classdef Tutorial05_19_TopOpt2DLevelSetFlexures < handle
             for i = 1:obj.ndeg
                 deg_name = degrees_list(obj.deg(i));
                 namePrint = sprintf('LS_Rot_FinalDispl_%s', deg_name);
-                uFun = obj.physicalProblem{i}.uFun;
+                uFun = obj.physicalProblems{i}.uFun;
                 uFun.print(namePrint);
             end
         end
