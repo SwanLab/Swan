@@ -234,8 +234,8 @@ classdef TopOpt_LevelSet_Puente < handle
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primalUpdater  = obj.primalUpdater;
-            s.delta          = 0.001;
-            s.deltaMin       = 0.001;
+            s.delta          = 0.00001;
+            s.deltaMin       = 0.00001;
             s.etaStar        = 1.0;
             s.etaMax0        = 0.5;
             s.etaMaxMin      = 0.01;
