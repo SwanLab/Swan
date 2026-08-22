@@ -83,7 +83,7 @@ classdef TopOpt_Density_C5Sup < handle
         end
 
         function createRBE3Meshes(obj,fName)
-            for i=1:7
+            for i=1:3
                 run(fName);
                 rollerRowsEl = External_border_elements(:,1)==i-1;
                 rollerRowsN  = External_border_nodes(:,1)==i-1;
@@ -104,7 +104,7 @@ classdef TopOpt_Density_C5Sup < handle
             aFun      = AnalyticalFunction(s);
 
             fixN = [];
-            for i=1:7
+            for i=1:3
                 fixN = [fixN;obj.rbe3Nodes{i}];
             end
             
@@ -163,21 +163,9 @@ classdef TopOpt_Density_C5Sup < handle
             s.rbe3Value(2,1) = 0;
             s.rbe3Value(2,2) = 0;
             s.rbe3Value(2,3) = 0;
-            s.rbe3Value(3,1) = NaN;
-            s.rbe3Value(3,2) = NaN;
+            s.rbe3Value(3,1) = 0.0; % (0)  + 0.02
+            s.rbe3Value(3,2) = -8.5; % (-8.65) + 0.15
             s.rbe3Value(3,3) = 50;
-            s.rbe3Value(4,1) = NaN;
-            s.rbe3Value(4,2) = NaN;
-            s.rbe3Value(4,3) = NaN;
-            s.rbe3Value(5,1) = NaN;
-            s.rbe3Value(5,2) = NaN;
-            s.rbe3Value(5,3) = NaN;
-            s.rbe3Value(6,1) = NaN;
-            s.rbe3Value(6,2) = NaN;
-            s.rbe3Value(6,3) = NaN;
-            s.rbe3Value(7,1) = NaN;
-            s.rbe3Value(7,2) = NaN;
-            s.rbe3Value(7,3) = NaN;
             s.interpolationType = 'LINEAR';
             s.solverType = 'REDUCED';
             s.solverMode = 'ROLLER';
@@ -210,7 +198,7 @@ classdef TopOpt_Density_C5Sup < handle
         function c = createComplianceFromConstiutive(obj)
             s.mesh         = obj.mesh;
             s.stateProblem = obj.physicalProblem;
-            c = ComplianceFromConstitutiveTensor(s);
+            c = ComplianceOnlyDirichlet(s);
         end
 
         function createCompliance(obj)
@@ -245,7 +233,7 @@ classdef TopOpt_Density_C5Sup < handle
 
         function createCost(obj)
             s.shapeFunctions{1} = obj.compliance;
-            s.weights           = 1;
+            s.weights           = -1;
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
         end
@@ -308,15 +296,15 @@ classdef TopOpt_Density_C5Sup < handle
         function bc = createBoundaryConditions(obj)
             femReader = FemInputReaderGiD();
             s         = femReader.read(obj.filename);
-            sPL       = obj.computeCondition(s.pointload);
+            %sPL       = obj.computeCondition(s.pointload);
 
             dirichletFun = [];
 
             pointloadFun = [];
-            for i = 1:numel(sPL)
-                pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
-                pointloadFun = [pointloadFun, pl];
-            end
+%             for i = 1:numel(sPL)
+%                 pl = TractionLoad(obj.mesh, sPL{i}, 'DIRAC');
+%                 pointloadFun = [pointloadFun, pl];
+%             end
             s.pointloadFun = pointloadFun;
 
             s.periodicFun  = [];
