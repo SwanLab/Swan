@@ -175,7 +175,8 @@ classdef TopOpt_LevelSet_Puente < handle
             s.mesh                       = obj.mesh;
             s.filter                     = obj.filter;
             s.complainceFromConstitutive = obj.createComplianceFromConstiutive();
-            s.material                   = obj.createMaterial();
+            s.C                          = obj.C;
+            s.dC                         = obj.dC;
             c = ComplianceFunctional(s);
             obj.compliance = c;
         end
