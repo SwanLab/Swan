@@ -2,14 +2,16 @@ classdef ComplianceFunctional < handle
 
     properties (Access = private)
         value0
+        oldCost
+        oldGradient
+        xOld
     end
 
     properties (Access = private)
         mesh
         filter
         compliance
-        C
-        dC
+        material
     end
 
     methods (Access = public)
@@ -20,9 +22,19 @@ classdef ComplianceFunctional < handle
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             xD  = x.obtainDomainFunction();
             xR = obj.filterFields(xD);
-            Crho = obj.C(xR);
-            dCrho = obj.dC(xR);
-            [J,dJ] = obj.computeComplianceFunctionAndGradient(x,Crho,dCrho);
+            dx = xR{1} - obj.xOld;
+            h = dx.mesh.computeMeanCellSize();
+            if Norm(dx,'H1',h)/Norm(xR{1},'H1',h) > 0.02
+                obj.material.setDesignVariable(xR);
+                [J,dJ] = obj.computeComplianceFunctionAndGradient(x);
+                obj.oldCost = J;
+                obj.oldGradient = dJ;
+                obj.xOld = xR{1};
+            else
+                sp = ScalarProduct(obj.oldGradient{1},dx,'L2');
+                J = obj.oldCost + sp;
+                dJ = obj.oldGradient;
+            end
         end
 
     end
@@ -31,12 +43,12 @@ classdef ComplianceFunctional < handle
         function init(obj,cParams)
             obj.mesh       = cParams.mesh;
             obj.filter     = cParams.filter;
-            obj.C          = cParams.C;
-            obj.dC         = cParams.dC;
+            obj.material   = cParams.material;
             obj.compliance = cParams.complainceFromConstitutive;
             if isfield(cParams,'value0')
                 obj.value0 = cParams.value0;
             end
+            obj.xOld = 1000;
         end
 
         function xR = filterFields(obj,x)
@@ -47,9 +59,11 @@ classdef ComplianceFunctional < handle
             end
         end
 
-        function [J,dJ] = computeComplianceFunctionAndGradient(obj,x,Crho,dRhoC)
-            dxC    = ChainRule.compute(x,dRhoC);
-            [J,dJ] = obj.compliance.computeFunctionAndGradient(Crho,dxC);
+        function [J,dJ] = computeComplianceFunctionAndGradient(obj,x)
+            C   = obj.material.obtainTensor();
+            dC  = obj.material.obtainTensorDerivative();
+            dC  = ChainRule.compute(x,dC);
+            [J,dJ] = obj.compliance.computeFunctionAndGradient(C,dC);
             dJ     = obj.filterFields(dJ);
             if isempty(obj.value0)
                 obj.value0 = J;

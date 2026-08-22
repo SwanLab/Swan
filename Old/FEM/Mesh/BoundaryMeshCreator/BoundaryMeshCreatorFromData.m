@@ -10,6 +10,7 @@ classdef BoundaryMeshCreatorFromData < BoundaryMeshCreator
     
     properties (Access = private)
        borderNodes
+       borderCoord
        borderElements
        backgroundMesh
     end
@@ -22,15 +23,14 @@ classdef BoundaryMeshCreatorFromData < BoundaryMeshCreator
         
         function m = create(obj)
             nodes    = obj.borderNodes;
-            s.coord  = obj.backgroundMesh.coord(nodes,:);
-            kConnec = boundary(s.coord);
-            s.connec = [kConnec(1:end-1),kConnec(2:end)];
+            s.coord  = obj.borderCoord;
+            s.connec = obj.borderElements;
             %s.connec = obj.computeConnectivitiesFromData(obj.borderElements(:,2:end));
            
             s.nodesInBoxFaces = false(size(obj.backgroundMesh.coord,1),1);
             s.nodesInBoxFaces(nodes,1) = true;
             s.isRectangularBox = false;
-            s.dimension = 1;
+            s.dimension = obj.backgroundMesh.ndim - 1;
             s.kFace      = obj.backgroundMesh.kFace;
             m{1} = BoundaryMesh(s);
         end
@@ -41,6 +41,7 @@ classdef BoundaryMeshCreatorFromData < BoundaryMeshCreator
         
         function init(obj,cParams)
             obj.borderNodes    = cParams.borderNodes;
+            obj.borderCoord    = cParams.borderCoord;
             obj.borderElements = cParams.borderElements;
             obj.backgroundMesh = cParams.backgroundMesh;
         end
