@@ -163,8 +163,9 @@ classdef DensityOverhangBenchmarkGlobal < handle
             sF.mesh        = obj.mesh;
             sF.trial       = LagrangianFunction.create(obj.mesh,1,'P1');
             sF.senseVector = ConstantFunction.create([0;1],obj.mesh);
-            sF.ovAngleDeg  = 20;
-            f              = FilterDiamond(sF);
+            sF.ovAngleDeg  = 30;
+            sF.tol         = 3e-4;
+            f              = FilterRegularizedDiamond(sF);
 
             h         = obj.mesh.computeMeanCellSize();
             s.mesh    = obj.mesh;
@@ -175,7 +176,7 @@ classdef DensityOverhangBenchmarkGlobal < handle
             s.tarVolume = 0.2;
 
             s.uMesh       = obj.createBaseDomain();
-            s.target      = 1*3;
+            s.target      = 0.8*3;
             s.target0     = 100*s.target;
             obj.perimeter = PerimeterConstraint(s);
         end
@@ -228,7 +229,7 @@ classdef DensityOverhangBenchmarkGlobal < handle
             s.constraintCase = [{'EQUALITY'},{'INEQUALITY'}];
             s.etaNorm        = 0.01;
             s.etaNormMin     = 0.01;
-            s.gJFlowRatio    = 5.0;
+            s.gJFlowRatio    = 3.0;
             s.primalUpdater  = obj.primalUpdater;
             s.gif            = false;
             s.gifName        = [];
