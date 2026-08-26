@@ -246,18 +246,18 @@ function _compute_cost_and_dLF!(dLF::Matrix{Float64},
 end
 
 function plot_cost_func(opt::AdamStruct)
-    _plot_fplot(opt.fplot, "Convergence Adam")
+    _plot_fplot(opt.fplot,  "Adam Convergence")
 end
 
 function plot_cost_func(opt::SGDStruct)
-    _plot_fplot(opt.fplot, "Convergence SGD")
+    _plot_fplot(opt.fplot, "SGD Convergence")
 end
 
 function _plot_fplot(fplot::Vector{Float64}, title_str::String)
     valid = fplot[fplot .> 0.0]
     isempty(valid) && (println("Aucune donnée de coût."); return)
     plt = plot(1:length(valid), valid;
-               xlabel="Époques", ylabel="Coût", title=title_str,
+               xlabel="Epochs", ylabel="Cost", title=title_str,
                linewidth=1.8, legend=false, grid=true, yscale=:log10)
     display(plt)
     return plt

@@ -60,7 +60,13 @@ s["data"] = data
 # === Entraînement ===
 opt          = init_OptimizationProblemNN(s)
 optimizer, θ = solve(opt)
-plot_cost(optimizer)
+p_cost = plot_cost(optimizer)
+display(p_cost)
+
+savefig(
+    p_cost,
+    joinpath(@__DIR__, "..", "data_plots", "cost_curve.png")
+)
 
 # === Données de test ===
 Xtest, Ytest = get_test_data(opt)

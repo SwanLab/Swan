@@ -41,8 +41,8 @@ function plot_cost(cost_history::Vector{Float64}; title::String="Fonction coût"
     plt = plot(
         1:length(cost_history),
         cost_history;
-        xlabel    = "Époques",
-        ylabel    = "Coût",
+        xlabel    = "Epochs",
+        ylabel    = "Cost",
         title     = title,
         linewidth = 1.8,
         legend    = false,
