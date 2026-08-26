@@ -33,7 +33,7 @@ pol_deg       = 1
 testratio     = 20
 lambda        = 0.0
 learningRate  = 0.2
-hiddenLayers  = fill(12, 1)
+hiddenLayers  = fill(128, 6)
 
 # INITIALIZATION
 # Store dataset file name
@@ -52,7 +52,7 @@ s["networkParams"] = Dict(
 
 s["optimizerParams"] = Dict(
     "learningRate" => learningRate,
-    "maxEpochs" => 10 # adjust to 10 for fast runs if needed
+    "maxEpochs" => 1000 # adjust to 10 for fast runs if needed
 )
 
 s["costParams"] = Dict(
