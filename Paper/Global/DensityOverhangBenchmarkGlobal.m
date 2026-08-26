@@ -170,13 +170,13 @@ classdef DensityOverhangBenchmarkGlobal < handle
             h         = obj.mesh.computeMeanCellSize();
             s.mesh    = obj.mesh;
             s.filter  = f;
-            s.epsilon = 4*h;
-            s.minEpsilon = 4*h;
+            s.epsilon = 12*h;
+            s.minEpsilon = 12*h;
             s.value0 = 1;
             s.tarVolume = 0.2;
 
             s.uMesh       = obj.createBaseDomain();
-            s.target      = 0.8*3;
+            s.target      = 0.25*3;
             s.target0     = 100*s.target;
             obj.perimeter = PerimeterConstraint(s);
         end
@@ -229,7 +229,7 @@ classdef DensityOverhangBenchmarkGlobal < handle
             s.constraintCase = [{'EQUALITY'},{'INEQUALITY'}];
             s.etaNorm        = 0.01;
             s.etaNormMin     = 0.01;
-            s.gJFlowRatio    = 3.0;
+            s.gJFlowRatio    = 2.0;
             s.primalUpdater  = obj.primalUpdater;
             s.gif            = false;
             s.gifName        = [];
