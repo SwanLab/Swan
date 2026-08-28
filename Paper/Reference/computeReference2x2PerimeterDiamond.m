@@ -26,7 +26,7 @@ function P = computeReference2x2PerimeterDiamond(degAngle,matFile)
     
     ss.mesh    = mesh;
     ss.filter  = filter;
-    ss.epsilon = 12*h;
+    ss.epsilon = 6*h;
     ss.value0  = 1;
     for i = 1:length(x0)
         ss.uMesh = createBaseDomainPerimeter(mesh,x0(i),y0(i),xSide,ySide);

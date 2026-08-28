@@ -145,8 +145,8 @@ classdef DensityOverhangBenchmark2x2 < handle
             s.filter      = f;
             s.epsilon     = 3*h;
             s.value0      = 8;
-            s.signInitial = -0.6;
-            s.signFinal   = 0.02;
+            s.signInitial = -2.0;
+            s.signFinal   = 0.1;
             s.tarVolume   = 0.2;
             obj.penalty   = InterfaceFunctional(s);
         end
@@ -184,18 +184,18 @@ classdef DensityOverhangBenchmark2x2 < handle
             h         = obj.mesh.computeMeanCellSize();
             s.mesh    = obj.mesh;
             s.filter  = f;
-            s.epsilon = 12*h;
-            s.minEpsilon = 12*h;
+            s.epsilon = 6*h;
+            s.minEpsilon = 6*h;
             s.value0 = 1;
             s.tarVolume = 0.2;
 
             x0 = 3.*repmat([1/4,3/4],[1,2]);
             y0 = [repmat(3/4,[1,2]),repmat(1/4,[1,2])];
-            refVal = [0.5146, 0.5134, 0.3082, 0.3091];
+            refVal = [(0.6693+0.6700)/2, (0.6693+0.6700)/2, (0.5150+0.5260)/2, (0.5150+0.5260)/2];
             for i = 1:length(x0)
                 s.uMesh          = obj.createBaseDomainOverhang(x0(i),y0(i));
-                s.target         = 0.5*refVal(i);
-                s.target0        = 100*s.target;
+                s.target         = 0.8*refVal(i);
+                s.target0        = s.target;
                 obj.perimeter{i} = PerimeterConstraint(s);
             end
         end
@@ -250,7 +250,7 @@ classdef DensityOverhangBenchmark2x2 < handle
             s.constraintCase = [{'EQUALITY'},repmat({'INEQUALITY'},[1,4])];
             s.etaNorm        = 0.01;
             s.etaNormMin     = 0.01;
-            s.gJFlowRatio    = 2.0;
+            s.gJFlowRatio    = 1.0;
             s.primalUpdater  = obj.primalUpdater;
             s.gif            = false;
             s.gifName        = [];
