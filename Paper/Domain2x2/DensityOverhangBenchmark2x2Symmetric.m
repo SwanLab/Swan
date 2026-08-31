@@ -145,8 +145,8 @@ classdef DensityOverhangBenchmark2x2Symmetric < handle
             s.filter      = f;
             s.epsilon     = 3*h;
             s.value0      = 4;
-            s.signInitial = -2.0;
-            s.signFinal   = 0.1;
+            s.signInitial = -3.0;
+            s.signFinal   = 0.4;
             s.tarVolume   = 0.2;
             obj.penalty   = InterfaceFunctional(s);
         end
@@ -194,7 +194,7 @@ classdef DensityOverhangBenchmark2x2Symmetric < handle
             refVal = [0.8265, 1000, 0.456, 0.35];    %6h %[0.67, 1000, 0.34, 0.18];
             for i = 1:length(x0)
                 s.uMesh          = obj.createBaseDomainOverhang(x0(i),y0(i));
-                s.target         = 0.7*refVal(i);
+                s.target         = 0.8*refVal(i);
                 s.target0        = s.target;
                 obj.perimeter{i} = PerimeterConstraint(s);
             end
