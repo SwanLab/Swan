@@ -1,0 +1,1 @@
+{"Class":"falcon.core.builder.DerivativeCacheEntry","Inputs":[{"Rows":2,"Cols":1,"Derivative":true},{"Rows":1,"Cols":1,"Derivative":true}],"Outputs":{"Rows":2,"Cols":1,"Derivative":true,"JacobianSparsity":[[false,true,true],[false,false,true]],"HessianSparsity":[]}}
