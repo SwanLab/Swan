@@ -55,7 +55,7 @@ function confusion_matrix_plot(y_true, y_pred)
     mat = [tn fp; fn tp]
 
     # annotations manuelles car annot=true n'est pas stable sur tous les backends
-    ann = [(j, i, text(string(mat[i,j]), 14, :white, :center))
+    ann = [(j, i, text(string(mat[i,j]), 14, :black, :center))
            for i in 1:2, j in 1:2]
 
     p = heatmap(mat,

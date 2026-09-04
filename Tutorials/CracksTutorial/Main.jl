@@ -23,7 +23,7 @@ root_dir = joinpath(@__DIR__, "archive")
 # :custom → CNN from scratch (GroupNorm + GAP ou MLP)
 # :resnet → ResNet18 pré-entraîné (Metalhead, RGB, 128×128)
 # ---------------------------------------------------------
-model_type = :custom
+model_type = :custom # :custom ou :resnet
 
 # ---------------------------------------------------------
 # Paramètres mode :custom uniquement
@@ -43,7 +43,7 @@ lr         = 1e-3
 # Smoke test   →  50
 # Sanity check →  300
 # Run complet  →  nothing
-max_images = 5000
+max_images = 3000
 
 # =========================================================
 # DATA — chargement selon le mode
