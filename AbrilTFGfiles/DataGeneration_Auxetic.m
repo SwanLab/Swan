@@ -6,6 +6,13 @@
 
 clc; clear; close all;
 
+%% COMMENT
+
+% It is needed to modify the CantileverBeamMeshCreator.m, when
+% function coords = computeCoords2D(obj, xdiv, ydiv)
+% x = linspace(-1.5, obj.length, xdiv+1);
+% y = linspace(-1, obj.height, ydiv+1);
+
 %% INPUTS
 
 p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale'

@@ -1,6 +1,6 @@
 %% CIRCLE
 
-% scalability
+% scalability times
 x=[43968, 116864, 262296, 654480];
 
 dat03     = [0.25, 0.80, 2.37, 7.51];
@@ -213,5 +213,46 @@ set(gca, 'YScale', 'log');
 set(gca, 'XScale', 'log');
 
 legend('Direct Solver','ILU','AMG','EIFEM Continuous','EIFEM Discontinuous P2');
+
+%% Training times
+
+% Lattice 
+DOFs      = [3482 6242 9802 14612 19322 25282];
+t_EIFEM   = [2.60 4.60 8.41 11.67 16.31 26.67];
+t_Mult    = [0.07 0.12 0.22 0.26 0.35 0.45];
+t_KNN     = ones(1,6)*0.02;
+t_TNN      = [0.047 0.06 0.08 0.13 0.13 0.2];
+
+figure
+plot(DOFs,t_Mult,'-o','LineWidth',2,'MarkerSize',5); hold on
+plot(DOFs,t_EIFEM,'-o','LineWidth',2,'MarkerSize',5);
+plot(DOFs,t_KNN,'-o','LineWidth',2,'MarkerSize',5);
+plot(DOFs,t_TNN,'-o','LineWidth',2,'MarkerSize',5);
+
+legend('Eifem Multiscale','EIFEM Oversampling','K_c NN ','T NN');
+title("Offline time comparison");
+xlabel("DOFs");
+ylabel("time [s]")
+
+
+% Cube
+
+% 5 7 10 12 13 15
+DOFs      = [648 1536 3993 6591 8232 12288];
+t_EIFEM   = [8.08 19.34 67.77 154.79 324.18 594.65];
+t_Mult    = [0.22 0.56 1.40 2.29 2.84 4.38];
+t_KNN     = ones(1,6)*0.01;
+t_TNN      = [];
+
+figure
+plot(DOFs,t_Mult,'-o','LineWidth',2,'MarkerSize',5); hold on
+plot(DOFs,t_EIFEM,'-o','LineWidth',2,'MarkerSize',5);
+plot(DOFs,t_KNN,'-o','LineWidth',2,'MarkerSize',5);
+plot(DOFs,t_TNN,'-o','LineWidth',2,'MarkerSize',5);
+
+legend('Training Eifem Multiscale','Training EIFEM Oversampling','K_c NN ','T NN');
+title("Offline time comparison");
+xlabel("DOFs");
+ylabel("time [s]")
 
 
