@@ -41,13 +41,55 @@ classdef OptimizerNullSpace < handle
         printing
         printName
         compliance
-        
+
     end
 
     properties (Access = public)
+
         costHistory       = [];
         complianceHistory = [];
         volumeConstraintHistory = [];
+        tauHistory              = [];
+        etaHistory              = [];
+        etaMaxHistory           = [];
+        lineSearchTrialsHistory = [];
+
+        % =========================================================
+        % Two-variable optimization diagnostics
+        % =========================================================
+        normDJbHistory       = [];
+        normDJrhoHistory     = [];
+
+        normDxJbHistory      = [];
+        normDxJrhoHistory    = [];
+
+        normMeritBHistory    = [];
+        normMeritRhoHistory  = [];
+
+        deltaBHistory        = [];
+        deltaRhoHistory      = [];
+
+        fracBLowerHistory    = [];
+        fracBUpperHistory    = [];
+
+        fracRhoLowerHistory  = [];
+        fracRhoUpperHistory  = [];
+        fracRhoBoundHistory  = [];
+
+        meanBHistory         = [];
+        meanRhoHistory       = [];
+
+        minBHistory          = [];
+        maxBHistory          = [];
+
+        minRhoHistory        = [];
+        maxRhoHistory        = [];
+        meritConditionHistory = [];
+        trustConditionHistory = [];
+
+        meritDifferenceHistory = [];
+        trustRatioHistory = [];
+
     end
 
     methods (Access = public) 
@@ -75,6 +117,34 @@ classdef OptimizerNullSpace < handle
                 obj.checkConvergence();
                 obj.designVariable.updateOld();
             end
+        end
+        function data = getFinalKKTDiagnostics(obj)
+
+            n = length(obj.designVariable.funB.fValues);
+
+            x = obj.designVariable.fun.fValues;
+            g = obj.meritGradient;
+
+            lb = [-ones(n,1); 1e-6*ones(n,1)];
+            ub = [ ones(n,1); 0.998*ones(n,1)];
+
+            % Unit projected-gradient test
+            alpha = 1;
+
+            xProj = min(ub,max(x-alpha*g,lb));
+
+            r = x-xProj;
+
+            data.rB   = r(1:n);
+            data.rRho = r(n+1:2*n);
+
+            data.normRB   = norm(data.rB);
+            data.normRRho = norm(data.rRho);
+            data.normR    = norm(r);
+
+            data.maxRB   = max(abs(data.rB));
+            data.maxRRho = max(abs(data.rRho));
+
         end
     end
 
@@ -109,7 +179,7 @@ classdef OptimizerNullSpace < handle
                 obj.compliance = [];
             end
 
-            
+
         end
 
         function createDualVariable(obj)
@@ -160,23 +230,115 @@ classdef OptimizerNullSpace < handle
             obj.monitoring.update(obj.nIter,s);
             obj.monitoring.refresh();
 
-            
             costValue = obj.cost.value;
             costValue = costValue(1);
 
             obj.costHistory(end+1,1) = costValue;
-
-            
             obj.complianceHistory(end+1,1) = costValue;
 
-            
             constraintValue = obj.constraint.value;
             constraintValue = constraintValue(1);
 
             obj.volumeConstraintHistory(end+1,1) = constraintValue;
 
-        end
+            tauNow = obj.primalUpdater.tau;
 
+            if isempty(tauNow)
+                obj.tauHistory(end+1,1) = NaN;
+            else
+                obj.tauHistory(end+1,1) = tauNow;
+            end
+
+            if isempty(obj.eta)
+                obj.etaHistory(end+1,1) = NaN;
+            else
+                obj.etaHistory(end+1,1) = obj.eta;
+            end
+
+            if isempty(obj.etaMax)
+                obj.etaMaxHistory(end+1,1) = NaN;
+            else
+                obj.etaMaxHistory(end+1,1) = obj.etaMax;
+            end
+
+            if isempty(obj.lineSearchTrials)
+                obj.lineSearchTrialsHistory(end+1,1) = NaN;
+            else
+                obj.lineSearchTrialsHistory(end+1,1) = ...
+                    obj.lineSearchTrials;
+            end
+
+            hasTwoVariables = ...
+                isprop(obj.designVariable,'funB') && ...
+                isprop(obj.designVariable,'funRho');
+
+            if hasTwoVariables
+
+                n = length(obj.designVariable.funB.fValues);
+
+                DJ = obj.cost.gradient;
+
+                if ~isempty(DJ) && length(DJ) >= 2*n
+
+                    DJb   = DJ(1:n);
+                    DJrho = DJ(n+1:2*n);
+
+                    obj.normDJbHistory(end+1,1)   = norm(DJb);
+                    obj.normDJrhoHistory(end+1,1) = norm(DJrho);
+
+                else
+
+                    obj.normDJbHistory(end+1,1)   = NaN;
+                    obj.normDJrhoHistory(end+1,1) = NaN;
+
+                end
+
+                if ~isempty(obj.DxJ) && length(obj.DxJ) >= 2*n
+
+                    DxJb   = obj.DxJ(1:n);
+                    DxJrho = obj.DxJ(n+1:2*n);
+
+                    obj.normDxJbHistory(end+1,1)   = norm(DxJb);
+                    obj.normDxJrhoHistory(end+1,1) = norm(DxJrho);
+
+                else
+
+                    obj.normDxJbHistory(end+1,1)   = NaN;
+                    obj.normDxJrhoHistory(end+1,1) = NaN;
+
+                end
+
+                Dm = obj.meritGradient;
+
+                if ~isempty(Dm) && length(Dm) >= 2*n
+
+                    DmB   = Dm(1:n);
+                    DmRho = Dm(n+1:2*n);
+
+                    obj.normMeritBHistory(end+1,1)   = norm(DmB);
+                    obj.normMeritRhoHistory(end+1,1) = norm(DmRho);
+
+                else
+
+                    obj.normMeritBHistory(end+1,1)   = NaN;
+                    obj.normMeritRhoHistory(end+1,1) = NaN;
+
+                end
+
+            else
+
+                obj.normDJbHistory(end+1,1)       = NaN;
+                obj.normDJrhoHistory(end+1,1)     = NaN;
+
+                obj.normDxJbHistory(end+1,1)      = NaN;
+                obj.normDxJrhoHistory(end+1,1)    = NaN;
+
+                obj.normMeritBHistory(end+1,1)    = NaN;
+                obj.normMeritRhoHistory(end+1,1)  = NaN;
+
+            end
+
+        end
         function plotVariable(obj)
             if ismethod(obj.designVariable,'plot')
                 obj.designVariable.plot();
@@ -312,23 +474,146 @@ classdef OptimizerNullSpace < handle
         end
 
         function checkStep(obj,x0)
+
             mNew = obj.computeMeritFunction();
+
             x    = obj.designVariable.fun.fValues;
+
             etaN = obj.obtainTrustRegion();
-            if mNew <= obj.mOldPrimal+1e-1  &&  norm(x-x0)/(norm(x0)+1) < etaN
+
+            % ========================================================
+            % LINE SEARCH DIAGNOSTICS
+            % ========================================================
+
+            meritDiff = mNew - obj.mOldPrimal;
+
+            trustRatio = ...
+                norm(x-x0)/(norm(x0)+1);
+
+            meritOK = meritDiff <= 1e-1;
+
+            trustOK = trustRatio < etaN;
+
+
+            % ========================================================
+            % ACCEPT STEP
+            % ========================================================
+
+            if meritOK && trustOK
+
                 obj.acceptableStep = true;
-                obj.meritNew       = mNew;
+
+                obj.meritNew = mNew;
+
                 obj.updateEtaMax();
+
+
+                % ========================================================
+                % STEP BECAME TOO SMALL
+                % ========================================================
+
             elseif obj.primalUpdater.isTooSmall()
-                warning('Convergence could not be achieved (step length too small)')
+
+                warning( ...
+                    'Convergence could not be achieved (step length too small)')
+
+                fprintf('\n=================================================\n');
+                fprintf('STEP TOO SMALL\n');
+                fprintf('iter       = %d\n',obj.nIter);
+                fprintf('trial      = %d\n',obj.lineSearchTrials);
+                fprintf('tau        = %.6e\n',obj.primalUpdater.tau);
+                fprintf('meritDiff  = %.6e\n',meritDiff);
+                fprintf('meritOK    = %d\n',meritOK);
+                fprintf('trustRatio = %.6e\n',trustRatio);
+                fprintf('etaN       = %.6e\n',etaN);
+                fprintf('trustOK    = %d\n',trustOK);
+                fprintf('=================================================\n');
+
                 obj.acceptableStep = true;
-                obj.meritNew       = obj.mOldPrimal;
+
+                obj.meritNew = obj.mOldPrimal;
+
                 obj.designVariable.update(x0);
+
+
+                % ========================================================
+                % REJECT STEP -> REDUCE TAU
+                % ========================================================
+
             else
+
+                % Print only when many reductions are already happening
+                if obj.lineSearchTrials >= 20
+
+                    fprintf(['\nLS diagnostic: ' ...
+                        'iter=%d trial=%d ' ...
+                        'tau=%.3e ' ...
+                        'meritDiff=%.3e meritOK=%d ' ...
+                        'trustRatio=%.3e etaN=%.3e trustOK=%d\n'], ...
+                        obj.nIter, ...
+                        obj.lineSearchTrials, ...
+                        obj.primalUpdater.tau, ...
+                        meritDiff, ...
+                        meritOK, ...
+                        trustRatio, ...
+                        etaN, ...
+                        trustOK);
+
+                end
+                if obj.lineSearchTrials == 25
+
+                    % Current candidate
+                    xTrial = obj.designVariable.fun.fValues;
+
+                    % Merit at trial point
+                    meritTrial = mNew;
+
+                    % --------------------------------------------------------
+                    % Re-evaluate merit EXACTLY at x0
+                    % --------------------------------------------------------
+                    obj.designVariable.update(x0);
+
+                    meritAtX0Again = obj.computeMeritFunction();
+                    Jagain = obj.cost.value;
+                    gagain = obj.constraint.value;
+                    lambda = obj.dualVariable.fun.fValues;
+
+                    fprintf('\nComponents at x0 re-evaluation:\n');
+                    fprintf('J      = %.15e\n',Jagain(1));
+                    fprintf('g      = %.15e\n',gagain(1));
+                    fprintf('lambda = %.15e\n',lambda(1));
+                    fprintf('lambda*g = %.15e\n',lambda(1)*gagain(1));
+
+                    fprintf('\n=================================================\n');
+                    fprintf('ZERO-STEP CONSISTENCY TEST\n');
+                    fprintf('iter              = %d\n',obj.nIter);
+                    fprintf('tau               = %.6e\n',obj.primalUpdater.tau);
+                    fprintf('||xTrial-x0||     = %.6e\n',norm(xTrial-x0));
+                    fprintf('\n');
+                    fprintf('mOldPrimal        = %.15e\n',obj.mOldPrimal);
+                    fprintf('meritTrial        = %.15e\n',meritTrial);
+                    fprintf('meritAtX0Again    = %.15e\n',meritAtX0Again);
+                    fprintf('\n');
+                    fprintf('trial-old         = %.15e\n', ...
+                        meritTrial-obj.mOldPrimal);
+                    fprintf('x0again-old       = %.15e\n', ...
+                        meritAtX0Again-obj.mOldPrimal);
+                    fprintf('=================================================\n');
+
+                    % Restore trial point so checkStep logic is not altered
+                    obj.designVariable.update(xTrial);
+
+                end
+
                 obj.primalUpdater.decreaseStepLength();
+
                 obj.designVariable.update(x0);
-                obj.lineSearchTrials = obj.lineSearchTrials + 1;
+
+                obj.lineSearchTrials = ...
+                    obj.lineSearchTrials + 1;
+
             end
+
         end
 
         function updateEtaMax(obj)

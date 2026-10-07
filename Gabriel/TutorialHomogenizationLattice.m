@@ -1,7 +1,7 @@
 classdef TutorialHomogenizationLattice < handle
 
     properties (Access = public)
-        paramB
+        paramA
         paramRho
         Chomog
         volFrac
@@ -13,18 +13,18 @@ classdef TutorialHomogenizationLattice < handle
         meshType
         meshN
         holeType
-        nStepsB
+        nStepsA
         nStepsRho
         pnorm
         monitoring
         Mmass
-        currentB
+        currentA
         currentRho
         latticeVectors
         baseMesh
         masterSlave
         test
-        maxParamB
+        maxParamA
         maxParamRho
     end
 
@@ -36,7 +36,106 @@ classdef TutorialHomogenizationLattice < handle
             obj.compute();
             obj.fitting();
             obj.plot();
-            
+
+        end
+        function exportMicrosCurrentA(obj,rhoVal,a_vals)
+
+            if nargin < 3
+                a_vals = [0 0.3 0.6 0.98];
+            end
+
+            if nargin < 2
+                rhoVal = 0.3;
+            end
+
+            folderName = sprintf('Micros_rho_%0.2f',rhoVal);
+
+            if ~exist(folderName,'dir')
+                mkdir(folderName);
+            end
+
+            bFixed = 1;
+            margin = 0.03;
+
+            for i = 1:numel(a_vals)
+
+                aVal = a_vals(i);
+
+                k = 1/sqrt(1 - aVal^2);
+                F = k*[bFixed, aVal/bFixed;
+                    aVal*bFixed, 1/bFixed];
+
+                v1 = F(1,:);
+                v2 = F(2,:);
+
+                obj.latticeVectors = [v1; v2];
+                obj.defineMesh();
+
+                dens = obj.createDensityLevelSet(rhoVal,aVal);
+
+                funP0   = dens.project('P0');
+                rhoElem = squeeze(funP0.fValues);
+
+                coordPlot = obj.baseMesh.coord;
+
+                xc = 0.5*(min(coordPlot(:,1)) + max(coordPlot(:,1)));
+                yc = 0.5*(min(coordPlot(:,2)) + max(coordPlot(:,2)));
+
+                coordPlot(:,1) = coordPlot(:,1) - xc;
+                coordPlot(:,2) = coordPlot(:,2) - yc;
+
+                xMin = min(coordPlot(:,1));
+                xMax = max(coordPlot(:,1));
+                yMin = min(coordPlot(:,2));
+                yMax = max(coordPlot(:,2));
+
+                dx = xMax - xMin;
+                dy = yMax - yMin;
+
+                halfRange = 0.5*max(dx,dy)*(1 + 2*margin);
+
+                fig = figure('Color','w','Position',[100 100 900 900]);
+                ax = axes(fig);
+                hold(ax,'on');
+
+                patch(ax, ...
+                    'Faces',obj.baseMesh.connec, ...
+                    'Vertices',coordPlot, ...
+                    'FaceVertexCData',rhoElem, ...
+                    'FaceColor','flat', ...
+                    'EdgeColor','none');
+
+                colormap(ax,flipud(gray(256)));
+                caxis(ax,[0 1]);
+
+                axis(ax,'equal');
+                xlim(ax,[-halfRange halfRange]);
+                ylim(ax,[-halfRange halfRange]);
+
+                grid(ax,'on');
+                box(ax,'on');
+
+                xlabel(ax,'x');
+                ylabel(ax,'y');
+
+                title(ax,sprintf('$a = %.2f,\\; \\rho = %.2f$',aVal,rhoVal), ...
+                    'Interpreter','latex', ...
+                    'FontSize',18);
+
+                set(ax,'FontSize',13,'Layer','top');
+
+                aString = sprintf('%0.2f',aVal);
+                aString = strrep(aString,'-','m');
+                aString = strrep(aString,'.','p');
+
+                fileName = fullfile(folderName, ...
+                    sprintf('Micro_rho_%0.2f_a_%s.png',rhoVal,aString));
+
+                exportgraphics(fig,fileName,'Resolution',300);
+                close(fig);
+
+            end
+
         end
 
     end
@@ -47,65 +146,97 @@ classdef TutorialHomogenizationLattice < handle
             obj.E           = 1;
             obj.nu          = 0.3;
             obj.meshType    = 'Square';
-            obj.meshN       = 80;
+            obj.meshN       = 70;
             obj.holeType    = 'Square';
             obj.pnorm       = 'Inf';
-            obj.nStepsB     = 60;
-            obj.nStepsRho   = 60;
+            obj.nStepsA     = 61;
+            obj.nStepsRho   = 61;
             obj.monitoring  = false;
-            obj.maxParamB   = 0.6;
-            obj.maxParamRho = 0.979;
+            obj.maxParamA   = 0.98;
+            obj.maxParamRho = 0.998;
         end
 
         function computeHoleParams(obj)
-            obj.paramB   = linspace(-0.6,    obj.maxParamB,   obj.nStepsB);
+            obj.paramA   = linspace(1e-9,    obj.maxParamA,   obj.nStepsA);
             obj.paramRho = linspace(1e-9, obj.maxParamRho, obj.nStepsRho);
         end
 
         function compute(obj)
-            nB   = length(obj.paramB);
+
+            nA   = length(obj.paramA);
             nRho = length(obj.paramRho);
-            mat  = zeros(2, 2, 2, 2, nRho, nB);
-            volF = zeros(nRho, nB);
+
+            mat  = zeros(2,2,2,2,nRho,nA);
+            volF = zeros(nRho,nA);
+
+            b_fixed = 1.0;
 
             for iRho = 1:nRho
+
                 rho_val = obj.paramRho(iRho);
                 obj.currentRho = rho_val;
-                fprintf('\n=== rho = %.4f ===\n', rho_val);
 
-                for iB = 1:nB
-                    b_val = obj.paramB(iB);
-                    obj.currentB = b_val;
+                fprintf('\n=== rho = %.4f ===\n',rho_val);
 
-                   
-                    a  = exp(b_val^2);
-                    d  = (1 + b_val^2) / a;
-                    v1 = [a,     b_val];
-                    v2 = [b_val, d    ];
-                    obj.latticeVectors = [v1; v2];
+                for iA = 1:nA
+
+                    a_val = obj.paramA(iA);
+                    obj.currentA = a_val;
+
+                    if abs(a_val) >= 1
+                        error('Parameter a must satisfy |a| < 1.');
+                    end
+
+                    k = 1/sqrt(1 - a_val^2);
+
+                    B = k * [1,     a_val;
+                        a_val, 1    ];
+
+                    D = [b_fixed,       0;
+                        0,       1/b_fixed];
+
+                    F = B * D;
+
+                    v1 = F(1,:);
+                    v2 = F(2,:);
+
+                    obj.latticeVectors = [v1;
+                        v2];
 
                     obj.defineMesh();
 
-                    mat(:,:,:,:,iRho,iB) = obj.computeHomogenization(rho_val, b_val);
-                    volF(iRho,iB)        = obj.computeVolumeFraction(rho_val, b_val);
+                    mat(:,:,:,:,iRho,iA) = ...
+                        obj.computeHomogenization(rho_val,a_val);
 
-                    if mod(iB, 5) == 0 || iB == nB
-                        fprintf('  b = %.4f  volF = %.4f\n', b_val, volF(iRho,iB));
+                    volF(iRho,iA) = ...
+                        obj.computeVolumeFraction(rho_val,a_val);
+
+                    if mod(iA,5) == 0 || iA == nA
+
+                        fprintf(['  a = %.4f   b = %.1f   ' ...
+                            'det(F) = %.8f   volF = %.4f\n'], ...
+                            a_val, ...
+                            b_fixed, ...
+                            det(F), ...
+                            volF(iRho,iA));
+
                     end
+
                 end
             end
 
             obj.Chomog  = mat;
             obj.volFrac = volF;
+
         end
 
-        function matHomog = computeHomogenization(obj, rho_val, b_val)
-            dens     = obj.createDensityLevelSet(rho_val, b_val);
+        function matHomog = computeHomogenization(obj, rho_val, a_val)
+            dens     = obj.createDensityLevelSet(rho_val, a_val);
             mat      = obj.createDensityMaterial(dens);
             matHomog = obj.solveElasticMicroProblem(mat, dens);
         end
 
-        function lsf = createDensityLevelSet(obj, rho_val,b_val)
+        function lsf = createDensityLevelSet(obj, rho_val,a_val)
            
             ls = obj.computeLevelSet(obj.baseMesh, rho_val);
 
@@ -144,6 +275,39 @@ classdef TutorialHomogenizationLattice < handle
                     gPar.radius = rho_val / 2;
                 case 'Square'
                     gPar.length = sqrt(1 - rho_val);
+                case 'CrossedBars'
+                    gPar.width = 0.25*(1 - sqrt(max(0,1-rho_val)));
+                case 'TwoHorizontalBars'
+
+                    rhoSat = 0.15;
+
+                    % =========================================================
+                    % 1) FRAME
+                    % =========================================================
+                    tFrameMax = 0.02;
+
+                    if rho_val <= rhoSat
+                        tFrame = tFrameMax * rho_val/rhoSat;
+                    else
+                        tFrame = tFrameMax;
+                    end
+
+                    % =========================================================
+                    % 2) EXACT CURRENT FRAME AREA
+                    % =========================================================
+                    AFrame = 1 - (1 - 2*tFrame)^2;
+
+                    % =========================================================
+                    % 3) HORIZONTAL BARS USE THE REMAINING VOLUME
+                    % =========================================================
+                    remaining = max(rho_val - AFrame,0);
+
+                    tBar = remaining / (2*(1 - 2*tFrame));
+
+                    tBar = min(tBar,0.5-tFrame);
+
+                    gPar.width      = tBar;
+                    gPar.frameWidth = tFrame;
                 case 'SmoothRectangle'
                     gPar.xSide = rho_val;
                     gPar.ySide = rho_val / 2;
@@ -166,7 +330,12 @@ classdef TutorialHomogenizationLattice < handle
 
             g      = GeometricalFunction(gPar);
             phiFun = g.computeLevelSetFunction(mesh);
-            ls     = -phiFun.fValues;
+            switch obj.holeType
+                case {'CrossedBars','TwoHorizontalBars'}
+                    ls = phiFun.fValues;
+                otherwise
+                    ls = -phiFun.fValues;
+            end
         end
 
         function defineMesh(obj)
@@ -262,8 +431,8 @@ classdef TutorialHomogenizationLattice < handle
 
         end
 
-        function fracVol = computeVolumeFraction(obj, rho_val, b_val)
-            rho    = obj.createDensityLevelSet(rho_val, b_val);
+        function fracVol = computeVolumeFraction(obj, rho_val, a_val)
+            rho    = obj.createDensityLevelSet(rho_val, a_val);
             volDom = Integrator.compute(ConstantFunction.create(1, obj.baseMesh), obj.baseMesh, 2);
             fracVol = Integrator.compute(rho, rho.mesh, 2) / volDom;
         end
@@ -279,14 +448,14 @@ classdef TutorialHomogenizationLattice < handle
             s.hiddenLayers = [150 200 300 200 150 50];
             % s.hiddenLayers = [50 100 50];
             s.maxEpochs    = 300000;
-            s.learningRate = 0.02;
+            s.learningRate = 0.015;
 
-            [obj.f, obj.df, ~] = DamageHomogenizationFitter.computeNN(obj.paramB, obj.paramRho, obj.Chomog, s);
+            [obj.f, obj.df, ~] = DamageHomogenizationFitter.computeNN(obj.paramA, obj.paramRho, obj.Chomog, s);
 
         end
 
         function plot(obj)
-            [B, R] = meshgrid(obj.paramB, obj.paramRho);
+            [B, R] = meshgrid(obj.paramA, obj.paramRho);
             components = {[1,1,1,1], 'C_{1111}'; ...
                           [2,2,2,2], 'C_{2222}'; ...
                           [1,2,1,2], 'C_{1212}'};

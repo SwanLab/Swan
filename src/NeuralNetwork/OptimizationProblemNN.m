@@ -59,9 +59,9 @@ classdef OptimizationProblemNN < handle
            obj.plotter.image(row);
        end
        
-       function E = computeError(obj,X,Y)
-           E = obj.network.forwardprop(X,Y);
-       end
+       % function E = computeError(obj,X,Y)
+       %     E = obj.network.forwardprop(X,Y);
+       % end
        
        function yOut = computeOutputValues(obj,X)
            yOut = obj.network.computeYOut(X);
@@ -75,9 +75,9 @@ classdef OptimizationProblemNN < handle
            dY = obj.network.networkDirectionalDerivative(X,dX);
        end
 
-       function [d_db, d_drho] = computeGradientComponent(obj, X, m)
-           [d_db, d_drho] = obj.network.networkGradientComponent(X, m);
-       end
+       % function [d_db, d_drho] = computeGradientComponent(obj, X, m)
+       %     [d_db, d_drho] = obj.network.networkGradientComponent(X, m);
+       % end
 
    end
 
@@ -127,7 +127,7 @@ classdef OptimizationProblemNN < handle
            s             = obj.optimizerParams;
            s.costFunc    = obj.costFunc;
            s.designVariable = obj.network.getLearnableVariables();
-           s.type        = 'SGD';
+           % s.type        = 'SGD';
            s.data        = obj.data;
            s.Xtrain = obj.data.Xtrain;
            s.Ytrain = obj.data.Ytrain;

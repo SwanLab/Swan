@@ -40,14 +40,57 @@ classdef GeometricalFunction < handle
                     l  = cParams.length;
                     x0 = cParams.xCoorCenter;
                     y0 = cParams.yCoorCenter;
-                    
+
                     if isfield(cParams, 'rotation')
                         phi = cParams.rotation;
                     else
                         phi = 0;
                     end
-                    
+
                     fH = @(x) GeometricalFunction.squareAffine(x,x0,y0,l,cParams.a1,cParams.a2);
+                    obj.fHandle = fH;
+                case 'RectangleAffine'
+
+                    sx = cParams.xSide;
+                    sy = cParams.ySide;
+
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+
+                    a1 = cParams.a1;
+                    a2 = cParams.a2;
+
+                    fH = @(x) ...
+                        GeometricalFunction.rectangleAffine( ...
+                        x,x0,y0,sx,sy,a1,a2);
+
+                    obj.fHandle = fH;
+                case 'CrossedBars'
+                    w  = cParams.width;
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+                    a1 = cParams.a1;
+                    a2 = cParams.a2;
+                    fH = @(x) ...
+                        GeometricalFunction.crossedBarsAffine( ...
+                        x, x0, y0, w, a1, a2);
+                    obj.fHandle = fH;
+
+                case 'TwoHorizontalBars'
+
+                    w  = cParams.width;
+                    wf = cParams.frameWidth;
+
+                    x0 = cParams.xCoorCenter;
+                    y0 = cParams.yCoorCenter;
+
+                    a1 = cParams.a1;
+                    a2 = cParams.a2;
+
+                    fH = @(x) ...
+                        GeometricalFunction.twoHorizontalBarsAffine( ...
+                        x, x0, y0, w, wf, a1, a2);
+
                     obj.fHandle = fH;
 
                 case 'SmoothSquare'
@@ -339,18 +382,133 @@ classdef GeometricalFunction < handle
                 X = x(1,:,:) - x0;
                 Y = x(2,:,:) - y0;
             end
-        
+
             A = [a1(:), a2(:)];
             invA = inv(A);
-        
+
             coords = invA * [X(:)'; Y(:)'];
-        
+
             Xi  = reshape(coords(1,:), size(X));
             Eta = reshape(coords(2,:), size(Y));
-        
+
             val = max(abs(Xi),abs(Eta)) / l - 0.5;
         end
-        
+        function val = rectangleAffine( ...
+                x,x0,y0,sx,sy,a1,a2)
+
+            if ndims(x) == 2
+
+                X = x(1,:) - x0;
+                Y = x(2,:) - y0;
+
+            else
+
+                X = x(1,:,:) - x0;
+                Y = x(2,:,:) - y0;
+
+            end
+
+            A = [a1(:),a2(:)];
+
+            coords = A \ [X(:)';Y(:)'];
+
+            Xi  = reshape(coords(1,:),size(X));
+            Eta = reshape(coords(2,:),size(Y));
+
+            val = max( ...
+                abs(Xi)./sx, ...
+                abs(Eta)./sy) - 0.5;
+
+        end
+
+        function val = crossedBarsAffine(x,x0,y0,w,a1,a2)
+
+            if ndims(x) == 2
+                X = x(1,:) - x0;
+                Y = x(2,:) - y0;
+            else
+                X = x(1,:,:) - x0;
+                Y = x(2,:,:) - y0;
+            end
+
+            A = [a1(:),a2(:)];
+
+            coords = A \ [X(:)';Y(:)'];
+
+            Xi  = reshape(coords(1,:),size(X));
+            Eta = reshape(coords(2,:),size(Y));
+
+            
+            phi1 = abs(Eta - Xi) - w;
+            phi2 = abs(Eta + Xi) - w;
+
+           
+            dEdge = 0.5 - max(abs(Xi),abs(Eta));
+
+            
+            phiFrame = dEdge - w;
+
+           
+            val = min(min(phi1,phi2),phiFrame);
+
+        end
+
+        function val = twoHorizontalBarsAffine(x,x0,y0,w,wFrame,a1,a2)
+
+            % ---------------------------------------------------------
+            % Physical coordinates centred in the cell
+            % ---------------------------------------------------------
+            if ndims(x) == 2
+                X = x(1,:) - x0;
+                Y = x(2,:) - y0;
+            else
+                X = x(1,:,:) - x0;
+                Y = x(2,:,:) - y0;
+            end
+
+            % ---------------------------------------------------------
+            % Physical -> reference lattice coordinates
+            %
+            % Reference cell:
+            % -0.5 <= Xi,Eta <= 0.5
+            % ---------------------------------------------------------
+            A = [a1(:),a2(:)];
+
+            coords = A \ [X(:)';Y(:)'];
+
+            Xi  = reshape(coords(1,:),size(X));
+            Eta = reshape(coords(2,:),size(Y));
+
+            % =========================================================
+            % 1) THIN OUTER FRAME
+            %
+            % frame thickness = wFrame
+            % negative = solid
+            % =========================================================
+            dEdge = 0.5 - max(abs(Xi),abs(Eta));
+
+            phiFrame = dEdge - wFrame;
+
+            % =========================================================
+            % 2) TWO HORIZONTAL BANDS
+            %
+            % They start just inside the external frame and grow
+            % toward the centre.
+            %
+            % bar thickness = w
+            % =========================================================
+
+            etaLimit = 0.5 - wFrame - w;
+
+            phiBars = etaLimit - abs(Eta);
+
+            % =========================================================
+            % UNION:
+            % outer frame OR horizontal bands
+            % =========================================================
+            val = min(phiFrame,phiBars);
+
+        end
 
         function val = smoothRectangleRotated(x, x0, y0, sx, sy, p, phi)
 

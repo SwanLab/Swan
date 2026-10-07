@@ -12,19 +12,28 @@ classdef NodesConnector < handle
     end
     
     methods (Access = public)
-        
+
         function obj = NodesConnector(cParams)
             obj.init(cParams);
         end
-        
+
         function computeConnections(obj)
-            obj.connec = delaunay(obj.coord);
+
             if obj.nodes.vert == 6
+
+                % Keep the original implementation for hexagonal cells
+                obj.connec = delaunay(obj.coord);
                 obj.deleteExtraElementsCaseA();
+
+            elseif obj.nodes.vert == 4
+
+                % Structured connectivity for parallelogram cells
+                obj.computeStructuredParallelogramConnectivity();
+
             else
-                
-                obj.deleteExtraElementsCaseB();
+                error('Unsupported number of vertices.')
             end
+
         end
         
     end
@@ -39,7 +48,7 @@ classdef NodesConnector < handle
                 obj.latticeVectors = cParams.latticeVectors;
             end
         end
-        
+
         function deleteExtraElementsCaseA(obj)
             cont = 1;
             rowsToDelete = [];
@@ -58,7 +67,55 @@ classdef NodesConnector < handle
             end
             obj.connec(rowsToDelete,:) = [];
         end
-        
+        function computeStructuredParallelogramConnectivity(obj)
+            n1 = obj.div(1);
+            n2 = obj.div(2);
+            nVert = obj.nodes.vert;
+            nBound = obj.nodes.bound;
+            startL1 = nVert + 1;
+            startL2 = startL1 + (n1 - 1);
+            startL3 = startL2 + (n2 - 1);
+            startL4 = startL3 + (n1 - 1);
+            nodeId = zeros(n2+1,n1+1);
+            nodeId(1,1)       = 1;   
+            nodeId(1,n1+1)    = 2;  
+            nodeId(n2+1,n1+1) = 3;   
+            nodeId(n2+1,1)    = 4; 
+            for i = 1:n1-1
+                nodeId(1,i+1) = startL1 + (i-1);
+            end
+            for j = 1:n2-1
+                nodeId(j+1,n1+1) = startL2 + (j-1);
+            end
+            for i = 1:n1-1
+
+                nodeId(n2+1,i+1) = startL3 + (n1-i-1);
+            end
+            for j = 1:n2-1
+                nodeId(j+1,1) = startL4 + (n2-j-1);
+            end
+            for j = 1:n2-1
+                for i = 1:n1-1
+                    nodeId(j+1,i+1) = nBound + (j-1)*(n1-1) + i;
+                end
+            end
+            nElem = 2*n1*n2;
+            connec = zeros(nElem,3);
+            e = 1;
+            for j = 1:n2
+                for i = 1:n1
+                    n00 = nodeId(j,  i);
+                    n10 = nodeId(j,  i+1);
+                    n01 = nodeId(j+1,i);
+                    n11 = nodeId(j+1,i+1);
+                    connec(e,:) = [n00 n10 n11];
+                    e = e + 1;
+                    connec(e,:) = [n00 n11 n01];
+                    e = e + 1;
+                end
+            end
+            obj.connec = connec;
+        end        
         function deleteExtraElementsCaseB(obj)
             cont = 1;
             rowsToDelete = [];

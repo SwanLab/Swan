@@ -40,7 +40,11 @@ classdef FilterPDE < handle
             obj.trial   = LagrangianFunction.create(cParams.mesh, cParams.trial.ndimf, cParams.trial.order);
             obj.LHSint  = cParams.LHSint;
             obj.mesh    = cParams.mesh;
-            obj.epsilon = cParams.mesh.computeMeanCellSize();
+            if isfield(cParams,'epsilon') && ~isempty(cParams.epsilon)
+                obj.epsilon = cParams.epsilon;
+            else
+                obj.epsilon = cParams.mesh.computeMeanCellSize();
+            end
         end
 
         function computeBoundaryConditions(obj,cParams)

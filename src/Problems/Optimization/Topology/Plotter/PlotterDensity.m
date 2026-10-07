@@ -16,22 +16,29 @@ classdef PlotterDensity < handle
             obj.createFigure();
         end
         
+        % function plot(obj)
+        %     rho     =   obj.designVariable.funRho;
+        %     funp0   = rho.project('P0');
+        %     rhoElem = squeeze(funp0.fValues);
+        %     set(obj.patchHandle,'FaceVertexAlphaData',rhoElem,'FaceAlpha','flat'); 
+        %     caxis([-1 1])
+        % end
         function plot(obj)
-            rho     =   obj.designVariable.fun;
+
+            if isprop(obj.designVariable,'funRho')
+                rho = obj.designVariable.funRho;
+            else
+                rho = obj.designVariable.fun;
+            end
+
             funp0   = rho.project('P0');
             rhoElem = squeeze(funp0.fValues);
-            set(obj.patchHandle,'FaceVertexAlphaData',rhoElem,'FaceAlpha','flat'); 
-            caxis([-0.8 0.8])
+
+            set(obj.patchHandle, ...
+                'FaceVertexAlphaData',rhoElem, ...
+                'FaceAlpha','flat');
+
         end
-        % function plot(obj)
-        %     rho = obj.designVariable.fun;
-        %     funp0 = rho.project('P0');
-        %     rhoElem = squeeze(funp0.fValues);
-        %     set(obj.patchHandle, 'FaceVertexCData', rhoElem, 'FaceColor', 'flat');
-        %     caxis([-0.6 0.6])
-        %     colormap(gray);  
-        %     colorbar;
-        % end
         
     end
     

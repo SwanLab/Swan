@@ -3,6 +3,7 @@ classdef TutorialFirstTwovariable < handle
     properties (Access = private)
         mesh
         filterPDE
+        filterPDERho
         filterLUMP
         % designVariable
         physicalProblem
@@ -13,6 +14,7 @@ classdef TutorialFirstTwovariable < handle
         constraint
         optimizer
         baseDomain
+        % penalty
     end
     properties (Access = public)
         designVariable
@@ -23,6 +25,51 @@ classdef TutorialFirstTwovariable < handle
     methods (Access = public)
         function hist = getCostHistory(obj)
             hist = obj.optimizer.costHistory;
+        end
+        function hist = getOptimizationDiagnostics(obj)
+
+            hist.cost       = obj.optimizer.costHistory;
+            hist.volume     = obj.optimizer.volumeConstraintHistory;
+
+            hist.normDJb    = obj.optimizer.normDJbHistory;
+            hist.normDJrho  = obj.optimizer.normDJrhoHistory;
+
+            hist.normDxJb   = obj.optimizer.normDxJbHistory;
+            hist.normDxJrho = obj.optimizer.normDxJrhoHistory;
+
+            hist.normMeritB   = obj.optimizer.normMeritBHistory;
+            hist.normMeritRho = obj.optimizer.normMeritRhoHistory;
+
+            hist.deltaB   = obj.optimizer.deltaBHistory;
+            hist.deltaRho = obj.optimizer.deltaRhoHistory;
+
+            hist.fracBLower = obj.optimizer.fracBLowerHistory;
+            hist.fracBUpper = obj.optimizer.fracBUpperHistory;
+
+            hist.fracRhoLower = obj.optimizer.fracRhoLowerHistory;
+            hist.fracRhoUpper = obj.optimizer.fracRhoUpperHistory;
+            hist.fracRhoBound = obj.optimizer.fracRhoBoundHistory;
+
+            hist.meanB   = obj.optimizer.meanBHistory;
+            hist.meanRho = obj.optimizer.meanRhoHistory;
+
+            hist.minB = obj.optimizer.minBHistory;
+            hist.maxB = obj.optimizer.maxBHistory;
+
+            hist.minRho = obj.optimizer.minRhoHistory;
+            hist.maxRho = obj.optimizer.maxRhoHistory;
+            hist.tau = obj.optimizer.tauHistory;
+
+            hist.eta = obj.optimizer.etaHistory;
+
+            hist.etaMax = obj.optimizer.etaMaxHistory;
+
+            hist.lineSearchTrials = ...
+                obj.optimizer.lineSearchTrialsHistory;
+
+        end
+        function data = getFinalKKTDiagnostics(obj)
+            data = obj.optimizer.getFinalKKTDiagnostics();
         end
 
         function hist = getComplianceHistory(obj)
@@ -77,6 +124,7 @@ classdef TutorialFirstTwovariable < handle
             obj.createDesignVariable();
             obj.createFilters();
             obj.createBaseDomain();
+            % obj.createInterfacePenalty();
             obj.createMaterial();
             obj.createElasticProblem();
             obj.createComplianceFromConstitutive();
@@ -85,7 +133,7 @@ classdef TutorialFirstTwovariable < handle
             obj.createConstraint();
             obj.createOptimizer();
             obj.bSmooth   = obj.filterPDE.compute(obj.designVariable.funB,   3);
-            obj.rhoSmooth = obj.filterLUMP.compute(obj.designVariable.funRho, 2);
+            obj.rhoSmooth = obj.filterPDERho.compute(obj.designVariable.funRho, 3);
            
         end
 
@@ -108,7 +156,7 @@ classdef TutorialFirstTwovariable < handle
             aFunB = AnalyticalFunction(s_b);
             funB  = aFunB.project('P1');
 
-            s_rho.fHandle = @(x) 0.97*ones(size(x(1,:,:)));
+            s_rho.fHandle = @(x) 0.998*ones(size(x(1,:,:)));
             s_rho.ndimf   = 1;
             s_rho.mesh    = obj.mesh;
             aFunRho = AnalyticalFunction(s_rho);
@@ -123,22 +171,90 @@ classdef TutorialFirstTwovariable < handle
         end
 
         function createFilters(obj)
-            eOverhmin = 6;
-            s.filterType   = 'PDE';
-            s.mesh         = obj.mesh;
-            s.boundaryType = 'Neumann';
-            s.metric       = 'Isotropy';
-            s.trial        = LagrangianFunction.create(obj.mesh, 1, 'P1');
-            f = Filter.create(s);
-            epsilon = eOverhmin * obj.mesh.computeMeanCellSize();
-            f.updateEpsilon(epsilon);
-            obj.filterPDE = f;
+
+            h = obj.mesh.computeMeanCellSize();
+
+            % ========================================================
+            % FILTER FOR b
+            % ========================================================
+
+            sB.filterType    = 'PDE';
+            sB.mesh          = obj.mesh;
+            sB.boundaryType  = 'Neumann';
+            sB.metric        = 'Isotropy';
+            sB.trial         = ...
+                LagrangianFunction.create(obj.mesh,1,'P1');
+
+            fB = Filter.create(sB);
+
+            epsilonB = 6*h;
+
+            fB.updateEpsilon(epsilonB);
+
+            obj.filterPDE = fB;
+
+
+            % ========================================================
+            % FILTER FOR rho
+            % ========================================================
+
+            sR.filterType    = 'PDE';
+            sR.mesh          = obj.mesh;
+            sR.boundaryType  = 'Neumann';
+            sR.metric        = 'Isotropy';
+            sR.trial         = ...
+                LagrangianFunction.create(obj.mesh,1,'P1');
+
+            fR = Filter.create(sR);
+
+            epsilonRho = 3*h;
+
+            fR.updateEpsilon(epsilonRho);
+
+            obj.filterPDERho = fR;
+
+
+            % ========================================================
+            % LUMP FILTER - keep available
+            % ========================================================
 
             sL.filterType = 'LUMP';
             sL.mesh       = obj.mesh;
-            sL.trial      = LagrangianFunction.create(obj.mesh, 1, 'P1');
+            sL.trial      = ...
+                LagrangianFunction.create(obj.mesh,1,'P1');
+
             obj.filterLUMP = Filter.create(sL);
+
         end
+
+        % function createInterfacePenalty(obj)
+        %     sF.mesh       = obj.mesh;
+        %     sF.filterType = 'PDE';
+        %     sF.trial      = ...
+        %         LagrangianFunction.create( ...
+        %         obj.mesh,1,'P1');
+        % 
+        %     f = Filter.create(sF);
+        % 
+        %     h = obj.mesh.computeMeanCellSize();
+        % 
+        %     s.mesh        = obj.mesh;
+        %     s.uMesh       = obj.baseDomain;
+        %     s.filter      = f;
+        % 
+        %     s.epsilon     = 3*h;
+        % 
+        %     s.value0      = 8;
+        % 
+        %     s.signInitial = -3;
+        %     s.signFinal   = -1.2;
+        % 
+        %     s.tarVolume   = 0.4;
+        % 
+        %     obj.penalty = ...
+        %         InterfaceFunctionalMicroDensity(s);
+        % 
+        % end
 
         function createBaseDomain(obj)
             levelSet = -ones(obj.mesh.nnodes, 1);
@@ -153,7 +269,7 @@ classdef TutorialFirstTwovariable < handle
             s.type        = 'HomogenizedMicroDensityFixed';
             s.mesh        = obj.mesh;
             s.young       = 1.0;
-            s.fileName    = 'Homogenizationtwovariables17';
+            s.fileName    = 'Homogenizationtwovariables24NewT';
             s.density     = obj.designVariable;
             obj.materialMicro = MaterialFactory.create(s);
         end
@@ -180,7 +296,7 @@ classdef TutorialFirstTwovariable < handle
         function c = createCompliance(obj)
             s.mesh                       = obj.mesh;
             s.filter                     = obj.filterPDE;
-            s.filterDensity              = obj.filterLUMP;
+            s.filterDensity              = obj.filterPDERho;
             s.complainceFromConstitutive = obj.compliance;
             s.material                   = obj.materialMicro;
             c = ComplianceFunctionalMicroDensity(s);
@@ -188,7 +304,7 @@ classdef TutorialFirstTwovariable < handle
 
         function createVolumeConstraint(obj)
             s.mesh         = obj.mesh;
-            s.filter       = obj.filterLUMP;
+            s.filter       = obj.filterPDERho;
             s.test         = LagrangianFunction.create(obj.mesh, 1, 'P1');
             s.volumeTarget = 0.4;
             s.uMesh        = obj.baseDomain;
@@ -200,6 +316,20 @@ classdef TutorialFirstTwovariable < handle
             s.weights           = 1;
             s.Msmooth           = obj.createMassMatrix();
             obj.cost            = Cost(s);
+
+            % s.shapeFunctions{1} = ...
+            %     obj.createCompliance();
+            % 
+            % s.shapeFunctions{2} = ...
+            %     obj.penalty;
+            % 
+            % s.weights = [1,1];
+            % 
+            % s.Msmooth = ...
+            %     obj.createMassMatrix();
+            % 
+            % obj.cost = Cost(s);
+
         end
 
         function createConstraint(obj)
@@ -212,6 +342,7 @@ classdef TutorialFirstTwovariable < handle
             test  = LagrangianFunction.create(obj.mesh, 1, 'P1');
             trial = LagrangianFunction.create(obj.mesh, 1, 'P1');
             MSingle = IntegrateLHS(@(u,v) DP(v,u), test, trial, obj.mesh, 'Domain');
+            MSingle = diag(sum(MSingle,1));
             n = test.nDofs;
             Z = sparse(n, n);
             M = [MSingle, Z; Z, MSingle];
@@ -219,9 +350,9 @@ classdef TutorialFirstTwovariable < handle
 
         function p = createPrimalUpdater(obj)
             n    = obj.mesh.nnodes;
-            s.lb = [-0.6*ones(n,1);  1e-6*ones(n,1)];
-            s.ub = [ 0.6*ones(n,1);  0.97*ones(n,1)];
-            s.tauMax = 500;
+            s.lb = [-ones(n,1);  1e-6*ones(n,1)];
+            s.ub = [ ones(n,1);  0.998*ones(n,1)];
+            s.tauMax = 100;
             s.tau    = [];
             p = ProjectedGradient(s);
         end
@@ -231,11 +362,11 @@ classdef TutorialFirstTwovariable < handle
             s.cost            = obj.cost;
             s.constraint      = obj.constraint;
             s.designVariable  = obj.designVariable;
-            s.maxIter         = 1000;
+            s.maxIter         = 1500;
             s.tolerance       = 1e-8;
             s.constraintCase  = {'EQUALITY'};
             s.etaNorm         = 0.01;
-            s.gJFlowRatio     = 0.2;
+            s.gJFlowRatio     = 0.8;
             s.primalUpdater   = obj.createPrimalUpdater();
             s.gif             = false;
             s.gifName         = [];

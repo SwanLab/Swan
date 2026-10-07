@@ -4,7 +4,6 @@ classdef TutorialFirstRhoOnly < handle
         mesh
         filterPDE
         filterLUMP
-        % designVariable
         physicalProblem
         materialMicro
         compliance
@@ -14,13 +13,15 @@ classdef TutorialFirstRhoOnly < handle
         optimizer
         baseDomain
     end
+
     properties (Access = public)
         designVariable
-        bSmooth
+        aSmooth
         rhoSmooth
     end
 
     methods (Access = public)
+
         function hist = getCostHistory(obj)
             hist = obj.optimizer.costHistory;
         end
@@ -32,25 +33,32 @@ classdef TutorialFirstRhoOnly < handle
         function hist = getVolumeConstraintHistory(obj)
             hist = obj.optimizer.volumeConstraintHistory;
         end
+
         function rho = getRhoValues(obj)
-            % Campo rho final antes do filtro
             rho = obj.designVariable.funRho.fValues;
         end
 
         function rhoSmooth = getRhoSmoothValues(obj)
-            % Campo rho final depois do filtro LUMP
             rhoSmooth = obj.rhoSmooth.fValues;
         end
 
-        function b = getBValues(obj)
-            % Neste caso b esta fixo em zero
-            b = obj.designVariable.funB.fValues;
+        function a = getAValues(obj)
+            a = obj.designVariable.funB.fValues;
+        end
+
+        function aSmooth = getASmoothValues(obj)
+            aSmooth = obj.aSmooth.fValues;
+        end
+
+        function fields = getDesignVariableValues(obj)
+            fields.a   = obj.designVariable.funB.fValues;
+            fields.rho = obj.designVariable.funRho.fValues;
+
+            fields.aSmooth   = obj.aSmooth.fValues;
+            fields.rhoSmooth = obj.rhoSmooth.fValues;
         end
 
         function meshData = getMeshData(obj)
-            % Dados numericos da malha para pos-processamento
-            % e futura dehomogeneizacao
-
             meshData.coord  = obj.mesh.coord;
             meshData.connec = obj.mesh.connec;
             meshData.ndim   = obj.mesh.ndim;
@@ -58,6 +66,7 @@ classdef TutorialFirstRhoOnly < handle
         end
 
         function obj = TutorialFirstRhoOnly()
+
             obj.init();
             obj.createMesh();
             obj.createDesignVariable();
@@ -70,9 +79,15 @@ classdef TutorialFirstRhoOnly < handle
             obj.createCost();
             obj.createConstraint();
             obj.createOptimizer();
-            obj.bSmooth   = obj.filterPDE.compute(obj.designVariable.funB,   3);
-            obj.rhoSmooth = obj.filterLUMP.compute(obj.designVariable.funRho, 2);
-           
+
+            obj.aSmooth = ...
+                obj.filterPDE.compute( ...
+                obj.designVariable.funB,3);
+
+            obj.rhoSmooth = ...
+                obj.filterLUMP.compute( ...
+                obj.designVariable.funRho,2);
+
         end
 
     end
@@ -84,190 +99,342 @@ classdef TutorialFirstRhoOnly < handle
         end
 
         function createMesh(obj)
-            obj.mesh = TriangleMesh(2, 1, 200, 180);
+
+            obj.mesh = TriangleMesh(2,1,150,75);
+
         end
 
         function createDesignVariable(obj)
-            s_b.fHandle = @(x) zeros(size(x(1,:,:)));
-            s_b.ndimf   = 1;
-            s_b.mesh    = obj.mesh;
-            aFunB = AnalyticalFunction(s_b);
-            funB  = aFunB.project('P1');
 
-            s_rho.fHandle = @(x) 0.97*ones(size(x(1,:,:)));
-            s_rho.ndimf   = 1;
-            s_rho.mesh    = obj.mesh;
+            s_a.fHandle = @(x) ...
+                zeros(size(x(1,:,:)));
+
+            s_a.ndimf = 1;
+            s_a.mesh  = obj.mesh;
+
+            aFunA = AnalyticalFunction(s_a);
+
+            funA = aFunA.project('P1');
+
+            s_rho.fHandle = @(x) ...
+                0.998*ones(size(x(1,:,:)));
+
+            s_rho.ndimf = 1;
+            s_rho.mesh  = obj.mesh;
+
             aFunRho = AnalyticalFunction(s_rho);
-            funRho  = aFunRho.project('P1');
 
-            sD.funB     = funB;
+            funRho = aFunRho.project('P1');
+
+            sD.funB     = funA;
             sD.fun      = funRho;
             sD.mesh     = obj.mesh;
             sD.type     = 'MicroWithDensity';
             sD.plotting = true;
-            obj.designVariable = DesignVariable.create(sD);
+
+            obj.designVariable = ...
+                DesignVariable.create(sD);
+
         end
 
         function createFilters(obj)
-            eOverhmin = 6;
-            s.filterType   = 'PDE';
-            s.mesh         = obj.mesh;
-            s.boundaryType = 'Neumann';
-            s.metric       = 'Isotropy';
-            s.trial        = LagrangianFunction.create(obj.mesh, 1, 'P1');
-            f = Filter.create(s);
-            epsilon = eOverhmin * obj.mesh.computeMeanCellSize();
-            f.updateEpsilon(epsilon);
-            obj.filterPDE = f;
 
-            sL.filterType = 'LUMP';
-            sL.mesh       = obj.mesh;
-            sL.trial      = LagrangianFunction.create(obj.mesh, 1, 'P1');
-            obj.filterLUMP = Filter.create(sL);
+            h = obj.mesh.computeMeanCellSize();
+
+            sA.filterType   = 'PDE';
+            sA.mesh         = obj.mesh;
+            sA.boundaryType = 'Neumann';
+            sA.metric       = 'Isotropy';
+            sA.trial        = ...
+                LagrangianFunction.create( ...
+                obj.mesh,1,'P1');
+
+            fA = Filter.create(sA);
+
+            epsilonA = 6*h;
+
+            fA.updateEpsilon(epsilonA);
+
+            obj.filterPDE = fA;
+
+            sRho.filterType = 'LUMP';
+            sRho.mesh       = obj.mesh;
+            sRho.trial      = ...
+                LagrangianFunction.create( ...
+                obj.mesh,1,'P1');
+
+            obj.filterLUMP = Filter.create(sRho);
+
         end
 
         function createBaseDomain(obj)
-            levelSet = -ones(obj.mesh.nnodes, 1);
+
+            levelSet = ...
+                -ones(obj.mesh.nnodes,1);
+
             s.backgroundMesh = obj.mesh;
-            s.boundaryMesh   = obj.mesh.createBoundaryMesh();
+            s.boundaryMesh   = ...
+                obj.mesh.createBoundaryMesh();
+
             uMesh = UnfittedMesh(s);
+
             uMesh.compute(levelSet);
+
             obj.baseDomain = uMesh;
+
         end
 
         function createMaterial(obj)
-            s.type        = 'HomogenizedMicroDensityFixed';
-            s.mesh        = obj.mesh;
-            s.young       = 1.0;
-            s.fileName    = 'Homogenizationtwovariables15';
-            s.density     = obj.designVariable;
-            obj.materialMicro = MaterialFactory.create(s);
+
+            s.type = ...
+                'HomogenizedMicroDensityFixed';
+
+            s.mesh     = obj.mesh;
+            s.young    = 1.0;
+            s.fileName = ...
+                'HomogenizationtwovariablesVA';
+
+            s.density = ...
+                obj.designVariable;
+
+            obj.materialMicro = ...
+                MaterialFactory.create(s);
+
         end
 
         function createElasticProblem(obj)
+
             s.mesh               = obj.mesh;
             s.scale              = 'MACRO';
             s.material           = obj.materialMicro;
             s.dim                = '2D';
-            s.boundaryConditions = obj.createBoundaryConditions();
-            s.interpolationType  = 'LINEAR';
-            s.solverType         = 'REDUCED';
-            s.solverMode         = 'DISP';
-            s.solverCase         = DirectSolver();
-            obj.physicalProblem  = ElasticProblem(s);
+            s.boundaryConditions = ...
+                obj.createBoundaryConditions();
+
+            s.interpolationType = 'LINEAR';
+            s.solverType        = 'REDUCED';
+            s.solverMode        = 'DISP';
+            s.solverCase        = DirectSolver();
+
+            obj.physicalProblem = ...
+                ElasticProblem(s);
+
         end
 
         function createComplianceFromConstitutive(obj)
-            s.mesh         = obj.mesh;
-            s.stateProblem = obj.physicalProblem;
-            obj.compliance = ComplianceFromConstitutiveTensor(s);
+
+            s.mesh = obj.mesh;
+
+            s.stateProblem = ...
+                obj.physicalProblem;
+
+            obj.compliance = ...
+                ComplianceFromConstitutiveTensor(s);
+
         end
 
         function c = createCompliance(obj)
-            s.mesh                       = obj.mesh;
-            s.filter                     = obj.filterPDE;
-            s.filterDensity              = obj.filterLUMP;
-            s.complainceFromConstitutive = obj.compliance;
-            s.material                   = obj.materialMicro;
-            c = ComplianceFunctionalMicroDensity(s);
+
+            s.mesh          = obj.mesh;
+            s.filter        = obj.filterPDE;
+            s.filterDensity = obj.filterLUMP;
+
+            s.complainceFromConstitutive = ...
+                obj.compliance;
+
+            s.material = ...
+                obj.materialMicro;
+
+            c = ...
+                ComplianceFunctionalMicroDensity(s);
+
         end
 
         function createVolumeConstraint(obj)
-            s.mesh         = obj.mesh;
-            s.filter       = obj.filterLUMP;
-            s.test         = LagrangianFunction.create(obj.mesh, 1, 'P1');
+
+            s.mesh   = obj.mesh;
+            s.filter = obj.filterLUMP;
+
+            s.test = ...
+                LagrangianFunction.create( ...
+                obj.mesh,1,'P1');
+
             s.volumeTarget = 0.4;
             s.uMesh        = obj.baseDomain;
-            obj.volume     = VolumeConstraintMicroDensity(s);
+
+            obj.volume = ...
+                VolumeConstraintMicroDensity(s);
+
         end
 
         function createCost(obj)
-            s.shapeFunctions{1} = obj.createCompliance();
-            s.weights           = 1;
-            s.Msmooth           = obj.createMassMatrix();
-            obj.cost            = Cost(s);
+
+            s.shapeFunctions{1} = ...
+                obj.createCompliance();
+
+            s.weights = 1;
+
+            s.Msmooth = ...
+                obj.createMassMatrix();
+
+            obj.cost = Cost(s);
+
         end
 
         function createConstraint(obj)
-            s.shapeFunctions{1} = obj.volume;
-            s.Msmooth           = obj.createMassMatrix();
-            obj.constraint      = Constraint(s);
+
+            s.shapeFunctions{1} = ...
+                obj.volume;
+
+            s.Msmooth = ...
+                obj.createMassMatrix();
+
+            obj.constraint = ...
+                Constraint(s);
+
         end
 
         function M = createMassMatrix(obj)
-            test  = LagrangianFunction.create(obj.mesh, 1, 'P1');
-            trial = LagrangianFunction.create(obj.mesh, 1, 'P1');
-            MSingle = IntegrateLHS(@(u,v) DP(v,u), test, trial, obj.mesh, 'Domain');
+
+            test = ...
+                LagrangianFunction.create( ...
+                obj.mesh,1,'P1');
+
+            trial = ...
+                LagrangianFunction.create( ...
+                obj.mesh,1,'P1');
+
+            MSingle = ...
+                IntegrateLHS( ...
+                @(u,v) DP(v,u), ...
+                test, ...
+                trial, ...
+                obj.mesh, ...
+                'Domain');
+
+            MSingle = ...
+                diag(sum(MSingle,1));
+
             n = test.nDofs;
-            Z = sparse(n, n);
-            M = [MSingle, Z; Z, MSingle];
+
+            Z = sparse(n,n);
+
+            M = [MSingle,Z;
+                 Z,MSingle];
+
         end
 
         function p = createPrimalUpdater(obj)
-            n    = obj.mesh.nnodes;
-            s.lb = [zeros(n,1);  1e-3*ones(n,1)];
-            s.ub = [ zeros(n,1);  0.97*ones(n,1)];
-            s.tauMax = 500;
+
+            n = obj.mesh.nnodes;
+
+            s.lb = [ ...
+                zeros(n,1);
+                1e-6*ones(n,1)];
+
+            s.ub = [ ...
+                zeros(n,1);
+                0.998*ones(n,1)];
+
+            s.tauMax = 100;
             s.tau    = [];
+
             p = ProjectedGradient(s);
+
         end
 
         function createOptimizer(obj)
-            s.monitoring      = true;
-            s.cost            = obj.cost;
-            s.constraint      = obj.constraint;
-            s.designVariable  = obj.designVariable;
-            s.maxIter         = 1000;
-            s.tolerance       = 1e-8;
-            s.constraintCase  = {'EQUALITY'};
-            s.etaNorm         = 0.01;
-            s.gJFlowRatio     = 2;
-            s.primalUpdater   = obj.createPrimalUpdater();
-            s.gif             = false;
-            s.gifName         = [];
-            s.printing        = false;
-            s.printName       = [];
-            
+
+            s.monitoring     = true;
+            s.cost           = obj.cost;
+            s.constraint     = obj.constraint;
+            s.designVariable = obj.designVariable;
+
+            s.maxIter        = 1000;
+            s.tolerance      = 1e-8;
+            s.constraintCase = {'EQUALITY'};
+
+            s.etaNorm     = 0.01;
+            s.gJFlowRatio = 2;
+
+            s.primalUpdater = ...
+                obj.createPrimalUpdater();
+
+            s.gif       = false;
+            s.gifName   = [];
+            s.printing  = false;
+            s.printName = [];
+
             opt = OptimizerNullSpace(s);
+
             opt.solveProblem();
+
             obj.optimizer = opt;
-            
-           
+
         end
 
         function bc = createBoundaryConditions(obj)
-            xMin = min(obj.mesh.coord(:,1));
-            xMax = max(obj.mesh.coord(:,1));
-            yMax = max(obj.mesh.coord(:,2));
 
-            isDir   = @(coor) abs(coor(:,1) - xMin) < 1e-12;
-            isForce = @(coor) abs(coor(:,1) - xMax) < 1e-12 & ...
-                              coor(:,2) >= 0.4*yMax & ...
-                              coor(:,2) <= 0.6*yMax;
+            xMin = ...
+                min(obj.mesh.coord(:,1));
 
-            sDir{1}.domain    = @(coor) isDir(coor);
-            sDir{1}.direction = [1, 2];
+            xMax = ...
+                max(obj.mesh.coord(:,1));
+
+            yMax = ...
+                max(obj.mesh.coord(:,2));
+
+            isDir = @(coor) ...
+                abs(coor(:,1)-xMin) < 1e-12;
+
+            isForce = @(coor) ...
+                abs(coor(:,1)-xMax) < 1e-12 & ...
+                coor(:,2) >= 0.4*yMax & ...
+                coor(:,2) <= 0.6*yMax;
+
+            sDir{1}.domain = ...
+                @(coor) isDir(coor);
+
+            sDir{1}.direction = [1,2];
             sDir{1}.value     = 0;
 
-            sPL{1}.domain    = @(coor) isForce(coor);
+            sPL{1}.domain = ...
+                @(coor) isForce(coor);
+
             sPL{1}.direction = 2;
             sPL{1}.value     = -1;
 
             dirichletFun = [];
+
             for i = 1:numel(sDir)
-                dirichletFun = [dirichletFun, DirichletCondition(obj.mesh, sDir{i})];
+
+                dirichletFun = ...
+                    [dirichletFun, ...
+                    DirichletCondition( ...
+                    obj.mesh,sDir{i})];
+
             end
 
             pointloadFun = [];
+
             for i = 1:numel(sPL)
-                pointloadFun = [pointloadFun, TractionLoad(obj.mesh, sPL{i}, 'DIRAC')];
+
+                pointloadFun = ...
+                    [pointloadFun, ...
+                    TractionLoad( ...
+                    obj.mesh, ...
+                    sPL{i}, ...
+                    'DIRAC')];
+
             end
 
             s.dirichletFun = dirichletFun;
             s.pointloadFun = pointloadFun;
             s.periodicFun  = [];
             s.mesh         = obj.mesh;
+
             bc = BoundaryConditions(s);
+
         end
 
     end
