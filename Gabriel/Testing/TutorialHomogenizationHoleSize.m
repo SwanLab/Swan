@@ -1,4 +1,4 @@
-classdef TutorialHomogenization < handle
+classdef TutorialHomogenizationHoleSize < handle
 
     properties (Access = public)
 
@@ -30,7 +30,7 @@ classdef TutorialHomogenization < handle
 
     methods (Access = public)
 
-        function obj = TutorialHomogenization()
+        function obj = TutorialHomogenizationHoleSize()
 
             obj.init();
             obj.defineMesh();
@@ -93,7 +93,7 @@ classdef TutorialHomogenization < handle
 
         function computeDensityParams(obj)
 
-            obj.rho = linspace(0,1,obj.nSteps);
+            obj.rho = linspace(1e-5,0.979,obj.nSteps);
 
         end
 
@@ -117,7 +117,7 @@ classdef TutorialHomogenization < handle
 
         function matHomog = computeHomogenization(obj,rho)
 
-            dens = obj.createDensity(rho);
+            dens = obj.createDensityLevelSet(rho);
 
             C = obj.createDensityMaterial();
 
@@ -125,120 +125,7 @@ classdef TutorialHomogenization < handle
 
         end
 
-        function dens = createDensity(obj,rho)
-
-            if rho == 0
-
-                dens = obj.createConstantDensity(0);
-
-            elseif rho == 1
-
-                dens = obj.createConstantDensity(1);
-
-            else
-
-                l = obj.computeGeometryParameter(rho);
-
-                dens = obj.createDensityLevelSet(l);
-
-            end
-
-        end
-
-        function dens = createConstantDensity(obj,rho)
-
-            dens = copy(obj.test);
-
-            values = rho*ones(obj.baseMesh.nnodes,1);
-
-            dens.setFValues(values);
-
-        end
-
-        function l = computeGeometryParameter(obj,rho)
-
-            tol = 1e-4;
-
-            scaleMin = 1e-10;
-            scaleMax = 1;
-
-            lMax = obj.createGeometryParameter(scaleMax);
-
-            densMax = obj.createDensityLevelSet(lMax);
-
-            rhoMax = obj.computeMaterialDensity(densMax);
-
-            while rhoMax > rho
-
-                scaleMax = 2*scaleMax;
-
-                lMax = obj.createGeometryParameter(scaleMax);
-
-                densMax = obj.createDensityLevelSet(lMax);
-
-                rhoMax = obj.computeMaterialDensity(densMax);
-
-            end
-
-            for i = 1:40
-
-                scale = 0.5*(scaleMin + scaleMax);
-
-                l = obj.createGeometryParameter(scale);
-
-                dens = obj.createDensityLevelSet(l);
-
-                rhoCurrent = obj.computeMaterialDensity(dens);
-
-                if abs(rhoCurrent-rho) < tol
-
-                    return
-
-                end
-
-                if rhoCurrent > rho
-
-                    scaleMin = scale;
-
-                else
-
-                    scaleMax = scale;
-
-                end
-
-            end
-
-            scale = 0.5*(scaleMin + scaleMax);
-
-            l = obj.createGeometryParameter(scale);
-
-        end
-
-        function l = createGeometryParameter(obj,scale)
-
-            switch obj.holeType
-
-                case {'Circle','Square','SmoothHexagon'}
-
-                    l = scale;
-
-                case {'Rectangle','Ellipse'}
-
-                    l = [scale,scale];
-
-            end
-
-        end
-
-        function rho = computeMaterialDensity(obj,dens)
-
-            volume = obj.baseMesh.computeVolume();
-
-            materialVolume = Integrator.compute(dens,obj.baseMesh,2);
-
-            rho = materialVolume/volume;
-
-        end
+        
 
         function lsf = createDensityLevelSet(obj,l)
 
