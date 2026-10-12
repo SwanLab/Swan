@@ -5,6 +5,7 @@ classdef MeshCreator < handle
         theta
         div
         nodes
+        T
     end
     
     properties (Access = public)
@@ -25,11 +26,11 @@ classdef MeshCreator < handle
             obj.computeNodeCoordinates();
             obj.connectNodes();
             obj.obtainMasterSlaveNodes();
-%             obj.writeFEMreadingArchive();
+            obj.mapCoordinates();
         end
         
         function drawMesh(obj)
-           obj.plotCoordinates();
+            obj.plotCoordinates();
         end
         
         function plotIndicesOfNodes(obj)
@@ -42,10 +43,24 @@ classdef MeshCreator < handle
     methods (Access = private)
         
         function init(obj,cParams)
-            obj.c = cParams.c;
-            obj.theta = cParams.theta;
+
+            if isfield(cParams,'T')
+
+                obj.c = [1,1];
+                obj.theta = [0,90];
+                obj.T = cParams.T;
+
+            else
+
+                obj.c = cParams.c;
+                obj.theta = cParams.theta;
+                obj.T = eye(2);
+
+            end
+
             obj.div = round(cParams.divUnit*obj.c);
             obj.filename = cParams.filename;
+
         end
         
         function obtainDimensions(obj)
@@ -84,6 +99,12 @@ classdef MeshCreator < handle
             a = MasterSlaveComputer(s);
             a.computeMasterSlaveNodes();
             obj.masterSlaveIndex = a.masterSlaveIndex;
+        end
+
+        function mapCoordinates(obj)
+
+            obj.coord = (obj.T*obj.coord')';
+
         end
 
         function writeFEMreadingArchive(obj)

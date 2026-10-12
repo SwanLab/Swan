@@ -38,6 +38,23 @@ classdef TutorialHomogenization < handle
             obj.compute();
 
         end
+        function plotMicrostructures(obj,rhoValues)
+
+            for i = 1:length(rhoValues)
+
+                rho = rhoValues(i);
+
+                dens = obj.createDensity(rho);
+
+                figure
+                dens.plot
+                shading interp
+                colormap(flipud(pink))
+                title(['\rho = ',num2str(rho)])
+
+            end
+
+        end
 
     end
 

@@ -1,34 +1,62 @@
 classdef GeometricalFunction < handle
 
     properties (Access = private)
+
         fHandle
+
     end
 
     methods (Access = public)
 
         function obj = GeometricalFunction(cParams)
+
             obj.selectHandle(cParams);
+            obj.applyMapping(cParams);
+
         end
 
         function ls = computeLevelSetFunction(obj,m)
+
             s.fHandle = obj.fHandle;
-            s.ndimf   = 1;
-            s.mesh    = m;
-            aFun      = AnalyticalFunction(s);
-            ls        = aFun.project('P1');
+            s.ndimf = 1;
+            s.mesh = m;
+
+            aFun = AnalyticalFunction(s);
+
+            ls = aFun.project('P1');
+
         end
 
         function f = getHandle(obj)
+
             f = obj.fHandle;
+
         end
+
     end
 
     methods (Access = private)
 
+        function applyMapping(obj,cParams)
+
+            if isfield(cParams,'T')
+
+                Tinv = cParams.T\eye(size(cParams.T));
+
+                fRef = obj.fHandle;
+
+                obj.fHandle = @(x) fRef(pagemtimes(Tinv,x));
+
+            end
+
+        end
+
         function selectHandle(obj,cParams)
+
             x1 = @(x) x(1,:,:);
             x2 = @(x) x(2,:,:);
             x3 = @(x) x(3,:,:);
+
             switch cParams.type
                 case 'Square'
                     l  = cParams.length;

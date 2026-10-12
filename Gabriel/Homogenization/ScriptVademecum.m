@@ -187,3 +187,7 @@ fprintf('C11 = %.12e\n',f{1,1,1,1}(1))
 fprintf('C22 = %.12e\n',f{2,2,2,2}(1))
 fprintf('C12 = %.12e\n',f{1,1,2,2}(1))
 fprintf('C33 = %.12e\n',f{1,2,1,2}(1))
+
+rhoMicro = [0.1 0.3 0.5 0.7 0.9];
+
+H.plotMicrostructures(rhoMicro);
