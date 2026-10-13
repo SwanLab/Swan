@@ -14,125 +14,226 @@ classdef OptimizationProblemNN < handle
         regularization
     end
   
-   methods (Access = public)
+    methods (Access = public)
 
-       function obj = OptimizationProblemNN(cParams)
-           obj.init(cParams);
-           obj.createNetwork();
-           obj.createDesignVariable();
-           obj.createLossFunctional();
-           obj.createRegularizationFunctional();
-           obj.createCost();
-           obj.createPlotter();
-           obj.createOptimizer();
-       end
+        function obj = OptimizationProblemNN(cParams)
 
-       function solve(obj)
-           obj.optimizer.compute();
-       end
+            obj.init(cParams);
 
-       function plotCostFnc(obj)
-           obj.optimizer.plotCostFunc();
-       end
+            obj.createNetwork();
 
-       function plotBoundary(obj,type) 
-           obj.plotter.plotBoundary(type);
-       end
+            obj.createDesignVariable();
 
-       function plotConections(obj)
-           obj.plotter.plotNetworkStatus();
-       end
+            obj.createLossFunctional();
 
-       function plotConfusionMatrix(obj)
-           obj.plotter.drawConfusionMat();
-       end
+            obj.createRegularizationFunctional();
 
-       function plotSurface(obj)
-           obj.plotter.drawSurfaceResults();
-       end
+            obj.createCost();
 
-       function plotImage(obj,row)
-           obj.plotter.image(row);
-       end
+            obj.createPlotter();
+
+            obj.createOptimizer();
+
+        end
+
+        function solve(obj)
+
+            obj.optimizer.compute();
+
+        end
+
+        function plotCostFnc(obj)
+
+            obj.optimizer.plotCostFunc();
+
+        end
+
+        function plotBoundary(obj,type)
+
+            obj.plotter.plotBoundary(type);
+
+        end
+
+        function plotConections(obj)
+
+            obj.plotter.plotNetworkStatus();
+
+        end
+
+        function plotConfusionMatrix(obj)
+
+            obj.plotter.drawConfusionMat();
+
+        end
+
+        function plotSurface(obj)
+
+            obj.plotter.drawSurfaceResults();
+
+        end
+
+        function plotImage(obj,row)
+
+            obj.plotter.image(row);
+
+        end
        
-       function E = computeError(obj,X,Y)
-           E = obj.network.forwardprop(X,Y);
-       end
+        function E = computeError(obj,X,Y)
+
+            Ypred = obj.computeOutputValues(X);
+
+            E = norm(Ypred-Y,'fro')/max(norm(Y,'fro'),eps);
+
+        end
        
-       function yOut = computeOutputValues(obj,X)
-           yOut = obj.network.computeYOut(X);
-       end
+        function yOut = computeOutputValues(obj,X)
 
-       function dY = computeGradient(obj,X)
-           dY = obj.network.networkJacobian(X);
-       end
+            Xnorm = obj.data.normalizeInput(X);
 
-   end
+            Ynorm = obj.network.computeYOut(Xnorm);
 
-   methods (Access = private)
+            yOut = obj.data.denormalizeOutput(Ynorm);
 
-       function init(obj,cParams)
-           obj.data            = cParams.data;
-           obj.networkParams   = cParams.networkParams;
-           obj.optimizerParams = cParams.optimizerParams; 
-           obj.costParams      = cParams.costParams;
-       end  
+        end
 
-       function createNetwork(obj)
-           s      = obj.networkParams;
-           s.data = obj.data;
-           n  = Network(s);
-           obj.network = n;
-       end
+        function dY = computeGradient(obj,X)
 
-       function createDesignVariable(obj)
-           dv = obj.network.getLearnableVariables();
-           obj.designVariable = dv;
-       end
+            Xnorm = obj.data.normalizeInput(X);
 
-       function createLossFunctional(obj)
-            s.network        = obj.network;
+            dYnorm = obj.network.networkJacobian(Xnorm);
+
+            dY = obj.data.denormalizeJacobian(dYnorm);
+
+        end
+
+        function [yOut,dY] = computeOutputValuesAndGradient(obj,X)
+
+            Xnorm = obj.data.normalizeInput(X);
+
+            [Ynorm,dYnorm] = ...
+                obj.network.computeYOutAndJacobian(Xnorm);
+
+            yOut = obj.data.denormalizeOutput(Ynorm);
+
+            dY = obj.data.denormalizeJacobian(dYnorm);
+
+        end
+
+    end
+
+    methods (Access = private)
+
+        function init(obj,cParams)
+
+            obj.data = cParams.data;
+
+            obj.networkParams = cParams.networkParams;
+
+            obj.optimizerParams = cParams.optimizerParams;
+
+            obj.costParams = cParams.costParams;
+
+        end
+
+        function createNetwork(obj)
+
+            s = obj.networkParams;
+
+            s.data = obj.data;
+
+            n = Network(s);
+
+            obj.network = n;
+
+        end
+
+        function createDesignVariable(obj)
+
+            dv = obj.network.getLearnableVariables();
+
+            obj.designVariable = dv;
+
+        end
+
+        function createLossFunctional(obj)
+
+            s.network = obj.network;
+
             s.designVariable = obj.designVariable;
-            s.data           = obj.data;
-            s.costType       = obj.costParams.costType;
+
+            s.data = obj.data;
+
+            s.costType = obj.costParams.costType;
+
             l = LossFunctional(s);
+
             obj.loss = l;
+
         end
 
         function createRegularizationFunctional(obj)
+
             s.designVariable = obj.designVariable;
+
             r = Sh_Func_L2norm(s);
+
             obj.regularization = r;
+
         end
 
-       function createCost(obj)
-           s.shapeFunctions = {obj.loss, obj.regularization};
-           s.weights = [1, obj.costParams.lambda];
-           obj.costFunc = CostNN(s);
-       end
+        function createCost(obj)
 
-       function createOptimizer(obj)
-           s             = obj.optimizerParams;
-           s.costFunc    = obj.costFunc;
-           s.designVariable = obj.network.getLearnableVariables();
-           s.type        = 'SGD';
-           s.data        = obj.data;
-           s.Xtrain = obj.data.Xtrain;
-           s.Ytrain = obj.data.Ytrain;
-           s.Xtest  = obj.data.Xtest;
-           s.Ytest  = obj.data.Ytest;
-           s.plotter = obj.plotter;
-           op = Trainer.create(s);
-           obj.optimizer = op;
-       end
+            s.shapeFunctions = ...
+                {obj.loss,obj.regularization};
 
-       function createPlotter(obj)
-           s.network   = obj.network;
-           s.data      = obj.data;
-           s.costfunc  = obj.costFunc;
-           obj.plotter = PlotterNN(s);
-       end
+            s.weights = ...
+                [1,obj.costParams.lambda];
+
+            obj.costFunc = CostNN(s);
+
+        end
+
+        function createOptimizer(obj)
+
+            s = obj.optimizerParams;
+
+            s.costFunc = obj.costFunc;
+
+            s.designVariable = ...
+                obj.network.getLearnableVariables();
+
+            s.type = 'SGD';
+
+            s.data = obj.data;
+
+            s.Xtrain = obj.data.Xtrain;
+
+            s.Ytrain = obj.data.Ytrain;
+
+            s.Xtest = obj.data.Xtest;
+
+            s.Ytest = obj.data.Ytest;
+
+            s.plotter = obj.plotter;
+
+            op = Trainer.create(s);
+
+            obj.optimizer = op;
+
+        end
+
+        function createPlotter(obj)
+
+            s.network = obj.network;
+
+            s.data = obj.data;
+
+            s.costfunc = obj.costFunc;
+
+            obj.plotter = PlotterNN(s);
+
+        end
          
-   end
+    end
 
 end

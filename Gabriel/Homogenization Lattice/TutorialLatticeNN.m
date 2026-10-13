@@ -32,11 +32,19 @@ classdef TutorialLatticeNN < handle
 
     methods (Access = public)
 
-        function obj = TutorialLatticeNN()
+        function obj = TutorialLatticeNN(computeData)
+
+            if nargin < 1
+                computeData = true;
+            end
 
             obj.init();
+
             obj.computeParameterValues();
-            obj.compute();
+
+            if computeData
+                obj.compute();
+            end
 
         end
 
@@ -67,6 +75,57 @@ classdef TutorialLatticeNN < handle
             end
 
         end
+        function matHomog = computeHomogenizationAt(...
+                obj,rhoValue,aValue,bValue)
+
+            obj.computeTransformation(aValue,bValue);
+
+            obj.defineMesh();
+
+            matHomog = obj.computeHomogenization(rhoValue);
+
+        end
+        function dataset = computeDataset(obj,rhoValues,geometryValues)
+
+            rhoValues = rhoValues(:);
+
+            nRho = length(rhoValues);
+            nGeom = size(geometryValues,1);
+
+            nSamples = nRho*nGeom;
+
+            dataset = zeros(nSamples,9);
+
+            for iGeom = 1:nGeom
+
+                aValue = geometryValues(iGeom,1);
+                bValue = geometryValues(iGeom,2);
+
+                obj.computeTransformation(aValue,bValue);
+
+                obj.defineMesh();
+
+                rows = (iGeom-1)*nRho + (1:nRho);
+
+                dataset(rows,1) = rhoValues;
+                dataset(rows,2) = aValue;
+                dataset(rows,3) = bValue;
+
+                for iRho = 1:nRho
+
+                    rhoValue = rhoValues(iRho);
+
+                    matHomog = ...
+                        obj.computeHomogenization(rhoValue);
+
+                    dataset(rows(iRho),4:9) = ...
+                        obj.tensorToVector(matHomog);
+
+                end
+
+            end
+
+        end
 
     end
 
@@ -79,7 +138,7 @@ classdef TutorialLatticeNN < handle
             obj.meshN = 80;
             obj.holeType = 'Square';
             obj.pnorm = 'Inf';
-            obj.nSteps = 5;
+            obj.nSteps = 15;
             obj.monitoring = false;
 
         end
@@ -88,9 +147,20 @@ classdef TutorialLatticeNN < handle
 
             obj.rho = linspace(0,1,obj.nSteps);
 
-            obj.a = 0:0.6:0.98;
+            obj.a = 0:0.2:0.98;
 
-            obj.b = 0.3:0.5:3;
+            obj.b = 0.3:0.3:3;
+
+        end
+        function y = tensorToVector(~,C)
+
+            y = [...
+                C(1,1,1,1),...
+                C(2,2,2,2),...
+                C(1,1,2,2),...
+                C(1,1,1,2),...
+                C(2,2,1,2),...
+                C(1,2,1,2)];
 
         end
 
