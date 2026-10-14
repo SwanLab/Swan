@@ -4,6 +4,8 @@ classdef LossFunctional < handle
         iBatch
         order
         nBatches
+        currentBatchIndices
+        currentBatchDepleted
     end
 
     properties (Access = private)
@@ -16,9 +18,17 @@ classdef LossFunctional < handle
     methods (Access = public)
 
         function obj = LossFunctional(cParams)
+
             obj.init(cParams);
+
             obj.iBatch = 1;
+
+            obj.currentBatchIndices = [];
+
+            obj.currentBatchDepleted = false;
+
             obj.computeNumberOfBatchesAndOrder();
+
         end
 
         function [j,dj] = computeFunctionAndGradient(obj,x)
@@ -28,62 +38,103 @@ classdef LossFunctional < handle
             Xb = obj.data.Xtrain;
             Yb = obj.data.Ytrain;
 
-            yOut = obj.network.computeYOut(Xb);
+            yOut = ...
+                obj.network.computeYOut(Xb);
 
-            j = obj.computeCost(yOut,Yb);
+            j = ...
+                obj.computeCost(yOut,Yb);
 
-            dj = obj.computeGradient(yOut,Yb);
+            dj = ...
+                obj.computeGradient(yOut,Yb);
 
         end
 
-        function [j,dj,isBD] = computeStochasticCostAndGradient(obj,x,moveBatch)
+        function [j,dj] = computeCostAndGradient(obj,x)
+
+            [j,dj] = ...
+                obj.computeFunctionAndGradient(x);
+
+        end
+
+        function [j,dj,isBD] = ...
+                computeStochasticCostAndGradient(...
+                obj,x,moveBatch)
 
             obj.designVariable.thetavec = x;
 
-            Xt = obj.data.Xtrain;
-            Yt = obj.data.Ytrain;
+            Xt = ...
+                obj.data.Xtrain;
 
-            [Xb,Yb] = obj.updateSampledDataSet(Xt,Yt,obj.iBatch);
+            Yt = ...
+                obj.data.Ytrain;
 
-            yOut = obj.network.computeYOut(Xb);
+            obj.updateCurrentBatch(moveBatch);
 
-            j = obj.computeCost(yOut,Yb);
+            indices = ...
+                obj.currentBatchIndices;
 
-            dj = obj.computeGradient(yOut,Yb);
+            Xb = ...
+                Xt(indices,:);
 
-            isBD = obj.isBatchDepleted(obj.iBatch,moveBatch);
+            Yb = ...
+                Yt(indices,:);
 
-            obj.iBatch = obj.updateBatchCounter(obj.iBatch,moveBatch);
+            yOut = ...
+                obj.network.computeYOut(Xb);
+
+            j = ...
+                obj.computeCost(yOut,Yb);
+
+            dj = ...
+                obj.computeGradient(yOut,Yb);
+
+            isBD = ...
+                obj.currentBatchDepleted;
 
         end
 
         function testError = getTestError(obj)
 
-            Xtest = obj.data.Xtest;
-            Ytest = obj.data.Ytest;
+            Xtest = ...
+                obj.data.Xtest;
+
+            Ytest = ...
+                obj.data.Ytest;
 
             switch obj.costType
 
                 case 'L2'
 
-                    Ypred = obj.network.computeYOut(Xtest);
+                    Ypred = ...
+                        obj.network.computeYOut(Xtest);
 
-                    num = norm(Ypred-Ytest,'fro');
-                    den = max(norm(Ytest,'fro'),eps);
+                    num = ...
+                        norm(Ypred-Ytest,'fro');
 
-                    testError = num/den;
+                    den = ...
+                        max(norm(Ytest,'fro'),eps);
+
+                    testError = ...
+                        num/den;
 
                 case '-loglikelihood'
 
-                    [~,Ypred] = max(obj.network.computeLastH(Xtest),[],2);
+                    [~,Ypred] = ...
+                        max(...
+                        obj.network.computeLastH(Xtest),...
+                        [],2);
 
-                    [~,Ytarget] = max(Ytest,[],2);
+                    [~,Ytarget] = ...
+                        max(Ytest,[],2);
 
-                    testError = mean(Ypred ~= Ytarget);
+                    testError = ...
+                        mean(Ypred ~= Ytarget);
 
                 otherwise
 
-                    msg = [obj.costType,' is not a valid cost function'];
+                    msg = ...
+                        [obj.costType,...
+                        ' is not a valid cost function'];
 
                     error(msg)
 
@@ -97,60 +148,83 @@ classdef LossFunctional < handle
 
         function init(obj,cParams)
 
-            obj.costType = cParams.costType;
+            obj.costType = ...
+                cParams.costType;
 
-            obj.designVariable = cParams.designVariable;
+            obj.designVariable = ...
+                cParams.designVariable;
 
-            obj.network = cParams.network;
+            obj.network = ...
+                cParams.network;
 
-            obj.data = cParams.data;
+            obj.data = ...
+                cParams.data;
 
         end
 
         function j = computeCost(obj,yOut,Yb)
 
-            [j,~] = obj.lossFunction(Yb,yOut);
+            [j,~] = ...
+                obj.lossFunction(Yb,yOut);
 
         end
 
         function dj = computeGradient(obj,yOut,Yb)
 
-            [~,dLF] = obj.lossFunction(Yb,yOut);
+            [~,dLF] = ...
+                obj.lossFunction(Yb,yOut);
 
-            dj = obj.network.backprop(Yb,dLF);
+            dj = ...
+                obj.network.backprop(Yb,dLF);
 
         end
 
         function [J,gc] = lossFunction(obj,y,yOut)
 
-            type = obj.costType;
+            type = ...
+                obj.costType;
 
             switch type
 
                 case '-loglikelihood'
 
-                    yp = min(max(yOut,1e-11),1-1e-11);
+                    yp = ...
+                        min(...
+                        max(yOut,1e-11),...
+                        1-1e-11);
 
-                    c = sum((1-y).*(-log(1-yp)) + ...
-                        y.*(-log(yp)),2);
+                    c = ...
+                        sum(...
+                        (1-y).*(-log(1-yp)) + ...
+                        y.*(-log(yp)),...
+                        2);
 
-                    J = mean(c);
+                    J = ...
+                        mean(c);
 
-                    gc = (yp-y)./(yp.*(1-yp));
+                    gc = ...
+                        (yp-y)./...
+                        (yp.*(1-yp));
 
                 case 'L2'
 
-                    yp = yOut;
+                    yp = ...
+                        yOut;
 
-                    c = (yp-y).^2;
+                    c = ...
+                        (yp-y).^2;
 
-                    J = 0.5*mean(sum(c,2));
+                    J = ...
+                        0.5*mean(sum(c,2));
 
-                    gc = yp-y;
+                    gc = ...
+                        yp-y;
 
                 otherwise
 
-                    msg = [type,' is not a valid cost function'];
+                    msg = ...
+                        [type,...
+                        ' is not a valid cost function'];
 
                     error(msg)
 
@@ -158,51 +232,116 @@ classdef LossFunctional < handle
 
         end
 
-        function [ord,nBatches] = computeNumberOfBatchesAndOrder(obj)
+        function [ord,nBatches] = ...
+                computeNumberOfBatchesAndOrder(obj)
 
-            nD = size(obj.data.Xtrain,1);
+            nD = ...
+                size(obj.data.Xtrain,1);
 
-            batchSize = obj.computeBatchSize();
+            batchSize = ...
+                obj.computeBatchSize();
 
-            nBatches = ceil(nD/batchSize);
+            nBatches = ...
+                ceil(nD/batchSize);
 
-            if nBatches == 1 || nBatches == 0
+            if nBatches == 1 || ...
+                    nBatches == 0
 
-                ord = 1:nD;
+                ord = ...
+                    1:nD;
 
-                nBatches = 1;
+                nBatches = ...
+                    1;
 
             else
 
-                ord = randperm(nD,nD);
+                ord = ...
+                    randperm(nD,nD);
 
             end
 
-            obj.order = ord;
+            obj.order = ...
+                ord;
 
-            obj.nBatches = nBatches;
-
-        end
-
-        function itIs = isBatchDepleted(obj,iBatch,moveBatch)
-
-            itIs = iBatch == obj.nBatches && moveBatch;
+            obj.nBatches = ...
+                nBatches;
 
         end
 
-        function iB = updateBatchCounter(obj,iB,moveBatch)
+        function updateCurrentBatch(obj,moveBatch)
 
-            if iB < obj.nBatches && moveBatch
+            if moveBatch
 
-                iB = iB + 1;
+                obj.currentBatchIndices = ...
+                    obj.computeBatchIndices(...
+                    obj.iBatch);
 
-            elseif iB == obj.nBatches && moveBatch
+                obj.currentBatchDepleted = ...
+                    obj.iBatch == ...
+                    obj.nBatches;
 
-                iB = 1;
+                obj.iBatch = ...
+                    obj.updateBatchCounter(...
+                    obj.iBatch,true);
 
-                nD = size(obj.data.Xtrain,1);
+            elseif isempty(obj.currentBatchIndices)
 
-                obj.order = randperm(nD);
+                obj.currentBatchIndices = ...
+                    obj.computeBatchIndices(...
+                    obj.iBatch);
+
+                obj.currentBatchDepleted = ...
+                    obj.iBatch == ...
+                    obj.nBatches;
+
+            end
+
+        end
+
+        function indices = ...
+                computeBatchIndices(obj,iBatch)
+
+            batchSize = ...
+                obj.computeBatchSize();
+
+            iStart = ...
+                (iBatch-1)*batchSize + 1;
+
+            iEnd = ...
+                min(...
+                iBatch*batchSize,...
+                size(obj.data.Xtrain,1));
+
+            indices = ...
+                obj.order(iStart:iEnd);
+
+        end
+
+        function iB = ...
+                updateBatchCounter(...
+                obj,iB,moveBatch)
+
+            if ~moveBatch
+
+                return
+
+            end
+
+            if iB < obj.nBatches
+
+                iB = ...
+                    iB + 1;
+
+            elseif iB == obj.nBatches
+
+                iB = ...
+                    1;
+
+                nD = ...
+                    size(obj.data.Xtrain,1);
+
+                obj.order = ...
+                    randperm(nD);
 
             end
 
@@ -212,29 +351,15 @@ classdef LossFunctional < handle
 
             if size(obj.data.Xtrain,1) > 200
 
-                batchSize = 200;
+                batchSize = ...
+                    200;
 
             else
 
-                batchSize = size(obj.data.Xtrain,1);
+                batchSize = ...
+                    size(obj.data.Xtrain,1);
 
             end
-
-        end
-
-        function [x,y] = updateSampledDataSet(obj,Xl,Yl,iBatch)
-
-            batchSize = obj.computeBatchSize();
-
-            iStart = (iBatch-1)*batchSize + 1;
-
-            iEnd = min(iBatch*batchSize,size(Xl,1));
-
-            indices = obj.order(iStart:iEnd);
-
-            x = Xl(indices,:);
-
-            y = Yl(indices,:);
 
         end
 

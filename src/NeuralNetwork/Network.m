@@ -7,6 +7,7 @@ classdef Network < handle
     properties (Access = private)
         delta
         aValues
+        hValues
         HUtype
         OUtype
         nLayers
@@ -45,7 +46,7 @@ classdef Network < handle
 
         function dc = backprop(obj,Yb,dLF)
 
-            [W,a,nLy] = obj.backLoopVars();
+            [W,a,h,nLy] = obj.backLoopVars();
 
             nPl = obj.neuronsPerLayer;
 
@@ -59,7 +60,7 @@ classdef Network < handle
 
             for k = nLy:-1:2
 
-                [~,g_der] = obj.actFCN(a{k},k);
+                [~,g_der] = obj.actFCN(h{k},k);
 
                 if k == nLy
 
@@ -107,17 +108,21 @@ classdef Network < handle
 
             nLy = obj.nLayers;
 
-            [W,b] = obj.learnableVariables.reshapeInLayerForm();
+            [W,b] = ...
+                obj.learnableVariables.reshapeInLayerForm();
 
-            h = obj.hypothesisfunction(X,W{1},b{1});
+            h = obj.hypothesisfunction(...
+                X,W{1},b{1});
 
             [g,~] = obj.actFCN(h,2);
 
             for i = 2:nLy-1
 
-                h = obj.hypothesisfunction(g,W{i},b{i});
+                h = obj.hypothesisfunction(...
+                    g,W{i},b{i});
 
-                [g,~] = obj.actFCN(h,i+1);
+                [g,~] = ...
+                    obj.actFCN(h,i+1);
 
             end
 
@@ -135,21 +140,27 @@ classdef Network < handle
 
         function init(obj,cParams)
 
-            obj.hiddenLayers = cParams.hiddenLayers;
+            obj.hiddenLayers = ...
+                cParams.hiddenLayers;
 
-            obj.nFeatures = cParams.data.nFeatures;
+            obj.nFeatures = ...
+                cParams.data.nFeatures;
 
-            obj.nPolyFeatures = size(cParams.data.Xtrain,2);
+            obj.nPolyFeatures = ...
+                size(cParams.data.Xtrain,2);
 
-            obj.nLabels = cParams.data.nLabels;
+            obj.nLabels = ...
+                cParams.data.nLabels;
 
             obj.createNeuronsPerLayer();
 
             obj.createNumberOfLayers();
 
-            obj.HUtype = cParams.HUtype;
+            obj.HUtype = ...
+                cParams.HUtype;
 
-            obj.OUtype = cParams.OUtype;
+            obj.OUtype = ...
+                cParams.OUtype;
 
         end
 
@@ -169,15 +180,18 @@ classdef Network < handle
 
             nL = obj.nLabels;
 
-            obj.neuronsPerLayer = [nF,hL,nL];
+            obj.neuronsPerLayer = ...
+                [nF,hL,nL];
 
         end
 
         function createLearnableVariables(obj)
 
-            s.neuronsPerLayer = obj.neuronsPerLayer;
+            s.neuronsPerLayer = ...
+                obj.neuronsPerLayer;
 
-            s.nLayers = obj.nLayers;
+            s.nLayers = ...
+                obj.nLayers;
 
             t = LearnableVariables(s);
 
@@ -185,12 +199,14 @@ classdef Network < handle
 
         end
 
-        function [W,a,nLy] = backLoopVars(obj)
+        function [W,a,h,nLy] = backLoopVars(obj)
 
             [W,~] = ...
                 obj.learnableVariables.reshapeInLayerForm();
 
             a = obj.aValues;
+
+            h = obj.hValues;
 
             nLy = obj.nLayers;
 
@@ -205,7 +221,11 @@ classdef Network < handle
 
             a = cell(nLy,1);
 
+            hValues = cell(nLy,1);
+
             a{1} = X;
+
+            hValues{1} = X;
 
             for i = 2:nLy
 
@@ -215,9 +235,12 @@ classdef Network < handle
 
                 bi = b{i-1};
 
-                h = obj.hypothesisfunction(g_prev,Wi,bi);
+                h = obj.hypothesisfunction(...
+                    g_prev,Wi,bi);
 
                 [g,~] = obj.actFCN(h,i);
+
+                hValues{i} = h;
 
                 a{i} = g;
 
@@ -225,25 +248,34 @@ classdef Network < handle
 
             obj.aValues = a;
 
+            obj.hValues = hValues;
+
         end
 
         function J = computeJacobian(obj)
 
-            [W,a,nLy] = obj.backLoopVars();
+            [W,a,h,nLy] = obj.backLoopVars();
 
             nSamples = size(a{1},1);
 
             nFeatures = size(a{1},2);
 
-            J = repmat(eye(nFeatures),1,1,nSamples);
+            J = repmat(...
+                eye(nFeatures),...
+                1,1,nSamples);
 
             for k = 2:nLy
 
-                [~,g_der] = obj.actFCN(a{k},k);
+                [~,g_der] = ...
+                    obj.actFCN(h{k},k);
 
-                J = pagemtimes(J,W{k-1});
+                J = ...
+                    pagemtimes(...
+                    J,W{k-1});
 
-                gDer = permute(g_der,[3,2,1]);
+                gDer = ...
+                    permute(...
+                    g_der,[3,2,1]);
 
                 J = J.*gDer;
 
@@ -269,43 +301,80 @@ classdef Network < handle
 
                 case 'sigmoid'
 
-                    g = 1./(1+exp(-z));
+                    g = ...
+                        1./(1+exp(-z));
 
-                    g_der = z.*(1-z);
+                    g_der = ...
+                        g.*(1-g);
 
                 case 'ReLU'
 
-                    g = gt(z,0).*z;
+                    g = ...
+                        gt(z,0).*z;
 
-                    g_der = gt(z,0);
+                    g_der = ...
+                        gt(z,0);
+
+                case 'SoftPlus'
+
+                    g = ...
+                        max(z,0) + ...
+                        log1p(exp(-abs(z)));
+
+                    g_der = ...
+                        obj.computeSoftPlusDerivative(z);
 
                 case 'tanh'
 
-                    g = (exp(z)-exp(-z))./...
-                        (exp(z)+exp(-z));
+                    g = tanh(z);
 
-                    g_der = 1-z.^2;
+                    g_der = ...
+                        1-g.^2;
 
                 case 'softmax'
 
-                    g = exp(z)./sum(exp(z),2);
+                    ez = ...
+                        exp(z-max(z,[],2));
 
-                    g_der = z.*(1-z);
+                    g = ...
+                        ez./sum(ez,2);
+
+                    g_der = ...
+                        g.*(1-g);
 
                 case 'linear'
 
                     g = z;
 
-                    g_der = ones(size(z));
+                    g_der = ...
+                        ones(size(z));
 
                 otherwise
 
-                    msg = [type,...
+                    msg = [...
+                        type,...
                         ' is not a valid activation function'];
 
                     error(msg)
 
             end
+
+        end
+
+        function g_der = ...
+                computeSoftPlusDerivative(~,z)
+
+            g_der = zeros(size(z));
+
+            isPositive = z >= 0;
+
+            g_der(isPositive) = ...
+                1./(1+exp(-z(isPositive)));
+
+            ez = exp(z(~isPositive));
+
+            g_der(~isPositive) = ...
+                ez./(1+ez);
 
         end
 

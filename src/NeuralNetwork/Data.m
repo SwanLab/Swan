@@ -187,6 +187,14 @@ classdef Data < handle
             end
 
         end
+        function dYnorm = normalizeDerivative(obj,dY,iFeature)
+
+            dYnorm = ...
+                dY.*...
+                (obj.xRange(iFeature)/2)./...
+                obj.yScale;
+
+        end
 
     end
 

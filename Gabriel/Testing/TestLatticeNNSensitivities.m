@@ -2,7 +2,8 @@ clc
 clear
 close all
 
-load('LatticeNN.mat','T_NN')
+% load('LatticeNN.mat','T_NN')
+load('LatticeNNSoftPlus.mat','T_NN')
 
 trainDataset = ...
     readmatrix('LatticeNNTrainData.csv');
@@ -13,13 +14,10 @@ xMin = min(Xdata,[],1);
 xMax = max(Xdata,[],1);
 xRange = xMax-xMin;
 
-samplePosition = [...
-    0.37 0.43 0.31;
-    0.63 0.57 0.74;
-    0.48 0.68 0.52];
-
-Xtest = ...
-    xMin + samplePosition.*xRange;
+Xtest = [...
+    0.370000 0.344000 1.137000;
+    0.630000 0.456000 2.298000;
+    0.480000 0.544000 1.704000];
 
 hRelative = [2e-2 1e-2 5e-3];
 

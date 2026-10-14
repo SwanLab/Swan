@@ -12,8 +12,8 @@ aMax = 0.98;
 bMin = 0.3;
 bMax = 3;
 
-nGeomTrain = 50;
-nGeomTest = 15;
+nGeomTrain = 100;
+nGeomTest = 30;
 
 nBoundary = 4;
 nGeomLHS = nGeomTrain-nBoundary;

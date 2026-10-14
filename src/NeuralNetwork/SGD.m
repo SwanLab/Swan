@@ -137,6 +137,9 @@ classdef SGD < Trainer
                     [epsilon,theta,funcount] = ...
                         obj.lineSearch(...
                         theta,grad,f,epsilon,funcount);
+                    
+                    obj.designVariable.thetavec = ...
+                        theta;
 
                     funcount = funcount + 1;
 
