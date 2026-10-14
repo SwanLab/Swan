@@ -12,9 +12,10 @@ clc; clear; close all;
 % t2=0.1:0.05:0.6;
 t1=0.25;
 t2=0.15;
-p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale' 'EIFisol'
-p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
-p.nelem      = 30;
+
+p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale' 'EIFisol'
+p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
+p.nelem      = 60;
 meshName     = p.nelem+"x"+p.nelem;
 
 
@@ -29,29 +30,39 @@ for i=1:size(t1,2)
                 material   = createMaterial(mR,[1 1],g);
                 mesh       = mR;
                 bMesh      = mesh.createSingleBoundaryMesh();
+                s.type          = 'continuous';
                 s.mesh          = mesh;
                 s.uFun          = LagrangianFunction.create(mesh, mesh.ndim, 'P1');
                 s.lambdaFun     = LagrangianFunction.create(bMesh,mesh.ndim, 'P1');
                 s.material      = material;
                 s.dirichletFun  = createDirichletFunction(bMesh);
                 e  = ElasticHarmonicExtension(s);
+                tic
                 [T,lambda,K,Kcoarse] = e.solve();
+                toc
                 % V   = material.computeVolume();
     
             case {'EIFEM','EIFisol'}
                 [nS,dI]      = defineNumberOfSubdomains(p.Sampling);
                 material     = createMaterial(mR,nS,g);
+                s.type           = 'continuous';
                 s.mesh           = mR;
                 s.material       = material;
                 s.domainIndices  = dI;
-                s.nSubdomains    = nS;            
+                s.nSubdomains    = nS;   
+                s.Coarseorder    = 1;
                 m= EIFEMTraining(s);
+                tic
                 data          = m.train();
                 data.dirac    =true;
+                data.type        = s.type;
+                data.Coarseorder = 1;
                 [data.material,mTr] = createMaterial(mR,[1 1],g);
+                
                 z = OfflineDataProcessor(data);
     
                 EIFEoper = z.computeROMbasis();
+                toc
                 T        = EIFEoper.U;
                 mesh     = data.mesh;
                 Kcoarse  = EIFEoper.Kcoarse;
@@ -83,7 +94,7 @@ for i=1:size(t1,2)
 
         %Designa un nom per cada valor diferent del parametre
         meshName=p.nelem+"x"+p.nelem;
-        string = strrep("t1_"+num2str(t1(i), '%.2f'), ".", "_")+strrep("_t2_"+num2str(t2(j), '%.2f'), ".", "_")+"-"+meshName+".mat";
+        string = strrep("t1_"+num2str(t1(i), '%.3f'), ".", "_")+strrep("_t2_"+num2str(t2(j), '%.2f'), ".", "_")+"-"+meshName+".mat";
     
         % Guarda el .mat per cert radi
            FileName=fullfile('AbrilTFGfiles','Data',"Lattice",p.Training,meshName,string);

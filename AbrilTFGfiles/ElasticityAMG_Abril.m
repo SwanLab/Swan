@@ -28,7 +28,8 @@ classdef ElasticityAMG_Abril < handle
 
         function obj = ElasticityAMG_Abril(cParams)
             obj.init(cParams);
-            obj.createMesh();
+            % obj.createMesh();
+            obj.createMeshAirfoil();
             obj.computeElasticProperties();
             obj.createMaterial();
             obj.solveElasticProblem();
@@ -39,7 +40,8 @@ classdef ElasticityAMG_Abril < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            obj.nSubdomains = cParams.nSubdomains;
+            % obj.nSubdomains = cParams.nSubdomains;
+            obj.nSubdomains = [35 1 1]
             obj.fileName    = cParams.fileNameEIFEM;
 
         end
@@ -72,6 +74,50 @@ classdef ElasticityAMG_Abril < handle
             obj.mesh      = mD;
         end
 
+        function createMeshAirfoil(obj)
+            load('DEF_Q8_wing_1.mat');
+
+            s.coord    = EIFEoper.MESH.COOR;
+            s.connec   = EIFEoper.MESH.CN;
+
+            maxC= max(s.coord);
+            minC = min(s.coord);
+
+            xmin = minC(1);
+            xmax = maxC(1);
+            ymin = minC(2);
+            ymax = maxC(2);
+            zmin = minC(3);
+            zmax = maxC(3);
+
+            delta=1E-5;  % 1E-9--> general case   1E-5 --> airfoil
+
+            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:) =...
+                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
+            s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:) =...
+                s.coord(s.coord(:,1)== maxC(1) & s.coord(:,3)==minC(3),:)+[0,0,delta];
+            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:) =...
+                s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
+            s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:) =...
+                s.coord(s.coord(:,1)== minC(1) & s.coord(:,3)==minC(3),:)+[0,0,delta];
+            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:) =...
+                s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
+            s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:) =...
+                s.coord(s.coord(:,2)== maxC(2) & s.coord(:,3)==minC(3),:)+[0,0,delta];
+            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:) =...
+                s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==maxC(3),:)-[0,0,delta];
+            s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:) =...
+                s.coord(s.coord(:,2)== minC(2) & s.coord(:,3)==minC(3),:)+[0,0,delta];
+            mS = Mesh.create(s);
+
+            s.nsubdomains   = obj.nSubdomains; %  num along x and y
+            s.meshReference = mS;
+            s.tolSameNode = 1e-9;
+            m = MeshCreatorFromRVE.create(s);
+            [mD,~,~,~,~,~,~] = m.create();
+            obj.mesh      = mD;
+        end
+
         function computeElasticProperties(obj)
             E  = 1;
             nu = 1/3;
@@ -93,8 +139,9 @@ classdef ElasticityAMG_Abril < handle
             s.mesh = obj.mesh;
             s.scale = 'MACRO';
             s.material = obj.material;
-            s.dim = '2D';
-            s.boundaryConditions = obj.createBoundaryConditions();
+            s.dim = '3D';
+            % s.boundaryConditions = obj.createBoundaryConditions2D();
+            s.boundaryConditions = obj.createBoundaryConditions3D();
             obj.boundaryConditions = s.boundaryConditions;
             obj.createBCApplier();
             
@@ -125,7 +172,7 @@ classdef ElasticityAMG_Abril < handle
 
         function solver = createSolver(obj,s)
             BCAp = BCApplier(s);
-            Rfull  = obj.computeRigidBodyModes([0.5,0.5]);
+            Rfull  = obj.computeRigidBodyModes([0.5,0.5,0.5]);
             for i = 1:size(Rfull,2)
                 R(:,i) = BCAp.fullToReducedVectorDirichlet(Rfull(:,i));
             end
@@ -185,7 +232,7 @@ classdef ElasticityAMG_Abril < handle
              RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
         end
 
-        function bc = createBoundaryConditions(obj)
+        function bc = createBoundaryConditions2D(obj)
             minx = min(obj.mesh.coord(:,1));
             maxx = max(obj.mesh.coord(:,1));
             miny = min(obj.mesh.coord(:,2));
@@ -222,6 +269,47 @@ classdef ElasticityAMG_Abril < handle
             s.periodicFun  = [];
             s.mesh = obj.mesh;
             bc = BoundaryConditions(s);
+        end
+
+        function bc = createBoundaryConditions3D(obj)
+            xMin    = min(obj.mesh.coord(:,1));
+            xMax    = max(obj.mesh.coord(:,1));
+            yMax    = max(obj.mesh.coord(:,2));
+            yMin    = min(obj.mesh.coord(:,2));
+            zMin    = min(obj.mesh.coord(:,3));
+            zMax    = max(obj.mesh.coord(:,3));
+            Ly      = yMax-yMin;
+            Lx      = xMax-xMin;
+            Lz      = zMax-zMin;
+            tolBound = 1e-11;
+            isLeft   = @(coor) (abs(coor(:,1) - xMin)   < tolBound);
+            isRight  = @(coor) (abs(coor(:,1) - xMax)   < tolBound); %xmax per airfoil
+            isBottom = @(coor) (abs(coor(:,3) - zMin)   < tolBound);
+
+            Dir{1}.domain    = @(coor) isLeft(coor);%| isRight(coor) ;
+            Dir{1}.direction = [1,2,3];
+            Dir{1}.value     = 0;
+
+            PL.domain    = @(coor) isRight(coor);
+            PL.direction = 2;        % 3--> general    2--> Airfoil
+            PL.value     = -1;       %Set displacement intensity 
+
+            isDir   = @(coor)  abs(coor(:,1)-xMin) < 1e-9;
+            isForceDirac = @(coor)  (abs(coor(:,1)-xMax))< 2e-9 &...
+                (coor(:,2)>=yMin+0.46* Ly & coor(:,2)<=yMin+0.54* Ly) & ...
+                (coor(:,3)>=zMin+0.46* Lz & coor(:,3)<=zMin+0.54* Lz);
+
+            dirichletFun = [];
+            for i = 1:numel(Dir)
+                dir = DirichletCondition(obj.mesh, Dir{i});
+                dirichletFun = [dirichletFun, dir];
+            end
+             pointload = TractionLoad(obj.mesh,PL,'DIRAC');
+            s.pointloadFun = pointload;
+            s.dirichletFun = dirichletFun;
+            s.periodicFun  =[];
+            s.mesh         = obj.mesh;
+            bc             = BoundaryConditions(s);
         end
 
     end

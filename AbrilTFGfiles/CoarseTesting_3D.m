@@ -201,7 +201,7 @@ classdef CoarseTesting_3D< handle
                 [Ny,Nx,Nz] = size(obj.tFrame);
             end
             % obj.nSubdomains = [Nx Ny Nz];
-            obj.nSubdomains = [35 1 1];    % UNCOMMENT JUST FOR AIRFOIL
+            obj.nSubdomains = [6 2 1];    % UNCOMMENT JUST FOR AIRFOIL
             obj.tolSameNode = 1e-11;   % 1E-10--> general case   1E-6 --> airfoil
             obj.fileNameEIFEM = cParams.fileNameEIFEM;
         end
@@ -288,10 +288,13 @@ classdef CoarseTesting_3D< handle
 
 
         function mS=importGIDMesh(obj)
-            filename = 'DEF_Q8_wing_1.mat';
+            filename = obj.fileNameEIFEM;
             load(filename);
-            s.coord    = EIFEoper.MESH.COOR;
-            s.connec   = EIFEoper.MESH.CN;
+            % s.coord    = EIFEoper.MESH.COOR;
+            % s.connec   = EIFEoper.MESH.CN;
+
+            s.coord    = mesh.coord;
+            s.connec   = mesh.connec;
 
             maxC= max(s.coord);
             minC = min(s.coord);

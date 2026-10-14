@@ -212,24 +212,8 @@ function mS = createStructuredMesh(p)
     [F,V]   = mesh2tri(xv,yv,zeros(size(xv)),'x');
     s.coord  = V(:,1:2);
     s.connec = F;
-    obj.xmin = min(x1);            
-    obj.xmax = max(x1);
-    obj.ymin = min(x2);
-    obj.ymax = max(x2);
-
-    mS=QuadMesh(1.5,1,3/2*n,n);
-    % delta = 1e-9;
-    % s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:) =...
-    %     s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymax,:)+[-delta,-delta];
-    % s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:) =...
-    %     s.coord(s.coord(:,1)== obj.xmax & s.coord(:,2)==obj.ymin,:)+[-delta,+delta];
-    % s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:) =...
-    %     s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymax,:)+[+delta,-delta];
-    % s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:) =...
-    %     s.coord(s.coord(:,1)== obj.xmin & s.coord(:,2)==obj.ymin,:)+[+delta,+delta];
-    % mS = Mesh.create(s);
-
-    
+    % mS=QuadMesh(1.5,1,3/2*n,n);
+    mS = Mesh.create(s);
 end
 
 function levelSet = createLevelSetFunction(bgMesh)

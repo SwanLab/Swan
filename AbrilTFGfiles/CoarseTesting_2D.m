@@ -49,9 +49,9 @@ classdef CoarseTesting_2D< handle
         end
 
         function compute(obj)
-            % obj.createMesh();
-            % mR  = obj.referenceMesh;
-            mR = obj.createReferenceMesh2();
+            obj.createMesh();
+            mR  = obj.referenceMesh;
+            % mR = obj.createReferenceMesh2();
             obj.referenceMesh = mR;
             bS  = mR.createBoundaryMesh();  
             obj.createMeshDomain(mR);
@@ -85,27 +85,27 @@ classdef CoarseTesting_2D< handle
             tol = 1e-8;
             x0  = zeros(size(RHSf));
             % 
-            tic  %SOLVE THE CASE WITH STANDARD CG
-            [~,obj.CG.residual,obj.CG.error, obj.CG.errAnorm] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
-            t_CG=toc
+            % tic  %SOLVE THE CASE WITH STANDARD CG
+            % [~,obj.CG.residual,obj.CG.error, obj.CG.errAnorm] = PCG.solve(LHSf,RHSf,x0,Mid,tol,Usol,obj.meshDomain,obj.bcApplier);
+            % t_CG=toc
             % tic  % SOLVE THE CASE WITH CG+ ILU
             % [~,obj.ILU.residual,obj.ILU.error, obj.ILU.errAnorm] = PCG.solve(LHSf,RHSf,x0,Milu,tol,Usol,obj.meshDomain,obj.bcApplier);
             % t_ILU=toc
             % tic  % SOLVE THE CASE WITH PRECONDITIONING ILU+EIFEM+ILU
-            % [uPCG,obj.residualPCG,obj.errPCG,obj.errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
+            [uPCG,obj.residualPCG,obj.errPCG,obj.errAnormPCG] = PCG.solve(LHSf,RHSf,x0,Mmult,tol,Usol,obj.meshDomain,obj.bcApplier);
             % t_PCG=toc
-            % xFull = obj.bcApplier.reducedToFullVectorDirichlet(uPCG);
+            xFull = obj.bcApplier.reducedToFullVectorDirichlet(uPCG);
             
 
             uDomain = obj.bcApplier.reducedToFullVectorDirichlet(uPCG);
             % uDomain = obj.ddDofManager.global2local(uDomain);
             
             % LAGRANGIAN FUN SOLUTIONS
-            % s.mesh     = obj.meshDomain;
-            % s.order    = 'P1';
-            % s.fValues  = reshape(xFull,2,[])';
-            % obj.Sol    = LagrangianFunction(s); %Preconditioned sol  
-            % s.fValues = reshape(Ufull,2,[])';
+            s.mesh     = obj.meshDomain;
+            s.order    = 'P1';
+            s.fValues  = reshape(xFull,2,[])';
+            obj.Sol    = LagrangianFunction(s); %Preconditioned sol  
+            s.fValues = reshape(Ufull,2,[])';
             % obj.SolExact=LagrangianFunction(s); %Exact sol
             % obj.SolExact.print("OutSolPCG");
 
@@ -577,17 +577,19 @@ classdef CoarseTesting_2D< handle
             isTop    = @(coor) (abs(coor(:,2) - maxy)   < tolBound);
 
             %             isMiddle = @(coor) (abs(coor(:,2) - max(coor(:,2)/2)) == 0);
-            % Dir{1}.domain    = @(coor) isLeft(coor);%| isRight(coor) ;
-            % Dir{1}.direction = [1,2];
-            % Dir{1}.value     = 0;
-            % 
-            % PL.domain    = @(coor) isRight(coor);
-            % PL.direction = 2;
-            % PL.value     = -1;       %Set displacement intensity
-
             Dir{1}.domain    = @(coor) isLeft(coor);%| isRight(coor) ;
             Dir{1}.direction = [1,2];
             Dir{1}.value     = 0;
+
+            PL.domain    = @(coor) isRight(coor);
+            PL.direction = 2;
+            PL.value     = -1;       %Set displacement intensity
+
+
+            %% UNIAXIAL TRACTION LOAD
+            % Dir{1}.domain    = @(coor) isLeft(coor);%| isRight(coor) ;
+            % Dir{1}.direction = [1,2];
+            % Dir{1}.value     = 0;
 
             % Dir{2}.domain    = @(coor) isRight(coor) ;
             % Dir{2}.direction = [1,2];

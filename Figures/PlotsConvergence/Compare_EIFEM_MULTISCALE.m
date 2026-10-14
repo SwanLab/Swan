@@ -34,11 +34,11 @@ s.Training  = 'Multiscale';
 s.Sampling  = 'Isolated';
 Mult= CoarseTesting_2D(s);
 Mult.compute();
-% 
+
 % % MULTISCALE ISOLATED + NN
-% s.Option = 'NN';
-% Mult_NN  = CoarseTesting_2D(s);
-% Mult_NN.compute();
+s.Option = 'NN';
+Mult_NN  = CoarseTesting_2D(s);
+Mult_NN.compute();
 
 % EIFEM ISOLATED
 s.Training  = 'EIFEM';
@@ -159,7 +159,7 @@ s.Training     = [];            % 'EIFEM'/'Multiscale'/'EIFisol'
 s.Sampling     = [];            % 'Isolated'/'Oversampling'
 s.Inclusion    = 'Hole';        % 'Hole'/'Material'/  --> Hole: just for imported meshes or constant geometry
 s.Option       = 'Direct';      % 'Dataset'/'NN'/'HO'/ 'Hybrid'/'Direct
-s.nSubdomains  = [30,10];
+s.nSubdomains  = [12,4];
 s.nelem        = [];            %  Mesh refining
 s.Geometry     = []; 
 
@@ -537,7 +537,6 @@ legend({'Multiscale', 'EIFEM(Oversampling)','EIFEM Quadratic'});
 
 %% 3D CASE - AIRFOIL
 
-
 % case parameters
 s.Training  = [];             % 'EIFEM'/'Multiscale'/'EIFisol'
 s.Sampling  = [];           % 'Isolated'/'Oversampling'
@@ -551,10 +550,14 @@ s.Geometry  = [];
 % Air_Iso= CoarseTesting_3D(s);
 % Air_Iso.compute();
 
-% 
+
 s.fileNameEIFEM = 'Airfoil_Multiscale.mat';
+
+AMG = ElasticityAMG_Abril(s);
+
 Air_Mult= CoarseTesting_3D(s);
 Air_Mult.compute();
+
 
 % s.fileNameEIFEM = 'Airfoil_Oversampling.mat';
 % Air_Over= CoarseTesting_3D(s);
@@ -564,7 +567,6 @@ Air_Mult.compute();
 % Air_Over2= CoarseTesting_3D(s);
 % Air_Over2.compute();
 
-%%
 s.fileNameEIFEM = 'DEF_Q8_wing_1.mat';
 Air_ref= CoarseTesting_3D(s);
 Air_ref.compute();
@@ -588,3 +590,26 @@ title("Residual evolution")
 
 legend({'ILU','ILU-Multiscale-ILU','ILU-EIFEM(Oversampling)-ILU'});
 % ylim([0,37340])
+
+
+%% 3D CASE AUXETIC
+
+% case parameters
+s.Training  = [];           % 'EIFEM'/'Multiscale'/'EIFisol'
+s.Sampling  = [];           % 'Isolated'/'Oversampling'
+s.Inclusion = 'Hole';       % 'Hole'/'Material'/  --> Hole: just for imported meshes or constant geometry
+s.Option    = 'Direct';     % 'Dataset'/'NN'/'Direct
+s.r         = [];
+s.nelem     = [];            %  Mesh refining
+s.Geometry  = [];
+s.r         = [];
+s.nelem     = [];            %  Mesh refining
+s.Geometry  = [];
+
+% s.fileNameEIFEM = 'Auxetic3DMultiscale';
+% Aux_Mult= CoarseTesting_3D(s);
+% Aux_Mult.compute();
+
+s.fileNameEIFEM = 'Auxetic3DEIFEM';
+Aux_EIFE= CoarseTesting_3D(s);
+Aux_EIFE.compute();

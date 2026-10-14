@@ -10,9 +10,9 @@ clc; clear; close all;
 
 % l=1.6:0.1:1.8;
 l=1.8;
-p.Training   = 'EIFEM';      % 'EIFEM'/'Multiscale', ('EIFisol')
-p.Sampling   = 'Oversampling';  %'Isolated'/'Oversampling'
-p.nelem      = 15;
+p.Training   = 'Multiscale';      % 'EIFEM'/'Multiscale', ('EIFisol')
+p.Sampling   = 'Isolated';  %'Isolated'/'Oversampling'
+p.nelem      = 5;
 meshName     = p.nelem+"x"+p.nelem;
 
 %% DATA GENERATION
@@ -23,34 +23,43 @@ for j = 1:size(l,2)
         switch p.Training
             case 'Multiscale'
                 p.Sampling = 'Isolated';
-                [material, mT]   = createMaterial(mR,[1 1],'Material',g);
+                [material, mT]   = createMaterial(mR,[1 1],g);
                 mesh       = mR;
                 bMesh      = mesh.createSingleBoundaryMesh();
                 s.mesh          = mesh;
                 s.uFun          = LagrangianFunction.create(mesh, mesh.ndim, 'P1');
                 s.lambdaFun     = LagrangianFunction.create(bMesh,mesh.ndim, 'P1');
                 s.material      = material;
+                s.type          = 'continuous';
                 s.dirichletFun  = createDirichletFunction(bMesh);
                 e  = ElasticHarmonicExtension(s);
+                tic
                 [T,lambda,K,Kcoarse] = e.solve();
+                toc
                 V  = Integrator.compute(mT.designVariable.fun,mR,2);
     
             case {'EIFEM','EIFisol'}
                 [nS,dI]      = defineNumberOfSubdomains(p.Sampling);
-                [material,mT]    = createMaterial(mR,nS,'Material',g);
+                [material,mT]    = createMaterial(mR,nS,g);
                 s.mesh           = mR;
                 s.material       = material;
                 s.domainIndices  = dI;
-                s.nSubdomains    = nS;  
+                s.nSubdomains    = nS; 
+                s.type           = 'continuous';
                 s.levelSet = mT.levelSet;
                 s.unfittedMesh = mT.unfittedMesh;
+                s.Coarseorder    = 1;
                 m= EIFEMTraining(s);
+                tic
                 data          = m.train();
                 data.dirac    = true;
-                [data.material,mTr] = createMaterial(mR,[1 1],'Material',g);
+                data.type         = s.type;
+                data.Coarseorder  = 1;
+                [data.material,mTr] = createMaterial(mR,[1 1],g);
                 z = OfflineDataProcessor(data);
     
                 EIFEoper = z.computeROMbasis();
+                toc
                 T        = EIFEoper.U;
                 mesh     = data.mesh;
                 Kcoarse  = EIFEoper.Kcoarse;
