@@ -22,18 +22,30 @@ classdef OptimizerPhaseField < handle
             obj.init(cParams);
         end
 
-        function [u,theta,phi,F,costArray,iter,maxIterReached] = compute(obj,u,theta,phi,bc,costArray)
+        function [u,alpha,phi,F,costArray,iter,maxIterReached,angleInfo] = compute(obj,u,alpha,phi,bc,costArray)
             iter.u = 1; iter.phi = 1; iter.stag = 1;
             i = 0; err = 1; costOld = costArray(end);
             
             while (abs(err) > obj.tol) && (i < obj.maxIter)
                 [u,F,costArray,iterU]   = obj.updateDisplacement(u,phi,bc.u,costArray);
                 iter.u = max(iterU,iter.u);
+                
+                %%
+                phiVal = 0.1;
+                phiAlphaFun = (phi.fun>= phiVal).*phi.fun + (phi.fun < phiVal).*phiVal;
 
-                thetaOld = project(theta,'P0');
-                [theta] = obj.updateOrientation(u,thetaOld);
-                %theta.evaluate([0;0])
-                obj.functional.updateMaterialRotation(theta);
+                s.type = 'Damage';
+                s.mesh = phi.mesh;
+                s.fun  = phiAlphaFun;
+                phiAlpha = DesignVariable.create(s);
+
+                mat = obj.functional.getMaterial();
+                alphaOld = project(alpha,'P0');
+                [alpha] = obj.updateOrientation(u,mat,phiAlpha,alphaOld);
+                %alpha.evaluate([0;0])
+                obj.functional.updateMaterialRotation(alpha);
+
+                %%
 
                 [phi,costArray,iterPhi] = obj.updateDamage(u,phi,bc,costArray);
                 iter.phi = max(iterPhi,iter.phi);
@@ -74,9 +86,9 @@ classdef OptimizerPhaseField < handle
             [u,F,costArray,iter] = dispUpdater.update(u,phi,bc,costArray);
         end
 
-        function [theta] = updateOrientation(obj,u,theta)
-            thetaUpdater = obj.angleUpdater;
-            [theta] = thetaUpdater.update(u,theta);
+        function [alpha] = updateOrientation(obj,u,mat,phiAlpha,alpha)
+            alphaUpdater = obj.angleUpdater;
+            [alpha] = alphaUpdater.update(u,mat,phiAlpha,alpha);
         end
 
         function [phi,costArray,iter] = updateDamage(obj,u,phi,bc,costArray)

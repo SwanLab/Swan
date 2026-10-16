@@ -16,6 +16,10 @@ classdef PhaseFieldInternalEnergyFunctional < handle
         function updateRotation(obj,theta)
             obj.material.updateRotation(theta);
         end
+
+        function C = getMaterial(obj)
+            C = obj.material;
+        end
         
         % function sigma = computeSigma(obj,u,phi)
         %     C = obj.material.obtainTensor(phi);

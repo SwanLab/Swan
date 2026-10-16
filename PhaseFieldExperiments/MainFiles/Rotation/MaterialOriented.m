@@ -16,8 +16,12 @@ classdef MaterialOriented < Material
             obj.theta = thetaIn;
         end
 
-        function C = obtainTensor(obj,phi)
+        function C0 = obtainBaseTensor(obj,phi)
             C0 = obj.material.obtainTensor(phi);
+        end
+
+        function C = obtainTensor(obj,phi)
+            C0 = obj.obtainBaseTensor(phi);
             s.operation = @(xV) obj.applyRotation(C0,xV);
             s.mesh = obj.mesh;
             s.ndimf = 16;
@@ -64,10 +68,10 @@ classdef MaterialOriented < Material
             Crot = convert2Tensor(CrotVoigt,'Constitutive');
         end
 
-        function [Reps,Rsig] = computeRotationMatrices(~,theta)
-            Reps = [(1+cos(2*theta))/2  (1-cos(2*theta))/2  -sin(2*theta)/2;
-                    (1-cos(2*theta))/2  (1+cos(2*theta))/2   sin(2*theta)/2;
-                        sin(2*theta)      -sin(2*theta)      cos(2*theta)  ];
+        function [Reps,Rsig] = computeRotationMatrices(~,alpha)
+            Reps = [(1+cos(2*alpha))/2  (1-cos(2*alpha))/2  -sin(2*alpha)/2;
+                    (1-cos(2*alpha))/2  (1+cos(2*alpha))/2   sin(2*alpha)/2;
+                        sin(2*alpha)      -sin(2*alpha)      cos(2*alpha)  ];
             Rsig = pagetranspose(Reps);
         end
 

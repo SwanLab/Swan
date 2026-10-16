@@ -14,14 +14,16 @@ s.maxIter.phi = 300;
 s.maxIter.stag = 300;
 
 s.benchmark.mesh.type   = '1Elem';
-s.benchmark.bc.u.type   = 'DisplacementPureShear';
+s.benchmark.bc.u.type   = 'DisplacementTractionY';
+s.benchmark.bc.u.isAdaptive = false;
 s.benchmark.bc.u.values =  [0:1e-4:0.04];
 s.benchmark.bc.phi.type = 'DamageFree';
+s.benchmark.bc.phi.isAdaptive = false;
 
 s.matInfo.matType = 'Analytic';
 s.matInfo.degradationType = 'PhaseField';
 s.matInfo.degradationSubType = 'AT'; 
-s.matInfo.fileName = 'HoneycombBenchmark02'; 
+s.matInfo.fileName = 'HorizontalCrack'; 
 s.matInfo.young   = 210;
 s.matInfo.poisson = 0.3;
 s.matInfo.Gc      = 5e-3;

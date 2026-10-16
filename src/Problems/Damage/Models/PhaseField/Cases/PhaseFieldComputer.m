@@ -32,7 +32,7 @@ classdef PhaseFieldComputer < handle
             bc.phi   = obj.boundaryConditions.phi.updateStep(1); %Only done once to set initial damage field
             bcUfinal = obj.boundaryConditions.u.endVal;
             bcU      = obj.boundaryConditions.u.initVal;
-            while(bcU <= bcUfinal) && (obj.stop.noFailure)
+            while(bcU < bcUfinal) && (obj.stop.noFailure)
                 notConverged = true; maxIterReached = false; convergenceTry = 1;
                 uOld = u.fValues; phiOld = phi.fun.fValues;
                 while notConverged && (convergenceTry < 20)
@@ -68,6 +68,8 @@ classdef PhaseFieldComputer < handle
             % if you want to retrieve the data at any point of the
             % simulation, just save the obj.monitor.data at any step!
             outputData = obj.monitor.data;
+            load('angleInfo','angleInfo')
+            outputData.angleInfo = angleInfo;
         end
 
     end
@@ -161,28 +163,32 @@ classdef PhaseFieldComputer < handle
                 dofsYdown = (nodes(isInDown)-1)*u.ndimf + 2;
                 totReact = abs(sum(F(dofsYdown)));
                 uBC = obj.boundaryConditions.u.currentVal;
-            end
+            
 
-            if ismember(obj.boundaryConditions.u.type, ["ForceTractionX","ForceTractionXClamped"])
+            elseif ismember(obj.boundaryConditions.u.type, ["ForceTractionX","ForceTractionXClamped"])
                 uBC = norm(mean(u.fValues(nodes(isInLeft),2)));
                 totReact = obj.boundaryConditions.u.currentVal;
             elseif ismember(obj.boundaryConditions.u.type, ["DisplacementTractionX","DisplacementTractionXClamped"])
                 dofsXleft = (nodes(isInLeft)-1)*u.ndimf + 1;
                 totReact = abs(sum(F(dofsXleft)));
                 uBC = obj.boundaryConditions.u.currentVal;
-            end
 
-            if ismember(obj.boundaryConditions.u.type, "DisplacementShear")
+            elseif ismember(obj.boundaryConditions.u.type, "DisplacementShear")
                 dofsXdown = (nodes(isInDown)-1)*u.ndimf + 1;
                 totReact = abs(sum(F(dofsXdown)));
                 uBC = obj.boundaryConditions.u.currentVal;
-            end
 
-            if ismember(obj.boundaryConditions.u.type, "DisplacementPureShear")
+            elseif ismember(obj.boundaryConditions.u.type, "DisplacementPureShear")
                 dofsCorner = (nodes(isInDown & isInLeft)-1)*u.ndimf + [1,2];
                 totReact = norm(F(dofsCorner));
                 uBC = obj.boundaryConditions.u.currentVal;
+
+            else
+                totReact = 0;
+                uBC = 0;
             end
+
+
         end
 
         function thetaVectorScaled = computeOrientationAsVector(~,theta,phi)

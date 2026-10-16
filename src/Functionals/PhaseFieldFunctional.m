@@ -15,6 +15,10 @@ classdef PhaseFieldFunctional < handle
             obj.functionals.energy.updateRotation(theta);
         end
 
+        function C = getMaterial(obj)
+            C = obj.functionals.energy.getMaterial();
+        end
+
         function Etot = computeCost(obj,u,phi,bc)
             fExt = bc.tractionFun;
             if ~isempty(bc.tractionFun)
