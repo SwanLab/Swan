@@ -138,7 +138,7 @@ classdef TutorialLatticeNN < handle
             obj.meshN = 80;
             obj.holeType = 'Square';
             obj.pnorm = 'Inf';
-            obj.nSteps = 15;
+            obj.nSteps = 20;
             obj.monitoring = false;
 
         end
@@ -147,11 +147,12 @@ classdef TutorialLatticeNN < handle
 
             obj.rho = linspace(0,1,obj.nSteps);
 
-            obj.a = 0:0.2:0.98;
+            obj.a = linspace(0,0.98,30);
 
-            obj.b = 0.3:0.3:3;
+            obj.b = linspace(0.3,3,25);
 
         end
+        
         function y = tensorToVector(~,C)
 
             y = [...

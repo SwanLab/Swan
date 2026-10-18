@@ -48,6 +48,13 @@ classdef LossFunctional < handle
                 obj.computeGradient(yOut,Yb);
 
         end
+        function title = getTitleToPlot(obj)
+
+            title = ...
+                ['Loss ',...
+                obj.costType];
+
+        end
 
         function [j,dj] = computeCostAndGradient(obj,x)
 
