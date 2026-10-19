@@ -39,19 +39,19 @@ classdef Tutorial14_parametricMeshJoiner2D < handle
         function init(obj)
             obj.nSubdomains  = [15 5]; %nx ny
             obj.tolSameNode  = 1e-10;
-            rng(0);
-            maxr       = 0.1;
-            minr       = 0.9;
-            obj.r      = (maxr - minr) * rand(obj.nSubdomains(2),obj.nSubdomains(1)) + minr;
-            obj.xmin   = -1;
-            obj.xmax   = 1;
-            obj.ymin   = -1;
-            obj.ymax   = 1;
-            obj.cx     = 0; % center of the inclusion
-            obj.cy     = 0; % center of the inclusion
-            obj.Nr     = 7; % number of dividions along the radial direction
-            obj.Ntheta = 14; % dividions in the angular direction
-            obj.shape  = 'Circle';
+            rng(0);                 % seed value for random distribution
+            maxr             = 0.1; % max value of radius
+            minr             = 0.9; % min value of radius
+            obj.r            = (maxr - minr) * rand(obj.nSubdomains(2),obj.nSubdomains(1)) + minr;
+            obj.xmin         = -1;
+            obj.xmax         = 1;
+            obj.ymin         = -1;
+            obj.ymax         = 1;
+            obj.cx           = 0;  % center of the inclusion
+            obj.cy           = 0;  % center of the inclusion
+            obj.Nr           = 7;  % number of dividions along the radial direction
+            obj.Ntheta       = 14; % dividions in the angular direction
+            obj.shape        = 'Circle';
         end
 
         function  [mSbd,refMesh] = createSubDomainMeshes(obj)
