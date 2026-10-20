@@ -5,20 +5,23 @@ classdef ComplianceConstraint < handle
         complianceTarget
         compliance
     end
-    
-    methods (Access = public)        
+
+    methods (Access = public)
+
         function obj = ComplianceConstraint(cParams)
             obj.init(cParams);
         end
-        
+
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             [c,dc] = obj.compliance.computeFunctionAndGradient(x);
             J      = obj.computeFunction(c);
-            dJ{1}  = obj.computeGradient(dc);
-        end  
+            dJ     = obj.computeGradient(dc);
+        end
+
     end
 
     methods (Access = private)
+
         function init(obj,cParams)
             obj.mesh             = cParams.mesh;
             obj.complianceTarget = cParams.complianceTarget;
@@ -32,14 +35,23 @@ classdef ComplianceConstraint < handle
 
         function dJ = computeGradient(obj,dc)
             cTar    = obj.complianceTarget;
-            fValues = dc{1}.fValues/cTar;
-            dJ      = FeFunction.create(dc{1}.order,fValues,obj.mesh);
+            nDesVar = numel(dc);
+            dJ      = cell(size(dc));
+
+            for i = 1:nDesVar
+                fValues = dc{i}.fValues/cTar;
+                dJ{i}   = FeFunction.create(dc{i}.order,fValues,obj.mesh);
+            end
         end
+
     end
 
     methods (Static, Access = public)
+
         function title = getTitleToPlot()
             title = 'Compliance constraint';
         end
+
     end
+
 end

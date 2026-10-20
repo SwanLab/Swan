@@ -5,20 +5,23 @@ classdef VolumeConstraint < handle
         volumeTarget
         volume
     end
-    
+
     methods (Access = public)
+
         function obj = VolumeConstraint(cParams)
             obj.init(cParams);
         end
-        
+
         function [J,dJ] = computeFunctionAndGradient(obj,x)
             [V,dV] = obj.volume.computeFunctionAndGradient(x);
             J      = obj.computeFunction(V);
-            dJ{1}  = obj.computeGradient(dV{1});
-        end  
+            dJ     = obj.computeGradient(dV);
+        end
+
     end
 
     methods (Access = private)
+
         function init(obj,cParams)
             obj.mesh         = cParams.mesh;
             obj.volumeTarget = cParams.volumeTarget;
@@ -31,16 +34,24 @@ classdef VolumeConstraint < handle
         end
 
         function dJ = computeGradient(obj,dV)
-            vTar = obj.volumeTarget;
-            dJ   = dV;
-            dJ.setFValues(dV.fValues/vTar);
+            vTar    = obj.volumeTarget;
+            nDesVar = numel(dV);
+            dJ      = cell(size(dV));
+
+            for i = 1:nDesVar
+                dJ{i} = copy(dV{i});
+                dJ{i}.setFValues(dV{i}.fValues/vTar);
+            end
         end
+
     end
 
     methods (Static, Access = public)
+
         function title = getTitleToPlot()
             title = 'Volume constraint';
         end
-    end
-end
 
+    end
+
+end
