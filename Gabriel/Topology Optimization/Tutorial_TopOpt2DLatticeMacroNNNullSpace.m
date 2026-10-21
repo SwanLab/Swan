@@ -257,7 +257,7 @@ classdef Tutorial_TopOpt2DLatticeMacroNNNullSpace < handle
                 zeros(nA,1); ...
                 0.30*ones(nB,1)];
 
-            s.tauMax = 5;
+            s.tauMax = 1000;
             s.tau    = [];
 
             obj.primalUpdater = ProjectedGradient(s);
