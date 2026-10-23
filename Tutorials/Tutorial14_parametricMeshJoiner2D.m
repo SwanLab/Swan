@@ -25,7 +25,7 @@ classdef Tutorial14_parametricMeshJoiner2D < handle
             mD.plot
 
             % refMesh is the mesh from 1st domain, just need info of number of nodes,
-            % we assume all domains have the same number of nodes so far.
+            % as we assume all domains have the same number of nodes so far.
 
             % I leave this comment here. If the merge for other meshes 
             % coming from gid doesn't work, it could be a uniquetol missing
