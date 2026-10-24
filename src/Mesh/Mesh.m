@@ -189,10 +189,19 @@ classdef Mesh < handle
             rollerRowsEl = External_border_elements(:,1)==id;
             rollerRowsN  = External_border_nodes(:,1)==id;
             s.coord = obj.coord;
-            s.connec = External_border_elements(rollerRowsEl,3:5);
-            s.kFace = -1;
-            s.type = 'TRIANGLE';
-            mRaw = SurfaceMesh(s);
+             s.kFace = -1;
+            switch size(obj.coord,2)
+                case 2
+                      s.type = 'LINE';
+                     s.connec = External_border_elements(rollerRowsEl,3:4);
+                     mRaw = LineMesh(s);
+                case 3
+                    s.connec = External_border_elements(rollerRowsEl,3:5);
+                      s.type = 'TRIANGLE';
+                      mRaw = SurfaceMesh(s);
+            end
+           
+          
             m = mRaw.computeCanonicalMesh();
             originalNodes = External_border_nodes(rollerRowsN,2);
             newNodes = 1:length(originalNodes);
