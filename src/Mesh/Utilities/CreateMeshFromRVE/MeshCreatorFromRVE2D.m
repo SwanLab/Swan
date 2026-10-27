@@ -31,7 +31,7 @@ classdef MeshCreatorFromRVE2D < MeshCreatorFromRVE
         function [mD,mSD,interfaceConnec,bdSB,localGlobalConnec,interfaceConnecReshaped,dMesh] = create(obj)
             obj.createSubDomainMeshes();
             obj.createInterfaceSubDomainMeshes();
-            obj.createDomainMesh();
+            obj.mergeSubdomainMeshes();
             mD  = obj.meshDomain;
             mSD = obj.meshSubDomain;
             interfaceConnec = obj.interfaceConnec;
@@ -119,29 +119,19 @@ classdef MeshCreatorFromRVE2D < MeshCreatorFromRVE
             obj.interfaceMeshSubDomain = bD;
         end
 
-        function createDomainMesh(obj)
-            s.nSubdomains   = obj.nSubdomains;
+        function mergeSubdomainMeshes(obj)           
+            s.nsubdomains   = obj.nSubdomains;
             s.meshReference = obj.meshReference;
-            s.interfaceMeshSubDomain = obj.interfaceMeshSubDomain;
-            s.ninterfaces   = obj.ninterfaces;
-            s.meshSubDomain = obj.meshSubDomain;
+            s.tolSameNode   = obj.tolSameNode;
+            s.meshSbd       = obj.meshSubDomain;
+            m = MeshJoiner(s);
+            [mD,iC,~,lG,iCR,discMesh] = m.create();
 
-            s.tolSameNode = obj.tolSameNode;
-            coupling = InterfaceCoupling(s);
-            coupling.compute();
-            obj.interfaceConnec = coupling.interfaceConnec;
-            
-            
-            s.interfaceConnec   = coupling.interfaceConnec;
-            s.tolSameNode       = obj.tolSameNode;
-
-            DMesh = DomainMeshComputer(s);
-            DMesh.compute();
-            obj.meshDomain        = DMesh.domainMesh;
-            obj.localGlobalConnec = DMesh.localGlobalConnec;
-            obj.domainMeshDisc    = DMesh.domainMeshDisc;
-
-            obj.interfaceConnecReshaped = coupling.reshapeConecPerInterface();
+            obj.meshDomain              = mD;
+            obj.localGlobalConnec       = lG;
+            obj.domainMeshDisc          = discMesh;
+            obj.interfaceConnec         = iC;
+            obj.interfaceConnecReshaped = iCR;
             
         end
     end
