@@ -1,8 +1,5 @@
 classdef Tutorial14_1_EIFEMpreconditioner2D < handle
 
-    properties (Access = public)
-
-    end
     properties (Access = private)
         referenceMesh
         mesh
@@ -17,10 +14,6 @@ classdef Tutorial14_1_EIFEMpreconditioner2D < handle
         poisson
         EIFEMdata
         tolResidual
-    end
-
-
-    properties (Access = private)
         nSubdomains
     end
 
