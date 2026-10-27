@@ -22,7 +22,7 @@ classdef SmoothedAggregation < handle
             obj.setNullSpace(cParams);
         end
 
-        function x = solve(obj,A,res)
+        function x = apply(obj,A,res)
             try
                 x = obj.compute(A,res);
             catch

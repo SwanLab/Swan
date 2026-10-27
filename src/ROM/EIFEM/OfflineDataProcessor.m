@@ -21,43 +21,50 @@ classdef OfflineDataProcessor < handle
         end
 
         function EIFEoper = computeROMbasis(obj)
-            obj.LHS = obj.computeLHS();
-            bMesh   = obj.mesh.createBoundaryMesh();
+            obj.LHS              = obj.computeLHS();
+            bMesh                = obj.mesh.createBoundaryMesh();
+            
+            [uDef,uRB,PhiD,PhiR] = obj.createReducedDispBasis();
+            [LMdef,LMrb]         = obj.createLagrangeMultBasis(PhiD,uRB,bMesh);
+            Vfun                 = obj.createInterfaceModesFun(bMesh);
 
-            uFun         = obj.createDispFun();
-            uRBfun       = obj.projectToRigidBodyFun(uFun);
-            uDEFSpaceFun = obj.projectToDeformationalSpace(uFun,uRBfun);
-            PhiD         = obj.computeDeformationalModes(uDEFSpaceFun);
-            uDefFun      = obj.createDeformationalFunction(PhiD);
+            [Add,Adr,Arr,Ldv,Lrv] = obj.computeReducedMatrices(uDef,uRB,LMdef,LMrb,Vfun,bMesh);           
+            [T,Td,Tr]             = obj.computeInterscaleOperator(PhiD,PhiR,Add,Adr,Arr,Ldv,Lrv);
+
+
+            % uFun         = obj.createDispFun();
+            % uRBfun       = obj.projectToRigidBodyFun(uFun);
+            % uDEFSpaceFun = obj.projectToDeformationalSpace(uFun,uRBfun);
+            % PhiD         = obj.computeDeformationalModes(uDEFSpaceFun);
+            % uDefFun      = obj.createDeformationalFunction(PhiD);
           
-            PsiD       = obj.computeSelfEquilibratedLagrange(PhiD);
-            LMDefFun   = obj.createDeformationalFunction(PsiD);
-            PhiR       = obj.getRigidBodyModes(uRBfun(1));       
-            Vfun       = obj.createInterfaceModesFun(bMesh);
+            % PsiD       = obj.computeSelfEquilibratedLagrange(PhiD);
+            % LMDefFun   = obj.createDeformationalFunction(PsiD);
+            % PhiR       = obj.getRigidBodyModes(uRBfun(1));       
+            % Vfun       = obj.createInterfaceModesFun(bMesh);
 
-            uDefFunBd  = obj.restrictToBoundary(uDefFun,bMesh);
-            RBFunBd    = obj.restrictToBoundary(uRBfun(1),bMesh); %only the first bevause we just want the basis!
-            LMDefFunBd = obj.restrictToBoundary(LMDefFun,bMesh);
+            % uDefFunBd  = obj.restrictToBoundary(uDef,bMesh);
+            % uRBFunBd   = obj.restrictToBoundary(uRBfun(1),bMesh); %only the first bevause we just want the basis!
+            % % LMDefFunBd = obj.restrictToBoundary(LMDefFun,bMesh);
+            % 
+            % Adr = obj.computeBoundaryModalMassMatrix(uDefFunBd,LMrb);
+            % Arr = obj.computeBoundaryModalMassMatrix(uRBFunBd,LMrb);
+            % Lrv = obj.computeBoundaryModalMassMatrix(LMrb,Vfun); 
+            % if obj.dirac==true
+            %     Add = obj.computeBoundaryModalMassMatrixDirac(uDefFunBd,LMDefFunBd);
+            %     Ldv = obj.computeBoundaryModalMassMatrixDirac(LMdef,Vfun);
+            % else
+            %     Add = obj.computeBoundaryModalMassMatrix(uDefFunBd,LMDefFunBd);
+            %     Ldv = obj.computeBoundaryModalMassMatrix(LMdef,Vfun);
+            % end
 
-            Adr = obj.computeBoundaryModalMassMatrix(uDefFunBd,RBFunBd);
-            Arr = obj.computeBoundaryModalMassMatrix(RBFunBd,RBFunBd);
-            Lrv = obj.computeBoundaryModalMassMatrix(RBFunBd,Vfun); 
-            if obj.dirac==true
-                Add = obj.computeBoundaryModalMassMatrixDirac(uDefFunBd,LMDefFunBd);
-                Ldv = obj.computeBoundaryModalMassMatrixDirac(LMDefFunBd,Vfun);
-            else
-                Add = obj.computeBoundaryModalMassMatrix(uDefFunBd,LMDefFunBd);
-                Ldv = obj.computeBoundaryModalMassMatrix(LMDefFunBd,Vfun);
-            end
-           
-            [T,Td,Tr] = obj.computeInterscaleOperator(PhiD,PhiR,Add,Adr,Arr,Ldv,Lrv);
-
+            
             Kcoarse = T'*obj.LHS*T;
 
             EIFEoper.Kcoarse = Kcoarse;
-            EIFEoper.U       = T;
-            EIFEoper.Urb     = Tr;
-            EIFEoper.Udef    = Td;
+            EIFEoper.T       = T;
+            EIFEoper.Trb     = Tr;
+            EIFEoper.Tdef    = Td;
             EIFEoper.PhiD    = PhiD;
             EIFEoper.PhiR    = PhiR;
             EIFEoper.Kfine   = obj.LHS;
@@ -79,7 +86,7 @@ classdef OfflineDataProcessor < handle
             if isfield(cParams,'dirac')
                 obj.dirac = cParams.dirac;
             else
-                obj.dirac = false;
+                obj.dirac = true;
             end
 
         end
@@ -279,6 +286,39 @@ classdef OfflineDataProcessor < handle
             end
         end
 
+        function [uDef,uRB,PhiD,PhiR] = createReducedDispBasis(obj)
+            uFun         = obj.createDispFun();
+            uRB          = obj.projectToRigidBodyFun(uFun);
+            uDEFSpaceFun = obj.projectToDeformationalSpace(uFun,uRB);
+            PhiD         = obj.computeDeformationalModes(uDEFSpaceFun);
+            uDef         = obj.createDeformationalFunction(PhiD);
+            PhiR         = obj.getRigidBodyModes(uRB(1));    
+        end
+
+        function [LMdef,LMrb] = createLagrangeMultBasis(obj,PhiD,uRB,bMesh)
+            PsiD       = obj.computeSelfEquilibratedLagrange(PhiD);
+            LMdef      = obj.createDeformationalFunction(PsiD);
+            LMdef      = obj.restrictToBoundary(LMdef,bMesh);
+            LMrb       = obj.restrictToBoundary(uRB(1),bMesh);
+        end
+
+        function [Add,Adr,Arr,Ldv,Lrv] = computeReducedMatrices(obj,uDef,uRB,LMdef,LMrb,Vfun,bMesh)
+            uDefFunBd  = obj.restrictToBoundary(uDef,bMesh);
+            uRBFunBd   = obj.restrictToBoundary(uRB(1),bMesh); %only the first bevause we just want the basis!
+            % LMDefFunBd = obj.restrictToBoundary(LMDefFun,bMesh);
+
+            Adr = obj.computeBoundaryModalMassMatrix(uDefFunBd,LMrb);
+            Arr = obj.computeBoundaryModalMassMatrix(uRBFunBd,LMrb);
+            Lrv = obj.computeBoundaryModalMassMatrix(LMrb,Vfun);
+            if obj.dirac==true
+                Add = obj.computeBoundaryModalMassMatrixDirac(uDefFunBd,LMdef);
+                Ldv = obj.computeBoundaryModalMassMatrixDirac(LMdef,Vfun);
+            else
+                Add = obj.computeBoundaryModalMassMatrix(uDefFunBd,LMdef);
+                Ldv = obj.computeBoundaryModalMassMatrix(LMdef,Vfun);
+            end
+        end
+
         function K  = computeLHS(obj)          
             C = obj.createMaterial();
             u = LagrangianFunction.create(obj.mesh,obj.mesh.ndim,'P1');
@@ -307,7 +347,7 @@ classdef OfflineDataProcessor < handle
             M = IntegrateLHS(@(u,v) DD(v,u),u,u,obj.mesh,'Domain',2);
         end
 
-        function [T,Td,Tr] = computeInterscaleOperator(obj,PhiD,PhiR,Add,Adr,Arr,Ldv,Lrv)
+        function [T,Td,Tr] = computeInterscaleOperator(~,PhiD,PhiR,Add,Adr,Arr,Ldv,Lrv)
             Td = PhiD*(Add'\Ldv);
             Tr = PhiR*inv(Arr')*(Lrv - Adr'*(Add'\Ldv));
             T  = Tr+Td;

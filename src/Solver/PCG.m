@@ -18,7 +18,7 @@ classdef PCG < handle
         function [x,residual,err,errAnorm] = solve(obj,LHS,B,xsol)
             if nargin == 3, xsol = zeros(size(B)); end
             obj.prepareProblem(B);
-            P = @(A,r) obj.Preconditioner.solve(A,r);
+            P = @(A,r) obj.Preconditioner.apply(A,r);
             A = @(x) LHS*x;
             iter = 0;
             x = obj.x0;
@@ -53,6 +53,9 @@ classdef PCG < handle
         function init(obj,cParams)
             obj.Preconditioner = cParams.preconditioner;
             obj.tol            = cParams.tol;
+            if isfield(cParams,'x0')
+                obj.x0 = cParams.x0;
+            end
         end
 
         function prepareProblem(obj, b)
