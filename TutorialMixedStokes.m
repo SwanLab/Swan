@@ -22,9 +22,15 @@ classdef TutorialMixedStokes < handle
 
             obj.MixedFormulation_bubble()
             obj.plotResults('u-p (P1-P1) bubble funct.');
+            uB = double(obj.uFun.fValues);  pB = double(obj.pFun.fValues);
 
-            obj.MixedFormulation_eigen('mean')
-            obj.plotResults('u-p (P1-P1) Tau');         
+            obj.MixedFormulation_eigen('min')
+            obj.plotResults('u-p (P1-P1) Tau');
+
+            uE = double(obj.uFun.fValues);  pE = double(obj.pFun.fValues);
+
+            fprintf('max|u_bubble - u_tauMin| = %e\n', max(abs(uB - uE)));
+            fprintf('max|p_bubble - p_tauMin| = %e\n', max(abs(pB - pE)));
 
         end
 
@@ -247,8 +253,10 @@ classdef TutorialMixedStokes < handle
             nElem = size(connec,1);
             nP    = obj.pFun.nDofs;
 
-            xi = [0.5 - sqrt(15)/10; 0.5; 0.5 + sqrt(15)/10];   % Gauss points
-            w  = [5; 8; 5]/18;                                  % Gauss weights
+            t5 = [-0.9061798459386640; -0.5384693101056831; 0; 0.5384693101056831; 0.9061798459386640];
+            w5 = [0.2369268850561891; 0.4786286704993665; 0.5688888888888889; 0.4786286704993665; 0.2369268850561891];
+            xi = (t5 + 1)/2;                                    % 5 Gauss points in [0,1]
+            w  = w5/2;                                 % Gauss weights
             N  = [1 - xi, xi];                                  % P1 shape functions
             b  = 4*xi.*(1 - xi);                                % bubble
 
