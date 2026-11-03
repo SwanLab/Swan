@@ -29,9 +29,8 @@ classdef TutorialMixedStokes < handle
 
             uE = double(obj.uFun.fValues);  pE = double(obj.pFun.fValues);
 
-            fprintf('max|u_bubble - u_tauMin| = %e\n', max(abs(uB - uE)));
-            fprintf('max|p_bubble - p_tauMin| = %e\n', max(abs(pB - pE)));
-
+            fprintf('max|u_bubble - u_tau| = %e\n', max(abs(uB - uE)));
+            fprintf('max|p_bubble - p_tau| = %e\n', max(abs(pB - pE)));
         end
 
     end
