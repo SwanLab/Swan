@@ -108,7 +108,7 @@ classdef PhaseFieldPlotter < handle
             plot(obj.energy.intE,'Color',"#D95319")
             plot(obj.energy.localDis,'Color',"#EDB120")
             plot(obj.energy.regDis,'Color',"#7E2F8E")
-            plot(obj.energy.extWork)
+            %plot(obj.energy.extWork)
             hold off
             title('Energy values at each step (Equation terms)')
             legend('Total energy', ...

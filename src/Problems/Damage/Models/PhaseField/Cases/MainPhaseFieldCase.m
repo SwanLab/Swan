@@ -18,31 +18,43 @@ s.maxIter.u = 100;
 s.maxIter.phi = 300;
 s.maxIter.stag = 300;
 
-s.benchmark.mesh.type   = '1Elem';%'SENshear';
-s.benchmark.bc.u.type   = 'DisplacementTractionX';%'DisplacementShear';
-s.benchmark.bc.u.values =  [1e-2:1e-2:2];
-s.benchmark.bc.phi.type = 'DamageFree';
+s.benchmark.mesh.type   = 'Rectangle';%'SENshear';
+s.benchmark.mesh.length= 1;
+s.benchmark.mesh.width=0.1;
+s.benchmark.mesh.lN= 50;
+s.benchmark.mesh.wN= 5;
+s.benchmark.bc.u.type   = 'DisplacementTractionXClamped';%'DisplacementShear';
+s.benchmark.bc.u.values =  [0:1e-1:2];
+s.benchmark.bc.phi.type = 'DamageFixedLimitsX';
 
 s.matInfo.matType = 'Analytic'; %'Analytic','Homogenized'
 s.matInfo.degradationType = 'PhaseField'; %'PhaseField','SIMPALL'
-s.matInfo.degradationSubType = 'IsoHomog'; %'AT','AT2linear','General','IsoHomog'
+s.matInfo.degradationSubType = 'AT'; %'AT','AT2linear','General','IsoHomog'
 s.matInfo.fileName = 'HexagonBenchmark03'; % (Only for Homogenized material)
+
 s.matInfo.young   = 1;
-s.matInfo.poisson = 0;
-s.matInfo.Gc      = 8/3;
-s.matInfo.sigmaMax = 1;
-s.l0 = 2;
-s.matInfo.params.coeffs = [(4/pi)*(s.matInfo.Gc*s.matInfo.young)/(s.matInfo.sigmaMax^2 * s.l0), -0.5]; %(4/pi)
-s.matInfo.params.exp = 2;
-s.matInfo.params.fileName = 'HexagonBenchmark02'; % (Only for IsoHomog material)
+s.matInfo.poisson = 0.3;
+s.matInfo.Gc      = 1;
+s.l0              = 0.1;
+
+
+% s.matInfo.params.coeffs = [(4/pi)*(s.matInfo.Gc*s.matInfo.young)/(s.matInfo.sigmaMax^2 * s.l0), -0.5]; %(4/pi)
+% s.matInfo.params.exp = 2;
+% s.matInfo.params.fileName = 'HexagonBenchmark02'; % (Only for IsoHomog material)
 
 s.dissipInfo.type = 'AT';
-s.dissipInfo.constant = 8/3; % 2 AT2 / 8/3 AT1 / pi Wu 
-s.dissipInfo.pExp = 1;
-s.dissipInfo.xi = 2; % 0 AT2 / 1 AT1 / 2 Mix in type FullQuadratic
+s.dissipInfo.constant = 2; % 2 AT2 / 8/3 AT1 / pi Wu 
+s.dissipInfo.pExp = 2;
+s.dissipInfo.xi = 0; % 0 AT2 / 1 AT1 / 2 Mix in type FullQuadratic
 s.solver.type = 'Newton';
 s.solver.tau  = 150;
 
+sigmaPeak = sqrt((2*s.matInfo.Gc*s.matInfo.young)/(s.dissipInfo.constant *s.l0))
+
+L = 1;
+lch = (2*s.matInfo.Gc*s.matInfo.young)/(sigmaPeak^2)
+lstr = L/lch
+lreg = s.l0/lch
 
 %% RUN
 tester = TestingPhaseField(s);

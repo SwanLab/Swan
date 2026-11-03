@@ -3,7 +3,7 @@ classdef PhaseFieldRationalDegradation < handle
    properties (Access = private)
         shear
         bulk
-        initDeriv
+        degFun
    end
 
     methods (Access = public)
@@ -39,7 +39,12 @@ classdef PhaseFieldRationalDegradation < handle
                 obj.shear = cParams.shear;
                 obj.bulk  = cParams.bulk;
             end
-            obj.initDeriv = cParams.params.initialDerivative;
+
+            syms phi
+            gamma = cParams.params.gamma;
+            w = 1 - (1-phi)^2;
+            g = (1-w)/(1+(gamma-1)*w) + 1e-20*phi^3 + 1e-15;
+            obj.degFun = g;
         end
 
         function mu = computeMuFunction(obj,phi)
@@ -72,24 +77,19 @@ classdef PhaseFieldRationalDegradation < handle
             ddk = obj.derive2(phi,k0);
         end
 
-
         function f = interpolate(obj,phi,f0)
-            k = obj.initDeriv;
-            f = (((phi.fun).^2 - 2.*phi.fun + 1)./(1-(k+2).*phi.fun)).*f0;
+           g = matlabFunction(obj.degFun);
+           f = g(phi.fun).*f0;
         end
         
         function f = derive(obj,phi,f0)
-            k = obj.initDeriv;
-            num = -(k+2).*phi.fun.^2 + 2.*phi.fun + k;
-            den = (1 - (k+2).*phi.fun).^2;
-            f   = (num./den).*f0;
+           dg = matlabFunction(diff(obj.degFun));
+           f = dg(phi.fun).*f0;
         end
 
         function f = derive2(obj,phi,f0)
-            k = obj.initDeriv;
-            num = (-4*(k+2)^2).*phi.fun.^2 + (2*(k+2)*(1-k*(k+2))).*phi.fun + 2*(1+k*(k+2));
-            den = (1 - (k+2).*phi.fun).^4;
-            f   = (num./den).*f0;
+           d2g = matlabFunction(diff(diff(obj.degFun)));
+           f = d2g(phi.fun).*f0;
         end
     end
 

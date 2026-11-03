@@ -173,7 +173,7 @@ classdef BoundaryConditionsCreator < handle
             Dir1 = DirichletCondition(obj.mesh,sDir);
 
             isDown = @(coor)  abs(coor(:,2)-min(coor(:,2))) < 1e-12;
-            sDir.domain    = @(coor) isDown(coor);
+            sDir.domain    = @(coor) isDown(coor) & isLeft(coor);
             sDir.direction = 2;
             sDir.value     = 0;
             Dir2 = DirichletCondition(obj.mesh,sDir);
