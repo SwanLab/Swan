@@ -28,7 +28,7 @@ classdef Tutorial13_Hyperelasticity < handle
             s.monitoring.printInfo = true;
             s.monitoring.printFile = false;
             s.monitoring.fileNameOut = 'NeoElastic';
-            s.tolerance = 1e-12;
+            s.tolerance = 1e-8;
             s.maxIter   = 100;
             hyperComp = HyperelasticityComputer(s);
             obj.output = hyperComp.compute();
@@ -38,27 +38,37 @@ classdef Tutorial13_Hyperelasticity < handle
         function init(obj)
             close all
         end
-        function createMesh(obj)
-            meshType = 'Hole';
+        function mesh = createRefMesh(obj)
+            meshType = 'Metamaterial';
             switch meshType
                 case {'Hole', 'HoleDirich'}
                     IM = Mesh.createFromGiD('holeMeshQuad.m');
-                    obj.mesh = IM;
+                    mesh = IM;
                 case {'Bending', 'Traction'}
-                    obj.mesh = UnitQuadMesh(20,20);
+                    mesh = UnitQuadMesh(20,20);
                 case {'Metamaterial'}
                     load('NegativePoissonMesh.mat','NegPoissMesh');
                     s.coord  = NegPoissMesh.coord;
                     s.connec = NegPoissMesh.connec;
-                    obj.mesh = Mesh.create(s);
+                    mesh = Mesh.create(s);
                 otherwise
-                    obj.mesh = QuadMesh(10,1,100,100);
+                    mesh = QuadMesh(10,1,100,100);
                     %obj.mesh = HexaMesh(2,1,1,20,5,5);
             end
         end
+
+        function createMesh(obj)
+            refMesh         = obj.createRefMesh();
+            s.nsubdomains   = [4,4];
+            s.meshReference = refMesh;
+            s.tolSameNode   = 1e-8;
+            m = MeshCreatorFromRVE.create(s);
+            [mD,~,~,~,~,~,~] = m.create();
+            obj.mesh = mD;
+        end
         function createBoundaryConditions(obj)
-            s.type = 'DisplacementTractionX';
-            s.values = linspace(0,1,21);
+            s.type = 'ForceTractionXClamped';
+            s.values = linspace(2,4,300);
             obj.boundaryConditions = BoundaryConditionsCreator(obj.mesh,s);
         end
         function createMaterial(obj)
