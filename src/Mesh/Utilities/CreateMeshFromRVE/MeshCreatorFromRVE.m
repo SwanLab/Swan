@@ -4,6 +4,8 @@ classdef MeshCreatorFromRVE < handle
 
         function obj = create(cParams)
             switch cParams.meshReference.geometryType
+                case 'Line'
+                   obj = MeshCreatorFromRVE1D(cParams);
                 case 'Surface'
                    obj = MeshCreatorFromRVE2D(cParams);
                 case 'Volume'
