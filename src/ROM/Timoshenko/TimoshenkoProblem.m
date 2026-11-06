@@ -58,14 +58,17 @@ classdef TimoshenkoProblem < handle
         end
 
         function LHS = computeLHS(obj)
-            obj.Kel = obj.computeKelement(1, G, 1, I, 5/6, L);
+            G = 1/(2*1.3);
+            L = 1;
+            obj.Kel = obj.computeKelement(1, G, 1, 1, 5/6, L);
             LHS     = obj.assembleMatrix(obj.Kel,obj.dispFun,obj.dispFun);
         end
 
 
-        function Ke = computeKelement(E, G, A, I, kappa, L)
+        function Ke = computeKelement(obj, E, G, A, I, kappa, L)
             EI = E * I;
             S  = kappa * G * A;
+            EA = E * A;
 
             Ka = (EA/L)*[1 -1; -1 1];
 
@@ -90,10 +93,11 @@ classdef TimoshenkoProblem < handle
             % Transverse displacement and rotation DOFs
             idx = [2 3 5 6];
             Ke(idx,idx) = Kb + Ks;
-
+            Ke = repmat(Ke,[1,1,obj.mesh.nelem]);
         end
 
         function T = computeTransferOperator(obj)
+            
 
         end
 

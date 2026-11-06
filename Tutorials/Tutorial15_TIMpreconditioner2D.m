@@ -31,7 +31,7 @@ classdef Tutorial15_TIMpreconditioner2D < handle
             [obj.boundaryConditionsTim,dirTim]   = obj.createBoundaryConditionsTim();
             obj.bcApplier                        = obj.createBCapplier();
             [LHSr,RHSr]                          = obj.createElasticProblem();
-            Pmult                                = obj.createPreconditioner(dir,iC,lG,bS,iCR,discMesh,LHSr);
+            Pmult                                = obj.createPreconditioner(iC,lG,bS,iCR,discMesh,LHSr);
             pcg                                  = obj.createSolver(Pmult,zeros(size(RHSr)),obj.tolResidual);
             [uPCG,residualPCG,~,~]               = pcg.solve(LHSr,RHSr);     
            
@@ -241,9 +241,9 @@ classdef Tutorial15_TIMpreconditioner2D < handle
              RHS = obj.bcApplier.fullToReducedVectorDirichlet(rhs);
        end
 
-        function Meifem = createTimPreconditioner(obj,dir,iC,lG,bS,iCR,dMesh)
+        function Meifem = createTimPreconditioner(obj,bcs,iC,lG,bS,iCR,dMesh)
             ss.ddDofManager = obj.createDomainDecompositionDofManager(iC,lG,bS,obj.referenceMesh,iCR);
-            ss.EIFEMsolver  = obj.createEIFEM(dir);
+            ss.EIFEMsolver  = obj.createTimoshProblem(bcs);
             ss.bcApplier    = obj.bcApplier;
             ss.dMesh        = dMesh;
             ss.type         = 'EIFEM';
@@ -274,14 +274,14 @@ classdef Tutorial15_TIMpreconditioner2D < handle
             EIFEoper = p.computeROMbasis();
         end
         
-        function eifem = createEIFEM(obj,dir)
-            EIFEoper      = obj.computeEIFEMoperators();
-            s.RVE         = TrainedRVE(EIFEoper);
-            s.mesh        = obj.createCoarseMesh(obj.referenceMesh);
+        function eifem = createTimoshProblem(obj,bcs)
+            %s.mesh        = obj.createCoarseMesh(obj.referenceMesh);
+            s.mesh = obj.meshCoarse;
+            s.meshReference = obj.referenceMesh;
 %            s.mesh          = obj.loadCoarseMesh(mR);
-            s.DirCond     = dir;
+            s.DirCond     = bcs;
             s.nSubdomains = obj.nSubdomains;
-            eifem         = EIFEM(s);
+            eifem         = TimoshenkoProblem(s);
         end
         
         function d = createDomainDecompositionDofManager(obj,iC,lG,bS,mR,iCR)
@@ -308,8 +308,8 @@ classdef Tutorial15_TIMpreconditioner2D < handle
             M = Preconditioner.create(s);
         end
 
-        function Mmult = createPreconditioner(obj,dir,iC,lG,bS,iCR,discMesh,LHSr)
-            Meifem = obj.createEIFEMPreconditioner(dir,iC,lG,bS,iCR,discMesh);
+        function Mmult = createPreconditioner(obj,iC,lG,bS,iCR,discMesh,LHSr)
+            Meifem = obj.createTimPreconditioner(obj.boundaryConditionsTim,iC,lG,bS,iCR,discMesh);
             Milu   = obj.createILUpreconditioner(LHSr);
             Mmult  = obj.createMultiplicativePreconditioner(Milu,Meifem,Milu);
         end
