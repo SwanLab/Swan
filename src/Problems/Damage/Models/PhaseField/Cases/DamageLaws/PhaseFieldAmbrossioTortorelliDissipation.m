@@ -23,7 +23,7 @@ classdef PhaseFieldAmbrossioTortorelliDissipation < handle
     methods (Access = private)
 
         function init(obj,cParams)
-            if ~ismember(cParams.pExp, [1 2])
+            if ~ismember(cParams.pExp, [1 2 3])
                 error('Exponent must be 1 or 2');
             else
                 obj.pExp = cParams.pExp;

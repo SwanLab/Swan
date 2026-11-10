@@ -1,5 +1,5 @@
 clc,clear,close all
-load('HorizontalCrack.mat')
+load('OrthotropicAnalytic.mat')
 
 figure(1)
 tiledlayout(3,3)
@@ -132,13 +132,11 @@ for i=1:2
                 prescription = slmset('decreasing','on','knots',0:0.020:1,...
                     'leftvalue',mat(i,j,k,l,1));
                 if i~=1 || j~=1 || k~=1 || l~=1
-                    C{i,j,k,l} = slmengine(phi.^2,squeeze(mat(i,j,k,l,:)),prescription,'rightvalue',0);
+                    C{i,j,k,l} = slmengine(phi.^idx,squeeze(mat(i,j,k,l,:)),prescription,'rightvalue',0);
                 else
-                    C{i,j,k,l} = slmengine(phi.^2,squeeze(mat(i,j,k,l,:)),prescription);
+                    C{i,j,k,l} = slmengine(phi.^idx,squeeze(mat(i,j,k,l,:)),prescription);
                 end
-                A = slmeval(phi,C{i,j,k,l});
-                Cmat(i,j,k,l,:) = A;
-                CmatCOV(i,j,k,l,:) = A.^(1/idx);
+                Cmat(i,j,k,l,:) = slmeval(phi,C{i,j,k,l});
                 dCmat(i,j,k,l,:) = slmeval(phi,C{i,j,k,l},1);
                 d2Cmat(i,j,k,l,:) = slmeval(phi,C{i,j,k,l},2);
             end
@@ -150,37 +148,26 @@ save('HCsmlCOV.mat','Cmat','dCmat','d2Cmat');
 
 figure(6)
 hold on
-plot(phi.^(idx),2.*squeeze(Cmat(1,1,1,1,:)),'Color','R','LineWidth',2)
-plot(phi.^(idx),2.*squeeze(Cmat(2,2,2,2,:)),'Color','B','LineWidth',2)
-plot(phi.^(idx),2.*squeeze(Cmat(2,2,1,1,:)),'Color','G','LineWidth',2)
-plot(phi.^(idx),2.*squeeze(Cmat(1,2,1,2,:)),'Color','K','LineWidth',2)
+plot(phi.^(1/idx),2.*squeeze(Cmat(1,1,1,1,:)),'Color','R','LineWidth',2)
+plot(phi.^(1/idx),2.*squeeze(Cmat(2,2,2,2,:)),'Color','B','LineWidth',2)
+plot(phi.^(1/idx),2.*squeeze(Cmat(2,2,1,1,:)),'Color','G','LineWidth',2)
+plot(phi.^(1/idx),2.*squeeze(Cmat(1,2,1,2,:)),'Color','K','LineWidth',2)
 lgd = legend('C1111','C2222','C2211','C1212')
-title('Change of variable in phi values')
+title('Original')
+
 fontsize(lgd,14,'points')
 box on
 grid on
 xlabel('$\varphi = \phi^2$ [-]','Interpreter','latex')
-% exportgraphics(gcf,'transparent.eps',...   % since R2020a
-%     'ContentType','vector',...
-%     'BackgroundColor','none')
 
 figure(7)
-hold on
-plot(phi,squeeze(CmatCOV(1,1,1,1,:)),'Color','R','LineWidth',2)
-plot(phi,squeeze(CmatCOV(2,2,2,2,:)),'Color','B','LineWidth',2)
-plot(phi,squeeze(CmatCOV(2,2,1,1,:)),'Color','G','LineWidth',2)
-plot(phi,squeeze(CmatCOV(1,2,1,2,:)),'Color','K','LineWidth',2)
-legend('C1111','C2222','C2211','C1212')
-title('Change of variable in C values')
-
-figure(8)
 hold on
 plot(phi,2.*squeeze(Cmat(1,1,1,1,:)),'Color','R','LineWidth',2)
 plot(phi,2.*squeeze(Cmat(2,2,2,2,:)),'Color','B','LineWidth',2)
 plot(phi,2.*squeeze(Cmat(2,2,1,1,:)),'Color','G','LineWidth',2)
 plot(phi,2.*squeeze(Cmat(1,2,1,2,:)),'Color','K','LineWidth',2)
 lgd = legend('C1111','C2222','C2211','C1212')
-title('Original')
+title('Change of variable in phi values')
 
 
 %%

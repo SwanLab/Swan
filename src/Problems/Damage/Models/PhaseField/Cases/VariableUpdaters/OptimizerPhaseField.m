@@ -31,7 +31,7 @@ classdef OptimizerPhaseField < handle
                 iter.u = max(iterU,iter.u);
                 
                 %%
-                phiVal = 0.1;
+                phiVal = 0;
                 phiAlphaFun = (phi.fun>= phiVal).*phi.fun + (phi.fun < phiVal).*phiVal;
 
                 s.type = 'Damage';

@@ -87,8 +87,8 @@ classdef PhaseFieldAngleUpdater < handle
             angleInfo.phiOld = [angleInfo.phiOld obj.phiOld.evaluate(xV)'];
             save('angleInfo','angleInfo')
             else
-                fprintf('--------------')
-                eps
+                %fprintf('--------------')
+                %eps
                 % theta
                 % chi
                 % vertexInBounds
