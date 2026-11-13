@@ -1,5 +1,5 @@
 clc,clear,close all
-load('OrthotropicAnalytic.mat')
+load('CircleCrack.mat')
 
 figure(1)
 tiledlayout(3,3)
@@ -111,7 +111,7 @@ title('C33')
 
 %% Comparative with Rao et al. (2022)
 clc,clear,close all
-load('HorizontalCrack.mat')
+load('CircleCrack.mat')
 % prescription = slmset('plot','on','decreasing','on','interiorknots','free','knots',20,...
 %                        'leftvalue',2*C22,'rightvalue',0,'concavedown','on');
 % 
@@ -124,12 +124,12 @@ CmatCOV = zeros(2,2,2,2,length(phi));
 dCmat = zeros(2,2,2,2,length(phi));
 d2Cmat = zeros(2,2,2,2,length(phi));
 
-idx = 2;
+idx = 1;
 for i=1:2
     for j=1:2
         for k=1:2
             for l=1:2
-                prescription = slmset('decreasing','on','knots',0:0.020:1,...
+                prescription = slmset('decreasing','on','knots',0:0.010:1,...
                     'leftvalue',mat(i,j,k,l,1));
                 if i~=1 || j~=1 || k~=1 || l~=1
                     C{i,j,k,l} = slmengine(phi.^idx,squeeze(mat(i,j,k,l,:)),prescription,'rightvalue',0);
@@ -144,7 +144,7 @@ for i=1:2
     end
 end
 
-save('HCsmlCOV.mat','Cmat','dCmat','d2Cmat');
+save('CircleCrack_slm.mat','Cmat','dCmat','d2Cmat');
 
 figure(6)
 hold on
@@ -153,21 +153,20 @@ plot(phi.^(1/idx),2.*squeeze(Cmat(2,2,2,2,:)),'Color','B','LineWidth',2)
 plot(phi.^(1/idx),2.*squeeze(Cmat(2,2,1,1,:)),'Color','G','LineWidth',2)
 plot(phi.^(1/idx),2.*squeeze(Cmat(1,2,1,2,:)),'Color','K','LineWidth',2)
 lgd = legend('C1111','C2222','C2211','C1212')
-title('Original')
 
 fontsize(lgd,14,'points')
 box on
 grid on
-xlabel('$\varphi = \phi^2$ [-]','Interpreter','latex')
+xlabel('$\phi$ [-]','Interpreter','latex')
 
-figure(7)
-hold on
-plot(phi,2.*squeeze(Cmat(1,1,1,1,:)),'Color','R','LineWidth',2)
-plot(phi,2.*squeeze(Cmat(2,2,2,2,:)),'Color','B','LineWidth',2)
-plot(phi,2.*squeeze(Cmat(2,2,1,1,:)),'Color','G','LineWidth',2)
-plot(phi,2.*squeeze(Cmat(1,2,1,2,:)),'Color','K','LineWidth',2)
-lgd = legend('C1111','C2222','C2211','C1212')
-title('Change of variable in phi values')
+% figure(7)
+% hold on
+% plot(phi,2.*squeeze(Cmat(1,1,1,1,:)),'Color','R','LineWidth',2)
+% plot(phi,2.*squeeze(Cmat(2,2,2,2,:)),'Color','B','LineWidth',2)
+% plot(phi,2.*squeeze(Cmat(2,2,1,1,:)),'Color','G','LineWidth',2)
+% plot(phi,2.*squeeze(Cmat(1,2,1,2,:)),'Color','K','LineWidth',2)
+% lgd = legend('C1111','C2222','C2211','C1212')
+% title('Change of variable in phi values')
 
 
 %%

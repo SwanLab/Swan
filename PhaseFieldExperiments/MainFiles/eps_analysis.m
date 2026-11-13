@@ -26,6 +26,10 @@ load('HCsmlCOV.mat');
 CHCCOV = 210.*squeeze(Cmat(2,2,2,2,:)); dCHCCOV = 210.*squeeze(dCmat(2,2,2,2,:));
 load('HCsml.mat')
 CHC = 210.*squeeze(Cmat(2,2,2,2,:)); dCHC = 210.*squeeze(dCmat(2,2,2,2,:));
+load('CircleCrack.mat')
+gCC = degradation.fun{2,2,2,2}(x); phiVCC = phi;
+load('CircleCrack_sml.mat')
+CCC = 210.*squeeze(Cmat(2,2,2,2,:)); dCCC = 210.*squeeze(dCmat(2,2,2,2,:));
 
 
 %% Strain as a function of damage (handle)
@@ -138,26 +142,43 @@ xlabel('Damage')
 ylabel('Stress')
 
 
-%% New plots
+%% SLM plots
 close all
 gB1 = 1 - x;
 gB2 = 1 - x^2;
 alphaAT3 = x.^3; cwAT3 = 8/5;
-wAT3 = Gc/(l0*cwAT3);
+alphaQuad = 2*x - x^2; cwQuad = pi;
+wAT3 = Gc/(l0*cwAT3); wQuad = Gc/(l0*cwQuad);
+
 aPrimeAT2 = double(subs(-diff(alphaAT2),phiV));
 aPrimeAT3 = double(subs(-diff(alphaAT3),phiV));
+aPrimeQuad = double(subs(-diff(alphaQuad),phiV));
 
-a = -2; b = 2; x0 = 0.3;
-c = 2*a*x0^3 + (b-3*a)*x0^2 - 2*b*x0 + 1;
-m = 3*a*x0^2 + 2*b*x0 + c;
-alphaHybridCubic = piecewise((x<x0),(a*x^3 + b*x^2 + c*x),(x>=x0),(m*x-m+1));
+
+% a = -2; b = 2; x0 = 0.3;
+% c = 2*a*x0^3 + (b-3*a)*x0^2 - 2*b*x0 + 1;
+% m = 3*a*x0^2 + 2*b*x0 + c;
+% alphaHybridCubic = piecewise((x<x0),(a*x^3 + b*x^2 + c*x),(x>=x0),(m*x-m+1));
+% aPrimeHybridCubic = double(subs(-diff(alphaHybridCubic),phiV)); 
+% wHybridCubic = double(4*int(sqrt(alphaHybridCubic),0,1));
+% 
+% a = 1.8; x0 = 0.3;
+% b = a*x0^2 - 2*a*x0 + 1;
+% m = 2*a*x0 + b;
+% alphaHybridQuad = piecewise((x<x0),(a*x^2 + b*x),(x>=x0),(m*x-m+1));
+% aPrimeHybridQuad = double(subs(-diff(alphaHybridQuad),phiV)); 
+% wHybridQuad = double(4*int(sqrt(alphaHybridQuad),0,1));
+
+a = -0.5; x0 = 0.3;
+b = (2*a*x0^3 - 3*a*x0^2 + 1)/(-x0^2 + 2*x0); 
+m = 3*a*x0^2 + 2*b*x0;
+alphaHybridCubic = piecewise((x<x0),(a*x^3 + b*x^2),(x>=x0),(m*x-m+1));
 aPrimeHybridCubic = double(subs(-diff(alphaHybridCubic),phiV)); 
 wHybridCubic = double(4*int(sqrt(alphaHybridCubic),0,1));
 
-a = 1.8; x0 = 0.3;
-b = a*x0^2 - 2*a*x0 + 1;
-m = 2*a*x0 + b;
-alphaHybridQuad = piecewise((x<x0),(a*x^2 + b*x),(x>=x0),(m*x-m+1));
+x0 = 0.1; a = -1/(x0^2 - 2*x0);
+m = 2*a*x0;
+alphaHybridQuad = piecewise((x<x0),(a*x^2),(x>=x0),(m*x-m+1));
 aPrimeHybridQuad = double(subs(-diff(alphaHybridQuad),phiV)); 
 wHybridQuad = double(4*int(sqrt(alphaHybridQuad),0,1));
 
@@ -166,6 +187,7 @@ epsBrittle2 = sqrt(2*wAT2/C22)*sqrt(-diff(alphaAT2)/diff(gB2));
 epsHC1_slm = sqrt(2*w).*sqrt(aPrime'./dCHC);
 epsHC2_slm = sqrt(2*wAT2).*sqrt(aPrimeAT2'./dCHC);
 epsHC3_slm = sqrt(2*wAT3).*sqrt(aPrimeAT3'./dCHC);
+epsHCquad_slm = sqrt(2*wQuad).*sqrt(aPrimeQuad'./dCHC);
 epsHCHybridCubic_slm = sqrt(2*wHybridCubic/C22)*sqrt(aPrimeHybridCubic'./dCHC);
 epsHCHybridQuad_slm = sqrt(2*wHybridQuad/C22)*sqrt(aPrimeHybridQuad'./dCHC);
 
@@ -187,11 +209,12 @@ hold on
 fplot(alpha,[0 1])
 fplot(alphaAT2,[0 1])
 fplot(alphaAT3,[0 1])
+fplot(alphaQuad,[0 1])
 fplot(alphaHybridQuad,[0 1])
 fplot(alphaHybridCubic,[0 1])
 xlabel('Damage')
 ylabel('Dissipation')
-legend('Linear','Quadratic','Cubic','Quadratic - Linear','Cubic - Linear')
+legend('Linear','Quadratic','Cubic','Quadratic (cohesive)','Quadratic - Linear','Cubic - Linear')
 
 % figure(7)
 % hold on
@@ -212,16 +235,17 @@ legend('Linear','Quadratic','Cubic','Quadratic - Linear','Cubic - Linear')
 %         },'Interpreter','latex')
 % title('Stress vs damage')
 % xlabel('Damage')
-ylabel('Stress')
+% ylabel('Stress')
 
 figure(9)
 hold on
 plot(phiV,epsHC1_slm)
 plot(phiV,epsHC2_slm)
 plot(phiV,epsHC3_slm)
-plot(phiV,epsHCHybridCubic_slm)
+plot(phiV,epsHCquad_slm)
 plot(phiV,epsHCHybridQuad_slm)
-legend({'HC linear','HC quadratic','HC cubic','HC hybrid Cubic','HC hybrid Quad'},'Interpreter','latex')
+plot(phiV,epsHCHybridCubic_slm)
+legend({'HC linear','HC quadratic','HC cubic','HC quadratic (cohesive)','HC hybrid Quad','HC hybrid Cubic'},'Interpreter','latex')
 title('Strain vs damage')
 xlabel('Damage')
 ylabel('Strain')
@@ -246,6 +270,58 @@ ylabel('Strain')
 % title('Strain vs damage')
 % xlabel('Damage')
 % ylabel('Strain')
+
+%% Circular crack vs Horizontal crack
+epsHC  = sqrt(2*w/C22)*sqrt(-diff(alpha)/diff(gHC));
+epsCC  = sqrt(2*w/C22)*sqrt(-diff(alpha)/diff(gCC));
+epsCCAT2 = sqrt(2*wAT2/C22)*sqrt(-diff(alphaAT2)/diff(gCC));
+sigHC  = sqrt(2*w*C22)*sqrt((-diff(alpha)/diff(gHC))*gHC.^2);
+sigCC  = sqrt(2*w*C22)*sqrt((-diff(alpha)/diff(gCC))*gCC.^2);
+
+a = 1; x0 = 0.1;
+m = 2*a*x0;
+alphaHybridQuad = piecewise((x<x0),(a*x^2),(x>=x0),(m*x-m+1));
+aPrimeHybridQuad = double(subs(-diff(alphaHybridQuad),phiVCC)); 
+wHybridQuad = double(4*int(sqrt(alphaHybridQuad),0,1));
+
+
+aPrimeQuad = double(subs(-diff(alphaQuad),phiVCC)); 
+wQuad = double(4*int(sqrt(alphaQuad),0,1));
+
+gCCv = double(subs(gCC,phiVCC));
+epsCCquad = sqrt(2*wQuad/C22)*sqrt(aPrimeQuad'./gCCv);
+
+
+figure(12)
+hold on
+fplot(epsHC,[0 1])
+fplot(epsCC,[0 1])
+fplot(epsCCAT2,[0 1])
+legend('HorizontalCrack','Circle + crack','CC AT2')
+title('Strain vs damage')
+xlabel('Damage')
+ylabel('Strain')
+
+% figure(13)
+% hold on
+% fplot(sigHC,[0 1])
+% fplot(sigCC,[0 1])
+% legend('HorizontalCrack','Circle + crack')
+% title('Stress vs damage')
+% xlabel('Damage')
+% ylabel('Stress')
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 %% Computation 2D (Isotropic materials)
