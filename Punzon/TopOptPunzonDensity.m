@@ -32,7 +32,7 @@ classdef TopOptPunzonDensity < handle
             obj.createOptimizer();
 
             figure(2)
-            saveas(gcf,'Monitoring_PunzonDensity_Intent6.fig');
+            saveas(gcf,'Monitoring_PunzonDensity.fig');
             obj.designVariable.fun.print('fValues_PunzonDensity_Intent6');
             density= obj.designVariable.fun.fValues;
             save('DensityValues6','density');
@@ -224,7 +224,7 @@ classdef TopOptPunzonDensity < handle
             s.mesh   = obj.mesh;
             s.filter = obj.filter;
             s.test = LagrangianFunction.create(obj.mesh,1,'P1');
-            s.volumeTarget = 0.6;
+            s.volumeTarget = 0.4;
             s.uMesh = obj.createBaseDomain();
             v = VolumeConstraint(s);
             obj.volume = v;
@@ -238,9 +238,11 @@ classdef TopOptPunzonDensity < handle
         end
 
         function M = createMassMatrix(obj)
-            n = obj.mesh.nnodes;
-            h = obj.mesh.computeMinCellSize();
-            M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
+            % n = obj.mesh.nnodes;
+            % h = obj.mesh.computeMinCellSize();
+            % M = h^2*sparse(1:n,1:n,ones(1,n),n,n);
+            M = IntegrateLHS(@(u,v) u.*v,obj.designVariable.fun,obj.designVariable.fun,obj.mesh,'Domain',3);
+            M = diag(sum(M,1));
         end
 
         function createConstraint(obj)
@@ -268,15 +270,16 @@ classdef TopOptPunzonDensity < handle
             s.maxIter        = 800;
             s.tolerance      = 1e-8;
             s.constraintCase = {'EQUALITY'};
+            s.primal         = 'PROJECTED GRADIENT';
             s.primalUpdater  = obj.primalUpdater;
-            s.etaNorm        = 0.1;
-            s.etaNormMin     = 0.02;
-            s.gJFlowRatio    = 0.4;
-            s.etaMax         = 1;
+            s.delta        = 0.1;    %etaNorm
+            s.deltaMin     = 0.02;   %etaNormMin
+            s.etaStar        = 0.4;    % s.gJFlowRatio
+            s.etaMax0        = 1;
             s.etaMaxMin      = 0.01;
             s.gif = false;
             s.gifName = [];
-            s.printing = true;
+            s.printing = false;
             s.printName = 'PunzonDensity';
             opt = OptimizerNullSpace(s);
             opt.solveProblem();
