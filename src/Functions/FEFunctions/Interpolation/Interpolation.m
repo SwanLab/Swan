@@ -36,9 +36,17 @@ classdef Interpolation < handle
             deriv = obj.shapeDer.evaluate(xV);
         end
 
+        function deriv = computeShapeSecondDerivatives(obj,xV)
+            deriv = obj.evaluateShapeSecondDerivatives(xV);
+        end
+
     end
 
     methods (Access = protected)
+
+        function deriv = evaluateShapeSecondDerivatives(obj,~)
+            error('Second derivatives not implemented for %s',obj.type);
+        end
         
         function init(obj,cParams)
             obj.type  = cParams.type;

@@ -68,6 +68,9 @@ classdef HyperelasticityMonitoring < handle
             obj.data.displacement.function{step} = cParams.uFun;
             obj.data.energy.linear(step)         = cParams.energy;
             obj.data.iter(step)                  = cParams.numIter;
+            if isfield(cParams,'overlaps')
+                obj.data.overlaps(step)          = cParams.overlaps;
+            end
         end
         
     end

@@ -45,5 +45,17 @@ classdef TriangleQuadratic < Interpolation
             end
         end
 
+        function deriv = evaluateShapeSecondDerivatives(obj,xV)
+            dss = [4 4 0 -8 0 0];
+            dst = [4 0 0 -4 4 -4];
+            dtt = [4 0 4 0 0 -8];
+            d2N = zeros(obj.ndime,obj.ndime,obj.nnode);
+            d2N(1,1,:) = dss;
+            d2N(1,2,:) = dst;
+            d2N(2,1,:) = dst;
+            d2N(2,2,:) = dtt;
+            deriv = repmat(d2N,[1 1 1 size(xV,2)]);
+        end
+
     end
 end

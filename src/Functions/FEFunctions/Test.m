@@ -35,6 +35,16 @@ classdef Test < BaseFunction
             gradN(dim,:,:,:) = dNdx(:,node,:,:);
         end
 
+        function hessN = computeHess(obj,xV)
+            u = obj.uFun;
+            d2Ndx = u.evaluateCartesianSecondDerivatives(xV);
+            ndimf = u.ndimf;
+            node  = ceil(obj.iDof/ndimf);
+            dim   = obj.iDof - (node-1)*ndimf;
+            hessN = zeros(ndimf,size(d2Ndx,1),size(xV,2),u.mesh.nelem);
+            hessN(dim,:,:,:) = d2Ndx(:,node,:,:);
+        end
+
         function test = updateMesh(obj,m)
             uF   = LagrangianFunction.create(m,obj.ndimf,obj.uFun.order);
             test = Test(uF,obj.iDof);

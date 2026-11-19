@@ -24,8 +24,14 @@ classdef ElasticityFunctional < handle
 
         function E = computeEnergies(obj,u,fExt)
             Eint = obj.functionals.intE.computeCost(u,obj.quadOrder);
-            Wext = obj.functionals.extWork.computeCost(u,fExt,obj.quadOrder);
+            Wext = 0;
+            if ~isempty(fExt)
+                Wext = obj.functionals.extWork.computeCost(u,fExt,obj.quadOrder);
+            end
             E = [Eint,Wext];
+            if obj.hasContact()
+                E(end+1) = obj.functionals.contact.computeCost(u);
+            end
         end
 
         function RHS = computeGradient(obj,u,bc)
@@ -36,12 +42,33 @@ classdef ElasticityFunctional < handle
                 fExt.setFValues(reshape(vals,u.mesh.ndim,u.mesh.nnodes)');
             end
             Fint = obj.functionals.intE.computeGradient(u,obj.quadOrder);
-            Fext = obj.functionals.extWork.computeGradient(u,fExt,obj.quadOrder);
-            RHS  = Fint - Fext;
+            RHS  = Fint;
+            if ~isempty(fExt)
+                RHS = RHS - obj.functionals.extWork.computeGradient(u,fExt,obj.quadOrder);
+            end
+            if obj.hasContact()
+                RHS = RHS + obj.functionals.contact.computeGradient(u);
+            end
+        end
+
+        function resetParameters(obj)
+            for f = obj.functionalsWithParameters()
+                f{1}.resetParameters();
+            end
+        end
+
+        function itHas = updateParameters(obj,u)
+            itHas = true;
+            for f = obj.functionalsWithParameters()
+                itHas = f{1}.updateParameters(u) && itHas;
+            end
         end
 
         function LHS = computeHessian(obj,u)
             LHS  = obj.functionals.intE.computeHessian(u,obj.quadOrder);
+            if obj.hasContact()
+                LHS = LHS + obj.functionals.contact.computeHessian(u);
+            end
         end
 
     end
@@ -53,11 +80,37 @@ classdef ElasticityFunctional < handle
             if strcmp(cParams.matProp.type,'Neohookean')
                 cParams.material = cParams.matProp;
                 obj.functionals.intE = NeohookeanFunctional(cParams);
+            elseif strcmp(cParams.matProp.type,'ThirdMedium')
+                cParams.material = cParams.matProp;
+                obj.functionals.intE = ThirdMediumFunctional(cParams);
             elseif strcmp(cParams.matProp.type,'Elastic')
                 cParams.material = cParams.matTensor;
                 obj.functionals.intE = LinearElasticityFunctional(cParams);
             end
-            obj.functionals.extWork = ExternalWorkFunctional(cParams);
+            if strcmp(cParams.testSpace.u.order,'P1')
+                obj.functionals.extWork = ExternalWorkFunctional(cParams);
+            end
+            if isfield(cParams,'contact')
+                s = cParams.contact;
+                s.mesh = cParams.mesh;
+                switch s.type
+                    case 'penalty'
+                        obj.functionals.contact = SelfContactFunctional(s);
+                    case 'barrier'
+                        obj.functionals.contact = BarrierContactFunctional(s);
+                    case 'augmentedLagrangian'
+                        obj.functionals.contact = AugmentedLagrangianContactFunctional(s);
+                end
+            end
+        end
+
+        function f = functionalsWithParameters(obj)
+            f = struct2cell(obj.functionals)';
+            f = f(cellfun(@(g) ismethod(g,'updateParameters'),f));
+        end
+
+        function itHas = hasContact(obj)
+            itHas = isfield(obj.functionals,'contact');
         end
 
     end

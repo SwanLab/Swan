@@ -88,6 +88,25 @@ classdef LagrangianFunction < FeFunction
             N = obj.interpolation.computeShapeFunctions(xV);
         end
 
+        function d2Ndx = evaluateCartesianSecondDerivatives(obj,xV)
+            invJ  = Inv(Jacobian(obj.mesh)).evaluate(xV);
+            d2N   = obj.interpolation.computeShapeSecondDerivatives(xV);
+            nDim  = obj.mesh.ndim;
+            nNode = size(d2N,3);
+            d2N   = permute(d2N,[1 2 4 3]);
+            d2Ndx = zeros(nDim^2,nNode,size(xV,2),obj.mesh.nelem);
+            for iNode = 1:nNode
+                h = pagemtimes(pagemtimes(invJ,d2N(:,:,:,iNode)),'none',invJ,'transpose');
+                d2Ndx(:,iNode,:,:) = reshape(h,nDim^2,1,size(xV,2),[]);
+            end
+        end
+
+        function hessF = computeHess(obj,xV)
+            d2Ndx = obj.evaluateCartesianSecondDerivatives(xV);
+            fV    = permute(obj.getFvaluesByElem(),[1 2 4 3]);
+            hessF = pagemtimes(fV,permute(d2Ndx,[2 1 3 4]));
+        end
+
        function gradF = computeGrad(obj,xV)
             dNdx  = obj.evaluateCartesianDerivatives(xV);
             fV    = obj.getFvaluesByElem();            

@@ -10,6 +10,13 @@ classdef HyperelasticityComputer < handle
     properties (Access = private)
         monitor
         updater
+        maxIter
+        stopWhenNotConverged
+        usePredictor
+        checkOverlaps
+        overlapCounter
+        interpolationOrder
+        maxBisections
     end
 
     methods (Access = public)
@@ -21,13 +28,16 @@ classdef HyperelasticityComputer < handle
         end
 
         function outputData = compute(obj)
-            uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, 'P1');
+            uFun = LagrangianFunction.create(obj.mesh, obj.mesh.ndim, obj.interpolationOrder);
             cost = 0;
 
             nSteps = length(obj.boundaryConditions.bcValues);
             for iStep = 1:nSteps
-                [uFun,bc] = obj.preprocess(iStep,nSteps,uFun);
-                [uFun,rFun,cost,iterMax] = obj.updater.update(uFun,bc,cost);
+                obj.monitor.printStep(iStep,nSteps)
+                [uFun,rFun,cost,iterMax] = obj.solveStep(iStep,uFun,cost);
+                if obj.stopWhenNotConverged && obj.hasFailed(uFun,iterMax)
+                    break
+                end
                 obj.postprocess(iStep,cost,uFun,rFun,iterMax);
             end
             outputData = obj.monitor.data;
@@ -41,6 +51,75 @@ classdef HyperelasticityComputer < handle
             obj.boundaryConditions = cParams.boundaryConditions;
             obj.material           = cParams.material;
             obj.functional         = cParams.functional;
+            obj.maxIter            = cParams.maxIter;
+            obj.stopWhenNotConverged = obj.readOption(cParams,'stopWhenNotConverged',false);
+            obj.usePredictor         = obj.readOption(cParams,'usePredictor',false);
+            obj.checkOverlaps        = obj.readOption(cParams,'checkOverlaps',false);
+            obj.interpolationOrder   = obj.readOption(cParams,'interpolationOrder','P1');
+            obj.maxBisections        = obj.readOption(cParams,'maxBisections',0);
+            obj.createOverlapCounter();
+        end
+
+        function createOverlapCounter(obj)
+            if obj.checkOverlaps
+                s.mesh    = obj.mesh;
+                s.penalty = 0;
+                s.depth   = 0;
+                obj.overlapCounter = SelfContactFunctional(s);
+            end
+        end
+
+        function [uFun,rFun,cost,iter] = solveStep(obj,iStep,uFun,cost)
+            if obj.maxBisections == 0
+                bc = obj.boundaryConditions.nextStep();
+                [uFun,rFun,cost,iter] = obj.solveFor(bc,uFun,cost);
+                return
+            end
+            values = obj.boundaryConditions.bcValues;
+            target = values(iStep);
+            start  = values(max(iStep-1,1));
+            [uFun,rFun,cost,iter] = obj.solveBetween(start,target,uFun,cost,0);
+        end
+
+        function [uFun,rFun,cost,iter] = solveBetween(obj,start,target,uFun,cost,depth)
+            uStart = copy(uFun);
+            bc = obj.boundaryConditions.computeConditions(target);
+            [uFun,rFun,cost,iter] = obj.solveFor(bc,uFun,cost);
+            if ~obj.hasFailed(uFun,iter) || depth == obj.maxBisections
+                return
+            end
+            middle = (start + target)/2;
+            [uFun,rFun,cost,iter] = obj.solveBetween(start,middle,uStart,cost,depth+1);
+            if ~obj.hasFailed(uFun,iter)
+                [uFun,rFun,cost,iter] = obj.solveBetween(middle,target,uFun,cost,depth+1);
+            end
+        end
+
+        function [uFun,rFun,cost,iter] = solveFor(obj,bc,uFun,cost)
+            uFun = obj.preprocess(bc,uFun);
+            [uFun,rFun,cost,iter] = obj.updater.update(uFun,bc,cost);
+            [uFun,rFun,cost,iter] = obj.enforceParameters(uFun,rFun,cost,iter,bc);
+        end
+
+        function [uFun,rFun,cost,iter] = enforceParameters(obj,uFun,rFun,cost,iter,bc)
+            if ~obj.hasParameters()
+                return
+            end
+            for k = 1:10
+                if iter >= obj.maxIter || obj.functional.updateParameters(uFun)
+                    return
+                end
+                [uFun,rFun,cost,iter] = obj.updater.update(uFun,bc,cost);
+            end
+        end
+
+        function itHas = hasParameters(obj)
+            itHas = ismethod(obj.functional,'updateParameters');
+        end
+
+        function itHas = hasFailed(obj,uFun,iter)
+            u = uFun.fValues;
+            itHas = iter >= obj.maxIter || ~isreal(u) || any(~isfinite(u(:)));
         end
 
         function setMonitoring(obj,cParams)
@@ -56,27 +135,66 @@ classdef HyperelasticityComputer < handle
             s.monitor    = obj.monitor;
             s.tolerance  = cParams.tolerance;
             s.maxIter    = cParams.maxIter;
+            s.lineSearch = isfield(cParams,'lineSearch') && cParams.lineSearch;
+            if s.lineSearch
+                s.residualTolerance = cParams.residualTolerance;
+                s.viscosity         = cParams.viscosity;
+            end
             obj.updater = DisplacementUpdater(s);
         end
 
-        function [uFun,bc] = preprocess(obj,iStep,nSteps,uFun)
-            obj.monitor.printStep(iStep,nSteps)
-            bc = obj.boundaryConditions.nextStep();
-            uFun.setFValues(obj.updateInitialDisplacement(uFun,bc));
+        function uFun = preprocess(obj,bc,uFun)
+            if obj.hasParameters()
+                obj.functional.resetParameters();
+            end
+            uVec = obj.toDofVector(uFun);
+            du   = obj.computeDirichletIncrement(uVec,bc);
+            if obj.usePredictor
+                du = obj.addPredictedFreeIncrement(uFun,uVec,du,bc);
+            end
+            uFun.setFValues(obj.toNodalValues(uVec+du,uFun));
         end
 
-        function u = updateInitialDisplacement(~,uOld,bc)
-            restrictedDofs = bc.dirichlet_dofs;
-            if isempty(restrictedDofs)
-                u = uOld;
-            else
-                dirich = bc.dirichletFun;
-                uVec = reshape(uOld.fValues',[uOld.nDofs 1]);
-                dirichVec = reshape(dirich.fValues',[dirich.nDofs 1]);
-
-                uVec(restrictedDofs) = dirichVec(restrictedDofs);
-                u = reshape(uVec,[flip(size(uOld.fValues))])';
+        function du = addPredictedFreeIncrement(obj,uFun,uVec,du,bc)
+            K     = obj.functional.computeHessian(uFun);
+            free  = bc.free_dofs;
+            dDofs = bc.dirichlet_dofs;
+            duFree = DisplacementUpdater.solveWithPositiveShift(K(free,free),-K(free,dDofs)*du(dDofs));
+            eBest  = obj.computeEnergyOf(uVec+du,uFun,bc);
+            for alpha = [1 0.5 0.25 0.125]
+                candidate       = du;
+                candidate(free) = alpha*duFree;
+                e = obj.computeEnergyOf(uVec+candidate,uFun,bc);
+                if obj.isValidEnergy(e) && (~obj.isValidEnergy(eBest) || e < eBest)
+                    du    = candidate;
+                    eBest = e;
+                end
             end
+        end
+
+        function e = computeEnergyOf(obj,uVec,uFun,bc)
+            trial = copy(uFun);
+            trial.setFValues(obj.toNodalValues(uVec,uFun));
+            e = obj.functional.computeCost(trial,bc);
+        end
+
+        function du = computeDirichletIncrement(obj,uVec,bc)
+            dDofs     = bc.dirichlet_dofs;
+            dVec      = obj.toDofVector(bc.dirichletFun);
+            du        = zeros(size(uVec));
+            du(dDofs) = dVec(dDofs) - uVec(dDofs);
+        end
+
+        function itIs = isValidEnergy(~,e)
+            itIs = isreal(e) && isfinite(e);
+        end
+
+        function v = toDofVector(~,fun)
+            v = reshape(fun.fValues',[fun.nDofs 1]);
+        end
+
+        function f = toNodalValues(~,v,fun)
+            f = reshape(v,[flip(size(fun.fValues))])';
         end
 
         function uElas = computeElasticProblem(obj,bc)
@@ -143,10 +261,24 @@ classdef HyperelasticityComputer < handle
             s.r    = rBC;
             s.rFun = rFun;
             s.u    = uBC;
-            s.uFun = uFun;
+            s.uFun = copy(uFun);
             s.energy = energy;
+            if obj.checkOverlaps
+                s.overlaps = obj.overlapCounter.countOverlaps(uFun);
+            end
             s.numIter = iterMax;
             obj.monitor.saveData(step,s)
+        end
+
+    end
+
+    methods (Static, Access = private)
+
+        function value = readOption(cParams,name,default)
+            value = default;
+            if isfield(cParams,name)
+                value = cParams.(name);
+            end
         end
 
     end
