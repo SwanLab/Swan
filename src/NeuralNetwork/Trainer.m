@@ -1,30 +1,23 @@
 classdef Trainer < handle
-
     properties (Access = public)
         objectiveFunction
         designVariable
     end
-    
     properties (Access = protected)
         xIter
         nPlot
         isDisplayed
     end
-
     properties (Access = private)
         figureOpt
         figureCost
         costHist
         optHist
     end
-
     methods (Abstract)
         compute(obj);
     end
-
     methods (Access = public)
-
-
         function plotCostRegErr(obj,v)
             figure(obj.figureCost)
             plot(v(2:end),obj.costHist(2:end,1),'d--b','MarkerFaceColor','b')
@@ -35,38 +28,36 @@ classdef Trainer < handle
             drawnow
             hold off
         end
-
     end
-
     methods (Access = public, Static)
-
         function obj = create(cParams)
-           switch cParams.type
-               case 'SGD'
-                   obj = SGD(cParams);
-               case 'Fminunc'
-                   obj = Fminunc(cParams);
-               case 'Nesterov'
-                   obj = Nesterov(cParams);
-               case 'RMSProp'
-                   obj = RMSProp(cParams);
-           end
+            switch cParams.type
+                case 'SGD'
+                    obj = SGD(cParams);
+                case 'Adam'
+                    obj = Adam(cParams);
+                case 'Fminunc'
+                    obj = Fminunc(cParams);
+                case 'Nesterov'
+                    obj = Nesterov(cParams);
+                case 'RMSProp'
+                    obj = RMSProp(cParams);
+                otherwise
+                    error('Trainer:UnknownType','Unknown optimizer type: %s',cParams.type);
+            end
         end
     end
-
     methods (Access = protected)
-
         function init(obj,cParams)
             obj.objectiveFunction = cParams.costFunc;
             obj.designVariable = cParams.designVariable;
             obj.isDisplayed  = false;
         end
-
         function storeValues(obj,x,f,state,opt)
             switch state
                 case 'init'
                     obj.costHist = [0,0,0];
-                    obj.optHist = [0,0];      
+                    obj.optHist = [0,0];
                     obj.figureCost = figure;
                     obj.figureOpt = figure;
                 case 'iter'
@@ -82,7 +73,6 @@ classdef Trainer < handle
                     obj.optHist = [obj.optHist;oV];
             end
         end
-
         function plotEpsOpt(obj,v)
             figure(obj.figureOpt)
             plot(v(2:end),obj.optHist(2:end,2),'d--g','MarkerFaceColor','g')

@@ -258,12 +258,12 @@ classdef Data < handle
             if obj.useSeparatedData
 
                 trainData = ...
-                    readmatrix(...
-                    fullfile(obj.trainFileName));
+                    obj.readDataFile(...
+                    obj.trainFileName);
 
                 testData = ...
-                    readmatrix(...
-                    fullfile(obj.testFileName));
+                    obj.readDataFile(...
+                    obj.testFileName);
 
                 obj.XtrainPhysical = ...
                     trainData(:,obj.xFeatures);
@@ -288,15 +288,38 @@ classdef Data < handle
 
             else
 
-                f = fullfile(obj.fileName);
-
-                obj.data = readmatrix(f);
+                obj.data = ...
+                    obj.readDataFile(...
+                    obj.fileName);
 
                 obj.X = ...
                     obj.data(:,obj.xFeatures);
 
                 obj.Y = ...
                     obj.data(:,obj.yFeatures);
+
+            end
+
+        end
+
+        function M = readDataFile(~,file)
+
+            [~,~,extension] = ...
+                fileparts(file);
+
+            if strcmpi(extension,'.mat')
+
+                content = ...
+                    load(file,'data');
+
+                M = ...
+                    content.data;
+
+            else
+
+                M = ...
+                    readmatrix(...
+                    fullfile(file));
 
             end
 
