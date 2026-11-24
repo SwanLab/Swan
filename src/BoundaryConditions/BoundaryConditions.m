@@ -13,6 +13,7 @@ classdef BoundaryConditions < handle
         mesh
         dirichletInput
         periodicInput
+        masterSlaveInput
     end
     
     properties (Access = private)
@@ -40,16 +41,37 @@ classdef BoundaryConditions < handle
             obj.mesh = cParams.mesh;
             obj.dirichletInput = cParams.dirichletFun;
             obj.tractionFun = cParams.pointloadFun;
-            obj.periodicInput  = cParams.periodicFun;
+            obj.periodicInput = cParams.periodicFun;
+            obj.masterSlaveInput = [];
+            if isfield(cParams,'masterSlave')
+                obj.masterSlaveInput = cParams.masterSlave;
+            end
         end
 
-%         function createPointloadFun(obj)
-%             [dofs,vals,domain,fun] = obj.createBCFun(obj.pointloadInput);
-%             obj.traction_dofs = dofs;
-%             obj.traction_vals = vals;
-%             obj.traction_domain = domain;
-%             obj.tractionFun = fun;
-%         end
+        function createPeriodicConditions(obj)
+            obj.periodic_leader   = [];
+            obj.periodic_follower = [];
+            if ~isequal(obj.periodicInput,[])
+                obj.updatePeriodicConditions(obj.computeMasterSlave());
+            end
+        end
+
+        function MS = computeMasterSlave(obj)
+            if isempty(obj.masterSlaveInput)
+                mR = MasterSlaveRelator(obj.mesh.coord);
+                MS = mR.getRelation();
+            else
+                MS = obj.masterSlaveInput;
+            end
+        end
+
+        %         function createPointloadFun(obj)
+        %             [dofs,vals,domain,fun] = obj.createBCFun(obj.pointloadInput);
+        %             obj.traction_dofs = dofs;
+        %             obj.traction_vals = vals;
+        %             obj.traction_domain = domain;
+        %             obj.tractionFun = fun;
+        %         end
 
         function createDirichletFun(obj)
             [dofs,vals,domain,fun] = obj.createBCFun(obj.dirichletInput);
@@ -77,7 +99,7 @@ classdef BoundaryConditions < handle
 
                     dofs = [dofs; dofs_i];
                     vals = [vals; values_i];
-                    domain = @(coor) pl_domain(coor) | input(i).domain(coor);
+                    domain = @(coor) domain(coor) | input(i).domain(coor);
                     bcFun.setFValues(obj.addValues(bcFun,dofs_i,values_i));
                 end
             else
@@ -88,16 +110,16 @@ classdef BoundaryConditions < handle
             end
         end
 
-        function createPeriodicConditions(obj)
-            obj.periodic_leader   = [];
-            obj.periodic_follower = [];
-            if ~isequal(obj.periodicInput, [])
-                mR = MasterSlaveRelator(obj.mesh.coord);
-                MS = mR.getRelation();
-                obj.periodic_leader   = obj.computePeriodicNodes(MS(:,1));
-                obj.periodic_follower = obj.computePeriodicNodes(MS(:,2));
-            end
-        end
+        % function createPeriodicConditions(obj)
+        %     obj.periodic_leader   = [];
+        %     obj.periodic_follower = [];
+        %     if ~isequal(obj.periodicInput, [])
+        %         mR = MasterSlaveRelator(obj.mesh.coord);
+        %         MS = mR.getRelation();
+        %         obj.periodic_leader   = obj.computePeriodicNodes(MS(:,1));
+        %         obj.periodic_follower = obj.computePeriodicNodes(MS(:,2));
+        %     end
+        % end
         
         function perDof = computePeriodicNodes(obj,perNodes)
             nunkn = obj.dirichletFun.ndimf;

@@ -1,5 +1,5 @@
 classdef MeshCreator < handle
-    
+
     properties (Access = private)
         c
         theta
@@ -7,20 +7,20 @@ classdef MeshCreator < handle
         nodes
         T
     end
-    
+
     properties (Access = public)
         filename
         coord
         connec
         masterSlaveIndex
     end
-    
+
     methods (Access = public)
-        
+
         function obj = MeshCreator(cParams)
             obj.init(cParams);
         end
-        
+
         function computeMeshNodes(obj)
             obj.obtainDimensions();
             obj.computeNodeCoordinates();
@@ -28,120 +28,115 @@ classdef MeshCreator < handle
             obj.obtainMasterSlaveNodes();
             obj.mapCoordinates();
         end
-        
+
         function drawMesh(obj)
             obj.plotCoordinates();
         end
-        
+
         function plotIndicesOfNodes(obj)
             obj.plotVertices();
             obj.plotMasterSlaveNodes();
         end
-        
+
     end
-    
+
     methods (Access = private)
-        
+
         function init(obj,cParams)
-
             if isfield(cParams,'T')
-
-                obj.c = [1,1];
+                obj.c     = [1,1];
                 obj.theta = [0,90];
-                obj.T = cParams.T;
-
+                obj.T     = cParams.T;
             else
-
-                obj.c = cParams.c;
+                obj.c     = cParams.c;
                 obj.theta = cParams.theta;
-                obj.T = eye(2);
-
+                obj.T     = eye(2);
             end
-
-            obj.div = round(cParams.divUnit*obj.c);
+            if isfield(cParams,'div')
+                obj.div = cParams.div;
+            else
+                obj.div = round(cParams.divUnit*obj.c);
+            end
             obj.filename = cParams.filename;
-
         end
-        
+
         function obtainDimensions(obj)
             s.nvert = 2*length(obj.c);
-            s.div = obj.div;
+            s.div   = obj.div;
             a = NodesCalculator.create(s);
-            obj.nodes.vert = a.nvert;
+            obj.nodes.vert  = a.nvert;
             obj.nodes.bound = a.boundNodes;
             obj.nodes.total = a.totalNodes;
         end
-        
+
         function computeNodeCoordinates(obj)
-            s.c = obj.c;
+            s.c     = obj.c;
             s.theta = obj.theta;
-            s.div = obj.div;
+            s.div   = obj.div;
             s.nodes = obj.nodes;
             a = NodeCoordinatesComputer(s);
             a.computeCoordinates();
             obj.coord = a.totalCoord;
         end
-        
+
         function connectNodes(obj)
             s.nodes = obj.nodes;
             s.coord = obj.coord;
-            s.theta = obj.theta;
-            s.div = obj.div;
+            s.div   = obj.div;
+            s.T     = obj.T;
             a = NodesConnector(s);
             a.computeConnections();
             obj.connec = a.connec;
         end
-        
+
         function obtainMasterSlaveNodes(obj)
             s.coord = obj.coord;
             s.nodes = obj.nodes;
-            s.div = obj.div;
+            s.div   = obj.div;
             a = MasterSlaveComputer(s);
             a.computeMasterSlaveNodes();
             obj.masterSlaveIndex = a.masterSlaveIndex;
         end
 
         function mapCoordinates(obj)
-
             obj.coord = (obj.T*obj.coord')';
-
         end
 
         function writeFEMreadingArchive(obj)
-            s.filename = obj.filename;
-            s.coord = obj.coord;
-            s.connec = obj.connec;
-            s.nodes = obj.nodes;
+            s.filename         = obj.filename;
+            s.coord            = obj.coord;
+            s.connec           = obj.connec;
+            s.nodes            = obj.nodes;
             s.masterSlaveIndex = obj.masterSlaveIndex;
             a = MatlabFileWriter(s);
             a.write();
         end
-     
+
         function plotCoordinates(obj)
-            s.coord = obj.coord;
+            s.coord  = obj.coord;
             s.connec = obj.connec;
             m = Mesh.create(s);
             m.plot();
         end
-        
+
         function plotVertices(obj)
             vertexIndex(:,1) = 1:obj.nodes.vert;
-            s.coord = obj.coord;
+            s.coord  = obj.coord;
             s.connec = obj.connec;
             m = Mesh.create(s);
             m.plotNodes(vertexIndex,'blue')
         end
-        
+
         function plotMasterSlaveNodes(obj)
             masterIndex = obj.masterSlaveIndex(:,1);
             slaveIndex  = obj.masterSlaveIndex(:,2);
-            s.coord = obj.coord;
+            s.coord  = obj.coord;
             s.connec = obj.connec;
             m = Mesh.create(s);
             m.plotNodes(masterIndex,'green')
             m.plotNodes(slaveIndex,'red')
         end
-        
+
     end
 
 end
