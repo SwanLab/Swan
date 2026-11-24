@@ -13,6 +13,7 @@ classdef Tutorial_TopOpt2DDensityMacroHomogenizedNullSpace < handle
         constraint
         primalUpdater
         optimizer
+        compliance0
     end
 
     methods (Access = public)
@@ -26,11 +27,16 @@ classdef Tutorial_TopOpt2DDensityMacroHomogenizedNullSpace < handle
             obj.createElasticProblem();
             obj.createComplianceFromConstiutive();
             obj.createCompliance();
+            obj.computeInitialCompliance();
             obj.createVolumeConstraint();
             obj.createCost();
             obj.createConstraint();
             obj.createPrimalUpdater();
             obj.createOptimizer();
+        end
+
+        function J = getComplianceHistory(obj)
+            J = obj.compliance0*obj.cost.getIterationHistory();
         end
 
     end
@@ -131,6 +137,21 @@ classdef Tutorial_TopOpt2DDensityMacroHomogenizedNullSpace < handle
 
         end
 
+        function computeInitialCompliance(obj)
+
+            s.mesh = obj.mesh;
+            s.filter = obj.filter;
+            s.complainceFromConstitutive = obj.createComplianceFromConstiutive();
+            s.C = obj.C;
+            s.dC = obj.dC;
+            s.value0 = 1;
+
+            physicalCompliance = ComplianceFunctional(s);
+
+            obj.compliance0 = physicalCompliance.computeFunctionAndGradient(obj.designVariable);
+
+        end
+
         function uMesh = createBaseDomain(obj)
 
             levelSet = -ones(obj.mesh.nnodes,1);
@@ -164,7 +185,7 @@ classdef Tutorial_TopOpt2DDensityMacroHomogenizedNullSpace < handle
             s.weights = 1;
             s.Msmooth = obj.createMassMatrix();
 
-            obj.cost = Cost(s);
+            obj.cost = RecordingCost(Cost(s));
 
         end
 
@@ -188,8 +209,8 @@ classdef Tutorial_TopOpt2DDensityMacroHomogenizedNullSpace < handle
 
         function createPrimalUpdater(obj)
 
-            s.ub = 1;
-            s.lb = 0;
+            s.ub = 0.99;
+            s.lb = 1e-6;
             s.tauMax = 1000;
             s.tau = [];
 
@@ -203,7 +224,7 @@ classdef Tutorial_TopOpt2DDensityMacroHomogenizedNullSpace < handle
             s.cost = obj.cost;
             s.constraint = obj.constraint;
             s.designVariable = obj.designVariable;
-            s.maxIter = 3;
+            s.maxIter = 1000;
             s.tolerance = 1e-8;
             s.constraintCase = {'EQUALITY'};
             s.primal = 'PROJECTED GRADIENT';
