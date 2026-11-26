@@ -3,10 +3,10 @@ classdef EIFEMTraining < handle
     properties (GetAccess = public, SetAccess = private)
         refMesh
         Coarseorder
+        meshDomain
     end
 
     properties (Access = private)
-        meshDomain
         DDdofManager
         domainIndices
         tolSameNode
@@ -14,23 +14,18 @@ classdef EIFEMTraining < handle
         nSubdomains
         geometryType
         levelSet
-        unfittedMesh
         type
-        young   
-        poisson  
     end
 
     methods (Access = public)
 
         function obj = EIFEMTraining(cParams)
             obj.init(cParams);
+            obj.createTrainingMesh();
         end
 
-        function data = train(obj)
-            obj.createTrainingMesh();
+        function data = train(obj,material)
             bMesh     = obj.createBoundaryMesh();
-            material  = obj.createMaterial();
-
             uFun      = obj.createDisplacementFun();
             lambdaFun = obj.createLagrangeMultiplier(bMesh);
             coarseFun = obj.createCoarseFunctions(bMesh);
@@ -52,26 +47,6 @@ classdef EIFEMTraining < handle
             obj.tolSameNode   = 1e-11;
             obj.Coarseorder   = cParams.Coarseorder;
             obj.type          = cParams.type;
-            obj.young         = cParams.young;
-            obj.poisson       = cParams.poisson;
-        end
-
-        function material = createMaterial(obj)
-            obj.young   = 1;
-            obj.poisson = 1/3;  
-
-            N = obj.meshDomain.ndim;
-            E = ConstantFunction.create(obj.young,obj.meshDomain);
-            nu = ConstantFunction.create(obj.poisson,obj.meshDomain); 
-            lam = LameParametersConverter;
-
-            mu     = lam.computeShearFromYoungAndPoisson(E,nu);  mu = Expand(mu,4);
-            lambda = lam.computeLambdaFromYoungAndPoisson(E,nu,N);  lambda = Expand(lambda,4);
-            I      = ConstantFunction.create(eye4D(N),obj.meshDomain);
-            IxI    = ConstantFunction.create(kronEye(N),obj.meshDomain);
-            
-            material = 2*mu.*I + lambda.*IxI;
-        
         end
 
         function bMesh = createBoundaryMesh(obj)

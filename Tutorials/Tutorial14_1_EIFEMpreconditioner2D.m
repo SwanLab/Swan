@@ -52,6 +52,8 @@ classdef Tutorial14_1_EIFEMpreconditioner2D < handle
             obj.EIFEMdata.Coarseorder   = 1;
             obj.EIFEMdata.type          = 'Continuous';
             obj.tolResidual             = 1e-8;
+            obj.young                   = 1;
+            obj.poisson                 = 1/3;
         end        
 
         function createReferenceMesh(obj)
@@ -127,9 +129,6 @@ classdef Tutorial14_1_EIFEMpreconditioner2D < handle
         end
 
         function material = createMaterial(obj,mesh)
-            obj.young = 1;
-            obj.poisson    = 1/3;  
-
             N = obj.mesh.ndim;
             E = ConstantFunction.create(obj.young,mesh);
             nu = ConstantFunction.create(obj.poisson,mesh); 
@@ -137,8 +136,8 @@ classdef Tutorial14_1_EIFEMpreconditioner2D < handle
 
             mu     = lam.computeShearFromYoungAndPoisson(E,nu);  mu = Expand(mu,4);
             lambda = lam.computeLambdaFromYoungAndPoisson(E,nu,N);  lambda = Expand(lambda,4);
-            I      = ConstantFunction.create(eye4D(N),obj.mesh);
-            IxI    = ConstantFunction.create(kronEye(N),obj.mesh);
+            I      = ConstantFunction.create(eye4D(N),mesh);
+            IxI    = ConstantFunction.create(kronEye(N),mesh);
             
             material = 2*mu.*I + lambda.*IxI;    
         end
@@ -235,19 +234,17 @@ classdef Tutorial14_1_EIFEMpreconditioner2D < handle
         function data = computeTrainingData(obj)
             s         = obj.EIFEMdata;
             s.mesh    = obj.referenceMesh;
-            s.young   = obj.young;
-            s.poisson = obj.poisson;
-            training = EIFEMTraining(s);
-            data     = training.train();
+            training  = EIFEMTraining(s);
+            matDomain = obj.createMaterial(training.meshDomain);
+            data      = training.train(matDomain);
         end
 
         function EIFEoper = computeReducedOperators(obj,data)
             data.Coarseorder = obj.EIFEMdata.Coarseorder;
             data.type        = obj.EIFEMdata.type;
-            data.young       = obj.young;
-            data.poisson     = obj.poisson;
-            p        = OfflineDataProcessor(data);
-            EIFEoper = p.computeROMbasis();
+            data.material    = obj.createMaterial(obj.referenceMesh);
+            p                = OfflineDataProcessor(data);
+            EIFEoper         = p.computeROMbasis();
         end
         
         function eifem = createEIFEM(obj,dir)

@@ -7,11 +7,10 @@ classdef OfflineDataProcessor < handle
         mesh
         LHS
         Coarseorder
-        fValuesTraining
-        young   
-        poisson  
+        fValuesTraining 
         dirac
         type
+        material
     end
 
     methods (Access = public)
@@ -57,8 +56,7 @@ classdef OfflineDataProcessor < handle
             %     Add = obj.computeBoundaryModalMassMatrix(uDefFunBd,LMDefFunBd);
             %     Ldv = obj.computeBoundaryModalMassMatrix(LMdef,Vfun);
             % end
-            % T = obj.fValuesTraining;
-            % T = T./diag(T'*obj.LHS*T)';
+
             
             Kcoarse = T'*obj.LHS*T;
 
@@ -69,6 +67,7 @@ classdef OfflineDataProcessor < handle
             EIFEoper.PhiD    = PhiD;
             EIFEoper.PhiR    = PhiR;
             EIFEoper.Kfine   = obj.LHS;
+            EIFEoper.mesh    = obj.mesh;
         end
 
     end
@@ -79,17 +78,15 @@ classdef OfflineDataProcessor < handle
             obj.mesh            = cParams.mesh;
             obj.fValuesTraining = cParams.uSbd;
             obj.LHS             = cParams.LHSsbd;
-            obj.Coarseorder     = cParams.Coarseorder;
-            obj.young           = cParams.young;
-            obj.poisson         = cParams.poisson; 
+            obj.Coarseorder     = cParams.Coarseorder; 
             obj.type            = cParams.type;
+            obj.material        = cParams.material;
 
             if isfield(cParams,'dirac')
                 obj.dirac = cParams.dirac;
             else
                 obj.dirac = true;
             end
-
         end
 
         function uFun = createDispFun(obj)
@@ -321,27 +318,9 @@ classdef OfflineDataProcessor < handle
         end
 
         function K  = computeLHS(obj)          
-            C = obj.createMaterial();
+            C = obj.material;
             u = LagrangianFunction.create(obj.mesh,obj.mesh.ndim,'P1');
             K = IntegrateLHS(@(u,v) DDP(SymGrad(v),DDP(C,SymGrad(u))),u,u,obj.mesh,'Domain',2);
-        end
-
-        function material = createMaterial(obj)
-            obj.young   = 1;
-            obj.poisson = 1/3;  
-
-            N = obj.mesh.ndim;
-            E = ConstantFunction.create(obj.young,obj.mesh);
-            nu = ConstantFunction.create(obj.poisson,obj.mesh); 
-            lam = LameParametersConverter;
-
-            mu     = lam.computeShearFromYoungAndPoisson(E,nu);  mu = Expand(mu,4);
-            lambda = lam.computeLambdaFromYoungAndPoisson(E,nu,N);  lambda = Expand(lambda,4);
-            I      = ConstantFunction.create(eye4D(N),obj.mesh);
-            IxI    = ConstantFunction.create(kronEye(N),obj.mesh);
-            
-            material = 2*mu.*I + lambda.*IxI;
-        
         end
 
         function M  = computeM(obj,u)          
