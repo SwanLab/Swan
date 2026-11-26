@@ -57,7 +57,8 @@ classdef OfflineDataProcessor < handle
             %     Add = obj.computeBoundaryModalMassMatrix(uDefFunBd,LMDefFunBd);
             %     Ldv = obj.computeBoundaryModalMassMatrix(LMdef,Vfun);
             % end
-
+            % T = obj.fValuesTraining;
+            % T = T./diag(T'*obj.LHS*T)';
             
             Kcoarse = T'*obj.LHS*T;
 

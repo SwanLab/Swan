@@ -71,12 +71,6 @@ classdef CoarseFunctions < handle
             end
         end
 
-        function str = capitalize(~, str)
-            if ~isempty(str)
-                str = [upper(str(1)), str(2:end)];
-            end
-        end
-
         function f = createDiscontinuousFunction2D(obj)  
             L = obj.createBasisFunctions();
             nf = numel(obj.mesh) * obj.ndim * (obj.order + 1);
@@ -247,7 +241,102 @@ classdef CoarseFunctions < handle
             for j = k-1:-1:2, bn = [bn; 1 j]; end
         end
 
-        function bn = getAllNodes3D(order)
+        
+function bn = getAllNodes3D(order)
+            k = order + 1;
+            bn = [];
+
+            % 8 VERTICES
+            bn = [1 1 1
+                  k 1 1
+                  k k 1
+                  1 k 1
+                  1 1 k
+                  k 1 k
+                  k k k
+                  1 k k];
+
+            if order == 1
+                return;
+            end
+
+            t = 2:k-1;
+
+            % EDGE NODES (12 EDGES)
+
+            % bottom
+            for i=t, bn=[bn; i 1 1]; end
+            for j=t, bn=[bn; k j 1]; end
+            for i=fliplr(t), bn=[bn; i k 1]; end
+            for j=fliplr(t), bn=[bn; 1 j 1]; end
+
+            % top
+            for i=t, bn=[bn; i 1 k]; end
+            for j=t, bn=[bn; k j k]; end
+            for i=fliplr(t), bn=[bn; i k k]; end
+            for j=fliplr(t), bn=[bn; 1 j k]; end
+
+            % vertical
+            for z=t, bn=[bn; 1 1 z]; end
+            for z=t, bn=[bn; k 1 z]; end
+            for z=t, bn=[bn; k k z]; end
+            for z=t, bn=[bn; 1 k z]; end
+
+
+            % FACE INTERIOR NODES
+            % z=1
+            for j=t
+                for i=t
+                    bn=[bn; i j 1];
+                end
+            end
+
+            % z=k
+            for j=t
+                for i=t
+                    bn=[bn; i j k];
+                end
+            end
+
+            % y=1
+            for z=t
+                for i=t
+                    bn=[bn; i 1 z];
+                end
+            end
+
+            % y=k
+            for z=t
+                for i=t
+                    bn=[bn; i k z];
+                end
+            end
+
+            % x=1
+            for z=t
+                for j=t
+                    bn=[bn; 1 j z];
+                end
+            end
+
+            % x=k
+            for z=t
+                for j=t
+                    bn=[bn; k j z];
+                end
+            end
+
+            % VOLUME INTERIOR
+            % for z=t
+            %     for j=t
+            %         for i=t
+            %             bn=[bn; i j z];
+            %         end
+            %     end
+            % end
+        end
+
+function bn = getAllNodes3D_original(order)
             k = order + 1;
             bn = [1 1 1; k 1 1; k k 1; 1 k 1; 1 1 k; k 1 k; k k k; 1 k k];
             if order == 1, return; end
