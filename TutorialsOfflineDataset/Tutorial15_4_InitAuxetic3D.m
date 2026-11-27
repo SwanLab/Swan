@@ -5,7 +5,7 @@ clc; clear;
 
 % MESH
 s.meshSource = 'Imported';     %  Generated / Imported
-s.meshFile   = 'DEF_por3D';    % Just for imported mesh
+s.meshFile   = 'Auxetic_mesh3D';    % Just for imported mesh
 s.ndim       = 3;
 
 % MATERIAL
@@ -15,8 +15,8 @@ s.poisson       = 1/3;
 
 % TRAINING
 s.method        = 'EIFEM';     % Multiscale / EIFEM
-s.nSubdomains   = [3 3 1];
-s.domainIndices = [2 2 1];           
+s.nSubdomains   = [3 3 3];
+s.domainIndices = [2 2 3];           
 s.basisType     = 'Continuous';  % Continuous / Discontinuous
 s.coarseOrder   = 1;
 s.dirac         = true;
